@@ -146,6 +146,9 @@ enum Command {
         #[arg(long, default_value_t = 16)]
         height: u8,
     },
+    /// Write or check the genesis file of a real network
+    #[command(subcommand)]
+    Genesis(GenesisCommand),
     /// Set up and run a local test network
     #[command(subcommand)]
     Devnet(DevnetCommand),
@@ -157,6 +160,37 @@ enum WalletCommand {
     New { file: PathBuf },
     /// Show a wallet's account address
     Address { file: PathBuf },
+}
+
+#[derive(Subcommand)]
+enum GenesisCommand {
+    /// Write the genesis file of a real network: no coins, one-hour epochs,
+    /// and the launch validators as seats sharing 3 million coins of weight
+    New {
+        /// Where to write it
+        out: PathBuf,
+        /// The network's name
+        #[arg(long, default_value = "orien")]
+        name: String,
+        /// A launch validator, as NAME,ROOT,HEIGHT,ADDRESS. `orien keygen`
+        /// prints this line, with only the public part of the key. Repeat
+        /// once per validator.
+        #[arg(long = "validator", required = true)]
+        validators: Vec<String>,
+        /// The Bitcoin block announced in advance, as HEIGHT:HASH with the
+        /// hash as block explorers show it
+        #[arg(long, value_parser = parse_bitcoin_block)]
+        bitcoin: Option<BitcoinBlock>,
+        /// When the network starts, in seconds since 1970 (default: now)
+        #[arg(long)]
+        start: Option<u64>,
+        /// Seconds from one checkpoint to the next
+        #[arg(long, default_value_t = 3600)]
+        epoch_seconds: u64,
+    },
+    /// Print what a genesis file says, and its network id, so that others
+    /// can check they hold the same file
+    Show { file: PathBuf },
 }
 
 #[derive(Subcommand)]
@@ -295,6 +329,10 @@ fn run(cli: Cli) -> Result<()> {
         Command::Mine { account, threads, network } => mine(&account, threads, &network.genesis),
         Command::Node { key, data, listen, network } => node(&key, data, listen, &network.genesis),
         Command::Keygen { out, height } => keygen(&out, height),
+        Command::Genesis(GenesisCommand::New { out, name, validators, bitcoin, start, epoch_seconds }) => {
+            genesis_new(&out, &name, &validators, bitcoin, start, epoch_seconds)
+        }
+        Command::Genesis(GenesisCommand::Show { file }) => genesis_show(&load_genesis(&file)?),
         Command::Devnet(DevnetCommand::Init {
             dir,
             validators,
@@ -1057,6 +1095,120 @@ fn keygen(out: &Path, height: u8) -> Result<()> {
     println!("created {}", out.display());
     println!("root     {root}");
     println!("height   {height}");
+    println!("keep this file secret. For a launch genesis file, share only this line, with the name and address filled in:");
+    println!("  --validator \"NAME,{root},{height},HOST:PORT\"");
+    Ok(())
+}
+
+/// Reads NAME,ROOT,HEIGHT,ADDRESS.
+fn parse_validator(text: &str) -> Result<ValidatorInfo> {
+    let parts: Vec<&str> = text.split(',').map(str::trim).collect();
+    let [name, root, height, address] = parts[..] else {
+        bail!("'{text}' is not NAME,ROOT,HEIGHT,ADDRESS");
+    };
+    let root = root.parse().map_err(|_| anyhow!("'{root}' is not a 64-character key root"))?;
+    let height = height.parse().map_err(|_| anyhow!("'{height}' is not a key height"))?;
+    Ok(ValidatorInfo { name: name.into(), root, height, stake: 0, address: address.into() })
+}
+
+fn genesis_new(
+    out: &Path,
+    name: &str,
+    validators: &[String],
+    bitcoin: Option<BitcoinBlock>,
+    start: Option<u64>,
+    epoch_seconds: u64,
+) -> Result<()> {
+    if out.exists() {
+        bail!("{} already exists; refusing to overwrite a genesis file", out.display());
+    }
+    let mut infos = validators.iter().map(|text| parse_validator(text)).collect::<Result<Vec<_>>>()?;
+    // The launch seats share the seats' weight equally.
+    let each = SEAT_WEIGHT / infos.len().max(1) as u64;
+    for info in &mut infos {
+        info.stake = each;
+    }
+    let mut genesis = Genesis::new(name, infos, Vec::new());
+    genesis.epoch_seconds = epoch_seconds;
+    genesis.start_time = start.unwrap_or_else(unix_now);
+    genesis.bitcoin = bitcoin;
+    genesis.validate().map_err(|e| anyhow!("{e}"))?;
+    save_genesis(out, &genesis)?;
+    println!("written to {}", out.display());
+    genesis_show(&genesis)
+}
+
+/// Whether an address is on a private network: Tailscale, a home or office
+/// network, or this machine.
+fn private(address: &str) -> bool {
+    let host = address.rsplit_once(':').map_or(address, |(host, _)| host);
+    match host.parse::<std::net::Ipv4Addr>() {
+        Ok(ip) => {
+            let [a, b, ..] = ip.octets();
+            ip.is_private() || ip.is_loopback() || (a == 100 && (64..128).contains(&b))
+        }
+        Err(_) => host == "localhost",
+    }
+}
+
+fn genesis_show(genesis: &Genesis) -> Result<()> {
+    println!("network     '{}'", genesis.network);
+    println!("id          {}", genesis.id());
+    match genesis.bitcoin {
+        Some(block) => println!("anchored to Bitcoin block {} ({})", block.height, block.hash),
+        None => println!("anchored to no Bitcoin block"),
+    }
+    let now = unix_now();
+    let when = match genesis.start_time.cmp(&now) {
+        std::cmp::Ordering::Greater => format!("in {} minutes", (genesis.start_time - now) / 60),
+        _ => format!("{} minutes ago", (now - genesis.start_time) / 60),
+    };
+    println!("starts      {} seconds after 1970, {when}", genesis.start_time);
+    println!("epochs      a checkpoint every {} seconds", genesis.epoch_seconds);
+    println!(
+        "coins       {} handed out at the start; at most {} released for work, starting at a target of one share in {} tries",
+        coins(genesis.supply() as i128),
+        coins(genesis.cap as i128),
+        u64::MAX / genesis.first_target.max(1)
+    );
+    println!(
+        "fees        {}% of each payment, at least {} and at most {}",
+        genesis.fee.rate as f64 / 10_000.0,
+        coins(genesis.fee.min as i128),
+        coins(genesis.fee.max as i128)
+    );
+    println!(
+        "staking     at least {} coins, at most {} validators, unstaked coins wait {} epochs",
+        coins(genesis.min_stake as i128),
+        genesis.max_validators,
+        genesis.unstake_epochs
+    );
+    println!("launch validators ({}):", genesis.validators.len());
+    let total: u64 = genesis.validators.iter().map(|v| v.stake).sum();
+    for v in &genesis.validators {
+        println!(
+            "  {:<12} {:>6.2}% of the seats' weight  key {} (height {})  at {}",
+            v.name,
+            100.0 * v.stake as f64 / total.max(1) as f64,
+            v.root.short(),
+            v.height,
+            v.address
+        );
+    }
+    // Things worth a second look before anyone starts mining.
+    if genesis.bitcoin.is_none() {
+        println!("note: with no Bitcoin block, whoever holds this file before it is published could mine early");
+    }
+    if genesis.supply() > 0 {
+        println!("note: this file hands out coins at the start");
+    }
+    for v in genesis.validators.iter().filter(|v| !private(&v.address)) {
+        println!(
+            "warning: {} is at {}, which is not a private address. Connections between validators are not \
+             encrypted yet; keep them on a private network such as Tailscale.",
+            v.name, v.address
+        );
+    }
     Ok(())
 }
 

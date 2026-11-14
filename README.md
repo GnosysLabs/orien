@@ -120,6 +120,21 @@ the work done in that hour:
 `devnet init --from-nothing` starts a network with no coins at all, as the
 real one will; `--bitcoin HEIGHT:HASH` anchors it to a Bitcoin block.
 
+### Writing a launch genesis file
+
+Each launch validator makes a key on its own machine and shares only the
+public line `orien keygen` prints. The genesis file is then written from
+those lines and the Bitcoin block announced in advance:
+
+```bash
+./target/release/orien genesis new genesis.json --validator "mac,ROOT,16,100.76.239.128:7101" --validator "vps,ROOT,16,100.99.59.98:7101" --bitcoin HEIGHT:HASH
+```
+
+It hands out no coins, takes a checkpoint every hour, and gives the launch
+validators equal seats. `orien genesis show genesis.json` prints what a
+genesis file says and its network id, so that everyone can check they hold
+the same file.
+
 ### Staking a new validator
 
 Anyone can become a validator by staking at least 10,000 coins behind a
