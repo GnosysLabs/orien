@@ -109,7 +109,8 @@ pub struct Work {
 }
 
 /// The fee rule: a share of each payment, never less than `min` and never
-/// more than `max`. Stake and unstake orders pay `min`. A share of the
+/// more than `max`, for payments and locked payments. Stake, unstake and
+/// claim orders pay `min`. A share of the
 /// amount keeps the fee about the same in real money however the coin's
 /// value moves; the minimum stops floods of tiny payments, and the maximum
 /// keeps a large payment from paying far more than the work it costs.
@@ -128,7 +129,7 @@ impl Fees {
     /// The fee for an order of this kind and amount.
     pub fn on(&self, kind: &Kind, amount: u64) -> u64 {
         match kind {
-            Kind::Payment => {
+            Kind::Payment | Kind::Lock { .. } => {
                 let share = (amount as u128 * self.rate as u128 / 1_000_000) as u64;
                 share.clamp(self.min, self.max.max(self.min))
             }

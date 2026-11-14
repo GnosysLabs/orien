@@ -2,7 +2,7 @@
 //! when to vote for an order, and how a certified order changes balances.
 
 use crate::genesis::{Fees, Genesis};
-use crate::types::{AccountId, Kind, Order, SPARE_HEIGHT, SignedBy, Validator, address};
+use crate::types::{AccountId, Kind, LOCK_EPOCHS, Order, SPARE_HEIGHT, SignedBy, Validator, address, lock_hash};
 use borsh::{BorshDeserialize, BorshSerialize};
 use orien_crypto::merkle;
 use orien_crypto::{Hash32, Tag, hash};
@@ -154,6 +154,19 @@ pub enum Reject {
     /// A payment to the mint or the rewards pot, which only the checkpoint
     /// moves coins in and out of.
     ReservedAccount,
+    /// Locked payments are not open yet on this network.
+    LocksNotYet { from: u64 },
+    /// A locked payment's deadline is too soon or too far off.
+    BadDeadline { earliest: u64, latest: u64 },
+    /// A locked payment too small to pay for its own claim.
+    LockTooSmall { least: u64 },
+    /// A claim of a locked payment that is not waiting for this account,
+    /// or not for this amount.
+    NoSuchLock,
+    /// A claim whose secret does not open the lock.
+    WrongSecret,
+    /// A claim made after the locked payment's deadline.
+    LockExpired { until: u64 },
 }
 
 impl fmt::Display for Reject {
@@ -189,6 +202,16 @@ impl fmt::Display for Reject {
             Reject::ReservedAccount => {
                 f.write_str("that address belongs to the network itself (the mint, the rewards or fees pot, or forfeited stake); nobody can pay it")
             }
+            Reject::LocksNotYet { from } => write!(f, "locked payments open at epoch {from}"),
+            Reject::BadDeadline { earliest, latest } => {
+                write!(f, "a locked payment's deadline must be an epoch from {earliest} to {latest}")
+            }
+            Reject::LockTooSmall { least } => {
+                write!(f, "a locked payment must be more than {least} units, the fee its claim pays")
+            }
+            Reject::NoSuchLock => f.write_str("no locked payment of that amount is waiting for this account"),
+            Reject::WrongSecret => f.write_str("that secret does not open the lock"),
+            Reject::LockExpired { until } => write!(f, "the locked payment's time ran out at epoch {until}"),
         }
     }
 }
@@ -245,6 +268,18 @@ impl Proofs {
     }
 }
 
+/// A locked payment waiting to be claimed: `amount` taken from `from` for
+/// `to`, who receives it by revealing the secret behind `hash` before epoch
+/// `until` begins. Named by the sender and the number of the order that
+/// made it.
+#[derive(Clone, Debug, PartialEq, Eq, BorshSerialize, BorshDeserialize)]
+pub struct Escrow {
+    pub to: AccountId,
+    pub amount: u64,
+    pub hash: [u8; 32],
+    pub until: u64,
+}
+
 #[derive(Clone)]
 pub struct State {
     /// In address order, so that every validator lists them alike.
@@ -257,7 +292,21 @@ pub struct State {
     /// The key trees of validators caught cheating, in order. None of them
     /// is ever chosen again. Part of `root()` once there is any.
     banned: BTreeSet<Hash32>,
+    /// Locked payments not yet claimed or refunded, by sender and number.
+    escrows: BTreeMap<(AccountId, u64), Escrow>,
+    /// The secret each claim revealed, with the epoch it was revealed in,
+    /// by the locked payment's sender and number: the other side of a swap
+    /// reads it here. Kept for a week of epochs.
+    revealed: BTreeMap<(AccountId, u64), ([u8; 32], u64)>,
+    /// The epoch this state is in. Not part of the root: every validator
+    /// sets it alike, from the epoch it is working in.
+    epoch: u64,
+    /// The first epoch in which locked payments may be made.
+    locks_from: u64,
 }
+
+/// How many epochs a revealed secret stays readable in the state.
+pub const REVEALED_EPOCHS: u64 = 168;
 
 impl State {
     pub fn from_genesis(genesis: &Genesis) -> State {
@@ -266,7 +315,16 @@ impl State {
             .iter()
             .map(|a| (a.account, Account::holding(a.amount as i128)))
             .collect();
-        State { accounts, locks: HashMap::new(), fees: genesis.fee, banned: BTreeSet::new() }
+        State {
+            accounts,
+            locks: HashMap::new(),
+            fees: genesis.fee,
+            banned: BTreeSet::new(),
+            escrows: BTreeMap::new(),
+            revealed: BTreeMap::new(),
+            epoch: 0,
+            locks_from: 0,
+        }
     }
 
     /// What orders pay.
@@ -307,6 +365,16 @@ impl State {
             let roots: Vec<&[u8]> = self.banned.iter().map(|root| root.as_bytes().as_slice()).collect();
             leaves.push(hash(Tag::Banned, &roots));
         }
+        // So do the locked payments and revealed secrets, when there are any:
+        // a state without them has the root it had before they existed.
+        if !self.escrows.is_empty() {
+            let bytes = borsh::to_vec(&self.escrows).expect("writing to memory cannot fail");
+            leaves.push(hash(Tag::Escrows, &[&bytes]));
+        }
+        if !self.revealed.is_empty() {
+            let bytes = borsh::to_vec(&self.revealed).expect("writing to memory cannot fail");
+            leaves.push(hash(Tag::Revealed, &[&bytes]));
+        }
         merkle::Tree::of(merkle::Kind::State, &leaves)
     }
 
@@ -333,14 +401,63 @@ impl State {
 
     /// Every account, in a form `from_snapshot` reads back.
     pub fn snapshot(&self) -> Vec<u8> {
-        borsh::to_vec(&(&self.accounts, &self.banned)).expect("writing to memory cannot fail")
+        borsh::to_vec(&(&self.accounts, &self.banned, &self.escrows, &self.revealed))
+            .expect("writing to memory cannot fail")
     }
 
     /// The state a snapshot was taken of, on a network whose orders pay
     /// `fees`. No votes are promised in it.
     pub fn from_snapshot(bytes: &[u8], fees: Fees) -> io::Result<State> {
-        let (accounts, banned) = borsh::from_slice(bytes)?;
-        Ok(State { accounts, locks: HashMap::new(), fees, banned })
+        // A snapshot from before locked payments holds only the accounts and
+        // the barred keys; it reads as a state with no locked payments.
+        type Before = (BTreeMap<AccountId, Account>, BTreeSet<Hash32>);
+        type Now = (BTreeMap<AccountId, Account>, BTreeSet<Hash32>, BTreeMap<(AccountId, u64), Escrow>, BTreeMap<(AccountId, u64), ([u8; 32], u64)>);
+        let (accounts, banned, escrows, revealed) = match borsh::from_slice::<Now>(bytes) {
+            Ok(now) => now,
+            Err(_) => {
+                let (accounts, banned): Before = borsh::from_slice(bytes)?;
+                (accounts, banned, BTreeMap::new(), BTreeMap::new())
+            }
+        };
+        Ok(State { accounts, locks: HashMap::new(), fees, banned, escrows, revealed, epoch: 0, locks_from: 0 })
+    }
+
+    /// Sets the epoch this state is in. Every validator sets it alike.
+    pub fn set_epoch(&mut self, epoch: u64) {
+        self.epoch = epoch;
+    }
+
+    pub fn epoch(&self) -> u64 {
+        self.epoch
+    }
+
+    /// Sets the first epoch in which locked payments may be made.
+    pub fn set_locks_from(&mut self, epoch: u64) {
+        self.locks_from = epoch;
+    }
+
+    /// The locked payment that `from` made as order `seq`, if it is still
+    /// waiting.
+    pub fn escrow(&self, from: &AccountId, seq: u64) -> Option<&Escrow> {
+        self.escrows.get(&(*from, seq))
+    }
+
+    /// The secret that claimed the locked payment `from` made as order
+    /// `seq`, once a claim has revealed it.
+    pub fn revealed(&self, from: &AccountId, seq: u64) -> Option<[u8; 32]> {
+        self.revealed.get(&(*from, seq)).map(|(secret, _)| *secret)
+    }
+
+    /// At the checkpoint closing `epoch`: every locked payment whose time is
+    /// up goes back to its sender, and secrets revealed a week ago are let go.
+    pub fn refund_expired(&mut self, epoch: u64) {
+        let expired: Vec<_> =
+            self.escrows.iter().filter(|(_, e)| e.until <= epoch + 1).map(|(key, _)| *key).collect();
+        for key in expired {
+            let escrow = self.escrows.remove(&key).expect("listed just now");
+            self.accounts.entry(key.0).or_insert_with(|| Account::holding(0)).balance += escrow.amount as i128;
+        }
+        self.revealed.retain(|_, (_, revealed)| revealed.saturating_add(REVEALED_EPOCHS) > epoch);
     }
 
     /// The key trees of validators caught cheating, which are never chosen
@@ -365,7 +482,8 @@ impl State {
     /// Applying a certificate moves money and never creates it, so this
     /// always equals the genesis supply.
     pub fn total(&self) -> i128 {
-        self.accounts.values().map(Account::holdings).sum()
+        self.accounts.values().map(Account::holdings).sum::<i128>()
+            + self.escrows.values().map(|e| e.amount as i128).sum::<i128>()
     }
 
     /// Every account that has named a validator and has at least
@@ -495,7 +613,13 @@ impl State {
         if order.amount == 0 {
             return Err(Reject::ZeroAmount);
         }
-        let account = self.accounts.get(&order.from).ok_or(Reject::UnknownAccount)?;
+        // A payee claiming a locked payment may hold nothing yet.
+        let newcomer = Account::holding(0);
+        let account = match self.accounts.get(&order.from) {
+            Some(account) => account,
+            None if matches!(order.kind, Kind::Claim { .. }) => &newcomer,
+            None => return Err(Reject::UnknownAccount),
+        };
         if order.seq < account.seq {
             return Err(Reject::StaleSeq { current: account.seq });
         }
@@ -517,8 +641,38 @@ impl State {
         if [MINT, REWARDS, FEES, FORFEITED].contains(&order.to) {
             return Err(Reject::ReservedAccount);
         }
-        if !matches!(order.kind, Kind::Payment) && order.to != order.from {
+        if !matches!(order.kind, Kind::Payment | Kind::Lock { .. }) && order.to != order.from {
             return Err(Reject::NotOwnAccount);
+        }
+        match &order.kind {
+            Kind::Lock { until, .. } => {
+                if self.epoch < self.locks_from {
+                    return Err(Reject::LocksNotYet { from: self.locks_from });
+                }
+                let (earliest, latest) = (self.epoch + LOCK_EPOCHS.start(), self.epoch + LOCK_EPOCHS.end());
+                if !(earliest..=latest).contains(until) {
+                    return Err(Reject::BadDeadline { earliest, latest });
+                }
+                if order.amount <= self.fees.min {
+                    return Err(Reject::LockTooSmall { least: self.fees.min });
+                }
+            }
+            Kind::Claim { from, seq, secret } => {
+                if self.epoch < self.locks_from {
+                    return Err(Reject::LocksNotYet { from: self.locks_from });
+                }
+                let escrow = self.escrows.get(&(*from, *seq)).ok_or(Reject::NoSuchLock)?;
+                if escrow.to != order.from || escrow.amount != order.amount {
+                    return Err(Reject::NoSuchLock);
+                }
+                if self.epoch >= escrow.until {
+                    return Err(Reject::LockExpired { until: escrow.until });
+                }
+                if lock_hash(secret) != escrow.hash {
+                    return Err(Reject::WrongSecret);
+                }
+            }
+            _ => {}
         }
         if let Kind::Stake { validator, .. } = &order.kind
             && !validator.is_usable()
@@ -540,6 +694,8 @@ impl State {
                 }
                 fee
             }
+            // A claim's fee comes out of the locked amount.
+            Kind::Claim { .. } => 0,
             _ => order.amount.saturating_add(fee),
         };
         if account.balance < spends as i128 {
@@ -568,7 +724,10 @@ impl State {
         let sender = self.accounts.entry(order.from).or_insert_with(|| Account::holding(0));
         let fee = self.fees.on(&order.kind, order.amount);
         sender.seq += 1;
-        sender.balance -= fee as i128;
+        // A claim pays its fee out of the locked amount.
+        if !matches!(order.kind, Kind::Claim { .. }) {
+            sender.balance -= fee as i128;
+        }
         if sender.signer == Signer::First {
             sender.spare = order.spare;
         }
@@ -590,6 +749,21 @@ impl State {
                 let amount = order.amount.min(sender.staked);
                 sender.staked -= amount;
                 sender.unstaking += amount;
+            }
+            Kind::Lock { hash, until } => {
+                sender.balance -= order.amount as i128;
+                // A validator can learn of the claim before the lock: then
+                // the payee is already paid, and nothing is left to hold.
+                let key = (order.from, order.seq);
+                if !self.revealed.contains_key(&key) {
+                    let escrow = Escrow { to: order.to, amount: order.amount, hash: *hash, until: *until };
+                    self.escrows.insert(key, escrow);
+                }
+            }
+            Kind::Claim { from, seq, secret } => {
+                sender.balance += order.amount as i128 - fee as i128;
+                self.escrows.remove(&(*from, *seq));
+                self.revealed.insert((*from, *seq), (*secret, self.epoch));
             }
         }
         if fee > 0 {

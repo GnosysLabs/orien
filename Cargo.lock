@@ -460,6 +460,7 @@ dependencies = [
  "borsh",
  "orien-crypto",
  "serde",
+ "sha2",
 ]
 
 [[package]]

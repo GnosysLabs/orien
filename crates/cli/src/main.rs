@@ -999,6 +999,12 @@ fn what(order: &orien_ledger::Order) -> String {
             format!("order #{seq}: {from} staked {amount} behind the validator at {}", validator.address)
         }
         Kind::Unstake => format!("order #{seq}: {from} began releasing {amount} of its stake"),
+        Kind::Lock { until, .. } => {
+            format!("order #{seq}: {from} locked {amount} for {} until epoch {until}", order.to.short())
+        }
+        Kind::Claim { from: payer, seq: number, .. } => {
+            format!("order #{seq}: {from} claimed {amount} locked by {} (its order #{number})", payer.short())
+        }
     }
 }
 

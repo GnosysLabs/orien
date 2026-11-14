@@ -103,6 +103,10 @@ pub enum Tag {
     WalletAccount = 0x49,
     /// The list of validator keys barred for cheating, in the state root.
     Banned = 0x4A,
+    /// The locked payments waiting to be claimed, in the state root.
+    Escrows = 0x4B,
+    /// The secrets claims have revealed, in the state root.
+    Revealed = 0x4C,
 }
 
 /// Hashes `parts` under `tag`. Parts are concatenated without separators, so

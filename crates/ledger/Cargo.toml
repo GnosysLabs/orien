@@ -5,6 +5,7 @@ edition.workspace = true
 license.workspace = true
 
 [dependencies]
+sha2.workspace = true
 orien-crypto.workspace = true
 borsh.workspace = true
 serde.workspace = true

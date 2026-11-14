@@ -69,6 +69,28 @@ pub enum Kind {
     /// stay locked, and can still be taken for cheating, until the wait set
     /// in the genesis file is over. `to` must be the account itself.
     Unstake,
+    /// Locks `amount` for `to`, who can claim it by revealing the secret
+    /// whose SHA-256 is `hash`, until epoch `until` begins. Unclaimed, it goes
+    /// back to the sender at the checkpoint that closes epoch `until - 1`.
+    /// SHA-256, not BLAKE3, so that the same secret can unlock a matching
+    /// lock on Bitcoin or Ethereum: this is what makes a swap trustless.
+    Lock { hash: [u8; 32], until: u64 },
+    /// Claims the locked payment that account `from` made as order number
+    /// `seq`, by revealing its secret. Signed by the payee, from its own
+    /// account: `to` is the payee itself and `amount` the locked amount. Its
+    /// fee comes out of the locked amount, so a payee holding nothing can
+    /// claim.
+    Claim { from: AccountId, seq: u64, secret: [u8; 32] },
+}
+
+/// How many epochs a locked payment may last: at least 2, so that it is
+/// open for at least one whole epoch, and at most 720, a month of hours.
+pub const LOCK_EPOCHS: std::ops::RangeInclusive<u64> = 2..=720;
+
+/// The SHA-256 of a locked payment's secret.
+pub fn lock_hash(secret: &[u8; 32]) -> [u8; 32] {
+    use sha2::{Digest, Sha256};
+    Sha256::digest(secret).into()
 }
 
 /// The longest network address a stake order may name.

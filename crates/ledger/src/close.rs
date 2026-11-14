@@ -448,6 +448,7 @@ fn outcome_of(
 ) -> Result<State, Invalid> {
     let network = committee.network();
     let mut state = start.clone();
+    state.set_epoch(committee.epoch());
     // An account's payments must go in number order. Across accounts the
     // order makes no difference.
     let mut ordered = offered.orders();
@@ -486,6 +487,9 @@ fn outcome_of(
             }
         }
     }
+    // Locked payments whose time is up go back to their senders. Claims made
+    // in time are among the payments above, so none is refunded by mistake.
+    state.refund_expired(committee.epoch());
     // A staked validator caught cheating forfeits its stake, and earns no
     // share of the fees.
     // Its key tree is barred for good, whether it held a seat or stake.
@@ -523,6 +527,7 @@ fn outcome_of(
         }
     }
     state.settle_stakes(committee.epoch(), committee.staking().unstake_epochs);
+    state.set_epoch(committee.epoch() + 1);
     Ok(state)
 }
 

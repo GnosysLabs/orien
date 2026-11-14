@@ -16,10 +16,10 @@ pub mod types;
 
 pub use genesis::{Allocation, BitcoinBlock, Committee, Fees, Genesis, Work, Member, ValidatorInfo, VerifyError};
 pub use state::{
-    Accepted, Account, Applied, CancelError, Checked, FEES, FORFEITED, MINT, REWARDS, Proofs, Reject, Signer, State, account_root,
+    Accepted, Account, Applied, CancelError, Checked, Escrow, FEES, FORFEITED, MINT, REWARDS, Proofs, Reject, Signer, State, account_root,
     authorized,
 };
 pub use types::{
     AccountId, Certificate, Confirmation, Kind, Order, Receipt, COIN, SPARE_HEIGHT, Signature, SignedBy,
-    SignedOrder, STAKE_PROOF_LEAF, Validator, Vote, address, coins, confirmation_item, parse_coins, sign_stake_proof, stake_proof_item,
+    SignedOrder, STAKE_PROOF_LEAF, Validator, Vote, address, coins, lock_hash, LOCK_EPOCHS, confirmation_item, parse_coins, sign_stake_proof, stake_proof_item,
 };

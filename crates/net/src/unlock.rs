@@ -214,7 +214,8 @@ fn answer(wallet: &mut Wallet, limits: Limits, spent: &mut u64, request: Request
                 order.seq == seq && order.kind == kind && order.to == to && order.amount == amount
             });
             let moved = match kind {
-                Kind::Unstake => 0,
+                // Releasing stake and claiming a locked payment bring coins in.
+                Kind::Unstake | Kind::Claim { .. } => 0,
                 _ => amount,
             };
             let cost = if again { 0 } else { moved.saturating_add(fees.on(&kind, amount)) };
