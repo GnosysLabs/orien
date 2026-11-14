@@ -2,15 +2,15 @@
 //!
 //! These rules live in the `orien` command's own code today, not in the
 //! shared library, so this is a copy of them. They should move into
-//! `orien-net` once stage 4 is merged, and both places use that.
+//! `orien-net` one day, so both places use one copy.
 //!
 //! The rule that matters most: a wallet never signs two different payments
 //! under one number, because two signatures from one one-time key leak
 //! enough to forge a third.
 
 use orien_net::client::{AccountStatus, Client, Done, TransferError, Unfinished};
-use orien_net::keys::Wallet;
-use orien_ledger::{AccountId, Fees, Kind, Signature, SignedOrder, Signer};
+use orien_net::unlock::Signing;
+use orien_ledger::{AccountId, FEES, FORFEITED, Fees, Kind, MINT, REWARDS, Signature, SignedOrder, Signer};
 use serde::Serialize;
 use std::time::{Duration, Instant};
 
@@ -42,7 +42,7 @@ fn retired(status: &AccountStatus, signed: &SignedOrder) -> bool {
 
 /// Payments under the account's current number that this wallet signed
 /// and that are not final yet.
-fn unfinished(client: &Client, wallet: &Wallet, status: &AccountStatus) -> Vec<Unfinished> {
+fn unfinished(client: &Client, wallet: &Signing, status: &AccountStatus) -> Vec<Unfinished> {
     let committee = client.committee();
     let network = committee.network();
     let mut found: Vec<Unfinished> = client
@@ -66,16 +66,15 @@ fn explain(error: TransferError) -> String {
             "{error}. Nothing is lost: the payment keeps its place and nothing else can take it. \
              Press Send again to finish it."
         ),
-        other if other.closing() => format!(
-            "The network was pausing for its hourly checkpoint and did not finish in time. Nothing \
-             is lost. Press Send again in a minute to finish it."
-        ),
+        other if other.closing() => "The network was pausing for its hourly checkpoint and did not \
+             finish in time. Nothing is lost. Press Send again in a minute to finish it."
+            .to_string(),
         other => other.to_string(),
     }
 }
 
 /// Collects votes and confirmations until the payment is final.
-fn finish(client: &Client, wallet: &mut Wallet, signed: &SignedOrder, earlier: bool) -> Result<Sent, String> {
+fn finish(client: &Client, wallet: &mut Signing, signed: &SignedOrder, earlier: bool) -> Result<Sent, String> {
     let started = Instant::now();
     // A checkpoint pauses payments for a few seconds. Wait it out.
     match client.pay(signed, Duration::from_secs(90)).map_err(explain)? {
@@ -93,8 +92,13 @@ fn finish(client: &Client, wallet: &mut Wallet, signed: &SignedOrder, earlier: b
     })
 }
 
-pub fn send(client: &Client, wallet: &mut Wallet, fees: Fees, to: AccountId, amount: u64) -> Result<Sent, String> {
+pub fn send(client: &Client, wallet: &mut Signing, fees: Fees, to: AccountId, amount: u64) -> Result<Sent, String> {
     let network = *client.committee().network();
+    // The network's own accounts cannot be paid. Refuse before signing, so
+    // no one-time key is spent on a payment the network would refuse.
+    if [MINT, REWARDS, FEES, FORFEITED].contains(&to) {
+        return Err("That address belongs to the network itself, and nobody can pay it.".into());
+    }
     // Every payment carries the network's fee; without it validators refuse it.
     wallet.accept_fee(fees);
     let fee = fees.on(&Kind::Payment, amount);

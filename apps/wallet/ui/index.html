@@ -45,6 +45,23 @@
   button { font: inherit; color: inherit; }
   [hidden] { display: none !important; }
 
+  /* The website's wordmark: the sunrise mark beside ORIEN, both in the
+     website's pearl, which drifts the same way it does there. */
+  :root {
+    --brand: linear-gradient(115deg, #f4b6d4 0%, #b8c7ff 20%, #d3b6ff 38%, #a6ead6 56%, #f9dda4 74%, #f4b6d4 100%);
+  }
+  @keyframes brand-drift { 0%, 100% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } }
+  .brand { background-image: var(--brand); background-size: 300% 300%; animation: brand-drift 12s ease-in-out infinite; }
+  .wordmark { display: inline-flex; align-items: center; gap: 0.26em; line-height: 1; }
+  .wordmark .word {
+    text-transform: uppercase; letter-spacing: 0.14em; margin-right: -0.14em;
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+  }
+  .mark {
+    display: inline-block; flex: none; width: 1.08em; height: 1.08em;
+    -webkit-mask: url("mark.svg") center / contain no-repeat; mask: url("mark.svg") center / contain no-repeat;
+  }
+
   /* The living pearl: the sheen drifts slowly across, never still. */
   @keyframes drift { from { background-position: 0% 50%; } to { background-position: 300% 50%; } }
   .pearl { background: var(--pearl); background-size: 300% 100%; animation: drift 24s linear infinite; }
@@ -61,10 +78,7 @@
     display: flex; align-items: center; justify-content: center;
     -webkit-app-region: drag;
   }
-  h1 {
-    margin: 0; padding-left: 0.38em; font: 500 18px/1 "Jost", sans-serif;
-    text-transform: uppercase; letter-spacing: 0.38em; pointer-events: none;
-  }
+  h1 { margin: 0; font: 800 17px/1 "Jost", sans-serif; pointer-events: none; }
   .status {
     position: absolute; right: 22px; top: 50%; transform: translateY(-50%);
     display: flex; align-items: center; gap: 7px;
@@ -111,9 +125,7 @@
 
   /* ---- Welcome ---- */
   .welcome { justify-content: center; text-align: center; padding-bottom: 40px; }
-  .welcome .sun {
-    width: 76px; height: 38px; margin: 0 auto 26px; border-radius: 76px 76px 0 0;
-  }
+  .welcome .mark { width: 84px; height: 84px; margin: 0 auto 22px; }
   .welcome h2 { margin: 0 0 8px; font-size: 22px; font-weight: 500; }
   .welcome p { margin: 0 auto 30px; max-width: 300px; color: var(--dim); }
   .welcome .secondary { margin-top: 10px; }
@@ -272,30 +284,96 @@
   .danger { margin-top: 14px; align-self: center; border: 0; background: none; color: var(--bad); font-size: 13px; cursor: pointer; padding: 6px 10px; border-radius: 8px; }
   .danger:hover { background: #f1a9a914; }
   .done .secondary { margin-top: 10px; }
+
+  /* ---- Recovery phrase, password, restore ---- */
+  .lede { margin: -8px 4px 20px; color: var(--dim); font-size: 13px; }
+  .words {
+    margin: 0; padding: 14px 16px; list-style: none; border-radius: 18px; background: var(--surface); border: 1px solid var(--line);
+    display: grid; grid-template-columns: repeat(3, 1fr); grid-auto-flow: column; grid-template-rows: repeat(8, auto); gap: 5px 12px;
+    counter-reset: word;
+  }
+  .words li { counter-increment: word; font: 13px/1.6 ui-monospace, "SF Mono", monospace; }
+  .words li::before { content: counter(word); display: inline-block; width: 22px; color: var(--faint); font-size: 11px; }
+  .agree { display: flex; align-items: center; gap: 9px; margin: 14px 4px 0; font-size: 13px; color: var(--dim); cursor: pointer; }
+  .agree input { accent-color: #d8d3f4; width: 15px; height: 15px; }
+  .field textarea.tall { height: 96px; font-size: 13px; }
+  .welcome .link { align-self: center; }
 </style>
 </head>
 <body>
   <header data-tauri-drag-region>
-    <h1><span class="pearl-text">ORIEN</span></h1>
+    <h1 class="wordmark"><span class="mark brand"></span><span class="word brand">ORIEN</span></h1>
     <div class="status" id="status" hidden><i></i><span id="status-text"></span></div>
   </header>
 
   <main>
     <!-- First run -->
     <section class="screen welcome" id="welcome" hidden>
-      <div class="sun pearl"></div>
+      <div class="mark brand"></div>
       <h2>Welcome to Orien</h2>
-      <p>Create a wallet to hold Orien, or open one you already have.</p>
+      <p>Create a wallet to hold ORN, or restore the one you already have.</p>
       <button class="primary pearl" id="create">Create a wallet</button>
-      <button class="secondary" id="choose">Open an existing wallet</button>
+      <button class="secondary" id="go-restore">Restore with recovery phrase</button>
+      <button class="link" id="choose" style="margin-top:16px">Open a wallet file</button>
       <div class="problem" id="welcome-problem" hidden></div>
+    </section>
+
+    <!-- New wallet: the recovery phrase -->
+    <section class="screen" id="phrase" hidden>
+      <div class="topline"><h2>Your recovery phrase</h2></div>
+      <p class="lede">Write these 24 words on paper, in order, and keep them somewhere safe. They are the only way back into this wallet if this computer is lost. Anyone who sees them can spend your ORN.</p>
+      <ol class="words" id="words"></ol>
+      <div class="push"></div>
+      <label class="agree"><input type="checkbox" id="wrote"> I have written all 24 words down</label>
+      <button class="primary pearl" id="phrase-done" disabled style="margin-top:14px">Continue</button>
+    </section>
+
+    <!-- New or restored wallet: an optional password -->
+    <section class="screen" id="password" hidden>
+      <div class="topline"><h2>Add a password</h2></div>
+      <p class="lede">A password protects the wallet on this computer. Without it, anyone who gets this computer's files can spend from it. You will type it each time you send.</p>
+      <div class="field">
+        <label for="pw1">Password</label>
+        <div class="box plain"><input id="pw1" type="password" autocomplete="new-password" placeholder="At least 8 characters"></div>
+      </div>
+      <div class="field">
+        <label for="pw2">Again</label>
+        <div class="box plain"><input id="pw2" type="password" autocomplete="new-password"></div>
+        <div class="check" id="pw-check"></div>
+      </div>
+      <p class="fineprint">If you forget it, your recovery phrase still restores the wallet.</p>
+      <div class="push"></div>
+      <div class="problem" id="password-problem" hidden></div>
+      <button class="primary pearl" id="pw-set" disabled style="margin-top:14px">Set password</button>
+      <button class="secondary" id="pw-skip" style="margin-top:10px">Not now</button>
+    </section>
+
+    <!-- Restore from the recovery phrase -->
+    <section class="screen" id="restore" hidden>
+      <div class="topline">
+        <button class="back" id="restore-back" aria-label="Back"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10 3 5 8l5 5"/></svg></button>
+        <h2>Restore</h2>
+      </div>
+      <div class="field">
+        <label for="phrase-in">Recovery phrase</label>
+        <textarea id="phrase-in" class="tall" placeholder="Your 24 words, separated by spaces" spellcheck="false" autocomplete="off"></textarea>
+        <div class="check" id="phrase-check"></div>
+      </div>
+      <div class="field">
+        <label for="account">Account number</label>
+        <div class="box plain"><input id="account" type="number" min="1" value="1" inputmode="numeric"></div>
+        <div class="check">1 on your first computer, 2 on your second, and so on. Each computer uses its own number, so two never spend at once.</div>
+      </div>
+      <div class="push"></div>
+      <div class="problem" id="restore-problem" hidden></div>
+      <button class="primary pearl" id="restore-go" disabled style="margin-top:14px">Restore wallet</button>
     </section>
 
     <!-- Home -->
     <section class="screen" id="home" hidden>
       <div class="card pearl">
         <div class="label">Balance</div>
-        <div class="amount"><span class="balance" id="balance">—</span><span class="unit">tokens</span></div>
+        <div class="amount"><span class="balance" id="balance">—</span><span class="unit">ORN</span></div>
       </div>
 
       <div class="actions three">
@@ -406,6 +484,10 @@
         <div class="row"><span>Balance after</span><span id="r-after"></span></div>
       </div>
       <p class="fineprint">Payments are final within a second or two and cannot be reversed. Check the address.</p>
+      <div class="field" id="r-pw-field" hidden style="margin-top:18px">
+        <label for="r-pw">Wallet password</label>
+        <div class="box plain"><input id="r-pw" type="password" autocomplete="current-password"></div>
+      </div>
 
       <div class="push"></div>
       <div class="problem" id="review-problem" hidden></div>
@@ -497,8 +579,59 @@
   // ---- Welcome ----
   $("create").onclick = async () => {
     $("create").disabled = true;
-    try { await invoke("create_wallet"); await start(); } catch (e) { problem("welcome-problem", e); }
+    try {
+      const words = await invoke("create_wallet");
+      $("words").innerHTML = words.map((w) => `<li>${esc(w)}</li>`).join("");
+      $("wrote").checked = false; $("phrase-done").disabled = true;
+      show("phrase");
+    } catch (e) { problem("welcome-problem", e); }
     $("create").disabled = false;
+  };
+  $("wrote").onchange = () => { $("phrase-done").disabled = !$("wrote").checked; };
+  $("phrase-done").onclick = () => { $("words").innerHTML = ""; askPassword(); };
+
+  // ---- Password ----
+  function askPassword() {
+    $("pw1").value = ""; $("pw2").value = ""; checkPassword();
+    show("password"); $("pw1").focus();
+  }
+  function checkPassword() {
+    const a = $("pw1").value, b = $("pw2").value;
+    const ok = a.length >= 8 && a === b;
+    $("pw-check").textContent = !a ? "" : a.length < 8 ? "At least 8 characters." : b && a !== b ? "The two do not match." : ok ? "They match." : "";
+    $("pw-check").className = "check" + (ok ? " ok" : "");
+    $("pw-set").disabled = !ok;
+  }
+  $("pw1").oninput = checkPassword; $("pw2").oninput = checkPassword;
+  $("pw-set").onclick = async () => {
+    $("pw-set").disabled = true;
+    try { await invoke("set_password", { password: $("pw1").value }); $("pw1").value = $("pw2").value = ""; home(); }
+    catch (e) { problem("password-problem", e); $("pw-set").disabled = false; }
+  };
+  $("pw-skip").onclick = home;
+
+  // ---- Restore ----
+  $("go-restore").onclick = () => {
+    $("phrase-in").value = ""; $("account").value = "1"; checkPhrase(); show("restore"); $("phrase-in").focus();
+  };
+  $("restore-back").onclick = () => { $("phrase-in").value = ""; show("welcome"); };
+  function checkPhrase() {
+    const n = $("phrase-in").value.trim().split(/\s+/).filter(Boolean).length;
+    const account = Number($("account").value);
+    $("phrase-check").textContent = n ? `${n} of 24 words` : "";
+    $("phrase-check").className = "check" + (n === 24 ? " ok" : "");
+    $("restore-go").disabled = n !== 24 || !(Number.isInteger(account) && account >= 1);
+  }
+  $("phrase-in").oninput = checkPhrase; $("account").oninput = checkPhrase;
+  $("restore-go").onclick = async () => {
+    const button = $("restore-go");
+    button.disabled = true; button.innerHTML = '<span class="spinner"></span>Restoring';
+    try {
+      await invoke("restore_wallet", { words: $("phrase-in").value, account: Number($("account").value) });
+      $("phrase-in").value = "";
+      askPassword();
+    } catch (e) { problem("restore-problem", e); }
+    button.textContent = "Restore wallet"; checkPhrase();
   };
   $("choose").onclick = async () => {
     try { if (await invoke("choose_wallet")) await start(); } catch (e) { problem("welcome-problem", e); }
@@ -527,7 +660,7 @@
     const q = await invoke("quote", { amount: $("amount").value });
     if (ticket !== quoting) return;      // a newer keystroke has asked again
     quoted = q;
-    $("fee-line").textContent = q.problem || (q.fee ? `Network fee ${q.fee} tokens` : "");
+    $("fee-line").textContent = q.problem || (q.fee ? `Network fee ${q.fee} ORN` : "");
     $("fee-line").className = "fee-line" + (q.problem ? " bad" : "");
     $("amount").style.color = q.problem && q.fee ? "var(--bad)" : "";
     validate();
@@ -535,7 +668,7 @@
 
   function validate() {
     const has = view && view.balance !== null;
-    $("available").textContent = has ? `${view.balance} tokens available` : "";
+    $("available").textContent = has ? `${view.balance} ORN available` : "";
     $("all").hidden = !has || view.most === "0";
 
     const to = $("to").value.trim();
@@ -576,14 +709,17 @@
 
   $("to-review").onclick = () => {
     pending = { to: $("to").value.trim().toLowerCase(), amount: $("amount").value };
-    $("r-amount").textContent = `${quoted.amount} tokens`;
-    $("r-fee").textContent = `${quoted.fee} tokens`;
+    $("r-amount").textContent = `${quoted.amount} ORN`;
+    $("r-fee").textContent = `${quoted.fee} ORN`;
     $("r-to").textContent = named(pending.to) ? `${named(pending.to).name} · ${short(pending.to)}` : short(pending.to);
     $("r-to").title = pending.to;
-    $("r-after").textContent = quoted.after ? `${quoted.after} tokens` : "—";
+    $("r-after").textContent = quoted.after ? `${quoted.after} ORN` : "—";
+    $("r-pw").value = ""; $("r-pw-field").hidden = !(view && view.locked);
     show("review");
+    if (!$("r-pw-field").hidden) $("r-pw").focus();
   };
   $("review-back").onclick = () => show("send");
+  $("r-pw").onkeydown = (e) => { if (e.key === "Enter") $("confirm").click(); };
 
   // ---- Send: confirm ----
   $("confirm").onclick = async () => {
@@ -591,16 +727,18 @@
     button.disabled = true; $("review-back").disabled = true;
     button.innerHTML = '<span class="spinner"></span>Sending';
     try {
-      const sent = await invoke("send_payment", { to: pending.to, amount: String(pending.amount) });
+      const password = $("r-pw-field").hidden ? null : $("r-pw").value;
+      const sent = await invoke("send_payment", { to: pending.to, amount: String(pending.amount), password });
+      $("r-pw").value = "";
       if (sent.earlier) {
         // A payment signed earlier had to finish first; this one is not sent yet.
         show("send");
         problem("send-problem",
-          `An earlier payment of ${sent.amount_text} tokens to ${short(sent.to)} was still waiting and is now final. ` +
+          `An earlier payment of ${sent.amount_text} ORN to ${short(sent.to)} was still waiting and is now final. ` +
           `Review and send this one again.`);
         refresh();
       } else {
-        $("d-title").textContent = `${sent.amount_text} tokens sent`;
+        $("d-title").textContent = `${sent.amount_text} ORN sent`;
         $("d-save").hidden = !!named(sent.to);
         $("d-save").dataset.address = sent.to;
         $("d-detail").textContent = `to ${named(sent.to) ? named(sent.to).name : short(sent.to)} · final in ${sent.seconds < 1 ? "under a second" : sent.seconds.toFixed(1) + " s"} · fee ${sent.fee_text}`;
@@ -608,7 +746,14 @@
         refresh();
       }
     } catch (error) {
-      problem("review-problem", error);
+      const text = String(error);
+      if (text === "password: needed") {
+        $("r-pw-field").hidden = false; $("r-pw").focus();
+        problem("review-problem", "This wallet has a password. Type it to send.");
+      } else if (text === "password: wrong") {
+        $("r-pw").select();
+        problem("review-problem", "That is not this wallet's password.");
+      } else problem("review-problem", text);
     } finally {
       button.disabled = false; $("review-back").disabled = false;
       button.textContent = "Confirm and send";
