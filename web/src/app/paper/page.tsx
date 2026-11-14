@@ -156,8 +156,8 @@ export default function PaperPage() {
 endᵢ = 15 steps from startᵢ
 commitment = hash(0x02, pub_seed ‖ end₀ ‖ … ‖ end₅₀)          (32 bytes)`}</Formula>
           <p>
-            The commitment is the public key. To sign a message, its digest D = hash(0x03, pub_seed ‖ message) is cut
-            into 48 base-16 digits d₀…d₄₇ (high nibble first), followed by three checksum digits of c = Σ(15 − dᵢ). The
+            The commitment is the public key. To sign a message, its digest D = hash(0x03, pub_seed ‖ message) is computed, and
+            the first 24 bytes of D are cut into 48 base-16 digits d₀…d₄₇ (high nibble first), followed by three checksum digits of c = Σ(15 − dᵢ). The
             signature reveals the public seed and, for each of the 51 digits, the chain value dᵢ steps from its start.
             A verifier walks each revealed value the rest of the way to step 15 and recomputes the commitment.
           </p>
@@ -233,13 +233,17 @@ digest = hash(0x30, network_id ‖ borsh(order))`}</Formula>
         </Sub>
 
         <Sub title="3.3 What a validator checks">
-          <p>Before voting for an order, a validator checks, in this order, and refuses on the first failure:</p>
+          <p>
+            Before voting for an order, a validator first checks that its signature is well formed and that a stake
+            order carries a valid proof from its validator (section 5.1). Then it checks, in this order, and refuses on
+            the first failure:
+          </p>
           <ol className="list-decimal space-y-1 pl-5">
             <li>the amount is not zero, and the paying account exists;</li>
             <li>the order number is the account’s current one, not an earlier or later one;</li>
             <li>it is signed with the key the account expects;</li>
             <li>this validator has not already voted for a different order under that number;</li>
-            <li>the recipient is not one of the system’s reserved accounts;</li>
+            <li>the recipient is not the mint or the rewards account (section 3.4);</li>
             <li>a stake or unstake names the account itself, and a stake names a usable validator;</li>
             <li>
               <code>max_fee</code> covers the fee the network charges (section 7);
@@ -265,6 +269,10 @@ digest = hash(0x30, network_id ‖ borsh(order))`}</Formula>
               ['Rewards', '03…03', 'released coins waiting to be paid to miners'],
             ]}
           />
+          <p>
+            Payments to the mint and rewards accounts are refused. Coins paid to the fees account are shared among
+            validators at the next checkpoint, and coins paid to the forfeited account can never be spent again.
+          </p>
         </Sub>
       </PaperSection>
 
@@ -303,8 +311,9 @@ Vote { validator: u16, batch_path: Path, signature: TreeSignature }`}</Formula>
           </p>
           <Formula>{`Receipt { certificate, confirmations }        valid when both carry more than two thirds of the stake`}</Formula>
           <p>
-            Anyone with the genesis file and the current list of validators can check a receipt without contacting the
-            network. The second step matters at checkpoints: a payment with a receipt is known to more than two thirds
+            Anyone with the genesis file can check a receipt without contacting the network: it is checked against
+            the validators of its own epoch, which the genesis file names for the first epoch and the checkpoints name
+            after that. The second step matters at checkpoints: a payment with a receipt is known to more than two thirds
             of the validators, so it cannot be left out of the epoch’s record (section 6).
           </p>
         </Sub>
@@ -326,6 +335,13 @@ Vote { validator: u16, batch_path: Path, signature: TreeSignature }`}</Formula>
             any validator includes them in its statement at the checkpoint, and the checkpoint cancels that number
             unless one of the two orders already became final. Nothing moves, and from then on the account must sign
             with its next spare key. After all 16 spare keys are used, the account stays locked.
+          </p>
+          <p>
+            Two signatures from one one-time key reveal enough of its chains that a third order can sometimes be forged
+            from them, and such an order could gather votes before the checkpoint. Signing twice is therefore never
+            safe, and an honest wallet never does it. Spare keys protect an account against the forgery of a burned
+            key; they do not protect it from a thief who holds a copy of the whole wallet, since that copy holds the
+            spare keys too.
           </p>
         </Sub>
 
@@ -349,7 +365,7 @@ Vote { validator: u16, batch_path: Path, signature: TreeSignature }`}</Formula>
           <Formula>{`stake_proof = sign(leaf 0, hash(0x45, network_id ‖ account ‖ address))`}</Formula>
           <p>
             An unstake order releases staked coins. They stay locked, and can still be taken for cheating, for 168
-            epochs (one week), then return to the account’s spendable balance.
+            epochs (about a week, at one epoch an hour), then return to the account’s spendable balance.
           </p>
         </Sub>
 
@@ -358,8 +374,8 @@ Vote { validator: u16, batch_path: Path, signature: TreeSignature }`}</Formula>
             At each checkpoint the next epoch’s validators are chosen deterministically from the state. Accounts with at
             least <strong>10,000 ORN</strong> staked behind a usable validator are sorted by stake, largest first, ties
             broken by account address, and the first <strong>33</strong> distinct validator keys are taken. Each votes
-            with a weight equal to its stake. Validators proven to have cheated are excluded, and so is any key they
-            used.
+            with a weight equal to its stake. Validators proven to have cheated during the epoch are left out of the next epoch’s set, and so
+            is any key they used.
           </p>
         </Sub>
 
@@ -393,7 +409,7 @@ Vote { validator: u16, batch_path: Path, signature: TreeSignature }`}</Formula>
           <p>
             Proof travels in validators’ statements. At the checkpoint, a convicted staked validator loses everything its
             account holds in stake (staked, unstaking and waiting to be released), moved to the forfeited account; a
-            convicted seat loses its seat. Either way its key is barred from the validator set.
+            convicted seat loses its seat for good. Either way its key is left out of the next epoch’s validators.
           </p>
         </Sub>
       </PaperSection>
@@ -420,7 +436,7 @@ Statement { epoch, validator, log: Pin, evidence, next_key, cheats, shares }`}</
         <Sub title="6.3 The checkpoint">
           <p>
             A checkpoint merges statements from validators holding more than two thirds of the stake. The epoch’s
-            payments are the union of the logs those statements pin. Because a final payment was confirmed by more than
+            payments must include every payment in the logs those statements pin. Because a final payment was confirmed by more than
             two thirds of the stake, and any two such sets overlap in an honest validator, every final payment is in
             some merged log.
           </p>
@@ -634,13 +650,13 @@ T′ = clamp( T · 1,000 / n,  ⌊T / 4⌋,  4 · T )  otherwise`}</Formula>
           <p>
             A wallet is made from a 256-bit master secret, written down as 24 words from the standard list of 2,048
             English words that most cryptocurrency wallets use. The 24 words carry 264 bits: the secret, and an 8-bit
-            check taken from hash(0x48, master) rather than from SHA-256, so that an Orien phrase is refused by wallets
-            for other cryptocurrencies, and theirs by Orien. A word can be typed by its first four letters.
+            check taken from hash(0x48, master) rather than from SHA-256, so that an Orien phrase is almost always
+            refused by wallets for other cryptocurrencies, and theirs by Orien. A word can be typed by its first four letters.
           </p>
           <p>
             One phrase makes many accounts, one per computer: account <em>n</em> has the seed hash(0x49, master ‖
-            u32_le(n)). Two computers never share an account, so they can never sign two different orders under one
-            number.
+            u32_le(n)). Each computer should use its own account number: two computers using the same one could sign
+            two different orders under one number.
           </p>
         </Sub>
 
@@ -667,7 +683,8 @@ T′ = clamp( T · 1,000 / n,  ⌊T / 4⌋,  4 · T )  otherwise`}</Formula>
 
       <PaperSection id="releases" number={12} title="Software releases">
         <p>
-          The <strong>orien</strong> program is published for macOS, Linux and Windows on x86-64 and ARM. Each release
+          The <strong>orien</strong> program is published for macOS and Linux on x86-64 and ARM, and for Windows on
+          x86-64. Each release
           lists the SHA-256 checksum of every build in a file that is signed with the Orien release key: a key tree of
           height 10, quantum-proof like every other key in the system, whose root is built into the program. The
           signature covers hash(0x47, checksums).
@@ -684,7 +701,7 @@ T′ = clamp( T · 1,000 / n,  ⌊T / 4⌋,  4 · T )  otherwise`}</Formula>
           <ul className="list-disc space-y-2 pl-5">
             <li>
               <strong>BLAKE3 is a secure hash function</strong>: preimages and second preimages cannot be found faster
-              than by generic search, and keyed BLAKE3 is a pseudorandom function. Nothing else is assumed. There is no
+              than by generic search, and keyed BLAKE3 is a pseudorandom function. The protocol assumes nothing else. There is no
               elliptic curve, no factoring and no lattice anywhere in the protocol.
             </li>
             <li>
@@ -715,7 +732,7 @@ T′ = clamp( T · 1,000 / n,  ⌊T / 4⌋,  4 · T )  otherwise`}</Formula>
             </li>
             <li>
               <strong>Cheating is punished.</strong> Voting twice and reusing a one-time key leave signed evidence that
-              anyone can check, and a convicted validator loses its stake and its place.
+              anyone can check, and a convicted validator loses its stake and its place in the next epoch.
             </li>
           </ul>
         </Sub>
@@ -737,7 +754,8 @@ T′ = clamp( T · 1,000 / n,  ⌊T / 4⌋,  4 · T )  otherwise`}</Formula>
             <li>
               <strong>A stolen copy of a wallet</strong> can spend. The owner’s best defence is a password on the file
               and the recovery phrase kept on paper. If thief and owner both sign under one number, the account stalls
-              until the next checkpoint cancels both, then continues with a spare key.
+              until the next checkpoint cancels both. Since the thief’s copy holds the spare keys too, the owner should
+              then move what is left to a new wallet.
             </li>
             <li>
               <strong>Flooding</strong> is limited by the minimum fee on every payment, by per-address connection limits
@@ -765,7 +783,7 @@ T′ = clamp( T · 1,000 / n,  ⌊T / 4⌋,  4 · T )  otherwise`}</Formula>
           rows={[
             ['Time to finality', '162 ms median (138 to 240 ms)', '40 payments; four validators on three machines, one of them 57 ms away'],
             ['Payments per second', '950 to 1,500', 'four validators on one laptop, 100 to 250 clients at once'],
-            ['Payments covered by one validator signature', '10 to 28', 'under the same load'],
+            ['Payments covered by one validator signature', '10 to 28', 'under load, on one laptop'],
             ['A payment that runs into a checkpoint', 'about 1.1 s', 'on the three machines'],
             ['One-time signature', '1,248 bytes', ''],
             ['Receipt', '12,086 bytes', '3 of 4 votes and 3 of 4 confirmations'],
@@ -815,7 +833,7 @@ T′ = clamp( T · 1,000 / n,  ⌊T / 4⌋,  4 · T )  otherwise`}</Formula>
             ['Quorum', 'more than two thirds of the weight (3w > 2·total)'],
             ['Validators', 'at most 33'],
             ['Minimum stake', '10,000 ORN'],
-            ['Unstaking', '168 epochs (one week)'],
+            ['Unstaking', '168 epochs (about a week)'],
             ['Launch seats', '3,000,000 ORN of weight, shared equally, fading as stake arrives'],
             ['Fee', '0.1% of the amount, at least 0.000001 ORN, at most 1 ORN; stake and unstake 0.000001 ORN'],
             ['Shares wanted per epoch', '1,000'],
