@@ -59,6 +59,10 @@ pub fn sync_dir(dir: &Path) -> io::Result<()> {
 /// current epoch, so a crash leaves the validator wholly in the old epoch or
 /// wholly in the new one. A restart reads only the current epoch's folder,
 /// and so can never replay a payment that a checkpoint left out.
+/// How many epochs' state snapshots a validator keeps, its current one
+/// included.
+pub const KEPT_STATES: u64 = 3;
+
 pub struct Epochs {
     dir: PathBuf,
     current: u64,
@@ -78,6 +82,8 @@ impl Epochs {
         let epochs = Epochs { dir: dir.to_owned(), current, durable };
         fs::create_dir_all(epochs.folder(current))?;
         fs::create_dir_all(dir.join("checkpoints"))?;
+        // A crash right after a switch can have left old files behind.
+        epochs.prune()?;
         if durable {
             epochs.sync()?;
         }
@@ -152,7 +158,14 @@ impl Epochs {
 
     /// Starts the next epoch from `snapshot`, with an empty certificate log.
     pub fn advance(&mut self, snapshot: &[u8]) -> io::Result<()> {
-        let next = self.current + 1;
+        self.advance_to(self.current + 1, snapshot)
+    }
+
+    /// Moves to epoch `next`, later than the current one, starting from
+    /// `snapshot`. One step, however many epochs it skips: the epoch number
+    /// is written last, so a crash leaves the old epoch in place.
+    pub fn advance_to(&mut self, next: u64, snapshot: &[u8]) -> io::Result<()> {
+        assert!(next > self.current, "epochs only move forward");
         let folder = self.folder(next);
         // A crash during an earlier attempt can have left this folder behind.
         match fs::remove_dir_all(&folder) {
@@ -167,6 +180,41 @@ impl Epochs {
         // The one step that commits the change.
         write_replacing(&self.dir.join("epoch"), next.to_string().as_bytes(), self.durable)?;
         self.current = next;
+        self.prune()
+    }
+
+    /// Deletes what earlier epochs no longer need: their payment logs,
+    /// closing journals and sync cursors. Once a validator has moved on,
+    /// nothing reads them again: other validators only ever ask about the
+    /// current epoch, and a restart replays only the current epoch's files.
+    /// The state snapshots of the last `KEPT_STATES` epochs stay, for
+    /// validators a step or two behind; one further behind catches up by
+    /// the checkpoints and the latest state instead.
+    fn prune(&self) -> io::Result<()> {
+        let entries = match fs::read_dir(self.dir.join("epochs")) {
+            Ok(entries) => entries,
+            Err(error) if error.kind() == io::ErrorKind::NotFound => return Ok(()),
+            Err(error) => return Err(error),
+        };
+        for entry in entries {
+            let folder = entry?.path();
+            let Some(epoch) = folder.file_name().and_then(|name| name.to_str()?.parse::<u64>().ok()) else {
+                continue;
+            };
+            if epoch >= self.current {
+                continue;
+            }
+            if epoch + KEPT_STATES <= self.current {
+                fs::remove_dir_all(&folder)?;
+                continue;
+            }
+            for file in fs::read_dir(&folder)? {
+                let path = file?.path();
+                if path.file_name().is_some_and(|name| name != "state") {
+                    fs::remove_file(&path)?;
+                }
+            }
+        }
         Ok(())
     }
 
@@ -515,8 +563,9 @@ mod tests {
             assert_ne!(epochs.log(), first_log);
             assert!(!epochs.log().exists(), "the new epoch starts with no certificates");
         }
-        // The old epoch's log is left where it was.
-        assert_eq!(fs::read(&first_log).unwrap(), b"certificates of epoch 0");
+        // The old epoch's log is gone: nothing reads it once the switch is
+        // made.
+        assert!(!first_log.exists());
         let _ = fs::remove_dir_all(dir);
     }
 

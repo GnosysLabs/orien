@@ -1,7 +1,7 @@
 //! One validator's view of the ledger, and the two rules it enforces:
 //! when to vote for an order, and how a certified order changes balances.
 
-use crate::genesis::Genesis;
+use crate::genesis::{Fees, Genesis};
 use crate::types::{AccountId, Kind, Order, SPARE_HEIGHT, SignedBy, Validator, address};
 use borsh::{BorshDeserialize, BorshSerialize};
 use orien_crypto::merkle;
@@ -9,6 +9,24 @@ use orien_crypto::{Hash32, Tag, hash};
 use std::collections::{BTreeMap, HashMap};
 use std::fmt;
 use std::io;
+
+/// Where the coins of a validator caught cheating go. No key can sign for
+/// this address, so they can never be spent: they are burned, and stay
+/// counted in the supply.
+pub const FORFEITED: AccountId = Hash32([0; 32]);
+
+/// Where an epoch's fees gather until its checkpoint shares them out. No
+/// key can sign for this address either.
+pub const FEES: AccountId = Hash32([1; 32]);
+
+/// Counts the coins released so far, as a debt: its balance is minus that
+/// sum, so all balances together still add up to what the genesis file
+/// set up. No key can sign for it.
+pub const MINT: AccountId = Hash32([2; 32]);
+
+/// Where released coins wait until work shares earn them. No key can sign
+/// for it.
+pub const REWARDS: AccountId = Hash32([3; 32]);
 
 /// Which key must sign an account's next order.
 #[derive(Clone, Debug, PartialEq, Eq, BorshSerialize, BorshDeserialize)]
@@ -119,6 +137,8 @@ pub enum Reject {
     ZeroAmount,
     /// The account has already moved past this payment number.
     StaleSeq { current: u64 },
+    /// The order does not accept the network's fee.
+    FeeTooLow { fee: u64, accepted: u64 },
     /// This validator has not yet seen the account's earlier payments.
     FutureSeq { current: u64 },
     BadSignature,
@@ -131,6 +151,9 @@ pub enum Reject {
     /// is empty or too long.
     BadValidator,
     InsufficientStake { staked: u64, needed: u64 },
+    /// A payment to the mint or the rewards pot, which only the checkpoint
+    /// moves coins in and out of.
+    ReservedAccount,
 }
 
 impl fmt::Display for Reject {
@@ -145,6 +168,9 @@ impl fmt::Display for Reject {
                 write!(f, "earlier payments are missing here (account is at #{current})")
             }
             Reject::BadSignature => f.write_str("not signed with the key the account must use next"),
+            Reject::FeeTooLow { fee, accepted } => {
+                write!(f, "the fee is {fee}, and the order accepts at most {accepted}")
+            }
             Reject::InsufficientFunds { balance, needed } => {
                 write!(f, "insufficient funds: balance {balance}, needs {needed}")
             }
@@ -160,6 +186,7 @@ impl fmt::Display for Reject {
             Reject::InsufficientStake { staked, needed } => {
                 write!(f, "not enough stake: staked {staked}, needs {needed}")
             }
+            Reject::ReservedAccount => f.write_str("nobody can pay the mint or the rewards pot"),
         }
     }
 }
@@ -223,6 +250,8 @@ pub struct State {
     /// The order this validator voted for, per account and payment number.
     /// Entries exist only for payments that are not final yet.
     locks: HashMap<(AccountId, u64), Hash32>,
+    /// What orders pay, from the genesis file.
+    fees: Fees,
 }
 
 impl State {
@@ -232,7 +261,12 @@ impl State {
             .iter()
             .map(|a| (a.account, Account::holding(a.amount as i128)))
             .collect();
-        State { accounts, locks: HashMap::new() }
+        State { accounts, locks: HashMap::new(), fees: genesis.fee }
+    }
+
+    /// What orders pay.
+    pub fn fees(&self) -> Fees {
+        self.fees
     }
 
     pub fn account(&self, id: &AccountId) -> Option<&Account> {
@@ -292,16 +326,17 @@ impl State {
         borsh::to_vec(&self.accounts).expect("writing to memory cannot fail")
     }
 
-    /// The state a snapshot was taken of. No votes are promised in it.
-    pub fn from_snapshot(bytes: &[u8]) -> io::Result<State> {
-        Ok(State { accounts: borsh::from_slice(bytes)?, locks: HashMap::new() })
+    /// The state a snapshot was taken of, on a network whose orders pay
+    /// `fees`. No votes are promised in it.
+    pub fn from_snapshot(bytes: &[u8], fees: Fees) -> io::Result<State> {
+        Ok(State { accounts: borsh::from_slice(bytes)?, locks: HashMap::new(), fees })
     }
 
     /// An account that has paid out more than it holds, if there is one.
     /// A validator still catching up can see this in passing. A closed
     /// epoch must not contain it.
     pub fn overdrawn(&self) -> Option<AccountId> {
-        self.accounts.iter().find(|(_, account)| account.balance < 0).map(|(id, _)| *id)
+        self.accounts.iter().find(|(id, account)| account.balance < 0 && **id != MINT).map(|(id, _)| *id)
     }
 
     /// Every coin in every account, staked and waiting ones included.
@@ -320,6 +355,70 @@ impl State {
             .filter(|(_, account)| account.staked >= min_stake)
             .filter_map(|(id, account)| account.validator.as_ref().map(|v| (*id, v, account.staked)))
             .collect()
+    }
+
+    /// Shares out the fees gathered so far among `earners`, each an account
+    /// with its stake, in proportion to stake. What does not divide evenly,
+    /// and everything when there is nobody to pay, stays in the pot for the
+    /// next checkpoint.
+    pub fn pay_fees(&mut self, earners: &[(AccountId, u64)]) {
+        self.pay_out(FEES, earners);
+    }
+
+    /// How many units have been released so far.
+    pub fn released(&self) -> u64 {
+        self.accounts.get(&MINT).map_or(0, |mint| (-mint.balance) as u64)
+    }
+
+    /// Releases coins up to `total` released in all, into the rewards pot.
+    /// Returns how many were released now.
+    pub fn release_up_to(&mut self, total: u64) -> u64 {
+        let new = total.saturating_sub(self.released());
+        if new > 0 {
+            self.accounts.entry(MINT).or_insert_with(|| Account::holding(0)).balance -= new as i128;
+            self.accounts.entry(REWARDS).or_insert_with(|| Account::holding(0)).balance += new as i128;
+        }
+        new
+    }
+
+    /// Shares out the rewards pot among `earners`, each an account with its
+    /// count of work shares, the way `pay_fees` does.
+    pub fn pay_rewards(&mut self, earners: &[(AccountId, u64)]) {
+        self.pay_out(REWARDS, earners);
+    }
+
+    fn pay_out(&mut self, from: AccountId, earners: &[(AccountId, u64)]) {
+        let pot = self.accounts.get(&from).map_or(0, |pot| pot.balance.max(0) as u128);
+        let total: u128 = earners.iter().map(|(_, stake)| *stake as u128).sum();
+        if pot == 0 || total == 0 {
+            return;
+        }
+        let mut paid = 0i128;
+        for (account, stake) in earners {
+            let share = (pot * *stake as u128 / total) as i128;
+            if share > 0 {
+                self.accounts.entry(*account).or_insert_with(|| Account::holding(0)).balance += share;
+                paid += share;
+            }
+        }
+        if let Some(pot) = self.accounts.get_mut(&from) {
+            pot.balance -= paid;
+        }
+    }
+
+    /// Takes everything `id` has staked, including coins still waiting to
+    /// be released, and burns it.
+    pub fn forfeit(&mut self, id: &AccountId) {
+        let Some(account) = self.accounts.get_mut(id) else { return };
+        let taken = account.staked as i128
+            + account.unstaking as i128
+            + account.releases.iter().map(|(_, amount)| *amount as i128).sum::<i128>();
+        account.staked = 0;
+        account.unstaking = 0;
+        account.releases.clear();
+        if taken > 0 {
+            self.accounts.entry(FORFEITED).or_insert_with(|| Account::holding(0)).balance += taken;
+        }
     }
 
     /// Replaces the key tree of the validator `id` names, when its
@@ -390,6 +489,9 @@ impl State {
         {
             return Err(Reject::Conflict { voted: *voted });
         }
+        if order.to == MINT || order.to == REWARDS {
+            return Err(Reject::ReservedAccount);
+        }
         if !matches!(order.kind, Kind::Payment) && order.to != order.from {
             return Err(Reject::NotOwnAccount);
         }
@@ -402,12 +504,21 @@ impl State {
         // for an order is not a promise that its funds are still there: a
         // checkpoint can undo the payment that provided them, or take the
         // stake of a validator that cheated.
-        if let Kind::Unstake = order.kind {
-            if account.staked < order.amount {
-                return Err(Reject::InsufficientStake { staked: account.staked, needed: order.amount });
+        let fee = self.fees.on(&order.kind, order.amount);
+        if order.max_fee < fee {
+            return Err(Reject::FeeTooLow { fee, accepted: order.max_fee });
+        }
+        let spends = match order.kind {
+            Kind::Unstake => {
+                if account.staked < order.amount {
+                    return Err(Reject::InsufficientStake { staked: account.staked, needed: order.amount });
+                }
+                fee
             }
-        } else if account.balance < order.amount as i128 {
-            return Err(Reject::InsufficientFunds { balance: account.balance, needed: order.amount });
+            _ => order.amount.saturating_add(fee),
+        };
+        if account.balance < spends as i128 {
+            return Err(Reject::InsufficientFunds { balance: account.balance, needed: spends });
         }
         if promised.is_some() {
             return Ok(Accepted::Repeat);
@@ -430,7 +541,9 @@ impl State {
             return Err(Reject::FutureSeq { current });
         }
         let sender = self.accounts.entry(order.from).or_insert_with(|| Account::holding(0));
+        let fee = self.fees.on(&order.kind, order.amount);
         sender.seq += 1;
+        sender.balance -= fee as i128;
         if sender.signer == Signer::First {
             sender.spare = order.spare;
         }
@@ -453,6 +566,9 @@ impl State {
                 sender.staked -= amount;
                 sender.unstaking += amount;
             }
+        }
+        if fee > 0 {
+            self.accounts.entry(FEES).or_insert_with(|| Account::holding(0)).balance += fee as i128;
         }
         self.locks.remove(&(order.from, order.seq));
         Ok(Applied::New)

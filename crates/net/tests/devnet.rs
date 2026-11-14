@@ -39,6 +39,11 @@ struct Options {
     pace: Duration,
     key_reserve: u32,
     min_stake: u64,
+    /// Each launch seat's weight.
+    seat: u64,
+    /// The most coins released for work: none unless a test asks.
+    cap: u64,
+    first_target: u64,
 }
 
 impl Default for Options {
@@ -55,6 +60,9 @@ impl Default for Options {
             pace: Duration::from_millis(60),
             key_reserve: 128,
             min_stake: 10_000,
+            seat: 1,
+            cap: 0,
+            first_target: u64::MAX,
         }
     }
 }
@@ -104,7 +112,7 @@ impl TestNet {
                     name: format!("v{}", i + 1),
                     root: KeyTree::generate(key.seed, key.height).root(),
                     height: key.height,
-                    stake: 1,
+                    stake: options.seat,
                     address: listener.local_addr().unwrap().to_string(),
                 })
                 .collect(),
@@ -115,6 +123,11 @@ impl TestNet {
             min_stake: options.min_stake,
             max_validators: 33,
             unstake_epochs: 168,
+            fee: orien_ledger::Fees::NONE,
+            cap: options.cap,
+            shares_per_epoch: 1_000,
+            first_target: options.first_target,
+            bitcoin: None,
         };
         let network = genesis.id();
         let mut net = TestNet { dir, genesis, network, keys, nodes: Vec::new(), options };
@@ -202,10 +215,14 @@ impl TestNet {
     /// Stakes `amount` from wallet `from` behind validator `validator`, and
     /// waits until the stake is final.
     fn stake(&self, from: &str, validator: usize, amount: u64) {
-        let mut wallet = self.wallet(from);
-        let key = &self.keys[validator];
-        let tree = KeyTree::generate(key.seed, key.height);
         let address = self.genesis.validators[validator].address.clone();
+        self.stake_for(from, &self.keys[validator], address, amount);
+    }
+
+    /// Stakes behind the validator with this key, reached at `address`.
+    fn stake_for(&self, from: &str, key: &ValidatorKey, address: String, amount: u64) {
+        let mut wallet = self.wallet(from);
+        let tree = KeyTree::generate(key.seed, key.height);
         let proof = sign_stake_proof(&tree, &self.network, &wallet.address(), &address);
         let kind = Kind::Stake { validator: Validator { root: tree.root(), height: key.height, address }, proof };
         let client = self.client();
@@ -1548,4 +1565,230 @@ fn validators_leave_the_list_and_come_back_with_their_stake() {
     net.pay_through("bob", carol, 7);
     net.wait_until_level();
     assert_eq!(net.view(3, &carol).balance, 12);
+}
+
+#[test]
+fn a_validator_outside_the_genesis_file_joins_once_staked() {
+    // Seats heavy enough that a newcomer's stake does not push them out.
+    let options = Options { epoch: 1, min_stake: 10, seat: 1_000, ..Options::default() };
+    let net = TestNet::start_with("newcomer", options);
+    let key = ValidatorKey { seed: [99; 32], height: net.options.height };
+    let listener = TcpListener::bind("127.0.0.1:0").unwrap();
+    let address = listener.local_addr().unwrap().to_string();
+    let config = NodeConfig {
+        sync_interval: net.options.sync,
+        close_pace: net.options.pace,
+        batch_window: net.options.window,
+        ..NodeConfig::new(net.genesis.clone(), key.clone(), net.dir.join("data-new"))
+    };
+    let newcomer = Node::start(config, Some(listener)).unwrap();
+    assert_eq!(newcomer.index, None);
+    let info = |address: &str| match rpc(address, &Request::Info, Duration::from_secs(5)).unwrap() {
+        Response::Info(info) => info,
+        other => panic!("unexpected answer: {other:?}"),
+    };
+    assert_eq!(info(&address).validator, None, "not chosen yet");
+
+    // It follows the network while outside the list...
+    let carol = net.address("carol");
+    net.pay_through("alice", carol, 5);
+    wait_until("the newcomer follows the checkpoints", || info(&address).epoch >= net.info(0).epoch);
+
+    // ...and is one of the validators once a stake gets it chosen. It then
+    // takes part in closing every epoch, and holds what everyone holds.
+    net.stake_for("bob", &key, address.clone(), 100);
+    wait_until("the newcomer is chosen", || info(&address).validator == Some(4));
+    let joined = info(&address).epoch;
+    wait_until("two more epochs close with it", || net.info(0).epoch >= joined + 2);
+
+    // A wallet that follows the checkpoints asks it to vote too.
+    let client = net.client();
+    let mut wallet = net.wallet("alice");
+    let status = client.account(&wallet.address(), wallet.next_seq());
+    let signed = wallet.sign_order(status.seq, carol, 7, status.signer.as_ref(), &net.network).unwrap();
+    wait_until("the newcomer votes for a payment", || {
+        client.follow();
+        client.endpoints().contains(&address) && client.collect_votes(&signed).0.contains_key(&4)
+    });
+    while client.pay(&signed, Duration::from_secs(10)).is_err() {
+        client.follow();
+    }
+    wallet.confirm(status.seq).unwrap();
+    let epoch = net.wait_until_level();
+    wait_until("the newcomer holds the same accounts", || {
+        let root = |response: Response| match response {
+            Response::Root(root) => Some(root),
+            _ => None,
+        };
+        let theirs = root(net.ask(0, &Request::Root));
+        let its = root(rpc(&address, &Request::Root, Duration::from_secs(5)).unwrap());
+        info(&address).epoch == epoch && its.is_some() && its == theirs
+    });
+    newcomer.stop();
+}
+
+#[test]
+fn a_validator_that_signs_twice_with_one_key_loses_its_stake() {
+    let options = Options { crowd: 0, epoch: 2, min_stake: 10, ..Options::default() };
+    let net = TestNet::start_with("cheat", options);
+    net.stake("alice", 0, 100);
+    net.stake("bob", 1, 200);
+    let places = || -> Vec<Option<u16>> { net.running().iter().map(|v| net.info(*v).validator).collect() };
+    wait_until("only v1 and v2 are validators", || places() == [Some(1), Some(0), None, None]);
+    let client = net.client();
+    let alice = net.address("alice");
+    let staked = |client: &Client| {
+        client.follow();
+        client.proven(&alice).map_or(0, |account| account.staked)
+    };
+    assert_eq!(staked(&client), 100);
+
+    // v1 votes on a payment as usual. Then, playing a dishonest v1, the
+    // test signs a different batch with the very key v1 used, and hands the
+    // result to v2 as if it were a certificate.
+    let tree = KeyTree::generate(net.keys[0].seed, net.keys[0].height);
+    let carol = net.address("carol");
+    wait_until("v1 is caught", || {
+        let paid = net.pay_through("bob", carol, 1);
+        let Done::Receipt(done) = paid else { return false };
+        let real = done.receipt.certificate;
+        let committee = { client.follow(); client.committee() };
+        let Some(vote) = real.votes.iter().find(|vote| vote.validator == 1) else { return false };
+        let digest = real.order.digest(&net.network);
+        let batch = orien_crypto::merkle::Tree::build(&[digest, Hash32([7; 32])]);
+        let message = committee.batch_message(&batch.root());
+        let signature = tree.sign_with_leaf(vote.signature.leaf, message.as_bytes());
+        let forged = orien_ledger::Vote { validator: 1, batch_path: batch.path(0), signature };
+        let handed = orien_ledger::Certificate { votes: vec![forged], ..real };
+        let _ = net.ask(1, &Request::SubmitCertificate(handed));
+        // Caught once the next checkpoint drops it from the list.
+        thread::sleep(Duration::from_millis(2500));
+        net.info(0).validator.is_none()
+    });
+
+    // Its stake is gone, burned, and it is no longer a validator.
+    wait_until("alice's stake is burned", || staked(&client) == 0);
+    assert_eq!(client.proven(&orien_ledger::FORFEITED).map(|account| account.balance), Some(100));
+    assert_eq!(places()[..2], [None, Some(0)], "v1 is out; v2 is now the only validator");
+}
+
+#[test]
+fn work_earns_coins_at_the_next_checkpoint() {
+    // Two-second epochs release about a coin each, and one try in 64 makes
+    // a share.
+    let options = Options { epoch: 2, cap: orien_ledger::release::CAP, first_target: u64::MAX >> 6, ..Options::default() };
+    let net = TestNet::start_with("mining", options);
+    let carol = net.address("carol");
+    let client = net.client();
+    let earned = |client: &Client| {
+        client.follow();
+        client.proven(&carol).map_or(0, |account| account.balance)
+    };
+    assert_eq!(earned(&client), 0, "carol starts with nothing");
+
+    // Mine for carol: ask for the seed and target, find a few shares and
+    // hand them in, until a checkpoint has paid her.
+    let mut from = 0u64;
+    wait_until("carol is paid for her work", || {
+        client.follow();
+        let Some((_, seed, target)) = client.work() else { return false };
+        let shares: Vec<orien_ledger::close::Share> = (from..)
+            .map(|nonce| orien_ledger::close::Share { account: carol, nonce })
+            .filter(|share| share.counts(&seed, target))
+            .take(5)
+            .collect();
+        from = shares.last().map_or(from, |share| share.nonce + 1);
+        for share in shares {
+            assert!(client.submit_share(share) >= 3, "validators take the share");
+        }
+        thread::sleep(Duration::from_millis(500));
+        earned(&client) > 0
+    });
+    let paid = earned(&client);
+    println!("carol earned {} coins for her work", orien_ledger::coins(paid));
+    // Each validator agrees on what she holds.
+    net.wait_until_level();
+}
+
+#[test]
+fn a_validator_keeps_only_the_current_epochs_logs() {
+    let net = TestNet::with_epochs("prune", 1);
+    let bob = net.address("bob");
+    // What a validator holds besides its state snapshots, in bytes.
+    let held = |v: usize| -> (u64, Vec<String>) {
+        let epochs = net.dir.join(format!("data-{v}")).join("epochs");
+        let current = net.info(v).epoch;
+        let (mut bytes, mut old) = (0, Vec::new());
+        for folder in fs::read_dir(&epochs).unwrap() {
+            let folder = folder.unwrap().path();
+            let epoch: u64 = folder.file_name().unwrap().to_str().unwrap().parse().unwrap();
+            for file in fs::read_dir(&folder).unwrap() {
+                let file = file.unwrap();
+                let name = file.file_name().into_string().unwrap();
+                if name == "state" {
+                    continue;
+                }
+                if epoch < current {
+                    old.push(format!("{epoch}/{name}"));
+                }
+                bytes += file.metadata().unwrap().len();
+            }
+        }
+        (bytes, old)
+    };
+    let mut sizes = Vec::new();
+    for _ in 0..10 {
+        net.pay_through("alice", bob, 1);
+        // Everything held right after a payment: all logs, of all epochs.
+        sizes.push(held(0).0);
+        let epoch = net.info(0).epoch;
+        net.wait_for_epoch(epoch + 1);
+        // Once a switch is done, earlier epochs keep only their snapshots.
+        wait_until("earlier epochs keep only their snapshots", || held(0).1.is_empty());
+    }
+    println!("logs held after each epoch, in bytes: {sizes:?}");
+    let epochs = net.info(0).epoch;
+    assert!(epochs >= 10, "{epochs} epochs closed");
+    // Ten epochs in, a validator holds no more than in the first: the logs
+    // do not pile up.
+    assert!(sizes.iter().all(|size| *size > 0), "{sizes:?}");
+    let most = *sizes.iter().max().unwrap();
+    assert!(most < 3 * sizes[0], "{sizes:?}");
+}
+
+#[test]
+fn a_validator_away_for_many_epochs_catches_up_by_the_checkpoints() {
+    let mut net = TestNet::with_epochs("jump", 1);
+    let bob = net.address("bob");
+    net.pay_through("alice", bob, 5);
+    let left = net.info(3).epoch;
+    net.stop(3);
+
+    // The others carry on for a good while, with payments, and drop the
+    // snapshots of the epochs v4 is missing.
+    for _ in 0..3 {
+        net.pay_through("alice", bob, 1);
+    }
+    let now = net.info(0).epoch;
+    net.wait_for_epoch(now.max(left + 8));
+    let missed = net.dir.join("data-0").join("epochs").join((left + 1).to_string());
+    wait_until("the others no longer hold the state v4 would need next", || !missed.exists());
+
+    // Back on, v4 cannot take the next epoch's state from anyone. It follows
+    // the checkpoints instead, takes the latest state, and is level with
+    // the others: same epoch, same balances.
+    net.restart(3);
+    net.wait_until_level();
+    let caught_up = net.info(3).epoch;
+    println!("v4 left at epoch {left} and is back at epoch {caught_up}");
+    assert!(caught_up >= left + 8);
+    // It saved the checkpoints it skipped, so it can show them to others.
+    let saved = |epoch: u64| net.dir.join("data-3").join("checkpoints").join(epoch.to_string()).exists();
+    assert!((left..caught_up).all(saved));
+    // And it works as a validator again.
+    let done = net.pay_through("bob", net.address("carol"), 2);
+    if let Done::Receipt(done) = done {
+        assert!(done.receipt.certificate.votes.len() >= 3);
+    }
+    net.wait_until_level();
 }

@@ -33,6 +33,11 @@ fn genesis(balances: &[(u8, u64)]) -> Genesis {
         min_stake: 10_000,
         max_validators: 33,
         unstake_epochs: 168,
+        fee: orien_ledger::Fees::NONE,
+        cap: 0,
+        shares_per_epoch: 1_000,
+        first_target: u64::MAX,
+        bitcoin: None,
     }
 }
 
@@ -123,7 +128,7 @@ fn a_snapshot_restores_the_same_state() {
     let state = applied(&genesis, &[&pay(1, 0, 2, 10), &pay(2, 0, 3, 150)]);
     assert_eq!(state.account(&id(2)).unwrap().balance, -40, "a validator catching up can dip below zero");
 
-    let mut restored = State::from_snapshot(&state.snapshot()).unwrap();
+    let mut restored = State::from_snapshot(&state.snapshot(), state.fees()).unwrap();
     assert_eq!(restored.root(), state.root());
     assert_eq!(restored.accounts(), state.accounts());
     assert_eq!(restored.account(&id(2)), state.account(&id(2)));
@@ -134,7 +139,7 @@ fn a_snapshot_restores_the_same_state() {
     restored.apply(&next).unwrap();
     assert_eq!(restored.root(), original.root());
 
-    assert!(State::from_snapshot(&[1, 2, 3]).is_err());
+    assert!(State::from_snapshot(&[1, 2, 3], orien_ledger::Fees::NONE).is_err());
 }
 
 #[test]

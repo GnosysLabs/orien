@@ -2,8 +2,8 @@ use anyhow::{Context, Result, anyhow, bail};
 use clap::{Args, Parser, Subcommand};
 use orien_crypto::keytree::KeyTree;
 use orien_ledger::{
-    AccountId, Allocation, Certificate, Genesis, Kind, Receipt, Signature, SignedOrder, Validator, ValidatorInfo,
-    sign_stake_proof,
+    AccountId, Allocation, BitcoinBlock, COIN, Certificate, Genesis, Kind, Receipt, Signature, SignedOrder, Validator, ValidatorInfo,
+    coins, parse_coins, sign_stake_proof,
 };
 use orien_ledger::Signer;
 use orien_net::client::{AccountStatus, Client, Done, Head, TransferError, Unfinished};
@@ -49,7 +49,8 @@ enum Command {
         /// Recipient: an account address or a wallet file
         #[arg(long)]
         to: String,
-        #[arg(long)]
+        /// In coins, with up to nine decimals: 12 or 0.25
+        #[arg(long, value_parser = parse_coins)]
         amount: u64,
         /// Save the proof of payment to this file
         #[arg(long)]
@@ -62,7 +63,8 @@ enum Command {
     Stake {
         #[arg(short, long)]
         wallet: PathBuf,
-        #[arg(long)]
+        /// In coins, with up to nine decimals: 12 or 0.25
+        #[arg(long, value_parser = parse_coins)]
         amount: u64,
         /// The validator's key file. Its first one-time key signs that the
         /// validator backs this stake; nothing else ever uses that key.
@@ -79,7 +81,8 @@ enum Command {
     Unstake {
         #[arg(short, long)]
         wallet: PathBuf,
-        #[arg(long)]
+        /// In coins, with up to nine decimals: 12 or 0.25
+        #[arg(long, value_parser = parse_coins)]
         amount: u64,
         #[command(flatten)]
         network: Network,
@@ -104,6 +107,17 @@ enum Command {
         #[command(flatten)]
         network: Network,
     },
+    /// Do proof-of-work for an account, which earns it a share of the coins
+    /// each checkpoint releases. Runs until stopped with Ctrl-C.
+    Mine {
+        /// The account to be paid: a wallet file or an address
+        account: String,
+        /// How many processor cores to use (default: all of them)
+        #[arg(long)]
+        threads: Option<usize>,
+        #[command(flatten)]
+        network: Network,
+    },
     /// Show every validator's state
     Status {
         #[command(flatten)]
@@ -117,7 +131,8 @@ enum Command {
         /// Directory for this validator's data
         #[arg(short, long)]
         data: PathBuf,
-        /// Address to listen on (default: this validator's address in the genesis file)
+        /// Address to listen on (default: this validator's address in the
+        /// genesis file; needed for a validator that joins by stake)
         #[arg(short, long)]
         listen: Option<String>,
         #[command(flatten)]
@@ -131,6 +146,9 @@ enum Command {
         #[arg(long, default_value_t = 16)]
         height: u8,
     },
+    /// Write or check the genesis file of a real network
+    #[command(subcommand)]
+    Genesis(GenesisCommand),
     /// Set up and run a local test network
     #[command(subcommand)]
     Devnet(DevnetCommand),
@@ -142,6 +160,37 @@ enum WalletCommand {
     New { file: PathBuf },
     /// Show a wallet's account address
     Address { file: PathBuf },
+}
+
+#[derive(Subcommand)]
+enum GenesisCommand {
+    /// Write the genesis file of a real network: no coins, one-hour epochs,
+    /// and the launch validators as seats sharing 3 million coins of weight
+    New {
+        /// Where to write it
+        out: PathBuf,
+        /// The network's name
+        #[arg(long, default_value = "orien")]
+        name: String,
+        /// A launch validator, as NAME,ROOT,HEIGHT,ADDRESS. `orien keygen`
+        /// prints this line, with only the public part of the key. Repeat
+        /// once per validator.
+        #[arg(long = "validator", required = true)]
+        validators: Vec<String>,
+        /// The Bitcoin block announced in advance, as HEIGHT:HASH with the
+        /// hash as block explorers show it
+        #[arg(long, value_parser = parse_bitcoin_block)]
+        bitcoin: Option<BitcoinBlock>,
+        /// When the network starts, in seconds since 1970 (default: now)
+        #[arg(long)]
+        start: Option<u64>,
+        /// Seconds from one checkpoint to the next
+        #[arg(long, default_value_t = 3600)]
+        epoch_seconds: u64,
+    },
+    /// Print what a genesis file says, and its network id, so that others
+    /// can check they hold the same file
+    Show { file: PathBuf },
 }
 
 #[derive(Subcommand)]
@@ -170,6 +219,14 @@ enum DevnetCommand {
         /// hour; a short one lets you watch checkpoints happen.
         #[arg(long, default_value_t = 60)]
         epoch_seconds: u64,
+        /// Hand out no coins: every coin comes from mining, as on the real
+        /// network. Without it, alice and bob start with a million each.
+        #[arg(long)]
+        from_nothing: bool,
+        /// Anchor the network to a Bitcoin block, as HEIGHT:HASH with the
+        /// hash as block explorers show it. Nobody can mine before it.
+        #[arg(long, value_parser = parse_bitcoin_block)]
+        bitcoin: Option<BitcoinBlock>,
     },
     /// Run every validator of a local network in this process
     Run {
@@ -186,7 +243,7 @@ enum DevnetCommand {
         /// Wallet that is paid
         #[arg(long, default_value = "carol")]
         to: String,
-        #[arg(long, default_value_t = 250)]
+        #[arg(long, default_value = "250", value_parser = parse_coins)]
         amount: u64,
     },
     /// Try to cheat: sign two different payments with the same number
@@ -269,8 +326,13 @@ fn run(cli: Cli) -> Result<()> {
         }
         Command::Verify { receipt, network } => verify(&receipt, &network.genesis),
         Command::Status { network } => status(&network.genesis),
+        Command::Mine { account, threads, network } => mine(&account, threads, &network.genesis),
         Command::Node { key, data, listen, network } => node(&key, data, listen, &network.genesis),
         Command::Keygen { out, height } => keygen(&out, height),
+        Command::Genesis(GenesisCommand::New { out, name, validators, bitcoin, start, epoch_seconds }) => {
+            genesis_new(&out, &name, &validators, bitcoin, start, epoch_seconds)
+        }
+        Command::Genesis(GenesisCommand::Show { file }) => genesis_show(&load_genesis(&file)?),
         Command::Devnet(DevnetCommand::Init {
             dir,
             validators,
@@ -280,12 +342,15 @@ fn run(cli: Cli) -> Result<()> {
             addresses,
             name,
             epoch_seconds,
+            from_nothing,
+            bitcoin,
         }) => {
             let addresses = match addresses.is_empty() {
                 true => (0..validators).map(|i| format!("{host}:{}", base_port as usize + i)).collect(),
                 false => addresses,
             };
-            devnet_init(&dir, &name, &addresses, height, epoch_seconds)
+            let start = Start { epoch_seconds, from_nothing, bitcoin };
+            devnet_init(&dir, &name, &addresses, height, start)
         }
         Command::Devnet(DevnetCommand::Run { dir }) => devnet_run(&dir),
         Command::Devnet(DevnetCommand::Interrupt { dir, wallet, to, amount }) => {
@@ -423,10 +488,10 @@ fn describe_unfinished(client: &Client, all: &[Unfinished], one: &Unfinished, wa
         "{}  payment #{}: {} to {}, votes cover {} of {} stake",
         one.digest.short(),
         order.seq,
-        order.amount,
+        coins(order.amount as i128),
         order.to.short(),
-        one.stake,
-        client.committee().total_stake()
+        coins(one.stake as i128),
+        coins(client.committee().total_stake() as i128)
     );
     if !client.can_still_finish(all, one) {
         line.push_str(", can no longer become final");
@@ -475,7 +540,7 @@ fn balance(account: &str, genesis: &Path) -> Result<()> {
     }
     println!("account        {id}");
     match status.spendable {
-        Some(balance) => println!("balance        {balance}"),
+        Some(balance) => println!("balance        {}", coins(balance)),
         None => println!("balance        unknown (too few validators are caught up)"),
     }
     println!("payments made  {}", status.seq);
@@ -629,9 +694,11 @@ fn finish(client: &Client, wallet: &mut Wallet, signed: &SignedOrder, receipt_fi
 /// `kind` makes the order's kind once the wallet's account is known.
 /// One line saying what a final order did.
 fn what(order: &orien_ledger::Order) -> String {
-    let (seq, amount, from) = (order.seq, order.amount, order.from.short());
+    let (seq, amount, from) = (order.seq, coins(order.amount as i128), order.from.short());
     match &order.kind {
-        Kind::Payment => format!("payment #{seq}: {amount} from {from} to {}", order.to.short()),
+        Kind::Payment => {
+            format!("payment #{seq}: {amount} from {from} to {} (fee {})", order.to.short(), coins(order.max_fee as i128))
+        }
         Kind::Stake { validator, .. } => {
             format!("order #{seq}: {from} staked {amount} behind the validator at {}", validator.address)
         }
@@ -651,6 +718,7 @@ fn submit(
     let (genesis, client) = connect(genesis_file)?;
     let network = genesis.id();
     let mut wallet = Wallet::load(wallet_file)?;
+    wallet.accept_fee(genesis.fee);
     let to = to.unwrap_or(wallet.address());
     let kind = kind(&wallet.address(), &genesis)?;
     let status = read_account(&client, &wallet)?;
@@ -692,8 +760,13 @@ fn submit(
         // Validators check the stake an unstake order draws on.
         [] if kind == Kind::Unstake => {}
         [] => match status.spendable {
-            Some(balance) if balance < amount as i128 => {
-                bail!("insufficient funds: balance is {balance}, payment is {amount}")
+            Some(balance) if balance < amount as i128 + genesis.fee.on(&kind, amount) as i128 => {
+                bail!(
+                    "insufficient funds: balance is {}, payment is {} and the fee {}",
+                    coins(balance),
+                    coins(amount as i128),
+                    coins(genesis.fee.on(&kind, amount) as i128)
+                )
             }
             None => bail!("too few validators are caught up on this account; try again shortly"),
             _ => {}
@@ -734,6 +807,7 @@ fn resume(wallet_file: &Path, pick: Option<&str>, receipt_file: Option<&Path>, g
     let (genesis, client) = connect(genesis_file)?;
     let network = genesis.id();
     let mut wallet = Wallet::load(wallet_file)?;
+    wallet.accept_fee(genesis.fee);
     let status = read_account(&client, &wallet)?;
     let seq = status.seq;
     drop_cancelled(&mut wallet, &status)?;
@@ -768,7 +842,7 @@ fn resume(wallet_file: &Path, pick: Option<&str>, receipt_file: Option<&Path>, g
     };
 
     let order = &chosen.signed.order;
-    println!("finishing payment #{seq}: {} to {}", order.amount, order.to.short());
+    println!("finishing payment #{seq}: {} to {}", coins(order.amount as i128), order.to.short());
     if wallet.pending().is_none_or(|own| own.order != *order) {
         wallet.adopt(&chosen.signed, &network)?;
     }
@@ -847,7 +921,26 @@ fn status(genesis: &Path) -> Result<()> {
     );
     println!(
         "staking: at least {} coins to become a validator, at most {} validators, unstaked coins wait {} epochs",
-        genesis.min_stake, genesis.max_validators, genesis.unstake_epochs
+        coins(genesis.min_stake as i128),
+        genesis.max_validators,
+        genesis.unstake_epochs
+    );
+    let fee = genesis.fee;
+    println!(
+        "fees: {}% of each payment, at least {} and at most {}; stake and unstake orders pay {}",
+        fee.rate as f64 / 10_000.0,
+        coins(fee.min as i128),
+        coins(fee.max as i128),
+        coins(fee.min as i128)
+    );
+    // Coins released by the checkpoints so far, which the mint counts as a
+    // debt.
+    let released = client.proven(&orien_ledger::MINT).map_or(0, |mint| -mint.balance);
+    println!(
+        "coins: {} released for work so far, of at most {}{}",
+        coins(released),
+        coins(genesis.cap as i128),
+        genesis.bitcoin.map_or(String::new(), |block| format!("; started from Bitcoin block {}", block.height))
     );
     // Who votes this epoch, as the checkpoints say. The launch seats come
     // first, in the genesis file's order.
@@ -861,16 +954,16 @@ fn status(genesis: &Path) -> Result<()> {
             Some(account) => format!("staked by {}", account.short()),
         };
         println!(
-            "  {:<26} {:>6.2}% of the vote  {:>12} stake  at {}",
+            "  {:<26} {:>6.2}% of the vote  {:>16} stake  at {}",
             who,
             100.0 * member.stake as f64 / total,
-            member.stake,
+            coins(member.stake as i128),
             member.address
         );
     }
-    println!("the launch seats' servers:");
+    println!("their servers:");
     println!(
-        "{:<6} {:<22} {:>7} {:>8} {:>9} {:>16}  {:<8}",
+        "{:<14} {:<22} {:>7} {:>8} {:>9} {:>16}  {:<8}",
         "name", "address", "epoch", "accounts", "payments", "signing keys", "state"
     );
     let roots = client.roots();
@@ -882,12 +975,12 @@ fn status(genesis: &Path) -> Result<()> {
         .filter(|(info, _)| info.as_ref().is_ok_and(|info| info.network == genesis.id()))
         .filter_map(|(_, root)| root.as_ref())
         .collect();
-    for ((validator, info), root) in genesis.validators.iter().zip(infos).zip(&roots) {
+    for ((address, info), root) in client.endpoints().iter().zip(infos).zip(&roots) {
         match info {
             Ok(info) if info.network == genesis.id() => println!(
-                "{:<6} {:<22} {:>7} {:>8} {:>9} {:>16}  {:<8}{}",
-                validator.name,
-                validator.address,
+                "{:<14} {:<22} {:>7} {:>8} {:>9} {:>16}  {:<8}{}",
+                info.name,
+                address,
                 info.epoch,
                 info.accounts,
                 info.certificates,
@@ -895,8 +988,8 @@ fn status(genesis: &Path) -> Result<()> {
                 root.map_or("-".into(), |root| root.short()),
                 if info.closing { "  closing the epoch" } else { "" }
             ),
-            Ok(_) => println!("{:<6} {:<22} serves a different network", validator.name, validator.address),
-            Err(error) => println!("{:<6} {:<22} unreachable ({error})", validator.name, validator.address),
+            Ok(_) => println!("{:<14} {:<22} serves a different network", "-", address),
+            Err(error) => println!("{:<14} {:<22} unreachable ({error})", "-", address),
         }
     }
     // The state column is a fingerprint of every balance. Equal fingerprints
@@ -911,6 +1004,87 @@ fn status(genesis: &Path) -> Result<()> {
     Ok(())
 }
 
+/// Mines for `account` until stopped. Each round asks the validators for
+/// the epoch's seed and target, searches with every thread for a few
+/// seconds, and hands every share found to all the validators.
+fn mine(account: &str, threads: Option<usize>, genesis_file: &Path) -> Result<()> {
+    use orien_ledger::close::Share;
+    use std::sync::Arc;
+    use std::sync::atomic::{AtomicBool, AtomicU64, Ordering};
+
+    let (_, client) = connect(genesis_file)?;
+    let account = resolve_account(account)?;
+    let threads = threads.unwrap_or_else(|| thread::available_parallelism().map_or(1, |n| n.get())).max(1);
+    // Two machines mining for one account must not find the same shares.
+    let mut next = u64::from_le_bytes(orien_net::keys::random_seed()[..8].try_into().expect("8 bytes"));
+    println!("mining for {} with {threads} thread(s); stop with Ctrl-C", account.short());
+    let mut shown_epoch = None;
+    loop {
+        client.follow();
+        let Some((epoch, seed, target)) = client.work() else {
+            println!("no validator answered; trying again");
+            thread::sleep(Duration::from_secs(2));
+            continue;
+        };
+        if shown_epoch != Some(epoch) {
+            let balance = client.proven(&account).map_or(0, |a| a.balance);
+            println!(
+                "epoch {epoch}: about one try in {} makes a share; the account holds {}",
+                u64::MAX / target.max(1),
+                coins(balance)
+            );
+            shown_epoch = Some(epoch);
+        }
+        // Search for a few seconds, then check the epoch again.
+        let stop = Arc::new(AtomicBool::new(false));
+        let tries = Arc::new(AtomicU64::new(0));
+        let (found, shares) = std::sync::mpsc::channel();
+        let workers: Vec<_> = (0..threads as u64)
+            .map(|offset| {
+                let (stop, tries, found) = (stop.clone(), tries.clone(), found.clone());
+                let start = next.wrapping_add(offset);
+                thread::spawn(move || {
+                    let mut nonce = start;
+                    while !stop.load(Ordering::Relaxed) {
+                        for _ in 0..4096 {
+                            let share = Share { account, nonce };
+                            if share.counts(&seed, target) && found.send(share).is_err() {
+                                return;
+                            }
+                            nonce = nonce.wrapping_add(threads as u64);
+                        }
+                        tries.fetch_add(4096, Ordering::Relaxed);
+                    }
+                })
+            })
+            .collect();
+        drop(found);
+        let started = Instant::now();
+        let (mut sent, mut taken) = (0u64, 0u64);
+        while started.elapsed() < Duration::from_secs(5) {
+            if let Ok(share) = shares.recv_timeout(Duration::from_millis(200)) {
+                sent += 1;
+                if client.submit_share(share) > 0 {
+                    taken += 1;
+                }
+            }
+        }
+        stop.store(true, Ordering::Relaxed);
+        for worker in workers {
+            let _ = worker.join();
+        }
+        while let Ok(share) = shares.try_recv() {
+            sent += 1;
+            if client.submit_share(share) > 0 {
+                taken += 1;
+            }
+        }
+        next = next.wrapping_add(tries.load(Ordering::Relaxed) + threads as u64 * 4096);
+        let rate = tries.load(Ordering::Relaxed) as f64 / started.elapsed().as_secs_f64() / 1e6;
+        println!("  {rate:.1} million tries a second; {sent} share(s) found, {taken} taken by validators");
+    }
+}
+
 fn keygen(out: &Path, height: u8) -> Result<()> {
     if out.exists() {
         bail!("{} already exists; refusing to overwrite a key", out.display());
@@ -921,6 +1095,120 @@ fn keygen(out: &Path, height: u8) -> Result<()> {
     println!("created {}", out.display());
     println!("root     {root}");
     println!("height   {height}");
+    println!("keep this file secret. For a launch genesis file, share only this line, with the name and address filled in:");
+    println!("  --validator \"NAME,{root},{height},HOST:PORT\"");
+    Ok(())
+}
+
+/// Reads NAME,ROOT,HEIGHT,ADDRESS.
+fn parse_validator(text: &str) -> Result<ValidatorInfo> {
+    let parts: Vec<&str> = text.split(',').map(str::trim).collect();
+    let [name, root, height, address] = parts[..] else {
+        bail!("'{text}' is not NAME,ROOT,HEIGHT,ADDRESS");
+    };
+    let root = root.parse().map_err(|_| anyhow!("'{root}' is not a 64-character key root"))?;
+    let height = height.parse().map_err(|_| anyhow!("'{height}' is not a key height"))?;
+    Ok(ValidatorInfo { name: name.into(), root, height, stake: 0, address: address.into() })
+}
+
+fn genesis_new(
+    out: &Path,
+    name: &str,
+    validators: &[String],
+    bitcoin: Option<BitcoinBlock>,
+    start: Option<u64>,
+    epoch_seconds: u64,
+) -> Result<()> {
+    if out.exists() {
+        bail!("{} already exists; refusing to overwrite a genesis file", out.display());
+    }
+    let mut infos = validators.iter().map(|text| parse_validator(text)).collect::<Result<Vec<_>>>()?;
+    // The launch seats share the seats' weight equally.
+    let each = SEAT_WEIGHT / infos.len().max(1) as u64;
+    for info in &mut infos {
+        info.stake = each;
+    }
+    let mut genesis = Genesis::new(name, infos, Vec::new());
+    genesis.epoch_seconds = epoch_seconds;
+    genesis.start_time = start.unwrap_or_else(unix_now);
+    genesis.bitcoin = bitcoin;
+    genesis.validate().map_err(|e| anyhow!("{e}"))?;
+    save_genesis(out, &genesis)?;
+    println!("written to {}", out.display());
+    genesis_show(&genesis)
+}
+
+/// Whether an address is on a private network: Tailscale, a home or office
+/// network, or this machine.
+fn private(address: &str) -> bool {
+    let host = address.rsplit_once(':').map_or(address, |(host, _)| host);
+    match host.parse::<std::net::Ipv4Addr>() {
+        Ok(ip) => {
+            let [a, b, ..] = ip.octets();
+            ip.is_private() || ip.is_loopback() || (a == 100 && (64..128).contains(&b))
+        }
+        Err(_) => host == "localhost",
+    }
+}
+
+fn genesis_show(genesis: &Genesis) -> Result<()> {
+    println!("network     '{}'", genesis.network);
+    println!("id          {}", genesis.id());
+    match genesis.bitcoin {
+        Some(block) => println!("anchored to Bitcoin block {} ({})", block.height, block.hash),
+        None => println!("anchored to no Bitcoin block"),
+    }
+    let now = unix_now();
+    let when = match genesis.start_time.cmp(&now) {
+        std::cmp::Ordering::Greater => format!("in {} minutes", (genesis.start_time - now) / 60),
+        _ => format!("{} minutes ago", (now - genesis.start_time) / 60),
+    };
+    println!("starts      {} seconds after 1970, {when}", genesis.start_time);
+    println!("epochs      a checkpoint every {} seconds", genesis.epoch_seconds);
+    println!(
+        "coins       {} handed out at the start; at most {} released for work, starting at a target of one share in {} tries",
+        coins(genesis.supply() as i128),
+        coins(genesis.cap as i128),
+        u64::MAX / genesis.first_target.max(1)
+    );
+    println!(
+        "fees        {}% of each payment, at least {} and at most {}",
+        genesis.fee.rate as f64 / 10_000.0,
+        coins(genesis.fee.min as i128),
+        coins(genesis.fee.max as i128)
+    );
+    println!(
+        "staking     at least {} coins, at most {} validators, unstaked coins wait {} epochs",
+        coins(genesis.min_stake as i128),
+        genesis.max_validators,
+        genesis.unstake_epochs
+    );
+    println!("launch validators ({}):", genesis.validators.len());
+    let total: u64 = genesis.validators.iter().map(|v| v.stake).sum();
+    for v in &genesis.validators {
+        println!(
+            "  {:<12} {:>6.2}% of the seats' weight  key {} (height {})  at {}",
+            v.name,
+            100.0 * v.stake as f64 / total.max(1) as f64,
+            v.root.short(),
+            v.height,
+            v.address
+        );
+    }
+    // Things worth a second look before anyone starts mining.
+    if genesis.bitcoin.is_none() {
+        println!("note: with no Bitcoin block, whoever holds this file before it is published could mine early");
+    }
+    if genesis.supply() > 0 {
+        println!("note: this file hands out coins at the start");
+    }
+    for v in genesis.validators.iter().filter(|v| !private(&v.address)) {
+        println!(
+            "warning: {} is at {}, which is not a private address. Connections between validators are not \
+             encrypted yet; keep them on a private network such as Tailscale.",
+            v.name, v.address
+        );
+    }
     Ok(())
 }
 
@@ -939,9 +1227,25 @@ fn node(key: &Path, data: PathBuf, listen: Option<String>, genesis: &Path) -> Re
 }
 
 /// The voting weight the launch seats share on a new test network.
-const SEAT_WEIGHT: u64 = 3_000_000;
+const SEAT_WEIGHT: u64 = 3_000_000 * COIN;
 
-fn devnet_init(dir: &Path, network: &str, addresses: &[String], height: u8, epoch_seconds: u64) -> Result<()> {
+/// How a new test network starts.
+struct Start {
+    epoch_seconds: u64,
+    from_nothing: bool,
+    bitcoin: Option<BitcoinBlock>,
+}
+
+/// Reads HEIGHT:HASH.
+fn parse_bitcoin_block(text: &str) -> Result<BitcoinBlock, String> {
+    let (height, hash) = text.split_once(':').ok_or("expected HEIGHT:HASH")?;
+    let height = height.trim().parse().map_err(|_| format!("'{height}' is not a block height"))?;
+    let hash = hash.trim().parse().map_err(|_| format!("'{hash}' is not a 64-character block hash"))?;
+    Ok(BitcoinBlock { height, hash })
+}
+
+fn devnet_init(dir: &Path, network: &str, addresses: &[String], height: u8, start: Start) -> Result<()> {
+    let epoch_seconds = start.epoch_seconds;
     if dir.join("genesis.json").exists() {
         bail!("{} already holds a network; delete it or pick another --dir", dir.display());
     }
@@ -966,17 +1270,19 @@ fn devnet_init(dir: &Path, network: &str, addresses: &[String], height: u8, epoc
     }
 
     let mut allocations = Vec::new();
-    for (name, amount) in [("alice", 1_000_000u64), ("bob", 1_000_000), ("carol", 0)] {
+    let given = if start.from_nothing { 0 } else { 1_000_000 * COIN };
+    for (name, amount) in [("alice", given), ("bob", given), ("carol", 0)] {
         let wallet = Wallet::create(&dir.join("wallets").join(format!("{name}.wallet")))?;
         if amount > 0 {
             allocations.push(Allocation { account: wallet.address(), amount });
         }
-        println!("  wallet {name:<6} {}  starts with {amount}", wallet.address());
+        println!("  wallet {name:<6} {}  starts with {}", wallet.address(), coins(amount as i128));
     }
 
     let mut genesis = Genesis::new(network, infos, allocations);
     genesis.epoch_seconds = epoch_seconds;
     genesis.start_time = unix_now();
+    genesis.bitcoin = start.bitcoin;
     genesis.validate().map_err(|e| anyhow!("{e}"))?;
     save_genesis(&dir.join("genesis.json"), &genesis)?;
     println!("network id {}", genesis.id());
@@ -1025,7 +1331,8 @@ fn interrupt(dir: &Path, wallet_name: &str, to_name: &str, amount: u64) -> Resul
     let (genesis, client) = connect(&dir.join("genesis.json"))?;
     let wallets = dir.join("wallets");
     let wallet_file = wallets.join(format!("{wallet_name}.wallet"));
-    let wallet = Wallet::load(&wallet_file)?;
+    let mut wallet = Wallet::load(&wallet_file)?;
+    wallet.accept_fee(genesis.fee);
     let to = Wallet::load(&wallets.join(format!("{to_name}.wallet")))?.address();
 
     let status = read_account(&client, &wallet)?;
@@ -1033,8 +1340,12 @@ fn interrupt(dir: &Path, wallet_name: &str, to_name: &str, amount: u64) -> Resul
         bail!("{wallet_name} already has an unfinished payment");
     }
     match status.spendable {
-        Some(balance) if balance >= amount as i128 && amount > 0 => {}
-        Some(balance) => bail!("{wallet_name} holds {balance}, which does not cover a payment of {amount}"),
+        Some(balance) if balance >= (amount + genesis.fee.on(&Kind::Payment, amount)) as i128 && amount > 0 => {}
+        Some(balance) => bail!(
+            "{wallet_name} holds {}, which does not cover a payment of {} and its fee",
+            coins(balance),
+            coins(amount as i128)
+        ),
         None => bail!("validators are not caught up"),
     }
     // Signed with the wallet's key but never written to the wallet file. To
@@ -1043,8 +1354,9 @@ fn interrupt(dir: &Path, wallet_name: &str, to_name: &str, amount: u64) -> Resul
     let signed = sign_raw(&wallet, &genesis, seq, to, amount);
     let reached = (client.validators() / 2).max(1);
     println!(
-        "another copy of {wallet_name}'s wallet signs payment #{seq}, {amount} to {to_name}, \
+        "another copy of {wallet_name}'s wallet signs payment #{seq}, {} to {to_name}, \
          and is lost after reaching {reached} of {} validators:",
+        coins(amount as i128),
         client.validators()
     );
     for index in 0..reached {
@@ -1060,7 +1372,8 @@ fn interrupt(dir: &Path, wallet_name: &str, to_name: &str, amount: u64) -> Resul
 fn double_spend(dir: &Path, wallet_name: &str, split: bool) -> Result<()> {
     let (genesis, client) = connect(&dir.join("genesis.json"))?;
     let wallets = dir.join("wallets");
-    let wallet = Wallet::load(&wallets.join(format!("{wallet_name}.wallet")))?;
+    let mut wallet = Wallet::load(&wallets.join(format!("{wallet_name}.wallet")))?;
+    wallet.accept_fee(genesis.fee);
     let others: Vec<&str> = ["alice", "bob", "carol"].into_iter().filter(|n| *n != wallet_name).collect();
     let first_payee = Wallet::load(&wallets.join(format!("{}.wallet", others[0])))?.address();
     let second_payee = Wallet::load(&wallets.join(format!("{}.wallet", others[1])))?.address();
@@ -1073,12 +1386,16 @@ fn double_spend(dir: &Path, wallet_name: &str, split: bool) -> Result<()> {
     if !status.locks.is_empty() {
         bail!("{wallet_name}'s account is already locked by an earlier double-spend attempt");
     }
-    let (seq, amount) = (status.seq, balance as u64);
+    // As much as the balance covers with the fee: the fee is at most a
+    // share of the amount, so taking it off the balance leaves enough.
+    let all = balance as u64;
+    let (seq, amount) = (status.seq, all - genesis.fee.on(&Kind::Payment, all));
     let first = sign_raw(&wallet, &genesis, seq, first_payee, amount);
     let second = sign_raw(&wallet, &genesis, seq, second_payee, amount);
-    println!("{wallet_name} holds {amount} and signs payment #{seq} twice with the same one-time key:");
-    println!("  A: all {amount} to {}", others[0]);
-    println!("  B: all {amount} to {}", others[1]);
+    let amount_shown = coins(amount as i128);
+    println!("{wallet_name} holds {} and signs payment #{seq} twice with the same one-time key:", coins(balance));
+    println!("  A: {amount_shown} to {}", others[0]);
+    println!("  B: {amount_shown} to {}", others[1]);
 
     if split {
         let half = client.validators() / 2;

@@ -5,12 +5,12 @@ use crate::store::write_replacing;
 use crate::wire::{AccountView, NodeInfo, Request, Response, read_frame, write_frame};
 use borsh::{BorshDeserialize, BorshSerialize};
 use orien_crypto::Hash32;
-use orien_ledger::close::{self, Decided};
+use orien_ledger::close::{self, Decided, Share};
 use orien_ledger::{
     Account, AccountId, Certificate, Committee, Confirmation, Genesis, Member, Receipt, Reject,
     SignedOrder, Signer, State, Vote, account_root, authorized,
 };
-use std::collections::BTreeMap;
+use std::collections::{BTreeMap, HashMap};
 use std::fmt;
 use std::fs;
 use std::io;
@@ -146,12 +146,20 @@ pub struct Client {
     head: RwLock<Head>,
     /// Set when a validator answers that an epoch is closing or has closed.
     changing: AtomicBool,
-    endpoints: Vec<String>,
+    /// Where to reach the validators of the head's epoch. Replaced as the
+    /// client follows the checkpoints, which name each validator's address.
+    endpoints: RwLock<Vec<String>>,
     timeout: Duration,
-    /// Open connections to each validator, reused across requests. Opening
-    /// one per request does not scale: closed sockets linger in the
-    /// operating system and a busy client runs out of local ports.
-    idle: Vec<Mutex<Vec<TcpStream>>>,
+    /// Open connections to each validator, by address, reused across
+    /// requests. Opening one per request does not scale: closed sockets
+    /// linger in the operating system and a busy client runs out of local
+    /// ports.
+    idle: Mutex<HashMap<String, Vec<TcpStream>>>,
+}
+
+/// The addresses of the validators serving the head's epoch.
+fn addresses(head: &Head) -> Vec<String> {
+    head.members(head.epoch).map_or_else(Vec::new, |members| members.iter().map(|m| m.address.clone()).collect())
 }
 
 /// What the validators collectively say about an account.
@@ -260,14 +268,15 @@ impl Client {
 
     /// A client that picks up from a head it saved earlier.
     pub fn resume(genesis: &Genesis, head: Head) -> Client {
+        let endpoints = addresses(&head);
         Client {
             origin: Committee::new(genesis),
             genesis_state: State::from_genesis(genesis),
             head: RwLock::new(head),
             changing: AtomicBool::new(false),
-            endpoints: genesis.validators.iter().map(|v| v.address.clone()).collect(),
+            endpoints: RwLock::new(endpoints),
             timeout: Duration::from_secs(5),
-            idle: genesis.validators.iter().map(|_| Mutex::new(Vec::new())).collect(),
+            idle: Mutex::new(HashMap::new()),
         }
     }
 
@@ -322,6 +331,7 @@ impl Client {
                 return moved;
             }
             moved += best.epoch - head.epoch;
+            *self.endpoints.write().unwrap() = addresses(&best);
             *self.head.write().unwrap() = best;
         }
     }
@@ -341,8 +351,45 @@ impl Client {
         })
     }
 
+    /// The current epoch, its seed and its work target, as most of the
+    /// validators that answer give them. A miner works against these.
+    pub fn work(&self) -> Option<(u64, Hash32, u64)> {
+        let mut answers: Vec<(u64, Hash32, u64)> = self
+            .ask_all(&Request::Work)
+            .into_iter()
+            .filter_map(|answer| match answer {
+                Ok(Response::Work { epoch, seed, target }) => Some((epoch, seed, target)),
+                _ => None,
+            })
+            .collect();
+        answers.sort();
+        // The answer given most often; validators in the same epoch agree.
+        let mut best: Option<((u64, Hash32, u64), usize)> = None;
+        for answer in &answers {
+            let count = answers.iter().filter(|other| *other == answer).count();
+            if best.is_none_or(|(_, most)| count > most) {
+                best = Some((*answer, count));
+            }
+        }
+        best.map(|(answer, _)| answer)
+    }
+
+    /// Hands a work share to every validator. Returns how many took it.
+    pub fn submit_share(&self, share: Share) -> usize {
+        self.ask_all(&Request::SubmitShare(share))
+            .into_iter()
+            .filter(|answer| matches!(answer, Ok(Response::Share { .. })))
+            .count()
+    }
+
     pub fn validators(&self) -> usize {
-        self.endpoints.len()
+        self.endpoints.read().unwrap().len()
+    }
+
+    /// Where the validators of the current epoch are reached, in their
+    /// order in the list.
+    pub fn endpoints(&self) -> Vec<String> {
+        self.endpoints.read().unwrap().clone()
     }
 
     /// Sends a request to validator `index`.
@@ -351,20 +398,22 @@ impl Client {
     /// with the same vote and applies a certificate once), so a request that
     /// fails on a reused connection is simply sent again on a fresh one.
     pub fn call(&self, index: usize, request: &Request) -> io::Result<Response> {
-        let reused = self.idle[index].lock().unwrap().pop();
+        let address = self.endpoints.read().unwrap().get(index).cloned();
+        let Some(address) = address else { return Err(io::Error::other("the validator list changed")) };
+        let reused = self.idle.lock().unwrap().get_mut(&address).and_then(Vec::pop);
         if let Some(mut stream) = reused
             && let Ok(response) = exchange(&mut stream, request)
         {
-            self.keep(index, stream);
+            self.keep(&address, stream);
             return Ok(response);
         }
         // A validator whose accept queue is momentarily full drops new
         // connections. Back off briefly, with jitter, and try again.
         let mut attempt = 0u32;
         loop {
-            let result = connect(&self.endpoints[index], self.timeout).and_then(|mut stream| {
+            let result = connect(&address, self.timeout).and_then(|mut stream| {
                 let response = exchange(&mut stream, request)?;
-                self.keep(index, stream);
+                self.keep(&address, stream);
                 Ok(response)
             });
             match result {
@@ -381,8 +430,9 @@ impl Client {
         }
     }
 
-    fn keep(&self, index: usize, stream: TcpStream) {
-        let mut idle = self.idle[index].lock().unwrap();
+    fn keep(&self, address: &str, stream: TcpStream) {
+        let mut all = self.idle.lock().unwrap();
+        let idle = all.entry(address.to_string()).or_default();
         if idle.len() < MAX_IDLE {
             idle.push(stream);
         }
@@ -391,7 +441,7 @@ impl Client {
     /// Sends the same request to every validator at once.
     fn ask_all(&self, request: &Request) -> Vec<io::Result<Response>> {
         thread::scope(|scope| {
-            let workers: Vec<_> = (0..self.endpoints.len())
+            let workers: Vec<_> = (0..self.validators())
                 .map(|index| scope.spawn(move || self.call(index, request)))
                 .collect();
             workers
@@ -537,7 +587,7 @@ impl Client {
     pub fn certificate(&self, id: &AccountId, seq: u64) -> Option<Certificate> {
         let request = Request::GetCertificate { account: *id, seq };
         let committee = self.committee();
-        (0..self.endpoints.len()).find_map(|index| match self.call(index, &request) {
+        (0..self.validators()).find_map(|index| match self.call(index, &request) {
             Ok(Response::Certificate(Some(certificate)))
                 if certificate.order.from == *id
                     && certificate.order.seq == seq
@@ -864,6 +914,8 @@ mod tests {
             payments: 0,
             merged: Vec::new(),
             validators: rekeyed.clone(),
+            released: 0,
+            target: u64::MAX,
         };
 
         let start = Head::genesis(&genesis);

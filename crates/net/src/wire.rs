@@ -4,7 +4,7 @@
 use borsh::{BorshDeserialize, BorshSerialize};
 use orien_crypto::Hash32;
 use orien_crypto::merkle;
-use orien_ledger::close::{Decided, Message};
+use orien_ledger::close::{Decided, Message, Share};
 use orien_ledger::{Account, AccountId, Certificate, Confirmation, Reject, SignedOrder, Signer, Vote};
 use std::io::{self, Read, Write};
 
@@ -53,6 +53,10 @@ pub enum Request {
     /// An account as the latest checkpoint left it, with a proof against
     /// that checkpoint's state root.
     Proof(AccountId),
+    /// The current epoch's seed and work target, for mining.
+    Work,
+    /// A work share for the current epoch.
+    SubmitShare(Share),
 }
 
 #[derive(Clone, Debug, BorshSerialize, BorshDeserialize)]
@@ -128,6 +132,9 @@ pub enum Response {
     Snapshot(Option<(Vec<u8>, u64)>),
     Checkpoints(Vec<Decided>),
     Proof { epoch: u64, account: Option<(Account, merkle::Path)> },
+    Work { epoch: u64, seed: Hash32, target: u64 },
+    /// The share is taken; `fresh` when this validator had not had it.
+    Share { fresh: bool },
 }
 
 pub fn write_frame<W: Write>(writer: &mut W, payload: &[u8]) -> io::Result<()> {

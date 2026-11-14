@@ -22,14 +22,14 @@ use crate::keys::ValidatorKey;
 use crate::store::{CertLog, Epochs, LeafCounter, OrderLog, sync_dir};
 use crate::wire::{AccountView, NodeInfo, Request, Response, read_frame, write_frame};
 use anyhow::{Context, Result, anyhow, bail};
-use orien_crypto::keytree::{KeyTree, TreeSignature};
+use orien_crypto::keytree::{self, KeyTree, TreeSignature};
 use orien_crypto::{Hash32, merkle};
-use orien_ledger::close::{self, Decided, Message, NextKey, Pin, Statement};
+use orien_ledger::close::{self, Cheat, Decided, Message, NextKey, Pin, Share, Statement};
 use orien_ledger::{
     Accepted, AccountId, Applied, Certificate, Committee, Confirmation, Genesis, Order, Proofs, Reject,
     SignedBy, SignedOrder, State, Vote, confirmation_item,
 };
-use std::collections::HashMap;
+use std::collections::{BTreeSet, HashMap};
 use std::fs;
 use std::io::{self, BufReader};
 use std::net::{Shutdown, SocketAddr, TcpListener, TcpStream};
@@ -117,8 +117,16 @@ enum Command {
     Log { statement: Hash32, orders: Vec<Hash32>, reply: Sender<Vec<Hash32>> },
     /// The state `epoch` starts from, fetched from a validator already there.
     Snapshot { epoch: u64, bytes: Vec<u8> },
+    /// The checkpoints that closed the epochs from this validator's on, and
+    /// the state the last of them led to, fetched from a validator that is
+    /// several epochs ahead.
+    Jump { chain: Vec<Decided>, bytes: Vec<u8> },
     /// A replacement key tree is ready.
     NextKey(ValidatorKey, Box<KeyTree>),
+    /// Votes seen in a certificate someone handed over, whether or not it
+    /// holds up, to look for validators that cheated.
+    Seen { epoch: u64, order: Order, digest: Hash32, votes: Vec<Vote> },
+    Share { share: Share, reply: Sender<Response> },
     Stop,
 }
 
@@ -188,6 +196,9 @@ impl Shared {
                 self.ingest(certificate, false).unwrap_or_else(stopped)
             }
             Request::Confirm(certificate) => self.ingest(certificate, true).unwrap_or_else(stopped),
+            Request::SubmitShare(share) => {
+                self.ask(|reply| Command::Share { share, reply }).unwrap_or_else(stopped)
+            }
             Request::Close { epoch, message } => {
                 let committee = self.committee();
                 if epoch != committee.epoch() {
@@ -212,6 +223,17 @@ impl Shared {
         }
         let (from, seq) = (certificate.order.from, certificate.order.seq);
         let digest = certificate.order.digest(committee.network());
+        // Every vote handed over is looked at for cheating, even in a
+        // certificate that turns out to be no good.
+        let seen = Command::Seen {
+            epoch: certificate.epoch,
+            order: certificate.order.clone(),
+            digest,
+            votes: certificate.votes.clone(),
+        };
+        if self.commands.send(seen).is_err() {
+            return None;
+        }
         if !self.ask(|reply| Command::Needs { from, seq, reply })? {
             // That payment number is already applied here.
             if confirm {
@@ -379,6 +401,14 @@ struct Core {
     peers: HashMap<String, Sender<Request>>,
     shared: Arc<Shared>,
     sync_interval: Duration,
+    /// The first message each validator's one-time key was seen signing
+    /// this epoch, with the signature, by key tree and key number.
+    key_uses: HashMap<(Hash32, u32), (Hash32, TreeSignature)>,
+    /// Proof, checked, that validators of this epoch cheated, and who.
+    cheats: Vec<Cheat>,
+    caught: Vec<u16>,
+    /// Work shares taken this epoch.
+    shares: BTreeSet<Share>,
     commands: Sender<Command>,
     orders: OrderLog,
     /// The signed order behind each vote for a payment that is not final
@@ -495,9 +525,14 @@ impl Core {
                     let _ = reply.send(missing.unwrap_or_default());
                 }
                 Command::Snapshot { epoch, bytes } => self.on_snapshot(epoch, &bytes),
+                Command::Jump { chain, bytes } => self.on_jump(chain, &bytes),
                 Command::NextKey(key, tree) => {
                     self.building_key = false;
                     self.next_key = Some((key, *tree));
+                }
+                Command::Seen { epoch, order, digest, votes } => self.on_seen(epoch, order, digest, votes),
+                Command::Share { share, reply } => {
+                    let _ = reply.send(self.on_share(share));
                 }
                 Command::Stop => break,
             }
@@ -647,6 +682,8 @@ impl Core {
             log: self.pin,
             evidence,
             next_key: self.next_key.as_ref().map(|(_, tree)| NextKey { root: tree.root(), height: tree.height() }),
+            cheats: self.cheats.clone(),
+            shares: self.shares.iter().copied().collect(),
         };
         let own_log = self.digests.clone();
         let said = self.close_step(|closer, env| closer.freeze(statement, own_log, env));
@@ -672,6 +709,51 @@ impl Core {
     /// The state the next epoch starts from, fetched from a validator that
     /// is already there. Used when this validator knows which checkpoint
     /// closed its epoch but could not work out the state itself.
+    /// Catches up several epochs at once. Each checkpoint in `chain` is
+    /// checked against the validators of the epoch it closes, as a wallet
+    /// checks them, and the state against the last checkpoint's state root.
+    /// Only then does anything change.
+    fn on_jump(&mut self, chain: Vec<Decided>, bytes: &[u8]) {
+        let Some(last) = chain.last() else { return };
+        let (mut committee, mut previous) = (self.committee.clone(), self.previous);
+        for decided in &chain {
+            let checkpoint = &decided.checkpoint;
+            let follows = checkpoint.epoch == committee.epoch() && checkpoint.previous == previous;
+            if !follows || close::verify_decided(&committee, decided).is_err() {
+                return;
+            }
+            previous = checkpoint.digest();
+            committee = committee.following(checkpoint.validators.clone()).with_target(checkpoint.target);
+        }
+        let end = match State::from_snapshot(bytes, self.state.fees()) {
+            Ok(end) if end.root() == last.checkpoint.state => end,
+            _ => return,
+        };
+        if self.log {
+            println!(
+                "[{}] catching up from epoch {} to {} by the checkpoints",
+                self.name,
+                self.committee.epoch(),
+                last.checkpoint.epoch + 1
+            );
+        }
+        // Every checkpoint but the last is only recorded; the last one is a
+        // switch like any other, straight to the state it led to.
+        let (last, passed) = chain.split_last().expect("checked above");
+        for decided in passed {
+            self.checkpoint_saved = false;
+            self.save_checkpoint(decided);
+            let checkpoint = &decided.checkpoint;
+            self.committee =
+                self.committee.following(checkpoint.validators.clone()).with_target(checkpoint.target);
+            self.previous = checkpoint.digest();
+            self.previous_time = checkpoint.time;
+        }
+        self.checkpoint_saved = false;
+        self.save_checkpoint(last);
+        self.switch(last.clone(), end);
+    }
+
     fn on_snapshot(&mut self, epoch: u64, bytes: &[u8]) {
         let Some(decided) = self.closer.decided().cloned() else { return };
         if epoch != self.committee.epoch() + 1 {
@@ -679,7 +761,7 @@ impl Core {
         }
         // The checkpoint's state root is what more than two thirds agreed
         // on. A state that hashes to it is that state, whoever sent it.
-        match State::from_snapshot(bytes) {
+        match State::from_snapshot(bytes, self.state.fees()) {
             Ok(end) if end.root() == decided.checkpoint.state => {
                 self.save_checkpoint(&decided);
                 self.switch(decided, end);
@@ -718,7 +800,7 @@ impl Core {
         let records: Vec<&SignedOrder> = left_out.iter().collect();
         self.orders.append(&records, self.durable).expect("cannot record votes; stopping");
         let snapshot = end.snapshot();
-        self.epochs.advance(&snapshot).expect("cannot start the next epoch; stopping");
+        self.epochs.advance_to(checkpoint.epoch + 1, &snapshot).expect("cannot start the next epoch; stopping");
 
         // From here on this validator is in the next epoch.
         let cancelled = self
@@ -736,7 +818,7 @@ impl Core {
             self.unfinished.drain().map(|(_, signed)| signed).filter(|signed| open(signed)).collect();
         promises.extend(left_out);
         self.conflicts.retain(|_, second| open(second));
-        self.state = State::from_snapshot(&snapshot).expect("a snapshot just written reads back");
+        self.state = State::from_snapshot(&snapshot, self.state.fees()).expect("a snapshot just written reads back");
         self.start = self.state.clone();
         self.proofs = None;
         for signed in promises {
@@ -747,7 +829,7 @@ impl Core {
         promise(&mut self.state, &network, &self.unfinished);
         self.conflicts.retain(|account, _| self.unfinished.contains_key(account));
 
-        self.committee = self.committee.following(checkpoint.validators.clone());
+        self.committee = self.committee.following(checkpoint.validators.clone()).with_target(checkpoint.target);
         *self.committee_cell.write().unwrap() = Arc::new(self.committee.clone());
         self.previous = checkpoint.digest();
         self.previous_time = checkpoint.time;
@@ -760,6 +842,12 @@ impl Core {
         self.issued.clear();
         self.confirming.clear();
         self.confirmed.clear();
+        // Proof of cheating counts in the epoch it happened in.
+        self.key_uses.clear();
+        self.cheats.clear();
+        self.caught.clear();
+        // Shares are for the epoch whose seed they were found against.
+        self.shares.clear();
         self.root = None;
         self.checkpoint_saved = false;
 
@@ -1122,6 +1210,82 @@ impl Core {
         self.enqueue_confirmation(payment, digest, reply);
     }
 
+    /// Looks at votes for signs of cheating: a vote for a different order
+    /// than the one applied under the same number this epoch, or a key
+    /// already seen signing something else.
+    fn on_seen(&mut self, epoch: u64, order: Order, digest: Hash32, votes: Vec<Vote>) {
+        if epoch != self.committee.epoch() {
+            return;
+        }
+        if let Ok(Some(applied)) = self.certs.find(&order.from, order.seq)
+            && applied.order != order
+        {
+            for vote in &votes {
+                if let Some(theirs) = applied.votes.iter().find(|theirs| theirs.validator == vote.validator) {
+                    let one = (applied.order.clone(), theirs.clone());
+                    self.caught_cheating(Cheat::TwoVotes { one, other: (order.clone(), vote.clone()) });
+                }
+            }
+        }
+        for vote in votes {
+            let Some(member) = self.committee.members().get(vote.validator as usize) else { continue };
+            let Some(batch_root) = merkle::root_from_path(&digest, &vote.batch_path) else { continue };
+            let message = self.committee.batch_message(&batch_root);
+            let use_of_key = (member.root, vote.signature.leaf);
+            match self.key_uses.get(&use_of_key) {
+                Some((seen, _)) if *seen == message => {}
+                Some((seen, signature)) => {
+                    let one = (*seen, signature.clone());
+                    self.caught_cheating(Cheat::KeyReuse { one, other: (message, vote.signature) });
+                }
+                // Only a genuine signature is remembered, so that a forged
+                // one cannot stand in the way of catching the real thing.
+                None => {
+                    if keytree::verify(&member.root, member.height, &vote.signature, message.as_bytes()) {
+                        self.key_uses.insert(use_of_key, (message, vote.signature));
+                    }
+                }
+            }
+        }
+    }
+
+    /// Takes a work share for this epoch and passes it on to the other
+    /// validators, so that it is in every statement whoever it reached.
+    fn on_share(&mut self, share: Share) -> Response {
+        if self.closer.frozen() || self.closer.decided().is_some() {
+            return Response::Closing;
+        }
+        let work = self.committee.work();
+        if !share.counts(&self.previous, work.target) {
+            return Response::Invalid("not a work share for this epoch".into());
+        }
+        if self.shares.contains(&share) {
+            return Response::Share { fresh: false };
+        }
+        // The target keeps the number near the one wanted; this bounds a
+        // statement while it catches up.
+        if self.shares.len() as u64 >= work.shares_per_epoch.saturating_mul(4) {
+            return Response::Unavailable("this epoch has all the shares it takes".into());
+        }
+        self.shares.insert(share);
+        for peer in self.peers.values() {
+            let _ = peer.send(Request::SubmitShare(share));
+        }
+        Response::Share { fresh: true }
+    }
+
+    fn caught_cheating(&mut self, cheat: Cheat) {
+        let Some(cheater) = cheat.cheater(&self.committee) else { return };
+        if self.caught.contains(&cheater) {
+            return;
+        }
+        if self.log {
+            println!("[{}] caught validator {cheater} cheating; it loses its stake at the checkpoint", self.name);
+        }
+        self.caught.push(cheater);
+        self.cheats.push(cheat);
+    }
+
     fn on_query(&mut self, request: Request) -> Response {
         match request {
             Request::Info => Response::Info(NodeInfo {
@@ -1207,6 +1371,11 @@ impl Core {
                 let until = self.committee.epoch().min(from.saturating_add(max.min(64) as u64));
                 Response::Checkpoints((from..until).map_while(|epoch| self.checkpoint(epoch)).collect())
             }
+            Request::Work => Response::Work {
+                epoch: self.committee.epoch(),
+                seed: self.previous,
+                target: self.committee.work().target,
+            },
             Request::Proof(id) => {
                 let proofs = self.proofs.get_or_insert_with(|| self.start.proofs());
                 let account = self.start.account(&id).cloned().zip(proofs.path(&id));
@@ -1220,6 +1389,7 @@ impl Core {
             Request::SubmitOrder(_)
             | Request::SubmitCertificate(_)
             | Request::Confirm(_)
+            | Request::SubmitShare(_)
             | Request::Close { .. } => Response::Invalid("not a query".into()),
         }
     }
@@ -1330,8 +1500,16 @@ fn sync_with_peer(shared: Arc<Shared>, address: String, interval: Duration) {
                 let needs_state = shared
                     .ask(|reply| Command::Standing { reply })
                     .is_some_and(|standing| standing.epoch == epoch && standing.needs_state);
-                if needs_state && let Some(bytes) = fetch_snapshot(&address, epoch + 1, TIMEOUT) {
+                // One epoch behind: the next epoch's state. Further behind,
+                // or if that state is gone: every checkpoint since, and the
+                // state of the peer's own epoch.
+                let one_step = theirs == epoch + 1 && needs_state;
+                if one_step && let Some(bytes) = fetch_snapshot(&address, epoch + 1, TIMEOUT) {
                     let _ = shared.commands.send(Command::Snapshot { epoch: epoch + 1, bytes });
+                } else if (theirs > epoch + 1 || needs_state)
+                    && let Some((chain, bytes)) = fetch_jump(&address, epoch, theirs, TIMEOUT)
+                {
+                    let _ = shared.commands.send(Command::Jump { chain, bytes });
                 }
                 break;
             }
@@ -1379,6 +1557,24 @@ fn sync_with_peer(shared: Arc<Shared>, address: String, interval: Duration) {
 }
 
 /// Fetches the state `epoch` starts from, in pieces.
+/// The checkpoints that closed epochs `from` to `to − 1`, and the state
+/// epoch `to` started from, fetched from one peer. Nothing is checked here;
+/// the core checks it all before using any of it.
+fn fetch_jump(address: &str, from: u64, to: u64, timeout: Duration) -> Option<(Vec<Decided>, Vec<u8>)> {
+    let mut chain: Vec<Decided> = Vec::new();
+    while from + (chain.len() as u64) < to {
+        let request = Request::Checkpoints { from: from + chain.len() as u64, max: 64 };
+        let Ok(Response::Checkpoints(page)) = rpc(address, &request, timeout) else { return None };
+        if page.is_empty() {
+            return None;
+        }
+        chain.extend(page);
+    }
+    chain.truncate((to - from) as usize);
+    let bytes = fetch_snapshot(address, to, timeout)?;
+    Some((chain, bytes))
+}
+
 fn fetch_snapshot(address: &str, epoch: u64, timeout: Duration) -> Option<Vec<u8>> {
     let mut bytes = Vec::new();
     loop {
@@ -1481,7 +1677,8 @@ fn claim_data_dir(dir: &Path, network: &Hash32) -> Result<()> {
 /// A running validator. Stops when dropped.
 pub struct Node {
     pub addr: SocketAddr,
-    pub index: u16,
+    /// Its place among the genesis file's validators, if it is one of them.
+    pub index: Option<u16>,
     pub name: String,
     shared: Arc<Shared>,
     core: Option<JoinHandle<()>>,
@@ -1496,14 +1693,20 @@ impl Node {
         let genesis_committee = Committee::new(&config.genesis);
         let network = *genesis_committee.network();
         let original = KeyTree::generate(config.key.seed, config.key.height);
+        // A launch seat is named in the genesis file. Any other validator
+        // starts outside the list, follows the checkpoints, and takes part
+        // once a stake gets it chosen.
         let index = config
             .genesis
             .validators
             .iter()
-            .position(|v| v.root == original.root() && v.height == config.key.height)
-            .ok_or_else(|| anyhow!("this validator key is not listed in the genesis file"))?;
-        let info = &config.genesis.validators[index];
-        let name = info.name.clone();
+            .position(|v| v.root == original.root() && v.height == config.key.height);
+        let info = index.map(|index| &config.genesis.validators[index]);
+        let name = info.map_or_else(|| format!("new-{}", original.root().short()), |info| info.name.clone());
+        let genesis_address = info.map(|info| info.address.clone());
+        if genesis_address.is_none() && config.listen.is_none() && listener.is_none() {
+            bail!("this validator is not in the genesis file, so it needs an address to listen on (--listen)");
+        }
         let data_dir = config.data_dir.clone();
 
         claim_data_dir(&data_dir, &network)?;
@@ -1518,7 +1721,10 @@ impl Node {
                     .ok_or_else(|| anyhow!("the checkpoint that closed epoch {} is missing", epoch - 1))?;
                 let decided: Decided = borsh::from_slice(&bytes).context("a stored checkpoint is corrupt")?;
                 let checkpoint = decided.checkpoint;
-                let committee = genesis_committee.at_epoch(epoch - 1).following(checkpoint.validators.clone());
+                let committee = genesis_committee
+                    .at_epoch(epoch - 1)
+                    .following(checkpoint.validators.clone())
+                    .with_target(checkpoint.target);
                 (committee, checkpoint.digest(), checkpoint.time)
             }
         };
@@ -1551,7 +1757,9 @@ impl Node {
         let place = place_of(&committee, &tree.root());
 
         let mut state = match epochs.snapshot()? {
-            Some(snapshot) => State::from_snapshot(&snapshot).context("the state snapshot is corrupt")?,
+            Some(snapshot) => {
+                State::from_snapshot(&snapshot, config.genesis.fee).context("the state snapshot is corrupt")?
+            }
             None => State::from_genesis(&config.genesis),
         };
         let start = state.clone();
@@ -1616,7 +1824,7 @@ impl Node {
         let listener = match listener {
             Some(listener) => listener,
             None => {
-                let address = config.listen.clone().unwrap_or_else(|| info.address.clone());
+                let address = config.listen.clone().or(genesis_address).expect("checked above");
                 TcpListener::bind(&address).with_context(|| format!("cannot listen on {address}"))?
             }
         };
@@ -1663,6 +1871,10 @@ impl Node {
             tended: Instant::now(),
             checkpoint_saved,
             peers: HashMap::new(),
+            key_uses: HashMap::new(),
+            cheats: Vec::new(),
+            caught: Vec::new(),
+            shares: BTreeSet::new(),
             shared: shared.clone(),
             sync_interval: config.sync_interval,
             commands,
@@ -1690,7 +1902,7 @@ impl Node {
             .name(format!("{name}-listen"))
             .spawn(move || accept_loop(listener, accepting))?;
 
-        Ok(Node { addr, index: index as u16, name, shared, core: Some(core), listener: Some(listener) })
+        Ok(Node { addr, index: index.map(|index| index as u16), name, shared, core: Some(core), listener: Some(listener) })
     }
 
     pub fn stop(mut self) {

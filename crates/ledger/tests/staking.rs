@@ -3,10 +3,11 @@
 
 use orien_crypto::Hash32;
 use orien_crypto::keytree::KeyTree;
-use orien_ledger::close;
+use orien_crypto::merkle;
+use orien_ledger::close::{self, Cheat, Pin, Statement};
 use orien_ledger::{
-    Accepted, Allocation, Committee, Genesis, Kind, Member, Order, Reject, SignedBy, State, Validator,
-    ValidatorInfo, address, stake_proof_item,
+    Accepted, Allocation, Committee, FEES, FORFEITED, Fees, Genesis, Kind, Member, Order, Reject, SignedBy, State, Validator,
+    ValidatorInfo, Vote, address, stake_proof_item,
 };
 
 // These tests never check a signature, so an account's keys are any values,
@@ -25,6 +26,10 @@ fn id(account: u8) -> Hash32 {
 
 fn genesis(balances: &[(u8, u64)]) -> Genesis {
     let mut genesis = Genesis::new("staking", Vec::new(), Vec::new());
+    // No fee, so that the balances below show the stake alone.
+    genesis.fee = orien_ledger::Fees::NONE;
+    // Amounts here are plain units, not coins.
+    genesis.min_stake = 10_000;
     genesis.allocations =
         balances.iter().map(|(account, amount)| Allocation { account: id(*account), amount: *amount }).collect();
     genesis
@@ -147,11 +152,16 @@ fn a_stake_order_names_its_own_account_and_a_usable_validator() {
     assert_eq!(state.account(&id(1)).unwrap().staked, 0);
 }
 
+/// A close at the network's very start, when no coins have been released.
+fn moment(committee: &Committee) -> close::Moment {
+    close::Moment { previous: *committee.network(), time: 0 }
+}
+
 /// Closes an epoch in which `orders` went final, as every validator would,
 /// and prints the validators it names for the next one.
 fn checkpoint(committee: &Committee, state: &State, orders: &[Order], names: &[(u8, &str)]) -> (Committee, State) {
     let orders: Vec<&Order> = orders.iter().collect();
-    let end = close::outcome_checked(committee, state, &orders, &[]).unwrap();
+    let end = close::outcome_checked(committee, state, moment(committee), &orders, &[]).unwrap();
     let members = close::next_validators(committee, &[], &end);
     let named: Vec<String> = members
         .iter()
@@ -165,11 +175,12 @@ fn checkpoint(committee: &Committee, state: &State, orders: &[Order], names: &[(
 }
 
 /// Who a member is: the number of the account that staked for it, or for a
-/// launch seat the first byte of its key.
+/// launch seat 11 onwards.
 fn label(member: &Member) -> u8 {
     match member.account {
         Some(account) => (0..=255).find(|n| id(*n) == account).unwrap(),
-        None => member.root.0[0],
+        // Launch seats are 11, 12, ... in genesis order.
+        None => 11 + member.seat.unwrap() as u8,
     }
 }
 
@@ -247,7 +258,7 @@ fn a_stake_needs_the_validators_own_signature() {
 /// validator's share of the vote in the next one.
 fn shares(committee: &Committee, state: &State, orders: &[Order], names: &[(u8, &str)], what: &str) -> (Committee, State) {
     let orders: Vec<&Order> = orders.iter().collect();
-    let end = close::outcome_checked(committee, state, &orders, &[]).unwrap();
+    let end = close::outcome_checked(committee, state, moment(committee), &orders, &[]).unwrap();
     let next = committee.following(close::next_validators(committee, &[], &end));
     let total = next.total_stake() as f64;
     let named: Vec<String> = next
@@ -305,4 +316,131 @@ fn the_launch_seats_fade_as_real_stake_arrives() {
     let unstake = order(Kind::Unstake, 3, 1, 3, 1_500_000).0;
     let (committee, _) = shares(&committee, &state, &[unstake], &names, "cy unstakes 1,500,000");
     assert_eq!(roots(committee.members()), [2, 3, 1]);
+}
+
+/// Validator `n`'s signature with key `leaf` over a batch of one item, as a
+/// vote by the validator in place `place` of `committee`.
+fn vote(committee: &Committee, n: u8, place: u16, leaf: u32, item: Hash32) -> (Hash32, Vote) {
+    let batch = merkle::Tree::build(&[item]);
+    let message = committee.batch_message(&batch.root());
+    let signature = tree(n).sign_with_leaf(leaf, message.as_bytes());
+    (message, Vote { validator: place, batch_path: batch.path(0), signature })
+}
+
+fn statement(validator: u16, epoch: u64, cheats: Vec<Cheat>) -> Statement {
+    Statement { epoch, validator, log: Pin::start(epoch), evidence: Vec::new(), next_key: None, cheats, shares: Vec::new() }
+}
+
+#[test]
+fn a_validator_caught_cheating_loses_its_stake_and_its_place() {
+    let names = [(11, "seat-1"), (12, "seat-2"), (1, "ana"), (2, "ben"), (3, "cy")];
+    let seat = |n: u8| ValidatorInfo {
+        name: format!("seat-{n}"),
+        root: tree(10 + n).root(),
+        height: 2,
+        stake: 100_000,
+        address: format!("100.64.0.{n}:7001"),
+    };
+    let mut genesis = genesis(&[(1, 30_000), (2, 30_000), (3, 1_000)]);
+    genesis.validators = vec![seat(1), seat(2)];
+    genesis.validate().unwrap();
+    let network = genesis.id();
+    let stake = |n: u8, seq: u64, amount: u64| order(stake(&network, n, validator(n), n), n, seq, n, amount).0;
+    let committee = Committee::new(&genesis);
+    let state = State::from_genesis(&genesis);
+    let (committee, state) =
+        checkpoint(&committee, &state, &[stake(1, 0, 20_000), stake(2, 0, 15_000)], &names);
+    assert_eq!(roots(committee.members()), [11, 12, 1, 2]);
+
+    // Ana's validator, third in the list, votes for two different payments
+    // from Cy under one number.
+    let (to_ana, to_ben) = (order(Kind::Payment, 3, 0, 1, 500).0, order(Kind::Payment, 3, 0, 2, 500).0);
+    let (_, one) = vote(&committee, 1, 2, 1, to_ana.digest(&network));
+    let (_, other) = vote(&committee, 1, 2, 2, to_ben.digest(&network));
+    let two_votes = Cheat::TwoVotes { one: (to_ana.clone(), one.clone()), other: (to_ben.clone(), other) };
+    assert_eq!(two_votes.cheater(&committee), Some(2));
+    // Ben's validator signs two different batches with one key.
+    let (first, a) = vote(&committee, 2, 3, 3, Hash32([1; 32]));
+    let (second, b) = vote(&committee, 2, 3, 3, Hash32([2; 32]));
+    let reuse = Cheat::KeyReuse { one: (first, a.signature.clone()), other: (second, b.signature) };
+    assert_eq!(reuse.cheater(&committee), Some(3));
+
+    // Nothing an honest validator signs makes proof against it.
+    let same_order = Cheat::TwoVotes { one: (to_ana.clone(), one.clone()), other: (to_ana, one) };
+    assert_eq!(same_order.cheater(&committee), None);
+    let once = Cheat::KeyReuse { one: (first, a.signature.clone()), other: (first, a.signature) };
+    assert_eq!(once.cheater(&committee), None);
+    let proofs = [stake_proof_item(&network, &id(2), "a"), stake_proof_item(&network, &id(3), "b")];
+    let [p, q] = proofs.map(|item| tree(2).sign_with_leaf(0, item.as_bytes()));
+    let stake_key = Cheat::KeyReuse { one: (proofs[0], p), other: (proofs[1], q) };
+    assert_eq!(stake_key.cheater(&committee), None, "the key kept for stake proofs signs many");
+
+    // A seat passes the proof on in its statement. At the checkpoint both
+    // cheaters' stakes are burned and both leave the list.
+    let reported = statement(0, committee.epoch(), vec![two_votes, reuse]);
+    let end = close::outcome_checked(&committee, &state, moment(&committee), &[], &[&reported]).unwrap();
+    let next = close::next_validators(&committee, &[&reported], &end);
+    let account = |n: u8| end.account(&id(n)).unwrap().clone();
+    println!("ana: staked {} -> {}, ben: staked {} -> {}", 20_000, account(1).staked, 15_000, account(2).staked);
+    println!("burned: {}", end.account(&FORFEITED).unwrap().balance);
+    assert_eq!((account(1).staked, account(1).balance), (0, 10_000));
+    assert_eq!((account(2).staked, account(2).balance), (0, 15_000));
+    assert_eq!(end.account(&FORFEITED).unwrap().balance, 35_000);
+    assert_eq!(end.total(), 61_000, "burned coins stay counted");
+    assert_eq!(roots(&next), [11, 12]);
+
+    // A launch seat caught cheating loses its seat.
+    let (first, a) = vote(&committee, 12, 1, 3, Hash32([3; 32]));
+    let (second, b) = vote(&committee, 12, 1, 3, Hash32([4; 32]));
+    let seat_reuse = Cheat::KeyReuse { one: (first, a.signature), other: (second, b.signature) };
+    let reported = statement(0, committee.epoch(), vec![seat_reuse]);
+    let end = close::outcome_checked(&committee, &state, moment(&committee), &[], &[&reported]).unwrap();
+    assert_eq!(roots(&close::next_validators(&committee, &[&reported], &end)), [11, 1, 2]);
+}
+
+#[test]
+fn fees_go_to_the_validators_with_real_stake() {
+    let names = [(11, "seat-1"), (12, "seat-2"), (1, "ana"), (2, "ben"), (3, "cy")];
+    let seat = |n: u8| ValidatorInfo {
+        name: format!("seat-{n}"),
+        root: tree(10 + n).root(),
+        height: 2,
+        stake: 100_000,
+        address: format!("100.64.0.{n}:7001"),
+    };
+    let mut genesis = genesis(&[(1, 50_000), (2, 50_000), (3, 50_000)]);
+    genesis.validators = vec![seat(1), seat(2)];
+    genesis.fee = Fees { min: 1, max: 100, rate: 1_000 };
+    genesis.validate().unwrap();
+    let network = genesis.id();
+    let stake = |n: u8, seq: u64, amount: u64| {
+        let mut order = order(stake(&network, n, validator(n), n), n, seq, n, amount).0;
+        order.max_fee = 1;
+        order
+    };
+    let pay = |from: u8, seq: u64, to: u8, amount: u64| {
+        let mut order = order(Kind::Payment, from, seq, to, amount).0;
+        order.max_fee = genesis.fee.on(&Kind::Payment, amount);
+        order
+    };
+    let balance = |state: &State, n: u8| state.account(&id(n)).unwrap().balance;
+    let pot = |state: &State| state.account(&FEES).map_or(0, |pot| pot.balance);
+
+    // Only launch seats vote in the first epoch, and they earn nothing: the
+    // two stake orders' fees wait in the pot.
+    let committee = Committee::new(&genesis);
+    let state = State::from_genesis(&genesis);
+    let (committee, state) =
+        checkpoint(&committee, &state, &[stake(1, 0, 30_000), stake(2, 0, 10_000)], &names);
+    println!("after epoch 0: pot {}, ana {}, ben {}", pot(&state), balance(&state, 1), balance(&state, 2));
+    assert_eq!(pot(&state), 2);
+
+    // Ana and Ben vote in the next epoch. Cy's payment pays 20, and at the
+    // checkpoint the pot of 22 goes three to one: 16 to Ana, 5 to Ben, with
+    // the 1 that does not divide carried over.
+    let (_, state) = checkpoint(&committee, &state, &[pay(3, 0, 1, 20_000)], &names);
+    println!("after epoch 1: pot {}, ana {}, ben {}", pot(&state), balance(&state, 1), balance(&state, 2));
+    assert_eq!((balance(&state, 1), balance(&state, 2)), (20_000 - 1 + 20_000 + 16, 40_000 - 1 + 5));
+    assert_eq!(pot(&state), 1);
+    assert_eq!(state.total(), 150_000, "fees move coins and create none");
 }

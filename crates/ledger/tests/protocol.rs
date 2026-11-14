@@ -99,6 +99,11 @@ impl Net {
             min_stake: 10_000,
             max_validators: 33,
             unstake_epochs: 168,
+            fee: orien_ledger::Fees::NONE,
+            cap: 0,
+            shares_per_epoch: 1_000,
+            first_target: u64::MAX,
+            bitcoin: None,
         };
         genesis.validate().unwrap();
         Net {

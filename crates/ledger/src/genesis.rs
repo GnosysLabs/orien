@@ -1,4 +1,4 @@
-use crate::types::{AccountId, Certificate, Confirmation, Receipt, Vote, confirmation_item};
+use crate::types::{AccountId, COIN, Certificate, Confirmation, Kind, Receipt, Vote, confirmation_item};
 use borsh::{BorshDeserialize, BorshSerialize};
 use orien_crypto::{Hash32, Tag, hash, keytree, merkle};
 use serde::{Deserialize, Serialize};
@@ -53,6 +53,96 @@ pub struct Genesis {
     /// the evidence against it is acted on.
     #[serde(default = "a_week_of_epochs")]
     pub unstake_epochs: u64,
+    /// What orders pay, taken from the sender's spendable coins when an
+    /// order is applied, and shared out to the validators at the
+    /// checkpoint.
+    #[serde(default)]
+    pub fee: Fees,
+    /// The most coins that will ever be released, in units.
+    #[serde(default = "the_cap")]
+    pub cap: u64,
+    /// How many work shares an epoch should hold. The work target moves at
+    /// each checkpoint to keep near it.
+    #[serde(default = "a_thousand")]
+    pub shares_per_epoch: u64,
+    /// The work target of the first epoch: a share counts if its hash,
+    /// read as a number, is below it.
+    #[serde(default = "a_first_target")]
+    pub first_target: u64,
+    /// A Bitcoin block announced in advance. Its hash is part of the
+    /// network's identity, and the identity is the seed the first epoch's
+    /// work is done against, so nobody can mine before that block exists.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub bitcoin: Option<BitcoinBlock>,
+}
+
+/// A Bitcoin block, its hash written as block explorers show it.
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
+pub struct BitcoinBlock {
+    pub height: u64,
+    pub hash: Hash32,
+}
+
+fn the_cap() -> u64 {
+    crate::release::CAP
+}
+
+fn a_thousand() -> u64 {
+    1_000
+}
+
+/// About one share in 16 million hashes: a few seconds of one computer's
+/// work.
+fn a_first_target() -> u64 {
+    u64::MAX >> 24
+}
+
+/// The rules for releasing coins and paying them for work.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct Work {
+    /// When the network starts, in seconds since 1970.
+    pub start_time: u64,
+    pub cap: u64,
+    pub shares_per_epoch: u64,
+    /// This epoch's target.
+    pub target: u64,
+}
+
+/// The fee rule: a share of each payment, never less than `min` and never
+/// more than `max`. Stake and unstake orders pay `min`. A share of the
+/// amount keeps the fee about the same in real money however the coin's
+/// value moves; the minimum stops floods of tiny payments, and the maximum
+/// keeps a large payment from paying far more than the work it costs.
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
+pub struct Fees {
+    pub min: u64,
+    pub max: u64,
+    /// Millionths of the amount: 1,000 is 0.1%.
+    pub rate: u32,
+}
+
+impl Fees {
+    /// No fee at all, for tests.
+    pub const NONE: Fees = Fees { min: 0, max: 0, rate: 0 };
+
+    /// The fee for an order of this kind and amount.
+    pub fn on(&self, kind: &Kind, amount: u64) -> u64 {
+        match kind {
+            Kind::Payment => {
+                let share = (amount as u128 * self.rate as u128 / 1_000_000) as u64;
+                share.clamp(self.min, self.max.max(self.min))
+            }
+            _ => self.min,
+        }
+    }
+}
+
+/// Counted in the smallest unit, a billionth of a coin once coins have
+/// decimals: 0.1% of each payment, at least 0.000001 coin, at most 1 coin.
+impl Default for Fees {
+    fn default() -> Fees {
+        Fees { min: 1_000, max: 1_000_000_000, rate: 1_000 }
+    }
 }
 
 fn an_hour() -> u64 {
@@ -64,7 +154,7 @@ fn fifty_thousand() -> u64 {
 }
 
 fn ten_thousand() -> u64 {
-    10_000
+    10_000 * COIN
 }
 
 fn thirty_three() -> u16 {
@@ -88,6 +178,11 @@ impl Genesis {
             min_stake: ten_thousand(),
             max_validators: thirty_three(),
             unstake_epochs: a_week_of_epochs(),
+            fee: Fees::default(),
+            cap: the_cap(),
+            shares_per_epoch: a_thousand(),
+            first_target: a_first_target(),
+            bitcoin: None,
         }
     }
 
@@ -114,9 +209,19 @@ impl Genesis {
             self.min_stake,
             self.max_validators as u64,
             self.unstake_epochs,
+            self.fee.min,
+            self.fee.max,
+            self.fee.rate as u64,
+            self.cap,
+            self.shares_per_epoch,
+            self.first_target,
         ];
         for setting in settings {
             bytes.extend_from_slice(&setting.to_le_bytes());
+        }
+        if let Some(block) = &self.bitcoin {
+            bytes.extend_from_slice(&block.height.to_le_bytes());
+            bytes.extend_from_slice(block.hash.as_bytes());
         }
         hash(Tag::Genesis, &[&bytes])
     }
@@ -165,6 +270,9 @@ impl Genesis {
         }
         if self.epoch_seconds == 0 || self.epoch_payments == 0 {
             return Err("an epoch must have a length and a payment limit".into());
+        }
+        if self.fee.min > self.fee.max || self.fee.rate > 1_000_000 {
+            return Err("the fee's minimum must not exceed its maximum, nor its rate the whole amount".into());
         }
         if self.min_stake == 0 || self.unstake_epochs == 0 {
             return Err("staking needs a minimum stake and an unstake waiting period".into());
@@ -221,6 +329,8 @@ pub struct Member {
     /// The account whose stake makes it a validator. None for the
     /// validators of the genesis file, which hold launch seats.
     pub account: Option<AccountId>,
+    /// For a launch seat, its place among the genesis file's validators.
+    pub seat: Option<u16>,
 }
 
 /// The rules for choosing validators, from the genesis file.
@@ -241,6 +351,7 @@ pub struct Committee {
     members: Vec<Member>,
     total_stake: u64,
     staking: Staking,
+    work: Work,
     /// Each launch seat's share of the seats' weight: its stake in the
     /// genesis file, in genesis order.
     seats: Vec<u64>,
@@ -251,17 +362,25 @@ impl Committee {
         let members: Vec<Member> = genesis
             .validators
             .iter()
-            .map(|v| Member {
+            .enumerate()
+            .map(|(seat, v)| Member {
                 root: v.root,
                 height: v.height,
                 stake: v.stake,
                 address: v.address.clone(),
                 account: None,
+                seat: Some(seat as u16),
             })
             .collect();
         let total_stake = members.iter().map(|m| m.stake).sum();
         let seats = genesis.validators.iter().map(|v| v.stake).collect();
-        Committee { network: genesis.id(), epoch: 0, members, total_stake, staking: genesis.staking(), seats }
+        let work = Work {
+            start_time: genesis.start_time,
+            cap: genesis.cap,
+            shares_per_epoch: genesis.shares_per_epoch,
+            target: genesis.first_target,
+        };
+        Committee { network: genesis.id(), epoch: 0, members, total_stake, staking: genesis.staking(), work, seats }
     }
 
     /// Each launch seat's share of the seats' weight, in genesis order.
@@ -273,6 +392,16 @@ impl Committee {
 
     pub fn staking(&self) -> Staking {
         self.staking
+    }
+
+    pub fn work(&self) -> Work {
+        self.work
+    }
+
+    /// The same validators with another work target: the one the checkpoint
+    /// that opened their epoch set.
+    pub fn with_target(&self, target: u64) -> Committee {
+        Committee { work: Work { target, ..self.work }, ..self.clone() }
     }
 
     pub fn epoch(&self) -> u64 {
@@ -304,6 +433,7 @@ impl Committee {
             members,
             total_stake,
             staking: self.staking,
+            work: self.work,
             seats: self.seats.clone(),
         }
     }

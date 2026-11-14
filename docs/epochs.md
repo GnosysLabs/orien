@@ -1,8 +1,10 @@
 # The epoch step
 
-Status: **stages 0 to 3 of the build order are built. Checkpoints run, and
-a double-signed account is freed at the next one. Staking, fees and coin
-creation are designed here and not built.**
+Status: **every stage of the build order is built. Checkpoints run, a
+double-signed account is freed at the next one, the validators of each
+epoch are chosen by stake with a penalty for cheating, every payment pays
+a fee that goes to staked validators, and coins are released from nothing
+and paid out for proof-of-work.**
 
 ## In plain words
 
@@ -312,7 +314,12 @@ that ties that key to the spare root.
   by following the checkpoints from the genesis file.
 - Two votes for different orders under one number within one epoch, or two
   signatures from one key, cost a validator its stake at the next
-  checkpoint.
+  checkpoint. The proof is the validator's own signatures, carried in a
+  closing statement. Its stake, including coins still waiting to be
+  released, is burned: moved to an address no key can sign for, so the
+  supply still adds up. It leaves the list, and a launch seat caught
+  cheating loses its seat for good. The key kept for stake proofs is
+  exempt, since it signs one proof per stake it backs.
 - Delegating stake to someone else's validator is left for later.
 - The limits, chosen on 2026-11-14, are settings in the genesis file and
   can be revisited before the launch genesis is written: a stake of at
@@ -335,9 +342,20 @@ that ties that key to the spare root.
 
 ### Fees
 
-A flat fee per payment is taken from the sender when the payment is
-applied. The fees of an epoch are paid out in its checkpoint to the
-validators, in proportion to stake.
+A payment pays a share of its amount, never less than a minimum and never
+more than a maximum (chosen on 2026-11-14). A share keeps the fee about
+the same in real money however the coin's value moves; the minimum stops
+floods of tiny payments, and the maximum keeps a large payment from paying
+far more than the work it costs. Stake and unstake orders pay the minimum.
+The starting values, settings in the genesis file, are 0.1%, at least
+0.000001 coin and at most 1 coin. The fee is taken from the sender when the
+order is applied, into a pot no key can sign for. At each checkpoint the
+pot is paid to the epoch's validators with real stake, in proportion to
+it, into their staking accounts' spendable coins. Launch seats earn no
+fees. What does not divide evenly, and everything in an epoch with no
+staked validators, stays in the pot for the next checkpoint, so the first
+people to stake collect the fees gathered before them. A validator caught
+cheating earns nothing.
 
 ### Coin creation
 
@@ -357,6 +375,9 @@ The rules below were accepted on 2026-11-14.
   figure.
 - The first seed is the hash of a Bitcoin block at a height announced in
   advance. Each later seed comes from the previous checkpoint.
+- There is no slow sunrise (decided on 2026-11-14): the release follows
+  the curve from the first hour, and anyone, the founder included, can
+  mine from the moment the network is live.
 - The launch validators hold seats that carry voting weight, cannot be
   spent and earn no released coins, and fade out.
 
@@ -371,18 +392,18 @@ Each stage can be built and tested on its own.
 | 1b, built | The order format, fixed once: kind, largest fee, spare tree, the new address form. Cancellation as a pure function. The wallet's key streams. | `crates/ledger`, `crates/net/src/keys.rs`, `crates/crypto/src/hash.rs` |
 | 2, built | The close as pure logic with no network or disk, and simulators that run it under delays, absent validators and dishonest ones. The failures the review found are permanent tests. | `crates/ledger/src/agree.rs`, `crates/ledger/src/close.rs` |
 | 3, built | The close inside the validator with a fixed validator set: the pause, messages between validators, the journal, the switch of state, the checkpoint chain, account proofs, key-tree replacement. Wallets follow checkpoints and sign with a spare key after a cancellation. | `crates/net/src/closer.rs`, `crates/net/src/node.rs`, `crates/net/src/client.rs`, `crates/cli` |
-| 4 | Staking, a changing validator set, penalties. | all crates |
-| 5 | Fees. | `crates/ledger`, `crates/net` |
-| 6 | Coin creation, a genesis with no coins, and a command that does the work. | all crates |
+| 4, built | Staking and unstaking with a wait, a validator set chosen by stake at each checkpoint, launch seats that fade as real stake arrives, validators that join from outside the genesis file, wallets that follow the set, and penalties for cheating validators. | all crates |
+| 5, built | Fees: a share of each payment between a minimum and a maximum, gathered in a pot and paid to staked validators at each checkpoint. | `crates/ledger`, `crates/net`, `crates/cli` |
+| 6, built | Coins with nine decimals, the release curve in whole-number arithmetic, work shares collected by validators and paid at each checkpoint, a moving work target, `orien mine`, a genesis with no coins anchored to a Bitcoin block. | all crates |
 
 Stuck accounts are freed from stage 3 on.
 
 ## Not decided
 
-- **A slow sunrise.** Whether the release rate starts near zero and climbs
-  to full over the first 90 days.
 - **The launch seats' total weight.** Test networks use 3 million coins.
-- **The size of the fee**, and whether it can change over time.
+- **The launch values of the fee.** A coin worth far more than today makes
+  the minimum and maximum dearer; only very small and very large payments
+  feel that.
 - **The payment limit per epoch.**
 
 ## What the first draft got wrong
@@ -475,19 +496,41 @@ message by message.
 
 ### Left for later, on purpose
 
+- **Work shares are kept in memory.** A validator restarted mid-epoch
+  forgets the shares it had; those that reached other validators still
+  count. Shares found while an epoch is closing are turned away, since
+  they belong to a seed that is about to end.
+- **A miner cannot see what each epoch paid it** except as its balance
+  going up.
+- **Stake behind a launch seat's own key earns no fees.** Seats earn none,
+  and that stake is counted as part of its seat.
+
 - **A receipt for a payment settled by a checkpoint.** A payment that had
   its certificate when the epoch closed, and that the checkpoint took in,
   is final without any confirmations. The wallet sees that and says so, but
   cannot yet hand anyone a proof of it.
-- **Old epochs are kept forever.** Each epoch's snapshot and log stay on
-  disk. Dropping old ones needs a rule for how far back a returning
-  validator may ask. Wanted soon after stage 4: with 33 validators a
-  validator stores about 40 KB of votes per payment, about 1.4 GB an hour
-  at ten payments a second, and a checkpoint makes all of it redundant.
+- **Checkpoints are kept forever.** A validator deletes an epoch's payment
+  log, closing journal and sync cursors once it has moved on, and keeps the
+  state snapshots of its last three epochs. A validator further behind
+  catches up in one step: it follows the checkpoints it missed, each
+  checked against the validators of its epoch, and takes the latest state,
+  checked against the last checkpoint's state root. The checkpoints
+  themselves stay, about 40 KB an hour with 33 validators, since anyone
+  verifies the network by following them from the genesis file. A
+  validator catching up holds every checkpoint it missed in memory at
+  once.
 - **A validator whose key tree is used up completely cannot recover by
   itself.** It needs a key to announce a replacement. Replacement starts at
   half used, so this takes a long outage at the wrong moment. Stage 4,
   where validators are named by stake orders, is where it gets a way back.
+- **Proof of a validator cheating is only kept in memory,** and only for
+  the epoch it happened in. A validator restarted mid-epoch forgets what
+  it found, and proof found after a validator has stopped work on the
+  epoch is dropped. A cheat seen only by a wallet, two votes for orders
+  that never both got certificates, is not passed on.
+- **A wallet that has been away a long time knows only the validators of
+  its last visit.** If all of them have left since, it has nobody to ask.
+  Falling back to the genesis file's validators would cover it.
 - **A wallet that has been away follows every checkpoint it missed.** That
   is one small download per epoch. A shortcut for long absences is not
   built.

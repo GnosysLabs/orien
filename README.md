@@ -25,8 +25,18 @@ line behind other payments. The name is from the Latin *oriens*, rising.
    for a moment and agree on a snapshot of every balance. This is the only
    time they need to agree on anything, and no payment waits in line for
    it. The checkpoint frees an account whose owner signed twice, lets
-   validators change their keys, and is what staking, fees and coin
-   creation will hang on. The design is in `docs/epochs.md`.
+   validators change their keys, chooses the next hour's validators from
+   the coins staked behind them, takes the stake of any validator caught
+   cheating, pays the hour's fees to the staked validators, and pays the
+   hour's newly released coins to whoever did proof-of-work. The design is
+   in `docs/epochs.md`.
+5. **Coins from nothing.** No coins exist at launch. Of a 100 million cap,
+   half of what remains is released every four years, about 1,977 coins in
+   the first hour, shared out each hour in proportion to BLAKE3
+   proof-of-work. Work only hands out coins: it never decides payments. The
+   first seed is a Bitcoin block announced in advance, so nobody can mine
+   before launch. Every payment pays 0.1% of its amount, at least 0.000001
+   coin and at most 1 coin; amounts have nine decimal places.
 
 Everything rests on one assumption: the BLAKE3 hash function.
 
@@ -95,6 +105,60 @@ wait a minute and send again:
 
 `devnet init --epoch-seconds` sets how often checkpoints happen. A payment
 sent while one is being made simply waits for it.
+
+### Mining
+
+`orien mine` does proof-of-work for an account on every processor core. At
+each checkpoint the coins released since the last one are shared among
+the work done in that hour:
+
+```bash
+./target/release/orien mine devnet/wallets/carol.wallet
+```
+
+`orien status` shows how many coins have been released so far.
+`devnet init --from-nothing` starts a network with no coins at all, as the
+real one will; `--bitcoin HEIGHT:HASH` anchors it to a Bitcoin block.
+
+### Writing a launch genesis file
+
+Each launch validator makes a key on its own machine and shares only the
+public line `orien keygen` prints. The genesis file is then written from
+those lines and the Bitcoin block announced in advance:
+
+```bash
+./target/release/orien genesis new genesis.json --validator "mac,ROOT,16,100.76.239.128:7101" --validator "vps,ROOT,16,100.99.59.98:7101" --bitcoin HEIGHT:HASH
+```
+
+It hands out no coins, takes a checkpoint every hour, and gives the launch
+validators equal seats. `orien genesis show genesis.json` prints what a
+genesis file says and its network id, so that everyone can check they hold
+the same file.
+
+### Staking a new validator
+
+Anyone can become a validator by staking at least 10,000 coins behind a
+validator key. The launch validators of the genesis file hold seats that
+share 3 million coins of voting weight, which fades as real stake arrives.
+Start a validator with a fresh key, then stake for it; it joins at the next
+checkpoint:
+
+```bash
+./target/release/orien keygen newcomer.key
+```
+
+```bash
+./target/release/orien node -k newcomer.key -d newcomer-data --listen 127.0.0.1:7005 -g devnet/genesis.json
+```
+
+```bash
+./target/release/orien stake -w devnet/wallets/alice.wallet --amount 10000 --validator-key newcomer.key --address 127.0.0.1:7005 -g devnet/genesis.json
+```
+
+`orien status` lists each epoch's validators with their share of the vote.
+`orien unstake` releases staked coins after a wait of 168 epochs, one week.
+A validator that votes for two conflicting payments, or signs twice with
+one key, loses its stake at the next checkpoint.
 
 ### An interrupted payment
 
@@ -214,12 +278,11 @@ cargo test --release -p orien-net --test devnet throughput -- --ignored --nocapt
 
 ## Not done yet
 
-- **Fixed validator set.** Validators come from the genesis file. They can
-  replace their keys at a checkpoint, but nobody can join or leave yet.
-  Staking is designed (`docs/epochs.md`) and not built.
-- **No fees and no coin creation.** Nothing yet stops someone flooding the
-  network with tiny payments or dust accounts, and the coins all come from
-  the genesis file.
+- **No delegation.** Staking backs your own validator; backing someone
+  else's is designed for later.
+- **Work shares are kept in memory.** A validator restarted mid-hour
+  forgets the shares it had taken; those that reached other validators
+  still count.
 - **Sixteen spare keys per account.** Each time an owner signs two different
   payments under one number, a checkpoint cancels both and the account moves
   to its next spare key. After sixteen such accidents the account stays
@@ -240,8 +303,12 @@ cargo test --release -p orien-net --test devnet throughput -- --ignored --nocapt
   first epoch checks against the genesis file alone. One from a later epoch
   checks against that epoch's validators, which a computer learns by
   following the checkpoints, one small download per epoch.
-- **Old epochs are kept forever.** A validator keeps every epoch's snapshot
-  and log on disk.
+- **Checkpoints are kept forever.** A validator deletes each epoch's
+  payment log and closing messages once it has moved on and keeps only its
+  last three snapshots of the balances; one that has been away catches up
+  by the checkpoints. The checkpoints themselves, about 40 KB an hour with
+  33 validators, are kept so that anyone can follow the network from its
+  genesis file.
 - **A wallet cannot replace a signed payment.** Once signed, a payment can
   only be finished as it is, by any copy of the wallet. It cannot be
   cancelled.
