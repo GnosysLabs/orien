@@ -88,6 +88,7 @@
   .status.ok i { background: var(--good); box-shadow: 0 0 8px #a6e3c680; }
   .status.warn i { background: #ecc58e; }
   .status.bad i { background: var(--bad); }
+  body.windows header { height: 52px; margin-bottom: 12px; }
   /* A newer version: takes the status marker's place at the top right. */
   .update {
     position: absolute; right: 16px; top: 50%; transform: translateY(-50%);
@@ -532,6 +533,9 @@
 
 <script>
   const invoke = window.__TAURI__.core.invoke;
+  // Windows draws its own title bar above the window, so the top bar there
+  // needs no room for the Mac's window buttons.
+  if (navigator.userAgent.includes("Windows")) document.body.classList.add("windows");
   const $ = (id) => document.getElementById(id);
 
   let view = null;          // the latest overview from the validators

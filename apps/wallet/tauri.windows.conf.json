@@ -1,0 +1,22 @@
+{
+  "app": {
+    "windows": [
+      {
+        "title": "Orien",
+        "width": 460,
+        "height": 580,
+        "resizable": true,
+        "theme": "Dark",
+        "minWidth": 400,
+        "minHeight": 540
+      }
+    ]
+  },
+  "bundle": {
+    "windows": {
+      "nsis": {
+        "installMode": "currentUser"
+      }
+    }
+  }
+}
