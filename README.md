@@ -26,9 +26,17 @@ line behind other payments. The name is from the Latin *oriens*, rising.
    time they need to agree on anything, and no payment waits in line for
    it. The checkpoint frees an account whose owner signed twice, lets
    validators change their keys, chooses the next hour's validators from
-   the coins staked behind them, and takes the stake of any validator
-   caught cheating. Fees and coin creation will hang on it too. The design
-   is in `docs/epochs.md`.
+   the coins staked behind them, takes the stake of any validator caught
+   cheating, pays the hour's fees to the staked validators, and pays the
+   hour's newly released coins to whoever did proof-of-work. The design is
+   in `docs/epochs.md`.
+5. **Coins from nothing.** No coins exist at launch. Of a 100 million cap,
+   half of what remains is released every four years, about 1,977 coins in
+   the first hour, shared out each hour in proportion to BLAKE3
+   proof-of-work. Work only hands out coins: it never decides payments. The
+   first seed is a Bitcoin block announced in advance, so nobody can mine
+   before launch. Every payment pays 0.1% of its amount, at least 0.000001
+   coin and at most 1 coin; amounts have nine decimal places.
 
 Everything rests on one assumption: the BLAKE3 hash function.
 
@@ -97,6 +105,20 @@ wait a minute and send again:
 
 `devnet init --epoch-seconds` sets how often checkpoints happen. A payment
 sent while one is being made simply waits for it.
+
+### Mining
+
+`orien mine` does proof-of-work for an account on every processor core. At
+each checkpoint the coins released since the last one are shared among
+the work done in that hour:
+
+```bash
+./target/release/orien mine devnet/wallets/carol.wallet
+```
+
+`orien status` shows how many coins have been released so far.
+`devnet init --from-nothing` starts a network with no coins at all, as the
+real one will; `--bitcoin HEIGHT:HASH` anchors it to a Bitcoin block.
 
 ### Staking a new validator
 
@@ -243,9 +265,9 @@ cargo test --release -p orien-net --test devnet throughput -- --ignored --nocapt
 
 - **No delegation.** Staking backs your own validator; backing someone
   else's is designed for later.
-- **No fees and no coin creation.** Nothing yet stops someone flooding the
-  network with tiny payments or dust accounts, and the coins all come from
-  the genesis file.
+- **Work shares are kept in memory.** A validator restarted mid-hour
+  forgets the shares it had taken; those that reached other validators
+  still count.
 - **Sixteen spare keys per account.** Each time an owner signs two different
   payments under one number, a checkpoint cancels both and the account moves
   to its next spare key. After sixteen such accidents the account stays

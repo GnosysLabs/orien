@@ -1,9 +1,10 @@
 # The epoch step
 
-Status: **stages 0 to 4 of the build order are built. Checkpoints run, a
-double-signed account is freed at the next one, and the validators of
-each epoch are chosen by stake, with a penalty for cheating. Fees and coin
-creation are designed here and not built.**
+Status: **every stage of the build order is built. Checkpoints run, a
+double-signed account is freed at the next one, the validators of each
+epoch are chosen by stake with a penalty for cheating, every payment pays
+a fee that goes to staked validators, and coins are released from nothing
+and paid out for proof-of-work.**
 
 ## In plain words
 
@@ -392,8 +393,8 @@ Each stage can be built and tested on its own.
 | 2, built | The close as pure logic with no network or disk, and simulators that run it under delays, absent validators and dishonest ones. The failures the review found are permanent tests. | `crates/ledger/src/agree.rs`, `crates/ledger/src/close.rs` |
 | 3, built | The close inside the validator with a fixed validator set: the pause, messages between validators, the journal, the switch of state, the checkpoint chain, account proofs, key-tree replacement. Wallets follow checkpoints and sign with a spare key after a cancellation. | `crates/net/src/closer.rs`, `crates/net/src/node.rs`, `crates/net/src/client.rs`, `crates/cli` |
 | 4, built | Staking and unstaking with a wait, a validator set chosen by stake at each checkpoint, launch seats that fade as real stake arrives, validators that join from outside the genesis file, wallets that follow the set, and penalties for cheating validators. | all crates |
-| 5 | Fees. | `crates/ledger`, `crates/net` |
-| 6 | Coin creation, a genesis with no coins, and a command that does the work. | all crates |
+| 5, built | Fees: a share of each payment between a minimum and a maximum, gathered in a pot and paid to staked validators at each checkpoint. | `crates/ledger`, `crates/net`, `crates/cli` |
+| 6, built | Coins with nine decimals, the release curve in whole-number arithmetic, work shares collected by validators and paid at each checkpoint, a moving work target, `orien mine`, a genesis with no coins anchored to a Bitcoin block. | all crates |
 
 Stuck accounts are freed from stage 3 on.
 
@@ -494,6 +495,15 @@ message by message.
   second. They are now woken the moment it begins.
 
 ### Left for later, on purpose
+
+- **Work shares are kept in memory.** A validator restarted mid-epoch
+  forgets the shares it had; those that reached other validators still
+  count. Shares found while an epoch is closing are turned away, since
+  they belong to a seed that is about to end.
+- **A miner cannot see what each epoch paid it** except as its balance
+  going up.
+- **Stake behind a launch seat's own key earns no fees.** Seats earn none,
+  and that stake is counted as part of its seat.
 
 - **A receipt for a payment settled by a checkpoint.** A payment that had
   its certificate when the epoch closed, and that the checkpoint took in,

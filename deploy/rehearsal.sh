@@ -63,7 +63,8 @@ create() {
     local addresses=()
     add() { addresses+=(--address "$4"); }
     each add
-    $ORIEN devnet init --dir $NET --name $NAME --epoch-seconds $EPOCH "${addresses[@]}"
+    # No coins at the start, as on the real network: every coin is mined.
+    $ORIEN devnet init --dir $NET --name $NAME --epoch-seconds $EPOCH --from-nothing "${addresses[@]}"
 }
 
 push_one() {
