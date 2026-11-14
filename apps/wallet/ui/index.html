@@ -129,6 +129,7 @@
   .card .unit { font-size: 14px; opacity: 0.6; }
 
   .actions { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 16px; }
+  .actions.three { grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
   .tile {
     height: 56px; border-radius: 16px; border: 1px solid var(--line);
     background: var(--surface); cursor: pointer;
@@ -239,6 +240,36 @@
   .scroll::-webkit-scrollbar { width: 0; }
   .day { margin: 18px 4px 8px; font-size: 12px; font-weight: 600; color: var(--dim); }
   .day:first-child { margin-top: 0; }
+
+  /* ---- Contacts ---- */
+  .avatar {
+    flex: none; width: 32px; height: 32px; border-radius: 50%; display: grid; place-items: center;
+    color: var(--pearl-ink); font-weight: 600; font-size: 13px;
+  }
+  .tx.contact { cursor: pointer; }
+  .tx.contact:hover { background: #ffffff06; }
+  .chevron { color: var(--faint); }
+  .picks { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
+  .pick {
+    display: flex; align-items: center; gap: 7px; height: 32px; padding: 0 12px 0 4px; border-radius: 16px;
+    border: 1px solid var(--line); background: var(--surface); cursor: pointer; font-size: 12.5px;
+  }
+  .pick:hover { background: var(--surface-hover); }
+  .pick .avatar { width: 24px; height: 24px; font-size: 11px; }
+  .check.warn { color: var(--bad); font-weight: 500; }
+  .field + .field { margin-top: 18px; }
+  .field textarea {
+    width: 100%; height: 64px; padding: 12px 14px; resize: none; border-radius: var(--radius);
+    background: var(--field); border: 1px solid var(--line); color: var(--ink);
+    font: 12.5px/1.5 ui-monospace, "SF Mono", monospace; -webkit-user-select: text; user-select: text;
+  }
+  .field textarea:focus { outline: none; border-color: #8f8aa8; }
+  .field textarea[readonly] { color: var(--dim); }
+  .field .plain { padding-right: 14px; }
+  .field .plain input { font: 14px -apple-system, system-ui, sans-serif; }
+  .danger { margin-top: 14px; align-self: center; border: 0; background: none; color: var(--bad); font-size: 13px; cursor: pointer; padding: 6px 10px; border-radius: 8px; }
+  .danger:hover { background: #f1a9a914; }
+  .done .secondary { margin-top: 10px; }
 </style>
 </head>
 <body>
@@ -262,10 +293,10 @@
     <section class="screen" id="home" hidden>
       <div class="card pearl">
         <div class="label">Balance</div>
-        <div class="amount"><span class="balance" id="balance">—</span><span class="unit">units</span></div>
+        <div class="amount"><span class="balance" id="balance">—</span><span class="unit">tokens</span></div>
       </div>
 
-      <div class="actions">
+      <div class="actions three">
         <button class="tile" id="go-send">
           <span class="icon pearl"><svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 10.5 10.5 3.5M5 3.5h5.5V9"/></svg></span>
           Send
@@ -273,6 +304,10 @@
         <button class="tile" id="go-receive">
           <span class="icon pearl"><svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10.5 3.5 3.5 10.5M9 10.5H3.5V5"/></svg></span>
           Receive
+        </button>
+        <button class="tile" id="go-contacts">
+          <span class="icon pearl"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.6"/><path d="M2.8 20c0-3.5 2.8-5.9 6.2-5.9s6.2 2.4 6.2 5.9"/><path d="M15.6 4.6a3.6 3.6 0 0 1 0 6.8"/><path d="M17.9 14.6c2 .7 3.3 2.7 3.3 5.4"/></svg></span>
+          Contacts
         </button>
       </div>
 
@@ -291,7 +326,40 @@
         <button class="back" data-back aria-label="Back"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10 3 5 8l5 5"/></svg></button>
         <h2>Activity</h2>
       </div>
-      <div class="scroll" id="all"></div>
+      <div class="scroll" id="all-activity"></div>
+    </section>
+
+
+    <!-- Contacts -->
+    <section class="screen" id="contacts" hidden>
+      <div class="topline">
+        <button class="back" data-back aria-label="Back"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10 3 5 8l5 5"/></svg></button>
+        <h2>Contacts</h2>
+      </div>
+      <div class="scroll" id="contact-list"></div>
+      <button class="primary pearl" id="add-contact">Add a contact</button>
+    </section>
+
+    <!-- One contact -->
+    <section class="screen" id="contact" hidden>
+      <div class="topline">
+        <button class="back" id="contact-back" aria-label="Back"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10 3 5 8l5 5"/></svg></button>
+        <h2 id="contact-title">New contact</h2>
+      </div>
+      <div class="field">
+        <label for="c-name">Name</label>
+        <div class="box plain"><input id="c-name" placeholder="Who is this?" autocomplete="off" maxlength="40"></div>
+      </div>
+      <div class="field">
+        <label for="c-address">Address</label>
+        <textarea id="c-address" placeholder="Their 64-character address" spellcheck="false"></textarea>
+        <div class="check" id="c-check"></div>
+      </div>
+      <div class="push"></div>
+      <div class="problem" id="contact-problem" hidden></div>
+      <button class="secondary" id="c-send" hidden style="margin-top:14px">Send to this contact</button>
+      <button class="primary pearl" id="c-save" style="margin-top:10px">Save</button>
+      <button class="danger" id="c-delete" hidden>Delete contact</button>
     </section>
 
     <!-- Send: enter -->
@@ -313,6 +381,7 @@
           <button class="chip" id="paste" type="button">Paste</button>
         </div>
         <div class="check" id="to-check"></div>
+        <div class="picks" id="picks"></div>
       </div>
 
       <div class="push"></div>
@@ -345,6 +414,7 @@
       <h2 id="d-title"></h2>
       <p id="d-detail"></p>
       <button class="primary pearl" data-back>Done</button>
+      <button class="secondary" id="d-save" hidden>Save as contact</button>
     </section>
 
     <!-- Receive -->
@@ -378,6 +448,16 @@
     const clean = text.replace(/[,\s]/g, "");
     return /^\d+$/.test(clean) ? Number(clean) : NaN;
   };
+
+  let book = [];           // saved contacts, sorted by name
+  const named = (address) => book.find((c) => c.address === address);
+  const initial = (name) => name.trim().charAt(0).toUpperCase();
+  const esc = (t) => t.replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
+  // An address that shares a contact's first and last characters but is not
+  // theirs: the shape of an address-poisoning scam.
+  const lookalike = (address) => book.find((c) => c.address !== address &&
+    c.address.slice(0, 4) === address.slice(0, 4) && c.address.slice(-4) === address.slice(-4));
+  async function loadBook() { try { book = await invoke("contacts"); } catch { book = []; } }
 
   function show(id) {
     for (const s of document.querySelectorAll(".screen")) s.hidden = s.id !== id;
@@ -441,18 +521,26 @@
   // ---- Send: enter ----
   function validate() {
     const balance = view && view.balance !== null ? Number(view.balance) : null;
-    $("available").textContent = balance === null ? "" : `${fmt(balance)} available`;
+    $("available").textContent = balance === null ? "" : `${fmt(balance)} tokens available`;
     $("all").hidden = balance === null || balance === 0;
 
     const to = $("to").value.trim();
     const amount = amountOf($("amount").value);
-    let check = "", ok = false;
+    let check = "", ok = false, warn = false;
+    const lower = to.toLowerCase();
     if (to === "") check = "";
     else if (!isAddress(to)) check = to.length < 64 ? `${64 - to.length} more characters` : "Not an Orien address";
-    else if (view && to.toLowerCase() === view.address) check = "That is this wallet's own address";
+    else if (view && lower === view.address) check = "That is this wallet's own address";
+    else if (named(lower)) { check = `✓ ${named(lower).name}`; ok = true; }
+    else if (lookalike(lower)) {
+      check = `⚠ This looks like ${lookalike(lower).name}'s address but is not the same. Check where you copied it from.`;
+      warn = true;
+    }
     else { check = "✓ Valid address"; ok = true; }
     $("to-check").textContent = check;
-    $("to-check").className = "check" + (ok ? " ok" : "");
+    $("to-check").className = "check" + (ok ? " ok" : "") + (warn ? " warn" : "");
+    $("picks").innerHTML = to === "" ? book.slice(0, 6).map((c) =>
+      `<button class="pick" type="button" data-address="${c.address}"><span class="avatar pearl">${esc(initial(c.name))}</span>${esc(c.name)}</button>`).join("") : "";
 
     const amountOk = amount > 0 && (balance === null || amount <= balance);
     $("amount").style.color = amount > balance ? "var(--bad)" : "";
@@ -464,6 +552,10 @@
     validate();
   };
   $("to").oninput = validate;
+  $("picks").onclick = (event) => {
+    const pick = event.target.closest(".pick");
+    if (pick) { $("to").value = pick.dataset.address; validate(); }
+  };
   $("all").onclick = () => { $("amount").value = fmt(view.balance); validate(); };
   $("paste").onclick = async () => {
     try { $("to").value = (await navigator.clipboard.readText()).trim(); validate(); } catch { $("to").focus(); }
@@ -471,10 +563,10 @@
 
   $("to-review").onclick = () => {
     pending = { to: $("to").value.trim().toLowerCase(), amount: amountOf($("amount").value) };
-    $("r-amount").textContent = `${fmt(pending.amount)} units`;
-    $("r-to").textContent = short(pending.to);
+    $("r-amount").textContent = `${fmt(pending.amount)} tokens`;
+    $("r-to").textContent = named(pending.to) ? `${named(pending.to).name} · ${short(pending.to)}` : short(pending.to);
     $("r-to").title = pending.to;
-    $("r-after").textContent = view && view.balance !== null ? `${fmt(Number(view.balance) - pending.amount)} units` : "—";
+    $("r-after").textContent = view && view.balance !== null ? `${fmt(Number(view.balance) - pending.amount)} tokens` : "—";
     show("review");
   };
   $("review-back").onclick = () => show("send");
@@ -494,8 +586,10 @@
           `Review and send this one again.`);
         refresh();
       } else {
-        $("d-title").textContent = `${fmt(sent.amount)} sent`;
-        $("d-detail").textContent = `to ${short(sent.to)} · final in ${sent.seconds < 1 ? "under a second" : sent.seconds.toFixed(1) + " s"}`;
+        $("d-title").textContent = `${fmt(sent.amount)} tokens sent`;
+        $("d-save").hidden = !!named(sent.to);
+        $("d-save").dataset.address = sent.to;
+        $("d-detail").textContent = `to ${named(sent.to) ? named(sent.to).name : short(sent.to)} · final in ${sent.seconds < 1 ? "under a second" : sent.seconds.toFixed(1) + " s"}`;
         show("done");
         refresh();
       }
@@ -532,7 +626,8 @@
   }
   function row(e, when) {
     const sent = e.direction === "sent";
-    const sub = e.counterparty ? (sent ? "To " : "From ") + short(e.counterparty)
+    const who = e.counterparty && named(e.counterparty);
+    const sub = e.counterparty ? (sent ? "To " : "From ") + (who ? esc(who.name) : short(e.counterparty))
       : sent ? "Sent from another app" : "Incoming payment";
     return `<div class="tx" title="${e.counterparty || ""}">
       <span class="tx-icon ${e.direction}">${ICON[e.direction]}</span>
@@ -559,12 +654,85 @@
       group.push(row(e, (x) => clock(x.time)));
     }
     flush();
-    $("all").innerHTML = html || '<div class="empty">No payments yet</div>';
+    $("all-activity").innerHTML = html || '<div class="empty">No payments yet</div>';
   }
   $("view-all").onclick = () => { renderAll(); show("activity"); };
 
+  // ---- Contacts ----
+  let editing = null;       // the address of the contact being edited, or null when adding
+  let returnTo = "contacts";
+
+  function renderContacts() {
+    $("contact-list").innerHTML = book.length
+      ? `<div class="list">${book.map((c) => `<div class="tx contact" data-address="${c.address}">
+          <span class="avatar pearl">${esc(initial(c.name))}</span>
+          <div class="tx-main"><div class="title">${esc(c.name)}</div><div class="sub">${short(c.address)}</div></div>
+          <svg class="chevron" width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m6 3 5 5-5 5"/></svg>
+        </div>`).join("")}</div>`
+      : '<div class="empty">No contacts yet. Add someone you pay often, and pick them by name when you send.</div>';
+  }
+  async function openContacts() { await loadBook(); renderContacts(); show("contacts"); }
+
+  function openContact(address, from) {
+    returnTo = from;
+    const contact = address && named(address);
+    editing = contact ? contact.address : null;
+    $("contact-title").textContent = contact ? contact.name : "New contact";
+    $("c-name").value = contact ? contact.name : "";
+    $("c-address").value = address || "";
+    $("c-address").readOnly = !!contact;
+    $("c-send").hidden = !contact;
+    $("c-delete").hidden = !contact;
+    $("c-delete").textContent = "Delete contact";
+    checkContact();
+    show("contact");
+    (contact || address ? $("c-name") : $("c-name")).focus();
+  }
+  function checkContact() {
+    const a = $("c-address").value.trim();
+    let text = "", cls = "check";
+    if (a && !isAddress(a)) text = a.length < 64 ? `${64 - a.length} more characters` : "Not an Orien address";
+    else if (a && !editing && named(a.toLowerCase())) text = `Already saved as ${named(a.toLowerCase()).name}`;
+    else if (a) { text = "✓ Valid address"; cls += " ok"; }
+    $("c-check").textContent = text; $("c-check").className = cls;
+    $("c-save").disabled = !($("c-name").value.trim() && isAddress(a));
+  }
+  $("c-name").oninput = checkContact;
+  $("c-address").oninput = checkContact;
+
+  $("go-contacts").onclick = openContacts;
+  $("add-contact").onclick = () => openContact(null, "contacts");
+  $("contact-list").onclick = (event) => {
+    const row = event.target.closest(".tx.contact");
+    if (row) openContact(row.dataset.address, "contacts");
+  };
+  $("contact-back").onclick = () => returnTo === "home" ? home() : openContacts();
+  $("d-save").onclick = () => openContact($("d-save").dataset.address, "home");
+
+  $("c-save").onclick = async () => {
+    try {
+      await invoke("save_contact", { name: $("c-name").value, address: $("c-address").value, previous: editing });
+      await loadBook();
+      if (returnTo === "home") home(); else openContacts();
+    } catch (error) { problem("contact-problem", error); }
+  };
+  $("c-delete").onclick = async () => {
+    // Ask once more before deleting.
+    if ($("c-delete").textContent !== "Click again to delete") {
+      $("c-delete").textContent = "Click again to delete";
+      return;
+    }
+    try { await invoke("delete_contact", { address: editing }); await openContacts(); }
+    catch (error) { problem("contact-problem", error); }
+  };
+  $("c-send").onclick = () => {
+    const address = editing;
+    $("go-send").onclick();
+    $("to").value = address; validate(); $("amount").focus();
+  };
+
   setInterval(() => { if (!$("home").hidden || !$("activity").hidden) refresh(); }, 15000);
-  start().catch((e) => problem("welcome-problem", e));
+  loadBook().then(start).catch((e) => problem("welcome-problem", e));
 </script>
 </body>
 </html>

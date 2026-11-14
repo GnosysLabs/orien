@@ -10,6 +10,7 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
 mod activity;
+mod contacts;
 mod send;
 
 use orien_ledger::AccountId;
@@ -170,6 +171,23 @@ async fn overview_now(app: AppHandle) -> Result<Overview, String> {
     .map_err(|error| error.to_string())?
 }
 
+/// The address book, sorted by name.
+#[tauri::command]
+fn contacts(app: AppHandle) -> Result<Vec<contacts::Contact>, String> {
+    Ok(contacts::list(&folder(&app)?))
+}
+
+/// Adds a contact, or edits the one at `previous`.
+#[tauri::command]
+fn save_contact(app: AppHandle, name: String, address: String, previous: Option<String>) -> Result<(), String> {
+    contacts::save(&folder(&app)?, &name, &address, previous.as_deref())
+}
+
+#[tauri::command]
+fn delete_contact(app: AppHandle, address: String) -> Result<(), String> {
+    contacts::delete(&folder(&app)?, &address)
+}
+
 /// The wallet's payments, newest first.
 #[tauri::command]
 fn activity(app: AppHandle) -> Result<Vec<activity::Entry>, String> {
@@ -262,7 +280,7 @@ mod tests {
 fn main() {
     tauri::Builder::default()
         .plugin(tauri_plugin_dialog::init())
-        .invoke_handler(tauri::generate_handler![has_wallet, create_wallet, choose_wallet, overview_now, send_payment, activity])
+        .invoke_handler(tauri::generate_handler![has_wallet, create_wallet, choose_wallet, overview_now, send_payment, activity, contacts, save_contact, delete_contact])
         .run(tauri::generate_context!())
         .expect("the wallet window could not start");
 }
