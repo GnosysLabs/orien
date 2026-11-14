@@ -11,6 +11,7 @@
 
 mod activity;
 mod contacts;
+mod money;
 mod send;
 
 use orien_ledger::AccountId;
@@ -29,12 +30,21 @@ static TURNS: std::sync::Mutex<()> = std::sync::Mutex::new(());
 /// The network this copy of the app was built for.
 const GENESIS: &str = include_str!(concat!(env!("OUT_DIR"), "/genesis.json"));
 
+/// The balance the validators last agreed on, in units, for fee quotes.
+static LAST_BALANCE: std::sync::Mutex<Option<i128>> = std::sync::Mutex::new(None);
+
 /// What the window shows about a wallet.
 #[derive(Serialize)]
 struct Overview {
     address: String,
-    /// `None` while too few validators are caught up to agree on it.
+    /// As people read it, such as "1,250.5". `None` while too few
+    /// validators are caught up to agree on it.
     balance: Option<String>,
+    /// The most that can be sent once the fee is added, written plainly for
+    /// the amount box.
+    most: Option<String>,
+    #[serde(skip)]
+    units: Option<i128>,
     payments: u64,
     answered: usize,
     validators: usize,
@@ -120,7 +130,9 @@ fn overview(wallet_file: &Path, genesis_file: &Path) -> Result<Overview, String>
     }
     Ok(Overview {
         address: wallet.address().to_string(),
-        balance: status.spendable.map(|balance| balance.to_string()),
+        balance: status.spendable.map(money::show),
+        most: status.spendable.map(|balance| orien_ledger::coins(money::most(&money::fees(GENESIS), balance) as i128)),
+        units: status.spendable,
         payments: status.seq,
         answered,
         validators: client.validators(),
@@ -162,9 +174,10 @@ async fn overview_now(app: AppHandle) -> Result<Overview, String> {
     tauri::async_runtime::spawn_blocking(move || {
         let _turn = TURNS.lock().unwrap_or_else(|poisoned| poisoned.into_inner());
         let view = overview(&wallet, &genesis)?;
-        if let Some(balance) = view.balance.as_deref().and_then(|text| text.parse().ok()) {
+        if let Some(balance) = view.units {
             activity::observe(&dir, &view.address, balance);
         }
+        *LAST_BALANCE.lock().unwrap_or_else(|poisoned| poisoned.into_inner()) = view.units;
         Ok(view)
     })
     .await
@@ -188,25 +201,45 @@ fn delete_contact(app: AppHandle, address: String) -> Result<(), String> {
     contacts::delete(&folder(&app)?, &address)
 }
 
+/// One payment as the window shows it.
+#[derive(Serialize)]
+struct ActivityView {
+    direction: activity::Direction,
+    amount: String,
+    fee: Option<String>,
+    counterparty: Option<String>,
+    time: u64,
+}
+
 /// The wallet's payments, newest first.
 #[tauri::command]
-fn activity(app: AppHandle) -> Result<Vec<activity::Entry>, String> {
+fn activity(app: AppHandle) -> Result<Vec<ActivityView>, String> {
     let dir = folder(&app)?;
     let wallet = open(&wallet_file(&dir).ok_or("no wallet yet")?)?;
-    Ok(activity::list(&dir, &wallet.address().to_string()))
+    Ok(activity::list(&dir, &wallet.address().to_string())
+        .into_iter()
+        .map(|entry| ActivityView {
+            direction: entry.direction,
+            amount: money::show(entry.amount as i128),
+            fee: (entry.fee > 0).then(|| money::show(entry.fee as i128)),
+            counterparty: entry.counterparty,
+            time: entry.time,
+        })
+        .collect())
+}
+
+/// The fee and the balance afterwards for an amount being typed.
+#[tauri::command]
+fn quote(amount: String) -> money::Quote {
+    let balance = *LAST_BALANCE.lock().unwrap_or_else(|poisoned| poisoned.into_inner());
+    money::quote(&money::fees(GENESIS), balance, &amount)
 }
 
 /// Sends `amount` to the address `to` and waits until it is final.
 #[tauri::command]
 async fn send_payment(app: AppHandle, to: String, amount: String) -> Result<send::Sent, String> {
     let to: AccountId = to.trim().parse().map_err(|_| "That is not an Orien address. An address is 64 letters and digits.".to_string())?;
-    let amount: u64 = amount
-        .trim()
-        .replace(',', "")
-        .parse()
-        .ok()
-        .filter(|amount| *amount > 0)
-        .ok_or("Enter an amount: a whole number above zero.")?;
+    let amount = money::read(&amount)?;
     let dir = folder(&app)?;
     let wallet_file = wallet_file(&dir).ok_or("no wallet yet")?;
     let genesis = genesis_file(&dir)?;
@@ -217,10 +250,10 @@ async fn send_payment(app: AppHandle, to: String, amount: String) -> Result<send
             return Err("That is this wallet's own address.".into());
         }
         let client = connect(&genesis)?;
-        let sent = send::send(&client, &mut wallet, to, amount);
+        let sent = send::send(&client, &mut wallet, money::fees(GENESIS), to, amount);
         let _ = client.head().save(&head_file(&genesis));
         if let Ok(sent) = &sent {
-            activity::sent(&dir, &wallet.address().to_string(), sent.amount, &sent.to);
+            activity::sent(&dir, &wallet.address().to_string(), sent.amount, sent.fee, &sent.to);
         }
         sent
     })
@@ -259,28 +292,29 @@ mod tests {
         }
         let (alice, bob, genesis) =
             (root.join("wallets/alice.wallet"), root.join("wallets/bob.wallet"), root.join("genesis.json"));
-        let balance = |file: &std::path::Path| super::overview(file, &genesis).unwrap().balance.unwrap();
-        let (alice_before, bob_before): (i128, i128) =
-            (balance(&alice).parse().unwrap(), balance(&bob).parse().unwrap());
+        let balance = |file: &std::path::Path| super::overview(file, &genesis).unwrap().units.unwrap();
+        let (alice_before, bob_before) = (balance(&alice), balance(&bob));
+        let fees = orien_net::keys::load_genesis(&genesis).unwrap().fee;
 
         let client = super::connect(&genesis).unwrap();
         let mut wallet = super::open(&alice).unwrap();
         let to = super::open(&bob).unwrap().address();
-        let sent = super::send::send(&client, &mut wallet, to, 1).unwrap();
+        let amount = 250_000_000; // 0.25 coin
+        let sent = super::send::send(&client, &mut wallet, fees, to, amount).unwrap();
         assert!(!sent.earlier);
-        println!("sent 1 in {:.3} s", sent.seconds);
+        assert_eq!(sent.fee, fees.on(&orien_ledger::Kind::Payment, amount));
+        println!("sent {} with a fee of {} in {:.3} s", sent.amount_text, sent.fee_text, sent.seconds);
 
-        let (alice_after, bob_after): (i128, i128) =
-            (balance(&alice).parse().unwrap(), balance(&bob).parse().unwrap());
-        assert_eq!(alice_after, alice_before - 1);
-        assert_eq!(bob_after, bob_before + 1);
+        let (alice_after, bob_after) = (balance(&alice), balance(&bob));
+        assert_eq!(alice_after, alice_before - amount as i128 - sent.fee as i128);
+        assert_eq!(bob_after, bob_before + amount as i128);
     }
 }
 
 fn main() {
     tauri::Builder::default()
         .plugin(tauri_plugin_dialog::init())
-        .invoke_handler(tauri::generate_handler![has_wallet, create_wallet, choose_wallet, overview_now, send_payment, activity, contacts, save_contact, delete_contact])
+        .invoke_handler(tauri::generate_handler![has_wallet, create_wallet, choose_wallet, overview_now, send_payment, activity, quote, contacts, save_contact, delete_contact])
         .run(tauri::generate_context!())
         .expect("the wallet window could not start");
 }

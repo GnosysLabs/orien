@@ -10,7 +10,7 @@
 
 use orien_net::client::{AccountStatus, Client, Done, TransferError, Unfinished};
 use orien_net::keys::Wallet;
-use orien_ledger::{AccountId, Kind, Signature, SignedOrder, Signer};
+use orien_ledger::{AccountId, Fees, Kind, Signature, SignedOrder, Signer};
 use serde::Serialize;
 use std::time::{Duration, Instant};
 
@@ -18,6 +18,10 @@ use std::time::{Duration, Instant};
 #[derive(Serialize)]
 pub struct Sent {
     pub amount: u64,
+    pub fee: u64,
+    /// The amount and fee as people read them.
+    pub amount_text: String,
+    pub fee_text: String,
     pub to: String,
     pub seconds: f64,
     /// Set when the app finished an earlier payment instead of sending the
@@ -80,14 +84,20 @@ fn finish(client: &Client, wallet: &mut Wallet, signed: &SignedOrder, earlier: b
     wallet.confirm(signed.order.seq).map_err(|error| error.to_string())?;
     Ok(Sent {
         amount: signed.order.amount,
+        fee: signed.order.max_fee,
+        amount_text: crate::money::show(signed.order.amount as i128),
+        fee_text: crate::money::show(signed.order.max_fee as i128),
         to: signed.order.to.to_string(),
         seconds: started.elapsed().as_secs_f64(),
         earlier,
     })
 }
 
-pub fn send(client: &Client, wallet: &mut Wallet, to: AccountId, amount: u64) -> Result<Sent, String> {
+pub fn send(client: &Client, wallet: &mut Wallet, fees: Fees, to: AccountId, amount: u64) -> Result<Sent, String> {
     let network = *client.committee().network();
+    // Every payment carries the network's fee; without it validators refuse it.
+    wallet.accept_fee(fees);
+    let fee = fees.on(&Kind::Payment, amount);
     let status = client.account(&wallet.address(), wallet.next_seq());
     if status.views.iter().all(Option::is_none) {
         return Err("no validator could be reached".into());
@@ -114,8 +124,12 @@ pub fn send(client: &Client, wallet: &mut Wallet, to: AccountId, amount: u64) ->
 
     match unfinished.as_slice() {
         [] => match status.spendable {
-            Some(balance) if balance < amount as i128 => {
-                return Err(format!("Not enough funds: the balance is {balance}."));
+            Some(balance) if balance < amount as i128 + fee as i128 => {
+                return Err(format!(
+                    "Not enough funds: this wallet holds {}, and the payment with its fee is {}.",
+                    crate::money::show(balance),
+                    crate::money::show(amount as i128 + fee as i128)
+                ));
             }
             None => return Err("Too few validators are caught up on this account. Try again shortly.".into()),
             _ => {}

@@ -150,6 +150,8 @@
   .amount-entry input:focus { outline: none; }
   .amount-entry input::placeholder { color: var(--faint); }
   .amount-entry .hint { margin-top: 8px; font-size: 12.5px; color: var(--dim); }
+  .fee-line { margin-top: 4px; min-height: 18px; font-size: 12px; color: var(--faint); }
+  .fee-line.bad { color: var(--bad); }
   .amount-entry .hint button {
     border: 0; background: none; padding: 0; margin-left: 4px; color: #d8d3f4; cursor: pointer; font-size: 12.5px;
   }
@@ -372,6 +374,7 @@
       <div class="amount-entry">
         <input id="amount" placeholder="0" inputmode="numeric" autocomplete="off">
         <div class="hint"><span id="available"></span><button id="all" type="button">Send all</button></div>
+        <div class="fee-line" id="fee-line"></div>
       </div>
 
       <div class="field">
@@ -398,6 +401,7 @@
 
       <div class="review">
         <div class="row"><span>Amount</span><span id="r-amount"></span></div>
+        <div class="row"><span>Network fee</span><span id="r-fee"></span></div>
         <div class="row"><span>To</span><span class="mono" id="r-to"></span></div>
         <div class="row"><span>Balance after</span><span id="r-after"></span></div>
       </div>
@@ -441,13 +445,8 @@
   let view = null;          // the latest overview from the validators
   let pending = null;       // { to, amount } while reviewing
 
-  const fmt = (n) => Number(n).toLocaleString();
   const short = (a) => a.slice(0, 8) + "…" + a.slice(-8);
   const isAddress = (text) => /^[0-9a-f]{64}$/i.test(text.trim());
-  const amountOf = (text) => {
-    const clean = text.replace(/[,\s]/g, "");
-    return /^\d+$/.test(clean) ? Number(clean) : NaN;
-  };
 
   let book = [];           // saved contacts, sorted by name
   const named = (address) => book.find((c) => c.address === address);
@@ -474,7 +473,7 @@
   async function refresh() {
     try {
       view = await invoke("overview_now");
-      $("balance").textContent = view.balance === null ? "—" : fmt(view.balance);
+      $("balance").textContent = view.balance === null ? "—" : view.balance;
       $("status").title = `${view.answered} of ${view.validators} validators answered`;
       if (view.answered === view.validators) setStatus("ok", "Connected");
       else if (view.balance !== null) setStatus("warn", `${view.answered} of ${view.validators}`);
@@ -509,6 +508,7 @@
   for (const b of document.querySelectorAll("[data-back]")) b.onclick = home;
   $("go-send").onclick = () => {
     $("amount").value = ""; $("to").value = "";
+    quoted = null; $("fee-line").textContent = ""; $("amount").style.color = "";
     validate(); show("send"); $("amount").focus();
   };
   $("go-receive").onclick = () => {
@@ -519,13 +519,26 @@
   };
 
   // ---- Send: enter ----
+  // The fee and what is left are worked out in the app's Rust code, in
+  // exact whole units; this page only shows the text it gets back.
+  let quoted = null, quoting = 0;
+  async function requote() {
+    const ticket = ++quoting;
+    const q = await invoke("quote", { amount: $("amount").value });
+    if (ticket !== quoting) return;      // a newer keystroke has asked again
+    quoted = q;
+    $("fee-line").textContent = q.problem || (q.fee ? `Network fee ${q.fee} tokens` : "");
+    $("fee-line").className = "fee-line" + (q.problem ? " bad" : "");
+    $("amount").style.color = q.problem && q.fee ? "var(--bad)" : "";
+    validate();
+  }
+
   function validate() {
-    const balance = view && view.balance !== null ? Number(view.balance) : null;
-    $("available").textContent = balance === null ? "" : `${fmt(balance)} tokens available`;
-    $("all").hidden = balance === null || balance === 0;
+    const has = view && view.balance !== null;
+    $("available").textContent = has ? `${view.balance} tokens available` : "";
+    $("all").hidden = !has || view.most === "0";
 
     const to = $("to").value.trim();
-    const amount = amountOf($("amount").value);
     let check = "", ok = false, warn = false;
     const lower = to.toLowerCase();
     if (to === "") check = "";
@@ -542,31 +555,32 @@
     $("picks").innerHTML = to === "" ? book.slice(0, 6).map((c) =>
       `<button class="pick" type="button" data-address="${c.address}"><span class="avatar pearl">${esc(initial(c.name))}</span>${esc(c.name)}</button>`).join("") : "";
 
-    const amountOk = amount > 0 && (balance === null || amount <= balance);
-    $("amount").style.color = amount > balance ? "var(--bad)" : "";
+    const amountOk = quoted && quoted.fee && !quoted.problem;
     $("to-review").disabled = !(ok && amountOk);
   }
   $("amount").oninput = () => {
-    const n = amountOf($("amount").value);
-    if (!isNaN(n) && $("amount").value !== "") $("amount").value = fmt(n);
-    validate();
+    // Digits, one decimal point and thousands commas only.
+    const clean = $("amount").value.replace(/[^0-9.,]/g, "").replace(/(\..*)\./g, "$1");
+    if (clean !== $("amount").value) $("amount").value = clean;
+    requote();
   };
   $("to").oninput = validate;
   $("picks").onclick = (event) => {
     const pick = event.target.closest(".pick");
     if (pick) { $("to").value = pick.dataset.address; validate(); }
   };
-  $("all").onclick = () => { $("amount").value = fmt(view.balance); validate(); };
+  $("all").onclick = () => { $("amount").value = view.most; requote(); };
   $("paste").onclick = async () => {
     try { $("to").value = (await navigator.clipboard.readText()).trim(); validate(); } catch { $("to").focus(); }
   };
 
   $("to-review").onclick = () => {
-    pending = { to: $("to").value.trim().toLowerCase(), amount: amountOf($("amount").value) };
-    $("r-amount").textContent = `${fmt(pending.amount)} tokens`;
+    pending = { to: $("to").value.trim().toLowerCase(), amount: $("amount").value };
+    $("r-amount").textContent = `${quoted.amount} tokens`;
+    $("r-fee").textContent = `${quoted.fee} tokens`;
     $("r-to").textContent = named(pending.to) ? `${named(pending.to).name} · ${short(pending.to)}` : short(pending.to);
     $("r-to").title = pending.to;
-    $("r-after").textContent = view && view.balance !== null ? `${fmt(Number(view.balance) - pending.amount)} tokens` : "—";
+    $("r-after").textContent = quoted.after ? `${quoted.after} tokens` : "—";
     show("review");
   };
   $("review-back").onclick = () => show("send");
@@ -582,14 +596,14 @@
         // A payment signed earlier had to finish first; this one is not sent yet.
         show("send");
         problem("send-problem",
-          `An earlier payment of ${fmt(sent.amount)} to ${short(sent.to)} was still waiting and is now final. ` +
+          `An earlier payment of ${sent.amount_text} tokens to ${short(sent.to)} was still waiting and is now final. ` +
           `Review and send this one again.`);
         refresh();
       } else {
-        $("d-title").textContent = `${fmt(sent.amount)} tokens sent`;
+        $("d-title").textContent = `${sent.amount_text} tokens sent`;
         $("d-save").hidden = !!named(sent.to);
         $("d-save").dataset.address = sent.to;
-        $("d-detail").textContent = `to ${named(sent.to) ? named(sent.to).name : short(sent.to)} · final in ${sent.seconds < 1 ? "under a second" : sent.seconds.toFixed(1) + " s"}`;
+        $("d-detail").textContent = `to ${named(sent.to) ? named(sent.to).name : short(sent.to)} · final in ${sent.seconds < 1 ? "under a second" : sent.seconds.toFixed(1) + " s"} · fee ${sent.fee_text}`;
         show("done");
         refresh();
       }
@@ -632,7 +646,7 @@
     return `<div class="tx" title="${e.counterparty || ""}">
       <span class="tx-icon ${e.direction}">${ICON[e.direction]}</span>
       <div class="tx-main"><div class="title">${sent ? "Sent" : "Received"}</div><div class="sub">${sub}</div></div>
-      <div class="tx-side"><div class="amt ${e.direction}">${sent ? "−" : "+"}${fmt(e.amount)}</div><div class="sub">${when(e)}</div></div>
+      <div class="tx-side"><div class="amt ${e.direction}">${sent ? "−" : "+"}${e.amount}</div><div class="sub">${when(e)}</div></div>
     </div>`;
   }
   const relative = (e) => { const d = dayName(e.time); return d === "Today" ? clock(e.time) : d === "Yesterday" ? "Yesterday" : new Date(e.time * 1000).toLocaleDateString([], { month: "short", day: "numeric" }); };

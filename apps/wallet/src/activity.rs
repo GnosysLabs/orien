@@ -24,6 +24,9 @@ pub enum Direction {
 pub struct Entry {
     pub direction: Direction,
     pub amount: u64,
+    /// The fee this wallet paid, for payments it sent.
+    #[serde(default)]
+    pub fee: u64,
     /// The other side's address, where known.
     pub counterparty: Option<String>,
     /// Seconds since 1970.
@@ -60,12 +63,12 @@ fn save(dir: &Path, book: &Book) {
 }
 
 /// Records a payment this app sent, once it is final.
-pub fn sent(dir: &Path, address: &str, amount: u64, to: &str) {
+pub fn sent(dir: &Path, address: &str, amount: u64, fee: u64, to: &str) {
     let mut book = load(dir);
     let account = book.0.entry(address.to_owned()).or_default();
-    account.entries.push(Entry { direction: Direction::Sent, amount, counterparty: Some(to.to_owned()), time: now() });
+    account.entries.push(Entry { direction: Direction::Sent, amount, fee, counterparty: Some(to.to_owned()), time: now() });
     if let Some(expected) = &mut account.expected {
-        *expected -= amount as i128;
+        *expected -= amount as i128 + fee as i128;
     }
     save(dir, &book);
 }
@@ -86,6 +89,7 @@ pub fn observe(dir: &Path, address: &str, balance: i128) {
         account.entries.push(Entry {
             direction,
             amount: amount.min(u64::MAX as i128) as u64,
+            fee: 0,
             counterparty: None,
             time: now(),
         });
@@ -121,11 +125,11 @@ mod tests {
         observe(&dir, "me", 1000); // first sight: nothing to record
         assert!(list(&dir, "me").is_empty());
 
-        sent(&dir, "me", 250, "them"); // this app sends 250
-        observe(&dir, "me", 750); // the balance agrees: nothing new
-        observe(&dir, "me", 850); // 100 more than expected: received
-        observe(&dir, "me", 800); // 50 less: sent from elsewhere
-        observe(&dir, "me", 800);
+        sent(&dir, "me", 250, 5, "them"); // this app sends 250 with a fee of 5
+        observe(&dir, "me", 745); // the balance agrees: nothing new
+        observe(&dir, "me", 845); // 100 more than expected: received
+        observe(&dir, "me", 795); // 50 less: sent from elsewhere
+        observe(&dir, "me", 795);
 
         // Newest first: (is sent, amount, sender or recipient known)
         assert_eq!(
