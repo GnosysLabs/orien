@@ -96,6 +96,7 @@ pub enum Tag {
     StatePadding = 0x42,
     Ballot = 0x43,
     Proposal = 0x44,
+    StakeProof = 0x45,
 }
 
 /// Hashes `parts` under `tag`. Parts are concatenated without separators, so

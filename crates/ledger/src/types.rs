@@ -19,6 +19,7 @@ pub fn address(first_key: &Hash32, spare: &Hash32) -> AccountId {
 
 /// What an order does. New kinds are added as new variants at the end,
 /// which leaves the encoding of the existing ones alone.
+#[allow(clippy::large_enum_variant)]
 #[derive(Clone, Debug, PartialEq, Eq, BorshSerialize, BorshDeserialize)]
 pub enum Kind {
     /// Moves `amount` from `from` to `to`.
@@ -27,7 +28,12 @@ pub enum Kind {
     /// validator, and names the account's validator: a later stake order
     /// can name a new key tree or a new address. `to` must be the account
     /// itself; staking with someone else's validator is not built.
-    Stake(Validator),
+    ///
+    /// `proof` is the validator's own signature, with the key tree named,
+    /// over `stake_proof_item`. Without it anyone could name a key tree
+    /// that is not theirs, such as a working validator's, and push that
+    /// validator out by staking more.
+    Stake { validator: Validator, proof: TreeSignature },
     /// Starts the release of `amount` of the account's stake. The coins
     /// stay locked, and can still be taken for cheating, until the wait set
     /// in the genesis file is over. `to` must be the account itself.
@@ -44,6 +50,12 @@ pub struct Validator {
     pub root: Hash32,
     pub height: u8,
     pub address: String,
+}
+
+/// What a validator signs to show that it backs `account`'s stake, at
+/// `address`, on this network.
+pub fn stake_proof_item(network: &Hash32, account: &AccountId, address: &str) -> Hash32 {
+    hash(Tag::StakeProof, &[network.as_bytes(), account.as_bytes(), address.as_bytes()])
 }
 
 impl Validator {
@@ -83,6 +95,19 @@ impl Order {
     pub fn digest(&self, network: &Hash32) -> Hash32 {
         let bytes = borsh::to_vec(self).expect("serializing to memory cannot fail");
         hash(Tag::Order, &[network.as_bytes(), &bytes])
+    }
+
+    /// False for a stake order whose validator did not sign that it backs
+    /// this account at this address. True for every other order.
+    pub fn stake_proof_holds(&self, network: &Hash32) -> bool {
+        match &self.kind {
+            Kind::Stake { validator, proof } => {
+                let item = stake_proof_item(network, &self.from, &validator.address);
+                validator.height <= keytree::MAX_HEIGHT
+                    && keytree::verify(&validator.root, validator.height, proof, item.as_bytes())
+            }
+            _ => true,
+        }
     }
 }
 

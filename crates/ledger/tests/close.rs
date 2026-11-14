@@ -999,7 +999,7 @@ fn a_replacement_key_takes_over_only_as_the_merged_statements_say() {
     };
     let next = |statements: &[Statement]| {
         let merged: Vec<&Statement> = statements.iter().collect();
-        close::next_validators(&committee, &merged)
+        close::next_validators(&committee, &merged, &world.validators[0].start)
     };
     let fresh = NextKey { root: Hash32([9; 32]), height: 7 };
     let plain = [statement(0, None), statement(1, None), statement(2, None)];

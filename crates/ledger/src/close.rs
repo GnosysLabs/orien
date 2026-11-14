@@ -156,21 +156,79 @@ pub enum Invalid {
     WrongValidators,
 }
 
-/// The validators of the next epoch: this epoch's, with the key tree of
-/// each one whose merged statement names a replacement swapped for it.
-pub fn next_validators(committee: &Committee, statements: &[&Statement]) -> Vec<Member> {
-    let mut members = committee.members().to_vec();
-    for statement in statements {
-        let Some(key) = statement.next_key else { continue };
-        // A key another validator already holds, or a tree too tall to
-        // build, is passed over. The validator keeps the key it has.
-        let usable = key.height <= keytree::MAX_HEIGHT && members.iter().all(|m| m.root != key.root);
-        if let Some(member) = members.get_mut(statement.validator as usize)
-            && usable
-        {
-            member.root = key.root;
-            member.height = key.height;
+/// The key tree that `validator`'s merged statement names to replace its
+/// own, if it names a usable one. A key another validator already holds,
+/// or a tree too tall to build, is passed over: the validator keeps the key
+/// it has.
+fn replacement(committee: &Committee, statements: &[&Statement], validator: u16) -> Option<NextKey> {
+    let statement = statements.iter().find(|s| s.validator == validator)?;
+    let key = statement.next_key?;
+    let usable = key.height <= keytree::MAX_HEIGHT && committee.members().iter().all(|m| m.root != key.root);
+    usable.then_some(key)
+}
+
+/// The validators of the next epoch. A fixed result of this epoch's
+/// validators, the statements merged and the state the epoch ends in, so
+/// every validator computes the same list.
+///
+/// The launch seats come first, each with the key tree its statement names
+/// swapped in. After them come the accounts with the most stake, if at
+/// least the minimum, largest first and ties by address, until the limit is
+/// reached. A staked validator's new key tree is already in the state (see
+/// `outcome`). A key tree that a validator placed earlier holds is passed
+/// over, and so is its account.
+///
+/// The seats fade as real stake arrives. Together they weigh what their
+/// stakes in the genesis file add up to, less the stake of the validators
+/// chosen, shared in the genesis file's proportions. Once the real stake
+/// reaches that sum the seats leave the set, and they never come back.
+pub fn next_validators(committee: &Committee, statements: &[&Statement], end: &State) -> Vec<Member> {
+    let rules = committee.staking();
+    let mut seats = Vec::new();
+    for (index, member) in committee.members().iter().enumerate() {
+        if member.account.is_some() {
+            continue;
         }
+        let mut seat = member.clone();
+        if let Some(key) = replacement(committee, statements, index as u16) {
+            seat.root = key.root;
+            seat.height = key.height;
+        }
+        seats.push(seat);
+    }
+    let mut stakers = end.stakers(rules.min_stake);
+    stakers.sort_by(|a, b| b.2.cmp(&a.2).then(a.0.cmp(&b.0)));
+    let choose = |mut members: Vec<Member>| {
+        for (account, validator, stake) in &stakers {
+            if members.len() >= rules.max_validators as usize {
+                break;
+            }
+            if !validator.is_usable() || members.iter().any(|m: &Member| m.root == validator.root) {
+                continue;
+            }
+            members.push(Member {
+                root: validator.root,
+                height: validator.height,
+                stake: *stake,
+                address: validator.address.clone(),
+                account: Some(*account),
+            });
+        }
+        members
+    };
+    let seat_count = seats.len();
+    let with_seats = choose(seats);
+    let real: u128 = with_seats[seat_count..].iter().map(|m| m.stake as u128).sum();
+    let seat_total: u128 = committee.seats().iter().map(|share| *share as u128).sum();
+    if seat_count == 0 || real >= seat_total {
+        return choose(Vec::new());
+    }
+    let remaining = seat_total - real;
+    let mut members = with_seats;
+    for (seat, share) in members[..seat_count].iter_mut().zip(committee.seats()) {
+        // Never zero while the seats remain: a seat with no weight could
+        // not take part.
+        seat.stake = ((remaining * *share as u128 / seat_total) as u64).max(1);
     }
     members
 }
@@ -248,6 +306,9 @@ fn outcome_of(
             let bad = Invalid::BadPayment(order.from, order.seq);
             committee.verify_certificate(payment).map_err(|_| bad.clone())?;
             let signed_by = payment.signature.signed_by(&order.digest(network)).ok_or(bad.clone())?;
+            if !order.stake_proof_holds(network) {
+                return Err(bad);
+            }
             if state.seq(&order.from) == order.seq && !state.authorizes(order, &signed_by) {
                 return Err(bad);
             }
@@ -274,6 +335,15 @@ fn outcome_of(
             }
         }
     }
+    // A staked validator that announced a new key tree signs with it from
+    // the next epoch. Its stake names its key, so the change goes there.
+    for statement in statements {
+        let staker = committee.members().get(statement.validator as usize).and_then(|m| m.account);
+        if let (Some(account), Some(key)) = (staker, replacement(committee, statements, statement.validator)) {
+            state.rekey_validator(&account, key.root, key.height);
+        }
+    }
+    state.settle_stakes(committee.epoch(), committee.staking().unstake_epochs);
     Ok(state)
 }
 
@@ -337,7 +407,7 @@ fn propose_of(
         state: end.root(),
         payments: offered.len() as u64,
         merged: statements.iter().map(|s| (s.validator, s.digest(committee.network()))).collect(),
-        validators: next_validators(committee, statements),
+        validators: next_validators(committee, statements, &end),
     };
     Ok((checkpoint, end))
 }
@@ -423,12 +493,12 @@ fn validate_of<'a>(
     if checkpoint.payments != offered.len() as u64 {
         return Err(Invalid::WrongCount);
     }
-    if checkpoint.validators != next_validators(committee, &merged) {
-        return Err(Invalid::WrongValidators);
-    }
     let end = outcome_of(committee, start, offered, &merged)?;
     if end.root() != checkpoint.state {
         return Err(Invalid::WrongState);
+    }
+    if checkpoint.validators != next_validators(committee, &merged, &end) {
+        return Err(Invalid::WrongValidators);
     }
     Ok(end)
 }

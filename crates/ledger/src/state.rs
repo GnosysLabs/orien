@@ -311,6 +311,26 @@ impl State {
         self.accounts.values().map(Account::holdings).sum()
     }
 
+    /// Every account that has named a validator and has at least
+    /// `min_stake` staked, with that validator and stake, in address order.
+    /// Coins being unstaked no longer count.
+    pub fn stakers(&self, min_stake: u64) -> Vec<(AccountId, &Validator, u64)> {
+        self.accounts
+            .iter()
+            .filter(|(_, account)| account.staked >= min_stake)
+            .filter_map(|(id, account)| account.validator.as_ref().map(|v| (*id, v, account.staked)))
+            .collect()
+    }
+
+    /// Replaces the key tree of the validator `id` names, when its
+    /// validator has announced a new one at a checkpoint.
+    pub fn rekey_validator(&mut self, id: &AccountId, root: Hash32, height: u8) {
+        if let Some(validator) = self.accounts.get_mut(id).and_then(|a| a.validator.as_mut()) {
+            validator.root = root;
+            validator.height = height;
+        }
+    }
+
     /// The stake side of closing `epoch`. Releases whose wait ends with
     /// this epoch become spendable, and coins unstaked during it start
     /// their wait of `unstake_epochs` epochs.
@@ -373,7 +393,7 @@ impl State {
         if !matches!(order.kind, Kind::Payment) && order.to != order.from {
             return Err(Reject::NotOwnAccount);
         }
-        if let Kind::Stake(validator) = &order.kind
+        if let Kind::Stake { validator, .. } = &order.kind
             && !validator.is_usable()
         {
             return Err(Reject::BadValidator);
@@ -421,7 +441,7 @@ impl State {
                 let recipient = self.accounts.entry(order.to).or_insert_with(|| Account::holding(0));
                 recipient.balance += order.amount as i128;
             }
-            Kind::Stake(validator) => {
+            Kind::Stake { validator, .. } => {
                 sender.balance -= order.amount as i128;
                 sender.staked += order.amount;
                 sender.validator = Some(validator.clone());

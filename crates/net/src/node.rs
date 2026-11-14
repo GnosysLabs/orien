@@ -178,6 +178,9 @@ impl Shared {
                 let Some(signed_by) = signed.signature.signed_by(&digest) else {
                     return Response::Rejected(Reject::BadSignature);
                 };
+                if !signed.order.stake_proof_holds(self.committee().network()) {
+                    return Response::Rejected(Reject::BadValidator);
+                }
                 self.ask(|reply| Command::Order { signed, digest, signed_by, reply })
                     .unwrap_or_else(stopped)
             }
@@ -231,6 +234,9 @@ impl Shared {
         let Some(signed_by) = certificate.signature.signed_by(&digest) else {
             return Some(Response::Invalid("the owner's signature in this certificate is malformed".into()));
         };
+        if !certificate.order.stake_proof_holds(committee.network()) {
+            return Some(Response::Invalid("the validator named did not sign for this stake".into()));
+        }
         self.ask(|reply| Command::Certificate { certificate, digest, signed_by, confirm, reply })
     }
 }

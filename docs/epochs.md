@@ -302,6 +302,10 @@ that ties that key to the spare root.
 
 - A stake order locks coins against a validator's key-tree root and
   address. An unstake order starts a waiting period of several epochs.
+- A stake order carries the validator's own signature, made with the key
+  tree it names, over the staking account, the address and the network.
+  Without it anyone could name a working validator's key and push that
+  validator out by staking more.
 - The validator set for the next epoch is fixed in the checkpoint from the
   stakes recorded in it, with a minimum stake and a maximum number of
   validators. A newcomer learns the current validators and their addresses
@@ -315,6 +319,14 @@ that ties that key to the spare root.
   least 10,000 coins, at most 33 validators, and a wait of 168 epochs (one
   week) before unstaked coins can be spent. The validators of the genesis
   file are the launch seats and are exempt from the minimum.
+- **The launch seats fade as real stake arrives** (chosen on 2026-11-14).
+  Together they weigh what their stakes in the genesis file add up to,
+  less the stake of the validators chosen, shared in the genesis file's
+  proportions. Once real stake reaches that sum the seats leave the set
+  for good. With seats worth 3 million coins, a newcomer's 10,000 is a
+  third of a percent of the vote, and a third of the vote costs a million
+  coins. The fade follows real stake rather than the calendar, so the
+  vote never becomes cheap to buy while little is staked.
 
 ### Fees
 
@@ -364,9 +376,7 @@ Stuck accounts are freed from stage 3 on.
 
 - **A slow sunrise.** Whether the release rate starts near zero and climbs
   to full over the first 90 days.
-- **How launch seats fade.** If they fade by the calendar while little real
-  stake exists, a third of the voting weight becomes cheap to buy. Tying
-  the fade to the amount of real stake avoids that.
+- **The launch seats' total weight.** Test networks use 3 million coins.
 - **The size of the fee**, and whether it can change over time.
 - **The payment limit per epoch.**
 

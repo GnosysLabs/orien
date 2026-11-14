@@ -121,6 +121,14 @@ impl Genesis {
         hash(Tag::Genesis, &[&bytes])
     }
 
+    pub fn staking(&self) -> Staking {
+        Staking {
+            min_stake: self.min_stake,
+            max_validators: self.max_validators,
+            unstake_epochs: self.unstake_epochs,
+        }
+    }
+
     pub fn supply(&self) -> u128 {
         self.allocations.iter().map(|a| a.amount as u128).sum()
     }
@@ -201,14 +209,26 @@ impl fmt::Display for VerifyError {
 
 impl std::error::Error for VerifyError {}
 
-/// One validator of an epoch: the key it signs with and the weight of its
-/// vote.
+/// One validator of an epoch: the key it signs with, the weight of its
+/// vote, and where to reach it.
 #[derive(Clone, Debug, PartialEq, Eq, BorshSerialize, BorshDeserialize)]
 pub struct Member {
     /// Root of the validator's key tree.
     pub root: Hash32,
     pub height: u8,
     pub stake: u64,
+    pub address: String,
+    /// The account whose stake makes it a validator. None for the
+    /// validators of the genesis file, which hold launch seats.
+    pub account: Option<AccountId>,
+}
+
+/// The rules for choosing validators, from the genesis file.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct Staking {
+    pub min_stake: u64,
+    pub max_validators: u16,
+    pub unstake_epochs: u64,
 }
 
 /// The validator set of one epoch, with what is needed to check its votes.
@@ -220,6 +240,10 @@ pub struct Committee {
     epoch: u64,
     members: Vec<Member>,
     total_stake: u64,
+    staking: Staking,
+    /// Each launch seat's share of the seats' weight: its stake in the
+    /// genesis file, in genesis order.
+    seats: Vec<u64>,
 }
 
 impl Committee {
@@ -227,10 +251,28 @@ impl Committee {
         let members: Vec<Member> = genesis
             .validators
             .iter()
-            .map(|v| Member { root: v.root, height: v.height, stake: v.stake })
+            .map(|v| Member {
+                root: v.root,
+                height: v.height,
+                stake: v.stake,
+                address: v.address.clone(),
+                account: None,
+            })
             .collect();
         let total_stake = members.iter().map(|m| m.stake).sum();
-        Committee { network: genesis.id(), epoch: 0, members, total_stake }
+        let seats = genesis.validators.iter().map(|v| v.stake).collect();
+        Committee { network: genesis.id(), epoch: 0, members, total_stake, staking: genesis.staking(), seats }
+    }
+
+    /// Each launch seat's share of the seats' weight, in genesis order.
+    /// Together they are the weight the seats carry while no real stake
+    /// exists.
+    pub fn seats(&self) -> &[u64] {
+        &self.seats
+    }
+
+    pub fn staking(&self) -> Staking {
+        self.staking
     }
 
     pub fn epoch(&self) -> u64 {
@@ -256,7 +298,14 @@ impl Committee {
     /// These validators, serving `epoch` of the same network.
     pub fn with(&self, epoch: u64, members: Vec<Member>) -> Committee {
         let total_stake = members.iter().map(|m| m.stake).sum();
-        Committee { network: self.network, epoch, members, total_stake }
+        Committee {
+            network: self.network,
+            epoch,
+            members,
+            total_stake,
+            staking: self.staking,
+            seats: self.seats.clone(),
+        }
     }
 
     pub fn network(&self) -> &Hash32 {

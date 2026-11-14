@@ -845,6 +845,9 @@ fn node(key: &Path, data: PathBuf, listen: Option<String>, genesis: &Path) -> Re
     }
 }
 
+/// The voting weight the launch seats share on a new test network.
+const SEAT_WEIGHT: u64 = 3_000_000;
+
 fn devnet_init(dir: &Path, network: &str, addresses: &[String], height: u8, epoch_seconds: u64) -> Result<()> {
     if dir.join("genesis.json").exists() {
         bail!("{} already holds a network; delete it or pick another --dir", dir.display());
@@ -863,7 +866,10 @@ fn devnet_init(dir: &Path, network: &str, addresses: &[String], height: u8, epoc
         let key = ValidatorKey::generate(height);
         let root = KeyTree::generate(key.seed, key.height).root();
         key.save(&dir.join("validators").join(format!("{name}.key")))?;
-        infos.push(ValidatorInfo { name, root, height, stake: 1, address: address.clone() });
+        // The launch seats share 3 million coins of voting weight, which
+        // fades as real stake arrives.
+        let stake = SEAT_WEIGHT / validators as u64;
+        infos.push(ValidatorInfo { name, root, height, stake, address: address.clone() });
     }
 
     let mut allocations = Vec::new();
