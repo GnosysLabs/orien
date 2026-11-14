@@ -117,7 +117,7 @@ First ask the user how much of the computer's processor mining may use, as a per
   ```
   Stop it with `Stop-Process -Name orien`. Note that this stops every running orien program.
 
-Without `--cpu`, mining started in the background uses the whole processor, so always pass it. Every hour, the ORN released in that hour are shared among everyone who mined, in proportion to the work they did. Earnings show in `orien balance` after the next hourly checkpoint. Mining does not need the wallet's password. It pauses while the computer sleeps and stops when it restarts.
+Without `--cpu`, mining started in the background uses the whole processor, so always pass it. Every hour, the ORN released in that hour are shared among everyone who mined, in proportion to the work they did. Earnings show in `orien balance` after the next hourly checkpoint. Each validator counts at most 40,000 shares an hour; if the miner says the validators have counted all they take, the shares already found still count, and new ones count again after the next checkpoint. Mining does not need the wallet's password. It pauses while the computer sleeps and stops when it restarts.
 
 ### "I want to use my wallet on another computer"
 
