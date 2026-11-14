@@ -65,7 +65,7 @@ export default function GetStartedPage() {
           </p>
           <div className="flex flex-wrap items-center gap-4">
             <a
-              href="/wallet/Orien-setup.exe"
+              href="/wallet/Orien-Wallet-setup.exe"
               className="pearl-fill flex h-11 items-center gap-2 rounded-xl px-5 text-sm font-bold transition hover:brightness-105"
             >
               <Download className="h-4 w-4" aria-hidden /> Download for Windows
