@@ -669,6 +669,7 @@ impl Core {
             evidence,
             next_key: self.next_key.as_ref().map(|(_, tree)| NextKey { root: tree.root(), height: tree.height() }),
             cheats: self.cheats.clone(),
+            shares: Vec::new(),
         };
         let own_log = self.digests.clone();
         let said = self.close_step(|closer, env| closer.freeze(statement, own_log, env));
@@ -769,7 +770,7 @@ impl Core {
         promise(&mut self.state, &network, &self.unfinished);
         self.conflicts.retain(|account, _| self.unfinished.contains_key(account));
 
-        self.committee = self.committee.following(checkpoint.validators.clone());
+        self.committee = self.committee.following(checkpoint.validators.clone()).with_target(checkpoint.target);
         *self.committee_cell.write().unwrap() = Arc::new(self.committee.clone());
         self.previous = checkpoint.digest();
         self.previous_time = checkpoint.time;
@@ -1602,7 +1603,10 @@ impl Node {
                     .ok_or_else(|| anyhow!("the checkpoint that closed epoch {} is missing", epoch - 1))?;
                 let decided: Decided = borsh::from_slice(&bytes).context("a stored checkpoint is corrupt")?;
                 let checkpoint = decided.checkpoint;
-                let committee = genesis_committee.at_epoch(epoch - 1).following(checkpoint.validators.clone());
+                let committee = genesis_committee
+                    .at_epoch(epoch - 1)
+                    .following(checkpoint.validators.clone())
+                    .with_target(checkpoint.target);
                 (committee, checkpoint.digest(), checkpoint.time)
             }
         };

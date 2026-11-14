@@ -34,6 +34,9 @@ fn genesis(balances: &[(u8, u64)]) -> Genesis {
         max_validators: 33,
         unstake_epochs: 168,
         fee: orien_ledger::Fees::NONE,
+        cap: 0,
+        shares_per_epoch: 1_000,
+        first_target: u64::MAX,
     }
 }
 

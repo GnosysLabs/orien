@@ -58,6 +58,42 @@ pub struct Genesis {
     /// checkpoint.
     #[serde(default)]
     pub fee: Fees,
+    /// The most coins that will ever be released, in units.
+    #[serde(default = "the_cap")]
+    pub cap: u64,
+    /// How many work shares an epoch should hold. The work target moves at
+    /// each checkpoint to keep near it.
+    #[serde(default = "a_thousand")]
+    pub shares_per_epoch: u64,
+    /// The work target of the first epoch: a share counts if its hash,
+    /// read as a number, is below it.
+    #[serde(default = "a_first_target")]
+    pub first_target: u64,
+}
+
+fn the_cap() -> u64 {
+    crate::release::CAP
+}
+
+fn a_thousand() -> u64 {
+    1_000
+}
+
+/// About one share in 16 million hashes: a few seconds of one computer's
+/// work.
+fn a_first_target() -> u64 {
+    u64::MAX >> 24
+}
+
+/// The rules for releasing coins and paying them for work.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct Work {
+    /// When the network starts, in seconds since 1970.
+    pub start_time: u64,
+    pub cap: u64,
+    pub shares_per_epoch: u64,
+    /// This epoch's target.
+    pub target: u64,
 }
 
 /// The fee rule: a share of each payment, never less than `min` and never
@@ -131,6 +167,9 @@ impl Genesis {
             max_validators: thirty_three(),
             unstake_epochs: a_week_of_epochs(),
             fee: Fees::default(),
+            cap: the_cap(),
+            shares_per_epoch: a_thousand(),
+            first_target: a_first_target(),
         }
     }
 
@@ -160,6 +199,9 @@ impl Genesis {
             self.fee.min,
             self.fee.max,
             self.fee.rate as u64,
+            self.cap,
+            self.shares_per_epoch,
+            self.first_target,
         ];
         for setting in settings {
             bytes.extend_from_slice(&setting.to_le_bytes());
@@ -292,6 +334,7 @@ pub struct Committee {
     members: Vec<Member>,
     total_stake: u64,
     staking: Staking,
+    work: Work,
     /// Each launch seat's share of the seats' weight: its stake in the
     /// genesis file, in genesis order.
     seats: Vec<u64>,
@@ -314,7 +357,13 @@ impl Committee {
             .collect();
         let total_stake = members.iter().map(|m| m.stake).sum();
         let seats = genesis.validators.iter().map(|v| v.stake).collect();
-        Committee { network: genesis.id(), epoch: 0, members, total_stake, staking: genesis.staking(), seats }
+        let work = Work {
+            start_time: genesis.start_time,
+            cap: genesis.cap,
+            shares_per_epoch: genesis.shares_per_epoch,
+            target: genesis.first_target,
+        };
+        Committee { network: genesis.id(), epoch: 0, members, total_stake, staking: genesis.staking(), work, seats }
     }
 
     /// Each launch seat's share of the seats' weight, in genesis order.
@@ -326,6 +375,16 @@ impl Committee {
 
     pub fn staking(&self) -> Staking {
         self.staking
+    }
+
+    pub fn work(&self) -> Work {
+        self.work
+    }
+
+    /// The same validators with another work target: the one the checkpoint
+    /// that opened their epoch set.
+    pub fn with_target(&self, target: u64) -> Committee {
+        Committee { work: Work { target, ..self.work }, ..self.clone() }
     }
 
     pub fn epoch(&self) -> u64 {
@@ -357,6 +416,7 @@ impl Committee {
             members,
             total_stake,
             staking: self.staking,
+            work: self.work,
             seats: self.seats.clone(),
         }
     }

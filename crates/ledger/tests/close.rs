@@ -150,6 +150,9 @@ impl World {
             max_validators: 33,
             unstake_epochs: 168,
             fee: orien_ledger::Fees::NONE,
+            cap: 0,
+            shares_per_epoch: 1_000,
+            first_target: u64::MAX,
         };
         genesis.validate().unwrap();
         World {
@@ -257,6 +260,7 @@ impl World {
                 evidence: self.validators[v].evidence.clone(),
                 next_key: None,
                 cheats: Vec::new(),
+                shares: Vec::new(),
             };
             self.validators[v].statement = Some(statement);
         }
@@ -323,6 +327,7 @@ impl World {
                     evidence: Vec::new(),
                     next_key: None,
                     cheats: Vec::new(),
+                    shares: Vec::new(),
                 };
                 let entry = checkpoint.merged.iter_mut().find(|(validator, _)| *validator == victim as u16).unwrap();
                 entry.1 = forged.digest(&self.network);
@@ -500,7 +505,8 @@ impl World {
             .values()
             .filter(|statement| checkpoint.merged.contains(&(statement.validator, statement.digest(&network))))
             .collect();
-        let end = close::outcome(&committee, &self.validators[v].start, &payments, &merged).unwrap();
+        let moment = close::Moment { previous: checkpoint.previous, time: checkpoint.time };
+        let end = close::outcome(&committee, &self.validators[v].start, moment, &payments, &merged).unwrap();
         assert_eq!(end.root(), checkpoint.state);
         self.adopt(v, &end, &payments);
     }
@@ -738,7 +744,9 @@ fn every_way_a_checkpoint_can_be_wrong_is_named() {
     );
 
     // The payments themselves are checked too.
-    let outcome = |payments: &[Certificate]| close::outcome(&world.committee, start, payments, &[]).err().unwrap();
+    let moment = close::Moment { previous: world.network, time: 0 };
+    let outcome =
+        |payments: &[Certificate]| close::outcome(&world.committee, start, moment, payments, &[]).err().unwrap();
     // Bob's spend without the payment that funded it.
     assert_eq!(outcome(std::slice::from_ref(&second)), Invalid::Overdrawn(bob.id()));
     assert_eq!(outcome(&[first.clone(), first.clone()]), Invalid::OutOfSequence(alice.id(), 0));
@@ -1000,6 +1008,7 @@ fn a_replacement_key_takes_over_only_as_the_merged_statements_say() {
         evidence: Vec::new(),
         next_key,
         cheats: Vec::new(),
+        shares: Vec::new(),
     };
     let next = |statements: &[Statement]| {
         let merged: Vec<&Statement> = statements.iter().collect();

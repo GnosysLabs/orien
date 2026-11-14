@@ -14,9 +14,9 @@ pub mod release;
 pub mod state;
 pub mod types;
 
-pub use genesis::{Allocation, Committee, Fees, Genesis, Member, ValidatorInfo, VerifyError};
+pub use genesis::{Allocation, Committee, Fees, Genesis, Work, Member, ValidatorInfo, VerifyError};
 pub use state::{
-    Accepted, Account, Applied, CancelError, Checked, FEES, FORFEITED, Proofs, Reject, Signer, State, account_root,
+    Accepted, Account, Applied, CancelError, Checked, FEES, FORFEITED, MINT, REWARDS, Proofs, Reject, Signer, State, account_root,
     authorized,
 };
 pub use types::{

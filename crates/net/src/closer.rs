@@ -1147,6 +1147,7 @@ mod tests {
                 evidence: Vec::new(),
                 next_key: None,
                 cheats: Vec::new(),
+                shares: Vec::new(),
             };
             self.nodes[v].pinned = self.nodes[v].digests.len();
             let own = self.nodes[v].digests.clone();
@@ -1374,6 +1375,8 @@ mod tests {
             payments: 0,
             merged: Vec::new(),
             validators: sim.committee.members().to_vec(),
+            released: 0,
+            target: u64::MAX,
         };
         let make = |sim: &mut Sim, signer: usize, proposal: Proposal| {
             Message::Proposal(Signed { proof: sim.sign(signer, proposal.item()), body: proposal })

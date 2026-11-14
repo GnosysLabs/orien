@@ -152,11 +152,16 @@ fn a_stake_order_names_its_own_account_and_a_usable_validator() {
     assert_eq!(state.account(&id(1)).unwrap().staked, 0);
 }
 
+/// A close at the network's very start, when no coins have been released.
+fn moment(committee: &Committee) -> close::Moment {
+    close::Moment { previous: *committee.network(), time: 0 }
+}
+
 /// Closes an epoch in which `orders` went final, as every validator would,
 /// and prints the validators it names for the next one.
 fn checkpoint(committee: &Committee, state: &State, orders: &[Order], names: &[(u8, &str)]) -> (Committee, State) {
     let orders: Vec<&Order> = orders.iter().collect();
-    let end = close::outcome_checked(committee, state, &orders, &[]).unwrap();
+    let end = close::outcome_checked(committee, state, moment(committee), &orders, &[]).unwrap();
     let members = close::next_validators(committee, &[], &end);
     let named: Vec<String> = members
         .iter()
@@ -253,7 +258,7 @@ fn a_stake_needs_the_validators_own_signature() {
 /// validator's share of the vote in the next one.
 fn shares(committee: &Committee, state: &State, orders: &[Order], names: &[(u8, &str)], what: &str) -> (Committee, State) {
     let orders: Vec<&Order> = orders.iter().collect();
-    let end = close::outcome_checked(committee, state, &orders, &[]).unwrap();
+    let end = close::outcome_checked(committee, state, moment(committee), &orders, &[]).unwrap();
     let next = committee.following(close::next_validators(committee, &[], &end));
     let total = next.total_stake() as f64;
     let named: Vec<String> = next
@@ -323,7 +328,7 @@ fn vote(committee: &Committee, n: u8, place: u16, leaf: u32, item: Hash32) -> (H
 }
 
 fn statement(validator: u16, epoch: u64, cheats: Vec<Cheat>) -> Statement {
-    Statement { epoch, validator, log: Pin::start(epoch), evidence: Vec::new(), next_key: None, cheats }
+    Statement { epoch, validator, log: Pin::start(epoch), evidence: Vec::new(), next_key: None, cheats, shares: Vec::new() }
 }
 
 #[test]
@@ -373,7 +378,7 @@ fn a_validator_caught_cheating_loses_its_stake_and_its_place() {
     // A seat passes the proof on in its statement. At the checkpoint both
     // cheaters' stakes are burned and both leave the list.
     let reported = statement(0, committee.epoch(), vec![two_votes, reuse]);
-    let end = close::outcome_checked(&committee, &state, &[], &[&reported]).unwrap();
+    let end = close::outcome_checked(&committee, &state, moment(&committee), &[], &[&reported]).unwrap();
     let next = close::next_validators(&committee, &[&reported], &end);
     let account = |n: u8| end.account(&id(n)).unwrap().clone();
     println!("ana: staked {} -> {}, ben: staked {} -> {}", 20_000, account(1).staked, 15_000, account(2).staked);
@@ -389,7 +394,7 @@ fn a_validator_caught_cheating_loses_its_stake_and_its_place() {
     let (second, b) = vote(&committee, 12, 1, 3, Hash32([4; 32]));
     let seat_reuse = Cheat::KeyReuse { one: (first, a.signature), other: (second, b.signature) };
     let reported = statement(0, committee.epoch(), vec![seat_reuse]);
-    let end = close::outcome_checked(&committee, &state, &[], &[&reported]).unwrap();
+    let end = close::outcome_checked(&committee, &state, moment(&committee), &[], &[&reported]).unwrap();
     assert_eq!(roots(&close::next_validators(&committee, &[&reported], &end)), [11, 1, 2]);
 }
 

@@ -26,6 +26,7 @@
 
 use crate::agree::Value;
 use crate::genesis::{Committee, Member, VerifyError};
+use crate::release;
 use crate::state::{Applied, Checked, State};
 use crate::types::{AccountId, Certificate, Order, STAKE_PROOF_LEAF, SignedOrder, Validator, Vote};
 use orien_crypto::keytree::TreeSignature;
@@ -84,6 +85,66 @@ pub struct Statement {
     pub next_key: Option<NextKey>,
     /// Proof that validators of this epoch cheated.
     pub cheats: Vec<Cheat>,
+    /// Work shares it accepted this epoch.
+    pub shares: Vec<Share>,
+}
+
+/// A piece of proof-of-work done for an account in one epoch: a number
+/// whose hash, together with the account and the epoch's seed, falls below
+/// the epoch's target. Finding one takes many tries; checking it takes one
+/// hash. Work only shares out new coins: it never decides payments.
+#[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, BorshSerialize, BorshDeserialize)]
+pub struct Share {
+    pub account: AccountId,
+    pub nonce: u64,
+}
+
+impl Share {
+    /// The number a share is judged by: its hash, read as a number.
+    pub fn work(&self, seed: &Hash32) -> u64 {
+        let digest = hash(Tag::Work, &[seed.as_bytes(), self.account.as_bytes(), &self.nonce.to_le_bytes()]);
+        u64::from_le_bytes(digest.0[..8].try_into().expect("a digest has 32 bytes"))
+    }
+
+    /// Whether this is a share in the epoch with this seed and target.
+    pub fn counts(&self, seed: &Hash32, target: u64) -> bool {
+        self.work(seed) < target
+    }
+}
+
+/// When an epoch closes, and the checkpoint before it. The time says how
+/// many coins have been released; the checkpoint before is the seed that
+/// the epoch's work was done against, which nobody could know in advance.
+#[derive(Clone, Copy, Debug)]
+pub struct Moment {
+    pub previous: Hash32,
+    pub time: u64,
+}
+
+/// The work shares the merged statements hold, each counted once, with how
+/// many each account earned.
+pub fn tally(committee: &Committee, seed: &Hash32, statements: &[&Statement]) -> BTreeMap<AccountId, u64> {
+    let target = committee.work().target;
+    let shares: BTreeSet<&Share> =
+        statements.iter().flat_map(|s| &s.shares).filter(|share| share.counts(seed, target)).collect();
+    let mut counts = BTreeMap::new();
+    for share in shares {
+        *counts.entry(share.account).or_insert(0) += 1;
+    }
+    counts
+}
+
+/// The next epoch's target, moved towards the number of shares wanted: an
+/// epoch with too many shares makes the next one harder, too few easier,
+/// by at most a factor of four each time.
+pub fn next_target(committee: &Committee, shares: u64) -> u64 {
+    let work = committee.work();
+    let (target, wanted) = (work.target as u128, work.shares_per_epoch.max(1) as u128);
+    let moved = match shares {
+        0 => target * 4,
+        n => target * wanted / n as u128,
+    };
+    moved.clamp((target / 4).max(1), target * 4).min(u64::MAX as u128) as u64
 }
 
 /// Proof that a validator cheated, made of its own signatures. Nobody can
@@ -168,6 +229,10 @@ pub struct Checkpoint {
     /// validators and holds this checkpoint knows the next epoch's, which
     /// is how a newcomer follows the network forward from its genesis file.
     pub validators: Vec<Member>,
+    /// How many units were released at this checkpoint.
+    pub released: u64,
+    /// The next epoch's work target.
+    pub target: u64,
 }
 
 impl Checkpoint {
@@ -207,6 +272,9 @@ pub enum Invalid {
     Overdrawn(AccountId),
     WrongCount,
     WrongState,
+    /// The coins it says were released, or the next work target, are not
+    /// what the merged statements and its time make them.
+    WrongWork,
     /// The validators named for the next epoch are not the ones the merged
     /// statements lead to.
     WrongValidators,
@@ -348,10 +416,11 @@ impl<'a> Offered<'a> {
 pub fn outcome(
     committee: &Committee,
     start: &State,
+    moment: Moment,
     payments: &[Certificate],
     statements: &[&Statement],
 ) -> Result<State, Invalid> {
-    outcome_of(committee, start, Offered::Certificates(payments), statements)
+    outcome_of(committee, start, moment, Offered::Certificates(payments), statements)
 }
 
 /// `outcome`, for a validator that holds the payments already. It checked
@@ -360,15 +429,17 @@ pub fn outcome(
 pub fn outcome_checked(
     committee: &Committee,
     start: &State,
+    moment: Moment,
     orders: &[&Order],
     statements: &[&Statement],
 ) -> Result<State, Invalid> {
-    outcome_of(committee, start, Offered::Checked(orders), statements)
+    outcome_of(committee, start, moment, Offered::Checked(orders), statements)
 }
 
 fn outcome_of(
     committee: &Committee,
     start: &State,
+    moment: Moment,
     offered: Offered,
     statements: &[&Statement],
 ) -> Result<State, Invalid> {
@@ -430,6 +501,13 @@ fn outcome_of(
         .filter_map(|(_, member)| member.account.map(|account| (account, member.stake)))
         .collect();
     state.pay_fees(&earners);
+    // The coins released since the last checkpoint go to the epoch's work,
+    // share by share. With no shares they wait for the next epoch's.
+    let work = committee.work();
+    let since_start = moment.time.saturating_sub(work.start_time);
+    state.release_up_to(release::released(since_start).min(work.cap));
+    let shares: Vec<(AccountId, u64)> = tally(committee, &moment.previous, statements).into_iter().collect();
+    state.pay_rewards(&shares);
     // A staked validator that announced a new key tree signs with it from
     // the next epoch. Its stake names its key, so the change goes there.
     for statement in statements {
@@ -494,7 +572,8 @@ fn propose_of(
     if !enough(committee, statements.iter().map(|s| s.validator)) {
         return Err(Invalid::TooFewStatements);
     }
-    let end = outcome_of(committee, start, offered, statements)?;
+    let end = outcome_of(committee, start, Moment { previous, time }, offered, statements)?;
+    let shares = tally(committee, &previous, statements).values().sum();
     let checkpoint = Checkpoint {
         epoch: committee.epoch(),
         previous,
@@ -503,6 +582,8 @@ fn propose_of(
         payments: offered.len() as u64,
         merged: statements.iter().map(|s| (s.validator, s.digest(committee.network()))).collect(),
         validators: next_validators(committee, statements, &end),
+        released: end.released() - start.released(),
+        target: next_target(committee, shares),
     };
     Ok((checkpoint, end))
 }
@@ -588,12 +669,17 @@ fn validate_of<'a>(
     if checkpoint.payments != offered.len() as u64 {
         return Err(Invalid::WrongCount);
     }
-    let end = outcome_of(committee, start, offered, &merged)?;
+    let moment = Moment { previous: *previous, time: checkpoint.time };
+    let end = outcome_of(committee, start, moment, offered, &merged)?;
     if end.root() != checkpoint.state {
         return Err(Invalid::WrongState);
     }
     if checkpoint.validators != next_validators(committee, &merged, &end) {
         return Err(Invalid::WrongValidators);
+    }
+    let shares = tally(committee, previous, &merged).values().sum();
+    if checkpoint.released != end.released() - start.released() || checkpoint.target != next_target(committee, shares) {
+        return Err(Invalid::WrongWork);
     }
     Ok(end)
 }

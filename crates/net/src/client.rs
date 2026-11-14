@@ -883,6 +883,8 @@ mod tests {
             payments: 0,
             merged: Vec::new(),
             validators: rekeyed.clone(),
+            released: 0,
+            target: u64::MAX,
         };
 
         let start = Head::genesis(&genesis);

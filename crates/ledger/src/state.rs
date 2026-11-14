@@ -19,6 +19,15 @@ pub const FORFEITED: AccountId = Hash32([0; 32]);
 /// key can sign for this address either.
 pub const FEES: AccountId = Hash32([1; 32]);
 
+/// Counts the coins released so far, as a debt: its balance is minus that
+/// sum, so all balances together still add up to what the genesis file
+/// set up. No key can sign for it.
+pub const MINT: AccountId = Hash32([2; 32]);
+
+/// Where released coins wait until work shares earn them. No key can sign
+/// for it.
+pub const REWARDS: AccountId = Hash32([3; 32]);
+
 /// Which key must sign an account's next order.
 #[derive(Clone, Debug, PartialEq, Eq, BorshSerialize, BorshDeserialize)]
 pub enum Signer {
@@ -142,6 +151,9 @@ pub enum Reject {
     /// is empty or too long.
     BadValidator,
     InsufficientStake { staked: u64, needed: u64 },
+    /// A payment to the mint or the rewards pot, which only the checkpoint
+    /// moves coins in and out of.
+    ReservedAccount,
 }
 
 impl fmt::Display for Reject {
@@ -174,6 +186,7 @@ impl fmt::Display for Reject {
             Reject::InsufficientStake { staked, needed } => {
                 write!(f, "not enough stake: staked {staked}, needs {needed}")
             }
+            Reject::ReservedAccount => f.write_str("nobody can pay the mint or the rewards pot"),
         }
     }
 }
@@ -323,7 +336,7 @@ impl State {
     /// A validator still catching up can see this in passing. A closed
     /// epoch must not contain it.
     pub fn overdrawn(&self) -> Option<AccountId> {
-        self.accounts.iter().find(|(_, account)| account.balance < 0).map(|(id, _)| *id)
+        self.accounts.iter().find(|(id, account)| account.balance < 0 && **id != MINT).map(|(id, _)| *id)
     }
 
     /// Every coin in every account, staked and waiting ones included.
@@ -349,7 +362,33 @@ impl State {
     /// and everything when there is nobody to pay, stays in the pot for the
     /// next checkpoint.
     pub fn pay_fees(&mut self, earners: &[(AccountId, u64)]) {
-        let pot = self.accounts.get(&FEES).map_or(0, |pot| pot.balance.max(0) as u128);
+        self.pay_out(FEES, earners);
+    }
+
+    /// How many units have been released so far.
+    pub fn released(&self) -> u64 {
+        self.accounts.get(&MINT).map_or(0, |mint| (-mint.balance) as u64)
+    }
+
+    /// Releases coins up to `total` released in all, into the rewards pot.
+    /// Returns how many were released now.
+    pub fn release_up_to(&mut self, total: u64) -> u64 {
+        let new = total.saturating_sub(self.released());
+        if new > 0 {
+            self.accounts.entry(MINT).or_insert_with(|| Account::holding(0)).balance -= new as i128;
+            self.accounts.entry(REWARDS).or_insert_with(|| Account::holding(0)).balance += new as i128;
+        }
+        new
+    }
+
+    /// Shares out the rewards pot among `earners`, each an account with its
+    /// count of work shares, the way `pay_fees` does.
+    pub fn pay_rewards(&mut self, earners: &[(AccountId, u64)]) {
+        self.pay_out(REWARDS, earners);
+    }
+
+    fn pay_out(&mut self, from: AccountId, earners: &[(AccountId, u64)]) {
+        let pot = self.accounts.get(&from).map_or(0, |pot| pot.balance.max(0) as u128);
         let total: u128 = earners.iter().map(|(_, stake)| *stake as u128).sum();
         if pot == 0 || total == 0 {
             return;
@@ -362,7 +401,7 @@ impl State {
                 paid += share;
             }
         }
-        if let Some(pot) = self.accounts.get_mut(&FEES) {
+        if let Some(pot) = self.accounts.get_mut(&from) {
             pot.balance -= paid;
         }
     }
@@ -449,6 +488,9 @@ impl State {
             && *voted != digest
         {
             return Err(Reject::Conflict { voted: *voted });
+        }
+        if order.to == MINT || order.to == REWARDS {
+            return Err(Reject::ReservedAccount);
         }
         if !matches!(order.kind, Kind::Payment) && order.to != order.from {
             return Err(Reject::NotOwnAccount);
