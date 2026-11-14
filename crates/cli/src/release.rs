@@ -199,6 +199,8 @@ fn update_in(base: &str, root: &Hash32, current: &str, work: &Path) -> Result<()
     }
     fs::rename(&new, &me)?;
     println!("updated orien from {current} to {latest}");
+    // The new version's skill replaces any copies of the old one.
+    let _ = Command::new(&me).args(["skill", "install", "--refresh"]).status();
     Ok(())
 }
 

@@ -47,6 +47,47 @@ impl Network {
     }
 }
 
+/// The Orien skill, which teaches AI assistants to use orien.
+const SKILL: &str = include_str!("../../../skill/orien/SKILL.md");
+
+/// The user's home folder.
+fn user_home() -> PathBuf {
+    PathBuf::from(std::env::var_os("HOME").or_else(|| std::env::var_os("USERPROFILE")).unwrap_or_default())
+}
+
+/// `orien skill install`: writes the skill into each assistant's skills
+/// folder, for the assistants this computer has.
+fn install_skill(dir: Option<PathBuf>, refresh: bool) -> Result<()> {
+    let home = user_home();
+    let targets: Vec<(String, PathBuf)> = match dir {
+        Some(dir) => vec![(dir.display().to_string(), dir)],
+        None => [("Claude Code", ".claude"), ("Codex", ".codex")]
+            .into_iter()
+            .filter(|(_, folder)| home.join(folder).is_dir())
+            .map(|(name, folder)| (name.to_string(), home.join(folder).join("skills")))
+            .collect(),
+    };
+    if targets.is_empty() && !refresh {
+        bail!(
+            "found no AI assistant here (no ~/.claude or ~/.codex folder). For another assistant, \
+             name its skills folder: orien skill install --dir FOLDER"
+        );
+    }
+    for (name, skills) in targets {
+        let file = skills.join("orien").join("SKILL.md");
+        if refresh && !file.is_file() {
+            continue;
+        }
+        fs::create_dir_all(file.parent().expect("a skill file has a folder"))?;
+        fs::write(&file, SKILL).with_context(|| format!("cannot write {}", file.display()))?;
+        println!("installed the Orien skill for {name}: {}", file.display());
+    }
+    if !refresh {
+        println!("start a new conversation with your assistant, then ask it things like \"what's my ORN balance?\"");
+    }
+    Ok(())
+}
+
 /// Where orien keeps its files: $ORIEN_HOME, else ~/.orien.
 fn orien_home() -> PathBuf {
     if let Some(home) = std::env::var_os("ORIEN_HOME") {
@@ -212,6 +253,9 @@ enum Command {
         #[arg(long)]
         spend: u64,
     },
+    /// Teach AI assistants (Claude Code, Codex) to use orien for you
+    #[command(subcommand)]
+    Skill(SkillCommand),
     /// Update orien to the newest version, if the Orien release key signed it
     Update,
     /// Make and use the Orien release key (for whoever publishes releases)
@@ -258,6 +302,21 @@ enum WalletCommand {
         /// The wallet file (default: ~/.orien/wallet)
         file: Option<PathBuf>,
     },
+}
+
+#[derive(Subcommand)]
+enum SkillCommand {
+    /// Install the Orien skill for each AI assistant on this computer
+    Install {
+        /// Install into this skills folder instead, for another assistant
+        #[arg(long)]
+        dir: Option<PathBuf>,
+        /// Only refresh copies already installed (orien update does this)
+        #[arg(long, hide = true)]
+        refresh: bool,
+    },
+    /// Print the skill, to read it or give it to another assistant
+    Show,
 }
 
 #[derive(Subcommand)]
@@ -515,6 +574,11 @@ fn run(cli: Cli) -> Result<()> {
             Ok(())
         }
         Command::UnlockHelper { file, until, spend } => unlock_helper(&file, Limits { until, spend }),
+        Command::Skill(SkillCommand::Install { dir, refresh }) => install_skill(dir, refresh),
+        Command::Skill(SkillCommand::Show) => {
+            print!("{SKILL}");
+            Ok(())
+        }
         Command::Update => release::update(),
         Command::Release(ReleaseCommand::Keygen { out }) => release::keygen(&out),
         Command::Release(ReleaseCommand::Sign { key, sums }) => release::sign(&key, &sums),

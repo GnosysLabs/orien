@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
-import { ArrowRight, Download, KeyRound, Pickaxe, RefreshCw, Send, ServerCog, Wallet } from 'lucide-react'
+import { ArrowRight, Bot, Download, KeyRound, Pickaxe, RefreshCw, Send, ServerCog, Wallet } from 'lucide-react'
 import { CopyText } from '@/components/CopyText'
 
 export const metadata: Metadata = {
@@ -92,7 +92,26 @@ export default function GetStartedPage() {
           </p>
         </Step>
 
-        <Step number={5} icon={KeyRound} title="Use a second computer">
+        <Step number={5} icon={Bot} title="Let your AI assistant do it">
+          <CopyText text="orien skill install" />
+          <p>
+            This teaches <strong>Claude Code</strong> and <strong>Codex</strong> to use orien for you. Start a new
+            conversation and ask in plain words: “what’s my ORN balance?”, “send 5 ORN to Bob”, “start mining on this
+            computer”. It asks before every payment, and never sees your 24 words or your password.
+          </p>
+          <p>
+            If your wallet has a password, let the assistant send for a while, up to an amount you choose. It can then
+            send without ever learning the password:
+          </p>
+          <CopyText label="For the next hour, up to 50 ORN" text="orien unlock --for 1h --up-to 50" />
+          <p className="text-sm">
+            End it early with <code className="rounded bg-raised px-1.5 py-0.5 text-ink">orien lock</code>. For another
+            assistant, <code className="rounded bg-raised px-1.5 py-0.5 text-ink">orien skill install --dir FOLDER</code>{' '}
+            puts the skill in its skills folder.
+          </p>
+        </Step>
+
+        <Step number={6} icon={KeyRound} title="Use a second computer">
           <CopyText text="orien wallet restore --account 2" />
           <p>
             Type your 24 words when asked. Each computer should use its own account number: 1 on your first, 2 on the
@@ -100,12 +119,12 @@ export default function GetStartedPage() {
           </p>
         </Step>
 
-        <Step number={6} icon={RefreshCw} title="Stay up to date">
+        <Step number={7} icon={RefreshCw} title="Stay up to date">
           <CopyText text="orien update" />
-          <p>It installs a newer version only if it carries the Orien release signature, so nobody can slip in a fake one.</p>
+          <p>It installs a newer version only if it carries the Orien release signature, so nobody can slip in a fake one. It updates the AI skill too.</p>
         </Step>
 
-        <Step number={7} icon={ServerCog} title="Run a validator">
+        <Step number={8} icon={ServerCog} title="Run a validator">
           <p>
             Validators check payments and earn the network’s fees, shared by stake. You need at least{' '}
             <strong>10,000 ORN</strong> to stake, and a server that stays on, ideally running Linux.
@@ -120,7 +139,7 @@ export default function GetStartedPage() {
             text="orien stake --amount 10000 --validator-key ~/.orien/validator.key --address YOUR_SERVER_IP:7101"
           />
           <p className="text-sm">
-            Staking needs your wallet on the server too, as its own account (step 5 shows how), holding the ORN you
+            Staking needs your wallet on the server too, as its own account (step 6 shows how), holding the ORN you
             stake.
           </p>
           <p>

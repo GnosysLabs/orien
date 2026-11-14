@@ -172,7 +172,7 @@ Shows each validator, whether it answered, and the network's fee and coin figure
 orien update
 ```
 
-It installs a newer version only if it carries the Orien release signature, and otherwise changes nothing.
+It installs a newer version only if it carries the Orien release signature, and otherwise changes nothing. It also refreshes this skill to match the new version.
 
 ### "Check this receipt"
 
