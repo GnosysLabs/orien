@@ -373,7 +373,12 @@ struct Core {
     /// The decided checkpoint of this epoch is on disk.
     checkpoint_saved: bool,
     /// Where to send what this validator says: one queue per other validator.
-    peers: Vec<Sender<Request>>,
+    /// A queue of messages to each other validator of this epoch, by
+    /// address. Refreshed at every checkpoint: a validator that joins is
+    /// added, and one that leaves is dropped, which ends its threads.
+    peers: HashMap<String, Sender<Request>>,
+    shared: Arc<Shared>,
+    sync_interval: Duration,
     commands: Sender<Command>,
     orders: OrderLog,
     /// The signed order behind each vote for a payment that is not final
@@ -532,11 +537,45 @@ impl Core {
         step(closer, &mut env)
     }
 
+    /// Opens connections to every validator of this epoch it is not yet
+    /// connected to, and drops those to validators that left.
+    fn connect_peers(&mut self) {
+        let own = self.tree.root();
+        let wanted: Vec<String> = self
+            .committee
+            .members()
+            .iter()
+            .filter(|member| member.root != own)
+            .map(|member| member.address.clone())
+            .collect();
+        self.peers.retain(|address, _| wanted.contains(address));
+        for address in wanted {
+            if self.peers.contains_key(&address) {
+                continue;
+            }
+            let (queue, sending) = mpsc::channel();
+            let pushing = address.clone();
+            let spawned = thread::Builder::new()
+                .name(format!("{}-push-{address}", self.name))
+                .spawn(move || push_to_peer(pushing, sending));
+            if spawned.is_err() {
+                continue;
+            }
+            if !self.sync_interval.is_zero() {
+                let (shared, interval, syncing) = (self.shared.clone(), self.sync_interval, address.clone());
+                let _ = thread::Builder::new()
+                    .name(format!("{}-sync-{address}", self.name))
+                    .spawn(move || sync_with_peer(shared, syncing, interval));
+            }
+            self.peers.insert(address, queue);
+        }
+    }
+
     /// Sends closing messages to every other validator.
     fn say(&self, messages: Vec<Message>) {
         let epoch = self.committee.epoch();
         for message in messages {
-            for peer in &self.peers {
+            for peer in self.peers.values() {
                 let _ = peer.send(Request::Close { epoch, message: message.clone() });
             }
         }
@@ -752,6 +791,7 @@ impl Core {
             }
         }
         self.index = place;
+        self.connect_peers();
         self.closer = Closer::open(
             &self.epochs.journal(),
             self.index,
@@ -1234,13 +1274,18 @@ fn serve_requests(stream: &TcpStream, shared: &Shared) -> io::Result<()> {
 /// fetches whatever pinned logs this validator still needs for the close.
 /// If the peer is in a later epoch, it asks how this validator's epoch
 /// ended and for the state the next one starts from.
-fn sync_with_peer(shared: Arc<Shared>, peer: u16, address: String, interval: Duration) {
+/// Keeps up with one other validator, for as long as it is one of the
+/// current epoch's validators.
+fn sync_with_peer(shared: Arc<Shared>, address: String, interval: Duration) {
     const TIMEOUT: Duration = Duration::from_secs(3);
     /// How long a log is left to the validator it belongs to before every
     /// peer is asked for it.
     const PATIENCE: Duration = Duration::from_millis(400);
-    let cursor_file = |epoch: u64| Epochs::folder_in(&shared.data_dir, epoch).join(format!("sync-{peer}.cursor"));
-    let stopping = || shared.stopping.load(Ordering::SeqCst);
+    let named: String = address.chars().map(|c| if c.is_ascii_alphanumeric() { c } else { '_' }).collect();
+    let cursor_file = |epoch: u64| Epochs::folder_in(&shared.data_dir, epoch).join(format!("sync-{named}.cursor"));
+    // Its place in the current list, if it is still in it.
+    let place = || shared.committee().members().iter().position(|m| m.address == address).map(|p| p as u16);
+    let stopping = || shared.stopping.load(Ordering::SeqCst) || place().is_none();
     let (mut epoch, mut certs, mut messages) = (u64::MAX, 0u64, 0u64);
     loop {
         // While an epoch is closing, every moment of delay is a moment in
@@ -1326,7 +1371,7 @@ fn sync_with_peer(shared: Arc<Shared>, peer: u16, address: String, interval: Dur
             if stopping() {
                 return;
             }
-            if wanted.validator == peer || wanted.age > PATIENCE {
+            if Some(wanted.validator) == place() || wanted.age > PATIENCE {
                 fetch_log(&shared, &address, epoch, &wanted, TIMEOUT);
             }
         }
@@ -1398,7 +1443,7 @@ fn push_to_peer(address: String, queue: Receiver<Request>) {
 
 /// The layout and encoding of a validator's files. Raised whenever either
 /// changes in a way an older or newer version would misread.
-const DATA_FORMAT: &str = "4";
+const DATA_FORMAT: &str = "5";
 
 /// A data directory belongs to one network and is written in one format.
 /// Refuse to reuse it for another network, or to read a format this version
@@ -1589,24 +1634,7 @@ impl Node {
             connections: Mutex::new(HashMap::new()),
             next_connection: AtomicU64::new(0),
         });
-        let others: Vec<(u16, String)> = config
-            .genesis
-            .validators
-            .iter()
-            .enumerate()
-            .filter(|(peer, _)| *peer != index)
-            .map(|(peer, validator)| (peer as u16, validator.address.clone()))
-            .collect();
-        let mut peers = Vec::new();
-        for (peer, address) in &others {
-            let (queue, sending) = mpsc::channel();
-            peers.push(queue);
-            let address = address.clone();
-            thread::Builder::new()
-                .name(format!("{name}-push-{peer}"))
-                .spawn(move || push_to_peer(address, sending))?;
-        }
-        let core = Core {
+        let mut core = Core {
             name: name.clone(),
             index: place,
             committee,
@@ -1634,7 +1662,9 @@ impl Node {
             pace,
             tended: Instant::now(),
             checkpoint_saved,
-            peers,
+            peers: HashMap::new(),
+            shared: shared.clone(),
+            sync_interval: config.sync_interval,
             commands,
             orders,
             unfinished,
@@ -1653,21 +1683,12 @@ impl Node {
             durable: config.durable,
             log: config.log,
         };
+        core.connect_peers();
         let core = thread::Builder::new().name(format!("{name}-core")).spawn(move || core.run(receiver))?;
         let accepting = shared.clone();
         let listener = thread::Builder::new()
             .name(format!("{name}-listen"))
             .spawn(move || accept_loop(listener, accepting))?;
-
-        if !config.sync_interval.is_zero() {
-            for (peer, address) in others {
-                let shared = shared.clone();
-                let interval = config.sync_interval;
-                thread::Builder::new()
-                    .name(format!("{name}-sync-{peer}"))
-                    .spawn(move || sync_with_peer(shared, peer, address, interval))?;
-            }
-        }
 
         Ok(Node { addr, index: index as u16, name, shared, core: Some(core), listener: Some(listener) })
     }

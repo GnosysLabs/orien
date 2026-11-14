@@ -846,7 +846,7 @@ fn a_validator_refuses_files_in_a_format_it_does_not_write() {
     // The same directory starts again without complaint.
     Node::start(net.config(0), None).map(Node::stop).unwrap();
     // A directory written by an older or a newer version does not.
-    for other in [None, Some("1"), Some("3"), Some("5")] {
+    for other in [None, Some("1"), Some("4"), Some("6")] {
         match other {
             Some(format) => fs::write(data.join("format"), format).unwrap(),
             None => fs::remove_file(data.join("format")).unwrap(),
@@ -855,7 +855,7 @@ fn a_validator_refuses_files_in_a_format_it_does_not_write() {
         assert!(refusal.contains("data format"), "{refusal}");
     }
     // Nothing was touched: put the marker back and the validator is as it was.
-    fs::write(data.join("format"), "4").unwrap();
+    fs::write(data.join("format"), "5").unwrap();
     net.restart(0);
     assert_eq!(net.view(0, &bob).balance, 1100);
 }
@@ -1535,17 +1535,16 @@ fn validators_leave_the_list_and_come_back_with_their_stake() {
     // out: they follow the network and vote on nothing.
     net.stake("alice", 0, 100);
     net.stake("bob", 1, 200);
-    wait_until("v3 and v4 leave the list", || places()[2..] == [None, None]);
-    // The largest stake comes first.
-    assert_eq!(places()[..2], [Some(1), Some(0)]);
+    // The largest stake comes first. The two stakes may land in different
+    // epochs, so this waits for the list with both.
+    wait_until("v3 and v4 leave the list", || places() == [Some(1), Some(0), None, None]);
     net.pay_through("alice", carol, 5);
     net.wait_until_level();
 
     // Stake for v3 and v4, and they are back.
     net.stake("w0", 2, 300);
     net.stake("w1", 3, 50);
-    wait_until("v3 and v4 return", || places().iter().all(Option::is_some));
-    assert_eq!(places(), [Some(2), Some(1), Some(0), Some(3)]);
+    wait_until("v3 and v4 return", || places() == [Some(2), Some(1), Some(0), Some(3)]);
     net.pay_through("bob", carol, 7);
     net.wait_until_level();
     assert_eq!(net.view(3, &carol).balance, 12);
