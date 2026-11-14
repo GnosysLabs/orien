@@ -282,13 +282,13 @@ enum WalletCommand {
         /// The wallet file (default: ~/.orien/wallet)
         file: Option<PathBuf>,
     },
-    /// Rebuild a wallet from its 24-word recovery phrase, typed in when asked.
-    /// Use a different account number on each computer.
+    /// Rebuild your wallet from its 24-word recovery phrase, typed in when
+    /// asked: the same wallet, address and coins, on this computer too
     Restore {
         /// The wallet file to write (default: ~/.orien/wallet)
         file: Option<PathBuf>,
-        /// Which account of the phrase: 1 on your first computer, 2 on the
-        /// next, and so on
+        /// A separate account made from the same phrase, with its own address
+        /// and coins; 1 is your wallet
         #[arg(long, default_value_t = 1)]
         account: u32,
     },
@@ -473,7 +473,6 @@ fn run(cli: Cli) -> Result<()> {
             let wallet = Wallet::create(&file)?;
             println!("created {}", file.display());
             println!("address  {}", wallet.address());
-            println!("account  1 of its recovery phrase");
             println!();
             show_phrase(&wallet);
             let mut wallet = wallet;
@@ -521,7 +520,9 @@ fn run(cli: Cli) -> Result<()> {
             let wallet = Wallet::from_master(&file, master, account)?;
             println!("restored {}", file.display());
             println!("address  {}", wallet.address());
-            println!("account  {account} of the recovery phrase");
+            if account != 1 {
+                println!("account  {account} of the recovery phrase, separate from your main wallet");
+            }
             println!("its balance and payment number come from the network the next time you use it");
             Ok(())
         }

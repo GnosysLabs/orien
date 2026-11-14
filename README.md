@@ -1,8 +1,12 @@
 # Orien
 
-A quantum-proof payment network with no blocks, no miners and no global
-ordering. A payment is final in a fraction of a second and never waits in a
-line behind other payments. The name is from the Latin *oriens*, rising.
+A quantum-proof cryptocurrency, ORN, with no blocks and no global ordering.
+A payment is final in a fraction of a second and never waits in a line
+behind other payments. The name is from the Latin *oriens*, rising.
+
+The network is live. The website is [orien.network](https://orien.network),
+and the [technical paper](https://orien.network/paper/) states every rule
+exactly.
 
 ## The idea
 
@@ -34,13 +38,68 @@ line behind other payments. The name is from the Latin *oriens*, rising.
    half of what remains is released every four years, about 1,977 coins in
    the first hour, shared out each hour in proportion to BLAKE3
    proof-of-work. Work only hands out coins: it never decides payments. The
-   first seed is a Bitcoin block announced in advance, so nobody can mine
-   before launch. Every payment pays 0.1% of its amount, at least 0.000001
-   coin and at most 1 coin; amounts have nine decimal places.
+   first seed comes from a Bitcoin block, so nobody can mine before that
+   block exists; the live network starts from block 975,847. Every payment
+   pays 0.1% of its amount, at least 0.000001 ORN and at most 1 ORN;
+   amounts have nine decimal places.
 
 Everything rests on one assumption: the BLAKE3 hash function.
 
-## Try it
+## Use it
+
+On a Mac or Linux:
+
+```bash
+curl -fsSL https://orien.network/install.sh | sh
+```
+
+On Windows, in PowerShell:
+
+```powershell
+irm https://orien.network/install.ps1 | iex
+```
+
+The installer checks the download against its published checksum and puts
+`orien` and the live network's genesis file in `~/.orien`. Then:
+
+```bash
+orien wallet new
+```
+
+```bash
+orien mine
+```
+
+```bash
+orien balance
+```
+
+```bash
+orien send --to ADDRESS --amount 5
+```
+
+- **Wallets.** `orien wallet new` shows a 24-word recovery phrase; write it
+  down. `orien wallet restore` rebuilds the same wallet, with the same
+  address and coins, on another computer. `orien wallet password` seals
+  the wallet file with a password (Argon2id and XChaCha20-Poly1305).
+- **Mining.** `orien mine` asks how much of the processor to use;
+  `--cpu 50` answers in advance. Each hour's new ORN are shared in
+  proportion to the shares each miner found.
+- **AI assistants.** `orien skill install` teaches Claude Code, Codex and any
+  assistant that reads `~/.agents/skills` to use orien in plain language.
+  It asks before every payment and never sees the phrase or the password.
+  `orien unlock --for 1h --up-to 50` lets it send from a password-protected
+  wallet for a while, up to an amount, without learning the password;
+  `orien lock` ends that early.
+- **Updates.** `orien update` installs a newer version only if the Orien
+  release key signed it.
+- **Desktop wallet.** `apps/wallet` is a desktop app (Tauri) for the same
+  wallet: balance, history, sending, an address book, and making or
+  restoring a wallet.
+
+The rest of this file runs a local test network, with no real coins.
+
+## Try it on a local test network
 
 ```bash
 cargo build --release
@@ -86,7 +145,7 @@ the same ledger.
 
 `devnet double-spend --split` shows the other way to cheat: it sends each
 conflicting payment to half the validators at once. Neither becomes final,
-no money moves, and only the cheater's account is stuck. The next checkpoint
+no coins move, and only the cheater's account is stuck. The next checkpoint
 cancels both payments and frees the account, which from then on signs with
 one of its spare keys. A local network takes a checkpoint every minute, so
 wait a minute and send again:
@@ -108,23 +167,23 @@ sent while one is being made simply waits for it.
 
 ### Mining
 
-`orien mine` does proof-of-work for an account on every processor core. At
-each checkpoint the coins released since the last one are shared among
-the work done in that hour:
+`orien mine` does proof-of-work for an account, on as much of the processor
+as you choose. At each checkpoint the coins released since the last one are
+shared among the work done in that hour:
 
 ```bash
-./target/release/orien mine devnet/wallets/carol.wallet
+./target/release/orien mine devnet/wallets/carol.wallet --cpu 50
 ```
 
 `orien status` shows how many coins have been released so far.
 `devnet init --from-nothing` starts a network with no coins at all, as the
-real one will; `--bitcoin HEIGHT:HASH` anchors it to a Bitcoin block.
+live one did; `--bitcoin HEIGHT:HASH` anchors it to a Bitcoin block.
 
 ### Writing a launch genesis file
 
 Each launch validator makes a key on its own machine and shares only the
 public line `orien keygen` prints. The genesis file is then written from
-those lines and the Bitcoin block announced in advance:
+those lines and a Bitcoin block that has just been mined:
 
 ```bash
 ./target/release/orien genesis new genesis.json --validator "mac,ROOT,16,100.76.239.128:7101" --validator "vps,ROOT,16,100.99.59.98:7101" --bitcoin HEIGHT:HASH
@@ -158,7 +217,8 @@ checkpoint:
 `orien status` lists each epoch's validators with their share of the vote.
 `orien unstake` releases staked coins after a wait of 168 epochs, one week.
 A validator that votes for two conflicting payments, or signs twice with
-one key, loses its stake at the next checkpoint.
+one key, loses its stake at the next checkpoint, and its key is barred from
+the validators for good.
 
 ### An interrupted payment
 
@@ -285,8 +345,13 @@ cargo test --release -p orien-net --test devnet throughput -- --ignored --nocapt
 | `crates/ledger` | The rules: orders, votes, certificates, when to vote, how balances change, what a checkpoint is and how validators agree on one |
 | `crates/net` | The validator node, the closing of epochs, storage, sync between validators, client, wallet files |
 | `crates/cli` | The `orien` command |
+| `apps/wallet` | The desktop wallet app |
+| `skill/orien` | The skill that teaches AI assistants to use `orien` |
+| `web` | The website, orien.network, with the installers and the technical paper |
+| `deploy` | Publishing the website and releases, and the live validators' service |
+| `docs` | The design notes |
 
-## Not done yet
+## Known limitations
 
 - **No delegation.** Staking backs your own validator; backing someone
   else's is designed for later.
@@ -299,9 +364,9 @@ cargo test --release -p orien-net --test devnet throughput -- --ignored --nocapt
   locked.
 - **Signing twice with one key leaks it.** Two signatures from one one-time
   key reveal enough to forge further payments under that number. A wallet
-  asks the validators before it signs and refuses if the key is already in
-  use, but two copies of a wallet signing at the same instant can still do
-  it. Until validators holding a third of the stake have voted on either
+  records what each of its keys signed and never signs anything different
+  with it, and asks the validators before it signs, but two copies of a
+  wallet signing at the same instant can still do it. Until validators holding a third of the stake have voted on either
   payment, someone who sees both signatures could get a forged third one
   accepted. The spare keys are fixed in the address beforehand, so whoever
   can forge the burned key has no hold on the account after the checkpoint.
@@ -327,9 +392,21 @@ cargo test --release -p orien-net --test devnet throughput -- --ignored --nocapt
   checkpoint. One that still runs out completely, after a long outage at
   the wrong moment, has no key left to announce the new tree with.
 - **Receipts grow with the validator set**, at 1 to 3 KB per vote.
-- **Networking is basic**: one thread per connection, no encryption, no
-  limits. Raise `ulimit -n` before putting real load on a validator.
-- **Keys sit unencrypted on disk**, readable only by their owner.
-- **No outside review.** The building blocks are standard published
-  constructions, but this composition is new. It must be reviewed by
-  cryptographers before it holds anything of value.
+- **Networking is basic**: one thread per connection, and no encryption.
+  A validator takes at most 1,024 connections, 64 from one address. Raise
+  `ulimit -n` before putting real load on a validator.
+- **Validator keys sit unencrypted on disk**, readable only by their owner.
+  Wallets can be sealed with a password.
+- **No outside review yet.** The building blocks are standard published
+  constructions, but this composition is new. Review by outside
+  cryptographers is the most important thing still to come.
+
+## License
+
+Orien is free and open-source software, licensed under either of
+
+- the Apache License, Version 2.0 ([LICENSE-APACHE](LICENSE-APACHE)), or
+- the MIT License ([LICENSE-MIT](LICENSE-MIT)),
+
+at your option. Unless you say otherwise, any contribution you submit for
+inclusion is licensed the same way, without any additional terms.

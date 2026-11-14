@@ -527,6 +527,13 @@ a share counts when work < target           seed = digest of the previous checkp
             each account receives ⌊pot · its_shares / all_shares⌋, and the remainder waits.
           </p>
           <p>
+            Every counted share is listed in the statements that close the epoch, so each validator counts at most 40
+            times the shares wanted per epoch, 40,000, and refuses the rest until the next checkpoint. With many
+            validators the limit is lower, so that the proposal carrying all their statements stays under about 12 MB:
+            at most 300,000 shares divided by the number of validators. The target normally keeps shares far below this
+            limit; it is reached only for a few epochs after mining power rises sharply.
+          </p>
+          <p>
             Work only creates coins. It never decides which payments happen or in what order, so a miner with a great
             deal of computing power can earn more coins but cannot rewrite anyone’s payments.
           </p>
@@ -655,9 +662,12 @@ T′ = clamp( T · 1,000 / n,  ⌊T / 4⌋,  4 · T )  otherwise`}</Formula>
             refused by wallets for other cryptocurrencies, and theirs by Orien. A word can be typed by its first four letters.
           </p>
           <p>
-            One phrase makes many accounts, one per computer: account <em>n</em> has the seed hash(0x49, master ‖
-            u32_le(n)). Each computer should use its own account number: two computers using the same one could sign
-            two different orders under one number.
+            The account’s seed is hash(0x49, master ‖ u32_le(1)). Restoring the phrase on another computer gives the
+            same wallet there, with the same address and coins. Before each order, a wallet asks the validators for the
+            account’s next number, so computers sending one after another never collide; only two copies sending in
+            the same moment could sign two orders under one number (section 4.5). Account numbers other than 1, with
+            seed hash(0x49, master ‖ u32_le(n)), give separate accounts with their own addresses, for anyone who
+            wants coins kept apart.
           </p>
         </Sub>
 
@@ -760,7 +770,7 @@ T′ = clamp( T · 1,000 / n,  ⌊T / 4⌋,  4 · T )  otherwise`}</Formula>
             </li>
             <li>
               <strong>Flooding</strong> is limited by the minimum fee on every payment, by per-address connection limits
-              and timeouts, and by a cap of four times the wanted shares per epoch on each validator.
+              and timeouts, and by a limit on the shares each validator counts per epoch (section 8.2).
             </li>
             <li>
               <strong>Mining before the start</strong> is impossible: the first seed depends on a Bitcoin block that does
@@ -840,6 +850,7 @@ T′ = clamp( T · 1,000 / n,  ⌊T / 4⌋,  4 · T )  otherwise`}</Formula>
             ['Shares wanted per epoch', '1,000'],
             ['First target', '2⁴⁰ − 1'],
             ['Target change per epoch', 'at most × 4 or ÷ 4'],
+            ['Shares a validator counts per epoch', '40,000, or 300,000 ÷ validators if fewer'],
             ['Hash function', 'BLAKE3, 32-byte output'],
             ['One-time signature', 'WOTS, w = 16, n = 24 bytes, 51 chains, 1,248 bytes'],
             ['Validator key tree', 'height 16 by default, at most 24'],

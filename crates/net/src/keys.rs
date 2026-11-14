@@ -256,7 +256,7 @@ impl Wallet {
     }
 
     /// The wallet for account `account` of the recovery phrase holding
-    /// `master`. Each computer should use its own account.
+    /// `master`. Account 1 is the wallet itself; others are separate accounts.
     pub fn from_master(path: &Path, master: [u8; 32], account: u32) -> Result<Wallet> {
         if path.exists() {
             bail!("{} already exists; refusing to overwrite a wallet", path.display());
