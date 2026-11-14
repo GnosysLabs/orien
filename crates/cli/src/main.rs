@@ -9,7 +9,7 @@ use orien_ledger::Signer;
 use orien_net::client::{AccountStatus, Client, Done, Head, TransferError, Unfinished};
 use orien_net::keys::{OpenError, ValidatorKey, Wallet, load_genesis, save_genesis};
 use orien_net::node::{Node, NodeConfig};
-use orien_net::unlock::{self, Limits, Session};
+use orien_net::unlock::{self, Limits, Session, Signing};
 use orien_net::wire::{Request, Response};
 use std::fs;
 use std::io::{BufRead, IsTerminal, Write};
@@ -611,8 +611,12 @@ fn resolve_account(text: &str) -> Result<AccountId> {
 }
 
 /// Reads a wallet's account from the validators.
-fn read_account(client: &Client, wallet: &Wallet) -> Result<AccountStatus> {
-    let status = client.account(&wallet.address(), wallet.next_seq());
+fn read_account(client: &Client, wallet: &Signing) -> Result<AccountStatus> {
+    read_account_of(client, &wallet.address(), wallet.next_seq())
+}
+
+fn read_account_of(client: &Client, address: &AccountId, next_seq: u64) -> Result<AccountStatus> {
+    let status = client.account(address, next_seq);
     if status.views.iter().all(|view| view.is_none()) {
         bail!("no validator could be reached");
     }
@@ -623,7 +627,7 @@ fn read_account(client: &Client, wallet: &Wallet) -> Result<AccountStatus> {
 /// final: those validators have voted for, plus the one this wallet file
 /// signed itself, if any. Only orders carrying this wallet's own signature
 /// count.
-fn unfinished(client: &Client, wallet: &Wallet, status: &AccountStatus) -> Vec<Unfinished> {
+fn unfinished(client: &Client, wallet: &Signing, status: &AccountStatus) -> Vec<Unfinished> {
     let committee = client.committee();
     let network = committee.network();
     let mut found: Vec<Unfinished> = client
@@ -655,7 +659,7 @@ fn retired(status: &AccountStatus, signed: &SignedOrder) -> bool {
 
 /// If a checkpoint cancelled the payment this wallet file was holding,
 /// says so and lets go of it.
-fn drop_cancelled(wallet: &mut Wallet, status: &AccountStatus) -> Result<()> {
+fn drop_cancelled(wallet: &mut Signing, status: &AccountStatus) -> Result<()> {
     let Some(pending) = wallet.pending().filter(|pending| retired(status, pending)).cloned() else {
         return Ok(());
     };
@@ -671,7 +675,7 @@ fn drop_cancelled(wallet: &mut Wallet, status: &AccountStatus) -> Result<()> {
 }
 
 /// One line about an unfinished payment, led by the id that picks it out.
-fn describe_unfinished(client: &Client, all: &[Unfinished], one: &Unfinished, wallet: Option<&Wallet>) -> String {
+fn describe_unfinished(client: &Client, all: &[Unfinished], one: &Unfinished, wallet: Option<&Signing>) -> String {
     let order = &one.signed.order;
     let mut line = format!(
         "{}  payment #{}: {} to {}, votes cover {} of {} stake",
@@ -685,7 +689,7 @@ fn describe_unfinished(client: &Client, all: &[Unfinished], one: &Unfinished, wa
     if !client.can_still_finish(all, one) {
         line.push_str(", can no longer become final");
     }
-    if wallet.and_then(Wallet::pending).is_some_and(|own| own.order == *order) {
+    if wallet.and_then(Signing::pending).is_some_and(|own| own.order == *order) {
         line.push_str(", signed by this wallet file");
     }
     line
@@ -724,11 +728,12 @@ fn balance(account: &str, genesis: &Path) -> Result<()> {
         },
         false => None,
     };
+    let wallet = wallet.map(Signing::Here);
     let id = match &wallet {
         Some(wallet) => wallet.address(),
         None => resolve_account(account)?,
     };
-    let status = client.account(&id, wallet.as_ref().map_or(0, Wallet::next_seq));
+    let status = client.account(&id, wallet.as_ref().map_or(0, Signing::next_seq));
     let reachable = status.views.iter().flatten().count();
     if reachable == 0 {
         bail!("no validator could be reached");
@@ -790,7 +795,7 @@ fn balance(account: &str, genesis: &Path) -> Result<()> {
 /// file signed, with its certificate if that is still to be had.
 fn settle_earlier(
     client: &Client,
-    wallet: &mut Wallet,
+    wallet: &mut Signing,
     seq: u64,
 ) -> Result<Option<(orien_ledger::Order, Option<Certificate>)>> {
     let Some(earlier) = wallet.pending().filter(|earlier| earlier.order.seq < seq).cloned() else {
@@ -859,7 +864,7 @@ fn explain(error: TransferError) -> anyhow::Error {
 
 /// Gathers votes and confirmations for a signed payment, which makes it
 /// final, and says so. Only then does the wallet move on.
-fn finish(client: &Client, wallet: &mut Wallet, signed: &SignedOrder, receipt_file: Option<&Path>) -> Result<()> {
+fn finish(client: &Client, wallet: &mut Signing, signed: &SignedOrder, receipt_file: Option<&Path>) -> Result<()> {
     let order = &signed.order;
     let started = Instant::now();
     // A checkpoint pauses payments for a few seconds. Wait it out.
@@ -925,7 +930,7 @@ fn submit(
     let genesis_file = genesis;
     let (genesis, client) = connect(genesis_file)?;
     let network = genesis.id();
-    let mut wallet = open_wallet(wallet_file)?;
+    let mut wallet = open_signing(wallet_file)?;
     wallet.accept_fee(genesis.fee);
     let to = to.unwrap_or(wallet.address());
     let kind = kind(&wallet.address(), &genesis)?;
@@ -1014,7 +1019,7 @@ fn resume(wallet_file: &Path, pick: Option<&str>, receipt_file: Option<&Path>, g
     let genesis_file = genesis;
     let (genesis, client) = connect(genesis_file)?;
     let network = genesis.id();
-    let mut wallet = open_wallet(wallet_file)?;
+    let mut wallet = open_signing(wallet_file)?;
     wallet.accept_fee(genesis.fee);
     let status = read_account(&client, &wallet)?;
     let seq = status.seq;
@@ -1289,6 +1294,27 @@ fn mine(account: &str, threads: Option<usize>, genesis_file: &Path) -> Result<()
         let rate = tries.load(Ordering::Relaxed) as f64 / started.elapsed().as_secs_f64() / 1e6;
         println!("  {rate:.1} million tries a second; {sent} share(s) found, {taken} taken by validators");
     }
+}
+
+/// The wallet to sign a payment with: through its unlocked session when
+/// `orien unlock` is running for it, otherwise opened here, asking for its
+/// password if it has one.
+fn open_signing(path: &Path) -> Result<Signing> {
+    if let Some(unlocked) = Signing::unlocked(path)? {
+        return Ok(unlocked);
+    }
+    let wallet = Wallet::load(path);
+    if let Err(error) = &wallet
+        && matches!(error.downcast_ref::<OpenError>(), Some(OpenError::NeedsPassword))
+        && !std::io::stdin().is_terminal()
+    {
+        bail!(
+            "{} has a password and is not unlocked. Its owner can type the password by running this command \
+             in their own terminal, or allow it for a while with: orien unlock",
+            path.display()
+        );
+    }
+    Ok(Signing::Here(open_wallet(path)?))
 }
 
 /// Opens a wallet to sign with, asking for its password if it has one.
@@ -1760,7 +1786,7 @@ fn interrupt(dir: &Path, wallet_name: &str, to_name: &str, amount: u64) -> Resul
     wallet.accept_fee(genesis.fee);
     let to = Wallet::peek(&wallets.join(format!("{to_name}.wallet")))?.0;
 
-    let status = read_account(&client, &wallet)?;
+    let status = read_account_of(&client, &wallet.address(), wallet.next_seq())?;
     if !status.locks.is_empty() || wallet.pending().is_some() {
         bail!("{wallet_name} already has an unfinished payment");
     }

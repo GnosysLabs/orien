@@ -354,3 +354,116 @@ impl Session {
         }
     }
 }
+
+/// A wallet to sign with: opened here with its secret, or reached through
+/// the unlocked session that holds it. The two behave the same.
+pub enum Signing {
+    Here(Wallet),
+    Unlocked { session: Session, info: Info, fees: Fees },
+}
+
+impl Signing {
+    /// Reaches the wallet at `path` through its unlocked session, if one is
+    /// running.
+    pub fn unlocked(path: &Path) -> Result<Option<Signing>> {
+        let Some(session) = Session::find(path) else { return Ok(None) };
+        let info = session.info()?;
+        Ok(Some(Signing::Unlocked { session, info, fees: Fees::NONE }))
+    }
+
+    pub fn is_unlocked(&self) -> bool {
+        matches!(self, Signing::Unlocked { .. })
+    }
+
+    pub fn address(&self) -> AccountId {
+        match self {
+            Signing::Here(wallet) => wallet.address(),
+            Signing::Unlocked { info, .. } => info.address,
+        }
+    }
+
+    pub fn next_seq(&self) -> u64 {
+        match self {
+            Signing::Here(wallet) => wallet.next_seq(),
+            Signing::Unlocked { info, .. } => info.next_seq,
+        }
+    }
+
+    pub fn pending(&self) -> Option<&SignedOrder> {
+        match self {
+            Signing::Here(wallet) => wallet.pending(),
+            Signing::Unlocked { info, .. } => info.pending.as_ref(),
+        }
+    }
+
+    pub fn accept_fee(&mut self, new: Fees) {
+        match self {
+            Signing::Here(wallet) => wallet.accept_fee(new),
+            Signing::Unlocked { fees, .. } => *fees = new,
+        }
+    }
+
+    /// Re-reads the wallet's state from the session after it changed there.
+    fn refresh(&mut self) -> Result<()> {
+        if let Signing::Unlocked { session, info, .. } = self {
+            *info = session.info()?;
+        }
+        Ok(())
+    }
+
+    pub fn sign(
+        &mut self,
+        kind: Kind,
+        seq: u64,
+        to: AccountId,
+        amount: u64,
+        signer: Option<&Signer>,
+        network: &Hash32,
+    ) -> Result<SignedOrder> {
+        let signed = match self {
+            Signing::Here(wallet) => return wallet.sign(kind, seq, to, amount, signer, network),
+            Signing::Unlocked { session, fees, .. } => session.sign(kind, seq, to, amount, signer, network, *fees)?,
+        };
+        self.refresh()?;
+        Ok(signed)
+    }
+
+    pub fn confirm(&mut self, seq: u64) -> Result<()> {
+        match self {
+            Signing::Here(wallet) => wallet.confirm(seq),
+            Signing::Unlocked { session, .. } => {
+                session.confirm(seq)?;
+                self.refresh()
+            }
+        }
+    }
+
+    pub fn forget(&mut self, seq: u64) -> Result<()> {
+        match self {
+            Signing::Here(wallet) => wallet.forget(seq),
+            Signing::Unlocked { session, .. } => {
+                session.forget(seq)?;
+                self.refresh()
+            }
+        }
+    }
+
+    pub fn adopt(&mut self, signed: &SignedOrder, network: &Hash32) -> Result<()> {
+        match self {
+            Signing::Here(wallet) => wallet.adopt(signed, network),
+            Signing::Unlocked { session, .. } => {
+                session.adopt(signed, network)?;
+                self.refresh()
+            }
+        }
+    }
+
+    /// Whether `signed` carries this wallet's own signature. An unlocked
+    /// session that cannot be reached counts as no.
+    pub fn signed_by_this_wallet(&self, signed: &SignedOrder, network: &Hash32) -> bool {
+        match self {
+            Signing::Here(wallet) => wallet.signed_by_this_wallet(signed, network),
+            Signing::Unlocked { session, .. } => session.owns(signed, network).unwrap_or(false),
+        }
+    }
+}
