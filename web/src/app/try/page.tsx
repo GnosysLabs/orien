@@ -115,10 +115,10 @@ export default function GetStartedPage() {
         </Step>
 
         <Step number={6} icon={KeyRound} title="Use a second computer">
-          <CopyText text="orien wallet restore --account 2" />
+          <CopyText text="orien wallet restore" />
           <p>
-            Type your 24 words when asked. Each computer should use its own account number: 1 on your first, 2 on the
-            next, and so on. They all come from the same 24 words, so one phrase backs them all up.
+            Type your 24 words when asked. It’s the same wallet on both computers, with the same address and the same
+            ORN, so you can send from either one.
           </p>
         </Step>
 
@@ -142,7 +142,7 @@ export default function GetStartedPage() {
             text="orien stake --amount 10000 --validator-key ~/.orien/validator.key --address YOUR_SERVER_IP:7101"
           />
           <p className="text-sm">
-            Staking needs your wallet on the server too, as its own account (step 6 shows how), holding the ORN you
+            Staking needs your wallet on the server too (step 6 shows how), holding the ORN you
             stake.
           </p>
           <p>

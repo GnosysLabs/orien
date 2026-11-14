@@ -79,8 +79,8 @@ orien send --to ADDRESS --amount 5
 ```
 
 - **Wallets.** `orien wallet new` shows a 24-word recovery phrase; write it
-  down. `orien wallet restore --account 2` rebuilds the wallet on a second
-  computer, which uses its own account number. `orien wallet password` seals
+  down. `orien wallet restore` rebuilds the same wallet, with the same
+  address and coins, on another computer. `orien wallet password` seals
   the wallet file with a password (Argon2id and XChaCha20-Poly1305).
 - **Mining.** `orien mine` asks how much of the processor to use;
   `--cpu 50` answers in advance. Each hour's new ORN are shared in

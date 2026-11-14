@@ -662,9 +662,12 @@ T′ = clamp( T · 1,000 / n,  ⌊T / 4⌋,  4 · T )  otherwise`}</Formula>
             refused by wallets for other cryptocurrencies, and theirs by Orien. A word can be typed by its first four letters.
           </p>
           <p>
-            One phrase makes many accounts, one per computer: account <em>n</em> has the seed hash(0x49, master ‖
-            u32_le(n)). Each computer should use its own account number: two computers using the same one could sign
-            two different orders under one number.
+            The account’s seed is hash(0x49, master ‖ u32_le(1)). Restoring the phrase on another computer gives the
+            same wallet there, with the same address and coins. Before each order, a wallet asks the validators for the
+            account’s next number, so computers sending one after another never collide; only two copies sending in
+            the same moment could sign two orders under one number (section 4.5). Account numbers other than 1, with
+            seed hash(0x49, master ‖ u32_le(n)), give separate accounts with their own addresses, for anyone who
+            wants coins kept apart.
           </p>
         </Sub>
 

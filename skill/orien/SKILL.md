@@ -18,7 +18,7 @@ Every command finds these by itself, so leave out `-w` and `-g` unless the user 
 1. **Never look at secrets.** Never read, print, copy, upload or paste `~/.orien/wallet`, any validator key file (`*.key`), or a recovery phrase. Never ask the user for their 24 words or their wallet password, and never type either. If the user pastes their 24 words to you, tell them those words can spend all their ORN, that they should now treat them as seen, and that they should move their ORN to a new wallet.
 2. **The user runs these commands themselves, in their own terminal**, because each one shows or asks for a secret. Give them the exact command to copy, then wait:
    - `orien wallet new`: shows the 24-word recovery phrase and asks for an optional password.
-   - `orien wallet restore --account N`: asks for the 24 words.
+   - `orien wallet restore`: asks for the 24 words.
    - `orien wallet phrase`: shows the 24 words. Mention it only if the user asks how to see their phrase again.
    - `orien wallet password`: sets, changes or removes the password.
    - `orien unlock`: asks for the password, and lets you sign for a while (see below).
@@ -124,10 +124,10 @@ Without `--cpu`, mining started in the background uses the whole processor, so a
 The user runs, on the new computer and in their own terminal (rule 2):
 
 ```
-orien wallet restore --account 2
+orien wallet restore
 ```
 
-Each computer needs its own account number: 1 is the first, 2 the next, and so on. Two computers must never use the same number. Each account has its own address and balance. To move ORN between them, send it like any payment.
+It is the same wallet on both computers: the same address and the same ORN. Sending from either works; the user should just not send from two computers in the same second.
 
 ### "I want to be a validator"
 
@@ -135,7 +135,7 @@ Validators check payments and earn the network's fees, shared in proportion to s
 
 On the server:
 
-1. Install orien (see Installing). The wallet that pays for the stake must be on the server too, as its own account (`orien wallet restore --account N`, run by the user), holding the ORN to stake.
+1. Install orien (see Installing). The wallet that pays for the stake must be on the server too (`orien wallet restore`, run by the user), holding the ORN to stake.
 2. Make the validator's key. It is secret (rule 1):
    ```
    orien keygen ~/.orien/validator.key

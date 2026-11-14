@@ -7,8 +7,8 @@
 //! check. The check is BLAKE3's, not Bitcoin's SHA-256, on purpose, so that
 //! an Orien phrase is refused by Bitcoin wallets and the other way round.
 //!
-//! One phrase makes many accounts, one per computer, so that two computers
-//! never sign for the same account and never collide.
+//! One phrase can also make further accounts, each with its own address, for
+//! anyone who wants their coins kept apart. Account 1 is the wallet itself.
 
 use anyhow::{Result, anyhow, bail};
 use orien_crypto::{Tag, hash};
@@ -62,7 +62,7 @@ pub fn from_words(text: &str) -> Result<[u8; 32]> {
 }
 
 /// The secret of account `number` made from a master secret. Accounts are
-/// numbered from 1; each computer uses its own.
+/// numbered from 1, and account 1 is the wallet itself.
 pub fn account_seed(master: &[u8; 32], number: u32) -> [u8; 32] {
     hash(Tag::WalletAccount, &[master, &number.to_le_bytes()]).0
 }
