@@ -3,7 +3,9 @@
 
 use crate::wire::{AccountView, NodeInfo, Request, Response, read_frame, write_frame};
 use orien_crypto::{Hash32, ots};
-use orien_ledger::{AccountId, Certificate, Committee, Genesis, Reject, SignedOrder, Vote};
+use orien_ledger::{
+    AccountId, Certificate, Committee, Confirmation, Genesis, Receipt, Reject, SignedOrder, Vote,
+};
 use std::collections::BTreeMap;
 use std::fmt;
 use std::io;
@@ -94,30 +96,46 @@ pub struct Unfinished {
     pub stake: u64,
 }
 
-pub struct Receipt {
-    pub certificate: Certificate,
+/// A payment that became final.
+pub struct Final {
+    /// The proof of it, holding no more votes and confirmations than needed.
+    pub receipt: Receipt,
     /// Validators that voted.
     pub votes: usize,
-    /// Validators that confirmed applying the certificate.
-    pub acknowledged: usize,
+    /// Validators that confirmed recording the certificate.
+    pub confirmations: usize,
 }
 
 #[derive(Debug)]
 pub enum TransferError {
+    /// Too few validators voted. Nothing happened.
     NoQuorum { stake: u64, total: u64, refusals: Vec<(usize, String)> },
+    /// The payment has its certificate, so no other payment can take its
+    /// number, but too few validators have confirmed recording it. It is
+    /// not final yet, and asking again later will finish it.
+    NotConfirmed { stake: u64, total: u64, refusals: Vec<(usize, String)> },
 }
 
 impl fmt::Display for TransferError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match self {
+        let refusals = match self {
             TransferError::NoQuorum { stake, total, refusals } => {
                 write!(f, "not final: votes cover {stake} of {total} stake, more than two thirds are needed")?;
-                for (validator, reason) in refusals {
-                    write!(f, "\n  validator {validator}: {reason}")?;
-                }
-                Ok(())
+                refusals
             }
+            TransferError::NotConfirmed { stake, total, refusals } => {
+                write!(
+                    f,
+                    "not final yet: the payment has enough votes, but confirmations cover {stake} of \
+                     {total} stake and more than two thirds are needed"
+                )?;
+                refusals
+            }
+        };
+        for (validator, reason) in refusals {
+            write!(f, "\n  validator {validator}: {reason}")?;
         }
+        Ok(())
     }
 }
 
@@ -220,11 +238,9 @@ impl Client {
             .collect()
     }
 
-    /// Reads an account from every validator. `known_seq` is the payment
-    /// number the caller already knows the account has reached (0 if none).
-    pub fn account(&self, id: &AccountId, known_seq: u64) -> AccountStatus {
-        let views: Vec<Option<AccountView>> = self
-            .ask_all(&Request::Account(*id))
+    /// Each validator's view of an account, or `None` if it did not answer.
+    fn views(&self, id: &AccountId) -> Vec<Option<AccountView>> {
+        self.ask_all(&Request::Account(*id))
             .into_iter()
             .map(|response| match response {
                 Ok(Response::Account(Some(view))) => Some(view),
@@ -234,7 +250,13 @@ impl Client {
                 }
                 _ => None,
             })
-            .collect();
+            .collect()
+    }
+
+    /// Reads an account from every validator. `known_seq` is the payment
+    /// number the caller already knows the account has reached (0 if none).
+    pub fn account(&self, id: &AccountId, known_seq: u64) -> AccountStatus {
+        let mut views = self.views(id);
 
         // A validator claiming a higher payment number must back it with the
         // certificate of the payment before. Otherwise a lying validator
@@ -254,6 +276,12 @@ impl Client {
             if self.proves_seq(index, id, claimed) {
                 seq = claimed;
             }
+        }
+        // Proving a number hands the certificate to every validator, which
+        // brings lagging ones up to date. Look again, so that the balance
+        // reported is the one they agree on now.
+        if seq > known_seq {
+            views = self.views(id);
         }
 
         let mut current: Vec<(i128, u64)> = Vec::new();
@@ -283,16 +311,20 @@ impl Client {
         AccountStatus { views, seq, spendable, locks }
     }
 
+    /// Whether validator `index` can back its claim that `id` has reached
+    /// payment number `claimed`. A certificate for the payment before is not
+    /// enough, since a certificate alone is not final. Validators holding
+    /// more than two thirds of the stake must confirm it. They can, because
+    /// it is the account's latest payment.
     fn proves_seq(&self, index: usize, id: &AccountId, claimed: u64) -> bool {
         let request = Request::GetCertificate { account: *id, seq: claimed - 1 };
-        match self.call(index, &request) {
-            Ok(Response::Certificate(Some(certificate))) => {
-                certificate.order.from == *id
-                    && certificate.order.seq == claimed - 1
-                    && self.committee.verify_certificate(&certificate).is_ok()
-            }
-            _ => false,
-        }
+        let Ok(Response::Certificate(Some(certificate))) = self.call(index, &request) else {
+            return false;
+        };
+        certificate.order.from == *id
+            && certificate.order.seq == claimed - 1
+            && self.committee.verify_certificate(&certificate).is_ok()
+            && self.finish(certificate, 0).is_ok()
     }
 
     pub fn certificate(&self, id: &AccountId, seq: u64) -> Option<Certificate> {
@@ -409,40 +441,103 @@ impl Client {
         (votes, refusals)
     }
 
-    /// Hands a certificate to every validator. Returns how many applied it.
-    pub fn broadcast(&self, certificate: &Certificate) -> usize {
-        let request = Request::SubmitCertificate(certificate.clone());
-        self.ask_all_synced(&request, &certificate.order.from, certificate.order.seq)
-            .into_iter()
-            .filter(|response| matches!(response, Ok(Response::Applied { .. })))
-            .count()
+    /// Hands a certificate to every validator and collects the
+    /// confirmations they sign for it.
+    pub fn confirm(&self, certificate: &Certificate) -> (BTreeMap<u16, Confirmation>, Vec<(usize, String)>) {
+        let order = &certificate.order;
+        let digest = order.digest(self.committee.network());
+        let request = Request::Confirm(certificate.clone());
+        let mut confirmations = BTreeMap::new();
+        let mut refusals = Vec::new();
+        let responses = self.ask_all_synced(&request, &order.from, order.seq);
+        for (index, response) in responses.into_iter().enumerate() {
+            match response {
+                Ok(Response::Confirmed(confirmation)) => {
+                    if confirmation.validator as usize == index
+                        && self.committee.verify_confirmation(&digest, &confirmation).is_ok()
+                    {
+                        confirmations.insert(confirmation.validator, confirmation);
+                    } else {
+                        refusals.push((index, "returned a confirmation that does not verify".into()));
+                    }
+                }
+                Ok(Response::Applied { .. }) => {
+                    refusals.push((index, "recorded it, but no longer confirms a payment this old".into()))
+                }
+                Ok(Response::Rejected(reject)) => refusals.push((index, reject.to_string())),
+                Ok(Response::Invalid(reason)) | Ok(Response::Unavailable(reason)) => {
+                    refusals.push((index, reason))
+                }
+                Ok(other) => refusals.push((index, format!("unexpected answer: {other:?}"))),
+                Err(error) => refusals.push((index, format!("unreachable ({error})"))),
+            }
+        }
+        (confirmations, refusals)
     }
 
-    /// Makes a payment final: gathers votes from more than two thirds of the
-    /// stake, then tells every validator.
-    pub fn transfer(&self, signed: &SignedOrder) -> Result<Receipt, TransferError> {
+    /// The smallest set of signatures, in validator order, whose stake is
+    /// more than two thirds. Fewer signatures, smaller proof.
+    fn just_enough(&self, signatures: BTreeMap<u16, Vote>) -> Vec<Vote> {
+        let mut chosen = Vec::new();
+        let mut covered = 0u64;
+        for (validator, signature) in signatures {
+            if self.committee.has_quorum(covered) {
+                break;
+            }
+            covered += self.committee.stake_of(validator);
+            chosen.push(signature);
+        }
+        chosen
+    }
+
+    fn stake(&self, signatures: &BTreeMap<u16, Vote>) -> u64 {
+        signatures.keys().map(|validator| self.committee.stake_of(*validator)).sum()
+    }
+
+    /// Gathers votes from more than two thirds of the stake into a
+    /// certificate. Returns it with the number of validators that voted.
+    fn certify(&self, signed: &SignedOrder) -> Result<(Certificate, usize), TransferError> {
         let (votes, refusals) = self.collect_votes(signed);
-        let stake: u64 = votes.keys().map(|v| self.committee.stake_of(*v)).sum();
+        let stake = self.stake(&votes);
         if !self.committee.has_quorum(stake) {
-            return Err(TransferError::NoQuorum {
+            // Validators that have already applied this payment will not
+            // vote for it again. If its certificate is out there, all the
+            // payment lacks is confirmations.
+            let order = &signed.order;
+            if let Some(existing) = self.certificate(&order.from, order.seq)
+                && existing.order == *order
+            {
+                return Ok((existing, votes.len()));
+            }
+            return Err(TransferError::NoQuorum { stake, total: self.committee.total_stake(), refusals });
+        }
+        let voters = votes.len();
+        let certificate = Certificate::new(self.committee.epoch(), signed, self.just_enough(votes));
+        Ok((certificate, voters))
+    }
+
+    /// Takes a certificate the rest of the way: gathers confirmations from
+    /// more than two thirds of the stake.
+    pub fn finish(&self, certificate: Certificate, votes: usize) -> Result<Final, TransferError> {
+        let (confirmations, refusals) = self.confirm(&certificate);
+        let stake = self.stake(&confirmations);
+        if !self.committee.has_quorum(stake) {
+            return Err(TransferError::NotConfirmed {
                 stake,
                 total: self.committee.total_stake(),
                 refusals,
             });
         }
-        // A certificate needs just enough votes. Fewer votes, smaller proof.
-        let voters = votes.len();
-        let mut chosen = Vec::new();
-        let mut covered = 0u64;
-        for (validator, vote) in votes {
-            if self.committee.has_quorum(covered) {
-                break;
-            }
-            covered += self.committee.stake_of(validator);
-            chosen.push(vote);
-        }
-        let certificate = Certificate { order: signed.order.clone(), votes: chosen };
-        let acknowledged = self.broadcast(&certificate);
-        Ok(Receipt { certificate, votes: voters, acknowledged })
+        let confirmed = confirmations.len();
+        let receipt = Receipt { certificate, confirmations: self.just_enough(confirmations) };
+        Ok(Final { receipt, votes, confirmations: confirmed })
+    }
+
+    /// Makes a payment final. First validators holding more than two thirds
+    /// of the stake vote for the order, which gives it a certificate. Then
+    /// as many confirm that they have recorded the certificate.
+    pub fn transfer(&self, signed: &SignedOrder) -> Result<Final, TransferError> {
+        let (certificate, votes) = self.certify(signed)?;
+        self.finish(certificate, votes)
     }
 }

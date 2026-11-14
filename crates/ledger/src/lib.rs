@@ -13,4 +13,4 @@ pub mod types;
 
 pub use genesis::{Allocation, Committee, Genesis, ValidatorInfo, VerifyError};
 pub use state::{Accepted, Account, Applied, Reject, State, account_root};
-pub use types::{AccountId, Certificate, Order, SignedOrder, Vote};
+pub use types::{AccountId, Certificate, Confirmation, Order, Receipt, SignedOrder, Vote, confirmation_item};

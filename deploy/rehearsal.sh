@@ -95,7 +95,7 @@ start_one() {
         [ ! -f node.log ] || mv node.log node.log.1
         setsid $drop nohup $command > node.log 2>&1 < /dev/null &
         for _ in 1 2 3 4 5 6 7 8 9 10; do
-            grep -q 'is listening' node.log && { echo '$name started on $address'; exit 0; }
+            grep -q 'is listening' node.log 2> /dev/null && { echo '$name started on $address'; exit 0; }
             sleep 1
         done
         echo '$name did not start:'; tail -5 node.log; exit 1"
@@ -111,8 +111,13 @@ remove_one() {
     local name=$1 where=$2 folder=$3
     [ "$where" != local ] || return 0
     stop_one "$@"
+    # The program and genesis file go too, once the last validator there has.
     case "$folder" in
-        */orien) $SSH "$where" "rm -rf '$folder/$name' && rmdir '$folder' 2>/dev/null || true" ;;
+        */orien) $SSH "$where" "rm -rf '$folder/$name'
+            if ! ls -d '$folder'/v*/ > /dev/null 2>&1; then
+                rm -f '$folder/orien' '$folder/orien.new' '$folder/genesis.json'
+                rmdir '$folder'
+            fi" ;;
         *) echo "refusing to delete $folder: it is not a folder this script made"; exit 1 ;;
     esac
 }

@@ -3,7 +3,7 @@
 use orien_crypto::keytree::KeyTree;
 use orien_crypto::{Hash32, Kdf, ots, prf};
 use orien_ledger::{AccountId, Allocation, Genesis, Order, Reject, SignedOrder, ValidatorInfo};
-use orien_net::client::{Client, Receipt, TransferError, rpc};
+use orien_net::client::{Client, Final, TransferError, rpc};
 use orien_net::keys::{ValidatorKey, Wallet};
 use orien_net::node::{Node, NodeConfig};
 use orien_net::store::Epochs;
@@ -153,7 +153,7 @@ impl TestNet {
     }
 
     /// Pays the way the wallet does: read the account, sign, transfer, confirm.
-    fn try_pay(&self, from: &str, to: AccountId, amount: u64) -> Result<Receipt, TransferError> {
+    fn try_pay(&self, from: &str, to: AccountId, amount: u64) -> Result<Final, TransferError> {
         let mut wallet = self.wallet(from);
         let client = self.client();
         let status = client.account(&wallet.address(), wallet.next_seq());
@@ -163,7 +163,7 @@ impl TestNet {
         Ok(receipt)
     }
 
-    fn pay(&self, from: &str, to: AccountId, amount: u64) -> Receipt {
+    fn pay(&self, from: &str, to: AccountId, amount: u64) -> Final {
         self.try_pay(from, to, amount).unwrap()
     }
 
@@ -207,15 +207,16 @@ fn a_payment_is_final_on_every_validator() {
     let receipt = net.pay("alice", bob, 250);
 
     assert_eq!(receipt.votes, 4);
-    assert_eq!(receipt.acknowledged, 4);
-    assert_eq!(receipt.certificate.votes.len(), 3, "three of four votes are enough");
+    assert_eq!(receipt.confirmations, 4);
+    assert_eq!(receipt.receipt.certificate.votes.len(), 3, "three of four votes are enough");
+    assert_eq!(receipt.receipt.confirmations.len(), 3, "and three of four confirmations");
     for v in 0..4 {
         assert_eq!(net.view(v, &alice).balance, 750);
         assert_eq!(net.view(v, &alice).seq, 1);
         assert_eq!(net.view(v, &bob).balance, 1250);
     }
     // The receipt stands on its own: genesis plus hashing verifies it.
-    assert!(net.client().committee().verify_certificate(&receipt.certificate).is_ok());
+    assert!(net.client().committee().verify_receipt(&receipt.receipt).is_ok());
     let status = net.client().account(&alice, 0);
     assert_eq!((status.seq, status.spendable), (1, Some(750)));
 }
@@ -285,7 +286,7 @@ fn validators_hold_to_their_first_vote() {
     let (again, _) = client.collect_votes(&to_bob);
     assert_eq!(again, votes);
     // And the first can still be completed.
-    assert_eq!(client.transfer(&to_bob).unwrap().acknowledged, 4);
+    assert_eq!(client.transfer(&to_bob).unwrap().confirmations, 4);
 }
 
 #[test]
@@ -317,7 +318,7 @@ fn splitting_the_vote_locks_only_the_cheater() {
     assert!(unfinished.iter().all(|u| u.stake == 2 && !client.can_still_finish(&unfinished, u)));
 
     // Everyone else is unaffected.
-    assert_eq!(net.pay("bob", carol, 5).acknowledged, 4);
+    assert_eq!(net.pay("bob", carol, 5).confirmations, 4);
 }
 
 #[test]
@@ -327,7 +328,7 @@ fn the_network_works_with_a_validator_down_and_it_catches_up() {
     net.stop(3);
 
     let receipt = net.pay("alice", bob, 100);
-    assert_eq!((receipt.votes, receipt.acknowledged), (3, 3));
+    assert_eq!((receipt.votes, receipt.confirmations), (3, 3));
     net.pay("bob", alice, 1);
 
     // The validator comes back with nothing but its old files and learns
@@ -352,7 +353,7 @@ fn a_wallet_brings_a_lagging_validator_up_to_date() {
     assert_eq!(net.view(3, &alice).seq, 0, "validator 4 missed payment #0");
 
     let receipt = net.pay("alice", bob, 50);
-    assert_eq!((receipt.votes, receipt.acknowledged), (4, 4));
+    assert_eq!((receipt.votes, receipt.confirmations), (4, 4));
     assert_eq!(net.view(3, &alice).seq, 2);
     assert_eq!(net.view(3, &bob).balance, 1150);
 }
@@ -404,7 +405,7 @@ fn a_restart_keeps_balances_and_votes() {
     assert_eq!(net.view(0, &alice).lock, Some(to_bob.order.digest(&net.network)));
     assert!(holds_the_order(&net));
 
-    assert_eq!(net.pay("alice", bob, 5).acknowledged, 4);
+    assert_eq!(net.pay("alice", bob, 5).confirmations, 4);
     assert!(matches!(net.ask(0, &Request::Pending(alice)), Response::Pending(None)));
 }
 
@@ -417,8 +418,8 @@ fn forged_certificates_change_nothing() {
     let (votes, _) = client.collect_votes(&order);
     let votes: Vec<_> = votes.into_values().collect();
 
-    let too_few = orien_ledger::Certificate { order: order.order.clone(), votes: votes[..2].to_vec() };
-    let mut inflated = orien_ledger::Certificate { order: order.order.clone(), votes: votes[..3].to_vec() };
+    let too_few = orien_ledger::Certificate::new(0, &order, votes[..2].to_vec());
+    let mut inflated = orien_ledger::Certificate::new(0, &order, votes[..3].to_vec());
     inflated.order.amount = 999;
     for forged in [too_few, inflated] {
         for v in 0..4 {
@@ -463,7 +464,7 @@ fn a_single_validator_is_already_a_network() {
     let net = TestNet::start_with("solo", Options { validators: 1, ..Options::default() });
     let (alice, bob) = (net.address("alice"), net.address("bob"));
     let receipt = net.pay("alice", bob, 1);
-    assert_eq!((receipt.votes, receipt.acknowledged), (1, 1));
+    assert_eq!((receipt.votes, receipt.confirmations), (1, 1));
     assert_eq!(net.view(0, &alice).balance, 999);
 }
 
@@ -520,14 +521,14 @@ fn another_copy_of_a_wallet_finishes_a_payment() {
     copy.adopt(&unfinished[0].signed, &net.network).unwrap();
     let receipt = client.transfer(copy.pending().unwrap()).unwrap();
     copy.confirm(0).unwrap();
-    assert_eq!((receipt.votes, receipt.acknowledged), (4, 4));
+    assert_eq!((receipt.votes, receipt.confirmations), (4, 4));
     for v in 0..4 {
         assert_eq!(net.view(v, &alice).balance, 900);
         assert_eq!(net.view(v, &bob).balance, 1100);
         assert!(matches!(net.ask(v, &Request::Pending(alice)), Response::Pending(None)));
     }
     // And it carries on with the next key, which both copies derive alike.
-    assert_eq!(net.pay("alice-copy", bob, 1).acknowledged, 4);
+    assert_eq!(net.pay("alice-copy", bob, 1).confirmations, 4);
     assert_eq!(net.view(0, &alice).seq, 2);
 }
 
@@ -554,7 +555,7 @@ fn one_of_two_conflicting_payments_can_still_be_finished() {
     let mut wallet = net.wallet("alice");
     wallet.adopt(&to_bob, &net.network).unwrap();
     let receipt = client.transfer(&to_bob).unwrap();
-    assert_eq!((receipt.votes, receipt.acknowledged), (3, 4));
+    assert_eq!((receipt.votes, receipt.confirmations), (3, 4));
     for v in 0..4 {
         assert_eq!(net.view(v, &alice).seq, 1);
         assert_eq!(net.view(v, &alice).lock, None);
@@ -672,7 +673,7 @@ fn a_validator_restarts_from_a_snapshot() {
     assert_eq!((net.view(0, &bob).balance, net.view(0, &bob).seq), (1070, 1));
 
     // And it carries on: it votes, applies, and still agrees with the others.
-    assert_eq!(net.pay("alice", carol, 5).acknowledged, 4);
+    assert_eq!(net.pay("alice", carol, 5).confirmations, 4);
     assert_eq!(net.info(0).certificates, 1);
     net.stop(0);
     net.restart(0);
@@ -683,16 +684,17 @@ fn a_validator_restarts_from_a_snapshot() {
 
 #[test]
 fn a_validator_holds_keys_back_for_closing_an_epoch() {
-    // A tree of 16 one-time keys, of which a quarter are held back.
+    // A tree of 16 one-time keys, of which a quarter are held back. One
+    // payment at a time takes two: one for the vote, one for the confirmation.
     let options = Options { validators: 1, height: 4, ..Options::default() };
     let net = TestNet::start_with("reserve", options);
     let bob = net.address("bob");
-    for _ in 0..12 {
+    for _ in 0..6 {
         net.pay("alice", bob, 1);
     }
     assert_eq!((net.info(0).keys_used, net.info(0).keys_total), (12, 16));
 
-    // The thirteenth payment gets no vote, and nothing moves.
+    // The seventh payment gets no vote, and nothing moves.
     match net.try_pay("alice", bob, 1) {
         Err(TransferError::NoQuorum { stake: 0, refusals, .. }) => {
             assert!(refusals[0].1.contains("no one-time keys left for payments"), "{refusals:?}");
@@ -700,7 +702,185 @@ fn a_validator_holds_keys_back_for_closing_an_epoch() {
         other => panic!("expected a refusal, got {:?}", other.map(|r| r.votes)),
     }
     assert_eq!(net.info(0).keys_used, 12);
-    assert_eq!(net.view(0, &bob).balance, START as i128 + 12);
+    assert_eq!(net.view(0, &bob).balance, START as i128 + 6);
+}
+
+/// Gathers votes for an order into a certificate, without going further.
+fn certificate_for(client: &Client, signed: &SignedOrder) -> orien_ledger::Certificate {
+    let (votes, _) = client.collect_votes(signed);
+    orien_ledger::Certificate::new(0, signed, votes.into_values().take(3).collect())
+}
+
+#[test]
+fn a_validator_refuses_files_in_a_format_it_does_not_write() {
+    let mut net = TestNet::start("format");
+    let bob = net.address("bob");
+    net.pay("alice", bob, 100);
+    net.stop(0);
+    let data = net.dir.join("data-0");
+
+    // The same directory starts again without complaint.
+    Node::start(net.config(0), None).map(Node::stop).unwrap();
+    // A directory written by an older or a newer version does not.
+    for other in [None, Some("1"), Some("3")] {
+        match other {
+            Some(format) => fs::write(data.join("format"), format).unwrap(),
+            None => fs::remove_file(data.join("format")).unwrap(),
+        }
+        let refusal = Node::start(net.config(0), None).err().expect("must refuse").to_string();
+        assert!(refusal.contains("data format"), "{refusal}");
+    }
+    // Nothing was touched: put the marker back and the validator is as it was.
+    fs::write(data.join("format"), "2").unwrap();
+    net.restart(0);
+    assert_eq!(net.view(0, &bob).balance, 1100);
+}
+
+#[test]
+fn a_payment_is_final_only_once_enough_validators_confirm() {
+    let mut net = TestNet::start("confirm");
+    let (alice, bob) = (net.address("alice"), net.address("bob"));
+    let client = net.client();
+    let signed = net.wallet("alice").sign_order(0, bob, 100, &net.network).unwrap();
+    let certificate = certificate_for(&client, &signed);
+    assert!(client.committee().verify_certificate(&certificate).is_ok());
+
+    // Two validators go away before they hear of the certificate. The two
+    // that remain record it and confirm, and two of four are not enough.
+    net.stop(2);
+    net.stop(3);
+    match client.finish(certificate.clone(), 3) {
+        Err(TransferError::NotConfirmed { stake: 2, total: 4, .. }) => {}
+        other => panic!("expected too few confirmations, got {:?}", other.map(|done| done.confirmations)),
+    }
+    // A certificate with no confirmations proves nothing to anyone else.
+    let bare = orien_ledger::Receipt { certificate: certificate.clone(), confirmations: Vec::new() };
+    assert!(client.committee().verify_receipt(&bare).is_err());
+
+    // When they return, the wallet simply tries the same payment again. The
+    // validators that recorded it will not vote a second time, and need not:
+    // the certificate is found and only the confirmations are gathered.
+    net.restart(2);
+    net.restart(3);
+    let done = client.transfer(&signed).unwrap();
+    assert_eq!(done.confirmations, 4);
+    assert_eq!(done.receipt.certificate.order, signed.order);
+    assert!(client.committee().verify_receipt(&done.receipt).is_ok());
+    for v in 0..4 {
+        assert_eq!(net.view(v, &alice).balance, 900);
+        assert_eq!(net.view(v, &bob).balance, 1100);
+    }
+}
+
+#[test]
+fn a_repeated_confirmation_costs_no_further_key() {
+    let net = TestNet::start("reconfirm");
+    let bob = net.address("bob");
+    let done = net.pay("alice", bob, 100);
+    let keys = net.info(0).keys_used;
+
+    for _ in 0..3 {
+        match net.ask(0, &Request::Confirm(done.receipt.certificate.clone())) {
+            Response::Confirmed(again) => assert_eq!(again, done.receipt.confirmations[0]),
+            other => panic!("unexpected answer: {other:?}"),
+        }
+    }
+    assert_eq!(net.info(0).keys_used, keys, "the same confirmation is handed back, not signed anew");
+}
+
+#[test]
+fn only_an_accounts_latest_payment_is_confirmed_late() {
+    let mut net = TestNet::start("latest");
+    let bob = net.address("bob");
+    let first = net.pay("alice", bob, 10).receipt.certificate;
+    let second = net.pay("alice", bob, 20).receipt.certificate;
+
+    // A restart forgets the confirmations already signed, as a crash would.
+    net.stop(0);
+    net.restart(0);
+    let keys = net.info(0).keys_used;
+
+    // An earlier payment is past confirming: validators holding a quorum had
+    // to record it before they could vote for the one after.
+    assert!(matches!(net.ask(0, &Request::Confirm(first.clone())), Response::Applied { fresh: false }));
+    assert_eq!(net.info(0).keys_used, keys);
+
+    // The latest one is confirmed again, at the cost of one key, once.
+    let digest = second.order.digest(&net.network);
+    for _ in 0..2 {
+        match net.ask(0, &Request::Confirm(second.clone())) {
+            Response::Confirmed(confirmation) => {
+                assert!(net.client().committee().verify_confirmation(&digest, &confirmation).is_ok())
+            }
+            other => panic!("unexpected answer: {other:?}"),
+        }
+    }
+    assert_eq!(net.info(0).keys_used, keys + 1);
+
+    // A different payment under a number that is taken gets no confirmation.
+    let mut other = first.clone();
+    other.order.amount = 11;
+    assert!(matches!(net.ask(0, &Request::Confirm(other)), Response::Invalid(_)));
+}
+
+#[test]
+fn a_certificate_must_carry_the_owners_real_signature() {
+    let net = TestNet::start("owner-signature");
+    let (alice, bob) = (net.address("alice"), net.address("bob"));
+    let client = net.client();
+    let signed = net.wallet("alice").sign_order(0, bob, 100, &net.network).unwrap();
+    let genuine = certificate_for(&client, &signed);
+
+    // The votes are real, but the owner's signature has been swapped for
+    // one made with a different key.
+    let mut swapped = genuine.clone();
+    swapped.signature = net.raw_order("bob", 0, alice, 1).signature;
+    assert!(client.committee().verify_certificate(&swapped).is_ok(), "the votes alone check out");
+    for request in [Request::Confirm(swapped.clone()), Request::SubmitCertificate(swapped)] {
+        match net.ask(0, &request) {
+            Response::Invalid(reason) => assert!(reason.contains("owner's signature"), "{reason}"),
+            other => panic!("unexpected answer: {other:?}"),
+        }
+    }
+    assert_eq!(net.view(0, &alice).balance, START as i128, "nothing was applied");
+
+    // The genuine certificate goes through, and what the validator keeps is
+    // the owner's own signed order.
+    assert!(matches!(net.ask(0, &Request::Confirm(genuine)), Response::Confirmed(_)));
+    match net.ask(0, &Request::GetCertificate { account: alice, seq: 0 }) {
+        Response::Certificate(Some(kept)) => assert_eq!(kept.signed(), signed),
+        other => panic!("unexpected answer: {other:?}"),
+    }
+}
+
+#[test]
+fn a_wallet_believes_a_payment_number_only_on_confirmations() {
+    let mut net = TestNet::start("believe");
+    let (alice, bob) = (net.address("alice"), net.address("bob"));
+    let client = net.client();
+    let signed = net.wallet("alice").sign_order(0, bob, 100, &net.network).unwrap();
+    let certificate = certificate_for(&client, &signed);
+
+    // One validator has applied the certificate and now says alice is at
+    // payment #1. The others are unreachable, so nobody else can confirm.
+    assert!(matches!(net.ask(0, &Request::SubmitCertificate(certificate)), Response::Applied { fresh: true }));
+    for v in 1..4 {
+        net.stop(v);
+    }
+    assert_eq!(net.view(0, &alice).seq, 1);
+    let status = client.account(&alice, 0);
+    assert_eq!(status.seq, 0, "one validator's certificate is not proof the payment is final");
+
+    // With the others back, the same question gathers confirmations from a
+    // quorum, which is proof, and brings them up to date on the way.
+    for v in 1..4 {
+        net.restart(v);
+    }
+    let status = client.account(&alice, 0);
+    assert_eq!((status.seq, status.spendable), (1, Some(900)));
+    for v in 0..4 {
+        assert_eq!(net.view(v, &alice).seq, 1);
+    }
 }
 
 #[test]

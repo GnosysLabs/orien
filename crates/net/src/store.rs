@@ -77,12 +77,6 @@ impl Epochs {
         };
         let epochs = Epochs { dir: dir.to_owned(), current, durable };
         fs::create_dir_all(epochs.folder(current))?;
-        // Before epochs existed, the certificate log sat at the top of the
-        // data directory. It is epoch 0's log.
-        let old = dir.join("certs.log");
-        if current == 0 && old.exists() && !epochs.log().exists() {
-            fs::rename(&old, epochs.log())?;
-        }
         if durable {
             epochs.sync()?;
         }
@@ -437,19 +431,6 @@ mod tests {
         // An epoch past the first cannot start without its snapshot.
         fs::remove_file(dir.join("epochs/1/state")).unwrap();
         assert!(Epochs::open(&dir, false).unwrap().snapshot().is_err());
-        let _ = fs::remove_dir_all(dir);
-    }
-
-    #[test]
-    fn an_older_data_directory_is_adopted() {
-        let dir = scratch("epochs-old");
-        fs::write(dir.join("certs.log"), b"old certificates").unwrap();
-        let epochs = Epochs::open(&dir, false).unwrap();
-        assert_eq!(fs::read(epochs.log()).unwrap(), b"old certificates");
-        assert!(!dir.join("certs.log").exists());
-        // Opening again changes nothing.
-        let again = Epochs::open(&dir, false).unwrap();
-        assert_eq!(fs::read(again.log()).unwrap(), b"old certificates");
         let _ = fs::remove_dir_all(dir);
     }
 

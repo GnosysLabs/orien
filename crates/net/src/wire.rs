@@ -3,7 +3,7 @@
 
 use borsh::{BorshDeserialize, BorshSerialize};
 use orien_crypto::Hash32;
-use orien_ledger::{AccountId, Certificate, Reject, SignedOrder, Vote};
+use orien_ledger::{AccountId, Certificate, Confirmation, Reject, SignedOrder, Vote};
 use std::io::{self, Read, Write};
 
 pub const MAX_FRAME: usize = 16 << 20;
@@ -16,7 +16,8 @@ pub enum Request {
     Account(AccountId),
     /// Ask the validator to vote for an order.
     SubmitOrder(SignedOrder),
-    /// Hand the validator proof that an order is final.
+    /// Hand the validator a certificate to apply. It does not sign anything
+    /// in return; `Confirm` is the request for that.
     SubmitCertificate(Certificate),
     GetCertificate { account: AccountId, seq: u64 },
     /// Certificates in the order this validator applied them, from `index`.
@@ -29,6 +30,10 @@ pub enum Request {
     /// Two different orders signed with the account's current key under its
     /// current payment number, if this validator has seen both.
     Evidence(AccountId),
+    /// Hand the validator a certificate to apply, and ask it to sign a
+    /// confirmation that it has. A payment is final once validators holding
+    /// more than two thirds of the stake have confirmed it.
+    Confirm(Certificate),
 }
 
 #[derive(Clone, Debug, BorshSerialize, BorshDeserialize)]
@@ -70,6 +75,7 @@ pub enum Response {
     Pending(Option<SignedOrder>),
     Root(Hash32),
     Evidence(Option<(SignedOrder, SignedOrder)>),
+    Confirmed(Confirmation),
 }
 
 pub fn write_frame<W: Write>(writer: &mut W, payload: &[u8]) -> io::Result<()> {

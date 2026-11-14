@@ -5,19 +5,21 @@
 //! the expensive, order-free work (checking signatures) and hand the core a
 //! command with the result.
 //!
-//! The core gathers the orders it accepts over a few milliseconds into a
-//! batch, writes its votes to disk once, and signs the batch once. One disk
-//! sync and one signature cover however many orders arrived.
+//! The core gathers what it is asked to sign over a few milliseconds into a
+//! batch: votes for the orders it accepts, and confirmations of the
+//! certificates it applies. It writes to disk once and signs the batch once.
+//! One disk sync and one signature cover however many arrived.
 
 use crate::client::rpc;
 use crate::keys::ValidatorKey;
 use crate::store::{CertLog, Epochs, LeafCounter, OrderLog, sync_dir};
 use crate::wire::{AccountView, NodeInfo, Request, Response, read_frame, write_frame};
 use anyhow::{Context, Result, anyhow, bail};
-use orien_crypto::keytree::KeyTree;
+use orien_crypto::keytree::{KeyTree, TreeSignature};
 use orien_crypto::{Hash32, merkle, ots};
 use orien_ledger::{
-    Accepted, AccountId, Applied, Certificate, Committee, Genesis, Reject, SignedOrder, State, Vote,
+    Accepted, AccountId, Applied, Certificate, Committee, Confirmation, Genesis, Order, Reject,
+    SignedOrder, State, Vote, confirmation_item,
 };
 use std::collections::HashMap;
 use std::fs;
@@ -25,7 +27,7 @@ use std::io::{self, BufReader};
 use std::net::{Shutdown, SocketAddr, TcpListener, TcpStream};
 use std::path::{Path, PathBuf};
 use std::sync::atomic::{AtomicBool, AtomicU64, Ordering};
-use std::sync::mpsc::{self, Receiver, RecvTimeoutError, Sender};
+use std::sync::mpsc::{self, Receiver, RecvTimeoutError, Sender, TryRecvError};
 use std::sync::{Arc, Mutex};
 use std::thread::{self, JoinHandle};
 use std::time::{Duration, Instant};
@@ -71,7 +73,18 @@ impl NodeConfig {
 #[allow(clippy::large_enum_variant)]
 enum Command {
     Order { signed: SignedOrder, digest: Hash32, signed_by: Hash32, reply: Sender<Response> },
-    Certificate { certificate: Certificate, reply: Sender<Response> },
+    /// A certificate whose votes have been checked. `signed_by` is the key
+    /// its owner's signature was made with. With `confirm`, the answer is a
+    /// signed confirmation.
+    Certificate {
+        certificate: Certificate,
+        digest: Hash32,
+        signed_by: Hash32,
+        confirm: bool,
+        reply: Sender<Response>,
+    },
+    /// Sign a confirmation for a payment applied earlier.
+    Confirm { order: Order, digest: Hash32, reply: Sender<Response> },
     /// Would a certificate for this payment still change anything here?
     Needs { from: AccountId, seq: u64, reply: Sender<bool> },
     Query { request: Request, reply: Sender<Response> },
@@ -106,18 +119,25 @@ impl Shared {
                     .unwrap_or_else(stopped)
             }
             Request::SubmitCertificate(certificate) => {
-                self.ingest(certificate).unwrap_or_else(stopped)
+                self.ingest(certificate, false).unwrap_or_else(stopped)
             }
+            Request::Confirm(certificate) => self.ingest(certificate, true).unwrap_or_else(stopped),
             request => self.ask(|reply| Command::Query { request, reply }).unwrap_or_else(stopped),
         }
     }
 
-    /// Verifies a certificate and applies it. `None` means the node is stopping.
-    fn ingest(&self, certificate: Certificate) -> Option<Response> {
+    /// Verifies a certificate and applies it, signing a confirmation if
+    /// `confirm` asks for one. `None` means the node is stopping.
+    fn ingest(&self, certificate: Certificate, confirm: bool) -> Option<Response> {
         let (from, seq) = (certificate.order.from, certificate.order.seq);
+        let digest = certificate.order.digest(self.committee.network());
         if !self.ask(|reply| Command::Needs { from, seq, reply })? {
-            // That payment number is already final here. Say so only if it
-            // was this same order.
+            // That payment number is already applied here.
+            if confirm {
+                let order = certificate.order;
+                return self.ask(|reply| Command::Confirm { order, digest, reply });
+            }
+            // Say so only if it was this same order.
             let request = Request::GetCertificate { account: from, seq };
             let stored = self.ask(|reply| Command::Query { request, reply })?;
             return Some(match stored {
@@ -130,14 +150,18 @@ impl Shared {
         if let Err(error) = self.committee.verify_certificate(&certificate) {
             return Some(Response::Invalid(error.to_string()));
         }
-        self.ask(|reply| Command::Certificate { certificate, reply })
+        let signed_by = ots::recover(&certificate.signature, digest.as_bytes());
+        self.ask(|reply| Command::Certificate { certificate, digest, signed_by, confirm, reply })
     }
 }
 
-/// An order waiting for the current batch to be signed.
+/// A vote or a confirmation waiting for the current batch to be signed.
 struct Waiting {
     payment: (AccountId, u64),
+    /// The item that goes into the batch: an order's digest for a vote, the
+    /// confirmation item of that digest for a confirmation.
     digest: Hash32,
+    confirmation: bool,
     replies: Vec<Sender<Response>>,
     /// The order to write to disk with this batch. `None` when it is
     /// already there from before a restart.
@@ -149,6 +173,15 @@ enum Issued {
     /// Position in the batch being gathered.
     Queued(usize),
     Signed(Vote),
+}
+
+/// The confirmation signed for an account's latest payment, kept so that a
+/// repeated request gets the same one back and costs no further key. The
+/// signature is shared by every confirmation of its batch.
+struct Confirmed {
+    seq: u64,
+    batch_path: merkle::Path,
+    signature: Arc<TreeSignature>,
 }
 
 struct Core {
@@ -177,8 +210,13 @@ struct Core {
     /// Votes given for payments that are not final yet, so a repeated
     /// request gets the same vote back.
     issued: HashMap<(AccountId, u64), Issued>,
+    /// Confirmations in the batch being gathered, by position.
+    confirming: HashMap<(AccountId, u64), usize>,
+    confirmed: HashMap<AccountId, Confirmed>,
     window: Duration,
     max_batch: usize,
+    /// True while requests are arriving faster than batches are written.
+    hurry: bool,
     durable: bool,
     log: bool,
 }
@@ -187,13 +225,40 @@ impl Core {
     fn run(mut self, commands: Receiver<Command>) {
         loop {
             let command = if self.batch.is_empty() {
-                match commands.recv() {
+                // Requests that queued up while the last batch was being
+                // written are a batch already. Waiting to gather more would
+                // only add delay, so the next batch closes as soon as the
+                // queue is empty. An idle validator waits the full window,
+                // to let requests sent at the same moment share a signature.
+                match commands.try_recv() {
+                    Ok(command) => {
+                        self.hurry = true;
+                        command
+                    }
+                    Err(TryRecvError::Disconnected) => break,
+                    Err(TryRecvError::Empty) => {
+                        self.hurry = false;
+                        match commands.recv() {
+                            Ok(command) => command,
+                            Err(_) => break,
+                        }
+                    }
+                }
+            } else if self.batch.len() >= self.max_batch {
+                self.close_batch();
+                continue;
+            } else if self.hurry {
+                match commands.try_recv() {
                     Ok(command) => command,
-                    Err(_) => break,
+                    Err(TryRecvError::Disconnected) => break,
+                    Err(TryRecvError::Empty) => {
+                        self.close_batch();
+                        continue;
+                    }
                 }
             } else {
                 let now = Instant::now();
-                if now >= self.deadline || self.batch.len() >= self.max_batch {
+                if now >= self.deadline {
                     self.close_batch();
                     continue;
                 }
@@ -210,9 +275,10 @@ impl Core {
                 Command::Order { signed, digest, signed_by, reply } => {
                     self.on_order(signed, digest, signed_by, reply)
                 }
-                Command::Certificate { certificate, reply } => {
-                    let _ = reply.send(self.on_certificate(certificate));
+                Command::Certificate { certificate, digest, signed_by, confirm, reply } => {
+                    self.on_certificate(certificate, digest, signed_by, confirm, reply)
                 }
+                Command::Confirm { order, digest, reply } => self.on_confirm(order, digest, reply),
                 Command::Needs { from, seq, reply } => {
                     let _ = reply.send(self.state.seq(&from) <= seq);
                 }
@@ -275,27 +341,65 @@ impl Core {
             self.deadline = Instant::now() + self.window;
         }
         self.issued.insert(payment, Issued::Queued(self.batch.len()));
-        self.batch.push(Waiting { payment, digest, replies: vec![reply], record });
+        self.batch.push(Waiting { payment, digest, confirmation: false, replies: vec![reply], record });
     }
 
-    /// Makes the batch's votes durable, signs them all at once, and answers
-    /// everyone who is waiting. Disk first: a vote that is not on disk must
-    /// never leave this process, or a crash could let the validator vote for
-    /// a conflicting order afterwards.
+    /// Queues a confirmation of the applied order with this digest.
+    fn enqueue_confirmation(&mut self, payment: (AccountId, u64), digest: Hash32, reply: Sender<Response>) {
+        // Two requests for the same confirmation share one place in the batch.
+        if let Some(position) = self.confirming.get(&payment) {
+            self.batch[*position].replies.push(reply);
+            return;
+        }
+        if self.batch.is_empty() {
+            self.deadline = Instant::now() + self.window;
+        }
+        self.confirming.insert(payment, self.batch.len());
+        self.batch.push(Waiting {
+            payment,
+            digest: confirmation_item(&digest),
+            confirmation: true,
+            replies: vec![reply],
+            record: None,
+        });
+    }
+
+    /// Makes the batch durable, signs it all at once, and answers everyone
+    /// who is waiting. Disk first. A vote that is not on disk must never
+    /// leave this process, or a crash could let the validator vote for a
+    /// conflicting order afterwards. A confirmation must never leave before
+    /// the certificate it confirms is on disk, or the validator could forget
+    /// a payment it said it had recorded.
     fn close_batch(&mut self) {
         let batch = std::mem::take(&mut self.batch);
+        self.confirming.clear();
         let records: Vec<&SignedOrder> = batch.iter().filter_map(|w| w.record.as_ref()).collect();
-        self.orders.append(&records, self.durable).expect("cannot record votes; stopping");
-        if self.durable {
-            self.certs.sync().expect("cannot sync certificates; stopping");
-        }
+        // Certificates are written as they are applied and need to be on
+        // disk only before a confirmation of them leaves. A certificate
+        // lost in a crash before that is fetched again from the others.
+        let sync_certs = self.durable && batch.iter().any(|waiting| waiting.confirmation);
+        let (orders, certs, durable) = (&mut self.orders, &self.certs, self.durable);
+        // The two files are synced side by side, so a batch holding both
+        // votes and confirmations waits for the slower sync, not for both.
+        thread::scope(|scope| {
+            let certs = (sync_certs && !records.is_empty()).then(|| scope.spawn(|| certs.sync()));
+            orders.append(&records, durable).expect("cannot record votes; stopping");
+            match certs {
+                Some(syncing) => syncing.join().expect("certificate sync panicked"),
+                None if sync_certs => self.certs.sync(),
+                None => Ok(()),
+            }
+            .expect("cannot sync certificates; stopping");
+        });
 
         let leaf = self.leaves.take_leaving(self.key_reserve).expect("cannot reserve signing keys; stopping");
         let leaf = match leaf {
             Some(leaf) => leaf,
             None => {
                 for waiting in batch {
-                    self.issued.remove(&waiting.payment);
+                    if !waiting.confirmation {
+                        self.issued.remove(&waiting.payment);
+                    }
                     for reply in waiting.replies {
                         let _ = reply.send(Response::Unavailable(
                             "this validator has no one-time keys left for payments".into(),
@@ -311,20 +415,38 @@ impl Core {
         let message = self.committee.batch_message(&tree.root());
         let signature = self.tree.sign_with_leaf(leaf, message.as_bytes());
         if self.log {
-            println!("[{}] voted    {} order(s), one signature (key {leaf})", self.name, batch.len());
+            let confirmations = batch.iter().filter(|w| w.confirmation).count();
+            println!(
+                "[{}] signed   {} vote(s) and {confirmations} confirmation(s) with one signature (key {leaf})",
+                self.name,
+                batch.len() - confirmations
+            );
         }
+        let shared = Arc::new(signature.clone());
         for (position, waiting) in batch.into_iter().enumerate() {
+            let (account, seq) = waiting.payment;
             let vote = Vote {
                 validator: self.index,
                 batch_path: tree.path(position),
                 signature: signature.clone(),
             };
+            if waiting.confirmation {
+                for reply in waiting.replies {
+                    let _ = reply.send(Response::Confirmed(vote.clone()));
+                }
+                // Keep it while this is still the account's latest payment.
+                if self.state.seq(&account) == seq + 1 {
+                    let kept = Confirmed { seq, batch_path: vote.batch_path, signature: shared.clone() };
+                    self.confirmed.insert(account, kept);
+                }
+                continue;
+            }
             for reply in waiting.replies {
                 let _ = reply.send(Response::Vote(vote.clone()));
             }
-            // Keep the vote for repeat requests, unless the payment became
-            // final while the batch was open.
-            if self.state.seq(&waiting.payment.0) == waiting.payment.1 {
+            // Keep the vote for repeat requests, unless the payment was
+            // applied while the batch was open.
+            if self.state.seq(&account) == seq {
                 self.issued.insert(waiting.payment, Issued::Signed(vote));
             } else {
                 self.issued.remove(&waiting.payment);
@@ -332,9 +454,27 @@ impl Core {
         }
     }
 
-    fn on_certificate(&mut self, certificate: Certificate) -> Response {
+    fn on_certificate(
+        &mut self,
+        certificate: Certificate,
+        digest: Hash32,
+        signed_by: Hash32,
+        confirm: bool,
+        reply: Sender<Response>,
+    ) {
         let order = &certificate.order;
-        match self.state.apply(order) {
+        let payment = (order.from, order.seq);
+        // The votes say validators checked the owner's signature on the
+        // order. The copy carried in the certificate is checked here, since
+        // it is what this validator would be left holding if a checkpoint
+        // undid the payment.
+        if self.state.seq(&order.from) == order.seq && signed_by != self.state.key(&order.from) {
+            let _ = reply.send(Response::Invalid(
+                "the owner's signature in this certificate does not verify".into(),
+            ));
+            return;
+        }
+        let answer = match self.state.apply(order) {
             Ok(Applied::New) => {
                 self.certs.append(&certificate).expect("cannot store certificate; stopping");
                 self.unfinished.remove(&order.from);
@@ -345,7 +485,7 @@ impl Core {
                 }
                 if self.log {
                     println!(
-                        "[{}] final    {} paid {} to {} (payment #{})",
+                        "[{}] applied  {} paid {} to {} (payment #{})",
                         self.name,
                         order.from.short(),
                         order.amount,
@@ -353,11 +493,56 @@ impl Core {
                         order.seq
                     );
                 }
+                if confirm {
+                    return self.enqueue_confirmation(payment, digest, reply);
+                }
                 Response::Applied { fresh: true }
             }
+            // It was applied between the check and now.
+            Ok(Applied::Already) if confirm => return self.on_confirm(certificate.order, digest, reply),
             Ok(Applied::Already) => Response::Applied { fresh: false },
             Err(reject) => Response::Rejected(reject),
+        };
+        let _ = reply.send(answer);
+    }
+
+    /// Signs a confirmation for a payment this validator applied earlier.
+    fn on_confirm(&mut self, order: Order, digest: Hash32, reply: Sender<Response>) {
+        let payment = (order.from, order.seq);
+        // Only for the exact order that was applied.
+        let answer = match self.certs.find(&order.from, order.seq) {
+            Ok(Some(applied)) if applied.order == order => None,
+            Ok(Some(_)) => Some(Response::Invalid(
+                "a different payment is already final under that number".into(),
+            )),
+            Ok(None) => Some(Response::Unavailable(
+                "that payment was applied in an earlier epoch and is no longer confirmed".into(),
+            )),
+            Err(error) => Some(Response::Unavailable(format!("cannot read certificate: {error}"))),
+        };
+        if let Some(answer) = answer {
+            let _ = reply.send(answer);
+            return;
         }
+        if let Some(kept) = self.confirmed.get(&order.from)
+            && kept.seq == order.seq
+        {
+            let _ = reply.send(Response::Confirmed(Confirmation {
+                validator: self.index,
+                batch_path: kept.batch_path.clone(),
+                signature: (*kept.signature).clone(),
+            }));
+            return;
+        }
+        // Once an account has made a later payment, validators holding a
+        // quorum must have applied this one to vote for the next, so nobody
+        // needs it confirmed any more. Confirming only the latest payment
+        // also bounds how many keys replayed old certificates can use up.
+        if self.state.seq(&order.from) != order.seq + 1 {
+            let _ = reply.send(Response::Applied { fresh: false });
+            return;
+        }
+        self.enqueue_confirmation(payment, digest, reply);
     }
 
     fn on_query(&mut self, request: Request) -> Response {
@@ -407,7 +592,7 @@ impl Core {
             Request::Evidence(id) => Response::Evidence(
                 self.unfinished.get(&id).cloned().zip(self.conflicts.get(&id).cloned()),
             ),
-            Request::SubmitOrder(_) | Request::SubmitCertificate(_) => {
+            Request::SubmitOrder(_) | Request::SubmitCertificate(_) | Request::Confirm(_) => {
                 Response::Invalid("not a query".into())
             }
         }
@@ -483,7 +668,7 @@ fn sync_from_peer(shared: Arc<Shared>, peer: String, cursor_file: PathBuf, inter
                 break;
             }
             for certificate in certs {
-                if shared.ingest(certificate).is_none() {
+                if shared.ingest(certificate, false).is_none() {
                     return;
                 }
                 cursor += 1;
@@ -496,33 +681,40 @@ fn sync_from_peer(shared: Arc<Shared>, peer: String, cursor_file: PathBuf, inter
     }
 }
 
-/// A data directory belongs to one network. Refuse to reuse it for another.
+/// The layout and encoding of a validator's files. Raised whenever either
+/// changes in a way an older or newer version would misread.
+const DATA_FORMAT: &str = "2";
+
+/// A data directory belongs to one network and is written in one format.
+/// Refuse to reuse it for another network, or to read a format this version
+/// does not write: misreading old records could make a validator forget
+/// payments it applied or votes it promised.
 fn claim_data_dir(dir: &Path, network: &Hash32) -> Result<()> {
     fs::create_dir_all(dir).with_context(|| format!("cannot create {}", dir.display()))?;
-    let marker = dir.join("network");
+    let (marker, format) = (dir.join("network"), dir.join("format"));
     match fs::read_to_string(&marker) {
-        Ok(existing) if existing.trim() == network.to_string() => Ok(()),
+        Ok(existing) if existing.trim() == network.to_string() => {
+            // Directories from before the marker existed count as format 1.
+            let found = fs::read_to_string(&format).unwrap_or_else(|_| "1".into());
+            if found.trim() != DATA_FORMAT {
+                bail!(
+                    "{} was written in data format {}, and this version reads and writes format \
+                     {DATA_FORMAT}. Use a fresh data directory, and only if the whole network is \
+                     starting over.",
+                    dir.display(),
+                    found.trim()
+                );
+            }
+            Ok(())
+        }
         Ok(_) => bail!(
             "{} holds data from a different network; use another data directory",
             dir.display()
         ),
-        Err(_) => Ok(fs::write(&marker, network.to_string())?),
-    }
-}
-
-/// Earlier versions kept votes in `votes.log`, in a form this version cannot
-/// read. Starting without them would let the validator vote a second time
-/// under a payment number it already voted on, so refuse.
-fn refuse_old_vote_log(dir: &Path) -> Result<()> {
-    let old = dir.join("votes.log");
-    match fs::metadata(&old) {
-        Ok(found) if found.len() > 0 => bail!(
-            "{} holds votes recorded by an older version of this software, which this version \
-             cannot read. Use a fresh data directory, and only if the whole network is starting over.",
-            dir.display()
-        ),
-        Ok(_) => Ok(fs::remove_file(&old)?),
-        Err(_) => Ok(()),
+        Err(_) => {
+            fs::write(&format, DATA_FORMAT)?;
+            Ok(fs::write(&marker, network.to_string())?)
+        }
     }
 }
 
@@ -561,7 +753,6 @@ impl Node {
         let certs = CertLog::open(&epochs.log(), |certificate| {
             let _ = state.apply(&certificate.order);
         })?;
-        refuse_old_vote_log(&config.data_dir)?;
         let mut unfinished = HashMap::new();
         let orders = OrderLog::open(&config.data_dir.join("orders.log"), config.durable, |signed| {
             let order = &signed.order;
@@ -624,8 +815,11 @@ impl Node {
             batch: Vec::new(),
             deadline: Instant::now(),
             issued: HashMap::new(),
+            confirming: HashMap::new(),
+            confirmed: HashMap::new(),
             window: config.batch_window,
             max_batch: config.max_batch.max(1),
+            hurry: false,
             durable: config.durable,
             log: config.log,
         };

@@ -1,7 +1,7 @@
 # The epoch step
 
-Status: **design, revised after an independent review. Stage 0 of the build
-order is built; nothing else is.**
+Status: **design, revised after an independent review. Stages 0 and 1a of
+the build order are built; nothing else is.**
 
 ## In plain words
 
@@ -85,6 +85,11 @@ payments, so that no checkpoint has too much to reconcile.
 - A payment is **final** when confirmations from more than two thirds of
   the stake exist, from the same epoch as the votes. A receipt is the
   certificate plus those confirmations.
+- A validator signs a confirmation when it applies the certificate, and
+  later only while that payment is still the account's latest. Once an
+  account has paid again, a quorum must already have recorded the earlier
+  payment in order to vote for the next, so nobody needs it confirmed. This
+  also limits how many keys replayed old certificates can use up.
 
 ### 3. Promises outlive the epoch, votes do not
 
@@ -299,7 +304,7 @@ Each stage can be built and tested on its own.
 | Stage | What | Where |
 |---|---|---|
 | 0, built | No change to the protocol. A state root, account proofs and snapshots; one folder per epoch with an atomic switch; evidence kept when a second order is refused; the balance check on every vote; a key reserve. | `crates/ledger/src/state.rs`, `crates/crypto/src/merkle.rs`, `crates/net/src/store.rs`, `crates/net/src/node.rs` |
-| 1a | Epoch number (always 0 for now) in votes and certificates. Certificates that keep the owner's signature. Signed confirmations. Receipts that carry them. A wallet that advances only on proof. | `crates/ledger`, `crates/net`, `crates/cli` |
+| 1a, built | Epoch number (always 0 for now) in votes and certificates. Certificates that keep the owner's signature. Signed confirmations. Receipts that carry them. A wallet that advances only on proof. | `crates/ledger`, `crates/net`, `crates/cli` |
 | 1b | The order format, fixed once: kind, largest fee, spare tree, the new address form. Cancellation as a pure function. The wallet's key streams. | `crates/ledger`, `crates/net/src/keys.rs`, `crates/crypto/src/hash.rs` |
 | 2 | The close as a pure state machine with no network or disk, and a simulator that runs it under delays, crashes and dishonest validators. The failures the review found become permanent tests. | new files in `crates/ledger` |
 | 3 | The close inside the validator with a fixed validator set: freeze, messages between validators, what is written to disk, the switch of state, the checkpoint chain, account proofs, key-tree replacement. | `crates/net`, `crates/cli` |

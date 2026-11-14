@@ -1,8 +1,10 @@
 use anyhow::{Context, Result, anyhow, bail};
 use clap::{Args, Parser, Subcommand};
 use orien_crypto::keytree::KeyTree;
-use orien_ledger::{AccountId, Allocation, Certificate, Genesis, Order, SignedOrder, ValidatorInfo};
-use orien_net::client::{AccountStatus, Client, Unfinished};
+use orien_ledger::{
+    AccountId, Allocation, Certificate, Genesis, Order, Receipt, SignedOrder, ValidatorInfo,
+};
+use orien_net::client::{AccountStatus, Client, TransferError, Unfinished};
 use orien_net::keys::{ValidatorKey, Wallet, load_genesis, save_genesis};
 use orien_net::node::{Node, NodeConfig};
 use orien_net::wire::{Request, Response};
@@ -365,23 +367,35 @@ fn settle_earlier(client: &Client, wallet: &mut Wallet, seq: u64) -> Result<Opti
     }
 }
 
-fn save_receipt(certificate: &Certificate, file: Option<&Path>) -> Result<()> {
+fn save_receipt(receipt: &Receipt, file: Option<&Path>) -> Result<()> {
     if let Some(file) = file {
-        fs::write(file, borsh::to_vec(certificate)?)?;
+        fs::write(file, borsh::to_vec(receipt)?)?;
         println!("  receipt saved to {}", file.display());
     }
     Ok(())
 }
 
-/// Gathers votes for a signed payment, makes it final and says so.
+/// Says what a failed payment means for the person who made it.
+fn explain(error: TransferError) -> anyhow::Error {
+    match error {
+        TransferError::NotConfirmed { .. } => anyhow!(
+            "{error}\nNothing is lost. The payment keeps its number and no other payment can take \
+             it. Run the same command again, or `orien resume`, to finish it."
+        ),
+        other => other.into(),
+    }
+}
+
+/// Gathers votes and confirmations for a signed payment, which makes it
+/// final, and says so. Only then does the wallet move on.
 fn finish(client: &Client, wallet: &mut Wallet, signed: &SignedOrder, receipt_file: Option<&Path>) -> Result<()> {
     let order = &signed.order;
     let started = Instant::now();
-    let receipt = client.transfer(signed)?;
+    let done = client.transfer(signed).map_err(explain)?;
     let elapsed = started.elapsed();
     wallet.confirm(order.seq)?;
 
-    let size = borsh::to_vec(&receipt.certificate)?.len();
+    let size = borsh::to_vec(&done.receipt)?.len();
     println!("final in {:.1} ms", elapsed.as_secs_f64() * 1000.0);
     println!(
         "  payment #{}: {} from {} to {}",
@@ -391,13 +405,12 @@ fn finish(client: &Client, wallet: &mut Wallet, signed: &SignedOrder, receipt_fi
         order.to.short()
     );
     println!(
-        "  {} of {} validators voted, {} confirmed; proof is {} votes, {size} bytes",
-        receipt.votes,
+        "  {} of {} validators voted and {} confirmed; the receipt is {size} bytes",
+        done.votes,
         client.validators(),
-        receipt.acknowledged,
-        receipt.certificate.votes.len()
+        done.confirmations
     );
-    save_receipt(&receipt.certificate, receipt_file)
+    save_receipt(&done.receipt, receipt_file)
 }
 
 fn send(wallet_file: &Path, to: &str, amount: u64, receipt_file: Option<&Path>, genesis: &Path) -> Result<()> {
@@ -417,7 +430,11 @@ fn send(wallet_file: &Path, to: &str, amount: u64, receipt_file: Option<&Path>, 
         && certificate.order.amount == amount
     {
         println!("that is the payment asked for, so nothing more was sent");
-        return save_receipt(&certificate, receipt_file);
+        if receipt_file.is_some() {
+            let done = client.finish(certificate, 0).map_err(explain)?;
+            save_receipt(&done.receipt, receipt_file)?;
+        }
+        return Ok(());
     }
 
     let unfinished = unfinished(&client, &wallet, &status);
@@ -523,21 +540,29 @@ fn verify(receipt: &Path, genesis: &Path) -> Result<()> {
     let genesis = load_genesis(genesis)?;
     let client = Client::new(&genesis);
     let bytes = fs::read(receipt).with_context(|| format!("cannot read {}", receipt.display()))?;
-    let certificate: Certificate =
+    let receipt: Receipt =
         borsh::from_slice(&bytes).map_err(|_| anyhow!("{} is not a receipt", receipt.display()))?;
-    client
-        .committee()
-        .verify_certificate(&certificate)
-        .map_err(|error| anyhow!("receipt is NOT valid: {error}"))?;
-    let order = &certificate.order;
-    let stake: u64 = certificate.votes.iter().map(|v| client.committee().stake_of(v.validator)).sum();
+    let committee = client.committee();
+    committee.verify_receipt(&receipt).map_err(|error| anyhow!("receipt is NOT valid: {error}"))?;
+    let order = &receipt.certificate.order;
+    let stake = |signatures: &[orien_ledger::Vote]| -> u64 {
+        signatures.iter().map(|signature| committee.stake_of(signature.validator)).sum()
+    };
     println!("valid: this payment is final on network '{}'", genesis.network);
     println!("  from     {}", order.from);
     println!("  to       {}", order.to);
     println!("  amount   {}", order.amount);
     println!("  payment  #{}", order.seq);
-    println!("  signed by validators holding {stake} of {} stake", client.committee().total_stake());
-    println!("  checked offline with {} hash-based signatures and no network access", certificate.votes.len());
+    println!(
+        "  voted for by validators holding {} of {} stake, confirmed by {}",
+        stake(&receipt.certificate.votes),
+        committee.total_stake(),
+        stake(&receipt.confirmations)
+    );
+    println!(
+        "  checked offline with {} hash-based signatures and no network access",
+        receipt.certificate.votes.len() + receipt.confirmations.len()
+    );
     Ok(())
 }
 

@@ -127,6 +127,12 @@ impl State {
         self.accounts.len()
     }
 
+    /// The commitment to the key that must sign `id`'s next payment. An
+    /// account that has never paid is still on the key its address names.
+    pub fn key(&self, id: &AccountId) -> Hash32 {
+        self.accounts.get(id).map_or(*id, |account| account.key)
+    }
+
     /// The payment number `id` must use next, as far as this validator knows.
     pub fn seq(&self, id: &AccountId) -> u64 {
         self.accounts.get(id).map_or(0, |a| a.seq)

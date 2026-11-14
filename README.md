@@ -1,23 +1,25 @@
 # Orien
 
 A quantum-proof payment network with no blocks, no miners and no global
-ordering. Payments are final in one round trip. The name is from the Latin
-*oriens*, rising.
+ordering. A payment is final in a fraction of a second and never waits in a
+line behind other payments. The name is from the Latin *oriens*, rising.
 
 ## The idea
 
 1. **Accounts order themselves.** A payment says "account A, payment #7,
    send 5 to B". Each validator votes for it if it has never seen a different
-   #7 from A. Once validators holding more than two thirds of the stake have
-   voted, the payment is final. Two conflicting payments can never both get
-   there, because any two such groups share an honest validator.
+   #7 from A. Votes from validators holding more than two thirds of the stake
+   make a certificate, and two conflicting payments can never both get one,
+   because any two such groups share an honest validator. The payment is
+   final once as many validators have confirmed that they recorded the
+   certificate. The receipt holds both sets of signatures.
 2. **One-time signatures, with the ledger keeping count.** Every payment is
    signed with a hash-based one-time key and names the key for the next
    payment. "Never sign two different #7s" and "never use a key twice" are
    the same rule, and validators enforce it.
 3. **Validators sign in batches.** A validator signs one Merkle root over
-   every order it accepted in the last few milliseconds. One signature
-   covers them all.
+   every vote and confirmation it was asked for in the last few
+   milliseconds. One signature covers them all.
 
 Everything rests on one assumption: the BLAKE3 hash function.
 
@@ -135,23 +137,30 @@ each validator syncing its votes to disk:
 
 | | |
 |---|---|
-| Time to finality, one payment | 20 to 35 ms |
-| Throughput, 50 to 500 clients at once | 1,400 to 1,650 payments/s |
-| Payments covered by one validator signature under load | 33 to 50 |
+| Time to finality, one payment | 25 to 55 ms |
+| Throughput, 50 clients at once | 500 to 600 payments/s |
+| Throughput, 100 to 250 clients at once | 950 to 1,500 payments/s |
+| Throughput, 500 clients at once | 750 to 1,000 payments/s |
+| Payments covered by one validator signature under load | 10 to 28 |
 | One-time signature | 1,248 bytes |
-| Receipt (3 of 4 votes) | 5,450 bytes |
+| Receipt (3 of 4 votes, 3 of 4 confirmations) | 12,044 bytes |
+
+Finality in two steps costs throughput on this setup. Each payment waits
+for two disk syncs, one after the other, and here four validators share one
+disk. Before confirmations were added the same test ran at 1,400 to 1,650
+payments a second.
 
 With the four validators on three machines instead (a laptop, a desktop on
 the same home network, and a server 57 ms away holding two):
 
 | | |
 |---|---|
-| Time to finality, median of 40 payments | 141 ms |
-| Fastest and slowest of the 40 | 129 ms and 239 ms |
+| Time to finality, median of 40 payments | 156 ms |
+| Fastest and slowest of the 40 | 137 ms and 241 ms |
 
 A payment needs two round trips to enough validators: one for the votes and
-one for the certificate. With the server needed for a quorum, about 115 ms
-of the 141 is the network's own travel time.
+one for the confirmations. With the server needed for a quorum, about 115 ms
+of the 156 is the network's own travel time.
 
 Reproduce the throughput figure with:
 

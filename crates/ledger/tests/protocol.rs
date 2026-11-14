@@ -3,8 +3,8 @@
 use orien_crypto::keytree::KeyTree;
 use orien_crypto::{Hash32, Kdf, merkle, ots, prf};
 use orien_ledger::{
-    AccountId, Allocation, Applied, Certificate, Committee, Genesis, Order, Reject, SignedOrder,
-    State, ValidatorInfo, VerifyError, Vote,
+    AccountId, Allocation, Applied, Certificate, Committee, Genesis, Order, Receipt, Reject,
+    SignedOrder, State, ValidatorInfo, VerifyError, Vote, confirmation_item,
 };
 
 struct User {
@@ -108,7 +108,20 @@ impl Net {
 
     fn certify(&mut self, signed: &SignedOrder, voters: &[usize]) -> Certificate {
         let votes = voters.iter().map(|v| self.vote(*v, signed).unwrap()).collect();
-        Certificate { order: signed.order.clone(), votes }
+        Certificate::new(0, signed, votes)
+    }
+
+    /// Validator `v` applies a certificate and signs that it has.
+    fn confirm(&mut self, v: usize, certificate: &Certificate) -> Vote {
+        self.deliver(v, certificate);
+        let item = confirmation_item(&certificate.order.digest(&self.network));
+        self.sign_batch(v, &[item]).remove(0)
+    }
+
+    fn receipt(&mut self, signed: &SignedOrder, voters: &[usize], confirmers: &[usize]) -> Receipt {
+        let certificate = self.certify(signed, voters);
+        let confirmations = confirmers.iter().map(|v| self.confirm(*v, &certificate)).collect();
+        Receipt { certificate, confirmations }
     }
 
     fn deliver(&mut self, v: usize, certificate: &Certificate) -> Applied {
@@ -343,7 +356,7 @@ fn one_signature_covers_a_whole_batch() {
     }
     for (i, order) in orders.iter().enumerate() {
         let votes = votes_by_validator.iter().map(|votes| votes[i].clone()).collect();
-        let certificate = Certificate { order: order.order.clone(), votes };
+        let certificate = Certificate::new(0, order, votes);
         assert!(net.committee.verify_certificate(&certificate).is_ok());
         // A vote for one order in the batch is not a vote for another.
         let mut crossed = certificate.clone();
@@ -369,4 +382,99 @@ fn quorum_is_more_than_two_thirds_of_stake() {
     assert!(!weighted.committee.has_quorum(50));
     assert!(!weighted.committee.has_quorum(66));
     assert!(weighted.committee.has_quorum(70));
+}
+
+#[test]
+fn a_receipt_needs_confirmations_as_well_as_votes() {
+    let (alice, bob) = (User::new(1), User::new(2));
+    let mut net = Net::four(&[(&alice, 100)]);
+    let order = alice.order(&net, 0, bob.id(), 40);
+    let receipt = net.receipt(&order, &[0, 1, 2], &[1, 2, 3]);
+    assert_eq!(net.committee.verify_receipt(&receipt), Ok(()));
+
+    // The certificate alone is not a receipt, and two confirmations of four
+    // are not enough.
+    let bare = Receipt { certificate: receipt.certificate.clone(), confirmations: Vec::new() };
+    assert_eq!(net.committee.verify_receipt(&bare), Err(VerifyError::NotConfirmed { stake: 0, total: 4 }));
+    let mut thin = receipt.clone();
+    thin.confirmations.pop();
+    assert_eq!(net.committee.verify_receipt(&thin), Err(VerifyError::NotConfirmed { stake: 2, total: 4 }));
+
+    // Confirmations follow the same rules as votes: no repeats, no strangers.
+    let mut repeated = receipt.clone();
+    repeated.confirmations[1] = repeated.confirmations[0].clone();
+    assert_eq!(net.committee.verify_receipt(&repeated), Err(VerifyError::VotesOutOfOrder));
+    let mut impersonated = receipt.clone();
+    impersonated.confirmations[0].validator = 0;
+    assert_eq!(net.committee.verify_receipt(&impersonated), Err(VerifyError::BadSignature(0)));
+
+    // A receipt with too few votes fails on its certificate first.
+    let mut unvoted = receipt.clone();
+    unvoted.certificate.votes.pop();
+    assert_eq!(net.committee.verify_receipt(&unvoted), Err(VerifyError::NoQuorum { stake: 2, total: 4 }));
+}
+
+#[test]
+fn a_vote_cannot_pass_for_a_confirmation() {
+    let (alice, bob) = (User::new(1), User::new(2));
+    let mut net = Net::four(&[(&alice, 100)]);
+    let order = alice.order(&net, 0, bob.id(), 40);
+    let digest = order.order.digest(&net.network);
+    let receipt = net.receipt(&order, &[0, 1, 2], &[0, 1, 2]);
+
+    // Each kind of signature checks only as what it is.
+    let (vote, confirmation) = (&receipt.certificate.votes[0], &receipt.confirmations[0]);
+    assert!(net.committee.verify_vote(&digest, vote).is_ok());
+    assert!(net.committee.verify_confirmation(&digest, confirmation).is_ok());
+    assert!(net.committee.verify_confirmation(&digest, vote).is_err());
+    assert!(net.committee.verify_vote(&digest, confirmation).is_err());
+
+    // So three votes cannot be presented as three confirmations...
+    let recycled = Receipt {
+        certificate: receipt.certificate.clone(),
+        confirmations: receipt.certificate.votes.clone(),
+    };
+    assert_eq!(net.committee.verify_receipt(&recycled), Err(VerifyError::BadSignature(0)));
+    // ...nor three confirmations as a certificate.
+    let mut inverted = receipt.certificate.clone();
+    inverted.votes = receipt.confirmations.clone();
+    assert_eq!(net.committee.verify_certificate(&inverted), Err(VerifyError::BadSignature(0)));
+}
+
+#[test]
+fn signatures_from_another_epoch_count_for_nothing() {
+    let (alice, bob) = (User::new(1), User::new(2));
+    let mut net = Net::four(&[(&alice, 100)]);
+    let order = alice.order(&net, 0, bob.id(), 40);
+    let receipt = net.receipt(&order, &[0, 1, 2], &[0, 1, 2]);
+
+    // Relabelling the certificate with another epoch is caught twice over:
+    // by the label, and because every vote signed the epoch it was cast in.
+    let mut relabelled = receipt.clone();
+    relabelled.certificate.epoch = 1;
+    assert_eq!(
+        net.committee.verify_receipt(&relabelled),
+        Err(VerifyError::WrongEpoch { found: 1, current: 0 })
+    );
+    assert_eq!(net.committee.epoch(), 0);
+    // The certificate itself, relabelled, fails the same way.
+    assert_eq!(
+        net.committee.verify_certificate(&relabelled.certificate),
+        Err(VerifyError::WrongEpoch { found: 1, current: 0 })
+    );
+}
+
+#[test]
+fn a_certificate_keeps_the_owners_signed_order() {
+    let (alice, bob) = (User::new(1), User::new(2));
+    let mut net = Net::four(&[(&alice, 100)]);
+    let order = alice.order(&net, 0, bob.id(), 40);
+    let certificate = net.certify(&order, &[0, 1, 2]);
+    assert_eq!(certificate.signed(), order);
+    // With it, a validator that never saw the order can check who signed it
+    // against the key its own state holds for the account.
+    let digest = certificate.order.digest(&net.network);
+    let signed_by = ots::recover(&certificate.signature, digest.as_bytes());
+    assert_eq!(signed_by, net.validators[3].state.key(&alice.id()));
+    assert_eq!(net.validators[3].state.key(&bob.id()), bob.id(), "an unused account is on its first key");
 }

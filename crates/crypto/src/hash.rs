@@ -85,6 +85,7 @@ pub enum Tag {
     BatchMessage = 0x31,
     Genesis = 0x32,
     Account = 0x33,
+    Confirmation = 0x34,
     StateLeaf = 0x40,
     StateNode = 0x41,
     StatePadding = 0x42,
