@@ -866,7 +866,7 @@ fn a_validator_refuses_files_in_a_format_it_does_not_write() {
     // The same directory starts again without complaint.
     Node::start(net.config(0), None).map(Node::stop).unwrap();
     // A directory written by an older or a newer version does not.
-    for other in [None, Some("1"), Some("4"), Some("6")] {
+    for other in [None, Some("1"), Some("5"), Some("7")] {
         match other {
             Some(format) => fs::write(data.join("format"), format).unwrap(),
             None => fs::remove_file(data.join("format")).unwrap(),
@@ -875,7 +875,7 @@ fn a_validator_refuses_files_in_a_format_it_does_not_write() {
         assert!(refusal.contains("data format"), "{refusal}");
     }
     // Nothing was touched: put the marker back and the validator is as it was.
-    fs::write(data.join("format"), "5").unwrap();
+    fs::write(data.join("format"), "6").unwrap();
     net.restart(0);
     assert_eq!(net.view(0, &bob).balance, 1100);
 }

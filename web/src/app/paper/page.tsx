@@ -243,7 +243,7 @@ digest = hash(0x30, network_id ‖ borsh(order))`}</Formula>
             <li>the order number is the account’s current one, not an earlier or later one;</li>
             <li>it is signed with the key the account expects;</li>
             <li>this validator has not already voted for a different order under that number;</li>
-            <li>the recipient is not the mint or the rewards account (section 3.4);</li>
+            <li>the recipient is not one of the network’s own accounts (section 3.4);</li>
             <li>a stake or unstake names the account itself, and a stake names a usable validator;</li>
             <li>
               <code>max_fee</code> covers the fee the network charges (section 7);
@@ -270,8 +270,7 @@ digest = hash(0x30, network_id ‖ borsh(order))`}</Formula>
             ]}
           />
           <p>
-            Payments to the mint and rewards accounts are refused. Coins paid to the fees account are shared among
-            validators at the next checkpoint, and coins paid to the forfeited account can never be spent again.
+            Payments to any of them are refused, so that no coin reaches them by mistake.
           </p>
         </Sub>
       </PaperSection>
@@ -374,8 +373,7 @@ Vote { validator: u16, batch_path: Path, signature: TreeSignature }`}</Formula>
             At each checkpoint the next epoch’s validators are chosen deterministically from the state. Accounts with at
             least <strong>10,000 ORN</strong> staked behind a usable validator are sorted by stake, largest first, ties
             broken by account address, and the first <strong>33</strong> distinct validator keys are taken. Each votes
-            with a weight equal to its stake. Validators proven to have cheated during the epoch are left out of the next epoch’s set, and so
-            is any key they used.
+            with a weight equal to its stake. Validators proven to have cheated are barred for good, and so is any key they used.
           </p>
         </Sub>
 
@@ -409,7 +407,9 @@ Vote { validator: u16, batch_path: Path, signature: TreeSignature }`}</Formula>
           <p>
             Proof travels in validators’ statements. At the checkpoint, a convicted staked validator loses everything its
             account holds in stake (staked, unstaking and waiting to be released), moved to the forfeited account; a
-            convicted seat loses its seat for good. Either way its key is left out of the next epoch’s validators.
+            convicted seat loses its seat. Either way its key is barred from the validators for good: the ledger state
+            keeps a list of barred keys, and the state root covers it, so the list survives every checkpoint and every
+            validator that catches up by jumping.
           </p>
         </Sub>
       </PaperSection>
@@ -443,7 +443,7 @@ Statement { epoch, validator, log: Pin, evidence, next_key, cheats, shares }`}</
           <Formula>{`Checkpoint {
   epoch, previous,           this epoch, and the digest of the previous checkpoint
   time,                      the proposer's clock
-  state,                     Merkle root of every account after closing
+  state,                     Merkle root of every account, and of the barred keys
   payments, merged,          how many payments, and which statements
   validators,                the next epoch's validators and their weights
   released, target           new coins released, and the next proof-of-work target
@@ -733,7 +733,7 @@ T′ = clamp( T · 1,000 / n,  ⌊T / 4⌋,  4 · T )  otherwise`}</Formula>
             </li>
             <li>
               <strong>Cheating is punished.</strong> Voting twice and reusing a one-time key leave signed evidence that
-              anyone can check, and a convicted validator loses its stake and its place in the next epoch.
+              anyone can check, and a convicted validator loses its stake and its place for good.
             </li>
           </ul>
         </Sub>
@@ -865,6 +865,7 @@ T′ = clamp( T · 1,000 / n,  ⌊T / 4⌋,  4 · T )  otherwise`}</Formula>
             ['0x33', 'account', '0x44', 'proposal'],
             ['0x45', 'stake proof', '0x47', 'software release'],
             ['0x46', 'proof-of-work share', '0x48, 0x49', 'recovery phrase check, account seed'],
+            ['', '', '0x4A', 'barred validator keys'],
           ]}
         />
       </PaperSection>

@@ -74,3 +74,23 @@ fn every_order_pays_its_fee_into_the_epochs_pot() {
     vote_and_apply(&mut state, &order(1, 1, 2, 89_940, 50)).unwrap();
     assert_eq!((balance(&state, 1), pot(&state)), (0, 60));
 }
+
+#[test]
+fn nobody_can_pay_the_networks_own_accounts() {
+    use orien_ledger::{FORFEITED, MINT, REWARDS};
+    let mut genesis = Genesis::new("reserved", Vec::new(), Vec::new());
+    genesis.fee = Fees::NONE;
+    genesis.allocations = vec![Allocation { account: id(1), amount: 100_000 }];
+    let mut state = State::from_genesis(&genesis);
+    for reserved in [MINT, REWARDS, FEES, FORFEITED] {
+        let (mut payment, by) = order(1, 0, 2, 10, 0);
+        payment.to = reserved;
+        assert_eq!(
+            state.check_order(&payment, Hash32([9; 32]), &by),
+            Err(Reject::ReservedAccount),
+            "a payment to {reserved} was accepted"
+        );
+    }
+    // An ordinary payment still goes through.
+    vote_and_apply(&mut state, &order(1, 0, 2, 10, 0)).unwrap();
+}

@@ -101,6 +101,8 @@ pub enum Tag {
     Release = 0x47,
     Phrase = 0x48,
     WalletAccount = 0x49,
+    /// The list of validator keys barred for cheating, in the state root.
+    Banned = 0x4A,
 }
 
 /// Hashes `parts` under `tag`. Parts are concatenated without separators, so

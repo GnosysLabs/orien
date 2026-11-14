@@ -1726,7 +1726,7 @@ fn push_to_peer(address: String, queue: Receiver<Request>) {
 
 /// The layout and encoding of a validator's files. Raised whenever either
 /// changes in a way an older or newer version would misread.
-const DATA_FORMAT: &str = "5";
+const DATA_FORMAT: &str = "6";
 
 /// A data directory belongs to one network and is written in one format.
 /// Refuse to reuse it for another network, or to read a format this version

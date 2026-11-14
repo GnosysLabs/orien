@@ -158,8 +158,8 @@ export default function HowItWorksPage() {
         <p>
           <strong>Cheating costs everything staked.</strong> A validator that votes for two conflicting payments, or
           signs two things with one key, leaves proof in its own signatures. Other validators pass that proof on, and
-          at the next checkpoint the cheater’s whole stake, including coins waiting to be released, is burned and it
-          leaves the list.
+          at the next checkpoint the cheater’s whole stake, including coins waiting to be released, is burned and its key
+          is barred from the list for good.
         </p>
         <Facts
           rows={[

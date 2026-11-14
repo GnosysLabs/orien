@@ -389,6 +389,20 @@ fn a_validator_caught_cheating_loses_its_stake_and_its_place() {
     assert_eq!(end.total(), 61_000, "burned coins stay counted");
     assert_eq!(roots(&next), [11, 12]);
 
+    // The ban is for good. Both keys are listed in the state, which its root
+    // covers, and a snapshot carries the list.
+    assert!(end.banned().contains(&tree(1).root()) && end.banned().contains(&tree(2).root()));
+    let restored = State::from_snapshot(&end.snapshot(), genesis.fee).unwrap();
+    assert_eq!((restored.root(), restored.banned()), (end.root(), end.banned()));
+    let mut more = restored.clone();
+    more.ban(Hash32([42; 32]));
+    assert_ne!(more.root(), end.root(), "the root covers the list");
+    // Ana stakes again behind the same validator in the next epoch: it is
+    // still passed over, though nobody reports anything new.
+    let later = committee.following(next.clone());
+    let (later, _) = checkpoint(&later, &end, &[stake(1, 1, 10_000)], &names);
+    assert_eq!(roots(later.members()), [11, 12]);
+
     // A launch seat caught cheating loses its seat.
     let (first, a) = vote(&committee, 12, 1, 3, Hash32([3; 32]));
     let (second, b) = vote(&committee, 12, 1, 3, Hash32([4; 32]));
