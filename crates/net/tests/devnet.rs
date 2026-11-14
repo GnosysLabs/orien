@@ -1691,7 +1691,7 @@ fn work_earns_coins_at_the_next_checkpoint() {
     let mut from = 0u64;
     wait_until("carol is paid for her work", || {
         client.follow();
-        let Some((_, seed, target)) = client.work() else { return false };
+        let (_, seed, target) = client.followed_work();
         let shares: Vec<orien_ledger::close::Share> = (from..)
             .map(|nonce| orien_ledger::close::Share { account: carol, nonce })
             .filter(|share| share.counts(&seed, target))

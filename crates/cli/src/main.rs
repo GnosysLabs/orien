@@ -539,9 +539,22 @@ fn balance(account: &str, genesis: &Path) -> Result<()> {
         bail!("no validator could be reached");
     }
     println!("account        {id}");
+    // What the last checkpoint proves, checked against it here; and what
+    // validators report has happened since, which nothing proves yet.
+    let proven = client.proven(&id).map_or(0, |account| account.balance);
+    let source = match client.epoch() {
+        0 => "as the genesis file sets it".to_string(),
+        epoch => format!("proven by checkpoint {}", epoch - 1),
+    };
+    println!("balance        {}  ({source})", coins(proven));
     match status.spendable {
-        Some(balance) => println!("balance        {}", coins(balance)),
-        None => println!("balance        unknown (too few validators are caught up)"),
+        Some(now) if now != proven => {
+            let change = now - proven;
+            let sign = if change > 0 { "+" } else { "" };
+            println!("since then     {sign}{}  (validators report this; the next checkpoint proves it)", coins(change));
+        }
+        Some(_) => {}
+        None => println!("since then     unknown (too few validators are caught up)"),
     }
     println!("payments made  {}", status.seq);
     println!("validators     {reachable} of {} answered", client.validators());
@@ -1020,12 +1033,10 @@ fn mine(account: &str, threads: Option<usize>, genesis_file: &Path) -> Result<()
     println!("mining for {} with {threads} thread(s); stop with Ctrl-C", account.short());
     let mut shown_epoch = None;
     loop {
+        // The seed and target come from the checkpoints this client checks
+        // itself, so nobody can send it off doing worthless work.
         client.follow();
-        let Some((epoch, seed, target)) = client.work() else {
-            println!("no validator answered; trying again");
-            thread::sleep(Duration::from_secs(2));
-            continue;
-        };
+        let (epoch, seed, target) = client.followed_work();
         if shown_epoch != Some(epoch) {
             let balance = client.proven(&account).map_or(0, |a| a.balance);
             println!(
