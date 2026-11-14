@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Builds, signs and publishes a new version of the Orien wallet app.
+# Builds, signs and publishes a new version of Orien Wallet, the desktop app.
 #
 # Usage, from anywhere:
 #   bash apps/wallet/release.sh 0.2.0                 build and publish

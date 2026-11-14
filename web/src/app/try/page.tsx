@@ -56,12 +56,12 @@ export default function GetStartedPage() {
       <section className="mb-6 rounded-2xl border border-line bg-surface p-6 sm:p-8">
         <div className="mb-4 flex items-center gap-3">
           <Monitor className="h-5 w-5 text-pearl" strokeWidth={1.75} aria-hidden />
-          <h2 className="text-xl font-bold tracking-tight text-ink">Or use the Orien app</h2>
+          <h2 className="text-xl font-bold tracking-tight text-ink">Or use Orien Wallet</h2>
         </div>
         <div className="space-y-4 leading-relaxed text-muted">
           <p>
-            A desktop wallet: make a wallet with its 24-word recovery phrase, see your balance, send and receive ORN,
-            and keep an address book. It uses the same wallet as orien, so you can use both. It updates itself.
+            Orien Wallet is a desktop app: make a wallet with its 24-word recovery phrase, see your balance, send and
+            receive ORN, and keep an address book. It uses the same wallet as orien, so you can use both. It updates itself.
           </p>
           <div className="flex flex-wrap items-center gap-4">
             <a

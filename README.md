@@ -93,7 +93,7 @@ orien send --to ADDRESS --amount 5
   `orien lock` ends that early.
 - **Updates.** `orien update` installs a newer version only if the Orien
   release key signed it.
-- **Desktop wallet.** `apps/wallet` is a desktop app (Tauri) for the same
+- **Orien Wallet.** `apps/wallet` is a desktop app (Tauri) for the same
   wallet: balance, history, sending, an address book, and making or
   restoring a wallet.
 
@@ -345,7 +345,7 @@ cargo test --release -p orien-net --test devnet throughput -- --ignored --nocapt
 | `crates/ledger` | The rules: orders, votes, certificates, when to vote, how balances change, what a checkpoint is and how validators agree on one |
 | `crates/net` | The validator node, the closing of epochs, storage, sync between validators, client, wallet files |
 | `crates/cli` | The `orien` command |
-| `apps/wallet` | The desktop wallet app |
+| `apps/wallet` | Orien Wallet, the desktop app |
 | `skill/orien` | The skill that teaches AI assistants to use `orien` |
 | `web` | The website, orien.network, with the installers and the technical paper |
 | `deploy` | Publishing the website and releases, and the live validators' service |
