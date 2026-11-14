@@ -3,7 +3,9 @@
 
 use borsh::{BorshDeserialize, BorshSerialize};
 use orien_crypto::Hash32;
-use orien_ledger::{AccountId, Certificate, Confirmation, Reject, SignedOrder, Signer, Vote};
+use orien_crypto::merkle;
+use orien_ledger::close::{Decided, Message};
+use orien_ledger::{Account, AccountId, Certificate, Confirmation, Reject, SignedOrder, Signer, Vote};
 use std::io::{self, Read, Write};
 
 pub const MAX_FRAME: usize = 16 << 20;
@@ -19,9 +21,8 @@ pub enum Request {
     /// Hand the validator a certificate to apply. It does not sign anything
     /// in return; `Confirm` is the request for that.
     SubmitCertificate(Certificate),
+    /// A certificate applied in the current epoch.
     GetCertificate { account: AccountId, seq: u64 },
-    /// Certificates in the order this validator applied them, from `index`.
-    CertsSince { index: u64, max: u32 },
     /// The signed order this validator has voted for under the account's
     /// current payment number, if that payment is not final yet.
     Pending(AccountId),
@@ -34,6 +35,24 @@ pub enum Request {
     /// confirmation that it has. A payment is final once validators holding
     /// more than two thirds of the stake have confirmed it.
     Confirm(Certificate),
+    /// One validator catching up with another. It names its epoch, and how
+    /// much of this validator's certificate log and closing messages for
+    /// that epoch it has read already.
+    Sync { epoch: u64, certs: u64, messages: u64, max: u32 },
+    /// A message about closing `epoch`, from one validator to another.
+    Close { epoch: u64, message: Message },
+    /// The orders in the log that a closing statement pins, as digests,
+    /// from position `from`.
+    Log { epoch: u64, statement: Hash32, from: u64, max: u32 },
+    /// Certificates applied in `epoch`, by the digests of their orders.
+    Payments { epoch: u64, orders: Vec<Hash32> },
+    /// Part of the state `epoch` started from.
+    Snapshot { epoch: u64, offset: u64, max: u32 },
+    /// The checkpoints that closed epochs `from` onwards, with their proofs.
+    Checkpoints { from: u64, max: u32 },
+    /// An account as the latest checkpoint left it, with a proof against
+    /// that checkpoint's state root.
+    Proof(AccountId),
 }
 
 #[derive(Clone, Debug, BorshSerialize, BorshDeserialize)]
@@ -45,6 +64,11 @@ pub struct NodeInfo {
     pub certificates: u64,
     pub keys_used: u32,
     pub keys_total: u32,
+    pub epoch: u64,
+    /// True while the validator is closing its epoch and takes no payments.
+    pub closing: bool,
+    /// When the current epoch began, in seconds since 1970.
+    pub epoch_started: u64,
 }
 
 #[derive(Clone, Debug, PartialEq, Eq, BorshSerialize, BorshDeserialize)]
@@ -80,6 +104,29 @@ pub enum Response {
     Root(Hash32),
     Evidence(Option<(SignedOrder, SignedOrder)>),
     Confirmed(Confirmation),
+    /// The validator is closing its epoch. It votes and confirms nothing
+    /// until the checkpoint is agreed, which takes a few seconds.
+    Closing,
+    /// What was sent belongs to another epoch. This is the validator's own.
+    Epoch(u64),
+    Received,
+    Sync {
+        /// The answering validator's epoch.
+        epoch: u64,
+        certs: Vec<Certificate>,
+        certs_total: u64,
+        messages: Vec<Message>,
+        messages_total: u64,
+        /// The checkpoint that closed the asker's epoch, when the answering
+        /// validator is already past it.
+        decided: Option<Decided>,
+    },
+    Log(Option<Vec<Hash32>>),
+    Payments(Vec<Certificate>),
+    /// Some bytes of a state, and the size of the whole.
+    Snapshot(Option<(Vec<u8>, u64)>),
+    Checkpoints(Vec<Decided>),
+    Proof { epoch: u64, account: Option<(Account, merkle::Path)> },
 }
 
 pub fn write_frame<W: Write>(writer: &mut W, payload: &[u8]) -> io::Result<()> {

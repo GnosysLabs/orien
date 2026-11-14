@@ -5,7 +5,10 @@
 use orien_crypto::keytree::KeyTree;
 use orien_crypto::{Hash32, Kdf, merkle, ots, prf};
 use orien_ledger::agree::{Agreement, Message, Output, Timeout, Verdict};
-use orien_ledger::close::{self, Checkpoint, Gathered, Invalid, Pin, Statement};
+use orien_ledger::close::{
+    self, Ballot, Checkpoint, Decided, Gathered, Invalid, NextKey, Pin, Proposal, Signed, Statement,
+};
+use orien_ledger::VerifyError;
 use orien_ledger::{
     AccountId, Allocation, Certificate, Committee, Genesis, Kind, Order, Reject, SPARE_HEIGHT, Signature,
     SignedOrder, Signer, State, ValidatorInfo, Vote, address, confirmation_item,
@@ -140,6 +143,9 @@ impl World {
                 })
                 .collect(),
             allocations: funded.iter().map(|(user, amount)| Allocation { account: user.id(), amount: *amount }).collect(),
+            epoch_seconds: 3600,
+            epoch_payments: 50_000,
+            start_time: 0,
         };
         genesis.validate().unwrap();
         World {
@@ -245,6 +251,7 @@ impl World {
                 validator: v as u16,
                 log: Pin::of(self.committee.epoch(), &self.log_digests(v)),
                 evidence: self.validators[v].evidence.clone(),
+                next_key: None,
             };
             self.validators[v].statement = Some(statement);
         }
@@ -309,6 +316,7 @@ impl World {
                     validator: victim as u16,
                     log: Pin::start(self.committee.epoch()),
                     evidence: Vec::new(),
+                    next_key: None,
                 };
                 let entry = checkpoint.merged.iter_mut().find(|(validator, _)| *validator == victim as u16).unwrap();
                 entry.1 = forged.digest(&self.network);
@@ -880,4 +888,152 @@ fn whatever_happens_before_a_close_nothing_final_is_lost() {
     }
     // The runs must have reached each of the cases that matter.
     assert!(cancelled > 10 && freed_later > 2 && undone > 2, "{cancelled} {freed_later} {undone}");
+}
+
+#[test]
+fn closing_messages_are_checked_against_the_validators_keys() {
+    let (alice, ..) = people();
+    let mut world = World::new(4, &[(&alice, 100)]);
+    world.stop_all();
+    let committee = world.committee.clone();
+    let network = world.network;
+
+    // A statement counts only with its own validator's signature, in its epoch.
+    let statement = world.validators[1].statement.clone().unwrap();
+    let digest = statement.digest(&network);
+    let good = Signed { body: statement.clone(), proof: world.sign(1, digest) };
+    assert!(close::verify_statement(&committee, &good));
+    let stolen = Signed { body: statement.clone(), proof: world.sign(2, digest) };
+    assert!(!close::verify_statement(&committee, &stolen), "another validator's signature passed");
+    let mut altered = good.clone();
+    altered.body.log.length += 1;
+    assert!(!close::verify_statement(&committee, &altered), "a signature passed for a changed statement");
+    let mut renamed = good.clone();
+    renamed.body.validator = 2;
+    assert!(!close::verify_statement(&committee, &renamed));
+    assert!(!close::verify_statement(&committee.at_epoch(1), &good), "a statement passed in another epoch");
+
+    // A signature on one ballot is a signature on no other.
+    let (checkpoint, _) = world.honest_proposal(0);
+    let precommit = Ballot { precommit: true, round: 0, id: Some(checkpoint.digest()) };
+    let prevote = Ballot { precommit: false, ..precommit };
+    let signed = Signed { body: precommit, proof: world.sign(0, precommit.item()) };
+    assert!(close::verify_ballot(&committee, &signed));
+    assert!(!close::verify_ballot(&committee.at_epoch(1), &signed));
+    let others = [
+        prevote,
+        Ballot { round: 1, ..precommit },
+        Ballot { id: None, ..precommit },
+        Ballot { id: Some(Hash32([1; 32])), ..precommit },
+    ];
+    for other in others {
+        let passed_off = Signed { body: other, proof: signed.proof.clone() };
+        assert!(!close::verify_ballot(&committee, &passed_off), "a signature passed for {other:?}");
+    }
+
+    let nothing = Ballot { precommit: false, round: 0, id: None };
+    let blank = Ballot { id: Some(Hash32::default()), ..nothing };
+    let signed = Signed { body: nothing, proof: world.sign(0, nothing.item()) };
+    let passed_off = Signed { body: blank, proof: signed.proof.clone() };
+    assert!(!close::verify_ballot(&committee, &passed_off), "a vote for nothing passed for a vote for something");
+
+    // Counting who cast a ballot.
+    let prevotes: Vec<Vote> = (0..3).map(|v| world.sign(v, prevote.item())).collect();
+    assert_eq!(close::voters(&committee, &prevote, &prevotes), Some(vec![0, 1, 2]));
+    assert_eq!(close::voters(&committee, &precommit, &prevotes), None, "prevotes counted as precommits");
+    let mut twice = prevotes.clone();
+    twice.push(prevotes[0].clone());
+    assert_eq!(close::voters(&committee, &prevote, &twice), None, "one validator counted twice");
+
+    // A decision is a checkpoint with precommits from more than two thirds.
+    let precommits: Vec<Vote> = (0..3).map(|v| world.sign(v, precommit.item())).collect();
+    let decided = Decided { checkpoint: checkpoint.clone(), round: 0, precommits: precommits.clone() };
+    assert_eq!(close::verify_decided(&committee, &decided), Ok(()));
+    let judge = |change: &dyn Fn(&mut Decided)| {
+        let mut changed = decided.clone();
+        change(&mut changed);
+        close::verify_decided(&committee, &changed)
+    };
+    assert_eq!(judge(&|d| d.precommits.truncate(2)), Err(VerifyError::NoQuorum { stake: 2, total: 4 }));
+    assert_eq!(judge(&|d| d.precommits = prevotes.clone()), Err(VerifyError::BadSignature(0)));
+    assert_eq!(judge(&|d| d.round = 1), Err(VerifyError::BadSignature(0)));
+    assert_eq!(judge(&|d| d.checkpoint.time += 1), Err(VerifyError::BadSignature(0)));
+    assert_eq!(judge(&|d| d.checkpoint.state = Hash32([5; 32])), Err(VerifyError::BadSignature(0)));
+    assert_eq!(judge(&|d| d.precommits[1] = d.precommits[0].clone()), Err(VerifyError::VotesOutOfOrder));
+    assert_eq!(
+        close::verify_decided(&committee.at_epoch(1), &decided),
+        Err(VerifyError::WrongEpoch { found: 0, current: 1 })
+    );
+
+    // A proposer's signature covers the round, the checkpoint, and whether
+    // it is being put forward again.
+    let proposal =
+        Proposal { round: 0, checkpoint: checkpoint.clone(), valid_round: None, backers: Vec::new(), statements: Vec::new() };
+    let signed = Signed { proof: world.sign(0, proposal.item()), body: proposal.clone() };
+    assert!(close::verify_proposal(&committee, &signed));
+    let changed = [
+        Proposal { round: 1, ..proposal.clone() },
+        Proposal { valid_round: Some(0), ..proposal.clone() },
+        Proposal { checkpoint: Checkpoint { time: checkpoint.time + 1, ..checkpoint.clone() }, ..proposal.clone() },
+    ];
+    for other in changed {
+        let passed_off = Signed { body: other, proof: signed.proof.clone() };
+        assert!(!close::verify_proposal(&committee, &passed_off), "a proposer's signature passed for another proposal");
+    }
+}
+
+#[test]
+fn a_replacement_key_takes_over_only_as_the_merged_statements_say() {
+    let (alice, ..) = people();
+    let world = World::new(4, &[(&alice, 100)]);
+    let committee = world.committee.clone();
+    let statement = |validator: u16, next_key: Option<NextKey>| Statement {
+        epoch: 0,
+        validator,
+        log: Pin::start(0),
+        evidence: Vec::new(),
+        next_key,
+    };
+    let next = |statements: &[Statement]| {
+        let merged: Vec<&Statement> = statements.iter().collect();
+        close::next_validators(&committee, &merged)
+    };
+    let fresh = NextKey { root: Hash32([9; 32]), height: 7 };
+    let plain = [statement(0, None), statement(1, None), statement(2, None)];
+    assert_eq!(next(&plain), committee.members());
+
+    // Only the validator that asked gets a new key, and it keeps its stake.
+    let rekeyed = [statement(0, None), statement(1, Some(fresh)), statement(2, None)];
+    let members = next(&rekeyed);
+    assert_eq!((members[1].root, members[1].height, members[1].stake), (fresh.root, 7, 1));
+    for v in [0, 2, 3] {
+        assert_eq!(members[v], committee.members()[v]);
+    }
+    // A key another validator holds cannot be claimed, nor a tree too tall to build.
+    let taken = NextKey { root: committee.members()[2].root, height: 7 };
+    let tall = NextKey { root: Hash32([8; 32]), height: 60 };
+    for refused in [taken, tall] {
+        assert_eq!(next(&[statement(0, None), statement(1, Some(refused)), statement(2, None)]), committee.members());
+    }
+
+    // The checkpoint names the next epoch's validators, and one that names
+    // any others is refused.
+    let start = &world.validators[0].start;
+    let merged: Vec<&Statement> = rekeyed.iter().collect();
+    let (checkpoint, _) = close::propose(&committee, world.previous, 1_000, start, &[], &merged).unwrap();
+    assert_eq!(checkpoint.validators, members);
+    let statements: BTreeMap<u16, Statement> = rekeyed.iter().cloned().map(|s| (s.validator, s)).collect();
+    let logs: BTreeMap<u16, Vec<Hash32>> = (0..3).map(|v| (v, Vec::new())).collect();
+    let judge = |checkpoint: &Checkpoint| {
+        let gathered = Gathered { statements: &statements, logs: &logs, payments: &[] };
+        close::validate(&committee, &world.previous, start, checkpoint, &gathered).err()
+    };
+    assert_eq!(judge(&checkpoint), None);
+    let unchanged = Checkpoint { validators: committee.members().to_vec(), ..checkpoint.clone() };
+    assert_eq!(judge(&unchanged), Some(Invalid::WrongValidators));
+
+    // Signatures made with the old key count for nothing in the next epoch.
+    let following = committee.following(checkpoint.validators.clone());
+    assert_eq!(following.epoch(), 1);
+    assert_eq!(following.members()[1].root, fresh.root);
 }

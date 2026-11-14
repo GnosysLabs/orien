@@ -93,6 +93,9 @@ impl Net {
                 .iter()
                 .map(|(user, amount)| Allocation { account: user.id(), amount: *amount })
                 .collect(),
+            epoch_seconds: 3600,
+            epoch_payments: 50_000,
+            start_time: 0,
         };
         genesis.validate().unwrap();
         Net {

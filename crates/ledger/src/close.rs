@@ -25,11 +25,11 @@
 //! a spare key.
 
 use crate::agree::Value;
-use crate::genesis::Committee;
+use crate::genesis::{Committee, Member, VerifyError};
 use crate::state::{Applied, Checked, State};
-use crate::types::{AccountId, Certificate, SignedOrder};
+use crate::types::{AccountId, Certificate, Order, SignedOrder, Vote};
 use borsh::{BorshDeserialize, BorshSerialize};
-use orien_crypto::{Hash32, Tag, hash};
+use orien_crypto::{Hash32, Tag, hash, keytree};
 use std::collections::{BTreeMap, BTreeSet};
 
 /// A commitment to the payments a validator has applied in an epoch, in the
@@ -61,8 +61,15 @@ impl Pin {
     }
 }
 
+/// A key tree a validator will sign with from the next epoch on.
+#[derive(Clone, Copy, Debug, PartialEq, Eq, BorshSerialize, BorshDeserialize)]
+pub struct NextKey {
+    pub root: Hash32,
+    pub height: u8,
+}
+
 /// What a validator signs when it stops work on an epoch. It makes one per
-/// epoch and never applies or confirms anything in that epoch afterwards.
+/// epoch and never votes or confirms anything in that epoch afterwards.
 #[derive(Clone, Debug, PartialEq, Eq, BorshSerialize, BorshDeserialize)]
 pub struct Statement {
     pub epoch: u64,
@@ -71,6 +78,9 @@ pub struct Statement {
     pub log: Pin,
     /// Pairs of orders showing that an owner signed twice with one key.
     pub evidence: Vec<(SignedOrder, SignedOrder)>,
+    /// Set when the validator's key tree is running low. The new tree
+    /// replaces the old one when this epoch closes.
+    pub next_key: Option<NextKey>,
 }
 
 impl Statement {
@@ -98,6 +108,10 @@ pub struct Checkpoint {
     pub payments: u64,
     /// The statements it was built from, by validator, in validator order.
     pub merged: Vec<(u16, Hash32)>,
+    /// The validators of the next epoch. Anyone who knows this epoch's
+    /// validators and holds this checkpoint knows the next epoch's, which
+    /// is how a newcomer follows the network forward from its genesis file.
+    pub validators: Vec<Member>,
 }
 
 impl Checkpoint {
@@ -137,6 +151,54 @@ pub enum Invalid {
     Overdrawn(AccountId),
     WrongCount,
     WrongState,
+    /// The validators named for the next epoch are not the ones the merged
+    /// statements lead to.
+    WrongValidators,
+}
+
+/// The validators of the next epoch: this epoch's, with the key tree of
+/// each one whose merged statement names a replacement swapped for it.
+pub fn next_validators(committee: &Committee, statements: &[&Statement]) -> Vec<Member> {
+    let mut members = committee.members().to_vec();
+    for statement in statements {
+        let Some(key) = statement.next_key else { continue };
+        // A key another validator already holds, or a tree too tall to
+        // build, is passed over. The validator keeps the key it has.
+        let usable = key.height <= keytree::MAX_HEIGHT && members.iter().all(|m| m.root != key.root);
+        if let Some(member) = members.get_mut(statement.validator as usize)
+            && usable
+        {
+            member.root = key.root;
+            member.height = key.height;
+        }
+    }
+    members
+}
+
+/// The payments offered for an epoch.
+#[derive(Clone, Copy)]
+enum Offered<'a> {
+    /// With their votes and owners' signatures, all still to be checked.
+    Certificates(&'a [Certificate]),
+    /// Orders whose certificates the caller checked when it applied them.
+    Checked(&'a [&'a Order]),
+}
+
+impl<'a> Offered<'a> {
+    fn len(&self) -> usize {
+        match self {
+            Offered::Certificates(payments) => payments.len(),
+            Offered::Checked(orders) => orders.len(),
+        }
+    }
+
+    /// Each order, with its certificate where that still needs checking.
+    fn orders(&self) -> Vec<(&'a Order, Option<&'a Certificate>)> {
+        match self {
+            Offered::Certificates(payments) => payments.iter().map(|p| (&p.order, Some(p))).collect(),
+            Offered::Checked(orders) => orders.iter().map(|order| (*order, None)).collect(),
+        }
+    }
 }
 
 /// The state an epoch ends in. A fixed result of the state it began in, the
@@ -154,19 +216,41 @@ pub fn outcome(
     payments: &[Certificate],
     statements: &[&Statement],
 ) -> Result<State, Invalid> {
+    outcome_of(committee, start, Offered::Certificates(payments), statements)
+}
+
+/// `outcome`, for a validator that holds the payments already. It checked
+/// each certificate and each owner's signature when it applied them, and
+/// does not check them a second time.
+pub fn outcome_checked(
+    committee: &Committee,
+    start: &State,
+    orders: &[&Order],
+    statements: &[&Statement],
+) -> Result<State, Invalid> {
+    outcome_of(committee, start, Offered::Checked(orders), statements)
+}
+
+fn outcome_of(
+    committee: &Committee,
+    start: &State,
+    offered: Offered,
+    statements: &[&Statement],
+) -> Result<State, Invalid> {
     let network = committee.network();
     let mut state = start.clone();
     // An account's payments must go in number order. Across accounts the
     // order makes no difference.
-    let mut ordered: Vec<&Certificate> = payments.iter().collect();
-    ordered.sort_by_key(|payment| (payment.order.from, payment.order.seq));
-    for payment in ordered {
-        let order = &payment.order;
-        let bad = Invalid::BadPayment(order.from, order.seq);
-        committee.verify_certificate(payment).map_err(|_| bad.clone())?;
-        let signed_by = payment.signature.signed_by(&order.digest(network)).ok_or(bad.clone())?;
-        if state.seq(&order.from) == order.seq && !state.authorizes(order, &signed_by) {
-            return Err(bad);
+    let mut ordered = offered.orders();
+    ordered.sort_by_key(|(order, _)| (order.from, order.seq));
+    for (order, certificate) in ordered {
+        if let Some(payment) = certificate {
+            let bad = Invalid::BadPayment(order.from, order.seq);
+            committee.verify_certificate(payment).map_err(|_| bad.clone())?;
+            let signed_by = payment.signature.signed_by(&order.digest(network)).ok_or(bad.clone())?;
+            if state.seq(&order.from) == order.seq && !state.authorizes(order, &signed_by) {
+                return Err(bad);
+            }
         }
         match state.apply(order) {
             Ok(Applied::New) => {}
@@ -219,17 +303,41 @@ pub fn propose(
     payments: &[Certificate],
     statements: &[&Statement],
 ) -> Result<(Checkpoint, State), Invalid> {
+    propose_of(committee, previous, time, start, Offered::Certificates(payments), statements)
+}
+
+/// `propose`, for a validator that checked the payments when it applied them.
+pub fn propose_checked(
+    committee: &Committee,
+    previous: Hash32,
+    time: u64,
+    start: &State,
+    orders: &[&Order],
+    statements: &[&Statement],
+) -> Result<(Checkpoint, State), Invalid> {
+    propose_of(committee, previous, time, start, Offered::Checked(orders), statements)
+}
+
+fn propose_of(
+    committee: &Committee,
+    previous: Hash32,
+    time: u64,
+    start: &State,
+    offered: Offered,
+    statements: &[&Statement],
+) -> Result<(Checkpoint, State), Invalid> {
     if !enough(committee, statements.iter().map(|s| s.validator)) {
         return Err(Invalid::TooFewStatements);
     }
-    let end = outcome(committee, start, payments, statements)?;
+    let end = outcome_of(committee, start, offered, statements)?;
     let checkpoint = Checkpoint {
         epoch: committee.epoch(),
         previous,
         time,
         state: end.root(),
-        payments: payments.len() as u64,
+        payments: offered.len() as u64,
         merged: statements.iter().map(|s| (s.validator, s.digest(committee.network()))).collect(),
+        validators: next_validators(committee, statements),
     };
     Ok((checkpoint, end))
 }
@@ -258,6 +366,35 @@ pub fn validate(
     checkpoint: &Checkpoint,
     gathered: &Gathered,
 ) -> Result<State, Invalid> {
+    let logs = |validator: u16| gathered.logs.get(&validator).map(Vec::as_slice);
+    let statements = |validator: u16| gathered.statements.get(&validator);
+    validate_of(committee, previous, start, checkpoint, &statements, &logs, Offered::Certificates(gathered.payments))
+}
+
+/// `validate`, for a validator that checked the payments when it applied
+/// them. `statement` and `log` give what it has gathered from a validator:
+/// the statement, and the orders in that statement's pinned log.
+pub fn validate_checked<'a>(
+    committee: &Committee,
+    previous: &Hash32,
+    start: &State,
+    checkpoint: &Checkpoint,
+    statement: &dyn Fn(u16) -> Option<&'a Statement>,
+    log: &dyn Fn(u16) -> Option<&'a [Hash32]>,
+    orders: &[&Order],
+) -> Result<State, Invalid> {
+    validate_of(committee, previous, start, checkpoint, statement, log, Offered::Checked(orders))
+}
+
+fn validate_of<'a>(
+    committee: &Committee,
+    previous: &Hash32,
+    start: &State,
+    checkpoint: &Checkpoint,
+    statement_of: &dyn Fn(u16) -> Option<&'a Statement>,
+    log_of: &dyn Fn(u16) -> Option<&'a [Hash32]>,
+    offered: Offered,
+) -> Result<State, Invalid> {
     let network = committee.network();
     if checkpoint.epoch != committee.epoch() {
         return Err(Invalid::WrongEpoch);
@@ -268,31 +405,169 @@ pub fn validate(
     if !enough(committee, checkpoint.merged.iter().map(|(validator, _)| *validator)) {
         return Err(Invalid::TooFewStatements);
     }
-    let offered: BTreeSet<Hash32> = gathered.payments.iter().map(|p| p.order.digest(network)).collect();
+    let held: BTreeSet<Hash32> = offered.orders().iter().map(|(order, _)| order.digest(network)).collect();
     let mut merged = Vec::with_capacity(checkpoint.merged.len());
     for (validator, digest) in &checkpoint.merged {
-        let statement = gathered
-            .statements
-            .get(validator)
+        let statement = statement_of(*validator)
             .filter(|s| s.validator == *validator && s.epoch == checkpoint.epoch && s.digest(network) == *digest)
             .ok_or(Invalid::UnknownStatement(*validator))?;
         // Everything this validator had applied when it stopped must be in.
-        let log = gathered
-            .logs
-            .get(validator)
+        let log = log_of(*validator)
             .filter(|log| Pin::of(checkpoint.epoch, log) == statement.log)
             .ok_or(Invalid::MissingLog(*validator))?;
-        if !log.iter().all(|order| offered.contains(order)) {
+        if !log.iter().all(|order| held.contains(order)) {
             return Err(Invalid::MissingPayment(*validator));
         }
         merged.push(statement);
     }
-    if checkpoint.payments != gathered.payments.len() as u64 {
+    if checkpoint.payments != offered.len() as u64 {
         return Err(Invalid::WrongCount);
     }
-    let end = outcome(committee, start, gathered.payments, &merged)?;
+    if checkpoint.validators != next_validators(committee, &merged) {
+        return Err(Invalid::WrongValidators);
+    }
+    let end = outcome_of(committee, start, offered, &merged)?;
     if end.root() != checkpoint.state {
         return Err(Invalid::WrongState);
     }
     Ok(end)
+}
+
+/// Something a validator signed. The signature covers a batch, and the
+/// path inside `proof` ties this item to it.
+#[derive(Clone, Debug, PartialEq, Eq, BorshSerialize, BorshDeserialize)]
+pub struct Signed<T> {
+    pub body: T,
+    pub proof: Vote,
+}
+
+/// A vote in the agreement on a checkpoint: for the checkpoint with this
+/// digest, or for nothing.
+#[derive(Clone, Copy, Debug, PartialEq, Eq, BorshSerialize, BorshDeserialize)]
+pub struct Ballot {
+    /// False for a prevote, true for a precommit.
+    pub precommit: bool,
+    pub round: u32,
+    pub id: Option<Hash32>,
+}
+
+impl Ballot {
+    /// What a validator signs to cast it. The epoch and the network are
+    /// part of every batch a validator signs, so a ballot counts only in
+    /// the epoch it was cast in.
+    pub fn item(&self) -> Hash32 {
+        let flags = [self.precommit as u8, self.id.is_some() as u8];
+        hash(Tag::Ballot, &[&flags, &self.round.to_le_bytes(), self.id.unwrap_or_default().as_bytes()])
+    }
+}
+
+/// A checkpoint put forward by a round's proposer, with what the others
+/// need in order to judge it.
+#[derive(Clone, Debug, PartialEq, Eq, BorshSerialize, BorshDeserialize)]
+pub struct Proposal {
+    pub round: u32,
+    pub checkpoint: Checkpoint,
+    /// Set when the checkpoint is not new: an earlier round in which more
+    /// than two thirds prevoted for it.
+    pub valid_round: Option<u32>,
+    /// Those prevotes. The proposer's signature does not cover them: each
+    /// carries its own.
+    pub backers: Vec<Vote>,
+    /// The statements the checkpoint was built from. Each carries its own
+    /// signature too.
+    pub statements: Vec<Signed<Statement>>,
+}
+
+impl Proposal {
+    /// What the proposer signs.
+    pub fn item(&self) -> Hash32 {
+        let earlier = [self.valid_round.is_some() as u8];
+        hash(
+            Tag::Proposal,
+            &[
+                &self.round.to_le_bytes(),
+                &earlier,
+                &self.valid_round.unwrap_or(0).to_le_bytes(),
+                self.checkpoint.digest().as_bytes(),
+            ],
+        )
+    }
+}
+
+/// A checkpoint with the precommits that decided it, from validators
+/// holding more than two thirds of the stake. Anyone who knows the epoch's
+/// validators can check it.
+#[derive(Clone, Debug, PartialEq, Eq, BorshSerialize, BorshDeserialize)]
+pub struct Decided {
+    pub checkpoint: Checkpoint,
+    pub round: u32,
+    /// In validator order.
+    pub precommits: Vec<Vote>,
+}
+
+/// What validators send each other to close an epoch.
+#[allow(clippy::large_enum_variant)]
+#[derive(Clone, Debug, PartialEq, Eq, BorshSerialize, BorshDeserialize)]
+pub enum Message {
+    Statement(Signed<Statement>),
+    Proposal(Signed<Proposal>),
+    Ballot(Signed<Ballot>),
+    Decided(Decided),
+}
+
+/// Whether this statement was signed by the validator it names, in the
+/// committee's epoch.
+pub fn verify_statement(committee: &Committee, signed: &Signed<Statement>) -> bool {
+    let statement = &signed.body;
+    statement.epoch == committee.epoch()
+        && statement.validator == signed.proof.validator
+        && committee.verify_item(&statement.digest(committee.network()), &signed.proof).is_ok()
+}
+
+pub fn verify_ballot(committee: &Committee, signed: &Signed<Ballot>) -> bool {
+    committee.verify_item(&signed.body.item(), &signed.proof).is_ok()
+}
+
+/// Whether the proposer's own signature on a proposal is good. The prevotes
+/// and statements it carries are checked separately.
+pub fn verify_proposal(committee: &Committee, signed: &Signed<Proposal>) -> bool {
+    signed.body.checkpoint.epoch == committee.epoch()
+        && committee.verify_item(&signed.body.item(), &signed.proof).is_ok()
+}
+
+/// The validators who cast `ballot`, going by these signatures. `None` if
+/// any signature is bad or any validator appears twice.
+pub fn voters(committee: &Committee, ballot: &Ballot, signatures: &[Vote]) -> Option<Vec<u16>> {
+    let item = ballot.item();
+    let mut seen = BTreeSet::new();
+    for signature in signatures {
+        committee.verify_item(&item, signature).ok()?;
+        if !seen.insert(signature.validator) {
+            return None;
+        }
+    }
+    Some(seen.into_iter().collect())
+}
+
+/// Checks that a checkpoint was decided: that validators of this epoch
+/// holding more than two thirds of the stake precommitted to it.
+pub fn verify_decided(committee: &Committee, decided: &Decided) -> Result<(), VerifyError> {
+    let checkpoint = &decided.checkpoint;
+    if checkpoint.epoch != committee.epoch() {
+        return Err(VerifyError::WrongEpoch { found: checkpoint.epoch, current: committee.epoch() });
+    }
+    let item = Ballot { precommit: true, round: decided.round, id: Some(checkpoint.digest()) }.item();
+    let mut stake = 0u64;
+    let mut previous: Option<u16> = None;
+    for precommit in &decided.precommits {
+        if previous.is_some_and(|p| precommit.validator <= p) {
+            return Err(VerifyError::VotesOutOfOrder);
+        }
+        previous = Some(precommit.validator);
+        stake += committee.verify_item(&item, precommit)?;
+    }
+    if !committee.has_quorum(stake) {
+        return Err(VerifyError::NoQuorum { stake, total: committee.total_stake() });
+    }
+    Ok(())
 }

@@ -21,6 +21,8 @@ cd "$(dirname "$0")/.."
 
 NET=net
 NAME=orien-rehearsal
+# Seconds between checkpoints. A real network would use an hour.
+EPOCH=300
 LINUX=x86_64-unknown-linux-gnu
 ORIEN=target/release/orien
 ORIEN_LINUX=target/$LINUX/release/orien
@@ -61,7 +63,7 @@ create() {
     local addresses=()
     add() { addresses+=(--address "$4"); }
     each add
-    $ORIEN devnet init --dir $NET --name $NAME "${addresses[@]}"
+    $ORIEN devnet init --dir $NET --name $NAME --epoch-seconds $EPOCH "${addresses[@]}"
 }
 
 push_one() {

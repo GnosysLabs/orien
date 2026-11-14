@@ -9,16 +9,24 @@
 //! batch: votes for the orders it accepts, and confirmations of the
 //! certificates it applies. It writes to disk once and signs the batch once.
 //! One disk sync and one signature cover however many arrived.
+//!
+//! Once an epoch is due to end, the core stops voting and confirming, and
+//! closes the epoch with the other validators (`closer`). When a checkpoint
+//! is agreed it moves, in one step, to the checkpoint's state and an empty
+//! log for the next epoch. One thread per other validator keeps this one
+//! caught up with it, and another sends it what this one says.
 
-use crate::client::rpc;
+use crate::client::{connect, exchange, rpc};
+use crate::closer::{Closer, Env, Pace, Wanted};
 use crate::keys::ValidatorKey;
 use crate::store::{CertLog, Epochs, LeafCounter, OrderLog, sync_dir};
 use crate::wire::{AccountView, NodeInfo, Request, Response, read_frame, write_frame};
 use anyhow::{Context, Result, anyhow, bail};
 use orien_crypto::keytree::{KeyTree, TreeSignature};
 use orien_crypto::{Hash32, merkle};
+use orien_ledger::close::{self, Decided, Message, NextKey, Pin, Statement};
 use orien_ledger::{
-    Accepted, AccountId, Applied, Certificate, Committee, Confirmation, Genesis, Order, Reject,
+    Accepted, AccountId, Applied, Certificate, Committee, Confirmation, Genesis, Order, Proofs, Reject,
     SignedBy, SignedOrder, State, Vote, confirmation_item,
 };
 use std::collections::HashMap;
@@ -28,9 +36,13 @@ use std::net::{Shutdown, SocketAddr, TcpListener, TcpStream};
 use std::path::{Path, PathBuf};
 use std::sync::atomic::{AtomicBool, AtomicU64, Ordering};
 use std::sync::mpsc::{self, Receiver, RecvTimeoutError, Sender, TryRecvError};
-use std::sync::{Arc, Mutex};
+use std::sync::{Arc, Mutex, RwLock};
 use std::thread::{self, JoinHandle};
-use std::time::{Duration, Instant};
+use std::time::{Duration, Instant, SystemTime, UNIX_EPOCH};
+
+fn unix_now() -> u64 {
+    SystemTime::now().duration_since(UNIX_EPOCH).map_or(0, |since| since.as_secs())
+}
 
 pub struct NodeConfig {
     pub genesis: Genesis,
@@ -49,6 +61,12 @@ pub struct NodeConfig {
     /// One-time keys held back from voting on payments, for the messages
     /// that close an epoch. Never more than a quarter of the key tree.
     pub key_reserve: u32,
+    /// The unit of every wait while closing an epoch. A round's proposer is
+    /// given six of them; later rounds get more.
+    pub close_pace: Duration,
+    /// How many seconds a proposed checkpoint's time may differ from this
+    /// validator's clock.
+    pub clock_tolerance: u64,
     pub log: bool,
 }
 
@@ -64,6 +82,8 @@ impl NodeConfig {
             sync_interval: Duration::from_secs(1),
             durable: true,
             key_reserve: 128,
+            close_pace: Duration::from_millis(500),
+            clock_tolerance: 30,
             log: false,
         }
     }
@@ -88,11 +108,36 @@ enum Command {
     /// Would a certificate for this payment still change anything here?
     Needs { from: AccountId, seq: u64, reply: Sender<bool> },
     Query { request: Request, reply: Sender<Response> },
+    /// A message about closing `epoch`, from another validator.
+    Close { epoch: u64, message: Message },
+    /// Where this validator stands, for a thread about to ask a peer.
+    Standing { reply: Sender<Standing> },
+    /// The orders in a statement's pinned log, fetched from a peer. The
+    /// answer lists the ones this validator does not hold.
+    Log { statement: Hash32, orders: Vec<Hash32>, reply: Sender<Vec<Hash32>> },
+    /// The state `epoch` starts from, fetched from a validator already there.
+    Snapshot { epoch: u64, bytes: Vec<u8> },
+    /// A replacement key tree is ready.
+    NextKey(ValidatorKey, Box<KeyTree>),
     Stop,
 }
 
+struct Standing {
+    epoch: u64,
+    /// Pinned logs it still has to fetch.
+    wanted: Vec<Wanted>,
+    /// It knows the checkpoint that closes its epoch, but not yet the state
+    /// that checkpoint leads to.
+    needs_state: bool,
+}
+
 struct Shared {
-    committee: Committee,
+    /// The validators of the current epoch. The core replaces it at each
+    /// checkpoint.
+    committee: Arc<RwLock<Arc<Committee>>>,
+    data_dir: PathBuf,
+    /// Set while this validator is closing its epoch.
+    closing: Arc<AtomicBool>,
     commands: Sender<Command>,
     stopping: AtomicBool,
     connections: Mutex<HashMap<u64, TcpStream>>,
@@ -103,6 +148,18 @@ fn stopped() -> Response {
     Response::Unavailable("validator is stopping".into())
 }
 
+/// Whether a closing message carries the signatures it should. Checked
+/// before the message is handed to the core, so that junk costs the core
+/// nothing.
+fn genuine(committee: &Committee, message: &Message) -> bool {
+    match message {
+        Message::Statement(signed) => close::verify_statement(committee, signed),
+        Message::Ballot(signed) => close::verify_ballot(committee, signed),
+        Message::Proposal(signed) => close::verify_proposal(committee, signed),
+        Message::Decided(decided) => close::verify_decided(committee, decided).is_ok(),
+    }
+}
+
 impl Shared {
     fn ask<T>(&self, command: impl FnOnce(Sender<T>) -> Command) -> Option<T> {
         let (reply, answer) = mpsc::channel();
@@ -110,10 +167,14 @@ impl Shared {
         answer.recv().ok()
     }
 
+    fn committee(&self) -> Arc<Committee> {
+        self.committee.read().unwrap().clone()
+    }
+
     fn handle(&self, request: Request) -> Response {
         match request {
             Request::SubmitOrder(signed) => {
-                let digest = signed.order.digest(self.committee.network());
+                let digest = signed.order.digest(self.committee().network());
                 let Some(signed_by) = signed.signature.signed_by(&digest) else {
                     return Response::Rejected(Reject::BadSignature);
                 };
@@ -124,6 +185,16 @@ impl Shared {
                 self.ingest(certificate, false).unwrap_or_else(stopped)
             }
             Request::Confirm(certificate) => self.ingest(certificate, true).unwrap_or_else(stopped),
+            Request::Close { epoch, message } => {
+                let committee = self.committee();
+                if epoch != committee.epoch() {
+                    return Response::Epoch(committee.epoch());
+                }
+                if genuine(&committee, &message) {
+                    let _ = self.commands.send(Command::Close { epoch, message });
+                }
+                Response::Received
+            }
             request => self.ask(|reply| Command::Query { request, reply }).unwrap_or_else(stopped),
         }
     }
@@ -131,8 +202,13 @@ impl Shared {
     /// Verifies a certificate and applies it, signing a confirmation if
     /// `confirm` asks for one. `None` means the node is stopping.
     fn ingest(&self, certificate: Certificate, confirm: bool) -> Option<Response> {
+        let committee = self.committee();
+        // Votes count only in the epoch they were cast in.
+        if certificate.epoch != committee.epoch() {
+            return Some(Response::Epoch(committee.epoch()));
+        }
         let (from, seq) = (certificate.order.from, certificate.order.seq);
-        let digest = certificate.order.digest(self.committee.network());
+        let digest = certificate.order.digest(committee.network());
         if !self.ask(|reply| Command::Needs { from, seq, reply })? {
             // That payment number is already applied here.
             if confirm {
@@ -149,7 +225,7 @@ impl Shared {
                 _ => Response::Invalid("a different payment is already final under that number".into()),
             });
         }
-        if let Err(error) = self.committee.verify_certificate(&certificate) {
+        if let Err(error) = committee.verify_certificate(&certificate) {
             return Some(Response::Invalid(error.to_string()));
         }
         let Some(signed_by) = certificate.signature.signed_by(&digest) else {
@@ -188,14 +264,100 @@ struct Confirmed {
     signature: Arc<TreeSignature>,
 }
 
+/// Whether a recorded vote still binds: its payment number is the account's
+/// next, or a later one, and it is signed with the key the account requires.
+/// A number that a checkpoint cancelled is free again.
+fn binds(state: &State, network: &Hash32, signed: &SignedOrder) -> bool {
+    let order = &signed.order;
+    let current = state.seq(&order.from);
+    order.seq > current
+        || (order.seq == current && signed.signed_by(network).is_some_and(|by| state.authorizes(order, &by)))
+}
+
+/// Keeps a signed order as the account's unfinished payment, unless one
+/// with an earlier number is held already: that one has to finish first.
+/// Of two under the same number, the one recorded later is kept.
+fn hold(unfinished: &mut HashMap<AccountId, SignedOrder>, signed: SignedOrder) {
+    match unfinished.get(&signed.order.from) {
+        Some(held) if held.order.seq < signed.order.seq => {}
+        _ => {
+            unfinished.insert(signed.order.from, signed);
+        }
+    }
+}
+
+/// Makes the vote promised under each unfinished payment's number the vote
+/// for that payment.
+fn promise(state: &mut State, network: &Hash32, unfinished: &HashMap<AccountId, SignedOrder>) {
+    for signed in unfinished.values() {
+        let order = &signed.order;
+        state.restore_lock(order.from, order.seq, order.digest(network));
+    }
+}
+
+/// Signs `items` as one batch with one one-time key. Used for the messages
+/// that close an epoch, which may draw on the keys held back from payments.
+fn sign_batch(
+    tree: &KeyTree,
+    leaves: &mut LeafCounter,
+    committee: &Committee,
+    index: u16,
+    items: &[Hash32],
+) -> Option<Vec<Vote>> {
+    let leaf = leaves.take().ok()??;
+    let batch = merkle::Tree::build(items);
+    let signature = tree.sign_with_leaf(leaf, committee.batch_message(&batch.root()).as_bytes());
+    let votes = (0..items.len())
+        .map(|place| Vote { validator: index, batch_path: batch.path(place), signature: signature.clone() });
+    Some(votes.collect())
+}
+
 struct Core {
     name: String,
     index: u16,
+    /// The validators of the current epoch.
     committee: Committee,
+    /// The same, where connection threads read it.
+    committee_cell: Arc<RwLock<Arc<Committee>>>,
+    /// Tells the threads that talk to other validators that a close is on.
+    closing: Arc<AtomicBool>,
     tree: KeyTree,
     leaves: LeafCounter,
+    /// A key tree built to replace `tree`, with its secret. It is named in
+    /// this validator's closing statements until a checkpoint adopts it.
+    next_key: Option<(ValidatorKey, KeyTree)>,
+    /// True while a replacement tree is being built.
+    building_key: bool,
+    data_dir: PathBuf,
+    epochs: Epochs,
+    epoch_seconds: u64,
+    epoch_payments: u64,
+    /// The checkpoint that closed the epoch before this one, or the network
+    /// id in the first epoch, and its time.
+    previous: Hash32,
+    previous_time: u64,
+    /// The state this epoch started from: what the last checkpoint fixed.
+    start: State,
+    /// Proofs of accounts against that state, built on first use.
+    proofs: Option<Proofs>,
     state: State,
     certs: CertLog,
+    /// The payments applied in this epoch, in order: each order, its
+    /// digest, and where to find it by digest.
+    applied: Vec<Order>,
+    digests: Vec<Hash32>,
+    held: HashMap<Hash32, u32>,
+    /// A running commitment to `digests`.
+    pin: Pin,
+    closer: Closer,
+    pace: Pace,
+    /// When closing work was last looked at.
+    tended: Instant,
+    /// The decided checkpoint of this epoch is on disk.
+    checkpoint_saved: bool,
+    /// Where to send what this validator says: one queue per other validator.
+    peers: Vec<Sender<Request>>,
+    commands: Sender<Command>,
     orders: OrderLog,
     /// The signed order behind each vote for a payment that is not final
     /// yet: at most one per account. Anyone may ask for it, so that a
@@ -228,6 +390,7 @@ struct Core {
 impl Core {
     fn run(mut self, commands: Receiver<Command>) {
         loop {
+            self.tend();
             let command = if self.batch.is_empty() {
                 // Requests that queued up while the last batch was being
                 // written are a batch already. Waiting to gather more would
@@ -242,9 +405,11 @@ impl Core {
                     Err(TryRecvError::Disconnected) => break,
                     Err(TryRecvError::Empty) => {
                         self.hurry = false;
-                        match commands.recv() {
+                        match commands.recv_timeout(self.rest()) {
                             Ok(command) => command,
-                            Err(_) => break,
+                            // Time to look at the clock and the closing work.
+                            Err(RecvTimeoutError::Timeout) => continue,
+                            Err(RecvTimeoutError::Disconnected) => break,
                         }
                     }
                 }
@@ -289,6 +454,29 @@ impl Core {
                 Command::Query { request, reply } => {
                     let _ = reply.send(self.on_query(request));
                 }
+                Command::Close { epoch, message } => {
+                    if epoch == self.committee.epoch() {
+                        let said = self.close_step(|closer, env| closer.on_message(message, env));
+                        self.say(said);
+                        self.tended = Instant::now() - Duration::from_secs(1);
+                    }
+                }
+                Command::Standing { reply } => {
+                    let _ = reply.send(Standing {
+                        epoch: self.committee.epoch(),
+                        wanted: self.closer.wanted(Instant::now()),
+                        needs_state: self.closer.decided().is_some(),
+                    });
+                }
+                Command::Log { statement, orders, reply } => {
+                    let missing = self.close_step(|closer, env| closer.on_log(statement, orders, env));
+                    let _ = reply.send(missing.unwrap_or_default());
+                }
+                Command::Snapshot { epoch, bytes } => self.on_snapshot(epoch, &bytes),
+                Command::NextKey(key, tree) => {
+                    self.building_key = false;
+                    self.next_key = Some((key, *tree));
+                }
                 Command::Stop => break,
             }
         }
@@ -297,8 +485,300 @@ impl Core {
         }
     }
 
+    /// How long the core may sleep when nothing arrives.
+    fn rest(&self) -> Duration {
+        let tick = if self.closer.busy() { Duration::from_millis(20) } else { Duration::from_millis(200) };
+        match self.closer.next_wake() {
+            Some(wake) => tick.min(wake.saturating_duration_since(Instant::now())),
+            None => tick,
+        }
+    }
+
+    /// Runs one step of the closer, lending it what it needs from here.
+    fn close_step<R>(&mut self, step: impl FnOnce(&mut Closer, &mut Env) -> R) -> R {
+        let Core { closer, committee, start, previous, previous_time, tree, leaves, index, held, applied, .. } = self;
+        let (committee, tree, held, applied): (&Committee, &KeyTree, &HashMap<Hash32, u32>, &Vec<Order>) =
+            (committee, tree, held, applied);
+        let mut sign = |items: &[Hash32]| sign_batch(tree, leaves, committee, *index, items);
+        let order = |digest: &Hash32| held.get(digest).map(|place| &applied[*place as usize]);
+        let mut env = Env {
+            committee,
+            start,
+            previous: *previous,
+            previous_time: *previous_time,
+            now: Instant::now(),
+            unix: unix_now(),
+            sign: &mut sign,
+            order: &order,
+        };
+        step(closer, &mut env)
+    }
+
+    /// Sends closing messages to every other validator.
+    fn say(&self, messages: Vec<Message>) {
+        let epoch = self.committee.epoch();
+        for message in messages {
+            for peer in &self.peers {
+                let _ = peer.send(Request::Close { epoch, message: message.clone() });
+            }
+        }
+    }
+
+    /// Looks at the clock and at the closing work. Called between commands.
+    fn tend(&mut self) {
+        let now = Instant::now();
+        if now.saturating_duration_since(self.tended) < Duration::from_millis(5) {
+            return;
+        }
+        self.tended = now;
+        if !self.closer.frozen() && self.closer.decided().is_none() {
+            // An epoch ends when its time is up or it is full. A validator
+            // also stops when others holding more than a third of the stake
+            // have, which dishonest validators alone cannot bring about.
+            let due = unix_now() >= self.previous_time.saturating_add(self.epoch_seconds)
+                || self.applied.len() as u64 >= self.epoch_payments
+                || 3 * self.closer.statement_stake() as u128 > self.closer.total_stake() as u128;
+            if due {
+                self.freeze();
+            }
+        }
+        let said = self.close_step(|closer, env| closer.tick(env));
+        self.say(said);
+        self.closing.store(self.closer.frozen() || self.closer.decided().is_some(), Ordering::Relaxed);
+        if let Some(decided) = self.closer.decided().cloned() {
+            self.save_checkpoint(&decided);
+            if let Some(end) = self.closer.take_end() {
+                self.switch(decided, end);
+            }
+        }
+        // Start building a new key tree in good time: a validator with no
+        // keys left cannot even announce a replacement.
+        if self.next_key.is_none() && !self.building_key && self.leaves.used() >= self.tree.capacity() / 2 {
+            self.building_key = true;
+            let (commands, height, path) = (self.commands.clone(), self.tree.height(), self.data_dir.join("next.key"));
+            let _ = thread::Builder::new().name(format!("{}-key", self.name)).spawn(move || {
+                let key = ValidatorKey::generate(height);
+                let tree = KeyTree::generate(key.seed, key.height);
+                // The secret is on disk before its root is ever announced.
+                if key.save(&path).is_ok() {
+                    let _ = commands.send(Command::NextKey(key, Box::new(tree)));
+                }
+            });
+        }
+    }
+
+    /// Stops work on the epoch. From here until the checkpoint, this
+    /// validator votes on no payment and confirms none.
+    fn freeze(&mut self) {
+        if !self.batch.is_empty() {
+            self.close_batch();
+        }
+        // The log the statement pins must be on disk before the statement
+        // leaves, or a crash could leave this validator unable to show it.
+        if self.durable {
+            self.certs.sync().expect("cannot sync certificates; stopping");
+        }
+        let mut evidence: Vec<(SignedOrder, SignedOrder)> = self
+            .conflicts
+            .iter()
+            .filter_map(|(account, second)| self.unfinished.get(account).map(|first| (first.clone(), second.clone())))
+            .collect();
+        evidence.sort_by_key(|(first, _)| first.order.from);
+        let statement = Statement {
+            epoch: self.committee.epoch(),
+            validator: self.index,
+            log: self.pin,
+            evidence,
+            next_key: self.next_key.as_ref().map(|(_, tree)| NextKey { root: tree.root(), height: tree.height() }),
+        };
+        let own_log = self.digests.clone();
+        let said = self.close_step(|closer, env| closer.freeze(statement, own_log, env));
+        if self.log && !said.is_empty() {
+            println!(
+                "[{}] closing  epoch {}: paused with {} payment(s) recorded",
+                self.name,
+                self.committee.epoch(),
+                self.digests.len()
+            );
+        }
+        self.say(said);
+    }
+
+    fn save_checkpoint(&mut self, decided: &Decided) {
+        if !self.checkpoint_saved {
+            let bytes = borsh::to_vec(decided).expect("writing to memory cannot fail");
+            self.epochs.save_checkpoint(self.committee.epoch(), &bytes).expect("cannot store the checkpoint; stopping");
+            self.checkpoint_saved = true;
+        }
+    }
+
+    /// The state the next epoch starts from, fetched from a validator that
+    /// is already there. Used when this validator knows which checkpoint
+    /// closed its epoch but could not work out the state itself.
+    fn on_snapshot(&mut self, epoch: u64, bytes: &[u8]) {
+        let Some(decided) = self.closer.decided().cloned() else { return };
+        if epoch != self.committee.epoch() + 1 {
+            return;
+        }
+        // The checkpoint's state root is what more than two thirds agreed
+        // on. A state that hashes to it is that state, whoever sent it.
+        match State::from_snapshot(bytes) {
+            Ok(end) if end.root() == decided.checkpoint.state => {
+                self.save_checkpoint(&decided);
+                self.switch(decided, end);
+            }
+            _ => {}
+        }
+    }
+
+    /// Moves to the next epoch: the checkpoint's state, an empty log, the
+    /// validators the checkpoint names. Whatever this validator had applied
+    /// that the checkpoint leaves out is undone, and the signed order
+    /// behind it goes back to being a promise.
+    fn switch(&mut self, decided: Decided, end: State) {
+        if !self.batch.is_empty() {
+            self.close_batch();
+        }
+        let checkpoint = &decided.checkpoint;
+        let network = *self.committee.network();
+        // A promise still binds if its payment number is the account's
+        // next, or later, and it is signed with the key the account now
+        // requires. One whose number the checkpoint cancelled no longer does.
+        let open = |signed: &SignedOrder| binds(&end, &network, signed);
+        let mut left_out = Vec::new();
+        for (place, order) in self.applied.iter().enumerate() {
+            if end.seq(&order.from) <= order.seq
+                && let Ok(Some(certificate)) = self.certs.get(place)
+            {
+                let signed = certificate.signed();
+                if open(&signed) {
+                    left_out.push(signed);
+                }
+            }
+        }
+        // On disk before the switch, so that a restart afterwards still
+        // knows these promises.
+        let records: Vec<&SignedOrder> = left_out.iter().collect();
+        self.orders.append(&records, self.durable).expect("cannot record votes; stopping");
+        let snapshot = end.snapshot();
+        self.epochs.advance(&snapshot).expect("cannot start the next epoch; stopping");
+
+        // From here on this validator is in the next epoch.
+        let cancelled = self
+            .unfinished
+            .keys()
+            .filter(|id| {
+                let before = self.start.account(id).map_or(0, |account| account.spares_used);
+                end.account(id).is_some_and(|account| account.spares_used > before)
+            })
+            .count();
+        // Votes given first, then the payments that had been applied: where
+        // both exist under one number, the payment that had its certificate
+        // is the one this validator stays promised to.
+        let mut promises: Vec<SignedOrder> =
+            self.unfinished.drain().map(|(_, signed)| signed).filter(|signed| open(signed)).collect();
+        promises.extend(left_out);
+        self.conflicts.retain(|_, second| open(second));
+        self.state = State::from_snapshot(&snapshot).expect("a snapshot just written reads back");
+        self.start = self.state.clone();
+        self.proofs = None;
+        for signed in promises {
+            let order = &signed.order;
+            self.state.restore_lock(order.from, order.seq, order.digest(&network));
+            hold(&mut self.unfinished, signed);
+        }
+        promise(&mut self.state, &network, &self.unfinished);
+        self.conflicts.retain(|account, _| self.unfinished.contains_key(account));
+
+        self.committee = self.committee.following(checkpoint.validators.clone());
+        *self.committee_cell.write().unwrap() = Arc::new(self.committee.clone());
+        self.previous = checkpoint.digest();
+        self.previous_time = checkpoint.time;
+        self.certs = CertLog::open(&self.epochs.log(), |_| {}).expect("cannot open the certificate log; stopping");
+        self.applied.clear();
+        self.digests.clear();
+        self.held.clear();
+        self.pin = Pin::start(self.committee.epoch());
+        // Votes and confirmations were for the epoch that just ended.
+        self.issued.clear();
+        self.confirming.clear();
+        self.confirmed.clear();
+        self.root = None;
+        self.checkpoint_saved = false;
+
+        // A replacement key tree named in this validator's statement takes
+        // over once the checkpoint lists it.
+        let mine = &self.committee.members()[self.index as usize];
+        if let Some((_, tree)) = &self.next_key
+            && tree.root() == mine.root
+        {
+            let (_, tree) = self.next_key.take().expect("checked above");
+            let counter = self.data_dir.join(format!("leaf-{}", tree.root().short()));
+            self.leaves = LeafCounter::open(counter, tree.capacity(), self.durable)
+                .expect("cannot open the key counter; stopping");
+            self.tree = tree;
+            // The key file follows. Until it does, a restart finds the new
+            // key under its old name and still recognises it.
+            let _ = fs::rename(self.data_dir.join("next.key"), self.data_dir.join("current.key"));
+            if self.log {
+                println!("[{}] now signing with a fresh key tree ({})", self.name, self.tree.root().short());
+            }
+        }
+
+        self.closer = Closer::open(
+            &self.epochs.journal(),
+            self.index,
+            &self.committee,
+            self.previous,
+            self.pace,
+            self.durable,
+        )
+        .expect("cannot open the closing journal; stopping");
+        if self.durable {
+            self.epochs.sync().expect("cannot sync the epoch folder; stopping");
+        }
+        if self.log {
+            println!(
+                "[{}] checkpoint {} agreed in round {}: {} payment(s), {} cancelled, state {}; epoch {} begins",
+                self.name,
+                checkpoint.epoch,
+                decided.round,
+                checkpoint.payments,
+                cancelled,
+                checkpoint.state.short(),
+                self.committee.epoch()
+            );
+        }
+    }
+
+    /// Keeps the second of two different orders signed with one key.
+    fn keep_evidence(&mut self, signed: SignedOrder) {
+        let account = signed.order.from;
+        if !self.conflicts.contains_key(&account) {
+            // Its signature is good, or it would not have got this far.
+            // Losing this record in a crash only delays what it is evidence
+            // for, so it is not synced.
+            self.conflict_log.append(&[&signed], false).expect("cannot record evidence; stopping");
+            self.conflicts.insert(account, signed);
+        }
+    }
+
     fn on_order(&mut self, signed: SignedOrder, digest: Hash32, signed_by: SignedBy, reply: Sender<Response>) {
         let payment = (signed.order.from, signed.order.seq);
+        if self.closer.frozen() {
+            // No votes until the checkpoint. A second order signed with a
+            // key this validator has already voted under is still kept, as
+            // evidence for the checkpoint after this one.
+            let order = &signed.order;
+            let conflicting = self.state.seq(&order.from) == order.seq
+                && self.state.lock(&order.from, order.seq).is_some_and(|voted| *voted != digest)
+                && self.state.authorizes(order, &signed_by);
+            if conflicting {
+                self.keep_evidence(signed);
+            }
+            let _ = reply.send(Response::Closing);
+            return;
+        }
         match self.state.check_order(&signed.order, digest, &signed_by) {
             Ok(Accepted::Fresh) => {
                 self.unfinished.insert(payment.0, signed.clone());
@@ -314,12 +794,8 @@ impl Core {
                 None => self.enqueue(payment, digest, reply, None),
             },
             Err(reject) => {
-                if matches!(reject, Reject::Conflict { .. }) && !self.conflicts.contains_key(&payment.0) {
-                    // Its signature is good, or the answer would have been
-                    // a bad signature. Losing this record in a crash only
-                    // delays what it is evidence for, so it is not synced.
-                    self.conflict_log.append(&[&signed], false).expect("cannot record evidence; stopping");
-                    self.conflicts.insert(payment.0, signed);
+                if matches!(reject, Reject::Conflict { .. }) {
+                    self.keep_evidence(signed);
                 }
                 if self.log {
                     println!(
@@ -468,6 +944,12 @@ impl Core {
     ) {
         let order = &certificate.order;
         let payment = (order.from, order.seq);
+        // It was checked against the validators of an epoch that may have
+        // ended while it waited in the queue.
+        if certificate.epoch != self.committee.epoch() {
+            let _ = reply.send(Response::Epoch(self.committee.epoch()));
+            return;
+        }
         // The votes say validators checked the owner's signature on the
         // order. The copy carried in the certificate is checked here, since
         // it is what this validator would be left holding if a checkpoint
@@ -481,6 +963,10 @@ impl Core {
         let answer = match self.state.apply(order) {
             Ok(Applied::New) => {
                 self.certs.append(&certificate).expect("cannot store certificate; stopping");
+                self.held.insert(digest, self.applied.len() as u32);
+                self.applied.push(order.clone());
+                self.digests.push(digest);
+                self.pin.add(&digest);
                 self.unfinished.remove(&order.from);
                 self.conflicts.remove(&order.from);
                 self.root = None;
@@ -497,10 +983,14 @@ impl Core {
                         order.seq
                     );
                 }
-                if confirm {
+                if confirm && self.closer.frozen() {
+                    // Recorded, but nothing is confirmed until the checkpoint.
+                    Response::Closing
+                } else if confirm {
                     return self.enqueue_confirmation(payment, digest, reply);
+                } else {
+                    Response::Applied { fresh: true }
                 }
-                Response::Applied { fresh: true }
             }
             // It was applied between the check and now.
             Ok(Applied::Already) if confirm => return self.on_confirm(certificate.order, digest, reply),
@@ -526,6 +1016,10 @@ impl Core {
         };
         if let Some(answer) = answer {
             let _ = reply.send(answer);
+            return;
+        }
+        if self.closer.frozen() {
+            let _ = reply.send(Response::Closing);
             return;
         }
         if let Some(kept) = self.confirmed.get(&order.from)
@@ -559,6 +1053,9 @@ impl Core {
                 certificates: self.certs.len() as u64,
                 keys_used: self.leaves.used(),
                 keys_total: self.tree.capacity(),
+                epoch: self.committee.epoch(),
+                closing: self.closer.frozen(),
+                epoch_started: self.previous_time,
             }),
             Request::Account(id) => Response::Account(self.state.account(&id).map(|account| {
                 AccountView {
@@ -573,34 +1070,85 @@ impl Core {
                 Ok(certificate) => Response::Certificate(certificate),
                 Err(error) => Response::Unavailable(format!("cannot read certificate: {error}")),
             },
-            Request::CertsSince { index, max } => {
-                let total = self.certs.len() as u64;
+            Request::Sync { epoch, certs: from, messages, max } => {
+                let mine = self.committee.epoch();
+                let (mut certs, mut heard, mut decided) = (Vec::new(), Vec::new(), None);
+                let (mut certs_total, mut messages_total) = (0, 0);
+                if epoch == mine {
+                    certs_total = self.certs.len() as u64;
+                    let mut bytes = 0usize;
+                    for place in from..certs_total.min(from.saturating_add(max as u64)) {
+                        match self.certs.get(place as usize) {
+                            Ok(Some(certificate)) => {
+                                // Stay well under the frame limit.
+                                bytes += 2048 * (certificate.votes.len() + 1);
+                                certs.push(certificate);
+                                if bytes > 4 << 20 {
+                                    break;
+                                }
+                            }
+                            _ => break,
+                        }
+                    }
+                    let (said, total) = self.closer.messages(messages as usize, 64);
+                    heard = said.to_vec();
+                    messages_total = total as u64;
+                } else if epoch < mine {
+                    // The asker is behind. Show it how its epoch ended.
+                    decided = self.checkpoint(epoch);
+                }
+                Response::Sync { epoch: mine, certs, certs_total, messages: heard, messages_total, decided }
+            }
+            Request::Log { epoch, statement, from, max } => Response::Log(
+                (epoch == self.committee.epoch())
+                    .then(|| self.closer.log(&statement, from as usize, max as usize).map(<[Hash32]>::to_vec))
+                    .flatten(),
+            ),
+            Request::Payments { epoch, orders } => {
                 let mut certs = Vec::new();
                 let mut bytes = 0usize;
-                for i in index..total.min(index.saturating_add(max as u64)) {
-                    match self.certs.get(i as usize) {
-                        Ok(Some(certificate)) => {
-                            // Stay well under the frame limit.
-                            bytes += 2048 * (certificate.votes.len() + 1);
-                            certs.push(certificate);
-                            if bytes > 4 << 20 {
-                                break;
-                            }
+                if epoch == self.committee.epoch() {
+                    for digest in orders {
+                        let Some(place) = self.held.get(&digest) else { break };
+                        let Ok(Some(certificate)) = self.certs.get(*place as usize) else { break };
+                        bytes += 2048 * (certificate.votes.len() + 1);
+                        certs.push(certificate);
+                        if bytes > 4 << 20 {
+                            break;
                         }
-                        _ => break,
                     }
                 }
-                Response::Certs { certs, total }
+                Response::Payments(certs)
+            }
+            Request::Snapshot { epoch, offset, max } => {
+                let max = (max as usize).min(4 << 20);
+                Response::Snapshot(self.epochs.state_chunk(epoch, offset, max).ok().flatten())
+            }
+            Request::Checkpoints { from, max } => {
+                let until = self.committee.epoch().min(from.saturating_add(max.min(64) as u64));
+                Response::Checkpoints((from..until).map_while(|epoch| self.checkpoint(epoch)).collect())
+            }
+            Request::Proof(id) => {
+                let proofs = self.proofs.get_or_insert_with(|| self.start.proofs());
+                let account = self.start.account(&id).cloned().zip(proofs.path(&id));
+                Response::Proof { epoch: self.committee.epoch(), account }
             }
             Request::Pending(id) => Response::Pending(self.unfinished.get(&id).cloned()),
             Request::Root => Response::Root(*self.root.get_or_insert_with(|| self.state.root())),
             Request::Evidence(id) => Response::Evidence(
                 self.unfinished.get(&id).cloned().zip(self.conflicts.get(&id).cloned()),
             ),
-            Request::SubmitOrder(_) | Request::SubmitCertificate(_) | Request::Confirm(_) => {
-                Response::Invalid("not a query".into())
-            }
+            Request::SubmitOrder(_)
+            | Request::SubmitCertificate(_)
+            | Request::Confirm(_)
+            | Request::Close { .. } => Response::Invalid("not a query".into()),
         }
+    }
+
+    /// The checkpoint that closed `epoch`, with its proof, if it is on disk.
+    fn checkpoint(&self, epoch: u64) -> Option<Decided> {
+        let bytes = self.epochs.checkpoint(epoch).ok()??;
+        borsh::from_slice(&bytes).ok()
     }
 }
 
@@ -642,53 +1190,176 @@ fn serve_requests(stream: &TcpStream, shared: &Shared) -> io::Result<()> {
     Ok(())
 }
 
-/// Keeps this validator caught up with one peer. Every validator logs the
-/// certificates it applies; reading a peer's log from where we left off
-/// picks up anything we missed while down or unreachable.
-fn sync_from_peer(shared: Arc<Shared>, peer: String, cursor_file: PathBuf, interval: Duration) {
+/// Keeps this validator caught up with one other. Every round it asks the
+/// peer for the certificates and closing messages it has not read yet, and
+/// fetches whatever pinned logs this validator still needs for the close.
+/// If the peer is in a later epoch, it asks how this validator's epoch
+/// ended and for the state the next one starts from.
+fn sync_with_peer(shared: Arc<Shared>, peer: u16, address: String, interval: Duration) {
     const TIMEOUT: Duration = Duration::from_secs(3);
-    let mut cursor: u64 =
-        fs::read_to_string(&cursor_file).ok().and_then(|text| text.trim().parse().ok()).unwrap_or(0);
+    /// How long a log is left to the validator it belongs to before every
+    /// peer is asked for it.
+    const PATIENCE: Duration = Duration::from_millis(400);
+    let cursor_file = |epoch: u64| Epochs::folder_in(&shared.data_dir, epoch).join(format!("sync-{peer}.cursor"));
+    let stopping = || shared.stopping.load(Ordering::SeqCst);
+    let (mut epoch, mut certs, mut messages) = (u64::MAX, 0u64, 0u64);
     loop {
-        let wake = Instant::now() + interval;
-        while Instant::now() < wake {
-            if shared.stopping.load(Ordering::SeqCst) {
-                return;
-            }
-            thread::sleep(Duration::from_millis(25).min(interval));
-        }
+        // While an epoch is closing, every moment of delay is a moment in
+        // which nobody can pay. So the wait is cut short as soon as a close
+        // begins, and stays short until it is over.
+        let quick = interval.min(Duration::from_millis(40));
+        let slept = Instant::now();
         loop {
-            if shared.stopping.load(Ordering::SeqCst) {
+            if stopping() {
                 return;
             }
-            let request = Request::CertsSince { index: cursor, max: 256 };
-            let Ok(Response::Certs { certs, total }) = rpc(&peer, &request, TIMEOUT) else { break };
-            if cursor > total {
-                // The peer's log is shorter than what we already read: it
-                // was wiped and restarted. Read it again from the top.
-                cursor = 0;
-                continue;
-            }
-            if certs.is_empty() {
+            let pause = if shared.closing.load(Ordering::Relaxed) { quick } else { interval };
+            if slept.elapsed() >= pause {
                 break;
             }
-            for certificate in certs {
+            thread::sleep(Duration::from_millis(10).min(pause));
+        }
+        let Some(standing) = shared.ask(|reply| Command::Standing { reply }) else { return };
+        if standing.epoch != epoch {
+            epoch = standing.epoch;
+            messages = 0;
+            certs = fs::read_to_string(cursor_file(epoch)).ok().and_then(|text| text.trim().parse().ok()).unwrap_or(0);
+        }
+
+        loop {
+            if stopping() {
+                return;
+            }
+            let request = Request::Sync { epoch, certs, messages, max: 256 };
+            let Ok(Response::Sync { epoch: theirs, certs: got, certs_total, messages: heard, messages_total, decided }) =
+                rpc(&address, &request, TIMEOUT)
+            else {
+                break;
+            };
+            if theirs > epoch {
+                // The peer has moved on. Learn how this epoch ended, and if
+                // this validator cannot work out the resulting state, take
+                // it from the peer. It is checked against the checkpoint.
+                if let Some(decided) = decided {
+                    let _ = shared.commands.send(Command::Close { epoch, message: Message::Decided(decided) });
+                }
+                let needs_state = shared
+                    .ask(|reply| Command::Standing { reply })
+                    .is_some_and(|standing| standing.epoch == epoch && standing.needs_state);
+                if needs_state && let Some(bytes) = fetch_snapshot(&address, epoch + 1, TIMEOUT) {
+                    let _ = shared.commands.send(Command::Snapshot { epoch: epoch + 1, bytes });
+                }
+                break;
+            }
+            if theirs < epoch {
+                break;
+            }
+            if certs > certs_total || messages > messages_total {
+                // The peer's lists are shorter than what was read from them:
+                // it was wiped and restarted. Read them again from the top.
+                (certs, messages) = (0, 0);
+                continue;
+            }
+            if got.is_empty() && heard.is_empty() {
+                break;
+            }
+            for certificate in got {
                 if shared.ingest(certificate, false).is_none() {
                     return;
                 }
-                cursor += 1;
+                certs += 1;
             }
-            let _ = fs::write(&cursor_file, cursor.to_string());
-            if cursor >= total {
+            for message in heard {
+                if genuine(&shared.committee(), &message) {
+                    let _ = shared.commands.send(Command::Close { epoch, message });
+                }
+                messages += 1;
+            }
+            let _ = fs::write(cursor_file(epoch), certs.to_string());
+            if certs >= certs_total && messages >= messages_total {
                 break;
             }
+        }
+
+        // The logs other validators pinned. Each is asked of its own
+        // validator first, and of everyone once that has taken too long.
+        for wanted in standing.wanted {
+            if stopping() {
+                return;
+            }
+            if wanted.validator == peer || wanted.age > PATIENCE {
+                fetch_log(&shared, &address, epoch, &wanted, TIMEOUT);
+            }
+        }
+    }
+}
+
+/// Fetches the state `epoch` starts from, in pieces.
+fn fetch_snapshot(address: &str, epoch: u64, timeout: Duration) -> Option<Vec<u8>> {
+    let mut bytes = Vec::new();
+    loop {
+        let request = Request::Snapshot { epoch, offset: bytes.len() as u64, max: 4 << 20 };
+        let Ok(Response::Snapshot(Some((piece, total)))) = rpc(address, &request, timeout) else { return None };
+        if piece.is_empty() && (bytes.len() as u64) < total {
+            return None;
+        }
+        bytes.extend_from_slice(&piece);
+        if bytes.len() as u64 >= total {
+            return Some(bytes);
+        }
+    }
+}
+
+/// Fetches a pinned log from a peer, and then the payments in it that this
+/// validator lacks, in the order the log lists them.
+fn fetch_log(shared: &Shared, address: &str, epoch: u64, wanted: &Wanted, timeout: Duration) {
+    let mut orders: Vec<Hash32> = Vec::new();
+    while (orders.len() as u64) < wanted.pin.length {
+        let request = Request::Log { epoch, statement: wanted.statement, from: orders.len() as u64, max: 50_000 };
+        match rpc(address, &request, timeout) {
+            Ok(Response::Log(Some(page))) if !page.is_empty() => orders.extend(page),
+            _ => return,
+        }
+    }
+    let statement = wanted.statement;
+    let Some(missing) = shared.ask(|reply| Command::Log { statement, orders, reply }) else { return };
+    for wanted in missing.chunks(128) {
+        let request = Request::Payments { epoch, orders: wanted.to_vec() };
+        let Ok(Response::Payments(certificates)) = rpc(address, &request, timeout) else { return };
+        let complete = certificates.len() == wanted.len();
+        for certificate in certificates {
+            if shared.ingest(certificate, false).is_none() {
+                return;
+            }
+        }
+        if !complete {
+            return;
+        }
+    }
+}
+
+/// Sends this validator's closing messages to one other, in order. A
+/// message that cannot be delivered is dropped: the other validator also
+/// asks for what it has missed.
+fn push_to_peer(address: String, queue: Receiver<Request>) {
+    let mut stream: Option<TcpStream> = None;
+    for request in queue {
+        for _ in 0..2 {
+            if stream.is_none() {
+                stream = connect(&address, Duration::from_secs(1)).ok();
+            }
+            let sent = stream.as_mut().is_some_and(|open| exchange(open, &request).is_ok());
+            if sent {
+                break;
+            }
+            stream = None;
         }
     }
 }
 
 /// The layout and encoding of a validator's files. Raised whenever either
 /// changes in a way an older or newer version would misread.
-const DATA_FORMAT: &str = "3";
+const DATA_FORMAT: &str = "4";
 
 /// A data directory belongs to one network and is written in one format.
 /// Refuse to reuse it for another network, or to read a format this version
@@ -738,52 +1409,122 @@ impl Node {
     /// bound; otherwise the configured or genesis address is bound.
     pub fn start(config: NodeConfig, listener: Option<TcpListener>) -> Result<Node> {
         config.genesis.validate().map_err(|e| anyhow!("invalid genesis: {e}"))?;
-        let committee = Committee::new(&config.genesis);
-        let tree = KeyTree::generate(config.key.seed, config.key.height);
+        let genesis_committee = Committee::new(&config.genesis);
+        let network = *genesis_committee.network();
+        let original = KeyTree::generate(config.key.seed, config.key.height);
         let index = config
             .genesis
             .validators
             .iter()
-            .position(|v| v.root == tree.root() && v.height == config.key.height)
+            .position(|v| v.root == original.root() && v.height == config.key.height)
             .ok_or_else(|| anyhow!("this validator key is not listed in the genesis file"))?;
         let info = &config.genesis.validators[index];
         let name = info.name.clone();
+        let data_dir = config.data_dir.clone();
 
-        claim_data_dir(&config.data_dir, committee.network())?;
-        let epochs = Epochs::open(&config.data_dir, config.durable)?;
+        claim_data_dir(&data_dir, &network)?;
+        let epochs = Epochs::open(&data_dir, config.durable)?;
+        let epoch = epochs.current();
+        // The validators of the current epoch, and the checkpoint before it.
+        let (committee, previous, previous_time) = match epoch {
+            0 => (genesis_committee, network, config.genesis.start_time),
+            _ => {
+                let bytes = epochs
+                    .checkpoint(epoch - 1)?
+                    .ok_or_else(|| anyhow!("the checkpoint that closed epoch {} is missing", epoch - 1))?;
+                let decided: Decided = borsh::from_slice(&bytes).context("a stored checkpoint is corrupt")?;
+                let checkpoint = decided.checkpoint;
+                let committee = genesis_committee.at_epoch(epoch - 1).following(checkpoint.validators.clone());
+                (committee, checkpoint.digest(), checkpoint.time)
+            }
+        };
+
+        // Which key tree this validator signs with now: the one it was
+        // given, or a replacement it built later and a checkpoint adopted.
+        let wanted = committee.members()[index].root;
+        let stored = |file: &str| -> Result<Option<(ValidatorKey, KeyTree)>> {
+            let path = data_dir.join(file);
+            if !path.exists() {
+                return Ok(None);
+            }
+            let key = ValidatorKey::load(&path)?;
+            let tree = KeyTree::generate(key.seed, key.height);
+            Ok(Some((key, tree)))
+        };
+        let mut next_key = stored("next.key")?;
+        let tree = if original.root() == wanted {
+            original
+        } else if let Some((_, tree)) = stored("current.key")?.filter(|(_, tree)| tree.root() == wanted) {
+            tree
+        } else if next_key.as_ref().is_some_and(|(_, tree)| tree.root() == wanted) {
+            // It took over just before a restart; the file was not renamed.
+            fs::rename(data_dir.join("next.key"), data_dir.join("current.key"))?;
+            next_key.take().expect("checked above").1
+        } else {
+            bail!("the key this validator signs with in epoch {epoch} is not in {}", data_dir.display());
+        };
+
         let mut state = match epochs.snapshot()? {
             Some(snapshot) => State::from_snapshot(&snapshot).context("the state snapshot is corrupt")?,
             None => State::from_genesis(&config.genesis),
         };
+        let start = state.clone();
+        let (mut applied, mut digests, mut held) = (Vec::new(), Vec::new(), HashMap::new());
+        let mut pin = Pin::start(epoch);
         let certs = CertLog::open(&epochs.log(), |certificate| {
-            let _ = state.apply(&certificate.order);
+            let order = &certificate.order;
+            let _ = state.apply(order);
+            let digest = order.digest(&network);
+            held.insert(digest, applied.len() as u32);
+            applied.push(order.clone());
+            digests.push(digest);
+            pin.add(&digest);
         })?;
         let mut unfinished = HashMap::new();
-        let orders = OrderLog::open(&config.data_dir.join("orders.log"), config.durable, |signed| {
+        let orders = OrderLog::open(&data_dir.join("orders.log"), config.durable, |signed| {
             let order = &signed.order;
-            if order.seq < state.seq(&order.from) {
-                return false;
+            let live = binds(&state, &network, signed);
+            if live {
+                state.restore_lock(order.from, order.seq, order.digest(&network));
+                hold(&mut unfinished, signed.clone());
             }
-            state.restore_lock(order.from, order.seq, order.digest(committee.network()));
-            unfinished.insert(order.from, signed.clone());
-            true
+            live
         })?;
+        promise(&mut state, &network, &unfinished);
         let mut conflicts = HashMap::new();
-        let conflict_log = OrderLog::open(&config.data_dir.join("conflicts.log"), config.durable, |signed| {
+        let conflict_log = OrderLog::open(&data_dir.join("conflicts.log"), config.durable, |signed| {
             let order = &signed.order;
-            let live = order.seq == state.seq(&order.from) && unfinished.contains_key(&order.from);
+            let live = order.seq == state.seq(&order.from)
+                && unfinished.contains_key(&order.from)
+                && binds(&state, &network, signed);
             if live {
                 conflicts.entry(order.from).or_insert_with(|| signed.clone());
             }
             live
         })?;
         let tree_capacity = tree.capacity();
-        let leaves = LeafCounter::open(config.data_dir.join("leaf"), tree_capacity, config.durable)?;
+        let counter = data_dir.join(format!("leaf-{}", tree.root().short()));
+        let leaves = LeafCounter::open(counter, tree_capacity, config.durable)?;
+
+        let pace = Pace { unit: config.close_pace, clock_tolerance: config.clock_tolerance };
+        let mut closer = Closer::open(&epochs.journal(), index as u16, &committee, previous, pace, config.durable)?;
+        if let Some(pinned) = closer.own_pin() {
+            // It had stopped work on this epoch before the restart.
+            let own_log = digests[..digests.len().min(pinned.length as usize)].to_vec();
+            if !closer.restore_own_log(own_log) {
+                bail!(
+                    "{} no longer holds the payments this validator said it had recorded when it \
+                     stopped work on epoch {epoch}",
+                    data_dir.display()
+                );
+            }
+        }
+        let checkpoint_saved = epochs.checkpoint(epoch)?.is_some();
         if config.durable {
             // Make sure the log files themselves exist on disk before any
             // vote relies on them.
             epochs.sync()?;
-            sync_dir(&config.data_dir)?;
+            sync_dir(&data_dir)?;
         }
 
         let listener = match listener {
@@ -796,21 +1537,64 @@ impl Node {
         let addr = listener.local_addr()?;
 
         let (commands, receiver) = mpsc::channel();
+        let committee_cell = Arc::new(RwLock::new(Arc::new(committee.clone())));
+        let closing = Arc::new(AtomicBool::new(closer.frozen()));
         let shared = Arc::new(Shared {
-            committee: committee.clone(),
-            commands,
+            committee: committee_cell.clone(),
+            data_dir: data_dir.clone(),
+            closing: closing.clone(),
+            commands: commands.clone(),
             stopping: AtomicBool::new(false),
             connections: Mutex::new(HashMap::new()),
             next_connection: AtomicU64::new(0),
         });
+        let others: Vec<(u16, String)> = config
+            .genesis
+            .validators
+            .iter()
+            .enumerate()
+            .filter(|(peer, _)| *peer != index)
+            .map(|(peer, validator)| (peer as u16, validator.address.clone()))
+            .collect();
+        let mut peers = Vec::new();
+        for (peer, address) in &others {
+            let (queue, sending) = mpsc::channel();
+            peers.push(queue);
+            let address = address.clone();
+            thread::Builder::new()
+                .name(format!("{name}-push-{peer}"))
+                .spawn(move || push_to_peer(address, sending))?;
+        }
         let core = Core {
             name: name.clone(),
             index: index as u16,
             committee,
+            committee_cell,
+            closing,
             tree,
             leaves,
+            next_key,
+            building_key: false,
+            data_dir,
+            epochs,
+            epoch_seconds: config.genesis.epoch_seconds,
+            epoch_payments: config.genesis.epoch_payments,
+            previous,
+            previous_time,
+            start,
+            proofs: None,
             state,
             certs,
+            applied,
+            digests,
+            held,
+            pin,
+            closer,
+            pace,
+            tended: Instant::now(),
+            checkpoint_saved,
+            peers,
+            commands,
             orders,
             unfinished,
             conflicts,
@@ -835,17 +1619,12 @@ impl Node {
             .spawn(move || accept_loop(listener, accepting))?;
 
         if !config.sync_interval.is_zero() {
-            for (peer, validator) in config.genesis.validators.iter().enumerate() {
-                if peer == index {
-                    continue;
-                }
+            for (peer, address) in others {
                 let shared = shared.clone();
-                let address = validator.address.clone();
-                let cursor_file = config.data_dir.join(format!("sync-{peer}.cursor"));
                 let interval = config.sync_interval;
                 thread::Builder::new()
                     .name(format!("{name}-sync-{peer}"))
-                    .spawn(move || sync_from_peer(shared, address, cursor_file, interval))?;
+                    .spawn(move || sync_with_peer(shared, peer, address, interval))?;
             }
         }
 

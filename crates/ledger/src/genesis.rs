@@ -1,4 +1,5 @@
 use crate::types::{AccountId, Certificate, Confirmation, Receipt, Vote, confirmation_item};
+use borsh::{BorshDeserialize, BorshSerialize};
 use orien_crypto::{Hash32, Tag, hash, keytree, merkle};
 use serde::{Deserialize, Serialize};
 use std::collections::HashSet;
@@ -22,15 +23,47 @@ pub struct Allocation {
     pub amount: u64,
 }
 
-/// Everything that defines a network: who validates and who starts with what.
+/// Everything that defines a network: who validates, who starts with what,
+/// and the settings every validator must share.
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Genesis {
     pub network: String,
     pub validators: Vec<ValidatorInfo>,
     pub allocations: Vec<Allocation>,
+    /// Seconds from one checkpoint to the next.
+    #[serde(default = "an_hour")]
+    pub epoch_seconds: u64,
+    /// An epoch ends early once it holds this many payments, so that no
+    /// checkpoint has too much to reconcile.
+    #[serde(default = "fifty_thousand")]
+    pub epoch_payments: u64,
+    /// When the network starts, in seconds since 1970. The first checkpoint
+    /// is due one epoch after it.
+    #[serde(default)]
+    pub start_time: u64,
+}
+
+fn an_hour() -> u64 {
+    3600
+}
+
+fn fifty_thousand() -> u64 {
+    50_000
 }
 
 impl Genesis {
+    /// A network with the usual settings.
+    pub fn new(network: &str, validators: Vec<ValidatorInfo>, allocations: Vec<Allocation>) -> Genesis {
+        Genesis {
+            network: network.into(),
+            validators,
+            allocations,
+            epoch_seconds: an_hour(),
+            epoch_payments: fifty_thousand(),
+            start_time: 0,
+        }
+    }
+
     /// The network's identity. Every signature is bound to it.
     pub fn id(&self) -> Hash32 {
         let mut bytes = Vec::new();
@@ -46,6 +79,9 @@ impl Genesis {
         for allocation in &self.allocations {
             bytes.extend_from_slice(allocation.account.as_bytes());
             bytes.extend_from_slice(&allocation.amount.to_le_bytes());
+        }
+        for setting in [self.epoch_seconds, self.epoch_payments, self.start_time] {
+            bytes.extend_from_slice(&setting.to_le_bytes());
         }
         hash(Tag::Genesis, &[&bytes])
     }
@@ -83,6 +119,9 @@ impl Genesis {
         }
         if self.supply() > u64::MAX as u128 {
             return Err("total supply overflows".into());
+        }
+        if self.epoch_seconds == 0 || self.epoch_payments == 0 {
+            return Err("an epoch must have a length and a payment limit".into());
         }
         Ok(())
     }
@@ -124,14 +163,17 @@ impl fmt::Display for VerifyError {
 
 impl std::error::Error for VerifyError {}
 
-#[derive(Clone)]
-struct Member {
-    root: Hash32,
-    height: u8,
-    stake: u64,
+/// One validator of an epoch: the key it signs with and the weight of its
+/// vote.
+#[derive(Clone, Debug, PartialEq, Eq, BorshSerialize, BorshDeserialize)]
+pub struct Member {
+    /// Root of the validator's key tree.
+    pub root: Hash32,
+    pub height: u8,
+    pub stake: u64,
 }
 
-/// The validator set, with what is needed to check votes.
+/// The validator set of one epoch, with what is needed to check its votes.
 #[derive(Clone)]
 pub struct Committee {
     network: Hash32,
@@ -161,6 +203,22 @@ impl Committee {
     /// this epoch count for nothing there.
     pub fn at_epoch(&self, epoch: u64) -> Committee {
         Committee { epoch, ..self.clone() }
+    }
+
+    pub fn members(&self) -> &[Member] {
+        &self.members
+    }
+
+    /// The validator set of the epoch after this one, as the checkpoint
+    /// that closes this epoch names it.
+    pub fn following(&self, members: Vec<Member>) -> Committee {
+        self.with(self.epoch + 1, members)
+    }
+
+    /// These validators, serving `epoch` of the same network.
+    pub fn with(&self, epoch: u64, members: Vec<Member>) -> Committee {
+        let total_stake = members.iter().map(|m| m.stake).sum();
+        Committee { network: self.network, epoch, members, total_stake }
     }
 
     pub fn network(&self) -> &Hash32 {
@@ -212,7 +270,12 @@ impl Committee {
         self.verify_signed(&confirmation_item(order_digest), confirmation)
     }
 
-    /// Checks that a validator of this epoch signed a batch containing `item`.
+    /// Checks that a validator of this epoch signed a batch containing
+    /// `item`. Returns that validator's stake.
+    pub fn verify_item(&self, item: &Hash32, signature: &Vote) -> Result<u64, VerifyError> {
+        self.verify_signed(item, signature)
+    }
+
     fn verify_signed(&self, item: &Hash32, vote: &Vote) -> Result<u64, VerifyError> {
         let member = self
             .members

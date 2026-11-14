@@ -155,6 +155,19 @@ pub fn account_root(id: &AccountId, account: &Account, proof: &merkle::Path) -> 
     merkle::root_from_path_in(merkle::Kind::State, &leaf(id, account), proof)
 }
 
+/// Proofs of any account against one state root. Building this once costs
+/// as much as computing the root; each proof after that is cheap.
+pub struct Proofs {
+    places: HashMap<AccountId, usize>,
+    tree: merkle::Tree,
+}
+
+impl Proofs {
+    pub fn path(&self, id: &AccountId) -> Option<merkle::Path> {
+        self.places.get(id).map(|place| self.tree.path(*place))
+    }
+}
+
 #[derive(Clone)]
 pub struct State {
     /// In address order, so that every validator lists them alike.
@@ -212,6 +225,12 @@ impl State {
     /// that are not final are a validator's own business and not part of it.
     pub fn root(&self) -> Hash32 {
         self.tree().root()
+    }
+
+    /// What is needed to prove any account of this state against `root()`.
+    pub fn proofs(&self) -> Proofs {
+        let places = self.accounts.keys().enumerate().map(|(place, id)| (*id, place)).collect();
+        Proofs { places, tree: self.tree() }
     }
 
     /// An account's state, with a proof of it against `root()`.

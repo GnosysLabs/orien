@@ -2,6 +2,7 @@
 //! client that talks to validators, and the key and wallet files.
 
 pub mod client;
+pub mod closer;
 pub mod keys;
 pub mod node;
 pub mod store;

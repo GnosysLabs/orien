@@ -94,6 +94,8 @@ pub enum Tag {
     StateLeaf = 0x40,
     StateNode = 0x41,
     StatePadding = 0x42,
+    Ballot = 0x43,
+    Proposal = 0x44,
 }
 
 /// Hashes `parts` under `tag`. Parts are concatenated without separators, so

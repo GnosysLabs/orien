@@ -4,7 +4,8 @@ use orien_crypto::keytree::KeyTree;
 use orien_ledger::{
     AccountId, Allocation, Certificate, Genesis, Receipt, Signature, SignedOrder, ValidatorInfo,
 };
-use orien_net::client::{AccountStatus, Client, TransferError, Unfinished};
+use orien_ledger::Signer;
+use orien_net::client::{AccountStatus, Client, Done, Head, TransferError, Unfinished};
 use orien_net::keys::{ValidatorKey, Wallet, load_genesis, save_genesis};
 use orien_net::node::{Node, NodeConfig};
 use orien_net::wire::{Request, Response};
@@ -12,7 +13,7 @@ use std::fs;
 use std::net::TcpListener;
 use std::path::{Path, PathBuf};
 use std::thread;
-use std::time::Instant;
+use std::time::{Duration, Instant, SystemTime, UNIX_EPOCH};
 
 #[derive(Parser)]
 #[command(name = "orien", version, about = "A quantum-proof payment network with no blocks and no global ordering")]
@@ -137,6 +138,10 @@ enum DevnetCommand {
         /// The network's name
         #[arg(long, default_value = "orien-devnet")]
         name: String,
+        /// Seconds from one checkpoint to the next. A real network uses an
+        /// hour; a short one lets you watch checkpoints happen.
+        #[arg(long, default_value_t = 60)]
+        epoch_seconds: u64,
     },
     /// Run every validator of a local network in this process
     Run {
@@ -220,12 +225,21 @@ fn run(cli: Cli) -> Result<()> {
         Command::Status { network } => status(&network.genesis),
         Command::Node { key, data, listen, network } => node(&key, data, listen, &network.genesis),
         Command::Keygen { out, height } => keygen(&out, height),
-        Command::Devnet(DevnetCommand::Init { dir, validators, height, host, base_port, addresses, name }) => {
+        Command::Devnet(DevnetCommand::Init {
+            dir,
+            validators,
+            height,
+            host,
+            base_port,
+            addresses,
+            name,
+            epoch_seconds,
+        }) => {
             let addresses = match addresses.is_empty() {
                 true => (0..validators).map(|i| format!("{host}:{}", base_port as usize + i)).collect(),
                 false => addresses,
             };
-            devnet_init(&dir, &name, &addresses, height)
+            devnet_init(&dir, &name, &addresses, height, epoch_seconds)
         }
         Command::Devnet(DevnetCommand::Run { dir }) => devnet_run(&dir),
         Command::Devnet(DevnetCommand::Interrupt { dir, wallet, to, amount }) => {
@@ -234,6 +248,57 @@ fn run(cli: Cli) -> Result<()> {
         Command::Devnet(DevnetCommand::DoubleSpend { dir, wallet, split }) => {
             double_spend(&dir, &wallet, split)
         }
+    }
+}
+
+fn unix_now() -> u64 {
+    SystemTime::now().duration_since(UNIX_EPOCH).map_or(0, |since| since.as_secs())
+}
+
+/// Where this computer keeps how far it has followed a network: next to
+/// the genesis file.
+fn head_file(genesis: &Path) -> PathBuf {
+    let mut name = genesis.as_os_str().to_owned();
+    name.push(".head");
+    PathBuf::from(name)
+}
+
+/// A client that starts from wherever this computer last followed the
+/// network to, without contacting anyone.
+fn offline(genesis_file: &Path) -> Result<(Genesis, Client)> {
+    let genesis = load_genesis(genesis_file)?;
+    let client = match Head::load(&head_file(genesis_file), &genesis) {
+        Some(head) => Client::resume(&genesis, head),
+        None => Client::new(&genesis),
+    };
+    Ok((genesis, client))
+}
+
+/// Remembers how far the client has followed the network, so the next
+/// command does not start again from the genesis file.
+fn remember(client: &Client, genesis_file: &Path) {
+    let head = client.head();
+    if head.epoch > 0 {
+        let _ = head.save(&head_file(genesis_file));
+    }
+}
+
+/// A client caught up with the network's checkpoints.
+fn connect(genesis_file: &Path) -> Result<(Genesis, Client)> {
+    let (genesis, client) = offline(genesis_file)?;
+    if client.follow() > 0 {
+        remember(&client, genesis_file);
+    }
+    Ok((genesis, client))
+}
+
+/// Roughly how long until the next checkpoint.
+fn until_checkpoint(genesis: &Genesis, client: &Client) -> String {
+    let due = client.head().time.saturating_add(genesis.epoch_seconds);
+    match due.saturating_sub(unix_now()) {
+        0 => "any moment now".into(),
+        seconds if seconds < 120 => format!("in about {seconds} seconds"),
+        seconds => format!("in about {} minutes", seconds.div_ceil(60)),
     }
 }
 
@@ -259,19 +324,50 @@ fn read_account(client: &Client, wallet: &Wallet) -> Result<AccountStatus> {
 /// signed itself, if any. Only orders carrying this wallet's own signature
 /// count.
 fn unfinished(client: &Client, wallet: &Wallet, status: &AccountStatus) -> Vec<Unfinished> {
-    let network = client.committee().network();
+    let committee = client.committee();
+    let network = committee.network();
     let mut found: Vec<Unfinished> = client
         .unfinished(&wallet.address(), status)
         .into_iter()
         .filter(|payment| wallet.signed_by_this_wallet(&payment.signed, network))
         .collect();
-    if let Some(own) = wallet.pending().filter(|own| own.order.seq == status.seq) {
+    let live = |own: &&SignedOrder| own.order.seq == status.seq && !retired(status, own);
+    if let Some(own) = wallet.pending().filter(live) {
         let digest = own.order.digest(network);
         if !found.iter().any(|payment| payment.digest == digest) {
             found.push(Unfinished { signed: own.clone(), digest, stake: 0 });
         }
     }
     found
+}
+
+/// True when a checkpoint has cancelled the number `signed` was made under
+/// and retired the key that signed it. The account now requires a spare
+/// key, and this order was not signed with that one.
+fn retired(status: &AccountStatus, signed: &SignedOrder) -> bool {
+    match &status.signer {
+        Some(Signer::Spare(leaf)) if signed.order.seq == status.seq => {
+            !matches!(&signed.signature, Signature::Spare(signature) if signature.leaf == *leaf)
+        }
+        _ => false,
+    }
+}
+
+/// If a checkpoint cancelled the payment this wallet file was holding,
+/// says so and lets go of it.
+fn drop_cancelled(wallet: &mut Wallet, status: &AccountStatus) -> Result<()> {
+    let Some(pending) = wallet.pending().filter(|pending| retired(status, pending)).cloned() else {
+        return Ok(());
+    };
+    let order = &pending.order;
+    println!(
+        "note: payment #{} ({} to {}) was cancelled at a checkpoint, because two different payments \
+         were signed with the same one-time key. Nothing moved. The account now signs with a spare key.",
+        order.seq,
+        order.amount,
+        order.to.short()
+    );
+    wallet.forget(order.seq)
 }
 
 /// One line about an unfinished payment, led by the id that picks it out.
@@ -301,16 +397,23 @@ fn is_locked(client: &Client, unfinished: &[Unfinished]) -> bool {
     !unfinished.is_empty() && unfinished.iter().all(|payment| !client.can_still_finish(unfinished, payment))
 }
 
-fn locked(seq: u64) -> anyhow::Error {
+/// Reports a locked account, after making sure every validator has seen
+/// every one of the conflicting payments. A validator that holds two of
+/// them holds the proof the next checkpoint needs to free the account.
+fn locked(genesis: &Genesis, client: &Client, seq: u64, payments: &[Unfinished]) -> anyhow::Error {
+    for payment in payments {
+        client.collect_votes(&payment.signed);
+    }
     anyhow!(
         "this account is locked: more than one payment was signed under #{seq}, and the votes are \
-         split so that none of them can become final. Releasing such locks is not built yet."
+         split so that none of them can become final. The next checkpoint, {}, cancels them all and \
+         frees the account. Nothing has moved. Send again after that.",
+        until_checkpoint(genesis, client)
     )
 }
 
 fn balance(account: &str, genesis: &Path) -> Result<()> {
-    let genesis = load_genesis(genesis)?;
-    let client = Client::new(&genesis);
+    let (genesis, client) = connect(genesis)?;
     let wallet = match Path::new(account).is_file() {
         true => Some(Wallet::load(Path::new(account))?),
         false => None,
@@ -331,6 +434,14 @@ fn balance(account: &str, genesis: &Path) -> Result<()> {
     }
     println!("payments made  {}", status.seq);
     println!("validators     {reachable} of {} answered", client.validators());
+    if let Some(Signer::Spare(leaf)) = &status.signer {
+        println!(
+            "spare keys     payment #{} was cancelled at a checkpoint; the next one is signed with \
+             spare key {} of 16",
+            status.seq,
+            leaf + 1
+        );
+    }
 
     let pending = match &wallet {
         Some(wallet) => unfinished(&client, wallet, &status),
@@ -343,7 +454,11 @@ fn balance(account: &str, genesis: &Path) -> Result<()> {
         println!("pending        validators have voted on payment #{} but it is not final", status.seq);
     }
     if is_locked(&client, &pending) {
-        println!("               locked: none of these can become final any more");
+        println!(
+            "               locked: none of these can become final. The next checkpoint, {}, cancels \
+             them and frees the account.",
+            until_checkpoint(&genesis, &client)
+        );
     } else if !pending.is_empty() && wallet.is_some() {
         println!("               finish it with: orien resume -w {account}");
     }
@@ -352,8 +467,13 @@ fn balance(account: &str, genesis: &Path) -> Result<()> {
 
 /// If this wallet file signed a payment in an earlier run and that payment
 /// number has been used since, forgets the signed payment. Returns the
-/// certificate when what became final is the payment this file signed.
-fn settle_earlier(client: &Client, wallet: &mut Wallet, seq: u64) -> Result<Option<Certificate>> {
+/// order when what became final is, as far as can be told, the payment this
+/// file signed, with its certificate if that is still to be had.
+fn settle_earlier(
+    client: &Client,
+    wallet: &mut Wallet,
+    seq: u64,
+) -> Result<Option<(orien_ledger::Order, Option<Certificate>)>> {
     let Some(earlier) = wallet.pending().filter(|earlier| earlier.order.seq < seq).cloned() else {
         return Ok(None);
     };
@@ -367,7 +487,7 @@ fn settle_earlier(client: &Client, wallet: &mut Wallet, seq: u64) -> Result<Opti
                 order.amount,
                 order.to.short()
             );
-            Ok(Some(certificate))
+            Ok(Some((order.clone(), Some(certificate))))
         }
         Some(certificate) => {
             println!(
@@ -380,9 +500,17 @@ fn settle_earlier(client: &Client, wallet: &mut Wallet, seq: u64) -> Result<Opti
             );
             Ok(None)
         }
+        // Certificates are kept for the current epoch only. Past that, a
+        // checkpoint has settled the number.
         None => {
-            println!("note: payment #{} from an earlier run is no longer waiting", order.seq);
-            Ok(None)
+            println!(
+                "note: payment #{} from an earlier run was settled at a checkpoint. This wallet file \
+                 had signed it as {} to {}.",
+                order.seq,
+                order.amount,
+                order.to.short()
+            );
+            Ok(Some((order.clone(), None)))
         }
     }
 }
@@ -402,6 +530,10 @@ fn explain(error: TransferError) -> anyhow::Error {
             "{error}\nNothing is lost. The payment keeps its number and no other payment can take \
              it. Run the same command again, or `orien resume`, to finish it."
         ),
+        other if other.closing() => anyhow!(
+            "{other}\nThe network was closing an epoch and did not finish in time. Nothing is lost: \
+             the payment is signed and keeps its number. Run `orien resume` to finish it."
+        ),
         other => other.into(),
     }
 }
@@ -411,9 +543,28 @@ fn explain(error: TransferError) -> anyhow::Error {
 fn finish(client: &Client, wallet: &mut Wallet, signed: &SignedOrder, receipt_file: Option<&Path>) -> Result<()> {
     let order = &signed.order;
     let started = Instant::now();
-    let done = client.transfer(signed).map_err(explain)?;
+    // A checkpoint pauses payments for a few seconds. Wait it out.
+    let done = client.pay(signed, Duration::from_secs(90)).map_err(explain)?;
     let elapsed = started.elapsed();
     wallet.confirm(order.seq)?;
+    let done = match done {
+        Done::Receipt(done) => done,
+        Done::InCheckpoint(epoch) => {
+            println!("final in {:.1} s", elapsed.as_secs_f64());
+            println!(
+                "  payment #{}: {} from {} to {}",
+                order.seq,
+                order.amount,
+                order.from.short(),
+                order.to.short()
+            );
+            println!("  checkpoint {epoch} took it in while the network was pausing to close the epoch");
+            if receipt_file.is_some() {
+                println!("  no receipt was saved: receipts for payments settled by a checkpoint are not built yet");
+            }
+            return Ok(());
+        }
+    };
 
     let size = borsh::to_vec(&done.receipt)?.len();
     println!("final in {:.1} ms", elapsed.as_secs_f64() * 1000.0);
@@ -434,25 +585,30 @@ fn finish(client: &Client, wallet: &mut Wallet, signed: &SignedOrder, receipt_fi
 }
 
 fn send(wallet_file: &Path, to: &str, amount: u64, receipt_file: Option<&Path>, genesis: &Path) -> Result<()> {
-    let genesis = load_genesis(genesis)?;
-    let client = Client::new(&genesis);
+    let genesis_file = genesis;
+    let (genesis, client) = connect(genesis_file)?;
     let network = genesis.id();
     let mut wallet = Wallet::load(wallet_file)?;
     let to = resolve_account(to)?;
     let status = read_account(&client, &wallet)?;
     let seq = status.seq;
+    drop_cancelled(&mut wallet, &status)?;
 
     // A payment this wallet file signed in an earlier run may have gone
     // through since. If it is the very payment asked for now, sending it
     // again would pay twice.
-    if let Some(certificate) = settle_earlier(&client, &mut wallet, seq)?
-        && certificate.order.to == to
-        && certificate.order.amount == amount
+    if let Some((order, certificate)) = settle_earlier(&client, &mut wallet, seq)?
+        && order.to == to
+        && order.amount == amount
     {
         println!("that is the payment asked for, so nothing more was sent");
-        if receipt_file.is_some() {
-            let done = client.finish(certificate, 0).map_err(explain)?;
-            save_receipt(&done.receipt, receipt_file)?;
+        match certificate {
+            Some(certificate) if receipt_file.is_some() => {
+                let done = client.finish(certificate, 0).map_err(explain)?;
+                save_receipt(&done.receipt, receipt_file)?;
+            }
+            None => println!("to pay the same amount again, run the command once more"),
+            _ => {}
         }
         return Ok(());
     }
@@ -491,7 +647,7 @@ fn send(wallet_file: &Path, to: &str, amount: u64, receipt_file: Option<&Path>, 
                 println!("  {}", describe_unfinished(&client, waiting, payment, Some(&wallet)));
             }
             if is_locked(&client, waiting) {
-                return Err(locked(seq));
+                return Err(locked(&genesis, &client, seq, waiting));
             }
             bail!(
                 "nothing else can be sent from this account until that payment is final. \
@@ -501,17 +657,20 @@ fn send(wallet_file: &Path, to: &str, amount: u64, receipt_file: Option<&Path>, 
         }
     }
 
-    let signed = wallet.sign_order(seq, to, amount, &network)?;
-    finish(&client, &mut wallet, &signed, receipt_file)
+    let signed = wallet.sign_order(seq, to, amount, status.signer.as_ref(), &network)?;
+    let outcome = finish(&client, &mut wallet, &signed, receipt_file);
+    remember(&client, genesis_file);
+    outcome
 }
 
 fn resume(wallet_file: &Path, pick: Option<&str>, receipt_file: Option<&Path>, genesis: &Path) -> Result<()> {
-    let genesis = load_genesis(genesis)?;
-    let client = Client::new(&genesis);
+    let genesis_file = genesis;
+    let (genesis, client) = connect(genesis_file)?;
     let network = genesis.id();
     let mut wallet = Wallet::load(wallet_file)?;
     let status = read_account(&client, &wallet)?;
     let seq = status.seq;
+    drop_cancelled(&mut wallet, &status)?;
     settle_earlier(&client, &mut wallet, seq)?;
 
     let unfinished = unfinished(&client, &wallet, &status);
@@ -527,7 +686,7 @@ fn resume(wallet_file: &Path, pick: Option<&str>, receipt_file: Option<&Path>, g
                 println!("  {}", describe_unfinished(&client, several, payment, Some(&wallet)));
             }
             if is_locked(&client, several) {
-                return Err(locked(seq));
+                return Err(locked(&genesis, &client, seq, several));
             }
             bail!("say which one to finish with --payment <id>");
         }
@@ -547,22 +706,44 @@ fn resume(wallet_file: &Path, pick: Option<&str>, receipt_file: Option<&Path>, g
     if wallet.pending().is_none_or(|own| own.order != *order) {
         wallet.adopt(&chosen.signed, &network)?;
     }
-    finish(&client, &mut wallet, &chosen.signed, receipt_file).map_err(|error| match unfinished.len() {
+    let outcome = finish(&client, &mut wallet, &chosen.signed, receipt_file);
+    remember(&client, genesis_file);
+    outcome.map_err(|error| match unfinished.len() {
         1 => error,
         _ => anyhow!(
             "{error}\nMore than one payment was signed under #{seq}. If none of them can become \
-             final, the account stays locked. Releasing such locks is not built yet."
+             final, the next checkpoint cancels them all and frees the account."
         ),
     })
 }
 
 fn verify(receipt: &Path, genesis: &Path) -> Result<()> {
-    let genesis = load_genesis(genesis)?;
-    let client = Client::new(&genesis);
+    let genesis_file = genesis;
+    let (genesis, client) = offline(genesis_file)?;
     let bytes = fs::read(receipt).with_context(|| format!("cannot read {}", receipt.display()))?;
     let receipt: Receipt =
         borsh::from_slice(&bytes).map_err(|_| anyhow!("{} is not a receipt", receipt.display()))?;
-    let committee = client.committee();
+    // A receipt is checked against the validators of the epoch it was made
+    // in. For the first epoch the genesis file names them. For a later one
+    // this computer must have followed the network's checkpoints that far.
+    let epoch = receipt.certificate.epoch;
+    let mut online = false;
+    let committee = match client.committee_at(epoch) {
+        Some(committee) => committee,
+        None => {
+            online = true;
+            client.follow();
+            remember(&client, genesis_file);
+            client.committee_at(epoch).ok_or_else(|| {
+                anyhow!(
+                    "this receipt is from epoch {epoch}, and this computer has followed the network \
+                     only as far as epoch {}. Checking it needs the checkpoints up to epoch {epoch}, \
+                     which any validator can supply.",
+                    client.epoch()
+                )
+            })?
+        }
+    };
     committee.verify_receipt(&receipt).map_err(|error| anyhow!("receipt is NOT valid: {error}"))?;
     let order = &receipt.certificate.order;
     let stake = |signatures: &[orien_ledger::Vote]| -> u64 {
@@ -579,32 +760,42 @@ fn verify(receipt: &Path, genesis: &Path) -> Result<()> {
         committee.total_stake(),
         stake(&receipt.confirmations)
     );
-    println!(
-        "  checked offline with {} hash-based signatures and no network access",
-        receipt.certificate.votes.len() + receipt.confirmations.len()
-    );
+    let signatures = receipt.certificate.votes.len() + receipt.confirmations.len();
+    match online {
+        false => println!("  checked offline with {signatures} hash-based signatures and no network access"),
+        true => println!(
+            "  checked with {signatures} hash-based signatures, after fetching the checkpoints up to epoch {epoch}"
+        ),
+    }
     Ok(())
 }
 
 fn status(genesis: &Path) -> Result<()> {
-    let genesis = load_genesis(genesis)?;
-    let client = Client::new(&genesis);
+    let (genesis, client) = connect(genesis)?;
     println!("network '{}'  id {}", genesis.network, genesis.id().short());
     println!(
-        "{:<6} {:<22} {:>8} {:>9} {:>16}  {:<8}",
-        "name", "address", "accounts", "payments", "signing keys", "state"
+        "epoch {}, a checkpoint every {} seconds, the next one {}",
+        client.epoch(),
+        genesis.epoch_seconds,
+        until_checkpoint(&genesis, &client)
+    );
+    println!(
+        "{:<6} {:<22} {:>7} {:>8} {:>9} {:>16}  {:<8}",
+        "name", "address", "epoch", "accounts", "payments", "signing keys", "state"
     );
     let roots = client.roots();
     for ((validator, info), root) in genesis.validators.iter().zip(client.info()).zip(&roots) {
         match info {
             Ok(info) if info.network == genesis.id() => println!(
-                "{:<6} {:<22} {:>8} {:>9} {:>16}  {:<8}",
+                "{:<6} {:<22} {:>7} {:>8} {:>9} {:>16}  {:<8}{}",
                 validator.name,
                 validator.address,
+                info.epoch,
                 info.accounts,
                 info.certificates,
                 format!("{}/{}", info.keys_used, info.keys_total),
-                root.map_or("-".into(), |root| root.short())
+                root.map_or("-".into(), |root| root.short()),
+                if info.closing { "  closing the epoch" } else { "" }
             ),
             Ok(_) => println!("{:<6} {:<22} serves a different network", validator.name, validator.address),
             Err(error) => println!("{:<6} {:<22} unreachable ({error})", validator.name, validator.address),
@@ -650,7 +841,7 @@ fn node(key: &Path, data: PathBuf, listen: Option<String>, genesis: &Path) -> Re
     }
 }
 
-fn devnet_init(dir: &Path, network: &str, addresses: &[String], height: u8) -> Result<()> {
+fn devnet_init(dir: &Path, network: &str, addresses: &[String], height: u8, epoch_seconds: u64) -> Result<()> {
     if dir.join("genesis.json").exists() {
         bail!("{} already holds a network; delete it or pick another --dir", dir.display());
     }
@@ -680,7 +871,9 @@ fn devnet_init(dir: &Path, network: &str, addresses: &[String], height: u8) -> R
         println!("  wallet {name:<6} {}  starts with {amount}", wallet.address());
     }
 
-    let genesis = Genesis { network: network.into(), validators: infos, allocations };
+    let mut genesis = Genesis::new(network, infos, allocations);
+    genesis.epoch_seconds = epoch_seconds;
+    genesis.start_time = unix_now();
     genesis.validate().map_err(|e| anyhow!("{e}"))?;
     save_genesis(&dir.join("genesis.json"), &genesis)?;
     println!("network id {}", genesis.id());
@@ -726,8 +919,7 @@ fn describe(response: std::io::Result<Response>) -> String {
 }
 
 fn interrupt(dir: &Path, wallet_name: &str, to_name: &str, amount: u64) -> Result<()> {
-    let genesis = load_genesis(&dir.join("genesis.json"))?;
-    let client = Client::new(&genesis);
+    let (genesis, client) = connect(&dir.join("genesis.json"))?;
     let wallets = dir.join("wallets");
     let wallet_file = wallets.join(format!("{wallet_name}.wallet"));
     let wallet = Wallet::load(&wallet_file)?;
@@ -763,8 +955,7 @@ fn interrupt(dir: &Path, wallet_name: &str, to_name: &str, amount: u64) -> Resul
 }
 
 fn double_spend(dir: &Path, wallet_name: &str, split: bool) -> Result<()> {
-    let genesis = load_genesis(&dir.join("genesis.json"))?;
-    let client = Client::new(&genesis);
+    let (genesis, client) = connect(&dir.join("genesis.json"))?;
     let wallets = dir.join("wallets");
     let wallet = Wallet::load(&wallets.join(format!("{wallet_name}.wallet")))?;
     let others: Vec<&str> = ["alice", "bob", "carol"].into_iter().filter(|n| *n != wallet_name).collect();
@@ -800,7 +991,11 @@ fn double_spend(dir: &Path, wallet_name: &str, split: bool) -> Result<()> {
                 Err(_) => println!("{label} cannot become final: it will never get more than two thirds of the votes"),
             }
         }
-        println!("no money moved. {wallet_name}'s account is now stuck on payment #{seq}; nobody else is affected.");
+        println!(
+            "no money moved. {wallet_name}'s account is stuck on payment #{seq} until the next checkpoint, {}, \
+             which cancels both payments and frees it. Nobody else is affected.",
+            until_checkpoint(&genesis, &client)
+        );
     } else {
         println!("sending A to everyone first:");
         match client.transfer(&first) {

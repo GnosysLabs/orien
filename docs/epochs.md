@@ -1,7 +1,8 @@
 # The epoch step
 
-Status: **design, revised after an independent review. Stages 0, 1a, 1b and
-2 of the build order are built; nothing else is.**
+Status: **stages 0 to 3 of the build order are built. Checkpoints run, and
+a double-signed account is freed at the next one. Staking, fees and coin
+creation are designed here and not built.**
 
 ## In plain words
 
@@ -29,7 +30,9 @@ What changes for someone using the network:
    this change they must also confirm that they recorded it. The wallet
    already waits for both, so the time to finality stays about the same. A
    receipt grows from 5.5 KB to about 12 KB.
-2. **Payments pause for a few seconds at each checkpoint.**
+2. **Payments pause briefly at each checkpoint.** Measured: about a fifth
+   of a second with every validator on one machine, and about a second
+   across three machines with one of them 57 ms away.
 3. **An interrupted payment survives checkpoints.** It stays finishable, as
    it is now.
 4. **A double-signed account is freed at the next checkpoint.** The payments
@@ -132,10 +135,14 @@ owner who signed once.
    replacement key tree if it wants one. The statement is written to disk
    before it is sent.
 4. **Reconcile.** Validators pull each other's logs up to the pinned
-   points. A certificate received now is applied but not confirmed.
+   points. A certificate received now is applied but not confirmed, and it
+   is not part of the validator's pinned log.
 5. **Propose.** The proposer merges the pinned logs of validators holding
    more than two thirds of the stake, waits briefly for the rest, and
-   proposes a checkpoint together with the statements it merged.
+   proposes a checkpoint together with the statements it merged. The epoch
+   holds exactly the payments in those pinned logs. A checkpoint is
+   therefore settled by the statements it names and its time, and the
+   proposer has no other choices to make.
 6. **A proposed checkpoint is valid when**, and these tests give every
    validator the same answer:
    - the merged statements cover more than two thirds of the stake;
@@ -156,12 +163,23 @@ owner who signed once.
    proof and are judged on it alone: a checkpoint proposed again comes with
    the earlier prevotes that back it, and a decision comes with the
    precommits that made it. A validator that learns of a decision passes
-   that proof on.
+   that proof on. The first round begins when statements from more than
+   two thirds of the stake are in. That moment is nearly the same for every
+   validator even when their clocks differ, so the rounds' waits are not
+   used up by a clock that runs fast.
 8. **Result.** A checkpoint with precommits from more than two thirds of
    the stake is decided. Every validator switches, in one atomic step, to
    the checkpoint's state and an empty log for the new epoch. Anything it
    had applied that the checkpoint leaves out is undone, and the signed
-   order behind it goes back to being an unfinished promise.
+   order behind it goes back to being an unfinished promise. Where a
+   validator had voted for one order and then applied a certificate for a
+   different one under the same number, it stays promised to the one that
+   had the certificate.
+
+A validator that knows which checkpoint was decided but cannot work out the
+state itself, because it was away or restarted, fetches the state from a
+validator that has moved on. It accepts the state only if it hashes to the
+state root in the checkpoint.
 
 If fewer than two thirds of the stake are online, the close cannot finish
 and the network stays paused. Payments could not become final in that
@@ -190,8 +208,10 @@ situation anyway.
 ### 7. The checkpoint
 
 - The **header** is small: epoch number, digest of the previous
-  checkpoint, time, state root, the validator set and settings for the
-  next epoch, and totals for fees and released coins. Wallets keep headers.
+  checkpoint, time, state root, the number of payments, and the validators
+  of the next epoch. Totals for fees and released coins join it when those
+  are built. A wallet keeps the latest header and the list of validator
+  sets, each checked against the one before, back to the genesis file.
 - It names the statements it was built from. Payments are not listed:
   validators already hold the certificates, and the state root pins the
   result. Cancellations are not listed either. They follow, by a fixed
@@ -219,10 +239,14 @@ Each of these is on disk before the message that depends on it leaves:
 - every proposal, prevote and precommit it sends;
 - the decided checkpoint and the precommits that decided it.
 
+A validator keeps a journal of everything it hears and says while closing
+an epoch. The journal is forced to disk before anything the validator
+signs leaves it. After a restart the journal is played back, which puts the
+validator exactly where it was, so it cannot say something different from
+what it said before.
+
 State is kept as one snapshot and one log per epoch, so that a restart
-after a checkpoint cannot replay payments the checkpoint left out. A
-validator that restarts mid-close sends the same messages again, signed
-with fresh keys.
+after a checkpoint cannot replay payments the checkpoint left out.
 
 ### 10. Time and keys
 
@@ -231,8 +255,11 @@ with fresh keys.
   checkpoints, not per checkpoint, so closing early or late does not change
   how many coins exist.
 - **Keys.** A validator stops voting on payments when its key tree is down
-  to a reserve kept for closing messages. A replacement tree named in its
-  statement takes over at the checkpoint.
+  to a reserve kept for closing messages. It starts building a replacement
+  once half its keys are used, names the new tree in its closing
+  statements, and signs with it from the first epoch whose checkpoint lists
+  it. Everything a validator signs in one step of a close is signed as one
+  batch, with one key.
 
 ### 11. Why it is safe (sketch)
 
@@ -321,7 +348,7 @@ Each stage can be built and tested on its own.
 | 1a, built | Epoch number (always 0 for now) in votes and certificates. Certificates that keep the owner's signature. Signed confirmations. Receipts that carry them. A wallet that advances only on proof. | `crates/ledger`, `crates/net`, `crates/cli` |
 | 1b, built | The order format, fixed once: kind, largest fee, spare tree, the new address form. Cancellation as a pure function. The wallet's key streams. | `crates/ledger`, `crates/net/src/keys.rs`, `crates/crypto/src/hash.rs` |
 | 2, built | The close as pure logic with no network or disk, and simulators that run it under delays, absent validators and dishonest ones. The failures the review found are permanent tests. | `crates/ledger/src/agree.rs`, `crates/ledger/src/close.rs` |
-| 3 | The close inside the validator with a fixed validator set: freeze, messages between validators, what is written to disk, the switch of state, the checkpoint chain, account proofs, key-tree replacement. | `crates/net`, `crates/cli` |
+| 3, built | The close inside the validator with a fixed validator set: the pause, messages between validators, the journal, the switch of state, the checkpoint chain, account proofs, key-tree replacement. Wallets follow checkpoints and sign with a spare key after a cancellation. | `crates/net/src/closer.rs`, `crates/net/src/node.rs`, `crates/net/src/client.rs`, `crates/cli` |
 | 4 | Staking, a changing validator set, penalties. | all crates |
 | 5 | Fees. | `crates/ledger`, `crates/net` |
 | 6 | Coin creation, a genesis with no coins, and a command that does the work. | all crates |
@@ -403,3 +430,47 @@ almost never finds the sequence that exploits a missing safety rule: with
 random lies, five deliberately removed rules went unnoticed. The simulated
 liar now plays the known attacks, and one attack on the lock is scripted
 message by message.
+
+## What building stage 3 found
+
+- **A wallet could pay twice.** A payment can go through without the wallet
+  hearing so: enough validators record it, and too few answer in time. A
+  wallet that then signs "the same payment again" is making a second one.
+  The `orien` command already guarded against this. The test helper did
+  not, and paid 61 times when asked for 60. The rule, now also in the
+  design: before signing, a wallet checks whether the payment it signed
+  earlier has gone through, and treats a matching request as already done.
+- **A small key tree lost every key on restart.** Key numbers are reserved
+  on disk in blocks, and a restart skips to the end of the block. The block
+  was 64, which is the whole of a 64-key tree. Blocks now scale with the
+  tree.
+- **The tests did not notice a forgetful validator.** With one rule broken
+  on purpose at a time, five breaks went unnoticed, all of the same kind: a
+  validator that restarts and has forgotten part of what it heard or how it
+  voted. The tests checked that a restarted validator never says two
+  different things, but the other validators decide so quickly that a
+  forgetful one never gets the chance. The tests now check directly that a
+  validator comes back from a restart knowing exactly what it knew.
+- **A validator that stops voting must say so at once.** The threads that
+  talk to other validators slept through the start of a close for up to a
+  second. They are now woken the moment it begins.
+
+### Left for later, on purpose
+
+- **A receipt for a payment settled by a checkpoint.** A payment that had
+  its certificate when the epoch closed, and that the checkpoint took in,
+  is final without any confirmations. The wallet sees that and says so, but
+  cannot yet hand anyone a proof of it.
+- **Old epochs are kept forever.** Each epoch's snapshot and log stay on
+  disk. Dropping old ones needs a rule for how far back a returning
+  validator may ask.
+- **A validator whose key tree is used up completely cannot recover by
+  itself.** It needs a key to announce a replacement. Replacement starts at
+  half used, so this takes a long outage at the wrong moment. Stage 4,
+  where validators are named by stake orders, is where it gets a way back.
+- **A wallet that has been away follows every checkpoint it missed.** That
+  is one small download per epoch. A shortcut for long absences is not
+  built.
+- **Checking a checkpoint against a lying validator's wrong state** is one
+  comparison in the code and has no test that plays the lying validator.
+

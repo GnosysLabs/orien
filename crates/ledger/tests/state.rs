@@ -27,6 +27,9 @@ fn genesis(balances: &[(u8, u64)]) -> Genesis {
             .iter()
             .map(|(n, amount)| Allocation { account: id(*n), amount: *amount })
             .collect(),
+        epoch_seconds: 3600,
+        epoch_payments: 50_000,
+        start_time: 0,
     }
 }
 

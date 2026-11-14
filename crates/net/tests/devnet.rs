@@ -6,19 +6,22 @@ use orien_ledger::{
     AccountId, Allocation, Genesis, Kind, Order, Reject, SPARE_HEIGHT, Signature, SignedOrder, Signer,
     ValidatorInfo, address,
 };
-use orien_net::client::{Client, Final, TransferError, rpc};
+use orien_net::client::{Client, Done, Final, Head, TransferError, rpc};
 use orien_net::keys::{ValidatorKey, Wallet};
 use orien_net::node::{Node, NodeConfig};
-use orien_net::store::Epochs;
-use orien_net::wire::{AccountView, NodeInfo, Request, Response};
+use orien_net::wire::{AccountView, NodeInfo, Request, Response, read_frame, write_frame};
 use std::fs;
 use std::net::TcpListener;
 use std::path::PathBuf;
-use std::sync::Barrier;
+use std::sync::{Arc, Barrier};
 use std::thread;
 use std::time::{Duration, Instant};
 
 const START: u64 = 1000;
+
+fn now() -> u64 {
+    std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).unwrap().as_secs()
+}
 
 struct Options {
     validators: usize,
@@ -30,6 +33,11 @@ struct Options {
     extra: Vec<Allocation>,
     height: u8,
     durable: bool,
+    /// Seconds from one checkpoint to the next.
+    epoch: u64,
+    /// The unit of the waits used while closing an epoch.
+    pace: Duration,
+    key_reserve: u32,
 }
 
 impl Default for Options {
@@ -42,6 +50,9 @@ impl Default for Options {
             extra: Vec::new(),
             height: 9,
             durable: false,
+            epoch: 3600,
+            pace: Duration::from_millis(60),
+            key_reserve: 128,
         }
     }
 }
@@ -96,6 +107,9 @@ impl TestNet {
                 })
                 .collect(),
             allocations,
+            epoch_seconds: options.epoch,
+            epoch_payments: 50_000,
+            start_time: now(),
         };
         let network = genesis.id();
         let mut net = TestNet { dir, genesis, network, keys, nodes: Vec::new(), options };
@@ -112,6 +126,8 @@ impl TestNet {
         config.batch_window = self.options.window;
         config.sync_interval = self.options.sync;
         config.durable = self.options.durable;
+        config.close_pace = self.options.pace;
+        config.key_reserve = self.options.key_reserve;
         config
     }
 
@@ -166,7 +182,7 @@ impl TestNet {
         let mut wallet = self.wallet(from);
         let client = self.client();
         let status = client.account(&wallet.address(), wallet.next_seq());
-        let signed = wallet.sign_order(status.seq, to, amount, &self.network).unwrap();
+        let signed = wallet.sign_order(status.seq, to, amount, status.signer.as_ref(), &self.network).unwrap();
         let receipt = client.transfer(&signed)?;
         wallet.confirm(status.seq).unwrap();
         Ok(receipt)
@@ -174,6 +190,69 @@ impl TestNet {
 
     fn pay(&self, from: &str, to: AccountId, amount: u64) -> Final {
         self.try_pay(from, to, amount).unwrap()
+    }
+
+    /// Pays the way the wallet does on a network whose epochs are closing:
+    /// if a checkpoint gets in the way, waits for it and carries on.
+    fn pay_through(&self, from: &str, to: AccountId, amount: u64) -> Done {
+        let deadline = Instant::now() + Duration::from_secs(30);
+        let mut wallet = self.wallet(from);
+        let client = self.client();
+        let status = client.account(&wallet.address(), wallet.next_seq());
+        let seq = status.seq;
+        let signed = wallet.sign_order(seq, to, amount, status.signer.as_ref(), &self.network).unwrap();
+        loop {
+            match client.pay(&signed, Duration::from_secs(20)) {
+                Ok(done) => {
+                    wallet.confirm(seq).unwrap();
+                    return done;
+                }
+                Err(error) => {
+                    // It can have gone through all the same: enough
+                    // validators recorded it, and too few said so in time.
+                    // The wallet must not then pay a second time.
+                    if client.account(&wallet.address(), seq).seq > seq {
+                        wallet.confirm(seq).unwrap();
+                        return Done::InCheckpoint(client.epoch());
+                    }
+                    assert!(Instant::now() < deadline, "payment never went through: {error}");
+                }
+            }
+            thread::sleep(Duration::from_millis(100));
+        }
+    }
+
+    fn running(&self) -> Vec<usize> {
+        (0..self.nodes.len()).filter(|v| self.nodes[*v].is_some()).collect()
+    }
+
+    /// Waits until every running validator has reached `epoch`.
+    fn wait_for_epoch(&self, epoch: u64) {
+        wait_until(&format!("every validator reaches epoch {epoch}"), || {
+            self.running().iter().all(|v| self.info(*v).epoch >= epoch)
+        });
+    }
+
+    /// Waits until every running validator is in the same epoch, between
+    /// checkpoints, holding the same accounts. Returns that epoch.
+    fn wait_until_level(&self) -> u64 {
+        let mut epoch = 0;
+        wait_until("every validator is in the same epoch with the same accounts", || {
+            let infos: Vec<NodeInfo> = self.running().iter().map(|v| self.info(*v)).collect();
+            let roots: Vec<Response> = self.running().iter().map(|v| self.ask(*v, &Request::Root)).collect();
+            epoch = infos[0].epoch;
+            let same_root = roots.iter().all(|root| match (root, &roots[0]) {
+                (Response::Root(one), Response::Root(first)) => one == first,
+                _ => false,
+            });
+            same_root && infos.iter().all(|info| info.epoch == epoch && !info.closing)
+        });
+        epoch
+    }
+
+    /// A network that takes a checkpoint every `seconds` seconds.
+    fn with_epochs(name: &str, seconds: u64) -> TestNet {
+        TestNet::start_with(name, Options { epoch: seconds, ..Options::default() })
     }
 
     /// Signs an order directly with a wallet's key, skipping the wallet's
@@ -196,7 +275,7 @@ impl Drop for TestNet {
 }
 
 fn wait_until(what: &str, mut done: impl FnMut() -> bool) {
-    let deadline = Instant::now() + Duration::from_secs(10);
+    let deadline = Instant::now() + Duration::from_secs(30);
     while !done() {
         assert!(Instant::now() < deadline, "timed out waiting until {what}");
         thread::sleep(Duration::from_millis(20));
@@ -484,19 +563,19 @@ fn a_wallet_never_signs_two_orders_with_one_key() {
     let (bob, carol) = (net.address("bob"), net.address("carol"));
     let mut wallet = net.wallet("alice");
 
-    let first = wallet.sign_order(0, bob, 5, &net.network).unwrap();
-    assert!(wallet.sign_order(0, carol, 5, &net.network).is_err());
-    assert!(wallet.sign_order(0, bob, 6, &net.network).is_err());
-    assert_eq!(wallet.sign_order(0, bob, 5, &net.network).unwrap(), first);
+    let first = wallet.sign_order(0, bob, 5, None, &net.network).unwrap();
+    assert!(wallet.sign_order(0, carol, 5, None, &net.network).is_err());
+    assert!(wallet.sign_order(0, bob, 6, None, &net.network).is_err());
+    assert_eq!(wallet.sign_order(0, bob, 5, None, &net.network).unwrap(), first);
 
     // The promise is on disk: a fresh load of the file remembers it.
     let mut reloaded = net.wallet("alice");
-    assert!(reloaded.sign_order(0, carol, 5, &net.network).is_err());
-    assert_eq!(reloaded.sign_order(0, bob, 5, &net.network).unwrap(), first);
+    assert!(reloaded.sign_order(0, carol, 5, None, &net.network).is_err());
+    assert_eq!(reloaded.sign_order(0, bob, 5, None, &net.network).unwrap(), first);
 
     reloaded.confirm(0).unwrap();
-    assert!(reloaded.sign_order(0, bob, 5, &net.network).is_err(), "payment #0 is done");
-    assert!(reloaded.sign_order(1, carol, 5, &net.network).is_ok());
+    assert!(reloaded.sign_order(0, bob, 5, None, &net.network).is_err(), "payment #0 is done");
+    assert!(reloaded.sign_order(1, carol, 5, None, &net.network).is_ok());
 }
 
 /// Not a pass/fail test: prints how many payments per second this machine
@@ -512,7 +591,7 @@ fn another_copy_of_a_wallet_finishes_a_payment() {
     fs::copy(net.dir.join("alice.wallet"), net.dir.join("alice-copy.wallet")).unwrap();
 
     // The first device signs a payment, reaches two validators, and is lost.
-    let signed = net.wallet("alice").sign_order(0, bob, 100, &net.network).unwrap();
+    let signed = net.wallet("alice").sign_order(0, bob, 100, None, &net.network).unwrap();
     for v in [0, 1] {
         assert!(matches!(client.call(v, &Request::SubmitOrder(signed.clone())).unwrap(), Response::Vote(_)));
     }
@@ -656,43 +735,6 @@ fn a_validator_keeps_proof_that_an_owner_signed_twice() {
 }
 
 #[test]
-fn a_validator_restarts_from_a_snapshot() {
-    let mut net = TestNet::start("snapshot");
-    let (alice, bob, carol) = (net.address("alice"), net.address("bob"), net.address("carol"));
-    let client = net.client();
-    net.pay("alice", bob, 100);
-    net.pay("bob", carol, 30);
-    let before = client.roots()[0].unwrap();
-
-    // Move validator 1 into a new epoch by hand, the way a checkpoint will:
-    // its state so far becomes a snapshot and its certificate log starts empty.
-    net.stop(0);
-    let mut state = orien_ledger::State::from_genesis(&net.genesis);
-    for (account, seq) in [(alice, 0), (bob, 0)] {
-        state.apply(&client.certificate(&account, seq).unwrap().order).unwrap();
-    }
-    let mut epochs = Epochs::open(&net.dir.join("data-0"), false).unwrap();
-    epochs.advance(&state.snapshot()).unwrap();
-    assert_eq!(epochs.current(), 1);
-    net.restart(0);
-
-    // It holds the same balances, read from the snapshot and not replayed.
-    assert_eq!(client.roots()[0], Some(before));
-    assert_eq!(net.info(0).certificates, 0);
-    assert_eq!(net.view(0, &alice).balance, 900);
-    assert_eq!((net.view(0, &bob).balance, net.view(0, &bob).seq), (1070, 1));
-
-    // And it carries on: it votes, applies, and still agrees with the others.
-    assert_eq!(net.pay("alice", carol, 5).confirmations, 4);
-    assert_eq!(net.info(0).certificates, 1);
-    net.stop(0);
-    net.restart(0);
-    assert_eq!(net.view(0, &alice).balance, 895);
-    let roots = client.roots();
-    assert!(roots.iter().all(|root| *root == roots[0] && root.is_some()));
-}
-
-#[test]
 fn a_validator_holds_keys_back_for_closing_an_epoch() {
     // A tree of 16 one-time keys, of which a quarter are held back. One
     // payment at a time takes two: one for the vote, one for the confirmation.
@@ -718,7 +760,7 @@ fn a_validator_holds_keys_back_for_closing_an_epoch() {
 /// Gathers votes for an order into a certificate, without going further.
 fn certificate_for(client: &Client, signed: &SignedOrder) -> orien_ledger::Certificate {
     let (votes, _) = client.collect_votes(signed);
-    orien_ledger::Certificate::new(0, signed, votes.into_values().take(3).collect())
+    orien_ledger::Certificate::new(client.epoch(), signed, votes.into_values().take(3).collect())
 }
 
 #[test]
@@ -770,7 +812,7 @@ fn a_validator_refuses_files_in_a_format_it_does_not_write() {
     // The same directory starts again without complaint.
     Node::start(net.config(0), None).map(Node::stop).unwrap();
     // A directory written by an older or a newer version does not.
-    for other in [None, Some("1"), Some("2"), Some("4")] {
+    for other in [None, Some("1"), Some("3"), Some("5")] {
         match other {
             Some(format) => fs::write(data.join("format"), format).unwrap(),
             None => fs::remove_file(data.join("format")).unwrap(),
@@ -779,7 +821,7 @@ fn a_validator_refuses_files_in_a_format_it_does_not_write() {
         assert!(refusal.contains("data format"), "{refusal}");
     }
     // Nothing was touched: put the marker back and the validator is as it was.
-    fs::write(data.join("format"), "3").unwrap();
+    fs::write(data.join("format"), "4").unwrap();
     net.restart(0);
     assert_eq!(net.view(0, &bob).balance, 1100);
 }
@@ -789,7 +831,7 @@ fn a_payment_is_final_only_once_enough_validators_confirm() {
     let mut net = TestNet::start("confirm");
     let (alice, bob) = (net.address("alice"), net.address("bob"));
     let client = net.client();
-    let signed = net.wallet("alice").sign_order(0, bob, 100, &net.network).unwrap();
+    let signed = net.wallet("alice").sign_order(0, bob, 100, None, &net.network).unwrap();
     let certificate = certificate_for(&client, &signed);
     assert!(client.committee().verify_certificate(&certificate).is_ok());
 
@@ -876,7 +918,7 @@ fn a_certificate_must_carry_the_owners_real_signature() {
     let net = TestNet::start("owner-signature");
     let (alice, bob) = (net.address("alice"), net.address("bob"));
     let client = net.client();
-    let signed = net.wallet("alice").sign_order(0, bob, 100, &net.network).unwrap();
+    let signed = net.wallet("alice").sign_order(0, bob, 100, None, &net.network).unwrap();
     let genuine = certificate_for(&client, &signed);
 
     // The votes are real, but the owner's signature has been swapped for
@@ -906,7 +948,7 @@ fn a_wallet_believes_a_payment_number_only_on_confirmations() {
     let mut net = TestNet::start("believe");
     let (alice, bob) = (net.address("alice"), net.address("bob"));
     let client = net.client();
-    let signed = net.wallet("alice").sign_order(0, bob, 100, &net.network).unwrap();
+    let signed = net.wallet("alice").sign_order(0, bob, 100, None, &net.network).unwrap();
     let certificate = certificate_for(&client, &signed);
 
     // One validator has applied the certificate and now says alice is at
@@ -1003,4 +1045,440 @@ fn throughput() {
         PAYERS as f64 / elapsed,
         PAYERS as f64 / signatures as f64
     );
+}
+
+#[test]
+fn an_epoch_closes_and_every_validator_moves_on_together() {
+    let net = TestNet::with_epochs("epoch", 1);
+    let (alice, bob, carol) = (net.address("alice"), net.address("bob"), net.address("carol"));
+    let first = net.pay_through("alice", bob, 100);
+    net.wait_for_epoch(1);
+    // Payments carry on in the next epoch, and the one after.
+    net.pay_through("bob", carol, 30);
+    net.wait_for_epoch(2);
+    net.pay_through("alice", carol, 5);
+    net.wait_for_epoch(4);
+
+    let epoch = net.wait_until_level();
+    assert!(epoch >= 4);
+    for v in 0..4 {
+        assert_eq!((net.view(v, &alice).balance, net.view(v, &alice).seq), (895, 2), "validator {v}");
+        assert_eq!((net.view(v, &bob).balance, net.view(v, &bob).seq), (1070, 1), "validator {v}");
+        assert_eq!(net.view(v, &carol).balance, 35, "validator {v}");
+    }
+
+    // Someone who knows only the genesis file follows the checkpoints to
+    // the present, and can then prove an account against the latest one.
+    let client = net.client();
+    assert_eq!(client.epoch(), 0);
+    assert!(client.follow() >= 4);
+    wait_until("the latest checkpoint proves alice's account", || {
+        client.follow();
+        client.proven(&alice).is_some_and(|account| (account.balance, account.seq) == (895, 2))
+    });
+    assert_eq!(client.proven(&Hash32([9; 32])), None, "an account that never held anything has no proof");
+
+    // A receipt is checked against the validators of the epoch it was made in.
+    if let Done::Receipt(done) = first {
+        let made_in = done.receipt.certificate.epoch;
+        assert!(client.committee_at(made_in).unwrap().verify_receipt(&done.receipt).is_ok());
+        assert!(client.committee().verify_receipt(&done.receipt).is_err(), "votes count in their own epoch only");
+        assert!(net.client().committee_at(made_in + 1).is_none(), "a client that has not followed cannot check it");
+    }
+
+    // What it has followed can be saved and picked up again.
+    let saved = net.dir.join("head");
+    client.head().save(&saved).unwrap();
+    let resumed = Client::resume(&net.genesis, Head::load(&saved, &net.genesis).unwrap());
+    assert_eq!(resumed.epoch(), client.epoch());
+    let mut elsewhere = net.genesis.clone();
+    elsewhere.network = "another network".into();
+    assert!(Head::load(&saved, &elsewhere).is_none(), "a head belongs to one network");
+}
+
+#[test]
+fn a_checkpoint_frees_an_account_whose_owner_signed_twice() {
+    let net = TestNet::with_epochs("freed", 1);
+    let (alice, bob, carol) = (net.address("alice"), net.address("bob"), net.address("carol"));
+    let client = net.client();
+    let to_bob = net.raw_order("alice", 0, bob, 600);
+    let to_carol = net.raw_order("alice", 0, carol, 600);
+
+    // Half the validators are shown one payment and half the other. Then
+    // each is shown the one it has not seen, which gives it the proof.
+    wait_until("a checkpoint cancels the payments", || {
+        for (first, second) in [(&to_bob, &to_carol), (&to_carol, &to_bob)] {
+            for v in 0..4 {
+                let order = if v < 2 { first } else { second };
+                net.ask(v, &Request::SubmitOrder(order.clone()));
+            }
+        }
+        client.account(&alice, 0).signer == Some(Signer::Spare(0))
+    });
+    net.wait_until_level();
+    // Nothing moved, the number is free again, and no validator is still
+    // promised to either payment.
+    let status = client.account(&alice, 0);
+    assert_eq!((status.seq, status.spendable), (0, Some(START as i128)));
+    assert!(status.locks.is_empty());
+    for v in 0..4 {
+        let view = net.view(v, &alice);
+        assert_eq!((view.balance, view.seq, view.lock), (START as i128, 0, None), "validator {v}");
+        assert_eq!(view.signer, Signer::Spare(0), "validator {v}");
+        // The cancelled payments stay dead: their key is retired.
+        for dead in [&to_bob, &to_carol] {
+            let answer = net.ask(v, &Request::SubmitOrder(dead.clone()));
+            assert!(matches!(answer, Response::Rejected(Reject::BadSignature) | Response::Closing), "{answer:?}");
+        }
+    }
+    assert!(client.unfinished(&alice, &status).is_empty());
+
+    // The wallet's next payment is signed with its first spare key.
+    let mut wallet = net.wallet("alice");
+    let signed = wallet.sign_order(0, bob, 100, status.signer.as_ref(), &net.network).unwrap();
+    assert!(matches!(signed.signature, Signature::Spare(_)));
+    client.pay(&signed, Duration::from_secs(20)).unwrap();
+    wallet.confirm(0).unwrap();
+    // After that it is back to ordinary keys.
+    net.pay_through("alice", carol, 50);
+    net.wait_until_level();
+    for v in 0..4 {
+        let view = net.view(v, &alice);
+        assert_eq!((view.balance, view.seq), (850, 2), "validator {v}");
+        assert!(matches!(view.signer, Signer::Key(_)));
+        assert_eq!(net.view(v, &bob).balance + net.view(v, &carol).balance + view.balance, 2 * START as i128);
+    }
+}
+
+#[test]
+fn a_validator_that_missed_checkpoints_catches_up() {
+    let mut net = TestNet::with_epochs("missed", 1);
+    let (bob, carol) = (net.address("bob"), net.address("carol"));
+    net.stop(3);
+    net.pay_through("alice", bob, 100);
+    // Three of four are enough to close an epoch.
+    wait_until("the other three close two epochs", || (0..3).all(|v| net.info(v).epoch >= 2));
+    net.pay_through("bob", carol, 30);
+
+    net.restart(3);
+    net.wait_until_level();
+    assert_eq!(net.view(3, &bob).balance, 1070);
+    assert_eq!(net.view(3, &carol).balance, 30);
+    // It takes full part again.
+    wait_until("all four validators confirm a payment", || {
+        matches!(net.pay_through("alice", carol, 1), Done::Receipt(done) if done.confirmations == 4)
+    });
+}
+
+#[test]
+fn a_close_waits_for_two_thirds_and_resumes_when_they_return() {
+    let mut net = TestNet::with_epochs("stalled", 2);
+    let (alice, bob) = (net.address("alice"), net.address("bob"));
+    // A payment with its certificate made, and shown to nobody yet.
+    let paid = net.raw_order("alice", 0, bob, 100);
+    let certificate = certificate_for(&net.client(), &paid);
+    assert_eq!(certificate.epoch, 0, "the first epoch closed before the test got going");
+    net.stop(2);
+    net.stop(3);
+    // Two of four cannot close an epoch. They pause and wait.
+    wait_until("the two remaining validators pause", || (0..2).all(|v| net.info(v).closing));
+    thread::sleep(Duration::from_millis(1500));
+    assert!((0..2).all(|v| net.info(v).epoch == 0 && net.info(v).closing));
+
+    // While paused, a validator votes on nothing and confirms nothing. It
+    // still records a certificate it is shown.
+    let other = net.raw_order("bob", 0, alice, 5);
+    for v in 0..2 {
+        assert!(matches!(net.ask(v, &Request::SubmitOrder(other.clone())), Response::Closing), "validator {v}");
+        assert_eq!(net.view(v, &bob).lock, None, "validator {v} promised its vote while paused");
+        assert!(matches!(net.ask(v, &Request::Confirm(certificate.clone())), Response::Closing), "validator {v}");
+        assert_eq!(net.view(v, &alice).seq, 1, "validator {v} did not record the certificate");
+        assert!(matches!(net.ask(v, &Request::Confirm(certificate.clone())), Response::Closing), "validator {v}");
+    }
+    let stalled = net.client().pay(&other, Duration::from_millis(300)).err().expect("nothing can be paid");
+    assert!(stalled.closing(), "{stalled}");
+    // With a third validator back, the close goes through.
+    net.restart(2);
+    wait_until("three validators close the epoch", || (0..3).all(|v| net.info(v).epoch >= 1));
+    // The certificate reached the two validators after they had paused, so
+    // the checkpoint could not take the payment in. It is not lost: the
+    // same signed order goes through in the new epoch.
+    assert!(matches!(net.client().pay(&paid, Duration::from_secs(20)), Ok(Done::Receipt(_))));
+    wait_until("the payment is recorded everywhere", || (0..3).all(|v| net.view(v, &bob).balance == 1100));
+}
+
+#[test]
+fn an_unfinished_payment_is_still_finishable_after_a_checkpoint() {
+    let net = TestNet::with_epochs("carried", 1);
+    let (alice, bob) = (net.address("alice"), net.address("bob"));
+    let signed = net.raw_order("alice", 0, bob, 100);
+    let digest = signed.order.digest(&net.network);
+    // Two of four validators vote, and then the payer is gone.
+    wait_until("two validators have voted", || {
+        (0..2).all(|v| matches!(net.ask(v, &Request::SubmitOrder(signed.clone())), Response::Vote(_)))
+    });
+    let voted_in = net.info(0).epoch;
+    net.wait_for_epoch(voted_in + 2);
+    net.wait_until_level();
+
+    // The promise outlived the checkpoints, and the signed order is still there.
+    for v in 0..2 {
+        assert_eq!(net.view(v, &alice).lock, Some(digest), "validator {v}");
+        assert!(matches!(net.ask(v, &Request::Pending(alice)), Response::Pending(Some(kept)) if kept == signed));
+    }
+    // A different payment under the same number is still refused.
+    let other = net.raw_order("alice", 0, bob, 7);
+    wait_until("the conflicting payment is refused", || {
+        matches!(net.ask(0, &Request::SubmitOrder(other.clone())), Response::Rejected(Reject::Conflict { .. }))
+    });
+
+    // Anyone holding the signed order can finish it. The votes of the old
+    // epoch count for nothing, so it gathers them again.
+    let client = net.client();
+    assert!(matches!(client.pay(&signed, Duration::from_secs(20)), Ok(Done::Receipt(_))));
+    net.wait_until_level();
+    for v in 0..4 {
+        assert_eq!((net.view(v, &bob).balance, net.view(v, &alice).seq), (1100, 1), "validator {v}");
+    }
+}
+
+#[test]
+fn a_payment_only_an_absent_validator_recorded_is_put_back_not_lost() {
+    let mut net = TestNet::with_epochs("left-out", 2);
+    let (alice, bob) = (net.address("alice"), net.address("bob"));
+    // Start just after a checkpoint, so that the next one is two seconds off.
+    net.wait_for_epoch(1);
+    net.wait_until_level();
+    let client = net.client();
+    client.follow();
+    let epoch = client.epoch();
+    let signed = net.raw_order("alice", 0, bob, 100);
+    let digest = signed.order.digest(&net.network);
+    let certificate = certificate_for(&client, &signed);
+    assert_eq!(certificate.epoch, epoch);
+
+    // Only validator 4 is given the certificate, and it stops before the
+    // epoch closes. The others close the epoch without it.
+    assert!(matches!(net.ask(3, &Request::SubmitCertificate(certificate)), Response::Applied { fresh: true }));
+    assert_eq!(net.view(3, &alice).seq, 1);
+    net.stop(3);
+    wait_until("the other three close the epoch", || (0..3).all(|v| net.info(v).epoch > epoch));
+    assert_eq!(net.view(0, &alice).seq, 0, "the checkpoint could not know of the payment");
+
+    // When it returns, it takes the checkpoint's state. The payment it had
+    // recorded is undone there, and the order behind it is a promise again.
+    net.restart(3);
+    net.wait_until_level();
+    let view = net.view(3, &alice);
+    assert_eq!((view.balance, view.seq, view.lock), (START as i128, 0, Some(digest)));
+    assert!(matches!(net.ask(3, &Request::Pending(alice)), Response::Pending(Some(kept)) if kept == signed));
+    // The promise is on disk: it is still there after a restart.
+    net.stop(3);
+    net.restart(3);
+    assert_eq!(net.view(3, &alice).lock, Some(digest));
+    assert!(matches!(net.ask(3, &Request::Pending(alice)), Response::Pending(Some(kept)) if kept == signed));
+
+    // The same signed order then goes through in the new epoch.
+    let client = net.client();
+    assert!(matches!(client.pay(&signed, Duration::from_secs(20)), Ok(Done::Receipt(_))));
+    net.wait_until_level();
+    for v in 0..4 {
+        assert_eq!((net.view(v, &bob).balance, net.view(v, &alice).balance), (1100, 900), "validator {v}");
+    }
+}
+
+#[test]
+fn a_payment_recorded_before_the_pause_is_settled_by_the_checkpoint() {
+    let net = TestNet::with_epochs("settled", 2);
+    let (alice, bob) = (net.address("alice"), net.address("bob"));
+    net.wait_for_epoch(1);
+    net.wait_until_level();
+    let client = net.client();
+    client.follow();
+    let epoch = client.epoch();
+    let signed = net.raw_order("alice", 0, bob, 100);
+    let certificate = certificate_for(&client, &signed);
+    // One validator records the certificate. Nobody confirms it.
+    assert!(matches!(net.ask(1, &Request::SubmitCertificate(certificate)), Response::Applied { fresh: true }));
+    assert_eq!(net.view(0, &alice).seq, 0);
+
+    // That validator's log goes into the checkpoint, so the payment does.
+    net.wait_for_epoch(epoch + 1);
+    net.wait_until_level();
+    for v in 0..4 {
+        assert_eq!((net.view(v, &alice).seq, net.view(v, &bob).balance), (1, 1100), "validator {v}");
+    }
+    wait_until("the checkpoint proves it", || {
+        client.follow();
+        client.proven(&alice).is_some_and(|account| account.seq == 1)
+    });
+}
+
+#[test]
+fn validators_restarted_while_epochs_close_end_up_agreeing() {
+    let mut net = TestNet::with_epochs("restarts", 1);
+    let (alice, bob) = (net.address("alice"), net.address("bob"));
+    for round in 0..8 {
+        net.pay_through("alice", bob, 1);
+        let victim = round % 4;
+        net.stop(victim);
+        thread::sleep(Duration::from_millis(120 * (round as u64 % 4)));
+        net.restart(victim);
+    }
+    let epoch = net.wait_until_level();
+    assert!(epoch >= 1);
+    for v in 0..4 {
+        assert_eq!((net.view(v, &alice).balance, net.view(v, &bob).balance), (992, 1008), "validator {v}");
+    }
+}
+
+#[test]
+fn validators_replace_their_key_trees_before_they_run_out() {
+    // A tree of 64 one-time keys, of which 8 are held back from payments.
+    let options = Options { epoch: 1, height: 6, key_reserve: 8, ..Options::default() };
+    let mut net = TestNet::start_with("rekey", options);
+    let (alice, bob) = (net.address("alice"), net.address("bob"));
+    let first = net.pay_through("alice", bob, 1);
+    // Sixty payments need more than a hundred signatures from each
+    // validator: far more than one tree holds.
+    for _ in 1..60 {
+        net.pay_through("alice", bob, 1);
+    }
+    net.wait_until_level();
+    for v in 0..4 {
+        assert_eq!((net.view(v, &alice).balance, net.view(v, &alice).seq), (940, 60), "validator {v}");
+        assert_eq!(net.info(v).keys_total, 64);
+    }
+    // Someone following from the genesis file sees the validators' keys change.
+    let client = net.client();
+    client.follow();
+    assert!(client.head().validators.len() >= 2, "no validator ever changed its key tree");
+    if let Done::Receipt(done) = first {
+        let made_in = done.receipt.certificate.epoch;
+        assert!(client.committee_at(made_in).unwrap().verify_receipt(&done.receipt).is_ok());
+        assert!(client.committee().at_epoch(made_in).verify_receipt(&done.receipt).is_err());
+    }
+    // A validator restarted with its original key file finds its newer one.
+    net.stop(0);
+    net.restart(0);
+    wait_until("all four validators confirm a payment", || {
+        matches!(net.pay_through("alice", bob, 1), Done::Receipt(done) if done.confirmations == 4)
+    });
+}
+
+/// Stands in for the validator at `address` and answers every request with
+/// whatever `answer` makes of it. This is how a test plays a validator that
+/// lies. The validator it replaces must be stopped first.
+fn impostor(address: &str, answer: impl Fn(Request) -> Response + Send + Sync + 'static) {
+    let listener = TcpListener::bind(address).unwrap();
+    let answer = Arc::new(answer);
+    thread::spawn(move || {
+        for stream in listener.incoming().flatten() {
+            let answer = answer.clone();
+            thread::spawn(move || {
+                let mut stream = stream;
+                while let Ok(Some(frame)) = read_frame(&mut stream) {
+                    let Ok(request) = borsh::from_slice::<Request>(&frame) else { break };
+                    let response = borsh::to_vec(&answer(request)).unwrap();
+                    if write_frame(&mut stream, &response).is_err() {
+                        break;
+                    }
+                }
+            });
+        }
+    });
+}
+
+#[test]
+fn a_validator_is_not_fooled_by_a_wrong_state_for_a_real_checkpoint() {
+    let mut net = TestNet::with_epochs("wrong-state", 2);
+    let bob = net.address("bob");
+    let epoch = net.wait_until_level();
+    net.stop(2);
+    net.pay_through("alice", bob, 100);
+    wait_until("the other three close the epoch", || [0, 1, 3].iter().all(|v| net.info(*v).epoch > epoch));
+    net.wait_until_level();
+    // The genuine checkpoint that closed the epoch validator 3 missed, and
+    // the genuine state it led to.
+    let Response::Checkpoints(checkpoints) = net.ask(0, &Request::Checkpoints { from: epoch, max: 1 }) else {
+        panic!("no checkpoint")
+    };
+    let decided = checkpoints[0].clone();
+    for v in [0, 1, 3] {
+        net.stop(v);
+    }
+    let genuine = fs::read(net.dir.join(format!("data-0/epochs/{}/state", epoch + 1))).unwrap();
+    // A state in which bob is rich. Nobody agreed to it.
+    let mut rich = net.genesis.clone();
+    rich.allocations.iter_mut().find(|allocation| allocation.account == bob).unwrap().amount = 1_000_000_000;
+    let forged = orien_ledger::State::from_genesis(&rich).snapshot();
+
+    // The other three validators are replaced by ones that show the real
+    // checkpoint and then hand over a state of their own making.
+    let honest = Arc::new(std::sync::atomic::AtomicBool::new(false));
+    for v in [0, 1, 3] {
+        let (decided, genuine, forged, honest) = (decided.clone(), genuine.clone(), forged.clone(), honest.clone());
+        impostor(&net.genesis.validators[v].address, move |request| match request {
+            Request::Sync { epoch: asked, .. } if asked == epoch => Response::Sync {
+                epoch: epoch + 1,
+                certs: Vec::new(),
+                certs_total: 0,
+                messages: Vec::new(),
+                messages_total: 0,
+                decided: Some(decided.clone()),
+            },
+            Request::Snapshot { epoch: asked, offset, .. } if asked == epoch + 1 => {
+                let state = if honest.load(std::sync::atomic::Ordering::SeqCst) { &genuine } else { &forged };
+                Response::Snapshot(Some((state[(offset as usize).min(state.len())..].to_vec(), state.len() as u64)))
+            }
+            _ => Response::Unavailable("not this one".into()),
+        });
+    }
+
+    net.restart(2);
+    thread::sleep(Duration::from_millis(1500));
+    assert_eq!(net.info(2).epoch, epoch, "it moved on to a state nobody agreed to");
+    assert_eq!(net.view(2, &bob).balance, START as i128);
+    // Offered the state the checkpoint does name, it takes it.
+    honest.store(true, std::sync::atomic::Ordering::SeqCst);
+    wait_until("it takes the genuine state", || net.info(2).epoch == epoch + 1);
+    assert_eq!(net.view(2, &bob).balance, 1100);
+}
+
+#[test]
+fn a_wallet_is_not_fooled_by_a_validator_lying_about_an_account() {
+    let mut net = TestNet::with_epochs("lying-proof", 1);
+    let (alice, bob) = (net.address("alice"), net.address("bob"));
+    net.pay_through("alice", bob, 100);
+    let paid_in = net.info(1).epoch;
+    net.wait_for_epoch(paid_in + 1);
+    net.wait_until_level();
+    // With two validators gone no further epoch can close, so the state the
+    // wallet checks against stays put. The first validator is replaced by
+    // one that says alice never paid and holds a fortune.
+    net.stop(0);
+    net.stop(3);
+    impostor(&net.genesis.validators[0].address, move |request| match request {
+        Request::Proof(_) => Response::Proof {
+            epoch: paid_in + 1,
+            account: Some((
+                orien_ledger::Account {
+                    balance: 1_000_000_000,
+                    seq: 0,
+                    signer: Signer::First,
+                    spare: Hash32::default(),
+                    spares_used: 0,
+                },
+                orien_crypto::merkle::Path { index: 0, siblings: Vec::new() },
+            )),
+        },
+        _ => Response::Unavailable("not this one".into()),
+    });
+
+    let client = net.client();
+    assert!(client.follow() > paid_in);
+    let proven = client.proven(&alice).expect("two honest validators still answer");
+    assert_eq!((proven.balance, proven.seq), (900, 1), "the wallet took a validator's word for it");
+    // So the wallet will not reuse the key of a payment number already spent.
+    assert_eq!(client.account(&alice, 0).seq, 1);
 }

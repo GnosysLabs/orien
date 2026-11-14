@@ -5,7 +5,7 @@ use anyhow::{Context, Result, anyhow, bail};
 use orien_crypto::keytree::KeyTree;
 use orien_crypto::{Hash32, Kdf, ots, prf};
 use orien_ledger::{
-    AccountId, Genesis, Kind, Order, SPARE_HEIGHT, Signature, SignedBy, SignedOrder, address,
+    AccountId, Genesis, Kind, Order, SPARE_HEIGHT, Signature, SignedBy, SignedOrder, Signer, address,
 };
 use serde::{Deserialize, Serialize};
 use std::fs;
@@ -205,13 +205,25 @@ impl Wallet {
     /// Signs payment number `seq`. If this wallet already signed an order
     /// under that number, the same order comes back when the details match,
     /// and an error when they do not.
+    ///
+    /// `signer` is the key a checkpoint proves the account must use, where
+    /// one does. After a cancellation that is a numbered spare key.
     pub fn sign_order(
         &mut self,
         seq: u64,
         to: AccountId,
         amount: u64,
+        signer: Option<&Signer>,
         network: &Hash32,
     ) -> Result<SignedOrder> {
+        // An order signed with a key that a checkpoint has since retired is
+        // dead. It no longer blocks its payment number.
+        if let (Some(Signer::Spare(leaf)), Some(pending)) = (signer, &self.pending)
+            && pending.order.seq == seq
+            && !matches!(&pending.signature, Signature::Spare(signature) if signature.leaf == *leaf)
+        {
+            self.pending = None;
+        }
         if let Some(pending) = &self.pending {
             if pending.order.seq == seq {
                 if pending.order.to == to && pending.order.amount == amount {
@@ -233,18 +245,43 @@ impl Wallet {
         }
         let order = self.order(seq, to, amount);
         let digest = order.digest(network);
-        let signed = SignedOrder { signature: Signature::Key(self.key(seq).sign(digest.as_bytes())), order };
+        let signature = match signer {
+            Some(Signer::Spare(leaf)) if *leaf >= self.spares.capacity() => {
+                bail!("this account has used up all {} of its spare keys", self.spares.capacity())
+            }
+            Some(Signer::Spare(leaf)) => Signature::Spare(self.spares.sign_with_leaf(*leaf, digest.as_bytes())),
+            Some(Signer::Key(expected)) if *expected != self.key(seq).commitment() => bail!(
+                "the account's next payment must be signed with a key this wallet file does not \
+                 hold. Another wallet may have taken the account over."
+            ),
+            _ => Signature::Key(self.key(seq).sign(digest.as_bytes())),
+        };
+        let signed = SignedOrder { signature, order };
         self.pending = Some(signed.clone());
         self.save()?;
         Ok(signed)
     }
 
+    /// Drops the order signed under `seq`, once a checkpoint has cancelled
+    /// that number. The key that signed it is retired with it.
+    pub fn forget(&mut self, seq: u64) -> Result<()> {
+        if self.pending.as_ref().is_some_and(|pending| pending.order.seq == seq) {
+            self.pending = None;
+            self.save()?;
+        }
+        Ok(())
+    }
+
     /// Whether `signed` carries this wallet's own signature: made with the
-    /// one-time key this wallet derives for that payment number.
+    /// one-time key this wallet derives for that payment number, or with
+    /// one of its spare keys.
     pub fn signed_by_this_wallet(&self, signed: &SignedOrder, network: &Hash32) -> bool {
-        signed.order.from == self.address
-            && signed.order.spare == self.spares.root()
-            && signed.signed_by(network) == Some(SignedBy::Key(self.key(signed.order.seq).commitment()))
+        let own_key = match signed.signed_by(network) {
+            Some(SignedBy::Key(key)) => key == self.key(signed.order.seq).commitment(),
+            Some(SignedBy::Spare { root, .. }) => root == self.spares.root(),
+            None => false,
+        };
+        own_key && signed.order.from == self.address && signed.order.spare == self.spares.root()
     }
 
     /// Takes over an order that another copy of this wallet signed, so that
@@ -333,8 +370,8 @@ mod tests {
         copy.adopt(&good, &network).unwrap();
         let mut reloaded = Wallet::load(&dir.join("copy.wallet")).unwrap();
         assert_eq!(reloaded.pending(), Some(&good));
-        assert!(reloaded.sign_order(0, payee, 6, &network).is_err());
-        assert_eq!(reloaded.sign_order(0, payee, 5, &network).unwrap(), good);
+        assert!(reloaded.sign_order(0, payee, 6, None, &network).is_err());
+        assert_eq!(reloaded.sign_order(0, payee, 5, None, &network).unwrap(), good);
         let _ = fs::remove_dir_all(dir);
     }
 }

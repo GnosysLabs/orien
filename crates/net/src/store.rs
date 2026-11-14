@@ -1,8 +1,9 @@
-//! A validator's files. Three things must survive a crash:
+//! A validator's files. These must survive a crash:
 //!
 //! - which orders it voted for, or it could vote for a conflicting one;
 //! - which one-time keys it has used, or it could reuse one;
-//! - the certificates it applied, from which balances are rebuilt.
+//! - the certificates it applied, from which balances are rebuilt;
+//! - what it said while closing an epoch, or it could say something else.
 
 use orien_ledger::{AccountId, Certificate, SignedOrder};
 use std::collections::HashMap;
@@ -76,6 +77,7 @@ impl Epochs {
         };
         let epochs = Epochs { dir: dir.to_owned(), current, durable };
         fs::create_dir_all(epochs.folder(current))?;
+        fs::create_dir_all(dir.join("checkpoints"))?;
         if durable {
             epochs.sync()?;
         }
@@ -86,8 +88,51 @@ impl Epochs {
         self.current
     }
 
-    fn folder(&self, epoch: u64) -> PathBuf {
-        self.dir.join("epochs").join(epoch.to_string())
+    pub fn folder(&self, epoch: u64) -> PathBuf {
+        Epochs::folder_in(&self.dir, epoch)
+    }
+
+    /// The folder of `epoch` under the data directory `dir`.
+    pub fn folder_in(dir: &Path, epoch: u64) -> PathBuf {
+        dir.join("epochs").join(epoch.to_string())
+    }
+
+    /// Where the current epoch's closing messages are recorded.
+    pub fn journal(&self) -> PathBuf {
+        self.folder(self.current).join("close.log")
+    }
+
+    /// Records the checkpoint that closed `epoch`, with its proof.
+    pub fn save_checkpoint(&self, epoch: u64, bytes: &[u8]) -> io::Result<()> {
+        write_replacing(&self.dir.join("checkpoints").join(epoch.to_string()), bytes, self.durable)
+    }
+
+    /// The checkpoint that closed `epoch`, if this validator has it.
+    pub fn checkpoint(&self, epoch: u64) -> io::Result<Option<Vec<u8>>> {
+        match fs::read(self.dir.join("checkpoints").join(epoch.to_string())) {
+            Ok(bytes) => Ok(Some(bytes)),
+            Err(error) if error.kind() == io::ErrorKind::NotFound => Ok(None),
+            Err(error) => Err(error),
+        }
+    }
+
+    /// Part of the state `epoch` started from: up to `max` bytes from
+    /// `offset`, and the size of the whole.
+    pub fn state_chunk(&self, epoch: u64, offset: u64, max: usize) -> io::Result<Option<(Vec<u8>, u64)>> {
+        if epoch > self.current {
+            return Ok(None);
+        }
+        let mut file = match File::open(self.folder(epoch).join("state")) {
+            Ok(file) => file,
+            Err(error) if error.kind() == io::ErrorKind::NotFound => return Ok(None),
+            Err(error) => return Err(error),
+        };
+        let total = file.metadata()?.len();
+        let length = (total.saturating_sub(offset)).min(max as u64) as usize;
+        let mut bytes = vec![0u8; length];
+        file.seek(SeekFrom::Start(offset))?;
+        file.read_exact(&mut bytes)?;
+        Ok(Some((bytes, total)))
     }
 
     /// The current epoch's certificate log.
@@ -219,6 +264,54 @@ impl CertLog {
     }
 }
 
+/// An append-only file of records, read back in order when it is opened.
+/// A validator writes here what it hears and says while closing an epoch,
+/// so that after a restart it is exactly where it was.
+pub struct Journal {
+    file: File,
+    durable: bool,
+}
+
+impl Journal {
+    /// Opens the journal and returns the records already in it.
+    pub fn open(path: &Path, durable: bool) -> io::Result<(Journal, Vec<Vec<u8>>)> {
+        let mut records = Vec::new();
+        let mut end = 0usize;
+        match fs::read(path) {
+            Ok(bytes) => {
+                while let Some((length, after)) = bytes[end..].split_first_chunk::<4>() {
+                    let length = u32::from_le_bytes(*length) as usize;
+                    if length > MAX_FRAME || length > after.len() {
+                        break;
+                    }
+                    records.push(after[..length].to_vec());
+                    end += 4 + length;
+                }
+                // A crash mid-write can leave a partial record at the end.
+                if end != bytes.len() {
+                    write_replacing(path, &bytes[..end], durable)?;
+                }
+            }
+            Err(error) if error.kind() == io::ErrorKind::NotFound => {}
+            Err(error) => return Err(error),
+        }
+        let file = OpenOptions::new().append(true).create(true).open(path)?;
+        Ok((Journal { file, durable }, records))
+    }
+
+    pub fn append(&mut self, record: &[u8]) -> io::Result<()> {
+        let mut bytes = Vec::with_capacity(4 + record.len());
+        bytes.extend_from_slice(&(record.len() as u32).to_le_bytes());
+        bytes.extend_from_slice(record);
+        self.file.write_all(&bytes)
+    }
+
+    /// Returns once everything appended so far is on disk.
+    pub fn sync(&self) -> io::Result<()> {
+        if self.durable { self.file.sync_data() } else { Ok(()) }
+    }
+}
+
 /// The orders this validator has voted for, signatures included.
 ///
 /// A record is the vote's promise: once it is on disk, the validator will
@@ -313,7 +406,11 @@ pub struct LeafCounter {
 }
 
 impl LeafCounter {
-    const BLOCK: u32 = 64;
+    /// How many numbers are reserved on disk at a time. A restart skips to
+    /// the end of the reserved block, so a small tree reserves fewer.
+    fn block(&self) -> u32 {
+        (self.capacity / 64).clamp(1, 64)
+    }
 
     pub fn open(path: PathBuf, capacity: u32, durable: bool) -> io::Result<LeafCounter> {
         let reserved = match fs::read(&path) {
@@ -342,7 +439,7 @@ impl LeafCounter {
             return Ok(None);
         }
         if self.next >= self.reserved {
-            let reserved = self.next.saturating_add(Self::BLOCK).min(self.capacity);
+            let reserved = self.next.saturating_add(self.block()).min(self.capacity);
             write_replacing(&self.path, &reserved.to_le_bytes(), self.durable)?;
             self.reserved = reserved;
         }
@@ -441,6 +538,30 @@ mod tests {
         // An epoch past the first cannot start without its snapshot.
         fs::remove_file(dir.join("epochs/1/state")).unwrap();
         assert!(Epochs::open(&dir, false).unwrap().snapshot().is_err());
+        let _ = fs::remove_dir_all(dir);
+    }
+
+    #[test]
+    fn a_journal_reads_back_what_was_written_and_drops_a_torn_tail() {
+        let dir = scratch("journal");
+        let path = dir.join("close.log");
+        let (mut journal, records) = Journal::open(&path, false).unwrap();
+        assert!(records.is_empty());
+        journal.append(b"first").unwrap();
+        journal.append(b"").unwrap();
+        journal.append(b"third record").unwrap();
+        journal.sync().unwrap();
+        drop(journal);
+        // A crash partway through a fourth record.
+        OpenOptions::new().append(true).open(&path).unwrap().write_all(&[40, 0, 0, 0, 1, 2, 3]).unwrap();
+
+        let (mut journal, records) = Journal::open(&path, false).unwrap();
+        assert_eq!(records, vec![b"first".to_vec(), Vec::new(), b"third record".to_vec()]);
+        // Writing carries on cleanly after the torn record was cut off.
+        journal.append(b"fourth").unwrap();
+        let (_, records) = Journal::open(&path, false).unwrap();
+        assert_eq!(records.len(), 4);
+        assert_eq!(records[3], b"fourth");
         let _ = fs::remove_dir_all(dir);
     }
 

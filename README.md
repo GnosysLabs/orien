@@ -21,6 +21,12 @@ line behind other payments. The name is from the Latin *oriens*, rising.
 3. **Validators sign in batches.** A validator signs one Merkle root over
    every vote and confirmation it was asked for in the last few
    milliseconds. One signature covers them all.
+4. **A checkpoint every so often.** About once an hour the validators pause
+   for a moment and agree on a snapshot of every balance. This is the only
+   time they need to agree on anything, and no payment waits in line for
+   it. The checkpoint frees an account whose owner signed twice, lets
+   validators change their keys, and is what staking, fees and coin
+   creation will hang on. The design is in `docs/epochs.md`.
 
 Everything rests on one assumption: the BLAKE3 hash function.
 
@@ -70,7 +76,25 @@ the same ledger.
 
 `devnet double-spend --split` shows the other way to cheat: it sends each
 conflicting payment to half the validators at once. Neither becomes final,
-no money moves, and only the cheater's account is stuck.
+no money moves, and only the cheater's account is stuck. The next checkpoint
+cancels both payments and frees the account, which from then on signs with
+one of its spare keys. A local network takes a checkpoint every minute, so
+wait a minute and send again:
+
+```bash
+./target/release/orien devnet double-spend --wallet bob --split
+```
+
+```bash
+./target/release/orien balance devnet/wallets/bob.wallet
+```
+
+```bash
+./target/release/orien send -w devnet/wallets/bob.wallet --to devnet/wallets/carol.wallet --amount 10
+```
+
+`devnet init --epoch-seconds` sets how often checkpoints happen. A payment
+sent while one is being made simply waits for it.
 
 ### An interrupted payment
 
@@ -119,8 +143,10 @@ genesis file does not change the network, as long as every copy of the file
 gets the change.
 
 Four validators tolerate one that is down, hacked or lying. A validator that
-was down catches up from the others when it returns. If one machine holds
-two of the four, make it the one that is always on.
+was down catches up from the others when it returns, checkpoints included.
+If one machine holds two of the four, make it the one that is always on.
+With fewer than three of four running, the network cannot take a checkpoint
+and pauses until a third is back.
 
 Traffic is not encrypted or rate-limited yet. Forged messages are rejected
 because every vote and receipt is signed, but for now give validators
@@ -163,6 +189,14 @@ A payment needs two round trips to enough validators: one for the votes and
 one for the confirmations. With the server needed for a quorum, about 115 ms
 of the 162 is the network's own travel time.
 
+A checkpoint pauses payments while the validators agree on it:
+
+| | |
+|---|---|
+| A payment that runs into a checkpoint, one laptop | about 0.2 s |
+| The same on the three machines | about 1.1 s |
+| Signatures a validator spends on an idle checkpoint | 3 |
+
 Reproduce the throughput figure with:
 
 ```bash
@@ -174,39 +208,48 @@ cargo test --release -p orien-net --test devnet throughput -- --ignored --nocapt
 | Crate | What it holds |
 |---|---|
 | `crates/crypto` | One-time signatures, validator key trees, batch Merkle proofs |
-| `crates/ledger` | The rules: orders, votes, certificates, when to vote, how balances change |
-| `crates/net` | The validator node, storage, sync between validators, client, wallet files |
+| `crates/ledger` | The rules: orders, votes, certificates, when to vote, how balances change, what a checkpoint is and how validators agree on one |
+| `crates/net` | The validator node, the closing of epochs, storage, sync between validators, client, wallet files |
 | `crates/cli` | The `orien` command |
 
 ## Not done yet
 
-- **Fixed validator set.** Validators come from the genesis file. Adding and
-  removing them, staking and rewards need an agreement step at epoch
-  boundaries.
-- **No fees.** Nothing yet stops someone flooding the network with tiny
-  payments or dust accounts.
-- **A double-signed account can stay locked.** If two different payments are
-  signed under one number and the validators' votes split, neither can become
-  final. `orien resume` can still finish one of them while enough validators
-  have not voted. After that the account is stuck. The rule that frees it is
-  written and tested: both payments are cancelled and the account carries on
-  with a spare key. Nothing applies that rule yet. It takes a checkpoint,
-  which is the next thing to build (`docs/epochs.md`).
+- **Fixed validator set.** Validators come from the genesis file. They can
+  replace their keys at a checkpoint, but nobody can join or leave yet.
+  Staking is designed (`docs/epochs.md`) and not built.
+- **No fees and no coin creation.** Nothing yet stops someone flooding the
+  network with tiny payments or dust accounts, and the coins all come from
+  the genesis file.
+- **Sixteen spare keys per account.** Each time an owner signs two different
+  payments under one number, a checkpoint cancels both and the account moves
+  to its next spare key. After sixteen such accidents the account stays
+  locked.
 - **Signing twice with one key leaks it.** Two signatures from one one-time
   key reveal enough to forge further payments under that number. A wallet
   asks the validators before it signs and refuses if the key is already in
   use, but two copies of a wallet signing at the same instant can still do
   it. Until validators holding a third of the stake have voted on either
   payment, someone who sees both signatures could get a forged third one
-  accepted. Releasing a locked account will also have to move it to a spare
-  key named in advance.
+  accepted. The spare keys are fixed in the address beforehand, so whoever
+  can forge the burned key has no hold on the account after the checkpoint.
+- **No receipt for a payment a checkpoint settled.** A payment that had its
+  votes when a checkpoint began, and that the checkpoint took in, is final
+  without confirmations. The wallet says so, but cannot yet hand over a
+  proof of it.
+- **A receipt from a later epoch needs the checkpoints.** A receipt from the
+  first epoch checks against the genesis file alone. One from a later epoch
+  checks against that epoch's validators, which a computer learns by
+  following the checkpoints, one small download per epoch.
+- **Old epochs are kept forever.** A validator keeps every epoch's snapshot
+  and log on disk.
 - **A wallet cannot replace a signed payment.** Once signed, a payment can
   only be finished as it is, by any copy of the wallet. It cannot be
   cancelled.
-- **Validator keys run out.** A key tree signs 2^height batches (65,536 by
-  default). Rolling over to a fresh tree belongs with epochs.
-- **Receipts grow with the validator set**, at 1 to 3 KB per vote. Checkpoints
-  that replace old receipts are the planned answer.
+- **A validator that uses up its whole key tree is stuck.** Validators build
+  a fresh tree when the old one is half used and switch to it at a
+  checkpoint. One that still runs out completely, after a long outage at
+  the wrong moment, has no key left to announce the new tree with.
+- **Receipts grow with the validator set**, at 1 to 3 KB per vote.
 - **Networking is basic**: one thread per connection, no encryption, no
   limits. Raise `ulimit -n` before putting real load on a validator.
 - **Keys sit unencrypted on disk**, readable only by their owner.
