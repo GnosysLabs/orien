@@ -25,8 +25,10 @@ line behind other payments. The name is from the Latin *oriens*, rising.
    for a moment and agree on a snapshot of every balance. This is the only
    time they need to agree on anything, and no payment waits in line for
    it. The checkpoint frees an account whose owner signed twice, lets
-   validators change their keys, and is what staking, fees and coin
-   creation will hang on. The design is in `docs/epochs.md`.
+   validators change their keys, chooses the next hour's validators from
+   the coins staked behind them, and takes the stake of any validator
+   caught cheating. Fees and coin creation will hang on it too. The design
+   is in `docs/epochs.md`.
 
 Everything rests on one assumption: the BLAKE3 hash function.
 
@@ -95,6 +97,31 @@ wait a minute and send again:
 
 `devnet init --epoch-seconds` sets how often checkpoints happen. A payment
 sent while one is being made simply waits for it.
+
+### Staking a new validator
+
+Anyone can become a validator by staking at least 10,000 coins behind a
+validator key. The launch validators of the genesis file hold seats that
+share 3 million coins of voting weight, which fades as real stake arrives.
+Start a validator with a fresh key, then stake for it; it joins at the next
+checkpoint:
+
+```bash
+./target/release/orien keygen newcomer.key
+```
+
+```bash
+./target/release/orien node -k newcomer.key -d newcomer-data --listen 127.0.0.1:7005 -g devnet/genesis.json
+```
+
+```bash
+./target/release/orien stake -w devnet/wallets/alice.wallet --amount 10000 --validator-key newcomer.key --address 127.0.0.1:7005 -g devnet/genesis.json
+```
+
+`orien status` lists each epoch's validators with their share of the vote.
+`orien unstake` releases staked coins after a wait of 168 epochs, one week.
+A validator that votes for two conflicting payments, or signs twice with
+one key, loses its stake at the next checkpoint.
 
 ### An interrupted payment
 
@@ -214,9 +241,8 @@ cargo test --release -p orien-net --test devnet throughput -- --ignored --nocapt
 
 ## Not done yet
 
-- **Fixed validator set.** Validators come from the genesis file. They can
-  replace their keys at a checkpoint, but nobody can join or leave yet.
-  Staking is designed (`docs/epochs.md`) and not built.
+- **No delegation.** Staking backs your own validator; backing someone
+  else's is designed for later.
 - **No fees and no coin creation.** Nothing yet stops someone flooding the
   network with tiny payments or dust accounts, and the coins all come from
   the genesis file.

@@ -1,7 +1,8 @@
 # The epoch step
 
-Status: **stages 0 to 3 of the build order are built. Checkpoints run, and
-a double-signed account is freed at the next one. Staking, fees and coin
+Status: **stages 0 to 4 of the build order are built. Checkpoints run, a
+double-signed account is freed at the next one, and the validators of
+each epoch are chosen by stake, with a penalty for cheating. Fees and coin
 creation are designed here and not built.**
 
 ## In plain words
@@ -376,7 +377,7 @@ Each stage can be built and tested on its own.
 | 1b, built | The order format, fixed once: kind, largest fee, spare tree, the new address form. Cancellation as a pure function. The wallet's key streams. | `crates/ledger`, `crates/net/src/keys.rs`, `crates/crypto/src/hash.rs` |
 | 2, built | The close as pure logic with no network or disk, and simulators that run it under delays, absent validators and dishonest ones. The failures the review found are permanent tests. | `crates/ledger/src/agree.rs`, `crates/ledger/src/close.rs` |
 | 3, built | The close inside the validator with a fixed validator set: the pause, messages between validators, the journal, the switch of state, the checkpoint chain, account proofs, key-tree replacement. Wallets follow checkpoints and sign with a spare key after a cancellation. | `crates/net/src/closer.rs`, `crates/net/src/node.rs`, `crates/net/src/client.rs`, `crates/cli` |
-| 4 | Staking, a changing validator set, penalties. | all crates |
+| 4, built | Staking and unstaking with a wait, a validator set chosen by stake at each checkpoint, launch seats that fade as real stake arrives, validators that join from outside the genesis file, wallets that follow the set, and penalties for cheating validators. | all crates |
 | 5 | Fees. | `crates/ledger`, `crates/net` |
 | 6 | Coin creation, a genesis with no coins, and a command that does the work. | all crates |
 
