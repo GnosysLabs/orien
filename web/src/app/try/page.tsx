@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
-import { ArrowRight, Bot, Download, KeyRound, Pickaxe, RefreshCw, Send, ServerCog, Wallet } from 'lucide-react'
+import { ArrowRight, Bot, Download, KeyRound, Monitor, Pickaxe, RefreshCw, Send, ServerCog, Wallet } from 'lucide-react'
 import { CopyText } from '@/components/CopyText'
 
 export const metadata: Metadata = {
@@ -52,6 +52,34 @@ export default function GetStartedPage() {
           Linux and Windows. Install it, make a wallet, and start mining in a few minutes.
         </p>
       </header>
+
+      <section className="mb-6 rounded-2xl border border-line bg-surface p-6 sm:p-8">
+        <div className="mb-4 flex items-center gap-3">
+          <Monitor className="h-5 w-5 text-pearl" strokeWidth={1.75} aria-hidden />
+          <h2 className="text-xl font-bold tracking-tight text-ink">Or use the Orien app</h2>
+        </div>
+        <div className="space-y-4 leading-relaxed text-muted">
+          <p>
+            A desktop wallet: make a wallet with its 24-word recovery phrase, see your balance, send and receive ORN,
+            and keep an address book. It uses the same wallet as orien, so you can use both. It updates itself.
+          </p>
+          <div className="flex flex-wrap items-center gap-4">
+            <a
+              href="/wallet/Orien-setup.exe"
+              className="pearl-fill flex h-11 items-center gap-2 rounded-xl px-5 text-sm font-bold transition hover:brightness-105"
+            >
+              <Download className="h-4 w-4" aria-hidden /> Download for Windows
+            </a>
+            <a href="/wallet/SHA256SUMS" className="text-sm underline decoration-line underline-offset-4 hover:text-ink">
+              Download fingerprints (SHA-256)
+            </a>
+          </div>
+          <p className="text-sm">
+            Windows may say it protected your PC from an unrecognised app. Choose <strong className="font-semibold text-ink">More info</strong>,
+            then <strong className="font-semibold text-ink">Run anyway</strong>.
+          </p>
+        </div>
+      </section>
 
       <div className="space-y-6">
         <Step number={1} icon={Download} title="Install orien">
