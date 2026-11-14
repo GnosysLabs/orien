@@ -9,8 +9,8 @@
 #
 # What it does:
 #   1. Sets the version in tauri.conf.json and Cargo.toml.
-#   2. Builds Orien.app and Orien.dmg for every Mac (Apple chips and Intel),
-#      for the live network.
+#   2. Builds Orien.app and Orien.dmg for Macs with Apple chips, for the
+#      live network. Intel Macs are not supported.
 #   3. Signs the update with the Orien update key, which never leaves this
 #      Mac: ~/.orien-release/wallet-update.key, or $ORIEN_UPDATE_KEY. It asks
 #      for the key's password.
@@ -49,7 +49,7 @@ HOST=root@cyphers-vps
 WEB_ROOT=/var/www/orien.network
 BASE_URL=https://orien.network/wallet
 SSH="ssh -o BatchMode=yes -o ConnectTimeout=10"
-TARGET=universal-apple-darwin
+TARGET=aarch64-apple-darwin
 
 KEY=${ORIEN_UPDATE_KEY:-$HOME/.orien-release/wallet-update.key}
 [ -f "$KEY" ] || { echo "no update key at $KEY" >&2; exit 1; }
@@ -81,8 +81,8 @@ if [ -z "${APPLE_SIGNING_IDENTITY:-}" ]; then
     echo "Note: Apple signing is not set up, so Macs will warn before opening the downloaded app."
 fi
 
-echo "Building Orien $VERSION for every Mac"
-rustup target add aarch64-apple-darwin x86_64-apple-darwin >/dev/null
+echo "Building Orien $VERSION for Macs with Apple chips"
+rustup target add $TARGET >/dev/null
 # Built for the live network: the genesis file in web/public/network.
 env -u ORIEN_GENESIS cargo tauri build --target $TARGET
 
@@ -103,8 +103,8 @@ latest = {
     "version": version,
     "notes": f"Orien {version}",
     "pub_date": datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
-    # One app runs on both kinds of Mac.
-    "platforms": {"darwin-aarch64": platform, "darwin-x86_64": platform},
+    # Macs with Apple chips only.
+    "platforms": {"darwin-aarch64": platform},
 }
 if minimum:
     latest["minimum"] = minimum
