@@ -1,0 +1,34 @@
+# /etc/systemd/system/orien-validator@.service
+# One launch validator of the Orien network. Instance N (1 to 4) keeps its key
+# and data in /var/lib/orien/vN and listens on port 710N.
+#
+#   systemctl enable --now orien-validator@1
+#
+# Update the validators one at a time, never all at once: the network keeps
+# running while any three of the four are up.
+
+[Unit]
+Description=Orien validator %i
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+User=orien
+Group=orien
+ExecStart=/usr/local/bin/orien node -g /var/lib/orien/genesis.json -k /var/lib/orien/v%i/validator.key -d /var/lib/orien/v%i/data --listen 0.0.0.0:710%i
+Restart=always
+RestartSec=5
+# Up to 1,024 connections at once, each a file.
+LimitNOFILE=8192
+
+# It needs nothing but its own folder.
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+PrivateTmp=true
+PrivateDevices=true
+ReadWritePaths=/var/lib/orien
+UMask=0077
+
+[Install]
+WantedBy=multi-user.target

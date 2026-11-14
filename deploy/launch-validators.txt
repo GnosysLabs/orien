@@ -1,0 +1,7 @@
+# The public halves of the four launch validators' keys, made on cyphers-vps
+# on 2026-11-14. Their secret halves never left the server. These lines go
+# into `orien genesis new` as they are.
+--validator "orien-1,a97fdf22866227b1823d5645622688b537ea8147e1740162900e25378c6a03f1,16,217.77.11.197:7101"
+--validator "orien-2,31c79df5789934edb0b828f9111d6691cf659f2bcefd19a17897fb1b9fb9177f,16,217.77.11.197:7102"
+--validator "orien-3,2fa40d1186c7b5129e7da61542ca46bfbffbdad40f093140e82aaad3a4090404,16,217.77.11.197:7103"
+--validator "orien-4,9878f8f25fa8795aefdb543fc11ce7cd3ca17e67b091ca3c72aaac271772c58c,16,217.77.11.197:7104"
