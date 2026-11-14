@@ -248,7 +248,17 @@ export default function HowItWorksPage() {
         />
       </Section>
 
-      <div className="mb-8 mt-4 flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-line bg-surface p-6">
+      <div className="mt-4 flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-line bg-surface p-6">
+        <p className="font-semibold text-ink">Every rule, in full detail</p>
+        <Link
+          href="/paper/"
+          className="flex h-11 items-center gap-2 rounded-xl border border-line bg-bg px-5 text-sm font-semibold text-ink transition hover:border-pearl"
+        >
+          Technical paper <ArrowRight className="h-4 w-4" aria-hidden />
+        </Link>
+      </div>
+
+      <div className="mb-8 mt-6 flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-line bg-surface p-6">
         <p className="font-semibold text-ink">Ready to try it?</p>
         <Link
           href="/try/"

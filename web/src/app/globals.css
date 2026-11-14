@@ -226,3 +226,21 @@ body::after {
     animation: none;
   }
 }
+
+/* Printing (or saving as PDF), used by the technical paper: black on white,
+   without the decorative background. */
+@media print {
+  html {
+    color-scheme: light;
+  }
+  body {
+    background: #fff !important;
+  }
+  body::before,
+  body::after {
+    display: none !important;
+  }
+  @page {
+    margin: 18mm 16mm;
+  }
+}

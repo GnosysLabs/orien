@@ -79,15 +79,17 @@ const SITE_DATA = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" className={`${geistSans.variable} ${geistMono.variable} ${jost.variable} h-full antialiased`}>
-      <body className="flex min-h-full flex-col">
+      <body className="flex min-h-full flex-col print:bg-white">
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(SITE_DATA) }}
         />
         <div className="flex min-h-full flex-1 flex-col">
-          <Header />
+          <div className="print:hidden">
+            <Header />
+          </div>
           <main className="mx-auto w-full max-w-[1200px] flex-1 px-4 py-6 sm:py-8">{children}</main>
-          <footer className="border-t border-line px-4 pb-24 pt-6 text-center text-xs text-muted md:pb-8">
+          <footer className="border-t border-line px-4 print:hidden pb-24 pt-6 text-center text-xs text-muted md:pb-8">
             <p className="mb-2 flex items-center justify-center gap-2 font-semibold text-ink/85">
               <Wordmark className="text-sm" />
               <span className="text-muted">·</span>
@@ -103,6 +105,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               <Link href="/try/" className="hover:text-ink">
                 Get started
               </Link>
+              <Link href="/paper/" className="hover:text-ink">
+                Technical paper
+              </Link>
               <a href={OPERATOR_URL} target="_blank" rel="noreferrer" className="hover:text-ink">
                 GnosysLabs
               </a>
@@ -110,7 +115,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <p className="mt-3">© 2026 {OPERATOR}</p>
           </footer>
         </div>
-        <BottomNav />
+        <div className="print:hidden">
+          <BottomNav />
+        </div>
       </body>
     </html>
   )
