@@ -92,24 +92,37 @@ that account: the one-time key for that payment number is already used.
 
 `devnet run` keeps all validators in one process. To spread them out:
 
-1. Run `orien devnet init --dir net` once, on any machine.
-2. Edit the `address` of each validator in `net/genesis.json` to an address
-   the other machines can reach (a hostname works). Addresses are not part of
-   the network's identity, so this does not change the network.
-3. Copy `genesis.json` to every machine, and each `validators/vN.key` to the
-   one machine that will run that validator.
-4. On each machine:
+1. Create the network once, on any machine, giving each validator the
+   address the other machines reach it on:
 
    ```bash
-   orien node -g genesis.json -k vN.key -d data --listen 0.0.0.0:7001
+   orien devnet init --dir net --name my-network --address 10.0.0.1:7101 --address 10.0.0.2:7101 --address 10.0.0.3:7101 --address 10.0.0.3:7102
    ```
 
+2. Copy `net/genesis.json` to every machine, and each `net/validators/vN.key`
+   to the one machine that will run that validator.
+3. On each machine:
+
+   ```bash
+   orien node -g genesis.json -k vN.key -d data --listen 10.0.0.1:7101
+   ```
+
+Addresses are not part of the network's identity. Changing one in the
+genesis file does not change the network, as long as every copy of the file
+gets the change.
+
 Four validators tolerate one that is down, hacked or lying. A validator that
-was down catches up from the others when it returns.
+was down catches up from the others when it returns. If one machine holds
+two of the four, make it the one that is always on.
 
 Traffic is not encrypted or rate-limited yet. Forged messages are rejected
-because every vote and receipt is signed, but for now run validators on a
-private network.
+because every vote and receipt is signed, but for now give validators
+private addresses only and listen on those, never on a public one.
+
+`deploy/rehearsal.sh` does all of this for one particular set of machines
+and is meant to be copied: it builds for Linux, copies one folder to each
+machine over SSH, and starts, stops and removes the validators. It installs
+nothing on them.
 
 ## Measured
 
@@ -123,6 +136,18 @@ each validator syncing its votes to disk:
 | Payments covered by one validator signature under load | 33 to 50 |
 | One-time signature | 1,248 bytes |
 | Receipt (3 of 4 votes) | 5,450 bytes |
+
+With the four validators on three machines instead (a laptop, a desktop on
+the same home network, and a server 57 ms away holding two):
+
+| | |
+|---|---|
+| Time to finality, median of 40 payments | 141 ms |
+| Fastest and slowest of the 40 | 129 ms and 239 ms |
+
+A payment needs two round trips to enough validators: one for the votes and
+one for the certificate. With the server needed for a quorum, about 115 ms
+of the 141 is the network's own travel time.
 
 Reproduce the throughput figure with:
 

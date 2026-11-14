@@ -127,6 +127,14 @@ enum DevnetCommand {
         host: String,
         #[arg(long, default_value_t = 7001)]
         base_port: u16,
+        /// One validator's address, as other machines reach it. Repeat it
+        /// once per validator to spread a network over several machines;
+        /// this replaces --validators, --host and --base-port.
+        #[arg(long = "address")]
+        addresses: Vec<String>,
+        /// The network's name
+        #[arg(long, default_value = "orien-devnet")]
+        name: String,
     },
     /// Run every validator of a local network in this process
     Run {
@@ -190,8 +198,12 @@ fn run(cli: Cli) -> Result<()> {
         Command::Status { network } => status(&network.genesis),
         Command::Node { key, data, listen, network } => node(&key, data, listen, &network.genesis),
         Command::Keygen { out, height } => keygen(&out, height),
-        Command::Devnet(DevnetCommand::Init { dir, validators, height, host, base_port }) => {
-            devnet_init(&dir, validators, height, &host, base_port)
+        Command::Devnet(DevnetCommand::Init { dir, validators, height, host, base_port, addresses, name }) => {
+            let addresses = match addresses.is_empty() {
+                true => (0..validators).map(|i| format!("{host}:{}", base_port as usize + i)).collect(),
+                false => addresses,
+            };
+            devnet_init(&dir, &name, &addresses, height)
         }
         Command::Devnet(DevnetCommand::Run { dir }) => devnet_run(&dir),
         Command::Devnet(DevnetCommand::Interrupt { dir, wallet, to, amount }) => {
@@ -578,10 +590,11 @@ fn node(key: &Path, data: PathBuf, listen: Option<String>, genesis: &Path) -> Re
     }
 }
 
-fn devnet_init(dir: &Path, validators: usize, height: u8, host: &str, base_port: u16) -> Result<()> {
+fn devnet_init(dir: &Path, network: &str, addresses: &[String], height: u8) -> Result<()> {
     if dir.join("genesis.json").exists() {
         bail!("{} already holds a network; delete it or pick another --dir", dir.display());
     }
+    let validators = addresses.len();
     if validators == 0 {
         bail!("a network needs at least one validator");
     }
@@ -590,18 +603,12 @@ fn devnet_init(dir: &Path, validators: usize, height: u8, host: &str, base_port:
 
     println!("creating {validators} validator keys, each good for {} signatures...", 1u64 << height);
     let mut infos = Vec::new();
-    for i in 0..validators {
+    for (i, address) in addresses.iter().enumerate() {
         let name = format!("v{}", i + 1);
         let key = ValidatorKey::generate(height);
         let root = KeyTree::generate(key.seed, key.height).root();
         key.save(&dir.join("validators").join(format!("{name}.key")))?;
-        infos.push(ValidatorInfo {
-            name,
-            root,
-            height,
-            stake: 1,
-            address: format!("{host}:{}", base_port as usize + i),
-        });
+        infos.push(ValidatorInfo { name, root, height, stake: 1, address: address.clone() });
     }
 
     let mut allocations = Vec::new();
@@ -613,7 +620,7 @@ fn devnet_init(dir: &Path, validators: usize, height: u8, host: &str, base_port:
         println!("  wallet {name:<6} {}  starts with {amount}", wallet.address());
     }
 
-    let genesis = Genesis { network: "orien-devnet".into(), validators: infos, allocations };
+    let genesis = Genesis { network: network.into(), validators: infos, allocations };
     genesis.validate().map_err(|e| anyhow!("{e}"))?;
     save_genesis(&dir.join("genesis.json"), &genesis)?;
     println!("network id {}", genesis.id());
