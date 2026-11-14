@@ -8,7 +8,7 @@ use orien_ledger::{
 };
 use orien_net::client::{Client, Done, Final, Head, TransferError, rpc};
 use orien_net::keys::{ValidatorKey, Wallet};
-use orien_net::node::{Node, NodeConfig};
+use orien_net::node::{Admission, Limits, Node, NodeConfig};
 use orien_net::wire::{AccountView, NodeInfo, Request, Response, read_frame, write_frame};
 use std::fs;
 use std::net::TcpListener;
@@ -44,6 +44,7 @@ struct Options {
     /// The most coins released for work: none unless a test asks.
     cap: u64,
     first_target: u64,
+    limits: Limits,
 }
 
 impl Default for Options {
@@ -63,6 +64,7 @@ impl Default for Options {
             seat: 1,
             cap: 0,
             first_target: u64::MAX,
+            limits: Limits::default(),
         }
     }
 }
@@ -146,6 +148,7 @@ impl TestNet {
         config.durable = self.options.durable;
         config.close_pace = self.options.pace;
         config.key_reserve = self.options.key_reserve;
+        config.limits = self.options.limits;
         config
     }
 
@@ -863,7 +866,7 @@ fn a_validator_refuses_files_in_a_format_it_does_not_write() {
     // The same directory starts again without complaint.
     Node::start(net.config(0), None).map(Node::stop).unwrap();
     // A directory written by an older or a newer version does not.
-    for other in [None, Some("1"), Some("4"), Some("6")] {
+    for other in [None, Some("1"), Some("5"), Some("7")] {
         match other {
             Some(format) => fs::write(data.join("format"), format).unwrap(),
             None => fs::remove_file(data.join("format")).unwrap(),
@@ -872,7 +875,7 @@ fn a_validator_refuses_files_in_a_format_it_does_not_write() {
         assert!(refusal.contains("data format"), "{refusal}");
     }
     // Nothing was touched: put the marker back and the validator is as it was.
-    fs::write(data.join("format"), "5").unwrap();
+    fs::write(data.join("format"), "6").unwrap();
     net.restart(0);
     assert_eq!(net.view(0, &bob).balance, 1100);
 }
@@ -1691,7 +1694,7 @@ fn work_earns_coins_at_the_next_checkpoint() {
     let mut from = 0u64;
     wait_until("carol is paid for her work", || {
         client.follow();
-        let Some((_, seed, target)) = client.work() else { return false };
+        let (_, seed, target) = client.followed_work();
         let shares: Vec<orien_ledger::close::Share> = (from..)
             .map(|nonce| orien_ledger::close::Share { account: carol, nonce })
             .filter(|share| share.counts(&seed, target))
@@ -1791,4 +1794,209 @@ fn a_validator_away_for_many_epochs_catches_up_by_the_checkpoints() {
         assert!(done.receipt.certificate.votes.len() >= 3);
     }
     net.wait_until_level();
+}
+
+#[test]
+fn connections_are_counted_per_address_and_in_total() {
+    let mut admission = Admission::new(Limits { total: 5, per_address: 2, idle: Duration::from_secs(1) });
+    let (one, two, three): (std::net::IpAddr, std::net::IpAddr, std::net::IpAddr) =
+        ("10.0.0.1".parse().unwrap(), "10.0.0.2".parse().unwrap(), "10.0.0.3".parse().unwrap());
+    assert!(admission.admit(one, false) && admission.admit(one, false));
+    assert!(!admission.admit(one, false), "a third from one address is turned away");
+    assert!(admission.admit(two, false) && admission.admit(two, false));
+    assert!(admission.admit(three, false));
+    assert!(!admission.admit(three, false), "five in all is the limit");
+    // A validator is never turned away, even when everything is full.
+    assert!(admission.admit(three, true));
+    // Closing a connection makes room again.
+    admission.release(one);
+    admission.release(three);
+    assert!(admission.admit(one, false));
+}
+
+#[test]
+fn a_flood_of_idle_and_junk_connections_does_not_stop_payments() {
+    let limits = Limits { total: 1024, per_address: 64, idle: Duration::from_secs(1) };
+    let net = TestNet::start_with("flood", Options { limits, ..Options::default() });
+    let target = &net.genesis.validators[0].address;
+    // Hundreds of connections that send nothing, and many that send junk.
+    let idle: Vec<std::net::TcpStream> = (0..300).filter_map(|_| std::net::TcpStream::connect(target).ok()).collect();
+    let mut junk = Vec::new();
+    for _ in 0..50 {
+        if let Ok(mut stream) = std::net::TcpStream::connect(target) {
+            let _ = write_frame(&mut stream, b"this is not a request");
+            junk.push(stream);
+        }
+    }
+    // Payments go through all the while.
+    let bob = net.address("bob");
+    for _ in 0..5 {
+        net.pay("alice", bob, 1);
+    }
+    // Junk is answered once and the connection closed.
+    for mut stream in junk {
+        stream.set_read_timeout(Some(Duration::from_secs(5))).unwrap();
+        let mut reader = std::io::BufReader::new(&mut stream);
+        let _ = read_frame(&mut reader);
+        assert!(matches!(read_frame(&mut reader), Ok(None) | Err(_)), "junk ends the connection");
+    }
+    // Silent connections are closed once they have been idle for a second.
+    thread::sleep(Duration::from_millis(1500));
+    for mut stream in idle {
+        stream.set_read_timeout(Some(Duration::from_secs(5))).unwrap();
+        let mut byte = [0u8; 1];
+        assert!(matches!(std::io::Read::read(&mut stream, &mut byte), Ok(0) | Err(_)), "an idle connection is closed");
+    }
+    // And the network still works.
+    net.pay("bob", net.address("carol"), 1);
+    net.wait_until_level();
+}
+
+#[test]
+fn a_wallet_restored_from_its_phrase_carries_on_where_the_first_left_off() {
+    let net = TestNet::start("restore");
+    let bob = net.address("bob");
+    net.pay("alice", bob, 7);
+    // On another computer, the same phrase and the same account: it learns
+    // from the network that payment #0 is done, and pays #1.
+    let words = net.wallet("alice").phrase().unwrap().join(" ");
+    let master = orien_net::phrase::from_words(&words).unwrap();
+    let copy = net.dir.join("alice-copy.wallet");
+    let restored = Wallet::from_master(&copy, master, 1).unwrap();
+    assert_eq!(restored.address(), net.address("alice"));
+    fs::copy(&copy, net.dir.join("alice2.wallet")).unwrap();
+    net.pay("alice2", bob, 5);
+    assert_eq!(net.view(0, &bob).balance, START as i128 + 12);
+    assert_eq!(net.view(0, &net.address("alice")).seq, 2);
+    // Account 2 of the same phrase is another account altogether.
+    let other = Wallet::from_master(&net.dir.join("alice-desktop.wallet"), master, 2).unwrap();
+    assert_ne!(other.address(), net.address("alice"));
+}
+
+#[test]
+fn a_wallet_with_a_password_signs_only_with_it() {
+    let net = TestNet::start("password");
+    let path = net.dir.join("alice.wallet");
+    let before = fs::read_to_string(&path).unwrap();
+    let mut wallet = net.wallet("alice");
+    let (address, phrase) = (wallet.address(), wallet.phrase().unwrap().join(" "));
+    wallet.set_password(Some("correct horse battery")).unwrap();
+
+    // On disk the secret is sealed: neither the seed nor the phrase's
+    // secret is there to read.
+    let after = fs::read_to_string(&path).unwrap();
+    let secret = |text: &str| serde_json_seed(text);
+    assert!(secret(&before).is_some() && secret(&after).is_none(), "{after}");
+    assert!(!after.contains(&hex_of(&orien_net::phrase::from_words(&phrase).unwrap())));
+
+    // Its address and balance need no password.
+    assert_eq!(Wallet::peek(&path).unwrap().0, address);
+    // Signing does: no password, or the wrong one, opens nothing.
+    assert!(Wallet::load(&path).err().unwrap().to_string().contains("has a password"));
+    assert!(Wallet::open(&path, Some("wrong")).err().unwrap().to_string().contains("not this wallet's password"));
+    let mut opened = Wallet::open(&path, Some("correct horse battery")).unwrap();
+    assert_eq!(opened.phrase().unwrap().join(" "), phrase);
+
+    // It pays, and stays sealed after recording the payment.
+    opened.accept_fee(net.genesis.fee);
+    let client = net.client();
+    let status = client.account(&address, opened.next_seq());
+    let bob = net.address("bob");
+    let signed = opened.sign_order(status.seq, bob, 3, status.signer.as_ref(), &net.network).unwrap();
+    client.transfer(&signed).unwrap();
+    opened.confirm(status.seq).unwrap();
+    assert!(secret(&fs::read_to_string(&path).unwrap()).is_none());
+    assert_eq!(net.view(0, &bob).balance, START as i128 + 3);
+
+    // Removing the password brings the plain file back.
+    let mut opened = Wallet::open(&path, Some("correct horse battery")).unwrap();
+    opened.set_password(None).unwrap();
+    assert_eq!(Wallet::load(&path).unwrap().address(), address);
+}
+
+/// The plain seed a wallet file holds, if it holds one.
+fn serde_json_seed(text: &str) -> Option<String> {
+    let value: serde_json::Value = serde_json::from_str(text).unwrap();
+    value.get("seed").and_then(|seed| seed.as_str()).filter(|seed| !seed.is_empty()).map(str::to_string)
+}
+
+fn hex_of(bytes: &[u8]) -> String {
+    bytes.iter().map(|b| format!("{b:02x}")).collect()
+}
+
+#[test]
+fn an_unlocked_wallet_signs_within_its_limits_only() {
+    use orien_net::unlock::{self, Limits as Unlock, Session, Signing};
+    let net = TestNet::start("unlock");
+    let path = net.dir.join("alice.wallet");
+    net.wallet("alice").set_password(Some("correct horse battery")).unwrap();
+    assert!(Signing::unlocked(&path).unwrap().is_none(), "nothing is unlocked yet");
+
+    // Unlocked for an hour, for exactly a payment of 4 and one of 5, fees
+    // included.
+    let fees = net.genesis.fee;
+    let cost = |amount: u64| amount + fees.on(&Kind::Payment, amount);
+    let until = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).unwrap().as_secs() + 3_600;
+    let limits = Unlock { until, spend: cost(4) + cost(5) };
+    let wallet = Wallet::open(&path, Some("correct horse battery")).unwrap();
+    let (ready, started) = std::sync::mpsc::channel();
+    let helper = thread::spawn(move || unlock::serve(wallet, limits, move || ready.send(()).unwrap()));
+    started.recv().unwrap();
+
+    let mut signing = Signing::unlocked(&path).unwrap().expect("the session is found");
+    signing.accept_fee(fees);
+    let client = net.client();
+    let bob = net.address("bob");
+    let pay = |signing: &mut Signing, amount: u64| {
+        let status = client.account(&signing.address(), signing.next_seq());
+        let signed = signing.sign(Kind::Payment, status.seq, bob, amount, status.signer.as_ref(), &net.network)?;
+        // Asking again for the very same payment hands back the same order
+        // and spends nothing more; a different one under its number is
+        // refused while it is unfinished.
+        assert_eq!(signing.sign(Kind::Payment, status.seq, bob, amount, None, &net.network).unwrap(), signed);
+        assert!(signing.sign(Kind::Payment, status.seq, bob, amount + 1, None, &net.network).is_err());
+        assert!(signing.signed_by_this_wallet(&signed, &net.network));
+        client.transfer(&signed).unwrap();
+        signing.confirm(status.seq)
+    };
+    pay(&mut signing, 4).unwrap();
+    pay(&mut signing, 5).unwrap();
+    assert_eq!(net.view(0, &bob).balance, START as i128 + 9);
+
+    // The limit is used up: even the smallest payment is refused, and
+    // nothing is signed for it.
+    let refused = pay(&mut signing, 1).unwrap_err().to_string();
+    assert!(refused.contains("allows only 0"), "{refused}");
+    assert_eq!(signing.next_seq(), 2);
+    assert!(signing.pending().is_none());
+    let session = Session::find(&path).unwrap();
+    assert_eq!(session.status().unwrap().left(), 0);
+
+    // The helper kept the wallet file up to date, still sealed.
+    assert_eq!(Wallet::peek(&path).unwrap().1, 2);
+    assert!(Wallet::load(&path).is_err(), "the file still needs the password");
+
+    // Locking ends the session and removes its description.
+    session.lock().unwrap();
+    helper.join().unwrap().unwrap();
+    assert!(Session::find(&path).is_none());
+    assert!(!unlock::session_path(&path).exists());
+}
+
+#[test]
+fn an_unlock_ends_on_time() {
+    use orien_net::unlock::{self, Limits as Unlock, Session};
+    let net = TestNet::start("unlock-ends");
+    let path = net.dir.join("alice.wallet");
+    let until = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).unwrap().as_secs() + 2;
+    let wallet = net.wallet("alice");
+    let (ready, started) = std::sync::mpsc::channel();
+    let helper =
+        thread::spawn(move || unlock::serve(wallet, Unlock { until, spend: 1 }, move || ready.send(()).unwrap()));
+    started.recv().unwrap();
+    assert!(Session::find(&path).is_some());
+    // Nobody asks anything; the session ends by itself.
+    helper.join().unwrap().unwrap();
+    assert!(Session::find(&path).is_none());
+    assert!(!unlock::session_path(&path).exists());
 }

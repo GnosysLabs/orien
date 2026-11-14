@@ -311,14 +311,17 @@ pub fn next_validators(committee: &Committee, statements: &[&Statement], end: &S
     // A validator caught cheating leaves for good: a launch seat is gone,
     // and staked coins are forfeit (see `outcome`).
     let caught = cheaters(committee, statements);
-    let banned: Vec<Hash32> = caught.iter().map(|v| committee.members()[*v as usize].root).collect();
+    let mut banned: Vec<Hash32> = caught.iter().map(|v| committee.members()[*v as usize].root).collect();
+    banned.extend(end.banned().iter().copied());
     let mut seats = Vec::new();
     for (index, member) in committee.members().iter().enumerate() {
         if member.seat.is_none() || caught.contains(&(index as u16)) {
             continue;
         }
         let mut seat = member.clone();
-        if let Some(key) = replacement(committee, statements, index as u16) {
+        if let Some(key) = replacement(committee, statements, index as u16)
+            && !banned.contains(&key.root)
+        {
             seat.root = key.root;
             seat.height = key.height;
         }
@@ -485,9 +488,12 @@ fn outcome_of(
     }
     // A staked validator caught cheating forfeits its stake, and earns no
     // share of the fees.
+    // Its key tree is barred for good, whether it held a seat or stake.
     let caught = cheaters(committee, statements);
     for cheater in &caught {
-        if let Some(account) = committee.members()[*cheater as usize].account {
+        let member = &committee.members()[*cheater as usize];
+        state.ban(member.root);
+        if let Some(account) = member.account {
             state.forfeit(&account);
         }
     }

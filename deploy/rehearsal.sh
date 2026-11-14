@@ -11,8 +11,9 @@
 #
 # start and stop take validator names to act on some only: `stop v3`.
 #
-# Connections are not encrypted, so every address below must be a private
-# one (these are Tailscale addresses). Nothing is installed on the other
+# These are Tailscale addresses. Validators may also listen on public ones:
+# every message that matters is signed, though traffic is not encrypted.
+# Nothing is installed on the other
 # machines and nothing there survives a reboot: each gets one folder and one
 # process. Keys and wallets live in net/, which git ignores.
 
@@ -35,7 +36,7 @@ LAYOUT="
 v1 local                            -                      100.76.239.128:7101   -
 v2 christopher@christopher-desktop  /home/christopher/orien 100.103.169.102:7101  -
 v3 root@cyphers-vps                 /opt/orien             100.99.59.98:7101     nobody:nogroup
-v4 root@cyphers-vps                 /opt/orien             100.99.59.98:7102     nobody:nogroup
+v4 root@cyphers-vps                 /opt/orien             217.77.11.197:7102    nobody:nogroup
 "
 
 SSH="ssh -o BatchMode=yes -o ConnectTimeout=10"

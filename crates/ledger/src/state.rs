@@ -6,7 +6,7 @@ use crate::types::{AccountId, Kind, Order, SPARE_HEIGHT, SignedBy, Validator, ad
 use borsh::{BorshDeserialize, BorshSerialize};
 use orien_crypto::merkle;
 use orien_crypto::{Hash32, Tag, hash};
-use std::collections::{BTreeMap, HashMap};
+use std::collections::{BTreeMap, BTreeSet, HashMap};
 use std::fmt;
 use std::io;
 
@@ -186,7 +186,9 @@ impl fmt::Display for Reject {
             Reject::InsufficientStake { staked, needed } => {
                 write!(f, "not enough stake: staked {staked}, needs {needed}")
             }
-            Reject::ReservedAccount => f.write_str("nobody can pay the mint or the rewards pot"),
+            Reject::ReservedAccount => {
+                f.write_str("that address belongs to the network itself (the mint, the rewards or fees pot, or forfeited stake); nobody can pay it")
+            }
         }
     }
 }
@@ -252,6 +254,9 @@ pub struct State {
     locks: HashMap<(AccountId, u64), Hash32>,
     /// What orders pay, from the genesis file.
     fees: Fees,
+    /// The key trees of validators caught cheating, in order. None of them
+    /// is ever chosen again. Part of `root()` once there is any.
+    banned: BTreeSet<Hash32>,
 }
 
 impl State {
@@ -261,7 +266,7 @@ impl State {
             .iter()
             .map(|a| (a.account, Account::holding(a.amount as i128)))
             .collect();
-        State { accounts, locks: HashMap::new(), fees: genesis.fee }
+        State { accounts, locks: HashMap::new(), fees: genesis.fee, banned: BTreeSet::new() }
     }
 
     /// What orders pay.
@@ -296,7 +301,12 @@ impl State {
     }
 
     fn tree(&self) -> merkle::Tree {
-        let leaves: Vec<Hash32> = self.accounts.iter().map(|(id, account)| leaf(id, account)).collect();
+        let mut leaves: Vec<Hash32> = self.accounts.iter().map(|(id, account)| leaf(id, account)).collect();
+        // The banned keys follow the accounts, so no account's place moves.
+        if !self.banned.is_empty() {
+            let roots: Vec<&[u8]> = self.banned.iter().map(|root| root.as_bytes().as_slice()).collect();
+            leaves.push(hash(Tag::Banned, &roots));
+        }
         merkle::Tree::of(merkle::Kind::State, &leaves)
     }
 
@@ -323,13 +333,25 @@ impl State {
 
     /// Every account, in a form `from_snapshot` reads back.
     pub fn snapshot(&self) -> Vec<u8> {
-        borsh::to_vec(&self.accounts).expect("writing to memory cannot fail")
+        borsh::to_vec(&(&self.accounts, &self.banned)).expect("writing to memory cannot fail")
     }
 
     /// The state a snapshot was taken of, on a network whose orders pay
     /// `fees`. No votes are promised in it.
     pub fn from_snapshot(bytes: &[u8], fees: Fees) -> io::Result<State> {
-        Ok(State { accounts: borsh::from_slice(bytes)?, locks: HashMap::new(), fees })
+        let (accounts, banned) = borsh::from_slice(bytes)?;
+        Ok(State { accounts, locks: HashMap::new(), fees, banned })
+    }
+
+    /// The key trees of validators caught cheating, which are never chosen
+    /// again.
+    pub fn banned(&self) -> &BTreeSet<Hash32> {
+        &self.banned
+    }
+
+    /// Bars a validator's key tree for good.
+    pub fn ban(&mut self, root: Hash32) {
+        self.banned.insert(root);
     }
 
     /// An account that has paid out more than it holds, if there is one.
@@ -489,7 +511,10 @@ impl State {
         {
             return Err(Reject::Conflict { voted: *voted });
         }
-        if order.to == MINT || order.to == REWARDS {
+        // The network's own accounts take coins only by its rules: a payment to
+        // the fees pot would hand coins to validators, and one to the forfeited
+        // account would destroy them, both most likely by mistake.
+        if [MINT, REWARDS, FEES, FORFEITED].contains(&order.to) {
             return Err(Reject::ReservedAccount);
         }
         if !matches!(order.kind, Kind::Payment) && order.to != order.from {

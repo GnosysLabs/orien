@@ -32,7 +32,7 @@ use orien_ledger::{
 use std::collections::{BTreeSet, HashMap};
 use std::fs;
 use std::io::{self, BufReader};
-use std::net::{Shutdown, SocketAddr, TcpListener, TcpStream};
+use std::net::{IpAddr, Shutdown, SocketAddr, TcpListener, TcpStream};
 use std::path::{Path, PathBuf};
 use std::sync::atomic::{AtomicBool, AtomicU64, Ordering};
 use std::sync::mpsc::{self, Receiver, RecvTimeoutError, Sender, TryRecvError};
@@ -68,6 +68,64 @@ pub struct NodeConfig {
     /// validator's clock.
     pub clock_tolerance: u64,
     pub log: bool,
+    /// Limits that keep one sender from tying a validator up.
+    pub limits: Limits,
+}
+
+/// How many connections a validator takes, and how long it waits on them.
+#[derive(Clone, Copy, Debug)]
+pub struct Limits {
+    /// Open connections, from everyone together.
+    pub total: usize,
+    /// Open connections from one internet address. The addresses of the
+    /// current epoch's validators are exempt.
+    pub per_address: usize,
+    /// A connection that sends nothing for this long is closed. Wallets
+    /// reconnect by themselves.
+    pub idle: Duration,
+}
+
+impl Default for Limits {
+    fn default() -> Limits {
+        Limits { total: 1024, per_address: 64, idle: Duration::from_secs(30) }
+    }
+}
+
+/// Counts open connections, to turn away the ones over the limits.
+pub struct Admission {
+    limits: Limits,
+    open: HashMap<IpAddr, usize>,
+    total: usize,
+}
+
+impl Admission {
+    pub fn new(limits: Limits) -> Admission {
+        Admission { limits, open: HashMap::new(), total: 0 }
+    }
+
+    /// Takes a connection from `from`, unless that would pass a limit.
+    /// `exempt` addresses, the other validators', count but are never
+    /// turned away.
+    pub fn admit(&mut self, from: IpAddr, exempt: bool) -> bool {
+        let mine = self.open.get(&from).copied().unwrap_or(0);
+        if !exempt && (self.total >= self.limits.total || mine >= self.limits.per_address) {
+            return false;
+        }
+        self.open.insert(from, mine + 1);
+        self.total += 1;
+        true
+    }
+
+    /// A connection from `from` has closed.
+    pub fn release(&mut self, from: IpAddr) {
+        if let Some(count) = self.open.get_mut(&from) {
+            *count -= 1;
+            if *count == 0 {
+                self.open.remove(&from);
+            }
+            self.total -= 1;
+        }
+    }
 }
 
 impl NodeConfig {
@@ -85,6 +143,7 @@ impl NodeConfig {
             close_pace: Duration::from_millis(500),
             clock_tolerance: 30,
             log: false,
+            limits: Limits::default(),
         }
     }
 }
@@ -149,6 +208,8 @@ struct Shared {
     commands: Sender<Command>,
     stopping: AtomicBool,
     connections: Mutex<HashMap<u64, TcpStream>>,
+    admission: Mutex<Admission>,
+    idle: Duration,
     next_connection: AtomicU64,
 }
 
@@ -1262,9 +1323,13 @@ impl Core {
         if self.shares.contains(&share) {
             return Response::Share { fresh: false };
         }
-        // The target keeps the number near the one wanted; this bounds a
-        // statement while it catches up.
-        if self.shares.len() as u64 >= work.shares_per_epoch.saturating_mul(4) {
+        // The target keeps the number near the one wanted. This only bounds a
+        // statement while the target catches up, as after a sudden rise in
+        // mining: 40 times the number wanted, but never so many that the
+        // proposal closing the epoch, which carries every validator's
+        // statement at 40 bytes a share, passes about 12 MB.
+        let room = 300_000 / self.committee.members().len().max(1) as u64;
+        if self.shares.len() as u64 >= work.shares_per_epoch.saturating_mul(40).min(room) {
             return Response::Unavailable("this epoch has all the shares it takes".into());
         }
         self.shares.insert(share);
@@ -1334,7 +1399,18 @@ impl Core {
                         }
                     }
                     let (said, total) = self.closer.messages(messages as usize, 64);
-                    heard = said.to_vec();
+                    // Closing messages carry the statements, which list the
+                    // epoch's work shares and can be large: stop well under
+                    // the frame limit, always sending at least one.
+                    let mut room = (12usize << 20).saturating_sub(bytes);
+                    for message in said {
+                        let size = borsh::to_vec(message).map_or(usize::MAX, |b| b.len());
+                        if !heard.is_empty() && size > room {
+                            break;
+                        }
+                        room = room.saturating_sub(size);
+                        heard.push(message.clone());
+                    }
                     messages_total = total as u64;
                 } else if epoch < mine {
                     // The asker is behind. Show it how its epoch ended.
@@ -1408,22 +1484,44 @@ fn accept_loop(listener: TcpListener, shared: Arc<Shared>) {
         }
         match stream {
             Ok(stream) => {
+                let Ok(from) = stream.peer_addr().map(|address| address.ip()) else { continue };
+                // The other validators are never turned away: a flood from
+                // elsewhere must not cut them off.
+                let validator = shared
+                    .committee()
+                    .members()
+                    .iter()
+                    .any(|m| m.address.parse::<SocketAddr>().is_ok_and(|address| address.ip() == from));
+                if !shared.admission.lock().unwrap().admit(from, validator) {
+                    // Dropping the stream closes it.
+                    continue;
+                }
                 let shared = shared.clone();
-                let _ = thread::Builder::new().spawn(move || serve(stream, shared));
+                let spawned = thread::Builder::new().spawn({
+                    let shared = shared.clone();
+                    move || serve(stream, shared, from)
+                });
+                if spawned.is_err() {
+                    shared.admission.lock().unwrap().release(from);
+                }
             }
             Err(_) => thread::sleep(Duration::from_millis(20)),
         }
     }
 }
 
-fn serve(stream: TcpStream, shared: Arc<Shared>) {
+fn serve(stream: TcpStream, shared: Arc<Shared>, from: IpAddr) {
     let _ = stream.set_nodelay(true);
+    // Silence or a reader that does not read ends the connection.
+    let _ = stream.set_read_timeout(Some(shared.idle));
+    let _ = stream.set_write_timeout(Some(shared.idle));
     let id = shared.next_connection.fetch_add(1, Ordering::Relaxed);
     if let Ok(handle) = stream.try_clone() {
         shared.connections.lock().unwrap().insert(id, handle);
     }
     let _ = serve_requests(&stream, &shared);
     shared.connections.lock().unwrap().remove(&id);
+    shared.admission.lock().unwrap().release(from);
 }
 
 fn serve_requests(stream: &TcpStream, shared: &Shared) -> io::Result<()> {
@@ -1432,7 +1530,11 @@ fn serve_requests(stream: &TcpStream, shared: &Shared) -> io::Result<()> {
     while let Some(frame) = read_frame(&mut reader)? {
         let response = match borsh::from_slice::<Request>(&frame) {
             Ok(request) => shared.handle(request),
-            Err(_) => Response::Invalid("malformed request".into()),
+            Err(_) => {
+                // Junk ends the connection: an honest client never sends it.
+                let _ = write_frame(&mut writer, &borsh::to_vec(&Response::Invalid("malformed request".into()))?);
+                return Ok(());
+            }
         };
         write_frame(&mut writer, &borsh::to_vec(&response)?)?;
     }
@@ -1639,7 +1741,7 @@ fn push_to_peer(address: String, queue: Receiver<Request>) {
 
 /// The layout and encoding of a validator's files. Raised whenever either
 /// changes in a way an older or newer version would misread.
-const DATA_FORMAT: &str = "5";
+const DATA_FORMAT: &str = "6";
 
 /// A data directory belongs to one network and is written in one format.
 /// Refuse to reuse it for another network, or to read a format this version
@@ -1840,6 +1942,8 @@ impl Node {
             commands: commands.clone(),
             stopping: AtomicBool::new(false),
             connections: Mutex::new(HashMap::new()),
+            admission: Mutex::new(Admission::new(config.limits)),
+            idle: config.limits.idle,
             next_connection: AtomicU64::new(0),
         });
         let mut core = Core {

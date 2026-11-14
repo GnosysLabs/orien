@@ -7,14 +7,18 @@ use orien_ledger::{
 };
 use orien_ledger::Signer;
 use orien_net::client::{AccountStatus, Client, Done, Head, TransferError, Unfinished};
-use orien_net::keys::{ValidatorKey, Wallet, load_genesis, save_genesis};
+use orien_net::keys::{OpenError, ValidatorKey, Wallet, load_genesis, save_genesis};
 use orien_net::node::{Node, NodeConfig};
+use orien_net::unlock::{self, Limits, Session, Signing};
 use orien_net::wire::{Request, Response};
 use std::fs;
+use std::io::{BufRead, IsTerminal, Write};
 use std::net::TcpListener;
 use std::path::{Path, PathBuf};
 use std::thread;
 use std::time::{Duration, Instant, SystemTime, UNIX_EPOCH};
+
+mod release;
 
 #[derive(Parser)]
 #[command(name = "orien", version, about = "A quantum-proof payment network with no blocks and no global ordering")]
@@ -25,9 +29,78 @@ struct Cli {
 
 #[derive(Args)]
 struct Network {
-    /// Genesis file describing the network
-    #[arg(short, long, env = "ORIEN_GENESIS", default_value = "genesis.json")]
-    genesis: PathBuf,
+    /// Genesis file describing the network (default: ~/.orien/genesis.json,
+    /// else genesis.json here)
+    #[arg(short, long, env = "ORIEN_GENESIS")]
+    genesis: Option<PathBuf>,
+}
+
+impl Network {
+    /// The genesis file to use: the one named, else the one the installer
+    /// put in ~/.orien, else one in this folder.
+    fn file(&self) -> PathBuf {
+        if let Some(file) = &self.genesis {
+            return file.clone();
+        }
+        let installed = orien_home().join("genesis.json");
+        if installed.is_file() { installed } else { PathBuf::from("genesis.json") }
+    }
+}
+
+/// The Orien skill, which teaches AI assistants to use orien.
+const SKILL: &str = include_str!("../../../skill/orien/SKILL.md");
+
+/// The user's home folder.
+fn user_home() -> PathBuf {
+    PathBuf::from(std::env::var_os("HOME").or_else(|| std::env::var_os("USERPROFILE")).unwrap_or_default())
+}
+
+/// `orien skill install`: writes the skill into each assistant's skills
+/// folder, for the assistants this computer has.
+fn install_skill(dir: Option<PathBuf>, refresh: bool) -> Result<()> {
+    let home = user_home();
+    let targets: Vec<(String, PathBuf)> = match dir {
+        Some(dir) => vec![(dir.display().to_string(), dir)],
+        None => {
+            // ~/.agents/skills is the shared folder that assistants other than
+            // Claude Code and Codex read, so the skill always goes there.
+            let mut targets = vec![("other assistants".to_string(), home.join(".agents").join("skills"))];
+            targets.extend(
+                [("Claude Code", ".claude"), ("Codex", ".codex")]
+                    .into_iter()
+                    .filter(|(_, folder)| home.join(folder).is_dir())
+                    .map(|(name, folder)| (name.to_string(), home.join(folder).join("skills"))),
+            );
+            targets
+        }
+    };
+    for (name, skills) in targets {
+        let file = skills.join("orien").join("SKILL.md");
+        if refresh && !file.is_file() {
+            continue;
+        }
+        fs::create_dir_all(file.parent().expect("a skill file has a folder"))?;
+        fs::write(&file, SKILL).with_context(|| format!("cannot write {}", file.display()))?;
+        println!("installed the Orien skill for {name}: {}", file.display());
+    }
+    if !refresh {
+        println!("start a new conversation with your assistant, then ask it things like \"what's my ORN balance?\"");
+    }
+    Ok(())
+}
+
+/// Where orien keeps its files: $ORIEN_HOME, else ~/.orien.
+fn orien_home() -> PathBuf {
+    if let Some(home) = std::env::var_os("ORIEN_HOME") {
+        return PathBuf::from(home);
+    }
+    let user = std::env::var_os("HOME").or_else(|| std::env::var_os("USERPROFILE")).unwrap_or_default();
+    PathBuf::from(user).join(".orien")
+}
+
+/// The wallet to use when none is named: ~/.orien/wallet.
+fn default_wallet() -> PathBuf {
+    orien_home().join("wallet")
 }
 
 #[derive(Subcommand)]
@@ -37,15 +110,16 @@ enum Command {
     Wallet(WalletCommand),
     /// Show an account's balance
     Balance {
-        /// A wallet file or an account address
-        account: String,
+        /// A wallet file or an account address (default: your wallet)
+        account: Option<String>,
         #[command(flatten)]
         network: Network,
     },
     /// Send a payment and wait until it is final
     Send {
-        #[arg(short, long)]
-        wallet: PathBuf,
+        /// The wallet (default: ~/.orien/wallet)
+        #[arg(short, long, env = "ORIEN_WALLET")]
+        wallet: Option<PathBuf>,
         /// Recipient: an account address or a wallet file
         #[arg(long)]
         to: String,
@@ -61,8 +135,9 @@ enum Command {
     /// Lock coins as stake behind a validator, which then joins the
     /// validators at a checkpoint if its stake is among the largest
     Stake {
-        #[arg(short, long)]
-        wallet: PathBuf,
+        /// The wallet (default: ~/.orien/wallet)
+        #[arg(short, long, env = "ORIEN_WALLET")]
+        wallet: Option<PathBuf>,
         /// In coins, with up to nine decimals: 12 or 0.25
         #[arg(long, value_parser = parse_coins)]
         amount: u64,
@@ -79,8 +154,9 @@ enum Command {
     /// Start releasing staked coins. They stay locked, and can still be
     /// taken for cheating, until the wait set in the genesis file is over.
     Unstake {
-        #[arg(short, long)]
-        wallet: PathBuf,
+        /// The wallet (default: ~/.orien/wallet)
+        #[arg(short, long, env = "ORIEN_WALLET")]
+        wallet: Option<PathBuf>,
         /// In coins, with up to nine decimals: 12 or 0.25
         #[arg(long, value_parser = parse_coins)]
         amount: u64,
@@ -89,8 +165,9 @@ enum Command {
     },
     /// Finish a payment that was signed but never became final
     Resume {
-        #[arg(short, long)]
-        wallet: PathBuf,
+        /// The wallet (default: ~/.orien/wallet)
+        #[arg(short, long, env = "ORIEN_WALLET")]
+        wallet: Option<PathBuf>,
         /// Which payment to finish, if more than one is waiting: the first
         /// characters of its id, as `balance` shows it
         #[arg(long)]
@@ -110,9 +187,15 @@ enum Command {
     /// Do proof-of-work for an account, which earns it a share of the coins
     /// each checkpoint releases. Runs until stopped with Ctrl-C.
     Mine {
-        /// The account to be paid: a wallet file or an address
-        account: String,
-        /// How many processor cores to use (default: all of them)
+        /// The account to be paid: a wallet file or an address (default:
+        /// your wallet)
+        account: Option<String>,
+        /// How much of this computer's processor to use, as a percentage:
+        /// 25 leaves most of it free for other work, 100 uses all of it
+        /// (asked if not given)
+        #[arg(long, value_parser = clap::value_parser!(u8).range(1..=100), conflicts_with = "threads")]
+        cpu: Option<u8>,
+        /// How many processor cores to use, instead of a percentage
         #[arg(long)]
         threads: Option<usize>,
         #[command(flatten)]
@@ -146,6 +229,44 @@ enum Command {
         #[arg(long, default_value_t = 16)]
         height: u8,
     },
+    /// Let programs you trust, such as an AI assistant, sign with a wallet
+    /// that has a password, for a while and up to an amount, without
+    /// learning the password. Run it yourself, in your own terminal.
+    Unlock {
+        /// The wallet file (default: ~/.orien/wallet)
+        file: Option<PathBuf>,
+        /// How long to stay unlocked: 30m, 2h, 1d (asked if not given)
+        #[arg(long = "for", value_parser = parse_duration)]
+        duration: Option<u64>,
+        /// The most it may spend, in ORN, fees included (asked if not given)
+        #[arg(long = "up-to", value_parser = parse_coins)]
+        up_to: Option<u64>,
+        /// Show whether the wallet is unlocked, for how long and how much
+        #[arg(long, conflicts_with_all = ["duration", "up_to"])]
+        status: bool,
+    },
+    /// End an unlock early
+    Lock {
+        /// The wallet file (default: ~/.orien/wallet)
+        file: Option<PathBuf>,
+    },
+    /// The background helper `orien unlock` starts
+    #[command(hide = true)]
+    UnlockHelper {
+        file: PathBuf,
+        #[arg(long)]
+        until: u64,
+        #[arg(long)]
+        spend: u64,
+    },
+    /// Teach AI assistants (Claude Code, Codex and others) to use orien for you
+    #[command(subcommand)]
+    Skill(SkillCommand),
+    /// Update orien to the newest version, if the Orien release key signed it
+    Update,
+    /// Make and use the Orien release key (for whoever publishes releases)
+    #[command(subcommand, hide = true)]
+    Release(ReleaseCommand),
     /// Write or check the genesis file of a real network
     #[command(subcommand)]
     Genesis(GenesisCommand),
@@ -156,10 +277,65 @@ enum Command {
 
 #[derive(Subcommand)]
 enum WalletCommand {
-    /// Create a new wallet file
-    New { file: PathBuf },
+    /// Create a new wallet, with a 24-word recovery phrase to write down
+    New {
+        /// The wallet file (default: ~/.orien/wallet)
+        file: Option<PathBuf>,
+    },
+    /// Rebuild a wallet from its 24-word recovery phrase, typed in when asked.
+    /// Use a different account number on each computer.
+    Restore {
+        /// The wallet file to write (default: ~/.orien/wallet)
+        file: Option<PathBuf>,
+        /// Which account of the phrase: 1 on your first computer, 2 on the
+        /// next, and so on
+        #[arg(long, default_value_t = 1)]
+        account: u32,
+    },
+    /// Show a wallet's recovery phrase again. Anyone who sees it can spend
+    /// your coins.
+    Phrase {
+        /// The wallet file (default: ~/.orien/wallet)
+        file: Option<PathBuf>,
+    },
+    /// Put a password on a wallet, change it, or remove it
+    Password {
+        /// The wallet file (default: ~/.orien/wallet)
+        file: Option<PathBuf>,
+    },
     /// Show a wallet's account address
-    Address { file: PathBuf },
+    Address {
+        /// The wallet file (default: ~/.orien/wallet)
+        file: Option<PathBuf>,
+    },
+}
+
+#[derive(Subcommand)]
+enum SkillCommand {
+    /// Install the Orien skill for each AI assistant on this computer, and in
+    /// ~/.agents/skills for any other assistant that reads skills from there
+    Install {
+        /// Install into this skills folder instead, for another assistant
+        #[arg(long)]
+        dir: Option<PathBuf>,
+        /// Only refresh copies already installed (orien update does this)
+        #[arg(long, hide = true)]
+        refresh: bool,
+    },
+    /// Print the skill, to read it or give it to another assistant
+    Show,
+}
+
+#[derive(Subcommand)]
+enum ReleaseCommand {
+    /// Make a new release key
+    Keygen { out: PathBuf },
+    /// Sign a release's SHA256SUMS, writing SHA256SUMS.sig beside it
+    Sign {
+        #[arg(long)]
+        key: PathBuf,
+        sums: PathBuf,
+    },
 }
 
 #[derive(Subcommand)]
@@ -290,19 +466,79 @@ fn main() {
 fn run(cli: Cli) -> Result<()> {
     match cli.command {
         Command::Wallet(WalletCommand::New { file }) => {
+            let file = file.unwrap_or_else(default_wallet);
+            if let Some(folder) = file.parent() {
+                fs::create_dir_all(folder)?;
+            }
             let wallet = Wallet::create(&file)?;
             println!("created {}", file.display());
             println!("address  {}", wallet.address());
+            println!("account  1 of its recovery phrase");
+            println!();
+            show_phrase(&wallet);
+            let mut wallet = wallet;
+            if std::io::stdin().is_terminal() {
+                println!();
+                println!("A password keeps this wallet file useless to anyone who copies it.");
+                match choose_password()? {
+                    Some(password) => {
+                        wallet.set_password(Some(&password))?;
+                        println!("the wallet now has a password; you will be asked for it when you send");
+                    }
+                    None => println!("no password set; add one later with: orien wallet password {}", file.display()),
+                }
+            }
+            Ok(())
+        }
+        Command::Wallet(WalletCommand::Password { file }) => {
+            let file = file.unwrap_or_else(default_wallet);
+            if Session::find(&file).is_some() {
+                bail!("{} is unlocked; end that first with: orien lock", file.display());
+            }
+            let mut wallet = open_wallet(&file)?;
+            match choose_password()? {
+                Some(password) => {
+                    wallet.set_password(Some(&password))?;
+                    println!("{} now has a new password", file.display());
+                }
+                None if wallet.has_password() => {
+                    wallet.set_password(None)?;
+                    println!("{} no longer has a password", file.display());
+                }
+                None => println!("{} still has no password", file.display()),
+            }
+            Ok(())
+        }
+        Command::Wallet(WalletCommand::Restore { file, account }) => {
+            let file = file.unwrap_or_else(default_wallet);
+            if let Some(folder) = file.parent() {
+                fs::create_dir_all(folder)?;
+            }
+            println!("Type your 24-word recovery phrase, separated by spaces, then press Enter:");
+            let mut line = String::new();
+            std::io::stdin().read_line(&mut line)?;
+            let master = orien_net::phrase::from_words(&line)?;
+            let wallet = Wallet::from_master(&file, master, account)?;
+            println!("restored {}", file.display());
+            println!("address  {}", wallet.address());
+            println!("account  {account} of the recovery phrase");
+            println!("its balance and payment number come from the network the next time you use it");
+            Ok(())
+        }
+        Command::Wallet(WalletCommand::Phrase { file }) => {
+            let file = file.unwrap_or_else(default_wallet);
+            show_phrase(&open_wallet(&file)?);
             Ok(())
         }
         Command::Wallet(WalletCommand::Address { file }) => {
-            println!("{}", Wallet::load(&file)?.address());
+            let file = file.unwrap_or_else(default_wallet);
+            println!("{}", Wallet::peek(&file)?.0);
             Ok(())
         }
-        Command::Balance { account, network } => balance(&account, &network.genesis),
+        Command::Balance { account, network } => balance(&account.unwrap_or_else(|| default_wallet().display().to_string()), &network.file()),
         Command::Send { wallet, to, amount, receipt, network } => {
             let to = resolve_account(&to)?;
-            submit(&wallet, |_, _| Ok(Kind::Payment), Some(to), amount, receipt.as_deref(), &network.genesis)
+            submit(&wallet.clone().unwrap_or_else(default_wallet), |_, _| Ok(Kind::Payment), Some(to), amount, receipt.as_deref(), &network.file())
         }
         Command::Stake { wallet, amount, validator_key, address, network } => {
             let key = ValidatorKey::load(&validator_key)?;
@@ -316,19 +552,46 @@ fn run(cli: Cli) -> Result<()> {
                 let proof = sign_stake_proof(&tree, &network.id(), account, &address);
                 Ok(Kind::Stake { validator, proof })
             };
-            submit(&wallet, stake, None, amount, None, &network.genesis)
+            submit(&wallet.clone().unwrap_or_else(default_wallet), stake, None, amount, None, &network.file())
         }
         Command::Unstake { wallet, amount, network } => {
-            submit(&wallet, |_, _| Ok(Kind::Unstake), None, amount, None, &network.genesis)
+            submit(&wallet.clone().unwrap_or_else(default_wallet), |_, _| Ok(Kind::Unstake), None, amount, None, &network.file())
         }
         Command::Resume { wallet, payment, receipt, network } => {
-            resume(&wallet, payment.as_deref(), receipt.as_deref(), &network.genesis)
+            resume(&wallet.clone().unwrap_or_else(default_wallet), payment.as_deref(), receipt.as_deref(), &network.file())
         }
-        Command::Verify { receipt, network } => verify(&receipt, &network.genesis),
-        Command::Status { network } => status(&network.genesis),
-        Command::Mine { account, threads, network } => mine(&account, threads, &network.genesis),
-        Command::Node { key, data, listen, network } => node(&key, data, listen, &network.genesis),
+        Command::Verify { receipt, network } => verify(&receipt, &network.file()),
+        Command::Status { network } => status(&network.file()),
+        Command::Mine { account, cpu, threads, network } => {
+            let threads = mining_threads(cpu, threads)?;
+            mine(&account.unwrap_or_else(|| default_wallet().display().to_string()), threads, &network.file())
+        }
+        Command::Node { key, data, listen, network } => node(&key, data, listen, &network.file()),
         Command::Keygen { out, height } => keygen(&out, height),
+        Command::Unlock { file, duration, up_to, status } => {
+            let file = file.unwrap_or_else(default_wallet);
+            if status { unlock_status(&file) } else { unlock(&file, duration, up_to) }
+        }
+        Command::Lock { file } => {
+            let file = file.unwrap_or_else(default_wallet);
+            match Session::find(&file) {
+                Some(session) => {
+                    session.lock()?;
+                    println!("locked {}", file.display());
+                }
+                None => println!("{} was not unlocked", file.display()),
+            }
+            Ok(())
+        }
+        Command::UnlockHelper { file, until, spend } => unlock_helper(&file, Limits { until, spend }),
+        Command::Skill(SkillCommand::Install { dir, refresh }) => install_skill(dir, refresh),
+        Command::Skill(SkillCommand::Show) => {
+            print!("{SKILL}");
+            Ok(())
+        }
+        Command::Update => release::update(),
+        Command::Release(ReleaseCommand::Keygen { out }) => release::keygen(&out),
+        Command::Release(ReleaseCommand::Sign { key, sums }) => release::sign(&key, &sums),
         Command::Genesis(GenesisCommand::New { out, name, validators, bitcoin, start, epoch_seconds }) => {
             genesis_new(&out, &name, &validators, bitcoin, start, epoch_seconds)
         }
@@ -416,14 +679,18 @@ fn until_checkpoint(genesis: &Genesis, client: &Client) -> String {
 /// Accepts either a wallet file or a 64-character address.
 fn resolve_account(text: &str) -> Result<AccountId> {
     if Path::new(text).is_file() {
-        return Ok(Wallet::load(Path::new(text))?.address());
+        return Ok(Wallet::peek(Path::new(text))?.0);
     }
     text.parse().map_err(|_| anyhow!("'{text}' is neither a wallet file nor a 64-character address"))
 }
 
 /// Reads a wallet's account from the validators.
-fn read_account(client: &Client, wallet: &Wallet) -> Result<AccountStatus> {
-    let status = client.account(&wallet.address(), wallet.next_seq());
+fn read_account(client: &Client, wallet: &Signing) -> Result<AccountStatus> {
+    read_account_of(client, &wallet.address(), wallet.next_seq())
+}
+
+fn read_account_of(client: &Client, address: &AccountId, next_seq: u64) -> Result<AccountStatus> {
+    let status = client.account(address, next_seq);
     if status.views.iter().all(|view| view.is_none()) {
         bail!("no validator could be reached");
     }
@@ -434,7 +701,7 @@ fn read_account(client: &Client, wallet: &Wallet) -> Result<AccountStatus> {
 /// final: those validators have voted for, plus the one this wallet file
 /// signed itself, if any. Only orders carrying this wallet's own signature
 /// count.
-fn unfinished(client: &Client, wallet: &Wallet, status: &AccountStatus) -> Vec<Unfinished> {
+fn unfinished(client: &Client, wallet: &Signing, status: &AccountStatus) -> Vec<Unfinished> {
     let committee = client.committee();
     let network = committee.network();
     let mut found: Vec<Unfinished> = client
@@ -466,7 +733,7 @@ fn retired(status: &AccountStatus, signed: &SignedOrder) -> bool {
 
 /// If a checkpoint cancelled the payment this wallet file was holding,
 /// says so and lets go of it.
-fn drop_cancelled(wallet: &mut Wallet, status: &AccountStatus) -> Result<()> {
+fn drop_cancelled(wallet: &mut Signing, status: &AccountStatus) -> Result<()> {
     let Some(pending) = wallet.pending().filter(|pending| retired(status, pending)).cloned() else {
         return Ok(());
     };
@@ -482,7 +749,7 @@ fn drop_cancelled(wallet: &mut Wallet, status: &AccountStatus) -> Result<()> {
 }
 
 /// One line about an unfinished payment, led by the id that picks it out.
-fn describe_unfinished(client: &Client, all: &[Unfinished], one: &Unfinished, wallet: Option<&Wallet>) -> String {
+fn describe_unfinished(client: &Client, all: &[Unfinished], one: &Unfinished, wallet: Option<&Signing>) -> String {
     let order = &one.signed.order;
     let mut line = format!(
         "{}  payment #{}: {} to {}, votes cover {} of {} stake",
@@ -496,7 +763,7 @@ fn describe_unfinished(client: &Client, all: &[Unfinished], one: &Unfinished, wa
     if !client.can_still_finish(all, one) {
         line.push_str(", can no longer become final");
     }
-    if wallet.and_then(Wallet::pending).is_some_and(|own| own.order == *order) {
+    if wallet.and_then(Signing::pending).is_some_and(|own| own.order == *order) {
         line.push_str(", signed by this wallet file");
     }
     line
@@ -525,24 +792,52 @@ fn locked(genesis: &Genesis, client: &Client, seq: u64, payments: &[Unfinished])
 
 fn balance(account: &str, genesis: &Path) -> Result<()> {
     let (genesis, client) = connect(genesis)?;
+    // A wallet with a password is read by its address alone: a balance
+    // never needs the password.
     let wallet = match Path::new(account).is_file() {
-        true => Some(Wallet::load(Path::new(account))?),
+        true => match Wallet::load(Path::new(account)) {
+            Ok(wallet) => Some(wallet),
+            Err(error) if error.downcast_ref::<OpenError>().is_some() => None,
+            Err(error) => return Err(error),
+        },
         false => None,
     };
+    let wallet = wallet.map(Signing::Here);
     let id = match &wallet {
         Some(wallet) => wallet.address(),
         None => resolve_account(account)?,
     };
-    let status = client.account(&id, wallet.as_ref().map_or(0, Wallet::next_seq));
+    let status = client.account(&id, wallet.as_ref().map_or(0, Signing::next_seq));
     let reachable = status.views.iter().flatten().count();
     if reachable == 0 {
         bail!("no validator could be reached");
     }
     println!("account        {id}");
+    // What the last checkpoint proves, checked against it here; and what
+    // validators report has happened since, which nothing proves yet.
+    let proven = client.proven(&id).map_or(0, |account| account.balance);
+    // The balance is what validators holding enough stake all report now.
+    // What arrived since the last checkpoint is final, but only the next
+    // checkpoint proves it; say so only when it makes a difference.
     match status.spendable {
-        Some(balance) => println!("balance        {}", coins(balance)),
-        None => println!("balance        unknown (too few validators are caught up)"),
+        Some(now) => {
+            println!("balance        {} ORN", coins(now));
+            if now > proven {
+                println!(
+                    "               {} ORN of it arrived since the last hourly checkpoint",
+                    coins(now - proven)
+                );
+            }
+        }
+        None => {
+            println!("balance        {} ORN at the last hourly checkpoint", coins(proven));
+            println!("               (too few validators answered to count anything newer; try again shortly)");
+        }
     }
+    println!(
+        "next payout    {} (mining rewards and validator fees are paid at each hourly checkpoint)",
+        until_checkpoint(&genesis, &client)
+    );
     println!("payments made  {}", status.seq);
     println!("validators     {reachable} of {} answered", client.validators());
     if let Some(Signer::Spare(leaf)) = &status.signer {
@@ -582,7 +877,7 @@ fn balance(account: &str, genesis: &Path) -> Result<()> {
 /// file signed, with its certificate if that is still to be had.
 fn settle_earlier(
     client: &Client,
-    wallet: &mut Wallet,
+    wallet: &mut Signing,
     seq: u64,
 ) -> Result<Option<(orien_ledger::Order, Option<Certificate>)>> {
     let Some(earlier) = wallet.pending().filter(|earlier| earlier.order.seq < seq).cloned() else {
@@ -651,7 +946,7 @@ fn explain(error: TransferError) -> anyhow::Error {
 
 /// Gathers votes and confirmations for a signed payment, which makes it
 /// final, and says so. Only then does the wallet move on.
-fn finish(client: &Client, wallet: &mut Wallet, signed: &SignedOrder, receipt_file: Option<&Path>) -> Result<()> {
+fn finish(client: &Client, wallet: &mut Signing, signed: &SignedOrder, receipt_file: Option<&Path>) -> Result<()> {
     let order = &signed.order;
     let started = Instant::now();
     // A checkpoint pauses payments for a few seconds. Wait it out.
@@ -717,7 +1012,7 @@ fn submit(
     let genesis_file = genesis;
     let (genesis, client) = connect(genesis_file)?;
     let network = genesis.id();
-    let mut wallet = Wallet::load(wallet_file)?;
+    let mut wallet = open_signing(wallet_file)?;
     wallet.accept_fee(genesis.fee);
     let to = to.unwrap_or(wallet.address());
     let kind = kind(&wallet.address(), &genesis)?;
@@ -806,7 +1101,7 @@ fn resume(wallet_file: &Path, pick: Option<&str>, receipt_file: Option<&Path>, g
     let genesis_file = genesis;
     let (genesis, client) = connect(genesis_file)?;
     let network = genesis.id();
-    let mut wallet = Wallet::load(wallet_file)?;
+    let mut wallet = open_signing(wallet_file)?;
     wallet.accept_fee(genesis.fee);
     let status = read_account(&client, &wallet)?;
     let seq = status.seq;
@@ -1007,25 +1302,51 @@ fn status(genesis: &Path) -> Result<()> {
 /// Mines for `account` until stopped. Each round asks the validators for
 /// the epoch's seed and target, searches with every thread for a few
 /// seconds, and hands every share found to all the validators.
-fn mine(account: &str, threads: Option<usize>, genesis_file: &Path) -> Result<()> {
+/// How many cores to mine with: as given, or a share of the processor,
+/// asked for when there is someone at the terminal to answer.
+fn mining_threads(cpu: Option<u8>, threads: Option<usize>) -> Result<usize> {
+    let cores = thread::available_parallelism().map_or(1, |n| n.get());
+    if let Some(threads) = threads {
+        return Ok(threads.max(1));
+    }
+    let percent = match cpu {
+        Some(percent) => percent,
+        None if std::io::stdin().is_terminal() => {
+            println!("This computer has {cores} processor cores. Mining on fewer leaves more for everything else.");
+            ask("how much of the processor should mining use, in percent?", "50", |text| {
+                match text.trim().trim_end_matches('%').trim().parse::<u8>() {
+                    Ok(percent) if (1..=100).contains(&percent) => Ok(percent),
+                    _ => Err("give a number from 1 to 100, like 25, 50 or 100".to_string()),
+                }
+            })?
+        }
+        None => 100,
+    };
+    // Whole cores, at least one: a share of a core would only slow it down.
+    Ok(((cores * percent as usize + 50) / 100).clamp(1, cores))
+}
+
+fn mine(account: &str, threads: usize, genesis_file: &Path) -> Result<()> {
     use orien_ledger::close::Share;
     use std::sync::Arc;
     use std::sync::atomic::{AtomicBool, AtomicU64, Ordering};
 
-    let (_, client) = connect(genesis_file)?;
+    let (genesis, client) = connect(genesis_file)?;
     let account = resolve_account(account)?;
-    let threads = threads.unwrap_or_else(|| thread::available_parallelism().map_or(1, |n| n.get())).max(1);
     // Two machines mining for one account must not find the same shares.
     let mut next = u64::from_le_bytes(orien_net::keys::random_seed()[..8].try_into().expect("8 bytes"));
-    println!("mining for {} with {threads} thread(s); stop with Ctrl-C", account.short());
+    let cores = thread::available_parallelism().map_or(1, |n| n.get());
+    println!(
+        "mining for {} on {threads} of {cores} processor cores (about {}%); stop with Ctrl-C",
+        account.short(),
+        threads * 100 / cores
+    );
     let mut shown_epoch = None;
     loop {
+        // The seed and target come from the checkpoints this client checks
+        // itself, so nobody can send it off doing worthless work.
         client.follow();
-        let Some((epoch, seed, target)) = client.work() else {
-            println!("no validator answered; trying again");
-            thread::sleep(Duration::from_secs(2));
-            continue;
-        };
+        let (epoch, seed, target) = client.followed_work();
         if shown_epoch != Some(epoch) {
             let balance = client.proven(&account).map_or(0, |a| a.balance);
             println!(
@@ -1082,7 +1403,271 @@ fn mine(account: &str, threads: Option<usize>, genesis_file: &Path) -> Result<()
         next = next.wrapping_add(tries.load(Ordering::Relaxed) + threads as u64 * 4096);
         let rate = tries.load(Ordering::Relaxed) as f64 / started.elapsed().as_secs_f64() / 1e6;
         println!("  {rate:.1} million tries a second; {sent} share(s) found, {taken} taken by validators");
+        if sent > 0 && taken == 0 {
+            println!(
+                "  the validators have counted all the shares they take until the next checkpoint, {}; \
+                 what you found so far still counts",
+                until_checkpoint(&genesis, &client)
+            );
+        }
     }
+}
+
+/// The wallet to sign a payment with: through its unlocked session when
+/// `orien unlock` is running for it, otherwise opened here, asking for its
+/// password if it has one.
+fn open_signing(path: &Path) -> Result<Signing> {
+    if let Some(unlocked) = Signing::unlocked(path)? {
+        return Ok(unlocked);
+    }
+    let wallet = Wallet::load(path);
+    if let Err(error) = &wallet
+        && matches!(error.downcast_ref::<OpenError>(), Some(OpenError::NeedsPassword))
+        && !std::io::stdin().is_terminal()
+    {
+        bail!(
+            "{} has a password and is not unlocked. Its owner can type the password by running this command \
+             in their own terminal, or allow it for a while with: orien unlock",
+            path.display()
+        );
+    }
+    Ok(Signing::Here(open_wallet(path)?))
+}
+
+/// Opens a wallet to sign with, asking for its password if it has one.
+fn open_wallet(path: &Path) -> Result<Wallet> {
+    match Wallet::load(path) {
+        Err(error) if matches!(error.downcast_ref::<OpenError>(), Some(OpenError::NeedsPassword)) => {
+            for attempt in 1..=3 {
+                let password = rpassword::prompt_password(format!("password for {}: ", path.display()))?;
+                match Wallet::open(path, Some(&password)) {
+                    Err(error)
+                        if attempt < 3 && matches!(error.downcast_ref::<OpenError>(), Some(OpenError::WrongPassword)) =>
+                    {
+                        println!("that is not this wallet's password; try again");
+                    }
+                    other => return other,
+                }
+            }
+            unreachable!("the third attempt returns")
+        }
+        other => other,
+    }
+}
+
+/// Asks for a wallet's password until it opens the wallet, up to three
+/// times, and returns it.
+fn ask_password(path: &Path) -> Result<String> {
+    for attempt in 1..=3 {
+        let password = rpassword::prompt_password(format!("password for {}: ", path.display())).map_err(|_| {
+            anyhow!("orien unlock asks for the wallet's password, so its owner must run it in their own terminal")
+        })?;
+        match Wallet::open(path, Some(&password)) {
+            Ok(_) => return Ok(password),
+            Err(error)
+                if attempt < 3 && matches!(error.downcast_ref::<OpenError>(), Some(OpenError::WrongPassword)) =>
+            {
+                println!("that is not this wallet's password; try again");
+            }
+            Err(error) => return Err(error),
+        }
+    }
+    unreachable!("the third attempt returns")
+}
+
+/// A length of time such as 30m, 2h or 1d, in seconds.
+fn parse_duration(text: &str) -> Result<u64, String> {
+    let text = text.trim();
+    let (number, unit) = text.split_at(text.find(|c: char| !c.is_ascii_digit()).unwrap_or(text.len()));
+    let number: u64 = number.parse().map_err(|_| format!("'{text}' is not a length of time like 30m, 2h or 1d"))?;
+    let seconds = match unit.trim() {
+        "m" | "min" | "minutes" | "minute" => 60,
+        "h" | "hour" | "hours" => 3_600,
+        "d" | "day" | "days" => 86_400,
+        _ => return Err(format!("'{text}' is not a length of time like 30m, 2h or 1d")),
+    };
+    match number.checked_mul(seconds) {
+        Some(total) if total > 0 => Ok(total),
+        _ => Err(format!("'{text}' is not a usable length of time")),
+    }
+}
+
+/// A length of time in words: "1 hour 20 minutes".
+fn describe_duration(seconds: u64) -> String {
+    let plural = |n: u64, word: &str| format!("{n} {word}{}", if n == 1 { "" } else { "s" });
+    let (days, hours, minutes) = (seconds / 86_400, seconds % 86_400 / 3_600, seconds % 3_600 / 60);
+    let parts: Vec<String> = [(days, "day"), (hours, "hour"), (minutes, "minute")]
+        .into_iter()
+        .filter(|(n, _)| *n > 0)
+        .map(|(n, word)| plural(n, word))
+        .collect();
+    if parts.is_empty() { "less than a minute".to_string() } else { parts.join(" ") }
+}
+
+/// Asks a question with a default answer, read from the terminal.
+fn ask<T>(question: &str, default: &str, parse: impl Fn(&str) -> Result<T, String>) -> Result<T> {
+    loop {
+        print!("{question} [{default}]: ");
+        std::io::stdout().flush()?;
+        let mut line = String::new();
+        std::io::stdin().read_line(&mut line)?;
+        let answer = if line.trim().is_empty() { default } else { line.trim() };
+        match parse(answer) {
+            Ok(value) => return Ok(value),
+            Err(problem) => println!("{problem}"),
+        }
+    }
+}
+
+/// `orien unlock`: asks for the password and the limits, then starts the
+/// helper in the background and hands it the password through a pipe.
+fn unlock(file: &Path, duration: Option<u64>, up_to: Option<u64>) -> Result<()> {
+    if let Some(session) = Session::find(file) {
+        let status = session.status()?;
+        bail!(
+            "{} is already unlocked for {} more, up to {} ORN more. To change that, run orien lock first.",
+            file.display(),
+            describe_duration(status.limits.until.saturating_sub(unix_now())),
+            coins(status.left() as i128)
+        );
+    }
+    match Wallet::load(file) {
+        Ok(_) => bail!(
+            "{} has no password, so any program on this computer can already sign with it. \
+             Give it one first with: orien wallet password",
+            file.display()
+        ),
+        Err(error) if matches!(error.downcast_ref::<OpenError>(), Some(OpenError::NeedsPassword)) => {}
+        Err(error) => return Err(error),
+    }
+    let password = ask_password(file)?;
+    let duration = match duration {
+        Some(duration) => duration,
+        None => ask("stay unlocked for how long?", "1h", parse_duration)?,
+    };
+    let spend = match up_to {
+        Some(spend) => spend,
+        None => ask("spend at most how much ORN, fees included?", "100", parse_coins)?,
+    };
+
+    let mut helper = std::process::Command::new(std::env::current_exe()?);
+    helper
+        .arg("unlock-helper")
+        .arg(file)
+        .args(["--until", &(unix_now() + duration).to_string(), "--spend", &spend.to_string()])
+        .stdin(std::process::Stdio::piped())
+        .stdout(std::process::Stdio::piped())
+        .stderr(std::process::Stdio::null());
+    // The helper must outlive this terminal command, and the terminal.
+    #[cfg(unix)]
+    {
+        use std::os::unix::process::CommandExt;
+        helper.process_group(0);
+    }
+    #[cfg(windows)]
+    {
+        use std::os::windows::process::CommandExt;
+        const DETACHED_PROCESS: u32 = 0x0000_0008;
+        const CREATE_NEW_PROCESS_GROUP: u32 = 0x0000_0200;
+        helper.creation_flags(DETACHED_PROCESS | CREATE_NEW_PROCESS_GROUP);
+    }
+    let mut helper = helper.spawn().context("cannot start the unlock helper")?;
+    {
+        let mut stdin = helper.stdin.take().ok_or_else(|| anyhow!("cannot reach the unlock helper"))?;
+        stdin.write_all(password.as_bytes())?;
+        stdin.write_all(b"\n")?;
+    }
+    drop(password);
+    let mut line = String::new();
+    std::io::BufReader::new(helper.stdout.take().ok_or_else(|| anyhow!("cannot reach the unlock helper"))?)
+        .read_line(&mut line)?;
+    match line.trim() {
+        "ready" => {
+            println!("unlocked {} for {}, up to {} ORN", file.display(), describe_duration(duration), coins(spend as i128));
+            println!("programs on this computer can now send from it within those limits. End it early with: orien lock");
+            Ok(())
+        }
+        "" => bail!("the unlock helper stopped before it was ready"),
+        problem => bail!("{}", problem.trim_start_matches("error: ")),
+    }
+}
+
+/// The background helper: reads the password from its parent, opens the
+/// wallet and serves it until the time is up or it is locked.
+fn unlock_helper(file: &Path, limits: Limits) -> Result<()> {
+    let mut password = String::new();
+    std::io::stdin().read_line(&mut password)?;
+    let wallet = match Wallet::open(file, Some(password.trim_end_matches(['\r', '\n']))) {
+        Ok(wallet) => wallet,
+        Err(error) => {
+            println!("error: {error}");
+            return Ok(());
+        }
+    };
+    drop(password);
+    let served = unlock::serve(wallet, limits, || {
+        println!("ready");
+        let _ = std::io::stdout().flush();
+    });
+    if let Err(error) = served {
+        println!("error: {error}");
+    }
+    Ok(())
+}
+
+/// `orien unlock --status`.
+fn unlock_status(file: &Path) -> Result<()> {
+    match Session::find(file) {
+        Some(session) => {
+            let status = session.status()?;
+            println!(
+                "{} is unlocked for {} more, and may spend {} more ORN of {}",
+                file.display(),
+                describe_duration(status.limits.until.saturating_sub(unix_now())),
+                coins(status.left() as i128),
+                coins(status.limits.spend as i128)
+            );
+        }
+        None => println!("{} is locked", file.display()),
+    }
+    Ok(())
+}
+
+/// Asks for a new password twice. An empty one means none.
+fn choose_password() -> Result<Option<String>> {
+    loop {
+        let password = rpassword::prompt_password("choose a password (or press Enter for none): ")?;
+        if password.is_empty() {
+            return Ok(None);
+        }
+        if password.chars().count() < 8 {
+            println!("use at least 8 characters");
+            continue;
+        }
+        if rpassword::prompt_password("type it again: ")? == password {
+            return Ok(Some(password));
+        }
+        println!("the two did not match; try again");
+    }
+}
+
+/// Prints a wallet's recovery phrase, numbered, with what it means.
+fn show_phrase(wallet: &Wallet) {
+    let Some(words) = wallet.phrase() else {
+        println!("this wallet was made before recovery phrases and has none; keep a copy of its file instead");
+        return;
+    };
+    println!("Your recovery phrase. Write these 24 words on paper, in order, and keep them safe:");
+    println!();
+    for (row, chunk) in words.chunks(4).enumerate() {
+        let cells: Vec<String> =
+            chunk.iter().enumerate().map(|(i, word)| format!("{:>2}. {word:<9}", row * 4 + i + 1)).collect();
+        println!("  {}", cells.join("  "));
+    }
+    println!();
+    println!("With these words, `orien wallet restore` rebuilds your wallet on any computer.");
+    println!("Anyone who sees them can take your coins. Never type them into a website or share them,");
+    println!("and never give them to anyone who asks, an AI assistant included.");
 }
 
 fn keygen(out: &Path, height: u8) -> Result<()> {
@@ -1138,19 +1723,6 @@ fn genesis_new(
     genesis_show(&genesis)
 }
 
-/// Whether an address is on a private network: Tailscale, a home or office
-/// network, or this machine.
-fn private(address: &str) -> bool {
-    let host = address.rsplit_once(':').map_or(address, |(host, _)| host);
-    match host.parse::<std::net::Ipv4Addr>() {
-        Ok(ip) => {
-            let [a, b, ..] = ip.octets();
-            ip.is_private() || ip.is_loopback() || (a == 100 && (64..128).contains(&b))
-        }
-        Err(_) => host == "localhost",
-    }
-}
-
 fn genesis_show(genesis: &Genesis) -> Result<()> {
     println!("network     '{}'", genesis.network);
     println!("id          {}", genesis.id());
@@ -1202,12 +1774,8 @@ fn genesis_show(genesis: &Genesis) -> Result<()> {
     if genesis.supply() > 0 {
         println!("note: this file hands out coins at the start");
     }
-    for v in genesis.validators.iter().filter(|v| !private(&v.address)) {
-        println!(
-            "warning: {} is at {}, which is not a private address. Connections between validators are not \
-             encrypted yet; keep them on a private network such as Tailscale.",
-            v.name, v.address
-        );
+    if genesis.validators.iter().any(|v| v.address.is_empty() || !v.address.contains(':')) {
+        println!("warning: every launch validator needs an address as HOST:PORT that the others can reach");
     }
     Ok(())
 }
@@ -1331,11 +1899,11 @@ fn interrupt(dir: &Path, wallet_name: &str, to_name: &str, amount: u64) -> Resul
     let (genesis, client) = connect(&dir.join("genesis.json"))?;
     let wallets = dir.join("wallets");
     let wallet_file = wallets.join(format!("{wallet_name}.wallet"));
-    let mut wallet = Wallet::load(&wallet_file)?;
+    let mut wallet = open_wallet(&wallet_file)?;
     wallet.accept_fee(genesis.fee);
-    let to = Wallet::load(&wallets.join(format!("{to_name}.wallet")))?.address();
+    let to = Wallet::peek(&wallets.join(format!("{to_name}.wallet")))?.0;
 
-    let status = read_account(&client, &wallet)?;
+    let status = read_account_of(&client, &wallet.address(), wallet.next_seq())?;
     if !status.locks.is_empty() || wallet.pending().is_some() {
         bail!("{wallet_name} already has an unfinished payment");
     }
@@ -1372,11 +1940,11 @@ fn interrupt(dir: &Path, wallet_name: &str, to_name: &str, amount: u64) -> Resul
 fn double_spend(dir: &Path, wallet_name: &str, split: bool) -> Result<()> {
     let (genesis, client) = connect(&dir.join("genesis.json"))?;
     let wallets = dir.join("wallets");
-    let mut wallet = Wallet::load(&wallets.join(format!("{wallet_name}.wallet")))?;
+    let mut wallet = open_wallet(&wallets.join(format!("{wallet_name}.wallet")))?;
     wallet.accept_fee(genesis.fee);
     let others: Vec<&str> = ["alice", "bob", "carol"].into_iter().filter(|n| *n != wallet_name).collect();
-    let first_payee = Wallet::load(&wallets.join(format!("{}.wallet", others[0])))?.address();
-    let second_payee = Wallet::load(&wallets.join(format!("{}.wallet", others[1])))?.address();
+    let first_payee = Wallet::peek(&wallets.join(format!("{}.wallet", others[0])))?.0;
+    let second_payee = Wallet::peek(&wallets.join(format!("{}.wallet", others[1])))?.0;
 
     let status = client.account(&wallet.address(), wallet.next_seq());
     let balance = status.spendable.ok_or_else(|| anyhow!("validators are not caught up"))?;

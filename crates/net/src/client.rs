@@ -87,6 +87,8 @@ pub struct Head {
     /// The validators, with the first epoch each set served. A new entry
     /// is added only when the set changes.
     pub validators: Vec<(u64, Vec<Member>)>,
+    /// The current epoch's work target, as the checkpoint before set it.
+    pub target: u64,
 }
 
 impl Head {
@@ -100,6 +102,7 @@ impl Head {
             state: None,
             time: genesis.start_time,
             validators: vec![(0, committee.members().to_vec())],
+            target: genesis.first_target,
         }
     }
 
@@ -131,6 +134,7 @@ impl Head {
         self.previous = checkpoint.digest();
         self.state = Some(checkpoint.state);
         self.time = checkpoint.time;
+        self.target = checkpoint.target;
         if self.validators.last().is_none_or(|(_, members)| *members != checkpoint.validators) {
             self.validators.push((self.epoch, checkpoint.validators.clone()));
         }
@@ -351,8 +355,17 @@ impl Client {
         })
     }
 
+    /// The current epoch as far as this client has followed the network,
+    /// with the seed and work target of that epoch, taken from checked
+    /// checkpoints rather than anyone's word. Call `follow` first.
+    pub fn followed_work(&self) -> (u64, Hash32, u64) {
+        let head = self.head.read().unwrap();
+        (head.epoch, head.previous, head.target)
+    }
+
     /// The current epoch, its seed and its work target, as most of the
-    /// validators that answer give them. A miner works against these.
+    /// validators that answer give them. Nothing checks these: a miner
+    /// should use `followed_work`.
     pub fn work(&self) -> Option<(u64, Hash32, u64)> {
         let mut answers: Vec<(u64, Hash32, u64)> = self
             .ask_all(&Request::Work)
