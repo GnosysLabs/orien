@@ -8,7 +8,7 @@ use orien_ledger::{
 };
 use orien_net::client::{Client, Done, Final, Head, TransferError, rpc};
 use orien_net::keys::{ValidatorKey, Wallet};
-use orien_net::node::{Node, NodeConfig};
+use orien_net::node::{Admission, Limits, Node, NodeConfig};
 use orien_net::wire::{AccountView, NodeInfo, Request, Response, read_frame, write_frame};
 use std::fs;
 use std::net::TcpListener;
@@ -44,6 +44,7 @@ struct Options {
     /// The most coins released for work: none unless a test asks.
     cap: u64,
     first_target: u64,
+    limits: Limits,
 }
 
 impl Default for Options {
@@ -63,6 +64,7 @@ impl Default for Options {
             seat: 1,
             cap: 0,
             first_target: u64::MAX,
+            limits: Limits::default(),
         }
     }
 }
@@ -146,6 +148,7 @@ impl TestNet {
         config.durable = self.options.durable;
         config.close_pace = self.options.pace;
         config.key_reserve = self.options.key_reserve;
+        config.limits = self.options.limits;
         config
     }
 
@@ -1790,5 +1793,61 @@ fn a_validator_away_for_many_epochs_catches_up_by_the_checkpoints() {
     if let Done::Receipt(done) = done {
         assert!(done.receipt.certificate.votes.len() >= 3);
     }
+    net.wait_until_level();
+}
+
+#[test]
+fn connections_are_counted_per_address_and_in_total() {
+    let mut admission = Admission::new(Limits { total: 5, per_address: 2, idle: Duration::from_secs(1) });
+    let (one, two, three): (std::net::IpAddr, std::net::IpAddr, std::net::IpAddr) =
+        ("10.0.0.1".parse().unwrap(), "10.0.0.2".parse().unwrap(), "10.0.0.3".parse().unwrap());
+    assert!(admission.admit(one, false) && admission.admit(one, false));
+    assert!(!admission.admit(one, false), "a third from one address is turned away");
+    assert!(admission.admit(two, false) && admission.admit(two, false));
+    assert!(admission.admit(three, false));
+    assert!(!admission.admit(three, false), "five in all is the limit");
+    // A validator is never turned away, even when everything is full.
+    assert!(admission.admit(three, true));
+    // Closing a connection makes room again.
+    admission.release(one);
+    admission.release(three);
+    assert!(admission.admit(one, false));
+}
+
+#[test]
+fn a_flood_of_idle_and_junk_connections_does_not_stop_payments() {
+    let limits = Limits { total: 1024, per_address: 64, idle: Duration::from_secs(1) };
+    let net = TestNet::start_with("flood", Options { limits, ..Options::default() });
+    let target = &net.genesis.validators[0].address;
+    // Hundreds of connections that send nothing, and many that send junk.
+    let idle: Vec<std::net::TcpStream> = (0..300).filter_map(|_| std::net::TcpStream::connect(target).ok()).collect();
+    let mut junk = Vec::new();
+    for _ in 0..50 {
+        if let Ok(mut stream) = std::net::TcpStream::connect(target) {
+            let _ = write_frame(&mut stream, b"this is not a request");
+            junk.push(stream);
+        }
+    }
+    // Payments go through all the while.
+    let bob = net.address("bob");
+    for _ in 0..5 {
+        net.pay("alice", bob, 1);
+    }
+    // Junk is answered once and the connection closed.
+    for mut stream in junk {
+        stream.set_read_timeout(Some(Duration::from_secs(5))).unwrap();
+        let mut reader = std::io::BufReader::new(&mut stream);
+        let _ = read_frame(&mut reader);
+        assert!(matches!(read_frame(&mut reader), Ok(None) | Err(_)), "junk ends the connection");
+    }
+    // Silent connections are closed once they have been idle for a second.
+    thread::sleep(Duration::from_millis(1500));
+    for mut stream in idle {
+        stream.set_read_timeout(Some(Duration::from_secs(5))).unwrap();
+        let mut byte = [0u8; 1];
+        assert!(matches!(std::io::Read::read(&mut stream, &mut byte), Ok(0) | Err(_)), "an idle connection is closed");
+    }
+    // And the network still works.
+    net.pay("bob", net.address("carol"), 1);
     net.wait_until_level();
 }
