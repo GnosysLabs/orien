@@ -144,7 +144,7 @@ export default function HomePage() {
           <p className="mb-3 text-xs font-semibold uppercase tracking-wider text-muted">Works with your AI assistant</p>
           <h2 className="text-2xl font-bold tracking-tight text-ink sm:text-3xl">Just ask.</h2>
           <p className="mt-5 text-sm leading-relaxed text-muted">
-            One command teaches Claude Code and Codex to use Orien for you. Ask for your balance, pay someone, start
+            One command teaches Claude Code, Codex and other AI assistants to use Orien for you. Ask for your balance, pay someone, start
             mining, or set up a validator, in plain words.
           </p>
           <ul className="mt-5 space-y-3 text-sm leading-relaxed text-muted">

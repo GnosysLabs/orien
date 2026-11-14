@@ -61,18 +61,19 @@ fn install_skill(dir: Option<PathBuf>, refresh: bool) -> Result<()> {
     let home = user_home();
     let targets: Vec<(String, PathBuf)> = match dir {
         Some(dir) => vec![(dir.display().to_string(), dir)],
-        None => [("Claude Code", ".claude"), ("Codex", ".codex")]
-            .into_iter()
-            .filter(|(_, folder)| home.join(folder).is_dir())
-            .map(|(name, folder)| (name.to_string(), home.join(folder).join("skills")))
-            .collect(),
+        None => {
+            // ~/.agents/skills is the shared folder that assistants other than
+            // Claude Code and Codex read, so the skill always goes there.
+            let mut targets = vec![("other assistants".to_string(), home.join(".agents").join("skills"))];
+            targets.extend(
+                [("Claude Code", ".claude"), ("Codex", ".codex")]
+                    .into_iter()
+                    .filter(|(_, folder)| home.join(folder).is_dir())
+                    .map(|(name, folder)| (name.to_string(), home.join(folder).join("skills"))),
+            );
+            targets
+        }
     };
-    if targets.is_empty() && !refresh {
-        bail!(
-            "found no AI assistant here (no ~/.claude or ~/.codex folder). For another assistant, \
-             name its skills folder: orien skill install --dir FOLDER"
-        );
-    }
     for (name, skills) in targets {
         let file = skills.join("orien").join("SKILL.md");
         if refresh && !file.is_file() {
@@ -253,7 +254,7 @@ enum Command {
         #[arg(long)]
         spend: u64,
     },
-    /// Teach AI assistants (Claude Code, Codex) to use orien for you
+    /// Teach AI assistants (Claude Code, Codex and others) to use orien for you
     #[command(subcommand)]
     Skill(SkillCommand),
     /// Update orien to the newest version, if the Orien release key signed it
@@ -306,7 +307,8 @@ enum WalletCommand {
 
 #[derive(Subcommand)]
 enum SkillCommand {
-    /// Install the Orien skill for each AI assistant on this computer
+    /// Install the Orien skill for each AI assistant on this computer, and in
+    /// ~/.agents/skills for any other assistant that reads skills from there
     Install {
         /// Install into this skills folder instead, for another assistant
         #[arg(long)]

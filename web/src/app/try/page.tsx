@@ -95,8 +95,9 @@ export default function GetStartedPage() {
         <Step number={5} icon={Bot} title="Let your AI assistant do it">
           <CopyText text="orien skill install" />
           <p>
-            This teaches <strong>Claude Code</strong> and <strong>Codex</strong> to use orien for you. Start a new
-            conversation and ask in plain words: “what’s my ORN balance?”, “send 5 ORN to Bob”, “start mining on this
+            This teaches <strong>Claude Code</strong>, <strong>Codex</strong> and any other AI assistant that reads
+            skills from <code className="rounded bg-raised px-1.5 py-0.5 text-ink">~/.agents/skills</code> to use orien
+            for you. Start a new conversation and ask in plain words: “what’s my ORN balance?”, “send 5 ORN to Bob”, “start mining on this
             computer”. It asks before every payment, and never sees your 24 words or your password.
           </p>
           <p>
@@ -105,9 +106,10 @@ export default function GetStartedPage() {
           </p>
           <CopyText label="For the next hour, up to 50 ORN" text="orien unlock --for 1h --up-to 50" />
           <p className="text-sm">
-            End it early with <code className="rounded bg-raised px-1.5 py-0.5 text-ink">orien lock</code>. For another
-            assistant, <code className="rounded bg-raised px-1.5 py-0.5 text-ink">orien skill install --dir FOLDER</code>{' '}
-            puts the skill in its skills folder.
+            End it early with <code className="rounded bg-raised px-1.5 py-0.5 text-ink">orien lock</code>. For an
+            assistant that keeps its skills somewhere else,{' '}
+            <code className="rounded bg-raised px-1.5 py-0.5 text-ink">orien skill install --dir FOLDER</code> puts the
+            skill in that folder.
           </p>
         </Step>
 
