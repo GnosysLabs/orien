@@ -28,9 +28,36 @@ struct Cli {
 
 #[derive(Args)]
 struct Network {
-    /// Genesis file describing the network
-    #[arg(short, long, env = "ORIEN_GENESIS", default_value = "genesis.json")]
-    genesis: PathBuf,
+    /// Genesis file describing the network (default: ~/.orien/genesis.json,
+    /// else genesis.json here)
+    #[arg(short, long, env = "ORIEN_GENESIS")]
+    genesis: Option<PathBuf>,
+}
+
+impl Network {
+    /// The genesis file to use: the one named, else the one the installer
+    /// put in ~/.orien, else one in this folder.
+    fn file(&self) -> PathBuf {
+        if let Some(file) = &self.genesis {
+            return file.clone();
+        }
+        let installed = orien_home().join("genesis.json");
+        if installed.is_file() { installed } else { PathBuf::from("genesis.json") }
+    }
+}
+
+/// Where orien keeps its files: $ORIEN_HOME, else ~/.orien.
+fn orien_home() -> PathBuf {
+    if let Some(home) = std::env::var_os("ORIEN_HOME") {
+        return PathBuf::from(home);
+    }
+    let user = std::env::var_os("HOME").or_else(|| std::env::var_os("USERPROFILE")).unwrap_or_default();
+    PathBuf::from(user).join(".orien")
+}
+
+/// The wallet to use when none is named: ~/.orien/wallet.
+fn default_wallet() -> PathBuf {
+    orien_home().join("wallet")
 }
 
 #[derive(Subcommand)]
@@ -40,15 +67,16 @@ enum Command {
     Wallet(WalletCommand),
     /// Show an account's balance
     Balance {
-        /// A wallet file or an account address
-        account: String,
+        /// A wallet file or an account address (default: your wallet)
+        account: Option<String>,
         #[command(flatten)]
         network: Network,
     },
     /// Send a payment and wait until it is final
     Send {
-        #[arg(short, long)]
-        wallet: PathBuf,
+        /// The wallet (default: ~/.orien/wallet)
+        #[arg(short, long, env = "ORIEN_WALLET")]
+        wallet: Option<PathBuf>,
         /// Recipient: an account address or a wallet file
         #[arg(long)]
         to: String,
@@ -64,8 +92,9 @@ enum Command {
     /// Lock coins as stake behind a validator, which then joins the
     /// validators at a checkpoint if its stake is among the largest
     Stake {
-        #[arg(short, long)]
-        wallet: PathBuf,
+        /// The wallet (default: ~/.orien/wallet)
+        #[arg(short, long, env = "ORIEN_WALLET")]
+        wallet: Option<PathBuf>,
         /// In coins, with up to nine decimals: 12 or 0.25
         #[arg(long, value_parser = parse_coins)]
         amount: u64,
@@ -82,8 +111,9 @@ enum Command {
     /// Start releasing staked coins. They stay locked, and can still be
     /// taken for cheating, until the wait set in the genesis file is over.
     Unstake {
-        #[arg(short, long)]
-        wallet: PathBuf,
+        /// The wallet (default: ~/.orien/wallet)
+        #[arg(short, long, env = "ORIEN_WALLET")]
+        wallet: Option<PathBuf>,
         /// In coins, with up to nine decimals: 12 or 0.25
         #[arg(long, value_parser = parse_coins)]
         amount: u64,
@@ -92,8 +122,9 @@ enum Command {
     },
     /// Finish a payment that was signed but never became final
     Resume {
-        #[arg(short, long)]
-        wallet: PathBuf,
+        /// The wallet (default: ~/.orien/wallet)
+        #[arg(short, long, env = "ORIEN_WALLET")]
+        wallet: Option<PathBuf>,
         /// Which payment to finish, if more than one is waiting: the first
         /// characters of its id, as `balance` shows it
         #[arg(long)]
@@ -113,8 +144,9 @@ enum Command {
     /// Do proof-of-work for an account, which earns it a share of the coins
     /// each checkpoint releases. Runs until stopped with Ctrl-C.
     Mine {
-        /// The account to be paid: a wallet file or an address
-        account: String,
+        /// The account to be paid: a wallet file or an address (default:
+        /// your wallet)
+        account: Option<String>,
         /// How many processor cores to use (default: all of them)
         #[arg(long)]
         threads: Option<usize>,
@@ -165,11 +197,15 @@ enum Command {
 #[derive(Subcommand)]
 enum WalletCommand {
     /// Create a new wallet, with a 24-word recovery phrase to write down
-    New { file: PathBuf },
+    New {
+        /// The wallet file (default: ~/.orien/wallet)
+        file: Option<PathBuf>,
+    },
     /// Rebuild a wallet from its 24-word recovery phrase, typed in when asked.
     /// Use a different account number on each computer.
     Restore {
-        file: PathBuf,
+        /// The wallet file to write (default: ~/.orien/wallet)
+        file: Option<PathBuf>,
         /// Which account of the phrase: 1 on your first computer, 2 on the
         /// next, and so on
         #[arg(long, default_value_t = 1)]
@@ -177,11 +213,20 @@ enum WalletCommand {
     },
     /// Show a wallet's recovery phrase again. Anyone who sees it can spend
     /// your coins.
-    Phrase { file: PathBuf },
+    Phrase {
+        /// The wallet file (default: ~/.orien/wallet)
+        file: Option<PathBuf>,
+    },
     /// Put a password on a wallet, change it, or remove it
-    Password { file: PathBuf },
+    Password {
+        /// The wallet file (default: ~/.orien/wallet)
+        file: Option<PathBuf>,
+    },
     /// Show a wallet's account address
-    Address { file: PathBuf },
+    Address {
+        /// The wallet file (default: ~/.orien/wallet)
+        file: Option<PathBuf>,
+    },
 }
 
 #[derive(Subcommand)]
@@ -324,6 +369,10 @@ fn main() {
 fn run(cli: Cli) -> Result<()> {
     match cli.command {
         Command::Wallet(WalletCommand::New { file }) => {
+            let file = file.unwrap_or_else(default_wallet);
+            if let Some(folder) = file.parent() {
+                fs::create_dir_all(folder)?;
+            }
             let wallet = Wallet::create(&file)?;
             println!("created {}", file.display());
             println!("address  {}", wallet.address());
@@ -345,6 +394,7 @@ fn run(cli: Cli) -> Result<()> {
             Ok(())
         }
         Command::Wallet(WalletCommand::Password { file }) => {
+            let file = file.unwrap_or_else(default_wallet);
             let mut wallet = open_wallet(&file)?;
             match choose_password()? {
                 Some(password) => {
@@ -360,6 +410,10 @@ fn run(cli: Cli) -> Result<()> {
             Ok(())
         }
         Command::Wallet(WalletCommand::Restore { file, account }) => {
+            let file = file.unwrap_or_else(default_wallet);
+            if let Some(folder) = file.parent() {
+                fs::create_dir_all(folder)?;
+            }
             println!("Type your 24-word recovery phrase, separated by spaces, then press Enter:");
             let mut line = String::new();
             std::io::stdin().read_line(&mut line)?;
@@ -372,17 +426,19 @@ fn run(cli: Cli) -> Result<()> {
             Ok(())
         }
         Command::Wallet(WalletCommand::Phrase { file }) => {
+            let file = file.unwrap_or_else(default_wallet);
             show_phrase(&open_wallet(&file)?);
             Ok(())
         }
         Command::Wallet(WalletCommand::Address { file }) => {
+            let file = file.unwrap_or_else(default_wallet);
             println!("{}", Wallet::peek(&file)?.0);
             Ok(())
         }
-        Command::Balance { account, network } => balance(&account, &network.genesis),
+        Command::Balance { account, network } => balance(&account.unwrap_or_else(|| default_wallet().display().to_string()), &network.file()),
         Command::Send { wallet, to, amount, receipt, network } => {
             let to = resolve_account(&to)?;
-            submit(&wallet, |_, _| Ok(Kind::Payment), Some(to), amount, receipt.as_deref(), &network.genesis)
+            submit(&wallet.clone().unwrap_or_else(default_wallet), |_, _| Ok(Kind::Payment), Some(to), amount, receipt.as_deref(), &network.file())
         }
         Command::Stake { wallet, amount, validator_key, address, network } => {
             let key = ValidatorKey::load(&validator_key)?;
@@ -396,18 +452,18 @@ fn run(cli: Cli) -> Result<()> {
                 let proof = sign_stake_proof(&tree, &network.id(), account, &address);
                 Ok(Kind::Stake { validator, proof })
             };
-            submit(&wallet, stake, None, amount, None, &network.genesis)
+            submit(&wallet.clone().unwrap_or_else(default_wallet), stake, None, amount, None, &network.file())
         }
         Command::Unstake { wallet, amount, network } => {
-            submit(&wallet, |_, _| Ok(Kind::Unstake), None, amount, None, &network.genesis)
+            submit(&wallet.clone().unwrap_or_else(default_wallet), |_, _| Ok(Kind::Unstake), None, amount, None, &network.file())
         }
         Command::Resume { wallet, payment, receipt, network } => {
-            resume(&wallet, payment.as_deref(), receipt.as_deref(), &network.genesis)
+            resume(&wallet.clone().unwrap_or_else(default_wallet), payment.as_deref(), receipt.as_deref(), &network.file())
         }
-        Command::Verify { receipt, network } => verify(&receipt, &network.genesis),
-        Command::Status { network } => status(&network.genesis),
-        Command::Mine { account, threads, network } => mine(&account, threads, &network.genesis),
-        Command::Node { key, data, listen, network } => node(&key, data, listen, &network.genesis),
+        Command::Verify { receipt, network } => verify(&receipt, &network.file()),
+        Command::Status { network } => status(&network.file()),
+        Command::Mine { account, threads, network } => mine(&account.unwrap_or_else(|| default_wallet().display().to_string()), threads, &network.file()),
+        Command::Node { key, data, listen, network } => node(&key, data, listen, &network.file()),
         Command::Keygen { out, height } => keygen(&out, height),
         Command::Update => release::update(),
         Command::Release(ReleaseCommand::Keygen { out }) => release::keygen(&out),
