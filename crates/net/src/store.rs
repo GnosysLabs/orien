@@ -51,6 +51,96 @@ pub fn sync_dir(dir: &Path) -> io::Result<()> {
     Ok(())
 }
 
+/// Where a validator keeps each epoch's data.
+///
+/// An epoch has its own folder, holding the state the epoch started from
+/// and the certificates applied during it. Moving to the next epoch writes
+/// the new folder first and then replaces one small file that names the
+/// current epoch, so a crash leaves the validator wholly in the old epoch or
+/// wholly in the new one. A restart reads only the current epoch's folder,
+/// and so can never replay a payment that a checkpoint left out.
+pub struct Epochs {
+    dir: PathBuf,
+    current: u64,
+    durable: bool,
+}
+
+impl Epochs {
+    pub fn open(dir: &Path, durable: bool) -> io::Result<Epochs> {
+        let current = match fs::read_to_string(dir.join("epoch")) {
+            Ok(text) => text
+                .trim()
+                .parse()
+                .map_err(|_| io::Error::new(io::ErrorKind::InvalidData, "corrupt epoch number"))?,
+            Err(error) if error.kind() == io::ErrorKind::NotFound => 0,
+            Err(error) => return Err(error),
+        };
+        let epochs = Epochs { dir: dir.to_owned(), current, durable };
+        fs::create_dir_all(epochs.folder(current))?;
+        // Before epochs existed, the certificate log sat at the top of the
+        // data directory. It is epoch 0's log.
+        let old = dir.join("certs.log");
+        if current == 0 && old.exists() && !epochs.log().exists() {
+            fs::rename(&old, epochs.log())?;
+        }
+        if durable {
+            epochs.sync()?;
+        }
+        Ok(epochs)
+    }
+
+    pub fn current(&self) -> u64 {
+        self.current
+    }
+
+    fn folder(&self, epoch: u64) -> PathBuf {
+        self.dir.join("epochs").join(epoch.to_string())
+    }
+
+    /// The current epoch's certificate log.
+    pub fn log(&self) -> PathBuf {
+        self.folder(self.current).join("certs.log")
+    }
+
+    /// The state the current epoch started from. Epoch 0 has none: it
+    /// starts from the genesis file.
+    pub fn snapshot(&self) -> io::Result<Option<Vec<u8>>> {
+        match fs::read(self.folder(self.current).join("state")) {
+            Ok(bytes) => Ok(Some(bytes)),
+            Err(error) if error.kind() == io::ErrorKind::NotFound && self.current == 0 => Ok(None),
+            Err(error) => Err(error),
+        }
+    }
+
+    /// Starts the next epoch from `snapshot`, with an empty certificate log.
+    pub fn advance(&mut self, snapshot: &[u8]) -> io::Result<()> {
+        let next = self.current + 1;
+        let folder = self.folder(next);
+        // A crash during an earlier attempt can have left this folder behind.
+        match fs::remove_dir_all(&folder) {
+            Err(error) if error.kind() != io::ErrorKind::NotFound => return Err(error),
+            _ => {}
+        }
+        fs::create_dir_all(&folder)?;
+        write_replacing(&folder.join("state"), snapshot, self.durable)?;
+        if self.durable {
+            sync_dir(&self.dir.join("epochs"))?;
+        }
+        // The one step that commits the change.
+        write_replacing(&self.dir.join("epoch"), next.to_string().as_bytes(), self.durable)?;
+        self.current = next;
+        Ok(())
+    }
+
+    /// Forces the folders themselves to disk, so that files created in them
+    /// survive a power cut.
+    pub fn sync(&self) -> io::Result<()> {
+        sync_dir(&self.folder(self.current))?;
+        sync_dir(&self.dir.join("epochs"))?;
+        sync_dir(&self.dir)
+    }
+}
+
 /// Append-only log of applied certificates, in the order they were applied.
 pub struct CertLog {
     file: File,
@@ -238,7 +328,14 @@ impl LeafCounter {
 
     /// The next unused key number, or `None` when the key tree is used up.
     pub fn take(&mut self) -> io::Result<Option<u32>> {
-        if self.next >= self.capacity {
+        self.take_leaving(0)
+    }
+
+    /// The next unused key number, unless taking it would leave fewer than
+    /// `reserve` keys. Ordinary work stops short of the end of the tree so
+    /// that the keys a validator needs to close an epoch are always there.
+    pub fn take_leaving(&mut self, reserve: u32) -> io::Result<Option<u32>> {
+        if self.next.saturating_add(reserve) >= self.capacity {
             return Ok(None);
         }
         if self.next >= self.reserved {
@@ -281,6 +378,78 @@ mod tests {
             }
             // Dropped without any shutdown step, as in a crash.
         }
+        let _ = fs::remove_dir_all(dir);
+    }
+
+    #[test]
+    fn a_reserve_of_keys_is_held_back() {
+        let dir = scratch("leaf-reserve");
+        let mut counter = LeafCounter::open(dir.join("leaf"), 5, false).unwrap();
+        assert_eq!(counter.take_leaving(2).unwrap(), Some(0));
+        assert_eq!(counter.take_leaving(2).unwrap(), Some(1));
+        assert_eq!(counter.take_leaving(2).unwrap(), Some(2));
+        assert_eq!(counter.take_leaving(2).unwrap(), None, "the last two are held back");
+        assert_eq!(counter.used(), 3);
+        // Work that the reserve exists for can still draw on it.
+        assert_eq!(counter.take().unwrap(), Some(3));
+        assert_eq!(counter.take().unwrap(), Some(4));
+        assert_eq!(counter.take().unwrap(), None);
+        let _ = fs::remove_dir_all(dir);
+    }
+
+    #[test]
+    fn an_epoch_change_survives_a_restart() {
+        let dir = scratch("epochs");
+        let mut epochs = Epochs::open(&dir, false).unwrap();
+        assert_eq!(epochs.current(), 0);
+        assert_eq!(epochs.snapshot().unwrap(), None, "epoch 0 starts from the genesis file");
+        let first_log = epochs.log();
+        fs::write(&first_log, b"certificates of epoch 0").unwrap();
+
+        epochs.advance(b"state after epoch 0").unwrap();
+        for epochs in [epochs, Epochs::open(&dir, false).unwrap()] {
+            assert_eq!(epochs.current(), 1);
+            assert_eq!(epochs.snapshot().unwrap().as_deref(), Some(&b"state after epoch 0"[..]));
+            assert_ne!(epochs.log(), first_log);
+            assert!(!epochs.log().exists(), "the new epoch starts with no certificates");
+        }
+        // The old epoch's log is left where it was.
+        assert_eq!(fs::read(&first_log).unwrap(), b"certificates of epoch 0");
+        let _ = fs::remove_dir_all(dir);
+    }
+
+    #[test]
+    fn a_half_made_epoch_is_ignored() {
+        let dir = scratch("epochs-half");
+        Epochs::open(&dir, false).unwrap();
+        // A crash after the next folder was written but before the switch.
+        fs::create_dir_all(dir.join("epochs/1")).unwrap();
+        fs::write(dir.join("epochs/1/state"), b"never committed").unwrap();
+        fs::write(dir.join("epochs/1/certs.log"), b"stray").unwrap();
+
+        let mut epochs = Epochs::open(&dir, false).unwrap();
+        assert_eq!(epochs.current(), 0);
+        assert_eq!(epochs.snapshot().unwrap(), None);
+        // Doing it again properly replaces what was left behind.
+        epochs.advance(b"committed").unwrap();
+        assert_eq!(epochs.snapshot().unwrap().as_deref(), Some(&b"committed"[..]));
+        assert!(!epochs.log().exists());
+        // An epoch past the first cannot start without its snapshot.
+        fs::remove_file(dir.join("epochs/1/state")).unwrap();
+        assert!(Epochs::open(&dir, false).unwrap().snapshot().is_err());
+        let _ = fs::remove_dir_all(dir);
+    }
+
+    #[test]
+    fn an_older_data_directory_is_adopted() {
+        let dir = scratch("epochs-old");
+        fs::write(dir.join("certs.log"), b"old certificates").unwrap();
+        let epochs = Epochs::open(&dir, false).unwrap();
+        assert_eq!(fs::read(epochs.log()).unwrap(), b"old certificates");
+        assert!(!dir.join("certs.log").exists());
+        // Opening again changes nothing.
+        let again = Epochs::open(&dir, false).unwrap();
+        assert_eq!(fs::read(again.log()).unwrap(), b"old certificates");
         let _ = fs::remove_dir_all(dir);
     }
 

@@ -545,20 +545,35 @@ fn status(genesis: &Path) -> Result<()> {
     let genesis = load_genesis(genesis)?;
     let client = Client::new(&genesis);
     println!("network '{}'  id {}", genesis.network, genesis.id().short());
-    println!("{:<6} {:<22} {:>8} {:>9} {:>16}", "name", "address", "accounts", "payments", "signing keys");
-    for (validator, info) in genesis.validators.iter().zip(client.info()) {
+    println!(
+        "{:<6} {:<22} {:>8} {:>9} {:>16}  {:<8}",
+        "name", "address", "accounts", "payments", "signing keys", "state"
+    );
+    let roots = client.roots();
+    for ((validator, info), root) in genesis.validators.iter().zip(client.info()).zip(&roots) {
         match info {
             Ok(info) if info.network == genesis.id() => println!(
-                "{:<6} {:<22} {:>8} {:>9} {:>16}",
+                "{:<6} {:<22} {:>8} {:>9} {:>16}  {:<8}",
                 validator.name,
                 validator.address,
                 info.accounts,
                 info.certificates,
-                format!("{}/{}", info.keys_used, info.keys_total)
+                format!("{}/{}", info.keys_used, info.keys_total),
+                root.map_or("-".into(), |root| root.short())
             ),
             Ok(_) => println!("{:<6} {:<22} serves a different network", validator.name, validator.address),
             Err(error) => println!("{:<6} {:<22} unreachable ({error})", validator.name, validator.address),
         }
+    }
+    // The state column is a fingerprint of every balance. Equal fingerprints
+    // mean equal ledgers.
+    let mut known: Vec<_> = roots.iter().flatten().collect();
+    let reporting = known.len();
+    known.dedup();
+    match (reporting, known.len()) {
+        (0, _) => {}
+        (_, 1) => println!("all {reporting} validators that answered hold exactly the same balances"),
+        _ => println!("validators differ: a payment may still be spreading. Check again in a moment."),
     }
     Ok(())
 }

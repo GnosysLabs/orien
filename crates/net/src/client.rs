@@ -207,6 +207,19 @@ impl Client {
             .collect()
     }
 
+    /// Each validator's fingerprint of all accounts, or `None` where it
+    /// could not be had. Validators that have applied the same payments
+    /// report the same value.
+    pub fn roots(&self) -> Vec<Option<Hash32>> {
+        self.ask_all(&Request::Root)
+            .into_iter()
+            .map(|response| match response {
+                Ok(Response::Root(root)) => Some(root),
+                _ => None,
+            })
+            .collect()
+    }
+
     /// Reads an account from every validator. `known_seq` is the payment
     /// number the caller already knows the account has reached (0 if none).
     pub fn account(&self, id: &AccountId, known_seq: u64) -> AccountStatus {

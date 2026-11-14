@@ -61,6 +61,10 @@ export ORIEN_GENESIS=devnet/genesis.json
 ./target/release/orien status
 ```
 
+`status` ends each line with a fingerprint of every balance as that
+validator holds them. Validators that show the same fingerprint hold exactly
+the same ledger.
+
 `devnet double-spend --split` shows the other way to cheat: it sends each
 conflicting payment to half the validators at once. Neither becomes final,
 no money moves, and only the cheater's account is stuck.

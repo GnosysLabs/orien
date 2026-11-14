@@ -6,6 +6,7 @@ use orien_ledger::{AccountId, Allocation, Genesis, Order, Reject, SignedOrder, V
 use orien_net::client::{Client, Receipt, TransferError, rpc};
 use orien_net::keys::{ValidatorKey, Wallet};
 use orien_net::node::{Node, NodeConfig};
+use orien_net::store::Epochs;
 use orien_net::wire::{AccountView, NodeInfo, Request, Response};
 use std::fs;
 use std::net::TcpListener;
@@ -565,6 +566,141 @@ fn one_of_two_conflicting_payments_can_still_be_finished() {
         client.call(1, &Request::SubmitOrder(to_carol)).unwrap(),
         Response::Rejected(Reject::StaleSeq { .. })
     ));
+}
+
+#[test]
+fn validators_agree_on_one_fingerprint_of_all_balances() {
+    let mut net = TestNet::start("root");
+    let (alice, bob, carol) = (net.address("alice"), net.address("bob"), net.address("carol"));
+    let client = net.client();
+    let agreed = |client: &Client| {
+        let roots = client.roots();
+        let first = roots[0].expect("validator 1 answers");
+        roots.iter().all(|root| *root == Some(first)).then_some(first)
+    };
+    let genesis = agreed(&client).expect("every validator starts from the same state");
+
+    // Payments reach validator 4 late and by a different route: it is down
+    // for the first two and learns of them from the others.
+    net.stop(3);
+    net.pay("alice", bob, 100);
+    net.pay("bob", carol, 30);
+    net.restart(3);
+    net.pay("alice", carol, 1);
+    wait_until("all four hold the same state", || agreed(&client).is_some());
+    let after = agreed(&client).unwrap();
+    assert_ne!(after, genesis);
+
+    // The fingerprint is the one anybody computes from the genesis file and
+    // the payments themselves.
+    let mut expected = orien_ledger::State::from_genesis(&net.genesis);
+    for (account, seq) in [(alice, 0), (bob, 0), (alice, 1)] {
+        expected.apply(&client.certificate(&account, seq).unwrap().order).unwrap();
+    }
+    assert_eq!(after, expected.root());
+}
+
+#[test]
+fn a_validator_keeps_proof_that_an_owner_signed_twice() {
+    let mut net = TestNet::start("evidence");
+    let (alice, bob, carol) = (net.address("alice"), net.address("bob"), net.address("carol"));
+    let to_bob = net.raw_order("alice", 0, bob, 10);
+    let to_carol = net.raw_order("alice", 0, carol, 10);
+    let evidence = |net: &TestNet, validator: usize| match net.ask(validator, &Request::Evidence(alice)) {
+        Response::Evidence(evidence) => evidence,
+        other => panic!("unexpected answer: {other:?}"),
+    };
+
+    assert!(matches!(net.ask(0, &Request::SubmitOrder(to_bob.clone())), Response::Vote(_)));
+    assert_eq!(evidence(&net, 0), None, "one signed order proves nothing");
+    // The second order is refused, and kept.
+    assert!(matches!(
+        net.ask(0, &Request::SubmitOrder(to_carol.clone())),
+        Response::Rejected(Reject::Conflict { .. })
+    ));
+    assert_eq!(evidence(&net, 0), Some((to_bob.clone(), to_carol.clone())));
+    assert_eq!(evidence(&net, 1), None, "validator 2 has seen neither");
+
+    // A forged second order is no evidence: its signature does not verify.
+    let mut forged = net.raw_order("bob", 0, carol, 1);
+    forged.order.from = bob;
+    forged.order.amount = 2;
+    assert!(matches!(net.ask(0, &Request::SubmitOrder(net.raw_order("bob", 0, carol, 1))), Response::Vote(_)));
+    assert!(matches!(net.ask(0, &Request::SubmitOrder(forged)), Response::Rejected(Reject::BadSignature)));
+    match net.ask(0, &Request::Evidence(bob)) {
+        Response::Evidence(None) => {}
+        other => panic!("unexpected answer: {other:?}"),
+    }
+
+    // The evidence survives a restart...
+    net.stop(0);
+    net.restart(0);
+    assert_eq!(evidence(&net, 0), Some((to_bob.clone(), to_carol)));
+    // ...and is dropped once that payment number is final and it no longer matters.
+    net.client().transfer(&to_bob).unwrap();
+    assert_eq!(evidence(&net, 0), None);
+    net.stop(0);
+    net.restart(0);
+    assert_eq!(evidence(&net, 0), None);
+}
+
+#[test]
+fn a_validator_restarts_from_a_snapshot() {
+    let mut net = TestNet::start("snapshot");
+    let (alice, bob, carol) = (net.address("alice"), net.address("bob"), net.address("carol"));
+    let client = net.client();
+    net.pay("alice", bob, 100);
+    net.pay("bob", carol, 30);
+    let before = client.roots()[0].unwrap();
+
+    // Move validator 1 into a new epoch by hand, the way a checkpoint will:
+    // its state so far becomes a snapshot and its certificate log starts empty.
+    net.stop(0);
+    let mut state = orien_ledger::State::from_genesis(&net.genesis);
+    for (account, seq) in [(alice, 0), (bob, 0)] {
+        state.apply(&client.certificate(&account, seq).unwrap().order).unwrap();
+    }
+    let mut epochs = Epochs::open(&net.dir.join("data-0"), false).unwrap();
+    epochs.advance(&state.snapshot()).unwrap();
+    assert_eq!(epochs.current(), 1);
+    net.restart(0);
+
+    // It holds the same balances, read from the snapshot and not replayed.
+    assert_eq!(client.roots()[0], Some(before));
+    assert_eq!(net.info(0).certificates, 0);
+    assert_eq!(net.view(0, &alice).balance, 900);
+    assert_eq!((net.view(0, &bob).balance, net.view(0, &bob).seq), (1070, 1));
+
+    // And it carries on: it votes, applies, and still agrees with the others.
+    assert_eq!(net.pay("alice", carol, 5).acknowledged, 4);
+    assert_eq!(net.info(0).certificates, 1);
+    net.stop(0);
+    net.restart(0);
+    assert_eq!(net.view(0, &alice).balance, 895);
+    let roots = client.roots();
+    assert!(roots.iter().all(|root| *root == roots[0] && root.is_some()));
+}
+
+#[test]
+fn a_validator_holds_keys_back_for_closing_an_epoch() {
+    // A tree of 16 one-time keys, of which a quarter are held back.
+    let options = Options { validators: 1, height: 4, ..Options::default() };
+    let net = TestNet::start_with("reserve", options);
+    let bob = net.address("bob");
+    for _ in 0..12 {
+        net.pay("alice", bob, 1);
+    }
+    assert_eq!((net.info(0).keys_used, net.info(0).keys_total), (12, 16));
+
+    // The thirteenth payment gets no vote, and nothing moves.
+    match net.try_pay("alice", bob, 1) {
+        Err(TransferError::NoQuorum { stake: 0, refusals, .. }) => {
+            assert!(refusals[0].1.contains("no one-time keys left for payments"), "{refusals:?}");
+        }
+        other => panic!("expected a refusal, got {:?}", other.map(|r| r.votes)),
+    }
+    assert_eq!(net.info(0).keys_used, 12);
+    assert_eq!(net.view(0, &bob).balance, START as i128 + 12);
 }
 
 #[test]

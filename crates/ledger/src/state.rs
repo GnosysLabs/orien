@@ -4,9 +4,11 @@
 use crate::genesis::Genesis;
 use crate::types::{AccountId, Order};
 use borsh::{BorshDeserialize, BorshSerialize};
-use orien_crypto::Hash32;
-use std::collections::HashMap;
+use orien_crypto::merkle::{self, Kind};
+use orien_crypto::{Hash32, Tag, hash};
+use std::collections::{BTreeMap, HashMap};
 use std::fmt;
+use std::io;
 
 #[derive(Clone, Debug, PartialEq, Eq, BorshSerialize, BorshDeserialize)]
 pub struct Account {
@@ -80,8 +82,28 @@ pub enum Applied {
     Already,
 }
 
+/// What one account contributes to the state root.
+fn leaf(id: &AccountId, account: &Account) -> Hash32 {
+    hash(
+        Tag::Account,
+        &[
+            id.as_bytes(),
+            &account.balance.to_le_bytes(),
+            &account.seq.to_le_bytes(),
+            account.key.as_bytes(),
+        ],
+    )
+}
+
+/// The state root under which `account` is the state of `id`, if `proof` is
+/// to be believed. Compare the result with a root you already trust.
+pub fn account_root(id: &AccountId, account: &Account, proof: &merkle::Path) -> Option<Hash32> {
+    merkle::root_from_path_in(Kind::State, &leaf(id, account), proof)
+}
+
 pub struct State {
-    accounts: HashMap<AccountId, Account>,
+    /// In address order, so that every validator lists them alike.
+    accounts: BTreeMap<AccountId, Account>,
     /// The order this validator voted for, per account and payment number.
     /// Entries exist only for payments that are not final yet.
     locks: HashMap<(AccountId, u64), Hash32>,
@@ -112,6 +134,36 @@ impl State {
 
     pub fn lock(&self, id: &AccountId, seq: u64) -> Option<&Hash32> {
         self.locks.get(&(*id, seq))
+    }
+
+    fn tree(&self) -> merkle::Tree {
+        let leaves: Vec<Hash32> = self.accounts.iter().map(|(id, account)| leaf(id, account)).collect();
+        merkle::Tree::of(Kind::State, &leaves)
+    }
+
+    /// A fingerprint of every account: the root of a Merkle tree over the
+    /// accounts in address order. Two validators hold the same balances,
+    /// payment numbers and keys exactly when their roots are equal, however
+    /// differently the payments reached them. Votes promised for payments
+    /// that are not final are a validator's own business and not part of it.
+    pub fn root(&self) -> Hash32 {
+        self.tree().root()
+    }
+
+    /// An account's state, with a proof of it against `root()`.
+    pub fn prove(&self, id: &AccountId) -> Option<(Account, merkle::Path)> {
+        let index = self.accounts.keys().position(|known| known == id)?;
+        Some((self.accounts[id].clone(), self.tree().path(index)))
+    }
+
+    /// Every account, in a form `from_snapshot` reads back.
+    pub fn snapshot(&self) -> Vec<u8> {
+        borsh::to_vec(&self.accounts).expect("writing to memory cannot fail")
+    }
+
+    /// The state a snapshot was taken of. No votes are promised in it.
+    pub fn from_snapshot(bytes: &[u8]) -> io::Result<State> {
+        Ok(State { accounts: borsh::from_slice(bytes)?, locks: HashMap::new() })
     }
 
     /// Sum of all balances. Applying a certificate moves money and never
@@ -152,15 +204,20 @@ impl State {
         if *signed_by != account.key {
             return Err(Reject::BadSignature);
         }
-        if let Some(voted) = self.locks.get(&(order.from, order.seq)) {
-            return if *voted == digest {
-                Ok(Accepted::Repeat)
-            } else {
-                Err(Reject::Conflict { voted: *voted })
-            };
+        let promised = self.locks.get(&(order.from, order.seq));
+        if let Some(voted) = promised
+            && *voted != digest
+        {
+            return Err(Reject::Conflict { voted: *voted });
         }
+        // Checked on every vote, a repeated one included. A promise to vote
+        // for an order is not a promise that its funds are still there: a
+        // checkpoint can undo the payment that provided them.
         if account.balance < order.amount as i128 {
             return Err(Reject::InsufficientFunds { balance: account.balance, needed: order.amount });
+        }
+        if promised.is_some() {
+            return Ok(Accepted::Repeat);
         }
         self.locks.insert((order.from, order.seq), digest);
         Ok(Accepted::Fresh)

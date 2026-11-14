@@ -24,6 +24,11 @@ pub enum Request {
     /// The signed order this validator has voted for under the account's
     /// current payment number, if that payment is not final yet.
     Pending(AccountId),
+    /// The fingerprint of every account as this validator holds them.
+    Root,
+    /// Two different orders signed with the account's current key under its
+    /// current payment number, if this validator has seen both.
+    Evidence(AccountId),
 }
 
 #[derive(Clone, Debug, BorshSerialize, BorshDeserialize)]
@@ -63,6 +68,8 @@ pub enum Response {
     /// The validator cannot serve the request right now.
     Unavailable(String),
     Pending(Option<SignedOrder>),
+    Root(Hash32),
+    Evidence(Option<(SignedOrder, SignedOrder)>),
 }
 
 pub fn write_frame<W: Write>(writer: &mut W, payload: &[u8]) -> io::Result<()> {

@@ -11,13 +11,13 @@
 
 use crate::client::rpc;
 use crate::keys::ValidatorKey;
-use crate::store::{CertLog, LeafCounter, OrderLog, sync_dir};
+use crate::store::{CertLog, Epochs, LeafCounter, OrderLog, sync_dir};
 use crate::wire::{AccountView, NodeInfo, Request, Response, read_frame, write_frame};
 use anyhow::{Context, Result, anyhow, bail};
 use orien_crypto::keytree::KeyTree;
 use orien_crypto::{Hash32, merkle, ots};
 use orien_ledger::{
-    Accepted, AccountId, Applied, Certificate, Committee, Genesis, SignedOrder, State, Vote,
+    Accepted, AccountId, Applied, Certificate, Committee, Genesis, Reject, SignedOrder, State, Vote,
 };
 use std::collections::HashMap;
 use std::fs;
@@ -44,6 +44,9 @@ pub struct NodeConfig {
     pub sync_interval: Duration,
     /// Force votes to disk before answering. Only tests turn this off.
     pub durable: bool,
+    /// One-time keys held back from voting on payments, for the messages
+    /// that close an epoch. Never more than a quarter of the key tree.
+    pub key_reserve: u32,
     pub log: bool,
 }
 
@@ -58,6 +61,7 @@ impl NodeConfig {
             max_batch: 4096,
             sync_interval: Duration::from_secs(1),
             durable: true,
+            key_reserve: 128,
             log: false,
         }
     }
@@ -160,6 +164,14 @@ struct Core {
     /// yet: at most one per account. Anyone may ask for it, so that a
     /// payment its owner signed can be finished from anywhere.
     unfinished: HashMap<AccountId, SignedOrder>,
+    /// A second, different order signed with an account's current key under
+    /// its current number. With the order in `unfinished` it is proof that
+    /// the owner signed twice.
+    conflicts: HashMap<AccountId, SignedOrder>,
+    conflict_log: OrderLog,
+    /// The state root, kept until the next payment changes the state.
+    root: Option<Hash32>,
+    key_reserve: u32,
     batch: Vec<Waiting>,
     deadline: Instant,
     /// Votes given for payments that are not final yet, so a repeated
@@ -232,6 +244,13 @@ impl Core {
                 None => self.enqueue(payment, digest, reply, None),
             },
             Err(reject) => {
+                if matches!(reject, Reject::Conflict { .. }) && !self.conflicts.contains_key(&payment.0) {
+                    // Its signature is good, or the answer would have been
+                    // a bad signature. Losing this record in a crash only
+                    // delays what it is evidence for, so it is not synced.
+                    self.conflict_log.append(&[&signed], false).expect("cannot record evidence; stopping");
+                    self.conflicts.insert(payment.0, signed);
+                }
                 if self.log {
                     println!(
                         "[{}] refused  {} #{}: {reject}",
@@ -271,14 +290,15 @@ impl Core {
             self.certs.sync().expect("cannot sync certificates; stopping");
         }
 
-        let leaf = match self.leaves.take().expect("cannot reserve signing keys; stopping") {
+        let leaf = self.leaves.take_leaving(self.key_reserve).expect("cannot reserve signing keys; stopping");
+        let leaf = match leaf {
             Some(leaf) => leaf,
             None => {
                 for waiting in batch {
                     self.issued.remove(&waiting.payment);
                     for reply in waiting.replies {
                         let _ = reply.send(Response::Unavailable(
-                            "this validator has used every one-time key in its key tree".into(),
+                            "this validator has no one-time keys left for payments".into(),
                         ));
                     }
                 }
@@ -318,6 +338,8 @@ impl Core {
             Ok(Applied::New) => {
                 self.certs.append(&certificate).expect("cannot store certificate; stopping");
                 self.unfinished.remove(&order.from);
+                self.conflicts.remove(&order.from);
+                self.root = None;
                 if !matches!(self.issued.get(&(order.from, order.seq)), Some(Issued::Queued(_))) {
                     self.issued.remove(&(order.from, order.seq));
                 }
@@ -381,6 +403,10 @@ impl Core {
                 Response::Certs { certs, total }
             }
             Request::Pending(id) => Response::Pending(self.unfinished.get(&id).cloned()),
+            Request::Root => Response::Root(*self.root.get_or_insert_with(|| self.state.root())),
+            Request::Evidence(id) => Response::Evidence(
+                self.unfinished.get(&id).cloned().zip(self.conflicts.get(&id).cloned()),
+            ),
             Request::SubmitOrder(_) | Request::SubmitCertificate(_) => {
                 Response::Invalid("not a query".into())
             }
@@ -527,8 +553,12 @@ impl Node {
         let name = info.name.clone();
 
         claim_data_dir(&config.data_dir, committee.network())?;
-        let mut state = State::from_genesis(&config.genesis);
-        let certs = CertLog::open(&config.data_dir.join("certs.log"), |certificate| {
+        let epochs = Epochs::open(&config.data_dir, config.durable)?;
+        let mut state = match epochs.snapshot()? {
+            Some(snapshot) => State::from_snapshot(&snapshot).context("the state snapshot is corrupt")?,
+            None => State::from_genesis(&config.genesis),
+        };
+        let certs = CertLog::open(&epochs.log(), |certificate| {
             let _ = state.apply(&certificate.order);
         })?;
         refuse_old_vote_log(&config.data_dir)?;
@@ -542,10 +572,21 @@ impl Node {
             unfinished.insert(order.from, signed.clone());
             true
         })?;
-        let leaves = LeafCounter::open(config.data_dir.join("leaf"), tree.capacity(), config.durable)?;
+        let mut conflicts = HashMap::new();
+        let conflict_log = OrderLog::open(&config.data_dir.join("conflicts.log"), config.durable, |signed| {
+            let order = &signed.order;
+            let live = order.seq == state.seq(&order.from) && unfinished.contains_key(&order.from);
+            if live {
+                conflicts.entry(order.from).or_insert_with(|| signed.clone());
+            }
+            live
+        })?;
+        let tree_capacity = tree.capacity();
+        let leaves = LeafCounter::open(config.data_dir.join("leaf"), tree_capacity, config.durable)?;
         if config.durable {
             // Make sure the log files themselves exist on disk before any
             // vote relies on them.
+            epochs.sync()?;
             sync_dir(&config.data_dir)?;
         }
 
@@ -576,6 +617,10 @@ impl Node {
             certs,
             orders,
             unfinished,
+            conflicts,
+            conflict_log,
+            root: None,
+            key_reserve: config.key_reserve.min(tree_capacity / 4),
             batch: Vec::new(),
             deadline: Instant::now(),
             issued: HashMap::new(),

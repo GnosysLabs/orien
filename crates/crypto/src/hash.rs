@@ -84,6 +84,10 @@ pub enum Tag {
     Order = 0x30,
     BatchMessage = 0x31,
     Genesis = 0x32,
+    Account = 0x33,
+    StateLeaf = 0x40,
+    StateNode = 0x41,
+    StatePadding = 0x42,
 }
 
 /// Hashes `parts` under `tag`. Parts are concatenated without separators, so
