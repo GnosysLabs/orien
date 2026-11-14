@@ -367,6 +367,11 @@ impl Wallet {
         self.save()
     }
 
+    /// The wallet file.
+    pub fn path(&self) -> &Path {
+        &self.path
+    }
+
     pub fn has_password(&self) -> bool {
         self.sealed.is_some()
     }

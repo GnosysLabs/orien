@@ -7,4 +7,5 @@ pub mod keys;
 pub mod node;
 pub mod phrase;
 pub mod store;
+pub mod unlock;
 pub mod wire;

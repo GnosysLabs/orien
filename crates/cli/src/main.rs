@@ -9,9 +9,10 @@ use orien_ledger::Signer;
 use orien_net::client::{AccountStatus, Client, Done, Head, TransferError, Unfinished};
 use orien_net::keys::{OpenError, ValidatorKey, Wallet, load_genesis, save_genesis};
 use orien_net::node::{Node, NodeConfig};
+use orien_net::unlock::{self, Limits, Session};
 use orien_net::wire::{Request, Response};
 use std::fs;
-use std::io::IsTerminal;
+use std::io::{BufRead, IsTerminal, Write};
 use std::net::TcpListener;
 use std::path::{Path, PathBuf};
 use std::thread;
@@ -180,6 +181,36 @@ enum Command {
         /// The key can sign 2^height batches
         #[arg(long, default_value_t = 16)]
         height: u8,
+    },
+    /// Let programs you trust, such as an AI assistant, sign with a wallet
+    /// that has a password, for a while and up to an amount, without
+    /// learning the password. Run it yourself, in your own terminal.
+    Unlock {
+        /// The wallet file (default: ~/.orien/wallet)
+        file: Option<PathBuf>,
+        /// How long to stay unlocked: 30m, 2h, 1d (asked if not given)
+        #[arg(long = "for", value_parser = parse_duration)]
+        duration: Option<u64>,
+        /// The most it may spend, in ORN, fees included (asked if not given)
+        #[arg(long = "up-to", value_parser = parse_coins)]
+        up_to: Option<u64>,
+        /// Show whether the wallet is unlocked, for how long and how much
+        #[arg(long, conflicts_with_all = ["duration", "up_to"])]
+        status: bool,
+    },
+    /// End an unlock early
+    Lock {
+        /// The wallet file (default: ~/.orien/wallet)
+        file: Option<PathBuf>,
+    },
+    /// The background helper `orien unlock` starts
+    #[command(hide = true)]
+    UnlockHelper {
+        file: PathBuf,
+        #[arg(long)]
+        until: u64,
+        #[arg(long)]
+        spend: u64,
     },
     /// Update orien to the newest version, if the Orien release key signed it
     Update,
@@ -395,6 +426,9 @@ fn run(cli: Cli) -> Result<()> {
         }
         Command::Wallet(WalletCommand::Password { file }) => {
             let file = file.unwrap_or_else(default_wallet);
+            if Session::find(&file).is_some() {
+                bail!("{} is unlocked; end that first with: orien lock", file.display());
+            }
             let mut wallet = open_wallet(&file)?;
             match choose_password()? {
                 Some(password) => {
@@ -465,6 +499,22 @@ fn run(cli: Cli) -> Result<()> {
         Command::Mine { account, threads, network } => mine(&account.unwrap_or_else(|| default_wallet().display().to_string()), threads, &network.file()),
         Command::Node { key, data, listen, network } => node(&key, data, listen, &network.file()),
         Command::Keygen { out, height } => keygen(&out, height),
+        Command::Unlock { file, duration, up_to, status } => {
+            let file = file.unwrap_or_else(default_wallet);
+            if status { unlock_status(&file) } else { unlock(&file, duration, up_to) }
+        }
+        Command::Lock { file } => {
+            let file = file.unwrap_or_else(default_wallet);
+            match Session::find(&file) {
+                Some(session) => {
+                    session.lock()?;
+                    println!("locked {}", file.display());
+                }
+                None => println!("{} was not unlocked", file.display()),
+            }
+            Ok(())
+        }
+        Command::UnlockHelper { file, until, spend } => unlock_helper(&file, Limits { until, spend }),
         Command::Update => release::update(),
         Command::Release(ReleaseCommand::Keygen { out }) => release::keygen(&out),
         Command::Release(ReleaseCommand::Sign { key, sums }) => release::sign(&key, &sums),
@@ -1260,6 +1310,184 @@ fn open_wallet(path: &Path) -> Result<Wallet> {
         }
         other => other,
     }
+}
+
+/// Asks for a wallet's password until it opens the wallet, up to three
+/// times, and returns it.
+fn ask_password(path: &Path) -> Result<String> {
+    for attempt in 1..=3 {
+        let password = rpassword::prompt_password(format!("password for {}: ", path.display())).map_err(|_| {
+            anyhow!("orien unlock asks for the wallet's password, so its owner must run it in their own terminal")
+        })?;
+        match Wallet::open(path, Some(&password)) {
+            Ok(_) => return Ok(password),
+            Err(error)
+                if attempt < 3 && matches!(error.downcast_ref::<OpenError>(), Some(OpenError::WrongPassword)) =>
+            {
+                println!("that is not this wallet's password; try again");
+            }
+            Err(error) => return Err(error),
+        }
+    }
+    unreachable!("the third attempt returns")
+}
+
+/// A length of time such as 30m, 2h or 1d, in seconds.
+fn parse_duration(text: &str) -> Result<u64, String> {
+    let text = text.trim();
+    let (number, unit) = text.split_at(text.find(|c: char| !c.is_ascii_digit()).unwrap_or(text.len()));
+    let number: u64 = number.parse().map_err(|_| format!("'{text}' is not a length of time like 30m, 2h or 1d"))?;
+    let seconds = match unit.trim() {
+        "m" | "min" | "minutes" | "minute" => 60,
+        "h" | "hour" | "hours" => 3_600,
+        "d" | "day" | "days" => 86_400,
+        _ => return Err(format!("'{text}' is not a length of time like 30m, 2h or 1d")),
+    };
+    match number.checked_mul(seconds) {
+        Some(total) if total > 0 => Ok(total),
+        _ => Err(format!("'{text}' is not a usable length of time")),
+    }
+}
+
+/// A length of time in words: "1 hour 20 minutes".
+fn describe_duration(seconds: u64) -> String {
+    let plural = |n: u64, word: &str| format!("{n} {word}{}", if n == 1 { "" } else { "s" });
+    let (days, hours, minutes) = (seconds / 86_400, seconds % 86_400 / 3_600, seconds % 3_600 / 60);
+    let parts: Vec<String> = [(days, "day"), (hours, "hour"), (minutes, "minute")]
+        .into_iter()
+        .filter(|(n, _)| *n > 0)
+        .map(|(n, word)| plural(n, word))
+        .collect();
+    if parts.is_empty() { "less than a minute".to_string() } else { parts.join(" ") }
+}
+
+/// Asks a question with a default answer, read from the terminal.
+fn ask<T>(question: &str, default: &str, parse: impl Fn(&str) -> Result<T, String>) -> Result<T> {
+    loop {
+        print!("{question} [{default}]: ");
+        std::io::stdout().flush()?;
+        let mut line = String::new();
+        std::io::stdin().read_line(&mut line)?;
+        let answer = if line.trim().is_empty() { default } else { line.trim() };
+        match parse(answer) {
+            Ok(value) => return Ok(value),
+            Err(problem) => println!("{problem}"),
+        }
+    }
+}
+
+/// `orien unlock`: asks for the password and the limits, then starts the
+/// helper in the background and hands it the password through a pipe.
+fn unlock(file: &Path, duration: Option<u64>, up_to: Option<u64>) -> Result<()> {
+    if let Some(session) = Session::find(file) {
+        let status = session.status()?;
+        bail!(
+            "{} is already unlocked for {} more, up to {} ORN more. To change that, run orien lock first.",
+            file.display(),
+            describe_duration(status.limits.until.saturating_sub(unix_now())),
+            coins(status.left() as i128)
+        );
+    }
+    match Wallet::load(file) {
+        Ok(_) => bail!(
+            "{} has no password, so any program on this computer can already sign with it. \
+             Give it one first with: orien wallet password",
+            file.display()
+        ),
+        Err(error) if matches!(error.downcast_ref::<OpenError>(), Some(OpenError::NeedsPassword)) => {}
+        Err(error) => return Err(error),
+    }
+    let password = ask_password(file)?;
+    let duration = match duration {
+        Some(duration) => duration,
+        None => ask("stay unlocked for how long?", "1h", parse_duration)?,
+    };
+    let spend = match up_to {
+        Some(spend) => spend,
+        None => ask("spend at most how much ORN, fees included?", "100", parse_coins)?,
+    };
+
+    let mut helper = std::process::Command::new(std::env::current_exe()?);
+    helper
+        .arg("unlock-helper")
+        .arg(file)
+        .args(["--until", &(unix_now() + duration).to_string(), "--spend", &spend.to_string()])
+        .stdin(std::process::Stdio::piped())
+        .stdout(std::process::Stdio::piped())
+        .stderr(std::process::Stdio::null());
+    // The helper must outlive this terminal command, and the terminal.
+    #[cfg(unix)]
+    {
+        use std::os::unix::process::CommandExt;
+        helper.process_group(0);
+    }
+    #[cfg(windows)]
+    {
+        use std::os::windows::process::CommandExt;
+        const DETACHED_PROCESS: u32 = 0x0000_0008;
+        const CREATE_NEW_PROCESS_GROUP: u32 = 0x0000_0200;
+        helper.creation_flags(DETACHED_PROCESS | CREATE_NEW_PROCESS_GROUP);
+    }
+    let mut helper = helper.spawn().context("cannot start the unlock helper")?;
+    {
+        let mut stdin = helper.stdin.take().ok_or_else(|| anyhow!("cannot reach the unlock helper"))?;
+        stdin.write_all(password.as_bytes())?;
+        stdin.write_all(b"\n")?;
+    }
+    drop(password);
+    let mut line = String::new();
+    std::io::BufReader::new(helper.stdout.take().ok_or_else(|| anyhow!("cannot reach the unlock helper"))?)
+        .read_line(&mut line)?;
+    match line.trim() {
+        "ready" => {
+            println!("unlocked {} for {}, up to {} ORN", file.display(), describe_duration(duration), coins(spend as i128));
+            println!("programs on this computer can now send from it within those limits. End it early with: orien lock");
+            Ok(())
+        }
+        "" => bail!("the unlock helper stopped before it was ready"),
+        problem => bail!("{}", problem.trim_start_matches("error: ")),
+    }
+}
+
+/// The background helper: reads the password from its parent, opens the
+/// wallet and serves it until the time is up or it is locked.
+fn unlock_helper(file: &Path, limits: Limits) -> Result<()> {
+    let mut password = String::new();
+    std::io::stdin().read_line(&mut password)?;
+    let wallet = match Wallet::open(file, Some(password.trim_end_matches(['\r', '\n']))) {
+        Ok(wallet) => wallet,
+        Err(error) => {
+            println!("error: {error}");
+            return Ok(());
+        }
+    };
+    drop(password);
+    let served = unlock::serve(wallet, limits, || {
+        println!("ready");
+        let _ = std::io::stdout().flush();
+    });
+    if let Err(error) = served {
+        println!("error: {error}");
+    }
+    Ok(())
+}
+
+/// `orien unlock --status`.
+fn unlock_status(file: &Path) -> Result<()> {
+    match Session::find(file) {
+        Some(session) => {
+            let status = session.status()?;
+            println!(
+                "{} is unlocked for {} more, and may spend {} more ORN of {}",
+                file.display(),
+                describe_duration(status.limits.until.saturating_sub(unix_now())),
+                coins(status.left() as i128),
+                coins(status.limits.spend as i128)
+            );
+        }
+        None => println!("{} is locked", file.display()),
+    }
+    Ok(())
 }
 
 /// Asks for a new password twice. An empty one means none.
