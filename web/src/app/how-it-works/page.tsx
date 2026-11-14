@@ -241,9 +241,9 @@ export default function HowItWorksPage() {
         <Facts
           rows={[
             ['Final, across the internet', 'about 160 ms'],
-            ['Final, on one machine', '25 to 55 ms'],
             ['Payments per second, one laptop', '950 to 1,500'],
             ['One signature', '1,248 bytes'],
+            ['Signatures checked per second, one core', 'about 40,000'],
           ]}
         />
       </Section>

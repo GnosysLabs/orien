@@ -243,6 +243,7 @@ each validator syncing its votes to disk:
 | Throughput, 500 clients at once | 750 to 1,000 payments/s |
 | Payments covered by one validator signature under load | 10 to 28 |
 | One-time signature | 1,248 bytes |
+| Checking one signature, one core | about 25 µs (40,000 a second) |
 | Receipt (3 of 4 votes, 3 of 4 confirmations) | 12,086 bytes |
 
 Finality in two steps costs throughput on this setup. Each payment waits

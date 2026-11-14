@@ -1,194 +1,143 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
-import { Boxes, Network, Play, PlugZap, ShieldAlert, Terminal } from 'lucide-react'
+import { ArrowRight, Download, KeyRound, Pickaxe, RefreshCw, Send, ServerCog, Wallet } from 'lucide-react'
 import { CopyText } from '@/components/CopyText'
-import { Wordmark } from '@/components/Wordmark'
 
 export const metadata: Metadata = {
-  title: 'Try the CLI & Architecture',
+  title: 'Get started',
   description:
-    'Run a four-validator Orien devnet, send sub-second quantum-proof payments, verify offline receipts, and test split double-spends and interrupted wallets.',
+    'Install orien, make a wallet with a 24-word recovery phrase, mine ORN on your computer, send and receive, and run a validator.',
   alternates: { canonical: '/try/' },
 }
 
-const CRATES = [
-  {
-    name: 'crates/crypto',
-    title: 'BLAKE3 primitives',
-    body: 'Hash-based one-time owner signatures (1,248 B), validator Merkle key trees (2^height batches), and batch Merkle inclusion proofs.',
-  },
-  {
-    name: 'crates/ledger',
-    title: 'Pure protocol & agreement rules',
-    body: 'Orders, votes, certificates, confirmations, Merkle state roots, Tendermint-style checkpoint close logic, spare-key cancellation, and adversarial simulators.',
-  },
-  {
-    name: 'crates/net',
-    title: 'Validator node, journal & wallet client',
-    body: 'Validator TCP server, per-epoch atomic storage, fsynced close journal, peer log reconciliation, wallet key streams, and checkpoint following.',
-  },
-  {
-    name: 'crates/cli',
-    title: 'The orien command',
-    body: 'Wallet management, sending and resuming payments, offline receipt verification, node runner, local devnet, and double-spend / lost-device fault injection.',
-  },
-]
-
-export default function TryPage() {
+function Step({
+  number,
+  icon: Icon,
+  title,
+  children,
+}: {
+  number: number
+  icon: typeof Wallet
+  title: string
+  children: React.ReactNode
+}) {
   return (
-    <div className="mx-auto flex max-w-5xl flex-col gap-6">
-      <header className="flex flex-col gap-2">
-        <span className="text-xs font-bold uppercase tracking-widest text-pearl">Hands-on walkthrough</span>
-        <h1 className="text-3xl font-black tracking-tight sm:text-4xl">
-          Try <Wordmark showMark={false} className="text-[0.92em]" /> on a local devnet
+    <section className="relative rounded-2xl border border-line bg-surface p-6 sm:p-8">
+      <div className="mb-4 flex items-center gap-3">
+        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-raised text-sm font-bold text-ink">
+          {number}
+        </span>
+        <Icon className="h-5 w-5 text-pearl" strokeWidth={1.75} aria-hidden />
+        <h2 className="text-xl font-bold tracking-tight text-ink">{title}</h2>
+      </div>
+      <div className="space-y-4 leading-relaxed text-muted [&_strong]:font-semibold [&_strong]:text-ink">{children}</div>
+    </section>
+  )
+}
+
+function Note({ children }: { children: React.ReactNode }) {
+  return <p className="rounded-xl border border-line bg-bg px-4 py-3 text-sm">{children}</p>
+}
+
+export default function GetStartedPage() {
+  return (
+    <div className="mx-auto max-w-[760px]">
+      <header className="pb-10 pt-10 sm:pt-14">
+        <p className="mb-4 text-xs font-semibold uppercase tracking-[0.2em] text-muted">Get started</p>
+        <h1 className="text-balance text-4xl font-bold leading-[1.1] tracking-tight text-ink sm:text-5xl">
+          From nothing to your first ORN
         </h1>
-        <p className="max-w-3xl text-muted">
-          Everything builds into a single <code className="num text-ink">orien</code> Rust binary — validator node,
-          wallet, offline receipt verifier, and fault-injection scenarios.
+        <p className="mt-6 text-lg leading-relaxed text-muted">
+          Everything happens in <strong className="font-semibold text-ink">orien</strong>, one small program for Mac,
+          Linux and Windows. Install it, make a wallet, and start mining in a few minutes.
         </p>
       </header>
 
-      {/* Step 1: Build & start */}
-      <section className="rounded-2xl border border-line bg-surface p-5 sm:p-6">
-        <h2 className="mb-3 flex items-center gap-2.5 text-xl font-bold">
-          <span className="pearl-fill grid h-8 w-8 shrink-0 place-items-center rounded-lg">
-            <Play className="h-4 w-4" aria-hidden />
-          </span>
-          1. Build and start four local validators
-        </h2>
-        <p className="mb-4 text-sm leading-relaxed text-ink/90">
-          Hashing dominates everything Orien does, so build with <code className="num">--release</code>. Initializing
-          creates four validator key trees, test wallets (<code className="num">alice</code>,{' '}
-          <code className="num">bob</code>, <code className="num">carol</code>) and{' '}
-          <code className="num">devnet/genesis.json</code>:
-        </p>
-        <div className="flex flex-col gap-3">
-          <CopyText label="Build the Rust workspace:" text="cargo build --release" />
-          <CopyText label="Create a 4-validator local network:" text="./target/release/orien devnet init" />
-          <CopyText label="Run all four validators in this terminal:" text="./target/release/orien devnet run" />
-        </div>
-      </section>
+      <div className="space-y-5">
+        <Step number={1} icon={Download} title="Install orien">
+          <p>Open a terminal and paste one line. It picks the right version for your computer and checks it before installing.</p>
+          <CopyText label="Mac and Linux" text="curl -fsSL https://orien.network/install.sh | sh" />
+          <CopyText label="Windows (PowerShell)" text="irm https://orien.network/install.ps1 | iex" />
+          <p className="text-sm">Then open a new terminal window, so it can find orien.</p>
+        </Step>
 
-      {/* Step 2: Send & verify */}
-      <section className="rounded-2xl border border-line bg-surface p-5 sm:p-6">
-        <h2 className="mb-3 flex items-center gap-2.5 text-xl font-bold">
-          <span className="pearl-fill grid h-8 w-8 shrink-0 place-items-center rounded-lg">
-            <Terminal className="h-4 w-4" aria-hidden />
-          </span>
-          2. Send a payment and verify its receipt offline
-        </h2>
-        <p className="mb-4 text-sm leading-relaxed text-ink/90">
-          In a second terminal, point <code className="num">ORIEN_GENESIS</code> at the local genesis file, send coins
-          from Alice to Carol, and verify the resulting 12 KB receipt completely offline:
-        </p>
-        <div className="flex flex-col gap-3">
-          <CopyText text="export ORIEN_GENESIS=devnet/genesis.json" />
-          <CopyText text="./target/release/orien balance devnet/wallets/alice.wallet" />
-          <CopyText text="./target/release/orien send -w devnet/wallets/alice.wallet --to devnet/wallets/carol.wallet --amount 250 --receipt payment.receipt" />
+        <Step number={2} icon={Wallet} title="Make a wallet">
+          <CopyText text="orien wallet new" />
+          <p>
+            You get an address to be paid at, and a <strong>recovery phrase</strong>: 24 words that can rebuild your
+            wallet on any computer. Write them on paper and keep them safe. You can also choose a password, so that a
+            copy of your wallet file is useless to anyone else.
+          </p>
+          <Note>
+            Anyone who sees your 24 words can take your coins. Never type them into a website, and never give them to
+            anyone, an AI assistant included.
+          </Note>
+        </Step>
+
+        <Step number={3} icon={Pickaxe} title="Mine ORN">
+          <CopyText text="orien mine" />
+          <p>
+            Your computer starts doing proof-of-work. Every hour, the new ORN released in that hour are shared out among
+            everyone who mined, in proportion to the work they did. It keeps going until you press Ctrl-C.
+          </p>
+        </Step>
+
+        <Step number={4} icon={Send} title="Check your balance, send and receive">
+          <CopyText label="Your balance" text="orien balance" />
+          <CopyText label="Your address, to share with whoever pays you" text="orien wallet address" />
+          <CopyText label="Pay someone" text="orien send --to THEIR_ADDRESS --amount 5" />
+          <p>
+            A payment is final in a fraction of a second. It pays a fee of 0.1% of the amount, never more than 1 ORN.
+            Payments cannot be undone, so check the address before you send.
+          </p>
+        </Step>
+
+        <Step number={5} icon={KeyRound} title="Use a second computer">
+          <CopyText text="orien wallet restore --account 2" />
+          <p>
+            Type your 24 words when asked. Each computer should use its own account number: 1 on your first, 2 on the
+            next, and so on. They all come from the same 24 words, so one phrase backs them all up.
+          </p>
+        </Step>
+
+        <Step number={6} icon={RefreshCw} title="Stay up to date">
+          <CopyText text="orien update" />
+          <p>It installs a newer version only if it carries the Orien release signature, so nobody can slip in a fake one.</p>
+        </Step>
+
+        <Step number={7} icon={ServerCog} title="Run a validator">
+          <p>
+            Validators check payments and earn the network’s fees, shared by stake. You need at least{' '}
+            <strong>10,000 ORN</strong> to stake, and a server that stays on, ideally running Linux.
+          </p>
+          <CopyText label="Make the validator’s key, on the server" text="orien keygen ~/.orien/validator.key" />
           <CopyText
-            label="Verify using only genesis.json — no network calls:"
-            text="./target/release/orien verify payment.receipt"
+            label="Start it, at an address other validators can reach"
+            text="orien node -k ~/.orien/validator.key -d ~/.orien/validator --listen 0.0.0.0:7101"
           />
           <CopyText
-            label="Inspect every validator's ledger fingerprint:"
-            text="./target/release/orien status"
+            label="Stake behind it, on the same server"
+            text="orien stake --amount 10000 --validator-key ~/.orien/validator.key --address YOUR_SERVER_IP:7101"
           />
-        </div>
-        <p className="mt-3 text-xs leading-relaxed text-muted">
-          <code className="num text-ink">orien status</code> ends each validator&apos;s line with a BLAKE3 fingerprint
-          of every balance it holds. Matching fingerprints prove identical ledgers.
-        </p>
-      </section>
+          <p className="text-sm">
+            Staking needs your wallet on the server too, as its own account (step 5 shows how), holding the ORN you
+            stake.
+          </p>
+          <p>
+            At the next hourly checkpoint, if its stake is among the largest, it joins the validators. To stop, unstake
+            with <code className="rounded bg-raised px-1.5 py-0.5 text-ink">orien unstake --amount 10000</code>: the ORN
+            come back after a week.
+          </p>
+        </Step>
+      </div>
 
-      {/* Step 3: Fault injection */}
-      <section className="rounded-2xl border border-line bg-surface p-5 sm:p-6">
-        <h2 className="mb-3 flex items-center gap-2.5 text-xl font-bold">
-          <span className="pearl-fill grid h-8 w-8 shrink-0 place-items-center rounded-lg">
-            <PlugZap className="h-4 w-4" aria-hidden />
-          </span>
-          3. Test a double-spend and an interrupted device
-        </h2>
-        <div className="grid gap-4 lg:grid-cols-2">
-          <div className="flex flex-col justify-between gap-3 rounded-xl border border-line bg-bg/60 p-4">
-            <div className="flex flex-col gap-2">
-              <h3 className="font-bold text-ink">Split double-spend</h3>
-              <p className="text-xs leading-relaxed text-muted sm:text-sm">
-                Sends two conflicting payments from Bob to half the validators each at the same instant. Neither gets
-                &gt; 2/3 votes, zero coins move, and at the next checkpoint (60s by default on devnet) Bob&apos;s burned
-                key is cancelled onto <code className="num text-ink">spare[0]</code>.
-              </p>
-            </div>
-            <CopyText text="./target/release/orien devnet double-spend --wallet bob --split" />
-          </div>
-
-          <div className="flex flex-col justify-between gap-3 rounded-xl border border-line bg-bg/60 p-4">
-            <div className="flex flex-col gap-2">
-              <h3 className="font-bold text-ink">Lost device mid-payment</h3>
-              <p className="text-xs leading-relaxed text-muted sm:text-sm">
-                Signs a payment from Alice and drops it halfway. Because validators retain every promised signed order
-                until final, another copy of Alice&apos;s wallet can pick it up from the network and finish it cleanly:
-              </p>
-            </div>
-            <div className="flex flex-col gap-2">
-              <CopyText text="./target/release/orien devnet interrupt" />
-              <CopyText text="./target/release/orien resume -w devnet/wallets/alice.wallet" />
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Step 4: Across machines */}
-      <section className="rounded-2xl border border-line bg-surface p-5 sm:p-6">
-        <h2 className="mb-3 flex items-center gap-2.5 text-xl font-bold">
-          <span className="pearl-fill grid h-8 w-8 shrink-0 place-items-center rounded-lg">
-            <Network className="h-4 w-4" aria-hidden />
-          </span>
-          4. Spread validators across machines
-        </h2>
-        <p className="mb-4 text-sm leading-relaxed text-ink/90">
-          Pass one <code className="num">--address</code> per validator, copy <code className="num">genesis.json</code>{' '}
-          to every machine, and place each <code className="num">vN.key</code> only on the machine that runs that
-          validator:
-        </p>
-        <div className="flex flex-col gap-3">
-          <CopyText text="orien devnet init --dir net --name my-network --address 100.64.0.1:7101 --address 100.64.0.2:7101 --address 100.64.0.3:7101 --address 100.64.0.3:7102" />
-          <CopyText text="orien node -g genesis.json -k v1.key -d data --listen 100.64.0.1:7101" />
-        </div>
-        <p className="mt-4 flex items-start gap-2 rounded-xl border border-warn/35 bg-warn/10 p-3 text-xs sm:text-sm text-warn">
-          <ShieldAlert className="mt-0.5 h-4 w-4 shrink-0" aria-hidden />
-          <span>
-            Wire traffic is not encrypted or rate-limited yet. Forged votes and receipts are rejected by signature, but
-            always bind rehearsal validators to private Tailscale or WireGuard addresses — never a public IP.
-          </span>
-        </p>
-      </section>
-
-      {/* Workspace layout */}
-      <section className="rounded-2xl border border-line bg-surface p-5 sm:p-6">
-        <h2 className="mb-4 flex items-center gap-2.5 text-xl font-bold">
-          <span className="pearl-fill grid h-8 w-8 shrink-0 place-items-center rounded-lg">
-            <Boxes className="h-4 w-4" aria-hidden />
-          </span>
-          Rust workspace layout
-        </h2>
-        <div className="grid gap-3 sm:grid-cols-2">
-          {CRATES.map((c) => (
-            <div key={c.name} className="flex flex-col gap-1.5 rounded-xl border border-line bg-bg/60 p-4">
-              <code className="num text-xs font-bold text-pearl">{c.name}</code>
-              <h3 className="text-sm font-bold text-ink">{c.title}</h3>
-              <p className="text-xs leading-relaxed text-muted sm:text-sm">{c.body}</p>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      <div className="flex flex-wrap items-center gap-3 rounded-2xl border border-line bg-surface p-5">
-        <p className="flex-1 font-semibold">Read how hourly checkpoints reconcile logs and unlock stuck accounts</p>
-        <Link href="/how-it-works/" className="pearl-fill pearl-sheen rounded-xl px-5 py-2.5 text-sm font-bold">
-          Epoch design
-        </Link>
-        <Link href="/" className="rounded-xl border border-line px-5 py-2.5 text-sm font-semibold hover:border-pearl">
-          Overview
+      <div className="mb-8 mt-10 flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-line bg-surface p-6">
+        <p className="font-semibold text-ink">Curious what happens under the hood?</p>
+        <Link
+          href="/how-it-works/"
+          className="flex h-11 items-center gap-2 rounded-xl border border-line bg-bg px-5 text-sm font-semibold text-ink transition hover:border-pearl"
+        >
+          How it works <ArrowRight className="h-4 w-4" aria-hidden />
         </Link>
       </div>
     </div>
