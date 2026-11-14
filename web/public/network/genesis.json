@@ -1,0 +1,52 @@
+{
+  "network": "orien",
+  "validators": [
+    {
+      "name": "orien-1",
+      "root": "a97fdf22866227b1823d5645622688b537ea8147e1740162900e25378c6a03f1",
+      "height": 16,
+      "stake": 750000000000000,
+      "address": "217.77.11.197:7101"
+    },
+    {
+      "name": "orien-2",
+      "root": "31c79df5789934edb0b828f9111d6691cf659f2bcefd19a17897fb1b9fb9177f",
+      "height": 16,
+      "stake": 750000000000000,
+      "address": "217.77.11.197:7102"
+    },
+    {
+      "name": "orien-3",
+      "root": "2fa40d1186c7b5129e7da61542ca46bfbffbdad40f093140e82aaad3a4090404",
+      "height": 16,
+      "stake": 750000000000000,
+      "address": "217.77.11.197:7103"
+    },
+    {
+      "name": "orien-4",
+      "root": "9878f8f25fa8795aefdb543fc11ce7cd3ca17e67b091ca3c72aaac271772c58c",
+      "height": 16,
+      "stake": 750000000000000,
+      "address": "217.77.11.197:7104"
+    }
+  ],
+  "allocations": [],
+  "epoch_seconds": 3600,
+  "epoch_payments": 50000,
+  "start_time": 1794690665,
+  "min_stake": 10000000000000,
+  "max_validators": 33,
+  "unstake_epochs": 168,
+  "fee": {
+    "min": 1000,
+    "max": 1000000000,
+    "rate": 1000
+  },
+  "cap": 100000000000000000,
+  "shares_per_epoch": 1000,
+  "first_target": 1099511627775,
+  "bitcoin": {
+    "height": 975847,
+    "hash": "00000000000000000001a030d6ddd57730d7136b769d2b9949cbc90d5e32165d"
+  }
+}
