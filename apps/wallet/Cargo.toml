@@ -1,0 +1,23 @@
+[package]
+name = "orien-wallet"
+version = "0.1.0"
+edition = "2024"
+description = "The Orien wallet, as a desktop app"
+
+# The app builds on its own, outside the main workspace, so it can grow
+# without touching the files the node and the ledger live in.
+[workspace]
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+orien-net = { path = "../../crates/net" }
+tauri = { version = "2", features = [] }
+tauri-plugin-dialog = "2"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+
+# Hashing dominates the wallet's work, so even debug builds are optimized.
+[profile.dev]
+opt-level = 2
