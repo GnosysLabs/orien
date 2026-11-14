@@ -9,6 +9,9 @@
 
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
+mod send;
+
+use orien_ledger::AccountId;
 use orien_net::client::{Client, Head};
 use orien_net::keys::{Wallet, load_genesis};
 use serde::{Deserialize, Serialize};
@@ -81,8 +84,9 @@ fn head_file(genesis: &Path) -> PathBuf {
     PathBuf::from(name)
 }
 
-fn overview(wallet_file: &Path, genesis_file: &Path) -> Result<Overview, String> {
-    let wallet = Wallet::load(wallet_file).map_err(|error| format!("could not open the wallet: {error}"))?;
+/// A client caught up with the network's checkpoints, starting from
+/// wherever this computer last followed it to.
+fn connect(genesis_file: &Path) -> Result<Client, String> {
     let genesis =
         load_genesis(genesis_file).map_err(|error| format!("could not read the network file: {error}"))?;
     let client = match Head::load(&head_file(genesis_file), &genesis) {
@@ -92,6 +96,16 @@ fn overview(wallet_file: &Path, genesis_file: &Path) -> Result<Overview, String>
     if client.follow() > 0 {
         let _ = client.head().save(&head_file(genesis_file));
     }
+    Ok(client)
+}
+
+fn open(wallet_file: &Path) -> Result<Wallet, String> {
+    Wallet::load(wallet_file).map_err(|error| format!("could not open the wallet: {error}"))
+}
+
+fn overview(wallet_file: &Path, genesis_file: &Path) -> Result<Overview, String> {
+    let wallet = open(wallet_file)?;
+    let client = connect(genesis_file)?;
 
     let status = client.account(&wallet.address(), wallet.next_seq());
     let answered = status.views.iter().flatten().count();
@@ -144,6 +158,34 @@ async fn overview_now(app: AppHandle) -> Result<Overview, String> {
         .map_err(|error| error.to_string())?
 }
 
+/// Sends `amount` to the address `to` and waits until it is final.
+#[tauri::command]
+async fn send_payment(app: AppHandle, to: String, amount: String) -> Result<send::Sent, String> {
+    let to: AccountId = to.trim().parse().map_err(|_| "That is not an Orien address. An address is 64 letters and digits.".to_string())?;
+    let amount: u64 = amount
+        .trim()
+        .replace(',', "")
+        .parse()
+        .ok()
+        .filter(|amount| *amount > 0)
+        .ok_or("Enter an amount: a whole number above zero.")?;
+    let dir = folder(&app)?;
+    let wallet_file = wallet_file(&dir).ok_or("no wallet yet")?;
+    let genesis = genesis_file(&dir)?;
+    tauri::async_runtime::spawn_blocking(move || {
+        let mut wallet = open(&wallet_file)?;
+        if to == wallet.address() {
+            return Err("That is this wallet's own address.".into());
+        }
+        let client = connect(&genesis)?;
+        let sent = send::send(&client, &mut wallet, to, amount);
+        let _ = client.head().save(&head_file(&genesis));
+        sent
+    })
+    .await
+    .map_err(|error| error.to_string())?
+}
+
 #[cfg(test)]
 mod tests {
     /// Reads a wallet from a running local test network, if there is one:
@@ -162,12 +204,41 @@ mod tests {
         assert_eq!(view.answered, view.validators);
         println!("{} holds {:?}", view.address, view.balance);
     }
+
+    /// Sends 1 from alice to bob on a running local test network, through
+    /// the app's own sending code, and checks both balances moved.
+    #[test]
+    fn sends_a_payment_on_the_local_network() {
+        let root = std::env::var("ORIEN_DEVNET").unwrap_or_else(|_| "../../devnet".into());
+        let root = std::path::Path::new(&root);
+        if !root.join("genesis.json").is_file() {
+            eprintln!("no local test network at {}; skipped", root.display());
+            return;
+        }
+        let (alice, bob, genesis) =
+            (root.join("wallets/alice.wallet"), root.join("wallets/bob.wallet"), root.join("genesis.json"));
+        let balance = |file: &std::path::Path| super::overview(file, &genesis).unwrap().balance.unwrap();
+        let (alice_before, bob_before): (i128, i128) =
+            (balance(&alice).parse().unwrap(), balance(&bob).parse().unwrap());
+
+        let client = super::connect(&genesis).unwrap();
+        let mut wallet = super::open(&alice).unwrap();
+        let to = super::open(&bob).unwrap().address();
+        let sent = super::send::send(&client, &mut wallet, to, 1).unwrap();
+        assert!(!sent.earlier);
+        println!("sent 1 in {:.3} s", sent.seconds);
+
+        let (alice_after, bob_after): (i128, i128) =
+            (balance(&alice).parse().unwrap(), balance(&bob).parse().unwrap());
+        assert_eq!(alice_after, alice_before - 1);
+        assert_eq!(bob_after, bob_before + 1);
+    }
 }
 
 fn main() {
     tauri::Builder::default()
         .plugin(tauri_plugin_dialog::init())
-        .invoke_handler(tauri::generate_handler![has_wallet, create_wallet, choose_wallet, overview_now])
+        .invoke_handler(tauri::generate_handler![has_wallet, create_wallet, choose_wallet, overview_now, send_payment])
         .run(tauri::generate_context!())
         .expect("the wallet window could not start");
 }

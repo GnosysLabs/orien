@@ -10,14 +10,22 @@
     src: url("fonts/Jost.ttf") format("truetype");
     font-weight: 100 900;
   }
+
   :root {
     color-scheme: dark;
     --ground: #26272b;
     --ground-deep: #1b1c1f;
+    --surface: #2e2f34;
+    --surface-hover: #35363c;
+    --field: #202125;
     --ink: #eceef2;
     --dim: #9a9ca3;
-    --line: #3a3b40;
+    --faint: #6d6f76;
+    --line: #3a3b41;
     --pearl-ink: #2b2c31;
+    --good: #a6e3c6;
+    --bad: #f1a9a9;
+    --radius: 14px;
     /* The pearl: soft pinks, lilacs, mints and ice blues over silver. */
     --pearl: linear-gradient(115deg,
       #e4e2ea 0%, #f1d3e1 14%, #d8d3f4 28%, #c9e8ec 42%,
@@ -26,142 +34,447 @@
   * { box-sizing: border-box; }
   html, body { height: 100%; }
   body {
-    margin: 0; padding: 36px 32px;
+    margin: 0; padding: 0 28px 28px;
+    display: flex; flex-direction: column;
     font: 14px/1.5 -apple-system, "Segoe UI", system-ui, sans-serif;
     background: radial-gradient(130% 80% at 50% -10%, #34353a 0%, var(--ground) 45%, var(--ground-deep) 100%);
     color: var(--ink);
     -webkit-user-select: none; user-select: none;
+    -webkit-font-smoothing: antialiased;
   }
+  button { font: inherit; color: inherit; }
+  [hidden] { display: none !important; }
 
   /* The living pearl: the sheen drifts slowly across, never still. */
   @keyframes drift { from { background-position: 0% 50%; } to { background-position: 300% 50%; } }
-  .pearl {
-    background: var(--pearl);
-    background-size: 300% 100%;
-    animation: drift 24s linear infinite;
-  }
+  .pearl { background: var(--pearl); background-size: 300% 100%; animation: drift 24s linear infinite; }
   .pearl-text {
-    background: var(--pearl); background-size: 300% 100%;
+    background: var(--pearl); background-size: 300% 100%; animation: drift 24s linear infinite;
     -webkit-background-clip: text; background-clip: text; color: transparent;
-    animation: drift 24s linear infinite;
   }
 
+  /* ---- Top bar: the window is moved by it, and the window's own red,
+     yellow and green buttons sit inside it on the left. ---- */
+  header {
+    position: relative; flex: none;
+    height: 64px; margin: 0 -28px 20px;
+    display: flex; align-items: center; justify-content: center;
+    -webkit-app-region: drag;
+  }
   h1 {
-    margin: 0 0 40px; font: 500 20px/1 "Jost", sans-serif;
-    text-transform: uppercase; letter-spacing: 0.38em;
+    margin: 0; padding-left: 0.38em; font: 500 18px/1 "Jost", sans-serif;
+    text-transform: uppercase; letter-spacing: 0.38em; pointer-events: none;
   }
-
-  .screen[hidden] { display: none; }
-
-  .welcome h2 { font-weight: 400; font-size: 22px; margin: 60px 0 8px; }
-  .welcome p { color: var(--dim); margin: 0 0 32px; max-width: 360px; }
-
-  button {
-    display: block; width: 100%; padding: 13px 18px; border-radius: 12px;
-    font: inherit; font-weight: 600; cursor: pointer;
+  .status {
+    position: absolute; right: 22px; top: 50%; transform: translateY(-50%);
+    display: flex; align-items: center; gap: 7px;
+    font-size: 11.5px; color: var(--dim); pointer-events: auto; cursor: default;
   }
-  button.primary { border: 0; color: var(--pearl-ink); }
-  button.quiet { margin-top: 12px; background: transparent; color: var(--ink); border: 1px solid var(--line); font-weight: 500; }
-  button.quiet:hover { border-color: #55565c; }
-  button:disabled { opacity: 0.55; cursor: wait; }
+  .status i { width: 7px; height: 7px; border-radius: 50%; background: var(--faint); }
+  .status.ok i { background: var(--good); box-shadow: 0 0 8px #a6e3c680; }
+  .status.warn i { background: #ecc58e; }
+  .status.bad i { background: var(--bad); }
 
+  main { flex: 1; display: flex; flex-direction: column; min-height: 0; }
+  .screen { flex: 1; display: flex; flex-direction: column; min-height: 0; }
+
+  /* ---- Shared pieces ---- */
+  .primary {
+    width: 100%; height: 48px; border: 0; border-radius: var(--radius);
+    color: var(--pearl-ink); font-weight: 600; cursor: pointer;
+    box-shadow: inset 0 1px 0 #ffffffb0, 0 6px 20px #0000003d;
+    transition: transform 0.12s, opacity 0.2s;
+  }
+  .primary:active:not(:disabled) { transform: scale(0.985); }
+  .primary:disabled { opacity: 0.4; cursor: default; }
+  .secondary {
+    width: 100%; height: 48px; border-radius: var(--radius); cursor: pointer;
+    background: transparent; border: 1px solid var(--line); font-weight: 500;
+    transition: background 0.15s;
+  }
+  .secondary:hover { background: #ffffff08; }
+
+  .topline { display: flex; align-items: center; height: 36px; margin-bottom: 24px; }
+  .back {
+    width: 36px; height: 36px; margin-left: -8px; border: 0; border-radius: 10px;
+    background: transparent; cursor: pointer; display: grid; place-items: center; color: var(--dim);
+  }
+  .back:hover { background: #ffffff0d; color: var(--ink); }
+  .topline h2 { margin: 0 0 0 4px; font-size: 17px; font-weight: 600; }
+
+  .problem {
+    margin-top: 14px; padding: 11px 14px; border-radius: 12px;
+    background: #f1a9a914; border: 1px solid #f1a9a933; color: var(--bad); font-size: 13px;
+  }
+  .push { flex: 1; }
+  .screen > .primary:last-child { margin-top: 20px; }
+
+  /* ---- Welcome ---- */
+  .welcome { justify-content: center; text-align: center; padding-bottom: 40px; }
+  .welcome .sun {
+    width: 76px; height: 38px; margin: 0 auto 26px; border-radius: 76px 76px 0 0;
+  }
+  .welcome h2 { margin: 0 0 8px; font-size: 22px; font-weight: 500; }
+  .welcome p { margin: 0 auto 30px; max-width: 300px; color: var(--dim); }
+  .welcome .secondary { margin-top: 10px; }
+
+  /* ---- Home ---- */
   .card {
-    border-radius: 20px; padding: 26px 24px 22px; color: var(--pearl-ink);
+    border-radius: 22px; padding: 22px 24px 24px; color: var(--pearl-ink);
     box-shadow: 0 18px 50px #00000059, inset 0 1px 0 #ffffffb0;
   }
-  .card .label { font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; opacity: 0.6; }
-  .card .balance { font-size: 40px; font-weight: 300; margin-top: 4px; line-height: 1.15; }
-  .card .unit { font-size: 14px; margin-left: 6px; opacity: 0.6; }
+  .card .label { font-size: 11.5px; letter-spacing: 0.1em; text-transform: uppercase; opacity: 0.6; }
+  .card .amount { margin-top: 6px; display: flex; align-items: baseline; gap: 8px; }
+  .card .balance { font-size: 42px; font-weight: 300; line-height: 1.1; letter-spacing: -0.01em; }
+  .card .unit { font-size: 14px; opacity: 0.6; }
 
-  .address {
-    margin-top: 22px; padding: 12px 14px; border: 1px solid var(--line); border-radius: 12px;
-    display: flex; gap: 12px; align-items: center;
+  .actions { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 16px; }
+  .tile {
+    height: 84px; border-radius: 18px; border: 1px solid var(--line);
+    background: var(--surface); cursor: pointer;
+    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px;
+    font-weight: 500; transition: background 0.15s, transform 0.12s;
   }
-  .address code { flex: 1; font: 11px/1.45 ui-monospace, monospace; color: var(--dim); word-break: break-all; -webkit-user-select: text; user-select: text; }
-  .address button { width: auto; padding: 6px 12px; font-size: 12px; border-radius: 8px; background: transparent; color: var(--ink); border: 1px solid var(--line); font-weight: 500; }
+  .tile:hover { background: var(--surface-hover); }
+  .tile:active { transform: scale(0.985); }
+  .tile .icon { width: 30px; height: 30px; border-radius: 50%; display: grid; place-items: center; color: var(--pearl-ink); }
 
-  .facts { margin-top: 16px; color: var(--dim); font-size: 12px; }
-  .facts .dot { display: inline-block; width: 7px; height: 7px; border-radius: 50%; margin-right: 6px; vertical-align: 1px; }
-  .ok { background: #9fe0c0; } .warn { background: #f0c48a; } .bad { background: #f09a9a; }
 
-  #error { margin-top: 18px; color: #f2a7a7; min-height: 1.5em; }
+  /* ---- Send ---- */
+  .amount-entry { text-align: center; padding: 8px 0 28px; }
+  .amount-entry input {
+    width: 100%; border: 0; background: transparent; text-align: center; color: var(--ink);
+    font: 300 46px/1.1 -apple-system, system-ui, sans-serif; letter-spacing: -0.01em; caret-color: transparent;
+  }
+  .amount-entry input:focus { outline: none; }
+  .amount-entry input::placeholder { color: var(--faint); }
+  .amount-entry .hint { margin-top: 8px; font-size: 12.5px; color: var(--dim); }
+  .amount-entry .hint button {
+    border: 0; background: none; padding: 0; margin-left: 4px; color: #d8d3f4; cursor: pointer; font-size: 12.5px;
+  }
+
+  .field label { display: block; margin: 0 0 7px 2px; font-size: 12px; color: var(--dim); }
+  .field .box {
+    display: flex; align-items: center; gap: 8px; padding: 0 6px 0 14px; height: 48px;
+    border-radius: var(--radius); background: var(--field); border: 1px solid var(--line);
+    transition: border-color 0.15s;
+  }
+  .field .box:focus-within { border-color: #8f8aa8; }
+  .field input {
+    flex: 1; min-width: 0; border: 0; background: transparent; color: var(--ink);
+    font: 12.5px ui-monospace, "SF Mono", monospace; -webkit-user-select: text; user-select: text;
+  }
+  .field input:focus { outline: none; }
+  .field input::placeholder { font-family: -apple-system, system-ui, sans-serif; font-size: 13.5px; color: var(--faint); }
+  .chip {
+    flex: none; height: 32px; padding: 0 12px; border-radius: 9px; border: 0; cursor: pointer;
+    background: #ffffff0f; color: var(--ink); font-size: 12.5px; font-weight: 500;
+  }
+  .chip:hover { background: #ffffff1a; }
+  .field .check { margin: 7px 0 0 2px; font-size: 12px; color: var(--faint); min-height: 18px; }
+  .field .check.ok { color: var(--good); }
+
+  .review { border: 1px solid var(--line); border-radius: 18px; background: var(--surface); overflow: hidden; }
+  .review .row { display: flex; justify-content: space-between; align-items: center; padding: 15px 18px; gap: 16px; }
+  .review .row + .row { border-top: 1px solid var(--line); }
+  .review .row span:first-child { color: var(--dim); }
+  .review .row span:last-child { font-weight: 500; text-align: right; }
+  .review .mono { font: 12.5px ui-monospace, "SF Mono", monospace; }
+  .fineprint { margin: 16px 4px 0; font-size: 12.5px; color: var(--dim); }
+
+  .done { align-items: center; justify-content: center; text-align: center; padding-bottom: 30px; }
+  .done .mark {
+    width: 64px; height: 64px; border-radius: 50%; display: grid; place-items: center; color: var(--pearl-ink);
+    margin-bottom: 20px; box-shadow: 0 10px 30px #00000059, inset 0 1px 0 #ffffffb0;
+  }
+  .done h2 { margin: 0; font-size: 30px; font-weight: 300; }
+  .done p { margin: 6px 0 0; color: var(--dim); }
+  .done .primary { margin-top: 34px; }
+
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .spinner {
+    display: inline-block; width: 14px; height: 14px; margin-right: 8px; vertical-align: -2px;
+    border: 2px solid #2b2c3140; border-top-color: var(--pearl-ink); border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+  }
+
+  /* ---- Receive ---- */
+  .receive-card {
+    padding: 24px 22px 18px; border-radius: 22px; background: var(--surface); border: 1px solid var(--line);
+    text-align: center;
+  }
+  .receive-card .icon {
+    width: 36px; height: 36px; margin: 0 auto 12px; border-radius: 50%;
+    display: grid; place-items: center; color: var(--pearl-ink);
+  }
+  .receive-card .label { font-size: 11.5px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--dim); }
+  .address-block {
+    margin: 12px 0 0; font: 14px/1.75 ui-monospace, "SF Mono", monospace; letter-spacing: 0.06em; color: var(--ink);
+    -webkit-user-select: text; user-select: text;
+  }
+  .address-block span { display: block; }
+  .receive-card .fineprint { margin: 16px 0 0; padding-top: 14px; border-top: 1px solid var(--line); }
 </style>
 </head>
 <body>
-  <h1><span class="pearl-text">ORIEN</span></h1>
+  <header data-tauri-drag-region>
+    <h1><span class="pearl-text">ORIEN</span></h1>
+    <div class="status" id="status" hidden><i></i><span id="status-text"></span></div>
+  </header>
 
-  <section class="screen welcome" id="welcome" hidden>
-    <h2>Welcome</h2>
-    <p>Make a new wallet to hold Orien, or open one you already have.</p>
-    <button class="primary pearl" id="create">Create a wallet</button>
-    <button class="quiet" id="choose">I already have a wallet</button>
-  </section>
+  <main>
+    <!-- First run -->
+    <section class="screen welcome" id="welcome" hidden>
+      <div class="sun pearl"></div>
+      <h2>Welcome to Orien</h2>
+      <p>Create a wallet to hold Orien, or open one you already have.</p>
+      <button class="primary pearl" id="create">Create a wallet</button>
+      <button class="secondary" id="choose">Open an existing wallet</button>
+      <div class="problem" id="welcome-problem" hidden></div>
+    </section>
 
-  <section class="screen" id="home" hidden>
-    <div class="card pearl">
-      <div class="label">Balance</div>
-      <div><span class="balance" id="balance">…</span><span class="unit">units</span></div>
-    </div>
+    <!-- Home -->
+    <section class="screen" id="home" hidden>
+      <div class="card pearl">
+        <div class="label">Balance</div>
+        <div class="amount"><span class="balance" id="balance">—</span><span class="unit">units</span></div>
+      </div>
 
-    <div class="address">
-      <code id="address"></code>
-      <button id="copy">Copy</button>
-    </div>
+      <div class="actions">
+        <button class="tile" id="go-send">
+          <span class="icon pearl"><svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 10.5 10.5 3.5M5 3.5h5.5V9"/></svg></span>
+          Send
+        </button>
+        <button class="tile" id="go-receive">
+          <span class="icon pearl"><svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10.5 3.5 3.5 10.5M9 10.5H3.5V5"/></svg></span>
+          Receive
+        </button>
+      </div>
 
-    <div class="facts" id="facts"></div>
-  </section>
+      <div class="problem" id="home-problem" hidden></div>
+    </section>
 
-  <div id="error"></div>
+    <!-- Send: enter -->
+    <section class="screen" id="send" hidden>
+      <div class="topline">
+        <button class="back" data-back aria-label="Back"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10 3 5 8l5 5"/></svg></button>
+        <h2>Send</h2>
+      </div>
+
+      <div class="amount-entry">
+        <input id="amount" placeholder="0" inputmode="numeric" autocomplete="off">
+        <div class="hint"><span id="available"></span><button id="all" type="button">Send all</button></div>
+      </div>
+
+      <div class="field">
+        <label for="to">To</label>
+        <div class="box">
+          <input id="to" placeholder="Recipient's address" spellcheck="false" autocomplete="off">
+          <button class="chip" id="paste" type="button">Paste</button>
+        </div>
+        <div class="check" id="to-check"></div>
+      </div>
+
+      <div class="push"></div>
+      <div class="problem" id="send-problem" hidden></div>
+      <button class="primary pearl" id="to-review" disabled style="margin-top:14px">Review</button>
+    </section>
+
+    <!-- Send: review -->
+    <section class="screen" id="review" hidden>
+      <div class="topline">
+        <button class="back" id="review-back" aria-label="Back"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10 3 5 8l5 5"/></svg></button>
+        <h2>Review</h2>
+      </div>
+
+      <div class="review">
+        <div class="row"><span>Amount</span><span id="r-amount"></span></div>
+        <div class="row"><span>To</span><span class="mono" id="r-to"></span></div>
+        <div class="row"><span>Balance after</span><span id="r-after"></span></div>
+      </div>
+      <p class="fineprint">Payments are final within a second or two and cannot be reversed. Check the address.</p>
+
+      <div class="push"></div>
+      <div class="problem" id="review-problem" hidden></div>
+      <button class="primary pearl" id="confirm" style="margin-top:14px">Confirm and send</button>
+    </section>
+
+    <!-- Send: done -->
+    <section class="screen done" id="done" hidden>
+      <div class="mark pearl"><svg width="26" height="26" viewBox="0 0 26 26" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m7 13.5 4 4 8-9"/></svg></div>
+      <h2 id="d-title"></h2>
+      <p id="d-detail"></p>
+      <button class="primary pearl" data-back>Done</button>
+    </section>
+
+    <!-- Receive -->
+    <section class="screen" id="receive" hidden>
+      <div class="topline">
+        <button class="back" data-back aria-label="Back"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10 3 5 8l5 5"/></svg></button>
+        <h2>Receive</h2>
+      </div>
+      <div class="push"></div>
+      <div class="receive-card">
+        <div class="label">Your address</div>
+        <div class="address-block" id="address-block"></div>
+        <p class="fineprint">Share it to get paid. It's safe to share: an address can receive, never spend.</p>
+      </div>
+      <div class="push"></div>
+      <button class="primary pearl" id="copy">Copy address</button>
+    </section>
+  </main>
 
 <script>
   const invoke = window.__TAURI__.core.invoke;
   const $ = (id) => document.getElementById(id);
-  const show = (id) => { for (const s of document.querySelectorAll(".screen")) s.hidden = s.id !== id; };
-  const fail = (error) => { $("error").textContent = String(error); };
+
+  let view = null;          // the latest overview from the validators
+  let pending = null;       // { to, amount } while reviewing
+
+  const fmt = (n) => Number(n).toLocaleString();
+  const short = (a) => a.slice(0, 8) + "…" + a.slice(-8);
+  const isAddress = (text) => /^[0-9a-f]{64}$/i.test(text.trim());
+  const amountOf = (text) => {
+    const clean = text.replace(/[,\s]/g, "");
+    return /^\d+$/.test(clean) ? Number(clean) : NaN;
+  };
+
+  function show(id) {
+    for (const s of document.querySelectorAll(".screen")) s.hidden = s.id !== id;
+    for (const p of document.querySelectorAll(".problem")) p.hidden = true;
+  }
+  function problem(id, text) { $(id).textContent = String(text); $(id).hidden = false; }
+
+  function setStatus(kind, text) {
+    $("status").hidden = false;
+    $("status").className = "status " + kind;
+    $("status-text").textContent = text;
+  }
 
   async function refresh() {
     try {
-      const view = await invoke("overview_now");
-      $("error").textContent = "";
-      $("balance").textContent = view.balance === null ? "—" : Number(view.balance).toLocaleString();
-      $("address").textContent = view.address;
-      const health = view.answered === view.validators ? "ok" : view.balance === null ? "bad" : "warn";
-      $("facts").innerHTML =
-        `<span class="dot ${health}"></span>${view.answered} of ${view.validators} validators answered` +
-        ` · ${view.payments} payments made`;
+      view = await invoke("overview_now");
+      $("balance").textContent = view.balance === null ? "—" : fmt(view.balance);
+      $("status").title = `${view.answered} of ${view.validators} validators answered`;
+      if (view.answered === view.validators) setStatus("ok", "Connected");
+      else if (view.balance !== null) setStatus("warn", `${view.answered} of ${view.validators}`);
+      else setStatus("bad", "Catching up");
+      $("home-problem").hidden = true;
+      if (!$("send").hidden) validate();
     } catch (error) {
-      $("facts").innerHTML = `<span class="dot bad"></span>Not connected`;
-      fail(error);
+      setStatus("bad", "Offline");
+      if (!$("home").hidden) problem("home-problem", error);
     }
   }
+
+  function home() { show("home"); refresh(); }
 
   async function start() {
-    if (await invoke("has_wallet")) {
-      show("home");
-      refresh();
-    } else {
-      show("welcome");
-    }
+    if (await invoke("has_wallet")) home();
+    else show("welcome");
   }
 
-  $("create").addEventListener("click", async () => {
+  // ---- Welcome ----
+  $("create").onclick = async () => {
     $("create").disabled = true;
-    try { await invoke("create_wallet"); await start(); } catch (error) { fail(error); }
+    try { await invoke("create_wallet"); await start(); } catch (e) { problem("welcome-problem", e); }
     $("create").disabled = false;
-  });
+  };
+  $("choose").onclick = async () => {
+    try { if (await invoke("choose_wallet")) await start(); } catch (e) { problem("welcome-problem", e); }
+  };
 
-  $("choose").addEventListener("click", async () => {
-    try { if (await invoke("choose_wallet")) await start(); } catch (error) { fail(error); }
-  });
+  // ---- Navigation ----
+  for (const b of document.querySelectorAll("[data-back]")) b.onclick = home;
+  $("go-send").onclick = () => {
+    $("amount").value = ""; $("to").value = "";
+    validate(); show("send"); $("amount").focus();
+  };
+  $("go-receive").onclick = () => {
+    if (!view) return;
+    $("address-block").innerHTML = view.address.match(/.{16}/g).map((g) => `<span>${g.match(/.{4}/g).join(" ")}</span>`).join("");
+    $("copy").textContent = "Copy address";
+    show("receive");
+  };
 
-  $("copy").addEventListener("click", async () => {
-    await navigator.clipboard.writeText($("address").textContent);
+  // ---- Send: enter ----
+  function validate() {
+    const balance = view && view.balance !== null ? Number(view.balance) : null;
+    $("available").textContent = balance === null ? "" : `${fmt(balance)} available`;
+    $("all").hidden = balance === null || balance === 0;
+
+    const to = $("to").value.trim();
+    const amount = amountOf($("amount").value);
+    let check = "", ok = false;
+    if (to === "") check = "";
+    else if (!isAddress(to)) check = to.length < 64 ? `${64 - to.length} more characters` : "Not an Orien address";
+    else if (view && to.toLowerCase() === view.address) check = "That is this wallet's own address";
+    else { check = "✓ Valid address"; ok = true; }
+    $("to-check").textContent = check;
+    $("to-check").className = "check" + (ok ? " ok" : "");
+
+    const amountOk = amount > 0 && (balance === null || amount <= balance);
+    $("amount").style.color = amount > balance ? "var(--bad)" : "";
+    $("to-review").disabled = !(ok && amountOk);
+  }
+  $("amount").oninput = () => {
+    const n = amountOf($("amount").value);
+    if (!isNaN(n) && $("amount").value !== "") $("amount").value = fmt(n);
+    validate();
+  };
+  $("to").oninput = validate;
+  $("all").onclick = () => { $("amount").value = fmt(view.balance); validate(); };
+  $("paste").onclick = async () => {
+    try { $("to").value = (await navigator.clipboard.readText()).trim(); validate(); } catch { $("to").focus(); }
+  };
+
+  $("to-review").onclick = () => {
+    pending = { to: $("to").value.trim().toLowerCase(), amount: amountOf($("amount").value) };
+    $("r-amount").textContent = `${fmt(pending.amount)} units`;
+    $("r-to").textContent = short(pending.to);
+    $("r-to").title = pending.to;
+    $("r-after").textContent = view && view.balance !== null ? `${fmt(Number(view.balance) - pending.amount)} units` : "—";
+    show("review");
+  };
+  $("review-back").onclick = () => show("send");
+
+  // ---- Send: confirm ----
+  $("confirm").onclick = async () => {
+    const button = $("confirm");
+    button.disabled = true; $("review-back").disabled = true;
+    button.innerHTML = '<span class="spinner"></span>Sending';
+    try {
+      const sent = await invoke("send_payment", { to: pending.to, amount: String(pending.amount) });
+      if (sent.earlier) {
+        // A payment signed earlier had to finish first; this one is not sent yet.
+        show("send");
+        problem("send-problem",
+          `An earlier payment of ${fmt(sent.amount)} to ${short(sent.to)} was still waiting and is now final. ` +
+          `Review and send this one again.`);
+        refresh();
+      } else {
+        $("d-title").textContent = `${fmt(sent.amount)} sent`;
+        $("d-detail").textContent = `to ${short(sent.to)} · final in ${sent.seconds < 1 ? "under a second" : sent.seconds.toFixed(1) + " s"}`;
+        show("done");
+        refresh();
+      }
+    } catch (error) {
+      problem("review-problem", error);
+    } finally {
+      button.disabled = false; $("review-back").disabled = false;
+      button.textContent = "Confirm and send";
+    }
+  };
+
+  // ---- Receive ----
+  $("copy").onclick = async () => {
+    await navigator.clipboard.writeText(view.address);
     $("copy").textContent = "Copied";
-    setTimeout(() => { $("copy").textContent = "Copy"; }, 1500);
-  });
+    setTimeout(() => { $("copy").textContent = "Copy address"; }, 1600);
+  };
 
   setInterval(() => { if (!$("home").hidden) refresh(); }, 15000);
-  start().catch(fail);
+  start().catch((e) => problem("welcome-problem", e));
 </script>
 </body>
 </html>

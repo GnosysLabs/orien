@@ -2227,6 +2227,7 @@ dependencies = [
 name = "orien-wallet"
 version = "0.1.0"
 dependencies = [
+ "orien-ledger",
  "orien-net",
  "serde",
  "serde_json",

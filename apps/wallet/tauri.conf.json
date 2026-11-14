@@ -10,9 +10,17 @@
     "windows": [
       {
         "title": "Orien",
-        "width": 520,
-        "height": 640,
-        "resizable": true
+        "width": 460,
+        "height": 540,
+        "resizable": true,
+        "titleBarStyle": "Overlay",
+        "hiddenTitle": true,
+        "trafficLightPosition": {
+          "x": 20,
+          "y": 26
+        },
+        "minWidth": 400,
+        "minHeight": 500
       }
     ],
     "security": {
