@@ -648,7 +648,11 @@ impl Client {
         for (index, response) in responses.into_iter().enumerate() {
             match response {
                 Ok(Response::Vote(vote)) => {
-                    if vote.validator as usize == index && committee.verify_vote(&digest, &vote).is_ok() {
+                    // A vote names its validator by place in this epoch's
+                    // list, which need not be its place among the addresses
+                    // asked. Its signature is checked against that
+                    // validator's key, so it cannot be passed off.
+                    if committee.verify_vote(&digest, &vote).is_ok() {
                         votes.insert(vote.validator, vote);
                     } else {
                         refusals.push((index, "returned a vote that does not verify".into()));
@@ -680,9 +684,7 @@ impl Client {
         for (index, response) in responses.into_iter().enumerate() {
             match response {
                 Ok(Response::Confirmed(confirmation)) => {
-                    if confirmation.validator as usize == index
-                        && committee.verify_confirmation(&digest, &confirmation).is_ok()
-                    {
+                    if committee.verify_confirmation(&digest, &confirmation).is_ok() {
                         confirmations.insert(confirmation.validator, confirmation);
                     } else {
                         refusals.push((index, "returned a confirmation that does not verify".into()));

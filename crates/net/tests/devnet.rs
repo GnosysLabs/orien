@@ -3,8 +3,8 @@
 use orien_crypto::keytree::KeyTree;
 use orien_crypto::{Hash32, Kdf, ots, prf};
 use orien_ledger::{
-    AccountId, Allocation, Genesis, Kind, Order, Reject, SPARE_HEIGHT, Signature, SignedOrder, Signer,
-    ValidatorInfo, address,
+    AccountId, Allocation, Genesis, Kind, Order, Reject, SPARE_HEIGHT, Signature, SignedOrder, Signer, Validator,
+    ValidatorInfo, address, sign_stake_proof,
 };
 use orien_net::client::{Client, Done, Final, Head, TransferError, rpc};
 use orien_net::keys::{ValidatorKey, Wallet};
@@ -38,6 +38,7 @@ struct Options {
     /// The unit of the waits used while closing an epoch.
     pace: Duration,
     key_reserve: u32,
+    min_stake: u64,
 }
 
 impl Default for Options {
@@ -53,6 +54,7 @@ impl Default for Options {
             epoch: 3600,
             pace: Duration::from_millis(60),
             key_reserve: 128,
+            min_stake: 10_000,
         }
     }
 }
@@ -110,7 +112,7 @@ impl TestNet {
             epoch_seconds: options.epoch,
             epoch_payments: 50_000,
             start_time: now(),
-            min_stake: 10_000,
+            min_stake: options.min_stake,
             max_validators: 33,
             unstake_epochs: 168,
         };
@@ -197,6 +199,32 @@ impl TestNet {
 
     /// Pays the way the wallet does on a network whose epochs are closing:
     /// if a checkpoint gets in the way, waits for it and carries on.
+    /// Stakes `amount` from wallet `from` behind validator `validator`, and
+    /// waits until the stake is final.
+    fn stake(&self, from: &str, validator: usize, amount: u64) {
+        let mut wallet = self.wallet(from);
+        let key = &self.keys[validator];
+        let tree = KeyTree::generate(key.seed, key.height);
+        let address = self.genesis.validators[validator].address.clone();
+        let proof = sign_stake_proof(&tree, &self.network, &wallet.address(), &address);
+        let kind = Kind::Stake { validator: Validator { root: tree.root(), height: key.height, address }, proof };
+        let client = self.client();
+        client.follow();
+        let status = client.account(&wallet.address(), wallet.next_seq());
+        let seq = status.seq;
+        let signed =
+            wallet.sign(kind, seq, wallet.address(), amount, status.signer.as_ref(), &self.network).unwrap();
+        let deadline = Instant::now() + Duration::from_secs(30);
+        while let Err(error) = client.pay(&signed, Duration::from_secs(10)) {
+            if client.account(&wallet.address(), seq).seq > seq {
+                break;
+            }
+            assert!(Instant::now() < deadline, "the stake never went through: {error}");
+            thread::sleep(Duration::from_millis(100));
+        }
+        wallet.confirm(seq).unwrap();
+    }
+
     fn pay_through(&self, from: &str, to: AccountId, amount: u64) -> Done {
         let deadline = Instant::now() + Duration::from_secs(30);
         let mut wallet = self.wallet(from);
@@ -1491,4 +1519,34 @@ fn a_wallet_is_not_fooled_by_a_validator_lying_about_an_account() {
     assert_eq!((proven.balance, proven.seq), (900, 1), "the wallet took a validator's word for it");
     // So the wallet will not reuse the key of a payment number already spent.
     assert_eq!(client.account(&alice, 0).seq, 1);
+}
+
+#[test]
+fn validators_leave_the_list_and_come_back_with_their_stake() {
+    // The four launch seats weigh 1 each. Once real stake passes 4 they
+    // leave, and only validators someone staked for remain.
+    let options = Options { crowd: 2, epoch: 1, min_stake: 10, ..Options::default() };
+    let net = TestNet::start_with("comeback", options);
+    let carol = net.address("carol");
+    let places = || -> Vec<Option<u16>> { net.running().iter().map(|v| net.info(*v).validator).collect() };
+    assert_eq!(places(), [Some(0), Some(1), Some(2), Some(3)]);
+
+    // Stake backs v1 and v2 only. After the next checkpoint v3 and v4 are
+    // out: they follow the network and vote on nothing.
+    net.stake("alice", 0, 100);
+    net.stake("bob", 1, 200);
+    wait_until("v3 and v4 leave the list", || places()[2..] == [None, None]);
+    // The largest stake comes first.
+    assert_eq!(places()[..2], [Some(1), Some(0)]);
+    net.pay_through("alice", carol, 5);
+    net.wait_until_level();
+
+    // Stake for v3 and v4, and they are back.
+    net.stake("w0", 2, 300);
+    net.stake("w1", 3, 50);
+    wait_until("v3 and v4 return", || places().iter().all(Option::is_some));
+    assert_eq!(places(), [Some(2), Some(1), Some(0), Some(3)]);
+    net.pay_through("bob", carol, 7);
+    net.wait_until_level();
+    assert_eq!(net.view(3, &carol).balance, 12);
 }

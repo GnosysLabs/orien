@@ -27,7 +27,7 @@
 use crate::agree::Value;
 use crate::genesis::{Committee, Member, VerifyError};
 use crate::state::{Applied, Checked, State};
-use crate::types::{AccountId, Certificate, Order, SignedOrder, Vote};
+use crate::types::{AccountId, Certificate, Order, SignedOrder, Validator, Vote};
 use borsh::{BorshDeserialize, BorshSerialize};
 use orien_crypto::{Hash32, Tag, hash, keytree};
 use std::collections::{BTreeMap, BTreeSet};
@@ -198,8 +198,19 @@ pub fn next_validators(committee: &Committee, statements: &[&Statement], end: &S
     }
     let mut stakers = end.stakers(rules.min_stake);
     stakers.sort_by(|a, b| b.2.cmp(&a.2).then(a.0.cmp(&b.0)));
-    let choose = |mut members: Vec<Member>| {
-        for (account, validator, stake) in &stakers {
+    // Stake behind a seat's own key tree comes from the seat's operator. It
+    // takes no place of its own: it adds to the seat's weight, and it counts
+    // as real stake.
+    let mut backing = vec![0u64; seats.len()];
+    let mut others = Vec::new();
+    for staker in &stakers {
+        match seats.iter().position(|seat| seat.root == staker.1.root) {
+            Some(seat) => backing[seat] = backing[seat].saturating_add(staker.2),
+            None => others.push(staker),
+        }
+    }
+    let choose = |mut members: Vec<Member>, stakers: &[&(AccountId, &Validator, u64)]| {
+        for (account, validator, stake) in stakers {
             if members.len() >= rules.max_validators as usize {
                 break;
             }
@@ -217,18 +228,21 @@ pub fn next_validators(committee: &Committee, statements: &[&Statement], end: &S
         members
     };
     let seat_count = seats.len();
-    let with_seats = choose(seats);
-    let real: u128 = with_seats[seat_count..].iter().map(|m| m.stake as u128).sum();
+    let with_seats = choose(seats, &others);
+    let real: u128 = with_seats[seat_count..].iter().map(|m| m.stake as u128).sum::<u128>()
+        + backing.iter().map(|stake| *stake as u128).sum::<u128>();
     let seat_total: u128 = committee.seats().iter().map(|share| *share as u128).sum();
     if seat_count == 0 || real >= seat_total {
-        return choose(Vec::new());
+        let all: Vec<_> = stakers.iter().collect();
+        return choose(Vec::new(), &all);
     }
     let remaining = seat_total - real;
     let mut members = with_seats;
-    for (seat, share) in members[..seat_count].iter_mut().zip(committee.seats()) {
+    for ((seat, share), own) in members[..seat_count].iter_mut().zip(committee.seats()).zip(&backing) {
         // Never zero while the seats remain: a seat with no weight could
         // not take part.
-        seat.stake = ((remaining * *share as u128 / seat_total) as u64).max(1);
+        let faded = ((remaining * *share as u128 / seat_total) as u64).max(1);
+        seat.stake = faded.saturating_add(*own);
     }
     members
 }

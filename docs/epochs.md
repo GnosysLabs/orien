@@ -326,7 +326,12 @@ that ties that key to the spare root.
   for good. With seats worth 3 million coins, a newcomer's 10,000 is a
   third of a percent of the vote, and a third of the vote costs a million
   coins. The fade follows real stake rather than the calendar, so the
-  vote never becomes cheap to buy while little is staked.
+  vote never becomes cheap to buy while little is staked. Stake behind a
+  seat's own key tree adds to that seat's weight and counts as real stake,
+  so a seat's operator can carry it into the staked set.
+- A validator outside an epoch's list follows the network and signs
+  nothing. Its place in the list, found by its key tree, can change at
+  every checkpoint.
 
 ### Fees
 

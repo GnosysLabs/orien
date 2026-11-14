@@ -108,6 +108,9 @@ enum Owed {
 
 pub struct Closer {
     me: u16,
+    /// Set when this validator is not one of the epoch's validators. It
+    /// says nothing and listens only for the decided checkpoint.
+    watching: bool,
     epoch: u64,
     network: Hash32,
     weights: Vec<u64>,
@@ -168,9 +171,11 @@ impl Closer {
     /// Opens the closer for the committee's epoch, playing back whatever
     /// the journal at `path` holds. `seed` decides whose turn it is to
     /// propose.
+    /// `me` is this validator's place among the epoch's validators, or
+    /// `None` if it is not one of them.
     pub fn open(
         path: &Path,
-        me: u16,
+        me: Option<u16>,
         committee: &Committee,
         seed: Hash32,
         pace: Pace,
@@ -178,8 +183,11 @@ impl Closer {
     ) -> io::Result<Closer> {
         let (journal, records) = Journal::open(path, durable)?;
         let weights: Vec<u64> = committee.members().iter().map(|member| member.stake).collect();
+        let watching = me.is_none();
+        let me = me.unwrap_or(u16::MAX);
         let mut closer = Closer {
             me,
+            watching,
             epoch: committee.epoch(),
             network: *committee.network(),
             total: weights.iter().sum(),
@@ -313,7 +321,7 @@ impl Closer {
     /// pins `own_log`, the payments it has applied.
     pub fn freeze(&mut self, statement: Statement, own_log: Vec<Hash32>, env: &mut Env) -> Vec<Message> {
         let mut out = Vec::new();
-        if self.frozen() {
+        if self.frozen() || self.watching {
             return out;
         }
         let digest = statement.digest(&self.network);
@@ -350,6 +358,9 @@ impl Closer {
     /// in answer, for sending to everyone.
     pub fn on_message(&mut self, message: Message, env: &mut Env) -> Vec<Message> {
         let mut out = Vec::new();
+        if self.watching && !matches!(message, Message::Decided(_)) {
+            return out;
+        }
         match message {
             Message::Statement(signed) => {
                 let digest = signed.body.digest(&self.network);
@@ -1044,7 +1055,7 @@ mod tests {
         }
 
         fn open(&self, v: usize) -> Closer {
-            Closer::open(&self.journal(v), v as u16, &self.committee, self.network, PACE, false).unwrap()
+            Closer::open(&self.journal(v), Some(v as u16), &self.committee, self.network, PACE, false).unwrap()
         }
 
         /// Runs one step of validator `v`'s closer and passes on what it says.

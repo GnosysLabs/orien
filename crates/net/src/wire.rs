@@ -58,7 +58,8 @@ pub enum Request {
 #[derive(Clone, Debug, BorshSerialize, BorshDeserialize)]
 pub struct NodeInfo {
     pub network: Hash32,
-    pub validator: u16,
+    /// Its place in this epoch's list of validators, if it is in it.
+    pub validator: Option<u16>,
     pub name: String,
     pub accounts: u64,
     pub certificates: u64,

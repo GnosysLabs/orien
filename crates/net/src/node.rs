@@ -318,9 +318,20 @@ fn sign_batch(
     Some(votes.collect())
 }
 
+/// What a validator outside this epoch's list says when asked to vote.
+const NOT_IN_THE_LIST: &str = "this validator is not one of this epoch's validators";
+
+/// A validator's place in an epoch's list, found by the key tree it signs
+/// with. Stakes can move it from one epoch to the next, or out of the list.
+fn place_of(committee: &Committee, root: &Hash32) -> Option<u16> {
+    committee.members().iter().position(|member| member.root == *root).map(|place| place as u16)
+}
+
 struct Core {
     name: String,
-    index: u16,
+    /// Its place in this epoch's list of validators, or `None` while it is
+    /// not one of them: it then follows the network and signs nothing.
+    index: Option<u16>,
     /// The validators of the current epoch.
     committee: Committee,
     /// The same, where connection threads read it.
@@ -505,7 +516,8 @@ impl Core {
         let Core { closer, committee, start, previous, previous_time, tree, leaves, index, held, applied, .. } = self;
         let (committee, tree, held, applied): (&Committee, &KeyTree, &HashMap<Hash32, u32>, &Vec<Order>) =
             (committee, tree, held, applied);
-        let mut sign = |items: &[Hash32]| sign_batch(tree, leaves, committee, *index, items);
+        // A validator outside the list is never asked to sign.
+        let mut sign = |items: &[Hash32]| sign_batch(tree, leaves, committee, index.unwrap_or(u16::MAX), items);
         let order = |digest: &Hash32| held.get(digest).map(|place| &applied[*place as usize]);
         let mut env = Env {
             committee,
@@ -537,7 +549,7 @@ impl Core {
             return;
         }
         self.tended = now;
-        if !self.closer.frozen() && self.closer.decided().is_none() {
+        if self.index.is_some() && !self.closer.frozen() && self.closer.decided().is_none() {
             // An epoch ends when its time is up or it is full. A validator
             // also stops when others holding more than a third of the stake
             // have, which dishonest validators alone cannot bring about.
@@ -592,7 +604,7 @@ impl Core {
         evidence.sort_by_key(|(first, _)| first.order.from);
         let statement = Statement {
             epoch: self.committee.epoch(),
-            validator: self.index,
+            validator: self.index.expect("only a validator in the list stops work"),
             log: self.pin,
             evidence,
             next_key: self.next_key.as_ref().map(|(_, tree)| NextKey { root: tree.root(), height: tree.height() }),
@@ -714,9 +726,8 @@ impl Core {
 
         // A replacement key tree named in this validator's statement takes
         // over once the checkpoint lists it.
-        let mine = &self.committee.members()[self.index as usize];
         if let Some((_, tree)) = &self.next_key
-            && tree.root() == mine.root
+            && self.committee.members().iter().any(|member| member.root == tree.root())
         {
             let (_, tree) = self.next_key.take().expect("checked above");
             let counter = self.data_dir.join(format!("leaf-{}", tree.root().short()));
@@ -731,6 +742,16 @@ impl Core {
             }
         }
 
+        // Its place in the list, which stakes can change from one epoch to
+        // the next, or none if it is not one of the validators any more.
+        let place = place_of(&self.committee, &self.tree.root());
+        if self.log && place.is_none() != self.index.is_none() {
+            match place {
+                Some(_) => println!("[{}] is one of the validators again from epoch {}", self.name, self.committee.epoch()),
+                None => println!("[{}] is not one of the validators of epoch {}; following only", self.name, self.committee.epoch()),
+            }
+        }
+        self.index = place;
         self.closer = Closer::open(
             &self.epochs.journal(),
             self.index,
@@ -770,6 +791,10 @@ impl Core {
     }
 
     fn on_order(&mut self, signed: SignedOrder, digest: Hash32, signed_by: SignedBy, reply: Sender<Response>) {
+        if self.index.is_none() {
+            let _ = reply.send(Response::Unavailable(NOT_IN_THE_LIST.into()));
+            return;
+        }
         let payment = (signed.order.from, signed.order.seq);
         if self.closer.frozen() {
             // No votes until the checkpoint. A second order signed with a
@@ -832,6 +857,10 @@ impl Core {
 
     /// Queues a confirmation of the applied order with this digest.
     fn enqueue_confirmation(&mut self, payment: (AccountId, u64), digest: Hash32, reply: Sender<Response>) {
+        if self.index.is_none() {
+            let _ = reply.send(Response::Unavailable(NOT_IN_THE_LIST.into()));
+            return;
+        }
         // Two requests for the same confirmation share one place in the batch.
         if let Some(position) = self.confirming.get(&payment) {
             self.batch[*position].replies.push(reply);
@@ -912,7 +941,7 @@ impl Core {
         for (position, waiting) in batch.into_iter().enumerate() {
             let (account, seq) = waiting.payment;
             let vote = Vote {
-                validator: self.index,
+                validator: self.index.unwrap_or(u16::MAX),
                 batch_path: tree.path(position),
                 signature: signature.clone(),
             };
@@ -1008,6 +1037,10 @@ impl Core {
 
     /// Signs a confirmation for a payment this validator applied earlier.
     fn on_confirm(&mut self, order: Order, digest: Hash32, reply: Sender<Response>) {
+        if self.index.is_none() {
+            let _ = reply.send(Response::Unavailable(NOT_IN_THE_LIST.into()));
+            return;
+        }
         let payment = (order.from, order.seq);
         // Only for the exact order that was applied.
         let answer = match self.certs.find(&order.from, order.seq) {
@@ -1032,7 +1065,7 @@ impl Core {
             && kept.seq == order.seq
         {
             let _ = reply.send(Response::Confirmed(Confirmation {
-                validator: self.index,
+                validator: self.index.unwrap_or(u16::MAX),
                 batch_path: kept.batch_path.clone(),
                 signature: (*kept.signature).clone(),
             }));
@@ -1447,7 +1480,6 @@ impl Node {
 
         // Which key tree this validator signs with now: the one it was
         // given, or a replacement it built later and a checkpoint adopted.
-        let wanted = committee.members()[index].root;
         let stored = |file: &str| -> Result<Option<(ValidatorKey, KeyTree)>> {
             let path = data_dir.join(file);
             if !path.exists() {
@@ -1458,17 +1490,20 @@ impl Node {
             Ok(Some((key, tree)))
         };
         let mut next_key = stored("next.key")?;
-        let tree = if original.root() == wanted {
-            original
-        } else if let Some((_, tree)) = stored("current.key")?.filter(|(_, tree)| tree.root() == wanted) {
-            tree
-        } else if next_key.as_ref().is_some_and(|(_, tree)| tree.root() == wanted) {
+        let listed = |tree: &KeyTree| place_of(&committee, &tree.root()).is_some();
+        let current = stored("current.key")?;
+        let tree = if next_key.as_ref().is_some_and(|(_, tree)| listed(tree)) {
             // It took over just before a restart; the file was not renamed.
             fs::rename(data_dir.join("next.key"), data_dir.join("current.key"))?;
             next_key.take().expect("checked above").1
+        } else if let Some((_, tree)) = current {
+            // A replacement adopted earlier, whether or not this validator
+            // is in this epoch's list.
+            tree
         } else {
-            bail!("the key this validator signs with in epoch {epoch} is not in {}", data_dir.display());
+            original
         };
+        let place = place_of(&committee, &tree.root());
 
         let mut state = match epochs.snapshot()? {
             Some(snapshot) => State::from_snapshot(&snapshot).context("the state snapshot is corrupt")?,
@@ -1513,7 +1548,7 @@ impl Node {
         let leaves = LeafCounter::open(counter, tree_capacity, config.durable)?;
 
         let pace = Pace { unit: config.close_pace, clock_tolerance: config.clock_tolerance };
-        let mut closer = Closer::open(&epochs.journal(), index as u16, &committee, previous, pace, config.durable)?;
+        let mut closer = Closer::open(&epochs.journal(), place, &committee, previous, pace, config.durable)?;
         if let Some(pinned) = closer.own_pin() {
             // It had stopped work on this epoch before the restart.
             let own_log = digests[..digests.len().min(pinned.length as usize)].to_vec();
@@ -1573,7 +1608,7 @@ impl Node {
         }
         let core = Core {
             name: name.clone(),
-            index: index as u16,
+            index: place,
             committee,
             committee_cell,
             closing,
