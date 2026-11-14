@@ -15,6 +15,7 @@ mod activity;
 mod contacts;
 mod money;
 mod send;
+mod update;
 
 use orien_ledger::AccountId;
 use orien_net::client::{Client, Head};
@@ -385,7 +386,8 @@ async fn send_payment(app: AppHandle, to: String, amount: String, password: Opti
 fn main() {
     tauri::Builder::default()
         .plugin(tauri_plugin_dialog::init())
-        .invoke_handler(tauri::generate_handler![has_wallet, create_wallet, restore_wallet, set_password, choose_wallet, overview_now, send_payment, activity, quote, contacts, save_contact, delete_contact])
+        .plugin(tauri_plugin_updater::Builder::new().build())
+        .invoke_handler(tauri::generate_handler![has_wallet, create_wallet, restore_wallet, set_password, choose_wallet, overview_now, send_payment, activity, quote, contacts, save_contact, delete_contact, update::check_update, update::install_update])
         .run(tauri::generate_context!())
         .expect("the wallet window could not start");
 }

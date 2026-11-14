@@ -29,9 +29,32 @@
     "withGlobalTauri": true
   },
   "bundle": {
-    "active": false,
+    "active": true,
+    "targets": [
+      "app",
+      "dmg"
+    ],
+    "createUpdaterArtifacts": true,
+    "category": "Finance",
+    "shortDescription": "The Orien wallet",
+    "copyright": "Orien",
     "icon": [
-      "icons/icon.png"
-    ]
+      "icons/32x32.png",
+      "icons/128x128.png",
+      "icons/128x128@2x.png",
+      "icons/icon.icns",
+      "icons/icon.ico"
+    ],
+    "macOS": {
+      "minimumSystemVersion": "11.0"
+    }
+  },
+  "plugins": {
+    "updater": {
+      "pubkey": "PENDING",
+      "endpoints": [
+        "https://orien.network/wallet/latest.json"
+      ]
+    }
   }
 }

@@ -88,6 +88,15 @@
   .status.ok i { background: var(--good); box-shadow: 0 0 8px #a6e3c680; }
   .status.warn i { background: #ecc58e; }
   .status.bad i { background: var(--bad); }
+  /* A newer version: takes the status marker's place at the top right. */
+  .update {
+    position: absolute; right: 16px; top: 50%; transform: translateY(-50%);
+    height: 28px; padding: 0 12px; border: 0; border-radius: 14px; cursor: pointer;
+    font-size: 12px; font-weight: 600; color: var(--pearl-ink); pointer-events: auto;
+    box-shadow: 0 4px 14px #00000040, inset 0 1px 0 #ffffffa0;
+  }
+  .update.required { background: var(--bad); animation: none; }
+  .update:disabled { opacity: 0.7; cursor: default; }
 
   main { flex: 1; display: flex; flex-direction: column; min-height: 0; }
   .screen { flex: 1; display: flex; flex-direction: column; min-height: 0; }
@@ -304,6 +313,7 @@
   <header data-tauri-drag-region>
     <h1 class="wordmark"><span class="mark brand"></span><span class="word brand">ORIEN</span></h1>
     <div class="status" id="status" hidden><i></i><span id="status-text"></span></div>
+    <button class="update pearl" id="update" hidden></button>
   </header>
 
   <main>
@@ -640,6 +650,10 @@
   // ---- Navigation ----
   for (const b of document.querySelectorAll("[data-back]")) b.onclick = home;
   $("go-send").onclick = () => {
+    if (update && update.required) {
+      problem("home-problem", "This version of Orien no longer works with the network. Press Update at the top to keep sending.");
+      return;
+    }
     $("amount").value = ""; $("to").value = "";
     quoted = null; $("fee-line").textContent = ""; $("amount").style.color = "";
     validate(); show("send"); $("amount").focus();
@@ -891,6 +905,30 @@
   };
 
   setInterval(() => { if (!$("home").hidden || !$("activity").hidden) refresh(); }, 15000);
+
+  // ---- Updates: checked at start and every six hours, installed only on a press ----
+  let update = null;
+  async function checkUpdate() {
+    try { update = await invoke("check_update"); } catch { return; } // offline: try again later
+    const button = $("update");
+    button.hidden = !update; $("status").style.visibility = update ? "hidden" : "";
+    if (!update) return;
+    button.classList.toggle("required", update.required);
+    button.textContent = update.required ? "Update needed" : `Update to ${update.version}`;
+    button.title = update.notes || "";
+  }
+  $("update").onclick = async () => {
+    const button = $("update");
+    button.disabled = true; button.innerHTML = '<span class="spinner"></span>Updating';
+    try { await invoke("install_update"); } // restarts the app when done
+    catch (error) {
+      button.disabled = false; button.textContent = "Update failed";
+      if (!$("home").hidden) problem("home-problem", error);
+      setTimeout(checkUpdate, 3000);
+    }
+  };
+  checkUpdate();
+  setInterval(checkUpdate, 6 * 60 * 60 * 1000);
   loadBook().then(start).catch((e) => problem("welcome-problem", e));
 </script>
 </body>

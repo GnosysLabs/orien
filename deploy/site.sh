@@ -28,6 +28,10 @@ WEB_ROOT=$2
 RELEASE=$3
 
 chmod -R a+rX "$WEB_ROOT/releases/$RELEASE"
+# Wallet app downloads and updates live outside the releases, so they
+# survive every deploy; apps/wallet/release.sh fills the folder.
+mkdir -p "$WEB_ROOT/wallet"
+ln -sfn "$WEB_ROOT/wallet" "$WEB_ROOT/releases/$RELEASE/wallet"
 ln -sfn "$WEB_ROOT/releases/$RELEASE" "$WEB_ROOT/current"
 
 # Keep the three newest releases.
