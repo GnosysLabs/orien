@@ -20,5 +20,5 @@ pub use state::{
 };
 pub use types::{
     AccountId, Certificate, Confirmation, Kind, Order, Receipt, SPARE_HEIGHT, Signature, SignedBy,
-    SignedOrder, Vote, address, confirmation_item,
+    SignedOrder, Validator, Vote, address, confirmation_item,
 };

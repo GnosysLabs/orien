@@ -17,12 +17,40 @@ pub fn address(first_key: &Hash32, spare: &Hash32) -> AccountId {
     hash(Tag::Address, &[first_key.as_bytes(), spare.as_bytes()])
 }
 
-/// What an order does. Only payments exist so far. More kinds will be added
-/// as new variants, which leaves the encoding of the existing ones alone.
-#[derive(Clone, Copy, Debug, PartialEq, Eq, BorshSerialize, BorshDeserialize)]
+/// What an order does. New kinds are added as new variants at the end,
+/// which leaves the encoding of the existing ones alone.
+#[derive(Clone, Debug, PartialEq, Eq, BorshSerialize, BorshDeserialize)]
 pub enum Kind {
     /// Moves `amount` from `from` to `to`.
     Payment,
+    /// Locks `amount` of the account's coins as stake behind this
+    /// validator, and names the account's validator: a later stake order
+    /// can name a new key tree or a new address. `to` must be the account
+    /// itself; staking with someone else's validator is not built.
+    Stake(Validator),
+    /// Starts the release of `amount` of the account's stake. The coins
+    /// stay locked, and can still be taken for cheating, until the wait set
+    /// in the genesis file is over. `to` must be the account itself.
+    Unstake,
+}
+
+/// The longest network address a stake order may name.
+pub const MAX_ADDRESS: usize = 64;
+
+/// A validator as a stake order names it: the key tree it signs with and
+/// where to reach it.
+#[derive(Clone, Debug, PartialEq, Eq, BorshSerialize, BorshDeserialize)]
+pub struct Validator {
+    pub root: Hash32,
+    pub height: u8,
+    pub address: String,
+}
+
+impl Validator {
+    /// A key tree that can be built, and an address of sensible length.
+    pub fn is_usable(&self) -> bool {
+        self.height <= keytree::MAX_HEIGHT && !self.address.is_empty() && self.address.len() <= MAX_ADDRESS
+    }
 }
 
 /// "Account `from`, order number `seq`: send `amount` to `to`."

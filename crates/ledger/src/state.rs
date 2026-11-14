@@ -2,7 +2,7 @@
 //! when to vote for an order, and how a certified order changes balances.
 
 use crate::genesis::Genesis;
-use crate::types::{AccountId, Order, SPARE_HEIGHT, SignedBy, address};
+use crate::types::{AccountId, Kind, Order, SPARE_HEIGHT, SignedBy, Validator, address};
 use borsh::{BorshDeserialize, BorshSerialize};
 use orien_crypto::merkle;
 use orien_crypto::{Hash32, Tag, hash};
@@ -37,11 +37,42 @@ pub struct Account {
     pub spare: Hash32,
     /// How many spare keys cancellations have used up.
     pub spares_used: u32,
+    /// Coins locked as stake behind `validator`. Not spendable.
+    pub staked: u64,
+    /// Coins an unstake order has released from the stake during the
+    /// current epoch. The checkpoint that closes it dates their release.
+    pub unstaking: u64,
+    /// Coins on their way back to the balance: each amount becomes
+    /// spendable at the checkpoint that closes the epoch named with it.
+    /// Until then they are as locked as the stake.
+    pub releases: Vec<(u64, u64)>,
+    /// The validator this account's stake backs, as its latest stake order
+    /// named it.
+    pub validator: Option<Validator>,
 }
 
 impl Account {
     fn holding(balance: i128) -> Account {
-        Account { balance, seq: 0, signer: Signer::First, spare: Hash32::default(), spares_used: 0 }
+        Account {
+            balance,
+            seq: 0,
+            signer: Signer::First,
+            spare: Hash32::default(),
+            spares_used: 0,
+            staked: 0,
+            unstaking: 0,
+            releases: Vec::new(),
+            validator: None,
+        }
+    }
+
+    /// Every coin the account holds: spendable, staked, or waiting to be
+    /// released.
+    pub fn holdings(&self) -> i128 {
+        self.balance
+            + self.staked as i128
+            + self.unstaking as i128
+            + self.releases.iter().map(|(_, amount)| *amount as i128).sum::<i128>()
     }
 
     fn requires(&self, id: &AccountId, order: &Order, by: &SignedBy) -> bool {
@@ -94,6 +125,12 @@ pub enum Reject {
     InsufficientFunds { balance: i128, needed: u64 },
     /// The validator already voted for a different order with this number.
     Conflict { voted: Hash32 },
+    /// A stake or unstake order names an account other than its own.
+    NotOwnAccount,
+    /// A stake order names a key tree too tall to build, or an address that
+    /// is empty or too long.
+    BadValidator,
+    InsufficientStake { staked: u64, needed: u64 },
 }
 
 impl fmt::Display for Reject {
@@ -116,6 +153,13 @@ impl fmt::Display for Reject {
                 "already voted for a different payment with this number ({})",
                 voted.short()
             ),
+            Reject::NotOwnAccount => {
+                f.write_str("stake and unstake orders must name the sender's own account")
+            }
+            Reject::BadValidator => f.write_str("the validator named has an unusable key tree or address"),
+            Reject::InsufficientStake { staked, needed } => {
+                write!(f, "not enough stake: staked {staked}, needs {needed}")
+            }
         }
     }
 }
@@ -145,6 +189,10 @@ fn leaf(id: &AccountId, account: &Account) -> Hash32 {
             account.spare.as_bytes(),
             &account.spares_used.to_le_bytes(),
             &borsh::to_vec(&account.signer).expect("writing to memory cannot fail"),
+            &account.staked.to_le_bytes(),
+            &account.unstaking.to_le_bytes(),
+            &borsh::to_vec(&account.releases).expect("writing to memory cannot fail"),
+            &borsh::to_vec(&account.validator).expect("writing to memory cannot fail"),
         ],
     )
 }
@@ -256,10 +304,32 @@ impl State {
         self.accounts.iter().find(|(_, account)| account.balance < 0).map(|(id, _)| *id)
     }
 
-    /// Sum of all balances. Applying a certificate moves money and never
-    /// creates it, so this always equals the genesis supply.
+    /// Every coin in every account, staked and waiting ones included.
+    /// Applying a certificate moves money and never creates it, so this
+    /// always equals the genesis supply.
     pub fn total(&self) -> i128 {
-        self.accounts.values().map(|a| a.balance).sum()
+        self.accounts.values().map(Account::holdings).sum()
+    }
+
+    /// The stake side of closing `epoch`. Releases whose wait ends with
+    /// this epoch become spendable, and coins unstaked during it start
+    /// their wait of `unstake_epochs` epochs.
+    pub fn settle_stakes(&mut self, epoch: u64, unstake_epochs: u64) {
+        for account in self.accounts.values_mut() {
+            let mut released = 0;
+            account.releases.retain(|(until, amount)| {
+                let due = *until <= epoch;
+                if due {
+                    released += *amount as i128;
+                }
+                !due
+            });
+            account.balance += released;
+            if account.unstaking > 0 {
+                account.releases.push((epoch.saturating_add(unstake_epochs), account.unstaking));
+                account.unstaking = 0;
+            }
+        }
     }
 
     /// Re-establishes a vote recorded before a restart.
@@ -300,10 +370,23 @@ impl State {
         {
             return Err(Reject::Conflict { voted: *voted });
         }
+        if !matches!(order.kind, Kind::Payment) && order.to != order.from {
+            return Err(Reject::NotOwnAccount);
+        }
+        if let Kind::Stake(validator) = &order.kind
+            && !validator.is_usable()
+        {
+            return Err(Reject::BadValidator);
+        }
         // Checked on every vote, a repeated one included. A promise to vote
         // for an order is not a promise that its funds are still there: a
-        // checkpoint can undo the payment that provided them.
-        if account.balance < order.amount as i128 {
+        // checkpoint can undo the payment that provided them, or take the
+        // stake of a validator that cheated.
+        if let Kind::Unstake = order.kind {
+            if account.staked < order.amount {
+                return Err(Reject::InsufficientStake { staked: account.staked, needed: order.amount });
+            }
+        } else if account.balance < order.amount as i128 {
             return Err(Reject::InsufficientFunds { balance: account.balance, needed: order.amount });
         }
         if promised.is_some() {
@@ -327,14 +410,30 @@ impl State {
             return Err(Reject::FutureSeq { current });
         }
         let sender = self.accounts.entry(order.from).or_insert_with(|| Account::holding(0));
-        sender.balance -= order.amount as i128;
         sender.seq += 1;
         if sender.signer == Signer::First {
             sender.spare = order.spare;
         }
         sender.signer = Signer::Key(order.next_key);
-        let recipient = self.accounts.entry(order.to).or_insert_with(|| Account::holding(0));
-        recipient.balance += order.amount as i128;
+        match &order.kind {
+            Kind::Payment => {
+                sender.balance -= order.amount as i128;
+                let recipient = self.accounts.entry(order.to).or_insert_with(|| Account::holding(0));
+                recipient.balance += order.amount as i128;
+            }
+            Kind::Stake(validator) => {
+                sender.balance -= order.amount as i128;
+                sender.staked += order.amount;
+                sender.validator = Some(validator.clone());
+            }
+            Kind::Unstake => {
+                // The voters saw enough stake. A checkpoint may since have
+                // taken it, and coins that are gone cannot be released.
+                let amount = order.amount.min(sender.staked);
+                sender.staked -= amount;
+                sender.unstaking += amount;
+            }
+        }
         self.locks.remove(&(order.from, order.seq));
         Ok(Applied::New)
     }
