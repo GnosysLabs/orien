@@ -98,6 +98,7 @@ pub enum Tag {
     Proposal = 0x44,
     StakeProof = 0x45,
     Work = 0x46,
+    Release = 0x47,
 }
 
 /// Hashes `parts` under `tag`. Parts are concatenated without separators, so

@@ -361,6 +361,7 @@ cheating earns nothing.
 
 The rules below were accepted on 2026-11-14.
 
+- The coin's ticker is **ORN** (chosen on 2026-11-14).
 - The genesis file allocates nothing. The cap is 100 million coins, each
   divisible to nine decimal places.
 - Coins are released on a curve with a half-life of four years: about

@@ -16,6 +16,8 @@ use std::path::{Path, PathBuf};
 use std::thread;
 use std::time::{Duration, Instant, SystemTime, UNIX_EPOCH};
 
+mod release;
+
 #[derive(Parser)]
 #[command(name = "orien", version, about = "A quantum-proof payment network with no blocks and no global ordering")]
 struct Cli {
@@ -146,6 +148,11 @@ enum Command {
         #[arg(long, default_value_t = 16)]
         height: u8,
     },
+    /// Update orien to the newest version, if the Orien release key signed it
+    Update,
+    /// Make and use the Orien release key (for whoever publishes releases)
+    #[command(subcommand, hide = true)]
+    Release(ReleaseCommand),
     /// Write or check the genesis file of a real network
     #[command(subcommand)]
     Genesis(GenesisCommand),
@@ -160,6 +167,18 @@ enum WalletCommand {
     New { file: PathBuf },
     /// Show a wallet's account address
     Address { file: PathBuf },
+}
+
+#[derive(Subcommand)]
+enum ReleaseCommand {
+    /// Make a new release key
+    Keygen { out: PathBuf },
+    /// Sign a release's SHA256SUMS, writing SHA256SUMS.sig beside it
+    Sign {
+        #[arg(long)]
+        key: PathBuf,
+        sums: PathBuf,
+    },
 }
 
 #[derive(Subcommand)]
@@ -329,6 +348,9 @@ fn run(cli: Cli) -> Result<()> {
         Command::Mine { account, threads, network } => mine(&account, threads, &network.genesis),
         Command::Node { key, data, listen, network } => node(&key, data, listen, &network.genesis),
         Command::Keygen { out, height } => keygen(&out, height),
+        Command::Update => release::update(),
+        Command::Release(ReleaseCommand::Keygen { out }) => release::keygen(&out),
+        Command::Release(ReleaseCommand::Sign { key, sums }) => release::sign(&key, &sums),
         Command::Genesis(GenesisCommand::New { out, name, validators, bitcoin, start, epoch_seconds }) => {
             genesis_new(&out, &name, &validators, bitcoin, start, epoch_seconds)
         }
@@ -1149,19 +1171,6 @@ fn genesis_new(
     genesis_show(&genesis)
 }
 
-/// Whether an address is on a private network: Tailscale, a home or office
-/// network, or this machine.
-fn private(address: &str) -> bool {
-    let host = address.rsplit_once(':').map_or(address, |(host, _)| host);
-    match host.parse::<std::net::Ipv4Addr>() {
-        Ok(ip) => {
-            let [a, b, ..] = ip.octets();
-            ip.is_private() || ip.is_loopback() || (a == 100 && (64..128).contains(&b))
-        }
-        Err(_) => host == "localhost",
-    }
-}
-
 fn genesis_show(genesis: &Genesis) -> Result<()> {
     println!("network     '{}'", genesis.network);
     println!("id          {}", genesis.id());
@@ -1213,12 +1222,8 @@ fn genesis_show(genesis: &Genesis) -> Result<()> {
     if genesis.supply() > 0 {
         println!("note: this file hands out coins at the start");
     }
-    for v in genesis.validators.iter().filter(|v| !private(&v.address)) {
-        println!(
-            "warning: {} is at {}, which is not a private address. Connections between validators are not \
-             encrypted yet; keep them on a private network such as Tailscale.",
-            v.name, v.address
-        );
+    if genesis.validators.iter().any(|v| v.address.is_empty() || !v.address.contains(':')) {
+        println!("warning: every launch validator needs an address as HOST:PORT that the others can reach");
     }
     Ok(())
 }
