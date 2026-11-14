@@ -2,6 +2,7 @@
 name = "orien-ledger"
 version.workspace = true
 edition.workspace = true
+license.workspace = true
 
 [dependencies]
 orien-crypto.workspace = true

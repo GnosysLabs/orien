@@ -333,3 +333,13 @@ cargo test --release -p orien-net --test devnet throughput -- --ignored --nocapt
 - **No outside review.** The building blocks are standard published
   constructions, but this composition is new. It must be reviewed by
   cryptographers before it holds anything of value.
+
+## License
+
+Orien is free and open-source software, licensed under either of
+
+- the Apache License, Version 2.0 ([LICENSE-APACHE](LICENSE-APACHE)), or
+- the MIT License ([LICENSE-MIT](LICENSE-MIT)),
+
+at your option. Unless you say otherwise, any contribution you submit for
+inclusion is licensed the same way, without any additional terms.
