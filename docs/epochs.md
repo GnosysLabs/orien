@@ -374,6 +374,9 @@ The rules below were accepted on 2026-11-14.
   figure.
 - The first seed is the hash of a Bitcoin block at a height announced in
   advance. Each later seed comes from the previous checkpoint.
+- There is no slow sunrise (decided on 2026-11-14): the release follows
+  the curve from the first hour, and anyone, the founder included, can
+  mine from the moment the network is live.
 - The launch validators hold seats that carry voting weight, cannot be
   spent and earn no released coins, and fade out.
 
@@ -396,8 +399,6 @@ Stuck accounts are freed from stage 3 on.
 
 ## Not decided
 
-- **A slow sunrise.** Whether the release rate starts near zero and climbs
-  to full over the first 90 days.
 - **The launch seats' total weight.** Test networks use 3 million coins.
 - **The launch values of the fee.** A coin worth far more than today makes
   the minimum and maximum dearer; only very small and very large payments

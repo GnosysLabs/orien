@@ -2,7 +2,7 @@ use anyhow::{Context, Result, anyhow, bail};
 use clap::{Args, Parser, Subcommand};
 use orien_crypto::keytree::KeyTree;
 use orien_ledger::{
-    AccountId, Allocation, COIN, Certificate, Genesis, Kind, Receipt, Signature, SignedOrder, Validator, ValidatorInfo,
+    AccountId, Allocation, BitcoinBlock, COIN, Certificate, Genesis, Kind, Receipt, Signature, SignedOrder, Validator, ValidatorInfo,
     coins, parse_coins, sign_stake_proof,
 };
 use orien_ledger::Signer;
@@ -185,6 +185,14 @@ enum DevnetCommand {
         /// hour; a short one lets you watch checkpoints happen.
         #[arg(long, default_value_t = 60)]
         epoch_seconds: u64,
+        /// Hand out no coins: every coin comes from mining, as on the real
+        /// network. Without it, alice and bob start with a million each.
+        #[arg(long)]
+        from_nothing: bool,
+        /// Anchor the network to a Bitcoin block, as HEIGHT:HASH with the
+        /// hash as block explorers show it. Nobody can mine before it.
+        #[arg(long, value_parser = parse_bitcoin_block)]
+        bitcoin: Option<BitcoinBlock>,
     },
     /// Run every validator of a local network in this process
     Run {
@@ -296,12 +304,15 @@ fn run(cli: Cli) -> Result<()> {
             addresses,
             name,
             epoch_seconds,
+            from_nothing,
+            bitcoin,
         }) => {
             let addresses = match addresses.is_empty() {
                 true => (0..validators).map(|i| format!("{host}:{}", base_port as usize + i)).collect(),
                 false => addresses,
             };
-            devnet_init(&dir, &name, &addresses, height, epoch_seconds)
+            let start = Start { epoch_seconds, from_nothing, bitcoin };
+            devnet_init(&dir, &name, &addresses, height, start)
         }
         Command::Devnet(DevnetCommand::Run { dir }) => devnet_run(&dir),
         Command::Devnet(DevnetCommand::Interrupt { dir, wallet, to, amount }) => {
@@ -884,6 +895,15 @@ fn status(genesis: &Path) -> Result<()> {
         coins(fee.max as i128),
         coins(fee.min as i128)
     );
+    // Coins released by the checkpoints so far, which the mint counts as a
+    // debt.
+    let released = client.proven(&orien_ledger::MINT).map_or(0, |mint| -mint.balance);
+    println!(
+        "coins: {} released for work so far, of at most {}{}",
+        coins(released),
+        coins(genesis.cap as i128),
+        genesis.bitcoin.map_or(String::new(), |block| format!("; started from Bitcoin block {}", block.height))
+    );
     // Who votes this epoch, as the checkpoints say. The launch seats come
     // first, in the genesis file's order.
     let committee = client.committee();
@@ -1057,7 +1077,23 @@ fn node(key: &Path, data: PathBuf, listen: Option<String>, genesis: &Path) -> Re
 /// The voting weight the launch seats share on a new test network.
 const SEAT_WEIGHT: u64 = 3_000_000 * COIN;
 
-fn devnet_init(dir: &Path, network: &str, addresses: &[String], height: u8, epoch_seconds: u64) -> Result<()> {
+/// How a new test network starts.
+struct Start {
+    epoch_seconds: u64,
+    from_nothing: bool,
+    bitcoin: Option<BitcoinBlock>,
+}
+
+/// Reads HEIGHT:HASH.
+fn parse_bitcoin_block(text: &str) -> Result<BitcoinBlock, String> {
+    let (height, hash) = text.split_once(':').ok_or("expected HEIGHT:HASH")?;
+    let height = height.trim().parse().map_err(|_| format!("'{height}' is not a block height"))?;
+    let hash = hash.trim().parse().map_err(|_| format!("'{hash}' is not a 64-character block hash"))?;
+    Ok(BitcoinBlock { height, hash })
+}
+
+fn devnet_init(dir: &Path, network: &str, addresses: &[String], height: u8, start: Start) -> Result<()> {
+    let epoch_seconds = start.epoch_seconds;
     if dir.join("genesis.json").exists() {
         bail!("{} already holds a network; delete it or pick another --dir", dir.display());
     }
@@ -1082,7 +1118,8 @@ fn devnet_init(dir: &Path, network: &str, addresses: &[String], height: u8, epoc
     }
 
     let mut allocations = Vec::new();
-    for (name, amount) in [("alice", 1_000_000 * COIN), ("bob", 1_000_000 * COIN), ("carol", 0)] {
+    let given = if start.from_nothing { 0 } else { 1_000_000 * COIN };
+    for (name, amount) in [("alice", given), ("bob", given), ("carol", 0)] {
         let wallet = Wallet::create(&dir.join("wallets").join(format!("{name}.wallet")))?;
         if amount > 0 {
             allocations.push(Allocation { account: wallet.address(), amount });
@@ -1093,6 +1130,7 @@ fn devnet_init(dir: &Path, network: &str, addresses: &[String], height: u8, epoc
     let mut genesis = Genesis::new(network, infos, allocations);
     genesis.epoch_seconds = epoch_seconds;
     genesis.start_time = unix_now();
+    genesis.bitcoin = start.bitcoin;
     genesis.validate().map_err(|e| anyhow!("{e}"))?;
     save_genesis(&dir.join("genesis.json"), &genesis)?;
     println!("network id {}", genesis.id());

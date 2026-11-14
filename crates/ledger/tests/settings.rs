@@ -71,3 +71,17 @@ fn amounts_read_and_show_in_coins_with_nine_decimals() {
     assert_eq!(coins(1), "0.000000001");
     assert_eq!(coins(-(COIN as i128) - 5), "-1.000000005");
 }
+
+#[test]
+fn a_bitcoin_block_is_part_of_the_network() {
+    use orien_ledger::BitcoinBlock;
+    let plain = genesis(4);
+    let mut anchored = genesis(4);
+    anchored.bitcoin = Some(BitcoinBlock { height: 950_000, hash: Hash32([7; 32]) });
+    let mut other_block = anchored.clone();
+    other_block.bitcoin = Some(BitcoinBlock { height: 950_000, hash: Hash32([8; 32]) });
+    // Until the block exists, nobody knows its hash, so nobody knows the
+    // network's identity, which is the first epoch's seed.
+    assert_ne!(anchored.id(), plain.id());
+    assert_ne!(anchored.id(), other_block.id());
+}

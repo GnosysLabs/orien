@@ -69,6 +69,18 @@ pub struct Genesis {
     /// read as a number, is below it.
     #[serde(default = "a_first_target")]
     pub first_target: u64,
+    /// A Bitcoin block announced in advance. Its hash is part of the
+    /// network's identity, and the identity is the seed the first epoch's
+    /// work is done against, so nobody can mine before that block exists.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub bitcoin: Option<BitcoinBlock>,
+}
+
+/// A Bitcoin block, its hash written as block explorers show it.
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
+pub struct BitcoinBlock {
+    pub height: u64,
+    pub hash: Hash32,
 }
 
 fn the_cap() -> u64 {
@@ -170,6 +182,7 @@ impl Genesis {
             cap: the_cap(),
             shares_per_epoch: a_thousand(),
             first_target: a_first_target(),
+            bitcoin: None,
         }
     }
 
@@ -205,6 +218,10 @@ impl Genesis {
         ];
         for setting in settings {
             bytes.extend_from_slice(&setting.to_le_bytes());
+        }
+        if let Some(block) = &self.bitcoin {
+            bytes.extend_from_slice(&block.height.to_le_bytes());
+            bytes.extend_from_slice(block.hash.as_bytes());
         }
         hash(Tag::Genesis, &[&bytes])
     }

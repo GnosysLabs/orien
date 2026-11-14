@@ -127,6 +127,7 @@ impl TestNet {
             cap: options.cap,
             shares_per_epoch: 1_000,
             first_target: options.first_target,
+            bitcoin: None,
         };
         let network = genesis.id();
         let mut net = TestNet { dir, genesis, network, keys, nodes: Vec::new(), options };
