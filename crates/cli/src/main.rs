@@ -869,9 +869,9 @@ fn status(genesis: &Path) -> Result<()> {
             member.address
         );
     }
-    println!("the launch seats' servers:");
+    println!("their servers:");
     println!(
-        "{:<6} {:<22} {:>7} {:>8} {:>9} {:>16}  {:<8}",
+        "{:<14} {:<22} {:>7} {:>8} {:>9} {:>16}  {:<8}",
         "name", "address", "epoch", "accounts", "payments", "signing keys", "state"
     );
     let roots = client.roots();
@@ -883,12 +883,12 @@ fn status(genesis: &Path) -> Result<()> {
         .filter(|(info, _)| info.as_ref().is_ok_and(|info| info.network == genesis.id()))
         .filter_map(|(_, root)| root.as_ref())
         .collect();
-    for ((validator, info), root) in genesis.validators.iter().zip(infos).zip(&roots) {
+    for ((address, info), root) in client.endpoints().iter().zip(infos).zip(&roots) {
         match info {
             Ok(info) if info.network == genesis.id() => println!(
-                "{:<6} {:<22} {:>7} {:>8} {:>9} {:>16}  {:<8}{}",
-                validator.name,
-                validator.address,
+                "{:<14} {:<22} {:>7} {:>8} {:>9} {:>16}  {:<8}{}",
+                info.name,
+                address,
                 info.epoch,
                 info.accounts,
                 info.certificates,
@@ -896,8 +896,8 @@ fn status(genesis: &Path) -> Result<()> {
                 root.map_or("-".into(), |root| root.short()),
                 if info.closing { "  closing the epoch" } else { "" }
             ),
-            Ok(_) => println!("{:<6} {:<22} serves a different network", validator.name, validator.address),
-            Err(error) => println!("{:<6} {:<22} unreachable ({error})", validator.name, validator.address),
+            Ok(_) => println!("{:<14} {:<22} serves a different network", "-", address),
+            Err(error) => println!("{:<14} {:<22} unreachable ({error})", "-", address),
         }
     }
     // The state column is a fingerprint of every balance. Equal fingerprints

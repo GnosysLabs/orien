@@ -1590,7 +1590,20 @@ fn a_validator_outside_the_genesis_file_joins_once_staked() {
     wait_until("the newcomer is chosen", || info(&address).validator == Some(4));
     let joined = info(&address).epoch;
     wait_until("two more epochs close with it", || net.info(0).epoch >= joined + 2);
-    net.pay_through("alice", carol, 7);
+
+    // A wallet that follows the checkpoints asks it to vote too.
+    let client = net.client();
+    let mut wallet = net.wallet("alice");
+    let status = client.account(&wallet.address(), wallet.next_seq());
+    let signed = wallet.sign_order(status.seq, carol, 7, status.signer.as_ref(), &net.network).unwrap();
+    wait_until("the newcomer votes for a payment", || {
+        client.follow();
+        client.endpoints().contains(&address) && client.collect_votes(&signed).0.contains_key(&4)
+    });
+    while client.pay(&signed, Duration::from_secs(10)).is_err() {
+        client.follow();
+    }
+    wallet.confirm(status.seq).unwrap();
     let epoch = net.wait_until_level();
     wait_until("the newcomer holds the same accounts", || {
         let root = |response: Response| match response {

@@ -488,6 +488,9 @@ message by message.
   itself.** It needs a key to announce a replacement. Replacement starts at
   half used, so this takes a long outage at the wrong moment. Stage 4,
   where validators are named by stake orders, is where it gets a way back.
+- **A wallet that has been away a long time knows only the validators of
+  its last visit.** If all of them have left since, it has nobody to ask.
+  Falling back to the genesis file's validators would cover it.
 - **A wallet that has been away follows every checkpoint it missed.** That
   is one small download per epoch. A shortcut for long absences is not
   built.
