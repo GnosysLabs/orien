@@ -117,6 +117,10 @@ enum Command {
     Log { statement: Hash32, orders: Vec<Hash32>, reply: Sender<Vec<Hash32>> },
     /// The state `epoch` starts from, fetched from a validator already there.
     Snapshot { epoch: u64, bytes: Vec<u8> },
+    /// The checkpoints that closed the epochs from this validator's on, and
+    /// the state the last of them led to, fetched from a validator that is
+    /// several epochs ahead.
+    Jump { chain: Vec<Decided>, bytes: Vec<u8> },
     /// A replacement key tree is ready.
     NextKey(ValidatorKey, Box<KeyTree>),
     /// Votes seen in a certificate someone handed over, whether or not it
@@ -521,6 +525,7 @@ impl Core {
                     let _ = reply.send(missing.unwrap_or_default());
                 }
                 Command::Snapshot { epoch, bytes } => self.on_snapshot(epoch, &bytes),
+                Command::Jump { chain, bytes } => self.on_jump(chain, &bytes),
                 Command::NextKey(key, tree) => {
                     self.building_key = false;
                     self.next_key = Some((key, *tree));
@@ -704,6 +709,51 @@ impl Core {
     /// The state the next epoch starts from, fetched from a validator that
     /// is already there. Used when this validator knows which checkpoint
     /// closed its epoch but could not work out the state itself.
+    /// Catches up several epochs at once. Each checkpoint in `chain` is
+    /// checked against the validators of the epoch it closes, as a wallet
+    /// checks them, and the state against the last checkpoint's state root.
+    /// Only then does anything change.
+    fn on_jump(&mut self, chain: Vec<Decided>, bytes: &[u8]) {
+        let Some(last) = chain.last() else { return };
+        let (mut committee, mut previous) = (self.committee.clone(), self.previous);
+        for decided in &chain {
+            let checkpoint = &decided.checkpoint;
+            let follows = checkpoint.epoch == committee.epoch() && checkpoint.previous == previous;
+            if !follows || close::verify_decided(&committee, decided).is_err() {
+                return;
+            }
+            previous = checkpoint.digest();
+            committee = committee.following(checkpoint.validators.clone()).with_target(checkpoint.target);
+        }
+        let end = match State::from_snapshot(bytes, self.state.fees()) {
+            Ok(end) if end.root() == last.checkpoint.state => end,
+            _ => return,
+        };
+        if self.log {
+            println!(
+                "[{}] catching up from epoch {} to {} by the checkpoints",
+                self.name,
+                self.committee.epoch(),
+                last.checkpoint.epoch + 1
+            );
+        }
+        // Every checkpoint but the last is only recorded; the last one is a
+        // switch like any other, straight to the state it led to.
+        let (last, passed) = chain.split_last().expect("checked above");
+        for decided in passed {
+            self.checkpoint_saved = false;
+            self.save_checkpoint(decided);
+            let checkpoint = &decided.checkpoint;
+            self.committee =
+                self.committee.following(checkpoint.validators.clone()).with_target(checkpoint.target);
+            self.previous = checkpoint.digest();
+            self.previous_time = checkpoint.time;
+        }
+        self.checkpoint_saved = false;
+        self.save_checkpoint(last);
+        self.switch(last.clone(), end);
+    }
+
     fn on_snapshot(&mut self, epoch: u64, bytes: &[u8]) {
         let Some(decided) = self.closer.decided().cloned() else { return };
         if epoch != self.committee.epoch() + 1 {
@@ -750,7 +800,7 @@ impl Core {
         let records: Vec<&SignedOrder> = left_out.iter().collect();
         self.orders.append(&records, self.durable).expect("cannot record votes; stopping");
         let snapshot = end.snapshot();
-        self.epochs.advance(&snapshot).expect("cannot start the next epoch; stopping");
+        self.epochs.advance_to(checkpoint.epoch + 1, &snapshot).expect("cannot start the next epoch; stopping");
 
         // From here on this validator is in the next epoch.
         let cancelled = self
@@ -1450,8 +1500,16 @@ fn sync_with_peer(shared: Arc<Shared>, address: String, interval: Duration) {
                 let needs_state = shared
                     .ask(|reply| Command::Standing { reply })
                     .is_some_and(|standing| standing.epoch == epoch && standing.needs_state);
-                if needs_state && let Some(bytes) = fetch_snapshot(&address, epoch + 1, TIMEOUT) {
+                // One epoch behind: the next epoch's state. Further behind,
+                // or if that state is gone: every checkpoint since, and the
+                // state of the peer's own epoch.
+                let one_step = theirs == epoch + 1 && needs_state;
+                if one_step && let Some(bytes) = fetch_snapshot(&address, epoch + 1, TIMEOUT) {
                     let _ = shared.commands.send(Command::Snapshot { epoch: epoch + 1, bytes });
+                } else if (theirs > epoch + 1 || needs_state)
+                    && let Some((chain, bytes)) = fetch_jump(&address, epoch, theirs, TIMEOUT)
+                {
+                    let _ = shared.commands.send(Command::Jump { chain, bytes });
                 }
                 break;
             }
@@ -1499,6 +1557,24 @@ fn sync_with_peer(shared: Arc<Shared>, address: String, interval: Duration) {
 }
 
 /// Fetches the state `epoch` starts from, in pieces.
+/// The checkpoints that closed epochs `from` to `to − 1`, and the state
+/// epoch `to` started from, fetched from one peer. Nothing is checked here;
+/// the core checks it all before using any of it.
+fn fetch_jump(address: &str, from: u64, to: u64, timeout: Duration) -> Option<(Vec<Decided>, Vec<u8>)> {
+    let mut chain: Vec<Decided> = Vec::new();
+    while from + (chain.len() as u64) < to {
+        let request = Request::Checkpoints { from: from + chain.len() as u64, max: 64 };
+        let Ok(Response::Checkpoints(page)) = rpc(address, &request, timeout) else { return None };
+        if page.is_empty() {
+            return None;
+        }
+        chain.extend(page);
+    }
+    chain.truncate((to - from) as usize);
+    let bytes = fetch_snapshot(address, to, timeout)?;
+    Some((chain, bytes))
+}
+
 fn fetch_snapshot(address: &str, epoch: u64, timeout: Duration) -> Option<Vec<u8>> {
     let mut bytes = Vec::new();
     loop {

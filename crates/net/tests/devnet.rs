@@ -1755,3 +1755,40 @@ fn a_validator_keeps_only_the_current_epochs_logs() {
     let most = *sizes.iter().max().unwrap();
     assert!(most < 3 * sizes[0], "{sizes:?}");
 }
+
+#[test]
+fn a_validator_away_for_many_epochs_catches_up_by_the_checkpoints() {
+    let mut net = TestNet::with_epochs("jump", 1);
+    let bob = net.address("bob");
+    net.pay_through("alice", bob, 5);
+    let left = net.info(3).epoch;
+    net.stop(3);
+
+    // The others carry on for a good while, with payments, and drop the
+    // snapshots of the epochs v4 is missing.
+    for _ in 0..3 {
+        net.pay_through("alice", bob, 1);
+    }
+    let now = net.info(0).epoch;
+    net.wait_for_epoch(now.max(left + 8));
+    let missed = net.dir.join("data-0").join("epochs").join((left + 1).to_string());
+    wait_until("the others no longer hold the state v4 would need next", || !missed.exists());
+
+    // Back on, v4 cannot take the next epoch's state from anyone. It follows
+    // the checkpoints instead, takes the latest state, and is level with
+    // the others: same epoch, same balances.
+    net.restart(3);
+    net.wait_until_level();
+    let caught_up = net.info(3).epoch;
+    println!("v4 left at epoch {left} and is back at epoch {caught_up}");
+    assert!(caught_up >= left + 8);
+    // It saved the checkpoints it skipped, so it can show them to others.
+    let saved = |epoch: u64| net.dir.join("data-3").join("checkpoints").join(epoch.to_string()).exists();
+    assert!((left..caught_up).all(saved));
+    // And it works as a validator again.
+    let done = net.pay_through("bob", net.address("carol"), 2);
+    if let Done::Receipt(done) = done {
+        assert!(done.receipt.certificate.votes.len() >= 3);
+    }
+    net.wait_until_level();
+}

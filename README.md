@@ -288,9 +288,12 @@ cargo test --release -p orien-net --test devnet throughput -- --ignored --nocapt
   first epoch checks against the genesis file alone. One from a later epoch
   checks against that epoch's validators, which a computer learns by
   following the checkpoints, one small download per epoch.
-- **Old snapshots are kept forever.** A validator deletes each epoch's
-  payment log and closing messages once it has moved on, but keeps every
-  epoch's snapshot of the balances.
+- **Checkpoints are kept forever.** A validator deletes each epoch's
+  payment log and closing messages once it has moved on and keeps only its
+  last three snapshots of the balances; one that has been away catches up
+  by the checkpoints. The checkpoints themselves, about 40 KB an hour with
+  33 validators, are kept so that anyone can follow the network from its
+  genesis file.
 - **A wallet cannot replace a signed payment.** Once signed, a payment can
   only be finished as it is, by any copy of the wallet. It cannot be
   cancelled.

@@ -59,6 +59,10 @@ pub fn sync_dir(dir: &Path) -> io::Result<()> {
 /// current epoch, so a crash leaves the validator wholly in the old epoch or
 /// wholly in the new one. A restart reads only the current epoch's folder,
 /// and so can never replay a payment that a checkpoint left out.
+/// How many epochs' state snapshots a validator keeps, its current one
+/// included.
+pub const KEPT_STATES: u64 = 3;
+
 pub struct Epochs {
     dir: PathBuf,
     current: u64,
@@ -154,7 +158,14 @@ impl Epochs {
 
     /// Starts the next epoch from `snapshot`, with an empty certificate log.
     pub fn advance(&mut self, snapshot: &[u8]) -> io::Result<()> {
-        let next = self.current + 1;
+        self.advance_to(self.current + 1, snapshot)
+    }
+
+    /// Moves to epoch `next`, later than the current one, starting from
+    /// `snapshot`. One step, however many epochs it skips: the epoch number
+    /// is written last, so a crash leaves the old epoch in place.
+    pub fn advance_to(&mut self, next: u64, snapshot: &[u8]) -> io::Result<()> {
+        assert!(next > self.current, "epochs only move forward");
         let folder = self.folder(next);
         // A crash during an earlier attempt can have left this folder behind.
         match fs::remove_dir_all(&folder) {
@@ -176,7 +187,9 @@ impl Epochs {
     /// closing journals and sync cursors. Once a validator has moved on,
     /// nothing reads them again: other validators only ever ask about the
     /// current epoch, and a restart replays only the current epoch's files.
-    /// Each epoch's state snapshot stays.
+    /// The state snapshots of the last `KEPT_STATES` epochs stay, for
+    /// validators a step or two behind; one further behind catches up by
+    /// the checkpoints and the latest state instead.
     fn prune(&self) -> io::Result<()> {
         let entries = match fs::read_dir(self.dir.join("epochs")) {
             Ok(entries) => entries,
@@ -185,8 +198,14 @@ impl Epochs {
         };
         for entry in entries {
             let folder = entry?.path();
-            let old = folder.file_name().and_then(|name| name.to_str()?.parse::<u64>().ok()).is_some_and(|epoch| epoch < self.current);
-            if !old {
+            let Some(epoch) = folder.file_name().and_then(|name| name.to_str()?.parse::<u64>().ok()) else {
+                continue;
+            };
+            if epoch >= self.current {
+                continue;
+            }
+            if epoch + KEPT_STATES <= self.current {
+                fs::remove_dir_all(&folder)?;
                 continue;
             }
             for file in fs::read_dir(&folder)? {
