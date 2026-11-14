@@ -42,7 +42,7 @@ function Note({ children }: { children: React.ReactNode }) {
 export default function GetStartedPage() {
   return (
     <div className="mx-auto max-w-[760px]">
-      <header className="pb-10 pt-10 sm:pt-14">
+      <header className="pb-6 pt-10 sm:pt-14">
         <p className="mb-4 text-xs font-semibold uppercase tracking-[0.2em] text-muted">Get started</p>
         <h1 className="text-balance text-4xl font-bold leading-[1.1] tracking-tight text-ink sm:text-5xl">
           From nothing to your first ORN
@@ -53,7 +53,7 @@ export default function GetStartedPage() {
         </p>
       </header>
 
-      <div className="space-y-5">
+      <div className="space-y-6">
         <Step number={1} icon={Download} title="Install orien">
           <p>Open a terminal and paste one line. It picks the right version for your computer and checks it before installing.</p>
           <CopyText label="Mac and Linux" text="curl -fsSL https://orien.network/install.sh | sh" />
@@ -150,7 +150,7 @@ export default function GetStartedPage() {
         </Step>
       </div>
 
-      <div className="mb-8 mt-10 flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-line bg-surface p-6">
+      <div className="mb-8 mt-6 flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-line bg-surface p-6">
         <p className="font-semibold text-ink">Curious what happens under the hood?</p>
         <Link
           href="/how-it-works/"
