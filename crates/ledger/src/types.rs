@@ -52,6 +52,18 @@ pub struct Validator {
     pub address: String,
 }
 
+/// The one-time key of a validator's key tree kept for stake proofs. A
+/// validator never signs anything else with it, and signing the same proof
+/// again gives the same signature, so a proof can be made as often as it is
+/// needed. Naming a new address takes a new key tree.
+pub const STAKE_PROOF_LEAF: u32 = 0;
+
+/// The proof that the validator with this key tree backs `account`'s stake
+/// at `address`.
+pub fn sign_stake_proof(tree: &keytree::KeyTree, network: &Hash32, account: &AccountId, address: &str) -> TreeSignature {
+    tree.sign_with_leaf(STAKE_PROOF_LEAF, stake_proof_item(network, account, address).as_bytes())
+}
+
 /// What a validator signs to show that it backs `account`'s stake, at
 /// `address`, on this network.
 pub fn stake_proof_item(network: &Hash32, account: &AccountId, address: &str) -> Hash32 {

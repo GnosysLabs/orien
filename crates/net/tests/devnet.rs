@@ -739,25 +739,28 @@ fn a_validator_keeps_proof_that_an_owner_signed_twice() {
 
 #[test]
 fn a_validator_holds_keys_back_for_closing_an_epoch() {
-    // A tree of 16 one-time keys, of which a quarter are held back. One
-    // payment at a time takes two: one for the vote, one for the confirmation.
+    // A tree of 16 one-time keys: the first is kept for stake proofs and a
+    // quarter are held back. One payment at a time takes two: one for the
+    // vote, one for the confirmation.
     let options = Options { validators: 1, height: 4, ..Options::default() };
     let net = TestNet::start_with("reserve", options);
     let bob = net.address("bob");
-    for _ in 0..6 {
+    for _ in 0..5 {
         net.pay("alice", bob, 1);
     }
-    assert_eq!((net.info(0).keys_used, net.info(0).keys_total), (12, 16));
+    assert_eq!((net.info(0).keys_used, net.info(0).keys_total), (11, 16));
 
-    // The seventh payment gets no vote, and nothing moves.
+    // The sixth payment gets the last vote, but no confirmation: the keys
+    // left are held back for closing the epoch.
     match net.try_pay("alice", bob, 1) {
-        Err(TransferError::NoQuorum { stake: 0, refusals, .. }) => {
+        Err(TransferError::NotConfirmed { stake: 0, refusals, .. }) => {
             assert!(refusals[0].1.contains("no one-time keys left for payments"), "{refusals:?}");
         }
         other => panic!("expected a refusal, got {:?}", other.map(|r| r.votes)),
     }
+    // Asking again changes nothing: no key below the reserve is left.
+    assert!(net.try_pay("alice", bob, 1).is_err());
     assert_eq!(net.info(0).keys_used, 12);
-    assert_eq!(net.view(0, &bob).balance, START as i128 + 6);
 }
 
 /// Gathers votes for an order into a certificate, without going further.

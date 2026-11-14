@@ -2,7 +2,8 @@ use anyhow::{Context, Result, anyhow, bail};
 use clap::{Args, Parser, Subcommand};
 use orien_crypto::keytree::KeyTree;
 use orien_ledger::{
-    AccountId, Allocation, Certificate, Genesis, Receipt, Signature, SignedOrder, ValidatorInfo,
+    AccountId, Allocation, Certificate, Genesis, Kind, Receipt, Signature, SignedOrder, Validator, ValidatorInfo,
+    sign_stake_proof,
 };
 use orien_ledger::Signer;
 use orien_net::client::{AccountStatus, Client, Done, Head, TransferError, Unfinished};
@@ -53,6 +54,33 @@ enum Command {
         /// Save the proof of payment to this file
         #[arg(long)]
         receipt: Option<PathBuf>,
+        #[command(flatten)]
+        network: Network,
+    },
+    /// Lock coins as stake behind a validator, which then joins the
+    /// validators at a checkpoint if its stake is among the largest
+    Stake {
+        #[arg(short, long)]
+        wallet: PathBuf,
+        #[arg(long)]
+        amount: u64,
+        /// The validator's key file. Its first one-time key signs that the
+        /// validator backs this stake; nothing else ever uses that key.
+        #[arg(long)]
+        validator_key: PathBuf,
+        /// Where other validators and wallets reach the validator
+        #[arg(long)]
+        address: String,
+        #[command(flatten)]
+        network: Network,
+    },
+    /// Start releasing staked coins. They stay locked, and can still be
+    /// taken for cheating, until the wait set in the genesis file is over.
+    Unstake {
+        #[arg(short, long)]
+        wallet: PathBuf,
+        #[arg(long)]
+        amount: u64,
         #[command(flatten)]
         network: Network,
     },
@@ -216,7 +244,25 @@ fn run(cli: Cli) -> Result<()> {
         }
         Command::Balance { account, network } => balance(&account, &network.genesis),
         Command::Send { wallet, to, amount, receipt, network } => {
-            send(&wallet, &to, amount, receipt.as_deref(), &network.genesis)
+            let to = resolve_account(&to)?;
+            submit(&wallet, |_, _| Ok(Kind::Payment), Some(to), amount, receipt.as_deref(), &network.genesis)
+        }
+        Command::Stake { wallet, amount, validator_key, address, network } => {
+            let key = ValidatorKey::load(&validator_key)?;
+            let stake = |account: &AccountId, network: &orien_ledger::Genesis| {
+                println!("building the validator's key tree to sign for the stake...");
+                let tree = KeyTree::generate(key.seed, key.height);
+                let validator = Validator { root: tree.root(), height: key.height, address: address.clone() };
+                if !validator.is_usable() {
+                    bail!("the address must be 1 to {} characters", orien_ledger::types::MAX_ADDRESS);
+                }
+                let proof = sign_stake_proof(&tree, &network.id(), account, &address);
+                Ok(Kind::Stake { validator, proof })
+            };
+            submit(&wallet, stake, None, amount, None, &network.genesis)
+        }
+        Command::Unstake { wallet, amount, network } => {
+            submit(&wallet, |_, _| Ok(Kind::Unstake), None, amount, None, &network.genesis)
         }
         Command::Resume { wallet, payment, receipt, network } => {
             resume(&wallet, payment.as_deref(), receipt.as_deref(), &network.genesis)
@@ -584,12 +630,23 @@ fn finish(client: &Client, wallet: &mut Wallet, signed: &SignedOrder, receipt_fi
     save_receipt(&done.receipt, receipt_file)
 }
 
-fn send(wallet_file: &Path, to: &str, amount: u64, receipt_file: Option<&Path>, genesis: &Path) -> Result<()> {
+/// Signs an order and waits until it is final: a payment to `to`, or with
+/// `to` left out, a stake or unstake order on the wallet's own account.
+/// `kind` makes the order's kind once the wallet's account is known.
+fn submit(
+    wallet_file: &Path,
+    kind: impl FnOnce(&AccountId, &Genesis) -> Result<Kind>,
+    to: Option<AccountId>,
+    amount: u64,
+    receipt_file: Option<&Path>,
+    genesis: &Path,
+) -> Result<()> {
     let genesis_file = genesis;
     let (genesis, client) = connect(genesis_file)?;
     let network = genesis.id();
     let mut wallet = Wallet::load(wallet_file)?;
-    let to = resolve_account(to)?;
+    let to = to.unwrap_or(wallet.address());
+    let kind = kind(&wallet.address(), &genesis)?;
     let status = read_account(&client, &wallet)?;
     let seq = status.seq;
     drop_cancelled(&mut wallet, &status)?;
@@ -598,6 +655,7 @@ fn send(wallet_file: &Path, to: &str, amount: u64, receipt_file: Option<&Path>, 
     // through since. If it is the very payment asked for now, sending it
     // again would pay twice.
     if let Some((order, certificate)) = settle_earlier(&client, &mut wallet, seq)?
+        && order.kind == kind
         && order.to == to
         && order.amount == amount
     {
@@ -625,6 +683,8 @@ fn send(wallet_file: &Path, to: &str, amount: u64, receipt_file: Option<&Path>, 
         );
     }
     match unfinished.as_slice() {
+        // Validators check the stake an unstake order draws on.
+        [] if kind == Kind::Unstake => {}
         [] => match status.spendable {
             Some(balance) if balance < amount as i128 => {
                 bail!("insufficient funds: balance is {balance}, payment is {amount}")
@@ -635,7 +695,7 @@ fn send(wallet_file: &Path, to: &str, amount: u64, receipt_file: Option<&Path>, 
         // The payment asked for is already signed, by this wallet file or by
         // another copy of the wallet. Finish that one: signing it again is
         // neither needed nor safe.
-        [one] if one.signed.order.to == to && one.signed.order.amount == amount => {
+        [one] if one.signed.order.kind == kind && one.signed.order.to == to && one.signed.order.amount == amount => {
             if wallet.pending().is_none_or(|own| own.order != one.signed.order) {
                 println!("note: another copy of this wallet already signed this payment; finishing it");
                 wallet.adopt(&one.signed, &network)?;
@@ -657,7 +717,7 @@ fn send(wallet_file: &Path, to: &str, amount: u64, receipt_file: Option<&Path>, 
         }
     }
 
-    let signed = wallet.sign_order(seq, to, amount, status.signer.as_ref(), &network)?;
+    let signed = wallet.sign(kind, seq, to, amount, status.signer.as_ref(), &network)?;
     let outcome = finish(&client, &mut wallet, &signed, receipt_file);
     remember(&client, genesis_file);
     outcome

@@ -182,8 +182,13 @@ impl Wallet {
     /// The order this wallet would sign for payment number `seq`. It is not
     /// signed and nothing is recorded.
     pub fn order(&self, seq: u64, to: AccountId, amount: u64) -> Order {
+        self.order_of(Kind::Payment, seq, to, amount)
+    }
+
+    /// The order of this kind this wallet would sign for number `seq`.
+    pub fn order_of(&self, kind: Kind, seq: u64, to: AccountId, amount: u64) -> Order {
         Order {
-            kind: Kind::Payment,
+            kind,
             from: self.address,
             seq,
             to,
@@ -216,6 +221,20 @@ impl Wallet {
         signer: Option<&Signer>,
         network: &Hash32,
     ) -> Result<SignedOrder> {
+        self.sign(Kind::Payment, seq, to, amount, signer, network)
+    }
+
+    /// `sign_order` for an order of any kind: a stake or unstake order names
+    /// the wallet's own account as `to`.
+    pub fn sign(
+        &mut self,
+        kind: Kind,
+        seq: u64,
+        to: AccountId,
+        amount: u64,
+        signer: Option<&Signer>,
+        network: &Hash32,
+    ) -> Result<SignedOrder> {
         // An order signed with a key that a checkpoint has since retired is
         // dead. It no longer blocks its payment number.
         if let (Some(Signer::Spare(leaf)), Some(pending)) = (signer, &self.pending)
@@ -226,7 +245,7 @@ impl Wallet {
         }
         if let Some(pending) = &self.pending {
             if pending.order.seq == seq {
-                if pending.order.to == to && pending.order.amount == amount {
+                if pending.order.kind == kind && pending.order.to == to && pending.order.amount == amount {
                     return Ok(pending.clone());
                 }
                 bail!(
@@ -243,7 +262,7 @@ impl Wallet {
         if seq < self.next_seq {
             bail!("payment #{seq} was already made from this wallet");
         }
-        let order = self.order(seq, to, amount);
+        let order = self.order_of(kind, seq, to, amount);
         let digest = order.digest(network);
         let signature = match signer {
             Some(Signer::Spare(leaf)) if *leaf >= self.spares.capacity() => {

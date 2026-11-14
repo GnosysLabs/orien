@@ -5,7 +5,7 @@
 //! - the certificates it applied, from which balances are rebuilt;
 //! - what it said while closing an epoch, or it could say something else.
 
-use orien_ledger::{AccountId, Certificate, SignedOrder};
+use orien_ledger::{AccountId, Certificate, STAKE_PROOF_LEAF, SignedOrder};
 use std::collections::HashMap;
 use std::fs::{self, File, OpenOptions};
 use std::io::{self, BufReader, Read, Seek, SeekFrom, Write};
@@ -420,7 +420,8 @@ impl LeafCounter {
                     .map_err(|_| io::Error::new(io::ErrorKind::InvalidData, "corrupt key counter"))?;
                 u32::from_le_bytes(bytes)
             }
-            Err(error) if error.kind() == io::ErrorKind::NotFound => 0,
+            // A new key tree starts after the key kept for stake proofs.
+            Err(error) if error.kind() == io::ErrorKind::NotFound => STAKE_PROOF_LEAF + 1,
             Err(error) => return Err(error),
         };
         Ok(LeafCounter { path, next: reserved, reserved, capacity, durable })
@@ -486,7 +487,7 @@ mod tests {
     fn a_reserve_of_keys_is_held_back() {
         let dir = scratch("leaf-reserve");
         let mut counter = LeafCounter::open(dir.join("leaf"), 5, false).unwrap();
-        assert_eq!(counter.take_leaving(2).unwrap(), Some(0));
+        // Key 0 is kept for stake proofs.
         assert_eq!(counter.take_leaving(2).unwrap(), Some(1));
         assert_eq!(counter.take_leaving(2).unwrap(), Some(2));
         assert_eq!(counter.take_leaving(2).unwrap(), None, "the last two are held back");
@@ -569,7 +570,6 @@ mod tests {
     fn key_numbers_stop_at_capacity() {
         let dir = scratch("leaf-cap");
         let mut counter = LeafCounter::open(dir.join("leaf"), 3, false).unwrap();
-        assert_eq!(counter.take().unwrap(), Some(0));
         assert_eq!(counter.take().unwrap(), Some(1));
         assert_eq!(counter.take().unwrap(), Some(2));
         assert_eq!(counter.take().unwrap(), None);
