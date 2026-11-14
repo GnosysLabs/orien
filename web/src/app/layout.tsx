@@ -85,9 +85,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           dangerouslySetInnerHTML={{ __html: JSON.stringify(SITE_DATA) }}
         />
         <div className="flex min-h-full flex-1 flex-col">
-          <div className="print:hidden">
-            <Header />
-          </div>
+          <Header />
           <main className="mx-auto w-full max-w-[1200px] flex-1 px-4 py-6 sm:py-8">{children}</main>
           <footer className="border-t border-line px-4 print:hidden pb-24 pt-6 text-center text-xs text-muted md:pb-8">
             <p className="mb-2 flex items-center justify-center gap-2 font-semibold text-ink/85">
@@ -115,9 +113,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <p className="mt-3">© 2026 {OPERATOR}</p>
           </footer>
         </div>
-        <div className="print:hidden">
-          <BottomNav />
-        </div>
+        <BottomNav />
       </body>
     </html>
   )

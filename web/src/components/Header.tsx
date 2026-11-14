@@ -41,7 +41,7 @@ export function Header() {
   const onTry = pathname.startsWith('/try')
 
   return (
-    <header className="sticky top-0 z-30 border-b border-line/70 bg-bg/55 backdrop-blur-md">
+    <header className="sticky top-0 z-30 print:hidden border-b border-line/70 bg-bg/55 backdrop-blur-md">
       <div className="mx-auto flex h-16 max-w-[1200px] items-center gap-3 px-4">
         <Link href="/" aria-label="Orien home" className="flex items-center text-xl sm:text-2xl">
           <Wordmark />
@@ -89,7 +89,7 @@ export function BottomNav() {
   return (
     <nav
       aria-label="Mobile navigation"
-      className="fixed inset-x-0 bottom-0 z-40 grid grid-cols-3 border-t border-line/70 bg-bg/85 px-1 pb-[env(safe-area-inset-bottom)] backdrop-blur-md md:hidden"
+      className="fixed inset-x-0 bottom-0 z-40 grid grid-cols-3 print:hidden border-t border-line/70 bg-bg/85 px-1 pb-[env(safe-area-inset-bottom)] backdrop-blur-md md:hidden"
     >
       {mobileItems.map((item) => {
         const on = isActive(item, pathname)
