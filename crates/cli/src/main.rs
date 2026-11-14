@@ -117,7 +117,8 @@ enum Command {
         /// Directory for this validator's data
         #[arg(short, long)]
         data: PathBuf,
-        /// Address to listen on (default: this validator's address in the genesis file)
+        /// Address to listen on (default: this validator's address in the
+        /// genesis file; needed for a validator that joins by stake)
         #[arg(short, long)]
         listen: Option<String>,
         #[command(flatten)]

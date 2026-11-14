@@ -1481,7 +1481,8 @@ fn claim_data_dir(dir: &Path, network: &Hash32) -> Result<()> {
 /// A running validator. Stops when dropped.
 pub struct Node {
     pub addr: SocketAddr,
-    pub index: u16,
+    /// Its place among the genesis file's validators, if it is one of them.
+    pub index: Option<u16>,
     pub name: String,
     shared: Arc<Shared>,
     core: Option<JoinHandle<()>>,
@@ -1496,14 +1497,20 @@ impl Node {
         let genesis_committee = Committee::new(&config.genesis);
         let network = *genesis_committee.network();
         let original = KeyTree::generate(config.key.seed, config.key.height);
+        // A launch seat is named in the genesis file. Any other validator
+        // starts outside the list, follows the checkpoints, and takes part
+        // once a stake gets it chosen.
         let index = config
             .genesis
             .validators
             .iter()
-            .position(|v| v.root == original.root() && v.height == config.key.height)
-            .ok_or_else(|| anyhow!("this validator key is not listed in the genesis file"))?;
-        let info = &config.genesis.validators[index];
-        let name = info.name.clone();
+            .position(|v| v.root == original.root() && v.height == config.key.height);
+        let info = index.map(|index| &config.genesis.validators[index]);
+        let name = info.map_or_else(|| format!("new-{}", original.root().short()), |info| info.name.clone());
+        let genesis_address = info.map(|info| info.address.clone());
+        if genesis_address.is_none() && config.listen.is_none() && listener.is_none() {
+            bail!("this validator is not in the genesis file, so it needs an address to listen on (--listen)");
+        }
         let data_dir = config.data_dir.clone();
 
         claim_data_dir(&data_dir, &network)?;
@@ -1616,7 +1623,7 @@ impl Node {
         let listener = match listener {
             Some(listener) => listener,
             None => {
-                let address = config.listen.clone().unwrap_or_else(|| info.address.clone());
+                let address = config.listen.clone().or(genesis_address).expect("checked above");
                 TcpListener::bind(&address).with_context(|| format!("cannot listen on {address}"))?
             }
         };
@@ -1690,7 +1697,7 @@ impl Node {
             .name(format!("{name}-listen"))
             .spawn(move || accept_loop(listener, accepting))?;
 
-        Ok(Node { addr, index: index as u16, name, shared, core: Some(core), listener: Some(listener) })
+        Ok(Node { addr, index: index.map(|index| index as u16), name, shared, core: Some(core), listener: Some(listener) })
     }
 
     pub fn stop(mut self) {

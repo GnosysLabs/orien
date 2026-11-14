@@ -39,6 +39,8 @@ struct Options {
     pace: Duration,
     key_reserve: u32,
     min_stake: u64,
+    /// Each launch seat's weight.
+    seat: u64,
 }
 
 impl Default for Options {
@@ -55,6 +57,7 @@ impl Default for Options {
             pace: Duration::from_millis(60),
             key_reserve: 128,
             min_stake: 10_000,
+            seat: 1,
         }
     }
 }
@@ -104,7 +107,7 @@ impl TestNet {
                     name: format!("v{}", i + 1),
                     root: KeyTree::generate(key.seed, key.height).root(),
                     height: key.height,
-                    stake: 1,
+                    stake: options.seat,
                     address: listener.local_addr().unwrap().to_string(),
                 })
                 .collect(),
@@ -202,10 +205,14 @@ impl TestNet {
     /// Stakes `amount` from wallet `from` behind validator `validator`, and
     /// waits until the stake is final.
     fn stake(&self, from: &str, validator: usize, amount: u64) {
-        let mut wallet = self.wallet(from);
-        let key = &self.keys[validator];
-        let tree = KeyTree::generate(key.seed, key.height);
         let address = self.genesis.validators[validator].address.clone();
+        self.stake_for(from, &self.keys[validator], address, amount);
+    }
+
+    /// Stakes behind the validator with this key, reached at `address`.
+    fn stake_for(&self, from: &str, key: &ValidatorKey, address: String, amount: u64) {
+        let mut wallet = self.wallet(from);
+        let tree = KeyTree::generate(key.seed, key.height);
         let proof = sign_stake_proof(&tree, &self.network, &wallet.address(), &address);
         let kind = Kind::Stake { validator: Validator { root: tree.root(), height: key.height, address }, proof };
         let client = self.client();
@@ -1548,4 +1555,51 @@ fn validators_leave_the_list_and_come_back_with_their_stake() {
     net.pay_through("bob", carol, 7);
     net.wait_until_level();
     assert_eq!(net.view(3, &carol).balance, 12);
+}
+
+#[test]
+fn a_validator_outside_the_genesis_file_joins_once_staked() {
+    // Seats heavy enough that a newcomer's stake does not push them out.
+    let options = Options { epoch: 1, min_stake: 10, seat: 1_000, ..Options::default() };
+    let net = TestNet::start_with("newcomer", options);
+    let key = ValidatorKey { seed: [99; 32], height: net.options.height };
+    let listener = TcpListener::bind("127.0.0.1:0").unwrap();
+    let address = listener.local_addr().unwrap().to_string();
+    let config = NodeConfig {
+        sync_interval: net.options.sync,
+        close_pace: net.options.pace,
+        batch_window: net.options.window,
+        ..NodeConfig::new(net.genesis.clone(), key.clone(), net.dir.join("data-new"))
+    };
+    let newcomer = Node::start(config, Some(listener)).unwrap();
+    assert_eq!(newcomer.index, None);
+    let info = |address: &str| match rpc(address, &Request::Info, Duration::from_secs(5)).unwrap() {
+        Response::Info(info) => info,
+        other => panic!("unexpected answer: {other:?}"),
+    };
+    assert_eq!(info(&address).validator, None, "not chosen yet");
+
+    // It follows the network while outside the list...
+    let carol = net.address("carol");
+    net.pay_through("alice", carol, 5);
+    wait_until("the newcomer follows the checkpoints", || info(&address).epoch >= net.info(0).epoch);
+
+    // ...and is one of the validators once a stake gets it chosen. It then
+    // takes part in closing every epoch, and holds what everyone holds.
+    net.stake_for("bob", &key, address.clone(), 100);
+    wait_until("the newcomer is chosen", || info(&address).validator == Some(4));
+    let joined = info(&address).epoch;
+    wait_until("two more epochs close with it", || net.info(0).epoch >= joined + 2);
+    net.pay_through("alice", carol, 7);
+    let epoch = net.wait_until_level();
+    wait_until("the newcomer holds the same accounts", || {
+        let root = |response: Response| match response {
+            Response::Root(root) => Some(root),
+            _ => None,
+        };
+        let theirs = root(net.ask(0, &Request::Root));
+        let its = root(rpc(&address, &Request::Root, Duration::from_secs(5)).unwrap());
+        info(&address).epoch == epoch && its.is_some() && its == theirs
+    });
+    newcomer.stop();
 }
