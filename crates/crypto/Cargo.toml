@@ -1,0 +1,10 @@
+[package]
+name = "token-crypto"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+blake3.workspace = true
+borsh.workspace = true
+hex.workspace = true
+serde.workspace = true

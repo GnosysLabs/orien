@@ -1,0 +1,28 @@
+[workspace]
+resolver = "3"
+members = ["crates/crypto", "crates/ledger", "crates/net", "crates/cli"]
+
+[workspace.package]
+version = "0.1.0"
+edition = "2024"
+
+[workspace.dependencies]
+token-crypto = { path = "crates/crypto" }
+token-ledger = { path = "crates/ledger" }
+token-net = { path = "crates/net" }
+anyhow = "1"
+blake3 = "1"
+borsh = { version = "1.5", features = ["derive"] }
+clap = { version = "4", features = ["derive", "env"] }
+getrandom = "0.3"
+hex = "0.4"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+
+# Hashing dominates everything this code does, so even test builds are optimized.
+[profile.dev]
+opt-level = 2
+
+[profile.release]
+lto = "thin"
+codegen-units = 1

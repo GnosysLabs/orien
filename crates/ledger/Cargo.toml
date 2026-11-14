@@ -1,0 +1,9 @@
+[package]
+name = "token-ledger"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+token-crypto.workspace = true
+borsh.workspace = true
+serde.workspace = true

@@ -1,0 +1,14 @@
+[package]
+name = "token-net"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+token-crypto.workspace = true
+token-ledger.workspace = true
+anyhow.workspace = true
+borsh.workspace = true
+getrandom.workspace = true
+hex.workspace = true
+serde.workspace = true
+serde_json.workspace = true

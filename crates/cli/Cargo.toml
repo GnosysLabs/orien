@@ -1,0 +1,16 @@
+[package]
+name = "token-cli"
+version.workspace = true
+edition.workspace = true
+
+[[bin]]
+name = "token"
+path = "src/main.rs"
+
+[dependencies]
+token-crypto.workspace = true
+token-ledger.workspace = true
+token-net.workspace = true
+anyhow.workspace = true
+borsh.workspace = true
+clap.workspace = true
