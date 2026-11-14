@@ -1,8 +1,8 @@
 //! The protocol exercised in memory: several validators, no network.
 
-use token_crypto::keytree::KeyTree;
-use token_crypto::{Hash32, Kdf, merkle, ots, prf};
-use token_ledger::{
+use orien_crypto::keytree::KeyTree;
+use orien_crypto::{Hash32, Kdf, merkle, ots, prf};
+use orien_ledger::{
     AccountId, Allocation, Applied, Certificate, Committee, Genesis, Order, Reject, SignedOrder,
     State, ValidatorInfo, VerifyError, Vote,
 };

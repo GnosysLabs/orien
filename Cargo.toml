@@ -7,9 +7,9 @@ version = "0.1.0"
 edition = "2024"
 
 [workspace.dependencies]
-token-crypto = { path = "crates/crypto" }
-token-ledger = { path = "crates/ledger" }
-token-net = { path = "crates/net" }
+orien-crypto = { path = "crates/crypto" }
+orien-ledger = { path = "crates/ledger" }
+orien-net = { path = "crates/net" }
 anyhow = "1"
 blake3 = "1"
 borsh = { version = "1.5", features = ["derive"] }

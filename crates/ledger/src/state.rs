@@ -4,9 +4,9 @@
 use crate::genesis::Genesis;
 use crate::types::{AccountId, Order};
 use borsh::{BorshDeserialize, BorshSerialize};
+use orien_crypto::Hash32;
 use std::collections::HashMap;
 use std::fmt;
-use token_crypto::Hash32;
 
 #[derive(Clone, Debug, PartialEq, Eq, BorshSerialize, BorshDeserialize)]
 pub struct Account {

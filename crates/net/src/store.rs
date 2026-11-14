@@ -4,12 +4,12 @@
 //! - which one-time keys it has used, or it could reuse one;
 //! - the certificates it applied, from which balances are rebuilt.
 
+use orien_crypto::ots;
+use orien_ledger::{AccountId, Certificate, SignedOrder};
 use std::collections::HashMap;
 use std::fs::{self, File, OpenOptions};
 use std::io::{self, BufReader, Read, Seek, SeekFrom, Write};
 use std::path::{Path, PathBuf};
-use token_crypto::ots;
-use token_ledger::{AccountId, Certificate, SignedOrder};
 
 use crate::wire::MAX_FRAME;
 
@@ -259,11 +259,11 @@ impl LeafCounter {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use token_crypto::Hash32;
-    use token_ledger::Order;
+    use orien_crypto::Hash32;
+    use orien_ledger::Order;
 
     fn scratch(name: &str) -> PathBuf {
-        let dir = std::env::temp_dir().join(format!("token-store-{name}-{}", std::process::id()));
+        let dir = std::env::temp_dir().join(format!("orien-store-{name}-{}", std::process::id()));
         let _ = fs::remove_dir_all(&dir);
         fs::create_dir_all(&dir).unwrap();
         dir

@@ -2,11 +2,11 @@
 
 use crate::store::write_replacing;
 use anyhow::{Context, Result, anyhow, bail};
+use orien_crypto::{Hash32, Kdf, ots, prf};
+use orien_ledger::{AccountId, Genesis, Order, SignedOrder};
 use serde::{Deserialize, Serialize};
 use std::fs;
 use std::path::{Path, PathBuf};
-use token_crypto::{Hash32, Kdf, ots, prf};
-use token_ledger::{AccountId, Genesis, Order, SignedOrder};
 
 pub fn random_seed() -> [u8; 32] {
     let mut seed = [0u8; 32];
@@ -256,7 +256,7 @@ mod tests {
 
     #[test]
     fn a_wallet_adopts_only_what_its_own_key_signed() {
-        let dir = std::env::temp_dir().join(format!("token-keys-adopt-{}", std::process::id()));
+        let dir = std::env::temp_dir().join(format!("orien-keys-adopt-{}", std::process::id()));
         let _ = fs::remove_dir_all(&dir);
         fs::create_dir_all(&dir).unwrap();
         let (network, elsewhere, payee) = (Hash32([7; 32]), Hash32([8; 32]), Hash32([9; 32]));

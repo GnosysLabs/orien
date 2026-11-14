@@ -1,6 +1,6 @@
 use borsh::{BorshDeserialize, BorshSerialize};
-use token_crypto::keytree::TreeSignature;
-use token_crypto::{Hash32, Tag, hash, merkle, ots};
+use orien_crypto::keytree::TreeSignature;
+use orien_crypto::{Hash32, Tag, hash, merkle, ots};
 
 /// An account is named by the commitment to its first one-time key.
 pub type AccountId = Hash32;

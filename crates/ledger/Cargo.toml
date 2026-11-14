@@ -1,9 +1,9 @@
 [package]
-name = "token-ledger"
+name = "orien-ledger"
 version.workspace = true
 edition.workspace = true
 
 [dependencies]
-token-crypto.workspace = true
+orien-crypto.workspace = true
 borsh.workspace = true
 serde.workspace = true

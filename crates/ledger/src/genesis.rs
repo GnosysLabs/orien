@@ -1,8 +1,8 @@
 use crate::types::{AccountId, Certificate, Vote};
+use orien_crypto::{Hash32, Tag, hash, keytree, merkle};
 use serde::{Deserialize, Serialize};
 use std::collections::HashSet;
 use std::fmt;
-use token_crypto::{Hash32, Tag, hash, keytree, merkle};
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct ValidatorInfo {

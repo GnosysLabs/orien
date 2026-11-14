@@ -279,6 +279,51 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "384b8ab6d37215f3c5301a95a4accb5d64aa607f1fcb26a11b5303878451b4fe"
 
 [[package]]
+name = "orien-cli"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "borsh",
+ "clap",
+ "orien-crypto",
+ "orien-ledger",
+ "orien-net",
+]
+
+[[package]]
+name = "orien-crypto"
+version = "0.1.0"
+dependencies = [
+ "blake3",
+ "borsh",
+ "hex",
+ "serde",
+]
+
+[[package]]
+name = "orien-ledger"
+version = "0.1.0"
+dependencies = [
+ "borsh",
+ "orien-crypto",
+ "serde",
+]
+
+[[package]]
+name = "orien-net"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "borsh",
+ "getrandom",
+ "hex",
+ "orien-crypto",
+ "orien-ledger",
+ "serde",
+ "serde_json",
+]
+
+[[package]]
 name = "proc-macro-crate"
 version = "3.5.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -375,51 +420,6 @@ dependencies = [
  "proc-macro2",
  "quote",
  "unicode-ident",
-]
-
-[[package]]
-name = "token-cli"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "borsh",
- "clap",
- "token-crypto",
- "token-ledger",
- "token-net",
-]
-
-[[package]]
-name = "token-crypto"
-version = "0.1.0"
-dependencies = [
- "blake3",
- "borsh",
- "hex",
- "serde",
-]
-
-[[package]]
-name = "token-ledger"
-version = "0.1.0"
-dependencies = [
- "borsh",
- "serde",
- "token-crypto",
-]
-
-[[package]]
-name = "token-net"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "borsh",
- "getrandom",
- "hex",
- "serde",
- "serde_json",
- "token-crypto",
- "token-ledger",
 ]
 
 [[package]]

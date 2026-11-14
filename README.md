@@ -1,7 +1,8 @@
-# token (working name)
+# Orien
 
 A quantum-proof payment network with no blocks, no miners and no global
-ordering. Payments are final in one round trip.
+ordering. Payments are final in one round trip. The name is from the Latin
+*oriens*, rising.
 
 ## The idea
 
@@ -27,37 +28,37 @@ cargo build --release
 ```
 
 ```bash
-./target/release/token devnet init
+./target/release/orien devnet init
 ```
 
 ```bash
-./target/release/token devnet run
+./target/release/orien devnet run
 ```
 
 In another terminal:
 
 ```bash
-export TOKEN_GENESIS=devnet/genesis.json
+export ORIEN_GENESIS=devnet/genesis.json
 ```
 
 ```bash
-./target/release/token balance devnet/wallets/alice.wallet
+./target/release/orien balance devnet/wallets/alice.wallet
 ```
 
 ```bash
-./target/release/token send -w devnet/wallets/alice.wallet --to devnet/wallets/carol.wallet --amount 250 --receipt payment.receipt
+./target/release/orien send -w devnet/wallets/alice.wallet --to devnet/wallets/carol.wallet --amount 250 --receipt payment.receipt
 ```
 
 ```bash
-./target/release/token verify payment.receipt
+./target/release/orien verify payment.receipt
 ```
 
 ```bash
-./target/release/token devnet double-spend --wallet bob
+./target/release/orien devnet double-spend --wallet bob
 ```
 
 ```bash
-./target/release/token status
+./target/release/orien status
 ```
 
 `devnet double-spend --split` shows the other way to cheat: it sends each
@@ -73,15 +74,15 @@ Any other copy of the wallet can therefore pick the payment up and finish
 it. `devnet interrupt` plays the lost device:
 
 ```bash
-./target/release/token devnet interrupt
+./target/release/orien devnet interrupt
 ```
 
 ```bash
-./target/release/token balance devnet/wallets/alice.wallet
+./target/release/orien balance devnet/wallets/alice.wallet
 ```
 
 ```bash
-./target/release/token resume -w devnet/wallets/alice.wallet
+./target/release/orien resume -w devnet/wallets/alice.wallet
 ```
 
 Until the payment is finished, `send` refuses to sign anything else from
@@ -91,7 +92,7 @@ that account: the one-time key for that payment number is already used.
 
 `devnet run` keeps all validators in one process. To spread them out:
 
-1. Run `token devnet init --dir net` once, on any machine.
+1. Run `orien devnet init --dir net` once, on any machine.
 2. Edit the `address` of each validator in `net/genesis.json` to an address
    the other machines can reach (a hostname works). Addresses are not part of
    the network's identity, so this does not change the network.
@@ -100,7 +101,7 @@ that account: the one-time key for that payment number is already used.
 4. On each machine:
 
    ```bash
-   token node -g genesis.json -k vN.key -d data --listen 0.0.0.0:7001
+   orien node -g genesis.json -k vN.key -d data --listen 0.0.0.0:7001
    ```
 
 Four validators tolerate one that is down, hacked or lying. A validator that
@@ -126,7 +127,7 @@ each validator syncing its votes to disk:
 Reproduce the throughput figure with:
 
 ```bash
-cargo test --release -p token-net --test devnet throughput -- --ignored --nocapture
+cargo test --release -p orien-net --test devnet throughput -- --ignored --nocapture
 ```
 
 ## Layout
@@ -136,7 +137,7 @@ cargo test --release -p token-net --test devnet throughput -- --ignored --nocapt
 | `crates/crypto` | One-time signatures, validator key trees, batch Merkle proofs |
 | `crates/ledger` | The rules: orders, votes, certificates, when to vote, how balances change |
 | `crates/net` | The validator node, storage, sync between validators, client, wallet files |
-| `crates/cli` | The `token` command |
+| `crates/cli` | The `orien` command |
 
 ## Not done yet
 
@@ -147,7 +148,7 @@ cargo test --release -p token-net --test devnet throughput -- --ignored --nocapt
   payments or dust accounts.
 - **A double-signed account can stay locked.** If two different payments are
   signed under one number and the validators' votes split, neither can become
-  final. `token resume` can still finish one of them while enough validators
+  final. `orien resume` can still finish one of them while enough validators
   have not voted. After that the account is stuck. The fix is to release such
   locks at epoch boundaries.
 - **Signing twice with one key leaks it.** Two signatures from one one-time

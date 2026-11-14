@@ -1,19 +1,19 @@
 use anyhow::{Context, Result, anyhow, bail};
 use clap::{Args, Parser, Subcommand};
+use orien_crypto::keytree::KeyTree;
+use orien_ledger::{AccountId, Allocation, Certificate, Genesis, Order, SignedOrder, ValidatorInfo};
+use orien_net::client::{AccountStatus, Client, Unfinished};
+use orien_net::keys::{ValidatorKey, Wallet, load_genesis, save_genesis};
+use orien_net::node::{Node, NodeConfig};
+use orien_net::wire::{Request, Response};
 use std::fs;
 use std::net::TcpListener;
 use std::path::{Path, PathBuf};
 use std::thread;
 use std::time::Instant;
-use token_crypto::keytree::KeyTree;
-use token_ledger::{AccountId, Allocation, Certificate, Genesis, Order, SignedOrder, ValidatorInfo};
-use token_net::client::{AccountStatus, Client, Unfinished};
-use token_net::keys::{ValidatorKey, Wallet, load_genesis, save_genesis};
-use token_net::node::{Node, NodeConfig};
-use token_net::wire::{Request, Response};
 
 #[derive(Parser)]
-#[command(name = "token", version, about = "A quantum-proof payment network with no blocks and no global ordering")]
+#[command(name = "orien", version, about = "A quantum-proof payment network with no blocks and no global ordering")]
 struct Cli {
     #[command(subcommand)]
     command: Command,
@@ -22,7 +22,7 @@ struct Cli {
 #[derive(Args)]
 struct Network {
     /// Genesis file describing the network
-    #[arg(short, long, env = "TOKEN_GENESIS", default_value = "genesis.json")]
+    #[arg(short, long, env = "ORIEN_GENESIS", default_value = "genesis.json")]
     genesis: PathBuf,
 }
 
@@ -311,7 +311,7 @@ fn balance(account: &str, genesis: &Path) -> Result<()> {
     if is_locked(&client, &pending) {
         println!("               locked: none of these can become final any more");
     } else if !pending.is_empty() && wallet.is_some() {
-        println!("               finish it with: token resume -w {account}");
+        println!("               finish it with: orien resume -w {account}");
     }
     Ok(())
 }
@@ -446,7 +446,7 @@ fn send(wallet_file: &Path, to: &str, amount: u64, receipt_file: Option<&Path>, 
             }
             bail!(
                 "nothing else can be sent from this account until that payment is final. \
-                 Finish it with: token resume -w {}",
+                 Finish it with: orien resume -w {}",
                 wallet_file.display()
             );
         }
@@ -613,7 +613,7 @@ fn devnet_init(dir: &Path, validators: usize, height: u8, host: &str, base_port:
         println!("  wallet {name:<6} {}  starts with {amount}", wallet.address());
     }
 
-    let genesis = Genesis { network: "token-devnet".into(), validators: infos, allocations };
+    let genesis = Genesis { network: "orien-devnet".into(), validators: infos, allocations };
     genesis.validate().map_err(|e| anyhow!("{e}"))?;
     save_genesis(&dir.join("genesis.json"), &genesis)?;
     println!("network id {}", genesis.id());
@@ -690,8 +690,8 @@ fn interrupt(dir: &Path, wallet_name: &str, to_name: &str, amount: u64) -> Resul
         println!("  {} {answer}", genesis.validators[index].name);
     }
     println!("the payment is signed but not final, and {} has never heard of it.", wallet_file.display());
-    println!("  see it:     token balance {}", wallet_file.display());
-    println!("  finish it:  token resume -w {}", wallet_file.display());
+    println!("  see it:     orien balance {}", wallet_file.display());
+    println!("  finish it:  orien resume -w {}", wallet_file.display());
     Ok(())
 }
 

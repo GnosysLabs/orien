@@ -1,18 +1,18 @@
 //! Real validators talking over real sockets on this machine.
 
+use orien_crypto::keytree::KeyTree;
+use orien_crypto::{Hash32, Kdf, ots, prf};
+use orien_ledger::{AccountId, Allocation, Genesis, Order, Reject, SignedOrder, ValidatorInfo};
+use orien_net::client::{Client, Receipt, TransferError, rpc};
+use orien_net::keys::{ValidatorKey, Wallet};
+use orien_net::node::{Node, NodeConfig};
+use orien_net::wire::{AccountView, NodeInfo, Request, Response};
 use std::fs;
 use std::net::TcpListener;
 use std::path::PathBuf;
 use std::sync::Barrier;
 use std::thread;
 use std::time::{Duration, Instant};
-use token_crypto::keytree::KeyTree;
-use token_crypto::{Hash32, Kdf, ots, prf};
-use token_ledger::{AccountId, Allocation, Genesis, Order, Reject, SignedOrder, ValidatorInfo};
-use token_net::client::{Client, Receipt, TransferError, rpc};
-use token_net::keys::{ValidatorKey, Wallet};
-use token_net::node::{Node, NodeConfig};
-use token_net::wire::{AccountView, NodeInfo, Request, Response};
 
 const START: u64 = 1000;
 
@@ -58,7 +58,7 @@ impl TestNet {
     }
 
     fn start_with(name: &str, options: Options) -> TestNet {
-        let dir = std::env::temp_dir().join(format!("token-net-{name}-{}", std::process::id()));
+        let dir = std::env::temp_dir().join(format!("orien-net-{name}-{}", std::process::id()));
         let _ = fs::remove_dir_all(&dir);
         fs::create_dir_all(&dir).unwrap();
 
@@ -416,8 +416,8 @@ fn forged_certificates_change_nothing() {
     let (votes, _) = client.collect_votes(&order);
     let votes: Vec<_> = votes.into_values().collect();
 
-    let too_few = token_ledger::Certificate { order: order.order.clone(), votes: votes[..2].to_vec() };
-    let mut inflated = token_ledger::Certificate { order: order.order.clone(), votes: votes[..3].to_vec() };
+    let too_few = orien_ledger::Certificate { order: order.order.clone(), votes: votes[..2].to_vec() };
+    let mut inflated = orien_ledger::Certificate { order: order.order.clone(), votes: votes[..3].to_vec() };
     inflated.order.amount = 999;
     for forged in [too_few, inflated] {
         for v in 0..4 {
@@ -490,7 +490,7 @@ fn a_wallet_never_signs_two_orders_with_one_key() {
 /// Not a pass/fail test: prints how many payments per second this machine
 /// makes final, with every validator syncing its votes to disk. Run with
 ///
-///   cargo test --release -p token-net --test devnet throughput -- --ignored --nocapture
+///   cargo test --release -p orien-net --test devnet throughput -- --ignored --nocapture
 #[test]
 fn another_copy_of_a_wallet_finishes_a_payment() {
     let net = TestNet::start("copy");

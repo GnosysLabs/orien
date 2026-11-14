@@ -1,11 +1,11 @@
 [package]
-name = "token-net"
+name = "orien-net"
 version.workspace = true
 edition.workspace = true
 
 [dependencies]
-token-crypto.workspace = true
-token-ledger.workspace = true
+orien-crypto.workspace = true
+orien-ledger.workspace = true
 anyhow.workspace = true
 borsh.workspace = true
 getrandom.workspace = true

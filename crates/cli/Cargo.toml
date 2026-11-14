@@ -1,16 +1,16 @@
 [package]
-name = "token-cli"
+name = "orien-cli"
 version.workspace = true
 edition.workspace = true
 
 [[bin]]
-name = "token"
+name = "orien"
 path = "src/main.rs"
 
 [dependencies]
-token-crypto.workspace = true
-token-ledger.workspace = true
-token-net.workspace = true
+orien-crypto.workspace = true
+orien-ledger.workspace = true
+orien-net.workspace = true
 anyhow.workspace = true
 borsh.workspace = true
 clap.workspace = true
