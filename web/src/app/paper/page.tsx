@@ -640,8 +640,9 @@ T′ = clamp( T · 1,000 / n,  ⌊T / 4⌋,  4 · T )  otherwise`}</Formula>
             A wallet holds one 32-byte account seed. One-time key <em>n</em>, which signs the account’s order{' '}
             <em>n</em> and nothing else, is derived as prf(seed, 0x03, n), and the 16 spare keys come from
             prf(seed, 0x05, 0). Before a signed order leaves the wallet, the wallet writes it to its own file and syncs
-            it. From then on it will only ever send that same order under that number. This is what keeps an honest
-            wallet from signing twice, even across crashes. If another copy of the same wallet signed an order, any copy
+            it. From then on it will only ever send that same order under that number. It also records what each of
+            its keys has signed, and keeps that record even after letting go of an order a checkpoint cancelled, so no
+            key of the wallet ever signs two different orders, whatever it is asked and even across crashes. If another copy of the same wallet signed an order, any copy
             can find it at the validators and finish it.
           </p>
         </Sub>

@@ -9,6 +9,7 @@ use orien_ledger::{
     AccountId, Fees, Genesis, Kind, Order, SPARE_HEIGHT, Signature, SignedBy, SignedOrder, Signer, address,
 };
 use serde::{Deserialize, Serialize};
+use std::collections::BTreeMap;
 use std::fs;
 use std::path::{Path, PathBuf};
 
@@ -98,6 +99,12 @@ pub struct Wallet {
     address: AccountId,
     next_seq: u64,
     pending: Option<SignedOrder>,
+    /// What each one-time key still in use has signed, by payment number,
+    /// and what each spare key has signed, by its number: the digest of the
+    /// order. Kept even after a pending order is let go, so that no key
+    /// ever signs two different orders, whatever the wallet is asked.
+    used: BTreeMap<u64, Hash32>,
+    used_spares: BTreeMap<u32, Hash32>,
     /// The network's fee rule, which sets the largest fee each order
     /// accepts. Set from the genesis file with `accept_fee`; no fee until
     /// then.
@@ -126,6 +133,12 @@ struct WalletFile {
     /// A signed order not yet known to be final, as hex.
     #[serde(default)]
     pending: Option<String>,
+    /// The digest each one-time key signed, by payment number, as hex.
+    #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
+    used: BTreeMap<u64, String>,
+    /// The digest each spare key signed, by its number, as hex.
+    #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
+    used_spares: BTreeMap<u32, String>,
 }
 
 fn is_zero(n: &u32) -> bool {
@@ -263,6 +276,8 @@ impl Wallet {
             spares,
             next_seq: 0,
             pending: None,
+            used: BTreeMap::new(),
+            used_spares: BTreeMap::new(),
             fees: Fees::NONE,
         };
         wallet.save()?;
@@ -303,6 +318,12 @@ impl Wallet {
             }
             None => None,
         };
+        let digest = |text: &String| -> Result<Hash32> {
+            text.parse().map_err(|_| anyhow!("{} records a damaged digest", path.display()))
+        };
+        let used = file.used.iter().map(|(seq, text)| Ok((*seq, digest(text)?))).collect::<Result<_>>()?;
+        let used_spares =
+            file.used_spares.iter().map(|(leaf, text)| Ok((*leaf, digest(text)?))).collect::<Result<_>>()?;
         let spares = wallet_spares(&seed);
         Ok(Wallet {
             path: path.to_owned(),
@@ -314,6 +335,8 @@ impl Wallet {
             spares,
             next_seq: file.next_seq,
             pending,
+            used,
+            used_spares,
             fees: Fees::NONE,
         })
     }
@@ -323,6 +346,9 @@ impl Wallet {
             Some(order) => Some(hex::encode(borsh::to_vec(order)?)),
             None => None,
         };
+        let used: BTreeMap<u64, String> = self.used.iter().map(|(seq, digest)| (*seq, digest.to_string())).collect();
+        let used_spares: BTreeMap<u32, String> =
+            self.used_spares.iter().map(|(leaf, digest)| (*leaf, digest.to_string())).collect();
         // With a password only the sealed secret is written, and the
         // address beside it in the clear.
         let file = match &self.sealed {
@@ -334,6 +360,8 @@ impl Wallet {
                 sealed: Some(sealed.clone()),
                 next_seq: self.next_seq,
                 pending,
+                used,
+                used_spares,
             },
             None => WalletFile {
                 master: self.master.map(hex::encode),
@@ -343,6 +371,8 @@ impl Wallet {
                 sealed: None,
                 next_seq: self.next_seq,
                 pending,
+                used,
+                used_spares,
             },
         };
         write_replacing(&self.path, (serde_json::to_string_pretty(&file)? + "\n").as_bytes(), true)
@@ -480,7 +510,7 @@ impl Wallet {
             && pending.order.seq == seq
             && !matches!(&pending.signature, Signature::Spare(signature) if signature.leaf == *leaf)
         {
-            self.pending = None;
+            self.retire_pending();
         }
         if let Some(pending) = &self.pending {
             if pending.order.seq == seq {
@@ -503,16 +533,37 @@ impl Wallet {
         }
         let order = self.order_of(kind, seq, to, amount);
         let digest = order.digest(network);
+        // A one-time key that signs two different orders gives away enough to
+        // forge a third. Whatever this wallet is asked, and whatever it has let
+        // go of, no key of it signs a second, different order.
+        let spare = matches!(signer, Some(Signer::Spare(_)));
+        let earlier = match signer {
+            Some(Signer::Spare(leaf)) => self.used_spares.get(leaf),
+            _ => self.used.get(&seq),
+        };
+        if earlier.is_some_and(|earlier| *earlier != digest) {
+            bail!(
+                "this wallet's {} for payment #{seq} has already signed a different payment. Signing again could \
+                 let someone forge a payment, so it will not.",
+                if spare { "spare key" } else { "key" }
+            );
+        }
         let signature = match signer {
             Some(Signer::Spare(leaf)) if *leaf >= self.spares.capacity() => {
                 bail!("this account has used up all {} of its spare keys", self.spares.capacity())
             }
-            Some(Signer::Spare(leaf)) => Signature::Spare(self.spares.sign_with_leaf(*leaf, digest.as_bytes())),
+            Some(Signer::Spare(leaf)) => {
+                self.used_spares.insert(*leaf, digest);
+                Signature::Spare(self.spares.sign_with_leaf(*leaf, digest.as_bytes()))
+            }
             Some(Signer::Key(expected)) if *expected != self.key(seq).commitment() => bail!(
                 "the account's next payment must be signed with a key this wallet file does not \
                  hold. Another wallet may have taken the account over."
             ),
-            _ => Signature::Key(self.key(seq).sign(digest.as_bytes())),
+            _ => {
+                self.used.insert(seq, digest);
+                Signature::Key(self.key(seq).sign(digest.as_bytes()))
+            }
         };
         let signed = SignedOrder { signature, order };
         self.pending = Some(signed.clone());
@@ -524,10 +575,27 @@ impl Wallet {
     /// that number. The key that signed it is retired with it.
     pub fn forget(&mut self, seq: u64) -> Result<()> {
         if self.pending.as_ref().is_some_and(|pending| pending.order.seq == seq) {
-            self.pending = None;
+            self.retire_pending();
             self.save()?;
         }
         Ok(())
+    }
+
+    /// Lets go of the pending order, keeping its key marked as spent. An
+    /// order signed before wallets kept these records has no digest on file;
+    /// its key is then marked as spent on anything at all.
+    fn retire_pending(&mut self) {
+        const SPENT: Hash32 = Hash32([0xff; 32]);
+        if let Some(pending) = self.pending.take() {
+            match &pending.signature {
+                Signature::Key(_) => {
+                    self.used.entry(pending.order.seq).or_insert(SPENT);
+                }
+                Signature::Spare(signature) => {
+                    self.used_spares.entry(signature.leaf).or_insert(SPENT);
+                }
+            }
+        }
     }
 
     /// Whether `signed` carries this wallet's own signature: made with the
@@ -566,8 +634,22 @@ impl Wallet {
                  Finishing it would lock this wallet out of the account."
             );
         }
+        self.record(signed, network);
         self.pending = Some(signed.clone());
         self.save()
+    }
+
+    /// Notes which key signed `signed`, so that it never signs anything else.
+    fn record(&mut self, signed: &SignedOrder, network: &Hash32) {
+        let digest = signed.order.digest(network);
+        match &signed.signature {
+            Signature::Key(_) => {
+                self.used.insert(signed.order.seq, digest);
+            }
+            Signature::Spare(signature) => {
+                self.used_spares.insert(signature.leaf, digest);
+            }
+        }
     }
 
     /// Records that payment `seq` is final.
@@ -576,6 +658,9 @@ impl Wallet {
             self.pending = None;
         }
         self.next_seq = self.next_seq.max(seq + 1);
+        // Keys for numbers already made never sign again: the wallet refuses
+        // any number below `next_seq`.
+        self.used = self.used.split_off(&self.next_seq);
         self.save()
     }
 }
@@ -583,6 +668,57 @@ impl Wallet {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn no_key_ever_signs_two_different_orders() {
+        let dir = std::env::temp_dir().join(format!("orien-keys-twice-{}", std::process::id()));
+        let _ = fs::remove_dir_all(&dir);
+        fs::create_dir_all(&dir).unwrap();
+        let (network, payee) = (Hash32([7; 32]), Hash32([9; 32]));
+        let path = dir.join("w.wallet");
+        let mut wallet = Wallet::create(&path).unwrap();
+
+        // Signed, then let go of: the same order may be signed again, a
+        // different one under that number may not.
+        let first = wallet.sign_order(0, payee, 5, None, &network).unwrap();
+        wallet.forget(0).unwrap();
+        assert!(wallet.pending().is_none());
+        assert!(wallet.sign_order(0, payee, 6, None, &network).is_err());
+        assert_eq!(wallet.sign_order(0, payee, 5, None, &network).unwrap(), first);
+
+        // Spare keys likewise, each by its own number.
+        let spare = Some(Signer::Spare(0));
+        wallet.sign_order(0, payee, 7, spare.as_ref(), &network).unwrap();
+        wallet.forget(0).unwrap();
+        assert!(wallet.sign_order(0, payee, 8, spare.as_ref(), &network).is_err());
+        wallet.sign_order(0, payee, 8, Some(&Signer::Spare(1)), &network).unwrap();
+        wallet.forget(0).unwrap();
+
+        // The records survive a reload.
+        let mut reloaded = Wallet::load(&path).unwrap();
+        assert!(reloaded.sign_order(0, payee, 6, None, &network).is_err());
+        assert!(reloaded.sign_order(0, payee, 9, Some(&Signer::Spare(0)), &network).is_err());
+
+        // A wallet file from before these records: a pending order that is
+        // let go of leaves its key spent on anything else.
+        let mut old = Wallet::create(&dir.join("old.wallet")).unwrap();
+        old.sign_order(0, payee, 5, None, &network).unwrap();
+        let mut file: serde_json::Value = serde_json::from_str(&fs::read_to_string(dir.join("old.wallet")).unwrap()).unwrap();
+        file.as_object_mut().unwrap().remove("used");
+        fs::write(dir.join("old.wallet"), file.to_string()).unwrap();
+        let mut old = Wallet::load(&dir.join("old.wallet")).unwrap();
+        old.forget(0).unwrap();
+        assert!(old.sign_order(0, payee, 6, None, &network).is_err());
+
+        // Once a payment is final its number is never signed again, and its
+        // record is no longer needed.
+        let mut fresh = Wallet::create(&dir.join("fresh.wallet")).unwrap();
+        fresh.sign_order(0, payee, 5, None, &network).unwrap();
+        fresh.confirm(0).unwrap();
+        assert!(fresh.used.is_empty());
+        assert!(fresh.sign_order(0, payee, 5, None, &network).is_err());
+        let _ = fs::remove_dir_all(dir);
+    }
 
     #[test]
     fn a_wallet_adopts_only_what_its_own_key_signed() {
