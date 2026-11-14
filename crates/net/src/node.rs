@@ -1323,9 +1323,13 @@ impl Core {
         if self.shares.contains(&share) {
             return Response::Share { fresh: false };
         }
-        // The target keeps the number near the one wanted; this bounds a
-        // statement while it catches up.
-        if self.shares.len() as u64 >= work.shares_per_epoch.saturating_mul(4) {
+        // The target keeps the number near the one wanted. This only bounds a
+        // statement while the target catches up, as after a sudden rise in
+        // mining: 40 times the number wanted, but never so many that the
+        // proposal closing the epoch, which carries every validator's
+        // statement at 40 bytes a share, passes about 12 MB.
+        let room = 300_000 / self.committee.members().len().max(1) as u64;
+        if self.shares.len() as u64 >= work.shares_per_epoch.saturating_mul(40).min(room) {
             return Response::Unavailable("this epoch has all the shares it takes".into());
         }
         self.shares.insert(share);
@@ -1395,7 +1399,18 @@ impl Core {
                         }
                     }
                     let (said, total) = self.closer.messages(messages as usize, 64);
-                    heard = said.to_vec();
+                    // Closing messages carry the statements, which list the
+                    // epoch's work shares and can be large: stop well under
+                    // the frame limit, always sending at least one.
+                    let mut room = (12usize << 20).saturating_sub(bytes);
+                    for message in said {
+                        let size = borsh::to_vec(message).map_or(usize::MAX, |b| b.len());
+                        if !heard.is_empty() && size > room {
+                            break;
+                        }
+                        room = room.saturating_sub(size);
+                        heard.push(message.clone());
+                    }
                     messages_total = total as u64;
                 } else if epoch < mine {
                     // The asker is behind. Show it how its epoch ended.

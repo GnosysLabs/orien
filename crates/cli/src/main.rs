@@ -1331,7 +1331,7 @@ fn mine(account: &str, threads: usize, genesis_file: &Path) -> Result<()> {
     use std::sync::Arc;
     use std::sync::atomic::{AtomicBool, AtomicU64, Ordering};
 
-    let (_, client) = connect(genesis_file)?;
+    let (genesis, client) = connect(genesis_file)?;
     let account = resolve_account(account)?;
     // Two machines mining for one account must not find the same shares.
     let mut next = u64::from_le_bytes(orien_net::keys::random_seed()[..8].try_into().expect("8 bytes"));
@@ -1403,6 +1403,13 @@ fn mine(account: &str, threads: usize, genesis_file: &Path) -> Result<()> {
         next = next.wrapping_add(tries.load(Ordering::Relaxed) + threads as u64 * 4096);
         let rate = tries.load(Ordering::Relaxed) as f64 / started.elapsed().as_secs_f64() / 1e6;
         println!("  {rate:.1} million tries a second; {sent} share(s) found, {taken} taken by validators");
+        if sent > 0 && taken == 0 {
+            println!(
+                "  the validators have counted all the shares they take until the next checkpoint, {}; \
+                 what you found so far still counts",
+                until_checkpoint(&genesis, &client)
+            );
+        }
     }
 }
 
