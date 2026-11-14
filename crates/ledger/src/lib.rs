@@ -15,7 +15,7 @@ pub mod types;
 
 pub use genesis::{Allocation, Committee, Genesis, Member, ValidatorInfo, VerifyError};
 pub use state::{
-    Accepted, Account, Applied, CancelError, Checked, Proofs, Reject, Signer, State, account_root,
+    Accepted, Account, Applied, CancelError, Checked, FORFEITED, Proofs, Reject, Signer, State, account_root,
     authorized,
 };
 pub use types::{

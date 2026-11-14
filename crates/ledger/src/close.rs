@@ -27,7 +27,8 @@
 use crate::agree::Value;
 use crate::genesis::{Committee, Member, VerifyError};
 use crate::state::{Applied, Checked, State};
-use crate::types::{AccountId, Certificate, Order, SignedOrder, Validator, Vote};
+use crate::types::{AccountId, Certificate, Order, STAKE_PROOF_LEAF, SignedOrder, Validator, Vote};
+use orien_crypto::keytree::TreeSignature;
 use borsh::{BorshDeserialize, BorshSerialize};
 use orien_crypto::{Hash32, Tag, hash, keytree};
 use std::collections::{BTreeMap, BTreeSet};
@@ -81,6 +82,61 @@ pub struct Statement {
     /// Set when the validator's key tree is running low. The new tree
     /// replaces the old one when this epoch closes.
     pub next_key: Option<NextKey>,
+    /// Proof that validators of this epoch cheated.
+    pub cheats: Vec<Cheat>,
+}
+
+/// Proof that a validator cheated, made of its own signatures. Nobody can
+/// make it against a validator that signs each thing once.
+#[allow(clippy::large_enum_variant)]
+#[derive(Clone, Debug, PartialEq, Eq, BorshSerialize, BorshDeserialize)]
+pub enum Cheat {
+    /// Votes from one validator, in one epoch, for two different orders
+    /// under the same account and number. Two such orders could otherwise
+    /// both become final.
+    TwoVotes { one: (Order, Vote), other: (Order, Vote) },
+    /// Two different messages signed with the same one-time key. Each use
+    /// reveals more of the key, so a second one lets others forge with it.
+    KeyReuse { one: (Hash32, TreeSignature), other: (Hash32, TreeSignature) },
+}
+
+impl Cheat {
+    /// The validator of this epoch that the proof convicts, if it holds.
+    pub fn cheater(&self, committee: &Committee) -> Option<u16> {
+        match self {
+            Cheat::TwoVotes { one: (a, vote_a), other: (b, vote_b) } => {
+                let network = committee.network();
+                let (digest_a, digest_b) = (a.digest(network), b.digest(network));
+                let conflicting = digest_a != digest_b && a.from == b.from && a.seq == b.seq;
+                let same_voter = vote_a.validator == vote_b.validator;
+                (conflicting
+                    && same_voter
+                    && committee.verify_vote(&digest_a, vote_a).is_ok()
+                    && committee.verify_vote(&digest_b, vote_b).is_ok())
+                .then_some(vote_a.validator)
+            }
+            Cheat::KeyReuse { one: (message_a, a), other: (message_b, b) } => {
+                // The key kept for stake proofs signs a different message for
+                // each stake it backs, by design.
+                if message_a == message_b || a.leaf != b.leaf || a.leaf == STAKE_PROOF_LEAF {
+                    return None;
+                }
+                committee
+                    .members()
+                    .iter()
+                    .position(|m| {
+                        keytree::verify(&m.root, m.height, a, message_a.as_bytes())
+                            && keytree::verify(&m.root, m.height, b, message_b.as_bytes())
+                    })
+                    .map(|place| place as u16)
+            }
+        }
+    }
+}
+
+/// The validators of this epoch that the merged statements prove cheated.
+pub fn cheaters(committee: &Committee, statements: &[&Statement]) -> BTreeSet<u16> {
+    statements.iter().flat_map(|s| &s.cheats).filter_map(|cheat| cheat.cheater(committee)).collect()
 }
 
 impl Statement {
@@ -184,9 +240,13 @@ fn replacement(committee: &Committee, statements: &[&Statement], validator: u16)
 /// reaches that sum the seats leave the set, and they never come back.
 pub fn next_validators(committee: &Committee, statements: &[&Statement], end: &State) -> Vec<Member> {
     let rules = committee.staking();
+    // A validator caught cheating leaves for good: a launch seat is gone,
+    // and staked coins are forfeit (see `outcome`).
+    let caught = cheaters(committee, statements);
+    let banned: Vec<Hash32> = caught.iter().map(|v| committee.members()[*v as usize].root).collect();
     let mut seats = Vec::new();
     for (index, member) in committee.members().iter().enumerate() {
-        if member.account.is_some() {
+        if member.seat.is_none() || caught.contains(&(index as u16)) {
             continue;
         }
         let mut seat = member.clone();
@@ -197,6 +257,7 @@ pub fn next_validators(committee: &Committee, statements: &[&Statement], end: &S
         seats.push(seat);
     }
     let mut stakers = end.stakers(rules.min_stake);
+    stakers.retain(|(_, validator, _)| !banned.contains(&validator.root));
     stakers.sort_by(|a, b| b.2.cmp(&a.2).then(a.0.cmp(&b.0)));
     // Stake behind a seat's own key tree comes from the seat's operator. It
     // takes no place of its own: it adds to the seat's weight, and it counts
@@ -223,6 +284,7 @@ pub fn next_validators(committee: &Committee, statements: &[&Statement], end: &S
                 stake: *stake,
                 address: validator.address.clone(),
                 account: Some(*account),
+                seat: None,
             });
         }
         members
@@ -238,10 +300,11 @@ pub fn next_validators(committee: &Committee, statements: &[&Statement], end: &S
     }
     let remaining = seat_total - real;
     let mut members = with_seats;
-    for ((seat, share), own) in members[..seat_count].iter_mut().zip(committee.seats()).zip(&backing) {
+    for (seat, own) in members[..seat_count].iter_mut().zip(&backing) {
+        let share = seat.seat.and_then(|n| committee.seats().get(n as usize)).copied().unwrap_or(0);
         // Never zero while the seats remain: a seat with no weight could
         // not take part.
-        let faded = ((remaining * *share as u128 / seat_total) as u64).max(1);
+        let faded = ((remaining * share as u128 / seat_total) as u64).max(1);
         seat.stake = faded.saturating_add(*own);
     }
     members
@@ -347,6 +410,12 @@ fn outcome_of(
                 // Stale or false evidence is simply not acted on.
                 let _ = state.cancel(&one, &other);
             }
+        }
+    }
+    // A staked validator caught cheating forfeits its stake.
+    for cheater in cheaters(committee, statements) {
+        if let Some(account) = committee.members()[cheater as usize].account {
+            state.forfeit(&account);
         }
     }
     // A staked validator that announced a new key tree signs with it from

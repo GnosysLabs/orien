@@ -255,6 +255,7 @@ impl World {
                 log: Pin::of(self.committee.epoch(), &self.log_digests(v)),
                 evidence: self.validators[v].evidence.clone(),
                 next_key: None,
+                cheats: Vec::new(),
             };
             self.validators[v].statement = Some(statement);
         }
@@ -320,6 +321,7 @@ impl World {
                     log: Pin::start(self.committee.epoch()),
                     evidence: Vec::new(),
                     next_key: None,
+                    cheats: Vec::new(),
                 };
                 let entry = checkpoint.merged.iter_mut().find(|(validator, _)| *validator == victim as u16).unwrap();
                 entry.1 = forged.digest(&self.network);
@@ -996,6 +998,7 @@ fn a_replacement_key_takes_over_only_as_the_merged_statements_say() {
         log: Pin::start(0),
         evidence: Vec::new(),
         next_key,
+        cheats: Vec::new(),
     };
     let next = |statements: &[Statement]| {
         let merged: Vec<&Statement> = statements.iter().collect();

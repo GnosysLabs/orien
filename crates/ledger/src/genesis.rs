@@ -221,6 +221,8 @@ pub struct Member {
     /// The account whose stake makes it a validator. None for the
     /// validators of the genesis file, which hold launch seats.
     pub account: Option<AccountId>,
+    /// For a launch seat, its place among the genesis file's validators.
+    pub seat: Option<u16>,
 }
 
 /// The rules for choosing validators, from the genesis file.
@@ -251,12 +253,14 @@ impl Committee {
         let members: Vec<Member> = genesis
             .validators
             .iter()
-            .map(|v| Member {
+            .enumerate()
+            .map(|(seat, v)| Member {
                 root: v.root,
                 height: v.height,
                 stake: v.stake,
                 address: v.address.clone(),
                 account: None,
+                seat: Some(seat as u16),
             })
             .collect();
         let total_stake = members.iter().map(|m| m.stake).sum();

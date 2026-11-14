@@ -1145,6 +1145,7 @@ mod tests {
                 log: Pin::of(0, &self.nodes[v].digests),
                 evidence: Vec::new(),
                 next_key: None,
+                cheats: Vec::new(),
             };
             self.nodes[v].pinned = self.nodes[v].digests.len();
             let own = self.nodes[v].digests.clone();

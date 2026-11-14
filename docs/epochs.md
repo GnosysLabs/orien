@@ -312,7 +312,12 @@ that ties that key to the spare root.
   by following the checkpoints from the genesis file.
 - Two votes for different orders under one number within one epoch, or two
   signatures from one key, cost a validator its stake at the next
-  checkpoint.
+  checkpoint. The proof is the validator's own signatures, carried in a
+  closing statement. Its stake, including coins still waiting to be
+  released, is burned: moved to an address no key can sign for, so the
+  supply still adds up. It leaves the list, and a launch seat caught
+  cheating loses its seat for good. The key kept for stake proofs is
+  exempt, since it signs one proof per stake it backs.
 - Delegating stake to someone else's validator is left for later.
 - The limits, chosen on 2026-11-14, are settings in the genesis file and
   can be revisited before the launch genesis is written: a stake of at

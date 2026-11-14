@@ -10,6 +10,11 @@ use std::collections::{BTreeMap, HashMap};
 use std::fmt;
 use std::io;
 
+/// Where the coins of a validator caught cheating go. No key can sign for
+/// this address, so they can never be spent: they are burned, and stay
+/// counted in the supply.
+pub const FORFEITED: AccountId = Hash32([0; 32]);
+
 /// Which key must sign an account's next order.
 #[derive(Clone, Debug, PartialEq, Eq, BorshSerialize, BorshDeserialize)]
 pub enum Signer {
@@ -320,6 +325,21 @@ impl State {
             .filter(|(_, account)| account.staked >= min_stake)
             .filter_map(|(id, account)| account.validator.as_ref().map(|v| (*id, v, account.staked)))
             .collect()
+    }
+
+    /// Takes everything `id` has staked, including coins still waiting to
+    /// be released, and burns it.
+    pub fn forfeit(&mut self, id: &AccountId) {
+        let Some(account) = self.accounts.get_mut(id) else { return };
+        let taken = account.staked as i128
+            + account.unstaking as i128
+            + account.releases.iter().map(|(_, amount)| *amount as i128).sum::<i128>();
+        account.staked = 0;
+        account.unstaking = 0;
+        account.releases.clear();
+        if taken > 0 {
+            self.accounts.entry(FORFEITED).or_insert_with(|| Account::holding(0)).balance += taken;
+        }
     }
 
     /// Replaces the key tree of the validator `id` names, when its

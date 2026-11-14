@@ -647,6 +647,7 @@ impl Core {
             log: self.pin,
             evidence,
             next_key: self.next_key.as_ref().map(|(_, tree)| NextKey { root: tree.root(), height: tree.height() }),
+            cheats: Vec::new(),
         };
         let own_log = self.digests.clone();
         let said = self.close_step(|closer, env| closer.freeze(statement, own_log, env));
