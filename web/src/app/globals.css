@@ -1,0 +1,228 @@
+@import "tailwindcss";
+
+@theme inline {
+  --color-bg: #0b0b0f;
+  --color-surface: #14141b;
+  --color-raised: #1c1c26;
+  --color-line: #262633;
+  --color-ink: #ececf1;
+  --color-muted: #8d8d9e;
+  --color-go: #4ade80;
+  --color-pearl: #d3c4ff;
+  --color-go-deep: #16a34a;
+  --color-stop: #f87171;
+  --color-warn: #fbbf24;
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+  --font-brand: var(--font-jost);
+}
+
+html {
+  color-scheme: dark;
+  scroll-behavior: smooth;
+}
+
+* {
+  scrollbar-width: none;
+}
+::-webkit-scrollbar {
+  display: none;
+}
+
+html,
+body {
+  overscroll-behavior-y: none;
+  overscroll-behavior-x: none;
+}
+
+/* Living pearl: pastel nacre gradient shared across the GnosysLabs/Synthrise aesthetic. */
+:root {
+  --pearl-gradient: linear-gradient(
+    115deg,
+    #f4b6d4 0%,
+    #b8c7ff 20%,
+    #d3b6ff 38%,
+    #a6ead6 56%,
+    #f9dda4 74%,
+    #f4b6d4 100%
+  );
+}
+
+@keyframes pearl-drift {
+  0%,
+  100% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+}
+
+@keyframes pearl-gloss {
+  0%,
+  35% {
+    transform: translateX(-160%) skewX(-20deg);
+  }
+  100% {
+    transform: translateX(320%) skewX(-20deg);
+  }
+}
+
+.pearl-fill,
+.pearl-text {
+  background-image: var(--pearl-gradient);
+  background-size: 300% 300%;
+  animation: pearl-drift 12s ease-in-out infinite;
+}
+
+.pearl-fill {
+  color: var(--color-bg);
+}
+
+.pearl-text {
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.pearl-sheen {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+}
+
+.pearl-sheen::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  width: 35%;
+  background: linear-gradient(90deg, transparent, rgb(255 255 255 / 0.6), transparent);
+  animation: pearl-gloss 5s ease-in-out infinite;
+  pointer-events: none;
+  z-index: -1;
+}
+
+/* Rising-horizon mark (oriens = rising), masked over living pearl so it shimmers in lockstep with ORIEN. */
+.orien-mark {
+  display: inline-block;
+  width: 1.08em;
+  height: 1.08em;
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Cg fill='black'%3E%3Crect x='239' y='74' width='36' height='66' rx='18'/%3E%3Crect x='239' y='74' width='36' height='66' rx='18' transform='rotate(-44 256 298)'/%3E%3Crect x='239' y='74' width='36' height='66' rx='18' transform='rotate(44 256 298)'/%3E%3Cpath d='M138 298 A118 118 0 0 1 374 298 Z'/%3E%3Crect x='76' y='338' width='360' height='40' rx='20'/%3E%3Crect x='156' y='406' width='200' height='36' rx='18'/%3E%3C/g%3E%3C/svg%3E")
+    center / contain no-repeat;
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Cg fill='black'%3E%3Crect x='239' y='74' width='36' height='66' rx='18'/%3E%3Crect x='239' y='74' width='36' height='66' rx='18' transform='rotate(-44 256 298)'/%3E%3Crect x='239' y='74' width='36' height='66' rx='18' transform='rotate(44 256 298)'/%3E%3Cpath d='M138 298 A118 118 0 0 1 374 298 Z'/%3E%3Crect x='76' y='338' width='360' height='40' rx='20'/%3E%3Crect x='156' y='406' width='200' height='36' rx='18'/%3E%3C/g%3E%3C/svg%3E")
+    center / contain no-repeat;
+}
+
+.hero-glow {
+  background:
+    radial-gradient(40% 55% at 20% 20%, rgb(244 182 212 / 0.22), transparent 70%),
+    radial-gradient(45% 60% at 80% 15%, rgb(184 199 255 / 0.22), transparent 70%),
+    radial-gradient(50% 60% at 60% 90%, rgb(166 234 214 / 0.16), transparent 70%),
+    radial-gradient(35% 45% at 10% 85%, rgb(249 221 164 / 0.12), transparent 70%);
+  filter: blur(20px);
+  animation: hero-drift 18s ease-in-out infinite alternate;
+}
+
+@keyframes hero-drift {
+  from {
+    transform: translate3d(-3%, -2%, 0) scale(1.05);
+  }
+  to {
+    transform: translate3d(3%, 2%, 0) scale(1.12);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  .hero-glow,
+  .pearl-fill,
+  .pearl-text,
+  .pearl-sheen::after {
+    animation: none;
+  }
+}
+
+@supports (-webkit-touch-callout: none) {
+  header .pearl-sheen::after {
+    animation: none;
+  }
+}
+
+body {
+  position: relative;
+  isolation: isolate;
+  background:
+    radial-gradient(55% 45% at 50% -8%, rgb(211 182 255 / 0.12), transparent 70%) fixed,
+    var(--color-bg);
+  color: var(--color-ink);
+  font-family: var(--font-geist-sans), system-ui, sans-serif;
+}
+
+/* Concentric living-pearl horizon ripples fixed behind all content. */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background-image: linear-gradient(
+    115deg,
+    #ff8ec6 0%,
+    #8aa6ff 20%,
+    #b483ff 38%,
+    #5fe0bd 56%,
+    #ffcf70 74%,
+    #ff8ec6 100%
+  );
+  background-size: 160% 160%;
+  mask-image:
+    repeating-radial-gradient(
+      circle at 50% -15%,
+      rgb(0 0 0 / 0.12) 0 1.5px,
+      transparent 2.2px 32px
+    ),
+    linear-gradient(to bottom, black 20%, transparent 90%);
+  mask-composite: intersect;
+  animation: pearl-drift 12s ease-in-out infinite;
+}
+
+/* Fine SVG film grain over the viewport. */
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  opacity: 0.07;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 0.9 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+@media (prefers-reduced-motion: reduce) {
+  body::before {
+    animation: none;
+  }
+}
+
+.num {
+  font-family: var(--font-geist-mono), ui-monospace, monospace;
+  font-variant-numeric: tabular-nums;
+}
+
+@keyframes card-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+}
+
+.card-in {
+  animation: card-in 0.5s ease-out;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .card-in {
+    animation: none;
+  }
+}
