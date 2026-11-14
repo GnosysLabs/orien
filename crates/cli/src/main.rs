@@ -598,11 +598,8 @@ fn finish(client: &Client, wallet: &mut Wallet, signed: &SignedOrder, receipt_fi
         Done::InCheckpoint(epoch) => {
             println!("final in {:.1} s", elapsed.as_secs_f64());
             println!(
-                "  payment #{}: {} from {} to {}",
-                order.seq,
-                order.amount,
-                order.from.short(),
-                order.to.short()
+                "  {}",
+                what(order)
             );
             println!("  checkpoint {epoch} took it in while the network was pausing to close the epoch");
             if receipt_file.is_some() {
@@ -615,11 +612,8 @@ fn finish(client: &Client, wallet: &mut Wallet, signed: &SignedOrder, receipt_fi
     let size = borsh::to_vec(&done.receipt)?.len();
     println!("final in {:.1} ms", elapsed.as_secs_f64() * 1000.0);
     println!(
-        "  payment #{}: {} from {} to {}",
-        order.seq,
-        order.amount,
-        order.from.short(),
-        order.to.short()
+        "  {}",
+        what(order)
     );
     println!(
         "  {} of {} validators voted and {} confirmed; the receipt is {size} bytes",
@@ -633,6 +627,18 @@ fn finish(client: &Client, wallet: &mut Wallet, signed: &SignedOrder, receipt_fi
 /// Signs an order and waits until it is final: a payment to `to`, or with
 /// `to` left out, a stake or unstake order on the wallet's own account.
 /// `kind` makes the order's kind once the wallet's account is known.
+/// One line saying what a final order did.
+fn what(order: &orien_ledger::Order) -> String {
+    let (seq, amount, from) = (order.seq, order.amount, order.from.short());
+    match &order.kind {
+        Kind::Payment => format!("payment #{seq}: {amount} from {from} to {}", order.to.short()),
+        Kind::Stake { validator, .. } => {
+            format!("order #{seq}: {from} staked {amount} behind the validator at {}", validator.address)
+        }
+        Kind::Unstake => format!("order #{seq}: {from} began releasing {amount} of its stake"),
+    }
+}
+
 fn submit(
     wallet_file: &Path,
     kind: impl FnOnce(&AccountId, &Genesis) -> Result<Kind>,
@@ -843,12 +849,40 @@ fn status(genesis: &Path) -> Result<()> {
         "staking: at least {} coins to become a validator, at most {} validators, unstaked coins wait {} epochs",
         genesis.min_stake, genesis.max_validators, genesis.unstake_epochs
     );
+    // Who votes this epoch, as the checkpoints say. The launch seats come
+    // first, in the genesis file's order.
+    let committee = client.committee();
+    let total = committee.total_stake().max(1) as f64;
+    println!("validators of epoch {}:", committee.epoch());
+    let mut seats = genesis.validators.iter();
+    for member in committee.members() {
+        let who = match member.account {
+            None => format!("{} (launch seat)", seats.next().map_or("?", |seat| seat.name.as_str())),
+            Some(account) => format!("staked by {}", account.short()),
+        };
+        println!(
+            "  {:<26} {:>6.2}% of the vote  {:>12} stake  at {}",
+            who,
+            100.0 * member.stake as f64 / total,
+            member.stake,
+            member.address
+        );
+    }
+    println!("the launch seats' servers:");
     println!(
         "{:<6} {:<22} {:>7} {:>8} {:>9} {:>16}  {:<8}",
         "name", "address", "epoch", "accounts", "payments", "signing keys", "state"
     );
     let roots = client.roots();
-    for ((validator, info), root) in genesis.validators.iter().zip(client.info()).zip(&roots) {
+    let infos = client.info();
+    // Only validators of this network count towards "the same balances".
+    let mut known: Vec<_> = infos
+        .iter()
+        .zip(&roots)
+        .filter(|(info, _)| info.as_ref().is_ok_and(|info| info.network == genesis.id()))
+        .filter_map(|(_, root)| root.as_ref())
+        .collect();
+    for ((validator, info), root) in genesis.validators.iter().zip(infos).zip(&roots) {
         match info {
             Ok(info) if info.network == genesis.id() => println!(
                 "{:<6} {:<22} {:>7} {:>8} {:>9} {:>16}  {:<8}{}",
@@ -867,7 +901,6 @@ fn status(genesis: &Path) -> Result<()> {
     }
     // The state column is a fingerprint of every balance. Equal fingerprints
     // mean equal ledgers.
-    let mut known: Vec<_> = roots.iter().flatten().collect();
     let reporting = known.len();
     known.dedup();
     match (reporting, known.len()) {
