@@ -155,6 +155,7 @@ pub fn account_root(id: &AccountId, account: &Account, proof: &merkle::Path) -> 
     merkle::root_from_path_in(merkle::Kind::State, &leaf(id, account), proof)
 }
 
+#[derive(Clone)]
 pub struct State {
     /// In address order, so that every validator lists them alike.
     accounts: BTreeMap<AccountId, Account>,
@@ -227,6 +228,13 @@ impl State {
     /// The state a snapshot was taken of. No votes are promised in it.
     pub fn from_snapshot(bytes: &[u8]) -> io::Result<State> {
         Ok(State { accounts: borsh::from_slice(bytes)?, locks: HashMap::new() })
+    }
+
+    /// An account that has paid out more than it holds, if there is one.
+    /// A validator still catching up can see this in passing. A closed
+    /// epoch must not contain it.
+    pub fn overdrawn(&self) -> Option<AccountId> {
+        self.accounts.iter().find(|(_, account)| account.balance < 0).map(|(id, _)| *id)
     }
 
     /// Sum of all balances. Applying a certificate moves money and never

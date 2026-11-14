@@ -7,6 +7,8 @@
 //! of validators share an honest member, and an honest validator votes for
 //! only one payment per account and number.
 
+pub mod agree;
+pub mod close;
 pub mod genesis;
 pub mod state;
 pub mod types;

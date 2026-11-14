@@ -1,7 +1,7 @@
 # The epoch step
 
-Status: **design, revised after an independent review. Stages 0, 1a and 1b
-of the build order are built; nothing else is.**
+Status: **design, revised after an independent review. Stages 0, 1a, 1b and
+2 of the build order are built; nothing else is.**
 
 ## In plain words
 
@@ -149,10 +149,14 @@ owner who signed once.
      resulting state (rule 6);
    - its time is close to the validator's own clock.
 7. **Agree.** One round-based agreement in the style of Tendermint, with
-   its rules unchanged: a proposer chosen in rotation by stake, prevotes,
+   its rules unchanged: a proposer chosen in proportion to stake, prevotes,
    precommits, a lock on precommit, timeouts that grow each round. A
    checkpoint that already has prevotes from more than two thirds is
-   accepted as it stands when proposed again.
+   accepted as it stands when proposed again. Two messages carry their own
+   proof and are judged on it alone: a checkpoint proposed again comes with
+   the earlier prevotes that back it, and a decision comes with the
+   precommits that made it. A validator that learns of a decision passes
+   that proof on.
 8. **Result.** A checkpoint with precommits from more than two thirds of
    the stake is decided. Every validator switches, in one atomic step, to
    the checkpoint's state and an empty log for the new epoch. Anything it
@@ -188,9 +192,11 @@ situation anyway.
 - The **header** is small: epoch number, digest of the previous
   checkpoint, time, state root, the validator set and settings for the
   next epoch, and totals for fees and released coins. Wallets keep headers.
-- The **body** is the cancellations with their evidence. Payments are not
-  listed: validators already hold the certificates, and the state root
-  pins the result.
+- It names the statements it was built from. Payments are not listed:
+  validators already hold the certificates, and the state root pins the
+  result. Cancellations are not listed either. They follow, by a fixed
+  rule, from the evidence in those statements, and each shows in the
+  cancelled account's state.
 - The state root is a Merkle root over all accounts in address order, so a
   wallet can be given a short proof of its own account against a header.
 
@@ -314,7 +320,7 @@ Each stage can be built and tested on its own.
 | 0, built | No change to the protocol. A state root, account proofs and snapshots; one folder per epoch with an atomic switch; evidence kept when a second order is refused; the balance check on every vote; a key reserve. | `crates/ledger/src/state.rs`, `crates/crypto/src/merkle.rs`, `crates/net/src/store.rs`, `crates/net/src/node.rs` |
 | 1a, built | Epoch number (always 0 for now) in votes and certificates. Certificates that keep the owner's signature. Signed confirmations. Receipts that carry them. A wallet that advances only on proof. | `crates/ledger`, `crates/net`, `crates/cli` |
 | 1b, built | The order format, fixed once: kind, largest fee, spare tree, the new address form. Cancellation as a pure function. The wallet's key streams. | `crates/ledger`, `crates/net/src/keys.rs`, `crates/crypto/src/hash.rs` |
-| 2 | The close as a pure state machine with no network or disk, and a simulator that runs it under delays, crashes and dishonest validators. The failures the review found become permanent tests. | new files in `crates/ledger` |
+| 2, built | The close as pure logic with no network or disk, and simulators that run it under delays, absent validators and dishonest ones. The failures the review found are permanent tests. | `crates/ledger/src/agree.rs`, `crates/ledger/src/close.rs` |
 | 3 | The close inside the validator with a fixed validator set: freeze, messages between validators, what is written to disk, the switch of state, the checkpoint chain, account proofs, key-tree replacement. | `crates/net`, `crates/cli` |
 | 4 | Staking, a changing validator set, penalties. | all crates |
 | 5 | Fees. | `crates/ledger`, `crates/net` |
@@ -370,3 +376,30 @@ The review also confirmed the core: validators cannot disagree, nothing
 final is lost, no two conflicting payments both become final, and an owner
 who signs once can never be cancelled. It judged the alternative of a
 four-fifths quorum to be worse for this network.
+
+## What building stage 2 found
+
+The agreement was built as pure logic and run in a simulator against
+thousands of message orders, with validators absent and one lying. Three
+ways it could stall turned up. None allowed a wrong decision. Each left the
+network unable to decide anything, and each is fixed in rule 5.
+
+- **A vote shown to one validator.** A dishonest validator sends the vote
+  that completes two thirds to a single honest validator. That validator
+  acts on it and the others cannot follow, having never seen the vote. So
+  proof now travels with the message that rests on it.
+- **Conflicting votes.** A dishonest validator sends different votes for
+  one round to different validators. Each validator counted the first it
+  saw, so a vote passed on later as proof was ignored by anyone who had
+  already seen a different one. Proof is now judged as a whole, apart from
+  what the receiver has seen before.
+- **A decision not passed on.** A dishonest validator shows genuine proof
+  of a decision to one validator, which decides and takes no further part,
+  leaving the rest short of two thirds. A validator that learns of a
+  decision now passes its proof to everyone.
+
+A fourth lesson was about the tests. A simulated liar that lies at random
+almost never finds the sequence that exploits a missing safety rule: with
+random lies, five deliberately removed rules went unnoticed. The simulated
+liar now plays the known attacks, and one attack on the lock is scripted
+message by message.

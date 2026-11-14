@@ -157,6 +157,12 @@ impl Committee {
         self.epoch
     }
 
+    /// The same validators serving another epoch. Their signatures from
+    /// this epoch count for nothing there.
+    pub fn at_epoch(&self, epoch: u64) -> Committee {
+        Committee { epoch, ..self.clone() }
+    }
+
     pub fn network(&self) -> &Hash32 {
         &self.network
     }

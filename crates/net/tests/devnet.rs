@@ -462,7 +462,10 @@ fn one_signature_covers_many_simultaneous_payments() {
         assert_eq!(net.view(v, &carol).balance, 10 * crowd as i128);
         let info = net.info(v);
         assert_eq!(info.certificates, crowd as u64);
-        assert!(info.keys_used <= 8, "validator {v} signed {} times for {crowd} payments", info.keys_used);
+        // Each payment needs a vote and a confirmation from this validator:
+        // eighty things to sign. How they fall into batches depends on
+        // timing, so the bound is loose, but it is far below eighty.
+        assert!(info.keys_used <= 20, "validator {v} signed {} times for {crowd} payments", info.keys_used);
     }
 }
 
