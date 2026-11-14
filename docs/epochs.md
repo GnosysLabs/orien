@@ -493,6 +493,11 @@ message by message.
   itself.** It needs a key to announce a replacement. Replacement starts at
   half used, so this takes a long outage at the wrong moment. Stage 4,
   where validators are named by stake orders, is where it gets a way back.
+- **Proof of a validator cheating is only kept in memory,** and only for
+  the epoch it happened in. A validator restarted mid-epoch forgets what
+  it found, and proof found after a validator has stopped work on the
+  epoch is dropped. A cheat seen only by a wallet, two votes for orders
+  that never both got certificates, is not passed on.
 - **A wallet that has been away a long time knows only the validators of
   its last visit.** If all of them have left since, it has nobody to ask.
   Falling back to the genesis file's validators would cover it.

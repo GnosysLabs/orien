@@ -1616,3 +1616,48 @@ fn a_validator_outside_the_genesis_file_joins_once_staked() {
     });
     newcomer.stop();
 }
+
+#[test]
+fn a_validator_that_signs_twice_with_one_key_loses_its_stake() {
+    let options = Options { crowd: 0, epoch: 2, min_stake: 10, ..Options::default() };
+    let net = TestNet::start_with("cheat", options);
+    net.stake("alice", 0, 100);
+    net.stake("bob", 1, 200);
+    let places = || -> Vec<Option<u16>> { net.running().iter().map(|v| net.info(*v).validator).collect() };
+    wait_until("only v1 and v2 are validators", || places() == [Some(1), Some(0), None, None]);
+    let client = net.client();
+    let alice = net.address("alice");
+    let staked = |client: &Client| {
+        client.follow();
+        client.proven(&alice).map_or(0, |account| account.staked)
+    };
+    assert_eq!(staked(&client), 100);
+
+    // v1 votes on a payment as usual. Then, playing a dishonest v1, the
+    // test signs a different batch with the very key v1 used, and hands the
+    // result to v2 as if it were a certificate.
+    let tree = KeyTree::generate(net.keys[0].seed, net.keys[0].height);
+    let carol = net.address("carol");
+    wait_until("v1 is caught", || {
+        let paid = net.pay_through("bob", carol, 1);
+        let Done::Receipt(done) = paid else { return false };
+        let real = done.receipt.certificate;
+        let committee = { client.follow(); client.committee() };
+        let Some(vote) = real.votes.iter().find(|vote| vote.validator == 1) else { return false };
+        let digest = real.order.digest(&net.network);
+        let batch = orien_crypto::merkle::Tree::build(&[digest, Hash32([7; 32])]);
+        let message = committee.batch_message(&batch.root());
+        let signature = tree.sign_with_leaf(vote.signature.leaf, message.as_bytes());
+        let forged = orien_ledger::Vote { validator: 1, batch_path: batch.path(0), signature };
+        let handed = orien_ledger::Certificate { votes: vec![forged], ..real };
+        let _ = net.ask(1, &Request::SubmitCertificate(handed));
+        // Caught once the next checkpoint drops it from the list.
+        thread::sleep(Duration::from_millis(2500));
+        net.info(0).validator.is_none()
+    });
+
+    // Its stake is gone, burned, and it is no longer a validator.
+    wait_until("alice's stake is burned", || staked(&client) == 0);
+    assert_eq!(client.proven(&orien_ledger::FORFEITED).map(|account| account.balance), Some(100));
+    assert_eq!(places()[..2], [None, Some(0)], "v1 is out; v2 is now the only validator");
+}

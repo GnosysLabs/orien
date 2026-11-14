@@ -22,9 +22,9 @@ use crate::keys::ValidatorKey;
 use crate::store::{CertLog, Epochs, LeafCounter, OrderLog, sync_dir};
 use crate::wire::{AccountView, NodeInfo, Request, Response, read_frame, write_frame};
 use anyhow::{Context, Result, anyhow, bail};
-use orien_crypto::keytree::{KeyTree, TreeSignature};
+use orien_crypto::keytree::{self, KeyTree, TreeSignature};
 use orien_crypto::{Hash32, merkle};
-use orien_ledger::close::{self, Decided, Message, NextKey, Pin, Statement};
+use orien_ledger::close::{self, Cheat, Decided, Message, NextKey, Pin, Statement};
 use orien_ledger::{
     Accepted, AccountId, Applied, Certificate, Committee, Confirmation, Genesis, Order, Proofs, Reject,
     SignedBy, SignedOrder, State, Vote, confirmation_item,
@@ -119,6 +119,9 @@ enum Command {
     Snapshot { epoch: u64, bytes: Vec<u8> },
     /// A replacement key tree is ready.
     NextKey(ValidatorKey, Box<KeyTree>),
+    /// Votes seen in a certificate someone handed over, whether or not it
+    /// holds up, to look for validators that cheated.
+    Seen { epoch: u64, order: Order, digest: Hash32, votes: Vec<Vote> },
     Stop,
 }
 
@@ -212,6 +215,17 @@ impl Shared {
         }
         let (from, seq) = (certificate.order.from, certificate.order.seq);
         let digest = certificate.order.digest(committee.network());
+        // Every vote handed over is looked at for cheating, even in a
+        // certificate that turns out to be no good.
+        let seen = Command::Seen {
+            epoch: certificate.epoch,
+            order: certificate.order.clone(),
+            digest,
+            votes: certificate.votes.clone(),
+        };
+        if self.commands.send(seen).is_err() {
+            return None;
+        }
         if !self.ask(|reply| Command::Needs { from, seq, reply })? {
             // That payment number is already applied here.
             if confirm {
@@ -379,6 +393,12 @@ struct Core {
     peers: HashMap<String, Sender<Request>>,
     shared: Arc<Shared>,
     sync_interval: Duration,
+    /// The first message each validator's one-time key was seen signing
+    /// this epoch, with the signature, by key tree and key number.
+    key_uses: HashMap<(Hash32, u32), (Hash32, TreeSignature)>,
+    /// Proof, checked, that validators of this epoch cheated, and who.
+    cheats: Vec<Cheat>,
+    caught: Vec<u16>,
     commands: Sender<Command>,
     orders: OrderLog,
     /// The signed order behind each vote for a payment that is not final
@@ -499,6 +519,7 @@ impl Core {
                     self.building_key = false;
                     self.next_key = Some((key, *tree));
                 }
+                Command::Seen { epoch, order, digest, votes } => self.on_seen(epoch, order, digest, votes),
                 Command::Stop => break,
             }
         }
@@ -647,7 +668,7 @@ impl Core {
             log: self.pin,
             evidence,
             next_key: self.next_key.as_ref().map(|(_, tree)| NextKey { root: tree.root(), height: tree.height() }),
-            cheats: Vec::new(),
+            cheats: self.cheats.clone(),
         };
         let own_log = self.digests.clone();
         let said = self.close_step(|closer, env| closer.freeze(statement, own_log, env));
@@ -761,6 +782,10 @@ impl Core {
         self.issued.clear();
         self.confirming.clear();
         self.confirmed.clear();
+        // Proof of cheating counts in the epoch it happened in.
+        self.key_uses.clear();
+        self.cheats.clear();
+        self.caught.clear();
         self.root = None;
         self.checkpoint_saved = false;
 
@@ -1121,6 +1146,57 @@ impl Core {
             return;
         }
         self.enqueue_confirmation(payment, digest, reply);
+    }
+
+    /// Looks at votes for signs of cheating: a vote for a different order
+    /// than the one applied under the same number this epoch, or a key
+    /// already seen signing something else.
+    fn on_seen(&mut self, epoch: u64, order: Order, digest: Hash32, votes: Vec<Vote>) {
+        if epoch != self.committee.epoch() {
+            return;
+        }
+        if let Ok(Some(applied)) = self.certs.find(&order.from, order.seq)
+            && applied.order != order
+        {
+            for vote in &votes {
+                if let Some(theirs) = applied.votes.iter().find(|theirs| theirs.validator == vote.validator) {
+                    let one = (applied.order.clone(), theirs.clone());
+                    self.caught_cheating(Cheat::TwoVotes { one, other: (order.clone(), vote.clone()) });
+                }
+            }
+        }
+        for vote in votes {
+            let Some(member) = self.committee.members().get(vote.validator as usize) else { continue };
+            let Some(batch_root) = merkle::root_from_path(&digest, &vote.batch_path) else { continue };
+            let message = self.committee.batch_message(&batch_root);
+            let use_of_key = (member.root, vote.signature.leaf);
+            match self.key_uses.get(&use_of_key) {
+                Some((seen, _)) if *seen == message => {}
+                Some((seen, signature)) => {
+                    let one = (*seen, signature.clone());
+                    self.caught_cheating(Cheat::KeyReuse { one, other: (message, vote.signature) });
+                }
+                // Only a genuine signature is remembered, so that a forged
+                // one cannot stand in the way of catching the real thing.
+                None => {
+                    if keytree::verify(&member.root, member.height, &vote.signature, message.as_bytes()) {
+                        self.key_uses.insert(use_of_key, (message, vote.signature));
+                    }
+                }
+            }
+        }
+    }
+
+    fn caught_cheating(&mut self, cheat: Cheat) {
+        let Some(cheater) = cheat.cheater(&self.committee) else { return };
+        if self.caught.contains(&cheater) {
+            return;
+        }
+        if self.log {
+            println!("[{}] caught validator {cheater} cheating; it loses its stake at the checkpoint", self.name);
+        }
+        self.caught.push(cheater);
+        self.cheats.push(cheat);
     }
 
     fn on_query(&mut self, request: Request) -> Response {
@@ -1671,6 +1747,9 @@ impl Node {
             tended: Instant::now(),
             checkpoint_saved,
             peers: HashMap::new(),
+            key_uses: HashMap::new(),
+            cheats: Vec::new(),
+            caught: Vec::new(),
             shared: shared.clone(),
             sync_interval: config.sync_interval,
             commands,
