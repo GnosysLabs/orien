@@ -118,6 +118,7 @@ impl TestNet {
             min_stake: options.min_stake,
             max_validators: 33,
             unstake_epochs: 168,
+            fee: orien_ledger::Fees::NONE,
         };
         let network = genesis.id();
         let mut net = TestNet { dir, genesis, network, keys, nodes: Vec::new(), options };

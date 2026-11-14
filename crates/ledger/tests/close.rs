@@ -149,6 +149,7 @@ impl World {
             min_stake: 10_000,
             max_validators: 33,
             unstake_epochs: 168,
+            fee: orien_ledger::Fees::NONE,
         };
         genesis.validate().unwrap();
         World {

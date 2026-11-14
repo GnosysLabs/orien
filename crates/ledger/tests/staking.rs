@@ -26,6 +26,8 @@ fn id(account: u8) -> Hash32 {
 
 fn genesis(balances: &[(u8, u64)]) -> Genesis {
     let mut genesis = Genesis::new("staking", Vec::new(), Vec::new());
+    // No fee, so that the balances below show the stake alone.
+    genesis.fee = orien_ledger::Fees::NONE;
     genesis.allocations =
         balances.iter().map(|(account, amount)| Allocation { account: id(*account), amount: *amount }).collect();
     genesis

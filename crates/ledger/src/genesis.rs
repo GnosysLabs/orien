@@ -1,4 +1,4 @@
-use crate::types::{AccountId, Certificate, Confirmation, Receipt, Vote, confirmation_item};
+use crate::types::{AccountId, Certificate, Confirmation, Kind, Receipt, Vote, confirmation_item};
 use borsh::{BorshDeserialize, BorshSerialize};
 use orien_crypto::{Hash32, Tag, hash, keytree, merkle};
 use serde::{Deserialize, Serialize};
@@ -53,6 +53,48 @@ pub struct Genesis {
     /// the evidence against it is acted on.
     #[serde(default = "a_week_of_epochs")]
     pub unstake_epochs: u64,
+    /// What orders pay, taken from the sender's spendable coins when an
+    /// order is applied, and shared out to the validators at the
+    /// checkpoint.
+    #[serde(default)]
+    pub fee: Fees,
+}
+
+/// The fee rule: a share of each payment, never less than `min` and never
+/// more than `max`. Stake and unstake orders pay `min`. A share of the
+/// amount keeps the fee about the same in real money however the coin's
+/// value moves; the minimum stops floods of tiny payments, and the maximum
+/// keeps a large payment from paying far more than the work it costs.
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
+pub struct Fees {
+    pub min: u64,
+    pub max: u64,
+    /// Millionths of the amount: 1,000 is 0.1%.
+    pub rate: u32,
+}
+
+impl Fees {
+    /// No fee at all, for tests.
+    pub const NONE: Fees = Fees { min: 0, max: 0, rate: 0 };
+
+    /// The fee for an order of this kind and amount.
+    pub fn on(&self, kind: &Kind, amount: u64) -> u64 {
+        match kind {
+            Kind::Payment => {
+                let share = (amount as u128 * self.rate as u128 / 1_000_000) as u64;
+                share.clamp(self.min, self.max.max(self.min))
+            }
+            _ => self.min,
+        }
+    }
+}
+
+/// Counted in the smallest unit, a billionth of a coin once coins have
+/// decimals: 0.1% of each payment, at least 0.000001 coin, at most 1 coin.
+impl Default for Fees {
+    fn default() -> Fees {
+        Fees { min: 1_000, max: 1_000_000_000, rate: 1_000 }
+    }
 }
 
 fn an_hour() -> u64 {
@@ -88,6 +130,7 @@ impl Genesis {
             min_stake: ten_thousand(),
             max_validators: thirty_three(),
             unstake_epochs: a_week_of_epochs(),
+            fee: Fees::default(),
         }
     }
 
@@ -114,6 +157,9 @@ impl Genesis {
             self.min_stake,
             self.max_validators as u64,
             self.unstake_epochs,
+            self.fee.min,
+            self.fee.max,
+            self.fee.rate as u64,
         ];
         for setting in settings {
             bytes.extend_from_slice(&setting.to_le_bytes());
@@ -165,6 +211,9 @@ impl Genesis {
         }
         if self.epoch_seconds == 0 || self.epoch_payments == 0 {
             return Err("an epoch must have a length and a payment limit".into());
+        }
+        if self.fee.min > self.fee.max || self.fee.rate > 1_000_000 {
+            return Err("the fee's minimum must not exceed its maximum, nor its rate the whole amount".into());
         }
         if self.min_stake == 0 || self.unstake_epochs == 0 {
             return Err("staking needs a minimum stake and an unstake waiting period".into());

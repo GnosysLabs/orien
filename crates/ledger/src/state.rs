@@ -1,7 +1,7 @@
 //! One validator's view of the ledger, and the two rules it enforces:
 //! when to vote for an order, and how a certified order changes balances.
 
-use crate::genesis::Genesis;
+use crate::genesis::{Fees, Genesis};
 use crate::types::{AccountId, Kind, Order, SPARE_HEIGHT, SignedBy, Validator, address};
 use borsh::{BorshDeserialize, BorshSerialize};
 use orien_crypto::merkle;
@@ -14,6 +14,10 @@ use std::io;
 /// this address, so they can never be spent: they are burned, and stay
 /// counted in the supply.
 pub const FORFEITED: AccountId = Hash32([0; 32]);
+
+/// Where an epoch's fees gather until its checkpoint shares them out. No
+/// key can sign for this address either.
+pub const FEES: AccountId = Hash32([1; 32]);
 
 /// Which key must sign an account's next order.
 #[derive(Clone, Debug, PartialEq, Eq, BorshSerialize, BorshDeserialize)]
@@ -124,6 +128,8 @@ pub enum Reject {
     ZeroAmount,
     /// The account has already moved past this payment number.
     StaleSeq { current: u64 },
+    /// The order does not accept the network's fee.
+    FeeTooLow { fee: u64, accepted: u64 },
     /// This validator has not yet seen the account's earlier payments.
     FutureSeq { current: u64 },
     BadSignature,
@@ -150,6 +156,9 @@ impl fmt::Display for Reject {
                 write!(f, "earlier payments are missing here (account is at #{current})")
             }
             Reject::BadSignature => f.write_str("not signed with the key the account must use next"),
+            Reject::FeeTooLow { fee, accepted } => {
+                write!(f, "the fee is {fee}, and the order accepts at most {accepted}")
+            }
             Reject::InsufficientFunds { balance, needed } => {
                 write!(f, "insufficient funds: balance {balance}, needs {needed}")
             }
@@ -228,6 +237,8 @@ pub struct State {
     /// The order this validator voted for, per account and payment number.
     /// Entries exist only for payments that are not final yet.
     locks: HashMap<(AccountId, u64), Hash32>,
+    /// What orders pay, from the genesis file.
+    fees: Fees,
 }
 
 impl State {
@@ -237,7 +248,12 @@ impl State {
             .iter()
             .map(|a| (a.account, Account::holding(a.amount as i128)))
             .collect();
-        State { accounts, locks: HashMap::new() }
+        State { accounts, locks: HashMap::new(), fees: genesis.fee }
+    }
+
+    /// What orders pay.
+    pub fn fees(&self) -> Fees {
+        self.fees
     }
 
     pub fn account(&self, id: &AccountId) -> Option<&Account> {
@@ -297,9 +313,10 @@ impl State {
         borsh::to_vec(&self.accounts).expect("writing to memory cannot fail")
     }
 
-    /// The state a snapshot was taken of. No votes are promised in it.
-    pub fn from_snapshot(bytes: &[u8]) -> io::Result<State> {
-        Ok(State { accounts: borsh::from_slice(bytes)?, locks: HashMap::new() })
+    /// The state a snapshot was taken of, on a network whose orders pay
+    /// `fees`. No votes are promised in it.
+    pub fn from_snapshot(bytes: &[u8], fees: Fees) -> io::Result<State> {
+        Ok(State { accounts: borsh::from_slice(bytes)?, locks: HashMap::new(), fees })
     }
 
     /// An account that has paid out more than it holds, if there is one.
@@ -422,12 +439,21 @@ impl State {
         // for an order is not a promise that its funds are still there: a
         // checkpoint can undo the payment that provided them, or take the
         // stake of a validator that cheated.
-        if let Kind::Unstake = order.kind {
-            if account.staked < order.amount {
-                return Err(Reject::InsufficientStake { staked: account.staked, needed: order.amount });
+        let fee = self.fees.on(&order.kind, order.amount);
+        if order.max_fee < fee {
+            return Err(Reject::FeeTooLow { fee, accepted: order.max_fee });
+        }
+        let spends = match order.kind {
+            Kind::Unstake => {
+                if account.staked < order.amount {
+                    return Err(Reject::InsufficientStake { staked: account.staked, needed: order.amount });
+                }
+                fee
             }
-        } else if account.balance < order.amount as i128 {
-            return Err(Reject::InsufficientFunds { balance: account.balance, needed: order.amount });
+            _ => order.amount.saturating_add(fee),
+        };
+        if account.balance < spends as i128 {
+            return Err(Reject::InsufficientFunds { balance: account.balance, needed: spends });
         }
         if promised.is_some() {
             return Ok(Accepted::Repeat);
@@ -450,7 +476,9 @@ impl State {
             return Err(Reject::FutureSeq { current });
         }
         let sender = self.accounts.entry(order.from).or_insert_with(|| Account::holding(0));
+        let fee = self.fees.on(&order.kind, order.amount);
         sender.seq += 1;
+        sender.balance -= fee as i128;
         if sender.signer == Signer::First {
             sender.spare = order.spare;
         }
@@ -473,6 +501,9 @@ impl State {
                 sender.staked -= amount;
                 sender.unstaking += amount;
             }
+        }
+        if fee > 0 {
+            self.accounts.entry(FEES).or_insert_with(|| Account::holding(0)).balance += fee as i128;
         }
         self.locks.remove(&(order.from, order.seq));
         Ok(Applied::New)

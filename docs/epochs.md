@@ -341,9 +341,15 @@ that ties that key to the spare root.
 
 ### Fees
 
-A flat fee per payment is taken from the sender when the payment is
-applied. The fees of an epoch are paid out in its checkpoint to the
-validators, in proportion to stake.
+A payment pays a share of its amount, never less than a minimum and never
+more than a maximum (chosen on 2026-11-14). A share keeps the fee about
+the same in real money however the coin's value moves; the minimum stops
+floods of tiny payments, and the maximum keeps a large payment from paying
+far more than the work it costs. Stake and unstake orders pay the minimum.
+The starting values, settings in the genesis file, are 0.1%, at least
+0.000001 coin and at most 1 coin. The fee is taken from the sender when the
+order is applied, into a pot no key can sign for. The fees of an epoch are
+paid out in its checkpoint to the validators, in proportion to stake.
 
 ### Coin creation
 
@@ -388,7 +394,9 @@ Stuck accounts are freed from stage 3 on.
 - **A slow sunrise.** Whether the release rate starts near zero and climbs
   to full over the first 90 days.
 - **The launch seats' total weight.** Test networks use 3 million coins.
-- **The size of the fee**, and whether it can change over time.
+- **The launch values of the fee.** A coin worth far more than today makes
+  the minimum and maximum dearer; only very small and very large payments
+  feel that.
 - **The payment limit per epoch.**
 
 ## What the first draft got wrong

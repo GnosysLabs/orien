@@ -5,7 +5,7 @@ use anyhow::{Context, Result, anyhow, bail};
 use orien_crypto::keytree::KeyTree;
 use orien_crypto::{Hash32, Kdf, ots, prf};
 use orien_ledger::{
-    AccountId, Genesis, Kind, Order, SPARE_HEIGHT, Signature, SignedBy, SignedOrder, Signer, address,
+    AccountId, Fees, Genesis, Kind, Order, SPARE_HEIGHT, Signature, SignedBy, SignedOrder, Signer, address,
 };
 use serde::{Deserialize, Serialize};
 use std::fs;
@@ -90,6 +90,10 @@ pub struct Wallet {
     address: AccountId,
     next_seq: u64,
     pending: Option<SignedOrder>,
+    /// The network's fee rule, which sets the largest fee each order
+    /// accepts. Set from the genesis file with `accept_fee`; no fee until
+    /// then.
+    fees: Fees,
 }
 
 #[derive(Serialize, Deserialize)]
@@ -126,6 +130,7 @@ impl Wallet {
             spares,
             next_seq: 0,
             pending: None,
+            fees: Fees::NONE,
         };
         wallet.save()?;
         Ok(wallet)
@@ -152,6 +157,7 @@ impl Wallet {
             spares,
             next_seq: file.next_seq,
             pending,
+            fees: Fees::NONE,
         })
     }
 
@@ -187,16 +193,23 @@ impl Wallet {
 
     /// The order of this kind this wallet would sign for number `seq`.
     pub fn order_of(&self, kind: Kind, seq: u64, to: AccountId, amount: u64) -> Order {
+        let max_fee = self.fees.on(&kind, amount);
         Order {
             kind,
             from: self.address,
             seq,
             to,
             amount,
-            max_fee: 0,
+            max_fee,
             next_key: self.key(seq + 1).commitment(),
             spare: self.spares.root(),
         }
+    }
+
+    /// Lets this wallet's orders pay the network's fee, from its genesis
+    /// file. Each order accepts exactly the fee its amount calls for.
+    pub fn accept_fee(&mut self, fees: Fees) {
+        self.fees = fees;
     }
 
     pub fn next_seq(&self) -> u64 {

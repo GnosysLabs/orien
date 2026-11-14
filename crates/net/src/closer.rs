@@ -963,7 +963,7 @@ mod tests {
             std::fs::create_dir_all(&dir).unwrap();
             let trees: Vec<KeyTree> = (0..validators).map(|v| KeyTree::generate([40 + v as u8; 32], 6)).collect();
             let account = |n: u8| Hash32([n; 32]);
-            let genesis = Genesis::new(
+            let mut genesis = Genesis::new(
                 name,
                 trees
                     .iter()
@@ -978,6 +978,7 @@ mod tests {
                     .collect(),
                 (1..=payments).map(|n| Allocation { account: account(n), amount: 100 }).collect(),
             );
+            genesis.fee = orien_ledger::Fees::NONE;
             let committee = Committee::new(&genesis);
             let network = *committee.network();
             let mut sim = Sim {

@@ -2,7 +2,7 @@ use anyhow::{Context, Result, anyhow, bail};
 use clap::{Args, Parser, Subcommand};
 use orien_crypto::keytree::KeyTree;
 use orien_ledger::{
-    AccountId, Allocation, Certificate, Genesis, Kind, Receipt, Signature, SignedOrder, Validator, ValidatorInfo,
+    AccountId, Allocation, Certificate, Fees, Genesis, Kind, Receipt, Signature, SignedOrder, Validator, ValidatorInfo,
     sign_stake_proof,
 };
 use orien_ledger::Signer;
@@ -632,7 +632,7 @@ fn finish(client: &Client, wallet: &mut Wallet, signed: &SignedOrder, receipt_fi
 fn what(order: &orien_ledger::Order) -> String {
     let (seq, amount, from) = (order.seq, order.amount, order.from.short());
     match &order.kind {
-        Kind::Payment => format!("payment #{seq}: {amount} from {from} to {}", order.to.short()),
+        Kind::Payment => format!("payment #{seq}: {amount} from {from} to {} (fee {})", order.to.short(), order.max_fee),
         Kind::Stake { validator, .. } => {
             format!("order #{seq}: {from} staked {amount} behind the validator at {}", validator.address)
         }
@@ -652,6 +652,7 @@ fn submit(
     let (genesis, client) = connect(genesis_file)?;
     let network = genesis.id();
     let mut wallet = Wallet::load(wallet_file)?;
+    wallet.accept_fee(genesis.fee);
     let to = to.unwrap_or(wallet.address());
     let kind = kind(&wallet.address(), &genesis)?;
     let status = read_account(&client, &wallet)?;
@@ -693,8 +694,11 @@ fn submit(
         // Validators check the stake an unstake order draws on.
         [] if kind == Kind::Unstake => {}
         [] => match status.spendable {
-            Some(balance) if balance < amount as i128 => {
-                bail!("insufficient funds: balance is {balance}, payment is {amount}")
+            Some(balance) if balance < amount as i128 + genesis.fee.on(&kind, amount) as i128 => {
+                bail!(
+                    "insufficient funds: balance is {balance}, payment is {amount} and the fee {}",
+                    genesis.fee.on(&kind, amount)
+                )
             }
             None => bail!("too few validators are caught up on this account; try again shortly"),
             _ => {}
@@ -735,6 +739,7 @@ fn resume(wallet_file: &Path, pick: Option<&str>, receipt_file: Option<&Path>, g
     let (genesis, client) = connect(genesis_file)?;
     let network = genesis.id();
     let mut wallet = Wallet::load(wallet_file)?;
+    wallet.accept_fee(genesis.fee);
     let status = read_account(&client, &wallet)?;
     let seq = status.seq;
     drop_cancelled(&mut wallet, &status)?;
@@ -849,6 +854,14 @@ fn status(genesis: &Path) -> Result<()> {
     println!(
         "staking: at least {} coins to become a validator, at most {} validators, unstaked coins wait {} epochs",
         genesis.min_stake, genesis.max_validators, genesis.unstake_epochs
+    );
+    let fee = genesis.fee;
+    println!(
+        "fees: {}% of each payment, at least {} and at most {}; stake and unstake orders pay {}",
+        fee.rate as f64 / 10_000.0,
+        fee.min,
+        fee.max,
+        fee.min
     );
     // Who votes this epoch, as the checkpoints say. The launch seats come
     // first, in the genesis file's order.
@@ -977,6 +990,9 @@ fn devnet_init(dir: &Path, network: &str, addresses: &[String], height: u8, epoc
 
     let mut genesis = Genesis::new(network, infos, allocations);
     genesis.epoch_seconds = epoch_seconds;
+    // Amounts are whole coins until coins have decimals, so a test network
+    // charges 0.1% of each payment, at least 1 and at most 100.
+    genesis.fee = Fees { min: 1, max: 100, rate: 1_000 };
     genesis.start_time = unix_now();
     genesis.validate().map_err(|e| anyhow!("{e}"))?;
     save_genesis(&dir.join("genesis.json"), &genesis)?;
@@ -1026,7 +1042,8 @@ fn interrupt(dir: &Path, wallet_name: &str, to_name: &str, amount: u64) -> Resul
     let (genesis, client) = connect(&dir.join("genesis.json"))?;
     let wallets = dir.join("wallets");
     let wallet_file = wallets.join(format!("{wallet_name}.wallet"));
-    let wallet = Wallet::load(&wallet_file)?;
+    let mut wallet = Wallet::load(&wallet_file)?;
+    wallet.accept_fee(genesis.fee);
     let to = Wallet::load(&wallets.join(format!("{to_name}.wallet")))?.address();
 
     let status = read_account(&client, &wallet)?;
@@ -1061,7 +1078,8 @@ fn interrupt(dir: &Path, wallet_name: &str, to_name: &str, amount: u64) -> Resul
 fn double_spend(dir: &Path, wallet_name: &str, split: bool) -> Result<()> {
     let (genesis, client) = connect(&dir.join("genesis.json"))?;
     let wallets = dir.join("wallets");
-    let wallet = Wallet::load(&wallets.join(format!("{wallet_name}.wallet")))?;
+    let mut wallet = Wallet::load(&wallets.join(format!("{wallet_name}.wallet")))?;
+    wallet.accept_fee(genesis.fee);
     let others: Vec<&str> = ["alice", "bob", "carol"].into_iter().filter(|n| *n != wallet_name).collect();
     let first_payee = Wallet::load(&wallets.join(format!("{}.wallet", others[0])))?.address();
     let second_payee = Wallet::load(&wallets.join(format!("{}.wallet", others[1])))?.address();

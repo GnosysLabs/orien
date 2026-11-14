@@ -701,7 +701,7 @@ impl Core {
         }
         // The checkpoint's state root is what more than two thirds agreed
         // on. A state that hashes to it is that state, whoever sent it.
-        match State::from_snapshot(bytes) {
+        match State::from_snapshot(bytes, self.state.fees()) {
             Ok(end) if end.root() == decided.checkpoint.state => {
                 self.save_checkpoint(&decided);
                 self.switch(decided, end);
@@ -758,7 +758,7 @@ impl Core {
             self.unfinished.drain().map(|(_, signed)| signed).filter(|signed| open(signed)).collect();
         promises.extend(left_out);
         self.conflicts.retain(|_, second| open(second));
-        self.state = State::from_snapshot(&snapshot).expect("a snapshot just written reads back");
+        self.state = State::from_snapshot(&snapshot, self.state.fees()).expect("a snapshot just written reads back");
         self.start = self.state.clone();
         self.proofs = None;
         for signed in promises {
@@ -1635,7 +1635,9 @@ impl Node {
         let place = place_of(&committee, &tree.root());
 
         let mut state = match epochs.snapshot()? {
-            Some(snapshot) => State::from_snapshot(&snapshot).context("the state snapshot is corrupt")?,
+            Some(snapshot) => {
+                State::from_snapshot(&snapshot, config.genesis.fee).context("the state snapshot is corrupt")?
+            }
             None => State::from_genesis(&config.genesis),
         };
         let start = state.clone();
