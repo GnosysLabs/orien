@@ -1709,3 +1709,49 @@ fn work_earns_coins_at_the_next_checkpoint() {
     // Each validator agrees on what she holds.
     net.wait_until_level();
 }
+
+#[test]
+fn a_validator_keeps_only_the_current_epochs_logs() {
+    let net = TestNet::with_epochs("prune", 1);
+    let bob = net.address("bob");
+    // What a validator holds besides its state snapshots, in bytes.
+    let held = |v: usize| -> (u64, Vec<String>) {
+        let epochs = net.dir.join(format!("data-{v}")).join("epochs");
+        let current = net.info(v).epoch;
+        let (mut bytes, mut old) = (0, Vec::new());
+        for folder in fs::read_dir(&epochs).unwrap() {
+            let folder = folder.unwrap().path();
+            let epoch: u64 = folder.file_name().unwrap().to_str().unwrap().parse().unwrap();
+            for file in fs::read_dir(&folder).unwrap() {
+                let file = file.unwrap();
+                let name = file.file_name().into_string().unwrap();
+                if name == "state" {
+                    continue;
+                }
+                if epoch < current {
+                    old.push(format!("{epoch}/{name}"));
+                }
+                bytes += file.metadata().unwrap().len();
+            }
+        }
+        (bytes, old)
+    };
+    let mut sizes = Vec::new();
+    for _ in 0..10 {
+        net.pay_through("alice", bob, 1);
+        // Everything held right after a payment: all logs, of all epochs.
+        sizes.push(held(0).0);
+        let epoch = net.info(0).epoch;
+        net.wait_for_epoch(epoch + 1);
+        // Once a switch is done, earlier epochs keep only their snapshots.
+        wait_until("earlier epochs keep only their snapshots", || held(0).1.is_empty());
+    }
+    println!("logs held after each epoch, in bytes: {sizes:?}");
+    let epochs = net.info(0).epoch;
+    assert!(epochs >= 10, "{epochs} epochs closed");
+    // Ten epochs in, a validator holds no more than in the first: the logs
+    // do not pile up.
+    assert!(sizes.iter().all(|size| *size > 0), "{sizes:?}");
+    let most = *sizes.iter().max().unwrap();
+    assert!(most < 3 * sizes[0], "{sizes:?}");
+}

@@ -509,11 +509,13 @@ message by message.
   its certificate when the epoch closed, and that the checkpoint took in,
   is final without any confirmations. The wallet sees that and says so, but
   cannot yet hand anyone a proof of it.
-- **Old epochs are kept forever.** Each epoch's snapshot and log stay on
-  disk. Dropping old ones needs a rule for how far back a returning
-  validator may ask. Wanted soon after stage 4: with 33 validators a
-  validator stores about 40 KB of votes per payment, about 1.4 GB an hour
-  at ten payments a second, and a checkpoint makes all of it redundant.
+- **Old snapshots are kept forever.** A validator deletes an epoch's
+  payment log, closing journal and sync cursors as soon as it has moved to
+  the next epoch, since nothing reads them again. Each epoch's state
+  snapshot stays, because a validator that has been away catches up one
+  epoch at a time from them. With a million accounts a snapshot is about
+  200 MB. Next: catch up by following the checkpoints and taking only the
+  latest snapshot, then keep only the last few.
 - **A validator whose key tree is used up completely cannot recover by
   itself.** It needs a key to announce a replacement. Replacement starts at
   half used, so this takes a long outage at the wrong moment. Stage 4,

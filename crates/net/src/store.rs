@@ -78,6 +78,8 @@ impl Epochs {
         let epochs = Epochs { dir: dir.to_owned(), current, durable };
         fs::create_dir_all(epochs.folder(current))?;
         fs::create_dir_all(dir.join("checkpoints"))?;
+        // A crash right after a switch can have left old files behind.
+        epochs.prune()?;
         if durable {
             epochs.sync()?;
         }
@@ -167,6 +169,33 @@ impl Epochs {
         // The one step that commits the change.
         write_replacing(&self.dir.join("epoch"), next.to_string().as_bytes(), self.durable)?;
         self.current = next;
+        self.prune()
+    }
+
+    /// Deletes what earlier epochs no longer need: their payment logs,
+    /// closing journals and sync cursors. Once a validator has moved on,
+    /// nothing reads them again: other validators only ever ask about the
+    /// current epoch, and a restart replays only the current epoch's files.
+    /// Each epoch's state snapshot stays.
+    fn prune(&self) -> io::Result<()> {
+        let entries = match fs::read_dir(self.dir.join("epochs")) {
+            Ok(entries) => entries,
+            Err(error) if error.kind() == io::ErrorKind::NotFound => return Ok(()),
+            Err(error) => return Err(error),
+        };
+        for entry in entries {
+            let folder = entry?.path();
+            let old = folder.file_name().and_then(|name| name.to_str()?.parse::<u64>().ok()).is_some_and(|epoch| epoch < self.current);
+            if !old {
+                continue;
+            }
+            for file in fs::read_dir(&folder)? {
+                let path = file?.path();
+                if path.file_name().is_some_and(|name| name != "state") {
+                    fs::remove_file(&path)?;
+                }
+            }
+        }
         Ok(())
     }
 
@@ -515,8 +544,9 @@ mod tests {
             assert_ne!(epochs.log(), first_log);
             assert!(!epochs.log().exists(), "the new epoch starts with no certificates");
         }
-        // The old epoch's log is left where it was.
-        assert_eq!(fs::read(&first_log).unwrap(), b"certificates of epoch 0");
+        // The old epoch's log is gone: nothing reads it once the switch is
+        // made.
+        assert!(!first_log.exists());
         let _ = fs::remove_dir_all(dir);
     }
 
