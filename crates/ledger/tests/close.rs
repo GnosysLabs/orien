@@ -146,6 +146,9 @@ impl World {
             epoch_seconds: 3600,
             epoch_payments: 50_000,
             start_time: 0,
+            min_stake: 10_000,
+            max_validators: 33,
+            unstake_epochs: 168,
         };
         genesis.validate().unwrap();
         World {

@@ -780,6 +780,10 @@ fn status(genesis: &Path) -> Result<()> {
         until_checkpoint(&genesis, &client)
     );
     println!(
+        "staking: at least {} coins to become a validator, at most {} validators, unstaked coins wait {} epochs",
+        genesis.min_stake, genesis.max_validators, genesis.unstake_epochs
+    );
+    println!(
         "{:<6} {:<22} {:>7} {:>8} {:>9} {:>16}  {:<8}",
         "name", "address", "epoch", "accounts", "payments", "signing keys", "state"
     );

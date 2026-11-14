@@ -110,6 +110,9 @@ impl TestNet {
             epoch_seconds: options.epoch,
             epoch_payments: 50_000,
             start_time: now(),
+            min_stake: 10_000,
+            max_validators: 33,
+            unstake_epochs: 168,
         };
         let network = genesis.id();
         let mut net = TestNet { dir, genesis, network, keys, nodes: Vec::new(), options };

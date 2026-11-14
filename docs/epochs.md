@@ -310,6 +310,11 @@ that ties that key to the spare root.
   signatures from one key, cost a validator its stake at the next
   checkpoint.
 - Delegating stake to someone else's validator is left for later.
+- The limits, chosen on 2026-11-14, are settings in the genesis file and
+  can be revisited before the launch genesis is written: a stake of at
+  least 10,000 coins, at most 33 validators, and a wait of 168 epochs (one
+  week) before unstaked coins can be spent. The validators of the genesis
+  file are the launch seats and are exempt from the minimum.
 
 ### Fees
 
@@ -363,8 +368,6 @@ Stuck accounts are freed from stage 3 on.
   stake exists, a third of the voting weight becomes cheap to buy. Tying
   the fade to the amount of real stake avoids that.
 - **The size of the fee**, and whether it can change over time.
-- **Limits on the validator set**: the minimum stake, the maximum number of
-  validators, and the unstake waiting period.
 - **The payment limit per epoch.**
 
 ## What the first draft got wrong
@@ -463,7 +466,9 @@ message by message.
   cannot yet hand anyone a proof of it.
 - **Old epochs are kept forever.** Each epoch's snapshot and log stay on
   disk. Dropping old ones needs a rule for how far back a returning
-  validator may ask.
+  validator may ask. Wanted soon after stage 4: with 33 validators a
+  validator stores about 40 KB of votes per payment, about 1.4 GB an hour
+  at ten payments a second, and a checkpoint makes all of it redundant.
 - **A validator whose key tree is used up completely cannot recover by
   itself.** It needs a key to announce a replacement. Replacement starts at
   half used, so this takes a long outage at the wrong moment. Stage 4,

@@ -41,6 +41,18 @@ pub struct Genesis {
     /// is due one epoch after it.
     #[serde(default)]
     pub start_time: u64,
+    /// The least a stake order may lock for a validator to be chosen. The
+    /// validators of the genesis file are exempt: they are the launch seats.
+    #[serde(default = "ten_thousand")]
+    pub min_stake: u64,
+    /// The most validators any epoch may have. The largest stakes win.
+    #[serde(default = "thirty_three")]
+    pub max_validators: u16,
+    /// How many epochs unstaked coins stay locked before they can be spent,
+    /// so that a validator that cheats cannot take its stake and run before
+    /// the evidence against it is acted on.
+    #[serde(default = "a_week_of_epochs")]
+    pub unstake_epochs: u64,
 }
 
 fn an_hour() -> u64 {
@@ -49,6 +61,18 @@ fn an_hour() -> u64 {
 
 fn fifty_thousand() -> u64 {
     50_000
+}
+
+fn ten_thousand() -> u64 {
+    10_000
+}
+
+fn thirty_three() -> u16 {
+    33
+}
+
+fn a_week_of_epochs() -> u64 {
+    168
 }
 
 impl Genesis {
@@ -61,6 +85,9 @@ impl Genesis {
             epoch_seconds: an_hour(),
             epoch_payments: fifty_thousand(),
             start_time: 0,
+            min_stake: ten_thousand(),
+            max_validators: thirty_three(),
+            unstake_epochs: a_week_of_epochs(),
         }
     }
 
@@ -80,7 +107,15 @@ impl Genesis {
             bytes.extend_from_slice(allocation.account.as_bytes());
             bytes.extend_from_slice(&allocation.amount.to_le_bytes());
         }
-        for setting in [self.epoch_seconds, self.epoch_payments, self.start_time] {
+        let settings = [
+            self.epoch_seconds,
+            self.epoch_payments,
+            self.start_time,
+            self.min_stake,
+            self.max_validators as u64,
+            self.unstake_epochs,
+        ];
+        for setting in settings {
             bytes.extend_from_slice(&setting.to_le_bytes());
         }
         hash(Tag::Genesis, &[&bytes])
@@ -94,8 +129,8 @@ impl Genesis {
         if self.validators.is_empty() {
             return Err("no validators".into());
         }
-        if self.validators.len() > u16::MAX as usize {
-            return Err("too many validators".into());
+        if self.validators.len() > self.max_validators as usize {
+            return Err(format!("more validators than the limit of {}", self.max_validators));
         }
         let mut roots = HashSet::new();
         let mut total: u64 = 0;
@@ -122,6 +157,9 @@ impl Genesis {
         }
         if self.epoch_seconds == 0 || self.epoch_payments == 0 {
             return Err("an epoch must have a length and a payment limit".into());
+        }
+        if self.min_stake == 0 || self.unstake_epochs == 0 {
+            return Err("staking needs a minimum stake and an unstake waiting period".into());
         }
         Ok(())
     }
