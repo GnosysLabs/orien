@@ -1,4 +1,4 @@
-use crate::types::{AccountId, Certificate, Confirmation, Kind, Receipt, Vote, confirmation_item};
+use crate::types::{AccountId, COIN, Certificate, Confirmation, Kind, Receipt, Vote, confirmation_item};
 use borsh::{BorshDeserialize, BorshSerialize};
 use orien_crypto::{Hash32, Tag, hash, keytree, merkle};
 use serde::{Deserialize, Serialize};
@@ -106,7 +106,7 @@ fn fifty_thousand() -> u64 {
 }
 
 fn ten_thousand() -> u64 {
-    10_000
+    10_000 * COIN
 }
 
 fn thirty_three() -> u16 {

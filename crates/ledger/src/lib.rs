@@ -19,6 +19,6 @@ pub use state::{
     authorized,
 };
 pub use types::{
-    AccountId, Certificate, Confirmation, Kind, Order, Receipt, SPARE_HEIGHT, Signature, SignedBy,
-    SignedOrder, STAKE_PROOF_LEAF, Validator, Vote, address, confirmation_item, sign_stake_proof, stake_proof_item,
+    AccountId, Certificate, Confirmation, Kind, Order, Receipt, COIN, SPARE_HEIGHT, Signature, SignedBy,
+    SignedOrder, STAKE_PROOF_LEAF, Validator, Vote, address, coins, confirmation_item, parse_coins, sign_stake_proof, stake_proof_item,
 };

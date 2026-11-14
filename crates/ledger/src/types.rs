@@ -6,6 +6,37 @@ use orien_crypto::{Hash32, Tag, hash, merkle, ots};
 /// key and to its spare keys.
 pub type AccountId = Hash32;
 
+/// One coin, in the units amounts are counted in: a coin has nine decimal
+/// places.
+pub const COIN: u64 = 1_000_000_000;
+
+/// An amount in coins, with as many decimals as it needs: "12", "0.25".
+pub fn coins(units: i128) -> String {
+    let sign = if units < 0 { "-" } else { "" };
+    let units = units.unsigned_abs();
+    let (whole, fraction) = (units / COIN as u128, units % COIN as u128);
+    if fraction == 0 {
+        return format!("{sign}{whole}");
+    }
+    let fraction = format!("{fraction:09}");
+    format!("{sign}{whole}.{}", fraction.trim_end_matches('0'))
+}
+
+/// Reads an amount in coins, with up to nine decimals, into units.
+pub fn parse_coins(text: &str) -> Result<u64, String> {
+    let invalid = || format!("'{text}' is not an amount of coins, such as 12 or 0.25");
+    let (whole, fraction) = text.trim().split_once('.').unwrap_or((text.trim(), ""));
+    if whole.is_empty() && fraction.is_empty() {
+        return Err(invalid());
+    }
+    if fraction.len() > 9 || !(whole.chars().chain(fraction.chars())).all(|c| c.is_ascii_digit()) {
+        return Err(if fraction.len() > 9 { format!("'{text}' has more than nine decimals") } else { invalid() });
+    }
+    let whole: u64 = if whole.is_empty() { 0 } else { whole.parse().map_err(|_| invalid())? };
+    let fraction: u64 = format!("{fraction:0<9}").parse().map_err(|_| invalid())?;
+    whole.checked_mul(COIN).and_then(|units| units.checked_add(fraction)).ok_or_else(|| format!("'{text}' is too large"))
+}
+
 /// An account has 2^SPARE_HEIGHT spare keys, under one root.
 pub const SPARE_HEIGHT: u8 = 4;
 

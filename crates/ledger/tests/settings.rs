@@ -19,7 +19,7 @@ fn genesis(validators: usize) -> Genesis {
 #[test]
 fn the_usual_settings() {
     let genesis = genesis(4);
-    assert_eq!((genesis.min_stake, genesis.max_validators, genesis.unstake_epochs), (10_000, 33, 168));
+    assert_eq!((genesis.min_stake, genesis.max_validators, genesis.unstake_epochs), (10_000 * orien_ledger::COIN, 33, 168));
     genesis.validate().unwrap();
 }
 
@@ -54,4 +54,20 @@ fn staking_needs_a_minimum_and_a_wait() {
     let mut genesis = self::genesis(4);
     genesis.unstake_epochs = 0;
     assert!(genesis.validate().is_err());
+}
+
+#[test]
+fn amounts_read_and_show_in_coins_with_nine_decimals() {
+    use orien_ledger::{COIN, coins, parse_coins};
+    assert_eq!(parse_coins("12"), Ok(12 * COIN));
+    assert_eq!(parse_coins("0.25"), Ok(COIN / 4));
+    assert_eq!(parse_coins(".5"), Ok(COIN / 2));
+    assert_eq!(parse_coins("0.000000001"), Ok(1));
+    for bad in ["", ".", "1.2.3", "-1", "1e9", "0.0000000001", "99999999999999999999"] {
+        assert!(parse_coins(bad).is_err(), "{bad}");
+    }
+    assert_eq!(coins(12 * COIN as i128), "12");
+    assert_eq!(coins(COIN as i128 / 4), "0.25");
+    assert_eq!(coins(1), "0.000000001");
+    assert_eq!(coins(-(COIN as i128) - 5), "-1.000000005");
 }

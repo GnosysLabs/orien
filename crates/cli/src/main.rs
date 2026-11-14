@@ -2,8 +2,8 @@ use anyhow::{Context, Result, anyhow, bail};
 use clap::{Args, Parser, Subcommand};
 use orien_crypto::keytree::KeyTree;
 use orien_ledger::{
-    AccountId, Allocation, Certificate, Fees, Genesis, Kind, Receipt, Signature, SignedOrder, Validator, ValidatorInfo,
-    sign_stake_proof,
+    AccountId, Allocation, COIN, Certificate, Genesis, Kind, Receipt, Signature, SignedOrder, Validator, ValidatorInfo,
+    coins, parse_coins, sign_stake_proof,
 };
 use orien_ledger::Signer;
 use orien_net::client::{AccountStatus, Client, Done, Head, TransferError, Unfinished};
@@ -49,7 +49,8 @@ enum Command {
         /// Recipient: an account address or a wallet file
         #[arg(long)]
         to: String,
-        #[arg(long)]
+        /// In coins, with up to nine decimals: 12 or 0.25
+        #[arg(long, value_parser = parse_coins)]
         amount: u64,
         /// Save the proof of payment to this file
         #[arg(long)]
@@ -62,7 +63,8 @@ enum Command {
     Stake {
         #[arg(short, long)]
         wallet: PathBuf,
-        #[arg(long)]
+        /// In coins, with up to nine decimals: 12 or 0.25
+        #[arg(long, value_parser = parse_coins)]
         amount: u64,
         /// The validator's key file. Its first one-time key signs that the
         /// validator backs this stake; nothing else ever uses that key.
@@ -79,7 +81,8 @@ enum Command {
     Unstake {
         #[arg(short, long)]
         wallet: PathBuf,
-        #[arg(long)]
+        /// In coins, with up to nine decimals: 12 or 0.25
+        #[arg(long, value_parser = parse_coins)]
         amount: u64,
         #[command(flatten)]
         network: Network,
@@ -187,7 +190,7 @@ enum DevnetCommand {
         /// Wallet that is paid
         #[arg(long, default_value = "carol")]
         to: String,
-        #[arg(long, default_value_t = 250)]
+        #[arg(long, default_value = "250", value_parser = parse_coins)]
         amount: u64,
     },
     /// Try to cheat: sign two different payments with the same number
@@ -424,10 +427,10 @@ fn describe_unfinished(client: &Client, all: &[Unfinished], one: &Unfinished, wa
         "{}  payment #{}: {} to {}, votes cover {} of {} stake",
         one.digest.short(),
         order.seq,
-        order.amount,
+        coins(order.amount as i128),
         order.to.short(),
-        one.stake,
-        client.committee().total_stake()
+        coins(one.stake as i128),
+        coins(client.committee().total_stake() as i128)
     );
     if !client.can_still_finish(all, one) {
         line.push_str(", can no longer become final");
@@ -476,7 +479,7 @@ fn balance(account: &str, genesis: &Path) -> Result<()> {
     }
     println!("account        {id}");
     match status.spendable {
-        Some(balance) => println!("balance        {balance}"),
+        Some(balance) => println!("balance        {}", coins(balance)),
         None => println!("balance        unknown (too few validators are caught up)"),
     }
     println!("payments made  {}", status.seq);
@@ -630,9 +633,11 @@ fn finish(client: &Client, wallet: &mut Wallet, signed: &SignedOrder, receipt_fi
 /// `kind` makes the order's kind once the wallet's account is known.
 /// One line saying what a final order did.
 fn what(order: &orien_ledger::Order) -> String {
-    let (seq, amount, from) = (order.seq, order.amount, order.from.short());
+    let (seq, amount, from) = (order.seq, coins(order.amount as i128), order.from.short());
     match &order.kind {
-        Kind::Payment => format!("payment #{seq}: {amount} from {from} to {} (fee {})", order.to.short(), order.max_fee),
+        Kind::Payment => {
+            format!("payment #{seq}: {amount} from {from} to {} (fee {})", order.to.short(), coins(order.max_fee as i128))
+        }
         Kind::Stake { validator, .. } => {
             format!("order #{seq}: {from} staked {amount} behind the validator at {}", validator.address)
         }
@@ -696,8 +701,10 @@ fn submit(
         [] => match status.spendable {
             Some(balance) if balance < amount as i128 + genesis.fee.on(&kind, amount) as i128 => {
                 bail!(
-                    "insufficient funds: balance is {balance}, payment is {amount} and the fee {}",
-                    genesis.fee.on(&kind, amount)
+                    "insufficient funds: balance is {}, payment is {} and the fee {}",
+                    coins(balance),
+                    coins(amount as i128),
+                    coins(genesis.fee.on(&kind, amount) as i128)
                 )
             }
             None => bail!("too few validators are caught up on this account; try again shortly"),
@@ -774,7 +781,7 @@ fn resume(wallet_file: &Path, pick: Option<&str>, receipt_file: Option<&Path>, g
     };
 
     let order = &chosen.signed.order;
-    println!("finishing payment #{seq}: {} to {}", order.amount, order.to.short());
+    println!("finishing payment #{seq}: {} to {}", coins(order.amount as i128), order.to.short());
     if wallet.pending().is_none_or(|own| own.order != *order) {
         wallet.adopt(&chosen.signed, &network)?;
     }
@@ -853,15 +860,17 @@ fn status(genesis: &Path) -> Result<()> {
     );
     println!(
         "staking: at least {} coins to become a validator, at most {} validators, unstaked coins wait {} epochs",
-        genesis.min_stake, genesis.max_validators, genesis.unstake_epochs
+        coins(genesis.min_stake as i128),
+        genesis.max_validators,
+        genesis.unstake_epochs
     );
     let fee = genesis.fee;
     println!(
         "fees: {}% of each payment, at least {} and at most {}; stake and unstake orders pay {}",
         fee.rate as f64 / 10_000.0,
-        fee.min,
-        fee.max,
-        fee.min
+        coins(fee.min as i128),
+        coins(fee.max as i128),
+        coins(fee.min as i128)
     );
     // Who votes this epoch, as the checkpoints say. The launch seats come
     // first, in the genesis file's order.
@@ -875,10 +884,10 @@ fn status(genesis: &Path) -> Result<()> {
             Some(account) => format!("staked by {}", account.short()),
         };
         println!(
-            "  {:<26} {:>6.2}% of the vote  {:>12} stake  at {}",
+            "  {:<26} {:>6.2}% of the vote  {:>16} stake  at {}",
             who,
             100.0 * member.stake as f64 / total,
-            member.stake,
+            coins(member.stake as i128),
             member.address
         );
     }
@@ -953,7 +962,7 @@ fn node(key: &Path, data: PathBuf, listen: Option<String>, genesis: &Path) -> Re
 }
 
 /// The voting weight the launch seats share on a new test network.
-const SEAT_WEIGHT: u64 = 3_000_000;
+const SEAT_WEIGHT: u64 = 3_000_000 * COIN;
 
 fn devnet_init(dir: &Path, network: &str, addresses: &[String], height: u8, epoch_seconds: u64) -> Result<()> {
     if dir.join("genesis.json").exists() {
@@ -980,19 +989,16 @@ fn devnet_init(dir: &Path, network: &str, addresses: &[String], height: u8, epoc
     }
 
     let mut allocations = Vec::new();
-    for (name, amount) in [("alice", 1_000_000u64), ("bob", 1_000_000), ("carol", 0)] {
+    for (name, amount) in [("alice", 1_000_000 * COIN), ("bob", 1_000_000 * COIN), ("carol", 0)] {
         let wallet = Wallet::create(&dir.join("wallets").join(format!("{name}.wallet")))?;
         if amount > 0 {
             allocations.push(Allocation { account: wallet.address(), amount });
         }
-        println!("  wallet {name:<6} {}  starts with {amount}", wallet.address());
+        println!("  wallet {name:<6} {}  starts with {}", wallet.address(), coins(amount as i128));
     }
 
     let mut genesis = Genesis::new(network, infos, allocations);
     genesis.epoch_seconds = epoch_seconds;
-    // Amounts are whole coins until coins have decimals, so a test network
-    // charges 0.1% of each payment, at least 1 and at most 100.
-    genesis.fee = Fees { min: 1, max: 100, rate: 1_000 };
     genesis.start_time = unix_now();
     genesis.validate().map_err(|e| anyhow!("{e}"))?;
     save_genesis(&dir.join("genesis.json"), &genesis)?;
@@ -1051,8 +1057,12 @@ fn interrupt(dir: &Path, wallet_name: &str, to_name: &str, amount: u64) -> Resul
         bail!("{wallet_name} already has an unfinished payment");
     }
     match status.spendable {
-        Some(balance) if balance >= amount as i128 && amount > 0 => {}
-        Some(balance) => bail!("{wallet_name} holds {balance}, which does not cover a payment of {amount}"),
+        Some(balance) if balance >= (amount + genesis.fee.on(&Kind::Payment, amount)) as i128 && amount > 0 => {}
+        Some(balance) => bail!(
+            "{wallet_name} holds {}, which does not cover a payment of {} and its fee",
+            coins(balance),
+            coins(amount as i128)
+        ),
         None => bail!("validators are not caught up"),
     }
     // Signed with the wallet's key but never written to the wallet file. To
@@ -1061,8 +1071,9 @@ fn interrupt(dir: &Path, wallet_name: &str, to_name: &str, amount: u64) -> Resul
     let signed = sign_raw(&wallet, &genesis, seq, to, amount);
     let reached = (client.validators() / 2).max(1);
     println!(
-        "another copy of {wallet_name}'s wallet signs payment #{seq}, {amount} to {to_name}, \
+        "another copy of {wallet_name}'s wallet signs payment #{seq}, {} to {to_name}, \
          and is lost after reaching {reached} of {} validators:",
+        coins(amount as i128),
         client.validators()
     );
     for index in 0..reached {
@@ -1092,12 +1103,16 @@ fn double_spend(dir: &Path, wallet_name: &str, split: bool) -> Result<()> {
     if !status.locks.is_empty() {
         bail!("{wallet_name}'s account is already locked by an earlier double-spend attempt");
     }
-    let (seq, amount) = (status.seq, balance as u64);
+    // As much as the balance covers with the fee: the fee is at most a
+    // share of the amount, so taking it off the balance leaves enough.
+    let all = balance as u64;
+    let (seq, amount) = (status.seq, all - genesis.fee.on(&Kind::Payment, all));
     let first = sign_raw(&wallet, &genesis, seq, first_payee, amount);
     let second = sign_raw(&wallet, &genesis, seq, second_payee, amount);
-    println!("{wallet_name} holds {amount} and signs payment #{seq} twice with the same one-time key:");
-    println!("  A: all {amount} to {}", others[0]);
-    println!("  B: all {amount} to {}", others[1]);
+    let amount_shown = coins(amount as i128);
+    println!("{wallet_name} holds {} and signs payment #{seq} twice with the same one-time key:", coins(balance));
+    println!("  A: {amount_shown} to {}", others[0]);
+    println!("  B: {amount_shown} to {}", others[1]);
 
     if split {
         let half = client.validators() / 2;
