@@ -202,9 +202,11 @@ that account: the one-time key for that payment number is already used.
    orien node -g genesis.json -k vN.key -d data --listen 10.0.0.1:7101
    ```
 
-Addresses are not part of the network's identity. Changing one in the
-genesis file does not change the network, as long as every copy of the file
-gets the change.
+Addresses are not part of the network's identity, but the first checkpoint
+records each launch validator's address and every later one carries it
+forward, so a launch validator's address is fixed once the network has
+taken its first checkpoint. A staked validator names its address in its
+stake order and can move by sending another.
 
 Four validators tolerate one that is down, hacked or lying. A validator that
 was down catches up from the others when it returns, checkpoints included.
@@ -212,9 +214,16 @@ If one machine holds two of the four, make it the one that is always on.
 With fewer than three of four running, the network cannot take a checkpoint
 and pauses until a third is back.
 
-Traffic is not encrypted or rate-limited yet. Forged messages are rejected
-because every vote and receipt is signed, but for now give validators
-private addresses only and listen on those, never on a public one.
+Validators can listen on public addresses. Every message that decides
+anything is signed with a quantum-proof signature and checked on arrival,
+and wallets and miners take balances and the work target only from
+checkpoints they check themselves, so nobody between two computers can
+forge or alter what matters. Traffic is not encrypted: payments are public
+anyway, but whoever is on the path can see who talks to whom. A validator
+takes at most 64 connections from one internet address and 1,024 in all,
+and closes connections that stay silent for 30 seconds or send junk; a
+flood from thousands of machines at once needs protection in front of the
+server, as for any service on the internet.
 
 `deploy/rehearsal.sh` does all of this for one particular set of machines
 and is meant to be copied: it builds for Linux, copies one folder to each
