@@ -1,0 +1,897 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Orien</title>
+<style>
+  /* The wordmark's typeface, bundled so the app never fetches fonts. */
+  @font-face {
+    font-family: "Jost";
+    src: url("fonts/Jost.ttf") format("truetype");
+    font-weight: 100 900;
+  }
+
+  :root {
+    color-scheme: dark;
+    --ground: #26272b;
+    --ground-deep: #1b1c1f;
+    --surface: #2e2f34;
+    --surface-hover: #35363c;
+    --field: #202125;
+    --ink: #eceef2;
+    --dim: #9a9ca3;
+    --faint: #6d6f76;
+    --line: #3a3b41;
+    --pearl-ink: #2b2c31;
+    --good: #a6e3c6;
+    --bad: #f1a9a9;
+    --radius: 14px;
+    /* The pearl: soft pinks, lilacs, mints and ice blues over silver. */
+    --pearl: linear-gradient(115deg,
+      #e4e2ea 0%, #f1d3e1 14%, #d8d3f4 28%, #c9e8ec 42%,
+      #e9eed6 56%, #f0d6e3 70%, #d3daf4 84%, #e4e2ea 100%);
+  }
+  * { box-sizing: border-box; }
+  html, body { height: 100%; }
+  body {
+    margin: 0; padding: 0 28px 28px;
+    display: flex; flex-direction: column;
+    font: 14px/1.5 -apple-system, "Segoe UI", system-ui, sans-serif;
+    background: radial-gradient(130% 80% at 50% -10%, #34353a 0%, var(--ground) 45%, var(--ground-deep) 100%);
+    color: var(--ink);
+    -webkit-user-select: none; user-select: none;
+    -webkit-font-smoothing: antialiased;
+  }
+  button { font: inherit; color: inherit; }
+  [hidden] { display: none !important; }
+
+  /* The website's wordmark: the sunrise mark beside ORIEN, both in the
+     website's pearl, which drifts the same way it does there. */
+  :root {
+    --brand: linear-gradient(115deg, #f4b6d4 0%, #b8c7ff 20%, #d3b6ff 38%, #a6ead6 56%, #f9dda4 74%, #f4b6d4 100%);
+  }
+  @keyframes brand-drift { 0%, 100% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } }
+  .brand { background-image: var(--brand); background-size: 300% 300%; animation: brand-drift 12s ease-in-out infinite; }
+  .wordmark { display: inline-flex; align-items: center; gap: 0.26em; line-height: 1; }
+  .wordmark .word {
+    text-transform: uppercase; letter-spacing: 0.14em; margin-right: -0.14em;
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+  }
+  .mark {
+    display: inline-block; flex: none; width: 1.08em; height: 1.08em;
+    -webkit-mask: url("mark.svg") center / contain no-repeat; mask: url("mark.svg") center / contain no-repeat;
+  }
+
+  /* The living pearl: the sheen drifts slowly across, never still. */
+  @keyframes drift { from { background-position: 0% 50%; } to { background-position: 300% 50%; } }
+  .pearl { background: var(--pearl); background-size: 300% 100%; animation: drift 24s linear infinite; }
+  .pearl-text {
+    background: var(--pearl); background-size: 300% 100%; animation: drift 24s linear infinite;
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+  }
+
+  /* ---- Top bar: the window is moved by it, and the window's own red,
+     yellow and green buttons sit inside it on the left. ---- */
+  header {
+    position: relative; flex: none;
+    height: 64px; margin: 0 -28px 20px;
+    display: flex; align-items: center; justify-content: center;
+    -webkit-app-region: drag;
+  }
+  h1 { margin: 0; font: 800 17px/1 "Jost", sans-serif; pointer-events: none; }
+  .status {
+    position: absolute; right: 22px; top: 50%; transform: translateY(-50%);
+    display: flex; align-items: center; gap: 7px;
+    font-size: 11.5px; color: var(--dim); pointer-events: auto; cursor: default;
+  }
+  .status i { width: 7px; height: 7px; border-radius: 50%; background: var(--faint); }
+  .status.ok i { background: var(--good); box-shadow: 0 0 8px #a6e3c680; }
+  .status.warn i { background: #ecc58e; }
+  .status.bad i { background: var(--bad); }
+
+  main { flex: 1; display: flex; flex-direction: column; min-height: 0; }
+  .screen { flex: 1; display: flex; flex-direction: column; min-height: 0; }
+
+  /* ---- Shared pieces ---- */
+  .primary {
+    width: 100%; height: 48px; border: 0; border-radius: var(--radius);
+    color: var(--pearl-ink); font-weight: 600; cursor: pointer;
+    box-shadow: inset 0 1px 0 #ffffffb0, 0 6px 20px #0000003d;
+    transition: transform 0.12s, opacity 0.2s;
+  }
+  .primary:active:not(:disabled) { transform: scale(0.985); }
+  .primary:disabled { opacity: 0.4; cursor: default; }
+  .secondary {
+    width: 100%; height: 48px; border-radius: var(--radius); cursor: pointer;
+    background: transparent; border: 1px solid var(--line); font-weight: 500;
+    transition: background 0.15s;
+  }
+  .secondary:hover { background: #ffffff08; }
+
+  .topline { display: flex; align-items: center; height: 36px; margin-bottom: 24px; }
+  .back {
+    width: 36px; height: 36px; margin-left: -8px; border: 0; border-radius: 10px;
+    background: transparent; cursor: pointer; display: grid; place-items: center; color: var(--dim);
+  }
+  .back:hover { background: #ffffff0d; color: var(--ink); }
+  .topline h2 { margin: 0 0 0 4px; font-size: 17px; font-weight: 600; }
+
+  .problem {
+    margin-top: 14px; padding: 11px 14px; border-radius: 12px;
+    background: #f1a9a914; border: 1px solid #f1a9a933; color: var(--bad); font-size: 13px;
+  }
+  .push { flex: 1; }
+  .screen > .primary:last-child { margin-top: 20px; }
+
+  /* ---- Welcome ---- */
+  .welcome { justify-content: center; text-align: center; padding-bottom: 40px; }
+  .welcome .mark { width: 84px; height: 84px; margin: 0 auto 22px; }
+  .welcome h2 { margin: 0 0 8px; font-size: 22px; font-weight: 500; }
+  .welcome p { margin: 0 auto 30px; max-width: 300px; color: var(--dim); }
+  .welcome .secondary { margin-top: 10px; }
+
+  /* ---- Home ---- */
+  .card {
+    border-radius: 22px; padding: 22px 24px 24px; color: var(--pearl-ink);
+    box-shadow: 0 18px 50px #00000059, inset 0 1px 0 #ffffffb0;
+  }
+  .card .label { font-size: 11.5px; letter-spacing: 0.1em; text-transform: uppercase; opacity: 0.6; }
+  .card .amount { margin-top: 6px; display: flex; align-items: baseline; gap: 8px; }
+  .card .balance { font-size: 42px; font-weight: 300; line-height: 1.1; letter-spacing: -0.01em; }
+  .card .unit { font-size: 14px; opacity: 0.6; }
+
+  .actions { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 16px; }
+  .actions.three { grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
+  .tile {
+    height: 56px; border-radius: 16px; border: 1px solid var(--line);
+    background: var(--surface); cursor: pointer;
+    display: flex; align-items: center; justify-content: center; gap: 10px;
+    font-weight: 500; transition: background 0.15s, transform 0.12s;
+  }
+  .tile:hover { background: var(--surface-hover); }
+  .tile:active { transform: scale(0.985); }
+  .tile .icon { width: 26px; height: 26px; border-radius: 50%; display: grid; place-items: center; color: var(--pearl-ink); }
+
+
+  /* ---- Send ---- */
+  .amount-entry { text-align: center; padding: 8px 0 28px; }
+  .amount-entry input {
+    width: 100%; border: 0; background: transparent; text-align: center; color: var(--ink);
+    font: 300 46px/1.1 -apple-system, system-ui, sans-serif; letter-spacing: -0.01em; caret-color: transparent;
+  }
+  .amount-entry input:focus { outline: none; }
+  .amount-entry input::placeholder { color: var(--faint); }
+  .amount-entry .hint { margin-top: 8px; font-size: 12.5px; color: var(--dim); }
+  .fee-line { margin-top: 4px; min-height: 18px; font-size: 12px; color: var(--faint); }
+  .fee-line.bad { color: var(--bad); }
+  .amount-entry .hint button {
+    border: 0; background: none; padding: 0; margin-left: 4px; color: #d8d3f4; cursor: pointer; font-size: 12.5px;
+  }
+
+  .field label { display: block; margin: 0 0 7px 2px; font-size: 12px; color: var(--dim); }
+  .field .box {
+    display: flex; align-items: center; gap: 8px; padding: 0 6px 0 14px; height: 48px;
+    border-radius: var(--radius); background: var(--field); border: 1px solid var(--line);
+    transition: border-color 0.15s;
+  }
+  .field .box:focus-within { border-color: #8f8aa8; }
+  .field input {
+    flex: 1; min-width: 0; border: 0; background: transparent; color: var(--ink);
+    font: 12.5px ui-monospace, "SF Mono", monospace; -webkit-user-select: text; user-select: text;
+  }
+  .field input:focus { outline: none; }
+  .field input::placeholder { font-family: -apple-system, system-ui, sans-serif; font-size: 13.5px; color: var(--faint); }
+  .chip {
+    flex: none; height: 32px; padding: 0 12px; border-radius: 9px; border: 0; cursor: pointer;
+    background: #ffffff0f; color: var(--ink); font-size: 12.5px; font-weight: 500;
+  }
+  .chip:hover { background: #ffffff1a; }
+  .field .check { margin: 7px 0 0 2px; font-size: 12px; color: var(--faint); min-height: 18px; }
+  .field .check.ok { color: var(--good); }
+
+  .review { border: 1px solid var(--line); border-radius: 18px; background: var(--surface); overflow: hidden; }
+  .review .row { display: flex; justify-content: space-between; align-items: center; padding: 15px 18px; gap: 16px; }
+  .review .row + .row { border-top: 1px solid var(--line); }
+  .review .row span:first-child { color: var(--dim); }
+  .review .row span:last-child { font-weight: 500; text-align: right; }
+  .review .mono { font: 12.5px ui-monospace, "SF Mono", monospace; }
+  .fineprint { margin: 16px 4px 0; font-size: 12.5px; color: var(--dim); }
+
+  .done { align-items: center; justify-content: center; text-align: center; padding-bottom: 30px; }
+  .done .mark {
+    width: 64px; height: 64px; border-radius: 50%; display: grid; place-items: center; color: var(--pearl-ink);
+    margin-bottom: 20px; box-shadow: 0 10px 30px #00000059, inset 0 1px 0 #ffffffb0;
+  }
+  .done h2 { margin: 0; font-size: 30px; font-weight: 300; }
+  .done p { margin: 6px 0 0; color: var(--dim); }
+  .done .primary { margin-top: 34px; }
+
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .spinner {
+    display: inline-block; width: 14px; height: 14px; margin-right: 8px; vertical-align: -2px;
+    border: 2px solid #2b2c3140; border-top-color: var(--pearl-ink); border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+  }
+
+  /* ---- Receive ---- */
+  .receive-card {
+    padding: 24px 22px 18px; border-radius: 22px; background: var(--surface); border: 1px solid var(--line);
+    text-align: center;
+  }
+  .receive-card .icon {
+    width: 36px; height: 36px; margin: 0 auto 12px; border-radius: 50%;
+    display: grid; place-items: center; color: var(--pearl-ink);
+  }
+  .receive-card .label { font-size: 11.5px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--dim); }
+  .address-block {
+    margin: 12px 0 0; font: 14px/1.75 ui-monospace, "SF Mono", monospace; letter-spacing: 0.06em; color: var(--ink);
+    -webkit-user-select: text; user-select: text;
+  }
+  .address-block span { display: block; }
+  .receive-card .fineprint { margin: 16px 0 0; padding-top: 14px; border-top: 1px solid var(--line); }
+
+  /* ---- Activity ---- */
+  .section-head { display: flex; align-items: baseline; justify-content: space-between; margin: 24px 4px 10px; }
+  .section-head h3 { margin: 0; font-size: 13px; font-weight: 600; color: var(--dim); }
+  .link { border: 0; background: none; padding: 0; color: #d8d3f4; font-size: 12.5px; cursor: pointer; }
+  .link:hover { color: #ece9fb; }
+  .list { border-radius: 18px; background: var(--surface); border: 1px solid var(--line); overflow: hidden; }
+  .tx { display: flex; align-items: center; gap: 12px; padding: 11px 14px; }
+  .tx + .tx { border-top: 1px solid var(--line); }
+  .tx-icon {
+    flex: none; width: 32px; height: 32px; border-radius: 50%; display: grid; place-items: center;
+    background: #ffffff0d; color: var(--dim);
+  }
+  .tx-icon.received { color: var(--good); background: #a6e3c614; }
+  .tx-main { flex: 1; min-width: 0; }
+  .tx-main .title { font-weight: 500; }
+  .tx .sub { font-size: 12px; color: var(--dim); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .tx-side { text-align: right; flex: none; }
+  .tx-side .amt { font-weight: 500; font-variant-numeric: tabular-nums; }
+  .tx-side .amt.received { color: var(--good); }
+  .empty { padding: 22px 14px; text-align: center; color: var(--faint); font-size: 13px; }
+  .scroll { flex: 1; min-height: 0; overflow-y: auto; margin: 0 -28px; padding: 0 28px 8px; }
+  .scroll::-webkit-scrollbar { width: 0; }
+  .day { margin: 18px 4px 8px; font-size: 12px; font-weight: 600; color: var(--dim); }
+  .day:first-child { margin-top: 0; }
+
+  /* ---- Contacts ---- */
+  .avatar {
+    flex: none; width: 32px; height: 32px; border-radius: 50%; display: grid; place-items: center;
+    color: var(--pearl-ink); font-weight: 600; font-size: 13px;
+  }
+  .tx.contact { cursor: pointer; }
+  .tx.contact:hover { background: #ffffff06; }
+  .chevron { color: var(--faint); }
+  .picks { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
+  .pick {
+    display: flex; align-items: center; gap: 7px; height: 32px; padding: 0 12px 0 4px; border-radius: 16px;
+    border: 1px solid var(--line); background: var(--surface); cursor: pointer; font-size: 12.5px;
+  }
+  .pick:hover { background: var(--surface-hover); }
+  .pick .avatar { width: 24px; height: 24px; font-size: 11px; }
+  .check.warn { color: var(--bad); font-weight: 500; }
+  .field + .field { margin-top: 18px; }
+  .field textarea {
+    width: 100%; height: 64px; padding: 12px 14px; resize: none; border-radius: var(--radius);
+    background: var(--field); border: 1px solid var(--line); color: var(--ink);
+    font: 12.5px/1.5 ui-monospace, "SF Mono", monospace; -webkit-user-select: text; user-select: text;
+  }
+  .field textarea:focus { outline: none; border-color: #8f8aa8; }
+  .field textarea[readonly] { color: var(--dim); }
+  .field .plain { padding-right: 14px; }
+  .field .plain input { font: 14px -apple-system, system-ui, sans-serif; }
+  .danger { margin-top: 14px; align-self: center; border: 0; background: none; color: var(--bad); font-size: 13px; cursor: pointer; padding: 6px 10px; border-radius: 8px; }
+  .danger:hover { background: #f1a9a914; }
+  .done .secondary { margin-top: 10px; }
+
+  /* ---- Recovery phrase, password, restore ---- */
+  .lede { margin: -8px 4px 20px; color: var(--dim); font-size: 13px; }
+  .words {
+    margin: 0; padding: 14px 16px; list-style: none; border-radius: 18px; background: var(--surface); border: 1px solid var(--line);
+    display: grid; grid-template-columns: repeat(3, 1fr); grid-auto-flow: column; grid-template-rows: repeat(8, auto); gap: 5px 12px;
+    counter-reset: word;
+  }
+  .words li { counter-increment: word; font: 13px/1.6 ui-monospace, "SF Mono", monospace; }
+  .words li::before { content: counter(word); display: inline-block; width: 22px; color: var(--faint); font-size: 11px; }
+  .agree { display: flex; align-items: center; gap: 9px; margin: 14px 4px 0; font-size: 13px; color: var(--dim); cursor: pointer; }
+  .agree input { accent-color: #d8d3f4; width: 15px; height: 15px; }
+  .field textarea.tall { height: 96px; font-size: 13px; }
+  .welcome .link { align-self: center; }
+</style>
+</head>
+<body>
+  <header data-tauri-drag-region>
+    <h1 class="wordmark"><span class="mark brand"></span><span class="word brand">ORIEN</span></h1>
+    <div class="status" id="status" hidden><i></i><span id="status-text"></span></div>
+  </header>
+
+  <main>
+    <!-- First run -->
+    <section class="screen welcome" id="welcome" hidden>
+      <div class="mark brand"></div>
+      <h2>Welcome to Orien</h2>
+      <p>Create a wallet to hold ORN, or restore the one you already have.</p>
+      <button class="primary pearl" id="create">Create a wallet</button>
+      <button class="secondary" id="go-restore">Restore with recovery phrase</button>
+      <button class="link" id="choose" style="margin-top:16px">Open a wallet file</button>
+      <div class="problem" id="welcome-problem" hidden></div>
+    </section>
+
+    <!-- New wallet: the recovery phrase -->
+    <section class="screen" id="phrase" hidden>
+      <div class="topline"><h2>Your recovery phrase</h2></div>
+      <p class="lede">Write these 24 words on paper, in order, and keep them somewhere safe. They are the only way back into this wallet if this computer is lost. Anyone who sees them can spend your ORN.</p>
+      <ol class="words" id="words"></ol>
+      <div class="push"></div>
+      <label class="agree"><input type="checkbox" id="wrote"> I have written all 24 words down</label>
+      <button class="primary pearl" id="phrase-done" disabled style="margin-top:14px">Continue</button>
+    </section>
+
+    <!-- New or restored wallet: an optional password -->
+    <section class="screen" id="password" hidden>
+      <div class="topline"><h2>Add a password</h2></div>
+      <p class="lede">A password protects the wallet on this computer. Without it, anyone who gets this computer's files can spend from it. You will type it each time you send.</p>
+      <div class="field">
+        <label for="pw1">Password</label>
+        <div class="box plain"><input id="pw1" type="password" autocomplete="new-password" placeholder="At least 8 characters"></div>
+      </div>
+      <div class="field">
+        <label for="pw2">Again</label>
+        <div class="box plain"><input id="pw2" type="password" autocomplete="new-password"></div>
+        <div class="check" id="pw-check"></div>
+      </div>
+      <p class="fineprint">If you forget it, your recovery phrase still restores the wallet.</p>
+      <div class="push"></div>
+      <div class="problem" id="password-problem" hidden></div>
+      <button class="primary pearl" id="pw-set" disabled style="margin-top:14px">Set password</button>
+      <button class="secondary" id="pw-skip" style="margin-top:10px">Not now</button>
+    </section>
+
+    <!-- Restore from the recovery phrase -->
+    <section class="screen" id="restore" hidden>
+      <div class="topline">
+        <button class="back" id="restore-back" aria-label="Back"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10 3 5 8l5 5"/></svg></button>
+        <h2>Restore</h2>
+      </div>
+      <div class="field">
+        <label for="phrase-in">Recovery phrase</label>
+        <textarea id="phrase-in" class="tall" placeholder="Your 24 words, separated by spaces" spellcheck="false" autocomplete="off"></textarea>
+        <div class="check" id="phrase-check"></div>
+      </div>
+      <div class="field">
+        <label for="account">Account number</label>
+        <div class="box plain"><input id="account" type="number" min="1" value="1" inputmode="numeric"></div>
+        <div class="check">1 on your first computer, 2 on your second, and so on. Each computer uses its own number, so two never spend at once.</div>
+      </div>
+      <div class="push"></div>
+      <div class="problem" id="restore-problem" hidden></div>
+      <button class="primary pearl" id="restore-go" disabled style="margin-top:14px">Restore wallet</button>
+    </section>
+
+    <!-- Home -->
+    <section class="screen" id="home" hidden>
+      <div class="card pearl">
+        <div class="label">Balance</div>
+        <div class="amount"><span class="balance" id="balance">—</span><span class="unit">ORN</span></div>
+      </div>
+
+      <div class="actions three">
+        <button class="tile" id="go-send">
+          <span class="icon pearl"><svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 10.5 10.5 3.5M5 3.5h5.5V9"/></svg></span>
+          Send
+        </button>
+        <button class="tile" id="go-receive">
+          <span class="icon pearl"><svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10.5 3.5 3.5 10.5M9 10.5H3.5V5"/></svg></span>
+          Receive
+        </button>
+        <button class="tile" id="go-contacts">
+          <span class="icon pearl"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.6"/><path d="M2.8 20c0-3.5 2.8-5.9 6.2-5.9s6.2 2.4 6.2 5.9"/><path d="M15.6 4.6a3.6 3.6 0 0 1 0 6.8"/><path d="M17.9 14.6c2 .7 3.3 2.7 3.3 5.4"/></svg></span>
+          Contacts
+        </button>
+      </div>
+
+      <div class="section-head">
+        <h3>Activity</h3>
+        <button class="link" id="view-all" hidden>View all</button>
+      </div>
+      <div class="list" id="recent"><div class="empty">No payments yet</div></div>
+
+      <div class="problem" id="home-problem" hidden></div>
+    </section>
+
+    <!-- Activity -->
+    <section class="screen" id="activity" hidden>
+      <div class="topline">
+        <button class="back" data-back aria-label="Back"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10 3 5 8l5 5"/></svg></button>
+        <h2>Activity</h2>
+      </div>
+      <div class="scroll" id="all-activity"></div>
+    </section>
+
+
+    <!-- Contacts -->
+    <section class="screen" id="contacts" hidden>
+      <div class="topline">
+        <button class="back" data-back aria-label="Back"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10 3 5 8l5 5"/></svg></button>
+        <h2>Contacts</h2>
+      </div>
+      <div class="scroll" id="contact-list"></div>
+      <button class="primary pearl" id="add-contact">Add a contact</button>
+    </section>
+
+    <!-- One contact -->
+    <section class="screen" id="contact" hidden>
+      <div class="topline">
+        <button class="back" id="contact-back" aria-label="Back"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10 3 5 8l5 5"/></svg></button>
+        <h2 id="contact-title">New contact</h2>
+      </div>
+      <div class="field">
+        <label for="c-name">Name</label>
+        <div class="box plain"><input id="c-name" placeholder="Who is this?" autocomplete="off" maxlength="40"></div>
+      </div>
+      <div class="field">
+        <label for="c-address">Address</label>
+        <textarea id="c-address" placeholder="Their 64-character address" spellcheck="false"></textarea>
+        <div class="check" id="c-check"></div>
+      </div>
+      <div class="push"></div>
+      <div class="problem" id="contact-problem" hidden></div>
+      <button class="secondary" id="c-send" hidden style="margin-top:14px">Send to this contact</button>
+      <button class="primary pearl" id="c-save" style="margin-top:10px">Save</button>
+      <button class="danger" id="c-delete" hidden>Delete contact</button>
+    </section>
+
+    <!-- Send: enter -->
+    <section class="screen" id="send" hidden>
+      <div class="topline">
+        <button class="back" data-back aria-label="Back"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10 3 5 8l5 5"/></svg></button>
+        <h2>Send</h2>
+      </div>
+
+      <div class="amount-entry">
+        <input id="amount" placeholder="0" inputmode="numeric" autocomplete="off">
+        <div class="hint"><span id="available"></span><button id="all" type="button">Send all</button></div>
+        <div class="fee-line" id="fee-line"></div>
+      </div>
+
+      <div class="field">
+        <label for="to">To</label>
+        <div class="box">
+          <input id="to" placeholder="Recipient's address" spellcheck="false" autocomplete="off">
+          <button class="chip" id="paste" type="button">Paste</button>
+        </div>
+        <div class="check" id="to-check"></div>
+        <div class="picks" id="picks"></div>
+      </div>
+
+      <div class="push"></div>
+      <div class="problem" id="send-problem" hidden></div>
+      <button class="primary pearl" id="to-review" disabled style="margin-top:14px">Review</button>
+    </section>
+
+    <!-- Send: review -->
+    <section class="screen" id="review" hidden>
+      <div class="topline">
+        <button class="back" id="review-back" aria-label="Back"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10 3 5 8l5 5"/></svg></button>
+        <h2>Review</h2>
+      </div>
+
+      <div class="review">
+        <div class="row"><span>Amount</span><span id="r-amount"></span></div>
+        <div class="row"><span>Network fee</span><span id="r-fee"></span></div>
+        <div class="row"><span>To</span><span class="mono" id="r-to"></span></div>
+        <div class="row"><span>Balance after</span><span id="r-after"></span></div>
+      </div>
+      <p class="fineprint">Payments are final within a second or two and cannot be reversed. Check the address.</p>
+      <div class="field" id="r-pw-field" hidden style="margin-top:18px">
+        <label for="r-pw">Wallet password</label>
+        <div class="box plain"><input id="r-pw" type="password" autocomplete="current-password"></div>
+      </div>
+
+      <div class="push"></div>
+      <div class="problem" id="review-problem" hidden></div>
+      <button class="primary pearl" id="confirm" style="margin-top:14px">Confirm and send</button>
+    </section>
+
+    <!-- Send: done -->
+    <section class="screen done" id="done" hidden>
+      <div class="mark pearl"><svg width="26" height="26" viewBox="0 0 26 26" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m7 13.5 4 4 8-9"/></svg></div>
+      <h2 id="d-title"></h2>
+      <p id="d-detail"></p>
+      <button class="primary pearl" data-back>Done</button>
+      <button class="secondary" id="d-save" hidden>Save as contact</button>
+    </section>
+
+    <!-- Receive -->
+    <section class="screen" id="receive" hidden>
+      <div class="topline">
+        <button class="back" data-back aria-label="Back"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10 3 5 8l5 5"/></svg></button>
+        <h2>Receive</h2>
+      </div>
+      <div class="push"></div>
+      <div class="receive-card">
+        <div class="label">Your address</div>
+        <div class="address-block" id="address-block"></div>
+        <p class="fineprint">Share it to get paid. It's safe to share: an address can receive, never spend.</p>
+      </div>
+      <div class="push"></div>
+      <button class="primary pearl" id="copy">Copy address</button>
+    </section>
+  </main>
+
+<script>
+  const invoke = window.__TAURI__.core.invoke;
+  const $ = (id) => document.getElementById(id);
+
+  let view = null;          // the latest overview from the validators
+  let pending = null;       // { to, amount } while reviewing
+
+  const short = (a) => a.slice(0, 8) + "…" + a.slice(-8);
+  const isAddress = (text) => /^[0-9a-f]{64}$/i.test(text.trim());
+
+  let book = [];           // saved contacts, sorted by name
+  const named = (address) => book.find((c) => c.address === address);
+  const initial = (name) => name.trim().charAt(0).toUpperCase();
+  const esc = (t) => t.replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
+  // An address that shares a contact's first and last characters but is not
+  // theirs: the shape of an address-poisoning scam.
+  const lookalike = (address) => book.find((c) => c.address !== address &&
+    c.address.slice(0, 4) === address.slice(0, 4) && c.address.slice(-4) === address.slice(-4));
+  async function loadBook() { try { book = await invoke("contacts"); } catch { book = []; } }
+
+  function show(id) {
+    for (const s of document.querySelectorAll(".screen")) s.hidden = s.id !== id;
+    for (const p of document.querySelectorAll(".problem")) p.hidden = true;
+  }
+  function problem(id, text) { $(id).textContent = String(text); $(id).hidden = false; }
+
+  function setStatus(kind, text) {
+    $("status").hidden = false;
+    $("status").className = "status " + kind;
+    $("status-text").textContent = text;
+  }
+
+  async function refresh() {
+    try {
+      view = await invoke("overview_now");
+      $("balance").textContent = view.balance === null ? "—" : view.balance;
+      $("status").title = `${view.answered} of ${view.validators} validators answered`;
+      if (view.answered === view.validators) setStatus("ok", "Connected");
+      else if (view.balance !== null) setStatus("warn", `${view.answered} of ${view.validators}`);
+      else setStatus("bad", "Catching up");
+      $("home-problem").hidden = true;
+      if (!$("send").hidden) validate();
+      loadActivity();
+    } catch (error) {
+      setStatus("bad", "Offline");
+      if (!$("home").hidden) problem("home-problem", error);
+    }
+  }
+
+  function home() { show("home"); refresh(); }
+
+  async function start() {
+    if (await invoke("has_wallet")) home();
+    else show("welcome");
+  }
+
+  // ---- Welcome ----
+  $("create").onclick = async () => {
+    $("create").disabled = true;
+    try {
+      const words = await invoke("create_wallet");
+      $("words").innerHTML = words.map((w) => `<li>${esc(w)}</li>`).join("");
+      $("wrote").checked = false; $("phrase-done").disabled = true;
+      show("phrase");
+    } catch (e) { problem("welcome-problem", e); }
+    $("create").disabled = false;
+  };
+  $("wrote").onchange = () => { $("phrase-done").disabled = !$("wrote").checked; };
+  $("phrase-done").onclick = () => { $("words").innerHTML = ""; askPassword(); };
+
+  // ---- Password ----
+  function askPassword() {
+    $("pw1").value = ""; $("pw2").value = ""; checkPassword();
+    show("password"); $("pw1").focus();
+  }
+  function checkPassword() {
+    const a = $("pw1").value, b = $("pw2").value;
+    const ok = a.length >= 8 && a === b;
+    $("pw-check").textContent = !a ? "" : a.length < 8 ? "At least 8 characters." : b && a !== b ? "The two do not match." : ok ? "They match." : "";
+    $("pw-check").className = "check" + (ok ? " ok" : "");
+    $("pw-set").disabled = !ok;
+  }
+  $("pw1").oninput = checkPassword; $("pw2").oninput = checkPassword;
+  $("pw-set").onclick = async () => {
+    $("pw-set").disabled = true;
+    try { await invoke("set_password", { password: $("pw1").value }); $("pw1").value = $("pw2").value = ""; home(); }
+    catch (e) { problem("password-problem", e); $("pw-set").disabled = false; }
+  };
+  $("pw-skip").onclick = home;
+
+  // ---- Restore ----
+  $("go-restore").onclick = () => {
+    $("phrase-in").value = ""; $("account").value = "1"; checkPhrase(); show("restore"); $("phrase-in").focus();
+  };
+  $("restore-back").onclick = () => { $("phrase-in").value = ""; show("welcome"); };
+  function checkPhrase() {
+    const n = $("phrase-in").value.trim().split(/\s+/).filter(Boolean).length;
+    const account = Number($("account").value);
+    $("phrase-check").textContent = n ? `${n} of 24 words` : "";
+    $("phrase-check").className = "check" + (n === 24 ? " ok" : "");
+    $("restore-go").disabled = n !== 24 || !(Number.isInteger(account) && account >= 1);
+  }
+  $("phrase-in").oninput = checkPhrase; $("account").oninput = checkPhrase;
+  $("restore-go").onclick = async () => {
+    const button = $("restore-go");
+    button.disabled = true; button.innerHTML = '<span class="spinner"></span>Restoring';
+    try {
+      await invoke("restore_wallet", { words: $("phrase-in").value, account: Number($("account").value) });
+      $("phrase-in").value = "";
+      askPassword();
+    } catch (e) { problem("restore-problem", e); }
+    button.textContent = "Restore wallet"; checkPhrase();
+  };
+  $("choose").onclick = async () => {
+    try { if (await invoke("choose_wallet")) await start(); } catch (e) { problem("welcome-problem", e); }
+  };
+
+  // ---- Navigation ----
+  for (const b of document.querySelectorAll("[data-back]")) b.onclick = home;
+  $("go-send").onclick = () => {
+    $("amount").value = ""; $("to").value = "";
+    quoted = null; $("fee-line").textContent = ""; $("amount").style.color = "";
+    validate(); show("send"); $("amount").focus();
+  };
+  $("go-receive").onclick = () => {
+    if (!view) return;
+    $("address-block").innerHTML = view.address.match(/.{16}/g).map((g) => `<span>${g.match(/.{4}/g).join(" ")}</span>`).join("");
+    $("copy").textContent = "Copy address";
+    show("receive");
+  };
+
+  // ---- Send: enter ----
+  // The fee and what is left are worked out in the app's Rust code, in
+  // exact whole units; this page only shows the text it gets back.
+  let quoted = null, quoting = 0;
+  async function requote() {
+    const ticket = ++quoting;
+    const q = await invoke("quote", { amount: $("amount").value });
+    if (ticket !== quoting) return;      // a newer keystroke has asked again
+    quoted = q;
+    $("fee-line").textContent = q.problem || (q.fee ? `Network fee ${q.fee} ORN` : "");
+    $("fee-line").className = "fee-line" + (q.problem ? " bad" : "");
+    $("amount").style.color = q.problem && q.fee ? "var(--bad)" : "";
+    validate();
+  }
+
+  function validate() {
+    const has = view && view.balance !== null;
+    $("available").textContent = has ? `${view.balance} ORN available` : "";
+    $("all").hidden = !has || view.most === "0";
+
+    const to = $("to").value.trim();
+    let check = "", ok = false, warn = false;
+    const lower = to.toLowerCase();
+    if (to === "") check = "";
+    else if (!isAddress(to)) check = to.length < 64 ? `${64 - to.length} more characters` : "Not an Orien address";
+    else if (view && lower === view.address) check = "That is this wallet's own address";
+    else if (named(lower)) { check = `✓ ${named(lower).name}`; ok = true; }
+    else if (lookalike(lower)) {
+      check = `⚠ This looks like ${lookalike(lower).name}'s address but is not the same. Check where you copied it from.`;
+      warn = true;
+    }
+    else { check = "✓ Valid address"; ok = true; }
+    $("to-check").textContent = check;
+    $("to-check").className = "check" + (ok ? " ok" : "") + (warn ? " warn" : "");
+    $("picks").innerHTML = to === "" ? book.slice(0, 6).map((c) =>
+      `<button class="pick" type="button" data-address="${c.address}"><span class="avatar pearl">${esc(initial(c.name))}</span>${esc(c.name)}</button>`).join("") : "";
+
+    const amountOk = quoted && quoted.fee && !quoted.problem;
+    $("to-review").disabled = !(ok && amountOk);
+  }
+  $("amount").oninput = () => {
+    // Digits, one decimal point and thousands commas only.
+    const clean = $("amount").value.replace(/[^0-9.,]/g, "").replace(/(\..*)\./g, "$1");
+    if (clean !== $("amount").value) $("amount").value = clean;
+    requote();
+  };
+  $("to").oninput = validate;
+  $("picks").onclick = (event) => {
+    const pick = event.target.closest(".pick");
+    if (pick) { $("to").value = pick.dataset.address; validate(); }
+  };
+  $("all").onclick = () => { $("amount").value = view.most; requote(); };
+  $("paste").onclick = async () => {
+    try { $("to").value = (await navigator.clipboard.readText()).trim(); validate(); } catch { $("to").focus(); }
+  };
+
+  $("to-review").onclick = () => {
+    pending = { to: $("to").value.trim().toLowerCase(), amount: $("amount").value };
+    $("r-amount").textContent = `${quoted.amount} ORN`;
+    $("r-fee").textContent = `${quoted.fee} ORN`;
+    $("r-to").textContent = named(pending.to) ? `${named(pending.to).name} · ${short(pending.to)}` : short(pending.to);
+    $("r-to").title = pending.to;
+    $("r-after").textContent = quoted.after ? `${quoted.after} ORN` : "—";
+    $("r-pw").value = ""; $("r-pw-field").hidden = !(view && view.locked);
+    show("review");
+    if (!$("r-pw-field").hidden) $("r-pw").focus();
+  };
+  $("review-back").onclick = () => show("send");
+  $("r-pw").onkeydown = (e) => { if (e.key === "Enter") $("confirm").click(); };
+
+  // ---- Send: confirm ----
+  $("confirm").onclick = async () => {
+    const button = $("confirm");
+    button.disabled = true; $("review-back").disabled = true;
+    button.innerHTML = '<span class="spinner"></span>Sending';
+    try {
+      const password = $("r-pw-field").hidden ? null : $("r-pw").value;
+      const sent = await invoke("send_payment", { to: pending.to, amount: String(pending.amount), password });
+      $("r-pw").value = "";
+      if (sent.earlier) {
+        // A payment signed earlier had to finish first; this one is not sent yet.
+        show("send");
+        problem("send-problem",
+          `An earlier payment of ${sent.amount_text} ORN to ${short(sent.to)} was still waiting and is now final. ` +
+          `Review and send this one again.`);
+        refresh();
+      } else {
+        $("d-title").textContent = `${sent.amount_text} ORN sent`;
+        $("d-save").hidden = !!named(sent.to);
+        $("d-save").dataset.address = sent.to;
+        $("d-detail").textContent = `to ${named(sent.to) ? named(sent.to).name : short(sent.to)} · final in ${sent.seconds < 1 ? "under a second" : sent.seconds.toFixed(1) + " s"} · fee ${sent.fee_text}`;
+        show("done");
+        refresh();
+      }
+    } catch (error) {
+      const text = String(error);
+      if (text === "password: needed") {
+        $("r-pw-field").hidden = false; $("r-pw").focus();
+        problem("review-problem", "This wallet has a password. Type it to send.");
+      } else if (text === "password: wrong") {
+        $("r-pw").select();
+        problem("review-problem", "That is not this wallet's password.");
+      } else problem("review-problem", text);
+    } finally {
+      button.disabled = false; $("review-back").disabled = false;
+      button.textContent = "Confirm and send";
+    }
+  };
+
+  // ---- Receive ----
+  $("copy").onclick = async () => {
+    await navigator.clipboard.writeText(view.address);
+    $("copy").textContent = "Copied";
+    setTimeout(() => { $("copy").textContent = "Copy address"; }, 1600);
+  };
+
+  // ---- Activity ----
+  let entries = [];
+  const ICON = {
+    sent: '<svg width="13" height="13" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 10.5 10.5 3.5M5 3.5h5.5V9"/></svg>',
+    received: '<svg width="13" height="13" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10.5 3.5 3.5 10.5M9 10.5H3.5V5"/></svg>',
+  };
+  const clock = (t) => new Date(t * 1000).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
+  function dayName(t) {
+    const d = new Date(t * 1000), today = new Date();
+    const midnight = (x) => new Date(x.getFullYear(), x.getMonth(), x.getDate()).getTime();
+    const days = Math.round((midnight(today) - midnight(d)) / 86400000);
+    if (days === 0) return "Today";
+    if (days === 1) return "Yesterday";
+    return d.toLocaleDateString([], { weekday: "long", month: "long", day: "numeric",
+      year: d.getFullYear() === today.getFullYear() ? undefined : "numeric" });
+  }
+  function row(e, when) {
+    const sent = e.direction === "sent";
+    const who = e.counterparty && named(e.counterparty);
+    const sub = e.counterparty ? (sent ? "To " : "From ") + (who ? esc(who.name) : short(e.counterparty))
+      : sent ? "Sent from another app" : "Incoming payment";
+    return `<div class="tx" title="${e.counterparty || ""}">
+      <span class="tx-icon ${e.direction}">${ICON[e.direction]}</span>
+      <div class="tx-main"><div class="title">${sent ? "Sent" : "Received"}</div><div class="sub">${sub}</div></div>
+      <div class="tx-side"><div class="amt ${e.direction}">${sent ? "−" : "+"}${e.amount}</div><div class="sub">${when(e)}</div></div>
+    </div>`;
+  }
+  const relative = (e) => { const d = dayName(e.time); return d === "Today" ? clock(e.time) : d === "Yesterday" ? "Yesterday" : new Date(e.time * 1000).toLocaleDateString([], { month: "short", day: "numeric" }); };
+
+  async function loadActivity() {
+    try { entries = await invoke("activity"); } catch { return; }
+    $("recent").innerHTML = entries.length
+      ? entries.slice(0, 3).map((e) => row(e, relative)).join("")
+      : '<div class="empty">No payments yet</div>';
+    $("view-all").hidden = entries.length === 0;
+    if (!$("activity").hidden) renderAll();
+  }
+  function renderAll() {
+    let html = "", day = null, group = [];
+    const flush = () => { if (group.length) html += `<div class="day">${day}</div><div class="list">${group.join("")}</div>`; group = []; };
+    for (const e of entries) {
+      const d = dayName(e.time);
+      if (d !== day) { flush(); day = d; }
+      group.push(row(e, (x) => clock(x.time)));
+    }
+    flush();
+    $("all-activity").innerHTML = html || '<div class="empty">No payments yet</div>';
+  }
+  $("view-all").onclick = () => { renderAll(); show("activity"); };
+
+  // ---- Contacts ----
+  let editing = null;       // the address of the contact being edited, or null when adding
+  let returnTo = "contacts";
+
+  function renderContacts() {
+    $("contact-list").innerHTML = book.length
+      ? `<div class="list">${book.map((c) => `<div class="tx contact" data-address="${c.address}">
+          <span class="avatar pearl">${esc(initial(c.name))}</span>
+          <div class="tx-main"><div class="title">${esc(c.name)}</div><div class="sub">${short(c.address)}</div></div>
+          <svg class="chevron" width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m6 3 5 5-5 5"/></svg>
+        </div>`).join("")}</div>`
+      : '<div class="empty">No contacts yet. Add someone you pay often, and pick them by name when you send.</div>';
+  }
+  async function openContacts() { await loadBook(); renderContacts(); show("contacts"); }
+
+  function openContact(address, from) {
+    returnTo = from;
+    const contact = address && named(address);
+    editing = contact ? contact.address : null;
+    $("contact-title").textContent = contact ? contact.name : "New contact";
+    $("c-name").value = contact ? contact.name : "";
+    $("c-address").value = address || "";
+    $("c-address").readOnly = !!contact;
+    $("c-send").hidden = !contact;
+    $("c-delete").hidden = !contact;
+    $("c-delete").textContent = "Delete contact";
+    checkContact();
+    show("contact");
+    (contact || address ? $("c-name") : $("c-name")).focus();
+  }
+  function checkContact() {
+    const a = $("c-address").value.trim();
+    let text = "", cls = "check";
+    if (a && !isAddress(a)) text = a.length < 64 ? `${64 - a.length} more characters` : "Not an Orien address";
+    else if (a && !editing && named(a.toLowerCase())) text = `Already saved as ${named(a.toLowerCase()).name}`;
+    else if (a) { text = "✓ Valid address"; cls += " ok"; }
+    $("c-check").textContent = text; $("c-check").className = cls;
+    $("c-save").disabled = !($("c-name").value.trim() && isAddress(a));
+  }
+  $("c-name").oninput = checkContact;
+  $("c-address").oninput = checkContact;
+
+  $("go-contacts").onclick = openContacts;
+  $("add-contact").onclick = () => openContact(null, "contacts");
+  $("contact-list").onclick = (event) => {
+    const row = event.target.closest(".tx.contact");
+    if (row) openContact(row.dataset.address, "contacts");
+  };
+  $("contact-back").onclick = () => returnTo === "home" ? home() : openContacts();
+  $("d-save").onclick = () => openContact($("d-save").dataset.address, "home");
+
+  $("c-save").onclick = async () => {
+    try {
+      await invoke("save_contact", { name: $("c-name").value, address: $("c-address").value, previous: editing });
+      await loadBook();
+      if (returnTo === "home") home(); else openContacts();
+    } catch (error) { problem("contact-problem", error); }
+  };
+  $("c-delete").onclick = async () => {
+    // Ask once more before deleting.
+    if ($("c-delete").textContent !== "Click again to delete") {
+      $("c-delete").textContent = "Click again to delete";
+      return;
+    }
+    try { await invoke("delete_contact", { address: editing }); await openContacts(); }
+    catch (error) { problem("contact-problem", error); }
+  };
+  $("c-send").onclick = () => {
+    const address = editing;
+    $("go-send").onclick();
+    $("to").value = address; validate(); $("amount").focus();
+  };
+
+  setInterval(() => { if (!$("home").hidden || !$("activity").hidden) refresh(); }, 15000);
+  loadBook().then(start).catch((e) => problem("welcome-problem", e));
+</script>
+</body>
+</html>
