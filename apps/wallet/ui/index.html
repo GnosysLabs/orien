@@ -371,11 +371,6 @@
         <textarea id="phrase-in" class="tall" placeholder="Your 24 words, separated by spaces" spellcheck="false" autocomplete="off"></textarea>
         <div class="check" id="phrase-check"></div>
       </div>
-      <div class="field">
-        <label for="account">Account</label>
-        <div class="box plain"><input id="account" type="number" min="1" value="1" inputmode="numeric"></div>
-        <div class="check">Leave this at 1 for your wallet. Another number makes a separate account from the same words, with its own address.</div>
-      </div>
       <div class="push"></div>
       <div class="problem" id="restore-problem" hidden></div>
       <button class="primary pearl" id="restore-go" disabled style="margin-top:14px">Restore wallet</button>
@@ -627,22 +622,21 @@
 
   // ---- Restore ----
   $("go-restore").onclick = () => {
-    $("phrase-in").value = ""; $("account").value = "1"; checkPhrase(); show("restore"); $("phrase-in").focus();
+    $("phrase-in").value = ""; checkPhrase(); show("restore"); $("phrase-in").focus();
   };
   $("restore-back").onclick = () => { $("phrase-in").value = ""; show("welcome"); };
   function checkPhrase() {
     const n = $("phrase-in").value.trim().split(/\s+/).filter(Boolean).length;
-    const account = Number($("account").value);
     $("phrase-check").textContent = n ? `${n} of 24 words` : "";
     $("phrase-check").className = "check" + (n === 24 ? " ok" : "");
-    $("restore-go").disabled = n !== 24 || !(Number.isInteger(account) && account >= 1);
+    $("restore-go").disabled = n !== 24;
   }
-  $("phrase-in").oninput = checkPhrase; $("account").oninput = checkPhrase;
+  $("phrase-in").oninput = checkPhrase;
   $("restore-go").onclick = async () => {
     const button = $("restore-go");
     button.disabled = true; button.innerHTML = '<span class="spinner"></span>Restoring';
     try {
-      await invoke("restore_wallet", { words: $("phrase-in").value, account: Number($("account").value) });
+      await invoke("restore_wallet", { words: $("phrase-in").value });
       $("phrase-in").value = "";
       askPassword();
     } catch (e) { problem("restore-problem", e); }

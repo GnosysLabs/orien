@@ -245,19 +245,16 @@ async fn create_wallet(app: AppHandle) -> Result<Vec<String>, String> {
 }
 
 /// Remakes a wallet from its 24-word recovery phrase, as `orien wallet
-/// restore` does. `account` is which computer's account: 1 for the first.
+/// restore` does: the same wallet, address and ORN as on any other computer.
 #[tauri::command]
-async fn restore_wallet(app: AppHandle, words: String, account: u32) -> Result<(), String> {
+async fn restore_wallet(app: AppHandle, words: String) -> Result<(), String> {
     let master = orien_net::phrase::from_words(&words).map_err(|error| {
         let text = error.to_string();
         let mut chars = text.chars();
         chars.next().map(|first| first.to_uppercase().chain(chars).collect::<String>() + ".").unwrap_or(text)
     })?;
-    if account == 0 {
-        return Err("Accounts are numbered from 1.".into());
-    }
     let path = make_home()?;
-    tauri::async_runtime::spawn_blocking(move || Wallet::from_master(&path, master, account).map_err(|error| error.to_string()))
+    tauri::async_runtime::spawn_blocking(move || Wallet::from_master(&path, master, 1).map_err(|error| error.to_string()))
         .await
         .map_err(|error| error.to_string())??;
     use_shared(&app)
