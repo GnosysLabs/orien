@@ -70,6 +70,12 @@ export default function GetStartedPage() {
             >
               <Download className="h-4 w-4" aria-hidden /> Download for Windows
             </a>
+            <a
+              href="/wallet/Orien-Wallet.AppImage"
+              className="pearl-fill flex h-11 items-center gap-2 rounded-xl px-5 text-sm font-bold transition hover:brightness-105"
+            >
+              <Download className="h-4 w-4" aria-hidden /> Download for Linux
+            </a>
             <a href="/wallet/SHA256SUMS" className="text-sm underline decoration-line underline-offset-4 hover:text-ink">
               Download fingerprints (SHA-256)
             </a>
@@ -77,6 +83,12 @@ export default function GetStartedPage() {
           <p className="text-sm">
             Windows may say it protected your PC from an unrecognised app. Choose <strong className="font-semibold text-ink">More info</strong>,
             then <strong className="font-semibold text-ink">Run anyway</strong>.
+          </p>
+          <p className="text-sm">
+            On Linux, allow the file to run (right-click it, open Properties, and turn on running it as a program), then
+            double-click it. Afterwards Orien Wallet is in your app menu. If it does not open, your system needs FUSE:{' '}
+            <code className="rounded bg-raised px-1.5 py-0.5 text-ink">sudo apt install libfuse2</code>, or{' '}
+            <code className="rounded bg-raised px-1.5 py-0.5 text-ink">libfuse2t64</code> on Ubuntu 24.04 and newer.
           </p>
         </div>
       </section>
