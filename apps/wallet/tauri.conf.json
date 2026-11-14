@@ -11,7 +11,7 @@
       {
         "title": "Orien",
         "width": 460,
-        "height": 540,
+        "height": 580,
         "resizable": true,
         "titleBarStyle": "Overlay",
         "hiddenTitle": true,
@@ -20,7 +20,7 @@
           "y": 26
         },
         "minWidth": 400,
-        "minHeight": 500
+        "minHeight": 540
       }
     ],
     "security": {

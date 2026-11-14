@@ -9,6 +9,7 @@
 
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
+mod activity;
 mod send;
 
 use orien_ledger::AccountId;
@@ -19,6 +20,10 @@ use std::fs;
 use std::path::{Path, PathBuf};
 use tauri::{AppHandle, Manager};
 use tauri_plugin_dialog::DialogExt;
+
+/// Sending and checking the balance take turns, so a check that runs while
+/// a payment is going out never sees half of it and records it twice.
+static TURNS: std::sync::Mutex<()> = std::sync::Mutex::new(());
 
 /// The network this copy of the app was built for.
 const GENESIS: &str = include_str!(concat!(env!("OUT_DIR"), "/genesis.json"));
@@ -153,9 +158,24 @@ async fn overview_now(app: AppHandle) -> Result<Overview, String> {
     let dir = folder(&app)?;
     let wallet = wallet_file(&dir).ok_or("no wallet yet")?;
     let genesis = genesis_file(&dir)?;
-    tauri::async_runtime::spawn_blocking(move || overview(&wallet, &genesis))
-        .await
-        .map_err(|error| error.to_string())?
+    tauri::async_runtime::spawn_blocking(move || {
+        let _turn = TURNS.lock().unwrap_or_else(|poisoned| poisoned.into_inner());
+        let view = overview(&wallet, &genesis)?;
+        if let Some(balance) = view.balance.as_deref().and_then(|text| text.parse().ok()) {
+            activity::observe(&dir, &view.address, balance);
+        }
+        Ok(view)
+    })
+    .await
+    .map_err(|error| error.to_string())?
+}
+
+/// The wallet's payments, newest first.
+#[tauri::command]
+fn activity(app: AppHandle) -> Result<Vec<activity::Entry>, String> {
+    let dir = folder(&app)?;
+    let wallet = open(&wallet_file(&dir).ok_or("no wallet yet")?)?;
+    Ok(activity::list(&dir, &wallet.address().to_string()))
 }
 
 /// Sends `amount` to the address `to` and waits until it is final.
@@ -173,6 +193,7 @@ async fn send_payment(app: AppHandle, to: String, amount: String) -> Result<send
     let wallet_file = wallet_file(&dir).ok_or("no wallet yet")?;
     let genesis = genesis_file(&dir)?;
     tauri::async_runtime::spawn_blocking(move || {
+        let _turn = TURNS.lock().unwrap_or_else(|poisoned| poisoned.into_inner());
         let mut wallet = open(&wallet_file)?;
         if to == wallet.address() {
             return Err("That is this wallet's own address.".into());
@@ -180,6 +201,9 @@ async fn send_payment(app: AppHandle, to: String, amount: String) -> Result<send
         let client = connect(&genesis)?;
         let sent = send::send(&client, &mut wallet, to, amount);
         let _ = client.head().save(&head_file(&genesis));
+        if let Ok(sent) = &sent {
+            activity::sent(&dir, &wallet.address().to_string(), sent.amount, &sent.to);
+        }
         sent
     })
     .await
@@ -238,7 +262,7 @@ mod tests {
 fn main() {
     tauri::Builder::default()
         .plugin(tauri_plugin_dialog::init())
-        .invoke_handler(tauri::generate_handler![has_wallet, create_wallet, choose_wallet, overview_now, send_payment])
+        .invoke_handler(tauri::generate_handler![has_wallet, create_wallet, choose_wallet, overview_now, send_payment, activity])
         .run(tauri::generate_context!())
         .expect("the wallet window could not start");
 }
