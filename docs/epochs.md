@@ -348,8 +348,13 @@ floods of tiny payments, and the maximum keeps a large payment from paying
 far more than the work it costs. Stake and unstake orders pay the minimum.
 The starting values, settings in the genesis file, are 0.1%, at least
 0.000001 coin and at most 1 coin. The fee is taken from the sender when the
-order is applied, into a pot no key can sign for. The fees of an epoch are
-paid out in its checkpoint to the validators, in proportion to stake.
+order is applied, into a pot no key can sign for. At each checkpoint the
+pot is paid to the epoch's validators with real stake, in proportion to
+it, into their staking accounts' spendable coins. Launch seats earn no
+fees. What does not divide evenly, and everything in an epoch with no
+staked validators, stays in the pot for the next checkpoint, so the first
+people to stake collect the fees gathered before them. A validator caught
+cheating earns nothing.
 
 ### Coin creation
 

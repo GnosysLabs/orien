@@ -344,6 +344,29 @@ impl State {
             .collect()
     }
 
+    /// Shares out the fees gathered so far among `earners`, each an account
+    /// with its stake, in proportion to stake. What does not divide evenly,
+    /// and everything when there is nobody to pay, stays in the pot for the
+    /// next checkpoint.
+    pub fn pay_fees(&mut self, earners: &[(AccountId, u64)]) {
+        let pot = self.accounts.get(&FEES).map_or(0, |pot| pot.balance.max(0) as u128);
+        let total: u128 = earners.iter().map(|(_, stake)| *stake as u128).sum();
+        if pot == 0 || total == 0 {
+            return;
+        }
+        let mut paid = 0i128;
+        for (account, stake) in earners {
+            let share = (pot * *stake as u128 / total) as i128;
+            if share > 0 {
+                self.accounts.entry(*account).or_insert_with(|| Account::holding(0)).balance += share;
+                paid += share;
+            }
+        }
+        if let Some(pot) = self.accounts.get_mut(&FEES) {
+            pot.balance -= paid;
+        }
+    }
+
     /// Takes everything `id` has staked, including coins still waiting to
     /// be released, and burns it.
     pub fn forfeit(&mut self, id: &AccountId) {

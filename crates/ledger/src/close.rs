@@ -412,12 +412,24 @@ fn outcome_of(
             }
         }
     }
-    // A staked validator caught cheating forfeits its stake.
-    for cheater in cheaters(committee, statements) {
-        if let Some(account) = committee.members()[cheater as usize].account {
+    // A staked validator caught cheating forfeits its stake, and earns no
+    // share of the fees.
+    let caught = cheaters(committee, statements);
+    for cheater in &caught {
+        if let Some(account) = committee.members()[*cheater as usize].account {
             state.forfeit(&account);
         }
     }
+    // The epoch's fees go to the validators with real stake behind them, in
+    // proportion to it. Launch seats earn none.
+    let earners: Vec<(AccountId, u64)> = committee
+        .members()
+        .iter()
+        .enumerate()
+        .filter(|(place, _)| !caught.contains(&(*place as u16)))
+        .filter_map(|(_, member)| member.account.map(|account| (account, member.stake)))
+        .collect();
+    state.pay_fees(&earners);
     // A staked validator that announced a new key tree signs with it from
     // the next epoch. Its stake names its key, so the change goes there.
     for statement in statements {

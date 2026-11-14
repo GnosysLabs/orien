@@ -6,7 +6,7 @@ use orien_crypto::keytree::KeyTree;
 use orien_crypto::merkle;
 use orien_ledger::close::{self, Cheat, Pin, Statement};
 use orien_ledger::{
-    Accepted, Allocation, Committee, FORFEITED, Genesis, Kind, Member, Order, Reject, SignedBy, State, Validator,
+    Accepted, Allocation, Committee, FEES, FORFEITED, Fees, Genesis, Kind, Member, Order, Reject, SignedBy, State, Validator,
     ValidatorInfo, Vote, address, stake_proof_item,
 };
 
@@ -389,4 +389,51 @@ fn a_validator_caught_cheating_loses_its_stake_and_its_place() {
     let reported = statement(0, committee.epoch(), vec![seat_reuse]);
     let end = close::outcome_checked(&committee, &state, &[], &[&reported]).unwrap();
     assert_eq!(roots(&close::next_validators(&committee, &[&reported], &end)), [11, 1, 2]);
+}
+
+#[test]
+fn fees_go_to_the_validators_with_real_stake() {
+    let names = [(11, "seat-1"), (12, "seat-2"), (1, "ana"), (2, "ben"), (3, "cy")];
+    let seat = |n: u8| ValidatorInfo {
+        name: format!("seat-{n}"),
+        root: tree(10 + n).root(),
+        height: 2,
+        stake: 100_000,
+        address: format!("100.64.0.{n}:7001"),
+    };
+    let mut genesis = genesis(&[(1, 50_000), (2, 50_000), (3, 50_000)]);
+    genesis.validators = vec![seat(1), seat(2)];
+    genesis.fee = Fees { min: 1, max: 100, rate: 1_000 };
+    genesis.validate().unwrap();
+    let network = genesis.id();
+    let stake = |n: u8, seq: u64, amount: u64| {
+        let mut order = order(stake(&network, n, validator(n), n), n, seq, n, amount).0;
+        order.max_fee = 1;
+        order
+    };
+    let pay = |from: u8, seq: u64, to: u8, amount: u64| {
+        let mut order = order(Kind::Payment, from, seq, to, amount).0;
+        order.max_fee = genesis.fee.on(&Kind::Payment, amount);
+        order
+    };
+    let balance = |state: &State, n: u8| state.account(&id(n)).unwrap().balance;
+    let pot = |state: &State| state.account(&FEES).map_or(0, |pot| pot.balance);
+
+    // Only launch seats vote in the first epoch, and they earn nothing: the
+    // two stake orders' fees wait in the pot.
+    let committee = Committee::new(&genesis);
+    let state = State::from_genesis(&genesis);
+    let (committee, state) =
+        checkpoint(&committee, &state, &[stake(1, 0, 30_000), stake(2, 0, 10_000)], &names);
+    println!("after epoch 0: pot {}, ana {}, ben {}", pot(&state), balance(&state, 1), balance(&state, 2));
+    assert_eq!(pot(&state), 2);
+
+    // Ana and Ben vote in the next epoch. Cy's payment pays 20, and at the
+    // checkpoint the pot of 22 goes three to one: 16 to Ana, 5 to Ben, with
+    // the 1 that does not divide carried over.
+    let (_, state) = checkpoint(&committee, &state, &[pay(3, 0, 1, 20_000)], &names);
+    println!("after epoch 1: pot {}, ana {}, ben {}", pot(&state), balance(&state, 1), balance(&state, 2));
+    assert_eq!((balance(&state, 1), balance(&state, 2)), (20_000 - 1 + 20_000 + 16, 40_000 - 1 + 5));
+    assert_eq!(pot(&state), 1);
+    assert_eq!(state.total(), 150_000, "fees move coins and create none");
 }
