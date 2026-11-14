@@ -52,7 +52,7 @@ If the user has no wallet yet (`~/.orien/wallet` does not exist), they need to m
 orien balance
 ```
 
-Report the `balance` line, and `since then` when it appears: that is what has arrived or left since the last hourly checkpoint. `pending` lines are payments that were signed but are not final yet (see "A payment didn't finish"). A balance never needs the password. For someone else's balance, add their address: `orien balance ADDRESS`.
+Report the `balance` line. The line under it, when there is one, says how much of that arrived since the last hourly checkpoint; it is already final. `next payout` is when mining rewards and validator fees are next paid. `pending` lines are payments that were signed but are not final yet (see "A payment didn't finish"). A balance never needs the password. For someone else's balance, add their address: `orien balance ADDRESS`.
 
 ### "What's my address?" / "How do people pay me?"
 
@@ -104,20 +104,20 @@ Never send the payment again to "retry": if the first one went through, that pay
 
 ### "Turn on mining" / "Mine ORN on this machine"
 
-Mining runs until stopped, so start it in the background and tell the user how to stop it:
+First ask the user how much of the computer's processor mining may use, as a percentage. Suggest 50 on a computer they also use for other things, and 100 on one that does nothing else. Then start it in the background with that number, and tell the user how to stop it:
 
 - Mac and Linux:
   ```
-  nohup orien mine > ~/.orien/mine.log 2>&1 &
+  nohup orien mine --cpu 50 > ~/.orien/mine.log 2>&1 &
   ```
   Stop it with `pkill -f "orien mine"`. See how it's doing with `tail ~/.orien/mine.log`.
 - Windows (PowerShell):
   ```
-  Start-Process orien -ArgumentList mine -WindowStyle Hidden -RedirectStandardOutput "$env:USERPROFILE\.orien\mine.log"
+  Start-Process orien -ArgumentList "mine --cpu 50" -WindowStyle Hidden -RedirectStandardOutput "$env:USERPROFILE\.orien\mine.log"
   ```
   Stop it with `Stop-Process -Name orien`. Note that this stops every running orien program.
 
-`--threads N` uses N processor cores instead of all of them; suggest it if the user wants to keep using the computer comfortably. Every hour, the ORN released in that hour are shared among everyone who mined, in proportion to the work they did. Earnings show in `orien balance` after the next hourly checkpoint. Mining does not need the wallet's password. It pauses while the computer sleeps and stops when it restarts.
+Without `--cpu`, mining started in the background uses the whole processor, so always pass it. Every hour, the ORN released in that hour are shared among everyone who mined, in proportion to the work they did. Earnings show in `orien balance` after the next hourly checkpoint. Mining does not need the wallet's password. It pauses while the computer sleeps and stops when it restarts.
 
 ### "I want to use my wallet on another computer"
 

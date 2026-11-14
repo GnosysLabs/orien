@@ -77,8 +77,9 @@ export default function GetStartedPage() {
         <Step number={3} icon={Pickaxe} title="Mine ORN">
           <CopyText text="orien mine" />
           <p>
-            Your computer starts doing proof-of-work. Every hour, the new ORN released in that hour are shared out among
-            everyone who mined, in proportion to the work they did. It keeps going until you press Ctrl-C.
+            It first asks how much of your processor to use. Choose less on a computer you also work on, so it stays
+            quick, and 100% on one that does nothing else. Every hour, the new ORN released in that hour are shared out
+            among everyone who mined, in proportion to the work they did. It keeps going until you press Ctrl-C.
           </p>
         </Step>
 

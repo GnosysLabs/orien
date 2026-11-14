@@ -190,7 +190,12 @@ enum Command {
         /// The account to be paid: a wallet file or an address (default:
         /// your wallet)
         account: Option<String>,
-        /// How many processor cores to use (default: all of them)
+        /// How much of this computer's processor to use, as a percentage:
+        /// 25 leaves most of it free for other work, 100 uses all of it
+        /// (asked if not given)
+        #[arg(long, value_parser = clap::value_parser!(u8).range(1..=100), conflicts_with = "threads")]
+        cpu: Option<u8>,
+        /// How many processor cores to use, instead of a percentage
         #[arg(long)]
         threads: Option<usize>,
         #[command(flatten)]
@@ -557,7 +562,10 @@ fn run(cli: Cli) -> Result<()> {
         }
         Command::Verify { receipt, network } => verify(&receipt, &network.file()),
         Command::Status { network } => status(&network.file()),
-        Command::Mine { account, threads, network } => mine(&account.unwrap_or_else(|| default_wallet().display().to_string()), threads, &network.file()),
+        Command::Mine { account, cpu, threads, network } => {
+            let threads = mining_threads(cpu, threads)?;
+            mine(&account.unwrap_or_else(|| default_wallet().display().to_string()), threads, &network.file())
+        }
         Command::Node { key, data, listen, network } => node(&key, data, listen, &network.file()),
         Command::Keygen { out, height } => keygen(&out, height),
         Command::Unlock { file, duration, up_to, status } => {
@@ -808,20 +816,28 @@ fn balance(account: &str, genesis: &Path) -> Result<()> {
     // What the last checkpoint proves, checked against it here; and what
     // validators report has happened since, which nothing proves yet.
     let proven = client.proven(&id).map_or(0, |account| account.balance);
-    let source = match client.epoch() {
-        0 => "as the genesis file sets it".to_string(),
-        epoch => format!("proven by checkpoint {}", epoch - 1),
-    };
-    println!("balance        {}  ({source})", coins(proven));
+    // The balance is what validators holding enough stake all report now.
+    // What arrived since the last checkpoint is final, but only the next
+    // checkpoint proves it; say so only when it makes a difference.
     match status.spendable {
-        Some(now) if now != proven => {
-            let change = now - proven;
-            let sign = if change > 0 { "+" } else { "" };
-            println!("since then     {sign}{}  (validators report this; the next checkpoint proves it)", coins(change));
+        Some(now) => {
+            println!("balance        {} ORN", coins(now));
+            if now > proven {
+                println!(
+                    "               {} ORN of it arrived since the last hourly checkpoint",
+                    coins(now - proven)
+                );
+            }
         }
-        Some(_) => {}
-        None => println!("since then     unknown (too few validators are caught up)"),
+        None => {
+            println!("balance        {} ORN at the last hourly checkpoint", coins(proven));
+            println!("               (too few validators answered to count anything newer; try again shortly)");
+        }
     }
+    println!(
+        "next payout    {} (mining rewards and validator fees are paid at each hourly checkpoint)",
+        until_checkpoint(&genesis, &client)
+    );
     println!("payments made  {}", status.seq);
     println!("validators     {reachable} of {} answered", client.validators());
     if let Some(Signer::Spare(leaf)) = &status.signer {
@@ -1286,17 +1302,45 @@ fn status(genesis: &Path) -> Result<()> {
 /// Mines for `account` until stopped. Each round asks the validators for
 /// the epoch's seed and target, searches with every thread for a few
 /// seconds, and hands every share found to all the validators.
-fn mine(account: &str, threads: Option<usize>, genesis_file: &Path) -> Result<()> {
+/// How many cores to mine with: as given, or a share of the processor,
+/// asked for when there is someone at the terminal to answer.
+fn mining_threads(cpu: Option<u8>, threads: Option<usize>) -> Result<usize> {
+    let cores = thread::available_parallelism().map_or(1, |n| n.get());
+    if let Some(threads) = threads {
+        return Ok(threads.max(1));
+    }
+    let percent = match cpu {
+        Some(percent) => percent,
+        None if std::io::stdin().is_terminal() => {
+            println!("This computer has {cores} processor cores. Mining on fewer leaves more for everything else.");
+            ask("how much of the processor should mining use, in percent?", "50", |text| {
+                match text.trim().trim_end_matches('%').trim().parse::<u8>() {
+                    Ok(percent) if (1..=100).contains(&percent) => Ok(percent),
+                    _ => Err("give a number from 1 to 100, like 25, 50 or 100".to_string()),
+                }
+            })?
+        }
+        None => 100,
+    };
+    // Whole cores, at least one: a share of a core would only slow it down.
+    Ok(((cores * percent as usize + 50) / 100).clamp(1, cores))
+}
+
+fn mine(account: &str, threads: usize, genesis_file: &Path) -> Result<()> {
     use orien_ledger::close::Share;
     use std::sync::Arc;
     use std::sync::atomic::{AtomicBool, AtomicU64, Ordering};
 
     let (_, client) = connect(genesis_file)?;
     let account = resolve_account(account)?;
-    let threads = threads.unwrap_or_else(|| thread::available_parallelism().map_or(1, |n| n.get())).max(1);
     // Two machines mining for one account must not find the same shares.
     let mut next = u64::from_le_bytes(orien_net::keys::random_seed()[..8].try_into().expect("8 bytes"));
-    println!("mining for {} with {threads} thread(s); stop with Ctrl-C", account.short());
+    let cores = thread::available_parallelism().map_or(1, |n| n.get());
+    println!(
+        "mining for {} on {threads} of {cores} processor cores (about {}%); stop with Ctrl-C",
+        account.short(),
+        threads * 100 / cores
+    );
     let mut shown_epoch = None;
     loop {
         // The seed and target come from the checkpoints this client checks
