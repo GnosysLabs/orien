@@ -13,6 +13,8 @@
 
 mod activity;
 mod contacts;
+#[cfg(target_os = "linux")]
+mod linux;
 mod money;
 mod send;
 mod update;
@@ -384,6 +386,8 @@ async fn send_payment(app: AppHandle, to: String, amount: String, password: Opti
 }
 
 fn main() {
+    #[cfg(target_os = "linux")]
+    linux::register_appimage();
     tauri::Builder::default()
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_updater::Builder::new().build())

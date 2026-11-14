@@ -243,7 +243,7 @@
   /* ---- Activity ---- */
   .section-head { display: flex; align-items: baseline; justify-content: space-between; margin: 24px 4px 10px; }
   .section-head h3 { margin: 0; font-size: 13px; font-weight: 600; color: var(--dim); }
-  .link { border: 0; background: none; padding: 0; color: #d8d3f4; font-size: 12.5px; cursor: pointer; }
+  .link { -webkit-appearance: none; appearance: none; border: 0; background: none; padding: 0; color: #d8d3f4; font-size: 12.5px; cursor: pointer; }
   .link:hover { color: #ece9fb; }
   .list { border-radius: 18px; background: var(--surface); border: 1px solid var(--line); overflow: hidden; }
   .tx { display: flex; align-items: center; gap: 12px; padding: 11px 14px; }
@@ -307,7 +307,8 @@
   .agree { display: flex; align-items: center; gap: 9px; margin: 14px 4px 0; font-size: 13px; color: var(--dim); cursor: pointer; }
   .agree input { accent-color: #d8d3f4; width: 15px; height: 15px; }
   .field textarea.tall { height: 96px; font-size: 13px; }
-  .welcome .link { align-self: center; }
+  .welcome .link { align-self: center; margin: 24px 0 0; padding: 6px 12px; border-radius: 8px; line-height: 1.4; }
+  .welcome .link:hover { background: #ffffff08; }
 </style>
 </head>
 <body>
@@ -325,7 +326,7 @@
       <p>Create a wallet to hold ORN, or restore the one you already have.</p>
       <button class="primary pearl" id="create">Create a wallet</button>
       <button class="secondary" id="go-restore">Restore with recovery phrase</button>
-      <button class="link" id="choose" style="margin-top:16px">Open a wallet file</button>
+      <button class="link" id="choose">Open a wallet file</button>
       <div class="problem" id="welcome-problem" hidden></div>
     </section>
 
