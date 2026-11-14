@@ -11,6 +11,9 @@ orien-crypto = { path = "crates/crypto" }
 orien-ledger = { path = "crates/ledger" }
 orien-net = { path = "crates/net" }
 anyhow = "1"
+argon2 = "0.5"
+chacha20poly1305 = "0.10"
+rpassword = "7"
 blake3 = "1"
 borsh = { version = "1.5", features = ["derive"] }
 clap = { version = "4", features = ["derive", "env"] }

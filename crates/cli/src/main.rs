@@ -7,10 +7,11 @@ use orien_ledger::{
 };
 use orien_ledger::Signer;
 use orien_net::client::{AccountStatus, Client, Done, Head, TransferError, Unfinished};
-use orien_net::keys::{ValidatorKey, Wallet, load_genesis, save_genesis};
+use orien_net::keys::{OpenError, ValidatorKey, Wallet, load_genesis, save_genesis};
 use orien_net::node::{Node, NodeConfig};
 use orien_net::wire::{Request, Response};
 use std::fs;
+use std::io::IsTerminal;
 use std::net::TcpListener;
 use std::path::{Path, PathBuf};
 use std::thread;
@@ -177,6 +178,8 @@ enum WalletCommand {
     /// Show a wallet's recovery phrase again. Anyone who sees it can spend
     /// your coins.
     Phrase { file: PathBuf },
+    /// Put a password on a wallet, change it, or remove it
+    Password { file: PathBuf },
     /// Show a wallet's account address
     Address { file: PathBuf },
 }
@@ -327,6 +330,33 @@ fn run(cli: Cli) -> Result<()> {
             println!("account  1 of its recovery phrase");
             println!();
             show_phrase(&wallet);
+            let mut wallet = wallet;
+            if std::io::stdin().is_terminal() {
+                println!();
+                println!("A password keeps this wallet file useless to anyone who copies it.");
+                match choose_password()? {
+                    Some(password) => {
+                        wallet.set_password(Some(&password))?;
+                        println!("the wallet now has a password; you will be asked for it when you send");
+                    }
+                    None => println!("no password set; add one later with: orien wallet password {}", file.display()),
+                }
+            }
+            Ok(())
+        }
+        Command::Wallet(WalletCommand::Password { file }) => {
+            let mut wallet = open_wallet(&file)?;
+            match choose_password()? {
+                Some(password) => {
+                    wallet.set_password(Some(&password))?;
+                    println!("{} now has a new password", file.display());
+                }
+                None if wallet.has_password() => {
+                    wallet.set_password(None)?;
+                    println!("{} no longer has a password", file.display());
+                }
+                None => println!("{} still has no password", file.display()),
+            }
             Ok(())
         }
         Command::Wallet(WalletCommand::Restore { file, account }) => {
@@ -342,11 +372,11 @@ fn run(cli: Cli) -> Result<()> {
             Ok(())
         }
         Command::Wallet(WalletCommand::Phrase { file }) => {
-            show_phrase(&Wallet::load(&file)?);
+            show_phrase(&open_wallet(&file)?);
             Ok(())
         }
         Command::Wallet(WalletCommand::Address { file }) => {
-            println!("{}", Wallet::load(&file)?.address());
+            println!("{}", Wallet::peek(&file)?.0);
             Ok(())
         }
         Command::Balance { account, network } => balance(&account, &network.genesis),
@@ -469,7 +499,7 @@ fn until_checkpoint(genesis: &Genesis, client: &Client) -> String {
 /// Accepts either a wallet file or a 64-character address.
 fn resolve_account(text: &str) -> Result<AccountId> {
     if Path::new(text).is_file() {
-        return Ok(Wallet::load(Path::new(text))?.address());
+        return Ok(Wallet::peek(Path::new(text))?.0);
     }
     text.parse().map_err(|_| anyhow!("'{text}' is neither a wallet file nor a 64-character address"))
 }
@@ -578,8 +608,14 @@ fn locked(genesis: &Genesis, client: &Client, seq: u64, payments: &[Unfinished])
 
 fn balance(account: &str, genesis: &Path) -> Result<()> {
     let (genesis, client) = connect(genesis)?;
+    // A wallet with a password is read by its address alone: a balance
+    // never needs the password.
     let wallet = match Path::new(account).is_file() {
-        true => Some(Wallet::load(Path::new(account))?),
+        true => match Wallet::load(Path::new(account)) {
+            Ok(wallet) => Some(wallet),
+            Err(error) if error.downcast_ref::<OpenError>().is_some() => None,
+            Err(error) => return Err(error),
+        },
         false => None,
     };
     let id = match &wallet {
@@ -783,7 +819,7 @@ fn submit(
     let genesis_file = genesis;
     let (genesis, client) = connect(genesis_file)?;
     let network = genesis.id();
-    let mut wallet = Wallet::load(wallet_file)?;
+    let mut wallet = open_wallet(wallet_file)?;
     wallet.accept_fee(genesis.fee);
     let to = to.unwrap_or(wallet.address());
     let kind = kind(&wallet.address(), &genesis)?;
@@ -872,7 +908,7 @@ fn resume(wallet_file: &Path, pick: Option<&str>, receipt_file: Option<&Path>, g
     let genesis_file = genesis;
     let (genesis, client) = connect(genesis_file)?;
     let network = genesis.id();
-    let mut wallet = Wallet::load(wallet_file)?;
+    let mut wallet = open_wallet(wallet_file)?;
     wallet.accept_fee(genesis.fee);
     let status = read_account(&client, &wallet)?;
     let seq = status.seq;
@@ -1149,6 +1185,45 @@ fn mine(account: &str, threads: Option<usize>, genesis_file: &Path) -> Result<()
     }
 }
 
+/// Opens a wallet to sign with, asking for its password if it has one.
+fn open_wallet(path: &Path) -> Result<Wallet> {
+    match Wallet::load(path) {
+        Err(error) if matches!(error.downcast_ref::<OpenError>(), Some(OpenError::NeedsPassword)) => {
+            for attempt in 1..=3 {
+                let password = rpassword::prompt_password(format!("password for {}: ", path.display()))?;
+                match Wallet::open(path, Some(&password)) {
+                    Err(error)
+                        if attempt < 3 && matches!(error.downcast_ref::<OpenError>(), Some(OpenError::WrongPassword)) =>
+                    {
+                        println!("that is not this wallet's password; try again");
+                    }
+                    other => return other,
+                }
+            }
+            unreachable!("the third attempt returns")
+        }
+        other => other,
+    }
+}
+
+/// Asks for a new password twice. An empty one means none.
+fn choose_password() -> Result<Option<String>> {
+    loop {
+        let password = rpassword::prompt_password("choose a password (or press Enter for none): ")?;
+        if password.is_empty() {
+            return Ok(None);
+        }
+        if password.chars().count() < 8 {
+            println!("use at least 8 characters");
+            continue;
+        }
+        if rpassword::prompt_password("type it again: ")? == password {
+            return Ok(Some(password));
+        }
+        println!("the two did not match; try again");
+    }
+}
+
 /// Prints a wallet's recovery phrase, numbered, with what it means.
 fn show_phrase(wallet: &Wallet) {
     let Some(words) = wallet.phrase() else {
@@ -1397,9 +1472,9 @@ fn interrupt(dir: &Path, wallet_name: &str, to_name: &str, amount: u64) -> Resul
     let (genesis, client) = connect(&dir.join("genesis.json"))?;
     let wallets = dir.join("wallets");
     let wallet_file = wallets.join(format!("{wallet_name}.wallet"));
-    let mut wallet = Wallet::load(&wallet_file)?;
+    let mut wallet = open_wallet(&wallet_file)?;
     wallet.accept_fee(genesis.fee);
-    let to = Wallet::load(&wallets.join(format!("{to_name}.wallet")))?.address();
+    let to = Wallet::peek(&wallets.join(format!("{to_name}.wallet")))?.0;
 
     let status = read_account(&client, &wallet)?;
     if !status.locks.is_empty() || wallet.pending().is_some() {
@@ -1438,11 +1513,11 @@ fn interrupt(dir: &Path, wallet_name: &str, to_name: &str, amount: u64) -> Resul
 fn double_spend(dir: &Path, wallet_name: &str, split: bool) -> Result<()> {
     let (genesis, client) = connect(&dir.join("genesis.json"))?;
     let wallets = dir.join("wallets");
-    let mut wallet = Wallet::load(&wallets.join(format!("{wallet_name}.wallet")))?;
+    let mut wallet = open_wallet(&wallets.join(format!("{wallet_name}.wallet")))?;
     wallet.accept_fee(genesis.fee);
     let others: Vec<&str> = ["alice", "bob", "carol"].into_iter().filter(|n| *n != wallet_name).collect();
-    let first_payee = Wallet::load(&wallets.join(format!("{}.wallet", others[0])))?.address();
-    let second_payee = Wallet::load(&wallets.join(format!("{}.wallet", others[1])))?.address();
+    let first_payee = Wallet::peek(&wallets.join(format!("{}.wallet", others[0])))?.0;
+    let second_payee = Wallet::peek(&wallets.join(format!("{}.wallet", others[1])))?.0;
 
     let status = client.account(&wallet.address(), wallet.next_seq());
     let balance = status.spendable.ok_or_else(|| anyhow!("validators are not caught up"))?;

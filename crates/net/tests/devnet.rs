@@ -1872,3 +1872,54 @@ fn a_wallet_restored_from_its_phrase_carries_on_where_the_first_left_off() {
     let other = Wallet::from_master(&net.dir.join("alice-desktop.wallet"), master, 2).unwrap();
     assert_ne!(other.address(), net.address("alice"));
 }
+
+#[test]
+fn a_wallet_with_a_password_signs_only_with_it() {
+    let net = TestNet::start("password");
+    let path = net.dir.join("alice.wallet");
+    let before = fs::read_to_string(&path).unwrap();
+    let mut wallet = net.wallet("alice");
+    let (address, phrase) = (wallet.address(), wallet.phrase().unwrap().join(" "));
+    wallet.set_password(Some("correct horse battery")).unwrap();
+
+    // On disk the secret is sealed: neither the seed nor the phrase's
+    // secret is there to read.
+    let after = fs::read_to_string(&path).unwrap();
+    let secret = |text: &str| serde_json_seed(text);
+    assert!(secret(&before).is_some() && secret(&after).is_none(), "{after}");
+    assert!(!after.contains(&hex_of(&orien_net::phrase::from_words(&phrase).unwrap())));
+
+    // Its address and balance need no password.
+    assert_eq!(Wallet::peek(&path).unwrap().0, address);
+    // Signing does: no password, or the wrong one, opens nothing.
+    assert!(Wallet::load(&path).err().unwrap().to_string().contains("has a password"));
+    assert!(Wallet::open(&path, Some("wrong")).err().unwrap().to_string().contains("not this wallet's password"));
+    let mut opened = Wallet::open(&path, Some("correct horse battery")).unwrap();
+    assert_eq!(opened.phrase().unwrap().join(" "), phrase);
+
+    // It pays, and stays sealed after recording the payment.
+    opened.accept_fee(net.genesis.fee);
+    let client = net.client();
+    let status = client.account(&address, opened.next_seq());
+    let bob = net.address("bob");
+    let signed = opened.sign_order(status.seq, bob, 3, status.signer.as_ref(), &net.network).unwrap();
+    client.transfer(&signed).unwrap();
+    opened.confirm(status.seq).unwrap();
+    assert!(secret(&fs::read_to_string(&path).unwrap()).is_none());
+    assert_eq!(net.view(0, &bob).balance, START as i128 + 3);
+
+    // Removing the password brings the plain file back.
+    let mut opened = Wallet::open(&path, Some("correct horse battery")).unwrap();
+    opened.set_password(None).unwrap();
+    assert_eq!(Wallet::load(&path).unwrap().address(), address);
+}
+
+/// The plain seed a wallet file holds, if it holds one.
+fn serde_json_seed(text: &str) -> Option<String> {
+    let value: serde_json::Value = serde_json::from_str(text).unwrap();
+    value.get("seed").and_then(|seed| seed.as_str()).filter(|seed| !seed.is_empty()).map(str::to_string)
+}
+
+fn hex_of(bytes: &[u8]) -> String {
+    bytes.iter().map(|b| format!("{b:02x}")).collect()
+}

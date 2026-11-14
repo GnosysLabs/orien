@@ -89,6 +89,9 @@ pub struct Wallet {
     /// wallet is. Wallets made before recovery phrases have neither.
     master: Option<[u8; 32]>,
     account: u32,
+    /// The secret, sealed with the owner's password, when the wallet has
+    /// one. Kept so that saving rewrites the same sealed secret.
+    sealed: Option<Sealed>,
     /// The spare keys. Used only after a checkpoint cancels what a key that
     /// signed twice had signed.
     spares: KeyTree,
@@ -108,7 +111,16 @@ struct WalletFile {
     master: Option<String>,
     #[serde(default, skip_serializing_if = "is_zero")]
     account: u32,
+    /// The account's own secret, as hex. Empty when the wallet has a
+    /// password: `sealed` holds it then.
+    #[serde(default, skip_serializing_if = "String::is_empty")]
     seed: String,
+    /// The address, in the clear when the secret is sealed, so that a
+    /// balance can be read without the password.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    address: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    sealed: Option<Sealed>,
     /// Payments known to be final. The next payment carries this number.
     next_seq: u64,
     /// A signed order not yet known to be final, as hex.
@@ -118,6 +130,100 @@ struct WalletFile {
 
 fn is_zero(n: &u32) -> bool {
     *n == 0
+}
+
+/// A wallet's secret sealed with a password: the password is stretched
+/// with Argon2id, slow and memory-hungry on purpose so that guessing is
+/// impractical, and the secret encrypted with XChaCha20-Poly1305, which also
+/// detects any change to it. Both are well-reviewed, widely used designs.
+/// This protects the file on the owner's computer only; nothing on the
+/// network depends on it.
+#[derive(Clone, Serialize, Deserialize)]
+struct Sealed {
+    /// Argon2id's memory, in KiB, and passes.
+    memory: u32,
+    passes: u32,
+    salt: String,
+    nonce: String,
+    secret: String,
+}
+
+/// What a sealed wallet keeps secret.
+#[derive(Serialize, Deserialize)]
+struct Secret {
+    seed: String,
+    #[serde(default)]
+    master: Option<String>,
+}
+
+/// Why a wallet would not open.
+#[derive(Debug)]
+pub enum OpenError {
+    /// It has a password, and none was given.
+    NeedsPassword,
+    /// The password given is not this wallet's.
+    WrongPassword,
+}
+
+impl std::fmt::Display for OpenError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            OpenError::NeedsPassword => f.write_str("this wallet has a password"),
+            OpenError::WrongPassword => f.write_str("that is not this wallet's password"),
+        }
+    }
+}
+
+impl std::error::Error for OpenError {}
+
+const ARGON_MEMORY: u32 = 64 * 1024;
+const ARGON_PASSES: u32 = 3;
+
+fn stretch(password: &str, salt: &[u8], memory: u32, passes: u32) -> Result<[u8; 32]> {
+    use argon2::{Algorithm, Argon2, Params, Version};
+    let params = Params::new(memory, passes, 1, Some(32)).map_err(|e| anyhow!("{e}"))?;
+    let mut key = [0u8; 32];
+    Argon2::new(Algorithm::Argon2id, Version::V0x13, params)
+        .hash_password_into(password.as_bytes(), salt, &mut key)
+        .map_err(|e| anyhow!("{e}"))?;
+    Ok(key)
+}
+
+fn seal(secret: &Secret, password: &str, address: &AccountId) -> Result<Sealed> {
+    use chacha20poly1305::aead::{Aead, KeyInit, Payload};
+    use chacha20poly1305::{XChaCha20Poly1305, XNonce};
+    let salt = random_seed();
+    let nonce: [u8; 24] = random_seed()[..24].try_into().expect("24 of 32 bytes");
+    let key = stretch(password, &salt, ARGON_MEMORY, ARGON_PASSES)?;
+    let plain = serde_json::to_vec(secret)?;
+    // The address is bound in, so a sealed secret cannot be moved to
+    // another wallet file unnoticed.
+    let sealed = XChaCha20Poly1305::new(&key.into())
+        .encrypt(XNonce::from_slice(&nonce), Payload { msg: &plain, aad: address.as_bytes() })
+        .map_err(|_| anyhow!("could not seal the wallet"))?;
+    Ok(Sealed {
+        memory: ARGON_MEMORY,
+        passes: ARGON_PASSES,
+        salt: hex::encode(salt),
+        nonce: hex::encode(nonce),
+        secret: hex::encode(sealed),
+    })
+}
+
+fn unseal(sealed: &Sealed, password: &str, address: &AccountId) -> Result<Secret> {
+    use chacha20poly1305::aead::{Aead, KeyInit, Payload};
+    use chacha20poly1305::{XChaCha20Poly1305, XNonce};
+    let salt = hex::decode(&sealed.salt).context("damaged wallet")?;
+    let nonce = hex::decode(&sealed.nonce).context("damaged wallet")?;
+    let secret = hex::decode(&sealed.secret).context("damaged wallet")?;
+    if nonce.len() != 24 {
+        bail!("damaged wallet");
+    }
+    let key = stretch(password, &salt, sealed.memory, sealed.passes)?;
+    let plain = XChaCha20Poly1305::new(&key.into())
+        .decrypt(XNonce::from_slice(&nonce), Payload { msg: &secret, aad: address.as_bytes() })
+        .map_err(|_| OpenError::WrongPassword)?;
+    Ok(serde_json::from_slice(&plain)?)
 }
 
 fn wallet_key(seed: &[u8; 32], index: u64) -> ots::SecretKey {
@@ -152,6 +258,7 @@ impl Wallet {
             seed,
             master: Some(master),
             account,
+            sealed: None,
             address: address(&wallet_key(&seed, 0).commitment(), &spares.root()),
             spares,
             next_seq: 0,
@@ -162,11 +269,26 @@ impl Wallet {
         Ok(wallet)
     }
 
+    /// Opens a wallet without a password. A wallet that has one is refused
+    /// with `OpenError::NeedsPassword`; use `open`.
     pub fn load(path: &Path) -> Result<Wallet> {
+        Wallet::open(path, None)
+    }
+
+    /// Opens a wallet, with its password if it has one.
+    pub fn open(path: &Path, password: Option<&str>) -> Result<Wallet> {
         let text = fs::read_to_string(path)
             .with_context(|| format!("cannot read wallet {}", path.display()))?;
-        let file: WalletFile = serde_json::from_str(&text)
+        let mut file: WalletFile = serde_json::from_str(&text)
             .with_context(|| format!("{} is not a wallet file", path.display()))?;
+        if let Some(sealed) = &file.sealed {
+            let Some(password) = password else { return Err(OpenError::NeedsPassword.into()) };
+            let address: AccountId =
+                file.address.as_deref().unwrap_or_default().parse().map_err(|_| anyhow!("damaged wallet"))?;
+            let secret = unseal(sealed, password, &address)?;
+            file.seed = secret.seed;
+            file.master = secret.master;
+        }
         let seed = parse_seed(&file.seed)?;
         let master = file.master.as_deref().map(parse_seed).transpose()?;
         if let Some(master) = &master
@@ -187,6 +309,7 @@ impl Wallet {
             seed,
             master,
             account: file.account,
+            sealed: file.sealed,
             address: address(&wallet_key(&seed, 0).commitment(), &spares.root()),
             spares,
             next_seq: file.next_seq,
@@ -200,12 +323,27 @@ impl Wallet {
             Some(order) => Some(hex::encode(borsh::to_vec(order)?)),
             None => None,
         };
-        let file = WalletFile {
-            master: self.master.map(hex::encode),
-            account: self.account,
-            seed: hex::encode(self.seed),
-            next_seq: self.next_seq,
-            pending,
+        // With a password only the sealed secret is written, and the
+        // address beside it in the clear.
+        let file = match &self.sealed {
+            Some(sealed) => WalletFile {
+                master: None,
+                account: self.account,
+                seed: String::new(),
+                address: Some(self.address.to_string()),
+                sealed: Some(sealed.clone()),
+                next_seq: self.next_seq,
+                pending,
+            },
+            None => WalletFile {
+                master: self.master.map(hex::encode),
+                account: self.account,
+                seed: hex::encode(self.seed),
+                address: None,
+                sealed: None,
+                next_seq: self.next_seq,
+                pending,
+            },
         };
         write_replacing(&self.path, (serde_json::to_string_pretty(&file)? + "\n").as_bytes(), true)
             .with_context(|| format!("cannot write wallet {}", self.path.display()))
@@ -214,6 +352,38 @@ impl Wallet {
     /// One-time key number `index`. Key `n` signs payment `n` and nothing else.
     pub fn key(&self, index: u64) -> ots::SecretKey {
         wallet_key(&self.seed, index)
+    }
+
+    /// Puts a password on the wallet, replaces it, or with `None` removes
+    /// it, and saves the wallet.
+    pub fn set_password(&mut self, password: Option<&str>) -> Result<()> {
+        self.sealed = match password {
+            Some(password) => {
+                let secret = Secret { seed: hex::encode(self.seed), master: self.master.map(hex::encode) };
+                Some(seal(&secret, password, &self.address)?)
+            }
+            None => None,
+        };
+        self.save()
+    }
+
+    pub fn has_password(&self) -> bool {
+        self.sealed.is_some()
+    }
+
+    /// A wallet's address and how many of its payments it knows are final,
+    /// read without its password.
+    pub fn peek(path: &Path) -> Result<(AccountId, u64)> {
+        let text = fs::read_to_string(path)
+            .with_context(|| format!("cannot read wallet {}", path.display()))?;
+        let file: WalletFile = serde_json::from_str(&text)
+            .with_context(|| format!("{} is not a wallet file", path.display()))?;
+        if let Some(address) = &file.address {
+            let address = address.parse().map_err(|_| anyhow!("damaged wallet"))?;
+            return Ok((address, file.next_seq));
+        }
+        let wallet = Wallet::load(path)?;
+        Ok((wallet.address(), wallet.next_seq()))
     }
 
     /// The recovery phrase, for a wallet made with one. Whoever reads it
