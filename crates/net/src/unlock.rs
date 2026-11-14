@@ -153,14 +153,15 @@ pub fn serve(mut wallet: Wallet, limits: Limits, ready: impl FnOnce()) -> Result
     write_replacing(&file, serde_json::to_string(&description)?.as_bytes(), true)
         .with_context(|| format!("cannot write {}", file.display()))?;
 
-    // The session ends on time even if nothing asks anything.
-    let ending = file.clone();
+    // The session ends on time even if nothing asks anything: when the time
+    // is up, a knock on its own door wakes it to notice.
+    let port = description.port;
     std::thread::spawn(move || {
         loop {
             let left = limits.until.saturating_sub(now());
             if left == 0 {
-                let _ = fs::remove_file(&ending);
-                std::process::exit(0);
+                let _ = TcpStream::connect((Ipv4Addr::LOCALHOST, port));
+                return;
             }
             std::thread::sleep(Duration::from_secs(left.min(30)));
         }
@@ -169,6 +170,9 @@ pub fn serve(mut wallet: Wallet, limits: Limits, ready: impl FnOnce()) -> Result
 
     let mut spent = 0u64;
     for stream in listener.incoming() {
+        if now() >= limits.until {
+            break;
+        }
         let Ok(mut stream) = stream else { continue };
         let _ = stream.set_read_timeout(Some(Duration::from_secs(5)));
         let mut presented = [0u8; 32];
@@ -176,9 +180,6 @@ pub fn serve(mut wallet: Wallet, limits: Limits, ready: impl FnOnce()) -> Result
             continue;
         }
         let Ok(request) = read_message::<Request>(&mut stream) else { continue };
-        if now() >= limits.until {
-            break;
-        }
         let lock = matches!(request, Request::Lock);
         let response = answer(&mut wallet, limits, &mut spent, request);
         let _ = write_message(&mut stream, &response);

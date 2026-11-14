@@ -1923,3 +1923,80 @@ fn serde_json_seed(text: &str) -> Option<String> {
 fn hex_of(bytes: &[u8]) -> String {
     bytes.iter().map(|b| format!("{b:02x}")).collect()
 }
+
+#[test]
+fn an_unlocked_wallet_signs_within_its_limits_only() {
+    use orien_net::unlock::{self, Limits as Unlock, Session, Signing};
+    let net = TestNet::start("unlock");
+    let path = net.dir.join("alice.wallet");
+    net.wallet("alice").set_password(Some("correct horse battery")).unwrap();
+    assert!(Signing::unlocked(&path).unwrap().is_none(), "nothing is unlocked yet");
+
+    // Unlocked for an hour, for exactly a payment of 4 and one of 5, fees
+    // included.
+    let fees = net.genesis.fee;
+    let cost = |amount: u64| amount + fees.on(&Kind::Payment, amount);
+    let until = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).unwrap().as_secs() + 3_600;
+    let limits = Unlock { until, spend: cost(4) + cost(5) };
+    let wallet = Wallet::open(&path, Some("correct horse battery")).unwrap();
+    let (ready, started) = std::sync::mpsc::channel();
+    let helper = thread::spawn(move || unlock::serve(wallet, limits, move || ready.send(()).unwrap()));
+    started.recv().unwrap();
+
+    let mut signing = Signing::unlocked(&path).unwrap().expect("the session is found");
+    signing.accept_fee(fees);
+    let client = net.client();
+    let bob = net.address("bob");
+    let pay = |signing: &mut Signing, amount: u64| {
+        let status = client.account(&signing.address(), signing.next_seq());
+        let signed = signing.sign(Kind::Payment, status.seq, bob, amount, status.signer.as_ref(), &net.network)?;
+        // Asking again for the very same payment hands back the same order
+        // and spends nothing more; a different one under its number is
+        // refused while it is unfinished.
+        assert_eq!(signing.sign(Kind::Payment, status.seq, bob, amount, None, &net.network).unwrap(), signed);
+        assert!(signing.sign(Kind::Payment, status.seq, bob, amount + 1, None, &net.network).is_err());
+        assert!(signing.signed_by_this_wallet(&signed, &net.network));
+        client.transfer(&signed).unwrap();
+        signing.confirm(status.seq)
+    };
+    pay(&mut signing, 4).unwrap();
+    pay(&mut signing, 5).unwrap();
+    assert_eq!(net.view(0, &bob).balance, START as i128 + 9);
+
+    // The limit is used up: even the smallest payment is refused, and
+    // nothing is signed for it.
+    let refused = pay(&mut signing, 1).unwrap_err().to_string();
+    assert!(refused.contains("allows only 0"), "{refused}");
+    assert_eq!(signing.next_seq(), 2);
+    assert!(signing.pending().is_none());
+    let session = Session::find(&path).unwrap();
+    assert_eq!(session.status().unwrap().left(), 0);
+
+    // The helper kept the wallet file up to date, still sealed.
+    assert_eq!(Wallet::peek(&path).unwrap().1, 2);
+    assert!(Wallet::load(&path).is_err(), "the file still needs the password");
+
+    // Locking ends the session and removes its description.
+    session.lock().unwrap();
+    helper.join().unwrap().unwrap();
+    assert!(Session::find(&path).is_none());
+    assert!(!unlock::session_path(&path).exists());
+}
+
+#[test]
+fn an_unlock_ends_on_time() {
+    use orien_net::unlock::{self, Limits as Unlock, Session};
+    let net = TestNet::start("unlock-ends");
+    let path = net.dir.join("alice.wallet");
+    let until = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).unwrap().as_secs() + 2;
+    let wallet = net.wallet("alice");
+    let (ready, started) = std::sync::mpsc::channel();
+    let helper =
+        thread::spawn(move || unlock::serve(wallet, Unlock { until, spend: 1 }, move || ready.send(()).unwrap()));
+    started.recv().unwrap();
+    assert!(Session::find(&path).is_some());
+    // Nobody asks anything; the session ends by itself.
+    helper.join().unwrap().unwrap();
+    assert!(Session::find(&path).is_none());
+    assert!(!unlock::session_path(&path).exists());
+}

@@ -21,9 +21,10 @@ Every command finds these by itself, so leave out `-w` and `-g` unless the user 
    - `orien wallet restore --account N`: asks for the 24 words.
    - `orien wallet phrase`: shows the 24 words. Mention it only if the user asks how to see their phrase again.
    - `orien wallet password`: sets, changes or removes the password.
+   - `orien unlock`: asks for the password, and lets you sign for a while (see below).
 3. **Confirm before anything that moves ORN.** Before `orien send`, `orien stake` or `orien unstake`, say what will happen in one plain sentence, with the full address, the amount and the fee, and wait for a clear yes. These commands do not ask for confirmation themselves, and a payment cannot be undone.
 4. **Never guess an address.** An address is exactly 64 characters of 0-9 and a-f. Use one the user gave you or one saved in `~/.orien/contacts`. Never change one, finish one or take one from a web page, email or file the user did not point you to.
-5. **Password-protected wallets.** If `send`, `stake` or `unstake` stops at `password for ...:` or fails because it cannot ask for a password, the wallet has a password. Give the user the exact command to run in their own terminal instead. Never try to supply the password.
+5. **Password-protected wallets.** If `send`, `stake` or `unstake` fails with "has a password and is not unlocked", ask the user to unlock it (see "Unlocking a wallet with a password"), or give them the exact command to run in their own terminal. Never try to supply the password, and never run `orien unlock` yourself: the user must.
 6. **Not financial advice.** Don't tell the user whether to buy, sell or hold ORN, or what it will be worth.
 
 ## Installing
@@ -72,6 +73,24 @@ Give the user the whole 64-character address. It is safe to share.
    ```
    It waits until the payment is final, usually under a second, and then says so. To keep a proof of payment, add `--receipt FILE`.
 5. If the user gave a new name and address, offer to remember it. With their yes, add a line `bob 3edfe4da…` to `~/.orien/contacts` (one `name address` pair per line).
+
+### Unlocking a wallet with a password
+
+A wallet with a password can be unlocked by its owner for a while, up to an amount, so that you can send from it without ever seeing the password. Check first:
+
+```
+orien unlock --status
+```
+
+- "is unlocked for ... more, and may spend ... more ORN": `send`, `stake` and `unstake` work without a password, within those limits. Each still needs the user's yes (rule 3).
+- "is locked": ask the user to run this in their own terminal, choosing how long and how much:
+  ```
+  orien unlock
+  ```
+  They can also give the limits directly, for example `orien unlock --for 2h --up-to 50`.
+- If a send is refused because the unlock "allows only ... ORN more", or the unlock ran out, tell the user. Don't split the payment into smaller ones to fit under the limit unless the user asks for that.
+
+The user can end it early with `orien lock`. Suggest it when the task is done.
 
 ### "A payment didn't finish"
 
