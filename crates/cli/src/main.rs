@@ -107,6 +107,17 @@ enum Command {
         #[command(flatten)]
         network: Network,
     },
+    /// Do proof-of-work for an account, which earns it a share of the coins
+    /// each checkpoint releases. Runs until stopped with Ctrl-C.
+    Mine {
+        /// The account to be paid: a wallet file or an address
+        account: String,
+        /// How many processor cores to use (default: all of them)
+        #[arg(long)]
+        threads: Option<usize>,
+        #[command(flatten)]
+        network: Network,
+    },
     /// Show every validator's state
     Status {
         #[command(flatten)]
@@ -273,6 +284,7 @@ fn run(cli: Cli) -> Result<()> {
         }
         Command::Verify { receipt, network } => verify(&receipt, &network.genesis),
         Command::Status { network } => status(&network.genesis),
+        Command::Mine { account, threads, network } => mine(&account, threads, &network.genesis),
         Command::Node { key, data, listen, network } => node(&key, data, listen, &network.genesis),
         Command::Keygen { out, height } => keygen(&out, height),
         Command::Devnet(DevnetCommand::Init {
@@ -932,6 +944,87 @@ fn status(genesis: &Path) -> Result<()> {
         _ => println!("validators differ: a payment may still be spreading. Check again in a moment."),
     }
     Ok(())
+}
+
+/// Mines for `account` until stopped. Each round asks the validators for
+/// the epoch's seed and target, searches with every thread for a few
+/// seconds, and hands every share found to all the validators.
+fn mine(account: &str, threads: Option<usize>, genesis_file: &Path) -> Result<()> {
+    use orien_ledger::close::Share;
+    use std::sync::Arc;
+    use std::sync::atomic::{AtomicBool, AtomicU64, Ordering};
+
+    let (_, client) = connect(genesis_file)?;
+    let account = resolve_account(account)?;
+    let threads = threads.unwrap_or_else(|| thread::available_parallelism().map_or(1, |n| n.get())).max(1);
+    // Two machines mining for one account must not find the same shares.
+    let mut next = u64::from_le_bytes(orien_net::keys::random_seed()[..8].try_into().expect("8 bytes"));
+    println!("mining for {} with {threads} thread(s); stop with Ctrl-C", account.short());
+    let mut shown_epoch = None;
+    loop {
+        client.follow();
+        let Some((epoch, seed, target)) = client.work() else {
+            println!("no validator answered; trying again");
+            thread::sleep(Duration::from_secs(2));
+            continue;
+        };
+        if shown_epoch != Some(epoch) {
+            let balance = client.proven(&account).map_or(0, |a| a.balance);
+            println!(
+                "epoch {epoch}: about one try in {} makes a share; the account holds {}",
+                u64::MAX / target.max(1),
+                coins(balance)
+            );
+            shown_epoch = Some(epoch);
+        }
+        // Search for a few seconds, then check the epoch again.
+        let stop = Arc::new(AtomicBool::new(false));
+        let tries = Arc::new(AtomicU64::new(0));
+        let (found, shares) = std::sync::mpsc::channel();
+        let workers: Vec<_> = (0..threads as u64)
+            .map(|offset| {
+                let (stop, tries, found) = (stop.clone(), tries.clone(), found.clone());
+                let start = next.wrapping_add(offset);
+                thread::spawn(move || {
+                    let mut nonce = start;
+                    while !stop.load(Ordering::Relaxed) {
+                        for _ in 0..4096 {
+                            let share = Share { account, nonce };
+                            if share.counts(&seed, target) && found.send(share).is_err() {
+                                return;
+                            }
+                            nonce = nonce.wrapping_add(threads as u64);
+                        }
+                        tries.fetch_add(4096, Ordering::Relaxed);
+                    }
+                })
+            })
+            .collect();
+        drop(found);
+        let started = Instant::now();
+        let (mut sent, mut taken) = (0u64, 0u64);
+        while started.elapsed() < Duration::from_secs(5) {
+            if let Ok(share) = shares.recv_timeout(Duration::from_millis(200)) {
+                sent += 1;
+                if client.submit_share(share) > 0 {
+                    taken += 1;
+                }
+            }
+        }
+        stop.store(true, Ordering::Relaxed);
+        for worker in workers {
+            let _ = worker.join();
+        }
+        while let Ok(share) = shares.try_recv() {
+            sent += 1;
+            if client.submit_share(share) > 0 {
+                taken += 1;
+            }
+        }
+        next = next.wrapping_add(tries.load(Ordering::Relaxed) + threads as u64 * 4096);
+        let rate = tries.load(Ordering::Relaxed) as f64 / started.elapsed().as_secs_f64() / 1e6;
+        println!("  {rate:.1} million tries a second; {sent} share(s) found, {taken} taken by validators");
+    }
 }
 
 fn keygen(out: &Path, height: u8) -> Result<()> {
