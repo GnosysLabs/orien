@@ -9,7 +9,7 @@
 #
 # What it does:
 #   1. Sets the version in tauri.conf.json and Cargo.toml.
-#   2. Builds Orien.app and Orien.dmg for Macs with Apple chips, for the
+#   2. Builds Orien Wallet.app and its .dmg for Macs with Apple chips, for the
 #      live network. Intel Macs are not supported.
 #   3. Signs the update with the Orien update key, which never leaves this
 #      Mac: ~/.orien-release/wallet-update.key, or $ORIEN_UPDATE_KEY. It asks
@@ -89,15 +89,15 @@ env -u ORIEN_GENESIS cargo tauri build --target $TARGET
 BUNDLE=$APP/target/$TARGET/release/bundle
 OUT=$APP/target/release-$VERSION
 rm -rf "$OUT" && mkdir -p "$OUT"
-cp "$BUNDLE/macos/Orien.app.tar.gz" "$OUT/Orien.app.tar.gz"
-cp "$BUNDLE"/dmg/Orien_"$VERSION"_*.dmg "$OUT/Orien.dmg"
-SIGNATURE=$(cat "$BUNDLE/macos/Orien.app.tar.gz.sig")
-(cd "$OUT" && shasum -a 256 Orien.dmg Orien.app.tar.gz > SHA256SUMS)
+cp "$BUNDLE/macos/Orien Wallet.app.tar.gz" "$OUT/Orien-Wallet.app.tar.gz"
+cp "$BUNDLE"/dmg/"Orien Wallet_$VERSION"_*.dmg "$OUT/Orien-Wallet.dmg"
+SIGNATURE=$(cat "$BUNDLE/macos/Orien Wallet.app.tar.gz.sig")
+(cd "$OUT" && shasum -a 256 Orien-Wallet.dmg Orien-Wallet.app.tar.gz > SHA256SUMS)
 
 python3 - "$VERSION" "$MINIMUM" "$SIGNATURE" "$BASE_URL" "$OUT/latest.json" <<'PY'
 import json, sys, datetime
 version, minimum, signature, base, out = sys.argv[1:]
-url = f"{base}/{version}/Orien.app.tar.gz"
+url = f"{base}/{version}/Orien-Wallet.app.tar.gz"
 platform = {"signature": signature, "url": url}
 latest = {
     "version": version,
@@ -120,7 +120,7 @@ fi
 
 echo "Uploading to $HOST:$WEB_ROOT/wallet/$VERSION"
 $SSH "$HOST" "mkdir -p '$WEB_ROOT/wallet/$VERSION'"
-rsync -az "$OUT/Orien.app.tar.gz" "$OUT/Orien.dmg" "$OUT/SHA256SUMS" "$HOST:$WEB_ROOT/wallet/$VERSION/"
+rsync -az "$OUT/Orien-Wallet.app.tar.gz" "$OUT/Orien-Wallet.dmg" "$OUT/SHA256SUMS" "$HOST:$WEB_ROOT/wallet/$VERSION/"
 rsync -az "$OUT/latest.json" "$HOST:$WEB_ROOT/wallet/latest.json.new"
 $SSH "$HOST" bash -s -- "$WEB_ROOT" "$VERSION" <<'REMOTE'
 set -euo pipefail
@@ -128,7 +128,7 @@ WEB_ROOT=$1
 VERSION=$2
 chmod -R a+rX "$WEB_ROOT/wallet"
 # The download link on the website always points at the newest.
-ln -sfn "$VERSION/Orien.dmg" "$WEB_ROOT/wallet/Orien.dmg"
+ln -sfn "$VERSION/Orien-Wallet.dmg" "$WEB_ROOT/wallet/Orien-Wallet.dmg"
 # The website is served from its newest release; link the wallet folder in.
 ln -sfn "$WEB_ROOT/wallet" "$WEB_ROOT/current/wallet"
 # Last, and in one step: copies of the app now see the new version.

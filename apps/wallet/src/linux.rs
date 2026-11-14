@@ -27,7 +27,7 @@ pub fn register_appimage() {
     let exec = appimage.to_string_lossy().replace('"', "\\\"");
     let entry = |hidden: bool| {
         format!(
-            "[Desktop Entry]\nType=Application\nName=Orien\nComment=The Orien wallet\nExec=\"{exec}\"\n\
+            "[Desktop Entry]\nType=Application\nName=Orien Wallet\nComment=Send and receive ORN\nExec=\"{exec}\"\n\
              Icon=orien-wallet\nStartupWMClass=orien-wallet\nCategories=Office;Finance;\nTerminal=false\n{}",
             if hidden { "NoDisplay=true\n" } else { "" }
         )

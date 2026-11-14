@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<title>Orien</title>
+<title>Orien Wallet</title>
 <style>
   /* The wordmark's typeface, bundled so the app never fetches fonts. */
   @font-face {
@@ -322,7 +322,7 @@
     <!-- First run -->
     <section class="screen welcome" id="welcome" hidden>
       <div class="mark brand"></div>
-      <h2>Welcome to Orien</h2>
+      <h2>Welcome to Orien Wallet</h2>
       <p>Create a wallet to hold ORN, or restore the one you already have.</p>
       <button class="primary pearl" id="create">Create a wallet</button>
       <button class="secondary" id="go-restore">Restore with recovery phrase</button>
@@ -650,7 +650,7 @@
   for (const b of document.querySelectorAll("[data-back]")) b.onclick = home;
   $("go-send").onclick = () => {
     if (update && update.required) {
-      problem("home-problem", "This version of Orien no longer works with the network. Press Update at the top to keep sending.");
+      problem("home-problem", "This version of Orien Wallet no longer works with the network. Press Update at the top to keep sending.");
       return;
     }
     $("amount").value = ""; $("to").value = "";
