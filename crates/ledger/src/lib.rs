@@ -10,6 +10,7 @@
 pub mod agree;
 pub mod close;
 pub mod genesis;
+pub mod release;
 pub mod state;
 pub mod types;
 
