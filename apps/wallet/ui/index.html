@@ -307,6 +307,13 @@
   .agree { display: flex; align-items: center; gap: 9px; margin: 14px 4px 0; font-size: 13px; color: var(--dim); cursor: pointer; }
   .agree input { accent-color: #d8d3f4; width: 15px; height: 15px; }
   .field textarea.tall { height: 96px; font-size: 13px; }
+  /* Spacing above an element. Kept here, not in style="" attributes, which
+     the app's security rules block. */
+  [data-gap="sm"] { margin-top: 10px; }
+  [data-gap="lg"] { margin-top: 14px; }
+  [data-gap="xl"] { margin-top: 18px; }
+  /* Buttons stacked in a screen never touch. */
+  .screen > button + button { margin-top: 10px; }
   .welcome .link { align-self: center; margin: 24px 0 0; padding: 6px 12px; border-radius: 8px; line-height: 1.4; }
   .welcome .link:hover { background: #ffffff08; }
 </style>
@@ -337,7 +344,7 @@
       <ol class="words" id="words"></ol>
       <div class="push"></div>
       <label class="agree"><input type="checkbox" id="wrote"> I have written all 24 words down</label>
-      <button class="primary pearl" id="phrase-done" disabled style="margin-top:14px">Continue</button>
+      <button class="primary pearl" id="phrase-done" disabled data-gap="lg">Continue</button>
     </section>
 
     <!-- New or restored wallet: an optional password -->
@@ -356,8 +363,8 @@
       <p class="fineprint">If you forget it, your recovery phrase still restores the wallet.</p>
       <div class="push"></div>
       <div class="problem" id="password-problem" hidden></div>
-      <button class="primary pearl" id="pw-set" disabled style="margin-top:14px">Set password</button>
-      <button class="secondary" id="pw-skip" style="margin-top:10px">Not now</button>
+      <button class="primary pearl" id="pw-set" disabled data-gap="lg">Set password</button>
+      <button class="secondary" id="pw-skip" data-gap="sm">Not now</button>
     </section>
 
     <!-- Restore from the recovery phrase -->
@@ -373,7 +380,7 @@
       </div>
       <div class="push"></div>
       <div class="problem" id="restore-problem" hidden></div>
-      <button class="primary pearl" id="restore-go" disabled style="margin-top:14px">Restore wallet</button>
+      <button class="primary pearl" id="restore-go" disabled data-gap="lg">Restore wallet</button>
     </section>
 
     <!-- Home -->
@@ -444,8 +451,8 @@
       </div>
       <div class="push"></div>
       <div class="problem" id="contact-problem" hidden></div>
-      <button class="secondary" id="c-send" hidden style="margin-top:14px">Send to this contact</button>
-      <button class="primary pearl" id="c-save" style="margin-top:10px">Save</button>
+      <button class="secondary" id="c-send" hidden data-gap="lg">Send to this contact</button>
+      <button class="primary pearl" id="c-save" data-gap="sm">Save</button>
       <button class="danger" id="c-delete" hidden>Delete contact</button>
     </section>
 
@@ -474,7 +481,7 @@
 
       <div class="push"></div>
       <div class="problem" id="send-problem" hidden></div>
-      <button class="primary pearl" id="to-review" disabled style="margin-top:14px">Review</button>
+      <button class="primary pearl" id="to-review" disabled data-gap="lg">Review</button>
     </section>
 
     <!-- Send: review -->
@@ -491,14 +498,14 @@
         <div class="row"><span>Balance after</span><span id="r-after"></span></div>
       </div>
       <p class="fineprint">Payments are final within a second or two and cannot be reversed. Check the address.</p>
-      <div class="field" id="r-pw-field" hidden style="margin-top:18px">
+      <div class="field" id="r-pw-field" hidden data-gap="xl">
         <label for="r-pw">Wallet password</label>
         <div class="box plain"><input id="r-pw" type="password" autocomplete="current-password"></div>
       </div>
 
       <div class="push"></div>
       <div class="problem" id="review-problem" hidden></div>
-      <button class="primary pearl" id="confirm" style="margin-top:14px">Confirm and send</button>
+      <button class="primary pearl" id="confirm" data-gap="lg">Confirm and send</button>
     </section>
 
     <!-- Send: done -->
