@@ -1851,3 +1851,24 @@ fn a_flood_of_idle_and_junk_connections_does_not_stop_payments() {
     net.pay("bob", net.address("carol"), 1);
     net.wait_until_level();
 }
+
+#[test]
+fn a_wallet_restored_from_its_phrase_carries_on_where_the_first_left_off() {
+    let net = TestNet::start("restore");
+    let bob = net.address("bob");
+    net.pay("alice", bob, 7);
+    // On another computer, the same phrase and the same account: it learns
+    // from the network that payment #0 is done, and pays #1.
+    let words = net.wallet("alice").phrase().unwrap().join(" ");
+    let master = orien_net::phrase::from_words(&words).unwrap();
+    let copy = net.dir.join("alice-copy.wallet");
+    let restored = Wallet::from_master(&copy, master, 1).unwrap();
+    assert_eq!(restored.address(), net.address("alice"));
+    fs::copy(&copy, net.dir.join("alice2.wallet")).unwrap();
+    net.pay("alice2", bob, 5);
+    assert_eq!(net.view(0, &bob).balance, START as i128 + 12);
+    assert_eq!(net.view(0, &net.address("alice")).seq, 2);
+    // Account 2 of the same phrase is another account altogether.
+    let other = Wallet::from_master(&net.dir.join("alice-desktop.wallet"), master, 2).unwrap();
+    assert_ne!(other.address(), net.address("alice"));
+}

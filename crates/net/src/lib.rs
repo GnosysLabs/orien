@@ -5,5 +5,6 @@ pub mod client;
 pub mod closer;
 pub mod keys;
 pub mod node;
+pub mod phrase;
 pub mod store;
 pub mod wire;

@@ -163,8 +163,20 @@ enum Command {
 
 #[derive(Subcommand)]
 enum WalletCommand {
-    /// Create a new wallet file
+    /// Create a new wallet, with a 24-word recovery phrase to write down
     New { file: PathBuf },
+    /// Rebuild a wallet from its 24-word recovery phrase, typed in when asked.
+    /// Use a different account number on each computer.
+    Restore {
+        file: PathBuf,
+        /// Which account of the phrase: 1 on your first computer, 2 on the
+        /// next, and so on
+        #[arg(long, default_value_t = 1)]
+        account: u32,
+    },
+    /// Show a wallet's recovery phrase again. Anyone who sees it can spend
+    /// your coins.
+    Phrase { file: PathBuf },
     /// Show a wallet's account address
     Address { file: PathBuf },
 }
@@ -312,6 +324,25 @@ fn run(cli: Cli) -> Result<()> {
             let wallet = Wallet::create(&file)?;
             println!("created {}", file.display());
             println!("address  {}", wallet.address());
+            println!("account  1 of its recovery phrase");
+            println!();
+            show_phrase(&wallet);
+            Ok(())
+        }
+        Command::Wallet(WalletCommand::Restore { file, account }) => {
+            println!("Type your 24-word recovery phrase, separated by spaces, then press Enter:");
+            let mut line = String::new();
+            std::io::stdin().read_line(&mut line)?;
+            let master = orien_net::phrase::from_words(&line)?;
+            let wallet = Wallet::from_master(&file, master, account)?;
+            println!("restored {}", file.display());
+            println!("address  {}", wallet.address());
+            println!("account  {account} of the recovery phrase");
+            println!("its balance and payment number come from the network the next time you use it");
+            Ok(())
+        }
+        Command::Wallet(WalletCommand::Phrase { file }) => {
+            show_phrase(&Wallet::load(&file)?);
             Ok(())
         }
         Command::Wallet(WalletCommand::Address { file }) => {
@@ -1116,6 +1147,25 @@ fn mine(account: &str, threads: Option<usize>, genesis_file: &Path) -> Result<()
         let rate = tries.load(Ordering::Relaxed) as f64 / started.elapsed().as_secs_f64() / 1e6;
         println!("  {rate:.1} million tries a second; {sent} share(s) found, {taken} taken by validators");
     }
+}
+
+/// Prints a wallet's recovery phrase, numbered, with what it means.
+fn show_phrase(wallet: &Wallet) {
+    let Some(words) = wallet.phrase() else {
+        println!("this wallet was made before recovery phrases and has none; keep a copy of its file instead");
+        return;
+    };
+    println!("Your recovery phrase. Write these 24 words on paper, in order, and keep them safe:");
+    println!();
+    for (row, chunk) in words.chunks(4).enumerate() {
+        let cells: Vec<String> =
+            chunk.iter().enumerate().map(|(i, word)| format!("{:>2}. {word:<9}", row * 4 + i + 1)).collect();
+        println!("  {}", cells.join("  "));
+    }
+    println!();
+    println!("With these words, `orien wallet restore` rebuilds your wallet on any computer.");
+    println!("Anyone who sees them can take your coins. Never type them into a website or share them,");
+    println!("and never give them to anyone who asks, an AI assistant included.");
 }
 
 fn keygen(out: &Path, height: u8) -> Result<()> {

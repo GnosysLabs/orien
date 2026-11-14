@@ -1,5 +1,6 @@
 //! Files a person holds: the genesis file, validator keys and wallets.
 
+use crate::phrase;
 use crate::store::write_replacing;
 use anyhow::{Context, Result, anyhow, bail};
 use orien_crypto::keytree::KeyTree;
@@ -84,6 +85,10 @@ impl ValidatorKey {
 pub struct Wallet {
     path: PathBuf,
     seed: [u8; 32],
+    /// The secret the recovery phrase holds, and which of its accounts this
+    /// wallet is. Wallets made before recovery phrases have neither.
+    master: Option<[u8; 32]>,
+    account: u32,
     /// The spare keys. Used only after a checkpoint cancels what a key that
     /// signed twice had signed.
     spares: KeyTree,
@@ -98,12 +103,21 @@ pub struct Wallet {
 
 #[derive(Serialize, Deserialize)]
 struct WalletFile {
+    /// The recovery phrase's secret, as hex, and the account number.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    master: Option<String>,
+    #[serde(default, skip_serializing_if = "is_zero")]
+    account: u32,
     seed: String,
     /// Payments known to be final. The next payment carries this number.
     next_seq: u64,
     /// A signed order not yet known to be final, as hex.
     #[serde(default)]
     pending: Option<String>,
+}
+
+fn is_zero(n: &u32) -> bool {
+    *n == 0
 }
 
 fn wallet_key(seed: &[u8; 32], index: u64) -> ots::SecretKey {
@@ -117,15 +131,27 @@ fn wallet_spares(seed: &[u8; 32]) -> KeyTree {
 }
 
 impl Wallet {
+    /// A new wallet: a fresh recovery phrase, and its account 1.
     pub fn create(path: &Path) -> Result<Wallet> {
+        Wallet::from_master(path, random_seed(), 1)
+    }
+
+    /// The wallet for account `account` of the recovery phrase holding
+    /// `master`. Each computer should use its own account.
+    pub fn from_master(path: &Path, master: [u8; 32], account: u32) -> Result<Wallet> {
         if path.exists() {
             bail!("{} already exists; refusing to overwrite a wallet", path.display());
         }
-        let seed = random_seed();
+        if account == 0 {
+            bail!("accounts are numbered from 1");
+        }
+        let seed = phrase::account_seed(&master, account);
         let spares = wallet_spares(&seed);
         let wallet = Wallet {
             path: path.to_owned(),
             seed,
+            master: Some(master),
+            account,
             address: address(&wallet_key(&seed, 0).commitment(), &spares.root()),
             spares,
             next_seq: 0,
@@ -142,6 +168,12 @@ impl Wallet {
         let file: WalletFile = serde_json::from_str(&text)
             .with_context(|| format!("{} is not a wallet file", path.display()))?;
         let seed = parse_seed(&file.seed)?;
+        let master = file.master.as_deref().map(parse_seed).transpose()?;
+        if let Some(master) = &master
+            && phrase::account_seed(master, file.account) != seed
+        {
+            bail!("{} is damaged: its account does not come from its recovery phrase", path.display());
+        }
         let pending = match file.pending {
             Some(text) => {
                 let bytes = hex::decode(text).context("wallet holds a corrupt pending payment")?;
@@ -153,6 +185,8 @@ impl Wallet {
         Ok(Wallet {
             path: path.to_owned(),
             seed,
+            master,
+            account: file.account,
             address: address(&wallet_key(&seed, 0).commitment(), &spares.root()),
             spares,
             next_seq: file.next_seq,
@@ -166,7 +200,13 @@ impl Wallet {
             Some(order) => Some(hex::encode(borsh::to_vec(order)?)),
             None => None,
         };
-        let file = WalletFile { seed: hex::encode(self.seed), next_seq: self.next_seq, pending };
+        let file = WalletFile {
+            master: self.master.map(hex::encode),
+            account: self.account,
+            seed: hex::encode(self.seed),
+            next_seq: self.next_seq,
+            pending,
+        };
         write_replacing(&self.path, (serde_json::to_string_pretty(&file)? + "\n").as_bytes(), true)
             .with_context(|| format!("cannot write wallet {}", self.path.display()))
     }
@@ -174,6 +214,17 @@ impl Wallet {
     /// One-time key number `index`. Key `n` signs payment `n` and nothing else.
     pub fn key(&self, index: u64) -> ots::SecretKey {
         wallet_key(&self.seed, index)
+    }
+
+    /// The recovery phrase, for a wallet made with one. Whoever reads it
+    /// can spend from every account it makes.
+    pub fn phrase(&self) -> Option<Vec<&'static str>> {
+        self.master.as_ref().map(phrase::to_words)
+    }
+
+    /// Which account of its recovery phrase this wallet is, if it has one.
+    pub fn account_number(&self) -> Option<u32> {
+        self.master.map(|_| self.account)
     }
 
     pub fn address(&self) -> AccountId {
