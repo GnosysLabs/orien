@@ -41,6 +41,9 @@ struct Options {
     min_stake: u64,
     /// Each launch seat's weight.
     seat: u64,
+    /// The most coins released for work: none unless a test asks.
+    cap: u64,
+    first_target: u64,
 }
 
 impl Default for Options {
@@ -58,6 +61,8 @@ impl Default for Options {
             key_reserve: 128,
             min_stake: 10_000,
             seat: 1,
+            cap: 0,
+            first_target: u64::MAX,
         }
     }
 }
@@ -119,9 +124,9 @@ impl TestNet {
             max_validators: 33,
             unstake_epochs: 168,
             fee: orien_ledger::Fees::NONE,
-            cap: 0,
+            cap: options.cap,
             shares_per_epoch: 1_000,
-            first_target: u64::MAX,
+            first_target: options.first_target,
         };
         let network = genesis.id();
         let mut net = TestNet { dir, genesis, network, keys, nodes: Vec::new(), options };
@@ -1664,4 +1669,42 @@ fn a_validator_that_signs_twice_with_one_key_loses_its_stake() {
     wait_until("alice's stake is burned", || staked(&client) == 0);
     assert_eq!(client.proven(&orien_ledger::FORFEITED).map(|account| account.balance), Some(100));
     assert_eq!(places()[..2], [None, Some(0)], "v1 is out; v2 is now the only validator");
+}
+
+#[test]
+fn work_earns_coins_at_the_next_checkpoint() {
+    // Two-second epochs release about a coin each, and one try in 64 makes
+    // a share.
+    let options = Options { epoch: 2, cap: orien_ledger::release::CAP, first_target: u64::MAX >> 6, ..Options::default() };
+    let net = TestNet::start_with("mining", options);
+    let carol = net.address("carol");
+    let client = net.client();
+    let earned = |client: &Client| {
+        client.follow();
+        client.proven(&carol).map_or(0, |account| account.balance)
+    };
+    assert_eq!(earned(&client), 0, "carol starts with nothing");
+
+    // Mine for carol: ask for the seed and target, find a few shares and
+    // hand them in, until a checkpoint has paid her.
+    let mut from = 0u64;
+    wait_until("carol is paid for her work", || {
+        client.follow();
+        let Some((_, seed, target)) = client.work() else { return false };
+        let shares: Vec<orien_ledger::close::Share> = (from..)
+            .map(|nonce| orien_ledger::close::Share { account: carol, nonce })
+            .filter(|share| share.counts(&seed, target))
+            .take(5)
+            .collect();
+        from = shares.last().map_or(from, |share| share.nonce + 1);
+        for share in shares {
+            assert!(client.submit_share(share) >= 3, "validators take the share");
+        }
+        thread::sleep(Duration::from_millis(500));
+        earned(&client) > 0
+    });
+    let paid = earned(&client);
+    println!("carol earned {} coins for her work", orien_ledger::coins(paid));
+    // Each validator agrees on what she holds.
+    net.wait_until_level();
 }

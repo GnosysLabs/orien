@@ -5,7 +5,7 @@ use crate::store::write_replacing;
 use crate::wire::{AccountView, NodeInfo, Request, Response, read_frame, write_frame};
 use borsh::{BorshDeserialize, BorshSerialize};
 use orien_crypto::Hash32;
-use orien_ledger::close::{self, Decided};
+use orien_ledger::close::{self, Decided, Share};
 use orien_ledger::{
     Account, AccountId, Certificate, Committee, Confirmation, Genesis, Member, Receipt, Reject,
     SignedOrder, Signer, State, Vote, account_root, authorized,
@@ -349,6 +349,37 @@ impl Client {
             }
             _ => None,
         })
+    }
+
+    /// The current epoch, its seed and its work target, as most of the
+    /// validators that answer give them. A miner works against these.
+    pub fn work(&self) -> Option<(u64, Hash32, u64)> {
+        let mut answers: Vec<(u64, Hash32, u64)> = self
+            .ask_all(&Request::Work)
+            .into_iter()
+            .filter_map(|answer| match answer {
+                Ok(Response::Work { epoch, seed, target }) => Some((epoch, seed, target)),
+                _ => None,
+            })
+            .collect();
+        answers.sort();
+        // The answer given most often; validators in the same epoch agree.
+        let mut best: Option<((u64, Hash32, u64), usize)> = None;
+        for answer in &answers {
+            let count = answers.iter().filter(|other| *other == answer).count();
+            if best.is_none_or(|(_, most)| count > most) {
+                best = Some((*answer, count));
+            }
+        }
+        best.map(|(answer, _)| answer)
+    }
+
+    /// Hands a work share to every validator. Returns how many took it.
+    pub fn submit_share(&self, share: Share) -> usize {
+        self.ask_all(&Request::SubmitShare(share))
+            .into_iter()
+            .filter(|answer| matches!(answer, Ok(Response::Share { .. })))
+            .count()
     }
 
     pub fn validators(&self) -> usize {

@@ -24,12 +24,12 @@ use crate::wire::{AccountView, NodeInfo, Request, Response, read_frame, write_fr
 use anyhow::{Context, Result, anyhow, bail};
 use orien_crypto::keytree::{self, KeyTree, TreeSignature};
 use orien_crypto::{Hash32, merkle};
-use orien_ledger::close::{self, Cheat, Decided, Message, NextKey, Pin, Statement};
+use orien_ledger::close::{self, Cheat, Decided, Message, NextKey, Pin, Share, Statement};
 use orien_ledger::{
     Accepted, AccountId, Applied, Certificate, Committee, Confirmation, Genesis, Order, Proofs, Reject,
     SignedBy, SignedOrder, State, Vote, confirmation_item,
 };
-use std::collections::HashMap;
+use std::collections::{BTreeSet, HashMap};
 use std::fs;
 use std::io::{self, BufReader};
 use std::net::{Shutdown, SocketAddr, TcpListener, TcpStream};
@@ -122,6 +122,7 @@ enum Command {
     /// Votes seen in a certificate someone handed over, whether or not it
     /// holds up, to look for validators that cheated.
     Seen { epoch: u64, order: Order, digest: Hash32, votes: Vec<Vote> },
+    Share { share: Share, reply: Sender<Response> },
     Stop,
 }
 
@@ -191,6 +192,9 @@ impl Shared {
                 self.ingest(certificate, false).unwrap_or_else(stopped)
             }
             Request::Confirm(certificate) => self.ingest(certificate, true).unwrap_or_else(stopped),
+            Request::SubmitShare(share) => {
+                self.ask(|reply| Command::Share { share, reply }).unwrap_or_else(stopped)
+            }
             Request::Close { epoch, message } => {
                 let committee = self.committee();
                 if epoch != committee.epoch() {
@@ -399,6 +403,8 @@ struct Core {
     /// Proof, checked, that validators of this epoch cheated, and who.
     cheats: Vec<Cheat>,
     caught: Vec<u16>,
+    /// Work shares taken this epoch.
+    shares: BTreeSet<Share>,
     commands: Sender<Command>,
     orders: OrderLog,
     /// The signed order behind each vote for a payment that is not final
@@ -520,6 +526,9 @@ impl Core {
                     self.next_key = Some((key, *tree));
                 }
                 Command::Seen { epoch, order, digest, votes } => self.on_seen(epoch, order, digest, votes),
+                Command::Share { share, reply } => {
+                    let _ = reply.send(self.on_share(share));
+                }
                 Command::Stop => break,
             }
         }
@@ -669,7 +678,7 @@ impl Core {
             evidence,
             next_key: self.next_key.as_ref().map(|(_, tree)| NextKey { root: tree.root(), height: tree.height() }),
             cheats: self.cheats.clone(),
-            shares: Vec::new(),
+            shares: self.shares.iter().copied().collect(),
         };
         let own_log = self.digests.clone();
         let said = self.close_step(|closer, env| closer.freeze(statement, own_log, env));
@@ -787,6 +796,8 @@ impl Core {
         self.key_uses.clear();
         self.cheats.clear();
         self.caught.clear();
+        // Shares are for the epoch whose seed they were found against.
+        self.shares.clear();
         self.root = None;
         self.checkpoint_saved = false;
 
@@ -1188,6 +1199,31 @@ impl Core {
         }
     }
 
+    /// Takes a work share for this epoch and passes it on to the other
+    /// validators, so that it is in every statement whoever it reached.
+    fn on_share(&mut self, share: Share) -> Response {
+        if self.closer.frozen() || self.closer.decided().is_some() {
+            return Response::Closing;
+        }
+        let work = self.committee.work();
+        if !share.counts(&self.previous, work.target) {
+            return Response::Invalid("not a work share for this epoch".into());
+        }
+        if self.shares.contains(&share) {
+            return Response::Share { fresh: false };
+        }
+        // The target keeps the number near the one wanted; this bounds a
+        // statement while it catches up.
+        if self.shares.len() as u64 >= work.shares_per_epoch.saturating_mul(4) {
+            return Response::Unavailable("this epoch has all the shares it takes".into());
+        }
+        self.shares.insert(share);
+        for peer in self.peers.values() {
+            let _ = peer.send(Request::SubmitShare(share));
+        }
+        Response::Share { fresh: true }
+    }
+
     fn caught_cheating(&mut self, cheat: Cheat) {
         let Some(cheater) = cheat.cheater(&self.committee) else { return };
         if self.caught.contains(&cheater) {
@@ -1285,6 +1321,11 @@ impl Core {
                 let until = self.committee.epoch().min(from.saturating_add(max.min(64) as u64));
                 Response::Checkpoints((from..until).map_while(|epoch| self.checkpoint(epoch)).collect())
             }
+            Request::Work => Response::Work {
+                epoch: self.committee.epoch(),
+                seed: self.previous,
+                target: self.committee.work().target,
+            },
             Request::Proof(id) => {
                 let proofs = self.proofs.get_or_insert_with(|| self.start.proofs());
                 let account = self.start.account(&id).cloned().zip(proofs.path(&id));
@@ -1298,6 +1339,7 @@ impl Core {
             Request::SubmitOrder(_)
             | Request::SubmitCertificate(_)
             | Request::Confirm(_)
+            | Request::SubmitShare(_)
             | Request::Close { .. } => Response::Invalid("not a query".into()),
         }
     }
@@ -1756,6 +1798,7 @@ impl Node {
             key_uses: HashMap::new(),
             cheats: Vec::new(),
             caught: Vec::new(),
+            shares: BTreeSet::new(),
             shared: shared.clone(),
             sync_interval: config.sync_interval,
             commands,
