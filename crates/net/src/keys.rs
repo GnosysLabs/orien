@@ -2,8 +2,11 @@
 
 use crate::store::write_replacing;
 use anyhow::{Context, Result, anyhow, bail};
+use orien_crypto::keytree::KeyTree;
 use orien_crypto::{Hash32, Kdf, ots, prf};
-use orien_ledger::{AccountId, Genesis, Order, SignedOrder};
+use orien_ledger::{
+    AccountId, Genesis, Kind, Order, SPARE_HEIGHT, Signature, SignedBy, SignedOrder, address,
+};
 use serde::{Deserialize, Serialize};
 use std::fs;
 use std::path::{Path, PathBuf};
@@ -69,6 +72,11 @@ impl ValidatorKey {
 
 /// A wallet: one seed, one account.
 ///
+/// Everything comes from the seed: the one-time keys that sign payments,
+/// drawn one after another, and a separate small set of spare keys. The
+/// address commits to the first key and to the spares, so both are fixed
+/// before anything is signed.
+///
 /// The wallet's job beyond holding the seed is to make sure each one-time
 /// key signs at most one order. It writes every order it signs to disk
 /// before the order leaves the process, and afterwards will only ever
@@ -76,6 +84,9 @@ impl ValidatorKey {
 pub struct Wallet {
     path: PathBuf,
     seed: [u8; 32],
+    /// The spare keys. Used only after a checkpoint cancels what a key that
+    /// signed twice had signed.
+    spares: KeyTree,
     address: AccountId,
     next_seq: u64,
     pending: Option<SignedOrder>,
@@ -95,16 +106,24 @@ fn wallet_key(seed: &[u8; 32], index: u64) -> ots::SecretKey {
     ots::SecretKey::from_seed(prf(seed, Kdf::WalletKey, index))
 }
 
+/// The spare keys come from their own stream of the seed, so no ordinary
+/// key is ever also a spare.
+fn wallet_spares(seed: &[u8; 32]) -> KeyTree {
+    KeyTree::generate(prf(seed, Kdf::WalletSpare, 0), SPARE_HEIGHT)
+}
+
 impl Wallet {
     pub fn create(path: &Path) -> Result<Wallet> {
         if path.exists() {
             bail!("{} already exists; refusing to overwrite a wallet", path.display());
         }
         let seed = random_seed();
+        let spares = wallet_spares(&seed);
         let wallet = Wallet {
             path: path.to_owned(),
             seed,
-            address: wallet_key(&seed, 0).commitment(),
+            address: address(&wallet_key(&seed, 0).commitment(), &spares.root()),
+            spares,
             next_seq: 0,
             pending: None,
         };
@@ -125,10 +144,12 @@ impl Wallet {
             }
             None => None,
         };
+        let spares = wallet_spares(&seed);
         Ok(Wallet {
             path: path.to_owned(),
             seed,
-            address: wallet_key(&seed, 0).commitment(),
+            address: address(&wallet_key(&seed, 0).commitment(), &spares.root()),
+            spares,
             next_seq: file.next_seq,
             pending,
         })
@@ -151,6 +172,26 @@ impl Wallet {
 
     pub fn address(&self) -> AccountId {
         self.address
+    }
+
+    /// The root of this wallet's spare keys.
+    pub fn spare(&self) -> Hash32 {
+        self.spares.root()
+    }
+
+    /// The order this wallet would sign for payment number `seq`. It is not
+    /// signed and nothing is recorded.
+    pub fn order(&self, seq: u64, to: AccountId, amount: u64) -> Order {
+        Order {
+            kind: Kind::Payment,
+            from: self.address,
+            seq,
+            to,
+            amount,
+            max_fee: 0,
+            next_key: self.key(seq + 1).commitment(),
+            spare: self.spares.root(),
+        }
     }
 
     pub fn next_seq(&self) -> u64 {
@@ -190,15 +231,9 @@ impl Wallet {
         if seq < self.next_seq {
             bail!("payment #{seq} was already made from this wallet");
         }
-        let order = Order {
-            from: self.address,
-            seq,
-            to,
-            amount,
-            next_key: self.key(seq + 1).commitment(),
-        };
+        let order = self.order(seq, to, amount);
         let digest = order.digest(network);
-        let signed = SignedOrder { signature: self.key(seq).sign(digest.as_bytes()), order };
+        let signed = SignedOrder { signature: Signature::Key(self.key(seq).sign(digest.as_bytes())), order };
         self.pending = Some(signed.clone());
         self.save()?;
         Ok(signed)
@@ -207,9 +242,9 @@ impl Wallet {
     /// Whether `signed` carries this wallet's own signature: made with the
     /// one-time key this wallet derives for that payment number.
     pub fn signed_by_this_wallet(&self, signed: &SignedOrder, network: &Hash32) -> bool {
-        let digest = signed.order.digest(network);
         signed.order.from == self.address
-            && ots::recover(&signed.signature, digest.as_bytes()) == self.key(signed.order.seq).commitment()
+            && signed.order.spare == self.spares.root()
+            && signed.signed_by(network) == Some(SignedBy::Key(self.key(signed.order.seq).commitment()))
     }
 
     /// Takes over an order that another copy of this wallet signed, so that
@@ -268,14 +303,11 @@ mod tests {
         let stranger = Wallet::create(&dir.join("stranger.wallet")).unwrap();
 
         let order = |from: &Wallet, next_key: &Wallet| Order {
-            from: from.address(),
-            seq: 0,
-            to: payee,
-            amount: 5,
             next_key: next_key.key(1).commitment(),
+            ..from.order(0, payee, 5)
         };
         let sign = |with: &Wallet, order: Order| SignedOrder {
-            signature: with.key(0).sign(order.digest(&network).as_bytes()),
+            signature: Signature::Key(with.key(0).sign(order.digest(&network).as_bytes())),
             order,
         };
 
@@ -284,6 +316,11 @@ mod tests {
             ("a stranger's payment", sign(&stranger, order(&stranger, &stranger)), network),
             ("signed with someone else's key", sign(&stranger, order(&first, &first)), network),
             ("hands the account to a foreign key", sign(&first, order(&first, &stranger)), network),
+            (
+                "names a stranger's spare keys",
+                sign(&first, Order { spare: stranger.spare(), ..order(&first, &first) }),
+                network,
+            ),
             ("signed for another network", good.clone(), elsewhere),
         ];
         for (what, signed, network) in &refused {

@@ -1,8 +1,10 @@
-//! A validator's signing key: a Merkle tree whose leaves are one-time keys.
+//! A key that can sign many times: a Merkle tree whose leaves are one-time
+//! keys.
 //!
-//! The root is the validator's public key. Each signature uses up one leaf
-//! and carries the path from that leaf to the root. The tree is generated
-//! from a seed, so only the seed has to be stored.
+//! The root is the public key. Each signature uses up one leaf and carries
+//! the path from that leaf to the root. The tree is generated from a seed,
+//! so only the seed has to be stored. A validator signs with a large one.
+//! An account keeps a small one in reserve as its spare keys.
 
 use crate::hash::{Hash32, Kdf, Tag, hash, prf};
 use crate::ots;
@@ -89,10 +91,13 @@ impl KeyTree {
     }
 }
 
-/// Checks `signature` on `message` against a validator's root.
-pub fn verify(root: &Hash32, height: u8, signature: &TreeSignature, message: &[u8]) -> bool {
+/// The root of the tree of this height that `signature` on `message` is
+/// valid under, or `None` if the signature is malformed. The caller compares
+/// it with the root it expects. This is where the hashing is done, so it can
+/// run apart from whatever holds that root.
+pub fn recover_root(height: u8, signature: &TreeSignature, message: &[u8]) -> Option<Hash32> {
     if signature.path.len() != height as usize || (signature.leaf as u64) >> height != 0 {
-        return false;
+        return None;
     }
     let mut current = ots::recover(&signature.ots, message);
     let mut position = signature.leaf;
@@ -100,7 +105,12 @@ pub fn verify(root: &Hash32, height: u8, signature: &TreeSignature, message: &[u
         current = if position & 1 == 0 { node(&current, sibling) } else { node(sibling, &current) };
         position >>= 1;
     }
-    current == *root
+    Some(current)
+}
+
+/// Checks `signature` on `message` against a root.
+pub fn verify(root: &Hash32, height: u8, signature: &TreeSignature, message: &[u8]) -> bool {
+    recover_root(height, signature, message) == Some(*root)
 }
 
 #[cfg(test)]

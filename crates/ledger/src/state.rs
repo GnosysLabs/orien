@@ -2,13 +2,25 @@
 //! when to vote for an order, and how a certified order changes balances.
 
 use crate::genesis::Genesis;
-use crate::types::{AccountId, Order};
+use crate::types::{AccountId, Order, SPARE_HEIGHT, SignedBy, address};
 use borsh::{BorshDeserialize, BorshSerialize};
-use orien_crypto::merkle::{self, Kind};
+use orien_crypto::merkle;
 use orien_crypto::{Hash32, Tag, hash};
 use std::collections::{BTreeMap, HashMap};
 use std::fmt;
 use std::io;
+
+/// Which key must sign an account's next order.
+#[derive(Clone, Debug, PartialEq, Eq, BorshSerialize, BorshDeserialize)]
+pub enum Signer {
+    /// The account has never signed anything. Its address commits to its
+    /// first key and to its spare keys, and its first order reveals both.
+    First,
+    /// The one-time key with this commitment, named by the order before.
+    Key(Hash32),
+    /// Spare key number `n`, after a cancellation.
+    Spare(u32),
+}
 
 #[derive(Clone, Debug, PartialEq, Eq, BorshSerialize, BorshDeserialize)]
 pub struct Account {
@@ -17,16 +29,56 @@ pub struct Account {
     /// requires a non-negative result, so a dip below zero is only ever a
     /// validator catching up, never money that does not exist.
     pub balance: i128,
-    /// Number of payments this account has made; the number its next one must carry.
+    /// Number of orders this account has made; the number its next one must carry.
     pub seq: u64,
-    /// Commitment to the one-time key that must sign the next payment.
-    pub key: Hash32,
+    pub signer: Signer,
+    /// The root of the account's spare keys. Not known until its first order
+    /// reveals it; all zeros until then.
+    pub spare: Hash32,
+    /// How many spare keys cancellations have used up.
+    pub spares_used: u32,
 }
 
 impl Account {
-    fn empty(id: AccountId) -> Account {
-        Account { balance: 0, seq: 0, key: id }
+    fn holding(balance: i128) -> Account {
+        Account { balance, seq: 0, signer: Signer::First, spare: Hash32::default(), spares_used: 0 }
     }
+
+    fn requires(&self, id: &AccountId, order: &Order, by: &SignedBy) -> bool {
+        authorized(id, &self.signer, &self.spare, order, by)
+    }
+}
+
+/// Whether `by` is the key that an account in this condition requires to
+/// have signed `order`.
+pub fn authorized(id: &AccountId, signer: &Signer, spare: &Hash32, order: &Order, by: &SignedBy) -> bool {
+    match (signer, by) {
+        // A first order reveals the first key and the spare root, which
+        // together must make the address.
+        (Signer::First, SignedBy::Key(key)) => address(key, &order.spare) == *id,
+        (Signer::Key(expected), SignedBy::Key(key)) => key == expected && order.spare == *spare,
+        (Signer::Spare(expected), SignedBy::Spare { root, leaf }) => {
+            leaf == expected && root == spare && order.spare == *spare
+        }
+        _ => false,
+    }
+}
+
+/// An order together with what checking its signature found.
+pub struct Checked<'a> {
+    pub order: &'a Order,
+    pub digest: Hash32,
+    pub by: SignedBy,
+}
+
+/// Why two orders do not cancel an account's current number.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum CancelError {
+    /// They are not two different orders, both signed with the key the
+    /// account requires for its current number.
+    NotEvidence,
+    /// Every spare key the account had is used up. It stays locked.
+    NoSpareLeft,
 }
 
 /// Why a validator refuses to vote for an order.
@@ -55,7 +107,7 @@ impl fmt::Display for Reject {
             Reject::FutureSeq { current } => {
                 write!(f, "earlier payments are missing here (account is at #{current})")
             }
-            Reject::BadSignature => f.write_str("signature does not match the account's current key"),
+            Reject::BadSignature => f.write_str("not signed with the key the account must use next"),
             Reject::InsufficientFunds { balance, needed } => {
                 write!(f, "insufficient funds: balance {balance}, needs {needed}")
             }
@@ -90,7 +142,9 @@ fn leaf(id: &AccountId, account: &Account) -> Hash32 {
             id.as_bytes(),
             &account.balance.to_le_bytes(),
             &account.seq.to_le_bytes(),
-            account.key.as_bytes(),
+            account.spare.as_bytes(),
+            &account.spares_used.to_le_bytes(),
+            &borsh::to_vec(&account.signer).expect("writing to memory cannot fail"),
         ],
     )
 }
@@ -98,7 +152,7 @@ fn leaf(id: &AccountId, account: &Account) -> Hash32 {
 /// The state root under which `account` is the state of `id`, if `proof` is
 /// to be believed. Compare the result with a root you already trust.
 pub fn account_root(id: &AccountId, account: &Account, proof: &merkle::Path) -> Option<Hash32> {
-    merkle::root_from_path_in(Kind::State, &leaf(id, account), proof)
+    merkle::root_from_path_in(merkle::Kind::State, &leaf(id, account), proof)
 }
 
 pub struct State {
@@ -114,7 +168,7 @@ impl State {
         let accounts = genesis
             .allocations
             .iter()
-            .map(|a| (a.account, Account { balance: a.amount as i128, seq: 0, key: a.account }))
+            .map(|a| (a.account, Account::holding(a.amount as i128)))
             .collect();
         State { accounts, locks: HashMap::new() }
     }
@@ -127,10 +181,13 @@ impl State {
         self.accounts.len()
     }
 
-    /// The commitment to the key that must sign `id`'s next payment. An
-    /// account that has never paid is still on the key its address names.
-    pub fn key(&self, id: &AccountId) -> Hash32 {
-        self.accounts.get(id).map_or(*id, |account| account.key)
+    /// Whether `by` is the key `order`'s account requires for its next
+    /// order. An account never heard of here requires its first key.
+    pub fn authorizes(&self, order: &Order, by: &SignedBy) -> bool {
+        match self.accounts.get(&order.from) {
+            Some(account) => account.requires(&order.from, order, by),
+            None => Account::holding(0).requires(&order.from, order, by),
+        }
     }
 
     /// The payment number `id` must use next, as far as this validator knows.
@@ -144,7 +201,7 @@ impl State {
 
     fn tree(&self) -> merkle::Tree {
         let leaves: Vec<Hash32> = self.accounts.iter().map(|(id, account)| leaf(id, account)).collect();
-        merkle::Tree::of(Kind::State, &leaves)
+        merkle::Tree::of(merkle::Kind::State, &leaves)
     }
 
     /// A fingerprint of every account: the root of a Merkle tree over the
@@ -187,15 +244,15 @@ impl State {
 
     /// Decides whether to vote for `order`.
     ///
-    /// `digest` is the order's digest and `signed_by` is the key commitment
-    /// recovered from its signature. On `Fresh`, the vote is locked: no other
-    /// order with this account and number will be accepted. The caller must
-    /// make that lock durable before releasing its vote.
+    /// `digest` is the order's digest and `signed_by` is what its signature
+    /// proves about the key that made it. On `Fresh`, the vote is locked: no
+    /// other order with this account and number will be accepted. The caller
+    /// must make that lock durable before releasing its vote.
     pub fn check_order(
         &mut self,
         order: &Order,
         digest: Hash32,
-        signed_by: &Hash32,
+        signed_by: &SignedBy,
     ) -> Result<Accepted, Reject> {
         if order.amount == 0 {
             return Err(Reject::ZeroAmount);
@@ -207,7 +264,7 @@ impl State {
         if order.seq > account.seq {
             return Err(Reject::FutureSeq { current: account.seq });
         }
-        if *signed_by != account.key {
+        if !account.requires(&order.from, order, signed_by) {
             return Err(Reject::BadSignature);
         }
         let promised = self.locks.get(&(order.from, order.seq));
@@ -242,13 +299,53 @@ impl State {
         if order.seq > current {
             return Err(Reject::FutureSeq { current });
         }
-        let sender = self.accounts.entry(order.from).or_insert_with(|| Account::empty(order.from));
+        let sender = self.accounts.entry(order.from).or_insert_with(|| Account::holding(0));
         sender.balance -= order.amount as i128;
         sender.seq += 1;
-        sender.key = order.next_key;
-        let recipient = self.accounts.entry(order.to).or_insert_with(|| Account::empty(order.to));
+        if sender.signer == Signer::First {
+            sender.spare = order.spare;
+        }
+        sender.signer = Signer::Key(order.next_key);
+        let recipient = self.accounts.entry(order.to).or_insert_with(|| Account::holding(0));
         recipient.balance += order.amount as i128;
         self.locks.remove(&(order.from, order.seq));
         Ok(Applied::New)
+    }
+
+    /// Cancels an account's current order number, given evidence that its
+    /// owner signed twice: two different orders under that number, each
+    /// signed with the key the account requires.
+    ///
+    /// Nothing moves and the number stays. The burned key is retired: the
+    /// account's next order must be signed with its next unused spare key.
+    /// Any vote promised here under that number is dropped.
+    ///
+    /// The caller applies every final payment first. If one of the two
+    /// orders became final, the number has moved on and this is no longer
+    /// evidence of anything that matters.
+    pub fn cancel(&mut self, one: &Checked, other: &Checked) -> Result<(), CancelError> {
+        let id = one.order.from;
+        let account = self.accounts.get_mut(&id).ok_or(CancelError::NotEvidence)?;
+        let evidence = other.order.from == id
+            && one.digest != other.digest
+            && one.order.seq == account.seq
+            && other.order.seq == account.seq
+            && account.requires(&id, one.order, &one.by)
+            && account.requires(&id, other.order, &other.by);
+        if !evidence {
+            return Err(CancelError::NotEvidence);
+        }
+        if account.spares_used >= 1 << SPARE_HEIGHT {
+            return Err(CancelError::NoSpareLeft);
+        }
+        if account.signer == Signer::First {
+            // Both orders revealed the spare root the address commits to.
+            account.spare = one.order.spare;
+        }
+        account.signer = Signer::Spare(account.spares_used);
+        account.spares_used += 1;
+        let seq = account.seq;
+        self.locks.remove(&(id, seq));
+        Ok(())
     }
 }

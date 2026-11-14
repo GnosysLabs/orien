@@ -4,7 +4,6 @@
 //! - which one-time keys it has used, or it could reuse one;
 //! - the certificates it applied, from which balances are rebuilt.
 
-use orien_crypto::ots;
 use orien_ledger::{AccountId, Certificate, SignedOrder};
 use std::collections::HashMap;
 use std::fs::{self, File, OpenOptions};
@@ -230,9 +229,8 @@ pub struct OrderLog {
     file: File,
 }
 
-/// A signed order has the same size every time: the order's five fields,
-/// then the signature.
-const ORDER_RECORD: usize = 32 + 8 + 32 + 8 + 32 + ots::SIGNATURE_BYTES;
+/// No signed order comes near this size. A longer record is damage.
+const MAX_ORDER: usize = 1 << 16;
 
 impl OrderLog {
     /// Opens the log, calling `live` for every order in it. An order for
@@ -246,21 +244,30 @@ impl OrderLog {
     ) -> io::Result<OrderLog> {
         let mut kept = Vec::new();
         let mut rewrite = false;
-        match File::open(path) {
-            Ok(file) => {
-                let length = file.metadata()?.len();
-                // A crash mid-write can leave a partial record at the end.
-                rewrite = length % ORDER_RECORD as u64 != 0;
-                let mut reader = BufReader::new(file);
-                let mut record = [0u8; ORDER_RECORD];
-                for _ in 0..length / ORDER_RECORD as u64 {
-                    reader.read_exact(&mut record)?;
-                    let order: SignedOrder = borsh::from_slice(&record)?;
+        match fs::read(path) {
+            Ok(bytes) => {
+                let mut rest = &bytes[..];
+                while !rest.is_empty() {
+                    // Each record is a length and then that many bytes. A
+                    // crash mid-write can leave a partial one at the end.
+                    let record = rest.split_first_chunk::<4>().and_then(|(length, after)| {
+                        let length = u32::from_le_bytes(*length) as usize;
+                        (length <= MAX_ORDER && length <= after.len()).then(|| after.split_at(length))
+                    });
+                    let Some((record, after)) = record else {
+                        rewrite = true;
+                        break;
+                    };
+                    let Ok(order) = borsh::from_slice::<SignedOrder>(record) else {
+                        rewrite = true;
+                        break;
+                    };
                     if live(&order) {
-                        kept.extend_from_slice(&record);
+                        kept.extend_from_slice(&rest[..4 + record.len()]);
                     } else {
                         rewrite = true;
                     }
+                    rest = after;
                 }
             }
             Err(error) if error.kind() == io::ErrorKind::NotFound => {}
@@ -278,9 +285,11 @@ impl OrderLog {
         if orders.is_empty() {
             return Ok(());
         }
-        let mut bytes = Vec::with_capacity(orders.len() * ORDER_RECORD);
+        let mut bytes = Vec::new();
         for order in orders {
-            borsh::to_writer(&mut bytes, order)?;
+            let record = borsh::to_vec(order)?;
+            bytes.extend_from_slice(&(record.len() as u32).to_le_bytes());
+            bytes.extend_from_slice(&record);
         }
         self.file.write_all(&bytes)?;
         if durable {
@@ -350,8 +359,9 @@ impl LeafCounter {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use orien_crypto::Hash32;
-    use orien_ledger::Order;
+    use orien_crypto::keytree::KeyTree;
+    use orien_crypto::{Hash32, ots};
+    use orien_ledger::{Kind, Order, Signature};
 
     fn scratch(name: &str) -> PathBuf {
         let dir = std::env::temp_dir().join(format!("orien-store-{name}-{}", std::process::id()));
@@ -447,15 +457,28 @@ mod tests {
         let _ = fs::remove_dir_all(dir);
     }
 
+    /// An order signed with an ordinary key when `n` is odd, and with a
+    /// spare key when it is even, so that records differ in length.
     fn signed_order(n: u8) -> SignedOrder {
         let order = Order {
+            kind: Kind::Payment,
             from: Hash32([n; 32]),
             seq: n as u64,
             to: Hash32([n + 1; 32]),
             amount: 5,
+            max_fee: 0,
             next_key: Hash32([n + 2; 32]),
+            spare: Hash32([n + 3; 32]),
         };
-        SignedOrder { signature: ots::SecretKey::from_seed([n; 32]).sign(b"any message"), order }
+        let signature = match n % 2 {
+            1 => Signature::Key(ots::SecretKey::from_seed([n; 32]).sign(b"any message")),
+            _ => Signature::Spare(KeyTree::generate([n; 32], 4).sign_with_leaf(3, b"any message")),
+        };
+        SignedOrder { signature, order }
+    }
+
+    fn record(order: &SignedOrder) -> u64 {
+        4 + borsh::to_vec(order).unwrap().len() as u64
     }
 
     fn replay(path: &Path, mut live: impl FnMut(&SignedOrder) -> bool) -> (OrderLog, Vec<SignedOrder>) {
@@ -472,8 +495,8 @@ mod tests {
     fn order_log_survives_a_torn_write() {
         let dir = scratch("orders");
         let path = dir.join("orders.log");
-        let (a, b) = (signed_order(1), signed_order(3));
-        assert_eq!(borsh::to_vec(&a).unwrap().len(), ORDER_RECORD);
+        let (a, b) = (signed_order(1), signed_order(4));
+        assert_ne!(record(&a), record(&b), "records are not all one length");
         let (mut log, seen) = replay(&path, |_| true);
         assert!(seen.is_empty());
         log.append(&[&a, &b], false).unwrap();
@@ -482,7 +505,7 @@ mod tests {
 
         let (mut log, seen) = replay(&path, |_| true);
         assert_eq!(seen, vec![a.clone(), b.clone()]);
-        assert_eq!(fs::metadata(&path).unwrap().len(), 2 * ORDER_RECORD as u64);
+        assert_eq!(fs::metadata(&path).unwrap().len(), record(&a) + record(&b));
         // Appending still works after the tail was cut off.
         let c = signed_order(5);
         log.append(&[&c], false).unwrap();
@@ -494,13 +517,13 @@ mod tests {
     fn order_log_drops_orders_that_are_final() {
         let dir = scratch("orders-final");
         let path = dir.join("orders.log");
-        let (a, b, c) = (signed_order(1), signed_order(3), signed_order(5));
+        let (a, b, c) = (signed_order(1), signed_order(4), signed_order(5));
         replay(&path, |_| true).0.append(&[&a, &b, &c], false).unwrap();
 
         // On the next start, payments 1 and 5 turn out to be final.
-        let (mut log, seen) = replay(&path, |order| order.order.seq == 3);
+        let (mut log, seen) = replay(&path, |order| order.order.seq == 4);
         assert_eq!(seen.len(), 3);
-        assert_eq!(fs::metadata(&path).unwrap().len(), ORDER_RECORD as u64);
+        assert_eq!(fs::metadata(&path).unwrap().len(), record(&b));
         let d = signed_order(7);
         log.append(&[&d], false).unwrap();
         assert_eq!(replay(&path, |_| true).1, vec![b, d]);

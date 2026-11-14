@@ -2,7 +2,10 @@
 
 use orien_crypto::keytree::KeyTree;
 use orien_crypto::{Hash32, Kdf, ots, prf};
-use orien_ledger::{AccountId, Allocation, Genesis, Order, Reject, SignedOrder, ValidatorInfo};
+use orien_ledger::{
+    AccountId, Allocation, Genesis, Kind, Order, Reject, SPARE_HEIGHT, Signature, SignedOrder, Signer,
+    ValidatorInfo, address,
+};
 use orien_net::client::{Client, Final, TransferError, rpc};
 use orien_net::keys::{ValidatorKey, Wallet};
 use orien_net::node::{Node, NodeConfig};
@@ -140,7 +143,13 @@ impl TestNet {
     fn view(&self, validator: usize, id: &AccountId) -> AccountView {
         match self.ask(validator, &Request::Account(*id)) {
             Response::Account(Some(view)) => view,
-            Response::Account(None) => AccountView { balance: 0, seq: 0, key: *id, lock: None },
+            Response::Account(None) => AccountView {
+                balance: 0,
+                seq: 0,
+                signer: Signer::First,
+                spare: Hash32::default(),
+                lock: None,
+            },
             other => panic!("unexpected answer: {other:?}"),
         }
     }
@@ -171,15 +180,9 @@ impl TestNet {
     /// guard against using a key twice. This is what a cheater does.
     fn raw_order(&self, from: &str, seq: u64, to: AccountId, amount: u64) -> SignedOrder {
         let wallet = self.wallet(from);
-        let order = Order {
-            from: wallet.address(),
-            seq,
-            to,
-            amount,
-            next_key: wallet.key(seq + 1).commitment(),
-        };
+        let order = wallet.order(seq, to, amount);
         let digest = order.digest(&self.network);
-        SignedOrder { signature: wallet.key(seq).sign(digest.as_bytes()), order }
+        SignedOrder { signature: Signature::Key(wallet.key(seq).sign(digest.as_bytes())), order }
     }
 }
 
@@ -225,13 +228,17 @@ fn a_payment_is_final_on_every_validator() {
 fn keys_rotate_through_a_run_of_payments() {
     let net = TestNet::start("run");
     let (alice, bob, carol) = (net.address("alice"), net.address("bob"), net.address("carol"));
-    let mut keys = vec![net.view(0, &alice).key];
+    assert_eq!(net.view(0, &alice).signer, Signer::First, "an unused account is on its first key");
+    let mut keys = vec![net.view(0, &alice).signer];
     for round in 0..5 {
         net.pay("alice", carol, 10);
-        let key = net.view(0, &alice).key;
+        let key = net.view(0, &alice).signer;
+        assert!(matches!(key, Signer::Key(_)));
         assert!(!keys.contains(&key), "payment {round} reused a key");
         keys.push(key);
     }
+    // The first payment put the account's spare keys on record.
+    assert_eq!(net.view(0, &alice).spare, net.wallet("alice").spare());
     // Carol's account came into being by being paid, and can spend at once.
     net.pay("carol", bob, 35);
     for v in 0..4 {
@@ -383,7 +390,7 @@ fn a_restart_keeps_balances_and_votes() {
     assert!(holds_the_order(&net));
     // Payment #0 is final, so its order was dropped from the log on restart.
     let log = fs::metadata(net.dir.join("data-0").join("orders.log")).unwrap().len();
-    assert_eq!(log, borsh::to_vec(&to_bob).unwrap().len() as u64);
+    assert_eq!(log, 4 + borsh::to_vec(&to_bob).unwrap().len() as u64, "one record: a length and the order");
     // It must not vote for a different order under the same number...
     assert!(matches!(
         net.ask(0, &Request::SubmitOrder(to_carol)),
@@ -712,6 +719,44 @@ fn certificate_for(client: &Client, signed: &SignedOrder) -> orien_ledger::Certi
 }
 
 #[test]
+fn an_address_binds_the_spare_keys_a_first_payment_reveals() {
+    let net = TestNet::start("address");
+    let (alice, bob) = (net.address("alice"), net.address("bob"));
+    let wallet = net.wallet("alice");
+    let sign = |order: Order| {
+        let digest = order.digest(&net.network);
+        SignedOrder { signature: Signature::Key(wallet.key(0).sign(digest.as_bytes())), order }
+    };
+
+    // Signed with alice's real first key, but naming bob's spare keys as
+    // hers. The two together do not make her address.
+    let swapped = sign(Order { spare: net.wallet("bob").spare(), ..wallet.order(0, bob, 10) });
+    assert!(matches!(
+        net.ask(0, &Request::SubmitOrder(swapped)),
+        Response::Rejected(Reject::BadSignature)
+    ));
+
+    // An order signed with a spare key is refused while the account is not
+    // on its spares, whoever's spare keys they are.
+    let order = wallet.order(0, bob, 10);
+    let digest = order.digest(&net.network);
+    let stray = KeyTree::generate([42; 32], SPARE_HEIGHT);
+    let with_spare = SignedOrder {
+        signature: Signature::Spare(stray.sign_with_leaf(0, digest.as_bytes())),
+        order: order.clone(),
+    };
+    assert!(matches!(
+        net.ask(0, &Request::SubmitOrder(with_spare)),
+        Response::Rejected(Reject::BadSignature)
+    ));
+    assert_eq!(net.view(0, &alice).lock, None, "neither attempt earned a vote");
+
+    // The order as the wallet makes it is voted for.
+    assert!(matches!(net.ask(0, &Request::SubmitOrder(sign(order))), Response::Vote(_)));
+    assert_eq!(alice, address(&wallet.key(0).commitment(), &wallet.spare()));
+}
+
+#[test]
 fn a_validator_refuses_files_in_a_format_it_does_not_write() {
     let mut net = TestNet::start("format");
     let bob = net.address("bob");
@@ -722,7 +767,7 @@ fn a_validator_refuses_files_in_a_format_it_does_not_write() {
     // The same directory starts again without complaint.
     Node::start(net.config(0), None).map(Node::stop).unwrap();
     // A directory written by an older or a newer version does not.
-    for other in [None, Some("1"), Some("3")] {
+    for other in [None, Some("1"), Some("2"), Some("4")] {
         match other {
             Some(format) => fs::write(data.join("format"), format).unwrap(),
             None => fs::remove_file(data.join("format")).unwrap(),
@@ -731,7 +776,7 @@ fn a_validator_refuses_files_in_a_format_it_does_not_write() {
         assert!(refusal.contains("data format"), "{refusal}");
     }
     // Nothing was touched: put the marker back and the validator is as it was.
-    fs::write(data.join("format"), "2").unwrap();
+    fs::write(data.join("format"), "3").unwrap();
     net.restart(0);
     assert_eq!(net.view(0, &bob).balance, 1100);
 }
@@ -897,7 +942,12 @@ fn throughput() {
             seed
         })
         .collect();
-    let accounts: Vec<AccountId> = seeds.iter().map(|seed| key(seed, 0).commitment()).collect();
+    let spares: Vec<Hash32> = seeds
+        .iter()
+        .map(|seed| KeyTree::generate(prf(seed, Kdf::WalletSpare, 0), SPARE_HEIGHT).root())
+        .collect();
+    let accounts: Vec<AccountId> =
+        seeds.iter().zip(&spares).map(|(seed, spare)| address(&key(seed, 0).commitment(), spare)).collect();
     let options = Options {
         extra: accounts.iter().map(|a| Allocation { account: *a, amount: START }).collect(),
         window: Duration::from_millis(5),
@@ -909,11 +959,20 @@ fn throughput() {
     let carol = net.address("carol");
     let orders: Vec<SignedOrder> = seeds
         .iter()
-        .zip(&accounts)
-        .map(|(seed, account)| {
-            let order = Order { from: *account, seq: 0, to: carol, amount: 1, next_key: key(seed, 1).commitment() };
+        .zip(accounts.iter().zip(&spares))
+        .map(|(seed, (account, spare))| {
+            let order = Order {
+                kind: Kind::Payment,
+                from: *account,
+                seq: 0,
+                to: carol,
+                amount: 1,
+                max_fee: 0,
+                next_key: key(seed, 1).commitment(),
+                spare: *spare,
+            };
             let digest = order.digest(&net.network);
-            SignedOrder { signature: key(seed, 0).sign(digest.as_bytes()), order }
+            SignedOrder { signature: Signature::Key(key(seed, 0).sign(digest.as_bytes())), order }
         })
         .collect();
 

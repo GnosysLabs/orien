@@ -16,10 +16,10 @@ use crate::store::{CertLog, Epochs, LeafCounter, OrderLog, sync_dir};
 use crate::wire::{AccountView, NodeInfo, Request, Response, read_frame, write_frame};
 use anyhow::{Context, Result, anyhow, bail};
 use orien_crypto::keytree::{KeyTree, TreeSignature};
-use orien_crypto::{Hash32, merkle, ots};
+use orien_crypto::{Hash32, merkle};
 use orien_ledger::{
     Accepted, AccountId, Applied, Certificate, Committee, Confirmation, Genesis, Order, Reject,
-    SignedOrder, State, Vote, confirmation_item,
+    SignedBy, SignedOrder, State, Vote, confirmation_item,
 };
 use std::collections::HashMap;
 use std::fs;
@@ -72,14 +72,14 @@ impl NodeConfig {
 // Signatures are over a kilobyte and travel inline; these values are short-lived.
 #[allow(clippy::large_enum_variant)]
 enum Command {
-    Order { signed: SignedOrder, digest: Hash32, signed_by: Hash32, reply: Sender<Response> },
+    Order { signed: SignedOrder, digest: Hash32, signed_by: SignedBy, reply: Sender<Response> },
     /// A certificate whose votes have been checked. `signed_by` is the key
     /// its owner's signature was made with. With `confirm`, the answer is a
     /// signed confirmation.
     Certificate {
         certificate: Certificate,
         digest: Hash32,
-        signed_by: Hash32,
+        signed_by: SignedBy,
         confirm: bool,
         reply: Sender<Response>,
     },
@@ -114,7 +114,9 @@ impl Shared {
         match request {
             Request::SubmitOrder(signed) => {
                 let digest = signed.order.digest(self.committee.network());
-                let signed_by = ots::recover(&signed.signature, digest.as_bytes());
+                let Some(signed_by) = signed.signature.signed_by(&digest) else {
+                    return Response::Rejected(Reject::BadSignature);
+                };
                 self.ask(|reply| Command::Order { signed, digest, signed_by, reply })
                     .unwrap_or_else(stopped)
             }
@@ -150,7 +152,9 @@ impl Shared {
         if let Err(error) = self.committee.verify_certificate(&certificate) {
             return Some(Response::Invalid(error.to_string()));
         }
-        let signed_by = ots::recover(&certificate.signature, digest.as_bytes());
+        let Some(signed_by) = certificate.signature.signed_by(&digest) else {
+            return Some(Response::Invalid("the owner's signature in this certificate is malformed".into()));
+        };
         self.ask(|reply| Command::Certificate { certificate, digest, signed_by, confirm, reply })
     }
 }
@@ -293,7 +297,7 @@ impl Core {
         }
     }
 
-    fn on_order(&mut self, signed: SignedOrder, digest: Hash32, signed_by: Hash32, reply: Sender<Response>) {
+    fn on_order(&mut self, signed: SignedOrder, digest: Hash32, signed_by: SignedBy, reply: Sender<Response>) {
         let payment = (signed.order.from, signed.order.seq);
         match self.state.check_order(&signed.order, digest, &signed_by) {
             Ok(Accepted::Fresh) => {
@@ -458,7 +462,7 @@ impl Core {
         &mut self,
         certificate: Certificate,
         digest: Hash32,
-        signed_by: Hash32,
+        signed_by: SignedBy,
         confirm: bool,
         reply: Sender<Response>,
     ) {
@@ -468,7 +472,7 @@ impl Core {
         // order. The copy carried in the certificate is checked here, since
         // it is what this validator would be left holding if a checkpoint
         // undid the payment.
-        if self.state.seq(&order.from) == order.seq && signed_by != self.state.key(&order.from) {
+        if self.state.seq(&order.from) == order.seq && !self.state.authorizes(order, &signed_by) {
             let _ = reply.send(Response::Invalid(
                 "the owner's signature in this certificate does not verify".into(),
             ));
@@ -560,7 +564,8 @@ impl Core {
                 AccountView {
                     balance: account.balance,
                     seq: account.seq,
-                    key: account.key,
+                    signer: account.signer.clone(),
+                    spare: account.spare,
                     lock: self.state.lock(&id, account.seq).copied(),
                 }
             })),
@@ -683,7 +688,7 @@ fn sync_from_peer(shared: Arc<Shared>, peer: String, cursor_file: PathBuf, inter
 
 /// The layout and encoding of a validator's files. Raised whenever either
 /// changes in a way an older or newer version would misread.
-const DATA_FORMAT: &str = "2";
+const DATA_FORMAT: &str = "3";
 
 /// A data directory belongs to one network and is written in one format.
 /// Refuse to reuse it for another network, or to read a format this version

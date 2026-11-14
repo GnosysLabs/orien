@@ -1,7 +1,7 @@
 # The epoch step
 
-Status: **design, revised after an independent review. Stages 0 and 1a of
-the build order are built; nothing else is.**
+Status: **design, revised after an independent review. Stages 0, 1a and 1b
+of the build order are built; nothing else is.**
 
 ## In plain words
 
@@ -166,8 +166,10 @@ situation anyway.
 ### 6. Cancellation and spare keys
 
 - Every address commits to two things: the first key and a **spare tree**,
-  a small set of one-time keys under one root. The first payment reveals
-  the root.
+  sixteen one-time keys under one root. The first payment reveals the root.
+- An account is always in one of three conditions, which says what must
+  sign its next order: its first key, if it has never signed; the key its
+  last order named; or a numbered spare key, after a cancellation.
 - A checkpoint cancels an account's current number when it is given
   evidence (rule 4) that still holds after the checkpoint's payments are
   applied. If one of the two orders became final, the number has advanced
@@ -253,7 +255,13 @@ stages need:
 - a **kind**: payment, stake, unstake, and room for more;
 - the **largest fee** the owner accepts, so a fee change cannot strand it;
 - the **next key**;
-- the **spare root**, on an account's first order.
+- the **spare root**. An account's first order reveals it, and validators
+  check that it and the first key together make the address. Every later
+  order repeats it.
+
+An owner's signature is one of two kinds: made with the account's current
+one-time key, or made with one of its spare keys together with the path
+that ties that key to the spare root.
 
 ## Built on top of the close
 
@@ -305,7 +313,7 @@ Each stage can be built and tested on its own.
 |---|---|---|
 | 0, built | No change to the protocol. A state root, account proofs and snapshots; one folder per epoch with an atomic switch; evidence kept when a second order is refused; the balance check on every vote; a key reserve. | `crates/ledger/src/state.rs`, `crates/crypto/src/merkle.rs`, `crates/net/src/store.rs`, `crates/net/src/node.rs` |
 | 1a, built | Epoch number (always 0 for now) in votes and certificates. Certificates that keep the owner's signature. Signed confirmations. Receipts that carry them. A wallet that advances only on proof. | `crates/ledger`, `crates/net`, `crates/cli` |
-| 1b | The order format, fixed once: kind, largest fee, spare tree, the new address form. Cancellation as a pure function. The wallet's key streams. | `crates/ledger`, `crates/net/src/keys.rs`, `crates/crypto/src/hash.rs` |
+| 1b, built | The order format, fixed once: kind, largest fee, spare tree, the new address form. Cancellation as a pure function. The wallet's key streams. | `crates/ledger`, `crates/net/src/keys.rs`, `crates/crypto/src/hash.rs` |
 | 2 | The close as a pure state machine with no network or disk, and a simulator that runs it under delays, crashes and dishonest validators. The failures the review found become permanent tests. | new files in `crates/ledger` |
 | 3 | The close inside the validator with a fixed validator set: freeze, messages between validators, what is written to disk, the switch of state, the checkpoint chain, account proofs, key-tree replacement. | `crates/net`, `crates/cli` |
 | 4 | Staking, a changing validator set, penalties. | all crates |

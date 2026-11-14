@@ -3,7 +3,7 @@
 
 use borsh::{BorshDeserialize, BorshSerialize};
 use orien_crypto::Hash32;
-use orien_ledger::{AccountId, Certificate, Confirmation, Reject, SignedOrder, Vote};
+use orien_ledger::{AccountId, Certificate, Confirmation, Reject, SignedOrder, Signer, Vote};
 use std::io::{self, Read, Write};
 
 pub const MAX_FRAME: usize = 16 << 20;
@@ -51,7 +51,11 @@ pub struct NodeInfo {
 pub struct AccountView {
     pub balance: i128,
     pub seq: u64,
-    pub key: Hash32,
+    /// The key that must sign the account's next order.
+    pub signer: Signer,
+    /// The root of the account's spare keys, all zeros until its first
+    /// order reveals it.
+    pub spare: Hash32,
     /// Digest of the order this validator has voted for at `seq`, if any.
     pub lock: Option<Hash32>,
 }

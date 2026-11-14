@@ -16,7 +16,8 @@ line behind other payments. The name is from the Latin *oriens*, rising.
 2. **One-time signatures, with the ledger keeping count.** Every payment is
    signed with a hash-based one-time key and names the key for the next
    payment. "Never sign two different #7s" and "never use a key twice" are
-   the same rule, and validators enforce it.
+   the same rule, and validators enforce it. An address also commits to
+   sixteen spare keys, for the day a key does get used twice.
 3. **Validators sign in batches.** A validator signs one Merkle root over
    every vote and confirmation it was asked for in the last few
    milliseconds. One signature covers them all.
@@ -143,7 +144,7 @@ each validator syncing its votes to disk:
 | Throughput, 500 clients at once | 750 to 1,000 payments/s |
 | Payments covered by one validator signature under load | 10 to 28 |
 | One-time signature | 1,248 bytes |
-| Receipt (3 of 4 votes, 3 of 4 confirmations) | 12,044 bytes |
+| Receipt (3 of 4 votes, 3 of 4 confirmations) | 12,086 bytes |
 
 Finality in two steps costs throughput on this setup. Each payment waits
 for two disk syncs, one after the other, and here four validators share one
@@ -155,12 +156,12 @@ the same home network, and a server 57 ms away holding two):
 
 | | |
 |---|---|
-| Time to finality, median of 40 payments | 156 ms |
-| Fastest and slowest of the 40 | 137 ms and 241 ms |
+| Time to finality, median of 40 payments | 162 ms |
+| Fastest and slowest of the 40 | 138 ms and 240 ms |
 
 A payment needs two round trips to enough validators: one for the votes and
 one for the confirmations. With the server needed for a quorum, about 115 ms
-of the 156 is the network's own travel time.
+of the 162 is the network's own travel time.
 
 Reproduce the throughput figure with:
 
@@ -187,8 +188,10 @@ cargo test --release -p orien-net --test devnet throughput -- --ignored --nocapt
 - **A double-signed account can stay locked.** If two different payments are
   signed under one number and the validators' votes split, neither can become
   final. `orien resume` can still finish one of them while enough validators
-  have not voted. After that the account is stuck. The fix is to release such
-  locks at epoch boundaries.
+  have not voted. After that the account is stuck. The rule that frees it is
+  written and tested: both payments are cancelled and the account carries on
+  with a spare key. Nothing applies that rule yet. It takes a checkpoint,
+  which is the next thing to build (`docs/epochs.md`).
 - **Signing twice with one key leaks it.** Two signatures from one one-time
   key reveal enough to forge further payments under that number. A wallet
   asks the validators before it signs and refuses if the key is already in

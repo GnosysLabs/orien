@@ -2,9 +2,10 @@
 //! and reading account state without trusting any single validator.
 
 use crate::wire::{AccountView, NodeInfo, Request, Response, read_frame, write_frame};
-use orien_crypto::{Hash32, ots};
+use orien_crypto::Hash32;
 use orien_ledger::{
-    AccountId, Certificate, Committee, Confirmation, Genesis, Receipt, Reject, SignedOrder, Vote,
+    AccountId, Certificate, Committee, Confirmation, Genesis, Receipt, Reject, SignedOrder, Signer,
+    Vote, authorized,
 };
 use std::collections::BTreeMap;
 use std::fmt;
@@ -246,7 +247,13 @@ impl Client {
                 Ok(Response::Account(Some(view))) => Some(view),
                 // An account a validator has never seen is an empty one.
                 Ok(Response::Account(None)) => {
-                    Some(AccountView { balance: 0, seq: 0, key: *id, lock: None })
+                    Some(AccountView {
+                        balance: 0,
+                        seq: 0,
+                        signer: Signer::First,
+                        spare: Hash32::default(),
+                        lock: None,
+                    })
                 }
                 _ => None,
             })
@@ -360,7 +367,10 @@ impl Client {
             let genuine = signed.order.from == *id
                 && signed.order.seq == status.seq
                 && view.seq == status.seq
-                && ots::recover(&signed.signature, digest.as_bytes()) == view.key;
+                && signed
+                    .signature
+                    .signed_by(&digest)
+                    .is_some_and(|by| authorized(id, &view.signer, &view.spare, &signed.order, &by));
             if !genuine {
                 continue;
             }

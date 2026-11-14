@@ -1,10 +1,22 @@
 //! The state fingerprint, account proofs and snapshots.
 
 use orien_crypto::Hash32;
-use orien_ledger::{Accepted, Allocation, Genesis, Order, Reject, State, account_root};
+use orien_ledger::{
+    Accepted, Allocation, Genesis, Kind, Order, Reject, SignedBy, Signer, State, account_root, address,
+};
+
+// These tests never check a signature, so an account's first key and spare
+// root are any two values, and its address is the commitment to them.
+fn first_key(n: u8) -> Hash32 {
+    Hash32([n; 32])
+}
+
+fn spare(n: u8) -> Hash32 {
+    Hash32([n ^ 0xff; 32])
+}
 
 fn id(n: u8) -> Hash32 {
-    Hash32([n; 32])
+    address(&first_key(n), &spare(n))
 }
 
 fn genesis(balances: &[(u8, u64)]) -> Genesis {
@@ -19,7 +31,16 @@ fn genesis(balances: &[(u8, u64)]) -> Genesis {
 }
 
 fn pay(from: u8, seq: u64, to: u8, amount: u64) -> Order {
-    Order { from: id(from), seq, to: id(to), amount, next_key: id(from.wrapping_add(100 + seq as u8)) }
+    Order {
+        kind: Kind::Payment,
+        from: id(from),
+        seq,
+        to: id(to),
+        amount,
+        max_fee: 0,
+        next_key: first_key(from.wrapping_add(100 + seq as u8)),
+        spare: spare(from),
+    }
 }
 
 fn applied(genesis: &Genesis, orders: &[&Order]) -> State {
@@ -69,8 +90,14 @@ fn an_account_proof_holds_only_for_the_true_state() {
         earlier.seq += 1;
         assert_ne!(account_root(&id(n), &earlier, &proof), Some(root));
         let mut rekeyed = account.clone();
-        rekeyed.key = id(99);
+        rekeyed.signer = Signer::Key(id(99));
         assert_ne!(account_root(&id(n), &rekeyed, &proof), Some(root));
+        let mut other_spares = account.clone();
+        other_spares.spare = id(98);
+        assert_ne!(account_root(&id(n), &other_spares, &proof), Some(root));
+        let mut cancelled = account.clone();
+        cancelled.spares_used += 1;
+        assert_ne!(account_root(&id(n), &cancelled, &proof), Some(root));
         assert_ne!(account_root(&id(n + 10), &account, &proof), Some(root));
     }
     assert!(state.prove(&id(42)).is_none(), "an account that never held funds has no proof");
@@ -111,15 +138,15 @@ fn a_repeated_vote_still_needs_the_funds() {
 
     // The validator promised its vote while the account held enough.
     let mut funded = State::from_genesis(&genesis(&[(1, 10)]));
-    assert_eq!(funded.check_order(&order, digest, &id(1)), Ok(Accepted::Fresh));
-    assert_eq!(funded.check_order(&order, digest, &id(1)), Ok(Accepted::Repeat));
+    assert_eq!(funded.check_order(&order, digest, &SignedBy::Key(first_key(1))), Ok(Accepted::Fresh));
+    assert_eq!(funded.check_order(&order, digest, &SignedBy::Key(first_key(1))), Ok(Accepted::Repeat));
 
     // The same promise, restored on a state where the money is not there:
     // what a checkpoint leaves behind when it undoes the funding payment.
     let mut unfunded = State::from_genesis(&genesis(&[(1, 9)]));
     unfunded.restore_lock(id(1), 0, digest);
     assert_eq!(
-        unfunded.check_order(&order, digest, &id(1)),
+        unfunded.check_order(&order, digest, &SignedBy::Key(first_key(1))),
         Err(Reject::InsufficientFunds { balance: 9, needed: 10 })
     );
 
@@ -127,7 +154,7 @@ fn a_repeated_vote_still_needs_the_funds() {
     // when it also overspends: it is proof the owner signed twice.
     let second = pay(1, 0, 3, 1000);
     assert_eq!(
-        funded.check_order(&second, second.digest(&id(0)), &id(1)),
+        funded.check_order(&second, second.digest(&id(0)), &SignedBy::Key(first_key(1))),
         Err(Reject::Conflict { voted: digest })
     );
 }

@@ -86,6 +86,7 @@ pub enum Tag {
     Genesis = 0x32,
     Account = 0x33,
     Confirmation = 0x34,
+    Address = 0x35,
     StateLeaf = 0x40,
     StateNode = 0x41,
     StatePadding = 0x42,
@@ -110,6 +111,7 @@ pub enum Kdf {
     OtsChain = 0x02,
     WalletKey = 0x03,
     TreeLeaf = 0x04,
+    WalletSpare = 0x05,
 }
 
 /// Derives a secret from `key`. Keyed BLAKE3 is a pseudorandom function:

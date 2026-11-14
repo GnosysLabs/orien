@@ -2,7 +2,7 @@ use anyhow::{Context, Result, anyhow, bail};
 use clap::{Args, Parser, Subcommand};
 use orien_crypto::keytree::KeyTree;
 use orien_ledger::{
-    AccountId, Allocation, Certificate, Genesis, Order, Receipt, SignedOrder, ValidatorInfo,
+    AccountId, Allocation, Certificate, Genesis, Receipt, Signature, SignedOrder, ValidatorInfo,
 };
 use orien_net::client::{AccountStatus, Client, TransferError, Unfinished};
 use orien_net::keys::{ValidatorKey, Wallet, load_genesis, save_genesis};
@@ -170,7 +170,27 @@ enum DevnetCommand {
     },
 }
 
+/// Lets the program end quietly when whatever reads its output stops
+/// reading, as `orien status | head -1` does. Rust ignores that signal by
+/// default, and then every later line printed is a crash with a backtrace.
+#[cfg(unix)]
+fn end_quietly_on_a_closed_pipe() {
+    unsafe extern "C" {
+        fn signal(signal: i32, handler: usize) -> usize;
+    }
+    const SIGPIPE: i32 = 13;
+    const DEFAULT: usize = 0;
+    // SAFETY: restoring a signal's default handling before any thread starts.
+    unsafe {
+        signal(SIGPIPE, DEFAULT);
+    }
+}
+
+#[cfg(not(unix))]
+fn end_quietly_on_a_closed_pipe() {}
+
 fn main() {
+    end_quietly_on_a_closed_pipe();
     if let Err(error) = run(Cli::parse()) {
         eprintln!("error: {error:#}");
         std::process::exit(1);
@@ -691,9 +711,9 @@ fn devnet_run(dir: &Path) -> Result<()> {
 /// Signs a payment with a specific one-time key, bypassing the wallet's
 /// guard against using a key twice.
 fn sign_raw(wallet: &Wallet, genesis: &Genesis, seq: u64, to: AccountId, amount: u64) -> SignedOrder {
-    let order = Order { from: wallet.address(), seq, to, amount, next_key: wallet.key(seq + 1).commitment() };
+    let order = wallet.order(seq, to, amount);
     let digest = order.digest(&genesis.id());
-    SignedOrder { signature: wallet.key(seq).sign(digest.as_bytes()), order }
+    SignedOrder { signature: Signature::Key(wallet.key(seq).sign(digest.as_bytes())), order }
 }
 
 fn describe(response: std::io::Result<Response>) -> String {

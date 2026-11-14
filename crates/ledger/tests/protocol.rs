@@ -3,17 +3,20 @@
 use orien_crypto::keytree::KeyTree;
 use orien_crypto::{Hash32, Kdf, merkle, ots, prf};
 use orien_ledger::{
-    AccountId, Allocation, Applied, Certificate, Committee, Genesis, Order, Receipt, Reject,
-    SignedOrder, State, ValidatorInfo, VerifyError, Vote, confirmation_item,
+    AccountId, Allocation, Applied, CancelError, Certificate, Checked, Committee, Genesis, Kind,
+    Order, Receipt, Reject, SPARE_HEIGHT, Signature, SignedOrder, Signer, State, ValidatorInfo,
+    VerifyError, Vote, address, confirmation_item,
 };
 
 struct User {
     seed: [u8; 32],
+    spares: KeyTree,
 }
 
 impl User {
     fn new(n: u8) -> User {
-        User { seed: [n; 32] }
+        let seed = [n; 32];
+        User { seed, spares: KeyTree::generate(prf(&seed, Kdf::WalletSpare, 0), SPARE_HEIGHT) }
     }
 
     fn key(&self, index: u64) -> ots::SecretKey {
@@ -21,7 +24,20 @@ impl User {
     }
 
     fn id(&self) -> AccountId {
-        self.key(0).commitment()
+        address(&self.key(0).commitment(), &self.spares.root())
+    }
+
+    fn unsigned(&self, seq: u64, to: AccountId, amount: u64) -> Order {
+        Order {
+            kind: Kind::Payment,
+            from: self.id(),
+            seq,
+            to,
+            amount,
+            max_fee: 0,
+            next_key: self.key(seq + 1).commitment(),
+            spare: self.spares.root(),
+        }
     }
 
     fn order(&self, net: &Net, seq: u64, to: AccountId, amount: u64) -> SignedOrder {
@@ -29,9 +45,16 @@ impl User {
     }
 
     fn order_with_key(&self, net: &Net, seq: u64, key: u64, to: AccountId, amount: u64) -> SignedOrder {
-        let order = Order { from: self.id(), seq, to, amount, next_key: self.key(seq + 1).commitment() };
+        let order = self.unsigned(seq, to, amount);
         let digest = order.digest(&net.network);
-        SignedOrder { signature: self.key(key).sign(digest.as_bytes()), order }
+        SignedOrder { signature: Signature::Key(self.key(key).sign(digest.as_bytes())), order }
+    }
+
+    /// An order signed with spare key number `leaf`.
+    fn order_with_spare(&self, net: &Net, seq: u64, leaf: u32, to: AccountId, amount: u64) -> SignedOrder {
+        let order = self.unsigned(seq, to, amount);
+        let digest = order.digest(&net.network);
+        SignedOrder { signature: Signature::Spare(self.spares.sign_with_leaf(leaf, digest.as_bytes())), order }
     }
 }
 
@@ -101,7 +124,7 @@ impl Net {
 
     fn vote(&mut self, v: usize, signed: &SignedOrder) -> Result<Vote, Reject> {
         let digest = signed.order.digest(&self.network);
-        let signed_by = ots::recover(&signed.signature, digest.as_bytes());
+        let signed_by = signed.signed_by(&self.network).ok_or(Reject::BadSignature)?;
         self.validators[v].state.check_order(&signed.order, digest, &signed_by)?;
         Ok(self.sign_batch(v, &[digest]).remove(0))
     }
@@ -474,7 +497,189 @@ fn a_certificate_keeps_the_owners_signed_order() {
     // With it, a validator that never saw the order can check who signed it
     // against the key its own state holds for the account.
     let digest = certificate.order.digest(&net.network);
-    let signed_by = ots::recover(&certificate.signature, digest.as_bytes());
-    assert_eq!(signed_by, net.validators[3].state.key(&alice.id()));
-    assert_eq!(net.validators[3].state.key(&bob.id()), bob.id(), "an unused account is on its first key");
+    let signed_by = certificate.signature.signed_by(&digest).unwrap();
+    assert!(net.validators[3].state.authorizes(&certificate.order, &signed_by));
+    // The same signature on a different order points at some other key,
+    // which the account does not require.
+    let mut altered = certificate.order.clone();
+    altered.amount += 1;
+    let other_key = certificate.signature.signed_by(&altered.digest(&net.network)).unwrap();
+    assert_ne!(other_key, signed_by);
+    assert!(!net.validators[3].state.authorizes(&altered, &other_key));
+}
+
+impl Net {
+    fn checked<'a>(&self, signed: &'a SignedOrder) -> Checked<'a> {
+        Checked {
+            order: &signed.order,
+            digest: signed.order.digest(&self.network),
+            by: signed.signed_by(&self.network).unwrap(),
+        }
+    }
+
+    /// Every validator is shown the two orders and cancels the number.
+    fn cancel_everywhere(&mut self, one: &SignedOrder, other: &SignedOrder) -> Result<(), CancelError> {
+        let (one, other) = (self.checked(one), self.checked(other));
+        let mut outcome = Ok(());
+        for validator in &mut self.validators {
+            outcome = validator.state.cancel(&one, &other);
+        }
+        outcome
+    }
+
+    fn account(&self, v: usize, id: &AccountId) -> orien_ledger::Account {
+        self.validators[v].state.account(id).unwrap().clone()
+    }
+}
+
+#[test]
+fn a_double_signed_account_carries_on_with_a_spare_key() {
+    let (alice, bob, carol) = (User::new(1), User::new(2), User::new(3));
+    let mut net = Net::four(&[(&alice, 100)]);
+    // Alice's very first order is signed twice, and the vote splits.
+    let to_bob = alice.order(&net, 0, bob.id(), 10);
+    let to_carol = alice.order(&net, 0, carol.id(), 10);
+    for v in [0, 1] {
+        net.vote(v, &to_bob).unwrap();
+    }
+    for v in [2, 3] {
+        net.vote(v, &to_carol).unwrap();
+    }
+    let before = net.validators[0].state.root();
+
+    net.cancel_everywhere(&to_bob, &to_carol).unwrap();
+    let account = net.account(0, &alice.id());
+    assert_eq!((account.balance, account.seq), (100, 0), "nothing moved and the number stays");
+    assert_eq!((account.signer, account.spares_used), (Signer::Spare(0), 1));
+    assert_ne!(net.validators[0].state.root(), before, "the cancellation shows in the state root");
+
+    // The burned key signs nothing any more: not the two orders, and not a
+    // third that someone who learned to forge that key might make.
+    let forged = alice.order(&net, 0, carol.id(), 99);
+    for order in [&to_bob, &to_carol, &forged] {
+        assert_eq!(net.vote(0, order), Err(Reject::BadSignature));
+    }
+    // Nor does the wrong spare key.
+    assert_eq!(net.vote(0, &alice.order_with_spare(&net, 0, 1, bob.id(), 30)), Err(Reject::BadSignature));
+
+    // Spare key 0 does, under the same number, and the payment goes through.
+    let retry = alice.order_with_spare(&net, 0, 0, bob.id(), 30);
+    let certificate = net.certify(&retry, &[0, 1, 2, 3]);
+    assert_eq!(net.committee.verify_certificate(&certificate), Ok(()));
+    net.deliver_all(&certificate);
+    assert_eq!((net.balance(0, &alice.id()), net.balance(0, &bob.id())), (70, 30));
+
+    // After that the account is back on ordinary keys.
+    assert_eq!(net.account(0, &alice.id()).signer, Signer::Key(alice.key(1).commitment()));
+    let next = alice.order(&net, 1, carol.id(), 5);
+    let certificate = net.certify(&next, &[0, 1, 2]);
+    net.deliver_all(&certificate);
+    assert_eq!(net.balance(3, &carol.id()), 5);
+}
+
+#[test]
+fn cancelling_needs_two_orders_the_owner_really_signed() {
+    let (alice, bob, carol) = (User::new(1), User::new(2), User::new(3));
+    let mut net = Net::four(&[(&alice, 100), (&bob, 100)]);
+    // Bring alice to number 1 so the account is on an ordinary key.
+    let first = alice.order(&net, 0, bob.id(), 1);
+    let certificate = net.certify(&first, &[0, 1, 2]);
+    net.deliver_all(&certificate);
+
+    let genuine = alice.order(&net, 1, bob.id(), 10);
+    let second = alice.order(&net, 1, carol.id(), 10);
+    let not_evidence = [
+        ("the same order twice", genuine.clone()),
+        ("an order under another number", alice.order(&net, 2, carol.id(), 10)),
+        ("an order under a number already final", alice.order_with_key(&net, 0, 0, carol.id(), 10)),
+        ("an order signed with some other key", alice.order_with_key(&net, 1, 7, carol.id(), 10)),
+        ("an order signed with a spare key", alice.order_with_spare(&net, 1, 0, carol.id(), 10)),
+        ("another account's order", bob.order(&net, 0, carol.id(), 10)),
+    ];
+    for (what, other) in &not_evidence {
+        assert_eq!(net.cancel_everywhere(&genuine, other), Err(CancelError::NotEvidence), "{what}");
+        assert_eq!(net.cancel_everywhere(other, &genuine), Err(CancelError::NotEvidence), "{what}");
+    }
+    assert_eq!(net.account(0, &alice.id()).signer, Signer::Key(alice.key(1).commitment()));
+
+    // Once one of two signed orders is final, the pair cancels nothing.
+    let certificate = net.certify(&genuine, &[0, 1, 2]);
+    net.deliver_all(&certificate);
+    assert_eq!(net.cancel_everywhere(&genuine, &second), Err(CancelError::NotEvidence));
+    assert_eq!(net.balance(0, &bob.id()), 111);
+
+    // Two orders that really were signed under the current number do.
+    let (one, other) = (alice.order(&net, 2, bob.id(), 3), alice.order(&net, 2, carol.id(), 3));
+    assert_eq!(net.cancel_everywhere(&one, &other), Ok(()));
+    assert_eq!(net.account(0, &alice.id()).signer, Signer::Spare(0));
+}
+
+#[test]
+fn cancelling_drops_the_votes_promised_under_that_number() {
+    let (alice, bob, carol) = (User::new(1), User::new(2), User::new(3));
+    let mut net = Net::four(&[(&alice, 100)]);
+    let (to_bob, to_carol) = (alice.order(&net, 0, bob.id(), 10), alice.order(&net, 0, carol.id(), 10));
+    net.vote(0, &to_bob).unwrap();
+    let digest = to_bob.order.digest(&net.network);
+    assert_eq!(net.validators[0].state.lock(&alice.id(), 0), Some(&digest));
+
+    net.cancel_everywhere(&to_bob, &to_carol).unwrap();
+    assert_eq!(net.validators[0].state.lock(&alice.id(), 0), None);
+    // The validator is free to vote for the order signed with the spare.
+    assert!(net.vote(0, &alice.order_with_spare(&net, 0, 0, carol.id(), 10)).is_ok());
+}
+
+#[test]
+fn every_double_signing_uses_up_one_spare_key() {
+    let (alice, bob, carol) = (User::new(1), User::new(2), User::new(3));
+    let mut net = Net::four(&[(&alice, 100)]);
+    let (one, other) = (alice.order(&net, 0, bob.id(), 1), alice.order(&net, 0, carol.id(), 1));
+    net.cancel_everywhere(&one, &other).unwrap();
+
+    // The owner goes on signing twice with each spare key in turn.
+    let spares = 1u32 << SPARE_HEIGHT;
+    for leaf in 0..spares {
+        assert_eq!(net.account(0, &alice.id()).signer, Signer::Spare(leaf));
+        let one = alice.order_with_spare(&net, 0, leaf, bob.id(), 1);
+        let other = alice.order_with_spare(&net, 0, leaf, carol.id(), 1);
+        let outcome = net.cancel_everywhere(&one, &other);
+        if leaf + 1 < spares {
+            assert_eq!(outcome, Ok(()));
+        } else {
+            // The last spare key was the last chance. The account stays
+            // where it is, and nobody else is affected.
+            assert_eq!(outcome, Err(CancelError::NoSpareLeft));
+        }
+    }
+    let account = net.account(0, &alice.id());
+    assert_eq!((account.signer, account.spares_used, account.balance), (Signer::Spare(spares - 1), spares, 100));
+}
+
+#[test]
+fn an_address_commits_to_the_spare_keys() {
+    let (alice, bob, mallory) = (User::new(1), User::new(2), User::new(9));
+    let mut net = Net::four(&[(&alice, 100)]);
+
+    // Alice's first order reveals her spare root. An order naming someone
+    // else's spare keys is not hers, even signed with her real first key.
+    let mut swapped = alice.unsigned(0, bob.id(), 10);
+    swapped.spare = mallory.spares.root();
+    let digest = swapped.digest(&net.network);
+    let swapped = SignedOrder { signature: Signature::Key(alice.key(0).sign(digest.as_bytes())), order: swapped };
+    assert_eq!(net.vote(0, &swapped), Err(Reject::BadSignature));
+
+    // Once the root is on record, every later order must repeat it.
+    let first = alice.order(&net, 0, bob.id(), 10);
+    let certificate = net.certify(&first, &[0, 1, 2]);
+    net.deliver_all(&certificate);
+    assert_eq!(net.account(0, &alice.id()).spare, alice.spares.root());
+    let mut later = alice.unsigned(1, bob.id(), 10);
+    later.spare = mallory.spares.root();
+    let digest = later.digest(&net.network);
+    let later = SignedOrder { signature: Signature::Key(alice.key(1).sign(digest.as_bytes())), order: later };
+    assert_eq!(net.vote(0, &later), Err(Reject::BadSignature));
+    assert!(net.vote(0, &alice.order(&net, 1, bob.id(), 10)).is_ok());
+
+    // Different spare keys make a different address.
+    assert_ne!(alice.id(), address(&alice.key(0).commitment(), &mallory.spares.root()));
 }
