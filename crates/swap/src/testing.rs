@@ -23,7 +23,7 @@ pub struct Bitcoin {
     /// Which transaction spends each spent output.
     pub spent: HashMap<OutPoint, Txid>,
     pub fee_rate: u64,
-    next: u8,
+    next: u32,
 }
 
 /// A pretend Bitcoin network for tests.
@@ -46,7 +46,7 @@ impl TestChain {
             version: Version::TWO,
             lock_time: LockTime::ZERO,
             input: vec![TxIn {
-                previous_output: OutPoint { txid: Txid::from_byte_array([b.next; 32]), vout: 0 },
+                previous_output: OutPoint { txid: Txid::from_byte_array(Self::fake_txid(b.next)), vout: 0 },
                 script_sig: ScriptBuf::new(),
                 sequence: Sequence::MAX,
                 witness: Witness::new(),
@@ -70,6 +70,25 @@ impl TestChain {
         }
     }
 
+    /// Blocks pass, but nothing waiting gets into them: the network is busy.
+    pub fn busy(&self, blocks: u32) {
+        self.0.borrow_mut().height += blocks;
+    }
+
+    /// The network forgets every transaction still waiting, as nodes do
+    /// with ones that were never relayed far.
+    pub fn drop_waiting(&self) {
+        let mut b = self.0.borrow_mut();
+        let waiting: Vec<Txid> = b.txs.iter().filter(|(_, (_, mined))| mined.is_none()).map(|(txid, _)| *txid).collect();
+        for txid in waiting {
+            if let Some((tx, _)) = b.txs.remove(&txid) {
+                for input in &tx.input {
+                    b.spent.remove(&input.previous_output);
+                }
+            }
+        }
+    }
+
     /// What `address` has received from transactions the network holds.
     pub fn received(&self, address: &Address) -> u64 {
         let b = self.0.borrow();
@@ -82,14 +101,24 @@ impl TestChain {
             .sum()
     }
 
+    fn fake_txid(n: u32) -> [u8; 32] {
+        let mut bytes = [0xab; 32];
+        bytes[..4].copy_from_slice(&n.to_le_bytes());
+        bytes
+    }
+
     fn value_of(b: &Bitcoin, outpoint: &OutPoint) -> Option<TxOut> {
         b.txs.get(&outpoint.txid).and_then(|(tx, _)| tx.output.get(outpoint.vout as usize).cloned())
     }
 
-    fn fee_rate_of(b: &Bitcoin, tx: &Transaction) -> u64 {
+    fn fee_of(b: &Bitcoin, tx: &Transaction) -> u64 {
         let inputs: u64 = tx.input.iter().filter_map(|i| Self::value_of(b, &i.previous_output)).map(|o| o.value.to_sat()).sum();
         let outputs: u64 = tx.output.iter().map(|o| o.value.to_sat()).sum();
-        inputs.saturating_sub(outputs) / tx.vsize() as u64
+        inputs.saturating_sub(outputs)
+    }
+
+    fn fee_rate_of(b: &Bitcoin, tx: &Transaction) -> u64 {
+        Self::fee_of(b, tx) / tx.vsize() as u64
     }
 }
 
@@ -138,12 +167,16 @@ impl Chain for TestChain {
         let lookup = |outpoint: &OutPoint| TestChain::value_of(&b, outpoint);
         tx.verify(lookup).map_err(|e| anyhow::anyhow!("Bitcoin's rules refuse it: {e:?}"))?;
         // A spend of an output already spent: refused if that spend is mined,
-        // replaced if it is waiting and pays a lower fee rate.
+        // replaced if it is waiting and pays both a lower fee rate and a
+        // lower fee, as Bitcoin Core's replacement rules require.
         let mut replaced = Vec::new();
         for input in &tx.input {
             if let Some(other) = b.spent.get(&input.previous_output).copied() {
                 let (old, mined) = b.txs[&other].clone();
-                if mined.is_some() || TestChain::fee_rate_of(&b, &old) >= TestChain::fee_rate_of(&b, tx) {
+                if mined.is_some()
+                    || TestChain::fee_rate_of(&b, &old) >= TestChain::fee_rate_of(&b, tx)
+                    || TestChain::fee_of(&b, &old) >= TestChain::fee_of(&b, tx)
+                {
                     anyhow::bail!("conflicts with a transaction already sent");
                 }
                 replaced.push(other);

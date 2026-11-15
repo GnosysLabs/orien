@@ -5,7 +5,7 @@ use borsh::{BorshDeserialize, BorshSerialize};
 use orien_crypto::Hash32;
 use orien_crypto::merkle;
 use orien_ledger::close::{Decided, Message, Share};
-use orien_ledger::{Account, AccountId, Certificate, Confirmation, Escrow, Reject, SignedOrder, Signer, Vote};
+use orien_ledger::{Account, AccountId, Certificate, Confirmation, Escrow, LocksProof, Reject, SignedOrder, Signer, Vote};
 use std::io::{self, Read, Write};
 
 pub const MAX_FRAME: usize = 16 << 20;
@@ -60,6 +60,9 @@ pub enum Request {
     /// The locked payment `from` made as order `seq`: still waiting, or the
     /// secret that claimed it.
     Locked { from: AccountId, seq: u64 },
+    /// Every locked payment and revealed secret as the latest checkpoint
+    /// left them, with proof against that checkpoint's state root.
+    Locks,
 }
 
 #[derive(Clone, Debug, BorshSerialize, BorshDeserialize)]
@@ -141,6 +144,7 @@ pub enum Response {
     /// A locked payment as this validator holds it now: waiting, or claimed
     /// with this secret, or neither (refunded, long claimed, or unknown).
     Locked { epoch: u64, escrow: Option<Escrow>, secret: Option<[u8; 32]> },
+    Locks { epoch: u64, proof: LocksProof },
 }
 
 pub fn write_frame<W: Write>(writer: &mut W, payload: &[u8]) -> io::Result<()> {

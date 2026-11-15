@@ -104,6 +104,21 @@ pub fn send(client: &Client, wallet: &mut Signing, fees: Fees, to: AccountId, am
 /// payment, or the claim of one (whose `to` is the wallet itself, and which
 /// can come from an account that holds nothing yet).
 pub fn send_order(client: &Client, wallet: &mut Signing, fees: Fees, kind: Kind, to: AccountId, amount: u64) -> Result<Sent, String> {
+    send_order_at(client, wallet, fees, kind, to, amount, None)
+}
+
+/// Like `send_order`, but only as order number `at`, when given: a swap's
+/// lock is made under the number saved before it, or not at all, so that a
+/// lock made just before a crash is never made again under another number.
+pub fn send_order_at(
+    client: &Client,
+    wallet: &mut Signing,
+    fees: Fees,
+    kind: Kind,
+    to: AccountId,
+    amount: u64,
+    at: Option<u64>,
+) -> Result<Sent, String> {
     let claiming = matches!(kind, Kind::Claim { .. });
     let network = *client.committee().network();
     // The network's own accounts cannot be paid. Refuse before signing, so
@@ -153,7 +168,12 @@ pub fn send_order(client: &Client, wallet: &mut Signing, fees: Fees, kind: Kind,
             _ => {}
         },
         // The same payment is already signed: finish it rather than sign again.
-        [one] if one.signed.order.kind == kind && one.signed.order.to == to && one.signed.order.amount == amount => {
+        [one]
+            if one.signed.order.kind == kind
+                && one.signed.order.to == to
+                && one.signed.order.amount == amount
+                && at.is_none_or(|at| one.signed.order.seq == at) =>
+        {
             if wallet.pending().is_none_or(|own| own.order != one.signed.order) {
                 wallet.adopt(&one.signed, &network).map_err(|error| error.to_string())?;
             }
@@ -175,6 +195,12 @@ pub fn send_order(client: &Client, wallet: &mut Signing, fees: Fees, kind: Kind,
         }
     }
 
+    if at.is_some_and(|at| at != seq) {
+        return Err(format!(
+            "Order number {} is not this account's next ({seq}): the lock may already be made. Checking again shortly.",
+            at.unwrap_or_default()
+        ));
+    }
     let signed = wallet
         .sign(kind, seq, to, amount, status.signer.as_ref(), &network)
         .map_err(|error| error.to_string())?;

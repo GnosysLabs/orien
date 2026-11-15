@@ -70,29 +70,31 @@ impl Lock {
     /// The payee takes every coin in `coins`, revealing the secret, and pays
     /// them to `to`, less a fee of `fee_rate` satoshis per virtual byte. It
     /// signals replace-by-fee, so that it can be sent again with a higher fee.
-    pub fn claim(&self, coins: &[Coin], secret: &[u8; 32], key: &SecretKey, to: &Address, fee_rate: u64) -> Result<Transaction> {
+    /// A fee above `cap` percent of the coins is refused.
+    pub fn claim(&self, coins: &[Coin], secret: &[u8; 32], key: &SecretKey, to: &Address, fee_rate: u64, cap: u64) -> Result<Transaction> {
         if bitcoin::hashes::sha256::Hash::hash(secret).to_byte_array() != self.hash {
             bail!("that secret does not open this lock");
         }
         let script = self.script().to_bytes();
         let witness = |signature: Vec<u8>| Witness::from_slice(&[signature, secret.to_vec(), vec![1], script.clone()]);
-        self.spend(coins, to, fee_rate, LockTime::ZERO, key, witness)
+        self.spend(coins, to, (fee_rate, cap), LockTime::ZERO, key, witness)
     }
 
     /// The payer takes every coin in `coins` back, from `height` on, and pays
-    /// them to `to`, less a fee of `fee_rate` satoshis per virtual byte.
-    pub fn refund(&self, coins: &[Coin], key: &SecretKey, to: &Address, fee_rate: u64) -> Result<Transaction> {
+    /// them to `to`, less a fee of `fee_rate` satoshis per virtual byte, at
+    /// most `cap` percent of the coins.
+    pub fn refund(&self, coins: &[Coin], key: &SecretKey, to: &Address, fee_rate: u64, cap: u64) -> Result<Transaction> {
         let lock_time = LockTime::from_height(self.height).map_err(|_| anyhow!("not a block height"))?;
         let script = self.script().to_bytes();
         let witness = |signature: Vec<u8>| Witness::from_slice(&[signature, Vec::new(), script.clone()]);
-        self.spend(coins, to, fee_rate, lock_time, key, witness)
+        self.spend(coins, to, (fee_rate, cap), lock_time, key, witness)
     }
 
     fn spend(
         &self,
         coins: &[Coin],
         to: &Address,
-        fee_rate: u64,
+        (fee_rate, cap): (u64, u64),
         lock_time: LockTime,
         key: &SecretKey,
         witness: impl Fn(Vec<u8>) -> Witness,
@@ -118,9 +120,9 @@ impl Lock {
             input.witness = witness(vec![0; 73]);
         }
         let fee = Amount::from_sat(fee_rate.saturating_mul(tx.vsize() as u64));
-        // A fee above a tenth of the coins is refused: either the network is
-        // unusually busy, or the fee rate is wrong. Better to wait.
-        if fee > total / 10 {
+        // A fee above the cap is refused: either the network is unusually
+        // busy, or the fee rate is wrong. Better to wait.
+        if fee.to_sat() > total.to_sat() / 100 * cap.min(90) {
             bail!("Bitcoin's fees are too high right now for {total}: {fee}. The swap waits for them to fall.");
         }
         let value = total - fee;
@@ -134,6 +136,34 @@ impl Lock {
             tx.input[index].witness = witness(bitcoin::ecdsa::Signature { signature, sighash_type: EcdsaSighashType::All }.to_vec());
         }
         Ok(tx)
+    }
+}
+
+impl Lock {
+    /// Whether `tx` spends at least one of `coins`, and every input of it
+    /// that spends one carries this lock's script and a valid signature by
+    /// `key`. What an explorer reports as someone's spend is believed only
+    /// when this holds.
+    pub fn signed_by(&self, tx: &Transaction, coins: &[Coin], key: &PublicKey) -> bool {
+        let script = self.script();
+        let secp = Secp256k1::verification_only();
+        let mut any = false;
+        for (index, input) in tx.input.iter().enumerate() {
+            let Some(coin) = coins.iter().find(|coin| coin.outpoint == input.previous_output) else { continue };
+            any = true;
+            let (Some(signature), Some(last)) = (input.witness.nth(0), input.witness.last()) else { return false };
+            if last != script.as_bytes() {
+                return false;
+            }
+            let Ok(signature) = bitcoin::ecdsa::Signature::from_slice(signature) else { return false };
+            let Ok(sighash) = SighashCache::new(tx).p2wsh_signature_hash(index, &script, coin.value, signature.sighash_type) else {
+                return false;
+            };
+            if secp.verify_ecdsa(&Message::from_digest(sighash.to_byte_array()), &signature.signature, &key.inner).is_err() {
+                return false;
+            }
+        }
+        any
     }
 }
 
@@ -195,14 +225,19 @@ mod tests {
     fn the_payee_claims_with_the_secret_and_reveals_it() {
         let (lock, payee_key, payer_key, secret) = lock(900_000);
         let coins = [coin(1, 1_000_000)];
-        let tx = lock.claim(&coins, &secret, &payee_key, &to(), 10).unwrap();
+        let tx = lock.claim(&coins, &secret, &payee_key, &to(), 10, 10).unwrap();
         assert!(valid(&lock, &tx, &coins), "Bitcoin's rules accept the claim");
         assert_eq!(tx.output[0].value, Amount::from_sat(1_000_000 - 10 * tx.vsize() as u64));
         assert!(tx.input[0].sequence.is_rbf(), "it can be replaced with a higher fee");
         assert_eq!(secret_in(&tx, &lock.hash), Some(secret), "the other side reads the secret from it");
+        assert!(lock.signed_by(&tx, &coins, &lock.payee), "signed by the payee");
+        assert!(!lock.signed_by(&tx, &coins, &lock.payer));
+        let mut forged = tx.clone();
+        forged.output[0].value = Amount::from_sat(1);
+        assert!(!lock.signed_by(&forged, &coins, &lock.payee), "a changed transaction is not signed");
         // The wrong key, or the wrong secret, cannot claim.
-        assert!(!valid(&lock, &lock.claim(&coins, &secret, &payer_key, &to(), 10).unwrap(), &coins));
-        assert!(lock.claim(&coins, &[6; 32], &payee_key, &to(), 10).is_err());
+        assert!(!valid(&lock, &lock.claim(&coins, &secret, &payer_key, &to(), 10, 10).unwrap(), &coins));
+        assert!(lock.claim(&coins, &[6; 32], &payee_key, &to(), 10, 10).is_err());
         println!("claim: {} vbytes", tx.vsize());
     }
 
@@ -210,10 +245,10 @@ mod tests {
     fn several_payments_are_claimed_or_refunded_together() {
         let (lock, payee_key, payer_key, secret) = lock(900_000);
         let coins = [coin(1, 400_000), coin(2, 700_000)];
-        let claim = lock.claim(&coins, &secret, &payee_key, &to(), 3).unwrap();
+        let claim = lock.claim(&coins, &secret, &payee_key, &to(), 3, 10).unwrap();
         assert!(valid(&lock, &claim, &coins));
         assert_eq!(claim.input.len(), 2);
-        let refund = lock.refund(&coins, &payer_key, &to(), 3).unwrap();
+        let refund = lock.refund(&coins, &payer_key, &to(), 3, 10).unwrap();
         assert!(valid(&lock, &refund, &coins));
     }
 
@@ -221,7 +256,7 @@ mod tests {
     fn the_payer_takes_the_coins_back_only_after_the_height() {
         let (lock, payee_key, payer_key, _) = lock(900_000);
         let coins = [coin(1, 1_000_000)];
-        let tx = lock.refund(&coins, &payer_key, &to(), 10).unwrap();
+        let tx = lock.refund(&coins, &payer_key, &to(), 10, 10).unwrap();
         assert!(valid(&lock, &tx, &coins), "Bitcoin's rules accept the refund");
         assert_eq!(tx.lock_time, LockTime::from_height(900_000).unwrap());
         println!("refund: {} vbytes", tx.vsize());
@@ -230,15 +265,17 @@ mod tests {
         early.lock_time = LockTime::from_height(899_999).unwrap();
         assert!(!valid(&lock, &early, &coins));
         // Only the payer's key refunds.
-        assert!(!valid(&lock, &lock.refund(&coins, &payee_key, &to(), 10).unwrap(), &coins));
+        assert!(!valid(&lock, &lock.refund(&coins, &payee_key, &to(), 10, 10).unwrap(), &coins));
     }
 
     #[test]
     fn fees_are_kept_sane() {
         let (lock, payee_key, _, secret) = lock(900_000);
         // A fee over a tenth of the coins is refused.
-        assert!(lock.claim(&[coin(1, 100_000)], &secret, &payee_key, &to(), 100).is_err());
-        assert!(lock.claim(&[coin(1, 100_000)], &secret, &payee_key, &to(), 50).is_ok());
-        assert!(lock.claim(&[], &secret, &payee_key, &to(), 1).is_err());
+        assert!(lock.claim(&[coin(1, 100_000)], &secret, &payee_key, &to(), 100, 10).is_err());
+        assert!(lock.claim(&[coin(1, 100_000)], &secret, &payee_key, &to(), 50, 10).is_ok());
+        assert!(lock.claim(&[], &secret, &payee_key, &to(), 1, 10).is_err());
+        // Near a deadline, a higher cap lets a fee through.
+        assert!(lock.claim(&[coin(1, 100_000)], &secret, &payee_key, &to(), 100, 50).is_ok());
     }
 }

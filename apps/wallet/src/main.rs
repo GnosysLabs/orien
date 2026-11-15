@@ -490,8 +490,7 @@ async fn swap_step(app: AppHandle, password: Option<String>) -> Result<Vec<swaps
     with_swaps(&app, password, move |dir, orien| {
         let mut all = swaps::load(dir);
         if swaps::active(&all) {
-            swaps::step(orien, &mut all);
-            swaps::save(dir, &all)?;
+            swaps::step(orien, dir, &mut all)?;
         }
         Ok(views(&all))
     })
@@ -546,7 +545,8 @@ mod tests {
             let (_, key) = orien_swap::htlc::new_key();
             Address::p2wpkh(&CompressedPublicKey(key.inner), Network::Regtest).to_string()
         };
-        let chain = TestChain::at(100);
+        let bitcoin = TestChain::at(100);
+        let chain = orien_swap::chain::Explorers::one(bitcoin.clone());
 
         let orn = 5 * orien_ledger::COIN;
         let mut sell = Swap::sell(&seller, Network::Regtest, buyer.me(), orn, 1_000_000, &btc()).unwrap();
@@ -554,14 +554,15 @@ mod tests {
         let offer = Offer::read(&sell.offer(seller.network()).unwrap().code()).unwrap();
         let (mut buy, reply) = Swap::buy(&buyer, &chain, Network::Regtest, &offer, &btc()).unwrap();
         sell.accept(&chain, &seller, &Reply::read(&reply.code()).unwrap()).unwrap();
-        chain.pay(&buy.bitcoin_address().unwrap(), 1_000_000);
-        chain.mine(3);
+        bitcoin.pay(&buy.bitcoin_address().unwrap(), 1_000_000);
+        bitcoin.mine(3);
         for _ in 0..4 {
             sell.advance(&chain, &seller).unwrap();
             buy.advance(&chain, &buyer).unwrap();
         }
-        chain.mine(3);
+        bitcoin.mine(3);
         sell.advance(&chain, &seller).unwrap();
+        buy.advance(&chain, &buyer).unwrap();
         assert_eq!((sell.stage, buy.stage), (Stage::Done, Stage::Done));
         let status = client.account(&buyer.me(), 0);
         assert_eq!(status.spendable, Some(orn as i128 - network.fee.min as i128), "the buyer has the ORN, less the claim's fee");

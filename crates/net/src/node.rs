@@ -1453,6 +1453,10 @@ impl Core {
                 escrow: self.state.escrow(&from, seq).cloned(),
                 secret: self.state.revealed(&from, seq),
             },
+            Request::Locks => {
+                let proofs = self.proofs.get_or_insert_with(|| self.start.proofs());
+                Response::Locks { epoch: self.committee.epoch(), proof: proofs.locks().clone() }
+            }
             Request::Work => Response::Work {
                 epoch: self.committee.epoch(),
                 seed: self.previous,

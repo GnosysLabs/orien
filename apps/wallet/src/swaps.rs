@@ -52,7 +52,7 @@ pub struct View {
 /// explorers, unless `ORIEN_BITCOIN` names a test network (testnet4, signet
 /// or regtest, with `ORIEN_BITCOIN_API` for regtest's explorer).
 pub fn bitcoin() -> (bitcoin::Network, Explorers) {
-    let one = |base: &str| Explorers(vec![Esplora::at(base)]);
+    let one = |base: &str| Explorers::one(Esplora::at(base));
     match std::env::var("ORIEN_BITCOIN").as_deref() {
         Ok("testnet4") => (bitcoin::Network::Testnet4, one("https://mempool.space/testnet4/api")),
         Ok("signet") => (bitcoin::Network::Signet, one("https://mempool.space/signet/api")),
@@ -108,6 +108,7 @@ pub fn view(kept: &Kept) -> View {
         (Role::Seller, Stage::WaitingForReply) => ("reply", "Your ORN are locked for the buyer. Send them the offer code, then paste their reply.".to_string()),
         (Role::Seller, Stage::WaitingForBitcoin) => ("bitcoin", "Waiting for the buyer's Bitcoin to arrive and be confirmed three times, about half an hour. Keep this app open.".to_string()),
         (Role::Buyer, Stage::WaitingForBitcoin) => ("bitcoin", "Send the Bitcoin below, then send the seller the reply code. Keep this app open.".to_string()),
+        (Role::Buyer, Stage::WaitingForSecret) if swap.orn_claimed => ("secret", "Your ORN are claimed. Taking back the extra Bitcoin paid into the swap once its lock ends; keep this app open.".to_string()),
         (_, Stage::WaitingForSecret) => ("secret", "Paid. Waiting for the seller to take the Bitcoin, which lets this app claim your ORN.".to_string()),
         (_, Stage::ClaimingOrn) => ("claim", "The seller took the Bitcoin. Claiming your ORN.".to_string()),
         (_, Stage::Done) => ("done", match swap.role {
@@ -145,12 +146,12 @@ pub struct AppOrien<'a> {
 }
 
 impl AppOrien<'_> {
-    fn send(&self, kind: Kind, to: Hash32, amount: u64) -> anyhow::Result<send::Sent> {
+    fn send(&self, kind: Kind, to: Hash32, amount: u64, at: Option<u64>) -> anyhow::Result<send::Sent> {
         let mut wallet = crate::open_signing(&self.wallet_file, self.password.as_deref()).map_err(anyhow::Error::msg)?;
-        let sent = send::send_order(self.client, &mut wallet, self.fees, kind.clone(), to, amount).map_err(anyhow::Error::msg)?;
+        let sent = send::send_order_at(self.client, &mut wallet, self.fees, kind.clone(), to, amount, at).map_err(anyhow::Error::msg)?;
         // That finished an earlier payment instead: now send this one.
         if sent.earlier {
-            return send::send_order(self.client, &mut wallet, self.fees, kind, to, amount).map_err(anyhow::Error::msg);
+            return send::send_order_at(self.client, &mut wallet, self.fees, kind, to, amount, at).map_err(anyhow::Error::msg);
         }
         Ok(sent)
     }
@@ -164,28 +165,48 @@ impl Orien for AppOrien<'_> {
         orien_net::keys::Wallet::peek(&self.wallet_file).map(|(address, _)| address).unwrap_or_default()
     }
     fn epoch(&self) -> anyhow::Result<u64> {
+        self.client.follow();
         Ok(self.client.epoch())
+    }
+    fn latest_epoch(&self) -> anyhow::Result<u64> {
+        // Checkpoints could be held back from this wallet; the clock cannot.
+        self.client.follow();
+        let head = self.client.head();
+        let passed = now().saturating_sub(head.time) / self.epoch_seconds.max(1);
+        Ok(head.epoch + passed)
     }
     fn epoch_seconds(&self) -> u64 {
         self.epoch_seconds
     }
-    fn locked(&self, lock: &LockRef, hash: &[u8; 32]) -> anyhow::Result<LockState> {
-        let locked = self.client.locked(&lock.from, lock.seq, hash);
-        if !locked.agreed {
-            anyhow::bail!("the validators do not agree on the locked ORN yet; trying again");
+    fn next_seq(&self) -> anyhow::Result<u64> {
+        let status = self.client.account(&self.me(), 0);
+        if status.views.iter().all(Option::is_none) {
+            anyhow::bail!("no validator could be reached");
         }
+        // A payment signed here and not yet final is finished before
+        // anything new is signed, so the next order comes after it.
+        let pending = crate::open_signing(&self.wallet_file, self.password.as_deref())
+            .ok()
+            .and_then(|wallet| wallet.pending().map(|signed| signed.order.seq + 1));
+        Ok(pending.map_or(status.seq, |after| after.max(status.seq)))
+    }
+    fn proven(&self, lock: &LockRef) -> anyhow::Result<LockState> {
+        let proven = self
+            .client
+            .proven_lock(&lock.from, lock.seq)
+            .ok_or_else(|| anyhow::anyhow!("the validators have not proven the locked ORN yet; trying again"))?;
         Ok(LockState {
-            epoch: locked.epoch.max(self.client.epoch()),
-            waiting: locked.waiting.map(|e| Waiting { to: e.to, amount: e.amount, hash: e.hash, until: e.until }),
-            secret: locked.secret,
+            epoch: proven.epoch,
+            waiting: proven.made.map(|e| Waiting { to: e.to, amount: e.amount, hash: e.hash, until: e.until }),
+            secret: proven.secret,
         })
     }
-    fn lock(&self, to: &Hash32, amount: u64, hash: [u8; 32], until: u64) -> anyhow::Result<LockRef> {
-        let sent = self.send(Kind::Lock { hash, until }, *to, amount)?;
+    fn lock(&self, seq: u64, to: &Hash32, amount: u64, hash: [u8; 32], until: u64) -> anyhow::Result<LockRef> {
+        let sent = self.send(Kind::Lock { hash, until }, *to, amount, Some(seq))?;
         Ok(LockRef { from: self.me(), seq: sent.seq })
     }
     fn claim(&self, lock: &LockRef, amount: u64, secret: [u8; 32]) -> anyhow::Result<()> {
-        self.send(Kind::Claim { from: lock.from, seq: lock.seq, secret }, self.me(), amount)?;
+        self.send(Kind::Claim { from: lock.from, seq: lock.seq, secret }, self.me(), amount, None)?;
         Ok(())
     }
 }
@@ -216,12 +237,19 @@ pub fn accept(orien: &AppOrien, kept: &mut Kept, reply: &str) -> Result<(), Stri
     kept.swap.accept(&chain, orien, &reply).map_err(|error| error.to_string())
 }
 
-/// Moves every unfinished swap along as far as it can go now.
-pub fn step(orien: &AppOrien, swaps: &mut [Kept]) {
+/// Moves every unfinished swap along as far as it can go now, saving after
+/// each: a swap's step may sign a Bitcoin transaction or an order, and what
+/// it signed must be on disk before the next one starts.
+pub fn step(orien: &AppOrien, dir: &Path, swaps: &mut [Kept]) -> Result<(), String> {
     let (_, chain) = bitcoin();
-    for kept in swaps.iter_mut().filter(|kept| !matches!(kept.swap.stage, Stage::Done | Stage::Cancelled { .. })) {
-        advance(orien, &chain, kept);
+    for index in 0..swaps.len() {
+        if matches!(swaps[index].swap.stage, Stage::Done | Stage::Cancelled { .. }) {
+            continue;
+        }
+        advance(orien, &chain, &mut swaps[index]);
+        save(dir, swaps)?;
     }
+    Ok(())
 }
 
 /// Moves one swap along, and makes the offer code once the ORN are locked.

@@ -6,12 +6,39 @@ Built: the ledger rules (`crates/ledger`), the network side (`crates/net`),
 first design: a locked payment is named by its sender and order number
 (`ADDRESS:NUMBER`) rather than its digest, and the Bitcoin script also checks
 that the secret is 32 bytes (`OP_SIZE 32 OP_EQUALVERIFY`). The swap's timings
-are 48 hours for the ORN lock and 72 blocks for the Bitcoin lock, and a
-review before release added: payments checked against their own
-transactions, two independent explorers for confirmations (3 needed),
-replace-by-fee with re-sending until settled, every payment into the lock
-watched, the secret claimed whenever it appears, stake-weighted validator
-answers, sane fee limits, and the secret saved before anything is locked.
+are 48 hours for the ORN lock and 72 blocks for the Bitcoin lock. Three
+reviews before release added:
+
+- The buyer pays only for ORN proven locked by validators' signatures: the
+  Lock order's certificate with confirmations, or a Merkle path from the
+  escrow list to the last checkpoint's state root (the `Locks` request). It
+  counts the ORN claimed only on the same kind of proof. Its sense of time
+  takes the clock into account, so hidden checkpoints cannot make a deadline
+  look further off.
+- Payments are checked against their own transactions, and spends against
+  their signatures. The seller reveals the secret only for payments every
+  explorer reports 3 blocks deep, claims only as many coins as the price
+  needs (largest first), and only at the network's fee with room to triple
+  it, so dust paid into the lock cannot make the claim unmineable. The buyer
+  reads every explorer that answers and remembers every payment it sees.
+  Deadlines are set and called from a height every explorer agrees on.
+- Claims and refunds use replace-by-fee and are sent again until mined, at
+  the highest fee rate any explorer reports, raised by a quarter every 3
+  blocks unmined. From 6 hours before the ORN deadline the buyer's refund
+  doubles its fee every block, up to nine tenths of the coins.
+- The buyer refunds each payment on its own once it is mined, so a
+  stranger's unconfirmed payment cannot pin the refund; keeps refunding
+  until the ORN are claimed, even after the secret appears; and takes back
+  any Bitcoin left in the lock after claiming them.
+- The seller locks under the order number saved before anything is signed,
+  and under no other, so the ORN are never locked twice. After a crash each
+  side recognises its own signed claim or refund. The app saves after every
+  swap's step.
+
+Known limit: the `Locks` answer carries the whole escrow list, so past about
+130,000 waiting locked payments it outgrows a 16 MiB message and the buyer
+falls back to certificates, which work only within the lock's own epoch.
+Paging it is future work.
 
 ## In plain words
 

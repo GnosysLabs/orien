@@ -187,3 +187,30 @@ fn snapshots_carry_locks_and_older_snapshots_still_read() {
     assert_eq!(restored.root(), state.root());
     assert_eq!(restored.escrow(&id(ALICE), 0), state.escrow(&id(ALICE), 0));
 }
+
+#[test]
+fn locked_payments_and_secrets_are_proven_against_the_state_root() {
+    let mut state = network();
+    // Nothing locked: nothing to show, and nothing hidden.
+    let (escrows, revealed) = state.proofs().locks().open(&state.root()).unwrap();
+    assert!(escrows.is_empty() && revealed.is_empty());
+
+    vote_and_apply(&mut state, &lock(0, 10_000, 12)).unwrap();
+    vote_and_apply(&mut state, &lock(1, 5_000, 20)).unwrap();
+    vote_and_apply(&mut state, &claim(BOB, 0, 10_000, SECRET)).unwrap();
+    let root = state.root();
+    let proof = state.proofs().locks().clone();
+    let (escrows, revealed) = proof.open(&root).unwrap();
+    assert_eq!(escrows.get(&(id(ALICE), 1)).map(|e| e.amount), Some(5_000));
+    assert_eq!(revealed.get(&(id(ALICE), 0)).map(|r| r.0), Some(SECRET));
+
+    // A changed list, or a list moved to another place, proves nothing.
+    let mut forged = proof.clone();
+    *forged.escrows.as_mut().unwrap().0.last_mut().unwrap() ^= 1;
+    assert!(forged.open(&root).is_none());
+    let mut swapped = proof.clone();
+    swapped.escrows = proof.revealed.clone();
+    assert!(swapped.open(&root).is_none());
+    // Nor does it hold under another root.
+    assert!(proof.open(&network().root()).is_none());
+}

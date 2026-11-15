@@ -2104,3 +2104,48 @@ fn an_unclaimed_lock_comes_back_after_its_deadline() {
         Response::Rejected(Reject::NoSuchLock | Reject::LockExpired { .. })
     ));
 }
+
+/// What a swap's buyer relies on: a locked payment proven by signatures,
+/// first by its certificate, then by the checkpoint's state root, and its
+/// secret proven once claimed. Nothing is proven of a payment never made.
+#[test]
+fn a_locked_payment_and_its_secret_are_proven_by_checkpoints() {
+    use orien_ledger::lock_hash;
+    let net = TestNet::with_epochs("lock-proof", 3);
+    let client = net.client();
+    let alice = net.address("alice");
+    let mut sender = net.wallet("alice");
+    sender.accept_fee(net.genesis.fee);
+    let mut payee = Wallet::create(&net.dir.join("proof.wallet")).unwrap();
+    let secret = [11u8; 32];
+    let hash = lock_hash(&secret);
+
+    net.wait_until_level();
+    client.follow();
+    let until = client.epoch() + 20;
+    let status = client.account(&alice, sender.next_seq());
+    let lock = sender
+        .sign(Kind::Lock { hash, until }, status.seq, payee.address(), 500, status.signer.as_ref(), &net.network)
+        .unwrap();
+    assert!(matches!(client.pay(&lock, Duration::from_secs(20)), Ok(Done::Receipt(_))));
+    let seq = lock.order.seq;
+    // Proven at once, by whichever proof the epoch allows.
+    let proven = client.proven_lock(&alice, seq).expect("proven");
+    assert_eq!(proven.made.map(|e| (e.to, e.amount, e.hash, e.until)), Some((payee.address(), 500, hash, until)));
+    // Proven by the checkpoint once an epoch has closed.
+    let epoch = client.epoch();
+    net.wait_for_epoch(epoch + 1);
+    let proven = client.proven_lock(&alice, seq).expect("proven by the checkpoint");
+    assert!(proven.epoch > epoch && proven.made.is_some() && proven.secret.is_none());
+    // Nothing is proven of an order that was never a lock.
+    assert!(client.proven_lock(&alice, seq + 5).is_none());
+
+    let claim = payee
+        .sign(Kind::Claim { from: alice, seq, secret }, 0, payee.address(), 500, None, &net.network)
+        .unwrap();
+    assert!(matches!(client.pay(&claim, Duration::from_secs(20)), Ok(Done::Receipt(_))));
+    let epoch = client.epoch();
+    net.wait_for_epoch(epoch + 1);
+    let proven = client.proven_lock(&alice, seq).expect("the secret is proven");
+    assert_eq!((proven.made, proven.secret), (None, Some(secret)));
+}

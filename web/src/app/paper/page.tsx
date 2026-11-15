@@ -621,15 +621,23 @@ OP_ENDIF`}</Formula>
             for ETH and its tokens.
           </p>
           <p>
-            A wallet trusts neither the other side nor the Bitcoin explorers it reads. Every payment it acts on is
-            checked against the bytes of its own transaction, which hash to its id; how deep a transaction lies is
-            asked of two independent explorers, and the smaller answer used. Validators’ answers about a locked
-            payment count only when validators holding more than two thirds of the stake give the same one. Claims and
-            refunds signal replace-by-fee and are sent again, with a higher fee if they are stuck, until they are 3
-            blocks deep. The buyer’s wallet watches every payment into the lock, so a payment split in two, or paid
-            again, is never stranded, and it claims the ORN whenever the secret appears, even after starting to take
-            the Bitcoin back. A fee above a tenth of the coins is refused, and the seller saves the secret before
-            locking anything.
+            A wallet trusts neither the other side, nor the Bitcoin explorers it reads, nor any validator’s word.
+            The buyer pays only for ORN proven locked: by the Lock order’s certificate with confirmations from more
+            than two thirds of the stake, or by a Merkle path from the escrow list to the last checkpoint’s state
+            root. It counts the ORN claimed only on the same kind of proof. Every Bitcoin payment a wallet acts on is
+            checked against the bytes of its own transaction, which hash to its id, and every spend against its
+            signature. The seller reveals the secret only for payments every explorer reports at least 3 blocks
+            deep, claims only as many of them as the price needs, largest first, and only at the network’s fee rate
+            with room to triple it, so tiny payments into the lock cannot make the claim too dear to be mined. The
+            buyer, who must not miss a payment, reads every explorer that answers and remembers every payment it
+            has seen. Claims and refunds signal replace-by-fee and are sent again until mined, at the highest fee
+            rate any explorer reports, raised by a quarter every 3 blocks they stay unmined. The buyer takes each
+            payment back on its own once it is mined, so a stranger’s payment into the lock cannot hold up the
+            refund. It claims the ORN whenever the secret appears and keeps its refund going until they are claimed;
+            from 6 hours before the ORN deadline its refund’s fee doubles every block, up to nine tenths of the coins.
+            Otherwise a fee above a tenth of the coins is refused. The seller saves the secret, and the order number
+            its lock will have, before locking anything, and locks under no other number, so the ORN are never locked
+            twice.
           </p>
         </Sub>
       </PaperSection>
@@ -656,7 +664,7 @@ OP_ENDIF`}</Formula>
       </PaperSection>
 
       <PaperSection id="network" number={11} title="The network">
-        <Sub title="10.1 Messages">
+        <Sub title="11.1 Messages">
           <p>
             Wallets, miners and validators talk over TCP. Each message is a 4-byte length followed by a Borsh-encoded
             request or response, at most 16 MiB. A connection carries many request and response pairs in turn. Every
@@ -664,7 +672,7 @@ OP_ENDIF`}</Formula>
           </p>
         </Sub>
 
-        <Sub title="10.2 Between validators">
+        <Sub title="11.2 Between validators">
           <p>
             Validators find each other through the addresses in the genesis file and in each checkpoint’s list of
             validators. Each validator keeps two links to every other one: it pushes its own closing messages and the
@@ -681,7 +689,7 @@ OP_ENDIF`}</Formula>
           </p>
         </Sub>
 
-        <Sub title="10.3 Durability">
+        <Sub title="11.3 Durability">
           <p>
             A validator writes each promise to disk before it is kept. The signed order behind every vote is written and
             synced before the vote leaves; a certificate is synced before its confirmation leaves; each one-time key
@@ -690,7 +698,7 @@ OP_ENDIF`}</Formula>
           </p>
         </Sub>
 
-        <Sub title="10.4 Storage that stays small">
+        <Sub title="11.4 Storage that stays small">
           <p>
             A validator keeps the ledger state of the last three epochs and the certificates of the current one. Older
             certificates, closing journals and states are deleted at each checkpoint, so the storage a validator needs
@@ -701,7 +709,7 @@ OP_ENDIF`}</Formula>
           </p>
         </Sub>
 
-        <Sub title="10.5 Validators that join">
+        <Sub title="11.5 Validators that join">
           <p>
             A validator outside the genesis file runs in watching mode until a checkpoint chooses it. It follows decided
             checkpoints and state like any other node, but neither votes nor closes epochs. When a checkpoint lists its
@@ -711,7 +719,7 @@ OP_ENDIF`}</Formula>
       </PaperSection>
 
       <PaperSection id="wallets" number={12} title="Wallets">
-        <Sub title="11.1 Trusting only what can be checked">
+        <Sub title="12.1 Trusting only what can be checked">
           <p>
             A wallet trusts no single validator. It starts from the genesis file and follows checkpoints, accepting each
             only if it continues the previous one and carries precommits from more than two thirds of that epoch’s
@@ -723,7 +731,7 @@ OP_ENDIF`}</Formula>
           </p>
         </Sub>
 
-        <Sub title="11.2 Keys">
+        <Sub title="12.2 Keys">
           <p>
             A wallet holds one 32-byte account seed. One-time key <em>n</em>, which signs the account’s order{' '}
             <em>n</em> and nothing else, is derived as prf(seed, 0x03, n), and the 16 spare keys come from
@@ -735,7 +743,7 @@ OP_ENDIF`}</Formula>
           </p>
         </Sub>
 
-        <Sub title="11.3 Recovery phrase">
+        <Sub title="12.3 Recovery phrase">
           <p>
             A wallet is made from a 256-bit master secret, written down as 24 words from the standard list of 2,048
             English words that most cryptocurrency wallets use. The 24 words carry 264 bits: the secret, and an 8-bit
@@ -752,7 +760,7 @@ OP_ENDIF`}</Formula>
           </p>
         </Sub>
 
-        <Sub title="11.4 Passwords">
+        <Sub title="12.4 Passwords">
           <p>
             A wallet file can be sealed with a password. The password is stretched with Argon2id [8] (64 MiB of memory,
             3 passes), and the secret is encrypted with XChaCha20-Poly1305, with the account’s address as associated
@@ -761,7 +769,7 @@ OP_ENDIF`}</Formula>
           </p>
         </Sub>
 
-        <Sub title="11.5 Unlocking for a while">
+        <Sub title="12.5 Unlocking for a while">
           <p>
             Its owner can unlock a sealed wallet for a set time and up to a set amount, fees included, so that programs
             they trust, such as an AI assistant, can send without ever learning the password. A small helper process
@@ -789,7 +797,7 @@ OP_ENDIF`}</Formula>
       </PaperSection>
 
       <PaperSection id="security" number={14} title="Security">
-        <Sub title="13.1 Assumptions">
+        <Sub title="14.1 Assumptions">
           <ul className="list-disc space-y-2 pl-5">
             <li>
               <strong>BLAKE3 is a secure hash function</strong>: preimages and second preimages cannot be found faster
@@ -809,7 +817,7 @@ OP_ENDIF`}</Formula>
           </ul>
         </Sub>
 
-        <Sub title="13.2 What is guaranteed">
+        <Sub title="14.2 What is guaranteed">
           <ul className="list-disc space-y-2 pl-5">
             <li>
               <strong>No double spending.</strong> Two certificates for conflicting orders would need two quorums, whose
@@ -830,7 +838,7 @@ OP_ENDIF`}</Formula>
           </ul>
         </Sub>
 
-        <Sub title="13.3 Quantum computers">
+        <Sub title="14.3 Quantum computers">
           <p>
             Shor’s algorithm breaks the elliptic-curve signatures most cryptocurrencies use, but not hash functions.
             Against a hash function, a quantum computer can at best search faster with Grover’s algorithm, which halves
@@ -842,7 +850,7 @@ OP_ENDIF`}</Formula>
           </p>
         </Sub>
 
-        <Sub title="13.4 Attacks considered">
+        <Sub title="14.4 Attacks considered">
           <ul className="list-disc space-y-2 pl-5">
             <li>
               <strong>A stolen copy of a wallet</strong> can spend. The owner’s best defence is a password on the file
@@ -910,7 +918,9 @@ OP_ENDIF`}</Formula>
           <li>
             <strong>Swaps need a wallet that is running.</strong> Each side’s wallet moves a swap along only while it is
             open. A buyer who stays away past the ORN deadline after the seller took the Bitcoin loses the ORN, which
-            the deadlines leave more than a day to avoid.
+            the deadlines leave more than a day to avoid. The proof of waiting locked payments carries the whole list
+            in one message, which outgrows it past about 130,000 of them; until it is split into pages, a buyer then
+            relies on the lock’s certificate, which serves only within the epoch the lock was made in.
           </li>
           <li>
             <strong>Large signatures.</strong> Hash-based signatures are about 20 times larger than elliptic-curve ones.

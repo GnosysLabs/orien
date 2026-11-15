@@ -260,11 +260,53 @@ pub fn account_root(id: &AccountId, account: &Account, proof: &merkle::Path) -> 
 pub struct Proofs {
     places: HashMap<AccountId, usize>,
     tree: merkle::Tree,
+    locks: LocksProof,
 }
 
 impl Proofs {
     pub fn path(&self, id: &AccountId) -> Option<merkle::Path> {
         self.places.get(id).map(|place| self.tree.path(*place))
+    }
+
+    /// Every locked payment and revealed secret, with proof.
+    pub fn locks(&self) -> &LocksProof {
+        &self.locks
+    }
+}
+
+/// Locked payments not yet claimed or refunded, by sender and number.
+pub type Escrows = BTreeMap<(AccountId, u64), Escrow>;
+/// Revealed secrets, with the epoch each was revealed in, by the locked
+/// payment's sender and number.
+pub type Revealed = BTreeMap<(AccountId, u64), ([u8; 32], u64)>;
+
+/// A state's locked payments and revealed secrets, each list with its path
+/// to the state root. A list the state does not have is `None`.
+#[derive(Clone, Debug, Default, PartialEq, Eq, BorshSerialize, BorshDeserialize)]
+pub struct LocksProof {
+    pub escrows: Option<(Vec<u8>, merkle::Path)>,
+    pub revealed: Option<(Vec<u8>, merkle::Path)>,
+}
+
+impl LocksProof {
+    /// The locked payments and revealed secrets this shows, if it holds
+    /// under `root`, a state root you already trust. A list it leaves out
+    /// reads as empty: a state with an empty list has no leaf for it, so
+    /// leaving out a list that exists only hides what the list holds. Use a
+    /// list's absence only to learn nothing.
+    pub fn open(&self, root: &Hash32) -> Option<(Escrows, Revealed)> {
+        let read = |list: &Option<(Vec<u8>, merkle::Path)>, tag: Tag| -> Option<Option<Vec<u8>>> {
+            match list {
+                None => Some(None),
+                Some((bytes, path)) => {
+                    let leaf = hash(tag, &[bytes]);
+                    (merkle::root_from_path_in(merkle::Kind::State, &leaf, path) == Some(*root)).then(|| Some(bytes.clone()))
+                }
+            }
+        };
+        let escrows = read(&self.escrows, Tag::Escrows)?.map(|b| borsh::from_slice(&b).ok()).unwrap_or(Some(Escrows::new()))?;
+        let revealed = read(&self.revealed, Tag::Revealed)?.map(|b| borsh::from_slice(&b).ok()).unwrap_or(Some(Revealed::new()))?;
+        Some((escrows, revealed))
     }
 }
 
@@ -390,7 +432,18 @@ impl State {
     /// What is needed to prove any account of this state against `root()`.
     pub fn proofs(&self) -> Proofs {
         let places = self.accounts.keys().enumerate().map(|(place, id)| (*id, place)).collect();
-        Proofs { places, tree: self.tree() }
+        let tree = self.tree();
+        // The lists sit after the accounts and the barred keys, as in `tree`.
+        let mut place = self.accounts.len() + usize::from(!self.banned.is_empty());
+        let mut locks = LocksProof::default();
+        if !self.escrows.is_empty() {
+            locks.escrows = Some((borsh::to_vec(&self.escrows).expect("writing to memory cannot fail"), tree.path(place)));
+            place += 1;
+        }
+        if !self.revealed.is_empty() {
+            locks.revealed = Some((borsh::to_vec(&self.revealed).expect("writing to memory cannot fail"), tree.path(place)));
+        }
+        Proofs { places, tree, locks }
     }
 
     /// An account's state, with a proof of it against `root()`.

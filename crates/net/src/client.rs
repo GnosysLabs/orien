@@ -7,9 +7,23 @@ use borsh::{BorshDeserialize, BorshSerialize};
 use orien_crypto::Hash32;
 use orien_ledger::close::{self, Decided, Share};
 use orien_ledger::{
-    Account, AccountId, Certificate, Committee, Confirmation, Escrow, Genesis, Member, Receipt, Reject,
+    Account, AccountId, Certificate, Committee, Confirmation, Escrow, Genesis, Kind, Member, Receipt, Reject,
     SignedOrder, Signer, State, Vote, account_root, authorized, lock_hash,
 };
+
+/// A locked payment as validators' signatures prove it, resting on no one's
+/// word.
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct ProvenLock {
+    /// The epoch this client has followed the network to.
+    pub epoch: u64,
+    /// The payment, proven made and, as far as the proof reaches, not yet
+    /// claimed. Only its payee can claim it, and it goes back to its sender
+    /// only when its deadline's epoch begins.
+    pub made: Option<Escrow>,
+    /// The secret it was claimed with, proven.
+    pub secret: Option<[u8; 32]>,
+}
 
 /// A locked payment as the validators report it.
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -432,6 +446,43 @@ impl Client {
             secret: agreed.and_then(|((_, secret), _)| secret),
             answered,
         }
+    }
+
+    /// A locked payment, proven: by the latest checkpoint's state, checked
+    /// against the checkpoint this client followed, or, for one made in the
+    /// current epoch, by its certificate confirmed final by validators
+    /// holding more than two thirds of the stake. `None` when nothing could
+    /// be proven, which means only that: ask again later.
+    pub fn proven_lock(&self, from: &AccountId, seq: u64) -> Option<ProvenLock> {
+        self.follow();
+        let head = self.head();
+        let mut proven = ProvenLock { epoch: head.epoch, made: None, secret: None };
+        if let Some(root) = head.state {
+            for answer in self.ask_all(&Request::Locks) {
+                let Ok(Response::Locks { epoch, proof }) = answer else { continue };
+                if epoch != head.epoch {
+                    continue;
+                }
+                // What a proof shows is so; a validator can only leave
+                // things out. So every answer's findings count.
+                let Some((escrows, revealed)) = proof.open(&root) else { continue };
+                if let Some(escrow) = escrows.get(&(*from, seq)) {
+                    proven.made = Some(escrow.clone());
+                }
+                if let Some((secret, _)) = revealed.get(&(*from, seq)) {
+                    proven.secret = Some(*secret);
+                }
+            }
+            if proven.made.is_some() || proven.secret.is_some() {
+                return Some(proven);
+            }
+        }
+        let certificate = self.certificate(from, seq)?;
+        let Kind::Lock { hash, until } = certificate.order.kind else { return None };
+        let escrow = Escrow { to: certificate.order.to, amount: certificate.order.amount, hash, until };
+        self.finish(certificate, 0).ok()?;
+        proven.made = Some(escrow);
+        Some(proven)
     }
 
     /// The secret most answering validators report for a locked payment,

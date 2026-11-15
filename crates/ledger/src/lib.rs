@@ -16,7 +16,8 @@ pub mod types;
 
 pub use genesis::{Allocation, BitcoinBlock, Committee, Fees, Genesis, Work, Member, ValidatorInfo, VerifyError};
 pub use state::{
-    Accepted, Account, Applied, CancelError, Checked, Escrow, FEES, FORFEITED, MINT, REWARDS, Proofs, Reject, Signer, State, account_root,
+    Accepted, Account, Applied, CancelError, Checked, Escrow, Escrows, FEES, FORFEITED, LocksProof, MINT, REWARDS, Proofs, Reject, Revealed, Signer,
+    State, account_root,
     authorized,
 };
 pub use types::{
