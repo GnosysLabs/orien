@@ -6,6 +6,7 @@ import { useEffect, useState } from 'react'
 import { ChevronDown, ImagePlus, Star, X } from 'lucide-react'
 import { ask, CATEGORIES, MarketError, me, parseOrn, pictureUrl, plainOrn, sentence, type Draft, type Listing } from '@/lib/market'
 import { Notice } from './Shell'
+import { AutoTextarea } from '@/components/AutoTextarea'
 
 const field = 'w-full rounded-xl border border-line bg-bg px-4 py-3 text-ink outline-none focus:border-pearl/60'
 
@@ -133,7 +134,7 @@ export function SellForm() {
       </label>
       <label className="block space-y-2">
         <span className="text-sm font-semibold text-ink">Describe it</span>
-        <textarea
+        <AutoTextarea
           value={description}
           onChange={(e) => setDescription(e.target.value)}
           maxLength={5000}

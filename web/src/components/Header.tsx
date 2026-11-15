@@ -3,13 +3,15 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useEffect, useRef, useState } from 'react'
-import { BookOpen, ChevronDown, Compass, Download, History, Monitor, Store, Terminal, type LucideIcon } from 'lucide-react'
+import { ArrowLeftRight, BookOpen, ChevronDown, Compass, Download, History, Monitor, Store, Terminal, type LucideIcon } from 'lucide-react'
 import { MARKETPLACE_LIVE } from '@/lib/brand'
 import { Wordmark } from './Wordmark'
 
 type NavItem = {
   href: string
   label: string
+  /** A shorter label for the phone's bottom bar. */
+  short?: string
   icon: LucideIcon
   match?: (pathname: string) => boolean
 }
@@ -30,10 +32,18 @@ const ITEMS: NavItem[] = [
   ...(MARKETPLACE_LIVE
     ? [
         {
+          href: '/swap/',
+          label: 'Buy & sell ORN',
+          short: 'Buy/sell',
+          icon: ArrowLeftRight,
+          match: (p: string) => p.startsWith('/swap'),
+        },
+        {
           href: '/marketplace/',
           label: 'Marketplace',
+          short: 'Market',
           icon: Store,
-          match: (p: string) => p.startsWith('/marketplace') || p.startsWith('/swap'),
+          match: (p: string) => p.startsWith('/marketplace'),
         },
       ]
     : []),
@@ -195,7 +205,8 @@ export function Header() {
 
 export function BottomNav() {
   const pathname = usePathname()
-  const mobileItems = ITEMS
+  // Five fit a phone: with the marketplace, the changelog stays in the footer there.
+  const mobileItems = MARKETPLACE_LIVE ? ITEMS.filter((item) => item.href !== '/changelog/') : ITEMS
 
   return (
     <nav
@@ -222,7 +233,7 @@ export function BottomNav() {
             ) : (
               <Icon className={`h-5 w-5 ${on ? 'text-pearl' : ''}`} strokeWidth={2} aria-hidden />
             )}
-            {item.label}
+            {item.short ?? item.label}
           </Link>
         )
       })}

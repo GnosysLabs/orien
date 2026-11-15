@@ -18,6 +18,7 @@ import {
 } from '@/lib/market'
 import { Avatar } from './Avatar'
 import { Notice, SIGNED_IN_OR_OUT } from './Shell'
+import { AutoTextarea } from '@/components/AutoTextarea'
 
 /** Conversations on the left and the open one on the right; one at a time on a phone. */
 export function Messages() {
@@ -290,7 +291,7 @@ function Thread({ id, onChange }: { id: string; onChange: () => void }) {
         <p className="border-t border-line px-4 py-4 text-sm text-muted">You have blocked {c.with_name}. Unblock them to write.</p>
       ) : (
         <form onSubmit={send} className="flex items-end gap-2 border-t border-line p-3">
-          <textarea
+          <AutoTextarea
             value={draft}
             onChange={(e) => setDraft(e.target.value)}
             onKeyDown={(e) => {
@@ -300,7 +301,8 @@ function Thread({ id, onChange }: { id: string; onChange: () => void }) {
               }
             }}
             maxLength={2000}
-            rows={Math.min(5, Math.max(1, draft.split('\n').length))}
+            rows={1}
+            maxRows={6}
             placeholder={`Write to ${c.with_name}`}
             className="max-h-40 min-h-11 flex-1 resize-none rounded-xl border border-line bg-bg px-4 py-2.5 text-ink outline-none focus:border-pearl/60"
           />
@@ -410,7 +412,7 @@ export function MessageSeller({ listing, seller, signedIn }: { listing: number; 
 
   return (
     <form onSubmit={send} className="space-y-3">
-      <textarea
+      <AutoTextarea
         value={draft}
         onChange={(e) => setDraft(e.target.value)}
         maxLength={2000}
