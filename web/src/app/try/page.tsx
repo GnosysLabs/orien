@@ -141,6 +141,11 @@ export default function GetStartedPage() {
             for you. Start a new conversation and ask in plain words: “what’s my ORN balance?”, “send 5 ORN to Bob”, “start mining on this
             computer”. It asks before every payment, and never sees your 24 words or your password.
           </p>
+          <Note>
+            The assistant has to run on your own computer, as Claude Code and Codex do, because it works by running
+            orien there. Chats on claude.ai, chatgpt.com and their apps run on the provider’s servers, so they cannot use
+            orien or reach your wallet.
+          </Note>
           <p>
             If your wallet has a password, let the assistant send for a while, up to an amount you choose. It can then
             send without ever learning the password:
