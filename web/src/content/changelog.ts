@@ -26,6 +26,16 @@ export const CHANGELOG: Entry[] = [
   {
     date: '2026-11-15',
     products: ['wallet'],
+    version: '1.4.3',
+    title: 'Older activity fixed, and steadier pictures',
+    changes: [
+      'Mining rewards and payments recorded before the app read the network’s history for their hour now show what they were, once, when the app starts.',
+      'Sellers’ pictures on the Swap screen show their initial until the picture has loaded, and no longer blink when offers refresh.',
+    ],
+  },
+  {
+    date: '2026-11-15',
+    products: ['wallet'],
     version: '1.4.2',
     title: 'Signing up, said plainly',
     changes: [

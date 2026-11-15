@@ -229,6 +229,22 @@ fn history(
     None
 }
 
+/// Everything the validators' history holds for the account, from the
+/// first epoch it was kept. None if it can't all be read now.
+fn whole_history(client: &Client, address: &AccountId) -> Option<Vec<orien_net::history::Received>> {
+    let mut from = client.history(address, 0, 1)?.since;
+    let mut all = Vec::new();
+    for _ in 0..200 {
+        let page = client.history(address, from, orien_net::history::MAX_ENTRIES)?;
+        all.extend(page.entries);
+        match page.next {
+            Some(next) if next > from => from = next,
+            _ => return Some(all),
+        }
+    }
+    None
+}
+
 /// Whether the app has a wallet yet.
 #[tauri::command]
 fn has_wallet(app: AppHandle) -> Result<bool, String> {
@@ -327,6 +343,13 @@ async fn overview_now(app: AppHandle) -> Result<Overview, String> {
             // history did not.
             if let Some((epoch, unknown, received)) = history(&client, &dir, &address) {
                 activity::heard(&dir, &view.address, epoch, &unknown, received);
+            }
+            // Once: lines worked out from the balance before history was read
+            // for their hour take what history says they were.
+            if activity::needs_repair(&dir, &view.address)
+                && let Some(all) = whole_history(&client, &address)
+            {
+                activity::repair(&dir, &view.address, all);
             }
             activity::observe(&dir, &view.address, balance);
         }

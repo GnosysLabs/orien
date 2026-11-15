@@ -94,6 +94,10 @@ struct Account {
     /// than record it from the balance.
     #[serde(default)]
     waiting: bool,
+    /// Lines worked out from the balance have been matched once against
+    /// the whole of the validators' history.
+    #[serde(default)]
+    repaired: bool,
 }
 
 #[derive(Default, Serialize, Deserialize)]
@@ -221,6 +225,45 @@ pub fn heard(dir: &Path, address: &str, epoch: u64, unknown: &[u64], received: V
     save(dir, &book);
 }
 
+/// Whether lines worked out from the balance still need matching against
+/// the validators' history.
+pub fn needs_repair(dir: &Path, address: &str) -> bool {
+    load(dir).0.get(address).is_some_and(|account| {
+        !account.repaired && account.entries.iter().any(|e| e.direction == Direction::Received && e.kind.is_none())
+    })
+}
+
+/// Gives a line worked out from the balance what the validators' history
+/// says it was, where history has an entry of exactly that amount: such as
+/// a mining reward recorded before the app read history for its hour.
+/// Amounts to the last unit don't match by chance. Each history entry
+/// explains one line at most, and lines history already explains are left
+/// as they are. Done once per wallet.
+pub fn repair(dir: &Path, address: &str, history: Vec<Received>) {
+    let mut book = load(dir);
+    let Some(account) = book.0.get_mut(address) else { return };
+    let explained: Vec<Option<String>> = account.entries.iter().filter(|e| e.kind.is_some()).map(|e| e.order.clone()).collect();
+    let mut taken = vec![false; history.len()];
+    // History entries already shown as their own lines are not used again.
+    for (index, item) in history.iter().enumerate() {
+        let order = item.order.map(|(from, seq)| format!("{from}/{seq}"));
+        if order.is_some() && explained.contains(&order) {
+            taken[index] = true;
+        }
+    }
+    for entry in account.entries.iter_mut().filter(|e| e.direction == Direction::Received && e.kind.is_none()) {
+        let found = history.iter().enumerate().find(|(index, item)| !taken[*index] && item.time.is_some() && item.amount == entry.amount);
+        if let Some((index, item)) = found {
+            taken[index] = true;
+            entry.kind = Some(item.income.into());
+            entry.counterparty = item.counterparty.map(|id| id.to_string());
+            entry.order = item.order.map(|(from, seq)| format!("{from}/{seq}"));
+        }
+    }
+    account.repaired = true;
+    save(dir, &book);
+}
+
 /// Compares a fresh balance with what the app expected, and records the
 /// difference: more than expected was received; less was sent from
 /// somewhere else, such as another copy of the wallet or the `orien` command.
@@ -338,6 +381,25 @@ mod tests {
         assert_eq!(now.len(), 2, "{now:?}");
         assert!(now.contains(&(Direction::Received, Some(Kind::Mining), 240)));
         assert!(now.iter().all(|line| line.1.is_some() && line.0 == Direction::Received));
+        fs::remove_dir_all(&dir).unwrap();
+    }
+
+    #[test]
+    fn lines_from_the_balance_take_what_history_says_they_were() {
+        let dir = std::env::temp_dir().join(format!("orien-history-repair-{}", std::process::id()));
+        fs::create_dir_all(&dir).unwrap();
+        let _ = fs::remove_file(dir.join("activity.json"));
+        // Three lines from the balance: two rewards history knows, and one
+        // from before it kept any.
+        observe(&dir, "me", 1000);
+        for balance in [1106, 1304, 1545] {
+            observe(&dir, "me", balance);
+        }
+        assert!(needs_repair(&dir, "me"));
+        repair(&dir, "me", vec![got(15, true, Income::Mining, 198, None), got(16, true, Income::Mining, 241, None)]);
+        let lines: Vec<_> = list(&dir, "me").into_iter().map(|e| (e.kind, e.amount)).collect();
+        assert_eq!(lines, vec![(Some(Kind::Mining), 241), (Some(Kind::Mining), 198), (None, 106)]);
+        assert!(!needs_repair(&dir, "me"), "once");
         fs::remove_dir_all(&dir).unwrap();
     }
 

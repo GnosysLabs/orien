@@ -1416,16 +1416,44 @@
     finally { linking.busy = false; }
   }
 
+  // Sellers' pictures: the initial shows until a picture has loaded, then
+  // the picture, kept for the rest of the session so it never blinks.
+  const pictures = new Map(); // address → "loading" | "loaded" | "failed"
+  function avatar(o) {
+    const initial = esc((o.seller_name || "?").slice(0, 1).toUpperCase());
+    if (!o.seller_picture) return `<div class="avatar">${initial}</div>`;
+    const url = `${boardBase}/api/market/images/${encodeURIComponent(o.seller_picture)}`;
+    if (pictures.get(url) === "loaded") return `<div class="avatar" style="background-image:url('${esc(url)}')"></div>`;
+    if (!pictures.has(url)) {
+      pictures.set(url, "loading");
+      const image = new Image();
+      image.onload = () => {
+        pictures.set(url, "loaded");
+        for (const el of document.querySelectorAll(`[data-picture="${CSS.escape(url)}"]`)) {
+          el.style.backgroundImage = `url('${url}')`;
+          el.textContent = "";
+        }
+      };
+      image.onerror = () => pictures.set(url, "failed");
+      image.src = url;
+    }
+    return `<div class="avatar" data-picture="${esc(url)}">${initial}</div>`;
+  }
+
+  let shownOffers = "";
   function renderOffers() {
     const list = $("board-offers");
+    // Only rebuilt when something on it changed.
+    const key = JSON.stringify([board.offers, board.usd, board.me && board.me.id]);
+    if (key === shownOffers && list.children.length) return;
+    shownOffers = key;
     $("board-btc").textContent = board.usd ? `1 BTC ≈ ${fmtUsd(board.usd)}` : "";
     if (!board.offers.length) { list.innerHTML = '<div class="empty">No open offers right now</div>'; return; }
     list.innerHTML = board.offers.map((o) => {
       const price = priceOf(o.orn, o.sats);
       const mine = board.me && o.seller === board.me.id;
-      const picture = o.seller_picture ? ` style="background-image:url('${esc(boardBase)}/api/market/images/${esc(o.seller_picture)}')"` : "";
       return `<div class="offer">
-        <div class="avatar"${picture}>${o.seller_picture ? "" : esc((o.seller_name || "?").slice(0, 1).toUpperCase())}</div>
+        ${avatar(o)}
         <div><div class="who">${esc(o.seller_name)} · ${o.seller_done} swap${o.seller_done === 1 ? "" : "s"} done</div>
           <div class="deal">${esc(fmtOrn(o.orn))} ORN for ${esc(fmtBtc(o.sats))} BTC${esc(price.total)}</div>
           <div class="rate">${esc(price.rate)}</div></div>
