@@ -337,3 +337,14 @@ mod tests {
         assert_eq!(show_btc(1), "0.00000001");
     }
 }
+
+#[cfg(test)]
+mod live {
+    #[test]
+    #[ignore = "reaches the Bitcoin explorers"]
+    fn smallest_swap_now() {
+        let (_, chain) = super::bitcoin();
+        let rate = chain.fee_rate().unwrap();
+        println!("fee rate {rate} sat/vB; smallest swap now {} BTC", super::show_btc(orien_swap::swap::smallest_now(rate)));
+    }
+}

@@ -586,7 +586,7 @@
         <li><strong>You need</strong> the buyer's Orien address (they find it in Orien Wallet under Swap, Buy ORN), a price you've agreed with them, and a Bitcoin address of yours to be paid at.</li>
         <li><strong>How it goes:</strong> this app locks your ORN for the buyer, you swap codes, the buyer pays the Bitcoin, and this app takes it. Usually one to two hours.</li>
         <li><strong>Fees:</strong> the usual Orien fee to lock the ORN (0.1%, at most 1 ORN), and Bitcoin's network fee for taking the Bitcoin, which comes out of what you receive. Orien Wallet itself takes nothing.</li>
-        <li><strong>Smallest swap:</strong> <span class="min-btc">0.0002</span> BTC. <strong>If the buyer never pays,</strong> your ORN come back to you on their own after 48 hours.</li>
+        <li><strong>Smallest swap:</strong> 0.00005 BTC, more when Bitcoin is busy<span class="min-now"></span>. <strong>If the buyer never pays,</strong> your ORN come back to you on their own after 48 hours.</li>
       </ul>
       <div class="field" data-gap="xl">
         <label for="sell-buyer">Buyer's Orien address</label>
@@ -622,7 +622,7 @@
         <li><strong>You need</strong> Bitcoin in any Bitcoin wallet, enough for the price plus that wallet's sending fee, a Bitcoin address of yours for a refund if the swap stops, and a price you've agreed with the seller.</li>
         <li><strong>How it goes:</strong> the seller locks the ORN for you and sends an offer code, you send back a reply code and pay the Bitcoin, the seller takes it, and this app claims your ORN. Usually one to two hours after you pay.</li>
         <li><strong>Fees:</strong> your Bitcoin wallet's fee to pay, and the usual Orien fee (0.1%, at most 1 ORN), which comes out of the ORN you receive. Orien Wallet itself takes nothing.</li>
-        <li><strong>Smallest swap:</strong> <span class="min-btc">0.0002</span> BTC. <strong>If the seller never takes your Bitcoin,</strong> this app takes it back for you after about 12 hours.</li>
+        <li><strong>Smallest swap:</strong> 0.00005 BTC, more when Bitcoin is busy<span class="min-now"></span>. The wallet checks before anything is paid. <strong>If the seller never takes your Bitcoin,</strong> this app takes it back for you after about 12 hours.</li>
       </ul>
       <div class="label-line" data-gap="xl">First, send the seller your Orien address. They lock the ORN for it and send you an offer code.</div>
       <div class="codebox" id="buy-me" data-gap="sm"></div>
@@ -1242,10 +1242,20 @@
   $("go-swap").onclick = async () => { show("swaps"); await loadSwaps(); stepSwaps(); };
   $("detail-back").onclick = async () => { show("swaps"); await loadSwaps(); };
   $("sell-back").onclick = $("buy-back").onclick = () => show("swaps");
-  $("go-sell").onclick = () => { $("sell-pw-field").hidden = true; show("swap-sell"); };
+  // The smallest swap Bitcoin's fees allow right now, on the sell and buy
+  // screens; nothing is shown if the explorers can't be reached.
+  async function showSmallest() {
+    for (const el of document.querySelectorAll(".min-now")) el.textContent = "";
+    try {
+      const least = await invoke("swap_smallest");
+      for (const el of document.querySelectorAll(".min-now")) el.textContent = `; right now it's ${least} BTC`;
+    } catch {}
+  }
+  $("go-sell").onclick = () => { $("sell-pw-field").hidden = true; show("swap-sell"); showSmallest(); };
   $("go-buy").onclick = () => {
     $("buy-me").textContent = view ? view.address : "";
     show("swap-buy");
+    showSmallest();
   };
   $("buy-copy-me").onclick = async () => { if (view) await navigator.clipboard.writeText(view.address); };
   $("sd-copy-pay").onclick = async () => { await navigator.clipboard.writeText($("sd-pay-to").textContent); };

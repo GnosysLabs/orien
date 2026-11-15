@@ -32,6 +32,7 @@ export const CHANGELOG: Entry[] = [
       'At every step it says what happens if the other side disappears, and about when your ORN or Bitcoin would come back.',
       'The offer and reply codes each come with a line on what they are and whom to send them to.',
       'Before you sell or buy, one screen says what you need, the fees, and the smallest swap.',
+      'The smallest swap is now 0.00005 BTC, more when Bitcoin is busy: the sell and buy screens show the smallest right now, and the wallet says so before anything is paid.',
     ],
   },
   {

@@ -514,6 +514,19 @@ async fn swap_accept(app: AppHandle, id: String, reply: String) -> Result<swaps:
     .map_err(|error| error.to_string())?
 }
 
+/// The smallest swap that can complete at Bitcoin's fee rate now, in BTC,
+/// as the explorers report it.
+#[tauri::command]
+async fn swap_smallest() -> Result<String, String> {
+    tauri::async_runtime::spawn_blocking(|| {
+        let (_, chain) = swaps::bitcoin();
+        let rate = chain.fee_rate().map_err(|error| error.to_string())?;
+        Ok(swaps::show_btc(orien_swap::swap::smallest_now(rate)))
+    })
+    .await
+    .map_err(|error| error.to_string())?
+}
+
 /// Moves every unfinished swap along. The window calls this every so often
 /// while any swap is under way. Claiming ORN signs, so it may need the
 /// wallet's password.
@@ -536,7 +549,7 @@ fn main() {
     tauri::Builder::default()
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_updater::Builder::new().build())
-        .invoke_handler(tauri::generate_handler![has_wallet, create_wallet, restore_wallet, set_password, choose_wallet, overview_now, send_payment, activity, quote, contacts, save_contact, delete_contact, update::check_update, update::install_update, swap_list, swap_sell, swap_buy, swap_accept, swap_step])
+        .invoke_handler(tauri::generate_handler![has_wallet, create_wallet, restore_wallet, set_password, choose_wallet, overview_now, send_payment, activity, quote, contacts, save_contact, delete_contact, update::check_update, update::install_update, swap_list, swap_sell, swap_buy, swap_accept, swap_step, swap_smallest])
         .run(tauri::generate_context!())
         .expect("the wallet window could not start");
 }
