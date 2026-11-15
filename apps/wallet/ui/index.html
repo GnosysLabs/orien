@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Orien Wallet</title>
 <style>
   /* The wordmark's typeface, bundled so the app never fetches fonts. */
@@ -89,6 +90,18 @@
   .status.warn i { background: #ecc58e; }
   .status.bad i { background: var(--bad); }
   body.windows header { height: 52px; margin-bottom: 12px; }
+  /* iPhone: room for the notch and the home bar, no window to drag, no
+     mining (Apple's rules forbid it), and text big enough that typing
+     doesn't zoom the page. */
+  body.phone { padding: env(safe-area-inset-top) max(20px, env(safe-area-inset-right)) calc(14px + env(safe-area-inset-bottom)) max(20px, env(safe-area-inset-left));
+    -webkit-tap-highlight-color: transparent; }
+  body.phone header { height: 52px; margin: 0 -20px 10px; -webkit-app-region: no-drag; }
+  body.phone .status { right: 20px; }
+  body.phone #go-mine, body.phone #choose, body.phone .update { display: none !important; }
+  body.phone .actions.five { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  body.phone input, body.phone textarea { font-size: 16px; }
+  body.phone #swaps, body.phone #swap-sell, body.phone #swap-buy, body.phone #swap-detail, body.phone #mine,
+  body.phone #board-signin, body.phone #board-post, body.phone #board-take { margin: 0 -20px; padding: 0 20px 8px; }
   /* A newer version: takes the status marker's place at the top right. */
   .update {
     position: absolute; right: 16px; top: 50%; transform: translateY(-50%);
@@ -919,6 +932,9 @@
   // Windows draws its own title bar above the window, so the top bar there
   // needs no room for the Mac's window buttons.
   if (navigator.userAgent.includes("Windows")) document.body.classList.add("windows");
+  // The iPhone app shares this window, laid out for a phone.
+  const phone = /iPhone|iPad|iPod/.test(navigator.userAgent);
+  if (phone) document.body.classList.add("phone");
   const $ = (id) => document.getElementById(id);
 
   let view = null;          // the latest overview from the validators
