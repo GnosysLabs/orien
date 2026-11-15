@@ -205,17 +205,24 @@ fn overview(wallet_file: &Path, genesis_file: &Path) -> Result<(Overview, Client
 }
 
 /// What the validators' history says came into the account since the app
-/// last asked, and the epoch under way. None if no validator keeps history.
-fn history(client: &Client, dir: &Path, address: &AccountId) -> Option<(u64, Vec<orien_net::history::Received>)> {
+/// last asked, the epoch under way, and the closed epochs history has not
+/// recorded yet. None if no validator keeps history.
+fn history(
+    client: &Client,
+    dir: &Path,
+    address: &AccountId,
+) -> Option<(u64, Vec<u64>, Vec<orien_net::history::Received>)> {
     let mut from = activity::history_from(dir, &address.to_string()).unwrap_or_else(|| client.epoch());
     let mut received = Vec::new();
+    let mut unknown = Vec::new();
     // Pages are whole epochs; a long absence takes a few of them.
     for _ in 0..50 {
         let page = client.history(address, from, orien_net::history::MAX_ENTRIES)?;
         received.extend(page.entries);
+        unknown.extend(page.unknown);
         match page.next {
             Some(next) if next > from => from = next,
-            _ => return Some((page.epoch, received)),
+            _ => return Some((page.epoch, unknown, received)),
         }
     }
     None
@@ -317,8 +324,8 @@ async fn overview_now(app: AppHandle) -> Result<Overview, String> {
         if let Some(balance) = view.units {
             // History first, so the balance is only asked to explain what
             // history did not.
-            if let Some((epoch, received)) = history(&client, &dir, &address) {
-                activity::heard(&dir, &view.address, epoch, received);
+            if let Some((epoch, unknown, received)) = history(&client, &dir, &address) {
+                activity::heard(&dir, &view.address, epoch, &unknown, received);
             }
             activity::observe(&dir, &view.address, balance);
         }

@@ -89,6 +89,11 @@ struct Account {
     /// so a payment landing between the two questions is not counted twice.
     #[serde(default)]
     suspect: Option<i128>,
+    /// The hour that just closed is not in the validators' history yet, so
+    /// a rise in the balance may be its reward: wait for history rather
+    /// than record it from the balance.
+    #[serde(default)]
+    waiting: bool,
 }
 
 #[derive(Default, Serialize, Deserialize)]
@@ -138,9 +143,17 @@ pub fn history_from(dir: &Path, address: &str) -> Option<u64> {
 
 /// What the validators' history said, from the epoch `history_from` gave
 /// (or from `epoch`, the first time), up to `epoch`, the one under way.
-pub fn heard(dir: &Path, address: &str, epoch: u64, received: Vec<Received>) {
+/// `unknown` lists the closed epochs it has not recorded yet.
+pub fn heard(dir: &Path, address: &str, epoch: u64, unknown: &[u64], received: Vec<Received>) {
     let mut book = load(dir);
     let account = book.0.entry(address.to_owned()).or_default();
+    // Just after a checkpoint, the validators may not have written the hour
+    // it closed yet. Keep that hour (and later ones) open, to ask about it
+    // again, rather than move past it and lose its entries. An older hour
+    // still missing was never recorded: the balance explains it instead.
+    let last_closed = epoch.saturating_sub(1);
+    let cut = if unknown.contains(&last_closed) && last_closed > 0 { last_closed } else { epoch };
+    account.waiting = cut < epoch;
     if account.history.is_none() {
         // The first answer. What came in before now is already in the
         // balance the app last saw (or will see first), so history starts
@@ -170,7 +183,7 @@ pub fn heard(dir: &Path, address: &str, epoch: u64, received: Vec<Received>) {
             order,
         };
         added += item.amount as i128;
-        if item.epoch < epoch && item.time.is_some() {
+        if item.epoch < cut && item.time.is_some() {
             account.entries.push(entry);
         } else {
             account.open.push(entry);
@@ -179,7 +192,7 @@ pub fn heard(dir: &Path, address: &str, epoch: u64, received: Vec<Received>) {
     if let Some(expected) = &mut account.expected {
         *expected += added;
     }
-    account.history = Some(account.history.map_or(epoch, |from| from.max(epoch)));
+    account.history = Some(account.history.map_or(cut, |from| from.max(cut)));
     save(dir, &book);
 }
 
@@ -194,6 +207,12 @@ pub fn observe(dir: &Path, address: &str, balance: i128) {
     match account.expected {
         Some(expected) if balance != expected => {
             let difference = balance - expected;
+            // Only for this look: `heard` sets it again on the next.
+            if account.history.is_some() && std::mem::take(&mut account.waiting) {
+                account.suspect = None;
+                save(dir, &book);
+                return;
+            }
             if account.history.is_some() && account.suspect != Some(difference) {
                 account.suspect = Some(difference);
                 save(dir, &book);
@@ -288,7 +307,7 @@ mod tests {
         let _ = fs::remove_file(dir.join("activity.json"));
         let look = |history: Option<(u64, Vec<Received>)>, balance: i128| {
             if let Some((epoch, received)) = history {
-                heard(&dir, "me", epoch, received);
+                heard(&dir, "me", epoch, &[], received);
             }
             observe(&dir, "me", balance);
         };
@@ -339,6 +358,25 @@ mod tests {
         look(Some((8, vec![got(8, false, Income::Payment, 10, Some(3))])), 1201);
         assert_eq!(lines().len(), 6);
         assert_eq!(lines()[0], (Some(Kind::Payment), 10));
+
+        // Just after the checkpoint closing epoch 8, the balance has its
+        // mining reward but history has not recorded the epoch yet: wait,
+        // and ask about epoch 8 again rather than move past it.
+        for _ in 0..3 {
+            heard(&dir, "me", 9, &[8], vec![got(8, true, Income::Payment, 10, Some(3))]);
+            observe(&dir, "me", 1221);
+        }
+        assert_eq!(lines().len(), 6, "nothing guessed from the balance");
+        assert_eq!(history_from(&dir, "me"), Some(8));
+        // Recorded now: one mining line, nothing from the balance.
+        heard(&dir, "me", 9, &[], vec![got(8, true, Income::Payment, 10, Some(3)), got(8, true, Income::Mining, 20, None)]);
+        observe(&dir, "me", 1221);
+        observe(&dir, "me", 1221);
+        let now = lines();
+        assert_eq!(now.len(), 7);
+        assert!(now.contains(&(Some(Kind::Mining), 20)));
+        assert!(now.iter().all(|line| line.0.is_some() || line.1 == 40 || line.1 == 100));
+        assert_eq!(history_from(&dir, "me"), Some(9));
         fs::remove_dir_all(&dir).unwrap();
     }
 }
