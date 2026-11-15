@@ -13,7 +13,7 @@ serde_json = "1"
 hex = "0.4"
 anyhow = "1"
 base64 = "0.22"
-orien-ledger = { path = "../ledger" }
+orien-ledger = { path = "../ledger", default-features = false }
 orien-crypto = { path = "../crypto" }
 
 [dev-dependencies]

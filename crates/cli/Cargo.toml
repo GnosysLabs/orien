@@ -11,7 +11,7 @@ path = "src/main.rs"
 [dependencies]
 getrandom.workspace = true
 orien-crypto.workspace = true
-orien-ledger.workspace = true
+orien-ledger = { workspace = true, features = ["randomx"] }
 orien-net.workspace = true
 anyhow.workspace = true
 borsh.workspace = true
