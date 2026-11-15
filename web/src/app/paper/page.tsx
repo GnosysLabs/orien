@@ -805,7 +805,7 @@ OP_ENDIF`}</Formula>
         <Sub title="12.5 Unlocking for a while">
           <p>
             Its owner can unlock a sealed wallet for a set time and up to a set amount, fees included, so that programs
-            they trust, such as an AI assistant, can send without ever learning the password. A small helper process
+            they trust, such as a script, can send without ever learning the password. A small helper process
             holds the opened wallet in memory only and listens on the computer’s loopback address. It answers only
             requests that carry a random 32-byte token, kept in a file only the owner can read. It signs through the
             same wallet rules, refuses anything beyond the remaining amount, and ends when the time is up, when its owner

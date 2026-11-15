@@ -144,42 +144,6 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* AI assistants */}
-      <section className="mb-20 grid items-center gap-10 rounded-3xl border border-line bg-surface p-6 sm:p-10 md:grid-cols-[1fr_1fr]">
-        <div>
-          <p className="mb-3 text-xs font-semibold uppercase tracking-wider text-muted">Works with your AI assistant</p>
-          <h2 className="text-2xl font-bold tracking-tight text-ink sm:text-3xl">Just ask.</h2>
-          <p className="mt-5 text-sm leading-relaxed text-muted">
-            One command teaches Claude Code, Codex and other AI assistants to use Orien for you. Ask for your balance, pay someone, start
-            mining, or set up a validator, in plain words.
-          </p>
-          <ul className="mt-5 space-y-3 text-sm leading-relaxed text-muted">
-            <li>
-              <span className="font-semibold text-ink">It asks before every payment,</span> with the address, the
-              amount and the fee.
-            </li>
-            <li>
-              <span className="font-semibold text-ink">It never sees your secrets.</span> Your 24 words and your
-              password stay with you.
-            </li>
-            <li>
-              <span className="font-semibold text-ink">You set the limits.</span> Allow it to spend up to an amount you
-              choose, for as long as you choose.
-            </li>
-          </ul>
-        </div>
-        <div className="space-y-3 rounded-2xl border border-line bg-bg p-5 text-sm leading-relaxed" aria-label="An example conversation">
-          <p className="ml-auto w-fit max-w-[85%] rounded-2xl rounded-br-md bg-raised px-4 py-2.5 text-ink">Send Bob 40 ORN</p>
-          <p className="w-fit max-w-[85%] rounded-2xl rounded-bl-md border border-line px-4 py-2.5 text-muted">
-            Send 40 ORN to Bob at 3edf…88c5, with a fee of 0.04 ORN? A payment can’t be undone.
-          </p>
-          <p className="ml-auto w-fit max-w-[85%] rounded-2xl rounded-br-md bg-raised px-4 py-2.5 text-ink">Yes</p>
-          <p className="w-fit max-w-[85%] rounded-2xl rounded-bl-md border border-line px-4 py-2.5 text-muted">
-            Done. Bob has it, and the payment is final.
-          </p>
-        </div>
-      </section>
-
       {/* Closing invitation */}
       <section className="mb-6 rounded-3xl border border-line bg-surface px-6 py-12 text-center sm:px-10">
         <h2 className="text-balance text-2xl font-bold tracking-tight text-ink sm:text-3xl">

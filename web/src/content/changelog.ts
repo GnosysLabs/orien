@@ -27,6 +27,16 @@ export const PRODUCTS: Record<Product, string> = {
 export const CHANGELOG: Entry[] = [
   {
     date: '2026-11-15',
+    products: ['orien'],
+    version: '1.8.1',
+    title: 'The AI assistant skill is gone',
+    changes: [
+      'orien no longer installs a skill for AI assistants: Orien Wallet does everything it did, more simply. Updating removes the copies earlier versions installed.',
+    ],
+    unreleased: true,
+  },
+  {
+    date: '2026-11-15',
     products: ['wallet'],
     version: '1.6.1',
     title: 'Made for iPhone, Face ID and Touch ID by default, and smoother sending',
