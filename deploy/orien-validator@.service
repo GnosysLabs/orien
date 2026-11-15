@@ -4,8 +4,10 @@
 #
 #   systemctl enable --now orien-validator@1
 #
-# Update the validators one at a time, never all at once: the network keeps
-# running while any three of the four are up.
+# Each validator keeps itself on the newest release signed with the Orien
+# release key: it installs it into /var/lib/orien/bin, which it may write,
+# and restarts on it at a calm moment, one validator at a time. The network
+# keeps running while any three of the four are up.
 
 [Unit]
 Description=Orien validator %i
@@ -15,7 +17,7 @@ Wants=network-online.target
 [Service]
 User=orien
 Group=orien
-ExecStart=/usr/local/bin/orien node -g /var/lib/orien/genesis.json -k /var/lib/orien/v%i/validator.key -d /var/lib/orien/v%i/data --listen 0.0.0.0:710%i
+ExecStart=/var/lib/orien/bin/orien node -g /var/lib/orien/genesis.json -k /var/lib/orien/v%i/validator.key -d /var/lib/orien/v%i/data --listen 0.0.0.0:710%i
 Restart=always
 RestartSec=5
 # Up to 1,024 connections at once, each a file.

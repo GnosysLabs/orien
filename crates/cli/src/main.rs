@@ -18,6 +18,7 @@ use std::path::{Path, PathBuf};
 use std::thread;
 use std::time::{Duration, Instant, SystemTime, UNIX_EPOCH};
 
+mod autoupdate;
 mod release;
 
 #[derive(Parser)]
@@ -264,6 +265,11 @@ enum Command {
         listen: Option<String>,
         #[command(flatten)]
         network: Network,
+        /// Do not install new releases of orien and restart on them. By
+        /// default a validator keeps itself on the newest release signed with
+        /// the Orien release key, restarting at a calm moment.
+        #[arg(long)]
+        no_auto_update: bool,
     },
     /// Create a validator key
     Keygen {
@@ -618,7 +624,9 @@ fn run(cli: Cli) -> Result<()> {
             let threads = mining_threads(cpu, threads)?;
             mine(&account.unwrap_or_else(|| default_wallet().display().to_string()), threads, &network.file())
         }
-        Command::Node { key, data, listen, network } => node(&key, data, listen, &network.file()),
+        Command::Node { key, data, listen, network, no_auto_update } => {
+            node(&key, data, listen, &network.file(), !no_auto_update)
+        }
         Command::Keygen { out, height } => keygen(&out, height),
         Command::Unlock { file, duration, up_to, status } => {
             let file = file.unwrap_or_else(default_wallet);
@@ -1969,15 +1977,26 @@ fn genesis_show(genesis: &Genesis) -> Result<()> {
     Ok(())
 }
 
-fn node(key: &Path, data: PathBuf, listen: Option<String>, genesis: &Path) -> Result<()> {
+fn node(key: &Path, data: PathBuf, listen: Option<String>, genesis: &Path, auto_update: bool) -> Result<()> {
+    // Read before anything could replace it, for starting again after an update.
+    let exe = std::env::current_exe()?;
     let genesis = load_genesis(genesis)?;
     let key = ValidatorKey::load(key)?;
-    let mut config = NodeConfig::new(genesis, key, data);
+    let mut config = NodeConfig::new(genesis.clone(), key, data);
     config.listen = listen;
     config.log = true;
     println!("building the key tree...");
     let node = Node::start(config, None)?;
     println!("validator {} is listening on {}", node.name, node.addr);
+    // Releases are made for the live network; a test network keeps its version.
+    let live = orien_net::node::is_live(&genesis.id())
+        || (cfg!(debug_assertions) && std::env::var_os("ORIEN_AUTOUPDATE_ANY_NETWORK").is_some());
+    if auto_update && live {
+        let args = std::env::args_os().skip(1).collect();
+        autoupdate::Updater { exe, args, me: node.addr, genesis, name: node.name.clone() }.spawn();
+    } else if live {
+        println!("[{}] not updating itself (--no-auto-update)", node.name);
+    }
     loop {
         thread::park();
     }

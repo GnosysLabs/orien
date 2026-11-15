@@ -9,6 +9,7 @@ name = "orien"
 path = "src/main.rs"
 
 [dependencies]
+getrandom.workspace = true
 orien-crypto.workspace = true
 orien-ledger.workspace = true
 orien-net.workspace = true

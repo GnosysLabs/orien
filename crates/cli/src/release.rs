@@ -110,7 +110,7 @@ fn platform() -> Result<&'static str> {
 }
 
 /// A version number as three numbers, for comparing.
-fn version(text: &str) -> Option<(u64, u64, u64)> {
+pub fn version(text: &str) -> Option<(u64, u64, u64)> {
     let mut parts = text.trim().trim_start_matches('v').split('.').map(|part| part.parse().ok());
     Some((parts.next()??, parts.next()??, parts.next()??))
 }
@@ -132,8 +132,7 @@ fn fetch(url: &str, out: &Path) -> Result<()> {
 
 /// Replaces this program with the newest signed release, if there is one.
 pub fn update() -> Result<()> {
-    let base = std::env::var("ORIEN_DOWNLOADS").unwrap_or_else(|_| DOWNLOADS.to_string());
-    let root: Hash32 = RELEASE_ROOT.parse().map_err(|_| anyhow!("this build has no release key"))?;
+    let (base, root) = source()?;
     let current = env!("CARGO_PKG_VERSION");
     let work = std::env::temp_dir().join(format!("orien-update-{}", std::process::id()));
     fs::create_dir_all(&work)?;
@@ -143,14 +142,28 @@ pub fn update() -> Result<()> {
 }
 
 fn update_in(base: &str, root: &Hash32, current: &str, work: &Path) -> Result<()> {
+    let Some((latest, program)) = newer_release(base, root, current, work)? else {
+        println!("orien {current} is the newest version");
+        return Ok(());
+    };
+    let me = std::env::current_exe()?;
+    install(&program, &me)?;
+    println!("updated orien from {current} to {latest}");
+    // The new version's skill replaces any copies of the old one.
+    let _ = Command::new(&me).args(["skill", "install", "--refresh"]).status();
+    Ok(())
+}
+
+/// The newest release, if it is newer than `current`: its version, and its
+/// program for this computer, unpacked into `work`. Only a release whose
+/// checksums carry the release key's signature, and whose program matches
+/// its checksum and says it is that version, comes back.
+pub fn newer_release(base: &str, root: &Hash32, current: &str, work: &Path) -> Result<Option<(String, PathBuf)>> {
     fetch(&format!("{base}/latest"), &work.join("latest"))?;
     let latest = fs::read_to_string(work.join("latest"))?.trim().to_string();
     match (version(&latest), version(current)) {
         (Some(new), Some(have)) if new > have => {}
-        (Some(_), Some(_)) => {
-            println!("orien {current} is the newest version");
-            return Ok(());
-        }
+        (Some(_), Some(_)) => return Ok(None),
         _ => bail!("cannot read the version numbers {latest:?} and {current:?}"),
     }
 
@@ -181,32 +194,144 @@ fn update_in(base: &str, root: &Hash32, current: &str, work: &Path) -> Result<()
     if !status.success() {
         bail!("could not unpack {archive}");
     }
-    let program = if windows { "orien.exe" } else { "orien" };
-    let me = std::env::current_exe()?;
-    let new = me.with_extension("new");
-    fs::copy(work.join(program), &new)?;
+    let program = work.join(if windows { "orien.exe" } else { "orien" });
+    #[cfg(unix)]
+    {
+        use std::os::unix::fs::PermissionsExt;
+        fs::set_permissions(&program, fs::Permissions::from_mode(0o755))?;
+    }
+    // It must run on this computer, and be the version it claims.
+    if installed_version(&program).as_deref() != Some(latest.as_str()) {
+        bail!("orien {latest} does not run on this computer; nothing was changed");
+    }
+    Ok(Some((latest, program)))
+}
+
+/// The version a program file says it is, if it runs.
+pub fn installed_version(program: &Path) -> Option<String> {
+    let output = Command::new(program).arg("--version").output().ok()?;
+    let text = String::from_utf8_lossy(&output.stdout);
+    text.trim().strip_prefix("orien ").map(|v| v.trim().to_string())
+}
+
+/// Puts `program` in place of the program at `me`, in one step: whoever
+/// starts `me` next starts the new one. Something running from it keeps
+/// running the old one until it starts again.
+pub fn install(program: &Path, me: &Path) -> Result<()> {
+    // A name of its own, so two installs at once cannot mix their files.
+    let new = me.with_extension(format!("new-{}", std::process::id()));
+    fs::copy(program, &new).with_context(|| format!("cannot write beside {}", me.display()))?;
     #[cfg(unix)]
     {
         use std::os::unix::fs::PermissionsExt;
         fs::set_permissions(&new, fs::Permissions::from_mode(0o755))?;
     }
-    if windows {
+    if cfg!(windows) {
         // A running program cannot be overwritten on Windows, but it can be
         // moved aside.
         let old = me.with_extension("old.exe");
         let _ = fs::remove_file(&old);
-        fs::rename(&me, &old)?;
+        fs::rename(me, &old)?;
     }
-    fs::rename(&new, &me)?;
-    println!("updated orien from {current} to {latest}");
-    // The new version's skill replaces any copies of the old one.
-    let _ = Command::new(&me).args(["skill", "install", "--refresh"]).status();
+    fs::rename(&new, me)?;
     Ok(())
+}
+
+/// Where releases come from, and the key they must be signed with.
+pub fn source() -> Result<(String, Hash32)> {
+    let base = std::env::var("ORIEN_DOWNLOADS").unwrap_or_else(|_| DOWNLOADS.to_string());
+    // A test build may trust another key, to try updates without the real one.
+    #[cfg(debug_assertions)]
+    let root_text = std::env::var("ORIEN_RELEASE_ROOT").unwrap_or_else(|_| RELEASE_ROOT.to_string());
+    #[cfg(not(debug_assertions))]
+    let root_text = RELEASE_ROOT.to_string();
+    let root = root_text.parse().map_err(|_| anyhow!("this build has no release key"))?;
+    Ok((base, root))
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    /// A release folder as deploy/release.sh makes one, with a program for
+    /// this computer that says it is `version`, signed with `tree`.
+    #[cfg(unix)]
+    fn release_folder(dir: &Path, version: &str, says: &str, tree: &KeyTree) {
+        use std::os::unix::fs::PermissionsExt;
+        let build = dir.join("build");
+        fs::create_dir_all(&build).unwrap();
+        fs::write(build.join("orien"), format!("#!/bin/sh\necho 'orien {says}'\n")).unwrap();
+        fs::set_permissions(build.join("orien"), fs::Permissions::from_mode(0o755)).unwrap();
+        let archive = format!("orien-{version}-{}.tar.gz", platform().unwrap());
+        let status = Command::new("tar").arg("-czf").arg(dir.join(&archive)).arg("-C").arg(&build).arg("orien").status().unwrap();
+        assert!(status.success());
+        let sum = hex::encode(Sha256::digest(fs::read(dir.join(&archive)).unwrap()));
+        let sums = format!("{sum}  {archive}\n");
+        fs::write(dir.join("SHA256SUMS"), &sums).unwrap();
+        let signature = hex::encode(borsh::to_vec(&tree.sign_with_leaf(0, message(sums.as_bytes()).as_bytes())).unwrap());
+        fs::write(dir.join("SHA256SUMS.sig"), signature).unwrap();
+        fs::write(dir.join("latest"), format!("{version}\n")).unwrap();
+    }
+
+    #[cfg(unix)]
+    fn folder(name: &str) -> PathBuf {
+        let dir = std::env::temp_dir().join(format!("orien-release-test-{name}-{}", std::process::id()));
+        let _ = fs::remove_dir_all(&dir);
+        fs::create_dir_all(&dir).unwrap();
+        dir
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn a_newer_signed_release_is_found_checked_and_installed() {
+        let tree = KeyTree::generate([7; 32], RELEASE_HEIGHT);
+        let dir = folder("good");
+        let (site, work) = (dir.join("site"), dir.join("work"));
+        fs::create_dir_all(&site).unwrap();
+        fs::create_dir_all(&work).unwrap();
+        release_folder(&site, "9.9.9", "9.9.9", &tree);
+        let base = format!("file://{}", site.display());
+
+        let (version, program) = newer_release(&base, &tree.root(), "1.3.1", &work).unwrap().unwrap();
+        assert_eq!(version, "9.9.9");
+        assert_eq!(installed_version(&program).as_deref(), Some("9.9.9"));
+        assert!(newer_release(&base, &tree.root(), "9.9.9", &work).unwrap().is_none(), "nothing newer");
+
+        // Installed in one step over the old program.
+        let me = dir.join("orien");
+        fs::write(&me, "old").unwrap();
+        install(&program, &me).unwrap();
+        assert_eq!(installed_version(&me).as_deref(), Some("9.9.9"));
+        fs::remove_dir_all(&dir).unwrap();
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn a_release_that_is_not_genuine_is_refused() {
+        let tree = KeyTree::generate([7; 32], RELEASE_HEIGHT);
+        let stranger = KeyTree::generate([8; 32], RELEASE_HEIGHT);
+        let attempt = |name: &str, setup: &dyn Fn(&Path)| {
+            let dir = folder(name);
+            let (site, work) = (dir.join("site"), dir.join("work"));
+            fs::create_dir_all(&site).unwrap();
+            fs::create_dir_all(&work).unwrap();
+            setup(&site);
+            let outcome = newer_release(&format!("file://{}", site.display()), &tree.root(), "1.3.1", &work);
+            fs::remove_dir_all(&dir).unwrap();
+            outcome
+        };
+        // Signed with another key.
+        assert!(attempt("stranger", &|site| release_folder(site, "9.9.9", "9.9.9", &stranger)).is_err());
+        // A program swapped after signing.
+        assert!(attempt("swapped", &|site| {
+            release_folder(site, "9.9.9", "9.9.9", &tree);
+            let archive = fs::read_dir(site).unwrap().map(|e| e.unwrap().path()).find(|p| p.to_string_lossy().ends_with(".tar.gz")).unwrap();
+            fs::write(archive, b"something else").unwrap();
+        })
+        .is_err());
+        // A program that is not the version it is published as.
+        assert!(attempt("mislabelled", &|site| release_folder(site, "9.9.9", "1.0.0", &tree)).is_err());
+    }
 
     #[test]
     fn versions_compare_as_numbers() {

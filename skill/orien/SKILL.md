@@ -165,6 +165,7 @@ On the server:
    ```
    orien node -k ~/.orien/validator.key -d ~/.orien/validator --listen 0.0.0.0:7101
    ```
+   It keeps itself up to date: it installs each new release signed with the Orien release key and restarts on it at a calm moment. `--no-auto-update` turns that off, for operators who update by hand with `orien update`.
 4. Confirm (rule 3), then stake behind it, giving the address others reach it at:
    ```
    orien stake --amount 10000 --validator-key ~/.orien/validator.key --address SERVER_IP:7101
