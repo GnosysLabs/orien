@@ -77,6 +77,34 @@ swaps, so sellers can see who has a record.
 
 Swap offers launch with the marketplace.
 
+## Launch
+
+The marketplace, the swap board and the board in Orien Wallet go live
+together, with the founder's yes for what is installed:
+
+1. **Build** `orien-market` for Linux (`cargo zigbuild --release --target
+   x86_64-unknown-linux-gnu.2.31 -p orien-market`).
+2. **On cyphers-vps**, nothing touching the validators:
+   - a system user `orien-market`, and `/var/lib/orien-market` for its
+     database and pictures;
+   - `/usr/local/bin/orien-market`;
+   - `/etc/orien-market/` holding the Resend and OpenRouter keys (copied from
+     `~/.config/orien/` without being shown) and a copy of the genesis file,
+     readable by `orien-market` only;
+   - the service `deploy/orien-market.service`, enabled and started;
+   - nginx: `deploy/nginx-orien-market-limits.conf` into `conf.d`, the two
+     `orien-market*.conf` snippets into `snippets`, and one `include` line
+     in the HTTPS server block; `nginx -t`, then a reload.
+3. **Check** from outside: the board answers at
+   `https://orien.network/api/market/swaps`, and a sign-in code arrives.
+4. **Publish the site** with `MARKETPLACE=1 bash deploy/site.sh`: the pages,
+   the Marketplace link in the menus and the Privacy link in the footer.
+5. **Release Orien Wallet** with the board (the wallet session), and add
+   changelog entries for both.
+6. **Push** to GitHub.
+
+Undoing it: stop the service and publish the site without `MARKETPLACE=1`.
+
 ## In pieces
 
 1. The server: accounts with passkey sign-in, and listings to post, edit,
