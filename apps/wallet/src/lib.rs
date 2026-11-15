@@ -615,6 +615,7 @@ fn forget_wallet(app: AppHandle, path: String) -> Result<(), String> {
         return Err("The orien command uses this wallet, so it stays.".into());
     }
     biometric::forget(&path);
+    vault::forget(&dir, &path);
     let mut settings = settings(&dir);
     settings.wallets.retain(|w| w.path != path);
     if settings.wallet.as_ref() == Some(&path) {

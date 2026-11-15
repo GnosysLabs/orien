@@ -24,20 +24,76 @@ fn saved(dir: &Path) -> BTreeMap<String, VaultKeys> {
     fs::read(keys_file(dir)).ok().and_then(|bytes| serde_json::from_slice(&bytes).ok()).unwrap_or_default()
 }
 
+#[cfg(any(target_os = "macos", target_os = "ios"))]
+const KEYCHAIN_SERVICE: &str = "network.orien.wallet.vault";
+
+/// The kept keys of one wallet: in the Keychain on Macs and iPhones, in a
+/// file only this user can read elsewhere.
+fn kept(dir: &Path, name: &str) -> Option<VaultKeys> {
+    #[cfg(any(target_os = "macos", target_os = "ios"))]
+    {
+        if let Ok(bytes) = security_framework::passwords::get_generic_password(KEYCHAIN_SERVICE, name) {
+            return serde_json::from_slice(&bytes).ok();
+        }
+        // Kept in a file by an earlier test copy: move it into the Keychain.
+        let mut all = saved(dir);
+        let keys = all.remove(name)?;
+        keep(dir, name, &keys);
+        if all.is_empty() {
+            let _ = fs::remove_file(keys_file(dir));
+        } else if let Ok(text) = serde_json::to_vec_pretty(&all) {
+            let _ = write_replacing(&keys_file(dir), &text, true);
+        }
+        Some(keys)
+    }
+    #[cfg(not(any(target_os = "macos", target_os = "ios")))]
+    {
+        saved(dir).get(name).cloned()
+    }
+}
+
+fn keep(dir: &Path, name: &str, keys: &VaultKeys) {
+    #[cfg(any(target_os = "macos", target_os = "ios"))]
+    {
+        let _ = dir;
+        if let Ok(bytes) = serde_json::to_vec(keys) {
+            let _ = security_framework::passwords::set_generic_password(KEYCHAIN_SERVICE, name, &bytes);
+        }
+    }
+    #[cfg(not(any(target_os = "macos", target_os = "ios")))]
+    {
+        // write_replacing makes the file readable by this user only (0600).
+        let mut all = saved(dir);
+        all.insert(name.to_string(), keys.clone());
+        if let Ok(text) = serde_json::to_vec_pretty(&all) {
+            let _ = write_replacing(&keys_file(dir), &text, true);
+        }
+    }
+}
+
+/// Forgets a wallet's kept keys (when the wallet is removed from the app).
+pub fn forget(dir: &Path, wallet_file: &Path) {
+    let name = wallet_file.display().to_string();
+    #[cfg(any(target_os = "macos", target_os = "ios"))]
+    let _ = security_framework::passwords::delete_generic_password(KEYCHAIN_SERVICE, &name);
+    let mut all = saved(dir);
+    if all.remove(&name).is_some() {
+        if let Ok(text) = serde_json::to_vec_pretty(&all) {
+            let _ = write_replacing(&keys_file(dir), &text, true);
+        }
+    }
+}
+
 /// The vault keys of the wallet in `wallet_file`: worked out from the
 /// wallet (which needs its password, if it has one) and then kept, privately,
 /// so later syncs don't need the password. None until they can be worked out.
 pub fn keys(dir: &Path, wallet_file: &Path, password: Option<&str>) -> Option<VaultKeys> {
     let name = wallet_file.display().to_string();
-    let mut all = saved(dir);
-    if let Some(keys) = all.get(&name) {
-        return Some(keys.clone());
+    if let Some(keys) = kept(dir, &name) {
+        return Some(keys);
     }
     let keys = Wallet::open(wallet_file, password).ok()?.vault();
-    all.insert(name, keys.clone());
-    if let Ok(text) = serde_json::to_vec_pretty(&all) {
-        let _ = write_replacing(&keys_file(dir), &text, true);
-    }
+    keep(dir, &name, &keys);
     Some(keys)
 }
 
@@ -99,6 +155,26 @@ pub fn sync(dir: &Path, keys: &VaultKeys) -> Result<(), String> {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    /// The keys are worked out once, kept (in the Keychain here, never in a
+    /// file), found again without the wallet, and forgotten with it.
+    #[test]
+    #[cfg(target_os = "macos")]
+    #[ignore = "writes to this Mac's Keychain"]
+    fn keeps_the_vault_keys_in_the_keychain() {
+        let base = std::env::temp_dir().join(format!("orien-vkeys-{}", std::process::id()));
+        fs::create_dir_all(&base).unwrap();
+        let wallet = base.join("test.wallet");
+        let made = Wallet::create(&wallet).unwrap();
+        let first = keys(&base, &wallet, None).unwrap();
+        assert_eq!(first.id, made.vault().id);
+        assert!(!keys_file(&base).exists(), "never kept in a file on a Mac");
+        fs::remove_file(&wallet).unwrap();
+        assert_eq!(keys(&base, &wallet, None).unwrap().id, first.id, "found again without the wallet");
+        forget(&base, &wallet);
+        assert!(keys(&base, &wallet, None).is_none());
+        let _ = fs::remove_dir_all(&base);
+    }
 
     /// Two devices with the same wallet keep one address book: added on one,
     /// shown on the other; removed on one, removed on the other. Against the
