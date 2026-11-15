@@ -423,3 +423,28 @@ async fn a_seller_adds_pictures_to_a_listing() {
     let (status, body) = market.ask("DELETE", &format!("/api/market/listings/{id}/pictures/{picture}"), Some(&maya), None).await;
     assert_eq!((status, body["listing"]["pictures"].as_array().unwrap().len()), (StatusCode::OK, 0));
 }
+
+#[tokio::test]
+async fn swap_offers_go_on_the_board_and_are_taken_through_requests() {
+    let market = Market::new();
+    let maya = sign_in_for_tests(&market.app, "Maya");
+    let sam = sign_in_for_tests(&market.app, "Sam");
+    let (status, _) = market.ask("POST", "/api/market/swaps", None, Some(json!({ "orn": 1, "sats": 20000 }))).await;
+    assert_eq!(status, StatusCode::UNAUTHORIZED);
+    let (status, body) = market.ask("POST", "/api/market/swaps", Some(&maya), Some(json!({ "orn": 500_000_000_000u64, "sats": 1_000_000 }))).await;
+    assert_eq!(status, StatusCode::CREATED);
+    let id = body["offer"]["id"].as_i64().unwrap();
+    let (_, board) = market.ask("GET", "/api/market/swaps", None, None).await;
+    assert_eq!(board["offers"][0]["seller_name"], "Maya");
+
+    let (status, body) = market.ask("POST", &format!("/api/market/swaps/{id}/take"), Some(&sam), None).await;
+    assert_eq!((status, body["swap"]["offer"]["state"].as_str()), (StatusCode::OK, Some("held")));
+    let (status, _) = market.ask("POST", &format!("/api/market/swaps/{id}/take"), Some(&sam), None).await;
+    assert_eq!(status, StatusCode::BAD_REQUEST, "already held");
+    let (_, mine) = market.ask("GET", "/api/market/swaps/mine", Some(&maya), None).await;
+    assert_eq!((mine["swaps"][0]["selling"].as_bool(), mine["swaps"][0]["taker_name"].as_str()), (Some(true), Some("Sam")));
+    let (status, _) = market.ask("POST", &format!("/api/market/swaps/{id}/offer"), Some(&maya), Some(json!({ "code": "orien-offer:junk" }))).await;
+    assert_eq!(status, StatusCode::BAD_REQUEST);
+    let (status, _) = market.ask("POST", &format!("/api/market/swaps/{id}/close"), Some(&maya), None).await;
+    assert_eq!(status, StatusCode::BAD_REQUEST, "a held offer cannot be withdrawn");
+}

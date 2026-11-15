@@ -23,6 +23,7 @@ openssl = { version = "0.10", features = ["vendored"] }
 url = "2"
 orien-net.workspace = true
 orien-ledger.workspace = true
+orien-swap = { path = "../swap" }
 image = { version = "0.25", default-features = false, features = ["jpeg", "png", "webp", "gif"] }
 base64 = "0.22"
 ureq = { version = "3", features = ["json"] }

@@ -218,6 +218,13 @@ pub fn router(app: Arc<App>) -> Router {
             post(add_listing_picture).layer(axum::extract::DefaultBodyLimit::max(images::MAX_UPLOAD)),
         )
         .route("/api/market/listings/{id}/pictures/{name}", axum::routing::delete(remove_listing_picture).post(make_cover))
+        .route("/api/market/swaps", get(open_swaps).post(post_swap))
+        .route("/api/market/swaps/mine", get(my_swaps))
+        .route("/api/market/swaps/{id}/take", post(take_swap))
+        .route("/api/market/swaps/{id}/close", post(close_swap))
+        .route("/api/market/swaps/{id}/offer", post(swap_offer_code))
+        .route("/api/market/swaps/{id}/reply", post(swap_reply_code))
+        .route("/api/market/swaps/{id}/finish", post(finish_swap))
         .route("/api/market/conversations", get(conversations))
         .route("/api/market/conversations/{id}", get(conversation))
         .route("/api/market/conversations/{id}/messages", post(reply))
@@ -477,6 +484,83 @@ async fn block(State(app): State<Arc<App>>, headers: HeaderMap, Path(id): Path<i
 }
 
 #[derive(Deserialize)]
+struct NewSwap {
+    orn: u64,
+    sats: u64,
+}
+
+#[derive(Deserialize)]
+struct Code {
+    code: String,
+}
+
+#[derive(Deserialize)]
+struct Finish2 {
+    done: bool,
+}
+
+async fn open_swaps(State(app): State<Arc<App>>) -> Answer {
+    let offers = app.store.lock().unwrap().open_swaps()?;
+    Ok(Json(json!({ "offers": offers })).into_response())
+}
+
+async fn post_swap(State(app): State<Arc<App>>, headers: HeaderMap, Json(request): Json<NewSwap>) -> Answer {
+    let seller = app.signed_in(&headers)?;
+    let offer = app.store.lock().unwrap().post_swap(seller, request.orn, request.sats).map_err(refused)?;
+    Ok((StatusCode::CREATED, Json(json!({ "offer": offer }))).into_response())
+}
+
+async fn my_swaps(State(app): State<Arc<App>>, headers: HeaderMap) -> Answer {
+    let account = app.signed_in(&headers)?;
+    let swaps = app.store.lock().unwrap().my_swaps(account)?;
+    Ok(Json(json!({ "swaps": swaps })).into_response())
+}
+
+async fn take_swap(State(app): State<Arc<App>>, headers: HeaderMap, Path(id): Path<i64>) -> Answer {
+    let buyer = app.signed_in(&headers)?;
+    let (swap, seller_email, taker) = {
+        let store = app.store.lock().unwrap();
+        let swap = store.take_swap(buyer, id).map_err(refused)?;
+        let email = store.email_of(swap.offer.seller)?;
+        let taker = store.account(buyer)?.map(|a| a.name).unwrap_or_default();
+        (swap, email, taker)
+    };
+    if let Some(to) = seller_email {
+        let (mailer, origin) = (app.mailer.clone(), app.origin.clone());
+        tokio::task::spawn_blocking(move || {
+            if let Err(error) = mailer.send_swap_taken(&to, &taker, &origin) {
+                eprintln!("cannot email a swap notice: {error:#}");
+            }
+        });
+    }
+    Ok(Json(json!({ "swap": swap })).into_response())
+}
+
+async fn close_swap(State(app): State<Arc<App>>, headers: HeaderMap, Path(id): Path<i64>) -> Answer {
+    let seller = app.signed_in(&headers)?;
+    app.store.lock().unwrap().close_swap(seller, id).map_err(refused)?;
+    Ok(Json(json!({})).into_response())
+}
+
+async fn swap_offer_code(State(app): State<Arc<App>>, headers: HeaderMap, Path(id): Path<i64>, Json(request): Json<Code>) -> Answer {
+    let seller = app.signed_in(&headers)?;
+    let swap = app.store.lock().unwrap().post_offer_code(seller, id, &request.code).map_err(refused)?;
+    Ok(Json(json!({ "swap": swap })).into_response())
+}
+
+async fn swap_reply_code(State(app): State<Arc<App>>, headers: HeaderMap, Path(id): Path<i64>, Json(request): Json<Code>) -> Answer {
+    let buyer = app.signed_in(&headers)?;
+    let swap = app.store.lock().unwrap().post_reply_code(buyer, id, &request.code).map_err(refused)?;
+    Ok(Json(json!({ "swap": swap })).into_response())
+}
+
+async fn finish_swap(State(app): State<Arc<App>>, headers: HeaderMap, Path(id): Path<i64>, Json(request): Json<Finish2>) -> Answer {
+    let account = app.signed_in(&headers)?;
+    app.store.lock().unwrap().finish_swap(account, id, request.done).map_err(refused)?;
+    Ok(Json(json!({})).into_response())
+}
+
+#[derive(Deserialize)]
 struct WalletStart {
     address: String,
 }
@@ -606,7 +690,8 @@ async fn profile(State(app): State<Arc<App>>, Path(id): Path<i64>) -> Answer {
     let store = app.store.lock().unwrap();
     let account = store.account(id)?.ok_or(Failure::NotFound)?;
     let listings = store.open_listings_of(id)?;
-    Ok(Json(json!({ "account": account, "listings": listings })).into_response())
+    let swaps_done = store.swaps_done(id)?;
+    Ok(Json(json!({ "account": account, "listings": listings, "swaps_done": swaps_done })).into_response())
 }
 
 async fn picture(State(app): State<Arc<App>>, Path(name): Path<String>) -> Answer {
