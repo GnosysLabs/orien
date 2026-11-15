@@ -279,6 +279,20 @@ impl Orien for AppOrien<'_> {
         let sent = self.send(Kind::Lock { hash, until }, *to, amount, Some(seq))?;
         Ok(LockRef { from: self.me(), seq: sent.seq })
     }
+    fn still_waiting(&self, lock: &LockRef) -> anyhow::Result<Option<bool>> {
+        // Any secret will do here: only whether the payment waits matters.
+        let now = self.client.locked(&lock.from, lock.seq, &[0; 32]);
+        if now.answered == 0 {
+            anyhow::bail!("no validator could be reached");
+        }
+        Ok(if now.secret.is_some() {
+            Some(false)
+        } else if now.agreed {
+            Some(now.waiting.is_some())
+        } else {
+            None
+        })
+    }
     fn claim(&self, lock: &LockRef, payee: &Hash32, amount: u64, secret: [u8; 32]) -> anyhow::Result<()> {
         self.send(Kind::Claim { from: lock.from, seq: lock.seq, secret }, *payee, amount, None)?;
         Ok(())
