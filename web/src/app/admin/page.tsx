@@ -166,6 +166,8 @@ export default function AdminPage() {
       <h2 className="-mb-2 text-sm font-bold text-muted">The network</h2>
       <NetworkView network={data.network} />
 
+      <Tokenomics />
+
       <h2 className="-mb-2 text-sm font-bold text-muted">Marketplace and swaps</h2>
       <section className="grid grid-cols-2 gap-3 lg:grid-cols-4">
         <Tile label="Accounts" value={count(m.accounts)} sub={`${m.accounts_day} today · ${m.accounts_week} this week · ${m.with_wallet} with a wallet`} />
@@ -300,6 +302,120 @@ function NetworkView({ network: n }: { network: Network }) {
                 ],
           )}
           empty="No validators."
+        />
+      </Card>
+    </>
+  )
+}
+
+type Holder = { address: string; holds: number; staked: number; share: number }
+
+type TokenomicsData = {
+  epoch: number
+  cap: number
+  released: number
+  per_hour: number
+  in_wallets: number
+  rewards_pot: number
+  fees_pot: number
+  burned: number
+  locked: number
+  staked: number
+  unstaking: number
+  stakers: number
+  accounts: number
+  holding: number
+  holding_one: number
+  top1: number
+  top10: number
+  top100: number
+  buckets: { label: string; wallets: number; total: number }[]
+  top: Holder[]
+}
+
+/** Whole ORN with grouping: "35,576". */
+const wholeOrn = (units: number) => Math.floor(units / 1e9).toLocaleString('en')
+const percent = (share: number) => (share >= 0.1 ? `${Math.round(share * 100)}%` : share >= 0.001 ? `${(share * 100).toFixed(1)}%` : '<0.1%')
+
+// Where the ORN are, from the validators' snapshot at the last checkpoint:
+// worked out once an hour, so it loads separately from the rest.
+function Tokenomics() {
+  const { data, error } = usePoll<{ tokenomics: TokenomicsData; names: Record<string, string> }>('/tokenomics', 120_000)
+  if (!data) {
+    return (
+      <>
+        <h2 className="-mb-2 text-sm font-bold text-muted">Tokenomics</h2>
+        {error ? <p className="text-sm text-muted">{error}</p> : <div className="h-40 animate-pulse rounded-2xl bg-surface" />}
+      </>
+    )
+  }
+  const t = data.tokenomics
+  const largest = Math.max(...t.buckets.map((b) => b.wallets), 1)
+  return (
+    <>
+      <h2 className="-mb-2 text-sm font-bold text-muted">Tokenomics · as of the checkpoint that began epoch {count(t.epoch)}</h2>
+      <section className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+        <Tile
+          label="ORN that exist"
+          value={wholeOrn(t.released)}
+          sub={`${((t.released / t.cap) * 100).toFixed(3)}% of the ${wholeOrn(t.cap)} there will ever be`}
+        />
+        <Tile label="New ORN an hour" value={wholeOrn(t.per_hour)} sub="paid to miners; halves every 4 years" />
+        <Tile
+          label="Wallets holding ORN"
+          value={count(t.holding)}
+          sub={`${count(t.holding_one)} with 1 ORN or more · ${count(t.accounts)} the network knows`}
+        />
+        <Tile
+          label="Staked"
+          value={wholeOrn(t.staked)}
+          sub={`${count(t.stakers)} staker${t.stakers === 1 ? '' : 's'} · ${wholeOrn(t.unstaking)} on the way back`}
+        />
+      </section>
+      <section className="grid gap-3 lg:grid-cols-2">
+        <Card title="How the ORN are spread">
+          <Row label="Largest wallet holds">{percent(t.top1)}</Row>
+          <Row label="Largest 10 hold">{percent(t.top10)}</Row>
+          <Row label="Largest 100 hold">{percent(t.top100)}</Row>
+          <div className="mt-4 space-y-2">
+            {t.buckets.map((b) => (
+              <div key={b.label} className="text-sm">
+                <div className="mb-1 flex justify-between gap-3">
+                  <span className="text-muted">{b.label}</span>
+                  <span className="num text-ink">
+                    {count(b.wallets)} wallet{b.wallets === 1 ? '' : 's'}
+                    <span className="text-muted"> · {wholeOrn(b.total)} ORN</span>
+                  </span>
+                </div>
+                <div className="h-1.5 rounded-full bg-raised">
+                  <div className="h-1.5 rounded-full" style={{ width: `${(b.wallets / largest) * 100}%`, background: BAR }} />
+                </div>
+              </div>
+            ))}
+          </div>
+        </Card>
+        <Card title="Where the rest sits">
+          <Row label="In wallets">{wholeOrn(t.in_wallets)} ORN</Row>
+          <Row label="Locked in swaps under way">{wholeOrn(t.locked)} ORN</Row>
+          <Row label="Waiting to be paid to miners">{(t.rewards_pot / 1e9).toFixed(4)} ORN</Row>
+          <Row label="Fees waiting for the next checkpoint">{(t.fees_pot / 1e9).toFixed(4)} ORN</Row>
+          <Row label="Burned (validators caught cheating)">{wholeOrn(t.burned)} ORN</Row>
+          <Row label="Still to be mined">{wholeOrn(t.cap - t.released)} ORN</Row>
+        </Card>
+      </section>
+      <Card title="Largest holders">
+        <Table
+          head={['Wallet', 'Holds', 'Staked', 'Share']}
+          rows={t.top.map((h) => [
+            <span key="a" title={h.address}>
+              <span className="num text-ink">{short(h.address)}</span>
+              {data.names[h.address] && <span className="ml-2 text-xs text-muted">{data.names[h.address]}</span>}
+            </span>,
+            `${wholeOrn(h.holds)} ORN`,
+            h.staked ? `${wholeOrn(h.staked)} ORN` : '–',
+            percent(h.share),
+          ])}
+          empty="Nobody holds ORN yet."
         />
       </Card>
     </>

@@ -129,8 +129,12 @@ as listings, using swaps.
 https://cyphers-vps.yakalo-lizard.ts.net:8448/admin/, from any device on the
 founder's tailnet. It shows reports (with take down, suspend and "dealt
 with"), the validators and the epoch, mining difficulty, signing keys left,
-marketplace and swap numbers, account search, and the server's disk and
-services.
+marketplace and swap numbers, account search, the server's disk and
+services, and tokenomics: ORN in existence and per hour, wallets holding
+ORN, staking, how holdings are spread, and the largest holders (named when
+a marketplace account linked the wallet). Tokenomics comes from the
+validators' snapshot of every account at the last checkpoint (the one they
+use to catch up with each other), so it changes once an hour.
 
 - `orien-market` serves it on 127.0.0.1:7201 (`--admin-listen`), with the
   page from the published site (`--admin-site`).

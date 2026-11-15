@@ -4,6 +4,7 @@
 
 use anyhow::{Context, Result};
 use orien_ledger::{AccountId, Income};
+use crate::tokenomics::Tokenomics;
 use serde::Serialize;
 use orien_net::client::Client;
 use std::path::Path;
@@ -27,6 +28,8 @@ pub trait Payments: Send + Sync {
     fn has_held(&self, account: &AccountId) -> Result<bool>;
     /// How the network is doing, for the founder's dashboard.
     fn status(&self) -> Result<NetworkStatus>;
+    /// Where the ORN are, from the latest checkpoint.
+    fn tokenomics(&self) -> Result<Tokenomics>;
 }
 
 /// One validator, as it answered (or did not).
@@ -64,12 +67,25 @@ pub struct Network {
     client: Client,
     epoch_seconds: u64,
     first_target: u64,
+    start_time: u64,
+    cap: u64,
+    fees: orien_ledger::Fees,
+    /// Worked out once per epoch: the snapshot only changes at a checkpoint.
+    tokenomics: Mutex<Option<Tokenomics>>,
 }
 
 impl Network {
     pub fn open(genesis: &Path) -> Result<Network> {
         let genesis = orien_net::keys::load_genesis(genesis).context("cannot read the genesis file")?;
-        Ok(Network { client: Client::new(&genesis), epoch_seconds: genesis.epoch_seconds, first_target: genesis.first_target })
+        Ok(Network {
+            client: Client::new(&genesis),
+            epoch_seconds: genesis.epoch_seconds,
+            first_target: genesis.first_target,
+            start_time: genesis.start_time,
+            cap: genesis.cap,
+            fees: genesis.fee,
+            tokenomics: Mutex::new(None),
+        })
     }
 }
 
@@ -104,6 +120,23 @@ impl Payments for Network {
         }
         let held = status.views.iter().flatten().any(|view| view.balance > 0 || view.seq > 0);
         Ok(held || status.seq > 0 || status.proven.is_some())
+    }
+
+    fn tokenomics(&self) -> Result<Tokenomics> {
+        let epoch = self.epoch()?;
+        if let Some(known) = self.tokenomics.lock().unwrap().as_ref().filter(|t| t.epoch == epoch) {
+            return Ok(known.clone());
+        }
+        let now = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).map_or(0, |d| d.as_secs());
+        // Any validator will do; the first that hands over the whole snapshot.
+        for endpoint in self.client.endpoints() {
+            let Some(bytes) = snapshot(&endpoint, epoch) else { continue };
+            let Ok(state) = orien_ledger::State::from_snapshot(&bytes, self.fees) else { continue };
+            let found = crate::tokenomics::of(&state, epoch, self.start_time, self.cap, now);
+            *self.tokenomics.lock().unwrap() = Some(found.clone());
+            return Ok(found);
+        }
+        anyhow::bail!("no validator handed over the state for epoch {epoch}")
     }
 
     fn status(&self) -> Result<NetworkStatus> {
@@ -149,6 +182,26 @@ impl Payments for Network {
     }
 }
 
+/// The state at the start of `epoch`, as one validator keeps it.
+fn snapshot(endpoint: &str, epoch: u64) -> Option<Vec<u8>> {
+    use orien_net::wire::{Request, Response};
+    let mut bytes = Vec::new();
+    loop {
+        let request = Request::Snapshot { epoch, offset: bytes.len() as u64, max: 4 << 20 };
+        let Ok(Response::Snapshot(Some((piece, total)))) = orien_net::client::rpc(endpoint, &request, std::time::Duration::from_secs(20))
+        else {
+            return None;
+        };
+        if piece.is_empty() && (bytes.len() as u64) < total {
+            return None;
+        }
+        bytes.extend_from_slice(&piece);
+        if bytes.len() as u64 >= total {
+            return Some(bytes);
+        }
+    }
+}
+
 /// For tests: payments added by hand.
 #[derive(Default)]
 pub struct Fake {
@@ -172,6 +225,10 @@ impl Payments for Fake {
         Ok(self.held.lock().unwrap().contains(account))
     }
 
+    fn tokenomics(&self) -> Result<Tokenomics> {
+        anyhow::bail!("no snapshot in tests")
+    }
+
     fn status(&self) -> Result<NetworkStatus> {
         Ok(NetworkStatus { epoch: *self.epoch.lock().unwrap(), epoch_seconds: 3600, first_target: 1, ..NetworkStatus::default() })
     }
@@ -191,5 +248,8 @@ mod tests {
         assert!(network.has_held(&market).unwrap(), "the marketplace's wallet has been paid");
         let nobody: AccountId = "1234".repeat(16).parse().unwrap();
         assert!(!network.has_held(&nobody).unwrap(), "a made-up address never held anything");
+        let t = network.tokenomics().unwrap();
+        println!("{}", serde_json::to_string_pretty(&t).unwrap());
+        assert!(t.released > 0 && t.holding > 0);
     }
 }
