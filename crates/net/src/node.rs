@@ -26,6 +26,7 @@ use anyhow::{Context, Result, anyhow, bail};
 use orien_crypto::keytree::{self, KeyTree, TreeSignature};
 use orien_crypto::{Hash32, merkle};
 use orien_ledger::close::{self, Cheat, Decided, Message, NextKey, Pin, Share, Statement};
+use orien_ledger::work::Math;
 use orien_ledger::{
     Accepted, AccountId, Applied, Certificate, Committee, Confirmation, Genesis, Income, Kind, Order, Proofs, Reject,
     SignedBy, SignedOrder, State, Vote, confirmation_item,
@@ -203,6 +204,8 @@ struct Shared {
     /// The validators of the current epoch. The core replaces it at each
     /// checkpoint.
     committee: Arc<RwLock<Arc<Committee>>>,
+    /// The current epoch's seed, which shares are judged against.
+    seed: Arc<RwLock<Hash32>>,
     data_dir: PathBuf,
     /// Set while this validator is closing its epoch.
     closing: Arc<AtomicBool>,
@@ -212,6 +215,32 @@ struct Shared {
     admission: Mutex<Admission>,
     idle: Duration,
     next_connection: AtomicU64,
+}
+
+/// How many RandomX shares this validator checks at once. More wait their
+/// turn by being sent again, so checking never takes every processor.
+const SHARE_CHECKS: usize = 2;
+
+static CHECKING: std::sync::atomic::AtomicUsize = std::sync::atomic::AtomicUsize::new(0);
+
+/// A turn at checking a share, given back when dropped.
+struct ShareCheck;
+
+impl ShareCheck {
+    fn start() -> Option<ShareCheck> {
+        let taken = CHECKING.fetch_add(1, Ordering::AcqRel);
+        if taken >= SHARE_CHECKS {
+            CHECKING.fetch_sub(1, Ordering::AcqRel);
+            return None;
+        }
+        Some(ShareCheck)
+    }
+}
+
+impl Drop for ShareCheck {
+    fn drop(&mut self) {
+        CHECKING.fetch_sub(1, Ordering::AcqRel);
+    }
 }
 
 fn stopped() -> Response {
@@ -259,6 +288,21 @@ impl Shared {
             }
             Request::Confirm(certificate) => self.ingest(certificate, true).unwrap_or_else(stopped),
             Request::SubmitShare(share) => {
+                // A RandomX share takes milliseconds to check: check it here,
+                // on this connection's own thread, a few at a time, so the
+                // validator's main work never waits on it and a flood of
+                // false shares only slows the shares.
+                let committee = self.committee();
+                let work = committee.work();
+                if work.math(committee.epoch()) == Math::RandomX {
+                    let Some(_turn) = ShareCheck::start() else {
+                        return Response::Unavailable("busy checking shares; send it again in a moment".into());
+                    };
+                    let seed = *self.seed.read().unwrap();
+                    if !share.counts(Math::RandomX, &seed, work.target) {
+                        return Response::Invalid("not a work share for this epoch".into());
+                    }
+                }
                 self.ask(|reply| Command::Share { share, reply }).unwrap_or_else(stopped)
             }
             Request::Close { epoch, message } => {
@@ -420,6 +464,7 @@ struct Core {
     committee: Committee,
     /// The same, where connection threads read it.
     committee_cell: Arc<RwLock<Arc<Committee>>>,
+    seed_cell: Arc<RwLock<Hash32>>,
     /// Tells the threads that talk to other validators that a close is on.
     closing: Arc<AtomicBool>,
     tree: KeyTree,
@@ -902,6 +947,7 @@ impl Core {
         self.committee = self.committee.following(checkpoint.validators.clone()).with_target(checkpoint.target);
         *self.committee_cell.write().unwrap() = Arc::new(self.committee.clone());
         self.previous = checkpoint.digest();
+        *self.seed_cell.write().unwrap() = self.previous;
         self.previous_time = checkpoint.time;
         self.certs = CertLog::open(&self.epochs.log(), |_| {}).expect("cannot open the certificate log; stopping");
         self.applied.clear();
@@ -1326,7 +1372,8 @@ impl Core {
             return Response::Closing;
         }
         let work = self.committee.work();
-        if !share.counts(&self.previous, work.target) {
+        let math = work.math(self.committee.epoch());
+        if !share.counts(math, &self.previous, work.target) {
             return Response::Invalid("not a work share for this epoch".into());
         }
         if self.shares.contains(&share) {
@@ -2011,9 +2058,11 @@ impl Node {
 
         let (commands, receiver) = mpsc::channel();
         let committee_cell = Arc::new(RwLock::new(Arc::new(committee.clone())));
+        let seed_cell = Arc::new(RwLock::new(previous));
         let closing = Arc::new(AtomicBool::new(closer.frozen()));
         let shared = Arc::new(Shared {
             committee: committee_cell.clone(),
+            seed: seed_cell.clone(),
             data_dir: data_dir.clone(),
             closing: closing.clone(),
             commands: commands.clone(),
@@ -2028,6 +2077,7 @@ impl Node {
             index: place,
             committee,
             committee_cell,
+            seed_cell,
             closing,
             tree,
             leaves,

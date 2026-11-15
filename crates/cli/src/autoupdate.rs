@@ -12,6 +12,11 @@
 //! turn.
 //!
 //! `orien node --no-auto-update` turns it off.
+//!
+//! `orien mine` does the same, without waiting for a calm moment: a miner
+//! that falls behind a change to the network's rules does work nobody
+//! counts, so it installs a new release as soon as it finds one and carries
+//! on mining on it. `orien mine --no-auto-update` turns it off.
 
 use crate::release;
 use orien_ledger::Genesis;
@@ -161,21 +166,91 @@ impl Updater {
         }
     }
 
-    #[cfg(unix)]
     fn start_again(&self) {
-        use std::os::unix::process::CommandExt;
-        // Replaces this process; files and sockets close as it does.
-        let error = std::process::Command::new(&self.exe).args(&self.args).exec();
-        self.say(&format!("could not restart on the new version: {error}"));
-    }
-
-    #[cfg(not(unix))]
-    fn start_again(&self) {
-        match std::process::Command::new(&self.exe).args(&self.args).spawn() {
-            Ok(_) => std::process::exit(0),
-            Err(error) => self.say(&format!("could not restart on the new version: {error}")),
+        if let Err(error) = start_again(&self.exe, &self.args) {
+            self.say(&format!("could not restart on the new version: {error}"));
         }
     }
+}
+
+/// Runs `exe` with `args` in place of this process. Returns only if that
+/// failed.
+#[cfg(unix)]
+fn start_again(exe: &std::path::Path, args: &[OsString]) -> std::io::Result<()> {
+    use std::os::unix::process::CommandExt;
+    // Replaces this process; files and sockets close as it does.
+    Err(std::process::Command::new(exe).args(args).exec())
+}
+
+#[cfg(not(unix))]
+fn start_again(exe: &std::path::Path, args: &[OsString]) -> std::io::Result<()> {
+    // The new program carries on in this console; this one leaves at once,
+    // its own work with it.
+    std::process::Command::new(exe).args(args).spawn()?;
+    std::process::exit(0);
+}
+
+/// Keeps `orien mine` on the newest release, on the live network: about
+/// once an hour it looks for one, installs it, and mines on with it,
+/// started again with `args`.
+pub fn keep_mining_current(genesis_file: &std::path::Path, args: Vec<OsString>) {
+    let Ok(genesis) = orien_net::keys::load_genesis(genesis_file) else { return };
+    let live = orien_net::node::is_live(&genesis.id())
+        || (cfg!(debug_assertions) && std::env::var_os("ORIEN_AUTOUPDATE_ANY_NETWORK").is_some());
+    if !live {
+        return;
+    }
+    let Ok(exe) = std::env::current_exe() else { return };
+    let soon = cfg!(debug_assertions) && std::env::var_os("ORIEN_AUTOUPDATE_SOON").is_some();
+    let _ = thread::Builder::new().name("mine-update".into()).spawn(move || {
+        let running = env!("CARGO_PKG_VERSION");
+        // The first look comes soon after starting: a miner started on an
+        // old version should not mine long on rules that have changed.
+        thread::sleep(Duration::from_secs(if soon { 2 } else { 30 + random_below(90) }));
+        let mut told_cannot = String::new();
+        loop {
+            if let Some(version) = install_newer(&exe, running, &mut told_cannot) {
+                println!("installed orien {version}; mining on with it");
+                if let Err(error) = start_again(&exe, &args) {
+                    println!("could not start orien {version}: {error}; carrying on with {running}");
+                }
+            }
+            thread::sleep(if soon { Duration::from_secs(10) } else { CHECK_EVERY + Duration::from_secs(random_below(600)) });
+        }
+    });
+}
+
+/// Installs a newer signed release over `exe`, returning its version.
+/// Says once per version when it cannot.
+fn install_newer(exe: &std::path::Path, running: &str, told_cannot: &mut String) -> Option<String> {
+    if let Some(installed) = release::installed_version(exe)
+        && release::version(&installed) > release::version(running)
+    {
+        return Some(installed);
+    }
+    let (base, root) = release::source().ok()?;
+    let work = std::env::temp_dir().join(format!("orien-mine-update-{}", std::process::id()));
+    let _ = std::fs::remove_dir_all(&work);
+    std::fs::create_dir_all(&work).ok()?;
+    let found = match release::newer_release(&base, &root, running, &work) {
+        Ok(Some((version, program))) => match release::install(&program, exe) {
+            Ok(()) => Some(version),
+            Err(error) => {
+                if *told_cannot != version {
+                    println!(
+                        "orien {version} is out, but mining cannot update itself ({error:#}); \
+                         stop it and run `orien update` as a user who may write {}",
+                        exe.display()
+                    );
+                    *told_cannot = version;
+                }
+                None
+            }
+        },
+        _ => None,
+    };
+    let _ = std::fs::remove_dir_all(&work);
+    found
 }
 
 #[cfg(test)]

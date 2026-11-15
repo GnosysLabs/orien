@@ -28,6 +28,11 @@ pub struct Status {
     pub taken: u64,
     /// Why it stopped, if it stopped on its own.
     pub problem: Option<String>,
+    /// Getting RandomX ready for a new epoch: up to a minute, once an hour.
+    pub preparing: bool,
+    /// Mining in RandomX's light mode, several times slower, for lack of
+    /// the 2 GB of memory the full dataset needs.
+    pub light: bool,
 }
 
 struct Running {
@@ -76,6 +81,11 @@ pub fn start(account: AccountId, percent: u8, connect: impl FnOnce() -> Result<C
                 s.one_in = Some(u64::MAX / target.max(1));
                 s.found = 0;
                 s.taken = 0;
+            }),
+            Event::Preparing { .. } => set(|s| s.preparing = true),
+            Event::Prepared { light, .. } => set(|s| {
+                s.preparing = false;
+                s.light = light;
             }),
             Event::Round { tries_per_second, sent, taken } => set(|s| {
                 s.tries_per_second = tries_per_second;

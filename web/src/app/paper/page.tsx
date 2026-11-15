@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import { ArrowRight, Download } from 'lucide-react'
 import { Formula, PaperSection, Sub, Table } from '@/components/Paper'
+import { RANDOMX_FROM } from '@/lib/brand'
 
 export const metadata: Metadata = {
   title: 'Technical paper',
@@ -518,10 +519,18 @@ released(t) = CAP − ⌊CAP · u / 2⁶⁴⌋`}</Formula>
         <Sub title="8.2 Proof-of-work shares">
           <p>
             Miners earn released coins with shares: numbers that, hashed with the previous checkpoint and the miner’s
-            account, fall below the epoch’s target:
+            account, fall below the epoch’s target. The hash is RandomX [9], the proof-of-work Monero uses, keyed with
+            the epoch’s seed:
           </p>
-          <Formula>{`work = u64_le( hash(0x46, seed ‖ account ‖ u64_le(nonce))[0..8] )
+          <Formula>{`work = u64_le( RandomX(key = seed, input = seed ‖ account ‖ u64_le(nonce))[0..8] )
 a share counts when work < target           seed = digest of the previous checkpoint`}</Formula>
+          <p>
+            Each RandomX hash runs a random program over a 2 GiB dataset built from the key: work an ordinary processor
+            does well, and at which graphics cards and custom chips gain little, so mining stays open to anyone with a
+            computer. Miners rebuild the dataset for each epoch’s seed; validators check shares in RandomX’s light mode,
+            with a 256 MiB cache, and each share once. Before epoch {RANDOMX_FROM.toLocaleString('en')} the work was
+            BLAKE3: <code>u64_le( hash(0x46, seed ‖ account ‖ u64_le(nonce))[0..8] )</code>.
+          </p>
           <p>
             Because the seed is the previous checkpoint, no share can be computed before that checkpoint exists. Miners
             send shares to validators, which list them in their statements. At the checkpoint, the shares from the merged
@@ -549,8 +558,10 @@ a share counts when work < target           seed = digest of the previous checkp
           <Formula>{`T′ = 4 · T                                   if n = 0
 T′ = clamp( T · 1,000 / n,  ⌊T / 4⌋,  4 · T )  otherwise`}</Formula>
           <p>
-            The first target is 2<sup>40</sup> − 1: about one share for every 16.8 million hashes. The target moves by at
-            most a factor of four per epoch, which limits how far a sudden burst of work can push it.
+            The first target was 2<sup>40</sup> − 1: about one share for every 16.8 million BLAKE3 hashes. At epoch{' '}
+            {RANDOMX_FROM.toLocaleString('en')}, the first judged by RandomX, it started again at ⌊(2<sup>64</sup> − 1) /
+            400,000⌋: about one share for every 400,000 RandomX hashes. The target moves by at most a factor of four per
+            epoch, which limits how far a sudden burst of work can push it.
           </p>
         </Sub>
       </PaperSection>
@@ -802,7 +813,8 @@ OP_ENDIF`}</Formula>
             <li>
               <strong>BLAKE3 is a secure hash function</strong>: preimages and second preimages cannot be found faster
               than by generic search, and keyed BLAKE3 is a pseudorandom function. The protocol assumes nothing else, except that locked payments
-              (section 9) also rely on SHA-256. There is no
+              (section 9) also rely on SHA-256, and that mining relies on RandomX having no shortcut: one would let
+              someone earn more of the new coins, never move anyone’s. There is no
               elliptic curve, no factoring and no lattice anywhere in the protocol.
             </li>
             <li>
@@ -945,7 +957,8 @@ OP_ENDIF`}</Formula>
             ['Launch seats', '3,000,000 ORN of weight, shared equally, fading as stake arrives'],
             ['Fee', '0.1% of the amount, at least 0.000001 ORN, at most 1 ORN; stake and unstake 0.000001 ORN'],
             ['Shares wanted per epoch', '1,000'],
-            ['First target', '2⁴⁰ − 1'],
+            ['Proof-of-work', `RandomX, keyed with each epoch’s seed (BLAKE3 before epoch ${RANDOMX_FROM.toLocaleString('en')})`],
+            ['First target', `2⁴⁰ − 1; for RandomX, from epoch ${RANDOMX_FROM.toLocaleString('en')}, ⌊(2⁶⁴ − 1) / 400,000⌋`],
             ['Target change per epoch', 'at most × 4 or ÷ 4'],
             ['Shares a validator counts per epoch', '40,000, or 300,000 ÷ validators if fewer'],
             ['Hash function', 'BLAKE3, 32-byte output'],
@@ -1007,6 +1020,7 @@ OP_ENDIF`}</Formula>
             A. Biryukov, D. Dinu, D. Khovratovich, S. Josefsson. RFC 9106: Argon2 memory-hard function for password
             hashing and proof-of-work applications. 2021.
           </li>
+          <li>tevador and others. RandomX: proof-of-work algorithm optimized for general-purpose CPUs. github.com/tevador/RandomX, 2019.</li>
         </ol>
       </PaperSection>
 

@@ -44,6 +44,8 @@ struct Options {
     /// The most coins released for work: none unless a test asks.
     cap: u64,
     first_target: u64,
+    /// When mining moves to RandomX, if it does.
+    randomx: Option<orien_ledger::RandomXFrom>,
     limits: Limits,
 }
 
@@ -64,6 +66,7 @@ impl Default for Options {
             seat: 1,
             cap: 0,
             first_target: u64::MAX,
+            randomx: None,
             limits: Limits::default(),
         }
     }
@@ -130,6 +133,7 @@ impl TestNet {
             shares_per_epoch: 1_000,
             first_target: options.first_target,
             bitcoin: None,
+            randomx: options.randomx,
         };
         let network = genesis.id();
         let mut net = TestNet { dir, genesis, network, keys, nodes: Vec::new(), options };
@@ -1696,10 +1700,11 @@ fn work_earns_coins_at_the_next_checkpoint() {
     let mut from = 0u64;
     wait_until("carol is paid for her work", || {
         client.follow();
-        let (_, seed, target) = client.followed_work();
+        let (epoch, seed, target) = client.followed_work();
+        let math = client.committee().work().math(epoch);
         let shares: Vec<orien_ledger::close::Share> = (from..)
             .map(|nonce| orien_ledger::close::Share { account: carol, nonce })
-            .filter(|share| share.counts(&seed, target))
+            .filter(|share| share.counts(math, &seed, target))
             .take(5)
             .collect();
         from = shares.last().map_or(from, |share| share.nonce + 1);
@@ -1740,10 +1745,11 @@ fn validators_keep_each_accounts_incoming_history() {
     let mut from = 0u64;
     wait_until("carol is paid for her work", || {
         client.follow();
-        let (_, seed, target) = client.followed_work();
+        let (epoch, seed, target) = client.followed_work();
+        let math = client.committee().work().math(epoch);
         let shares: Vec<orien_ledger::close::Share> = (from..)
             .map(|nonce| orien_ledger::close::Share { account: carol, nonce })
-            .filter(|share| share.counts(&seed, target))
+            .filter(|share| share.counts(math, &seed, target))
             .take(5)
             .collect();
         from = shares.last().map_or(from, |share| share.nonce + 1);
@@ -1770,6 +1776,67 @@ fn validators_keep_each_accounts_incoming_history() {
         let rest = client.history(&carol, next, 1000).unwrap();
         assert_eq!(rest.entries.len() + 1, page.entries.len());
     }
+}
+
+#[test]
+fn mining_moves_to_randomx_at_the_epoch_set_and_keeps_paying() {
+    use orien_ledger::Income;
+    use orien_ledger::work::Math;
+    // BLAKE3 for epochs 0 to 2, RandomX from epoch 3 at an easy target.
+    let switch = 3;
+    let randomx = orien_ledger::RandomXFrom { epoch: switch, target: u64::MAX >> 3 };
+    let options =
+        Options { epoch: 3, cap: orien_ledger::release::CAP, first_target: u64::MAX >> 6, randomx: Some(randomx), ..Options::default() };
+    let net = TestNet::start_with("randomx", options);
+    let carol = net.address("carol");
+    let client = net.client();
+    let mut from = 0u64;
+    let mut maths = std::collections::BTreeSet::new();
+    wait_until("carol is paid for RandomX work after the switch", || {
+        client.follow();
+        let (epoch, seed, target) = client.followed_work();
+        let math = client.committee().work().math(epoch);
+        assert_eq!(math == Math::RandomX, epoch >= switch);
+        if epoch == switch {
+            assert_eq!(target, randomx.target, "the switch starts at the target set for it");
+        }
+        // The miner's own hasher, as `orien mine` and the app use it, in
+        // light mode: the full dataset takes longer to make than these
+        // test epochs last.
+        let ready = orien_ledger::work::Prepared::light_only(math, &seed);
+        let hasher = ready.hasher();
+        let shares: Vec<orien_ledger::close::Share> = (from..)
+            .map(|nonce| orien_ledger::close::Share { account: carol, nonce })
+            .filter(|share| hasher.number(share) < target)
+            .take(3)
+            .collect();
+        from = shares.last().map_or(from, |share| share.nonce + 1);
+        for share in &shares {
+            assert!(share.counts(math, &seed, target), "validators judge it as the miner did");
+            client.submit_share(*share);
+        }
+        maths.insert(format!("{math:?}"));
+        thread::sleep(Duration::from_millis(300));
+        let page = client.history(&carol, 0, 1000).unwrap();
+        page.entries.iter().any(|e| e.income == Income::Mining && e.epoch >= switch)
+            && page.entries.iter().any(|e| e.income == Income::Mining && e.epoch < switch)
+    });
+    assert_eq!(maths.len(), 2, "mined under both");
+    // Every validator agrees on what she holds.
+    net.wait_until_level();
+}
+
+#[test]
+fn the_live_networks_identity_is_unchanged() {
+    let genesis = orien_net::keys::load_genesis(&std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../web/public/network/genesis.json")).unwrap();
+    assert!(genesis.randomx.is_none());
+    assert_eq!(genesis.id().to_string(), orien_ledger::work::LIVE_NETWORK);
+    assert!(orien_net::node::is_live(&genesis.id()));
+    // RandomX from epoch 21, starting at its own target.
+    let work = orien_ledger::Committee::new(&genesis).work();
+    use orien_ledger::work::Math;
+    assert_eq!((work.math(20), work.math(21)), (Math::Blake3, Math::RandomX));
+    assert_eq!(work.randomx_target, orien_ledger::work::LIVE_RANDOMX_TARGET);
 }
 
 #[test]

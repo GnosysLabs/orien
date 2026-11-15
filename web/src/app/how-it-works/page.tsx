@@ -197,8 +197,10 @@ export default function HowItWorksPage() {
           changes nothing about how many exist.
         </p>
         <p>
-          <strong>Earned by work.</strong> Miners look for numbers that, hashed with BLAKE3 together with their
+          <strong>Earned by work.</strong> Miners look for numbers that, hashed with RandomX together with their
           account and the hour’s seed, come out below a target. Each such number is a <strong>work share</strong>.
+          RandomX, the mining math Monero uses, needs 2 GB of memory and suits an ordinary processor, so graphics cards
+          and custom chips gain little and any computer can take part.
           Validators collect the shares, and at each checkpoint the hour’s new coins are paid out in proportion to
           them. The target moves each hour to keep about a thousand shares an hour, however many people mine.
         </p>
@@ -233,8 +235,8 @@ export default function HowItWorksPage() {
       <Section id="safety" title="What keeps it safe">
         <ul className="list-disc space-y-2 pl-5">
           <li>
-            <strong>One assumption.</strong> Every signature, every proof and all mining rest on the BLAKE3 hash
-            function alone.
+            <strong>One assumption.</strong> Every signature and every proof rests on the BLAKE3 hash function
+            alone.
           </li>
           <li>
             <strong>Up to a third may misbehave.</strong> As long as validators holding more than two thirds of the

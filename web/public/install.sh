@@ -32,6 +32,7 @@ case "$(uname -m)" in
     x86_64 | amd64) arch=x86_64 ;;
     *) fail "there is no orien build for a $(uname -m) processor" ;;
 esac
+[ "$os-$arch" = macos-x86_64 ] && fail "orien runs on Macs with Apple chips (M1 or later), not Intel Macs"
 
 version="$(curl -fsSL "$BASE/downloads/latest")" || fail "could not reach $BASE"
 file="orien-$version-$os-$arch.tar.gz"

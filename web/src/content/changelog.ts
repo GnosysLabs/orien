@@ -12,6 +12,8 @@ export type Entry = {
   version?: string
   title: string
   changes: string[]
+  /** Written ahead of its release: left off the page until then. */
+  unreleased?: boolean
 }
 
 export const PRODUCTS: Record<Product, string> = {
@@ -25,8 +27,21 @@ export const PRODUCTS: Record<Product, string> = {
 export const CHANGELOG: Entry[] = [
   {
     date: '2026-11-15',
+    products: ['network', 'orien', 'validators'],
+    version: '1.5.0',
+    title: 'Mining moves to RandomX, so any computer can take part',
+    changes: [
+      'From epoch 21, at 18:11 UTC on 15 November 2026, mining uses RandomX, the mining math Monero has used since 2019. Each try runs a small random program over 2 GB of memory: work an ordinary processor is built for, where graphics cards and custom chips gain little. Mining stays open to anyone with a computer.',
+      'Miners: run orien update once. From this version on, orien mine keeps itself up to date: it installs each new release and carries on mining on it. Mining needs about 2 GB of memory and spends up to a minute getting ready at each hourly checkpoint; with less memory it mines in a slower light mode.',
+      'The mining difficulty starts again at the switch, at about one share in 400,000 tries, and adjusts each hour as before. Balances, payments and history are unchanged.',
+      'orien is no longer built for Macs with Intel chips.',
+    ],
+  },
+  {
+    date: '2026-11-15',
     products: ['wallet'],
     version: '1.5.0',
+    unreleased: true,
     title: 'Several wallets, and mining in the app',
     changes: [
       'Keep several wallets in one app: tap the wallet’s name above the balance to switch, rename them (Main, Mining…), add a new one or restore one from its recovery phrase. Each has its own address, recovery phrase and activity. Removing one only takes it off the list.',

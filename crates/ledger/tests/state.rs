@@ -38,6 +38,7 @@ fn genesis(balances: &[(u8, u64)]) -> Genesis {
         shares_per_epoch: 1_000,
         first_target: u64::MAX,
         bitcoin: None,
+        randomx: None,
     }
 }
 
