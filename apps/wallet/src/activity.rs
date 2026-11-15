@@ -104,6 +104,11 @@ struct Account {
     /// (from the balance, from history, and a correction) are one line.
     #[serde(default)]
     collapsed: bool,
+    /// The wallet's past from before this app kept a record of it has been
+    /// read from history: a book started by a version before 1.6.0 began at
+    /// the hour it was first opened.
+    #[serde(default)]
+    past_read: bool,
 }
 
 /// How far apart a line worked out from the balance and history's record
@@ -275,6 +280,7 @@ pub fn heard(dir: &Path, address: &str, epoch: u64, unknown: &[u64], received: V
             *expected += held;
         }
         account.history = Some(cut);
+        account.past_read = true;
         save(dir, &book);
         return;
     }
@@ -312,6 +318,32 @@ pub fn heard(dir: &Path, address: &str, epoch: u64, unknown: &[u64], received: V
         *expected += added;
     }
     account.history = Some(account.history.map_or(cut, |from| from.max(cut)));
+    save(dir, &book);
+}
+
+/// Whether the wallet's past, from before this app kept a record, still
+/// needs reading from history.
+pub fn needs_past(dir: &Path, address: &str) -> bool {
+    load(dir).0.get(address).is_some_and(|account| account.history.is_some() && !account.past_read)
+}
+
+/// Adds what history holds from before the first line this app recorded:
+/// the wallet's past, which the balance already includes, so nothing the
+/// app expects changes. Nothing on or after that first line is touched, so
+/// nothing shows twice. Done once per wallet.
+pub fn past(dir: &Path, address: &str, history: Vec<Received>, fee_of: &dyn Fn(u64) -> u64) {
+    let mut book = load(dir);
+    let Some(account) = book.0.get_mut(address) else { return };
+    let first = account.entries.iter().chain(&account.open).map(|e| e.time).min().unwrap_or(u64::MAX);
+    let orders: Vec<String> = account.entries.iter().chain(&account.open).filter_map(|e| e.order.clone()).collect();
+    let mut earlier: Vec<Entry> = history
+        .iter()
+        .filter_map(|item| item.time.filter(|time| *time < first).map(|time| entry(item, time, fee_of)))
+        .filter(|line| !line.order.as_ref().is_some_and(|o| orders.contains(o)))
+        .collect();
+    earlier.append(&mut account.entries);
+    account.entries = earlier;
+    account.past_read = true;
     save(dir, &book);
 }
 
@@ -598,6 +630,26 @@ mod tests {
         let now = list(&dir, &me);
         assert_eq!(now.len(), 1);
         assert_eq!((now[0].direction, now[0].amount, now[0].time), (Direction::Sent, 100, t));
+        fs::remove_dir_all(&dir).unwrap();
+    }
+
+    /// A record started before 1.6.0 began at the hour the wallet was first
+    /// opened: its past is read once, and nothing shows twice.
+    #[test]
+    fn an_older_record_gets_the_wallets_past_once() {
+        let dir = std::env::temp_dir().join(format!("orien-past-{}", std::process::id()));
+        fs::create_dir_all(&dir).unwrap();
+        let _ = fs::remove_file(dir.join("activity.json"));
+        let mut book = Book::default();
+        let mining = |epoch, amount| Entry { kind: Some(Kind::Mining), ..entry(&got(epoch, true, Income::Mining, amount, None), 1_000 + epoch, &|_| 0) };
+        book.0.insert("me".into(), Account { expected: Some(5000), entries: vec![mining(10, 300), mining(11, 310)], history: Some(12), ..Default::default() });
+        save(&dir, &book);
+        assert!(needs_past(&dir, "me"));
+        let all: Vec<Received> = (7..12).map(|epoch| got(epoch, true, Income::Mining, 290 + epoch, None)).collect();
+        past(&dir, "me", all, &|_| 0);
+        let amounts: Vec<u64> = list(&dir, "me").iter().map(|e| e.amount).collect();
+        assert_eq!(amounts, vec![310, 300, 299, 298, 297], "epochs 7 to 9 added, 10 and 11 not twice");
+        assert!(!needs_past(&dir, "me"));
         fs::remove_dir_all(&dir).unwrap();
     }
 

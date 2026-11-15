@@ -330,6 +330,22 @@ fn whole_history(client: &Client, address: &AccountId) -> Option<Vec<orien_net::
     None
 }
 
+/// Everything the validators' activity holds for the account, sent and
+/// received, from the start. None if it can't all be read now.
+fn whole_activity(client: &Client, address: &AccountId) -> Option<Vec<orien_net::history::Received>> {
+    let mut from = 0;
+    let mut all = Vec::new();
+    for _ in 0..200 {
+        let page = client.activity(address, from, orien_net::history::MAX_ENTRIES)?;
+        all.extend(page.entries);
+        match page.next {
+            Some(next) if next > from => from = next,
+            _ => return Some(all),
+        }
+    }
+    None
+}
+
 /// Whether the app has a wallet yet.
 #[tauri::command]
 fn has_wallet(app: AppHandle) -> Result<bool, String> {
@@ -722,10 +738,16 @@ async fn overview_now(app: AppHandle) -> Result<Overview, String> {
         if let Some(balance) = view.units {
             // History first, so the balance is only asked to explain what
             // history did not.
+            let fees = money::fees(GENESIS);
+            let fee_of = |amount: u64| fees.on(&orien_ledger::Kind::Payment, amount);
             if let Some((epoch, unknown, received)) = history(&client, &dir, &address) {
-                let fees = money::fees(GENESIS);
-                let fee_of = |amount: u64| fees.on(&orien_ledger::Kind::Payment, amount);
                 activity::heard(&dir, &view.address, epoch, &unknown, received, &fee_of);
+            }
+            // Once: a record started before 1.6.0 gets the wallet's past.
+            if activity::needs_past(&dir, &view.address)
+                && let Some(all) = whole_activity(&client, &address)
+            {
+                activity::past(&dir, &view.address, all, &fee_of);
             }
             // Once: lines worked out from the balance before history was read
             // for their hour take what history says they were.
