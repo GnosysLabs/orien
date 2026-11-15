@@ -25,6 +25,19 @@ export const PRODUCTS: Record<Product, string> = {
 export const CHANGELOG: Entry[] = [
   {
     date: '2026-11-15',
+    products: ['wallet'],
+    version: '1.4.0',
+    title: 'Buy and sell ORN in the app',
+    changes: [
+      'The Swap screen shows the open offers to buy or sell ORN for Bitcoin, cheapest first, with each seller, their swaps done, and the value in dollars. Take one, or post your own; you need no ORN to buy your first.',
+      'After you take or post an offer, the two wallets carry the swap through on their own while they are open: nobody copies codes. Your swaps show each step, and what happens if the other side disappears.',
+      'Sign in once with your email and a 6-digit code: the same account as on orien.network.',
+      'Signing in also links this wallet to your account with one tiny payment (under 0.01 ORN), sent once when the wallet holds enough, so you can sell on the marketplace too.',
+      'Swapping by passing codes yourself is still there, under Swap with someone you know.',
+    ],
+  },
+  {
+    date: '2026-11-15',
     products: ['marketplace'],
     title: 'Buy & sell ORN, and the marketplace',
     changes: [
