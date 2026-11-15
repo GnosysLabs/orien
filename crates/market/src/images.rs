@@ -39,14 +39,15 @@ pub fn profile_picture(bytes: &[u8]) -> Result<Vec<u8>> {
     Ok(jpeg(&image.resize_to_fill(PICTURE, PICTURE, image::imageops::FilterType::Lanczos3)))
 }
 
-/// A listing's picture, 4:3, cut to fill.
+/// A listing's picture, 16:9, cut to fill. (Pictures saved before
+/// 2026-11-15 are 4:3; pages show both in a 16:9 frame.)
 pub fn listing_picture(bytes: &[u8]) -> Result<Vec<u8>> {
     let image = decode(bytes)?;
     Ok(jpeg(&image.resize_to_fill(LISTING_WIDTH, LISTING_HEIGHT, image::imageops::FilterType::Lanczos3)))
 }
 
-pub const LISTING_WIDTH: u32 = 1200;
-pub const LISTING_HEIGHT: u32 = 900;
+pub const LISTING_WIDTH: u32 = 1280;
+pub const LISTING_HEIGHT: u32 = 720;
 
 /// Where uploaded pictures are kept, each under a random name.
 pub struct Folder {
@@ -95,6 +96,15 @@ mod tests {
         assert_eq!((back.width(), back.height()), (PICTURE, PICTURE));
         assert_eq!(&out[..2], &[0xFF, 0xD8], "a JPEG");
         assert!(profile_picture(b"not a picture").is_err());
+    }
+
+    #[test]
+    fn a_listing_picture_comes_out_16_by_9() {
+        let photo = DynamicImage::new_rgb8(1000, 1000);
+        let mut png = Vec::new();
+        photo.write_to(&mut Cursor::new(&mut png), image::ImageFormat::Png).unwrap();
+        let back = image::load_from_memory(&listing_picture(&png).unwrap()).unwrap();
+        assert_eq!((back.width(), back.height()), (1280, 720));
     }
 
     #[test]

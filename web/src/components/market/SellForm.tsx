@@ -175,7 +175,7 @@ export function SellForm() {
             return (
               <div key={src} className="relative w-36 overflow-hidden rounded-xl border border-line">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={src} alt="" className="aspect-[4/3] w-full object-cover" />
+                <img src={src} alt="" className="aspect-video w-full object-cover" />
                 {n === 0 ? (
                   <span className="absolute left-2 top-2 rounded-full bg-bg/85 px-2 py-0.5 text-[11px] font-semibold text-ink">Cover</span>
                 ) : (
@@ -199,7 +199,7 @@ export function SellForm() {
             )
           })}
           {pictures.length < MAX_PICTURES && (
-            <label className="flex aspect-[4/3] w-36 cursor-pointer flex-col items-center justify-center gap-1.5 rounded-xl border border-dashed border-line text-sm text-muted transition hover:border-pearl/60 hover:text-ink">
+            <label className="flex aspect-video w-36 cursor-pointer flex-col items-center justify-center gap-1.5 rounded-xl border border-dashed border-line text-sm text-muted transition hover:border-pearl/60 hover:text-ink">
               <ImagePlus className="h-5 w-5" aria-hidden />
               Add
               <input
