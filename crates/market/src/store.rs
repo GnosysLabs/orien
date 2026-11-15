@@ -7,8 +7,12 @@ use serde::{Deserialize, Serialize};
 use std::path::Path;
 use std::time::{SystemTime, UNIX_EPOCH};
 
-/// How long signing in lasts on one browser.
+/// How long a sign-in lasts unused. Each use renews it, so a browser or
+/// wallet in regular use stays signed in.
 pub const SESSION_SECONDS: u64 = 30 * 24 * 3600;
+/// How long the browser keeps the sign-in cookie: as long as browsers allow.
+/// The server's own record, which lapses after a month unused, decides.
+pub const COOKIE_SECONDS: u64 = 400 * 24 * 3600;
 
 pub const MAX_NAME: usize = 50;
 pub const MAX_BIO: usize = 1000;
@@ -513,14 +517,21 @@ impl Store {
 
     /// The account a browser's token signs in, if it is still good.
     pub fn session(&self, token: &str) -> Result<Option<i64>> {
-        Ok(self
+        let hash = token_hash(token);
+        let found: Option<(i64, u64)> = self
             .db
             .query_row(
-                "SELECT account FROM sessions WHERE token = ?1 AND expires >= ?2",
-                params![token_hash(token), now()],
-                |row| row.get(0),
+                "SELECT account, expires FROM sessions WHERE token = ?1 AND expires >= ?2",
+                params![hash, now()],
+                |row| Ok((row.get(0)?, row.get(1)?)),
             )
-            .optional()?)
+            .optional()?;
+        let Some((account, expires)) = found else { return Ok(None) };
+        // Renewed at most once a day, to keep writes rare.
+        if expires < now() + SESSION_SECONDS - 24 * 3600 {
+            self.db.execute("UPDATE sessions SET expires = ?2 WHERE token = ?1", params![hash, now() + SESSION_SECONDS])?;
+        }
+        Ok(Some(account))
     }
 
     pub fn end_session(&self, token: &str) -> Result<()> {
@@ -886,6 +897,13 @@ mod tests {
         assert_eq!(store.session("guess").unwrap(), None);
         let kept: String = store.db.query_row("SELECT token FROM sessions", [], |row| row.get(0)).unwrap();
         assert_ne!(kept, token);
+        // Used, a sign-in renews itself; unused for a month, it lapses.
+        store.db.execute("UPDATE sessions SET expires = ?1", [now() + 3600]).unwrap();
+        assert_eq!(store.session(&token).unwrap(), Some(maya.id));
+        let renewed: u64 = store.db.query_row("SELECT expires FROM sessions", [], |row| row.get(0)).unwrap();
+        assert!(renewed >= now() + SESSION_SECONDS - 5);
+        store.db.execute("UPDATE sessions SET expires = ?1", [now() - 1]).unwrap();
+        assert_eq!(store.session(&token).unwrap(), None);
         store.end_session(&token).unwrap();
         assert_eq!(store.session(&token).unwrap(), None);
     }

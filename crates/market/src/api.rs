@@ -7,7 +7,7 @@
 use crate::images::{self, Folder};
 use crate::mail::Mailer;
 use crate::screen::{Screener, Verdict};
-use crate::store::{self, Draft, SESSION_SECONDS, Store};
+use crate::store::{self, COOKIE_SECONDS, Draft, Store};
 use crate::wallets::Payments;
 use axum::extract::{Path, Query, State};
 use axum::http::{HeaderMap, HeaderValue, StatusCode, header};
@@ -304,7 +304,7 @@ async fn email_finish(State(app): State<Arc<App>>, Json(request): Json<EmailFini
     };
     let token = store.start_session(account.id)?;
     let mut response = Json(json!({ "account": account })).into_response();
-    response.headers_mut().insert(header::SET_COOKIE, app.session_cookie(&token, SESSION_SECONDS));
+    response.headers_mut().insert(header::SET_COOKIE, app.session_cookie(&token, COOKIE_SECONDS));
     Ok(response)
 }
 
@@ -348,7 +348,7 @@ async fn signup_finish(State(app): State<Arc<App>>, Json(request): Json<Finish<R
     store.add_passkey(account.id, &credential, &serde_json::to_string(&passkey).map_err(anyhow::Error::from)?)?;
     let token = store.start_session(account.id)?;
     let mut response = Json(json!({ "account": account })).into_response();
-    response.headers_mut().insert(header::SET_COOKIE, app.session_cookie(&token, SESSION_SECONDS));
+    response.headers_mut().insert(header::SET_COOKIE, app.session_cookie(&token, COOKIE_SECONDS));
     Ok(response)
 }
 
@@ -381,7 +381,7 @@ async fn signin_finish(State(app): State<Arc<App>>, Json(request): Json<Finish<P
     let token = store.start_session(account)?;
     let account = store.account(account)?.ok_or(Failure::NotFound)?;
     let mut response = Json(json!({ "account": account })).into_response();
-    response.headers_mut().insert(header::SET_COOKIE, app.session_cookie(&token, SESSION_SECONDS));
+    response.headers_mut().insert(header::SET_COOKIE, app.session_cookie(&token, COOKIE_SECONDS));
     Ok(response)
 }
 
