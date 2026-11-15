@@ -1837,6 +1837,14 @@ fn the_live_networks_identity_is_unchanged() {
     use orien_ledger::work::Math;
     assert_eq!((work.math(20), work.math(21)), (Math::Blake3, Math::RandomX));
     assert_eq!(work.randomx_target, orien_ledger::work::LIVE_RANDOMX_TARGET);
+    assert_eq!(work.target, genesis.first_target, "the live network started on BLAKE3's target");
+
+    // A network on RandomX from the start starts at RandomX's target.
+    let mut fresh = genesis.clone();
+    fresh.network = "fresh".into();
+    fresh.randomx = Some(orien_ledger::RandomXFrom { epoch: 0, target: 12345 });
+    let work = orien_ledger::Committee::new(&fresh).work();
+    assert_eq!((work.math(0), work.target), (Math::RandomX, 12345));
 }
 
 #[test]
