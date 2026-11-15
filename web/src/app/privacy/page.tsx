@@ -1,0 +1,90 @@
+import type { Metadata } from 'next'
+import { OPERATOR } from '@/lib/brand'
+
+export const metadata: Metadata = {
+  title: 'Privacy',
+  description: 'What orien.network keeps about you, why, and how to delete it.',
+  alternates: { canonical: '/privacy/' },
+}
+
+function Section({ title, children }: { title: string; children: React.ReactNode }) {
+  return (
+    <section className="space-y-3">
+      <h2 className="text-xl font-bold tracking-tight text-ink">{title}</h2>
+      <div className="space-y-3 leading-relaxed text-muted [&_strong]:font-semibold [&_strong]:text-ink [&_ul]:list-disc [&_ul]:space-y-1.5 [&_ul]:pl-5">
+        {children}
+      </div>
+    </section>
+  )
+}
+
+export default function PrivacyPage() {
+  return (
+    <div className="mx-auto max-w-[760px] space-y-10 pb-16">
+      <header className="pt-10 sm:pt-14">
+        <p className="mb-4 text-xs font-semibold uppercase tracking-[0.2em] text-muted">Privacy</p>
+        <h1 className="text-balance text-4xl font-bold leading-[1.1] tracking-tight text-ink sm:text-5xl">
+          What we keep, and why
+        </h1>
+        <p className="mt-6 text-lg leading-relaxed text-muted">
+          orien.network is run by {OPERATOR}. We keep as little as we can, never sell it, and show no ads.
+        </p>
+      </header>
+
+      <Section title="Reading the website">
+        <p>
+          Reading these pages needs no account and sets no tracking cookies. The website does not record who you are or
+          follow you elsewhere.
+        </p>
+      </Section>
+
+      <Section title="Your marketplace account">
+        <p>When you use the marketplace or the swap board, we keep:</p>
+        <ul>
+          <li>
+            <strong>Your email address,</strong> to send you sign-in codes and tell you about new messages and taken swap
+            offers. Nobody else sees it.
+          </li>
+          <li>
+            <strong>What you choose to show:</strong> your name, picture, bio, the ways to reach you that you add, your
+            listings and swap offers, and your verified Orien address. Everyone can see these.
+          </li>
+          <li>
+            <strong>Your messages,</strong> so both of you can read them. We do not read them as a matter of course, but we
+            can, for example to look into a report of a scam.
+          </li>
+          <li>
+            <strong>Reports you make,</strong> and what we did about them.
+          </li>
+          <li>
+            <strong>One cookie,</strong> which keeps you signed in. Its contents mean nothing to anyone but our server.
+          </li>
+        </ul>
+      </Section>
+
+      <Section title="Who else sees some of it">
+        <ul>
+          <li>
+            <strong>Resend</strong> delivers our emails, so it handles your email address and the emails we send you.
+          </li>
+          <li>
+            <strong>OpenRouter</strong> and the AI model it runs check everything posted before anyone else sees it:
+            listings, names, bios, pictures and messages. They see what is checked, not who you are.
+          </li>
+          <li>
+            Payments in ORN are on the Orien network, which is public by design: anyone can see an address&apos;s balance
+            and payments. That is true of every cryptocurrency, and not something this website controls.
+          </li>
+        </ul>
+      </Section>
+
+      <Section title="Deleting it">
+        <p>
+          You can delete your account at any time, from the bottom of Your account. That deletes your profile, listings,
+          pictures, conversations, messages and swap offers. Your Orien wallet and coins are yours alone and are never
+          touched. Payments already made on the Orien network cannot be undone by anyone.
+        </p>
+      </Section>
+    </div>
+  )
+}

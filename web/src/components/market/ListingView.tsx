@@ -9,6 +9,7 @@ import { Avatar } from './Avatar'
 import { ContactLinks } from './ContactLinks'
 import { MessageSeller } from './Messages'
 import { Pictures } from './Pictures'
+import { ReportButton } from './ReportButton'
 import { Notice } from './Shell'
 
 type Found = { listing: Listing; seller: Account; mine: boolean; signed_in: boolean }
@@ -103,6 +104,11 @@ export function ListingView() {
               request there, and the ORN go straight to {mine ? 'your' : 'their'} verified wallet.
             </span>
           </p>
+          {!mine && (
+            <div className="px-1">
+              <ReportButton kind="listing" id={listing.id} what="this listing" signedIn={signed_in} />
+            </div>
+          )}
         </aside>
       </div>
     </div>

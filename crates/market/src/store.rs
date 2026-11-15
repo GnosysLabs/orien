@@ -292,6 +292,7 @@ impl Store {
         )?;
         let store = Store { db };
         store.create_swap_tables()?;
+        store.create_moderation_tables()?;
         Ok(store)
     }
 
@@ -392,7 +393,7 @@ impl Store {
 
     /// A seller's open listings, newest first, for their profile.
     pub fn open_listings_of(&self, seller: i64) -> Result<Vec<Listing>> {
-        let sql = format!("{} WHERE l.seller = ?1 AND l.open = 1 ORDER BY l.updated DESC", Store::LISTING);
+        let sql = format!("{} AND l.seller = ?1 AND l.open = 1 ORDER BY l.updated DESC", Store::LISTING);
         let mut statement = self.db.prepare(&sql)?;
         let rows = statement.query_map([seller], Store::row)?;
         Ok(rows.collect::<rusqlite::Result<_>>()?)
@@ -449,6 +450,12 @@ impl Store {
         let wallet: Option<String> =
             self.db.query_row("SELECT wallet FROM accounts WHERE id = ?1", [account], |row| row.get(0))?;
         wallet.ok_or_else(|| anyhow::anyhow!("verify your Orien wallet first, under Your profile, so buyers' payments reach you"))
+    }
+
+    /// Forgets a code that could not be sent.
+    pub fn forget_code(&self, email: &str) -> Result<()> {
+        self.db.execute("DELETE FROM codes WHERE email = ?1", [email])?;
+        Ok(())
     }
 
     #[doc(hidden)]
@@ -521,7 +528,8 @@ impl Store {
         let found: Option<(i64, u64)> = self
             .db
             .query_row(
-                "SELECT account, expires FROM sessions WHERE token = ?1 AND expires >= ?2",
+                "SELECT account, expires FROM sessions
+                 WHERE token = ?1 AND expires >= ?2 AND account NOT IN (SELECT account FROM suspended)",
                 params![hash, now()],
                 |row| Ok((row.get(0)?, row.get(1)?)),
             )
@@ -558,6 +566,9 @@ impl Store {
 
     /// Changes a listing; only its seller may.
     pub fn edit(&self, seller: i64, id: i64, draft: &Draft) -> Result<Listing> {
+        if self.is_removed(id)? {
+            bail!("this listing was taken down, and cannot be changed");
+        }
         let draft = Draft { pay_to: self.wallet_of(seller)?, ..draft.clone() }.checked()?;
         let changed = self.db.execute(
             "UPDATE listings SET title = ?3, description = ?4, category = ?5, price = ?6, unit = ?7, pay_to = ?8,
@@ -625,6 +636,9 @@ impl Store {
     /// Opens or closes a listing; only its seller may. A closed listing
     /// stays, for its reviews, but is not shown in the marketplace.
     pub fn set_open(&self, seller: i64, id: i64, open: bool) -> Result<()> {
+        if self.is_removed(id)? {
+            bail!("this listing was taken down, and cannot be opened again");
+        }
         let changed = self.db.execute(
             "UPDATE listings SET open = ?3, updated = ?4 WHERE id = ?1 AND seller = ?2",
             params![id, seller, open, now()],
@@ -639,7 +653,9 @@ impl Store {
              l.pay_to, l.created, l.updated, l.open,
              (SELECT GROUP_CONCAT(file, ',') FROM
                  (SELECT file FROM listing_pictures WHERE listing = l.id ORDER BY position))
-         FROM listings l JOIN accounts a ON a.id = l.seller";
+         FROM listings l JOIN accounts a ON a.id = l.seller
+         WHERE l.id NOT IN (SELECT listing FROM removed_listings)
+             AND l.seller NOT IN (SELECT account FROM suspended)";
 
     fn row(row: &rusqlite::Row) -> rusqlite::Result<Listing> {
         Ok(Listing {
@@ -664,7 +680,7 @@ impl Store {
     }
 
     pub fn listing(&self, id: i64) -> Result<Option<Listing>> {
-        let sql = format!("{} WHERE l.id = ?1", Store::LISTING);
+        let sql = format!("{} AND l.id = ?1", Store::LISTING);
         Ok(self.db.query_row(&sql, [id], Store::row).optional()?)
     }
 
@@ -672,7 +688,7 @@ impl Store {
     /// search in the title or description if one is given.
     pub fn browse(&self, category: Option<&str>, search: Option<&str>, limit: u32, offset: u32) -> Result<Vec<Listing>> {
         let sql = format!(
-            "{} WHERE l.open = 1 AND (?1 IS NULL OR l.category = ?1)
+            "{} AND l.open = 1 AND (?1 IS NULL OR l.category = ?1)
                  AND (?2 IS NULL OR l.title LIKE ?2 ESCAPE '\\' OR l.description LIKE ?2 ESCAPE '\\')
              ORDER BY l.updated DESC, l.id DESC LIMIT ?3 OFFSET ?4",
             Store::LISTING
@@ -688,7 +704,7 @@ impl Store {
 
     /// Every listing of one seller, open ones first.
     pub fn listings_of(&self, seller: i64) -> Result<Vec<Listing>> {
-        let sql = format!("{} WHERE l.seller = ?1 ORDER BY l.open DESC, l.updated DESC", Store::LISTING);
+        let sql = format!("{} AND l.seller = ?1 ORDER BY l.open DESC, l.updated DESC", Store::LISTING);
         let mut statement = self.db.prepare(&sql)?;
         let rows = statement.query_map([seller], Store::row)?;
         Ok(rows.collect::<rusqlite::Result<_>>()?)

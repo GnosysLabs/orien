@@ -53,6 +53,8 @@ pub struct MySwap {
     pub reply_code: Option<String>,
     /// When the current step lapses, while the offer is held or swapping.
     pub due: Option<u64>,
+    /// Whether this side's wallet has reported how the swap ended.
+    pub finished: bool,
 }
 
 const OFFER: &str = "SELECT o.id, o.seller, a.name, a.picture,
@@ -91,6 +93,13 @@ impl Store {
                  updated INTEGER NOT NULL
              );
              CREATE INDEX IF NOT EXISTS swap_offers_state ON swap_offers(state, created);
+             CREATE TABLE IF NOT EXISTS swap_finishes (
+                 offer INTEGER NOT NULL REFERENCES swap_offers(id) ON DELETE CASCADE,
+                 account INTEGER NOT NULL,
+                 done INTEGER NOT NULL,
+                 at INTEGER NOT NULL,
+                 PRIMARY KEY (offer, account)
+             );
              CREATE TABLE IF NOT EXISTS swap_lapses (
                  account INTEGER NOT NULL REFERENCES accounts(id) ON DELETE CASCADE,
                  at INTEGER NOT NULL
@@ -103,6 +112,18 @@ impl Store {
     /// opens again and the buyer is counted.
     pub fn lapse_swaps(&self) -> Result<()> {
         let at = now();
+        // A swap only one side ever reported on is finished three days later.
+        let lonely: Vec<i64> = {
+            let mut statement = self.db.prepare(
+                "SELECT o.id FROM swap_offers o WHERE o.state = 'swapping'
+                 AND (SELECT COUNT(*) FROM swap_finishes f WHERE f.offer = o.id) = 1
+                 AND (SELECT MIN(at) FROM swap_finishes f WHERE f.offer = o.id) < ?1",
+            )?;
+            statement.query_map([at.saturating_sub(3 * 24 * 3600)], |row| row.get(0))?.collect::<rusqlite::Result<_>>()?
+        };
+        for id in lonely {
+            self.settle_swap(id, true)?;
+        }
         let lapsed: Vec<(i64, i64)> = {
             let mut statement = self
                 .db
@@ -254,15 +275,34 @@ impl Store {
         self.my_swap(id, buyer)
     }
 
-    /// Either side marks a swap under way as finished: done, or cancelled
-    /// (each side's coins came back).
+    /// One side's wallet reports how a swap under way ended for it: done, or
+    /// cancelled (its coins came back). The swap is finished once both have
+    /// said so, done only if both say done; or, if only one side ever
+    /// reports, three days after it did.
     pub fn finish_swap(&self, account: i64, id: i64, done: bool) -> Result<()> {
         let swap = self.my_swap(id, account)?;
         if swap.offer.state != "swapping" {
             bail!("this swap is not under way");
         }
-        let state = if done { "done" } else { "cancelled" };
-        self.db.execute("UPDATE swap_offers SET state = ?2, due = NULL, updated = ?3 WHERE id = ?1", params![id, state, now()])?;
+        self.db.execute(
+            "INSERT OR REPLACE INTO swap_finishes (offer, account, done, at) VALUES (?1, ?2, ?3, ?4)",
+            params![id, account, done, now()],
+        )?;
+        self.settle_swap(id, false)
+    }
+
+    /// Finishes a swap both sides have reported on, or, with `waited`, one
+    /// that one side reported on long enough ago.
+    fn settle_swap(&self, id: i64, waited: bool) -> Result<()> {
+        let (reports, all_done): (i64, bool) = self.db.query_row(
+            "SELECT COUNT(*), COALESCE(MIN(done), 0) FROM swap_finishes WHERE offer = ?1",
+            [id],
+            |r| Ok((r.get(0)?, r.get(1)?)),
+        )?;
+        if reports >= 2 || (waited && reports == 1) {
+            let state = if all_done { "done" } else { "cancelled" };
+            self.db.execute("UPDATE swap_offers SET state = ?2, due = NULL, updated = ?3 WHERE id = ?1", params![id, state, now()])?;
+        }
         Ok(())
     }
 
@@ -294,6 +334,11 @@ impl Store {
             offer_code,
             reply_code,
             due,
+            finished: self
+                .db
+                .query_row("SELECT 1 FROM swap_finishes WHERE offer = ?1 AND account = ?2", params![id, account], |_| Ok(()))
+                .optional()?
+                .is_some(),
         })
     }
 
@@ -379,8 +424,29 @@ mod tests {
         store.post_reply_code(sam, posted.id, &reply).unwrap();
         assert_eq!(store.my_swaps(maya).unwrap()[0].reply_code.as_deref(), Some(reply.as_str()));
 
+        // Done only once both wallets say so.
+        store.finish_swap(sam, posted.id, true).unwrap();
+        assert_eq!(store.swap_offer(posted.id).unwrap().unwrap().state, "swapping", "the seller is still claiming");
+        assert!(store.my_swap(posted.id, sam).unwrap().finished);
+        assert!(!store.my_swap(posted.id, maya).unwrap().finished);
         store.finish_swap(maya, posted.id, true).unwrap();
+        assert_eq!(store.swap_offer(posted.id).unwrap().unwrap().state, "done");
         assert_eq!((store.swaps_done(maya).unwrap(), store.swaps_done(sam).unwrap()), (1, 1));
+    }
+
+    #[test]
+    fn a_swap_one_side_reports_on_finishes_after_three_days_and_any_cancel_counts() {
+        let (store, maya, sam) = board();
+        let id = store.post_swap(maya, 1, MIN_SATS).unwrap().id;
+        store.take_swap(sam, id).unwrap();
+        store.db.execute("UPDATE swap_offers SET state = 'swapping', reply_code = 'r' WHERE id = ?1", [id]).unwrap();
+        store.finish_swap(maya, id, false).unwrap();
+        store.lapse_swaps().unwrap();
+        assert_eq!(store.swap_offer(id).unwrap().unwrap().state, "swapping");
+        store.db.execute("UPDATE swap_finishes SET at = 1", []).unwrap();
+        store.lapse_swaps().unwrap();
+        assert_eq!(store.swap_offer(id).unwrap().unwrap().state, "cancelled");
+        assert_eq!(store.swaps_done(maya).unwrap(), 0);
     }
 
     #[test]

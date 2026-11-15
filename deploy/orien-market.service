@@ -1,0 +1,40 @@
+# /etc/systemd/system/orien-market.service
+# The Orien marketplace and swap board's server, behind nginx at
+# orien.network/api/market/. It keeps its database and pictures in
+# /var/lib/orien-market and reads its keys from /etc/orien-market.
+#
+#   systemctl enable --now orien-market
+#
+# Looking after it:
+#   sudo -u orien-market orien-market --db /var/lib/orien-market/market.db reports
+
+[Unit]
+Description=Orien marketplace
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+User=orien-market
+Group=orien-market
+ExecStart=/usr/local/bin/orien-market \
+    --db /var/lib/orien-market/market.db \
+    --listen 127.0.0.1:7200 \
+    --origin https://orien.network \
+    --genesis /etc/orien-market/genesis.json \
+    --address 74fa1ab82c45ebeed539b03146243ddfc6f0ccb5163f45ea87d21692ba774b7a \
+    --resend-key /etc/orien-market/resend.key \
+    --openrouter-key /etc/orien-market/openrouter.key
+Restart=always
+RestartSec=5
+
+# It needs nothing but its own folder, its keys and the network.
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+PrivateTmp=true
+PrivateDevices=true
+ReadWritePaths=/var/lib/orien-market
+UMask=0077
+
+[Install]
+WantedBy=multi-user.target

@@ -4,16 +4,24 @@ import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import { ArrowLeft, BadgeCheck } from 'lucide-react'
-import { ask, memberSince, type Account, type Listing } from '@/lib/market'
+import { ask, me, memberSince, type Account, type Listing } from '@/lib/market'
 import { Avatar } from './Avatar'
 import { ContactLinks } from './ContactLinks'
 import { Card } from './Browse'
+import { ReportButton } from './ReportButton'
 import { Notice } from './Shell'
 
 export function ProfileView() {
   const id = useSearchParams().get('id')
   const [found, setFound] = useState<{ account: Account; listings: Listing[] } | null>(null)
   const [trouble, setTrouble] = useState('')
+  const [viewer, setViewer] = useState<number | null>(null)
+
+  useEffect(() => {
+    me()
+      .then((found) => setViewer(found?.account.id ?? null))
+      .catch(() => {})
+  }, [])
 
   useEffect(() => {
     if (!id) return
@@ -46,6 +54,11 @@ export function ProfileView() {
           <div className="pt-3">
             <ContactLinks contact={account.contact} />
           </div>
+          {viewer !== account.id && (
+            <div className="pt-2">
+              <ReportButton kind="account" id={account.id} what={account.name} signedIn={viewer !== null} />
+            </div>
+          )}
         </div>
       </section>
       <section className="space-y-4">
