@@ -594,8 +594,14 @@
         <span id="board-who">Offers on the swap board</span>
         <button class="linkish" id="board-signin-go">Sign in</button>
       </div>
-      <div class="note" id="board-verify" hidden></div>
       <button class="primary pearl" id="board-post-go" data-gap="sm">Post an offer</button>
+      <div class="note" id="board-verify" hidden>
+        <div id="bv-text"></div>
+        <div class="field" id="bv-pw-field" hidden data-gap="sm">
+          <div class="box plain"><input id="bv-pw" type="password" placeholder="Wallet password" autocomplete="current-password"></div>
+          <button class="secondary" id="bv-go" data-gap="sm">Link this wallet</button>
+        </div>
+      </div>
       <div class="section-head"><h3>Open offers</h3><span class="hint" id="board-btc"></span></div>
       <div id="board-offers"><div class="empty">Loading offers…</div></div>
       <div class="problem" id="board-problem" hidden></div>
@@ -613,6 +619,7 @@
     <section class="screen" id="board-signin" hidden>
       <div class="topline"><button class="back" data-to="swaps" aria-label="Back"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10 3 5 8l5 5"/></svg></button><h2>Sign in to the swap board</h2></div>
       <p class="lede">The same account as on orien.network. You'll get a 6-digit code by email.</p>
+      <p class="fineprint" style="margin-top:0">Signing in also links this wallet to your account (a tiny payment, under 0.01 ORN).</p>
       <div class="field">
         <label for="bs-email">Email</label>
         <div class="box plain"><input id="bs-email" type="email" placeholder="you@example.com" autocomplete="email" spellcheck="false"></div>
@@ -834,10 +841,15 @@
     $("status-text").textContent = text;
   }
 
+  let lastBalance = null;
   async function refresh() {
     try {
       view = await invoke("overview_now");
       $("balance").textContent = view.balance === null ? "—" : view.balance;
+      if (view.balance !== null && view.balance !== lastBalance) {
+        lastBalance = view.balance;
+        if (linking.state === null || linking.state === "too little" || linking.state === "nothing") linkWallet();
+      }
       $("status").title = `${view.answered} of ${view.validators} validators answered`;
       if (view.answered === view.validators) setStatus("ok", "Connected");
       else if (view.balance !== null) setStatus("warn", `${view.answered} of ${view.validators}`);
@@ -1373,12 +1385,41 @@
     const me = board.me;
     $("board-who").textContent = me ? `Signed in as ${me.name}` : "Offers on the swap board";
     $("board-signin-go").textContent = me ? "Sign out" : "Sign in";
-    const note = $("board-verify");
-    note.hidden = !me || me.verified;
-    if (me && !me.verified) note.innerHTML = me.wallet
-      ? `<strong>Your swap board account is set up for another wallet</strong> (${esc(short(me.wallet))}). Swaps run for that wallet, so open it in this app, or verify this one at orien.network/marketplace/account.`
-      : `<strong>To take or post offers, verify this wallet</strong> at orien.network/marketplace/account. It takes one tiny payment, and shows buyers and sellers the swaps go to the right place.`;
   }
+
+  // Signing in through the app also links this wallet to the account, so
+  // app users can sell on the marketplace with no extra step: a tiny exact
+  // payment, sent in the background once the wallet holds enough. Swaps
+  // never wait for it. An account linked to another wallet is left as it is.
+  const linking = { state: null, busy: false, polls: 0 };
+  async function linkWallet(password) {
+    if (linking.busy || linking.state === "done" || linking.state === "other") return;
+    linking.busy = true;
+    try {
+      linking.state = await invoke("board_link", { password: password || null });
+    } catch { linking.state = null; }
+    finally { linking.busy = false; }
+    const note = $("board-verify");
+    if (linking.state === "other") {
+      note.hidden = false;
+      $("bv-text").textContent = "Your marketplace account is linked to another wallet.";
+      $("bv-pw-field").hidden = true;
+    } else if (linking.state && linking.state.startsWith("password:")) {
+      note.hidden = false;
+      $("bv-text").textContent = linking.state === "password: wrong"
+        ? "That is not this wallet's password."
+        : "Signing in links this wallet to your marketplace account with a tiny payment (under 0.01 ORN). Enter the wallet's password to send it.";
+      $("bv-pw-field").hidden = false;
+    } else {
+      note.hidden = true;
+    }
+    // Sent: ask again until the marketplace has seen it.
+    if (linking.state === "sent" && linking.polls < 40) {
+      linking.polls += 1;
+      setTimeout(linkWallet, 5000);
+    }
+  }
+  $("bv-go").onclick = () => { const pw = $("bv-pw").value; $("bv-pw").value = ""; linkWallet(pw); }
 
   function renderOffers() {
     const list = $("board-offers");
@@ -1414,10 +1455,10 @@
     renderOffers();
   }
 
-  // Taking and posting need an account with this wallet verified.
+  // Taking and posting need only signing in: a buyer's ORN are locked for
+  // this wallet's address, which the app sends when taking.
   function ready() {
-    if (!board.me) { board.signin = "email"; resetSignin(); show("board-signin"); return false; }
-    if (!board.me.verified) { $("board-verify").hidden = false; $("board-verify").scrollIntoView({ block: "center" }); return false; }
+    if (!board.me) { resetSignin(); show("board-signin"); return false; }
     return true;
   }
 
@@ -1490,6 +1531,8 @@
       try { await invoke("board_sign_out"); } catch {}
       board.me = null;
       board.waiting = [];
+      linking.state = null;
+      $("board-verify").hidden = true;
       await loadBoard();
       renderSwaps();
       return;
@@ -1521,6 +1564,8 @@
         show("swaps");
         await loadBoard();
         stepSwaps();
+        linking.state = null;
+        linkWallet();
         if (board.taking) startTake(board.taking.id);
       }
     } catch (e) { problem("bs-problem", e); }

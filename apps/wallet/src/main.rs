@@ -564,8 +564,7 @@ async fn board_offers(app: AppHandle) -> Result<serde_json::Value, String> {
 #[tauri::command]
 async fn board_me(app: AppHandle) -> Result<Option<serde_json::Value>, String> {
     let dir = folder(&app)?;
-    let address = wallet_file(&dir).and_then(|file| orien_net::keys::Wallet::peek(&file).ok()).map(|(address, _)| address.to_string()).unwrap_or_default();
-    tauri::async_runtime::spawn_blocking(move || board::me(&dir, &address)).await.map_err(|error| error.to_string())?
+    tauri::async_runtime::spawn_blocking(move || board::me(&dir)).await.map_err(|error| error.to_string())?
 }
 
 #[tauri::command]
@@ -597,11 +596,48 @@ async fn board_post(app: AppHandle, orn: String, btc: String, payout: String) ->
     tauri::async_runtime::spawn_blocking(move || board::post(&dir, orn, sats, &payout)).await.map_err(|error| error.to_string())?
 }
 
-/// Takes offer `offer`; a refund would go to `refund`.
+/// Takes offer `offer` for this wallet; a refund would go to `refund`.
 #[tauri::command]
 async fn board_take(app: AppHandle, offer: i64, refund: String) -> Result<(), String> {
     let dir = folder(&app)?;
-    tauri::async_runtime::spawn_blocking(move || board::take(&dir, offer, &refund)).await.map_err(|error| error.to_string())?
+    let address = wallet_file(&dir).and_then(|file| orien_net::keys::Wallet::peek(&file).ok()).map(|(address, _)| address.to_string()).ok_or("no wallet yet")?;
+    tauri::async_runtime::spawn_blocking(move || board::take(&dir, offer, &address, &refund)).await.map_err(|error| error.to_string())?
+}
+
+/// Links this wallet to the signed-in marketplace account, as signing in
+/// through the app does, by sending the tiny amount the marketplace names.
+/// Answers "nothing", "done", "other", "too little", "sent" or
+/// "password: ..." when the wallet's password is needed.
+#[tauri::command]
+async fn board_link(app: AppHandle, password: Option<String>) -> Result<String, String> {
+    let dir = folder(&app)?;
+    let wallet_file = wallet_file(&dir).ok_or("no wallet yet")?;
+    let genesis = genesis_file(&dir)?;
+    tauri::async_runtime::spawn_blocking(move || {
+        let _turn = TURNS.lock().unwrap_or_else(|poisoned| poisoned.into_inner());
+        let address = orien_net::keys::Wallet::peek(&wallet_file).map_err(|error| error.to_string())?.0;
+        let client = connect(&genesis)?;
+        let balance = client.account(&address, 0).spendable;
+        let pay = |to: &str, amount: u64| {
+            let to: AccountId = to.parse().map_err(|_| "The marketplace's address is damaged.".to_string())?;
+            let mut wallet = open_signing(&wallet_file, password.as_deref())?;
+            let sent = send::send(&client, &mut wallet, money::fees(GENESIS), to, amount)?;
+            activity::sent(&dir, &address.to_string(), sent.amount, sent.fee, &sent.to);
+            Ok(())
+        };
+        let linked = board::link_wallet(&dir, &address.to_string(), balance, pay);
+        let _ = client.head().save(&head_file(&genesis));
+        Ok(match linked? {
+            board::Linked::Nothing => "nothing".into(),
+            board::Linked::Done => "done".into(),
+            board::Linked::Other => "other".into(),
+            board::Linked::TooLittle => "too little".into(),
+            board::Linked::Sent => "sent".into(),
+            board::Linked::Password(why) => why,
+        })
+    })
+    .await
+    .map_err(|error| error.to_string())?
 }
 
 #[tauri::command]
@@ -616,7 +652,7 @@ fn main() {
     tauri::Builder::default()
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_updater::Builder::new().build())
-        .invoke_handler(tauri::generate_handler![has_wallet, create_wallet, restore_wallet, set_password, choose_wallet, overview_now, send_payment, activity, quote, contacts, save_contact, delete_contact, update::check_update, update::install_update, swap_list, swap_sell, swap_buy, swap_accept, swap_step, swap_smallest, board_offers, board_me, board_email_start, board_email_finish, board_sign_out, board_post, board_take, board_withdraw])
+        .invoke_handler(tauri::generate_handler![has_wallet, create_wallet, restore_wallet, set_password, choose_wallet, overview_now, send_payment, activity, quote, contacts, save_contact, delete_contact, update::check_update, update::install_update, swap_list, swap_sell, swap_buy, swap_accept, swap_step, swap_smallest, board_offers, board_me, board_email_start, board_email_finish, board_sign_out, board_post, board_take, board_withdraw, board_link])
         .run(tauri::generate_context!())
         .expect("the wallet window could not start");
 }
@@ -686,7 +722,7 @@ mod tests {
     /// network: alice posts, bob takes, and each side's wallet does the rest
     /// through the board. Needs ORIEN_DEVNET, ORIEN_MARKET (a debug build)
     /// and ORIEN_BOARD_TEST, a folder with `alice` and `bob` folders whose
-    /// board.json holds a session of an account verified for that wallet.
+    /// board.json holds a session of a board account.
     #[test]
     #[ignore = "needs a local network and a test copy of the swap board"]
     fn a_whole_swap_through_the_board() {
@@ -721,7 +757,8 @@ mod tests {
         super::board::post_on(&alice_dir, Network::Regtest, orn, 1_000_000, &btc()).unwrap();
         let posted = super::board::mine(&alice_dir).unwrap();
         let id = posted.as_array().unwrap().iter().find(|s| s["offer"]["state"] == "open").unwrap()["offer"]["id"].as_i64().unwrap();
-        super::board::take_on(&bob_dir, Network::Regtest, id, &btc()).unwrap();
+        let bob_address = orien_net::keys::Wallet::peek(&bob.wallet_file).unwrap().0.to_string();
+        super::board::take_on(&bob_dir, Network::Regtest, id, &bob_address, &btc()).unwrap();
 
         let (mut alice_swaps, mut bob_swaps) = (Vec::new(), Vec::new());
         let mut paid = false;
@@ -756,6 +793,70 @@ mod tests {
         assert_eq!((alice_swaps[0].swap.stage.clone(), bob_swaps[0].swap.stage.clone()), (Stage::Done, Stage::Done));
         let bob_after = client.account(&orien_net::keys::Wallet::peek(&bob.wallet_file).unwrap().0, 0).spendable.unwrap();
         assert_eq!(bob_after - bob_before, orn as i128 - network.fee.min as i128, "bob has the ORN, less the claim's fee");
+    }
+
+    /// Signing up to a test copy of the swap board with an emailed code,
+    /// taking an offer at once with no linked wallet, and then linking bob's
+    /// wallet by paying the exact amount it asks, as signing in in the app
+    /// does. Needs ORIEN_DEVNET, ORIEN_MARKET (a debug
+    /// build) pointing at a board that watches that network and prints its
+    /// codes to the file ORIEN_BOARD_LOG.
+    #[test]
+    #[ignore = "needs a local network and a test copy of the swap board"]
+    fn signing_up_links_the_wallet_on_the_board() {
+        let root = std::path::PathBuf::from(std::env::var("ORIEN_DEVNET").unwrap());
+        let log = std::path::PathBuf::from(std::env::var("ORIEN_BOARD_LOG").unwrap());
+        let dir = std::env::temp_dir().join(format!("orien-board-signup-{}", std::process::id()));
+        std::fs::create_dir_all(&dir).unwrap();
+        let email = format!("signup-{}@example.com", std::process::id());
+
+        super::board::email_start(&dir, &email).unwrap();
+        std::thread::sleep(std::time::Duration::from_millis(300));
+        let text = std::fs::read_to_string(&log).unwrap();
+        let line = text.lines().rev().find(|line| line.contains(&email)).expect("the code in the log");
+        let code = line.rsplit(' ').next().unwrap().trim();
+        assert!(!super::board::email_finish(&dir, &email, code, None).unwrap(), "a new email asks for a name");
+        assert!(super::board::email_finish(&dir, &email, code, Some("Bob (signup test)")).unwrap());
+        let me = super::board::me(&dir).unwrap().expect("signed in");
+        assert_eq!((me["name"].as_str(), me["wallet"].as_str()), (Some("Bob (signup test)"), None));
+
+        // Signed in with no verified wallet, an account can take an offer
+        // at once, for this wallet's address.
+        let bob_file = root.join("wallets/bob.wallet");
+        let bob = orien_net::keys::Wallet::peek(&bob_file).unwrap().0.to_string();
+        let offers = super::board::offers(&dir).unwrap();
+        if let Some(offer) = offers["offers"].as_array().and_then(|o| o.first()).and_then(|o| o["id"].as_i64()) {
+            let refund = "bcrt1qw508d6qejxtdg4y5r3zarvary0c5xw7kygt080";
+            super::board::take_on(&dir, orien_swap::bitcoin::Network::Regtest, offer, &bob, refund).unwrap();
+        }
+
+        // Signing in links the wallet: not while it holds too little, then
+        // once it does, by sending exactly what the marketplace names, once.
+        let genesis = root.join("genesis.json");
+        let client = super::connect(&genesis).unwrap();
+        let fees = orien_net::keys::load_genesis(&genesis).unwrap().fee;
+        let sends = std::cell::Cell::new(0);
+        let pay = |to: &str, amount: u64| {
+            sends.set(sends.get() + 1);
+            let mut wallet = super::open_signing(&bob_file, None)?;
+            super::send::send(&client, &mut wallet, fees, to.parse().unwrap(), amount).map(|_| ())
+        };
+        let link = |balance| super::board::link_wallet(&dir, &bob, balance, pay).unwrap();
+        assert!(matches!(link(Some(0)), super::board::Linked::TooLittle));
+        let balance = client.account(&bob.parse().unwrap(), 0).spendable;
+        assert!(matches!(link(balance), super::board::Linked::Sent));
+        let mut linked = false;
+        for _ in 0..30 {
+            if matches!(link(balance), super::board::Linked::Done) {
+                linked = true;
+                break;
+            }
+            std::thread::sleep(std::time::Duration::from_secs(1));
+        }
+        assert!(linked, "the marketplace saw the payment");
+        assert_eq!(sends.get(), 1, "sent once");
+        assert_eq!(super::board::me(&dir).unwrap().unwrap()["wallet"].as_str(), Some(bob.as_str()));
+        let _ = std::fs::remove_dir_all(&dir);
     }
 
     /// Reads a wallet from a running local test network, if there is one:
