@@ -6,6 +6,11 @@
 #   bash apps/wallet/release.sh 0.2.0 --minimum 0.2.0 also tell older copies
 #                                                      they no longer work
 #   bash apps/wallet/release.sh 0.2.0 --no-publish    build only, to check
+#   bash apps/wallet/release.sh 0.2.0 --windows SETUP.exe --linux APP.AppImage
+#                                     also publish Windows and Linux copies of
+#                                     the same version, built on those systems
+#                                     with: cargo tauri build --bundles nsis
+#                                     (or appimage) --config no-updater.json
 #
 # What it does:
 #   1. Sets the version in tauri.conf.json and Cargo.toml.
@@ -16,7 +21,9 @@
 #      for the key's password.
 #   4. If Apple signing is set up (see below), signs the app as Orien's and
 #      has Apple check it, so Macs open it without a warning.
-#   5. Uploads to https://orien.network/wallet/<version>/, then replaces
+#   5. Signs the Windows installer and the Linux AppImage given, if any, with
+#      the same update key, so those copies update themselves too.
+#   6. Uploads to https://orien.network/wallet/<version>/, then replaces
 #      https://orien.network/wallet/latest.json, which is what copies of the
 #      app ask. Until that last step nobody is offered the new version.
 #
@@ -39,12 +46,20 @@ VERSION=${1:?"say which version, such as: bash apps/wallet/release.sh 0.2.0"}
 shift
 MINIMUM=""
 PUBLISH=1
+WINDOWS=""
+LINUX=""
 while [ $# -gt 0 ]; do
     case $1 in
         --minimum) MINIMUM=${2:?"--minimum needs a version"}; shift 2 ;;
         --no-publish) PUBLISH=0; shift ;;
+        --windows) WINDOWS=$(cd "$(dirname "${2:?--windows needs a file}")" && pwd)/$(basename "$2"); shift 2 ;;
+        --linux) LINUX=$(cd "$(dirname "${2:?--linux needs a file}")" && pwd)/$(basename "$2"); shift 2 ;;
         *) echo "unknown option: $1" >&2; exit 1 ;;
     esac
+done
+for file in "$WINDOWS" "$LINUX"; do
+    [ -z "$file" ] || [ -f "$file" ] || { echo "no file at $file" >&2; exit 1; }
+    [ -z "$file" ] || [[ $(basename "$file") == *"$VERSION"* ]] || { echo "$file is not version $VERSION" >&2; exit 1; }
 done
 [[ $VERSION =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] || { echo "a version looks like 0.2.0" >&2; exit 1; }
 
@@ -121,19 +136,41 @@ COPYFILE_DISABLE=1 tar -czf "$OUT/Orien-Wallet.app.tar.gz" -C "$BUNDLE/macos" "O
 # The password comes from the environment, not the command line.
 env -u TAURI_SIGNING_PRIVATE_KEY cargo tauri signer sign -f "$KEY" "$OUT/Orien-Wallet.app.tar.gz" >/dev/null
 SIGNATURE=$(cat "$OUT/Orien-Wallet.app.tar.gz.sig")
-(cd "$OUT" && shasum -a 256 Orien-Wallet.dmg Orien-Wallet.app.tar.gz > SHA256SUMS)
+FILES=(Orien-Wallet.dmg Orien-Wallet.app.tar.gz)
+# Windows and Linux: the installer and the AppImage are their own updates.
+WINDOWS_SIGNATURE=""
+LINUX_SIGNATURE=""
+if [ -n "$WINDOWS" ]; then
+    cp "$WINDOWS" "$OUT/Orien-Wallet-setup.exe"
+    env -u TAURI_SIGNING_PRIVATE_KEY cargo tauri signer sign -f "$KEY" "$OUT/Orien-Wallet-setup.exe" >/dev/null
+    WINDOWS_SIGNATURE=$(cat "$OUT/Orien-Wallet-setup.exe.sig")
+    FILES+=(Orien-Wallet-setup.exe)
+fi
+if [ -n "$LINUX" ]; then
+    cp "$LINUX" "$OUT/Orien-Wallet.AppImage"
+    chmod a+rx "$OUT/Orien-Wallet.AppImage"
+    env -u TAURI_SIGNING_PRIVATE_KEY cargo tauri signer sign -f "$KEY" "$OUT/Orien-Wallet.AppImage" >/dev/null
+    LINUX_SIGNATURE=$(cat "$OUT/Orien-Wallet.AppImage.sig")
+    FILES+=(Orien-Wallet.AppImage)
+fi
+(cd "$OUT" && shasum -a 256 "${FILES[@]}" > SHA256SUMS)
 
-python3 - "$VERSION" "$MINIMUM" "$SIGNATURE" "$BASE_URL" "$OUT/latest.json" <<'PY'
+python3 - "$VERSION" "$MINIMUM" "$SIGNATURE" "$BASE_URL" "$OUT/latest.json" "$WINDOWS_SIGNATURE" "$LINUX_SIGNATURE" <<'PY'
 import json, sys, datetime
-version, minimum, signature, base, out = sys.argv[1:]
-url = f"{base}/{version}/Orien-Wallet.app.tar.gz"
-platform = {"signature": signature, "url": url}
+version, minimum, signature, base, out, windows, linux = sys.argv[1:]
+def platform(signature, name):
+    return {"signature": signature, "url": f"{base}/{version}/{name}"}
+# Macs with Apple chips; Windows and Linux when given.
+platforms = {"darwin-aarch64": platform(signature, "Orien-Wallet.app.tar.gz")}
+if windows:
+    platforms["windows-x86_64"] = platform(windows, "Orien-Wallet-setup.exe")
+if linux:
+    platforms["linux-x86_64"] = platform(linux, "Orien-Wallet.AppImage")
 latest = {
     "version": version,
-    "notes": f"Orien {version}",
+    "notes": f"Orien Wallet {version}",
     "pub_date": datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
-    # Macs with Apple chips only.
-    "platforms": {"darwin-aarch64": platform},
+    "platforms": platforms,
 }
 if minimum:
     latest["minimum"] = minimum
@@ -149,15 +186,22 @@ fi
 
 echo "Uploading to $HOST:$WEB_ROOT/wallet/$VERSION"
 $SSH "$HOST" "mkdir -p '$WEB_ROOT/wallet/$VERSION'"
-rsync -az "$OUT/Orien-Wallet.app.tar.gz" "$OUT/Orien-Wallet.dmg" "$OUT/SHA256SUMS" "$HOST:$WEB_ROOT/wallet/$VERSION/"
-rsync -az "$OUT/latest.json" "$HOST:$WEB_ROOT/wallet/latest.json.new"
+rsync -az --chmod=a+rX "${FILES[@]/#/$OUT/}" "$OUT/SHA256SUMS" "$HOST:$WEB_ROOT/wallet/$VERSION/"
+rsync -az --chmod=a+rX "$OUT/latest.json" "$HOST:$WEB_ROOT/wallet/latest.json.new"
 $SSH "$HOST" bash -s -- "$WEB_ROOT" "$VERSION" <<'REMOTE'
 set -euo pipefail
 WEB_ROOT=$1
 VERSION=$2
 chmod -R a+rX "$WEB_ROOT/wallet"
-# The download link on the website always points at the newest.
-ln -sfn "$VERSION/Orien-Wallet.dmg" "$WEB_ROOT/wallet/Orien-Wallet.dmg"
+# The download links on the website always point at the newest.
+cd "$WEB_ROOT/wallet"
+ln -sfn "$VERSION/Orien-Wallet.dmg" Orien-Wallet.dmg
+if [ -f "$VERSION/Orien-Wallet-setup.exe" ]; then
+    ln -sfn "$VERSION/Orien-Wallet-setup.exe" Orien-Wallet-setup.exe
+    ln -sfn "$VERSION/Orien-Wallet-setup.exe" Orien-setup.exe
+fi
+[ ! -f "$VERSION/Orien-Wallet.AppImage" ] || ln -sfn "$VERSION/Orien-Wallet.AppImage" Orien-Wallet.AppImage
+ln -sfn "$VERSION/SHA256SUMS" SHA256SUMS
 # The website is served from its newest release; link the wallet folder in.
 ln -sfn "$WEB_ROOT/wallet" "$WEB_ROOT/current/wallet"
 # Last, and in one step: copies of the app now see the new version.
