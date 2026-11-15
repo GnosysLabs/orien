@@ -19,6 +19,10 @@ struct Args {
     /// The website's address, which passkeys are tied to.
     #[arg(long, default_value = "https://orien.network")]
     origin: String,
+    /// Also serve the website from this folder (web/out), to try the
+    /// marketplace on this computer. On the server, nginx serves the site.
+    #[arg(long)]
+    site: Option<PathBuf>,
 }
 
 #[tokio::main]
@@ -28,7 +32,11 @@ async fn main() -> Result<()> {
     let app = Arc::new(App::new(Store::open(&args.db)?, &args.origin, secure)?);
     let listener = tokio::net::TcpListener::bind(&args.listen).await?;
     println!("marketplace server for {} listening on {}", args.origin, args.listen);
-    axum::serve(listener, router(app))
+    let mut routes = router(app);
+    if let Some(site) = &args.site {
+        routes = routes.fallback_service(tower_http::services::ServeDir::new(site));
+    }
+    axum::serve(listener, routes)
         .with_graceful_shutdown(async {
             let _ = tokio::signal::ctrl_c().await;
         })

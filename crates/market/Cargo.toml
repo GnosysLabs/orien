@@ -21,6 +21,7 @@ webauthn-rs = { version = "0.6", features = ["conditional-ui"] }
 # Built from source, so the server builds the same on a Mac and for Linux.
 openssl = { version = "0.10", features = ["vendored"] }
 url = "2"
+tower-http = { version = "0.6", features = ["fs"] }
 
 [dev-dependencies]
 tower = { version = "0.5", features = ["util"] }
