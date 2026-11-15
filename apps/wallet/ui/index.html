@@ -1953,7 +1953,7 @@
   }, 30000);
   loadSwaps();
 
-  // ---- Updates: checked at start and every six hours, installed only on a press ----
+  // ---- Updates: checked at start and every hour, installed only on a press ----
   let update = null;
   async function checkUpdate() {
     try { update = await invoke("check_update"); } catch { return; } // offline: try again later
@@ -1975,7 +1975,7 @@
     }
   };
   checkUpdate();
-  setInterval(checkUpdate, 6 * 60 * 60 * 1000);
+  setInterval(checkUpdate, 60 * 60 * 1000);
   loadBook().then(start).catch((e) => problem("welcome-problem", e));
 </script>
 </body>
