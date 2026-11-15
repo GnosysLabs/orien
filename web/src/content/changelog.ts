@@ -27,6 +27,16 @@ export const PRODUCTS: Record<Product, string> = {
 export const CHANGELOG: Entry[] = [
   {
     date: '2026-11-15',
+    products: ['wallet'],
+    version: '1.5.1',
+    title: 'Room for your latest activity, and quicker updates',
+    changes: [
+      'The window opens tall enough to show your three latest payments in full, and can’t be made shorter than that.',
+      'While open, the app looks for a new version every hour instead of every six, so it’s ready soon after a release.',
+    ],
+  },
+  {
+    date: '2026-11-15',
     products: ['network', 'orien', 'validators'],
     version: '1.5.0',
     title: 'Mining moves to RandomX, so any computer can take part',
