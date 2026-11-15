@@ -9,7 +9,7 @@ use orien_ledger::AccountId;
 use orien_ledger::close::Share;
 use orien_ledger::work::{Math, Prepared};
 use std::sync::Arc;
-use std::sync::atomic::{AtomicBool, AtomicU64, Ordering};
+use std::sync::atomic::{AtomicBool, AtomicU64, AtomicUsize, Ordering};
 use std::thread;
 use std::time::{Duration, Instant};
 
@@ -46,8 +46,20 @@ pub enum Event {
 
 /// Mines for `account` on `threads` threads until `stop` is set, telling
 /// `report` as it goes. Stops within about a fifth of a second.
-pub fn run(client: &Client, account: AccountId, threads: usize, stop: &AtomicBool, mut report: impl FnMut(&Client, Event)) {
-    let threads = threads.max(1);
+pub fn run(client: &Client, account: AccountId, threads: usize, stop: &AtomicBool, report: impl FnMut(&Client, Event)) {
+    run_adjustable(client, account, &AtomicUsize::new(threads), stop, report)
+}
+
+/// `run`, on as many threads as `threads` says at the start of each round:
+/// changing it takes effect within a few seconds, and keeps everything
+/// RandomX has prepared for the epoch.
+pub fn run_adjustable(
+    client: &Client,
+    account: AccountId,
+    threads: &AtomicUsize,
+    stop: &AtomicBool,
+    mut report: impl FnMut(&Client, Event),
+) {
     // Two machines mining for one account must not find the same shares.
     let mut next = u64::from_le_bytes(crate::keys::random_seed()[..8].try_into().expect("8 bytes"));
     let mut shown_epoch = None;
@@ -79,6 +91,7 @@ pub fn run(client: &Client, account: AccountId, threads: usize, stop: &AtomicBoo
         }
         let ready = prepared.as_ref().expect("set above").1.clone();
         let batch = ready.batch();
+        let threads = threads.load(Ordering::Relaxed).clamp(1, cores());
         // Search for a few seconds, then check the epoch again.
         let halt = Arc::new(AtomicBool::new(false));
         let tries = Arc::new(AtomicU64::new(0));

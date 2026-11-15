@@ -1840,6 +1840,7 @@ fn the_live_networks_identity_is_unchanged() {
     assert_eq!((work.math(20), work.math(21)), (Math::Blake3, Math::RandomX));
     assert_eq!(work.randomx_target, orien_ledger::work::LIVE_RANDOMX_TARGET);
     assert_eq!(work.target, genesis.first_target, "the live network started on BLAKE3's target");
+    assert_eq!(orien_net::node::open_claims_from(&genesis.id()), 23);
 
     // A network on RandomX from the start starts at RandomX's target.
     let mut fresh = genesis.clone();
@@ -2199,6 +2200,41 @@ fn a_locked_payment_is_claimed_across_the_network() {
     // Anyone can now read the secret, and it is checked against the lock.
     let claimed = client.locked(&alice, second.order.seq, &hash);
     assert_eq!((claimed.waiting, claimed.secret), (None, Some(secret)));
+}
+
+/// Once claims are open (from the start on a test network), anyone holding
+/// the secret claims for the payee: here Carol, for a newcomer whose wallet
+/// never signs anything. The coins reach the newcomer, and only them.
+#[test]
+fn anyone_with_the_secret_claims_for_the_payee() {
+    use orien_ledger::lock_hash;
+    let net = TestNet::start("open-claim");
+    let client = net.client();
+    let alice = net.address("alice");
+    let mut sender = net.wallet("alice");
+    sender.accept_fee(net.genesis.fee);
+    let newcomer = Wallet::create(&net.dir.join("newcomer.wallet")).unwrap().address();
+    let mut stranger = Wallet::create(&net.dir.join("stranger.wallet")).unwrap();
+    let secret = [9u8; 32];
+    client.follow();
+    let until = client.epoch() + 2;
+    let status = client.account(&alice, sender.next_seq());
+    let lock = sender
+        .sign(Kind::Lock { hash: lock_hash(&secret), until }, status.seq, newcomer, 250, status.signer.as_ref(), &net.network)
+        .unwrap();
+    assert!(matches!(client.pay(&lock, Duration::from_secs(20)), Ok(Done::Receipt(_))));
+    // The stranger, who holds nothing, claims it for the newcomer.
+    let claim = stranger
+        .sign(Kind::Claim { from: alice, seq: lock.order.seq, secret }, 0, newcomer, 250, None, &net.network)
+        .unwrap();
+    assert!(matches!(client.pay(&claim, Duration::from_secs(20)), Ok(Done::Receipt(_))));
+    net.wait_until_level();
+    let fee = net.genesis.fee.min;
+    for v in 0..4 {
+        assert_eq!(net.view(v, &newcomer).balance, (250 - fee) as i128, "validator {v}");
+        assert_eq!(net.view(v, &stranger.address()).balance, 0, "validator {v}");
+    }
+    assert_eq!(client.locked(&alice, lock.order.seq, &lock_hash(&secret)).secret, Some(secret));
 }
 
 /// A locked payment nobody claims goes back to its sender at the checkpoint

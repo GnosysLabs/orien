@@ -275,8 +275,8 @@ impl Orien for AppOrien<'_> {
         let sent = self.send(Kind::Lock { hash, until }, *to, amount, Some(seq))?;
         Ok(LockRef { from: self.me(), seq: sent.seq })
     }
-    fn claim(&self, lock: &LockRef, amount: u64, secret: [u8; 32]) -> anyhow::Result<()> {
-        self.send(Kind::Claim { from: lock.from, seq: lock.seq, secret }, self.me(), amount, None)?;
+    fn claim(&self, lock: &LockRef, payee: &Hash32, amount: u64, secret: [u8; 32]) -> anyhow::Result<()> {
+        self.send(Kind::Claim { from: lock.from, seq: lock.seq, secret }, *payee, amount, None)?;
         Ok(())
     }
 }
@@ -347,7 +347,8 @@ pub fn step(orien: &AppOrien, dir: &Path, swaps: &mut [Kept]) -> Result<(), Stri
 
 pub fn step_on(orien: &AppOrien, chain: &Explorers, dir: &Path, swaps: &mut [Kept]) -> Result<(), String> {
     for index in 0..swaps.len() {
-        if matches!(swaps[index].swap.stage, Stage::Done | Stage::Cancelled { .. }) {
+        // A seller's swap that is done still claims the buyer's ORN for them.
+        if swaps[index].swap.finished() {
             continue;
         }
         let orien = orien.for_swap(&swaps[index]);
@@ -368,7 +369,7 @@ pub fn advance(orien: &AppOrien, chain: &Explorers, kept: &mut Kept) {
 
 /// Whether any swap is waiting on something the app does.
 pub fn active(swaps: &[Kept]) -> bool {
-    swaps.iter().any(|kept| !matches!(kept.swap.stage, Stage::Done | Stage::Cancelled { .. }))
+    swaps.iter().any(|kept| !kept.swap.finished())
 }
 
 fn hex(bytes: &[u8; 32]) -> String {

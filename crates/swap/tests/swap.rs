@@ -91,17 +91,19 @@ impl Orien for Side {
         l.locks_made += 1;
         Ok(LockRef { from: self.me, seq })
     }
-    fn claim(&self, lock: &LockRef, amount: u64, secret: [u8; 32]) -> Result<()> {
+    fn claim(&self, lock: &LockRef, payee: &Hash32, amount: u64, secret: [u8; 32]) -> Result<()> {
         ensure!(self.reachable.get(), "no validator answers");
         let mut l = self.ledger.borrow_mut();
         let epoch = l.epoch;
         let w = l.escrows.get(&(lock.from, lock.seq)).cloned().ok_or_else(|| anyhow!("no such lock"))?;
-        ensure!(w.to == self.me && w.amount == amount, "not ours");
+        // Like the network once claims are open: anyone may claim, for the
+        // lock's payee only.
+        ensure!(w.to == *payee && w.amount == amount, "not that lock's payee");
         ensure!(epoch < w.until, "too late");
         ensure!(sha256::Hash::hash(&secret).to_byte_array() == w.hash, "wrong secret");
         l.escrows.remove(&(lock.from, lock.seq));
         l.revealed.insert((lock.from, lock.seq), secret);
-        *l.balances.entry(self.me).or_default() += amount;
+        *l.balances.entry(*payee).or_default() += amount;
         Ok(())
     }
 }
@@ -296,6 +298,46 @@ fn a_buyer_whose_wallet_was_closed_still_gets_the_orn() {
         let _ = buyer.advance(&w.btc, &w.buyer);
     }
     assert_eq!(buyer.stage, Stage::Done);
+    assert_eq!(orn(&w, &w.buyer), ORN);
+}
+
+#[test]
+fn a_buyer_whose_wallet_never_opens_again_gets_the_orn_from_the_seller() {
+    let w = world();
+    let (mut seller, buyer) = set_up(&w);
+    // The buyer pays, then never opens their wallet again.
+    w.chain.pay(&buyer.bitcoin_address().unwrap(), SATS);
+    drop(buyer);
+    w.chain.mine(CONFIRMATIONS);
+    seller.advance(&w.btc, &w.seller).unwrap();
+    assert_eq!(seller.stage, Stage::Claiming);
+    w.chain.mine(SETTLED);
+    seller.advance(&w.btc, &w.seller).unwrap();
+    assert_eq!(seller.stage, Stage::Done, "the seller has its Bitcoin");
+    assert!(!seller.finished(), "but is not finished until the buyer has their ORN");
+    // The seller's wallet claims the ORN for the buyer, with its own secret.
+    seller.advance(&w.btc, &w.seller).unwrap();
+    assert!(seller.finished());
+    assert_eq!(orn(&w, &w.buyer), ORN, "the buyer is paid without lifting a finger");
+    assert!(w.chain.received(&w.seller_payout) > SATS * 99 / 100);
+}
+
+#[test]
+fn a_seller_that_cannot_claim_for_the_buyer_yet_keeps_trying_quietly() {
+    let w = world();
+    let (mut seller, buyer) = set_up(&w);
+    w.chain.pay(&buyer.bitcoin_address().unwrap(), SATS);
+    w.chain.mine(CONFIRMATIONS);
+    seller.advance(&w.btc, &w.seller).unwrap();
+    w.chain.mine(SETTLED);
+    seller.advance(&w.btc, &w.seller).unwrap();
+    // Validators out of reach: no error, still waiting to deliver.
+    w.seller.reachable.set(false);
+    assert!(seller.advance(&w.btc, &w.seller).is_ok());
+    assert!(!seller.finished());
+    w.seller.reachable.set(true);
+    seller.advance(&w.btc, &w.seller).unwrap();
+    assert!(seller.finished());
     assert_eq!(orn(&w, &w.buyer), ORN);
 }
 

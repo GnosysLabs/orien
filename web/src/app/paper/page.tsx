@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import { ArrowRight, Download } from 'lucide-react'
 import { Formula, PaperSection, Sub, Table } from '@/components/Paper'
-import { RANDOMX_FROM } from '@/lib/brand'
+import { OPEN_CLAIMS_FROM, RANDOMX_FROM } from '@/lib/brand'
 
 export const metadata: Metadata = {
   title: 'Technical paper',
@@ -576,19 +576,22 @@ T′ = clamp( T · 1,000 / n,  ⌊T / 4⌋,  4 · T )  otherwise`}</Formula>
             number.
           </p>
           <p>
-            A <strong>Claim</strong> order, signed by the payee from its own account, names the escrow and reveals the
-            secret. Validators vote for it only if the escrow is waiting for that account and amount, the epoch is
-            before the deadline, and the secret’s SHA-256 is the escrow’s hash. The payee may hold nothing yet: a Claim
-            is accepted from an account the state does not know, and its fee, the minimum, comes out of the escrow.
-            Applying it pays the payee and records the secret, which stays readable in the state for 168 epochs.
+            A <strong>Claim</strong> order names the escrow, its payee as <code>to</code>, and reveals the secret.
+            Validators vote for it only if the escrow is waiting for that payee and amount, the epoch is before the
+            deadline, and the secret’s SHA-256 is the escrow’s hash. Any account may sign it, a payee that holds nothing
+            yet included: its fee, the minimum, comes out of the escrow, and applying it pays the payee, whoever claimed,
+            and records the secret, which stays readable in the state for 168 epochs. So whoever knows the secret can
+            finish a payee’s claim for them, as a swap’s seller does for the buyer. Until epoch {OPEN_CLAIMS_FROM}{' '}
+            only the payee could sign a claim.
           </p>
           <p>
             There is no refund order. At the checkpoint that closes epoch <code>until − 1</code>, after the epoch’s
             payments and claims have been applied, every escrow still waiting goes back to its sender. A claim and a
-            refund can therefore never both happen, and the deadline is exact. Because only the payee claims, from its
-            own numbered orders, two claims of one escrow cannot both be certified. A validator that learns of a claim
-            before its lock pays the payee and creates no escrow when the lock arrives, and ends with the same state as
-            every other validator.
+            refund can therefore never both happen, and the deadline is exact. Two claims of one escrow, signed by
+            different accounts at the same moment, can both be certified: the first applied pays, and the second, finding
+            the secret already recorded, pays nothing and takes no fee, only using its order number. Every validator ends
+            with the same state whichever it applies first. A validator that learns of a claim before its lock pays the
+            payee and creates no escrow when the lock arrives, and ends with the same state as every other validator.
           </p>
           <Formula>{`Escrow { to, amount, hash, until }        keyed by (sender, order number)
 escrows and revealed secrets are leaves of the state root, after the accounts (tags 0x4B, 0x4C)`}</Formula>
@@ -617,7 +620,11 @@ escrows and revealed secrets are leaves of the state root, after the accounts (t
               The seller spends it once it is 3 blocks deep, while at least 6 blocks remain before the buyer could. The
               spending transaction reveals the secret.
             </li>
-            <li>The buyer reads the secret from Bitcoin and claims the ORN with it.</li>
+            <li>
+              The seller’s wallet, once its Bitcoin is settled, claims the ORN for the buyer with the secret it made, so
+              they arrive even if the buyer’s wallet stays closed. The buyer’s wallet, whenever it runs, also reads the
+              secret from Bitcoin and claims them; whichever claim comes first pays.
+            </li>
           </ol>
           <Formula>{`OP_IF
     OP_SIZE 32 OP_EQUALVERIFY OP_SHA256 <hash> OP_EQUALVERIFY <seller key> OP_CHECKSIG

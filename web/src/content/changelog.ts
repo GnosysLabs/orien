@@ -27,6 +27,18 @@ export const PRODUCTS: Record<Product, string> = {
 export const CHANGELOG: Entry[] = [
   {
     date: '2026-11-15',
+    products: ['network', 'orien', 'validators'],
+    version: '1.6.0',
+    title: 'Swaps finish for the buyer even when their wallet is closed',
+    changes: [
+      'From epoch 23, at 20:11 UTC on 15 November 2026, anyone who knows a locked payment’s secret can claim it for its payee: the coins can only ever go to the payee. In a swap, the seller’s wallet now claims the buyer’s ORN for them as soon as it has taken the Bitcoin, so a buyer who pays and then closes their wallet still gets their ORN.',
+      'If two claims for one locked payment arrive at once, the payee is paid once; the other claim pays nothing and costs nothing.',
+      'Validators let a new mining share wait a moment for its turn to be checked, instead of turning it away when busy, and check each share only once however many times it arrives.',
+      'orien mine and Orien Wallet can change how much of the processor mining uses without getting RandomX ready again.',
+    ],
+  },
+  {
+    date: '2026-11-15',
     products: ['wallet'],
     version: '1.5.1',
     title: 'Room for your latest activity, and quicker updates',
