@@ -40,6 +40,13 @@ export default function PrivacyPage() {
         </p>
       </Section>
 
+      <Section title="Writing to us">
+        <p>
+          The contact form emails your name, your email address and your message to us, so we can reply. The website
+          keeps no copy.
+        </p>
+      </Section>
+
       <Section title="Your marketplace account">
         <p>When you use the marketplace or the swap board, we keep:</p>
         <ul>

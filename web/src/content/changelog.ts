@@ -38,6 +38,12 @@ export const CHANGELOG: Entry[] = [
   {
     date: '2026-11-15',
     products: ['marketplace'],
+    title: 'A contact page',
+    changes: ['orien.network/contact: write to the Orien team from the website, and we reply by email.'],
+  },
+  {
+    date: '2026-11-15',
+    products: ['marketplace'],
     title: 'Pictures of any size',
     changes: [
       'Big pictures straight from a phone or camera upload fine: your browser shrinks them before sending, for listings, profile pictures and banners.',

@@ -11,6 +11,7 @@
 - [Buy and sell ORN](https://orien.network/swap/): trade ORN for Bitcoin with another person through a trustless atomic swap
 - [Marketplace](https://orien.network/marketplace/): work and goods offered for ORN
 - [Changelog](https://orien.network/changelog/): every change to the network and the apps
+- [Contact](https://orien.network/contact/): write to the Orien team (hello@orien.network)
 - [Mining moves to RandomX](https://orien.network/news/randomx/): why Orien mining switched to RandomX
 
 ## Facts

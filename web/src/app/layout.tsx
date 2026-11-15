@@ -132,7 +132,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <MinerNotice />
           <Header />
           <main className="mx-auto w-full max-w-[1200px] flex-1 px-4 py-6 sm:py-8">{children}</main>
-          <footer className="border-t border-line px-4 print:hidden pb-24 pt-6 text-center text-xs text-muted md:pb-8">
+          <footer className="border-t border-line px-4 print:hidden pb-24 pt-6 text-center text-xs text-muted lg:pb-8">
             <p className="mb-2 flex items-center justify-center gap-2 font-semibold text-ink/85">
               <Wordmark className="text-sm" />
               <span className="text-muted">·</span>
@@ -153,6 +153,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               </Link>
               <Link href="/changelog/" className="hover:text-ink">
                 Changelog
+              </Link>
+              <Link href="/contact/" className="hover:text-ink">
+                Contact
               </Link>
               {MARKETPLACE_LIVE && (
                 <Link href="/privacy/" className="hover:text-ink">

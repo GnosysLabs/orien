@@ -448,3 +448,31 @@ async fn swap_offers_go_on_the_board_and_are_taken_through_requests() {
     let (status, _) = market.ask("POST", &format!("/api/market/swaps/{id}/close"), Some(&maya), None).await;
     assert_eq!(status, StatusCode::BAD_REQUEST, "a held offer cannot be withdrawn");
 }
+
+#[tokio::test]
+async fn the_contact_form_sends_and_keeps_floods_and_bad_messages_out() {
+    let market = Market::new();
+    let message = |email: &str, text: &str| json!({ "name": "Ada", "email": email, "message": text });
+    let (status, answer) = market.ask("POST", "/api/market/contact", None, Some(message("ada@example.com", "Hello, I have a question about mining."))).await;
+    assert_eq!(status, StatusCode::OK, "{answer}");
+    assert_eq!(answer["sent"], true);
+
+    let (status, _) = market.ask("POST", "/api/market/contact", None, Some(message("ada@example.com", "hi"))).await;
+    assert_eq!(status, StatusCode::BAD_REQUEST, "too short");
+    let (status, _) = market.ask("POST", "/api/market/contact", None, Some(message("not an email", "Hello there, a question."))).await;
+    assert_eq!(status, StatusCode::BAD_REQUEST, "not an email");
+
+    // A program filling in the hidden field is told it worked, and nothing counts.
+    let mut trap = message("bot@example.com", "Buy cheap things here now!");
+    trap["website"] = json!("https://spam.example");
+    let (status, _) = market.ask("POST", "/api/market/contact", None, Some(trap)).await;
+    assert_eq!(status, StatusCode::OK);
+
+    for _ in 0..2 {
+        let (status, _) = market.ask("POST", "/api/market/contact", None, Some(message("ada@example.com", "Another question for you."))).await;
+        assert_eq!(status, StatusCode::OK);
+    }
+    let (status, answer) = market.ask("POST", "/api/market/contact", None, Some(message("ada@example.com", "And yet another question."))).await;
+    assert_eq!(status, StatusCode::BAD_REQUEST);
+    assert!(answer["error"].as_str().unwrap().contains("too many"), "{answer}");
+}

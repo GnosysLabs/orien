@@ -53,6 +53,9 @@ pub struct App {
     secure: bool,
     /// The site's address, for links in emails.
     origin: String,
+    /// When contact-form messages were sent, and from which address, to
+    /// keep anyone from flooding the inbox.
+    contacts: Mutex<Vec<(Instant, String)>>,
 }
 
 impl App {
@@ -85,6 +88,7 @@ impl App {
             address,
             secure,
             origin: site,
+            contacts: Mutex::new(Vec::new()),
         })
     }
 
@@ -255,6 +259,7 @@ pub fn router(app: Arc<App>) -> Router {
         .route("/api/market/swaps/{id}/reply", post(swap_reply_code))
         .route("/api/market/swaps/{id}/finish", post(finish_swap))
         .route("/api/market/reports", post(report))
+        .route("/api/market/contact", post(contact))
         .route("/api/market/conversations", get(conversations))
         .route("/api/market/conversations/{id}", get(conversation))
         .route("/api/market/conversations/{id}/messages", post(reply))
@@ -267,6 +272,61 @@ pub fn router(app: Arc<App>) -> Router {
         .route("/api/market/listings/{id}", get(listing).put(edit_listing))
         .route("/api/market/listings/{id}/open", post(open_listing))
         .with_state(app)
+}
+
+/// Contact-form messages one address may send in an hour.
+const CONTACTS_PER_ADDRESS: usize = 3;
+/// Contact-form messages everyone together may send in an hour.
+const CONTACTS_PER_HOUR: usize = 40;
+/// The longest contact-form message, in characters.
+const MAX_CONTACT: usize = 5000;
+
+#[derive(Deserialize)]
+struct Contact {
+    name: String,
+    email: String,
+    message: String,
+    /// A field people never see: only programs fill it in.
+    #[serde(default)]
+    website: String,
+}
+
+/// A message from the site's contact form, emailed to hello@orien.network.
+async fn contact(State(app): State<Arc<App>>, Json(request): Json<Contact>) -> Answer {
+    let name = request.name.trim().to_string();
+    let message = request.message.trim().to_string();
+    if name.is_empty() || name.chars().count() > 100 {
+        return Err(Failure::Refused("a name is 1 to 100 characters".into()));
+    }
+    let email = store::email(&request.email).map_err(refused)?;
+    if message.chars().count() < 10 {
+        return Err(Failure::Refused("write a little more, at least 10 characters".into()));
+    }
+    if message.chars().count() > MAX_CONTACT {
+        return Err(Failure::Refused(format!("a message is at most {MAX_CONTACT} characters")));
+    }
+    // A program filled in the hidden field: it is told it worked.
+    if !request.website.trim().is_empty() {
+        return Ok(Json(json!({ "sent": true })).into_response());
+    }
+    {
+        let mut sent = app.contacts.lock().unwrap();
+        let hour = std::time::Duration::from_secs(3600);
+        sent.retain(|(at, _)| at.elapsed() < hour);
+        if sent.iter().filter(|(_, from)| *from == email).count() >= CONTACTS_PER_ADDRESS || sent.len() >= CONTACTS_PER_HOUR {
+            return Err(Failure::Refused("too many messages for now; try again in an hour".into()));
+        }
+        sent.push((Instant::now(), email.clone()));
+    }
+    let mailer = app.mailer.clone();
+    let sent = tokio::task::spawn_blocking(move || mailer.send_contact(&name, &email, &message))
+        .await
+        .map_err(|e| Failure::Broken(e.into()))?;
+    if let Err(error) = sent {
+        eprintln!("cannot send a contact message: {error:#}");
+        return Err(Failure::Unavailable("the message could not be sent; try again in a few minutes".into()));
+    }
+    Ok(Json(json!({ "sent": true })).into_response())
 }
 
 #[derive(Deserialize)]

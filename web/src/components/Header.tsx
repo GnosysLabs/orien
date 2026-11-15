@@ -10,6 +10,7 @@ import {
   ChevronDown,
   Compass,
   Download,
+  Mail,
   Monitor,
   Store,
   Terminal,
@@ -26,6 +27,8 @@ type NavItem = {
   short?: string;
   icon: LucideIcon;
   match?: (pathname: string) => boolean;
+  /** Left out of the phone's bottom bar, which has room for five. */
+  wide?: boolean;
 };
 
 const ITEMS: NavItem[] = [
@@ -59,6 +62,13 @@ const ITEMS: NavItem[] = [
         },
       ]
     : []),
+  {
+    href: "/contact/",
+    label: "Contact",
+    icon: Mail,
+    match: (p) => p.startsWith("/contact"),
+    wide: true,
+  },
   {
     href: "/try/",
     label: "Get started",
@@ -131,13 +141,13 @@ function DownloadsMenu() {
         aria-expanded={open}
         aria-haspopup="menu"
         onClick={() => setOpen(!open)}
-        className={`flex h-9 items-center gap-2 rounded-lg px-3 text-sm font-semibold transition ${
+        className={`flex h-9 items-center gap-2 whitespace-nowrap rounded-lg px-2.5 text-sm font-semibold transition lg:px-3 ${
           open
             ? "bg-raised text-ink"
             : "text-muted hover:bg-raised/60 hover:text-ink"
         }`}
       >
-        <Download className="h-4 w-4 shrink-0" strokeWidth={2} aria-hidden />
+        <Download className="hidden h-4 w-4 shrink-0 xl:block" strokeWidth={2} aria-hidden />
         <span>Downloads</span>
         <ChevronDown
           className={`h-3.5 w-3.5 transition ${open ? "rotate-180" : ""}`}
@@ -237,7 +247,7 @@ export function Header() {
         ) : (
           <nav
             aria-label="Pages"
-            className="ml-4 hidden items-center gap-1 md:flex"
+            className="ml-4 hidden items-center gap-1 lg:flex"
           >
             {ITEMS.filter((item) => item.href !== "/try/").map((item) => {
               const on = isActive(item, pathname);
@@ -247,18 +257,20 @@ export function Header() {
                   key={item.href}
                   href={item.href}
                   aria-current={on ? "page" : undefined}
-                  className={`flex h-9 items-center gap-2 rounded-lg px-3 text-sm font-semibold transition ${
+                  className={`flex h-9 items-center gap-2 whitespace-nowrap rounded-lg px-2.5 text-sm font-semibold transition lg:px-3 ${
                     on
                       ? "bg-raised text-ink"
                       : "text-muted hover:bg-raised/60 hover:text-ink"
                   }`}
                 >
+                  {/* Icons and full labels where the bar has room for them. */}
                   <Icon
-                    className={`h-4 w-4 shrink-0 ${on ? "text-pearl" : ""}`}
+                    className={`hidden h-4 w-4 shrink-0 xl:block ${on ? "text-pearl" : ""}`}
                     strokeWidth={2}
                     aria-hidden
                   />
-                  <span>{item.label}</span>
+                  <span className="xl:hidden">{item.short ?? item.label}</span>
+                  <span className="hidden xl:inline">{item.label}</span>
                 </Link>
               );
             })}
@@ -307,12 +319,12 @@ export function BottomNav() {
   const pathname = usePathname();
   if (pathname.startsWith("/admin")) return null;
   // The changelog is in the footer, as on larger screens.
-  const mobileItems = ITEMS;
+  const mobileItems = ITEMS.filter((item) => !item.wide);
 
   return (
     <nav
       aria-label="Mobile navigation"
-      className={`fixed inset-x-0 bottom-0 z-40 grid ${MARKETPLACE_LIVE ? "grid-cols-5" : "grid-cols-3"} print:hidden border-t border-line/70 bg-bg/85 px-1 pb-[env(safe-area-inset-bottom)] backdrop-blur-md md:hidden`}
+      className={`fixed inset-x-0 bottom-0 z-40 grid ${MARKETPLACE_LIVE ? "grid-cols-5" : "grid-cols-3"} print:hidden border-t border-line/70 bg-bg/85 px-1 pb-[env(safe-area-inset-bottom)] backdrop-blur-md lg:hidden`}
     >
       {mobileItems.map((item) => {
         const on = isActive(item, pathname);
