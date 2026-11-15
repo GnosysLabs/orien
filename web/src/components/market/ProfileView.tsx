@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
 import { useEffect, useState } from 'react'
-import { ArrowLeft, BadgeCheck } from 'lucide-react'
+import { ArrowLeft, Wallet } from 'lucide-react'
 import { ask, me, memberSince, type Account, type Listing } from '@/lib/market'
 import { Avatar } from './Avatar'
 import { ContactLinks } from './ContactLinks'
@@ -45,8 +45,11 @@ export function ProfileView() {
         <div className="min-w-0 space-y-2">
           <h1 className="text-3xl font-bold tracking-tight text-ink">{account.name}</h1>
           {account.wallet && (
-            <p className="inline-flex items-center gap-1.5 rounded-full border border-go/30 bg-go/10 px-3 py-1 text-xs font-semibold text-go">
-              <BadgeCheck className="h-3.5 w-3.5" strokeWidth={2.5} aria-hidden /> Verified wallet
+            <p className="inline-flex items-center gap-1.5 rounded-full border border-line bg-bg px-3 py-1 text-xs font-semibold text-muted">
+              <Wallet className="h-3.5 w-3.5" strokeWidth={2.25} aria-hidden /> Paid to{' '}
+              <span className="num">
+                {account.wallet.slice(0, 6)}…{account.wallet.slice(-6)}
+              </span>
             </p>
           )}
           <p className="text-sm text-muted">{memberSince(account.created)}</p>

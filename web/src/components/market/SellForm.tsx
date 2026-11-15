@@ -67,9 +67,9 @@ export function SellForm() {
       <Notice>
         Before your first listing,{' '}
         <Link href="/marketplace/account/" className="font-semibold text-ink underline underline-offset-4">
-          verify your Orien wallet
+          add your Orien wallet
         </Link>
-        , so buyers&apos; payments are sure to reach you. It takes a minute.
+        , so buyers&apos; payments reach you. Signing in from Orien Wallet adds it for you.
       </Notice>
     )
   }
@@ -228,7 +228,7 @@ export function SellForm() {
         </label>
       </div>
       <p className="rounded-xl border border-line bg-bg px-4 py-3 text-sm text-muted">
-        Buyers pay you straight to your verified wallet,{' '}
+        Buyers pay you straight to your wallet,{' '}
         <code className="num text-ink">
           {payTo.slice(0, 8)}…{payTo.slice(-8)}
         </code>

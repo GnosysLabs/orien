@@ -29,8 +29,6 @@ pub const MAX_OPEN_LISTINGS: i64 = 50;
 pub const CODE_SECONDS: u64 = 15 * 60;
 pub const CODE_TRIES: u32 = 5;
 pub const CODE_GAP: u64 = 60;
-/// How long a seller has to send the payment that proves their wallet.
-pub const VERIFY_SECONDS: u64 = 30 * 60;
 
 pub const CATEGORIES: &[&str] = &["design", "software", "teaching", "goods", "other"];
 
@@ -206,18 +204,13 @@ impl Store {
                  email TEXT UNIQUE,
                  bio TEXT NOT NULL DEFAULT '',
                  picture TEXT,
+                 -- No longer used: wallets were once proven by a payment and
+                 -- belonged to one account. They are in payout now.
                  wallet TEXT UNIQUE,
                  contact_email TEXT NOT NULL DEFAULT '',
                  telegram TEXT NOT NULL DEFAULT '',
                  x TEXT NOT NULL DEFAULT '',
                  created INTEGER NOT NULL
-             );
-             CREATE TABLE IF NOT EXISTS verifications (
-                 account INTEGER PRIMARY KEY REFERENCES accounts(id) ON DELETE CASCADE,
-                 address TEXT NOT NULL,
-                 amount INTEGER NOT NULL UNIQUE,
-                 epoch INTEGER NOT NULL,
-                 expires INTEGER NOT NULL
              );
              CREATE TABLE IF NOT EXISTS codes (
                  email TEXT PRIMARY KEY,
@@ -291,9 +284,28 @@ impl Store {
              );",
         )?;
         let store = Store { db };
+        store.add_payout()?;
         store.create_swap_tables()?;
         store.create_moderation_tables()?;
         Ok(store)
+    }
+
+    /// The wallet buyers pay, which any number of accounts may name. Copied
+    /// once from the old `wallet` column, which allowed one account each.
+    fn add_payout(&self) -> Result<()> {
+        let has: bool = self.db.query_row(
+            "SELECT COUNT(*) > 0 FROM pragma_table_info('accounts') WHERE name = 'payout'",
+            [],
+            |row| row.get(0),
+        )?;
+        if !has {
+            self.db.execute_batch(
+                "ALTER TABLE accounts ADD COLUMN payout TEXT;
+                 UPDATE accounts SET payout = wallet;
+                 DROP TABLE IF EXISTS verifications;",
+            )?;
+        }
+        Ok(())
     }
 
     /// A new account. `handle` is the id its passkeys know it by.
@@ -399,57 +411,21 @@ impl Store {
         Ok(rows.collect::<rusqlite::Result<_>>()?)
     }
 
-    /// Starts checking that `account` holds `address`: returns the exact
-    /// amount, in ORN's smallest units, to send from it. Each waiting check
-    /// has its own amount, so a payment names one check only.
-    pub fn start_verification(&self, account: i64, address: &str, epoch: u64) -> Result<u64> {
-        let address = orien_address(address)?;
-        let taken: Option<i64> =
-            self.db.query_row("SELECT id FROM accounts WHERE wallet = ?1", [&address], |row| row.get(0)).optional()?;
-        if taken.is_some_and(|other| other != account) {
-            bail!("that wallet is already linked to another marketplace account");
-        }
-        self.db.execute("DELETE FROM verifications WHERE expires < ?1 OR account = ?2", params![now(), account])?;
-        loop {
-            // Between 0.001 and 0.01 ORN.
-            let amount = 1_000_000 + u64::from_le_bytes(random::<8>()?) % 9_000_000;
-            let added = self.db.execute(
-                "INSERT OR IGNORE INTO verifications (account, address, amount, epoch, expires) VALUES (?1, ?2, ?3, ?4, ?5)",
-                params![account, address, amount as i64, epoch, now() + VERIFY_SECONDS],
-            )?;
-            if added == 1 {
-                return Ok(amount);
-            }
-        }
-    }
-
-    /// The check under way for `account`: the address, the amount to send,
-    /// and the epoch it began in.
-    pub fn verification(&self, account: i64) -> Result<Option<(String, u64, u64)>> {
-        Ok(self
-            .db
-            .query_row(
-                "SELECT address, amount, epoch FROM verifications WHERE account = ?1 AND expires >= ?2",
-                params![account, now()],
-                |row| Ok((row.get(0)?, row.get::<_, i64>(1)? as u64, row.get(2)?)),
-            )
-            .optional()?)
-    }
-
-    /// Links a proven wallet to `account`. Its listings are paid there from
-    /// now on.
+    /// Links `address` to `account`: buyers of its listings pay there from
+    /// now on. Nothing has to be proven. Someone who links another person's
+    /// wallet only sends that person their buyers' payments, so several
+    /// accounts may name the same wallet, and nobody can block its owner.
     pub fn set_wallet(&self, account: i64, address: &str) -> Result<()> {
         let address = orien_address(address)?;
-        self.db.execute("UPDATE accounts SET wallet = ?2 WHERE id = ?1", params![account, address])?;
+        self.db.execute("UPDATE accounts SET payout = ?2 WHERE id = ?1", params![account, address])?;
         self.db.execute("UPDATE listings SET pay_to = ?2 WHERE seller = ?1", params![account, address])?;
-        self.db.execute("DELETE FROM verifications WHERE account = ?1", [account])?;
         Ok(())
     }
 
     fn wallet_of(&self, account: i64) -> Result<String> {
         let wallet: Option<String> =
-            self.db.query_row("SELECT wallet FROM accounts WHERE id = ?1", [account], |row| row.get(0))?;
-        wallet.ok_or_else(|| anyhow::anyhow!("verify your Orien wallet first, under Your profile, so buyers' payments reach you"))
+            self.db.query_row("SELECT payout FROM accounts WHERE id = ?1", [account], |row| row.get(0))?;
+        wallet.ok_or_else(|| anyhow::anyhow!("link your Orien wallet first, under Your profile, so buyers' payments reach you"))
     }
 
     /// Forgets a code that could not be sent.
@@ -467,7 +443,7 @@ impl Store {
         Ok(self
             .db
             .query_row(
-                "SELECT id, name, bio, picture, wallet, created, contact_email, telegram, x FROM accounts WHERE id = ?1",
+                "SELECT id, name, bio, picture, payout, created, contact_email, telegram, x FROM accounts WHERE id = ?1",
                 [id],
                 |row| {
                     Ok(Account {
@@ -869,22 +845,16 @@ mod tests {
     }
 
     #[test]
-    fn a_wallet_is_linked_once_proven_and_to_one_account_only() {
+    fn any_account_may_name_a_wallet() {
         let store = Store::in_memory().unwrap();
         let maya = store.create_account("Maya", "maya").unwrap();
         let sam = store.create_account("Sam", "sam").unwrap();
         let wallet = "c".repeat(64);
-        assert!(store.start_verification(maya.id, "nonsense", 3).is_err());
-        let amount = store.start_verification(maya.id, &wallet.to_uppercase(), 3).unwrap();
-        assert!((1_000_000..10_000_000).contains(&amount));
-        assert_eq!(store.verification(maya.id).unwrap(), Some((wallet.clone(), amount, 3)));
-        let other = store.start_verification(sam.id, &wallet, 3).unwrap();
-        assert_ne!(other, amount, "each waiting check has its own amount");
-        store.set_wallet(maya.id, &wallet).unwrap();
+        assert!(store.set_wallet(maya.id, "nonsense").is_err());
+        store.set_wallet(maya.id, &wallet.to_uppercase()).unwrap();
         assert_eq!(store.account(maya.id).unwrap().unwrap().wallet, Some(wallet.clone()));
-        assert_eq!(store.verification(maya.id).unwrap(), None);
-        assert!(store.start_verification(sam.id, &wallet, 4).is_err(), "a wallet belongs to one account");
-        assert!(store.set_wallet(sam.id, &wallet).is_err());
+        store.set_wallet(sam.id, &wallet).unwrap();
+        assert_eq!(store.account(sam.id).unwrap().unwrap().wallet, Some(wallet), "nobody can block a wallet's owner");
     }
 
     #[test]

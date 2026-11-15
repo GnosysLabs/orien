@@ -117,7 +117,7 @@ fn admin(store: &Store, command: Admin) -> Result<()> {
             let Some(account) = account else { anyhow::bail!("no account {who}") };
             println!("account {}: {}", account.id, account.name);
             println!("  email:     {}", store.email_of(account.id)?.unwrap_or_default());
-            println!("  wallet:    {}", account.wallet.unwrap_or_else(|| "not verified".into()));
+            println!("  wallet:    {}", account.wallet.unwrap_or_else(|| "not linked".into()));
             println!("  suspended: {}", if store.is_suspended(account.id)? { "yes" } else { "no" });
             println!("  listings:  {}", store.listings_of(account.id)?.len());
             println!("  swaps done: {}", store.swaps_done(account.id)?);

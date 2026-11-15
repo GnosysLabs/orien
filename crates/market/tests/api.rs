@@ -292,9 +292,8 @@ async fn a_seller_sets_up_a_profile_with_a_picture() {
 }
 
 #[tokio::test]
-async fn a_seller_proves_their_wallet_with_a_small_payment_before_listing() {
+async fn a_seller_links_their_wallet_before_listing() {
     let payments = Arc::new(Fake::default());
-    *payments.epoch.lock().unwrap() = 20;
     let app = App::new(Store::in_memory().unwrap(), folder(), "https://orien.network", true, Mailer::log_only(), Screener::off(), payments.clone(), MARKET);
     let market = Market { app: Arc::new(app.unwrap().with_prices(Prices::fixed_for_tests(65_000.0))) };
     let email = "maya@example.com";
@@ -311,32 +310,31 @@ async fn a_seller_proves_their_wallet_with_a_small_payment_before_listing() {
     let cookie = response.headers()[header::SET_COOKIE].to_str().unwrap().to_string();
     let maya = cookie.split(';').next().unwrap().split_once('=').unwrap().1.to_string();
 
-    // No listing before the wallet is proven.
+    // No listing before a wallet is linked.
     let (status, body) = market.ask("POST", "/api/market/listings", Some(&maya), Some(logo())).await;
     assert_eq!(status, StatusCode::BAD_REQUEST);
-    assert!(body["error"].as_str().unwrap().contains("verify your Orien wallet"));
+    assert!(body["error"].as_str().unwrap().contains("link your Orien wallet"));
 
+    // Typed on the website: an address that never held ORN is likely a typo.
     let wallet = "be5b7cc81cbe475fe002bee2597c30b0ae4f030434e93f12ade7f1a266c6258b";
     let (status, body) = market.ask("POST", "/api/market/me/wallet", Some(&maya), Some(json!({ "address": wallet }))).await;
-    assert_eq!((status, body["waiting"]["pay_to"].as_str()), (StatusCode::OK, Some(MARKET)));
-    let amount = body["waiting"]["amount"].as_u64().unwrap();
-    let pay = |from: &str, amount: u64, epoch: u64| {
-        let to = MARKET.parse().unwrap();
-        payments.payments.lock().unwrap().push((to, Incoming { from: from.parse().unwrap(), amount, epoch }));
-    };
+    assert_eq!(status, StatusCode::BAD_REQUEST);
+    assert!(body["error"].as_str().unwrap().contains("never held any ORN"), "{body}");
 
-    // The wrong amount, the wrong sender, or a payment from long before prove nothing.
-    pay(wallet, amount + 1, 20);
-    pay(&"d".repeat(64), amount, 20);
-    pay(wallet, amount, 3);
-    let (_, body) = market.ask("GET", "/api/market/me/wallet", Some(&maya), None).await;
-    assert!(body["waiting"].is_object(), "{body}");
+    // Orien Wallet names its own address, which may be brand new: linked at once.
+    let (status, body) = market.ask("POST", "/api/market/me/wallet", Some(&maya), Some(json!({ "address": wallet, "app": true }))).await;
+    assert_eq!((status, body["wallet"].as_str()), (StatusCode::OK, Some(wallet)));
 
-    pay(wallet, amount, 21);
+    // A typed address that has held ORN is linked at once too.
+    let other = "d".repeat(64);
+    payments.held.lock().unwrap().push(other.parse().unwrap());
+    let (status, body) = market.ask("POST", "/api/market/me/wallet", Some(&maya), Some(json!({ "address": other }))).await;
+    assert_eq!((status, body["wallet"].as_str()), (StatusCode::OK, Some(other.as_str())));
+    market.ask("POST", "/api/market/me/wallet", Some(&maya), Some(json!({ "address": wallet, "app": true }))).await;
     let (_, body) = market.ask("GET", "/api/market/me/wallet", Some(&maya), None).await;
     assert_eq!(body["wallet"], wallet);
 
-    // A way to be reached, then listings pay to the proven wallet, whatever the form says.
+    // A way to be reached, then listings pay to the linked wallet, whatever the form says.
     let reach = json!({ "name": "Maya", "contact": { "x": "maya" } });
     assert_eq!(market.ask("PUT", "/api/market/me", Some(&maya), Some(reach)).await.0, StatusCode::OK);
     let mut listing = logo();

@@ -35,18 +35,22 @@ the address, so a track record cannot be borrowed either.
 - **Passkeys** follow the WebAuthn standard (the `webauthn-rs` crate): the
   server keeps each account's public key only.
 
-## Verified wallets
+## Sellers' wallets
 
-Before their first listing, a seller proves they hold the Orien wallet
-buyers will pay: they send a small, exact amount (under 0.01 ORN) from it to
-the marketplace's own address, and the marketplace sees it in the
-validators' history within seconds. Listings are always paid to that
-wallet, so a mistyped address can never send buyers' money astray.
+Listings are always paid to the wallet linked to the seller's account.
+Nothing has to be proven: naming someone else's wallet only sends that
+person the buyers' payments, so there is nothing to gain from it, and any
+number of accounts may name the same wallet (nobody can block its owner).
 
-The marketplace's own wallet is
+- Signing in from Orien Wallet links the app's own address, for free. It
+  cannot be mistyped and may be brand new.
+- An address pasted on the website is accepted once the network shows it
+  has held ORN before. A mistyped address never has, so this catches typos.
+
+Until 2026-11-15 sellers proved their wallet by paying a tiny exact amount
+to the marketplace's own wallet,
 `74fa1ab82c45ebeed539b03146243ddfc6f0ccb5163f45ea87d21692ba774b7a`. Its file
-is kept on the founder's Mac, never on the server: the server only reads
-what came in.
+is kept on the founder's Mac; nothing uses it now.
 
 ## The swap board
 

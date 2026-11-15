@@ -357,7 +357,7 @@ function RequestCard({
         (paying ? (
           <div className="space-y-3 border-t border-line px-5 py-4 text-sm text-muted">
             <p>
-              Send exactly this from Orien Wallet or with orien. It goes straight to {c.with_name}&apos;s verified wallet, and
+              Send exactly this from Orien Wallet or with orien. It goes straight to {c.with_name}&apos;s wallet, and
               cannot be undone.
             </p>
             <CopyText label="Amount" text={`${plainOrn(amount)} ORN`} />
