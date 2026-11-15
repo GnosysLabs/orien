@@ -44,6 +44,8 @@ pub struct App {
     images: Folder,
     /// What the marketplace's own address has received, for checking wallets.
     payments: Arc<dyn Payments>,
+    /// Bitcoin's price in dollars.
+    prices: Arc<crate::prices::Prices>,
     /// The marketplace's own Orien address, which sellers prove their
     /// wallets by paying.
     address: String,
@@ -79,10 +81,17 @@ impl App {
             screener: Arc::new(screener),
             images,
             payments,
+            prices: Arc::new(crate::prices::Prices::live()),
             address,
             secure,
             origin: site,
         })
+    }
+
+    /// Uses these prices instead of fetching them: for tests.
+    pub fn with_prices(mut self, prices: crate::prices::Prices) -> App {
+        self.prices = Arc::new(prices);
+        self
     }
 
     fn begin(&self, ceremony: Ceremony) -> String {
@@ -501,7 +510,10 @@ struct Finish2 {
 
 async fn open_swaps(State(app): State<Arc<App>>) -> Answer {
     let offers = app.store.lock().unwrap().open_swaps()?;
-    Ok(Json(json!({ "offers": offers })).into_response())
+    let prices = app.prices.clone();
+    let price = tokio::task::spawn_blocking(move || prices.bitcoin()).await.map_err(|e| Failure::Broken(e.into()))?;
+    let usd = price.map(|p| json!({ "usd": p.usd, "at": p.at }));
+    Ok(Json(json!({ "offers": offers, "bitcoin": usd })).into_response())
 }
 
 async fn post_swap(State(app): State<Arc<App>>, headers: HeaderMap, Json(request): Json<NewSwap>) -> Answer {

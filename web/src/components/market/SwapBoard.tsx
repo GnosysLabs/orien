@@ -9,6 +9,14 @@ import { Notice } from './Shell'
 
 const card = 'rounded-2xl border border-line bg-surface p-6'
 
+/** Dollars, rounded for reading: "$654", "$1.31", "$0.0042". */
+const dollars = (usd: number) =>
+  usd >= 100
+    ? '$' + Math.round(usd).toLocaleString('en')
+    : usd >= 1
+      ? '$' + usd.toFixed(2)
+      : '$' + usd.toPrecision(2)
+
 /** Satoshis for one ORN, rounded for reading: "1,800". */
 const perOrn = (offer: SwapOffer) => {
   const sats = offer.sats / (offer.orn / 1_000_000_000)
@@ -17,13 +25,17 @@ const perOrn = (offer: SwapOffer) => {
 
 export function SwapBoard() {
   const [offers, setOffers] = useState<SwapOffer[] | null>(null)
+  const [usd, setUsd] = useState<number | null>(null)
   const [account, setAccount] = useState<Account | null | undefined>(undefined)
   const [trouble, setTrouble] = useState('')
   const [taken, setTaken] = useState<SwapOffer | null>(null)
 
   const load = () =>
-    ask<{ offers: SwapOffer[] }>('/swaps')
-      .then((found) => setOffers(found.offers))
+    ask<{ offers: SwapOffer[]; bitcoin: { usd: number } | null }>('/swaps')
+      .then((found) => {
+        setOffers(found.offers)
+        setUsd(found.bitcoin?.usd ?? null)
+      })
       .catch((error: Error) => setTrouble(sentence(error.message)))
 
   useEffect(() => {
@@ -86,7 +98,9 @@ export function SwapBoard() {
       <section className="space-y-4">
         <div className="flex flex-wrap items-end justify-between gap-3">
           <h2 className="text-2xl font-bold tracking-tight text-ink">Offers</h2>
-          <p className="text-sm text-muted">Cheapest Bitcoin per ORN first</p>
+          <p className="text-sm text-muted">
+            Cheapest first{usd && <> · Bitcoin at {dollars(usd)}, so dollar values are a guide</>}
+          </p>
         </div>
         {offers === null ? (
           <p className="text-muted">Loading…</p>
@@ -110,8 +124,12 @@ export function SwapBoard() {
                   <div className="flex-1">
                     <p className="num font-bold text-ink">
                       {formatOrn(offer.orn)} ORN <span className="font-normal text-muted">for</span> {formatBtc(offer.sats)} BTC
+                      {usd && <span className="font-normal text-muted"> ≈ {dollars((offer.sats / 1e8) * usd)}</span>}
                     </p>
-                    <p className="num text-xs text-muted">{perOrn(offer)} satoshis per ORN</p>
+                    <p className="num text-xs text-muted">
+                      {usd ? dollars(((offer.sats / 1e8) * usd) / (offer.orn / 1e9)) + ' per ORN · ' : ''}
+                      {perOrn(offer)} satoshis per ORN
+                    </p>
                   </div>
                   {mine ? (
                     <button
@@ -137,7 +155,7 @@ export function SwapBoard() {
         )}
       </section>
 
-      <PostOffer account={account} onPosted={load} />
+      <PostOffer account={account} onPosted={load} usd={usd} />
 
       <section className={`${card} space-y-3`}>
         <div className="flex items-center gap-3">
@@ -155,7 +173,15 @@ export function SwapBoard() {
   )
 }
 
-function PostOffer({ account, onPosted }: { account: Account | null | undefined; onPosted: () => void }) {
+function PostOffer({
+  account,
+  onPosted,
+  usd,
+}: {
+  account: Account | null | undefined
+  onPosted: () => void
+  usd: number | null
+}) {
   const [orn, setOrn] = useState('')
   const [btc, setBtc] = useState('')
   const [trouble, setTrouble] = useState('')
@@ -213,6 +239,13 @@ function PostOffer({ account, onPosted }: { account: Account | null | undefined;
             <label className="block space-y-2">
               <span className="text-sm font-semibold text-ink">Bitcoin you want, in BTC</span>
               <input value={btc} onChange={(e) => setBtc(e.target.value)} inputMode="decimal" placeholder="0.01" className={field} />
+              {usd && parseBtc(btc) !== null && (
+                <span className="num block text-xs text-muted">
+                  ≈ {dollars(((parseBtc(btc) ?? 0) / 1e8) * usd)}
+                  {parseOrn(orn) !== null &&
+                    ' · ' + dollars((((parseBtc(btc) ?? 0) / 1e8) * usd) / ((parseOrn(orn) ?? 1) / 1e9)) + ' per ORN'}
+                </span>
+              )}
             </label>
           </div>
           <p className="text-sm text-muted">
