@@ -47,7 +47,7 @@ pub struct MySwap {
     pub selling: bool,
     pub taker: Option<i64>,
     pub taker_name: Option<String>,
-    /// The buyer's verified wallet, which the seller locks the ORN for.
+    /// The buyer's Orien address, which the seller locks the ORN for.
     pub taker_wallet: Option<String>,
     pub offer_code: Option<String>,
     pub reply_code: Option<String>,
@@ -78,6 +78,19 @@ fn offer_row(row: &rusqlite::Row) -> rusqlite::Result<SwapOffer> {
 
 impl Store {
     pub(crate) fn create_swap_tables(&self) -> Result<()> {
+        self.create_swap_tables_first()?;
+        // Added after the board was first built: where the buyer wants the ORN.
+        let has: bool = self
+            .db
+            .prepare("SELECT 1 FROM pragma_table_info('swap_offers') WHERE name = 'taker_address'")?
+            .exists([])?;
+        if !has {
+            self.db.execute("ALTER TABLE swap_offers ADD COLUMN taker_address TEXT", [])?;
+        }
+        Ok(())
+    }
+
+    fn create_swap_tables_first(&self) -> Result<()> {
         self.db.execute_batch(
             "CREATE TABLE IF NOT EXISTS swap_offers (
                  id INTEGER PRIMARY KEY,
@@ -138,7 +151,8 @@ impl Store {
                 continue;
             }
             self.db.execute(
-                "UPDATE swap_offers SET state = 'open', taker = NULL, offer_code = NULL, due = NULL, updated = ?2 WHERE id = ?1",
+                "UPDATE swap_offers SET state = 'open', taker = NULL, taker_address = NULL, offer_code = NULL, due = NULL, updated = ?2
+                 WHERE id = ?1",
                 params![id, at],
             )?;
             self.db.execute("INSERT INTO swap_lapses (account, at) VALUES (?1, ?2)", params![taker, at])?;
@@ -147,10 +161,9 @@ impl Store {
     }
 
     /// Puts an offer of `orn` for `sats` on the board.
+    /// No verified wallet is needed: the ORN locked on the network are the
+    /// proof, and the buyer pays only once their wallet has seen them.
     pub fn post_swap(&self, seller: i64, orn: u64, sats: u64) -> Result<SwapOffer> {
-        if self.account(seller)?.and_then(|a| a.wallet).is_none() {
-            bail!("verify your Orien wallet first, under Your profile");
-        }
         if orn == 0 {
             bail!("offer more than nothing");
         }
@@ -187,13 +200,13 @@ impl Store {
     }
 
     /// Takes an offer off the board. The offer is held for `buyer` while the
-    /// seller's wallet locks the ORN.
-    pub fn take_swap(&self, buyer: i64, id: i64) -> Result<MySwap> {
+    /// seller's wallet locks the ORN for `address`: the buyer's wallet sends
+    /// its own. No verified wallet and no ORN are needed, so someone with
+    /// none can buy their first. A wrong address only hurts its giver, whose
+    /// wallet would never see ORN locked for it, and so never pay.
+    pub fn take_swap(&self, buyer: i64, id: i64, address: &str) -> Result<MySwap> {
         self.lapse_swaps()?;
-        let wallet = self.account(buyer)?.and_then(|a| a.wallet);
-        if wallet.is_none() {
-            bail!("verify your Orien wallet first, under Your profile, so the seller knows where to lock the ORN");
-        }
+        let address = crate::store::orien_address(address)?;
         let lapses: i64 = self.db.query_row(
             "SELECT COUNT(*) FROM swap_lapses WHERE account = ?1 AND at > ?2",
             params![buyer, now().saturating_sub(WEEK)],
@@ -216,8 +229,9 @@ impl Store {
         }
         let at = now();
         let taken = self.db.execute(
-            "UPDATE swap_offers SET state = 'held', taker = ?2, due = ?3, updated = ?4 WHERE id = ?1 AND state = 'open'",
-            params![id, buyer, at + HOLD_SECONDS, at],
+            "UPDATE swap_offers SET state = 'held', taker = ?2, taker_address = ?5, due = ?3, updated = ?4
+             WHERE id = ?1 AND state = 'open'",
+            params![id, buyer, at + HOLD_SECONDS, at, address],
         )?;
         if taken == 0 {
             bail!("someone else took this offer a moment ago");
@@ -308,16 +322,18 @@ impl Store {
 
     /// One offer as `account`, its seller or its buyer, sees it.
     pub fn my_swap(&self, id: i64, account: i64) -> Result<MySwap> {
-        type Row = (i64, Option<i64>, Option<String>, Option<String>, Option<u64>);
+        type Row = (i64, Option<i64>, Option<String>, Option<String>, Option<u64>, Option<String>);
         let found: Option<Row> = self
             .db
             .query_row(
-                "SELECT seller, taker, offer_code, reply_code, due FROM swap_offers WHERE id = ?1",
+                "SELECT seller, taker, offer_code, reply_code, due, taker_address FROM swap_offers WHERE id = ?1",
                 [id],
-                |r| Ok((r.get(0)?, r.get(1)?, r.get(2)?, r.get(3)?, r.get(4)?)),
+                |r| Ok((r.get(0)?, r.get(1)?, r.get(2)?, r.get(3)?, r.get(4)?, r.get(5)?)),
             )
             .optional()?;
-        let Some((seller, taker, offer_code, reply_code, due)) = found else { bail!("there is no such offer") };
+        let Some((seller, taker, offer_code, reply_code, due, taker_address)) = found else {
+            bail!("there is no such offer")
+        };
         if account != seller && Some(account) != taker {
             bail!("there is no such swap of yours");
         }
@@ -330,7 +346,7 @@ impl Store {
             selling: account == seller,
             taker,
             taker_name: taker_account.as_ref().map(|a| a.name.clone()),
-            taker_wallet: taker_account.and_then(|a| a.wallet),
+            taker_wallet: taker_address,
             offer_code,
             reply_code,
             due,
@@ -401,9 +417,11 @@ mod tests {
         let (store, maya, sam) = board();
         let posted = store.post_swap(maya, 500_000_000_000, 1_000_000).unwrap();
         assert_eq!(store.open_swaps().unwrap(), vec![posted.clone()]);
-        assert!(store.take_swap(maya, posted.id).is_err(), "not one's own");
+        assert!(store.take_swap(maya, posted.id, MAYA_WALLET).is_err(), "not one's own");
 
-        let held = store.take_swap(sam, posted.id).unwrap();
+        let newcomer = store.create_account("Nina", "nina").unwrap().id;
+        assert!(store.take_swap(newcomer, posted.id, "not an address").is_err());
+        let held = store.take_swap(sam, posted.id, SAM_WALLET).unwrap();
         assert_eq!((held.offer.state.as_str(), held.selling), ("held", false));
         assert!(store.open_swaps().unwrap().is_empty(), "held for one buyer only");
         let mine = store.my_swaps(maya).unwrap();
@@ -438,7 +456,7 @@ mod tests {
     fn a_swap_one_side_reports_on_finishes_after_three_days_and_any_cancel_counts() {
         let (store, maya, sam) = board();
         let id = store.post_swap(maya, 1, MIN_SATS).unwrap().id;
-        store.take_swap(sam, id).unwrap();
+        store.take_swap(sam, id, SAM_WALLET).unwrap();
         store.db.execute("UPDATE swap_offers SET state = 'swapping', reply_code = 'r' WHERE id = ?1", [id]).unwrap();
         store.finish_swap(maya, id, false).unwrap();
         store.lapse_swaps().unwrap();
@@ -453,15 +471,15 @@ mod tests {
     fn holds_lapse_and_repeat_lapsers_are_paused() {
         let (store, maya, sam) = board();
         let first = store.post_swap(maya, 1, MIN_SATS).unwrap().id;
-        store.take_swap(sam, first).unwrap();
-        assert!(store.take_swap(sam, store.post_swap(maya, 2, MIN_SATS).unwrap().id).is_err(), "one at a time");
+        store.take_swap(sam, first, SAM_WALLET).unwrap();
+        assert!(store.take_swap(sam, store.post_swap(maya, 2, MIN_SATS).unwrap().id, SAM_WALLET).is_err(), "one at a time");
         for _ in 0..LAPSES_ALLOWED {
             store.db.execute("UPDATE swap_offers SET due = 1 WHERE taker = ?1", [sam]).unwrap();
             store.lapse_swaps().unwrap();
             assert_eq!(store.swap_offer(first).unwrap().unwrap().state, "open", "a lapsed hold reopens");
-            let _ = store.take_swap(sam, first);
+            let _ = store.take_swap(sam, first, SAM_WALLET);
         }
-        let err = store.take_swap(sam, first).unwrap_err().to_string();
+        let err = store.take_swap(sam, first, SAM_WALLET).unwrap_err().to_string();
         assert!(err.contains("lapsed"), "{err}");
     }
 
@@ -471,13 +489,14 @@ mod tests {
         assert!(store.post_swap(maya, 0, MIN_SATS).is_err());
         assert!(store.post_swap(maya, 1, MIN_SATS - 1).is_err());
         let stranger = store.create_account("Eve", "eve").unwrap().id;
-        assert!(store.post_swap(stranger, 1, MIN_SATS).is_err(), "a verified wallet first");
+        assert!(store.post_swap(stranger, 1, MIN_SATS).is_ok(), "no verified wallet needed: the lock is the proof");
         for _ in 0..MAX_OFFERS {
             store.post_swap(maya, 1, MIN_SATS).unwrap();
         }
         assert!(store.post_swap(maya, 1, MIN_SATS).is_err());
-        let open = store.open_swaps().unwrap();
-        store.close_swap(maya, open[0].id).unwrap();
-        assert_eq!(store.open_swaps().unwrap().len() as i64, MAX_OFFERS - 1);
+        let mine = store.open_swaps().unwrap().into_iter().find(|o| o.seller == maya).unwrap();
+        store.close_swap(maya, mine.id).unwrap();
+        let left = store.open_swaps().unwrap().into_iter().filter(|o| o.seller == maya).count() as i64;
+        assert_eq!(left, MAX_OFFERS - 1);
     }
 }

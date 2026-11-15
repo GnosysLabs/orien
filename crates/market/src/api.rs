@@ -580,11 +580,26 @@ async fn my_swaps(State(app): State<Arc<App>>, headers: HeaderMap) -> Answer {
     Ok(Json(json!({ "swaps": swaps })).into_response())
 }
 
-async fn take_swap(State(app): State<Arc<App>>, headers: HeaderMap, Path(id): Path<i64>) -> Answer {
+#[derive(Deserialize, Default)]
+struct Take {
+    /// The Orien address to lock the ORN for: the buyer's wallet sends its
+    /// own. Without it, the account's verified wallet, if it has one.
+    #[serde(default)]
+    address: Option<String>,
+}
+
+async fn take_swap(State(app): State<Arc<App>>, headers: HeaderMap, Path(id): Path<i64>, body: Option<Json<Take>>) -> Answer {
     let buyer = app.signed_in(&headers)?;
+    let request = body.map(|Json(b)| b).unwrap_or_default();
     let (swap, seller_email, taker) = {
         let store = app.store.lock().unwrap();
-        let swap = store.take_swap(buyer, id).map_err(refused)?;
+        let address = match request.address {
+            Some(address) => address,
+            None => store.account(buyer)?.and_then(|a| a.wallet).ok_or_else(|| {
+                Failure::Refused("take this offer in Orien Wallet, which sends where the ORN should go".into())
+            })?,
+        };
+        let swap = store.take_swap(buyer, id, &address).map_err(refused)?;
         let email = store.email_of(swap.offer.seller)?;
         let taker = store.account(buyer)?.map(|a| a.name).unwrap_or_default();
         (swap, email, taker)
