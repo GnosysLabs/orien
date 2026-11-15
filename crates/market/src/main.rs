@@ -1,8 +1,10 @@
 //! Runs the Orien marketplace's server.
 
-use anyhow::Result;
+use anyhow::{Context, Result};
 use clap::Parser;
 use orien_market::api::{App, router};
+use orien_market::mail::Mailer;
+use orien_market::screen::Screener;
 use orien_market::store::Store;
 use std::path::PathBuf;
 use std::sync::Arc;
@@ -23,13 +25,41 @@ struct Args {
     /// marketplace on this computer. On the server, nginx serves the site.
     #[arg(long)]
     site: Option<PathBuf>,
+    /// A file holding the Resend key that sends sign-in codes. Without it,
+    /// codes are printed here instead: for trying it on this computer.
+    #[arg(long)]
+    resend_key: Option<PathBuf>,
+    /// A file holding the OpenRouter key that checks listings and names
+    /// before they are saved. Without it nothing is checked: for trying it
+    /// on this computer.
+    #[arg(long)]
+    openrouter_key: Option<PathBuf>,
+    /// Who the codes come from.
+    #[arg(long, default_value = "Orien marketplace <noreply@orien.network>")]
+    from: String,
 }
 
 #[tokio::main]
 async fn main() -> Result<()> {
     let args = Args::parse();
     let secure = args.origin.starts_with("https://");
-    let app = Arc::new(App::new(Store::open(&args.db)?, &args.origin, secure)?);
+    let mailer = match &args.resend_key {
+        Some(path) => {
+            let key = std::fs::read_to_string(path).with_context(|| format!("cannot read {}", path.display()))?;
+            Mailer::resend(key.trim().to_string(), &args.from)
+        }
+        None if secure => anyhow::bail!("a live marketplace needs --resend-key to send sign-in codes"),
+        None => Mailer::log_only(),
+    };
+    let screener = match &args.openrouter_key {
+        Some(path) => {
+            let key = std::fs::read_to_string(path).with_context(|| format!("cannot read {}", path.display()))?;
+            Screener::openrouter(key.trim().to_string())
+        }
+        None if secure => anyhow::bail!("a live marketplace needs --openrouter-key to check listings"),
+        None => Screener::off(),
+    };
+    let app = Arc::new(App::new(Store::open(&args.db)?, &args.origin, secure, mailer, screener)?);
     let listener = tokio::net::TcpListener::bind(&args.listen).await?;
     println!("marketplace server for {} listening on {}", args.origin, args.listen);
     let mut routes = router(app);

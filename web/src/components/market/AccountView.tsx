@@ -2,17 +2,8 @@
 
 import Link from 'next/link'
 import { useEffect, useState } from 'react'
-import { KeyRound, LogOut } from 'lucide-react'
-import {
-  ask,
-  createPasskey,
-  me,
-  passkeysWork,
-  passkeyTrouble,
-  usePasskey,
-  type Account,
-  type Listing,
-} from '@/lib/market'
+import { LogOut, Mail } from 'lucide-react'
+import { ask, me, type Account, type Listing } from '@/lib/market'
 import { Card } from './Browse'
 import { Notice } from './Shell'
 
@@ -37,61 +28,103 @@ export function AccountView() {
   return <Mine found={found} onChange={reload} />
 }
 
+type Step = 'email' | 'code' | 'name'
+
 function SignIn({ onDone, trouble: first }: { onDone: () => void; trouble: string }) {
+  const [step, setStep] = useState<Step>('email')
+  const [email, setEmail] = useState('')
+  const [code, setCode] = useState('')
   const [name, setName] = useState('')
   const [busy, setBusy] = useState(false)
   const [trouble, setTrouble] = useState(first)
-  const [fresh, setNew] = useState(false)
 
-  if (!passkeysWork()) {
-    return <Notice tone="bad">This browser cannot use passkeys. Try a current Safari, Chrome, Edge or Firefox.</Notice>
-  }
-
-  const signIn = async () => {
+  const run = async (work: () => Promise<void>) => {
     setBusy(true)
     setTrouble('')
     try {
-      const { id, options } = await ask<{ id: string; options: Record<string, unknown> }>('/signin/start', 'POST')
-      const credential = await usePasskey(options)
-      await ask('/signin/finish', 'POST', { id, credential })
-      onDone()
+      await work()
     } catch (error) {
-      setTrouble(passkeyTrouble(error))
+      setTrouble((error as Error).message)
     }
     setBusy(false)
   }
 
-  const signUp = async (event: React.FormEvent) => {
+  const sendCode = (event: React.FormEvent) => {
     event.preventDefault()
-    setBusy(true)
-    setTrouble('')
-    try {
-      const { id, options } = await ask<{ id: string; options: Record<string, unknown> }>('/signup/start', 'POST', { name })
-      const credential = await createPasskey(options)
-      await ask('/signup/finish', 'POST', { id, credential })
-      onDone()
-    } catch (error) {
-      setTrouble(passkeyTrouble(error))
-    }
-    setBusy(false)
+    void run(async () => {
+      const { sent } = await ask<{ sent: string }>('/email/start', 'POST', { email })
+      setEmail(sent)
+      setCode('')
+      setStep('code')
+    })
   }
 
+  const finish = (event: React.FormEvent) => {
+    event.preventDefault()
+    void run(async () => {
+      const answer = await ask<{ needs_name?: boolean }>('/email/finish', 'POST', { email, code, name })
+      if (answer.needs_name) setStep('name')
+      else onDone()
+    })
+  }
+
+  const field = 'h-11 w-full rounded-xl border border-line bg-bg px-4 text-ink outline-none focus:border-pearl/60'
   const button =
     'pearl-fill flex h-11 w-full items-center justify-center rounded-xl px-6 text-sm font-bold transition hover:brightness-105 disabled:opacity-60'
-  const swap = (to: boolean) => {
-    setNew(to)
-    setTrouble('')
-  }
 
   return (
     <section className="mx-auto max-w-[440px] rounded-2xl border border-line bg-surface p-6 sm:p-8">
-      <KeyRound className="mb-4 h-6 w-6 text-pearl" strokeWidth={1.75} aria-hidden />
-      {fresh ? (
-        <form onSubmit={signUp} className="space-y-4">
-          <h1 className="text-2xl font-bold tracking-tight text-ink">Make an account</h1>
+      <Mail className="mb-4 h-6 w-6 text-pearl" strokeWidth={1.75} aria-hidden />
+      {step === 'email' && (
+        <form onSubmit={sendCode} className="space-y-4">
+          <h1 className="text-2xl font-bold tracking-tight text-ink">Sign in or make an account</h1>
+          <p className="leading-relaxed text-muted">We&apos;ll email you a 6-digit code. No password needed.</p>
+          <input
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+            autoFocus
+            autoComplete="email"
+            placeholder="you@example.com"
+            className={field}
+          />
+          <button type="submit" disabled={busy} className={button}>
+            {busy ? 'Sending…' : 'Email me a code'}
+          </button>
+        </form>
+      )}
+      {step === 'code' && (
+        <form onSubmit={finish} className="space-y-4">
+          <h1 className="text-2xl font-bold tracking-tight text-ink">Check your email</h1>
           <p className="leading-relaxed text-muted">
-            Pick the name buyers will see. Your device then makes a passkey, which is all you need to sign in.
+            We sent a code to <strong className="font-semibold text-ink">{email}</strong>. It works for 15 minutes.
           </p>
+          <input
+            value={code}
+            onChange={(e) => setCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
+            required
+            autoFocus
+            inputMode="numeric"
+            autoComplete="one-time-code"
+            placeholder="123456"
+            className={`num text-center text-xl tracking-[0.4em] ${field}`}
+          />
+          <button type="submit" disabled={busy || code.length !== 6} className={button}>
+            {busy ? 'Checking…' : 'Sign in'}
+          </button>
+          <p className="text-center text-sm text-muted">
+            Wrong email or no code?{' '}
+            <button type="button" onClick={() => setStep('email')} className="font-semibold text-ink underline underline-offset-4">
+              Start again
+            </button>
+          </p>
+        </form>
+      )}
+      {step === 'name' && (
+        <form onSubmit={finish} className="space-y-4">
+          <h1 className="text-2xl font-bold tracking-tight text-ink">Welcome! What should we call you?</h1>
+          <p className="leading-relaxed text-muted">This is the name buyers and sellers will see. You can change it later.</p>
           <input
             value={name}
             onChange={(e) => setName(e.target.value)}
@@ -99,35 +132,16 @@ function SignIn({ onDone, trouble: first }: { onDone: () => void; trouble: strin
             required
             autoFocus
             placeholder="Your name or your business's"
-            className="h-11 w-full rounded-xl border border-line bg-bg px-4 text-ink outline-none focus:border-pearl/60"
+            className={field}
           />
           <button type="submit" disabled={busy} className={button}>
             Make my account
           </button>
-          {trouble && <Notice tone="bad">{trouble}</Notice>}
-          <p className="text-center text-sm text-muted">
-            Already have one?{' '}
-            <button type="button" onClick={() => swap(false)} className="font-semibold text-ink underline underline-offset-4">
-              Sign in
-            </button>
-          </p>
         </form>
-      ) : (
-        <div className="space-y-4">
-          <h1 className="text-2xl font-bold tracking-tight text-ink">Sign in</h1>
-          <p className="leading-relaxed text-muted">
-            With your passkey: Face ID, a fingerprint, or your computer&apos;s own lock. No password.
-          </p>
-          <button type="button" onClick={signIn} disabled={busy} className={button}>
-            Sign in with a passkey
-          </button>
-          {trouble && <Notice tone="bad">{trouble}</Notice>}
-          <p className="text-center text-sm text-muted">
-            New here?{' '}
-            <button type="button" onClick={() => swap(true)} className="font-semibold text-ink underline underline-offset-4">
-              Make an account
-            </button>
-          </p>
+      )}
+      {trouble && (
+        <div className="mt-4">
+          <Notice tone="bad">{trouble.charAt(0).toUpperCase() + trouble.slice(1)}{trouble.endsWith('.') ? '' : '.'}</Notice>
         </div>
       )}
     </section>

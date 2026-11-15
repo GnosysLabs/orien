@@ -18,6 +18,12 @@ pub const MAX_CONTACT: usize = 300;
 /// Listings one account may have open at a time.
 pub const MAX_OPEN_LISTINGS: i64 = 50;
 
+/// How long a sign-in code works, how many tries it allows, and how long
+/// before another can be sent.
+pub const CODE_SECONDS: u64 = 15 * 60;
+pub const CODE_TRIES: u32 = 5;
+pub const CODE_GAP: u64 = 60;
+
 pub const CATEGORIES: &[&str] = &["design", "writing", "software", "teaching", "goods", "other"];
 
 pub fn now() -> u64 {
@@ -126,7 +132,15 @@ impl Store {
                  name TEXT NOT NULL,
                  -- The id passkeys know the account by, which says nothing about it.
                  handle TEXT NOT NULL UNIQUE,
+                 -- How the account signs in, lowercase; none for one that uses passkeys only.
+                 email TEXT UNIQUE,
                  created INTEGER NOT NULL
+             );
+             CREATE TABLE IF NOT EXISTS codes (
+                 email TEXT PRIMARY KEY,
+                 code TEXT NOT NULL,
+                 sent INTEGER NOT NULL,
+                 tries INTEGER NOT NULL
              );
              CREATE TABLE IF NOT EXISTS passkeys (
                  credential TEXT PRIMARY KEY,
@@ -160,16 +174,76 @@ impl Store {
 
     /// A new account. `handle` is the id its passkeys know it by.
     pub fn create_account(&self, name: &str, handle: &str) -> Result<Account> {
+        self.insert_account(name, handle, None)
+    }
+
+    fn insert_account(&self, name: &str, handle: &str, email: Option<&str>) -> Result<Account> {
         let name = clean(name);
         if name.is_empty() || name.chars().count() > MAX_NAME {
             bail!("a name is 1 to {MAX_NAME} characters");
         }
         let created = now();
         self.db.execute(
-            "INSERT INTO accounts (name, handle, created) VALUES (?1, ?2, ?3)",
-            params![name, handle, created],
+            "INSERT INTO accounts (name, handle, email, created) VALUES (?1, ?2, ?3, ?4)",
+            params![name, handle, email, created],
         )?;
         Ok(Account { id: self.db.last_insert_rowid(), name, created })
+    }
+
+    /// A new account that signs in by email. The email must be one a code
+    /// has just proven.
+    pub fn create_account_with_email(&self, name: &str, email: &str) -> Result<Account> {
+        self.insert_account(name, &hex::encode(random::<16>()?), Some(email))
+    }
+
+    pub fn account_by_email(&self, email: &str) -> Result<Option<i64>> {
+        Ok(self.db.query_row("SELECT id FROM accounts WHERE email = ?1", [email], |row| row.get(0)).optional()?)
+    }
+
+    /// A new sign-in code for `email`, to send there. At most one a minute.
+    pub fn issue_code(&self, email: &str) -> Result<String> {
+        let at = now();
+        let last: Option<u64> =
+            self.db.query_row("SELECT sent FROM codes WHERE email = ?1", [email], |row| row.get(0)).optional()?;
+        if last.is_some_and(|sent| at < sent + CODE_GAP) {
+            bail!("a code was sent a moment ago; check your email, or ask again in a minute");
+        }
+        let number = u32::from_le_bytes(random::<4>()?) % 1_000_000;
+        let code = format!("{number:06}");
+        self.db.execute(
+            "INSERT OR REPLACE INTO codes (email, code, sent, tries) VALUES (?1, ?2, ?3, 0)",
+            params![email, code_hash(email, &code), at],
+        )?;
+        Ok(code)
+    }
+
+    /// Checks a sign-in code. Each code allows a few tries and lasts a few
+    /// minutes. A right code is used up when `consume` is set.
+    pub fn check_code(&self, email: &str, code: &str, consume: bool) -> Result<()> {
+        let found: Option<(String, u64, u32)> = self
+            .db
+            .query_row("SELECT code, sent, tries FROM codes WHERE email = ?1", [email], |row| {
+                Ok((row.get(0)?, row.get(1)?, row.get(2)?))
+            })
+            .optional()?;
+        let Some((kept, sent, tries)) = found else { bail!("ask for a code first") };
+        if now() > sent + CODE_SECONDS || tries >= CODE_TRIES {
+            self.db.execute("DELETE FROM codes WHERE email = ?1", [email])?;
+            bail!("that code has run out; ask for a new one");
+        }
+        if kept != code_hash(email, code.trim()) {
+            self.db.execute("UPDATE codes SET tries = tries + 1 WHERE email = ?1", [email])?;
+            bail!("that code is not right; check it and try again");
+        }
+        if consume {
+            self.db.execute("DELETE FROM codes WHERE email = ?1", [email])?;
+        }
+        Ok(())
+    }
+
+    #[doc(hidden)]
+    pub fn forget_codes_for_tests(&self) {
+        self.db.execute("DELETE FROM codes", []).unwrap();
     }
 
     pub fn account(&self, id: i64) -> Result<Option<Account>> {
@@ -210,9 +284,7 @@ impl Store {
     /// Signs an account in: returns the secret token the browser keeps.
     /// Only its hash is stored, so a copy of the database signs nobody in.
     pub fn start_session(&self, account: i64) -> Result<String> {
-        let mut secret = [0u8; 32];
-        getrandom::fill(&mut secret).map_err(|e| anyhow::anyhow!("no randomness: {e}"))?;
-        let token = hex::encode(secret);
+        let token = hex::encode(random::<32>()?);
         self.db.execute(
             "INSERT INTO sessions (token, account, expires) VALUES (?1, ?2, ?3)",
             params![token_hash(&token), account, now() + SESSION_SECONDS],
@@ -336,6 +408,30 @@ impl Store {
     }
 }
 
+fn random<const N: usize>() -> Result<[u8; N]> {
+    let mut bytes = [0u8; N];
+    getrandom::fill(&mut bytes).map_err(|e| anyhow::anyhow!("no randomness: {e}"))?;
+    Ok(bytes)
+}
+
+fn code_hash(email: &str, code: &str) -> String {
+    blake3::hash(format!("{email}\n{code}").as_bytes()).to_hex().to_string()
+}
+
+/// An email address, tidied, or why it is not one.
+pub fn email(text: &str) -> Result<String> {
+    let email = text.trim().to_lowercase();
+    let good = email.len() <= 254
+        && !email.chars().any(|c| c.is_whitespace() || c.is_control())
+        && email.split_once('@').is_some_and(|(local, domain)| {
+            !local.is_empty() && !domain.contains('@') && domain.contains('.') && !domain.starts_with('.') && !domain.ends_with('.')
+        });
+    if !good {
+        bail!("that does not look like an email address");
+    }
+    Ok(email)
+}
+
 fn token_hash(token: &str) -> String {
     blake3::hash(token.as_bytes()).to_hex().to_string()
 }
@@ -393,6 +489,34 @@ mod tests {
         assert!(bad(|d| d.price = 0));
         assert!(bad(|d| d.pay_to = "not an address".into()));
         assert!(!bad(|d| d.pay_to = d.pay_to.to_uppercase()), "an address in capitals is the same address");
+    }
+
+    #[test]
+    fn a_code_signs_in_once_within_its_tries() {
+        let store = Store::in_memory().unwrap();
+        let maya = email(" Maya@Example.com ").unwrap();
+        assert_eq!(maya, "maya@example.com");
+        assert!(email("not an email").is_err() && email("a@b").is_err() && email("a b@c.com").is_err());
+        assert!(store.check_code(&maya, "123456", true).is_err(), "no code asked for");
+        let code = store.issue_code(&maya).unwrap();
+        assert_eq!(code.len(), 6);
+        assert!(store.issue_code(&maya).is_err(), "one code a minute");
+        let wrong = if code == "000000" { "111111" } else { "000000" };
+        assert!(store.check_code(&maya, wrong, true).is_err());
+        store.check_code(&maya, &code, false).unwrap();
+        store.check_code(&maya, &code, true).unwrap();
+        assert!(store.check_code(&maya, &code, true).is_err(), "a code works once");
+
+        store.db.execute("DELETE FROM codes", []).unwrap();
+        let code = store.issue_code(&maya).unwrap();
+        for _ in 0..CODE_TRIES {
+            let _ = store.check_code(&maya, wrong, true);
+        }
+        assert!(store.check_code(&maya, &code, true).is_err(), "too many wrong tries use the code up");
+
+        let account = store.create_account_with_email("Maya", &maya).unwrap();
+        assert_eq!(store.account_by_email(&maya).unwrap(), Some(account.id));
+        assert!(store.create_account_with_email("Other", &maya).is_err(), "one account per email");
     }
 
     #[test]

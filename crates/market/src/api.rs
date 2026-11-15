@@ -4,7 +4,9 @@
 //! passkey, and the server answers with a cookie that keeps it signed in.
 //! Changes need that cookie; reading listings does not.
 
-use crate::store::{Draft, SESSION_SECONDS, Store};
+use crate::mail::Mailer;
+use crate::screen::{Screener, Verdict};
+use crate::store::{self, Draft, SESSION_SECONDS, Store};
 use axum::extract::{Path, Query, State};
 use axum::http::{HeaderMap, HeaderValue, StatusCode, header};
 use axum::response::{IntoResponse, Response};
@@ -35,17 +37,26 @@ pub struct App {
     store: Mutex<Store>,
     webauthn: Webauthn,
     ceremonies: Mutex<HashMap<String, (Ceremony, Instant)>>,
+    mailer: Arc<Mailer>,
+    screener: Arc<Screener>,
     /// Whether the cookie is only sent over https: everywhere but tests.
     secure: bool,
 }
 
 impl App {
     /// `origin` is the site's address, such as https://orien.network.
-    pub fn new(store: Store, origin: &str, secure: bool) -> anyhow::Result<App> {
+    pub fn new(store: Store, origin: &str, secure: bool, mailer: Mailer, screener: Screener) -> anyhow::Result<App> {
         let origin = Url::parse(origin)?;
         let id = origin.host_str().ok_or_else(|| anyhow::anyhow!("the origin has no host"))?.to_string();
         let webauthn = WebauthnBuilder::new(&id, &origin)?.rp_name("Orien marketplace").build()?;
-        Ok(App { store: Mutex::new(store), webauthn, ceremonies: Mutex::new(HashMap::new()), secure })
+        Ok(App {
+            store: Mutex::new(store),
+            webauthn,
+            ceremonies: Mutex::new(HashMap::new()),
+            mailer: Arc::new(mailer),
+            screener: Arc::new(screener),
+            secure,
+        })
     }
 
     fn begin(&self, ceremony: Ceremony) -> String {
@@ -91,6 +102,8 @@ fn cookie(headers: &HeaderMap) -> Option<String> {
 pub enum Failure {
     /// Something the person can fix, said in plain words.
     Refused(String),
+    /// Something that cannot be done right now, said in plain words.
+    Unavailable(String),
     SignIn,
     NotFound,
     Broken(anyhow::Error),
@@ -106,6 +119,7 @@ impl IntoResponse for Failure {
     fn into_response(self) -> Response {
         let (status, message) = match self {
             Failure::Refused(message) => (StatusCode::BAD_REQUEST, message),
+            Failure::Unavailable(message) => (StatusCode::SERVICE_UNAVAILABLE, message),
             Failure::SignIn => (StatusCode::UNAUTHORIZED, "sign in first".to_string()),
             Failure::NotFound => (StatusCode::NOT_FOUND, "not found".to_string()),
             Failure::Broken(error) => {
@@ -124,8 +138,42 @@ fn refused(error: anyhow::Error) -> Failure {
 
 type Answer = Result<Response, Failure>;
 
+/// Runs a check by the screening model, off the async threads. Anything it
+/// refuses, or cannot check, is not saved.
+async fn screened(app: &App, what: &str, check: impl FnOnce(&Screener) -> anyhow::Result<Verdict> + Send + 'static) -> Result<(), Failure> {
+    let screener = app.screener.clone();
+    let verdict = tokio::task::spawn_blocking(move || check(&screener)).await.map_err(|e| Failure::Broken(e.into()))?;
+    match verdict {
+        Ok(Verdict::Allowed) => Ok(()),
+        Ok(Verdict::Refused(reasons)) => Err(Failure::Refused(format!(
+            "this {what} cannot be posted, because it looks like it contains {}. If that is a mistake, change the wording and try again",
+            reasons.join(", and ")
+        ))),
+        Err(error) => {
+            eprintln!("screening failed, so nothing was saved: {error:#}");
+            Err(Failure::Unavailable(format!(
+                "new {what}s cannot be checked right now, so they cannot be saved. Try again in a few minutes"
+            )))
+        }
+    }
+}
+
+async fn screened_listing(app: &App, draft: Draft) -> Result<Draft, Failure> {
+    let draft = draft.checked().map_err(refused)?;
+    let d = draft.clone();
+    screened(app, "listing", move |s| s.listing(&d.title, &d.description, &d.category, &d.unit, &d.contact)).await?;
+    Ok(draft)
+}
+
+async fn screened_name(app: &App, name: &str) -> Result<(), Failure> {
+    let name = name.trim().to_string();
+    screened(app, "name", move |s| s.name(&name)).await
+}
+
 pub fn router(app: Arc<App>) -> Router {
     Router::new()
+        .route("/api/market/email/start", post(email_start))
+        .route("/api/market/email/finish", post(email_finish))
         .route("/api/market/signup/start", post(signup_start))
         .route("/api/market/signup/finish", post(signup_finish))
         .route("/api/market/signin/start", post(signin_start))
@@ -139,6 +187,64 @@ pub fn router(app: Arc<App>) -> Router {
 }
 
 #[derive(Deserialize)]
+struct EmailStart {
+    email: String,
+}
+
+/// Sends a sign-in code. Says the same whether or not the email has an
+/// account, so nobody can use it to find out who is a member.
+async fn email_start(State(app): State<Arc<App>>, Json(request): Json<EmailStart>) -> Answer {
+    let email = store::email(&request.email).map_err(refused)?;
+    let code = app.store.lock().unwrap().issue_code(&email).map_err(refused)?;
+    let mailer = app.mailer.clone();
+    let to = email.clone();
+    tokio::task::spawn_blocking(move || mailer.send_code(&to, &code))
+        .await
+        .map_err(|e| Failure::Broken(e.into()))?
+        .map_err(Failure::Broken)?;
+    Ok(Json(json!({ "sent": email })).into_response())
+}
+
+#[derive(Deserialize)]
+struct EmailFinish {
+    email: String,
+    code: String,
+    /// The new account's name: asked only when the email has none.
+    #[serde(default)]
+    name: String,
+}
+
+/// Signs in with a code. For an email with no account yet, it answers
+/// `needs_name` and keeps the code good, until the page sends a name too.
+async fn email_finish(State(app): State<Arc<App>>, Json(request): Json<EmailFinish>) -> Answer {
+    let email = store::email(&request.email).map_err(refused)?;
+    let existing = {
+        let store = app.store.lock().unwrap();
+        let existing = store.account_by_email(&email)?;
+        if existing.is_none() {
+            store.check_code(&email, &request.code, false).map_err(refused)?;
+            if request.name.trim().is_empty() {
+                return Ok(Json(json!({ "needs_name": true })).into_response());
+            }
+        }
+        existing
+    };
+    if existing.is_none() {
+        screened_name(&app, &request.name).await?;
+    }
+    let store = app.store.lock().unwrap();
+    store.check_code(&email, &request.code, true).map_err(refused)?;
+    let account = match existing {
+        Some(id) => store.account(id)?.ok_or(Failure::NotFound)?,
+        None => store.create_account_with_email(&request.name, &email).map_err(refused)?,
+    };
+    let token = store.start_session(account.id)?;
+    let mut response = Json(json!({ "account": account })).into_response();
+    response.headers_mut().insert(header::SET_COOKIE, app.session_cookie(&token, SESSION_SECONDS));
+    Ok(response)
+}
+
+#[derive(Deserialize)]
 struct SignUp {
     name: String,
 }
@@ -148,6 +254,7 @@ async fn signup_start(State(app): State<Arc<App>>, Json(request): Json<SignUp>) 
     if name.is_empty() || name.chars().count() > crate::store::MAX_NAME {
         return Err(Failure::Refused(format!("a name is 1 to {} characters", crate::store::MAX_NAME)));
     }
+    screened_name(&app, &name).await?;
     let handle = Uuid::new_v4();
     let (options, state) = app
         .webauthn
@@ -262,6 +369,7 @@ async fn listing(State(app): State<Arc<App>>, headers: HeaderMap, Path(id): Path
 
 async fn post_listing(State(app): State<Arc<App>>, headers: HeaderMap, Json(draft): Json<Draft>) -> Answer {
     let seller = app.signed_in(&headers)?;
+    let draft = screened_listing(&app, draft).await?;
     let listing = app.store.lock().unwrap().post(seller, &draft).map_err(refused)?;
     Ok((StatusCode::CREATED, Json(json!({ "listing": listing }))).into_response())
 }
@@ -273,6 +381,7 @@ async fn edit_listing(
     Json(draft): Json<Draft>,
 ) -> Answer {
     let seller = app.signed_in(&headers)?;
+    let draft = screened_listing(&app, draft).await?;
     let listing = app.store.lock().unwrap().edit(seller, id, &draft).map_err(refused)?;
     Ok(Json(json!({ "listing": listing })).into_response())
 }
@@ -291,6 +400,16 @@ async fn open_listing(
     let seller = app.signed_in(&headers)?;
     app.store.lock().unwrap().set_open(seller, id, request.open).map_err(refused)?;
     Ok(Json(json!({})).into_response())
+}
+
+impl App {
+    /// For tests: a fresh sign-in code for `email`, as if it had been sent.
+    #[doc(hidden)]
+    pub fn code_for_tests(&self, email: &str) -> String {
+        let store = self.store.lock().unwrap();
+        store.forget_codes_for_tests();
+        store.issue_code(email).unwrap()
+    }
 }
 
 /// For tests: signs an account in without a passkey.
