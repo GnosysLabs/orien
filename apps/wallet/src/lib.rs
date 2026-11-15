@@ -118,6 +118,12 @@ fn orien_home() -> PathBuf {
         return PathBuf::from(home);
     }
     let user = std::env::var_os("HOME").or_else(|| std::env::var_os("USERPROFILE")).unwrap_or_default();
+    // An iPhone app may write only inside its own folder, and no `orien`
+    // command shares the wallet there: it lives in the app's support folder,
+    // backed up with the phone like other app data.
+    if cfg!(any(target_os = "ios", target_os = "android")) {
+        return PathBuf::from(user).join("Library/Application Support/orien");
+    }
     PathBuf::from(user).join(".orien")
 }
 
