@@ -27,6 +27,17 @@ export const PRODUCTS: Record<Product, string> = {
 export const CHANGELOG: Entry[] = [
   {
     date: '2026-11-15',
+    products: ['wallet'],
+    version: '1.5.2',
+    title: 'Mining fixed on Macs, and a smoother slider',
+    changes: [
+      'Mining on a Mac no longer closes the app once RandomX starts.',
+      'Moving the processor slider while mining changes the speed within a few seconds, without getting ready again.',
+      'Swaps: once the seller’s wallet takes the Bitcoin, it delivers the buyer’s ORN too, so the buyer gets them even with their app closed.',
+    ],
+  },
+  {
+    date: '2026-11-15',
     products: ['network', 'orien', 'validators'],
     version: '1.6.0',
     title: 'Swaps finish for the buyer even when their wallet is closed',
