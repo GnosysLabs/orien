@@ -165,6 +165,7 @@ await writeFile(
   <url><loc>https://orien.network/how-it-works/</loc></url>
   <url><loc>https://orien.network/try/</loc></url>
   <url><loc>https://orien.network/paper/</loc></url>
+  <url><loc>https://orien.network/changelog/</loc></url>
 </urlset>
 `,
 )

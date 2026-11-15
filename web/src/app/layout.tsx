@@ -106,6 +106,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               <Link href="/paper/" className="hover:text-ink">
                 Technical paper
               </Link>
+              <Link href="/changelog/" className="hover:text-ink">
+                Changelog
+              </Link>
               <a href={OPERATOR_URL} target="_blank" rel="noreferrer" className="hover:text-ink">
                 GnosysLabs
               </a>
