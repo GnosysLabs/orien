@@ -44,9 +44,7 @@ impl From<Income> for Kind {
             Income::Fees => Kind::Fees,
             Income::Mining => Kind::Mining,
             Income::Unstaked => Kind::Unstaked,
-            // Only `Client::activity` answers with what was sent, and this
-            // app asks `history`, so this never comes. To be shown as sent
-            // when the app moves to `activity`.
+            // Shown as sent, not received: `entry` gives it no kind.
             Income::Sent => Kind::Payment,
         }
     }
@@ -125,7 +123,7 @@ fn save(dir: &Path, book: &Book) {
 }
 
 /// Records a payment this app sent, once it is final.
-pub fn sent(dir: &Path, address: &str, amount: u64, fee: u64, to: &str) {
+pub fn sent(dir: &Path, address: &str, amount: u64, fee: u64, to: &str, seq: Option<u64>) {
     let mut book = load(dir);
     let account = book.0.entry(address.to_owned()).or_default();
     account.entries.push(Entry {
@@ -135,7 +133,7 @@ pub fn sent(dir: &Path, address: &str, amount: u64, fee: u64, to: &str) {
         counterparty: Some(to.to_owned()),
         time: now(),
         kind: None,
-        order: None,
+        order: seq.map(|seq| format!("{address}/{seq}")),
     });
     if let Some(expected) = &mut account.expected {
         *expected -= amount as i128 + fee as i128;
@@ -149,10 +147,35 @@ pub fn history_from(dir: &Path, address: &str) -> Option<u64> {
     load(dir).0.get(address).and_then(|account| account.history)
 }
 
+/// An entry for what the validators' history says: received, or sent by
+/// this account (from anywhere, this app or another), with the fee it paid.
+fn entry(item: &Received, time: u64, fee_of: &dyn Fn(u64) -> u64) -> Entry {
+    let order = item.order.map(|(from, seq)| format!("{from}/{seq}"));
+    let sent = item.income == Income::Sent;
+    Entry {
+        direction: if sent { Direction::Sent } else { Direction::Received },
+        amount: item.amount,
+        fee: if sent { fee_of(item.amount) } else { 0 },
+        counterparty: item.counterparty.map(|id| id.to_string()),
+        time,
+        kind: if sent { None } else { Some(item.income.into()) },
+        order,
+    }
+}
+
+/// What an entry did to the balance.
+fn effect(entry: &Entry) -> i128 {
+    match entry.direction {
+        Direction::Received => entry.amount as i128,
+        Direction::Sent => -(entry.amount as i128 + entry.fee as i128),
+    }
+}
+
 /// What the validators' history said, from the epoch `history_from` gave
-/// (or from `epoch`, the first time), up to `epoch`, the one under way.
-/// `unknown` lists the closed epochs it has not recorded yet.
-pub fn heard(dir: &Path, address: &str, epoch: u64, unknown: &[u64], received: Vec<Received>) {
+/// (or from the start, the first time), up to `epoch`, the one under way.
+/// `unknown` lists the closed epochs it has not recorded yet. `fee_of` is
+/// the fee a payment of an amount paid, for what this account sent.
+pub fn heard(dir: &Path, address: &str, epoch: u64, unknown: &[u64], received: Vec<Received>, fee_of: &dyn Fn(u64) -> u64) {
     let mut book = load(dir);
     let account = book.0.entry(address.to_owned()).or_default();
     // Just after a checkpoint, the validators may not have written the hour
@@ -162,64 +185,54 @@ pub fn heard(dir: &Path, address: &str, epoch: u64, unknown: &[u64], received: V
     let last_closed = epoch.saturating_sub(1);
     let cut = if unknown.contains(&last_closed) && last_closed > 0 { last_closed } else { epoch };
     account.waiting = cut < epoch;
+    // What this app sent and recorded itself: history's record of the same
+    // payment is the same line, not another.
+    let known: Vec<String> = account.entries.iter().filter_map(|e| e.order.clone()).collect();
+    let seen = now();
     if account.history.is_none() {
-        // The first answer. History starts with the hour under way, so its
-        // mining reward and fees, credited when it closes, come from history
-        // too. What that hour has brought in so far is already in the
-        // balance: it is shown, and kept open, without being counted again.
-        // Earlier hours are in the balance the app last saw (or sees first).
-        account.history = Some(epoch);
-        let seen = now();
-        account.open = received
-            .into_iter()
-            .filter(|item| item.epoch >= epoch)
-            .map(|item| Entry {
-                direction: Direction::Received,
-                amount: item.amount,
-                fee: 0,
-                counterparty: item.counterparty.map(|id| id.to_string()),
-                time: item.time.unwrap_or(seen),
-                kind: Some(item.income.into()),
-                order: item.order.map(|(from, seq)| format!("{from}/{seq}")),
-            })
-            .collect();
-        // They are in the balance this look reads, but came in after the one
-        // the app last saw (it asked history then, and would have heard
-        // otherwise), so they are what the app expects on top. The next
-        // answer takes them out and puts them back, netting nothing, and
-        // adds what the hour's close credits.
-        let held: i128 = account.open.iter().map(|e| e.amount as i128).sum();
+        // The first answer, for a wallet new to this app or restored: all of
+        // history from the start, so its past shows here too. Closed hours
+        // are already in the balance the app sees; the hour under way is kept
+        // open, and counted on top of the balance the app last saw, as it
+        // came in after it.
+        for item in &received {
+            let line = entry(item, item.time.unwrap_or(seen), fee_of);
+            if line.order.as_ref().is_some_and(|o| known.contains(o)) {
+                continue;
+            }
+            if item.epoch < cut && item.time.is_some() {
+                account.entries.push(line);
+            } else {
+                account.open.push(line);
+            }
+        }
+        let held: i128 = account.open.iter().map(effect).sum();
         if let Some(expected) = &mut account.expected {
             *expected += held;
         }
+        account.history = Some(cut);
         save(dir, &book);
         return;
     }
-    let seen = now();
     let old_open = std::mem::take(&mut account.open);
     let opened_at = |order: &Option<String>| {
         order.as_ref().and_then(|order| old_open.iter().find(|e| e.order.as_ref() == Some(order))).map(|e| e.time)
     };
-    let mut added: i128 = -old_open.iter().map(|e| e.amount as i128).sum::<i128>();
+    let mut added: i128 = -old_open.iter().map(effect).sum::<i128>();
     for item in received {
         let order = item.order.map(|(from, seq)| format!("{from}/{seq}"));
+        if order.as_ref().is_some_and(|o| known.contains(o)) {
+            continue;
+        }
         // A payment seen while its hour was under way keeps the time it
         // was seen; the rest are dated by the checkpoint that closed them.
         let time = opened_at(&order).or(item.time).unwrap_or(seen);
-        let entry = Entry {
-            direction: Direction::Received,
-            amount: item.amount,
-            fee: 0,
-            counterparty: item.counterparty.map(|id| id.to_string()),
-            time,
-            kind: Some(item.income.into()),
-            order,
-        };
-        added += item.amount as i128;
+        let line = entry(&item, time, fee_of);
+        added += effect(&line);
         if item.epoch < cut && item.time.is_some() {
-            account.entries.push(entry);
+            account.entries.push(line);
         } else {
-            account.open.push(entry);
+            account.open.push(line);
         }
     }
     if let Some(expected) = &mut account.expected {
@@ -345,7 +358,7 @@ mod tests {
         observe(&dir, "me", 1000); // first sight: nothing to record
         assert!(list(&dir, "me").is_empty());
 
-        sent(&dir, "me", 250, 5, "them"); // this app sends 250 with a fee of 5
+        sent(&dir, "me", 250, 5, "them", None); // this app sends 250 with a fee of 5
         observe(&dir, "me", 745); // the balance agrees: nothing new
         observe(&dir, "me", 845); // 100 more than expected: received
         observe(&dir, "me", 795); // 50 less: sent from elsewhere
@@ -370,16 +383,16 @@ mod tests {
         // Before history: the balance, 1000.
         observe(&dir, "me", 1000);
         // The first answer, mid-epoch 16, with a payment of 25 under way.
-        heard(&dir, "me", 16, &[], vec![got(16, false, Income::Payment, 25, Some(1))]);
+        heard(&dir, "me", 16, &[], vec![got(16, false, Income::Payment, 25, Some(1))], &|_| 0);
         observe(&dir, "me", 1025);
         observe(&dir, "me", 1025);
         assert_eq!(lines(), vec![(Direction::Received, Some(Kind::Payment), 25)]);
         // Epoch 16 closes with a mining reward of 240: from history, labelled
         // so, with nothing from the balance and no phantom Sent.
         let closed = vec![got(16, true, Income::Payment, 25, Some(1)), got(16, true, Income::Mining, 240, None)];
-        heard(&dir, "me", 17, &[], closed.clone());
+        heard(&dir, "me", 17, &[], closed.clone(), &|_| 0);
         observe(&dir, "me", 1265);
-        heard(&dir, "me", 17, &[], vec![]);
+        heard(&dir, "me", 17, &[], vec![], &|_| 0);
         observe(&dir, "me", 1265);
         let now = lines();
         assert_eq!(now.len(), 2, "{now:?}");
@@ -407,6 +420,46 @@ mod tests {
         fs::remove_dir_all(&dir).unwrap();
     }
 
+    fn sent_item(epoch: u64, amount: u64, seq: u64) -> Received {
+        let me: orien_ledger::AccountId = orien_crypto::Hash32([1; 32]);
+        let them: orien_ledger::AccountId = orien_crypto::Hash32([9; 32]);
+        Received { epoch, time: Some(1_000 + epoch), income: Income::Sent, amount, counterparty: Some(them), order: Some((me, seq)) }
+    }
+
+    #[test]
+    fn a_restored_wallet_shows_its_past_and_nothing_twice() {
+        let dir = std::env::temp_dir().join(format!("orien-history-restore-{}", std::process::id()));
+        fs::create_dir_all(&dir).unwrap();
+        let _ = fs::remove_file(dir.join("activity.json"));
+        let me = orien_crypto::Hash32([1; 32]).to_string();
+        let fee = |amount: u64| amount / 1000;
+        let lines = || list(&dir, &me).into_iter().map(|e| (e.direction, e.kind, e.amount)).collect::<Vec<_>>();
+
+        // Restored: the first answer brings the whole past, received and sent.
+        heard(&dir, &me, 20, &[], vec![got(12, true, Income::Mining, 500, None), sent_item(15, 100, 1)], &fee);
+        observe(&dir, &me, 399_900);
+        let now = lines();
+        assert_eq!(now.len(), 2, "{now:?}");
+        assert!(now.contains(&(Direction::Sent, None, 100)) && now.contains(&(Direction::Received, Some(Kind::Mining), 500)));
+
+        // This app sends 40 as payment number 2; history then reports it.
+        sent(&dir, &me, 40, 1, "them", Some(2));
+        observe(&dir, &me, 399_859);
+        heard(&dir, &me, 21, &[], vec![sent_item(20, 40, 2)], &fee);
+        observe(&dir, &me, 399_859);
+        assert_eq!(lines().iter().filter(|l| l.2 == 40).count(), 1, "one line for one payment");
+
+        // Sent from elsewhere (the orien command): from history, as sent,
+        // and nothing guessed from the balance.
+        heard(&dir, &me, 22, &[], vec![sent_item(21, 1000, 3)], &fee);
+        observe(&dir, &me, 399_859 - 1001);
+        observe(&dir, &me, 399_859 - 1001);
+        let now = lines();
+        assert!(now.contains(&(Direction::Sent, None, 1000)));
+        assert_eq!(now.len(), 4, "{now:?}");
+        fs::remove_dir_all(&dir).unwrap();
+    }
+
     fn got(epoch: u64, closed: bool, income: Income, amount: u64, order: Option<u64>) -> Received {
         let payer: orien_ledger::AccountId = orien_crypto::Hash32([7; 32]);
         Received {
@@ -426,7 +479,7 @@ mod tests {
         let _ = fs::remove_file(dir.join("activity.json"));
         let look = |history: Option<(u64, Vec<Received>)>, balance: i128| {
             if let Some((epoch, received)) = history {
-                heard(&dir, "me", epoch, &[], received);
+                heard(&dir, "me", epoch, &[], received, &|_| 0);
             }
             observe(&dir, "me", balance);
         };
@@ -482,13 +535,13 @@ mod tests {
         // mining reward but history has not recorded the epoch yet: wait,
         // and ask about epoch 8 again rather than move past it.
         for _ in 0..3 {
-            heard(&dir, "me", 9, &[8], vec![got(8, true, Income::Payment, 10, Some(3))]);
+            heard(&dir, "me", 9, &[8], vec![got(8, true, Income::Payment, 10, Some(3))], &|_| 0);
             observe(&dir, "me", 1221);
         }
         assert_eq!(lines().len(), 6, "nothing guessed from the balance");
         assert_eq!(history_from(&dir, "me"), Some(8));
         // Recorded now: one mining line, nothing from the balance.
-        heard(&dir, "me", 9, &[], vec![got(8, true, Income::Payment, 10, Some(3)), got(8, true, Income::Mining, 20, None)]);
+        heard(&dir, "me", 9, &[], vec![got(8, true, Income::Payment, 10, Some(3)), got(8, true, Income::Mining, 20, None)], &|_| 0);
         observe(&dir, "me", 1221);
         observe(&dir, "me", 1221);
         let now = lines();

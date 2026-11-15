@@ -289,12 +289,21 @@ fn history(
     dir: &Path,
     address: &AccountId,
 ) -> Option<(u64, Vec<u64>, Vec<orien_net::history::Received>)> {
-    let mut from = activity::history_from(dir, &address.to_string()).unwrap_or_else(|| client.epoch());
+    // A wallet new to this app (or restored) is read from the start, so its
+    // past shows too; after that, from where the app left off.
+    let mut from = activity::history_from(dir, &address.to_string()).unwrap_or(0);
     let mut received = Vec::new();
     let mut unknown = Vec::new();
+    // What the account received and sent, from validators that record what
+    // it sent (1.7.0 on); else what it received.
+    let uses_activity = client.activity(address, from, 1).is_some();
     // Pages are whole epochs; a long absence takes a few of them.
-    for _ in 0..50 {
-        let page = client.history(address, from, orien_net::history::MAX_ENTRIES)?;
+    for _ in 0..200 {
+        let page = if uses_activity {
+            client.activity(address, from, orien_net::history::MAX_ENTRIES)?
+        } else {
+            client.history(address, from, orien_net::history::MAX_ENTRIES)?
+        };
         received.extend(page.entries);
         unknown.extend(page.unknown);
         match page.next {
@@ -713,7 +722,9 @@ async fn overview_now(app: AppHandle) -> Result<Overview, String> {
             // History first, so the balance is only asked to explain what
             // history did not.
             if let Some((epoch, unknown, received)) = history(&client, &dir, &address) {
-                activity::heard(&dir, &view.address, epoch, &unknown, received);
+                let fees = money::fees(GENESIS);
+                let fee_of = |amount: u64| fees.on(&orien_ledger::Kind::Payment, amount);
+                activity::heard(&dir, &view.address, epoch, &unknown, received, &fee_of);
             }
             // Once: lines worked out from the balance before history was read
             // for their hour take what history says they were.
@@ -836,7 +847,7 @@ async fn send_payment(app: AppHandle, to: String, amount: String, password: Opti
         let sent = send::send(&client, &mut wallet, money::fees(GENESIS), to, amount);
         let _ = client.head().save(&head_file(&genesis));
         if let Ok(sent) = &sent {
-            activity::sent(&dir, &wallet.address().to_string(), sent.amount, sent.fee, &sent.to);
+            activity::sent(&dir, &wallet.address().to_string(), sent.amount, sent.fee, &sent.to, Some(sent.seq));
         }
         sent
     })
@@ -1355,6 +1366,10 @@ mod tests {
         let wallet = super::shared_wallet();
         assert!(wallet.is_file(), "no wallet at {}", wallet.display());
         let (view, client, address) = super::overview(&wallet, &genesis).unwrap();
+        if let Some(page) = client.activity(&address, 0, orien_net::history::MAX_ENTRIES) {
+            let sent = page.entries.iter().filter(|e| e.income == orien_ledger::Income::Sent).count();
+            println!("activity since epoch {}: {} entries, {} of them sent", page.since, page.entries.len(), sent);
+        }
         match client.history(&address, 0, orien_net::history::MAX_ENTRIES) {
             Some(page) => {
                 println!("history kept since epoch {}, now epoch {}:", page.since, page.epoch);
