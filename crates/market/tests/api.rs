@@ -345,3 +345,45 @@ async fn a_seller_proves_their_wallet_with_a_small_payment_before_listing() {
     let (_, body) = market.ask("GET", "/api/market/me", Some(&maya), None).await;
     assert_eq!(body["account"]["wallet"], wallet);
 }
+
+#[tokio::test]
+async fn buyers_message_sellers_and_bad_messages_are_kept_out() {
+    let market = Market::screened("stolen");
+    let maya = sign_in_for_tests(&market.app, "Maya");
+    let sam = sign_in_for_tests(&market.app, "Sam");
+    let (_, posted) = market.ask("POST", "/api/market/listings", Some(&maya), Some(logo())).await;
+    let listing = posted["listing"]["id"].as_i64().unwrap();
+    let path = format!("/api/market/listings/{listing}/messages");
+
+    assert_eq!(market.ask("POST", &path, None, Some(json!({ "body": "Hi" }))).await.0, StatusCode::UNAUTHORIZED);
+    assert_eq!(market.ask("POST", &path, Some(&maya), Some(json!({ "body": "Hi" }))).await.0, StatusCode::BAD_REQUEST);
+    let (status, body) = market.ask("POST", &path, Some(&sam), Some(json!({ "body": "Want some stolen accounts?" }))).await;
+    assert_eq!(status, StatusCode::BAD_REQUEST);
+    assert!(body["error"].as_str().unwrap().contains("message cannot be posted"), "{body}");
+
+    let (status, body) = market.ask("POST", &path, Some(&sam), Some(json!({ "body": "Hi! By Friday?" }))).await;
+    assert_eq!(status, StatusCode::OK);
+    let conversation = body["conversation"].as_i64().unwrap();
+
+    let (_, me) = market.ask("GET", "/api/market/me", Some(&maya), None).await;
+    assert_eq!(me["unread"], 1);
+    let (_, list) = market.ask("GET", "/api/market/conversations", Some(&maya), None).await;
+    assert_eq!(list["conversations"][0]["with_name"], "Sam");
+    assert_eq!(list["conversations"][0]["listing_title"], "Logo design");
+
+    let thread = format!("/api/market/conversations/{conversation}");
+    let (_, read) = market.ask("GET", &thread, Some(&maya), None).await;
+    assert_eq!(read["messages"][0]["body"], "Hi! By Friday?");
+    let (_, me) = market.ask("GET", "/api/market/me", Some(&maya), None).await;
+    assert_eq!(me["unread"], 0);
+    let (status, _) = market.ask("POST", &format!("{thread}/messages"), Some(&maya), Some(json!({ "body": "Yes!" }))).await;
+    assert_eq!(status, StatusCode::OK);
+
+    let eve = sign_in_for_tests(&market.app, "Eve");
+    assert_eq!(market.ask("GET", &thread, Some(&eve), None).await.0, StatusCode::NOT_FOUND);
+
+    market.ask("POST", &format!("{thread}/block"), Some(&maya), Some(json!({ "block": true }))).await;
+    let (status, body) = market.ask("POST", &format!("{thread}/messages"), Some(&sam), Some(json!({ "body": "Hello?" }))).await;
+    assert_eq!(status, StatusCode::BAD_REQUEST);
+    assert!(body["error"].as_str().unwrap().contains("not taking messages"));
+}

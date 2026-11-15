@@ -5,6 +5,7 @@
 pub mod api;
 pub mod images;
 pub mod mail;
+pub mod messages;
 pub mod screen;
 pub mod store;
 pub mod wallets;

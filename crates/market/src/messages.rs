@@ -1,0 +1,355 @@
+//! Messages between a buyer and a seller about a listing, kept by the
+//! marketplace. Each conversation is one buyer and one listing.
+
+use crate::store::{Store, clean_text, now};
+use anyhow::{Result, bail};
+use rusqlite::{OptionalExtension, params};
+use serde::Serialize;
+
+pub const MAX_MESSAGE: usize = 2000;
+/// New conversations one account may start in a day.
+pub const NEW_CONVERSATIONS_A_DAY: i64 = 10;
+/// Messages one account may send in a day.
+pub const MESSAGES_A_DAY: i64 = 300;
+
+const DAY: u64 = 24 * 3600;
+
+#[derive(Clone, Debug, PartialEq, Eq, Serialize)]
+pub struct Message {
+    pub id: i64,
+    pub sender: i64,
+    pub body: String,
+    pub created: u64,
+}
+
+/// A conversation as one side sees it.
+#[derive(Clone, Debug, PartialEq, Eq, Serialize)]
+pub struct Conversation {
+    pub id: i64,
+    pub listing: i64,
+    pub listing_title: String,
+    /// The other side: who this account is talking to.
+    pub with: i64,
+    pub with_name: String,
+    pub with_picture: Option<String>,
+    /// Whether this account is the buyer.
+    pub buying: bool,
+    pub last: Option<Message>,
+    pub unread: bool,
+    pub updated: u64,
+    /// Whether this account has blocked the other side.
+    pub blocked: bool,
+}
+
+/// What a sender's message needs to reach the other side by email.
+pub struct Notice {
+    pub to_email: String,
+    pub from_name: String,
+    pub listing_title: String,
+    pub conversation: i64,
+}
+
+impl Store {
+    /// A message text tidied, or why it cannot be sent.
+    pub fn message_text(text: &str) -> Result<String> {
+        let body = clean_text(text);
+        if body.is_empty() {
+            bail!("write a message first");
+        }
+        if body.chars().count() > MAX_MESSAGE {
+            bail!("a message is at most {MAX_MESSAGE} characters");
+        }
+        Ok(body)
+    }
+
+    fn sent_today(&self, account: i64) -> Result<i64> {
+        Ok(self.db.query_row(
+            "SELECT COUNT(*) FROM messages WHERE sender = ?1 AND created > ?2",
+            params![account, now().saturating_sub(DAY)],
+            |row| row.get(0),
+        )?)
+    }
+
+    fn blocked_by(&self, blocker: i64, blocked: i64) -> Result<bool> {
+        Ok(self
+            .db
+            .query_row("SELECT 1 FROM blocks WHERE blocker = ?1 AND blocked = ?2", params![blocker, blocked], |_| Ok(()))
+            .optional()?
+            .is_some())
+    }
+
+    /// The conversation `buyer` has about `listing`, started if need be.
+    pub fn conversation_about(&self, buyer: i64, listing: i64) -> Result<i64> {
+        let found: Option<(i64, bool)> = self
+            .db
+            .query_row("SELECT seller, open FROM listings WHERE id = ?1", [listing], |row| Ok((row.get(0)?, row.get(1)?)))
+            .optional()?;
+        let Some((seller, open)) = found else { bail!("there is no such listing") };
+        if seller == buyer {
+            bail!("this is your own listing");
+        }
+        let existing: Option<i64> = self
+            .db
+            .query_row("SELECT id FROM conversations WHERE listing = ?1 AND buyer = ?2", params![listing, buyer], |row| {
+                row.get(0)
+            })
+            .optional()?;
+        if let Some(id) = existing {
+            return Ok(id);
+        }
+        if !open {
+            bail!("this listing is closed");
+        }
+        let started: i64 = self.db.query_row(
+            "SELECT COUNT(*) FROM conversations WHERE buyer = ?1 AND created > ?2",
+            params![buyer, now().saturating_sub(DAY)],
+            |row| row.get(0),
+        )?;
+        if started >= NEW_CONVERSATIONS_A_DAY {
+            bail!("you have started {NEW_CONVERSATIONS_A_DAY} conversations today; you can start more tomorrow");
+        }
+        let at = now();
+        self.db.execute(
+            "INSERT INTO conversations (listing, buyer, seller, created, updated) VALUES (?1, ?2, ?3, ?4, ?4)",
+            params![listing, buyer, seller, at],
+        )?;
+        Ok(self.db.last_insert_rowid())
+    }
+
+    /// The two sides of a conversation, if `account` is one of them.
+    fn sides(&self, conversation: i64, account: i64) -> Result<(i64, i64)> {
+        let sides: Option<(i64, i64)> = self
+            .db
+            .query_row("SELECT buyer, seller FROM conversations WHERE id = ?1", [conversation], |row| {
+                Ok((row.get(0)?, row.get(1)?))
+            })
+            .optional()?;
+        match sides {
+            Some((buyer, seller)) if account == buyer || account == seller => Ok((buyer, seller)),
+            _ => bail!("there is no such conversation of yours"),
+        }
+    }
+
+    /// Checks `sender` may send in this conversation now.
+    pub fn may_send(&self, conversation: i64, sender: i64) -> Result<()> {
+        let (buyer, seller) = self.sides(conversation, sender)?;
+        let other = if sender == buyer { seller } else { buyer };
+        if self.blocked_by(other, sender)? {
+            bail!("this person is not taking messages from you");
+        }
+        if self.blocked_by(sender, other)? {
+            bail!("you have blocked this person; unblock them to write");
+        }
+        if self.sent_today(sender)? >= MESSAGES_A_DAY {
+            bail!("you have sent {MESSAGES_A_DAY} messages today; you can send more tomorrow");
+        }
+        Ok(())
+    }
+
+    /// Adds a message, already checked by `may_send` and screened. Returns
+    /// the email to send the other side, if they should be told.
+    pub fn send(&self, conversation: i64, sender: i64, body: &str) -> Result<(Message, Option<Notice>)> {
+        let body = Store::message_text(body)?;
+        self.may_send(conversation, sender)?;
+        let (buyer, _) = self.sides(conversation, sender)?;
+        let at = now();
+        self.db.execute(
+            "INSERT INTO messages (conversation, sender, body, created) VALUES (?1, ?2, ?3, ?4)",
+            params![conversation, sender, body, at],
+        )?;
+        let id = self.db.last_insert_rowid();
+        // The sender has read their own message.
+        let (read, other_told, other) = if sender == buyer {
+            ("buyer_read", "seller_told", "seller")
+        } else {
+            ("seller_read", "buyer_told", "buyer")
+        };
+        self.db.execute(&format!("UPDATE conversations SET updated = ?2, {read} = ?3 WHERE id = ?1"), params![conversation, at, id])?;
+        // The other side is emailed once, until they read the conversation.
+        let notice: Option<(String, String, String, bool)> = self
+            .db
+            .query_row(
+                &format!(
+                    "SELECT o.email, s.name, l.title, c.{other_told}
+                     FROM conversations c
+                     JOIN accounts o ON o.id = c.{other}
+                     JOIN accounts s ON s.id = ?2
+                     JOIN listings l ON l.id = c.listing
+                     WHERE c.id = ?1"
+                ),
+                params![conversation, sender],
+                |row| Ok((row.get::<_, Option<String>>(0)?.unwrap_or_default(), row.get(1)?, row.get(2)?, row.get(3)?)),
+            )
+            .optional()?;
+        let notice = match notice {
+            Some((to_email, from_name, listing_title, false)) if !to_email.is_empty() => {
+                self.db.execute(&format!("UPDATE conversations SET {other_told} = 1 WHERE id = ?1"), [conversation])?;
+                Some(Notice { to_email, from_name, listing_title, conversation })
+            }
+            _ => None,
+        };
+        Ok((Message { id, sender, body, created: at }, notice))
+    }
+
+    /// A conversation's messages, oldest first, marked read for `account`.
+    pub fn read(&self, conversation: i64, account: i64) -> Result<(Conversation, Vec<Message>)> {
+        let (buyer, _) = self.sides(conversation, account)?;
+        let mut statement =
+            self.db.prepare("SELECT id, sender, body, created FROM messages WHERE conversation = ?1 ORDER BY id")?;
+        let messages: Vec<Message> = statement
+            .query_map([conversation], |row| {
+                Ok(Message { id: row.get(0)?, sender: row.get(1)?, body: row.get(2)?, created: row.get(3)? })
+            })?
+            .collect::<rusqlite::Result<_>>()?;
+        let last = messages.last().map_or(0, |m| m.id);
+        let (read, told) = if account == buyer { ("buyer_read", "buyer_told") } else { ("seller_read", "seller_told") };
+        self.db.execute(&format!("UPDATE conversations SET {read} = MAX({read}, ?2), {told} = 0 WHERE id = ?1"), params![conversation, last])?;
+        let conversation = self
+            .conversations(account)?
+            .into_iter()
+            .find(|c| c.id == conversation)
+            .expect("one of this account's conversations");
+        Ok((conversation, messages))
+    }
+
+    /// Every conversation of `account`, most recent first.
+    pub fn conversations(&self, account: i64) -> Result<Vec<Conversation>> {
+        let mut statement = self.db.prepare(
+            "SELECT c.id, c.listing, l.title, c.buyer, c.seller, c.updated,
+                    CASE WHEN c.buyer = ?1 THEN c.buyer_read ELSE c.seller_read END,
+                    o.id, o.name, o.picture,
+                    m.id, m.sender, m.body, m.created,
+                    EXISTS (SELECT 1 FROM blocks WHERE blocker = ?1 AND blocked = o.id)
+             FROM conversations c
+             JOIN listings l ON l.id = c.listing
+             JOIN accounts o ON o.id = CASE WHEN c.buyer = ?1 THEN c.seller ELSE c.buyer END
+             LEFT JOIN messages m ON m.id = (SELECT MAX(id) FROM messages WHERE conversation = c.id)
+             WHERE c.buyer = ?1 OR c.seller = ?1
+             ORDER BY c.updated DESC, c.id DESC",
+        )?;
+        let rows = statement.query_map([account], |row| {
+            let read: i64 = row.get(6)?;
+            let last = match row.get::<_, Option<i64>>(10)? {
+                Some(id) => Some(Message { id, sender: row.get(11)?, body: row.get(12)?, created: row.get(13)? }),
+                None => None,
+            };
+            let unread = last.as_ref().is_some_and(|m| m.id > read && m.sender != account);
+            Ok(Conversation {
+                id: row.get(0)?,
+                listing: row.get(1)?,
+                listing_title: row.get(2)?,
+                buying: row.get::<_, i64>(3)? == account,
+                updated: row.get(5)?,
+                with: row.get(7)?,
+                with_name: row.get(8)?,
+                with_picture: row.get(9)?,
+                last,
+                unread,
+                blocked: row.get(14)?,
+            })
+        })?;
+        Ok(rows.collect::<rusqlite::Result<Vec<_>>>()?.into_iter().filter(|c| c.last.is_some()).collect())
+    }
+
+    /// How many conversations have messages `account` has not read.
+    pub fn unread(&self, account: i64) -> Result<usize> {
+        Ok(self.conversations(account)?.iter().filter(|c| c.unread).count())
+    }
+
+    /// Blocks or unblocks the other side of a conversation.
+    pub fn block(&self, conversation: i64, account: i64, block: bool) -> Result<()> {
+        let (buyer, seller) = self.sides(conversation, account)?;
+        let other = if account == buyer { seller } else { buyer };
+        if block {
+            self.db.execute("INSERT OR IGNORE INTO blocks (blocker, blocked) VALUES (?1, ?2)", params![account, other])?;
+        } else {
+            self.db.execute("DELETE FROM blocks WHERE blocker = ?1 AND blocked = ?2", params![account, other])?;
+        }
+        Ok(())
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::store::{Contact, Draft, Store};
+
+    fn store_with_listing() -> (Store, i64, i64, i64) {
+        let store = Store::in_memory().unwrap();
+        let maya = store.create_account_with_email("Maya", "maya@example.com").unwrap().id;
+        let sam = store.create_account_with_email("Sam", "sam@example.com").unwrap().id;
+        store.set_wallet(maya, &"a".repeat(64)).unwrap();
+        store.set_profile(maya, "Maya", "", &Contact::default()).unwrap();
+        let draft = Draft {
+            title: "Logo design".into(),
+            description: String::new(),
+            category: "design".into(),
+            price: 1,
+            unit: String::new(),
+            pay_to: String::new(),
+        };
+        let listing = store.post(maya, &draft).unwrap().id;
+        (store, maya, sam, listing)
+    }
+
+    #[test]
+    fn a_buyer_and_a_seller_talk_and_each_is_emailed_once_until_they_read() {
+        let (store, maya, sam, listing) = store_with_listing();
+        assert!(store.conversation_about(maya, listing).is_err(), "not with oneself");
+        let c = store.conversation_about(sam, listing).unwrap();
+        assert_eq!(store.conversation_about(sam, listing).unwrap(), c, "one conversation per buyer and listing");
+        assert!(store.conversations(sam).unwrap().is_empty(), "shown once it has a message");
+
+        let (_, notice) = store.send(c, sam, "Hi! Could you do it by Friday?").unwrap();
+        let notice = notice.expect("maya is told");
+        assert_eq!((notice.to_email.as_str(), notice.from_name.as_str()), ("maya@example.com", "Sam"));
+        let (_, again) = store.send(c, sam, "And in blue?").unwrap();
+        assert!(again.is_none(), "one email until she reads");
+        assert_eq!(store.unread(maya).unwrap(), 1);
+        assert_eq!(store.unread(sam).unwrap(), 0, "one's own messages are read");
+
+        let (seen, messages) = store.read(c, maya).unwrap();
+        assert_eq!((seen.with_name.as_str(), seen.buying, messages.len()), ("Sam", false, 2));
+        assert_eq!(store.unread(maya).unwrap(), 0);
+        let (_, reply) = store.send(c, maya, "Friday works.").unwrap();
+        assert_eq!(reply.unwrap().to_email, "sam@example.com");
+        let (_, later) = store.send(c, sam, "Great").unwrap();
+        assert!(later.is_some(), "told again after reading");
+
+        let stranger = store.create_account("Eve", "eve").unwrap().id;
+        assert!(store.read(c, stranger).is_err(), "only the two sides read it");
+        assert!(store.send(c, stranger, "hi").is_err());
+        assert!(store.send(c, sam, "   ").is_err());
+    }
+
+    #[test]
+    fn a_block_stops_messages_until_lifted() {
+        let (store, maya, sam, listing) = store_with_listing();
+        let c = store.conversation_about(sam, listing).unwrap();
+        store.send(c, sam, "Hello").unwrap();
+        store.block(c, maya, true).unwrap();
+        assert!(store.send(c, sam, "Hello?").is_err());
+        assert!(store.send(c, maya, "Wait").is_err(), "a blocker unblocks to write");
+        assert!(store.conversations(maya).unwrap()[0].blocked);
+        store.block(c, maya, false).unwrap();
+        store.send(c, sam, "Hello again").unwrap();
+    }
+
+    #[test]
+    fn new_conversations_are_limited_each_day() {
+        let (store, maya, sam, _) = store_with_listing();
+        let draft = |n: i64| Draft {
+            title: format!("Listing {n}"),
+            description: String::new(),
+            category: "other".into(),
+            price: 1,
+            unit: String::new(),
+            pay_to: String::new(),
+        };
+        for n in 0..super::NEW_CONVERSATIONS_A_DAY {
+            let listing = store.post(maya, &draft(n)).unwrap().id;
+            store.conversation_about(sam, listing).unwrap();
+        }
+        let one_more = store.post(maya, &draft(99)).unwrap().id;
+        assert!(store.conversation_about(sam, one_more).is_err());
+    }
+}

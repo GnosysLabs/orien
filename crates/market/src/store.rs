@@ -28,6 +28,10 @@ pub const VERIFY_SECONDS: u64 = 30 * 60;
 
 pub const CATEGORIES: &[&str] = &["design", "software", "teaching", "goods", "other"];
 
+pub(crate) fn clean_text(text: &str) -> String {
+    clean(text)
+}
+
 pub fn now() -> u64 {
     SystemTime::now().duration_since(UNIX_EPOCH).map_or(0, |d| d.as_secs())
 }
@@ -77,7 +81,8 @@ pub struct Account {
     /// The Orien address they proved they hold, which their listings are
     /// paid to.
     pub wallet: Option<String>,
-    /// How buyers reach them. Empty fields are left out.
+    /// Other ways buyers can reach them, besides messages. Empty fields
+    /// are left out.
     pub contact: Contact,
     pub created: u64,
 }
@@ -165,7 +170,7 @@ impl Draft {
 }
 
 pub struct Store {
-    db: Connection,
+    pub(crate) db: Connection,
 }
 
 impl Store {
@@ -233,7 +238,36 @@ impl Store {
                  updated INTEGER NOT NULL,
                  open INTEGER NOT NULL
              );
-             CREATE INDEX IF NOT EXISTS listings_open ON listings(open, updated);",
+             CREATE INDEX IF NOT EXISTS listings_open ON listings(open, updated);
+             CREATE TABLE IF NOT EXISTS conversations (
+                 id INTEGER PRIMARY KEY,
+                 listing INTEGER NOT NULL REFERENCES listings(id) ON DELETE CASCADE,
+                 buyer INTEGER NOT NULL REFERENCES accounts(id) ON DELETE CASCADE,
+                 seller INTEGER NOT NULL REFERENCES accounts(id) ON DELETE CASCADE,
+                 created INTEGER NOT NULL,
+                 updated INTEGER NOT NULL,
+                 -- The last message each side has read.
+                 buyer_read INTEGER NOT NULL DEFAULT 0,
+                 seller_read INTEGER NOT NULL DEFAULT 0,
+                 -- Whether each side has been emailed since they last read.
+                 buyer_told INTEGER NOT NULL DEFAULT 0,
+                 seller_told INTEGER NOT NULL DEFAULT 0,
+                 UNIQUE (listing, buyer)
+             );
+             CREATE TABLE IF NOT EXISTS messages (
+                 id INTEGER PRIMARY KEY,
+                 conversation INTEGER NOT NULL REFERENCES conversations(id) ON DELETE CASCADE,
+                 sender INTEGER NOT NULL REFERENCES accounts(id) ON DELETE CASCADE,
+                 body TEXT NOT NULL,
+                 created INTEGER NOT NULL
+             );
+             CREATE INDEX IF NOT EXISTS messages_by_conversation ON messages(conversation, id);
+             CREATE INDEX IF NOT EXISTS messages_by_sender ON messages(sender, created);
+             CREATE TABLE IF NOT EXISTS blocks (
+                 blocker INTEGER NOT NULL REFERENCES accounts(id) ON DELETE CASCADE,
+                 blocked INTEGER NOT NULL REFERENCES accounts(id) ON DELETE CASCADE,
+                 PRIMARY KEY (blocker, blocked)
+             );",
         )?;
         Ok(Store { db })
     }
@@ -473,10 +507,6 @@ impl Store {
     /// Posts a listing, paid to the seller's verified wallet.
     pub fn post(&self, seller: i64, draft: &Draft) -> Result<Listing> {
         let draft = Draft { pay_to: self.wallet_of(seller)?, ..draft.clone() }.checked()?;
-        let reachable = self.account(seller)?.is_some_and(|account| !account.contact.is_empty());
-        if !reachable {
-            bail!("add a way for buyers to reach you, an email, Telegram or X, under Your profile first");
-        }
         let open: i64 =
             self.db.query_row("SELECT COUNT(*) FROM listings WHERE seller = ?1 AND open = 1", [seller], |row| row.get(0))?;
         if open >= MAX_OPEN_LISTINGS {
@@ -645,9 +675,7 @@ mod tests {
         assert!(store.post(maya.id, &draft("Logo design")).is_err(), "a seller verifies a wallet first");
         store.set_wallet(maya.id, &"a".repeat(64)).unwrap();
         store.set_wallet(sam.id, &"b".repeat(64)).unwrap();
-        let reach = Contact { telegram: "@maya_designs".into(), ..Contact::default() };
-        assert!(store.post(maya.id, &draft("Logo design")).is_err(), "a seller says how to reach them first");
-        store.set_profile(maya.id, "Maya", "", &reach).unwrap();
+
         let posted = store.post(maya.id, &draft("Logo design")).unwrap();
         assert_eq!((posted.seller_name.as_str(), posted.open), ("Maya", true));
         assert_eq!(store.browse(None, None, 10, 0).unwrap(), vec![posted.clone()]);

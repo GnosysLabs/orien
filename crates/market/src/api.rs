@@ -49,6 +49,8 @@ pub struct App {
     address: String,
     /// Whether the cookie is only sent over https: everywhere but tests.
     secure: bool,
+    /// The site's address, for links in emails.
+    origin: String,
 }
 
 impl App {
@@ -65,6 +67,7 @@ impl App {
         address: &str,
     ) -> anyhow::Result<App> {
         let address = store::orien_address(address)?;
+        let site = origin.trim_end_matches('/').to_string();
         let origin = Url::parse(origin)?;
         let id = origin.host_str().ok_or_else(|| anyhow::anyhow!("the origin has no host"))?.to_string();
         let webauthn = WebauthnBuilder::new(&id, &origin)?.rp_name("Orien marketplace").build()?;
@@ -78,6 +81,7 @@ impl App {
             payments,
             address,
             secure,
+            origin: site,
         })
     }
 
@@ -208,6 +212,11 @@ pub fn router(app: Arc<App>) -> Router {
         )
         .route("/api/market/me/wallet", get(check_wallet).post(start_wallet))
         .route("/api/market/profiles/{id}", get(profile))
+        .route("/api/market/listings/{id}/messages", post(message_seller))
+        .route("/api/market/conversations", get(conversations))
+        .route("/api/market/conversations/{id}", get(conversation))
+        .route("/api/market/conversations/{id}/messages", post(reply))
+        .route("/api/market/conversations/{id}/block", post(block))
         .route("/api/market/images/{name}", get(picture))
         .route("/api/market/listings", get(browse).post(post_listing))
         .route("/api/market/listings/{id}", get(listing).put(edit_listing))
@@ -368,7 +377,69 @@ async fn me(State(app): State<Arc<App>>, headers: HeaderMap) -> Answer {
     let store = app.store.lock().unwrap();
     let account = store.account(id)?.ok_or(Failure::SignIn)?;
     let listings = store.listings_of(id)?;
-    Ok(Json(json!({ "account": account, "listings": listings })).into_response())
+    let unread = store.unread(id)?;
+    Ok(Json(json!({ "account": account, "listings": listings, "unread": unread })).into_response())
+}
+
+#[derive(Deserialize)]
+struct Write {
+    body: String,
+}
+
+/// Sends a message once it may be sent and the model has read it, and
+/// emails the other side if they should be told.
+async fn deliver(app: &App, conversation: i64, sender: i64, body: &str) -> Answer {
+    let body = Store::message_text(body).map_err(refused)?;
+    app.store.lock().unwrap().may_send(conversation, sender).map_err(refused)?;
+    let checked = body.clone();
+    screened(app, "message", move |s| s.message(&checked)).await?;
+    let (message, notice) = app.store.lock().unwrap().send(conversation, sender, &body).map_err(refused)?;
+    if let Some(notice) = notice {
+        let (mailer, origin) = (app.mailer.clone(), app.origin.clone());
+        // An email that fails does not unsend the message.
+        tokio::task::spawn_blocking(move || {
+            if let Err(error) = mailer.send_notice(&notice, &origin) {
+                eprintln!("cannot email a message notice: {error:#}");
+            }
+        });
+    }
+    Ok(Json(json!({ "conversation": conversation, "message": message })).into_response())
+}
+
+/// The first message to a listing's seller, or the next one.
+async fn message_seller(State(app): State<Arc<App>>, headers: HeaderMap, Path(listing): Path<i64>, Json(request): Json<Write>) -> Answer {
+    let buyer = app.signed_in(&headers)?;
+    Store::message_text(&request.body).map_err(refused)?;
+    let conversation = app.store.lock().unwrap().conversation_about(buyer, listing).map_err(refused)?;
+    deliver(&app, conversation, buyer, &request.body).await
+}
+
+async fn reply(State(app): State<Arc<App>>, headers: HeaderMap, Path(id): Path<i64>, Json(request): Json<Write>) -> Answer {
+    let sender = app.signed_in(&headers)?;
+    deliver(&app, id, sender, &request.body).await
+}
+
+async fn conversations(State(app): State<Arc<App>>, headers: HeaderMap) -> Answer {
+    let id = app.signed_in(&headers)?;
+    let conversations = app.store.lock().unwrap().conversations(id)?;
+    Ok(Json(json!({ "conversations": conversations })).into_response())
+}
+
+async fn conversation(State(app): State<Arc<App>>, headers: HeaderMap, Path(id): Path<i64>) -> Answer {
+    let account = app.signed_in(&headers)?;
+    let (conversation, messages) = app.store.lock().unwrap().read(id, account).map_err(|_| Failure::NotFound)?;
+    Ok(Json(json!({ "conversation": conversation, "messages": messages, "me": account })).into_response())
+}
+
+#[derive(Deserialize)]
+struct Block {
+    block: bool,
+}
+
+async fn block(State(app): State<Arc<App>>, headers: HeaderMap, Path(id): Path<i64>, Json(request): Json<Block>) -> Answer {
+    let account = app.signed_in(&headers)?;
+    app.store.lock().unwrap().block(id, account, request.block).map_err(refused)?;
+    Ok(Json(json!({})).into_response())
 }
 
 #[derive(Deserialize)]

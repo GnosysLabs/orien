@@ -84,6 +84,10 @@ const LISTING_CONTEXT: &str = "A user wants to post a listing on a marketplace w
      ordinary offers are normal and allowed, as are informal tone, jokes and asking to be paid in ORN. Only flag clear \
      violations.";
 
+const MESSAGE_CONTEXT: &str = "A buyer and a seller on a marketplace are messaging privately to agree the details of \
+     a sale paid in a cryptocurrency called ORN. Prices, haggling, deadlines, delivery details, sending or asking for \
+     payment in ORN, informal tone and jokes are normal and allowed. Only flag clear violations.";
+
 const PICTURE_CONTEXT: &str = "A user is uploading the profile picture for their account on a marketplace where people \
      offer their work and goods for a cryptocurrency. Photos of themselves, logos, cartoons, art and memes are normal \
      and allowed. Only flag clear violations.";
@@ -131,6 +135,12 @@ impl Screener {
             "description": description,
         });
         self.screen(vec![details.to_string().into()], false, &[])
+    }
+
+    /// A private message between a buyer and a seller.
+    pub fn message(&self, body: &str) -> Result<Verdict> {
+        let details = json!({ "context": MESSAGE_CONTEXT, "message": body }).to_string();
+        self.screen(vec![details.into()], false, &["impersonation"])
     }
 
     /// An account's public name and bio.
