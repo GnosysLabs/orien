@@ -27,6 +27,21 @@ export const PRODUCTS: Record<Product, string> = {
 export const CHANGELOG: Entry[] = [
   {
     date: '2026-11-15',
+    products: ['wallet'],
+    version: '1.6.1',
+    title: 'Made for iPhone, Face ID and Touch ID by default, and smoother sending',
+    changes: [
+      'The iPhone app looks and feels like an iPhone app: Apple’s text sizes, a Back button with the screen’s title, rounded lists, and its own app icon.',
+      'On iPhones and Macs, new and restored wallets are locked with Face ID or Touch ID from the start, with no password to choose. Wallets that had no lock get one. If you use orien in Terminal on a Mac, update it to 1.8.0 first.',
+      'Your recent activity scrolls in its own box on the home screen, and All activity is one box with each day labelled.',
+      'Send: type a contact’s or one of your wallets’ names and pick it from the suggestions. A chosen recipient shows by name, or by the two ends of the address, and Paste becomes Clear. Send all is a button under the balance, and long amounts shrink to fit.',
+      'Switching wallets shows the Orien sunrise until the wallet is ready, and the balance no longer jumps in size.',
+      'A payment sent from your other device shows once, not three times, and wallets first opened before 1.6.0 now show their whole past.',
+      'On a Mac, the app reopens after an update in the Dock icon you keep.',
+    ],
+  },
+  {
+    date: '2026-11-15',
     products: ['orien'],
     version: '1.8.0',
     title: 'Touch ID in orien on a Mac',

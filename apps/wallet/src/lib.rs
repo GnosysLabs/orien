@@ -75,6 +75,8 @@ struct Overview {
     locked: bool,
     /// The password is kept behind Touch ID or Face ID.
     biometric: bool,
+    /// The wallet has no password at all.
+    unprotected: bool,
     /// This system offers Touch ID or Face ID.
     biometric_available: bool,
     answered: usize,
@@ -146,7 +148,25 @@ fn folder(app: &AppHandle) -> Result<PathBuf, String> {
 }
 
 fn settings(dir: &Path) -> Settings {
-    fs::read(dir.join("settings.json")).ok().and_then(|bytes| serde_json::from_slice(&bytes).ok()).unwrap_or_default()
+    let mut settings: Settings =
+        fs::read(dir.join("settings.json")).ok().and_then(|bytes| serde_json::from_slice(&bytes).ok()).unwrap_or_default();
+    // An iPhone moves an app's folder when the app is installed again, so a
+    // wallet the app made is looked for in its folder as it is now, by name.
+    let here = |path: &PathBuf| -> PathBuf {
+        if path.is_file() {
+            return path.clone();
+        }
+        let in_folder = path.parent().and_then(Path::file_name).is_some_and(|folder| folder == "wallets");
+        match path.file_name().map(|name| dir.join("wallets").join(name)) {
+            Some(moved) if in_folder && moved.is_file() => moved,
+            _ => path.clone(),
+        }
+    };
+    for wallet in &mut settings.wallets {
+        wallet.path = here(&wallet.path);
+    }
+    settings.current = settings.current.as_ref().map(here);
+    settings
 }
 
 fn save_settings(dir: &Path, settings: &Settings) -> Result<(), String> {
@@ -273,6 +293,7 @@ fn overview(wallet_file: &Path, genesis_file: &Path) -> Result<(Overview, Client
             && orien_net::unlock::Session::find(wallet_file).is_none()
             && biometric::unlocked(wallet_file).is_none(),
         biometric: biometric::enabled(wallet_file),
+        unprotected: !has_password(wallet_file),
         biometric_available: biometric::available(),
         answered,
         validators: client.validators(),
@@ -1100,6 +1121,27 @@ pub fn run() {
 
 #[cfg(test)]
 mod tests {
+    /// Installed again, an iPhone app finds itself in a new folder: the
+    /// wallets it made are found there, under the names they were given.
+    #[test]
+    fn wallets_follow_the_apps_folder() {
+        let dir = std::env::temp_dir().join(format!("orien-moved-{}", std::process::id()));
+        std::fs::create_dir_all(dir.join("wallets")).unwrap();
+        std::fs::write(dir.join("wallets/wallet-1.wallet"), "{}").unwrap();
+        let old = std::path::PathBuf::from("/var/mobile/Containers/Data/Application/OLD/Library/wallets/wallet-1.wallet");
+        let saved = super::Settings {
+            wallets: vec![super::Named { name: "Savings".into(), path: old.clone() }],
+            current: Some(old),
+            ..Default::default()
+        };
+        super::save_settings(&dir, &saved).unwrap();
+        let found = super::settings(&dir);
+        assert_eq!(found.wallets[0].path, dir.join("wallets/wallet-1.wallet"));
+        assert_eq!(found.current, Some(dir.join("wallets/wallet-1.wallet")));
+        assert_eq!(found.wallets[0].name, "Savings");
+        std::fs::remove_dir_all(&dir).unwrap();
+    }
+
     /// A whole swap with the app's own code: a real lock and a real claim on
     /// a running local test network, and a pretend Bitcoin network. Start one
     /// first, with epochs short enough for a swap's 48 hours to fit in 720:

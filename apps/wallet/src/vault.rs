@@ -73,7 +73,7 @@ fn keep(dir: &Path, name: &str, keys: &VaultKeys) {
 
 /// Forgets a wallet's kept keys (when the wallet is removed from the app).
 pub fn forget(dir: &Path, wallet_file: &Path) {
-    let name = wallet_file.display().to_string();
+    let name = crate::biometric::name(wallet_file);
     #[cfg(any(target_os = "macos", target_os = "ios"))]
     let _ = security_framework::passwords::delete_generic_password(KEYCHAIN_SERVICE, &name);
     let mut all = saved(dir);
@@ -88,7 +88,7 @@ pub fn forget(dir: &Path, wallet_file: &Path) {
 /// wallet (which needs its password, if it has one) and then kept, privately,
 /// so later syncs don't need the password. None until they can be worked out.
 pub fn keys(dir: &Path, wallet_file: &Path, password: Option<&str>) -> Option<VaultKeys> {
-    let name = wallet_file.display().to_string();
+    let name = crate::biometric::name(wallet_file);
     if let Some(keys) = kept(dir, &name) {
         return Some(keys);
     }

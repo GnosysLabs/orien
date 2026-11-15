@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024">
+  <!-- The iPhone app's icon: the desktop icon's rising sun on its dark
+       ground, full-bleed and square, as iOS rounds the corners itself. Rendered with
+       `cargo tauri icon icons/ios-icon.svg -o <dir>`; the ios/ PNGs are kept
+       in icons/ios and copied into gen/apple/Assets.xcassets/AppIcon.appiconset. -->
+  <defs>
+    <linearGradient id="ground" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#3a3b40"/>
+      <stop offset="1" stop-color="#1c1d20"/>
+    </linearGradient>
+    <linearGradient id="pearl" x1="76" y1="74" x2="436" y2="442" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#b8c7ff"/>
+      <stop offset="0.45" stop-color="#d3b6ff"/>
+      <stop offset="0.75" stop-color="#a6ead6"/>
+      <stop offset="1" stop-color="#c9e8ec"/>
+    </linearGradient>
+  </defs>
+  <rect width="1024" height="1024" fill="url(#ground)"/>
+  <g transform="translate(512 512) scale(1.32) translate(-256 -258)" fill="url(#pearl)">
+    <rect x="239" y="74" width="36" height="66" rx="18" />
+    <rect x="239" y="74" width="36" height="66" rx="18" transform="rotate(-44 256 298)" />
+    <rect x="239" y="74" width="36" height="66" rx="18" transform="rotate(44 256 298)" />
+    <path d="M138 298 A118 118 0 0 1 374 298 Z" />
+    <rect x="76" y="338" width="360" height="40" rx="20" />
+    <rect x="156" y="406" width="200" height="36" rx="18" />
+  </g>
+</svg>

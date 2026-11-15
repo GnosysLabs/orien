@@ -19,8 +19,52 @@ static UNLOCKED: Mutex<Option<HashMap<String, (String, Instant)>>> = Mutex::new(
 #[cfg(any(target_os = "macos", target_os = "ios"))]
 const SERVICE: &str = "network.orien.wallet";
 
-fn name(wallet: &Path) -> String {
+/// The name a wallet's password is kept under in the Keychain. On an
+/// iPhone, relative to the app's home folder, which the phone moves when
+/// the app is installed again; on a Mac, the full path, which the `orien`
+/// command looks up too.
+pub fn name(wallet: &Path) -> String {
+    #[cfg(target_os = "ios")]
+    if let Some(home) = std::env::var_os("HOME")
+        && let Ok(inside) = wallet.strip_prefix(&home)
+    {
+        return format!("~/{}", inside.display());
+    }
     wallet.display().to_string()
+}
+
+/// On an iPhone, a password kept by an earlier test copy under the full
+/// path of a folder the phone has since moved: kept again under the name
+/// that lasts. Found by what follows the app's own folder in the path.
+#[cfg(target_os = "ios")]
+fn moved(wallet: &Path) {
+    use security_framework::item::{ItemClass, ItemSearchOptions, Limit, SearchResult};
+    let lasting = name(wallet);
+    let Some(tail) = lasting.strip_prefix("~/") else { return };
+    if security_framework::passwords::get_generic_password(SERVICE, &lasting).is_ok() {
+        return;
+    }
+    let Ok(found) = ItemSearchOptions::new()
+        .class(ItemClass::generic_password())
+        .service(SERVICE)
+        .load_attributes(true)
+        .limit(Limit::All)
+        .search()
+    else {
+        return;
+    };
+    for item in found {
+        let SearchResult::Dict(_) = &item else { continue };
+        let Some(attributes) = item.simplify_dict() else { continue };
+        let Some(account) = attributes.get("acct") else { continue };
+        if account.starts_with('/') && account.ends_with(&format!("/{tail}"))
+            && let Ok(password) = security_framework::passwords::get_generic_password(SERVICE, account)
+            && security_framework::passwords::set_generic_password(SERVICE, &lasting, &password).is_ok()
+        {
+            let _ = security_framework::passwords::delete_generic_password(SERVICE, account);
+            return;
+        }
+    }
 }
 
 /// Whether this system offers Touch ID or Face ID here.
@@ -30,6 +74,8 @@ pub fn available() -> bool {
 
 /// Whether this wallet's password is kept behind Touch ID or Face ID.
 pub fn enabled(wallet: &Path) -> bool {
+    #[cfg(target_os = "ios")]
+    moved(wallet);
     #[cfg(any(target_os = "macos", target_os = "ios"))]
     {
         security_framework::passwords::get_generic_password(SERVICE, &name(wallet)).is_ok()
