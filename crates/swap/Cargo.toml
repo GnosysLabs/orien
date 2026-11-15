@@ -1,0 +1,18 @@
+[package]
+name = "orien-swap"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+description = "The Bitcoin side of trustless swaps between ORN and Bitcoin"
+
+[dependencies]
+bitcoin = { version = "0.32", features = ["rand-std"] }
+ureq = { version = "2", features = ["json"] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+hex = "0.4"
+anyhow = "1"
+
+[dev-dependencies]
+# Bitcoin Core's own script checks, to test the lock against the real rules.
+bitcoin = { version = "0.32", features = ["rand-std", "bitcoinconsensus"] }
