@@ -40,17 +40,99 @@ struct Args {
     #[arg(long, default_value = "/var/lib/orien/genesis.json")]
     genesis: PathBuf,
     /// The marketplace's own Orien address: sellers prove their wallets by
-    /// paying a small amount to it.
+    /// paying a small amount to it. Needed to run the server.
     #[arg(long)]
-    address: String,
+    address: Option<String>,
     /// Who the codes come from.
     #[arg(long, default_value = "Orien marketplace <noreply@orien.network>")]
     from: String,
+    /// Look after the marketplace instead of running it.
+    #[command(subcommand)]
+    admin: Option<Admin>,
+}
+
+/// For the founder, on the server, beside the running marketplace.
+#[derive(clap::Subcommand)]
+enum Admin {
+    /// List reports nobody has dealt with yet.
+    Reports,
+    /// Mark a report dealt with, without taking anything down.
+    Handled { report: i64 },
+    /// Take a listing down for good.
+    RemoveListing {
+        listing: i64,
+        #[arg(long, default_value = "")]
+        reason: String,
+    },
+    /// Suspend an account: signed out everywhere, its listings and offers
+    /// taken down, its profile hidden.
+    Suspend {
+        account: i64,
+        #[arg(long, default_value = "")]
+        reason: String,
+    },
+    /// Lift a suspension.
+    Unsuspend { account: i64 },
+    /// Show an account, by its number or the email it signs in with.
+    Account { who: String },
+}
+
+fn admin(store: &Store, command: Admin) -> Result<()> {
+    match command {
+        Admin::Reports => {
+            let reports = store.open_reports()?;
+            if reports.is_empty() {
+                println!("no reports waiting");
+            }
+            for r in reports {
+                let by = r.reporter_name.unwrap_or_else(|| "someone gone".into());
+                println!("report {}: {} {} \"{}\", reported by {by}", r.id, r.kind, r.target, r.about);
+                if !r.reason.is_empty() {
+                    println!("    why: {}", r.reason);
+                }
+            }
+        }
+        Admin::Handled { report } => {
+            store.mark_handled(report)?;
+            println!("report {report} marked dealt with");
+        }
+        Admin::RemoveListing { listing, reason } => {
+            store.remove_listing(listing, &reason)?;
+            println!("listing {listing} taken down");
+        }
+        Admin::Suspend { account, reason } => {
+            store.suspend(account, &reason)?;
+            println!("account {account} suspended");
+        }
+        Admin::Unsuspend { account } => {
+            store.unsuspend(account)?;
+            println!("account {account} may sign in again");
+        }
+        Admin::Account { who } => {
+            let id = match who.parse::<i64>() {
+                Ok(id) => Some(id),
+                Err(_) => store.account_by_email(&who.trim().to_lowercase())?,
+            };
+            let account = id.and_then(|id| store.account(id).ok().flatten());
+            let Some(account) = account else { anyhow::bail!("no account {who}") };
+            println!("account {}: {}", account.id, account.name);
+            println!("  email:     {}", store.email_of(account.id)?.unwrap_or_default());
+            println!("  wallet:    {}", account.wallet.unwrap_or_else(|| "not verified".into()));
+            println!("  suspended: {}", if store.is_suspended(account.id)? { "yes" } else { "no" });
+            println!("  listings:  {}", store.listings_of(account.id)?.len());
+            println!("  swaps done: {}", store.swaps_done(account.id)?);
+        }
+    }
+    Ok(())
 }
 
 #[tokio::main]
 async fn main() -> Result<()> {
     let args = Args::parse();
+    if let Some(command) = args.admin {
+        return admin(&Store::open(&args.db)?, command);
+    }
+    let address = args.address.clone().ok_or_else(|| anyhow::anyhow!("say the marketplace's own Orien address with --address"))?;
     let secure = args.origin.starts_with("https://");
     let mailer = match &args.resend_key {
         Some(path) => {
@@ -79,7 +161,7 @@ async fn main() -> Result<()> {
         mailer,
         screener,
         payments,
-        &args.address,
+        &address,
     )?);
     let listener = tokio::net::TcpListener::bind(&args.listen).await?;
     println!("marketplace server for {} listening on {}", args.origin, args.listen);

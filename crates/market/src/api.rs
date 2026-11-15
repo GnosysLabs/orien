@@ -234,6 +234,7 @@ pub fn router(app: Arc<App>) -> Router {
         .route("/api/market/swaps/{id}/offer", post(swap_offer_code))
         .route("/api/market/swaps/{id}/reply", post(swap_reply_code))
         .route("/api/market/swaps/{id}/finish", post(finish_swap))
+        .route("/api/market/reports", post(report))
         .route("/api/market/conversations", get(conversations))
         .route("/api/market/conversations/{id}", get(conversation))
         .route("/api/market/conversations/{id}/messages", post(reply))
@@ -285,6 +286,11 @@ async fn email_finish(State(app): State<Arc<App>>, Json(request): Json<EmailFini
     let existing = {
         let store = app.store.lock().unwrap();
         let existing = store.account_by_email(&email)?;
+        if let Some(id) = existing
+            && store.is_suspended(id)?
+        {
+            return Err(Failure::Refused("this account is suspended".into()));
+        }
         if existing.is_none() {
             store.check_code(&email, &request.code, false).map_err(refused)?;
             if request.name.trim().is_empty() {
@@ -489,6 +495,21 @@ struct Block {
 async fn block(State(app): State<Arc<App>>, headers: HeaderMap, Path(id): Path<i64>, Json(request): Json<Block>) -> Answer {
     let account = app.signed_in(&headers)?;
     app.store.lock().unwrap().block(id, account, request.block).map_err(refused)?;
+    Ok(Json(json!({})).into_response())
+}
+
+#[derive(Deserialize)]
+struct ReportRequest {
+    kind: String,
+    id: i64,
+    #[serde(default)]
+    reason: String,
+}
+
+/// Someone flags something for the founder to look at.
+async fn report(State(app): State<Arc<App>>, headers: HeaderMap, Json(request): Json<ReportRequest>) -> Answer {
+    let reporter = app.signed_in(&headers)?;
+    app.store.lock().unwrap().report(reporter, &request.kind, request.id, &request.reason).map_err(refused)?;
     Ok(Json(json!({})).into_response())
 }
 
@@ -700,6 +721,9 @@ async fn make_cover(State(app): State<Arc<App>>, headers: HeaderMap, Path((id, n
 /// A seller's public profile: who they are and what they offer.
 async fn profile(State(app): State<Arc<App>>, Path(id): Path<i64>) -> Answer {
     let store = app.store.lock().unwrap();
+    if store.is_suspended(id)? {
+        return Err(Failure::NotFound);
+    }
     let account = store.account(id)?.ok_or(Failure::NotFound)?;
     let listings = store.open_listings_of(id)?;
     let swaps_done = store.swaps_done(id)?;
