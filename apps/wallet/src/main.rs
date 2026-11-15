@@ -12,6 +12,7 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
 mod activity;
+mod board;
 mod contacts;
 #[cfg(target_os = "linux")]
 mod linux;
@@ -527,20 +528,86 @@ async fn swap_smallest() -> Result<String, String> {
     .map_err(|error| error.to_string())?
 }
 
-/// Moves every unfinished swap along. The window calls this every so often
-/// while any swap is under way. Claiming ORN signs, so it may need the
-/// wallet's password.
+/// Moves every unfinished swap along, and this wallet's swaps on the swap
+/// board, starting their swaps as their turn comes. The window calls this
+/// every so often. Claiming ORN signs, so it may need the wallet's password.
 #[tauri::command]
-async fn swap_step(app: AppHandle, password: Option<String>) -> Result<Vec<swaps::View>, String> {
+async fn swap_step(app: AppHandle, password: Option<String>) -> Result<serde_json::Value, String> {
     with_swaps(&app, password, move |dir, orien| {
         let mut all = swaps::load(dir);
+        // The board is asked first, so a swap it starts is moved along at
+        // once; if it can't be reached, the swaps here still move.
+        let (mine, board_problem) = match board::drive(orien, dir, &mut all) {
+            Ok(mine) => (mine, None),
+            Err(error) => (serde_json::json!([]), Some(error)),
+        };
         if swaps::active(&all) {
             swaps::step(orien, dir, &mut all)?;
+            // A swap that just finished is marked on the board now.
+            let _ = board::drive(orien, dir, &mut all);
         }
-        Ok(views(&all))
+        Ok(serde_json::json!({ "swaps": views(&all), "waiting": board::waiting(dir, &mine), "problem": board_problem }))
     })
     .await
     .map_err(|error| error.to_string())?
+}
+
+/// The swap board's open offers, and Bitcoin's dollar price. Needs no
+/// sign-in.
+#[tauri::command]
+async fn board_offers(app: AppHandle) -> Result<serde_json::Value, String> {
+    let dir = folder(&app)?;
+    tauri::async_runtime::spawn_blocking(move || board::offers(&dir)).await.map_err(|error| error.to_string())?
+}
+
+/// Who is signed in to the swap board, if anyone.
+#[tauri::command]
+async fn board_me(app: AppHandle) -> Result<Option<serde_json::Value>, String> {
+    let dir = folder(&app)?;
+    let address = wallet_file(&dir).and_then(|file| orien_net::keys::Wallet::peek(&file).ok()).map(|(address, _)| address.to_string()).unwrap_or_default();
+    tauri::async_runtime::spawn_blocking(move || board::me(&dir, &address)).await.map_err(|error| error.to_string())?
+}
+
+#[tauri::command]
+async fn board_email_start(app: AppHandle, email: String) -> Result<(), String> {
+    let dir = folder(&app)?;
+    tauri::async_runtime::spawn_blocking(move || board::email_start(&dir, &email)).await.map_err(|error| error.to_string())?
+}
+
+/// Signs in with the emailed code: false when the email has no account yet
+/// and a name is wanted.
+#[tauri::command]
+async fn board_email_finish(app: AppHandle, email: String, code: String, name: Option<String>) -> Result<bool, String> {
+    let dir = folder(&app)?;
+    tauri::async_runtime::spawn_blocking(move || board::email_finish(&dir, &email, &code, name.as_deref())).await.map_err(|error| error.to_string())?
+}
+
+#[tauri::command]
+async fn board_sign_out(app: AppHandle) -> Result<(), String> {
+    let dir = folder(&app)?;
+    tauri::async_runtime::spawn_blocking(move || board::sign_out(&dir)).await.map_err(|error| error.to_string())?
+}
+
+/// Posts an offer of `orn` ORN for `btc` Bitcoin, paid to `payout`.
+#[tauri::command]
+async fn board_post(app: AppHandle, orn: String, btc: String, payout: String) -> Result<(), String> {
+    let orn = money::read(&orn)?;
+    let sats = swaps::read_btc(&btc)?;
+    let dir = folder(&app)?;
+    tauri::async_runtime::spawn_blocking(move || board::post(&dir, orn, sats, &payout)).await.map_err(|error| error.to_string())?
+}
+
+/// Takes offer `offer`; a refund would go to `refund`.
+#[tauri::command]
+async fn board_take(app: AppHandle, offer: i64, refund: String) -> Result<(), String> {
+    let dir = folder(&app)?;
+    tauri::async_runtime::spawn_blocking(move || board::take(&dir, offer, &refund)).await.map_err(|error| error.to_string())?
+}
+
+#[tauri::command]
+async fn board_withdraw(app: AppHandle, offer: i64) -> Result<(), String> {
+    let dir = folder(&app)?;
+    tauri::async_runtime::spawn_blocking(move || board::withdraw(&dir, offer)).await.map_err(|error| error.to_string())?
 }
 
 fn main() {
@@ -549,7 +616,7 @@ fn main() {
     tauri::Builder::default()
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_updater::Builder::new().build())
-        .invoke_handler(tauri::generate_handler![has_wallet, create_wallet, restore_wallet, set_password, choose_wallet, overview_now, send_payment, activity, quote, contacts, save_contact, delete_contact, update::check_update, update::install_update, swap_list, swap_sell, swap_buy, swap_accept, swap_step, swap_smallest])
+        .invoke_handler(tauri::generate_handler![has_wallet, create_wallet, restore_wallet, set_password, choose_wallet, overview_now, send_payment, activity, quote, contacts, save_contact, delete_contact, update::check_update, update::install_update, swap_list, swap_sell, swap_buy, swap_accept, swap_step, swap_smallest, board_offers, board_me, board_email_start, board_email_finish, board_sign_out, board_post, board_take, board_withdraw])
         .run(tauri::generate_context!())
         .expect("the wallet window could not start");
 }
@@ -612,6 +679,83 @@ mod tests {
         let status = client.account(&buyer.me(), 0);
         assert_eq!(status.spendable, Some(orn as i128 - network.fee.min as i128), "the buyer has the ORN, less the claim's fee");
         let _ = std::fs::remove_file(fresh);
+    }
+
+    /// A whole swap through a running test copy of the swap board, between
+    /// alice and bob of a running local test network, on a pretend Bitcoin
+    /// network: alice posts, bob takes, and each side's wallet does the rest
+    /// through the board. Needs ORIEN_DEVNET, ORIEN_MARKET (a debug build)
+    /// and ORIEN_BOARD_TEST, a folder with `alice` and `bob` folders whose
+    /// board.json holds a session of an account verified for that wallet.
+    #[test]
+    #[ignore = "needs a local network and a test copy of the swap board"]
+    fn a_whole_swap_through_the_board() {
+        use orien_swap::bitcoin::{Address, CompressedPublicKey, Network};
+        use orien_swap::swap::Stage;
+        use orien_swap::testing::TestChain;
+        let root = std::path::PathBuf::from(std::env::var("ORIEN_DEVNET").unwrap());
+        let folders = std::path::PathBuf::from(std::env::var("ORIEN_BOARD_TEST").unwrap());
+        let genesis = root.join("genesis.json");
+        let client = super::connect(&genesis).unwrap();
+        let network = orien_net::keys::load_genesis(&genesis).unwrap();
+        let side = |name: &str| super::swaps::AppOrien {
+            client: &client,
+            wallet_file: root.join(format!("wallets/{name}.wallet")),
+            password: None,
+            fees: network.fee,
+            network: network.id().to_string(),
+            epoch_seconds: network.epoch_seconds,
+        };
+        let (alice, bob) = (side("alice"), side("bob"));
+        let (alice_dir, bob_dir) = (folders.join("alice"), folders.join("bob"));
+        let btc = || {
+            let (_, key) = orien_swap::htlc::new_key();
+            Address::p2wpkh(&CompressedPublicKey(key.inner), Network::Regtest).to_string()
+        };
+        let bitcoin = TestChain::at(100);
+        let chain = orien_swap::chain::Explorers::one(bitcoin.clone());
+        let bob_before = client.account(&orien_net::keys::Wallet::peek(&bob.wallet_file).unwrap().0, 0).spendable.unwrap();
+
+        // Alice posts 5 ORN for 0.01 BTC; bob takes it.
+        let orn = 5 * orien_ledger::COIN;
+        super::board::post_on(&alice_dir, Network::Regtest, orn, 1_000_000, &btc()).unwrap();
+        let posted = super::board::mine(&alice_dir).unwrap();
+        let id = posted.as_array().unwrap().iter().find(|s| s["offer"]["state"] == "open").unwrap()["offer"]["id"].as_i64().unwrap();
+        super::board::take_on(&bob_dir, Network::Regtest, id, &btc()).unwrap();
+
+        let (mut alice_swaps, mut bob_swaps) = (Vec::new(), Vec::new());
+        let mut paid = false;
+        let mut board_state = String::new();
+        for round in 0..40 {
+            super::board::drive_on(&alice, Network::Regtest, &chain, &alice_dir, &mut alice_swaps).unwrap();
+            super::swaps::step_on(&alice, &chain, &alice_dir, &mut alice_swaps).unwrap();
+            super::board::drive_on(&bob, Network::Regtest, &chain, &bob_dir, &mut bob_swaps).unwrap();
+            super::swaps::step_on(&bob, &chain, &bob_dir, &mut bob_swaps).unwrap();
+            // Bob pays the Bitcoin, as a person would, once his wallet shows
+            // where.
+            if !paid
+                && let Some(kept) = bob_swaps.first()
+                && kept.swap.stage == Stage::WaitingForBitcoin
+            {
+                bitcoin.pay(&kept.swap.bitcoin_address().unwrap(), 1_000_000);
+                paid = true;
+            }
+            if paid {
+                bitcoin.mine(1);
+            }
+            let stages: Vec<_> = alice_swaps.iter().chain(&bob_swaps).map(|k| format!("{:?} {:?}", k.swap.stage, k.problem)).collect();
+            board_state = super::board::mine(&alice_dir).unwrap().as_array().unwrap().iter()
+                .find(|s| s["offer"]["id"] == id).map(|s| s["offer"]["state"].as_str().unwrap().to_string()).unwrap_or_default();
+            println!("round {round}: board {board_state}; {stages:?}");
+            if board_state == "done" && alice_swaps.iter().chain(&bob_swaps).all(|k| k.swap.stage == Stage::Done) {
+                break;
+            }
+            std::thread::sleep(std::time::Duration::from_millis(300));
+        }
+        assert_eq!(board_state, "done");
+        assert_eq!((alice_swaps[0].swap.stage.clone(), bob_swaps[0].swap.stage.clone()), (Stage::Done, Stage::Done));
+        let bob_after = client.account(&orien_net::keys::Wallet::peek(&bob.wallet_file).unwrap().0, 0).spendable.unwrap();
+        assert_eq!(bob_after - bob_before, orn as i128 - network.fee.min as i128, "bob has the ORN, less the claim's fee");
     }
 
     /// Reads a wallet from a running local test network, if there is one:

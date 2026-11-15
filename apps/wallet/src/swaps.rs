@@ -33,6 +33,9 @@ pub struct Kept {
     /// took it.
     #[serde(default)]
     pub btc_back_at: Option<u64>,
+    /// The swap board offer this swap runs for, if it came from the board.
+    #[serde(default)]
+    pub board: Option<i64>,
 }
 
 /// What the window shows of a swap.
@@ -64,6 +67,8 @@ pub struct View {
     pub orn_missed: bool,
     pub orn_back_at: Option<u64>,
     pub btc_back_at: Option<u64>,
+    /// The swap board passes this swap's codes: none to copy.
+    pub board: bool,
 }
 
 /// The Bitcoin network swaps use: Bitcoin itself, through two independent
@@ -159,6 +164,7 @@ pub fn view(kept: &Kept) -> View {
         orn_missed: swap.orn_missed,
         orn_back_at: kept.orn_back_at,
         btc_back_at: kept.btc_back_at,
+        board: kept.board.is_some(),
     }
 }
 
@@ -256,33 +262,45 @@ impl Orien for AppOrien<'_> {
 
 /// Starts selling `orn` ORN for `sats` to the Orien address `buyer`.
 pub fn sell(orien: &AppOrien, buyer: &str, orn: u64, sats: u64, payout: &str) -> Result<Kept, String> {
+    sell_on(orien, bitcoin().0, buyer, orn, sats, payout)
+}
+
+/// `sell`, on a given Bitcoin network.
+pub fn sell_on(orien: &AppOrien, network: bitcoin::Network, buyer: &str, orn: u64, sats: u64, payout: &str) -> Result<Kept, String> {
     let buyer = Hash32::from_str(buyer.trim()).map_err(|_| "That is not an Orien address. An address is 64 letters and digits.".to_string())?;
     if buyer == orien.me() {
         return Err("That is this wallet's own address.".into());
     }
-    let (network, _) = bitcoin();
     let swap = Swap::sell(orien, network, buyer, orn, sats, payout.trim()).map_err(|error| error.to_string())?;
-    let mut kept = Kept { id: hex(&swap.hash), swap, offer: None, reply: None, problem: None, created: now(), orn_back_at: None, btc_back_at: None };
+    let mut kept = Kept { id: hex(&swap.hash), swap, offer: None, reply: None, problem: None, created: now(), orn_back_at: None, btc_back_at: None, board: None };
     note_times(orien, &mut kept);
     Ok(kept)
 }
 
 /// Takes up an offer: checks it on Orien and makes the reply.
 pub fn buy(orien: &AppOrien, offer: &str, refund: &str) -> Result<Kept, String> {
-    let offer = Offer::read(offer).map_err(|error| error.to_string())?;
     let (network, chain) = bitcoin();
-    let (swap, reply) = Swap::buy(orien, &chain, network, &offer, refund.trim()).map_err(|error| error.to_string())?;
+    buy_on(orien, network, &chain, offer, refund)
+}
+
+/// `buy`, on a given Bitcoin network.
+pub fn buy_on(orien: &AppOrien, network: bitcoin::Network, chain: &Explorers, offer: &str, refund: &str) -> Result<Kept, String> {
+    let offer = Offer::read(offer).map_err(|error| error.to_string())?;
+    let (swap, reply) = Swap::buy(orien, chain, network, &offer, refund.trim()).map_err(|error| error.to_string())?;
     let mut kept =
-        Kept { id: hex(&swap.hash), swap, offer: None, reply: Some(reply.code()), problem: None, created: now(), orn_back_at: None, btc_back_at: None };
+        Kept { id: hex(&swap.hash), swap, offer: None, reply: Some(reply.code()), problem: None, created: now(), orn_back_at: None, btc_back_at: None, board: None };
     note_times(orien, &mut kept);
     Ok(kept)
 }
 
 /// The seller takes in the buyer's reply.
 pub fn accept(orien: &AppOrien, kept: &mut Kept, reply: &str) -> Result<(), String> {
+    accept_on(orien, &bitcoin().1, kept, reply)
+}
+
+pub fn accept_on(orien: &AppOrien, chain: &Explorers, kept: &mut Kept, reply: &str) -> Result<(), String> {
     let reply = Reply::read(reply).map_err(|error| error.to_string())?;
-    let (_, chain) = bitcoin();
-    kept.swap.accept(&chain, orien, &reply).map_err(|error| error.to_string())?;
+    kept.swap.accept(chain, orien, &reply).map_err(|error| error.to_string())?;
     note_times(orien, kept);
     Ok(())
 }
@@ -291,12 +309,15 @@ pub fn accept(orien: &AppOrien, kept: &mut Kept, reply: &str) -> Result<(), Stri
 /// each: a swap's step may sign a Bitcoin transaction or an order, and what
 /// it signed must be on disk before the next one starts.
 pub fn step(orien: &AppOrien, dir: &Path, swaps: &mut [Kept]) -> Result<(), String> {
-    let (_, chain) = bitcoin();
+    step_on(orien, &bitcoin().1, dir, swaps)
+}
+
+pub fn step_on(orien: &AppOrien, chain: &Explorers, dir: &Path, swaps: &mut [Kept]) -> Result<(), String> {
     for index in 0..swaps.len() {
         if matches!(swaps[index].swap.stage, Stage::Done | Stage::Cancelled { .. }) {
             continue;
         }
-        advance(orien, &chain, &mut swaps[index]);
+        advance(orien, chain, &mut swaps[index]);
         save(dir, swaps)?;
     }
     Ok(())

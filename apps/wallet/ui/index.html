@@ -165,8 +165,29 @@
   .swap-row .sub { font-size: 12.5px; color: var(--dim); }
   .swap-status { margin: 14px 2px 0; line-height: 1.45; }
   .swap-choices { display: grid; gap: 10px; }
+  /* The swap board */
+  .board-bar { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 12px;
+    font-size: 12.5px; color: var(--dim); }
+  .linkish { background: none; border: 0; padding: 0; cursor: pointer; color: var(--ink); text-decoration: underline;
+    text-decoration-color: var(--line); text-underline-offset: 3px; font-size: 12.5px; }
+  .linkish:hover { text-decoration-color: var(--dim); }
+  .offer { display: grid; grid-template-columns: 36px 1fr auto; gap: 12px; align-items: center;
+    padding: 14px 14px 14px 16px; border: 1px solid var(--line); border-radius: 16px; background: var(--surface); }
+  .offer + .offer { margin-top: 8px; }
+  .avatar { width: 36px; height: 36px; border-radius: 50%; background: var(--surface-hover) center / cover no-repeat;
+    display: grid; place-items: center; font-weight: 600; color: var(--ink); }
+  .offer .who { font-size: 12px; color: var(--dim); }
+  .offer .deal { margin-top: 2px; font-weight: 500; }
+  .offer .rate { font-size: 12px; color: var(--faint); }
+  .offer button { height: 34px; padding: 0 14px; border-radius: 11px; font-weight: 600; cursor: pointer; }
+  .offer .take { border: 0; color: var(--pearl-ink); }
+  .offer .withdraw { background: transparent; border: 1px solid var(--line); }
+  .hint { margin: 7px 0 0 2px; font-size: 12px; color: var(--dim); min-height: 18px; }
+  .small-link { margin: 22px auto 4px; display: block; }
   /* The swap screens can hold more than the window: they scroll, and
      nothing in them is squeezed. */
+  #board-signin, #board-post, #board-take { overflow-y: auto; margin: 0 -28px; padding: 0 28px 8px; }
+  #board-signin > *, #board-post > *, #board-take > * { flex-shrink: 0; }
   #swaps, #swap-sell, #swap-buy, #swap-detail { overflow-y: auto; margin: 0 -28px; padding: 0 28px 8px; }
   #swaps::-webkit-scrollbar, #swap-sell::-webkit-scrollbar, #swap-buy::-webkit-scrollbar, #swap-detail::-webkit-scrollbar { width: 0; }
   #swaps > *, #swap-sell > *, #swap-buy > *, #swap-detail > * { flex-shrink: 0; }
@@ -569,12 +590,87 @@
     <section class="screen" id="swaps" hidden>
       <div class="topline"><button class="back" data-back aria-label="Back"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10 3 5 8l5 5"/></svg></button><h2>Swap</h2></div>
       <p class="lede">Swap ORN and Bitcoin with someone directly. Neither of you can cheat: either both get paid, or both get their coins back.</p>
-      <div class="swap-choices">
+      <div class="board-bar">
+        <span id="board-who">Offers on the swap board</span>
+        <button class="linkish" id="board-signin-go">Sign in</button>
+      </div>
+      <div class="note" id="board-verify" hidden></div>
+      <button class="primary pearl" id="board-post-go" data-gap="sm">Post an offer</button>
+      <div class="section-head"><h3>Open offers</h3><span class="hint" id="board-btc"></span></div>
+      <div id="board-offers"><div class="empty">Loading offers…</div></div>
+      <div class="problem" id="board-problem" hidden></div>
+      <div class="swap-choices" id="manual" hidden data-gap="lg">
+        <p class="fineprint" style="margin-top:0">Swap with someone you already know, passing the codes yourself.</p>
         <button class="secondary" id="go-sell">Sell ORN for Bitcoin</button>
         <button class="secondary" id="go-buy">Buy ORN with Bitcoin</button>
       </div>
       <div class="section-head"><h3>Your swaps</h3></div>
       <div class="scroll" id="swap-list"><div class="empty">No swaps yet</div></div>
+      <button class="linkish small-link" id="manual-go">Swap with someone you know</button>
+    </section>
+
+    <!-- The swap board: signing in, posting an offer, taking one -->
+    <section class="screen" id="board-signin" hidden>
+      <div class="topline"><button class="back" data-to="swaps" aria-label="Back"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10 3 5 8l5 5"/></svg></button><h2>Sign in to the swap board</h2></div>
+      <p class="lede">The same account as on orien.network. You'll get a 6-digit code by email.</p>
+      <div class="field">
+        <label for="bs-email">Email</label>
+        <div class="box plain"><input id="bs-email" type="email" placeholder="you@example.com" autocomplete="email" spellcheck="false"></div>
+      </div>
+      <div class="field" id="bs-code-field" hidden>
+        <label for="bs-code">Code from the email</label>
+        <div class="box plain"><input id="bs-code" inputmode="numeric" placeholder="123456" autocomplete="one-time-code"></div>
+      </div>
+      <div class="field" id="bs-name-field" hidden>
+        <label for="bs-name">Your name, as others see it</label>
+        <div class="box plain"><input id="bs-name" placeholder="New account: pick a name" autocomplete="nickname"></div>
+      </div>
+      <div class="push"></div>
+      <div class="problem" id="bs-problem" hidden></div>
+      <button class="primary pearl" id="bs-go" data-gap="lg">Send me a code</button>
+    </section>
+
+    <section class="screen" id="board-post" hidden>
+      <div class="topline"><button class="back" data-to="swaps" aria-label="Back"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10 3 5 8l5 5"/></svg></button><h2>Post an offer</h2></div>
+      <p class="lede">Offer your ORN for Bitcoin. When someone takes it, this app locks the ORN for them and runs the swap, as long as it's open.</p>
+      <div class="field">
+        <label for="bp-orn">ORN to sell</label>
+        <div class="box plain"><input id="bp-orn" placeholder="500" inputmode="decimal" autocomplete="off"></div>
+      </div>
+      <div class="field">
+        <label for="bp-btc">Bitcoin to receive</label>
+        <div class="box plain"><input id="bp-btc" placeholder="0.01" inputmode="decimal" autocomplete="off"></div>
+        <div class="hint" id="bp-hint"></div>
+      </div>
+      <div class="field">
+        <label for="bp-payout">Your Bitcoin address</label>
+        <div class="box plain"><input id="bp-payout" placeholder="Where the Bitcoin should go" spellcheck="false" autocomplete="off"></div>
+      </div>
+      <p class="fineprint">Smallest swap: 0.00005 BTC, more when Bitcoin is busy<span class="min-now"></span>. Fees: the usual Orien fee to lock the ORN (0.1%, at most 1 ORN), and Bitcoin's network fee for taking the Bitcoin, out of what you receive. If a buyer never pays, your ORN come back on their own after 48 hours.</p>
+      <div class="push"></div>
+      <div class="problem" id="bp-problem" hidden></div>
+      <button class="primary pearl" id="bp-go" data-gap="lg">Post the offer</button>
+    </section>
+
+    <section class="screen" id="board-take" hidden>
+      <div class="topline"><button class="back" data-to="swaps" aria-label="Back"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10 3 5 8l5 5"/></svg></button><h2>Take this offer</h2></div>
+      <div class="review">
+        <div class="row"><span>You get</span><span id="bt-orn"></span></div>
+        <div class="row"><span>You pay</span><span id="bt-btc"></span></div>
+        <div class="row"><span>Seller</span><span id="bt-seller"></span></div>
+      </div>
+      <ul class="explain" data-gap="lg">
+        <li><strong>What happens:</strong> the offer is held for you for 30 minutes. The seller's wallet locks the ORN for you, then this app shows you where to pay the Bitcoin. After you pay, the seller's wallet takes it and this app claims your ORN.</li>
+        <li><strong>You need</strong> the Bitcoin in any Bitcoin wallet, plus its sending fee. The usual Orien fee (0.1%, at most 1 ORN) comes out of the ORN you receive.</li>
+        <li><strong>If the seller never takes your Bitcoin,</strong> this app takes it back to the address below after about 12 hours.</li>
+      </ul>
+      <div class="field" data-gap="xl">
+        <label for="bt-refund">Your Bitcoin address</label>
+        <div class="box plain"><input id="bt-refund" placeholder="Where your Bitcoin comes back if the swap stops" spellcheck="false" autocomplete="off"></div>
+      </div>
+      <div class="push"></div>
+      <div class="problem" id="bt-problem" hidden></div>
+      <button class="primary pearl" id="bt-go" data-gap="lg">Take the offer</button>
     </section>
 
     <section class="screen" id="swap-sell" hidden>
@@ -677,9 +773,9 @@
       </div>
       <div class="note" id="sd-gone" hidden></div>
       <div class="field" id="sd-pw-field" hidden data-gap="xl">
-        <label for="sd-pw">Wallet password, to claim your ORN</label>
+        <label for="sd-pw">Wallet password, so this app can sign the next step</label>
         <div class="box plain"><input id="sd-pw" type="password" autocomplete="current-password"></div>
-        <button class="primary pearl" id="sd-claim" data-gap="sm">Claim ORN</button>
+        <button class="primary pearl" id="sd-claim" data-gap="sm">Continue</button>
       </div>
       <div class="push"></div>
       <div class="problem" id="detail-problem" hidden></div>
@@ -1110,7 +1206,9 @@
     if (s.role === "sell") {
       const steps = [
         { what: `Your ${O} are locked for the buyer`, who: "This app · under a minute" },
-        { what: "You send the buyer the offer code, and paste in the reply code they send back", who: "You and the buyer · up to you" },
+        s.board
+          ? { what: "The swap board passes your offer to the buyer's wallet, and their reply back", who: "Automatic · usually within minutes" }
+          : { what: "You send the buyer the offer code, and paste in the reply code they send back", who: "You and the buyer · up to you" },
         { what: `The buyer pays ${B}, and Bitcoin confirms it three times`, who: "The buyer · usually 30 to 60 minutes after they pay" },
         { what: `This app takes the Bitcoin to your Bitcoin address. That reveals the secret, so the buyer's wallet can take the ORN`, who: "This app · about 30 minutes for Bitcoin to settle" },
       ];
@@ -1119,7 +1217,9 @@
     }
     const steps = [
       { what: `The seller locked ${O} for you, and this app checked with the validators that they really are`, who: "The seller · done" },
-      { what: `You send the seller the reply code, and pay ${B} into the swap`, who: "You · pay within the next few hours" },
+      s.board
+        ? { what: `You pay ${B} into the swap, from any Bitcoin wallet. The swap board passes your reply to the seller`, who: "You · pay within the next few hours" }
+        : { what: `You send the seller the reply code, and pay ${B} into the swap`, who: "You · pay within the next few hours" },
       { what: "The seller's wallet takes the Bitcoin once Bitcoin has confirmed your payment three times", who: "The seller · usually 30 to 60 minutes after you pay" },
       { what: `This app reads the secret from Bitcoin and claims your ${O}`, who: "This app · a few minutes" },
     ];
@@ -1163,13 +1263,26 @@
     return `Step ${at + 1} of ${steps.length} · ${steps[at].who.split(" · ")[0]}`;
   }
 
+  function waitingLine(item) {
+    const o = item.offer;
+    if (item.selling && o.state === "open") return "On the swap board, waiting for someone to take it";
+    if (item.selling) return `Taken by ${item.taker_name || "a buyer"} · this app is locking your ORN`;
+    if (o.state === "held") return `Waiting for ${o.seller_name}'s wallet to lock the ORN for you`;
+    return "Checking the ORN the seller locked for you";
+  }
+
   function renderSwaps() {
     const list = $("swap-list");
-    if (!swapList.length) { list.innerHTML = '<div class="empty">No swaps yet</div>'; return; }
-    list.innerHTML = swapList.map((s) => `<button class="swap-row" data-swap="${esc(s.id)}">
+    if (!swapList.length && !board.waiting.length) { list.innerHTML = '<div class="empty">No swaps yet</div>'; return; }
+    list.innerHTML = board.waiting.map((item) => `<div class="swap-row">
+      <div><div>${item.selling ? "Sell" : "Buy"} ${esc(fmtOrn(item.offer.orn))} ORN for ${esc(fmtBtc(item.offer.sats))} BTC</div>
+      <div class="sub">${esc(waitingLine(item))}</div></div>
+      ${item.selling && item.offer.state === "open" ? `<button class="linkish" data-withdraw="${item.offer.id}">Withdraw</button>` : ""}</div>`).join("")
+      + swapList.map((s) => `<button class="swap-row" data-swap="${esc(s.id)}">
       <div><div>${s.role === "sell" ? "Sell" : "Buy"} ${esc(s.orn)} ORN for ${esc(s.btc)} BTC</div>
       <div class="sub">${esc(stageLine(s))}</div></div></button>`).join("");
     for (const b of list.querySelectorAll("[data-swap]")) b.onclick = () => openSwap(b.dataset.swap);
+    for (const b of list.querySelectorAll("[data-withdraw]")) b.onclick = () => withdraw(Number(b.dataset.withdraw));
   }
 
   async function loadSwaps() {
@@ -1215,6 +1328,7 @@
   // Passing codes between the two sides: the seller's offer, the buyer's
   // reply. A public swap board will pass them for both wallets later.
   function renderExchange(s) {
+    $("sd-exchange").hidden = !!s.board;
     const code = s.role === "sell" ? (s.stage === "reply" ? s.offer : null) : (s.stage === "bitcoin" ? s.reply : null);
     $("sd-code").hidden = !code;
     if (code) {
@@ -1231,7 +1345,9 @@
     if (stepping) return;
     stepping = true;
     try {
-      swapList = await invoke("swap_step", { password: password || null });
+      const stepped = await invoke("swap_step", { password: password || null });
+      swapList = stepped.swaps;
+      board.waiting = stepped.waiting || [];
       renderSwaps();
       if (!$("swap-detail").hidden) renderDetail();
     } catch (e) {
@@ -1239,7 +1355,182 @@
     } finally { stepping = false; }
   }
 
-  $("go-swap").onclick = async () => { show("swaps"); await loadSwaps(); stepSwaps(); };
+  // ---- The swap board ----
+  const board = { me: null, offers: [], usd: null, waiting: [], taking: null, signin: "email" };
+  const fmtOrn = (units) => (units / 1e9).toLocaleString(undefined, { maximumFractionDigits: 9 });
+  const fmtBtc = (sats) => (sats / 1e8).toFixed(8).replace(/0+$/, "").replace(/\.$/, "");
+  const fmtUsd = (n) => n >= 100 ? "$" + Math.round(n).toLocaleString() : "$" + n.toFixed(2);
+  // "≈ $655", and "$1.31 per ORN · 2,000 satoshis per ORN", when the price is known.
+  function priceOf(orn, sats) {
+    const perOrn = orn > 0 ? sats / (orn / 1e9) : 0;
+    const satsText = `${Math.round(perOrn).toLocaleString()} satoshis per ORN`;
+    if (!board.usd) return { total: "", rate: satsText };
+    const usd = board.usd * sats / 1e8;
+    return { total: ` ≈ ${fmtUsd(usd)}`, rate: `${fmtUsd(usd / (orn / 1e9))} per ORN · ${satsText}` };
+  }
+
+  function renderBoardBar() {
+    const me = board.me;
+    $("board-who").textContent = me ? `Signed in as ${me.name}` : "Offers on the swap board";
+    $("board-signin-go").textContent = me ? "Sign out" : "Sign in";
+    const note = $("board-verify");
+    note.hidden = !me || me.verified;
+    if (me && !me.verified) note.innerHTML = me.wallet
+      ? `<strong>Your swap board account is set up for another wallet</strong> (${esc(short(me.wallet))}). Swaps run for that wallet, so open it in this app, or verify this one at orien.network/marketplace/account.`
+      : `<strong>To take or post offers, verify this wallet</strong> at orien.network/marketplace/account. It takes one tiny payment, and shows buyers and sellers the swaps go to the right place.`;
+  }
+
+  function renderOffers() {
+    const list = $("board-offers");
+    $("board-btc").textContent = board.usd ? `1 BTC ≈ ${fmtUsd(board.usd)}` : "";
+    if (!board.offers.length) { list.innerHTML = '<div class="empty">No open offers right now</div>'; return; }
+    list.innerHTML = board.offers.map((o) => {
+      const price = priceOf(o.orn, o.sats);
+      const mine = board.me && o.seller === board.me.id;
+      const picture = o.seller_picture ? ` style="background-image:url('${esc(boardBase)}/api/market/images/${esc(o.seller_picture)}')"` : "";
+      return `<div class="offer">
+        <div class="avatar"${picture}>${o.seller_picture ? "" : esc((o.seller_name || "?").slice(0, 1).toUpperCase())}</div>
+        <div><div class="who">${esc(o.seller_name)} · ${o.seller_done} swap${o.seller_done === 1 ? "" : "s"} done</div>
+          <div class="deal">${esc(fmtOrn(o.orn))} ORN for ${esc(fmtBtc(o.sats))} BTC${esc(price.total)}</div>
+          <div class="rate">${esc(price.rate)}</div></div>
+        ${mine ? `<button class="withdraw" data-withdraw="${o.id}">Withdraw</button>` : `<button class="take pearl" data-take="${o.id}">Take</button>`}
+      </div>`;
+    }).join("");
+    for (const b of list.querySelectorAll("[data-take]")) b.onclick = () => startTake(Number(b.dataset.take));
+    for (const b of list.querySelectorAll("[data-withdraw]")) b.onclick = () => withdraw(Number(b.dataset.withdraw));
+  }
+
+  let boardBase = "https://orien.network";
+  async function loadBoard() {
+    try { board.me = await invoke("board_me"); } catch { board.me = null; }
+    renderBoardBar();
+    try {
+      const answer = await invoke("board_offers");
+      board.offers = answer.offers || [];
+      board.usd = answer.bitcoin && answer.bitcoin.usd;
+      if (answer.base) boardBase = answer.base;
+      $("board-problem").hidden = true;
+    } catch (e) { board.offers = []; problem("board-problem", e); }
+    renderOffers();
+  }
+
+  // Taking and posting need an account with this wallet verified.
+  function ready() {
+    if (!board.me) { board.signin = "email"; resetSignin(); show("board-signin"); return false; }
+    if (!board.me.verified) { $("board-verify").hidden = false; $("board-verify").scrollIntoView({ block: "center" }); return false; }
+    return true;
+  }
+
+  function startTake(id) {
+    const o = board.offers.find((x) => x.id === id);
+    if (!o) return;
+    board.taking = o;
+    if (!ready()) return;
+    $("bt-orn").textContent = fmtOrn(o.orn) + " ORN";
+    $("bt-btc").textContent = fmtBtc(o.sats) + " BTC" + priceOf(o.orn, o.sats).total;
+    $("bt-seller").textContent = `${o.seller_name}, ${o.seller_done} swap${o.seller_done === 1 ? "" : "s"} done`;
+    $("bt-problem").hidden = true;
+    show("board-take");
+  }
+
+  async function withdraw(id) {
+    try { await invoke("board_withdraw", { offer: id }); } catch (e) { problem("board-problem", e); }
+    await loadBoard();
+    stepSwaps();
+  }
+
+  $("bt-go").onclick = async () => {
+    $("bt-go").disabled = true;
+    try {
+      await invoke("board_take", { offer: board.taking.id, refund: $("bt-refund").value });
+      board.taking = null;
+      show("swaps");
+      await loadBoard();
+      stepSwaps();
+    } catch (e) { problem("bt-problem", e); }
+    finally { $("bt-go").disabled = false; }
+  };
+
+  $("board-post-go").onclick = () => {
+    if (!ready()) return;
+    $("bp-problem").hidden = true;
+    postHint();
+    show("board-post");
+    showSmallest();
+  };
+  function postHint() {
+    const orn = parseFloat($("bp-orn").value), btc = parseFloat($("bp-btc").value);
+    if (!(orn > 0) || !(btc > 0)) { $("bp-hint").textContent = board.usd ? `1 BTC ≈ ${fmtUsd(board.usd)}` : ""; return; }
+    const price = priceOf(orn * 1e9, Math.round(btc * 1e8));
+    $("bp-hint").textContent = `${price.total.replace(" ≈ ", "≈ ")}${price.total ? " · " : ""}${price.rate}`;
+  }
+  $("bp-orn").oninput = $("bp-btc").oninput = postHint;
+  $("bp-go").onclick = async () => {
+    $("bp-go").disabled = true;
+    try {
+      await invoke("board_post", { orn: $("bp-orn").value, btc: $("bp-btc").value, payout: $("bp-payout").value });
+      $("bp-orn").value = $("bp-btc").value = "";
+      show("swaps");
+      await loadBoard();
+      stepSwaps();
+    } catch (e) { problem("bp-problem", e); }
+    finally { $("bp-go").disabled = false; }
+  };
+
+  // Signing in: an email, then the code it gets, and a name for a new account.
+  function resetSignin() {
+    board.signin = "email";
+    $("bs-code-field").hidden = $("bs-name-field").hidden = true;
+    $("bs-code").value = $("bs-name").value = "";
+    $("bs-go").textContent = "Send me a code";
+    $("bs-problem").hidden = true;
+  }
+  $("board-signin-go").onclick = async () => {
+    if (board.me) {
+      try { await invoke("board_sign_out"); } catch {}
+      board.me = null;
+      board.waiting = [];
+      await loadBoard();
+      renderSwaps();
+      return;
+    }
+    resetSignin();
+    show("board-signin");
+  };
+  $("bs-go").onclick = async () => {
+    $("bs-go").disabled = true;
+    try {
+      if (board.signin === "email") {
+        await invoke("board_email_start", { email: $("bs-email").value });
+        board.signin = "code";
+        $("bs-code-field").hidden = false;
+        $("bs-go").textContent = "Sign in";
+        $("bs-problem").hidden = true;
+        $("bs-code").focus();
+      } else {
+        const name = $("bs-name-field").hidden ? null : $("bs-name").value;
+        const done = await invoke("board_email_finish", { email: $("bs-email").value, code: $("bs-code").value, name });
+        if (!done) {
+          $("bs-name-field").hidden = false;
+          $("bs-go").textContent = "Make my account";
+          $("bs-problem").hidden = true;
+          $("bs-name").focus();
+          return;
+        }
+        resetSignin();
+        show("swaps");
+        await loadBoard();
+        stepSwaps();
+        if (board.taking) startTake(board.taking.id);
+      }
+    } catch (e) { problem("bs-problem", e); }
+    finally { $("bs-go").disabled = false; }
+  };
+
+  for (const b of document.querySelectorAll("[data-to]")) b.onclick = () => show(b.dataset.to);
+  $("manual-go").onclick = () => { $("manual").hidden = !$("manual").hidden; if (!$("manual").hidden) $("manual").scrollIntoView({ block: "center" }); };
+
+  $("go-swap").onclick = async () => { show("swaps"); await loadSwaps(); loadBoard(); stepSwaps(); };
   $("detail-back").onclick = async () => { show("swaps"); await loadSwaps(); };
   $("sell-back").onclick = $("buy-back").onclick = () => show("swaps");
   // The smallest swap Bitcoin's fees allow right now, on the sell and buy
@@ -1308,7 +1599,12 @@
   };
 
   // Swaps move along while the app is open.
-  setInterval(() => { if (swapList.some((s) => !["done", "cancelled"].includes(s.stage))) stepSwaps(); }, 30000);
+  // Swaps, and this wallet's board swaps, move along while the app is open;
+  // the board's offers refresh while the Swap screen shows.
+  setInterval(() => {
+    if (board.me || swapList.some((s) => !["done", "cancelled"].includes(s.stage))) stepSwaps();
+    if (!$("swaps").hidden) loadBoard();
+  }, 30000);
   loadSwaps();
 
   // ---- Updates: checked at start and every six hours, installed only on a press ----

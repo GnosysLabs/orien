@@ -24,7 +24,8 @@
       }
     ],
     "security": {
-      "csp": "default-src 'self'; style-src 'self' 'unsafe-inline'"
+      "csp": "default-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' https://orien.network",
+      "devCsp": "default-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' https://orien.network http://localhost:7200"
     },
     "withGlobalTauri": true
   },
