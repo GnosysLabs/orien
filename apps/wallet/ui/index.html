@@ -592,26 +592,31 @@
       <p class="lede">Swap ORN and Bitcoin with someone directly. Neither of you can cheat: either both get paid, or both get their coins back.</p>
       <div class="board-bar">
         <span id="board-who">Offers on the swap board</span>
-        <button class="linkish" id="board-signin-go">Sign in</button>
+        <button class="linkish" id="board-signin-go">Sign up or sign in</button>
       </div>
       <button class="primary pearl" id="board-post-go" data-gap="sm">Post an offer</button>
       <div class="section-head"><h3>Open offers</h3><span class="hint" id="board-btc"></span></div>
       <div id="board-offers"><div class="empty">Loading offers…</div></div>
       <div class="problem" id="board-problem" hidden></div>
-      <div class="swap-choices" id="manual" hidden data-gap="lg">
-        <p class="fineprint" style="margin-top:0">Swap with someone you already know, passing the codes yourself.</p>
-        <button class="secondary" id="go-sell">Sell ORN for Bitcoin</button>
-        <button class="secondary" id="go-buy">Buy ORN with Bitcoin</button>
-      </div>
       <div class="section-head"><h3>Your swaps</h3></div>
       <div class="scroll" id="swap-list"><div class="empty">No swaps yet</div></div>
       <button class="linkish small-link" id="manual-go">Swap with someone you know</button>
     </section>
 
+    <!-- Swapping with someone you know, passing the codes yourself -->
+    <section class="screen" id="swap-manual" hidden>
+      <div class="topline"><button class="back" data-to="swaps" aria-label="Back"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10 3 5 8l5 5"/></svg></button><h2>Swap with someone you know</h2></div>
+      <p class="lede">Agree a price with them, then pick your side. You'll pass two short codes to each other yourselves, by message or email. Neither of you can cheat: either both get paid, or both get their coins back.</p>
+      <div class="swap-choices">
+        <button class="secondary" id="go-sell">Sell ORN for Bitcoin</button>
+        <button class="secondary" id="go-buy">Buy ORN with Bitcoin</button>
+      </div>
+    </section>
+
     <!-- The swap board: signing in, posting an offer, taking one -->
     <section class="screen" id="board-signin" hidden>
-      <div class="topline"><button class="back" data-to="swaps" aria-label="Back"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10 3 5 8l5 5"/></svg></button><h2>Sign in to the swap board</h2></div>
-      <p class="lede">The same account as on orien.network. You'll get a 6-digit code by email.</p>
+      <div class="topline"><button class="back" data-to="swaps" aria-label="Back"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10 3 5 8l5 5"/></svg></button><h2>Sign up or sign in</h2></div>
+      <p class="lede">New here? Enter your email, type the 6-digit code we send, and pick a name: that's your account. Already signed up on orien.network? Use the same email.</p>
       <div class="field">
         <label for="bs-email" data-gap="sm">Email</label>
         <div class="box plain"><input id="bs-email" type="email" placeholder="you@example.com" autocomplete="email" spellcheck="false"></div>
@@ -1397,7 +1402,7 @@
   function renderBoardBar() {
     const me = board.me;
     $("board-who").textContent = me ? `Signed in as ${me.name}` : "Offers on the swap board";
-    $("board-signin-go").textContent = me ? "Sign out" : "Sign in";
+    $("board-signin-go").textContent = me ? "Sign out" : "Sign up or sign in";
   }
 
   // Signing in through the app also links this wallet to the account, so
@@ -1536,7 +1541,7 @@
         await invoke("board_email_start", { email: $("bs-email").value });
         board.signin = "code";
         $("bs-code-field").hidden = false;
-        $("bs-go").textContent = "Sign in";
+        $("bs-go").textContent = "Continue";
         $("bs-problem").hidden = true;
         $("bs-code").focus();
       } else {
@@ -1562,11 +1567,11 @@
   };
 
   for (const b of document.querySelectorAll("[data-to]")) b.onclick = () => show(b.dataset.to);
-  $("manual-go").onclick = () => { $("manual").hidden = !$("manual").hidden; if (!$("manual").hidden) $("manual").scrollIntoView({ block: "center" }); };
+  $("manual-go").onclick = () => show("swap-manual");
 
   $("go-swap").onclick = async () => { show("swaps"); await loadSwaps(); loadBoard(); stepSwaps(); };
   $("detail-back").onclick = async () => { show("swaps"); await loadSwaps(); };
-  $("sell-back").onclick = $("buy-back").onclick = () => show("swaps");
+  $("sell-back").onclick = $("buy-back").onclick = () => show("swap-manual");
   // The smallest swap Bitcoin's fees allow right now, on the sell and buy
   // screens; nothing is shown if the explorers can't be reached.
   async function showSmallest() {

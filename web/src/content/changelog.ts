@@ -26,6 +26,16 @@ export const CHANGELOG: Entry[] = [
   {
     date: '2026-11-15',
     products: ['wallet'],
+    version: '1.4.2',
+    title: 'Signing up, said plainly',
+    changes: [
+      'The Swap screen’s sign-in is now Sign up or sign in, and says that a new email makes your account right there: no need to sign up on orien.network first.',
+      'Swap with someone you know opens its own screen, with Sell ORN and Buy ORN.',
+    ],
+  },
+  {
+    date: '2026-11-15',
+    products: ['wallet'],
     version: '1.4.1',
     title: 'Linking your wallet is free, and clearer activity',
     changes: [
