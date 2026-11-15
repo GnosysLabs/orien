@@ -46,6 +46,14 @@ impl Network {
         let installed = orien_home().join("genesis.json");
         if installed.is_file() { installed } else { PathBuf::from("genesis.json") }
     }
+
+    /// The arguments that name this network again, for starting over.
+    fn args(&self) -> Vec<std::ffi::OsString> {
+        match &self.genesis {
+            Some(file) => vec!["--genesis".into(), file.clone().into()],
+            None => Vec::new(),
+        }
+    }
 }
 
 /// The Orien skill, which teaches AI assistants to use orien.
@@ -245,6 +253,12 @@ enum Command {
         threads: Option<usize>,
         #[command(flatten)]
         network: Network,
+        /// Do not install new releases of orien and carry on mining on them.
+        /// By default mining keeps itself on the newest release signed with
+        /// the Orien release key, so a change to the network's rules never
+        /// leaves it doing work nobody counts.
+        #[arg(long)]
+        no_auto_update: bool,
     },
     /// Show every validator's state
     Status {
@@ -620,9 +634,19 @@ fn run(cli: Cli) -> Result<()> {
         }
         Command::Verify { receipt, network } => verify(&receipt, &network.file()),
         Command::Status { network } => status(&network.file()),
-        Command::Mine { account, cpu, threads, network } => {
+        Command::Mine { account, cpu, threads, network, no_auto_update } => {
             let threads = mining_threads(cpu, threads)?;
-            mine(&account.unwrap_or_else(|| default_wallet().display().to_string()), threads, &network.file())
+            let account = account.unwrap_or_else(|| default_wallet().display().to_string());
+            if !no_auto_update {
+                // Started again on a new version with the same choices, never
+                // asking the percentage again.
+                let account = account.clone();
+                let mut args: Vec<std::ffi::OsString> =
+                    vec!["mine".into(), account.into(), "--threads".into(), threads.to_string().into()];
+                args.extend(network.args());
+                autoupdate::keep_mining_current(&network.file(), args);
+            }
+            mine(&account, threads, &network.file())
         }
         Command::Node { key, data, listen, network, no_auto_update } => {
             node(&key, data, listen, &network.file(), !no_auto_update)
@@ -1420,9 +1444,23 @@ fn mine(account: &str, threads: usize, genesis_file: &Path) -> Result<()> {
                 coins(balance)
             );
         }
+        Event::Preparing { epoch } => {
+            println!("epoch {epoch}: getting RandomX ready (up to a minute, with 2 GB of memory)...");
+        }
+        Event::Prepared { light, .. } => {
+            if light {
+                println!("  ready, in light mode: this computer lacks the memory for the full 2 GB, so it mines several times slower");
+            } else {
+                println!("  ready");
+            }
+        }
         Event::Round { tries_per_second, sent, taken } => {
-            let rate = tries_per_second / 1e6;
-            println!("  {rate:.1} million tries a second; {sent} share(s) found, {taken} taken by validators");
+            let rate = if tries_per_second >= 1e6 {
+                format!("{:.1} million", tries_per_second / 1e6)
+            } else {
+                format!("{}", tries_per_second.round() as u64)
+            };
+            println!("  {rate} tries a second; {sent} share(s) found, {taken} taken by validators");
             if sent > 0 && taken == 0 {
                 println!(
                     "  the validators have counted all the shares they take until the next checkpoint, {}; \

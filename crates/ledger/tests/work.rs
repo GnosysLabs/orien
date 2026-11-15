@@ -3,6 +3,7 @@
 use orien_crypto::Hash32;
 use orien_ledger::close::{self, Moment, Pin, Share, Statement};
 use orien_ledger::{COIN, Committee, Genesis, MINT, REWARDS, State, ValidatorInfo, coins};
+use orien_ledger::work::Math;
 
 /// Account `n`'s address, clear of the special addresses 0 to 3.
 fn account(n: u8) -> Hash32 {
@@ -12,7 +13,7 @@ fn account(n: u8) -> Hash32 {
 /// The first `count` shares for `account` against this seed and target,
 /// found by trying numbers in turn, as a miner would.
 fn mine(account: Hash32, seed: &Hash32, target: u64, count: usize) -> Vec<Share> {
-    (0..).map(|nonce| Share { account, nonce }).filter(|s| s.counts(seed, target)).take(count).collect()
+    (0..).map(|nonce| Share { account, nonce }).filter(|s| s.counts(Math::Blake3, seed, target)).take(count).collect()
 }
 
 fn statement(shares: Vec<Share>) -> Statement {
@@ -45,7 +46,7 @@ fn an_hours_coins_go_to_that_hours_work() {
     let mut shares = mine(account(1), &seed, target, 3);
     shares.extend(mine(account(2), &seed, target, 1));
     shares.push(shares[0]);
-    let not_a_share = (0..).map(|nonce| Share { account: account(2), nonce }).find(|s| !s.counts(&seed, target));
+    let not_a_share = (0..).map(|nonce| Share { account: account(2), nonce }).find(|s| !s.counts(Math::Blake3, &seed, target));
     shares.push(not_a_share.unwrap());
     let reported = statement(shares);
 

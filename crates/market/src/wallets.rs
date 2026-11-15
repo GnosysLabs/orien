@@ -57,9 +57,12 @@ pub struct NetworkStatus {
     /// When the epoch under way began, in seconds since 1970.
     pub epoch_started: u64,
     pub epoch_seconds: u64,
-    /// Mining's target now and at launch: a lower target is harder.
+    /// Mining's target now, and the one its math started at (launch for
+    /// BLAKE3, the switch for RandomX): a lower target is harder.
     pub target: Option<u64>,
     pub first_target: u64,
+    /// "Blake3" or "RandomX".
+    pub math: String,
 }
 
 /// The live network, asked through its validators.
@@ -171,13 +174,17 @@ impl Payments for Network {
             anyhow::bail!("no validator answers");
         }
         let work = self.client.work();
+        let rules = self.client.committee().work();
+        let math = rules.math(epoch);
+        let first_target = if math == orien_ledger::work::Math::RandomX { rules.randomx_target } else { self.first_target };
         Ok(NetworkStatus {
             validators,
             epoch,
             epoch_started,
             epoch_seconds: self.epoch_seconds,
             target: work.map(|(_, _, target)| target),
-            first_target: self.first_target,
+            first_target,
+            math: format!("{math:?}"),
         })
     }
 }

@@ -29,6 +29,7 @@ use crate::genesis::{Committee, Member, VerifyError};
 use crate::release;
 use crate::state::{Applied, Checked, State};
 use crate::types::{AccountId, Certificate, Order, STAKE_PROOF_LEAF, SignedOrder, Validator, Vote};
+use crate::work::Math;
 use orien_crypto::keytree::TreeSignature;
 use borsh::{BorshDeserialize, BorshSerialize};
 use orien_crypto::{Hash32, Tag, hash, keytree};
@@ -93,22 +94,16 @@ pub struct Statement {
 /// whose hash, together with the account and the epoch's seed, falls below
 /// the epoch's target. Finding one takes many tries; checking it takes one
 /// hash. Work only shares out new coins: it never decides payments.
-#[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, BorshSerialize, BorshDeserialize)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Hash, BorshSerialize, BorshDeserialize)]
 pub struct Share {
     pub account: AccountId,
     pub nonce: u64,
 }
 
 impl Share {
-    /// The number a share is judged by: its hash, read as a number.
-    pub fn work(&self, seed: &Hash32) -> u64 {
-        let digest = hash(Tag::Work, &[seed.as_bytes(), self.account.as_bytes(), &self.nonce.to_le_bytes()]);
-        u64::from_le_bytes(digest.0[..8].try_into().expect("a digest has 32 bytes"))
-    }
-
-    /// Whether this is a share in the epoch with this seed and target.
-    pub fn counts(&self, seed: &Hash32, target: u64) -> bool {
-        self.work(seed) < target
+    /// Whether this is a share in the epoch with this math, seed and target.
+    pub fn counts(&self, math: Math, seed: &Hash32, target: u64) -> bool {
+        crate::work::judge(math, seed, self) < target
     }
 }
 
@@ -124,9 +119,11 @@ pub struct Moment {
 /// The work shares the merged statements hold, each counted once, with how
 /// many each account earned.
 pub fn tally(committee: &Committee, seed: &Hash32, statements: &[&Statement]) -> BTreeMap<AccountId, u64> {
-    let target = committee.work().target;
-    let shares: BTreeSet<&Share> =
-        statements.iter().flat_map(|s| &s.shares).filter(|share| share.counts(seed, target)).collect();
+    let work = committee.work();
+    let math = work.math(committee.epoch());
+    // Each share once, however many statements hold it, then judged.
+    let held: BTreeSet<&Share> = statements.iter().flat_map(|s| &s.shares).collect();
+    let shares = held.into_iter().filter(|share| share.counts(math, seed, work.target));
     let mut counts = BTreeMap::new();
     for share in shares {
         *counts.entry(share.account).or_insert(0) += 1;
@@ -139,6 +136,11 @@ pub fn tally(committee: &Committee, seed: &Hash32, statements: &[&Statement]) ->
 /// by at most a factor of four each time.
 pub fn next_target(committee: &Committee, shares: u64) -> u64 {
     let work = committee.work();
+    // The epoch that moves to RandomX starts from a target set for it: the
+    // BLAKE3 one would make a share take thousands of times longer.
+    if work.math(committee.epoch() + 1) != work.math(committee.epoch()) {
+        return work.randomx_target;
+    }
     let (target, wanted) = (work.target as u128, work.shares_per_epoch.max(1) as u128);
     let moved = match shares {
         0 => target * 4,

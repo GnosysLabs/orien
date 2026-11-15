@@ -5,9 +5,10 @@
 #
 #   deploy/release.sh
 #
-# Needs, on a Mac: the Rust targets aarch64-apple-darwin, x86_64-apple-darwin,
+# Needs, on a Mac: the Rust targets aarch64-apple-darwin,
 # x86_64-unknown-linux-gnu, aarch64-unknown-linux-gnu and x86_64-pc-windows-gnu,
-# and cargo-zigbuild with zig for the Linux and Windows builds.
+# and cargo-zigbuild with zig for the Linux and Windows builds. Macs with
+# Intel chips are not supported, by the founder's choice.
 
 set -euo pipefail
 cd "$(dirname "$0")/.."
@@ -22,7 +23,6 @@ KEY="${ORIEN_RELEASE_KEY:-$HOME/.config/orien/release.key}"
 # name | Rust target | how to build | folder under target/
 BUILDS="
 macos-arm64  aarch64-apple-darwin           cargo     aarch64-apple-darwin
-macos-x86_64 x86_64-apple-darwin            cargo     x86_64-apple-darwin
 linux-x86_64 x86_64-unknown-linux-gnu.2.31  zigbuild  x86_64-unknown-linux-gnu
 linux-arm64  aarch64-unknown-linux-gnu.2.31 zigbuild  aarch64-unknown-linux-gnu
 windows-x86_64 x86_64-pc-windows-gnu        zigbuild  x86_64-pc-windows-gnu
@@ -34,7 +34,9 @@ while read -r name target builder folder; do
     [ -n "$name" ] || continue
     echo "building orien $VERSION for $name"
     if [ "$builder" = zigbuild ]; then
-        cargo zigbuild --quiet --release --target "$target" -p orien-cli
+        # RandomX is C++: on Windows its runtime comes from zig's libc++.
+        CARGO_TARGET_X86_64_PC_WINDOWS_GNU_RUSTFLAGS="-C link-arg=-lc++" \
+            cargo zigbuild --quiet --release --target "$target" -p orien-cli
     else
         cargo build --quiet --release --target "$target" -p orien-cli
     fi

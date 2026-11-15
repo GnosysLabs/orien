@@ -74,6 +74,18 @@ pub struct Genesis {
     /// work is done against, so nobody can mine before that block exists.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub bitcoin: Option<BitcoinBlock>,
+    /// The first epoch whose shares RandomX judges, rather than BLAKE3, and
+    /// that epoch's target. None for a network that keeps BLAKE3; the live
+    /// network, made before RandomX, has its own in `work`.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub randomx: Option<RandomXFrom>,
+}
+
+/// When a network moves its mining to RandomX, and the target it starts at.
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
+pub struct RandomXFrom {
+    pub epoch: u64,
+    pub target: u64,
 }
 
 /// A Bitcoin block, its hash written as block explorers show it.
@@ -106,6 +118,17 @@ pub struct Work {
     pub shares_per_epoch: u64,
     /// This epoch's target.
     pub target: u64,
+    /// The first epoch RandomX judges (never, as u64::MAX), and the target
+    /// it starts at.
+    pub randomx_from: u64,
+    pub randomx_target: u64,
+}
+
+impl Work {
+    /// The math that judges `epoch`'s shares.
+    pub fn math(&self, epoch: u64) -> crate::work::Math {
+        if epoch >= self.randomx_from { crate::work::Math::RandomX } else { crate::work::Math::Blake3 }
+    }
 }
 
 /// The fee rule: a share of each payment, never less than `min` and never
@@ -184,6 +207,7 @@ impl Genesis {
             shares_per_epoch: a_thousand(),
             first_target: a_first_target(),
             bitcoin: None,
+            randomx: None,
         }
     }
 
@@ -223,6 +247,13 @@ impl Genesis {
         if let Some(block) = &self.bitcoin {
             bytes.extend_from_slice(&block.height.to_le_bytes());
             bytes.extend_from_slice(block.hash.as_bytes());
+        }
+        // Only networks that name a switch: the live network's identity
+        // stays as it was made.
+        if let Some(randomx) = &self.randomx {
+            bytes.extend_from_slice(b"randomx");
+            bytes.extend_from_slice(&randomx.epoch.to_le_bytes());
+            bytes.extend_from_slice(&randomx.target.to_le_bytes());
         }
         hash(Tag::Genesis, &[&bytes])
     }
@@ -375,13 +406,21 @@ impl Committee {
             .collect();
         let total_stake = members.iter().map(|m| m.stake).sum();
         let seats = genesis.validators.iter().map(|v| v.stake).collect();
+        let network = genesis.id();
+        let randomx = if network.to_string() == crate::work::LIVE_NETWORK {
+            RandomXFrom { epoch: crate::work::LIVE_RANDOMX_FROM, target: crate::work::LIVE_RANDOMX_TARGET }
+        } else {
+            genesis.randomx.unwrap_or(RandomXFrom { epoch: u64::MAX, target: genesis.first_target })
+        };
         let work = Work {
             start_time: genesis.start_time,
             cap: genesis.cap,
             shares_per_epoch: genesis.shares_per_epoch,
             target: genesis.first_target,
+            randomx_from: randomx.epoch,
+            randomx_target: randomx.target,
         };
-        Committee { network: genesis.id(), epoch: 0, members, total_stake, staking: genesis.staking(), work, seats }
+        Committee { network, epoch: 0, members, total_stake, staking: genesis.staking(), work, seats }
     }
 
     /// Each launch seat's share of the seats' weight, in genesis order.

@@ -154,6 +154,7 @@ impl World {
             shares_per_epoch: 1_000,
             first_target: u64::MAX,
             bitcoin: None,
+            randomx: None,
         };
         genesis.validate().unwrap();
         World {

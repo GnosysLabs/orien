@@ -9,3 +9,4 @@ sha2.workspace = true
 orien-crypto.workspace = true
 borsh.workspace = true
 serde.workspace = true
+randomx-rs.workspace = true

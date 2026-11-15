@@ -33,6 +33,7 @@ type Network = {
   epoch_seconds: number
   target: number | null
   first_target: number
+  math?: string
 }
 
 type AdminAccount = {
@@ -262,7 +263,7 @@ function NetworkView({ network: n }: { network: Network }) {
         <Tile
           label="Mining difficulty"
           value={difficulty === null ? '–' : `${difficulty >= 10 ? Math.round(difficulty).toLocaleString('en') : difficulty.toFixed(1)}×`}
-          sub="compared with launch"
+          sub={n.math === 'RandomX' ? 'RandomX, compared with its start' : 'BLAKE3, compared with launch'}
         />
         <Tile
           label="Signing keys left"

@@ -24,6 +24,8 @@ hex = "0.4"
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 sha2 = "0.10"
+# The proof of work from the RandomX switch on: Monero's, built for ordinary processors.
+randomx-rs = "1.6"
 
 # Hashing dominates everything this code does, so even test builds are optimized.
 [profile.dev]

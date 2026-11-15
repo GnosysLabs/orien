@@ -13,8 +13,9 @@ pub mod genesis;
 pub mod release;
 pub mod state;
 pub mod types;
+pub mod work;
 
-pub use genesis::{Allocation, BitcoinBlock, Committee, Fees, Genesis, Work, Member, ValidatorInfo, VerifyError};
+pub use genesis::{Allocation, BitcoinBlock, Committee, Fees, Genesis, RandomXFrom, Work, Member, ValidatorInfo, VerifyError};
 pub use state::{
     Accepted, Account, Applied, CancelError, Checked, Credit, Escrow, Escrows, FEES, FORFEITED, Income, LocksProof, MINT, REWARDS, Proofs, Reject, Revealed, Signer,
     State, account_root,
