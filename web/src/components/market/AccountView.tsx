@@ -41,6 +41,7 @@ function SignIn({ onDone, trouble: first }: { onDone: () => void; trouble: strin
   const [name, setName] = useState('')
   const [busy, setBusy] = useState(false)
   const [trouble, setTrouble] = useState(first)
+  const [fresh, setNew] = useState(false)
 
   if (!passkeysWork()) {
     return <Notice tone="bad">This browser cannot use passkeys. Try a current Safari, Chrome, Edge or Firefox.</Notice>
@@ -75,51 +76,61 @@ function SignIn({ onDone, trouble: first }: { onDone: () => void; trouble: strin
     setBusy(false)
   }
 
+  const button =
+    'pearl-fill flex h-11 w-full items-center justify-center rounded-xl px-6 text-sm font-bold transition hover:brightness-105 disabled:opacity-60'
+  const swap = (to: boolean) => {
+    setNew(to)
+    setTrouble('')
+  }
+
   return (
-    <div className="space-y-6">
-      <section className="rounded-2xl border border-line bg-surface p-6 sm:p-8">
-        <div className="mb-3 flex items-center gap-3">
-          <KeyRound className="h-5 w-5 text-pearl" strokeWidth={1.75} aria-hidden />
-          <h1 className="text-xl font-bold tracking-tight text-ink">Sign in</h1>
-        </div>
-        <p className="mb-5 leading-relaxed text-muted">
-          With the passkey you made here: Face ID, a fingerprint, or your computer&apos;s own lock. No password.
-        </p>
-        <button
-          type="button"
-          onClick={signIn}
-          disabled={busy}
-          className="pearl-fill flex h-11 items-center rounded-xl px-6 text-sm font-bold transition hover:brightness-105 disabled:opacity-60"
-        >
-          Sign in with a passkey
-        </button>
-      </section>
-      <form onSubmit={signUp} className="rounded-2xl border border-line bg-surface p-6 sm:p-8">
-        <h2 className="mb-3 text-xl font-bold tracking-tight text-ink">New here? Make an account</h2>
-        <p className="mb-5 leading-relaxed text-muted">
-          Pick the name buyers will see. Your device then makes a passkey for the marketplace, which is all you need to
-          sign in from then on.
-        </p>
-        <div className="flex flex-wrap gap-3">
+    <section className="mx-auto max-w-[440px] rounded-2xl border border-line bg-surface p-6 sm:p-8">
+      <KeyRound className="mb-4 h-6 w-6 text-pearl" strokeWidth={1.75} aria-hidden />
+      {fresh ? (
+        <form onSubmit={signUp} className="space-y-4">
+          <h1 className="text-2xl font-bold tracking-tight text-ink">Make an account</h1>
+          <p className="leading-relaxed text-muted">
+            Pick the name buyers will see. Your device then makes a passkey, which is all you need to sign in.
+          </p>
           <input
             value={name}
             onChange={(e) => setName(e.target.value)}
             maxLength={50}
             required
+            autoFocus
             placeholder="Your name or your business's"
-            className="h-11 min-w-0 flex-1 rounded-xl border border-line bg-bg px-4 text-ink outline-none focus:border-pearl/60"
+            className="h-11 w-full rounded-xl border border-line bg-bg px-4 text-ink outline-none focus:border-pearl/60"
           />
-          <button
-            type="submit"
-            disabled={busy}
-            className="flex h-11 items-center rounded-xl border border-line bg-raised px-6 text-sm font-bold text-ink transition hover:bg-line disabled:opacity-60"
-          >
+          <button type="submit" disabled={busy} className={button}>
             Make my account
           </button>
+          {trouble && <Notice tone="bad">{trouble}</Notice>}
+          <p className="text-center text-sm text-muted">
+            Already have one?{' '}
+            <button type="button" onClick={() => swap(false)} className="font-semibold text-ink underline underline-offset-4">
+              Sign in
+            </button>
+          </p>
+        </form>
+      ) : (
+        <div className="space-y-4">
+          <h1 className="text-2xl font-bold tracking-tight text-ink">Sign in</h1>
+          <p className="leading-relaxed text-muted">
+            With your passkey: Face ID, a fingerprint, or your computer&apos;s own lock. No password.
+          </p>
+          <button type="button" onClick={signIn} disabled={busy} className={button}>
+            Sign in with a passkey
+          </button>
+          {trouble && <Notice tone="bad">{trouble}</Notice>}
+          <p className="text-center text-sm text-muted">
+            New here?{' '}
+            <button type="button" onClick={() => swap(true)} className="font-semibold text-ink underline underline-offset-4">
+              Make an account
+            </button>
+          </p>
         </div>
-      </form>
-      {trouble && <Notice tone="bad">{trouble}</Notice>}
-    </div>
+      )}
+    </section>
   )
 }
 
