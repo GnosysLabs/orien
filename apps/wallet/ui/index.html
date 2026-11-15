@@ -105,6 +105,12 @@
   body.phone .push { flex: 0 0 8px; }
   /* An app, not a web page: no double-tap zoom, no rubber-band bounce. */
   html:has(body.phone), body.phone { touch-action: manipulation; overscroll-behavior: none; }
+  /* The page stays put, as an app's screen does; only a screen's own
+     content scrolls, and only when it's longer than the screen. */
+  html:has(body.phone) { height: 100%; overflow: hidden; }
+  body.phone { position: fixed; inset: 0; overflow: hidden; }
+  body.phone .screen { overflow-y: auto; overscroll-behavior: contain; -webkit-overflow-scrolling: touch; }
+  body.phone .screen::-webkit-scrollbar { width: 0; }
   body.phone #swaps, body.phone #swap-sell, body.phone #swap-buy, body.phone #swap-detail, body.phone #mine,
   body.phone #board-signin, body.phone #board-post, body.phone #board-take { margin: 0 -20px; padding: 0 20px 8px; }
   /* A newer version: takes the status marker's place at the top right. */
@@ -941,6 +947,22 @@
   const phone = /iPhone|iPad|iPod/.test(navigator.userAgent);
   if (phone) {
     document.body.classList.add("phone");
+    // The keyboard opens only when a box is tapped, never by itself as a
+    // screen opens, so screens don't jump as they appear.
+    const focus = HTMLElement.prototype.focus;
+    HTMLElement.prototype.focus = function (...args) {
+      if (this.matches("input, textarea") && !this.closest(".screen:not([hidden])")?.dataset.keepFocus) return;
+      return focus.apply(this, args);
+    };
+    // With the keyboard up, keep the box being typed in visible inside its
+    // screen; when it goes away, put the page back where it belongs.
+    if (window.visualViewport) {
+      window.visualViewport.addEventListener("resize", () => {
+        const box = document.activeElement;
+        if (box && box.matches("input, textarea")) box.scrollIntoView({ block: "center", behavior: "smooth" });
+      });
+    }
+    document.addEventListener("focusout", () => setTimeout(() => { if (!document.activeElement.matches("input, textarea")) window.scrollTo(0, 0); }, 60));
     // No pinching to zoom.
     for (const gesture of ["gesturestart", "gesturechange", "gestureend"]) {
       document.addEventListener(gesture, (e) => e.preventDefault(), { passive: false });
