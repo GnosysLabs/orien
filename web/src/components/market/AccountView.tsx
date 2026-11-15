@@ -215,6 +215,65 @@ function Mine({ found, onChange }: { found: Found; onChange: () => void }) {
           ))}
         </div>
       )}
+      <DeleteAccount name={found.account.name} onDeleted={onChange} />
     </div>
+  )
+}
+
+/** Deleting the account, at the very bottom, behind typing one's name. */
+function DeleteAccount({ name, onDeleted }: { name: string; onDeleted: () => void }) {
+  const [open, setOpen] = useState(false)
+  const [typed, setTyped] = useState('')
+  const [trouble, setTrouble] = useState('')
+  if (!open) {
+    return (
+      <div className="border-t border-line pt-6">
+        <button type="button" onClick={() => setOpen(true)} className="text-sm text-muted underline underline-offset-4 hover:text-stop">
+          Delete my account
+        </button>
+      </div>
+    )
+  }
+  const remove = async (event: React.FormEvent) => {
+    event.preventDefault()
+    setTrouble('')
+    try {
+      await ask('/me/delete', 'POST', { confirm: typed })
+      onDeleted()
+    } catch (error) {
+      setTrouble((error as Error).message)
+    }
+  }
+  return (
+    <form onSubmit={remove} className="space-y-3 rounded-2xl border border-stop/40 bg-stop/5 p-6">
+      <h2 className="text-lg font-bold tracking-tight text-ink">Delete your account</h2>
+      <p className="text-sm leading-relaxed text-muted">
+        This deletes your account and everything you made here: your profile, listings and pictures, your conversations and
+        messages, and your swap offers. It cannot be undone. Your Orien wallet and coins are not touched.
+      </p>
+      <label className="block space-y-2">
+        <span className="text-sm text-ink">
+          Type your name, <strong>{name}</strong>, to confirm
+        </span>
+        <input
+          value={typed}
+          onChange={(e) => setTyped(e.target.value)}
+          className="h-11 w-full rounded-xl border border-line bg-bg px-4 text-ink outline-none focus:border-stop/60"
+        />
+      </label>
+      {trouble && <Notice tone="bad">{trouble}</Notice>}
+      <div className="flex items-center gap-4">
+        <button
+          type="submit"
+          disabled={typed.trim() !== name}
+          className="h-10 rounded-xl bg-stop px-4 text-sm font-bold text-bg disabled:opacity-40"
+        >
+          Delete everything
+        </button>
+        <button type="button" onClick={() => setOpen(false)} className="text-sm text-muted hover:text-ink">
+          Cancel
+        </button>
+      </div>
+    </form>
   )
 }

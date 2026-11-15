@@ -220,6 +220,7 @@ pub fn router(app: Arc<App>) -> Router {
             post(set_picture).layer(axum::extract::DefaultBodyLimit::max(images::MAX_UPLOAD)),
         )
         .route("/api/market/me/wallet", get(check_wallet).post(start_wallet))
+        .route("/api/market/me/delete", post(delete_me))
         .route("/api/market/profiles/{id}", get(profile))
         .route("/api/market/listings/{id}/messages", post(message_seller))
         .route(
@@ -501,6 +502,31 @@ async fn block(State(app): State<Arc<App>>, headers: HeaderMap, Path(id): Path<i
     let account = app.signed_in(&headers)?;
     app.store.lock().unwrap().block(id, account, request.block).map_err(refused)?;
     Ok(Json(json!({})).into_response())
+}
+
+#[derive(Deserialize)]
+struct DeleteMe {
+    /// The account's name, typed again, so nobody deletes by accident.
+    confirm: String,
+}
+
+/// Deletes the signed-in account and everything it made.
+async fn delete_me(State(app): State<Arc<App>>, headers: HeaderMap, Json(request): Json<DeleteMe>) -> Answer {
+    let id = app.signed_in(&headers)?;
+    let files = {
+        let store = app.store.lock().unwrap();
+        let account = store.account(id)?.ok_or(Failure::SignIn)?;
+        if request.confirm.trim() != account.name {
+            return Err(Failure::Refused("type your name exactly as it shows, to confirm".into()));
+        }
+        store.delete_account(id).map_err(refused)?
+    };
+    for file in files {
+        app.images.remove(&file);
+    }
+    let mut response = Json(json!({})).into_response();
+    response.headers_mut().insert(header::SET_COOKIE, app.session_cookie("", 0));
+    Ok(response)
 }
 
 #[derive(Deserialize)]

@@ -23,15 +23,17 @@ if [ ! -f web/public/downloads/latest ]; then
     exit 1
 fi
 
-echo "Building static site in web/"
-(cd web && pnpm typecheck && pnpm build)
+# The marketplace, the swap board and the privacy page need the marketplace's
+# server. MARKETPLACE=1 publishes them, with links to them in the menus;
+# without it, they stay off the live site and out of the menus.
+MARKETPLACE="${MARKETPLACE:-0}"
 
-# The marketplace's and the swap board's pages need its server, which is not
-# running yet. Until it is, they stay off the live site. MARKETPLACE=1
-# publishes them.
-if [ "${MARKETPLACE:-0}" != 1 ]; then
-    rm -rf web/out/marketplace web/out/swap
-    find web/out \( -name '*marketplace*' -o -name '*.swap.*' -o -name 'swap.*' \) -prune -exec rm -rf {} +
+echo "Building static site in web/"
+(cd web && pnpm typecheck && NEXT_PUBLIC_MARKETPLACE="$MARKETPLACE" pnpm build)
+
+if [ "$MARKETPLACE" != 1 ]; then
+    rm -rf web/out/marketplace web/out/swap web/out/privacy
+    find web/out \( -name '*marketplace*' -o -name '*.swap.*' -o -name 'swap.*' -o -name '*privacy*' \) -prune -exec rm -rf {} +
 fi
 
 echo "Uploading web/out/ to $HOST:$WEB_ROOT/releases/$RELEASE"

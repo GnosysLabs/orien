@@ -3,7 +3,8 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useEffect, useRef, useState } from 'react'
-import { BookOpen, ChevronDown, Compass, Download, History, Monitor, Terminal, type LucideIcon } from 'lucide-react'
+import { BookOpen, ChevronDown, Compass, Download, History, Monitor, Store, Terminal, type LucideIcon } from 'lucide-react'
+import { MARKETPLACE_LIVE } from '@/lib/brand'
 import { Wordmark } from './Wordmark'
 
 type NavItem = {
@@ -26,6 +27,16 @@ const ITEMS: NavItem[] = [
     icon: BookOpen,
     match: (p) => p.startsWith('/how-it-works'),
   },
+  ...(MARKETPLACE_LIVE
+    ? [
+        {
+          href: '/marketplace/',
+          label: 'Marketplace',
+          icon: Store,
+          match: (p: string) => p.startsWith('/marketplace') || p.startsWith('/swap'),
+        },
+      ]
+    : []),
   {
     href: '/changelog/',
     label: 'Changelog',
@@ -189,7 +200,7 @@ export function BottomNav() {
   return (
     <nav
       aria-label="Mobile navigation"
-      className="fixed inset-x-0 bottom-0 z-40 grid grid-cols-4 print:hidden border-t border-line/70 bg-bg/85 px-1 pb-[env(safe-area-inset-bottom)] backdrop-blur-md md:hidden"
+      className={`fixed inset-x-0 bottom-0 z-40 grid ${MARKETPLACE_LIVE ? 'grid-cols-5' : 'grid-cols-4'} print:hidden border-t border-line/70 bg-bg/85 px-1 pb-[env(safe-area-inset-bottom)] backdrop-blur-md md:hidden`}
     >
       {mobileItems.map((item) => {
         const on = isActive(item, pathname)

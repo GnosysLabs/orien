@@ -3,7 +3,7 @@ import Link from 'next/link'
 import { Geist, Geist_Mono, Jost } from 'next/font/google'
 import { BottomNav, Header } from '@/components/Header'
 import { Wordmark } from '@/components/Wordmark'
-import { OPERATOR, OPERATOR_URL, SITE_DESCRIPTION, SITE_NAME, SITE_URL, TAGLINE } from '@/lib/brand'
+import { MARKETPLACE_LIVE, OPERATOR, OPERATOR_URL, SITE_DESCRIPTION, SITE_NAME, SITE_URL, TAGLINE } from '@/lib/brand'
 import './globals.css'
 
 const geistSans = Geist({ variable: '--font-geist-sans', subsets: ['latin'] })
@@ -109,6 +109,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               <Link href="/changelog/" className="hover:text-ink">
                 Changelog
               </Link>
+              {MARKETPLACE_LIVE && (
+                <Link href="/privacy/" className="hover:text-ink">
+                  Privacy
+                </Link>
+              )}
               <a href={OPERATOR_URL} target="_blank" rel="noreferrer" className="hover:text-ink">
                 GnosysLabs
               </a>

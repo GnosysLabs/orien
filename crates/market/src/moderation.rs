@@ -163,6 +163,27 @@ impl Store {
         Ok(())
     }
 
+    /// Deletes an account and everything it made: its listings and their
+    /// pictures, its conversations and messages, its swap offers. Returns the
+    /// picture files to remove. A suspended account cannot erase itself.
+    pub fn delete_account(&self, account: i64) -> Result<Vec<String>> {
+        if self.is_suspended(account)? {
+            bail!("a suspended account cannot be deleted");
+        }
+        let mut files: Vec<String> = {
+            let mut statement = self.db.prepare(
+                "SELECT file FROM listing_pictures WHERE listing IN (SELECT id FROM listings WHERE seller = ?1)",
+            )?;
+            statement.query_map([account], |row| row.get(0))?.collect::<rusqlite::Result<_>>()?
+        };
+        if let Some(picture) = self.account(account)?.and_then(|a| a.picture) {
+            files.push(picture);
+        }
+        // Everything that names the account goes with it.
+        self.db.execute("DELETE FROM accounts WHERE id = ?1", [account])?;
+        Ok(files)
+    }
+
     pub fn is_suspended(&self, account: i64) -> Result<bool> {
         Ok(self.db.query_row("SELECT 1 FROM suspended WHERE account = ?1", [account], |_| Ok(())).optional()?.is_some())
     }
@@ -205,6 +226,24 @@ mod tests {
         assert!(store.listing(listing).unwrap().is_none(), "gone for everyone");
         assert!(store.listings_of(maya).unwrap().is_empty(), "the seller too");
         assert!(store.set_open(maya, listing, true).is_err(), "and it cannot be opened again");
+    }
+
+    #[test]
+    fn an_account_deletes_itself_and_everything_it_made() {
+        let store = Store::in_memory().unwrap();
+        let maya = store.create_account("Maya", "maya").unwrap().id;
+        let sam = store.create_account("Sam", "sam").unwrap().id;
+        store.set_wallet(maya, &"a".repeat(64)).unwrap();
+        let listing = store.post(maya, &draft()).unwrap().id;
+        store.add_listing_picture(maya, listing, "pic.jpg").unwrap();
+        let c = store.conversation_about(sam, listing).unwrap();
+        store.send(c, sam, "Hello").unwrap();
+        let token = store.start_session(maya).unwrap();
+        assert_eq!(store.delete_account(maya).unwrap(), vec!["pic.jpg".to_string()]);
+        assert!(store.account(maya).unwrap().is_none());
+        assert_eq!(store.session(&token).unwrap(), None);
+        assert!(store.browse(None, None, 10, 0).unwrap().is_empty());
+        assert!(store.conversations(sam).unwrap().is_empty(), "its conversations go too");
     }
 
     #[test]
