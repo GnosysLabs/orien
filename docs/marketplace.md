@@ -35,6 +35,19 @@ the address, so a track record cannot be borrowed either.
 - **Passkeys** follow the WebAuthn standard (the `webauthn-rs` crate): the
   server keeps each account's public key only.
 
+## Verified wallets
+
+Before their first listing, a seller proves they hold the Orien wallet
+buyers will pay: they send a small, exact amount (under 0.01 ORN) from it to
+the marketplace's own address, and the marketplace sees it in the
+validators' history within seconds. Listings are always paid to that
+wallet, so a mistyped address can never send buyers' money astray.
+
+The marketplace's own wallet is
+`74fa1ab82c45ebeed539b03146243ddfc6f0ccb5163f45ea87d21692ba774b7a`. Its file
+is kept on the founder's Mac, never on the server: the server only reads
+what came in.
+
 ## In pieces
 
 1. The server: accounts with passkey sign-in, and listings to post, edit,
