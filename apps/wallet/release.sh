@@ -20,12 +20,15 @@
 #      https://orien.network/wallet/latest.json, which is what copies of the
 #      app ask. Until that last step nobody is offered the new version.
 #
-# Apple signing, once the developer account is active. Put these in your
-# shell (never in this repository):
-#   export APPLE_SIGNING_IDENTITY="Developer ID Application: <name> (<team id>)"
-#   export APPLE_ID=<your Apple ID email>
-#   export APPLE_PASSWORD=<an app-specific password from appleid.apple.com>
-#   export APPLE_TEAM_ID=<team id>
+# Apple signing uses what is already on this Mac, nothing in this repository:
+#   - the "Developer ID Application" certificate in the login keychain,
+#     found automatically (or name it in APPLE_SIGNING_IDENTITY);
+#   - the notary login saved in the keychain with
+#       xcrun notarytool store-credentials AC_NOTARY --team-id <team id>
+#     (another name in APPLE_KEYCHAIN_PROFILE).
+# The script signs the app, has Apple notarize the .dmg, staples Apple's
+# ticket to both, and only then packs and signs the update, so updates carry
+# the notarized app too.
 
 set -euo pipefail
 cd "$(dirname "$0")"
@@ -78,20 +81,46 @@ if [ -z "${TAURI_SIGNING_PRIVATE_KEY_PASSWORD:-}" ]; then
 fi
 export TAURI_SIGNING_PRIVATE_KEY=$KEY TAURI_SIGNING_PRIVATE_KEY_PASSWORD
 if [ -z "${APPLE_SIGNING_IDENTITY:-}" ]; then
-    echo "Note: Apple signing is not set up, so Macs will warn before opening the downloaded app."
+    APPLE_SIGNING_IDENTITY=$(security find-identity -v -p codesigning | sed -n 's/.*"\(Developer ID Application: .*\)"/\1/p' | head -1)
+fi
+NOTARY=${APPLE_KEYCHAIN_PROFILE:-AC_NOTARY}
+if [ -n "$APPLE_SIGNING_IDENTITY" ]; then
+    echo "Signing as: $APPLE_SIGNING_IDENTITY"
+    export APPLE_SIGNING_IDENTITY
+    # Fails early, before the build, if Apple's notary service would refuse.
+    xcrun notarytool history --keychain-profile "$NOTARY" >/dev/null || {
+        echo "Apple's notary service refused the '$NOTARY' login. Check the agreements at developer.apple.com/account." >&2
+        exit 1
+    }
+else
+    echo "Note: no Developer ID certificate on this Mac, so Macs will warn before opening the downloaded app."
 fi
 
 echo "Building Orien $VERSION for Macs with Apple chips"
 rustup target add $TARGET >/dev/null
 # Built for the live network: the genesis file in web/public/network.
-env -u ORIEN_GENESIS cargo tauri build --target $TARGET
+# Tauri signs the app here; notarizing is done below, with the keychain
+# login, so Tauri is not given Apple credentials of its own.
+env -u ORIEN_GENESIS -u APPLE_ID -u APPLE_PASSWORD -u APPLE_API_KEY -u APPLE_API_ISSUER \
+    cargo tauri build --target $TARGET
 
 BUNDLE=$APP/target/$TARGET/release/bundle
 OUT=$APP/target/release-$VERSION
 rm -rf "$OUT" && mkdir -p "$OUT"
-cp "$BUNDLE/macos/Orien Wallet.app.tar.gz" "$OUT/Orien-Wallet.app.tar.gz"
 cp "$BUNDLE"/dmg/"Orien Wallet_$VERSION"_*.dmg "$OUT/Orien-Wallet.dmg"
-SIGNATURE=$(cat "$BUNDLE/macos/Orien Wallet.app.tar.gz.sig")
+if [ -n "$APPLE_SIGNING_IDENTITY" ]; then
+    echo "Sending to Apple for notarization (usually a few minutes)"
+    xcrun notarytool submit "$OUT/Orien-Wallet.dmg" --keychain-profile "$NOTARY" --wait | tee "$OUT/notary.log"
+    grep -q "status: Accepted" "$OUT/notary.log" || { echo "Apple did not accept it; see $OUT/notary.log" >&2; exit 1; }
+    xcrun stapler staple "$OUT/Orien-Wallet.dmg"
+    xcrun stapler staple "$BUNDLE/macos/Orien Wallet.app"
+    spctl -a -vv "$BUNDLE/macos/Orien Wallet.app"
+fi
+# The update: the (now notarized) app, packed and signed with the update key.
+COPYFILE_DISABLE=1 tar -czf "$OUT/Orien-Wallet.app.tar.gz" -C "$BUNDLE/macos" "Orien Wallet.app"
+# The password comes from the environment, not the command line.
+env -u TAURI_SIGNING_PRIVATE_KEY cargo tauri signer sign -f "$KEY" "$OUT/Orien-Wallet.app.tar.gz" >/dev/null
+SIGNATURE=$(cat "$OUT/Orien-Wallet.app.tar.gz.sig")
 (cd "$OUT" && shasum -a 256 Orien-Wallet.dmg Orien-Wallet.app.tar.gz > SHA256SUMS)
 
 python3 - "$VERSION" "$MINIMUM" "$SIGNATURE" "$BASE_URL" "$OUT/latest.json" <<'PY'
