@@ -1114,6 +1114,84 @@ mod tests {
         let bob_after = client.account(&orien_net::keys::Wallet::peek(&bob.wallet_file).unwrap().0, 0).spendable.unwrap();
         assert_eq!(bob_after - bob_before, orn as i128 - network.fee.min as i128, "bob has the ORN, less the claim's fee");
     }
+    /// The same swap, with Bob's app closed from the moment he has paid: Alice's
+    /// wallet takes the Bitcoin and delivers Bob's ORN to him all the same.
+    #[test]
+    #[ignore = "needs a local network and a test copy of the swap board"]
+    fn the_seller_delivers_when_the_buyer_is_away() {
+        use orien_swap::bitcoin::{Address, CompressedPublicKey, Network};
+        use orien_swap::swap::Stage;
+        use orien_swap::testing::TestChain;
+        let root = std::path::PathBuf::from(std::env::var("ORIEN_DEVNET").unwrap());
+        let folders = std::path::PathBuf::from(std::env::var("ORIEN_BOARD_TEST").unwrap());
+        let genesis = root.join("genesis.json");
+        let client = super::connect(&genesis).unwrap();
+        let network = orien_net::keys::load_genesis(&genesis).unwrap();
+        let side = |name: &str| super::swaps::AppOrien {
+            client: &client,
+            wallet_file: root.join(format!("wallets/{name}.wallet")),
+            password: None,
+            fees: network.fee,
+            network: network.id().to_string(),
+            epoch_seconds: network.epoch_seconds,
+        };
+        let (alice, bob) = (side("alice"), side("bob"));
+        let (alice_dir, bob_dir) = (folders.join("alice"), folders.join("bob"));
+        let btc = || {
+            let (_, key) = orien_swap::htlc::new_key();
+            Address::p2wpkh(&CompressedPublicKey(key.inner), Network::Regtest).to_string()
+        };
+        let bitcoin = TestChain::at(100);
+        let chain = orien_swap::chain::Explorers::one(bitcoin.clone());
+        let bob_before = client.account(&orien_net::keys::Wallet::peek(&bob.wallet_file).unwrap().0, 0).spendable.unwrap();
+
+        // Alice posts 5 ORN for 0.01 BTC; bob takes it.
+        let orn = 5 * orien_ledger::COIN;
+        super::board::post_on(&alice_dir, &alice.wallet_file, Network::Regtest, orn, 1_000_000, &btc()).unwrap();
+        let posted = super::board::mine(&alice_dir).unwrap();
+        let id = posted.as_array().unwrap().iter().find(|s| s["offer"]["state"] == "open").unwrap()["offer"]["id"].as_i64().unwrap();
+        let bob_address = orien_net::keys::Wallet::peek(&bob.wallet_file).unwrap().0.to_string();
+        super::board::take_on(&bob_dir, &bob.wallet_file, Network::Regtest, id, &bob_address, &btc()).unwrap();
+
+        let (mut alice_swaps, mut bob_swaps) = (Vec::new(), Vec::new());
+        let mut paid = false;
+        let mut board_state = String::new();
+        // The seller waits an epoch before delivering, so an open buyer's
+        // wallet can claim first: give it a few epochs.
+        for round in 0..900 {
+            super::board::drive_on(&alice, Network::Regtest, &chain, &alice_dir, &mut alice_swaps).unwrap();
+            super::swaps::step_on(&alice, &chain, &alice_dir, &mut alice_swaps).unwrap();
+            // Bob's app closes once he has paid: only Alice's runs on.
+            if !paid {
+                super::board::drive_on(&bob, Network::Regtest, &chain, &bob_dir, &mut bob_swaps).unwrap();
+                super::swaps::step_on(&bob, &chain, &bob_dir, &mut bob_swaps).unwrap();
+            }
+            // Bob pays the Bitcoin, as a person would, once his wallet shows
+            // where.
+            if !paid
+                && let Some(kept) = bob_swaps.first()
+                && kept.swap.stage == Stage::WaitingForBitcoin
+            {
+                bitcoin.pay(&kept.swap.bitcoin_address().unwrap(), 1_000_000);
+                paid = true;
+            }
+            if paid {
+                bitcoin.mine(1);
+            }
+            let stages: Vec<_> = alice_swaps.iter().chain(&bob_swaps).map(|k| format!("{:?} {:?}", k.swap.stage, k.problem)).collect();
+            board_state = super::board::mine(&alice_dir).unwrap().as_array().unwrap().iter()
+                .find(|s| s["offer"]["id"] == id).map(|s| s["offer"]["state"].as_str().unwrap().to_string()).unwrap_or_default();
+            println!("round {round}: board {board_state}; {stages:?}");
+            if alice_swaps.first().is_some_and(|k| k.swap.finished()) {
+                break;
+            }
+            std::thread::sleep(std::time::Duration::from_millis(1000));
+        }
+        let _ = board_state;
+        assert!(alice_swaps[0].swap.finished(), "Alice's wallet took the Bitcoin and delivered");
+        let bob_after = client.account(&orien_net::keys::Wallet::peek(&bob.wallet_file).unwrap().0, 0).spendable.unwrap();
+        assert_eq!(bob_after - bob_before, orn as i128 - network.fee.min as i128, "bob has the ORN, less the claim's fee");
+    }
 
     /// Signing up to a test copy of the swap board with an emailed code,
     /// taking an offer at once with no linked wallet, and then linking bob's
