@@ -17,6 +17,7 @@ mod contacts;
 mod linux;
 mod money;
 mod send;
+mod swaps;
 mod update;
 
 use orien_ledger::AccountId;
@@ -382,24 +383,183 @@ async fn send_payment(app: AppHandle, to: String, amount: String, password: Opti
     .map_err(|error| error.to_string())?
 }
 
+/// Swaps run with the app's client and wallet.
+fn with_swaps<T: Send + 'static>(
+    app: &AppHandle,
+    password: Option<String>,
+    work: impl FnOnce(&Path, &swaps::AppOrien) -> Result<T, String> + Send + 'static,
+) -> tauri::async_runtime::JoinHandle<Result<T, String>> {
+    let dir = folder(app);
+    tauri::async_runtime::spawn_blocking(move || {
+        let dir = dir?;
+        let wallet_file = wallet_file(&dir).ok_or("no wallet yet")?;
+        let genesis = genesis_file(&dir)?;
+        let _turn = TURNS.lock().unwrap_or_else(|poisoned| poisoned.into_inner());
+        let client = connect(&genesis)?;
+        let orien = swaps::AppOrien {
+            client: &client,
+            wallet_file,
+            password,
+            fees: money::fees(GENESIS),
+            network: network_id().unwrap_or_default(),
+        };
+        let result = work(&dir, &orien);
+        let _ = client.head().save(&head_file(&genesis));
+        result
+    })
+}
+
+fn views(swaps: &[swaps::Kept]) -> Vec<swaps::View> {
+    let mut views: Vec<swaps::View> = swaps.iter().map(swaps::view).collect();
+    views.sort_by_key(|view| std::cmp::Reverse(view.created));
+    views
+}
+
+/// Every swap this wallet has made, newest first.
+#[tauri::command]
+fn swap_list(app: AppHandle) -> Result<Vec<swaps::View>, String> {
+    Ok(views(&swaps::load(&folder(&app)?)))
+}
+
+/// Sells `orn` ORN for `btc` Bitcoin to the Orien address `buyer`: locks the
+/// ORN for them and makes the offer code.
+#[tauri::command]
+async fn swap_sell(app: AppHandle, buyer: String, orn: String, btc: String, payout: String, password: Option<String>) -> Result<swaps::View, String> {
+    let orn = money::read(&orn)?;
+    let sats = swaps::read_btc(&btc)?;
+    with_swaps(&app, password, move |dir, orien| {
+        let kept = swaps::sell(orien, &buyer, orn, sats, &payout)?;
+        let mut all = swaps::load(dir);
+        all.push(kept.clone());
+        swaps::save(dir, &all)?;
+        Ok(swaps::view(&kept))
+    })
+    .await
+    .map_err(|error| error.to_string())?
+}
+
+/// Takes up a seller's offer: checks it on Orien and makes the reply code.
+#[tauri::command]
+async fn swap_buy(app: AppHandle, offer: String, refund: String) -> Result<swaps::View, String> {
+    with_swaps(&app, None, move |dir, orien| {
+        let kept = swaps::buy(orien, &offer, &refund)?;
+        let mut all = swaps::load(dir);
+        if all.iter().any(|known| known.id == kept.id) {
+            return Err("This offer is already taken up here.".into());
+        }
+        all.push(kept.clone());
+        swaps::save(dir, &all)?;
+        Ok(swaps::view(&kept))
+    })
+    .await
+    .map_err(|error| error.to_string())?
+}
+
+/// The seller pastes the buyer's reply.
+#[tauri::command]
+async fn swap_accept(app: AppHandle, id: String, reply: String) -> Result<swaps::View, String> {
+    with_swaps(&app, None, move |dir, _| {
+        let mut all = swaps::load(dir);
+        let kept = all.iter_mut().find(|kept| kept.id == id).ok_or("That swap is not here.")?;
+        swaps::accept(kept, &reply)?;
+        let view = swaps::view(kept);
+        swaps::save(dir, &all)?;
+        Ok(view)
+    })
+    .await
+    .map_err(|error| error.to_string())?
+}
+
+/// Moves every unfinished swap along. The window calls this every so often
+/// while any swap is under way. Claiming ORN signs, so it may need the
+/// wallet's password.
+#[tauri::command]
+async fn swap_step(app: AppHandle, password: Option<String>) -> Result<Vec<swaps::View>, String> {
+    with_swaps(&app, password, move |dir, orien| {
+        let mut all = swaps::load(dir);
+        if swaps::active(&all) {
+            swaps::step(orien, &mut all);
+            swaps::save(dir, &all)?;
+        }
+        Ok(views(&all))
+    })
+    .await
+    .map_err(|error| error.to_string())?
+}
+
 fn main() {
     #[cfg(target_os = "linux")]
     linux::register_appimage();
     tauri::Builder::default()
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_updater::Builder::new().build())
-        .invoke_handler(tauri::generate_handler![has_wallet, create_wallet, restore_wallet, set_password, choose_wallet, overview_now, send_payment, activity, quote, contacts, save_contact, delete_contact, update::check_update, update::install_update])
+        .invoke_handler(tauri::generate_handler![has_wallet, create_wallet, restore_wallet, set_password, choose_wallet, overview_now, send_payment, activity, quote, contacts, save_contact, delete_contact, update::check_update, update::install_update, swap_list, swap_sell, swap_buy, swap_accept, swap_step])
         .run(tauri::generate_context!())
         .expect("the wallet window could not start");
 }
 
 #[cfg(test)]
 mod tests {
+    /// A whole swap with the app's own code: a real lock and a real claim on
+    /// a running local test network, and a pretend Bitcoin network. Start one
+    /// first: `orien devnet init --dir /tmp/orien-swap-net && orien devnet
+    /// run --dir /tmp/orien-swap-net`, then run with ORIEN_DEVNET set to it.
+    #[test]
+    fn a_whole_swap_on_a_local_network() {
+        use orien_swap::bitcoin::{Address, CompressedPublicKey, Network};
+        use orien_swap::swap::{Offer, Orien, Reply, Stage, Swap};
+        use orien_swap::testing::TestChain;
+        let Ok(root) = std::env::var("ORIEN_DEVNET") else {
+            eprintln!("ORIEN_DEVNET is not set; skipped");
+            return;
+        };
+        let root = std::path::Path::new(&root);
+        let genesis = root.join("genesis.json");
+        let client = super::connect(&genesis).unwrap();
+        let network = orien_net::keys::load_genesis(&genesis).unwrap();
+        let side = |wallet: std::path::PathBuf| super::swaps::AppOrien {
+            client: &client,
+            wallet_file: wallet,
+            password: None,
+            fees: network.fee,
+            network: network.id().to_string(),
+        };
+        let seller = side(root.join("wallets/alice.wallet"));
+        let fresh = root.join(format!("buyer-{}.wallet", std::process::id()));
+        orien_net::keys::Wallet::create(&fresh).unwrap();
+        let buyer = side(fresh.clone());
+        let btc = || {
+            let (_, key) = orien_swap::htlc::new_key();
+            Address::p2wpkh(&CompressedPublicKey(key.inner), Network::Regtest).to_string()
+        };
+        let chain = TestChain::default();
+        chain.0.borrow_mut().height = 100;
+
+        let orn = 5 * orien_ledger::COIN;
+        let (mut sell, offer) = Swap::sell(&seller, Network::Regtest, buyer.me(), orn, 1_000_000, &btc()).unwrap();
+        let (mut buy, reply) = Swap::buy(&buyer, &chain, Network::Regtest, &Offer::read(&offer.code()).unwrap(), &btc()).unwrap();
+        sell.accept(&chain, &Reply::read(&reply.code()).unwrap()).unwrap();
+        chain.pay(&buy.bitcoin_address().unwrap(), 1_000_000);
+        chain.mine(1);
+        for _ in 0..5 {
+            sell.advance(&chain, &seller).unwrap();
+            buy.advance(&chain, &buyer).unwrap();
+        }
+        assert_eq!((sell.stage, buy.stage), (Stage::Done, Stage::Done));
+        let status = client.account(&buyer.me(), 0);
+        assert_eq!(status.spendable, Some(orn as i128 - network.fee.min as i128), "the buyer has the ORN, less the claim's fee");
+        let _ = std::fs::remove_file(fresh);
+    }
+
     /// Reads a wallet from a running local test network, if there is one:
-    /// `orien devnet init && orien devnet run` in the repository root.
+    /// `orien devnet init && orien devnet run` in the repository root, then
+    /// run with ORIEN_DEVNET=devnet.
     #[test]
     fn reads_a_wallet_from_the_local_network() {
-        let root = std::env::var("ORIEN_DEVNET").unwrap_or_else(|_| "../../devnet".into());
+        let Ok(root) = std::env::var("ORIEN_DEVNET") else {
+            eprintln!("ORIEN_DEVNET does not name a running local test network; skipped");
+            return;
+        };
         let root = std::path::Path::new(&root);
         if !root.join("genesis.json").is_file() {
             eprintln!("no local test network at {}; skipped", root.display());
@@ -435,7 +595,10 @@ mod tests {
     /// the app's own sending code, and checks both balances moved.
     #[test]
     fn sends_a_payment_on_the_local_network() {
-        let root = std::env::var("ORIEN_DEVNET").unwrap_or_else(|_| "../../devnet".into());
+        let Ok(root) = std::env::var("ORIEN_DEVNET") else {
+            eprintln!("ORIEN_DEVNET does not name a running local test network; skipped");
+            return;
+        };
         let root = std::path::Path::new(&root);
         if !root.join("genesis.json").is_file() {
             eprintln!("no local test network at {}; skipped", root.display());

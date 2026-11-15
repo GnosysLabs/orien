@@ -15,6 +15,9 @@ tauri-build = { version = "2", features = [] }
 [dependencies]
 orien-net = { path = "../../crates/net" }
 orien-ledger = { path = "../../crates/ledger" }
+orien-swap = { path = "../../crates/swap" }
+orien-crypto = { path = "../../crates/crypto" }
+anyhow = "1"
 tauri = { version = "2", features = [] }
 tauri-plugin-dialog = "2"
 serde = { version = "1", features = ["derive"] }
@@ -25,3 +28,7 @@ semver = "1"
 # Hashing dominates the wallet's work, so even debug builds are optimized.
 [profile.dev]
 opt-level = 2
+
+[dev-dependencies]
+# A pretend Bitcoin network, for testing whole swaps.
+orien-swap = { path = "../../crates/swap", features = ["testing"] }

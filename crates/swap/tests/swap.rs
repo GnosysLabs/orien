@@ -4,96 +4,14 @@
 //! payments as the ledger does.
 
 use bitcoin::hashes::{Hash, sha256};
-use bitcoin::{Address, Amount, CompressedPublicKey, Network, OutPoint, Transaction, TxOut, Txid};
+use bitcoin::{Address, CompressedPublicKey, Network};
 use orien_crypto::Hash32;
-use orien_swap::chain::Chain;
-use orien_swap::htlc::{Coin, new_key};
+use orien_swap::testing::TestChain as Chain_;
+use orien_swap::htlc::new_key;
 use orien_swap::swap::{BTC_BLOCKS, LockRef, ORN_EPOCHS, Offer, Orien, Reply, Role, Stage, Swap, Waiting};
 use std::cell::RefCell;
 use std::collections::HashMap;
 use std::rc::Rc;
-
-// ---------------------------------------------------------------- Bitcoin
-
-#[derive(Default)]
-struct Bitcoin {
-    height: u32,
-    /// Unspent coins, by address, with the height they were mined at (None
-    /// while waiting).
-    coins: Vec<(Address, Coin, Option<u32>)>,
-    spent: HashMap<OutPoint, Transaction>,
-    /// What each address received from spends of swap locks.
-    received: HashMap<String, Amount>,
-    next: u8,
-}
-
-#[derive(Clone, Default)]
-struct Chain_(Rc<RefCell<Bitcoin>>);
-
-impl Chain_ {
-    fn pay(&self, address: &Address, sats: u64) {
-        let mut b = self.0.borrow_mut();
-        b.next += 1;
-        let txid = Txid::from_byte_array([b.next; 32]);
-        b.coins.push((address.clone(), Coin { outpoint: OutPoint { txid, vout: 0 }, value: Amount::from_sat(sats) }, None));
-    }
-    /// Mines a block: everything waiting is confirmed.
-    fn mine(&self, blocks: u32) {
-        let mut b = self.0.borrow_mut();
-        for _ in 0..blocks {
-            b.height += 1;
-            let height = b.height;
-            for (_, _, mined) in b.coins.iter_mut() {
-                mined.get_or_insert(height);
-            }
-        }
-    }
-}
-
-impl Chain for Chain_ {
-    fn height(&self) -> anyhow::Result<u32> {
-        Ok(self.0.borrow().height)
-    }
-    fn fee_rate(&self) -> anyhow::Result<u64> {
-        Ok(5)
-    }
-    fn coins(&self, address: &Address) -> anyhow::Result<Vec<(Coin, u32)>> {
-        let b = self.0.borrow();
-        Ok(b.coins
-            .iter()
-            .filter(|(to, coin, _)| to == address && !b.spent.contains_key(&coin.outpoint))
-            .map(|(_, coin, mined)| (*coin, mined.map_or(0, |h| b.height - h + 1)))
-            .collect())
-    }
-    fn spender(&self, outpoint: &OutPoint) -> anyhow::Result<Option<Transaction>> {
-        Ok(self.0.borrow().spent.get(outpoint).cloned())
-    }
-    fn broadcast(&self, tx: &Transaction) -> anyhow::Result<Txid> {
-        let mut b = self.0.borrow_mut();
-        let input = &tx.input[0];
-        let (address, coin, _) = b
-            .coins
-            .iter()
-            .find(|(_, coin, _)| coin.outpoint == input.previous_output)
-            .cloned()
-            .ok_or_else(|| anyhow::anyhow!("spends a coin that does not exist"))?;
-        if b.spent.contains_key(&coin.outpoint) {
-            anyhow::bail!("double spend");
-        }
-        // A lock time must have passed, as real nodes require.
-        if tx.lock_time.to_consensus_u32() > b.height {
-            anyhow::bail!("non-final transaction");
-        }
-        let spent = TxOut { value: coin.value, script_pubkey: address.script_pubkey() };
-        tx.verify(|_| Some(spent.clone())).map_err(|e| anyhow::anyhow!("Bitcoin's rules refuse it: {e:?}"))?;
-        b.spent.insert(coin.outpoint, tx.clone());
-        for output in &tx.output {
-            let to = Address::from_script(&output.script_pubkey, Network::Regtest).unwrap().to_string();
-            *b.received.entry(to).or_default() += output.value;
-        }
-        Ok(tx.compute_txid())
-    }
-}
 
 // ---------------------------------------------------------------- Orien
 
@@ -242,6 +160,26 @@ fn a_swap_pays_both_sides() {
 
     // Running on changes nothing and sends nothing again.
     round(&w, &mut seller, &mut buyer);
+    assert_eq!(w.ledger.borrow().balances[&w.buyer.me], ORN);
+}
+
+#[test]
+fn a_buyer_whose_wallet_was_closed_still_gets_the_orn() {
+    let w = world();
+    let (mut seller, mut buyer) = set_up(&w);
+    // The buyer pays and closes the wallet; the seller takes the Bitcoin
+    // before the buyer's wallet ever saw the payment arrive.
+    w.chain.pay(&buyer.bitcoin_address().unwrap(), SATS);
+    w.chain.mine(1);
+    seller.advance(&w.chain, &w.seller).unwrap();
+    seller.advance(&w.chain, &w.seller).unwrap();
+    assert_eq!(seller.stage, Stage::Done);
+    // Opened later, the buyer's wallet finds the payment, the seller's
+    // claim and the secret in it, and claims the ORN.
+    for _ in 0..3 {
+        buyer.advance(&w.chain, &w.buyer).unwrap();
+    }
+    assert_eq!(buyer.stage, Stage::Done);
     assert_eq!(w.ledger.borrow().balances[&w.buyer.me], ORN);
 }
 

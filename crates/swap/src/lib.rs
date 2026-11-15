@@ -2,3 +2,8 @@
 pub mod chain;
 pub mod htlc;
 pub mod swap;
+#[cfg(feature = "testing")]
+pub mod testing;
+
+/// The Bitcoin library swaps are built on, for programs that use them.
+pub use bitcoin;

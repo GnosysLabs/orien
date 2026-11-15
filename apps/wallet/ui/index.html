@@ -152,6 +152,19 @@
 
   .actions { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 16px; }
   .actions.three { grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
+  .actions.four { grid-template-columns: repeat(4, 1fr); gap: 8px; }
+  /* Swaps */
+  .codebox { font: 11.5px ui-monospace, "SF Mono", monospace; word-break: break-all; color: var(--dim);
+    border: 1px solid var(--line); border-radius: 14px; background: var(--surface); padding: 12px 14px; }
+  .swap-row { display: flex; justify-content: space-between; align-items: center; gap: 12px; width: 100%;
+    padding: 14px 16px; border: 1px solid var(--line); border-radius: 16px; background: var(--surface);
+    color: inherit; font: inherit; text-align: left; cursor: pointer; }
+  .swap-row + .swap-row { margin-top: 8px; }
+  .swap-row:hover { background: var(--surface-hover); }
+  .swap-row .sub { font-size: 12.5px; color: var(--dim); }
+  .swap-status { margin: 14px 2px 0; line-height: 1.45; }
+  .swap-choices { display: grid; gap: 10px; }
+  #swap-detail .label { font-size: 11.5px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--dim); margin: 0 4px 8px; }
   .tile {
     height: 56px; border-radius: 16px; border: 1px solid var(--line);
     background: var(--surface); cursor: pointer;
@@ -390,7 +403,7 @@
         <div class="amount"><span class="balance" id="balance">—</span><span class="unit">ORN</span></div>
       </div>
 
-      <div class="actions three">
+      <div class="actions four">
         <button class="tile" id="go-send">
           <span class="icon pearl"><svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 10.5 10.5 3.5M5 3.5h5.5V9"/></svg></span>
           Send
@@ -398,6 +411,10 @@
         <button class="tile" id="go-receive">
           <span class="icon pearl"><svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10.5 3.5 3.5 10.5M9 10.5H3.5V5"/></svg></span>
           Receive
+        </button>
+        <button class="tile" id="go-swap">
+          <span class="icon pearl"><svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 5.5h9.5M10 3l2.5 2.5L10 8M13 10.5H3.5M6 8l-2.5 2.5L6 13"/></svg></span>
+          Swap
         </button>
         <button class="tile" id="go-contacts">
           <span class="icon pearl"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.6"/><path d="M2.8 20c0-3.5 2.8-5.9 6.2-5.9s6.2 2.4 6.2 5.9"/><path d="M15.6 4.6a3.6 3.6 0 0 1 0 6.8"/><path d="M17.9 14.6c2 .7 3.3 2.7 3.3 5.4"/></svg></span>
@@ -515,6 +532,105 @@
       <p id="d-detail"></p>
       <button class="primary pearl" data-back>Done</button>
       <button class="secondary" id="d-save" hidden>Save as contact</button>
+    </section>
+
+    <!-- Swaps -->
+    <section class="screen" id="swaps" hidden>
+      <div class="topline"><button class="back" data-back aria-label="Back"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10 3 5 8l5 5"/></svg></button><h2>Swap</h2></div>
+      <p class="lede">Swap ORN and Bitcoin with someone directly. Neither of you can cheat: either both get paid, or both get their coins back.</p>
+      <div class="swap-choices">
+        <button class="secondary" id="go-sell">Sell ORN for Bitcoin</button>
+        <button class="secondary" id="go-buy">Buy ORN with Bitcoin</button>
+      </div>
+      <div class="section-head"><h3>Your swaps</h3></div>
+      <div class="scroll" id="swap-list"><div class="empty">No swaps yet</div></div>
+    </section>
+
+    <section class="screen" id="swap-sell" hidden>
+      <div class="topline">
+        <button class="back" id="sell-back" aria-label="Back"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10 3 5 8l5 5"/></svg></button>
+        <h2>Sell ORN</h2>
+      </div>
+      <div class="field">
+        <label for="sell-buyer">Buyer's Orien address</label>
+        <div class="box plain"><input id="sell-buyer" placeholder="Ask the buyer for it" spellcheck="false" autocomplete="off"></div>
+      </div>
+      <div class="field">
+        <label for="sell-orn">ORN to sell</label>
+        <div class="box plain"><input id="sell-orn" placeholder="500" inputmode="decimal" autocomplete="off"></div>
+      </div>
+      <div class="field">
+        <label for="sell-btc">Bitcoin to receive</label>
+        <div class="box plain"><input id="sell-btc" placeholder="0.01" inputmode="decimal" autocomplete="off"></div>
+      </div>
+      <div class="field">
+        <label for="sell-payout">Your Bitcoin address</label>
+        <div class="box plain"><input id="sell-payout" placeholder="Where the Bitcoin should go" spellcheck="false" autocomplete="off"></div>
+      </div>
+      <div class="field" id="sell-pw-field" hidden>
+        <label for="sell-pw">Wallet password</label>
+        <div class="box plain"><input id="sell-pw" type="password" autocomplete="current-password"></div>
+      </div>
+      <p class="fineprint">Your ORN are locked for the buyer for 48 hours. If the swap doesn't happen, they come back to you on their own.</p>
+      <div class="push"></div>
+      <div class="problem" id="sell-problem" hidden></div>
+      <button class="primary pearl" id="sell-go" data-gap="lg">Lock ORN and make the offer</button>
+    </section>
+
+    <section class="screen" id="swap-buy" hidden>
+      <div class="topline">
+        <button class="back" id="buy-back" aria-label="Back"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10 3 5 8l5 5"/></svg></button>
+        <h2>Buy ORN</h2>
+      </div>
+      <p class="lede">First, give the seller your Orien address. They send you back an offer code.</p>
+      <div class="codebox" id="buy-me"></div>
+      <button class="secondary" id="buy-copy-me" data-gap="sm">Copy your address</button>
+      <div class="field" data-gap="xl">
+        <label for="buy-offer">Offer code</label>
+        <textarea id="buy-offer" class="tall" placeholder="orien-offer:…" spellcheck="false" autocomplete="off"></textarea>
+      </div>
+      <div class="field">
+        <label for="buy-refund">Your Bitcoin address</label>
+        <div class="box plain"><input id="buy-refund" placeholder="Where your Bitcoin comes back if the swap stops" spellcheck="false" autocomplete="off"></div>
+      </div>
+      <div class="push"></div>
+      <div class="problem" id="buy-problem" hidden></div>
+      <button class="primary pearl" id="buy-go" data-gap="lg">Check the offer</button>
+    </section>
+
+    <section class="screen" id="swap-detail" hidden>
+      <div class="topline">
+        <button class="back" id="detail-back" aria-label="Back"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10 3 5 8l5 5"/></svg></button>
+        <h2 id="sd-title"></h2>
+      </div>
+      <div class="review">
+        <div class="row"><span>ORN</span><span id="sd-orn"></span></div>
+        <div class="row"><span>Bitcoin</span><span id="sd-btc"></span></div>
+      </div>
+      <p class="swap-status" id="sd-status"></p>
+      <div id="sd-pay" hidden data-gap="lg">
+        <div class="label">Pay exactly <span id="sd-pay-amount"></span> BTC to</div>
+        <div class="codebox" id="sd-pay-to"></div>
+        <button class="secondary" id="sd-copy-pay" data-gap="sm">Copy Bitcoin address</button>
+      </div>
+      <div id="sd-code" hidden data-gap="lg">
+        <div class="label" id="sd-code-label"></div>
+        <div class="codebox" id="sd-code-text"></div>
+        <button class="secondary" id="sd-copy-code" data-gap="sm">Copy code</button>
+      </div>
+      <div class="field" id="sd-reply-field" hidden data-gap="xl">
+        <label for="sd-reply">Buyer's reply code</label>
+        <textarea id="sd-reply" class="tall" placeholder="orien-reply:…" spellcheck="false" autocomplete="off"></textarea>
+        <button class="primary pearl" id="sd-accept" data-gap="sm">Use the reply</button>
+      </div>
+      <div class="field" id="sd-pw-field" hidden data-gap="xl">
+        <label for="sd-pw">Wallet password, to claim your ORN</label>
+        <div class="box plain"><input id="sd-pw" type="password" autocomplete="current-password"></div>
+        <button class="primary pearl" id="sd-claim" data-gap="sm">Claim ORN</button>
+      </div>
+      <div class="push"></div>
+      <div class="problem" id="detail-problem" hidden></div>
+      <p class="fineprint">Keep Orien Wallet open until the swap is done: it does each step for you as soon as it can.</p>
     </section>
 
     <!-- Receive -->
@@ -911,6 +1027,128 @@
   };
 
   setInterval(() => { if (!$("home").hidden || !$("activity").hidden) refresh(); }, 15000);
+
+  // ---- Swaps ----
+  let swapList = [];
+  let current = null;       // the swap shown in detail
+  let stepping = false;
+  const stageWord = { reply: "Waiting for reply", bitcoin: "Waiting for Bitcoin", secret: "Waiting for the seller",
+    claim: "Claiming ORN", done: "Done", cancelled: "Cancelled" };
+
+  function renderSwaps() {
+    const list = $("swap-list");
+    if (!swapList.length) { list.innerHTML = '<div class="empty">No swaps yet</div>'; return; }
+    list.innerHTML = swapList.map((s) => `<button class="swap-row" data-swap="${esc(s.id)}">
+      <div><div>${s.role === "sell" ? "Sell" : "Buy"} ${esc(s.orn)} ORN for ${esc(s.btc)} BTC</div>
+      <div class="sub">${esc(stageWord[s.stage] || "")}</div></div></button>`).join("");
+    for (const b of list.querySelectorAll("[data-swap]")) b.onclick = () => openSwap(b.dataset.swap);
+  }
+
+  async function loadSwaps() {
+    try { swapList = await invoke("swap_list"); } catch { swapList = []; }
+    renderSwaps();
+  }
+
+  function openSwap(id) {
+    current = id;
+    renderDetail();
+    show("swap-detail");
+  }
+
+  function renderDetail() {
+    const s = swapList.find((x) => x.id === current);
+    if (!s) return;
+    $("sd-title").textContent = s.role === "sell" ? "Selling ORN" : "Buying ORN";
+    $("sd-orn").textContent = s.orn + " ORN";
+    $("sd-btc").textContent = s.btc + " BTC";
+    $("sd-status").textContent = s.status;
+    $("sd-pay").hidden = !s.pay_to;
+    if (s.pay_to) { $("sd-pay-to").textContent = s.pay_to; $("sd-pay-amount").textContent = s.btc; }
+    const code = s.role === "sell" ? (s.stage === "reply" ? s.offer : null) : (s.stage === "bitcoin" ? s.reply : null);
+    $("sd-code").hidden = !code;
+    if (code) {
+      $("sd-code-label").textContent = s.role === "sell" ? "Send the buyer this offer code" : "Send the seller this reply code";
+      $("sd-code-text").textContent = code;
+    }
+    $("sd-reply-field").hidden = !(s.role === "sell" && s.stage === "reply");
+    const needsPassword = s.problem && s.problem.startsWith("password:");
+    $("sd-pw-field").hidden = !needsPassword;
+    if (s.problem && !needsPassword) problem("detail-problem", s.problem); else $("detail-problem").hidden = true;
+  }
+
+  async function stepSwaps(password) {
+    if (stepping) return;
+    stepping = true;
+    try {
+      swapList = await invoke("swap_step", { password: password || null });
+      renderSwaps();
+      if (!$("swap-detail").hidden) renderDetail();
+    } catch (e) {
+      if (!$("swap-detail").hidden) problem("detail-problem", e);
+    } finally { stepping = false; }
+  }
+
+  $("go-swap").onclick = async () => { show("swaps"); await loadSwaps(); stepSwaps(); };
+  $("detail-back").onclick = async () => { show("swaps"); await loadSwaps(); };
+  $("sell-back").onclick = $("buy-back").onclick = () => show("swaps");
+  $("go-sell").onclick = () => { $("sell-pw-field").hidden = true; show("swap-sell"); };
+  $("go-buy").onclick = () => {
+    $("buy-me").textContent = view ? view.address : "";
+    show("swap-buy");
+  };
+  $("buy-copy-me").onclick = async () => { if (view) await navigator.clipboard.writeText(view.address); };
+  $("sd-copy-pay").onclick = async () => { await navigator.clipboard.writeText($("sd-pay-to").textContent); };
+  $("sd-copy-code").onclick = async () => { await navigator.clipboard.writeText($("sd-code-text").textContent); };
+
+  $("sell-go").onclick = async () => {
+    $("sell-go").disabled = true;
+    try {
+      const made = await invoke("swap_sell", { buyer: $("sell-buyer").value, orn: $("sell-orn").value,
+        btc: $("sell-btc").value, payout: $("sell-payout").value, password: $("sell-pw").value || null });
+      $("sell-pw").value = "";
+      await loadSwaps();
+      openSwap(made.id);
+    } catch (e) {
+      const text = String(e);
+      if (text.startsWith("password:")) {
+        $("sell-pw-field").hidden = false;
+        problem("sell-problem", text === "password: wrong" ? "That is not this wallet's password." : "Enter your wallet's password to lock the ORN.");
+      } else problem("sell-problem", text);
+    } finally { $("sell-go").disabled = false; }
+  };
+
+  $("buy-go").onclick = async () => {
+    $("buy-go").disabled = true;
+    try {
+      const made = await invoke("swap_buy", { offer: $("buy-offer").value, refund: $("buy-refund").value });
+      $("buy-offer").value = "";
+      await loadSwaps();
+      openSwap(made.id);
+    } catch (e) { problem("buy-problem", e); }
+    finally { $("buy-go").disabled = false; }
+  };
+
+  $("sd-accept").onclick = async () => {
+    try {
+      await invoke("swap_accept", { id: current, reply: $("sd-reply").value });
+      $("sd-reply").value = "";
+      await loadSwaps();
+      renderDetail();
+      stepSwaps();
+    } catch (e) { problem("detail-problem", e); }
+  };
+
+  $("sd-claim").onclick = async () => {
+    const password = $("sd-pw").value;
+    $("sd-pw").value = "";
+    await stepSwaps(password);
+    const s = swapList.find((x) => x.id === current);
+    if (s && s.problem === "password: wrong") problem("detail-problem", "That is not this wallet's password.");
+  };
+
+  // Swaps move along while the app is open.
+  setInterval(() => { if (swapList.some((s) => !["done", "cancelled"].includes(s.stage))) stepSwaps(); }, 30000);
+  loadSwaps();
 
   // ---- Updates: checked at start and every six hours, installed only on a press ----
   let update = null;

@@ -17,5 +17,11 @@ orien-ledger = { path = "../ledger" }
 orien-crypto = { path = "../crypto" }
 
 [dev-dependencies]
-# Bitcoin Core's own script checks, to test the lock against the real rules.
+# Bitcoin Core's own script checks, to test against the real rules.
 bitcoin = { version = "0.32", features = ["rand-std", "bitcoinconsensus"] }
+# This crate's own pretend Bitcoin network, for its whole-swap tests.
+orien-swap = { path = ".", features = ["testing"] }
+
+[features]
+# A pretend Bitcoin network for other crates' tests.
+testing = ["bitcoin/bitcoinconsensus"]

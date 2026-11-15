@@ -18,8 +18,9 @@ pub trait Chain {
     /// The fee rate, in satoshis per virtual byte, for a transaction to be
     /// in one of the next few blocks.
     fn fee_rate(&self) -> Result<u64>;
-    /// Every coin paid to `address`, with how many blocks confirm it (0 while
-    /// it waits to be mined).
+    /// Every coin ever paid to `address`, spent or not, with how many blocks
+    /// confirm it (0 while it waits to be mined). A swap's lock may already
+    /// be spent by the time a wallet looks.
     fn coins(&self, address: &Address) -> Result<Vec<(Coin, u32)>>;
     /// The transaction that spent `outpoint`, if one has, mined or not.
     fn spender(&self, outpoint: &OutPoint) -> Result<Option<Transaction>>;
@@ -51,11 +52,16 @@ impl Esplora {
 }
 
 #[derive(Deserialize)]
-struct Utxo {
+struct Tx {
     txid: String,
-    vout: u32,
-    value: u64,
+    vout: Vec<Output>,
     status: Status,
+}
+
+#[derive(Deserialize)]
+struct Output {
+    scriptpubkey_address: Option<String>,
+    value: u64,
 }
 
 #[derive(Deserialize)]
@@ -95,19 +101,26 @@ impl Chain for Esplora {
     }
 
     fn coins(&self, address: &Address) -> Result<Vec<(Coin, u32)>> {
-        let utxos: Vec<Utxo> = serde_json::from_str(&self.get(&format!("/address/{address}/utxo"))?)?;
+        // The address's transactions, newest first: a swap address sees one
+        // or two, far fewer than the 25 an answer holds.
+        let txs: Vec<Tx> = serde_json::from_str(&self.get(&format!("/address/{address}/txs"))?)?;
         let tip = self.height()?;
-        utxos
-            .into_iter()
-            .map(|utxo| {
-                let txid = Txid::from_str(&utxo.txid).map_err(|_| anyhow!("the explorer gave a bad txid"))?;
-                let confirmations = match (utxo.status.confirmed, utxo.status.block_height) {
-                    (true, Some(height)) => tip.saturating_sub(height) + 1,
-                    _ => 0,
-                };
-                Ok((Coin { outpoint: OutPoint { txid, vout: utxo.vout }, value: Amount::from_sat(utxo.value) }, confirmations))
-            })
-            .collect()
+        let wanted = address.to_string();
+        let mut coins = Vec::new();
+        for tx in txs {
+            let txid = Txid::from_str(&tx.txid).map_err(|_| anyhow!("the explorer gave a bad txid"))?;
+            let confirmations = match (tx.status.confirmed, tx.status.block_height) {
+                (true, Some(height)) => tip.saturating_sub(height) + 1,
+                _ => 0,
+            };
+            for (vout, output) in tx.vout.iter().enumerate() {
+                if output.scriptpubkey_address.as_deref() == Some(wanted.as_str()) {
+                    let outpoint = OutPoint { txid, vout: vout as u32 };
+                    coins.push((Coin { outpoint, value: Amount::from_sat(output.value) }, confirmations));
+                }
+            }
+        }
+        Ok(coins)
     }
 
     fn spender(&self, outpoint: &OutPoint) -> Result<Option<Transaction>> {
@@ -163,6 +176,10 @@ mod tests {
             vout: 0,
         };
         assert!(chain.spender(&first).unwrap().is_some());
+        // An address's payments, spent ones included: Hal Finney's, from
+        // that same transaction.
+        let hal = Address::from_str("1Q2TWHE3GMdB6BZKafqwxXtWAWgFt5Jvm3").unwrap().assume_checked();
+        assert!(!chain.coins(&hal).unwrap().is_empty());
         println!("height {height}, fee {rate} sat/vB");
     }
 }

@@ -777,6 +777,7 @@ dependencies = [
  "hex",
  "orien-crypto",
  "orien-ledger",
+ "orien-swap",
  "serde",
  "serde_json",
  "ureq",

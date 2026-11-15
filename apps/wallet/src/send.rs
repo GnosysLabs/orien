@@ -27,6 +27,9 @@ pub struct Sent {
     /// Set when the app finished an earlier payment instead of sending the
     /// one asked for, which then still has to be sent.
     pub earlier: bool,
+    /// The order's number in its account: with the address, the name of a
+    /// locked payment.
+    pub seq: u64,
 }
 
 /// True when a checkpoint cancelled the number `signed` was made under and
@@ -89,10 +92,19 @@ fn finish(client: &Client, wallet: &mut Signing, signed: &SignedOrder, earlier: 
         to: signed.order.to.to_string(),
         seconds: started.elapsed().as_secs_f64(),
         earlier,
+        seq: signed.order.seq,
     })
 }
 
 pub fn send(client: &Client, wallet: &mut Signing, fees: Fees, to: AccountId, amount: u64) -> Result<Sent, String> {
+    send_order(client, wallet, fees, Kind::Payment, to, amount)
+}
+
+/// Sends an order of any kind a wallet makes by itself: a payment, a locked
+/// payment, or the claim of one (whose `to` is the wallet itself, and which
+/// can come from an account that holds nothing yet).
+pub fn send_order(client: &Client, wallet: &mut Signing, fees: Fees, kind: Kind, to: AccountId, amount: u64) -> Result<Sent, String> {
+    let claiming = matches!(kind, Kind::Claim { .. });
     let network = *client.committee().network();
     // The network's own accounts cannot be paid. Refuse before signing, so
     // no one-time key is spent on a payment the network would refuse.
@@ -101,9 +113,9 @@ pub fn send(client: &Client, wallet: &mut Signing, fees: Fees, to: AccountId, am
     }
     // Every payment carries the network's fee; without it validators refuse it.
     wallet.accept_fee(fees);
-    let fee = fees.on(&Kind::Payment, amount);
+    let fee = fees.on(&kind, amount);
     let status = client.account(&wallet.address(), wallet.next_seq());
-    if status.views.iter().all(Option::is_none) {
+    if status.views.iter().all(Option::is_none) && !claiming {
         return Err("no validator could be reached".into());
     }
     let seq = status.seq;
@@ -127,6 +139,8 @@ pub fn send(client: &Client, wallet: &mut Signing, fees: Fees, to: AccountId, am
     }
 
     match unfinished.as_slice() {
+        // A claim's fee comes out of what it claims.
+        [] if claiming => {}
         [] => match status.spendable {
             Some(balance) if balance < amount as i128 + fee as i128 => {
                 return Err(format!(
@@ -139,7 +153,7 @@ pub fn send(client: &Client, wallet: &mut Signing, fees: Fees, to: AccountId, am
             _ => {}
         },
         // The same payment is already signed: finish it rather than sign again.
-        [one] if one.signed.order.kind == Kind::Payment && one.signed.order.to == to && one.signed.order.amount == amount => {
+        [one] if one.signed.order.kind == kind && one.signed.order.to == to && one.signed.order.amount == amount => {
             if wallet.pending().is_none_or(|own| own.order != one.signed.order) {
                 wallet.adopt(&one.signed, &network).map_err(|error| error.to_string())?;
             }
@@ -162,7 +176,7 @@ pub fn send(client: &Client, wallet: &mut Signing, fees: Fees, to: AccountId, am
     }
 
     let signed = wallet
-        .sign(Kind::Payment, seq, to, amount, status.signer.as_ref(), &network)
+        .sign(kind, seq, to, amount, status.signer.as_ref(), &network)
         .map_err(|error| error.to_string())?;
     finish(client, wallet, &signed, false)
 }
