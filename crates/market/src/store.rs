@@ -124,6 +124,8 @@ impl Store {
              CREATE TABLE IF NOT EXISTS accounts (
                  id INTEGER PRIMARY KEY,
                  name TEXT NOT NULL,
+                 -- The id passkeys know the account by, which says nothing about it.
+                 handle TEXT NOT NULL UNIQUE,
                  created INTEGER NOT NULL
              );
              CREATE TABLE IF NOT EXISTS passkeys (
@@ -156,13 +158,17 @@ impl Store {
         Ok(Store { db })
     }
 
-    pub fn create_account(&self, name: &str) -> Result<Account> {
+    /// A new account. `handle` is the id its passkeys know it by.
+    pub fn create_account(&self, name: &str, handle: &str) -> Result<Account> {
         let name = clean(name);
         if name.is_empty() || name.chars().count() > MAX_NAME {
             bail!("a name is 1 to {MAX_NAME} characters");
         }
         let created = now();
-        self.db.execute("INSERT INTO accounts (name, created) VALUES (?1, ?2)", params![name, created])?;
+        self.db.execute(
+            "INSERT INTO accounts (name, handle, created) VALUES (?1, ?2, ?3)",
+            params![name, handle, created],
+        )?;
         Ok(Account { id: self.db.last_insert_rowid(), name, created })
     }
 
@@ -353,8 +359,8 @@ mod tests {
     #[test]
     fn a_seller_posts_edits_and_closes_a_listing() {
         let store = Store::in_memory().unwrap();
-        let maya = store.create_account("Maya").unwrap();
-        let sam = store.create_account("Sam").unwrap();
+        let maya = store.create_account("Maya", "maya").unwrap();
+        let sam = store.create_account("Sam", "sam").unwrap();
         let posted = store.post(maya.id, &draft("Logo design")).unwrap();
         assert_eq!((posted.seller_name.as_str(), posted.open), ("Maya", true));
         assert_eq!(store.browse(None, None, 10, 0).unwrap(), vec![posted.clone()]);
@@ -375,7 +381,7 @@ mod tests {
     #[test]
     fn listings_are_checked() {
         let store = Store::in_memory().unwrap();
-        let maya = store.create_account("Maya").unwrap();
+        let maya = store.create_account("Maya", "maya").unwrap();
         let bad = |change: fn(&mut Draft)| {
             let mut d = draft("Logo design");
             change(&mut d);
@@ -392,7 +398,7 @@ mod tests {
     #[test]
     fn a_session_signs_in_until_it_ends_and_only_its_hash_is_kept() {
         let store = Store::in_memory().unwrap();
-        let maya = store.create_account("Maya").unwrap();
+        let maya = store.create_account("Maya", "maya").unwrap();
         let token = store.start_session(maya.id).unwrap();
         assert_eq!(store.session(&token).unwrap(), Some(maya.id));
         assert_eq!(store.session("guess").unwrap(), None);

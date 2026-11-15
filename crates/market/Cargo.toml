@@ -17,3 +17,11 @@ blake3.workspace = true
 axum = "0.8"
 tokio = { version = "1", features = ["rt-multi-thread", "macros", "net", "signal"] }
 rusqlite = { version = "0.37", features = ["bundled"] }
+webauthn-rs = { version = "0.6", features = ["conditional-ui"] }
+# Built from source, so the server builds the same on a Mac and for Linux.
+openssl = { version = "0.10", features = ["vendored"] }
+url = "2"
+
+[dev-dependencies]
+tower = { version = "0.5", features = ["util"] }
+http-body-util = "0.1"
