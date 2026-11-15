@@ -1832,6 +1832,11 @@ fn the_live_networks_identity_is_unchanged() {
     assert!(genesis.randomx.is_none());
     assert_eq!(genesis.id().to_string(), orien_ledger::work::LIVE_NETWORK);
     assert!(orien_net::node::is_live(&genesis.id()));
+    // RandomX from epoch 21, starting at its own target.
+    let work = orien_ledger::Committee::new(&genesis).work();
+    use orien_ledger::work::Math;
+    assert_eq!((work.math(20), work.math(21)), (Math::Blake3, Math::RandomX));
+    assert_eq!(work.randomx_target, orien_ledger::work::LIVE_RANDOMX_TARGET);
 }
 
 #[test]

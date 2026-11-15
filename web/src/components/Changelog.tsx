@@ -8,7 +8,7 @@ const date = (text: string) =>
 
 export function Changelog() {
   const [only, setOnly] = useState<Product | null>(null)
-  const entries = CHANGELOG.filter((entry) => !only || entry.products.includes(only))
+  const entries = CHANGELOG.filter((entry) => !entry.unreleased && (!only || entry.products.includes(only)))
   return (
     <div className="space-y-8">
       <div className="flex flex-wrap gap-2">

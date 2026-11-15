@@ -31,8 +31,11 @@ pub enum Math {
 /// The Orien network that went live on 2026-11-14.
 pub const LIVE_NETWORK: &str = "8f1833742a76431b7e0912ebbab49f3669dd423fb2fbbf0612b8ade911ac1452";
 
-/// The first epoch on the live network whose shares RandomX judges.
-pub const LIVE_RANDOMX_FROM: u64 = u64::MAX;
+/// The first epoch on the live network whose shares RandomX judges: epoch
+/// 21, which begins at 2026-11-15 18:11 UTC. Release 1.5.0, which brings
+/// RandomX, reaches every validator before epoch 20 closes and sets 21's
+/// target.
+pub const LIVE_RANDOMX_FROM: u64 = 21;
 
 /// The live network's target for its first RandomX epoch: about one try in
 /// 400,000 makes a share. Its whole network did about 1.2 billion BLAKE3

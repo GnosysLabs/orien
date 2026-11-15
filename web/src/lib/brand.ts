@@ -13,4 +13,4 @@ export const MARKETPLACE_LIVE = process.env.NEXT_PUBLIC_MARKETPLACE === '1'
 
 /** The first epoch whose mining shares RandomX judges. Set with the release
  * that switches; the network code's LIVE_RANDOMX_FROM is the same number. */
-export const RANDOMX_FROM = 0
+export const RANDOMX_FROM = 21
