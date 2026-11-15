@@ -181,7 +181,7 @@ fn peek(wallet_file: &Path) -> Result<(AccountId, u64), String> {
     Wallet::peek(wallet_file).map_err(|error| format!("could not read the wallet: {error}"))
 }
 
-fn overview(wallet_file: &Path, genesis_file: &Path) -> Result<Overview, String> {
+fn overview(wallet_file: &Path, genesis_file: &Path) -> Result<(Overview, Client, AccountId), String> {
     let (address, next_seq) = peek(wallet_file)?;
     let client = connect(genesis_file)?;
 
@@ -190,7 +190,7 @@ fn overview(wallet_file: &Path, genesis_file: &Path) -> Result<Overview, String>
     if answered == 0 {
         return Err("no validator could be reached".into());
     }
-    Ok(Overview {
+    let view = Overview {
         address: address.to_string(),
         balance: status.spendable.map(money::show),
         most: status.spendable.map(|balance| orien_ledger::coins(money::most(&money::fees(GENESIS), balance) as i128)),
@@ -200,7 +200,25 @@ fn overview(wallet_file: &Path, genesis_file: &Path) -> Result<Overview, String>
         answered,
         validators: client.validators(),
         epoch: client.epoch(),
-    })
+    };
+    Ok((view, client, address))
+}
+
+/// What the validators' history says came into the account since the app
+/// last asked, and the epoch under way. None if no validator keeps history.
+fn history(client: &Client, dir: &Path, address: &AccountId) -> Option<(u64, Vec<orien_net::history::Received>)> {
+    let mut from = activity::history_from(dir, &address.to_string()).unwrap_or_else(|| client.epoch());
+    let mut received = Vec::new();
+    // Pages are whole epochs; a long absence takes a few of them.
+    for _ in 0..50 {
+        let page = client.history(address, from, orien_net::history::MAX_ENTRIES)?;
+        received.extend(page.entries);
+        match page.next {
+            Some(next) if next > from => from = next,
+            _ => return Some((page.epoch, received)),
+        }
+    }
+    None
 }
 
 /// Whether the app has a wallet yet.
@@ -295,8 +313,13 @@ async fn overview_now(app: AppHandle) -> Result<Overview, String> {
     let genesis = genesis_file(&dir)?;
     tauri::async_runtime::spawn_blocking(move || {
         let _turn = TURNS.lock().unwrap_or_else(|poisoned| poisoned.into_inner());
-        let view = overview(&wallet, &genesis)?;
+        let (view, client, address) = overview(&wallet, &genesis)?;
         if let Some(balance) = view.units {
+            // History first, so the balance is only asked to explain what
+            // history did not.
+            if let Some((epoch, received)) = history(&client, &dir, &address) {
+                activity::heard(&dir, &view.address, epoch, received);
+            }
             activity::observe(&dir, &view.address, balance);
         }
         *LAST_BALANCE.lock().unwrap_or_else(|poisoned| poisoned.into_inner()) = view.units;
@@ -327,6 +350,7 @@ fn delete_contact(app: AppHandle, address: String) -> Result<(), String> {
 #[derive(Serialize)]
 struct ActivityView {
     direction: activity::Direction,
+    kind: Option<activity::Kind>,
     amount: String,
     fee: Option<String>,
     counterparty: Option<String>,
@@ -342,6 +366,7 @@ fn activity(app: AppHandle) -> Result<Vec<ActivityView>, String> {
         .into_iter()
         .map(|entry| ActivityView {
             direction: entry.direction,
+            kind: entry.kind,
             amount: money::show(entry.amount as i128),
             fee: (entry.fee > 0).then(|| money::show(entry.fee as i128)),
             counterparty: entry.counterparty,
@@ -583,7 +608,7 @@ mod tests {
             eprintln!("no local test network at {}; skipped", root.display());
             return;
         }
-        let view = super::overview(&root.join("wallets/alice.wallet"), &root.join("genesis.json")).unwrap();
+        let view = super::overview(&root.join("wallets/alice.wallet"), &root.join("genesis.json")).unwrap().0;
         assert_eq!(view.address.len(), 64);
         assert!(view.balance.is_some());
         assert_eq!(view.answered, view.validators);
@@ -601,7 +626,16 @@ mod tests {
         let genesis = super::genesis_file(&dir).unwrap();
         let wallet = super::shared_wallet();
         assert!(wallet.is_file(), "no wallet at {}", wallet.display());
-        let view = super::overview(&wallet, &genesis).unwrap();
+        let (view, client, address) = super::overview(&wallet, &genesis).unwrap();
+        match client.history(&address, 0, orien_net::history::MAX_ENTRIES) {
+            Some(page) => {
+                println!("history kept since epoch {}, now epoch {}:", page.since, page.epoch);
+                for item in &page.entries {
+                    println!("  epoch {} {:?} {} ORN", item.epoch, item.income, super::money::show(item.amount as i128));
+                }
+            }
+            None => println!("no validator keeps history yet"),
+        }
         println!(
             "{} holds {:?} ORN after {} payments; {} of {} validators answered; epoch {}; password: {}",
             view.address, view.balance, view.payments, view.answered, view.validators, view.epoch, view.locked
@@ -624,7 +658,7 @@ mod tests {
         }
         let (alice, bob, genesis) =
             (root.join("wallets/alice.wallet"), root.join("wallets/bob.wallet"), root.join("genesis.json"));
-        let balance = |file: &std::path::Path| super::overview(file, &genesis).unwrap().units.unwrap();
+        let balance = |file: &std::path::Path| super::overview(file, &genesis).unwrap().0.units.unwrap();
         let (alice_before, bob_before) = (balance(&alice), balance(&bob));
         let fees = orien_net::keys::load_genesis(&genesis).unwrap().fee;
 
@@ -640,5 +674,15 @@ mod tests {
         let (alice_after, bob_after) = (balance(&alice), balance(&bob));
         assert_eq!(alice_after, alice_before - amount as i128 - sent.fee as i128);
         assert_eq!(bob_after, bob_before + amount as i128);
+
+        // Bob's history names the payment, and who sent it.
+        let alice_id = super::peek(&alice).unwrap().0;
+        let page = client.history(&to, 0, orien_net::history::MAX_ENTRIES).expect("validators keep history");
+        assert!(
+            page.entries.iter().any(|item| item.income == orien_ledger::Income::Payment
+                && item.amount == amount
+                && item.counterparty == Some(alice_id)),
+            "the payment is in bob's history"
+        );
     }
 }
