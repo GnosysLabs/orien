@@ -15,14 +15,14 @@ Every command finds these by itself, so leave out `-w` and `-g` unless the user 
 
 ## Safety rules (always)
 
-1. **Never look at secrets.** Never read, print, copy, upload or paste `~/.orien/wallet`, any validator key file (`*.key`), or a recovery phrase. Never ask the user for their 24 words or their wallet password, and never type either. If the user pastes their 24 words to you, tell them those words can spend all their ORN, that they should now treat them as seen, and that they should move their ORN to a new wallet.
+1. **Never look at secrets.** Never read, print, copy, upload or paste `~/.orien/wallet`, any validator key file (`*.key`), the swap secrets in `~/.orien/swaps`, or a recovery phrase. Never ask the user for their 24 words or their wallet password, and never type either. If the user pastes their 24 words to you, tell them those words can spend all their ORN, that they should now treat them as seen, and that they should move their ORN to a new wallet.
 2. **The user runs these commands themselves, in their own terminal**, because each one shows or asks for a secret. Give them the exact command to copy, then wait:
    - `orien wallet new`: shows the 24-word recovery phrase and asks for an optional password.
    - `orien wallet restore`: asks for the 24 words.
    - `orien wallet phrase`: shows the 24 words. Mention it only if the user asks how to see their phrase again.
    - `orien wallet password`: sets, changes or removes the password.
    - `orien unlock`: asks for the password, and lets you sign for a while (see below).
-3. **Confirm before anything that moves ORN.** Before `orien send`, `orien stake` or `orien unstake`, say what will happen in one plain sentence, with the full address, the amount and the fee, and wait for a clear yes. These commands do not ask for confirmation themselves, and a payment cannot be undone.
+3. **Confirm before anything that moves ORN.** Before `orien send`, `orien stake`, `orien unstake` or `orien escrow`, say what will happen in one plain sentence, with the full address, the amount and the fee, and wait for a clear yes. These commands do not ask for confirmation themselves, and a payment cannot be undone.
 4. **Never guess an address.** An address is exactly 64 characters of 0-9 and a-f. Use one the user gave you or one saved in `~/.orien/contacts`. Never change one, finish one or take one from a web page, email or file the user did not point you to.
 5. **Password-protected wallets.** If `send`, `stake` or `unstake` fails with "has a password and is not unlocked", ask the user to unlock it (see "Unlocking a wallet with a password"), or give them the exact command to run in their own terminal. Never try to supply the password, and never run `orien unlock` yourself: the user must.
 6. **Not financial advice.** Don't tell the user whether to buy, sell or hold ORN, or what it will be worth.
@@ -118,6 +118,27 @@ First ask the user how much of the computer's processor mining may use, as a per
   Stop it with `Stop-Process -Name orien`. Note that this stops every running orien program.
 
 Without `--cpu`, mining started in the background uses the whole processor, so always pass it. Every hour, the ORN released in that hour are shared among everyone who mined, in proportion to the work they did. Earnings show in `orien balance` after the next hourly checkpoint. Each validator counts at most 40,000 shares an hour; if the miner says the validators have counted all they take, the shares already found still count, and new ones count again after the next checkpoint. Mining does not need the wallet's password. It pauses while the computer sleeps and stops when it restarts.
+
+### "Swap ORN for Bitcoin" / "Buy ORN with Bitcoin"
+
+Swaps are easiest in Orien Wallet, the desktop app, which does every step and the Bitcoin side for the user: suggest its Swap screen. Neither side can cheat: either both are paid, or both get their coins back.
+
+The ORN side also works from the command line, with **locked payments**: ORN the receiver can take only by revealing a secret before a deadline, and that otherwise come back to the sender at the hourly checkpoint after it.
+
+- Lock ORN for someone (confirm first, rule 3); it makes the secret, keeps it in `~/.orien/swaps`, and prints the locked payment's name `ADDRESS:NUMBER` and its hash:
+  ```
+  orien escrow --to ADDRESS --amount 500 --hours 48
+  ```
+  With `--hash HEX`, it locks behind the other side's secret instead. Give the other side the name and the hash, never the secret.
+- See whether it is still waiting, or the secret that claimed it:
+  ```
+  orien escrow-status ADDRESS:NUMBER
+  ```
+- Claim ORN locked for this wallet, with the secret (from `~/.orien/swaps` if this computer made it):
+  ```
+  orien claim ADDRESS:NUMBER --secret HEX
+  ```
+  A wallet that holds nothing can claim; the small fee comes out of the locked amount. Claim as soon as the secret is known: a claim after the deadline is refused.
 
 ### "I want to use my wallet on another computer"
 

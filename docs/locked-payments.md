@@ -1,6 +1,12 @@
 # Locked payments, and swapping ORN for Bitcoin
 
-A design for review. Nothing here is built yet.
+Built: the ledger rules (`crates/ledger`), the network side (`crates/net`),
+`orien escrow`, `orien claim` and `orien escrow-status`, the Bitcoin side
+(`crates/swap`), and swaps in Orien Wallet. Two details changed from the
+first design: a locked payment is named by its sender and order number
+(`ADDRESS:NUMBER`) rather than its digest, and the Bitcoin script also checks
+that the secret is 32 bytes (`OP_SIZE 32 OP_EQUALVERIFY`). The swap's timings
+are 48 epochs for the ORN lock and 72 blocks for the Bitcoin lock.
 
 ## In plain words
 

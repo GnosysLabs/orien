@@ -61,7 +61,8 @@ export default function GetStartedPage() {
         <div className="space-y-4 leading-relaxed text-muted">
           <p>
             Orien Wallet is a desktop app: make a wallet with its 24-word recovery phrase, see your balance, send and
-            receive ORN, and keep an address book. It uses the same wallet as orien, so you can use both. It updates itself.
+            receive ORN, keep an address book, and swap ORN for Bitcoin with anyone, with no one in the middle. It uses
+            the same wallet as orien, so you can use both. It updates itself.
           </p>
           <div className="flex flex-wrap items-center gap-4">
             <a

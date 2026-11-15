@@ -91,6 +91,12 @@ orien send --to ADDRESS --amount 5
   `orien unlock --for 1h --up-to 50` lets it send from a password-protected
   wallet for a while, up to an amount, without learning the password;
   `orien lock` ends that early.
+- **Swaps.** Orien Wallet swaps ORN for Bitcoin with anyone, with no one in
+  the middle. Underneath are **locked payments**: `orien escrow --to ADDRESS
+  --amount 500 --hours 48` locks ORN that the receiver takes with
+  `orien claim` by revealing a secret, and that come back on their own
+  after the deadline; `orien escrow-status` shows one. The design is in
+  `docs/locked-payments.md`.
 - **Updates.** `orien update` installs a newer version only if the Orien
   release key signed it.
 - **Orien Wallet.** `apps/wallet` is a desktop app (Tauri) for the same
@@ -345,6 +351,7 @@ cargo test --release -p orien-net --test devnet throughput -- --ignored --nocapt
 | `crates/ledger` | The rules: orders, votes, certificates, when to vote, how balances change, what a checkpoint is and how validators agree on one |
 | `crates/net` | The validator node, the closing of epochs, storage, sync between validators, client, wallet files |
 | `crates/cli` | The `orien` command |
+| `crates/swap` | The Bitcoin side of swaps: the lock script, claim and refund, and each side's steps |
 | `apps/wallet` | Orien Wallet, the desktop app |
 | `skill/orien` | The skill that teaches AI assistants to use `orien` |
 | `web` | The website, orien.network, with the installers and the technical paper |

@@ -19,6 +19,7 @@ const SECTIONS = [
   { id: 'checkpoints', title: 'Epochs and checkpoints' },
   { id: 'fees', title: 'Fees' },
   { id: 'coins', title: 'New coins' },
+  { id: 'swaps', title: 'Locked payments and swaps' },
   { id: 'genesis', title: 'Genesis' },
   { id: 'network', title: 'The network' },
   { id: 'wallets', title: 'Wallets' },
@@ -210,7 +211,7 @@ commitment = hash(0x02, pub_seed ‖ end₀ ‖ … ‖ end₅₀)          (32 
         <Sub title="3.2 Orders">
           <p>Every change to an account is an order, signed by the account:</p>
           <Formula>{`Order {
-  kind:     Payment | Stake { validator, proof } | Unstake
+  kind:     Payment | Stake { validator, proof } | Unstake | Lock { hash, until } | Claim { from, seq, secret }
   from:     AccountId          the paying account
   seq:      u64                its order number: 0, 1, 2, …
   to:       AccountId          recipient (the account itself for stake and unstake)
@@ -221,7 +222,7 @@ commitment = hash(0x02, pub_seed ‖ end₀ ‖ … ‖ end₅₀)          (32 
 }
 digest = hash(0x30, network_id ‖ borsh(order))`}</Formula>
           <p>
-            The digest covers the network’s identity (section 9), so an order is valid on one network only. A payment
+            The digest covers the network’s identity (section 10), so an order is valid on one network only. A payment
             order is 153 bytes and its signature 1,249 bytes.
           </p>
           <p>
@@ -453,6 +454,7 @@ Statement { epoch, validator, log: Pin, evidence, next_key, cheats, shares }`}</
             <li>every payment, sorted by account and order number, each of which must be certified;</li>
             <li>a check that no account other than the mint is overdrawn;</li>
             <li>cancellations for orders signed twice (section 4.5);</li>
+            <li>locked payments whose time is up, returned to their senders (section 9);</li>
             <li>forfeits for convicted validators (section 5.4);</li>
             <li>payout of the epoch’s fees (section 7);</li>
             <li>release of new coins and their payout to miners (section 8);</li>
@@ -553,7 +555,75 @@ T′ = clamp( T · 1,000 / n,  ⌊T / 4⌋,  4 · T )  otherwise`}</Formula>
         </Sub>
       </PaperSection>
 
-      <PaperSection id="genesis" number={9} title="Genesis">
+      <PaperSection id="swaps" number={9} title="Locked payments and swaps">
+        <Sub title="9.1 Locked payments">
+          <p>
+            A <strong>Lock</strong> order moves an amount out of the sender’s balance into an escrow for a payee,
+            claimable with the secret whose SHA-256 is <code>hash</code> until epoch <code>until</code> begins. The
+            deadline must be 2 to 720 epochs after the epoch the order is voted in, and the amount must exceed the
+            minimum fee. A Lock pays the same fee as a payment. Escrows are named by their sender and the Lock order’s
+            number.
+          </p>
+          <p>
+            A <strong>Claim</strong> order, signed by the payee from its own account, names the escrow and reveals the
+            secret. Validators vote for it only if the escrow is waiting for that account and amount, the epoch is
+            before the deadline, and the secret’s SHA-256 is the escrow’s hash. The payee may hold nothing yet: a Claim
+            is accepted from an account the state does not know, and its fee, the minimum, comes out of the escrow.
+            Applying it pays the payee and records the secret, which stays readable in the state for 168 epochs.
+          </p>
+          <p>
+            There is no refund order. At the checkpoint that closes epoch <code>until − 1</code>, after the epoch’s
+            payments and claims have been applied, every escrow still waiting goes back to its sender. A claim and a
+            refund can therefore never both happen, and the deadline is exact. Because only the payee claims, from its
+            own numbered orders, two claims of one escrow cannot both be certified. A validator that learns of a claim
+            before its lock pays the payee and creates no escrow when the lock arrives, and ends with the same state as
+            every other validator.
+          </p>
+          <Formula>{`Escrow { to, amount, hash, until }        keyed by (sender, order number)
+escrows and revealed secrets are leaves of the state root, after the accounts (tags 0x4B, 0x4C)`}</Formula>
+        </Sub>
+
+        <Sub title="9.2 Why SHA-256">
+          <p>
+            Bitcoin’s scripts and Ethereum’s contracts can check SHA-256 but not BLAKE3. For one secret to unlock both
+            sides of a swap, the lock uses SHA-256. It is the only place Orien uses anything but BLAKE3, and it
+            protects only locked payments: a weakness in SHA-256 could let someone claim a locked payment early, but
+            could not touch any other part of the network.
+          </p>
+        </Sub>
+
+        <Sub title="9.3 Swapping ORN for Bitcoin">
+          <p>
+            Two people who don’t trust each other swap ORN for Bitcoin with one secret, which the seller of ORN makes:
+          </p>
+          <ol className="list-decimal space-y-1 pl-5">
+            <li>The seller locks the ORN for the buyer on Orien for 48 epochs.</li>
+            <li>
+              The buyer checks that lock on Orien, and that at least 30 epochs of it remain, then pays the Bitcoin into
+              a P2WSH output the seller can spend with the secret, or the buyer after a block height 72 blocks ahead.
+            </li>
+            <li>
+              The seller spends it once it is confirmed, while at least 6 blocks remain before the buyer could. The
+              spending transaction reveals the secret.
+            </li>
+            <li>The buyer reads the secret from Bitcoin and claims the ORN with it.</li>
+          </ol>
+          <Formula>{`OP_IF
+    OP_SIZE 32 OP_EQUALVERIFY OP_SHA256 <hash> OP_EQUALVERIFY <seller key> OP_CHECKSIG
+OP_ELSE
+    <height> OP_CHECKLOCKTIMEVERIFY OP_DROP <buyer key> OP_CHECKSIG
+OP_ENDIF`}</Formula>
+          <p>
+            If the buyer never pays, the seller’s ORN come back at their deadline. If the seller never takes the
+            Bitcoin, the buyer takes it back from the block height. The Bitcoin lock ends about a day and a half before
+            the ORN lock, so once the secret appears the buyer always has time to claim. The keys on the Bitcoin side
+            are one-time keys made for the swap. The same Orien lock works against an equivalent contract on Ethereum
+            for ETH and its tokens.
+          </p>
+        </Sub>
+      </PaperSection>
+
+      <PaperSection id="genesis" number={10} title="Genesis">
         <p>
           A network is defined by its genesis file: its name, its launch validators (each with a key root, height,
           weight and address), any starting balances, and every rule this paper describes as a number: epoch length,
@@ -574,7 +644,7 @@ T′ = clamp( T · 1,000 / n,  ⌊T / 4⌋,  4 · T )  otherwise`}</Formula>
         </p>
       </PaperSection>
 
-      <PaperSection id="network" number={10} title="The network">
+      <PaperSection id="network" number={11} title="The network">
         <Sub title="10.1 Messages">
           <p>
             Wallets, miners and validators talk over TCP. Each message is a 4-byte length followed by a Borsh-encoded
@@ -629,7 +699,7 @@ T′ = clamp( T · 1,000 / n,  ⌊T / 4⌋,  4 · T )  otherwise`}</Formula>
         </Sub>
       </PaperSection>
 
-      <PaperSection id="wallets" number={11} title="Wallets">
+      <PaperSection id="wallets" number={12} title="Wallets">
         <Sub title="11.1 Trusting only what can be checked">
           <p>
             A wallet trusts no single validator. It starts from the genesis file and follows checkpoints, accepting each
@@ -692,7 +762,7 @@ T′ = clamp( T · 1,000 / n,  ⌊T / 4⌋,  4 · T )  otherwise`}</Formula>
         </Sub>
       </PaperSection>
 
-      <PaperSection id="releases" number={12} title="Software releases">
+      <PaperSection id="releases" number={13} title="Software releases">
         <p>
           The <strong>orien</strong> program is published for macOS and Linux on x86-64 and ARM, and for Windows on
           x86-64. Each release
@@ -707,12 +777,13 @@ T′ = clamp( T · 1,000 / n,  ⌊T / 4⌋,  4 · T )  otherwise`}</Formula>
         </p>
       </PaperSection>
 
-      <PaperSection id="security" number={13} title="Security">
+      <PaperSection id="security" number={14} title="Security">
         <Sub title="13.1 Assumptions">
           <ul className="list-disc space-y-2 pl-5">
             <li>
               <strong>BLAKE3 is a secure hash function</strong>: preimages and second preimages cannot be found faster
-              than by generic search, and keyed BLAKE3 is a pseudorandom function. The protocol assumes nothing else. There is no
+              than by generic search, and keyed BLAKE3 is a pseudorandom function. The protocol assumes nothing else, except that locked payments
+              (section 9) also rely on SHA-256. There is no
               elliptic curve, no factoring and no lattice anywhere in the protocol.
             </li>
             <li>
@@ -784,7 +855,7 @@ T′ = clamp( T · 1,000 / n,  ⌊T / 4⌋,  4 · T )  otherwise`}</Formula>
         </Sub>
       </PaperSection>
 
-      <PaperSection id="measured" number={14} title="Measured performance">
+      <PaperSection id="measured" number={15} title="Measured performance">
         <p>
           These figures come from validators that sync every vote to disk before answering, with four validators in
           total.
@@ -807,7 +878,7 @@ T′ = clamp( T · 1,000 / n,  ⌊T / 4⌋,  4 · T )  otherwise`}</Formula>
         </p>
       </PaperSection>
 
-      <PaperSection id="limitations" number={15} title="Known limitations">
+      <PaperSection id="limitations" number={16} title="Known limitations">
         <ul className="list-disc space-y-2 pl-5">
           <li>
             <strong>Nothing is private.</strong> Balances, payments and addresses are public, as in most
@@ -826,13 +897,18 @@ T′ = clamp( T · 1,000 / n,  ⌊T / 4⌋,  4 · T )  otherwise`}</Formula>
             <strong>Spare keys run out.</strong> An account can be cancelled 16 times. After that it stays locked.
           </li>
           <li>
+            <strong>Swaps need a wallet that is running.</strong> Each side’s wallet moves a swap along only while it is
+            open. A buyer who stays away past the ORN deadline after the seller took the Bitcoin loses the ORN, which
+            the deadlines leave more than a day to avoid.
+          </li>
+          <li>
             <strong>Large signatures.</strong> Hash-based signatures are about 20 times larger than elliptic-curve ones.
             Batching keeps validators’ share of this small, but each payment carries its own 1,249-byte signature.
           </li>
         </ul>
       </PaperSection>
 
-      <PaperSection id="parameters" number={16} title="Parameters">
+      <PaperSection id="parameters" number={17} title="Parameters">
         <Table
           head={['Parameter', 'Value']}
           rows={[
@@ -859,6 +935,9 @@ T′ = clamp( T · 1,000 / n,  ⌊T / 4⌋,  4 · T )  otherwise`}</Formula>
             ['Wallet password', 'Argon2id (64 MiB, 3 passes), XChaCha20-Poly1305'],
             ['Connection limits', '1,024 in all, 64 per address, 30 s idle'],
             ['States a validator keeps', 'the last 3 epochs'],
+            ['Locked payment deadline', '2 to 720 epochs ahead'],
+            ['Revealed secrets kept', '168 epochs'],
+            ['Swap: ORN lock, Bitcoin lock', '48 epochs, 72 blocks'],
           ]}
         />
         <p>The domain tags that separate every use of the hash function:</p>
@@ -876,12 +955,13 @@ T′ = clamp( T · 1,000 / n,  ⌊T / 4⌋,  4 · T )  otherwise`}</Formula>
             ['0x33', 'account', '0x44', 'proposal'],
             ['0x45', 'stake proof', '0x47', 'software release'],
             ['0x46', 'proof-of-work share', '0x48, 0x49', 'recovery phrase check, account seed'],
-            ['', '', '0x4A', 'barred validator keys'],
+            ['0x4B', 'locked payments', '0x4A', 'barred validator keys'],
+            ['0x4C', 'revealed secrets', '', ''],
           ]}
         />
       </PaperSection>
 
-      <PaperSection id="references" number={17} title="References">
+      <PaperSection id="references" number={18} title="References">
         <ol className="list-decimal space-y-2 pl-5 text-sm">
           <li>
             M. Baudet, G. Danezis, A. Sonnino. FastPay: High-performance Byzantine fault tolerant settlement. ACM

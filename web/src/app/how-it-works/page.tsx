@@ -17,6 +17,7 @@ const SECTIONS = [
   { id: 'validators', title: 'Validators and staking' },
   { id: 'fees', title: 'Fees' },
   { id: 'coins', title: 'Coins and mining' },
+  { id: 'swaps', title: 'Swapping with Bitcoin' },
   { id: 'safety', title: 'What keeps it safe' },
   { id: 'measured', title: 'Measured' },
 ]
@@ -209,6 +210,24 @@ export default function HowItWorksPage() {
         <div className="mt-6">
           <SupplyCurve />
         </div>
+      </Section>
+
+      <Section id="swaps" title="Swapping with Bitcoin">
+        <p>
+          Two people who don’t know each other can swap ORN for Bitcoin directly, with nobody in the middle and no way
+          for either to cheat. It works with a <strong>locked payment</strong>: ORN that the receiver can only take by
+          revealing a secret before a deadline, and that otherwise go back to the sender on their own.
+        </p>
+        <ol className="list-decimal space-y-2 pl-5">
+          <li>The seller locks the ORN for the buyer behind a secret only the seller knows.</li>
+          <li>The buyer locks the Bitcoin for the seller behind the same secret, on Bitcoin.</li>
+          <li>The seller takes the Bitcoin, which reveals the secret to everyone.</li>
+          <li>The buyer uses the secret to take the ORN.</li>
+        </ol>
+        <p>
+          Either both are paid, or both get their coins back. Orien Wallet does every step for you; you only send the
+          other person a code. The lock uses SHA-256, which Bitcoin can check, so the same secret opens both sides.
+        </p>
       </Section>
 
       <Section id="safety" title="What keeps it safe">
