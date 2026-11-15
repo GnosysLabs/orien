@@ -21,3 +21,8 @@ rpassword.workspace = true
 serde.workspace = true
 serde_json.workspace = true
 sha2.workspace = true
+
+# Touch ID for wallets Orien Wallet locks with it: see src/touchid.rs.
+[target.'cfg(target_os = "macos")'.dependencies]
+robius-authentication = "0.3"
+security-framework = "3"
