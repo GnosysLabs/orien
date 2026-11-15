@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { useState } from 'react'
 import { Flag } from 'lucide-react'
 import { ask, sentence } from '@/lib/market'
+import { AutoTextarea } from '@/components/AutoTextarea'
 
 /** A quiet "Report" link that opens a short form, for something that
  * should not be on the marketplace. */
@@ -62,7 +63,7 @@ export function ReportButton({
   return (
     <form onSubmit={send} className="space-y-2 rounded-xl border border-line bg-bg p-3">
       <p className="text-xs font-semibold text-ink">What is wrong with {what}?</p>
-      <textarea
+      <AutoTextarea
         value={reason}
         onChange={(e) => setReason(e.target.value)}
         maxLength={1000}

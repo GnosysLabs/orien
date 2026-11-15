@@ -6,6 +6,7 @@ import { Camera } from 'lucide-react'
 import { ask, MarketError, type Account } from '@/lib/market'
 import { Avatar } from './Avatar'
 import { Notice } from './Shell'
+import { AutoTextarea } from '@/components/AutoTextarea'
 
 const field = 'w-full rounded-xl border border-line bg-bg px-4 py-3 text-ink outline-none focus:border-pearl/60'
 
@@ -97,7 +98,7 @@ export function ProfileEditor({ account, onSaved }: { account: Account; onSaved:
       </label>
       <label className="block space-y-2">
         <span className="text-sm font-semibold text-ink">About you</span>
-        <textarea
+        <AutoTextarea
           value={bio}
           onChange={(e) => setBio(e.target.value)}
           maxLength={1000}
