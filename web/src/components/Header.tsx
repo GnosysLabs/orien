@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useEffect, useRef, useState } from 'react'
-import { BookOpen, ChevronDown, Compass, Download, Monitor, Terminal, type LucideIcon } from 'lucide-react'
+import { BookOpen, ChevronDown, Compass, Download, History, Monitor, Terminal, type LucideIcon } from 'lucide-react'
 import { Wordmark } from './Wordmark'
 
 type NavItem = {
@@ -25,6 +25,12 @@ const ITEMS: NavItem[] = [
     label: 'How it works',
     icon: BookOpen,
     match: (p) => p.startsWith('/how-it-works'),
+  },
+  {
+    href: '/changelog/',
+    label: 'Changelog',
+    icon: History,
+    match: (p) => p.startsWith('/changelog'),
   },
   {
     href: '/try/',
@@ -119,7 +125,7 @@ export function Header() {
         </Link>
 
         <nav aria-label="Pages" className="ml-4 hidden items-center gap-1 md:flex">
-          {ITEMS.slice(0, 2).map((item) => {
+          {ITEMS.filter((item) => item.href !== '/try/').map((item) => {
             const on = isActive(item, pathname)
             const Icon = item.icon
             return (
@@ -161,7 +167,7 @@ export function BottomNav() {
   return (
     <nav
       aria-label="Mobile navigation"
-      className="fixed inset-x-0 bottom-0 z-40 grid grid-cols-3 print:hidden border-t border-line/70 bg-bg/85 px-1 pb-[env(safe-area-inset-bottom)] backdrop-blur-md md:hidden"
+      className="fixed inset-x-0 bottom-0 z-40 grid grid-cols-4 print:hidden border-t border-line/70 bg-bg/85 px-1 pb-[env(safe-area-inset-bottom)] backdrop-blur-md md:hidden"
     >
       {mobileItems.map((item) => {
         const on = isActive(item, pathname)
