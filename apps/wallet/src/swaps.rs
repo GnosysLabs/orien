@@ -25,6 +25,14 @@ pub struct Kept {
     /// The last thing that held it up, if anything did.
     pub problem: Option<String>,
     pub created: u64,
+    /// About when the ORN lock ends (seconds since 1970): unclaimed ORN go
+    /// back to the seller then, and the buyer must have claimed them before.
+    #[serde(default)]
+    pub orn_back_at: Option<u64>,
+    /// About when the buyer can take the Bitcoin back, if the seller never
+    /// took it.
+    #[serde(default)]
+    pub btc_back_at: Option<u64>,
 }
 
 /// What the window shows of a swap.
@@ -46,6 +54,16 @@ pub struct View {
     pub pay_uri: Option<String>,
     pub problem: Option<String>,
     pub created: u64,
+    /// The other side's Orien address: the buyer's, or the seller's.
+    pub other: Option<String>,
+    /// Buyer: Bitcoin has been seen paid into the swap.
+    pub paid: bool,
+    /// Buyer: the ORN are claimed.
+    pub orn_claimed: bool,
+    /// Buyer: the ORN deadline passed before they could be claimed.
+    pub orn_missed: bool,
+    pub orn_back_at: Option<u64>,
+    pub btc_back_at: Option<u64>,
 }
 
 /// The Bitcoin network swaps use: Bitcoin itself, through two independent
@@ -107,7 +125,7 @@ pub fn view(kept: &Kept) -> View {
         (_, Stage::Refunding) => ("refunding", "The seller did not take the Bitcoin in time. Taking it back; keep this app open.".to_string()),
         (Role::Seller, Stage::WaitingForReply) => ("reply", "Your ORN are locked for the buyer. Send them the offer code, then paste their reply.".to_string()),
         (Role::Seller, Stage::WaitingForBitcoin) => ("bitcoin", "Waiting for the buyer's Bitcoin to arrive and be confirmed three times, about half an hour. Keep this app open.".to_string()),
-        (Role::Buyer, Stage::WaitingForBitcoin) => ("bitcoin", "Send the Bitcoin below, then send the seller the reply code. Keep this app open.".to_string()),
+        (Role::Buyer, Stage::WaitingForBitcoin) => ("bitcoin", "Send the seller the reply code below, then pay the Bitcoin.".to_string()),
         (Role::Buyer, Stage::WaitingForSecret) if swap.orn_claimed => ("secret", "Your ORN are claimed. Taking back the extra Bitcoin paid into the swap once its lock ends; keep this app open.".to_string()),
         (_, Stage::WaitingForSecret) => ("secret", "Paid. Waiting for the seller to take the Bitcoin, which lets this app claim your ORN.".to_string()),
         (_, Stage::ClaimingOrn) => ("claim", "The seller took the Bitcoin. Claiming your ORN.".to_string()),
@@ -132,6 +150,31 @@ pub fn view(kept: &Kept) -> View {
         pay_to: pay_to.map(|address| address.to_string()),
         problem: kept.problem.clone(),
         created: kept.created,
+        other: match swap.role {
+            Role::Seller => Some(swap.buyer.to_string()),
+            Role::Buyer => swap.lock.map(|lock| lock.from.to_string()),
+        },
+        paid: !swap.coins.is_empty(),
+        orn_claimed: swap.orn_claimed,
+        orn_missed: swap.orn_missed,
+        orn_back_at: kept.orn_back_at,
+        btc_back_at: kept.btc_back_at,
+    }
+}
+
+/// Works out, once, about when each side's coins would come back: the ORN
+/// lock's end from the newest checkpoint, and the Bitcoin lock's from its
+/// length in blocks, counted from when the app first knew it.
+fn note_times(orien: &AppOrien, kept: &mut Kept) {
+    if kept.orn_back_at.is_none() && kept.swap.until > 0 {
+        let head = orien.client.head();
+        if head.time > 0 {
+            let epochs = kept.swap.until.saturating_sub(head.epoch);
+            kept.orn_back_at = Some(head.time + epochs * orien.epoch_seconds.max(1));
+        }
+    }
+    if kept.btc_back_at.is_none() && kept.swap.height.is_some() {
+        kept.btc_back_at = Some(now() + orien_swap::swap::BTC_BLOCKS as u64 * orien_swap::swap::BLOCK_MINUTES * 60);
     }
 }
 
@@ -219,7 +262,9 @@ pub fn sell(orien: &AppOrien, buyer: &str, orn: u64, sats: u64, payout: &str) ->
     }
     let (network, _) = bitcoin();
     let swap = Swap::sell(orien, network, buyer, orn, sats, payout.trim()).map_err(|error| error.to_string())?;
-    Ok(Kept { id: hex(&swap.hash), swap, offer: None, reply: None, problem: None, created: now() })
+    let mut kept = Kept { id: hex(&swap.hash), swap, offer: None, reply: None, problem: None, created: now(), orn_back_at: None, btc_back_at: None };
+    note_times(orien, &mut kept);
+    Ok(kept)
 }
 
 /// Takes up an offer: checks it on Orien and makes the reply.
@@ -227,14 +272,19 @@ pub fn buy(orien: &AppOrien, offer: &str, refund: &str) -> Result<Kept, String> 
     let offer = Offer::read(offer).map_err(|error| error.to_string())?;
     let (network, chain) = bitcoin();
     let (swap, reply) = Swap::buy(orien, &chain, network, &offer, refund.trim()).map_err(|error| error.to_string())?;
-    Ok(Kept { id: hex(&swap.hash), swap, offer: None, reply: Some(reply.code()), problem: None, created: now() })
+    let mut kept =
+        Kept { id: hex(&swap.hash), swap, offer: None, reply: Some(reply.code()), problem: None, created: now(), orn_back_at: None, btc_back_at: None };
+    note_times(orien, &mut kept);
+    Ok(kept)
 }
 
 /// The seller takes in the buyer's reply.
 pub fn accept(orien: &AppOrien, kept: &mut Kept, reply: &str) -> Result<(), String> {
     let reply = Reply::read(reply).map_err(|error| error.to_string())?;
     let (_, chain) = bitcoin();
-    kept.swap.accept(&chain, orien, &reply).map_err(|error| error.to_string())
+    kept.swap.accept(&chain, orien, &reply).map_err(|error| error.to_string())?;
+    note_times(orien, kept);
+    Ok(())
 }
 
 /// Moves every unfinished swap along as far as it can go now, saving after
@@ -255,6 +305,7 @@ pub fn step(orien: &AppOrien, dir: &Path, swaps: &mut [Kept]) -> Result<(), Stri
 /// Moves one swap along, and makes the offer code once the ORN are locked.
 pub fn advance(orien: &AppOrien, chain: &Explorers, kept: &mut Kept) {
     kept.problem = kept.swap.advance(chain, orien).err().map(|error| error.to_string());
+    note_times(orien, kept);
     if kept.offer.is_none() && kept.swap.role == Role::Seller && kept.swap.lock.is_some() {
         kept.offer = kept.swap.offer(orien.network()).ok().map(|offer| offer.code());
     }

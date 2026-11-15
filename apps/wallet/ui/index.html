@@ -171,6 +171,30 @@
   #swaps::-webkit-scrollbar, #swap-sell::-webkit-scrollbar, #swap-buy::-webkit-scrollbar, #swap-detail::-webkit-scrollbar { width: 0; }
   #swaps > *, #swap-sell > *, #swap-buy > *, #swap-detail > * { flex-shrink: 0; }
   #swaps .scroll { overflow: visible; flex: none; }
+  /* A swap, step by step: done steps ticked, the one under way lit. */
+  .steps { list-style: none; margin: 18px 0 0; padding: 0; }
+  .steps li { position: relative; display: grid; grid-template-columns: 26px 1fr; gap: 12px; padding-bottom: 16px; }
+  .steps li:not(:last-child)::before { content: ""; position: absolute; left: 12px; top: 28px; bottom: 4px; width: 1px; background: var(--line); }
+  .steps .dot { width: 26px; height: 26px; border-radius: 50%; display: grid; place-items: center;
+    font-size: 12px; font-weight: 600; border: 1px solid var(--line); color: var(--faint); background: var(--ground-deep); }
+  .steps .s-done .dot { border-color: #a6e3c655; color: var(--good); }
+  .steps .s-now .dot { border: 0; color: var(--pearl-ink); background: var(--pearl); background-size: 300% 100%; animation: drift 24s linear infinite; }
+  .steps .s-stopped .dot { border-color: #f1a9a955; color: var(--bad); }
+  .steps .what { padding-top: 3px; line-height: 1.4; }
+  .steps .s-next .what { color: var(--dim); }
+  .steps .s-done .what { color: var(--dim); }
+  .steps .who { margin-top: 3px; font-size: 12px; color: var(--faint); }
+  .steps .s-now .who { color: var(--dim); }
+  .note { margin-top: 14px; padding: 12px 14px; border-radius: 14px; border: 1px solid var(--line);
+    background: var(--surface); font-size: 13px; line-height: 1.5; color: var(--dim); }
+  .note strong { color: var(--ink); font-weight: 600; }
+  .explain { margin: 0; padding: 0; list-style: none; }
+  .explain li { padding: 12px 14px; border: 1px solid var(--line); border-radius: 14px; background: var(--surface);
+    font-size: 13px; line-height: 1.5; color: var(--dim); }
+  .explain li + li { margin-top: 8px; }
+  .explain strong { color: var(--ink); font-weight: 600; }
+  .label-line { margin-left: 4px; font-size: 13px; line-height: 1.45; color: var(--dim); }
+  .codehelp { margin: -2px 4px 10px; font-size: 12.5px; line-height: 1.45; color: var(--dim); }
   #swap-detail .label { font-size: 11.5px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--dim); margin: 0 4px 8px; }
   .tile {
     height: 56px; border-radius: 16px; border: 1px solid var(--line);
@@ -558,7 +582,13 @@
         <button class="back" id="sell-back" aria-label="Back"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10 3 5 8l5 5"/></svg></button>
         <h2>Sell ORN</h2>
       </div>
-      <div class="field">
+      <ul class="explain" data-gap="sm">
+        <li><strong>You need</strong> the buyer's Orien address (they find it in Orien Wallet under Swap, Buy ORN), a price you've agreed with them, and a Bitcoin address of yours to be paid at.</li>
+        <li><strong>How it goes:</strong> this app locks your ORN for the buyer, you swap codes, the buyer pays the Bitcoin, and this app takes it. Usually one to two hours.</li>
+        <li><strong>Fees:</strong> the usual Orien fee to lock the ORN (0.1%, at most 1 ORN), and Bitcoin's network fee for taking the Bitcoin, which comes out of what you receive. Orien Wallet itself takes nothing.</li>
+        <li><strong>Smallest swap:</strong> <span class="min-btc">0.0002</span> BTC. <strong>If the buyer never pays,</strong> your ORN come back to you on their own after 48 hours.</li>
+      </ul>
+      <div class="field" data-gap="xl">
         <label for="sell-buyer">Buyer's Orien address</label>
         <div class="box plain"><input id="sell-buyer" placeholder="Ask the buyer for it" spellcheck="false" autocomplete="off"></div>
       </div>
@@ -578,7 +608,6 @@
         <label for="sell-pw">Wallet password</label>
         <div class="box plain"><input id="sell-pw" type="password" autocomplete="current-password"></div>
       </div>
-      <p class="fineprint">Your ORN are locked for the buyer for 48 hours. If the swap doesn't happen, they come back to you on their own.</p>
       <div class="push"></div>
       <div class="problem" id="sell-problem" hidden></div>
       <button class="primary pearl" id="sell-go" data-gap="lg">Lock ORN and make the offer</button>
@@ -589,11 +618,17 @@
         <button class="back" id="buy-back" aria-label="Back"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10 3 5 8l5 5"/></svg></button>
         <h2>Buy ORN</h2>
       </div>
-      <p class="lede">First, give the seller your Orien address. They send you back an offer code.</p>
-      <div class="codebox" id="buy-me"></div>
+      <ul class="explain" data-gap="sm">
+        <li><strong>You need</strong> Bitcoin in any Bitcoin wallet, enough for the price plus that wallet's sending fee, a Bitcoin address of yours for a refund if the swap stops, and a price you've agreed with the seller.</li>
+        <li><strong>How it goes:</strong> the seller locks the ORN for you and sends an offer code, you send back a reply code and pay the Bitcoin, the seller takes it, and this app claims your ORN. Usually one to two hours after you pay.</li>
+        <li><strong>Fees:</strong> your Bitcoin wallet's fee to pay, and the usual Orien fee (0.1%, at most 1 ORN), which comes out of the ORN you receive. Orien Wallet itself takes nothing.</li>
+        <li><strong>Smallest swap:</strong> <span class="min-btc">0.0002</span> BTC. <strong>If the seller never takes your Bitcoin,</strong> this app takes it back for you after about 12 hours.</li>
+      </ul>
+      <div class="label-line" data-gap="xl">First, send the seller your Orien address. They lock the ORN for it and send you an offer code.</div>
+      <div class="codebox" id="buy-me" data-gap="sm"></div>
       <button class="secondary" id="buy-copy-me" data-gap="sm">Copy your address</button>
       <div class="field" data-gap="xl">
-        <label for="buy-offer">Offer code</label>
+        <label for="buy-offer">The seller's offer code</label>
         <textarea id="buy-offer" class="tall" placeholder="orien-offer:…" spellcheck="false" autocomplete="off"></textarea>
       </div>
       <div class="field">
@@ -613,23 +648,34 @@
       <div class="review">
         <div class="row"><span>ORN</span><span id="sd-orn"></span></div>
         <div class="row"><span>Bitcoin</span><span id="sd-btc"></span></div>
+        <div class="row" id="sd-other-row" hidden><span id="sd-other-label"></span><span id="sd-other"></span></div>
       </div>
+      <ol class="steps" id="sd-steps"></ol>
       <p class="swap-status" id="sd-status"></p>
+      <!-- Passing codes between the two sides. A public swap board will do
+           this for both wallets later; it stays in this one piece so it can
+           be replaced. -->
+      <div id="sd-exchange">
+        <div id="sd-code" hidden data-gap="lg">
+          <div class="label" id="sd-code-label"></div>
+          <p class="codehelp" id="sd-code-help"></p>
+          <div class="codebox" id="sd-code-text"></div>
+          <button class="secondary" id="sd-copy-code" data-gap="sm">Copy code</button>
+        </div>
+        <div class="field" id="sd-reply-field" hidden data-gap="xl">
+          <label for="sd-reply">Then paste the buyer's reply code</label>
+          <p class="codehelp">Their Orien Wallet makes it once it has checked your offer. It tells this app where they'll pay the Bitcoin.</p>
+          <textarea id="sd-reply" class="tall" placeholder="orien-reply:…" spellcheck="false" autocomplete="off"></textarea>
+          <button class="primary pearl" id="sd-accept" data-gap="sm">Use the reply</button>
+        </div>
+      </div>
       <div id="sd-pay" hidden data-gap="lg">
-        <div class="label">Pay exactly <span id="sd-pay-amount"></span> BTC to</div>
+        <div class="label">Then pay exactly <span id="sd-pay-amount"></span> BTC to</div>
+        <p class="codehelp">From any Bitcoin wallet. This address belongs to the swap: the seller can take the Bitcoin only by showing the secret that lets you claim the ORN.</p>
         <div class="codebox" id="sd-pay-to"></div>
         <button class="secondary" id="sd-copy-pay" data-gap="sm">Copy Bitcoin address</button>
       </div>
-      <div id="sd-code" hidden data-gap="lg">
-        <div class="label" id="sd-code-label"></div>
-        <div class="codebox" id="sd-code-text"></div>
-        <button class="secondary" id="sd-copy-code" data-gap="sm">Copy code</button>
-      </div>
-      <div class="field" id="sd-reply-field" hidden data-gap="xl">
-        <label for="sd-reply">Buyer's reply code</label>
-        <textarea id="sd-reply" class="tall" placeholder="orien-reply:…" spellcheck="false" autocomplete="off"></textarea>
-        <button class="primary pearl" id="sd-accept" data-gap="sm">Use the reply</button>
-      </div>
+      <div class="note" id="sd-gone" hidden></div>
       <div class="field" id="sd-pw-field" hidden data-gap="xl">
         <label for="sd-pw">Wallet password, to claim your ORN</label>
         <div class="box plain"><input id="sd-pw" type="password" autocomplete="current-password"></div>
@@ -637,7 +683,7 @@
       </div>
       <div class="push"></div>
       <div class="problem" id="detail-problem" hidden></div>
-      <p class="fineprint">Keep Orien Wallet open until the swap is done: it does each step for you as soon as it can.</p>
+      <p class="fineprint">While it's open, Orien Wallet does each of its steps for you as soon as it can.</p>
     </section>
 
     <!-- Receive -->
@@ -1048,15 +1094,81 @@
   let swapList = [];
   let current = null;       // the swap shown in detail
   let stepping = false;
-  const stageWord = { reply: "Waiting for reply", bitcoin: "Waiting for Bitcoin", secret: "Waiting for the seller",
-    claim: "Claiming ORN", done: "Done", cancelled: "Cancelled" };
+  // About when something happens, in the reader's own time.
+  function when(t) {
+    if (!t) return null;
+    const hours = Math.round((t * 1000 - Date.now()) / 3600000);
+    const at = new Date(t * 1000).toLocaleString([], { weekday: "short", hour: "numeric", minute: "2-digit" });
+    if (hours <= 0) return `around ${at}`;
+    return `around ${at}, in about ${hours} hour${hours === 1 ? "" : "s"}`;
+  }
+
+  // Each swap as plain steps: what happens, who does it, and how long it
+  // takes. `at` is the step under way; steps before it are done.
+  function swapSteps(s) {
+    const O = `${s.orn} ORN`, B = `${s.btc} BTC`;
+    if (s.role === "sell") {
+      const steps = [
+        { what: `Your ${O} are locked for the buyer`, who: "This app · under a minute" },
+        { what: "You send the buyer the offer code, and paste in the reply code they send back", who: "You and the buyer · up to you" },
+        { what: `The buyer pays ${B}, and Bitcoin confirms it three times`, who: "The buyer · usually 30 to 60 minutes after they pay" },
+        { what: `This app takes the Bitcoin to your Bitcoin address. That reveals the secret, so the buyer's wallet can take the ORN`, who: "This app · about 30 minutes for Bitcoin to settle" },
+      ];
+      const at = { locking: 0, reply: 1, bitcoin: 2, claiming: 3, done: 4 }[s.stage];
+      return { steps, at: at ?? null };
+    }
+    const steps = [
+      { what: `The seller locked ${O} for you, and this app checked with the validators that they really are`, who: "The seller · done" },
+      { what: `You send the seller the reply code, and pay ${B} into the swap`, who: "You · pay within the next few hours" },
+      { what: "The seller's wallet takes the Bitcoin once Bitcoin has confirmed your payment three times", who: "The seller · usually 30 to 60 minutes after you pay" },
+      { what: `This app reads the secret from Bitcoin and claims your ${O}`, who: "This app · a few minutes" },
+    ];
+    let at = { bitcoin: 1, secret: 2, claim: 3, done: 4 }[s.stage];
+    if (s.stage === "secret" && s.orn_claimed) at = 4;
+    return { steps, at: at ?? null };
+  }
+
+  // What happens if the other side disappears, at this point of the swap.
+  function ifGone(s) {
+    const ornBack = when(s.orn_back_at), btcBack = when(s.btc_back_at);
+    if (s.stage === "done") return null;
+    if (s.role === "sell") {
+      if (s.stage === "cancelled")
+        return ornBack && s.orn_back_at * 1000 > Date.now()
+          ? `<strong>Your ORN come back to you on their own</strong> ${ornBack}. You don't need to do anything.` : null;
+      if (s.stage === "claiming")
+        return `<strong>Keep Orien Wallet open until this is done.</strong> The buyer can take their Bitcoin back ${btcBack || "about 12 hours after their reply"}, so this app takes it well before then.`;
+      let text = `<strong>If the buyer disappears,</strong> your ${s.orn} ORN come back to you on their own ${ornBack || "48 hours after they were locked"}. You don't need to do anything, and this app can be closed.`;
+      if (s.stage === "bitcoin")
+        text += ` If the buyer pays but this app stays closed for more than about 10 hours, they take their Bitcoin back and your ORN still come back to you. Nobody loses coins.`;
+      return text;
+    }
+    if (s.stage === "refunding")
+      return `<strong>Keep Orien Wallet open</strong> until your Bitcoin is back at your Bitcoin address. Bitcoin's network fee for that comes out of it.`;
+    if (s.stage === "cancelled") return null;
+    if (s.stage === "bitcoin" && !s.paid)
+      return `<strong>Nothing has left your wallets yet.</strong> If you change your mind, just don't pay: the seller's ORN go back to them ${ornBack || "on their own"}. Pay soon if you do: the swap's Bitcoin lock ends ${btcBack || "about 12 hours after your reply"}.`;
+    if (s.stage === "claim" || (s.stage === "secret" && s.orn_claimed))
+      return `<strong>Keep Orien Wallet open until this is done.</strong> It must claim your ORN before ${ornBack || "the seller's lock ends"}.`;
+    return `<strong>If the seller disappears</strong> and never takes your Bitcoin, this app takes it back to your Bitcoin address ${btcBack || "about 12 hours after your reply"}. Have Orien Wallet open then, or open it before ${ornBack || "the seller's lock ends"}. If they do take it, this app claims your ORN.`;
+  }
+
+  // One line for the list of swaps.
+  function stageLine(s) {
+    if (s.stage === "done") return "Done";
+    if (s.stage === "cancelled") return "Stopped";
+    if (s.stage === "refunding") return "Taking your Bitcoin back";
+    const { steps, at } = swapSteps(s);
+    if (at === null || at >= steps.length) return "";
+    return `Step ${at + 1} of ${steps.length} · ${steps[at].who.split(" · ")[0]}`;
+  }
 
   function renderSwaps() {
     const list = $("swap-list");
     if (!swapList.length) { list.innerHTML = '<div class="empty">No swaps yet</div>'; return; }
     list.innerHTML = swapList.map((s) => `<button class="swap-row" data-swap="${esc(s.id)}">
       <div><div>${s.role === "sell" ? "Sell" : "Buy"} ${esc(s.orn)} ORN for ${esc(s.btc)} BTC</div>
-      <div class="sub">${esc(stageWord[s.stage] || "")}</div></div></button>`).join("");
+      <div class="sub">${esc(stageLine(s))}</div></div></button>`).join("");
     for (const b of list.querySelectorAll("[data-swap]")) b.onclick = () => openSwap(b.dataset.swap);
   }
 
@@ -1077,19 +1189,42 @@
     $("sd-title").textContent = s.role === "sell" ? "Selling ORN" : "Buying ORN";
     $("sd-orn").textContent = s.orn + " ORN";
     $("sd-btc").textContent = s.btc + " BTC";
+    $("sd-other-row").hidden = !s.other;
+    $("sd-other-label").textContent = s.role === "sell" ? "Buyer" : "Seller";
+    $("sd-other").textContent = s.other ? short(s.other) : "";
+    const { steps, at } = swapSteps(s);
+    const stopped = ["cancelled", "refunding"].includes(s.stage);
+    $("sd-steps").innerHTML = steps.map((step, i) => {
+      const state = at !== null && i < at ? "done" : i === at ? (stopped ? "stopped" : "now") : "next";
+      const dot = state === "done" ? "✓" : state === "stopped" ? "!" : String(i + 1);
+      return `<li class="s-${state}"><span class="dot">${dot}</span>
+        <div class="what">${esc(step.what)}<div class="who">${esc(step.who)}</div></div></li>`;
+    }).join("");
     $("sd-status").textContent = s.status;
+    renderExchange(s);
     $("sd-pay").hidden = !s.pay_to;
     if (s.pay_to) { $("sd-pay-to").textContent = s.pay_to; $("sd-pay-amount").textContent = s.btc; }
+    const gone = ifGone(s);
+    $("sd-gone").hidden = !gone;
+    if (gone) $("sd-gone").innerHTML = gone;
+    const needsPassword = s.problem && s.problem.startsWith("password:");
+    $("sd-pw-field").hidden = !needsPassword;
+    if (s.problem && !needsPassword) problem("detail-problem", s.problem); else $("detail-problem").hidden = true;
+  }
+
+  // Passing codes between the two sides: the seller's offer, the buyer's
+  // reply. A public swap board will pass them for both wallets later.
+  function renderExchange(s) {
     const code = s.role === "sell" ? (s.stage === "reply" ? s.offer : null) : (s.stage === "bitcoin" ? s.reply : null);
     $("sd-code").hidden = !code;
     if (code) {
       $("sd-code-label").textContent = s.role === "sell" ? "Send the buyer this offer code" : "Send the seller this reply code";
+      $("sd-code-help").textContent = s.role === "sell"
+        ? "By any message app or email. It tells the buyer's Orien Wallet what you locked for them, and holds nothing secret."
+        : "By any message app or email. It tells the seller's Orien Wallet where you're paying the Bitcoin, and holds nothing secret.";
       $("sd-code-text").textContent = code;
     }
     $("sd-reply-field").hidden = !(s.role === "sell" && s.stage === "reply");
-    const needsPassword = s.problem && s.problem.startsWith("password:");
-    $("sd-pw-field").hidden = !needsPassword;
-    if (s.problem && !needsPassword) problem("detail-problem", s.problem); else $("detail-problem").hidden = true;
   }
 
   async function stepSwaps(password) {

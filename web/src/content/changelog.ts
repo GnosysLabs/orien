@@ -24,6 +24,18 @@ export const PRODUCTS: Record<Product, string> = {
 export const CHANGELOG: Entry[] = [
   {
     date: '2026-11-15',
+    products: ['wallet'],
+    version: '1.3.0',
+    title: 'Swaps, step by step',
+    changes: [
+      'Each swap shows its steps in plain words: what has happened, what happens next, who has to act, and about how long it takes.',
+      'At every step it says what happens if the other side disappears, and about when your ORN or Bitcoin would come back.',
+      'The offer and reply codes each come with a line on what they are and whom to send them to.',
+      'Before you sell or buy, one screen says what you need, the fees, and the smallest swap.',
+    ],
+  },
+  {
+    date: '2026-11-15',
     products: ['validators', 'orien'],
     version: '1.4.0',
     title: 'Validators keep themselves up to date',
