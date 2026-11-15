@@ -2,7 +2,7 @@
 // each release of orien or Orien Wallet, and for any change to the network.
 // Dates are UTC.
 
-export type Product = 'network' | 'orien' | 'validators' | 'wallet'
+export type Product = 'network' | 'orien' | 'validators' | 'wallet' | 'marketplace'
 
 export type Entry = {
   date: string
@@ -19,9 +19,21 @@ export const PRODUCTS: Record<Product, string> = {
   orien: 'orien',
   validators: 'Validators',
   wallet: 'Orien Wallet',
+  marketplace: 'Marketplace',
 }
 
 export const CHANGELOG: Entry[] = [
+  {
+    date: '2026-11-15',
+    products: ['marketplace'],
+    title: 'The marketplace and the swap board',
+    changes: [
+      'orien.network/marketplace: people offer work and goods for ORN, with profiles, pictures, messages, and payment requests inside each conversation. Buyers pay sellers straight from their own wallets: the marketplace never holds anyone’s coins.',
+      'orien.network/swap: offers of ORN for Bitcoin, with each offer’s value in dollars. Take one in Orien Wallet and the two wallets carry the swap through on their own: either both sides get paid, or both get their coins back.',
+      'Sign in with your email and a 6-digit code, the same account on the website and in Orien Wallet. Sellers on the marketplace verify their wallet once, so buyers’ payments always reach them; signing in through Orien Wallet does it for you.',
+      'Everything posted is checked before anyone sees it, every listing and profile has a Report link, and you can delete your account at any time. orien.network/privacy says what is kept and why.',
+    ],
+  },
   {
     date: '2026-11-15',
     products: ['wallet'],
