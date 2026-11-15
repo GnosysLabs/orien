@@ -5,6 +5,7 @@ import { useSearchParams } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import { ArrowLeft, Wallet } from 'lucide-react'
 import { ask, me, memberSince, type Account, type Listing } from '@/lib/market'
+import { Linked } from './Linked'
 import { Avatar } from './Avatar'
 import { ContactLinks } from './ContactLinks'
 import { Card } from './Browse'
@@ -53,7 +54,11 @@ export function ProfileView() {
             </p>
           )}
           <p className="text-sm text-muted">{memberSince(account.created)}</p>
-          {account.bio && <p className="whitespace-pre-line pt-2 leading-relaxed text-muted">{account.bio}</p>}
+          {account.bio && (
+            <p className="whitespace-pre-line pt-2 leading-relaxed text-muted">
+              <Linked text={account.bio} />
+            </p>
+          )}
           <div className="pt-3">
             <ContactLinks contact={account.contact} />
           </div>

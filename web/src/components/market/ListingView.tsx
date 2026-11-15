@@ -5,6 +5,7 @@ import { useSearchParams } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import { ArrowLeft, Pencil, ShieldCheck } from 'lucide-react'
 import { ask, categoryLabel, formatOrn, memberSince, type Account, type Listing } from '@/lib/market'
+import { Linked } from './Linked'
 import { Avatar } from './Avatar'
 import { ContactLinks } from './ContactLinks'
 import { MessageSeller } from './Messages'
@@ -59,7 +60,9 @@ export function ListingView() {
           {listing.description && (
             <section className={card}>
               <h2 className="mb-3 text-lg font-bold tracking-tight text-ink">About this</h2>
-              <p className="whitespace-pre-line leading-relaxed text-muted">{listing.description}</p>
+              <p className="whitespace-pre-line leading-relaxed text-muted">
+                <Linked text={listing.description} />
+              </p>
             </section>
           )}
           <section className={card}>
