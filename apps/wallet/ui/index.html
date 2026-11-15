@@ -595,13 +595,6 @@
         <button class="linkish" id="board-signin-go">Sign in</button>
       </div>
       <button class="primary pearl" id="board-post-go" data-gap="sm">Post an offer</button>
-      <div class="note" id="board-verify" hidden>
-        <div id="bv-text"></div>
-        <div class="field" id="bv-pw-field" hidden data-gap="sm">
-          <div class="box plain"><input id="bv-pw" type="password" placeholder="Wallet password" autocomplete="current-password"></div>
-          <button class="secondary" id="bv-go" data-gap="sm">Link this wallet</button>
-        </div>
-      </div>
       <div class="section-head"><h3>Open offers</h3><span class="hint" id="board-btc"></span></div>
       <div id="board-offers"><div class="empty">Loading offers…</div></div>
       <div class="problem" id="board-problem" hidden></div>
@@ -619,9 +612,8 @@
     <section class="screen" id="board-signin" hidden>
       <div class="topline"><button class="back" data-to="swaps" aria-label="Back"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10 3 5 8l5 5"/></svg></button><h2>Sign in to the swap board</h2></div>
       <p class="lede">The same account as on orien.network. You'll get a 6-digit code by email.</p>
-      <p class="fineprint" style="margin-top:0">Signing in also links this wallet to your account (a tiny payment, under 0.01 ORN).</p>
       <div class="field">
-        <label for="bs-email">Email</label>
+        <label for="bs-email" data-gap="sm">Email</label>
         <div class="box plain"><input id="bs-email" type="email" placeholder="you@example.com" autocomplete="email" spellcheck="false"></div>
       </div>
       <div class="field" id="bs-code-field" hidden>
@@ -842,14 +834,33 @@
   }
 
   let lastBalance = null;
+  function fitBalance() {
+    const card = document.querySelector("#home .card"), row = card && card.querySelector(".amount");
+    if (!row || !card.clientWidth) return;
+    const style = getComputedStyle(card);
+    const inner = card.clientWidth - parseFloat(style.paddingLeft) - parseFloat(style.paddingRight);
+    const balance = $("balance"), unit = row.querySelector(".unit");
+    const gap = parseFloat(getComputedStyle(row).columnGap) || 0;
+    // The number and "ORN" scale together; the gap between them does not.
+    const width = (size) => {
+      balance.style.fontSize = size + "px";
+      unit.style.fontSize = Math.max(12, size / 3) + "px";
+      return balance.getBoundingClientRect().width + unit.getBoundingClientRect().width + gap;
+    };
+    const measured = width(100) - gap;
+    let size = Math.max(20, Math.min(64, 100 * (inner - gap) / measured));
+    if (width(size) > inner) size = Math.max(20, size * (inner - gap) / (width(size) - gap) - 0.5);
+    width(size);
+  }
+  window.addEventListener("resize", fitBalance);
   async function refresh() {
     try {
       view = await invoke("overview_now");
       $("balance").textContent = view.balance === null ? "—" : view.balance;
-      if (view.balance !== null && view.balance !== lastBalance) {
-        lastBalance = view.balance;
-        if (linking.state === null || linking.state === "too little" || linking.state === "nothing") linkWallet();
-      }
+      fitBalance();
+      // Once a session: link this wallet, if signed in to the marketplace.
+      if (lastBalance === null) linkWallet();
+      lastBalance = view.balance;
       $("status").title = `${view.answered} of ${view.validators} validators answered`;
       if (view.answered === view.validators) setStatus("ok", "Connected");
       else if (view.balance !== null) setStatus("warn", `${view.answered} of ${view.validators}`);
@@ -1388,38 +1399,15 @@
   }
 
   // Signing in through the app also links this wallet to the account, so
-  // app users can sell on the marketplace with no extra step: a tiny exact
-  // payment, sent in the background once the wallet holds enough. Swaps
-  // never wait for it. An account linked to another wallet is left as it is.
-  const linking = { state: null, busy: false, polls: 0 };
-  async function linkWallet(password) {
-    if (linking.busy || linking.state === "done" || linking.state === "other") return;
+  // the account's buyers on the marketplace pay it. Nothing is paid, and
+  // swaps never wait for it.
+  const linking = { done: false, busy: false };
+  async function linkWallet() {
+    if (linking.busy || linking.done) return;
     linking.busy = true;
-    try {
-      linking.state = await invoke("board_link", { password: password || null });
-    } catch { linking.state = null; }
+    try { linking.done = await invoke("board_link"); } catch {}
     finally { linking.busy = false; }
-    const note = $("board-verify");
-    if (linking.state === "other") {
-      note.hidden = false;
-      $("bv-text").textContent = "Your marketplace account is linked to another wallet.";
-      $("bv-pw-field").hidden = true;
-    } else if (linking.state && linking.state.startsWith("password:")) {
-      note.hidden = false;
-      $("bv-text").textContent = linking.state === "password: wrong"
-        ? "That is not this wallet's password."
-        : "Signing in links this wallet to your marketplace account with a tiny payment (under 0.01 ORN). Enter the wallet's password to send it.";
-      $("bv-pw-field").hidden = false;
-    } else {
-      note.hidden = true;
-    }
-    // Sent: ask again until the marketplace has seen it.
-    if (linking.state === "sent" && linking.polls < 40) {
-      linking.polls += 1;
-      setTimeout(linkWallet, 5000);
-    }
   }
-  $("bv-go").onclick = () => { const pw = $("bv-pw").value; $("bv-pw").value = ""; linkWallet(pw); }
 
   function renderOffers() {
     const list = $("board-offers");
@@ -1531,8 +1519,7 @@
       try { await invoke("board_sign_out"); } catch {}
       board.me = null;
       board.waiting = [];
-      linking.state = null;
-      $("board-verify").hidden = true;
+      linking.done = false;
       await loadBoard();
       renderSwaps();
       return;
@@ -1564,7 +1551,7 @@
         show("swaps");
         await loadBoard();
         stepSwaps();
-        linking.state = null;
+        linking.done = false;
         linkWallet();
         if (board.taking) startTake(board.taking.id);
       }

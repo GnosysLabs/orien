@@ -26,6 +26,17 @@ export const CHANGELOG: Entry[] = [
   {
     date: '2026-11-15',
     products: ['wallet'],
+    version: '1.4.1',
+    title: 'Linking your wallet is free',
+    changes: [
+      'Signing in links this wallet to your marketplace account at once, with no payment, even a brand-new wallet with no ORN.',
+      'The balance fills its card evenly, however long it is.',
+      'More room above the email field when signing in.',
+    ],
+  },
+  {
+    date: '2026-11-15',
+    products: ['wallet'],
     version: '1.4.0',
     title: 'Buy and sell ORN in the app',
     changes: [

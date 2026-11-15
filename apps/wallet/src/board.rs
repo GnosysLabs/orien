@@ -56,10 +56,6 @@ struct Saved {
     email: Option<String>,
     #[serde(default)]
     links: Vec<Link>,
-    /// When this app sent the payment that links its wallet to the account,
-    /// so it waits for the marketplace to see it rather than send again.
-    #[serde(default)]
-    verify_sent: Option<u64>,
 }
 
 fn file(dir: &Path) -> PathBuf {
@@ -205,82 +201,21 @@ pub fn sign_out(dir: &Path) -> Result<(), String> {
     save(dir, &saved)
 }
 
-/// What linking this wallet to the account came to.
-pub enum Linked {
-    /// Not signed in, or the marketplace can't be reached: nothing to do now.
-    Nothing,
-    /// The account's wallet is this one.
-    Done,
-    /// The account is linked to another wallet; it is left as it is.
-    Other,
-    /// This wallet holds too little to send the amount; tried again later.
-    TooLittle,
-    /// Sent; the marketplace hasn't seen it yet.
-    Sent,
-    /// The wallet has a password, and the app needs it to send.
-    Password(String),
-}
-
-/// The most the marketplace asks for linking a wallet (0.01 ORN), with room
-/// for the fee.
-const LINK_NEEDS: i128 = 11_000_000;
-
 /// Links this wallet, `address`, to the signed-in account, as signing in
-/// through the app does: the marketplace names an exact tiny amount, and
-/// `pay` sends it from this wallet. Never switches an account already
-/// linked to another wallet, and sends at most once until the marketplace
-/// has seen it (or an hour has passed).
-pub fn link_wallet(
-    dir: &Path,
-    address: &str,
-    balance: Option<i128>,
-    pay: impl FnOnce(&str, u64) -> Result<(), String>,
-) -> Result<Linked, String> {
+/// through the app does, so the account's buyers pay this wallet. Nothing
+/// is paid: the app names its own address, so it can't be mistyped, and
+/// naming someone else's wallet would only pay them. Returns whether a
+/// link was made (or was already there); `false` when no one is signed in.
+pub fn link_wallet(dir: &Path, address: &str) -> Result<bool, String> {
     if load(dir).cookie.is_none() {
-        return Ok(Linked::Nothing);
+        return Ok(false);
     }
-    let me = match call(dir, "GET", "/me", None) {
-        Ok(me) => me,
-        Err(Failed::SignIn) => return Ok(Linked::Nothing),
-        Err(failed) => return Err(failed.into()),
-    };
-    match me["account"]["wallet"].as_str() {
-        Some(wallet) if wallet == address => {
-            let mut saved = load(dir);
-            if saved.verify_sent.take().is_some() {
-                save(dir, &saved)?;
-            }
-            return Ok(Linked::Done);
-        }
-        Some(_) => return Ok(Linked::Other),
-        None => {}
+    match call(dir, "POST", "/me/wallet", Some(json!({ "address": address, "app": true }))) {
+        Ok(answer) if answer["wallet"].as_str() == Some(address) => Ok(true),
+        Ok(_) => Err("The marketplace did not link this wallet.".into()),
+        Err(Failed::SignIn) => Ok(false),
+        Err(failed) => Err(failed.into()),
     }
-    // Sent already: wait for the marketplace to see it.
-    if load(dir).verify_sent.is_some_and(|at| now() < at + 3_600) {
-        let answer = call(dir, "GET", "/me/wallet", None)?;
-        return Ok(if answer["wallet"].as_str() == Some(address) { Linked::Done } else { Linked::Sent });
-    }
-    if balance.is_none_or(|balance| balance < LINK_NEEDS) {
-        return Ok(Linked::TooLittle);
-    }
-    let answer = call(dir, "POST", "/me/wallet", Some(json!({ "address": address })))?;
-    let (Some(pay_to), Some(amount)) = (answer["waiting"]["pay_to"].as_str(), answer["waiting"]["amount"].as_u64()) else {
-        return Err("The marketplace did not say what to send.".into());
-    };
-    match pay(pay_to, amount) {
-        Ok(()) => {
-            let mut saved = load(dir);
-            saved.verify_sent = Some(now());
-            save(dir, &saved)?;
-            Ok(Linked::Sent)
-        }
-        Err(error) if error.starts_with("password:") => Ok(Linked::Password(error)),
-        Err(error) => Err(error),
-    }
-}
-
-fn now() -> u64 {
-    std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).map_or(0, |d| d.as_secs())
 }
 
 fn bitcoin_address(text: &str, network: orien_swap::bitcoin::Network) -> Result<String, String> {

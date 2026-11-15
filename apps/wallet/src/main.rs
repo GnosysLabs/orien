@@ -605,39 +605,12 @@ async fn board_take(app: AppHandle, offer: i64, refund: String) -> Result<(), St
 }
 
 /// Links this wallet to the signed-in marketplace account, as signing in
-/// through the app does, by sending the tiny amount the marketplace names.
-/// Answers "nothing", "done", "other", "too little", "sent" or
-/// "password: ..." when the wallet's password is needed.
+/// through the app does. Nothing is paid. False when no one is signed in.
 #[tauri::command]
-async fn board_link(app: AppHandle, password: Option<String>) -> Result<String, String> {
+async fn board_link(app: AppHandle) -> Result<bool, String> {
     let dir = folder(&app)?;
-    let wallet_file = wallet_file(&dir).ok_or("no wallet yet")?;
-    let genesis = genesis_file(&dir)?;
-    tauri::async_runtime::spawn_blocking(move || {
-        let _turn = TURNS.lock().unwrap_or_else(|poisoned| poisoned.into_inner());
-        let address = orien_net::keys::Wallet::peek(&wallet_file).map_err(|error| error.to_string())?.0;
-        let client = connect(&genesis)?;
-        let balance = client.account(&address, 0).spendable;
-        let pay = |to: &str, amount: u64| {
-            let to: AccountId = to.parse().map_err(|_| "The marketplace's address is damaged.".to_string())?;
-            let mut wallet = open_signing(&wallet_file, password.as_deref())?;
-            let sent = send::send(&client, &mut wallet, money::fees(GENESIS), to, amount)?;
-            activity::sent(&dir, &address.to_string(), sent.amount, sent.fee, &sent.to);
-            Ok(())
-        };
-        let linked = board::link_wallet(&dir, &address.to_string(), balance, pay);
-        let _ = client.head().save(&head_file(&genesis));
-        Ok(match linked? {
-            board::Linked::Nothing => "nothing".into(),
-            board::Linked::Done => "done".into(),
-            board::Linked::Other => "other".into(),
-            board::Linked::TooLittle => "too little".into(),
-            board::Linked::Sent => "sent".into(),
-            board::Linked::Password(why) => why,
-        })
-    })
-    .await
-    .map_err(|error| error.to_string())?
+    let address = wallet_file(&dir).and_then(|file| orien_net::keys::Wallet::peek(&file).ok()).map(|(address, _)| address.to_string()).ok_or("no wallet yet")?;
+    tauri::async_runtime::spawn_blocking(move || board::link_wallet(&dir, &address)).await.map_err(|error| error.to_string())?
 }
 
 #[tauri::command]
@@ -797,8 +770,7 @@ mod tests {
 
     /// Signing up to a test copy of the swap board with an emailed code,
     /// taking an offer at once with no linked wallet, and then linking bob's
-    /// wallet by paying the exact amount it asks, as signing in in the app
-    /// does. Needs ORIEN_DEVNET, ORIEN_MARKET (a debug
+    /// wallet, as signing in in the app does. Needs ORIEN_DEVNET, ORIEN_MARKET (a debug
     /// build) pointing at a board that watches that network and prints its
     /// codes to the file ORIEN_BOARD_LOG.
     #[test]
@@ -830,31 +802,8 @@ mod tests {
             super::board::take_on(&dir, orien_swap::bitcoin::Network::Regtest, offer, &bob, refund).unwrap();
         }
 
-        // Signing in links the wallet: not while it holds too little, then
-        // once it does, by sending exactly what the marketplace names, once.
-        let genesis = root.join("genesis.json");
-        let client = super::connect(&genesis).unwrap();
-        let fees = orien_net::keys::load_genesis(&genesis).unwrap().fee;
-        let sends = std::cell::Cell::new(0);
-        let pay = |to: &str, amount: u64| {
-            sends.set(sends.get() + 1);
-            let mut wallet = super::open_signing(&bob_file, None)?;
-            super::send::send(&client, &mut wallet, fees, to.parse().unwrap(), amount).map(|_| ())
-        };
-        let link = |balance| super::board::link_wallet(&dir, &bob, balance, pay).unwrap();
-        assert!(matches!(link(Some(0)), super::board::Linked::TooLittle));
-        let balance = client.account(&bob.parse().unwrap(), 0).spendable;
-        assert!(matches!(link(balance), super::board::Linked::Sent));
-        let mut linked = false;
-        for _ in 0..30 {
-            if matches!(link(balance), super::board::Linked::Done) {
-                linked = true;
-                break;
-            }
-            std::thread::sleep(std::time::Duration::from_secs(1));
-        }
-        assert!(linked, "the marketplace saw the payment");
-        assert_eq!(sends.get(), 1, "sent once");
+        // Signing in links the wallet, with no payment.
+        assert!(super::board::link_wallet(&dir, &bob).unwrap());
         assert_eq!(super::board::me(&dir).unwrap().unwrap()["wallet"].as_str(), Some(bob.as_str()));
         let _ = std::fs::remove_dir_all(&dir);
     }
