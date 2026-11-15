@@ -64,7 +64,35 @@ pub async fn install_update(app: AppHandle) -> Result<(), String> {
     })
     .await
     .map_err(|error| error.to_string())??;
+    #[cfg(target_os = "macos")]
+    reopen_on_the_mac(&app);
     app.restart()
+}
+
+/// Reopens the app on a Mac once this copy has closed, the way clicking its
+/// Dock icon would. Tauri's own restart starts a second copy while this one
+/// is still running, and the Mac gives that copy a Dock icon of its own
+/// instead of the one the person keeps in their Dock.
+#[cfg(target_os = "macos")]
+fn reopen_on_the_mac(app: &AppHandle) {
+    let Ok(binary) = tauri::process::current_binary(&tauri::Manager::env(app)) else { return };
+    // .../Orien Wallet.app/Contents/MacOS/orien-wallet
+    let Some(bundle) = binary.ancestors().nth(3).filter(|b| b.extension().is_some_and(|e| e == "app")) else { return };
+    let script = format!(
+        "while kill -0 {} 2>/dev/null; do sleep 0.2; done; exec /usr/bin/open \"$0\"",
+        std::process::id()
+    );
+    let started = std::process::Command::new("/bin/sh")
+        .arg("-c")
+        .arg(script)
+        .arg(bundle)
+        .stdin(std::process::Stdio::null())
+        .stdout(std::process::Stdio::null())
+        .stderr(std::process::Stdio::null())
+        .spawn();
+    if started.is_ok() {
+        std::process::exit(0);
+    }
 }
 
 #[cfg(test)]

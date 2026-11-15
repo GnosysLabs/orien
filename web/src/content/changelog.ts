@@ -34,6 +34,7 @@ export const CHANGELOG: Entry[] = [
       'Your contacts follow your wallet: add, rename or remove one on one device and the change shows on your others. They are sealed with a key from your recovery phrase, so only your wallet can read them, and no account is needed.',
       'On a Mac with Touch ID or an iPhone with Face ID, unlock your wallet with your finger or face instead of typing its password. On Windows and Linux, restoring suggests the same password as on your other devices.',
       'A restored wallet shows its history from the start: what it received and, from today, what it sent.',
+      'On a Mac, the app reopens after an update in the Dock icon you keep, instead of in a second icon. (This starts with the next update after 1.6.0.)',
     ],
   },
   {
