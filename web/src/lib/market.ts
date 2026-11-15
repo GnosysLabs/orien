@@ -1,11 +1,18 @@
 // Talking to the marketplace server, and passkeys in the browser.
 
-export type Account = { id: number; name: string; created: number }
+export type Account = { id: number; name: string; bio: string; picture: string | null; created: number }
+
+export const pictureUrl = (name: string) => `/api/market/images/${name}`
+
+/** "Member since March 2026". */
+export const memberSince = (seconds: number) =>
+  `Member since ${new Date(seconds * 1000).toLocaleDateString('en', { month: 'long', year: 'numeric' })}`
 
 export type Listing = {
   id: number
   seller: number
   seller_name: string
+  seller_picture: string | null
   title: string
   description: string
   category: string

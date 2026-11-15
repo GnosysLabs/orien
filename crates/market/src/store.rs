@@ -11,6 +11,7 @@ use std::time::{SystemTime, UNIX_EPOCH};
 pub const SESSION_SECONDS: u64 = 30 * 24 * 3600;
 
 pub const MAX_NAME: usize = 50;
+pub const MAX_BIO: usize = 1000;
 pub const MAX_TITLE: usize = 100;
 pub const MAX_DESCRIPTION: usize = 5000;
 pub const MAX_UNIT: usize = 30;
@@ -53,6 +54,7 @@ pub struct Listing {
     pub id: i64,
     pub seller: i64,
     pub seller_name: String,
+    pub seller_picture: Option<String>,
     pub title: String,
     pub description: String,
     pub category: String,
@@ -69,6 +71,10 @@ pub struct Listing {
 pub struct Account {
     pub id: i64,
     pub name: String,
+    /// A few lines about the seller, shown on their profile.
+    pub bio: String,
+    /// The file name of their picture, under /api/market/images/.
+    pub picture: Option<String>,
     pub created: u64,
 }
 
@@ -134,6 +140,8 @@ impl Store {
                  handle TEXT NOT NULL UNIQUE,
                  -- How the account signs in, lowercase; none for one that uses passkeys only.
                  email TEXT UNIQUE,
+                 bio TEXT NOT NULL DEFAULT '',
+                 picture TEXT,
                  created INTEGER NOT NULL
              );
              CREATE TABLE IF NOT EXISTS codes (
@@ -187,7 +195,7 @@ impl Store {
             "INSERT INTO accounts (name, handle, email, created) VALUES (?1, ?2, ?3, ?4)",
             params![name, handle, email, created],
         )?;
-        Ok(Account { id: self.db.last_insert_rowid(), name, created })
+        Ok(Account { id: self.db.last_insert_rowid(), name, bio: String::new(), picture: None, created })
     }
 
     /// A new account that signs in by email. The email must be one a code
@@ -242,6 +250,30 @@ impl Store {
         Ok(())
     }
 
+    /// Changes an account's name and bio, tidied, or says why not.
+    pub fn set_profile(&self, id: i64, name: &str, bio: &str) -> Result<Account> {
+        let (name, bio) = profile_text(name, bio)?;
+        self.db.execute("UPDATE accounts SET name = ?2, bio = ?3 WHERE id = ?1", params![id, name, bio])?;
+        self.account(id)?.ok_or_else(|| anyhow::anyhow!("no such account"))
+    }
+
+    /// Sets an account's picture, and returns the one it replaces, whose
+    /// file can go.
+    pub fn set_picture(&self, id: i64, picture: &str) -> Result<Option<String>> {
+        let old: Option<String> =
+            self.db.query_row("SELECT picture FROM accounts WHERE id = ?1", [id], |row| row.get(0))?;
+        self.db.execute("UPDATE accounts SET picture = ?2 WHERE id = ?1", params![id, picture])?;
+        Ok(old)
+    }
+
+    /// A seller's open listings, newest first, for their profile.
+    pub fn open_listings_of(&self, seller: i64) -> Result<Vec<Listing>> {
+        let sql = format!("{} WHERE l.seller = ?1 AND l.open = 1 ORDER BY l.updated DESC", Store::LISTING);
+        let mut statement = self.db.prepare(&sql)?;
+        let rows = statement.query_map([seller], Store::row)?;
+        Ok(rows.collect::<rusqlite::Result<_>>()?)
+    }
+
     #[doc(hidden)]
     pub fn forget_codes_for_tests(&self) {
         self.db.execute("DELETE FROM codes", []).unwrap();
@@ -250,8 +282,8 @@ impl Store {
     pub fn account(&self, id: i64) -> Result<Option<Account>> {
         Ok(self
             .db
-            .query_row("SELECT id, name, created FROM accounts WHERE id = ?1", [id], |row| {
-                Ok(Account { id: row.get(0)?, name: row.get(1)?, created: row.get(2)? })
+            .query_row("SELECT id, name, bio, picture, created FROM accounts WHERE id = ?1", [id], |row| {
+                Ok(Account { id: row.get(0)?, name: row.get(1)?, bio: row.get(2)?, picture: row.get(3)?, created: row.get(4)? })
             })
             .optional()?)
     }
@@ -355,7 +387,7 @@ impl Store {
         Ok(())
     }
 
-    const LISTING: &'static str = "SELECT l.id, l.seller, a.name, l.title, l.description, l.category, l.price, l.unit,
+    const LISTING: &'static str = "SELECT l.id, l.seller, a.name, a.picture, l.title, l.description, l.category, l.price, l.unit,
              l.pay_to, l.contact, l.created, l.updated, l.open
          FROM listings l JOIN accounts a ON a.id = l.seller";
 
@@ -364,16 +396,17 @@ impl Store {
             id: row.get(0)?,
             seller: row.get(1)?,
             seller_name: row.get(2)?,
-            title: row.get(3)?,
-            description: row.get(4)?,
-            category: row.get(5)?,
-            price: row.get::<_, i64>(6)? as u64,
-            unit: row.get(7)?,
-            pay_to: row.get(8)?,
-            contact: row.get(9)?,
-            created: row.get(10)?,
-            updated: row.get(11)?,
-            open: row.get(12)?,
+            seller_picture: row.get(3)?,
+            title: row.get(4)?,
+            description: row.get(5)?,
+            category: row.get(6)?,
+            price: row.get::<_, i64>(7)? as u64,
+            unit: row.get(8)?,
+            pay_to: row.get(9)?,
+            contact: row.get(10)?,
+            created: row.get(11)?,
+            updated: row.get(12)?,
+            open: row.get(13)?,
         })
     }
 
@@ -417,6 +450,18 @@ fn random<const N: usize>() -> Result<[u8; N]> {
 
 fn code_hash(email: &str, code: &str) -> String {
     blake3::hash(format!("{email}\n{code}").as_bytes()).to_hex().to_string()
+}
+
+/// A name and bio tidied, or why they cannot be used.
+pub fn profile_text(name: &str, bio: &str) -> Result<(String, String)> {
+    let (name, bio) = (clean(name), clean(bio));
+    if name.is_empty() || name.chars().count() > MAX_NAME {
+        bail!("a name is 1 to {MAX_NAME} characters");
+    }
+    if bio.chars().count() > MAX_BIO {
+        bail!("a bio is at most {MAX_BIO} characters");
+    }
+    Ok((name, bio))
 }
 
 /// An email address, tidied, or why it is not one.

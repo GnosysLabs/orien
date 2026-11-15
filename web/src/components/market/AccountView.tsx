@@ -5,6 +5,7 @@ import { useEffect, useState } from 'react'
 import { LogOut, Mail } from 'lucide-react'
 import { ask, me, type Account, type Listing } from '@/lib/market'
 import { Card } from './Browse'
+import { ProfileEditor } from './ProfileEditor'
 import { Notice, SIGNED_IN_OR_OUT } from './Shell'
 
 type Found = { account: Account; listings: Listing[] }
@@ -169,7 +170,7 @@ function Mine({ found, onChange }: { found: Found; onChange: () => void }) {
   return (
     <div className="space-y-6">
       <div className="flex flex-wrap items-center gap-3">
-        <h1 className="text-2xl font-bold tracking-tight text-ink">{found.account.name}</h1>
+        <h1 className="text-2xl font-bold tracking-tight text-ink">Your profile</h1>
         <button
           type="button"
           onClick={signOut}
@@ -178,6 +179,8 @@ function Mine({ found, onChange }: { found: Found; onChange: () => void }) {
           <LogOut className="h-4 w-4" aria-hidden /> Sign out
         </button>
       </div>
+      <ProfileEditor account={found.account} onSaved={onChange} />
+      <h2 className="pt-2 text-xl font-bold tracking-tight text-ink">Your listings</h2>
       {trouble && <Notice tone="bad">{trouble}</Notice>}
       {found.listings.length === 0 ? (
         <Notice>

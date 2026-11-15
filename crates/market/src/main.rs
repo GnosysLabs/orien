@@ -3,6 +3,7 @@
 use anyhow::{Context, Result};
 use clap::Parser;
 use orien_market::api::{App, router};
+use orien_market::images::Folder;
 use orien_market::mail::Mailer;
 use orien_market::screen::Screener;
 use orien_market::store::Store;
@@ -59,7 +60,9 @@ async fn main() -> Result<()> {
         None if secure => anyhow::bail!("a live marketplace needs --openrouter-key to check listings"),
         None => Screener::off(),
     };
-    let app = Arc::new(App::new(Store::open(&args.db)?, &args.origin, secure, mailer, screener)?);
+    // Pictures are kept beside the database.
+    let images = args.db.parent().unwrap_or(std::path::Path::new(".")).join("images");
+    let app = Arc::new(App::new(Store::open(&args.db)?, Folder::open(&images)?, &args.origin, secure, mailer, screener)?);
     let listener = tokio::net::TcpListener::bind(&args.listen).await?;
     println!("marketplace server for {} listening on {}", args.origin, args.listen);
     let mut routes = router(app);

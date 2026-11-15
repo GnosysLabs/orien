@@ -6,6 +6,7 @@ import { useEffect, useState } from 'react'
 import { ArrowLeft, Pencil, Wallet } from 'lucide-react'
 import { CopyText } from '@/components/CopyText'
 import { ask, categoryLabel, formatOrn, plainOrn, type Listing } from '@/lib/market'
+import { Avatar } from './Avatar'
 import { Notice } from './Shell'
 
 export function ListingView() {
@@ -39,7 +40,16 @@ export function ListingView() {
         <p className="num mt-4 text-2xl font-bold text-ink">
           {formatOrn(listing.price)} ORN{listing.unit && <span className="text-base font-medium text-muted"> {listing.unit}</span>}
         </p>
-        <p className="mt-2 text-sm text-muted">Offered by {listing.seller_name}</p>
+        <Link
+          href={`/marketplace/profile/?id=${listing.seller}`}
+          className="mt-4 inline-flex items-center gap-3 rounded-xl border border-line bg-bg py-2 pl-2 pr-4 transition hover:bg-raised"
+        >
+          <Avatar name={listing.seller_name} picture={listing.seller_picture} size={36} />
+          <span className="flex flex-col">
+            <span className="text-sm font-semibold text-ink">{listing.seller_name}</span>
+            <span className="text-xs text-muted">See their profile</span>
+          </span>
+        </Link>
         {listing.description && (
           <div className="mt-6 whitespace-pre-line leading-relaxed text-muted">{listing.description}</div>
         )}

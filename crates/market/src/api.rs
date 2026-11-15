@@ -4,6 +4,7 @@
 //! passkey, and the server answers with a cookie that keeps it signed in.
 //! Changes need that cookie; reading listings does not.
 
+use crate::images::{self, Folder};
 use crate::mail::Mailer;
 use crate::screen::{Screener, Verdict};
 use crate::store::{self, Draft, SESSION_SECONDS, Store};
@@ -39,13 +40,21 @@ pub struct App {
     ceremonies: Mutex<HashMap<String, (Ceremony, Instant)>>,
     mailer: Arc<Mailer>,
     screener: Arc<Screener>,
+    images: Folder,
     /// Whether the cookie is only sent over https: everywhere but tests.
     secure: bool,
 }
 
 impl App {
     /// `origin` is the site's address, such as https://orien.network.
-    pub fn new(store: Store, origin: &str, secure: bool, mailer: Mailer, screener: Screener) -> anyhow::Result<App> {
+    pub fn new(
+        store: Store,
+        images: Folder,
+        origin: &str,
+        secure: bool,
+        mailer: Mailer,
+        screener: Screener,
+    ) -> anyhow::Result<App> {
         let origin = Url::parse(origin)?;
         let id = origin.host_str().ok_or_else(|| anyhow::anyhow!("the origin has no host"))?.to_string();
         let webauthn = WebauthnBuilder::new(&id, &origin)?.rp_name("Orien marketplace").build()?;
@@ -55,6 +64,7 @@ impl App {
             ceremonies: Mutex::new(HashMap::new()),
             mailer: Arc::new(mailer),
             screener: Arc::new(screener),
+            images,
             secure,
         })
     }
@@ -167,7 +177,7 @@ async fn screened_listing(app: &App, draft: Draft) -> Result<Draft, Failure> {
 
 async fn screened_name(app: &App, name: &str) -> Result<(), Failure> {
     let name = name.trim().to_string();
-    screened(app, "name", move |s| s.name(&name)).await
+    screened(app, "name", move |s| s.profile(&name, "")).await
 }
 
 pub fn router(app: Arc<App>) -> Router {
@@ -179,7 +189,13 @@ pub fn router(app: Arc<App>) -> Router {
         .route("/api/market/signin/start", post(signin_start))
         .route("/api/market/signin/finish", post(signin_finish))
         .route("/api/market/signout", post(signout))
-        .route("/api/market/me", get(me))
+        .route("/api/market/me", get(me).put(edit_profile))
+        .route(
+            "/api/market/me/picture",
+            post(set_picture).layer(axum::extract::DefaultBodyLimit::max(images::MAX_UPLOAD)),
+        )
+        .route("/api/market/profiles/{id}", get(profile))
+        .route("/api/market/images/{name}", get(picture))
         .route("/api/market/listings", get(browse).post(post_listing))
         .route("/api/market/listings/{id}", get(listing).put(edit_listing))
         .route("/api/market/listings/{id}/open", post(open_listing))
@@ -340,6 +356,58 @@ async fn me(State(app): State<Arc<App>>, headers: HeaderMap) -> Answer {
     let account = store.account(id)?.ok_or(Failure::SignIn)?;
     let listings = store.listings_of(id)?;
     Ok(Json(json!({ "account": account, "listings": listings })).into_response())
+}
+
+#[derive(Deserialize)]
+struct ProfileText {
+    name: String,
+    #[serde(default)]
+    bio: String,
+}
+
+async fn edit_profile(State(app): State<Arc<App>>, headers: HeaderMap, Json(request): Json<ProfileText>) -> Answer {
+    let id = app.signed_in(&headers)?;
+    let (name, bio) = store::profile_text(&request.name, &request.bio).map_err(refused)?;
+    let (n, b) = (name.clone(), bio.clone());
+    screened(&app, "profile", move |s| s.profile(&n, &b)).await?;
+    let account = app.store.lock().unwrap().set_profile(id, &name, &bio).map_err(refused)?;
+    Ok(Json(json!({ "account": account })).into_response())
+}
+
+/// A new profile picture, sent as the request's whole body.
+async fn set_picture(State(app): State<Arc<App>>, headers: HeaderMap, body: axum::body::Bytes) -> Answer {
+    let id = app.signed_in(&headers)?;
+    let jpeg = tokio::task::spawn_blocking(move || images::profile_picture(&body))
+        .await
+        .map_err(|e| Failure::Broken(e.into()))?
+        .map_err(refused)?;
+    let checked = jpeg.clone();
+    screened(&app, "picture", move |s| s.picture(&checked)).await?;
+    let name = app.images.save(&jpeg)?;
+    let old = app.store.lock().unwrap().set_picture(id, &name)?;
+    if let Some(old) = old {
+        app.images.remove(&old);
+    }
+    let account = app.store.lock().unwrap().account(id)?.ok_or(Failure::SignIn)?;
+    Ok(Json(json!({ "account": account })).into_response())
+}
+
+/// A seller's public profile: who they are and what they offer.
+async fn profile(State(app): State<Arc<App>>, Path(id): Path<i64>) -> Answer {
+    let store = app.store.lock().unwrap();
+    let account = store.account(id)?.ok_or(Failure::NotFound)?;
+    let listings = store.open_listings_of(id)?;
+    Ok(Json(json!({ "account": account, "listings": listings })).into_response())
+}
+
+async fn picture(State(app): State<Arc<App>>, Path(name): Path<String>) -> Answer {
+    let bytes = app.images.read(&name).ok_or(Failure::NotFound)?;
+    // Names are never reused, so a picture can be kept for good.
+    Ok((
+        [(header::CONTENT_TYPE, "image/jpeg"), (header::CACHE_CONTROL, "public, max-age=31536000, immutable")],
+        bytes,
+    )
+        .into_response())
 }
 
 #[derive(Deserialize)]

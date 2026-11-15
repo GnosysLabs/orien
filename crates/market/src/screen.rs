@@ -56,7 +56,7 @@ const CHECKS: &[Check] = &[
         id: "impersonation",
         question: "Does this listing falsely present the seller as a real company, brand, celebrity, public figure, or crypto project, or as its official account or staff?",
         name_question: Some(
-            "Does this name falsely present the user as a real company, brand, celebrity, public figure, or crypto project, or as its official account or staff?",
+            "Does this name or bio falsely present the user as a real company, brand, celebrity, public figure, or crypto project, or as its official account or staff?",
         ),
         threshold: 0.8,
         reason: "a false claim to be someone else or their official account",
@@ -84,7 +84,11 @@ const LISTING_CONTEXT: &str = "A user wants to post a listing on a marketplace w
      ordinary offers are normal and allowed, as are informal tone, jokes and asking to be paid in ORN. Only flag clear \
      violations.";
 
-const NAME_CONTEXT: &str = "A user is choosing the public name shown on their profile on a marketplace where people offer \
+const PICTURE_CONTEXT: &str = "A user is uploading the profile picture for their account on a marketplace where people \
+     offer their work and goods for a cryptocurrency. Photos of themselves, logos, cartoons, art and memes are normal \
+     and allowed. Only flag clear violations.";
+
+const NAME_CONTEXT: &str = "A user is choosing the public name and bio shown on their profile on a marketplace where people offer \
      their work and goods for a cryptocurrency. Personal names, business names, nicknames and jokes are normal and \
      allowed. Only flag clear violations.";
 
@@ -127,31 +131,42 @@ impl Screener {
             "description": description,
             "contact": contact,
         });
-        self.screen(details, false)
+        self.screen(vec![details.to_string().into()], false, &[])
     }
 
-    /// An account's public name.
-    pub fn name(&self, name: &str) -> Result<Verdict> {
-        self.screen(json!({ "context": NAME_CONTEXT, "name": name }), true)
+    /// An account's public name and bio.
+    pub fn profile(&self, name: &str, bio: &str) -> Result<Verdict> {
+        self.screen(vec![json!({ "context": NAME_CONTEXT, "name": name, "bio": bio }).to_string().into()], true, &[])
     }
 
-    fn screen(&self, details: Value, name: bool) -> Result<Verdict> {
+    /// A profile picture, as a JPEG. Faces, cartoons and logos are normal
+    /// there, so pretending to be someone is left to the name and bio.
+    pub fn picture(&self, jpeg: &[u8]) -> Result<Verdict> {
+        use base64::Engine;
+        let details = json!({ "context": PICTURE_CONTEXT, "image": "The profile picture is attached." }).to_string();
+        let url = format!("data:image/jpeg;base64,{}", base64::engine::general_purpose::STANDARD.encode(jpeg));
+        let state = vec![details.into(), json!({ "type": "image_url", "image_url": { "url": url } })];
+        self.screen(state, true, &["impersonation"])
+    }
+
+    fn screen(&self, state: Vec<Value>, name: bool, skip: &[&str]) -> Result<Verdict> {
+        let checks: Vec<&Check> = CHECKS.iter().filter(|check| !skip.contains(&check.id)).collect();
         if let Some(word) = &self.test_word {
-            let text = details.to_string();
+            let text = serde_json::to_string(&state).unwrap_or_default();
             if text.contains("fail") {
                 bail!("the screening service is down");
             }
             return Ok(if text.contains(word.as_str()) { Verdict::Refused(vec![CHECKS[6].reason]) } else { Verdict::Allowed });
         }
         let Some(key) = &self.key else { return Ok(Verdict::Allowed) };
-        let questions: serde_json::Map<String, Value> = CHECKS
+        let questions: serde_json::Map<String, Value> = checks
             .iter()
             .map(|check| {
                 let question = if name { check.name_question.unwrap_or(check.question) } else { check.question };
                 (check.id.to_string(), json!({ "type": "noul", "instructions": question }))
             })
             .collect();
-        let body = json!({ "model": MODEL, "state": [details.to_string()], "questions": questions });
+        let body = json!({ "model": MODEL, "state": state, "questions": questions });
         let response = ureq::post(ENDPOINT)
             .header("Authorization", &format!("Bearer {key}"))
             .header("HTTP-Referer", "https://orien.network")
@@ -169,7 +184,7 @@ impl Screener {
         }
         let answer: Value = serde_json::from_str(&text).context("OpenRouter's answer is not JSON")?;
         let mut scores = BTreeMap::new();
-        for check in CHECKS {
+        for check in &checks {
             // A missing answer is an error, never a pass.
             let Some(p) = answer["answers"][check.id]["noul"].as_f64() else {
                 bail!("no answer for {}: {}", check.id, text.chars().take(200).collect::<String>());
@@ -177,10 +192,10 @@ impl Screener {
             scores.insert(check.id, p);
         }
         let refused: Vec<&'static str> =
-            CHECKS.iter().filter(|check| scores[check.id] >= check.threshold).map(|check| check.reason).collect();
+            checks.iter().filter(|check| scores[check.id] >= check.threshold).map(|check| check.reason).collect();
         println!(
             "screened {}: {} {:?}",
-            if name { "a name" } else { "a listing" },
+            if name { "a profile" } else { "a listing" },
             if refused.is_empty() { "allowed" } else { "refused" },
             scores
         );

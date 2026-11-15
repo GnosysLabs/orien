@@ -4,6 +4,7 @@ use axum::body::Body;
 use axum::http::{Request, StatusCode, header};
 use http_body_util::BodyExt;
 use orien_market::api::{App, COOKIE, router, sign_in_for_tests};
+use orien_market::images::Folder;
 use orien_market::mail::Mailer;
 use orien_market::screen::Screener;
 use orien_market::store::Store;
@@ -11,18 +12,25 @@ use serde_json::{Value, json};
 use std::sync::Arc;
 use tower::ServiceExt;
 
+/// A fresh folder for a test's pictures, which the system clears in time.
+fn folder() -> Folder {
+    let mut random = [0u8; 8];
+    getrandom::fill(&mut random).unwrap();
+    Folder::open(&std::env::temp_dir().join(format!("orien-market-test-{}", hex::encode(random)))).unwrap()
+}
+
 struct Market {
     app: Arc<App>,
 }
 
 impl Market {
     fn screened(word: &str) -> Market {
-        let app = App::new(Store::in_memory().unwrap(), "https://orien.network", true, Mailer::log_only(), Screener::refusing_for_tests(word));
+        let app = App::new(Store::in_memory().unwrap(), folder(), "https://orien.network", true, Mailer::log_only(), Screener::refusing_for_tests(word));
         Market { app: Arc::new(app.unwrap()) }
     }
 
     fn new() -> Market {
-        Market { app: Arc::new(App::new(Store::in_memory().unwrap(), "https://orien.network", true, Mailer::log_only(), Screener::off()).unwrap()) }
+        Market { app: Arc::new(App::new(Store::in_memory().unwrap(), folder(), "https://orien.network", true, Mailer::log_only(), Screener::off()).unwrap()) }
     }
 
     async fn ask(&self, method: &str, path: &str, token: Option<&str>, body: Option<Value>) -> (StatusCode, Value) {
@@ -223,4 +231,55 @@ async fn the_screening_model_keeps_bad_listings_and_names_out_and_nothing_unchec
     let finish = json!({ "email": email, "code": code, "name": "Sam" });
     let (status, body) = market.ask("POST", "/api/market/email/finish", None, Some(finish)).await;
     assert_eq!((status, body["account"]["name"].as_str()), (StatusCode::OK, Some("Sam")), "the code still works after a refused name");
+}
+
+#[tokio::test]
+async fn a_seller_sets_up_a_profile_with_a_picture() {
+    let market = Market::new();
+    let maya = sign_in_for_tests(&market.app, "Maya");
+    let (status, body) =
+        market.ask("PUT", "/api/market/me", Some(&maya), Some(json!({ "name": "Maya Lin", "bio": "Designer in Lisbon." }))).await;
+    assert_eq!((status, body["account"]["bio"].as_str()), (StatusCode::OK, Some("Designer in Lisbon.")));
+    let id = body["account"]["id"].as_i64().unwrap();
+    let (status, _) = market.ask("PUT", "/api/market/me", Some(&maya), Some(json!({ "name": "" }))).await;
+    assert_eq!(status, StatusCode::BAD_REQUEST);
+
+    // A picture is sent as the body, and comes back as a square JPEG.
+    let mut png = Vec::new();
+    image::DynamicImage::new_rgb8(900, 600).write_to(&mut std::io::Cursor::new(&mut png), image::ImageFormat::Png).unwrap();
+    let send = |bytes: Vec<u8>, token: Option<String>| {
+        let mut request = Request::builder().method("POST").uri("/api/market/me/picture");
+        if let Some(token) = token {
+            request = request.header(header::COOKIE, format!("{COOKIE}={token}"));
+        }
+        router(market.app.clone()).oneshot(request.body(Body::from(bytes)).unwrap())
+    };
+    assert_eq!(send(png.clone(), None).await.unwrap().status(), StatusCode::UNAUTHORIZED);
+    assert_eq!(send(b"not a picture".to_vec(), Some(maya.clone())).await.unwrap().status(), StatusCode::BAD_REQUEST);
+    let response = send(png, Some(maya.clone())).await.unwrap();
+    assert_eq!(response.status(), StatusCode::OK);
+    let body: Value = serde_json::from_slice(&response.into_body().collect().await.unwrap().to_bytes()).unwrap();
+    let picture = body["account"]["picture"].as_str().unwrap().to_string();
+
+    let response = router(market.app.clone())
+        .oneshot(Request::builder().uri(format!("/api/market/images/{picture}")).body(Body::empty()).unwrap())
+        .await
+        .unwrap();
+    assert_eq!(response.headers()[header::CONTENT_TYPE], "image/jpeg");
+    let bytes = response.into_body().collect().await.unwrap().to_bytes();
+    assert_eq!(image::load_from_memory(&bytes).unwrap().width(), orien_market::images::PICTURE);
+
+    // The public profile shows the open listings only.
+    let (_, posted) = market.ask("POST", "/api/market/listings", Some(&maya), Some(logo())).await;
+    let mut other = logo();
+    other["title"] = json!("Icons");
+    let (_, closed) = market.ask("POST", "/api/market/listings", Some(&maya), Some(other)).await;
+    let closed = closed["listing"]["id"].as_i64().unwrap();
+    market.ask("POST", &format!("/api/market/listings/{closed}/open"), Some(&maya), Some(json!({ "open": false }))).await;
+    let (status, body) = market.ask("GET", &format!("/api/market/profiles/{id}"), None, None).await;
+    assert_eq!((status, body["account"]["name"].as_str()), (StatusCode::OK, Some("Maya Lin")));
+    assert_eq!(body["listings"].as_array().unwrap().len(), 1);
+    assert_eq!(body["listings"][0]["id"], posted["listing"]["id"]);
+    assert!(body["account"].get("email").is_none(), "a profile never shows an email");
+    assert_eq!(market.ask("GET", "/api/market/images/..%2Fmarket.db", None, None).await.0, StatusCode::NOT_FOUND);
 }

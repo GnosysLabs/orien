@@ -3,6 +3,7 @@
 //! buyers pay sellers from their own wallets.
 
 pub mod api;
+pub mod images;
 pub mod mail;
 pub mod screen;
 pub mod store;

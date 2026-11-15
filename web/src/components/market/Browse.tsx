@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { useEffect, useState } from 'react'
 import { Search } from 'lucide-react'
 import { ask, CATEGORIES, categoryLabel, formatOrn, type Listing } from '@/lib/market'
+import { Avatar } from './Avatar'
 import { Notice } from './Shell'
 
 export function Browse() {
@@ -110,7 +111,8 @@ export function Card({ listing }: { listing: Listing }) {
       href={`/marketplace/listing/?id=${listing.id}`}
       className="flex flex-col gap-3 rounded-2xl border border-line bg-surface p-5 transition hover:border-pearl/40 hover:bg-raised/50"
     >
-      <div className="flex items-start justify-between gap-3">
+      <p className="text-xs font-semibold uppercase tracking-[0.15em] text-muted">{categoryLabel(listing.category)}</p>
+      <div className="-mt-1 flex items-start justify-between gap-3">
         <h2 className="text-lg font-bold leading-snug tracking-tight text-ink">{listing.title}</h2>
         {!listing.open && <span className="shrink-0 rounded-full bg-raised px-2.5 py-1 text-xs text-muted">Closed</span>}
       </div>
@@ -119,8 +121,9 @@ export function Card({ listing }: { listing: Listing }) {
         <span className="num text-lg font-bold text-ink">
           {formatOrn(listing.price)} ORN{listing.unit && <span className="text-sm font-medium text-muted"> {listing.unit}</span>}
         </span>
-        <span className="text-xs text-muted">
-          {categoryLabel(listing.category)} · {listing.seller_name}
+        <span className="flex min-w-0 items-center gap-2 text-xs text-muted">
+          <Avatar name={listing.seller_name} picture={listing.seller_picture} size={22} />
+          <span className="truncate">{listing.seller_name}</span>
         </span>
       </div>
     </Link>
