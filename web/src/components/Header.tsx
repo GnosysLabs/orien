@@ -9,7 +9,6 @@ import {
   ChevronDown,
   Compass,
   Download,
-  History,
   Monitor,
   Store,
   Terminal,
@@ -58,12 +57,6 @@ const ITEMS: NavItem[] = [
         },
       ]
     : []),
-  {
-    href: "/changelog/",
-    label: "Changelog",
-    icon: History,
-    match: (p) => p.startsWith("/changelog"),
-  },
   {
     href: "/try/",
     label: "Get started",
@@ -286,15 +279,13 @@ export function Header() {
 export function BottomNav() {
   const pathname = usePathname();
   if (pathname.startsWith("/admin")) return null;
-  // Five fit a phone: with the marketplace, the changelog stays in the footer there.
-  const mobileItems = MARKETPLACE_LIVE
-    ? ITEMS.filter((item) => item.href !== "/changelog/")
-    : ITEMS;
+  // The changelog is in the footer, as on larger screens.
+  const mobileItems = ITEMS;
 
   return (
     <nav
       aria-label="Mobile navigation"
-      className={`fixed inset-x-0 bottom-0 z-40 grid ${MARKETPLACE_LIVE ? "grid-cols-5" : "grid-cols-4"} print:hidden border-t border-line/70 bg-bg/85 px-1 pb-[env(safe-area-inset-bottom)] backdrop-blur-md md:hidden`}
+      className={`fixed inset-x-0 bottom-0 z-40 grid ${MARKETPLACE_LIVE ? "grid-cols-5" : "grid-cols-3"} print:hidden border-t border-line/70 bg-bg/85 px-1 pb-[env(safe-area-inset-bottom)] backdrop-blur-md md:hidden`}
     >
       {mobileItems.map((item) => {
         const on = isActive(item, pathname);
