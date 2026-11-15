@@ -202,3 +202,25 @@ impl Screener {
         Ok(if refused.is_empty() { Verdict::Allowed } else { Verdict::Refused(refused) })
     }
 }
+
+#[cfg(test)]
+mod live {
+    use super::*;
+
+    /// Asks the real model, with the key in ~/.config/orien/openrouter.key.
+    /// Run with `cargo test -p orien-market -- --ignored`.
+    #[test]
+    #[ignore]
+    fn the_model_lets_ordinary_listings_through_and_refuses_bad_ones() {
+        let path = std::path::Path::new(&std::env::var("HOME").unwrap()).join(".config/orien/openrouter.key");
+        let screener = Screener::openrouter(std::fs::read_to_string(path).unwrap().trim().to_string());
+        let allowed = |verdict: Verdict| matches!(verdict, Verdict::Allowed);
+        let listing = |title: &str, description: &str| screener.listing(title, description, "other", "", "").unwrap();
+        assert!(allowed(listing("Logo design", "A clean, simple logo for your project, two rounds of changes.")));
+        assert!(allowed(listing("Rust tutoring, lol", "I'll teach you Rust. Pay me in ORN, obviously.")));
+        assert!(allowed(screener.profile("Maya Lin", "Designer in Lisbon. Coffee first.").unwrap()));
+        assert!(!allowed(listing("Netflix accounts", "Selling stolen Netflix and Spotify logins, cheap, lifetime.")));
+        assert!(!allowed(listing("Double your ORN", "Send me 100 ORN and get 200 ORN back within an hour, guaranteed.")));
+        assert!(!allowed(screener.profile("Coinbase Support", "Official Coinbase help desk.").unwrap()));
+    }
+}
