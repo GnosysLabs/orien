@@ -2357,7 +2357,7 @@ dependencies = [
 
 [[package]]
 name = "orien-cli"
-version = "1.7.0"
+version = "1.8.0"
 dependencies = [
  "anyhow",
  "borsh",
@@ -2377,7 +2377,7 @@ dependencies = [
 
 [[package]]
 name = "orien-crypto"
-version = "1.7.0"
+version = "1.8.0"
 dependencies = [
  "blake3",
  "borsh",
@@ -2387,7 +2387,7 @@ dependencies = [
 
 [[package]]
 name = "orien-ledger"
-version = "1.7.0"
+version = "1.8.0"
 dependencies = [
  "borsh",
  "orien-crypto",
@@ -2398,7 +2398,7 @@ dependencies = [
 
 [[package]]
 name = "orien-market"
-version = "1.7.0"
+version = "1.8.0"
 dependencies = [
  "anyhow",
  "axum",
@@ -2428,7 +2428,7 @@ dependencies = [
 
 [[package]]
 name = "orien-net"
-version = "1.7.0"
+version = "1.8.0"
 dependencies = [
  "anyhow",
  "argon2",
@@ -2445,7 +2445,7 @@ dependencies = [
 
 [[package]]
 name = "orien-swap"
-version = "1.7.0"
+version = "1.8.0"
 dependencies = [
  "anyhow",
  "base64 0.22.1",
