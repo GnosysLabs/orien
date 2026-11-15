@@ -240,11 +240,11 @@ function PostOffer({
       ) : (
         <>
           <div className="grid gap-4 sm:grid-cols-2">
-            <label className="block space-y-2">
+            <label className="flex flex-col gap-2">
               <span className="text-sm font-semibold text-ink">ORN you sell</span>
               <input value={orn} onChange={(e) => setOrn(e.target.value)} inputMode="decimal" placeholder="500" className={field} />
             </label>
-            <label className="block space-y-2">
+            <label className="flex flex-col gap-2">
               <span className="text-sm font-semibold text-ink">Bitcoin you want, in BTC</span>
               <input value={btc} onChange={(e) => setBtc(e.target.value)} inputMode="decimal" placeholder="0.01" className={field} />
               {usd && parseBtc(btc) !== null && (

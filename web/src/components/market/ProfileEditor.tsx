@@ -92,11 +92,11 @@ export function ProfileEditor({ account, onSaved }: { account: Account; onSaved:
           </Link>
         </div>
       </div>
-      <label className="block space-y-2">
+      <label className="flex flex-col gap-2">
         <span className="text-sm font-semibold text-ink">Name</span>
         <input value={name} onChange={(e) => setName(e.target.value)} maxLength={50} required className={field} />
       </label>
-      <label className="block space-y-2">
+      <label className="flex flex-col gap-2">
         <span className="text-sm font-semibold text-ink">About you</span>
         <AutoTextarea
           value={bio}

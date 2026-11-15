@@ -128,11 +128,11 @@ export function SellForm() {
   return (
     <form onSubmit={save} className="space-y-5 rounded-2xl border border-line bg-surface p-6 sm:p-8">
       <h1 className="text-2xl font-bold tracking-tight text-ink">{id ? 'Edit your listing' : 'Sell something'}</h1>
-      <label className="block space-y-2">
+      <label className="flex flex-col gap-2">
         <span className="text-sm font-semibold text-ink">What are you offering?</span>
         <input value={title} onChange={(e) => setTitle(e.target.value)} maxLength={100} required placeholder="Logo design" className={field} />
       </label>
-      <label className="block space-y-2">
+      <label className="flex flex-col gap-2">
         <span className="text-sm font-semibold text-ink">Describe it</span>
         <AutoTextarea
           value={description}
@@ -143,7 +143,7 @@ export function SellForm() {
           className={field}
         />
       </label>
-      <label className="block space-y-2">
+      <label className="flex flex-col gap-2">
         <span className="text-sm font-semibold text-ink">Category</span>
         <span className="relative block">
           <select
@@ -218,11 +218,11 @@ export function SellForm() {
         </div>
       </div>
       <div className="grid gap-5 sm:grid-cols-2">
-        <label className="block space-y-2">
+        <label className="flex flex-col gap-2">
           <span className="text-sm font-semibold text-ink">Price in ORN</span>
           <input value={price} onChange={(e) => setPrice(e.target.value)} inputMode="decimal" required placeholder="200" className={`num ${field}`} />
         </label>
-        <label className="block space-y-2">
+        <label className="flex flex-col gap-2">
           <span className="text-sm font-semibold text-ink">Per (optional)</span>
           <input value={unit} onChange={(e) => setUnit(e.target.value)} maxLength={30} placeholder="per hour" className={field} />
         </label>
