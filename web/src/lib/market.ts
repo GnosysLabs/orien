@@ -57,11 +57,11 @@ export function formatBtc(sats: number): string {
   return fraction ? `${whole}.${fraction}` : String(whole)
 }
 
-/** "0.01" → 1000000 satoshis, or null if it is not an amount of BTC. */
+/** "0.01" or ".01" → 1000000 satoshis, or null if it is not an amount of BTC. */
 export function parseBtc(text: string): number | null {
-  const match = text.trim().match(/^(\d+)(?:\.(\d{1,8}))?$/)
-  if (!match) return null
-  const sats = Number(match[1]) * 100_000_000 + Number((match[2] ?? '').padEnd(8, '0'))
+  const match = text.trim().replace(/,/g, '').match(/^(\d*)(?:\.(\d{1,8}))?$/)
+  if (!match || (!match[1] && !match[2])) return null
+  const sats = Number(match[1] || '0') * 100_000_000 + Number((match[2] ?? '').padEnd(8, '0'))
   return sats > 0 && Number.isSafeInteger(sats) ? sats : null
 }
 
@@ -169,11 +169,11 @@ export function plainOrn(units: number): string {
   return formatOrn(units).replace(/,/g, '')
 }
 
-/** "1.5" → 1500000000, or null if it is not an amount of ORN. */
+/** "1.5" or ".5" → units, or null if it is not an amount of ORN. */
 export function parseOrn(text: string): number | null {
-  const match = text.trim().replace(/,/g, '').match(/^(\d+)(?:\.(\d{1,9}))?$/)
-  if (!match) return null
-  const units = BigInt(match[1]) * UNITS + BigInt((match[2] ?? '').padEnd(9, '0'))
+  const match = text.trim().replace(/,/g, '').match(/^(\d*)(?:\.(\d{1,9}))?$/)
+  if (!match || (!match[1] && !match[2])) return null
+  const units = BigInt(match[1] || '0') * UNITS + BigInt((match[2] ?? '').padEnd(9, '0'))
   if (units <= BigInt(0) || units > BigInt(Number.MAX_SAFE_INTEGER)) return null
   return Number(units)
 }
