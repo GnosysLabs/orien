@@ -27,7 +27,7 @@ pub const CODE_GAP: u64 = 60;
 /// How long a seller has to send the payment that proves their wallet.
 pub const VERIFY_SECONDS: u64 = 30 * 60;
 
-pub const CATEGORIES: &[&str] = &["design", "writing", "software", "teaching", "goods", "other"];
+pub const CATEGORIES: &[&str] = &["design", "software", "teaching", "goods", "other"];
 
 pub fn now() -> u64 {
     SystemTime::now().duration_since(UNIX_EPOCH).map_or(0, |d| d.as_secs())
@@ -592,7 +592,7 @@ mod tests {
         let posted = store.post(maya.id, &draft("Logo design")).unwrap();
         assert_eq!((posted.seller_name.as_str(), posted.open), ("Maya", true));
         assert_eq!(store.browse(None, None, 10, 0).unwrap(), vec![posted.clone()]);
-        assert_eq!(store.browse(Some("writing"), None, 10, 0).unwrap(), vec![]);
+        assert_eq!(store.browse(Some("teaching"), None, 10, 0).unwrap(), vec![]);
         assert_eq!(store.browse(None, Some("LOGO"), 10, 0).unwrap().len(), 1);
         assert_eq!(store.browse(None, Some("%"), 10, 0).unwrap().len(), 0, "wildcards are taken literally");
 

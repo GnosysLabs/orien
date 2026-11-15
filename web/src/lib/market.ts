@@ -44,7 +44,6 @@ export type Draft = {
 
 export const CATEGORIES: { id: string; label: string }[] = [
   { id: 'design', label: 'Design' },
-  { id: 'writing', label: 'Writing' },
   { id: 'software', label: 'Software' },
   { id: 'teaching', label: 'Teaching' },
   { id: 'goods', label: 'Goods' },

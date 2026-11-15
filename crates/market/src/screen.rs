@@ -80,7 +80,7 @@ const CHECKS: &[Check] = &[
 /// The context every listing is read in: ordinary listings must not be
 /// refused for being informal.
 const LISTING_CONTEXT: &str = "A user wants to post a listing on a marketplace where people offer their work, services \
-     and goods for a cryptocurrency called ORN. Freelance work, crafts, tutoring, software, design, writing and other \
+     and goods for a cryptocurrency called ORN. Freelance work, crafts, tutoring, software, design and other \
      ordinary offers are normal and allowed, as are informal tone, jokes and asking to be paid in ORN. Only flag clear \
      violations.";
 
