@@ -7,9 +7,22 @@ use borsh::{BorshDeserialize, BorshSerialize};
 use orien_crypto::Hash32;
 use orien_ledger::close::{self, Decided, Share};
 use orien_ledger::{
-    Account, AccountId, Certificate, Committee, Confirmation, Genesis, Member, Receipt, Reject,
-    SignedOrder, Signer, State, Vote, account_root, authorized,
+    Account, AccountId, Certificate, Committee, Confirmation, Escrow, Genesis, Member, Receipt, Reject,
+    SignedOrder, Signer, State, Vote, account_root, authorized, lock_hash,
 };
+
+/// A locked payment as the validators report it.
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct Locked {
+    /// The latest epoch an answering validator was in.
+    pub epoch: u64,
+    /// The payment, if it is still waiting to be claimed.
+    pub waiting: Option<Escrow>,
+    /// The secret that claimed it, checked against its lock.
+    pub secret: Option<[u8; 32]>,
+    /// How many validators answered.
+    pub answered: usize,
+}
 use std::collections::{BTreeMap, HashMap};
 use std::fmt;
 use std::fs;
@@ -385,6 +398,34 @@ impl Client {
             }
         }
         best.map(|(answer, _)| answer)
+    }
+
+    /// A locked payment, as the validators report it now. A revealed secret
+    /// needs no trust: it is kept only if it opens `hash`. Whether the
+    /// payment is still waiting is what most of the answering validators say.
+    pub fn locked(&self, from: &AccountId, seq: u64, hash: &[u8; 32]) -> Locked {
+        let answers: Vec<(u64, Option<Escrow>, Option<[u8; 32]>)> = self
+            .ask_all(&Request::Locked { from: *from, seq })
+            .into_iter()
+            .filter_map(|answer| match answer {
+                Ok(Response::Locked { epoch, escrow, secret }) => Some((epoch, escrow, secret)),
+                _ => None,
+            })
+            .collect();
+        let secret = answers.iter().filter_map(|(_, _, secret)| *secret).find(|secret| lock_hash(secret) == *hash);
+        let mut best: Option<(&Option<Escrow>, usize)> = None;
+        for (_, escrow, _) in &answers {
+            let count = answers.iter().filter(|(_, other, _)| other == escrow).count();
+            if best.is_none_or(|(_, most)| count > most) {
+                best = Some((escrow, count));
+            }
+        }
+        Locked {
+            epoch: answers.iter().map(|(epoch, _, _)| *epoch).max().unwrap_or(0),
+            waiting: best.and_then(|(escrow, _)| escrow.clone()),
+            secret,
+            answered: answers.len(),
+        }
     }
 
     /// Hands a work share to every validator. Returns how many took it.

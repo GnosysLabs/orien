@@ -5,7 +5,7 @@ use borsh::{BorshDeserialize, BorshSerialize};
 use orien_crypto::Hash32;
 use orien_crypto::merkle;
 use orien_ledger::close::{Decided, Message, Share};
-use orien_ledger::{Account, AccountId, Certificate, Confirmation, Reject, SignedOrder, Signer, Vote};
+use orien_ledger::{Account, AccountId, Certificate, Confirmation, Escrow, Reject, SignedOrder, Signer, Vote};
 use std::io::{self, Read, Write};
 
 pub const MAX_FRAME: usize = 16 << 20;
@@ -57,6 +57,9 @@ pub enum Request {
     Work,
     /// A work share for the current epoch.
     SubmitShare(Share),
+    /// The locked payment `from` made as order `seq`: still waiting, or the
+    /// secret that claimed it.
+    Locked { from: AccountId, seq: u64 },
 }
 
 #[derive(Clone, Debug, BorshSerialize, BorshDeserialize)]
@@ -135,6 +138,9 @@ pub enum Response {
     Work { epoch: u64, seed: Hash32, target: u64 },
     /// The share is taken; `fresh` when this validator had not had it.
     Share { fresh: bool },
+    /// A locked payment as this validator holds it now: waiting, or claimed
+    /// with this secret, or neither (refunded, long claimed, or unknown).
+    Locked { epoch: u64, escrow: Option<Escrow>, secret: Option<[u8; 32]> },
 }
 
 pub fn write_frame<W: Write>(writer: &mut W, payload: &[u8]) -> io::Result<()> {

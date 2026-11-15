@@ -866,7 +866,7 @@ fn a_validator_refuses_files_in_a_format_it_does_not_write() {
     // The same directory starts again without complaint.
     Node::start(net.config(0), None).map(Node::stop).unwrap();
     // A directory written by an older or a newer version does not.
-    for other in [None, Some("1"), Some("5"), Some("7")] {
+    for other in [None, Some("1"), Some("5"), Some("8")] {
         match other {
             Some(format) => fs::write(data.join("format"), format).unwrap(),
             None => fs::remove_file(data.join("format")).unwrap(),
@@ -874,9 +874,11 @@ fn a_validator_refuses_files_in_a_format_it_does_not_write() {
         let refusal = Node::start(net.config(0), None).err().expect("must refuse").to_string();
         assert!(refusal.contains("data format"), "{refusal}");
     }
-    // Nothing was touched: put the marker back and the validator is as it was.
+    // Format 6, which the live network was written in, is read as it is and
+    // upgraded in place.
     fs::write(data.join("format"), "6").unwrap();
     net.restart(0);
+    assert_eq!(fs::read_to_string(data.join("format")).unwrap(), "7");
     assert_eq!(net.view(0, &bob).balance, 1100);
 }
 
@@ -1999,4 +2001,106 @@ fn an_unlock_ends_on_time() {
     helper.join().unwrap().unwrap();
     assert!(Session::find(&path).is_none());
     assert!(!unlock::session_path(&path).exists());
+}
+
+/// A swap's ORN side: Alice locks for Bob behind a secret; Bob, whose
+/// wallet has never held anything, claims with it; anyone can then read the
+/// secret, as the other side of a swap would.
+#[test]
+fn a_locked_payment_is_claimed_across_the_network() {
+    use orien_ledger::lock_hash;
+    let net = TestNet::start("lock-claim");
+    let client = net.client();
+    let alice = net.address("alice");
+    let mut sender = net.wallet("alice");
+    sender.accept_fee(net.genesis.fee);
+    let mut payee = Wallet::create(&net.dir.join("newcomer.wallet")).unwrap();
+    let newcomer = payee.address();
+    let secret = [7u8; 32];
+    let hash = lock_hash(&secret);
+
+    // Alice locks 300 for the newcomer, claimable until two epochs on.
+    client.follow();
+    let until = client.epoch() + 2;
+    let status = client.account(&alice, sender.next_seq());
+    let lock = sender
+        .sign(Kind::Lock { hash, until }, status.seq, newcomer, 300, status.signer.as_ref(), &net.network)
+        .unwrap();
+    assert!(matches!(client.pay(&lock, Duration::from_secs(20)), Ok(Done::Receipt(_))));
+    sender.confirm(status.seq).unwrap();
+    net.wait_until_level();
+    for v in 0..4 {
+        assert_eq!(net.view(v, &alice).balance, START as i128 - 300, "validator {v}");
+    }
+    let waiting = client.locked(&alice, lock.order.seq, &hash);
+    assert_eq!(waiting.waiting.as_ref().map(|e| (e.to, e.amount)), Some((newcomer, 300)));
+    assert_eq!(waiting.secret, None);
+
+    // The wrong secret is refused by every validator.
+    let wrong = payee
+        .sign(Kind::Claim { from: alice, seq: lock.order.seq, secret: [8; 32] }, 0, newcomer, 300, None, &net.network)
+        .unwrap();
+    assert!(matches!(net.ask(0, &Request::SubmitOrder(wrong)), Response::Rejected(Reject::WrongSecret)));
+    payee.forget(0).unwrap();
+
+    // The newcomer claims with the right one. A key that signed something
+    // else is never used again, so the claim is order 0 with a fresh wallet.
+    let mut payee = Wallet::create(&net.dir.join("newcomer-2.wallet")).unwrap();
+    let newcomer = payee.address();
+    let mut sender = net.wallet("alice");
+    sender.accept_fee(net.genesis.fee);
+    let status = client.account(&alice, 1);
+    let second = sender
+        .sign(Kind::Lock { hash, until }, status.seq, newcomer, 200, status.signer.as_ref(), &net.network)
+        .unwrap();
+    assert!(matches!(client.pay(&second, Duration::from_secs(20)), Ok(Done::Receipt(_))));
+    let claim = payee
+        .sign(Kind::Claim { from: alice, seq: second.order.seq, secret }, 0, newcomer, 200, None, &net.network)
+        .unwrap();
+    assert!(matches!(client.pay(&claim, Duration::from_secs(20)), Ok(Done::Receipt(_))));
+    net.wait_until_level();
+    for v in 0..4 {
+        assert_eq!(net.view(v, &newcomer).balance, 200, "validator {v}");
+    }
+    // Anyone can now read the secret, and it is checked against the lock.
+    let claimed = client.locked(&alice, second.order.seq, &hash);
+    assert_eq!((claimed.waiting, claimed.secret), (None, Some(secret)));
+}
+
+/// A locked payment nobody claims goes back to its sender at the checkpoint
+/// closing the last epoch it could be claimed in, and a claim after that is
+/// refused.
+#[test]
+fn an_unclaimed_lock_comes_back_after_its_deadline() {
+    use orien_ledger::lock_hash;
+    let net = TestNet::with_epochs("lock-refund", 2);
+    let client = net.client();
+    let alice = net.address("alice");
+    let mut sender = net.wallet("alice");
+    sender.accept_fee(net.genesis.fee);
+    let mut payee = Wallet::create(&net.dir.join("late.wallet")).unwrap();
+    let secret = [9u8; 32];
+
+    net.wait_until_level();
+    client.follow();
+    let until = client.epoch() + 2;
+    let status = client.account(&alice, sender.next_seq());
+    let lock = sender
+        .sign(Kind::Lock { hash: lock_hash(&secret), until }, status.seq, payee.address(), 400, status.signer.as_ref(), &net.network)
+        .unwrap();
+    assert!(matches!(client.pay(&lock, Duration::from_secs(20)), Ok(Done::Receipt(_))));
+    assert_eq!(net.view(0, &alice).balance, START as i128 - 400);
+
+    net.wait_for_epoch(until);
+    net.wait_until_level();
+    for v in 0..4 {
+        assert_eq!(net.view(v, &alice).balance, START as i128, "validator {v} refunded it");
+    }
+    let late = payee
+        .sign(Kind::Claim { from: alice, seq: lock.order.seq, secret }, 0, payee.address(), 400, None, &net.network)
+        .unwrap();
+    assert!(matches!(
+        net.ask(0, &Request::SubmitOrder(late)),
+        Response::Rejected(Reject::NoSuchLock | Reject::LockExpired { .. })
+    ));
 }

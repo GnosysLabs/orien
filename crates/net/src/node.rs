@@ -19,7 +19,7 @@
 use crate::client::{connect, exchange, rpc};
 use crate::closer::{Closer, Env, Pace, Wanted};
 use crate::keys::ValidatorKey;
-use crate::store::{CertLog, Epochs, LeafCounter, OrderLog, sync_dir};
+use crate::store::{CertLog, Epochs, LeafCounter, OrderLog, sync_dir, write_replacing};
 use crate::wire::{AccountView, NodeInfo, Request, Response, read_frame, write_frame};
 use anyhow::{Context, Result, anyhow, bail};
 use orien_crypto::keytree::{self, KeyTree, TreeSignature};
@@ -879,7 +879,8 @@ impl Core {
             self.unfinished.drain().map(|(_, signed)| signed).filter(|signed| open(signed)).collect();
         promises.extend(left_out);
         self.conflicts.retain(|_, second| open(second));
-        self.state = State::from_snapshot(&snapshot, self.state.fees()).expect("a snapshot just written reads back");
+        let state = State::from_snapshot(&snapshot, self.state.fees()).expect("a snapshot just written reads back");
+        self.state = ready(state, checkpoint.epoch + 1, &network);
         self.start = self.state.clone();
         self.proofs = None;
         for signed in promises {
@@ -1447,6 +1448,11 @@ impl Core {
                 let until = self.committee.epoch().min(from.saturating_add(max.min(64) as u64));
                 Response::Checkpoints((from..until).map_while(|epoch| self.checkpoint(epoch)).collect())
             }
+            Request::Locked { from, seq } => Response::Locked {
+                epoch: self.committee.epoch(),
+                escrow: self.state.escrow(&from, seq).cloned(),
+                secret: self.state.revealed(&from, seq),
+            },
             Request::Work => Response::Work {
                 epoch: self.committee.epoch(),
                 seed: self.previous,
@@ -1741,7 +1747,34 @@ fn push_to_peer(address: String, queue: Receiver<Request>) {
 
 /// The layout and encoding of a validator's files. Raised whenever either
 /// changes in a way an older or newer version would misread.
-const DATA_FORMAT: &str = "6";
+const DATA_FORMAT: &str = "7";
+
+/// Formats this version reads as they are and upgrades in place: format 6
+/// differs only in state snapshots, which now also hold locked payments and
+/// revealed secrets, and a format 6 snapshot reads as one with none.
+const UPGRADES_FROM: &[&str] = &["6"];
+
+/// The Orien network that went live on 2026-11-14.
+const LIVE_NETWORK: &str = "8f1833742a76431b7e0912ebbab49f3669dd423fb2fbbf0612b8ade911ac1452";
+
+/// The first epoch in which locked payments may be made on the live
+/// network. Until every validator runs a version that knows them, they stay
+/// closed; this is set to a real epoch in the release that opens them.
+const LIVE_LOCKS_FROM: u64 = u64::MAX;
+
+/// The first epoch in which a network takes locked payments: on the live
+/// network the one set above, and from the start on any other network.
+pub fn locks_from(network: &Hash32) -> u64 {
+    if network.to_string() == LIVE_NETWORK { LIVE_LOCKS_FROM } else { 0 }
+}
+
+/// A state as the node works with it: set to the epoch it is in, and to the
+/// epoch its network opens locked payments at.
+fn ready(mut state: State, epoch: u64, network: &Hash32) -> State {
+    state.set_epoch(epoch);
+    state.set_locks_from(locks_from(network));
+    state
+}
 
 /// A data directory belongs to one network and is written in one format.
 /// Refuse to reuse it for another network, or to read a format this version
@@ -1754,7 +1787,10 @@ fn claim_data_dir(dir: &Path, network: &Hash32) -> Result<()> {
         Ok(existing) if existing.trim() == network.to_string() => {
             // Directories from before the marker existed count as format 1.
             let found = fs::read_to_string(&format).unwrap_or_else(|_| "1".into());
-            if found.trim() != DATA_FORMAT {
+            if UPGRADES_FROM.contains(&found.trim()) {
+                write_replacing(&format, DATA_FORMAT.as_bytes(), true)
+                    .with_context(|| format!("cannot upgrade {}", dir.display()))?;
+            } else if found.trim() != DATA_FORMAT {
                 bail!(
                     "{} was written in data format {}, and this version reads and writes format \
                      {DATA_FORMAT}. Use a fresh data directory, and only if the whole network is \
@@ -1858,12 +1894,13 @@ impl Node {
         };
         let place = place_of(&committee, &tree.root());
 
-        let mut state = match epochs.snapshot()? {
+        let state = match epochs.snapshot()? {
             Some(snapshot) => {
                 State::from_snapshot(&snapshot, config.genesis.fee).context("the state snapshot is corrupt")?
             }
             None => State::from_genesis(&config.genesis),
         };
+        let mut state = ready(state, epoch, &config.genesis.id());
         let start = state.clone();
         let (mut applied, mut digests, mut held) = (Vec::new(), Vec::new(), HashMap::new());
         let mut pin = Pin::start(epoch);
