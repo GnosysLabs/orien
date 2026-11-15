@@ -16,6 +16,7 @@ mod board;
 mod contacts;
 #[cfg(target_os = "linux")]
 mod linux;
+mod mining;
 mod money;
 mod send;
 mod swaps;
@@ -73,6 +74,23 @@ struct Settings {
     /// app on a test network is ignored on any other.
     #[serde(default)]
     network: Option<String>,
+    /// Every wallet the app knows besides the shared one, and the names
+    /// given to any of them (the shared one's included).
+    #[serde(default)]
+    wallets: Vec<Named>,
+    /// The wallet open now; the first one when unset.
+    #[serde(default)]
+    current: Option<PathBuf>,
+    /// How much of the processor mining uses, in percent.
+    #[serde(default)]
+    mining_percent: Option<u8>,
+}
+
+/// A wallet the app knows, with the short name the person gave it.
+#[derive(Clone, Serialize, Deserialize)]
+struct Named {
+    path: PathBuf,
+    name: String,
 }
 
 /// The id of the network this app was built for.
@@ -111,12 +129,38 @@ fn save_settings(dir: &Path, settings: &Settings) -> Result<(), String> {
     fs::write(dir.join("settings.json"), text).map_err(|error| error.to_string())
 }
 
-/// The wallet file in use, if there is one: one the person chose, else the
-/// one the `orien` command uses.
-fn wallet_file(dir: &Path) -> Option<PathBuf> {
+/// Every wallet the app knows, in order: the one the `orien` command uses,
+/// one the person chose from a file, then the ones added in the app. Only
+/// those whose file is there.
+fn known_wallets(dir: &Path) -> Vec<Named> {
     let settings = settings(dir);
-    let chosen = settings.wallet.filter(|path| path.is_file() && settings.network == network_id());
-    chosen.or_else(|| Some(shared_wallet()).filter(|path| path.is_file()))
+    let name_of = |path: &Path, default: &str| {
+        settings.wallets.iter().find(|w| w.path == path).map_or_else(|| default.to_string(), |w| w.name.clone())
+    };
+    let mut all = Vec::new();
+    let shared = shared_wallet();
+    if shared.is_file() {
+        all.push(Named { name: name_of(&shared, "Main"), path: shared });
+    }
+    if let Some(chosen) = settings.wallet.clone().filter(|path| path.is_file() && settings.network == network_id())
+        && !all.iter().any(|w| w.path == chosen)
+    {
+        all.push(Named { name: name_of(&chosen, "Chosen wallet"), path: chosen });
+    }
+    for wallet in &settings.wallets {
+        if wallet.path.is_file() && !all.iter().any(|w| w.path == wallet.path) {
+            all.push(wallet.clone());
+        }
+    }
+    all
+}
+
+/// The wallet file in use, if there is one: the one open now, else the
+/// first the app knows.
+fn wallet_file(dir: &Path) -> Option<PathBuf> {
+    let all = known_wallets(dir);
+    let current = settings(dir).current;
+    all.iter().find(|w| Some(&w.path) == current.as_ref()).or(all.first()).map(|w| w.path.clone())
 }
 
 /// Whether the wallet file is sealed with a password, read without it.
@@ -269,7 +313,11 @@ fn make_home() -> Result<PathBuf, String> {
 
 /// Uses the shared wallet from now on, forgetting any other file chosen.
 fn use_shared(app: &AppHandle) -> Result<(), String> {
-    save_settings(&folder(app)?, &Settings::default())
+    let dir = folder(app)?;
+    let mut settings = settings(&dir);
+    settings.wallet = None;
+    settings.current = Some(shared_wallet());
+    save_settings(&dir, &settings)
 }
 
 /// Makes a new wallet, as `orien wallet new` does, and returns its 24-word
@@ -325,8 +373,221 @@ async fn choose_wallet(app: AppHandle) -> Result<bool, String> {
     let picked = app.dialog().file().add_filter("Orien wallet", &["wallet"]).blocking_pick_file();
     let Some(path) = picked.and_then(|file| file.into_path().ok()) else { return Ok(false) };
     Wallet::peek(&path).map_err(|_| "that file is not an Orien wallet".to_string())?;
-    save_settings(&folder(&app)?, &Settings { wallet: Some(path), network: network_id() })?;
+    let dir = folder(&app)?;
+    let mut settings = settings(&dir);
+    settings.wallet = Some(path.clone());
+    settings.network = network_id();
+    settings.current = Some(path);
+    save_settings(&dir, &settings)?;
     Ok(true)
+}
+
+/// A wallet as the switcher shows it.
+#[derive(Serialize)]
+struct WalletView {
+    path: String,
+    name: String,
+    address: String,
+    current: bool,
+    /// The one the `orien` command uses, which stays first and can't be
+    /// forgotten here.
+    shared: bool,
+}
+
+/// Every wallet the app knows.
+#[tauri::command]
+fn wallets(app: AppHandle) -> Result<Vec<WalletView>, String> {
+    let dir = folder(&app)?;
+    let current = wallet_file(&dir);
+    Ok(known_wallets(&dir)
+        .into_iter()
+        .filter_map(|w| {
+            let address = Wallet::peek(&w.path).ok()?.0.to_string();
+            Some(WalletView {
+                current: Some(&w.path) == current.as_ref(),
+                shared: w.path == shared_wallet(),
+                path: w.path.display().to_string(),
+                name: w.name,
+                address,
+            })
+        })
+        .collect())
+}
+
+/// Each known wallet's balance, by address, as the validators report it.
+#[tauri::command]
+async fn wallet_balances(app: AppHandle) -> Result<std::collections::BTreeMap<String, String>, String> {
+    let dir = folder(&app)?;
+    let genesis = genesis_file(&dir)?;
+    let addresses: Vec<AccountId> = known_wallets(&dir).iter().filter_map(|w| Wallet::peek(&w.path).ok().map(|(a, _)| a)).collect();
+    tauri::async_runtime::spawn_blocking(move || {
+        let client = connect(&genesis)?;
+        let balances = addresses
+            .iter()
+            .filter_map(|address| client.account(address, 0).spendable.map(|units| (address.to_string(), money::show(units))))
+            .collect();
+        let _ = client.head().save(&head_file(&genesis));
+        Ok(balances)
+    })
+    .await
+    .map_err(|error| error.to_string())?
+}
+
+fn known(dir: &Path, path: &str) -> Result<PathBuf, String> {
+    let path = PathBuf::from(path);
+    known_wallets(dir).iter().any(|w| w.path == path).then_some(path).ok_or_else(|| "That wallet is not in this app.".into())
+}
+
+/// Opens another of the app's wallets.
+#[tauri::command]
+fn use_wallet(app: AppHandle, path: String) -> Result<(), String> {
+    let dir = folder(&app)?;
+    let path = known(&dir, &path)?;
+    let mut settings = settings(&dir);
+    settings.current = Some(path);
+    save_settings(&dir, &settings)
+}
+
+/// Gives a wallet a short name of the person's own.
+#[tauri::command]
+fn rename_wallet(app: AppHandle, path: String, name: String) -> Result<(), String> {
+    let dir = folder(&app)?;
+    let path = known(&dir, &path)?;
+    let name = name.trim();
+    if name.is_empty() || name.chars().count() > 24 {
+        return Err("A wallet's name is 1 to 24 characters.".into());
+    }
+    let mut settings = settings(&dir);
+    match settings.wallets.iter_mut().find(|w| w.path == path) {
+        Some(named) => named.name = name.to_string(),
+        None => settings.wallets.push(Named { path, name: name.to_string() }),
+    }
+    save_settings(&dir, &settings)
+}
+
+/// The folder, readable by this user only, that wallets added in the app
+/// live in.
+fn wallets_folder(dir: &Path) -> Result<PathBuf, String> {
+    let folder = dir.join("wallets");
+    fs::create_dir_all(&folder).map_err(|error| format!("cannot create {}: {error}", folder.display()))?;
+    #[cfg(unix)]
+    {
+        use std::os::unix::fs::PermissionsExt;
+        fs::set_permissions(&folder, fs::Permissions::from_mode(0o700)).map_err(|error| error.to_string())?;
+    }
+    Ok(folder)
+}
+
+/// Adds a wallet: a new one, whose 24 words it returns, or one rebuilt
+/// from `words`. It opens at once. Never overwrites a file.
+#[tauri::command]
+async fn add_wallet(app: AppHandle, name: String, words: Option<String>) -> Result<Vec<String>, String> {
+    let dir = folder(&app)?;
+    let name = name.trim().to_string();
+    if name.is_empty() || name.chars().count() > 24 {
+        return Err("Give the wallet a name of 1 to 24 characters.".into());
+    }
+    let master = match words.as_deref().map(str::trim).filter(|w| !w.is_empty()) {
+        Some(words) => Some(orien_net::phrase::from_words(words).map_err(|error| {
+            let text = error.to_string();
+            let mut chars = text.chars();
+            chars.next().map(|first| first.to_uppercase().chain(chars).collect::<String>() + ".").unwrap_or(text)
+        })?),
+        None => None,
+    };
+    let folder = wallets_folder(&dir)?;
+    let path = (1..10_000).map(|n| folder.join(format!("wallet-{n}.wallet"))).find(|p| !p.exists()).ok_or("too many wallets")?;
+    let made = path.clone();
+    let words = tauri::async_runtime::spawn_blocking(move || match master {
+        Some(master) => {
+            let wallet = Wallet::from_master(&made, master, 1).map_err(|error| error.to_string())?;
+            let _ = wallet;
+            Ok::<_, String>(Vec::new())
+        }
+        None => {
+            let wallet = Wallet::create(&made).map_err(|error| error.to_string())?;
+            Ok(wallet.phrase().unwrap_or_default().into_iter().map(str::to_string).collect())
+        }
+    })
+    .await
+    .map_err(|error| error.to_string())??;
+    // The same wallet twice would sign with the same one-time keys from two
+    // files: a restored wallet already here is refused, and its copy removed.
+    let address = Wallet::peek(&path).map_err(|error| error.to_string())?.0;
+    if known_wallets(&dir).iter().any(|w| Wallet::peek(&w.path).is_ok_and(|(a, _)| a == address)) {
+        let _ = fs::remove_file(&path);
+        return Err("That wallet is already in this app.".into());
+    }
+    let mut settings = settings(&dir);
+    settings.wallets.push(Named { path: path.clone(), name });
+    settings.current = Some(path);
+    save_settings(&dir, &settings)?;
+    Ok(words)
+}
+
+/// Takes a wallet off the app's list. Its file stays where it is: this only
+/// forgets it. The shared one can't be forgotten here.
+#[tauri::command]
+fn forget_wallet(app: AppHandle, path: String) -> Result<(), String> {
+    let dir = folder(&app)?;
+    let path = known(&dir, &path)?;
+    if path == shared_wallet() {
+        return Err("The orien command uses this wallet, so it stays.".into());
+    }
+    let mut settings = settings(&dir);
+    settings.wallets.retain(|w| w.path != path);
+    if settings.wallet.as_ref() == Some(&path) {
+        settings.wallet = None;
+    }
+    if settings.current.as_ref() == Some(&path) {
+        settings.current = None;
+    }
+    save_settings(&dir, &settings)
+}
+
+/// Starts mining for the open wallet on `percent` of the processor, and
+/// remembers the percent.
+#[tauri::command]
+fn mine_start(app: AppHandle, percent: u8) -> Result<(), String> {
+    let dir = folder(&app)?;
+    let wallet = wallet_file(&dir).ok_or("no wallet yet")?;
+    let account = Wallet::peek(&wallet).map_err(|error| error.to_string())?.0;
+    let genesis = genesis_file(&dir)?;
+    let mut saved = settings(&dir);
+    saved.mining_percent = Some(percent.clamp(1, 100));
+    save_settings(&dir, &saved)?;
+    let file = genesis.clone();
+    mining::start(account, percent, move || connect(&file), genesis);
+    Ok(())
+}
+
+#[tauri::command]
+async fn mine_stop() -> Result<(), String> {
+    tauri::async_runtime::spawn_blocking(mining::stop).await.map_err(|error| error.to_string())
+}
+
+/// How mining is going, with the remembered percent, which wallet it mines
+/// to, and the last mining reward that wallet received.
+#[tauri::command]
+fn mine_status(app: AppHandle) -> Result<serde_json::Value, String> {
+    let dir = folder(&app)?;
+    let status = mining::status();
+    let open = wallet_file(&dir).and_then(|w| Wallet::peek(&w).ok()).map(|(a, _)| a.to_string());
+    let address = status.address.clone().or(open);
+    let name = address.as_ref().and_then(|address| {
+        known_wallets(&dir).into_iter().find(|w| Wallet::peek(&w.path).is_ok_and(|(a, _)| &a.to_string() == address)).map(|w| w.name)
+    });
+    let reward = address.as_ref().and_then(|address| {
+        activity::list(&dir, address).into_iter().find(|e| e.kind == Some(activity::Kind::Mining)).map(|e| {
+            serde_json::json!({ "amount": money::show(e.amount as i128), "time": e.time })
+        })
+    });
+    Ok(serde_json::json!({
+        "status": status,
+        "percent": settings(&dir).mining_percent.unwrap_or(50),
+        "wallet": name,
+        "last_reward": reward,
+    }))
 }
 
 /// Asks the validators about the wallet's account.
@@ -616,15 +877,17 @@ async fn board_post(app: AppHandle, orn: String, btc: String, payout: String) ->
     let orn = money::read(&orn)?;
     let sats = swaps::read_btc(&btc)?;
     let dir = folder(&app)?;
-    tauri::async_runtime::spawn_blocking(move || board::post(&dir, orn, sats, &payout)).await.map_err(|error| error.to_string())?
+    let wallet = wallet_file(&dir).ok_or("no wallet yet")?;
+    tauri::async_runtime::spawn_blocking(move || board::post(&dir, &wallet, orn, sats, &payout)).await.map_err(|error| error.to_string())?
 }
 
 /// Takes offer `offer` for this wallet; a refund would go to `refund`.
 #[tauri::command]
 async fn board_take(app: AppHandle, offer: i64, refund: String) -> Result<(), String> {
     let dir = folder(&app)?;
-    let address = wallet_file(&dir).and_then(|file| orien_net::keys::Wallet::peek(&file).ok()).map(|(address, _)| address.to_string()).ok_or("no wallet yet")?;
-    tauri::async_runtime::spawn_blocking(move || board::take(&dir, offer, &address, &refund)).await.map_err(|error| error.to_string())?
+    let wallet = wallet_file(&dir).ok_or("no wallet yet")?;
+    let address = orien_net::keys::Wallet::peek(&wallet).map_err(|error| error.to_string())?.0.to_string();
+    tauri::async_runtime::spawn_blocking(move || board::take(&dir, &wallet, offer, &address, &refund)).await.map_err(|error| error.to_string())?
 }
 
 /// Links this wallet to the signed-in marketplace account, as signing in
@@ -648,7 +911,7 @@ fn main() {
     tauri::Builder::default()
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_updater::Builder::new().build())
-        .invoke_handler(tauri::generate_handler![has_wallet, create_wallet, restore_wallet, set_password, choose_wallet, overview_now, send_payment, activity, quote, contacts, save_contact, delete_contact, update::check_update, update::install_update, swap_list, swap_sell, swap_buy, swap_accept, swap_step, swap_smallest, board_offers, board_me, board_email_start, board_email_finish, board_sign_out, board_post, board_take, board_withdraw, board_link])
+        .invoke_handler(tauri::generate_handler![has_wallet, create_wallet, restore_wallet, set_password, choose_wallet, overview_now, send_payment, activity, quote, contacts, save_contact, delete_contact, update::check_update, update::install_update, mine_start, mine_stop, mine_status, wallets, wallet_balances, use_wallet, rename_wallet, add_wallet, forget_wallet, swap_list, swap_sell, swap_buy, swap_accept, swap_step, swap_smallest, board_offers, board_me, board_email_start, board_email_finish, board_sign_out, board_post, board_take, board_withdraw, board_link])
         .run(tauri::generate_context!())
         .expect("the wallet window could not start");
 }
@@ -750,11 +1013,11 @@ mod tests {
 
         // Alice posts 5 ORN for 0.01 BTC; bob takes it.
         let orn = 5 * orien_ledger::COIN;
-        super::board::post_on(&alice_dir, Network::Regtest, orn, 1_000_000, &btc()).unwrap();
+        super::board::post_on(&alice_dir, &alice.wallet_file, Network::Regtest, orn, 1_000_000, &btc()).unwrap();
         let posted = super::board::mine(&alice_dir).unwrap();
         let id = posted.as_array().unwrap().iter().find(|s| s["offer"]["state"] == "open").unwrap()["offer"]["id"].as_i64().unwrap();
         let bob_address = orien_net::keys::Wallet::peek(&bob.wallet_file).unwrap().0.to_string();
-        super::board::take_on(&bob_dir, Network::Regtest, id, &bob_address, &btc()).unwrap();
+        super::board::take_on(&bob_dir, &bob.wallet_file, Network::Regtest, id, &bob_address, &btc()).unwrap();
 
         let (mut alice_swaps, mut bob_swaps) = (Vec::new(), Vec::new());
         let mut paid = false;
@@ -822,7 +1085,7 @@ mod tests {
         let offers = super::board::offers(&dir).unwrap();
         if let Some(offer) = offers["offers"].as_array().and_then(|o| o.first()).and_then(|o| o["id"].as_i64()) {
             let refund = "bcrt1qw508d6qejxtdg4y5r3zarvary0c5xw7kygt080";
-            super::board::take_on(&dir, orien_swap::bitcoin::Network::Regtest, offer, &bob, refund).unwrap();
+            super::board::take_on(&dir, &bob_file, orien_swap::bitcoin::Network::Regtest, offer, &bob, refund).unwrap();
         }
 
         // Signing in links the wallet, with no payment.

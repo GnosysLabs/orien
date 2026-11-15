@@ -36,6 +36,10 @@ pub struct Kept {
     /// The swap board offer this swap runs for, if it came from the board.
     #[serde(default)]
     pub board: Option<i64>,
+    /// The wallet the swap runs with, whichever is open later. Swaps made
+    /// before the app kept several wallets have none: the first one.
+    #[serde(default)]
+    pub wallet: Option<PathBuf>,
 }
 
 /// What the window shows of a swap.
@@ -194,7 +198,24 @@ pub struct AppOrien<'a> {
     pub epoch_seconds: u64,
 }
 
-impl AppOrien<'_> {
+impl<'a> AppOrien<'a> {
+    /// The same, signing with another of the app's wallets.
+    pub fn with_wallet(&self, wallet_file: &Path) -> AppOrien<'a> {
+        AppOrien {
+            client: self.client,
+            wallet_file: wallet_file.to_path_buf(),
+            password: self.password.clone(),
+            fees: self.fees,
+            network: self.network.clone(),
+            epoch_seconds: self.epoch_seconds,
+        }
+    }
+
+    /// The same, for the wallet a swap runs with.
+    pub fn for_swap(&self, kept: &Kept) -> AppOrien<'a> {
+        self.with_wallet(kept.wallet.as_deref().unwrap_or(&self.wallet_file))
+    }
+
     fn send(&self, kind: Kind, to: Hash32, amount: u64, at: Option<u64>) -> anyhow::Result<send::Sent> {
         let mut wallet = crate::open_signing(&self.wallet_file, self.password.as_deref()).map_err(anyhow::Error::msg)?;
         let sent = send::send_order_at(self.client, &mut wallet, self.fees, kind.clone(), to, amount, at).map_err(anyhow::Error::msg)?;
@@ -272,7 +293,7 @@ pub fn sell_on(orien: &AppOrien, network: bitcoin::Network, buyer: &str, orn: u6
         return Err("That is this wallet's own address.".into());
     }
     let swap = Swap::sell(orien, network, buyer, orn, sats, payout.trim()).map_err(|error| error.to_string())?;
-    let mut kept = Kept { id: hex(&swap.hash), swap, offer: None, reply: None, problem: None, created: now(), orn_back_at: None, btc_back_at: None, board: None };
+    let mut kept = Kept { id: hex(&swap.hash), swap, offer: None, reply: None, problem: None, created: now(), orn_back_at: None, btc_back_at: None, board: None, wallet: Some(orien.wallet_file.clone()) };
     note_times(orien, &mut kept);
     Ok(kept)
 }
@@ -288,7 +309,18 @@ pub fn buy_on(orien: &AppOrien, network: bitcoin::Network, chain: &Explorers, of
     let offer = Offer::read(offer).map_err(|error| error.to_string())?;
     let (swap, reply) = Swap::buy(orien, chain, network, &offer, refund.trim()).map_err(|error| error.to_string())?;
     let mut kept =
-        Kept { id: hex(&swap.hash), swap, offer: None, reply: Some(reply.code()), problem: None, created: now(), orn_back_at: None, btc_back_at: None, board: None };
+        Kept {
+        id: hex(&swap.hash),
+        swap,
+        offer: None,
+        reply: Some(reply.code()),
+        problem: None,
+        created: now(),
+        orn_back_at: None,
+        btc_back_at: None,
+        board: None,
+        wallet: Some(orien.wallet_file.clone()),
+    };
     note_times(orien, &mut kept);
     Ok(kept)
 }
@@ -300,6 +332,7 @@ pub fn accept(orien: &AppOrien, kept: &mut Kept, reply: &str) -> Result<(), Stri
 
 pub fn accept_on(orien: &AppOrien, chain: &Explorers, kept: &mut Kept, reply: &str) -> Result<(), String> {
     let reply = Reply::read(reply).map_err(|error| error.to_string())?;
+    let orien = &orien.for_swap(kept);
     kept.swap.accept(chain, orien, &reply).map_err(|error| error.to_string())?;
     note_times(orien, kept);
     Ok(())
@@ -317,7 +350,8 @@ pub fn step_on(orien: &AppOrien, chain: &Explorers, dir: &Path, swaps: &mut [Kep
         if matches!(swaps[index].swap.stage, Stage::Done | Stage::Cancelled { .. }) {
             continue;
         }
-        advance(orien, chain, &mut swaps[index]);
+        let orien = orien.for_swap(&swaps[index]);
+        advance(&orien, chain, &mut swaps[index]);
         save(dir, swaps)?;
     }
     Ok(())

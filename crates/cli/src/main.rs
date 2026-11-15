@@ -1400,90 +1400,39 @@ fn mining_threads(cpu: Option<u8>, threads: Option<usize>) -> Result<usize> {
 }
 
 fn mine(account: &str, threads: usize, genesis_file: &Path) -> Result<()> {
-    use orien_ledger::close::Share;
-    use std::sync::Arc;
-    use std::sync::atomic::{AtomicBool, AtomicU64, Ordering};
+    use orien_net::miner::{self, Event};
 
     let (genesis, client) = connect(genesis_file)?;
     let account = resolve_account(account)?;
-    // Two machines mining for one account must not find the same shares.
-    let mut next = u64::from_le_bytes(orien_net::keys::random_seed()[..8].try_into().expect("8 bytes"));
-    let cores = thread::available_parallelism().map_or(1, |n| n.get());
+    let cores = miner::cores();
     println!(
         "mining for {} on {threads} of {cores} processor cores (about {}%); stop with Ctrl-C",
         account.short(),
         threads * 100 / cores
     );
-    let mut shown_epoch = None;
-    loop {
-        // The seed and target come from the checkpoints this client checks
-        // itself, so nobody can send it off doing worthless work.
-        client.follow();
-        let (epoch, seed, target) = client.followed_work();
-        if shown_epoch != Some(epoch) {
+    let never = std::sync::atomic::AtomicBool::new(false);
+    miner::run(&client, account, threads, &never, |client, event| match event {
+        Event::Epoch { epoch, target } => {
             let balance = client.proven(&account).map_or(0, |a| a.balance);
             println!(
                 "epoch {epoch}: about one try in {} makes a share; the account holds {}",
                 u64::MAX / target.max(1),
                 coins(balance)
             );
-            shown_epoch = Some(epoch);
         }
-        // Search for a few seconds, then check the epoch again.
-        let stop = Arc::new(AtomicBool::new(false));
-        let tries = Arc::new(AtomicU64::new(0));
-        let (found, shares) = std::sync::mpsc::channel();
-        let workers: Vec<_> = (0..threads as u64)
-            .map(|offset| {
-                let (stop, tries, found) = (stop.clone(), tries.clone(), found.clone());
-                let start = next.wrapping_add(offset);
-                thread::spawn(move || {
-                    let mut nonce = start;
-                    while !stop.load(Ordering::Relaxed) {
-                        for _ in 0..4096 {
-                            let share = Share { account, nonce };
-                            if share.counts(&seed, target) && found.send(share).is_err() {
-                                return;
-                            }
-                            nonce = nonce.wrapping_add(threads as u64);
-                        }
-                        tries.fetch_add(4096, Ordering::Relaxed);
-                    }
-                })
-            })
-            .collect();
-        drop(found);
-        let started = Instant::now();
-        let (mut sent, mut taken) = (0u64, 0u64);
-        while started.elapsed() < Duration::from_secs(5) {
-            if let Ok(share) = shares.recv_timeout(Duration::from_millis(200)) {
-                sent += 1;
-                if client.submit_share(share) > 0 {
-                    taken += 1;
-                }
+        Event::Round { tries_per_second, sent, taken } => {
+            let rate = tries_per_second / 1e6;
+            println!("  {rate:.1} million tries a second; {sent} share(s) found, {taken} taken by validators");
+            if sent > 0 && taken == 0 {
+                println!(
+                    "  the validators have counted all the shares they take until the next checkpoint, {}; \
+                     what you found so far still counts",
+                    until_checkpoint(&genesis, client)
+                );
             }
         }
-        stop.store(true, Ordering::Relaxed);
-        for worker in workers {
-            let _ = worker.join();
-        }
-        while let Ok(share) = shares.try_recv() {
-            sent += 1;
-            if client.submit_share(share) > 0 {
-                taken += 1;
-            }
-        }
-        next = next.wrapping_add(tries.load(Ordering::Relaxed) + threads as u64 * 4096);
-        let rate = tries.load(Ordering::Relaxed) as f64 / started.elapsed().as_secs_f64() / 1e6;
-        println!("  {rate:.1} million tries a second; {sent} share(s) found, {taken} taken by validators");
-        if sent > 0 && taken == 0 {
-            println!(
-                "  the validators have counted all the shares they take until the next checkpoint, {}; \
-                 what you found so far still counts",
-                until_checkpoint(&genesis, &client)
-            );
-        }
-    }
+    });
+    Ok(())
 }
 
 /// The wallet to sign a payment with: through its unlocked session when

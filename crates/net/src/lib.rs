@@ -5,6 +5,7 @@ pub mod client;
 pub mod closer;
 pub mod history;
 pub mod keys;
+pub mod miner;
 pub mod node;
 pub mod phrase;
 pub mod store;

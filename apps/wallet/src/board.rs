@@ -47,6 +47,11 @@ pub struct Link {
     /// Marked finished on the board.
     #[serde(default)]
     pub finished: bool,
+    /// The wallet that posted or took the offer, which its swap runs with
+    /// whichever is open later. None for links from before several wallets:
+    /// the open one.
+    #[serde(default)]
+    pub wallet: Option<PathBuf>,
 }
 
 #[derive(Default, Serialize, Deserialize)]
@@ -228,31 +233,31 @@ fn bitcoin_address(text: &str, network: orien_swap::bitcoin::Network) -> Result<
 }
 
 /// Puts an offer on the board, with the Bitcoin address to be paid at.
-pub fn post(dir: &Path, orn: u64, sats: u64, payout: &str) -> Result<(), String> {
-    post_on(dir, swaps::bitcoin().0, orn, sats, payout)
+pub fn post(dir: &Path, wallet: &Path, orn: u64, sats: u64, payout: &str) -> Result<(), String> {
+    post_on(dir, wallet, swaps::bitcoin().0, orn, sats, payout)
 }
 
-pub fn post_on(dir: &Path, network: orien_swap::bitcoin::Network, orn: u64, sats: u64, payout: &str) -> Result<(), String> {
+pub fn post_on(dir: &Path, wallet: &Path, network: orien_swap::bitcoin::Network, orn: u64, sats: u64, payout: &str) -> Result<(), String> {
     let payout = bitcoin_address(payout, network)?;
     let posted = call(dir, "POST", "/swaps", Some(json!({ "orn": orn, "sats": sats })))?;
     let offer = posted["offer"]["id"].as_i64().ok_or("The swap board did not say which offer it posted.")?;
     let mut saved = load(dir);
-    saved.links.push(Link { offer, selling: true, bitcoin: payout, swap: None, finished: false });
+    saved.links.push(Link { offer, selling: true, bitcoin: payout, swap: None, finished: false, wallet: Some(wallet.to_path_buf()) });
     save(dir, &saved)
 }
 
 /// Takes an offer for this wallet, `address`, with the Bitcoin address a
 /// refund would go to. The seller locks the ORN for `address`.
-pub fn take(dir: &Path, offer: i64, address: &str, refund: &str) -> Result<(), String> {
-    take_on(dir, swaps::bitcoin().0, offer, address, refund)
+pub fn take(dir: &Path, wallet: &Path, offer: i64, address: &str, refund: &str) -> Result<(), String> {
+    take_on(dir, wallet, swaps::bitcoin().0, offer, address, refund)
 }
 
-pub fn take_on(dir: &Path, network: orien_swap::bitcoin::Network, offer: i64, address: &str, refund: &str) -> Result<(), String> {
+pub fn take_on(dir: &Path, wallet: &Path, network: orien_swap::bitcoin::Network, offer: i64, address: &str, refund: &str) -> Result<(), String> {
     let refund = bitcoin_address(refund, network)?;
     call(dir, "POST", &format!("/swaps/{offer}/take"), Some(json!({ "address": address })))?;
     let mut saved = load(dir);
     saved.links.retain(|link| link.offer != offer);
-    saved.links.push(Link { offer, selling: false, bitcoin: refund, swap: None, finished: false });
+    saved.links.push(Link { offer, selling: false, bitcoin: refund, swap: None, finished: false, wallet: Some(wallet.to_path_buf()) });
     save(dir, &saved)
 }
 
@@ -315,6 +320,8 @@ pub fn drive_on(
             link.finished = true;
         }
         let kept = link.swap.as_ref().and_then(|swap| all.iter().position(|kept| &kept.id == swap));
+        // The wallet that posted or took the offer, not necessarily the open one.
+        let orien = &orien.with_wallet(link.wallet.as_deref().unwrap_or(&orien.wallet_file));
         let result = match (link.selling, kept) {
             // Seller: someone took the offer. Start the swap: it is saved
             // with its secret, then the regular steps lock the ORN.

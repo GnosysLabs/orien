@@ -153,6 +153,8 @@
   .actions { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 16px; }
   .actions.three { grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
   .actions.four { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
+  .actions.five { grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 7px; }
+  .actions.five .tile { flex-direction: column; gap: 6px; height: auto; padding: 12px 2px; font-size: 12px; }
   .actions.four .tile { flex-direction: column; gap: 6px; height: auto; padding: 12px 4px; font-size: 12.5px; }
   /* Swaps */
   .codebox { font: 11.5px ui-monospace, "SF Mono", monospace; word-break: break-all; color: var(--dim);
@@ -165,6 +167,24 @@
   .swap-row .sub { font-size: 12.5px; color: var(--dim); }
   .swap-status { margin: 14px 2px 0; line-height: 1.45; }
   .swap-choices { display: grid; gap: 10px; }
+  /* The Swap screen's two tabs */
+  .tabs { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; padding: 4px; margin-bottom: 14px;
+    border: 1px solid var(--line); border-radius: 14px; background: var(--surface); }
+  .tab { height: 34px; border: 0; border-radius: 10px; background: transparent; cursor: pointer; font-weight: 500; color: var(--dim); }
+  .tab.on { background: var(--surface-hover); color: var(--ink); }
+  #mine-count { color: var(--faint); font-weight: 400; }
+  /* Wallets */
+  #mn-cpu { width: 100%; accent-color: #b8c7ff; }
+  .wallet-chip { display: inline-flex; align-items: center; gap: 6px; margin: -6px 0 12px 2px; padding: 5px 10px;
+    border: 1px solid var(--line); border-radius: 999px; background: transparent; cursor: pointer; font-size: 12.5px; color: var(--dim); }
+  .wallet-chip:hover { color: var(--ink); background: #ffffff08; }
+  .wallet-row { display: grid; grid-template-columns: 1fr auto; gap: 4px 12px; align-items: center; width: 100%;
+    padding: 14px 16px; border: 1px solid var(--line); border-radius: 16px; background: var(--surface); text-align: left; cursor: pointer; }
+  .wallet-row + .wallet-row { margin-top: 8px; }
+  .wallet-row.current { border-color: #8f8aa8; }
+  .wallet-row .addr { font: 11.5px ui-monospace, "SF Mono", monospace; color: var(--faint); }
+  .wallet-row .bal { font-weight: 500; text-align: right; }
+  .wallet-row .tools { grid-column: 1 / -1; display: flex; gap: 14px; }
   /* The swap board */
   .board-bar { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 12px;
     font-size: 12.5px; color: var(--dim); }
@@ -174,8 +194,12 @@
   .offer { display: grid; grid-template-columns: 36px 1fr auto; gap: 12px; align-items: center;
     padding: 14px 14px 14px 16px; border: 1px solid var(--line); border-radius: 16px; background: var(--surface); }
   .offer + .offer { margin-top: 8px; }
-  .avatar { width: 36px; height: 36px; border-radius: 50%; background: var(--surface-hover) center / cover no-repeat;
-    display: grid; place-items: center; font-weight: 600; color: var(--ink); }
+  /* Scoped to the board, so the contacts' .avatar rule (pearl, dark ink)
+     can't reach it. The photo is an <img> over the initial: style=""
+     attributes are blocked in the built app. */
+  .offer .avatar { position: relative; overflow: hidden; width: 36px; height: 36px; border-radius: 50%;
+    background: var(--surface-hover); display: grid; place-items: center; font-weight: 600; color: var(--ink); }
+  .offer .avatar img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
   .offer .who { font-size: 12px; color: var(--dim); }
   .offer .deal { margin-top: 2px; font-weight: 500; }
   .offer .rate { font-size: 12px; color: var(--faint); }
@@ -450,12 +474,13 @@
 
     <!-- Home -->
     <section class="screen" id="home" hidden>
+      <div><button class="wallet-chip" id="wallet-chip"><span id="wallet-name">Wallet</span><svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m4 6 4 4 4-4"/></svg></button></div>
       <div class="card pearl">
         <div class="label">Balance</div>
         <div class="amount"><span class="balance" id="balance">—</span><span class="unit">ORN</span></div>
       </div>
 
-      <div class="actions four">
+      <div class="actions five">
         <button class="tile" id="go-send">
           <span class="icon pearl"><svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 10.5 10.5 3.5M5 3.5h5.5V9"/></svg></span>
           Send
@@ -471,6 +496,10 @@
         <button class="tile" id="go-contacts">
           <span class="icon pearl"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.6"/><path d="M2.8 20c0-3.5 2.8-5.9 6.2-5.9s6.2 2.4 6.2 5.9"/><path d="M15.6 4.6a3.6 3.6 0 0 1 0 6.8"/><path d="M17.9 14.6c2 .7 3.3 2.7 3.3 5.4"/></svg></span>
           Contacts
+        </button>
+        <button class="tile" id="go-mine">
+          <span class="icon pearl"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 5.5 18.5 9.5"/><path d="M3 21l11.5-11.5"/><path d="M8.5 3.5c4.5 0 8.6 1.9 12 5.5-3.6-.8-7.6.2-10.5 2.6"/></svg></span>
+          Mine
         </button>
       </div>
 
@@ -586,6 +615,72 @@
       <button class="secondary" id="d-save" hidden>Save as contact</button>
     </section>
 
+    <!-- Mining -->
+    <section class="screen" id="mine" hidden>
+      <div class="topline"><button class="back" data-back aria-label="Back"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10 3 5 8l5 5"/></svg></button><h2>Mine ORN</h2></div>
+      <p class="lede">This computer does proof-of-work for the network. Every hour, the new ORN are shared among everyone who mined, in proportion to the work each did. Mining runs only while Orien Wallet is open: closing it stops mining.</p>
+      <div class="review">
+        <div class="row"><span>Mines to</span><span id="mn-wallet"></span></div>
+        <div class="row"><span>Speed</span><span id="mn-speed">—</span></div>
+        <div class="row"><span>Shares this hour</span><span id="mn-shares">—</span></div>
+        <div class="row"><span>Last mining reward</span><span id="mn-reward">—</span></div>
+      </div>
+      <div class="field" data-gap="xl">
+        <label for="mn-cpu">Processor: <span id="mn-cpu-text"></span></label>
+        <input type="range" id="mn-cpu" min="1" max="100" step="1" value="50">
+        <div class="hint">Less leaves this computer quicker for other work; 100% uses all of it.</div>
+      </div>
+      <p class="fineprint" id="mn-odds"></p>
+      <p class="fineprint">No promises: what each hour brings depends on how much work everyone else does.</p>
+      <div class="push"></div>
+      <div class="problem" id="mine-problem" hidden></div>
+      <button class="primary pearl" id="mn-go" data-gap="lg">Start mining</button>
+    </section>
+
+    <!-- Wallets: switching, naming, adding -->
+    <section class="screen" id="wallets" hidden>
+      <div class="topline"><button class="back" data-back aria-label="Back"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10 3 5 8l5 5"/></svg></button><h2>Wallets</h2></div>
+      <p class="lede">Each wallet has its own address, recovery phrase and activity. Tap one to open it.</p>
+      <div id="wallet-list"><div class="empty">Loading…</div></div>
+      <div class="problem" id="wallets-problem" hidden></div>
+      <button class="primary pearl" id="wallet-add-go" data-gap="lg">Add a wallet</button>
+    </section>
+
+    <section class="screen" id="wallet-add" hidden>
+      <div class="topline"><button class="back" data-to="wallets" aria-label="Back"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10 3 5 8l5 5"/></svg></button><h2>Add a wallet</h2></div>
+      <div class="field">
+        <label for="wa-name">Name</label>
+        <div class="box plain"><input id="wa-name" placeholder="Mining" maxlength="24" autocomplete="off"></div>
+      </div>
+      <div class="push"></div>
+      <div class="problem" id="wallet-add-problem" hidden></div>
+      <button class="primary pearl" id="wa-new" data-gap="lg">Make a new wallet</button>
+      <button class="secondary" id="wa-restore" data-gap="sm">Restore one from its recovery phrase</button>
+    </section>
+
+    <section class="screen" id="wallet-rename" hidden>
+      <div class="topline"><button class="back" data-to="wallets" aria-label="Back"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10 3 5 8l5 5"/></svg></button><h2>Rename wallet</h2></div>
+      <div class="field">
+        <label for="wr-name">Name</label>
+        <div class="box plain"><input id="wr-name" maxlength="24" autocomplete="off"></div>
+      </div>
+      <div class="push"></div>
+      <div class="problem" id="wallet-rename-problem" hidden></div>
+      <button class="primary pearl" id="wr-go" data-gap="lg">Save</button>
+    </section>
+
+    <section class="screen" id="wallet-forget" hidden>
+      <div class="topline"><button class="back" data-to="wallets" aria-label="Back"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10 3 5 8l5 5"/></svg></button><h2>Remove from this app</h2></div>
+      <p class="lede" id="wf-text"></p>
+      <ul class="explain">
+        <li><strong>Its file stays on this computer,</strong> and its ORN stay in it. This only takes it off the list.</li>
+        <li><strong>Keep its 24-word recovery phrase.</strong> It's how you add this wallet back, here or anywhere else.</li>
+      </ul>
+      <div class="push"></div>
+      <div class="problem" id="wallet-forget-problem" hidden></div>
+      <button class="primary pearl" id="wf-go" data-gap="lg">Remove from the list</button>
+    </section>
+
     <!-- Swaps -->
     <section class="screen" id="swaps" hidden>
       <div class="topline"><button class="back" data-back aria-label="Back"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10 3 5 8l5 5"/></svg></button><h2>Swap</h2></div>
@@ -594,13 +689,21 @@
         <span id="board-who">Offers on the swap board</span>
         <button class="linkish" id="board-signin-go">Sign up or sign in</button>
       </div>
-      <button class="primary pearl" id="board-post-go" data-gap="sm">Post an offer</button>
-      <div class="section-head"><h3>Open offers</h3><span class="hint" id="board-btc"></span></div>
-      <div id="board-offers"><div class="empty">Loading offers…</div></div>
-      <div class="problem" id="board-problem" hidden></div>
-      <div class="section-head"><h3>Your swaps</h3></div>
-      <div class="scroll" id="swap-list"><div class="empty">No swaps yet</div></div>
-      <button class="linkish small-link" id="manual-go">Swap with someone you know</button>
+      <div class="tabs" role="tablist">
+        <button class="tab on" id="tab-offers-go" role="tab">Offers</button>
+        <button class="tab" id="tab-mine-go" role="tab">Your swaps <span id="mine-count"></span></button>
+      </div>
+      <div id="tab-offers">
+        <div class="note" id="board-wallet" hidden><span id="bw-text"></span> <button class="linkish" id="bw-go">Use this wallet instead</button></div>
+        <button class="primary pearl" id="board-post-go" data-gap="sm">Post an offer</button>
+        <div class="section-head"><h3>Open offers</h3><span class="hint" id="board-btc"></span></div>
+        <div id="board-offers"><div class="empty">Loading offers…</div></div>
+        <div class="problem" id="board-problem" hidden></div>
+        <button class="linkish small-link" id="manual-go">Swap with someone you know</button>
+      </div>
+      <div id="tab-mine" hidden>
+        <div class="scroll" id="swap-list"><div class="empty">No swaps yet</div></div>
+      </div>
     </section>
 
     <!-- Swapping with someone you know, passing the codes yourself -->
@@ -863,8 +966,6 @@
       view = await invoke("overview_now");
       $("balance").textContent = view.balance === null ? "—" : view.balance;
       fitBalance();
-      // Once a session: link this wallet, if signed in to the marketplace.
-      if (lastBalance === null) linkWallet();
       lastBalance = view.balance;
       $("status").title = `${view.answered} of ${view.validators} validators answered`;
       if (view.answered === view.validators) setStatus("ok", "Connected");
@@ -879,7 +980,7 @@
     }
   }
 
-  function home() { show("home"); refresh(); }
+  function home() { show("home"); loadWallets(); refresh(); }
 
   async function start() {
     if (await invoke("has_wallet")) home();
@@ -920,11 +1021,152 @@
   };
   $("pw-skip").onclick = home;
 
+  // ---- Wallets ----
+  let adding = null;          // the name of a wallet being added, while adding
+  let walletList = [];
+  let renaming = null;
+  async function loadWallets() {
+    try { walletList = await invoke("wallets"); } catch { walletList = []; }
+    const open = walletList.find((w) => w.current);
+    $("wallet-name").textContent = open ? open.name : "Wallet";
+    return walletList;
+  }
+  // Called after the open wallet changed: everything shown is for the old one.
+  function walletOpened() {
+    adding = null;
+    view = null;
+    lastBalance = null;
+    shownOffers = "";
+    board.waiting = [];
+    $("balance").textContent = "—";
+    loadWallets();
+  }
+  async function showWallets() {
+    show("wallets");
+    $("wallets-problem").hidden = true;
+    await loadWallets();
+    renderWallets({});
+    try { renderWallets(await invoke("wallet_balances")); } catch {}
+  }
+  function renderWallets(balances) {
+    $("wallet-list").innerHTML = walletList.map((w, i) => `<div class="wallet-row${w.current ? " current" : ""}" data-open="${i}">
+      <div><div>${esc(w.name)}${w.current ? " · open" : ""}</div><div class="addr">${esc(short(w.address))}</div></div>
+      <div class="bal">${balances[w.address] !== undefined ? esc(balances[w.address]) + " ORN" : ""}</div>
+      <div class="tools"><button class="linkish" data-rename="${i}">Rename</button>${w.shared ? "" : `<button class="linkish" data-forget="${i}">Remove</button>`}</div>
+    </div>`).join("");
+    for (const row of $("wallet-list").querySelectorAll("[data-open]")) row.onclick = async (e) => {
+      if (e.target.closest("button")) return;
+      const w = walletList[Number(row.dataset.open)];
+      if (w.current) { home(); return; }
+      try { await invoke("use_wallet", { path: w.path }); walletOpened(); home(); }
+      catch (err) { problem("wallets-problem", err); }
+    };
+    for (const b of $("wallet-list").querySelectorAll("[data-rename]")) b.onclick = () => {
+      renaming = walletList[Number(b.dataset.rename)];
+      $("wr-name").value = renaming.name;
+      $("wallet-rename-problem").hidden = true;
+      show("wallet-rename");
+    };
+    for (const b of $("wallet-list").querySelectorAll("[data-forget]")) b.onclick = () => {
+      renaming = walletList[Number(b.dataset.forget)];
+      $("wf-text").textContent = `${renaming.name} (${short(renaming.address)}) comes off this app's list.`;
+      $("wallet-forget-problem").hidden = true;
+      show("wallet-forget");
+    };
+  }
+  $("wallet-chip").onclick = showWallets;
+
+  // ---- Mining ----
+  let mineTimer = null, mineCores = 0;
+  function threadsFor(percent) { return Math.min(mineCores, Math.max(1, Math.round(mineCores * percent / 100))); }
+  function cpuText() {
+    const p = Number($("mn-cpu").value);
+    $("mn-cpu-text").textContent = mineCores ? `${p}% (${threadsFor(p)} of ${mineCores} cores)` : `${p}%`;
+  }
+  async function mineStatus(first) {
+    let m;
+    try { m = await invoke("mine_status"); } catch (e) { problem("mine-problem", e); return; }
+    const s = m.status;
+    mineCores = s.cores;
+    if (first) $("mn-cpu").value = m.percent;
+    cpuText();
+    $("mn-wallet").textContent = m.wallet || (s.address ? short(s.address) : "this wallet");
+    $("mn-speed").textContent = s.running && s.tries_per_second
+      ? `${(s.tries_per_second / 1e6).toFixed(1)} million tries a second` : s.running ? "Starting…" : "Stopped";
+    $("mn-shares").textContent = s.running && s.epoch !== null
+      ? `${s.found.toLocaleString()} found, ${s.taken.toLocaleString()} taken by validators` : "—";
+    $("mn-reward").textContent = m.last_reward ? `+${m.last_reward.amount} ORN, ${new Date(m.last_reward.time * 1000).toLocaleString([], { weekday: "short", hour: "numeric", minute: "2-digit" })}` : "None yet";
+    $("mn-odds").textContent = s.one_in
+      ? `The network's difficulty now: about one try in ${s.one_in.toLocaleString()} makes a share.` : "";
+    $("mn-go").textContent = s.running ? "Stop mining" : "Start mining";
+    $("mn-go").className = s.running ? "secondary" : "primary pearl";
+    if (s.problem && !s.running) problem("mine-problem", s.problem); else $("mine-problem").hidden = true;
+    return s;
+  }
+  $("go-mine").onclick = async () => {
+    show("mine");
+    await mineStatus(true);
+    clearInterval(mineTimer);
+    mineTimer = setInterval(() => { if ($("mine").hidden) clearInterval(mineTimer); else mineStatus(false); }, 2000);
+  };
+  $("mn-cpu").oninput = cpuText;
+  // A new percent while mining restarts it at that speed.
+  $("mn-cpu").onchange = async () => {
+    const s = await mineStatus(false);
+    if (s && s.running) { try { await invoke("mine_start", { percent: Number($("mn-cpu").value) }); } catch (e) { problem("mine-problem", e); } }
+  };
+  $("mn-go").onclick = async () => {
+    $("mn-go").disabled = true;
+    try {
+      const s = await mineStatus(false);
+      if (s && s.running) await invoke("mine_stop");
+      else await invoke("mine_start", { percent: Number($("mn-cpu").value) });
+    } catch (e) { problem("mine-problem", e); }
+    $("mn-go").disabled = false;
+    mineStatus(false);
+  };
+  $("wallet-add-go").onclick = () => { $("wa-name").value = ""; $("wallet-add-problem").hidden = true; show("wallet-add"); $("wa-name").focus(); };
+  function addName() {
+    const name = $("wa-name").value.trim();
+    if (!name) { problem("wallet-add-problem", "Give the wallet a name, like Mining."); return null; }
+    return name;
+  }
+  $("wa-new").onclick = async () => {
+    const name = addName();
+    if (!name) return;
+    $("wa-new").disabled = true;
+    try {
+      const words = await invoke("add_wallet", { name, words: null });
+      walletOpened();
+      $("words").innerHTML = words.map((w) => `<li>${esc(w)}</li>`).join("");
+      $("wrote").checked = false; $("phrase-done").disabled = true;
+      show("phrase");
+    } catch (e) { problem("wallet-add-problem", e); }
+    $("wa-new").disabled = false;
+  };
+  $("wa-restore").onclick = () => {
+    const name = addName();
+    if (!name) return;
+    adding = name;
+    $("phrase-in").value = ""; checkPhrase(); show("restore"); $("phrase-in").focus();
+  };
+  $("wr-go").onclick = async () => {
+    try { await invoke("rename_wallet", { path: renaming.path, name: $("wr-name").value }); await showWallets(); }
+    catch (e) { problem("wallet-rename-problem", e); }
+  };
+  $("wf-go").onclick = async () => {
+    try {
+      await invoke("forget_wallet", { path: renaming.path });
+      if (renaming.current) walletOpened();
+      await showWallets();
+    } catch (e) { problem("wallet-forget-problem", e); }
+  };
+
   // ---- Restore ----
   $("go-restore").onclick = () => {
     $("phrase-in").value = ""; checkPhrase(); show("restore"); $("phrase-in").focus();
   };
-  $("restore-back").onclick = () => { $("phrase-in").value = ""; show("welcome"); };
+  $("restore-back").onclick = () => { $("phrase-in").value = ""; show(adding ? "wallet-add" : "welcome"); };
   function checkPhrase() {
     const n = $("phrase-in").value.trim().split(/\s+/).filter(Boolean).length;
     $("phrase-check").textContent = n ? `${n} of 24 words` : "";
@@ -936,8 +1178,10 @@
     const button = $("restore-go");
     button.disabled = true; button.innerHTML = '<span class="spinner"></span>Restoring';
     try {
-      await invoke("restore_wallet", { words: $("phrase-in").value });
+      if (adding) await invoke("add_wallet", { name: adding, words: $("phrase-in").value });
+      else await invoke("restore_wallet", { words: $("phrase-in").value });
       $("phrase-in").value = "";
+      walletOpened();
       askPassword();
     } catch (e) { problem("restore-problem", e); }
     button.textContent = "Restore wallet"; checkPhrase();
@@ -1301,8 +1545,20 @@
     return "Checking the ORN the seller locked for you";
   }
 
+  function swapTab(mine) {
+    $("tab-offers").hidden = mine;
+    $("tab-mine").hidden = !mine;
+    $("tab-offers-go").classList.toggle("on", !mine);
+    $("tab-mine-go").classList.toggle("on", mine);
+  }
+  $("tab-offers-go").onclick = () => swapTab(false);
+  $("tab-mine-go").onclick = () => swapTab(true);
+
   function renderSwaps() {
     const list = $("swap-list");
+    // How many are still under way, on the tab.
+    const open = board.waiting.length + swapList.filter((s) => !["done", "cancelled"].includes(s.stage)).length;
+    $("mine-count").textContent = open ? `(${open})` : "";
     if (!swapList.length && !board.waiting.length) { list.innerHTML = '<div class="empty">No swaps yet</div>'; return; }
     list.innerHTML = board.waiting.map((item) => `<div class="swap-row">
       <div><div>${item.selling ? "Sell" : "Buy"} ${esc(fmtOrn(item.offer.orn))} ORN for ${esc(fmtBtc(item.offer.sats))} BTC</div>
@@ -1403,7 +1659,23 @@
     const me = board.me;
     $("board-who").textContent = me ? `Signed in as ${me.name}` : "Offers on the swap board";
     $("board-signin-go").textContent = me ? "Sign out" : "Sign up or sign in";
+    // Marketplace payments go to one wallet per account. Say which, when it
+    // isn't the open one, and switch it only when asked.
+    const open = view && view.address;
+    const note = $("board-wallet");
+    note.hidden = !me || !open || me.wallet === open;
+    if (!note.hidden) {
+      const other = me.wallet && walletList.find((w) => w.address === me.wallet);
+      $("bw-text").textContent = me.wallet
+        ? `Marketplace payments go to ${other ? other.name : short(me.wallet)}.`
+        : "Marketplace payments don't go to any wallet yet.";
+    }
   }
+  $("bw-go").onclick = async () => {
+    $("bw-go").disabled = true;
+    try { await invoke("board_link"); await loadBoard(); } catch (e) { problem("board-problem", e); }
+    $("bw-go").disabled = false;
+  };
 
   // Signing in through the app also links this wallet to the account, so
   // the account's buyers on the marketplace pay it. Nothing is paid, and
@@ -1416,29 +1688,19 @@
     finally { linking.busy = false; }
   }
 
-  // Sellers' pictures: the initial shows until a picture has loaded, then
-  // the picture, kept for the rest of the session so it never blinks.
-  const pictures = new Map(); // address → "loading" | "loaded" | "failed"
+  // Sellers' pictures: an <img> over the initial, which shows until the
+  // picture has loaded, and stays if it can't.
   function avatar(o) {
     const initial = esc((o.seller_name || "?").slice(0, 1).toUpperCase());
     if (!o.seller_picture) return `<div class="avatar">${initial}</div>`;
     const url = `${boardBase}/api/market/images/${encodeURIComponent(o.seller_picture)}`;
-    if (pictures.get(url) === "loaded") return `<div class="avatar" style="background-image:url('${esc(url)}')"></div>`;
-    if (!pictures.has(url)) {
-      pictures.set(url, "loading");
-      const image = new Image();
-      image.onload = () => {
-        pictures.set(url, "loaded");
-        for (const el of document.querySelectorAll(`[data-picture="${CSS.escape(url)}"]`)) {
-          el.style.backgroundImage = `url('${url}')`;
-          el.textContent = "";
-        }
-      };
-      image.onerror = () => pictures.set(url, "failed");
-      image.src = url;
-    }
-    return `<div class="avatar" data-picture="${esc(url)}">${initial}</div>`;
+    return `<div class="avatar">${initial}<img src="${esc(url)}" alt="" loading="lazy" decoding="async"></div>`;
   }
+  // A picture that can't load is removed, leaving the initial. One listener
+  // for all, as onerror="" attributes are blocked in the built app.
+  document.addEventListener("error", (e) => {
+    if (e.target instanceof HTMLImageElement && e.target.closest(".avatar")) e.target.remove();
+  }, true);
 
   let shownOffers = "";
   function renderOffers() {
@@ -1597,7 +1859,7 @@
   for (const b of document.querySelectorAll("[data-to]")) b.onclick = () => show(b.dataset.to);
   $("manual-go").onclick = () => show("swap-manual");
 
-  $("go-swap").onclick = async () => { show("swaps"); await loadSwaps(); loadBoard(); stepSwaps(); };
+  $("go-swap").onclick = async () => { show("swaps"); await loadSwaps(); await loadWallets(); loadBoard(); stepSwaps(); };
   $("detail-back").onclick = async () => { show("swaps"); await loadSwaps(); };
   $("sell-back").onclick = $("buy-back").onclick = () => show("swap-manual");
   // The smallest swap Bitcoin's fees allow right now, on the sell and buy
