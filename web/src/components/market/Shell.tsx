@@ -2,14 +2,17 @@
 
 import Link from 'next/link'
 import { useEffect, useState } from 'react'
-import { MessageCircle, Plus, Store, UserRound } from 'lucide-react'
+import { usePathname } from 'next/navigation'
+import { ArrowLeftRight, MessageCircle, Plus, Store, UserRound } from 'lucide-react'
 import { me, type Account } from '@/lib/market'
 
 /** Sent when this browser signs in or out, so every part of the page catches up. */
 export const SIGNED_IN_OR_OUT = 'orien-market-account'
 
-/** The marketplace's own bar: its name, selling, and your account. */
+/** The bar the marketplace and the swap board share: the two, side by side,
+ * then your messages and account, which serve both. */
 export function MarketBar() {
+  const pathname = usePathname()
   const [account, setAccount] = useState<Account | null | undefined>(undefined)
   const [unread, setUnread] = useState(0)
   useEffect(() => {
@@ -28,12 +31,21 @@ export function MarketBar() {
       clearInterval(timer)
     }
   }, [])
+  const swapping = pathname.startsWith('/swap')
+  const tab = (on: boolean) =>
+    `flex h-9 items-center gap-2 rounded-lg px-3.5 text-sm font-semibold transition ${
+      on ? 'bg-raised text-ink' : 'text-muted hover:text-ink'
+    }`
   return (
-    <div className="flex flex-wrap items-center gap-3 pb-6 pt-10 sm:pt-14">
-      <Link href="/marketplace/" className="flex items-center gap-2.5">
-        <Store className="h-6 w-6 text-pearl" strokeWidth={1.75} aria-hidden />
-        <span className="text-2xl font-bold tracking-tight text-ink sm:text-3xl">Marketplace</span>
-      </Link>
+    <div className="flex flex-wrap items-center gap-3 pb-8 pt-10 sm:pt-14">
+      <nav aria-label="Marketplace and swaps" className="flex items-center gap-1 rounded-xl border border-line bg-surface p-1">
+        <Link href="/marketplace/" aria-current={swapping ? undefined : 'page'} className={tab(!swapping)}>
+          <Store className={`h-4 w-4 ${swapping ? '' : 'text-pearl'}`} strokeWidth={2} aria-hidden /> Marketplace
+        </Link>
+        <Link href="/swap/" aria-current={swapping ? 'page' : undefined} className={tab(swapping)}>
+          <ArrowLeftRight className={`h-4 w-4 ${swapping ? 'text-pearl' : ''}`} strokeWidth={2} aria-hidden /> Swap
+        </Link>
+      </nav>
       <div className="ml-auto flex items-center gap-2">
         {account && (
           <Link
@@ -58,10 +70,10 @@ export function MarketBar() {
           {account ? account.name : 'Sign in'}
         </Link>
         <Link
-          href="/marketplace/sell/"
+          href={swapping ? '/swap/#post' : '/marketplace/sell/'}
           className="pearl-fill flex h-10 items-center gap-2 rounded-xl px-4 text-sm font-bold transition hover:brightness-105"
         >
-          <Plus className="h-4 w-4" strokeWidth={2.5} aria-hidden /> Sell something
+          <Plus className="h-4 w-4" strokeWidth={2.5} aria-hidden /> {swapping ? 'Post an offer' : 'Sell something'}
         </Link>
       </div>
     </div>

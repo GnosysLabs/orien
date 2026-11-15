@@ -6,6 +6,7 @@ use http_body_util::BodyExt;
 use orien_market::api::{App, COOKIE, router, sign_in_for_tests};
 use orien_market::images::Folder;
 use orien_market::mail::Mailer;
+use orien_market::prices::Prices;
 use orien_market::screen::Screener;
 use orien_market::store::Store;
 use orien_market::wallets::{Fake, Incoming};
@@ -30,11 +31,11 @@ struct Market {
 impl Market {
     fn screened(word: &str) -> Market {
         let app = App::new(Store::in_memory().unwrap(), folder(), "https://orien.network", true, Mailer::log_only(), Screener::refusing_for_tests(word), Arc::new(Fake::default()), MARKET);
-        Market { app: Arc::new(app.unwrap()) }
+        Market { app: Arc::new(app.unwrap().with_prices(Prices::fixed_for_tests(65_000.0))) }
     }
 
     fn new() -> Market {
-        Market { app: Arc::new(App::new(Store::in_memory().unwrap(), folder(), "https://orien.network", true, Mailer::log_only(), Screener::off(), Arc::new(Fake::default()), MARKET).unwrap()) }
+        Market { app: Arc::new(App::new(Store::in_memory().unwrap(), folder(), "https://orien.network", true, Mailer::log_only(), Screener::off(), Arc::new(Fake::default()), MARKET).unwrap().with_prices(Prices::fixed_for_tests(65_000.0))) }
     }
 
     async fn ask(&self, method: &str, path: &str, token: Option<&str>, body: Option<Value>) -> (StatusCode, Value) {
@@ -295,7 +296,7 @@ async fn a_seller_proves_their_wallet_with_a_small_payment_before_listing() {
     let payments = Arc::new(Fake::default());
     *payments.epoch.lock().unwrap() = 20;
     let app = App::new(Store::in_memory().unwrap(), folder(), "https://orien.network", true, Mailer::log_only(), Screener::off(), payments.clone(), MARKET);
-    let market = Market { app: Arc::new(app.unwrap()) };
+    let market = Market { app: Arc::new(app.unwrap().with_prices(Prices::fixed_for_tests(65_000.0))) };
     let email = "maya@example.com";
     market.ask("POST", "/api/market/email/start", None, Some(json!({ "email": email }))).await;
     let code = market.app.code_for_tests(email);
@@ -436,6 +437,7 @@ async fn swap_offers_go_on_the_board_and_are_taken_through_requests() {
     let id = body["offer"]["id"].as_i64().unwrap();
     let (_, board) = market.ask("GET", "/api/market/swaps", None, None).await;
     assert_eq!(board["offers"][0]["seller_name"], "Maya");
+    assert_eq!(board["bitcoin"]["usd"], 65_000.0, "with Bitcoin's dollar price");
 
     let (status, body) = market.ask("POST", &format!("/api/market/swaps/{id}/take"), Some(&sam), None).await;
     assert_eq!((status, body["swap"]["offer"]["state"].as_str()), (StatusCode::OK, Some("held")));

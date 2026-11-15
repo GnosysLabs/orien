@@ -38,6 +38,33 @@ export type Conversation = {
   blocked: boolean
 }
 
+export type SwapOffer = {
+  id: number
+  seller: number
+  seller_name: string
+  seller_picture: string | null
+  seller_done: number
+  orn: number
+  sats: number
+  state: string
+  created: number
+}
+
+/** Satoshis as BTC: 1000000 → "0.01". */
+export function formatBtc(sats: number): string {
+  const whole = Math.floor(sats / 100_000_000)
+  const fraction = String(sats % 100_000_000).padStart(8, '0').replace(/0+$/, '')
+  return fraction ? `${whole}.${fraction}` : String(whole)
+}
+
+/** "0.01" → 1000000 satoshis, or null if it is not an amount of BTC. */
+export function parseBtc(text: string): number | null {
+  const match = text.trim().match(/^(\d+)(?:\.(\d{1,8}))?$/)
+  if (!match) return null
+  const sats = Number(match[1]) * 100_000_000 + Number((match[2] ?? '').padEnd(8, '0'))
+  return sats > 0 && Number.isSafeInteger(sats) ? sats : null
+}
+
 /** "just now", "5 min ago", "3 h ago", or a date. */
 export function ago(seconds: number): string {
   const gone = Date.now() / 1000 - seconds

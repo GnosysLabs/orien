@@ -7,7 +7,7 @@
 use crate::images::{self, Folder};
 use crate::mail::Mailer;
 use crate::screen::{Screener, Verdict};
-use crate::store::{self, Draft, SESSION_SECONDS, Store};
+use crate::store::{self, COOKIE_SECONDS, Draft, Store};
 use crate::wallets::Payments;
 use axum::extract::{Path, Query, State};
 use axum::http::{HeaderMap, HeaderValue, StatusCode, header};
@@ -44,6 +44,8 @@ pub struct App {
     images: Folder,
     /// What the marketplace's own address has received, for checking wallets.
     payments: Arc<dyn Payments>,
+    /// Bitcoin's price in dollars.
+    prices: Arc<crate::prices::Prices>,
     /// The marketplace's own Orien address, which sellers prove their
     /// wallets by paying.
     address: String,
@@ -79,10 +81,17 @@ impl App {
             screener: Arc::new(screener),
             images,
             payments,
+            prices: Arc::new(crate::prices::Prices::live()),
             address,
             secure,
             origin: site,
         })
+    }
+
+    /// Uses these prices instead of fetching them: for tests.
+    pub fn with_prices(mut self, prices: crate::prices::Prices) -> App {
+        self.prices = Arc::new(prices);
+        self
     }
 
     fn begin(&self, ceremony: Ceremony) -> String {
@@ -295,7 +304,7 @@ async fn email_finish(State(app): State<Arc<App>>, Json(request): Json<EmailFini
     };
     let token = store.start_session(account.id)?;
     let mut response = Json(json!({ "account": account })).into_response();
-    response.headers_mut().insert(header::SET_COOKIE, app.session_cookie(&token, SESSION_SECONDS));
+    response.headers_mut().insert(header::SET_COOKIE, app.session_cookie(&token, COOKIE_SECONDS));
     Ok(response)
 }
 
@@ -339,7 +348,7 @@ async fn signup_finish(State(app): State<Arc<App>>, Json(request): Json<Finish<R
     store.add_passkey(account.id, &credential, &serde_json::to_string(&passkey).map_err(anyhow::Error::from)?)?;
     let token = store.start_session(account.id)?;
     let mut response = Json(json!({ "account": account })).into_response();
-    response.headers_mut().insert(header::SET_COOKIE, app.session_cookie(&token, SESSION_SECONDS));
+    response.headers_mut().insert(header::SET_COOKIE, app.session_cookie(&token, COOKIE_SECONDS));
     Ok(response)
 }
 
@@ -372,7 +381,7 @@ async fn signin_finish(State(app): State<Arc<App>>, Json(request): Json<Finish<P
     let token = store.start_session(account)?;
     let account = store.account(account)?.ok_or(Failure::NotFound)?;
     let mut response = Json(json!({ "account": account })).into_response();
-    response.headers_mut().insert(header::SET_COOKIE, app.session_cookie(&token, SESSION_SECONDS));
+    response.headers_mut().insert(header::SET_COOKIE, app.session_cookie(&token, COOKIE_SECONDS));
     Ok(response)
 }
 
@@ -501,7 +510,10 @@ struct Finish2 {
 
 async fn open_swaps(State(app): State<Arc<App>>) -> Answer {
     let offers = app.store.lock().unwrap().open_swaps()?;
-    Ok(Json(json!({ "offers": offers })).into_response())
+    let prices = app.prices.clone();
+    let price = tokio::task::spawn_blocking(move || prices.bitcoin()).await.map_err(|e| Failure::Broken(e.into()))?;
+    let usd = price.map(|p| json!({ "usd": p.usd, "at": p.at }));
+    Ok(Json(json!({ "offers": offers, "bitcoin": usd })).into_response())
 }
 
 async fn post_swap(State(app): State<Arc<App>>, headers: HeaderMap, Json(request): Json<NewSwap>) -> Answer {

@@ -53,7 +53,8 @@ export function Browse() {
 
   return (
     <div className="space-y-6">
-      <p className="text-lg leading-relaxed text-muted">
+      <h1 className="text-balance text-4xl font-bold leading-[1.1] tracking-tight text-ink sm:text-5xl">Buy and sell for ORN</h1>
+      <p className="max-w-[680px] text-lg leading-relaxed text-muted">
         Work and things offered for ORN. You pay the seller straight from your own wallet: the marketplace never holds
         anyone&apos;s coins.
       </p>
