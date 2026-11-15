@@ -772,8 +772,11 @@ name = "orien-swap"
 version = "1.2.4"
 dependencies = [
  "anyhow",
+ "base64",
  "bitcoin",
  "hex",
+ "orien-crypto",
+ "orien-ledger",
  "serde",
  "serde_json",
  "ureq",
