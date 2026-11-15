@@ -160,6 +160,11 @@ pub trait Orien {
     /// until that is final. The buyer claims for itself; the seller, once
     /// the network lets anyone claim for a payee, for the buyer.
     fn claim(&self, lock: &LockRef, payee: &Hash32, amount: u64, secret: [u8; 32]) -> Result<()>;
+    /// Whether the locked payment is still waiting to be claimed as the
+    /// validators see it now, not as the latest proof does: Some(true) when
+    /// enough of them agree it waits, Some(false) when any shows it claimed
+    /// or gone, None when that cannot be told yet.
+    fn still_waiting(&self, lock: &LockRef) -> Result<Option<bool>>;
 }
 
 /// What the seller sends the buyer.
@@ -348,6 +353,11 @@ pub struct Swap {
     /// buyer's, or their deadline has passed.
     #[serde(default)]
     pub orn_delivered: bool,
+    /// Seller: the epoch from which this wallet claims for the buyer, an
+    /// epoch after the Bitcoin settled, so that a buyer's wallet that is
+    /// open claims first.
+    #[serde(default)]
+    pub deliver_from: Option<u64>,
 }
 
 fn hours(epochs: u64, epoch_seconds: u64) -> u64 {
@@ -521,7 +531,7 @@ impl Swap {
         let seconds = orien.epoch_seconds().max(1);
         let epochs = (ORN_HOURS * 3_600).div_ceil(seconds).clamp(2, 720);
         if hours(epochs, seconds) < ORN_HOURS_LEFT + 1 {
-            bail!("this Orien network's epochs are too long for a swap");
+            bail!("this Orien network's epochs are too short for a swap: its longest lock would not last {ORN_HOURS_LEFT} hours");
         }
         let mut secret = [0u8; 32];
         bitcoin::secp256k1::rand::RngCore::fill_bytes(&mut bitcoin::secp256k1::rand::thread_rng(), &mut secret);
@@ -547,6 +557,7 @@ impl Swap {
             orn_claimed: false,
             orn_missed: false,
             orn_delivered: false,
+            deliver_from: None,
         })
     }
 
@@ -616,6 +627,7 @@ impl Swap {
             orn_claimed: false,
             orn_missed: false,
             orn_delivered: false,
+            deliver_from: None,
         };
         let reply = Reply { hash: offer.hash, key: public.to_string(), height };
         Ok((swap, reply))
@@ -677,6 +689,15 @@ impl Swap {
             (Role::Buyer, Stage::WaitingForSecret | Stage::Refunding) => self.buyer_watch(chain, orien)?,
             (Role::Buyer, Stage::ClaimingOrn) => self.buyer_claim(chain, orien)?,
             _ => {}
+        }
+        // The epoch to claim for the buyer from counts from when the Bitcoin
+        // settled.
+        if self.role == Role::Seller
+            && self.stage == Stage::Done
+            && self.deliver_from.is_none()
+            && let Ok(now) = orien.latest_epoch()
+        {
+            self.deliver_from = Some(now + 1);
         }
         Ok(())
     }
@@ -803,6 +824,13 @@ impl Swap {
     /// claims them then, as before.
     fn seller_deliver(&mut self, orien: &dyn Orien) {
         let (Some(secret), Ok(lock)) = (self.secret, self.lock_ref()) else { return };
+        let Ok(now) = orien.latest_epoch() else { return };
+        // A buyer whose wallet is open claims within minutes of the secret
+        // appearing: give it an epoch to, rather than race it.
+        let from = *self.deliver_from.get_or_insert(now + 1);
+        if now < from {
+            return;
+        }
         if orien.proven(&lock).is_ok_and(|p| p.secret == Some(secret)) {
             self.orn_delivered = true;
             return;
@@ -811,6 +839,17 @@ impl Swap {
             // Too late to claim; nothing more this wallet can do.
             self.orn_delivered = true;
             return;
+        }
+        // A claim the validators refuse still spends this wallet's next
+        // one-time key, and holds its payments up until a checkpoint: sign
+        // one only while they agree the ORN still wait.
+        match orien.still_waiting(&lock) {
+            Ok(Some(true)) => {}
+            Ok(Some(false)) => {
+                self.orn_delivered = true;
+                return;
+            }
+            _ => return,
         }
         if orien.claim(&lock, &self.buyer, self.orn, secret).is_ok() {
             self.orn_delivered = true;

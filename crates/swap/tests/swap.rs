@@ -30,6 +30,8 @@ struct Ledger {
     next_seq: HashMap<Hash32, u64>,
     /// How many locks were made, to catch a lock made twice.
     locks_made: u32,
+    /// How many claims were signed and accepted.
+    claims: u32,
 }
 
 impl Ledger {
@@ -91,6 +93,10 @@ impl Orien for Side {
         l.locks_made += 1;
         Ok(LockRef { from: self.me, seq })
     }
+    fn still_waiting(&self, lock: &LockRef) -> Result<Option<bool>> {
+        ensure!(self.reachable.get(), "no validator answers");
+        Ok(Some(self.ledger.borrow().escrows.contains_key(&(lock.from, lock.seq))))
+    }
     fn claim(&self, lock: &LockRef, payee: &Hash32, amount: u64, secret: [u8; 32]) -> Result<()> {
         ensure!(self.reachable.get(), "no validator answers");
         let mut l = self.ledger.borrow_mut();
@@ -99,6 +105,7 @@ impl Orien for Side {
         // Like the network once claims are open: anyone may claim, for the
         // lock's payee only.
         ensure!(w.to == *payee && w.amount == amount, "not that lock's payee");
+        l.claims += 1;
         ensure!(epoch < w.until, "too late");
         ensure!(sha256::Hash::hash(&secret).to_byte_array() == w.hash, "wrong secret");
         l.escrows.remove(&(lock.from, lock.seq));
@@ -315,7 +322,11 @@ fn a_buyer_whose_wallet_never_opens_again_gets_the_orn_from_the_seller() {
     seller.advance(&w.btc, &w.seller).unwrap();
     assert_eq!(seller.stage, Stage::Done, "the seller has its Bitcoin");
     assert!(!seller.finished(), "but is not finished until the buyer has their ORN");
-    // The seller's wallet claims the ORN for the buyer, with its own secret.
+    // An epoch on, the seller's wallet claims the ORN for the buyer, with
+    // its own secret.
+    seller.advance(&w.btc, &w.seller).unwrap();
+    assert!(!seller.finished(), "it gives the buyer's own wallet an epoch first");
+    w.ledger.borrow_mut().close();
     seller.advance(&w.btc, &w.seller).unwrap();
     assert!(seller.finished());
     assert_eq!(orn(&w, &w.buyer), ORN, "the buyer is paid without lifting a finger");
@@ -331,6 +342,7 @@ fn a_seller_that_cannot_claim_for_the_buyer_yet_keeps_trying_quietly() {
     seller.advance(&w.btc, &w.seller).unwrap();
     w.chain.mine(SETTLED);
     seller.advance(&w.btc, &w.seller).unwrap();
+    w.ledger.borrow_mut().close();
     // Validators out of reach: no error, still waiting to deliver.
     w.seller.reachable.set(false);
     assert!(seller.advance(&w.btc, &w.seller).is_ok());
@@ -338,6 +350,25 @@ fn a_seller_that_cannot_claim_for_the_buyer_yet_keeps_trying_quietly() {
     w.seller.reachable.set(true);
     seller.advance(&w.btc, &w.seller).unwrap();
     assert!(seller.finished());
+    assert_eq!(orn(&w, &w.buyer), ORN);
+}
+
+#[test]
+fn a_seller_never_signs_a_claim_the_buyer_already_made() {
+    let w = world();
+    let (mut seller, mut buyer) = set_up(&w);
+    w.chain.pay(&buyer.bitcoin_address().unwrap(), SATS);
+    w.chain.mine(CONFIRMATIONS);
+    round(&w, &mut seller, &mut buyer);
+    round(&w, &mut seller, &mut buyer);
+    assert_eq!(buyer.stage, Stage::Done, "the buyer's open wallet claimed the ORN itself");
+    w.chain.mine(SETTLED);
+    seller.advance(&w.btc, &w.seller).unwrap();
+    assert_eq!(seller.stage, Stage::Done);
+    w.ledger.borrow_mut().close();
+    seller.advance(&w.btc, &w.seller).unwrap();
+    assert!(seller.finished());
+    assert_eq!(w.ledger.borrow().claims, 1, "only the buyer's claim was signed");
     assert_eq!(orn(&w, &w.buyer), ORN);
 }
 
