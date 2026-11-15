@@ -9,6 +9,12 @@ description = "The Orien wallet, as a desktop app"
 # without touching the files the node and the ledger live in.
 [workspace]
 
+# The library is the whole app: the desktop program calls it, and the
+# iPhone app is built from it.
+[lib]
+name = "orien_wallet_lib"
+crate-type = ["staticlib", "cdylib", "rlib"]
+
 [build-dependencies]
 tauri-build = { version = "2", features = [] }
 
@@ -22,13 +28,16 @@ tauri = { version = "2", features = [] }
 tauri-plugin-dialog = "2"
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
-tauri-plugin-updater = "2"
 semver = "1"
 ureq = { version = "2", features = ["json"] }
 
 # Hashing dominates the wallet's work, so even debug builds are optimized.
 [profile.dev]
 opt-level = 2
+
+# Desktop copies update themselves; iPhone copies come from the App Store.
+[target.'cfg(not(any(target_os = "ios", target_os = "android")))'.dependencies]
+tauri-plugin-updater = "2"
 
 [dev-dependencies]
 # A pretend Bitcoin network, for testing whole swaps.
