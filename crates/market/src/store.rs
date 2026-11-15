@@ -452,6 +452,12 @@ impl Store {
         wallet.ok_or_else(|| anyhow::anyhow!("verify your Orien wallet first, under Your profile, so buyers' payments reach you"))
     }
 
+    /// Forgets a code that could not be sent.
+    pub fn forget_code(&self, email: &str) -> Result<()> {
+        self.db.execute("DELETE FROM codes WHERE email = ?1", [email])?;
+        Ok(())
+    }
+
     #[doc(hidden)]
     pub fn forget_codes_for_tests(&self) {
         self.db.execute("DELETE FROM codes", []).unwrap();

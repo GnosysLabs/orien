@@ -263,10 +263,15 @@ async fn email_start(State(app): State<Arc<App>>, Json(request): Json<EmailStart
     };
     let mailer = app.mailer.clone();
     let to = email.clone();
-    tokio::task::spawn_blocking(move || mailer.send_code(&to, &code))
-        .await
-        .map_err(|e| Failure::Broken(e.into()))?
-        .map_err(Failure::Broken)?;
+    let sent = tokio::task::spawn_blocking(move || mailer.send_code(&to, &code)).await.map_err(|e| Failure::Broken(e.into()))?;
+    if let Err(error) = sent {
+        eprintln!("cannot send a sign-in code: {error:#}");
+        // The code was not sent, so asking again may send one at once.
+        app.store.lock().unwrap().forget_code(&email)?;
+        return Err(Failure::Refused(
+            "the code could not be sent to that address; check it, or try again in a few minutes".into(),
+        ));
+    }
     Ok(Json(json!({ "sent": email })).into_response())
 }
 
