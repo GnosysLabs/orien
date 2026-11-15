@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 <title>Orien Wallet</title>
 <style>
   /* The wordmark's typeface, bundled so the app never fetches fonts. */
@@ -103,6 +103,8 @@
   body.phone input, body.phone textarea, body.phone .field textarea.tall { font-size: 16px !important; }
   /* Buttons right under the fields: the keyboard covers the bottom of the screen. */
   body.phone .push { flex: 0 0 8px; }
+  /* An app, not a web page: no double-tap zoom, no rubber-band bounce. */
+  html:has(body.phone), body.phone { touch-action: manipulation; overscroll-behavior: none; }
   body.phone #swaps, body.phone #swap-sell, body.phone #swap-buy, body.phone #swap-detail, body.phone #mine,
   body.phone #board-signin, body.phone #board-post, body.phone #board-take { margin: 0 -20px; padding: 0 20px 8px; }
   /* A newer version: takes the status marker's place at the top right. */
@@ -939,6 +941,10 @@
   const phone = /iPhone|iPad|iPod/.test(navigator.userAgent);
   if (phone) {
     document.body.classList.add("phone");
+    // No pinching to zoom.
+    for (const gesture of ["gesturestart", "gesturechange", "gestureend"]) {
+      document.addEventListener(gesture, (e) => e.preventDefault(), { passive: false });
+    }
     // No capitals, corrections or word suggestions in boxes for addresses,
     // codes and recovery words: they would change what's typed, and the
     // suggestions would learn the words. Names keep them.
