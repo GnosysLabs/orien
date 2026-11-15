@@ -36,6 +36,7 @@ const ITEMS: NavItem[] = [
 
 /** What can be downloaded. Add each app here as it is published. */
 const DOWNLOADS: { href: string; label: string; detail: string; icon: LucideIcon }[] = [
+  { href: '/wallet/Orien-Wallet.dmg', label: 'Orien Wallet for Mac', detail: 'Desktop wallet, for Macs with Apple chips', icon: Monitor },
   { href: '/wallet/Orien-Wallet-setup.exe', label: 'Orien Wallet for Windows', detail: 'Desktop wallet', icon: Monitor },
   { href: '/wallet/Orien-Wallet.AppImage', label: 'Orien Wallet for Linux', detail: 'Desktop wallet, as an AppImage', icon: Monitor },
   { href: '/try/', label: 'orien command line', detail: 'Mac, Linux and Windows', icon: Terminal },

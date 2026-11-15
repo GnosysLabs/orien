@@ -66,6 +66,12 @@ export default function GetStartedPage() {
           </p>
           <div className="flex flex-wrap items-center gap-4">
             <a
+              href="/wallet/Orien-Wallet.dmg"
+              className="pearl-fill flex h-11 items-center gap-2 rounded-xl px-5 text-sm font-bold transition hover:brightness-105"
+            >
+              <Download className="h-4 w-4" aria-hidden /> Download for Mac
+            </a>
+            <a
               href="/wallet/Orien-Wallet-setup.exe"
               className="pearl-fill flex h-11 items-center gap-2 rounded-xl px-5 text-sm font-bold transition hover:brightness-105"
             >
@@ -81,6 +87,10 @@ export default function GetStartedPage() {
               Download fingerprints (SHA-256)
             </a>
           </div>
+          <p className="text-sm">
+            On a Mac, open the downloaded file and drag Orien Wallet into Applications. It needs a Mac with an Apple
+            chip.
+          </p>
           <p className="text-sm">
             Windows may say it protected your PC from an unrecognised app. Choose <strong className="font-semibold text-ink">More info</strong>,
             then <strong className="font-semibold text-ink">Run anyway</strong>.
