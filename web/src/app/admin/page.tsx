@@ -164,6 +164,8 @@ export default function AdminPage() {
 
       <Reports reports={reports.data?.reports ?? null} onChange={reload} />
 
+      <Traffic />
+
       <h2 className="-mb-2 text-sm font-bold text-muted">The network</h2>
       <NetworkView network={data.network} />
 
@@ -231,6 +233,100 @@ export default function AdminPage() {
         </Card>
       </section>
     </div>
+  )
+}
+
+type TrafficDay = {
+  date: string
+  pageviews: number
+  visitors: number
+  downloads: number
+  paths: Record<string, number>
+  referrers: Record<string, number>
+  countries: Record<string, number>
+  devices: Record<string, number>
+  files: Record<string, number>
+}
+
+const COUNTRIES = typeof Intl.DisplayNames === 'function' ? new Intl.DisplayNames(['en'], { type: 'region' }) : null
+const countryName = (code: string) => {
+  if (code === '??') return 'Unknown'
+  try {
+    return COUNTRIES?.of(code) ?? code
+  } catch {
+    return code
+  }
+}
+
+/** Who visits orien.network, from the site's own cookie-free counts. */
+function Traffic() {
+  const { data, error } = usePoll<{ active_now: number; days: TrafficDay[] }>('/traffic', 30_000)
+  if (!data) {
+    return (
+      <>
+        <h2 className="-mb-2 text-sm font-bold text-muted">Traffic</h2>
+        {error ? <p className="text-sm text-muted">{error}</p> : <div className="h-40 animate-pulse rounded-2xl bg-surface" />}
+      </>
+    )
+  }
+  const days = data.days
+  const today = days[days.length - 1]
+  const week = days.slice(-7)
+  const fortnight = days.slice(-14)
+  const sum = (list: TrafficDay[], key: 'visitors' | 'pageviews' | 'downloads') => list.reduce((n, d) => n + d[key], 0)
+  const merge = (key: 'paths' | 'referrers' | 'countries' | 'devices' | 'files') => {
+    const out: Record<string, number> = {}
+    for (const d of week) for (const [k, n] of Object.entries(d[key])) out[k] = (out[k] ?? 0) + n
+    return Object.entries(out).sort((a, b) => b[1] - a[1])
+  }
+  const site = 'https://orien.network'
+  return (
+    <>
+      <h2 className="-mb-2 text-sm font-bold text-muted">Traffic</h2>
+      <section className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+        <Tile label="Visitors today" value={count(today.visitors)} sub={`${count(sum(week, 'visitors'))} this week`} />
+        <Tile label="Page views today" value={count(today.pageviews)} sub={`${count(sum(week, 'pageviews'))} this week`} />
+        <Tile label="Active now" value={count(data.active_now)} sub="visitors in the last 5 minutes" />
+        <Tile label="Wallet downloads today" value={count(today.downloads)} sub={`${count(sum(week, 'downloads'))} this week · ${count(sum(days, 'downloads'))} in 30 days`} />
+      </section>
+      <section className="grid gap-3 lg:grid-cols-3">
+        <DailyChart title="Visitors per day" data={fortnight.map((d) => ({ date: d.date, value: d.visitors }))} />
+        <DailyChart title="Page views per day" data={fortnight.map((d) => ({ date: d.date, value: d.pageviews }))} />
+        <DailyChart title="Wallet downloads per day" data={fortnight.map((d) => ({ date: d.date, value: d.downloads }))} />
+      </section>
+      <section className="grid gap-3 lg:grid-cols-3">
+        <Card title="Top pages, 7 days">
+          <Table head={['Page', 'Views']} rows={merge('paths').slice(0, 12).map(([p, n]) => [p, count(n)])} empty="No visits yet." />
+        </Card>
+        <Card title="Where visitors came from, 7 days">
+          <Table head={['Source', 'Visitors']} rows={merge('referrers').slice(0, 12).map(([r, n]) => [r, count(n)])} empty="No visits yet." />
+          <div className="mt-3">
+            <Table head={['Download', 'Clicks']} rows={merge('files').map(([f, n]) => [f, count(n)])} empty="" />
+          </div>
+        </Card>
+        <Card title="Countries and devices, 7 days">
+          <Table head={['Country', 'Visitors']} rows={merge('countries').slice(0, 8).map(([c, n]) => [countryName(c), count(n)])} empty="No visits yet." />
+          <div className="mt-3">
+            <Table head={['Device', 'Visitors']} rows={merge('devices').map(([k, n]) => [k, count(n)])} empty="" />
+          </div>
+        </Card>
+      </section>
+      <div className="-mt-1 flex flex-wrap items-center justify-between gap-3 text-xs text-muted">
+        <p className="max-w-3xl">
+          Counted without cookies: a visitor is recognised for one day only (UTC), so weekly visitors are daily visitors
+          added up. Bots that don&apos;t run JavaScript aren&apos;t counted, and neither are dashboard or tailnet visits. Your
+          own visits to orien.network look like anyone else&apos;s: stop counting each browser you use, once.
+        </p>
+        <div className="flex gap-2">
+          <a href={`${site}/?notrack=1`} target="_blank" rel="noreferrer" className="rounded-lg border border-line bg-raised px-3 py-1.5 font-semibold text-ink hover:border-pearl">
+            Stop counting this browser
+          </a>
+          <a href={`${site}/?notrack=0`} target="_blank" rel="noreferrer" className="rounded-lg px-2 py-1.5 hover:text-ink">
+            Count it again
+          </a>
+        </div>
+      </div>
+    </>
   )
 }
 

@@ -35,8 +35,14 @@ export default function PrivacyPage() {
 
       <Section title="Reading the website">
         <p>
-          Reading these pages needs no account and sets no tracking cookies. The website does not record who you are or
-          follow you elsewhere.
+          Reading these pages needs no account and sets no cookies. The website does not record who you are or follow you
+          elsewhere.
+        </p>
+        <p>
+          To see how many people visit, each page you open is counted: which page, the site that sent you, your country
+          and whether you are on a phone or a computer. To count each visitor once a day, your internet address and
+          browser are scrambled with a code that is thrown away at the end of the day; the address itself is never kept.
+          Only the day&apos;s totals remain. Nobody else sees them.
         </p>
       </Section>
 

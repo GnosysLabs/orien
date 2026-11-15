@@ -56,6 +56,8 @@ pub struct App {
     /// When contact-form messages were sent, and from which address, to
     /// keep anyone from flooding the inbox.
     contacts: Mutex<Vec<(Instant, String)>>,
+    /// The website's traffic counts.
+    traffic: Arc<crate::traffic::Traffic>,
 }
 
 impl App {
@@ -89,7 +91,18 @@ impl App {
             secure,
             origin: site,
             contacts: Mutex::new(Vec::new()),
+            traffic: Arc::new(crate::traffic::Traffic::in_memory()),
         })
+    }
+
+    /// Keeps the website's traffic counts in this folder.
+    pub fn with_traffic(mut self, traffic: crate::traffic::Traffic) -> App {
+        self.traffic = Arc::new(traffic);
+        self
+    }
+
+    pub(crate) fn traffic(&self) -> &crate::traffic::Traffic {
+        &self.traffic
     }
 
     /// Uses these prices instead of fetching them: for tests.
@@ -260,6 +273,7 @@ pub fn router(app: Arc<App>) -> Router {
         .route("/api/market/swaps/{id}/finish", post(finish_swap))
         .route("/api/market/reports", post(report))
         .route("/api/market/contact", post(contact))
+        .route("/api/market/t", post(ping))
         .route("/api/market/conversations", get(conversations))
         .route("/api/market/conversations/{id}", get(conversation))
         .route("/api/market/conversations/{id}/messages", post(reply))
@@ -272,6 +286,38 @@ pub fn router(app: Arc<App>) -> Router {
         .route("/api/market/listings/{id}", get(listing).put(edit_listing))
         .route("/api/market/listings/{id}/open", post(open_listing))
         .with_state(app)
+}
+
+#[derive(Deserialize)]
+struct PingBody {
+    #[serde(default)]
+    t: String,
+    #[serde(default)]
+    p: String,
+    #[serde(default)]
+    r: String,
+}
+
+/// A page's traffic ping. Always answers 204; anything odd is dropped.
+async fn ping(State(app): State<Arc<App>>, headers: HeaderMap, body: axum::body::Bytes) -> StatusCode {
+    let header = |name: &str| headers.get(name).and_then(|v| v.to_str().ok()).unwrap_or("").trim().to_string();
+    if let Ok(body) = serde_json::from_slice::<PingBody>(&body) {
+        let address = [header("cf-connecting-ip"), header("x-forwarded-for").split(',').next().unwrap_or("").trim().to_string()]
+            .into_iter()
+            .find(|a| !a.is_empty())
+            .unwrap_or_else(|| "unknown".into());
+        let country = Some(header("cf-ipcountry")).filter(|c| !c.is_empty());
+        app.traffic.record(crate::traffic::Ping {
+            kind: body.t,
+            path: body.p,
+            referrer: body.r,
+            address,
+            browser: header("user-agent"),
+            country,
+            host: header("host"),
+        });
+    }
+    StatusCode::NO_CONTENT
 }
 
 /// Contact-form messages one address may send in an hour.

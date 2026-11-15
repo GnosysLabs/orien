@@ -163,6 +163,8 @@ async fn main() -> Result<()> {
     };
     // Pictures are kept beside the database.
     let images = args.db.parent().unwrap_or(std::path::Path::new(".")).join("images");
+    // So are the website's traffic counts.
+    let traffic = args.db.parent().unwrap_or(std::path::Path::new(".")).join("traffic");
     let payments = Arc::new(Network::open(&args.genesis)?);
     let app = Arc::new(App::new(
         Store::open(&args.db)?,
@@ -173,7 +175,8 @@ async fn main() -> Result<()> {
         screener,
         payments,
         &address,
-    )?);
+    )?
+    .with_traffic(orien_market::traffic::Traffic::open(traffic)));
     let listener = tokio::net::TcpListener::bind(&args.listen).await?;
     println!("marketplace server for {} listening on {}", args.origin, args.listen);
     if let Some(at) = &args.admin_listen {

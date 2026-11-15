@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { Geist, Geist_Mono, Jost } from 'next/font/google'
+import { Analytics } from '@/components/Analytics'
 import { BottomNav, Header } from '@/components/Header'
 import { MinerNotice } from '@/components/MinerNotice'
 import { ScrollToTop } from '@/components/ScrollToTop'
@@ -129,6 +130,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         />
         <div className="flex min-h-full flex-1 flex-col">
           <ScrollToTop />
+          <Analytics />
           <MinerNotice />
           <Header />
           <main className="mx-auto w-full max-w-[1200px] flex-1 px-4 py-6 sm:py-8">{children}</main>
