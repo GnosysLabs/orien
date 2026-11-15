@@ -575,7 +575,8 @@ async fn listing(State(app): State<Arc<App>>, headers: HeaderMap, Path(id): Path
         return Err(Failure::NotFound);
     }
     let seller = store.account(listing.seller)?.ok_or(Failure::NotFound)?;
-    Ok(Json(json!({ "listing": listing, "seller": seller, "mine": viewer == Some(listing.seller) })).into_response())
+    let mine = viewer == Some(listing.seller);
+    Ok(Json(json!({ "listing": listing, "seller": seller, "mine": mine, "signed_in": viewer.is_some() })).into_response())
 }
 
 async fn post_listing(State(app): State<Arc<App>>, headers: HeaderMap, Json(draft): Json<Draft>) -> Answer {

@@ -339,7 +339,7 @@ async fn a_seller_proves_their_wallet_with_a_small_payment_before_listing() {
     let reach = json!({ "name": "Maya", "contact": { "x": "maya" } });
     assert_eq!(market.ask("PUT", "/api/market/me", Some(&maya), Some(reach)).await.0, StatusCode::OK);
     let mut listing = logo();
-    listing["pay_to"] = json!("d".repeat(64));
+    listing.as_object_mut().unwrap().remove("pay_to");
     let (status, body) = market.ask("POST", "/api/market/listings", Some(&maya), Some(listing)).await;
     assert_eq!((status, body["listing"]["pay_to"].as_str()), (StatusCode::CREATED, Some(wallet)));
     let (_, body) = market.ask("GET", "/api/market/me", Some(&maya), None).await;

@@ -12,6 +12,34 @@ export type Account = {
 
 export type Contact = { email: string; telegram: string; x: string }
 
+export type Message = { id: number; sender: number; body: string; created: number }
+
+export type Conversation = {
+  id: number
+  listing: number
+  listing_title: string
+  with: number
+  with_name: string
+  with_picture: string | null
+  buying: boolean
+  last: Message | null
+  unread: boolean
+  updated: number
+  blocked: boolean
+}
+
+/** "just now", "5 min ago", "3 h ago", or a date. */
+export function ago(seconds: number): string {
+  const gone = Date.now() / 1000 - seconds
+  if (gone < 60) return 'just now'
+  if (gone < 3600) return `${Math.floor(gone / 60)} min ago`
+  if (gone < 86400) return `${Math.floor(gone / 3600)} h ago`
+  return new Date(seconds * 1000).toLocaleDateString('en', { day: 'numeric', month: 'short' })
+}
+
+/** An error message from the server as a sentence. */
+export const sentence = (text: string) => text.charAt(0).toUpperCase() + text.slice(1) + (text.endsWith('.') ? '' : '.')
+
 export const pictureUrl = (name: string) => `/api/market/images/${name}`
 
 /** "Member since March 2026". */
@@ -77,7 +105,7 @@ export async function ask<T>(path: string, method = 'GET', body?: unknown): Prom
 }
 
 /** The signed-in account and its listings, or null when signed out. */
-export async function me(): Promise<{ account: Account; listings: Listing[] } | null> {
+export async function me(): Promise<{ account: Account; listings: Listing[]; unread: number } | null> {
   try {
     return await ask('/me')
   } catch (error) {

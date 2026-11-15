@@ -107,8 +107,10 @@ export function ProfileEditor({ account, onSaved }: { account: Account; onSaved:
         />
       </label>
       <fieldset className="space-y-3">
-        <legend className="text-sm font-semibold text-ink">How buyers can reach you</legend>
-        <p className="text-sm text-muted">At least one, shown on your profile and listings. Everyone can see these.</p>
+        <legend className="text-sm font-semibold text-ink">Other ways to reach you (optional)</legend>
+        <p className="text-sm text-muted">
+          Buyers can always message you here. Add these too if you like: everyone can see them.
+        </p>
         <div className="grid gap-3 sm:grid-cols-3">
           <input
             type="email"

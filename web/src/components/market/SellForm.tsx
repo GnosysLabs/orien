@@ -12,7 +12,7 @@ const field = 'w-full rounded-xl border border-line bg-bg px-4 py-3 text-ink out
 export function SellForm() {
   const router = useRouter()
   const id = useSearchParams().get('id')
-  const [ready, setReady] = useState<'checking' | 'signed-out' | 'no-wallet' | 'no-contact' | 'ready'>('checking')
+  const [ready, setReady] = useState<'checking' | 'signed-out' | 'no-wallet' | 'ready'>('checking')
   const [title, setTitle] = useState('')
   const [description, setDescription] = useState('')
   const [category, setCategory] = useState('design')
@@ -27,8 +27,6 @@ export function SellForm() {
       .then(async (found) => {
         if (!found) return setReady('signed-out')
         if (!found.account.wallet) return setReady('no-wallet')
-        const { email, telegram, x } = found.account.contact
-        if (!email && !telegram && !x) return setReady('no-contact')
         setPayTo(found.account.wallet)
         const editing = id && found.listings.find((l: Listing) => String(l.id) === id)
         if (editing) {
@@ -55,17 +53,6 @@ export function SellForm() {
           verify your Orien wallet
         </Link>
         , so buyers&apos; payments are sure to reach you. It takes a minute.
-      </Notice>
-    )
-  }
-  if (ready === 'no-contact') {
-    return (
-      <Notice>
-        Before your first listing,{' '}
-        <Link href="/marketplace/account/" className="font-semibold text-ink underline underline-offset-4">
-          add a way for buyers to reach you
-        </Link>{' '}
-        to your profile: an email, Telegram or X.
       </Notice>
     )
   }

@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { useEffect, useState } from 'react'
-import { Plus, Store, UserRound } from 'lucide-react'
+import { MessageCircle, Plus, Store, UserRound } from 'lucide-react'
 import { me, type Account } from '@/lib/market'
 
 /** Sent when this browser signs in or out, so every part of the page catches up. */
@@ -11,14 +11,22 @@ export const SIGNED_IN_OR_OUT = 'orien-market-account'
 /** The marketplace's own bar: its name, selling, and your account. */
 export function MarketBar() {
   const [account, setAccount] = useState<Account | null | undefined>(undefined)
+  const [unread, setUnread] = useState(0)
   useEffect(() => {
     const load = () =>
       me()
-        .then((found) => setAccount(found?.account ?? null))
+        .then((found) => {
+          setAccount(found?.account ?? null)
+          setUnread(found?.unread ?? 0)
+        })
         .catch(() => setAccount(null))
     void load()
     window.addEventListener(SIGNED_IN_OR_OUT, load)
-    return () => window.removeEventListener(SIGNED_IN_OR_OUT, load)
+    const timer = setInterval(load, 30000)
+    return () => {
+      window.removeEventListener(SIGNED_IN_OR_OUT, load)
+      clearInterval(timer)
+    }
   }, [])
   return (
     <div className="flex flex-wrap items-center gap-3 pb-6 pt-10 sm:pt-14">
@@ -27,6 +35,21 @@ export function MarketBar() {
         <span className="text-2xl font-bold tracking-tight text-ink sm:text-3xl">Marketplace</span>
       </Link>
       <div className="ml-auto flex items-center gap-2">
+        {account && (
+          <Link
+            href="/marketplace/messages/"
+            aria-label={unread ? `Messages, ${unread} unread` : 'Messages'}
+            className="relative flex h-10 items-center gap-2 rounded-xl border border-line bg-surface px-3 text-sm font-semibold text-ink transition hover:bg-raised"
+          >
+            <MessageCircle className="h-4 w-4" aria-hidden />
+            <span className="hidden sm:inline">Messages</span>
+            {unread > 0 && (
+              <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-pearl px-1.5 text-[11px] font-bold text-bg">
+                {unread}
+              </span>
+            )}
+          </Link>
+        )}
         <Link
           href="/marketplace/account/"
           className="flex h-10 items-center gap-2 rounded-xl border border-line bg-surface px-4 text-sm font-semibold text-ink transition hover:bg-raised"

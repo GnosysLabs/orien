@@ -8,16 +8,17 @@ import { CopyText } from '@/components/CopyText'
 import { ask, categoryLabel, formatOrn, plainOrn, type Account, type Listing } from '@/lib/market'
 import { Avatar } from './Avatar'
 import { ContactLinks } from './ContactLinks'
+import { MessageSeller } from './Messages'
 import { Notice } from './Shell'
 
 export function ListingView() {
   const id = useSearchParams().get('id')
-  const [found, setFound] = useState<{ listing: Listing; seller: Account; mine: boolean } | null>(null)
+  const [found, setFound] = useState<{ listing: Listing; seller: Account; mine: boolean; signed_in: boolean } | null>(null)
   const [trouble, setTrouble] = useState('')
 
   useEffect(() => {
     if (!id) return
-    ask<{ listing: Listing; seller: Account; mine: boolean }>(`/listings/${encodeURIComponent(id)}`)
+    ask<{ listing: Listing; seller: Account; mine: boolean; signed_in: boolean }>(`/listings/${encodeURIComponent(id)}`)
       .then(setFound)
       .catch((error: Error) => setTrouble(error.message === 'not found' ? 'This listing is gone or closed.' : error.message))
   }, [id])
@@ -25,7 +26,8 @@ export function ListingView() {
   if (!id) return <Notice tone="bad">No listing was named.</Notice>
   if (trouble) return <Notice tone="bad">{trouble}</Notice>
   if (!found) return <p className="text-muted">Loading…</p>
-  const { listing, seller, mine } = found
+  const { listing, seller, mine, signed_in } = found
+  const { email, telegram, x } = seller.contact
 
   return (
     <div className="space-y-6">
@@ -64,11 +66,19 @@ export function ListingView() {
         )}
       </article>
 
-      <section className="rounded-2xl border border-line bg-surface p-6 sm:p-8">
-        <h2 className="mb-3 text-xl font-bold tracking-tight text-ink">Talk to the seller first</h2>
-        <p className="mb-4 leading-relaxed text-muted">Agree the details with {seller.name} before you pay.</p>
-        <ContactLinks contact={seller.contact} />
-      </section>
+      {!mine && (
+        <section className="space-y-4 rounded-2xl border border-line bg-surface p-6 sm:p-8">
+          <h2 className="text-xl font-bold tracking-tight text-ink">Talk to the seller first</h2>
+          <p className="leading-relaxed text-muted">Agree the details with {seller.name} before you pay.</p>
+          <MessageSeller listing={listing.id} seller={seller.name} signedIn={signed_in} />
+          {(email || telegram || x) && (
+            <div className="space-y-2 pt-2">
+              <p className="text-sm text-muted">Or reach {seller.name} elsewhere:</p>
+              <ContactLinks contact={seller.contact} />
+            </div>
+          )}
+        </section>
+      )}
 
       <section className="rounded-2xl border border-line bg-surface p-6 sm:p-8">
         <div className="mb-3 flex items-center gap-3">

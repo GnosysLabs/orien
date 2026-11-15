@@ -164,7 +164,10 @@ impl Draft {
         if draft.unit.chars().count() > MAX_UNIT {
             bail!("the price's unit is at most {MAX_UNIT} characters");
         }
-        orien_address(&draft.pay_to)?;
+        // Filled in from the seller's verified wallet when posted.
+        if !draft.pay_to.is_empty() {
+            orien_address(&draft.pay_to)?;
+        }
         Ok(draft)
     }
 }
