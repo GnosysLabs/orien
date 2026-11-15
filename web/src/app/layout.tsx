@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import { Geist, Geist_Mono, Jost } from 'next/font/google'
 import { BottomNav, Header } from '@/components/Header'
+import { MinerNotice } from '@/components/MinerNotice'
 import { Wordmark } from '@/components/Wordmark'
 import { MARKETPLACE_LIVE, OPERATOR, OPERATOR_URL, SITE_DESCRIPTION, SITE_NAME, SITE_URL, TAGLINE } from '@/lib/brand'
 import './globals.css'
@@ -85,6 +86,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           dangerouslySetInnerHTML={{ __html: JSON.stringify(SITE_DATA) }}
         />
         <div className="flex min-h-full flex-1 flex-col">
+          <MinerNotice />
           <Header />
           <main className="mx-auto w-full max-w-[1200px] flex-1 px-4 py-6 sm:py-8">{children}</main>
           <footer className="border-t border-line px-4 print:hidden pb-24 pt-6 text-center text-xs text-muted md:pb-8">
