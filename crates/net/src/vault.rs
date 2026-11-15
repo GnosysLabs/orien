@@ -21,7 +21,9 @@ use chacha20poly1305::{XChaCha20Poly1305, XNonce};
 /// The most a vault may hold, sealed.
 pub const MAX_BLOB: usize = 64 * 1024;
 
-#[derive(Clone)]
+/// Saved by the wallet app, privately, so a wallet with a password can keep
+/// its contacts in step without asking for the password each time.
+#[derive(Clone, serde::Serialize, serde::Deserialize)]
 pub struct VaultKeys {
     /// Where the store is kept: 64 hex digits.
     pub id: String,

@@ -31,6 +31,7 @@ serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 semver = "1"
 ureq = { version = "2", features = ["json"] }
+base64 = "0.22"
 
 # Hashing dominates the wallet's work, so even debug builds are optimized.
 [profile.dev]

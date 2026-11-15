@@ -2603,6 +2603,7 @@ name = "orien-wallet"
 version = "1.5.2"
 dependencies = [
  "anyhow",
+ "base64 0.22.1",
  "orien-crypto",
  "orien-ledger",
  "orien-net",

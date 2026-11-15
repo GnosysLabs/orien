@@ -996,6 +996,13 @@
   const lookalike = (address) => book.find((c) => c.address !== address &&
     c.address.slice(0, 4) === address.slice(0, 4) && c.address.slice(-4) === address.slice(-4));
   async function loadBook() { try { book = await invoke("contacts"); } catch { book = []; } }
+  // Contacts follow the wallet across devices: bring them into step with
+  // its vault, then show what changed.
+  async function syncBook() {
+    try { await invoke("contacts_sync"); } catch { return; }
+    await loadBook();
+    if (!$("contacts").hidden) renderContacts();
+  }
 
   function show(id) {
     for (const s of document.querySelectorAll(".screen")) s.hidden = s.id !== id;
@@ -1476,7 +1483,7 @@
         </div>`).join("")}</div>`
       : '<div class="empty">No contacts yet. Add someone you pay often, and pick them by name when you send.</div>';
   }
-  async function openContacts() { await loadBook(); renderContacts(); show("contacts"); }
+  async function openContacts() { await loadBook(); renderContacts(); show("contacts"); syncBook(); }
 
   function openContact(address, from) {
     returnTo = from;
@@ -2039,7 +2046,7 @@
   };
   checkUpdate();
   setInterval(checkUpdate, 60 * 60 * 1000);
-  loadBook().then(start).catch((e) => problem("welcome-problem", e));
+  loadBook().then(start).then(syncBook).catch((e) => problem("welcome-problem", e));
 </script>
 </body>
 </html>

@@ -22,6 +22,7 @@ mod send;
 mod swaps;
 #[cfg(desktop)]
 mod update;
+mod vault;
 /// iPhone copies come from the App Store, which updates them.
 #[cfg(mobile)]
 mod update {
@@ -376,8 +377,11 @@ async fn set_password(app: AppHandle, password: String) -> Result<(), String> {
     if password.chars().count() < 8 {
         return Err("Use at least 8 characters.".into());
     }
-    let path = wallet_file(&folder(&app)?).ok_or("no wallet yet")?;
+    let dir = folder(&app)?;
+    let path = wallet_file(&dir).ok_or("no wallet yet")?;
     tauri::async_runtime::spawn_blocking(move || {
+        // Before it's sealed: the vault keys, kept for syncing contacts.
+        let _ = vault::keys(&dir, &path, None);
         let mut wallet = Wallet::load(&path).map_err(|error| error.to_string())?;
         wallet.set_password(Some(&password)).map_err(|error| error.to_string())
     })
@@ -687,12 +691,45 @@ fn contacts(app: AppHandle) -> Result<Vec<contacts::Contact>, String> {
 /// Adds a contact, or edits the one at `previous`.
 #[tauri::command]
 fn save_contact(app: AppHandle, name: String, address: String, previous: Option<String>) -> Result<(), String> {
-    contacts::save(&folder(&app)?, &name, &address, previous.as_deref())
+    let dir = folder(&app)?;
+    contacts::save(&dir, &name, &address, previous.as_deref())?;
+    sync_contacts_later(dir);
+    Ok(())
+}
+
+/// Puts the changed address book in the vault, in the background.
+fn sync_contacts_later(dir: PathBuf) {
+    std::thread::spawn(move || {
+        if let Some(wallet) = wallet_file(&dir)
+            && let Some(keys) = vault::keys(&dir, &wallet, None)
+        {
+            let _ = vault::sync(&dir, &keys);
+        }
+    });
+}
+
+/// Brings the address book into step with the open wallet's vault, so
+/// contacts added on another device show here. False when the vault keys
+/// aren't known yet: a wallet with a password works them out the first time
+/// its password is typed in this app.
+#[tauri::command]
+async fn contacts_sync(app: AppHandle) -> Result<bool, String> {
+    let dir = folder(&app)?;
+    let wallet = wallet_file(&dir).ok_or("no wallet yet")?;
+    tauri::async_runtime::spawn_blocking(move || match vault::keys(&dir, &wallet, None) {
+        Some(keys) => vault::sync(&dir, &keys).map(|()| true),
+        None => Ok(false),
+    })
+    .await
+    .map_err(|error| error.to_string())?
 }
 
 #[tauri::command]
 fn delete_contact(app: AppHandle, address: String) -> Result<(), String> {
-    contacts::delete(&folder(&app)?, &address)
+    let dir = folder(&app)?;
+    contacts::delete(&dir, &address)?;
+    sync_contacts_later(dir);
+    Ok(())
 }
 
 /// One payment as the window shows it.
@@ -742,6 +779,7 @@ async fn send_payment(app: AppHandle, to: String, amount: String, password: Opti
     tauri::async_runtime::spawn_blocking(move || {
         let _turn = TURNS.lock().unwrap_or_else(|poisoned| poisoned.into_inner());
         let mut wallet = open_signing(&wallet_file, password.as_deref())?;
+        let _ = vault::keys(&dir, &wallet_file, password.as_deref());
         if to == wallet.address() {
             return Err("That is this wallet's own address.".into());
         }
@@ -972,7 +1010,7 @@ pub fn run() {
     #[cfg(desktop)]
     let builder = builder.plugin(tauri_plugin_updater::Builder::new().build());
     builder
-        .invoke_handler(tauri::generate_handler![has_wallet, create_wallet, restore_wallet, set_password, choose_wallet, overview_now, send_payment, activity, quote, contacts, save_contact, delete_contact, update::check_update, update::install_update, mine_start, mine_stop, mine_set, mine_status, wallets, wallet_balances, use_wallet, rename_wallet, add_wallet, forget_wallet, swap_list, swap_sell, swap_buy, swap_accept, swap_step, swap_smallest, board_offers, board_me, board_email_start, board_email_finish, board_sign_out, board_post, board_take, board_withdraw, board_link])
+        .invoke_handler(tauri::generate_handler![has_wallet, create_wallet, restore_wallet, set_password, choose_wallet, overview_now, send_payment, activity, quote, contacts, save_contact, delete_contact, contacts_sync, update::check_update, update::install_update, mine_start, mine_stop, mine_set, mine_status, wallets, wallet_balances, use_wallet, rename_wallet, add_wallet, forget_wallet, swap_list, swap_sell, swap_buy, swap_accept, swap_step, swap_smallest, board_offers, board_me, board_email_start, board_email_finish, board_sign_out, board_post, board_take, board_withdraw, board_link])
         .run(tauri::generate_context!())
         .expect("the wallet window could not start");
 }
