@@ -184,7 +184,7 @@ function PostOffer({ account, onPosted }: { account: Account | null | undefined;
   }
 
   return (
-    <form onSubmit={post} className={`${card} space-y-4`}>
+    <form id="post" onSubmit={post} className={`${card} scroll-mt-24 space-y-4`}>
       <div className="flex items-center gap-3">
         <Bitcoin className="h-5 w-5 text-pearl" aria-hidden />
         <h2 className="text-lg font-bold tracking-tight text-ink">Sell ORN for Bitcoin</h2>
