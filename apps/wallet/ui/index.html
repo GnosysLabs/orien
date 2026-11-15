@@ -618,7 +618,7 @@
     <!-- Mining -->
     <section class="screen" id="mine" hidden>
       <div class="topline"><button class="back" data-back aria-label="Back"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10 3 5 8l5 5"/></svg></button><h2>Mine ORN</h2></div>
-      <p class="lede">This computer does proof-of-work for the network. Every hour, the new ORN are shared among everyone who mined, in proportion to the work each did. Mining runs only while Orien Wallet is open: closing it stops mining.</p>
+      <p class="lede">This computer does proof-of-work for the network. Every hour, the new ORN are shared among everyone who mined, in proportion to the work each did. Mining runs only while Orien Wallet is open: closing it stops mining. It needs about 2 GB of memory.</p>
       <div class="review">
         <div class="row"><span>Mines to</span><span id="mn-wallet"></span></div>
         <div class="row"><span>Speed</span><span id="mn-speed">—</span></div>
@@ -630,6 +630,7 @@
         <input type="range" id="mn-cpu" min="1" max="100" step="1" value="50">
         <div class="hint">Less leaves this computer quicker for other work; 100% uses all of it.</div>
       </div>
+      <p class="fineprint" id="mn-light" hidden>Light mode: this computer lacks the 2 GB of memory RandomX needs for full speed, so it mines more slowly.</p>
       <p class="fineprint" id="mn-odds"></p>
       <p class="fineprint">No promises: what each hour brings depends on how much work everyone else does.</p>
       <div class="push"></div>
@@ -1091,8 +1092,11 @@
     if (first) $("mn-cpu").value = m.percent;
     cpuText();
     $("mn-wallet").textContent = m.wallet || (s.address ? short(s.address) : "this wallet");
-    $("mn-speed").textContent = s.running && s.tries_per_second
-      ? `${(s.tries_per_second / 1e6).toFixed(1)} million tries a second` : s.running ? "Starting…" : "Stopped";
+    const speed = (n) => n >= 1e6 ? `${(n / 1e6).toFixed(1)} million` : n >= 1e4 ? Math.round(n).toLocaleString() : n.toFixed(n < 10 ? 1 : 0);
+    $("mn-speed").textContent = !s.running ? "Stopped"
+      : s.preparing ? "Getting ready for this hour (up to a minute)"
+      : s.tries_per_second ? `${speed(s.tries_per_second)} tries a second` : "Starting…";
+    $("mn-light").hidden = !(s.running && s.light);
     $("mn-shares").textContent = s.running && s.epoch !== null
       ? `${s.found.toLocaleString()} found, ${s.taken.toLocaleString()} taken by validators` : "—";
     $("mn-reward").textContent = m.last_reward ? `+${m.last_reward.amount} ORN, ${new Date(m.last_reward.time * 1000).toLocaleString([], { weekday: "short", hour: "numeric", minute: "2-digit" })}` : "None yet";
