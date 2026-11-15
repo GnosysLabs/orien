@@ -4,7 +4,7 @@ import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import { ArrowLeft, Pencil, ShieldCheck } from 'lucide-react'
-import { ask, categoryLabel, formatOrn, memberSince, type Account, type Listing } from '@/lib/market'
+import { ask, categoryLabel, formatOrn, memberSince, perUnit, type Account, type Listing } from '@/lib/market'
 import { Linked } from './Linked'
 import { Avatar } from './Avatar'
 import { ContactLinks } from './ContactLinks'
@@ -83,7 +83,7 @@ export function ListingView() {
           <div className={`${card} space-y-5`}>
             <p className="num text-3xl font-bold text-ink">
               {formatOrn(listing.price)} ORN
-              {listing.unit && <span className="ml-1.5 text-base font-medium text-muted">{listing.unit}</span>}
+              {listing.unit && <span className="ml-1.5 text-base font-medium text-muted">{perUnit(listing.unit)}</span>}
             </p>
             {mine ? (
               <div className="space-y-3">

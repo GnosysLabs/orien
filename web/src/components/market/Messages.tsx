@@ -11,6 +11,7 @@ import {
   formatOrn,
   MarketError,
   parseOrn,
+  perUnit,
   plainOrn,
   sentence,
   type Conversation,
@@ -229,7 +230,7 @@ function Thread({ id, onChange }: { id: string; onChange: () => void }) {
           About <span className="font-semibold text-ink">{c.listing_title}</span>
         </span>
         <span className="num shrink-0 font-semibold text-ink">
-          {formatOrn(c.price)} ORN{c.unit && <span className="font-normal text-muted"> {c.unit}</span>}
+          {formatOrn(c.price)} ORN{c.unit && <span className="font-normal text-muted"> {perUnit(c.unit)}</span>}
         </span>
       </Link>
 

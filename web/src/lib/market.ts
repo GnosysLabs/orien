@@ -258,3 +258,14 @@ export function passkeyTrouble(error: unknown): string {
   }
   return error instanceof Error ? error.message : 'Something went wrong with the passkey.'
 }
+
+/** How a listing can be priced: empty for a fixed price. */
+export const PRICINGS = ['', 'per hour', 'per day', 'per week', 'per month', 'per item']
+
+/** A listing's unit as it reads after the price: "hour" → "per hour",
+ * "/hr" stays as written, empty stays empty. */
+export function perUnit(unit: string): string {
+  const text = unit.trim()
+  if (!text) return ''
+  return /^(per\b|\/|each\b|a\b|an\b)/i.test(text) ? text : `per ${text}`
+}

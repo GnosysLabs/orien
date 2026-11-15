@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import { useEffect, useState } from 'react'
 import { Search } from 'lucide-react'
-import { ask, CATEGORIES, categoryLabel, formatOrn, type Listing } from '@/lib/market'
+import { ask, CATEGORIES, categoryLabel, formatOrn, perUnit, type Listing } from '@/lib/market'
 import { Avatar } from './Avatar'
 import { Cover } from './Pictures'
 import { Notice } from './Shell'
@@ -130,7 +130,7 @@ export function Card({ listing }: { listing: Listing }) {
         <div className="mt-auto flex items-baseline justify-between gap-2 border-t border-line pt-3">
           <span className="text-xs uppercase tracking-[0.12em] text-muted">{categoryLabel(listing.category)}</span>
           <span className="num font-bold text-ink">
-            {formatOrn(listing.price)} ORN{listing.unit && <span className="text-xs font-medium text-muted"> {listing.unit}</span>}
+            {formatOrn(listing.price)} ORN{listing.unit && <span className="text-xs font-medium text-muted"> {perUnit(listing.unit)}</span>}
           </span>
         </div>
       </div>
