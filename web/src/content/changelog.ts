@@ -27,6 +27,16 @@ export const PRODUCTS: Record<Product, string> = {
 export const CHANGELOG: Entry[] = [
   {
     date: '2026-11-15',
+    products: ['orien', 'validators', 'marketplace'],
+    version: '1.7.0',
+    title: 'History of what you sent, and a home for your contacts',
+    changes: [
+      'Validators now also record each payment an account sends, so a wallet restored on another device can show what it sent as well as what it received, from this release on.',
+      'Your wallet’s contacts can now follow it from device to device with no account: they are sealed with a key from your recovery phrase and kept on orien.network, which cannot read them. Orien Wallet uses it from its next version.',
+    ],
+  },
+  {
+    date: '2026-11-15',
     products: ['network', 'orien', 'validators'],
     version: '1.6.0',
     title: 'Swaps finish for the buyer even when their wallet is closed',

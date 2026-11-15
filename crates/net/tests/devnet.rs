@@ -1737,10 +1737,20 @@ fn validators_keep_each_accounts_incoming_history() {
     let paid = page.entries.iter().find(|e| e.income == Income::Payment).expect("the payment is listed");
     assert_eq!((paid.amount, paid.counterparty, paid.order), (100, Some(alice), Some((alice, 0))));
     let made_in = paid.epoch;
+    // Alice's side: what she sent, for wallets that ask, and only for them.
+    let sent = |page: &orien_net::history::HistoryPage| {
+        page.entries.iter().any(|e| e.income == Income::Sent && e.amount == 100 && e.counterparty == Some(bob))
+    };
+    assert!(sent(&client.activity(&alice, 0, 100).unwrap()), "shown while its epoch is under way");
+    assert!(!sent(&client.history(&alice, 0, 100).unwrap()), "older wallets see only what came in");
     net.wait_for_epoch(made_in + 1);
     wait_until("the payment is recorded with its checkpoint's time", || {
         let page = client.history(&bob, 0, 100).unwrap();
         page.entries.iter().any(|e| e.income == Income::Payment && e.epoch == made_in && e.time.is_some())
+    });
+    wait_until("what alice sent is recorded too", || {
+        let page = client.activity(&alice, 0, 100).unwrap();
+        page.entries.iter().any(|e| e.income == Income::Sent && e.epoch == made_in && e.time.is_some())
     });
 
     // Mining: one entry for each epoch's reward, adding up to the balance.

@@ -286,6 +286,7 @@ impl Store {
         let store = Store { db };
         store.add_payout()?;
         store.create_swap_tables()?;
+        store.create_vault_table()?;
         store.create_moderation_tables()?;
         Ok(store)
     }

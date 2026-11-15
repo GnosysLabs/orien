@@ -337,6 +337,18 @@ pub enum Income {
     Mining,
     /// Unstaked coins, spendable again once their wait is over.
     Unstaked,
+    /// Not income: a payment or locked payment the account sent, its
+    /// amount without the fee, to `counterparty`. Recorded so that a wallet
+    /// restored elsewhere can show what it sent; kept out of answers to
+    /// wallets that ask only what came in.
+    Sent,
+}
+
+impl Income {
+    /// Whether coins came in, rather than went out.
+    pub fn incoming(self) -> bool {
+        !matches!(self, Income::Sent)
+    }
 }
 
 /// Coins credited to an account while an epoch was closed: the record a
@@ -893,6 +905,13 @@ impl State {
         match &order.kind {
             Kind::Payment => {
                 sender.balance -= order.amount as i128;
+                self.credit(Credit {
+                    account: order.from,
+                    income: Income::Sent,
+                    amount: order.amount,
+                    counterparty: Some(order.to),
+                    order: Some((order.from, order.seq)),
+                });
                 let recipient = self.accounts.entry(order.to).or_insert_with(|| Account::holding(0));
                 recipient.balance += order.amount as i128;
                 self.credit(Credit {
@@ -917,6 +936,13 @@ impl State {
             }
             Kind::Lock { hash, until } => {
                 sender.balance -= order.amount as i128;
+                self.credit(Credit {
+                    account: order.from,
+                    income: Income::Sent,
+                    amount: order.amount,
+                    counterparty: Some(order.to),
+                    order: Some((order.from, order.seq)),
+                });
                 // A validator can learn of the claim before the lock: then
                 // the payee is already paid, and nothing is left to hold.
                 let key = (order.from, order.seq);

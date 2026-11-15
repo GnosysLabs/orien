@@ -258,6 +258,7 @@ pub fn router(app: Arc<App>) -> Router {
         .route("/api/market/conversations/{id}/request", post(request_payment))
         .route("/api/market/conversations/{id}/paid", post(mark_paid))
         .route("/api/market/images/{name}", get(picture))
+        .route("/api/market/vault/{id}", get(read_vault).put(write_vault))
         .route("/api/market/listings", get(browse).post(post_listing))
         .route("/api/market/listings/{id}", get(listing).put(edit_listing))
         .route("/api/market/listings/{id}/open", post(open_listing))
@@ -701,6 +702,29 @@ async fn wallet(State(app): State<Arc<App>>, headers: HeaderMap) -> Answer {
     let id = app.signed_in(&headers)?;
     let account = app.store.lock().unwrap().account(id)?.ok_or(Failure::SignIn)?;
     Ok(Json(json!({ "wallet": account.wallet })).into_response())
+}
+
+/// A wallet's vault: sealed bytes, base64.
+async fn read_vault(State(app): State<Arc<App>>, Path(id): Path<String>) -> Answer {
+    let found = app.store().vault(&id).map_err(refused)?.ok_or(Failure::NotFound)?;
+    use base64::Engine;
+    let blob = base64::engine::general_purpose::STANDARD.encode(&found.0);
+    Ok(Json(json!({ "blob": blob, "updated": found.1 })).into_response())
+}
+
+#[derive(Deserialize)]
+struct VaultWrite {
+    token: String,
+    blob: String,
+}
+
+async fn write_vault(State(app): State<Arc<App>>, Path(id): Path<String>, Json(body): Json<VaultWrite>) -> Answer {
+    use base64::Engine;
+    let blob = base64::engine::general_purpose::STANDARD
+        .decode(body.blob.as_bytes())
+        .map_err(|_| Failure::Refused("the vault's contents are not base64".into()))?;
+    app.store().put_vault(&id, &body.token, &blob).map_err(refused)?;
+    Ok(Json(json!({ "ok": true })).into_response())
 }
 
 #[derive(Deserialize)]

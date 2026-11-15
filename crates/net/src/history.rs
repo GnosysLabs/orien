@@ -160,13 +160,15 @@ impl History {
     /// The account's history from `from` on: at most `max` entries, but
     /// always whole epochs. `current` is the epoch under way, whose final
     /// payments so far are given in `pending`.
-    pub fn page(&self, account: &AccountId, from: u64, max: u32, current: u64, pending: Vec<Received>) -> HistoryPage {
+    /// `sent` includes what the account sent, for wallets that ask for it;
+    /// older wallets know only what comes in.
+    pub fn page(&self, account: &AccountId, from: u64, max: u32, current: u64, pending: Vec<Received>, sent: bool) -> HistoryPage {
         let max = max.clamp(1, MAX_ENTRIES) as usize;
         let mut page = HistoryPage { epoch: current, since: self.since, ..HistoryPage::default() };
         let kept = self.accounts.get(account).map_or(&[][..], Vec::as_slice);
         let start = kept.partition_point(|entry| entry.epoch < from);
         let mut stopped = None;
-        for entry in &kept[start..] {
+        for entry in kept[start..].iter().filter(|entry| sent || entry.income.incoming()) {
             if page.entries.len() >= max && page.entries.last().is_some_and(|last| last.epoch != entry.epoch) {
                 stopped = Some(entry.epoch);
                 break;
@@ -187,7 +189,7 @@ impl History {
         page.unknown = self.unknown.range(from..until).copied().chain(recorded_to.max(from)..until).collect();
         match stopped {
             Some(epoch) => page.next = Some(epoch),
-            None if from <= current => page.entries.extend(pending),
+            None if from <= current => page.entries.extend(pending.into_iter().filter(|e| sent || e.income.incoming())),
             None => {}
         }
         page
@@ -201,6 +203,19 @@ mod tests {
 
     fn credit(account: u8, income: Income, amount: u64) -> Credit {
         Credit { account: Hash32([account; 32]), income, amount, counterparty: None, order: None }
+    }
+
+    #[test]
+    fn what_was_sent_shows_only_to_those_who_ask() {
+        let dir = folder("sent");
+        let mut history = History::open(&dir.join("history.log"), 5, false).unwrap();
+        history.record(5, 100, Some(vec![credit(7, Income::Sent, 40), credit(7, Income::Mining, 10)])).unwrap();
+        let alice = Hash32([7; 32]);
+        let incoming = history.page(&alice, 0, 100, 6, Vec::new(), false);
+        assert_eq!(incoming.entries.iter().map(|e| e.income).collect::<Vec<_>>(), vec![Income::Mining]);
+        let all = history.page(&alice, 0, 100, 6, Vec::new(), true);
+        assert_eq!(all.entries.len(), 2);
+        assert!(all.entries.iter().any(|e| e.income == Income::Sent && e.amount == 40));
     }
 
     fn folder(name: &str) -> std::path::PathBuf {
@@ -224,7 +239,7 @@ mod tests {
         // Written twice, as after a crash: the later record stands.
         history.record(7, 300, Some(vec![credit(7, Income::Payment, 1)])).unwrap();
         history.record(7, 301, Some(vec![credit(7, Income::Payment, 2)])).unwrap();
-        let page = history.page(&alice, 0, 100, 8, Vec::new());
+        let page = history.page(&alice, 0, 100, 8, Vec::new(), false);
         assert_eq!(page.since, 5);
         assert_eq!(page.unknown, vec![6]);
         let got: Vec<_> = page.entries.iter().map(|e| (e.epoch, e.time, e.amount)).collect();
@@ -241,10 +256,10 @@ mod tests {
         }
         let alice = Hash32([7; 32]);
         let pending = vec![Received { epoch: 4, time: None, income: Income::Payment, amount: 5, counterparty: None, order: None }];
-        let first = history.page(&alice, 0, 3, 4, pending.clone());
+        let first = history.page(&alice, 0, 3, 4, pending.clone(), false);
         assert_eq!(first.entries.len(), 4);
         assert_eq!(first.next, Some(2));
-        let rest = history.page(&alice, 2, 3, 4, pending);
+        let rest = history.page(&alice, 2, 3, 4, pending, false);
         assert_eq!(rest.entries.len(), 5);
         assert_eq!(rest.next, None);
         assert_eq!(rest.entries.last().unwrap().time, None);

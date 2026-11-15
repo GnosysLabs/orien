@@ -10,4 +10,5 @@ pub mod node;
 pub mod phrase;
 pub mod store;
 pub mod unlock;
+pub mod vault;
 pub mod wire;
