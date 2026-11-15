@@ -1168,7 +1168,7 @@
     $("mn-wallet").textContent = m.wallet || (s.address ? short(s.address) : "this wallet");
     const speed = (n) => n >= 1e6 ? `${(n / 1e6).toFixed(1)} million` : n >= 1e4 ? Math.round(n).toLocaleString() : n.toFixed(n < 10 ? 1 : 0);
     $("mn-speed").textContent = !s.running ? "Stopped"
-      : s.preparing ? "Getting ready for this hour (up to a minute)"
+      : s.preparing ? "Getting ready (about a minute)"
       : s.tries_per_second ? `${speed(s.tries_per_second)} tries a second` : "Starting…";
     $("mn-light").hidden = !(s.running && s.light);
     $("mn-shares").textContent = s.running && s.epoch !== null
