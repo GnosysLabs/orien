@@ -22,6 +22,9 @@ pub struct Locked {
     pub secret: Option<[u8; 32]>,
     /// How many validators answered.
     pub answered: usize,
+    /// Whether validators holding more than two thirds of the stake gave
+    /// this one answer.
+    pub agreed: bool,
 }
 use std::collections::{BTreeMap, HashMap};
 use std::fmt;
@@ -400,31 +403,34 @@ impl Client {
         best.map(|(answer, _)| answer)
     }
 
-    /// A locked payment, as the validators report it now. A revealed secret
-    /// needs no trust: it is kept only if it opens `hash`. Whether the
-    /// payment is still waiting is what most of the answering validators say.
+    /// A locked payment, as validators holding more than two thirds of the
+    /// stake agree on it now. `agreed` is false when no such majority gives
+    /// one answer: then nothing should be concluded. A secret is kept only
+    /// if it opens `hash` (any secret, when `hash` is all zeros).
     pub fn locked(&self, from: &AccountId, seq: u64, hash: &[u8; 32]) -> Locked {
-        let answers: Vec<(u64, Option<Escrow>, Option<[u8; 32]>)> = self
-            .ask_all(&Request::Locked { from: *from, seq })
-            .into_iter()
-            .filter_map(|answer| match answer {
-                Ok(Response::Locked { epoch, escrow, secret }) => Some((epoch, escrow, secret)),
-                _ => None,
-            })
-            .collect();
-        let secret = answers.iter().filter_map(|(_, _, secret)| *secret).find(|secret| lock_hash(secret) == *hash);
-        let mut best: Option<(&Option<Escrow>, usize)> = None;
-        for (_, escrow, _) in &answers {
-            let count = answers.iter().filter(|(_, other, _)| other == escrow).count();
-            if best.is_none_or(|(_, most)| count > most) {
-                best = Some((escrow, count));
+        let committee = self.committee();
+        let answers = self.ask_all(&Request::Locked { from: *from, seq });
+        type Said = (Option<Escrow>, Option<[u8; 32]>);
+        let mut groups: Vec<(Said, u64)> = Vec::new();
+        let (mut epoch, mut answered) = (0, 0);
+        for (index, answer) in answers.into_iter().enumerate() {
+            let Ok(Response::Locked { epoch: at, escrow, secret }) = answer else { continue };
+            answered += 1;
+            epoch = epoch.max(at);
+            let secret = secret.filter(|secret| *hash == [0; 32] || lock_hash(secret) == *hash);
+            let stake = committee.members().get(index).map_or(0, |member| member.stake);
+            match groups.iter_mut().find(|(said, _)| *said == (escrow.clone(), secret)) {
+                Some((_, total)) => *total += stake,
+                None => groups.push(((escrow, secret), stake)),
             }
         }
+        let agreed = groups.into_iter().find(|(_, stake)| committee.has_quorum(*stake));
         Locked {
-            epoch: answers.iter().map(|(epoch, _, _)| *epoch).max().unwrap_or(0),
-            waiting: best.and_then(|(escrow, _)| escrow.clone()),
-            secret,
-            answered: answers.len(),
+            epoch,
+            agreed: agreed.is_some(),
+            waiting: agreed.as_ref().and_then(|((escrow, _), _)| escrow.clone()),
+            secret: agreed.and_then(|((_, secret), _)| secret),
+            answered,
         }
     }
 

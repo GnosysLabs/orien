@@ -402,6 +402,7 @@ fn with_swaps<T: Send + 'static>(
             password,
             fees: money::fees(GENESIS),
             network: network_id().unwrap_or_default(),
+            epoch_seconds: serde_json::from_str::<orien_ledger::Genesis>(GENESIS).map_or(3_600, |genesis| genesis.epoch_seconds),
         };
         let result = work(&dir, &orien);
         let _ = client.head().save(&head_file(&genesis));
@@ -428,11 +429,22 @@ async fn swap_sell(app: AppHandle, buyer: String, orn: String, btc: String, payo
     let orn = money::read(&orn)?;
     let sats = swaps::read_btc(&btc)?;
     with_swaps(&app, password, move |dir, orien| {
+        // Saved with its secret before anything is signed; then the ORN are
+        // locked, and the swap saved again.
         let kept = swaps::sell(orien, &buyer, orn, sats, &payout)?;
         let mut all = swaps::load(dir);
-        all.push(kept.clone());
+        all.push(kept);
         swaps::save(dir, &all)?;
-        Ok(swaps::view(&kept))
+        let (_, chain) = swaps::bitcoin();
+        let kept = all.last_mut().expect("just added");
+        swaps::advance(orien, &chain, kept);
+        let view = swaps::view(kept);
+        let problem = kept.problem.clone();
+        swaps::save(dir, &all)?;
+        match problem {
+            Some(problem) if problem.starts_with("password:") => Err(problem),
+            _ => Ok(view),
+        }
     })
     .await
     .map_err(|error| error.to_string())?
@@ -458,10 +470,10 @@ async fn swap_buy(app: AppHandle, offer: String, refund: String) -> Result<swaps
 /// The seller pastes the buyer's reply.
 #[tauri::command]
 async fn swap_accept(app: AppHandle, id: String, reply: String) -> Result<swaps::View, String> {
-    with_swaps(&app, None, move |dir, _| {
+    with_swaps(&app, None, move |dir, orien| {
         let mut all = swaps::load(dir);
         let kept = all.iter_mut().find(|kept| kept.id == id).ok_or("That swap is not here.")?;
-        swaps::accept(kept, &reply)?;
+        swaps::accept(orien, kept, &reply)?;
         let view = swaps::view(kept);
         swaps::save(dir, &all)?;
         Ok(view)
@@ -502,7 +514,8 @@ fn main() {
 mod tests {
     /// A whole swap with the app's own code: a real lock and a real claim on
     /// a running local test network, and a pretend Bitcoin network. Start one
-    /// first: `orien devnet init --dir /tmp/orien-swap-net && orien devnet
+    /// first, with epochs short enough for a swap's 48 hours to fit in 720:
+    /// `orien devnet init --dir /tmp/orien-swap-net --epoch-seconds 600 && orien devnet
     /// run --dir /tmp/orien-swap-net`, then run with ORIEN_DEVNET set to it.
     #[test]
     fn a_whole_swap_on_a_local_network() {
@@ -523,6 +536,7 @@ mod tests {
             password: None,
             fees: network.fee,
             network: network.id().to_string(),
+            epoch_seconds: network.epoch_seconds,
         };
         let seller = side(root.join("wallets/alice.wallet"));
         let fresh = root.join(format!("buyer-{}.wallet", std::process::id()));
@@ -532,19 +546,22 @@ mod tests {
             let (_, key) = orien_swap::htlc::new_key();
             Address::p2wpkh(&CompressedPublicKey(key.inner), Network::Regtest).to_string()
         };
-        let chain = TestChain::default();
-        chain.0.borrow_mut().height = 100;
+        let chain = TestChain::at(100);
 
         let orn = 5 * orien_ledger::COIN;
-        let (mut sell, offer) = Swap::sell(&seller, Network::Regtest, buyer.me(), orn, 1_000_000, &btc()).unwrap();
-        let (mut buy, reply) = Swap::buy(&buyer, &chain, Network::Regtest, &Offer::read(&offer.code()).unwrap(), &btc()).unwrap();
-        sell.accept(&chain, &Reply::read(&reply.code()).unwrap()).unwrap();
+        let mut sell = Swap::sell(&seller, Network::Regtest, buyer.me(), orn, 1_000_000, &btc()).unwrap();
+        sell.advance(&chain, &seller).unwrap();
+        let offer = Offer::read(&sell.offer(seller.network()).unwrap().code()).unwrap();
+        let (mut buy, reply) = Swap::buy(&buyer, &chain, Network::Regtest, &offer, &btc()).unwrap();
+        sell.accept(&chain, &seller, &Reply::read(&reply.code()).unwrap()).unwrap();
         chain.pay(&buy.bitcoin_address().unwrap(), 1_000_000);
-        chain.mine(1);
-        for _ in 0..5 {
+        chain.mine(3);
+        for _ in 0..4 {
             sell.advance(&chain, &seller).unwrap();
             buy.advance(&chain, &buyer).unwrap();
         }
+        chain.mine(3);
+        sell.advance(&chain, &seller).unwrap();
         assert_eq!((sell.stage, buy.stage), (Stage::Done, Stage::Done));
         let status = client.account(&buyer.me(), 0);
         assert_eq!(status.spendable, Some(orn as i128 - network.fee.min as i128), "the buyer has the ORN, less the claim's fee");

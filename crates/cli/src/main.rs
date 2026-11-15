@@ -1589,6 +1589,9 @@ fn claim(wallet_file: &Path, lock: &str, secret: Option<&str>, genesis_file: &Pa
     let (from, seq) = parse_lock(lock)?;
     let (_, client) = connect(genesis_file)?;
     let status = client.locked(&from, seq, &[0; 32]);
+    if !status.agreed {
+        bail!("the validators do not agree on that locked payment yet; try again in a moment");
+    }
     let escrow = status.waiting.ok_or_else(|| anyhow!("that locked payment is not waiting: it was claimed or came back"))?;
     let (me, _) = Wallet::peek(wallet_file)?;
     if escrow.to != me {
@@ -1617,6 +1620,9 @@ fn escrow_status(lock: &str, genesis_file: &Path) -> Result<()> {
     let first = client.locked(&from, seq, &[0; 32]);
     if first.answered == 0 {
         bail!("no validator could be reached");
+    }
+    if !first.agreed {
+        bail!("the validators do not agree on that locked payment yet; try again in a moment");
     }
     match first.waiting {
         Some(escrow) => {

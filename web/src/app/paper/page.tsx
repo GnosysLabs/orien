@@ -603,7 +603,7 @@ escrows and revealed secrets are leaves of the state root, after the accounts (t
               a P2WSH output the seller can spend with the secret, or the buyer after a block height 72 blocks ahead.
             </li>
             <li>
-              The seller spends it once it is confirmed, while at least 6 blocks remain before the buyer could. The
+              The seller spends it once it is 3 blocks deep, while at least 6 blocks remain before the buyer could. The
               spending transaction reveals the secret.
             </li>
             <li>The buyer reads the secret from Bitcoin and claims the ORN with it.</li>
@@ -619,6 +619,17 @@ OP_ENDIF`}</Formula>
             the ORN lock, so once the secret appears the buyer always has time to claim. The keys on the Bitcoin side
             are one-time keys made for the swap. The same Orien lock works against an equivalent contract on Ethereum
             for ETH and its tokens.
+          </p>
+          <p>
+            A wallet trusts neither the other side nor the Bitcoin explorers it reads. Every payment it acts on is
+            checked against the bytes of its own transaction, which hash to its id; how deep a transaction lies is
+            asked of two independent explorers, and the smaller answer used. Validators’ answers about a locked
+            payment count only when validators holding more than two thirds of the stake give the same one. Claims and
+            refunds signal replace-by-fee and are sent again, with a higher fee if they are stuck, until they are 3
+            blocks deep. The buyer’s wallet watches every payment into the lock, so a payment split in two, or paid
+            again, is never stranded, and it claims the ORN whenever the secret appears, even after starting to take
+            the Bitcoin back. A fee above a tenth of the coins is refused, and the seller saves the secret before
+            locking anything.
           </p>
         </Sub>
       </PaperSection>

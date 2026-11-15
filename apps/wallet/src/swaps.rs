@@ -8,8 +8,8 @@ use orien_ledger::{Fees, Kind};
 use orien_net::client::Client;
 use orien_net::store::write_replacing;
 use orien_swap::bitcoin;
-use orien_swap::chain::Esplora;
-use orien_swap::swap::{LockRef, Offer, Orien, Reply, Role, Stage, Swap, Waiting};
+use orien_swap::chain::{Esplora, Explorers};
+use orien_swap::swap::{LockRef, LockState, Offer, Orien, Reply, Role, Stage, Swap, Waiting};
 use serde::{Deserialize, Serialize};
 use std::fs;
 use std::path::{Path, PathBuf};
@@ -33,7 +33,8 @@ pub struct View {
     pub id: String,
     /// "sell" or "buy".
     pub role: &'static str,
-    /// "reply", "bitcoin", "secret", "claim", "done" or "cancelled".
+    /// "locking", "reply", "bitcoin", "claiming", "secret", "refunding",
+    /// "claim", "done" or "cancelled".
     pub stage: &'static str,
     pub status: String,
     pub orn: String,
@@ -47,18 +48,19 @@ pub struct View {
     pub created: u64,
 }
 
-/// The Bitcoin network swaps use: Bitcoin itself, unless `ORIEN_BITCOIN`
-/// names a test network (testnet4, signet or regtest, with
-/// `ORIEN_BITCOIN_API` for regtest's explorer).
-pub fn bitcoin() -> (bitcoin::Network, Esplora) {
+/// The Bitcoin network swaps use: Bitcoin itself, through two independent
+/// explorers, unless `ORIEN_BITCOIN` names a test network (testnet4, signet
+/// or regtest, with `ORIEN_BITCOIN_API` for regtest's explorer).
+pub fn bitcoin() -> (bitcoin::Network, Explorers) {
+    let one = |base: &str| Explorers(vec![Esplora::at(base)]);
     match std::env::var("ORIEN_BITCOIN").as_deref() {
-        Ok("testnet4") => (bitcoin::Network::Testnet4, Esplora::at("https://mempool.space/testnet4/api")),
-        Ok("signet") => (bitcoin::Network::Signet, Esplora::at("https://mempool.space/signet/api")),
+        Ok("testnet4") => (bitcoin::Network::Testnet4, one("https://mempool.space/testnet4/api")),
+        Ok("signet") => (bitcoin::Network::Signet, one("https://mempool.space/signet/api")),
         Ok("regtest") => (
             bitcoin::Network::Regtest,
-            Esplora::at(&std::env::var("ORIEN_BITCOIN_API").unwrap_or_else(|_| "http://127.0.0.1:3002".into())),
+            one(&std::env::var("ORIEN_BITCOIN_API").unwrap_or_else(|_| "http://127.0.0.1:3002".into())),
         ),
-        _ => (bitcoin::Network::Bitcoin, Esplora::bitcoin()),
+        _ => (bitcoin::Network::Bitcoin, Explorers::bitcoin()),
     }
 }
 
@@ -100,8 +102,11 @@ pub fn show_btc(sats: u64) -> String {
 pub fn view(kept: &Kept) -> View {
     let swap = &kept.swap;
     let (stage, status) = match (&swap.role, &swap.stage) {
+        (_, Stage::Preparing) => ("locking", "Locking your ORN for the buyer.".to_string()),
+        (Role::Seller, Stage::Claiming) => ("claiming", "The Bitcoin arrived. Taking it; waiting for Bitcoin to confirm that. Keep this app open.".to_string()),
+        (_, Stage::Refunding) => ("refunding", "The seller did not take the Bitcoin in time. Taking it back; keep this app open.".to_string()),
         (Role::Seller, Stage::WaitingForReply) => ("reply", "Your ORN are locked for the buyer. Send them the offer code, then paste their reply.".to_string()),
-        (Role::Seller, Stage::WaitingForBitcoin) => ("bitcoin", "Waiting for the buyer's Bitcoin to arrive and be confirmed. Keep this app open.".to_string()),
+        (Role::Seller, Stage::WaitingForBitcoin) => ("bitcoin", "Waiting for the buyer's Bitcoin to arrive and be confirmed three times, about half an hour. Keep this app open.".to_string()),
         (Role::Buyer, Stage::WaitingForBitcoin) => ("bitcoin", "Send the Bitcoin below, then send the seller the reply code. Keep this app open.".to_string()),
         (_, Stage::WaitingForSecret) => ("secret", "Paid. Waiting for the seller to take the Bitcoin, which lets this app claim your ORN.".to_string()),
         (_, Stage::ClaimingOrn) => ("claim", "The seller took the Bitcoin. Claiming your ORN.".to_string()),
@@ -136,12 +141,18 @@ pub struct AppOrien<'a> {
     pub password: Option<String>,
     pub fees: Fees,
     pub network: String,
+    pub epoch_seconds: u64,
 }
 
 impl AppOrien<'_> {
     fn send(&self, kind: Kind, to: Hash32, amount: u64) -> anyhow::Result<send::Sent> {
         let mut wallet = crate::open_signing(&self.wallet_file, self.password.as_deref()).map_err(anyhow::Error::msg)?;
-        send::send_order(self.client, &mut wallet, self.fees, kind, to, amount).map_err(anyhow::Error::msg)
+        let sent = send::send_order(self.client, &mut wallet, self.fees, kind.clone(), to, amount).map_err(anyhow::Error::msg)?;
+        // That finished an earlier payment instead: now send this one.
+        if sent.earlier {
+            return send::send_order(self.client, &mut wallet, self.fees, kind, to, amount).map_err(anyhow::Error::msg);
+        }
+        Ok(sent)
     }
 }
 
@@ -155,12 +166,19 @@ impl Orien for AppOrien<'_> {
     fn epoch(&self) -> anyhow::Result<u64> {
         Ok(self.client.epoch())
     }
-    fn waiting(&self, lock: &LockRef) -> anyhow::Result<Option<Waiting>> {
-        let locked = self.client.locked(&lock.from, lock.seq, &[0; 32]);
-        if locked.answered == 0 {
-            anyhow::bail!("no validator could be reached");
+    fn epoch_seconds(&self) -> u64 {
+        self.epoch_seconds
+    }
+    fn locked(&self, lock: &LockRef, hash: &[u8; 32]) -> anyhow::Result<LockState> {
+        let locked = self.client.locked(&lock.from, lock.seq, hash);
+        if !locked.agreed {
+            anyhow::bail!("the validators do not agree on the locked ORN yet; trying again");
         }
-        Ok(locked.waiting.map(|e| Waiting { to: e.to, amount: e.amount, hash: e.hash, until: e.until }))
+        Ok(LockState {
+            epoch: locked.epoch.max(self.client.epoch()),
+            waiting: locked.waiting.map(|e| Waiting { to: e.to, amount: e.amount, hash: e.hash, until: e.until }),
+            secret: locked.secret,
+        })
     }
     fn lock(&self, to: &Hash32, amount: u64, hash: [u8; 32], until: u64) -> anyhow::Result<LockRef> {
         let sent = self.send(Kind::Lock { hash, until }, *to, amount)?;
@@ -179,8 +197,8 @@ pub fn sell(orien: &AppOrien, buyer: &str, orn: u64, sats: u64, payout: &str) ->
         return Err("That is this wallet's own address.".into());
     }
     let (network, _) = bitcoin();
-    let (swap, offer) = Swap::sell(orien, network, buyer, orn, sats, payout.trim()).map_err(|error| error.to_string())?;
-    Ok(Kept { id: hex(&swap.hash), swap, offer: Some(offer.code()), reply: None, problem: None, created: now() })
+    let swap = Swap::sell(orien, network, buyer, orn, sats, payout.trim()).map_err(|error| error.to_string())?;
+    Ok(Kept { id: hex(&swap.hash), swap, offer: None, reply: None, problem: None, created: now() })
 }
 
 /// Takes up an offer: checks it on Orien and makes the reply.
@@ -192,17 +210,25 @@ pub fn buy(orien: &AppOrien, offer: &str, refund: &str) -> Result<Kept, String> 
 }
 
 /// The seller takes in the buyer's reply.
-pub fn accept(kept: &mut Kept, reply: &str) -> Result<(), String> {
+pub fn accept(orien: &AppOrien, kept: &mut Kept, reply: &str) -> Result<(), String> {
     let reply = Reply::read(reply).map_err(|error| error.to_string())?;
     let (_, chain) = bitcoin();
-    kept.swap.accept(&chain, &reply).map_err(|error| error.to_string())
+    kept.swap.accept(&chain, orien, &reply).map_err(|error| error.to_string())
 }
 
 /// Moves every unfinished swap along as far as it can go now.
 pub fn step(orien: &AppOrien, swaps: &mut [Kept]) {
     let (_, chain) = bitcoin();
     for kept in swaps.iter_mut().filter(|kept| !matches!(kept.swap.stage, Stage::Done | Stage::Cancelled { .. })) {
-        kept.problem = kept.swap.advance(&chain, orien).err().map(|error| error.to_string());
+        advance(orien, &chain, kept);
+    }
+}
+
+/// Moves one swap along, and makes the offer code once the ORN are locked.
+pub fn advance(orien: &AppOrien, chain: &Explorers, kept: &mut Kept) {
+    kept.problem = kept.swap.advance(chain, orien).err().map(|error| error.to_string());
+    if kept.offer.is_none() && kept.swap.role == Role::Seller && kept.swap.lock.is_some() {
+        kept.offer = kept.swap.offer(orien.network()).ok().map(|offer| offer.code());
     }
 }
 

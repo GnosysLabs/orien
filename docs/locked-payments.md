@@ -6,7 +6,12 @@ Built: the ledger rules (`crates/ledger`), the network side (`crates/net`),
 first design: a locked payment is named by its sender and order number
 (`ADDRESS:NUMBER`) rather than its digest, and the Bitcoin script also checks
 that the secret is 32 bytes (`OP_SIZE 32 OP_EQUALVERIFY`). The swap's timings
-are 48 epochs for the ORN lock and 72 blocks for the Bitcoin lock.
+are 48 hours for the ORN lock and 72 blocks for the Bitcoin lock, and a
+review before release added: payments checked against their own
+transactions, two independent explorers for confirmations (3 needed),
+replace-by-fee with re-sending until settled, every payment into the lock
+watched, the secret claimed whenever it appears, stake-weighted validator
+answers, sane fee limits, and the secret saved before anything is locked.
 
 ## In plain words
 
