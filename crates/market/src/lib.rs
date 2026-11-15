@@ -8,4 +8,5 @@ pub mod mail;
 pub mod messages;
 pub mod screen;
 pub mod store;
+pub mod swaps;
 pub mod wallets;

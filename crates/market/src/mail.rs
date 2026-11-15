@@ -37,6 +37,27 @@ impl Mailer {
         self.deliver(key, &notice.to_email, &subject, &text, &html)
     }
 
+    /// Tells a seller someone took their swap offer: their wallet must be
+    /// open for the swap to start.
+    pub fn send_swap_taken(&self, to: &str, taker: &str, origin: &str) -> Result<()> {
+        let subject = format!("{taker} took your swap offer");
+        let text = format!(
+            "{taker} took your offer on the Orien swap board.\n\nOpen Orien Wallet within 30 minutes so it can start the swap; \
+             otherwise the offer goes back on the board.\n\n{origin}/swap/\n"
+        );
+        let Some(key) = &self.key else {
+            println!("would email {to}: {subject}");
+            return Ok(());
+        };
+        let escape = |t: &str| t.replace('&', "&amp;").replace('<', "&lt;").replace('>', "&gt;");
+        let html = format!(
+            "<p>{} took your offer on the Orien swap board.</p><p>Open Orien Wallet within 30 minutes so it can start the swap; \
+             otherwise the offer goes back on the board.</p>",
+            escape(taker)
+        );
+        self.deliver(key, to, &subject, &text, &html)
+    }
+
     fn deliver(&self, key: &str, to: &str, subject: &str, text: &str, html: &str) -> Result<()> {
         let body = json!({ "from": self.from, "to": [to], "subject": subject, "text": text, "html": html });
         let response = ureq::post("https://api.resend.com/emails")

@@ -2002,6 +2002,7 @@ dependencies = [
  "openssl",
  "orien-ledger",
  "orien-net",
+ "orien-swap",
  "rusqlite",
  "serde",
  "serde_json",

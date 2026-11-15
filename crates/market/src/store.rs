@@ -286,7 +286,9 @@ impl Store {
                  PRIMARY KEY (blocker, blocked)
              );",
         )?;
-        Ok(Store { db })
+        let store = Store { db };
+        store.create_swap_tables()?;
+        Ok(store)
     }
 
     /// A new account. `handle` is the id its passkeys know it by.
@@ -311,6 +313,11 @@ impl Store {
     /// has just proven.
     pub fn create_account_with_email(&self, name: &str, email: &str) -> Result<Account> {
         self.insert_account(name, &hex::encode(random::<16>()?), Some(email))
+    }
+
+    /// The email an account signs in with, if it has one.
+    pub fn email_of(&self, account: i64) -> Result<Option<String>> {
+        Ok(self.db.query_row("SELECT email FROM accounts WHERE id = ?1", [account], |row| row.get(0)).optional()?.flatten())
     }
 
     pub fn account_by_email(&self, email: &str) -> Result<Option<i64>> {

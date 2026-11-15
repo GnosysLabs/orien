@@ -50,6 +50,39 @@ pub const MARGIN_HOURS: u64 = 18;
 /// The seller takes the Bitcoin only while at least this many blocks are
 /// left before the buyer could take it back.
 pub const SAFETY_BLOCKS: u32 = 6;
+
+/// The smallest swap, in satoshis, on the quietest Bitcoin days.
+pub const MIN_SATS: u64 = 5_000;
+
+/// The smallest swap that can complete at Bitcoin's fee rate now: the
+/// seller's claim, at three times that rate in case it has to be raised,
+/// must stay within a tenth of the coins. Never below `MIN_SATS`.
+pub fn smallest_now(fee_rate: u64) -> u64 {
+    let claim = crate::htlc::CLAIM_VBYTES * 3 * fee_rate.max(1);
+    (claim * 100).div_ceil(cap(false)).max(MIN_SATS)
+}
+
+/// A refusal of a swap too small for Bitcoin's fees now, in plain words.
+fn too_small(sats: u64, fee_rate: u64) -> Option<String> {
+    let least = smallest_now(fee_rate);
+    (sats < least).then(|| {
+        if least == MIN_SATS {
+            format!("a swap is at least {MIN_SATS} satoshis (0.00005 BTC), so that Bitcoin's fees leave enough")
+        } else {
+            format!(
+                "Bitcoin is busy right now ({fee_rate} satoshis a byte), so the smallest swap that can complete is \
+                 {least} satoshis ({}); try again when it is quieter, or swap more",
+                btc(least)
+            )
+        }
+    })
+}
+
+/// Satoshis as BTC: 12000 → "0.00012 BTC".
+fn btc(sats: u64) -> String {
+    let text = format!("{}.{:08}", sats / 100_000_000, sats % 100_000_000);
+    format!("{} BTC", text.trim_end_matches('0').trim_end_matches('.'))
+}
 /// The seller waits for this many confirmations of the buyer's payment.
 pub const CONFIRMATIONS: u32 = 3;
 /// A claim or refund counts as settled at this depth.
@@ -473,8 +506,8 @@ impl Swap {
     /// before anything is signed, so it can never be lost.
     pub fn sell(orien: &dyn Orien, bitcoin: Network, buyer: Hash32, orn: u64, sats: u64, payout: &str) -> Result<Swap> {
         Address::from_str(payout)?.require_network(bitcoin).map_err(|_| anyhow!("{payout} is not a Bitcoin address"))?;
-        if sats < 20_000 {
-            bail!("a swap needs at least 20,000 satoshis (0.0002 BTC), so that Bitcoin's fees leave enough");
+        if sats < MIN_SATS {
+            bail!("a swap is at least {MIN_SATS} satoshis (0.00005 BTC), so that Bitcoin's fees leave enough");
         }
         let seconds = orien.epoch_seconds().max(1);
         let epochs = (ORN_HOURS * 3_600).div_ceil(seconds).clamp(2, 720);
@@ -532,6 +565,11 @@ impl Swap {
             bail!("that offer is for {}, not this wallet", offer.buyer);
         }
         their_key(&offer.key, "offer")?;
+        // Before paying anything: a swap Bitcoin's fees now would stop the
+        // seller from completing is refused, rather than started and cancelled.
+        if let Some(refusal) = too_small(offer.sats, chain.fee_rate()?) {
+            bail!("{refusal}");
+        }
         let state = orien.proven(&offer.lock).context("the seller's locked ORN cannot be proven yet")?;
         if state.secret.is_some() {
             bail!("the ORN in that offer were already claimed");
@@ -892,5 +930,20 @@ impl Swap {
         // Any Bitcoin the seller left in the lock comes back.
         self.stage = Stage::WaitingForSecret;
         self.buyer_watch(chain, orien)
+    }
+}
+
+#[cfg(test)]
+mod minimum {
+    use super::*;
+
+    #[test]
+    fn the_smallest_swap_follows_bitcoins_fees() {
+        assert_eq!(smallest_now(1), MIN_SATS, "on a quiet day, the floor");
+        assert_eq!(smallest_now(2), 9_600);
+        assert_eq!(smallest_now(10), 48_000);
+        assert!(too_small(MIN_SATS, 1).is_none());
+        assert!(too_small(4_999, 1).unwrap().contains("at least 5000"));
+        assert!(too_small(5_000, 10).unwrap().contains("0.00048 BTC"));
     }
 }
