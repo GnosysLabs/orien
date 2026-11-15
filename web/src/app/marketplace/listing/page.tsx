@@ -7,7 +7,7 @@ export const metadata: Metadata = { title: 'Listing', robots: { index: false } }
 
 export default function ListingPage() {
   return (
-    <div className="mx-auto max-w-[760px] pb-16">
+    <div className="mx-auto max-w-[900px] pb-16">
       <MarketBar />
       <Suspense>
         <ListingView />
