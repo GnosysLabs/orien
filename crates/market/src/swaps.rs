@@ -21,8 +21,9 @@ pub const MAX_OFFERS: i64 = 5;
 /// Lapses in a week after which an account may not take offers for a week.
 pub const LAPSES_ALLOWED: i64 = 2;
 const WEEK: u64 = 7 * 24 * 3600;
-/// The smallest swap, as the wallet allows.
-pub const MIN_SATS: u64 = 20_000;
+/// The smallest swap, as the wallet allows on a quiet Bitcoin day. On a
+/// busy one the wallet asks for more before anyone pays.
+pub const MIN_SATS: u64 = orien_swap::swap::MIN_SATS;
 
 #[derive(Clone, Debug, PartialEq, Eq, Serialize)]
 pub struct SwapOffer {
@@ -133,7 +134,7 @@ impl Store {
             bail!("offer more than nothing");
         }
         if sats < MIN_SATS {
-            bail!("a swap is at least 20,000 satoshis (0.0002 BTC), so that Bitcoin's fees leave enough");
+            bail!("a swap is at least {MIN_SATS} satoshis (0.00005 BTC), so that Bitcoin's fees leave enough");
         }
         let open: i64 = self.db.query_row(
             "SELECT COUNT(*) FROM swap_offers WHERE seller = ?1 AND state IN ('open', 'held', 'swapping')",

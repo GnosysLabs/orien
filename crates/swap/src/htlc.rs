@@ -190,6 +190,11 @@ pub fn secret_in(tx: &Transaction, hash: &[u8; 32]) -> Option<[u8; 32]> {
     })
 }
 
+/// The most a claim of one coin takes, in virtual bytes, paying out to any
+/// usual kind of address (a taproot one is the largest). Pricing swaps by it
+/// errs on the safe side.
+pub const CLAIM_VBYTES: u64 = 160;
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -219,6 +224,17 @@ mod tests {
     fn to() -> Address {
         let (_, key) = new_key();
         Address::p2wpkh(&bitcoin::CompressedPublicKey(key.inner), Network::Bitcoin)
+    }
+
+    #[test]
+    fn a_claim_of_one_coin_fits_its_estimated_size() {
+        let (lock, payee_key, _, secret) = lock(900_000);
+        let (_, key) = new_key();
+        let taproot = Address::p2tr(&bitcoin::secp256k1::Secp256k1::new(), key.inner.x_only_public_key().0, None, Network::Bitcoin);
+        for payout in [to(), taproot] {
+            let tx = lock.claim(&[coin(1, 1_000_000)], &secret, &payee_key, &payout, 1, 10).unwrap();
+            assert!(tx.vsize() as u64 <= CLAIM_VBYTES, "a claim of {} vbytes", tx.vsize());
+        }
     }
 
     #[test]
