@@ -9,4 +9,10 @@ sha2.workspace = true
 orien-crypto.workspace = true
 borsh.workspace = true
 serde.workspace = true
-randomx-rs.workspace = true
+randomx-rs = { workspace = true, optional = true }
+
+[features]
+# RandomX, which mining and checking shares need from epoch 21 on. On by
+# default; the iPhone wallet, which does neither, builds without it.
+default = ["randomx"]
+randomx = ["dep:randomx-rs"]

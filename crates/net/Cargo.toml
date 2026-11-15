@@ -15,3 +15,9 @@ getrandom.workspace = true
 hex.workspace = true
 serde.workspace = true
 serde_json.workspace = true
+
+[features]
+# RandomX for mining and checking shares: on by default. The iPhone wallet
+# turns it off (default-features = false), as it does neither.
+default = ["randomx"]
+randomx = ["orien-ledger/randomx"]

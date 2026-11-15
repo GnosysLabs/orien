@@ -10,7 +10,8 @@ repository = "https://github.com/GnosysLabs/orien"
 
 [workspace.dependencies]
 orien-crypto = { path = "crates/crypto" }
-orien-ledger = { path = "crates/ledger" }
+# Without RandomX unless a crate asks for it: see orien-ledger's features.
+orien-ledger = { path = "crates/ledger", default-features = false }
 orien-net = { path = "crates/net" }
 anyhow = "1"
 argon2 = "0.5"
