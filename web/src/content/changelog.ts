@@ -41,11 +41,10 @@ export const CHANGELOG: Entry[] = [
     date: '2026-11-15',
     products: ['wallet'],
     version: '1.5.0',
-    unreleased: true,
     title: 'Several wallets, and mining in the app',
     changes: [
       'Keep several wallets in one app: tap the wallet’s name above the balance to switch, rename them (Main, Mining…), add a new one or restore one from its recovery phrase. Each has its own address, recovery phrase and activity. Removing one only takes it off the list.',
-      'Mine ORN from the app: Start and Stop, a processor slider, and live speed, shares this hour, the network’s difficulty and your last mining reward. It mines to the open wallet while the app is open.',
+      'Mine ORN from the app, with RandomX: Start and Stop, a processor slider, and live speed, shares this hour and your last mining reward. It mines to the open wallet while the app is open, and the Mine button on Home shows when it is on.',
       'The Swap screen has two tabs, Offers and Your swaps. Swaps keep the wallet they started with, and the screen says which wallet marketplace payments go to, with a button to change it.',
       'Sellers’ photos show on the Swap screen, with their initial while a photo loads.',
     ],
