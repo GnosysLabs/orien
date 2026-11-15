@@ -5,6 +5,10 @@
 #
 #   systemctl enable --now orien-market
 #
+# The founder's dashboard listens on 127.0.0.1:7201, put on the tailnet only by
+#   tailscale serve --bg --https=8448 http://127.0.0.1:7201
+# and opened at https://cyphers-vps.yakalo-lizard.ts.net:8448/admin/
+#
 # Looking after it:
 #   sudo -u orien-market orien-market --db /var/lib/orien-market/market.db reports
 
@@ -23,7 +27,9 @@ ExecStart=/usr/local/bin/orien-market \
     --genesis /etc/orien-market/genesis.json \
     --address 74fa1ab82c45ebeed539b03146243ddfc6f0ccb5163f45ea87d21692ba774b7a \
     --resend-key /etc/orien-market/resend.key \
-    --openrouter-key /etc/orien-market/openrouter.key
+    --openrouter-key /etc/orien-market/openrouter.key \
+    --admin-listen 127.0.0.1:7201 \
+    --admin-site /var/www/orien.network/current
 Restart=always
 RestartSec=5
 

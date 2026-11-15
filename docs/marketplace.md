@@ -123,3 +123,20 @@ Later: messages between buyer and seller (spam and abuse make them the
 hardest part to run well, so at first a listing says how to reach the
 seller), pictures, reporting listings and removing them, and Bitcoin trades
 as listings, using swaps.
+
+## The admin dashboard
+
+https://cyphers-vps.yakalo-lizard.ts.net:8448/admin/, from any device on the
+founder's tailnet. It shows reports (with take down, suspend and "dealt
+with"), the validators and the epoch, mining difficulty, signing keys left,
+marketplace and swap numbers, account search, and the server's disk and
+services.
+
+- `orien-market` serves it on 127.0.0.1:7201 (`--admin-listen`), with the
+  page from the published site (`--admin-site`).
+- `tailscale serve --bg --https=8448 http://127.0.0.1:7201` puts it on the
+  tailnet only. Tailscale adds the visitor's login as Tailscale-User-Login;
+  a release build refuses any request without it. `--admin-logins` can
+  narrow it to named logins.
+- The public site answers 404 for /admin (deploy/nginx-orien-market.conf),
+  and never forwards to port 7201.

@@ -4,6 +4,7 @@
 
 use anyhow::{Context, Result};
 use orien_ledger::{AccountId, Income};
+use serde::Serialize;
 use orien_net::client::Client;
 use std::path::Path;
 use std::sync::Mutex;
@@ -24,17 +25,51 @@ pub trait Payments: Send + Sync {
     fn received(&self, to: &AccountId, from: u64) -> Result<Vec<Incoming>>;
     /// Whether `account` has ever held ORN or paid anything.
     fn has_held(&self, account: &AccountId) -> Result<bool>;
+    /// How the network is doing, for the founder's dashboard.
+    fn status(&self) -> Result<NetworkStatus>;
+}
+
+/// One validator, as it answered (or did not).
+#[derive(Clone, Debug, Default, Serialize)]
+pub struct ValidatorStatus {
+    pub endpoint: String,
+    pub up: bool,
+    pub name: String,
+    /// Its place in this epoch's list of validators.
+    pub seat: Option<u16>,
+    pub epoch: u64,
+    pub closing: bool,
+    pub accounts: u64,
+    pub certificates: u64,
+    /// Signing keys it has used of its key tree, and how many it has.
+    pub keys_used: u32,
+    pub keys_total: u32,
+}
+
+/// The network as a whole.
+#[derive(Clone, Debug, Default, Serialize)]
+pub struct NetworkStatus {
+    pub validators: Vec<ValidatorStatus>,
+    pub epoch: u64,
+    /// When the epoch under way began, in seconds since 1970.
+    pub epoch_started: u64,
+    pub epoch_seconds: u64,
+    /// Mining's target now and at launch: a lower target is harder.
+    pub target: Option<u64>,
+    pub first_target: u64,
 }
 
 /// The live network, asked through its validators.
 pub struct Network {
     client: Client,
+    epoch_seconds: u64,
+    first_target: u64,
 }
 
 impl Network {
     pub fn open(genesis: &Path) -> Result<Network> {
         let genesis = orien_net::keys::load_genesis(genesis).context("cannot read the genesis file")?;
-        Ok(Network { client: Client::new(&genesis) })
+        Ok(Network { client: Client::new(&genesis), epoch_seconds: genesis.epoch_seconds, first_target: genesis.first_target })
     }
 }
 
@@ -70,6 +105,48 @@ impl Payments for Network {
         let held = status.views.iter().flatten().any(|view| view.balance > 0 || view.seq > 0);
         Ok(held || status.seq > 0 || status.proven.is_some())
     }
+
+    fn status(&self) -> Result<NetworkStatus> {
+        let endpoints = self.client.endpoints();
+        let infos = self.client.info();
+        let epoch = infos.iter().flatten().map(|info| info.epoch).max().unwrap_or(0);
+        let epoch_started =
+            infos.iter().flatten().filter(|info| info.epoch == epoch).map(|info| info.epoch_started).max().unwrap_or(0);
+        let validators: Vec<ValidatorStatus> = infos
+            .into_iter()
+            .enumerate()
+            .map(|(index, info)| {
+                let endpoint = endpoints.get(index).cloned().unwrap_or_default();
+                match info {
+                    Ok(info) => ValidatorStatus {
+                        endpoint,
+                        up: true,
+                        name: info.name,
+                        seat: info.validator,
+                        epoch: info.epoch,
+                        closing: info.closing,
+                        accounts: info.accounts,
+                        certificates: info.certificates,
+                        keys_used: info.keys_used,
+                        keys_total: info.keys_total,
+                    },
+                    Err(_) => ValidatorStatus { endpoint, ..ValidatorStatus::default() },
+                }
+            })
+            .collect();
+        if validators.iter().all(|v| !v.up) {
+            anyhow::bail!("no validator answers");
+        }
+        let work = self.client.work();
+        Ok(NetworkStatus {
+            validators,
+            epoch,
+            epoch_started,
+            epoch_seconds: self.epoch_seconds,
+            target: work.map(|(_, _, target)| target),
+            first_target: self.first_target,
+        })
+    }
 }
 
 /// For tests: payments added by hand.
@@ -93,6 +170,10 @@ impl Payments for Fake {
 
     fn has_held(&self, account: &AccountId) -> Result<bool> {
         Ok(self.held.lock().unwrap().contains(account))
+    }
+
+    fn status(&self) -> Result<NetworkStatus> {
+        Ok(NetworkStatus { epoch: *self.epoch.lock().unwrap(), epoch_seconds: 3600, first_target: 1, ..NetworkStatus::default() })
     }
 }
 

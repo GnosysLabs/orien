@@ -43,6 +43,17 @@ struct Args {
     /// paying a small amount to it. Needed to run the server.
     #[arg(long)]
     address: Option<String>,
+    /// Also serve the founder's dashboard here, such as 127.0.0.1:7201, for
+    /// `tailscale serve` to put on the tailnet. Never behind the public site.
+    #[arg(long)]
+    admin_listen: Option<String>,
+    /// The website's folder, for the dashboard's page (/admin/).
+    #[arg(long)]
+    admin_site: Option<PathBuf>,
+    /// Tailscale logins allowed to use the dashboard, comma-separated.
+    /// Without any, everyone on the tailnet may.
+    #[arg(long, value_delimiter = ',')]
+    admin_logins: Vec<String>,
     /// Who the codes come from.
     #[arg(long, default_value = "Orien marketplace <noreply@orien.network>")]
     from: String,
@@ -165,6 +176,17 @@ async fn main() -> Result<()> {
     )?);
     let listener = tokio::net::TcpListener::bind(&args.listen).await?;
     println!("marketplace server for {} listening on {}", args.origin, args.listen);
+    if let Some(at) = &args.admin_listen {
+        let admins = orien_market::admin::Admins(args.admin_logins.iter().map(|l| l.trim().to_string()).filter(|l| !l.is_empty()).collect());
+        let routes = orien_market::admin::admin_router(app.clone(), admins, args.admin_site.as_deref());
+        let listener = tokio::net::TcpListener::bind(at).await?;
+        println!("dashboard listening on {at}");
+        tokio::spawn(async move {
+            if let Err(error) = axum::serve(listener, routes).await {
+                eprintln!("the dashboard stopped: {error}");
+            }
+        });
+    }
     let mut routes = router(app);
     if let Some(site) = &args.site {
         routes = routes.fallback_service(tower_http::services::ServeDir::new(site));

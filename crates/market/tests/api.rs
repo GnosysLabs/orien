@@ -9,7 +9,7 @@ use orien_market::mail::Mailer;
 use orien_market::prices::Prices;
 use orien_market::screen::Screener;
 use orien_market::store::Store;
-use orien_market::wallets::{Fake, Incoming};
+use orien_market::wallets::Fake;
 use serde_json::{Value, json};
 use std::sync::Arc;
 use tower::ServiceExt;

@@ -113,6 +113,14 @@ impl App {
         (at.elapsed() < CEREMONY).then_some(ceremony)
     }
 
+    pub(crate) fn store(&self) -> std::sync::MutexGuard<'_, Store> {
+        self.store.lock().unwrap()
+    }
+
+    pub(crate) fn payments(&self) -> Arc<dyn Payments> {
+        self.payments.clone()
+    }
+
     fn signed_in(&self, headers: &HeaderMap) -> Result<i64, Failure> {
         let token = cookie(headers).ok_or(Failure::SignIn)?;
         self.store.lock().unwrap().session(&token)?.ok_or(Failure::SignIn)
@@ -141,6 +149,8 @@ pub enum Failure {
     /// Something that cannot be done right now, said in plain words.
     Unavailable(String),
     SignIn,
+    /// Not allowed here at all, such as the dashboard off the tailnet.
+    Forbidden(String),
     NotFound,
     Broken(anyhow::Error),
 }
@@ -157,6 +167,7 @@ impl IntoResponse for Failure {
             Failure::Refused(message) => (StatusCode::BAD_REQUEST, message),
             Failure::Unavailable(message) => (StatusCode::SERVICE_UNAVAILABLE, message),
             Failure::SignIn => (StatusCode::UNAUTHORIZED, "sign in first".to_string()),
+            Failure::Forbidden(message) => (StatusCode::FORBIDDEN, message),
             Failure::NotFound => (StatusCode::NOT_FOUND, "not found".to_string()),
             Failure::Broken(error) => {
                 eprintln!("marketplace error: {error:#}");
