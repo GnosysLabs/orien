@@ -119,8 +119,8 @@ export function ProfileEditor({ account, onSaved }: { account: Account; onSaved:
             placeholder="Email"
             className={field}
           />
-          <input value={telegram} onChange={(e) => setTelegram(e.target.value)} placeholder="Telegram @username" className={field} />
-          <input value={x} onChange={(e) => setX(e.target.value)} placeholder="X @username" className={field} />
+          <input value={telegram} onChange={(e) => setTelegram(e.target.value)} placeholder="Telegram" className={field} />
+          <input value={x} onChange={(e) => setX(e.target.value)} placeholder="X" className={field} />
         </div>
       </fieldset>
       {trouble && <Notice tone="bad">{trouble}</Notice>}
