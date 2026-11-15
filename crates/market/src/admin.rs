@@ -57,6 +57,7 @@ pub fn admin_router(app: Arc<App>, admins: Admins, site: Option<&std::path::Path
     let state = Admin { app: app.clone(), admins };
     let routes = Router::new()
         .route("/api/admin/overview", get(overview))
+        .route("/api/admin/tokenomics", get(tokenomics))
         .route("/api/admin/reports", get(reports))
         .route("/api/admin/reports/{id}/handled", post(handled))
         .route("/api/admin/listings/{id}/remove", post(remove_listing))
@@ -275,6 +276,13 @@ impl Store {
         Ok(self.admin_accounts("a.id = CAST(?1 AS INTEGER)", &id.to_string(), 1)?.into_iter().next())
     }
 
+    /// The accounts that named `address` as their wallet, as "Maya, Sam".
+    pub fn wallet_owner(&self, address: &str) -> Result<Option<String>> {
+        let mut statement = self.db.prepare("SELECT name FROM accounts WHERE payout = ?1 ORDER BY id")?;
+        let names: Vec<String> = statement.query_map([address], |row| row.get(0))?.collect::<rusqlite::Result<_>>()?;
+        Ok((!names.is_empty()).then(|| names.join(", ")))
+    }
+
     /// Who a report is about: a listing's seller, the account itself, or a
     /// message's sender.
     pub fn report_owner(&self, kind: &str, target: i64) -> Result<Option<i64>> {
@@ -327,6 +335,27 @@ async fn overview(State(admin): State<Admin>, headers: HeaderMap) -> Answer {
         Err(error) => json!({ "error": format!("{error:#}") }),
     };
     Ok(Json(json!({ "login": login, "generated": now(), "network": network, "market": market, "server": server })).into_response())
+}
+
+async fn tokenomics(State(admin): State<Admin>, headers: HeaderMap) -> Answer {
+    admin.admins.check(&headers)?;
+    let payments = admin.app.payments();
+    let found = tokio::task::spawn_blocking(move || payments.tokenomics()).await.map_err(|e| Failure::Broken(e.into()))?;
+    match found {
+        Ok(tokenomics) => {
+            // Wallets the marketplace knows, by the accounts that linked them.
+            let mut names: serde_json::Map<String, serde_json::Value> = serde_json::Map::new();
+            let store = admin.app.store();
+            for holder in &tokenomics.top {
+                if let Some(name) = store.wallet_owner(&holder.address)? {
+                    names.insert(holder.address.clone(), json!(name));
+                }
+            }
+            names.insert(admin.app.own_address().to_string(), json!("The marketplace's own wallet"));
+            Ok(Json(json!({ "tokenomics": tokenomics, "names": names })).into_response())
+        }
+        Err(error) => Err(Failure::Unavailable(format!("{error:#}"))),
+    }
 }
 
 async fn reports(State(admin): State<Admin>, headers: HeaderMap) -> Answer {

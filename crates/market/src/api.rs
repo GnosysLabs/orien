@@ -47,8 +47,7 @@ pub struct App {
     /// Bitcoin's price in dollars.
     prices: Arc<crate::prices::Prices>,
     /// The marketplace's own Orien address. Sellers once proved their
-    /// wallets by paying it; nothing uses it now, but the service still names it.
-    #[allow(dead_code)]
+    /// wallets by paying it; the dashboard names it among the holders.
     address: String,
     /// Whether the cookie is only sent over https: everywhere but tests.
     secure: bool,
@@ -115,6 +114,10 @@ impl App {
 
     pub(crate) fn store(&self) -> std::sync::MutexGuard<'_, Store> {
         self.store.lock().unwrap()
+    }
+
+    pub(crate) fn own_address(&self) -> &str {
+        &self.address
     }
 
     pub(crate) fn payments(&self) -> Arc<dyn Payments> {

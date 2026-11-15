@@ -415,6 +415,16 @@ impl State {
         self.accounts.get(id)
     }
 
+    /// Every account, in address order, for reading: what holds the coins.
+    pub fn each_account(&self) -> impl Iterator<Item = (&AccountId, &Account)> {
+        self.accounts.iter()
+    }
+
+    /// Coins in locked payments not yet claimed or refunded.
+    pub fn escrowed(&self) -> u128 {
+        self.escrows.values().map(|escrow| escrow.amount as u128).sum()
+    }
+
     pub fn accounts(&self) -> usize {
         self.accounts.len()
     }
