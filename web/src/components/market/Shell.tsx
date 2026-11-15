@@ -32,20 +32,16 @@ export function MarketBar() {
     }
   }, [])
   const swapping = pathname.startsWith('/swap')
-  const tab = (on: boolean) =>
-    `flex h-9 items-center gap-2 rounded-lg px-3.5 text-sm font-semibold transition ${
-      on ? 'bg-raised text-ink' : 'text-muted hover:text-ink'
-    }`
   return (
     <div className="flex flex-wrap items-center gap-3 pb-8 pt-10 sm:pt-14">
-      <nav aria-label="Marketplace and swaps" className="flex items-center gap-1 rounded-xl border border-line bg-surface p-1">
-        <Link href="/marketplace/" aria-current={swapping ? undefined : 'page'} className={tab(!swapping)}>
-          <Store className={`h-4 w-4 ${swapping ? '' : 'text-pearl'}`} strokeWidth={2} aria-hidden /> Marketplace
-        </Link>
-        <Link href="/swap/" aria-current={swapping ? 'page' : undefined} className={tab(swapping)}>
-          <ArrowLeftRight className={`h-4 w-4 ${swapping ? 'text-pearl' : ''}`} strokeWidth={2} aria-hidden /> Swap
-        </Link>
-      </nav>
+      <Link href={swapping ? '/swap/' : '/marketplace/'} className="flex items-center gap-2.5">
+        {swapping ? (
+          <ArrowLeftRight className="h-6 w-6 text-pearl" strokeWidth={1.75} aria-hidden />
+        ) : (
+          <Store className="h-6 w-6 text-pearl" strokeWidth={1.75} aria-hidden />
+        )}
+        <span className="text-xl font-bold tracking-tight text-ink sm:text-2xl">{swapping ? 'Buy & sell ORN' : 'Marketplace'}</span>
+      </Link>
       <div className="ml-auto flex items-center gap-2">
         {account && (
           <Link
@@ -73,7 +69,7 @@ export function MarketBar() {
           href={swapping ? '/swap/#post' : '/marketplace/sell/'}
           className="pearl-fill flex h-10 items-center gap-2 rounded-xl px-4 text-sm font-bold transition hover:brightness-105"
         >
-          <Plus className="h-4 w-4" strokeWidth={2.5} aria-hidden /> {swapping ? 'Post an offer' : 'Sell something'}
+          <Plus className="h-4 w-4" strokeWidth={2.5} aria-hidden /> {swapping ? 'Sell ORN' : 'Sell something'}
         </Link>
       </div>
     </div>

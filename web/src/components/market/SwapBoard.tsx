@@ -62,12 +62,21 @@ export function SwapBoard() {
     <div className="space-y-10">
       <header className="space-y-4">
         <h1 className="text-balance text-4xl font-bold leading-[1.1] tracking-tight text-ink sm:text-5xl">
-          Swap ORN and Bitcoin
+          Buy and sell ORN
         </h1>
         <p className="max-w-[680px] text-lg leading-relaxed text-muted">
-          Trade directly with another person, with nobody in the middle. Either both of you get paid, or both of you get
-          your coins back: nobody can take the other side&apos;s coins, and this site never touches them.
+          Buy ORN with Bitcoin, or sell your ORN for Bitcoin, directly with another person and with nobody in the middle.
+          Either both of you get paid, or both of you get your coins back: nobody can take the other side&apos;s coins,
+          and this site never touches them.
         </p>
+        <div className="flex flex-wrap gap-3">
+          <a href="#buy" className="pearl-fill flex h-11 items-center rounded-xl px-6 text-sm font-bold">
+            Buy ORN
+          </a>
+          <a href="#post" className="flex h-11 items-center rounded-xl border border-line bg-surface px-6 text-sm font-bold text-ink hover:bg-raised">
+            Sell ORN
+          </a>
+        </div>
       </header>
 
       <section className="grid gap-4 sm:grid-cols-3">
@@ -95,9 +104,12 @@ export function SwapBoard() {
       )}
       {trouble && <Notice tone="bad">{trouble}</Notice>}
 
-      <section className="space-y-4">
+      <section id="buy" className="scroll-mt-24 space-y-4">
         <div className="flex flex-wrap items-end justify-between gap-3">
-          <h2 className="text-2xl font-bold tracking-tight text-ink">Offers</h2>
+          <div>
+            <h2 className="text-2xl font-bold tracking-tight text-ink">Buy ORN</h2>
+            <p className="text-sm text-muted">Offers from people selling ORN for Bitcoin. Take one in Orien Wallet.</p>
+          </div>
           <p className="text-sm text-muted">
             Cheapest first{usd && <> · Bitcoin at {dollars(usd)}, so dollar values are a guide</>}
           </p>
@@ -214,7 +226,8 @@ function PostOffer({
     <form id="post" onSubmit={post} className={`${card} scroll-mt-24 space-y-4`}>
       <div className="flex items-center gap-3">
         <Bitcoin className="h-5 w-5 text-pearl" aria-hidden />
-        <h2 className="text-lg font-bold tracking-tight text-ink">Sell ORN for Bitcoin</h2>
+        <h2 className="text-2xl font-bold tracking-tight text-ink">Sell ORN</h2>
+        <p className="text-sm text-muted">Post an offer, and get Bitcoin for your ORN when someone takes it.</p>
       </div>
       {!account ? (
         <p className="text-sm text-muted">
