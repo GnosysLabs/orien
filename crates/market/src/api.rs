@@ -195,7 +195,10 @@ struct EmailStart {
 /// account, so nobody can use it to find out who is a member.
 async fn email_start(State(app): State<Arc<App>>, Json(request): Json<EmailStart>) -> Answer {
     let email = store::email(&request.email).map_err(refused)?;
-    let code = app.store.lock().unwrap().issue_code(&email).map_err(refused)?;
+    let Some(code) = app.store.lock().unwrap().issue_code(&email).map_err(refused)? else {
+        // One was sent a moment ago, and still works.
+        return Ok(Json(json!({ "sent": email })).into_response());
+    };
     let mailer = app.mailer.clone();
     let to = email.clone();
     tokio::task::spawn_blocking(move || mailer.send_code(&to, &code))
@@ -408,7 +411,7 @@ impl App {
     pub fn code_for_tests(&self, email: &str) -> String {
         let store = self.store.lock().unwrap();
         store.forget_codes_for_tests();
-        store.issue_code(email).unwrap()
+        store.issue_code(email).unwrap().unwrap()
     }
 }
 

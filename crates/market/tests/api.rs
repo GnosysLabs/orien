@@ -150,7 +150,7 @@ async fn an_email_code_signs_in_and_a_new_email_is_asked_for_a_name() {
     let (status, body) = market.ask("POST", "/api/market/email/start", None, Some(start.clone())).await;
     assert_eq!((status, body["sent"].as_str()), (StatusCode::OK, Some("maya@example.com")));
     let (status, _) = market.ask("POST", "/api/market/email/start", None, Some(start)).await;
-    assert_eq!(status, StatusCode::BAD_REQUEST, "one code a minute");
+    assert_eq!(status, StatusCode::OK, "asking again within a minute sends nothing new, and the first code still works");
     let (status, _) =
         market.ask("POST", "/api/market/email/start", None, Some(json!({ "email": "nonsense" }))).await;
     assert_eq!(status, StatusCode::BAD_REQUEST);

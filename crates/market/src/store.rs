@@ -200,13 +200,14 @@ impl Store {
         Ok(self.db.query_row("SELECT id FROM accounts WHERE email = ?1", [email], |row| row.get(0)).optional()?)
     }
 
-    /// A new sign-in code for `email`, to send there. At most one a minute.
-    pub fn issue_code(&self, email: &str) -> Result<String> {
+    /// A new sign-in code for `email`, to send there; none when one was sent
+    /// in the last minute, which still works.
+    pub fn issue_code(&self, email: &str) -> Result<Option<String>> {
         let at = now();
         let last: Option<u64> =
             self.db.query_row("SELECT sent FROM codes WHERE email = ?1", [email], |row| row.get(0)).optional()?;
         if last.is_some_and(|sent| at < sent + CODE_GAP) {
-            bail!("a code was sent a moment ago; check your email, or ask again in a minute");
+            return Ok(None);
         }
         let number = u32::from_le_bytes(random::<4>()?) % 1_000_000;
         let code = format!("{number:06}");
@@ -214,7 +215,7 @@ impl Store {
             "INSERT OR REPLACE INTO codes (email, code, sent, tries) VALUES (?1, ?2, ?3, 0)",
             params![email, code_hash(email, &code), at],
         )?;
-        Ok(code)
+        Ok(Some(code))
     }
 
     /// Checks a sign-in code. Each code allows a few tries and lasts a few
@@ -498,9 +499,9 @@ mod tests {
         assert_eq!(maya, "maya@example.com");
         assert!(email("not an email").is_err() && email("a@b").is_err() && email("a b@c.com").is_err());
         assert!(store.check_code(&maya, "123456", true).is_err(), "no code asked for");
-        let code = store.issue_code(&maya).unwrap();
+        let code = store.issue_code(&maya).unwrap().unwrap();
         assert_eq!(code.len(), 6);
-        assert!(store.issue_code(&maya).is_err(), "one code a minute");
+        assert_eq!(store.issue_code(&maya).unwrap(), None, "one code a minute");
         let wrong = if code == "000000" { "111111" } else { "000000" };
         assert!(store.check_code(&maya, wrong, true).is_err());
         store.check_code(&maya, &code, false).unwrap();
@@ -508,7 +509,7 @@ mod tests {
         assert!(store.check_code(&maya, &code, true).is_err(), "a code works once");
 
         store.db.execute("DELETE FROM codes", []).unwrap();
-        let code = store.issue_code(&maya).unwrap();
+        let code = store.issue_code(&maya).unwrap().unwrap();
         for _ in 0..CODE_TRIES {
             let _ = store.check_code(&maya, wrong, true);
         }

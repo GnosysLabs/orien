@@ -5,13 +5,20 @@ import { useEffect, useState } from 'react'
 import { Plus, Store, UserRound } from 'lucide-react'
 import { me, type Account } from '@/lib/market'
 
+/** Sent when this browser signs in or out, so every part of the page catches up. */
+export const SIGNED_IN_OR_OUT = 'orien-market-account'
+
 /** The marketplace's own bar: its name, selling, and your account. */
 export function MarketBar() {
   const [account, setAccount] = useState<Account | null | undefined>(undefined)
   useEffect(() => {
-    me()
-      .then((found) => setAccount(found?.account ?? null))
-      .catch(() => setAccount(null))
+    const load = () =>
+      me()
+        .then((found) => setAccount(found?.account ?? null))
+        .catch(() => setAccount(null))
+    void load()
+    window.addEventListener(SIGNED_IN_OR_OUT, load)
+    return () => window.removeEventListener(SIGNED_IN_OR_OUT, load)
   }, [])
   return (
     <div className="flex flex-wrap items-center gap-3 pb-6 pt-10 sm:pt-14">

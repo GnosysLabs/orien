@@ -5,7 +5,7 @@ import { useEffect, useState } from 'react'
 import { LogOut, Mail } from 'lucide-react'
 import { ask, me, type Account, type Listing } from '@/lib/market'
 import { Card } from './Browse'
-import { Notice } from './Shell'
+import { Notice, SIGNED_IN_OR_OUT } from './Shell'
 
 type Found = { account: Account; listings: Listing[] }
 
@@ -14,7 +14,10 @@ export function AccountView() {
   const [trouble, setTrouble] = useState('')
   const reload = () =>
     me()
-      .then(setFound)
+      .then((next) => {
+        if ((next === null) !== (found === null || found === undefined)) window.dispatchEvent(new Event(SIGNED_IN_OR_OUT))
+        setFound(next)
+      })
       .catch((error: Error) => {
         setTrouble(error.message)
         setFound(null)
