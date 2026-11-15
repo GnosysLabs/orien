@@ -175,6 +175,11 @@
   #mine-count { color: var(--faint); font-weight: 400; }
   /* Wallets */
   #mn-cpu { width: 100%; accent-color: #b8c7ff; }
+  #mine { overflow-y: auto; margin: 0 -28px; padding: 0 28px 8px; }
+  #mine > * { flex-shrink: 0; }
+  .mine-status { padding: 16px 18px; border: 1px solid var(--line); border-radius: 18px; background: var(--surface); }
+  .mine-status .speed { font-size: 20px; font-weight: 500; }
+  .mine-status .sub { margin-top: 4px; font-size: 12.5px; color: var(--dim); }
   .wallet-chip { display: inline-flex; align-items: center; gap: 6px; margin: -6px 0 12px 2px; padding: 5px 10px;
     border: 1px solid var(--line); border-radius: 999px; background: transparent; cursor: pointer; font-size: 12.5px; color: var(--dim); }
   .wallet-chip:hover { color: var(--ink); background: #ffffff08; }
@@ -618,24 +623,20 @@
     <!-- Mining -->
     <section class="screen" id="mine" hidden>
       <div class="topline"><button class="back" data-back aria-label="Back"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10 3 5 8l5 5"/></svg></button><h2>Mine ORN</h2></div>
-      <p class="lede">This computer does proof-of-work for the network. Every hour, the new ORN are shared among everyone who mined, in proportion to the work each did. Mining runs only while Orien Wallet is open: closing it stops mining. It needs about 2 GB of memory.</p>
-      <div class="review">
-        <div class="row"><span>Mines to</span><span id="mn-wallet"></span></div>
-        <div class="row"><span>Speed</span><span id="mn-speed">—</span></div>
-        <div class="row"><span>Shares this hour</span><span id="mn-shares">—</span></div>
-        <div class="row"><span>Last mining reward</span><span id="mn-reward">—</span></div>
+      <p class="lede">Earn a share of each hour's new ORN while this app is open.</p>
+      <div class="mine-status">
+        <div class="speed" id="mn-speed">Stopped</div>
+        <div class="sub" id="mn-shares"></div>
+        <div class="sub">To <span id="mn-wallet"></span> · Last reward <span id="mn-reward">none yet</span></div>
       </div>
-      <div class="field" data-gap="xl">
-        <label for="mn-cpu">Processor: <span id="mn-cpu-text"></span></label>
+      <div class="field" data-gap="lg">
+        <label for="mn-cpu">Processor <span id="mn-cpu-text"></span></label>
         <input type="range" id="mn-cpu" min="1" max="100" step="1" value="50">
-        <div class="hint">Less leaves this computer quicker for other work; 100% uses all of it.</div>
       </div>
-      <p class="fineprint" id="mn-light" hidden>Light mode: this computer lacks the 2 GB of memory RandomX needs for full speed, so it mines more slowly.</p>
-      <p class="fineprint" id="mn-odds"></p>
-      <p class="fineprint">No promises: what each hour brings depends on how much work everyone else does.</p>
-      <div class="push"></div>
       <div class="problem" id="mine-problem" hidden></div>
       <button class="primary pearl" id="mn-go" data-gap="lg">Start mining</button>
+      <p class="fineprint" id="mn-light" hidden>Light mode: under 2 GB of free memory, so it mines more slowly.</p>
+      <p class="fineprint"><span id="mn-odds"></span>Needs about 2 GB of memory. Rewards depend on how much everyone else mines.</p>
     </section>
 
     <!-- Wallets: switching, naming, adding -->
@@ -1082,7 +1083,7 @@
   function threadsFor(percent) { return Math.min(mineCores, Math.max(1, Math.round(mineCores * percent / 100))); }
   function cpuText() {
     const p = Number($("mn-cpu").value);
-    $("mn-cpu-text").textContent = mineCores ? `${p}% (${threadsFor(p)} of ${mineCores} cores)` : `${p}%`;
+    $("mn-cpu-text").textContent = mineCores ? `${p}% · ${threadsFor(p)} of ${mineCores} cores` : `${p}%`;
   }
   async function mineStatus(first) {
     let m;
@@ -1098,10 +1099,9 @@
       : s.tries_per_second ? `${speed(s.tries_per_second)} tries a second` : "Starting…";
     $("mn-light").hidden = !(s.running && s.light);
     $("mn-shares").textContent = s.running && s.epoch !== null
-      ? `${s.found.toLocaleString()} found, ${s.taken.toLocaleString()} taken by validators` : "—";
-    $("mn-reward").textContent = m.last_reward ? `+${m.last_reward.amount} ORN, ${new Date(m.last_reward.time * 1000).toLocaleString([], { weekday: "short", hour: "numeric", minute: "2-digit" })}` : "None yet";
-    $("mn-odds").textContent = s.one_in
-      ? `The network's difficulty now: about one try in ${s.one_in.toLocaleString()} makes a share.` : "";
+      ? `This hour: ${s.found.toLocaleString()} shares found, ${s.taken.toLocaleString()} counted` : "";
+    $("mn-reward").textContent = m.last_reward ? `+${m.last_reward.amount} ORN` : "none yet";
+    $("mn-odds").textContent = s.one_in ? `About one try in ${s.one_in.toLocaleString()} makes a share. ` : "";
     $("mn-go").textContent = s.running ? "Stop mining" : "Start mining";
     $("mn-go").className = s.running ? "secondary" : "primary pearl";
     if (s.problem && !s.running) problem("mine-problem", s.problem); else $("mine-problem").hidden = true;
