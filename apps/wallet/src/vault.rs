@@ -77,10 +77,10 @@ pub fn forget(dir: &Path, wallet_file: &Path) {
     #[cfg(any(target_os = "macos", target_os = "ios"))]
     let _ = security_framework::passwords::delete_generic_password(KEYCHAIN_SERVICE, &name);
     let mut all = saved(dir);
-    if all.remove(&name).is_some() {
-        if let Ok(text) = serde_json::to_vec_pretty(&all) {
-            let _ = write_replacing(&keys_file(dir), &text, true);
-        }
+    if all.remove(&name).is_some()
+        && let Ok(text) = serde_json::to_vec_pretty(&all)
+    {
+        let _ = write_replacing(&keys_file(dir), &text, true);
     }
 }
 
