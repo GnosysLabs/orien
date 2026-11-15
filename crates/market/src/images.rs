@@ -46,6 +46,15 @@ pub fn listing_picture(bytes: &[u8]) -> Result<Vec<u8>> {
     Ok(jpeg(&image.resize_to_fill(LISTING_WIDTH, LISTING_HEIGHT, image::imageops::FilterType::Lanczos3)))
 }
 
+/// A profile's wide banner, 3:1, cut to fill.
+pub fn banner(bytes: &[u8]) -> Result<Vec<u8>> {
+    let image = decode(bytes)?;
+    Ok(jpeg(&image.resize_to_fill(BANNER_WIDTH, BANNER_HEIGHT, image::imageops::FilterType::Lanczos3)))
+}
+
+pub const BANNER_WIDTH: u32 = 1500;
+pub const BANNER_HEIGHT: u32 = 500;
+
 pub const LISTING_WIDTH: u32 = 1280;
 pub const LISTING_HEIGHT: u32 = 720;
 
@@ -96,6 +105,15 @@ mod tests {
         assert_eq!((back.width(), back.height()), (PICTURE, PICTURE));
         assert_eq!(&out[..2], &[0xFF, 0xD8], "a JPEG");
         assert!(profile_picture(b"not a picture").is_err());
+    }
+
+    #[test]
+    fn a_banner_comes_out_3_by_1() {
+        let photo = DynamicImage::new_rgb8(900, 900);
+        let mut png = Vec::new();
+        photo.write_to(&mut Cursor::new(&mut png), image::ImageFormat::Png).unwrap();
+        let back = image::load_from_memory(&banner(&png).unwrap()).unwrap();
+        assert_eq!((back.width(), back.height()), (BANNER_WIDTH, BANNER_HEIGHT));
     }
 
     #[test]

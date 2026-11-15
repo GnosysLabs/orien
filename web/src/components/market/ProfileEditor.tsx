@@ -2,8 +2,8 @@
 
 import Link from 'next/link'
 import { useRef, useState } from 'react'
-import { Camera } from 'lucide-react'
-import { ask, MarketError, type Account } from '@/lib/market'
+import { Camera, ImagePlus } from 'lucide-react'
+import { ask, MarketError, pictureUrl, type Account } from '@/lib/market'
 import { Avatar } from './Avatar'
 import { Notice } from './Shell'
 import { AutoTextarea } from '@/components/AutoTextarea'
@@ -17,10 +17,11 @@ export function ProfileEditor({ account, onSaved }: { account: Account; onSaved:
   const [email, setEmail] = useState(account.contact.email)
   const [telegram, setTelegram] = useState(account.contact.telegram)
   const [x, setX] = useState(account.contact.x)
-  const [busy, setBusy] = useState<'' | 'text' | 'picture'>('')
+  const [busy, setBusy] = useState<'' | 'text' | 'picture' | 'banner'>('')
   const [trouble, setTrouble] = useState('')
   const [saved, setSaved] = useState(false)
   const chooser = useRef<HTMLInputElement>(null)
+  const bannerChooser = useRef<HTMLInputElement>(null)
   const changed =
     name !== account.name ||
     bio !== account.bio ||
@@ -68,8 +69,63 @@ export function ProfileEditor({ account, onSaved }: { account: Account; onSaved:
     if (chooser.current) chooser.current.value = ''
   }
 
+  // The banner: sent whole, checked like the picture; or removed.
+  const setBanner = async (file: File | undefined | null) => {
+    if (file === undefined) return
+    setBusy('banner')
+    setTrouble('')
+    try {
+      const response = await fetch('/api/market/me/banner', {
+        method: file ? 'POST' : 'DELETE',
+        credentials: 'same-origin',
+        body: file ?? undefined,
+      })
+      const data = await response.json().catch(() => ({}))
+      if (!response.ok) throw new MarketError(data.error ?? 'The banner could not be saved.', response.status)
+      onSaved()
+    } catch (error) {
+      say(error)
+    }
+    setBusy('')
+    if (bannerChooser.current) bannerChooser.current.value = ''
+  }
+
   return (
     <form onSubmit={save} className="space-y-5 rounded-2xl border border-line bg-surface p-6 sm:p-8">
+      <div className="space-y-2">
+        <p className="text-sm font-semibold text-ink">{busy === 'banner' ? 'Checking your banner…' : 'Banner'}</p>
+        <div className="relative flex aspect-[3/1] w-full items-end justify-end overflow-hidden rounded-xl border border-line bg-bg">
+          {account.banner ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={pictureUrl(account.banner)} alt="" className="absolute inset-0 h-full w-full object-cover" />
+          ) : (
+            <p className="absolute inset-0 flex items-center justify-center px-4 text-center text-sm text-muted">
+              A wide picture across the top of your profile. 3:1 works best, like 1500 × 500.
+            </p>
+          )}
+          <div className="relative m-3 flex gap-2">
+            <button
+              type="button"
+              onClick={() => bannerChooser.current?.click()}
+              disabled={busy !== ''}
+              className="flex h-9 items-center gap-1.5 rounded-lg border border-line bg-surface/90 px-3 text-sm font-semibold text-ink backdrop-blur transition hover:bg-raised disabled:opacity-60"
+            >
+              <ImagePlus className="h-4 w-4" aria-hidden /> {account.banner ? 'Change banner' : 'Add banner'}
+            </button>
+            {account.banner && (
+              <button
+                type="button"
+                onClick={() => setBanner(null)}
+                disabled={busy !== ''}
+                className="flex h-9 items-center rounded-lg border border-line bg-surface/90 px-3 text-sm font-semibold text-muted backdrop-blur transition hover:text-stop disabled:opacity-60"
+              >
+                Remove
+              </button>
+            )}
+          </div>
+        </div>
+        <input ref={bannerChooser} type="file" accept="image/*" className="hidden" onChange={(e) => setBanner(e.target.files?.[0])} />
+      </div>
       <div className="flex flex-wrap items-center gap-5">
         <button
           type="button"

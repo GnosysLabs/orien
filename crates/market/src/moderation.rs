@@ -176,8 +176,9 @@ impl Store {
             )?;
             statement.query_map([account], |row| row.get(0))?.collect::<rusqlite::Result<_>>()?
         };
-        if let Some(picture) = self.account(account)?.and_then(|a| a.picture) {
-            files.push(picture);
+        if let Some(found) = self.account(account)? {
+            files.extend(found.picture);
+            files.extend(found.banner);
         }
         // Everything that names the account goes with it.
         self.db.execute("DELETE FROM accounts WHERE id = ?1", [account])?;

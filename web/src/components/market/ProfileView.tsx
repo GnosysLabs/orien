@@ -4,7 +4,7 @@ import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import { ArrowLeft, Wallet } from 'lucide-react'
-import { ask, me, memberSince, type Account, type Listing } from '@/lib/market'
+import { ask, me, memberSince, pictureUrl, type Account, type Listing } from '@/lib/market'
 import { Linked } from './Linked'
 import { Avatar } from './Avatar'
 import { ContactLinks } from './ContactLinks'
@@ -41,9 +41,17 @@ export function ProfileView() {
       <Link href="/marketplace/" className="inline-flex items-center gap-2 text-sm text-muted hover:text-ink">
         <ArrowLeft className="h-4 w-4" aria-hidden /> All listings
       </Link>
-      <section className="flex flex-col items-center gap-4 rounded-2xl border border-line bg-surface p-8 text-center sm:flex-row sm:items-start sm:text-left">
-        <Avatar name={account.name} picture={account.picture} size={112} />
-        <div className="min-w-0 space-y-2">
+      <section
+        className={`relative isolate flex flex-col items-center gap-4 overflow-hidden rounded-2xl border border-line bg-surface p-8 text-center sm:flex-row sm:items-start sm:text-left ${
+          account.banner ? 'pt-28 sm:min-h-56 sm:pt-8' : ''
+        }`}
+      >
+        {account.banner && <ProfileBanner banner={account.banner} />}
+        <div className="relative shrink-0 rounded-full ring-4 ring-surface">
+          <Avatar name={account.name} picture={account.picture} size={112} />
+        </div>
+        {/* relative: drawn above the banner behind it. */}
+        <div className="relative min-w-0 space-y-2">
           <h1 className="text-3xl font-bold tracking-tight text-ink">{account.name}</h1>
           {account.wallet && (
             <p className="inline-flex items-center gap-1.5 rounded-full border border-line bg-bg px-3 py-1 text-xs font-semibold text-muted">
@@ -82,5 +90,18 @@ export function ProfileView() {
         )}
       </section>
     </div>
+  )
+}
+
+/** The profile's banner, fading into the card: down to the content on a
+ * phone, leftwards into the name on a wider screen. */
+export function ProfileBanner({ banner }: { banner: string }) {
+  return (
+    // eslint-disable-next-line @next/next/no-img-element
+    <img
+      src={pictureUrl(banner)}
+      alt=""
+      className="pointer-events-none absolute right-0 top-0 -z-10 h-40 w-full object-cover opacity-90 [mask-image:linear-gradient(to_bottom,black_35%,transparent)] sm:h-full sm:w-3/4 sm:[mask-image:linear-gradient(to_left,black_30%,transparent)]"
+    />
   )
 }

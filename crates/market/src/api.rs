@@ -234,6 +234,10 @@ pub fn router(app: Arc<App>) -> Router {
             "/api/market/me/picture",
             post(set_picture).layer(axum::extract::DefaultBodyLimit::max(images::MAX_UPLOAD)),
         )
+        .route(
+            "/api/market/me/banner",
+            post(set_banner).delete(remove_banner).layer(axum::extract::DefaultBodyLimit::max(images::MAX_UPLOAD)),
+        )
         .route("/api/market/me/wallet", get(wallet).post(link_wallet))
         .route("/api/market/me/delete", post(delete_me))
         .route("/api/market/profiles/{id}", get(profile))
@@ -760,6 +764,33 @@ async fn set_picture(State(app): State<Arc<App>>, headers: HeaderMap, body: axum
     let name = app.images.save(&jpeg)?;
     let old = app.store.lock().unwrap().set_picture(id, &name)?;
     if let Some(old) = old {
+        app.images.remove(&old);
+    }
+    let account = app.store.lock().unwrap().account(id)?.ok_or(Failure::SignIn)?;
+    Ok(Json(json!({ "account": account })).into_response())
+}
+
+/// A new banner for the profile, sent as the request's whole body. Checked
+/// like a profile picture.
+async fn set_banner(State(app): State<Arc<App>>, headers: HeaderMap, body: axum::body::Bytes) -> Answer {
+    let id = app.signed_in(&headers)?;
+    let jpeg = tokio::task::spawn_blocking(move || images::banner(&body))
+        .await
+        .map_err(|e| Failure::Broken(e.into()))?
+        .map_err(refused)?;
+    let checked = jpeg.clone();
+    screened(&app, "picture", move |s| s.picture(&checked)).await?;
+    let name = app.images.save(&jpeg)?;
+    if let Some(old) = app.store.lock().unwrap().set_banner(id, Some(&name))? {
+        app.images.remove(&old);
+    }
+    let account = app.store.lock().unwrap().account(id)?.ok_or(Failure::SignIn)?;
+    Ok(Json(json!({ "account": account })).into_response())
+}
+
+async fn remove_banner(State(app): State<Arc<App>>, headers: HeaderMap) -> Answer {
+    let id = app.signed_in(&headers)?;
+    if let Some(old) = app.store.lock().unwrap().set_banner(id, None)? {
         app.images.remove(&old);
     }
     let account = app.store.lock().unwrap().account(id)?.ok_or(Failure::SignIn)?;

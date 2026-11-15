@@ -5,6 +5,8 @@ export type Account = {
   name: string
   bio: string
   picture: string | null
+  /** A wide picture across the top of the profile. */
+  banner?: string | null
   wallet: string | null
   contact: Contact
   created: number
