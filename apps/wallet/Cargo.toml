@@ -19,8 +19,9 @@ crate-type = ["staticlib", "cdylib", "rlib"]
 tauri-build = { version = "2", features = [] }
 
 [dependencies]
-orien-net = { path = "../../crates/net" }
-orien-ledger = { path = "../../crates/ledger" }
+# RandomX, for mining, only where the app mines: not on iPhones.
+orien-net = { path = "../../crates/net", default-features = false }
+orien-ledger = { path = "../../crates/ledger", default-features = false }
 orien-swap = { path = "../../crates/swap" }
 orien-crypto = { path = "../../crates/crypto" }
 anyhow = "1"
@@ -38,6 +39,8 @@ opt-level = 2
 # Desktop copies update themselves; iPhone copies come from the App Store.
 [target.'cfg(not(any(target_os = "ios", target_os = "android")))'.dependencies]
 tauri-plugin-updater = "2"
+orien-net = { path = "../../crates/net", features = ["randomx"] }
+orien-ledger = { path = "../../crates/ledger", features = ["randomx"] }
 
 [dev-dependencies]
 # A pretend Bitcoin network, for testing whole swaps.

@@ -15,6 +15,7 @@ mod board;
 mod contacts;
 #[cfg(target_os = "linux")]
 mod linux;
+#[cfg(desktop)]
 mod mining;
 mod money;
 mod send;
@@ -557,10 +558,15 @@ fn forget_wallet(app: AppHandle, path: String) -> Result<(), String> {
     save_settings(&dir, &settings)
 }
 
+/// Mining, on desktops only.
+#[cfg(desktop)]
+mod mine_commands {
+    use super::*;
+
 /// Starts mining for the open wallet on `percent` of the processor, and
 /// remembers the percent.
 #[tauri::command]
-fn mine_start(app: AppHandle, percent: u8) -> Result<(), String> {
+pub fn mine_start(app: AppHandle, percent: u8) -> Result<(), String> {
     let dir = folder(&app)?;
     let wallet = wallet_file(&dir).ok_or("no wallet yet")?;
     let account = Wallet::peek(&wallet).map_err(|error| error.to_string())?.0;
@@ -574,14 +580,14 @@ fn mine_start(app: AppHandle, percent: u8) -> Result<(), String> {
 }
 
 #[tauri::command]
-async fn mine_stop() -> Result<(), String> {
+pub async fn mine_stop() -> Result<(), String> {
     tauri::async_runtime::spawn_blocking(mining::stop).await.map_err(|error| error.to_string())
 }
 
 /// How mining is going, with the remembered percent, which wallet it mines
 /// to, and the last mining reward that wallet received.
 #[tauri::command]
-fn mine_status(app: AppHandle) -> Result<serde_json::Value, String> {
+pub fn mine_status(app: AppHandle) -> Result<serde_json::Value, String> {
     let dir = folder(&app)?;
     let status = mining::status();
     let open = wallet_file(&dir).and_then(|w| Wallet::peek(&w).ok()).map(|(a, _)| a.to_string());
@@ -601,6 +607,24 @@ fn mine_status(app: AppHandle) -> Result<serde_json::Value, String> {
         "last_reward": reward,
     }))
 }
+}
+/// No mining on iPhones: Apple's rules forbid it, and RandomX needs 2 GB.
+#[cfg(mobile)]
+mod mine_commands {
+    #[tauri::command]
+    pub fn mine_start() -> Result<(), String> {
+        Err("Mining is on the desktop app and the orien command.".into())
+    }
+    #[tauri::command]
+    pub async fn mine_stop() -> Result<(), String> {
+        Ok(())
+    }
+    #[tauri::command]
+    pub fn mine_status() -> Result<serde_json::Value, String> {
+        Ok(serde_json::json!({ "status": { "running": false, "cores": 0 }, "percent": 50, "unavailable": true }))
+    }
+}
+use mine_commands::{mine_start, mine_status, mine_stop};
 
 /// Asks the validators about the wallet's account.
 #[tauri::command]
