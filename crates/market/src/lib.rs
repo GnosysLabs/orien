@@ -13,4 +13,5 @@ pub mod screen;
 pub mod store;
 pub mod swaps;
 pub mod tokenomics;
+pub mod vaults;
 pub mod wallets;

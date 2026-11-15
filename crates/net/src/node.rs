@@ -1523,7 +1523,8 @@ impl Core {
                 escrow: self.state.escrow(&from, seq).cloned(),
                 secret: self.state.revealed(&from, seq),
             },
-            Request::History { account, from, max } => {
+            Request::History { account, from, max } | Request::Activity { account, from, max } => {
+                let sent = matches!(request, Request::Activity { .. });
                 let epoch = self.committee.epoch();
                 let fees = self.state.fees();
                 // This epoch's final payments so far, which its checkpoint
@@ -1537,13 +1538,20 @@ impl Core {
                             Kind::Claim { from, seq, .. } if order.to == account => {
                                 (order.amount.saturating_sub(fees.on(&order.kind, order.amount)), from, (from, seq))
                             }
+                            Kind::Payment | Kind::Lock { .. } if order.from == account => {
+                                (order.amount, order.to, (order.from, order.seq))
+                            }
                             _ => return None,
                         };
-                        let income = if matches!(order.kind, Kind::Payment) { Income::Payment } else { Income::Claim };
+                        let income = match order.kind {
+                            _ if order.from == account && !matches!(order.kind, Kind::Claim { .. }) => Income::Sent,
+                            Kind::Payment => Income::Payment,
+                            _ => Income::Claim,
+                        };
                         Some(Received { epoch, time: None, income, amount, counterparty: Some(counterparty), order: Some(named) })
                     })
                     .collect();
-                Response::History(self.history.page(&account, from, max, epoch, pending))
+                Response::History(self.history.page(&account, from, max, epoch, pending, sent))
             }
             Request::Locks => {
                 let proofs = self.proofs.get_or_insert_with(|| self.start.proofs());

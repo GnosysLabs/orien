@@ -67,6 +67,9 @@ pub enum Request {
     /// What came into `account` from epoch `from` on, as this validator
     /// recorded it: about `max` entries, in whole epochs.
     History { account: AccountId, from: u64, max: u32 },
+    /// `History`, with what the account sent too (as `Income::Sent`).
+    /// Validators recorded that only from release 1.7.0 on.
+    Activity { account: AccountId, from: u64, max: u32 },
 }
 
 #[derive(Clone, Debug, BorshSerialize, BorshDeserialize)]

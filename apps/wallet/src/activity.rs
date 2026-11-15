@@ -44,6 +44,10 @@ impl From<Income> for Kind {
             Income::Fees => Kind::Fees,
             Income::Mining => Kind::Mining,
             Income::Unstaked => Kind::Unstaked,
+            // Only `Client::activity` answers with what was sent, and this
+            // app asks `history`, so this never comes. To be shown as sent
+            // when the app moves to `activity`.
+            Income::Sent => Kind::Payment,
         }
     }
 }

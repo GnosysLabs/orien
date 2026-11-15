@@ -250,6 +250,12 @@ fn wallet_spares(seed: &[u8; 32]) -> KeyTree {
 }
 
 impl Wallet {
+    /// The keys of this wallet's vault: its contacts' store on the
+    /// marketplace server, found again by the same recovery phrase.
+    pub fn vault(&self) -> crate::vault::VaultKeys {
+        crate::vault::VaultKeys::from_seed(&self.seed)
+    }
+
     /// A new wallet: a fresh recovery phrase, and its account 1.
     pub fn create(path: &Path) -> Result<Wallet> {
         Wallet::from_master(path, random_seed(), 1)

@@ -497,7 +497,16 @@ impl Client {
     /// come from `account` and `proven`, which validators prove. `None` when
     /// no validator keeps history yet.
     pub fn history(&self, account: &AccountId, from: u64, max: u32) -> Option<HistoryPage> {
-        let request = Request::History { account: *account, from, max };
+        self.history_of(Request::History { account: *account, from, max }, from)
+    }
+
+    /// `history`, with what the account sent too, from validators that
+    /// record it (release 1.7.0 on). `None` when none does.
+    pub fn activity(&self, account: &AccountId, from: u64, max: u32) -> Option<HistoryPage> {
+        self.history_of(Request::Activity { account: *account, from, max }, from)
+    }
+
+    fn history_of(&self, request: Request, from: u64) -> Option<HistoryPage> {
         self.ask_all(&request)
             .into_iter()
             .filter_map(|answer| match answer {
