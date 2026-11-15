@@ -5,7 +5,8 @@ import { BottomNav, Header } from '@/components/Header'
 import { MinerNotice } from '@/components/MinerNotice'
 import { ScrollToTop } from '@/components/ScrollToTop'
 import { Wordmark } from '@/components/Wordmark'
-import { MARKETPLACE_LIVE, OPERATOR, OPERATOR_URL, SITE_DESCRIPTION, SITE_NAME, SITE_URL, TAGLINE } from '@/lib/brand'
+import { DISCORD, MARKETPLACE_LIVE, OPERATOR, OPERATOR_URL, SITE_DESCRIPTION, SITE_NAME, SITE_URL, TAGLINE, X_ACCOUNT } from '@/lib/brand'
+import { SHARE_IMAGE } from '@/lib/seo'
 import './globals.css'
 
 const geistSans = Geist({ variable: '--font-geist-sans', subsets: ['latin'] })
@@ -26,13 +27,28 @@ export const metadata: Metadata = {
   description: SITE_DESCRIPTION,
   keywords: [
     'Orien',
-    'post-quantum payment network',
+    'ORN',
     'quantum-proof cryptocurrency',
+    'quantum-resistant cryptocurrency',
+    'post-quantum cryptocurrency',
+    'post-quantum signatures',
     'hash-based signatures',
     'BLAKE3',
-    'consensus-free payments',
+    'blockless cryptocurrency',
+    'fast crypto payments',
+    'CPU mining',
+    'RandomX',
+    'mine crypto on your computer',
+    'fair launch',
+    'no pre-mine',
+    'atomic swap Bitcoin',
+    'buy ORN with Bitcoin',
+    'crypto wallet for Mac, Windows and Linux',
     'GnosysLabs',
   ],
+  category: 'finance',
+  creator: OPERATOR,
+  publisher: OPERATOR,
   icons: {
     icon: [
       { url: '/icon.svg', type: 'image/svg+xml' },
@@ -44,14 +60,15 @@ export const metadata: Metadata = {
   openGraph: {
     type: 'website',
     siteName: SITE_NAME,
-    title: `${SITE_NAME}: quantum-proof payments, final in milliseconds`,
+    title: `${SITE_NAME}: the quantum-proof cryptocurrency, final in a blink`,
     description: SITE_DESCRIPTION,
     url: SITE_URL,
-    images: [{ url: '/og.png', width: 1200, height: 630, alt: 'Orien: quantum-proof payment network' }],
+    images: [SHARE_IMAGE],
   },
   twitter: {
     card: 'summary_large_image',
-    title: `${SITE_NAME}: quantum-proof payments, final in milliseconds`,
+    site: '@OrienNetwork',
+    title: `${SITE_NAME}: the quantum-proof cryptocurrency, final in a blink`,
     description: SITE_DESCRIPTION,
     images: ['/og.png'],
   },
@@ -67,13 +84,37 @@ const SITE_DATA = {
       url: OPERATOR_URL,
     },
     {
+      '@type': 'Organization',
+      '@id': `${SITE_URL}/#orien`,
+      name: SITE_NAME,
+      url: SITE_URL,
+      logo: { '@type': 'ImageObject', url: `${SITE_URL}/icon-rounded-512.png`, width: 512, height: 512 },
+      description: SITE_DESCRIPTION,
+      sameAs: [X_ACCOUNT, DISCORD],
+      parentOrganization: { '@id': `${SITE_URL}/#org` },
+    },
+    {
+      '@type': 'SoftwareApplication',
+      '@id': `${SITE_URL}/#wallet`,
+      name: 'Orien Wallet',
+      description:
+        'A wallet for the Orien cryptocurrency: send and receive ORN, mine ORN on your own computer, keep contacts, and unlock with Touch ID.',
+      applicationCategory: 'FinanceApplication',
+      operatingSystem: 'macOS, Windows, Linux',
+      url: `${SITE_URL}/try/`,
+      downloadUrl: `${SITE_URL}/try/`,
+      offers: { '@type': 'Offer', price: '0', priceCurrency: 'USD' },
+      publisher: { '@id': `${SITE_URL}/#org` },
+    },
+    {
       '@type': 'WebSite',
       '@id': `${SITE_URL}/#site`,
       name: SITE_NAME,
       url: SITE_URL,
       description: SITE_DESCRIPTION,
       slogan: TAGLINE,
-      publisher: { '@id': `${SITE_URL}/#org` },
+      publisher: { '@id': `${SITE_URL}/#orien` },
+      inLanguage: 'en',
     },
   ],
 }

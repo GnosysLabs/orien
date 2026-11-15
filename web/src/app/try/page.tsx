@@ -3,13 +3,14 @@ import { WindowsDownload } from '@/components/WindowsDownload'
 import Link from 'next/link'
 import { ArrowRight, Bot, Download, KeyRound, Monitor, Pickaxe, RefreshCw, Send, ServerCog, Wallet } from 'lucide-react'
 import { CopyText } from '@/components/CopyText'
+import { pageMeta } from '@/lib/seo'
 
-export const metadata: Metadata = {
-  title: 'Get started',
+export const metadata: Metadata = pageMeta({
+  title: 'Get started: download Orien Wallet and mine ORN',
   description:
-    'Install orien, make a wallet with a 24-word recovery phrase, mine ORN on your computer, send and receive, and run a validator.',
-  alternates: { canonical: '/try/' },
-}
+    'Download Orien Wallet for Mac, Windows or Linux, or install the orien command line. Make a quantum-proof wallet, mine ORN on your computer, send and receive, and run a validator.',
+  path: '/try/',
+})
 
 function Step({
   number,

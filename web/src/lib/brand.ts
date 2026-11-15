@@ -3,6 +3,10 @@ export const SITE_URL = 'https://orien.network'
 export const TAGLINE = 'The cryptocurrency that settles in a blink, built for the quantum age'
 export const SITE_DESCRIPTION =
   'Orien is a new cryptocurrency: payments are final in a fraction of a second, never wait in line, and use signatures built to stay safe from quantum computers. Zero coins at launch; every coin is earned.'
+/** Where the Orien community talks. */
+export const DISCORD = 'https://discord.gg/5FFRZAw3u9'
+/** Orien on X. */
+export const X_ACCOUNT = 'https://x.com/OrienNetwork'
 export const OPERATOR = 'GnosysLabs LLC'
 export const OPERATOR_URL = 'https://gnosyslabs.xyz'
 

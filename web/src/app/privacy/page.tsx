@@ -1,11 +1,13 @@
 import type { Metadata } from 'next'
 import { OPERATOR } from '@/lib/brand'
+import { pageMeta } from '@/lib/seo'
 
-export const metadata: Metadata = {
+export const metadata: Metadata = pageMeta({
   title: 'Privacy',
-  description: 'What orien.network keeps about you, why, and how to delete it.',
-  alternates: { canonical: '/privacy/' },
-}
+  description:
+    'What orien.network keeps about you, why, and how to delete it.',
+  path: '/privacy/',
+})
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (

@@ -2,14 +2,15 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import { ArrowRight, Download } from 'lucide-react'
 import { Formula, PaperSection, Sub, Table } from '@/components/Paper'
-import { OPEN_CLAIMS_FROM, RANDOMX_FROM } from '@/lib/brand'
+import { OPEN_CLAIMS_FROM, RANDOMX_FROM, SITE_URL } from '@/lib/brand'
+import { jsonLd, pageMeta } from '@/lib/seo'
 
-export const metadata: Metadata = {
-  title: 'Technical paper',
+export const metadata: Metadata = pageMeta({
+  title: 'Orien technical paper',
   description:
-    'The Orien technical paper: the exact rules of the Orien cryptocurrency, from its BLAKE3 one-time signatures and payment certificates to hourly checkpoints, staking, fees and the release of ORN by proof-of-work.',
-  alternates: { canonical: '/paper/' },
-}
+    'The Orien technical paper: the exact rules of the Orien cryptocurrency, from its BLAKE3 hash-based one-time signatures and payment certificates to hourly checkpoints, staking, fees, RandomX mining and atomic swaps with Bitcoin.',
+  path: '/paper/',
+})
 
 const SECTIONS = [
   { id: 'introduction', title: 'Introduction' },
@@ -35,6 +36,20 @@ const SECTIONS = [
 export default function PaperPage() {
   return (
     <article className="mx-auto max-w-[760px] print:max-w-none">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={jsonLd({
+          '@type': 'TechArticle',
+          headline: 'Orien technical paper',
+          description:
+            'The exact rules of the Orien cryptocurrency: hash-based one-time signatures, payment certificates, hourly checkpoints, staking, fees, RandomX mining and atomic swaps with Bitcoin.',
+          mainEntityOfPage: `${SITE_URL}/paper/`,
+          image: `${SITE_URL}/og.png`,
+          encoding: { '@type': 'MediaObject', contentUrl: `${SITE_URL}/orien-paper.pdf`, encodingFormat: 'application/pdf' },
+          author: { '@id': `${SITE_URL}/#orien` },
+          publisher: { '@id': `${SITE_URL}/#orien` },
+        })}
+      />
       <header className="pb-6 pt-10 sm:pt-14 print:pt-0">
         <p className="mb-4 text-xs font-semibold uppercase tracking-[0.2em] text-muted print:text-neutral-500">
           Technical paper · version 1.1

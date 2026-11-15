@@ -1,5 +1,6 @@
 "use client";
 
+import { DISCORD, X_ACCOUNT } from "@/lib/brand";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
@@ -185,12 +186,6 @@ function DownloadsMenu() {
     </div>
   );
 }
-
-/** Where the Orien community talks. */
-export const DISCORD = "https://discord.gg/5FFRZAw3u9";
-
-/** Orien on X. */
-export const X_ACCOUNT = "https://x.com/OrienNetwork";
 
 /** X's logo, which its brand guidelines let anyone use to link to an X account. */
 export function XIcon({ className = "" }: { className?: string }) {

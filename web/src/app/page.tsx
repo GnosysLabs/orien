@@ -1,6 +1,12 @@
 import Link from 'next/link'
 import { ArrowRight, Gauge, Pickaxe, Scale, ServerCog, ShieldCheck, Sunrise, Wallet } from 'lucide-react'
+import type { Metadata } from 'next'
 import { SupplyCurve } from '@/components/SupplyCurve'
+
+export const metadata: Metadata = {
+  title: { absolute: 'Orien: the quantum-proof cryptocurrency, final in a blink' },
+  alternates: { canonical: '/' },
+}
 
 const BENEFITS = [
   {
