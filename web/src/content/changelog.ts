@@ -28,6 +28,17 @@ export const CHANGELOG: Entry[] = [
   {
     date: '2026-11-15',
     products: ['wallet'],
+    version: '1.6.0',
+    title: 'Contacts on every device, Touch ID, and your full history',
+    changes: [
+      'Your contacts follow your wallet: add, rename or remove one on one device and the change shows on your others. They are sealed with a key from your recovery phrase, so only your wallet can read them, and no account is needed.',
+      'On a Mac with Touch ID or an iPhone with Face ID, unlock your wallet with your finger or face instead of typing its password. On Windows and Linux, restoring suggests the same password as on your other devices.',
+      'A restored wallet shows its history from the start: what it received and, from today, what it sent.',
+    ],
+  },
+  {
+    date: '2026-11-15',
+    products: ['wallet'],
     version: '1.5.2',
     title: 'Mining fixed on Macs, and a smoother slider',
     changes: [
