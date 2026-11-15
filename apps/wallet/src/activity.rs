@@ -100,6 +100,66 @@ struct Account {
     /// the whole of the validators' history.
     #[serde(default)]
     repaired: bool,
+    /// Payments sent from another device that 1.6.0 showed three times
+    /// (from the balance, from history, and a correction) are one line.
+    #[serde(default)]
+    collapsed: bool,
+}
+
+/// How far apart a line worked out from the balance and history's record
+/// of the same payment can be, in seconds.
+const SAME_PAYMENT_WITHIN: u64 = 3 * 60 * 60;
+
+/// Whether a line was worked out from the balance alone.
+fn from_balance(entry: &Entry) -> bool {
+    entry.kind.is_none() && entry.order.is_none() && entry.counterparty.is_none() && entry.fee == 0
+}
+
+/// The line worked out from the balance for the payment history now
+/// describes, if there is one: same direction, the same amount with the
+/// fee, and recorded around the same time.
+fn guessed<'a>(entries: &'a mut [Entry], line: &Entry, seen: u64) -> Option<&'a mut Entry> {
+    let total = line.amount.saturating_add(line.fee);
+    entries
+        .iter_mut()
+        .rev()
+        .find(|e| e.direction == line.direction && from_balance(e) && e.amount == total && e.time.abs_diff(seen) <= SAME_PAYMENT_WITHIN)
+}
+
+/// Undoes what 1.6.0 did with a payment sent from another device: a Sent
+/// line from the balance, history's Sent line for the same payment, and
+/// often a Received line from the balance correcting the double count. One
+/// line is left, history's, at the time the balance first showed it.
+fn collapse(account: &mut Account) {
+    let mut index = 0;
+    while index < account.entries.len() + account.open.len() {
+        let line = if index < account.entries.len() { &account.entries[index] } else { &account.open[index - account.entries.len()] };
+        index += 1;
+        if line.direction != Direction::Sent || line.order.is_none() {
+            continue;
+        }
+        let (total, time) = (line.amount.saturating_add(line.fee), line.time);
+        let near = |e: &Entry| e.amount == total && from_balance(e) && e.time.abs_diff(time) <= SAME_PAYMENT_WITHIN;
+        let Some(guess) = account.entries.iter().position(|e| e.direction == Direction::Sent && near(e)) else { continue };
+        let first_seen = account.entries[guess].time;
+        account.entries.remove(guess);
+        match account.entries.iter().position(|e| e.direction == Direction::Received && near(e)) {
+            Some(correction) => {
+                account.entries.remove(correction);
+            }
+            // Not corrected yet: the app expects the payment taken twice.
+            None => {
+                if let Some(expected) = &mut account.expected {
+                    *expected += total as i128;
+                }
+                account.suspect = None;
+            }
+        }
+        index = 0;
+        if let Some(line) = account.entries.iter_mut().chain(account.open.iter_mut()).find(|e| e.direction == Direction::Sent && e.order.is_some() && e.amount.saturating_add(e.fee) == total && e.time == time) {
+            line.time = first_seen.min(line.time);
+        }
+    }
 }
 
 #[derive(Default, Serialize, Deserialize)]
@@ -178,6 +238,10 @@ fn effect(entry: &Entry) -> i128 {
 pub fn heard(dir: &Path, address: &str, epoch: u64, unknown: &[u64], received: Vec<Received>, fee_of: &dyn Fn(u64) -> u64) {
     let mut book = load(dir);
     let account = book.0.entry(address.to_owned()).or_default();
+    if !account.collapsed {
+        collapse(account);
+        account.collapsed = true;
+    }
     // Just after a checkpoint, the validators may not have written the hour
     // it closed yet. Keep that hour (and later ones) open, to ask about it
     // again, rather than move past it and lose its entries. An older hour
@@ -228,6 +292,15 @@ pub fn heard(dir: &Path, address: &str, epoch: u64, unknown: &[u64], received: V
         // was seen; the rest are dated by the checkpoint that closed them.
         let time = opened_at(&order).or(item.time).unwrap_or(seen);
         let line = entry(&item, time, fee_of);
+        // Newly heard of, but the balance already showed it: it becomes
+        // that line, at the time it was first seen. The balance counted it
+        // already, so it changes nothing the app expects.
+        if opened_at(&line.order).is_none()
+            && let Some(guess) = guessed(&mut account.entries, &line, seen)
+        {
+            *guess = Entry { time: guess.time, ..line };
+            continue;
+        }
         added += effect(&line);
         if item.epoch < cut && item.time.is_some() {
             account.entries.push(line);
@@ -457,6 +530,74 @@ mod tests {
         let now = lines();
         assert!(now.contains(&(Direction::Sent, None, 1000)));
         assert_eq!(now.len(), 4, "{now:?}");
+        fs::remove_dir_all(&dir).unwrap();
+    }
+
+    /// One payment sent from another device, 100 with a fee of 1: the
+    /// balance shows it before history does. One Sent line, to its payee,
+    /// dated when the balance showed it, and no correction afterwards.
+    #[test]
+    fn a_payment_sent_elsewhere_is_one_line() {
+        let dir = std::env::temp_dir().join(format!("orien-sent-elsewhere-{}", std::process::id()));
+        fs::create_dir_all(&dir).unwrap();
+        let _ = fs::remove_file(dir.join("activity.json"));
+        let me = orien_crypto::Hash32([1; 32]).to_string();
+        let fee = |amount: u64| amount / 100;
+        let look = |received: Vec<Received>, epoch: u64, balance: i128| {
+            heard(&dir, &me, epoch, &[], received, &fee);
+            observe(&dir, &me, balance);
+        };
+        let open = |seq| Received { time: None, ..sent_item(5, 100, seq) };
+
+        observe(&dir, &me, 1000);
+        look(vec![], 5, 1000);
+        // Sent elsewhere: the balance drops by 101 before history has it.
+        look(vec![], 5, 899);
+        look(vec![], 5, 899);
+        let first = list(&dir, &me);
+        assert_eq!(first.len(), 1);
+        let when = first[0].time;
+        // History catches up, while the hour is under way, then once it closes.
+        for _ in 0..3 {
+            look(vec![open(3)], 5, 899);
+        }
+        look(vec![sent_item(5, 100, 3)], 6, 899);
+        look(vec![], 6, 899);
+        let now = list(&dir, &me);
+        assert_eq!(now.len(), 1, "one payment, one line");
+        let line = &now[0];
+        assert_eq!((line.direction, line.amount, line.fee), (Direction::Sent, 100, 1));
+        assert!(line.counterparty.is_some() && line.order.is_some());
+        assert_eq!(line.time, when);
+        fs::remove_dir_all(&dir).unwrap();
+    }
+
+    /// A book 1.6.0 left with three lines for that payment becomes one.
+    #[test]
+    fn three_lines_from_1_6_0_become_one() {
+        let dir = std::env::temp_dir().join(format!("orien-collapse-{}", std::process::id()));
+        fs::create_dir_all(&dir).unwrap();
+        let me = orien_crypto::Hash32([1; 32]).to_string();
+        let guess = |direction, time| Entry { direction, amount: 101, fee: 0, counterparty: None, time, kind: None, order: None };
+        let t = now();
+        let from_history = Entry { time: t + 700, ..entry(&sent_item(5, 100, 3), 0, &|a| a / 100) };
+        let mut book = Book::default();
+        book.0.insert(
+            me.clone(),
+            Account {
+                expected: Some(899),
+                entries: vec![guess(Direction::Sent, t), from_history, guess(Direction::Received, t + 760)],
+                history: Some(6),
+                ..Default::default()
+            },
+        );
+        save(&dir, &book);
+        heard(&dir, &me, 6, &[], vec![], &|a| a / 100);
+        observe(&dir, &me, 899);
+        observe(&dir, &me, 899);
+        let now = list(&dir, &me);
+        assert_eq!(now.len(), 1);
+        assert_eq!((now[0].direction, now[0].amount, now[0].time), (Direction::Sent, 100, t));
         fs::remove_dir_all(&dir).unwrap();
     }
 
