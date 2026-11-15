@@ -14,6 +14,15 @@ WEB_ROOT=/var/www/$DOMAIN
 RELEASE=$(date +%Y%m%d-%H%M%S)
 SSH="ssh -o BatchMode=yes -o ConnectTimeout=10"
 
+# The orien downloads are not in git: deploy/release.sh builds them into
+# web/public/downloads. Deploying from a checkout without them would take
+# them off the live site and break the installer.
+if [ ! -f web/public/downloads/latest ]; then
+    echo "web/public/downloads is missing here, so this deploy would break the orien installer." >&2
+    echo "Deploy from the checkout that has it, or copy it in first." >&2
+    exit 1
+fi
+
 echo "Building static site in web/"
 (cd web && pnpm typecheck && pnpm build)
 
