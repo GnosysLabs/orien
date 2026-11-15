@@ -105,7 +105,7 @@ export function Messages() {
         </section>
       </div>
       <p className="px-1 text-xs leading-relaxed text-muted">
-        Messages are kept by the marketplace so both of you can read them, and can be read by its operator, as on most
+        Messages are kept by the Market so both of you can read them, and can be read by its operator, as on most
         marketplaces. Never share your recovery phrase with anyone.
       </p>
     </div>

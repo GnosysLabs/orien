@@ -55,7 +55,7 @@ export function Browse() {
     <div className="space-y-6">
       <h1 className="text-balance text-4xl font-bold leading-[1.1] tracking-tight text-ink sm:text-5xl">Buy and sell for ORN</h1>
       <p className="max-w-[680px] text-lg leading-relaxed text-muted">
-        Work and things offered for ORN. You pay the seller straight from your own wallet: the marketplace never holds
+        Work and things offered for ORN. You pay the seller straight from your own wallet: the Market never holds
         anyone&apos;s coins.
       </p>
       <label className="flex h-12 items-center gap-3 rounded-xl border border-line bg-surface px-4 focus-within:border-pearl/60">

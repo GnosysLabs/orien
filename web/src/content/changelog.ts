@@ -21,7 +21,7 @@ export const PRODUCTS: Record<Product, string> = {
   orien: 'orien',
   validators: 'Validators',
   wallet: 'Orien Wallet',
-  marketplace: 'Marketplace',
+  marketplace: 'Market',
 }
 
 export const CHANGELOG: Entry[] = [

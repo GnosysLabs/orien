@@ -47,8 +47,8 @@ export default function PrivacyPage() {
         </p>
       </Section>
 
-      <Section title="Your marketplace account">
-        <p>When you use the marketplace or the swap board, we keep:</p>
+      <Section title="Your Market account">
+        <p>When you use the Market or the swap board, we keep:</p>
         <ul>
           <li>
             <strong>Your email address,</strong> to send you sign-in codes and tell you about new messages and taken swap

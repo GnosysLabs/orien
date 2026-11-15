@@ -75,7 +75,7 @@ impl App {
         let site = origin.trim_end_matches('/').to_string();
         let origin = Url::parse(origin)?;
         let id = origin.host_str().ok_or_else(|| anyhow::anyhow!("the origin has no host"))?.to_string();
-        let webauthn = WebauthnBuilder::new(&id, &origin)?.rp_name("Orien marketplace").build()?;
+        let webauthn = WebauthnBuilder::new(&id, &origin)?.rp_name("Orien Market").build()?;
         Ok(App {
             store: Mutex::new(store),
             webauthn,
@@ -457,7 +457,7 @@ async fn signin_finish(State(app): State<Arc<App>>, Json(request): Json<Finish<P
     let Some(Ceremony::SignIn { state }) = app.finish(&request.id) else {
         return Err(Failure::Refused("that sign-in took too long; start again".into()));
     };
-    let unknown = || Failure::Refused("that passkey does not belong to a marketplace account".into());
+    let unknown = || Failure::Refused("that passkey does not belong to a Market account".into());
     let (_, credential_id) = app.webauthn.identify_discoverable_authentication(&request.credential).map_err(|_| unknown())?;
     let credential = hex::encode(credential_id);
     let store = app.store.lock().unwrap();

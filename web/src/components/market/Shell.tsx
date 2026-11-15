@@ -40,7 +40,7 @@ export function MarketBar() {
         ) : (
           <Store className="h-6 w-6 text-pearl" strokeWidth={1.75} aria-hidden />
         )}
-        <span className="text-xl font-bold tracking-tight text-ink sm:text-2xl">{swapping ? 'Buy & sell ORN' : 'Marketplace'}</span>
+        <span className="text-xl font-bold tracking-tight text-ink sm:text-2xl">{swapping ? 'Buy & sell ORN' : 'Market'}</span>
       </Link>
       <div className="ml-auto flex items-center gap-2">
         {account && (

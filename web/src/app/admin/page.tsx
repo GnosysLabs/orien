@@ -169,7 +169,7 @@ export default function AdminPage() {
 
       <Tokenomics />
 
-      <h2 className="-mb-2 text-sm font-bold text-muted">Marketplace and swaps</h2>
+      <h2 className="-mb-2 text-sm font-bold text-muted">Market and swaps</h2>
       <section className="grid grid-cols-2 gap-3 lg:grid-cols-4">
         <Tile label="Accounts" value={count(m.accounts)} sub={`${m.accounts_day} today · ${m.accounts_week} this week · ${m.with_wallet} with a wallet`} />
         <Tile label="Listings open" value={count(m.listings_open)} sub={`${m.listings_week} posted this week · ${m.listings_removed} taken down`} />

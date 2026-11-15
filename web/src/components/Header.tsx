@@ -55,8 +55,7 @@ const ITEMS: NavItem[] = [
         },
         {
           href: "/marketplace/",
-          label: "Marketplace",
-          short: "Market",
+          label: "Market",
           icon: Store,
           match: (p: string) => p.startsWith("/marketplace"),
         },

@@ -146,7 +146,7 @@ export function SwapBoard() {
       {taken && (
         <Notice>
           You took {formatOrn(taken.orn)} ORN for {formatBtc(taken.sats)} BTC.
-          Open Orien Wallet, signed in to the marketplace, within 30 minutes: it
+          Open Orien Wallet, signed in to the Market, within 30 minutes: it
           carries the swap through from here.
         </Notice>
       )}

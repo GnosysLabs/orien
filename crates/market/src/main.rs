@@ -12,7 +12,7 @@ use std::path::PathBuf;
 use std::sync::Arc;
 
 #[derive(Parser)]
-#[command(name = "orien-market", version, about = "The Orien marketplace's server")]
+#[command(name = "orien-market", version, about = "The Orien Market's server")]
 struct Args {
     /// The database file, made if it does not exist.
     #[arg(long, default_value = "market.db")]
@@ -55,7 +55,7 @@ struct Args {
     #[arg(long, value_delimiter = ',')]
     admin_logins: Vec<String>,
     /// Who the codes come from.
-    #[arg(long, default_value = "Orien marketplace <noreply@orien.network>")]
+    #[arg(long, default_value = "Orien Market <noreply@orien.network>")]
     from: String,
     /// Look after the marketplace instead of running it.
     #[command(subcommand)]
