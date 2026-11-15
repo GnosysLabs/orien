@@ -1161,8 +1161,10 @@ mod tests {
         for round in 0..900 {
             super::board::drive_on(&alice, Network::Regtest, &chain, &alice_dir, &mut alice_swaps).unwrap();
             super::swaps::step_on(&alice, &chain, &alice_dir, &mut alice_swaps).unwrap();
-            // Bob's app closes once he has paid: only Alice's runs on.
-            if !paid {
+            // Bob's app closes once he has paid and Alice's wallet has his
+            // reply: only Alice's runs on.
+            let bob_away = paid && alice_swaps.first().is_some_and(|k| !matches!(k.swap.stage, Stage::Preparing | Stage::WaitingForReply));
+            if !bob_away {
                 super::board::drive_on(&bob, Network::Regtest, &chain, &bob_dir, &mut bob_swaps).unwrap();
                 super::swaps::step_on(&bob, &chain, &bob_dir, &mut bob_swaps).unwrap();
             }
