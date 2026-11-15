@@ -8,6 +8,7 @@ use crate::images::{self, Folder};
 use crate::mail::Mailer;
 use crate::screen::{Screener, Verdict};
 use crate::store::{self, Draft, SESSION_SECONDS, Store};
+use crate::wallets::Payments;
 use axum::extract::{Path, Query, State};
 use axum::http::{HeaderMap, HeaderValue, StatusCode, header};
 use axum::response::{IntoResponse, Response};
@@ -41,12 +42,18 @@ pub struct App {
     mailer: Arc<Mailer>,
     screener: Arc<Screener>,
     images: Folder,
+    /// What the marketplace's own address has received, for checking wallets.
+    payments: Arc<dyn Payments>,
+    /// The marketplace's own Orien address, which sellers prove their
+    /// wallets by paying.
+    address: String,
     /// Whether the cookie is only sent over https: everywhere but tests.
     secure: bool,
 }
 
 impl App {
     /// `origin` is the site's address, such as https://orien.network.
+    #[allow(clippy::too_many_arguments)]
     pub fn new(
         store: Store,
         images: Folder,
@@ -54,7 +61,10 @@ impl App {
         secure: bool,
         mailer: Mailer,
         screener: Screener,
+        payments: Arc<dyn Payments>,
+        address: &str,
     ) -> anyhow::Result<App> {
+        let address = store::orien_address(address)?;
         let origin = Url::parse(origin)?;
         let id = origin.host_str().ok_or_else(|| anyhow::anyhow!("the origin has no host"))?.to_string();
         let webauthn = WebauthnBuilder::new(&id, &origin)?.rp_name("Orien marketplace").build()?;
@@ -65,6 +75,8 @@ impl App {
             mailer: Arc::new(mailer),
             screener: Arc::new(screener),
             images,
+            payments,
+            address,
             secure,
         })
     }
@@ -194,6 +206,7 @@ pub fn router(app: Arc<App>) -> Router {
             "/api/market/me/picture",
             post(set_picture).layer(axum::extract::DefaultBodyLimit::max(images::MAX_UPLOAD)),
         )
+        .route("/api/market/me/wallet", get(check_wallet).post(start_wallet))
         .route("/api/market/profiles/{id}", get(profile))
         .route("/api/market/images/{name}", get(picture))
         .route("/api/market/listings", get(browse).post(post_listing))
@@ -359,6 +372,55 @@ async fn me(State(app): State<Arc<App>>, headers: HeaderMap) -> Answer {
 }
 
 #[derive(Deserialize)]
+struct WalletStart {
+    address: String,
+}
+
+/// Asks the network something, off the async threads.
+async fn network<T: Send + 'static>(
+    app: &App,
+    ask: impl FnOnce(&dyn Payments) -> anyhow::Result<T> + Send + 'static,
+) -> Result<T, Failure> {
+    let payments = app.payments.clone();
+    tokio::task::spawn_blocking(move || ask(payments.as_ref()))
+        .await
+        .map_err(|e| Failure::Broken(e.into()))?
+        .map_err(|error| {
+            eprintln!("cannot reach the Orien network: {error:#}");
+            Failure::Unavailable("the Orien network is not answering right now; try again in a minute".into())
+        })
+}
+
+/// Starts proving a wallet: says what to send, from where, to where.
+async fn start_wallet(State(app): State<Arc<App>>, headers: HeaderMap, Json(request): Json<WalletStart>) -> Answer {
+    let id = app.signed_in(&headers)?;
+    store::orien_address(&request.address).map_err(refused)?;
+    let epoch = network(&app, |p| p.epoch()).await?;
+    let amount = app.store.lock().unwrap().start_verification(id, &request.address, epoch).map_err(refused)?;
+    let from = store::orien_address(&request.address).map_err(refused)?;
+    Ok(Json(json!({ "waiting": { "from": from, "pay_to": app.address, "amount": amount } })).into_response())
+}
+
+/// Looks for the payment that proves the wallet, and links it once found.
+async fn check_wallet(State(app): State<Arc<App>>, headers: HeaderMap) -> Answer {
+    let id = app.signed_in(&headers)?;
+    let waiting = app.store.lock().unwrap().verification(id)?;
+    let Some((from, amount, epoch)) = waiting else {
+        let account = app.store.lock().unwrap().account(id)?.ok_or(Failure::SignIn)?;
+        return Ok(Json(json!({ "wallet": account.wallet })).into_response());
+    };
+    let to: orien_ledger::AccountId = app.address.parse().map_err(|_| Failure::Broken(anyhow::anyhow!("bad marketplace address")))?;
+    // From the epoch before, in case the check began as an epoch closed.
+    let received = network(&app, move |p| p.received(&to, epoch.saturating_sub(1))).await?;
+    let paid = received.iter().any(|payment| payment.from.to_string() == from && payment.amount == amount);
+    if paid {
+        app.store.lock().unwrap().set_wallet(id, &from).map_err(refused)?;
+        return Ok(Json(json!({ "wallet": from })).into_response());
+    }
+    Ok(Json(json!({ "waiting": { "from": from, "pay_to": app.address, "amount": amount } })).into_response())
+}
+
+#[derive(Deserialize)]
 struct ProfileText {
     name: String,
     #[serde(default)]
@@ -488,5 +550,7 @@ impl App {
 pub fn sign_in_for_tests(app: &App, name: &str) -> String {
     let store = app.store.lock().unwrap();
     let account = store.create_account(name, &Uuid::new_v4().to_string()).unwrap();
+    // A verified wallet of its own, so it can post listings.
+    store.set_wallet(account.id, &hex::encode(Uuid::new_v4().as_bytes()).repeat(2)).unwrap();
     store.start_session(account.id).unwrap()
 }

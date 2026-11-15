@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
 import { useEffect, useState } from 'react'
-import { ArrowLeft } from 'lucide-react'
+import { ArrowLeft, BadgeCheck } from 'lucide-react'
 import { ask, memberSince, type Account, type Listing } from '@/lib/market'
 import { Avatar } from './Avatar'
 import { Card } from './Browse'
@@ -35,6 +35,11 @@ export function ProfileView() {
         <Avatar name={account.name} picture={account.picture} size={112} />
         <div className="min-w-0 space-y-2">
           <h1 className="text-3xl font-bold tracking-tight text-ink">{account.name}</h1>
+          {account.wallet && (
+            <p className="inline-flex items-center gap-1.5 rounded-full border border-go/30 bg-go/10 px-3 py-1 text-xs font-semibold text-go">
+              <BadgeCheck className="h-3.5 w-3.5" strokeWidth={2.5} aria-hidden /> Verified wallet
+            </p>
+          )}
           <p className="text-sm text-muted">{memberSince(account.created)}</p>
           {account.bio && <p className="whitespace-pre-line pt-2 leading-relaxed text-muted">{account.bio}</p>}
         </div>

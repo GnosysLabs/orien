@@ -24,6 +24,8 @@ pub const MAX_OPEN_LISTINGS: i64 = 50;
 pub const CODE_SECONDS: u64 = 15 * 60;
 pub const CODE_TRIES: u32 = 5;
 pub const CODE_GAP: u64 = 60;
+/// How long a seller has to send the payment that proves their wallet.
+pub const VERIFY_SECONDS: u64 = 30 * 60;
 
 pub const CATEGORIES: &[&str] = &["design", "writing", "software", "teaching", "goods", "other"];
 
@@ -42,7 +44,9 @@ pub struct Draft {
     /// What the price is for, such as "per hour"; empty for a fixed price.
     #[serde(default)]
     pub unit: String,
-    /// The Orien address payments go to.
+    /// The Orien address payments go to: always the seller's verified
+    /// wallet, whatever is sent.
+    #[serde(default)]
     pub pay_to: String,
     /// How to reach the seller, for now.
     #[serde(default)]
@@ -75,6 +79,9 @@ pub struct Account {
     pub bio: String,
     /// The file name of their picture, under /api/market/images/.
     pub picture: Option<String>,
+    /// The Orien address they proved they hold, which their listings are
+    /// paid to.
+    pub wallet: Option<String>,
     pub created: u64,
 }
 
@@ -109,9 +116,7 @@ impl Draft {
         if draft.unit.chars().count() > MAX_UNIT || draft.contact.chars().count() > MAX_CONTACT {
             bail!("the price's unit is at most {MAX_UNIT} characters, and contact details at most {MAX_CONTACT}");
         }
-        if draft.pay_to.len() != 64 || !draft.pay_to.bytes().all(|b| b.is_ascii_hexdigit()) {
-            bail!("an Orien address is 64 letters and digits, 0-9 and a-f");
-        }
+        orien_address(&draft.pay_to)?;
         Ok(draft)
     }
 }
@@ -142,7 +147,15 @@ impl Store {
                  email TEXT UNIQUE,
                  bio TEXT NOT NULL DEFAULT '',
                  picture TEXT,
+                 wallet TEXT UNIQUE,
                  created INTEGER NOT NULL
+             );
+             CREATE TABLE IF NOT EXISTS verifications (
+                 account INTEGER PRIMARY KEY REFERENCES accounts(id) ON DELETE CASCADE,
+                 address TEXT NOT NULL,
+                 amount INTEGER NOT NULL UNIQUE,
+                 epoch INTEGER NOT NULL,
+                 expires INTEGER NOT NULL
              );
              CREATE TABLE IF NOT EXISTS codes (
                  email TEXT PRIMARY KEY,
@@ -195,7 +208,7 @@ impl Store {
             "INSERT INTO accounts (name, handle, email, created) VALUES (?1, ?2, ?3, ?4)",
             params![name, handle, email, created],
         )?;
-        Ok(Account { id: self.db.last_insert_rowid(), name, bio: String::new(), picture: None, created })
+        Ok(Account { id: self.db.last_insert_rowid(), name, bio: String::new(), picture: None, wallet: None, created })
     }
 
     /// A new account that signs in by email. The email must be one a code
@@ -274,6 +287,59 @@ impl Store {
         Ok(rows.collect::<rusqlite::Result<_>>()?)
     }
 
+    /// Starts checking that `account` holds `address`: returns the exact
+    /// amount, in ORN's smallest units, to send from it. Each waiting check
+    /// has its own amount, so a payment names one check only.
+    pub fn start_verification(&self, account: i64, address: &str, epoch: u64) -> Result<u64> {
+        let address = orien_address(address)?;
+        let taken: Option<i64> =
+            self.db.query_row("SELECT id FROM accounts WHERE wallet = ?1", [&address], |row| row.get(0)).optional()?;
+        if taken.is_some_and(|other| other != account) {
+            bail!("that wallet is already linked to another marketplace account");
+        }
+        self.db.execute("DELETE FROM verifications WHERE expires < ?1 OR account = ?2", params![now(), account])?;
+        loop {
+            // Between 0.001 and 0.01 ORN.
+            let amount = 1_000_000 + u64::from_le_bytes(random::<8>()?) % 9_000_000;
+            let added = self.db.execute(
+                "INSERT OR IGNORE INTO verifications (account, address, amount, epoch, expires) VALUES (?1, ?2, ?3, ?4, ?5)",
+                params![account, address, amount as i64, epoch, now() + VERIFY_SECONDS],
+            )?;
+            if added == 1 {
+                return Ok(amount);
+            }
+        }
+    }
+
+    /// The check under way for `account`: the address, the amount to send,
+    /// and the epoch it began in.
+    pub fn verification(&self, account: i64) -> Result<Option<(String, u64, u64)>> {
+        Ok(self
+            .db
+            .query_row(
+                "SELECT address, amount, epoch FROM verifications WHERE account = ?1 AND expires >= ?2",
+                params![account, now()],
+                |row| Ok((row.get(0)?, row.get::<_, i64>(1)? as u64, row.get(2)?)),
+            )
+            .optional()?)
+    }
+
+    /// Links a proven wallet to `account`. Its listings are paid there from
+    /// now on.
+    pub fn set_wallet(&self, account: i64, address: &str) -> Result<()> {
+        let address = orien_address(address)?;
+        self.db.execute("UPDATE accounts SET wallet = ?2 WHERE id = ?1", params![account, address])?;
+        self.db.execute("UPDATE listings SET pay_to = ?2 WHERE seller = ?1", params![account, address])?;
+        self.db.execute("DELETE FROM verifications WHERE account = ?1", [account])?;
+        Ok(())
+    }
+
+    fn wallet_of(&self, account: i64) -> Result<String> {
+        let wallet: Option<String> =
+            self.db.query_row("SELECT wallet FROM accounts WHERE id = ?1", [account], |row| row.get(0))?;
+        wallet.ok_or_else(|| anyhow::anyhow!("verify your Orien wallet first, under Your profile, so buyers' payments reach you"))
+    }
+
     #[doc(hidden)]
     pub fn forget_codes_for_tests(&self) {
         self.db.execute("DELETE FROM codes", []).unwrap();
@@ -282,8 +348,15 @@ impl Store {
     pub fn account(&self, id: i64) -> Result<Option<Account>> {
         Ok(self
             .db
-            .query_row("SELECT id, name, bio, picture, created FROM accounts WHERE id = ?1", [id], |row| {
-                Ok(Account { id: row.get(0)?, name: row.get(1)?, bio: row.get(2)?, picture: row.get(3)?, created: row.get(4)? })
+            .query_row("SELECT id, name, bio, picture, wallet, created FROM accounts WHERE id = ?1", [id], |row| {
+                Ok(Account {
+                    id: row.get(0)?,
+                    name: row.get(1)?,
+                    bio: row.get(2)?,
+                    picture: row.get(3)?,
+                    wallet: row.get(4)?,
+                    created: row.get(5)?,
+                })
             })
             .optional()?)
     }
@@ -343,8 +416,9 @@ impl Store {
         Ok(())
     }
 
+    /// Posts a listing, paid to the seller's verified wallet.
     pub fn post(&self, seller: i64, draft: &Draft) -> Result<Listing> {
-        let draft = draft.checked()?;
+        let draft = Draft { pay_to: self.wallet_of(seller)?, ..draft.clone() }.checked()?;
         let open: i64 =
             self.db.query_row("SELECT COUNT(*) FROM listings WHERE seller = ?1 AND open = 1", [seller], |row| row.get(0))?;
         if open >= MAX_OPEN_LISTINGS {
@@ -361,7 +435,7 @@ impl Store {
 
     /// Changes a listing; only its seller may.
     pub fn edit(&self, seller: i64, id: i64, draft: &Draft) -> Result<Listing> {
-        let draft = draft.checked()?;
+        let draft = Draft { pay_to: self.wallet_of(seller)?, ..draft.clone() }.checked()?;
         let changed = self.db.execute(
             "UPDATE listings SET title = ?3, description = ?4, category = ?5, price = ?6, unit = ?7, pay_to = ?8,
                  contact = ?9, updated = ?10
@@ -452,6 +526,15 @@ fn code_hash(email: &str, code: &str) -> String {
     blake3::hash(format!("{email}\n{code}").as_bytes()).to_hex().to_string()
 }
 
+/// An Orien address tidied, or why it is not one.
+pub fn orien_address(text: &str) -> Result<String> {
+    let address = text.trim().to_lowercase();
+    if address.len() != 64 || !address.bytes().all(|b| b.is_ascii_hexdigit()) {
+        bail!("an Orien address is 64 letters and digits, 0-9 and a-f");
+    }
+    Ok(address)
+}
+
 /// A name and bio tidied, or why they cannot be used.
 pub fn profile_text(name: &str, bio: &str) -> Result<(String, String)> {
     let (name, bio) = (clean(name), clean(bio));
@@ -503,6 +586,9 @@ mod tests {
         let store = Store::in_memory().unwrap();
         let maya = store.create_account("Maya", "maya").unwrap();
         let sam = store.create_account("Sam", "sam").unwrap();
+        assert!(store.post(maya.id, &draft("Logo design")).is_err(), "a seller verifies a wallet first");
+        store.set_wallet(maya.id, &"a".repeat(64)).unwrap();
+        store.set_wallet(sam.id, &"b".repeat(64)).unwrap();
         let posted = store.post(maya.id, &draft("Logo design")).unwrap();
         assert_eq!((posted.seller_name.as_str(), posted.open), ("Maya", true));
         assert_eq!(store.browse(None, None, 10, 0).unwrap(), vec![posted.clone()]);
@@ -524,6 +610,7 @@ mod tests {
     fn listings_are_checked() {
         let store = Store::in_memory().unwrap();
         let maya = store.create_account("Maya", "maya").unwrap();
+        store.set_wallet(maya.id, &"a".repeat(64)).unwrap();
         let bad = |change: fn(&mut Draft)| {
             let mut d = draft("Logo design");
             change(&mut d);
@@ -533,8 +620,7 @@ mod tests {
         assert!(bad(|d| d.title = "x".repeat(101)));
         assert!(bad(|d| d.category = "weapons".into()));
         assert!(bad(|d| d.price = 0));
-        assert!(bad(|d| d.pay_to = "not an address".into()));
-        assert!(!bad(|d| d.pay_to = d.pay_to.to_uppercase()), "an address in capitals is the same address");
+        assert!(!bad(|d| d.pay_to = "somewhere else".into()), "listings are paid to the verified wallet, whatever is sent");
     }
 
     #[test]
@@ -563,6 +649,25 @@ mod tests {
         let account = store.create_account_with_email("Maya", &maya).unwrap();
         assert_eq!(store.account_by_email(&maya).unwrap(), Some(account.id));
         assert!(store.create_account_with_email("Other", &maya).is_err(), "one account per email");
+    }
+
+    #[test]
+    fn a_wallet_is_linked_once_proven_and_to_one_account_only() {
+        let store = Store::in_memory().unwrap();
+        let maya = store.create_account("Maya", "maya").unwrap();
+        let sam = store.create_account("Sam", "sam").unwrap();
+        let wallet = "c".repeat(64);
+        assert!(store.start_verification(maya.id, "nonsense", 3).is_err());
+        let amount = store.start_verification(maya.id, &wallet.to_uppercase(), 3).unwrap();
+        assert!((1_000_000..10_000_000).contains(&amount));
+        assert_eq!(store.verification(maya.id).unwrap(), Some((wallet.clone(), amount, 3)));
+        let other = store.start_verification(sam.id, &wallet, 3).unwrap();
+        assert_ne!(other, amount, "each waiting check has its own amount");
+        store.set_wallet(maya.id, &wallet).unwrap();
+        assert_eq!(store.account(maya.id).unwrap().unwrap().wallet, Some(wallet.clone()));
+        assert_eq!(store.verification(maya.id).unwrap(), None);
+        assert!(store.start_verification(sam.id, &wallet, 4).is_err(), "a wallet belongs to one account");
+        assert!(store.set_wallet(sam.id, &wallet).is_err());
     }
 
     #[test]

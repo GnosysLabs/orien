@@ -11,7 +11,7 @@ const field = 'w-full rounded-xl border border-line bg-bg px-4 py-3 text-ink out
 export function SellForm() {
   const router = useRouter()
   const id = useSearchParams().get('id')
-  const [ready, setReady] = useState<'checking' | 'signed-out' | 'ready'>('checking')
+  const [ready, setReady] = useState<'checking' | 'signed-out' | 'no-wallet' | 'ready'>('checking')
   const [title, setTitle] = useState('')
   const [description, setDescription] = useState('')
   const [category, setCategory] = useState('design')
@@ -26,6 +26,8 @@ export function SellForm() {
     me()
       .then(async (found) => {
         if (!found) return setReady('signed-out')
+        if (!found.account.wallet) return setReady('no-wallet')
+        setPayTo(found.account.wallet)
         const editing = id && found.listings.find((l: Listing) => String(l.id) === id)
         if (editing) {
           setTitle(editing.title)
@@ -33,15 +35,11 @@ export function SellForm() {
           setCategory(editing.category)
           setPrice(plainOrn(editing.price))
           setUnit(editing.unit)
-          setPayTo(editing.pay_to)
           setContact(editing.contact)
         } else {
-          // A new listing pays where the seller's last one did.
+          // A new listing is reached the way the seller's last one was.
           const last = found.listings[0]
-          if (last) {
-            setPayTo(last.pay_to)
-            setContact(last.contact)
-          }
+          if (last) setContact(last.contact)
         }
         setReady('ready')
       })
@@ -52,6 +50,17 @@ export function SellForm() {
   }, [id])
 
   if (ready === 'checking') return <p className="text-muted">Loading…</p>
+  if (ready === 'no-wallet') {
+    return (
+      <Notice>
+        Before your first listing,{' '}
+        <Link href="/marketplace/account/" className="font-semibold text-ink underline underline-offset-4">
+          verify your Orien wallet
+        </Link>
+        , so buyers&apos; payments are sure to reach you. It takes a minute.
+      </Notice>
+    )
+  }
   if (ready === 'signed-out') {
     return (
       <Notice>
@@ -120,17 +129,13 @@ export function SellForm() {
           <input value={unit} onChange={(e) => setUnit(e.target.value)} maxLength={30} placeholder="per hour" className={field} />
         </label>
       </div>
-      <label className="block space-y-2">
-        <span className="text-sm font-semibold text-ink">Your Orien address, where buyers pay you</span>
-        <input
-          value={payTo}
-          onChange={(e) => setPayTo(e.target.value)}
-          required
-          spellCheck={false}
-          placeholder="64 letters and digits, from Orien Wallet or orien wallet address"
-          className={`num text-sm ${field}`}
-        />
-      </label>
+      <p className="rounded-xl border border-line bg-bg px-4 py-3 text-sm text-muted">
+        Buyers pay you straight to your verified wallet,{' '}
+        <code className="num text-ink">
+          {payTo.slice(0, 8)}…{payTo.slice(-8)}
+        </code>
+        .
+      </p>
       <label className="block space-y-2">
         <span className="text-sm font-semibold text-ink">How buyers can reach you</span>
         <input

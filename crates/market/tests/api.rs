@@ -8,9 +8,13 @@ use orien_market::images::Folder;
 use orien_market::mail::Mailer;
 use orien_market::screen::Screener;
 use orien_market::store::Store;
+use orien_market::wallets::{Fake, Incoming};
 use serde_json::{Value, json};
 use std::sync::Arc;
 use tower::ServiceExt;
+
+/// The marketplace's own address in tests.
+const MARKET: &str = "0000000000000000000000000000000000000000000000000000000000000abc";
 
 /// A fresh folder for a test's pictures, which the system clears in time.
 fn folder() -> Folder {
@@ -25,12 +29,12 @@ struct Market {
 
 impl Market {
     fn screened(word: &str) -> Market {
-        let app = App::new(Store::in_memory().unwrap(), folder(), "https://orien.network", true, Mailer::log_only(), Screener::refusing_for_tests(word));
+        let app = App::new(Store::in_memory().unwrap(), folder(), "https://orien.network", true, Mailer::log_only(), Screener::refusing_for_tests(word), Arc::new(Fake::default()), MARKET);
         Market { app: Arc::new(app.unwrap()) }
     }
 
     fn new() -> Market {
-        Market { app: Arc::new(App::new(Store::in_memory().unwrap(), folder(), "https://orien.network", true, Mailer::log_only(), Screener::off()).unwrap()) }
+        Market { app: Arc::new(App::new(Store::in_memory().unwrap(), folder(), "https://orien.network", true, Mailer::log_only(), Screener::off(), Arc::new(Fake::default()), MARKET).unwrap()) }
     }
 
     async fn ask(&self, method: &str, path: &str, token: Option<&str>, body: Option<Value>) -> (StatusCode, Value) {
@@ -123,10 +127,10 @@ async fn a_bad_listing_is_refused_in_plain_words() {
     let market = Market::new();
     let maya = sign_in_for_tests(&market.app, "Maya");
     let mut bad = logo();
-    bad["pay_to"] = json!("my wallet");
+    bad["category"] = json!("weapons");
     let (status, body) = market.ask("POST", "/api/market/listings", Some(&maya), Some(bad)).await;
     assert_eq!(status, StatusCode::BAD_REQUEST);
-    assert!(body["error"].as_str().unwrap().contains("Orien address"));
+    assert!(body["error"].as_str().unwrap().contains("categories"));
 }
 
 #[tokio::test]
@@ -282,4 +286,58 @@ async fn a_seller_sets_up_a_profile_with_a_picture() {
     assert_eq!(body["listings"][0]["id"], posted["listing"]["id"]);
     assert!(body["account"].get("email").is_none(), "a profile never shows an email");
     assert_eq!(market.ask("GET", "/api/market/images/..%2Fmarket.db", None, None).await.0, StatusCode::NOT_FOUND);
+}
+
+#[tokio::test]
+async fn a_seller_proves_their_wallet_with_a_small_payment_before_listing() {
+    let payments = Arc::new(Fake::default());
+    *payments.epoch.lock().unwrap() = 20;
+    let app = App::new(Store::in_memory().unwrap(), folder(), "https://orien.network", true, Mailer::log_only(), Screener::off(), payments.clone(), MARKET);
+    let market = Market { app: Arc::new(app.unwrap()) };
+    let email = "maya@example.com";
+    market.ask("POST", "/api/market/email/start", None, Some(json!({ "email": email }))).await;
+    let code = market.app.code_for_tests(email);
+    let finish = json!({ "email": email, "code": code, "name": "Maya" });
+    let request = Request::builder()
+        .method("POST")
+        .uri("/api/market/email/finish")
+        .header(header::CONTENT_TYPE, "application/json")
+        .body(Body::from(finish.to_string()))
+        .unwrap();
+    let response = router(market.app.clone()).oneshot(request).await.unwrap();
+    let cookie = response.headers()[header::SET_COOKIE].to_str().unwrap().to_string();
+    let maya = cookie.split(';').next().unwrap().split_once('=').unwrap().1.to_string();
+
+    // No listing before the wallet is proven.
+    let (status, body) = market.ask("POST", "/api/market/listings", Some(&maya), Some(logo())).await;
+    assert_eq!(status, StatusCode::BAD_REQUEST);
+    assert!(body["error"].as_str().unwrap().contains("verify your Orien wallet"));
+
+    let wallet = "be5b7cc81cbe475fe002bee2597c30b0ae4f030434e93f12ade7f1a266c6258b";
+    let (status, body) = market.ask("POST", "/api/market/me/wallet", Some(&maya), Some(json!({ "address": wallet }))).await;
+    assert_eq!((status, body["waiting"]["pay_to"].as_str()), (StatusCode::OK, Some(MARKET)));
+    let amount = body["waiting"]["amount"].as_u64().unwrap();
+    let pay = |from: &str, amount: u64, epoch: u64| {
+        let to = MARKET.parse().unwrap();
+        payments.payments.lock().unwrap().push((to, Incoming { from: from.parse().unwrap(), amount, epoch }));
+    };
+
+    // The wrong amount, the wrong sender, or a payment from long before prove nothing.
+    pay(wallet, amount + 1, 20);
+    pay(&"d".repeat(64), amount, 20);
+    pay(wallet, amount, 3);
+    let (_, body) = market.ask("GET", "/api/market/me/wallet", Some(&maya), None).await;
+    assert!(body["waiting"].is_object(), "{body}");
+
+    pay(wallet, amount, 21);
+    let (_, body) = market.ask("GET", "/api/market/me/wallet", Some(&maya), None).await;
+    assert_eq!(body["wallet"], wallet);
+
+    // Listings now pay to the proven wallet, whatever the form says.
+    let mut listing = logo();
+    listing["pay_to"] = json!("d".repeat(64));
+    let (status, body) = market.ask("POST", "/api/market/listings", Some(&maya), Some(listing)).await;
+    assert_eq!((status, body["listing"]["pay_to"].as_str()), (StatusCode::CREATED, Some(wallet)));
+    let (_, body) = market.ask("GET", "/api/market/me", Some(&maya), None).await;
+    assert_eq!(body["account"]["wallet"], wallet);
 }

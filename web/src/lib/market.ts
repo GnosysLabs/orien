@@ -1,6 +1,13 @@
 // Talking to the marketplace server, and passkeys in the browser.
 
-export type Account = { id: number; name: string; bio: string; picture: string | null; created: number }
+export type Account = {
+  id: number
+  name: string
+  bio: string
+  picture: string | null
+  wallet: string | null
+  created: number
+}
 
 export const pictureUrl = (name: string) => `/api/market/images/${name}`
 
