@@ -151,6 +151,50 @@ enum Command {
         #[command(flatten)]
         network: Network,
     },
+    /// Lock ORN for someone, claimable with a secret until a deadline, and
+    /// back to you after it: one side of a trustless swap. Makes the secret
+    /// and keeps it in ~/.orien/swaps, unless you give the other side's hash.
+    Escrow {
+        /// The wallet (default: ~/.orien/wallet)
+        #[arg(short, long, env = "ORIEN_WALLET")]
+        wallet: Option<PathBuf>,
+        /// Who can claim it: an account address
+        #[arg(long)]
+        to: String,
+        /// In ORN, with up to nine decimals
+        #[arg(long, value_parser = parse_coins)]
+        amount: u64,
+        /// How long it can be claimed for, in hours (2 to 720)
+        #[arg(long, default_value_t = 24)]
+        hours: u64,
+        /// Lock behind the other side's secret: its SHA-256, as 64
+        /// hexadecimal characters
+        #[arg(long)]
+        hash: Option<String>,
+        #[command(flatten)]
+        network: Network,
+    },
+    /// Claim ORN locked for you, by revealing the secret
+    Claim {
+        /// The wallet (default: ~/.orien/wallet)
+        #[arg(short, long, env = "ORIEN_WALLET")]
+        wallet: Option<PathBuf>,
+        /// The locked payment, as `orien escrow` printed it: ADDRESS:NUMBER
+        lock: String,
+        /// The secret, as 64 hexadecimal characters (default: the one kept in
+        /// ~/.orien/swaps, if this computer made it)
+        #[arg(long)]
+        secret: Option<String>,
+        #[command(flatten)]
+        network: Network,
+    },
+    /// Show a locked payment: still waiting, or claimed and with what secret
+    EscrowStatus {
+        /// The locked payment: ADDRESS:NUMBER
+        lock: String,
+        #[command(flatten)]
+        network: Network,
+    },
     /// Start releasing staked coins. They stay locked, and can still be
     /// taken for cheating, until the wait set in the genesis file is over.
     Unstake {
@@ -555,6 +599,13 @@ fn run(cli: Cli) -> Result<()> {
             };
             submit(&wallet.clone().unwrap_or_else(default_wallet), stake, None, amount, None, &network.file())
         }
+        Command::Escrow { wallet, to, amount, hours, hash, network } => {
+            escrow(&wallet.unwrap_or_else(default_wallet), &to, amount, hours, hash.as_deref(), &network.file())
+        }
+        Command::Claim { wallet, lock, secret, network } => {
+            claim(&wallet.unwrap_or_else(default_wallet), &lock, secret.as_deref(), &network.file())
+        }
+        Command::EscrowStatus { lock, network } => escrow_status(&lock, &network.file()),
         Command::Unstake { wallet, amount, network } => {
             submit(&wallet.clone().unwrap_or_else(default_wallet), |_, _| Ok(Kind::Unstake), None, amount, None, &network.file())
         }
@@ -1023,7 +1074,13 @@ fn submit(
     wallet.accept_fee(genesis.fee);
     let to = to.unwrap_or(wallet.address());
     let kind = kind(&wallet.address(), &genesis)?;
-    let status = read_account(&client, &wallet)?;
+    // A claim can come from an account the network has never seen.
+    let claiming = matches!(kind, Kind::Claim { .. });
+    let status = if claiming {
+        client.account(&wallet.address(), wallet.next_seq())
+    } else {
+        read_account(&client, &wallet)?
+    };
     let seq = status.seq;
     drop_cancelled(&mut wallet, &status)?;
 
@@ -1059,8 +1116,9 @@ fn submit(
         );
     }
     match unfinished.as_slice() {
-        // Validators check the stake an unstake order draws on.
-        [] if kind == Kind::Unstake => {}
+        // Validators check the stake an unstake order draws on, and a claim
+        // pays its fee out of the locked payment.
+        [] if kind == Kind::Unstake || claiming => {}
         [] => match status.spendable {
             Some(balance) if balance < amount as i128 + genesis.fee.on(&kind, amount) as i128 => {
                 bail!(
@@ -1460,6 +1518,124 @@ fn open_wallet(path: &Path) -> Result<Wallet> {
         }
         other => other,
     }
+}
+
+/// Where this computer keeps the secrets of locked payments it made.
+fn swaps_dir() -> PathBuf {
+    orien_home().join("swaps")
+}
+
+/// A swap secret kept on this computer until it is used.
+#[derive(serde::Serialize, serde::Deserialize)]
+struct KeptSecret {
+    secret: String,
+    hash: String,
+}
+
+fn parse_hex32(text: &str, what: &str) -> Result<[u8; 32]> {
+    hex::decode(text.trim())
+        .ok()
+        .and_then(|bytes| bytes.try_into().ok())
+        .ok_or_else(|| anyhow!("{what} must be 64 hexadecimal characters"))
+}
+
+/// A locked payment's name, ADDRESS:NUMBER: its sender and order number.
+fn parse_lock(text: &str) -> Result<(AccountId, u64)> {
+    let (address, number) =
+        text.trim().rsplit_once(':').ok_or_else(|| anyhow!("a locked payment is named ADDRESS:NUMBER"))?;
+    let from = address.parse().map_err(|_| anyhow!("'{address}' is not a 64-character address"))?;
+    let seq = number.parse().map_err(|_| anyhow!("'{number}' is not an order number"))?;
+    Ok((from, seq))
+}
+
+/// `orien escrow`.
+fn escrow(wallet_file: &Path, to: &str, amount: u64, hours: u64, hash: Option<&str>, genesis_file: &Path) -> Result<()> {
+    let to = resolve_account(to)?;
+    let (genesis, client) = connect(genesis_file)?;
+    let epochs = (hours.saturating_mul(3_600)).div_ceil(genesis.epoch_seconds.max(1));
+    let until = client.epoch() + epochs.clamp(*orien_ledger::LOCK_EPOCHS.start() - 1, *orien_ledger::LOCK_EPOCHS.end() - 1) + 1;
+    // The secret is kept before anything is signed: losing it would mean
+    // the other side of a swap could never be claimed.
+    let (hash, kept) = match hash {
+        Some(text) => (parse_hex32(text, "the hash")?, None),
+        None => {
+            let secret = orien_net::keys::random_seed();
+            let hash = orien_ledger::lock_hash(&secret);
+            let file = swaps_dir().join(format!("{}.json", hex::encode(hash)));
+            fs::create_dir_all(swaps_dir())?;
+            let kept = KeptSecret { secret: hex::encode(secret), hash: hex::encode(hash) };
+            orien_net::store::write_replacing(&file, serde_json::to_string_pretty(&kept)?.as_bytes(), true)?;
+            (hash, Some(file))
+        }
+    };
+    submit(wallet_file, |_, _| Ok(Kind::Lock { hash, until }), Some(to), amount, None, genesis_file)?;
+    let (from, next) = Wallet::peek(wallet_file)?;
+    println!();
+    println!("locked payment {from}:{}", next.saturating_sub(1));
+    println!("hash           {}", hex::encode(hash));
+    println!(
+        "claimable by {} until epoch {until}, about {} hours from now; unclaimed, it comes back to you after that",
+        to.short(),
+        (until - client.epoch()) * genesis.epoch_seconds / 3_600
+    );
+    if let Some(file) = kept {
+        println!("secret kept in {}. Give the other side the hash, never the secret.", file.display());
+    }
+    Ok(())
+}
+
+/// `orien claim`.
+fn claim(wallet_file: &Path, lock: &str, secret: Option<&str>, genesis_file: &Path) -> Result<()> {
+    let (from, seq) = parse_lock(lock)?;
+    let (_, client) = connect(genesis_file)?;
+    let status = client.locked(&from, seq, &[0; 32]);
+    let escrow = status.waiting.ok_or_else(|| anyhow!("that locked payment is not waiting: it was claimed or came back"))?;
+    let (me, _) = Wallet::peek(wallet_file)?;
+    if escrow.to != me {
+        bail!("that locked payment is for {}, not this wallet ({})", escrow.to.short(), me.short());
+    }
+    let secret = match secret {
+        Some(text) => parse_hex32(text, "the secret")?,
+        None => {
+            let file = swaps_dir().join(format!("{}.json", hex::encode(escrow.hash)));
+            let kept: KeptSecret = serde_json::from_str(&fs::read_to_string(&file).map_err(|_| {
+                anyhow!("this computer did not make that lock's secret; give it with --secret")
+            })?)?;
+            parse_hex32(&kept.secret, "the kept secret")?
+        }
+    };
+    if orien_ledger::lock_hash(&secret) != escrow.hash {
+        bail!("that secret does not open this lock");
+    }
+    submit(wallet_file, |_, _| Ok(Kind::Claim { from, seq, secret }), None, escrow.amount, None, genesis_file)
+}
+
+/// `orien escrow-status`.
+fn escrow_status(lock: &str, genesis_file: &Path) -> Result<()> {
+    let (from, seq) = parse_lock(lock)?;
+    let (genesis, client) = connect(genesis_file)?;
+    let first = client.locked(&from, seq, &[0; 32]);
+    if first.answered == 0 {
+        bail!("no validator could be reached");
+    }
+    match first.waiting {
+        Some(escrow) => {
+            let hours = escrow.until.saturating_sub(first.epoch) * genesis.epoch_seconds / 3_600;
+            println!("waiting  {} ORN for {}", coins(escrow.amount as i128), escrow.to);
+            println!("until    epoch {}, about {hours} hours from now", escrow.until);
+            println!("hash     {}", hex::encode(escrow.hash));
+        }
+        // Shown as most validators report it, with its SHA-256 to compare
+        // against the lock's hash: a swap checks it against its own.
+        None => match client.reported_secret(&from, seq) {
+            Some(secret) => {
+                println!("claimed  with the secret {}", hex::encode(secret));
+                println!("         whose SHA-256 is {}", hex::encode(orien_ledger::lock_hash(&secret)));
+            }
+            None => println!("not waiting: it came back to its sender, or was claimed more than a week ago"),
+        },
+    }
+    Ok(())
 }
 
 /// Asks for a wallet's password until it opens the wallet, up to three

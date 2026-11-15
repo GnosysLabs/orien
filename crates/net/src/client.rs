@@ -428,6 +428,21 @@ impl Client {
         }
     }
 
+    /// The secret most answering validators report for a locked payment,
+    /// unchecked: for showing only. Use `locked`, which checks it against the
+    /// lock, for anything that relies on it.
+    pub fn reported_secret(&self, from: &AccountId, seq: u64) -> Option<[u8; 32]> {
+        let secrets: Vec<[u8; 32]> = self
+            .ask_all(&Request::Locked { from: *from, seq })
+            .into_iter()
+            .filter_map(|answer| match answer {
+                Ok(Response::Locked { secret, .. }) => secret,
+                _ => None,
+            })
+            .collect();
+        secrets.iter().max_by_key(|secret| secrets.iter().filter(|other| other == secret).count()).copied()
+    }
+
     /// Hands a work share to every validator. Returns how many took it.
     pub fn submit_share(&self, share: Share) -> usize {
         self.ask_all(&Request::SubmitShare(share))
