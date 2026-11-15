@@ -76,10 +76,12 @@ pub enum Kind {
     /// lock on Bitcoin or Ethereum: this is what makes a swap trustless.
     Lock { hash: [u8; 32], until: u64 },
     /// Claims the locked payment that account `from` made as order number
-    /// `seq`, by revealing its secret. Signed by the payee, from its own
-    /// account: `to` is the payee itself and `amount` the locked amount. Its
-    /// fee comes out of the locked amount, so a payee holding nothing can
-    /// claim.
+    /// `seq`, by revealing its secret: `to` is the payee and `amount` the
+    /// locked amount. Its fee comes out of the locked amount, so a payee
+    /// holding nothing can claim. At first only the payee could sign it,
+    /// from its own account; once claims are open (see
+    /// `State::set_open_claims_from`), anyone may, and the payee is paid all
+    /// the same, so a swap's seller can finish the buyer's side.
     Claim { from: AccountId, seq: u64, secret: [u8; 32] },
 }
 

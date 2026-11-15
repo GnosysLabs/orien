@@ -214,3 +214,67 @@ fn locked_payments_and_secrets_are_proven_against_the_state_root() {
     // Nor does it hold under another root.
     assert!(proof.open(&network().root()).is_none());
 }
+
+/// Carol, holding the secret, claims for Bob: the coins go to Bob.
+fn claim_for_bob(by: u8, seq: u64, amount: u64) -> (Order, SignedBy) {
+    order(Kind::Claim { from: id(ALICE), seq: 0, secret: SECRET }, by, seq, BOB, amount)
+}
+
+#[test]
+fn once_claims_are_open_anyone_with_the_secret_claims_for_the_payee() {
+    let mut state = network();
+    state.set_open_claims_from(11);
+    vote_and_apply(&mut state, &lock(0, 10_000, 14)).unwrap();
+
+    // Before claims open, only Bob may claim his lock.
+    assert_eq!(vote(&mut state, &claim_for_bob(CAROL, 0, 10_000)), Err(Reject::NotOwnAccount));
+
+    state.set_epoch(11);
+    // Carol cannot send Bob's coins anywhere but to Bob.
+    let to_carol = order(Kind::Claim { from: id(ALICE), seq: 0, secret: SECRET }, CAROL, 0, CAROL, 10_000);
+    assert_eq!(vote(&mut state, &to_carol), Err(Reject::NoSuchLock));
+    // Nor claim with the wrong secret.
+    let wrong = order(Kind::Claim { from: id(ALICE), seq: 0, secret: [7; 32] }, CAROL, 0, BOB, 10_000);
+    assert_eq!(vote(&mut state, &wrong), Err(Reject::WrongSecret));
+
+    // With the secret, for Bob: Bob is paid, less the fee, and Carol, who
+    // holds nothing, pays nothing.
+    let total = state.total();
+    vote_and_apply(&mut state, &claim_for_bob(CAROL, 0, 10_000)).unwrap();
+    assert_eq!(balance(&state, BOB), 10_000 - 2, "a claim pays the minimum fee");
+    assert_eq!(balance(&state, CAROL), 0);
+    assert!(state.escrow(&id(ALICE), 0).is_none());
+    assert_eq!(state.revealed(&id(ALICE), 0), Some(SECRET));
+    assert_eq!(state.total(), total, "no coin made or lost");
+
+    // It is claimed once: Bob's own claim now finds nothing.
+    assert_eq!(vote(&mut state, &claim_for_bob(BOB, 0, 10_000)), Err(Reject::NoSuchLock));
+}
+
+#[test]
+fn two_claims_at_once_pay_the_payee_once() {
+    // Carol (the seller, say) and Bob both claim before either is final:
+    // both get their votes, and both become final.
+    let mut state = network();
+    vote_and_apply(&mut state, &lock(0, 10_000, 14)).unwrap();
+    let total = state.total();
+    let by_carol = claim_for_bob(CAROL, 0, 10_000);
+    let by_bob = claim_for_bob(BOB, 0, 10_000);
+    assert_eq!(vote(&mut state, &by_carol), Ok(Accepted::Fresh));
+    assert_eq!(vote(&mut state, &by_bob), Ok(Accepted::Fresh));
+    state.apply(&by_carol.0).unwrap();
+    state.apply(&by_bob.0).unwrap();
+    assert_eq!(balance(&state, BOB), 10_000 - 2, "paid once");
+    assert_eq!(state.account(&FEES).map_or(0, |a| a.balance), 10 + 2, "the lock's fee and one claim's");
+    assert_eq!(state.total(), total, "no coin made");
+    assert_eq!(state.seq(&id(BOB)), 1, "Bob's number is used all the same");
+
+    // The other way round, as another validator may apply them, ends alike.
+    let mut other = network();
+    vote_and_apply(&mut other, &lock(0, 10_000, 14)).unwrap();
+    assert_eq!(vote(&mut other, &by_carol), Ok(Accepted::Fresh));
+    assert_eq!(vote(&mut other, &by_bob), Ok(Accepted::Fresh));
+    other.apply(&by_bob.0).unwrap();
+    other.apply(&by_carol.0).unwrap();
+    assert_eq!(other.root(), state.root(), "every validator reaches the same state");
+}

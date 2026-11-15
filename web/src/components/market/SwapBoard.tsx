@@ -178,6 +178,7 @@ export function SwapBoard() {
           <li>The swap runs in Orien Wallet, on your computer, with your keys. This site only passes messages between the two wallets.</li>
           <li>The seller can only take the Bitcoin by revealing a secret, and that same secret is what lets the buyer take the ORN.</li>
           <li>If the buyer never pays, the seller&apos;s ORN come back after 48 hours. If the seller never takes the Bitcoin, the buyer&apos;s wallet takes it back after about 12 hours.</li>
+          <li>Once the seller takes the Bitcoin, the seller&apos;s own wallet delivers the buyer&apos;s ORN, so they arrive even if the buyer&apos;s wallet is closed.</li>
           <li>You need no ORN to buy your first: the wallet only pays once it has seen the seller&apos;s ORN locked for you.</li>
           <li>Profiles show how many swaps each person has done.</li>
         </ul>

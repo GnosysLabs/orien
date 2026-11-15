@@ -17,6 +17,10 @@
 //!    takes it, which shows the secret to everyone. It sends the claim again,
 //!    with a higher fee if need be, until it is `SETTLED` deep.
 //! 5. The buyer's wallet reads the secret from Bitcoin and claims the ORN.
+//!    The seller's wallet, once its Bitcoin is settled, claims them for the
+//!    buyer too, with the secret it made: the buyer gets their ORN even if
+//!    their wallet stays closed. The network pays a claim only to the
+//!    lock's payee, and only once, whoever makes it.
 //!
 //! If the buyer never pays, the seller's ORN come back on their own. If the
 //! seller never takes the Bitcoin, the buyer's wallet takes it back after
@@ -152,9 +156,10 @@ pub trait Orien {
     /// an identical lock already signed rather than signing a second, and
     /// refuses if `seq` is already used.
     fn lock(&self, seq: u64, to: &Hash32, amount: u64, hash: [u8; 32], until: u64) -> Result<LockRef>;
-    /// Claims the locked payment with its secret, and waits until that is
-    /// final.
-    fn claim(&self, lock: &LockRef, amount: u64, secret: [u8; 32]) -> Result<()>;
+    /// Claims the locked payment for `payee` with its secret, and waits
+    /// until that is final. The buyer claims for itself; the seller, once
+    /// the network lets anyone claim for a payee, for the buyer.
+    fn claim(&self, lock: &LockRef, payee: &Hash32, amount: u64, secret: [u8; 32]) -> Result<()>;
 }
 
 /// What the seller sends the buyer.
@@ -339,6 +344,10 @@ pub struct Swap {
     /// Bitcoin is taken back instead.
     #[serde(default)]
     pub orn_missed: bool,
+    /// Seller: the ORN are claimed for the buyer, by this wallet or the
+    /// buyer's, or their deadline has passed.
+    #[serde(default)]
+    pub orn_delivered: bool,
 }
 
 fn hours(epochs: u64, epoch_seconds: u64) -> u64 {
@@ -537,6 +546,7 @@ impl Swap {
             sending: Vec::new(),
             orn_claimed: false,
             orn_missed: false,
+            orn_delivered: false,
         })
     }
 
@@ -605,6 +615,7 @@ impl Swap {
             sending: Vec::new(),
             orn_claimed: false,
             orn_missed: false,
+            orn_delivered: false,
         };
         let reply = Reply { hash: offer.hash, key: public.to_string(), height };
         Ok((swap, reply))
@@ -645,6 +656,7 @@ impl Swap {
             }
             (Role::Seller, Stage::WaitingForBitcoin) => self.seller_wait(chain, orien)?,
             (Role::Seller, Stage::Claiming) => self.seller_settle(chain)?,
+            (Role::Seller, Stage::Done) if !self.orn_delivered => self.seller_deliver(orien),
             (Role::Buyer, Stage::WaitingForBitcoin) => {
                 let lock = self.bitcoin_lock()?;
                 let seen = chain.coins_any(&lock.address(self.network()?))?;
@@ -773,6 +785,36 @@ impl Swap {
             self.stage = Stage::Cancelled { why: "the ORN came back".into() };
         }
         Ok(())
+    }
+
+    /// Whether nothing is left for this wallet to do: cancelled, or done and,
+    /// for a seller, the buyer's ORN claimed for them.
+    pub fn finished(&self) -> bool {
+        match self.stage {
+            Stage::Cancelled { .. } => true,
+            Stage::Done => self.role == Role::Buyer || self.orn_delivered,
+            _ => false,
+        }
+    }
+
+    /// Seller, the Bitcoin settled: claims the ORN for the buyer, so they
+    /// arrive whether or not the buyer's wallet is open. Quiet while the
+    /// network does not yet let anyone claim for a payee: the buyer's wallet
+    /// claims them then, as before.
+    fn seller_deliver(&mut self, orien: &dyn Orien) {
+        let (Some(secret), Ok(lock)) = (self.secret, self.lock_ref()) else { return };
+        if orien.proven(&lock).is_ok_and(|p| p.secret == Some(secret)) {
+            self.orn_delivered = true;
+            return;
+        }
+        if orien.epoch().is_ok_and(|epoch| epoch >= self.until) {
+            // Too late to claim; nothing more this wallet can do.
+            self.orn_delivered = true;
+            return;
+        }
+        if orien.claim(&lock, &self.buyer, self.orn, secret).is_ok() {
+            self.orn_delivered = true;
+        }
     }
 
     /// Seller: sends the claim again, with a higher fee if it is stuck, until
@@ -914,7 +956,7 @@ impl Swap {
     fn buyer_claim(&mut self, chain: &Explorers, orien: &dyn Orien) -> Result<()> {
         let secret = self.secret.ok_or_else(|| anyhow!("the secret is missing"))?;
         let lock = self.lock_ref()?;
-        if let Err(error) = orien.claim(&lock, self.orn, secret) {
+        if let Err(error) = orien.claim(&lock, &orien.me(), self.orn, secret) {
             let proven = orien.proven(&lock).ok();
             if proven.as_ref().is_none_or(|p| p.secret != Some(secret)) {
                 if orien.epoch()? >= self.until {

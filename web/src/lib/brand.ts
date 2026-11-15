@@ -14,3 +14,7 @@ export const MARKETPLACE_LIVE = process.env.NEXT_PUBLIC_MARKETPLACE === '1'
 /** The first epoch whose mining shares RandomX judges. Set with the release
  * that switches; the network code's LIVE_RANDOMX_FROM is the same number. */
 export const RANDOMX_FROM = 21
+
+/** The first epoch in which anyone may claim a locked payment for its payee.
+ * The network code's LIVE_OPEN_CLAIMS_FROM is the same number. */
+export const OPEN_CLAIMS_FROM = 23

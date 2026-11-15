@@ -377,6 +377,9 @@ pub struct State {
     epoch: u64,
     /// The first epoch in which locked payments may be made.
     locks_from: u64,
+    /// The first epoch in which anyone may claim a locked payment for its
+    /// payee, not only the payee itself.
+    open_claims_from: u64,
     /// Every credit to an account since `record_credits`, when it was
     /// called. Never part of the root or of snapshots, and never read by
     /// the rules.
@@ -402,6 +405,7 @@ impl State {
             revealed: BTreeMap::new(),
             epoch: 0,
             locks_from: 0,
+            open_claims_from: 0,
             credits: None,
         }
     }
@@ -519,7 +523,7 @@ impl State {
                 (accounts, banned, BTreeMap::new(), BTreeMap::new())
             }
         };
-        Ok(State { accounts, locks: HashMap::new(), fees, banned, escrows, revealed, epoch: 0, locks_from: 0, credits: None })
+        Ok(State { accounts, locks: HashMap::new(), fees, banned, escrows, revealed, epoch: 0, locks_from: 0, open_claims_from: 0, credits: None })
     }
 
     /// Sets the epoch this state is in. Every validator sets it alike.
@@ -551,6 +555,12 @@ impl State {
     }
 
     /// Sets the first epoch in which locked payments may be made.
+    /// The first epoch in which anyone may claim a locked payment for its
+    /// payee. Before it, only the payee may.
+    pub fn set_open_claims_from(&mut self, epoch: u64) {
+        self.open_claims_from = epoch;
+    }
+
     pub fn set_locks_from(&mut self, epoch: u64) {
         self.locks_from = epoch;
     }
@@ -778,7 +788,11 @@ impl State {
         if [MINT, REWARDS, FEES, FORFEITED].contains(&order.to) {
             return Err(Reject::ReservedAccount);
         }
-        if !matches!(order.kind, Kind::Payment | Kind::Lock { .. }) && order.to != order.from {
+        // A claim pays only its payee, so once claims are open anyone holding
+        // the secret may make it: the seller who just took a swap's Bitcoin,
+        // for a buyer whose wallet is closed.
+        let open_claim = matches!(order.kind, Kind::Claim { .. }) && self.epoch >= self.open_claims_from;
+        if !matches!(order.kind, Kind::Payment | Kind::Lock { .. }) && order.to != order.from && !open_claim {
             return Err(Reject::NotOwnAccount);
         }
         match &order.kind {
@@ -799,7 +813,7 @@ impl State {
                     return Err(Reject::LocksNotYet { from: self.locks_from });
                 }
                 let escrow = self.escrows.get(&(*from, *seq)).ok_or(Reject::NoSuchLock)?;
-                if escrow.to != order.from || escrow.amount != order.amount {
+                if escrow.to != order.to || escrow.amount != order.amount {
                     return Err(Reject::NoSuchLock);
                 }
                 if self.epoch >= escrow.until {
@@ -858,8 +872,15 @@ impl State {
         if order.seq > current {
             return Err(Reject::FutureSeq { current });
         }
+        // Once claims are open, two people can claim one lock at once, and
+        // both claims can become final. The second pays nothing and costs
+        // nothing; only its order number is used up.
+        let claimed_already = match &order.kind {
+            Kind::Claim { from, seq, .. } => self.revealed.contains_key(&(*from, *seq)),
+            _ => false,
+        };
         let sender = self.accounts.entry(order.from).or_insert_with(|| Account::holding(0));
-        let fee = self.fees.on(&order.kind, order.amount);
+        let fee = if claimed_already { 0 } else { self.fees.on(&order.kind, order.amount) };
         sender.seq += 1;
         // A claim pays its fee out of the locked amount.
         if !matches!(order.kind, Kind::Claim { .. }) {
@@ -904,12 +925,16 @@ impl State {
                     self.escrows.insert(key, escrow);
                 }
             }
+            Kind::Claim { .. } if claimed_already => {}
             Kind::Claim { from, seq, secret } => {
-                sender.balance += order.amount as i128 - fee as i128;
+                // The payee is paid, whoever made the claim. Before claims
+                // were open, that was always the claimer itself.
+                let payee = self.accounts.entry(order.to).or_insert_with(|| Account::holding(0));
+                payee.balance += order.amount as i128 - fee as i128;
                 self.escrows.remove(&(*from, *seq));
                 self.revealed.insert((*from, *seq), (*secret, self.epoch));
                 self.credit(Credit {
-                    account: order.from,
+                    account: order.to,
                     income: Income::Claim,
                     amount: order.amount.saturating_sub(fee),
                     counterparty: Some(*from),

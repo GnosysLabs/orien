@@ -152,6 +152,15 @@ fn randomx_light(seed: &Hash32, share: &Share) -> u64 {
     })
 }
 
+/// A share's number if it has been judged already, or is cheap to judge:
+/// whether checking it would cost nothing.
+pub fn judged(math: Math, seed: &Hash32, share: &Share) -> Option<u64> {
+    match math {
+        Math::Blake3 => Some(blake3(seed, share)),
+        Math::RandomX => JUDGED.lock().unwrap_or_else(|p| p.into_inner()).as_ref().and_then(|j| j.get(&(*seed, *share)).copied()),
+    }
+}
+
 /// A share's number under `math`, as a validator judges it. RandomX
 /// answers are remembered, so a share that arrives again costs nothing.
 pub fn judge(math: Math, seed: &Hash32, share: &Share) -> u64 {

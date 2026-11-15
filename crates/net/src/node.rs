@@ -217,29 +217,36 @@ struct Shared {
     next_connection: AtomicU64,
 }
 
-/// How many RandomX shares this validator checks at once. More wait their
-/// turn by being sent again, so checking never takes every processor.
+/// How many RandomX shares this validator checks at once, so checking never
+/// takes every processor. More wait their turn, for up to `SHARE_WAIT`.
 const SHARE_CHECKS: usize = 2;
+const SHARE_WAIT: Duration = Duration::from_secs(5);
 
-static CHECKING: std::sync::atomic::AtomicUsize = std::sync::atomic::AtomicUsize::new(0);
+static CHECKING: Mutex<usize> = Mutex::new(0);
+static CHECK_DONE: std::sync::Condvar = std::sync::Condvar::new();
 
 /// A turn at checking a share, given back when dropped.
 struct ShareCheck;
 
 impl ShareCheck {
-    fn start() -> Option<ShareCheck> {
-        let taken = CHECKING.fetch_add(1, Ordering::AcqRel);
-        if taken >= SHARE_CHECKS {
-            CHECKING.fetch_sub(1, Ordering::AcqRel);
+    /// Waits for a turn, for at most `patience`.
+    fn wait(patience: Duration) -> Option<ShareCheck> {
+        let checking = CHECKING.lock().unwrap_or_else(|p| p.into_inner());
+        let (mut checking, waited) = CHECK_DONE
+            .wait_timeout_while(checking, patience, |checking| *checking >= SHARE_CHECKS)
+            .unwrap_or_else(|p| p.into_inner());
+        if waited.timed_out() && *checking >= SHARE_CHECKS {
             return None;
         }
+        *checking += 1;
         Some(ShareCheck)
     }
 }
 
 impl Drop for ShareCheck {
     fn drop(&mut self) {
-        CHECKING.fetch_sub(1, Ordering::AcqRel);
+        *CHECKING.lock().unwrap_or_else(|p| p.into_inner()) -= 1;
+        CHECK_DONE.notify_one();
     }
 }
 
@@ -294,12 +301,20 @@ impl Shared {
                 // false shares only slows the shares.
                 let committee = self.committee();
                 let work = committee.work();
-                if work.math(committee.epoch()) == Math::RandomX {
-                    let Some(_turn) = ShareCheck::start() else {
-                        return Response::Unavailable("busy checking shares; send it again in a moment".into());
-                    };
+                let math = work.math(committee.epoch());
+                if math == Math::RandomX {
                     let seed = *self.seed.read().unwrap();
-                    if !share.counts(Math::RandomX, &seed, work.target) {
+                    // One already checked, as most are once another
+                    // validator has passed it on, costs nothing; a new one
+                    // waits its turn.
+                    let _turn = match orien_ledger::work::judged(math, &seed, &share) {
+                        Some(_) => None,
+                        None => match ShareCheck::wait(SHARE_WAIT) {
+                            Some(turn) => Some(turn),
+                            None => return Response::Unavailable("busy checking shares; send it again in a moment".into()),
+                        },
+                    };
+                    if !share.counts(math, &seed, work.target) {
                         return Response::Invalid("not a work share for this epoch".into());
                     }
                 }
@@ -1519,7 +1534,7 @@ impl Core {
                     .filter_map(|order| {
                         let (amount, counterparty, named) = match order.kind {
                             Kind::Payment if order.to == account => (order.amount, order.from, (order.from, order.seq)),
-                            Kind::Claim { from, seq, .. } if order.from == account => {
+                            Kind::Claim { from, seq, .. } if order.to == account => {
                                 (order.amount.saturating_sub(fees.on(&order.kind, order.amount)), from, (from, seq))
                             }
                             _ => return None,
@@ -1843,6 +1858,18 @@ const LIVE_NETWORK: &str = "8f1833742a76431b7e0912ebbab49f3669dd423fb2fbbf0612b8
 /// after the release that opens them, so every validator runs it first.
 const LIVE_LOCKS_FROM: u64 = 15;
 
+/// The first epoch on the live network in which anyone may claim a locked
+/// payment for its payee: epoch 23, which begins at 2026-11-15 20:11 UTC,
+/// after release 1.6.0 has reached every validator.
+const LIVE_OPEN_CLAIMS_FROM: u64 = 23;
+
+/// The first epoch in which a network lets anyone claim a locked payment
+/// for its payee: on the live network the one set above, and from the start
+/// on any other network.
+pub fn open_claims_from(network: &Hash32) -> u64 {
+    if network.to_string() == LIVE_NETWORK { LIVE_OPEN_CLAIMS_FROM } else { 0 }
+}
+
 /// Whether `network` is the live Orien network, the one releases are for.
 pub fn is_live(network: &Hash32) -> bool {
     network.to_string() == LIVE_NETWORK
@@ -1859,6 +1886,7 @@ pub fn locks_from(network: &Hash32) -> u64 {
 fn ready(mut state: State, epoch: u64, network: &Hash32) -> State {
     state.set_epoch(epoch);
     state.set_locks_from(locks_from(network));
+    state.set_open_claims_from(open_claims_from(network));
     state
 }
 
