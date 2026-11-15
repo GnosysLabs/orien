@@ -48,6 +48,35 @@ The marketplace's own wallet is
 is kept on the founder's Mac, never on the server: the server only reads
 what came in.
 
+## The swap board
+
+Swaps of ORN for Bitcoin run in Orien Wallet, which holds the keys and
+watches the Bitcoin network; the website never touches either. What the
+website adds, at orien.network/swap, is a place to find someone to swap
+with, using the marketplace's accounts.
+
+1. **An offer.** A seller with a verified wallet posts "500 ORN for 0.01
+   BTC". Nothing is locked yet.
+2. **Taking it.** A buyer, signed in and with a verified wallet too,
+   presses Take in Orien Wallet. The offer is held for them alone for 30
+   minutes.
+3. **The codes pass through the board.** The seller's wallet sees the
+   taker, locks the ORN for them and posts its offer code; the buyer's
+   wallet reads it, pays the Bitcoin and posts its reply code; the seller's
+   wallet reads that and the swap runs as it does today. Nobody copies
+   anything. The board only carries the codes: it cannot take or move
+   anyone's coins, and a dishonest board can only waste time.
+4. **When the seller's wallet is not open**, nothing happens until it is;
+   the hold lapses and the offer reopens.
+
+The one cost a stranger can impose is a seller's ORN locked for 48 hours by
+a buyer who takes and never pays. So: only verified wallets take offers, an
+account holds one offer at a time, and an account that lets takes lapse
+repeatedly is stopped from taking for a while. Profiles show completed
+swaps, so sellers can see who has a record.
+
+Swap offers launch with the marketplace.
+
 ## In pieces
 
 1. The server: accounts with passkey sign-in, and listings to post, edit,
