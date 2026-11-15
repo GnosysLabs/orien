@@ -1762,9 +1762,9 @@ const UPGRADES_FROM: &[&str] = &["6"];
 const LIVE_NETWORK: &str = "8f1833742a76431b7e0912ebbab49f3669dd423fb2fbbf0612b8ade911ac1452";
 
 /// The first epoch in which locked payments may be made on the live
-/// network. Until every validator runs a version that knows them, they stay
-/// closed; this is set to a real epoch in the release that opens them.
-const LIVE_LOCKS_FROM: u64 = u64::MAX;
+/// network: epoch 15, which begins at 2026-11-15 12:11:05 UTC, a few hours
+/// after the release that opens them, so every validator runs it first.
+const LIVE_LOCKS_FROM: u64 = 15;
 
 /// The first epoch in which a network takes locked payments: on the live
 /// network the one set above, and from the start on any other network.

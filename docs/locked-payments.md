@@ -161,7 +161,8 @@ The network holds real coins, so it is upgraded, never reset:
    secret lists. No existing data changes; its state root is unchanged while
    the new lists are empty.
 2. **An activation epoch.** The new orders count only from a set epoch, a
-   few hours after the release. Until then, every validator, old or new,
+   few hours after the release: epoch 15 (2026-11-15 12:11 UTC), opened by
+   orien 1.3.0. Until then, every validator, old or new,
    follows the same rules. That gives time to update all four validators,
    one at a time, and to publish the new `orien` and Orien Wallet, before
    anyone can make a locked payment.
