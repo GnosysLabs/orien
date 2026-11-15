@@ -37,6 +37,14 @@ export const CHANGELOG: Entry[] = [
   },
   {
     date: '2026-11-15',
+    products: ['marketplace'],
+    title: 'Pictures of any size',
+    changes: [
+      'Big pictures straight from a phone or camera upload fine: your browser shrinks them before sending, for listings, profile pictures and banners.',
+    ],
+  },
+  {
+    date: '2026-11-15',
     products: ['wallet'],
     version: '1.6.1',
     title: 'Made for iPhone, Face ID and Touch ID by default, and smoother sending',

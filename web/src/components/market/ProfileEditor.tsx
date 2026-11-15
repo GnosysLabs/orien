@@ -1,5 +1,6 @@
 'use client'
 
+import { shrinkPicture } from '@/lib/shrink'
 import Link from 'next/link'
 import { useRef, useState } from 'react'
 import { Camera, ImagePlus } from 'lucide-react'
@@ -58,7 +59,7 @@ export function ProfileEditor({ account, onSaved }: { account: Account; onSaved:
     setBusy('picture')
     setTrouble('')
     try {
-      const response = await fetch('/api/market/me/picture', { method: 'POST', credentials: 'same-origin', body: file })
+      const response = await fetch('/api/market/me/picture', { method: 'POST', credentials: 'same-origin', body: await shrinkPicture(file) })
       const data = await response.json().catch(() => ({}))
       if (!response.ok) throw new MarketError(data.error ?? 'The picture could not be saved.', response.status)
       onSaved()
@@ -78,7 +79,7 @@ export function ProfileEditor({ account, onSaved }: { account: Account; onSaved:
       const response = await fetch('/api/market/me/banner', {
         method: file ? 'POST' : 'DELETE',
         credentials: 'same-origin',
-        body: file ?? undefined,
+        body: file ? await shrinkPicture(file) : undefined,
       })
       const data = await response.json().catch(() => ({}))
       if (!response.ok) throw new MarketError(data.error ?? 'The banner could not be saved.', response.status)

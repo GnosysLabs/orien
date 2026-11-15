@@ -1,5 +1,6 @@
 'use client'
 
+import { shrinkPicture } from '@/lib/shrink'
 import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useEffect, useState } from 'react'
@@ -16,7 +17,7 @@ type Item = { saved: string } | { file: File; preview: string }
 const MAX_PICTURES = 4
 
 async function upload(listing: number, file: File): Promise<Listing> {
-  const response = await fetch(`/api/market/listings/${listing}/pictures`, { method: 'POST', credentials: 'same-origin', body: file })
+  const response = await fetch(`/api/market/listings/${listing}/pictures`, { method: 'POST', credentials: 'same-origin', body: await shrinkPicture(file) })
   const data = await response.json().catch(() => ({}))
   if (!response.ok) throw new MarketError(data.error ?? 'The picture could not be added.', response.status)
   return data.listing
