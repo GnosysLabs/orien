@@ -47,7 +47,7 @@ export default function PrivacyPage() {
           </li>
           <li>
             <strong>What you choose to show:</strong> your name, picture, bio, the ways to reach you that you add, your
-            listings and swap offers, and your verified Orien address. Everyone can see these.
+            listings and swap offers, and the Orien address you are paid at. Everyone can see these.
           </li>
           <li>
             <strong>Your messages,</strong> so both of you can read them. We do not read them as a matter of course, but we

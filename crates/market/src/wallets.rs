@@ -1,7 +1,6 @@
-//! Checking that a seller holds the Orien wallet their listings are paid
-//! to: they send a small, exact amount from it to the marketplace's own
-//! address, and the validators' record of what came into that address
-//! shows who sent it.
+//! What the marketplace asks the Orien network: whether an address typed
+//! on the website has ever held ORN (a mistyped one never has), and what
+//! came into an address.
 
 use anyhow::{Context, Result};
 use orien_ledger::{AccountId, Income};
@@ -23,6 +22,8 @@ pub trait Payments: Send + Sync {
     fn epoch(&self) -> Result<u64>;
     /// Payments to `to` from epoch `from` on, final ones only.
     fn received(&self, to: &AccountId, from: u64) -> Result<Vec<Incoming>>;
+    /// Whether `account` has ever held ORN or paid anything.
+    fn has_held(&self, account: &AccountId) -> Result<bool>;
 }
 
 /// The live network, asked through its validators.
@@ -60,6 +61,15 @@ impl Payments for Network {
         }
         Ok(found)
     }
+
+    fn has_held(&self, account: &AccountId) -> Result<bool> {
+        let status = self.client.account(account, 0);
+        if status.views.iter().all(Option::is_none) {
+            anyhow::bail!("no validator answers");
+        }
+        let held = status.views.iter().flatten().any(|view| view.balance > 0 || view.seq > 0);
+        Ok(held || status.seq > 0 || status.proven.is_some())
+    }
 }
 
 /// For tests: payments added by hand.
@@ -67,6 +77,8 @@ impl Payments for Network {
 pub struct Fake {
     pub epoch: Mutex<u64>,
     pub payments: Mutex<Vec<(AccountId, Incoming)>>,
+    /// Accounts that hold ORN.
+    pub held: Mutex<Vec<AccountId>>,
 }
 
 impl Payments for Fake {
@@ -77,5 +89,26 @@ impl Payments for Fake {
     fn received(&self, to: &AccountId, from: u64) -> Result<Vec<Incoming>> {
         let payments = self.payments.lock().unwrap();
         Ok(payments.iter().filter(|(t, p)| t == to && p.epoch >= from).map(|(_, p)| p.clone()).collect())
+    }
+
+    fn has_held(&self, account: &AccountId) -> Result<bool> {
+        Ok(self.held.lock().unwrap().contains(account))
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    /// Asks the live network: `cargo test -p orien-market has_held_live -- --ignored`.
+    #[test]
+    #[ignore]
+    fn has_held_live() {
+        let genesis = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../web/public/network/genesis.json");
+        let network = Network::open(&genesis).unwrap();
+        let market: AccountId = "74fa1ab82c45ebeed539b03146243ddfc6f0ccb5163f45ea87d21692ba774b7a".parse().unwrap();
+        assert!(network.has_held(&market).unwrap(), "the marketplace's wallet has been paid");
+        let nobody: AccountId = "1234".repeat(16).parse().unwrap();
+        assert!(!network.has_held(&nobody).unwrap(), "a made-up address never held anything");
     }
 }

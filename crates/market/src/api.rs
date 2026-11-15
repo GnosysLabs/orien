@@ -42,12 +42,13 @@ pub struct App {
     mailer: Arc<Mailer>,
     screener: Arc<Screener>,
     images: Folder,
-    /// What the marketplace's own address has received, for checking wallets.
+    /// What the network says about addresses.
     payments: Arc<dyn Payments>,
     /// Bitcoin's price in dollars.
     prices: Arc<crate::prices::Prices>,
-    /// The marketplace's own Orien address, which sellers prove their
-    /// wallets by paying.
+    /// The marketplace's own Orien address. Sellers once proved their
+    /// wallets by paying it; nothing uses it now, but the service still names it.
+    #[allow(dead_code)]
     address: String,
     /// Whether the cookie is only sent over https: everywhere but tests.
     secure: bool,
@@ -219,7 +220,7 @@ pub fn router(app: Arc<App>) -> Router {
             "/api/market/me/picture",
             post(set_picture).layer(axum::extract::DefaultBodyLimit::max(images::MAX_UPLOAD)),
         )
-        .route("/api/market/me/wallet", get(check_wallet).post(start_wallet))
+        .route("/api/market/me/wallet", get(wallet).post(link_wallet))
         .route("/api/market/me/delete", post(delete_me))
         .route("/api/market/profiles/{id}", get(profile))
         .route("/api/market/listings/{id}/messages", post(message_seller))
@@ -640,8 +641,12 @@ async fn finish_swap(State(app): State<Arc<App>>, headers: HeaderMap, Path(id): 
 }
 
 #[derive(Deserialize)]
-struct WalletStart {
+struct WalletLink {
     address: String,
+    /// Sent by Orien Wallet, which names its own address, so it cannot be
+    /// mistyped and may be new.
+    #[serde(default)]
+    app: bool,
 }
 
 /// Asks the network something, off the async threads.
@@ -659,33 +664,29 @@ async fn network<T: Send + 'static>(
         })
 }
 
-/// Starts proving a wallet: says what to send, from where, to where.
-async fn start_wallet(State(app): State<Arc<App>>, headers: HeaderMap, Json(request): Json<WalletStart>) -> Answer {
+/// Links the wallet buyers pay. Nothing is proven: naming someone else's
+/// wallet only pays them. An address typed on the website must have held
+/// ORN before, which a mistyped one never has.
+async fn link_wallet(State(app): State<Arc<App>>, headers: HeaderMap, Json(request): Json<WalletLink>) -> Answer {
     let id = app.signed_in(&headers)?;
-    store::orien_address(&request.address).map_err(refused)?;
-    let epoch = network(&app, |p| p.epoch()).await?;
-    let amount = app.store.lock().unwrap().start_verification(id, &request.address, epoch).map_err(refused)?;
-    let from = store::orien_address(&request.address).map_err(refused)?;
-    Ok(Json(json!({ "waiting": { "from": from, "pay_to": app.address, "amount": amount } })).into_response())
+    let address = store::orien_address(&request.address).map_err(refused)?;
+    if !request.app {
+        let account: orien_ledger::AccountId = address.parse().map_err(|_| refused(anyhow::anyhow!("that is not an Orien address")))?;
+        if !network(&app, move |p| p.has_held(&account)).await? {
+            return Err(refused(anyhow::anyhow!(
+                "that address has never held any ORN, so it may have a typo; check it, or link your wallet by signing in from Orien Wallet"
+            )));
+        }
+    }
+    app.store.lock().unwrap().set_wallet(id, &address).map_err(refused)?;
+    Ok(Json(json!({ "wallet": address })).into_response())
 }
 
-/// Looks for the payment that proves the wallet, and links it once found.
-async fn check_wallet(State(app): State<Arc<App>>, headers: HeaderMap) -> Answer {
+/// The linked wallet.
+async fn wallet(State(app): State<Arc<App>>, headers: HeaderMap) -> Answer {
     let id = app.signed_in(&headers)?;
-    let waiting = app.store.lock().unwrap().verification(id)?;
-    let Some((from, amount, epoch)) = waiting else {
-        let account = app.store.lock().unwrap().account(id)?.ok_or(Failure::SignIn)?;
-        return Ok(Json(json!({ "wallet": account.wallet })).into_response());
-    };
-    let to: orien_ledger::AccountId = app.address.parse().map_err(|_| Failure::Broken(anyhow::anyhow!("bad marketplace address")))?;
-    // From the epoch before, in case the check began as an epoch closed.
-    let received = network(&app, move |p| p.received(&to, epoch.saturating_sub(1))).await?;
-    let paid = received.iter().any(|payment| payment.from.to_string() == from && payment.amount == amount);
-    if paid {
-        app.store.lock().unwrap().set_wallet(id, &from).map_err(refused)?;
-        return Ok(Json(json!({ "wallet": from })).into_response());
-    }
-    Ok(Json(json!({ "waiting": { "from": from, "pay_to": app.address, "amount": amount } })).into_response())
+    let account = app.store.lock().unwrap().account(id)?.ok_or(Failure::SignIn)?;
+    Ok(Json(json!({ "wallet": account.wallet })).into_response())
 }
 
 #[derive(Deserialize)]

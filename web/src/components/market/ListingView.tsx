@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
 import { useEffect, useState } from 'react'
-import { ArrowLeft, BadgeCheck, Pencil, ShieldCheck } from 'lucide-react'
+import { ArrowLeft, Pencil, ShieldCheck } from 'lucide-react'
 import { ask, categoryLabel, formatOrn, memberSince, type Account, type Listing } from '@/lib/market'
 import { Avatar } from './Avatar'
 import { ContactLinks } from './ContactLinks'
@@ -50,7 +50,6 @@ export function ListingView() {
               <span className="flex flex-col">
                 <span className="flex items-center gap-1.5 font-semibold text-ink group-hover:underline">
                   {seller.name}
-                  {seller.wallet && <BadgeCheck className="h-4 w-4 text-go" strokeWidth={2.25} aria-label="Verified wallet" />}
                 </span>
                 <span className="text-xs text-muted">{memberSince(seller.created)}</span>
               </span>
@@ -101,7 +100,7 @@ export function ListingView() {
             <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-go" aria-hidden />
             <span>
               Agree the details in messages first. When you are ready, {mine ? 'you send' : `${seller.name} sends`} a payment
-              request there, and the ORN go straight to {mine ? 'your' : 'their'} verified wallet.
+              request there, and the ORN go straight to {mine ? 'your' : 'their'} wallet.
             </span>
           </p>
           {!mine && (
