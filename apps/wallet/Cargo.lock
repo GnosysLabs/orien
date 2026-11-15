@@ -2547,7 +2547,7 @@ checksum = "04744f49eae99ab78e0d5c0b603ab218f515ea8cfe5a456d7629ad883a3b6e7d"
 
 [[package]]
 name = "orien-crypto"
-version = "1.5.0"
+version = "1.6.0"
 dependencies = [
  "blake3",
  "borsh",
@@ -2557,7 +2557,7 @@ dependencies = [
 
 [[package]]
 name = "orien-ledger"
-version = "1.5.0"
+version = "1.6.0"
 dependencies = [
  "borsh",
  "orien-crypto",
@@ -2568,7 +2568,7 @@ dependencies = [
 
 [[package]]
 name = "orien-net"
-version = "1.5.0"
+version = "1.6.0"
 dependencies = [
  "anyhow",
  "argon2",
@@ -2584,7 +2584,7 @@ dependencies = [
 
 [[package]]
 name = "orien-swap"
-version = "1.5.0"
+version = "1.6.0"
 dependencies = [
  "anyhow",
  "base64 0.22.1",

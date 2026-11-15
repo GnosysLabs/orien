@@ -7,7 +7,7 @@ use orien_net::client::Client;
 use orien_net::miner::{self, Event};
 use serde::Serialize;
 use std::path::PathBuf;
-use std::sync::atomic::{AtomicBool, Ordering};
+use std::sync::atomic::{AtomicBool, AtomicUsize, Ordering};
 use std::sync::{Arc, Mutex};
 use std::thread::JoinHandle;
 
@@ -37,6 +37,9 @@ pub struct Status {
 
 struct Running {
     stop: Arc<AtomicBool>,
+    /// How many threads mine, read by the miner every round: changing it
+    /// changes the speed without getting RandomX ready again.
+    threads: Arc<AtomicUsize>,
     thread: JoinHandle<()>,
 }
 
@@ -64,6 +67,8 @@ pub fn start(account: AccountId, percent: u8, connect: impl FnOnce() -> Result<C
         *s = Status { running: true, address: Some(account.to_string()), threads, ..Status::default() };
     });
     let flag = stop.clone();
+    let count = Arc::new(AtomicUsize::new(threads));
+    let counted = count.clone();
     let thread = std::thread::spawn(move || {
         let client = match connect() {
             Ok(client) => client,
@@ -75,7 +80,7 @@ pub fn start(account: AccountId, percent: u8, connect: impl FnOnce() -> Result<C
                 return;
             }
         };
-        miner::run(&client, account, threads, &flag, |_, event| match event {
+        miner::run_adjustable(&client, account, &counted, &flag, |_, event| match event {
             Event::Epoch { epoch, target } => set(|s| {
                 s.epoch = Some(epoch);
                 s.one_in = Some(u64::MAX / target.max(1));
@@ -96,7 +101,18 @@ pub fn start(account: AccountId, percent: u8, connect: impl FnOnce() -> Result<C
         let _ = client.head().save(&crate::head_file(&genesis));
         set(|s| s.running = false);
     });
-    *RUNNING.lock().unwrap_or_else(|poisoned| poisoned.into_inner()) = Some(Running { stop, thread });
+    *RUNNING.lock().unwrap_or_else(|poisoned| poisoned.into_inner()) = Some(Running { stop, threads: count, thread });
+}
+
+/// Changes how much of the processor mining uses, within a round, without
+/// stopping it. False if mining isn't running.
+pub fn set_percent(percent: u8) -> bool {
+    let running = RUNNING.lock().unwrap_or_else(|poisoned| poisoned.into_inner());
+    let Some(running) = running.as_ref() else { return false };
+    let threads = miner::threads_for(percent.clamp(1, 100));
+    running.threads.store(threads, Ordering::Relaxed);
+    set(|s| s.threads = threads);
+    true
 }
 
 /// Stops mining, if it is running, and waits for its threads to end.

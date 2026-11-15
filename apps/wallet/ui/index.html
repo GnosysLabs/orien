@@ -799,7 +799,7 @@
         <div class="row"><span>Seller</span><span id="bt-seller"></span></div>
       </div>
       <ul class="explain" data-gap="lg">
-        <li><strong>What happens:</strong> the offer is held for you for 30 minutes. The seller's wallet locks the ORN for you, then this app shows you where to pay the Bitcoin. After you pay, the seller's wallet takes it and this app claims your ORN.</li>
+        <li><strong>What happens:</strong> the offer is held for you for 30 minutes. The seller's wallet locks the ORN for you, then this app shows you where to pay the Bitcoin. After you pay, the seller's wallet takes it and, in the same step, delivers your ORN to you.</li>
         <li><strong>You need</strong> the Bitcoin in any Bitcoin wallet, plus its sending fee. The usual Orien fee (0.1%, at most 1 ORN) comes out of the ORN you receive.</li>
         <li><strong>If the seller never takes your Bitcoin,</strong> this app takes it back to the address below after about 12 hours.</li>
       </ul>
@@ -855,7 +855,7 @@
       </div>
       <ul class="explain" data-gap="sm">
         <li><strong>You need</strong> Bitcoin in any Bitcoin wallet, enough for the price plus that wallet's sending fee, a Bitcoin address of yours for a refund if the swap stops, and a price you've agreed with the seller.</li>
-        <li><strong>How it goes:</strong> the seller locks the ORN for you and sends an offer code, you send back a reply code and pay the Bitcoin, the seller takes it, and this app claims your ORN. Usually one to two hours after you pay.</li>
+        <li><strong>How it goes:</strong> the seller locks the ORN for you and sends an offer code, you send back a reply code and pay the Bitcoin, the seller's wallet takes it and delivers your ORN. Usually one to two hours after you pay.</li>
         <li><strong>Fees:</strong> your Bitcoin wallet's fee to pay, and the usual Orien fee (0.1%, at most 1 ORN), which comes out of the ORN you receive. Orien Wallet itself takes nothing.</li>
         <li><strong>Smallest swap:</strong> 0.00005 BTC, more when Bitcoin is busy<span class="min-now"></span>. The wallet checks before anything is paid. <strong>If the seller never takes your Bitcoin,</strong> this app takes it back for you after about 12 hours.</li>
       </ul>
@@ -1187,10 +1187,11 @@
     mineTimer = setInterval(() => { if ($("mine").hidden) clearInterval(mineTimer); else mineStatus(false); }, 2000);
   };
   $("mn-cpu").oninput = cpuText;
-  // A new percent while mining restarts it at that speed.
+  // A new percent while mining takes effect within a few seconds, without
+  // getting ready again; when stopped, it's remembered for next time.
   $("mn-cpu").onchange = async () => {
-    const s = await mineStatus(false);
-    if (s && s.running) { try { await invoke("mine_start", { percent: Number($("mn-cpu").value) }); } catch (e) { problem("mine-problem", e); } }
+    try { await invoke("mine_set", { percent: Number($("mn-cpu").value) }); } catch (e) { problem("mine-problem", e); }
+    mineStatus(false);
   };
   $("mn-go").onclick = async () => {
     $("mn-go").disabled = true;
@@ -1561,7 +1562,7 @@
           ? { what: "The swap board passes your offer to the buyer's wallet, and their reply back", who: "Automatic · usually within minutes" }
           : { what: "You send the buyer the offer code, and paste in the reply code they send back", who: "You and the buyer · up to you" },
         { what: `The buyer pays ${B}, and Bitcoin confirms it three times`, who: "The buyer · usually 30 to 60 minutes after they pay" },
-        { what: `This app takes the Bitcoin to your Bitcoin address. That reveals the secret, so the buyer's wallet can take the ORN`, who: "This app · about 30 minutes for Bitcoin to settle" },
+        { what: `This app takes the Bitcoin to your Bitcoin address, then delivers the buyer's ORN to them`, who: "This app · about 30 minutes for Bitcoin to settle" },
       ];
       const at = { locking: 0, reply: 1, bitcoin: 2, claiming: 3, done: 4 }[s.stage];
       return { steps, at: at ?? null };
@@ -1572,7 +1573,7 @@
         ? { what: `You pay ${B} into the swap, from any Bitcoin wallet. The swap board passes your reply to the seller`, who: "You · pay within the next few hours" }
         : { what: `You send the seller the reply code, and pay ${B} into the swap`, who: "You · pay within the next few hours" },
       { what: "The seller's wallet takes the Bitcoin once Bitcoin has confirmed your payment three times", who: "The seller · usually 30 to 60 minutes after you pay" },
-      { what: `This app reads the secret from Bitcoin and claims your ${O}`, who: "This app · a few minutes" },
+      { what: `Your ${O} arrive: the seller's wallet delivers them once it takes the Bitcoin, or this app claims them if it gets there first`, who: "Automatic · a few minutes" },
     ];
     let at = { bitcoin: 1, secret: 2, claim: 3, done: 4 }[s.stage];
     if (s.stage === "secret" && s.orn_claimed) at = 4;
@@ -1601,7 +1602,7 @@
       return `<strong>Nothing has left your wallets yet.</strong> If you change your mind, just don't pay: the seller's ORN go back to them ${ornBack || "on their own"}. Pay soon if you do: the swap's Bitcoin lock ends ${btcBack || "about 12 hours after your reply"}.`;
     if (s.stage === "claim" || (s.stage === "secret" && s.orn_claimed))
       return `<strong>Keep Orien Wallet open until this is done.</strong> It must claim your ORN before ${ornBack || "the seller's lock ends"}.`;
-    return `<strong>If the seller disappears</strong> and never takes your Bitcoin, this app takes it back to your Bitcoin address ${btcBack || "about 12 hours after your reply"}. Have Orien Wallet open then, or open it before ${ornBack || "the seller's lock ends"}. If they do take it, this app claims your ORN.`;
+    return `<strong>If the seller disappears</strong> and never takes your Bitcoin, this app takes it back to your Bitcoin address ${btcBack || "about 12 hours after your reply"}. Have Orien Wallet open then, or open it before ${ornBack || "the seller's lock ends"}. If they do take it, the seller's wallet delivers your ORN to you, even with this app closed.`;
   }
 
   // One line for the list of swaps.
@@ -2008,7 +2009,9 @@
   // Swaps, and this wallet's board swaps, move along while the app is open;
   // the board's offers refresh while the Swap screen shows.
   setInterval(() => {
-    if (board.me || swapList.some((s) => !["done", "cancelled"].includes(s.stage))) stepSwaps();
+    // A seller's swap at "done" still delivers the buyer's ORN: keep going
+    // until it is truly finished.
+    if (board.me || swapList.some((s) => !s.finished)) stepSwaps();
     if (!$("swaps").hidden) loadBoard();
   }, 30000);
   loadSwaps();

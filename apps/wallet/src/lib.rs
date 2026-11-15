@@ -590,6 +590,17 @@ pub async fn mine_stop() -> Result<(), String> {
     tauri::async_runtime::spawn_blocking(mining::stop).await.map_err(|error| error.to_string())
 }
 
+/// Changes how much of the processor mining uses while it runs, without
+/// restarting it, and remembers the percent.
+#[tauri::command]
+pub fn mine_set(app: AppHandle, percent: u8) -> Result<bool, String> {
+    let dir = folder(&app)?;
+    let mut saved = settings(&dir);
+    saved.mining_percent = Some(percent.clamp(1, 100));
+    save_settings(&dir, &saved)?;
+    Ok(mining::set_percent(percent))
+}
+
 /// How mining is going, with the remembered percent, which wallet it mines
 /// to, and the last mining reward that wallet received.
 #[tauri::command]
@@ -626,11 +637,15 @@ mod mine_commands {
         Ok(())
     }
     #[tauri::command]
+    pub fn mine_set() -> Result<bool, String> {
+        Ok(false)
+    }
+    #[tauri::command]
     pub fn mine_status() -> Result<serde_json::Value, String> {
         Ok(serde_json::json!({ "status": { "running": false, "cores": 0 }, "percent": 50, "unavailable": true }))
     }
 }
-use mine_commands::{mine_start, mine_status, mine_stop};
+use mine_commands::{mine_set, mine_start, mine_status, mine_stop};
 
 /// Asks the validators about the wallet's account.
 #[tauri::command]
@@ -957,7 +972,7 @@ pub fn run() {
     #[cfg(desktop)]
     let builder = builder.plugin(tauri_plugin_updater::Builder::new().build());
     builder
-        .invoke_handler(tauri::generate_handler![has_wallet, create_wallet, restore_wallet, set_password, choose_wallet, overview_now, send_payment, activity, quote, contacts, save_contact, delete_contact, update::check_update, update::install_update, mine_start, mine_stop, mine_status, wallets, wallet_balances, use_wallet, rename_wallet, add_wallet, forget_wallet, swap_list, swap_sell, swap_buy, swap_accept, swap_step, swap_smallest, board_offers, board_me, board_email_start, board_email_finish, board_sign_out, board_post, board_take, board_withdraw, board_link])
+        .invoke_handler(tauri::generate_handler![has_wallet, create_wallet, restore_wallet, set_password, choose_wallet, overview_now, send_payment, activity, quote, contacts, save_contact, delete_contact, update::check_update, update::install_update, mine_start, mine_stop, mine_set, mine_status, wallets, wallet_balances, use_wallet, rename_wallet, add_wallet, forget_wallet, swap_list, swap_sell, swap_buy, swap_accept, swap_step, swap_smallest, board_offers, board_me, board_email_start, board_email_finish, board_sign_out, board_post, board_take, board_withdraw, board_link])
         .run(tauri::generate_context!())
         .expect("the wallet window could not start");
 }

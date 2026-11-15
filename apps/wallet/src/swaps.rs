@@ -73,6 +73,9 @@ pub struct View {
     pub btc_back_at: Option<u64>,
     /// The swap board passes this swap's codes: none to copy.
     pub board: bool,
+    /// Nothing left for this app to do: for a seller, that includes having
+    /// delivered the buyer's ORN, which goes on quietly after "done".
+    pub finished: bool,
 }
 
 /// The Bitcoin network swaps use: Bitcoin itself, through two independent
@@ -169,6 +172,7 @@ pub fn view(kept: &Kept) -> View {
         orn_back_at: kept.orn_back_at,
         btc_back_at: kept.btc_back_at,
         board: kept.board.is_some(),
+        finished: swap.finished(),
     }
 }
 
