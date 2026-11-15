@@ -1,0 +1,76 @@
+//! Sending sign-in codes by email, through Resend.
+
+use anyhow::{Context, Result, bail};
+use serde_json::json;
+
+pub struct Mailer {
+    /// The Resend key, or none to print codes to the server's log instead,
+    /// which is for trying the marketplace on one's own computer only.
+    key: Option<String>,
+    from: String,
+}
+
+impl Mailer {
+    pub fn resend(key: String, from: &str) -> Mailer {
+        Mailer { key: Some(key), from: from.into() }
+    }
+
+    pub fn log_only() -> Mailer {
+        Mailer { key: None, from: String::new() }
+    }
+
+    /// Tells someone they have a message, with a link to it. The message
+    /// itself is not in the email: it is read on the site.
+    pub fn send_notice(&self, notice: &crate::messages::Notice, origin: &str) -> Result<()> {
+        let link = format!("{origin}/marketplace/messages/?c={}", notice.conversation);
+        let subject = format!("{} sent you a message about {}", notice.from_name, notice.listing_title);
+        let Some(key) = &self.key else {
+            println!("would email {}: {subject} ({link})", notice.to_email);
+            return Ok(());
+        };
+        let escape = |text: &str| text.replace('&', "&amp;").replace('<', "&lt;").replace('>', "&gt;").replace('"', "&quot;");
+        let text = format!("{subject} on the Orien marketplace.\n\nRead it and reply: {link}\n");
+        let html = format!(
+            "<p>{} on the Orien marketplace.</p><p><a href=\"{link}\">Read it and reply</a></p>",
+            escape(&subject)
+        );
+        self.deliver(key, &notice.to_email, &subject, &text, &html)
+    }
+
+    fn deliver(&self, key: &str, to: &str, subject: &str, text: &str, html: &str) -> Result<()> {
+        let body = json!({ "from": self.from, "to": [to], "subject": subject, "text": text, "html": html });
+        let response = ureq::post("https://api.resend.com/emails")
+            .header("Authorization", &format!("Bearer {key}"))
+            .config()
+            .http_status_as_error(false)
+            .build()
+            .send_json(&body)
+            .context("cannot reach Resend")?;
+        if !response.status().is_success() {
+            let status = response.status();
+            let detail = response.into_body().read_to_string().unwrap_or_default();
+            bail!("Resend refused the email ({status}): {detail}");
+        }
+        Ok(())
+    }
+
+    /// Sends `code` to `to`. Blocks while Resend answers.
+    pub fn send_code(&self, to: &str, code: &str) -> Result<()> {
+        let Some(key) = &self.key else {
+            println!("sign-in code for {to}: {code}");
+            return Ok(());
+        };
+        let text = format!(
+            "Your code for the Orien marketplace is {code}\n\n\
+             It works for 15 minutes. If you did not ask for it, someone typed your email by mistake, \
+             and you can ignore this.\n"
+        );
+        let html = format!(
+            "<p>Your code for the Orien marketplace is</p>\
+             <p style=\"font-size:28px;font-weight:700;letter-spacing:6px\">{code}</p>\
+             <p>It works for 15 minutes. If you did not ask for it, someone typed your email by mistake, \
+             and you can ignore this.</p>"
+        );
+        self.deliver(key, to, &format!("{code} is your Orien marketplace code"), &text, &html)
+    }
+}

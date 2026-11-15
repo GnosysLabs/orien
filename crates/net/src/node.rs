@@ -1796,6 +1796,11 @@ const LIVE_NETWORK: &str = "8f1833742a76431b7e0912ebbab49f3669dd423fb2fbbf0612b8
 /// after the release that opens them, so every validator runs it first.
 const LIVE_LOCKS_FROM: u64 = 15;
 
+/// Whether `network` is the live Orien network, the one releases are for.
+pub fn is_live(network: &Hash32) -> bool {
+    network.to_string() == LIVE_NETWORK
+}
+
 /// The first epoch in which a network takes locked payments: on the live
 /// network the one set above, and from the start on any other network.
 pub fn locks_from(network: &Hash32) -> u64 {

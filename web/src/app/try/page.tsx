@@ -201,6 +201,11 @@ export default function GetStartedPage() {
             Staking needs your wallet on the server too (step 6 shows how), holding the ORN you
             stake.
           </p>
+          <p className="text-sm">
+            The validator keeps itself up to date: it installs each new release signed with the Orien release key, and
+            restarts on it at a calm moment, so it always follows the network&apos;s rules. To update it yourself instead,
+            add <code className="rounded bg-raised px-1.5 py-0.5 text-ink">--no-auto-update</code>.
+          </p>
           <p>
             At the next hourly checkpoint, if its stake is among the largest, it joins the validators. To stop, unstake
             with <code className="rounded bg-raised px-1.5 py-0.5 text-ink">orien unstake --amount 10000</code>: the ORN
