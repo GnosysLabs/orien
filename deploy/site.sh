@@ -26,6 +26,13 @@ fi
 echo "Building static site in web/"
 (cd web && pnpm typecheck && pnpm build)
 
+# The marketplace's pages need its server, which is not running yet. Until it
+# is, they stay off the live site. MARKETPLACE=1 publishes them.
+if [ "${MARKETPLACE:-0}" != 1 ]; then
+    rm -rf web/out/marketplace
+    find web/out -name '*marketplace*' -prune -exec rm -rf {} +
+fi
+
 echo "Uploading web/out/ to $HOST:$WEB_ROOT/releases/$RELEASE"
 $SSH "$HOST" "mkdir -p '$WEB_ROOT/releases/$RELEASE'"
 rsync -az --delete web/out/ "$HOST:$WEB_ROOT/releases/$RELEASE/"
