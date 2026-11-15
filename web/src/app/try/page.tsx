@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import { WindowsDownload } from '@/components/WindowsDownload'
 import Link from 'next/link'
 import { ArrowRight, Bot, Download, KeyRound, Monitor, Pickaxe, RefreshCw, Send, ServerCog, Wallet } from 'lucide-react'
 import { CopyText } from '@/components/CopyText'
@@ -71,12 +72,9 @@ export default function GetStartedPage() {
             >
               <Download className="h-4 w-4" aria-hidden /> Download for Mac
             </a>
-            <a
-              href="/wallet/Orien-Wallet-setup.exe"
-              className="pearl-fill flex h-11 items-center gap-2 rounded-xl px-5 text-sm font-bold transition hover:brightness-105"
-            >
+            <WindowsDownload className="pearl-fill flex h-11 items-center gap-2 rounded-xl px-5 text-sm font-bold transition hover:brightness-105">
               <Download className="h-4 w-4" aria-hidden /> Download for Windows
-            </a>
+            </WindowsDownload>
             <a
               href="/wallet/Orien-Wallet.AppImage"
               className="pearl-fill flex h-11 items-center gap-2 rounded-xl px-5 text-sm font-bold transition hover:brightness-105"

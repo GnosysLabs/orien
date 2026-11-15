@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import { MARKETPLACE_LIVE } from "@/lib/brand";
 import { Wordmark } from "./Wordmark";
+import { WINDOWS_INSTALLER, WindowsInstall } from "./WindowsDownload";
 
 type NavItem = {
   href: string;
@@ -100,6 +101,8 @@ const DOWNLOADS: {
 
 function DownloadsMenu() {
   const [open, setOpen] = useState(false);
+  // Windows warns about new apps: its download first explains what to click.
+  const [windows, setWindows] = useState(false);
   const box = useRef<HTMLDivElement>(null);
   useEffect(() => {
     if (!open) return;
@@ -153,7 +156,13 @@ function DownloadsMenu() {
                 key={item.href}
                 href={item.href}
                 role="menuitem"
-                onClick={() => setOpen(false)}
+                onClick={(event) => {
+                  setOpen(false);
+                  if (item.href === WINDOWS_INSTALLER) {
+                    event.preventDefault();
+                    setWindows(true);
+                  }
+                }}
                 className="flex items-center gap-3 rounded-lg px-3 py-2.5 transition hover:bg-raised"
               >
                 <Icon
@@ -172,6 +181,7 @@ function DownloadsMenu() {
           })}
         </div>
       )}
+      {windows && <WindowsInstall onClose={() => setWindows(false)} />}
     </div>
   );
 }
