@@ -20,6 +20,7 @@ use std::time::{Duration, Instant, SystemTime, UNIX_EPOCH};
 
 mod autoupdate;
 mod release;
+mod touchid;
 
 #[derive(Parser)]
 #[command(name = "orien", version, about = "A quantum-proof payment network with no blocks and no global ordering")]
@@ -1484,6 +1485,7 @@ fn open_signing(path: &Path) -> Result<Signing> {
     if let Err(error) = &wallet
         && matches!(error.downcast_ref::<OpenError>(), Some(OpenError::NeedsPassword))
         && !std::io::stdin().is_terminal()
+        && !touchid::locks(path)
     {
         bail!(
             "{} has a password and is not unlocked. Its owner can type the password by running this command \
@@ -1498,6 +1500,13 @@ fn open_signing(path: &Path) -> Result<Signing> {
 fn open_wallet(path: &Path) -> Result<Wallet> {
     match Wallet::load(path) {
         Err(error) if matches!(error.downcast_ref::<OpenError>(), Some(OpenError::NeedsPassword)) => {
+            // Locked by Orien Wallet with Touch ID: ask for that instead.
+            match touchid::password(path) {
+                Some(Ok(password)) => return Wallet::open(path, Some(&password)),
+                Some(Err(why)) if !std::io::stdin().is_terminal() => bail!("{} is locked with Touch ID: {why}", path.display()),
+                Some(Err(why)) => println!("Touch ID: {why}; type the wallet's password instead"),
+                None => {}
+            }
             for attempt in 1..=3 {
                 let password = rpassword::prompt_password(format!("password for {}: ", path.display()))?;
                 match Wallet::open(path, Some(&password)) {
@@ -1642,6 +1651,9 @@ fn escrow_status(lock: &str, genesis_file: &Path) -> Result<()> {
 /// Asks for a wallet's password until it opens the wallet, up to three
 /// times, and returns it.
 fn ask_password(path: &Path) -> Result<String> {
+    if let Some(Ok(password)) = touchid::password(path) {
+        return Ok(password);
+    }
     for attempt in 1..=3 {
         let password = rpassword::prompt_password(format!("password for {}: ", path.display())).map_err(|_| {
             anyhow!("orien unlock asks for the wallet's password, so its owner must run it in their own terminal")

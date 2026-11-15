@@ -27,6 +27,16 @@ export const PRODUCTS: Record<Product, string> = {
 export const CHANGELOG: Entry[] = [
   {
     date: '2026-11-15',
+    products: ['orien'],
+    version: '1.8.0',
+    title: 'Touch ID in orien on a Mac',
+    changes: [
+      'When Orien Wallet locks a wallet with Touch ID, orien uses Touch ID too: sending asks for your fingerprint, or your Mac’s password, instead of a typed wallet password. Checking a balance and mining never ask.',
+      'If you use Orien Wallet on a Mac, run orien update before its next version locks your wallet with Touch ID.',
+    ],
+  },
+  {
+    date: '2026-11-15',
     products: ['wallet'],
     version: '1.6.0',
     title: 'Contacts on every device, Touch ID, and your full history',
