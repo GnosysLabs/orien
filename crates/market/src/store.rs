@@ -15,7 +15,6 @@ pub const MAX_BIO: usize = 1000;
 pub const MAX_TITLE: usize = 100;
 pub const MAX_DESCRIPTION: usize = 5000;
 pub const MAX_UNIT: usize = 30;
-pub const MAX_CONTACT: usize = 300;
 /// Listings one account may have open at a time.
 pub const MAX_OPEN_LISTINGS: i64 = 50;
 
@@ -48,9 +47,6 @@ pub struct Draft {
     /// wallet, whatever is sent.
     #[serde(default)]
     pub pay_to: String,
-    /// How to reach the seller, for now.
-    #[serde(default)]
-    pub contact: String,
 }
 
 #[derive(Clone, Debug, PartialEq, Eq, Serialize)]
@@ -65,7 +61,6 @@ pub struct Listing {
     pub price: u64,
     pub unit: String,
     pub pay_to: String,
-    pub contact: String,
     pub created: u64,
     pub updated: u64,
     pub open: bool,
@@ -82,7 +77,56 @@ pub struct Account {
     /// The Orien address they proved they hold, which their listings are
     /// paid to.
     pub wallet: Option<String>,
+    /// How buyers reach them. Empty fields are left out.
+    pub contact: Contact,
     pub created: u64,
+}
+
+/// How buyers reach a seller: any of a public email, a Telegram username
+/// and an X username.
+#[derive(Clone, Debug, Default, PartialEq, Eq, Serialize, Deserialize)]
+pub struct Contact {
+    #[serde(default)]
+    pub email: String,
+    #[serde(default)]
+    pub telegram: String,
+    #[serde(default)]
+    pub x: String,
+}
+
+impl Contact {
+    pub fn is_empty(&self) -> bool {
+        self.email.is_empty() && self.telegram.is_empty() && self.x.is_empty()
+    }
+
+    /// Tidied: an email in lower case, and bare usernames, whether typed with
+    /// an @ or as a link. Or why one cannot be used.
+    pub fn checked(&self) -> Result<Contact> {
+        let handle = |text: &str, hosts: &[&str]| {
+            let mut handle = text.trim();
+            for host in hosts {
+                for scheme in ["https://", "http://", ""] {
+                    for www in ["www.", ""] {
+                        if let Some(rest) = handle.strip_prefix(&format!("{scheme}{www}{host}/")) {
+                            handle = rest;
+                        }
+                    }
+                }
+            }
+            handle.trim_start_matches('@').trim_end_matches('/').to_string()
+        };
+        let telegram = handle(&self.telegram, &["t.me", "telegram.me"]);
+        let x = handle(&self.x, &["x.com", "twitter.com"]);
+        let word = |h: &str| h.bytes().all(|b| b.is_ascii_alphanumeric() || b == b'_');
+        if !telegram.is_empty() && (!(5..=32).contains(&telegram.len()) || !word(&telegram)) {
+            bail!("a Telegram username is 5 to 32 letters, digits and underscores");
+        }
+        if !x.is_empty() && (x.len() > 15 || !word(&x)) {
+            bail!("an X username is up to 15 letters, digits and underscores");
+        }
+        let email = if self.email.trim().is_empty() { String::new() } else { email(&self.email)? };
+        Ok(Contact { email, telegram, x })
+    }
 }
 
 fn clean(text: &str) -> String {
@@ -99,7 +143,6 @@ impl Draft {
             price: self.price,
             unit: clean(&self.unit),
             pay_to: self.pay_to.trim().to_lowercase(),
-            contact: clean(&self.contact),
         };
         if draft.title.is_empty() || draft.title.chars().count() > MAX_TITLE {
             bail!("a title is 1 to {MAX_TITLE} characters");
@@ -113,8 +156,8 @@ impl Draft {
         if draft.price == 0 {
             bail!("a price is more than nothing");
         }
-        if draft.unit.chars().count() > MAX_UNIT || draft.contact.chars().count() > MAX_CONTACT {
-            bail!("the price's unit is at most {MAX_UNIT} characters, and contact details at most {MAX_CONTACT}");
+        if draft.unit.chars().count() > MAX_UNIT {
+            bail!("the price's unit is at most {MAX_UNIT} characters");
         }
         orien_address(&draft.pay_to)?;
         Ok(draft)
@@ -148,6 +191,9 @@ impl Store {
                  bio TEXT NOT NULL DEFAULT '',
                  picture TEXT,
                  wallet TEXT UNIQUE,
+                 contact_email TEXT NOT NULL DEFAULT '',
+                 telegram TEXT NOT NULL DEFAULT '',
+                 x TEXT NOT NULL DEFAULT '',
                  created INTEGER NOT NULL
              );
              CREATE TABLE IF NOT EXISTS verifications (
@@ -183,7 +229,6 @@ impl Store {
                  price INTEGER NOT NULL,
                  unit TEXT NOT NULL,
                  pay_to TEXT NOT NULL,
-                 contact TEXT NOT NULL,
                  created INTEGER NOT NULL,
                  updated INTEGER NOT NULL,
                  open INTEGER NOT NULL
@@ -208,7 +253,7 @@ impl Store {
             "INSERT INTO accounts (name, handle, email, created) VALUES (?1, ?2, ?3, ?4)",
             params![name, handle, email, created],
         )?;
-        Ok(Account { id: self.db.last_insert_rowid(), name, bio: String::new(), picture: None, wallet: None, created })
+        Ok(Account { id: self.db.last_insert_rowid(), name, bio: String::new(), picture: None, wallet: None, contact: Contact::default(), created })
     }
 
     /// A new account that signs in by email. The email must be one a code
@@ -264,9 +309,13 @@ impl Store {
     }
 
     /// Changes an account's name and bio, tidied, or says why not.
-    pub fn set_profile(&self, id: i64, name: &str, bio: &str) -> Result<Account> {
+    pub fn set_profile(&self, id: i64, name: &str, bio: &str, contact: &Contact) -> Result<Account> {
         let (name, bio) = profile_text(name, bio)?;
-        self.db.execute("UPDATE accounts SET name = ?2, bio = ?3 WHERE id = ?1", params![id, name, bio])?;
+        let contact = contact.checked()?;
+        self.db.execute(
+            "UPDATE accounts SET name = ?2, bio = ?3, contact_email = ?4, telegram = ?5, x = ?6 WHERE id = ?1",
+            params![id, name, bio, contact.email, contact.telegram, contact.x],
+        )?;
         self.account(id)?.ok_or_else(|| anyhow::anyhow!("no such account"))
     }
 
@@ -348,16 +397,21 @@ impl Store {
     pub fn account(&self, id: i64) -> Result<Option<Account>> {
         Ok(self
             .db
-            .query_row("SELECT id, name, bio, picture, wallet, created FROM accounts WHERE id = ?1", [id], |row| {
-                Ok(Account {
-                    id: row.get(0)?,
-                    name: row.get(1)?,
-                    bio: row.get(2)?,
-                    picture: row.get(3)?,
-                    wallet: row.get(4)?,
-                    created: row.get(5)?,
-                })
-            })
+            .query_row(
+                "SELECT id, name, bio, picture, wallet, created, contact_email, telegram, x FROM accounts WHERE id = ?1",
+                [id],
+                |row| {
+                    Ok(Account {
+                        id: row.get(0)?,
+                        name: row.get(1)?,
+                        bio: row.get(2)?,
+                        picture: row.get(3)?,
+                        wallet: row.get(4)?,
+                        contact: Contact { email: row.get(6)?, telegram: row.get(7)?, x: row.get(8)? },
+                        created: row.get(5)?,
+                    })
+                },
+            )
             .optional()?)
     }
 
@@ -419,6 +473,10 @@ impl Store {
     /// Posts a listing, paid to the seller's verified wallet.
     pub fn post(&self, seller: i64, draft: &Draft) -> Result<Listing> {
         let draft = Draft { pay_to: self.wallet_of(seller)?, ..draft.clone() }.checked()?;
+        let reachable = self.account(seller)?.is_some_and(|account| !account.contact.is_empty());
+        if !reachable {
+            bail!("add a way for buyers to reach you, an email, Telegram or X, under Your profile first");
+        }
         let open: i64 =
             self.db.query_row("SELECT COUNT(*) FROM listings WHERE seller = ?1 AND open = 1", [seller], |row| row.get(0))?;
         if open >= MAX_OPEN_LISTINGS {
@@ -426,9 +484,9 @@ impl Store {
         }
         let at = now();
         self.db.execute(
-            "INSERT INTO listings (seller, title, description, category, price, unit, pay_to, contact, created, updated, open)
-             VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?9, 1)",
-            params![seller, draft.title, draft.description, draft.category, draft.price as i64, draft.unit, draft.pay_to, draft.contact, at],
+            "INSERT INTO listings (seller, title, description, category, price, unit, pay_to, created, updated, open)
+             VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?8, 1)",
+            params![seller, draft.title, draft.description, draft.category, draft.price as i64, draft.unit, draft.pay_to, at],
         )?;
         Ok(self.listing(self.db.last_insert_rowid())?.expect("just written"))
     }
@@ -438,9 +496,9 @@ impl Store {
         let draft = Draft { pay_to: self.wallet_of(seller)?, ..draft.clone() }.checked()?;
         let changed = self.db.execute(
             "UPDATE listings SET title = ?3, description = ?4, category = ?5, price = ?6, unit = ?7, pay_to = ?8,
-                 contact = ?9, updated = ?10
+                 updated = ?9
              WHERE id = ?1 AND seller = ?2",
-            params![id, seller, draft.title, draft.description, draft.category, draft.price as i64, draft.unit, draft.pay_to, draft.contact, now()],
+            params![id, seller, draft.title, draft.description, draft.category, draft.price as i64, draft.unit, draft.pay_to, now()],
         )?;
         if changed == 0 {
             bail!("no such listing of yours");
@@ -462,7 +520,7 @@ impl Store {
     }
 
     const LISTING: &'static str = "SELECT l.id, l.seller, a.name, a.picture, l.title, l.description, l.category, l.price, l.unit,
-             l.pay_to, l.contact, l.created, l.updated, l.open
+             l.pay_to, l.created, l.updated, l.open
          FROM listings l JOIN accounts a ON a.id = l.seller";
 
     fn row(row: &rusqlite::Row) -> rusqlite::Result<Listing> {
@@ -477,10 +535,9 @@ impl Store {
             price: row.get::<_, i64>(7)? as u64,
             unit: row.get(8)?,
             pay_to: row.get(9)?,
-            contact: row.get(10)?,
-            created: row.get(11)?,
-            updated: row.get(12)?,
-            open: row.get(13)?,
+            created: row.get(10)?,
+            updated: row.get(11)?,
+            open: row.get(12)?,
         })
     }
 
@@ -577,7 +634,6 @@ mod tests {
             price: 200_000_000_000,
             unit: String::new(),
             pay_to: "be5b7cc81cbe475fe002bee2597c30b0ae4f030434e93f12ade7f1a266c6258b".into(),
-            contact: "maya@example.com".into(),
         }
     }
 
@@ -589,6 +645,9 @@ mod tests {
         assert!(store.post(maya.id, &draft("Logo design")).is_err(), "a seller verifies a wallet first");
         store.set_wallet(maya.id, &"a".repeat(64)).unwrap();
         store.set_wallet(sam.id, &"b".repeat(64)).unwrap();
+        let reach = Contact { telegram: "@maya_designs".into(), ..Contact::default() };
+        assert!(store.post(maya.id, &draft("Logo design")).is_err(), "a seller says how to reach them first");
+        store.set_profile(maya.id, "Maya", "", &reach).unwrap();
         let posted = store.post(maya.id, &draft("Logo design")).unwrap();
         assert_eq!((posted.seller_name.as_str(), posted.open), ("Maya", true));
         assert_eq!(store.browse(None, None, 10, 0).unwrap(), vec![posted.clone()]);
@@ -611,6 +670,7 @@ mod tests {
         let store = Store::in_memory().unwrap();
         let maya = store.create_account("Maya", "maya").unwrap();
         store.set_wallet(maya.id, &"a".repeat(64)).unwrap();
+        store.set_profile(maya.id, "Maya", "", &Contact { x: "maya".into(), ..Contact::default() }).unwrap();
         let bad = |change: fn(&mut Draft)| {
             let mut d = draft("Logo design");
             change(&mut d);
@@ -668,6 +728,23 @@ mod tests {
         assert_eq!(store.verification(maya.id).unwrap(), None);
         assert!(store.start_verification(sam.id, &wallet, 4).is_err(), "a wallet belongs to one account");
         assert!(store.set_wallet(sam.id, &wallet).is_err());
+    }
+
+    #[test]
+    fn contact_details_are_tidied_or_refused() {
+        let typed = Contact {
+            email: " Maya@Example.com ".into(),
+            telegram: "https://t.me/maya_designs".into(),
+            x: "@MayaLin".into(),
+        };
+        let tidy = typed.checked().unwrap();
+        assert_eq!((tidy.email.as_str(), tidy.telegram.as_str(), tidy.x.as_str()), ("maya@example.com", "maya_designs", "MayaLin"));
+        assert_eq!(Contact { x: "https://x.com/maya/".into(), ..Contact::default() }.checked().unwrap().x, "maya");
+        assert!(Contact { telegram: "abc".into(), ..Contact::default() }.checked().is_err());
+        assert!(Contact { x: "way_too_long_for_x_names".into(), ..Contact::default() }.checked().is_err());
+        assert!(Contact { x: "no spaces".into(), ..Contact::default() }.checked().is_err());
+        assert!(Contact { email: "nope".into(), ..Contact::default() }.checked().is_err());
+        assert!(Contact::default().checked().unwrap().is_empty());
     }
 
     #[test]

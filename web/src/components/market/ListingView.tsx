@@ -5,18 +5,19 @@ import { useSearchParams } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import { ArrowLeft, Pencil, Wallet } from 'lucide-react'
 import { CopyText } from '@/components/CopyText'
-import { ask, categoryLabel, formatOrn, plainOrn, type Listing } from '@/lib/market'
+import { ask, categoryLabel, formatOrn, plainOrn, type Account, type Listing } from '@/lib/market'
 import { Avatar } from './Avatar'
+import { ContactLinks } from './ContactLinks'
 import { Notice } from './Shell'
 
 export function ListingView() {
   const id = useSearchParams().get('id')
-  const [found, setFound] = useState<{ listing: Listing; mine: boolean } | null>(null)
+  const [found, setFound] = useState<{ listing: Listing; seller: Account; mine: boolean } | null>(null)
   const [trouble, setTrouble] = useState('')
 
   useEffect(() => {
     if (!id) return
-    ask<{ listing: Listing; mine: boolean }>(`/listings/${encodeURIComponent(id)}`)
+    ask<{ listing: Listing; seller: Account; mine: boolean }>(`/listings/${encodeURIComponent(id)}`)
       .then(setFound)
       .catch((error: Error) => setTrouble(error.message === 'not found' ? 'This listing is gone or closed.' : error.message))
   }, [id])
@@ -24,7 +25,7 @@ export function ListingView() {
   if (!id) return <Notice tone="bad">No listing was named.</Notice>
   if (trouble) return <Notice tone="bad">{trouble}</Notice>
   if (!found) return <p className="text-muted">Loading…</p>
-  const { listing, mine } = found
+  const { listing, seller, mine } = found
 
   return (
     <div className="space-y-6">
@@ -63,15 +64,11 @@ export function ListingView() {
         )}
       </article>
 
-      {listing.contact && (
-        <section className="rounded-2xl border border-line bg-surface p-6 sm:p-8">
-          <h2 className="mb-3 text-xl font-bold tracking-tight text-ink">Talk to the seller first</h2>
-          <p className="mb-4 leading-relaxed text-muted">Agree the details before you pay. The seller can be reached at:</p>
-          <p className="whitespace-pre-line break-words rounded-xl border border-line bg-bg px-4 py-3 text-ink">
-            {listing.contact}
-          </p>
-        </section>
-      )}
+      <section className="rounded-2xl border border-line bg-surface p-6 sm:p-8">
+        <h2 className="mb-3 text-xl font-bold tracking-tight text-ink">Talk to the seller first</h2>
+        <p className="mb-4 leading-relaxed text-muted">Agree the details with {seller.name} before you pay.</p>
+        <ContactLinks contact={seller.contact} />
+      </section>
 
       <section className="rounded-2xl border border-line bg-surface p-6 sm:p-8">
         <div className="mb-3 flex items-center gap-3">

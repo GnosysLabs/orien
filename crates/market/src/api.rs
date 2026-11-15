@@ -183,7 +183,7 @@ async fn screened(app: &App, what: &str, check: impl FnOnce(&Screener) -> anyhow
 async fn screened_listing(app: &App, draft: Draft) -> Result<Draft, Failure> {
     let draft = draft.checked().map_err(refused)?;
     let d = draft.clone();
-    screened(app, "listing", move |s| s.listing(&d.title, &d.description, &d.category, &d.unit, &d.contact)).await?;
+    screened(app, "listing", move |s| s.listing(&d.title, &d.description, &d.category, &d.unit)).await?;
     Ok(draft)
 }
 
@@ -425,14 +425,19 @@ struct ProfileText {
     name: String,
     #[serde(default)]
     bio: String,
+    #[serde(default)]
+    contact: store::Contact,
 }
 
 async fn edit_profile(State(app): State<Arc<App>>, headers: HeaderMap, Json(request): Json<ProfileText>) -> Answer {
     let id = app.signed_in(&headers)?;
     let (name, bio) = store::profile_text(&request.name, &request.bio).map_err(refused)?;
-    let (n, b) = (name.clone(), bio.clone());
-    screened(&app, "profile", move |s| s.profile(&n, &b)).await?;
-    let account = app.store.lock().unwrap().set_profile(id, &name, &bio).map_err(refused)?;
+    let contact = request.contact.checked().map_err(refused)?;
+    // The usernames are public too, so they are read with the bio.
+    let handles = format!("{bio}\n\nTelegram: {}\nX: {}", contact.telegram, contact.x);
+    let n = name.clone();
+    screened(&app, "profile", move |s| s.profile(&n, &handles)).await?;
+    let account = app.store.lock().unwrap().set_profile(id, &name, &bio, &contact).map_err(refused)?;
     Ok(Json(json!({ "account": account })).into_response())
 }
 
@@ -493,11 +498,13 @@ async fn browse(State(app): State<Arc<App>>, Query(query): Query<Browse>) -> Ans
 /// One listing. A closed one is shown only to its seller.
 async fn listing(State(app): State<Arc<App>>, headers: HeaderMap, Path(id): Path<i64>) -> Answer {
     let viewer = app.signed_in(&headers).ok();
-    let listing = app.store.lock().unwrap().listing(id)?.ok_or(Failure::NotFound)?;
+    let store = app.store.lock().unwrap();
+    let listing = store.listing(id)?.ok_or(Failure::NotFound)?;
     if !listing.open && viewer != Some(listing.seller) {
         return Err(Failure::NotFound);
     }
-    Ok(Json(json!({ "listing": listing, "mine": viewer == Some(listing.seller) })).into_response())
+    let seller = store.account(listing.seller)?.ok_or(Failure::NotFound)?;
+    Ok(Json(json!({ "listing": listing, "seller": seller, "mine": viewer == Some(listing.seller) })).into_response())
 }
 
 async fn post_listing(State(app): State<Arc<App>>, headers: HeaderMap, Json(draft): Json<Draft>) -> Answer {
@@ -550,7 +557,9 @@ impl App {
 pub fn sign_in_for_tests(app: &App, name: &str) -> String {
     let store = app.store.lock().unwrap();
     let account = store.create_account(name, &Uuid::new_v4().to_string()).unwrap();
-    // A verified wallet of its own, so it can post listings.
+    // A verified wallet of its own and a way to be reached, so it can post listings.
     store.set_wallet(account.id, &hex::encode(Uuid::new_v4().as_bytes()).repeat(2)).unwrap();
+    let reach = store::Contact { email: format!("{}@example.com", name.to_lowercase().replace(' ', "")), ..Default::default() };
+    store.set_profile(account.id, name, "", &reach).unwrap();
     store.start_session(account.id).unwrap()
 }

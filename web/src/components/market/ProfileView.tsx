@@ -6,6 +6,7 @@ import { useEffect, useState } from 'react'
 import { ArrowLeft, BadgeCheck } from 'lucide-react'
 import { ask, memberSince, type Account, type Listing } from '@/lib/market'
 import { Avatar } from './Avatar'
+import { ContactLinks } from './ContactLinks'
 import { Card } from './Browse'
 import { Notice } from './Shell'
 
@@ -42,6 +43,9 @@ export function ProfileView() {
           )}
           <p className="text-sm text-muted">{memberSince(account.created)}</p>
           {account.bio && <p className="whitespace-pre-line pt-2 leading-relaxed text-muted">{account.bio}</p>}
+          <div className="pt-3">
+            <ContactLinks contact={account.contact} />
+          </div>
         </div>
       </section>
       <section className="space-y-4">

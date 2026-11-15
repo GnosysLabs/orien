@@ -3,6 +3,7 @@
 import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useEffect, useState } from 'react'
+import { ChevronDown } from 'lucide-react'
 import { ask, CATEGORIES, me, parseOrn, plainOrn, type Draft, type Listing } from '@/lib/market'
 import { Notice } from './Shell'
 
@@ -11,14 +12,13 @@ const field = 'w-full rounded-xl border border-line bg-bg px-4 py-3 text-ink out
 export function SellForm() {
   const router = useRouter()
   const id = useSearchParams().get('id')
-  const [ready, setReady] = useState<'checking' | 'signed-out' | 'no-wallet' | 'ready'>('checking')
+  const [ready, setReady] = useState<'checking' | 'signed-out' | 'no-wallet' | 'no-contact' | 'ready'>('checking')
   const [title, setTitle] = useState('')
   const [description, setDescription] = useState('')
   const [category, setCategory] = useState('design')
   const [price, setPrice] = useState('')
   const [unit, setUnit] = useState('')
   const [payTo, setPayTo] = useState('')
-  const [contact, setContact] = useState('')
   const [trouble, setTrouble] = useState('')
   const [saving, setSaving] = useState(false)
 
@@ -27,6 +27,8 @@ export function SellForm() {
       .then(async (found) => {
         if (!found) return setReady('signed-out')
         if (!found.account.wallet) return setReady('no-wallet')
+        const { email, telegram, x } = found.account.contact
+        if (!email && !telegram && !x) return setReady('no-contact')
         setPayTo(found.account.wallet)
         const editing = id && found.listings.find((l: Listing) => String(l.id) === id)
         if (editing) {
@@ -35,11 +37,6 @@ export function SellForm() {
           setCategory(editing.category)
           setPrice(plainOrn(editing.price))
           setUnit(editing.unit)
-          setContact(editing.contact)
-        } else {
-          // A new listing is reached the way the seller's last one was.
-          const last = found.listings[0]
-          if (last) setContact(last.contact)
         }
         setReady('ready')
       })
@@ -61,6 +58,17 @@ export function SellForm() {
       </Notice>
     )
   }
+  if (ready === 'no-contact') {
+    return (
+      <Notice>
+        Before your first listing,{' '}
+        <Link href="/marketplace/account/" className="font-semibold text-ink underline underline-offset-4">
+          add a way for buyers to reach you
+        </Link>{' '}
+        to your profile: an email, Telegram or X.
+      </Notice>
+    )
+  }
   if (ready === 'signed-out') {
     return (
       <Notice>
@@ -77,7 +85,7 @@ export function SellForm() {
     event.preventDefault()
     const units = parseOrn(price)
     if (units === null) return setTrouble('Write the price in ORN, like 200 or 12.5.')
-    const draft: Draft = { title, description, category, price: units, unit, pay_to: payTo, contact }
+    const draft: Draft = { title, description, category, price: units, unit, pay_to: payTo }
     setSaving(true)
     setTrouble('')
     try {
@@ -111,13 +119,24 @@ export function SellForm() {
       </label>
       <label className="block space-y-2">
         <span className="text-sm font-semibold text-ink">Category</span>
-        <select value={category} onChange={(e) => setCategory(e.target.value)} className={field}>
-          {CATEGORIES.map((c) => (
-            <option key={c.id} value={c.id}>
-              {c.label}
-            </option>
-          ))}
-        </select>
+        <span className="relative block">
+          <select
+            value={category}
+            onChange={(e) => setCategory(e.target.value)}
+            className={`appearance-none pr-12 ${field}`}
+          >
+            {CATEGORIES.map((c) => (
+              <option key={c.id} value={c.id}>
+                {c.label}
+              </option>
+            ))}
+          </select>
+          <ChevronDown
+            className="pointer-events-none absolute right-4 top-1/2 h-4 w-4 -translate-y-1/2 text-muted"
+            strokeWidth={2.25}
+            aria-hidden
+          />
+        </span>
       </label>
       <div className="grid gap-5 sm:grid-cols-2">
         <label className="block space-y-2">
@@ -136,17 +155,6 @@ export function SellForm() {
         </code>
         .
       </p>
-      <label className="block space-y-2">
-        <span className="text-sm font-semibold text-ink">How buyers can reach you</span>
-        <input
-          value={contact}
-          onChange={(e) => setContact(e.target.value)}
-          maxLength={300}
-          placeholder="An email, a Telegram or X handle, or a website"
-          className={field}
-        />
-        <span className="block text-xs text-muted">Everyone can see this, so share only what you are happy to make public.</span>
-      </label>
       {trouble && <Notice tone="bad">{trouble}</Notice>}
       <button
         type="submit"

@@ -62,8 +62,7 @@ fn logo() -> Value {
         "description": "Clean, simple logos.",
         "category": "design",
         "price": 200_000_000_000u64,
-        "pay_to": "be5b7cc81cbe475fe002bee2597c30b0ae4f030434e93f12ade7f1a266c6258b",
-        "contact": "maya@example.com"
+        "pay_to": "be5b7cc81cbe475fe002bee2597c30b0ae4f030434e93f12ade7f1a266c6258b"
     })
 }
 
@@ -242,7 +241,7 @@ async fn a_seller_sets_up_a_profile_with_a_picture() {
     let market = Market::new();
     let maya = sign_in_for_tests(&market.app, "Maya");
     let (status, body) =
-        market.ask("PUT", "/api/market/me", Some(&maya), Some(json!({ "name": "Maya Lin", "bio": "Designer in Lisbon." }))).await;
+        market.ask("PUT", "/api/market/me", Some(&maya), Some(json!({ "name": "Maya Lin", "bio": "Designer in Lisbon.", "contact": { "telegram": "@maya_designs" } }))).await;
     assert_eq!((status, body["account"]["bio"].as_str()), (StatusCode::OK, Some("Designer in Lisbon.")));
     let id = body["account"]["id"].as_i64().unwrap();
     let (status, _) = market.ask("PUT", "/api/market/me", Some(&maya), Some(json!({ "name": "" }))).await;
@@ -284,7 +283,10 @@ async fn a_seller_sets_up_a_profile_with_a_picture() {
     assert_eq!((status, body["account"]["name"].as_str()), (StatusCode::OK, Some("Maya Lin")));
     assert_eq!(body["listings"].as_array().unwrap().len(), 1);
     assert_eq!(body["listings"][0]["id"], posted["listing"]["id"]);
-    assert!(body["account"].get("email").is_none(), "a profile never shows an email");
+    assert!(body["account"].get("email").is_none(), "a profile never shows the email used to sign in");
+    assert_eq!(body["account"]["contact"]["telegram"], "maya_designs");
+    let (_, body) = market.ask("GET", &format!("/api/market/listings/{}", posted["listing"]["id"]), None, None).await;
+    assert_eq!(body["seller"]["contact"]["telegram"], "maya_designs", "a listing shows how to reach its seller");
     assert_eq!(market.ask("GET", "/api/market/images/..%2Fmarket.db", None, None).await.0, StatusCode::NOT_FOUND);
 }
 
@@ -333,7 +335,9 @@ async fn a_seller_proves_their_wallet_with_a_small_payment_before_listing() {
     let (_, body) = market.ask("GET", "/api/market/me/wallet", Some(&maya), None).await;
     assert_eq!(body["wallet"], wallet);
 
-    // Listings now pay to the proven wallet, whatever the form says.
+    // A way to be reached, then listings pay to the proven wallet, whatever the form says.
+    let reach = json!({ "name": "Maya", "contact": { "x": "maya" } });
+    assert_eq!(market.ask("PUT", "/api/market/me", Some(&maya), Some(reach)).await.0, StatusCode::OK);
     let mut listing = logo();
     listing["pay_to"] = json!("d".repeat(64));
     let (status, body) = market.ask("POST", "/api/market/listings", Some(&maya), Some(listing)).await;

@@ -122,14 +122,13 @@ impl Screener {
 
     /// A listing's text. Blocks while OpenRouter answers. An error means it
     /// could not be checked: the caller must not post it.
-    pub fn listing(&self, title: &str, description: &str, category: &str, unit: &str, contact: &str) -> Result<Verdict> {
+    pub fn listing(&self, title: &str, description: &str, category: &str, unit: &str) -> Result<Verdict> {
         let details = json!({
             "context": LISTING_CONTEXT,
             "title": title,
             "category": category,
             "price_unit": unit,
             "description": description,
-            "contact": contact,
         });
         self.screen(vec![details.to_string().into()], false, &[])
     }
@@ -215,7 +214,7 @@ mod live {
         let path = std::path::Path::new(&std::env::var("HOME").unwrap()).join(".config/orien/openrouter.key");
         let screener = Screener::openrouter(std::fs::read_to_string(path).unwrap().trim().to_string());
         let allowed = |verdict: Verdict| matches!(verdict, Verdict::Allowed);
-        let listing = |title: &str, description: &str| screener.listing(title, description, "other", "", "").unwrap();
+        let listing = |title: &str, description: &str| screener.listing(title, description, "other", "").unwrap();
         assert!(allowed(listing("Logo design", "A clean, simple logo for your project, two rounds of changes.")));
         assert!(allowed(listing("Rust tutoring, lol", "I'll teach you Rust. Pay me in ORN, obviously.")));
         assert!(allowed(screener.profile("Maya Lin", "Designer in Lisbon. Coffee first.").unwrap()));

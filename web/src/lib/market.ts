@@ -6,8 +6,11 @@ export type Account = {
   bio: string
   picture: string | null
   wallet: string | null
+  contact: Contact
   created: number
 }
+
+export type Contact = { email: string; telegram: string; x: string }
 
 export const pictureUrl = (name: string) => `/api/market/images/${name}`
 
@@ -26,7 +29,6 @@ export type Listing = {
   price: number
   unit: string
   pay_to: string
-  contact: string
   created: number
   updated: number
   open: boolean
@@ -39,7 +41,6 @@ export type Draft = {
   price: number
   unit: string
   pay_to: string
-  contact: string
 }
 
 export const CATEGORIES: { id: string; label: string }[] = [

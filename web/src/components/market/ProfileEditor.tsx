@@ -13,11 +13,19 @@ const field = 'w-full rounded-xl border border-line bg-bg px-4 py-3 text-ink out
 export function ProfileEditor({ account, onSaved }: { account: Account; onSaved: () => void }) {
   const [name, setName] = useState(account.name)
   const [bio, setBio] = useState(account.bio)
+  const [email, setEmail] = useState(account.contact.email)
+  const [telegram, setTelegram] = useState(account.contact.telegram)
+  const [x, setX] = useState(account.contact.x)
   const [busy, setBusy] = useState<'' | 'text' | 'picture'>('')
   const [trouble, setTrouble] = useState('')
   const [saved, setSaved] = useState(false)
   const chooser = useRef<HTMLInputElement>(null)
-  const changed = name !== account.name || bio !== account.bio
+  const changed =
+    name !== account.name ||
+    bio !== account.bio ||
+    email !== account.contact.email ||
+    telegram !== account.contact.telegram ||
+    x !== account.contact.x
 
   const say = (error: unknown) => {
     const message = (error as Error).message
@@ -30,7 +38,11 @@ export function ProfileEditor({ account, onSaved }: { account: Account; onSaved:
     setTrouble('')
     setSaved(false)
     try {
-      await ask('/me', 'PUT', { name, bio })
+      const saved = await ask<{ account: Account }>('/me', 'PUT', { name, bio, contact: { email, telegram, x } })
+      // Shown as the server tidied them, such as without the @.
+      setEmail(saved.account.contact.email)
+      setTelegram(saved.account.contact.telegram)
+      setX(saved.account.contact.x)
       setSaved(true)
       onSaved()
     } catch (error) {
@@ -94,6 +106,21 @@ export function ProfileEditor({ account, onSaved }: { account: Account; onSaved:
           className={field}
         />
       </label>
+      <fieldset className="space-y-3">
+        <legend className="text-sm font-semibold text-ink">How buyers can reach you</legend>
+        <p className="text-sm text-muted">At least one, shown on your profile and listings. Everyone can see these.</p>
+        <div className="grid gap-3 sm:grid-cols-3">
+          <input
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            placeholder="Email"
+            className={field}
+          />
+          <input value={telegram} onChange={(e) => setTelegram(e.target.value)} placeholder="Telegram @username" className={field} />
+          <input value={x} onChange={(e) => setX(e.target.value)} placeholder="X @username" className={field} />
+        </div>
+      </fieldset>
       {trouble && <Notice tone="bad">{trouble}</Notice>}
       <div className="flex items-center gap-4">
         <button
