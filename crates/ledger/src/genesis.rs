@@ -416,7 +416,9 @@ impl Committee {
             start_time: genesis.start_time,
             cap: genesis.cap,
             shares_per_epoch: genesis.shares_per_epoch,
-            target: genesis.first_target,
+            // A network that mines with RandomX from its first epoch starts at
+            // RandomX's target, not BLAKE3's.
+            target: if randomx.epoch == 0 { randomx.target } else { genesis.first_target },
             randomx_from: randomx.epoch,
             randomx_target: randomx.target,
         };
