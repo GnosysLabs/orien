@@ -1104,7 +1104,9 @@
           fees: ["Validator fees", "Your share of the hour's fees"],
           mining: ["Mining reward", "Your share of the hour's new ORN"],
           unstaked: ["Unstaked", "Back from staking"],
-        }[e.kind] || ["Received", party ? "From " + party : "Incoming payment"];
+        // Worked out from the balance, with no record in the network's
+        // history: often mining rewards from before validators kept one.
+        }[e.kind] || ["Received", party ? "From " + party : "Not in the network's history"];
     return `<div class="tx" title="${e.counterparty || ""}">
       <span class="tx-icon ${e.direction}">${ICON[e.direction]}</span>
       <div class="tx-main"><div class="title">${title}</div><div class="sub">${sub}</div></div>

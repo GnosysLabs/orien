@@ -27,11 +27,13 @@ export const CHANGELOG: Entry[] = [
     date: '2026-11-15',
     products: ['wallet'],
     version: '1.4.1',
-    title: 'Linking your wallet is free',
+    title: 'Linking your wallet is free, and clearer activity',
     changes: [
       'Signing in links this wallet to your marketplace account at once, with no payment, even a brand-new wallet with no ORN.',
       'The balance fills its card evenly, however long it is.',
       'More room above the email field when signing in.',
+      'The hour’s mining reward right after the app starts reading the network’s history shows as a mining reward, not as an incoming payment.',
+      'Coins the app can only work out from your balance, with no record in the network’s history, say so, instead of calling them an incoming payment.',
     ],
   },
   {

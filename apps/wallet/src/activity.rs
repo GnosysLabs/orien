@@ -155,10 +155,35 @@ pub fn heard(dir: &Path, address: &str, epoch: u64, unknown: &[u64], received: V
     let cut = if unknown.contains(&last_closed) && last_closed > 0 { last_closed } else { epoch };
     account.waiting = cut < epoch;
     if account.history.is_none() {
-        // The first answer. What came in before now is already in the
-        // balance the app last saw (or will see first), so history starts
-        // with the next hour; until then the balance explains the rest.
-        account.history = Some(epoch + 1);
+        // The first answer. History starts with the hour under way, so its
+        // mining reward and fees, credited when it closes, come from history
+        // too. What that hour has brought in so far is already in the
+        // balance: it is shown, and kept open, without being counted again.
+        // Earlier hours are in the balance the app last saw (or sees first).
+        account.history = Some(epoch);
+        let seen = now();
+        account.open = received
+            .into_iter()
+            .filter(|item| item.epoch >= epoch)
+            .map(|item| Entry {
+                direction: Direction::Received,
+                amount: item.amount,
+                fee: 0,
+                counterparty: item.counterparty.map(|id| id.to_string()),
+                time: item.time.unwrap_or(seen),
+                kind: Some(item.income.into()),
+                order: item.order.map(|(from, seq)| format!("{from}/{seq}")),
+            })
+            .collect();
+        // They are in the balance this look reads, but came in after the one
+        // the app last saw (it asked history then, and would have heard
+        // otherwise), so they are what the app expects on top. The next
+        // answer takes them out and puts them back, netting nothing, and
+        // adds what the hour's close credits.
+        let held: i128 = account.open.iter().map(|e| e.amount as i128).sum();
+        if let Some(expected) = &mut account.expected {
+            *expected += held;
+        }
         save(dir, &book);
         return;
     }
@@ -288,6 +313,34 @@ mod tests {
         fs::remove_dir_all(&dir).unwrap();
     }
 
+    #[test]
+    fn the_reward_of_the_hour_history_starts_in_comes_from_history() {
+        let dir = std::env::temp_dir().join(format!("orien-history-first-{}", std::process::id()));
+        fs::create_dir_all(&dir).unwrap();
+        let _ = fs::remove_file(dir.join("activity.json"));
+        let lines = || list(&dir, "me").into_iter().map(|e| (e.direction, e.kind, e.amount)).collect::<Vec<_>>();
+
+        // Before history: the balance, 1000.
+        observe(&dir, "me", 1000);
+        // The first answer, mid-epoch 16, with a payment of 25 under way.
+        heard(&dir, "me", 16, &[], vec![got(16, false, Income::Payment, 25, Some(1))]);
+        observe(&dir, "me", 1025);
+        observe(&dir, "me", 1025);
+        assert_eq!(lines(), vec![(Direction::Received, Some(Kind::Payment), 25)]);
+        // Epoch 16 closes with a mining reward of 240: from history, labelled
+        // so, with nothing from the balance and no phantom Sent.
+        let closed = vec![got(16, true, Income::Payment, 25, Some(1)), got(16, true, Income::Mining, 240, None)];
+        heard(&dir, "me", 17, &[], closed.clone());
+        observe(&dir, "me", 1265);
+        heard(&dir, "me", 17, &[], vec![]);
+        observe(&dir, "me", 1265);
+        let now = lines();
+        assert_eq!(now.len(), 2, "{now:?}");
+        assert!(now.contains(&(Direction::Received, Some(Kind::Mining), 240)));
+        assert!(now.iter().all(|line| line.1.is_some() && line.0 == Direction::Received));
+        fs::remove_dir_all(&dir).unwrap();
+    }
+
     fn got(epoch: u64, closed: bool, income: Income, amount: u64, order: Option<u64>) -> Received {
         let payer: orien_ledger::AccountId = orien_crypto::Hash32([7; 32]);
         Received {
@@ -318,20 +371,20 @@ mod tests {
         look(None, 1100);
         assert_eq!(lines(), vec![(None, 100)]);
 
-        // The first answer in epoch 5: history starts with epoch 6.
+        // The first answer, in epoch 5 with a payment of 40 under way:
+        // history starts with epoch 5, and the 40 is shown from it, once.
         look(Some((5, vec![got(5, false, Income::Payment, 40, Some(1))])), 1140);
-        assert_eq!(history_from(&dir, "me"), Some(6));
-        // The 40 of epoch 5 history skipped is a balance difference, seen
-        // twice before it is recorded.
-        assert_eq!(lines().len(), 1);
-        look(Some((5, vec![])), 1140);
-        assert_eq!(lines(), vec![(None, 40), (None, 100)]);
+        assert_eq!(history_from(&dir, "me"), Some(5));
+        look(Some((5, vec![got(5, false, Income::Payment, 40, Some(1))])), 1140);
+        assert_eq!(lines(), vec![(Some(Kind::Payment), 40), (None, 100)]);
 
-        // Epoch 6 under way: a payment, shown at once.
-        look(Some((6, vec![got(6, false, Income::Payment, 30, Some(2))])), 1170);
+        // Epoch 6 under way: epoch 5 closed, and a payment, shown at once.
+        let epoch5 = got(5, true, Income::Payment, 40, Some(1));
+        look(Some((6, vec![epoch5.clone(), got(6, false, Income::Payment, 30, Some(2))])), 1170);
         assert_eq!(lines()[0], (Some(Kind::Payment), 30));
         // Asked again in the same epoch: replaced, not doubled.
         look(Some((6, vec![got(6, false, Income::Payment, 30, Some(2))])), 1170);
+        assert_eq!(lines().iter().filter(|line| line.1 == 40).count(), 1, "{:?}", lines());
         assert_eq!(lines().len(), 3);
 
         // Away for two hours: epochs 6 and 7 closed with mining rewards.
@@ -349,7 +402,7 @@ mod tests {
         let now = lines();
         assert_eq!(now.len(), 5, "one line each, nothing guessed");
         assert!(now.contains(&(Some(Kind::Mining), 12)) && now.contains(&(Some(Kind::Mining), 9)));
-        assert_eq!(now.iter().filter(|line| line.0 == Some(Kind::Payment)).count(), 1);
+        assert_eq!(now.iter().filter(|line| line.0 == Some(Kind::Payment)).count(), 2, "the 40 and the 30, once each");
         assert_eq!(history_from(&dir, "me"), Some(8));
 
         // A payment the balance shows before history does: not recorded
