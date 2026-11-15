@@ -42,11 +42,16 @@ export function ProfileView() {
         <ArrowLeft className="h-4 w-4" aria-hidden /> All listings
       </Link>
       <section
-        className={`relative isolate flex flex-col items-center gap-4 overflow-hidden rounded-2xl border border-line bg-surface p-8 text-center sm:flex-row sm:items-start sm:text-left ${
+        className={`relative isolate flex flex-col items-center gap-4 rounded-2xl border border-line bg-surface p-8 text-center sm:flex-row sm:items-start sm:text-left ${
           account.banner ? 'pt-28 sm:min-h-56 sm:pt-8' : ''
         }`}
       >
         {account.banner && <ProfileBanner banner={account.banner} />}
+        {viewer !== account.id && (
+          <div className="absolute right-3 top-3 z-10">
+            <ReportButton kind="account" id={account.id} what={account.name} signedIn={viewer !== null} icon />
+          </div>
+        )}
         <div className="relative shrink-0 rounded-full ring-4 ring-surface">
           <Avatar name={account.name} picture={account.picture} size={112} />
         </div>
@@ -70,11 +75,6 @@ export function ProfileView() {
           <div className="pt-3">
             <ContactLinks contact={account.contact} />
           </div>
-          {viewer !== account.id && (
-            <div className="pt-2">
-              <ReportButton kind="account" id={account.id} what={account.name} signedIn={viewer !== null} />
-            </div>
-          )}
         </div>
       </section>
       <section className="space-y-4">
@@ -97,11 +97,15 @@ export function ProfileView() {
  * phone, leftwards into the name on a wider screen. */
 export function ProfileBanner({ banner }: { banner: string }) {
   return (
-    // eslint-disable-next-line @next/next/no-img-element
-    <img
-      src={pictureUrl(banner)}
-      alt=""
-      className="pointer-events-none absolute right-0 top-0 -z-10 h-40 w-full object-cover opacity-90 [mask-image:linear-gradient(to_bottom,black_35%,transparent)] sm:h-full sm:w-3/4 sm:[mask-image:linear-gradient(to_left,black_30%,transparent)]"
-    />
+    // Clipped to the card's corners here, not by the card, so a menu can
+    // open over the card's edge.
+    <div className="pointer-events-none absolute inset-0 -z-10 overflow-hidden rounded-2xl">
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img
+        src={pictureUrl(banner)}
+        alt=""
+        className="absolute right-0 top-0 h-40 w-full object-cover opacity-90 [mask-image:linear-gradient(to_bottom,black_35%,transparent)] sm:h-full sm:w-3/4 sm:[mask-image:linear-gradient(to_left,black_30%,transparent)]"
+      />
+    </div>
   )
 }
