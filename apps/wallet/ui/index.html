@@ -484,10 +484,11 @@
         <div class="box plain"><input id="pw2" type="password" autocomplete="new-password"></div>
         <div class="check" id="pw-check"></div>
       </div>
-      <p class="fineprint">If you forget it, your recovery phrase still restores the wallet.</p>
+      <p class="fineprint">If you forget it, your recovery phrase still restores the wallet.<span id="pw-same"> Use the same password as on your other devices, if you like.</span></p>
       <div class="push"></div>
       <div class="problem" id="password-problem" hidden></div>
       <button class="primary pearl" id="pw-set" disabled data-gap="lg">Set password</button>
+      <button class="secondary" id="pw-bio" data-gap="sm" hidden></button>
       <button class="secondary" id="pw-skip" data-gap="sm">Not now</button>
     </section>
 
@@ -634,6 +635,7 @@
       <div class="field" id="r-pw-field" hidden data-gap="xl">
         <label for="r-pw">Wallet password</label>
         <div class="box plain"><input id="r-pw" type="password" autocomplete="current-password"></div>
+        <label class="agree" id="r-bio-row" hidden data-gap="sm"><input type="checkbox" id="r-bio"> <span id="r-bio-text"></span></label>
       </div>
 
       <div class="push"></div>
@@ -945,6 +947,9 @@
   if (navigator.userAgent.includes("Windows")) document.body.classList.add("windows");
   // The iPhone app shares this window, laid out for a phone.
   const phone = /iPhone|iPad|iPod/.test(navigator.userAgent);
+  // Touch ID on Macs, Face ID on iPhones; Windows and Linux keep the password.
+  const apple = phone || /Macintosh/.test(navigator.userAgent);
+  const bio = phone ? "Face ID" : "Touch ID";
   if (phone) {
     document.body.classList.add("phone");
     // The keyboard opens only when a box is tapped, never by itself as a
@@ -1096,6 +1101,17 @@
     catch (e) { problem("password-problem", e); $("pw-set").disabled = false; }
   };
   $("pw-skip").onclick = home;
+  // On Macs and iPhones: Touch ID or Face ID instead of a typed password,
+  // the same on every Apple device, since the password is never typed.
+  $("pw-bio").hidden = !apple;
+  $("pw-same").hidden = apple;
+  $("pw-bio").textContent = `Use ${bio} instead`;
+  $("pw-bio").onclick = async () => {
+    $("pw-bio").disabled = true;
+    try { await invoke("biometric_enable", { password: null }); home(); }
+    catch (e) { problem("password-problem", e); }
+    $("pw-bio").disabled = false;
+  };
 
   // ---- Wallets ----
   let adding = null;          // the name of a wallet being added, while adding
@@ -1356,7 +1372,12 @@
     $("r-to").textContent = named(pending.to) ? `${named(pending.to).name} · ${short(pending.to)}` : short(pending.to);
     $("r-to").title = pending.to;
     $("r-after").textContent = quoted.after ? `${quoted.after} ORN` : "—";
-    $("r-pw").value = ""; $("r-pw-field").hidden = !(view && view.locked);
+    $("r-pw").value = "";
+    // With Touch ID or Face ID set up, no password box: the system asks.
+    $("r-pw-field").hidden = !(view && view.locked && !view.biometric);
+    $("r-bio-row").hidden = !(apple && view && !view.biometric);
+    $("r-bio-text").textContent = `Use ${bio} instead of the password from now on`;
+    $("r-bio").checked = false;
     show("review");
     if (!$("r-pw-field").hidden) $("r-pw").focus();
   };
@@ -1370,7 +1391,9 @@
     button.innerHTML = '<span class="spinner"></span>Sending';
     try {
       const password = $("r-pw-field").hidden ? null : $("r-pw").value;
+      if (!password && view && view.locked && view.biometric) await invoke("biometric_unlock");
       const sent = await invoke("send_payment", { to: pending.to, amount: String(pending.amount), password });
+      if (password && $("r-bio").checked) { try { await invoke("biometric_enable", { password }); } catch {} }
       $("r-pw").value = "";
       if (sent.earlier) {
         // A payment signed earlier had to finish first; this one is not sent yet.
@@ -1693,6 +1716,10 @@
     if (gone) $("sd-gone").innerHTML = gone;
     const needsPassword = s.problem && s.problem.startsWith("password:");
     $("sd-pw-field").hidden = !needsPassword;
+    // With Touch ID or Face ID, a button instead of the password box.
+    const useBio = !!(view && view.biometric);
+    $("sd-pw").parentElement.hidden = useBio;
+    $("sd-claim").textContent = useBio ? `Continue with ${bio}` : "Continue";
     if (s.problem && !needsPassword) problem("detail-problem", s.problem); else $("detail-problem").hidden = true;
   }
 
@@ -1969,6 +1996,7 @@
   $("sell-go").onclick = async () => {
     $("sell-go").disabled = true;
     try {
+      if (view && view.locked && view.biometric) await invoke("biometric_unlock");
       const made = await invoke("swap_sell", { buyer: $("sell-buyer").value, orn: $("sell-orn").value,
         btc: $("sell-btc").value, payout: $("sell-payout").value, password: $("sell-pw").value || null });
       $("sell-pw").value = "";
@@ -2005,6 +2033,9 @@
   };
 
   $("sd-claim").onclick = async () => {
+    if (view && view.biometric) {
+      try { await invoke("biometric_unlock"); } catch (e) { problem("detail-problem", e); return; }
+    }
     const password = $("sd-pw").value;
     $("sd-pw").value = "";
     await stepSwaps(password);

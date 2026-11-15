@@ -43,6 +43,12 @@ tauri-plugin-updater = "2"
 orien-net = { path = "../../crates/net", features = ["randomx"] }
 orien-ledger = { path = "../../crates/ledger", features = ["randomx"] }
 
+# Touch ID and Face ID, and Apple's Keychain to keep the wallet password
+# behind them: on Macs and iPhones only.
+[target.'cfg(any(target_os = "macos", target_os = "ios"))'.dependencies]
+robius-authentication = "0.3"
+security-framework = "3"
+
 [dev-dependencies]
 # A pretend Bitcoin network, for testing whole swaps.
 orien-swap = { path = "../../crates/swap", features = ["testing"] }

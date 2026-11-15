@@ -12,6 +12,7 @@
 
 mod activity;
 mod board;
+mod biometric;
 mod contacts;
 #[cfg(target_os = "linux")]
 mod linux;
@@ -72,6 +73,10 @@ struct Overview {
     /// The wallet has a password and no `orien unlock` session is running,
     /// so sending needs the password.
     locked: bool,
+    /// The password is kept behind Touch ID or Face ID.
+    biometric: bool,
+    /// This system offers Touch ID or Face ID.
+    biometric_available: bool,
     answered: usize,
     validators: usize,
     epoch: u64,
@@ -199,6 +204,9 @@ fn open_signing(wallet_file: &Path, password: Option<&str>) -> Result<Signing, S
         return Ok(unlocked);
     }
     let password = password.filter(|password| !password.is_empty());
+    // Unlocked by Touch ID or Face ID a moment ago.
+    let remembered = if password.is_none() { biometric::unlocked(wallet_file) } else { None };
+    let password = password.or(remembered.as_deref());
     Wallet::open(wallet_file, password).map(Signing::Here).map_err(|error| match error.downcast_ref::<OpenError>() {
         Some(OpenError::NeedsPassword) => "password: needed".to_string(),
         Some(OpenError::WrongPassword) => "password: wrong".to_string(),
@@ -261,7 +269,11 @@ fn overview(wallet_file: &Path, genesis_file: &Path) -> Result<(Overview, Client
         most: status.spendable.map(|balance| orien_ledger::coins(money::most(&money::fees(GENESIS), balance) as i128)),
         units: status.spendable,
         payments: status.seq,
-        locked: has_password(wallet_file) && orien_net::unlock::Session::find(wallet_file).is_none(),
+        locked: has_password(wallet_file)
+            && orien_net::unlock::Session::find(wallet_file).is_none()
+            && biometric::unlocked(wallet_file).is_none(),
+        biometric: biometric::enabled(wallet_file),
+        biometric_available: biometric::available(),
         answered,
         validators: client.validators(),
         epoch: client.epoch(),
@@ -384,6 +396,42 @@ async fn set_password(app: AppHandle, password: String) -> Result<(), String> {
         let _ = vault::keys(&dir, &path, None);
         let mut wallet = Wallet::load(&path).map_err(|error| error.to_string())?;
         wallet.set_password(Some(&password)).map_err(|error| error.to_string())
+    })
+    .await
+    .map_err(|error| error.to_string())?
+}
+
+/// Asks for Touch ID or Face ID, and unlocks the open wallet for a few
+/// minutes.
+#[tauri::command]
+async fn biometric_unlock(app: AppHandle) -> Result<(), String> {
+    let wallet = wallet_file(&folder(&app)?).ok_or("no wallet yet")?;
+    tauri::async_runtime::spawn_blocking(move || biometric::unlock(&wallet)).await.map_err(|error| error.to_string())?
+}
+
+/// Protects the open wallet with Touch ID or Face ID instead of a typed
+/// password: with `password`, the one it already has (checked first);
+/// without, a new random one it's sealed with, kept only in the Keychain.
+#[tauri::command]
+async fn biometric_enable(app: AppHandle, password: Option<String>) -> Result<(), String> {
+    let dir = folder(&app)?;
+    let wallet = wallet_file(&dir).ok_or("no wallet yet")?;
+    tauri::async_runtime::spawn_blocking(move || {
+        match password.filter(|p| !p.is_empty()) {
+            Some(password) => {
+                Wallet::open(&wallet, Some(&password)).map_err(|_| "That is not this wallet's password.".to_string())?;
+                biometric::remember(&wallet, &password)
+            }
+            None => {
+                let password = biometric::new_password();
+                // Kept before it's sealed, so the wallet can't end up sealed
+                // with a password nobody has.
+                biometric::remember(&wallet, &password)?;
+                let _ = vault::keys(&dir, &wallet, None);
+                let mut opened = Wallet::load(&wallet).map_err(|error| error.to_string())?;
+                opened.set_password(Some(&password)).map_err(|error| error.to_string())
+            }
+        }
     })
     .await
     .map_err(|error| error.to_string())?
@@ -557,6 +605,7 @@ fn forget_wallet(app: AppHandle, path: String) -> Result<(), String> {
     if path == shared_wallet() {
         return Err("The orien command uses this wallet, so it stays.".into());
     }
+    biometric::forget(&path);
     let mut settings = settings(&dir);
     settings.wallets.retain(|w| w.path != path);
     if settings.wallet.as_ref() == Some(&path) {
@@ -1010,7 +1059,7 @@ pub fn run() {
     #[cfg(desktop)]
     let builder = builder.plugin(tauri_plugin_updater::Builder::new().build());
     builder
-        .invoke_handler(tauri::generate_handler![has_wallet, create_wallet, restore_wallet, set_password, choose_wallet, overview_now, send_payment, activity, quote, contacts, save_contact, delete_contact, contacts_sync, update::check_update, update::install_update, mine_start, mine_stop, mine_set, mine_status, wallets, wallet_balances, use_wallet, rename_wallet, add_wallet, forget_wallet, swap_list, swap_sell, swap_buy, swap_accept, swap_step, swap_smallest, board_offers, board_me, board_email_start, board_email_finish, board_sign_out, board_post, board_take, board_withdraw, board_link])
+        .invoke_handler(tauri::generate_handler![has_wallet, create_wallet, restore_wallet, set_password, choose_wallet, overview_now, send_payment, activity, quote, contacts, save_contact, delete_contact, contacts_sync, biometric_unlock, biometric_enable, update::check_update, update::install_update, mine_start, mine_stop, mine_set, mine_status, wallets, wallet_balances, use_wallet, rename_wallet, add_wallet, forget_wallet, swap_list, swap_sell, swap_buy, swap_accept, swap_step, swap_smallest, board_offers, board_me, board_email_start, board_email_finish, board_sign_out, board_post, board_take, board_withdraw, board_link])
         .run(tauri::generate_context!())
         .expect("the wallet window could not start");
 }

@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<!-- iOS shows this when the app first asks for Face ID, and refuses
+	     Face ID to an app that doesn't give one. -->
+	<key>NSFaceIDUsageDescription</key>
+	<string>Unlock your wallet with Face ID instead of typing its password.</string>
+</dict>
+</plist>
