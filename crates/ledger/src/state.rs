@@ -322,6 +322,38 @@ pub struct Escrow {
     pub until: u64,
 }
 
+/// Why coins came into an account.
+#[derive(Clone, Copy, Debug, PartialEq, Eq, BorshSerialize, BorshDeserialize)]
+pub enum Income {
+    /// A payment from another account.
+    Payment,
+    /// A locked payment its payee claimed with the secret.
+    Claim,
+    /// A locked payment nobody claimed in time, back with its sender.
+    Refund,
+    /// A validator's share of an epoch's fees.
+    Fees,
+    /// A miner's share of the coins an epoch released.
+    Mining,
+    /// Unstaked coins, spendable again once their wait is over.
+    Unstaked,
+}
+
+/// Coins credited to an account while an epoch was closed: the record a
+/// validator keeps of each account's history. Not part of the rules.
+#[derive(Clone, Debug, PartialEq, Eq, BorshSerialize, BorshDeserialize)]
+pub struct Credit {
+    pub account: AccountId,
+    pub income: Income,
+    pub amount: u64,
+    /// The account on the other side: the payer of a payment, the sender of
+    /// a claimed locked payment, the payee of a refunded one.
+    pub counterparty: Option<AccountId>,
+    /// The order behind it, by sender and number: the payment, or the
+    /// locked payment claimed or refunded.
+    pub order: Option<(AccountId, u64)>,
+}
+
 #[derive(Clone)]
 pub struct State {
     /// In address order, so that every validator lists them alike.
@@ -345,6 +377,10 @@ pub struct State {
     epoch: u64,
     /// The first epoch in which locked payments may be made.
     locks_from: u64,
+    /// Every credit to an account since `record_credits`, when it was
+    /// called. Never part of the root or of snapshots, and never read by
+    /// the rules.
+    credits: Option<Vec<Credit>>,
 }
 
 /// How many epochs a revealed secret stays readable in the state.
@@ -366,6 +402,7 @@ impl State {
             revealed: BTreeMap::new(),
             epoch: 0,
             locks_from: 0,
+            credits: None,
         }
     }
 
@@ -472,7 +509,7 @@ impl State {
                 (accounts, banned, BTreeMap::new(), BTreeMap::new())
             }
         };
-        Ok(State { accounts, locks: HashMap::new(), fees, banned, escrows, revealed, epoch: 0, locks_from: 0 })
+        Ok(State { accounts, locks: HashMap::new(), fees, banned, escrows, revealed, epoch: 0, locks_from: 0, credits: None })
     }
 
     /// Sets the epoch this state is in. Every validator sets it alike.
@@ -482,6 +519,25 @@ impl State {
 
     pub fn epoch(&self) -> u64 {
         self.epoch
+    }
+
+    /// From now on, keeps a record of every credit to an account, forgetting
+    /// any kept before.
+    pub fn record_credits(&mut self) {
+        self.credits = Some(Vec::new());
+    }
+
+    /// The credits recorded since `record_credits`, if it was called.
+    pub fn take_credits(&mut self) -> Option<Vec<Credit>> {
+        self.credits.take()
+    }
+
+    fn credit(&mut self, credit: Credit) {
+        if let Some(credits) = &mut self.credits
+            && credit.amount > 0
+        {
+            credits.push(credit);
+        }
     }
 
     /// Sets the first epoch in which locked payments may be made.
@@ -509,6 +565,13 @@ impl State {
         for key in expired {
             let escrow = self.escrows.remove(&key).expect("listed just now");
             self.accounts.entry(key.0).or_insert_with(|| Account::holding(0)).balance += escrow.amount as i128;
+            self.credit(Credit {
+                account: key.0,
+                income: Income::Refund,
+                amount: escrow.amount,
+                counterparty: Some(escrow.to),
+                order: Some(key),
+            });
         }
         self.revealed.retain(|_, (_, revealed)| revealed.saturating_add(REVEALED_EPOCHS) > epoch);
     }
@@ -586,12 +649,15 @@ impl State {
         if pot == 0 || total == 0 {
             return;
         }
+        let income = if from == REWARDS { Income::Mining } else { Income::Fees };
         let mut paid = 0i128;
         for (account, stake) in earners {
             let share = (pot * *stake as u128 / total) as i128;
             if share > 0 {
                 self.accounts.entry(*account).or_insert_with(|| Account::holding(0)).balance += share;
                 paid += share;
+                let credit = Credit { account: *account, income, amount: share as u64, counterparty: None, order: None };
+                self.credit(credit);
             }
         }
         if let Some(pot) = self.accounts.get_mut(&from) {
@@ -627,7 +693,8 @@ impl State {
     /// this epoch become spendable, and coins unstaked during it start
     /// their wait of `unstake_epochs` epochs.
     pub fn settle_stakes(&mut self, epoch: u64, unstake_epochs: u64) {
-        for account in self.accounts.values_mut() {
+        let mut credits = Vec::new();
+        for (id, account) in self.accounts.iter_mut() {
             let mut released = 0;
             account.releases.retain(|(until, amount)| {
                 let due = *until <= epoch;
@@ -637,10 +704,17 @@ impl State {
                 !due
             });
             account.balance += released;
+            if released > 0 {
+                let amount = released as u64;
+                credits.push(Credit { account: *id, income: Income::Unstaked, amount, counterparty: None, order: None });
+            }
             if account.unstaking > 0 {
                 account.releases.push((epoch.saturating_add(unstake_epochs), account.unstaking));
                 account.unstaking = 0;
             }
+        }
+        for credit in credits {
+            self.credit(credit);
         }
     }
 
@@ -790,6 +864,13 @@ impl State {
                 sender.balance -= order.amount as i128;
                 let recipient = self.accounts.entry(order.to).or_insert_with(|| Account::holding(0));
                 recipient.balance += order.amount as i128;
+                self.credit(Credit {
+                    account: order.to,
+                    income: Income::Payment,
+                    amount: order.amount,
+                    counterparty: Some(order.from),
+                    order: Some((order.from, order.seq)),
+                });
             }
             Kind::Stake { validator, .. } => {
                 sender.balance -= order.amount as i128;
@@ -817,6 +898,13 @@ impl State {
                 sender.balance += order.amount as i128 - fee as i128;
                 self.escrows.remove(&(*from, *seq));
                 self.revealed.insert((*from, *seq), (*secret, self.epoch));
+                self.credit(Credit {
+                    account: order.from,
+                    income: Income::Claim,
+                    amount: order.amount.saturating_sub(fee),
+                    counterparty: Some(*from),
+                    order: Some((*from, *seq)),
+                });
             }
         }
         if fee > 0 {

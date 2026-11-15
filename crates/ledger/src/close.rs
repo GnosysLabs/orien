@@ -449,6 +449,7 @@ fn outcome_of(
     let network = committee.network();
     let mut state = start.clone();
     state.set_epoch(committee.epoch());
+    state.record_credits();
     // An account's payments must go in number order. Across accounts the
     // order makes no difference.
     let mut ordered = offered.orders();

@@ -5,6 +5,7 @@ use borsh::{BorshDeserialize, BorshSerialize};
 use orien_crypto::Hash32;
 use orien_crypto::merkle;
 use orien_ledger::close::{Decided, Message, Share};
+use crate::history::HistoryPage;
 use orien_ledger::{Account, AccountId, Certificate, Confirmation, Escrow, LocksProof, Reject, SignedOrder, Signer, Vote};
 use std::io::{self, Read, Write};
 
@@ -63,6 +64,9 @@ pub enum Request {
     /// Every locked payment and revealed secret as the latest checkpoint
     /// left them, with proof against that checkpoint's state root.
     Locks,
+    /// What came into `account` from epoch `from` on, as this validator
+    /// recorded it: about `max` entries, in whole epochs.
+    History { account: AccountId, from: u64, max: u32 },
 }
 
 #[derive(Clone, Debug, BorshSerialize, BorshDeserialize)]
@@ -145,6 +149,7 @@ pub enum Response {
     /// with this secret, or neither (refunded, long claimed, or unknown).
     Locked { epoch: u64, escrow: Option<Escrow>, secret: Option<[u8; 32]> },
     Locks { epoch: u64, proof: LocksProof },
+    History(HistoryPage),
 }
 
 pub fn write_frame<W: Write>(writer: &mut W, payload: &[u8]) -> io::Result<()> {

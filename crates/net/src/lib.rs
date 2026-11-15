@@ -3,6 +3,7 @@
 
 pub mod client;
 pub mod closer;
+pub mod history;
 pub mod keys;
 pub mod node;
 pub mod phrase;

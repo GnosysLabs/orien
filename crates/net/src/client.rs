@@ -1,6 +1,7 @@
 //! The client side: asking validators to vote, assembling the certificate,
 //! and reading account state without trusting any single validator.
 
+use crate::history::HistoryPage;
 use crate::store::write_replacing;
 use crate::wire::{AccountView, NodeInfo, Request, Response, read_frame, write_frame};
 use borsh::{BorshDeserialize, BorshSerialize};
@@ -483,6 +484,33 @@ impl Client {
         self.finish(certificate, 0).ok()?;
         proven.made = Some(escrow);
         Some(proven)
+    }
+
+    /// What came into `account` from epoch `from` on: payments, claimed
+    /// and refunded locked payments, fee shares, mining rewards and
+    /// unstaked coins, one entry each, about `max` at a time in whole
+    /// epochs (`next` says where to go on). Every validator that answers is
+    /// asked, and the fullest answer wins: the one that knows the most
+    /// epochs, then has the most entries.
+    ///
+    /// History is each validator's own record, for showing only: balances
+    /// come from `account` and `proven`, which validators prove. `None` when
+    /// no validator keeps history yet.
+    pub fn history(&self, account: &AccountId, from: u64, max: u32) -> Option<HistoryPage> {
+        let request = Request::History { account: *account, from, max };
+        self.ask_all(&request)
+            .into_iter()
+            .filter_map(|answer| match answer {
+                Ok(Response::History(page)) => Some(page),
+                _ => None,
+            })
+            .max_by_key(|page| {
+                // Epochs before a validator kept history are unknown to it.
+                let until = page.next.unwrap_or(page.epoch);
+                let before = page.since.min(until).saturating_sub(from);
+                let unknown = before + page.unknown.len() as u64;
+                (std::cmp::Reverse(unknown), page.entries.len(), page.epoch)
+            })
     }
 
     /// The secret most answering validators report for a locked payment,

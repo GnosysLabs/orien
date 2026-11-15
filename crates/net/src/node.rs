@@ -18,6 +18,7 @@
 
 use crate::client::{connect, exchange, rpc};
 use crate::closer::{Closer, Env, Pace, Wanted};
+use crate::history::{History, Received};
 use crate::keys::ValidatorKey;
 use crate::store::{CertLog, Epochs, LeafCounter, OrderLog, sync_dir, write_replacing};
 use crate::wire::{AccountView, NodeInfo, Request, Response, read_frame, write_frame};
@@ -26,7 +27,7 @@ use orien_crypto::keytree::{self, KeyTree, TreeSignature};
 use orien_crypto::{Hash32, merkle};
 use orien_ledger::close::{self, Cheat, Decided, Message, NextKey, Pin, Share, Statement};
 use orien_ledger::{
-    Accepted, AccountId, Applied, Certificate, Committee, Confirmation, Genesis, Order, Proofs, Reject,
+    Accepted, AccountId, Applied, Certificate, Committee, Confirmation, Genesis, Income, Kind, Order, Proofs, Reject,
     SignedBy, SignedOrder, State, Vote, confirmation_item,
 };
 use std::collections::{BTreeSet, HashMap};
@@ -481,6 +482,8 @@ struct Core {
     /// the owner signed twice.
     conflicts: HashMap<AccountId, SignedOrder>,
     conflict_log: OrderLog,
+    /// Each account's incoming history, epoch by epoch.
+    history: History,
     /// The state root, kept until the next payment changes the state.
     root: Option<Hash32>,
     key_reserve: u32,
@@ -805,6 +808,7 @@ impl Core {
             self.checkpoint_saved = false;
             self.save_checkpoint(decided);
             let checkpoint = &decided.checkpoint;
+            self.history.record(checkpoint.epoch, checkpoint.time, None).expect("cannot record history; stopping");
             self.committee =
                 self.committee.following(checkpoint.validators.clone()).with_target(checkpoint.target);
             self.previous = checkpoint.digest();
@@ -835,11 +839,15 @@ impl Core {
     /// validators the checkpoint names. Whatever this validator had applied
     /// that the checkpoint leaves out is undone, and the signed order
     /// behind it goes back to being a promise.
-    fn switch(&mut self, decided: Decided, end: State) {
+    fn switch(&mut self, decided: Decided, mut end: State) {
         if !self.batch.is_empty() {
             self.close_batch();
         }
         let checkpoint = &decided.checkpoint;
+        // A state fetched from another validator says what the epoch
+        // credited only in sum: its history stays unknown here.
+        let credits = end.take_credits();
+        self.history.record(checkpoint.epoch, checkpoint.time, credits).expect("cannot record history; stopping");
         let network = *self.committee.network();
         // A promise still binds if its payment number is the account's
         // next, or later, and it is signed with the key the account now
@@ -1453,6 +1461,28 @@ impl Core {
                 escrow: self.state.escrow(&from, seq).cloned(),
                 secret: self.state.revealed(&from, seq),
             },
+            Request::History { account, from, max } => {
+                let epoch = self.committee.epoch();
+                let fees = self.state.fees();
+                // This epoch's final payments so far, which its checkpoint
+                // has yet to close.
+                let pending = self
+                    .applied
+                    .iter()
+                    .filter_map(|order| {
+                        let (amount, counterparty, named) = match order.kind {
+                            Kind::Payment if order.to == account => (order.amount, order.from, (order.from, order.seq)),
+                            Kind::Claim { from, seq, .. } if order.from == account => {
+                                (order.amount.saturating_sub(fees.on(&order.kind, order.amount)), from, (from, seq))
+                            }
+                            _ => return None,
+                        };
+                        let income = if matches!(order.kind, Kind::Payment) { Income::Payment } else { Income::Claim };
+                        Some(Received { epoch, time: None, income, amount, counterparty: Some(counterparty), order: Some(named) })
+                    })
+                    .collect();
+                Response::History(self.history.page(&account, from, max, epoch, pending))
+            }
             Request::Locks => {
                 let proofs = self.proofs.get_or_insert_with(|| self.start.proofs());
                 Response::Locks { epoch: self.committee.epoch(), proof: proofs.locks().clone() }
@@ -1939,6 +1969,7 @@ impl Node {
             }
             live
         })?;
+        let history = History::open(&data_dir.join("history.log"), epoch, config.durable)?;
         let tree_capacity = tree.capacity();
         let counter = data_dir.join(format!("leaf-{}", tree.root().short()));
         let leaves = LeafCounter::open(counter, tree_capacity, config.durable)?;
@@ -2027,6 +2058,7 @@ impl Node {
             unfinished,
             conflicts,
             conflict_log,
+            history,
             root: None,
             key_reserve: config.key_reserve.min(tree_capacity / 4),
             batch: Vec::new(),

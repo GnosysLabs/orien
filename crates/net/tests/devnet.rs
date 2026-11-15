@@ -1716,6 +1716,63 @@ fn work_earns_coins_at_the_next_checkpoint() {
 }
 
 #[test]
+fn validators_keep_each_accounts_incoming_history() {
+    use orien_ledger::Income;
+    let options = Options { epoch: 2, cap: orien_ledger::release::CAP, first_target: u64::MAX >> 6, ..Options::default() };
+    let net = TestNet::start_with("history", options);
+    let (alice, bob, carol) = (net.address("alice"), net.address("bob"), net.address("carol"));
+    let client = net.client();
+
+    // A payment shows at once, in the epoch under way, and keeps its place
+    // once a checkpoint has closed that epoch.
+    net.pay_through("alice", bob, 100);
+    let page = client.history(&bob, 0, 100).expect("validators keep history");
+    let paid = page.entries.iter().find(|e| e.income == Income::Payment).expect("the payment is listed");
+    assert_eq!((paid.amount, paid.counterparty, paid.order), (100, Some(alice), Some((alice, 0))));
+    let made_in = paid.epoch;
+    net.wait_for_epoch(made_in + 1);
+    wait_until("the payment is recorded with its checkpoint's time", || {
+        let page = client.history(&bob, 0, 100).unwrap();
+        page.entries.iter().any(|e| e.income == Income::Payment && e.epoch == made_in && e.time.is_some())
+    });
+
+    // Mining: one entry for each epoch's reward, adding up to the balance.
+    let mut from = 0u64;
+    wait_until("carol is paid for her work", || {
+        client.follow();
+        let (_, seed, target) = client.followed_work();
+        let shares: Vec<orien_ledger::close::Share> = (from..)
+            .map(|nonce| orien_ledger::close::Share { account: carol, nonce })
+            .filter(|share| share.counts(&seed, target))
+            .take(5)
+            .collect();
+        from = shares.last().map_or(from, |share| share.nonce + 1);
+        for share in shares {
+            client.submit_share(share);
+        }
+        thread::sleep(Duration::from_millis(500));
+        client.proven(&carol).is_some_and(|account| account.balance > 0)
+    });
+    net.wait_until_level();
+    let balance = net.view(0, &carol).balance as u64;
+    let page = client.history(&carol, 0, 1000).unwrap();
+    assert!(page.unknown.is_empty(), "every epoch is known: {:?}", page.unknown);
+    assert!(page.entries.iter().all(|e| e.income == Income::Mining && e.time.is_some()));
+    let epochs: std::collections::BTreeSet<u64> = page.entries.iter().map(|e| e.epoch).collect();
+    assert_eq!(epochs.len(), page.entries.len(), "one reward per epoch");
+    assert_eq!(page.entries.iter().map(|e| e.amount).sum::<u64>(), balance);
+
+    // Pages end on whole epochs and say where to go on.
+    if page.entries.len() >= 2 {
+        let first = client.history(&carol, 0, 1).unwrap();
+        assert_eq!(first.entries.len(), 1);
+        let next = first.next.expect("there is more");
+        let rest = client.history(&carol, next, 1000).unwrap();
+        assert_eq!(rest.entries.len() + 1, page.entries.len());
+    }
+}
+
+#[test]
 fn a_validator_keeps_only_the_current_epochs_logs() {
     let net = TestNet::with_epochs("prune", 1);
     let bob = net.address("bob");
