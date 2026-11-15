@@ -19,7 +19,29 @@ pub struct Message {
     pub id: i64,
     pub sender: i64,
     pub body: String,
+    /// "text", "request" (the seller asks to be paid `amount`) or "paid" (the
+    /// buyer says they paid `amount`).
+    pub kind: String,
+    pub amount: Option<u64>,
     pub created: u64,
+}
+
+/// What kind of message, with its amount.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum Kind {
+    Text,
+    Request(u64),
+    Paid(u64),
+}
+
+impl Kind {
+    fn parts(self) -> (&'static str, Option<u64>) {
+        match self {
+            Kind::Text => ("text", None),
+            Kind::Request(amount) => ("request", Some(amount)),
+            Kind::Paid(amount) => ("paid", Some(amount)),
+        }
+    }
 }
 
 /// A conversation as one side sees it.
@@ -28,6 +50,10 @@ pub struct Conversation {
     pub id: i64,
     pub listing: i64,
     pub listing_title: String,
+    pub price: u64,
+    pub unit: String,
+    /// The seller's verified wallet, where payments go.
+    pub pay_to: String,
     /// The other side: who this account is talking to.
     pub with: i64,
     pub with_name: String,
@@ -149,13 +175,49 @@ impl Store {
     /// Adds a message, already checked by `may_send` and screened. Returns
     /// the email to send the other side, if they should be told.
     pub fn send(&self, conversation: i64, sender: i64, body: &str) -> Result<(Message, Option<Notice>)> {
-        let body = Store::message_text(body)?;
+        self.post_message(conversation, sender, &Store::message_text(body)?, Kind::Text)
+    }
+
+    /// The seller asks the buyer to pay `amount`.
+    pub fn request_payment(&self, conversation: i64, seller: i64, amount: u64) -> Result<(Message, Option<Notice>)> {
+        let (_, s) = self.sides(conversation, seller)?;
+        if s != seller {
+            bail!("only the seller asks for payment");
+        }
+        if amount == 0 {
+            bail!("ask for more than nothing");
+        }
+        let body = format!("Payment request: {} ORN", crate::store::orn(amount));
+        self.post_message(conversation, seller, &body, Kind::Request(amount))
+    }
+
+    /// The buyer says they have paid what the seller asked.
+    pub fn mark_paid(&self, conversation: i64, buyer: i64, request: i64) -> Result<(Message, Option<Notice>)> {
+        let (b, _) = self.sides(conversation, buyer)?;
+        if b != buyer {
+            bail!("only the buyer pays");
+        }
+        let amount: Option<Option<i64>> = self
+            .db
+            .query_row(
+                "SELECT amount FROM messages WHERE id = ?1 AND conversation = ?2 AND kind = 'request'",
+                params![request, conversation],
+                |row| row.get(0),
+            )
+            .optional()?;
+        let Some(Some(amount)) = amount else { bail!("there is no such payment request") };
+        let body = format!("Paid {} ORN", crate::store::orn(amount as u64));
+        self.post_message(conversation, buyer, &body, Kind::Paid(amount as u64))
+    }
+
+    fn post_message(&self, conversation: i64, sender: i64, body: &str, kind: Kind) -> Result<(Message, Option<Notice>)> {
         self.may_send(conversation, sender)?;
         let (buyer, _) = self.sides(conversation, sender)?;
         let at = now();
+        let (kind_name, amount) = kind.parts();
         self.db.execute(
-            "INSERT INTO messages (conversation, sender, body, created) VALUES (?1, ?2, ?3, ?4)",
-            params![conversation, sender, body, at],
+            "INSERT INTO messages (conversation, sender, body, kind, amount, created) VALUES (?1, ?2, ?3, ?4, ?5, ?6)",
+            params![conversation, sender, body, kind_name, amount.map(|a| a as i64), at],
         )?;
         let id = self.db.last_insert_rowid();
         // The sender has read their own message.
@@ -188,17 +250,25 @@ impl Store {
             }
             _ => None,
         };
-        Ok((Message { id, sender, body, created: at }, notice))
+        let message = Message { id, sender, body: body.to_string(), kind: kind_name.into(), amount, created: at };
+        Ok((message, notice))
     }
 
     /// A conversation's messages, oldest first, marked read for `account`.
     pub fn read(&self, conversation: i64, account: i64) -> Result<(Conversation, Vec<Message>)> {
         let (buyer, _) = self.sides(conversation, account)?;
         let mut statement =
-            self.db.prepare("SELECT id, sender, body, created FROM messages WHERE conversation = ?1 ORDER BY id")?;
+            self.db.prepare("SELECT id, sender, body, kind, amount, created FROM messages WHERE conversation = ?1 ORDER BY id")?;
         let messages: Vec<Message> = statement
             .query_map([conversation], |row| {
-                Ok(Message { id: row.get(0)?, sender: row.get(1)?, body: row.get(2)?, created: row.get(3)? })
+                Ok(Message {
+                    id: row.get(0)?,
+                    sender: row.get(1)?,
+                    body: row.get(2)?,
+                    kind: row.get(3)?,
+                    amount: row.get::<_, Option<i64>>(4)?.map(|a| a as u64),
+                    created: row.get(5)?,
+                })
             })?
             .collect::<rusqlite::Result<_>>()?;
         let last = messages.last().map_or(0, |m| m.id);
@@ -219,7 +289,8 @@ impl Store {
                     CASE WHEN c.buyer = ?1 THEN c.buyer_read ELSE c.seller_read END,
                     o.id, o.name, o.picture,
                     m.id, m.sender, m.body, m.created,
-                    EXISTS (SELECT 1 FROM blocks WHERE blocker = ?1 AND blocked = o.id)
+                    EXISTS (SELECT 1 FROM blocks WHERE blocker = ?1 AND blocked = o.id),
+                    l.price, l.unit, l.pay_to, m.kind, m.amount
              FROM conversations c
              JOIN listings l ON l.id = c.listing
              JOIN accounts o ON o.id = CASE WHEN c.buyer = ?1 THEN c.seller ELSE c.buyer END
@@ -230,7 +301,14 @@ impl Store {
         let rows = statement.query_map([account], |row| {
             let read: i64 = row.get(6)?;
             let last = match row.get::<_, Option<i64>>(10)? {
-                Some(id) => Some(Message { id, sender: row.get(11)?, body: row.get(12)?, created: row.get(13)? }),
+                Some(id) => Some(Message {
+                    id,
+                    sender: row.get(11)?,
+                    body: row.get(12)?,
+                    kind: row.get(18)?,
+                    amount: row.get::<_, Option<i64>>(19)?.map(|a| a as u64),
+                    created: row.get(13)?,
+                }),
                 None => None,
             };
             let unread = last.as_ref().is_some_and(|m| m.id > read && m.sender != account);
@@ -238,6 +316,9 @@ impl Store {
                 id: row.get(0)?,
                 listing: row.get(1)?,
                 listing_title: row.get(2)?,
+                price: row.get::<_, i64>(15)? as u64,
+                unit: row.get(16)?,
+                pay_to: row.get(17)?,
                 buying: row.get::<_, i64>(3)? == account,
                 updated: row.get(5)?,
                 with: row.get(7)?,
@@ -314,6 +395,15 @@ mod tests {
         assert_eq!(reply.unwrap().to_email, "sam@example.com");
         let (_, later) = store.send(c, sam, "Great").unwrap();
         assert!(later.is_some(), "told again after reading");
+
+        // Asking for payment, and saying it is paid.
+        assert!(store.request_payment(c, sam, 5).is_err(), "only the seller asks");
+        let (request, _) = store.request_payment(c, maya, 200_000_000_000).unwrap();
+        assert_eq!((request.kind.as_str(), request.amount, request.body.as_str()), ("request", Some(200_000_000_000), "Payment request: 200 ORN"));
+        assert!(store.mark_paid(c, maya, request.id).is_err(), "only the buyer pays");
+        let (paid, _) = store.mark_paid(c, sam, request.id).unwrap();
+        assert_eq!((paid.kind.as_str(), paid.amount), ("paid", Some(200_000_000_000)));
+        assert!(store.mark_paid(c, sam, paid.id).is_err(), "only a request is paid");
 
         let stranger = store.create_account("Eve", "eve").unwrap().id;
         assert!(store.read(c, stranger).is_err(), "only the two sides read it");

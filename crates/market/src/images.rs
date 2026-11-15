@@ -39,6 +39,15 @@ pub fn profile_picture(bytes: &[u8]) -> Result<Vec<u8>> {
     Ok(jpeg(&image.resize_to_fill(PICTURE, PICTURE, image::imageops::FilterType::Lanczos3)))
 }
 
+/// A listing's picture, 4:3, cut to fill.
+pub fn listing_picture(bytes: &[u8]) -> Result<Vec<u8>> {
+    let image = decode(bytes)?;
+    Ok(jpeg(&image.resize_to_fill(LISTING_WIDTH, LISTING_HEIGHT, image::imageops::FilterType::Lanczos3)))
+}
+
+pub const LISTING_WIDTH: u32 = 1200;
+pub const LISTING_HEIGHT: u32 = 900;
+
 /// Where uploaded pictures are kept, each under a random name.
 pub struct Folder {
     dir: PathBuf,

@@ -15,6 +15,8 @@ pub const MAX_BIO: usize = 1000;
 pub const MAX_TITLE: usize = 100;
 pub const MAX_DESCRIPTION: usize = 5000;
 pub const MAX_UNIT: usize = 30;
+/// Pictures one listing may have.
+pub const MAX_LISTING_PICTURES: i64 = 4;
 /// Listings one account may have open at a time.
 pub const MAX_OPEN_LISTINGS: i64 = 50;
 
@@ -68,6 +70,8 @@ pub struct Listing {
     pub created: u64,
     pub updated: u64,
     pub open: bool,
+    /// File names of its pictures, the cover first.
+    pub pictures: Vec<String>,
 }
 
 #[derive(Clone, Debug, PartialEq, Eq, Serialize)]
@@ -242,6 +246,12 @@ impl Store {
                  open INTEGER NOT NULL
              );
              CREATE INDEX IF NOT EXISTS listings_open ON listings(open, updated);
+             CREATE TABLE IF NOT EXISTS listing_pictures (
+                 listing INTEGER NOT NULL REFERENCES listings(id) ON DELETE CASCADE,
+                 file TEXT NOT NULL,
+                 position INTEGER NOT NULL,
+                 PRIMARY KEY (listing, file)
+             );
              CREATE TABLE IF NOT EXISTS conversations (
                  id INTEGER PRIMARY KEY,
                  listing INTEGER NOT NULL REFERENCES listings(id) ON DELETE CASCADE,
@@ -262,6 +272,10 @@ impl Store {
                  conversation INTEGER NOT NULL REFERENCES conversations(id) ON DELETE CASCADE,
                  sender INTEGER NOT NULL REFERENCES accounts(id) ON DELETE CASCADE,
                  body TEXT NOT NULL,
+                 -- text, request (the seller asks for payment) or paid (the buyer says they paid).
+                 kind TEXT NOT NULL DEFAULT 'text',
+                 -- In ORN's smallest units, for requests and payments.
+                 amount INTEGER,
                  created INTEGER NOT NULL
              );
              CREATE INDEX IF NOT EXISTS messages_by_conversation ON messages(conversation, id);
@@ -539,6 +553,57 @@ impl Store {
         Ok(self.listing(id)?.expect("just written"))
     }
 
+    /// Adds a picture to a listing of `seller`'s, last; at most four.
+    pub fn add_listing_picture(&self, seller: i64, listing: i64, file: &str) -> Result<()> {
+        self.own_listing(seller, listing)?;
+        let count: i64 = self.db.query_row("SELECT COUNT(*) FROM listing_pictures WHERE listing = ?1", [listing], |r| r.get(0))?;
+        if count >= MAX_LISTING_PICTURES {
+            bail!("a listing has at most {MAX_LISTING_PICTURES} pictures");
+        }
+        let next: i64 = self.db.query_row(
+            "SELECT COALESCE(MAX(position), -1) + 1 FROM listing_pictures WHERE listing = ?1",
+            [listing],
+            |r| r.get(0),
+        )?;
+        self.db.execute("INSERT INTO listing_pictures (listing, file, position) VALUES (?1, ?2, ?3)", params![listing, file, next])?;
+        Ok(())
+    }
+
+    /// Takes a picture off a listing; its file can go.
+    pub fn remove_listing_picture(&self, seller: i64, listing: i64, file: &str) -> Result<()> {
+        self.own_listing(seller, listing)?;
+        let gone = self.db.execute("DELETE FROM listing_pictures WHERE listing = ?1 AND file = ?2", params![listing, file])?;
+        if gone == 0 {
+            bail!("that picture is not on this listing");
+        }
+        Ok(())
+    }
+
+    /// Makes a picture the listing's cover, the one shown first.
+    pub fn make_cover(&self, seller: i64, listing: i64, file: &str) -> Result<()> {
+        self.own_listing(seller, listing)?;
+        let first: i64 = self.db.query_row(
+            "SELECT COALESCE(MIN(position), 0) - 1 FROM listing_pictures WHERE listing = ?1",
+            [listing],
+            |r| r.get(0),
+        )?;
+        let moved =
+            self.db.execute("UPDATE listing_pictures SET position = ?3 WHERE listing = ?1 AND file = ?2", params![listing, file, first])?;
+        if moved == 0 {
+            bail!("that picture is not on this listing");
+        }
+        Ok(())
+    }
+
+    fn own_listing(&self, seller: i64, listing: i64) -> Result<()> {
+        let owner: Option<i64> =
+            self.db.query_row("SELECT seller FROM listings WHERE id = ?1", [listing], |r| r.get(0)).optional()?;
+        if owner != Some(seller) {
+            bail!("no such listing of yours");
+        }
+        Ok(())
+    }
+
     /// Opens or closes a listing; only its seller may. A closed listing
     /// stays, for its reviews, but is not shown in the marketplace.
     pub fn set_open(&self, seller: i64, id: i64, open: bool) -> Result<()> {
@@ -553,7 +618,9 @@ impl Store {
     }
 
     const LISTING: &'static str = "SELECT l.id, l.seller, a.name, a.picture, l.title, l.description, l.category, l.price, l.unit,
-             l.pay_to, l.created, l.updated, l.open
+             l.pay_to, l.created, l.updated, l.open,
+             (SELECT GROUP_CONCAT(file, ',') FROM
+                 (SELECT file FROM listing_pictures WHERE listing = l.id ORDER BY position))
          FROM listings l JOIN accounts a ON a.id = l.seller";
 
     fn row(row: &rusqlite::Row) -> rusqlite::Result<Listing> {
@@ -571,6 +638,10 @@ impl Store {
             created: row.get(10)?,
             updated: row.get(11)?,
             open: row.get(12)?,
+            pictures: row
+                .get::<_, Option<String>>(13)?
+                .map(|files| files.split(',').map(String::from).collect())
+                .unwrap_or_default(),
         })
     }
 
@@ -614,6 +685,16 @@ fn random<const N: usize>() -> Result<[u8; N]> {
 
 fn code_hash(email: &str, code: &str) -> String {
     blake3::hash(format!("{email}\n{code}").as_bytes()).to_hex().to_string()
+}
+
+/// An amount of ORN as people write it: 200, or 1.5.
+pub fn orn(units: u64) -> String {
+    let (whole, fraction) = (units / 1_000_000_000, units % 1_000_000_000);
+    if fraction == 0 {
+        whole.to_string()
+    } else {
+        format!("{whole}.{}", format!("{fraction:09}").trim_end_matches('0'))
+    }
 }
 
 /// An Orien address tidied, or why it is not one.
@@ -690,6 +771,17 @@ mod tests {
         assert!(store.set_open(sam.id, posted.id, false).is_err());
         let edited = store.edit(maya.id, posted.id, &draft("Logo and icon design")).unwrap();
         assert_eq!(edited.title, "Logo and icon design");
+
+        store.add_listing_picture(maya.id, posted.id, "one.jpg").unwrap();
+        store.add_listing_picture(maya.id, posted.id, "two.jpg").unwrap();
+        assert!(store.add_listing_picture(sam.id, posted.id, "three.jpg").is_err(), "only the seller adds pictures");
+        store.make_cover(maya.id, posted.id, "two.jpg").unwrap();
+        assert_eq!(store.listing(posted.id).unwrap().unwrap().pictures, vec!["two.jpg", "one.jpg"]);
+        store.remove_listing_picture(maya.id, posted.id, "two.jpg").unwrap();
+        for n in 0..3 {
+            store.add_listing_picture(maya.id, posted.id, &format!("{n}.jpg")).unwrap();
+        }
+        assert!(store.add_listing_picture(maya.id, posted.id, "five.jpg").is_err(), "four at most");
 
         store.set_open(maya.id, posted.id, false).unwrap();
         assert!(store.browse(None, None, 10, 0).unwrap().is_empty());

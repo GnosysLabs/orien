@@ -387,3 +387,39 @@ async fn buyers_message_sellers_and_bad_messages_are_kept_out() {
     assert_eq!(status, StatusCode::BAD_REQUEST);
     assert!(body["error"].as_str().unwrap().contains("not taking messages"));
 }
+
+#[tokio::test]
+async fn a_seller_adds_pictures_to_a_listing() {
+    let market = Market::screened("never");
+    let maya = sign_in_for_tests(&market.app, "Maya");
+    let sam = sign_in_for_tests(&market.app, "Sam");
+    let (_, posted) = market.ask("POST", "/api/market/listings", Some(&maya), Some(logo())).await;
+    let id = posted["listing"]["id"].as_i64().unwrap();
+    let mut png = Vec::new();
+    image::DynamicImage::new_rgb8(800, 800).write_to(&mut std::io::Cursor::new(&mut png), image::ImageFormat::Png).unwrap();
+    let upload = |token: &str| {
+        let request = Request::builder()
+            .method("POST")
+            .uri(format!("/api/market/listings/{id}/pictures"))
+            .header(header::COOKIE, format!("{COOKIE}={token}"))
+            .body(Body::from(png.clone()))
+            .unwrap();
+        router(market.app.clone()).oneshot(request)
+    };
+    assert_eq!(upload(&sam).await.unwrap().status(), StatusCode::NOT_FOUND, "only the seller");
+    let response = upload(&maya).await.unwrap();
+    assert_eq!(response.status(), StatusCode::OK);
+    let body: Value = serde_json::from_slice(&response.into_body().collect().await.unwrap().to_bytes()).unwrap();
+    let picture = body["listing"]["pictures"][0].as_str().unwrap().to_string();
+    let (_, shown) = market.ask("GET", "/api/market/listings", None, None).await;
+    assert_eq!(shown["listings"][0]["pictures"][0], picture.as_str());
+    let response = router(market.app.clone())
+        .oneshot(Request::builder().uri(format!("/api/market/images/{picture}")).body(Body::empty()).unwrap())
+        .await
+        .unwrap();
+    let bytes = response.into_body().collect().await.unwrap().to_bytes();
+    let back = image::load_from_memory(&bytes).unwrap();
+    assert_eq!((back.width(), back.height()), (orien_market::images::LISTING_WIDTH, orien_market::images::LISTING_HEIGHT));
+    let (status, body) = market.ask("DELETE", &format!("/api/market/listings/{id}/pictures/{picture}"), Some(&maya), None).await;
+    assert_eq!((status, body["listing"]["pictures"].as_array().unwrap().len()), (StatusCode::OK, 0));
+}

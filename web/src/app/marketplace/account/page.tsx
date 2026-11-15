@@ -6,7 +6,7 @@ export const metadata: Metadata = { title: 'Your account', robots: { index: fals
 
 export default function AccountPage() {
   return (
-    <div className="mx-auto max-w-[900px] pb-16">
+    <div className="mx-auto max-w-[1100px] pb-16">
       <MarketBar />
       <AccountView />
     </div>

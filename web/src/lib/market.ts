@@ -12,12 +12,22 @@ export type Account = {
 
 export type Contact = { email: string; telegram: string; x: string }
 
-export type Message = { id: number; sender: number; body: string; created: number }
+export type Message = {
+  id: number
+  sender: number
+  body: string
+  kind: 'text' | 'request' | 'paid'
+  amount: number | null
+  created: number
+}
 
 export type Conversation = {
   id: number
   listing: number
   listing_title: string
+  price: number
+  unit: string
+  pay_to: string
   with: number
   with_name: string
   with_picture: string | null
@@ -60,6 +70,7 @@ export type Listing = {
   created: number
   updated: number
   open: boolean
+  pictures: string[]
 }
 
 export type Draft = {

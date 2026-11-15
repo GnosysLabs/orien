@@ -53,7 +53,7 @@ export function ProfileView() {
         {listings.length === 0 ? (
           <Notice>Nothing on offer right now.</Notice>
         ) : (
-          <div className="grid gap-4 sm:grid-cols-2">
+          <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
             {listings.map((listing) => (
               <Card key={listing.id} listing={listing} />
             ))}

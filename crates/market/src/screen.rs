@@ -88,6 +88,10 @@ const MESSAGE_CONTEXT: &str = "A buyer and a seller on a marketplace are messagi
      a sale paid in a cryptocurrency called ORN. Prices, haggling, deadlines, delivery details, sending or asking for \
      payment in ORN, informal tone and jokes are normal and allowed. Only flag clear violations.";
 
+const LISTING_PICTURE_CONTEXT: &str = "A user is adding a picture to their listing on a marketplace where people offer \
+     their work and goods for a cryptocurrency. Photos of products, examples of their work, screenshots, logos and \
+     art are normal and allowed. Only flag clear violations.";
+
 const PICTURE_CONTEXT: &str = "A user is uploading the profile picture for their account on a marketplace where people \
      offer their work and goods for a cryptocurrency. Photos of themselves, logos, cartoons, art and memes are normal \
      and allowed. Only flag clear violations.";
@@ -151,11 +155,21 @@ impl Screener {
     /// A profile picture, as a JPEG. Faces, cartoons and logos are normal
     /// there, so pretending to be someone is left to the name and bio.
     pub fn picture(&self, jpeg: &[u8]) -> Result<Verdict> {
+        self.image(jpeg, PICTURE_CONTEXT, "The profile picture is attached.", &["impersonation"])
+    }
+
+    /// A picture on a listing, with the listing's title for context.
+    pub fn listing_picture(&self, jpeg: &[u8], title: &str) -> Result<Verdict> {
+        let note = format!("The picture is attached. It is for a listing titled: {title}");
+        self.image(jpeg, LISTING_PICTURE_CONTEXT, &note, &[])
+    }
+
+    fn image(&self, jpeg: &[u8], context: &str, note: &str, skip: &[&str]) -> Result<Verdict> {
         use base64::Engine;
-        let details = json!({ "context": PICTURE_CONTEXT, "image": "The profile picture is attached." }).to_string();
+        let details = json!({ "context": context, "image": note }).to_string();
         let url = format!("data:image/jpeg;base64,{}", base64::engine::general_purpose::STANDARD.encode(jpeg));
         let state = vec![details.into(), json!({ "type": "image_url", "image_url": { "url": url } })];
-        self.screen(state, true, &["impersonation"])
+        self.screen(state, true, skip)
     }
 
     fn screen(&self, state: Vec<Value>, name: bool, skip: &[&str]) -> Result<Verdict> {

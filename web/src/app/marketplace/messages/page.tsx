@@ -7,7 +7,7 @@ export const metadata: Metadata = { title: 'Messages', robots: { index: false } 
 
 export default function MessagesPage() {
   return (
-    <div className="mx-auto max-w-[900px] pb-16">
+    <div className="mx-auto max-w-[1100px] pb-16">
       <MarketBar />
       <Suspense>
         <Messages />

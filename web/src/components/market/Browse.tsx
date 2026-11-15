@@ -5,6 +5,7 @@ import { useEffect, useState } from 'react'
 import { Search } from 'lucide-react'
 import { ask, CATEGORIES, categoryLabel, formatOrn, type Listing } from '@/lib/market'
 import { Avatar } from './Avatar'
+import { Cover } from './Pictures'
 import { Notice } from './Shell'
 
 export function Browse() {
@@ -89,7 +90,7 @@ export function Browse() {
           </Link>
         </Notice>
       )}
-      <div className="grid gap-4 sm:grid-cols-2">
+      <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
         {listings?.map((listing) => <Card key={listing.id} listing={listing} />)}
       </div>
       {more && (
@@ -109,22 +110,28 @@ export function Card({ listing }: { listing: Listing }) {
   return (
     <Link
       href={`/marketplace/listing/?id=${listing.id}`}
-      className="flex flex-col gap-3 rounded-2xl border border-line bg-surface p-5 transition hover:border-pearl/40 hover:bg-raised/50"
+      className="group flex flex-col overflow-hidden rounded-2xl border border-line bg-surface transition hover:border-pearl/40"
     >
-      <p className="text-xs font-semibold uppercase tracking-[0.15em] text-muted">{categoryLabel(listing.category)}</p>
-      <div className="-mt-1 flex items-start justify-between gap-3">
-        <h2 className="text-lg font-bold leading-snug tracking-tight text-ink">{listing.title}</h2>
-        {!listing.open && <span className="shrink-0 rounded-full bg-raised px-2.5 py-1 text-xs text-muted">Closed</span>}
+      <div className="relative overflow-hidden">
+        <div className="transition duration-300 group-hover:scale-[1.03]">
+          <Cover pictures={listing.pictures} category={listing.category} />
+        </div>
+        {!listing.open && (
+          <span className="absolute left-3 top-3 rounded-full bg-bg/80 px-2.5 py-1 text-xs font-semibold text-muted">Closed</span>
+        )}
       </div>
-      <p className="line-clamp-2 text-sm leading-relaxed text-muted">{listing.description}</p>
-      <div className="mt-auto flex items-end justify-between gap-3 pt-1">
-        <span className="num text-lg font-bold text-ink">
-          {formatOrn(listing.price)} ORN{listing.unit && <span className="text-sm font-medium text-muted"> {listing.unit}</span>}
-        </span>
+      <div className="flex flex-1 flex-col gap-3 p-4">
         <span className="flex min-w-0 items-center gap-2 text-xs text-muted">
           <Avatar name={listing.seller_name} picture={listing.seller_picture} size={22} />
-          <span className="truncate">{listing.seller_name}</span>
+          <span className="truncate font-semibold text-ink">{listing.seller_name}</span>
         </span>
+        <h2 className="line-clamp-2 font-semibold leading-snug text-ink">{listing.title}</h2>
+        <div className="mt-auto flex items-baseline justify-between gap-2 border-t border-line pt-3">
+          <span className="text-xs uppercase tracking-[0.12em] text-muted">{categoryLabel(listing.category)}</span>
+          <span className="num font-bold text-ink">
+            {formatOrn(listing.price)} ORN{listing.unit && <span className="text-xs font-medium text-muted"> {listing.unit}</span>}
+          </span>
+        </div>
       </div>
     </Link>
   )

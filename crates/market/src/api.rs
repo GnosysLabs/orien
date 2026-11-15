@@ -213,10 +213,17 @@ pub fn router(app: Arc<App>) -> Router {
         .route("/api/market/me/wallet", get(check_wallet).post(start_wallet))
         .route("/api/market/profiles/{id}", get(profile))
         .route("/api/market/listings/{id}/messages", post(message_seller))
+        .route(
+            "/api/market/listings/{id}/pictures",
+            post(add_listing_picture).layer(axum::extract::DefaultBodyLimit::max(images::MAX_UPLOAD)),
+        )
+        .route("/api/market/listings/{id}/pictures/{name}", axum::routing::delete(remove_listing_picture).post(make_cover))
         .route("/api/market/conversations", get(conversations))
         .route("/api/market/conversations/{id}", get(conversation))
         .route("/api/market/conversations/{id}/messages", post(reply))
         .route("/api/market/conversations/{id}/block", post(block))
+        .route("/api/market/conversations/{id}/request", post(request_payment))
+        .route("/api/market/conversations/{id}/paid", post(mark_paid))
         .route("/api/market/images/{name}", get(picture))
         .route("/api/market/listings", get(browse).post(post_listing))
         .route("/api/market/listings/{id}", get(listing).put(edit_listing))
@@ -394,6 +401,11 @@ async fn deliver(app: &App, conversation: i64, sender: i64, body: &str) -> Answe
     let checked = body.clone();
     screened(app, "message", move |s| s.message(&checked)).await?;
     let (message, notice) = app.store.lock().unwrap().send(conversation, sender, &body).map_err(refused)?;
+    Ok(sent(app, conversation, message, notice))
+}
+
+/// Answers with a sent message, and emails the other side if they should be told.
+fn sent(app: &App, conversation: i64, message: crate::messages::Message, notice: Option<crate::messages::Notice>) -> Response {
     if let Some(notice) = notice {
         let (mailer, origin) = (app.mailer.clone(), app.origin.clone());
         // An email that fails does not unsend the message.
@@ -403,7 +415,29 @@ async fn deliver(app: &App, conversation: i64, sender: i64, body: &str) -> Answe
             }
         });
     }
-    Ok(Json(json!({ "conversation": conversation, "message": message })).into_response())
+    Json(json!({ "conversation": conversation, "message": message })).into_response()
+}
+
+#[derive(Deserialize)]
+struct Ask {
+    amount: u64,
+}
+
+async fn request_payment(State(app): State<Arc<App>>, headers: HeaderMap, Path(id): Path<i64>, Json(request): Json<Ask>) -> Answer {
+    let seller = app.signed_in(&headers)?;
+    let (message, notice) = app.store.lock().unwrap().request_payment(id, seller, request.amount).map_err(refused)?;
+    Ok(sent(&app, id, message, notice))
+}
+
+#[derive(Deserialize)]
+struct Paid {
+    request: i64,
+}
+
+async fn mark_paid(State(app): State<Arc<App>>, headers: HeaderMap, Path(id): Path<i64>, Json(request): Json<Paid>) -> Answer {
+    let buyer = app.signed_in(&headers)?;
+    let (message, notice) = app.store.lock().unwrap().mark_paid(id, buyer, request.request).map_err(refused)?;
+    Ok(sent(&app, id, message, notice))
 }
 
 /// The first message to a listing's seller, or the next one.
@@ -528,6 +562,43 @@ async fn set_picture(State(app): State<Arc<App>>, headers: HeaderMap, body: axum
     }
     let account = app.store.lock().unwrap().account(id)?.ok_or(Failure::SignIn)?;
     Ok(Json(json!({ "account": account })).into_response())
+}
+
+/// A new picture for a listing, sent as the request's whole body.
+async fn add_listing_picture(State(app): State<Arc<App>>, headers: HeaderMap, Path(id): Path<i64>, body: axum::body::Bytes) -> Answer {
+    let seller = app.signed_in(&headers)?;
+    let listing = app.store.lock().unwrap().listing(id)?.filter(|l| l.seller == seller).ok_or(Failure::NotFound)?;
+    if listing.pictures.len() as i64 >= store::MAX_LISTING_PICTURES {
+        return Err(Failure::Refused(format!("a listing has at most {} pictures", store::MAX_LISTING_PICTURES)));
+    }
+    let jpeg = tokio::task::spawn_blocking(move || images::listing_picture(&body))
+        .await
+        .map_err(|e| Failure::Broken(e.into()))?
+        .map_err(refused)?;
+    let (checked, title) = (jpeg.clone(), listing.title.clone());
+    screened(&app, "picture", move |s| s.listing_picture(&checked, &title)).await?;
+    let name = app.images.save(&jpeg)?;
+    if let Err(error) = app.store.lock().unwrap().add_listing_picture(seller, id, &name) {
+        app.images.remove(&name);
+        return Err(refused(error));
+    }
+    let listing = app.store.lock().unwrap().listing(id)?.ok_or(Failure::NotFound)?;
+    Ok(Json(json!({ "listing": listing })).into_response())
+}
+
+async fn remove_listing_picture(State(app): State<Arc<App>>, headers: HeaderMap, Path((id, name)): Path<(i64, String)>) -> Answer {
+    let seller = app.signed_in(&headers)?;
+    app.store.lock().unwrap().remove_listing_picture(seller, id, &name).map_err(refused)?;
+    app.images.remove(&name);
+    let listing = app.store.lock().unwrap().listing(id)?.ok_or(Failure::NotFound)?;
+    Ok(Json(json!({ "listing": listing })).into_response())
+}
+
+async fn make_cover(State(app): State<Arc<App>>, headers: HeaderMap, Path((id, name)): Path<(i64, String)>) -> Answer {
+    let seller = app.signed_in(&headers)?;
+    app.store.lock().unwrap().make_cover(seller, id, &name).map_err(refused)?;
+    let listing = app.store.lock().unwrap().listing(id)?.ok_or(Failure::NotFound)?;
+    Ok(Json(json!({ "listing": listing })).into_response())
 }
 
 /// A seller's public profile: who they are and what they offer.

@@ -3,22 +3,24 @@
 import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
 import { useEffect, useState } from 'react'
-import { ArrowLeft, Pencil, Wallet } from 'lucide-react'
-import { CopyText } from '@/components/CopyText'
-import { ask, categoryLabel, formatOrn, plainOrn, type Account, type Listing } from '@/lib/market'
+import { ArrowLeft, BadgeCheck, Pencil, ShieldCheck } from 'lucide-react'
+import { ask, categoryLabel, formatOrn, memberSince, type Account, type Listing } from '@/lib/market'
 import { Avatar } from './Avatar'
 import { ContactLinks } from './ContactLinks'
 import { MessageSeller } from './Messages'
+import { Pictures } from './Pictures'
 import { Notice } from './Shell'
+
+type Found = { listing: Listing; seller: Account; mine: boolean; signed_in: boolean }
 
 export function ListingView() {
   const id = useSearchParams().get('id')
-  const [found, setFound] = useState<{ listing: Listing; seller: Account; mine: boolean; signed_in: boolean } | null>(null)
+  const [found, setFound] = useState<Found | null>(null)
   const [trouble, setTrouble] = useState('')
 
   useEffect(() => {
     if (!id) return
-    ask<{ listing: Listing; seller: Account; mine: boolean; signed_in: boolean }>(`/listings/${encodeURIComponent(id)}`)
+    ask<Found>(`/listings/${encodeURIComponent(id)}`)
       .then(setFound)
       .catch((error: Error) => setTrouble(error.message === 'not found' ? 'This listing is gone or closed.' : error.message))
   }, [id])
@@ -27,75 +29,82 @@ export function ListingView() {
   if (trouble) return <Notice tone="bad">{trouble}</Notice>
   if (!found) return <p className="text-muted">Loading…</p>
   const { listing, seller, mine, signed_in } = found
-  const { email, telegram, x } = seller.contact
+  const card = 'rounded-2xl border border-line bg-surface p-6'
 
   return (
     <div className="space-y-6">
       <Link href="/marketplace/" className="inline-flex items-center gap-2 text-sm text-muted hover:text-ink">
         <ArrowLeft className="h-4 w-4" aria-hidden /> All listings
       </Link>
-      <article className="rounded-2xl border border-line bg-surface p-6 sm:p-8">
-        <p className="mb-3 text-xs font-semibold uppercase tracking-[0.2em] text-muted">
-          {categoryLabel(listing.category)}
-          {!listing.open && ' · closed'}
-        </p>
-        <h1 className="text-balance text-3xl font-bold leading-tight tracking-tight text-ink">{listing.title}</h1>
-        <p className="num mt-4 text-2xl font-bold text-ink">
-          {formatOrn(listing.price)} ORN{listing.unit && <span className="text-base font-medium text-muted"> {listing.unit}</span>}
-        </p>
-        <Link
-          href={`/marketplace/profile/?id=${listing.seller}`}
-          className="mt-4 inline-flex items-center gap-3 rounded-xl border border-line bg-bg py-2 pl-2 pr-4 transition hover:bg-raised"
-        >
-          <Avatar name={listing.seller_name} picture={listing.seller_picture} size={36} />
-          <span className="flex flex-col">
-            <span className="text-sm font-semibold text-ink">{listing.seller_name}</span>
-            <span className="text-xs text-muted">See their profile</span>
-          </span>
-        </Link>
-        {listing.description && (
-          <div className="mt-6 whitespace-pre-line leading-relaxed text-muted">{listing.description}</div>
-        )}
-        {mine && (
-          <Link
-            href={`/marketplace/sell/?id=${listing.id}`}
-            className="mt-6 inline-flex h-10 items-center gap-2 rounded-xl border border-line bg-bg px-4 text-sm font-semibold text-ink hover:bg-raised"
-          >
-            <Pencil className="h-4 w-4" aria-hidden /> Edit your listing
-          </Link>
-        )}
-      </article>
-
-      {!mine && (
-        <section className="space-y-4 rounded-2xl border border-line bg-surface p-6 sm:p-8">
-          <h2 className="text-xl font-bold tracking-tight text-ink">Talk to the seller first</h2>
-          <p className="leading-relaxed text-muted">Agree the details with {seller.name} before you pay.</p>
-          <MessageSeller listing={listing.id} seller={seller.name} signedIn={signed_in} />
-          {(email || telegram || x) && (
-            <div className="space-y-2 pt-2">
-              <p className="text-sm text-muted">Or reach {seller.name} elsewhere:</p>
-              <ContactLinks contact={seller.contact} />
-            </div>
+      <div className="grid items-start gap-8 lg:grid-cols-[minmax(0,1fr)_340px]">
+        <div className="min-w-0 space-y-6">
+          <div className="space-y-4">
+            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-muted">
+              {categoryLabel(listing.category)}
+              {!listing.open && ' · closed'}
+            </p>
+            <h1 className="text-balance text-3xl font-bold leading-tight tracking-tight text-ink sm:text-4xl">{listing.title}</h1>
+            <Link href={`/marketplace/profile/?id=${seller.id}`} className="group inline-flex items-center gap-3">
+              <Avatar name={seller.name} picture={seller.picture} size={40} />
+              <span className="flex flex-col">
+                <span className="flex items-center gap-1.5 font-semibold text-ink group-hover:underline">
+                  {seller.name}
+                  {seller.wallet && <BadgeCheck className="h-4 w-4 text-go" strokeWidth={2.25} aria-label="Verified wallet" />}
+                </span>
+                <span className="text-xs text-muted">{memberSince(seller.created)}</span>
+              </span>
+            </Link>
+          </div>
+          <Pictures pictures={listing.pictures} title={listing.title} />
+          {listing.description && (
+            <section className={card}>
+              <h2 className="mb-3 text-lg font-bold tracking-tight text-ink">About this</h2>
+              <p className="whitespace-pre-line leading-relaxed text-muted">{listing.description}</p>
+            </section>
           )}
-        </section>
-      )}
+          <section className={card}>
+            <h2 className="mb-4 text-lg font-bold tracking-tight text-ink">About the seller</h2>
+            <Link href={`/marketplace/profile/?id=${seller.id}`} className="mb-4 flex items-center gap-3">
+              <Avatar name={seller.name} picture={seller.picture} size={56} />
+              <span className="flex flex-col">
+                <span className="font-semibold text-ink hover:underline">{seller.name}</span>
+                <span className="text-sm text-muted">See all they offer</span>
+              </span>
+            </Link>
+            {seller.bio && <p className="mb-4 whitespace-pre-line leading-relaxed text-muted">{seller.bio}</p>}
+            <ContactLinks contact={seller.contact} />
+          </section>
+        </div>
 
-      <section className="rounded-2xl border border-line bg-surface p-6 sm:p-8">
-        <div className="mb-3 flex items-center gap-3">
-          <Wallet className="h-5 w-5 text-pearl" strokeWidth={1.75} aria-hidden />
-          <h2 className="text-xl font-bold tracking-tight text-ink">Paying</h2>
-        </div>
-        <div className="space-y-4 leading-relaxed text-muted">
-          <p>
-            Send the ORN from your own wallet, in Orien Wallet or with the <strong className="text-ink">orien</strong>{' '}
-            program. A payment is final in about a second and cannot be undone, so pay only once you trust the seller
-            and have agreed what you get.
+        <aside className="space-y-4 lg:sticky lg:top-24">
+          <div className={`${card} space-y-5`}>
+            <p className="num text-3xl font-bold text-ink">
+              {formatOrn(listing.price)} ORN
+              {listing.unit && <span className="ml-1.5 text-base font-medium text-muted">{listing.unit}</span>}
+            </p>
+            {mine ? (
+              <div className="space-y-3">
+                <p className="text-sm text-muted">This is your listing.</p>
+                <Link
+                  href={`/marketplace/sell/?id=${listing.id}`}
+                  className="flex h-11 items-center justify-center gap-2 rounded-xl border border-line bg-bg text-sm font-semibold text-ink hover:bg-raised"
+                >
+                  <Pencil className="h-4 w-4" aria-hidden /> Edit your listing
+                </Link>
+              </div>
+            ) : (
+              <MessageSeller listing={listing.id} seller={seller.name} signedIn={signed_in} />
+            )}
+          </div>
+          <p className="flex gap-2.5 px-1 text-sm leading-relaxed text-muted">
+            <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-go" aria-hidden />
+            <span>
+              Agree the details in messages first. When you are ready, {mine ? 'you send' : `${seller.name} sends`} a payment
+              request there, and the ORN go straight to {mine ? 'your' : 'their'} verified wallet.
+            </span>
           </p>
-          <CopyText label="Amount" text={`${plainOrn(listing.price)} ORN`} />
-          <CopyText label="The seller's Orien address" text={listing.pay_to} />
-          <CopyText label="Or with orien" text={`orien send --to ${listing.pay_to} --amount ${plainOrn(listing.price)}`} />
-        </div>
-      </section>
+        </aside>
+      </div>
     </div>
   )
 }

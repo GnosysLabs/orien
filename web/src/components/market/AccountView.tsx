@@ -192,7 +192,7 @@ function Mine({ found, onChange }: { found: Found; onChange: () => void }) {
           </Link>
         </Notice>
       ) : (
-        <div className="grid gap-4 sm:grid-cols-2">
+        <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
           {found.listings.map((listing) => (
             <div key={listing.id} className="flex flex-col gap-2">
               <Card listing={listing} />
