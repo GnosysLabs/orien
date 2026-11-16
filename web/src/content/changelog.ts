@@ -28,6 +28,15 @@ export const CHANGELOG: Entry[] = [
   {
     date: '2026-11-16',
     products: ['wallet'],
+    version: '1.8.2',
+    title: 'A clear next step after taking an offer',
+    changes: [
+      'After you take a swap offer, a screen shows what you get and what you pay, and waits for the seller to accept. The pay screen then opens by itself.',
+    ],
+  },
+  {
+    date: '2026-11-16',
+    products: ['wallet'],
     version: '1.8.1',
     title: 'Clearer when a seller has been paid',
     changes: [
