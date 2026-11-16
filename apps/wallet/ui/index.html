@@ -2731,7 +2731,7 @@
           $("c-name").value = profileLabel(p).slice(0, 40);
           $("contact-title").textContent = profileLabel(p);
           $("c-name").disabled = true;
-          $("c-saved").textContent = "From their Orien Market profile. It updates when they change it.";
+          $("c-saved").textContent = "From their Orien profile. It updates when they change it.";
         }
         $("ct-face").outerHTML = face(contact.address, contact.name).replace('<span class="face">', '<span class="face ct-face" id="ct-face">');
         $("ct-addr").textContent = short(contact.address);
@@ -2766,7 +2766,7 @@
       // Their name is theirs, from their profile, and isn't edited here.
       if ($("c-name").value !== profileLabel(p).slice(0, 40)) { $("c-name").value = profileLabel(p).slice(0, 40); checkContact(); }
       $("c-name").disabled = true;
-      $("c-saved").textContent = "From their Orien Market profile. It updates when they change it.";
+      $("c-saved").textContent = "From their Orien profile. It updates when they change it.";
     };
     if (profiles.has(address)) showFace(); else loadProfiles([address]).then(showFace);
   }
