@@ -215,8 +215,9 @@ pub fn advance(orien: &AppOrien, kept: &mut Kept) {
     }
 }
 
-/// Moves every unfinished swap along, saving after each. A seller's board
-/// offer approved when posted goes on with that approval.
+/// Moves every unfinished swap along, saving after each. A board swap
+/// approved when posted (sellers) or taken (buyers) goes on with that
+/// approval.
 pub fn step_all(orien: &AppOrien, dir: &Path, all: &mut [Kept]) -> Result<(), String> {
     for index in 0..all.len() {
         if all[index].swap.finished() {
@@ -225,7 +226,6 @@ pub fn step_all(orien: &AppOrien, dir: &Path, all: &mut [Kept]) -> Result<(), St
         let mut orien = orien.with_wallet(all[index].wallet.as_deref().unwrap_or(&orien.wallet_file));
         if orien.password.is_none()
             && let Some(offer) = all[index].board
-            && all[index].swap.role == Role::Seller
             && let Some(password) = approval::approved(dir, offer, all[index].swap.orn, &orien.wallet_file)
         {
             orien = orien.with_password(password);

@@ -416,11 +416,10 @@ pub fn step_on(orien: &AppOrien, chain: &Explorers, dir: &Path, swaps: &mut [Kep
             continue;
         }
         let mut orien = orien.for_swap(&swaps[index]);
-        // A board offer approved when it was posted: its swap goes on with
-        // that approval, and with nothing else.
+        // A board swap approved when it was posted (sellers) or taken
+        // (buyers): it goes on with that approval, and with nothing else.
         if orien.password.is_none()
             && let Some(offer) = swaps[index].board
-            && swaps[index].swap.role == Role::Seller
             && let Some(password) = crate::approval::approved(dir, offer, swaps[index].swap.orn, &orien.wallet_file)
         {
             orien = orien.with_password(password);

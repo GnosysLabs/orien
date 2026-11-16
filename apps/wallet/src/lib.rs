@@ -1391,20 +1391,52 @@ async fn board_post_sol(app: AppHandle, orn: String, sol: String, payout: String
 /// Takes SOL offer `offer` for this wallet; the buyer pays from `refund`,
 /// their own SOL wallet, where anything left over goes back.
 #[tauri::command]
-async fn board_take_sol(app: AppHandle, offer: i64, refund: String) -> Result<(), String> {
+async fn board_take_sol(app: AppHandle, offer: i64, refund: String, orn: String, password: Option<String>) -> Result<(), String> {
+    let orn = money::read(&orn)?;
     let dir = folder(&app)?;
     let wallet = wallet_file(&dir).ok_or("no wallet yet")?;
     let address = Wallet::peek(&wallet).map_err(|error| error.to_string())?.0.to_string();
-    tauri::async_runtime::spawn_blocking(move || board::take_sol(&dir, &wallet, offer, &address, &refund)).await.map_err(|error| error.to_string())?
+    tauri::async_runtime::spawn_blocking(move || {
+        let password = approve_take(&wallet, password)?;
+        board::take_sol(&dir, &wallet, offer, &address, &refund)?;
+        approval::approve(&dir, offer, orn, &wallet, password.as_deref());
+        Ok(())
+    })
+    .await
+    .map_err(|error| error.to_string())?
+}
+
+/// A buyer approves once, when taking an offer, so the ORN are claimed by
+/// themselves at the end: the wallet must open with what was given (the
+/// password, or Touch ID a moment ago). What unlocks it, for the approval.
+fn approve_take(wallet: &std::path::Path, password: Option<String>) -> Result<Option<String>, String> {
+    let password = password.filter(|p| !p.is_empty()).or_else(|| biometric::unlocked(wallet));
+    if !has_password(wallet) {
+        return Ok(None);
+    }
+    Wallet::open(wallet, password.as_deref()).map_err(|error| match error.downcast_ref::<OpenError>() {
+        Some(OpenError::NeedsPassword) => "password: needed".to_string(),
+        Some(OpenError::WrongPassword) => "password: wrong".to_string(),
+        None => format!("could not open the wallet: {error}"),
+    })?;
+    Ok(password)
 }
 
 /// Takes offer `offer` for this wallet; a refund would go to `refund`.
 #[tauri::command]
-async fn board_take(app: AppHandle, offer: i64, refund: String) -> Result<(), String> {
+async fn board_take(app: AppHandle, offer: i64, refund: String, orn: String, password: Option<String>) -> Result<(), String> {
+    let orn = money::read(&orn)?;
     let dir = folder(&app)?;
     let wallet = wallet_file(&dir).ok_or("no wallet yet")?;
     let address = orien_net::keys::Wallet::peek(&wallet).map_err(|error| error.to_string())?.0.to_string();
-    tauri::async_runtime::spawn_blocking(move || board::take(&dir, &wallet, offer, &address, &refund)).await.map_err(|error| error.to_string())?
+    tauri::async_runtime::spawn_blocking(move || {
+        let password = approve_take(&wallet, password)?;
+        board::take(&dir, &wallet, offer, &address, &refund)?;
+        approval::approve(&dir, offer, orn, &wallet, password.as_deref());
+        Ok(())
+    })
+    .await
+    .map_err(|error| error.to_string())?
 }
 
 /// Links this wallet to the signed-in marketplace account, as signing in

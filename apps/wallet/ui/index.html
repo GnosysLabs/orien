@@ -1582,6 +1582,11 @@
         <label for="bt-refund" id="bt-refund-label">Your Bitcoin address</label>
         <div class="box plain"><input id="bt-refund" placeholder="Where your Bitcoin comes back if the swap stops" spellcheck="false" autocomplete="off"></div>
       </div>
+      <div class="field" id="bt-pw-field" hidden>
+        <label for="bt-pw">Wallet password, to approve this swap</label>
+        <div class="box plain"><input id="bt-pw" type="password" autocomplete="current-password"></div>
+      </div>
+      <p class="fineprint" id="bt-approve">You approve once, now. When the seller is paid, your ORN arrive by themselves: nothing to do at the end.</p>
       <div class="push"></div>
       <div class="problem" id="bt-problem" hidden></div>
       <button class="primary pearl" id="bt-go" data-gap="lg">Take the offer</button>
@@ -3430,6 +3435,12 @@
     $("bt-refund").placeholder = sol ? "Anything left over, or a refund, comes back here" : "Where your Bitcoin comes back if the swap stops";
     $("bt-seller").textContent = `${o.seller_name}, ${o.seller_done} swap${o.seller_done === 1 ? "" : "s"} done`;
     $("bt-problem").hidden = true;
+    // Approving now, once: Touch ID, or the password typed here; a wallet
+    // with no lock needs neither.
+    const typed = !!(view && !view.unprotected && !view.biometric);
+    $("bt-pw-field").hidden = !typed;
+    $("bt-pw").value = "";
+    $("bt-go").textContent = view && view.biometric ? `Take with ${bio}` : "Take the offer";
     show("board-take");
   }
 
@@ -3443,7 +3454,10 @@
     $("bt-go").disabled = true;
     try {
       const taken = board.taking;
-      await invoke(taken.coin === "sol" ? "board_take_sol" : "board_take", { offer: taken.id, refund: $("bt-refund").value });
+      if (view && view.biometric) await invoke("biometric_unlock");
+      const password = $("bt-pw-field").hidden ? null : $("bt-pw").value;
+      await invoke(taken.coin === "sol" ? "board_take_sol" : "board_take", { offer: taken.id, refund: $("bt-refund").value, orn: plainOrn(taken.orn), password });
+      $("bt-pw").value = "";
       board.taking = null;
       // Straight on to a screen that waits for the seller, then opens the
       // swap to pay.
@@ -3463,7 +3477,10 @@
       show("swap-waiting");
       loadBoard();
       stepSwaps();
-    } catch (e) { problem("bt-problem", e); }
+    } catch (e) {
+      const t = String(e);
+      problem("bt-problem", t === "password: wrong" ? "That's not this wallet's password." : t === "password: needed" ? "Type your wallet password to approve this swap." : t);
+    }
     finally { $("bt-go").disabled = false; }
   };
 
