@@ -583,6 +583,9 @@
      is never touched, while anything scrolling past is cut with a curve. */
   .screen, #mine, #board-signin, #board-post, #board-take, #swaps, #swap-sell, #swap-buy, #swap-detail { border-radius: 22px 22px 32px 32px; }
   .scroll { border-radius: 22px 22px 30px 30px; }
+  /* Home: its activity box ends as far from the window's bottom as from
+     its sides (the window's own 28px), not 16px higher. */
+  #home { padding-bottom: 0; border-radius: 22px 22px 24px 24px; }
   body.phone .screen { margin: -8px -8px 0; padding: 8px 8px 16px; }
   .day { margin: 18px 4px 8px; font-size: 12px; font-weight: 600; color: var(--dim); }
   .day:first-child { margin-top: 0; }
