@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 import { MARKETPLACE_LIVE } from "@/lib/brand";
 import { AccountMenu } from "./AccountMenu";
+import { useMe } from "@/lib/useMe";
 import { Wordmark } from "./Wordmark";
 import { WINDOWS_INSTALLER, WindowsInstall } from "./WindowsDownload";
 
@@ -223,8 +224,26 @@ export function DiscordIcon({ className = "" }: { className?: string }) {
 const isActive = (item: NavItem, pathname: string) =>
   item.match ? item.match(pathname) : pathname === item.href;
 
+/** A red dot on the Market when messages wait unread. */
+function useUnreadDot() {
+  const { account, unread } = useMe();
+  return (item: NavItem) =>
+    MARKETPLACE_LIVE && account && unread > 0 && item.href === "/marketplace/" ? unread : 0;
+}
+
+function Dot({ count, className }: { count: number; className: string }) {
+  return (
+    <span
+      className={`absolute h-2.5 w-2.5 rounded-full bg-stop ring-2 ring-bg ${className}`}
+      aria-label={`${count} unread message${count === 1 ? "" : "s"}`}
+      role="status"
+    />
+  );
+}
+
 export function Header() {
   const pathname = usePathname();
+  const unreadOn = useUnreadDot();
   const onTry = pathname.startsWith("/try");
   // The admin dashboard is its own place: just the wordmark.
   const admin = pathname.startsWith("/admin");
@@ -257,12 +276,13 @@ export function Header() {
                   key={item.href}
                   href={item.href}
                   aria-current={on ? "page" : undefined}
-                  className={`flex h-9 items-center gap-2 whitespace-nowrap rounded-lg px-2.5 text-sm font-semibold transition ${
+                  className={`relative flex h-9 items-center gap-2 whitespace-nowrap rounded-lg px-2.5 text-sm font-semibold transition ${
                     on
                       ? "bg-raised text-ink"
                       : "text-muted hover:bg-raised/60 hover:text-ink"
                   }`}
                 >
+                  {unreadOn(item) > 0 && <Dot count={unreadOn(item)} className="right-0.5 top-1" />}
                   {/* Icons and full labels where the bar has room for them. */}
                   <Icon
                     className={`hidden h-4 w-4 shrink-0 xl:block ${on ? "text-pearl" : ""}`}
@@ -322,6 +342,7 @@ export function Header() {
 
 export function BottomNav() {
   const pathname = usePathname();
+  const unreadOn = useUnreadDot();
   if (pathname.startsWith("/admin")) return null;
   // The changelog is in the footer, as on larger screens.
   const mobileItems = ITEMS.filter((item) => !item.wide);
@@ -349,11 +370,14 @@ export function BottomNav() {
                 <Icon className="h-4 w-4" strokeWidth={2.5} aria-hidden />
               </span>
             ) : (
-              <Icon
-                className={`h-5 w-5 ${on ? "text-pearl" : ""}`}
-                strokeWidth={2}
-                aria-hidden
-              />
+              <span className="relative">
+                <Icon
+                  className={`h-5 w-5 ${on ? "text-pearl" : ""}`}
+                  strokeWidth={2}
+                  aria-hidden
+                />
+                {unreadOn(item) > 0 && <Dot count={unreadOn(item)} className="-right-1 -top-0.5" />}
+              </span>
             )}
             {item.short ?? item.label}
           </Link>

@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 import {
   ArrowLeftRight,
@@ -9,33 +8,15 @@ import {
   Plus,
   Store,
 } from "lucide-react";
-import { me, type Account } from "@/lib/market";
+import { useMe } from "@/lib/useMe";
 
-/** Sent when this browser signs in or out, so every part of the page catches up. */
-export const SIGNED_IN_OR_OUT = "orien-market-account";
+export { SIGNED_IN_OR_OUT } from "@/lib/useMe";
 
 /** The bar the marketplace and the swap board share: the two, side by side,
  * then your messages and account, which serve both. */
 export function MarketBar() {
   const pathname = usePathname();
-  const [account, setAccount] = useState<Account | null | undefined>(undefined);
-  const [unread, setUnread] = useState(0);
-  useEffect(() => {
-    const load = () =>
-      me()
-        .then((found) => {
-          setAccount(found?.account ?? null);
-          setUnread(found?.unread ?? 0);
-        })
-        .catch(() => setAccount(null));
-    void load();
-    window.addEventListener(SIGNED_IN_OR_OUT, load);
-    const timer = setInterval(load, 30000);
-    return () => {
-      window.removeEventListener(SIGNED_IN_OR_OUT, load);
-      clearInterval(timer);
-    };
-  }, []);
+  const { account, unread } = useMe();
   const swapping = pathname.startsWith("/swap");
   return (
     <div className="flex flex-wrap items-center gap-3 pb-8 pt-10 sm:pt-14">
