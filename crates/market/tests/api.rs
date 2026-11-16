@@ -750,4 +750,18 @@ async fn a_wallet_is_verified_by_a_small_payment_and_then_named() {
     assert_eq!(status, StatusCode::OK);
     let (status, _) = market.ask("GET", &format!("/api/market/wallets/{wallet}"), None, None).await;
     assert_eq!(status, StatusCode::NOT_FOUND);
+
+    // Found by name to pay: only people with a verified wallet.
+    let (status, body) = market.ask("GET", "/api/market/profiles?q=MA", None, None).await;
+    assert_eq!(status, StatusCode::OK, "{body}");
+    let found = body["profiles"].as_array().unwrap();
+    assert_eq!(found.len(), 1, "{body}");
+    assert_eq!(found[0]["name"], "Maya");
+    assert_eq!(found[0]["wallets"][0]["name"], "Savings");
+    let (_, body) = market.ask("GET", "/api/market/profiles?q=eve", None, None).await;
+    assert_eq!(body["profiles"].as_array().unwrap().len(), 0, "Eve verified nothing");
+    let (_, body) = market.ask("GET", "/api/market/profiles?q=m", None, None).await;
+    assert_eq!(body["profiles"].as_array().unwrap().len(), 0, "one letter finds nobody");
+    let (_, body) = market.ask("GET", "/api/market/profiles?q=%25", None, None).await;
+    assert_eq!(body["profiles"].as_array().unwrap().len(), 0);
 }

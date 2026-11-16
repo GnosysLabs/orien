@@ -276,6 +276,7 @@ pub fn router(app: Arc<App>) -> Router {
         .route("/api/market/wallets/{address}", get(wallet_profile))
         .route("/api/market/me/wallets", get(my_wallets).put(report_wallets))
         .route("/api/market/me/delete", post(delete_me))
+        .route("/api/market/profiles", get(search_profiles))
         .route("/api/market/profiles/{id}", get(profile))
         .route("/api/market/listings/{id}/messages", post(message_seller))
         .route(
@@ -1009,6 +1010,19 @@ async fn remove_verified_wallet(State(app): State<Arc<App>>, headers: HeaderMap,
     let address = choice.address.ok_or_else(|| Failure::Refused("say which wallet".into()))?;
     app.store.lock().unwrap().remove_proof(id, &address).map_err(refused)?;
     Ok(Json(json!({ "ok": true })).into_response())
+}
+
+#[derive(Deserialize)]
+struct ProfileSearch {
+    #[serde(default)]
+    q: String,
+}
+
+/// People to pay, found by name: profiles with verified wallets, at most
+/// ten, and none for under two letters.
+async fn search_profiles(State(app): State<Arc<App>>, Query(search): Query<ProfileSearch>) -> Answer {
+    let profiles = app.store.lock().unwrap().search_payable(&search.q)?;
+    Ok(([(header::CACHE_CONTROL, "public, max-age=30")], Json(json!({ "profiles": profiles }))).into_response())
 }
 
 /// The name and picture of the account whose verified wallet this is.

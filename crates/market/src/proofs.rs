@@ -46,6 +46,21 @@ pub struct VerifiedWallet {
     pub name: Option<String>,
 }
 
+/// A profile found by name, with the wallets it verified, for choosing
+/// whom to pay.
+#[derive(Clone, Debug, PartialEq, Eq, Serialize)]
+pub struct PayableProfile {
+    pub id: i64,
+    pub name: String,
+    pub picture: Option<String>,
+    /// When the account was made, to tell people with one name apart.
+    pub created: u64,
+    pub wallets: Vec<VerifiedWallet>,
+}
+
+/// Most profiles one search gives.
+pub const MAX_FOUND: usize = 10;
+
 /// Whose a verified wallet is: the account's name and picture, and the
 /// wallet's own name.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize)]
@@ -204,6 +219,33 @@ impl Store {
             }
         }
         Ok(found)
+    }
+
+    /// Profiles whose name holds `query`, with at least one verified
+    /// wallet: exact names first, then names that start with it.
+    pub fn search_payable(&self, query: &str) -> Result<Vec<PayableProfile>> {
+        let query = query.trim().to_lowercase();
+        if query.chars().count() < 2 {
+            return Ok(Vec::new());
+        }
+        let escaped: String = query.chars().flat_map(|c| if matches!(c, '%' | '_' | '\\') { vec!['\\', c] } else { vec![c] }).collect();
+        let mut statement = self.db.prepare(
+            "SELECT a.id, a.name, a.picture, a.created FROM accounts a
+             WHERE lower(a.name) LIKE ?1 ESCAPE '\\'
+               AND EXISTS (SELECT 1 FROM verified_wallets v WHERE v.account = a.id AND v.proven IS NOT NULL)
+               AND NOT EXISTS (SELECT 1 FROM suspended s WHERE s.account = a.id)
+             ORDER BY lower(a.name) = ?2 DESC, lower(a.name) LIKE ?3 ESCAPE '\\' DESC, lower(a.name), a.id
+             LIMIT ?4",
+        )?;
+        let found: Vec<(i64, String, Option<String>, u64)> = statement
+            .query_map(params![format!("%{escaped}%"), query, format!("{escaped}%"), MAX_FOUND as i64], |row| {
+                Ok((row.get(0)?, row.get(1)?, row.get(2)?, row.get::<_, i64>(3)? as u64))
+            })?
+            .collect::<rusqlite::Result<_>>()?;
+        found
+            .into_iter()
+            .map(|(id, name, picture, created)| Ok(PayableProfile { id, name, picture, created, wallets: self.verified_wallets(id)? }))
+            .collect()
     }
 
     fn payout_of(&self, account: i64) -> Result<Option<String>> {
