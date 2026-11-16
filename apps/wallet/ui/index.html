@@ -201,8 +201,16 @@
     padding: 14px 16px; border: 1px solid var(--line); border-radius: 16px; background: var(--surface);
     color: inherit; font: inherit; text-align: left; cursor: pointer; }
   .swap-row + .swap-row { margin-top: 8px; }
-  .waiting-mark { display: grid; place-items: center; margin-bottom: 18px; }
-  .waiting-mark .mark { width: 56px; height: 56px; animation: brand-drift 12s ease-in-out infinite, breathe 1.6s ease-in-out infinite; }
+  .waiting-card { padding: 26px 20px 18px; border: 1px solid var(--line); border-radius: 22px; background: var(--surface); text-align: center; }
+  .waiting-mark { display: grid; place-items: center; margin-bottom: 14px; }
+  .waiting-mark .mark { width: 48px; height: 48px; animation: brand-drift 12s ease-in-out infinite, breathe 1.6s ease-in-out infinite; }
+  .waiting-card .wc-title { font-size: 19px; font-weight: 600; letter-spacing: -0.01em; }
+  .waiting-card .wc-sub { color: var(--muted); font-size: 14px; margin: 6px auto 0; max-width: 300px; line-height: 1.45; }
+  .waiting-card .wc-deal { display: grid; grid-template-columns: 1fr 1fr; margin-top: 20px; border-top: 1px solid var(--line); padding-top: 14px; }
+  .waiting-card .wc-deal div { display: grid; gap: 3px; }
+  .waiting-card .wc-deal div + div { border-left: 1px solid var(--line); }
+  .waiting-card .wc-deal span { color: var(--muted); font-size: 12px; }
+  .waiting-card .wc-deal strong { font-size: 16px; font-weight: 600; }
   .swap-alert { display: flex; align-items: center; gap: 12px; width: 100%; margin: 12px 0 16px; padding: 14px 16px; text-align: left;
     border: 1px solid var(--line); border-radius: 16px; background: var(--surface); color: inherit; font: inherit; cursor: pointer; }
   .swap-alert .sa-main { flex: 1; min-width: 0; }
@@ -1057,11 +1065,18 @@
          accept, then straight on to paying. -->
     <section class="screen" id="swap-waiting" hidden>
       <div class="topline"><button class="back" data-to="swaps" aria-label="Back"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10 3 5 8l5 5"/></svg></button><h2>Offer taken</h2></div>
+      <div class="waiting-card" data-gap="lg">
+        <div class="waiting-mark"><span class="mark brand"></span></div>
+        <div class="wc-title" id="sw-title"></div>
+        <div class="wc-sub" id="sw-text"></div>
+        <div class="wc-deal">
+          <div><span>You get</span><strong id="sw-get"></strong></div>
+          <div><span>You pay</span><strong id="sw-pay"></strong></div>
+        </div>
+      </div>
+      <ol class="steps" id="sw-steps" data-gap="lg"></ol>
       <div class="push"></div>
-      <div class="waiting-mark"><span class="mark brand"></span></div>
-      <p class="lede" id="sw-text" style="text-align:center"></p>
       <p class="fineprint" id="sw-fine" style="text-align:center"></p>
-      <div class="push"></div>
     </section>
 
     <section class="screen" id="board-take" hidden>
@@ -2623,10 +2638,18 @@
       // Straight on to a screen that waits for the seller, then opens the
       // swap to pay.
       waitFor = { since: Date.now() / 1000 - 10, sol: taken.coin === "sol", name: taken.seller_name };
-      $("sw-text").textContent = `Waiting for ${taken.seller_name || "the seller"}'s wallet to accept.`;
-      $("sw-fine").textContent = waitFor.sol
-        ? "Usually a few seconds. Then this app shows exactly what to pay, with a QR code for your SOL wallet."
-        : "The seller has up to 30 minutes. Then this app shows exactly what to pay, with a QR code for your Bitcoin wallet.";
+      const seller = taken.seller_name || "the seller";
+      $("sw-title").textContent = `Waiting for ${seller}`;
+      $("sw-text").textContent = waitFor.sol
+        ? "Their wallet accepts by itself, usually within a few seconds."
+        : "Their wallet accepts by itself, within 30 minutes.";
+      $("sw-get").textContent = `${fmtOrn(taken.orn)} ORN`;
+      $("sw-pay").textContent = offerPrice(taken);
+      const step = (state, n, name, what) => `<li class="s-${state}"><span class="dot">${state === "done" ? "✓" : n}</span><div class="what"><strong>${name}</strong> · ${what}</div></li>`;
+      $("sw-steps").innerHTML = step("done", 1, "Taken", "the offer is yours")
+        + step("now", 2, "Seller accepts", `${esc(seller)}'s wallet locks the ORN for you`)
+        + step("next", 3, "You pay", `from your ${waitFor.sol ? "SOL" : "Bitcoin"} wallet, with a QR code`);
+      $("sw-fine").textContent = "The pay screen opens by itself as soon as they accept.";
       show("swap-waiting");
       loadBoard();
       stepSwaps();
