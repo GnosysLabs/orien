@@ -3,7 +3,6 @@ import Link from 'next/link'
 import { Geist, Geist_Mono, Jost } from 'next/font/google'
 import { Analytics } from '@/components/Analytics'
 import { BottomNav, Header } from '@/components/Header'
-import { MinerNotice } from '@/components/MinerNotice'
 import { ScrollToTop } from '@/components/ScrollToTop'
 import { Wordmark } from '@/components/Wordmark'
 import { DISCORD, MARKETPLACE_LIVE, OPERATOR, OPERATOR_URL, SITE_DESCRIPTION, SITE_NAME, SITE_URL, TAGLINE, X_ACCOUNT } from '@/lib/brand'
@@ -132,7 +131,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <div className="flex min-h-full flex-1 flex-col">
           <ScrollToTop />
           <Analytics />
-          <MinerNotice />
           <Header />
           <main className="mx-auto w-full max-w-[1200px] flex-1 px-4 py-6 sm:py-8">{children}</main>
           <footer className="border-t border-line px-4 print:hidden pb-24 pt-6 text-center text-xs text-muted lg:pb-8">
