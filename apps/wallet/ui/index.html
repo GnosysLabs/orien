@@ -709,6 +709,7 @@
   /* A marketplace profile's picture, over its first letter. */
   .face { position: relative; overflow: hidden; flex: none; display: inline-grid; place-items: center;
     width: 32px; height: 32px; border-radius: 50%; background: var(--surface-hover); color: var(--ink); font-weight: 600; font-size: 13px; }
+  .face.emoji { font: 17px/1 system-ui, "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif; }
   .face img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
   body.phone .tx .face { width: 36px; height: 36px; }
   .chosen { align-items: center; }
@@ -2386,8 +2387,11 @@
     const market = (marketHits.q === q ? marketHits.rows : []).filter((r) => !known.has(r.address));
     if (q.length >= 2 && marketHits.q !== q) searchMarket(q);
     list.hidden = found.length + market.length === 0;
+    // Each with its face: a contact's picture (or letter), a wallet's icon.
+    if (found.some((p) => !p.mine && !profiles.has(p.address))) loadProfiles(found.filter((p) => !p.mine).map((p) => p.address)).then((got) => got && suggest($("to").value));
     list.innerHTML = found.map((p) => `<button class="tx" type="button" data-address="${p.address}">
-      <div class="tx-main"><div class="title">${esc(p.name)}</div><div class="sub">${esc(p.sub)}</div></div>
+      ${p.mine ? `<span class="face${iconOf(p.address) ? " emoji" : ""}">${esc(iconOf(p.address) || p.name.slice(0, 1).toUpperCase())}</span>` : face(p.address, nameOf(p.address) || p.name)}
+      <div class="tx-main"><div class="title">${esc(nameOf(p.address) || p.name)}</div><div class="sub">${esc(p.sub)}</div></div>
     </button>`).join("") + market.map((r) => `<button class="tx" type="button" data-address="${r.address}">
       ${face(r.address, r.label)}
       <div class="tx-main"><div class="title">${esc(r.label)}</div><div class="sub">${short(r.address)}</div></div>
