@@ -3960,7 +3960,32 @@
   // Live: an open chat every 4 seconds, the list every 10, the unread dot every 30.
   setInterval(() => { if (!$("chat").hidden && chat.id) refreshChat(); }, 4000);
   setInterval(() => { if (!$("inbox").hidden) loadInbox(); }, 10000);
-  setInterval(() => { if (board.me) invoke("board_me").then((me) => { board.me = me; paintUnread(); }).catch(() => {}); }, 30000);
+  setInterval(() => { if (board.me) invoke("board_me").then((me) => { board.me = me; paintUnread(); if (me && me.unread) marketNews(); }).catch(() => {}); }, 30000);
+  // A notification for each new Market message, on computers, as for ORN
+  // arriving. What's been told is kept, so nothing is told twice; the first
+  // look only learns what's there. Not for the chat that's open on screen.
+  async function marketNews() {
+    if (phone || !board.me) return;
+    let list;
+    try { list = (await mk("GET", "/conversations")).conversations || []; } catch { return; }
+    let heard = null;
+    try { heard = JSON.parse(localStorage.getItem("market-heard") || "null"); } catch {}
+    const first = heard === null;
+    heard = heard || {};
+    for (const c of list) {
+      const last = c.last;
+      if (!last || !c.unread) continue;
+      if ((heard[c.id] || 0) >= last.id) continue;
+      heard[c.id] = last.id;
+      if (first) continue;
+      if (!$("chat").hidden && chat.id === c.id && document.hasFocus()) continue;
+      const what = last.kind === "request" ? `asks you to pay ${orn(last.amount)} ORN` : last.kind === "paid" ? `says they paid ${orn(last.amount)} ORN` : last.body;
+      await tell(`${c.with_name}: ${what.length > 120 ? what.slice(0, 117) + "…" : what}`);
+    }
+    localStorage.setItem("market-heard", JSON.stringify(heard));
+  }
+  // Learn what's already there once signed in, so only new ones are told.
+  setTimeout(() => { if (board.me) marketNews(); }, 5000);
 
   // ---- Selling ----
   const UNITS = [["", "Fixed price"], ["per hour", "Per hour"], ["per day", "Per day"], ["per week", "Per week"], ["per month", "Per month"], ["per item", "Per item"]];
