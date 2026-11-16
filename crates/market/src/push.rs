@@ -78,12 +78,21 @@ impl Store {
                  PRIMARY KEY (address, key)
              );",
         )?;
+        // The Market account a phone's app is signed in to, for messages
+        // and swaps, which belong to accounts rather than addresses.
+        let has: bool =
+            self.db.query_row("SELECT COUNT(*) > 0 FROM pragma_table_info('push_tokens') WHERE name = 'account'", [], |row| row.get(0))?;
+        if !has {
+            self.db.execute("ALTER TABLE push_tokens ADD COLUMN account INTEGER REFERENCES accounts(id) ON DELETE SET NULL", [])?;
+        }
         Ok(())
     }
 
     /// The whole set of addresses `token` asks about, replacing any before.
     /// No addresses is the same as `unregister_push`.
-    pub fn register_push(&self, token: &str, sandbox: bool, addresses: &[String]) -> Result<usize> {
+    /// `account` is the Market account the app is signed in to, if any:
+    /// registering again signed out stops its messages reaching the phone.
+    pub fn register_push(&self, token: &str, sandbox: bool, addresses: &[String], account: Option<i64>) -> Result<usize> {
         let token = device_token(token)?;
         let mut tidy = Vec::new();
         for address in addresses {
@@ -95,15 +104,15 @@ impl Store {
         if tidy.len() > MAX_ADDRESSES {
             bail!("at most {MAX_ADDRESSES} wallets per phone");
         }
-        if tidy.is_empty() {
+        if tidy.is_empty() && account.is_none() {
             self.unregister_push(&token)?;
             return Ok(0);
         }
         let tx = self.db.unchecked_transaction()?;
         tx.execute(
-            "INSERT INTO push_tokens (token, sandbox, updated) VALUES (?1, ?2, ?3)
-             ON CONFLICT(token) DO UPDATE SET sandbox = ?2, updated = ?3",
-            params![token, sandbox, now() as i64],
+            "INSERT INTO push_tokens (token, sandbox, updated, account) VALUES (?1, ?2, ?3, ?4)
+             ON CONFLICT(token) DO UPDATE SET sandbox = ?2, updated = ?3, account = ?4",
+            params![token, sandbox, now() as i64, account],
         )?;
         tx.execute("DELETE FROM push_addresses WHERE token = ?1", [&token])?;
         for address in &tidy {
@@ -166,6 +175,13 @@ impl Store {
         Ok(rows.collect::<rusqlite::Result<_>>()?)
     }
 
+    /// The phones signed in to `account`.
+    fn phones_for_account(&self, account: i64) -> Result<Vec<(String, bool)>> {
+        let mut statement = self.db.prepare("SELECT token, sandbox FROM push_tokens WHERE account = ?1")?;
+        let rows = statement.query_map([account], |row| Ok((row.get(0)?, row.get(1)?)))?;
+        Ok(rows.collect::<rusqlite::Result<_>>()?)
+    }
+
     /// How many phones and addresses are registered, for the dashboard.
     pub fn push_counts(&self) -> Result<(i64, i64)> {
         Ok((
@@ -211,6 +227,76 @@ pub fn payload(body: &str, address: &str) -> String {
         "address": address,
     })
     .to_string()
+}
+
+/// A Market event for phones: a message, or a step of a swap.
+#[derive(Clone, Debug, PartialEq)]
+pub struct Event {
+    /// Phones signed in to this account.
+    pub account: i64,
+    /// And phones that registered this wallet, if one is named.
+    pub address: Option<String>,
+    pub body: String,
+    /// "message" or "swap", and what the app opens: {"conversation": 7}
+    /// or {"swap": 3}.
+    pub kind: &'static str,
+    pub open: serde_json::Value,
+}
+
+impl Event {
+    pub fn payload(&self) -> String {
+        let mut payload = json!({
+            "aps": { "alert": { "title": "Orien Wallet", "body": self.body }, "sound": "default" },
+            "kind": self.kind,
+        });
+        if let Some(address) = &self.address {
+            payload["address"] = json!(address);
+        }
+        if let Some(open) = self.open.as_object() {
+            for (key, value) in open {
+                payload[key] = value.clone();
+            }
+        }
+        payload.to_string()
+    }
+}
+
+/// A message's text for a notification, cut to fit: "Maya: Hi, is the …".
+pub fn message_text(sender: &str, kind: &str, body: &str, amount: Option<u64>) -> String {
+    match (kind, amount) {
+        ("request", Some(amount)) => format!("{sender} asks you to pay {} ORN", grouped(amount)),
+        ("paid", Some(amount)) => format!("{sender} says they paid {} ORN", grouped(amount)),
+        _ => {
+            let text: String = body.split_whitespace().collect::<Vec<_>>().join(" ");
+            let cut: String = text.chars().take(120).collect();
+            let more = if cut.chars().count() < text.chars().count() { "…" } else { "" };
+            format!("{sender}: {cut}{more}")
+        }
+    }
+}
+
+/// Sends what the Market has queued for phones.
+fn deliver_events(app: &App, notify: &dyn Notify) -> Result<usize> {
+    let mut sent = 0;
+    for event in app.take_events() {
+        let mut phones = app.store().phones_for_account(event.account)?;
+        if let Some(address) = &event.address {
+            for phone in app.store().phones_for(address)? {
+                if !phones.contains(&phone) {
+                    phones.push(phone);
+                }
+            }
+        }
+        let payload = event.payload();
+        for (phone, sandbox) in phones {
+            match notify.notify(&phone, sandbox, &payload) {
+                Sent::Delivered => sent += 1,
+                Sent::Gone => app.store().unregister_push(&phone)?,
+                Sent::Failed(why) => eprintln!("push: {why}"),
+            }
+        }
+    }
+    Ok(sent)
 }
 
 /// What happened to one notification.
@@ -339,6 +425,8 @@ impl Notify for Apns {
 /// One look at the network: notifies each phone of what its addresses
 /// received since the last look.
 pub fn check_once(app: &App, notify: &dyn Notify) -> Result<usize> {
+    // Market events first: they need no network.
+    let told = deliver_events(app, notify)?;
     let payments = app.payments();
     let epoch = payments.epoch()?;
     let from = epoch.saturating_sub(1);
@@ -387,7 +475,7 @@ pub fn check_once(app: &App, notify: &dyn Notify) -> Result<usize> {
         }
     }
     app.store().forget_seen_before(epoch.saturating_sub(3))?;
-    Ok(sent)
+    Ok(told + sent)
 }
 
 /// Watches the network for as long as the server runs.
@@ -439,8 +527,11 @@ pub async fn register(State(app): State<Arc<App>>, headers: HeaderMap, Json(body
     if !allowed(&[format!("token {token}"), format!("from {}", sender(&headers))]) {
         return Err(Failure::Refused("too many registrations for now; try again in a few minutes".into()));
     }
-    let kept = app.store().register_push(&token, body.sandbox, &body.addresses).map_err(|e| Failure::Refused(e.to_string()))?;
-    Ok(Json(json!({ "addresses": kept })).into_response())
+    // Signed in, the phone also hears about that account's messages and swaps.
+    let account = app.signed_in(&headers).ok();
+    let kept =
+        app.store().register_push(&token, body.sandbox, &body.addresses, account).map_err(|e| Failure::Refused(e.to_string()))?;
+    Ok(Json(json!({ "addresses": kept, "account": account.is_some() })).into_response())
 }
 
 #[derive(Deserialize)]

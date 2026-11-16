@@ -715,9 +715,16 @@ impl Store {
     /// Open listings, newest first: in one category or all, matching a
     /// search in the title or description if one is given.
     pub fn browse(&self, category: Option<&str>, search: Option<&str>, limit: u32, offset: u32) -> Result<Vec<Listing>> {
+        self.browse_for(None, category, search, limit, offset)
+    }
+
+    /// Open listings as `viewer` sees them: without those of people they
+    /// blocked.
+    pub fn browse_for(&self, viewer: Option<i64>, category: Option<&str>, search: Option<&str>, limit: u32, offset: u32) -> Result<Vec<Listing>> {
         let sql = format!(
             "{} AND l.open = 1 AND (?1 IS NULL OR l.category = ?1)
                  AND (?2 IS NULL OR l.title LIKE ?2 ESCAPE '\\' OR l.description LIKE ?2 ESCAPE '\\')
+                 AND (?5 IS NULL OR NOT EXISTS (SELECT 1 FROM blocks b WHERE b.blocker = ?5 AND b.blocked = l.seller))
              ORDER BY l.updated DESC, l.id DESC LIMIT ?3 OFFSET ?4",
             Store::LISTING
         );
@@ -726,7 +733,7 @@ impl Store {
             format!("%{escaped}%")
         });
         let mut statement = self.db.prepare(&sql)?;
-        let rows = statement.query_map(params![category, pattern, limit.min(100), offset], Store::row)?;
+        let rows = statement.query_map(params![category, pattern, limit.min(100), offset, viewer], Store::row)?;
         Ok(rows.collect::<rusqlite::Result<_>>()?)
     }
 

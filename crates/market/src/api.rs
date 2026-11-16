@@ -60,6 +60,8 @@ pub struct App {
     traffic: Arc<crate::traffic::Traffic>,
     /// The oldest swap rules a buyer's wallet may take offers with.
     min_swap_version: u32,
+    /// Market events waiting for the push watcher to tell phones about.
+    events: Mutex<Vec<crate::push::Event>>,
 }
 
 impl App {
@@ -95,6 +97,7 @@ impl App {
             contacts: Mutex::new(Vec::new()),
             traffic: Arc::new(crate::traffic::Traffic::in_memory()),
             min_swap_version: 0,
+            events: Mutex::new(Vec::new()),
         })
     }
 
@@ -155,7 +158,20 @@ impl App {
         self.payments.clone()
     }
 
-    fn signed_in(&self, headers: &HeaderMap) -> Result<i64, Failure> {
+    /// Queues a notification for the phones of `event.account`.
+    pub(crate) fn tell(&self, event: crate::push::Event) {
+        let mut events = self.events.lock().unwrap();
+        // Bounded, so a stalled watcher can't fill the memory.
+        if events.len() < 10_000 {
+            events.push(event);
+        }
+    }
+
+    pub(crate) fn take_events(&self) -> Vec<crate::push::Event> {
+        std::mem::take(&mut *self.events.lock().unwrap())
+    }
+
+    pub(crate) fn signed_in(&self, headers: &HeaderMap) -> Result<i64, Failure> {
         let token = cookie(headers).ok_or(Failure::SignIn)?;
         self.store.lock().unwrap().session(&token)?.ok_or(Failure::SignIn)
     }
@@ -278,6 +294,7 @@ pub fn router(app: Arc<App>) -> Router {
         .route("/api/market/me/delete", post(delete_me))
         .route("/api/market/profiles", get(search_profiles))
         .route("/api/market/profiles/{id}", get(profile))
+        .route("/api/market/accounts/{id}/block", post(block_account))
         .route("/api/market/users/{name}", get(user))
         .route("/api/market/listings/{id}/messages", post(message_seller))
         .route(
@@ -583,6 +600,16 @@ async fn deliver(app: &App, conversation: i64, sender: i64, body: &str) -> Answe
 
 /// Answers with a sent message, and emails the other side if they should be told.
 fn sent(app: &App, conversation: i64, message: crate::messages::Message, notice: Option<crate::messages::Notice>) -> Response {
+    // The other side's phones hear about every message.
+    if let Ok(Some((to, from))) = app.store.lock().unwrap().other_side(conversation, message.sender) {
+        app.tell(crate::push::Event {
+            account: to,
+            address: None,
+            body: crate::push::message_text(&from, &message.kind, &message.body, message.amount),
+            kind: "message",
+            open: json!({ "conversation": conversation }),
+        });
+    }
     if let Some(notice) = notice {
         let (mailer, origin) = (app.mailer.clone(), app.origin.clone());
         // An email that fails does not unsend the message.
@@ -621,7 +648,16 @@ async fn mark_paid(State(app): State<Arc<App>>, headers: HeaderMap, Path(id): Pa
 async fn message_seller(State(app): State<Arc<App>>, headers: HeaderMap, Path(listing): Path<i64>, Json(request): Json<Write>) -> Answer {
     let buyer = app.signed_in(&headers)?;
     Store::message_text(&request.body).map_err(refused)?;
-    let conversation = app.store.lock().unwrap().conversation_about(buyer, listing).map_err(refused)?;
+    let conversation = {
+        let store = app.store.lock().unwrap();
+        // A block stops a conversation before it is made.
+        if let Some(seller) = store.listing(listing)?.map(|l| l.seller)
+            && let Some(why) = store.block_between(buyer, seller)?
+        {
+            return Err(Failure::Refused(why.into()));
+        }
+        store.conversation_about(buyer, listing).map_err(refused)?
+    };
     deliver(&app, conversation, buyer, &request.body).await
 }
 
@@ -817,6 +853,13 @@ async fn take_swap(State(app): State<Arc<App>>, headers: HeaderMap, Path(id): Pa
         let taker = store.account(buyer)?.map(|a| a.name).unwrap_or_default();
         (swap, email, taker)
     };
+    app.tell(crate::push::Event {
+        account: swap.offer.seller,
+        address: swap.wallet.clone(),
+        body: format!("{taker} took your offer of {} ORN", crate::store::orn(swap.offer.orn)),
+        kind: "swap",
+        open: json!({ "swap": id }),
+    });
     if let Some(to) = seller_email {
         let (mailer, origin) = (app.mailer.clone(), app.origin.clone());
         tokio::task::spawn_blocking(move || {
@@ -845,6 +888,20 @@ async fn swap_offer_code(State(app): State<Arc<App>>, headers: HeaderMap, Path(i
         };
         (swap, email)
     };
+    let price = if swap.offer.coin == "sol" {
+        format!("{} SOL", trimmed(swap.offer.lamports, 9))
+    } else {
+        format!("{} BTC", bitcoin_amount(swap.offer.sats))
+    };
+    if let Some(taker) = swap.taker {
+        app.tell(crate::push::Event {
+            account: taker,
+            address: swap.taker_wallet.clone(),
+            body: format!("{} accepted your swap: pay {price} now", swap.offer.seller_name),
+            kind: "swap",
+            open: json!({ "swap": id }),
+        });
+    }
     // The buyer's turn: tell them, so it can't be missed.
     if let Some(to) = buyer_email {
         let (mailer, origin) = (app.mailer.clone(), app.origin.clone());
@@ -891,7 +948,27 @@ async fn swap_reply_code(State(app): State<Arc<App>>, headers: HeaderMap, Path(i
 
 async fn finish_swap(State(app): State<Arc<App>>, headers: HeaderMap, Path(id): Path<i64>, Json(request): Json<Finish2>) -> Answer {
     let account = app.signed_in(&headers)?;
-    app.store.lock().unwrap().finish_swap(account, id, request.done).map_err(refused)?;
+    let first_done = app.store.lock().unwrap().finish_swap(account, id, request.done).map_err(refused)?;
+    // The first wallet to finish tells both people's phones, once.
+    if let Some(swap) = first_done {
+        let orn = crate::store::orn(swap.offer.orn);
+        if let Some(taker) = swap.taker {
+            app.tell(crate::push::Event {
+                account: taker,
+                address: swap.taker_wallet.clone(),
+                body: format!("Swap done: your {orn} ORN from {} are yours", swap.offer.seller_name),
+                kind: "swap",
+                open: json!({ "swap": id }),
+            });
+        }
+        app.tell(crate::push::Event {
+            account: swap.offer.seller,
+            address: swap.wallet.clone(),
+            body: format!("Swap done: {} bought your {orn} ORN", swap.taker_name.clone().unwrap_or_else(|| "the buyer".into())),
+            kind: "swap",
+            open: json!({ "swap": id }),
+        });
+    }
     Ok(Json(json!({})).into_response())
 }
 
@@ -1175,7 +1252,8 @@ async fn make_cover(State(app): State<Arc<App>>, headers: HeaderMap, Path((id, n
 }
 
 /// A seller's public profile: who they are and what they offer.
-async fn profile(State(app): State<Arc<App>>, Path(id): Path<i64>) -> Answer {
+async fn profile(State(app): State<Arc<App>>, headers: HeaderMap, Path(id): Path<i64>) -> Answer {
+    let viewer = app.signed_in(&headers).ok();
     let store = app.store.lock().unwrap();
     if store.is_suspended(id)? {
         return Err(Failure::NotFound);
@@ -1184,13 +1262,25 @@ async fn profile(State(app): State<Arc<App>>, Path(id): Path<i64>) -> Answer {
     let listings = store.open_listings_of(id)?;
     let swaps_done = store.swaps_done(id)?;
     let wallets = store.verified_wallets(id)?;
-    Ok(Json(json!({ "account": account, "listings": listings, "swaps_done": swaps_done, "wallets": wallets })).into_response())
+    let mut answer = json!({ "account": account, "listings": listings, "swaps_done": swaps_done, "wallets": wallets });
+    // Signed in: whether you've blocked this person.
+    if let Some(viewer) = viewer {
+        answer["blocked"] = json!(store.blocked_by(viewer, id)?);
+    }
+    Ok(Json(answer).into_response())
 }
 
 /// A profile by its name, as /u/NAME shows it.
-async fn user(State(app): State<Arc<App>>, Path(name): Path<String>) -> Answer {
+async fn user(State(app): State<Arc<App>>, headers: HeaderMap, Path(name): Path<String>) -> Answer {
     let id = app.store.lock().unwrap().account_by_name(&name)?.ok_or(Failure::NotFound)?;
-    profile(State(app), Path(id)).await
+    profile(State(app), headers, Path(id)).await
+}
+
+/// Blocks or unblocks a person, everywhere, for the signed-in account.
+async fn block_account(State(app): State<Arc<App>>, headers: HeaderMap, Path(id): Path<i64>, Json(request): Json<Block>) -> Answer {
+    let account = app.signed_in(&headers)?;
+    app.store.lock().unwrap().block_account(account, id, request.block).map_err(refused)?;
+    Ok(Json(json!({ "blocked": request.block })).into_response())
 }
 
 async fn picture(State(app): State<Arc<App>>, Path(name): Path<String>) -> Answer {
@@ -1214,9 +1304,10 @@ struct Browse {
 /// Listings a page shows at a time.
 const PAGE: u32 = 30;
 
-async fn browse(State(app): State<Arc<App>>, Query(query): Query<Browse>) -> Answer {
+async fn browse(State(app): State<Arc<App>>, headers: HeaderMap, Query(query): Query<Browse>) -> Answer {
     let category = query.category.as_deref().filter(|c| !c.is_empty());
-    let listings = app.store.lock().unwrap().browse(category, query.q.as_deref(), PAGE, query.offset)?;
+    let viewer = app.signed_in(&headers).ok();
+    let listings = app.store.lock().unwrap().browse_for(viewer, category, query.q.as_deref(), PAGE, query.offset)?;
     let more = listings.len() as u32 == PAGE;
     Ok(Json(json!({ "listings": listings, "more": more })).into_response())
 }
