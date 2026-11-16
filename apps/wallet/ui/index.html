@@ -2945,7 +2945,8 @@
       sub: `Use ${unlock.unlock_biometric ? bio : "your password"} to lock your ${fmtOrn(unlock.offer.orn)} ORN and finish the swap`,
       go: unlock.unlock_biometric ? bio : "Finish", open: () => unlock.unlock_biometric ? finishTaken(unlock.offer.id) : openSwaps() };
     const password = swapList.find((x) => x.problem && x.problem.startsWith("password:") && !x.finished);
-    if (password) return { urgent: true, title: "A swap needs your wallet unlocked", sub: "Unlock it so the swap can go on", go: "Open", open: () => openSwap(password.id) };
+    if (password) return { urgent: true, title: password.role === "buy" ? `Approve to get your ${password.orn} ORN` : "Approve to finish your swap",
+      sub: `Your turn: confirm with ${view && view.biometric ? bio : "your wallet password"} so this app can finish it`, go: "Approve", open: () => openSwap(password.id) };
     const taken = board.waiting.find((x) => x.selling && x.offer.state === "held" && x.here && !x.elsewhere);
     if (taken) return { title: `${taken.taker_name || "Someone"} took your offer`, sub: "Locking your ORN for them", go: "View", open: openSwaps };
     const going = swapList.find((x) => !x.finished && !["done", "cancelled"].includes(x.stage));
@@ -2995,6 +2996,7 @@
       if (s.coin !== "sol" && s.role === "sell" && (s.paid_seen || s.stage === "claiming")) say(`claiming:${s.id}`, `The buyer paid ${s.btc} BTC. Bitcoin is confirming it; then this app takes it. Keep Orien Wallet running.`);
       if (s.stage === "done") say(`done:${s.id}`, s.role === "sell" ? `Swap done: ${cost(s)} is in your ${coinName(s)} wallet.` : s.coin === "sol" && !s.orn_claimed ? "Your SOL went back to your SOL wallet." : `Swap done: ${s.orn} ORN are in your wallet.`);
       if (s.stage === "cancelled") say(`stopped:${s.id}`, `A swap stopped. ${s.status}`);
+      if (s.problem && s.problem.startsWith("password:") && !s.finished) say(`approve:${s.id}`, s.role === "buy" ? `Approve in Orien Wallet to get your ${s.orn} ORN.` : "Approve in Orien Wallet to finish your swap.", 10 * 60 * 1000);
     }
     localStorage.setItem(ANNOUNCED, JSON.stringify(announced));
     swapsWaiting = swapList.filter(needsMe).length + board.waiting.filter((x) => x.needs_unlock).length;
@@ -3050,7 +3052,8 @@
     if (s.stage === "cancelled") return "Stopped";
     if (s.stage === "refunding") return "Taking your Bitcoin back";
     if (needsMe(s)) return `Your turn: pay ${payText(s)} now`;
-    if (s.role === "sell" && s.stage === "claiming") return "Paid · Bitcoin is confirming";
+    if (s.problem && s.problem.startsWith("password:")) return `Your turn: approve with ${view && view.biometric ? bio : "your password"} to finish`;
+    if (s.role === "sell" && s.stage === "claiming") return s.coin === "sol" ? "Paid · SOL on its way to you" : "Paid · Bitcoin is confirming";
     const { steps, at } = swapSteps(s);
     if (at === null || at >= steps.length) return "";
     return `Step ${at + 1} of ${steps.length} · ${steps[at].name || steps[at].who.split(" · ")[0]}`;
@@ -3177,8 +3180,17 @@
     $("sd-other-row").hidden = !s.other;
     $("sd-other-label").textContent = s.role === "sell" ? "Buyer" : "Seller";
     $("sd-other").textContent = s.other ? short(s.other) : "";
-    const { steps, at } = swapSteps(s);
+    let { steps, at } = swapSteps(s);
     const stopped = ["cancelled", "refunding"].includes(s.stage);
+    // Waiting on this person to approve: that's the step now, spelled out,
+    // and the button brought into view.
+    const approve = !!(s.problem && s.problem.startsWith("password:"));
+    if (approve && at !== null && at < steps.length) {
+      steps = steps.slice();
+      const how = view && view.biometric ? `Confirm with ${bio}` : "Type your wallet password";
+      steps.splice(at + 1, 0, { name: "Approve", what: `${how} below, so this app can ${s.role === "buy" ? "claim your ORN" : "finish the swap"}`, who: "You · now" });
+      at = at + 1;
+    }
     $("sd-steps").innerHTML = steps.map((step, i) => {
       const state = at !== null && i < at ? "done" : i === at ? (stopped ? "stopped" : "now") : "next";
       const dot = state === "done" ? "✓" : state === "stopped" ? "!" : String(i + 1);
@@ -3215,6 +3227,10 @@
     const useBio = !!(view && view.biometric);
     $("sd-pw").parentElement.hidden = useBio;
     $("sd-claim").textContent = useBio ? `Continue with ${bio}` : "Continue";
+    if (approve && $("sd-claim").dataset.shownFor !== String(s.id)) {
+      $("sd-claim").dataset.shownFor = String(s.id);
+      setTimeout(() => $("sd-claim").scrollIntoView({ behavior: "smooth", block: "nearest" }), 50);
+    }
     if (s.problem && !needsPassword) problem("detail-problem", s.problem); else $("detail-problem").hidden = true;
   }
 
