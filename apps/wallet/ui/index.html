@@ -341,7 +341,8 @@
   .hint.warn { color: var(--bad, #e5484d); }
   .small-link { margin: 22px auto 4px; display: flex; }
   #tab-offers .section-head { align-items: center; margin: 6px 4px 14px; }
-  #tab-offers .section-head .hint { margin: 2px 0 0; min-height: 0; }
+  #tab-offers .section-head h3 { line-height: 32px; }
+  .board-prices { margin: 14px 0 0; min-height: 0; text-align: center; }
   /* The swap screens can hold more than the window: they scroll, and
      nothing in them is squeezed. */
   #board-signin, #board-post, #board-take { overflow-y: auto; margin: 0 -28px; padding: 0 28px 8px; }
@@ -1031,9 +1032,10 @@
       </div>
       <div id="tab-offers">
         <div class="note" id="board-wallet" hidden><span id="bw-text"></span> <button class="linkish" id="bw-go">Use this wallet instead</button></div>
-        <div class="section-head"><div><h3>Open offers</h3><div class="hint" id="board-btc"></div></div><button class="pill pearl" id="board-post-go">Post an offer</button></div>
+        <div class="section-head"><h3>Open offers</h3><button class="pill pearl" id="board-post-go">Post an offer</button></div>
         <div id="board-offers"><div class="empty">Loading offers…</div></div>
         <div class="problem" id="board-problem" hidden></div>
+        <div class="hint board-prices" id="board-btc"></div>
         <button class="linkish small-link" id="manual-go">Swap with someone you know</button>
       </div>
       <div id="tab-mine" hidden>
