@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import { ANY_DEVICE_SWAPS } from "@/lib/brand";
 import { useEffect, useState } from "react";
 import {
   ArrowLeftRight,
@@ -366,13 +365,19 @@ function PostOffer({
   const [wallets, setWallets] = useState<
     { address: string; name: string }[] | null
   >(null);
+  // Whether any of the account's Orien Wallet apps is new enough to run an
+  // offer posted here: those report their wallets.
+  const [reported, setReported] = useState(false);
   const [from, setFrom] = useState("");
   const [trouble, setTrouble] = useState("");
   useEffect(() => {
-    if (!ANY_DEVICE_SWAPS || !account) return;
-    ask<{ wallets: { address: string; name: string }[] }>("/me/wallets")
+    if (!account) return;
+    ask<{ wallets: { address: string; name: string }[]; reported: number }>(
+      "/me/wallets",
+    )
       .then((found) => {
         setWallets(found.wallets);
+        setReported(found.reported > 0);
         setFrom((now) => now || found.wallets[0]?.address || "");
       })
       .catch(() => setWallets([]));
@@ -421,19 +426,7 @@ function PostOffer({
           Post an offer, and get Bitcoin for your ORN when someone takes it.
         </p>
       </div>
-      {!ANY_DEVICE_SWAPS ? (
-        <p className="text-sm leading-relaxed text-muted">
-          Post your offer in{" "}
-          <Link
-            href="/try/"
-            className="font-semibold text-ink underline underline-offset-4"
-          >
-            Orien Wallet
-          </Link>
-          , on its Swap screen. When someone takes it, the wallet locks your ORN,
-          collects your Bitcoin and delivers theirs, so keep it running.
-        </p>
-      ) : !account ? (
+      {!account ? (
         <p className="text-sm text-muted">
           <Link
             href="/marketplace/account/"
@@ -443,10 +436,17 @@ function PostOffer({
           </Link>{" "}
           to post an offer.
         </p>
-      ) : wallets === null ? null : wallets.length === 0 ? (
+      ) : wallets === null ? null : !reported ? (
         <p className="text-sm leading-relaxed text-muted">
-          Sign in to the Market from Orien Wallet first, so the swap board knows
-          your wallets.
+          Sign in to the Market from the latest{" "}
+          <Link
+            href="/try/"
+            className="font-semibold text-ink underline underline-offset-4"
+          >
+            Orien Wallet
+          </Link>
+          , and your wallets show here, by name, to choose which one sells. You
+          can also post your offer in Orien Wallet, on its Swap screen.
         </p>
       ) : (
         <>

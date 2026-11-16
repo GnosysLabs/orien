@@ -866,8 +866,13 @@ async fn report_wallets(State(app): State<Arc<App>>, headers: HeaderMap, Json(re
 /// The account's wallets, by name, for "Sell from".
 async fn my_wallets(State(app): State<Arc<App>>, headers: HeaderMap) -> Answer {
     let id = app.signed_in(&headers)?;
-    let wallets = app.store.lock().unwrap().account_wallets(id)?;
-    Ok(Json(json!({ "wallets": wallets })).into_response())
+    let (wallets, reported) = {
+        let store = app.store.lock().unwrap();
+        (store.account_wallets(id)?, store.reported_wallets(id)?)
+    };
+    // Only wallets new enough to report themselves can run an offer posted
+    // here, so the website offers posting only when one has.
+    Ok(Json(json!({ "wallets": wallets, "reported": reported })).into_response())
 }
 
 /// The linked wallet.

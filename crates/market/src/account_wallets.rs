@@ -64,6 +64,11 @@ impl Store {
         Ok(tidy.len())
     }
 
+    /// How many wallets the account's apps have reported.
+    pub fn reported_wallets(&self, account: i64) -> Result<i64> {
+        Ok(self.db.query_row("SELECT COUNT(DISTINCT address) FROM account_wallets WHERE account = ?1", [account], |row| row.get(0))?)
+    }
+
     /// Every wallet the account's apps hold, each once with its newest name,
     /// the linked wallet first, then by name.
     pub fn account_wallets(&self, account: i64) -> Result<Vec<NamedWallet>> {
@@ -116,6 +121,7 @@ mod tests {
         store.report_wallets(maya, "phone", &[]).unwrap();
         store.report_wallets(maya, "mac", &[]).unwrap();
         assert_eq!(names(&store), ["Your linked wallet"], "the linked one stays even if no app reports it");
+        assert_eq!(store.reported_wallets(maya).unwrap(), 0);
 
         assert!(store.report_wallets(maya, "mac", &[w("123", "Bad")]).is_err());
         assert!(store.report_wallets(maya, "", &[w(A, "x")]).is_err());
