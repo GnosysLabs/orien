@@ -10,6 +10,7 @@
 
 use crate::store::{Store, now};
 use anyhow::{Result, bail};
+use orien_swap::sol::{MIN_LAMPORTS, SolOffer, SolReply};
 use orien_swap::swap::{Offer, Reply};
 use rusqlite::{OptionalExtension, params};
 use serde::Serialize;
@@ -36,7 +37,12 @@ pub struct SwapOffer {
     /// Swaps the seller has finished, as buyer or seller.
     pub seller_done: i64,
     pub orn: u64,
+    /// "sol" or "btc": what the buyer pays with.
+    pub coin: String,
+    /// The price, for a Bitcoin offer; 0 for a SOL one.
     pub sats: u64,
+    /// The price, for a SOL offer; 0 for a Bitcoin one.
+    pub lamports: u64,
     /// open, held, swapping, done, cancelled or closed.
     pub state: String,
     pub created: u64,
@@ -68,7 +74,7 @@ pub struct MySwap {
 
 const OFFER: &str = "SELECT o.id, o.seller, a.name, a.picture,
         (SELECT COUNT(*) FROM swap_offers d WHERE d.state = 'done' AND (d.seller = o.seller OR d.taker = o.seller)),
-        o.orn, o.sats, o.state, o.created
+        o.orn, o.sats, o.state, o.created, o.coin
      FROM swap_offers o JOIN accounts a ON a.id = o.seller";
 
 fn offer_row(row: &rusqlite::Row) -> rusqlite::Result<SwapOffer> {
@@ -79,7 +85,10 @@ fn offer_row(row: &rusqlite::Row) -> rusqlite::Result<SwapOffer> {
         seller_picture: row.get(3)?,
         seller_done: row.get(4)?,
         orn: row.get::<_, i64>(5)? as u64,
-        sats: row.get::<_, i64>(6)? as u64,
+        // The price column holds the coin's smallest unit.
+        sats: if row.get::<_, String>(9)? == "sol" { 0 } else { row.get::<_, i64>(6)? as u64 },
+        lamports: if row.get::<_, String>(9)? == "sol" { row.get::<_, i64>(6)? as u64 } else { 0 },
+        coin: row.get(9)?,
         state: row.get(7)?,
         created: row.get(8)?,
     })
@@ -114,6 +123,13 @@ impl Store {
             .db
             .prepare("SELECT 1 FROM pragma_table_info('swap_offers') WHERE name = 'payout'")?
             .exists([])?;
+        let has_coin: bool =
+            self.db.prepare("SELECT 1 FROM pragma_table_info('swap_offers') WHERE name = 'coin'")?.exists([])?;
+        if !has_coin {
+            // Added for SOL swaps: what the buyer pays with. The sats column
+            // holds the price in that coin's smallest unit.
+            self.db.execute("ALTER TABLE swap_offers ADD COLUMN coin TEXT NOT NULL DEFAULT 'btc'", [])?;
+        }
         if !has_payout {
             self.db.execute_batch(
                 "ALTER TABLE swap_offers ADD COLUMN payout TEXT;
@@ -212,16 +228,37 @@ impl Store {
     /// `post_swap`, saying where the Bitcoin go and which wallet sells, so
     /// that any of the seller's wallets can run it.
     pub fn post_swap_for(&self, seller: i64, orn: u64, sats: u64, payout: Option<&str>, wallet: Option<&str>) -> Result<SwapOffer> {
-        let payout = payout.map(bitcoin_address).transpose()?;
+        self.post_offer(seller, "btc", orn, sats, payout, wallet)
+    }
+
+    /// An offer of `orn` for `price` of `coin` ("sol", in lamports, or
+    /// "btc", in satoshis), with where the seller is paid and which wallet
+    /// sells. A SOL offer needs its payout: the buyer's lock names it.
+    pub fn post_offer(&self, seller: i64, coin: &str, orn: u64, price: u64, payout: Option<&str>, wallet: Option<&str>) -> Result<SwapOffer> {
+        let sats = price;
+        let payout = match coin {
+            "btc" => {
+                if sats < MIN_SATS {
+                    bail!(
+                        "a swap is at least {MIN_SATS} satoshis ({} BTC), so that any Bitcoin wallet can send it and its fees leave enough",
+                        format!("{:.8}", MIN_SATS as f64 / 1e8).trim_end_matches('0')
+                    );
+                }
+                payout.map(bitcoin_address).transpose()?
+            }
+            "sol" => {
+                if price < MIN_LAMPORTS {
+                    bail!("a SOL swap is at least {} SOL", MIN_LAMPORTS as f64 / 1e9);
+                }
+                let payout = payout.ok_or_else(|| anyhow::anyhow!("say the SOL address you're paid at"))?.trim();
+                orien_swap::solana::address(payout).map_err(|_| anyhow::anyhow!("that is not a Solana address"))?;
+                Some(payout.to_string())
+            }
+            _ => bail!("swaps are for SOL or Bitcoin"),
+        };
         let wallet = wallet.map(crate::store::orien_address).transpose()?;
         if orn == 0 {
             bail!("offer more than nothing");
-        }
-        if sats < MIN_SATS {
-            bail!(
-                "a swap is at least {MIN_SATS} satoshis ({} BTC), so that any Bitcoin wallet can send it and its fees leave enough",
-                format!("{:.8}", MIN_SATS as f64 / 1e8).trim_end_matches('0')
-            );
         }
         let open: i64 = self.db.query_row(
             "SELECT COUNT(*) FROM swap_offers WHERE seller = ?1 AND state IN ('open', 'held', 'swapping')",
@@ -233,8 +270,8 @@ impl Store {
         }
         let at = now();
         self.db.execute(
-            "INSERT INTO swap_offers (seller, orn, sats, state, created, updated, payout, wallet) VALUES (?1, ?2, ?3, 'open', ?4, ?4, ?5, ?6)",
-            params![seller, orn as i64, sats as i64, at, payout, wallet],
+            "INSERT INTO swap_offers (seller, orn, sats, state, created, updated, payout, wallet, coin) VALUES (?1, ?2, ?3, 'open', ?4, ?4, ?5, ?6, ?7)",
+            params![seller, orn as i64, sats as i64, at, payout, wallet, coin],
         )?;
         Ok(self.swap_offer(self.db.last_insert_rowid())?.expect("just written"))
     }
@@ -246,10 +283,19 @@ impl Store {
 
     /// Open offers, cheapest Bitcoin per ORN first.
     pub fn open_swaps(&self) -> Result<Vec<SwapOffer>> {
+        self.open_swaps_in(&["btc"])
+    }
+
+    /// Open offers in these coins: SOL first, then each coin's cheapest per
+    /// ORN first.
+    pub fn open_swaps_in(&self, coins: &[&str]) -> Result<Vec<SwapOffer>> {
         self.lapse_swaps()?;
-        let sql = format!("{OFFER} WHERE o.state = 'open' ORDER BY CAST(o.sats AS REAL) / o.orn, o.created LIMIT 200");
+        let sql = format!(
+            "{OFFER} WHERE o.state = 'open' ORDER BY o.coin = 'btc', CAST(o.sats AS REAL) / o.orn, o.created LIMIT 400"
+        );
         let mut statement = self.db.prepare(&sql)?;
-        Ok(statement.query_map([], offer_row)?.collect::<rusqlite::Result<_>>()?)
+        let offers: Vec<SwapOffer> = statement.query_map([], offer_row)?.collect::<rusqlite::Result<_>>()?;
+        Ok(offers.into_iter().filter(|o| coins.contains(&o.coin.as_str())).take(200).collect())
     }
 
     /// Takes an offer off the board. The offer is held for `buyer` while the
@@ -322,9 +368,18 @@ impl Store {
         {
             bail!("another of your devices is running this swap");
         }
-        let offer = Offer::read(code.trim())?;
         let expected = swap.taker_wallet.as_deref().unwrap_or_default();
-        if offer.orn != swap.offer.orn || offer.sats != swap.offer.sats || offer.buyer.to_string() != expected {
+        let fits = if swap.offer.coin == "sol" {
+            let offer = SolOffer::read(code.trim())?;
+            offer.orn == swap.offer.orn
+                && offer.lamports == swap.offer.lamports
+                && offer.buyer.to_string() == expected
+                && swap.payout.as_deref().is_none_or(|payout| payout == offer.payout)
+        } else {
+            let offer = Offer::read(code.trim())?;
+            offer.orn == swap.offer.orn && offer.sats == swap.offer.sats && offer.buyer.to_string() == expected
+        };
+        if !fits {
             bail!("that offer code is not for this swap");
         }
         self.db.execute(
@@ -371,9 +426,12 @@ impl Store {
         if swap.selling || swap.offer.state != "swapping" || swap.reply_code.is_some() {
             bail!("this swap is not waiting for your wallet");
         }
-        let reply = Reply::read(code.trim())?;
-        let offer = Offer::read(swap.offer_code.as_deref().unwrap_or_default())?;
-        if reply.hash != offer.hash {
+        let matches = if swap.offer.coin == "sol" {
+            SolReply::read(code.trim())?.hash == SolOffer::read(swap.offer_code.as_deref().unwrap_or_default())?.hash
+        } else {
+            Reply::read(code.trim())?.hash == Offer::read(swap.offer_code.as_deref().unwrap_or_default())?.hash
+        };
+        if !matches {
             bail!("that reply code is not for this swap");
         }
         self.db.execute(

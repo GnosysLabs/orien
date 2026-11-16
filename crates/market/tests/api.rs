@@ -569,3 +569,65 @@ async fn wallets_on_older_swap_rules_cannot_take_once_the_gate_is_on() {
     let (status, body) = market.ask("POST", &path, Some(&sam), Some(json!({ "address": buyer, "swap_version": 2 }))).await;
     assert_eq!(status, StatusCode::OK, "{body}");
 }
+
+#[tokio::test]
+async fn sol_offers_are_shown_and_taken_only_by_wallets_that_know_them() {
+    use orien_swap::sol::{SolOffer, SolReply};
+    use orien_swap::swap::LockRef;
+    let market = Market::new();
+    let maya = sign_in_for_tests(&market.app, "Maya");
+    let sam = sign_in_for_tests(&market.app, "Sam");
+    let payout = "99zcMPAgZwXxoLDwor424zro9BGMATTsMk8djqov2qKf";
+    // Too small, or with no payout address: refused in words.
+    let (status, _) = market.ask("POST", "/api/market/swaps", Some(&maya), Some(json!({ "coin": "sol", "orn": 5_000_000_000u64, "lamports": 1000, "payout": payout }))).await;
+    assert_eq!(status, StatusCode::BAD_REQUEST);
+    let (status, _) = market.ask("POST", "/api/market/swaps", Some(&maya), Some(json!({ "coin": "sol", "orn": 5_000_000_000u64, "lamports": 200_000_000u64 }))).await;
+    assert_eq!(status, StatusCode::BAD_REQUEST);
+    let (status, body) = market.ask("POST", "/api/market/swaps", Some(&maya), Some(json!({ "coin": "sol", "orn": 5_000_000_000u64, "lamports": 200_000_000u64, "payout": payout }))).await;
+    assert_eq!(status, StatusCode::CREATED, "{body}");
+    assert_eq!((body["offer"]["coin"].as_str(), body["offer"]["lamports"].as_u64(), body["offer"]["sats"].as_u64()), (Some("sol"), Some(200_000_000), Some(0)));
+    let id = body["offer"]["id"].as_i64().unwrap();
+    market.ask("POST", "/api/market/swaps", Some(&maya), Some(json!({ "orn": 1_000_000_000u64, "sats": 20_000 }))).await;
+
+    // Wallets from before SOL swaps see Bitcoin only; newer ones ask for both, SOL first.
+    let (_, board) = market.ask("GET", "/api/market/swaps", None, None).await;
+    assert!(board["offers"].as_array().unwrap().iter().all(|o| o["coin"] == "btc"));
+    let (_, board) = market.ask("GET", "/api/market/swaps?coins=sol,btc", None, None).await;
+    let coins: Vec<&str> = board["offers"].as_array().unwrap().iter().map(|o| o["coin"].as_str().unwrap()).collect();
+    assert_eq!(coins, ["sol", "btc"]);
+    assert_eq!(board["solana"]["usd"], 70.0);
+
+    let path = format!("/api/market/swaps/{id}/take");
+    let buyer = "bb".repeat(32);
+    let (status, body) = market.ask("POST", &path, Some(&sam), Some(json!({ "address": buyer, "swap_version": 2 }))).await;
+    assert_eq!(status, StatusCode::BAD_REQUEST);
+    assert!(body["error"].as_str().unwrap().contains("SOL"), "{body}");
+    let (status, body) = market.ask("POST", &path, Some(&sam), Some(json!({ "address": buyer, "swap_version": 3 }))).await;
+    assert_eq!(status, StatusCode::OK, "{body}");
+
+    // The seller's wallet posts a SOL offer code, checked against the offer.
+    let offer = |lamports: u64, payout: &str| SolOffer {
+        network: "orien".into(),
+        orn: 5_000_000_000,
+        lamports,
+        hash: [7; 32],
+        lock: LockRef { from: MARKET.parse().unwrap(), seq: 1 },
+        buyer: buyer.parse().unwrap(),
+        payout: payout.into(),
+        fee: payout.into(),
+    };
+    let code_path = format!("/api/market/swaps/{id}/offer");
+    let (status, _) = market.ask("POST", &code_path, Some(&maya), Some(json!({ "code": offer(100_000_000, payout).code() }))).await;
+    assert_eq!(status, StatusCode::BAD_REQUEST, "another price");
+    let (status, _) = market.ask("POST", &code_path, Some(&maya), Some(json!({ "code": offer(200_000_000, "11111111111111111111111111111111").code() }))).await;
+    assert_eq!(status, StatusCode::BAD_REQUEST, "another payout");
+    let (status, body) = market.ask("POST", &code_path, Some(&maya), Some(json!({ "code": offer(200_000_000, payout).code() }))).await;
+    assert_eq!(status, StatusCode::OK, "{body}");
+
+    let reply = |hash: [u8; 32]| SolReply { hash, lock: payout.into(), refund: payout.into() }.code();
+    let reply_path = format!("/api/market/swaps/{id}/reply");
+    let (status, _) = market.ask("POST", &reply_path, Some(&sam), Some(json!({ "code": reply([8; 32]) }))).await;
+    assert_eq!(status, StatusCode::BAD_REQUEST, "another swap's reply");
+    let (status, body) = market.ask("POST", &reply_path, Some(&sam), Some(json!({ "code": reply([7; 32]) }))).await;
+    assert_eq!(status, StatusCode::OK, "{body}");
+}
