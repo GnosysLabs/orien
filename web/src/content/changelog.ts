@@ -28,6 +28,18 @@ export const CHANGELOG: Entry[] = [
   {
     date: '2026-11-16',
     products: ['wallet'],
+    version: '1.8.6',
+    title: 'Notifications that arrive, and easier swaps',
+    changes: [
+      'On Macs, notifications now reliably appear: ORN arriving, swap updates and new Market messages. The app icon shows a red number for unread messages.',
+      'Taking a swap offer: approve once when you take it, and your ORN arrive by themselves at the end.',
+      'Your swaps are split into open and finished ones, and your own offers no longer show among the open offers.',
+      'SOL swaps no longer mention Bitcoin, and a calmer contact page.',
+    ],
+  },
+  {
+    date: '2026-11-16',
+    products: ['wallet'],
     version: '1.8.5',
     title: 'Orien Market, right in your wallet',
     changes: [
