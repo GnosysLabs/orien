@@ -28,6 +28,20 @@ export const CHANGELOG: Entry[] = [
   {
     date: '2026-11-16',
     products: ['wallet'],
+    version: '1.8.4',
+    title: 'Names, pictures and a fresh look',
+    changes: [
+      'People with an Orien Market profile show by name and picture in Send, Contacts and Activity, and you can find them by typing their username in Send.',
+      'Your profile now lives on the home screen: tap your picture to change your picture, banner, bio and links, and to verify which of your wallets are yours.',
+      'Receive shows a QR code of your address, with Share on computers that have a share panel.',
+      'Give each wallet an emoji, and a cleaner wallet list.',
+      'On Windows, the window has its own sleek top bar. Everywhere, softer scrolling edges, no scroll bars, and buttons that never squeeze.',
+      'Prices under a cent show properly, and amounts show their dollar value as you type.',
+    ],
+  },
+  {
+    date: '2026-11-16',
+    products: ['wallet'],
     version: '1.8.3',
     title: 'Swap ORN for SOL',
     changes: [
