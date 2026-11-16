@@ -1123,18 +1123,17 @@
     </section>
 
     <section class="screen" id="wallet-rename" hidden>
-      <div class="topline"><button class="back" data-to="wallets" aria-label="Back"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10 3 5 8l5 5"/></svg></button><h2>Edit wallet</h2></div>
+      <div class="topline"><button class="back" id="wr-back" aria-label="Back"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10 3 5 8l5 5"/></svg></button><h2>Edit wallet</h2></div>
       <div class="field">
         <label for="wr-name">Name</label>
         <div class="box plain"><input id="wr-name" maxlength="24" autocomplete="off"></div>
+        <div class="hint" id="wr-saved"></div>
       </div>
       <div class="field">
         <label>Icon</label>
         <div class="emoji-grid" id="wr-emoji"></div>
       </div>
-      <div class="push"></div>
       <div class="problem" id="wallet-rename-problem" hidden></div>
-      <button class="primary pearl" id="wr-go" data-gap="lg">Save</button>
     </section>
 
     <section class="screen" id="wallet-forget" hidden>
@@ -1909,18 +1908,37 @@
     renaming.icon = b.dataset.icon;
     paintIcons();
     feel("selection");
-  };
-  $("wr-name").addEventListener("input", () => paintIcons());
-  $("wr-go").onclick = async () => {
     setIcon(renaming.address, renaming.icon || "");
+    savedNote();
+  };
+  // Saved as it changes: the icon at once, the name a moment after typing
+  // stops, and anything left when going back.
+  let nameTimer = 0, savedTimer = 0;
+  function savedNote() {
+    $("wr-saved").textContent = "Saved";
+    clearTimeout(savedTimer);
+    savedTimer = setTimeout(() => { $("wr-saved").textContent = ""; }, 1400);
+  }
+  async function saveName() {
+    clearTimeout(nameTimer);
+    const name = $("wr-name").value.trim();
+    if (!renaming || !name || name === renaming.name) return;
     try {
-      await invoke("rename_wallet", { path: renaming.path, name: $("wr-name").value });
-      await showWallets();
+      await invoke("rename_wallet", { path: renaming.path, name });
+      renaming.name = name;
+      $("wallet-rename-problem").hidden = true;
+      savedNote();
       // Verified wallets are shown by their names: tell the marketplace.
       invoke("board_wallets_sync").catch(() => {});
-    }
-    catch (e) { problem("wallet-rename-problem", e); }
-  };
+    } catch (e) { problem("wallet-rename-problem", e); }
+  }
+  $("wr-name").addEventListener("input", () => {
+    paintIcons();
+    clearTimeout(nameTimer);
+    nameTimer = setTimeout(saveName, 700);
+  });
+  $("wr-back").onclick = async () => { await saveName(); await showWallets(); };
+
   $("wf-go").onclick = async () => {
     try {
       await invoke("forget_wallet", { path: renaming.path });
