@@ -123,7 +123,7 @@
   /* The page stays put, as an app's screen does; only a screen's own
      content scrolls, and only when it's longer than the screen. */
   html:has(body.phone) { height: 100%; overflow: hidden; }
-  body.phone { position: fixed; inset: 0 0 auto 0; height: var(--app-h, 100%); overflow: hidden; }
+  body.phone { position: fixed; inset: 0; overflow: hidden; }
   /* With the keyboard up there's no home bar to keep clear of. */
   body.phone.kb-up main > .screen { padding-bottom: 8px !important; }
   /* Typing: the ORIEN bar steps aside, so there's room for what matters. */
@@ -1677,32 +1677,21 @@
       if (this.matches("input, textarea") && !this.closest(".screen:not([hidden])")?.dataset.keepFocus) return;
       return focus.apply(this, args);
     };
-    // The keyboard: the app fits exactly into the space above it, as iPhone
-    // apps do. The app itself says where the keyboard's top is (the web
-    // view's own measure is off without the bar above the keyboard). The
+    // The keyboard: the app makes the page shorter to end where the
+    // keyboard starts, as iPhone apps do, and says how much it covers. The
     // page never scrolls; screens scroll inside themselves.
-    let keyboardTop = 0;
-    const fitKeyboard = () => {
-      const full = window.innerHeight;
-      const up = keyboardTop > 0 && keyboardTop < full - 40;
-      document.documentElement.style.setProperty("--app-h", `${up ? Math.round(keyboardTop) : full}px`);
-      document.body.classList.toggle("kb-up", up);
-      requestAnimationFrame(() => {
-        const box = document.activeElement;
-        if (!up || !box || !box.matches("input, textarea")) return;
-        if (box.closest(".ch-compose")) { const log = document.getElementById("ch-log"); if (log) log.scrollTop = log.scrollHeight; }
-        else box.scrollIntoView({ block: "nearest" });
-      });
+    let keyboardUp = false;
+    const showTyping = () => {
+      const box = document.activeElement;
+      if (!keyboardUp || !box || !box.matches("input, textarea")) return;
+      if (box.closest(".ch-compose")) { const log = document.getElementById("ch-log"); if (log) log.scrollTop = log.scrollHeight; }
+      else box.scrollIntoView({ block: "nearest" });
     };
-    window.__TAURI__.event.listen("keyboard", (e) => { keyboardTop = Number(e.payload) || 0; fitKeyboard(); }).catch(() => {});
-    // iOS slides the whole view to show a tapped box; the app puts it back
-    // (it already fits above the keyboard), once, a moment later.
-    document.addEventListener("focusin", (e) => {
-      if (!e.target.matches("input, textarea")) return;
-      for (const ms of [60, 320]) setTimeout(() => invoke("keyboard_settle").catch(() => {}), ms);
-    });
-    window.addEventListener("resize", fitKeyboard);
-    document.addEventListener("focusout", () => setTimeout(() => { if (!document.activeElement.matches("input, textarea")) window.scrollTo(0, 0); }, 60));
+    window.__TAURI__.event.listen("keyboard", (e) => {
+      keyboardUp = Number(e.payload) > 40;
+      document.body.classList.toggle("kb-up", keyboardUp);
+    }).catch(() => {});
+    window.addEventListener("resize", () => requestAnimationFrame(showTyping));
     // No pinching to zoom.
     for (const gesture of ["gesturestart", "gesturechange", "gestureend"]) {
       document.addEventListener(gesture, (e) => e.preventDefault(), { passive: false });

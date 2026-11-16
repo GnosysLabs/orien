@@ -25,16 +25,6 @@ mod money;
 #[cfg(target_os = "ios")]
 mod push;
 
-/// iPhones: puts the web view back at the top after a text box is tapped,
-/// when iOS slides it to show the box. Nothing elsewhere.
-#[tauri::command]
-fn keyboard_settle(app: AppHandle) {
-    #[cfg(target_os = "ios")]
-    let _ = app.run_on_main_thread(keyboard::settle);
-    #[cfg(not(target_os = "ios"))]
-    let _ = app;
-}
-
 /// iPhones: no "previous / next / done" bar above the keyboard. Web views
 /// add it to every text box; apps don't have it.
 #[cfg(target_os = "ios")]
@@ -46,76 +36,100 @@ mod keyboard {
         std::ptr::null_mut()
     }
 
-    /// Tells the page where the keyboard's top edge is (in points from the
-    /// top of the screen, or 0 when it's down), each time it moves, so the
-    /// app fits exactly above it: the web view's own measure is off once
-    /// the bar above the keyboard is gone.
+    /// The app's web view: the keyboard makes it shorter, as an iPhone app's
+    /// screen gets shorter, so the page always fits above the keyboard.
+    static WEB: std::sync::atomic::AtomicUsize = std::sync::atomic::AtomicUsize::new(0);
+
+    /// Follows the keyboard: each time it moves, the web view is resized to
+    /// end at its top edge (full height again when it goes), and the page is
+    /// told how much it covers (0 when down).
     pub fn follow(app: tauri::AppHandle) {
         use objc2_foundation::{NSNotification, NSNotificationCenter, NSValue};
         use objc2_ui_kit::{UIKeyboardFrameEndUserInfoKey, UIKeyboardWillChangeFrameNotification, UIKeyboardWillHideNotification};
         use tauri::Emitter;
         let center = NSNotificationCenter::defaultCenter();
-        // After it has shown, too: iOS may have slid the view by then.
-        let did_show = block2::RcBlock::new(|_note: std::ptr::NonNull<NSNotification>| settle());
-        let observer = unsafe { center.addObserverForName_object_queue_usingBlock(Some(objc2_ui_kit::UIKeyboardDidShowNotification), None, None, &did_show) };
-        std::mem::forget(observer);
         for (name, hide) in [(unsafe { UIKeyboardWillChangeFrameNotification }, false), (unsafe { UIKeyboardWillHideNotification }, true)] {
             let app = app.clone();
             let block = block2::RcBlock::new(move |note: std::ptr::NonNull<NSNotification>| {
                 let note = unsafe { note.as_ref() };
                 let top = if hide {
-                    0.0
+                    None
                 } else {
                     note.userInfo()
                         .and_then(|info| info.objectForKey(unsafe { UIKeyboardFrameEndUserInfoKey }))
                         .and_then(|value| value.downcast::<NSValue>().ok())
                         .map(|value| unsafe { objc2_ui_kit::NSValueUIGeometryExtensions::CGRectValue(&*value) }.origin.y)
-                        .unwrap_or(0.0)
                 };
-                settle();
-                let _ = app.emit("keyboard", top);
+                let covered = fit(top);
+                let _ = app.emit("keyboard", covered);
             });
             let observer = unsafe { center.addObserverForName_object_queue_usingBlock(Some(name), None, None, &block) };
             std::mem::forget(observer);
         }
     }
 
-    /// The web view's own scroll view, which iOS would otherwise slide up
-    /// under the keyboard (the page goes black above and jitters).
-    static SCROLL: std::sync::atomic::AtomicUsize = std::sync::atomic::AtomicUsize::new(0);
+    /// Makes the web view end at `top` (in screen points), or fill its place
+    /// when None. Returns how many points the keyboard covers.
+    fn fit(top: Option<f64>) -> f64 {
+        use objc2::msg_send;
+        use objc2_core_foundation::CGRect;
+        let web = WEB.load(std::sync::atomic::Ordering::Relaxed) as *mut AnyObject;
+        if web.is_null() {
+            return 0.0;
+        }
+        unsafe {
+            let holder: *mut AnyObject = msg_send![web, superview];
+            if holder.is_null() {
+                return 0.0;
+            }
+            let room: CGRect = msg_send![holder, bounds];
+            let covered = top.map(|top| (room.size.height - top).max(0.0)).unwrap_or(0.0);
+            let mut frame = room;
+            frame.size.height = room.size.height - covered;
+            let _: () = msg_send![web, setFrame: frame];
+            covered
+        }
+    }
 
-    /// Holds the web view still: no scrolling of its own, no sliding for the
-    /// keyboard; the page fits itself above the keyboard and scrolls inside.
+    /// Holds the web view still and takes the keyboard away from it: left to
+    /// itself it pads and slides the page for the keyboard, which fights the
+    /// app fitting itself above it (the page jumps and jitters). Without
+    /// that, the web view is simply made shorter, and nothing else moves.
     pub fn hold_still(window: &tauri::WebviewWindow) {
         let _ = window.with_webview(|webview| unsafe {
             use objc2::msg_send;
+            use objc2_foundation::NSNotificationCenter;
             let web = webview.inner() as *mut AnyObject;
             if web.is_null() {
                 return;
             }
             let scroll: *mut AnyObject = msg_send![web, scrollView];
-            if scroll.is_null() {
-                return;
+            if !scroll.is_null() {
+                let _: () = msg_send![scroll, setScrollEnabled: false];
+                let _: () = msg_send![scroll, setBounces: false];
+                // UIScrollViewContentInsetAdjustmentNever
+                let _: () = msg_send![scroll, setContentInsetAdjustmentBehavior: 2isize];
             }
-            let _: () = msg_send![scroll, setScrollEnabled: false];
-            let _: () = msg_send![scroll, setBounces: false];
-            // UIScrollViewContentInsetAdjustmentNever
-            let _: () = msg_send![scroll, setContentInsetAdjustmentBehavior: 2isize];
-            SCROLL.store(scroll as usize, std::sync::atomic::Ordering::Relaxed);
+            let center = NSNotificationCenter::defaultCenter();
+            for name in [
+                objc2_ui_kit::UIKeyboardWillShowNotification,
+                objc2_ui_kit::UIKeyboardDidShowNotification,
+                objc2_ui_kit::UIKeyboardWillHideNotification,
+                objc2_ui_kit::UIKeyboardDidHideNotification,
+                objc2_ui_kit::UIKeyboardWillChangeFrameNotification,
+                objc2_ui_kit::UIKeyboardDidChangeFrameNotification,
+            ] {
+                let _: () = msg_send![&*center, removeObserver: web, name: name, object: std::ptr::null_mut::<AnyObject>()];
+            }
+            // Behind the web view, the app's own colour (#1b1c1f), so the
+            // moment the keyboard is still rising shows no black band.
+            let holder: *mut AnyObject = msg_send![web, superview];
+            let color: *mut AnyObject = msg_send![objc2::class!(UIColor), colorWithRed: 27.0f64 / 255.0, green: 28.0f64 / 255.0, blue: 31.0f64 / 255.0, alpha: 1.0f64];
+            if !holder.is_null() {
+                let _: () = msg_send![holder, setBackgroundColor: color];
+            }
+            WEB.store(web as usize, std::sync::atomic::Ordering::Relaxed);
         });
-    }
-
-    /// Puts the web view back at the top, where it always belongs.
-    pub fn settle() {
-        let scroll = SCROLL.load(std::sync::atomic::Ordering::Relaxed) as *mut AnyObject;
-        if scroll.is_null() {
-            return;
-        }
-        unsafe {
-            use objc2::msg_send;
-            let zero = objc2_core_foundation::CGPoint { x: 0.0, y: 0.0 };
-            let _: () = msg_send![scroll, setContentOffset: zero, animated: false];
-        }
     }
 
     pub fn hide_accessory_bar() {
@@ -1692,7 +1706,7 @@ pub fn run() {
             }
             Ok(())
         })
-        .invoke_handler(tauri::generate_handler![has_wallet, create_wallet, save_phrase, restore_wallet, set_password, choose_wallet, overview_now, send_payment, activity, quote, contacts, save_contact, delete_contact, contacts_sync, biometric_unlock, biometric_enable, update::check_update, update::install_update, mine_start, mine_stop, mine_set, mine_status, wallets, wallet_balances, use_wallet, rename_wallet, add_wallet, forget_wallet, swap_list, swap_sell, swap_buy, swap_accept, swap_step, swap_smallest, board_offers, board_me, board_email_start, board_email_finish, board_sign_out, board_post, board_take, board_withdraw, board_link, notifications_ask, push_sync, board_wallets_sync, board_post_sol, board_take_sol, sol_open, sol_payout_check, open_site, qr_code, wallet_profiles, board_profile_save, board_picture_pick, board_verify, board_wallet_states, market_image, board_banner_remove, market_search, market_listings, market_listing, market_profile, market_call, market_pick_pictures, market_listing_picture, dock_badge, mac_notify, board_delete_account, wallet_icons, set_wallet_icon, vault_ready, vault_unlock, keyboard_settle])
+        .invoke_handler(tauri::generate_handler![has_wallet, create_wallet, save_phrase, restore_wallet, set_password, choose_wallet, overview_now, send_payment, activity, quote, contacts, save_contact, delete_contact, contacts_sync, biometric_unlock, biometric_enable, update::check_update, update::install_update, mine_start, mine_stop, mine_set, mine_status, wallets, wallet_balances, use_wallet, rename_wallet, add_wallet, forget_wallet, swap_list, swap_sell, swap_buy, swap_accept, swap_step, swap_smallest, board_offers, board_me, board_email_start, board_email_finish, board_sign_out, board_post, board_take, board_withdraw, board_link, notifications_ask, push_sync, board_wallets_sync, board_post_sol, board_take_sol, sol_open, sol_payout_check, open_site, qr_code, wallet_profiles, board_profile_save, board_picture_pick, board_verify, board_wallet_states, market_image, board_banner_remove, market_search, market_listings, market_listing, market_profile, market_call, market_pick_pictures, market_listing_picture, dock_badge, mac_notify, board_delete_account, wallet_icons, set_wallet_icon, vault_ready, vault_unlock])
         .build(tauri::generate_context!())
         .expect("the wallet window could not start")
         .run(|_app, _event| {
