@@ -508,6 +508,11 @@
   .ch-send { flex: none; width: 34px; height: 34px; border: 0; border-radius: 50%; display: grid; place-items: center; color: var(--pearl-ink); cursor: pointer; }
   .ch-send:disabled { opacity: .4; cursor: default; }
   #chat { padding-bottom: 8px; }
+  .sync-card { flex-shrink: 0; display: flex; flex-direction: column; gap: 10px; padding: 14px 16px; margin-bottom: 14px; border: 1px solid #cdc6ff55; border-radius: 16px; background: var(--surface); }
+  .sync-card .sync-text { font-size: 13px; color: var(--ink); }
+  .sync-card .sync-pw { display: flex; align-items: center; height: 40px; padding: 0 12px; border: 1px solid var(--line); border-radius: 12px; background: var(--field); }
+  .sync-card .sync-pw input { flex: 1; min-width: 0; border: 0; background: none; color: var(--ink); font: inherit; outline: none; }
+  .sync-card .sync-go { align-self: flex-start; }
   .verify-card { margin-top: 22px; padding: 16px 18px; border: 1px solid var(--line); border-radius: 18px; background: var(--surface); }
   .vf-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 12px 0; border-top: 1px solid var(--line); }
   #vf-list { margin-top: 12px; }
@@ -1002,6 +1007,11 @@
         <button class="back" data-back aria-label="Back"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10 3 5 8l5 5"/></svg></button>
         <h2>Contacts</h2>
       </div>
+      <div class="sync-card" id="sync-contacts" hidden>
+        <div class="sync-text">Turn on syncing, so your contacts and wallet icons match on all your devices. It needs this wallet unlocked once.</div>
+        <div class="box plain sync-pw" hidden><input type="password" placeholder="Wallet password" autocomplete="current-password"></div>
+        <button class="pill pearl sync-go">Turn on syncing</button>
+      </div>
       <div class="scroll" id="contact-list"></div>
       <button class="primary pearl" id="add-contact">Add a contact</button>
     </section>
@@ -1298,6 +1308,11 @@
     <section class="screen" id="wallets" hidden>
       <div class="topline"><button class="back" data-back aria-label="Back"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10 3 5 8l5 5"/></svg></button><h2>Wallets</h2></div>
       <p class="lede">Each wallet has its own address, recovery phrase and activity. Tap one to open it.</p>
+      <div class="sync-card" id="sync-wallets" hidden>
+        <div class="sync-text">Turn on syncing, so your contacts and wallet icons match on all your devices. It needs this wallet unlocked once.</div>
+        <div class="box plain sync-pw" hidden><input type="password" placeholder="Wallet password" autocomplete="current-password"></div>
+        <button class="pill pearl sync-go">Turn on syncing</button>
+      </div>
       <div id="wallet-list"><div class="empty">Loading…</div></div>
       <div class="problem" id="wallets-problem" hidden></div>
       <button class="primary pearl" id="wallet-add-go" data-gap="lg">Add a wallet</button>
@@ -1746,6 +1761,32 @@
   async function loadBook() { try { book = await invoke("contacts"); } catch { book = []; } }
   // Contacts follow the wallet across devices: bring them into step with
   // its vault, then show what changed.
+  // Syncing needs the wallet unlocked once on each device. Where that
+  // hasn't happened, Contacts and Wallets say so and offer it, plainly.
+  async function paintSyncCard(id) {
+    const card = $(id);
+    let ready = true;
+    try { ready = await invoke("vault_ready"); } catch {}
+    card.hidden = ready;
+    if (ready) return;
+    const typed = !!(view && !view.unprotected && !view.biometric);
+    card.querySelector(".sync-pw").hidden = !typed;
+    card.querySelector(".sync-go").textContent = view && view.biometric ? `Turn on with ${bio}` : "Turn on syncing";
+    card.querySelector(".sync-go").onclick = async () => {
+      const go = card.querySelector(".sync-go");
+      go.disabled = true;
+      try {
+        if (view && view.biometric) await invoke("biometric_unlock");
+        const pw = card.querySelector(".sync-pw input");
+        await invoke("vault_unlock", { password: typed ? pw.value : null });
+        pw.value = "";
+        card.hidden = true;
+        feel("success");
+        await syncBook();
+      } catch (e) { card.querySelector(".sync-text").textContent = String(e); }
+      finally { go.disabled = false; }
+    };
+  }
   async function syncBook() {
     try { await invoke("contacts_sync"); } catch { return; }
     await loadBook();
@@ -1960,6 +2001,7 @@
     } catch {}
     renderWallets(balances);
     show("wallets");
+    paintSyncCard("sync-wallets");
     clearTimeout(cap);
     covered(false);
   }
@@ -2603,7 +2645,7 @@
       : '<div class="empty">No contacts yet. Add someone you pay often, and pick them by name when you send.</div>';
   }
   async function openContacts() {
-    await loadBook(); renderContacts(); show("contacts"); syncBook();
+    await loadBook(); renderContacts(); show("contacts"); paintSyncCard("sync-contacts"); syncBook();
     // Fresh profiles each time: names and pictures follow their owners'
     // changes, and saved names are brought in line so search finds them.
     for (const c of book) profiles.delete(c.address);
