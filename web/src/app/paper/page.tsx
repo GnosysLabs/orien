@@ -994,6 +994,7 @@ OP_ENDIF`}</Formula>
             ['Locked payment deadline', '2 to 720 epochs ahead'],
             ['Revealed secrets kept', '168 epochs'],
             ['Swap: ORN lock, Bitcoin lock', '12 epochs, 36 blocks'],
+            ['Smallest swap', '15,000 satoshis (0.00015 BTC), more when Bitcoin’s fees are high'],
           ]}
         />
         <p>The domain tags that separate every use of the hash function:</p>

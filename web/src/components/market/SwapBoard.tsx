@@ -225,7 +225,9 @@ export function SwapBoard() {
             Open the <strong>Swap</strong> screen in Orien Wallet and post an
             offer: how many ORN, the Bitcoin you want for them, and the Bitcoin
             address to be paid at, and approve the sale once with Touch ID or
-            your password. It appears here for buyers to see.
+            your password. It appears here for buyers to see. The smallest offer
+            is 0.00015 BTC, more when Bitcoin is busy, so any Bitcoin wallet can
+            pay it.
           </p>
           <p>
             When someone takes it, your wallet accepts within seconds, even with

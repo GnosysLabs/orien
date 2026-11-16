@@ -218,7 +218,10 @@ impl Store {
             bail!("offer more than nothing");
         }
         if sats < MIN_SATS {
-            bail!("a swap is at least {MIN_SATS} satoshis (0.00005 BTC), so that Bitcoin's fees leave enough");
+            bail!(
+                "a swap is at least {MIN_SATS} satoshis ({} BTC), so that any Bitcoin wallet can send it and its fees leave enough",
+                format!("{:.8}", MIN_SATS as f64 / 1e8).trim_end_matches('0')
+            );
         }
         let open: i64 = self.db.query_row(
             "SELECT COUNT(*) FROM swap_offers WHERE seller = ?1 AND state IN ('open', 'held', 'swapping')",

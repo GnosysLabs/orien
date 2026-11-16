@@ -56,8 +56,9 @@ pub const MARGIN_HOURS: u64 = 4;
 /// left before the buyer could take it back.
 pub const SAFETY_BLOCKS: u32 = 6;
 
-/// The smallest swap, in satoshis, on the quietest Bitcoin days.
-pub const MIN_SATS: u64 = 5_000;
+/// The smallest swap, in satoshis, on the quietest Bitcoin days: 0.00015
+/// BTC, about $10 when it was set, an amount any Bitcoin wallet can send.
+pub const MIN_SATS: u64 = 15_000;
 
 /// The smallest swap that can complete at Bitcoin's fee rate now: the
 /// seller's claim, at three times that rate in case it has to be raised,
@@ -72,7 +73,7 @@ fn too_small(sats: u64, fee_rate: u64) -> Option<String> {
     let least = smallest_now(fee_rate);
     (sats < least).then(|| {
         if least == MIN_SATS {
-            format!("a swap is at least {MIN_SATS} satoshis (0.00005 BTC), so that Bitcoin's fees leave enough")
+            format!("a swap is at least {MIN_SATS} satoshis ({}), so that any Bitcoin wallet can send it and its fees leave enough", btc(MIN_SATS))
         } else {
             format!(
                 "Bitcoin is busy right now ({fee_rate} satoshis a byte), so the smallest swap that can complete is \
@@ -527,7 +528,7 @@ impl Swap {
     pub fn sell(orien: &dyn Orien, bitcoin: Network, buyer: Hash32, orn: u64, sats: u64, payout: &str) -> Result<Swap> {
         Address::from_str(payout)?.require_network(bitcoin).map_err(|_| anyhow!("{payout} is not a Bitcoin address"))?;
         if sats < MIN_SATS {
-            bail!("a swap is at least {MIN_SATS} satoshis (0.00005 BTC), so that Bitcoin's fees leave enough");
+            bail!("a swap is at least {MIN_SATS} satoshis ({}), so that any Bitcoin wallet can send it and its fees leave enough", btc(MIN_SATS));
         }
         let seconds = orien.epoch_seconds().max(1);
         let epochs = (ORN_HOURS * 3_600).div_ceil(seconds).clamp(2, 720);
@@ -1022,10 +1023,12 @@ mod minimum {
     #[test]
     fn the_smallest_swap_follows_bitcoins_fees() {
         assert_eq!(smallest_now(1), MIN_SATS, "on a quiet day, the floor");
-        assert_eq!(smallest_now(2), 9_600);
+        assert_eq!(smallest_now(3), MIN_SATS, "still the floor");
+        assert_eq!(smallest_now(4), 19_200, "busier: what the fees need");
         assert_eq!(smallest_now(10), 48_000);
         assert!(too_small(MIN_SATS, 1).is_none());
-        assert!(too_small(4_999, 1).unwrap().contains("at least 5000"));
+        assert!(too_small(14_999, 1).unwrap().contains("at least 15000"));
+        assert!(too_small(14_999, 1).unwrap().contains("0.00015 BTC"));
         assert!(too_small(5_000, 10).unwrap().contains("0.00048 BTC"));
     }
 }
