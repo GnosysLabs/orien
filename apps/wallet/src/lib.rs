@@ -1612,6 +1612,21 @@ fn open_site(app: AppHandle) -> Result<(), String> {
     app.opener().open_url("https://orien.network", None::<&str>).map_err(|error| error.to_string())
 }
 
+/// Opens a way to reach someone from their profile: an email in the mail
+/// app, a Telegram or X handle on its site. Only those, built here.
+#[tauri::command]
+fn open_contact(app: AppHandle, kind: String, value: String) -> Result<(), String> {
+    use tauri_plugin_opener::OpenerExt;
+    let handle = |v: &str| !v.is_empty() && v.len() <= 32 && v.chars().all(|c| c.is_ascii_alphanumeric() || c == '_');
+    let url = match kind.as_str() {
+        "email" if value.len() <= 254 && value.contains('@') && !value.chars().any(|c| c.is_whitespace() || "<>\"'?&#/:".contains(c)) => format!("mailto:{value}"),
+        "telegram" if handle(&value) => format!("https://t.me/{value}"),
+        "x" if handle(&value) => format!("https://x.com/{value}"),
+        _ => return Err("That can't be opened.".into()),
+    };
+    app.opener().open_url(url, None::<&str>).map_err(|error| error.to_string())
+}
+
 #[tauri::command]
 async fn sol_open() -> bool {
     tauri::async_runtime::spawn_blocking(|| solswaps::lock_live(solswaps::cluster())).await.unwrap_or(false)
@@ -1780,7 +1795,7 @@ pub fn run() {
             }
             Ok(())
         })
-        .invoke_handler(tauri::generate_handler![has_wallet, create_wallet, save_phrase, restore_wallet, set_password, choose_wallet, overview_now, send_payment, activity, quote, contacts, save_contact, delete_contact, contacts_sync, biometric_unlock, biometric_enable, update::check_update, update::install_update, mine_start, mine_stop, mine_set, mine_status, wallets, wallet_balances, use_wallet, rename_wallet, add_wallet, forget_wallet, swap_list, swap_sell, swap_buy, swap_accept, swap_step, swap_smallest, board_offers, board_me, board_email_start, board_email_finish, board_sign_out, board_post, board_take, board_withdraw, board_link, notifications_ask, push_sync, board_wallets_sync, board_post_sol, board_take_sol, sol_open, sol_payout_check, open_site, qr_code, wallet_profiles, board_profile_save, board_picture_pick, board_verify, board_wallet_states, market_image, board_banner_remove, market_search, market_listings, market_listing, market_profile, market_call, market_pick_pictures, market_listing_picture, dock_badge, mac_notify, board_delete_account, wallet_icons, set_wallet_icon, vault_ready, vault_unlock])
+        .invoke_handler(tauri::generate_handler![has_wallet, create_wallet, save_phrase, restore_wallet, set_password, choose_wallet, overview_now, send_payment, activity, quote, contacts, save_contact, delete_contact, contacts_sync, biometric_unlock, biometric_enable, update::check_update, update::install_update, mine_start, mine_stop, mine_set, mine_status, wallets, wallet_balances, use_wallet, rename_wallet, add_wallet, forget_wallet, swap_list, swap_sell, swap_buy, swap_accept, swap_step, swap_smallest, board_offers, board_me, board_email_start, board_email_finish, board_sign_out, board_post, board_take, board_withdraw, board_link, notifications_ask, push_sync, board_wallets_sync, board_post_sol, board_take_sol, sol_open, sol_payout_check, open_site, qr_code, wallet_profiles, board_profile_save, board_picture_pick, board_verify, board_wallet_states, market_image, board_banner_remove, market_search, market_listings, market_listing, market_profile, market_call, market_pick_pictures, market_listing_picture, dock_badge, mac_notify, board_delete_account, wallet_icons, set_wallet_icon, vault_ready, vault_unlock, open_contact])
         .build(tauri::generate_context!())
         .expect("the wallet window could not start")
         .run(|_app, _event| {

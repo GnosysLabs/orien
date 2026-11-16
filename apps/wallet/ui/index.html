@@ -417,7 +417,13 @@
   .verified svg { width: 14px; height: 14px; flex: none; }
   .sl-since { text-align: center; font-size: 12px; color: var(--faint); margin-top: 4px; }
   .sl-bio { margin-top: 16px; text-align: center; color: var(--dim); }
-  .sl-contact { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px 14px; margin-top: 10px; font-size: 12.5px; color: var(--dim); -webkit-user-select: text; user-select: text; }
+  .sl-contact { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin-top: 14px; }
+  .sl-chip { display: inline-flex; align-items: center; gap: 8px; height: 38px; padding: 0 14px; border: 1px solid var(--line); border-radius: 12px;
+    background: var(--ground-deep); color: var(--ink); font: inherit; font-size: 13px; font-weight: 600; cursor: pointer; max-width: 100%; }
+  .sl-chip:hover { background: var(--surface-hover); }
+  .sl-chip svg { flex: none; width: 16px; height: 16px; color: #d6cdf3; }
+  .sl-chip span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  body.phone .sl-chip { height: 44px; font-size: 14px; }
   /* Selling */
   .field .se-desc { display: block; width: 100%; min-height: 120px; padding: 12px 14px; border: 1px solid var(--line); border-radius: var(--radius);
     background: var(--field); color: var(--ink); font: inherit; font-size: 14px; letter-spacing: normal; resize: none; outline: none; }
@@ -3817,7 +3823,13 @@
     $("sl-bio").textContent = a.bio || "";
     $("sl-bio").hidden = !a.bio;
     const c = a.contact || {};
-    $("sl-contact").innerHTML = [c.email && `✉ ${esc(c.email)}`, c.telegram && `Telegram @${esc(c.telegram.replace(/^@/, ""))}`, c.x && `X @${esc(c.x.replace(/^@/, ""))}`].filter(Boolean).map((t) => `<span>${t}</span>`).join("");
+    // As on the website: a chip for each way to reach them, with its icon.
+    const tg = (c.telegram || "").replace(/^@/, ""), xh = (c.x || "").replace(/^@/, "");
+    $("sl-contact").innerHTML = [
+      c.email && ["email", c.email, esc(c.email), '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>'],
+      tg && ["telegram", tg, `@${esc(tg)} on Telegram`, '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.536 21.686a.5.5 0 0 0 .937-.024l6.5-19a.496.496 0 0 0-.635-.635l-19 6.5a.5.5 0 0 0-.024.937l7.93 3.18a2 2 0 0 1 1.112 1.11z"/><path d="m21.854 2.147-10.94 10.939"/></svg>'],
+      xh && ["x", xh, `@${esc(xh)} on X`, '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>'],
+    ].filter(Boolean).map(([kind, value, label, icon]) => `<button class="sl-chip" data-kind="${kind}" data-value="${esc(value)}">${icon}<span>${label}</span></button>`).join("");
     const offers = answer.listings || [];
     $("sl-offers").textContent = `What ${a.name || "they"} offer${a.name ? "s" : ""}`;
     $("sl-grid").innerHTML = offers.length ? offers.map(card).join("") : '<div class="empty mk-empty">Nothing on offer right now.</div>';
@@ -3857,6 +3869,10 @@
   document.addEventListener("keydown", (e) => { if (e.key === "Escape") for (const m of document.querySelectorAll(".ch-menu")) m.hidden = true; });
   window.addEventListener("resize", () => { for (const m of document.querySelectorAll(".ch-menu")) m.hidden = true; });
 
+  $("sl-contact").onclick = (e) => {
+    const chip = e.target.closest(".sl-chip");
+    if (chip) invoke("open_contact", { kind: chip.dataset.kind, value: chip.dataset.value }).catch(() => {});
+  };
   $("sl-more").onclick = () => { toggleMenu("sl-menu", "sl-more"); sl.armed = false; $("sl-block").firstChild.textContent = sl.blocked ? `Unblock ${sl.name}` : `Block ${sl.name}`; };
   $("sl-block").onclick = async () => {
     if (!sl.blocked && !sl.armed) { sl.armed = true; $("sl-block").firstChild.textContent = `Block ${sl.name}? They can't message you. Tap again`; return; }
