@@ -16,9 +16,14 @@ export type Account = {
 
 export type Contact = { email: string; telegram: string; x: string }
 
+/** A wallet its owner proved is theirs, by its name in their Orien Wallet. */
+export type VerifiedWallet = { address: string; name: string | null }
+
 /** What verifying a wallet takes: `amount` from `address` to `to`. */
 export type WalletProof = {
   address: string
+  /** Its name in your Orien Wallet, if an app has said. */
+  name: string | null
   amount: number
   orn: string
   to: string

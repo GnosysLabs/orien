@@ -271,6 +271,7 @@ pub fn router(app: Arc<App>) -> Router {
         )
         .route("/api/market/me/wallet", get(wallet).post(link_wallet))
         .route("/api/market/me/wallet/verify", post(verify_wallet))
+        .route("/api/market/me/wallet/remove", post(remove_verified_wallet))
         .route("/api/market/wallets/lookup", post(lookup_wallets))
         .route("/api/market/wallets/{address}", get(wallet_profile))
         .route("/api/market/me/wallets", get(my_wallets).put(report_wallets))
@@ -975,18 +976,39 @@ async fn wallet(State(app): State<Arc<App>>, headers: HeaderMap) -> Answer {
     let id = app.signed_in(&headers)?;
     let store = app.store.lock().unwrap();
     let account = store.account(id)?.ok_or(Failure::SignIn)?;
-    let proof = store.proof(id, &app.address)?.filter(|p| Some(&p.address) == account.wallet.as_ref());
-    Ok(Json(json!({ "wallet": account.wallet, "verified": account.wallet_verified, "proof": proof })).into_response())
+    let wallets = store.proofs(id, &app.address)?;
+    let proof = wallets.iter().find(|p| Some(&p.address) == account.wallet.as_ref()).cloned();
+    Ok(Json(json!({ "wallet": account.wallet, "verified": account.wallet_verified, "proof": proof, "wallets": wallets })).into_response())
+}
+
+#[derive(Deserialize, Default)]
+struct WalletChoice {
+    #[serde(default)]
+    address: Option<String>,
 }
 
 /// Starts verifying the linked wallet: what to send, from it, to the
 /// Market's wallet. Asking again gives the same amount until it is paid.
-async fn verify_wallet(State(app): State<Arc<App>>, headers: HeaderMap) -> Answer {
+async fn verify_wallet(State(app): State<Arc<App>>, headers: HeaderMap, body: axum::body::Bytes) -> Answer {
     let id = app.signed_in(&headers)?;
+    // Which wallet: the one buyers pay when the body names none.
+    let choice: WalletChoice = if body.is_empty() {
+        WalletChoice::default()
+    } else {
+        serde_json::from_slice(&body).map_err(|_| Failure::Refused("that request is not understood".into()))?
+    };
     let epoch = network(&app, |p| p.epoch()).await?;
-    let proof = app.store.lock().unwrap().start_proof(id, epoch, &app.address).map_err(refused)?;
+    let proof = app.store.lock().unwrap().start_proof(id, choice.address.as_deref(), epoch, &app.address).map_err(refused)?;
     let proof = proof.ok_or_else(|| Failure::Refused("link your Orien wallet first, under Your profile".into()))?;
     Ok(Json(json!({ "proof": proof })).into_response())
+}
+
+/// Stops a wallet being named as this account's, verified or waiting.
+async fn remove_verified_wallet(State(app): State<Arc<App>>, headers: HeaderMap, Json(choice): Json<WalletChoice>) -> Answer {
+    let id = app.signed_in(&headers)?;
+    let address = choice.address.ok_or_else(|| Failure::Refused("say which wallet".into()))?;
+    app.store.lock().unwrap().remove_proof(id, &address).map_err(refused)?;
+    Ok(Json(json!({ "ok": true })).into_response())
 }
 
 /// The name and picture of the account whose verified wallet this is.
@@ -1147,7 +1169,8 @@ async fn profile(State(app): State<Arc<App>>, Path(id): Path<i64>) -> Answer {
     let account = store.account(id)?.ok_or(Failure::NotFound)?;
     let listings = store.open_listings_of(id)?;
     let swaps_done = store.swaps_done(id)?;
-    Ok(Json(json!({ "account": account, "listings": listings, "swaps_done": swaps_done })).into_response())
+    let wallets = store.verified_wallets(id)?;
+    Ok(Json(json!({ "account": account, "listings": listings, "swaps_done": swaps_done, "wallets": wallets })).into_response())
 }
 
 async fn picture(State(app): State<Arc<App>>, Path(name): Path<String>) -> Answer {

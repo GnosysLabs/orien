@@ -4,7 +4,7 @@ import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import { ArrowLeft, BadgeCheck, Wallet } from 'lucide-react'
-import { ask, me, memberSince, pictureUrl, type Account, type Listing } from '@/lib/market'
+import { ask, me, memberSince, pictureUrl, type Account, type Listing, type VerifiedWallet } from '@/lib/market'
 import { Linked } from './Linked'
 import { Avatar } from './Avatar'
 import { ContactLinks } from './ContactLinks'
@@ -14,7 +14,7 @@ import { Notice } from './Shell'
 
 export function ProfileView() {
   const id = useSearchParams().get('id')
-  const [found, setFound] = useState<{ account: Account; listings: Listing[] } | null>(null)
+  const [found, setFound] = useState<{ account: Account; listings: Listing[]; wallets?: VerifiedWallet[] } | null>(null)
   const [trouble, setTrouble] = useState('')
   const [viewer, setViewer] = useState<number | null>(null)
 
@@ -26,7 +26,7 @@ export function ProfileView() {
 
   useEffect(() => {
     if (!id) return
-    ask<{ account: Account; listings: Listing[] }>(`/profiles/${encodeURIComponent(id)}`)
+    ask<{ account: Account; listings: Listing[]; wallets?: VerifiedWallet[] }>(`/profiles/${encodeURIComponent(id)}`)
       .then(setFound)
       .catch((error: Error) => setTrouble(error.message === 'not found' ? 'There is no such seller.' : error.message))
   }, [id])
@@ -35,6 +35,7 @@ export function ProfileView() {
   if (trouble) return <Notice tone="bad">{trouble}</Notice>
   if (!found) return <p className="text-muted">Loading…</p>
   const { account, listings } = found
+  const wallets = found.wallets ?? []
 
   return (
     <div className="space-y-8">
@@ -70,6 +71,23 @@ export function ProfileView() {
                 </span>
               )}
             </p>
+          )}
+          {wallets.length > 0 && (
+            <div className="flex flex-wrap justify-center gap-2 sm:justify-start">
+              {wallets.map((w) => (
+                <span
+                  key={w.address}
+                  title={w.address}
+                  className="inline-flex items-center gap-1.5 rounded-full border border-line bg-bg px-3 py-1 text-xs font-semibold text-muted"
+                >
+                  <BadgeCheck className="h-3.5 w-3.5 text-go" strokeWidth={2.25} aria-hidden />
+                  {w.name && <span className="text-ink">{w.name}</span>}
+                  <span className="num">
+                    {w.address.slice(0, 6)}…{w.address.slice(-6)}
+                  </span>
+                </span>
+              ))}
+            </div>
           )}
           <p className="text-sm text-muted">{memberSince(account.created)}</p>
           {account.bio && (

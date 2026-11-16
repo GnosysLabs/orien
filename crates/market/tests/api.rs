@@ -719,8 +719,35 @@ async fn a_wallet_is_verified_by_a_small_payment_and_then_named() {
     let (status, _) = market.ask("POST", "/api/market/wallets/lookup", None, Some(json!({ "addresses": too_many }))).await;
     assert_eq!(status, StatusCode::BAD_REQUEST);
 
-    // Linking another wallet ends the name on the old one.
-    market.ask("POST", "/api/market/me/wallet", Some(&maya), Some(json!({ "address": "33".repeat(32), "app": true }))).await;
+    // A second wallet, named in her app: verified by choice, by its own payment.
+    let savings = "33".repeat(32);
+    let (status, body) = market
+        .ask("PUT", "/api/market/me/wallets", Some(&maya), Some(json!({ "device": "mac", "wallets": [{ "address": savings, "name": "Savings" }] })))
+        .await;
+    assert_eq!(status, StatusCode::OK, "{body}");
+    let (status, body) = market.ask("POST", "/api/market/me/wallet/verify", Some(&maya), Some(json!({ "address": savings }))).await;
+    assert_eq!(status, StatusCode::OK, "{body}");
+    assert_eq!(body["proof"]["name"], "Savings");
+    pay(&savings, body["proof"]["amount"].as_u64().unwrap());
+    orien_market::proofs::check_once(&market.app).unwrap();
+    let (_, body) = market.ask("POST", "/api/market/wallets/lookup", None, Some(json!({ "addresses": [wallet, savings] }))).await;
+    assert_eq!(body["profiles"][&savings]["name"], "Maya");
+    assert_eq!(body["profiles"][&savings]["wallet_name"], "Savings");
+    let (_, mine) = market.ask("GET", "/api/market/me/wallet", Some(&maya), None).await;
+    assert_eq!(mine["wallets"].as_array().unwrap().len(), 2);
+    let maya_id = body["profiles"][&savings]["id"].as_i64().unwrap();
+    let (_, profile) = market.ask("GET", &format!("/api/market/profiles/{maya_id}"), None, None).await;
+    assert_eq!(profile["wallets"].as_array().unwrap().len(), 2, "{profile}");
+    assert_eq!(profile["account"]["wallet_verified"], true);
+
+    // Linking another wallet to be paid at keeps the verified ones.
+    market.ask("POST", "/api/market/me/wallet", Some(&maya), Some(json!({ "address": savings, "app": true }))).await;
+    let (status, _) = market.ask("GET", &format!("/api/market/wallets/{wallet}"), None, None).await;
+    assert_eq!(status, StatusCode::OK);
+
+    // Removing one stops it being named.
+    let (status, _) = market.ask("POST", "/api/market/me/wallet/remove", Some(&maya), Some(json!({ "address": wallet }))).await;
+    assert_eq!(status, StatusCode::OK);
     let (status, _) = market.ask("GET", &format!("/api/market/wallets/{wallet}"), None, None).await;
     assert_eq!(status, StatusCode::NOT_FOUND);
 }

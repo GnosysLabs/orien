@@ -469,7 +469,7 @@ impl Store {
             .db
             .query_row(
                 "SELECT id, name, bio, picture, payout, created, contact_email, telegram, x, banner,
-                        EXISTS (SELECT 1 FROM wallet_proofs p WHERE p.account = accounts.id AND p.proven IS NOT NULL AND p.address = accounts.payout)
+                        EXISTS (SELECT 1 FROM verified_wallets p WHERE p.account = accounts.id AND p.proven IS NOT NULL AND p.address = accounts.payout)
                  FROM accounts WHERE id = ?1",
                 [id],
                 |row| {

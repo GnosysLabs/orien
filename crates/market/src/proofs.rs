@@ -1,8 +1,10 @@
-//! Proving that a wallet is an account's own: the wallet sends the Market's
-//! wallet a tiny amount, different for each account, and once that payment
-//! is final the wallet is verified. Only verified wallets carry their
-//! owner's name and picture in other people's Orien Wallet, so nobody can
-//! put their name on someone else's address.
+//! Proving that wallets are an account's own: each wallet sends the
+//! Market's wallet a tiny amount, different for each waiting proof, and once
+//! that payment is final the wallet is verified. An account may verify as
+//! many wallets as it likes, each by choice. Verified wallets carry their
+//! owner's name and picture, and the name the wallet has in Orien Wallet
+//! ("Savings"), in other people's Orien Wallet, so nobody can put their name
+//! on someone else's address.
 
 use crate::store::{Store, now, orien_address};
 use anyhow::Result;
@@ -18,12 +20,16 @@ const HIGHEST: u64 = 999_000;
 const STEP: u64 = 1_000;
 /// Most addresses one lookup may name.
 pub const MAX_LOOKUP: usize = 100;
+/// Most wallets one account may have verified or waiting.
+pub const MAX_WALLETS: usize = 20;
 
-/// What an account's wallet has to send to prove it, or that it has.
+/// What a wallet has to send to prove it is the account's, or that it has.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize)]
 pub struct Proof {
-    /// The wallet being proven: the account's payout wallet.
+    /// The wallet being proven.
     pub address: String,
+    /// Its name in the account's Orien Wallet, if an app has said.
+    pub name: Option<String>,
     /// The amount to send, in ORN's smallest units, and written out.
     pub amount: u64,
     pub orn: String,
@@ -32,41 +38,74 @@ pub struct Proof {
     pub verified: bool,
 }
 
-/// A name and picture for a verified wallet.
+/// One of an account's verified wallets, as everyone sees it.
+#[derive(Clone, Debug, PartialEq, Eq, Serialize)]
+pub struct VerifiedWallet {
+    pub address: String,
+    /// Its name in the owner's Orien Wallet, such as "Savings".
+    pub name: Option<String>,
+}
+
+/// Whose a verified wallet is: the account's name and picture, and the
+/// wallet's own name.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize)]
 pub struct WalletProfile {
+    pub id: i64,
     pub name: String,
     pub picture: Option<String>,
+    pub wallet_name: Option<String>,
 }
+
+/// The wallet's newest name in any of the account's apps.
+const NAME: &str = "(SELECT w.name FROM account_wallets w WHERE w.account = v.account AND w.address = v.address
+                    ORDER BY w.updated DESC LIMIT 1)";
 
 impl Store {
     pub(crate) fn create_proof_table(&self) -> Result<()> {
         self.db.execute_batch(
-            "CREATE TABLE IF NOT EXISTS wallet_proofs (
-                 account INTEGER PRIMARY KEY REFERENCES accounts(id) ON DELETE CASCADE,
+            "CREATE TABLE IF NOT EXISTS verified_wallets (
+                 account INTEGER NOT NULL REFERENCES accounts(id) ON DELETE CASCADE,
                  address TEXT NOT NULL,
                  amount INTEGER NOT NULL,
                  epoch INTEGER NOT NULL,
                  created INTEGER NOT NULL,
-                 proven INTEGER
+                 proven INTEGER,
+                 PRIMARY KEY (account, address)
              );
-             CREATE INDEX IF NOT EXISTS wallet_proofs_address ON wallet_proofs (address);",
+             CREATE INDEX IF NOT EXISTS verified_wallets_address ON verified_wallets (address);",
         )?;
+        // The first version kept one proof per account.
+        let old: bool =
+            self.db.query_row("SELECT COUNT(*) > 0 FROM sqlite_master WHERE type = 'table' AND name = 'wallet_proofs'", [], |row| row.get(0))?;
+        if old {
+            self.db.execute_batch(
+                "INSERT OR IGNORE INTO verified_wallets (account, address, amount, epoch, created, proven)
+                     SELECT account, address, amount, epoch, created, proven FROM wallet_proofs;
+                 DROP TABLE wallet_proofs;",
+            )?;
+        }
         Ok(())
     }
 
-    /// The proof for `account`'s payout wallet: the one already asked for,
-    /// or a new one from `epoch` on. None when it has no payout wallet.
-    pub fn start_proof(&self, account: i64, epoch: u64, to: &str) -> Result<Option<Proof>> {
-        let Some(address) = self.payout_of(account)? else { return Ok(None) };
-        if let Some(proof) = self.proof(account, to)?
-            && proof.address == address
-        {
+    /// The proof for `address` (the payout wallet when None): the one already
+    /// asked for, or a new one from `epoch` on. None when there is no
+    /// payout wallet to prove.
+    pub fn start_proof(&self, account: i64, address: Option<&str>, epoch: u64, to: &str) -> Result<Option<Proof>> {
+        let address = match address {
+            Some(address) => orien_address(address)?,
+            None => match self.payout_of(account)? {
+                Some(payout) => payout,
+                None => return Ok(None),
+            },
+        };
+        if let Some(proof) = self.proofs(account, to)?.into_iter().find(|p| p.address == address) {
             return Ok(Some(proof));
         }
+        let count: i64 = self.db.query_row("SELECT COUNT(*) FROM verified_wallets WHERE account = ?1", [account], |row| row.get(0))?;
+        anyhow::ensure!((count as usize) < MAX_WALLETS, "at most {MAX_WALLETS} wallets; remove one first");
         // An amount no other waiting proof uses, so each payment names one.
         let taken: Vec<u64> = {
-            let mut query = self.db.prepare("SELECT amount FROM wallet_proofs WHERE proven IS NULL")?;
+            let mut query = self.db.prepare("SELECT amount FROM verified_wallets WHERE proven IS NULL")?;
             query.query_map([], |row| row.get::<_, i64>(0))?.collect::<rusqlite::Result<Vec<_>>>()?.into_iter().map(|a| a as u64).collect()
         };
         let steps = (HIGHEST - LOWEST) / STEP + 1;
@@ -82,76 +121,85 @@ impl Store {
         }
         anyhow::ensure!(amount > 0, "too many wallets are being verified right now; try again in a few minutes");
         self.db.execute(
-            "INSERT OR REPLACE INTO wallet_proofs (account, address, amount, epoch, created, proven) VALUES (?1, ?2, ?3, ?4, ?5, NULL)",
+            "INSERT INTO verified_wallets (account, address, amount, epoch, created, proven) VALUES (?1, ?2, ?3, ?4, ?5, NULL)",
             params![account, address, amount as i64, epoch as i64, now() as i64],
         )?;
-        self.proof(account, to)
+        Ok(self.proofs(account, to)?.into_iter().find(|p| p.address == address))
     }
 
-    /// `account`'s proof, if it asked for one, for its current payout wallet
-    /// or an earlier one.
-    pub fn proof(&self, account: i64, to: &str) -> Result<Option<Proof>> {
-        let payout = self.payout_of(account)?;
-        Ok(self
-            .db
-            .query_row("SELECT address, amount, proven FROM wallet_proofs WHERE account = ?1", [account], |row| {
-                Ok((row.get::<_, String>(0)?, row.get::<_, i64>(1)? as u64, row.get::<_, Option<i64>>(2)?))
-            })
-            .optional()?
-            .map(|(address, amount, proven)| Proof {
-                verified: proven.is_some() && payout.as_deref() == Some(address.as_str()),
-                address,
+    /// Every wallet `account` verified or asked to, verified ones first.
+    pub fn proofs(&self, account: i64, to: &str) -> Result<Vec<Proof>> {
+        let mut query = self.db.prepare(&format!(
+            "SELECT v.address, {NAME}, v.amount, v.proven FROM verified_wallets v WHERE v.account = ?1
+             ORDER BY v.proven IS NULL, v.created"
+        ))?;
+        let rows = query.query_map([account], |row| {
+            let amount = row.get::<_, i64>(2)? as u64;
+            Ok(Proof {
+                address: row.get(0)?,
+                name: row.get(1)?,
                 amount,
                 orn: crate::store::orn(amount),
                 to: to.to_string(),
-            }))
+                verified: row.get::<_, Option<i64>>(3)?.is_some(),
+            })
+        })?;
+        Ok(rows.collect::<rusqlite::Result<_>>()?)
     }
 
-    /// Whether `account`'s payout wallet is verified.
-    pub fn wallet_verified(&self, account: i64) -> Result<bool> {
-        Ok(self
-            .db
-            .query_row(
-                "SELECT 1 FROM wallet_proofs p JOIN accounts a ON a.id = p.account
-                 WHERE p.account = ?1 AND p.proven IS NOT NULL AND a.payout = p.address",
-                [account],
-                |_| Ok(()),
-            )
-            .optional()?
-            .is_some())
+    /// Stops `account` naming `address`, verified or waiting.
+    pub fn remove_proof(&self, account: i64, address: &str) -> Result<()> {
+        let address = orien_address(address)?;
+        self.db.execute("DELETE FROM verified_wallets WHERE account = ?1 AND address = ?2", params![account, address])?;
+        Ok(())
+    }
+
+    /// `account`'s verified wallets, as its profile shows them.
+    pub fn verified_wallets(&self, account: i64) -> Result<Vec<VerifiedWallet>> {
+        let mut query = self.db.prepare(&format!(
+            "SELECT v.address, {NAME} FROM verified_wallets v WHERE v.account = ?1 AND v.proven IS NOT NULL ORDER BY v.proven"
+        ))?;
+        let rows = query.query_map([account], |row| Ok(VerifiedWallet { address: row.get(0)?, name: row.get(1)? }))?;
+        Ok(rows.collect::<rusqlite::Result<_>>()?)
     }
 
     /// Proofs still waiting for their payment: account, wallet, amount, and
     /// the epoch they were asked for in.
     pub fn waiting_proofs(&self) -> Result<Vec<(i64, String, u64, u64)>> {
-        let mut query = self.db.prepare("SELECT account, address, amount, epoch FROM wallet_proofs WHERE proven IS NULL")?;
+        let mut query = self.db.prepare("SELECT account, address, amount, epoch FROM verified_wallets WHERE proven IS NULL")?;
         let rows = query.query_map([], |row| Ok((row.get(0)?, row.get(1)?, row.get::<_, i64>(2)? as u64, row.get::<_, i64>(3)? as u64)))?;
         Ok(rows.collect::<rusqlite::Result<_>>()?)
     }
 
-    pub fn mark_proven(&self, account: i64) -> Result<()> {
-        self.db.execute("UPDATE wallet_proofs SET proven = ?2 WHERE account = ?1", params![account, now() as i64])?;
+    pub fn mark_proven(&self, account: i64, address: &str) -> Result<()> {
+        self.db.execute(
+            "UPDATE verified_wallets SET proven = ?3 WHERE account = ?1 AND address = ?2",
+            params![account, address, now() as i64],
+        )?;
         Ok(())
     }
 
-    /// The names and pictures of verified wallets among `addresses`, by
-    /// address. When several accounts verified one wallet, the latest wins.
+    /// Whose verified wallets are among `addresses`, by address. When
+    /// several accounts verified one wallet, the latest wins.
     pub fn wallet_profiles(&self, addresses: &[String]) -> Result<Vec<(String, WalletProfile)>> {
         let mut found: Vec<(String, WalletProfile)> = Vec::new();
-        let mut query = self.db.prepare(
-            "SELECT a.name, a.picture FROM wallet_proofs p JOIN accounts a ON a.id = p.account
-             WHERE p.address = ?1 AND p.proven IS NOT NULL AND a.payout = p.address
+        let mut query = self.db.prepare(&format!(
+            "SELECT a.id, a.name, a.picture, {NAME} FROM verified_wallets v JOIN accounts a ON a.id = v.account
+             WHERE v.address = ?1 AND v.proven IS NOT NULL
                AND NOT EXISTS (SELECT 1 FROM suspended s WHERE s.account = a.id)
-             ORDER BY p.proven DESC LIMIT 1",
-        )?;
+             ORDER BY v.proven DESC LIMIT 1"
+        ))?;
         for address in addresses {
             let Ok(address) = orien_address(address) else { continue };
             if found.iter().any(|(a, _)| *a == address) {
                 continue;
             }
-            if let Some(profile) =
-                query.query_row([&address], |row| Ok(WalletProfile { name: row.get(0)?, picture: row.get(1)? })).optional()?
-            {
+            let profile = query
+                .query_row([&address], |row| {
+                    Ok(WalletProfile { id: row.get(0)?, name: row.get(1)?, picture: row.get(2)?, wallet_name: row.get(3)? })
+                })
+                .optional()?;
+            if let Some(profile) = profile {
                 found.push((address, profile));
             }
         }
@@ -171,11 +219,9 @@ pub fn check_once(app: &crate::api::App) -> Result<usize> {
     let received = app.payments().received(&to, from)?;
     let mut proven = 0;
     for (account, address, amount, epoch) in waiting {
-        let paid = received
-            .iter()
-            .any(|p| p.amount == amount && p.epoch >= epoch && hex::encode(p.from.as_bytes()) == address);
+        let paid = received.iter().any(|p| p.amount == amount && p.epoch >= epoch && hex::encode(p.from.as_bytes()) == address);
         if paid {
-            app.store().mark_proven(account)?;
+            app.store().mark_proven(account, &address)?;
             proven += 1;
         }
     }
@@ -192,4 +238,22 @@ pub fn watch(app: std::sync::Arc<crate::api::App>) {
             std::thread::sleep(std::time::Duration::from_secs(5));
         }
     });
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn a_proof_from_the_first_version_carries_over() {
+        let store = Store::in_memory().unwrap();
+        let maya = store.create_account("Maya", "maya").unwrap().id;
+        let wallet = "7a".repeat(32);
+        store.db.execute_batch("DELETE FROM verified_wallets; CREATE TABLE wallet_proofs (account INTEGER PRIMARY KEY, address TEXT NOT NULL, amount INTEGER NOT NULL, epoch INTEGER NOT NULL, created INTEGER NOT NULL, proven INTEGER);").unwrap();
+        store.db.execute("INSERT INTO wallet_proofs VALUES (?1, ?2, 417000, 30, 1, 2)", params![maya, wallet]).unwrap();
+        store.create_proof_table().unwrap();
+        assert_eq!(store.verified_wallets(maya).unwrap(), [VerifiedWallet { address: wallet, name: None }]);
+        let gone: bool = store.db.query_row("SELECT COUNT(*) = 0 FROM sqlite_master WHERE name = 'wallet_proofs'", [], |r| r.get(0)).unwrap();
+        assert!(gone);
+    }
 }
