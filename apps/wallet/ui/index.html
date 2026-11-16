@@ -481,6 +481,14 @@
   #all-activity .list { border: 0; border-radius: 0; background: none; overflow: visible; }
   .scroll { flex: 1; min-height: 0; overflow-y: auto; margin: 0 -28px; padding: 0 28px 8px; }
   .scroll::-webkit-scrollbar { width: 0; }
+  /* Anything that scrolls is cut off with rounded corners, so it reads as
+     scrolling inside a box rather than vanishing at a straight edge. The
+     cut sits just outside the cards, so their edges and focus rings stay. */
+  .scroll, #mine, #board-signin, #board-post, #board-take, #swaps, #swap-sell, #swap-buy, #swap-detail { clip-path: inset(0 22px round 22px); }
+  #all-activity { clip-path: inset(0 round 18px); }
+  body.phone .screen { clip-path: inset(0 round 22px); }
+  body.phone .scroll, body.phone #mine, body.phone #board-signin, body.phone #board-post, body.phone #board-take,
+  body.phone #swaps, body.phone #swap-sell, body.phone #swap-buy, body.phone #swap-detail { clip-path: inset(0 14px round 22px); }
   .day { margin: 18px 4px 8px; font-size: 12px; font-weight: 600; color: var(--dim); }
   .day:first-child { margin-top: 0; }
 
