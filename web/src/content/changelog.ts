@@ -36,6 +36,7 @@ export const CHANGELOG: Entry[] = [
       'Report and block are in a tidy ⋯ menu, and a seller\'s email, Telegram and X open with a tap.',
       'Check for Updates answers in a clear card, and screens with more below show a small arrow.',
       'Swapping with someone you know by codes is gone: swaps happen through open offers.',
+      'On iPhones: the keyboard no longer jumps when you start typing, and swaps stay on computers, which keep the wallet running while a swap finishes.',
     ],
   },
   {
