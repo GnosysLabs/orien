@@ -100,6 +100,45 @@ pub fn solana(cluster: &str) -> Solana {
     if cluster == "devnet" { Solana::devnet() } else { Solana::mainnet() }
 }
 
+/// In plain words, for the app: an address that can never receive SOL.
+pub const NOT_A_WALLET: &str = "That address can't receive SOL. Use your own wallet's address, such as the one in Phantom.";
+
+/// What's wrong with `payout` as a seller's SOL address, if anything. An
+/// address that doesn't exist yet is fine; a program never is. If Solana
+/// can't be asked right now, it's allowed: the swap checks again before
+/// any ORN are locked.
+pub fn payout_problem(payout: &str) -> Option<String> {
+    let Ok(key) = orien_swap::solana::address(payout.trim()) else {
+        return Some("That is not a SOL address.".into());
+    };
+    match orien_swap::sol::payable(&solana(cluster()), &key) {
+        Ok(None) => Some(NOT_A_WALLET.into()),
+        _ => None,
+    }
+}
+
+/// Solana's loader for programs; a live program's account belongs to it.
+const UPGRADEABLE_LOADER: &str = "BPFLoaderUpgradeab1e11111111111111111111111";
+
+/// Whether orien-lock is live on `cluster`: its account is there, owned by
+/// the loader, and marks a deployed program. Asks Solana, so not on the
+/// main thread. Once live, it stays live.
+pub fn lock_live(cluster: &str) -> bool {
+    static LIVE: std::sync::atomic::AtomicBool = std::sync::atomic::AtomicBool::new(false);
+    if cluster == "devnet" || LIVE.load(std::sync::atomic::Ordering::Relaxed) {
+        return true;
+    }
+    let solana = solana(cluster);
+    let (Some(program), Ok(loader)) = (solana.lock_program, orien_swap::solana::address(UPGRADEABLE_LOADER)) else {
+        return false;
+    };
+    let live = matches!(solana.account(&program), Ok(Some(account)) if account.executable && account.owner == loader);
+    if live {
+        LIVE.store(true, std::sync::atomic::Ordering::Relaxed);
+    }
+    live
+}
+
 /// "0.15", from lamports.
 pub fn show_sol(lamports: u64) -> String {
     let text = format!("{}.{:09}", lamports / LAMPORTS_PER_SOL, lamports % LAMPORTS_PER_SOL);
@@ -259,5 +298,19 @@ mod tests {
         assert_eq!(show_sol(150_000_000), "0.15");
         assert_eq!(show_sol(2 * LAMPORTS_PER_SOL), "2");
         assert_eq!(show_sol(1), "0.000000001");
+    }
+}
+
+#[cfg(test)]
+mod live_checks {
+    /// Asks Solana itself: run with --ignored.
+    #[test]
+    #[ignore]
+    fn payouts_and_the_lock_on_solana() {
+        assert!(super::payout_problem("TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA").is_some(), "a program is refused");
+        assert!(super::payout_problem("not an address").is_some());
+        assert!(super::payout_problem("9WzDXwBbmkg8ZTbNMqUxvQRAyrZzDsGYdLVL9zYtAWWM").is_none(), "a plain wallet is fine");
+        assert!(super::lock_live("mainnet"), "live on Solana");
+        assert!(super::lock_live("devnet"));
     }
 }

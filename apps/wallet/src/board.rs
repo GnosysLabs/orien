@@ -348,7 +348,7 @@ pub fn take_on(dir: &Path, wallet: &Path, network: orien_swap::bitcoin::Network,
 /// Bitcoin: when it's taken, this app accepts by itself.
 pub fn post_sol(dir: &Path, wallet: &Path, orn: u64, lamports: u64, payout: &str, password: Option<&str>) -> Result<(), String> {
     let payout = payout.trim();
-    orien_swap::solana::address(payout).map_err(|_| "That is not a SOL address.".to_string())?;
+    crate::solswaps::payout_problem(payout).map_or(Ok(()), Err)?;
     let address = orien_net::keys::Wallet::peek(wallet).map_err(|error| error.to_string())?.0.to_string();
     let posted = call(dir, "POST", "/swaps", Some(json!({ "coin": "sol", "orn": orn, "lamports": lamports, "payout": payout, "wallet": address })))?;
     let offer = posted["offer"]["id"].as_i64().ok_or("The swap board did not say which offer it posted.")?;
@@ -366,8 +366,10 @@ pub fn take_sol(dir: &Path, wallet: &Path, offer: i64, address: &str, refund: &s
     let refund = refund.trim();
     let key = orien_swap::solana::address(refund).map_err(|_| "That is not a SOL address.".to_string())?;
     let solana = crate::solswaps::solana(crate::solswaps::cluster());
-    if solana.balance(&key).map_err(|error| error.to_string())? == 0 {
-        return Err("That SOL address has never held SOL. Give the address of the SOL wallet you'll pay from.".into());
+    match orien_swap::sol::payable(&solana, &key).map_err(|error| error.to_string())? {
+        None => return Err(crate::solswaps::NOT_A_WALLET.into()),
+        Some(0) => return Err("That SOL address has never held SOL. Give the address of the SOL wallet you'll pay from.".into()),
+        Some(_) => {}
     }
     call(dir, "POST", &format!("/swaps/{offer}/take"), Some(json!({ "address": address, "swap_version": 3 })))?;
     let mut saved = load(dir);

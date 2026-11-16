@@ -28,6 +28,17 @@ export const CHANGELOG: Entry[] = [
   {
     date: '2026-11-16',
     products: ['wallet'],
+    version: '1.8.3',
+    title: 'Swap ORN for SOL',
+    changes: [
+      'Swap ORN and SOL with someone directly, as with Bitcoin but in minutes. SOL is now the first choice when you post an offer; Bitcoin is one tap away.',
+      'Buyers pay from the SOL wallet they already have, such as Phantom, by scanning a code. The smallest swap is 0.01 SOL.',
+      'If you type an address that can never receive SOL, the app tells you before you post.',
+    ],
+  },
+  {
+    date: '2026-11-16',
+    products: ['wallet'],
     version: '1.8.2',
     title: 'A clear next step after taking an offer',
     changes: [

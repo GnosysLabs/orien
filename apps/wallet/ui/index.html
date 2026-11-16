@@ -308,6 +308,7 @@
   .offer .take { border: 0; color: var(--pearl-ink); }
   .offer .withdraw { background: transparent; border: 1px solid var(--line); }
   .hint { margin: 7px 0 0 2px; font-size: 12px; color: var(--dim); min-height: 18px; }
+  .hint.warn { color: var(--bad, #e5484d); }
   .small-link { margin: 22px auto 4px; display: block; }
   /* The swap screens can hold more than the window: they scroll, and
      nothing in them is squeezed. */
@@ -1048,6 +1049,7 @@
       <div class="field">
         <label for="bp-payout" id="bp-payout-label">Your SOL address</label>
         <div class="box plain"><input id="bp-payout" placeholder="Where the SOL should go, such as your Phantom wallet" spellcheck="false" autocomplete="off"></div>
+        <div class="hint warn" id="bp-payout-note" hidden></div>
       </div>
       <p class="fineprint" id="bp-fine-btc" hidden>Smallest swap: 0.00015 BTC, more when Bitcoin is busy<span class="min-now"></span>. Fees: the usual Orien fee to lock the ORN (0.1%, at most 1 ORN), and Bitcoin's network fee for taking the Bitcoin, out of what you receive. If a buyer never pays, your ORN come back on their own within 12 hours.</p>
       <p class="fineprint" id="bp-fine-sol">Smallest swap: 0.01 SOL. Fees: the usual Orien fee to lock the ORN (0.1%, at most 1 ORN); the buyer covers Solana's small fees. A swap takes about a minute. If a buyer never pays, your ORN come back on their own within a few hours.</p>
@@ -2674,18 +2676,24 @@
   // in this copy of the app (live on Solana), only Bitcoin shows.
   let postCoin = "sol";
   let solOpen = false;
-  invoke("sol_open").then((open) => {
-    solOpen = !!open;
-    $("bp-tabs").hidden = !solOpen;
-    if (!solOpen) {
-      setPostCoin("btc");
-      document.querySelector("#swaps .lede").textContent = "Swap ORN and Bitcoin with someone directly. Neither of you can cheat: either both get paid, or both get their coins back.";
-    }
-    shownOffers = "";
-    renderOffers();
-  }).catch(() => {});
+  const swapsLede = document.querySelector("#swaps .lede").textContent;
+  function checkSol() {
+    invoke("sol_open").then((open) => {
+      if (!!open === solOpen && solOpen) return;
+      solOpen = !!open;
+      $("bp-tabs").hidden = !solOpen;
+      setPostCoin(solOpen ? "sol" : "btc");
+      document.querySelector("#swaps .lede").textContent = solOpen ? swapsLede : "Swap ORN and Bitcoin with someone directly. Neither of you can cheat: either both get paid, or both get their coins back.";
+      shownOffers = "";
+      renderOffers();
+      // Not live yet: look again in ten minutes, so SOL appears by itself.
+      if (!solOpen) setTimeout(checkSol, 10 * 60 * 1000);
+    }).catch(() => setTimeout(checkSol, 10 * 60 * 1000));
+  }
+  checkSol();
   function setPostCoin(coin) {
     postCoin = coin;
+    $("bp-payout-note").hidden = true;
     const sol = coin === "sol";
     $("bp-lede").textContent = `Offer your ORN for ${sol ? "SOL" : "Bitcoin"}. When someone takes it, this app locks the ORN for them and runs the swap, as long as it's open.`;
     $("bp-tab-sol").classList.toggle("on", sol);
@@ -2708,6 +2716,21 @@
     $("bp-hint").textContent = `${price.total.replace(" ≈ ", "≈ ")}${price.total ? " · " : ""}${price.rate}`;
   }
   $("bp-orn").oninput = $("bp-btc").oninput = postHint;
+  // A SOL payout is checked as it's typed: a program's address can never
+  // be paid, so it's caught before posting.
+  let payoutTimer = 0;
+  $("bp-payout").oninput = () => {
+    clearTimeout(payoutTimer);
+    $("bp-payout-note").hidden = true;
+    const typed = $("bp-payout").value.trim();
+    if (postCoin !== "sol" || typed.length < 32) return;
+    payoutTimer = setTimeout(async () => {
+      const problem = await invoke("sol_payout_check", { payout: typed }).catch(() => null);
+      if ($("bp-payout").value.trim() !== typed || postCoin !== "sol") return;
+      $("bp-payout-note").textContent = problem || "";
+      $("bp-payout-note").hidden = !problem;
+    }, 500);
+  };
   $("bp-go").onclick = async () => {
     $("bp-go").disabled = true;
     try {
