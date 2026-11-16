@@ -559,7 +559,7 @@ async fn wallets_on_older_swap_rules_cannot_take_once_the_gate_is_on() {
     let market = Market { app: Arc::new(app) };
     let maya = sign_in_for_tests(&market.app, "Maya");
     let sam = sign_in_for_tests(&market.app, "Sam");
-    let (_, body) = market.ask("POST", "/api/market/swaps", Some(&maya), Some(json!({ "orn": 5_000_000_000u64, "sats": 5000 }))).await;
+    let (_, body) = market.ask("POST", "/api/market/swaps", Some(&maya), Some(json!({ "orn": 5_000_000_000u64, "sats": 15_000 }))).await;
     let id = body["offer"]["id"].as_i64().unwrap();
     let buyer = "bb".repeat(32);
     let path = format!("/api/market/swaps/{id}/take");

@@ -90,6 +90,22 @@ export const CHANGELOG: Entry[] = [
   {
     date: '2026-11-16',
     products: ['marketplace'],
+    title: 'The smallest swap is now 0.00015 BTC',
+    changes: [
+      'Swap offers start at 0.00015 BTC (about $10), up from 0.00005 BTC: an amount ordinary Bitcoin wallets can send, and enough that Bitcoin’s fees on a busy day still leave the swap worth finishing.',
+    ],
+  },
+  {
+    date: '2026-11-16',
+    products: ['marketplace'],
+    title: 'Shorter swaps need Orien Wallet 1.8.0',
+    changes: [
+      'Taking a swap offer needs Orien Wallet 1.8.0 or later, whose shorter locks keep a seller’s ORN for at most 12 hours and a buyer’s Bitcoin for about 6 if the other side stops. An older wallet is asked to update before anything is locked.',
+    ],
+  },
+  {
+    date: '2026-11-16',
+    products: ['marketplace'],
     title: 'Buy and sell ORN in Orien Wallet',
     changes: [
       'Buying and selling ORN now happen only in Orien Wallet, which holds your keys and runs each swap. The website’s Buy & sell ORN page shows the live offers and prices and explains how it works.',

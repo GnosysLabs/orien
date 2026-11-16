@@ -224,11 +224,15 @@ export function SwapBoard() {
           <p>
             Open the <strong>Swap</strong> screen in Orien Wallet and post an
             offer: how many ORN, the Bitcoin you want for them, and the Bitcoin
-            address to be paid at. It appears here for buyers to see.
+            address to be paid at, and approve the sale once with Touch ID or
+            your password. It appears here for buyers to see. The smallest offer
+            is 0.00015 BTC, more when Bitcoin is busy, so any Bitcoin wallet can
+            pay it.
           </p>
           <p>
-            When someone takes it, your wallet locks your ORN for them, collects
-            the Bitcoin once it confirms, and delivers their ORN, all by itself.
+            When someone takes it, your wallet accepts within seconds, even with
+            its window closed: it locks your ORN for them, collects the Bitcoin
+            once it confirms, and delivers their ORN, all by itself.
             Orien Wallet keeps running in the menu bar or system tray, so just
             leave it on. Nothing is locked until someone takes your offer, and
             you can withdraw it any time before.
@@ -290,8 +294,8 @@ export function SwapBoard() {
               </li>
               <li>
                 If the buyer never pays, the seller&apos;s ORN come back after
-                48 hours. If the seller never takes the Bitcoin, the
-                buyer&apos;s wallet takes it back after about 12 hours.
+                12 hours. If the seller never takes the Bitcoin, the
+                buyer&apos;s wallet takes it back after about 6 hours.
               </li>
               <li>
                 Once the seller takes the Bitcoin, the seller&apos;s own wallet
