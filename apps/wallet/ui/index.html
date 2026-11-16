@@ -3494,6 +3494,7 @@
     signinReturn = "home";
     if (board.me) {
       try { await invoke("board_sign_out"); } catch {}
+      if (phone) invoke("push_sync").catch(() => {});
       board.me = null;
       board.waiting = [];
       linking.done = false;
@@ -4213,6 +4214,7 @@
     $("pf-delete-go").disabled = true;
     try {
       await invoke("board_delete_account", { confirm: me.name });
+      if (phone) invoke("push_sync").catch(() => {});
       board.me = null;
       board.waiting = [];
       renderBoardBar();
@@ -4274,6 +4276,7 @@
         }
         resetSignin();
         invoke("board_wallets_sync").catch(() => {});
+        if (phone) invoke("push_sync").catch(() => {});
         if (signinReturn === "home") { signinReturn = "swaps"; await loadBoard(); home(); return; }
         if (signinReturn === "listing") { signinReturn = "swaps"; await loadBoard(); if (market.listing) openListing(market.listing.id, market.from); return; }
         show("swaps");

@@ -286,6 +286,13 @@ pub fn sign_out(dir: &Path) -> Result<(), String> {
     save(dir, &saved)
 }
 
+/// The Market sign-in, if this app is signed in: for registering the
+/// iPhone's push token to the account too.
+#[allow(dead_code)]
+pub fn session(dir: &Path) -> Option<String> {
+    load(dir).cookie
+}
+
 /// Deletes the signed-in account for good: profile, listings and messages.
 /// `confirm` is the account's name, typed to be sure. Signed out after.
 pub fn delete_account(dir: &Path, confirm: &str) -> Result<(), String> {
