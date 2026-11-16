@@ -1,6 +1,6 @@
 [package]
 name = "orien-wallet"
-version = "1.6.1"
+version = "1.7.0"
 edition = "2024"
 license = "MIT OR Apache-2.0"
 description = "The Orien wallet, as a desktop app"
@@ -25,13 +25,16 @@ orien-ledger = { path = "../../crates/ledger", default-features = false }
 orien-swap = { path = "../../crates/swap" }
 orien-crypto = { path = "../../crates/crypto" }
 anyhow = "1"
-tauri = { version = "2", features = [] }
+tauri = { version = "2", features = ["tray-icon", "image-png"] }
 tauri-plugin-dialog = "2"
+tauri-plugin-haptics = "2"
+tauri-plugin-notification = "2"
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 semver = "1"
 ureq = { version = "2", features = ["json"] }
 base64 = "0.22"
+getrandom = "0.3"
 
 # Hashing dominates the wallet's work, so even debug builds are optimized.
 [profile.dev]
@@ -40,6 +43,8 @@ opt-level = 2
 # Desktop copies update themselves; iPhone copies come from the App Store.
 [target.'cfg(not(any(target_os = "ios", target_os = "android")))'.dependencies]
 tauri-plugin-updater = "2"
+# Starting at login, so swaps and notifications carry on with no window.
+tauri-plugin-autostart = "2"
 orien-net = { path = "../../crates/net", features = ["randomx"] }
 orien-ledger = { path = "../../crates/ledger", features = ["randomx"] }
 
@@ -48,6 +53,16 @@ orien-ledger = { path = "../../crates/ledger", features = ["randomx"] }
 [target.'cfg(any(target_os = "macos", target_os = "ios"))'.dependencies]
 robius-authentication = "0.3"
 security-framework = "3"
+# Asking for permission to show notifications.
+objc2-user-notifications = { version = "0.3", features = ["UNUserNotificationCenter", "block2"] }
+objc2-foundation = { version = "0.3", features = ["NSBundle", "NSData", "NSError", "NSString"] }
+block2 = "0.6"
+objc2 = "0.6"
+
+# Signing up with Apple on iPhones, so the Market server can say when ORN
+# arrives.
+[target.'cfg(target_os = "ios")'.dependencies]
+objc2-ui-kit = { version = "0.3", features = ["UIApplication", "UIResponder"] }
 
 [dev-dependencies]
 # A pretend Bitcoin network, for testing whole swaps.

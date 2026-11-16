@@ -26,6 +26,20 @@ export const PRODUCTS: Record<Product, string> = {
 
 export const CHANGELOG: Entry[] = [
   {
+    date: '2026-11-16',
+    products: ['wallet'],
+    version: '1.7.0',
+    title: 'Runs in the background, notifies you of payments, and swaps from any device',
+    changes: [
+      'Closing the window keeps Orien Wallet running, with an Orien icon in the menu bar (Mac) or system tray (Windows, Linux), and it starts by itself when you log in. Choose Quit from the icon’s menu to stop it.',
+      'A notification tells you when someone sends you ORN.',
+      'Swap offers can be finished by any of your devices that has the offer’s wallet, and only one of them ever runs a swap. When someone takes your offer, you’re notified and asked for Touch ID (or your password) once, and the rest happens by itself.',
+      'When you make a wallet, you can save the recovery phrase as a text file.',
+      'The Orien sunrise shows while the app opens, until your balance and activity are ready.',
+      'The marketplace is called the Market throughout the app.',
+    ],
+  },
+  {
     date: '2026-11-15',
     products: ['wallet'],
     version: '1.6.1',

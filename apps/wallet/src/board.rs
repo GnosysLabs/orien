@@ -61,6 +61,34 @@ struct Saved {
     email: Option<String>,
     #[serde(default)]
     links: Vec<Link>,
+    /// This app's own name for itself on the board, made up once: of all
+    /// the account's devices, only the one that claimed a taken offer runs
+    /// it, so two can never lock the same ORN twice.
+    #[serde(default)]
+    device: Option<String>,
+}
+
+/// This app's device name, made up and saved the first time it's wanted.
+fn device(dir: &Path) -> Result<String, String> {
+    let mut saved = load(dir);
+    if let Some(device) = &saved.device {
+        return Ok(device.clone());
+    }
+    let mut bytes = [0u8; 16];
+    getrandom::fill(&mut bytes).map_err(|error| error.to_string())?;
+    let device: String = bytes.iter().map(|byte| format!("{byte:02x}")).collect();
+    saved.device = Some(device.clone());
+    save(dir, &saved)?;
+    Ok(device)
+}
+
+/// Which of the app's wallets has `address`, if any: every device with the
+/// same recovery phrase has the same wallet, under its own file.
+fn wallet_with(dir: &Path, address: &str) -> Option<PathBuf> {
+    crate::known_wallets(dir)
+        .into_iter()
+        .map(|w| w.path)
+        .find(|path| orien_net::keys::Wallet::peek(path).is_ok_and(|(own, _)| own.to_string() == address))
 }
 
 fn file(dir: &Path) -> PathBuf {
@@ -196,10 +224,45 @@ pub fn email_finish(dir: &Path, email: &str, code: &str, name: Option<&str>) -> 
     }
     saved.email = Some(email.trim().to_string());
     save(dir, &saved)?;
+    // A fresh sign-in, perhaps to another account: tell it the wallets anew.
+    *REPORTED.lock().unwrap() = None;
     Ok(true)
 }
 
+/// What the Market was last told about this app's wallets, so it is told
+/// again only on a change.
+static REPORTED: std::sync::Mutex<Option<Value>> = std::sync::Mutex::new(None);
+
+/// Tells the Market which wallets this device has and their names here, so
+/// the website can offer them by name ("Sell from"). Only while signed in;
+/// each device's list replaces only its own. `empty` withdraws them all.
+pub fn report_wallets(dir: &Path, empty: bool) -> Result<(), String> {
+    if load(dir).cookie.is_none() {
+        return Ok(());
+    }
+    let wallets: Vec<Value> = if empty {
+        Vec::new()
+    } else {
+        crate::known_wallets(dir)
+            .into_iter()
+            .filter_map(|w| {
+                let address = orien_net::keys::Wallet::peek(&w.path).ok()?.0.to_string();
+                Some(json!({ "address": address, "name": w.name }))
+            })
+            .take(50)
+            .collect()
+    };
+    let body = json!({ "device": device(dir)?, "wallets": wallets });
+    if REPORTED.lock().unwrap().as_ref() == Some(&body) {
+        return Ok(());
+    }
+    call(dir, "PUT", "/me/wallets", Some(body.clone())).map_err(String::from)?;
+    *REPORTED.lock().unwrap() = if empty { None } else { Some(body) };
+    Ok(())
+}
+
 pub fn sign_out(dir: &Path) -> Result<(), String> {
+    let _ = report_wallets(dir, true);
     let _ = call(dir, "POST", "/signout", Some(json!({})));
     let mut saved = load(dir);
     saved.cookie = None;
@@ -217,7 +280,7 @@ pub fn link_wallet(dir: &Path, address: &str) -> Result<bool, String> {
     }
     match call(dir, "POST", "/me/wallet", Some(json!({ "address": address, "app": true }))) {
         Ok(answer) if answer["wallet"].as_str() == Some(address) => Ok(true),
-        Ok(_) => Err("The marketplace did not link this wallet.".into()),
+        Ok(_) => Err("The Market did not link this wallet.".into()),
         Err(Failed::SignIn) => Ok(false),
         Err(failed) => Err(failed.into()),
     }
@@ -239,7 +302,10 @@ pub fn post(dir: &Path, wallet: &Path, orn: u64, sats: u64, payout: &str) -> Res
 
 pub fn post_on(dir: &Path, wallet: &Path, network: orien_swap::bitcoin::Network, orn: u64, sats: u64, payout: &str) -> Result<(), String> {
     let payout = bitcoin_address(payout, network)?;
-    let posted = call(dir, "POST", "/swaps", Some(json!({ "orn": orn, "sats": sats })))?;
+    // The payout address and the wallet go on the offer too, so any of the
+    // account's devices with this wallet can run the swap once it's taken.
+    let address = orien_net::keys::Wallet::peek(wallet).map_err(|error| error.to_string())?.0.to_string();
+    let posted = call(dir, "POST", "/swaps", Some(json!({ "orn": orn, "sats": sats, "payout": payout, "wallet": address })))?;
     let offer = posted["offer"]["id"].as_i64().ok_or("The swap board did not say which offer it posted.")?;
     let mut saved = load(dir);
     saved.links.push(Link { offer, selling: true, bitcoin: payout, swap: None, finished: false, wallet: Some(wallet.to_path_buf()) });
@@ -268,6 +334,8 @@ pub fn withdraw(dir: &Path, offer: i64) -> Result<(), String> {
 
 /// Board swaps of this account that have no swap in this app yet, as the
 /// window shows them: offers on the board, and ones taken but not started.
+/// Each says whether this app can run it (`here`): only the device that
+/// posted or took an offer knows its Bitcoin address and wallet.
 pub fn waiting(dir: &Path, mine: &Value) -> Vec<Value> {
     let saved = load(dir);
     mine.as_array()
@@ -278,8 +346,39 @@ pub fn waiting(dir: &Path, mine: &Value) -> Vec<Value> {
             !saved.links.iter().any(|link| Some(link.offer) == id && link.swap.is_some())
         })
         .filter(|item| matches!(item["offer"]["state"].as_str(), Some("open" | "held" | "swapping")))
-        .cloned()
+        .map(|item| {
+            let id = item["offer"]["id"].as_i64();
+            let mut item = item.clone();
+            // This app can run it: it posted or took it, or the offer names
+            // a wallet this app has.
+            let here = saved.links.iter().any(|link| Some(link.offer) == id)
+                || item["wallet"].as_str().is_some_and(|address| item["payout"].is_string() && wallet_with(dir, address).is_some());
+            // Another of the account's devices claimed it.
+            let elsewhere = item["runner"].as_str().is_some_and(|runner| saved.device.as_deref() != Some(runner));
+            item["here"] = json!(here);
+            // Waiting for its wallet to be unlocked, and whether Touch ID can.
+            let needs = NEEDS_UNLOCK.lock().unwrap_or_else(|poisoned| poisoned.into_inner());
+            if let Some(wallet) = id.and_then(|id| needs.get(&id)) {
+                item["needs_unlock"] = json!(true);
+                item["unlock_wallet"] = json!(wallet.display().to_string());
+                item["unlock_biometric"] = json!(crate::biometric::enabled(wallet));
+            }
+            item["elsewhere"] = json!(elsewhere);
+            item
+        })
         .collect()
+}
+
+/// Taken offers this app would start but for a locked wallet: offer, and
+/// the wallet that must be unlocked.
+pub static NEEDS_UNLOCK: std::sync::Mutex<std::collections::BTreeMap<i64, PathBuf>> =
+    std::sync::Mutex::new(std::collections::BTreeMap::new());
+
+/// Whether this device runs offer `id`, asking the board to make it the
+/// runner if no other device is.
+fn runs(dir: &Path, id: i64, device: &str) -> bool {
+    call(dir, "POST", &format!("/swaps/{id}/run"), Some(json!({ "device": device })))
+        .is_ok_and(|answer| answer["run"].as_bool() == Some(true))
 }
 
 /// This account's swaps on the board, as the board sees them.
@@ -310,10 +409,22 @@ pub fn drive_on(
     all: &mut Vec<Kept>,
 ) -> Result<Value, String> {
     let mine = mine(dir)?;
+    let device = device(dir)?;
     let mut saved = load(dir);
     for item in mine.as_array().into_iter().flatten() {
         let Some(id) = item["offer"]["id"].as_i64() else { continue };
         let state = item["offer"]["state"].as_str().unwrap_or_default();
+        // A taken offer posted elsewhere (another device, or the website)
+        // that names a wallet this app has: this app can run it, if it gets
+        // there first.
+        if state == "held"
+            && !saved.links.iter().any(|link| link.offer == id)
+            && let (Some(payout), Some(address)) = (item["payout"].as_str(), item["wallet"].as_str())
+            && let Some(wallet) = wallet_with(dir, address)
+            && let Ok(bitcoin) = bitcoin_address(payout, network)
+        {
+            saved.links.push(Link { offer: id, selling: true, bitcoin, swap: None, finished: false, wallet: Some(wallet) });
+        }
         let Some(link) = saved.links.iter_mut().find(|link| link.offer == id) else { continue };
         // The board says whether this side has reported the end already.
         if item["finished"].as_bool() == Some(true) {
@@ -325,18 +436,35 @@ pub fn drive_on(
         let result = match (link.selling, kept) {
             // Seller: someone took the offer. Start the swap: it is saved
             // with its secret, then the regular steps lock the ORN.
+            // Only once the board says this device runs it: the first of the
+            // account's devices to ask.
+            (true, None) if state == "held" && !runs(dir, id, &device) => Ok(()),
             (true, None) if state == "held" => {
                 let buyer = item["taker_wallet"].as_str().unwrap_or_default();
                 let (orn, sats) = (item["offer"]["orn"].as_u64().unwrap_or(0), item["offer"]["sats"].as_u64().unwrap_or(0));
-                swaps::sell_on(orien, network, buyer, orn, sats, &link.bitcoin).map(|mut kept| {
+                let wallet = link.wallet.clone().unwrap_or_else(|| orien.wallet_file.clone());
+                let started = swaps::sell_on(orien, network, buyer, orn, sats, &link.bitcoin).map(|mut kept| {
                     kept.board = Some(id);
                     link.swap = Some(kept.id.clone());
                     all.push(kept);
-                })
+                });
+                // A locked wallet waits for its owner: Touch ID, or the
+                // password typed, and the next step goes on.
+                let mut needs = NEEDS_UNLOCK.lock().unwrap_or_else(|poisoned| poisoned.into_inner());
+                match started {
+                    Err(error) if error.starts_with("password:") => {
+                        needs.insert(id, wallet);
+                        Ok(())
+                    }
+                    other => {
+                        needs.remove(&id);
+                        other
+                    }
+                }
             }
             // Seller: the ORN are locked; pass the offer code on.
             (true, Some(index)) if state == "held" && item["offer_code"].is_null() => match all[index].offer.clone() {
-                Some(code) => call(dir, "POST", &format!("/swaps/{id}/offer"), Some(json!({ "code": code }))).map(|_| ()).map_err(String::from),
+                Some(code) => call(dir, "POST", &format!("/swaps/{id}/offer"), Some(json!({ "code": code, "device": device }))).map(|_| ()).map_err(String::from),
                 None => Ok(()),
             },
             // Seller: the buyer replied; take it up.

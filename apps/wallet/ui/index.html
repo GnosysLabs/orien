@@ -97,8 +97,12 @@
     -webkit-tap-highlight-color: transparent; }
   body.phone header { height: 52px; margin: 0 -20px 10px; -webkit-app-region: no-drag; }
   body.phone .status { right: 20px; }
-  body.phone #go-mine, body.phone #choose, body.phone .update { display: none !important; }
+  /* No swaps on iPhone either: Apple asks for licences to offer trading
+     between currencies, and a swap board's accounts bring rules of their own. */
+  body.phone #go-mine, body.phone #go-swap, body.phone #choose, body.phone .update { display: none !important; }
   body.phone .actions.five { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  /* Get ORN is the iPhone's; computers have Mine and Swap. */
+  body:not(.phone) #go-get { display: none; }
   /* 16 points or more, or the iPhone zooms the page in on every tap into a box. */
   body.phone input, body.phone textarea, body.phone .field textarea.tall { font-size: 16px !important; }
   /* Buttons right under the fields: the keyboard covers the bottom of the screen. */
@@ -149,7 +153,8 @@
   }
   .secondary:hover { background: #ffffff08; }
 
-  .topline { display: flex; align-items: center; height: 36px; margin-bottom: 24px; }
+  /* Never squeezed by a long list below it. */
+  .topline { display: flex; align-items: center; height: 36px; margin-bottom: 24px; flex-shrink: 0; }
   .back {
     width: 36px; height: 36px; margin-left: -8px; border: 0; border-radius: 10px;
     background: transparent; cursor: pointer; display: grid; place-items: center; color: var(--dim);
@@ -196,6 +201,8 @@
     padding: 14px 16px; border: 1px solid var(--line); border-radius: 16px; background: var(--surface);
     color: inherit; font: inherit; text-align: left; cursor: pointer; }
   .swap-row + .swap-row { margin-top: 8px; }
+  .swap-row .finish { display: flex; gap: 8px; align-items: center; flex: none; }
+  .swap-row .finish input { width: 140px; padding: 8px 10px; }
   .swap-row:hover { background: var(--surface-hover); }
   .swap-row .sub { font-size: 12.5px; color: var(--dim); }
   .swap-status { margin: 14px 2px 0; line-height: 1.45; }
@@ -645,7 +652,7 @@
   </header>
 
   <!-- Shown while a newly opened wallet's balance and activity load. -->
-  <div class="loading" id="loading" hidden><span class="mark brand"></span></div>
+  <div class="loading" id="loading"><span class="mark brand"></span></div>
 
   <main>
     <!-- First run -->
@@ -662,10 +669,12 @@
     <!-- New wallet: the recovery phrase -->
     <section class="screen" id="phrase" hidden>
       <div class="topline"><h2>Your recovery phrase</h2></div>
-      <p class="lede">Write these 24 words on paper, in order, and keep them somewhere safe. They are the only way back into this wallet if this computer is lost. Anyone who sees them can spend your ORN.</p>
+      <p class="lede">Write these 24 words on paper, in order, and keep them somewhere safe. They are the only way back into this wallet if this device is lost. Anyone who sees them can spend your ORN.</p>
       <ol class="words" id="words"></ol>
+      <button class="secondary" id="phrase-save" data-gap="lg">Save as a text file</button>
+      <p class="fineprint" id="phrase-saved">Anyone who opens the file can spend your ORN. Keep it somewhere only you can reach.</p>
       <div class="push"></div>
-      <label class="agree"><input type="checkbox" id="wrote"> I have written all 24 words down</label>
+      <label class="agree"><input type="checkbox" id="wrote"> I have backed up my recovery phrase</label>
       <button class="primary pearl" id="phrase-done" disabled data-gap="lg">Continue</button>
     </section>
 
@@ -727,6 +736,10 @@
           <span class="icon pearl"><svg width="17" height="17" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.35" stroke-linecap="round" stroke-linejoin="round"><path d="M3 5.5h9.5M10 3l2.5 2.5L10 8M13 10.5H3.5M6 8l-2.5 2.5L6 13"/></svg></span>
           Swap
         </button>
+        <button class="tile" id="go-get">
+          <span class="icon pearl"><svg width="17" height="17" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.35" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3v10M3 8h10"/></svg></span>
+          Get ORN
+        </button>
         <button class="tile" id="go-contacts">
           <span class="icon pearl"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.6"/><path d="M2.8 20c0-3.5 2.8-5.9 6.2-5.9s6.2 2.4 6.2 5.9"/><path d="M15.6 4.6a3.6 3.6 0 0 1 0 6.8"/><path d="M17.9 14.6c2 .7 3.3 2.7 3.3 5.4"/></svg></span>
           Contacts
@@ -747,6 +760,17 @@
     </section>
 
     <!-- Activity -->
+    <!-- iPhone: the ways to get ORN, in place of swapping. -->
+    <section class="screen" id="get" hidden>
+      <div class="topline"><button class="back" data-back aria-label="Back"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10 3 5 8l5 5"/></svg></button><h2>Get ORN</h2></div>
+      <ul class="explain">
+        <li><strong>Be paid in ORN.</strong> Give someone your address and they can send you ORN from their wallet. Payments arrive in seconds.</li>
+        <li><strong>Mine it on a computer.</strong> Install Orien Wallet on your Mac, Windows or Linux computer, open this same wallet there with its recovery phrase, and press Mine. Your computer earns a share of each hour's new ORN.</li>
+        <li><strong>Swap for it on a computer.</strong> Orien Wallet on a computer can swap Bitcoin for ORN with other people, directly between your wallets.</li>
+      </ul>
+      <p class="fineprint">Orien Wallet for computers is at orien.network.</p>
+    </section>
+
     <section class="screen" id="activity" hidden>
       <div class="topline">
         <button class="back" data-back aria-label="Back"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10 3 5 8l5 5"/></svg></button>
@@ -1136,6 +1160,7 @@
         <p class="fineprint">Share it to get paid. It's safe to share: an address can receive, never spend.</p>
       </div>
       <div class="push"></div>
+      <button class="primary pearl" id="share" hidden>Share address</button>
       <button class="primary pearl" id="copy">Copy address</button>
     </section>
   </main>
@@ -1186,6 +1211,28 @@
   }
   const $ = (id) => document.getElementById(id);
 
+  // A touch you can feel on iPhones, as iPhone apps do: a light tap for
+  // every button and row, a click for switches and tabs, and a distinct
+  // buzz when a payment goes through or something goes wrong. Computers
+  // have nothing to feel, so nothing happens there.
+  function feel(kind) {
+    if (!phone) return;
+    const call = kind === "success" || kind === "warning" || kind === "error"
+      ? invoke("plugin:haptics|notification_feedback", { type: kind })
+      : kind === "select" ? invoke("plugin:haptics|selection_feedback")
+      : invoke("plugin:haptics|impact_feedback", { style: kind || "light" });
+    call.catch(() => {});
+  }
+  if (phone) {
+    document.addEventListener("click", (event) => {
+      const el = event.target.closest("button, a, label, input[type=checkbox], input[type=radio], select, [data-back], [onclick]") ||
+        [...event.composedPath()].find((n) => n instanceof Element && getComputedStyle(n).cursor === "pointer");
+      if (!el || el.disabled) return;
+      if (el.matches(".tab, input[type=checkbox], input[type=radio], label")) feel("select");
+      else feel("light");
+    }, true);
+  }
+
   let view = null;          // the latest overview from the validators
   let pending = null;       // { to, amount } while reviewing
 
@@ -1213,7 +1260,7 @@
     for (const s of document.querySelectorAll(".screen")) s.hidden = s.id !== id;
     for (const p of document.querySelectorAll(".problem")) p.hidden = true;
   }
-  function problem(id, text) { $(id).textContent = String(text); $(id).hidden = false; }
+  function problem(id, text) { $(id).textContent = String(text); $(id).hidden = false; feel("error"); }
 
   function setStatus(kind, text) {
     $("status").hidden = false;
@@ -1285,13 +1332,14 @@
     // Never longer than a few seconds, even with the network slow.
     if (waiting) { covered(true); setTimeout(() => covered(false), 8000); }
     show("home"); fitBalance(); loadWallets();
+    invoke("notifications_ask").catch(() => {});
     await refresh();
     if (waiting) { fitBalance(); covered(false); }
   }
 
   async function start() {
     if (await invoke("has_wallet")) home();
-    else show("welcome");
+    else { opening = false; covered(false); show("welcome"); }
   }
 
   // ---- Welcome ----
@@ -1299,14 +1347,27 @@
     $("create").disabled = true;
     try {
       const words = await invoke("create_wallet");
-      $("words").innerHTML = words.map((w) => `<li>${esc(w)}</li>`).join("");
+      $("words").innerHTML = words.map((w) => `<li>${esc(w)}</li>`).join(""); shownWords = words;
       $("wrote").checked = false; $("phrase-done").disabled = true;
       show("phrase");
     } catch (e) { problem("welcome-problem", e); }
     $("create").disabled = false;
   };
+  // The words, while the phrase screen shows them, for saving as a file.
+  let shownWords = [];
+  $("phrase-save").onclick = async () => {
+    $("phrase-save").disabled = true;
+    try {
+      if (await invoke("save_phrase", { words: shownWords })) $("phrase-saved").textContent = "Saved. Anyone who opens the file can spend your ORN: keep it somewhere only you can reach.";
+    } catch (e) { $("phrase-saved").textContent = String(e); }
+    $("phrase-save").disabled = false;
+  };
   $("wrote").onchange = () => { $("phrase-done").disabled = !$("wrote").checked; };
-  $("phrase-done").onclick = () => { $("words").innerHTML = ""; askPassword(); };
+  $("phrase-done").onclick = () => {
+    $("words").innerHTML = ""; shownWords = [];
+    $("phrase-saved").textContent = "Anyone who opens the file can spend your ORN. Keep it somewhere only you can reach.";
+    askPassword();
+  };
 
   // ---- Password ----
   async function askPassword() {
@@ -1354,6 +1415,10 @@
   let renaming = null;
   async function loadWallets() {
     try { walletList = await invoke("wallets"); } catch { walletList = []; }
+    // Wallets added or removed: the network's notifications follow them.
+    if (phone) invoke("push_sync").catch(() => {});
+    // The Market's website offers them by name too, while signed in.
+    invoke("board_wallets_sync").catch(() => {});
     const open = walletList.find((w) => w.current);
     $("wallet-name").textContent = open ? open.name : "Wallet";
     return walletList;
@@ -1370,8 +1435,9 @@
     opening = true;
     loadWallets();
   }
-  // While true, the next look at the home screen waits behind the sunrise.
-  let opening = false;
+  // While true, the next look at the home screen waits behind the sunrise:
+  // as the app starts, and after another wallet is opened.
+  let opening = true;
   function covered(on) {
     const cover = $("loading");
     if (on) { cover.hidden = false; cover.classList.remove("gone"); return; }
@@ -1487,7 +1553,7 @@
     try {
       const words = await invoke("add_wallet", { name, words: null });
       walletOpened();
-      $("words").innerHTML = words.map((w) => `<li>${esc(w)}</li>`).join("");
+      $("words").innerHTML = words.map((w) => `<li>${esc(w)}</li>`).join(""); shownWords = words;
       $("wrote").checked = false; $("phrase-done").disabled = true;
       show("phrase");
     } catch (e) { problem("wallet-add-problem", e); }
@@ -1727,6 +1793,7 @@
         $("d-save").dataset.address = sent.to;
         $("d-detail").textContent = `to ${nameOf(sent.to) || short(sent.to)} · final in ${sent.seconds < 1 ? "under a second" : sent.seconds.toFixed(1) + " s"} · fee ${sent.fee_text}`;
         show("done");
+        feel("success");
         refresh();
       }
     } catch (error) {
@@ -1745,9 +1812,20 @@
   };
 
   // ---- Receive ----
+  // iPhones share the address the iPhone way, through the share sheet, to
+  // Messages, Mail, AirDrop and the rest; copying stays, a step quieter.
+  if (phone && navigator.share) {
+    $("share").hidden = false;
+    $("copy").className = "secondary";
+    $("copy").dataset.gap = "sm";
+  }
+  $("share").onclick = async () => {
+    try { await navigator.share({ text: view.address }); feel("success"); } catch {}
+  };
   $("copy").onclick = async () => {
     await navigator.clipboard.writeText(view.address);
     $("copy").textContent = "Copied";
+    feel("success");
     setTimeout(() => { $("copy").textContent = "Copy address"; }, 1600);
   };
 
@@ -1793,11 +1871,42 @@
 
   async function loadActivity() {
     try { entries = await invoke("activity"); } catch { return; }
+    noticeIncoming();
     $("recent").innerHTML = entries.length
       ? entries.slice(0, 20).map((e) => row(e, relative)).join("")
       : '<div class="empty">No payments yet</div>';
     $("view-all").hidden = entries.length === 0;
     if (!$("activity").hidden) renderAll();
+  }
+  // On computers, money that arrives while the app is open is announced
+  // the way other apps announce things: "You received 25 ORN". Only what
+  // someone sent, not mining or fees, which arrive every hour. iPhones are
+  // told by the network instead, even with the app closed.
+  const heard = new Map();  // wallet address -> payments already seen
+  const paymentKey = (e) => `${e.time}/${e.amount}/${e.counterparty || ""}`;
+  async function noticeIncoming() {
+    if (phone || !view) return;
+    const incoming = entries.filter((e) => e.direction === "received" && (e.kind === "payment" || e.kind === "claim"));
+    const seen = heard.get(view.address);
+    heard.set(view.address, new Set(incoming.map(paymentKey)));
+    // The first look at a wallet only learns what it already has.
+    if (!seen) return;
+    const now = Date.now() / 1000;
+    const fresh = incoming.filter((e) => !seen.has(paymentKey(e)) && now - e.time < 600);
+    if (!fresh.length) return;
+    for (const e of fresh) {
+      const who = e.counterparty && nameOf(e.counterparty);
+      await tell(`You received ${e.amount} ORN` + (who ? ` from ${who}` : ""));
+    }
+  }
+  // A notification from the app, on computers.
+  async function tell(body) {
+    if (phone) return;
+    try {
+      let allowed = await invoke("plugin:notification|is_permission_granted");
+      if (allowed === null || allowed === undefined) allowed = (await invoke("plugin:notification|request_permission")) === "granted";
+      if (allowed) await invoke("plugin:notification|notify", { options: { title: "Orien Wallet", body } });
+    } catch {}
   }
   function renderAll() {
     let html = "", day = null, group = [];
@@ -1884,7 +1993,11 @@
     $("to").value = address; validate(); $("amount").focus();
   };
 
-  setInterval(() => { if (!$("home").hidden || !$("activity").hidden) refresh(); }, 15000);
+  setInterval(() => {
+    if (!$("home").hidden || !$("activity").hidden) refresh();
+    // Elsewhere in the app, still listen for money arriving.
+    else if (!phone && view) loadActivity();
+  }, 15000);
 
   // ---- Swaps ----
   let swapList = [];
@@ -1963,10 +2076,49 @@
     return `Step ${at + 1} of ${steps.length} · ${steps[at].who.split(" · ")[0]}`;
   }
 
+  // Someone took an offer, and its wallet is locked: say so, even with the
+  // window closed, and ask for Touch ID at once, so one touch finishes it.
+  // Once per offer; the row keeps a button for later.
+  const askedToFinish = new Set();
+  async function askToFinish() {
+    for (const item of board.waiting) {
+      if (!item.needs_unlock || askedToFinish.has(item.offer.id)) continue;
+      askedToFinish.add(item.offer.id);
+      const taken = `Someone took your offer to sell ${fmtOrn(item.offer.orn)} ORN.`;
+      if (item.unlock_biometric) {
+        tell(`${taken} Use ${bio} to lock your ORN and finish the swap.`);
+        try { await invoke("biometric_unlock", { path: item.unlock_wallet }); stepSwaps(); } catch {}
+      } else {
+        tell(`${taken} Open Orien Wallet and type your password to finish the swap.`);
+      }
+    }
+  }
+  async function finishTaken(id) {
+    const item = board.waiting.find((x) => x.offer.id === id);
+    if (!item) return;
+    if (item.unlock_biometric) {
+      try { await invoke("biometric_unlock", { path: item.unlock_wallet }); } catch { return; }
+      return stepSwaps();
+    }
+    const box = document.querySelector(`[data-finish-pw="${id}"]`);
+    const password = box ? box.value : "";
+    if (!password) { box && box.focus(); return; }
+    box.value = "";
+    box.blur();
+    await stepSwaps(password);
+  }
+
   function waitingLine(item) {
     const o = item.offer;
     if (item.selling && o.state === "open") return "On the swap board, waiting for someone to take it";
-    if (item.selling) return `Taken by ${item.taker_name || "a buyer"} · this app is locking your ORN`;
+    const taker = `Taken by ${item.taker_name || "a buyer"}`;
+    // Any of your devices with the offer's wallet can run it; the first
+    // one open does.
+    if (item.selling && item.elsewhere) return `${taker} · another of your devices is running this swap`;
+    if (item.selling && !item.here) return `${taker} · this app doesn't have the wallet the offer sells from`;
+    if (item.selling && item.needs_unlock) return `${taker} · unlock your wallet to lock your ORN and finish the swap`;
+    if (item.selling) return `${taker} · this app is locking your ORN`;
+    if (!item.here) return "Open Orien Wallet on the device you took this offer from to finish the swap";
     if (o.state === "held") return `Waiting for ${o.seller_name}'s wallet to lock the ORN for you`;
     return "Checking the ORN the seller locked for you";
   }
@@ -1982,6 +2134,8 @@
 
   function renderSwaps() {
     const list = $("swap-list");
+    // Not while a password is being typed into a row: it would be wiped.
+    if (document.activeElement && document.activeElement.dataset.finishPw) return;
     // How many are still under way, on the tab.
     const open = board.waiting.length + swapList.filter((s) => !["done", "cancelled"].includes(s.stage)).length;
     $("mine-count").textContent = open ? `(${open})` : "";
@@ -1989,11 +2143,16 @@
     list.innerHTML = board.waiting.map((item) => `<div class="swap-row">
       <div><div>${item.selling ? "Sell" : "Buy"} ${esc(fmtOrn(item.offer.orn))} ORN for ${esc(fmtBtc(item.offer.sats))} BTC</div>
       <div class="sub">${esc(waitingLine(item))}</div></div>
-      ${item.selling && item.offer.state === "open" ? `<button class="linkish" data-withdraw="${item.offer.id}">Withdraw</button>` : ""}</div>`).join("")
+      ${item.selling && item.offer.state === "open" ? `<button class="linkish" data-withdraw="${item.offer.id}">Withdraw</button>` : ""}
+      ${item.needs_unlock ? (item.unlock_biometric
+        ? `<button class="linkish" data-finish="${item.offer.id}">Use ${bio}</button>`
+        : `<span class="finish"><input type="password" data-finish-pw="${item.offer.id}" placeholder="Wallet password" aria-label="Wallet password"><button class="linkish" data-finish="${item.offer.id}">Finish</button></span>`) : ""}</div>`).join("")
       + swapList.map((s) => `<button class="swap-row" data-swap="${esc(s.id)}">
       <div><div>${s.role === "sell" ? "Sell" : "Buy"} ${esc(s.orn)} ORN for ${esc(s.btc)} BTC</div>
       <div class="sub">${esc(stageLine(s))}</div></div></button>`).join("");
     for (const b of list.querySelectorAll("[data-swap]")) b.onclick = () => openSwap(b.dataset.swap);
+    for (const b of list.querySelectorAll("[data-finish]")) b.onclick = () => finishTaken(Number(b.dataset.finish));
+    for (const box of list.querySelectorAll("[data-finish-pw]")) box.onkeydown = (e) => { if (e.key === "Enter") finishTaken(Number(box.dataset.finishPw)); };
     for (const b of list.querySelectorAll("[data-withdraw]")) b.onclick = () => withdraw(Number(b.dataset.withdraw));
   }
 
@@ -2065,6 +2224,7 @@
       swapList = stepped.swaps;
       board.waiting = stepped.waiting || [];
       renderSwaps();
+      askToFinish();
       if (!$("swap-detail").hidden) renderDetail();
     } catch (e) {
       if (!$("swap-detail").hidden) problem("detail-problem", e);
@@ -2097,8 +2257,8 @@
     if (!note.hidden) {
       const other = me.wallet && walletList.find((w) => w.address === me.wallet);
       $("bw-text").textContent = me.wallet
-        ? `Marketplace payments go to ${other ? other.name : short(me.wallet)}.`
-        : "Marketplace payments don't go to any wallet yet.";
+        ? `Market payments go to ${other ? other.name : short(me.wallet)}.`
+        : "Market payments don't go to any wallet yet.";
     }
   }
   $("bw-go").onclick = async () => {
@@ -2275,6 +2435,7 @@
           return;
         }
         resetSignin();
+        invoke("board_wallets_sync").catch(() => {});
         show("swaps");
         await loadBoard();
         stepSwaps();
@@ -2289,6 +2450,7 @@
   for (const b of document.querySelectorAll("[data-to]")) b.onclick = () => show(b.dataset.to);
   $("manual-go").onclick = () => show("swap-manual");
 
+  $("go-get").onclick = () => show("get");
   $("go-swap").onclick = async () => { show("swaps"); await loadSwaps(); await loadWallets(); loadBoard(); stepSwaps(); };
   $("detail-back").onclick = async () => { show("swaps"); await loadSwaps(); };
   $("sell-back").onclick = $("buy-back").onclick = () => show("swap-manual");
@@ -2395,7 +2557,10 @@
   };
   checkUpdate();
   setInterval(checkUpdate, 60 * 60 * 1000);
-  loadBook().then(start).then(syncBook).catch((e) => problem("welcome-problem", e));
+  loadBook().then(start).then(syncBook).catch((e) => { covered(false); problem("welcome-problem", e); });
+  // Signed in to the Market: this app's swaps move along from the start,
+  // even with the window closed, as soon as someone takes an offer.
+  if (!phone) invoke("board_me").then((me) => { board.me = me; if (me) stepSwaps(); }).catch(() => {});
 </script>
 </body>
 </html>

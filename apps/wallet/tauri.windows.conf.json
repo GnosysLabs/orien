@@ -3,6 +3,8 @@
     "windows": [
       {
         "title": "Orien Wallet",
+        "visible": false,
+        "backgroundThrottling": "disabled",
         "width": 460,
         "height": 580,
         "resizable": true,

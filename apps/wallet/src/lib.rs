@@ -11,6 +11,8 @@
 
 
 mod activity;
+#[cfg(desktop)]
+mod background;
 mod board;
 mod biometric;
 mod contacts;
@@ -19,6 +21,8 @@ mod linux;
 #[cfg(desktop)]
 mod mining;
 mod money;
+#[cfg(target_os = "ios")]
+mod push;
 mod send;
 mod swaps;
 #[cfg(desktop)]
@@ -450,8 +454,13 @@ async fn set_password(app: AppHandle, password: String) -> Result<(), String> {
 /// Asks for Touch ID or Face ID, and unlocks the open wallet for a few
 /// minutes.
 #[tauri::command]
-async fn biometric_unlock(app: AppHandle) -> Result<(), String> {
-    let wallet = wallet_file(&folder(&app)?).ok_or("no wallet yet")?;
+async fn biometric_unlock(app: AppHandle, path: Option<String>) -> Result<(), String> {
+    // The open wallet, or another of the app's, such as the one a taken
+    // swap offer sells from.
+    let wallet = match path {
+        Some(path) => known_wallets(&folder(&app)?).into_iter().map(|w| w.path).find(|known| known.display().to_string() == path).ok_or("That wallet is not in this app.")?,
+        None => wallet_file(&folder(&app)?).ok_or("no wallet yet")?,
+    };
     tauri::async_runtime::spawn_blocking(move || biometric::unlock(&wallet)).await.map_err(|error| error.to_string())?
 }
 
@@ -477,6 +486,47 @@ async fn biometric_enable(app: AppHandle, password: Option<String>) -> Result<()
                 let mut opened = Wallet::load(&wallet).map_err(|error| error.to_string())?;
                 opened.set_password(Some(&password)).map_err(|error| error.to_string())
             }
+        }
+    })
+    .await
+    .map_err(|error| error.to_string())?
+}
+
+/// Saves a new wallet's recovery phrase as a text file where the person
+/// chooses: through the save window on a computer, or the Files app on an
+/// iPhone. Returns false if they closed it.
+#[tauri::command]
+async fn save_phrase(app: AppHandle, words: Vec<String>) -> Result<bool, String> {
+    if words.len() != 24 {
+        return Err("There is no recovery phrase to save.".into());
+    }
+    let mut text = String::from("Orien Wallet recovery phrase\n\n");
+    for (n, word) in words.iter().enumerate() {
+        text.push_str(&format!("{:>2}. {word}\n", n + 1));
+    }
+    text.push_str("\nAnyone with these 24 words can spend this wallet's ORN. Keep this file private.\n");
+    let name = "Orien recovery phrase.txt";
+    tauri::async_runtime::spawn_blocking(move || {
+        // An iPhone can only hand a finished file to the Files app: written
+        // first to the app's own documents, then removed once handed over.
+        #[cfg(target_os = "ios")]
+        {
+            let documents = PathBuf::from(std::env::var_os("HOME").unwrap_or_default()).join("Documents");
+            let draft = documents.join(name);
+            fs::create_dir_all(&documents).map_err(|error| error.to_string())?;
+            fs::write(&draft, &text).map_err(|error| error.to_string())?;
+            let saved = app.dialog().file().set_file_name(name).blocking_save_file().is_some();
+            let _ = fs::remove_file(&draft);
+            Ok(saved)
+        }
+        #[cfg(not(target_os = "ios"))]
+        {
+            let Some(path) = app.dialog().file().set_file_name(name).add_filter("Text", &["txt"]).blocking_save_file() else {
+                return Ok(false);
+            };
+            let path = path.into_path().map_err(|error| error.to_string())?;
+            orien_net::store::write_replacing(&path, text.as_bytes(), true).map_err(|error| format!("could not save it: {error}"))?;
+            Ok(true)
         }
     })
     .await
@@ -1104,19 +1154,81 @@ async fn board_withdraw(app: AppHandle, offer: i64) -> Result<(), String> {
     tauri::async_runtime::spawn_blocking(move || board::withdraw(&dir, offer)).await.map_err(|error| error.to_string())?
 }
 
+/// Asks the Mac, once, whether the wallet may show notifications, so the
+/// question comes as the wallet opens and not with the first payment,
+/// which macOS would drop while asking. Elsewhere there is nothing to ask.
+#[tauri::command]
+fn notifications_ask(app: AppHandle) {
+    // iPhones also sign up with Apple, to be told of payments while closed.
+    #[cfg(target_os = "ios")]
+    push::start(&app);
+    #[cfg(not(target_os = "ios"))]
+    let _ = app;
+    #[cfg(target_os = "macos")]
+    {
+        use objc2_user_notifications::{UNAuthorizationOptions, UNUserNotificationCenter};
+        // Only a bundled app may ask; a bare program would be stopped.
+        if objc2_foundation::NSBundle::mainBundle().bundleIdentifier().is_none() {
+            return;
+        }
+        let center = UNUserNotificationCenter::currentNotificationCenter();
+        let done = block2::RcBlock::new(|_granted: objc2::runtime::Bool, _error: *mut objc2_foundation::NSError| {});
+        center.requestAuthorizationWithOptions_completionHandler(
+            UNAuthorizationOptions::Alert | UNAuthorizationOptions::Sound,
+            &done,
+        );
+    }
+}
+
+/// Tells the Market this device's wallets and their names, while signed in,
+/// when they changed.
+#[tauri::command]
+async fn board_wallets_sync(app: AppHandle) -> Result<(), String> {
+    let dir = folder(&app)?;
+    tauri::async_runtime::spawn_blocking(move || board::report_wallets(&dir, false)).await.map_err(|error| error.to_string())?
+}
+
+/// Tells the Market server which wallets this iPhone wants to hear about,
+/// when that changed. Nothing to do elsewhere.
+#[tauri::command]
+async fn push_sync() {
+    #[cfg(target_os = "ios")]
+    let _ = tauri::async_runtime::spawn_blocking(push::sync).await;
+}
+
 /// Starts the app: the desktop program's main, and the iPhone app's entry.
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     #[cfg(target_os = "linux")]
     linux::register_appimage();
-    let builder = tauri::Builder::default().plugin(tauri_plugin_dialog::init());
+    let builder = tauri::Builder::default().plugin(tauri_plugin_dialog::init()).plugin(tauri_plugin_haptics::init()).plugin(tauri_plugin_notification::init());
     // Desktop copies update themselves; iPhone copies come from the App Store.
     #[cfg(desktop)]
-    let builder = builder.plugin(tauri_plugin_updater::Builder::new().build());
+    let builder = builder.plugin(tauri_plugin_updater::Builder::new().build()).plugin(
+        tauri_plugin_autostart::Builder::new().args([background::QUIET]).build(),
+    );
     builder
-        .invoke_handler(tauri::generate_handler![has_wallet, create_wallet, restore_wallet, set_password, choose_wallet, overview_now, send_payment, activity, quote, contacts, save_contact, delete_contact, contacts_sync, biometric_unlock, biometric_enable, update::check_update, update::install_update, mine_start, mine_stop, mine_set, mine_status, wallets, wallet_balances, use_wallet, rename_wallet, add_wallet, forget_wallet, swap_list, swap_sell, swap_buy, swap_accept, swap_step, swap_smallest, board_offers, board_me, board_email_start, board_email_finish, board_sign_out, board_post, board_take, board_withdraw, board_link])
-        .run(tauri::generate_context!())
-        .expect("the wallet window could not start");
+        .setup(|app| {
+            // Computers keep the wallet running in the menu bar or tray; the
+            // window starts hidden so a login start shows nothing.
+            #[cfg(desktop)]
+            background::setup(app.handle())?;
+            #[cfg(mobile)]
+            if let Some(window) = app.get_webview_window("main") {
+                let _ = window.show();
+            }
+            Ok(())
+        })
+        .invoke_handler(tauri::generate_handler![has_wallet, create_wallet, save_phrase, restore_wallet, set_password, choose_wallet, overview_now, send_payment, activity, quote, contacts, save_contact, delete_contact, contacts_sync, biometric_unlock, biometric_enable, update::check_update, update::install_update, mine_start, mine_stop, mine_set, mine_status, wallets, wallet_balances, use_wallet, rename_wallet, add_wallet, forget_wallet, swap_list, swap_sell, swap_buy, swap_accept, swap_step, swap_smallest, board_offers, board_me, board_email_start, board_email_finish, board_sign_out, board_post, board_take, board_withdraw, board_link, notifications_ask, push_sync, board_wallets_sync])
+        .build(tauri::generate_context!())
+        .expect("the wallet window could not start")
+        .run(|_app, _event| {
+            // On a Mac, a click on the Dock icon brings the window back.
+            #[cfg(target_os = "macos")]
+            if let tauri::RunEvent::Reopen { .. } = _event {
+                background::show(_app);
+            }
+        });
 }
 
 #[cfg(test)]
