@@ -28,6 +28,8 @@ ExecStart=/usr/local/bin/orien-market \
     --address 74fa1ab82c45ebeed539b03146243ddfc6f0ccb5163f45ea87d21692ba774b7a \
     --resend-key /etc/orien-market/resend.key \
     --openrouter-key /etc/orien-market/openrouter.key \
+    --apns-key /etc/orien-market/apns.p8 \
+    --apns-key-id YP4WHL3F3R \
     --admin-listen 127.0.0.1:7201 \
     --admin-site /var/www/orien.network/current
 Restart=always
