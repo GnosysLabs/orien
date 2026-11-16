@@ -36,6 +36,35 @@ mod keyboard {
         std::ptr::null_mut()
     }
 
+    /// Tells the page where the keyboard's top edge is (in points from the
+    /// top of the screen, or 0 when it's down), each time it moves, so the
+    /// app fits exactly above it: the web view's own measure is off once
+    /// the bar above the keyboard is gone.
+    pub fn follow(app: tauri::AppHandle) {
+        use objc2_foundation::{NSNotification, NSNotificationCenter, NSValue};
+        use objc2_ui_kit::{UIKeyboardFrameEndUserInfoKey, UIKeyboardWillChangeFrameNotification, UIKeyboardWillHideNotification};
+        use tauri::Emitter;
+        let center = NSNotificationCenter::defaultCenter();
+        for (name, hide) in [(unsafe { UIKeyboardWillChangeFrameNotification }, false), (unsafe { UIKeyboardWillHideNotification }, true)] {
+            let app = app.clone();
+            let block = block2::RcBlock::new(move |note: std::ptr::NonNull<NSNotification>| {
+                let note = unsafe { note.as_ref() };
+                let top = if hide {
+                    0.0
+                } else {
+                    note.userInfo()
+                        .and_then(|info| info.objectForKey(unsafe { UIKeyboardFrameEndUserInfoKey }))
+                        .and_then(|value| value.downcast::<NSValue>().ok())
+                        .map(|value| unsafe { objc2_ui_kit::NSValueUIGeometryExtensions::CGRectValue(&*value) }.origin.y)
+                        .unwrap_or(0.0)
+                };
+                let _ = app.emit("keyboard", top);
+            });
+            let observer = unsafe { center.addObserverForName_object_queue_usingBlock(Some(name), None, None, &block) };
+            std::mem::forget(observer);
+        }
+    }
+
     pub fn hide_accessory_bar() {
         let Some(class) = AnyClass::get(c"WKContentView") else { return };
         // SAFETY: the replacement has the method's shape: an object, its
@@ -1602,7 +1631,10 @@ pub fn run() {
                 let _ = window.show();
             }
             #[cfg(target_os = "ios")]
-            keyboard::hide_accessory_bar();
+            {
+                keyboard::hide_accessory_bar();
+                keyboard::follow(app.handle().clone());
+            }
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![has_wallet, create_wallet, save_phrase, restore_wallet, set_password, choose_wallet, overview_now, send_payment, activity, quote, contacts, save_contact, delete_contact, contacts_sync, biometric_unlock, biometric_enable, update::check_update, update::install_update, mine_start, mine_stop, mine_set, mine_status, wallets, wallet_balances, use_wallet, rename_wallet, add_wallet, forget_wallet, swap_list, swap_sell, swap_buy, swap_accept, swap_step, swap_smallest, board_offers, board_me, board_email_start, board_email_finish, board_sign_out, board_post, board_take, board_withdraw, board_link, notifications_ask, push_sync, board_wallets_sync, board_post_sol, board_take_sol, sol_open, sol_payout_check, open_site, qr_code, wallet_profiles, board_profile_save, board_picture_pick, board_verify, board_wallet_states, market_image, board_banner_remove, market_search, market_listings, market_listing, market_profile, market_call, market_pick_pictures, market_listing_picture, dock_badge, mac_notify, board_delete_account, wallet_icons, set_wallet_icon, vault_ready, vault_unlock])

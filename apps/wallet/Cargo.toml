@@ -58,7 +58,7 @@ robius-authentication = "0.3"
 security-framework = "3"
 # Asking for permission to show notifications.
 objc2-user-notifications = { version = "0.3", features = ["UNUserNotificationCenter", "UNNotificationContent", "UNNotificationRequest", "UNNotificationSound", "UNNotificationTrigger", "block2"] }
-objc2-foundation = { version = "0.3", features = ["NSBundle", "NSData", "NSError", "NSString"] }
+objc2-foundation = { version = "0.3", features = ["NSBundle", "NSData", "NSError", "NSString", "NSNotification", "NSDictionary", "NSValue", "NSOperation", "block2"] }
 block2 = "0.6"
 objc2 = "0.6"
 
@@ -71,7 +71,9 @@ objc2-foundation = { version = "0.3", features = ["NSAppleEventManager", "NSAppl
 # Signing up with Apple on iPhones, so the Market server can say when ORN
 # arrives.
 [target.'cfg(target_os = "ios")'.dependencies]
-objc2-ui-kit = { version = "0.3", features = ["UIApplication", "UIResponder"] }
+objc2-ui-kit = { version = "0.3", features = ["UIApplication", "UIResponder", "UIWindow", "UIGeometry", "objc2-core-foundation"] }
+# Where the keyboard is, to fit the app above it exactly.
+objc2-core-foundation = { version = "0.3", features = ["CFCGTypes"] }
 
 [dev-dependencies]
 # A pretend Bitcoin network, for testing whole swaps.

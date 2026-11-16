@@ -126,6 +126,13 @@
   body.phone { position: fixed; inset: 0 0 auto 0; height: var(--app-h, 100%); overflow: hidden; }
   /* With the keyboard up there's no home bar to keep clear of. */
   body.phone.kb-up main > .screen { padding-bottom: 8px !important; }
+  /* Typing: the ORIEN bar steps aside, so there's room for what matters. */
+  body.phone.kb-up header { display: none; }
+  body.phone.kb-up { padding-top: env(safe-area-inset-top); }
+  /* A chat's title row on iPhones: the person takes the room, the buttons
+     stay compact. */
+  body.phone .ch-top .ch-who { flex: 1 1 auto; min-width: 0; }
+  body.phone .ch-top .ch-who > div { min-width: 0; }
   body.phone .screen { overflow-y: auto; overscroll-behavior: contain; -webkit-overflow-scrolling: touch; }
   body.phone .screen::-webkit-scrollbar { width: 0; }
   body.phone #swaps, body.phone #swap-sell, body.phone #swap-buy, body.phone #swap-detail, body.phone #mine,
@@ -1670,28 +1677,29 @@
       if (this.matches("input, textarea") && !this.closest(".screen:not([hidden])")?.dataset.keepFocus) return;
       return focus.apply(this, args);
     };
-    // The keyboard: the app shrinks to the space above it, as iPhone apps
-    // do, instead of the page being pushed up and off the top. The header
-    // stays; a chat's writing box sits right on the keyboard; the box being
-    // typed in is scrolled into view inside its own screen.
-    if (window.visualViewport) {
-      const vv = window.visualViewport;
-      const fit = () => {
-        const up = vv.height < window.innerHeight - 80;
-        document.documentElement.style.setProperty("--app-h", `${Math.round(vv.height)}px`);
-        document.body.classList.toggle("kb-up", up);
-        if (window.scrollY || vv.offsetTop) window.scrollTo(0, 0);
+    // The keyboard: the app fits exactly into the space above it, as iPhone
+    // apps do. The app itself says where the keyboard's top is (the web
+    // view's own measure is off without the bar above the keyboard). The
+    // page never scrolls; screens scroll inside themselves.
+    let keyboardTop = 0;
+    const fitKeyboard = () => {
+      const full = window.innerHeight;
+      const up = keyboardTop > 0 && keyboardTop < full - 40;
+      document.documentElement.style.setProperty("--app-h", `${up ? Math.round(keyboardTop) : full}px`);
+      document.body.classList.toggle("kb-up", up);
+      window.scrollTo(0, 0);
+      requestAnimationFrame(() => {
         const box = document.activeElement;
-        if (up && box && box.matches("input, textarea") && !box.closest(".ch-compose")) {
-          box.scrollIntoView({ block: "nearest", behavior: "smooth" });
-        }
-        const log = document.getElementById("ch-log");
-        if (up && box && box.closest(".ch-compose") && log) log.scrollTop = log.scrollHeight;
-      };
-      vv.addEventListener("resize", fit);
-      vv.addEventListener("scroll", fit);
-      fit();
+        if (!up || !box || !box.matches("input, textarea")) return;
+        if (box.closest(".ch-compose")) { const log = document.getElementById("ch-log"); if (log) log.scrollTop = log.scrollHeight; }
+        else box.scrollIntoView({ block: "nearest" });
+      });
+    };
+    window.__TAURI__.event.listen("keyboard", (e) => { keyboardTop = Number(e.payload) || 0; fitKeyboard(); }).catch(() => {});
+    if (window.visualViewport) {
+      window.visualViewport.addEventListener("scroll", () => { if (window.scrollY || window.visualViewport.offsetTop) window.scrollTo(0, 0); });
     }
+    window.addEventListener("resize", fitKeyboard);
     document.addEventListener("focusout", () => setTimeout(() => { if (!document.activeElement.matches("input, textarea")) window.scrollTo(0, 0); }, 60));
     // No pinching to zoom.
     for (const gesture of ["gesturestart", "gesturechange", "gestureend"]) {
@@ -3907,6 +3915,7 @@
     $("ch-who").innerHTML = `${mkAvatar(c.with_name, c.with_picture)}<div style="min-width:0"><b>${other}</b><small>${c.buying ? "Seller" : "Buyer"}</small></div>`;
     $("ch-about").innerHTML = `<b>About ${esc(c.listing_title)}</b><span>${priceHtml(c)}</span>`;
     $("ch-ask").hidden = c.buying;
+    $("ch-ask").textContent = phone ? "Request" : "Ask for payment";
     $("ch-block").textContent = c.blocked ? `Unblock ${c.with_name}` : `Block ${c.with_name}`;
     $("ch-blocked").hidden = !c.blocked;
     $("ch-blocked").textContent = `You have blocked ${c.with_name}. Unblock them to write.`;
