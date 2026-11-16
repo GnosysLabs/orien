@@ -260,7 +260,9 @@
     border: 1px solid var(--line); border-radius: 14px; background: var(--surface); }
   .tab { height: 34px; border: 0; border-radius: 10px; background: transparent; cursor: pointer; font-weight: 500; color: var(--dim); }
   .tab.on { background: var(--surface-hover); color: var(--ink); }
-  #mine-count { color: var(--faint); font-weight: 400; }
+  #mine-count { color: inherit; font-weight: 400; }
+  .swap-group { margin: 4px 4px 10px; font-size: 12px; font-weight: 600; color: var(--dim); }
+  .swap-group:not(:first-child) { margin-top: 22px; }
   /* Wallets */
   #mn-cpu { width: 100%; accent-color: #b8c7ff; }
   /* The Mine button while mining: a glowing dot, and "Mining". */
@@ -3131,16 +3133,22 @@
     const open = board.waiting.length + swapList.filter((s) => !["done", "cancelled"].includes(s.stage)).length;
     $("mine-count").textContent = open ? `(${open})` : "";
     if (!swapList.length && !board.waiting.length) { list.innerHTML = '<div class="empty">No swaps yet</div>'; return; }
-    list.innerHTML = board.waiting.map((item) => `<div class="swap-row">
+    // Under way first, then finished ones: two groups.
+    const live = (x) => !["done", "cancelled"].includes(x.stage);
+    const row = (s) => `<button class="swap-row" data-swap="${esc(s.id)}">
+      <div><div>${s.role === "sell" ? "Sell" : "Buy"} ${esc(s.orn)} ORN for ${esc(cost(s))}</div>
+      <div class="sub">${esc(stageLine(s))}</div></div></button>`;
+    const going = swapList.filter(live), finished = swapList.filter((x) => !live(x));
+    const openHtml = board.waiting.map((item) => `<div class="swap-row">
       <div><div>${item.selling ? "Sell" : "Buy"} ${esc(fmtOrn(item.offer.orn))} ORN for ${esc(offerPrice(item.offer))}</div>
       <div class="sub">${esc(waitingLine(item))}</div></div>
       ${item.selling && item.offer.state === "open" ? `<button class="linkish" data-withdraw="${item.offer.id}">Withdraw</button>` : ""}
       ${item.needs_unlock ? (item.unlock_biometric
         ? `<button class="linkish" data-finish="${item.offer.id}">Use ${bio}</button>`
         : `<span class="finish"><input type="password" data-finish-pw="${item.offer.id}" placeholder="Wallet password" aria-label="Wallet password"><button class="linkish" data-finish="${item.offer.id}">Finish</button></span>`) : ""}</div>`).join("")
-      + swapList.map((s) => `<button class="swap-row" data-swap="${esc(s.id)}">
-      <div><div>${s.role === "sell" ? "Sell" : "Buy"} ${esc(s.orn)} ORN for ${esc(cost(s))}</div>
-      <div class="sub">${esc(stageLine(s))}</div></div></button>`).join("");
+      + going.map(row).join("");
+    list.innerHTML = (openHtml ? `<div class="swap-group">Open</div>${openHtml}` : "")
+      + (finished.length ? `<div class="swap-group">Finished</div>${finished.map(row).join("")}` : "");
     for (const b of list.querySelectorAll("[data-swap]")) b.onclick = () => openSwap(b.dataset.swap);
     for (const b of list.querySelectorAll("[data-finish]")) b.onclick = () => finishTaken(Number(b.dataset.finish));
     for (const box of list.querySelectorAll("[data-finish-pw]")) box.onkeydown = (e) => { if (e.key === "Enter") finishTaken(Number(box.dataset.finishPw)); };
