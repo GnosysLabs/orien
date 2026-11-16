@@ -626,10 +626,10 @@ escrows and revealed secrets are leaves of the state root, after the accounts (t
             Two people who don’t trust each other swap ORN for Bitcoin with one secret, which the seller of ORN makes:
           </p>
           <ol className="list-decimal space-y-1 pl-5">
-            <li>The seller locks the ORN for the buyer on Orien for 48 epochs.</li>
+            <li>The seller locks the ORN for the buyer on Orien for 12 epochs.</li>
             <li>
-              The buyer checks that lock on Orien, and that at least 30 epochs of it remain, then pays the Bitcoin into
-              a P2WSH output the seller can spend with the secret, or the buyer after a block height 72 blocks ahead.
+              The buyer checks that lock on Orien, and that at least 10 epochs of it remain, then pays the Bitcoin into
+              a P2WSH output the seller can spend with the secret, or the buyer after a block height 36 blocks ahead.
             </li>
             <li>
               The seller spends it once it is 3 blocks deep, while at least 6 blocks remain before the buyer could. The
@@ -648,7 +648,7 @@ OP_ELSE
 OP_ENDIF`}</Formula>
           <p>
             If the buyer never pays, the seller’s ORN come back at their deadline. If the seller never takes the
-            Bitcoin, the buyer takes it back from the block height. The Bitcoin lock ends about a day and a half before
+            Bitcoin, the buyer takes it back from the block height. The Bitcoin lock ends at least 4 hours before
             the ORN lock, so once the secret appears the buyer always has time to claim. The keys on the Bitcoin side
             are one-time keys made for the swap. The same Orien lock works against an equivalent contract on Ethereum
             for ETH and its tokens.
@@ -659,8 +659,8 @@ OP_ENDIF`}</Formula>
             than two thirds of the stake, or by a Merkle path from the escrow list to the last checkpoint’s state
             root. It counts the ORN claimed only on the same kind of proof. Every Bitcoin payment a wallet acts on is
             checked against the bytes of its own transaction, which hash to its id, and every spend against its
-            signature. The seller reveals the secret only for payments every explorer reports at least 3 blocks
-            deep, claims only as many of them as the price needs, largest first, and only at the network’s fee rate
+            signature. The seller reveals the secret only for payments most of the explorers it reads (two of
+            three) report at least 3 blocks deep, claims only as many of them as the price needs, largest first, and only at the network’s fee rate
             with room to triple it, so tiny payments into the lock cannot make the claim too dear to be mined. The
             buyer, who must not miss a payment, reads every explorer that answers and remembers every payment it
             has seen. Claims and refunds signal replace-by-fee and are sent again until mined, at the highest fee
@@ -993,7 +993,7 @@ OP_ENDIF`}</Formula>
             ['States a validator keeps', 'the last 3 epochs'],
             ['Locked payment deadline', '2 to 720 epochs ahead'],
             ['Revealed secrets kept', '168 epochs'],
-            ['Swap: ORN lock, Bitcoin lock', '48 epochs, 72 blocks'],
+            ['Swap: ORN lock, Bitcoin lock', '12 epochs, 36 blocks'],
           ]}
         />
         <p>The domain tags that separate every use of the hash function:</p>
