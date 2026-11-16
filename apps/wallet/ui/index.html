@@ -511,7 +511,16 @@
   .paycard.paid-note { padding: 10px 14px; }
   .ch-day { align-self: center; margin: 8px 0 2px; font-size: 11px; color: var(--faint); }
   .ch-askbox { flex-shrink: 0; padding: 12px; border: 1px solid var(--line); border-radius: 16px; background: var(--surface); margin-bottom: 10px; }
-  .ch-ask-title { font-size: 12.5px; color: var(--dim); }
+  .ch-ask-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+  .ch-ask-title { font-size: 13px; color: var(--dim); }
+  .ch-ask-x { flex: none; width: 30px; height: 30px; margin: -4px -4px -4px 0; border-radius: 50%; display: grid; place-items: center; padding: 0;
+    border: 1px solid var(--line); background: var(--ground-deep); color: var(--dim); cursor: pointer; }
+  .ch-ask-x:hover { color: var(--ink); background: var(--surface-hover); }
+  body.phone .ch-ask-x { width: 36px; height: 36px; }
+  .ch-ask-row { display: flex; align-items: stretch; gap: 10px; margin-top: 12px; }
+  .ch-askbox .ch-amount { height: 48px; border-radius: 16px; padding: 0 16px; font-size: 16px; }
+  .ch-askbox .ch-amount input { font-size: 17px; }
+  .ch-ask-go { flex: none; height: 48px; padding: 0 22px; border-radius: 24px; }
   .ch-amount { flex: 1; display: flex; align-items: center; gap: 8px; padding: 0 12px; height: 36px; border: 1px solid var(--line); border-radius: 12px; background: var(--field); }
   .ch-amount input { flex: 1; min-width: 0; border: 0; background: none; color: var(--ink); font: inherit; outline: none; }
   .ch-amount span { color: var(--faint); font-size: 12.5px; }
@@ -1174,8 +1183,8 @@
       <button class="ch-about" id="ch-about"></button>
       <div class="scroll ch-log" id="ch-log"></div>
       <div class="ch-askbox" id="ch-askbox" hidden>
-        <div class="ch-ask-title" id="ch-ask-title"></div>
-        <div class="ls-ask-row"><div class="box plain ch-amount"><input id="ch-amount" inputmode="decimal" autocomplete="off"><span>ORN</span></div><button class="pill" id="ch-ask-cancel">Cancel</button><button class="pill pearl" id="ch-ask-send">Send request</button></div>
+        <div class="ch-ask-head"><div class="ch-ask-title" id="ch-ask-title"></div><button class="ch-ask-x" id="ch-ask-cancel" aria-label="Cancel"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg></button></div>
+        <div class="ch-ask-row"><div class="ch-amount"><input id="ch-amount" inputmode="decimal" autocomplete="off" placeholder="0"><span>ORN</span></div><button class="pill pearl ch-ask-go" id="ch-ask-send">Send</button></div>
       </div>
       <div class="ch-blocked" id="ch-blocked" hidden></div>
       <div class="problem" id="ch-problem" hidden></div>
