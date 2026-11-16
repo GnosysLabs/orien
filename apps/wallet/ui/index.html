@@ -483,7 +483,22 @@
   .ch-who .avatar { position: relative; overflow: hidden; flex: none; width: 32px; height: 32px; border-radius: 50%; display: grid; place-items: center; background: var(--surface-hover); font-weight: 600; font-size: 13px; }
   .ch-who b { display: block; font-size: 15px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .ch-who small { display: block; font-size: 11.5px; color: var(--faint); }
-  .ch-menu { display: flex; justify-content: flex-end; gap: 8px; margin: -12px 0 12px; }
+  /* ⋯ menus: a frosted-glass menu floating by its button, as on Apple's
+     systems; nothing on the screen moves. */
+  .ch-menu { position: fixed; z-index: 50; width: 250px; padding: 5px; border-radius: 16px; display: grid;
+    background: rgba(48, 49, 55, 0.72); -webkit-backdrop-filter: blur(28px) saturate(1.8); backdrop-filter: blur(28px) saturate(1.8);
+    border: 0.5px solid rgba(255, 255, 255, 0.14); box-shadow: 0 18px 50px rgba(0, 0, 0, 0.5), 0 2px 8px rgba(0, 0, 0, 0.25);
+    transform-origin: top right; animation: menu-in 0.18s cubic-bezier(.2, .9, .3, 1.2); }
+  @keyframes menu-in { from { opacity: 0; transform: scale(0.88); } to { opacity: 1; transform: scale(1); } }
+  .menu-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; width: 100%; min-height: 44px; padding: 10px 12px;
+    border: 0; border-radius: 11px; background: none; color: var(--ink); font: inherit; font-size: 15px; text-align: left; cursor: pointer; }
+  .menu-row + .menu-row { position: relative; }
+  .menu-row + .menu-row::before { content: ""; position: absolute; left: 12px; right: 12px; top: 0; height: 0.5px; background: rgba(255, 255, 255, 0.12); }
+  .menu-row:hover, .menu-row:active { background: rgba(255, 255, 255, 0.08); }
+  .menu-row:hover + .menu-row::before, .menu-row:hover::before { opacity: 0; }
+  .menu-row svg { flex: none; width: 18px; height: 18px; }
+  .menu-row span { line-height: 1.3; }
+  .menu-row.bad { color: #ff7b72; }
   .ch-about { display: flex; justify-content: space-between; gap: 10px; width: 100%; padding: 10px 14px; border: 1px solid var(--line); border-radius: 14px;
     background: var(--surface); color: var(--dim); font: inherit; font-size: 12.5px; text-align: left; cursor: pointer; flex-shrink: 0; }
   /* The listing a chat is about: pearl, so it stands out from the messages. */
@@ -1176,9 +1191,9 @@
           <button class="pill icon" id="ch-more" title="More" aria-label="More"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="19" cy="12" r="1.8"/></svg></button>
         </div>
       </div>
-      <div class="ch-menu" id="ch-menu" hidden>
-        <button class="pill" id="ch-block">Block</button>
-        <button class="pill" id="ch-report">Report</button>
+      <div class="ch-menu" id="ch-menu" role="menu" hidden>
+        <button class="menu-row" id="ch-report"><span>Report</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M5 21V4M5 4h11l-2 4 2 4H5"/></svg></button>
+        <button class="menu-row bad" id="ch-block"><span>Block</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><circle cx="12" cy="12" r="8.5"/><path d="M6 6l12 12"/></svg></button>
       </div>
       <button class="ch-about" id="ch-about"></button>
       <div class="scroll ch-log" id="ch-log"></div>
@@ -1198,9 +1213,9 @@
     <section class="screen" id="seller" hidden>
       <div class="topline"><button class="back" id="sl-back" aria-label="Back"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10 3 5 8l5 5"/></svg></button><h2>Seller</h2>
         <div class="account" id="sl-tools" hidden><button class="pill icon" id="sl-more" title="More" aria-label="More"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="19" cy="12" r="1.8"/></svg></button></div></div>
-      <div class="ch-menu" id="sl-menu" hidden>
-        <button class="pill" id="sl-block">Block</button>
-        <button class="pill" id="sl-report">Report</button>
+      <div class="ch-menu" id="sl-menu" role="menu" hidden>
+        <button class="menu-row" id="sl-report"><span>Report</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M5 21V4M5 4h11l-2 4 2 4H5"/></svg></button>
+        <button class="menu-row bad" id="sl-block"><span>Block</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><circle cx="12" cy="12" r="8.5"/><path d="M6 6l12 12"/></svg></button>
       </div>
       <div class="report-box" id="sl-report-box" hidden>
         <textarea id="sl-report-text" rows="3" maxlength="1000"></textarea>
@@ -1912,6 +1927,7 @@
   function show(id) {
     for (const s of document.querySelectorAll(".screen")) s.hidden = s.id !== id;
     for (const p of document.querySelectorAll(".problem")) p.hidden = true;
+    for (const m of document.querySelectorAll(".ch-menu")) m.hidden = true;
   }
   function problem(id, text) { $(id).textContent = String(text); $(id).hidden = false; feel("error"); }
 
@@ -3876,16 +3892,36 @@
     $("sl-tools").hidden = !board.me || board.me.id === a.id;
     $("sl-menu").hidden = true;
     $("sl-report-box").hidden = true;
-    $("sl-block").textContent = sl.blocked ? `Unblock ${sl.name}` : `Block ${sl.name}`;
+    $("sl-block").firstChild.textContent = sl.blocked ? `Unblock ${sl.name}` : `Block ${sl.name}`;
     $("sl-report-text").placeholder = `What is wrong with ${sl.name}? A scam, pretending to be someone…`;
   }
-  $("sl-more").onclick = () => { $("sl-menu").hidden = !$("sl-menu").hidden; sl.armed = false; $("sl-block").textContent = sl.blocked ? `Unblock ${sl.name}` : `Block ${sl.name}`; };
+  // ⋯ menus float by their button, and close on a tap anywhere else.
+  function toggleMenu(menu, button) {
+    const m = $(menu);
+    if (!m.hidden) { m.hidden = true; return; }
+    for (const other of document.querySelectorAll(".ch-menu")) other.hidden = true;
+    // Out of the screen, so nothing on it can clip or shift it.
+    if (m.parentElement !== document.body) document.body.appendChild(m);
+    const b = $(button).getBoundingClientRect();
+    m.style.top = `${Math.round(b.bottom + 8)}px`;
+    m.style.right = `${Math.round(window.innerWidth - b.right)}px`;
+    m.hidden = false;
+  }
+  document.addEventListener("pointerdown", (e) => {
+    for (const m of document.querySelectorAll(".ch-menu:not([hidden])")) {
+      if (!m.contains(e.target) && !e.target.closest("#ch-more, #sl-more")) m.hidden = true;
+    }
+  }, true);
+  document.addEventListener("keydown", (e) => { if (e.key === "Escape") for (const m of document.querySelectorAll(".ch-menu")) m.hidden = true; });
+  window.addEventListener("resize", () => { for (const m of document.querySelectorAll(".ch-menu")) m.hidden = true; });
+
+  $("sl-more").onclick = () => { toggleMenu("sl-menu", "sl-more"); sl.armed = false; $("sl-block").firstChild.textContent = sl.blocked ? `Unblock ${sl.name}` : `Block ${sl.name}`; };
   $("sl-block").onclick = async () => {
-    if (!sl.blocked && !sl.armed) { sl.armed = true; $("sl-block").textContent = `Block ${sl.name}? They can't message you. Tap again`; return; }
+    if (!sl.blocked && !sl.armed) { sl.armed = true; $("sl-block").firstChild.textContent = `Block ${sl.name}? They can't message you. Tap again`; return; }
     try {
       await mk("POST", `/accounts/${sl.id}/block`, { block: !sl.blocked });
       sl.blocked = !sl.blocked; sl.armed = false;
-      $("sl-block").textContent = sl.blocked ? `Unblock ${sl.name}` : `Block ${sl.name}`;
+      $("sl-block").firstChild.textContent = sl.blocked ? `Unblock ${sl.name}` : `Block ${sl.name}`;
       $("sl-menu").hidden = true;
       feel("success");
     } catch (e) { problem("sl-problem", mkProblem(e)); }
@@ -4022,7 +4058,7 @@
     $("ch-about").innerHTML = `<b>About ${esc(c.listing_title)}</b><span>${priceHtml(c)}</span>`;
     $("ch-ask").hidden = c.buying;
     $("ch-ask").textContent = phone ? "Request" : "Ask for payment";
-    $("ch-block").textContent = c.blocked ? `Unblock ${c.with_name}` : `Block ${c.with_name}`;
+    $("ch-block").firstChild.textContent = c.blocked ? `Unblock ${c.with_name}` : `Block ${c.with_name}`;
     $("ch-blocked").hidden = !c.blocked;
     $("ch-blocked").textContent = `You have blocked ${c.with_name}. Unblock them to write.`;
     $("ch-compose").hidden = !!c.blocked;
@@ -4060,12 +4096,12 @@
   $("ch-back").onclick = () => { chat.id = null; chat.from === "listing" ? show("listing") : openInbox(); };
   $("ch-who").onclick = () => { if (chat.conv) { market.sellerFrom = "chat"; openSeller(chat.conv.with); } };
   $("ch-about").onclick = () => chat.conv && openListing(chat.conv.listing, "chat");
-  $("ch-more").onclick = () => { $("ch-menu").hidden = !$("ch-menu").hidden; chat.blockArmed = false; if (chat.conv) $("ch-block").textContent = chat.conv.blocked ? `Unblock ${chat.conv.with_name}` : `Block ${chat.conv.with_name}`; };
+  $("ch-more").onclick = () => { toggleMenu("ch-menu", "ch-more"); chat.blockArmed = false; if (chat.conv) $("ch-block").firstChild.textContent = chat.conv.blocked ? `Unblock ${chat.conv.with_name}` : `Block ${chat.conv.with_name}`; };
   $("ch-block").onclick = async () => {
     const c = chat.conv;
     if (!c) return;
     // Blocking asks twice: the first tap says what it does.
-    if (!c.blocked && !chat.blockArmed) { chat.blockArmed = true; $("ch-block").textContent = `Block ${c.with_name}? They can't message you. Tap again`; return; }
+    if (!c.blocked && !chat.blockArmed) { chat.blockArmed = true; $("ch-block").firstChild.textContent = `Block ${c.with_name}? They can't message you. Tap again`; return; }
     try { await mk("POST", `/conversations/${c.id}/block`, { block: !c.blocked }); $("ch-menu").hidden = true; await refreshChat(true); }
     catch (e) { problem("ch-problem", mkProblem(e)); }
   };
@@ -4073,8 +4109,9 @@
     const c = chat.conv;
     if (!c) return;
     const box = document.getElementById("ch-report-box");
+    $("ch-menu").hidden = true;
     if (box) { box.remove(); return; }
-    $("ch-menu").insertAdjacentHTML("afterend", `<div class="report-box" id="ch-report-box" style="margin:0 0 12px"><textarea id="ch-report-text" rows="3" maxlength="1000" placeholder="What is wrong with ${esc(c.with_name)}? A scam, pretending to be someone…"></textarea><div class="ls-ask-row"><span class="hint" id="ch-report-done"></span><button class="pill" id="ch-report-send">Send report</button></div></div>`);
+    $("ch-about").insertAdjacentHTML("beforebegin", `<div class="report-box" id="ch-report-box" style="margin:0 0 12px"><textarea id="ch-report-text" rows="3" maxlength="1000" placeholder="What is wrong with ${esc(c.with_name)}? A scam, pretending to be someone…"></textarea><div class="ls-ask-row"><span class="hint" id="ch-report-done"></span><button class="pill" id="ch-report-send">Send report</button></div></div>`);
     $("ch-report-text").focus();
     $("ch-report-send").onclick = async () => {
       try {
