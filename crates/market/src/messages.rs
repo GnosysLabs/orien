@@ -76,6 +76,19 @@ pub struct Notice {
 }
 
 impl Store {
+    /// The other side of a conversation from `sender`, and `sender`'s name.
+    pub fn other_side(&self, conversation: i64, sender: i64) -> Result<Option<(i64, String)>> {
+        Ok(self
+            .db
+            .query_row(
+                "SELECT CASE WHEN c.buyer = ?2 THEN c.seller ELSE c.buyer END, s.name
+                 FROM conversations c JOIN accounts s ON s.id = ?2 WHERE c.id = ?1",
+                params![conversation, sender],
+                |row| Ok((row.get(0)?, row.get(1)?)),
+            )
+            .optional()?)
+    }
+
     /// A message text tidied, or why it cannot be sent.
     pub fn message_text(text: &str) -> Result<String> {
         let body = clean_text(text);

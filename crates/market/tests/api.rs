@@ -447,8 +447,14 @@ async fn swap_offers_go_on_the_board_and_are_taken_through_requests() {
     assert_eq!(board["offers"][0]["seller_name"], "Maya");
     assert_eq!(board["bitcoin"]["usd"], 65_000.0, "with Bitcoin's dollar price");
 
+    let mayas_phone = "ab".repeat(32);
+    market.ask("POST", "/api/market/push/register", Some(&maya), Some(json!({ "token": mayas_phone, "addresses": [] }))).await;
     let (status, body) = market.ask("POST", &format!("/api/market/swaps/{id}/take"), Some(&sam), None).await;
     assert_eq!((status, body["swap"]["offer"]["state"].as_str()), (StatusCode::OK, Some("held")));
+    let notebook = Notebook::default();
+    assert_eq!(orien_market::push::check_once(&market.app, &notebook).unwrap(), 1, "the seller's phone hears");
+    let told: Value = serde_json::from_str(&notebook.0.lock().unwrap()[0].2).unwrap();
+    assert_eq!((told["aps"]["alert"]["body"].as_str(), told["swap"].as_i64()), (Some("Sam took your offer of 500 ORN"), Some(id)));
     let (status, _) = market.ask("POST", &format!("/api/market/swaps/{id}/take"), Some(&sam), None).await;
     assert_eq!(status, StatusCode::BAD_REQUEST, "already held");
     let (_, mine) = market.ask("GET", "/api/market/swaps/mine", Some(&maya), None).await;
@@ -774,4 +780,47 @@ async fn a_wallet_is_verified_by_a_small_payment_and_then_named() {
     assert_eq!(body["profiles"].as_array().unwrap().len(), 0, "one letter finds nobody");
     let (_, body) = market.ask("GET", "/api/market/profiles?q=%25", None, None).await;
     assert_eq!(body["profiles"].as_array().unwrap().len(), 0);
+}
+
+#[tokio::test]
+async fn a_signed_in_phone_hears_about_messages_and_payment_requests() {
+    use orien_market::push::check_once;
+    let market = Market::new();
+    let maya = sign_in_for_tests(&market.app, "Maya");
+    let sam = sign_in_for_tests(&market.app, "Sam");
+    let phone = "ab".repeat(32);
+    // Maya's phone, signed in, with no wallets of its own yet.
+    let (status, body) = market.ask("POST", "/api/market/push/register", Some(&maya), Some(json!({ "token": phone, "addresses": [] }))).await;
+    assert_eq!((status, body["account"].as_bool()), (StatusCode::OK, Some(true)), "{body}");
+
+    let (_, posted) = market.ask("POST", "/api/market/listings", Some(&maya), Some(logo())).await;
+    let listing = posted["listing"]["id"].as_i64().unwrap();
+    let long = format!("Hi! {}", "Can you do it by Friday? ".repeat(10));
+    let (_, body) = market.ask("POST", &format!("/api/market/listings/{listing}/messages"), Some(&sam), Some(json!({ "body": long }))).await;
+    let conversation = body["conversation"].as_i64().unwrap();
+    let notebook = Notebook::default();
+    assert_eq!(check_once(&market.app, &notebook).unwrap(), 1);
+    let sent = notebook.0.lock().unwrap().clone();
+    let payload: Value = serde_json::from_str(&sent[0].2).unwrap();
+    let text = payload["aps"]["alert"]["body"].as_str().unwrap();
+    assert!(text.starts_with("Sam: Hi! Can you do it by Friday?") && text.ends_with('…') && text.chars().count() < 140, "{text}");
+    assert_eq!((payload["kind"].as_str(), payload["conversation"].as_i64()), (Some("message"), Some(conversation)));
+
+    // Sam's own messages don't reach Sam; Maya's request reaches only Sam's phones (none).
+    let (status, _) = market.ask("POST", &format!("/api/market/conversations/{conversation}/request"), Some(&maya), Some(json!({ "amount": 2_500_000_000u64 }))).await;
+    assert_eq!(status, StatusCode::OK);
+    assert_eq!(check_once(&market.app, &notebook).unwrap(), 0);
+
+    // Sam's phone signs in, and hears Maya's next request.
+    let sams_phone = "cd".repeat(32);
+    market.ask("POST", "/api/market/push/register", Some(&sam), Some(json!({ "token": sams_phone, "addresses": [] }))).await;
+    market.ask("POST", &format!("/api/market/conversations/{conversation}/request"), Some(&maya), Some(json!({ "amount": 2_500_000_000u64 }))).await;
+    assert_eq!(check_once(&market.app, &notebook).unwrap(), 1);
+    let last: Value = serde_json::from_str(&notebook.0.lock().unwrap().last().unwrap().2).unwrap();
+    assert_eq!(last["aps"]["alert"]["body"], "Maya asks you to pay 2.5 ORN");
+
+    // Registered again signed out, with no wallets: the phone is forgotten.
+    market.ask("POST", "/api/market/push/register", None, Some(json!({ "token": phone, "addresses": [] }))).await;
+    market.ask("POST", &format!("/api/market/conversations/{conversation}/messages"), Some(&sam), Some(json!({ "body": "Ok" }))).await;
+    assert_eq!(check_once(&market.app, &notebook).unwrap(), 0);
 }

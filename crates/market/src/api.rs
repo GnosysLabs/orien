@@ -60,6 +60,8 @@ pub struct App {
     traffic: Arc<crate::traffic::Traffic>,
     /// The oldest swap rules a buyer's wallet may take offers with.
     min_swap_version: u32,
+    /// Market events waiting for the push watcher to tell phones about.
+    events: Mutex<Vec<crate::push::Event>>,
 }
 
 impl App {
@@ -95,6 +97,7 @@ impl App {
             contacts: Mutex::new(Vec::new()),
             traffic: Arc::new(crate::traffic::Traffic::in_memory()),
             min_swap_version: 0,
+            events: Mutex::new(Vec::new()),
         })
     }
 
@@ -155,7 +158,20 @@ impl App {
         self.payments.clone()
     }
 
-    fn signed_in(&self, headers: &HeaderMap) -> Result<i64, Failure> {
+    /// Queues a notification for the phones of `event.account`.
+    pub(crate) fn tell(&self, event: crate::push::Event) {
+        let mut events = self.events.lock().unwrap();
+        // Bounded, so a stalled watcher can't fill the memory.
+        if events.len() < 10_000 {
+            events.push(event);
+        }
+    }
+
+    pub(crate) fn take_events(&self) -> Vec<crate::push::Event> {
+        std::mem::take(&mut *self.events.lock().unwrap())
+    }
+
+    pub(crate) fn signed_in(&self, headers: &HeaderMap) -> Result<i64, Failure> {
         let token = cookie(headers).ok_or(Failure::SignIn)?;
         self.store.lock().unwrap().session(&token)?.ok_or(Failure::SignIn)
     }
@@ -583,6 +599,16 @@ async fn deliver(app: &App, conversation: i64, sender: i64, body: &str) -> Answe
 
 /// Answers with a sent message, and emails the other side if they should be told.
 fn sent(app: &App, conversation: i64, message: crate::messages::Message, notice: Option<crate::messages::Notice>) -> Response {
+    // The other side's phones hear about every message.
+    if let Ok(Some((to, from))) = app.store.lock().unwrap().other_side(conversation, message.sender) {
+        app.tell(crate::push::Event {
+            account: to,
+            address: None,
+            body: crate::push::message_text(&from, &message.kind, &message.body, message.amount),
+            kind: "message",
+            open: json!({ "conversation": conversation }),
+        });
+    }
     if let Some(notice) = notice {
         let (mailer, origin) = (app.mailer.clone(), app.origin.clone());
         // An email that fails does not unsend the message.
@@ -817,6 +843,13 @@ async fn take_swap(State(app): State<Arc<App>>, headers: HeaderMap, Path(id): Pa
         let taker = store.account(buyer)?.map(|a| a.name).unwrap_or_default();
         (swap, email, taker)
     };
+    app.tell(crate::push::Event {
+        account: swap.offer.seller,
+        address: swap.wallet.clone(),
+        body: format!("{taker} took your offer of {} ORN", crate::store::orn(swap.offer.orn)),
+        kind: "swap",
+        open: json!({ "swap": id }),
+    });
     if let Some(to) = seller_email {
         let (mailer, origin) = (app.mailer.clone(), app.origin.clone());
         tokio::task::spawn_blocking(move || {
@@ -845,6 +878,20 @@ async fn swap_offer_code(State(app): State<Arc<App>>, headers: HeaderMap, Path(i
         };
         (swap, email)
     };
+    let price = if swap.offer.coin == "sol" {
+        format!("{} SOL", trimmed(swap.offer.lamports, 9))
+    } else {
+        format!("{} BTC", bitcoin_amount(swap.offer.sats))
+    };
+    if let Some(taker) = swap.taker {
+        app.tell(crate::push::Event {
+            account: taker,
+            address: swap.taker_wallet.clone(),
+            body: format!("{} accepted your swap: pay {price} now", swap.offer.seller_name),
+            kind: "swap",
+            open: json!({ "swap": id }),
+        });
+    }
     // The buyer's turn: tell them, so it can't be missed.
     if let Some(to) = buyer_email {
         let (mailer, origin) = (app.mailer.clone(), app.origin.clone());
@@ -891,7 +938,27 @@ async fn swap_reply_code(State(app): State<Arc<App>>, headers: HeaderMap, Path(i
 
 async fn finish_swap(State(app): State<Arc<App>>, headers: HeaderMap, Path(id): Path<i64>, Json(request): Json<Finish2>) -> Answer {
     let account = app.signed_in(&headers)?;
-    app.store.lock().unwrap().finish_swap(account, id, request.done).map_err(refused)?;
+    let first_done = app.store.lock().unwrap().finish_swap(account, id, request.done).map_err(refused)?;
+    // The first wallet to finish tells both people's phones, once.
+    if let Some(swap) = first_done {
+        let orn = crate::store::orn(swap.offer.orn);
+        if let Some(taker) = swap.taker {
+            app.tell(crate::push::Event {
+                account: taker,
+                address: swap.taker_wallet.clone(),
+                body: format!("Swap done: your {orn} ORN from {} are yours", swap.offer.seller_name),
+                kind: "swap",
+                open: json!({ "swap": id }),
+            });
+        }
+        app.tell(crate::push::Event {
+            account: swap.offer.seller,
+            address: swap.wallet.clone(),
+            body: format!("Swap done: {} bought your {orn} ORN", swap.taker_name.clone().unwrap_or_else(|| "the buyer".into())),
+            kind: "swap",
+            open: json!({ "swap": id }),
+        });
+    }
     Ok(Json(json!({})).into_response())
 }
 

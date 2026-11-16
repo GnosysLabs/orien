@@ -450,16 +450,21 @@ impl Store {
     /// cancelled (its coins came back). The swap is finished once both have
     /// said so, done only if both say done; or, if only one side ever
     /// reports, three days after it did.
-    pub fn finish_swap(&self, account: i64, id: i64, done: bool) -> Result<()> {
+    /// A wallet's report that the swap ended, done or not. Gives the swap,
+    /// as its seller sees it, when this is the first report that it's done.
+    pub fn finish_swap(&self, account: i64, id: i64, done: bool) -> Result<Option<MySwap>> {
         let swap = self.my_swap(id, account)?;
         if swap.offer.state != "swapping" {
             bail!("this swap is not under way");
         }
+        let done_before: bool =
+            self.db.query_row("SELECT COUNT(*) > 0 FROM swap_finishes WHERE offer = ?1 AND done", [id], |r| r.get(0))?;
         self.db.execute(
             "INSERT OR REPLACE INTO swap_finishes (offer, account, done, at) VALUES (?1, ?2, ?3, ?4)",
             params![id, account, done, now()],
         )?;
-        self.settle_swap(id, false)
+        self.settle_swap(id, false)?;
+        Ok(if done && !done_before { Some(self.my_swap(id, swap.offer.seller)?) } else { None })
     }
 
     /// Finishes a swap both sides have reported on, or, with `waited`, one
