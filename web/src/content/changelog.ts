@@ -55,7 +55,7 @@ export const CHANGELOG: Entry[] = [
     title: 'Fairer swap holds',
     changes: [
       'When a seller’s wallet doesn’t start a taken swap in time, the offer goes back on the board and the buyer is no longer counted as having let it lapse.',
-      'For now, swap offers are posted in Orien Wallet, which then finishes the swap when someone takes it.',
+      'Swap offers can be posted on the website too: choose which of your wallets sells from the Sell from menu, and any of your devices running Orien Wallet 1.7.0 or later finishes the swap.',
     ],
   },
   {
