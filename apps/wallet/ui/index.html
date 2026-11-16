@@ -420,7 +420,8 @@
   .sl-contact { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin-top: 14px; }
   .sl-chip { display: inline-flex; align-items: center; gap: 8px; height: 38px; padding: 0 14px; border: 1px solid var(--line); border-radius: 12px;
     background: var(--ground-deep); color: var(--ink); font: inherit; font-size: 13px; font-weight: 600; cursor: pointer; max-width: 100%; }
-  .sl-chip:hover { background: var(--surface-hover); }
+  .sl-chip:active { background: var(--surface-hover); }
+  @media (hover: hover) { .sl-chip:hover { background: var(--surface-hover); } }
   .sl-chip svg { flex: none; width: 16px; height: 16px; color: #d6cdf3; }
   .sl-chip span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   body.phone .sl-chip { height: 44px; font-size: 14px; }
@@ -501,7 +502,8 @@
     border: 0; border-radius: 11px; background: none; color: var(--ink); font: inherit; font-size: 15px; text-align: left; cursor: pointer; }
   .menu-row + .menu-row { position: relative; }
   .menu-row + .menu-row::before { content: ""; position: absolute; left: 12px; right: 12px; top: 0; height: 0.5px; background: rgba(255, 255, 255, 0.12); }
-  .menu-row:hover, .menu-row:active { background: rgba(255, 255, 255, 0.08); }
+  .menu-row:active { background: rgba(255, 255, 255, 0.08); }
+  @media (hover: hover) { .menu-row:hover { background: rgba(255, 255, 255, 0.08); } }
   .menu-row:hover + .menu-row::before, .menu-row:hover::before { opacity: 0; }
   .menu-row svg { flex: none; width: 18px; height: 18px; }
   .menu-row span { line-height: 1.3; }
@@ -543,7 +545,8 @@
   /* Closing: a quiet ✕ beside the title, with a full-size tap area. */
   .ch-ask-x { flex: none; width: 32px; height: 32px; margin: -8px -8px -8px 0; border-radius: 50%; display: grid; place-items: center; padding: 0;
     border: 0; background: none; color: var(--faint); cursor: pointer; }
-  .ch-ask-x:hover { color: var(--ink); background: #ffffff0d; }
+  .ch-ask-x:active { color: var(--ink); background: #ffffff0d; }
+  @media (hover: hover) { .ch-ask-x:hover { color: var(--ink); background: #ffffff0d; } }
   body.phone .ch-ask-x { width: 44px; height: 44px; margin: -14px -14px -14px 0; }
   .ch-ask-row { display: flex; align-items: stretch; gap: 10px; margin-top: 12px; }
   .ch-askbox .ch-amount { flex: 1 1 auto; min-width: 0; height: 48px; border-radius: 16px; padding: 0 16px; font-size: 16px; }
@@ -3871,7 +3874,9 @@
 
   $("sl-contact").onclick = (e) => {
     const chip = e.target.closest(".sl-chip");
-    if (chip) invoke("open_contact", { kind: chip.dataset.kind, value: chip.dataset.value }).catch(() => {});
+    if (!chip) return;
+    chip.blur();
+    invoke("open_contact", { kind: chip.dataset.kind, value: chip.dataset.value }).catch(() => {});
   };
   $("sl-more").onclick = () => { toggleMenu("sl-menu", "sl-more"); sl.armed = false; $("sl-block").firstChild.textContent = sl.blocked ? `Unblock ${sl.name}` : `Block ${sl.name}`; };
   $("sl-block").onclick = async () => {
