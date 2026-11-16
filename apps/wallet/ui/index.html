@@ -4658,7 +4658,7 @@
         e.target.disabled = true; e.target.innerHTML = '<span class="spinner"></span>Updating';
         try { await invoke("install_update"); } catch (error) { updCard("off", "The update didn't install", String(error), [["OK", "primary pearl", updClose]]); }
       }],
-      ["Later", "", updClose],
+      ["Later", "secondary", updClose],
     ]);
   }
   let appVersion = "";
