@@ -533,13 +533,13 @@
   .ch-askbox { flex-shrink: 0; padding: 12px; border: 1px solid var(--line); border-radius: 16px; background: var(--surface); margin-bottom: 10px; }
   .ch-ask-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
   .ch-ask-title { font-size: 13px; color: var(--dim); }
-  .ch-ask-x { flex: none; width: 30px; height: 30px; margin: -4px -4px -4px 0; border-radius: 50%; display: grid; place-items: center; padding: 0;
-    border: 1px solid var(--line); background: var(--ground-deep); color: var(--dim); cursor: pointer; }
-  .ch-ask-x:hover { color: var(--ink); background: var(--surface-hover); }
-  body.phone .ch-ask-x { width: 36px; height: 36px; }
+  /* Closing: a quiet ✕ beside the title, with a full-size tap area. */
+  .ch-ask-x { flex: none; width: 32px; height: 32px; margin: -8px -8px -8px 0; border-radius: 50%; display: grid; place-items: center; padding: 0;
+    border: 0; background: none; color: var(--faint); cursor: pointer; }
+  .ch-ask-x:hover { color: var(--ink); background: #ffffff0d; }
+  body.phone .ch-ask-x { width: 44px; height: 44px; margin: -14px -14px -14px 0; }
   .ch-ask-row { display: flex; align-items: stretch; gap: 10px; margin-top: 12px; }
-  .ch-ask-row { justify-content: flex-end; }
-  .ch-askbox .ch-amount { flex: 1 1 auto; min-width: 0; max-width: 240px; height: 48px; border-radius: 16px; padding: 0 16px; font-size: 16px; }
+  .ch-askbox .ch-amount { flex: 1 1 auto; min-width: 0; height: 48px; border-radius: 16px; padding: 0 16px; font-size: 16px; }
   .ch-askbox .ch-amount input { width: 100%; min-width: 0; }
   .ch-askbox .ch-amount input { font-size: 17px; }
   .ch-ask-go { flex: none; height: 48px; padding: 0 22px; border-radius: 24px; }
