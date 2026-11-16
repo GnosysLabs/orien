@@ -20,14 +20,25 @@ written in the lock. Instructions, by first byte:
 | 1 Claim | lock, seller, buyer (all writable) | secret 32; before the deadline only |
 | 2 Refund | lock, buyer (writable) | none; at or after the deadline |
 
-The buyer's wallet creates the lock account in the same transaction as
-`Lock`: System Program `create_account` from the buyer, at a fresh keypair's
-address, 113 bytes, owned by the program, funded with amount plus the
-rent-exempt deposit. The secret appears in the claim transaction's data.
+The buyer's wallet makes the lock account in the same transaction as `Lock`,
+at a fresh keypair's address: a System Program transfer of the amount plus
+the rent-exempt deposit, then `Allocate` (113 bytes) and `Assign` (to the
+program), both signed by the lock key. Not `create_account`, which fails if
+the address already holds SOL: the lock address is in the reply code, so a
+stranger could otherwise block the swap by sending it a little. The secret
+appears in the claim transaction's data.
 
 Devnet: `99zcMPAgZwXxoLDwor424zro9BGMATTsMk8djqov2qKf` (upgradeable, for
-testing). Mainnet: deployed after review at exactly its size, then made
-final so nobody can change it.
+testing). Mainnet: `DAeXj31NAoSgno7SiFX7t4tWoMDBtpN9rn8c2X7WNtYE`, deployed at
+exactly its size, tried with one small real swap, then made final so nobody
+can change it.
+
+Two reviews (2026-11-16) found nothing to change in the program. It relies
+on SIMD-0321 (the instruction data's address in register 2) and SBPF v3,
+both active on mainnet. What it doesn't check, the wallet must: an address
+it pays has to be a plain wallet or not exist yet (`sol::payable`), since a
+program or one of Solana's own addresses can't be paid and would leave a
+lock that can be neither claimed nor refunded.
 
 ## A swap
 
@@ -37,7 +48,9 @@ keeps no SOL balance. The steps are `orien_swap::sol::SolSwap`
 (`crates/swap/src/sol.rs`); `step()` moves a swap as far as it can go now.
 
 1. **The buyer takes an offer** on the swap board, in Orien Wallet, giving
-   their Orien address (for the ORN).
+   their Orien address (for the ORN). The seller's payout address must be a
+   wallet (`sol::payable`); otherwise the sale stops before any ORN are
+   locked.
 2. **The seller's wallet locks the ORN** for the buyer behind a new secret's
    hash, for `ORN_EPOCHS` = 4 epochs, and posts the offer code
    (`orien-sol-offer:`), which carries the seller's payout address and the
@@ -60,7 +73,10 @@ keeps no SOL balance. The steps are `orien_swap::sol::SolSwap`
    services: the right hash, paying the payout address at least the price,
    at least `SAFETY_SECONDS` (10 minutes) left, and ending at least
    `MARGIN_SECONDS` (1 hour) before the ORN lock surely does. Then it claims,
-   paying the fee from its fee key, which reveals the secret.
+   paying the fee from its fee key, which reveals the secret. A claim that
+   doesn't land is sent again, but never with less than `LAST_CLAIM_SECONDS`
+   (3 minutes) left: one landing after the deadline would fail yet still
+   show the secret, letting the buyer take back the SOL and the ORN.
 6. **The ORN reach the buyer**: the buyer's wallet reads the secret from the
    claim transaction and claims them; the seller's wallet claims them for the
    buyer too, `DELIVER_AFTER_SECONDS` (5 minutes) after the SOL were final;

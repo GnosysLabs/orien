@@ -123,6 +123,8 @@ pub struct Account {
     pub lamports: u64,
     pub owner: Pubkey,
     pub data: Vec<u8>,
+    /// A program: it can never be paid.
+    pub executable: bool,
 }
 
 /// An orien-lock lock, as it stands.
@@ -252,6 +254,7 @@ impl Solana {
                 lamports: value["lamports"].as_u64().ok_or_else(|| anyhow!("no lamports"))?,
                 owner: address(value["owner"].as_str().ok_or_else(|| anyhow!("no owner"))?)?,
                 data: base64::engine::general_purpose::STANDARD.decode(data)?,
+                executable: value["executable"].as_bool().ok_or_else(|| anyhow!("no executable flag"))?,
             }))
         })?;
         if accounts.iter().any(Option::is_none) {
@@ -491,10 +494,30 @@ pub fn lock(program: &Pubkey, buyer: &Pubkey, lock: &Pubkey, terms: &Lock, depos
     data.extend_from_slice(&terms.buyer);
     data.extend_from_slice(&terms.deadline.to_le_bytes());
     data.extend_from_slice(&terms.amount.to_le_bytes());
+    // Not create_account, which fails on an address that already holds
+    // SOL: anyone who reads the lock address in the reply code could send
+    // it a little to block the swap. A transfer, then making the account
+    // 113 bytes and the program's (both need the lock key), works either way.
     vec![
-        create_account(buyer, lock, terms.amount + deposit, LOCK_LEN, program),
+        transfer(buyer, lock, terms.amount + deposit),
+        allocate(lock, LOCK_LEN),
+        assign(lock, program),
         Instruction { program: *program, accounts: vec![(*lock, true, true)], data },
     ]
+}
+
+/// System Program: gives an account `space` bytes; it signs.
+pub fn allocate(who: &Pubkey, space: u64) -> Instruction {
+    let mut data = 8u32.to_le_bytes().to_vec();
+    data.extend_from_slice(&space.to_le_bytes());
+    Instruction { program: SYSTEM_PROGRAM, accounts: vec![(*who, true, true)], data }
+}
+
+/// System Program: hands an account to `owner`; it signs.
+pub fn assign(who: &Pubkey, owner: &Pubkey) -> Instruction {
+    let mut data = 1u32.to_le_bytes().to_vec();
+    data.extend_from_slice(owner);
+    Instruction { program: SYSTEM_PROGRAM, accounts: vec![(*who, true, true)], data }
 }
 
 /// orien-lock: pay the seller with the secret.
@@ -576,7 +599,7 @@ mod tests {
         data.extend_from_slice(&[3; 32]);
         data.extend_from_slice(&1_800_000_000i64.to_le_bytes());
         data.extend_from_slice(&5u64.to_le_bytes());
-        let account = Account { lamports: 99, owner: program, data };
+        let account = Account { lamports: 99, owner: program, data, executable: false };
         let lock = Lock::read(&account, &program).unwrap();
         assert_eq!((lock.seller, lock.buyer, lock.deadline, lock.amount), ([2; 32], [3; 32], 1_800_000_000, 5));
         assert!(Lock::read(&account, &[8; 32]).is_none(), "another program's account");
@@ -622,6 +645,9 @@ mod tests {
             lamports: 0,
         };
         let at = Keypair::random();
+        // A stranger sends the lock address a little first: it still locks.
+        let early = transaction(&buyer, &[], &[transfer(&buyer.pubkey(), &at.pubkey(), sol.rent(0).unwrap())], sol.blockhash().unwrap()).unwrap();
+        wait(&sol.send(&early).unwrap());
         let deposit = sol.rent(LOCK_LEN).unwrap();
         let locking = transaction(&buyer, &[&at], &lock(&program, &buyer.pubkey(), &at.pubkey(), &terms, deposit), sol.blockhash().unwrap()).unwrap();
         wait(&sol.send(&locking).unwrap());

@@ -7,12 +7,12 @@ use anyhow::{Result, anyhow, bail, ensure};
 use ed25519_dalek::{Signature, VerifyingKey};
 use orien_crypto::Hash32;
 use orien_swap::sol::{
-    CUSHION, FEE, MIN_LAMPORTS, ORN_EPOCHS, SAFETY_SECONDS, SOL_LOCK_SECONDS, Sol, SolOffer, SolReply, SolStage, SolSwap,
+    CUSHION, FEE, LAST_CLAIM_SECONDS, MIN_LAMPORTS, ORN_EPOCHS, RESEND_SECONDS, SAFETY_SECONDS, SOL_LOCK_SECONDS, Sol, SolOffer, SolReply, SolStage, SolSwap,
 };
 use orien_swap::solana::{self, Keypair, LOCK_LEN, LAMPORTS_PER_SOL, Landed, Lock, Pubkey};
 use orien_swap::swap::{LockRef, LockState, Orien, Role, Waiting};
 use std::cell::RefCell;
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 use std::rc::Rc;
 
 // ---------------------------------------------------------------- Orien
@@ -112,6 +112,13 @@ struct Chain {
     locks: HashMap<Pubkey, Vec<u8>>,
     secrets: HashMap<Pubkey, [u8; 32]>,
     landed: HashMap<String, Landed>,
+    /// Given 113 bytes but not yet handed to orien-lock.
+    sized: HashSet<Pubkey>,
+    /// Programs: they hold SOL but can never be paid.
+    programs: HashSet<Pubkey>,
+    /// Transactions sent; with `lose_sends`, they never land.
+    sent: usize,
+    lose_sends: bool,
 }
 
 #[derive(Clone)]
@@ -165,6 +172,9 @@ impl Chain {
         }
         // Solana's rule: every ordinary account holds nothing or at least the
         // rent minimum; a lock account at least its deposit.
+        for program in &next.programs {
+            ensure!(next.balances.get(program) == self.balances.get(program), "a program's balance can't change");
+        }
         for (key, balance) in &next.balances {
             let minimum = if next.locks.contains_key(key) { rent(LOCK_LEN) } else { rent(0) };
             ensure!(*balance == 0 || *balance >= minimum, "{} would be left below the rent minimum", solana::text(key));
@@ -182,6 +192,17 @@ impl Chain {
             ensure!(signer(accounts[0]), "the sender must sign");
             let from = key(0);
             match u32::from_le_bytes(data[..4].try_into().unwrap()) {
+                // Allocate: the lock account, still the System Program's and empty.
+                8 => {
+                    ensure!(!self.locks.contains_key(&from) && !self.sized.contains(&from), "already in use");
+                    ensure!(u64_at(4..12) == LOCK_LEN, "only lock accounts here");
+                    self.sized.insert(from);
+                }
+                // Assign: to orien-lock, once sized.
+                1 => {
+                    ensure!(data[4..36] == PROGRAM && self.sized.remove(&from), "only lock accounts here");
+                    self.locks.insert(from, vec![0; LOCK_LEN as usize]);
+                }
                 0 => {
                     let (lamports, space) = (u64_at(4..12), u64_at(12..20));
                     let to = key(1);
@@ -257,10 +278,23 @@ impl Sol for FakeSol {
     fn balance(&self, who: &Pubkey) -> Result<u64> {
         Ok(self.0.borrow().balances.get(who).copied().unwrap_or(0))
     }
+    fn account(&self, who: &Pubkey) -> Result<Option<solana::Account>> {
+        let chain = self.0.borrow();
+        let lamports = chain.balances.get(who).copied().unwrap_or(0);
+        Ok(if let Some(data) = chain.locks.get(who) {
+            Some(solana::Account { lamports, owner: PROGRAM, data: data.clone(), executable: false })
+        } else if chain.programs.contains(who) {
+            Some(solana::Account { lamports, owner: [9; 32], data: vec![], executable: true })
+        } else if lamports > 0 {
+            Some(solana::Account { lamports, owner: solana::SYSTEM_PROGRAM, data: vec![], executable: false })
+        } else {
+            None
+        })
+    }
     fn lock(&self, at: &Pubkey) -> Result<Option<Lock>> {
         let chain = self.0.borrow();
         let Some(data) = chain.locks.get(at) else { return Ok(None) };
-        let account = solana::Account { lamports: chain.balances.get(at).copied().unwrap_or(0), owner: PROGRAM, data: data.clone() };
+        let account = solana::Account { lamports: chain.balances.get(at).copied().unwrap_or(0), owner: PROGRAM, data: data.clone(), executable: false };
         Ok(Lock::read(&account, &PROGRAM))
     }
     fn time(&self) -> Result<i64> {
@@ -273,7 +307,12 @@ impl Sol for FakeSol {
         Ok([1; 32])
     }
     fn send(&self, tx: &[u8]) -> Result<String> {
-        self.0.borrow_mut().run(tx)
+        let mut chain = self.0.borrow_mut();
+        chain.sent += 1;
+        if chain.lose_sends {
+            return Ok(format!("lost {}", chain.sent));
+        }
+        chain.run(tx)
     }
     fn landed(&self, signature: &str) -> Result<Option<Landed>> {
         Ok(self.0.borrow().landed.get(signature).copied())
@@ -542,4 +581,90 @@ fn bad_offers_and_addresses_are_refused() {
     assert!(seller.accept(&SolReply { hash: [0; 32], lock: wallet.clone(), refund: wallet }).is_err(), "another swap's reply");
     assert_eq!(seller.role, Role::Seller);
     let _ = CUSHION;
+}
+
+// ---------------------------------------------------------------- review fixes
+
+/// A program on the pretend chain, holding some SOL.
+fn program_at(w: &World, seed: u8) -> Pubkey {
+    let key = Keypair::from_secret(&[seed; 32]).pubkey();
+    let mut chain = w.sol.0.borrow_mut();
+    chain.programs.insert(key);
+    chain.balances.insert(key, LAMPORTS_PER_SOL);
+    key
+}
+
+#[test]
+fn a_stranger_funding_the_lock_address_cannot_block_the_swap() {
+    let w = world();
+    let mut seller = w.sell();
+    let mut buyer = w.take(&mut seller);
+    // The lock address is in the reply code for anyone to read.
+    w.pay(&buyer.sol_lock.clone().unwrap(), rent(0));
+    w.pay(&buyer.pay_address().unwrap(), buyer.to_pay);
+    w.step(&mut seller, &mut buyer, 6);
+    assert_eq!((buyer.stage.clone(), seller.stage.clone()), (SolStage::Done, SolStage::Done));
+    assert_eq!(w.sol_balance(&w.payout.pubkey()), PRICE);
+}
+
+#[test]
+fn a_program_cannot_be_the_refund_address() {
+    let w = world();
+    let mut seller = w.sell();
+    let offer = SolOffer::read(&seller.offer("test".into()).unwrap().code()).unwrap();
+    let program = program_at(&w, 40);
+    let refused = SolSwap::buy(&w.buyer, &w.sol, "test", &offer, &solana::text(&program)).err().unwrap();
+    assert!(refused.to_string().contains("not a wallet"), "{refused}");
+    // And a program can't be paid on the pretend chain either.
+    let tx = solana::transaction(&w.wallet, &[], &[solana::transfer(&w.wallet.pubkey(), &program, 1)], [1; 32]).unwrap();
+    assert!(w.sol.send(&tx).is_err());
+    let _ = &mut seller;
+}
+
+#[test]
+fn a_program_payout_stops_the_sale_before_any_orn_are_locked() {
+    let w = world();
+    let program = program_at(&w, 41);
+    let mut seller = SolSwap::sell(&w.seller, "test", w.buyer.me, ORN, PRICE, &solana::text(&program), &w.fee_secret).unwrap();
+    seller.step(&w.sol, &w.seller).unwrap();
+    assert!(matches!(seller.stage, SolStage::Cancelled { .. }), "{:?}", seller.stage);
+    assert_eq!(w.orn(&w.seller), 10_000, "nothing was locked");
+    // A payout address that doesn't exist yet is fine.
+    let fresh = Keypair::from_secret(&[42; 32]).pubkey();
+    let mut ok = SolSwap::sell(&w.seller, "test", w.buyer.me, ORN, PRICE, &solana::text(&fresh), &w.fee_secret).unwrap();
+    ok.step(&w.sol, &w.seller).unwrap();
+    assert_eq!(ok.stage, SolStage::WaitingForReply);
+}
+
+#[test]
+fn the_seller_sends_no_claim_close_to_the_deadline() {
+    let w = world();
+    let mut seller = w.sell();
+    let mut buyer = w.take(&mut seller);
+    w.pay(&buyer.pay_address().unwrap(), buyer.to_pay);
+    for _ in 0..4 {
+        let _ = buyer.step(&w.sol, &w.buyer);
+    }
+    assert_eq!(buyer.stage, SolStage::WaitingForSecret);
+    let deadline = buyer.deadline.unwrap();
+
+    // Every claim from now on is lost on the way.
+    w.sol.0.borrow_mut().lose_sends = true;
+    let _ = seller.step(&w.sol, &w.seller);
+    let _ = seller.step(&w.sol, &w.seller);
+    assert_eq!(seller.stage, SolStage::Claiming);
+    let sends = || w.sol.0.borrow().sent;
+
+    // Well before the deadline, a lost claim is sent again.
+    let before = sends();
+    w.pass_seconds(RESEND_SECONDS);
+    let _ = seller.step(&w.sol, &w.seller);
+    assert_eq!(sends(), before + 1, "resent");
+
+    // Close to it, never: a late claim would show the secret too late.
+    let now = w.sol.0.borrow().time;
+    w.pass_seconds(deadline - LAST_CLAIM_SECONDS - now + 1);
+    let before = sends();
+    let _ = seller.step(&w.sol, &w.seller);
+    assert_eq!(sends(), before, "no claim this close to the deadline");
 }

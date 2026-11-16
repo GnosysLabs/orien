@@ -40,12 +40,35 @@ pub const RESEND_SECONDS: i64 = 90;
 /// The seller's wallet leaves the buyer's wallet this long to claim the ORN
 /// itself before claiming them for the buyer.
 pub const DELIVER_AFTER_SECONDS: i64 = 300;
+/// The seller's wallet sends no claim with less than this left before the
+/// SOL lock's deadline: a claim landing after it fails but still shows the
+/// secret, which would let the buyer take both the SOL back and the ORN. A
+/// transaction can't land more than about a minute after it's sent, and
+/// the finalized clock runs some seconds behind.
+pub const LAST_CLAIM_SECONDS: i64 = 180;
+
+/// Whether orien-lock can pay `who`: a plain wallet, or an address that
+/// doesn't exist yet. A program or one of Solana's own addresses can never
+/// be paid, which would leave a lock that can be neither claimed nor
+/// refunded. Gives the wallet's balance (0 if it doesn't exist), or None
+/// if it can't be paid.
+pub fn payable(sol: &dyn Sol, who: &Pubkey) -> Result<Option<u64>> {
+    Ok(match sol.account(who)? {
+        None => Some(0),
+        Some(account) if account.owner == solana::SYSTEM_PROGRAM && !account.executable => Some(account.lamports),
+        Some(_) => None,
+    })
+}
+
+/// Why an address [`payable`] refuses can't be used.
+pub const NOT_A_WALLET: &str = "that address is a program or a special Solana address, not a wallet: give your own wallet's address";
 
 /// What a SOL swap needs from Solana: [`Solana`] itself, or a test's
 /// pretend one.
 pub trait Sol {
     fn lock_program(&self) -> Option<Pubkey>;
     fn balance(&self, who: &Pubkey) -> Result<u64>;
+    fn account(&self, who: &Pubkey) -> Result<Option<solana::Account>>;
     fn lock(&self, at: &Pubkey) -> Result<Option<Lock>>;
     fn time(&self) -> Result<i64>;
     fn rent(&self, len: u64) -> Result<u64>;
@@ -61,6 +84,9 @@ impl Sol for Solana {
     }
     fn balance(&self, who: &Pubkey) -> Result<u64> {
         Solana::balance(self, who)
+    }
+    fn account(&self, who: &Pubkey) -> Result<Option<solana::Account>> {
+        Solana::account(self, who)
     }
     fn lock(&self, at: &Pubkey) -> Result<Option<Lock>> {
         Solana::lock(self, at)
@@ -336,7 +362,8 @@ impl SolSwap {
         if solana::address(&offer.payout)? == refund_key {
             bail!("your refund address is the seller's payout address: give your own wallet's address");
         }
-        if sol.balance(&refund_key)? == 0 {
+        let Some(held) = payable(sol, &refund_key)? else { bail!(NOT_A_WALLET) };
+        if held == 0 {
             bail!("{refund} has never held SOL: give the address of the wallet you'll pay from");
         }
         let state = orien.proven(&offer.lock).context("the seller's locked ORN cannot be proven yet")?;
@@ -398,7 +425,7 @@ impl SolSwap {
     /// seconds while the swap is open, and save the swap after each call.
     pub fn step(&mut self, sol: &dyn Sol, orien: &dyn Orien) -> Result<()> {
         match (self.role, self.stage.clone()) {
-            (Role::Seller, SolStage::Preparing) => self.seller_lock(orien),
+            (Role::Seller, SolStage::Preparing) => self.seller_lock(sol, orien),
             (Role::Seller, SolStage::WaitingForReply) => {
                 if orien.epoch()? >= self.until {
                     self.stage = SolStage::Cancelled { why: "no reply came; the ORN came back".into() };
@@ -435,13 +462,19 @@ impl SolSwap {
 
     /// Locks the ORN as order number `lock_from` and no other, as the
     /// Bitcoin swap does: a lock made just before a crash is found again.
-    fn seller_lock(&mut self, orien: &dyn Orien) -> Result<()> {
+    fn seller_lock(&mut self, sol: &dyn Sol, orien: &dyn Orien) -> Result<()> {
         let lock = LockRef { from: orien.me(), seq: self.lock_from };
         if let Ok(state) = orien.proven(&lock)
             && state.waiting.is_some_and(|w| w.hash == self.hash && w.to == self.buyer && w.amount == self.orn)
         {
             self.lock = Some(lock);
             self.stage = SolStage::WaitingForReply;
+            return Ok(());
+        }
+        // A payout address that can't be paid would make the SOL unclaimable:
+        // stop before any ORN are locked.
+        if payable(sol, &solana::address(&self.payout)?)?.is_none() {
+            self.stage = SolStage::Cancelled { why: format!("your payout address can't be paid: {NOT_A_WALLET}") };
             return Ok(());
         }
         if orn_seconds_left(orien, self.until)? < SOL_LOCK_SECONDS + MARGIN_SECONDS {
@@ -511,8 +544,9 @@ impl SolSwap {
         }
         let at = self.sol_lock_address()?;
         match sol.lock(&at)? {
-            // Still locked: send the claim again, while the deadline allows.
-            Some(lock) if now >= sent_at + RESEND_SECONDS && now < lock.deadline => self.send_claim(sol, &lock, now),
+            // Still locked: send the claim again, while the deadline surely
+            // allows it to land in time.
+            Some(lock) if now >= sent_at + RESEND_SECONDS && now + LAST_CLAIM_SECONDS < lock.deadline => self.send_claim(sol, &lock, now),
             Some(_) => Ok(()),
             // Gone: claimed (by this claim or another with the secret), or
             // refunded after the deadline.
