@@ -331,6 +331,12 @@
   .account .avatar img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
   .account { display: flex; align-items: center; gap: 8px; }
   .verify-card { margin-top: 22px; padding: 16px 18px; border: 1px solid var(--line); border-radius: 18px; background: var(--surface); }
+  .vf-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 12px 0; border-top: 1px solid var(--line); }
+  #vf-list { margin-top: 12px; }
+  .vf-name { font-weight: 500; }
+  .vf-wait { font-size: 12px; color: var(--faint); text-align: right; }
+  .vf-confirm { margin-top: 4px; padding-top: 12px; border-top: 1px solid var(--line); }
+  .vf-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 14px; }
   .vc-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
   .vc-title { font-weight: 600; }
   .vc-sub { margin-top: 2px; font: 12px ui-monospace, "SF Mono", monospace; color: var(--faint); }
@@ -956,15 +962,19 @@
         <label for="pf-x">X</label>
         <div class="box plain"><input id="pf-x" placeholder="@username" autocomplete="off" spellcheck="false"></div>
       </div>
-      <!-- Proving the profile's wallet, so people paying it see this name. -->
+      <!-- Verifying wallets, so people paying them see "Name – Wallet". -->
       <div class="verify-card" id="pf-verify" hidden>
-        <div class="vc-head"><div><div class="vc-title">Your wallet</div><div class="vc-sub" id="vf-wallet"></div></div><span class="vc-badge" id="vf-badge" hidden>✓ Verified</span></div>
-        <p class="vc-text" id="vf-text"></p>
-        <div class="field" id="vf-pw-field" hidden>
-          <label for="vf-pw">Wallet password</label>
-          <div class="box plain"><input type="password" id="vf-pw" autocomplete="off"></div>
+        <div class="vc-title">Your wallets</div>
+        <p class="vc-text" id="vf-intro">Verify a wallet and people who pay it see your name with it.</p>
+        <div id="vf-list"></div>
+        <div class="vf-confirm" id="vf-confirm" hidden>
+          <p class="vc-text" id="vf-text"></p>
+          <div class="field" id="vf-pw-field" hidden>
+            <label for="vf-pw">Wallet password</label>
+            <div class="box plain"><input type="password" id="vf-pw" autocomplete="off"></div>
+          </div>
+          <div class="vf-actions"><button class="pill" id="vf-cancel">Cancel</button><button class="pill pearl" id="vf-go">Send and verify</button></div>
         </div>
-        <button class="pill pearl" id="vf-go" hidden>Verify</button>
       </div>
       <div class="push"></div>
       <div class="problem" id="pf-problem" hidden></div>
@@ -1486,6 +1496,8 @@
   // address maps to {name, picture}, or to null once asked with no profile.
   const profiles = new Map();
   const profileOf = (address) => (address && profiles.get(address.toLowerCase())) || null;
+  // How a profile's wallet is shown: "Cyph3r – Savings", or just the name.
+  const profileLabel = (p) => p && (p.wallet_name ? `${p.name} – ${p.wallet_name}` : p.name);
   // Asks for any of `addresses` not asked yet; true if a profile turned up.
   async function loadProfiles(addresses) {
     const want = [...new Set(addresses.filter((a) => a && /^[0-9a-f]{64}$/i.test(a)).map((a) => a.toLowerCase()))]
@@ -1840,7 +1852,12 @@
     $("phrase-in").value = ""; checkPhrase(); show("restore"); $("phrase-in").focus();
   };
   $("wr-go").onclick = async () => {
-    try { await invoke("rename_wallet", { path: renaming.path, name: $("wr-name").value }); await showWallets(); }
+    try {
+      await invoke("rename_wallet", { path: renaming.path, name: $("wr-name").value });
+      await showWallets();
+      // Verified wallets are shown by their names: tell the marketplace.
+      invoke("board_wallets_sync").catch(() => {});
+    }
     catch (e) { problem("wallet-rename-problem", e); }
   };
   $("wf-go").onclick = async () => {
@@ -1970,7 +1987,7 @@
   };
   $("to").oninput = validate;
   // A contact's name, or the name of one of the person's own wallets.
-  const nameOf = (address) => (named(address) || walletList.find((w) => w.address === address) || profileOf(address) || {}).name;
+  const nameOf = (address) => (named(address) || walletList.find((w) => w.address === address) || {}).name || profileLabel(profileOf(address));
   // The person's other wallets, as places to send to.
   const ownWallet = (address) => walletList.find((w) => w.address === address && !w.current);
   // As a name is typed: contacts and other wallets whose name or address
@@ -2272,7 +2289,7 @@
       $("c-face").hidden = !p;
       if (!p) return;
       $("c-face").outerHTML = face(address, p.name).replace('<span class="face">', '<span class="face" id="c-face">');
-      if (!$("c-name").value.trim()) { $("c-name").value = p.name; checkContact(); }
+      if (!$("c-name").value.trim()) { $("c-name").value = profileLabel(p).slice(0, 40); checkContact(); }
     };
     if (profiles.has(address)) showFace(); else loadProfiles([address]).then(showFace);
   }
@@ -3057,49 +3074,47 @@
     renderVerify();
     show("profile");
   }
-  // Verifying: one tiny payment from the profile's wallet to Orien Market.
-  let proof = null;
-  function renderVerify(note) {
-    const me = board.me;
+  // Verifying: each wallet by choice, with one tiny payment from it to
+  // Orien Market. Only the open wallet can pay, so only it has a button.
+  let proof = null, states = [];
+  async function renderVerify(note) {
     const card = $("pf-verify");
-    card.hidden = !(me && me.wallet);
+    card.hidden = !board.me;
     if (card.hidden) return;
-    $("vf-wallet").textContent = short(me.wallet);
-    $("vf-badge").hidden = !me.wallet_verified;
-    $("vf-pw-field").hidden = true;
-    $("vf-go").hidden = !!me.wallet_verified;
-    $("vf-go").disabled = false;
-    if (me.wallet_verified) { proof = null; $("vf-text").textContent = "People who pay this wallet see your name and picture."; return; }
-    if (note) { $("vf-text").textContent = note; return; }
-    proof = null;
-    $("vf-go").textContent = "Verify";
-    $("vf-text").textContent = "Verify that this wallet is yours, so people who pay it see your name and picture. Verifying sends a tiny amount from its balance to Orien Market: less than 0.001 ORN, fee included.";
+    try { states = (await invoke("board_wallet_states")) || []; } catch {}
+    const state = (a) => states.find((p) => (p.address || "").toLowerCase() === a);
+    $("vf-list").innerHTML = walletList.map((w) => {
+      const st = state(w.address);
+      const right = st && st.verified ? '<span class="vc-badge">✓ Verified</span>'
+        : w.current ? `<button class="pill" data-verify="${w.address}">Verify</button>`
+        : '<span class="vf-wait">Open it to verify</span>';
+      return `<div class="vf-row"><div><div class="vf-name">${esc(w.name)}</div><div class="vc-sub">${short(w.address)}</div></div>${right}</div>`;
+    }).join("");
+    for (const b of $("vf-list").querySelectorAll("[data-verify]")) b.onclick = () => startVerify(b.dataset.verify, b);
+    if (!note) { $("vf-confirm").hidden = true; proof = null; }
+    else { $("vf-confirm").hidden = false; $("vf-text").textContent = note; $("vf-pw-field").hidden = true; $("vf-go").hidden = true; }
   }
+  async function startVerify(address, button) {
+    button.disabled = true;
+    $("pf-problem").hidden = true;
+    try { proof = await invoke("board_verify", { address }); }
+    catch (e) { button.disabled = false; problem("pf-problem", e); return; }
+    // Plainly, before anything is sent: what verifying means, and the amount.
+    $("vf-text").textContent = `Verifying ties the wallet to your name publicly: everyone will see it's yours, including its balance. It sends ${proof.orn} ORN from this wallet to Orien Market: less than 0.001 ORN, fee included.`;
+    $("vf-pw-field").hidden = !(view && view.locked && !view.biometric);
+    $("vf-go").hidden = false;
+    $("vf-go").disabled = false;
+    $("vf-go").textContent = `Send ${proof.orn} ORN and verify`;
+    $("vf-confirm").hidden = false;
+    if (!$("vf-pw-field").hidden) $("vf-pw").focus();
+  }
+  $("vf-cancel").onclick = () => renderVerify();
   $("vf-go").onclick = async () => {
-    const me = board.me;
+    if (!proof || !view || (proof.address || "").toLowerCase() !== view.address) { renderVerify(); return; }
     $("vf-go").disabled = true;
     $("pf-problem").hidden = true;
+    const address = view.address;
     try {
-      if (!proof) {
-        proof = await invoke("board_verify");
-        const from = (proof.address || "").toLowerCase();
-        if (!view || from !== view.address) {
-          const other = walletList.find((w) => w.address === from);
-          proof = null;
-          renderVerify(other
-            ? `Your profile's wallet is ${other.name}. Switch to it with the wallet button on the home screen, then verify here.`
-            : "Your profile's wallet isn't in this app, so it can't be verified from here.");
-          $("vf-go").hidden = true;
-          return;
-        }
-        // The exact amount, before anything is sent.
-        $("vf-text").textContent = `This sends ${proof.orn} ORN, plus the network fee, from this wallet to Orien Market. Less than 0.001 ORN in all.`;
-        $("vf-pw-field").hidden = !(view.locked && !view.biometric);
-        $("vf-go").textContent = `Send ${proof.orn} ORN and verify`;
-        $("vf-go").disabled = false;
-        if (!$("vf-pw-field").hidden) $("vf-pw").focus();
-        return;
-      }
       $("vf-go").innerHTML = '<span class="spinner"></span>Sending';
       const password = $("vf-pw-field").hidden ? null : $("vf-pw").value;
       if (!password && view.locked && view.biometric) await invoke("biometric_unlock");
@@ -3111,26 +3126,27 @@
         $("vf-text").textContent = "An earlier payment from this wallet had to finish first, so nothing was sent for verifying yet. Tap again to send it.";
         return;
       }
-      $("vf-pw-field").hidden = true;
-      $("vf-go").hidden = true;
-      $("vf-text").textContent = "Sent. Verifying, usually within a minute.";
       refresh();
+      await renderVerify("Sent. Verifying, usually within a minute.");
       // The market sees the payment a few seconds after it's final.
       for (let i = 0; i < 36; i++) {
         await new Promise((r) => setTimeout(r, 5000));
         let done = false;
-        try { done = await invoke("board_wallet_verified"); } catch {}
+        try {
+          const now = (await invoke("board_wallet_states")) || [];
+          done = now.some((p) => (p.address || "").toLowerCase() === address && p.verified);
+        } catch {}
         if (done) {
           board.me = await invoke("board_me");
           renderBoardBar();
-          renderVerify();
+          await renderVerify();
           feel("success");
           return;
         }
       }
       renderVerify("Sent. It's taking longer than usual; check back here in a few minutes.");
     } catch (e) {
-      $("vf-go").textContent = proof ? `Send ${proof.orn} ORN and verify` : "Verify";
+      $("vf-go").textContent = `Send ${proof.orn} ORN and verify`;
       $("vf-go").disabled = false;
       problem("pf-problem", e);
     }

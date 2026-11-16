@@ -384,13 +384,14 @@ pub fn take_sol(dir: &Path, wallet: &Path, offer: i64, address: &str, refund: &s
 
 /// What proving the payout wallet takes: send `orn` ORN from `address` to
 /// `to`. The same amount until it's paid.
-pub fn verify(dir: &Path) -> Result<Value, String> {
-    Ok(call(dir, "POST", "/me/wallet/verify", Some(json!({})))?["proof"].clone())
+pub fn verify(dir: &Path, address: &str) -> Result<Value, String> {
+    Ok(call(dir, "POST", "/me/wallet/verify", Some(json!({ "address": address.trim().to_lowercase() })))?["proof"].clone())
 }
 
-/// Whether the payout wallet is proven yet.
-pub fn wallet_verified(dir: &Path) -> Result<bool, String> {
-    Ok(call(dir, "GET", "/me/wallet", None)?["verified"].as_bool().unwrap_or(false))
+/// The account's wallets and where each stands: verified, or waiting for
+/// its payment.
+pub fn wallet_states(dir: &Path) -> Result<Value, String> {
+    Ok(call(dir, "GET", "/me/wallet", None)?["wallets"].clone())
 }
 
 /// Saves the signed-in account's name, bio and public usernames.
