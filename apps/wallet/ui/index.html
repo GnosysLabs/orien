@@ -2653,12 +2653,14 @@
   async function tell(body) {
     if (phone) return;
     invoke("plugin:window|request_user_attention", { label: "main", value: 2 }).catch(() => {});
+    // Every notification, ORN arriving, swaps and Market messages alike,
+    // comes through here. Macs: only the system's own notification centre
+    // (the plugin's route is dropped silently there). Windows and Linux:
+    // the plugin.
+    if (apple) { invoke("mac_notify", { title: "Orien Wallet", body }).catch(() => {}); return; }
     try {
       let allowed = await invoke("plugin:notification|is_permission_granted");
       if (allowed === null || allowed === undefined) allowed = (await invoke("plugin:notification|request_permission")) === "granted";
-      // Macs: the system's own notification centre; the plugin's route is
-      // dropped silently there.
-      if (apple && await invoke("mac_notify", { title: "Orien Wallet", body })) return;
       if (allowed) await invoke("plugin:notification|notify", { options: { title: "Orien Wallet", body } });
     } catch {}
   }
