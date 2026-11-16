@@ -1132,7 +1132,16 @@
 
     <!-- A seller on the Market -->
     <section class="screen" id="seller" hidden>
-      <div class="topline"><button class="back" id="sl-back" aria-label="Back"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10 3 5 8l5 5"/></svg></button><h2>Seller</h2></div>
+      <div class="topline"><button class="back" id="sl-back" aria-label="Back"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10 3 5 8l5 5"/></svg></button><h2>Seller</h2>
+        <div class="account" id="sl-tools" hidden><button class="pill icon" id="sl-more" title="More" aria-label="More"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="19" cy="12" r="1.8"/></svg></button></div></div>
+      <div class="ch-menu" id="sl-menu" hidden>
+        <button class="pill" id="sl-block">Block</button>
+        <button class="pill" id="sl-report">Report</button>
+      </div>
+      <div class="report-box" id="sl-report-box" hidden>
+        <textarea id="sl-report-text" rows="3" maxlength="1000"></textarea>
+        <div class="ls-ask-row"><span class="hint" id="sl-report-done"></span><button class="pill" id="sl-report-cancel">Cancel</button><button class="pill" id="sl-report-send">Send report</button></div>
+      </div>
       <div class="profile-pic"><div class="pf-banner sl-banner" id="sl-banner"></div><span class="face sl-face" id="sl-face"></span></div>
       <div class="sl-name" id="sl-name"></div>
       <div class="sl-since" id="sl-since"></div>
@@ -3720,9 +3729,45 @@
     const offers = answer.listings || [];
     $("sl-offers").textContent = `What ${a.name || "they"} offer${a.name ? "s" : ""}`;
     $("sl-grid").innerHTML = offers.length ? offers.map(card).join("") : '<div class="empty mk-empty">Nothing on offer right now.</div>';
+    paintSellerTools(answer);
     show("seller");
     $("seller").scrollTop = 0;
   }
+  // Report or block someone right from their page, as Apple asks of apps
+  // where people meet. Blocking asks twice; it stops their messages.
+  const sl = { id: null, name: "", blocked: false, armed: false };
+  function paintSellerTools(answer) {
+    const a = answer.account || {};
+    sl.id = a.id; sl.name = a.name || ""; sl.blocked = !!answer.blocked; sl.armed = false;
+    $("sl-tools").hidden = !board.me || board.me.id === a.id;
+    $("sl-menu").hidden = true;
+    $("sl-report-box").hidden = true;
+    $("sl-block").textContent = sl.blocked ? `Unblock ${sl.name}` : `Block ${sl.name}`;
+    $("sl-report-text").placeholder = `What is wrong with ${sl.name}? A scam, pretending to be someone…`;
+  }
+  $("sl-more").onclick = () => { $("sl-menu").hidden = !$("sl-menu").hidden; sl.armed = false; $("sl-block").textContent = sl.blocked ? `Unblock ${sl.name}` : `Block ${sl.name}`; };
+  $("sl-block").onclick = async () => {
+    if (!sl.blocked && !sl.armed) { sl.armed = true; $("sl-block").textContent = `Block ${sl.name}? They can't message you. Tap again`; return; }
+    try {
+      await mk("POST", `/accounts/${sl.id}/block`, { block: !sl.blocked });
+      sl.blocked = !sl.blocked; sl.armed = false;
+      $("sl-block").textContent = sl.blocked ? `Unblock ${sl.name}` : `Block ${sl.name}`;
+      $("sl-menu").hidden = true;
+      feel("success");
+    } catch (e) { problem("sl-problem", mkProblem(e)); }
+  };
+  $("sl-report").onclick = () => { $("sl-report-box").hidden = false; $("sl-menu").hidden = true; $("sl-report-done").textContent = ""; $("sl-report-text").focus(); };
+  $("sl-report-cancel").onclick = () => { $("sl-report-box").hidden = true; };
+  $("sl-report-send").onclick = async () => {
+    $("sl-report-send").disabled = true;
+    try {
+      await mk("POST", "/reports", { kind: "account", id: sl.id, reason: $("sl-report-text").value.trim() });
+      $("sl-report-text").value = "";
+      $("sl-report-done").textContent = "Thanks. We will look at it.";
+      setTimeout(() => { $("sl-report-box").hidden = true; }, 1600);
+    } catch (e) { problem("sl-problem", mkProblem(e)); }
+    finally { $("sl-report-send").disabled = false; }
+  };
   $("sl-back").onclick = () => market.sellerFrom === "chat" ? show("chat") : show("listing");
 
   // ---- Market messages ----
