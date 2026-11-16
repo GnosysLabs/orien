@@ -549,3 +549,23 @@ async fn phones_hear_about_payments_to_their_wallets_once() {
     check_once(&market.app, &notebook).unwrap();
     assert_eq!(notebook.0.lock().unwrap().len(), before);
 }
+
+#[tokio::test]
+async fn wallets_on_older_swap_rules_cannot_take_once_the_gate_is_on() {
+    let app = App::new(Store::in_memory().unwrap(), folder(), "https://orien.network", true, Mailer::log_only(), Screener::off(), Arc::new(Fake::default()), MARKET)
+        .unwrap()
+        .with_prices(Prices::fixed_for_tests(65_000.0))
+        .with_min_swap_version(2);
+    let market = Market { app: Arc::new(app) };
+    let maya = sign_in_for_tests(&market.app, "Maya");
+    let sam = sign_in_for_tests(&market.app, "Sam");
+    let (_, body) = market.ask("POST", "/api/market/swaps", Some(&maya), Some(json!({ "orn": 5_000_000_000u64, "sats": 5000 }))).await;
+    let id = body["offer"]["id"].as_i64().unwrap();
+    let buyer = "bb".repeat(32);
+    let path = format!("/api/market/swaps/{id}/take");
+    let (status, body) = market.ask("POST", &path, Some(&sam), Some(json!({ "address": buyer }))).await;
+    assert_eq!(status, StatusCode::BAD_REQUEST);
+    assert!(body["error"].as_str().unwrap().contains("update Orien Wallet"), "{body}");
+    let (status, body) = market.ask("POST", &path, Some(&sam), Some(json!({ "address": buyer, "swap_version": 2 }))).await;
+    assert_eq!(status, StatusCode::OK, "{body}");
+}
