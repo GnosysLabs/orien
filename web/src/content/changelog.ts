@@ -28,6 +28,19 @@ export const CHANGELOG: Entry[] = [
   {
     date: '2026-11-16',
     products: ['wallet'],
+    version: '1.8.5',
+    title: 'Orien Market, right in your wallet',
+    changes: [
+      'Browse Orien Market in the app: search, categories, listings with their pictures, and sellers\' pages.',
+      'Message sellers and buyers in the app. When a seller asks for payment, pay it right in the chat with one tap, no copying addresses.',
+      'Sell from the app: post and edit listings with up to four pictures, and close or reopen them.',
+      'Contacts with an Orien profile show their own name and picture, and stay up to date when they change them.',
+      'Your profile saves as you type, and each wallet can get its icon when you add it.',
+    ],
+  },
+  {
+    date: '2026-11-16',
+    products: ['wallet'],
     version: '1.8.4',
     title: 'Names, pictures and a fresh look',
     changes: [
