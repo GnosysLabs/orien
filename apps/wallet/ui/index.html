@@ -406,7 +406,6 @@
   .sl-bio { margin-top: 16px; text-align: center; color: var(--dim); }
   .sl-contact { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px 14px; margin-top: 10px; font-size: 12.5px; color: var(--dim); -webkit-user-select: text; user-select: text; }
   /* Selling */
-  .ls-mine { display: flex; justify-content: flex-end; gap: 8px; margin-top: 12px; }
   .field .se-desc { display: block; width: 100%; min-height: 120px; padding: 12px 14px; border: 1px solid var(--line); border-radius: var(--radius);
     background: var(--field); color: var(--ink); font: inherit; font-size: 14px; letter-spacing: normal; resize: none; outline: none; }
   .field .se-desc:focus { border-color: #8f8aa8; }
@@ -1130,7 +1129,8 @@
 
     <!-- One listing -->
     <section class="screen" id="listing" hidden>
-      <div class="topline"><button class="back" id="ls-back" aria-label="Back"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10 3 5 8l5 5"/></svg></button><h2 id="ls-cat"></h2></div>
+      <div class="topline"><button class="back" id="ls-back" aria-label="Back"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10 3 5 8l5 5"/></svg></button><h2 id="ls-cat"></h2>
+        <div class="account" id="ls-mine" hidden><button class="pill" id="ls-close">Close</button><button class="pill pearl" id="ls-edit">Edit</button></div></div>
       <div class="ls-gallery" id="ls-gallery"></div>
       <div class="ls-thumbs" id="ls-thumbs" hidden></div>
       <h1 class="ls-title" id="ls-title"></h1>
@@ -1139,7 +1139,6 @@
       <div class="section-head"><h3>About this</h3></div>
       <div class="ls-desc" id="ls-desc"></div>
       <div class="note" id="ls-note"></div>
-      <div class="ls-mine" id="ls-mine" hidden><button class="pill" id="ls-close">Close listing</button><button class="pill pearl" id="ls-edit">Edit listing</button></div>
       <div class="ls-ask" id="ls-ask" hidden>
         <textarea id="ls-msg" rows="3" maxlength="2000"></textarea>
         <div class="ls-ask-row"><span class="hint" id="ls-ask-hint"></span><button class="pill pearl" id="ls-send">Send message</button></div>
@@ -3605,7 +3604,7 @@
     $("ls-ask-hint").textContent = "";
     $("ls-report").hidden = market.mine || !signedIn;
     $("ls-mine").hidden = !market.mine;
-    $("ls-close").textContent = l.open === false ? "Reopen listing" : "Close listing";
+    $("ls-close").textContent = l.open === false ? "Reopen" : "Close";
     $("ls-report-box").hidden = true;
     show("listing");
     $("listing").scrollTop = 0;
