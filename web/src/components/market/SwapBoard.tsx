@@ -362,7 +362,21 @@ function PostOffer({
   const [orn, setOrn] = useState("");
   const [btc, setBtc] = useState("");
   const [payout, setPayout] = useState("");
+  // The account's wallets, by the names given them in Orien Wallet.
+  const [wallets, setWallets] = useState<
+    { address: string; name: string }[] | null
+  >(null);
+  const [from, setFrom] = useState("");
   const [trouble, setTrouble] = useState("");
+  useEffect(() => {
+    if (!ANY_DEVICE_SWAPS || !account) return;
+    ask<{ wallets: { address: string; name: string }[] }>("/me/wallets")
+      .then((found) => {
+        setWallets(found.wallets);
+        setFrom((now) => now || found.wallets[0]?.address || "");
+      })
+      .catch(() => setWallets([]));
+  }, [account]);
   const [posted, setPosted] = useState(false);
 
   if (account === undefined) return null;
@@ -378,6 +392,7 @@ function PostOffer({
     if (units === null) return setTrouble("Write how many ORN, like 500.");
     if (sats === null)
       return setTrouble("Write the Bitcoin price in BTC, like 0.01.");
+    if (!from) return setTrouble("Choose the wallet you sell from.");
     if (!payout.trim())
       return setTrouble("Write the Bitcoin address the buyer's Bitcoin go to.");
     try {
@@ -385,7 +400,7 @@ function PostOffer({
         orn: units,
         sats,
         payout: payout.trim(),
-        wallet: account?.wallet,
+        wallet: from,
       });
       setOrn("");
       setBtc("");
@@ -428,10 +443,10 @@ function PostOffer({
           </Link>{" "}
           to post an offer.
         </p>
-      ) : !account.wallet ? (
+      ) : wallets === null ? null : wallets.length === 0 ? (
         <p className="text-sm leading-relaxed text-muted">
-          Sign in to Orien Wallet with this account first, so the swap board
-          knows which wallet your ORN come from.
+          Sign in to the Market from Orien Wallet first, so the swap board knows
+          your wallets.
         </p>
       ) : (
         <>
@@ -474,6 +489,20 @@ function PostOffer({
             </label>
           </div>
           <label className="flex flex-col gap-2">
+            <span className="text-sm font-semibold text-ink">Sell from</span>
+            <select
+              value={from}
+              onChange={(e) => setFrom(e.target.value)}
+              className={`${field} appearance-none`}
+            >
+              {wallets.map((w) => (
+                <option key={w.address} value={w.address}>
+                  {w.name} · {w.address.slice(0, 6)}…{w.address.slice(-6)}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label className="flex flex-col gap-2">
             <span className="text-sm font-semibold text-ink">
               Your Bitcoin address, where the buyer&apos;s Bitcoin go
             </span>
@@ -487,11 +516,7 @@ function PostOffer({
             />
           </label>
           <p className="text-sm text-muted">
-            The ORN come from your wallet{" "}
-            <span className="num text-ink">
-              {account.wallet.slice(0, 6)}…{account.wallet.slice(-6)}
-            </span>
-            . At least 0.00005 BTC, more when Bitcoin is busy. Nothing is locked
+            At least 0.00005 BTC, more when Bitcoin is busy. Nothing is locked
             until someone takes your offer; then Orien Wallet, running on any of
             your devices, finishes the swap. You get an email when it is taken.
           </p>

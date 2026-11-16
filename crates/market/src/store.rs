@@ -291,6 +291,7 @@ impl Store {
         store.create_vault_table()?;
         store.create_moderation_tables()?;
         store.create_push_tables()?;
+        store.create_account_wallet_table()?;
         Ok(store)
     }
 

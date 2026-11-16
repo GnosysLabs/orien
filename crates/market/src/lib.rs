@@ -2,6 +2,7 @@
 //! listings of work and things for ORN, and reviews. It never holds coins:
 //! buyers pay sellers from their own wallets.
 
+pub mod account_wallets;
 pub mod admin;
 pub mod api;
 pub mod images;

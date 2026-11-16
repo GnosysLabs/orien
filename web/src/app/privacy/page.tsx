@@ -78,6 +78,10 @@ export default function PrivacyPage() {
             can, for example to look into a report of a scam.
           </li>
           <li>
+            <strong>The names and addresses of the wallets in your Orien Wallet apps,</strong> when you sign in to the
+            Market from them, so the swap board can let you choose which wallet sells. Only you see them.
+          </li>
+          <li>
             <strong>Reports you make,</strong> and what we did about them.
           </li>
           <li>

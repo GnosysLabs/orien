@@ -256,6 +256,7 @@ pub fn router(app: Arc<App>) -> Router {
             post(set_banner).delete(remove_banner).layer(axum::extract::DefaultBodyLimit::max(images::MAX_UPLOAD)),
         )
         .route("/api/market/me/wallet", get(wallet).post(link_wallet))
+        .route("/api/market/me/wallets", get(my_wallets).put(report_wallets))
         .route("/api/market/me/delete", post(delete_me))
         .route("/api/market/profiles/{id}", get(profile))
         .route("/api/market/listings/{id}/messages", post(message_seller))
@@ -838,6 +839,35 @@ async fn link_wallet(State(app): State<Arc<App>>, headers: HeaderMap, Json(reque
     }
     app.store.lock().unwrap().set_wallet(id, &address).map_err(refused)?;
     Ok(Json(json!({ "wallet": address })).into_response())
+}
+
+#[derive(Deserialize)]
+struct ReportedWallet {
+    address: String,
+    #[serde(default)]
+    name: String,
+}
+
+#[derive(Deserialize)]
+struct ReportedWallets {
+    device: String,
+    #[serde(default)]
+    wallets: Vec<ReportedWallet>,
+}
+
+/// Orien Wallet says which wallets this device holds, by name.
+async fn report_wallets(State(app): State<Arc<App>>, headers: HeaderMap, Json(request): Json<ReportedWallets>) -> Answer {
+    let id = app.signed_in(&headers)?;
+    let wallets: Vec<(String, String)> = request.wallets.into_iter().map(|w| (w.address, w.name)).collect();
+    let kept = app.store.lock().unwrap().report_wallets(id, &request.device, &wallets).map_err(refused)?;
+    Ok(Json(json!({ "wallets": kept })).into_response())
+}
+
+/// The account's wallets, by name, for "Sell from".
+async fn my_wallets(State(app): State<Arc<App>>, headers: HeaderMap) -> Answer {
+    let id = app.signed_in(&headers)?;
+    let wallets = app.store.lock().unwrap().account_wallets(id)?;
+    Ok(Json(json!({ "wallets": wallets })).into_response())
 }
 
 /// The linked wallet.
