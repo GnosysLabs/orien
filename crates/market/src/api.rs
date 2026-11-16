@@ -269,6 +269,7 @@ pub fn router(app: Arc<App>) -> Router {
         .route("/api/market/swaps/{id}/take", post(take_swap))
         .route("/api/market/swaps/{id}/close", post(close_swap))
         .route("/api/market/swaps/{id}/offer", post(swap_offer_code))
+        .route("/api/market/swaps/{id}/run", post(run_swap))
         .route("/api/market/swaps/{id}/reply", post(swap_reply_code))
         .route("/api/market/swaps/{id}/finish", post(finish_swap))
         .route("/api/market/reports", post(report))
@@ -676,6 +677,24 @@ async fn report(State(app): State<Arc<App>>, headers: HeaderMap, Json(request): 
 struct NewSwap {
     orn: u64,
     sats: u64,
+    /// The Bitcoin address to be paid at, and the wallet the ORN come from,
+    /// so any of the seller's wallets can run the swap.
+    #[serde(default)]
+    payout: Option<String>,
+    #[serde(default)]
+    wallet: Option<String>,
+}
+
+#[derive(Deserialize)]
+struct OfferCode {
+    code: String,
+    #[serde(default)]
+    device: Option<String>,
+}
+
+#[derive(Deserialize)]
+struct Run {
+    device: String,
 }
 
 #[derive(Deserialize)]
@@ -698,7 +717,12 @@ async fn open_swaps(State(app): State<Arc<App>>) -> Answer {
 
 async fn post_swap(State(app): State<Arc<App>>, headers: HeaderMap, Json(request): Json<NewSwap>) -> Answer {
     let seller = app.signed_in(&headers)?;
-    let offer = app.store.lock().unwrap().post_swap(seller, request.orn, request.sats).map_err(refused)?;
+    let offer = app
+        .store
+        .lock()
+        .unwrap()
+        .post_swap_for(seller, request.orn, request.sats, request.payout.as_deref(), request.wallet.as_deref())
+        .map_err(refused)?;
     Ok((StatusCode::CREATED, Json(json!({ "offer": offer }))).into_response())
 }
 
@@ -749,10 +773,17 @@ async fn close_swap(State(app): State<Arc<App>>, headers: HeaderMap, Path(id): P
     Ok(Json(json!({})).into_response())
 }
 
-async fn swap_offer_code(State(app): State<Arc<App>>, headers: HeaderMap, Path(id): Path<i64>, Json(request): Json<Code>) -> Answer {
+async fn swap_offer_code(State(app): State<Arc<App>>, headers: HeaderMap, Path(id): Path<i64>, Json(request): Json<OfferCode>) -> Answer {
     let seller = app.signed_in(&headers)?;
-    let swap = app.store.lock().unwrap().post_offer_code(seller, id, &request.code).map_err(refused)?;
+    let swap = app.store.lock().unwrap().post_offer_code_from(seller, id, &request.code, request.device.as_deref()).map_err(refused)?;
     Ok(Json(json!({ "swap": swap })).into_response())
+}
+
+/// One of the seller's devices asks to run a taken offer: whether it may.
+async fn run_swap(State(app): State<Arc<App>>, headers: HeaderMap, Path(id): Path<i64>, Json(request): Json<Run>) -> Answer {
+    let seller = app.signed_in(&headers)?;
+    let run = app.store.lock().unwrap().run_swap(seller, id, &request.device).map_err(refused)?;
+    Ok(Json(json!({ "run": run })).into_response())
 }
 
 async fn swap_reply_code(State(app): State<Arc<App>>, headers: HeaderMap, Path(id): Path<i64>, Json(request): Json<Code>) -> Answer {

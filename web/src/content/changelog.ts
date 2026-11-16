@@ -36,6 +36,15 @@ export const CHANGELOG: Entry[] = [
     unreleased: true,
   },
   {
+    date: '2026-11-16',
+    products: ['marketplace'],
+    title: 'Fairer swap holds',
+    changes: [
+      'When a seller’s wallet doesn’t start a taken swap in time, the offer goes back on the board and the buyer is no longer counted as having let it lapse.',
+      'For now, swap offers are posted in Orien Wallet, which then finishes the swap when someone takes it.',
+    ],
+  },
+  {
     date: '2026-11-15',
     products: ['marketplace'],
     title: 'A contact page',
