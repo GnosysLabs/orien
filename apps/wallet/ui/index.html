@@ -319,6 +319,8 @@
   .topline .account .avatar { position: relative; overflow: hidden; width: 32px; height: 32px; border-radius: 50%;
     background: var(--surface-hover); display: grid; place-items: center; font-weight: 600; color: var(--ink); font-size: 13px; }
   .topline .account .avatar img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+  .pill.icon { width: 32px; padding: 0; color: var(--dim); }
+  .pill.icon:hover { color: var(--ink); }
   .topline .account { margin-left: auto; display: flex; align-items: center; gap: 10px; font-size: 12.5px; color: var(--dim); }
   .offer { display: grid; grid-template-columns: 36px 1fr auto; gap: 12px; align-items: center;
     padding: 14px 14px 14px 16px; border: 1px solid var(--line); border-radius: 16px; background: var(--surface); }
@@ -2562,7 +2564,14 @@
     $("board-who").hidden = !me;
     $("board-who").innerHTML = me ? avatar({ seller_name: me.name, seller_picture: me.picture }) : "";
     $("board-who").title = me ? `Signed in as ${me.name}` : "";
-    $("board-signin-go").textContent = me ? "Sign out" : "Sign in";
+    // Signed in: a sign-out glyph beside the picture. Signed out: "Sign in".
+    const go = $("board-signin-go");
+    go.classList.toggle("icon", !!me);
+    go.title = me ? "Sign out" : "";
+    go.setAttribute("aria-label", me ? "Sign out" : "Sign in");
+    go.innerHTML = me
+      ? `<svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2.5H3.5a1 1 0 0 0-1 1v9a1 1 0 0 0 1 1H6"/><path d="M10.5 11 13.5 8l-3-3"/><path d="M13.5 8H6.5"/></svg>`
+      : "Sign in";
     // Marketplace payments go to one wallet per account. Say which, when it
     // isn't the open one, and switch it only when asked.
     const open = view && view.address;
