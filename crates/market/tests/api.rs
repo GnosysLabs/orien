@@ -824,3 +824,46 @@ async fn a_signed_in_phone_hears_about_messages_and_payment_requests() {
     market.ask("POST", &format!("/api/market/conversations/{conversation}/messages"), Some(&sam), Some(json!({ "body": "Ok" }))).await;
     assert_eq!(check_once(&market.app, &notebook).unwrap(), 0);
 }
+
+#[tokio::test]
+async fn blocking_a_person_from_their_profile_works_everywhere() {
+    let market = Market::new();
+    let maya = sign_in_for_tests(&market.app, "Maya");
+    let sam = sign_in_for_tests(&market.app, "Sam");
+    let (_, posted) = market.ask("POST", "/api/market/listings", Some(&maya), Some(logo())).await;
+    let listing = posted["listing"]["id"].as_i64().unwrap();
+    let maya_id = posted["listing"]["seller"].as_i64().unwrap();
+    let (_, me) = market.ask("GET", "/api/market/me", Some(&sam), None).await;
+    let sam_id = me["account"]["id"].as_i64().unwrap();
+
+    let (_, profile) = market.ask("GET", &format!("/api/market/profiles/{maya_id}"), Some(&sam), None).await;
+    assert_eq!(profile["blocked"], false);
+    let (_, public) = market.ask("GET", &format!("/api/market/profiles/{maya_id}"), None, None).await;
+    assert!(public.get("blocked").is_none(), "only for someone signed in");
+
+    // Maya blocks Sam from his profile: he can't write, and nothing is made.
+    let (status, _) = market.ask("POST", &format!("/api/market/accounts/{sam_id}/block"), Some(&maya), Some(json!({ "block": true }))).await;
+    assert_eq!(status, StatusCode::OK);
+    let (_, profile) = market.ask("GET", "/api/market/users/sam", Some(&maya), None).await;
+    assert_eq!(profile["blocked"], true);
+    let (status, body) = market.ask("POST", &format!("/api/market/listings/{listing}/messages"), Some(&sam), Some(json!({ "body": "Hi" }))).await;
+    assert_eq!(status, StatusCode::BAD_REQUEST);
+    assert!(body["error"].as_str().unwrap().contains("not taking messages"), "{body}");
+    let (_, list) = market.ask("GET", "/api/market/conversations", Some(&sam), None).await;
+    assert_eq!(list["conversations"].as_array().unwrap().len(), 0, "no empty conversation left behind");
+
+    // Sam blocks Maya: her listings leave his browse, not anyone else's.
+    market.ask("POST", &format!("/api/market/accounts/{maya_id}/block"), Some(&sam), Some(json!({ "block": true }))).await;
+    let (_, browse) = market.ask("GET", "/api/market/listings", Some(&sam), None).await;
+    assert_eq!(browse["listings"].as_array().unwrap().len(), 0);
+    let (_, browse) = market.ask("GET", "/api/market/listings", None, None).await;
+    assert_eq!(browse["listings"].as_array().unwrap().len(), 1);
+
+    // Both unblock: messages flow again.
+    market.ask("POST", &format!("/api/market/accounts/{sam_id}/block"), Some(&maya), Some(json!({ "block": false }))).await;
+    market.ask("POST", &format!("/api/market/accounts/{maya_id}/block"), Some(&sam), Some(json!({ "block": false }))).await;
+    let (status, _) = market.ask("POST", &format!("/api/market/listings/{listing}/messages"), Some(&sam), Some(json!({ "body": "Hi" }))).await;
+    assert_eq!(status, StatusCode::OK);
+    let (status, _) = market.ask("POST", &format!("/api/market/accounts/{sam_id}/block"), Some(&sam), Some(json!({ "block": true }))).await;
+    assert_eq!(status, StatusCode::BAD_REQUEST, "not yourself");
+}

@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
 import { useEffect, useState } from 'react'
-import { ArrowLeft, BadgeCheck } from 'lucide-react'
+import { ArrowLeft, BadgeCheck, Ban } from 'lucide-react'
 import { ask, me, memberSince, pictureUrl, profileHref, type Account, type Listing, type VerifiedWallet } from '@/lib/market'
 import { Linked } from './Linked'
 import { Avatar } from './Avatar'
@@ -24,7 +24,7 @@ export function ProfileView() {
   }, [])
   const name = fromPath || params.get('name')
   const id = name ? null : params.get('id')
-  const [found, setFound] = useState<{ account: Account; listings: Listing[]; wallets?: VerifiedWallet[] } | null>(null)
+  const [found, setFound] = useState<{ account: Account; listings: Listing[]; wallets?: VerifiedWallet[]; blocked?: boolean } | null>(null)
   const [trouble, setTrouble] = useState('')
   const [viewer, setViewer] = useState<number | null>(null)
 
@@ -37,11 +37,14 @@ export function ProfileView() {
   useEffect(() => {
     if (fromPath === null || (!name && !id)) return
     const path = name ? `/users/${encodeURIComponent(name)}` : `/profiles/${encodeURIComponent(id!)}`
-    ask<{ account: Account; listings: Listing[]; wallets?: VerifiedWallet[] }>(path)
+    ask<{ account: Account; listings: Listing[]; wallets?: VerifiedWallet[]; blocked?: boolean }>(path)
       .then((profile) => {
+        // An old ?id= link goes to the profile's own address.
+        if (id) {
+          window.location.replace(profileHref(profile.account.name))
+          return
+        }
         setFound(profile)
-        // An old link shows the profile's own address from now on.
-        if (!fromPath) window.history.replaceState(null, '', profileHref(profile.account.name))
       })
       .catch((error: Error) => setTrouble(error.message === 'not found' ? 'There is nobody with that name.' : error.message))
   }, [name, id, fromPath])
@@ -65,7 +68,21 @@ export function ProfileView() {
       >
         {account.banner && <ProfileBanner banner={account.banner} />}
         {viewer !== account.id && (
-          <div className="absolute right-3 top-3 z-10">
+          <div className="absolute right-3 top-3 z-10 flex items-center gap-1">
+            {viewer !== null && (
+              <button
+                type="button"
+                onClick={async () => {
+                  const block = !found.blocked
+                  if (block && !window.confirm(`Block ${account.name}? They won't be able to message you, and you won't see their listings.`)) return
+                  await ask(`/accounts/${account.id}/block`, 'POST', { block }).catch(() => {})
+                  setFound({ ...found, blocked: block })
+                }}
+                className="flex h-8 items-center gap-1.5 rounded-lg bg-surface/80 px-2.5 text-xs font-semibold text-muted backdrop-blur transition hover:text-ink"
+              >
+                <Ban className="h-3.5 w-3.5" aria-hidden /> {found.blocked ? 'Unblock' : 'Block'}
+              </button>
+            )}
             <ReportButton kind="account" id={account.id} what={account.name} signedIn={viewer !== null} icon />
           </div>
         )}

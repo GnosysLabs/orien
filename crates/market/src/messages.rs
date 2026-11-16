@@ -109,7 +109,35 @@ impl Store {
         )?)
     }
 
-    fn blocked_by(&self, blocker: i64, blocked: i64) -> Result<bool> {
+    /// Blocks or unblocks a person for `blocker`, everywhere: no new
+    /// conversations or messages either way, and their listings hidden.
+    pub fn block_account(&self, blocker: i64, blocked: i64, block: bool) -> Result<()> {
+        if blocker == blocked {
+            bail!("you cannot block yourself");
+        }
+        if self.account(blocked)?.is_none() {
+            bail!("there is no such person");
+        }
+        if block {
+            self.db.execute("INSERT OR IGNORE INTO blocks (blocker, blocked) VALUES (?1, ?2)", params![blocker, blocked])?;
+        } else {
+            self.db.execute("DELETE FROM blocks WHERE blocker = ?1 AND blocked = ?2", params![blocker, blocked])?;
+        }
+        Ok(())
+    }
+
+    /// Why `from` may not write to `to`, if they may not.
+    pub fn block_between(&self, from: i64, to: i64) -> Result<Option<&'static str>> {
+        Ok(if self.blocked_by(to, from)? {
+            Some("this person is not taking messages from you")
+        } else if self.blocked_by(from, to)? {
+            Some("you have blocked this person; unblock them to write")
+        } else {
+            None
+        })
+    }
+
+    pub fn blocked_by(&self, blocker: i64, blocked: i64) -> Result<bool> {
         Ok(self
             .db
             .query_row("SELECT 1 FROM blocks WHERE blocker = ?1 AND blocked = ?2", params![blocker, blocked], |_| Ok(()))

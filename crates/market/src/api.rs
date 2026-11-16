@@ -294,6 +294,7 @@ pub fn router(app: Arc<App>) -> Router {
         .route("/api/market/me/delete", post(delete_me))
         .route("/api/market/profiles", get(search_profiles))
         .route("/api/market/profiles/{id}", get(profile))
+        .route("/api/market/accounts/{id}/block", post(block_account))
         .route("/api/market/users/{name}", get(user))
         .route("/api/market/listings/{id}/messages", post(message_seller))
         .route(
@@ -647,7 +648,16 @@ async fn mark_paid(State(app): State<Arc<App>>, headers: HeaderMap, Path(id): Pa
 async fn message_seller(State(app): State<Arc<App>>, headers: HeaderMap, Path(listing): Path<i64>, Json(request): Json<Write>) -> Answer {
     let buyer = app.signed_in(&headers)?;
     Store::message_text(&request.body).map_err(refused)?;
-    let conversation = app.store.lock().unwrap().conversation_about(buyer, listing).map_err(refused)?;
+    let conversation = {
+        let store = app.store.lock().unwrap();
+        // A block stops a conversation before it is made.
+        if let Some(seller) = store.listing(listing)?.map(|l| l.seller)
+            && let Some(why) = store.block_between(buyer, seller)?
+        {
+            return Err(Failure::Refused(why.into()));
+        }
+        store.conversation_about(buyer, listing).map_err(refused)?
+    };
     deliver(&app, conversation, buyer, &request.body).await
 }
 
@@ -1242,7 +1252,8 @@ async fn make_cover(State(app): State<Arc<App>>, headers: HeaderMap, Path((id, n
 }
 
 /// A seller's public profile: who they are and what they offer.
-async fn profile(State(app): State<Arc<App>>, Path(id): Path<i64>) -> Answer {
+async fn profile(State(app): State<Arc<App>>, headers: HeaderMap, Path(id): Path<i64>) -> Answer {
+    let viewer = app.signed_in(&headers).ok();
     let store = app.store.lock().unwrap();
     if store.is_suspended(id)? {
         return Err(Failure::NotFound);
@@ -1251,13 +1262,25 @@ async fn profile(State(app): State<Arc<App>>, Path(id): Path<i64>) -> Answer {
     let listings = store.open_listings_of(id)?;
     let swaps_done = store.swaps_done(id)?;
     let wallets = store.verified_wallets(id)?;
-    Ok(Json(json!({ "account": account, "listings": listings, "swaps_done": swaps_done, "wallets": wallets })).into_response())
+    let mut answer = json!({ "account": account, "listings": listings, "swaps_done": swaps_done, "wallets": wallets });
+    // Signed in: whether you've blocked this person.
+    if let Some(viewer) = viewer {
+        answer["blocked"] = json!(store.blocked_by(viewer, id)?);
+    }
+    Ok(Json(answer).into_response())
 }
 
 /// A profile by its name, as /u/NAME shows it.
-async fn user(State(app): State<Arc<App>>, Path(name): Path<String>) -> Answer {
+async fn user(State(app): State<Arc<App>>, headers: HeaderMap, Path(name): Path<String>) -> Answer {
     let id = app.store.lock().unwrap().account_by_name(&name)?.ok_or(Failure::NotFound)?;
-    profile(State(app), Path(id)).await
+    profile(State(app), headers, Path(id)).await
+}
+
+/// Blocks or unblocks a person, everywhere, for the signed-in account.
+async fn block_account(State(app): State<Arc<App>>, headers: HeaderMap, Path(id): Path<i64>, Json(request): Json<Block>) -> Answer {
+    let account = app.signed_in(&headers)?;
+    app.store.lock().unwrap().block_account(account, id, request.block).map_err(refused)?;
+    Ok(Json(json!({ "blocked": request.block })).into_response())
 }
 
 async fn picture(State(app): State<Arc<App>>, Path(name): Path<String>) -> Answer {
@@ -1281,9 +1304,10 @@ struct Browse {
 /// Listings a page shows at a time.
 const PAGE: u32 = 30;
 
-async fn browse(State(app): State<Arc<App>>, Query(query): Query<Browse>) -> Answer {
+async fn browse(State(app): State<Arc<App>>, headers: HeaderMap, Query(query): Query<Browse>) -> Answer {
     let category = query.category.as_deref().filter(|c| !c.is_empty());
-    let listings = app.store.lock().unwrap().browse(category, query.q.as_deref(), PAGE, query.offset)?;
+    let viewer = app.signed_in(&headers).ok();
+    let listings = app.store.lock().unwrap().browse_for(viewer, category, query.q.as_deref(), PAGE, query.offset)?;
     let more = listings.len() as u32 == PAGE;
     Ok(Json(json!({ "listings": listings, "more": more })).into_response())
 }
