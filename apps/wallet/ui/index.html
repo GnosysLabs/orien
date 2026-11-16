@@ -431,7 +431,7 @@
   .pf-listings-head h3 { line-height: 32px; }
   /* Market messages */
   .pill.icon { position: relative; }
-  .pill .dot, .tile .dot { position: absolute; top: 4px; right: 4px; width: 8px; height: 8px; border-radius: 50%; background: var(--good); box-shadow: 0 0 0 2px var(--ground-deep); }
+  .pill .dot, .tile .dot { position: absolute; top: 4px; right: 4px; width: 8px; height: 8px; border-radius: 50%; background: #ff453a; box-shadow: 0 0 0 2px var(--ground-deep); }
   #go-market { position: relative; }
   .tile .dot { top: 9px; right: 9px; }
   /* On the round Messages button the dot sits on its rim, half outside. */
@@ -459,7 +459,7 @@
   .ib-row .what { font-size: 12px; color: var(--dim); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .ib-row .last { font-size: 12.5px; color: var(--faint); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .ib-row.unread .last { color: var(--ink); }
-  .ib-row .udot { width: 8px; height: 8px; border-radius: 50%; background: var(--good); }
+  .ib-row .udot { width: 8px; height: 8px; border-radius: 50%; background: #ff453a; }
   .ib-row:not(.unread) .udot { visibility: hidden; }
   #ib-list .list { border-radius: 18px; }
   .ch-top { gap: 6px; }
@@ -2656,6 +2656,9 @@
     try {
       let allowed = await invoke("plugin:notification|is_permission_granted");
       if (allowed === null || allowed === undefined) allowed = (await invoke("plugin:notification|request_permission")) === "granted";
+      // Macs: the system's own notification centre; the plugin's route is
+      // dropped silently there.
+      if (apple && await invoke("mac_notify", { title: "Orien Wallet", body })) return;
       if (allowed) await invoke("plugin:notification|notify", { options: { title: "Orien Wallet", body } });
     } catch {}
   }
@@ -3750,7 +3753,8 @@
   function setBadge() {
     if (phone) return;
     const n = swapsWaiting + ((board.me && board.me.unread) || 0);
-    invoke("plugin:window|set_badge_count", { label: "main", value: n || null }).catch(() => {});
+    if (apple) invoke("dock_badge", { count: n }).catch(() => {});
+    else invoke("plugin:window|set_badge_count", { label: "main", value: n || null }).catch(() => {});
   }
   function paintUnread() {
     setBadge();

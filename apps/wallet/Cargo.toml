@@ -57,7 +57,7 @@ orien-ledger = { path = "../../crates/ledger", features = ["randomx"] }
 robius-authentication = "0.3"
 security-framework = "3"
 # Asking for permission to show notifications.
-objc2-user-notifications = { version = "0.3", features = ["UNUserNotificationCenter", "block2"] }
+objc2-user-notifications = { version = "0.3", features = ["UNUserNotificationCenter", "UNNotificationContent", "UNNotificationRequest", "UNNotificationSound", "UNNotificationTrigger", "block2"] }
 objc2-foundation = { version = "0.3", features = ["NSBundle", "NSData", "NSError", "NSString"] }
 block2 = "0.6"
 objc2 = "0.6"

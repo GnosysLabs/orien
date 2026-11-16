@@ -45,7 +45,7 @@ pub fn start(app: &AppHandle) {
         }
     });
     center.requestAuthorizationWithOptions_completionHandler(
-        UNAuthorizationOptions::Alert | UNAuthorizationOptions::Sound,
+        UNAuthorizationOptions::Alert | UNAuthorizationOptions::Sound | UNAuthorizationOptions::Badge,
         &done,
     );
 }

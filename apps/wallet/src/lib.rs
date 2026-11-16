@@ -1208,6 +1208,61 @@ async fn market_listing_picture(app: AppHandle, id: i64, path: String) -> Result
     tauri::async_runtime::spawn_blocking(move || board::listing_picture(&dir, id, &path)).await.map_err(|error| error.to_string())?
 }
 
+/// Shows a notification the Mac's own way (UNUserNotificationCenter, which
+/// the app asks permission from), as the notification plugin's older route
+/// is dropped silently on current macOS. False where this isn't a Mac.
+#[tauri::command]
+fn mac_notify(title: String, body: String) -> bool {
+    #[cfg(target_os = "macos")]
+    {
+        use objc2_foundation::NSString;
+        use objc2_user_notifications::{UNMutableNotificationContent, UNNotificationRequest, UNNotificationSound, UNUserNotificationCenter};
+        if objc2_foundation::NSBundle::mainBundle().bundleIdentifier().is_none() {
+            return false;
+        }
+        let content = UNMutableNotificationContent::new();
+        content.setTitle(&NSString::from_str(&title));
+        content.setBody(&NSString::from_str(&body));
+        content.setSound(Some(&UNNotificationSound::defaultSound()));
+        let id = NSString::from_str(&format!("orien-{}", std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).map(|d| d.as_nanos()).unwrap_or(0)));
+        let request = UNNotificationRequest::requestWithIdentifier_content_trigger(&id, &content, None);
+        UNUserNotificationCenter::currentNotificationCenter().addNotificationRequest_withCompletionHandler(&request, None);
+        return true;
+    }
+    #[allow(unreachable_code)]
+    {
+        let _ = (title, body);
+        false
+    }
+}
+
+/// The number on the Dock icon (none for 0). Tauri's badge call says it
+/// worked but leaves the Dock blank here, so this asks AppKit directly.
+#[tauri::command]
+fn dock_badge(app: AppHandle, count: u32) {
+    #[cfg(target_os = "macos")]
+    let _ = app.run_on_main_thread(move || unsafe {
+        use objc2::msg_send;
+        use objc2::runtime::{AnyClass, AnyObject};
+        use objc2_foundation::NSString;
+        let Some(class) = AnyClass::get(c"NSApplication") else { return };
+        let shared: *mut AnyObject = msg_send![class, sharedApplication];
+        if shared.is_null() {
+            return;
+        }
+        let tile: *mut AnyObject = msg_send![shared, dockTile];
+        if tile.is_null() {
+            return;
+        }
+        let label = (count > 0).then(|| NSString::from_str(&count.to_string()));
+        let ptr: *const NSString = label.as_deref().map_or(std::ptr::null(), |l| l as *const NSString);
+        let _: () = msg_send![tile, setBadgeLabel: ptr];
+    });
+    #[cfg(not(target_os = "macos"))]
+    let _ = (app, count);
+}
+
+
 /// A page of Market listings.
 #[tauri::command]
 async fn market_listings(app: AppHandle, category: String, text: String, offset: u32) -> Result<serde_json::Value, String> {
@@ -1387,7 +1442,7 @@ fn notifications_ask(app: AppHandle) {
         let center = UNUserNotificationCenter::currentNotificationCenter();
         let done = block2::RcBlock::new(|_granted: objc2::runtime::Bool, _error: *mut objc2_foundation::NSError| {});
         center.requestAuthorizationWithOptions_completionHandler(
-            UNAuthorizationOptions::Alert | UNAuthorizationOptions::Sound,
+            UNAuthorizationOptions::Alert | UNAuthorizationOptions::Sound | UNAuthorizationOptions::Badge,
             &done,
         );
     }
@@ -1434,7 +1489,7 @@ pub fn run() {
             }
             Ok(())
         })
-        .invoke_handler(tauri::generate_handler![has_wallet, create_wallet, save_phrase, restore_wallet, set_password, choose_wallet, overview_now, send_payment, activity, quote, contacts, save_contact, delete_contact, contacts_sync, biometric_unlock, biometric_enable, update::check_update, update::install_update, mine_start, mine_stop, mine_set, mine_status, wallets, wallet_balances, use_wallet, rename_wallet, add_wallet, forget_wallet, swap_list, swap_sell, swap_buy, swap_accept, swap_step, swap_smallest, board_offers, board_me, board_email_start, board_email_finish, board_sign_out, board_post, board_take, board_withdraw, board_link, notifications_ask, push_sync, board_wallets_sync, board_post_sol, board_take_sol, sol_open, sol_payout_check, open_site, qr_code, wallet_profiles, board_profile_save, board_picture_pick, board_verify, board_wallet_states, market_image, board_banner_remove, market_search, market_listings, market_listing, market_profile, market_call, market_pick_pictures, market_listing_picture])
+        .invoke_handler(tauri::generate_handler![has_wallet, create_wallet, save_phrase, restore_wallet, set_password, choose_wallet, overview_now, send_payment, activity, quote, contacts, save_contact, delete_contact, contacts_sync, biometric_unlock, biometric_enable, update::check_update, update::install_update, mine_start, mine_stop, mine_set, mine_status, wallets, wallet_balances, use_wallet, rename_wallet, add_wallet, forget_wallet, swap_list, swap_sell, swap_buy, swap_accept, swap_step, swap_smallest, board_offers, board_me, board_email_start, board_email_finish, board_sign_out, board_post, board_take, board_withdraw, board_link, notifications_ask, push_sync, board_wallets_sync, board_post_sol, board_take_sol, sol_open, sol_payout_check, open_site, qr_code, wallet_profiles, board_profile_save, board_picture_pick, board_verify, board_wallet_states, market_image, board_banner_remove, market_search, market_listings, market_listing, market_profile, market_call, market_pick_pictures, market_listing_picture, dock_badge, mac_notify])
         .build(tauri::generate_context!())
         .expect("the wallet window could not start")
         .run(|_app, _event| {
