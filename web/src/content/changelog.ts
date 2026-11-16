@@ -28,6 +28,20 @@ export const CHANGELOG: Entry[] = [
   {
     date: '2026-11-16',
     products: ['wallet'],
+    version: '1.8.10',
+    title: 'Smoother Market chats',
+    changes: [
+      'Each listing has a Message button: it opens your chat with the seller, or starts one with your first message.',
+      'Chats open complete straight away, the listing they\'re about shines at the top, and asking for payment is simpler.',
+      'Report and block are in a tidy ⋯ menu, and a seller\'s email, Telegram and X open with a tap.',
+      'Check for Updates answers in a clear card, and screens with more below show a small arrow.',
+      'Swapping with someone you know by codes is gone: swaps happen through open offers.',
+      'On iPhones: the keyboard no longer jumps when you start typing, and swaps stay on computers, which keep the wallet running while a swap finishes.',
+    ],
+  },
+  {
+    date: '2026-11-16',
+    products: ['wallet'],
     version: '1.8.9',
     title: 'Clearer swaps, and Check for Updates',
     changes: [
