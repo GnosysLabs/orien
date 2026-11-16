@@ -128,8 +128,82 @@ mod keyboard {
             if !holder.is_null() {
                 let _: () = msg_send![holder, setBackgroundColor: color];
             }
+            // The scroll view's own colour too (black by default), for any
+            // moment it shows past the page.
+            if !scroll.is_null() {
+                let _: () = msg_send![scroll, setBackgroundColor: color];
+            }
+            let _: () = msg_send![web, setOpaque: false];
+            let _: () = msg_send![web, setBackgroundColor: color];
+            SCROLL.store(scroll as usize, std::sync::atomic::Ordering::Relaxed);
+            pin_page();
             WEB.store(web as usize, std::sync::atomic::Ordering::Relaxed);
         });
+    }
+
+    /// The app's web view's scroll view: its page is pinned at the top.
+    static SCROLL: std::sync::atomic::AtomicUsize = std::sync::atomic::AtomicUsize::new(0);
+    static SET_OFFSET: std::sync::OnceLock<usize> = std::sync::OnceLock::new();
+    static SET_OFFSET_ANIMATED: std::sync::OnceLock<usize> = std::sync::OnceLock::new();
+
+    type SetOffset = unsafe extern "C-unwind" fn(*mut AnyObject, Sel, objc2_core_foundation::CGPoint);
+    type SetOffsetAnimated = unsafe extern "C-unwind" fn(*mut AnyObject, Sel, objc2_core_foundation::CGPoint, objc2::runtime::Bool);
+
+    /// The point the app's page is moved to: always the top. iOS moves it
+    /// to show a tapped box (the dark band above), but the page never
+    /// needs moving: it fits above the keyboard and screens scroll inside.
+    fn pinned(this: *mut AnyObject, point: objc2_core_foundation::CGPoint) -> objc2_core_foundation::CGPoint {
+        if this as usize == SCROLL.load(std::sync::atomic::Ordering::Relaxed) {
+            objc2_core_foundation::CGPoint { x: 0.0, y: 0.0 }
+        } else {
+            point
+        }
+    }
+
+    unsafe extern "C-unwind" fn set_offset(this: *mut AnyObject, cmd: Sel, point: objc2_core_foundation::CGPoint) {
+        if let Some(&original) = SET_OFFSET.get() {
+            let original = unsafe { std::mem::transmute::<usize, SetOffset>(original) };
+            unsafe { original(this, cmd, pinned(this, point)) }
+        }
+    }
+
+    unsafe extern "C-unwind" fn set_offset_animated(this: *mut AnyObject, cmd: Sel, point: objc2_core_foundation::CGPoint, animated: objc2::runtime::Bool) {
+        if let Some(&original) = SET_OFFSET_ANIMATED.get() {
+            let original = unsafe { std::mem::transmute::<usize, SetOffsetAnimated>(original) };
+            unsafe { original(this, cmd, pinned(this, point), animated) }
+        }
+    }
+
+    /// Replaces the web view's scroll view's offset setters (on its own class
+    /// only, never UIScrollView's) with ones that keep the app's page at the
+    /// top. Other scroll views pass straight through.
+    fn pin_page() {
+        let Some(class) = AnyClass::get(c"WKScrollView") else { return };
+        let class = class as *const AnyClass as *mut AnyClass;
+        unsafe {
+            let plain = std::mem::transmute::<SetOffset, Imp>(set_offset);
+            let animated = std::mem::transmute::<SetOffsetAnimated, Imp>(set_offset_animated);
+            for (selector, replacement, keep, types) in [
+                (sel!(setContentOffset:), plain, &SET_OFFSET, c"v@:{CGPoint=dd}"),
+                (sel!(setContentOffset:animated:), animated, &SET_OFFSET_ANIMATED, c"v@:{CGPoint=dd}B"),
+            ] {
+                if keep.get().is_some() {
+                    continue;
+                }
+                let method = objc2::ffi::class_getInstanceMethod(class, selector);
+                if method.is_null() {
+                    continue;
+                }
+                let original = objc2::ffi::method_getImplementation(method);
+                let Some(original) = original else { continue };
+                let _ = keep.set(original as usize);
+                // An override of its own on WKScrollView, so UIScrollView's
+                // stays as it is; or WKScrollView's own, replaced.
+                if !objc2::ffi::class_addMethod(class, selector, replacement, types.as_ptr()).as_bool() {
+                    objc2::ffi::method_setImplementation(method as *mut _, replacement);
+                }
+            }
+        }
     }
 
     pub fn hide_accessory_bar() {
