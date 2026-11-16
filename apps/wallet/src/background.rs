@@ -24,13 +24,16 @@ pub fn show(app: &AppHandle) {
 /// Sets up the icon, the window's close button, and starting at login.
 pub fn setup(app: &AppHandle) -> tauri::Result<()> {
     let open = MenuItem::with_id(app, "open", "Open Orien Wallet", true, None::<&str>)?;
+    let updates = MenuItem::with_id(app, "check-updates", "Check for Updates…", true, None::<&str>)?;
     let quit = MenuItem::with_id(app, "quit", "Quit Orien Wallet", true, None::<&str>)?;
-    let menu = Menu::with_items(app, &[&open, &quit])?;
+    let menu = Menu::with_items(app, &[&open, &updates, &quit])?;
     // The Mac's menu bar wants a one-colour picture it tints itself.
     #[cfg(target_os = "macos")]
     let icon = Image::from_bytes(include_bytes!("../icons/tray-mac.png"))?;
     #[cfg(not(target_os = "macos"))]
-    let icon = Image::from_bytes(include_bytes!("../icons/32x32.png"))?;
+    // The sunrise alone, as on the website's tab: the app's square icon
+    // shrinks to an unreadable dot in a tray.
+    let icon = Image::from_bytes(include_bytes!("../icons/tray.png"))?;
     let tray = TrayIconBuilder::with_id("orien")
         .icon(icon)
         .icon_as_template(cfg!(target_os = "macos"))
@@ -41,6 +44,7 @@ pub fn setup(app: &AppHandle) -> tauri::Result<()> {
         .show_menu_on_left_click(cfg!(target_os = "macos"))
         .on_menu_event(|app, event| match event.id().as_ref() {
             "open" => show(app),
+            "check-updates" => crate::update::check_now(app.clone()),
             "quit" => app.exit(0),
             _ => {}
         })
@@ -50,6 +54,22 @@ pub fn setup(app: &AppHandle) -> tauri::Result<()> {
             }
         })
         .build(app);
+    // On Macs, "Check for Updates…" in the app's menu, under About.
+    #[cfg(target_os = "macos")]
+    {
+        let bar = Menu::default(app)?;
+        if let Some(tauri::menu::MenuItemKind::Submenu(first)) = bar.items()?.into_iter().next() {
+            let item = MenuItem::with_id(app, "check-updates", "Check for Updates…", true, None::<&str>)?;
+            first.insert(&item, 1)?;
+        }
+        app.set_menu(bar)?;
+        app.on_menu_event(|app, event| {
+            if event.id().as_ref() == "check-updates" {
+                crate::update::check_now(app.clone());
+            }
+        });
+    }
+
     // Some Linux desktops have no tray. Then closing the window really
     // closes the app (a Mac always has its Dock icon to come back by).
     let can_come_back = tray.is_ok() || cfg!(target_os = "macos");

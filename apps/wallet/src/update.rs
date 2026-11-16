@@ -95,6 +95,47 @@ fn reopen_on_the_mac(app: &AppHandle) {
     }
 }
 
+/// "Check for Updates…" from the menu: asks now, and answers with the
+/// system's own dialog: up to date, or the new version with an Update button.
+pub fn check_now(app: AppHandle) {
+    use tauri_plugin_dialog::{DialogExt, MessageDialogButtons, MessageDialogKind};
+    tauri::async_runtime::spawn(async move {
+        let current = app.package_info().version.to_string();
+        let found = check_update(app.clone()).await;
+        match found {
+            Ok(Some(available)) => {
+                let app2 = app.clone();
+                app.dialog()
+                    .message(format!("Orien Wallet {} is ready. You have {current}.", available.version))
+                    .title("A new version is available")
+                    .kind(MessageDialogKind::Info)
+                    .buttons(MessageDialogButtons::OkCancelCustom("Update".into(), "Later".into()))
+                    .show(move |update| {
+                        if update {
+                            tauri::async_runtime::spawn(async move {
+                                if let Err(error) = install_update(app2.clone()).await {
+                                    app2.dialog().message(error).title("The update didn't install").kind(MessageDialogKind::Error).show(|_| {});
+                                }
+                            });
+                        }
+                    });
+            }
+            Ok(None) => app
+                .dialog()
+                .message(format!("Orien Wallet {current} is the newest version."))
+                .title("You're up to date")
+                .kind(MessageDialogKind::Info)
+                .show(|_| {}),
+            Err(_) => app
+                .dialog()
+                .message("orien.network can't be reached right now. Check your connection and try again.")
+                .title("Couldn't check for updates")
+                .kind(MessageDialogKind::Warning)
+                .show(|_| {}),
+        }
+    });
+}
+
 #[cfg(test)]
 mod tests {
     #[test]

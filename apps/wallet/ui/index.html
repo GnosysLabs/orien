@@ -583,6 +583,17 @@
   #swaps > *, #swap-sell > *, #swap-buy > *, #swap-detail > * { flex-shrink: 0; }
   #swaps .scroll { overflow: visible; flex: none; }
   /* A swap, step by step: done steps ticked, the one under way lit. */
+  /* After posting an offer. */
+  .posted-mark { width: 52px; height: 52px; margin: 0 auto 14px; border-radius: 50%; display: grid; place-items: center;
+    color: var(--pearl-ink); background: var(--pearl); background-size: 300% 100%; animation: drift 24s linear infinite; }
+  .posted-mark svg { width: 24px; height: 24px; }
+  .keep-open { display: grid; grid-template-columns: 40px 1fr; gap: 14px; align-items: start; padding: 16px 18px;
+    border: 1px solid var(--line); border-radius: 18px; background: var(--surface); }
+  .keep-open .ko-icon { width: 40px; height: 40px; border-radius: 12px; display: grid; place-items: center;
+    background: var(--ground-deep); border: 1px solid var(--line); color: var(--ink); }
+  .keep-open .ko-icon svg { width: 20px; height: 20px; }
+  .keep-open strong { display: block; font-size: 15px; font-weight: 600; margin-top: 1px; }
+  .keep-open p { margin: 6px 0 0; color: var(--dim); font-size: 13.5px; line-height: 1.5; }
   .steps { list-style: none; margin: 18px 0 0; padding: 0; }
   .steps li { position: relative; display: grid; grid-template-columns: 26px 1fr; gap: 12px; padding-bottom: 16px; }
   .steps li:not(:last-child)::before { content: ""; position: absolute; left: 12px; top: 28px; bottom: 4px; width: 1px; background: var(--line); }
@@ -681,7 +692,7 @@
   /* More below: a small arrow floats at the foot of a screen that scrolls,
      until it's scrolled; tapping it scrolls down. */
   #more-below { position: fixed; z-index: 40; width: 36px; height: 36px; margin-left: -18px; border-radius: 50%;
-    display: grid; place-items: center; padding: 0; cursor: pointer; color: var(--text, #ece9f2);
+    display: grid; place-items: center; padding: 0; cursor: pointer; color: var(--ink);
     background: rgba(40, 41, 46, 0.78); border: 1px solid rgba(255, 255, 255, 0.12);
     -webkit-backdrop-filter: blur(14px) saturate(1.4); backdrop-filter: blur(14px) saturate(1.4);
     box-shadow: 0 6px 18px rgba(0, 0, 0, 0.35); opacity: 0; pointer-events: none; transition: opacity 0.35s ease; }
@@ -1499,6 +1510,28 @@
       <ol class="steps" id="sw-steps" data-gap="lg"></ol>
       <div class="push"></div>
       <p class="fineprint" id="sw-fine" style="text-align:center"></p>
+    </section>
+
+    <section class="screen" id="swap-posted" hidden>
+      <div class="topline"><button class="back" data-to="swaps" aria-label="Back"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10 3 5 8l5 5"/></svg></button><h2>Offer posted</h2></div>
+      <div class="waiting-card" data-gap="lg">
+        <div class="posted-mark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></div>
+        <div class="wc-title">Your offer is live</div>
+        <div class="wc-sub">Anyone can take it now. When they do, your wallet runs the swap by itself.</div>
+        <div class="wc-deal">
+          <div><span>You sell</span><strong id="sp-sell"></strong></div>
+          <div><span>You get</span><strong id="sp-get"></strong></div>
+        </div>
+      </div>
+      <div class="keep-open" data-gap="lg">
+        <div class="ko-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4.5" width="18" height="13" rx="2.5"/><path d="M8.5 21h7M12 17.5V21"/><circle cx="12" cy="11" r="2.2"/></svg></div>
+        <div>
+          <strong>Keep Orien Wallet running</strong>
+          <p id="sp-keep"></p>
+        </div>
+      </div>
+      <div class="push"></div>
+      <button class="primary pearl" id="sp-done" data-gap="xl">Done</button>
     </section>
 
     <section class="screen" id="board-take" hidden>
@@ -3434,6 +3467,7 @@
     $("bt-pw").value = "";
     $("bt-go").textContent = view && view.biometric ? `Take with ${bio}` : "Take the offer";
     show("board-take");
+    gateSwap("bt-go", "bt-problem");
   }
 
   async function withdraw(id) {
@@ -3442,7 +3476,30 @@
     stepSwaps();
   }
 
+  // Swaps need the newest Orien Wallet: both sides' wallets must run a swap
+  // the same way. Checked as the screen opens and again on the button; while
+  // an update is waiting, the button installs it instead.
+  const swapGate = {};
+  async function gateSwap(go, box) {
+    if (phone) return false;
+    let newer = null;
+    try { newer = await invoke("check_update"); } catch { return false; } // offline: posting will say so
+    swapGate[go] = !!newer;
+    if (!newer) return false;
+    update = newer; checkUpdate();
+    $(go).textContent = `Update to ${newer.version}`;
+    $(box).textContent = "Swaps need the newest Orien Wallet. Update first: it takes a moment, and the app reopens by itself.";
+    $(box).hidden = false;
+    return true;
+  }
+  function installForSwap(go) {
+    $(go).disabled = true; $(go).innerHTML = '<span class="spinner"></span>Updating';
+    invoke("install_update").catch((e) => { $(go).disabled = false; $(go).textContent = "Update failed, try again"; });
+  }
+
   $("bt-go").onclick = async () => {
+    if (swapGate["bt-go"]) return installForSwap("bt-go");
+    if (await gateSwap("bt-go", "bt-problem")) return;
     $("bt-go").disabled = true;
     try {
       const taken = board.taking;
@@ -3488,6 +3545,7 @@
     postHint();
     show("board-post");
     showSmallest();
+    gateSwap("bp-go", "bp-problem");
   };
   // SOL first; Bitcoin for those who'd rather. Until SOL swaps are open
   // in this copy of the app (live on Solana), only Bitcoin shows.
@@ -3552,6 +3610,8 @@
     }, 500);
   };
   $("bp-go").onclick = async () => {
+    if (swapGate["bp-go"]) return installForSwap("bp-go");
+    if (await gateSwap("bp-go", "bp-problem")) return;
     $("bp-go").disabled = true;
     try {
       if (view && view.biometric) await invoke("biometric_unlock");
@@ -3559,10 +3619,14 @@
       if (postCoin === "sol") await invoke("board_post_sol", { orn: $("bp-orn").value, sol: $("bp-btc").value, payout: $("bp-payout").value, password });
       else await invoke("board_post", { orn: $("bp-orn").value, btc: $("bp-btc").value, payout: $("bp-payout").value, password });
       $("bp-pw").value = "";
+      const sold = $("bp-orn").value.trim(), got = $("bp-btc").value.trim();
       $("bp-orn").value = $("bp-btc").value = "";
-      show("swaps");
-      await loadBoard();
-      stepSwaps();
+      $("sp-sell").textContent = `${sold} ORN`;
+      $("sp-get").textContent = `${got} ${postCoin === "sol" ? "SOL" : "BTC"}`;
+      const tray = apple ? "the menu bar" : "the system tray";
+      $("sp-keep").textContent = `Minimized, or closed to ${tray}, is fine. If the app is quit or this computer is asleep when someone takes your offer, the swap won't go through and your offer goes back up.`;
+      show("swap-posted");
+      loadBoard().then(stepSwaps);
     } catch (e) {
       const text = String(e);
       if (text === "password: needed") { $("bp-pw-field").hidden = false; $("bp-pw").focus(); problem("bp-problem", "Type this wallet's password to approve the sale."); }
@@ -3571,6 +3635,8 @@
     }
     finally { $("bp-go").disabled = false; }
   };
+
+  $("sp-done").onclick = () => show("swaps");
 
   // Signing in: an email, then the code it gets, and a name for a new account.
   function resetSignin() {
