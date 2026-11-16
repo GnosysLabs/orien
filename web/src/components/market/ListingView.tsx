@@ -66,8 +66,8 @@ export function ListingView() {
               </p>
             </section>
           )}
-          <section className={`${card} relative isolate ${seller.banner ? 'pt-32' : ''}`}>
-            {seller.banner && <ProfileBanner banner={seller.banner} top />}
+          <section className={`${card} relative isolate ${seller.banner ? 'pt-28 sm:min-h-56 sm:pt-6' : ''}`}>
+            {seller.banner && <ProfileBanner banner={seller.banner} />}
             <h2 className="mb-4 text-lg font-bold tracking-tight text-ink">About the seller</h2>
             <Link href={`/marketplace/profile/?id=${seller.id}`} className="mb-4 flex items-center gap-3">
               <Avatar name={seller.name} picture={seller.picture} size={56} />

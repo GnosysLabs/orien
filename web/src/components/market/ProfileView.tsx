@@ -94,9 +94,8 @@ export function ProfileView() {
 }
 
 /** The profile's banner, fading into the card: down to the content on a
- * phone, leftwards into the name on a wider screen; or, with `top`, down
- * from the top at every size. */
-export function ProfileBanner({ banner, top = false }: { banner: string; top?: boolean }) {
+ * phone, leftwards into the name on a wider screen. */
+export function ProfileBanner({ banner }: { banner: string }) {
   return (
     // Clipped to the card's corners here, not by the card, so a menu can
     // open over the card's edge.
@@ -105,12 +104,7 @@ export function ProfileBanner({ banner, top = false }: { banner: string; top?: b
       <img
         src={pictureUrl(banner)}
         alt=""
-        className={
-          top
-            ? // Across the top of a box whose text runs its full width.
-              'absolute inset-x-0 top-0 h-36 w-full object-cover opacity-90 [mask-image:linear-gradient(to_bottom,black_30%,transparent)]'
-            : 'absolute right-0 top-0 h-40 w-full object-cover opacity-90 [mask-image:linear-gradient(to_bottom,black_35%,transparent)] sm:h-full sm:w-3/4 sm:[mask-image:linear-gradient(to_left,black_30%,transparent)]'
-        }
+        className="absolute right-0 top-0 h-40 w-full object-cover opacity-90 [mask-image:linear-gradient(to_bottom,black_35%,transparent)] sm:h-full sm:w-3/4 sm:[mask-image:linear-gradient(to_left,black_30%,transparent)]"
       />
     </div>
   )
