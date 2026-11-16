@@ -4084,7 +4084,7 @@
   }
   // Verifying: each wallet by choice, with one tiny payment from it to
   // Orien Market. Only the open wallet can pay, so only it has a button.
-  let proof = null, states = [];
+  let proof = null, states = [], verifying = null;
   async function renderVerify(note) {
     const card = $("pf-verify");
     card.hidden = !board.me;
@@ -4093,13 +4093,17 @@
     const state = (a) => states.find((p) => (p.address || "").toLowerCase() === a);
     $("vf-list").innerHTML = walletList.map((w) => {
       const st = state(w.address);
+      // While one is being verified (confirming below, or sent and waiting)
+      // its Verify button gives way to where it stands.
+      const busy = verifying === w.address;
       const right = st && st.verified ? VERIFIED
+        : busy ? `<span class="vf-wait">${proof ? "Confirm below" : "Verifying…"}</span>`
         : w.current ? `<button class="pill pearl" data-verify="${w.address}">Verify</button>`
         : '<span class="vf-wait">Open it to verify</span>';
       return `<div class="vf-row"><div><div class="vf-name">${esc(w.name)}</div><div class="vc-sub">${short(w.address)}</div></div>${right}</div>`;
     }).join("");
     for (const b of $("vf-list").querySelectorAll("[data-verify]")) b.onclick = () => startVerify(b.dataset.verify, b);
-    if (!note) { $("vf-confirm").hidden = true; proof = null; }
+    if (!note) { $("vf-confirm").hidden = true; proof = null; verifying = null; }
     else { $("vf-confirm").hidden = false; $("vf-text").textContent = note; $("vf-pw-field").hidden = true; $("vf-go").hidden = true; }
   }
   async function startVerify(address, button) {
@@ -4107,6 +4111,8 @@
     $("pf-problem").hidden = true;
     try { proof = await invoke("board_verify", { address }); }
     catch (e) { button.disabled = false; problem("pf-problem", e); return; }
+    verifying = address;
+    button.outerHTML = '<span class="vf-wait">Confirm below</span>';
     // Plainly, before anything is sent: what verifying means, and the amount.
     $("vf-text").textContent = `Verifying ties the wallet to your name publicly: everyone will see it's yours, including its balance. It sends ${proof.orn} ORN from this wallet to Orien Market: less than 0.001 ORN, fee included.`;
     $("vf-pw-field").hidden = !(view && view.locked && !view.biometric);
@@ -4135,6 +4141,7 @@
         return;
       }
       refresh();
+      proof = null;
       await renderVerify("Sent. Verifying, usually within a minute.");
       // The market sees the payment a few seconds after it's final.
       for (let i = 0; i < 36; i++) {
@@ -4154,7 +4161,7 @@
       }
       renderVerify("Sent. It's taking longer than usual; check back here in a few minutes.");
     } catch (e) {
-      $("vf-go").textContent = `Send ${proof.orn} ORN and verify`;
+      if (proof) $("vf-go").textContent = `Send ${proof.orn} ORN and verify`;
       $("vf-go").disabled = false;
       problem("pf-problem", e);
     }
