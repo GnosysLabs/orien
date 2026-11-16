@@ -628,6 +628,29 @@ pub fn waiting(dir: &Path, mine: &Value) -> Vec<Value> {
 pub static NEEDS_UNLOCK: std::sync::Mutex<std::collections::BTreeMap<i64, PathBuf>> =
     std::sync::Mutex::new(std::collections::BTreeMap::new());
 
+/// Whether this device can start a taken offer at once: it holds the
+/// approval given when the offer was posted, or the wallet is open here
+/// without a password. Only then does it claim the swap, so a device that
+/// would sit waiting for a password never keeps the one that can go ahead
+/// from it. When it can't, it says the wallet needs unlocking here.
+fn ready(orien: &AppOrien, dir: &Path, id: i64, item: &Value, wallet: Option<&Path>) -> bool {
+    let wallet = wallet.map(Path::to_path_buf).unwrap_or_else(|| orien.wallet_file.clone());
+    let orn = item["offer"]["orn"].as_u64().unwrap_or(0);
+    let password = match crate::approval::approved(dir, id, orn, &wallet) {
+        Some(password) => password,
+        None if wallet == orien.wallet_file => orien.password.clone(),
+        None => None,
+    };
+    let ready = crate::open_signing(&wallet, password.as_deref()).is_ok();
+    let mut needs = NEEDS_UNLOCK.lock().unwrap_or_else(|poisoned| poisoned.into_inner());
+    if ready {
+        needs.remove(&id);
+    } else {
+        needs.insert(id, wallet);
+    }
+    ready
+}
+
 /// Whether this device runs offer `id`, asking the board to make it the
 /// runner if no other device is.
 fn runs(dir: &Path, id: i64, device: &str) -> bool {
@@ -696,7 +719,7 @@ pub fn drive_on(
             // with its secret, then the regular steps lock the ORN.
             // Only once the board says this device runs it: the first of the
             // account's devices to ask.
-            (true, None) if state == "held" && !runs(dir, id, &device) => Ok(()),
+            (true, None) if state == "held" && !(ready(orien, dir, id, item, link.wallet.as_deref()) && runs(dir, id, &device)) => Ok(()),
             (true, None) if state == "held" => {
                 let buyer = item["taker_wallet"].as_str().unwrap_or_default();
                 let (orn, sats) = (item["offer"]["orn"].as_u64().unwrap_or(0), item["offer"]["sats"].as_u64().unwrap_or(0));
@@ -837,7 +860,7 @@ pub fn drive_sol(orien: &AppOrien, dir: &Path, mine: &Value, sol: &mut Vec<crate
         let wallet = link.wallet.clone().unwrap_or_else(|| orien.wallet_file.clone());
         let orn = item["offer"]["orn"].as_u64().unwrap_or(0);
         let result = match (link.selling, kept) {
-            (true, None) if state == "held" && !runs(dir, id, &device) => Ok(()),
+            (true, None) if state == "held" && !(ready(orien, dir, id, item, Some(&wallet)) && runs(dir, id, &device)) => Ok(()),
             // Seller: someone took the offer. Start the swap, approved when
             // posted; the steps then lock the ORN.
             (true, None) if state == "held" => {
