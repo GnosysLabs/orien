@@ -292,8 +292,8 @@
     font: 700 16px/1 "Jost", sans-serif; color: var(--ink); background: #ffffff10; }
   .wallet-row.current .coin { color: var(--pearl-ink); background: var(--pearl); background-size: 300% 100%; box-shadow: inset 0 1px 0 #ffffffb0; }
   .wallet-row .coin.emoji { font: 20px/1 system-ui, "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif; }
-  .emoji-grid { display: grid; grid-template-columns: repeat(8, 1fr); gap: 6px; }
-  .emoji-grid button { aspect-ratio: 1; border: 1px solid transparent; border-radius: 12px; background: var(--surface); cursor: pointer;
+  .emoji-grid { display: grid; grid-template-columns: repeat(8, minmax(0, 1fr)); gap: 6px; }
+  .emoji-grid button { min-width: 0; width: 100%; aspect-ratio: 1; padding: 0; border: 1px solid transparent; border-radius: 12px; background: var(--surface); cursor: pointer;
     font: 20px/1 system-ui, "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif; color: var(--dim); transition: background .15s; }
   .emoji-grid button:hover { background: var(--surface-hover); }
   .emoji-grid button.on { border-color: #cdc6ffaa; background: var(--surface-hover); }
@@ -1761,7 +1761,13 @@
   }
   // Each wallet's icon: an emoji the person picks, kept on this device by
   // address; without one, the wallet's first letter.
-  const EMOJIS = ["💰", "🏦", "💎", "🚀", "⛏️", "🌙", "☀️", "🔥", "🌊", "🌱", "🍀", "⭐", "🎯", "🎁", "🐷", "🦊", "🐉", "👑", "🔒", "🧊", "🌈", "🎨", "🏠"];
+  const EMOJIS = [
+    "💰", "🏦", "💎", "🪙", "💳", "🐷", "🔒", "🗝️",
+    "🚀", "⛏️", "🎯", "🎁", "👑", "🏆", "⚡", "🔮",
+    "🌙", "☀️", "⭐", "🌈", "🔥", "🌊", "🧊", "❄️",
+    "🌱", "🍀", "🌸", "🌵", "🍄", "🍉", "🍕", "☕",
+    "🦊", "🐉", "🐱", "🐶", "🦉", "🐝", "🐳", "🦄",
+    "🏠", "🎨", "🎮", "🎵", "📚", "✈️", "⚓"];
   const iconOf = (address) => { try { return JSON.parse(localStorage.getItem("wallet-icons") || "{}")[address] || ""; } catch { return ""; } };
   function setIcon(address, emoji) {
     let all = {};
