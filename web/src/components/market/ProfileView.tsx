@@ -56,7 +56,7 @@ export function ProfileView() {
           <Avatar name={account.name} picture={account.picture} size={112} />
         </div>
         {/* relative: drawn above the banner behind it. */}
-        <div className="relative min-w-0 space-y-2">
+        <div className={`relative min-w-0 space-y-2 ${account.banner ? 'on-banner' : ''}`}>
           <h1 className="text-3xl font-bold tracking-tight text-ink">{account.name}</h1>
           {account.wallet && (
             <p className="inline-flex items-center gap-1.5 rounded-full border border-line bg-bg px-3 py-1 text-xs font-semibold text-muted">
