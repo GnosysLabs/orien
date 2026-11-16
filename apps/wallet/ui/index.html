@@ -150,7 +150,7 @@
   .screen { flex: 1; display: flex; flex-direction: column; min-height: 0; }
   /* When a screen has more than fits, it scrolls; nothing in it is ever
      squeezed. Its own lists (.scroll, Recent, Activity) still give way. */
-  .screen { overflow-y: auto; overscroll-behavior: contain; margin: -8px -8px -24px; padding: 8px 8px 24px; }
+  .screen { overflow-y: auto; overscroll-behavior: contain; margin: -8px -8px 0; padding: 8px 8px 16px; }
   .screen::-webkit-scrollbar { width: 0; }
   /* No visible scroll bars anywhere, on any system. */
   * { scrollbar-width: none; }
@@ -269,7 +269,7 @@
     background: var(--good); box-shadow: 0 0 8px #a6e3c6aa; animation: mining 1.6s ease-in-out infinite; }
   #go-mine.on { border-color: #a6e3c655; }
   @keyframes mining { 0%, 100% { opacity: 1; } 50% { opacity: 0.35; } }
-  #mine { overflow-y: auto; margin: -8px -8px -24px; padding: 8px 8px 24px; }
+  #mine { overflow-y: auto; margin: -8px -8px 0; padding: 8px 8px 16px; }
   #mine > * { flex-shrink: 0; }
   .mine-status { padding: 16px 18px; border: 1px solid var(--line); border-radius: 18px; background: var(--surface); }
   .mine-status .speed { font-size: 20px; font-weight: 500; }
@@ -345,9 +345,9 @@
   .board-prices { margin: 14px 0 0; min-height: 0; text-align: center; }
   /* The swap screens can hold more than the window: they scroll, and
      nothing in them is squeezed. */
-  #board-signin, #board-post, #board-take { overflow-y: auto; margin: -8px -8px -24px; padding: 8px 8px 24px; }
+  #board-signin, #board-post, #board-take { overflow-y: auto; margin: -8px -8px 0; padding: 8px 8px 16px; }
   #board-signin > *, #board-post > *, #board-take > * { flex-shrink: 0; }
-  #swaps, #swap-sell, #swap-buy, #swap-detail { overflow-y: auto; margin: -8px -8px -24px; padding: 8px 8px 24px; }
+  #swaps, #swap-sell, #swap-buy, #swap-detail { overflow-y: auto; margin: -8px -8px 0; padding: 8px 8px 16px; }
   #swaps::-webkit-scrollbar, #swap-sell::-webkit-scrollbar, #swap-buy::-webkit-scrollbar, #swap-detail::-webkit-scrollbar { width: 0; }
   #swaps > *, #swap-sell > *, #swap-buy > *, #swap-detail > * { flex-shrink: 0; }
   #swaps .scroll { overflow: visible; flex: none; }
@@ -514,9 +514,9 @@
      (the Mac's included) clips scrolled content to them. */
   /* The box sits 8px outside the content on every side, so what's at rest
      is never touched, while anything scrolling past is cut with a curve. */
-  .screen, #mine, #board-signin, #board-post, #board-take, #swaps, #swap-sell, #swap-buy, #swap-detail { border-radius: 22px 22px 40px 40px; }
+  .screen, #mine, #board-signin, #board-post, #board-take, #swaps, #swap-sell, #swap-buy, #swap-detail { border-radius: 22px 22px 32px 32px; }
   .scroll { border-radius: 22px 22px 30px 30px; }
-  body.phone .screen { margin: -8px -8px -24px; padding: 8px 8px 24px; }
+  body.phone .screen { margin: -8px -8px 0; padding: 8px 8px 16px; }
   .day { margin: 18px 4px 8px; font-size: 12px; font-weight: 600; color: var(--dim); }
   .day:first-child { margin-top: 0; }
 
@@ -595,7 +595,7 @@
   body.phone h1 { font-size: 18px; }
   body.phone .status { right: 16px; font-size: 13px; }
   body.phone #swaps, body.phone #swap-sell, body.phone #swap-buy, body.phone #swap-detail, body.phone #mine,
-  body.phone #board-signin, body.phone #board-post, body.phone #board-take { margin: -8px -8px -24px; padding: 8px 8px 24px; }
+  body.phone #board-signin, body.phone #board-post, body.phone #board-take { margin: -8px -8px 0; padding: 8px 8px 16px; }
   body.phone .scroll { margin: 0 -8px; padding: 0 8px 16px; }
   /* Home: the balance and buttons stay put; recent activity scrolls
      inside its own rounded box, which fills the rest of the screen when
