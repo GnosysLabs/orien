@@ -1687,7 +1687,6 @@
       const up = keyboardTop > 0 && keyboardTop < full - 40;
       document.documentElement.style.setProperty("--app-h", `${up ? Math.round(keyboardTop) : full}px`);
       document.body.classList.toggle("kb-up", up);
-      window.scrollTo(0, 0);
       requestAnimationFrame(() => {
         const box = document.activeElement;
         if (!up || !box || !box.matches("input, textarea")) return;
@@ -1696,9 +1695,12 @@
       });
     };
     window.__TAURI__.event.listen("keyboard", (e) => { keyboardTop = Number(e.payload) || 0; fitKeyboard(); }).catch(() => {});
-    if (window.visualViewport) {
-      window.visualViewport.addEventListener("scroll", () => { if (window.scrollY || window.visualViewport.offsetTop) window.scrollTo(0, 0); });
-    }
+    // iOS slides the whole view to show a tapped box; the app puts it back
+    // (it already fits above the keyboard), once, a moment later.
+    document.addEventListener("focusin", (e) => {
+      if (!e.target.matches("input, textarea")) return;
+      for (const ms of [60, 320]) setTimeout(() => invoke("keyboard_settle").catch(() => {}), ms);
+    });
     window.addEventListener("resize", fitKeyboard);
     document.addEventListener("focusout", () => setTimeout(() => { if (!document.activeElement.matches("input, textarea")) window.scrollTo(0, 0); }, 60));
     // No pinching to zoom.

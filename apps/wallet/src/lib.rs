@@ -25,6 +25,16 @@ mod money;
 #[cfg(target_os = "ios")]
 mod push;
 
+/// iPhones: puts the web view back at the top after a text box is tapped,
+/// when iOS slides it to show the box. Nothing elsewhere.
+#[tauri::command]
+fn keyboard_settle(app: AppHandle) {
+    #[cfg(target_os = "ios")]
+    let _ = app.run_on_main_thread(keyboard::settle);
+    #[cfg(not(target_os = "ios"))]
+    let _ = app;
+}
+
 /// iPhones: no "previous / next / done" bar above the keyboard. Web views
 /// add it to every text box; apps don't have it.
 #[cfg(target_os = "ios")]
@@ -45,6 +55,10 @@ mod keyboard {
         use objc2_ui_kit::{UIKeyboardFrameEndUserInfoKey, UIKeyboardWillChangeFrameNotification, UIKeyboardWillHideNotification};
         use tauri::Emitter;
         let center = NSNotificationCenter::defaultCenter();
+        // After it has shown, too: iOS may have slid the view by then.
+        let did_show = block2::RcBlock::new(|_note: std::ptr::NonNull<NSNotification>| settle());
+        let observer = unsafe { center.addObserverForName_object_queue_usingBlock(Some(objc2_ui_kit::UIKeyboardDidShowNotification), None, None, &did_show) };
+        std::mem::forget(observer);
         for (name, hide) in [(unsafe { UIKeyboardWillChangeFrameNotification }, false), (unsafe { UIKeyboardWillHideNotification }, true)] {
             let app = app.clone();
             let block = block2::RcBlock::new(move |note: std::ptr::NonNull<NSNotification>| {
@@ -58,10 +72,49 @@ mod keyboard {
                         .map(|value| unsafe { objc2_ui_kit::NSValueUIGeometryExtensions::CGRectValue(&*value) }.origin.y)
                         .unwrap_or(0.0)
                 };
+                settle();
                 let _ = app.emit("keyboard", top);
             });
             let observer = unsafe { center.addObserverForName_object_queue_usingBlock(Some(name), None, None, &block) };
             std::mem::forget(observer);
+        }
+    }
+
+    /// The web view's own scroll view, which iOS would otherwise slide up
+    /// under the keyboard (the page goes black above and jitters).
+    static SCROLL: std::sync::atomic::AtomicUsize = std::sync::atomic::AtomicUsize::new(0);
+
+    /// Holds the web view still: no scrolling of its own, no sliding for the
+    /// keyboard; the page fits itself above the keyboard and scrolls inside.
+    pub fn hold_still(window: &tauri::WebviewWindow) {
+        let _ = window.with_webview(|webview| unsafe {
+            use objc2::msg_send;
+            let web = webview.inner() as *mut AnyObject;
+            if web.is_null() {
+                return;
+            }
+            let scroll: *mut AnyObject = msg_send![web, scrollView];
+            if scroll.is_null() {
+                return;
+            }
+            let _: () = msg_send![scroll, setScrollEnabled: false];
+            let _: () = msg_send![scroll, setBounces: false];
+            // UIScrollViewContentInsetAdjustmentNever
+            let _: () = msg_send![scroll, setContentInsetAdjustmentBehavior: 2isize];
+            SCROLL.store(scroll as usize, std::sync::atomic::Ordering::Relaxed);
+        });
+    }
+
+    /// Puts the web view back at the top, where it always belongs.
+    pub fn settle() {
+        let scroll = SCROLL.load(std::sync::atomic::Ordering::Relaxed) as *mut AnyObject;
+        if scroll.is_null() {
+            return;
+        }
+        unsafe {
+            use objc2::msg_send;
+            let zero = objc2_core_foundation::CGPoint { x: 0.0, y: 0.0 };
+            let _: () = msg_send![scroll, setContentOffset: zero, animated: false];
         }
     }
 
@@ -1629,6 +1682,8 @@ pub fn run() {
             #[cfg(mobile)]
             if let Some(window) = app.get_webview_window("main") {
                 let _ = window.show();
+                #[cfg(target_os = "ios")]
+                keyboard::hold_still(&window);
             }
             #[cfg(target_os = "ios")]
             {
@@ -1637,7 +1692,7 @@ pub fn run() {
             }
             Ok(())
         })
-        .invoke_handler(tauri::generate_handler![has_wallet, create_wallet, save_phrase, restore_wallet, set_password, choose_wallet, overview_now, send_payment, activity, quote, contacts, save_contact, delete_contact, contacts_sync, biometric_unlock, biometric_enable, update::check_update, update::install_update, mine_start, mine_stop, mine_set, mine_status, wallets, wallet_balances, use_wallet, rename_wallet, add_wallet, forget_wallet, swap_list, swap_sell, swap_buy, swap_accept, swap_step, swap_smallest, board_offers, board_me, board_email_start, board_email_finish, board_sign_out, board_post, board_take, board_withdraw, board_link, notifications_ask, push_sync, board_wallets_sync, board_post_sol, board_take_sol, sol_open, sol_payout_check, open_site, qr_code, wallet_profiles, board_profile_save, board_picture_pick, board_verify, board_wallet_states, market_image, board_banner_remove, market_search, market_listings, market_listing, market_profile, market_call, market_pick_pictures, market_listing_picture, dock_badge, mac_notify, board_delete_account, wallet_icons, set_wallet_icon, vault_ready, vault_unlock])
+        .invoke_handler(tauri::generate_handler![has_wallet, create_wallet, save_phrase, restore_wallet, set_password, choose_wallet, overview_now, send_payment, activity, quote, contacts, save_contact, delete_contact, contacts_sync, biometric_unlock, biometric_enable, update::check_update, update::install_update, mine_start, mine_stop, mine_set, mine_status, wallets, wallet_balances, use_wallet, rename_wallet, add_wallet, forget_wallet, swap_list, swap_sell, swap_buy, swap_accept, swap_step, swap_smallest, board_offers, board_me, board_email_start, board_email_finish, board_sign_out, board_post, board_take, board_withdraw, board_link, notifications_ask, push_sync, board_wallets_sync, board_post_sol, board_take_sol, sol_open, sol_payout_check, open_site, qr_code, wallet_profiles, board_profile_save, board_picture_pick, board_verify, board_wallet_states, market_image, board_banner_remove, market_search, market_listings, market_listing, market_profile, market_call, market_pick_pictures, market_listing_picture, dock_badge, mac_notify, board_delete_account, wallet_icons, set_wallet_icon, vault_ready, vault_unlock, keyboard_settle])
         .build(tauri::generate_context!())
         .expect("the wallet window could not start")
         .run(|_app, _event| {
