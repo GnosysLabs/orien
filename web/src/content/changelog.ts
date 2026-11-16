@@ -29,9 +29,10 @@ export const CHANGELOG: Entry[] = [
     date: '2026-11-16',
     products: ['wallet'],
     version: '1.8.8',
-    title: 'Swaps run on the right computer',
+    title: 'Swaps on the right computer, and a nudge to scroll',
     changes: [
       'When your offer is taken, the computer you posted it from runs the swap by itself. Your other devices no longer step in and ask for your password.',
+      'Screens with more below now show a small arrow at the bottom; tap it or scroll to see the rest.',
     ],
   },
   {

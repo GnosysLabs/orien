@@ -678,6 +678,17 @@
   .done p { margin: 6px 0 0; color: var(--dim); }
   .done .primary { margin-top: 34px; }
 
+  /* More below: a small arrow floats at the foot of a screen that scrolls,
+     until it's scrolled; tapping it scrolls down. */
+  #more-below { position: fixed; z-index: 40; width: 36px; height: 36px; margin-left: -18px; border-radius: 50%;
+    display: grid; place-items: center; padding: 0; cursor: pointer; color: var(--text, #ece9f2);
+    background: rgba(40, 41, 46, 0.78); border: 1px solid rgba(255, 255, 255, 0.12);
+    -webkit-backdrop-filter: blur(14px) saturate(1.4); backdrop-filter: blur(14px) saturate(1.4);
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.35); opacity: 0; pointer-events: none; transition: opacity 0.35s ease; }
+  #more-below.on { opacity: 1; pointer-events: auto; }
+  #more-below svg { width: 16px; height: 16px; animation: more-bob 1.8s ease-in-out infinite; }
+  @keyframes more-bob { 0%, 100% { transform: translateY(-2px); opacity: 0.75; } 50% { transform: translateY(2px); opacity: 1; } }
+  body.phone #more-below { width: 44px; height: 44px; margin-left: -22px; }
   @keyframes spin { to { transform: rotate(360deg); } }
   .spinner {
     display: inline-block; width: 14px; height: 14px; margin-right: 8px; vertical-align: -2px;
@@ -4534,6 +4545,40 @@
   // Signed in to the Market: this app's swaps move along from the start,
   // even with the window closed, as soon as someone takes an offer.
   invoke("board_me").then((me) => { board.me = me; if (me) { stepSwaps(); paintUnread(); marketNews(); } }).catch(() => {});
+</script>
+<button id="more-below" type="button" aria-label="More below"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg></button>
+<script>
+  // More below: on whichever screen is showing, if what scrolls holds more
+  // than fits and isn't scrolled to its end, the arrow shows at its foot.
+  (() => {
+    const hint = document.getElementById("more-below");
+    let target = null;
+    const scrollers = () => [...document.querySelectorAll(".screen, #mine, #board-signin, #board-post, #board-take, #swaps, #swap-sell, #swap-buy, #swap-detail, .scroll, #recent")].filter((el) => {
+      if (el.id === "ch-log" || el.offsetParent === null) return false;
+      const y = getComputedStyle(el).overflowY;
+      return (y === "auto" || y === "scroll") && el.scrollHeight > el.clientHeight + 24 && el.clientHeight > 120;
+    });
+    const check = () => {
+      const typing = document.body.classList.contains("kb-up");
+      const found = typing ? null : scrollers().filter((el) => el.scrollTop + el.clientHeight < el.scrollHeight - 24)
+        .sort((a, b) => b.clientHeight - a.clientHeight)[0] || null;
+      target = found;
+      if (found) {
+        const box = found.getBoundingClientRect();
+        const bottom = Math.min(box.bottom, window.innerHeight);
+        hint.style.left = `${box.left + box.width / 2}px`;
+        hint.style.top = `${bottom - (hint.offsetHeight || 36) - 14}px`;
+      }
+      hint.classList.toggle("on", !!found);
+    };
+    hint.addEventListener("click", () => target && target.scrollBy({ top: target.clientHeight * 0.8, behavior: "smooth" }));
+    let queued = false;
+    const soon = () => { if (!queued) { queued = true; requestAnimationFrame(() => { queued = false; check(); }); } };
+    document.addEventListener("scroll", soon, true);
+    window.addEventListener("resize", soon);
+    new MutationObserver(soon).observe(document.querySelector("main"), { subtree: true, childList: true, attributes: true, attributeFilter: ["hidden", "class"] });
+    setInterval(check, 800);
+  })();
 </script>
 </body>
 </html>
