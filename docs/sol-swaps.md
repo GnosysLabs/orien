@@ -120,8 +120,10 @@ not one Phantom would show for the same words.
 
 ## The smallest swap
 
-0.15 SOL, about $10 when set, matching the 0.00015 BTC Bitcoin minimum, and
-far above the ~0.0009 SOL an unused Solana address needs to exist.
+0.01 SOL (`MIN_LAMPORTS`). Solana's fees are fractions of a cent, so unlike
+Bitcoin there's no need for a large minimum; the only real floor is that a
+payout address that has never held SOL needs at least the rent minimum,
+about 0.00089 SOL, to exist, and 0.01 SOL is comfortably above it.
 
 ## Who builds what
 

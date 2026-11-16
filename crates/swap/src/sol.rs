@@ -14,8 +14,10 @@ use anyhow::{Context, Result, anyhow, bail};
 use orien_crypto::Hash32;
 use serde::{Deserialize, Serialize};
 
-/// The smallest SOL swap: 0.15 SOL, about $10 when set.
-pub const MIN_LAMPORTS: u64 = 150_000_000;
+/// The smallest SOL swap: 0.01 SOL. Solana's fees are fractions of a cent,
+/// so the only real floor is a fresh payout address needing the rent minimum
+/// (about 0.00089 SOL) to exist.
+pub const MIN_LAMPORTS: u64 = 10_000_000;
 /// How long the seller's ORN stay locked, in epochs: long enough for a
 /// buyer to pay from another wallet, and for them to claim the ORN after.
 pub const ORN_EPOCHS: u64 = 4;
