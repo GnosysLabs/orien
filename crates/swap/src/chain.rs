@@ -298,39 +298,39 @@ impl Esplora {
 }
 
 /// How long an answer is reused: nothing on Bitcoin changes much faster.
-const FRESH: Duration = Duration::from_secs(30);
+pub(crate) const FRESH: Duration = Duration::from_secs(30);
 /// The chain's height, reused a little longer: a block comes every ten
 /// minutes or so.
 const TIP_FRESH: Duration = Duration::from_secs(60);
 /// How long a busy explorer is left alone when it doesn't say.
-const REST: Duration = Duration::from_secs(120);
+pub(crate) const REST: Duration = Duration::from_secs(120);
 /// The longest it's left alone, whatever it says.
-const MAX_REST: Duration = Duration::from_secs(600);
+pub(crate) const MAX_REST: Duration = Duration::from_secs(600);
 
 /// Recent answers by address, shared by every `Esplora`.
 static ANSWERS: Mutex<Option<HashMap<String, (Instant, String)>>> = Mutex::new(None);
 /// Explorers resting, and until when.
 static RESTING: Mutex<Option<HashMap<String, Instant>>> = Mutex::new(None);
 
-fn remembered(url: &str, fresh: Duration) -> Option<String> {
+pub(crate) fn remembered(url: &str, fresh: Duration) -> Option<String> {
     let guard = ANSWERS.lock().unwrap_or_else(|poisoned| poisoned.into_inner());
     let (at, answer) = guard.as_ref()?.get(url)?;
     (at.elapsed() < fresh).then(|| answer.clone())
 }
 
-fn remember(url: &str, answer: &str) {
+pub(crate) fn remember(url: &str, answer: &str) {
     let mut guard = ANSWERS.lock().unwrap_or_else(|poisoned| poisoned.into_inner());
     let all = guard.get_or_insert_with(HashMap::new);
     all.retain(|_, (at, _)| at.elapsed() < MAX_REST);
     all.insert(url.to_string(), (Instant::now(), answer.to_string()));
 }
 
-fn resting(base: &str) -> Option<Instant> {
+pub(crate) fn resting(base: &str) -> Option<Instant> {
     let guard = RESTING.lock().unwrap_or_else(|poisoned| poisoned.into_inner());
     guard.as_ref()?.get(base).copied().filter(|until| *until > Instant::now())
 }
 
-fn rest(base: &str, length: Duration) {
+pub(crate) fn rest(base: &str, length: Duration) {
     let mut guard = RESTING.lock().unwrap_or_else(|poisoned| poisoned.into_inner());
     guard.get_or_insert_with(HashMap::new).insert(base.to_string(), Instant::now() + length);
 }

@@ -13,6 +13,9 @@ serde_json = "1"
 hex = "0.4"
 anyhow = "1"
 base64 = "0.22"
+# Solana: its addresses, and signing its transactions, which this crate builds itself.
+bs58 = "0.5"
+ed25519-dalek = "2"
 orien-ledger = { path = "../ledger", default-features = false }
 orien-crypto = { path = "../crypto" }
 

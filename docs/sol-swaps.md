@@ -56,8 +56,30 @@ The seller sells ORN for SOL; the buyer pays SOL.
    sends `Refund` and gets the SOL back; the ORN lock ends later and the ORN
    go back to the seller.
 
-Reading Solana uses three RPC services and needs two of them to agree, as
-the Bitcoin side now does, with the same rest-on-429 back-off.
+## Reading and writing Solana
+
+`crates/swap/src/solana.rs`, shared by the swap logic and Orien Wallet:
+
+- **Reading** goes through several RPC services, as the Bitcoin explorers do:
+  answers reused for 10 seconds, a busy (429) or failing (5xx) service left
+  alone for a while, and anything that decides money taken only when most
+  services answer, using the least favourable answer. On the main network
+  these are Solana's own public service and PublicNode, the two that answer
+  with no account; a third that needs a free account is the next step.
+- **Writing**: legacy transactions are built and signed in that file, byte by
+  byte (a transfer, a new account, and orien-lock's Lock, Claim and Refund),
+  so neither the wallet nor the iPhone app needs Solana's own libraries. A
+  live test on devnet (`cargo test -p orien-swap solana_devnet -- --ignored`)
+  funds, locks, has a wrong secret refused, claims, and reads the secret back.
+
+## The SOL address
+
+Orien Wallet derives each account's Solana key from that account's seed, as
+it does its vault keys: `blake3::derive_key("orien wallet solana 2026-11-16
+ed25519", seed)`, through `Wallet::solana_secret()` in `crates/net/src/keys.rs`.
+It comes back with the 24 words. Orien's phrase is not BIP39 (its check is
+BLAKE3, on purpose), so the address is not the one Phantom would show for the
+same words; a "Show Solana private key" export covers people who want Phantom.
 
 ## The smallest swap
 
