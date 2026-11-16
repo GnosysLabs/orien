@@ -4730,7 +4730,13 @@
       }
       hint.classList.toggle("on", !!found);
     };
-    hint.addEventListener("click", () => target && target.scrollBy({ top: target.clientHeight * 0.8, behavior: "smooth" }));
+    // Down by most of a screen, never past the end: iPhones carry a smooth
+    // scroll on beyond it and leave the list stuck in empty space.
+    hint.addEventListener("click", () => {
+      if (!target) return;
+      const end = target.scrollHeight - target.clientHeight;
+      target.scrollTo({ top: Math.min(end, target.scrollTop + target.clientHeight * 0.8), behavior: "smooth" });
+    });
     let queued = false;
     const soon = () => { if (!queued) { queued = true; requestAnimationFrame(() => { queued = false; check(); }); } };
     document.addEventListener("scroll", soon, true);
