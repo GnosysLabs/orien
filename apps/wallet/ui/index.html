@@ -3086,7 +3086,7 @@
     $("vf-list").innerHTML = walletList.map((w) => {
       const st = state(w.address);
       const right = st && st.verified ? '<span class="vc-badge">✓ Verified</span>'
-        : w.current ? `<button class="pill" data-verify="${w.address}">Verify</button>`
+        : w.current ? `<button class="pill pearl" data-verify="${w.address}">Verify</button>`
         : '<span class="vf-wait">Open it to verify</span>';
       return `<div class="vf-row"><div><div class="vf-name">${esc(w.name)}</div><div class="vc-sub">${short(w.address)}</div></div>${right}</div>`;
     }).join("");
