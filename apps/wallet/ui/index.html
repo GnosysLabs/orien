@@ -123,7 +123,9 @@
   /* The page stays put, as an app's screen does; only a screen's own
      content scrolls, and only when it's longer than the screen. */
   html:has(body.phone) { height: 100%; overflow: hidden; }
-  body.phone { position: fixed; inset: 0; overflow: hidden; }
+  body.phone { position: fixed; inset: 0 0 auto 0; height: var(--app-h, 100%); overflow: hidden; }
+  /* With the keyboard up there's no home bar to keep clear of. */
+  body.phone.kb-up main > .screen { padding-bottom: 8px !important; }
   body.phone .screen { overflow-y: auto; overscroll-behavior: contain; -webkit-overflow-scrolling: touch; }
   body.phone .screen::-webkit-scrollbar { width: 0; }
   body.phone #swaps, body.phone #swap-sell, body.phone #swap-buy, body.phone #swap-detail, body.phone #mine,
@@ -1668,13 +1670,27 @@
       if (this.matches("input, textarea") && !this.closest(".screen:not([hidden])")?.dataset.keepFocus) return;
       return focus.apply(this, args);
     };
-    // With the keyboard up, keep the box being typed in visible inside its
-    // screen; when it goes away, put the page back where it belongs.
+    // The keyboard: the app shrinks to the space above it, as iPhone apps
+    // do, instead of the page being pushed up and off the top. The header
+    // stays; a chat's writing box sits right on the keyboard; the box being
+    // typed in is scrolled into view inside its own screen.
     if (window.visualViewport) {
-      window.visualViewport.addEventListener("resize", () => {
+      const vv = window.visualViewport;
+      const fit = () => {
+        const up = vv.height < window.innerHeight - 80;
+        document.documentElement.style.setProperty("--app-h", `${Math.round(vv.height)}px`);
+        document.body.classList.toggle("kb-up", up);
+        if (window.scrollY || vv.offsetTop) window.scrollTo(0, 0);
         const box = document.activeElement;
-        if (box && box.matches("input, textarea")) box.scrollIntoView({ block: "center", behavior: "smooth" });
-      });
+        if (up && box && box.matches("input, textarea") && !box.closest(".ch-compose")) {
+          box.scrollIntoView({ block: "nearest", behavior: "smooth" });
+        }
+        const log = document.getElementById("ch-log");
+        if (up && box && box.closest(".ch-compose") && log) log.scrollTop = log.scrollHeight;
+      };
+      vv.addEventListener("resize", fit);
+      vv.addEventListener("scroll", fit);
+      fit();
     }
     document.addEventListener("focusout", () => setTimeout(() => { if (!document.activeElement.matches("input, textarea")) window.scrollTo(0, 0); }, 60));
     // No pinching to zoom.
