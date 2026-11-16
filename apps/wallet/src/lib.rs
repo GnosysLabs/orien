@@ -880,6 +880,22 @@ async fn contacts_sync(app: AppHandle) -> Result<bool, String> {
     .map_err(|error| error.to_string())?
 }
 
+/// The wallets' icons, by address: shared across devices with the contacts.
+#[tauri::command]
+fn wallet_icons(app: AppHandle) -> Result<std::collections::BTreeMap<String, String>, String> {
+    let dir = folder(&app)?;
+    Ok(contacts::icons(&dir).into_iter().map(|(address, icon)| (address, icon.emoji)).collect())
+}
+
+/// Sets a wallet's icon and shares it with this wallet's other devices.
+#[tauri::command]
+fn set_wallet_icon(app: AppHandle, address: String, emoji: String) -> Result<(), String> {
+    let dir = folder(&app)?;
+    contacts::set_icon(&dir, &address, &emoji)?;
+    sync_contacts_later(dir);
+    Ok(())
+}
+
 #[tauri::command]
 fn delete_contact(app: AppHandle, address: String) -> Result<(), String> {
     let dir = folder(&app)?;
@@ -1528,7 +1544,7 @@ pub fn run() {
             }
             Ok(())
         })
-        .invoke_handler(tauri::generate_handler![has_wallet, create_wallet, save_phrase, restore_wallet, set_password, choose_wallet, overview_now, send_payment, activity, quote, contacts, save_contact, delete_contact, contacts_sync, biometric_unlock, biometric_enable, update::check_update, update::install_update, mine_start, mine_stop, mine_set, mine_status, wallets, wallet_balances, use_wallet, rename_wallet, add_wallet, forget_wallet, swap_list, swap_sell, swap_buy, swap_accept, swap_step, swap_smallest, board_offers, board_me, board_email_start, board_email_finish, board_sign_out, board_post, board_take, board_withdraw, board_link, notifications_ask, push_sync, board_wallets_sync, board_post_sol, board_take_sol, sol_open, sol_payout_check, open_site, qr_code, wallet_profiles, board_profile_save, board_picture_pick, board_verify, board_wallet_states, market_image, board_banner_remove, market_search, market_listings, market_listing, market_profile, market_call, market_pick_pictures, market_listing_picture, dock_badge, mac_notify, board_delete_account])
+        .invoke_handler(tauri::generate_handler![has_wallet, create_wallet, save_phrase, restore_wallet, set_password, choose_wallet, overview_now, send_payment, activity, quote, contacts, save_contact, delete_contact, contacts_sync, biometric_unlock, biometric_enable, update::check_update, update::install_update, mine_start, mine_stop, mine_set, mine_status, wallets, wallet_balances, use_wallet, rename_wallet, add_wallet, forget_wallet, swap_list, swap_sell, swap_buy, swap_accept, swap_step, swap_smallest, board_offers, board_me, board_email_start, board_email_finish, board_sign_out, board_post, board_take, board_withdraw, board_link, notifications_ask, push_sync, board_wallets_sync, board_post_sol, board_take_sol, sol_open, sol_payout_check, open_site, qr_code, wallet_profiles, board_profile_save, board_picture_pick, board_verify, board_wallet_states, market_image, board_banner_remove, market_search, market_listings, market_listing, market_profile, market_call, market_pick_pictures, market_listing_picture, dock_badge, mac_notify, board_delete_account, wallet_icons, set_wallet_icon])
         .build(tauri::generate_context!())
         .expect("the wallet window could not start")
         .run(|_app, _event| {

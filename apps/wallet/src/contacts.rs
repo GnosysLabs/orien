@@ -24,6 +24,38 @@ pub struct Book {
     pub contacts: Vec<Contact>,
     #[serde(default)]
     pub deleted: std::collections::BTreeMap<String, u64>,
+    /// Wallets' icons (an emoji, or "" for the first letter), by address,
+    /// so a wallet looks the same on every device it's opened on.
+    #[serde(default)]
+    pub icons: std::collections::BTreeMap<String, Icon>,
+}
+
+/// A wallet's icon and when it was picked: the newest wins across devices.
+#[derive(Clone, Debug, Default, PartialEq, Eq, Serialize, Deserialize)]
+pub struct Icon {
+    pub emoji: String,
+    pub updated: u64,
+}
+
+fn icons_file(dir: &Path) -> std::path::PathBuf {
+    dir.join("wallet-icons.json")
+}
+
+/// The wallets' icons this device knows.
+pub fn icons(dir: &Path) -> std::collections::BTreeMap<String, Icon> {
+    fs::read(icons_file(dir)).ok().and_then(|bytes| serde_json::from_slice(&bytes).ok()).unwrap_or_default()
+}
+
+fn store_icons(dir: &Path, icons: &std::collections::BTreeMap<String, Icon>) -> Result<(), String> {
+    let text = serde_json::to_string_pretty(icons).map_err(|error| error.to_string())?;
+    fs::write(icons_file(dir), text).map_err(|error| error.to_string())
+}
+
+/// Sets a wallet's icon, now.
+pub fn set_icon(dir: &Path, address: &str, emoji: &str) -> Result<(), String> {
+    let mut all = icons(dir);
+    all.insert(address.trim().to_lowercase(), Icon { emoji: emoji.chars().take(8).collect(), updated: now() });
+    store_icons(dir, &all)
 }
 
 fn now() -> u64 {
@@ -36,7 +68,7 @@ fn deleted(dir: &Path) -> std::collections::BTreeMap<String, u64> {
 
 /// The book, with removals, as this device has it.
 pub fn book(dir: &Path) -> Book {
-    Book { contacts: list(dir), deleted: deleted(dir) }
+    Book { contacts: list(dir), deleted: deleted(dir), icons: icons(dir) }
 }
 
 /// Takes in another device's book: for each address, the newest of its
@@ -60,6 +92,16 @@ pub fn merge(dir: &Path, other: &Book) -> Result<bool, String> {
     }
     let merged: Vec<Contact> =
         newest.into_values().filter(|c| removed.get(&c.address).is_none_or(|at| *at < c.updated)).collect();
+    // Icons: the newest of each.
+    let mut icons = mine.icons.clone();
+    for (address, icon) in &other.icons {
+        if icons.get(address).is_none_or(|kept| kept.updated < icon.updated) {
+            icons.insert(address.clone(), icon.clone());
+        }
+    }
+    if icons != mine.icons {
+        store_icons(dir, &icons)?;
+    }
     let changed = merged.len() != mine.contacts.len()
         || merged.iter().any(|c| !mine.contacts.iter().any(|m| m.address == c.address && m.name == c.name))
         || removed != mine.deleted;
