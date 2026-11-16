@@ -111,9 +111,9 @@
   body.phone .status { right: 20px; }
   /* iPhones swap and use the Market too; mining stays on computers. */
   body.phone #go-mine, body.phone #choose, body.phone .update { display: none !important; }
-  body.phone .actions.five { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  body.phone .actions.five { grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 6px; }
   /* Get ORN is the iPhone's; computers have Mine and Swap. */
-  body:not(.phone) #go-get { display: none; }
+  #go-get { display: none; }
   /* 16 points or more, or the iPhone zooms the page in on every tap into a box. */
   body.phone input, body.phone textarea, body.phone .field textarea.tall { font-size: 16px !important; }
   /* Buttons right under the fields: the keyboard covers the bottom of the screen. */
@@ -318,6 +318,8 @@
   body.phone .wallet-row { gap: 12px; padding: 14px 10px 14px 14px; }
   body.phone .wallet-row { grid-template-columns: auto minmax(0, 1fr) auto auto; }
   body.phone .wallet-row .tools { position: static; transform: none; opacity: 1; pointer-events: auto; background: none; box-shadow: none; padding: 0; }
+  /* iPhones: just the pencil; removing is on the wallet's own page. */
+  body.phone .wallet-row .tool[data-forget] { display: none; }
   body.phone .wallet-row .tool { width: 36px; height: 36px; }
   body.phone .wallet-row .bal { font-size: 16px; }
   body.phone .wallet-row .bal .unit { font-size: 13px; }
@@ -825,155 +827,18 @@
   .welcome .link { align-self: center; margin: 24px 0 0; padding: 6px 12px; border-radius: 8px; line-height: 1.4; }
   .welcome .link:hover { background: #ffffff08; }
 
-  /* ---- iPhone: Apple's own sizes and shapes. Text at the sizes iOS uses
-     (17 for reading, 15 and 13 for what's under it), 44-point touch
-     targets, a navigation bar with a "Back" button and a centred title,
-     filled rounded groups instead of outlined boxes, and Apple's
-     segmented control for tabs. ---- */
-  body.phone {
-    --tint: #cdc6ff; --fill: #ffffff14; --sep: #ffffff1c;
-    font-size: 17px; line-height: 1.32; letter-spacing: -0.012em;
-    padding-left: max(16px, env(safe-area-inset-left)); padding-right: max(16px, env(safe-area-inset-right));
-  }
+  /* ---- iPhone: the same design as on computers, with room for the notch
+     and the home bar, a little larger text, and screens that run to the
+     bottom of the glass. ---- */
+  body.phone { font-size: 15px; padding-left: max(16px, env(safe-area-inset-left)); padding-right: max(16px, env(safe-area-inset-right)); padding-bottom: 0; }
   body.phone header { height: 44px; margin: 0 -16px 8px; }
-  body.phone h1 { font-size: 18px; }
-  body.phone .status { right: 16px; font-size: 13px; }
+  body.phone .status { right: 16px; }
   body.phone #swaps, body.phone #swap-sell, body.phone #swap-buy, body.phone #swap-detail, body.phone #mine,
   body.phone #board-signin, body.phone #board-post, body.phone #board-take { margin: -8px -8px 0; padding: 8px 8px 16px; }
   body.phone .scroll { margin: 0 -8px; padding: 0 8px 16px; }
-  /* Home: the balance and buttons stay put; recent activity scrolls
-     inside its own rounded box, which fills the rest of the screen when
-     there's more than fits. */
-  body.phone main > #home { overflow: hidden; padding-bottom: 16px !important; }
-  body.phone #home #recent { -webkit-overflow-scrolling: touch; }
-  /* Its bottom corners follow the phone's own: the iPhone's screen corner
-     less the 16 points between the box and the glass's edge. */
-  body.phone main > #activity { padding-bottom: 16px !important; }
-  body.phone #all-activity { margin: 0; border: 0; border-radius: 12px 12px 39px 39px; padding-bottom: max(12px, calc(env(safe-area-inset-bottom) - 12px)); }
-  body.phone #all-activity .day { margin: 0; padding: 14px 16px 6px; }
-  body.phone #all-activity .day:not(:first-child) { border-top: 0.5px solid var(--sep); }
-  body.phone #home #recent { border-radius: 12px 12px 39px 39px; padding-bottom: max(12px, calc(env(safe-area-inset-bottom) - 12px)); }
-  /* Screens run to the bottom edge of the glass, as iOS apps do: what
-     scrolls passes under the home bar and the screen's rounded corners,
-     instead of stopping at a hard line above them. The room for the home
-     bar is kept inside each screen, after its content. */
-  body.phone { padding-bottom: 0; }
   body.phone main > .screen { padding-bottom: calc(16px + env(safe-area-inset-bottom)) !important; }
-
-  /* Navigation bar */
-  body.phone .topline { position: relative; height: 44px; margin: 0 0 18px; justify-content: center; }
-  body.phone .topline h2 { margin: 0; padding: 0 76px; font-size: 17px; font-weight: 600; text-align: center;
-    white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  body.phone .topline:not(:has(.back)) { justify-content: flex-start; height: auto; margin-bottom: 14px; }
-  body.phone .topline:not(:has(.back)) h2 { padding: 0; text-align: left; font-size: 28px; font-weight: 700; letter-spacing: -0.02em; }
-  body.phone .back { position: absolute; left: -8px; top: 0; width: auto; height: 44px; margin: 0; padding: 0 8px 0 4px;
-    display: flex; align-items: center; gap: 2px; color: var(--tint); border-radius: 0; background: none; }
-  body.phone .back svg { width: 22px; height: 22px; stroke-width: 2.4; }
-  body.phone .back::after { content: "Back"; font-size: 17px; }
-  body.phone .back:active { opacity: 0.4; }
-  /* Things on the right of a title row stay on the right; the title, or a
-     chat's person, stays centred between them and Back. */
-  body.phone .topline .account, body.phone .topline .pf-saved { position: absolute; right: 0; top: 0; height: 44px; display: flex; align-items: center; }
-  body.phone .ch-top .ch-who { max-width: calc(100% - 200px); }
-  body.phone .ch-who .avatar { width: 28px; height: 28px; }
-
-  /* Buttons */
-  body.phone .primary { height: 50px; border-radius: 14px; font-size: 17px; font-weight: 600; letter-spacing: -0.02em; }
-  body.phone .secondary { height: 50px; border-radius: 14px; border: 0; background: var(--fill); color: var(--tint);
-    font-size: 17px; font-weight: 600; letter-spacing: -0.02em; }
-  body.phone .secondary:active { background: #ffffff22; }
-  body.phone .screen > button + button { margin-top: 12px; }
-  body.phone .link { font-size: 17px; color: var(--tint); }
-  body.phone .linkish { font-size: 15px; color: var(--tint); text-decoration: none; }
-  body.phone .danger { height: 50px; border: 0; border-radius: 14px; background: #f1a9a91a; font-size: 17px; font-weight: 600; letter-spacing: -0.02em; }
-  body.phone .danger:active { background: #f1a9a92a; }
-  body.phone .chip { height: 34px; padding: 0 14px; border-radius: 17px; font-size: 15px; font-weight: 600; color: var(--tint); background: var(--fill); }
-
-  /* Home */
-  body.phone .wallet-chip { margin: 0 0 12px; height: 32px; padding: 0 12px; border: 0; background: var(--fill); font-size: 15px; color: var(--ink); }
-  body.phone .home-top .wallet-chip { margin: 0; }
-  body.phone .card { border-radius: 20px; }
-  body.phone .card .label { font-size: 13px; }
-  body.phone .actions { gap: 10px; }
-  body.phone .actions.five .tile, body.phone .actions.four .tile { padding: 14px 2px 12px; gap: 8px; font-size: 13px; font-weight: 600; border-radius: 16px; }
-  body.phone .tile { border: 0; }
-  body.phone .tile:active { background: var(--surface-hover); transform: scale(0.97); }
-  body.phone .tile .icon { width: 34px; height: 34px; }
-  body.phone .tile .icon svg { width: 21px; height: 21px; }
-  body.phone .section-head { margin: 26px 2px 10px; }
-  body.phone .section-head h3 { font-size: 20px; font-weight: 700; color: var(--ink); letter-spacing: -0.02em; }
-
-  /* Grouped lists: filled, rounded, hairlines inset past the icon */
-  body.phone .list, body.phone .review { border: 0; border-radius: 12px; }
-  body.phone .tx { position: relative; gap: 12px; min-height: 64px; padding: 10px 16px; }
-  body.phone .tx + .tx { border-top: 0; }
-  body.phone .tx + .tx::before { content: ""; position: absolute; top: 0; left: 64px; right: 0; height: 0.5px; background: var(--sep); }
-  body.phone .tx:not(:has(> .tx-icon, > .avatar))::before { left: 16px; }
-  body.phone .tx-icon, body.phone .avatar { width: 36px; height: 36px; }
-  body.phone .avatar { font-size: 15px; }
-  body.phone .tx-main .title { font-weight: 400; }
-  body.phone .tx .sub { font-size: 15px; }
-  /* Descriptions wrap onto a second line rather than end in "…". */
-  body.phone .tx-main .title, body.phone .tx-main .sub { white-space: normal; overflow: visible; text-overflow: clip; }
-  body.phone .tx-main .sub { line-height: 1.25; margin-top: 1px; }
-  body.phone .tx-side .amt { font-weight: 600; }
-  body.phone .tx.contact:active { background: var(--surface-hover); }
-  body.phone .day, body.phone #swap-detail .label, body.phone .receive-card .label {
-    margin: 22px 16px 7px; font-size: 13px; font-weight: 400; letter-spacing: 0; text-transform: uppercase; color: var(--dim); }
-  body.phone .day:first-child { margin-top: 0; }
-  body.phone .empty { padding: 26px 16px; font-size: 15px; }
-  body.phone .review .row { padding: 14px 16px; min-height: 50px; }
-  body.phone .review .row + .row { border-top: 0.5px solid var(--sep); }
-  body.phone .review .mono { font-size: 15px; }
-
-  /* Text */
-  body.phone .lede { margin: -4px 2px 22px; font-size: 15px; line-height: 1.4; }
-  body.phone .fineprint, body.phone .label-line, body.phone .codehelp { font-size: 13px; line-height: 1.4; }
-  body.phone .hint, body.phone .field .check { font-size: 13px; }
-  body.phone .problem { border: 0; border-radius: 12px; font-size: 15px; padding: 12px 16px; }
-  body.phone .welcome h2 { font-size: 28px; font-weight: 700; letter-spacing: -0.02em; }
-  body.phone .welcome p { font-size: 17px; max-width: 320px; }
-  body.phone .done h2 { font-size: 34px; font-weight: 700; letter-spacing: -0.02em; }
-  body.phone .done p { font-size: 17px; }
-
-  /* Forms */
-  body.phone .field label { margin: 0 0 7px 16px; font-size: 13px; text-transform: uppercase; color: var(--dim); }
-  body.phone .field .box { height: 50px; border: 0; border-radius: 12px; background: var(--surface); padding: 0 8px 0 16px; }
-  body.phone .field .box:focus-within { box-shadow: inset 0 0 0 1.5px #cdc6ff80; }
-  body.phone .field input { font-size: 16px; }
-  body.phone .field .plain input, body.phone .field input::placeholder { font-size: 17px; }
-  body.phone .field textarea { height: 78px; border: 0; border-radius: 12px; background: var(--surface); padding: 14px 16px; line-height: 1.5; }
-  body.phone .field textarea.tall { height: 130px; }
-  body.phone .field textarea:focus { box-shadow: inset 0 0 0 1.5px #cdc6ff80; }
-  body.phone .field + .field { margin-top: 22px; }
-  body.phone .field .check, body.phone .hint { margin-left: 16px; }
-  body.phone .amount-entry input { font-size: var(--amount-size, 56px) !important; font-weight: 300; }
-  body.phone .amount-entry .hint { font-size: 15px; margin-left: 0; }
-  body.phone .amount-entry .send-all { margin-top: 12px; }
-  body.phone .fee-line { font-size: 13px; }
-  body.phone .suggest { margin-top: 10px; }
-  body.phone .agree { gap: 12px; margin: 16px 2px 0; font-size: 15px; }
-  body.phone .agree input { width: 22px; height: 22px; }
-  body.phone .words { border: 0; border-radius: 12px; padding: 16px; gap: 6px 10px; }
-  body.phone .words li { font-size: 15px; }
-  body.phone .words li::before { width: 24px; font-size: 13px; }
-
-  /* Segmented control */
-  body.phone .tabs { gap: 0; padding: 2px; margin-bottom: 16px; border: 0; border-radius: 9px; background: #7676803d; }
-  body.phone .tab { height: 30px; border-radius: 7px; font-size: 13px; font-weight: 600; color: var(--ink); }
-  body.phone .tab.on { background: #636366; box-shadow: 0 3px 8px #0000001f, 0 3px 1px #0000000a; }
-
-  /* Cards and rows elsewhere: filled, no outlines */
-  body.phone .swap-row, body.phone .wallet-row, body.phone .offer, body.phone .note, body.phone .explain li,
-  body.phone .mine-status, body.phone .receive-card, body.phone .codebox { border: 0; border-radius: 12px; }
-  body.phone .wallet-row.current { box-shadow: inset 0 0 0 1.5px #cdc6ff66; }
-  body.phone .swap-row { padding: 14px 16px; }
-  body.phone .swap-row .sub, body.phone .offer .who, body.phone .offer .rate, body.phone .steps .who { font-size: 13px; }
-  body.phone .note, body.phone .explain li { font-size: 15px; line-height: 1.4; padding: 14px 16px; }
-  body.phone .offer button { height: 34px; border-radius: 17px; font-size: 15px; }
-  body.phone .wallet-row .addr, body.phone .codebox { font-size: 13px; }
-  body.phone .address-block { font-size: 16px; }
-  body.phone #receive .address-block { font-size: 15px; }
+  body.phone main > #home { overflow: hidden; }
+  body.phone #home #recent { -webkit-overflow-scrolling: touch; }
 </style>
 </head>
 <body>
@@ -1461,6 +1326,7 @@
         <div class="emoji-grid" id="wr-emoji"></div>
       </div>
       <div class="problem" id="wallet-rename-problem" hidden></div>
+      <button class="pill ct-delete" id="wr-forget">Remove from this app</button>
     </section>
 
     <section class="screen" id="wallet-forget" hidden>
@@ -2130,6 +1996,7 @@
     for (const b of $("wallet-list").querySelectorAll("[data-rename]")) b.onclick = () => {
       renaming = walletList[Number(b.dataset.rename)];
       $("wr-name").value = renaming.name;
+      $("wr-forget").hidden = !!renaming.shared;
       renaming.icon = iconOf(renaming.address);
       paintIcons();
       $("wallet-rename-problem").hidden = true;
@@ -2143,6 +2010,13 @@
     };
   }
   $("wallet-chip").onclick = showWallets;
+  // Removing, from the wallet's own page too (on iPhones, the only place).
+  $("wr-forget").onclick = async () => {
+    await saveName();
+    $("wf-text").textContent = `${renaming.name} (${short(renaming.address)}) comes off this app's list.`;
+    $("wallet-forget-problem").hidden = true;
+    show("wallet-forget");
+  };
 
   // ---- Mining ----
   let mineTimer = null, mineCores = 0;
@@ -2973,7 +2847,7 @@
     return null;
   }
   function renderSwapAlert() {
-    const alert = phone ? null : swapAlert();
+    const alert = swapAlert();
     const card = $("swap-alert");
     card.hidden = !alert;
     if (!alert) return;
