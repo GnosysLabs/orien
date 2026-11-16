@@ -837,8 +837,13 @@
   body.phone #board-signin, body.phone #board-post, body.phone #board-take { margin: -8px -8px 0; padding: 8px 8px 16px; }
   body.phone .scroll { margin: 0 -8px; padding: 0 8px 16px; }
   body.phone main > .screen { padding-bottom: calc(16px + env(safe-area-inset-bottom)) !important; }
-  body.phone main > #home { overflow: hidden; }
-  body.phone #home #recent { -webkit-overflow-scrolling: touch; }
+  /* Home and Activity: the activity box runs down toward the glass's edge,
+     its bottom corners following the iPhone's own (the screen corner less
+     the 16 points between the box and the edge). Nothing on these screens
+     scrolls past their own edge, so they aren't clipped themselves. */
+  body.phone main > #home, body.phone main > #activity { overflow: hidden; padding-bottom: 16px !important; border-radius: 0; }
+  body.phone #home #recent { flex: 1 1 0; -webkit-overflow-scrolling: touch; border-radius: 18px 18px 39px 39px; padding-bottom: max(12px, calc(env(safe-area-inset-bottom) - 12px)); }
+  body.phone #all-activity { flex: 1 1 0; border-radius: 18px 18px 39px 39px; padding-bottom: max(12px, calc(env(safe-area-inset-bottom) - 12px)); }
 </style>
 </head>
 <body>

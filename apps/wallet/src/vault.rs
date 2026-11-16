@@ -130,6 +130,39 @@ fn put(keys: &VaultKeys, book: &Book) -> Result<(), String> {
     }
 }
 
+/// Brings the book into step with the vault of every wallet in the app
+/// whose keys are known, not only the open one: the book (contacts and
+/// wallet icons) is the device's, and another device may have a different
+/// wallet open. Ok if at least one vault was reached.
+pub fn sync_all(dir: &Path, open: Option<&Path>) -> Result<bool, String> {
+    let mut wallets: Vec<std::path::PathBuf> = open.map(Path::to_path_buf).into_iter().collect();
+    for named in crate::known_wallets(dir) {
+        if !wallets.contains(&named.path) {
+            wallets.push(named.path);
+        }
+    }
+    let (mut reached, mut last) = (false, None);
+    for wallet in &wallets {
+        let Some(keys) = keys(dir, wallet, None) else { continue };
+        match sync(dir, &keys) {
+            Ok(()) => reached = true,
+            Err(error) => last = Some(error),
+        }
+    }
+    // A second round, so what came in from a later vault reaches the earlier ones.
+    if reached {
+        for wallet in &wallets {
+            if let Some(keys) = keys(dir, wallet, None) {
+                let _ = sync(dir, &keys);
+            }
+        }
+    }
+    match (reached, last) {
+        (false, Some(error)) => Err(error),
+        _ => Ok(reached),
+    }
+}
+
 /// Brings this device's address book and the vault's into step: takes in
 /// what the vault has, then puts back the merged book if it differs.
 pub fn sync(dir: &Path, keys: &VaultKeys) -> Result<(), String> {
@@ -209,3 +242,4 @@ mod tests {
         let _ = fs::remove_dir_all(&base);
     }
 }
+

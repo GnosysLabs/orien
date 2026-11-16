@@ -856,11 +856,7 @@ fn save_contact(app: AppHandle, name: String, address: String, previous: Option<
 /// Puts the changed address book in the vault, in the background.
 fn sync_contacts_later(dir: PathBuf) {
     std::thread::spawn(move || {
-        if let Some(wallet) = wallet_file(&dir)
-            && let Some(keys) = vault::keys(&dir, &wallet, None)
-        {
-            let _ = vault::sync(&dir, &keys);
-        }
+        let _ = vault::sync_all(&dir, wallet_file(&dir).as_deref());
     });
 }
 
@@ -872,10 +868,7 @@ fn sync_contacts_later(dir: PathBuf) {
 async fn contacts_sync(app: AppHandle) -> Result<bool, String> {
     let dir = folder(&app)?;
     let wallet = wallet_file(&dir).ok_or("no wallet yet")?;
-    tauri::async_runtime::spawn_blocking(move || match vault::keys(&dir, &wallet, None) {
-        Some(keys) => vault::sync(&dir, &keys).map(|()| true),
-        None => Ok(false),
-    })
+    tauri::async_runtime::spawn_blocking(move || vault::sync_all(&dir, Some(&wallet)))
     .await
     .map_err(|error| error.to_string())?
 }
