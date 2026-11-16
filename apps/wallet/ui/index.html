@@ -1342,6 +1342,10 @@
         <label for="wa-name">Name</label>
         <div class="box plain"><input id="wa-name" placeholder="Mining" maxlength="24" autocomplete="off"></div>
       </div>
+      <div class="field">
+        <label>Icon</label>
+        <div class="emoji-grid" id="wa-emoji"></div>
+      </div>
       <div class="push"></div>
       <div class="problem" id="wallet-add-problem" hidden></div>
       <button class="primary pearl" id="wa-new" data-gap="lg">Make a new wallet</button>
@@ -1940,6 +1944,7 @@
     // The Market's website offers them by name too, while signed in.
     invoke("board_wallets_sync").catch(() => {});
     const open = walletList.find((w) => w.current);
+    if (pendingIcon !== null && open) { setIcon(open.address, pendingIcon); pendingIcon = null; }
     $("wallet-name").textContent = open ? open.name : "Wallet";
     const chipIcon = open && iconOf(open.address);
     $("wallet-name").innerHTML = (chipIcon ? `<span class="chip-emoji">${esc(chipIcon)}</span> ` : "") + esc(open ? open.name : "Wallet");
@@ -2096,7 +2101,7 @@
     $("mn-go").disabled = false;
     mineStatus(false);
   };
-  $("wallet-add-go").onclick = () => { $("wa-name").value = ""; $("wallet-add-problem").hidden = true; show("wallet-add"); $("wa-name").focus(); };
+  $("wallet-add-go").onclick = () => { $("wa-name").value = ""; addIcon = ""; paintAddIcons(); $("wallet-add-problem").hidden = true; show("wallet-add"); $("wa-name").focus(); };
   function addName() {
     const name = $("wa-name").value.trim();
     if (!name) { problem("wallet-add-problem", "Give the wallet a name, like Mining."); return null; }
@@ -2108,6 +2113,7 @@
     $("wa-new").disabled = true;
     try {
       const words = await invoke("add_wallet", { name, words: null });
+      pendingIcon = addIcon;
       walletOpened();
       $("words").innerHTML = words.map((w) => `<li>${esc(w)}</li>`).join(""); shownWords = words;
       $("wrote").checked = false; $("phrase-done").disabled = true;
@@ -2121,12 +2127,26 @@
     adding = name;
     $("phrase-in").value = ""; checkPhrase(); show("restore"); $("phrase-in").focus();
   };
-  function paintIcons() {
-    const pick = renaming.icon || "";
-    const letter = esc(($("wr-name").value || renaming.name || "?").slice(0, 1).toUpperCase());
-    $("wr-emoji").innerHTML = `<button type="button" class="letter${pick ? "" : " on"}" data-icon="" title="First letter">${letter}</button>` +
+  // The icon grid: the wallet's first letter, then the emojis; `pick` is on.
+  function emojiGrid(pick, name) {
+    const letter = esc((name || "?").slice(0, 1).toUpperCase());
+    return `<button type="button" class="letter${pick ? "" : " on"}" data-icon="" title="First letter">${letter}</button>` +
       EMOJIS.map((e) => `<button type="button"${e === pick ? ' class="on"' : ""} data-icon="${e}">${e}</button>`).join("");
   }
+  function paintIcons() {
+    $("wr-emoji").innerHTML = emojiGrid(renaming.icon || "", $("wr-name").value || renaming.name);
+  }
+  // Adding a wallet: its icon is picked here and given to it once it exists.
+  let addIcon = "", pendingIcon = null;
+  const paintAddIcons = () => { $("wa-emoji").innerHTML = emojiGrid(addIcon, $("wa-name").value || "?"); };
+  $("wa-emoji").onclick = (event) => {
+    const b = event.target.closest("[data-icon]");
+    if (!b) return;
+    addIcon = b.dataset.icon;
+    paintAddIcons();
+    feel("selection");
+  };
+  $("wa-name").addEventListener("input", paintAddIcons);
   $("wr-emoji").onclick = (event) => {
     const b = event.target.closest("[data-icon]");
     if (!b) return;
@@ -2188,7 +2208,7 @@
     const button = $("restore-go");
     button.disabled = true; button.innerHTML = '<span class="spinner"></span>Restoring';
     try {
-      if (adding) await invoke("add_wallet", { name: adding, words: $("phrase-in").value });
+      if (adding) { await invoke("add_wallet", { name: adding, words: $("phrase-in").value }); pendingIcon = addIcon; }
       else await invoke("restore_wallet", { words: $("phrase-in").value });
       $("phrase-in").value = "";
       walletOpened();
