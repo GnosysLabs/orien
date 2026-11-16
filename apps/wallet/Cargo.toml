@@ -1,6 +1,6 @@
 [package]
 name = "orien-wallet"
-version = "1.7.0"
+version = "1.7.1"
 edition = "2024"
 license = "MIT OR Apache-2.0"
 description = "The Orien wallet, as a desktop app"
@@ -35,6 +35,8 @@ semver = "1"
 ureq = { version = "2", features = ["json"] }
 base64 = "0.22"
 getrandom = "0.3"
+# The QR code a buyer scans with a Bitcoin wallet to pay into a swap.
+qrcode = { version = "0.14", default-features = false, features = ["svg"] }
 
 # Hashing dominates the wallet's work, so even debug builds are optimized.
 [profile.dev]
@@ -58,6 +60,12 @@ objc2-user-notifications = { version = "0.3", features = ["UNUserNotificationCen
 objc2-foundation = { version = "0.3", features = ["NSBundle", "NSData", "NSError", "NSString"] }
 block2 = "0.6"
 objc2 = "0.6"
+
+# Opening at login the Mac's own way (System Settings shows the app by name).
+[target.'cfg(target_os = "macos")'.dependencies]
+objc2-service-management = { version = "0.3", features = ["SMAppService", "SMErrors"] }
+# Telling a login start from an ordinary one.
+objc2-foundation = { version = "0.3", features = ["NSAppleEventManager", "NSAppleEventDescriptor", "objc2-core-services"] }
 
 # Signing up with Apple on iPhones, so the Market server can say when ORN
 # arrives.

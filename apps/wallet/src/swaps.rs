@@ -59,6 +59,10 @@ pub struct View {
     /// For the buyer: where to pay, and how much, as a Bitcoin URI too.
     pub pay_to: Option<String>,
     pub pay_uri: Option<String>,
+    /// The same, as a QR code (SVG) for a phone's Bitcoin wallet to scan.
+    pub pay_qr: Option<String>,
+    /// Board swaps: when the buyer must have paid by, seconds since 1970.
+    pub pay_by: Option<u64>,
     pub problem: Option<String>,
     pub created: u64,
     /// The other side's Orien address: the buyer's, or the seller's.
@@ -124,6 +128,13 @@ pub fn read_btc(text: &str) -> Result<u64, String> {
     whole.checked_mul(100_000_000).and_then(|sats| sats.checked_add(fraction)).ok_or_else(|| "That amount is too large.".into())
 }
 
+/// A QR code for `text`, as an SVG picture: dark squares on white, which
+/// every Bitcoin wallet's scanner reads.
+fn qr(text: &str) -> Option<String> {
+    let code = qrcode::QrCode::new(text.as_bytes()).ok()?;
+    Some(code.render::<qrcode::render::svg::Color>().min_dimensions(200, 200).quiet_zone(true).build())
+}
+
 pub fn show_btc(sats: u64) -> String {
     let text = format!("{}.{:08}", sats / 100_000_000, sats % 100_000_000);
     text.trim_end_matches('0').trim_end_matches('.').to_string()
@@ -135,8 +146,12 @@ pub fn view(kept: &Kept) -> View {
         (_, Stage::Preparing) => ("locking", "Locking your ORN for the buyer.".to_string()),
         (Role::Seller, Stage::Claiming) => ("claiming", "The Bitcoin arrived. Taking it; waiting for Bitcoin to confirm that. Keep this app open.".to_string()),
         (_, Stage::Refunding) => ("refunding", "The seller did not take the Bitcoin in time. Taking it back; keep this app open.".to_string()),
+        // Board swaps pass their codes by themselves: never a word about them.
+        (Role::Seller, Stage::WaitingForReply) if kept.board.is_some() => ("reply", "Accepted: your ORN are locked for the buyer. Waiting for them to pay.".to_string()),
         (Role::Seller, Stage::WaitingForReply) => ("reply", "Your ORN are locked for the buyer. Send them the offer code, then paste their reply.".to_string()),
         (Role::Seller, Stage::WaitingForBitcoin) => ("bitcoin", "Waiting for the buyer's Bitcoin to arrive and be confirmed three times, about half an hour. Keep this app open.".to_string()),
+        (Role::Buyer, Stage::WaitingForBitcoin) if kept.board.is_some() && !swap.coins.is_empty() => ("bitcoin", "Payment seen. Waiting for Bitcoin to confirm it; nothing more for you to do.".to_string()),
+        (Role::Buyer, Stage::WaitingForBitcoin) if kept.board.is_some() => ("bitcoin", format!("The seller accepted. Pay exactly {} BTC to the address below, from any Bitcoin wallet. This app sees the payment by itself.", show_btc(swap.sats))),
         (Role::Buyer, Stage::WaitingForBitcoin) => ("bitcoin", "Send the seller the reply code below, then pay the Bitcoin.".to_string()),
         (Role::Buyer, Stage::WaitingForSecret) if swap.orn_claimed => ("secret", "Your ORN are claimed. Taking back the extra Bitcoin paid into the swap once its lock ends; keep this app open.".to_string()),
         (_, Stage::WaitingForSecret) => ("secret", "Paid. Waiting for the seller to take the Bitcoin, which lets this app claim your ORN.".to_string()),
@@ -159,6 +174,9 @@ pub fn view(kept: &Kept) -> View {
         offer: kept.offer.clone(),
         reply: kept.reply.clone(),
         pay_uri: pay_to.as_ref().map(|address| format!("bitcoin:{address}?amount={}", show_btc(swap.sats))),
+        pay_qr: pay_to.as_ref().and_then(|address| qr(&format!("bitcoin:{address}?amount={}", show_btc(swap.sats)))),
+        // The board holds a taken offer 30 minutes for each side's step.
+        pay_by: (kept.board.is_some() && swap.role == Role::Buyer).then_some(kept.created + 30 * 60),
         pay_to: pay_to.map(|address| address.to_string()),
         problem: kept.problem.clone(),
         created: kept.created,

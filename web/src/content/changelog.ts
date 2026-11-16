@@ -28,6 +28,20 @@ export const CHANGELOG: Entry[] = [
   {
     date: '2026-11-16',
     products: ['wallet'],
+    version: '1.7.1',
+    title: 'Swaps you can’t miss',
+    changes: [
+      'When a swap needs you, an amber card at the top of the home screen says exactly what to do, with a countdown and one button, and the Dock or taskbar icon shows a number.',
+      'A notification for every step the other side completes: your offer taken, your swap accepted, payment seen, swap done. “Pay now” repeats every 10 minutes until you’ve paid.',
+      'Paying for a swap is one box: the exact amount, a QR code for any Bitcoin wallet, Copy address and Copy amount buttons, and how long you have. The app sees the payment by itself.',
+      'Swaps from the board show no codes, and their steps are simply Accepted, Pay, Confirming and Done.',
+      'Before you take an offer, the app makes clear that the seller has 30 minutes to accept.',
+      'On a Mac, Orien Wallet opens at login the Mac’s own way, so System Settings and the login message name Orien Wallet.',
+    ],
+  },
+  {
+    date: '2026-11-16',
+    products: ['wallet'],
     version: '1.7.0',
     title: 'Runs in the background, notifies you of payments, and swaps from any device',
     changes: [

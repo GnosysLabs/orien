@@ -201,6 +201,25 @@
     padding: 14px 16px; border: 1px solid var(--line); border-radius: 16px; background: var(--surface);
     color: inherit; font: inherit; text-align: left; cursor: pointer; }
   .swap-row + .swap-row { margin-top: 8px; }
+  .swap-alert { display: flex; align-items: center; gap: 12px; width: 100%; margin: 10px 0 6px; padding: 14px 16px; text-align: left;
+    border: 1px solid var(--line); border-radius: 16px; background: var(--surface); color: inherit; font: inherit; cursor: pointer; }
+  .swap-alert .sa-main { flex: 1; min-width: 0; }
+  .swap-alert .sa-title { font-weight: 600; }
+  .swap-alert .sa-sub { color: var(--muted); font-size: 13px; margin-top: 2px; }
+  .swap-alert .sa-go { flex: none; font-weight: 600; font-size: 13px; padding: 8px 12px; border-radius: 999px; background: var(--surface-hover); }
+  .swap-alert.urgent { border-color: #f5b14c; background: color-mix(in srgb, #f5b14c 14%, var(--surface)); animation: urgent-glow 2.4s ease-in-out infinite; }
+  .swap-alert.urgent .sa-sub { color: inherit; opacity: 0.85; }
+  .swap-alert.urgent .sa-go { background: #f5b14c; color: #1a1206; }
+  @keyframes urgent-glow { 0%, 100% { box-shadow: 0 0 0 0 rgba(245, 177, 76, 0); } 50% { box-shadow: 0 0 0 4px rgba(245, 177, 76, 0.18); } }
+  .pay-card { padding: 18px; border: 1px solid var(--line); border-radius: 18px; background: var(--surface); text-align: center; }
+  .pay-card .pay-head { color: var(--muted); font-size: 13px; }
+  .pay-card .pay-amount { font-size: 30px; font-weight: 600; letter-spacing: -0.01em; margin-top: 2px; }
+  .pay-card .pay-by { margin-top: 6px; font-weight: 600; color: var(--warn, #f5b14c); }
+  .pay-card .pay-qr { margin: 14px auto 0; width: 180px; height: 180px; padding: 8px; border-radius: 12px; background: #fff; }
+  .pay-card .pay-qr svg { width: 100%; height: 100%; display: block; }
+  .pay-card .codebox { text-align: left; }
+  .pay-card .pay-copy { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .pay-card .codehelp { text-align: left; }
   .swap-row .finish { display: flex; gap: 8px; align-items: center; flex: none; }
   .swap-row .finish input { width: 140px; padding: 8px 10px; }
   .swap-row:hover { background: var(--surface-hover); }
@@ -718,6 +737,11 @@
     <!-- Home -->
     <section class="screen" id="home" hidden>
       <div><button class="wallet-chip" id="wallet-chip"><span id="wallet-name">Wallet</span><svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m4 6 4 4 4-4"/></svg></button></div>
+      <!-- A swap that needs you, or is under way: impossible to miss. -->
+      <button class="swap-alert" id="swap-alert" hidden>
+        <div class="sa-main"><div class="sa-title" id="sa-title"></div><div class="sa-sub" id="sa-sub"></div></div>
+        <span class="sa-go" id="sa-go"></span>
+      </button>
       <div class="card pearl">
         <div class="label">Balance</div>
         <div class="amount"><span class="balance" id="balance">—</span><span class="unit">ORN</span></div>
@@ -1025,7 +1049,7 @@
         <div class="row"><span>Seller</span><span id="bt-seller"></span></div>
       </div>
       <ul class="explain" data-gap="lg">
-        <li><strong>What happens:</strong> the offer is held for you for 30 minutes. The seller's wallet locks the ORN for you, then this app shows you where to pay the Bitcoin. After you pay, the seller's wallet takes it and, in the same step, delivers your ORN to you.</li>
+        <li><strong>What happens:</strong> the seller has 30 minutes to accept. Their wallet then locks the ORN for you, and this app shows you where to pay the Bitcoin. After you pay, the seller's wallet takes it and, in the same step, delivers your ORN to you. If the seller doesn't accept in time, the offer goes back on the board and nothing is lost.</li>
         <li><strong>You need</strong> the Bitcoin in any Bitcoin wallet, plus its sending fee. The usual Orien fee (0.1%, at most 1 ORN) comes out of the ORN you receive.</li>
         <li><strong>If the seller never takes your Bitcoin,</strong> this app takes it back to the address below after about 12 hours.</li>
       </ul>
@@ -1111,6 +1135,19 @@
         <div class="row"><span>Bitcoin</span><span id="sd-btc"></span></div>
         <div class="row" id="sd-other-row" hidden><span id="sd-other-label"></span><span id="sd-other"></span></div>
       </div>
+      <div id="sd-pay" class="pay-card" hidden data-gap="lg">
+        <div class="pay-head">Pay exactly</div>
+        <div class="pay-amount"><span id="sd-pay-amount"></span> BTC</div>
+        <div class="pay-by" id="sd-pay-by" hidden></div>
+        <div class="pay-qr" id="sd-pay-qr" hidden></div>
+        <div class="pay-head" data-gap="sm">to this Bitcoin address</div>
+        <div class="codebox" id="sd-pay-to"></div>
+        <div class="pay-copy" data-gap="sm">
+          <button class="secondary" id="sd-copy-pay">Copy address</button>
+          <button class="secondary" id="sd-copy-amount">Copy amount</button>
+        </div>
+        <p class="codehelp" data-gap="sm">From any Bitcoin wallet: scan the code, or copy the address and amount. This app sees the payment by itself; there is nothing else to send.</p>
+      </div>
       <ol class="steps" id="sd-steps"></ol>
       <p class="swap-status" id="sd-status"></p>
       <!-- Passing codes between the two sides. A public swap board will do
@@ -1129,12 +1166,6 @@
           <textarea id="sd-reply" class="tall" placeholder="orien-reply:…" spellcheck="false" autocomplete="off"></textarea>
           <button class="primary pearl" id="sd-accept" data-gap="sm">Use the reply</button>
         </div>
-      </div>
-      <div id="sd-pay" hidden data-gap="lg">
-        <div class="label">Then pay exactly <span id="sd-pay-amount"></span> BTC to</div>
-        <p class="codehelp">From any Bitcoin wallet. This address belongs to the swap: the seller can take the Bitcoin only by showing the secret that lets you claim the ORN.</p>
-        <div class="codebox" id="sd-pay-to"></div>
-        <button class="secondary" id="sd-copy-pay" data-gap="sm">Copy Bitcoin address</button>
       </div>
       <div class="note" id="sd-gone" hidden></div>
       <div class="field" id="sd-pw-field" hidden data-gap="xl">
@@ -1331,7 +1362,7 @@
     opening = false;
     // Never longer than a few seconds, even with the network slow.
     if (waiting) { covered(true); setTimeout(() => covered(false), 8000); }
-    show("home"); fitBalance(); loadWallets();
+    show("home"); fitBalance(); loadWallets(); renderSwapAlert();
     invoke("notifications_ask").catch(() => {});
     await refresh();
     if (waiting) { fitBalance(); covered(false); }
@@ -1994,6 +2025,7 @@
   };
 
   setInterval(() => {
+    renderSwapAlert();
     if (!$("home").hidden || !$("activity").hidden) refresh();
     // Elsewhere in the app, still listen for money arriving.
     else if (!phone && view) loadActivity();
@@ -2016,6 +2048,28 @@
   // takes. `at` is the step under way; steps before it are done.
   function swapSteps(s) {
     const O = `${s.orn} ORN`, B = `${s.btc} BTC`;
+    // Board swaps: four plain steps, nothing to pass by hand.
+    if (s.board && s.role === "sell") {
+      const steps = [
+        { name: "Accepted", what: `Your ${O} are locked for the buyer`, who: "This app · under a minute" },
+        { name: "Buyer pays", what: `The buyer pays ${B}`, who: "The buyer · within 30 minutes" },
+        { name: "Confirming", what: "Bitcoin confirms the payment, then this app takes the Bitcoin and delivers the buyer's ORN", who: "Automatic · usually 30 to 60 minutes" },
+        { name: "Done", what: `${B} on its way to your Bitcoin address`, who: "" },
+      ];
+      const at = { locking: 0, reply: 1, bitcoin: 1, claiming: 2, done: 4 }[s.stage];
+      return { steps, at: at ?? null };
+    }
+    if (s.board) {
+      const steps = [
+        { name: "Accepted", what: `The seller locked ${O} for you`, who: "The seller · done" },
+        { name: "Pay", what: `Pay ${B} from any Bitcoin wallet`, who: "You · within 30 minutes" },
+        { name: "Confirming", what: `Bitcoin confirms your payment, then your ${O} arrive`, who: "Automatic · usually 30 to 60 minutes" },
+        { name: "Done", what: `${O} in your wallet`, who: "" },
+      ];
+      let at = { bitcoin: s.paid ? 2 : 1, secret: 2, claim: 2, done: 4 }[s.stage];
+      if (s.stage === "secret" && s.orn_claimed) at = 4;
+      return { steps, at: at ?? null };
+    }
     if (s.role === "sell") {
       const steps = [
         { what: `Your ${O} are locked for the buyer`, who: "This app · under a minute" },
@@ -2031,7 +2085,7 @@
     const steps = [
       { what: `The seller locked ${O} for you, and this app checked with the validators that they really are`, who: "The seller · done" },
       s.board
-        ? { what: `You pay ${B} into the swap, from any Bitcoin wallet. The swap board passes your reply to the seller`, who: "You · pay within the next few hours" }
+        ? { what: `You pay ${B} into the swap, from any Bitcoin wallet. The swap board passes your reply to the seller`, who: "You · pay within 30 minutes" }
         : { what: `You send the seller the reply code, and pay ${B} into the swap`, who: "You · pay within the next few hours" },
       { what: "The seller's wallet takes the Bitcoin once Bitcoin has confirmed your payment three times", who: "The seller · usually 30 to 60 minutes after you pay" },
       { what: `Your ${O} arrive: the seller's wallet delivers them once it takes the Bitcoin, or this app claims them if it gets there first`, who: "Automatic · a few minutes" },
@@ -2039,6 +2093,79 @@
     let at = { bitcoin: 1, secret: 2, claim: 3, done: 4 }[s.stage];
     if (s.stage === "secret" && s.orn_claimed) at = 4;
     return { steps, at: at ?? null };
+  }
+
+  // The home screen's swap card: what needs you now, loudly, or what's
+  // under way, quietly. One card, the most pressing thing first.
+  function swapAlert() {
+    const pay = swapList.find(needsMe);
+    if (pay) return { urgent: true, title: `Your swap was accepted: pay ${pay.btc} BTC now`,
+      sub: pay.pay_by ? payDeadline(pay.pay_by) + ` · you get ${pay.orn} ORN` : `You get ${pay.orn} ORN`, go: "Pay", open: () => openSwap(pay.id) };
+    const unlock = board.waiting.find((x) => x.selling && x.needs_unlock);
+    if (unlock) return { urgent: true, title: `${unlock.taker_name || "Someone"} took your offer`,
+      sub: `Use ${unlock.unlock_biometric ? bio : "your password"} to lock your ${fmtOrn(unlock.offer.orn)} ORN and finish the swap`,
+      go: unlock.unlock_biometric ? bio : "Finish", open: () => unlock.unlock_biometric ? finishTaken(unlock.offer.id) : openSwaps() };
+    const password = swapList.find((x) => x.problem && x.problem.startsWith("password:") && !x.finished);
+    if (password) return { urgent: true, title: "A swap needs your wallet unlocked", sub: "Unlock it so the swap can go on", go: "Open", open: () => openSwap(password.id) };
+    const taken = board.waiting.find((x) => x.selling && x.offer.state === "held" && x.here && !x.elsewhere);
+    if (taken) return { title: `${taken.taker_name || "Someone"} took your offer`, sub: "Locking your ORN for them", go: "View", open: openSwaps };
+    const going = swapList.find((x) => !x.finished && !["done", "cancelled"].includes(x.stage));
+    if (going) return { title: `Swap in progress: ${going.role === "sell" ? "selling" : "buying"} ${going.orn} ORN`, sub: stageLine(going), go: "View", open: () => openSwap(going.id) };
+    return null;
+  }
+  function renderSwapAlert() {
+    const alert = phone ? null : swapAlert();
+    const card = $("swap-alert");
+    card.hidden = !alert;
+    if (!alert) return;
+    card.classList.toggle("urgent", !!alert.urgent);
+    $("sa-title").textContent = alert.title;
+    $("sa-sub").textContent = alert.sub;
+    $("sa-go").textContent = alert.go;
+    card.onclick = alert.open;
+  }
+  async function openSwaps() { show("swaps"); await loadSwaps(); loadBoard(); stepSwaps(); }
+
+  // A notification for each step the other side completes, said once
+  // (remembered across restarts), and "pay now" again every 10 minutes
+  // until it's paid. The Dock or taskbar icon counts what needs you.
+  const ANNOUNCED = "swap-announced";
+  const firstLook = localStorage.getItem(ANNOUNCED) === null;
+  const announced = JSON.parse(localStorage.getItem(ANNOUNCED) || "{}");
+  let announcedOnce = false;
+  function announceSwaps() {
+    // The first look after installing only learns what's already there.
+    const quiet = firstLook && !announcedOnce;
+    announcedOnce = true;
+    const say = (key, text, every) => {
+      const last = announced[key];
+      if (last && !(every && Date.now() - last > every)) return;
+      announced[key] = Date.now();
+      if (!quiet) tell(text);
+    };
+    for (const item of board.waiting) {
+      if (item.selling && item.offer.state === "held" && item.here && !item.elsewhere && !item.needs_unlock)
+        say(`taken:${item.offer.id}`, `${item.taker_name || "Someone"} took your offer to sell ${fmtOrn(item.offer.orn)} ORN. Your wallet is locking the ORN for them.`);
+    }
+    for (const s of swapList) {
+      if (needsMe(s)) say(`pay:${s.id}`, `Your swap was accepted. Pay ${s.btc} BTC now to get ${s.orn} ORN.` + (s.pay_by ? ` ${payDeadline(s.pay_by)}.` : ""), 10 * 60 * 1000);
+      if (s.role === "buy" && s.paid && !["done", "cancelled"].includes(s.stage)) say(`paid:${s.id}`, `Payment seen. Waiting for Bitcoin to confirm it; your ${s.orn} ORN follow by themselves.`);
+      if (s.role === "sell" && s.board && s.stage === "reply") say(`locked:${s.id}`, `Your ${s.orn} ORN are locked for the buyer. Waiting for them to pay ${s.btc} BTC.`);
+      if (s.role === "sell" && s.stage === "claiming") say(`claiming:${s.id}`, `The buyer paid ${s.btc} BTC. Taking it now; keep Orien Wallet running.`);
+      if (s.stage === "done") say(`done:${s.id}`, s.role === "sell" ? `Swap done: ${s.btc} BTC is on its way to your Bitcoin address.` : `Swap done: ${s.orn} ORN are in your wallet.`);
+      if (s.stage === "cancelled") say(`stopped:${s.id}`, `A swap stopped. ${s.status}`);
+    }
+    localStorage.setItem(ANNOUNCED, JSON.stringify(announced));
+    const waiting = swapList.filter(needsMe).length + board.waiting.filter((x) => x.needs_unlock).length;
+    if (!phone) invoke("plugin:window|set_badge_count", { label: "main", value: waiting || null }).catch(() => {});
+  }
+
+  // "Pay within 24 minutes", counting down; once past, what that means.
+  function payDeadline(by) {
+    const left = Math.round((by * 1000 - Date.now()) / 60000);
+    if (left > 1) return `Pay within ${left} minutes`;
+    if (left === 1) return "Pay within a minute";
+    return "Pay now: the time to pay is up, and the seller may take the offer back";
   }
 
   // What happens if the other side disappears, at this point of the swap.
@@ -2071,10 +2198,13 @@
     if (s.stage === "done") return "Done";
     if (s.stage === "cancelled") return "Stopped";
     if (s.stage === "refunding") return "Taking your Bitcoin back";
+    if (needsMe(s)) return `Your turn: pay ${s.btc} BTC now`;
     const { steps, at } = swapSteps(s);
     if (at === null || at >= steps.length) return "";
-    return `Step ${at + 1} of ${steps.length} · ${steps[at].who.split(" · ")[0]}`;
+    return `Step ${at + 1} of ${steps.length} · ${steps[at].name || steps[at].who.split(" · ")[0]}`;
   }
+  // A swap waiting on this person: a buyer who hasn't paid yet.
+  const needsMe = (s) => s.role === "buy" && s.stage === "bitcoin" && !s.paid && !!s.pay_to;
 
   // Someone took an offer, and its wallet is locked: say so, even with the
   // window closed, and ask for Touch ID at once, so one touch finishes it.
@@ -2182,12 +2312,22 @@
       const state = at !== null && i < at ? "done" : i === at ? (stopped ? "stopped" : "now") : "next";
       const dot = state === "done" ? "✓" : state === "stopped" ? "!" : String(i + 1);
       return `<li class="s-${state}"><span class="dot">${dot}</span>
-        <div class="what">${esc(step.what)}<div class="who">${esc(step.who)}</div></div></li>`;
+        <div class="what">${step.name ? `<strong>${esc(step.name)}</strong> · ` : ""}${esc(step.what)}${step.who ? `<div class="who">${esc(step.who)}</div>` : ""}</div></li>`;
     }).join("");
     $("sd-status").textContent = s.status;
+    // With the pay box showing, it says everything; no second telling.
+    $("sd-status").hidden = needsMe(s);
     renderExchange(s);
-    $("sd-pay").hidden = !s.pay_to;
-    if (s.pay_to) { $("sd-pay-to").textContent = s.pay_to; $("sd-pay-amount").textContent = s.btc; }
+    // The one thing a buyer does: pay. Gone once the payment is seen.
+    $("sd-pay").hidden = !s.pay_to || s.paid;
+    if (s.pay_to) {
+      $("sd-pay-to").textContent = s.pay_to;
+      $("sd-pay-amount").textContent = s.btc;
+      $("sd-pay-qr").hidden = !s.pay_qr;
+      if (s.pay_qr && $("sd-pay-qr").dataset.for !== s.pay_to) { $("sd-pay-qr").innerHTML = s.pay_qr; $("sd-pay-qr").dataset.for = s.pay_to; }
+      $("sd-pay-by").hidden = !s.pay_by;
+      if (s.pay_by) $("sd-pay-by").textContent = payDeadline(s.pay_by);
+    }
     const gone = ifGone(s);
     $("sd-gone").hidden = !gone;
     if (gone) $("sd-gone").innerHTML = gone;
@@ -2224,6 +2364,8 @@
       swapList = stepped.swaps;
       board.waiting = stepped.waiting || [];
       renderSwaps();
+      renderSwapAlert();
+      announceSwaps();
       askToFinish();
       if (!$("swap-detail").hidden) renderDetail();
     } catch (e) {
@@ -2470,7 +2612,16 @@
     showSmallest();
   };
   $("buy-copy-me").onclick = async () => { if (view) await navigator.clipboard.writeText(view.address); };
-  $("sd-copy-pay").onclick = async () => { await navigator.clipboard.writeText($("sd-pay-to").textContent); };
+  // Copy, and say so on the button for a moment.
+  async function copyFrom(button, text) {
+    await navigator.clipboard.writeText(text);
+    const was = button.textContent;
+    button.textContent = "Copied";
+    feel("success");
+    setTimeout(() => { button.textContent = was; }, 1400);
+  }
+  $("sd-copy-pay").onclick = () => copyFrom($("sd-copy-pay"), $("sd-pay-to").textContent);
+  $("sd-copy-amount").onclick = () => copyFrom($("sd-copy-amount"), $("sd-pay-amount").textContent);
   $("sd-copy-code").onclick = async () => { await navigator.clipboard.writeText($("sd-code-text").textContent); };
 
   $("sell-go").onclick = async () => {
@@ -2531,7 +2682,7 @@
     // until it is truly finished.
     if (board.me || swapList.some((s) => !s.finished)) stepSwaps();
     if (!$("swaps").hidden) loadBoard();
-  }, 30000);
+  }, 15000);
   loadSwaps();
 
   // ---- Updates: checked at start and every hour, installed only on a press ----
