@@ -700,6 +700,24 @@
   #more-below svg { width: 16px; height: 16px; animation: more-bob 1.8s ease-in-out infinite; }
   @keyframes more-bob { 0%, 100% { transform: translateY(-2px); opacity: 0.75; } 50% { transform: translateY(2px); opacity: 1; } }
   body.phone #more-below { width: 44px; height: 44px; margin-left: -22px; }
+  /* Check for Updates: the answer, in a card over the app. */
+  #upd-veil { position: fixed; inset: 0; z-index: 60; display: grid; place-items: center; padding: 24px;
+    background: rgba(15, 16, 18, 0.55); -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px);
+    opacity: 0; transition: opacity 0.2s ease; }
+  #upd-veil.on { opacity: 1; }
+  #upd-card { width: min(340px, 100%); padding: 28px 24px 22px; border-radius: 24px; text-align: center;
+    background: var(--surface); border: 1px solid var(--line); box-shadow: 0 24px 60px rgba(0, 0, 0, 0.45);
+    transform: scale(0.96); transition: transform 0.2s ease; }
+  #upd-veil.on #upd-card { transform: scale(1); }
+  #upd-icon { width: 56px; height: 56px; margin: 0 auto 16px; border-radius: 50%; display: grid; place-items: center; }
+  #upd-icon svg { width: 26px; height: 26px; }
+  #upd-icon.ok { color: var(--good); background: rgba(166, 227, 198, 0.12); border: 1px solid rgba(166, 227, 198, 0.35); }
+  #upd-icon.new { color: var(--pearl-ink); background: var(--pearl); background-size: 300% 100%; animation: drift 24s linear infinite; }
+  #upd-icon.off { color: #f5b14c; background: rgba(245, 177, 76, 0.12); border: 1px solid rgba(245, 177, 76, 0.35); }
+  #upd-icon.wait .spinner { margin: 0; }
+  #upd-title { font-size: 18px; font-weight: 600; letter-spacing: -0.01em; }
+  #upd-text { margin: 8px auto 0; max-width: 260px; color: var(--dim); font-size: 14px; line-height: 1.45; }
+  #upd-buttons { display: grid; gap: 10px; margin-top: 22px; }
   @keyframes spin { to { transform: rotate(360deg); } }
   .spinner {
     display: inline-block; width: 14px; height: 14px; margin-right: 8px; vertical-align: -2px;
@@ -4602,6 +4620,50 @@
       setTimeout(checkUpdate, 3000);
     }
   };
+  // Check for Updates, from the menu: the answer in a card over the app.
+  let updAsking = false;
+  const updIcons = {
+    ok: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>',
+    new: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v12M6.5 10.5 12 16l5.5-5.5M5 20h14"/></svg>',
+    off: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 7v6"/><circle cx="12" cy="17" r="0.6" fill="currentColor"/></svg>',
+    wait: '<span class="spinner"></span>',
+  };
+  function updCard(kind, title, text, buttons) {
+    const veil = $("upd-veil");
+    $("upd-icon").className = kind; $("upd-icon").innerHTML = updIcons[kind];
+    $("upd-title").textContent = title; $("upd-text").textContent = text;
+    $("upd-buttons").innerHTML = "";
+    for (const [label, cls, act] of buttons) {
+      const b = document.createElement("button"); b.className = cls; b.textContent = label; b.onclick = act;
+      $("upd-buttons").appendChild(b);
+    }
+    if (veil.hidden) { veil.hidden = false; requestAnimationFrame(() => veil.classList.add("on")); }
+  }
+  function updClose() {
+    const veil = $("upd-veil"); veil.classList.remove("on");
+    setTimeout(() => { veil.hidden = true; updAsking = false; }, 200);
+  }
+  $("upd-veil").addEventListener("click", (e) => { if (e.target.id === "upd-veil" && !$("upd-icon").classList.contains("wait")) updClose(); });
+  document.addEventListener("keydown", (e) => { if (e.key === "Escape" && !$("upd-veil").hidden) updClose(); });
+  async function checkForUpdatesNow() {
+    if (updAsking) return; updAsking = true;
+    updCard("wait", "Checking for updates", "", []);
+    let found;
+    try { found = await invoke("check_update"); }
+    catch { return updCard("off", "Couldn't check", "orien.network can't be reached right now. Check your connection and try again.", [["OK", "primary pearl", updClose]]); }
+    update = found; checkUpdate();
+    if (!found) return updCard("ok", "You're up to date", `Orien Wallet ${appVersion || ""} is the newest version.`.replace("  ", " "), [["OK", "primary pearl", updClose]]);
+    updCard("new", `Orien Wallet ${found.version} is ready`, "It installs in a moment, and the app reopens by itself.", [
+      ["Update now", "primary pearl", async (e) => {
+        e.target.disabled = true; e.target.innerHTML = '<span class="spinner"></span>Updating';
+        try { await invoke("install_update"); } catch (error) { updCard("off", "The update didn't install", String(error), [["OK", "primary pearl", updClose]]); }
+      }],
+      ["Later", "", updClose],
+    ]);
+  }
+  let appVersion = "";
+  window.__TAURI__.app?.getVersion?.().then((v) => { appVersion = v; }).catch(() => {});
+  window.__TAURI__.event.listen("check-updates", checkForUpdatesNow).catch(() => {});
   checkUpdate();
   setInterval(checkUpdate, 60 * 60 * 1000);
   // Contacts and wallet icons from this wallet's other devices, every few
@@ -4612,6 +4674,12 @@
   // even with the window closed, as soon as someone takes an offer.
   invoke("board_me").then((me) => { board.me = me; if (me) { stepSwaps(); paintUnread(); marketNews(); } }).catch(() => {});
 </script>
+<div id="upd-veil" hidden><div id="upd-card" role="dialog" aria-modal="true" aria-labelledby="upd-title">
+  <div id="upd-icon"></div>
+  <div id="upd-title"></div>
+  <p id="upd-text"></p>
+  <div id="upd-buttons"></div>
+</div></div>
 <button id="more-below" type="button" aria-label="More below"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg></button>
 <script>
   // More below: on whichever screen is showing, if what scrolls holds more

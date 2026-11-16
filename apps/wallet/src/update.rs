@@ -95,52 +95,12 @@ fn reopen_on_the_mac(app: &AppHandle) {
     }
 }
 
-/// "Check for Updates…" from the menu: asks now, and answers with the
-/// system's own dialog: up to date, or the new version with an Update button.
+/// "Check for Updates…" from the menu: brings the window forward, where
+/// the app asks and shows the answer in its own style.
 pub fn check_now(app: AppHandle) {
-    use tauri_plugin_dialog::{DialogExt, MessageDialogButtons, MessageDialogKind};
-    // One check, and one answer, at a time.
-    static ASKING: std::sync::atomic::AtomicBool = std::sync::atomic::AtomicBool::new(false);
-    if ASKING.swap(true, std::sync::atomic::Ordering::SeqCst) {
-        return;
-    }
-    let done = || ASKING.store(false, std::sync::atomic::Ordering::SeqCst);
-    tauri::async_runtime::spawn(async move {
-        let current = app.package_info().version.to_string();
-        let found = check_update(app.clone()).await;
-        match found {
-            Ok(Some(available)) => {
-                let app2 = app.clone();
-                app.dialog()
-                    .message(format!("Orien Wallet {} is ready. You have {current}.", available.version))
-                    .title("A new version is available")
-                    .kind(MessageDialogKind::Info)
-                    .buttons(MessageDialogButtons::OkCancelCustom("Update".into(), "Later".into()))
-                    .show(move |update| {
-                        done();
-                        if update {
-                            tauri::async_runtime::spawn(async move {
-                                if let Err(error) = install_update(app2.clone()).await {
-                                    app2.dialog().message(error).title("The update didn't install").kind(MessageDialogKind::Error).show(|_| {});
-                                }
-                            });
-                        }
-                    });
-            }
-            Ok(None) => app
-                .dialog()
-                .message(format!("Orien Wallet {current} is the newest version."))
-                .title("You're up to date")
-                .kind(MessageDialogKind::Info)
-                .show(move |_| done()),
-            Err(_) => app
-                .dialog()
-                .message("orien.network can't be reached right now. Check your connection and try again.")
-                .title("Couldn't check for updates")
-                .kind(MessageDialogKind::Warning)
-                .show(move |_| done()),
-        }
-    });
+    use tauri::Emitter;
+    crate::background::show(&app);
+    let _ = app.emit("check-updates", ());
 }
 
 #[cfg(test)]
