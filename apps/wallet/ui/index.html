@@ -109,10 +109,9 @@
     -webkit-tap-highlight-color: transparent; }
   body.phone header { height: 52px; margin: 0 -20px 10px; -webkit-app-region: no-drag; }
   body.phone .status { right: 20px; }
-  /* No swaps on iPhone either: Apple asks for licences to offer trading
-     between currencies, and a swap board's accounts bring rules of their own. */
-  body.phone #go-mine, body.phone #go-swap, body.phone #go-market, body.phone #choose, body.phone .update { display: none !important; }
-  body.phone .actions.five { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  /* iPhones swap and use the Market too; mining stays on computers. */
+  body.phone #go-mine, body.phone #choose, body.phone .update { display: none !important; }
+  body.phone .actions.five { grid-template-columns: repeat(3, minmax(0, 1fr)); }
   /* Get ORN is the iPhone's; computers have Mine and Swap. */
   body:not(.phone) #go-get { display: none; }
   /* 16 points or more, or the iPhone zooms the page in on every tap into a box. */
@@ -428,6 +427,9 @@
   .se-price { display: flex; align-items: center; gap: 8px; padding-right: 14px; }
   .se-price input { flex: 1; }
   .se-price span { color: var(--faint); }
+  .pf-delete-name { display: flex; align-items: center; height: 44px; padding: 0 14px; margin-top: 10px; border: 1px solid var(--line); border-radius: var(--radius); background: var(--field); }
+  .pf-delete-name input { flex: 1; min-width: 0; border: 0; background: none; color: var(--ink); font: inherit; outline: none; }
+  .pf-delete-go { color: var(--bad); border-color: var(--bad); }
   .pf-saved { margin-left: auto; font-size: 12px; color: var(--faint); }
   .pf-listings-head { align-items: center; margin-top: 26px; }
   .pf-listings-head h3 { line-height: 32px; }
@@ -869,6 +871,11 @@
   body.phone .back svg { width: 22px; height: 22px; stroke-width: 2.4; }
   body.phone .back::after { content: "Back"; font-size: 17px; }
   body.phone .back:active { opacity: 0.4; }
+  /* Things on the right of a title row stay on the right; the title, or a
+     chat's person, stays centred between them and Back. */
+  body.phone .topline .account, body.phone .topline .pf-saved { position: absolute; right: 0; top: 0; height: 44px; display: flex; align-items: center; }
+  body.phone .ch-top .ch-who { max-width: calc(100% - 200px); }
+  body.phone .ch-who .avatar { width: 28px; height: 28px; }
 
   /* Buttons */
   body.phone .primary { height: 50px; border-radius: 14px; font-size: 17px; font-weight: 600; letter-spacing: -0.02em; }
@@ -1103,7 +1110,7 @@
     <section class="screen" id="get" hidden>
       <div class="topline"><button class="back" data-back aria-label="Back"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10 3 5 8l5 5"/></svg></button><h2>Get ORN</h2></div>
       <ul class="explain">
-        <li><strong>Swap for it on a computer.</strong> Orien Wallet on a computer can swap SOL or Bitcoin for ORN with other people, directly between your wallets. With SOL, it takes a few minutes, and you pay from the SOL wallet you already have, such as Phantom.</li>
+        <li><strong>Swap for it.</strong> Swap SOL or Bitcoin for ORN with other people, directly between your wallets, on the Swap screen. With SOL it takes a few minutes, and you pay from the SOL wallet you already have, such as Phantom.</li>
         <li><strong>Mine it on a computer.</strong> Install Orien Wallet on your Mac, Windows or Linux computer, open this same wallet there with its recovery phrase, and press Mine. Your computer earns a share of each hour's new ORN.</li>
         <li><strong>Be paid in ORN.</strong> Give someone your address and they can send you ORN from their wallet. Payments arrive in seconds.</li>
       </ul>
@@ -1297,6 +1304,12 @@
       </div>
       <div class="push"></div>
       <div class="problem" id="pf-problem" hidden></div>
+      <button class="pill ct-delete" id="pf-delete">Delete my account</button>
+      <div class="report-box" id="pf-delete-box" hidden>
+        <p class="vc-text" id="pf-delete-text"></p>
+        <div class="box plain pf-delete-name"><input id="pf-delete-name" autocomplete="off" spellcheck="false" autocapitalize="off"></div>
+        <div class="ls-ask-row"><button class="pill" id="pf-delete-cancel">Cancel</button><button class="pill pf-delete-go" id="pf-delete-go">Delete for good</button></div>
+      </div>
     </section>
 
     <!-- One contact -->
@@ -4186,6 +4199,8 @@
     $("pf-x").value = (me.contact && me.contact.x) || "";
     $("pf-problem").hidden = true;
     renderVerify();
+    $("pf-delete-box").hidden = true;
+    $("pf-delete").hidden = false;
     const mine = me.listings || [];
     $("pf-listings").innerHTML = mine.length ? mine.map(card).join("") : '<div class="empty mk-empty">You have no listings yet.</div>';
     show("profile");
@@ -4291,6 +4306,33 @@
   }
   $("pf-picture").onclick = () => pickPicture(false, $("pf-picture"));
   $("pf-banner-go").onclick = () => pickPicture(true, $("pf-banner-go"));
+  // Deleting the account: Apple asks every app with sign-up to offer it.
+  // It says what goes, and wants the username typed to be sure.
+  $("pf-delete").onclick = () => {
+    const me = board.me;
+    if (!me) return;
+    $("pf-delete-box").hidden = false;
+    $("pf-delete").hidden = true;
+    $("pf-delete-text").textContent = `This deletes your Orien Market account for good: your profile, listings and messages. Your wallets and ORN stay yours. Type ${me.name} to confirm.`;
+    $("pf-delete-name").value = "";
+    $("pf-delete-name").placeholder = me.name;
+  };
+  $("pf-delete-cancel").onclick = () => { $("pf-delete-box").hidden = true; $("pf-delete").hidden = false; };
+  $("pf-delete-go").onclick = async () => {
+    const me = board.me;
+    if (!me) return;
+    if ($("pf-delete-name").value.trim() !== me.name) { problem("pf-problem", `Type ${me.name} exactly, to confirm.`); return; }
+    $("pf-delete-go").disabled = true;
+    try {
+      await invoke("board_delete_account", { confirm: me.name });
+      board.me = null;
+      board.waiting = [];
+      renderBoardBar();
+      feel("success");
+      home();
+    } catch (e) { problem("pf-problem", e); }
+    finally { $("pf-delete-go").disabled = false; }
+  };
   // The profile saves itself a moment after typing stops, and on leaving.
   let pfTimer = 0, pfSaving = null;
   const pfFields = ["pf-name", "pf-bio", "pf-email", "pf-telegram", "pf-x"];
@@ -4479,7 +4521,7 @@
   loadBook().then(start).then(syncBook).catch((e) => { covered(false); problem("welcome-problem", e); });
   // Signed in to the Market: this app's swaps move along from the start,
   // even with the window closed, as soon as someone takes an offer.
-  if (!phone) invoke("board_me").then((me) => { board.me = me; if (me) { stepSwaps(); paintUnread(); marketNews(); } }).catch(() => {});
+  invoke("board_me").then((me) => { board.me = me; if (me) { stepSwaps(); paintUnread(); marketNews(); } }).catch(() => {});
 </script>
 </body>
 </html>

@@ -286,6 +286,15 @@ pub fn sign_out(dir: &Path) -> Result<(), String> {
     save(dir, &saved)
 }
 
+/// Deletes the signed-in account for good: profile, listings and messages.
+/// `confirm` is the account's name, typed to be sure. Signed out after.
+pub fn delete_account(dir: &Path, confirm: &str) -> Result<(), String> {
+    call(dir, "POST", "/me/delete", Some(json!({ "confirm": confirm.trim() })))?;
+    let mut saved = load(dir);
+    saved.cookie = None;
+    save(dir, &saved)
+}
+
 /// Links this wallet, `address`, to the signed-in account, as signing in
 /// through the app does, so the account's buyers pay this wallet. Nothing
 /// is paid: the app names its own address, so it can't be mistyped, and
