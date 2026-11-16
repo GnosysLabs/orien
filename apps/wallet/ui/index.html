@@ -150,7 +150,7 @@
   .screen { flex: 1; display: flex; flex-direction: column; min-height: 0; }
   /* When a screen has more than fits, it scrolls; nothing in it is ever
      squeezed. Its own lists (.scroll, Recent, Activity) still give way. */
-  .screen { overflow-y: auto; overscroll-behavior: contain; margin: 0 -28px; padding: 0 28px 8px; }
+  .screen { overflow-y: auto; overscroll-behavior: contain; margin: 0 -14px; padding: 0 14px 8px; }
   .screen::-webkit-scrollbar { width: 0; }
   /* No visible scroll bars anywhere, on any system. */
   * { scrollbar-width: none; }
@@ -269,12 +269,12 @@
     background: var(--good); box-shadow: 0 0 8px #a6e3c6aa; animation: mining 1.6s ease-in-out infinite; }
   #go-mine.on { border-color: #a6e3c655; }
   @keyframes mining { 0%, 100% { opacity: 1; } 50% { opacity: 0.35; } }
-  #mine { overflow-y: auto; margin: 0 -28px; padding: 0 28px 8px; }
+  #mine { overflow-y: auto; margin: 0 -14px; padding: 0 14px 8px; }
   #mine > * { flex-shrink: 0; }
   .mine-status { padding: 16px 18px; border: 1px solid var(--line); border-radius: 18px; background: var(--surface); }
   .mine-status .speed { font-size: 20px; font-weight: 500; }
   .mine-status .sub { margin-top: 4px; font-size: 12.5px; color: var(--dim); }
-  .wallet-chip { display: inline-flex; align-items: center; gap: 6px; margin: -6px 0 12px 2px; padding: 5px 10px;
+  .wallet-chip { display: inline-flex; align-items: center; gap: 6px; margin: 0 0 12px 2px; padding: 5px 10px;
     border: 1px solid var(--line); border-radius: 999px; background: transparent; cursor: pointer; font-size: 12.5px; color: var(--dim); }
   .wallet-chip:hover { color: var(--ink); background: #ffffff08; }
   /* A wallet: name and address on the left, its balance on the right
@@ -345,9 +345,9 @@
   .board-prices { margin: 14px 0 0; min-height: 0; text-align: center; }
   /* The swap screens can hold more than the window: they scroll, and
      nothing in them is squeezed. */
-  #board-signin, #board-post, #board-take { overflow-y: auto; margin: 0 -28px; padding: 0 28px 8px; }
+  #board-signin, #board-post, #board-take { overflow-y: auto; margin: 0 -14px; padding: 0 14px 8px; }
   #board-signin > *, #board-post > *, #board-take > * { flex-shrink: 0; }
-  #swaps, #swap-sell, #swap-buy, #swap-detail { overflow-y: auto; margin: 0 -28px; padding: 0 28px 8px; }
+  #swaps, #swap-sell, #swap-buy, #swap-detail { overflow-y: auto; margin: 0 -14px; padding: 0 14px 8px; }
   #swaps::-webkit-scrollbar, #swap-sell::-webkit-scrollbar, #swap-buy::-webkit-scrollbar, #swap-detail::-webkit-scrollbar { width: 0; }
   #swaps > *, #swap-sell > *, #swap-buy > *, #swap-detail > * { flex-shrink: 0; }
   #swaps .scroll { overflow: visible; flex: none; }
@@ -459,7 +459,12 @@
     width: 36px; height: 36px; margin: 0 auto 12px; border-radius: 50%;
     display: grid; place-items: center; color: var(--pearl-ink);
   }
-  .receive-qr { width: 168px; height: 168px; margin: 0 auto 18px; padding: 8px; border-radius: 14px; background: #fff; }
+  .receive-qr { width: 144px; height: 144px; margin: 0 auto 16px; padding: 7px; border-radius: 14px; background: #fff; }
+  .receive-actions { display: grid; gap: 10px; margin-top: 16px; }
+  .receive-actions.two { grid-template-columns: 1fr 1fr; }
+  #receive .receive-card { padding: 20px 20px 16px; }
+  #receive .address-block { margin-top: 8px; font-size: 13px; line-height: 1.7; }
+  #receive .receive-card .fineprint { margin-top: 14px; padding-top: 12px; }
   .receive-qr svg { width: 100%; height: 100%; display: block; }
   .receive-card .label { font-size: 11.5px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--dim); }
   .address-block {
@@ -500,17 +505,15 @@
   #all-activity .day { position: sticky; top: 0; z-index: 1; margin: 0; padding: 12px 14px 6px; background: var(--surface); }
   #all-activity .day:not(:first-child) { border-top: 1px solid var(--line); }
   #all-activity .list { border: 0; border-radius: 0; background: none; overflow: visible; }
-  .scroll { flex: 1; min-height: 0; overflow-y: auto; margin: 0 -28px; padding: 0 28px 8px; }
+  .scroll { flex: 1; min-height: 0; overflow-y: auto; margin: 0 -14px; padding: 0 14px 8px; }
   .scroll::-webkit-scrollbar { width: 0; }
   /* Anything that scrolls is cut off with rounded corners, so it reads as
      scrolling inside a box rather than vanishing at a straight edge. The
      cut sits just outside the cards, so their edges and focus rings stay. */
-  .scroll, #mine, #board-signin, #board-post, #board-take, #swaps, #swap-sell, #swap-buy, #swap-detail { clip-path: inset(0 14px round 18px); }
-  #all-activity { clip-path: inset(0 round 18px); }
-  .screen { clip-path: inset(0 14px round 18px); }
-  body.phone .screen { margin: 0; padding: 0; clip-path: inset(0 round 22px); }
-  body.phone .scroll, body.phone #mine, body.phone #board-signin, body.phone #board-post, body.phone #board-take,
-  body.phone #swaps, body.phone #swap-sell, body.phone #swap-buy, body.phone #swap-detail { clip-path: inset(0 14px round 22px); }
+  /* Rounded corners on the scrolling box itself: every browser engine
+     (the Mac's included) clips scrolled content to them. */
+  .screen, .scroll, #mine, #board-signin, #board-post, #board-take, #swaps, #swap-sell, #swap-buy, #swap-detail { border-radius: 18px; }
+  body.phone .screen { margin: 0; padding: 0; border-radius: 22px; }
   .day { margin: 18px 4px 8px; font-size: 12px; font-weight: 600; color: var(--dim); }
   .day:first-child { margin-top: 0; }
 
@@ -717,6 +720,7 @@
   body.phone .offer button { height: 34px; border-radius: 17px; font-size: 15px; }
   body.phone .wallet-row .addr, body.phone .codebox { font-size: 13px; }
   body.phone .address-block { font-size: 16px; }
+  body.phone #receive .address-block { font-size: 15px; }
 </style>
 </head>
 <body>
@@ -1275,11 +1279,13 @@
         <div class="receive-qr" id="receive-qr" hidden></div>
         <div class="label">Your address</div>
         <div class="address-block" id="address-block"></div>
-        <p class="fineprint">Share it to get paid. It's safe to share: an address can receive, never spend.</p>
+        <p class="fineprint">Safe to share: an address can only receive ORN.</p>
       </div>
       <div class="push"></div>
-      <button class="primary pearl" id="share" hidden>Share address</button>
-      <button class="primary pearl" id="copy">Copy address</button>
+      <div class="receive-actions" id="receive-actions">
+        <button class="primary pearl" id="share" hidden>Share address</button>
+        <button class="primary pearl" id="copy">Copy address</button>
+      </div>
     </section>
   </main>
 
@@ -1761,7 +1767,7 @@
         $("receive-qr").hidden = false;
       }).catch(() => {});
     }
-    $("address-block").innerHTML = view.address.match(/.{16}/g).map((g) => `<span>${g.match(/.{4}/g).join(" ")}</span>`).join("");
+    $("address-block").innerHTML = view.address.match(phone ? /.{16}/g : /.{32}/g).map((g) => `<span>${g.match(/.{4}/g).join(" ")}</span>`).join("");
     $("copy").textContent = "Copy address";
     show("receive");
   };
@@ -1961,7 +1967,7 @@
   if (navigator.share) {
     $("share").hidden = false;
     $("copy").className = "secondary";
-    $("copy").dataset.gap = "sm";
+    $("receive-actions").classList.add("two");
   }
   $("share").onclick = async () => {
     try { await navigator.share({ text: view.address }); feel("success"); } catch {}
