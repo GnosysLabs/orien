@@ -201,6 +201,8 @@
     padding: 14px 16px; border: 1px solid var(--line); border-radius: 16px; background: var(--surface);
     color: inherit; font: inherit; text-align: left; cursor: pointer; }
   .swap-row + .swap-row { margin-top: 8px; }
+  .waiting-mark { display: grid; place-items: center; margin-bottom: 18px; }
+  .waiting-mark .mark { width: 56px; height: 56px; animation: brand-drift 12s ease-in-out infinite, breathe 1.6s ease-in-out infinite; }
   .swap-alert { display: flex; align-items: center; gap: 12px; width: 100%; margin: 12px 0 16px; padding: 14px 16px; text-align: left;
     border: 1px solid var(--line); border-radius: 16px; background: var(--surface); color: inherit; font: inherit; cursor: pointer; }
   .swap-alert .sa-main { flex: 1; min-width: 0; }
@@ -1040,7 +1042,7 @@
         <div class="box plain"><input id="bp-payout" placeholder="Where the SOL should go, such as your Phantom wallet" spellcheck="false" autocomplete="off"></div>
       </div>
       <p class="fineprint" id="bp-fine-btc" hidden>Smallest swap: 0.00015 BTC, more when Bitcoin is busy<span class="min-now"></span>. Fees: the usual Orien fee to lock the ORN (0.1%, at most 1 ORN), and Bitcoin's network fee for taking the Bitcoin, out of what you receive. If a buyer never pays, your ORN come back on their own within 12 hours.</p>
-      <p class="fineprint" id="bp-fine-sol">Smallest swap: 0.15 SOL. Fees: the usual Orien fee to lock the ORN (0.1%, at most 1 ORN); the buyer covers Solana's small fees. A swap takes about a minute. If a buyer never pays, your ORN come back on their own within a few hours.</p>
+      <p class="fineprint" id="bp-fine-sol">Smallest swap: 0.01 SOL. Fees: the usual Orien fee to lock the ORN (0.1%, at most 1 ORN); the buyer covers Solana's small fees. A swap takes about a minute. If a buyer never pays, your ORN come back on their own within a few hours.</p>
       <p class="fineprint" id="bp-approve">You approve the sale once, now. When someone takes your offer, your wallet accepts it within seconds, even with the window closed. Keep Orien Wallet running.</p>
       <div class="field" id="bp-pw-field" hidden>
         <label for="bp-pw">Wallet password, to approve this sale</label>
@@ -1049,6 +1051,17 @@
       <div class="push"></div>
       <div class="problem" id="bp-problem" hidden></div>
       <button class="primary pearl" id="bp-go" data-gap="lg">Post the offer</button>
+    </section>
+
+    <!-- Just after taking an offer: waiting for the seller's wallet to
+         accept, then straight on to paying. -->
+    <section class="screen" id="swap-waiting" hidden>
+      <div class="topline"><button class="back" data-to="swaps" aria-label="Back"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10 3 5 8l5 5"/></svg></button><h2>Offer taken</h2></div>
+      <div class="push"></div>
+      <div class="waiting-mark"><span class="mark brand"></span></div>
+      <p class="lede" id="sw-text" style="text-align:center"></p>
+      <p class="fineprint" id="sw-fine" style="text-align:center"></p>
+      <div class="push"></div>
     </section>
 
     <section class="screen" id="board-take" hidden>
@@ -2348,6 +2361,18 @@
     renderSwaps();
   }
 
+  // After taking an offer: the swap it starts, once the seller accepts.
+  let waitFor = null;
+  function arrived() {
+    if (!waitFor) return;
+    const swap = swapList.find((s) => s.role === "buy" && s.created >= waitFor.since);
+    if (!swap) return;
+    waitFor = null;
+    if (!$("swap-waiting").hidden) openSwap(swap.id);
+  }
+  // Ask often while waiting: the seller's wallet usually answers in seconds.
+  setInterval(() => { if (waitFor && !$("swap-waiting").hidden) stepSwaps(); }, 4000);
+
   function openSwap(id) {
     current = id;
     renderDetail();
@@ -2431,6 +2456,7 @@
       board.waiting = stepped.waiting || [];
       renderSwaps();
       renderSwapAlert();
+      arrived();
       announceSwaps();
       askToFinish();
       if (!$("swap-detail").hidden) renderDetail();
@@ -2591,10 +2617,18 @@
   $("bt-go").onclick = async () => {
     $("bt-go").disabled = true;
     try {
-      await invoke(board.taking.coin === "sol" ? "board_take_sol" : "board_take", { offer: board.taking.id, refund: $("bt-refund").value });
+      const taken = board.taking;
+      await invoke(taken.coin === "sol" ? "board_take_sol" : "board_take", { offer: taken.id, refund: $("bt-refund").value });
       board.taking = null;
-      show("swaps");
-      await loadBoard();
+      // Straight on to a screen that waits for the seller, then opens the
+      // swap to pay.
+      waitFor = { since: Date.now() / 1000 - 10, sol: taken.coin === "sol", name: taken.seller_name };
+      $("sw-text").textContent = `Waiting for ${taken.seller_name || "the seller"}'s wallet to accept.`;
+      $("sw-fine").textContent = waitFor.sol
+        ? "Usually a few seconds. Then this app shows exactly what to pay, with a QR code for your SOL wallet."
+        : "The seller has up to 30 minutes. Then this app shows exactly what to pay, with a QR code for your Bitcoin wallet.";
+      show("swap-waiting");
+      loadBoard();
       stepSwaps();
     } catch (e) { problem("bt-problem", e); }
     finally { $("bt-go").disabled = false; }
