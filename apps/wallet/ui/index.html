@@ -459,6 +459,8 @@
     width: 36px; height: 36px; margin: 0 auto 12px; border-radius: 50%;
     display: grid; place-items: center; color: var(--pearl-ink);
   }
+  .receive-qr { width: 168px; height: 168px; margin: 0 auto 18px; padding: 8px; border-radius: 14px; background: #fff; }
+  .receive-qr svg { width: 100%; height: 100%; display: block; }
   .receive-card .label { font-size: 11.5px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--dim); }
   .address-block {
     margin: 12px 0 0; font: 14px/1.75 ui-monospace, "SF Mono", monospace; letter-spacing: 0.06em; color: var(--ink);
@@ -1270,6 +1272,7 @@
       </div>
       <div class="push"></div>
       <div class="receive-card">
+        <div class="receive-qr" id="receive-qr" hidden></div>
         <div class="label">Your address</div>
         <div class="address-block" id="address-block"></div>
         <p class="fineprint">Share it to get paid. It's safe to share: an address can receive, never spend.</p>
@@ -1739,6 +1742,15 @@
   };
   $("go-receive").onclick = () => {
     if (!view) return;
+    if ($("receive-qr").dataset.for !== view.address) {
+      const address = view.address;
+      $("receive-qr").dataset.for = address;
+      invoke("qr_code", { text: address }).then((svg) => {
+        if (!svg || $("receive-qr").dataset.for !== address) return;
+        $("receive-qr").innerHTML = svg;
+        $("receive-qr").hidden = false;
+      }).catch(() => {});
+    }
     $("address-block").innerHTML = view.address.match(/.{16}/g).map((g) => `<span>${g.match(/.{4}/g).join(" ")}</span>`).join("");
     $("copy").textContent = "Copy address";
     show("receive");
@@ -1933,9 +1945,10 @@
   };
 
   // ---- Receive ----
-  // iPhones share the address the iPhone way, through the share sheet, to
-  // Messages, Mail, AirDrop and the rest; copying stays, a step quieter.
-  if (phone && navigator.share) {
+  // Share the address the system's way (the share sheet on iPhones and
+  // Macs, Windows' share panel): Messages, Mail, AirDrop and the rest.
+  // Copying stays, a step quieter. Linux has no share panel: copy only.
+  if (navigator.share) {
     $("share").hidden = false;
     $("copy").className = "secondary";
     $("copy").dataset.gap = "sm";
