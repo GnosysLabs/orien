@@ -1,10 +1,11 @@
 'use client'
 
+import { shrinkPicture } from '@/lib/shrink'
 import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import { ChevronDown, ImagePlus, Star, X } from 'lucide-react'
-import { ask, CATEGORIES, MarketError, me, parseOrn, pictureUrl, plainOrn, sentence, type Draft, type Listing } from '@/lib/market'
+import { ask, CATEGORIES, MarketError, me, parseOrn, perUnit, pictureUrl, plainOrn, PRICINGS, sentence, type Draft, type Listing } from '@/lib/market'
 import { Notice } from './Shell'
 import { AutoTextarea } from '@/components/AutoTextarea'
 
@@ -16,7 +17,7 @@ type Item = { saved: string } | { file: File; preview: string }
 const MAX_PICTURES = 4
 
 async function upload(listing: number, file: File): Promise<Listing> {
-  const response = await fetch(`/api/market/listings/${listing}/pictures`, { method: 'POST', credentials: 'same-origin', body: file })
+  const response = await fetch(`/api/market/listings/${listing}/pictures`, { method: 'POST', credentials: 'same-origin', body: await shrinkPicture(file) })
   const data = await response.json().catch(() => ({}))
   if (!response.ok) throw new MarketError(data.error ?? 'The picture could not be added.', response.status)
   return data.listing
@@ -89,7 +90,7 @@ export function SellForm() {
     event.preventDefault()
     const units = parseOrn(price)
     if (units === null) return setTrouble('Write the price in ORN, like 200 or 12.5.')
-    const draft: Draft = { title, description, category, price: units, unit, pay_to: payTo }
+    const draft: Draft = { title, description, category, price: units, unit: perUnit(unit), pay_to: payTo }
     setSaving(true)
     setTrouble('')
     let listing: number | null = null
@@ -128,11 +129,11 @@ export function SellForm() {
   return (
     <form onSubmit={save} className="space-y-5 rounded-2xl border border-line bg-surface p-6 sm:p-8">
       <h1 className="text-2xl font-bold tracking-tight text-ink">{id ? 'Edit your listing' : 'Sell something'}</h1>
-      <label className="block space-y-2">
+      <label className="flex flex-col gap-2">
         <span className="text-sm font-semibold text-ink">What are you offering?</span>
         <input value={title} onChange={(e) => setTitle(e.target.value)} maxLength={100} required placeholder="Logo design" className={field} />
       </label>
-      <label className="block space-y-2">
+      <label className="flex flex-col gap-2">
         <span className="text-sm font-semibold text-ink">Describe it</span>
         <AutoTextarea
           value={description}
@@ -143,7 +144,7 @@ export function SellForm() {
           className={field}
         />
       </label>
-      <label className="block space-y-2">
+      <label className="flex flex-col gap-2">
         <span className="text-sm font-semibold text-ink">Category</span>
         <span className="relative block">
           <select
@@ -175,7 +176,7 @@ export function SellForm() {
             return (
               <div key={src} className="relative w-36 overflow-hidden rounded-xl border border-line">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={src} alt="" className="aspect-[4/3] w-full object-cover" />
+                <img src={src} alt="" className="aspect-video w-full object-cover" />
                 {n === 0 ? (
                   <span className="absolute left-2 top-2 rounded-full bg-bg/85 px-2 py-0.5 text-[11px] font-semibold text-ink">Cover</span>
                 ) : (
@@ -199,7 +200,7 @@ export function SellForm() {
             )
           })}
           {pictures.length < MAX_PICTURES && (
-            <label className="flex aspect-[4/3] w-36 cursor-pointer flex-col items-center justify-center gap-1.5 rounded-xl border border-dashed border-line text-sm text-muted transition hover:border-pearl/60 hover:text-ink">
+            <label className="flex aspect-video w-36 cursor-pointer flex-col items-center justify-center gap-1.5 rounded-xl border border-dashed border-line text-sm text-muted transition hover:border-pearl/60 hover:text-ink">
               <ImagePlus className="h-5 w-5" aria-hidden />
               Add
               <input
@@ -218,13 +219,38 @@ export function SellForm() {
         </div>
       </div>
       <div className="grid gap-5 sm:grid-cols-2">
-        <label className="block space-y-2">
-          <span className="text-sm font-semibold text-ink">Price in ORN</span>
-          <input value={price} onChange={(e) => setPrice(e.target.value)} inputMode="decimal" required placeholder="200" className={`num ${field}`} />
+        <label className="flex flex-col gap-2">
+          <span className="text-sm font-semibold text-ink">How is it priced?</span>
+          <div className="relative">
+            <select
+              value={PRICINGS.includes(unit) ? unit : 'other'}
+              onChange={(e) => setUnit(e.target.value === 'other' ? 'per ' : e.target.value)}
+              className={`${field} appearance-none pr-10`}
+            >
+              <option value="">Fixed price</option>
+              {PRICINGS.filter(Boolean).map((p) => (
+                <option key={p} value={p}>
+                  {p.charAt(0).toUpperCase() + p.slice(1)}
+                </option>
+              ))}
+              <option value="other">Other…</option>
+            </select>
+            <ChevronDown className="pointer-events-none absolute right-4 top-1/2 h-4 w-4 -translate-y-1/2 text-muted" aria-hidden />
+          </div>
+          {!PRICINGS.includes(unit) && (
+            <input
+              value={unit}
+              onChange={(e) => setUnit(e.target.value)}
+              maxLength={30}
+              placeholder="per page"
+              aria-label="Priced per what?"
+              className={field}
+            />
+          )}
         </label>
-        <label className="block space-y-2">
-          <span className="text-sm font-semibold text-ink">Per (optional)</span>
-          <input value={unit} onChange={(e) => setUnit(e.target.value)} maxLength={30} placeholder="per hour" className={field} />
+        <label className="flex flex-col gap-2">
+          <span className="text-sm font-semibold text-ink">{unit.trim() ? `Rate in ORN, ${perUnit(unit)}` : 'Price in ORN'}</span>
+          <input value={price} onChange={(e) => setPrice(e.target.value)} inputMode="decimal" required placeholder="200" className={`num ${field}`} />
         </label>
       </div>
       <p className="rounded-xl border border-line bg-bg px-4 py-3 text-sm text-muted">

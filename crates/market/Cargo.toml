@@ -22,6 +22,7 @@ webauthn-rs = { version = "0.6", features = ["conditional-ui"] }
 openssl = { version = "0.10", features = ["vendored"] }
 url = "2"
 orien-net.workspace = true
+orien-crypto.workspace = true
 orien-ledger = { workspace = true, features = ["randomx"] }
 orien-swap = { path = "../swap" }
 image = { version = "0.25", default-features = false, features = ["jpeg", "png", "webp", "gif"] }
@@ -31,6 +32,5 @@ tower-http = { version = "0.6", features = ["fs"] }
 
 [dev-dependencies]
 borsh.workspace = true
-orien-crypto.workspace = true
 tower = { version = "0.5", features = ["util"] }
 http-body-util = "0.1"

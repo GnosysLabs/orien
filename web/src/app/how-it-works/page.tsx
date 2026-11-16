@@ -2,13 +2,16 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import { ArrowRight } from 'lucide-react'
 import { SupplyCurve } from '@/components/SupplyCurve'
+import { pageMeta } from '@/lib/seo'
+import { Faq, type Question } from '@/components/Faq'
+import { MARKETPLACE_LIVE } from '@/lib/brand'
 
-export const metadata: Metadata = {
-  title: 'How it works',
+export const metadata: Metadata = pageMeta({
+  title: 'How Orien works: quantum-proof payments, final in a blink',
   description:
-    'How the Orien cryptocurrency works: accounts that order their own payments, quantum-proof one-time signatures, hourly checkpoints, staking, fees and coins released for proof-of-work.',
-  alternates: { canonical: '/how-it-works/' },
-}
+    'How the Orien cryptocurrency works: payments final in a fraction of a second with no blocks, quantum-proof hash-based signatures, hourly checkpoints, staking, low fees, and ORN mined on ordinary computers with RandomX.',
+  path: '/how-it-works/',
+})
 
 const SECTIONS = [
   { id: 'payments', title: 'Payments without blocks' },
@@ -20,6 +23,44 @@ const SECTIONS = [
   { id: 'swaps', title: 'Swapping with Bitcoin' },
   { id: 'safety', title: 'What keeps it safe' },
   { id: 'measured', title: 'Measured' },
+  { id: 'questions', title: 'Questions' },
+]
+
+const QUESTIONS: Question[] = [
+  {
+    q: 'Is Orien really quantum-proof?',
+    a: 'Orien’s signatures rest on one building block, the BLAKE3 hash. Quantum computers are expected to break the signatures Bitcoin, Ethereum and most other cryptocurrencies use today, because those rest on the mathematics of elliptic curves. Against a hash, a quantum computer only gets a much smaller speed-up, and Orien’s 256-bit hashes leave a wide margin.',
+  },
+  {
+    q: 'How fast is an Orien payment?',
+    a: 'About 160 milliseconds across the internet, measured on real validators. There are no blocks and no confirmations to wait for: once a payment is final, it is final.',
+  },
+  {
+    q: 'Is Orien a blockchain?',
+    a: 'Not in the usual sense. Orien has no blocks. Each payment is settled on its own by the validators, and they agree on the whole state only once an hour, at a checkpoint.',
+  },
+  {
+    q: 'How do I get ORN?',
+    a: MARKETPLACE_LIVE
+      ? 'Mine it on your own computer with Orien Wallet or the orien command line, buy it with Bitcoin from another person through a trustless swap, or sell your work or goods for ORN on the Market.'
+      : 'Mine it on your own computer with Orien Wallet or the orien command line, or be paid in ORN by someone who has it.',
+  },
+  {
+    q: 'Can I mine ORN on my own computer?',
+    a: 'Yes. Orien mines with RandomX, which suits an ordinary processor, so graphics cards and custom mining chips gain little. Orien Wallet mines on Macs with Apple chips, Windows and Linux, and you choose how much of the processor it uses.',
+  },
+  {
+    q: 'Was there a pre-mine?',
+    a: 'No. Orien started with zero coins: no pre-mine, no sale, no founder’s share. Its first hour was tied to a Bitcoin block announced in advance, so nobody could mine before everyone else.',
+  },
+  {
+    q: 'How many ORN will ever exist?',
+    a: 'At most 100 million. Half are released in the first four years, half of what remains in the next four, and so on, paid out every hour to the people mining.',
+  },
+  {
+    q: 'What does a payment cost?',
+    a: '0.1% of the amount, never more than 1 ORN. The fee goes to the validators who keep the network running.',
+  },
 ]
 
 function Section({ id, title, children }: { id: string; title: string; children: React.ReactNode }) {
@@ -268,6 +309,11 @@ export default function HowItWorksPage() {
           ]}
         />
       </Section>
+
+      <section id="questions" className="scroll-mt-24 border-t border-line py-12">
+        <h2 className="mb-5 text-2xl font-bold tracking-tight text-ink">Questions</h2>
+        <Faq questions={QUESTIONS} />
+      </section>
 
       <div className="mt-4 flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-line bg-surface p-6">
         <p className="font-semibold text-ink">Every rule, in full detail</p>

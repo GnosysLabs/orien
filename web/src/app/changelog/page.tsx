@@ -1,11 +1,13 @@
 import type { Metadata } from 'next'
 import { Changelog } from '@/components/Changelog'
+import { pageMeta } from '@/lib/seo'
 
-export const metadata: Metadata = {
+export const metadata: Metadata = pageMeta({
   title: 'Changelog',
-  description: 'Every change to the Orien network, its validators, orien and Orien Wallet, as it happens.',
-  alternates: { canonical: '/changelog/' },
-}
+  description:
+    'Every change to the Orien network, its validators, the orien command line and Orien Wallet, as it happens.',
+  path: '/changelog/',
+})
 
 export default function ChangelogPage() {
   return (

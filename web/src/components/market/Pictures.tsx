@@ -12,7 +12,7 @@ export function Pictures({ pictures, title }: { pictures: string[]; title: strin
   return (
     <div className="space-y-3">
       {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img src={pictureUrl(current)} alt={title} className="aspect-[4/3] w-full rounded-2xl border border-line object-cover" />
+      <img src={pictureUrl(current)} alt={title} className="aspect-video w-full rounded-2xl border border-line object-cover" />
       {pictures.length > 1 && (
         <div className="flex gap-3">
           {pictures.map((picture, n) => (
@@ -24,7 +24,7 @@ export function Pictures({ pictures, title }: { pictures: string[]; title: strin
               className={`overflow-hidden rounded-xl border-2 transition ${picture === current ? 'border-pearl' : 'border-transparent opacity-70 hover:opacity-100'}`}
             >
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={pictureUrl(picture)} alt="" className="aspect-[4/3] w-24 object-cover" />
+              <img src={pictureUrl(picture)} alt="" className="aspect-video w-24 object-cover" />
             </button>
           ))}
         </div>
@@ -39,11 +39,11 @@ const ICONS: Record<string, typeof Brush> = { design: Brush, software: Code2, te
 export function Cover({ pictures, category }: { pictures: string[]; category: string }) {
   if (pictures[0]) {
     // eslint-disable-next-line @next/next/no-img-element
-    return <img src={pictureUrl(pictures[0])} alt="" className="aspect-[4/3] w-full object-cover" />
+    return <img src={pictureUrl(pictures[0])} alt="" className="aspect-video w-full object-cover" />
   }
   const Icon = ICONS[category] ?? Sparkles
   return (
-    <div className="flex aspect-[4/3] w-full items-center justify-center bg-gradient-to-br from-raised to-bg">
+    <div className="flex aspect-video w-full items-center justify-center bg-gradient-to-br from-raised to-bg">
       <Icon className="h-10 w-10 text-pearl/40" strokeWidth={1.5} aria-hidden />
     </div>
   )

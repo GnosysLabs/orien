@@ -1,6 +1,6 @@
 //! Unlocked sessions: a wallet with a password, opened once by its owner
 //! and then able to sign for a while without the password being typed
-//! again, so that a program the owner trusts (an AI assistant, a script)
+//! again, so that a program the owner trusts, such as a script,
 //! can send payments without ever learning the password.
 //!
 //! `orien unlock` asks for the password and two limits, a time and an

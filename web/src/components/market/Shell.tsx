@@ -40,7 +40,7 @@ export function MarketBar() {
         ) : (
           <Store className="h-6 w-6 text-pearl" strokeWidth={1.75} aria-hidden />
         )}
-        <span className="text-xl font-bold tracking-tight text-ink sm:text-2xl">{swapping ? 'Buy & sell ORN' : 'Marketplace'}</span>
+        <span className="text-xl font-bold tracking-tight text-ink sm:text-2xl">{swapping ? 'Buy & sell ORN' : 'Market'}</span>
       </Link>
       <div className="ml-auto flex items-center gap-2">
         {account && (
@@ -65,12 +65,15 @@ export function MarketBar() {
           <UserRound className="h-4 w-4" aria-hidden />
           {account ? account.name : 'Sign in'}
         </Link>
-        <Link
-          href={swapping ? '/swap/#post' : '/marketplace/sell/'}
-          className="pearl-fill flex h-10 items-center gap-2 rounded-xl px-4 text-sm font-bold transition hover:brightness-105"
-        >
-          <Plus className="h-4 w-4" strokeWidth={2.5} aria-hidden /> {swapping ? 'Sell ORN' : 'Sell something'}
-        </Link>
+        {/* Buy & sell ORN has its own Sell tab. */}
+        {!swapping && (
+          <Link
+            href="/marketplace/sell/"
+            className="pearl-fill flex h-10 items-center gap-2 rounded-xl px-4 text-sm font-bold transition hover:brightness-105"
+          >
+            <Plus className="h-4 w-4" strokeWidth={2.5} aria-hidden /> Sell something
+          </Link>
+        )}
       </div>
     </div>
   )

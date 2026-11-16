@@ -1,12 +1,14 @@
 import type { Metadata } from 'next'
 import { Browse } from '@/components/market/Browse'
 import { MarketBar } from '@/components/market/Shell'
+import { pageMeta } from '@/lib/seo'
 
-export const metadata: Metadata = {
-  title: 'Marketplace',
-  description: 'Work and things offered for ORN, paid straight from your own wallet.',
-  alternates: { canonical: '/marketplace/' },
-}
+export const metadata: Metadata = pageMeta({
+  title: 'Market: work and goods for ORN',
+  description:
+    'The Orien Market: design, software, teaching and goods offered for ORN, paid straight from your own wallet, with messages and payment requests built in.',
+  path: '/marketplace/',
+})
 
 export default function MarketplacePage() {
   return (

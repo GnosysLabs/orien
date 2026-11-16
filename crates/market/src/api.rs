@@ -53,6 +53,11 @@ pub struct App {
     secure: bool,
     /// The site's address, for links in emails.
     origin: String,
+    /// When contact-form messages were sent, and from which address, to
+    /// keep anyone from flooding the inbox.
+    contacts: Mutex<Vec<(Instant, String)>>,
+    /// The website's traffic counts.
+    traffic: Arc<crate::traffic::Traffic>,
 }
 
 impl App {
@@ -72,7 +77,7 @@ impl App {
         let site = origin.trim_end_matches('/').to_string();
         let origin = Url::parse(origin)?;
         let id = origin.host_str().ok_or_else(|| anyhow::anyhow!("the origin has no host"))?.to_string();
-        let webauthn = WebauthnBuilder::new(&id, &origin)?.rp_name("Orien marketplace").build()?;
+        let webauthn = WebauthnBuilder::new(&id, &origin)?.rp_name("Orien Market").build()?;
         Ok(App {
             store: Mutex::new(store),
             webauthn,
@@ -85,7 +90,19 @@ impl App {
             address,
             secure,
             origin: site,
+            contacts: Mutex::new(Vec::new()),
+            traffic: Arc::new(crate::traffic::Traffic::in_memory()),
         })
+    }
+
+    /// Keeps the website's traffic counts in this folder.
+    pub fn with_traffic(mut self, traffic: crate::traffic::Traffic) -> App {
+        self.traffic = Arc::new(traffic);
+        self
+    }
+
+    pub(crate) fn traffic(&self) -> &crate::traffic::Traffic {
+        &self.traffic
     }
 
     /// Uses these prices instead of fetching them: for tests.
@@ -234,7 +251,12 @@ pub fn router(app: Arc<App>) -> Router {
             "/api/market/me/picture",
             post(set_picture).layer(axum::extract::DefaultBodyLimit::max(images::MAX_UPLOAD)),
         )
+        .route(
+            "/api/market/me/banner",
+            post(set_banner).delete(remove_banner).layer(axum::extract::DefaultBodyLimit::max(images::MAX_UPLOAD)),
+        )
         .route("/api/market/me/wallet", get(wallet).post(link_wallet))
+        .route("/api/market/me/wallets", get(my_wallets).put(report_wallets))
         .route("/api/market/me/delete", post(delete_me))
         .route("/api/market/profiles/{id}", get(profile))
         .route("/api/market/listings/{id}/messages", post(message_seller))
@@ -248,9 +270,14 @@ pub fn router(app: Arc<App>) -> Router {
         .route("/api/market/swaps/{id}/take", post(take_swap))
         .route("/api/market/swaps/{id}/close", post(close_swap))
         .route("/api/market/swaps/{id}/offer", post(swap_offer_code))
+        .route("/api/market/swaps/{id}/run", post(run_swap))
         .route("/api/market/swaps/{id}/reply", post(swap_reply_code))
         .route("/api/market/swaps/{id}/finish", post(finish_swap))
         .route("/api/market/reports", post(report))
+        .route("/api/market/contact", post(contact))
+        .route("/api/market/t", post(ping))
+        .route("/api/market/push/register", post(crate::push::register))
+        .route("/api/market/push/unregister", post(crate::push::unregister))
         .route("/api/market/conversations", get(conversations))
         .route("/api/market/conversations/{id}", get(conversation))
         .route("/api/market/conversations/{id}/messages", post(reply))
@@ -263,6 +290,93 @@ pub fn router(app: Arc<App>) -> Router {
         .route("/api/market/listings/{id}", get(listing).put(edit_listing))
         .route("/api/market/listings/{id}/open", post(open_listing))
         .with_state(app)
+}
+
+#[derive(Deserialize)]
+struct PingBody {
+    #[serde(default)]
+    t: String,
+    #[serde(default)]
+    p: String,
+    #[serde(default)]
+    r: String,
+}
+
+/// A page's traffic ping. Always answers 204; anything odd is dropped.
+async fn ping(State(app): State<Arc<App>>, headers: HeaderMap, body: axum::body::Bytes) -> StatusCode {
+    let header = |name: &str| headers.get(name).and_then(|v| v.to_str().ok()).unwrap_or("").trim().to_string();
+    if let Ok(body) = serde_json::from_slice::<PingBody>(&body) {
+        let address = [header("cf-connecting-ip"), header("x-forwarded-for").split(',').next().unwrap_or("").trim().to_string()]
+            .into_iter()
+            .find(|a| !a.is_empty())
+            .unwrap_or_else(|| "unknown".into());
+        let country = Some(header("cf-ipcountry")).filter(|c| !c.is_empty());
+        app.traffic.record(crate::traffic::Ping {
+            kind: body.t,
+            path: body.p,
+            referrer: body.r,
+            address,
+            browser: header("user-agent"),
+            country,
+            host: header("host"),
+        });
+    }
+    StatusCode::NO_CONTENT
+}
+
+/// Contact-form messages one address may send in an hour.
+const CONTACTS_PER_ADDRESS: usize = 3;
+/// Contact-form messages everyone together may send in an hour.
+const CONTACTS_PER_HOUR: usize = 40;
+/// The longest contact-form message, in characters.
+const MAX_CONTACT: usize = 5000;
+
+#[derive(Deserialize)]
+struct Contact {
+    name: String,
+    email: String,
+    message: String,
+    /// A field people never see: only programs fill it in.
+    #[serde(default)]
+    website: String,
+}
+
+/// A message from the site's contact form, emailed to hello@orien.network.
+async fn contact(State(app): State<Arc<App>>, Json(request): Json<Contact>) -> Answer {
+    let name = request.name.trim().to_string();
+    let message = request.message.trim().to_string();
+    if name.is_empty() || name.chars().count() > 100 {
+        return Err(Failure::Refused("a name is 1 to 100 characters".into()));
+    }
+    let email = store::email(&request.email).map_err(refused)?;
+    if message.chars().count() < 10 {
+        return Err(Failure::Refused("write a little more, at least 10 characters".into()));
+    }
+    if message.chars().count() > MAX_CONTACT {
+        return Err(Failure::Refused(format!("a message is at most {MAX_CONTACT} characters")));
+    }
+    // A program filled in the hidden field: it is told it worked.
+    if !request.website.trim().is_empty() {
+        return Ok(Json(json!({ "sent": true })).into_response());
+    }
+    {
+        let mut sent = app.contacts.lock().unwrap();
+        let hour = std::time::Duration::from_secs(3600);
+        sent.retain(|(at, _)| at.elapsed() < hour);
+        if sent.iter().filter(|(_, from)| *from == email).count() >= CONTACTS_PER_ADDRESS || sent.len() >= CONTACTS_PER_HOUR {
+            return Err(Failure::Refused("too many messages for now; try again in an hour".into()));
+        }
+        sent.push((Instant::now(), email.clone()));
+    }
+    let mailer = app.mailer.clone();
+    let sent = tokio::task::spawn_blocking(move || mailer.send_contact(&name, &email, &message))
+        .await
+        .map_err(|e| Failure::Broken(e.into()))?;
+    if let Err(error) = sent {
+        eprintln!("cannot send a contact message: {error:#}");
+        return Err(Failure::Unavailable("the message could not be sent; try again in a few minutes".into()));
+    }
+    Ok(Json(json!({ "sent": true })).into_response())
 }
 
 #[derive(Deserialize)]
@@ -393,7 +507,7 @@ async fn signin_finish(State(app): State<Arc<App>>, Json(request): Json<Finish<P
     let Some(Ceremony::SignIn { state }) = app.finish(&request.id) else {
         return Err(Failure::Refused("that sign-in took too long; start again".into()));
     };
-    let unknown = || Failure::Refused("that passkey does not belong to a marketplace account".into());
+    let unknown = || Failure::Refused("that passkey does not belong to a Market account".into());
     let (_, credential_id) = app.webauthn.identify_discoverable_authentication(&request.credential).map_err(|_| unknown())?;
     let credential = hex::encode(credential_id);
     let store = app.store.lock().unwrap();
@@ -564,6 +678,24 @@ async fn report(State(app): State<Arc<App>>, headers: HeaderMap, Json(request): 
 struct NewSwap {
     orn: u64,
     sats: u64,
+    /// The Bitcoin address to be paid at, and the wallet the ORN come from,
+    /// so any of the seller's wallets can run the swap.
+    #[serde(default)]
+    payout: Option<String>,
+    #[serde(default)]
+    wallet: Option<String>,
+}
+
+#[derive(Deserialize)]
+struct OfferCode {
+    code: String,
+    #[serde(default)]
+    device: Option<String>,
+}
+
+#[derive(Deserialize)]
+struct Run {
+    device: String,
 }
 
 #[derive(Deserialize)]
@@ -586,7 +718,12 @@ async fn open_swaps(State(app): State<Arc<App>>) -> Answer {
 
 async fn post_swap(State(app): State<Arc<App>>, headers: HeaderMap, Json(request): Json<NewSwap>) -> Answer {
     let seller = app.signed_in(&headers)?;
-    let offer = app.store.lock().unwrap().post_swap(seller, request.orn, request.sats).map_err(refused)?;
+    let offer = app
+        .store
+        .lock()
+        .unwrap()
+        .post_swap_for(seller, request.orn, request.sats, request.payout.as_deref(), request.wallet.as_deref())
+        .map_err(refused)?;
     Ok((StatusCode::CREATED, Json(json!({ "offer": offer }))).into_response())
 }
 
@@ -637,10 +774,17 @@ async fn close_swap(State(app): State<Arc<App>>, headers: HeaderMap, Path(id): P
     Ok(Json(json!({})).into_response())
 }
 
-async fn swap_offer_code(State(app): State<Arc<App>>, headers: HeaderMap, Path(id): Path<i64>, Json(request): Json<Code>) -> Answer {
+async fn swap_offer_code(State(app): State<Arc<App>>, headers: HeaderMap, Path(id): Path<i64>, Json(request): Json<OfferCode>) -> Answer {
     let seller = app.signed_in(&headers)?;
-    let swap = app.store.lock().unwrap().post_offer_code(seller, id, &request.code).map_err(refused)?;
+    let swap = app.store.lock().unwrap().post_offer_code_from(seller, id, &request.code, request.device.as_deref()).map_err(refused)?;
     Ok(Json(json!({ "swap": swap })).into_response())
+}
+
+/// One of the seller's devices asks to run a taken offer: whether it may.
+async fn run_swap(State(app): State<Arc<App>>, headers: HeaderMap, Path(id): Path<i64>, Json(request): Json<Run>) -> Answer {
+    let seller = app.signed_in(&headers)?;
+    let run = app.store.lock().unwrap().run_swap(seller, id, &request.device).map_err(refused)?;
+    Ok(Json(json!({ "run": run })).into_response())
 }
 
 async fn swap_reply_code(State(app): State<Arc<App>>, headers: HeaderMap, Path(id): Path<i64>, Json(request): Json<Code>) -> Answer {
@@ -695,6 +839,35 @@ async fn link_wallet(State(app): State<Arc<App>>, headers: HeaderMap, Json(reque
     }
     app.store.lock().unwrap().set_wallet(id, &address).map_err(refused)?;
     Ok(Json(json!({ "wallet": address })).into_response())
+}
+
+#[derive(Deserialize)]
+struct ReportedWallet {
+    address: String,
+    #[serde(default)]
+    name: String,
+}
+
+#[derive(Deserialize)]
+struct ReportedWallets {
+    device: String,
+    #[serde(default)]
+    wallets: Vec<ReportedWallet>,
+}
+
+/// Orien Wallet says which wallets this device holds, by name.
+async fn report_wallets(State(app): State<Arc<App>>, headers: HeaderMap, Json(request): Json<ReportedWallets>) -> Answer {
+    let id = app.signed_in(&headers)?;
+    let wallets: Vec<(String, String)> = request.wallets.into_iter().map(|w| (w.address, w.name)).collect();
+    let kept = app.store.lock().unwrap().report_wallets(id, &request.device, &wallets).map_err(refused)?;
+    Ok(Json(json!({ "wallets": kept })).into_response())
+}
+
+/// The account's wallets, by name, for "Sell from".
+async fn my_wallets(State(app): State<Arc<App>>, headers: HeaderMap) -> Answer {
+    let id = app.signed_in(&headers)?;
+    let wallets = app.store.lock().unwrap().account_wallets(id)?;
+    Ok(Json(json!({ "wallets": wallets })).into_response())
 }
 
 /// The linked wallet.
@@ -760,6 +933,33 @@ async fn set_picture(State(app): State<Arc<App>>, headers: HeaderMap, body: axum
     let name = app.images.save(&jpeg)?;
     let old = app.store.lock().unwrap().set_picture(id, &name)?;
     if let Some(old) = old {
+        app.images.remove(&old);
+    }
+    let account = app.store.lock().unwrap().account(id)?.ok_or(Failure::SignIn)?;
+    Ok(Json(json!({ "account": account })).into_response())
+}
+
+/// A new banner for the profile, sent as the request's whole body. Checked
+/// like a profile picture.
+async fn set_banner(State(app): State<Arc<App>>, headers: HeaderMap, body: axum::body::Bytes) -> Answer {
+    let id = app.signed_in(&headers)?;
+    let jpeg = tokio::task::spawn_blocking(move || images::banner(&body))
+        .await
+        .map_err(|e| Failure::Broken(e.into()))?
+        .map_err(refused)?;
+    let checked = jpeg.clone();
+    screened(&app, "picture", move |s| s.picture(&checked)).await?;
+    let name = app.images.save(&jpeg)?;
+    if let Some(old) = app.store.lock().unwrap().set_banner(id, Some(&name))? {
+        app.images.remove(&old);
+    }
+    let account = app.store.lock().unwrap().account(id)?.ok_or(Failure::SignIn)?;
+    Ok(Json(json!({ "account": account })).into_response())
+}
+
+async fn remove_banner(State(app): State<Arc<App>>, headers: HeaderMap) -> Answer {
+    let id = app.signed_in(&headers)?;
+    if let Some(old) = app.store.lock().unwrap().set_banner(id, None)? {
         app.images.remove(&old);
     }
     let account = app.store.lock().unwrap().account(id)?.ok_or(Failure::SignIn)?;

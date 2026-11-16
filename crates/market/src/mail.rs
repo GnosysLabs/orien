@@ -1,4 +1,8 @@
-//! Sending sign-in codes by email, through Resend.
+//! Sending email through Resend: sign-in codes, notices, and messages from
+//! the site's contact form.
+
+/// Where the contact form's messages go.
+pub const CONTACT: &str = "hello@orien.network";
 
 use anyhow::{Context, Result, bail};
 use serde_json::json;
@@ -29,9 +33,9 @@ impl Mailer {
             return Ok(());
         };
         let escape = |text: &str| text.replace('&', "&amp;").replace('<', "&lt;").replace('>', "&gt;").replace('"', "&quot;");
-        let text = format!("{subject} on the Orien marketplace.\n\nRead it and reply: {link}\n");
+        let text = format!("{subject} on the Orien Market.\n\nRead it and reply: {link}\n");
         let html = format!(
-            "<p>{} on the Orien marketplace.</p><p><a href=\"{link}\">Read it and reply</a></p>",
+            "<p>{} on the Orien Market.</p><p><a href=\"{link}\">Read it and reply</a></p>",
             escape(&subject)
         );
         self.deliver(key, &notice.to_email, &subject, &text, &html)
@@ -58,8 +62,34 @@ impl Mailer {
         self.deliver(key, to, &subject, &text, &html)
     }
 
+    /// Sends a message from the contact form to CONTACT, with the sender's
+    /// address to reply to.
+    pub fn send_contact(&self, name: &str, email: &str, message: &str) -> Result<()> {
+        let subject = format!("Message from {name} on orien.network");
+        let text = format!("From: {name} <{email}>\n\n{message}\n\nReply to this email to answer them.\n");
+        let Some(key) = &self.key else {
+            println!("would email {CONTACT}: {subject}\n{text}");
+            return Ok(());
+        };
+        let escape = |t: &str| t.replace('&', "&amp;").replace('<', "&lt;").replace('>', "&gt;").replace('"', "&quot;");
+        let html = format!(
+            "<p><strong>From:</strong> {} &lt;{}&gt;</p><p style=\"white-space:pre-wrap\">{}</p><p style=\"color:#888\">Reply to this email to answer them.</p>",
+            escape(name),
+            escape(email),
+            escape(message)
+        );
+        self.send(key, CONTACT, Some(email), &subject, &text, &html)
+    }
+
     fn deliver(&self, key: &str, to: &str, subject: &str, text: &str, html: &str) -> Result<()> {
-        let body = json!({ "from": self.from, "to": [to], "subject": subject, "text": text, "html": html });
+        self.send(key, to, None, subject, text, html)
+    }
+
+    fn send(&self, key: &str, to: &str, reply_to: Option<&str>, subject: &str, text: &str, html: &str) -> Result<()> {
+        let mut body = json!({ "from": self.from, "to": [to], "subject": subject, "text": text, "html": html });
+        if let Some(reply_to) = reply_to {
+            body["reply_to"] = json!(reply_to);
+        }
         let response = ureq::post("https://api.resend.com/emails")
             .header("Authorization", &format!("Bearer {key}"))
             .config()
@@ -82,16 +112,16 @@ impl Mailer {
             return Ok(());
         };
         let text = format!(
-            "Your code for the Orien marketplace is {code}\n\n\
+            "Your code for the Orien Market is {code}\n\n\
              It works for 15 minutes. If you did not ask for it, someone typed your email by mistake, \
              and you can ignore this.\n"
         );
         let html = format!(
-            "<p>Your code for the Orien marketplace is</p>\
+            "<p>Your code for the Orien Market is</p>\
              <p style=\"font-size:28px;font-weight:700;letter-spacing:6px\">{code}</p>\
              <p>It works for 15 minutes. If you did not ask for it, someone typed your email by mistake, \
              and you can ignore this.</p>"
         );
-        self.deliver(key, to, &format!("{code} is your Orien marketplace code"), &text, &html)
+        self.deliver(key, to, &format!("{code} is your Orien Market code"), &text, &html)
     }
 }

@@ -2,13 +2,17 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import { CopyText } from '@/components/CopyText'
 import { RANDOMX_FROM } from '@/lib/brand'
+import { jsonLd, pageMeta } from '@/lib/seo'
+import { SITE_URL } from '@/lib/brand'
 
-export const metadata: Metadata = {
+export const metadata: Metadata = pageMeta({
   title: 'Mining moves to RandomX',
   description:
-    'From epoch 21, Orien mining uses RandomX, the proof-of-work built for ordinary processors. What changed, why, and what miners do: run orien update and restart orien mine.',
-  alternates: { canonical: '/news/randomx/' },
-}
+    'From epoch 21, Orien mining uses RandomX, the CPU-friendly proof-of-work Monero uses, so graphics cards and custom chips gain little and any computer can mine. What changed, why, and what miners do.',
+  path: '/news/randomx/',
+  type: 'article',
+  published: '2026-11-15',
+})
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
@@ -24,6 +28,20 @@ function Section({ title, children }: { title: string; children: React.ReactNode
 export default function RandomXPost() {
   return (
     <article className="mx-auto max-w-[760px] space-y-10 pb-16">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={jsonLd({
+          '@type': 'NewsArticle',
+          headline: 'Mining moves to RandomX',
+          description:
+            'From epoch 21, Orien mining uses RandomX, the CPU-friendly proof-of-work Monero uses, so any computer can mine.',
+          datePublished: '2026-11-15',
+          image: `${SITE_URL}/og.png`,
+          mainEntityOfPage: `${SITE_URL}/news/randomx/`,
+          author: { '@id': `${SITE_URL}/#orien` },
+          publisher: { '@id': `${SITE_URL}/#orien` },
+        })}
+      />
       <header className="pt-10 sm:pt-14">
         <p className="mb-4 text-xs font-semibold uppercase tracking-[0.2em] text-muted">15 November 2026 · Network</p>
         <h1 className="text-balance text-4xl font-bold leading-[1.1] tracking-tight text-ink sm:text-5xl">

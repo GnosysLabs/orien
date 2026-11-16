@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import { useEffect, useState } from 'react'
 import { Search } from 'lucide-react'
-import { ask, CATEGORIES, categoryLabel, formatOrn, type Listing } from '@/lib/market'
+import { ask, CATEGORIES, categoryLabel, formatOrn, perUnit, type Listing } from '@/lib/market'
 import { Avatar } from './Avatar'
 import { Cover } from './Pictures'
 import { Notice } from './Shell'
@@ -55,7 +55,7 @@ export function Browse() {
     <div className="space-y-6">
       <h1 className="text-balance text-4xl font-bold leading-[1.1] tracking-tight text-ink sm:text-5xl">Buy and sell for ORN</h1>
       <p className="max-w-[680px] text-lg leading-relaxed text-muted">
-        Work and things offered for ORN. You pay the seller straight from your own wallet: the marketplace never holds
+        Work and things offered for ORN. You pay the seller straight from your own wallet: the Market never holds
         anyone&apos;s coins.
       </p>
       <label className="flex h-12 items-center gap-3 rounded-xl border border-line bg-surface px-4 focus-within:border-pearl/60">
@@ -130,7 +130,7 @@ export function Card({ listing }: { listing: Listing }) {
         <div className="mt-auto flex items-baseline justify-between gap-2 border-t border-line pt-3">
           <span className="text-xs uppercase tracking-[0.12em] text-muted">{categoryLabel(listing.category)}</span>
           <span className="num font-bold text-ink">
-            {formatOrn(listing.price)} ORN{listing.unit && <span className="text-xs font-medium text-muted"> {listing.unit}</span>}
+            {formatOrn(listing.price)} ORN{listing.unit && <span className="text-xs font-medium text-muted"> {perUnit(listing.unit)}</span>}
           </span>
         </div>
       </div>

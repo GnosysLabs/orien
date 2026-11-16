@@ -5,6 +5,8 @@ export type Account = {
   name: string
   bio: string
   picture: string | null
+  /** A wide picture across the top of the profile. */
+  banner?: string | null
   wallet: string | null
   contact: Contact
   created: number
@@ -137,7 +139,7 @@ export async function ask<T>(path: string, method = 'GET', body?: unknown): Prom
   })
   const data = await response.json().catch(() => ({}))
   if (!response.ok) {
-    throw new MarketError(data.error ?? 'The marketplace is not answering right now. Try again in a moment.', response.status)
+    throw new MarketError(data.error ?? 'The Market is not answering right now. Try again in a moment.', response.status)
   }
   return data as T
 }
@@ -257,4 +259,15 @@ export function passkeyTrouble(error: unknown): string {
     return 'The passkey step was cancelled or timed out. Try again when you are ready.'
   }
   return error instanceof Error ? error.message : 'Something went wrong with the passkey.'
+}
+
+/** How a listing can be priced: empty for a fixed price. */
+export const PRICINGS = ['', 'per hour', 'per day', 'per week', 'per month', 'per item']
+
+/** A listing's unit as it reads after the price: "hour" → "per hour",
+ * "/hr" stays as written, empty stays empty. */
+export function perUnit(unit: string): string {
+  const text = unit.trim()
+  if (!text) return ''
+  return /^(per\b|\/|each\b|a\b|an\b)/i.test(text) ? text : `per ${text}`
 }

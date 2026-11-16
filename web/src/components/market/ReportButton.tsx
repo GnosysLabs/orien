@@ -13,18 +13,37 @@ export function ReportButton({
   id,
   what,
   signedIn,
+  icon = false,
 }: {
   kind: 'listing' | 'account'
   id: number
   what: string
   signedIn: boolean
+  /** Just a flag, opening the form in a small panel below it. */
+  icon?: boolean
 }) {
   const [open, setOpen] = useState(false)
-  const [reason, setReason] = useState('')
-  const [state, setState] = useState<'idle' | 'sending' | 'sent'>('idle')
-  const [trouble, setTrouble] = useState('')
 
-  if (state === 'sent') return <p className="text-xs text-muted">Thanks. We will look at it.</p>
+  if (icon) {
+    return (
+      <div className="relative">
+        <button
+          type="button"
+          onClick={() => setOpen(!open)}
+          aria-label={`Report ${what}`}
+          title={`Report ${what}`}
+          className={`flex h-9 w-9 items-center justify-center rounded-lg transition hover:bg-raised hover:text-ink ${open ? 'bg-raised text-ink' : 'text-muted'}`}
+        >
+          <Flag className="h-4 w-4" aria-hidden />
+        </button>
+        {open && (
+          <div className="absolute right-0 top-11 z-20 w-80 max-w-[calc(100vw-3rem)] rounded-xl border border-line bg-surface p-1 text-left shadow-2xl shadow-black/40">
+            <ReportForm kind={kind} id={id} what={what} signedIn={signedIn} onCancel={() => setOpen(false)} />
+          </div>
+        )}
+      </div>
+    )
+  }
   if (!open) {
     return (
       <button
@@ -36,6 +55,27 @@ export function ReportButton({
       </button>
     )
   }
+  return <ReportForm kind={kind} id={id} what={what} signedIn={signedIn} onCancel={() => setOpen(false)} />
+}
+
+/** The report form itself: what is wrong, sent to the marketplace. */
+function ReportForm({
+  kind,
+  id,
+  what,
+  signedIn,
+  onCancel,
+}: {
+  kind: 'listing' | 'account'
+  id: number
+  what: string
+  signedIn: boolean
+  onCancel: () => void
+}) {
+  const [reason, setReason] = useState('')
+  const [state, setState] = useState<'idle' | 'sending' | 'sent'>('idle')
+  const [trouble, setTrouble] = useState('')
+  if (state === 'sent') return <p className="p-3 text-xs text-muted">Thanks. We will look at it.</p>
   if (!signedIn) {
     return (
       <p className="text-xs text-muted">
@@ -76,7 +116,7 @@ export function ReportButton({
         <button type="submit" disabled={state === 'sending'} className="h-8 rounded-lg bg-raised px-3 text-xs font-semibold text-ink hover:bg-line">
           Send report
         </button>
-        <button type="button" onClick={() => setOpen(false)} className="text-xs text-muted hover:text-ink">
+        <button type="button" onClick={onCancel} className="text-xs text-muted hover:text-ink">
           Cancel
         </button>
       </div>

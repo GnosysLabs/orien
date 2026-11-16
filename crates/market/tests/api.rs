@@ -448,3 +448,104 @@ async fn swap_offers_go_on_the_board_and_are_taken_through_requests() {
     let (status, _) = market.ask("POST", &format!("/api/market/swaps/{id}/close"), Some(&maya), None).await;
     assert_eq!(status, StatusCode::BAD_REQUEST, "a held offer cannot be withdrawn");
 }
+
+#[tokio::test]
+async fn the_contact_form_sends_and_keeps_floods_and_bad_messages_out() {
+    let market = Market::new();
+    let message = |email: &str, text: &str| json!({ "name": "Ada", "email": email, "message": text });
+    let (status, answer) = market.ask("POST", "/api/market/contact", None, Some(message("ada@example.com", "Hello, I have a question about mining."))).await;
+    assert_eq!(status, StatusCode::OK, "{answer}");
+    assert_eq!(answer["sent"], true);
+
+    let (status, _) = market.ask("POST", "/api/market/contact", None, Some(message("ada@example.com", "hi"))).await;
+    assert_eq!(status, StatusCode::BAD_REQUEST, "too short");
+    let (status, _) = market.ask("POST", "/api/market/contact", None, Some(message("not an email", "Hello there, a question."))).await;
+    assert_eq!(status, StatusCode::BAD_REQUEST, "not an email");
+
+    // A program filling in the hidden field is told it worked, and nothing counts.
+    let mut trap = message("bot@example.com", "Buy cheap things here now!");
+    trap["website"] = json!("https://spam.example");
+    let (status, _) = market.ask("POST", "/api/market/contact", None, Some(trap)).await;
+    assert_eq!(status, StatusCode::OK);
+
+    for _ in 0..2 {
+        let (status, _) = market.ask("POST", "/api/market/contact", None, Some(message("ada@example.com", "Another question for you."))).await;
+        assert_eq!(status, StatusCode::OK);
+    }
+    let (status, answer) = market.ask("POST", "/api/market/contact", None, Some(message("ada@example.com", "And yet another question."))).await;
+    assert_eq!(status, StatusCode::BAD_REQUEST);
+    assert!(answer["error"].as_str().unwrap().contains("too many"), "{answer}");
+}
+
+/// Notifications written down instead of sent to Apple.
+#[derive(Default)]
+struct Notebook(std::sync::Mutex<Vec<(String, bool, String)>>, std::sync::atomic::AtomicBool);
+
+impl orien_market::push::Notify for Notebook {
+    fn notify(&self, token: &str, sandbox: bool, payload: &str) -> orien_market::push::Sent {
+        self.0.lock().unwrap().push((token.into(), sandbox, payload.into()));
+        if self.1.load(std::sync::atomic::Ordering::Relaxed) { orien_market::push::Sent::Gone } else { orien_market::push::Sent::Delivered }
+    }
+}
+
+#[tokio::test]
+async fn phones_hear_about_payments_to_their_wallets_once() {
+    use orien_market::push::check_once;
+    use orien_market::wallets::Incoming;
+    let payments = Arc::new(Fake::default());
+    *payments.epoch.lock().unwrap() = 30;
+    let app = App::new(Store::in_memory().unwrap(), folder(), "https://orien.network", true, Mailer::log_only(), Screener::off(), payments.clone(), MARKET);
+    let market = Market { app: Arc::new(app.unwrap().with_prices(Prices::fixed_for_tests(65_000.0))) };
+    let phone = "ab".repeat(32);
+    let wallet = "cd".repeat(32);
+    let other = "ef".repeat(32);
+    let id = |hex: &str| orien_crypto::Hash32(hex::decode(hex).unwrap().try_into().unwrap());
+    let pay = |to: &str, amount: u64| payments.payments.lock().unwrap().push((id(to), Incoming { from: id(&other), amount, epoch: 30 }));
+
+    // Already there when the phone registers: not told about.
+    pay(&wallet, 5_000_000_000);
+    let (status, body) = market.ask("POST", "/api/market/push/register", None, Some(json!({ "token": phone, "sandbox": true, "addresses": [wallet, wallet.to_uppercase()] }))).await;
+    assert_eq!(status, StatusCode::OK, "{body}");
+    assert_eq!(body["addresses"], 1, "the same address twice is one");
+    let notebook = Notebook::default();
+    assert_eq!(check_once(&market.app, &notebook).unwrap(), 0);
+
+    // A new payment: told once, to the phone, as a sandbox build.
+    pay(&wallet, 25_000_000_000);
+    pay(&other, 1_000_000_000);
+    assert_eq!(check_once(&market.app, &notebook).unwrap(), 1);
+    assert_eq!(check_once(&market.app, &notebook).unwrap(), 0, "not twice");
+    let sent = notebook.0.lock().unwrap().clone();
+    assert_eq!(sent.len(), 1);
+    assert_eq!((sent[0].0.as_str(), sent[0].1), (phone.as_str(), true));
+    let payload: Value = serde_json::from_str(&sent[0].2).unwrap();
+    assert_eq!(payload["aps"]["alert"]["body"], "You received 25 ORN");
+    assert_eq!(payload["address"], wallet);
+
+    // Bad requests are refused in words.
+    let too_many: Vec<String> = (0..51).map(|i| format!("{i:064x}")).collect();
+    for bad in [json!({ "token": "nothex", "addresses": [] }), json!({ "token": phone, "addresses": ["123"] }), json!({ "token": phone, "addresses": too_many })] {
+        let (status, body) = market.ask("POST", "/api/market/push/register", None, Some(bad)).await;
+        assert_eq!(status, StatusCode::BAD_REQUEST, "{body}");
+    }
+
+    // Apple says the phone is gone: it is forgotten.
+    notebook.1.store(true, std::sync::atomic::Ordering::Relaxed);
+    pay(&wallet, 2_000_000_000);
+    check_once(&market.app, &notebook).unwrap();
+    notebook.1.store(false, std::sync::atomic::Ordering::Relaxed);
+    pay(&wallet, 3_000_000_000);
+    let before = notebook.0.lock().unwrap().len();
+    check_once(&market.app, &notebook).unwrap();
+    assert_eq!(notebook.0.lock().unwrap().len(), before, "a forgotten phone hears nothing");
+
+    // Registering again, then unregistering, ends it too.
+    market.ask("POST", "/api/market/push/register", None, Some(json!({ "token": phone, "sandbox": false, "addresses": [wallet] }))).await;
+    check_once(&market.app, &notebook).unwrap();
+    let (status, _) = market.ask("POST", "/api/market/push/unregister", None, Some(json!({ "token": phone }))).await;
+    assert_eq!(status, StatusCode::OK);
+    pay(&wallet, 4_000_000_000);
+    let before = notebook.0.lock().unwrap().len();
+    check_once(&market.app, &notebook).unwrap();
+    assert_eq!(notebook.0.lock().unwrap().len(), before);
+}

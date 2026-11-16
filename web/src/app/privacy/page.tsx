@@ -1,11 +1,13 @@
 import type { Metadata } from 'next'
 import { OPERATOR } from '@/lib/brand'
+import { pageMeta } from '@/lib/seo'
 
-export const metadata: Metadata = {
+export const metadata: Metadata = pageMeta({
   title: 'Privacy',
-  description: 'What orien.network keeps about you, why, and how to delete it.',
-  alternates: { canonical: '/privacy/' },
-}
+  description:
+    'What orien.network keeps about you, why, and how to delete it.',
+  path: '/privacy/',
+})
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
@@ -33,13 +35,35 @@ export default function PrivacyPage() {
 
       <Section title="Reading the website">
         <p>
-          Reading these pages needs no account and sets no tracking cookies. The website does not record who you are or
-          follow you elsewhere.
+          Reading these pages needs no account and sets no cookies. The website does not record who you are or follow you
+          elsewhere.
+        </p>
+        <p>
+          To see how many people visit, each page you open is counted: which page, the site that sent you, your country
+          and whether you are on a phone or a computer. To count each visitor once a day, your internet address and
+          browser are scrambled with a code that is thrown away at the end of the day; the address itself is never kept.
+          Only the day&apos;s totals remain. Nobody else sees them.
         </p>
       </Section>
 
-      <Section title="Your marketplace account">
-        <p>When you use the marketplace or the swap board, we keep:</p>
+      <Section title="Writing to us">
+        <p>
+          The contact form emails your name, your email address and your message to us, so we can reply. The website
+          keeps no copy.
+        </p>
+      </Section>
+
+      <Section title="Notifications on iPhone">
+        <p>
+          If you turn on notifications in Orien Wallet on iPhone, the app sends us the code Apple gave your phone for
+          notifications and the addresses of the wallets in the app, so we can tell you when one receives ORN. What an
+          address receives is public on the Orien network anyway. Turning notifications off deletes both; if you
+          remove the app instead, they are deleted once Apple tells us the phone no longer has it.
+        </p>
+      </Section>
+
+      <Section title="Your Market account">
+        <p>When you use the Market or the swap board, we keep:</p>
         <ul>
           <li>
             <strong>Your email address,</strong> to send you sign-in codes and tell you about new messages and taken swap
@@ -52,6 +76,10 @@ export default function PrivacyPage() {
           <li>
             <strong>Your messages,</strong> so both of you can read them. We do not read them as a matter of course, but we
             can, for example to look into a report of a scam.
+          </li>
+          <li>
+            <strong>The names and addresses of the wallets in your Orien Wallet apps,</strong> when you sign in to the
+            Market from them, so the swap board can let you choose which wallet sells. Only you see them.
           </li>
           <li>
             <strong>Reports you make,</strong> and what we did about them.

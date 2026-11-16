@@ -58,6 +58,7 @@ pub fn admin_router(app: Arc<App>, admins: Admins, site: Option<&std::path::Path
     let routes = Router::new()
         .route("/api/admin/overview", get(overview))
         .route("/api/admin/tokenomics", get(tokenomics))
+        .route("/api/admin/traffic", get(traffic))
         .route("/api/admin/reports", get(reports))
         .route("/api/admin/reports/{id}/handled", post(handled))
         .route("/api/admin/listings/{id}/remove", post(remove_listing))
@@ -141,7 +142,7 @@ pub struct MarketStats {
 const DAY: u64 = 24 * 3600;
 
 /// "2026-11-15" for a day number since 1970.
-fn date(day: u64) -> String {
+pub(crate) fn date(day: u64) -> String {
     // Howard Hinnant's days-to-civil.
     let z = day as i64 + 719_468;
     let era = z.div_euclid(146_097);
@@ -335,6 +336,12 @@ async fn overview(State(admin): State<Admin>, headers: HeaderMap) -> Answer {
         Err(error) => json!({ "error": format!("{error:#}") }),
     };
     Ok(Json(json!({ "login": login, "generated": now(), "network": network, "market": market, "server": server })).into_response())
+}
+
+/// The website's visitors and downloads over the last 30 days.
+async fn traffic(State(admin): State<Admin>, headers: HeaderMap) -> Answer {
+    admin.admins.check(&headers)?;
+    Ok(Json(admin.app.traffic().stats(30)).into_response())
 }
 
 async fn tokenomics(State(admin): State<Admin>, headers: HeaderMap) -> Answer {

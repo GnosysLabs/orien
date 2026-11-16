@@ -1,5 +1,6 @@
 "use client";
 
+import { DISCORD, X_ACCOUNT } from "@/lib/brand";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
@@ -9,7 +10,7 @@ import {
   ChevronDown,
   Compass,
   Download,
-  History,
+  Mail,
   Monitor,
   Store,
   Terminal,
@@ -17,6 +18,7 @@ import {
 } from "lucide-react";
 import { MARKETPLACE_LIVE } from "@/lib/brand";
 import { Wordmark } from "./Wordmark";
+import { WINDOWS_INSTALLER, WindowsInstall } from "./WindowsDownload";
 
 type NavItem = {
   href: string;
@@ -25,6 +27,8 @@ type NavItem = {
   short?: string;
   icon: LucideIcon;
   match?: (pathname: string) => boolean;
+  /** Left out of the phone's bottom bar, which has room for five. */
+  wide?: boolean;
 };
 
 const ITEMS: NavItem[] = [
@@ -51,18 +55,18 @@ const ITEMS: NavItem[] = [
         },
         {
           href: "/marketplace/",
-          label: "Marketplace",
-          short: "Market",
+          label: "Market",
           icon: Store,
           match: (p: string) => p.startsWith("/marketplace"),
         },
       ]
     : []),
   {
-    href: "/changelog/",
-    label: "Changelog",
-    icon: History,
-    match: (p) => p.startsWith("/changelog"),
+    href: "/contact/",
+    label: "Contact",
+    icon: Mail,
+    match: (p) => p.startsWith("/contact"),
+    wide: true,
   },
   {
     href: "/try/",
@@ -107,6 +111,8 @@ const DOWNLOADS: {
 
 function DownloadsMenu() {
   const [open, setOpen] = useState(false);
+  // Windows warns about new apps: its download first explains what to click.
+  const [windows, setWindows] = useState(false);
   const box = useRef<HTMLDivElement>(null);
   useEffect(() => {
     if (!open) return;
@@ -134,13 +140,13 @@ function DownloadsMenu() {
         aria-expanded={open}
         aria-haspopup="menu"
         onClick={() => setOpen(!open)}
-        className={`flex h-9 items-center gap-2 rounded-lg px-3 text-sm font-semibold transition ${
+        className={`flex h-9 items-center gap-2 whitespace-nowrap rounded-lg px-2.5 text-sm font-semibold transition lg:px-3 ${
           open
             ? "bg-raised text-ink"
             : "text-muted hover:bg-raised/60 hover:text-ink"
         }`}
       >
-        <Download className="h-4 w-4 shrink-0" strokeWidth={2} aria-hidden />
+        <Download className="hidden h-4 w-4 shrink-0 xl:block" strokeWidth={2} aria-hidden />
         <span>Downloads</span>
         <ChevronDown
           className={`h-3.5 w-3.5 transition ${open ? "rotate-180" : ""}`}
@@ -160,7 +166,13 @@ function DownloadsMenu() {
                 key={item.href}
                 href={item.href}
                 role="menuitem"
-                onClick={() => setOpen(false)}
+                onClick={(event) => {
+                  setOpen(false);
+                  if (item.href === WINDOWS_INSTALLER) {
+                    event.preventDefault();
+                    setWindows(true);
+                  }
+                }}
                 className="flex items-center gap-3 rounded-lg px-3 py-2.5 transition hover:bg-raised"
               >
                 <Icon
@@ -179,12 +191,19 @@ function DownloadsMenu() {
           })}
         </div>
       )}
+      {windows && <WindowsInstall onClose={() => setWindows(false)} />}
     </div>
   );
 }
 
-/** Where the Orien community talks. */
-export const DISCORD = "https://discord.gg/5FFRZAw3u9";
+/** X's logo, which its brand guidelines let anyone use to link to an X account. */
+export function XIcon({ className = "" }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden className={className}>
+      <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
+    </svg>
+  );
+}
 
 /** Discord's mark, which its brand guidelines let anyone use to link to a server. */
 export function DiscordIcon({ className = "" }: { className?: string }) {
@@ -227,7 +246,7 @@ export function Header() {
         ) : (
           <nav
             aria-label="Pages"
-            className="ml-4 hidden items-center gap-1 md:flex"
+            className="ml-4 hidden items-center gap-1 lg:flex"
           >
             {ITEMS.filter((item) => item.href !== "/try/").map((item) => {
               const on = isActive(item, pathname);
@@ -237,18 +256,20 @@ export function Header() {
                   key={item.href}
                   href={item.href}
                   aria-current={on ? "page" : undefined}
-                  className={`flex h-9 items-center gap-2 rounded-lg px-3 text-sm font-semibold transition ${
+                  className={`flex h-9 items-center gap-2 whitespace-nowrap rounded-lg px-2.5 text-sm font-semibold transition lg:px-3 ${
                     on
                       ? "bg-raised text-ink"
                       : "text-muted hover:bg-raised/60 hover:text-ink"
                   }`}
                 >
+                  {/* Icons and full labels where the bar has room for them. */}
                   <Icon
-                    className={`h-4 w-4 shrink-0 ${on ? "text-pearl" : ""}`}
+                    className={`hidden h-4 w-4 shrink-0 xl:block ${on ? "text-pearl" : ""}`}
                     strokeWidth={2}
                     aria-hidden
                   />
-                  <span>{item.label}</span>
+                  <span className="xl:hidden">{item.short ?? item.label}</span>
+                  <span className="hidden xl:inline">{item.label}</span>
                 </Link>
               );
             })}
@@ -257,7 +278,7 @@ export function Header() {
         )}
 
         {!admin && (
-          <div className="ml-auto flex items-center gap-3">
+          <div className="ml-auto flex items-center gap-1">
             <a
               href={DISCORD}
               target="_blank"
@@ -268,10 +289,20 @@ export function Header() {
             >
               <DiscordIcon className="h-5 w-5" />
             </a>
+            <a
+              href={X_ACCOUNT}
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="Follow Orien on X"
+              title="Follow Orien on X"
+              className="flex h-9 w-9 items-center justify-center rounded-lg text-muted transition hover:bg-raised/60 hover:text-ink sm:h-10 sm:w-10"
+            >
+              <XIcon className="h-[18px] w-[18px]" />
+            </a>
             <Link
               href="/try/"
               aria-current={onTry ? "page" : undefined}
-              className="pearl-fill pearl-sheen flex h-9 items-center gap-2 whitespace-nowrap rounded-[10px] px-3.5 text-sm font-bold transition hover:brightness-105 sm:h-10"
+              className="pearl-fill pearl-sheen ml-2 flex h-9 items-center gap-2 whitespace-nowrap rounded-[10px] px-3.5 text-sm font-bold transition hover:brightness-105 sm:h-10"
             >
               <Terminal className="h-4 w-4" strokeWidth={2.25} aria-hidden />
               <span>Get started</span>
@@ -286,15 +317,13 @@ export function Header() {
 export function BottomNav() {
   const pathname = usePathname();
   if (pathname.startsWith("/admin")) return null;
-  // Five fit a phone: with the marketplace, the changelog stays in the footer there.
-  const mobileItems = MARKETPLACE_LIVE
-    ? ITEMS.filter((item) => item.href !== "/changelog/")
-    : ITEMS;
+  // The changelog is in the footer, as on larger screens.
+  const mobileItems = ITEMS.filter((item) => !item.wide);
 
   return (
     <nav
       aria-label="Mobile navigation"
-      className={`fixed inset-x-0 bottom-0 z-40 grid ${MARKETPLACE_LIVE ? "grid-cols-5" : "grid-cols-4"} print:hidden border-t border-line/70 bg-bg/85 px-1 pb-[env(safe-area-inset-bottom)] backdrop-blur-md md:hidden`}
+      className={`fixed inset-x-0 bottom-0 z-40 grid ${MARKETPLACE_LIVE ? "grid-cols-5" : "grid-cols-3"} print:hidden border-t border-line/70 bg-bg/85 px-1 pb-[env(safe-area-inset-bottom)] backdrop-blur-md lg:hidden`}
     >
       {mobileItems.map((item) => {
         const on = isActive(item, pathname);

@@ -84,6 +84,8 @@ pub struct Account {
     pub bio: String,
     /// The file name of their picture, under /api/market/images/.
     pub picture: Option<String>,
+    /// The file name of their profile's wide banner, the same way.
+    pub banner: Option<String>,
     /// The Orien address they proved they hold, which their listings are
     /// paid to.
     pub wallet: Option<String>,
@@ -288,6 +290,8 @@ impl Store {
         store.create_swap_tables()?;
         store.create_vault_table()?;
         store.create_moderation_tables()?;
+        store.create_push_tables()?;
+        store.create_account_wallet_table()?;
         Ok(store)
     }
 
@@ -305,6 +309,14 @@ impl Store {
                  UPDATE accounts SET payout = wallet;
                  DROP TABLE IF EXISTS verifications;",
             )?;
+        }
+        let has_banner: bool = self.db.query_row(
+            "SELECT COUNT(*) > 0 FROM pragma_table_info('accounts') WHERE name = 'banner'",
+            [],
+            |row| row.get(0),
+        )?;
+        if !has_banner {
+            self.db.execute("ALTER TABLE accounts ADD COLUMN banner TEXT", [])?;
         }
         Ok(())
     }
@@ -324,7 +336,7 @@ impl Store {
             "INSERT INTO accounts (name, handle, email, created) VALUES (?1, ?2, ?3, ?4)",
             params![name, handle, email, created],
         )?;
-        Ok(Account { id: self.db.last_insert_rowid(), name, bio: String::new(), picture: None, wallet: None, contact: Contact::default(), created })
+        Ok(Account { id: self.db.last_insert_rowid(), name, bio: String::new(), picture: None, banner: None, wallet: None, contact: Contact::default(), created })
     }
 
     /// A new account that signs in by email. The email must be one a code
@@ -404,6 +416,15 @@ impl Store {
         Ok(old)
     }
 
+    /// Sets or clears an account's banner, and returns the one it replaces,
+    /// whose file can go.
+    pub fn set_banner(&self, id: i64, banner: Option<&str>) -> Result<Option<String>> {
+        let old: Option<String> =
+            self.db.query_row("SELECT banner FROM accounts WHERE id = ?1", [id], |row| row.get(0))?;
+        self.db.execute("UPDATE accounts SET banner = ?2 WHERE id = ?1", params![id, banner])?;
+        Ok(old)
+    }
+
     /// A seller's open listings, newest first, for their profile.
     pub fn open_listings_of(&self, seller: i64) -> Result<Vec<Listing>> {
         let sql = format!("{} AND l.seller = ?1 AND l.open = 1 ORDER BY l.updated DESC", Store::LISTING);
@@ -444,7 +465,7 @@ impl Store {
         Ok(self
             .db
             .query_row(
-                "SELECT id, name, bio, picture, payout, created, contact_email, telegram, x FROM accounts WHERE id = ?1",
+                "SELECT id, name, bio, picture, payout, created, contact_email, telegram, x, banner FROM accounts WHERE id = ?1",
                 [id],
                 |row| {
                     Ok(Account {
@@ -452,6 +473,7 @@ impl Store {
                         name: row.get(1)?,
                         bio: row.get(2)?,
                         picture: row.get(3)?,
+                        banner: row.get(9)?,
                         wallet: row.get(4)?,
                         contact: Contact { email: row.get(6)?, telegram: row.get(7)?, x: row.get(8)? },
                         created: row.get(5)?,

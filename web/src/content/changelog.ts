@@ -21,7 +21,7 @@ export const PRODUCTS: Record<Product, string> = {
   orien: 'orien',
   validators: 'Validators',
   wallet: 'Orien Wallet',
-  marketplace: 'Marketplace',
+  marketplace: 'Market',
 }
 
 export const CHANGELOG: Entry[] = [
@@ -37,6 +37,39 @@ export const CHANGELOG: Entry[] = [
       'When you make a wallet, you can save the recovery phrase as a text file.',
       'The Orien sunrise shows while the app opens, until your balance and activity are ready.',
       'The marketplace is called the Market throughout the app.',
+    ],
+  },
+  {
+    date: '2026-11-15',
+    products: ['orien'],
+    version: '1.8.1',
+    title: 'The AI assistant skill is gone',
+    changes: [
+      'orien no longer installs a skill for AI assistants: Orien Wallet does everything it did, more simply. Updating removes the copies earlier versions installed.',
+    ],
+    unreleased: true,
+  },
+  {
+    date: '2026-11-16',
+    products: ['marketplace'],
+    title: 'Fairer swap holds',
+    changes: [
+      'When a seller’s wallet doesn’t start a taken swap in time, the offer goes back on the board and the buyer is no longer counted as having let it lapse.',
+      'For now, swap offers are posted in Orien Wallet, which then finishes the swap when someone takes it.',
+    ],
+  },
+  {
+    date: '2026-11-15',
+    products: ['marketplace'],
+    title: 'A contact page',
+    changes: ['orien.network/contact: write to the Orien team from the website, and we reply by email.'],
+  },
+  {
+    date: '2026-11-15',
+    products: ['marketplace'],
+    title: 'Pictures of any size',
+    changes: [
+      'Big pictures straight from a phone or camera upload fine: your browser shrinks them before sending, for listings, profile pictures and banners.',
     ],
   },
   {

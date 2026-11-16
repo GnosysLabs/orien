@@ -12,7 +12,7 @@ use std::path::PathBuf;
 use std::sync::Arc;
 
 #[derive(Parser)]
-#[command(name = "orien-market", version, about = "The Orien marketplace's server")]
+#[command(name = "orien-market", version, about = "The Orien Market's server")]
 struct Args {
     /// The database file, made if it does not exist.
     #[arg(long, default_value = "market.db")]
@@ -36,6 +36,16 @@ struct Args {
     /// on this computer.
     #[arg(long)]
     openrouter_key: Option<PathBuf>,
+    /// Apple's push key (.p8), for notifications on iPhone; without it,
+    /// notifications are written to the log
+    #[arg(long)]
+    apns_key: Option<PathBuf>,
+    /// The Apple push key's id, as Apple shows it
+    #[arg(long, default_value = "")]
+    apns_key_id: String,
+    /// The Apple developer team the key belongs to
+    #[arg(long, default_value = "4PDUNTF69S")]
+    apns_team: String,
     /// The Orien network's genesis file, for asking its validators.
     #[arg(long, default_value = "/var/lib/orien/genesis.json")]
     genesis: PathBuf,
@@ -55,7 +65,7 @@ struct Args {
     #[arg(long, value_delimiter = ',')]
     admin_logins: Vec<String>,
     /// Who the codes come from.
-    #[arg(long, default_value = "Orien marketplace <noreply@orien.network>")]
+    #[arg(long, default_value = "Orien Market <noreply@orien.network>")]
     from: String,
     /// Look after the marketplace instead of running it.
     #[command(subcommand)]
@@ -163,6 +173,8 @@ async fn main() -> Result<()> {
     };
     // Pictures are kept beside the database.
     let images = args.db.parent().unwrap_or(std::path::Path::new(".")).join("images");
+    // So are the website's traffic counts.
+    let traffic = args.db.parent().unwrap_or(std::path::Path::new(".")).join("traffic");
     let payments = Arc::new(Network::open(&args.genesis)?);
     let app = Arc::new(App::new(
         Store::open(&args.db)?,
@@ -173,7 +185,16 @@ async fn main() -> Result<()> {
         screener,
         payments,
         &address,
-    )?);
+    )?
+    .with_traffic(orien_market::traffic::Traffic::open(traffic)));
+    let apns = match &args.apns_key {
+        Some(key) => orien_market::push::Apns::load(key, &args.apns_key_id, &args.apns_team)?,
+        None => {
+            println!("no --apns-key: iPhone notifications go to this log instead");
+            orien_market::push::Apns::off()
+        }
+    };
+    orien_market::push::watch(app.clone(), apns);
     let listener = tokio::net::TcpListener::bind(&args.listen).await?;
     println!("marketplace server for {} listening on {}", args.origin, args.listen);
     if let Some(at) = &args.admin_listen {

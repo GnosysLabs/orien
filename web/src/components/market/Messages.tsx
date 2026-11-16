@@ -11,6 +11,7 @@ import {
   formatOrn,
   MarketError,
   parseOrn,
+  perUnit,
   plainOrn,
   sentence,
   type Conversation,
@@ -104,7 +105,7 @@ export function Messages() {
         </section>
       </div>
       <p className="px-1 text-xs leading-relaxed text-muted">
-        Messages are kept by the marketplace so both of you can read them, and can be read by its operator, as on most
+        Messages are kept by the Market so both of you can read them, and can be read by its operator, as on most
         marketplaces. Never share your recovery phrase with anyone.
       </p>
     </div>
@@ -229,7 +230,7 @@ function Thread({ id, onChange }: { id: string; onChange: () => void }) {
           About <span className="font-semibold text-ink">{c.listing_title}</span>
         </span>
         <span className="num shrink-0 font-semibold text-ink">
-          {formatOrn(c.price)} ORN{c.unit && <span className="font-normal text-muted"> {c.unit}</span>}
+          {formatOrn(c.price)} ORN{c.unit && <span className="font-normal text-muted"> {perUnit(c.unit)}</span>}
         </span>
       </Link>
 

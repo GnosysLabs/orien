@@ -251,7 +251,7 @@ function DeleteAccount({ name, onDeleted }: { name: string; onDeleted: () => voi
         This deletes your account and everything you made here: your profile, listings and pictures, your conversations and
         messages, and your swap offers. It cannot be undone. Your Orien wallet and coins are not touched.
       </p>
-      <label className="block space-y-2">
+      <label className="flex flex-col gap-2">
         <span className="text-sm text-ink">
           Type your name, <strong>{name}</strong>, to confirm
         </span>

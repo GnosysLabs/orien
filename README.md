@@ -85,12 +85,9 @@ orien send --to ADDRESS --amount 5
 - **Mining.** `orien mine` asks how much of the processor to use;
   `--cpu 50` answers in advance. Each hour's new ORN are shared in
   proportion to the shares each miner found.
-- **AI assistants.** `orien skill install` teaches Claude Code, Codex and any
-  assistant that reads `~/.agents/skills` to use orien in plain language.
-  It asks before every payment and never sees the phrase or the password.
-  `orien unlock --for 1h --up-to 50` lets it send from a password-protected
-  wallet for a while, up to an amount, without learning the password;
-  `orien lock` ends that early.
+- **Unlocking.** `orien unlock --for 1h --up-to 50` lets a script you trust
+  send from a password-protected wallet for a while, up to an amount,
+  without learning the password; `orien lock` ends that early.
 - **Swaps.** Orien Wallet swaps ORN for Bitcoin with anyone, with no one in
   the middle. Underneath are **locked payments**: `orien escrow --to ADDRESS
   --amount 500 --hours 48` locks ORN that the receiver takes with
@@ -353,7 +350,6 @@ cargo test --release -p orien-net --test devnet throughput -- --ignored --nocapt
 | `crates/cli` | The `orien` command |
 | `crates/swap` | The Bitcoin side of swaps: the lock script, claim and refund, and each side's steps |
 | `apps/wallet` | Orien Wallet, the desktop app |
-| `skill/orien` | The skill that teaches AI assistants to use `orien` |
 | `web` | The website, orien.network, with the installers and the technical paper |
 | `deploy` | Publishing the website and releases, and the live validators' service |
 | `docs` | The design notes |

@@ -1,0 +1,22 @@
+# Orien
+
+> Orien (ORN) is a quantum-proof cryptocurrency. Payments are final in about 160 milliseconds with no blocks, every signature rests on the BLAKE3 hash so quantum computers cannot break it the way they break elliptic-curve signatures, and coins are mined on ordinary computers with RandomX. It launched with zero coins: no pre-mine, no sale, no founder's share. At most 100 million ORN will exist.
+
+## Pages
+
+- [Home](https://orien.network/): what Orien is, in short
+- [How it works](https://orien.network/how-it-works/): payments without blocks, coins and mining, swaps with Bitcoin, safety, measurements, common questions
+- [Get started](https://orien.network/try/): download Orien Wallet for Mac, Windows and Linux, or install the orien command line; mine, send, receive, run a validator
+- [Technical paper](https://orien.network/paper/): every rule in full detail ([PDF](https://orien.network/orien-paper.pdf))
+- [Buy and sell ORN](https://orien.network/swap/): trade ORN for Bitcoin with another person through a trustless atomic swap
+- [Market](https://orien.network/marketplace/): work and goods offered for ORN
+- [Changelog](https://orien.network/changelog/): every change to the network and the apps
+- [Contact](https://orien.network/contact/): write to the Orien team (hello@orien.network)
+- [Mining moves to RandomX](https://orien.network/news/randomx/): why Orien mining switched to RandomX
+
+## Facts
+
+- Fee: 0.1% of each payment, never more than 1 ORN, paid to validators
+- Supply: at most 100 million ORN; half released in the first four years, halving every four years after
+- Mining: RandomX, about a thousand work shares an hour shared out at each hourly checkpoint
+- Community: https://x.com/OrienNetwork and https://discord.gg/5FFRZAw3u9

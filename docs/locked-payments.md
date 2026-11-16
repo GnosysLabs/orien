@@ -198,7 +198,7 @@ to an hour, though the ORN side is instant.
    full swap on a test network between two wallets.
 3. `orien lock`, `orien claim` and `orien swap` in the command-line program.
 4. Swaps in Orien Wallet, with the Bitcoin side.
-5. The paper, How it works and the skill.
+5. The paper and How it works.
 6. Upgrading the live network, with your yes, at a checkpoint.
 
 Swap offers in a marketplace, and swaps with Ethereum, build on this later

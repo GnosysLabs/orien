@@ -1,14 +1,16 @@
 import type { Metadata } from 'next'
+import { WindowsDownload } from '@/components/WindowsDownload'
 import Link from 'next/link'
-import { ArrowRight, Bot, Download, KeyRound, Monitor, Pickaxe, RefreshCw, Send, ServerCog, Wallet } from 'lucide-react'
+import { ArrowRight, Download, KeyRound, Monitor, Pickaxe, RefreshCw, Send, ServerCog, Wallet } from 'lucide-react'
 import { CopyText } from '@/components/CopyText'
+import { pageMeta } from '@/lib/seo'
 
-export const metadata: Metadata = {
-  title: 'Get started',
+export const metadata: Metadata = pageMeta({
+  title: 'Get started: download Orien Wallet and mine ORN',
   description:
-    'Install orien, make a wallet with a 24-word recovery phrase, mine ORN on your computer, send and receive, and run a validator.',
-  alternates: { canonical: '/try/' },
-}
+    'Download Orien Wallet for Mac, Windows or Linux, or install the orien command line. Make a quantum-proof wallet, mine ORN on your computer, send and receive, and run a validator.',
+  path: '/try/',
+})
 
 function Step({
   number,
@@ -71,12 +73,9 @@ export default function GetStartedPage() {
             >
               <Download className="h-4 w-4" aria-hidden /> Download for Mac
             </a>
-            <a
-              href="/wallet/Orien-Wallet-setup.exe"
-              className="pearl-fill flex h-11 items-center gap-2 rounded-xl px-5 text-sm font-bold transition hover:brightness-105"
-            >
+            <WindowsDownload className="pearl-fill flex h-11 items-center gap-2 rounded-xl px-5 text-sm font-bold transition hover:brightness-105">
               <Download className="h-4 w-4" aria-hidden /> Download for Windows
-            </a>
+            </WindowsDownload>
             <a
               href="/wallet/Orien-Wallet.AppImage"
               className="pearl-fill flex h-11 items-center gap-2 rounded-xl px-5 text-sm font-bold transition hover:brightness-105"
@@ -121,7 +120,7 @@ export default function GetStartedPage() {
           </p>
           <Note>
             Anyone who sees your 24 words can take your coins. Never type them into a website, and never give them to
-            anyone, an AI assistant included.
+            anyone.
           </Note>
         </Step>
 
@@ -144,33 +143,7 @@ export default function GetStartedPage() {
           </p>
         </Step>
 
-        <Step number={5} icon={Bot} title="Let your AI assistant do it">
-          <CopyText text="orien skill install" />
-          <p>
-            This teaches <strong>Claude Code</strong>, <strong>Codex</strong> and any other AI assistant that reads
-            skills from <code className="rounded bg-raised px-1.5 py-0.5 text-ink">~/.agents/skills</code> to use orien
-            for you. Start a new conversation and ask in plain words: “what’s my ORN balance?”, “send 5 ORN to Bob”, “start mining on this
-            computer”. It asks before every payment, and never sees your 24 words or your password.
-          </p>
-          <Note>
-            The assistant has to run on your own computer, as Claude Code and Codex do, because it works by running
-            orien there. Chats on claude.ai, chatgpt.com and their apps run on the provider’s servers, so they cannot use
-            orien or reach your wallet.
-          </Note>
-          <p>
-            If your wallet has a password, let the assistant send for a while, up to an amount you choose. It can then
-            send without ever learning the password:
-          </p>
-          <CopyText label="For the next hour, up to 50 ORN" text="orien unlock --for 1h --up-to 50" />
-          <p className="text-sm">
-            End it early with <code className="rounded bg-raised px-1.5 py-0.5 text-ink">orien lock</code>. For an
-            assistant that keeps its skills somewhere else,{' '}
-            <code className="rounded bg-raised px-1.5 py-0.5 text-ink">orien skill install --dir FOLDER</code> puts the
-            skill in that folder.
-          </p>
-        </Step>
-
-        <Step number={6} icon={KeyRound} title="Use a second computer">
+        <Step number={5} icon={KeyRound} title="Use a second computer">
           <CopyText text="orien wallet restore" />
           <p>
             Type your 24 words when asked. It’s the same wallet on both computers, with the same address and the same
@@ -178,12 +151,12 @@ export default function GetStartedPage() {
           </p>
         </Step>
 
-        <Step number={7} icon={RefreshCw} title="Stay up to date">
+        <Step number={6} icon={RefreshCw} title="Stay up to date">
           <CopyText text="orien update" />
-          <p>It installs a newer version only if it carries the Orien release signature, so nobody can slip in a fake one. It updates the AI skill too.</p>
+          <p>It installs a newer version only if it carries the Orien release signature, so nobody can slip in a fake one.</p>
         </Step>
 
-        <Step number={8} icon={ServerCog} title="Run a validator">
+        <Step number={7} icon={ServerCog} title="Run a validator">
           <p>
             Validators check payments and earn the network’s fees, shared by stake. You need at least{' '}
             <strong>10,000 ORN</strong> to stake, and a server that stays on, ideally running Linux.
@@ -198,7 +171,7 @@ export default function GetStartedPage() {
             text="orien stake --amount 10000 --validator-key ~/.orien/validator.key --address YOUR_SERVER_IP:7101"
           />
           <p className="text-sm">
-            Staking needs your wallet on the server too (step 6 shows how), holding the ORN you
+            Staking needs your wallet on the server too (step 5 shows how), holding the ORN you
             stake.
           </p>
           <p className="text-sm">
