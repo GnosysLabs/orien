@@ -3,10 +3,10 @@
 import Link from 'next/link'
 import { useEffect, useState } from 'react'
 import { LogOut, Mail } from 'lucide-react'
-import { ask, me, type Account, type Listing } from '@/lib/market'
+import { ask, me, NAME_PATTERN, NAME_RULE, type Account, type Listing } from '@/lib/market'
 import { Card } from './Browse'
 import { ProfileEditor } from './ProfileEditor'
-import { WalletCheck } from './WalletCheck'
+import { VerifiedWallets, WalletCheck } from './WalletCheck'
 import { Notice, SIGNED_IN_OR_OUT } from './Shell'
 
 type Found = { account: Account; listings: Listing[] }
@@ -129,13 +129,21 @@ function SignIn({ onDone, trouble: first }: { onDone: () => void; trouble: strin
       {step === 'name' && (
         <form onSubmit={finish} className="space-y-4">
           <h1 className="text-2xl font-bold tracking-tight text-ink">Welcome! What should we call you?</h1>
-          <p className="leading-relaxed text-muted">This is the name buyers and sellers will see. You can change it later.</p>
+          <p className="leading-relaxed text-muted">
+            This is the name people will see, and your profile&apos;s address: orien.network/u/{name || 'yourname'}. Use{' '}
+            {NAME_RULE}. You can change it later.
+          </p>
           <input
             value={name}
-            onChange={(e) => setName(e.target.value)}
-            maxLength={50}
+            onChange={(e) => setName(e.target.value.replace(/\s/g, '_'))}
+            maxLength={20}
+            minLength={3}
+            pattern={NAME_PATTERN}
+            title={`Your name: ${NAME_RULE}`}
             required
             autoFocus
+            spellCheck={false}
+            autoCapitalize="off"
             placeholder="Your name or your business's"
             className={field}
           />
@@ -182,6 +190,7 @@ function Mine({ found, onChange }: { found: Found; onChange: () => void }) {
       </div>
       <ProfileEditor account={found.account} onSaved={onChange} />
       <WalletCheck account={found.account} onVerified={onChange} />
+      <VerifiedWallets account={found.account} onChange={onChange} />
       <h2 className="pt-2 text-xl font-bold tracking-tight text-ink">Your listings</h2>
       {trouble && <Notice tone="bad">{trouble}</Notice>}
       {found.listings.length === 0 ? (

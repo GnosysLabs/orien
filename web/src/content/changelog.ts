@@ -52,6 +52,15 @@ export const CHANGELOG: Entry[] = [
   },
   {
     date: '2026-11-16',
+    products: ['network', 'marketplace'],
+    title: 'SOL swaps are open',
+    changes: [
+      'Orien’s lock program is live on Solana: a 4,016-byte program that holds a swap’s SOL until the seller shows the secret or the deadline passes, and that can only pay the two people named in the lock. It was reviewed, tried with real SOL, then made permanent, so nobody, including us, can ever change it.',
+      'Buy & sell lists SOL offers first, with Bitcoin offers below, and How it works and the technical paper describe swaps with SOL.',
+    ],
+  },
+  {
+    date: '2026-11-16',
     products: ['wallet'],
     version: '1.8.2',
     title: 'A clear next step after taking an offer',

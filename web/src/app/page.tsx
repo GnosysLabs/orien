@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { ArrowRight, Gauge, Pickaxe, Scale, ServerCog, ShieldCheck, Sunrise, Wallet } from 'lucide-react'
+import { ArrowLeftRight, ArrowRight, Gauge, Pickaxe, Scale, ServerCog, ShieldCheck, Sunrise, Wallet } from 'lucide-react'
 import type { Metadata } from 'next'
 import { SupplyCurve } from '@/components/SupplyCurve'
 
@@ -36,6 +36,11 @@ const WAYS_IN = [
     icon: Pickaxe,
     title: 'Mine',
     body: 'Lend your computer’s spare power. Every hour, the new coins are shared out among everyone who did work in that hour.',
+  },
+  {
+    icon: ArrowLeftRight,
+    title: 'Swap',
+    body: 'Buy ORN with SOL, or sell yours for SOL, directly with another person in about a minute. Either both of you get paid, or both get your coins back.',
   },
   {
     icon: ServerCog,
@@ -132,8 +137,8 @@ export default function HomePage() {
 
       {/* Ways in */}
       <section className="py-20">
-        <h2 className="text-center text-2xl font-bold tracking-tight text-ink sm:text-3xl">Three ways to take part</h2>
-        <div className="mt-8 grid gap-4 md:grid-cols-3">
+        <h2 className="text-center text-2xl font-bold tracking-tight text-ink sm:text-3xl">Four ways to take part</h2>
+        <div className="mt-8 grid gap-4 sm:grid-cols-2">
           {WAYS_IN.map(({ icon: Icon, title, body }) => (
             <div key={title} className="rounded-2xl border border-line bg-surface p-6">
               <Icon className="mb-4 h-6 w-6 text-pearl" strokeWidth={1.75} aria-hidden />

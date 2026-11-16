@@ -177,6 +177,18 @@ impl Store {
 
 /// "You received 1,234.5 ORN".
 pub fn received_text(amount: u64) -> String {
+    format!("You received {} ORN", grouped(amount))
+}
+
+/// "You mined 12.35 ORN": rewards rounded to hundredths, since a share of an
+/// epoch's coins rarely comes out round.
+pub fn mined_text(amount: u64) -> String {
+    let hundredths = (amount + 5_000_000) / 10_000_000 * 10_000_000;
+    format!("You mined {} ORN", grouped(if hundredths == 0 { amount } else { hundredths }))
+}
+
+/// ORN written as people write them: "1,234.5".
+fn grouped(amount: u64) -> String {
     let written = orn(amount);
     let (whole, fraction) = written.split_once('.').map_or((written.as_str(), None), |(w, f)| (w, Some(f)));
     let mut grouped = String::new();
@@ -187,15 +199,15 @@ pub fn received_text(amount: u64) -> String {
         grouped.push(digit);
     }
     match fraction {
-        Some(fraction) => format!("You received {grouped}.{fraction} ORN"),
-        None => format!("You received {grouped} ORN"),
+        Some(fraction) => format!("{grouped}.{fraction}"),
+        None => grouped,
     }
 }
 
 /// What Apple shows on the phone.
-pub fn payload(amount: u64, address: &str) -> String {
+pub fn payload(body: &str, address: &str) -> String {
     json!({
-        "aps": { "alert": { "title": "Orien Wallet", "body": received_text(amount) }, "sound": "default" },
+        "aps": { "alert": { "title": "Orien Wallet", "body": body }, "sound": "default" },
         "address": address,
     })
     .to_string()
@@ -342,11 +354,24 @@ pub fn check_once(app: &App, notify: &dyn Notify) -> Result<usize> {
                 continue;
             }
         };
+        // Each payment on its own; mining rewards seen together, one
+        // notification for all of them.
+        let (mut bodies, mut mined) = (Vec::new(), 0u64);
         for credit in credits {
             if !app.store().first_sight(&address, &credit.key, credit.epoch)? || !primed {
                 continue;
             }
-            let payload = payload(credit.amount, &address);
+            if credit.mined {
+                mined = mined.saturating_add(credit.amount);
+            } else {
+                bodies.push(received_text(credit.amount));
+            }
+        }
+        if mined > 0 {
+            bodies.push(mined_text(mined));
+        }
+        for body in bodies {
+            let payload = payload(&body, &address);
             // Read first, so the store is not held while forgetting a phone.
             let phones = app.store().phones_for(&address)?;
             for (phone, sandbox) in phones {
@@ -438,6 +463,10 @@ mod tests {
         assert_eq!(received_text(1_234_500_000_000), "You received 1,234.5 ORN");
         assert_eq!(received_text(1_000_000), "You received 0.001 ORN");
         assert_eq!(received_text(12_345_678_000_000_000), "You received 12,345,678 ORN");
+        assert_eq!(mined_text(12_000_000_000), "You mined 12 ORN");
+        assert_eq!(mined_text(4_123_456_789), "You mined 4.12 ORN");
+        assert_eq!(mined_text(1_829_996_000_000), "You mined 1,830 ORN");
+        assert_eq!(mined_text(3_000_000), "You mined 0.003 ORN", "too small to round");
     }
 
     #[test]
@@ -478,7 +507,7 @@ mod tests {
             key: Some(Key { key: openssl::pkey::PKey::from_ec_key(ec).unwrap(), id: "ABC123DEFG".into(), team: "4PDUNTF69S".into() }),
             signed: Mutex::new(None),
         };
-        let answer = apns.notify(&"ab".repeat(32), true, &payload(1, &"cd".repeat(32)));
+        let answer = apns.notify(&"ab".repeat(32), true, &payload("You received 0.000000001 ORN", &"cd".repeat(32)));
         println!("{answer:?}");
         assert!(matches!(&answer, Sent::Gone) || matches!(&answer, Sent::Failed(why) if why.contains("Apple answered 403")), "{answer:?}");
     }

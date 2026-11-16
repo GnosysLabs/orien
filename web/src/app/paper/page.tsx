@@ -8,7 +8,7 @@ import { jsonLd, pageMeta } from '@/lib/seo'
 export const metadata: Metadata = pageMeta({
   title: 'Orien technical paper',
   description:
-    'The Orien technical paper: the exact rules of the Orien cryptocurrency, from its BLAKE3 hash-based one-time signatures and payment certificates to hourly checkpoints, staking, fees, RandomX mining and atomic swaps with Bitcoin.',
+    'The Orien technical paper: the exact rules of the Orien cryptocurrency, from its BLAKE3 hash-based one-time signatures and payment certificates to hourly checkpoints, staking, fees, RandomX mining and atomic swaps with SOL and Bitcoin.',
   path: '/paper/',
 })
 
@@ -42,7 +42,7 @@ export default function PaperPage() {
           '@type': 'TechArticle',
           headline: 'Orien technical paper',
           description:
-            'The exact rules of the Orien cryptocurrency: hash-based one-time signatures, payment certificates, hourly checkpoints, staking, fees, RandomX mining and atomic swaps with Bitcoin.',
+            'The exact rules of the Orien cryptocurrency: hash-based one-time signatures, payment certificates, hourly checkpoints, staking, fees, RandomX mining and atomic swaps with SOL and Bitcoin.',
           mainEntityOfPage: `${SITE_URL}/paper/`,
           image: `${SITE_URL}/og.png`,
           encoding: { '@type': 'MediaObject', contentUrl: `${SITE_URL}/orien-paper.pdf`, encodingFormat: 'application/pdf' },
@@ -671,6 +671,43 @@ OP_ENDIF`}</Formula>
             Otherwise a fee above a tenth of the coins is refused. The seller saves the secret, and the order number
             its lock will have, before locking anything, and locks under no other number, so the ORN are never locked
             twice.
+          </p>
+        </Sub>
+
+        <Sub title="9.4 Swapping ORN for SOL">
+          <p>
+            On Solana the Bitcoin script is replaced by <code>orien-lock</code>, a 4,016-byte program at{' '}
+            <code className="break-all">DAeXj31NAoSgno7SiFX7t4tWoMDBtpN9rn8c2X7WNtYE</code> whose upgrade authority
+            was removed after deployment, so nobody can change it. It holds SOL in a 113-byte account until someone
+            shows the secret behind its SHA-256 hash, which pays the seller and returns the account’s deposit to the
+            buyer, or until its deadline, a Unix time, after which everything goes back to the buyer. Anyone may send
+            either instruction; the coins only ever go to the two addresses written in the lock.
+          </p>
+          <ol className="list-decimal space-y-1 pl-5">
+            <li>The seller locks the ORN for the buyer on Orien for 4 epochs.</li>
+            <li>
+              The buyer checks that lock as for Bitcoin, with at least two hours of it surely left, and sends the SOL
+              from their own wallet to a one-time address. The buyer’s wallet locks them from there for the seller,
+              with a deadline one hour ahead on Solana’s clock.
+            </li>
+            <li>
+              The seller claims once the lock is finalized, as most of the services it reads report it, with at least
+              10 minutes left and ending at least an hour before the ORN lock surely does. The claim reveals the
+              secret; a claim not seen to land is sent again, but never with under 3 minutes left.
+            </li>
+            <li>
+              The ORN are claimed for the buyer with the secret, by either wallet, as for Bitcoin, and whatever is left
+              at the one-time address goes back to the buyer’s wallet.
+            </li>
+          </ol>
+          <Formula>{`Lock   [lock (signer)]          hash 32, seller 32, buyer 32, deadline i64, amount u64
+Claim  [lock, seller, buyer]    secret 32: before the deadline; seller += amount, buyer += the rest
+Refund [lock, buyer]            at or after the deadline: buyer += everything`}</Formula>
+          <p>
+            The lock account is made in the same transaction as Lock, by a transfer and the System Program’s Allocate
+            and Assign signed with a fresh key, so a stranger who sends SOL to its address first cannot block it. The
+            program does not check that the addresses it pays can be paid, so wallets refuse any payout or refund
+            address that is a program or one of Solana’s own accounts. The smallest swap is 0.01 SOL.
           </p>
         </Sub>
       </PaperSection>

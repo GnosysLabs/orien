@@ -74,12 +74,20 @@ export default function PrivacyPage() {
             listings and swap offers, and the Orien address you are paid at. Everyone can see these.
           </li>
           <li>
+            <strong>The wallets you verify.</strong> If you verify a wallet, by sending a tiny amount from it to Orien
+            Market, it shows as yours on your profile, and your name, your picture and the wallet&apos;s name in your
+            Orien Wallet show beside its address in other people&apos;s Orien Wallet, for example when they pay you.
+            Anyone can then see that wallet&apos;s balance and payments are yours. Remove it under Verified wallets to
+            stop it.
+          </li>
+          <li>
             <strong>Your messages,</strong> so both of you can read them. We do not read them as a matter of course, but we
             can, for example to look into a report of a scam.
           </li>
           <li>
             <strong>The names and addresses of the wallets in your Orien Wallet apps,</strong> when you sign in to the
-            Market from them, so the swap board can let you choose which wallet sells. Only you see them.
+            Market from them, so the swap board can let you choose which wallet sells. Only you see them, unless you
+            verify a wallet.
           </li>
           <li>
             <strong>Reports you make,</strong> and what we did about them.

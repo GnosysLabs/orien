@@ -4,7 +4,7 @@ import { shrinkPicture } from '@/lib/shrink'
 import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useEffect, useState } from 'react'
-import { ChevronDown, ImagePlus, Star, X } from 'lucide-react'
+import { ImagePlus, Star, X } from 'lucide-react'
 import { ask, CATEGORIES, MarketError, me, parseOrn, perUnit, pictureUrl, plainOrn, PRICINGS, sentence, type Draft, type Listing } from '@/lib/market'
 import { Notice } from './Shell'
 import { AutoTextarea } from '@/components/AutoTextarea'
@@ -67,7 +67,7 @@ export function SellForm() {
     return (
       <Notice>
         Before your first listing,{' '}
-        <Link href="/marketplace/account/" className="font-semibold text-ink underline underline-offset-4">
+        <Link href="/account/" className="font-semibold text-ink underline underline-offset-4">
           add your Orien wallet
         </Link>
         , so buyers&apos; payments reach you. Signing in from Orien Wallet adds it for you.
@@ -78,7 +78,7 @@ export function SellForm() {
     return (
       <Notice>
         To sell something,{' '}
-        <Link href="/marketplace/account/" className="font-semibold text-ink underline underline-offset-4">
+        <Link href="/account/" className="font-semibold text-ink underline underline-offset-4">
           sign in or make an account
         </Link>{' '}
         first. It takes a few seconds, with your email.
@@ -150,7 +150,7 @@ export function SellForm() {
           <select
             value={category}
             onChange={(e) => setCategory(e.target.value)}
-            className={`appearance-none pr-12 ${field}`}
+            className={field}
           >
             {CATEGORIES.map((c) => (
               <option key={c.id} value={c.id}>
@@ -158,11 +158,6 @@ export function SellForm() {
               </option>
             ))}
           </select>
-          <ChevronDown
-            className="pointer-events-none absolute right-4 top-1/2 h-4 w-4 -translate-y-1/2 text-muted"
-            strokeWidth={2.25}
-            aria-hidden
-          />
         </span>
       </label>
       <div className="space-y-2">
@@ -225,7 +220,7 @@ export function SellForm() {
             <select
               value={PRICINGS.includes(unit) ? unit : 'other'}
               onChange={(e) => setUnit(e.target.value === 'other' ? 'per ' : e.target.value)}
-              className={`${field} appearance-none pr-10`}
+              className={field}
             >
               <option value="">Fixed price</option>
               {PRICINGS.filter(Boolean).map((p) => (
@@ -235,7 +230,6 @@ export function SellForm() {
               ))}
               <option value="other">Other…</option>
             </select>
-            <ChevronDown className="pointer-events-none absolute right-4 top-1/2 h-4 w-4 -translate-y-1/2 text-muted" aria-hidden />
           </div>
           {!PRICINGS.includes(unit) && (
             <input

@@ -8,11 +8,27 @@ export type Account = {
   /** A wide picture across the top of the profile. */
   banner?: string | null
   wallet: string | null
+  /** Whether that wallet proved it is theirs, by a small payment. */
+  wallet_verified?: boolean
   contact: Contact
   created: number
 }
 
 export type Contact = { email: string; telegram: string; x: string }
+
+/** A wallet its owner proved is theirs, by its name in their Orien Wallet. */
+export type VerifiedWallet = { address: string; name: string | null }
+
+/** What verifying a wallet takes: `amount` from `address` to `to`. */
+export type WalletProof = {
+  address: string
+  /** Its name in your Orien Wallet, if an app has said. */
+  name: string | null
+  amount: number
+  orn: string
+  to: string
+  verified: boolean
+}
 
 export type Message = {
   id: number
@@ -47,9 +63,20 @@ export type SwapOffer = {
   seller_picture: string | null
   seller_done: number
   orn: number
+  /** What the buyer pays with. */
+  coin: 'sol' | 'btc'
+  /** The price of a Bitcoin offer; 0 for a SOL one. */
   sats: number
+  /** The price of a SOL offer; 0 for a Bitcoin one. */
+  lamports: number
   state: string
   created: number
+}
+
+/** Lamports as SOL, at most four decimals: 250000000 → "0.25". */
+export function formatSol(lamports: number): string {
+  const sol = lamports / 1_000_000_000
+  return sol.toLocaleString('en', { maximumFractionDigits: sol < 0.01 ? 6 : 4 })
 }
 
 /** Satoshis as BTC: 1000000 → "0.01". */
@@ -80,6 +107,13 @@ export function ago(seconds: number): string {
 export const sentence = (text: string) => text.charAt(0).toUpperCase() + text.slice(1) + (text.endsWith('.') ? '' : '.')
 
 export const pictureUrl = (name: string) => `/api/market/images/${name}`
+
+/** A profile's page: /u/Cyph3r/. */
+export const profileHref = (name: string) => `/u/${encodeURIComponent(name)}/`
+
+/** The rule for names, as the server keeps it: a username. */
+export const NAME_RULE = '3 to 20 letters, numbers or underscores, with no spaces'
+export const NAME_PATTERN = '[A-Za-z0-9_]{3,20}'
 
 /** "Member since March 2026". */
 export const memberSince = (seconds: number) =>

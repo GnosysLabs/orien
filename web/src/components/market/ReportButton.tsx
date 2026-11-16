@@ -79,7 +79,7 @@ function ReportForm({
   if (!signedIn) {
     return (
       <p className="text-xs text-muted">
-        <Link href="/marketplace/account/" className="font-semibold text-ink underline underline-offset-4">
+        <Link href="/account/" className="font-semibold text-ink underline underline-offset-4">
           Sign in
         </Link>{' '}
         to report {what}.

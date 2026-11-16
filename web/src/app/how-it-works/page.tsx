@@ -20,7 +20,7 @@ const SECTIONS = [
   { id: 'validators', title: 'Validators and staking' },
   { id: 'fees', title: 'Fees' },
   { id: 'coins', title: 'Coins and mining' },
-  { id: 'swaps', title: 'Swapping with Bitcoin' },
+  { id: 'swaps', title: 'Swapping with SOL and Bitcoin' },
   { id: 'safety', title: 'What keeps it safe' },
   { id: 'measured', title: 'Measured' },
   { id: 'questions', title: 'Questions' },
@@ -42,7 +42,7 @@ const QUESTIONS: Question[] = [
   {
     q: 'How do I get ORN?',
     a: MARKETPLACE_LIVE
-      ? 'Mine it on your own computer with Orien Wallet or the orien command line, buy it with Bitcoin from another person through a trustless swap, or sell your work or goods for ORN on the Market.'
+      ? 'Mine it on your own computer with Orien Wallet or the orien command line, buy it with SOL or Bitcoin from another person through a trustless swap, or sell your work or goods for ORN on the Market.'
       : 'Mine it on your own computer with Orien Wallet or the orien command line, or be paid in ORN by someone who has it.',
   },
   {
@@ -255,21 +255,23 @@ export default function HowItWorksPage() {
         </div>
       </Section>
 
-      <Section id="swaps" title="Swapping with Bitcoin">
+      <Section id="swaps" title="Swapping with SOL and Bitcoin">
         <p>
-          Two people who don’t know each other can swap ORN for Bitcoin directly, with nobody in the middle and no way
+          Two people who don’t know each other can swap ORN for SOL, or for Bitcoin, directly, with nobody in the middle and no way
           for either to cheat. It works with a <strong>locked payment</strong>: ORN that the receiver can only take by
           revealing a secret before a deadline, and that otherwise go back to the sender on their own.
         </p>
         <ol className="list-decimal space-y-2 pl-5">
           <li>The seller locks the ORN for the buyer behind a secret only the seller knows.</li>
-          <li>The buyer locks the Bitcoin for the seller behind the same secret, on Bitcoin.</li>
-          <li>The seller takes the Bitcoin, which reveals the secret to everyone.</li>
+          <li>The buyer locks the SOL or Bitcoin for the seller behind the same secret, on Solana or on Bitcoin.</li>
+          <li>The seller takes the SOL or Bitcoin, which reveals the secret to everyone.</li>
           <li>The buyer uses the secret to take the ORN.</li>
         </ol>
         <p>
-          Either both are paid, or both get their coins back. Orien Wallet does every step for you; you only send the
-          other person a code. The lock uses SHA-256, which Bitcoin can check, so the same secret opens both sides.
+          Either both are paid, or both get their coins back. Orien Wallet does every step for you. A swap with SOL takes
+          about a minute; with Bitcoin, 20 to 60 minutes while it confirms. On Solana the SOL wait in Orien’s own lock
+          program, which can only pay the two people named in the lock and which nobody can ever change. Both locks use
+          SHA-256, which Solana and Bitcoin can check, so the same secret opens both sides.
         </p>
       </Section>
 

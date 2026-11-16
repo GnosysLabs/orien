@@ -242,11 +242,21 @@ async fn a_seller_sets_up_a_profile_with_a_picture() {
     let market = Market::new();
     let maya = sign_in_for_tests(&market.app, "Maya");
     let (status, body) =
-        market.ask("PUT", "/api/market/me", Some(&maya), Some(json!({ "name": "Maya Lin", "bio": "Designer in Lisbon.", "contact": { "telegram": "@maya_designs" } }))).await;
+        market.ask("PUT", "/api/market/me", Some(&maya), Some(json!({ "name": "Maya_Lin", "bio": "Designer in Lisbon.", "contact": { "telegram": "@maya_designs" } }))).await;
     assert_eq!((status, body["account"]["bio"].as_str()), (StatusCode::OK, Some("Designer in Lisbon.")));
     let id = body["account"]["id"].as_i64().unwrap();
-    let (status, _) = market.ask("PUT", "/api/market/me", Some(&maya), Some(json!({ "name": "" }))).await;
-    assert_eq!(status, StatusCode::BAD_REQUEST);
+    // Names are usernames, unique whatever the case.
+    let sam = sign_in_for_tests(&market.app, "Sam");
+    for (bad, why) in [("", "empty"), ("Maya Lin", "a space"), ("Mа", "too short"), ("Mаya", "a Cyrillic а"), ("maya_lin", "taken")] {
+        let (status, body) = market.ask("PUT", "/api/market/me", Some(&sam), Some(json!({ "name": bad }))).await;
+        assert_eq!(status, StatusCode::BAD_REQUEST, "{why}: {body}");
+    }
+    let (status, _) = market.ask("PUT", "/api/market/me", Some(&maya), Some(json!({ "name": "maya_LIN", "bio": "Designer in Lisbon.", "contact": { "telegram": "@maya_designs" } }))).await;
+    assert_eq!(status, StatusCode::OK, "changing the case of your own name is fine");
+    let (status, body) = market.ask("GET", "/api/market/users/MAYA_lin", None, None).await;
+    assert_eq!((status, body["account"]["id"].as_i64()), (StatusCode::OK, Some(id)), "{body}");
+    let (status, _) = market.ask("GET", "/api/market/users/nobody", None, None).await;
+    assert_eq!(status, StatusCode::NOT_FOUND);
 
     // A picture is sent as the body, and comes back as a square JPEG.
     let mut png = Vec::new();
@@ -281,7 +291,7 @@ async fn a_seller_sets_up_a_profile_with_a_picture() {
     let closed = closed["listing"]["id"].as_i64().unwrap();
     market.ask("POST", &format!("/api/market/listings/{closed}/open"), Some(&maya), Some(json!({ "open": false }))).await;
     let (status, body) = market.ask("GET", &format!("/api/market/profiles/{id}"), None, None).await;
-    assert_eq!((status, body["account"]["name"].as_str()), (StatusCode::OK, Some("Maya Lin")));
+    assert_eq!((status, body["account"]["name"].as_str()), (StatusCode::OK, Some("maya_LIN")));
     assert_eq!(body["listings"].as_array().unwrap().len(), 1);
     assert_eq!(body["listings"][0]["id"], posted["listing"]["id"]);
     assert!(body["account"].get("email").is_none(), "a profile never shows the email used to sign in");
@@ -551,6 +561,35 @@ async fn phones_hear_about_payments_to_their_wallets_once() {
 }
 
 #[tokio::test]
+async fn phones_hear_about_mining_rewards_merged() {
+    use orien_market::push::check_once;
+    let payments = Arc::new(Fake::default());
+    *payments.epoch.lock().unwrap() = 30;
+    let app = App::new(Store::in_memory().unwrap(), folder(), "https://orien.network", true, Mailer::log_only(), Screener::off(), payments.clone(), MARKET);
+    let market = Market { app: Arc::new(app.unwrap().with_prices(Prices::fixed_for_tests(65_000.0))) };
+    let (phone, miner) = ("ab".repeat(32), "cd".repeat(32));
+    let id = orien_crypto::Hash32(hex::decode(&miner).unwrap().try_into().unwrap());
+    let mine = |amount: u64, epoch: u64| payments.mined.lock().unwrap().push((id, amount, epoch));
+
+    mine(9_000_000_000, 30);
+    market.ask("POST", "/api/market/push/register", None, Some(json!({ "token": phone, "sandbox": true, "addresses": [miner] }))).await;
+    let notebook = Notebook::default();
+    assert_eq!(check_once(&market.app, &notebook).unwrap(), 0, "rewards from before registering are not told");
+
+    // Two rewards seen at once: one notification with their sum.
+    mine(4_000_000_000, 30);
+    mine(8_004_000_000, 31);
+    *payments.epoch.lock().unwrap() = 31;
+    assert_eq!(check_once(&market.app, &notebook).unwrap(), 1);
+    assert_eq!(check_once(&market.app, &notebook).unwrap(), 0, "not twice");
+    let sent = notebook.0.lock().unwrap().clone();
+    let payload: Value = serde_json::from_str(&sent[0].2).unwrap();
+    assert_eq!(payload["aps"]["alert"]["title"], "Orien Wallet");
+    assert_eq!(payload["aps"]["alert"]["body"], "You mined 12 ORN");
+    assert_eq!(payload["address"], miner);
+}
+
+#[tokio::test]
 async fn wallets_on_older_swap_rules_cannot_take_once_the_gate_is_on() {
     let app = App::new(Store::in_memory().unwrap(), folder(), "https://orien.network", true, Mailer::log_only(), Screener::off(), Arc::new(Fake::default()), MARKET)
         .unwrap()
@@ -634,4 +673,105 @@ async fn sol_offers_are_shown_and_taken_only_by_wallets_that_know_them() {
     assert_eq!(status, StatusCode::BAD_REQUEST, "refund = payout: {body}");
     let (status, body) = market.ask("POST", &reply_path, Some(&sam), Some(json!({ "code": good_reply }))).await;
     assert_eq!(status, StatusCode::OK, "{body}");
+}
+
+#[tokio::test]
+async fn a_wallet_is_verified_by_a_small_payment_and_then_named() {
+    use orien_market::wallets::Incoming;
+    let payments = Arc::new(Fake::default());
+    *payments.epoch.lock().unwrap() = 40;
+    let app = App::new(Store::in_memory().unwrap(), folder(), "https://orien.network", true, Mailer::log_only(), Screener::off(), payments.clone(), MARKET);
+    let market = Market { app: Arc::new(app.unwrap().with_prices(Prices::fixed_for_tests(65_000.0))) };
+    let id = |hex: &str| orien_crypto::Hash32(hex::decode(hex).unwrap().try_into().unwrap());
+    let (maya, eve) = (sign_in_for_tests(&market.app, "Maya"), sign_in_for_tests(&market.app, "Eve"));
+    let wallet = "7a".repeat(32);
+    market.ask("POST", "/api/market/me/wallet", Some(&maya), Some(json!({ "address": wallet, "app": true }))).await;
+    // Eve names Maya's wallet as her own: allowed for payouts, never verified.
+    market.ask("POST", "/api/market/me/wallet", Some(&eve), Some(json!({ "address": wallet, "app": true }))).await;
+
+    let (status, _) = market.ask("GET", &format!("/api/market/wallets/{wallet}"), None, None).await;
+    assert_eq!(status, StatusCode::NOT_FOUND, "nobody has verified it yet");
+
+    let (status, body) = market.ask("POST", "/api/market/me/wallet/verify", Some(&maya), None).await;
+    assert_eq!(status, StatusCode::OK, "{body}");
+    let amount = body["proof"]["amount"].as_u64().unwrap();
+    assert!((100_000..1_000_000).contains(&amount) && amount % 1_000 == 0, "{amount}");
+    assert_eq!(body["proof"]["to"], MARKET);
+    assert_eq!(body["proof"]["address"], wallet);
+    assert_eq!(body["proof"]["verified"], false);
+    let (_, again) = market.ask("POST", "/api/market/me/wallet/verify", Some(&maya), None).await;
+    assert_eq!(again["proof"]["amount"], amount, "the same amount until it is paid");
+    let (_, theirs) = market.ask("POST", "/api/market/me/wallet/verify", Some(&eve), None).await;
+    assert_ne!(theirs["proof"]["amount"], amount, "each waiting proof has its own amount");
+
+    // A wrong amount, or the right one from another wallet, proves nothing.
+    let pay = |from: &str, amount: u64| payments.payments.lock().unwrap().push((id(MARKET), Incoming { from: id(from), amount, epoch: 40 }));
+    pay(&wallet, amount + 1_000);
+    pay(&"11".repeat(32), amount);
+    orien_market::proofs::check_once(&market.app).unwrap();
+    let (_, body) = market.ask("GET", "/api/market/me/wallet", Some(&maya), None).await;
+    assert_eq!(body["verified"], false);
+
+    pay(&wallet, amount);
+    assert_eq!(orien_market::proofs::check_once(&market.app).unwrap(), 1);
+    let (_, body) = market.ask("GET", "/api/market/me/wallet", Some(&maya), None).await;
+    assert_eq!(body["verified"], true);
+    let (_, body) = market.ask("GET", "/api/market/me/wallet", Some(&eve), None).await;
+    assert_eq!(body["verified"], false, "Eve never paid from it");
+
+    let (status, body) = market.ask("GET", &format!("/api/market/wallets/{}", wallet.to_uppercase()), None, None).await;
+    assert_eq!(status, StatusCode::OK, "{body}");
+    assert_eq!(body["name"], "Maya");
+    let (_, body) = market.ask("POST", "/api/market/wallets/lookup", None, Some(json!({ "addresses": [wallet, "22".repeat(32), "nonsense"] }))).await;
+    assert_eq!(body["profiles"].as_object().unwrap().len(), 1);
+    assert_eq!(body["profiles"][&wallet]["name"], "Maya");
+    let too_many: Vec<String> = (0..101).map(|i| format!("{i:064x}")).collect();
+    let (status, _) = market.ask("POST", "/api/market/wallets/lookup", None, Some(json!({ "addresses": too_many }))).await;
+    assert_eq!(status, StatusCode::BAD_REQUEST);
+
+    // A second wallet, named in her app: verified by choice, by its own payment.
+    let savings = "33".repeat(32);
+    let (status, body) = market
+        .ask("PUT", "/api/market/me/wallets", Some(&maya), Some(json!({ "device": "mac", "wallets": [{ "address": savings, "name": "Savings" }] })))
+        .await;
+    assert_eq!(status, StatusCode::OK, "{body}");
+    let (status, body) = market.ask("POST", "/api/market/me/wallet/verify", Some(&maya), Some(json!({ "address": savings }))).await;
+    assert_eq!(status, StatusCode::OK, "{body}");
+    assert_eq!(body["proof"]["name"], "Savings");
+    pay(&savings, body["proof"]["amount"].as_u64().unwrap());
+    orien_market::proofs::check_once(&market.app).unwrap();
+    let (_, body) = market.ask("POST", "/api/market/wallets/lookup", None, Some(json!({ "addresses": [wallet, savings] }))).await;
+    assert_eq!(body["profiles"][&savings]["name"], "Maya");
+    assert_eq!(body["profiles"][&savings]["wallet_name"], "Savings");
+    let (_, mine) = market.ask("GET", "/api/market/me/wallet", Some(&maya), None).await;
+    assert_eq!(mine["wallets"].as_array().unwrap().len(), 2);
+    let maya_id = body["profiles"][&savings]["id"].as_i64().unwrap();
+    let (_, profile) = market.ask("GET", &format!("/api/market/profiles/{maya_id}"), None, None).await;
+    assert_eq!(profile["wallets"].as_array().unwrap().len(), 2, "{profile}");
+    assert_eq!(profile["account"]["wallet_verified"], true);
+
+    // Linking another wallet to be paid at keeps the verified ones.
+    market.ask("POST", "/api/market/me/wallet", Some(&maya), Some(json!({ "address": savings, "app": true }))).await;
+    let (status, _) = market.ask("GET", &format!("/api/market/wallets/{wallet}"), None, None).await;
+    assert_eq!(status, StatusCode::OK);
+
+    // Removing one stops it being named.
+    let (status, _) = market.ask("POST", "/api/market/me/wallet/remove", Some(&maya), Some(json!({ "address": wallet }))).await;
+    assert_eq!(status, StatusCode::OK);
+    let (status, _) = market.ask("GET", &format!("/api/market/wallets/{wallet}"), None, None).await;
+    assert_eq!(status, StatusCode::NOT_FOUND);
+
+    // Found by name to pay: only people with a verified wallet.
+    let (status, body) = market.ask("GET", "/api/market/profiles?q=MA", None, None).await;
+    assert_eq!(status, StatusCode::OK, "{body}");
+    let found = body["profiles"].as_array().unwrap();
+    assert_eq!(found.len(), 1, "{body}");
+    assert_eq!(found[0]["name"], "Maya");
+    assert_eq!(found[0]["wallets"][0]["name"], "Savings");
+    let (_, body) = market.ask("GET", "/api/market/profiles?q=eve", None, None).await;
+    assert_eq!(body["profiles"].as_array().unwrap().len(), 0, "Eve verified nothing");
+    let (_, body) = market.ask("GET", "/api/market/profiles?q=m", None, None).await;
+    assert_eq!(body["profiles"].as_array().unwrap().len(), 0, "one letter finds nobody");
+    let (_, body) = market.ask("GET", "/api/market/profiles?q=%25", None, None).await;
+    assert_eq!(body["profiles"].as_array().unwrap().len(), 0);
 }

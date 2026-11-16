@@ -19,24 +19,31 @@ pub struct Incoming {
 }
 
 /// Something that came into an address, named by `key` so it is told about
-/// once: a payment, or a locked payment claimed for it.
+/// once: a payment, a locked payment claimed for it, or a mining reward.
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct Credit {
     pub key: String,
     pub amount: u64,
     pub epoch: u64,
+    /// A mining reward, rather than something someone sent.
+    pub mined: bool,
 }
 
 /// Where the marketplace learns what was paid to it.
 pub trait Payments: Send + Sync {
-    /// Payments and claimed locked payments to `to` from epoch `from` on,
-    /// final ones only, for notifications.
+    /// Payments, claimed locked payments and mining rewards to `to` from
+    /// epoch `from` on, final ones only, for notifications.
     fn credits(&self, to: &AccountId, from: u64) -> Result<Vec<Credit>> {
         Ok(self
             .received(to, from)?
             .into_iter()
             .enumerate()
-            .map(|(i, p)| Credit { key: format!("{}:{}:{i}", hex::encode(p.from.as_bytes()), p.epoch), amount: p.amount, epoch: p.epoch })
+            .map(|(i, p)| Credit {
+                key: format!("{}:{}:{i}", hex::encode(p.from.as_bytes()), p.epoch),
+                amount: p.amount,
+                epoch: p.epoch,
+                mined: false,
+            })
             .collect())
     }
     /// The epoch the network is in now.
@@ -140,7 +147,7 @@ impl Payments for Network {
         Ok(page
             .entries
             .iter()
-            .filter(|entry| matches!(entry.income, Income::Payment | Income::Claim))
+            .filter(|entry| matches!(entry.income, Income::Payment | Income::Claim | Income::Mining))
             .map(|entry| Credit {
                 // The order behind it names it; anything without one, by
                 // what and when.
@@ -150,6 +157,7 @@ impl Payments for Network {
                 },
                 amount: entry.amount,
                 epoch: entry.epoch,
+                mined: entry.income == Income::Mining,
             })
             .collect())
     }
@@ -254,6 +262,8 @@ pub struct Fake {
     pub payments: Mutex<Vec<(AccountId, Incoming)>>,
     /// Accounts that hold ORN.
     pub held: Mutex<Vec<AccountId>>,
+    /// Mining rewards: to whom, how much, in which epoch.
+    pub mined: Mutex<Vec<(AccountId, u64, u64)>>,
 }
 
 impl Payments for Fake {
@@ -264,6 +274,23 @@ impl Payments for Fake {
     fn received(&self, to: &AccountId, from: u64) -> Result<Vec<Incoming>> {
         let payments = self.payments.lock().unwrap();
         Ok(payments.iter().filter(|(t, p)| t == to && p.epoch >= from).map(|(_, p)| p.clone()).collect())
+    }
+
+    fn credits(&self, to: &AccountId, from: u64) -> Result<Vec<Credit>> {
+        let mut credits: Vec<Credit> = self
+            .received(to, from)?
+            .into_iter()
+            .enumerate()
+            .map(|(i, p)| Credit { key: format!("paid:{}:{i}", p.epoch), amount: p.amount, epoch: p.epoch, mined: false })
+            .collect();
+        let mined = self.mined.lock().unwrap();
+        credits.extend(mined.iter().enumerate().filter(|(_, (t, _, epoch))| t == to && *epoch >= from).map(|(i, (_, amount, epoch))| Credit {
+            key: format!("mined:{epoch}:{i}"),
+            amount: *amount,
+            epoch: *epoch,
+            mined: true,
+        }));
+        Ok(credits)
     }
 
     fn has_held(&self, account: &AccountId) -> Result<bool> {

@@ -3,8 +3,8 @@
 import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
 import { useEffect, useState } from 'react'
-import { ArrowLeft, Wallet } from 'lucide-react'
-import { ask, me, memberSince, pictureUrl, type Account, type Listing } from '@/lib/market'
+import { ArrowLeft, BadgeCheck, Wallet } from 'lucide-react'
+import { ask, me, memberSince, pictureUrl, profileHref, type Account, type Listing, type VerifiedWallet } from '@/lib/market'
 import { Linked } from './Linked'
 import { Avatar } from './Avatar'
 import { ContactLinks } from './ContactLinks'
@@ -13,8 +13,18 @@ import { ReportButton } from './ReportButton'
 import { Notice } from './Shell'
 
 export function ProfileView() {
-  const id = useSearchParams().get('id')
-  const [found, setFound] = useState<{ account: Account; listings: Listing[] } | null>(null)
+  // /u/NAME/, or the old /marketplace/profile/?id=, which moves to it.
+  // Read from the browser's own address: the web server sends every /u/
+  // address to one page, which only the browser knows the rest of.
+  const params = useSearchParams()
+  const [fromPath, setFromPath] = useState<string | null>(null)
+  useEffect(() => {
+    const path = window.location.pathname
+    setFromPath(path.startsWith('/u/') ? decodeURIComponent(path.slice(3).replace(/\/$/, '')) : '')
+  }, [])
+  const name = fromPath || params.get('name')
+  const id = name ? null : params.get('id')
+  const [found, setFound] = useState<{ account: Account; listings: Listing[]; wallets?: VerifiedWallet[] } | null>(null)
   const [trouble, setTrouble] = useState('')
   const [viewer, setViewer] = useState<number | null>(null)
 
@@ -25,16 +35,23 @@ export function ProfileView() {
   }, [])
 
   useEffect(() => {
-    if (!id) return
-    ask<{ account: Account; listings: Listing[] }>(`/profiles/${encodeURIComponent(id)}`)
-      .then(setFound)
-      .catch((error: Error) => setTrouble(error.message === 'not found' ? 'There is no such seller.' : error.message))
-  }, [id])
+    if (fromPath === null || (!name && !id)) return
+    const path = name ? `/users/${encodeURIComponent(name)}` : `/profiles/${encodeURIComponent(id!)}`
+    ask<{ account: Account; listings: Listing[]; wallets?: VerifiedWallet[] }>(path)
+      .then((profile) => {
+        setFound(profile)
+        // An old link shows the profile's own address from now on.
+        if (!fromPath) window.history.replaceState(null, '', profileHref(profile.account.name))
+      })
+      .catch((error: Error) => setTrouble(error.message === 'not found' ? 'There is nobody with that name.' : error.message))
+  }, [name, id, fromPath])
 
-  if (!id) return <Notice tone="bad">No seller was named.</Notice>
+  if (fromPath === null) return <p className="text-muted">Loading…</p>
+  if (!name && !id) return <Notice tone="bad">No one was named.</Notice>
   if (trouble) return <Notice tone="bad">{trouble}</Notice>
   if (!found) return <p className="text-muted">Loading…</p>
   const { account, listings } = found
+  const wallets = found.wallets ?? []
 
   return (
     <div className="space-y-8">
@@ -56,7 +73,7 @@ export function ProfileView() {
           <Avatar name={account.name} picture={account.picture} size={112} />
         </div>
         {/* relative: drawn above the banner behind it. */}
-        <div className="relative min-w-0 space-y-2">
+        <div className={`relative min-w-0 space-y-2 ${account.banner ? 'on-banner' : ''}`}>
           <h1 className="text-3xl font-bold tracking-tight text-ink">{account.name}</h1>
           {account.wallet && (
             <p className="inline-flex items-center gap-1.5 rounded-full border border-line bg-bg px-3 py-1 text-xs font-semibold text-muted">
@@ -64,7 +81,29 @@ export function ProfileView() {
               <span className="num">
                 {account.wallet.slice(0, 6)}…{account.wallet.slice(-6)}
               </span>
+              {account.wallet_verified && (
+                <span className="ml-1 inline-flex items-center gap-1 text-go" title="This wallet proved it belongs to this profile">
+                  <BadgeCheck className="h-3.5 w-3.5" strokeWidth={2.25} aria-hidden /> Verified
+                </span>
+              )}
             </p>
+          )}
+          {wallets.length > 0 && (
+            <div className="flex flex-wrap justify-center gap-2 sm:justify-start">
+              {wallets.map((w) => (
+                <span
+                  key={w.address}
+                  title={w.address}
+                  className="inline-flex items-center gap-1.5 rounded-full border border-line bg-bg px-3 py-1 text-xs font-semibold text-muted"
+                >
+                  <BadgeCheck className="h-3.5 w-3.5 text-go" strokeWidth={2.25} aria-hidden />
+                  {w.name && <span className="text-ink">{w.name}</span>}
+                  <span className="num">
+                    {w.address.slice(0, 6)}…{w.address.slice(-6)}
+                  </span>
+                </span>
+              ))}
+            </div>
           )}
           <p className="text-sm text-muted">{memberSince(account.created)}</p>
           {account.bio && (

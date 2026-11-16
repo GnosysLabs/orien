@@ -4,7 +4,7 @@ import { shrinkPicture } from '@/lib/shrink'
 import Link from 'next/link'
 import { useRef, useState } from 'react'
 import { Camera, ImagePlus } from 'lucide-react'
-import { ask, MarketError, pictureUrl, type Account } from '@/lib/market'
+import { ask, MarketError, NAME_PATTERN, NAME_RULE, pictureUrl, profileHref, type Account } from '@/lib/market'
 import { Avatar } from './Avatar'
 import { Notice } from './Shell'
 import { AutoTextarea } from '@/components/AutoTextarea'
@@ -144,14 +144,28 @@ export function ProfileEditor({ account, onSaved }: { account: Account; onSaved:
         <div className="space-y-1">
           <p className="font-semibold text-ink">{busy === 'picture' ? 'Checking your picture…' : 'Your picture'}</p>
           <p className="text-sm text-muted">Click it to choose a new one. A photo of you or your logo works best.</p>
-          <Link href={`/marketplace/profile/?id=${account.id}`} className="text-sm font-semibold text-ink underline underline-offset-4">
+          <Link href={profileHref(account.name)} className="text-sm font-semibold text-ink underline underline-offset-4">
             See your public profile
           </Link>
         </div>
       </div>
       <label className="flex flex-col gap-2">
         <span className="text-sm font-semibold text-ink">Name</span>
-        <input value={name} onChange={(e) => setName(e.target.value)} maxLength={50} required className={field} />
+        <input
+          value={name}
+          onChange={(e) => setName(e.target.value.replace(/\s/g, '_'))}
+          maxLength={20}
+          minLength={3}
+          pattern={NAME_PATTERN}
+          title={`Your name: ${NAME_RULE}`}
+          required
+          spellCheck={false}
+          autoCapitalize="off"
+          className={field}
+        />
+        <span className="text-xs text-muted">
+          Your profile is at orien.network/u/{name || account.name}. Use {NAME_RULE}; nobody else can have the same one.
+        </span>
       </label>
       <label className="flex flex-col gap-2">
         <span className="text-sm font-semibold text-ink">About you</span>
