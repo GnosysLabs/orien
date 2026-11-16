@@ -8,11 +8,22 @@ export type Account = {
   /** A wide picture across the top of the profile. */
   banner?: string | null
   wallet: string | null
+  /** Whether that wallet proved it is theirs, by a small payment. */
+  wallet_verified?: boolean
   contact: Contact
   created: number
 }
 
 export type Contact = { email: string; telegram: string; x: string }
+
+/** What verifying a wallet takes: `amount` from `address` to `to`. */
+export type WalletProof = {
+  address: string
+  amount: number
+  orn: string
+  to: string
+  verified: boolean
+}
 
 export type Message = {
   id: number

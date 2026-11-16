@@ -200,6 +200,7 @@ async fn main() -> Result<()> {
         }
     };
     orien_market::push::watch(app.clone(), apns);
+    orien_market::proofs::watch(app.clone());
     let listener = tokio::net::TcpListener::bind(&args.listen).await?;
     println!("marketplace server for {} listening on {}", args.origin, args.listen);
     if let Some(at) = &args.admin_listen {

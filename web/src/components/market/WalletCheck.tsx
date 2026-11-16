@@ -1,8 +1,9 @@
 'use client'
 
-import { useState } from 'react'
-import { Wallet } from 'lucide-react'
-import { ask, sentence, type Account } from '@/lib/market'
+import { useEffect, useState } from 'react'
+import { BadgeCheck, Wallet } from 'lucide-react'
+import { CopyText } from '@/components/CopyText'
+import { ask, sentence, type Account, type WalletProof } from '@/lib/market'
 import { Notice } from './Shell'
 
 const short = (address: string) => `${address.slice(0, 8)}…${address.slice(-8)}`
@@ -38,6 +39,7 @@ export function WalletCheck({ account, onVerified }: { account: Account; onVerif
           <Wallet className="h-5 w-5 text-pearl" strokeWidth={1.75} aria-hidden />
           <h2 className="text-lg font-bold tracking-tight text-ink">Paid to</h2>
           <code className="num text-sm text-muted">{short(account.wallet)}</code>
+          {account.wallet_verified && <VerifiedBadge />}
           <button
             type="button"
             onClick={() => setChanging(true)}
@@ -47,6 +49,13 @@ export function WalletCheck({ account, onVerified }: { account: Account; onVerif
           </button>
         </div>
         <p className="text-sm leading-relaxed text-muted">Buyers pay your listings straight to this wallet.</p>
+        {account.wallet_verified ? (
+          <p className="text-sm leading-relaxed text-muted">
+            It&apos;s verified as yours, so your name and picture show beside it in other people&apos;s Orien Wallet.
+          </p>
+        ) : (
+          <Verify onVerified={onVerified} />
+        )}
       </section>
     )
   }
@@ -87,5 +96,82 @@ export function WalletCheck({ account, onVerified }: { account: Account; onVerif
         )}
       </div>
     </form>
+  )
+}
+
+/** A small green "Verified" mark for a wallet proven to be its owner's. */
+export function VerifiedBadge() {
+  return (
+    <span className="inline-flex items-center gap-1 rounded-full bg-go/15 px-2 py-0.5 text-xs font-semibold text-go">
+      <BadgeCheck className="h-3.5 w-3.5" strokeWidth={2.25} aria-hidden /> Verified
+    </span>
+  )
+}
+
+/** Proving the wallet is yours: one small payment from it. */
+function Verify({ onVerified }: { onVerified: () => void }) {
+  const [proof, setProof] = useState<WalletProof | null>(null)
+  const [busy, setBusy] = useState(false)
+  const [trouble, setTrouble] = useState('')
+
+  // A proof asked for before is shown again; once one is waiting, the page
+  // looks every few seconds for its payment.
+  useEffect(() => {
+    ask<{ proof: WalletProof | null }>('/me/wallet')
+      .then((found) => setProof(found.proof))
+      .catch(() => {})
+  }, [])
+  useEffect(() => {
+    if (!proof || proof.verified) return
+    const timer = setInterval(() => {
+      ask<{ verified: boolean }>('/me/wallet')
+        .then((found) => found.verified && onVerified())
+        .catch(() => {})
+    }, 5000)
+    return () => clearInterval(timer)
+  }, [proof, onVerified])
+
+  const start = async () => {
+    setBusy(true)
+    setTrouble('')
+    try {
+      setProof((await ask<{ proof: WalletProof }>('/me/wallet/verify', 'POST')).proof)
+    } catch (error) {
+      setTrouble(sentence((error as Error).message))
+    }
+    setBusy(false)
+  }
+
+  return (
+    <div className="space-y-3 rounded-xl border border-line bg-bg p-4">
+      <h3 className="font-semibold text-ink">Verify it&apos;s yours</h3>
+      <p className="text-sm leading-relaxed text-muted">
+        A verified wallet gets a <strong className="text-ink">Verified</strong> badge on your profile, and your name and
+        picture show beside it in other people&apos;s Orien Wallet. To prove it&apos;s yours, the wallet sends a tiny
+        amount from its balance to Orien Market: less than 0.001 ORN, fee included.
+      </p>
+      {proof ? (
+        <div className="space-y-3">
+          <p className="text-sm leading-relaxed text-muted">
+            In Orien Wallet, tap <strong className="text-ink">Verify</strong> on your profile and it sends this for you. Or
+            send it yourself, <strong className="text-ink">from this wallet</strong>: exactly{' '}
+            <strong className="num text-ink">{proof.orn} ORN</strong> to this address.
+          </p>
+          <CopyText label="Orien Market's address" text={proof.to} />
+          <CopyText label="Amount, in ORN" text={proof.orn} />
+          <p className="text-sm text-muted">This page shows Verified within seconds of the payment.</p>
+        </div>
+      ) : (
+        <button
+          type="button"
+          onClick={start}
+          disabled={busy}
+          className="flex h-10 items-center rounded-xl border border-line bg-surface px-4 text-sm font-semibold text-ink transition hover:border-pearl disabled:opacity-60"
+        >
+          {busy ? 'One moment…' : 'Verify this wallet'}
+        </button>
+      )}
+      {trouble && <Notice tone="bad">{trouble}</Notice>}
+    </div>
   )
 }

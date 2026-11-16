@@ -146,6 +146,11 @@ impl App {
         &self.address
     }
 
+    /// The Market's own Orien address.
+    pub(crate) fn address(&self) -> &str {
+        &self.address
+    }
+
     pub(crate) fn payments(&self) -> Arc<dyn Payments> {
         self.payments.clone()
     }
@@ -265,6 +270,9 @@ pub fn router(app: Arc<App>) -> Router {
             post(set_banner).delete(remove_banner).layer(axum::extract::DefaultBodyLimit::max(images::MAX_UPLOAD)),
         )
         .route("/api/market/me/wallet", get(wallet).post(link_wallet))
+        .route("/api/market/me/wallet/verify", post(verify_wallet))
+        .route("/api/market/wallets/lookup", post(lookup_wallets))
+        .route("/api/market/wallets/{address}", get(wallet_profile))
         .route("/api/market/me/wallets", get(my_wallets).put(report_wallets))
         .route("/api/market/me/delete", post(delete_me))
         .route("/api/market/profiles/{id}", get(profile))
@@ -961,11 +969,47 @@ async fn my_wallets(State(app): State<Arc<App>>, headers: HeaderMap) -> Answer {
     Ok(Json(json!({ "wallets": wallets, "reported": reported })).into_response())
 }
 
-/// The linked wallet.
+/// The linked wallet, whether it is verified, and what verifying it takes
+/// if that was asked for.
 async fn wallet(State(app): State<Arc<App>>, headers: HeaderMap) -> Answer {
     let id = app.signed_in(&headers)?;
-    let account = app.store.lock().unwrap().account(id)?.ok_or(Failure::SignIn)?;
-    Ok(Json(json!({ "wallet": account.wallet })).into_response())
+    let store = app.store.lock().unwrap();
+    let account = store.account(id)?.ok_or(Failure::SignIn)?;
+    let proof = store.proof(id, &app.address)?.filter(|p| Some(&p.address) == account.wallet.as_ref());
+    Ok(Json(json!({ "wallet": account.wallet, "verified": account.wallet_verified, "proof": proof })).into_response())
+}
+
+/// Starts verifying the linked wallet: what to send, from it, to the
+/// Market's wallet. Asking again gives the same amount until it is paid.
+async fn verify_wallet(State(app): State<Arc<App>>, headers: HeaderMap) -> Answer {
+    let id = app.signed_in(&headers)?;
+    let epoch = network(&app, |p| p.epoch()).await?;
+    let proof = app.store.lock().unwrap().start_proof(id, epoch, &app.address).map_err(refused)?;
+    let proof = proof.ok_or_else(|| Failure::Refused("link your Orien wallet first, under Your profile".into()))?;
+    Ok(Json(json!({ "proof": proof })).into_response())
+}
+
+/// The name and picture of the account whose verified wallet this is.
+async fn wallet_profile(State(app): State<Arc<App>>, Path(address): Path<String>) -> Answer {
+    let found = app.store.lock().unwrap().wallet_profiles(&[address])?;
+    let (_, profile) = found.into_iter().next().ok_or(Failure::NotFound)?;
+    Ok(([(header::CACHE_CONTROL, "public, max-age=60")], Json(profile)).into_response())
+}
+
+#[derive(Deserialize)]
+struct Lookup {
+    addresses: Vec<String>,
+}
+
+/// Names and pictures for the verified wallets among up to 100 addresses.
+async fn lookup_wallets(State(app): State<Arc<App>>, Json(request): Json<Lookup>) -> Answer {
+    if request.addresses.len() > crate::proofs::MAX_LOOKUP {
+        return Err(Failure::Refused(format!("at most {} addresses at a time", crate::proofs::MAX_LOOKUP)));
+    }
+    let found = app.store.lock().unwrap().wallet_profiles(&request.addresses)?;
+    let profiles: serde_json::Map<String, serde_json::Value> =
+        found.into_iter().map(|(address, profile)| (address, json!(profile))).collect();
+    Ok(Json(json!({ "profiles": profiles })).into_response())
 }
 
 /// A wallet's vault: sealed bytes, base64.

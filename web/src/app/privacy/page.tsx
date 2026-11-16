@@ -74,6 +74,11 @@ export default function PrivacyPage() {
             listings and swap offers, and the Orien address you are paid at. Everyone can see these.
           </li>
           <li>
+            <strong>Whether your wallet is verified.</strong> If you verify the wallet you are paid at, by sending a tiny
+            amount from it to Orien Market, your name and picture show beside that address in other people&apos;s Orien
+            Wallet, for example when they pay you. Use a different wallet to stop it.
+          </li>
+          <li>
             <strong>Your messages,</strong> so both of you can read them. We do not read them as a matter of course, but we
             can, for example to look into a report of a scam.
           </li>

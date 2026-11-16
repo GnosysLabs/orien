@@ -664,3 +664,63 @@ async fn sol_offers_are_shown_and_taken_only_by_wallets_that_know_them() {
     let (status, body) = market.ask("POST", &reply_path, Some(&sam), Some(json!({ "code": good_reply }))).await;
     assert_eq!(status, StatusCode::OK, "{body}");
 }
+
+#[tokio::test]
+async fn a_wallet_is_verified_by_a_small_payment_and_then_named() {
+    use orien_market::wallets::Incoming;
+    let payments = Arc::new(Fake::default());
+    *payments.epoch.lock().unwrap() = 40;
+    let app = App::new(Store::in_memory().unwrap(), folder(), "https://orien.network", true, Mailer::log_only(), Screener::off(), payments.clone(), MARKET);
+    let market = Market { app: Arc::new(app.unwrap().with_prices(Prices::fixed_for_tests(65_000.0))) };
+    let id = |hex: &str| orien_crypto::Hash32(hex::decode(hex).unwrap().try_into().unwrap());
+    let (maya, eve) = (sign_in_for_tests(&market.app, "Maya"), sign_in_for_tests(&market.app, "Eve"));
+    let wallet = "7a".repeat(32);
+    market.ask("POST", "/api/market/me/wallet", Some(&maya), Some(json!({ "address": wallet, "app": true }))).await;
+    // Eve names Maya's wallet as her own: allowed for payouts, never verified.
+    market.ask("POST", "/api/market/me/wallet", Some(&eve), Some(json!({ "address": wallet, "app": true }))).await;
+
+    let (status, _) = market.ask("GET", &format!("/api/market/wallets/{wallet}"), None, None).await;
+    assert_eq!(status, StatusCode::NOT_FOUND, "nobody has verified it yet");
+
+    let (status, body) = market.ask("POST", "/api/market/me/wallet/verify", Some(&maya), None).await;
+    assert_eq!(status, StatusCode::OK, "{body}");
+    let amount = body["proof"]["amount"].as_u64().unwrap();
+    assert!((100_000..1_000_000).contains(&amount) && amount % 1_000 == 0, "{amount}");
+    assert_eq!(body["proof"]["to"], MARKET);
+    assert_eq!(body["proof"]["address"], wallet);
+    assert_eq!(body["proof"]["verified"], false);
+    let (_, again) = market.ask("POST", "/api/market/me/wallet/verify", Some(&maya), None).await;
+    assert_eq!(again["proof"]["amount"], amount, "the same amount until it is paid");
+    let (_, theirs) = market.ask("POST", "/api/market/me/wallet/verify", Some(&eve), None).await;
+    assert_ne!(theirs["proof"]["amount"], amount, "each waiting proof has its own amount");
+
+    // A wrong amount, or the right one from another wallet, proves nothing.
+    let pay = |from: &str, amount: u64| payments.payments.lock().unwrap().push((id(MARKET), Incoming { from: id(from), amount, epoch: 40 }));
+    pay(&wallet, amount + 1_000);
+    pay(&"11".repeat(32), amount);
+    orien_market::proofs::check_once(&market.app).unwrap();
+    let (_, body) = market.ask("GET", "/api/market/me/wallet", Some(&maya), None).await;
+    assert_eq!(body["verified"], false);
+
+    pay(&wallet, amount);
+    assert_eq!(orien_market::proofs::check_once(&market.app).unwrap(), 1);
+    let (_, body) = market.ask("GET", "/api/market/me/wallet", Some(&maya), None).await;
+    assert_eq!(body["verified"], true);
+    let (_, body) = market.ask("GET", "/api/market/me/wallet", Some(&eve), None).await;
+    assert_eq!(body["verified"], false, "Eve never paid from it");
+
+    let (status, body) = market.ask("GET", &format!("/api/market/wallets/{}", wallet.to_uppercase()), None, None).await;
+    assert_eq!(status, StatusCode::OK, "{body}");
+    assert_eq!(body["name"], "Maya");
+    let (_, body) = market.ask("POST", "/api/market/wallets/lookup", None, Some(json!({ "addresses": [wallet, "22".repeat(32), "nonsense"] }))).await;
+    assert_eq!(body["profiles"].as_object().unwrap().len(), 1);
+    assert_eq!(body["profiles"][&wallet]["name"], "Maya");
+    let too_many: Vec<String> = (0..101).map(|i| format!("{i:064x}")).collect();
+    let (status, _) = market.ask("POST", "/api/market/wallets/lookup", None, Some(json!({ "addresses": too_many }))).await;
+    assert_eq!(status, StatusCode::BAD_REQUEST);
+
+    // Linking another wallet ends the name on the old one.
+    market.ask("POST", "/api/market/me/wallet", Some(&maya), Some(json!({ "address": "33".repeat(32), "app": true }))).await;
+    let (status, _) = market.ask("GET", &format!("/api/market/wallets/{wallet}"), None, None).await;
+    assert_eq!(status, StatusCode::NOT_FOUND);
+}

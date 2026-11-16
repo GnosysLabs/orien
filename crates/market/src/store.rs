@@ -86,9 +86,11 @@ pub struct Account {
     pub picture: Option<String>,
     /// The file name of their profile's wide banner, the same way.
     pub banner: Option<String>,
-    /// The Orien address they proved they hold, which their listings are
-    /// paid to.
+    /// The Orien address their listings are paid to.
     pub wallet: Option<String>,
+    /// Whether that wallet proved it is theirs, by a small payment to the
+    /// Market's wallet.
+    pub wallet_verified: bool,
     /// Other ways buyers can reach them, besides messages. Empty fields
     /// are left out.
     pub contact: Contact,
@@ -292,6 +294,7 @@ impl Store {
         store.create_moderation_tables()?;
         store.create_push_tables()?;
         store.create_account_wallet_table()?;
+        store.create_proof_table()?;
         Ok(store)
     }
 
@@ -336,7 +339,7 @@ impl Store {
             "INSERT INTO accounts (name, handle, email, created) VALUES (?1, ?2, ?3, ?4)",
             params![name, handle, email, created],
         )?;
-        Ok(Account { id: self.db.last_insert_rowid(), name, bio: String::new(), picture: None, banner: None, wallet: None, contact: Contact::default(), created })
+        Ok(Account { id: self.db.last_insert_rowid(), name, bio: String::new(), picture: None, banner: None, wallet: None, wallet_verified: false, contact: Contact::default(), created })
     }
 
     /// A new account that signs in by email. The email must be one a code
@@ -465,7 +468,9 @@ impl Store {
         Ok(self
             .db
             .query_row(
-                "SELECT id, name, bio, picture, payout, created, contact_email, telegram, x, banner FROM accounts WHERE id = ?1",
+                "SELECT id, name, bio, picture, payout, created, contact_email, telegram, x, banner,
+                        EXISTS (SELECT 1 FROM wallet_proofs p WHERE p.account = accounts.id AND p.proven IS NOT NULL AND p.address = accounts.payout)
+                 FROM accounts WHERE id = ?1",
                 [id],
                 |row| {
                     Ok(Account {
@@ -475,6 +480,7 @@ impl Store {
                         picture: row.get(3)?,
                         banner: row.get(9)?,
                         wallet: row.get(4)?,
+                        wallet_verified: row.get(10)?,
                         contact: Contact { email: row.get(6)?, telegram: row.get(7)?, x: row.get(8)? },
                         created: row.get(5)?,
                     })
