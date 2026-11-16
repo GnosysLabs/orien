@@ -122,7 +122,7 @@ pub fn save(dir: &Path, swaps: &[Kept]) -> Result<(), String> {
     write_replacing(&file(dir), text.as_bytes(), true).map_err(|error| format!("could not save the swap: {error}"))
 }
 
-fn now() -> u64 {
+pub(crate) fn now() -> u64 {
     std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).map_or(0, |d| d.as_secs())
 }
 
@@ -140,7 +140,7 @@ pub fn read_btc(text: &str) -> Result<u64, String> {
 
 /// A QR code for `text`, as an SVG picture: dark squares on white, which
 /// every Bitcoin wallet's scanner reads.
-fn qr(text: &str) -> Option<String> {
+pub(crate) fn qr(text: &str) -> Option<String> {
     let code = qrcode::QrCode::new(text.as_bytes()).ok()?;
     Some(code.render::<qrcode::render::svg::Color>().min_dimensions(200, 200).quiet_zone(true).build())
 }

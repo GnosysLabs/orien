@@ -966,7 +966,7 @@
     <!-- Swaps -->
     <section class="screen" id="swaps" hidden>
       <div class="topline"><button class="back" data-back aria-label="Back"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10 3 5 8l5 5"/></svg></button><h2>Swap</h2></div>
-      <p class="lede">Swap ORN and Bitcoin with someone directly. Neither of you can cheat: either both get paid, or both get their coins back.</p>
+      <p class="lede">Swap ORN for SOL, or Bitcoin, with someone directly. Neither of you can cheat: either both get paid, or both get their coins back.</p>
       <div class="board-bar">
         <span id="board-who">Offers on the swap board</span>
         <button class="linkish" id="board-signin-go">Sign up or sign in</button>
@@ -1021,21 +1021,26 @@
 
     <section class="screen" id="board-post" hidden>
       <div class="topline"><button class="back" data-to="swaps" aria-label="Back"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10 3 5 8l5 5"/></svg></button><h2>Post an offer</h2></div>
-      <p class="lede">Offer your ORN for Bitcoin. When someone takes it, this app locks the ORN for them and runs the swap, as long as it's open.</p>
+      <p class="lede" id="bp-lede">Offer your ORN for SOL. When someone takes it, this app locks the ORN for them and runs the swap, as long as it's open.</p>
+      <div class="tabs" role="tablist" id="bp-tabs">
+        <button class="tab on" id="bp-tab-sol" role="tab">SOL</button>
+        <button class="tab" id="bp-tab-btc" role="tab">Bitcoin</button>
+      </div>
       <div class="field">
         <label for="bp-orn">ORN to sell</label>
         <div class="box plain"><input id="bp-orn" placeholder="500" inputmode="decimal" autocomplete="off"></div>
       </div>
       <div class="field">
-        <label for="bp-btc">Bitcoin to receive</label>
-        <div class="box plain"><input id="bp-btc" placeholder="0.01" inputmode="decimal" autocomplete="off"></div>
+        <label for="bp-btc" id="bp-amount-label">SOL to receive</label>
+        <div class="box plain"><input id="bp-btc" placeholder="0.5" inputmode="decimal" autocomplete="off"></div>
         <div class="hint" id="bp-hint"></div>
       </div>
       <div class="field">
-        <label for="bp-payout">Your Bitcoin address</label>
-        <div class="box plain"><input id="bp-payout" placeholder="Where the Bitcoin should go" spellcheck="false" autocomplete="off"></div>
+        <label for="bp-payout" id="bp-payout-label">Your SOL address</label>
+        <div class="box plain"><input id="bp-payout" placeholder="Where the SOL should go, such as your Phantom wallet" spellcheck="false" autocomplete="off"></div>
       </div>
-      <p class="fineprint">Smallest swap: 0.00015 BTC, more when Bitcoin is busy<span class="min-now"></span>. Fees: the usual Orien fee to lock the ORN (0.1%, at most 1 ORN), and Bitcoin's network fee for taking the Bitcoin, out of what you receive. If a buyer never pays, your ORN come back on their own within 12 hours.</p>
+      <p class="fineprint" id="bp-fine-btc" hidden>Smallest swap: 0.00015 BTC, more when Bitcoin is busy<span class="min-now"></span>. Fees: the usual Orien fee to lock the ORN (0.1%, at most 1 ORN), and Bitcoin's network fee for taking the Bitcoin, out of what you receive. If a buyer never pays, your ORN come back on their own within 12 hours.</p>
+      <p class="fineprint" id="bp-fine-sol">Smallest swap: 0.15 SOL. Fees: the usual Orien fee to lock the ORN (0.1%, at most 1 ORN); the buyer covers Solana's small fees. A swap takes about a minute. If a buyer never pays, your ORN come back on their own within a few hours.</p>
       <p class="fineprint" id="bp-approve">You approve the sale once, now. When someone takes your offer, your wallet accepts it within seconds, even with the window closed. Keep Orien Wallet running.</p>
       <div class="field" id="bp-pw-field" hidden>
         <label for="bp-pw">Wallet password, to approve this sale</label>
@@ -1054,12 +1059,12 @@
         <div class="row"><span>Seller</span><span id="bt-seller"></span></div>
       </div>
       <ul class="explain" data-gap="lg">
-        <li><strong>What happens:</strong> the seller has 30 minutes to accept. Their wallet then locks the ORN for you, and this app shows you where to pay the Bitcoin. After you pay, the seller's wallet takes it and, in the same step, delivers your ORN to you. If the seller doesn't accept in time, the offer goes back on the board and nothing is lost.</li>
-        <li><strong>You need</strong> the Bitcoin in any Bitcoin wallet, plus its sending fee. The usual Orien fee (0.1%, at most 1 ORN) comes out of the ORN you receive.</li>
-        <li><strong>If the seller never takes your Bitcoin,</strong> this app takes it back to the address below after about 6 hours.</li>
+        <li id="bt-what"></li>
+        <li id="bt-need"></li>
+        <li id="bt-ifnot"></li>
       </ul>
       <div class="field" data-gap="xl">
-        <label for="bt-refund">Your Bitcoin address</label>
+        <label for="bt-refund" id="bt-refund-label">Your Bitcoin address</label>
         <div class="box plain"><input id="bt-refund" placeholder="Where your Bitcoin comes back if the swap stops" spellcheck="false" autocomplete="off"></div>
       </div>
       <div class="push"></div>
@@ -1137,21 +1142,21 @@
       </div>
       <div class="review">
         <div class="row"><span>ORN</span><span id="sd-orn"></span></div>
-        <div class="row"><span>Bitcoin</span><span id="sd-btc"></span></div>
+        <div class="row"><span id="sd-coin-label">Bitcoin</span><span id="sd-btc"></span></div>
         <div class="row" id="sd-other-row" hidden><span id="sd-other-label"></span><span id="sd-other"></span></div>
       </div>
       <div id="sd-pay" class="pay-card" hidden data-gap="lg">
         <div class="pay-head">Pay exactly</div>
-        <div class="pay-amount"><span id="sd-pay-amount"></span> BTC</div>
+        <div class="pay-amount"><span id="sd-pay-amount"></span> <span id="sd-pay-unit">BTC</span></div>
         <div class="pay-by" id="sd-pay-by" hidden></div>
         <div class="pay-qr" id="sd-pay-qr" hidden></div>
-        <div class="pay-head" data-gap="sm">to this Bitcoin address</div>
+        <div class="pay-head" data-gap="sm" id="sd-pay-to-head">to this Bitcoin address</div>
         <div class="codebox" id="sd-pay-to"></div>
         <div class="pay-copy" data-gap="sm">
           <button class="secondary" id="sd-copy-pay">Copy address</button>
           <button class="secondary" id="sd-copy-amount">Copy amount</button>
         </div>
-        <p class="codehelp" data-gap="sm">From any Bitcoin wallet: scan the code, or copy the address and amount. This app sees the payment by itself; there is nothing else to send.</p>
+        <p class="codehelp" data-gap="sm" id="sd-pay-help">From any Bitcoin wallet: scan the code, or copy the address and amount. This app sees the payment by itself; there is nothing else to send.</p>
       </div>
       <ol class="steps" id="sd-steps"></ol>
       <p class="swap-status" id="sd-status"></p>
@@ -2040,6 +2045,7 @@
 
   // ---- Swaps ----
   let swapList = [];
+  let solList = [];        // the SOL swaps, kept apart: the list call has only Bitcoin ones
   let current = null;       // the swap shown in detail
   let stepping = false;
   // About when something happens, in the reader's own time.
@@ -2054,7 +2060,28 @@
   // Each swap as plain steps: what happens, who does it, and how long it
   // takes. `at` is the step under way; steps before it are done.
   function swapSteps(s) {
-    const O = `${s.orn} ORN`, B = `${s.btc} BTC`;
+    const O = `${s.orn} ORN`, B = cost(s);
+    // SOL swaps: four plain steps, each a minute or so.
+    if (s.coin === "sol" && s.role === "sell") {
+      const steps = [
+        { name: "Accepted", what: `Your ${O} are locked for the buyer`, who: "This app · under a minute" },
+        { name: "Buyer pays", what: `The buyer pays ${B}`, who: "The buyer" },
+        { name: "Paid", what: `${B} on its way to your SOL address`, who: s.stage === "claiming" ? "Final within a minute" : "" },
+        { name: "Done", what: "The buyer's ORN delivered", who: "" },
+      ];
+      const at = { locking: 0, reply: 1, paying: 1, claiming: 2, done: 4 }[s.stage];
+      return { steps, at: at ?? null };
+    }
+    if (s.coin === "sol") {
+      const steps = [
+        { name: "Accepted", what: `The seller locked ${O} for you`, who: "The seller · done" },
+        { name: "Pay", what: `Send ${s.pay_amount ? s.pay_amount + " SOL" : B} from your SOL wallet`, who: "You" },
+        { name: "Confirming", what: `Your SOL is locked for the seller, then your ${O} arrive`, who: "Automatic · usually a minute" },
+        { name: "Done", what: `${O} in your wallet`, who: "" },
+      ];
+      const at = { pay: 1, locking: 2, confirming: 2, claim: 2, refunding: 2, done: 4 }[s.stage];
+      return { steps, at: at ?? null };
+    }
     // " (1 of 3)", while a payment is confirming.
   const confirmCount = (s) => s.paid_seen && s.confirmations !== null && s.confirmations !== undefined
     ? ` (${Math.min(s.confirmations, s.confirmations_needed)} of ${s.confirmations_needed})` : "";
@@ -2110,7 +2137,7 @@
   // under way, quietly. One card, the most pressing thing first.
   function swapAlert() {
     const pay = swapList.find(needsMe);
-    if (pay) return { urgent: true, title: `Your swap was accepted: pay ${pay.btc} BTC now`,
+    if (pay) return { urgent: true, title: `Your swap was accepted: pay ${payText(pay)} now`,
       sub: pay.pay_by ? payDeadline(pay.pay_by) + ` · you get ${pay.orn} ORN` : `You get ${pay.orn} ORN`, go: "Pay", open: () => openSwap(pay.id) };
     const unlock = board.waiting.find((x) => x.selling && x.needs_unlock);
     if (unlock) return { urgent: true, title: `${unlock.taker_name || "Someone"} took your offer`,
@@ -2159,12 +2186,13 @@
         say(`taken:${item.offer.id}`, `${item.taker_name || "Someone"} took your offer to sell ${fmtOrn(item.offer.orn)} ORN. Your wallet is locking the ORN for them.`);
     }
     for (const s of swapList) {
-      if (needsMe(s)) say(`pay:${s.id}`, `Your swap was accepted. Pay ${s.btc} BTC now to get ${s.orn} ORN.` + (s.pay_by ? ` ${payDeadline(s.pay_by)}.` : ""), 10 * 60 * 1000);
-      if (s.role === "buy" && (s.paid || s.paid_seen) && !["done", "cancelled"].includes(s.stage)) say(`paid:${s.id}`, `Payment seen. Waiting for Bitcoin to confirm it; your ${s.orn} ORN follow by themselves.`);
-      if (s.role === "sell" && s.board && s.stage === "reply") say(`locked:${s.id}`, `Your ${s.orn} ORN are locked for the buyer. Waiting for them to pay ${s.btc} BTC.`);
-      if (s.role === "sell" && s.stage === "claiming") say(`sent:${s.id}`, `You've been paid: ${s.btc} BTC is sent to your Bitcoin address.`);
-      if (s.role === "sell" && (s.paid_seen || s.stage === "claiming")) say(`claiming:${s.id}`, `The buyer paid ${s.btc} BTC. Bitcoin is confirming it; then this app takes it. Keep Orien Wallet running.`);
-      if (s.stage === "done") say(`done:${s.id}`, s.role === "sell" ? `Swap done: ${s.btc} BTC is on its way to your Bitcoin address.` : `Swap done: ${s.orn} ORN are in your wallet.`);
+      if (needsMe(s)) say(`pay:${s.id}`, `Your swap was accepted. Pay ${payText(s)} now to get ${s.orn} ORN.` + (s.pay_by ? ` ${payDeadline(s.pay_by)}.` : ""), 10 * 60 * 1000);
+      if (s.coin !== "sol" && s.role === "buy" && (s.paid || s.paid_seen) && !["done", "cancelled"].includes(s.stage)) say(`paid:${s.id}`, `Payment seen. Waiting for Bitcoin to confirm it; your ${s.orn} ORN follow by themselves.`);
+      if (s.role === "sell" && s.board && s.stage === "reply") say(`locked:${s.id}`, `Your ${s.orn} ORN are locked for the buyer. Waiting for them to pay ${cost(s)}.`);
+      if (s.role === "sell" && s.stage === "claiming") say(`sent:${s.id}`, `You've been paid: ${cost(s)} is on its way to your ${coinName(s)} address.`);
+      if (s.role === "buy" && s.coin === "sol" && s.paid && !["done", "cancelled"].includes(s.stage)) say(`paid:${s.id}`, `Payment received. Your ${s.orn} ORN follow within a minute or so.`);
+      if (s.coin !== "sol" && s.role === "sell" && (s.paid_seen || s.stage === "claiming")) say(`claiming:${s.id}`, `The buyer paid ${s.btc} BTC. Bitcoin is confirming it; then this app takes it. Keep Orien Wallet running.`);
+      if (s.stage === "done") say(`done:${s.id}`, s.role === "sell" ? `Swap done: ${cost(s)} is in your ${coinName(s)} wallet.` : s.coin === "sol" && !s.orn_claimed ? "Your SOL went back to your SOL wallet." : `Swap done: ${s.orn} ORN are in your wallet.`);
       if (s.stage === "cancelled") say(`stopped:${s.id}`, `A swap stopped. ${s.status}`);
     }
     localStorage.setItem(ANNOUNCED, JSON.stringify(announced));
@@ -2185,6 +2213,13 @@
 
   // What happens if the other side disappears, at this point of the swap.
   function ifGone(s) {
+    if (s.coin === "sol") {
+      if (s.role === "buy" && s.stage === "pay")
+        return "<strong>The extra over the price</strong> covers Solana's small fees; nearly all of it comes back to your SOL wallet when the swap ends. <strong>If you change your mind,</strong> just don't send: nothing has left your wallets.";
+      if (s.role === "sell" && ["reply", "paying"].includes(s.stage))
+        return "<strong>If the buyer doesn't pay,</strong> your ORN come back to you on their own within a few hours. You don't need to do anything.";
+      return null;
+    }
     const ornBack = when(s.orn_back_at), btcBack = when(s.btc_back_at);
     if (s.stage === "done") return null;
     if (s.role === "sell") {
@@ -2213,14 +2248,20 @@
     if (s.stage === "done") return "Done";
     if (s.stage === "cancelled") return "Stopped";
     if (s.stage === "refunding") return "Taking your Bitcoin back";
-    if (needsMe(s)) return `Your turn: pay ${s.btc} BTC now`;
+    if (needsMe(s)) return `Your turn: pay ${payText(s)} now`;
     if (s.role === "sell" && s.stage === "claiming") return "Paid · Bitcoin is confirming";
     const { steps, at } = swapSteps(s);
     if (at === null || at >= steps.length) return "";
     return `Step ${at + 1} of ${steps.length} · ${steps[at].name || steps[at].who.split(" · ")[0]}`;
   }
   // A swap waiting on this person: a buyer who hasn't paid yet.
-  const needsMe = (s) => s.role === "buy" && s.stage === "bitcoin" && !s.paid && !s.paid_seen && !!s.pay_to;
+  const needsMe = (s) => s.coin === "sol"
+    ? s.role === "buy" && s.stage === "pay" && !!s.pay_to
+    : s.role === "buy" && s.stage === "bitcoin" && !s.paid && !s.paid_seen && !!s.pay_to;
+  // A swap's price, and what the buyer sends, in its coin.
+  const cost = (s) => s.coin === "sol" ? `${s.sol} SOL` : `${s.btc} BTC`;
+  const payText = (s) => s.coin === "sol" ? `${s.pay_amount} SOL` : `${s.btc} BTC`;
+  const coinName = (s) => s.coin === "sol" ? "SOL" : "Bitcoin";
 
   // Someone took an offer, and its wallet is locked: say so, even with the
   // window closed, and ask for Touch ID at once, so one touch finishes it.
@@ -2287,14 +2328,14 @@
     $("mine-count").textContent = open ? `(${open})` : "";
     if (!swapList.length && !board.waiting.length) { list.innerHTML = '<div class="empty">No swaps yet</div>'; return; }
     list.innerHTML = board.waiting.map((item) => `<div class="swap-row">
-      <div><div>${item.selling ? "Sell" : "Buy"} ${esc(fmtOrn(item.offer.orn))} ORN for ${esc(fmtBtc(item.offer.sats))} BTC</div>
+      <div><div>${item.selling ? "Sell" : "Buy"} ${esc(fmtOrn(item.offer.orn))} ORN for ${esc(offerPrice(item.offer))}</div>
       <div class="sub">${esc(waitingLine(item))}</div></div>
       ${item.selling && item.offer.state === "open" ? `<button class="linkish" data-withdraw="${item.offer.id}">Withdraw</button>` : ""}
       ${item.needs_unlock ? (item.unlock_biometric
         ? `<button class="linkish" data-finish="${item.offer.id}">Use ${bio}</button>`
         : `<span class="finish"><input type="password" data-finish-pw="${item.offer.id}" placeholder="Wallet password" aria-label="Wallet password"><button class="linkish" data-finish="${item.offer.id}">Finish</button></span>`) : ""}</div>`).join("")
       + swapList.map((s) => `<button class="swap-row" data-swap="${esc(s.id)}">
-      <div><div>${s.role === "sell" ? "Sell" : "Buy"} ${esc(s.orn)} ORN for ${esc(s.btc)} BTC</div>
+      <div><div>${s.role === "sell" ? "Sell" : "Buy"} ${esc(s.orn)} ORN for ${esc(cost(s))}</div>
       <div class="sub">${esc(stageLine(s))}</div></div></button>`).join("");
     for (const b of list.querySelectorAll("[data-swap]")) b.onclick = () => openSwap(b.dataset.swap);
     for (const b of list.querySelectorAll("[data-finish]")) b.onclick = () => finishTaken(Number(b.dataset.finish));
@@ -2303,7 +2344,7 @@
   }
 
   async function loadSwaps() {
-    try { swapList = await invoke("swap_list"); } catch { swapList = []; }
+    try { swapList = (await invoke("swap_list")).concat(solList); } catch { swapList = solList.slice(); }
     renderSwaps();
   }
 
@@ -2318,7 +2359,8 @@
     if (!s) return;
     $("sd-title").textContent = s.role === "sell" ? "Selling ORN" : "Buying ORN";
     $("sd-orn").textContent = s.orn + " ORN";
-    $("sd-btc").textContent = s.btc + " BTC";
+    $("sd-btc").textContent = cost(s);
+    $("sd-coin-label").textContent = coinName(s);
     $("sd-other-row").hidden = !s.other;
     $("sd-other-label").textContent = s.role === "sell" ? "Buyer" : "Seller";
     $("sd-other").textContent = s.other ? short(s.other) : "";
@@ -2338,11 +2380,18 @@
     $("sd-pay").hidden = !s.pay_to || s.paid || s.paid_seen;
     if (s.pay_to) {
       $("sd-pay-to").textContent = s.pay_to;
-      $("sd-pay-amount").textContent = s.btc;
+      $("sd-pay-amount").textContent = s.coin === "sol" ? s.pay_amount : s.btc;
+      $("sd-pay-unit").textContent = s.coin === "sol" ? "SOL" : "BTC";
+      $("sd-pay-to-head").textContent = `to this ${coinName(s)} address`;
+      $("sd-pay-help").textContent = s.coin === "sol"
+        ? "From your SOL wallet, such as Phantom: scan the code, or copy the address and amount. Send it all in one go. This app sees it by itself; there is nothing else to send."
+        : "From any Bitcoin wallet: scan the code, or copy the address and amount. This app sees the payment by itself; there is nothing else to send.";
       $("sd-pay-qr").hidden = !s.pay_qr;
       if (s.pay_qr && $("sd-pay-qr").dataset.for !== s.pay_to) { $("sd-pay-qr").innerHTML = s.pay_qr; $("sd-pay-qr").dataset.for = s.pay_to; }
-      $("sd-pay-by").hidden = !s.pay_by;
+      $("sd-pay-by").hidden = !s.pay_by && !s.arrived;
       if (s.pay_by) $("sd-pay-by").textContent = payDeadline(s.pay_by);
+      // SOL: what has arrived so far, as it comes in.
+      if (s.coin === "sol" && s.arrived) $("sd-pay-by").textContent = `Received so far: ${s.arrived} of ${s.pay_amount} SOL`;
     }
     const gone = ifGone(s);
     $("sd-gone").hidden = !gone;
@@ -2377,7 +2426,8 @@
     stepping = true;
     try {
       const stepped = await invoke("swap_step", { password: password || null });
-      swapList = stepped.swaps;
+      solList = stepped.sol_swaps || [];
+      swapList = stepped.swaps.concat(solList);
       board.waiting = stepped.waiting || [];
       renderSwaps();
       renderSwapAlert();
@@ -2395,6 +2445,17 @@
   const fmtBtc = (sats) => (sats / 1e8).toFixed(8).replace(/0+$/, "").replace(/\.$/, "");
   const fmtUsd = (n) => n >= 100 ? "$" + Math.round(n).toLocaleString() : "$" + n.toFixed(2);
   // "≈ $655", and "$1.31 per ORN · 2,000 satoshis per ORN", when the price is known.
+  const fmtSol = (lamports) => (lamports / 1e9).toFixed(9).replace(/0+$/, "").replace(/\.$/, "");
+  // An offer's price, in its own coin.
+  const offerPrice = (o) => o.coin === "sol" ? `${fmtSol(o.lamports)} SOL` : `${fmtBtc(o.sats)} BTC`;
+  const offerValue = (o) => o.coin === "sol" ? priceOfSol(o.orn, o.lamports) : priceOf(o.orn, o.sats);
+  function priceOfSol(orn, lamports) {
+    const perOrn = orn > 0 ? lamports / 1e9 / (orn / 1e9) : 0;
+    const solText = `${perOrn.toLocaleString(undefined, { maximumFractionDigits: 6 })} SOL per ORN`;
+    if (!board.solUsd) return { total: "", rate: solText };
+    const usd = board.solUsd * lamports / 1e9;
+    return { total: ` ≈ ${fmtUsd(usd)}`, rate: `${fmtUsd(usd / (orn / 1e9))} per ORN · ${solText}` };
+  }
   function priceOf(orn, sats) {
     const perOrn = orn > 0 ? sats / (orn / 1e9) : 0;
     const satsText = `${Math.round(perOrn).toLocaleString()} satoshis per ORN`;
@@ -2454,18 +2515,19 @@
   function renderOffers() {
     const list = $("board-offers");
     // Only rebuilt when something on it changed.
-    const key = JSON.stringify([board.offers, board.usd, board.me && board.me.id]);
+    const key = JSON.stringify([board.offers, board.usd, board.solUsd, board.me && board.me.id]);
     if (key === shownOffers && list.children.length) return;
     shownOffers = key;
-    $("board-btc").textContent = board.usd ? `1 BTC ≈ ${fmtUsd(board.usd)}` : "";
-    if (!board.offers.length) { list.innerHTML = '<div class="empty">No open offers right now</div>'; return; }
-    list.innerHTML = board.offers.map((o) => {
-      const price = priceOf(o.orn, o.sats);
+    $("board-btc").textContent = [board.solUsd && `1 SOL ≈ ${fmtUsd(board.solUsd)}`, board.usd && `1 BTC ≈ ${fmtUsd(board.usd)}`].filter(Boolean).join(" · ");
+    const offers = board.offers.filter((o) => solOpen || o.coin !== "sol");
+    if (!offers.length) { list.innerHTML = '<div class="empty">No open offers right now</div>'; return; }
+    list.innerHTML = offers.map((o) => {
+      const price = offerValue(o);
       const mine = board.me && o.seller === board.me.id;
       return `<div class="offer">
         ${avatar(o)}
         <div><div class="who">${esc(o.seller_name)} · ${o.seller_done} swap${o.seller_done === 1 ? "" : "s"} done</div>
-          <div class="deal">${esc(fmtOrn(o.orn))} ORN for ${esc(fmtBtc(o.sats))} BTC${esc(price.total)}</div>
+          <div class="deal">${esc(fmtOrn(o.orn))} ORN for ${esc(offerPrice(o))}${esc(price.total)}</div>
           <div class="rate">${esc(price.rate)}</div></div>
         ${mine ? `<button class="withdraw" data-withdraw="${o.id}">Withdraw</button>` : `<button class="take pearl" data-take="${o.id}">Take</button>`}
       </div>`;
@@ -2482,6 +2544,7 @@
       const answer = await invoke("board_offers");
       board.offers = answer.offers || [];
       board.usd = answer.bitcoin && answer.bitcoin.usd;
+      board.solUsd = answer.solana && answer.solana.usd;
       if (answer.base) boardBase = answer.base;
       $("board-problem").hidden = true;
     } catch (e) { board.offers = []; problem("board-problem", e); }
@@ -2501,7 +2564,19 @@
     board.taking = o;
     if (!ready()) return;
     $("bt-orn").textContent = fmtOrn(o.orn) + " ORN";
-    $("bt-btc").textContent = fmtBtc(o.sats) + " BTC" + priceOf(o.orn, o.sats).total;
+    $("bt-btc").textContent = offerPrice(o) + offerValue(o).total;
+    const sol = o.coin === "sol";
+    $("bt-what").innerHTML = sol
+      ? "<strong>What happens:</strong> the seller's wallet accepts within seconds and locks the ORN for you. This app then shows the exact SOL to send from your SOL wallet, such as Phantom, with a QR code. The swap finishes by itself, usually within a minute."
+      : "<strong>What happens:</strong> the seller has 30 minutes to accept. Their wallet then locks the ORN for you, and this app shows you where to pay the Bitcoin. After you pay, the seller's wallet takes it and, in the same step, delivers your ORN to you. If the seller doesn't accept in time, the offer goes back on the board and nothing is lost.";
+    $("bt-need").innerHTML = sol
+      ? "<strong>You need</strong> the SOL in your own SOL wallet, plus about 0.005 SOL for Solana's small fees, nearly all of which comes back. The usual Orien fee (0.1%, at most 1 ORN) comes out of the ORN you receive."
+      : "<strong>You need</strong> the Bitcoin in any Bitcoin wallet, plus its sending fee. The usual Orien fee (0.1%, at most 1 ORN) comes out of the ORN you receive.";
+    $("bt-ifnot").innerHTML = sol
+      ? "<strong>If the seller never takes your SOL,</strong> it goes back to the SOL address below within about an hour."
+      : "<strong>If the seller never takes your Bitcoin,</strong> this app takes it back to the address below after about 6 hours.";
+    $("bt-refund-label").textContent = sol ? "Your SOL address (the wallet you'll pay from)" : "Your Bitcoin address";
+    $("bt-refund").placeholder = sol ? "Anything left over, or a refund, comes back here" : "Where your Bitcoin comes back if the swap stops";
     $("bt-seller").textContent = `${o.seller_name}, ${o.seller_done} swap${o.seller_done === 1 ? "" : "s"} done`;
     $("bt-problem").hidden = true;
     show("board-take");
@@ -2516,7 +2591,7 @@
   $("bt-go").onclick = async () => {
     $("bt-go").disabled = true;
     try {
-      await invoke("board_take", { offer: board.taking.id, refund: $("bt-refund").value });
+      await invoke(board.taking.coin === "sol" ? "board_take_sol" : "board_take", { offer: board.taking.id, refund: $("bt-refund").value });
       board.taking = null;
       show("swaps");
       await loadBoard();
@@ -2538,10 +2613,41 @@
     show("board-post");
     showSmallest();
   };
+  // SOL first; Bitcoin for those who'd rather. Until SOL swaps are open
+  // in this copy of the app (live on Solana), only Bitcoin shows.
+  let postCoin = "sol";
+  let solOpen = false;
+  invoke("sol_open").then((open) => {
+    solOpen = !!open;
+    $("bp-tabs").hidden = !solOpen;
+    if (!solOpen) {
+      setPostCoin("btc");
+      document.querySelector("#swaps .lede").textContent = "Swap ORN and Bitcoin with someone directly. Neither of you can cheat: either both get paid, or both get their coins back.";
+    }
+    shownOffers = "";
+    renderOffers();
+  }).catch(() => {});
+  function setPostCoin(coin) {
+    postCoin = coin;
+    const sol = coin === "sol";
+    $("bp-lede").textContent = `Offer your ORN for ${sol ? "SOL" : "Bitcoin"}. When someone takes it, this app locks the ORN for them and runs the swap, as long as it's open.`;
+    $("bp-tab-sol").classList.toggle("on", sol);
+    $("bp-tab-btc").classList.toggle("on", !sol);
+    $("bp-amount-label").textContent = sol ? "SOL to receive" : "Bitcoin to receive";
+    $("bp-btc").placeholder = sol ? "0.5" : "0.01";
+    $("bp-payout-label").textContent = sol ? "Your SOL address" : "Your Bitcoin address";
+    $("bp-payout").placeholder = sol ? "Where the SOL should go, such as your Phantom wallet" : "Where the Bitcoin should go";
+    $("bp-fine-sol").hidden = !sol;
+    $("bp-fine-btc").hidden = sol;
+    postHint();
+  }
+  $("bp-tab-sol").onclick = () => setPostCoin("sol");
+  $("bp-tab-btc").onclick = () => setPostCoin("btc");
   function postHint() {
     const orn = parseFloat($("bp-orn").value), btc = parseFloat($("bp-btc").value);
-    if (!(orn > 0) || !(btc > 0)) { $("bp-hint").textContent = board.usd ? `1 BTC ≈ ${fmtUsd(board.usd)}` : ""; return; }
-    const price = priceOf(orn * 1e9, Math.round(btc * 1e8));
+    const usd = postCoin === "sol" ? board.solUsd : board.usd;
+    if (!(orn > 0) || !(btc > 0)) { $("bp-hint").textContent = usd ? `1 ${postCoin === "sol" ? "SOL" : "BTC"} ≈ ${fmtUsd(usd)}` : ""; return; }
+    const price = postCoin === "sol" ? priceOfSol(orn * 1e9, Math.round(btc * 1e9)) : priceOf(orn * 1e9, Math.round(btc * 1e8));
     $("bp-hint").textContent = `${price.total.replace(" ≈ ", "≈ ")}${price.total ? " · " : ""}${price.rate}`;
   }
   $("bp-orn").oninput = $("bp-btc").oninput = postHint;
@@ -2550,7 +2656,8 @@
     try {
       if (view && view.biometric) await invoke("biometric_unlock");
       const password = $("bp-pw-field").hidden ? null : $("bp-pw").value;
-      await invoke("board_post", { orn: $("bp-orn").value, btc: $("bp-btc").value, payout: $("bp-payout").value, password });
+      if (postCoin === "sol") await invoke("board_post_sol", { orn: $("bp-orn").value, sol: $("bp-btc").value, payout: $("bp-payout").value, password });
+      else await invoke("board_post", { orn: $("bp-orn").value, btc: $("bp-btc").value, payout: $("bp-payout").value, password });
       $("bp-pw").value = "";
       $("bp-orn").value = $("bp-btc").value = "";
       show("swaps");

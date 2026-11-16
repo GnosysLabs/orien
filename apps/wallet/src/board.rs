@@ -39,8 +39,12 @@ pub struct Link {
     /// The offer's number on the board.
     pub offer: i64,
     pub selling: bool,
-    /// The seller's payout address, or the buyer's refund address.
+    /// The seller's payout address, or the buyer's refund address: a
+    /// Bitcoin one, or for a SOL offer a Solana one.
     pub bitcoin: String,
+    /// "btc" or "sol". Links from before SOL swaps are Bitcoin ones.
+    #[serde(default = "btc")]
+    pub coin: String,
     /// The swap this app runs for it, once there is one.
     #[serde(default)]
     pub swap: Option<String>,
@@ -52,6 +56,10 @@ pub struct Link {
     /// the open one.
     #[serde(default)]
     pub wallet: Option<PathBuf>,
+}
+
+fn btc() -> String {
+    "btc".into()
 }
 
 #[derive(Default, Serialize, Deserialize)]
@@ -173,7 +181,8 @@ fn capital(text: &str) -> String {
 
 /// The open offers, cheapest first, and Bitcoin's dollar price.
 pub fn offers(dir: &Path) -> Result<Value, String> {
-    let mut answer = call(dir, "GET", "/swaps", None)?;
+    // SOL offers first, then Bitcoin ones.
+    let mut answer = call(dir, "GET", "/swaps?coins=sol,btc", None)?;
     // Where sellers' pictures come from.
     answer["base"] = json!(base());
     Ok(answer)
@@ -312,7 +321,7 @@ pub fn post_on(dir: &Path, wallet: &Path, network: orien_swap::bitcoin::Network,
     let posted = call(dir, "POST", "/swaps", Some(json!({ "orn": orn, "sats": sats, "payout": payout, "wallet": address })))?;
     let offer = posted["offer"]["id"].as_i64().ok_or("The swap board did not say which offer it posted.")?;
     let mut saved = load(dir);
-    saved.links.push(Link { offer, selling: true, bitcoin: payout, swap: None, finished: false, wallet: Some(wallet.to_path_buf()) });
+    saved.links.push(Link { offer, selling: true, bitcoin: payout, coin: btc(), swap: None, finished: false, wallet: Some(wallet.to_path_buf()) });
     save(dir, &saved)?;
     Ok(offer)
 }
@@ -325,12 +334,45 @@ pub fn take(dir: &Path, wallet: &Path, offer: i64, address: &str, refund: &str) 
 
 pub fn take_on(dir: &Path, wallet: &Path, network: orien_swap::bitcoin::Network, offer: i64, address: &str, refund: &str) -> Result<(), String> {
     let refund = bitcoin_address(refund, network)?;
-    // Version 2: the shorter locks (12 hours of ORN, 6 of Bitcoin). The
-    // board turns away takes from wallets that would refuse them.
-    call(dir, "POST", &format!("/swaps/{offer}/take"), Some(json!({ "address": address, "swap_version": 2 })))?;
+    // Version 3: the shorter locks, and SOL swaps. The board turns away
+    // takes from wallets that would refuse them.
+    call(dir, "POST", &format!("/swaps/{offer}/take"), Some(json!({ "address": address, "swap_version": 3 })))?;
     let mut saved = load(dir);
     saved.links.retain(|link| link.offer != offer);
-    saved.links.push(Link { offer, selling: false, bitcoin: refund, swap: None, finished: false, wallet: Some(wallet.to_path_buf()) });
+    saved.links.push(Link { offer, selling: false, bitcoin: refund, coin: btc(), swap: None, finished: false, wallet: Some(wallet.to_path_buf()) });
+    save(dir, &saved)
+}
+
+/// Puts a SOL offer on the board: `orn` units for `lamports`, paid at
+/// `payout`, the seller's own SOL wallet. Approved with `password`, as for
+/// Bitcoin: when it's taken, this app accepts by itself.
+pub fn post_sol(dir: &Path, wallet: &Path, orn: u64, lamports: u64, payout: &str, password: Option<&str>) -> Result<(), String> {
+    let payout = payout.trim();
+    orien_swap::solana::address(payout).map_err(|_| "That is not a SOL address.".to_string())?;
+    let address = orien_net::keys::Wallet::peek(wallet).map_err(|error| error.to_string())?.0.to_string();
+    let posted = call(dir, "POST", "/swaps", Some(json!({ "coin": "sol", "orn": orn, "lamports": lamports, "payout": payout, "wallet": address })))?;
+    let offer = posted["offer"]["id"].as_i64().ok_or("The swap board did not say which offer it posted.")?;
+    let mut saved = load(dir);
+    saved.links.push(Link { offer, selling: true, bitcoin: payout.into(), coin: "sol".into(), swap: None, finished: false, wallet: Some(wallet.to_path_buf()) });
+    save(dir, &saved)?;
+    crate::approval::approve(dir, offer, orn, wallet, password);
+    Ok(())
+}
+
+/// Takes a SOL offer for this wallet, `address`. The buyer pays from
+/// `refund`, their own SOL wallet, and anything left over or refunded goes
+/// back there; it must already hold SOL.
+pub fn take_sol(dir: &Path, wallet: &Path, offer: i64, address: &str, refund: &str) -> Result<(), String> {
+    let refund = refund.trim();
+    let key = orien_swap::solana::address(refund).map_err(|_| "That is not a SOL address.".to_string())?;
+    let solana = crate::solswaps::solana(crate::solswaps::cluster());
+    if solana.balance(&key).map_err(|error| error.to_string())? == 0 {
+        return Err("That SOL address has never held SOL. Give the address of the SOL wallet you'll pay from.".into());
+    }
+    call(dir, "POST", &format!("/swaps/{offer}/take"), Some(json!({ "address": address, "swap_version": 3 })))?;
+    let mut saved = load(dir);
+    saved.links.retain(|link| link.offer != offer);
+    saved.links.push(Link { offer, selling: false, bitcoin: refund.into(), coin: "sol".into(), swap: None, finished: false, wallet: Some(wallet.to_path_buf()) });
     save(dir, &saved)
 }
 
@@ -431,9 +473,13 @@ pub fn drive_on(
             && let Some(wallet) = wallet_with(dir, address)
             && let Ok(bitcoin) = bitcoin_address(payout, network)
         {
-            saved.links.push(Link { offer: id, selling: true, bitcoin, swap: None, finished: false, wallet: Some(wallet) });
+            saved.links.push(Link { offer: id, selling: true, bitcoin, coin: btc(), swap: None, finished: false, wallet: Some(wallet) });
         }
         let Some(link) = saved.links.iter_mut().find(|link| link.offer == id) else { continue };
+        // SOL offers are run by `drive_sol`.
+        if link.coin == "sol" {
+            continue;
+        }
         // The board says whether this side has reported the end already.
         if item["finished"].as_bool() == Some(true) {
             link.finished = true;
@@ -540,8 +586,132 @@ pub fn drive_on(
         .filter_map(|item| item["offer"]["id"].as_i64())
         .collect();
     live.extend(all.iter().filter(|kept| !kept.swap.finished()).filter_map(|kept| kept.board));
+    live.extend(crate::solswaps::load(dir).iter().filter(|kept| !kept.swap.finished()).filter_map(|kept| kept.board));
     crate::approval::keep_only(dir, &live);
     swaps::save(dir, all)?;
     save(dir, &saved)?;
     Ok(mine)
+}
+
+/// The wallet's own Solana fee key, which pays the small Solana fees of its
+/// SOL sales: opened with the password, or Touch ID a moment ago.
+fn fee_secret(wallet: &Path, password: Option<&str>) -> Result<[u8; 32], String> {
+    match crate::open_signing(wallet, password)? {
+        orien_net::unlock::Signing::Here(wallet) => Ok(wallet.solana_secret()),
+        _ => Err("password: needed".into()),
+    }
+}
+
+/// Moves this account's SOL board swaps along, as `drive` does for Bitcoin
+/// ones, with `mine`, the board's list from `drive`.
+pub fn drive_sol(orien: &AppOrien, dir: &Path, mine: &Value, sol: &mut Vec<crate::solswaps::Kept>) -> Result<(), String> {
+    use crate::solswaps;
+    use orien_swap::sol::SolStage;
+    let device = device(dir)?;
+    let cluster = solswaps::cluster();
+    let mut saved = load(dir);
+    for item in mine.as_array().into_iter().flatten() {
+        if item["offer"]["coin"].as_str() != Some("sol") {
+            continue;
+        }
+        let Some(id) = item["offer"]["id"].as_i64() else { continue };
+        let state = item["offer"]["state"].as_str().unwrap_or_default();
+        // Posted elsewhere, naming a wallet this app has: this app can run it.
+        if state == "held"
+            && !saved.links.iter().any(|link| link.offer == id)
+            && let (Some(payout), Some(address)) = (item["payout"].as_str(), item["wallet"].as_str())
+            && let Some(wallet) = wallet_with(dir, address)
+            && orien_swap::solana::address(payout).is_ok()
+        {
+            saved.links.push(Link { offer: id, selling: true, bitcoin: payout.into(), coin: "sol".into(), swap: None, finished: false, wallet: Some(wallet) });
+        }
+        let Some(link) = saved.links.iter_mut().find(|link| link.offer == id) else { continue };
+        if item["finished"].as_bool() == Some(true) {
+            link.finished = true;
+        }
+        let kept = link.swap.as_ref().and_then(|swap| sol.iter().position(|kept| &kept.id == swap));
+        let wallet = link.wallet.clone().unwrap_or_else(|| orien.wallet_file.clone());
+        let orn = item["offer"]["orn"].as_u64().unwrap_or(0);
+        let result = match (link.selling, kept) {
+            (true, None) if state == "held" && !runs(dir, id, &device) => Ok(()),
+            // Seller: someone took the offer. Start the swap, approved when
+            // posted; the steps then lock the ORN.
+            (true, None) if state == "held" => {
+                let lamports = item["offer"]["lamports"].as_u64().unwrap_or(0);
+                let buyer = item["taker_wallet"].as_str().unwrap_or_default();
+                let password = orien.password.clone().or_else(|| crate::approval::approved(dir, id, orn, &wallet).flatten());
+                let orien = orien.with_wallet(&wallet).with_password(password.clone());
+                let started = fee_secret(&wallet, password.as_deref()).and_then(|fee| {
+                    solswaps::sell(&orien, cluster, buyer, orn, lamports, &link.bitcoin, &fee).map(|mut kept| {
+                        kept.board = Some(id);
+                        link.swap = Some(kept.id.clone());
+                        sol.push(kept);
+                    })
+                });
+                let mut needs = NEEDS_UNLOCK.lock().unwrap_or_else(|poisoned| poisoned.into_inner());
+                match started {
+                    Err(error) if error.starts_with("password:") => {
+                        needs.insert(id, wallet);
+                        Ok(())
+                    }
+                    other => {
+                        needs.remove(&id);
+                        other
+                    }
+                }
+            }
+            // Seller: the ORN are locked; pass the offer code on.
+            (true, Some(index)) if state == "held" && item["offer_code"].is_null() => match sol[index].offer.clone() {
+                Some(code) => call(dir, "POST", &format!("/swaps/{id}/offer"), Some(json!({ "code": code, "device": device }))).map(|_| ()).map_err(String::from),
+                None => Ok(()),
+            },
+            // Seller: the buyer's wallet replied; take it up.
+            (true, Some(index)) if sol[index].swap.stage == SolStage::WaitingForReply => match item["reply_code"].as_str() {
+                Some(reply) => solswaps::accept(&mut sol[index], reply),
+                None => Ok(()),
+            },
+            // Buyer: the seller's ORN are locked; check them and reply at
+            // once. Paying is the buyer's to do, from their own wallet.
+            (false, None) if state == "swapping" => match item["offer_code"].as_str() {
+                Some(code) => solswaps::buy(&orien.with_wallet(&wallet), cluster, code, &link.bitcoin).map(|mut kept| {
+                    kept.board = Some(id);
+                    link.swap = Some(kept.id.clone());
+                    sol.push(kept);
+                }),
+                None => Ok(()),
+            },
+            (false, Some(index)) if state == "swapping" && item["reply_code"].is_null() => match sol[index].reply.clone() {
+                Some(code) => call(dir, "POST", &format!("/swaps/{id}/reply"), Some(json!({ "code": code }))).map(|_| ()).map_err(String::from),
+                None => Ok(()),
+            },
+            _ => Ok(()),
+        };
+        if let Err(error) = result {
+            match link.swap.as_ref().and_then(|swap| sol.iter().position(|kept| &kept.id == swap)) {
+                Some(index) => sol[index].problem = Some(error),
+                None => eprintln!("swap board SOL offer {id}: {error}"),
+            }
+        }
+        // Either side, at the end.
+        if let Some(index) = link.swap.as_ref().and_then(|swap| sol.iter().position(|kept| &kept.id == swap))
+            && !link.finished
+            && state == "swapping"
+        {
+            let done = match &sol[index].swap.stage {
+                SolStage::Done => Some(true),
+                SolStage::Cancelled { .. } => Some(false),
+                _ => None,
+            };
+            if let Some(done) = done
+                && call(dir, "POST", &format!("/swaps/{id}/finish"), Some(json!({ "done": done }))).is_ok()
+            {
+                link.finished = true;
+            }
+        }
+        if matches!(state, "done" | "cancelled") {
+            link.finished = true;
+        }
+    }
+    solswaps::save(dir, sol)?;
+    save(dir, &saved)
 }

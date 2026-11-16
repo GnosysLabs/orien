@@ -25,6 +25,7 @@ mod money;
 #[cfg(target_os = "ios")]
 mod push;
 mod send;
+mod solswaps;
 mod swaps;
 #[cfg(desktop)]
 mod update;
@@ -1075,12 +1076,22 @@ async fn swap_step(app: AppHandle, password: Option<String>) -> Result<serde_jso
             Ok(mine) => (mine, None),
             Err(error) => (serde_json::json!([]), Some(error)),
         };
+        // SOL swaps, the main kind: the board's first, then each one's steps.
+        let mut sol = solswaps::load(dir);
+        if let Err(error) = board::drive_sol(orien, dir, &mine, &mut sol) {
+            eprintln!("swap board SOL offers: {error}");
+        }
         if swaps::active(&all) {
             swaps::step(orien, dir, &mut all)?;
             // A swap that just finished is marked on the board now.
             let _ = board::drive(orien, dir, &mut all);
         }
-        Ok(serde_json::json!({ "swaps": views(&all), "waiting": board::waiting(dir, &mine), "problem": board_problem }))
+        if solswaps::active(&sol) {
+            solswaps::step_all(orien, dir, &mut sol)?;
+        }
+        let mut sol_views: Vec<solswaps::View> = sol.iter().map(solswaps::view).collect();
+        sol_views.sort_by_key(|view| std::cmp::Reverse(view.created));
+        Ok(serde_json::json!({ "swaps": views(&all), "sol_swaps": sol_views, "waiting": board::waiting(dir, &mine), "problem": board_problem }))
     })
     .await
     .map_err(|error| error.to_string())?
@@ -1144,6 +1155,47 @@ async fn board_post(app: AppHandle, orn: String, btc: String, payout: String, pa
     })
     .await
     .map_err(|error| error.to_string())?
+}
+
+/// Whether SOL swaps are open in this copy of the app: on Solana's test
+/// network for test copies; on Solana itself once the lock is live there.
+#[tauri::command]
+fn sol_open() -> bool {
+    use orien_swap::sol::Sol;
+    solswaps::solana(solswaps::cluster()).lock_program().is_some()
+}
+
+/// Puts a SOL offer on the board: `orn` ORN for `sol` SOL, paid at
+/// `payout`, the seller's own SOL wallet. Approves it, as for Bitcoin.
+#[tauri::command]
+async fn board_post_sol(app: AppHandle, orn: String, sol: String, payout: String, password: Option<String>) -> Result<(), String> {
+    let orn = money::read(&orn)?;
+    let lamports = solswaps::read_sol(&sol)?;
+    let dir = folder(&app)?;
+    let wallet = wallet_file(&dir).ok_or("no wallet yet")?;
+    tauri::async_runtime::spawn_blocking(move || {
+        let password = password.filter(|p| !p.is_empty()).or_else(|| biometric::unlocked(&wallet));
+        if has_password(&wallet) {
+            Wallet::open(&wallet, password.as_deref()).map_err(|error| match error.downcast_ref::<OpenError>() {
+                Some(OpenError::NeedsPassword) => "password: needed".to_string(),
+                Some(OpenError::WrongPassword) => "password: wrong".to_string(),
+                None => format!("could not open the wallet: {error}"),
+            })?;
+        }
+        board::post_sol(&dir, &wallet, orn, lamports, &payout, password.as_deref().filter(|_| has_password(&wallet)))
+    })
+    .await
+    .map_err(|error| error.to_string())?
+}
+
+/// Takes SOL offer `offer` for this wallet; the buyer pays from `refund`,
+/// their own SOL wallet, where anything left over goes back.
+#[tauri::command]
+async fn board_take_sol(app: AppHandle, offer: i64, refund: String) -> Result<(), String> {
+    let dir = folder(&app)?;
+    let wallet = wallet_file(&dir).ok_or("no wallet yet")?;
+    let address = Wallet::peek(&wallet).map_err(|error| error.to_string())?.0.to_string();
+    tauri::async_runtime::spawn_blocking(move || board::take_sol(&dir, &wallet, offer, &address, &refund)).await.map_err(|error| error.to_string())?
 }
 
 /// Takes offer `offer` for this wallet; a refund would go to `refund`.
@@ -1225,6 +1277,8 @@ pub fn run() {
     );
     builder
         .setup(|app| {
+            // Test copies of the app swap SOL on Solana's free test network.
+            solswaps::set_cluster(app.config().identifier.contains(".check"));
             // Computers keep the wallet running in the menu bar or tray; the
             // window starts hidden so a login start shows nothing.
             #[cfg(desktop)]
@@ -1235,7 +1289,7 @@ pub fn run() {
             }
             Ok(())
         })
-        .invoke_handler(tauri::generate_handler![has_wallet, create_wallet, save_phrase, restore_wallet, set_password, choose_wallet, overview_now, send_payment, activity, quote, contacts, save_contact, delete_contact, contacts_sync, biometric_unlock, biometric_enable, update::check_update, update::install_update, mine_start, mine_stop, mine_set, mine_status, wallets, wallet_balances, use_wallet, rename_wallet, add_wallet, forget_wallet, swap_list, swap_sell, swap_buy, swap_accept, swap_step, swap_smallest, board_offers, board_me, board_email_start, board_email_finish, board_sign_out, board_post, board_take, board_withdraw, board_link, notifications_ask, push_sync, board_wallets_sync])
+        .invoke_handler(tauri::generate_handler![has_wallet, create_wallet, save_phrase, restore_wallet, set_password, choose_wallet, overview_now, send_payment, activity, quote, contacts, save_contact, delete_contact, contacts_sync, biometric_unlock, biometric_enable, update::check_update, update::install_update, mine_start, mine_stop, mine_set, mine_status, wallets, wallet_balances, use_wallet, rename_wallet, add_wallet, forget_wallet, swap_list, swap_sell, swap_buy, swap_accept, swap_step, swap_smallest, board_offers, board_me, board_email_start, board_email_finish, board_sign_out, board_post, board_take, board_withdraw, board_link, notifications_ask, push_sync, board_wallets_sync, board_post_sol, board_take_sol, sol_open])
         .build(tauri::generate_context!())
         .expect("the wallet window could not start")
         .run(|_app, _event| {
