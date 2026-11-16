@@ -776,8 +776,33 @@ async fn close_swap(State(app): State<Arc<App>>, headers: HeaderMap, Path(id): P
 
 async fn swap_offer_code(State(app): State<Arc<App>>, headers: HeaderMap, Path(id): Path<i64>, Json(request): Json<OfferCode>) -> Answer {
     let seller = app.signed_in(&headers)?;
-    let swap = app.store.lock().unwrap().post_offer_code_from(seller, id, &request.code, request.device.as_deref()).map_err(refused)?;
+    let (swap, buyer_email) = {
+        let store = app.store.lock().unwrap();
+        let swap = store.post_offer_code_from(seller, id, &request.code, request.device.as_deref()).map_err(refused)?;
+        let email = match swap.taker {
+            Some(taker) => store.email_of(taker)?,
+            None => None,
+        };
+        (swap, email)
+    };
+    // The buyer's turn: tell them, so it can't be missed.
+    if let Some(to) = buyer_email {
+        let (mailer, origin) = (app.mailer.clone(), app.origin.clone());
+        let seller_name = swap.offer.seller_name.clone();
+        let btc = bitcoin_amount(swap.offer.sats);
+        tokio::task::spawn_blocking(move || {
+            if let Err(error) = mailer.send_swap_accepted(&to, &seller_name, &btc, &origin) {
+                eprintln!("cannot email a swap notice: {error:#}");
+            }
+        });
+    }
     Ok(Json(json!({ "swap": swap })).into_response())
+}
+
+/// Satoshis as BTC, as people write it: 0.00005.
+fn bitcoin_amount(sats: u64) -> String {
+    let (whole, fraction) = (sats / 100_000_000, sats % 100_000_000);
+    if fraction == 0 { whole.to_string() } else { format!("{whole}.{}", format!("{fraction:08}").trim_end_matches('0')) }
 }
 
 /// One of the seller's devices asks to run a taken offer: whether it may.

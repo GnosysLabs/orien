@@ -62,6 +62,29 @@ impl Mailer {
         self.deliver(key, to, &subject, &text, &html)
     }
 
+    /// Tells a buyer the seller's wallet accepted their swap: their ORN are
+    /// locked for them, and it is their turn to pay the Bitcoin.
+    pub fn send_swap_accepted(&self, to: &str, seller: &str, btc: &str, origin: &str) -> Result<()> {
+        let subject = format!("{seller} accepted your swap: pay {btc} BTC now");
+        let text = format!(
+            "{seller} accepted your swap, and your ORN are locked for you.\n\n\
+             Your turn: open Orien Wallet and pay exactly {btc} BTC to the address it shows, from any Bitcoin wallet, \
+             within 30 minutes. Your ORN arrive once the seller takes the Bitcoin.\n\n{origin}/swap/\n"
+        );
+        let Some(key) = &self.key else {
+            println!("would email {to}: {subject}");
+            return Ok(());
+        };
+        let escape = |t: &str| t.replace('&', "&amp;").replace('<', "&lt;").replace('>', "&gt;");
+        let html = format!(
+            "<p>{} accepted your swap, and your ORN are locked for you.</p>\
+             <p><strong>Your turn:</strong> open Orien Wallet and pay exactly <strong>{btc} BTC</strong> to the address it shows, \
+             from any Bitcoin wallet, within 30 minutes. Your ORN arrive once the seller takes the Bitcoin.</p>",
+            escape(seller)
+        );
+        self.deliver(key, to, &subject, &text, &html)
+    }
+
     /// Sends a message from the contact form to CONTACT, with the sender's
     /// address to reply to.
     pub fn send_contact(&self, name: &str, email: &str, message: &str) -> Result<()> {
