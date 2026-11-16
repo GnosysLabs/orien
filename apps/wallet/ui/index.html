@@ -412,6 +412,8 @@
   .pill .dot, .tile .dot { position: absolute; top: 4px; right: 4px; width: 8px; height: 8px; border-radius: 50%; background: var(--good); box-shadow: 0 0 0 2px var(--ground-deep); }
   #go-market { position: relative; }
   .tile .dot { top: 9px; right: 9px; }
+  /* On the round Messages button the dot sits on its rim, half outside. */
+  .pill.icon .dot { top: -1px; right: -1px; width: 10px; height: 10px; }
   .ls-ask { margin-top: 14px; padding: 12px; border: 1px solid var(--line); border-radius: 16px; background: var(--surface); }
   .ls-ask textarea, .report-box textarea { display: block; width: 100%; min-height: 70px; padding: 10px 12px; border: 1px solid var(--line); border-radius: 12px;
     background: var(--field); color: var(--ink); font: inherit; font-size: 13.5px; letter-spacing: normal; resize: none; outline: none; }
