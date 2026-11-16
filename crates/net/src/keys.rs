@@ -256,6 +256,14 @@ impl Wallet {
         crate::vault::VaultKeys::from_seed(&self.seed)
     }
 
+    /// The secret of this wallet's own Solana key, made from its seed: it
+    /// pays the small Solana fees of the wallet's SOL swaps, and comes back
+    /// with the recovery phrase. Not the key Phantom would make (Orien's
+    /// phrase is not a BIP39 one).
+    pub fn solana_secret(&self) -> [u8; 32] {
+        blake3::derive_key("orien wallet solana 2026-11-16 ed25519", &self.seed)
+    }
+
     /// A new wallet: a fresh recovery phrase, and its account 1.
     pub fn create(path: &Path) -> Result<Wallet> {
         Wallet::from_master(path, random_seed(), 1)
