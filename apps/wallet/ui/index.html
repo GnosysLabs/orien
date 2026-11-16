@@ -148,6 +148,11 @@
   @keyframes breathe { 0%, 100% { opacity: 0.45; transform: scale(0.94); } 50% { opacity: 1; transform: scale(1); } }
   main { flex: 1; display: flex; flex-direction: column; min-height: 0; }
   .screen { flex: 1; display: flex; flex-direction: column; min-height: 0; }
+  /* When a screen has more than fits, it scrolls; nothing in it is ever
+     squeezed. Its own lists (.scroll, Recent, Activity) still give way. */
+  .screen { overflow-y: auto; overscroll-behavior: contain; margin: 0 -28px; padding: 0 28px 8px; }
+  .screen::-webkit-scrollbar { width: 0; }
+  .screen > *:not(.scroll):not(#recent):not(#all-activity) { flex-shrink: 0; }
 
   /* ---- Shared pieces ---- */
   .primary {
@@ -486,7 +491,8 @@
      cut sits just outside the cards, so their edges and focus rings stay. */
   .scroll, #mine, #board-signin, #board-post, #board-take, #swaps, #swap-sell, #swap-buy, #swap-detail { clip-path: inset(0 22px round 22px); }
   #all-activity { clip-path: inset(0 round 18px); }
-  body.phone .screen { clip-path: inset(0 round 22px); }
+  .screen { clip-path: inset(0 22px round 22px); }
+  body.phone .screen { margin: 0; padding: 0; clip-path: inset(0 round 22px); }
   body.phone .scroll, body.phone #mine, body.phone #board-signin, body.phone #board-post, body.phone #board-take,
   body.phone #swaps, body.phone #swap-sell, body.phone #swap-buy, body.phone #swap-detail { clip-path: inset(0 14px round 22px); }
   .day { margin: 18px 4px 8px; font-size: 12px; font-weight: 600; color: var(--dim); }
