@@ -161,14 +161,14 @@ export function ProfileEditor({ account, onSaved }: { account: Account; onSaved:
         </div>
       </div>
       <label className="flex flex-col gap-2">
-        <span className="text-sm font-semibold text-ink">Name</span>
+        <span className="text-sm font-semibold text-ink">Username</span>
         <input
           value={name}
           onChange={(e) => setName(e.target.value.replace(/\s/g, '_'))}
           maxLength={20}
           minLength={3}
           pattern={NAME_PATTERN}
-          title={`Your name: ${NAME_RULE}`}
+          title={`Your username: ${NAME_RULE}`}
           required
           spellCheck={false}
           autoCapitalize="off"
@@ -211,7 +211,7 @@ export function ProfileEditor({ account, onSaved }: { account: Account; onSaved:
         {busy === 'text' ? (
           <span className="text-muted">Saving…</span>
         ) : !nameOk ? (
-          <span className="text-muted">Your name needs {NAME_RULE} before it saves.</span>
+          <span className="text-muted">Your username needs {NAME_RULE} before it saves.</span>
         ) : saved && !changed ? (
           <span className="text-go">Saved</span>
         ) : changed && !trouble ? (
