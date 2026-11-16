@@ -290,6 +290,7 @@ impl Store {
         store.create_swap_tables()?;
         store.create_vault_table()?;
         store.create_moderation_tables()?;
+        store.create_push_tables()?;
         Ok(store)
     }
 

@@ -9,6 +9,7 @@ pub mod mail;
 pub mod messages;
 pub mod moderation;
 pub mod prices;
+pub mod push;
 pub mod screen;
 pub mod store;
 pub mod swaps;

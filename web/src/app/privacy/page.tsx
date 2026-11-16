@@ -53,6 +53,15 @@ export default function PrivacyPage() {
         </p>
       </Section>
 
+      <Section title="Notifications on iPhone">
+        <p>
+          If you turn on notifications in Orien Wallet on iPhone, the app sends us the code Apple gave your phone for
+          notifications and the addresses of the wallets in the app, so we can tell you when one receives ORN. What an
+          address receives is public on the Orien network anyway. Turning notifications off deletes both; if you
+          remove the app instead, they are deleted once Apple tells us the phone no longer has it.
+        </p>
+      </Section>
+
       <Section title="Your Market account">
         <p>When you use the Market or the swap board, we keep:</p>
         <ul>

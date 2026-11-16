@@ -18,8 +18,27 @@ pub struct Incoming {
     pub epoch: u64,
 }
 
+/// Something that came into an address, named by `key` so it is told about
+/// once: a payment, or a locked payment claimed for it.
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct Credit {
+    pub key: String,
+    pub amount: u64,
+    pub epoch: u64,
+}
+
 /// Where the marketplace learns what was paid to it.
 pub trait Payments: Send + Sync {
+    /// Payments and claimed locked payments to `to` from epoch `from` on,
+    /// final ones only, for notifications.
+    fn credits(&self, to: &AccountId, from: u64) -> Result<Vec<Credit>> {
+        Ok(self
+            .received(to, from)?
+            .into_iter()
+            .enumerate()
+            .map(|(i, p)| Credit { key: format!("{}:{}:{i}", hex::encode(p.from.as_bytes()), p.epoch), amount: p.amount, epoch: p.epoch })
+            .collect())
+    }
     /// The epoch the network is in now.
     fn epoch(&self) -> Result<u64>;
     /// Payments to `to` from epoch `from` on, final ones only.
@@ -114,6 +133,25 @@ impl Payments for Network {
             next = page.next;
         }
         Ok(found)
+    }
+
+    fn credits(&self, to: &AccountId, from: u64) -> Result<Vec<Credit>> {
+        let page = self.client.history(to, from, 1000).context("no validator keeps history")?;
+        Ok(page
+            .entries
+            .iter()
+            .filter(|entry| matches!(entry.income, Income::Payment | Income::Claim))
+            .map(|entry| Credit {
+                // The order behind it names it; anything without one, by
+                // what and when.
+                key: match entry.order {
+                    Some((from, seq)) => format!("{}:{seq}", hex::encode(from.as_bytes())),
+                    None => format!("{:?}:{}:{}", entry.income, entry.epoch, entry.amount),
+                },
+                amount: entry.amount,
+                epoch: entry.epoch,
+            })
+            .collect())
     }
 
     fn has_held(&self, account: &AccountId) -> Result<bool> {

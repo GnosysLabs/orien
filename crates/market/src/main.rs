@@ -36,6 +36,16 @@ struct Args {
     /// on this computer.
     #[arg(long)]
     openrouter_key: Option<PathBuf>,
+    /// Apple's push key (.p8), for notifications on iPhone; without it,
+    /// notifications are written to the log
+    #[arg(long)]
+    apns_key: Option<PathBuf>,
+    /// The Apple push key's id, as Apple shows it
+    #[arg(long, default_value = "")]
+    apns_key_id: String,
+    /// The Apple developer team the key belongs to
+    #[arg(long, default_value = "4PDUNTF69S")]
+    apns_team: String,
     /// The Orien network's genesis file, for asking its validators.
     #[arg(long, default_value = "/var/lib/orien/genesis.json")]
     genesis: PathBuf,
@@ -177,6 +187,14 @@ async fn main() -> Result<()> {
         &address,
     )?
     .with_traffic(orien_market::traffic::Traffic::open(traffic)));
+    let apns = match &args.apns_key {
+        Some(key) => orien_market::push::Apns::load(key, &args.apns_key_id, &args.apns_team)?,
+        None => {
+            println!("no --apns-key: iPhone notifications go to this log instead");
+            orien_market::push::Apns::off()
+        }
+    };
+    orien_market::push::watch(app.clone(), apns);
     let listener = tokio::net::TcpListener::bind(&args.listen).await?;
     println!("marketplace server for {} listening on {}", args.origin, args.listen);
     if let Some(at) = &args.admin_listen {

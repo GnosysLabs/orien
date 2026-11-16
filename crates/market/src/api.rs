@@ -274,6 +274,8 @@ pub fn router(app: Arc<App>) -> Router {
         .route("/api/market/reports", post(report))
         .route("/api/market/contact", post(contact))
         .route("/api/market/t", post(ping))
+        .route("/api/market/push/register", post(crate::push::register))
+        .route("/api/market/push/unregister", post(crate::push::unregister))
         .route("/api/market/conversations", get(conversations))
         .route("/api/market/conversations/{id}", get(conversation))
         .route("/api/market/conversations/{id}/messages", post(reply))
