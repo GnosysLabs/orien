@@ -74,15 +74,17 @@ export function ProfileView() {
         </div>
         {/* relative: drawn above the banner behind it. */}
         <div className={`relative min-w-0 space-y-2 ${account.banner ? 'on-banner' : ''}`}>
-          <h1 className="text-3xl font-bold tracking-tight text-ink">{account.name}</h1>
-          {wallets.length > 0 && (
-            <p
-              className="inline-flex items-center gap-1.5 rounded-full border border-line bg-bg px-3 py-1 text-xs font-semibold text-go"
-              title="This person proved at least one wallet is theirs"
-            >
-              <BadgeCheck className="h-3.5 w-3.5" strokeWidth={2.25} aria-hidden /> Verified
-            </p>
-          )}
+          <div className="flex flex-wrap items-center justify-center gap-3 sm:justify-start">
+            <h1 className="text-3xl font-bold tracking-tight text-ink">{account.name}</h1>
+            {wallets.length > 0 && (
+              <span
+                className="inline-flex items-center gap-1.5 rounded-full border border-line bg-bg px-3 py-1 text-xs font-semibold text-go"
+                title="This person proved at least one wallet is theirs"
+              >
+                <BadgeCheck className="h-3.5 w-3.5" strokeWidth={2.25} aria-hidden /> Verified
+              </span>
+            )}
+          </div>
           <p className="text-sm text-muted">{memberSince(account.created)}</p>
           {account.bio && (
             <p className="whitespace-pre-line pt-2 leading-relaxed text-muted">
