@@ -686,7 +686,15 @@ async fn report(State(app): State<Arc<App>>, headers: HeaderMap, Json(request): 
 #[derive(Deserialize)]
 struct NewSwap {
     orn: u64,
+    /// "sol" or "btc" (the default, for wallets from before SOL swaps).
+    #[serde(default)]
+    coin: Option<String>,
+    /// The price of a Bitcoin offer.
+    #[serde(default)]
     sats: u64,
+    /// The price of a SOL offer.
+    #[serde(default)]
+    lamports: u64,
     /// The Bitcoin address to be paid at, and the wallet the ORN come from,
     /// so any of the seller's wallets can run the swap.
     #[serde(default)]
@@ -717,12 +725,24 @@ struct Finish2 {
     done: bool,
 }
 
-async fn open_swaps(State(app): State<Arc<App>>) -> Answer {
-    let offers = app.store.lock().unwrap().open_swaps()?;
+#[derive(Deserialize, Default)]
+struct Board {
+    /// Which coins' offers, comma-separated: "sol,btc". Bitcoin only when
+    /// left out, so wallets from before SOL swaps never see SOL offers.
+    #[serde(default)]
+    coins: Option<String>,
+}
+
+async fn open_swaps(State(app): State<Arc<App>>, Query(board): Query<Board>) -> Answer {
+    let wanted = board.coins.unwrap_or_else(|| "btc".into());
+    let coins: Vec<&str> = wanted.split(',').map(str::trim).filter(|c| matches!(*c, "sol" | "btc")).collect();
+    let offers = app.store.lock().unwrap().open_swaps_in(&coins)?;
     let prices = app.prices.clone();
-    let price = tokio::task::spawn_blocking(move || prices.bitcoin()).await.map_err(|e| Failure::Broken(e.into()))?;
-    let usd = price.map(|p| json!({ "usd": p.usd, "at": p.at }));
-    Ok(Json(json!({ "offers": offers, "bitcoin": usd })).into_response())
+    let (bitcoin, solana) = tokio::task::spawn_blocking(move || (prices.bitcoin(), prices.solana()))
+        .await
+        .map_err(|e| Failure::Broken(e.into()))?;
+    let usd = |price: Option<crate::prices::Price>| price.map(|p| json!({ "usd": p.usd, "at": p.at }));
+    Ok(Json(json!({ "offers": offers, "bitcoin": usd(bitcoin), "solana": usd(solana) })).into_response())
 }
 
 async fn post_swap(State(app): State<Arc<App>>, headers: HeaderMap, Json(request): Json<NewSwap>) -> Answer {
@@ -731,7 +751,14 @@ async fn post_swap(State(app): State<Arc<App>>, headers: HeaderMap, Json(request
         .store
         .lock()
         .unwrap()
-        .post_swap_for(seller, request.orn, request.sats, request.payout.as_deref(), request.wallet.as_deref())
+        .post_offer(
+            seller,
+            request.coin.as_deref().unwrap_or("btc"),
+            request.orn,
+            if request.coin.as_deref() == Some("sol") { request.lamports } else { request.sats },
+            request.payout.as_deref(),
+            request.wallet.as_deref(),
+        )
         .map_err(refused)?;
     Ok((StatusCode::CREATED, Json(json!({ "offer": offer }))).into_response())
 }
@@ -761,6 +788,11 @@ async fn take_swap(State(app): State<Arc<App>>, headers: HeaderMap, Path(id): Pa
     // lock only after the ORN were locked: turn it away before anything is.
     if request.swap_version < app.min_swap_version {
         return Err(Failure::Refused("update Orien Wallet to take this offer".into()));
+    }
+    // SOL swaps need a wallet that knows them: swap rules 3 on.
+    let coin = app.store.lock().unwrap().swap_offer(id)?.map(|o| o.coin).unwrap_or_default();
+    if coin == "sol" && request.swap_version < 3 {
+        return Err(Failure::Refused("update Orien Wallet to take SOL offers".into()));
     }
     let (swap, seller_email, taker) = {
         let store = app.store.lock().unwrap();
@@ -807,7 +839,11 @@ async fn swap_offer_code(State(app): State<Arc<App>>, headers: HeaderMap, Path(i
     if let Some(to) = buyer_email {
         let (mailer, origin) = (app.mailer.clone(), app.origin.clone());
         let seller_name = swap.offer.seller_name.clone();
-        let btc = bitcoin_amount(swap.offer.sats);
+        let btc = if swap.offer.coin == "sol" {
+            format!("{} SOL", trimmed(swap.offer.lamports, 9))
+        } else {
+            format!("{} BTC", bitcoin_amount(swap.offer.sats))
+        };
         tokio::task::spawn_blocking(move || {
             if let Err(error) = mailer.send_swap_accepted(&to, &seller_name, &btc, &origin) {
                 eprintln!("cannot email a swap notice: {error:#}");
@@ -815,6 +851,13 @@ async fn swap_offer_code(State(app): State<Arc<App>>, headers: HeaderMap, Path(i
         });
     }
     Ok(Json(json!({ "swap": swap })).into_response())
+}
+
+/// An amount with `places` decimals, as people write it: 0.15.
+fn trimmed(units: u64, places: u32) -> String {
+    let unit = 10u64.pow(places);
+    let (whole, fraction) = (units / unit, units % unit);
+    if fraction == 0 { whole.to_string() } else { format!("{whole}.{}", format!("{fraction:0width$}", width = places as usize).trim_end_matches('0')) }
 }
 
 /// Satoshis as BTC, as people write it: 0.00005.
