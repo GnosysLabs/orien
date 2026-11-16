@@ -16,6 +16,10 @@ use ed25519_dalek::{Signer, SigningKey};
 use serde_json::{Value, json};
 use std::time::Duration;
 
+/// orien-lock on Solana's main network: deployed 2026-11-16 from the
+/// reviewed 4,016-byte build, then made final, so nobody can change it.
+pub const MAINNET_LOCK_PROGRAM: &str = "DAeXj31NAoSgno7SiFX7t4tWoMDBtpN9rn8c2X7WNtYE";
+
 pub const LAMPORTS_PER_SOL: u64 = 1_000_000_000;
 /// The orien-lock program's lock account, in bytes.
 pub const LOCK_LEN: u64 = 113;
@@ -181,7 +185,10 @@ impl Solana {
     /// Solana's main network, through the public services that answer with
     /// no account. orien-lock isn't on it yet.
     pub fn mainnet() -> Solana {
-        Solana::with(&["https://api.mainnet-beta.solana.com", "https://solana-rpc.publicnode.com"], None)
+        Solana::with(
+            &["https://api.mainnet-beta.solana.com", "https://solana-rpc.publicnode.com"],
+            Some(address(MAINNET_LOCK_PROGRAM).expect("a valid address")),
+        )
     }
 
     /// Solana's test network, with orien-lock.
@@ -684,5 +691,90 @@ mod tests {
             std::thread::sleep(Duration::from_secs(2));
         }
         assert_eq!(read, Some(secret), "the buyer can read the secret back from Solana");
+    }
+
+    /// One small lock claimed and one refunded on the main network, paid
+    /// by the deploy key: `cargo test -p orien-swap solana_mainnet -- --ignored`.
+    #[test]
+    #[ignore]
+    fn solana_mainnet() {
+        let key = std::fs::read_to_string(std::env::var("HOME").unwrap() + "/.config/orien/solana-mainnet-deployer.json").unwrap();
+        let bytes: Vec<u8> = serde_json::from_str(&key).unwrap();
+        let buyer = Keypair::from_secret(bytes[..32].try_into().unwrap());
+        assert_eq!(buyer.pubkey().as_slice(), &bytes[32..64]);
+        let sol = Solana::mainnet();
+        let program = sol.lock_program.unwrap();
+        let wait = |signature: &str| {
+            for _ in 0..90 {
+                std::thread::sleep(Duration::from_secs(1));
+                if sol.landed(signature).unwrap_or(None) >= Some(Landed::Confirmed) {
+                    return;
+                }
+            }
+            panic!("{signature} did not land");
+        };
+        let deposit = sol.rent(LOCK_LEN).unwrap();
+        let amount = 1_000_000; // 0.001 SOL, above the 0.00089 a new address needs
+        let make = |seller: &Keypair, secret: &[u8; 32], seconds: i64| -> (Keypair, Lock) {
+            let terms = Lock {
+                hash: orien_ledger::types::lock_hash(secret),
+                seller: seller.pubkey(),
+                buyer: buyer.pubkey(),
+                deadline: sol.time().unwrap() + seconds,
+                amount,
+                lamports: 0,
+            };
+            let at = Keypair::random();
+            let tx = transaction(&buyer, &[&at], &lock(&program, &buyer.pubkey(), &at.pubkey(), &terms, deposit), sol.blockhash().unwrap()).unwrap();
+            wait(&sol.send(&tx).unwrap());
+            println!("locked: {}", signature_of(&tx));
+            (at, terms)
+        };
+        let finalized = |at: &Keypair| {
+            for _ in 0..60 {
+                std::thread::sleep(Duration::from_secs(1));
+                if let Ok(Some(found)) = sol.lock(&at.pubkey()) {
+                    return found;
+                }
+            }
+            panic!("the lock never finalized");
+        };
+
+        // Claimed with the secret: the seller is paid, the deposit comes back.
+        let (seller, secret) = (Keypair::random(), [7u8; 32]);
+        let (at, terms) = make(&seller, &secret, 600);
+        let found = finalized(&at);
+        assert_eq!((found.seller, found.buyer, found.amount, found.hash), (terms.seller, terms.buyer, terms.amount, terms.hash));
+        let wrong = transaction(&buyer, &[], &[claim(&program, &at.pubkey(), &terms, &[1; 32])], sol.blockhash().unwrap()).unwrap();
+        assert!(sol.send(&wrong).is_err(), "a wrong secret is refused");
+        let early = transaction(&buyer, &[], &[refund(&program, &at.pubkey(), &terms)], sol.blockhash().unwrap()).unwrap();
+        assert!(sol.send(&early).is_err(), "no refund before the deadline");
+        let claiming = transaction(&buyer, &[], &[claim(&program, &at.pubkey(), &terms, &secret)], sol.blockhash().unwrap()).unwrap();
+        wait(&sol.send(&claiming).unwrap());
+        println!("claimed: {}", signature_of(&claiming));
+        let mut read = None;
+        for _ in 0..45 {
+            std::thread::sleep(Duration::from_secs(2));
+            if let Ok(Some(found)) = sol.secret(&at.pubkey(), &terms.hash) {
+                read = Some(found);
+                break;
+            }
+        }
+        assert_eq!(read, Some(secret), "the secret can be read back");
+        assert_eq!(sol.balance(&seller.pubkey()).unwrap(), amount, "the seller has exactly the amount");
+        // The seller's 0.001 SOL back to the deploy key, leaving nothing.
+        let home = transaction(&seller, &[], &[transfer(&seller.pubkey(), &buyer.pubkey(), amount - 5_000)], sol.blockhash().unwrap()).unwrap();
+        wait(&sol.send(&home).unwrap());
+        println!("seller's SOL home: {}", signature_of(&home));
+
+        // Not claimed: refunded in full once the deadline passes.
+        let (at, terms) = make(&Keypair::random(), &[8u8; 32], 30);
+        finalized(&at);
+        while sol.time().unwrap() < terms.deadline {
+            std::thread::sleep(Duration::from_secs(3));
+        }
+        let back = transaction(&buyer, &[], &[refund(&program, &at.pubkey(), &terms)], sol.blockhash().unwrap()).unwrap();
+        wait(&sol.send(&back).unwrap());
+        println!("refunded: {}", signature_of(&back));
     }
 }

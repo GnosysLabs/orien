@@ -30,8 +30,10 @@ appears in the claim transaction's data.
 
 Devnet: `99zcMPAgZwXxoLDwor424zro9BGMATTsMk8djqov2qKf` (upgradeable, for
 testing). Mainnet: `DAeXj31NAoSgno7SiFX7t4tWoMDBtpN9rn8c2X7WNtYE`, deployed at
-exactly its size, tried with one small real swap, then made final so nobody
-can change it.
+exactly its size on 2026-11-16 (slot 470088721), tried with one small real
+lock claimed and one refunded (`cargo test -p orien-swap solana_mainnet --
+--ignored`), then made final: its upgrade authority is none, so nobody can
+change it. Its bytes are the reviewed build's (SHA-256 `6403ce8c…61d1b3`).
 
 Two reviews (2026-11-16) found nothing to change in the program. It relies
 on SIMD-0321 (the instruction data's address in register 2) and SBPF v3,
