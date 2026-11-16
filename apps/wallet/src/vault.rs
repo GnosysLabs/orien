@@ -36,8 +36,12 @@ fn kept(dir: &Path, name: &str) -> Option<VaultKeys> {
             return serde_json::from_slice(&bytes).ok();
         }
         // Kept in a file by an earlier test copy: move it into the Keychain.
+        // On iPhones that file named wallets by their full path, which holds
+        // the app's container (it changes with each install): matched by
+        // the part after it.
         let mut all = saved(dir);
-        let keys = all.remove(name)?;
+        let stored = all.keys().find(|stored| *stored == name || same_wallet(stored, name)).cloned()?;
+        let keys = all.remove(&stored)?;
         keep(dir, name, &keys);
         if all.is_empty() {
             let _ = fs::remove_file(keys_file(dir));
@@ -50,6 +54,14 @@ fn kept(dir: &Path, name: &str) -> Option<VaultKeys> {
     {
         saved(dir).get(name).cloned()
     }
+}
+
+/// The same wallet named two ways: "~/Library/…" and an older full path
+/// "/private/var/mobile/Containers/Data/Application/<id>/Library/…".
+#[cfg_attr(not(any(target_os = "macos", target_os = "ios")), allow(dead_code))]
+fn same_wallet(stored: &str, name: &str) -> bool {
+    let tail = |path: &str| path.find("/Library/").map(|at| path[at..].to_string());
+    stored.contains("/Containers/Data/Application/") && name.starts_with("~/") && tail(stored).is_some() && tail(stored) == tail(name)
 }
 
 fn keep(dir: &Path, name: &str, keys: &VaultKeys) {

@@ -463,7 +463,18 @@ async fn biometric_unlock(app: AppHandle, path: Option<String>) -> Result<(), St
         Some(path) => known_wallets(&folder(&app)?).into_iter().map(|w| w.path).find(|known| known.display().to_string() == path).ok_or("That wallet is not in this app.")?,
         None => wallet_file(&folder(&app)?).ok_or("no wallet yet")?,
     };
-    tauri::async_runtime::spawn_blocking(move || biometric::unlock(&wallet)).await.map_err(|error| error.to_string())?
+    let dir = folder(&app)?;
+    tauri::async_runtime::spawn_blocking(move || {
+        biometric::unlock(&wallet)?;
+        // Unlocked: work out its vault keys too, if not kept yet, so its
+        // contacts and wallet icons sync from now on without asking.
+        if let Some(password) = biometric::unlocked(&wallet) {
+            let _ = vault::keys(&dir, &wallet, Some(&password));
+        }
+        Ok(())
+    })
+    .await
+    .map_err(|error| error.to_string())?
 }
 
 /// Protects the open wallet with Touch ID or Face ID instead of a typed
