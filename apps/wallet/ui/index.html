@@ -1569,12 +1569,21 @@
     cover.classList.add("gone");
     setTimeout(() => { cover.hidden = true; }, 260);
   }
+  // The wallet list waits behind the sunrise until its balances are in, so
+  // nothing pops in late. Never longer than a few seconds.
   async function showWallets() {
-    show("wallets");
+    covered(true);
+    const cap = setTimeout(() => covered(false), 8000);
     $("wallets-problem").hidden = true;
-    await loadWallets();
-    renderWallets({});
-    try { renderWallets(await invoke("wallet_balances")); } catch {}
+    let balances = {};
+    try {
+      await loadWallets();
+      balances = await invoke("wallet_balances");
+    } catch {}
+    renderWallets(balances);
+    show("wallets");
+    clearTimeout(cap);
+    covered(false);
   }
   const PENCIL = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L8 18l-4 1 1-4z"/></svg>';
   const TRASH = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M9 7V4.5h6V7M6.5 7l1 13h9l1-13"/></svg>';
@@ -1588,8 +1597,9 @@
       if (e.target.closest("button")) return;
       const w = walletList[Number(row.dataset.open)];
       if (w.current) { home(); return; }
+      covered(true);
       try { await invoke("use_wallet", { path: w.path }); walletOpened(); home(); }
-      catch (err) { problem("wallets-problem", err); }
+      catch (err) { covered(false); problem("wallets-problem", err); }
     };
     for (const b of $("wallet-list").querySelectorAll("[data-rename]")) b.onclick = () => {
       renaming = walletList[Number(b.dataset.rename)];
