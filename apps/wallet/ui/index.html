@@ -3345,7 +3345,8 @@
     if (key === shownOffers && list.children.length) return;
     shownOffers = key;
     $("board-btc").textContent = [board.solUsd && `1 SOL ≈ ${fmtUsd(board.solUsd)}`, board.usd && `1 BTC ≈ ${fmtUsd(board.usd)}`].filter(Boolean).join(" · ");
-    const offers = board.offers.filter((o) => solOpen || o.coin !== "sol");
+    // Your own offers live under Your swaps, where you can withdraw them.
+    const offers = board.offers.filter((o) => (solOpen || o.coin !== "sol") && !(board.me && o.seller === board.me.id));
     if (!offers.length) { list.innerHTML = '<div class="empty">No open offers right now</div>'; return; }
     list.innerHTML = offers.map((o) => {
       const price = offerValue(o);
