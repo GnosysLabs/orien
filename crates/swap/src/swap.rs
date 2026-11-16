@@ -192,11 +192,11 @@ pub struct Reply {
     pub height: u32,
 }
 
-fn encode_code<T: Serialize>(prefix: &str, value: &T) -> String {
+pub(crate) fn encode_code<T: Serialize>(prefix: &str, value: &T) -> String {
     format!("{prefix}{}", URL_SAFE_NO_PAD.encode(serde_json::to_vec(value).expect("plain data")))
 }
 
-fn decode_code<T: for<'a> Deserialize<'a>>(prefix: &str, code: &str, what: &str) -> Result<T> {
+pub(crate) fn decode_code<T: for<'a> Deserialize<'a>>(prefix: &str, code: &str, what: &str) -> Result<T> {
     let body = code.trim().strip_prefix(prefix).ok_or_else(|| anyhow!("that is not a swap {what} code"))?;
     let bytes = URL_SAFE_NO_PAD.decode(body.trim()).map_err(|_| anyhow!("that {what} code is damaged"))?;
     serde_json::from_slice(&bytes).map_err(|_| anyhow!("that {what} code is damaged"))

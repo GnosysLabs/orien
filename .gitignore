@@ -1,3 +1,4 @@
 /target
 /devnet
 /net
+/programs/*/target

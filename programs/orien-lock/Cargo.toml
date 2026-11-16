@@ -1,0 +1,23 @@
+[package]
+name = "orien-lock"
+version = "0.1.0"
+edition = "2024"
+description = "Orien's hash-and-time lock on Solana: coins wait for a secret, or go back after a deadline"
+publish = false
+
+# Built for Solana with `cargo build-sbf`; not part of the main workspace.
+[workspace]
+
+[lib]
+crate-type = ["cdylib", "lib"]
+
+[dependencies]
+pinocchio = { version = "0.12", default-features = false }
+
+[profile.release]
+opt-level = "z"
+lto = "fat"
+codegen-units = 1
+panic = "abort"
+strip = true
+overflow-checks = true
