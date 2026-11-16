@@ -321,6 +321,18 @@
   .topline .account .avatar img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
   .pill.icon { width: 32px; padding: 0; color: var(--dim); }
   .pill.icon:hover { color: var(--ink); }
+  .home-top { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 12px; }
+  .home-top .wallet-chip { margin: 0 0 0 2px; }
+  .me-face { padding: 0; border: 0; background: none; border-radius: 50%; cursor: pointer; }
+  .me-face .avatar { transition: box-shadow .15s; }
+  .me-face:hover .avatar { box-shadow: 0 0 0 2px var(--line); }
+  .account .avatar { position: relative; overflow: hidden; width: 32px; height: 32px; border-radius: 50%;
+    background: var(--surface-hover); display: grid; place-items: center; font-weight: 600; color: var(--ink); font-size: 13px; }
+  .account .avatar img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+  .account { display: flex; align-items: center; gap: 8px; }
+  .profile-pic { display: flex; flex-direction: column; align-items: center; gap: 12px; margin-bottom: 22px; }
+  .profile-pic .face { width: 88px; height: 88px; font-size: 32px; }
+  #pf-bio { display: block; min-height: 96px; font: inherit; font-size: 14px; letter-spacing: normal; resize: none; }
   .topline .account { margin-left: auto; display: flex; align-items: center; gap: 10px; font-size: 12.5px; color: var(--dim); }
   .offer { display: grid; grid-template-columns: 36px 1fr auto; gap: 12px; align-items: center;
     padding: 14px 14px 14px 16px; border: 1px solid var(--line); border-radius: 16px; background: var(--surface); }
@@ -653,6 +665,7 @@
 
   /* Home */
   body.phone .wallet-chip { margin: 0 0 12px; height: 32px; padding: 0 12px; border: 0; background: var(--fill); font-size: 15px; color: var(--ink); }
+  body.phone .home-top .wallet-chip { margin: 0; }
   body.phone .card { border-radius: 20px; }
   body.phone .card .label { font-size: 13px; }
   body.phone .actions { gap: 10px; }
@@ -814,7 +827,8 @@
 
     <!-- Home -->
     <section class="screen" id="home" hidden>
-      <div><button class="wallet-chip" id="wallet-chip"><span id="wallet-name">Wallet</span><svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m4 6 4 4 4-4"/></svg></button></div>
+      <div class="home-top"><button class="wallet-chip" id="wallet-chip"><span id="wallet-name">Wallet</span><svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m4 6 4 4 4-4"/></svg></button>
+        <div class="account"><button class="me-face" id="board-who" hidden aria-label="Your profile" title="Your profile"></button><button class="pill" id="board-signin-go">Sign in</button></div></div>
       <!-- A swap that needs you, or is under way: impossible to miss. -->
       <button class="swap-alert" id="swap-alert" hidden>
         <div class="sa-main"><div class="sa-title" id="sa-title"></div><div class="sa-sub" id="sa-sub"></div></div>
@@ -890,6 +904,32 @@
       </div>
       <div class="scroll" id="contact-list"></div>
       <button class="primary pearl" id="add-contact">Add a contact</button>
+    </section>
+
+    <!-- Your marketplace profile: what others see beside your offers and,
+         once your wallet is proven, beside your address. -->
+    <section class="screen" id="profile" hidden>
+      <div class="topline"><button class="back" data-back aria-label="Back"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10 3 5 8l5 5"/></svg></button><h2>Your profile</h2></div>
+      <div class="profile-pic"><span class="face" id="pf-face"></span><button class="pill" id="pf-picture">Change picture</button></div>
+      <div class="field">
+        <label for="pf-name">Name</label>
+        <div class="box plain"><input id="pf-name" autocomplete="off" maxlength="50"></div>
+      </div>
+      <div class="field">
+        <label for="pf-bio">About you</label>
+        <textarea id="pf-bio" maxlength="1000" placeholder="A few words for people you swap with"></textarea>
+      </div>
+      <div class="field">
+        <label for="pf-telegram">Telegram</label>
+        <div class="box plain"><input id="pf-telegram" placeholder="@username" autocomplete="off" spellcheck="false"></div>
+      </div>
+      <div class="field">
+        <label for="pf-x">X</label>
+        <div class="box plain"><input id="pf-x" placeholder="@username" autocomplete="off" spellcheck="false"></div>
+      </div>
+      <div class="push"></div>
+      <div class="problem" id="pf-problem" hidden></div>
+      <button class="primary pearl" id="pf-save" data-gap="lg">Save</button>
     </section>
 
     <!-- One contact -->
@@ -1043,8 +1083,7 @@
 
     <!-- Swaps -->
     <section class="screen" id="swaps" hidden>
-      <div class="topline"><button class="back" data-back aria-label="Back"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10 3 5 8l5 5"/></svg></button><h2>Swap</h2>
-        <div class="account"><span id="board-who" hidden></span><button class="pill" id="board-signin-go">Sign in</button></div></div>
+      <div class="topline"><button class="back" data-back aria-label="Back"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10 3 5 8l5 5"/></svg></button><h2>Swap</h2></div>
       <p class="lede">Swap ORN for SOL or Bitcoin, directly with another person. Either you both get paid, or you both get your coins back.</p>
       <div class="tabs" role="tablist">
         <button class="tab on" id="tab-offers-go" role="tab">Offers</button>
@@ -1498,6 +1537,7 @@
     // Never longer than a few seconds, even with the network slow.
     if (waiting) { covered(true); setTimeout(() => covered(false), 8000); }
     show("home"); fitBalance(); loadWallets(); renderSwapAlert();
+    invoke("board_me").then((me) => { board.me = me; renderBoardBar(); }).catch(() => {});
     invoke("notifications_ask").catch(() => {});
     await refresh();
     if (waiting) { fitBalance(); covered(false); }
@@ -2661,7 +2701,7 @@
     // The signed-in account is its picture (or initial); its name shows on hover.
     $("board-who").hidden = !me;
     $("board-who").innerHTML = me ? avatar({ seller_name: me.name, seller_picture: me.picture }) : "";
-    $("board-who").title = me ? `Signed in as ${me.name}` : "";
+    $("board-who").title = me ? `${me.name}: your profile` : "";
     // Signed in: a sign-out glyph beside the picture. Signed out: "Sign in".
     const go = $("board-signin-go");
     go.classList.toggle("icon", !!me);
@@ -2922,7 +2962,10 @@
     $("bs-go").textContent = "Send me a code";
     $("bs-problem").hidden = true;
   }
+  // Where a sign-in started from, to go back there once it's done.
+  let signinReturn = "swaps";
   $("board-signin-go").onclick = async () => {
+    signinReturn = "home";
     if (board.me) {
       try { await invoke("board_sign_out"); } catch {}
       board.me = null;
@@ -2934,6 +2977,54 @@
     }
     resetSignin();
     show("board-signin");
+  };
+
+  // ---- Your profile ----
+  function paintProfileFace() {
+    const me = board.me;
+    if (!me) return;
+    const img = me.picture ? `<img src="${esc(`${boardBase}/api/market/images/${encodeURIComponent(me.picture)}`)}" alt="" decoding="async">` : "";
+    $("pf-face").innerHTML = esc((me.name || "?").slice(0, 1).toUpperCase()) + img;
+  }
+  function openProfile() {
+    const me = board.me;
+    if (!me) return;
+    paintProfileFace();
+    $("pf-name").value = me.name || "";
+    $("pf-bio").value = me.bio || "";
+    $("pf-telegram").value = (me.contact && me.contact.telegram) || "";
+    $("pf-x").value = (me.contact && me.contact.x) || "";
+    $("pf-problem").hidden = true;
+    $("pf-save").textContent = "Save";
+    show("profile");
+  }
+  $("board-who").onclick = openProfile;
+  $("pf-picture").onclick = async () => {
+    $("pf-picture").disabled = true;
+    $("pf-problem").hidden = true;
+    try {
+      if (await invoke("board_picture_pick")) {
+        board.me = await invoke("board_me");
+        renderBoardBar();
+        paintProfileFace();
+        feel("success");
+      }
+    } catch (e) { problem("pf-problem", e); }
+    finally { $("pf-picture").disabled = false; }
+  };
+  $("pf-save").onclick = async () => {
+    $("pf-save").disabled = true;
+    $("pf-problem").hidden = true;
+    try {
+      await invoke("board_profile_save", { name: $("pf-name").value, bio: $("pf-bio").value, telegram: $("pf-telegram").value, x: $("pf-x").value });
+      board.me = await invoke("board_me");
+      renderBoardBar();
+      paintProfileFace();
+      feel("success");
+      $("pf-save").textContent = "Saved";
+      setTimeout(() => { $("pf-save").textContent = "Save"; }, 1600);
+    } catch (e) { problem("pf-problem", e); }
+    finally { $("pf-save").disabled = false; }
   };
   $("bs-go").onclick = async () => {
     $("bs-go").disabled = true;
@@ -2957,6 +3048,7 @@
         }
         resetSignin();
         invoke("board_wallets_sync").catch(() => {});
+        if (signinReturn === "home") { signinReturn = "swaps"; await loadBoard(); home(); return; }
         show("swaps");
         await loadBoard();
         stepSwaps();

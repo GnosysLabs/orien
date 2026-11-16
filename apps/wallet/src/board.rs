@@ -200,6 +200,8 @@ pub fn me(dir: &Path) -> Result<Option<Value>, String> {
                 "id": account["id"],
                 "name": account["name"],
                 "picture": account["picture"],
+                "bio": account["bio"],
+                "contact": account["contact"],
                 // The wallet the account has proven, for selling on the
                 // marketplace. Swaps don't need one.
                 "wallet": account["wallet"],
@@ -376,6 +378,45 @@ pub fn take_sol(dir: &Path, wallet: &Path, offer: i64, address: &str, refund: &s
     saved.links.retain(|link| link.offer != offer);
     saved.links.push(Link { offer, selling: false, bitcoin: refund.into(), coin: "sol".into(), swap: None, finished: false, wallet: Some(wallet.to_path_buf()) });
     save(dir, &saved)
+}
+
+/// Saves the signed-in account's name, bio and public usernames.
+pub fn save_profile(dir: &Path, name: &str, bio: &str, telegram: &str, x: &str) -> Result<(), String> {
+    let contact = match call(dir, "GET", "/me", None) {
+        Ok(me) => me["account"]["contact"].clone(),
+        Err(failed) => return Err(failed.into()),
+    };
+    let email = contact["email"].as_str().unwrap_or("");
+    call(dir, "PUT", "/me", Some(json!({
+        "name": name.trim(),
+        "bio": bio.trim(),
+        "contact": { "email": email, "telegram": telegram.trim(), "x": x.trim() },
+    })))?;
+    Ok(())
+}
+
+/// Sends a new profile picture, the file at `path`; the server makes it a
+/// square and checks it.
+pub fn set_picture(dir: &Path, path: &Path) -> Result<(), String> {
+    let bytes = std::fs::read(path).map_err(|error| format!("could not read that picture: {error}"))?;
+    if bytes.len() > 10 * 1024 * 1024 {
+        return Err("That picture is too big. Pick one under 10 MB.".into());
+    }
+    let saved = load(dir);
+    let mut request = agent().post(&format!("{}/api/market/me/picture", base()));
+    if let Some(cookie) = &saved.cookie {
+        request = request.set("Cookie", &format!("{COOKIE}={cookie}"));
+    }
+    match request.send_bytes(&bytes) {
+        Ok(_) => Ok(()),
+        Err(ureq::Error::Status(401, _)) => Err("Sign in again to change your picture.".into()),
+        Err(ureq::Error::Status(_, response)) => Err(response
+            .into_json::<Value>()
+            .ok()
+            .and_then(|v| v["error"].as_str().map(capital))
+            .unwrap_or_else(|| "That picture couldn't be used.".into())),
+        Err(error) => Err(error.to_string()),
+    }
 }
 
 /// Marketplace profiles for wallet addresses: name and picture for each
