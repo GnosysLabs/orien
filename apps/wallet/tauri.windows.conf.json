@@ -5,11 +5,11 @@
         "title": "Orien Wallet",
         "visible": false,
         "backgroundThrottling": "disabled",
-        "width": 460,
+        "width": 500,
         "height": 580,
         "resizable": true,
         "theme": "Dark",
-        "minWidth": 400,
+        "minWidth": 460,
         "minHeight": 540,
         "decorations": false,
         "shadow": true

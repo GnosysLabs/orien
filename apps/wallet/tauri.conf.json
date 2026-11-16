@@ -12,7 +12,7 @@
         "title": "Orien Wallet",
         "visible": false,
         "backgroundThrottling": "disabled",
-        "width": 460,
+        "width": 500,
         "height": 620,
         "resizable": true,
         "titleBarStyle": "Overlay",
@@ -21,7 +21,7 @@
           "x": 20,
           "y": 26
         },
-        "minWidth": 400,
+        "minWidth": 460,
         "minHeight": 600
       }
     ],

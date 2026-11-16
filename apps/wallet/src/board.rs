@@ -459,6 +459,46 @@ pub fn image(dir: &Path, name: &str) -> Option<String> {
     Some(format!("data:{kind};base64,{}", base64::engine::general_purpose::STANDARD.encode(&bytes)))
 }
 
+/// A Market read, with the sign-in cookie when there is one (so a listing
+/// says whether it's yours), and `query` added to the address.
+fn market_get(dir: &Path, path: &str, query: &[(&str, &str)]) -> Result<Value, String> {
+    let saved = load(dir);
+    let mut request = agent().get(&format!("{}/api/market{path}", base()));
+    for (key, value) in query {
+        request = request.query(key, value);
+    }
+    if let Some(cookie) = &saved.cookie {
+        request = request.set("Cookie", &format!("{COOKIE}={cookie}"));
+    }
+    match request.call() {
+        Ok(answer) => answer.into_json().map_err(|error| error.to_string()),
+        Err(ureq::Error::Status(404, _)) => Err("This is gone or closed.".into()),
+        Err(ureq::Error::Status(_, response)) => Err(response
+            .into_json::<Value>()
+            .ok()
+            .and_then(|v| v["error"].as_str().map(capital))
+            .unwrap_or_else(|| "The Market could not do that.".into())),
+        Err(_) => Err("Can't reach Orien Market right now.".into()),
+    }
+}
+
+/// A page of listings, newest first: in `category` (empty for all), with
+/// `text` in the title or description, from `offset`.
+pub fn listings(dir: &Path, category: &str, text: &str, offset: u32) -> Result<Value, String> {
+    let offset = offset.to_string();
+    market_get(dir, "/listings", &[("category", category), ("q", text.trim()), ("offset", &offset)])
+}
+
+/// One listing, its seller, and whether it's this account's.
+pub fn listing(dir: &Path, id: i64) -> Result<Value, String> {
+    market_get(dir, &format!("/listings/{id}"), &[])
+}
+
+/// A seller's profile and what they offer.
+pub fn profile(dir: &Path, id: i64) -> Result<Value, String> {
+    market_get(dir, &format!("/profiles/{id}"), &[])
+}
+
 /// Profiles whose name matches `text`, with their verified wallets, for
 /// paying someone by name. Public, so asked without the sign-in cookie.
 pub fn search(text: &str) -> Result<Value, String> {

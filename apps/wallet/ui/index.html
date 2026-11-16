@@ -111,7 +111,7 @@
   body.phone .status { right: 20px; }
   /* No swaps on iPhone either: Apple asks for licences to offer trading
      between currencies, and a swap board's accounts bring rules of their own. */
-  body.phone #go-mine, body.phone #go-swap, body.phone #choose, body.phone .update { display: none !important; }
+  body.phone #go-mine, body.phone #go-swap, body.phone #go-market, body.phone #choose, body.phone .update { display: none !important; }
   body.phone .actions.five { grid-template-columns: repeat(4, minmax(0, 1fr)); }
   /* Get ORN is the iPhone's; computers have Mine and Swap. */
   body:not(.phone) #go-get { display: none; }
@@ -210,7 +210,7 @@
   .actions { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 16px; }
   .actions.three { grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
   .actions.four { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
-  .actions.five { grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 7px; }
+  .actions.five { grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 7px; }
   .actions.five .tile { flex-direction: column; gap: 6px; height: auto; padding: 12px 2px; font-size: 12px; }
   .actions.four .tile { flex-direction: column; gap: 6px; height: auto; padding: 12px 4px; font-size: 12.5px; }
   /* Swaps */
@@ -345,6 +345,63 @@
     background: var(--surface-hover); display: grid; place-items: center; font-weight: 600; color: var(--ink); font-size: 13px; }
   .account .avatar img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
   .account { display: flex; align-items: center; gap: 8px; }
+  /* ---- Orien Market ---- */
+  .mk-search { display: flex; align-items: center; gap: 10px; padding: 0 14px; color: var(--faint); }
+  .mk-search input { flex: 1; min-width: 0; border: 0; background: none; color: var(--ink); font: inherit; height: 44px; outline: none; }
+  .mk-cats { display: flex; gap: 6px; margin: 14px 0 16px; overflow-x: auto; }
+  .mk-cats button { flex: none; }
+  .mk-cats button { height: 30px; padding: 0 12px; border: 1px solid var(--line); border-radius: 15px; background: transparent;
+    color: var(--dim); font-size: 12.5px; font-weight: 500; cursor: pointer; transition: background .15s, color .15s; }
+  .mk-cats button:hover { background: var(--surface); color: var(--ink); }
+  .mk-cats button.on { border-color: transparent; color: var(--pearl-ink); background: var(--pearl); background-size: 300% 100%; font-weight: 600; }
+  .mk-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+  .mk-card { display: flex; flex-direction: column; padding: 0; border: 1px solid var(--line); border-radius: 18px; overflow: hidden;
+    background: var(--surface); color: inherit; font: inherit; text-align: left; cursor: pointer; transition: transform .15s, background .15s; }
+  .mk-card:hover { background: var(--surface-hover); transform: translateY(-1px); }
+  .mk-cover { position: relative; aspect-ratio: 16 / 9; background: linear-gradient(135deg, #2c2d33, #24252a); display: grid; place-items: center; color: var(--faint); }
+  .mk-cover img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+  .mk-closed { position: absolute; top: 8px; left: 8px; padding: 2px 8px; border-radius: 999px; background: #000000a0; color: #fff; font-size: 11px; font-weight: 600; }
+  .mk-body { padding: 10px 12px 12px; display: flex; flex-direction: column; gap: 6px; flex: 1; }
+  .mk-title { font-weight: 600; font-size: 13.5px; line-height: 1.3; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+  .mk-price { font-size: 13px; font-weight: 600; }
+  .mk-price .per, .ls-price .per { color: var(--dim); font-weight: 500; }
+  .mk-who { margin-top: auto; display: flex; align-items: center; gap: 6px; font-size: 11.5px; color: var(--dim); min-width: 0; }
+  .mk-who span:last-child { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .mk-who .avatar, .ls-seller .avatar { position: relative; overflow: hidden; flex: none; border-radius: 50%; display: grid; place-items: center;
+    background: var(--surface-hover); color: var(--ink); font-weight: 600; }
+  .mk-who .avatar { width: 20px; height: 20px; font-size: 10px; }
+  .mk-who .avatar img, .ls-seller .avatar img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+  .mk-empty { grid-column: 1 / -1; }
+  .mk-more { display: flex; margin: 18px auto 4px; }
+  .ls-gallery { position: relative; overflow: hidden; aspect-ratio: 16 / 9; border-radius: 18px; border: 1px solid var(--line);
+    background: linear-gradient(135deg, #2c2d33, #24252a); display: grid; place-items: center; color: var(--faint); }
+  .ls-gallery img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+  .ls-thumbs { display: flex; gap: 8px; margin-top: 10px; }
+  .ls-thumbs button { position: relative; overflow: hidden; width: 64px; aspect-ratio: 16 / 9; padding: 0; border-radius: 9px;
+    border: 1.5px solid transparent; background: var(--surface); cursor: pointer; opacity: .65; transition: opacity .15s; }
+  .ls-thumbs button.on { border-color: #cdc6ffaa; opacity: 1; }
+  .ls-thumbs img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+  .ls-title { margin: 18px 2px 0; font-size: 22px; font-weight: 600; line-height: 1.25; letter-spacing: -0.01em; }
+  .ls-price { margin: 6px 2px 0; font-size: 18px; font-weight: 600; }
+  .ls-seller { display: flex; align-items: center; gap: 12px; width: 100%; margin-top: 18px; padding: 12px 14px; border: 1px solid var(--line);
+    border-radius: 16px; background: var(--surface); color: inherit; font: inherit; text-align: left; cursor: pointer; }
+  .ls-seller:hover { background: var(--surface-hover); }
+  .ls-seller .avatar { width: 40px; height: 40px; font-size: 15px; }
+  .ls-seller .nm { font-weight: 600; }
+  .ls-seller .ok { color: var(--good); font-size: 12px; font-weight: 600; margin-left: 6px; }
+  .ls-seller .sub { font-size: 12px; color: var(--faint); margin-top: 2px; }
+  .ls-seller .chev { margin-left: auto; color: var(--faint); }
+  #ls-note { margin-top: 14px; }
+  .ls-desc { margin: 0 2px; white-space: pre-wrap; overflow-wrap: anywhere; color: var(--ink); font-size: 13.5px; line-height: 1.55; -webkit-user-select: text; user-select: text; }
+  .sl-face { margin-top: -44px; }
+  .sl-banner { cursor: default; }
+  .sl-name { text-align: center; font-size: 20px; font-weight: 600; margin-top: -8px; }
+  .sl-since { text-align: center; font-size: 12px; color: var(--faint); margin-top: 4px; }
+  .sl-wallets { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px; margin-top: 12px; }
+  .sl-wallets span { padding: 4px 10px; border: 1px solid var(--line); border-radius: 999px; font-size: 12px; color: var(--dim); }
+  .sl-wallets b { color: var(--good); font-weight: 600; }
+  .sl-bio { margin-top: 16px; text-align: center; color: var(--dim); }
+  .sl-contact { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px 14px; margin-top: 10px; font-size: 12.5px; color: var(--dim); -webkit-user-select: text; user-select: text; }
   .verify-card { margin-top: 22px; padding: 16px 18px; border: 1px solid var(--line); border-radius: 18px; background: var(--surface); }
   .vf-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 12px 0; border-top: 1px solid var(--line); }
   #vf-list { margin-top: 12px; }
@@ -901,6 +958,10 @@
           <span class="icon pearl"><svg width="17" height="17" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.35" stroke-linecap="round" stroke-linejoin="round"><path d="M3 5.5h9.5M10 3l2.5 2.5L10 8M13 10.5H3.5M6 8l-2.5 2.5L6 13"/></svg></span>
           Swap
         </button>
+        <button class="tile" id="go-market">
+          <span class="icon pearl"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 8h14l-1.2 11.1a1 1 0 0 1-1 .9H7.2a1 1 0 0 1-1-.9z"/><path d="M9 10V7a3 3 0 0 1 6 0v3"/></svg></span>
+          Market
+        </button>
         <button class="tile" id="go-get">
           <span class="icon pearl"><svg width="17" height="17" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.35" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3v10M3 8h10"/></svg></span>
           Get ORN
@@ -953,6 +1014,46 @@
       </div>
       <div class="scroll" id="contact-list"></div>
       <button class="primary pearl" id="add-contact">Add a contact</button>
+    </section>
+
+    <!-- Orien Market: work and things offered for ORN. -->
+    <section class="screen" id="market" hidden>
+      <div class="topline"><button class="back" data-back aria-label="Back"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10 3 5 8l5 5"/></svg></button><h2>Market</h2>
+        <div class="account mk-tools"></div></div>
+      <p class="lede">Work and things offered for ORN. You pay the seller straight from your wallet: the Market never holds anyone's coins.</p>
+      <div class="box plain mk-search"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="11" cy="11" r="6.5"/><path d="m16 16 4.5 4.5"/></svg><input id="mk-q" placeholder="Search listings" autocomplete="off" spellcheck="false"></div>
+      <div class="mk-cats" id="mk-cats"></div>
+      <div class="mk-grid" id="mk-grid"></div>
+      <div class="problem" id="mk-problem" hidden></div>
+      <button class="pill mk-more" id="mk-more" hidden>Show more</button>
+    </section>
+
+    <!-- One listing -->
+    <section class="screen" id="listing" hidden>
+      <div class="topline"><button class="back" id="ls-back" aria-label="Back"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10 3 5 8l5 5"/></svg></button><h2 id="ls-cat"></h2></div>
+      <div class="ls-gallery" id="ls-gallery"></div>
+      <div class="ls-thumbs" id="ls-thumbs" hidden></div>
+      <h1 class="ls-title" id="ls-title"></h1>
+      <div class="ls-price" id="ls-price"></div>
+      <button class="ls-seller" id="ls-seller"></button>
+      <div class="note" id="ls-note"></div>
+      <div class="section-head"><h3>About this</h3></div>
+      <div class="ls-desc" id="ls-desc"></div>
+      <div class="problem" id="ls-problem" hidden></div>
+    </section>
+
+    <!-- A seller on the Market -->
+    <section class="screen" id="seller" hidden>
+      <div class="topline"><button class="back" id="sl-back" aria-label="Back"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10 3 5 8l5 5"/></svg></button><h2>Seller</h2></div>
+      <div class="profile-pic"><div class="pf-banner sl-banner" id="sl-banner"></div><span class="face sl-face" id="sl-face"></span></div>
+      <div class="sl-name" id="sl-name"></div>
+      <div class="sl-since" id="sl-since"></div>
+      <div class="sl-wallets" id="sl-wallets"></div>
+      <div class="ls-desc sl-bio" id="sl-bio"></div>
+      <div class="sl-contact" id="sl-contact"></div>
+      <div class="section-head"><h3 id="sl-offers"></h3></div>
+      <div class="mk-grid" id="sl-grid"></div>
+      <div class="problem" id="sl-problem" hidden></div>
     </section>
 
     <!-- Your marketplace profile: what others see beside your offers and,
@@ -3184,6 +3285,142 @@
   }
   const bsNameOk = usernameField($("bs-name"), "bs-name-hint");
   const pfNameOk = usernameField($("pf-name"), "pf-name-hint");
+
+  // ---- Orien Market ----
+  const CATS = [["", "Everything"], ["design", "Design"], ["software", "Software"], ["teaching", "Teaching"], ["goods", "Goods"], ["other", "Other"]];
+  const CAT_ICON = {
+    design: '<path d="M9.5 14.5 4 20M14 4l6 6-8.5 8.5a2.1 2.1 0 0 1-3 0l-3-3a2.1 2.1 0 0 1 0-3z"/>',
+    software: '<path d="m8 8-4 4 4 4M16 8l4 4-4 4M13.5 5l-3 14"/>',
+    teaching: '<path d="m2.5 9 9.5-5 9.5 5-9.5 5z"/><path d="M6.5 11v5c0 1.5 2.5 3 5.5 3s5.5-1.5 5.5-3v-5"/>',
+    goods: '<path d="m12 3 8.5 4.5v9L12 21l-8.5-4.5v-9z"/><path d="M3.5 7.5 12 12l8.5-4.5M12 12v9"/>',
+    other: '<path d="m12 3 2.2 5.6L20 9.3l-4.4 3.9 1.3 5.8L12 16l-4.9 3 1.3-5.8L4 9.3l5.8-.7z"/>',
+  };
+  const catIcon = (c, size = 30) => `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round">${CAT_ICON[c] || CAT_ICON.other}</svg>`;
+  const catName = (c) => (CATS.find((x) => x[0] === c) || [c, "Other"])[1];
+  // ORN from units (9 decimals), with thousands commas and no trailing zeros.
+  function orn(units) {
+    const u = BigInt(units || 0), whole = u / 1000000000n, frac = (u % 1000000000n).toString().padStart(9, "0").replace(/0+$/, "");
+    return whole.toLocaleString("en-US") + (frac ? "." + frac : "");
+  }
+  const perUnit = (unit) => unit ? ` <span class="per">${esc(/^(per|\/|each|an?\b)/i.test(unit) ? unit : "per " + unit)}</span>` : "";
+  const priceHtml = (l) => `${orn(l.price)} ORN${perUnit(l.unit)}`;
+  const since = (t) => t ? `Member since ${new Date(t * 1000).toLocaleDateString([], { month: "long", year: "numeric" })}` : "";
+  const mkAvatar = (name, picture) => `<span class="avatar">${esc((name || "?").slice(0, 1).toUpperCase())}${picImg(picture)}</span>`;
+  function card(l) {
+    return `<button class="mk-card" data-listing="${l.id}">
+      <div class="mk-cover">${l.pictures && l.pictures[0] ? picImg(l.pictures[0]) : catIcon(l.category)}${l.open === false ? '<span class="mk-closed">Closed</span>' : ""}</div>
+      <div class="mk-body">
+        <div class="mk-title">${esc(l.title)}</div>
+        <div class="mk-price">${priceHtml(l)}</div>
+        <div class="mk-who">${mkAvatar(l.seller_name, l.seller_picture)}<span>${esc(l.seller_name || "")}</span></div>
+      </div>
+    </button>`;
+  }
+  const market = { cat: "", q: "", offset: 0, items: [], more: false, from: "market", listing: null };
+  function paintCats() {
+    $("mk-cats").innerHTML = CATS.map(([c, n]) => `<button type="button" data-cat="${c}"${c === market.cat ? ' class="on"' : ""}>${n}</button>`).join("");
+  }
+  async function loadMarket(more) {
+    if (!more) { market.offset = 0; market.items = []; }
+    $("mk-problem").hidden = true;
+    const asked = { cat: market.cat, q: market.q };
+    try {
+      const page = await invoke("market_listings", { category: market.cat, text: market.q, offset: market.offset });
+      if (asked.cat !== market.cat || asked.q !== market.q) return;
+      market.items = market.items.concat(page.listings || []);
+      market.more = !!page.more;
+      market.offset = market.items.length;
+    } catch (e) { problem("mk-problem", e); }
+    $("mk-grid").innerHTML = market.items.length
+      ? market.items.map(card).join("")
+      : `<div class="empty mk-empty">${market.q || market.cat ? "Nothing matches that yet." : "Nothing here yet. Be the first to sell something."}</div>`;
+    $("mk-more").hidden = !market.more;
+  }
+  async function openMarket() {
+    paintCats();
+    show("market");
+    if (!market.items.length) $("mk-grid").innerHTML = '<div class="empty mk-empty">Loading…</div>';
+    await loadMarket();
+  }
+  $("go-market").onclick = openMarket;
+  $("mk-cats").onclick = (e) => {
+    const b = e.target.closest("[data-cat]");
+    if (!b || b.dataset.cat === market.cat) return;
+    market.cat = b.dataset.cat;
+    paintCats();
+    feel("selection");
+    loadMarket();
+  };
+  let mkTimer = 0;
+  $("mk-q").oninput = () => {
+    clearTimeout(mkTimer);
+    mkTimer = setTimeout(() => { market.q = $("mk-q").value.trim(); loadMarket(); }, 300);
+  };
+  $("mk-more").onclick = () => loadMarket(true);
+  // Any card, in browse or on a seller's page, opens its listing.
+  document.addEventListener("click", (e) => {
+    const c = e.target.closest(".mk-card[data-listing]");
+    if (c) openListing(Number(c.dataset.listing), $("seller").hidden ? "market" : "seller");
+  });
+
+  function showPicture(i) {
+    const l = market.listing;
+    const pics = (l && l.pictures) || [];
+    $("ls-gallery").innerHTML = pics[i] ? picImg(pics[i]) : catIcon(l.category, 44);
+    for (const t of $("ls-thumbs").querySelectorAll("button")) t.classList.toggle("on", Number(t.dataset.pic) === i);
+  }
+  async function openListing(id, from) {
+    market.from = from || "market";
+    $("ls-problem").hidden = true;
+    let answer;
+    try { answer = await invoke("market_listing", { id }); }
+    catch (e) { problem(from === "seller" ? "sl-problem" : "mk-problem", e); return; }
+    const l = answer.listing, seller = answer.seller || {};
+    market.listing = l; market.seller = seller; market.mine = !!answer.mine;
+    $("ls-cat").textContent = catName(l.category) + (l.open === false ? " · closed" : "");
+    const pics = l.pictures || [];
+    $("ls-thumbs").hidden = pics.length < 2;
+    $("ls-thumbs").innerHTML = pics.map((p, i) => `<button type="button" data-pic="${i}" aria-label="Picture ${i + 1}">${picImg(p)}</button>`).join("");
+    showPicture(0);
+    $("ls-title").textContent = l.title;
+    $("ls-price").innerHTML = priceHtml(l);
+    $("ls-seller").innerHTML = `${mkAvatar(seller.name || l.seller_name, seller.picture || l.seller_picture)}
+      <div><div class="nm">${esc(seller.name || l.seller_name || "")}${seller.wallet_verified ? '<span class="ok">✓ Verified</span>' : ""}</div><div class="sub">${esc(since(seller.created))}</div></div>
+      <svg class="chev" width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m6 3 5 5-5 5"/></svg>`;
+    const who = esc(seller.name || l.seller_name || "the seller");
+    $("ls-note").innerHTML = market.mine
+      ? "This is your listing."
+      : `Agree the details in messages first. When you're ready, ${who} sends a payment request there, and you pay straight from this wallet to theirs.`;
+    $("ls-desc").textContent = l.description || "No description.";
+    show("listing");
+    $("listing").scrollTop = 0;
+  }
+  $("ls-thumbs").onclick = (e) => { const b = e.target.closest("[data-pic]"); if (b) showPicture(Number(b.dataset.pic)); };
+  $("ls-back").onclick = () => market.from === "seller" ? show("seller") : show("market");
+  $("ls-seller").onclick = () => market.listing && openSeller(market.listing.seller);
+
+  async function openSeller(id) {
+    $("sl-problem").hidden = true;
+    let answer;
+    try { answer = await invoke("market_profile", { id }); }
+    catch (e) { problem("ls-problem", e); return; }
+    const a = answer.account || {};
+    $("sl-banner").innerHTML = picImg(a.banner);
+    $("sl-face").innerHTML = esc((a.name || "?").slice(0, 1).toUpperCase()) + picImg(a.picture);
+    $("sl-name").textContent = a.name || "";
+    $("sl-since").textContent = since(a.created);
+    $("sl-wallets").innerHTML = (answer.wallets || []).map((w) => `<span><b>✓</b> ${esc(w.name || "Wallet")} · ${short(w.address)}</span>`).join("");
+    $("sl-bio").textContent = a.bio || "";
+    $("sl-bio").hidden = !a.bio;
+    const c = a.contact || {};
+    $("sl-contact").innerHTML = [c.email && `✉ ${esc(c.email)}`, c.telegram && `Telegram @${esc(c.telegram.replace(/^@/, ""))}`, c.x && `X @${esc(c.x.replace(/^@/, ""))}`].filter(Boolean).map((t) => `<span>${t}</span>`).join("");
+    const offers = answer.listings || [];
+    $("sl-offers").textContent = `What ${a.name || "they"} offer${a.name ? "s" : ""}`;
+    $("sl-grid").innerHTML = offers.length ? offers.map(card).join("") : '<div class="empty mk-empty">Nothing on offer right now.</div>';
+    show("seller");
+    $("seller").scrollTop = 0;
+  }
+  $("sl-back").onclick = () => show("listing");
 
   // ---- Your profile ----
   function paintProfileFace() {
