@@ -47,9 +47,20 @@ export type SwapOffer = {
   seller_picture: string | null
   seller_done: number
   orn: number
+  /** What the buyer pays with. */
+  coin: 'sol' | 'btc'
+  /** The price of a Bitcoin offer; 0 for a SOL one. */
   sats: number
+  /** The price of a SOL offer; 0 for a Bitcoin one. */
+  lamports: number
   state: string
   created: number
+}
+
+/** Lamports as SOL, at most four decimals: 250000000 → "0.25". */
+export function formatSol(lamports: number): string {
+  const sol = lamports / 1_000_000_000
+  return sol.toLocaleString('en', { maximumFractionDigits: sol < 0.01 ? 6 : 4 })
 }
 
 /** Satoshis as BTC: 1000000 → "0.01". */

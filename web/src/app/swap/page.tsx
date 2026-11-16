@@ -4,9 +4,9 @@ import { MarketBar } from '@/components/market/Shell'
 import { pageMeta } from '@/lib/seo'
 
 export const metadata: Metadata = pageMeta({
-  title: 'Buy and sell ORN with Bitcoin',
+  title: 'Buy and sell ORN with SOL',
   description:
-    'Buy ORN with Bitcoin, or sell ORN for Bitcoin, directly with another person through a trustless atomic swap: either both sides get paid, or both get their coins back. No exchange, no account holding your coins.',
+    'Buy ORN with SOL, or sell ORN for SOL, directly with another person through a trustless atomic swap that takes about a minute: either both sides get paid, or both get their coins back. Bitcoin works too. No exchange, no account holding your coins.',
   path: '/swap/',
 })
 

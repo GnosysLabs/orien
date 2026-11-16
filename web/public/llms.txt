@@ -5,10 +5,10 @@
 ## Pages
 
 - [Home](https://orien.network/): what Orien is, in short
-- [How it works](https://orien.network/how-it-works/): payments without blocks, coins and mining, swaps with Bitcoin, safety, measurements, common questions
+- [How it works](https://orien.network/how-it-works/): payments without blocks, coins and mining, swaps with SOL and Bitcoin, safety, measurements, common questions
 - [Get started](https://orien.network/try/): download Orien Wallet for Mac, Windows and Linux, or install the orien command line; mine, send, receive, run a validator
 - [Technical paper](https://orien.network/paper/): every rule in full detail ([PDF](https://orien.network/orien-paper.pdf))
-- [Buy and sell ORN](https://orien.network/swap/): trade ORN for Bitcoin with another person through a trustless atomic swap
+- [Buy and sell ORN](https://orien.network/swap/): trade ORN for SOL (or Bitcoin) with another person through a trustless atomic swap
 - [Market](https://orien.network/marketplace/): work and goods offered for ORN
 - [Changelog](https://orien.network/changelog/): every change to the network and the apps
 - [Contact](https://orien.network/contact/): write to the Orien team (hello@orien.network)

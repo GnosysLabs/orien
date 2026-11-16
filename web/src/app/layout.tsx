@@ -43,6 +43,7 @@ export const metadata: Metadata = {
     'fair launch',
     'no pre-mine',
     'atomic swap Bitcoin',
+    'buy ORN with SOL',
     'buy ORN with Bitcoin',
     'crypto wallet for Mac, Windows and Linux',
     'GnosysLabs',
