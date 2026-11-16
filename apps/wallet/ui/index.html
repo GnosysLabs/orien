@@ -499,6 +499,11 @@
   .menu-row svg { flex: none; width: 18px; height: 18px; }
   .menu-row span { line-height: 1.3; }
   .menu-row.bad { color: #ff7b72; }
+  /* A chat not loaded yet: one spinner, then all of it at once. */
+  #chat .ch-loading { display: none; }
+  #chat.loading > :not(.ch-loading) { visibility: hidden; }
+  #chat.loading .ch-loading { display: grid; place-items: center; position: absolute; inset: 0; }
+  #chat { position: relative; }
   .ch-about { display: flex; justify-content: space-between; gap: 10px; width: 100%; padding: 10px 14px; border: 1px solid var(--line); border-radius: 14px;
     background: var(--surface); color: var(--dim); font: inherit; font-size: 12.5px; text-align: left; cursor: pointer; flex-shrink: 0; }
   /* The listing a chat is about: pearl, so it stands out from the messages. */
@@ -533,7 +538,9 @@
   .ch-ask-x:hover { color: var(--ink); background: var(--surface-hover); }
   body.phone .ch-ask-x { width: 36px; height: 36px; }
   .ch-ask-row { display: flex; align-items: stretch; gap: 10px; margin-top: 12px; }
-  .ch-askbox .ch-amount { height: 48px; border-radius: 16px; padding: 0 16px; font-size: 16px; }
+  .ch-ask-row { justify-content: flex-end; }
+  .ch-askbox .ch-amount { flex: 1 1 auto; min-width: 0; max-width: 240px; height: 48px; border-radius: 16px; padding: 0 16px; font-size: 16px; }
+  .ch-askbox .ch-amount input { width: 100%; min-width: 0; }
   .ch-askbox .ch-amount input { font-size: 17px; }
   .ch-ask-go { flex: none; height: 48px; padding: 0 22px; border-radius: 24px; }
   .ch-amount { flex: 1; display: flex; align-items: center; gap: 8px; padding: 0 12px; height: 36px; border: 1px solid var(--line); border-radius: 12px; background: var(--field); }
@@ -1183,6 +1190,7 @@
 
     <!-- One conversation -->
     <section class="screen" id="chat" hidden>
+      <div class="ch-loading"><span class="spinner"></span></div>
       <div class="topline ch-top">
         <button class="back" id="ch-back" aria-label="Back"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10 3 5 8l5 5"/></svg></button>
         <button class="ch-who" id="ch-who"></button>
@@ -1855,6 +1863,13 @@
       }).catch(() => picking.delete(name)));
     }
     return `<img data-pic="${esc(name)}" alt="" hidden>`;
+  }
+  // Waits (briefly) for a picture to be in memory, so a screen can appear
+  // with it already in place.
+  function picReady(name, ms = 1500) {
+    if (!name || pics.has(name)) return Promise.resolve();
+    picImg(name);
+    return Promise.race([picking.get(name) || Promise.resolve(), new Promise((r) => setTimeout(r, ms))]);
   }
   // Marketplace profiles of wallet addresses, for names and pictures: an
   // address maps to {name, picture}, or to null once asked with no profile.
@@ -4021,6 +4036,7 @@
     try { inbox.items = (await mk("GET", "/conversations")).conversations || []; $("ib-problem").hidden = true; }
     catch (e) { problem("ib-problem", mkProblem(e)); }
     paintInbox();
+    preloadChats(inbox.items);
   }
   async function openInbox() {
     show("inbox");
@@ -4033,20 +4049,52 @@
 
   // One conversation.
   const chat = { id: null, from: "inbox", conv: null, messages: [], me: null, paying: null, blockArmed: false };
+  // Conversations as last loaded, so one opens complete at once (as
+  // messaging apps do) while anything new comes in behind it. Recent ones
+  // are loaded ahead, quietly, when the inbox is.
+  const chatCache = new Map();
+  const chatKey = (a) => JSON.stringify([a.conversation, (a.messages || []).map((m) => m.id)]);
+  async function fetchChat(id) {
+    const answer = await mk("GET", `/conversations/${id}`);
+    chatCache.set(id, answer);
+    await picReady(answer.conversation && answer.conversation.with_picture);
+    return answer;
+  }
+  async function preloadChats(list) {
+    for (const c of (list || []).slice(0, 12)) {
+      if (chatCache.has(c.id)) continue;
+      try { await fetchChat(c.id); } catch { return; }
+    }
+  }
   async function openChat(id, from) {
     chat.id = id; chat.from = from || "inbox"; chat.paying = null; chat.blockArmed = false;
-    $("ch-log").innerHTML = '<div class="empty">Loading…</div>';
     $("ch-askbox").hidden = true; $("ch-menu").hidden = true; $("ch-problem").hidden = true;
+    const kept = chatCache.get(id);
+    if (kept) {
+      chat.conv = kept.conversation; chat.messages = kept.messages || []; chat.me = kept.me; chat.key = chatKey(kept);
+      paintChat();
+      show("chat");
+      $("ch-text").focus();
+      refreshChat(false);
+      return;
+    }
+    // Not loaded yet: one spinner, then the whole chat at once.
+    $("chat").classList.add("loading");
     show("chat");
     await refreshChat(true);
+    $("chat").classList.remove("loading");
     $("ch-text").focus();
   }
   async function refreshChat(force) {
     if (!chat.id) return;
+    const id = chat.id;
     let answer;
-    try { answer = await mk("GET", `/conversations/${chat.id}`); }
+    try { answer = await fetchChat(id); }
     catch (e) { if (force) problem("ch-problem", mkProblem(e)); return; }
-    const changed = force || answer.messages.length !== chat.messages.length;
+    if (chat.id !== id) return;
+    const key = chatKey(answer);
+    const changed = force || key !== chat.key;
+    chat.key = key;
     chat.conv = answer.conversation; chat.messages = answer.messages || []; chat.me = answer.me;
     if (changed) paintChat();
     // Reading it clears its unread mark.
