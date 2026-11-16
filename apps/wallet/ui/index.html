@@ -980,7 +980,7 @@
         <div class="box plain"><input id="pw2" type="password" autocomplete="new-password"></div>
         <div class="check" id="pw-check"></div>
       </div>
-      <p class="fineprint">If you forget it, your recovery phrase still restores the wallet.<span id="pw-same"> Use the same password as on your other devices, if you like.</span></p>
+      <p class="fineprint">If you forget it, your recovery phrase still restores the wallet.</p>
       <div class="push"></div>
       <div class="problem" id="password-problem" hidden></div>
       <button class="primary pearl" id="pw-set" disabled data-gap="lg">Set password</button>
@@ -1921,7 +1921,6 @@
   // On Macs and iPhones: Touch ID or Face ID instead of a typed password,
   // the same on every Apple device, since the password is never typed.
   $("pw-bio").hidden = !apple;
-  $("pw-same").hidden = apple;
   $("pw-bio").textContent = `Use ${bio} instead`;
   $("pw-bio").onclick = async () => {
     $("pw-bio").disabled = true;
