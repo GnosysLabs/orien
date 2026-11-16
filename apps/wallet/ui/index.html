@@ -460,7 +460,6 @@
   .ls-ask-row { display: flex; align-items: center; justify-content: flex-end; gap: 8px; margin-top: 10px; }
   .ls-ask-row .hint { margin: 0 auto 0 2px; min-height: 0; }
   .ls-signin { display: flex; margin: 14px auto 0; }
-  .ls-report { display: flex; margin: 22px auto 4px; color: var(--dim); }
   .report-box { margin-top: 14px; }
   .ib-row { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 12px; align-items: center; width: 100%; padding: 12px 14px;
     border: 0; border-top: 1px solid var(--line); background: none; color: inherit; font: inherit; text-align: left; cursor: pointer; }
@@ -1125,7 +1124,15 @@
     <!-- One listing -->
     <section class="screen" id="listing" hidden>
       <div class="topline"><button class="back" id="ls-back" aria-label="Back"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10 3 5 8l5 5"/></svg></button><h2 id="ls-cat"></h2>
-        <div class="account" id="ls-mine" hidden><button class="pill" id="ls-close">Close</button><button class="pill pearl" id="ls-edit">Edit</button></div></div>
+        <div class="account" id="ls-mine" hidden><button class="pill" id="ls-close">Close</button><button class="pill pearl" id="ls-edit">Edit</button></div>
+        <div class="account" id="ls-tools" hidden><button class="pill icon" id="ls-more" title="More" aria-label="More"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="19" cy="12" r="1.8"/></svg></button></div></div>
+      <div class="ch-menu" id="ls-menu" role="menu" hidden>
+        <button class="menu-row" id="ls-report"><span>Report this listing</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M5 21V4M5 4h11l-2 4 2 4H5"/></svg></button>
+      </div>
+      <div class="report-box" id="ls-report-box" data-gap="sm" hidden>
+        <textarea id="ls-report-text" rows="3" maxlength="1000" placeholder="A scam, something illegal, pretending to be someone…"></textarea>
+        <div class="ls-ask-row"><span class="hint" id="ls-report-done"></span><button class="pill" id="ls-report-cancel">Cancel</button><button class="pill" id="ls-report-send">Send report</button></div>
+      </div>
       <div class="ls-gallery" id="ls-gallery"></div>
       <div class="ls-thumbs" id="ls-thumbs" hidden></div>
       <h1 class="ls-title" id="ls-title"></h1>
@@ -1136,11 +1143,6 @@
       <div class="note" id="ls-note"></div>
       <button class="primary pearl ls-message" id="ls-ask" data-gap="lg" hidden><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 20.5l1.4-4.9A8 8 0 1 1 21 12z"/></svg><span id="ls-ask-label">Message the seller</span></button>
       <button class="pill ls-signin" id="ls-signin" hidden>Sign in to message the seller</button>
-      <button class="pill ls-report" id="ls-report" hidden>Report this listing</button>
-      <div class="report-box" id="ls-report-box" hidden>
-        <textarea id="ls-report-text" rows="3" maxlength="1000" placeholder="A scam, something illegal, pretending to be someone…"></textarea>
-        <div class="ls-ask-row"><span class="hint" id="ls-report-done"></span><button class="pill" id="ls-report-send">Send report</button></div>
-      </div>
       <div class="problem" id="ls-problem" hidden></div>
     </section>
 
@@ -3791,7 +3793,7 @@
     $("ls-signin").hidden = market.mine || signedIn;
     $("ls-signin").textContent = `Sign in to message ${seller.name || l.seller_name || "the seller"}`;
     $("ls-ask-label").textContent = `Message ${seller.name || l.seller_name || "the seller"}`;
-    $("ls-report").hidden = market.mine || !signedIn;
+    $("ls-tools").hidden = market.mine || !signedIn;
     $("ls-mine").hidden = !market.mine;
     $("ls-close").textContent = l.open === false ? "Reopen" : "Close";
     $("ls-report-box").hidden = true;
@@ -3849,7 +3851,7 @@
   }
   document.addEventListener("pointerdown", (e) => {
     for (const m of document.querySelectorAll(".ch-menu:not([hidden])")) {
-      if (!m.contains(e.target) && !e.target.closest("#ch-more, #sl-more")) m.hidden = true;
+      if (!m.contains(e.target) && !e.target.closest("#ch-more, #sl-more, #ls-more")) m.hidden = true;
     }
   }, true);
   document.addEventListener("keydown", (e) => { if (e.key === "Escape") for (const m of document.querySelectorAll(".ch-menu")) m.hidden = true; });
@@ -3939,7 +3941,9 @@
     $("ch-text").focus();
   };
 
-  $("ls-report").onclick = () => { $("ls-report-box").hidden = !$("ls-report-box").hidden; $("ls-report-done").textContent = ""; if (!$("ls-report-box").hidden) $("ls-report-text").focus(); };
+  $("ls-more").onclick = () => toggleMenu("ls-menu", "ls-more");
+  $("ls-report").onclick = () => { $("ls-menu").hidden = true; $("ls-report-box").hidden = false; $("ls-report-done").textContent = ""; $("ls-report-text").focus(); };
+  $("ls-report-cancel").onclick = () => { $("ls-report-box").hidden = true; };
   $("ls-report-send").onclick = async () => {
     $("ls-report-send").disabled = true;
     try {
