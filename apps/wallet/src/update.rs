@@ -99,6 +99,12 @@ fn reopen_on_the_mac(app: &AppHandle) {
 /// system's own dialog: up to date, or the new version with an Update button.
 pub fn check_now(app: AppHandle) {
     use tauri_plugin_dialog::{DialogExt, MessageDialogButtons, MessageDialogKind};
+    // One check, and one answer, at a time.
+    static ASKING: std::sync::atomic::AtomicBool = std::sync::atomic::AtomicBool::new(false);
+    if ASKING.swap(true, std::sync::atomic::Ordering::SeqCst) {
+        return;
+    }
+    let done = || ASKING.store(false, std::sync::atomic::Ordering::SeqCst);
     tauri::async_runtime::spawn(async move {
         let current = app.package_info().version.to_string();
         let found = check_update(app.clone()).await;
@@ -111,6 +117,7 @@ pub fn check_now(app: AppHandle) {
                     .kind(MessageDialogKind::Info)
                     .buttons(MessageDialogButtons::OkCancelCustom("Update".into(), "Later".into()))
                     .show(move |update| {
+                        done();
                         if update {
                             tauri::async_runtime::spawn(async move {
                                 if let Err(error) = install_update(app2.clone()).await {
@@ -125,13 +132,13 @@ pub fn check_now(app: AppHandle) {
                 .message(format!("Orien Wallet {current} is the newest version."))
                 .title("You're up to date")
                 .kind(MessageDialogKind::Info)
-                .show(|_| {}),
+                .show(move |_| done()),
             Err(_) => app
                 .dialog()
                 .message("orien.network can't be reached right now. Check your connection and try again.")
                 .title("Couldn't check for updates")
                 .kind(MessageDialogKind::Warning)
-                .show(|_| {}),
+                .show(move |_| done()),
         }
     });
 }

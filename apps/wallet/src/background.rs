@@ -44,7 +44,6 @@ pub fn setup(app: &AppHandle) -> tauri::Result<()> {
         .show_menu_on_left_click(cfg!(target_os = "macos"))
         .on_menu_event(|app, event| match event.id().as_ref() {
             "open" => show(app),
-            "check-updates" => crate::update::check_now(app.clone()),
             "quit" => app.exit(0),
             _ => {}
         })
@@ -63,12 +62,13 @@ pub fn setup(app: &AppHandle) -> tauri::Result<()> {
             first.insert(&item, 1)?;
         }
         app.set_menu(bar)?;
-        app.on_menu_event(|app, event| {
-            if event.id().as_ref() == "check-updates" {
-                crate::update::check_now(app.clone());
-            }
-        });
     }
+    // Every menu's clicks reach here, the tray's included: answered once.
+    app.on_menu_event(|app, event| {
+        if event.id().as_ref() == "check-updates" {
+            crate::update::check_now(app.clone());
+        }
+    });
 
     // Some Linux desktops have no tray. Then closing the window really
     // closes the app (a Mac always has its Dock icon to come back by).
