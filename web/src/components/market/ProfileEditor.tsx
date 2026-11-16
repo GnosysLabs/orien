@@ -2,7 +2,7 @@
 
 import { shrinkPicture } from '@/lib/shrink'
 import Link from 'next/link'
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Camera, ImagePlus } from 'lucide-react'
 import { ask, MarketError, NAME_PATTERN, NAME_RULE, pictureUrl, profileHref, type Account } from '@/lib/market'
 import { Avatar } from './Avatar'
@@ -11,7 +11,8 @@ import { AutoTextarea } from '@/components/AutoTextarea'
 
 const field = 'w-full rounded-xl border border-line bg-bg px-4 py-3 text-ink outline-none focus:border-pearl/60'
 
-/** Your own profile: picture, name and bio, saved after the moderation check. */
+/** Your own profile: picture, name and bio, saved by themselves a moment
+ * after you stop typing, once the moderation check passes. */
 export function ProfileEditor({ account, onSaved }: { account: Account; onSaved: () => void }) {
   const [name, setName] = useState(account.name)
   const [bio, setBio] = useState(account.bio)
@@ -35,24 +36,34 @@ export function ProfileEditor({ account, onSaved }: { account: Account; onSaved:
     setTrouble(message.charAt(0).toUpperCase() + message.slice(1) + (message.endsWith('.') ? '' : '.'))
   }
 
-  const save = async (event: React.FormEvent) => {
-    event.preventDefault()
-    setBusy('text')
-    setTrouble('')
-    setSaved(false)
-    try {
-      const saved = await ask<{ account: Account }>('/me', 'PUT', { name, bio, contact: { email, telegram, x } })
-      // Shown as the server tidied them, such as without the @.
-      setEmail(saved.account.contact.email)
-      setTelegram(saved.account.contact.telegram)
-      setX(saved.account.contact.x)
-      setSaved(true)
-      onSaved()
-    } catch (error) {
-      say(error)
-    }
-    setBusy('')
-  }
+  // Saves a moment after the typing stops. A name that can't be one waits,
+  // with the rule shown, rather than asking the server.
+  const nameOk = new RegExp(`^${NAME_PATTERN}$`).test(name)
+  useEffect(() => {
+    if (!changed || !nameOk) return
+    const timer = setTimeout(async () => {
+      const sent = { name, bio, email, telegram, x }
+      setBusy((b) => (b === '' ? 'text' : b))
+      setTrouble('')
+      setSaved(false)
+      try {
+        const answer = await ask<{ account: Account }>('/me', 'PUT', { name, bio, contact: { email, telegram, x } })
+        // Shown as the server tidied them, such as without the @, unless
+        // they were changed again meanwhile.
+        const c = answer.account.contact
+        setEmail((now) => (now === sent.email ? c.email : now))
+        setTelegram((now) => (now === sent.telegram ? c.telegram : now))
+        setX((now) => (now === sent.x ? c.x : now))
+        setSaved(true)
+        onSaved()
+      } catch (error) {
+        say(error)
+      }
+      setBusy((b) => (b === 'text' ? '' : b))
+    }, 1500)
+    return () => clearTimeout(timer)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [name, bio, email, telegram, x])
 
   const upload = async (file: File | undefined) => {
     if (!file) return
@@ -92,7 +103,7 @@ export function ProfileEditor({ account, onSaved }: { account: Account; onSaved:
   }
 
   return (
-    <form onSubmit={save} className="space-y-5 rounded-2xl border border-line bg-surface p-6 sm:p-8">
+    <form onSubmit={(event) => event.preventDefault()} className="space-y-5 rounded-2xl border border-line bg-surface p-6 sm:p-8">
       <div className="space-y-2">
         <p className="text-sm font-semibold text-ink">{busy === 'banner' ? 'Checking your banner…' : 'Banner'}</p>
         <div className="relative flex aspect-[3/1] w-full items-end justify-end overflow-hidden rounded-xl border border-line bg-bg">
@@ -196,16 +207,17 @@ export function ProfileEditor({ account, onSaved }: { account: Account; onSaved:
         </div>
       </fieldset>
       {trouble && <Notice tone="bad">{trouble}</Notice>}
-      <div className="flex items-center gap-4">
-        <button
-          type="submit"
-          disabled={busy !== '' || !changed}
-          className="pearl-fill flex h-11 items-center rounded-xl px-6 text-sm font-bold transition hover:brightness-105 disabled:opacity-60"
-        >
-          {busy === 'text' ? 'Saving…' : 'Save profile'}
-        </button>
-        {saved && !changed && <span className="text-sm text-go">Saved</span>}
-      </div>
+      <p className="h-5 text-sm" aria-live="polite">
+        {busy === 'text' ? (
+          <span className="text-muted">Saving…</span>
+        ) : !nameOk ? (
+          <span className="text-muted">Your name needs {NAME_RULE} before it saves.</span>
+        ) : saved && !changed ? (
+          <span className="text-go">Saved</span>
+        ) : changed && !trouble ? (
+          <span className="text-muted">Changes save by themselves.</span>
+        ) : null}
+      </p>
     </form>
   )
 }
