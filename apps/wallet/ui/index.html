@@ -397,11 +397,14 @@
   .ls-desc { margin: 0 2px; white-space: pre-wrap; overflow-wrap: anywhere; color: var(--ink); font-size: 13.5px; line-height: 1.55; -webkit-user-select: text; user-select: text; }
   .sl-face { margin-top: -44px; }
   .sl-banner { cursor: default; }
-  .sl-name { text-align: center; font-size: 20px; font-weight: 600; margin-top: -8px; }
+  .sl-name { display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 20px; font-weight: 600; margin-top: -8px; }
+  /* The website's Verified mark: a green badge-check in a soft green pill. */
+  .verified { display: inline-flex; align-items: center; gap: 4px; padding: 2px 8px; border-radius: 999px; background: #a6e3c626;
+    color: var(--good); font-size: 12px; font-weight: 600; line-height: 1.4; vertical-align: middle; white-space: nowrap; }
+  .verified svg { width: 14px; height: 14px; flex: none; }
   .sl-since { text-align: center; font-size: 12px; color: var(--faint); margin-top: 4px; }
   .sl-wallets { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px; margin-top: 12px; }
   .sl-wallets span { padding: 4px 10px; border: 1px solid var(--line); border-radius: 999px; font-size: 12px; color: var(--dim); }
-  .sl-wallets b { color: var(--good); font-weight: 600; }
   .sl-bio { margin-top: 16px; text-align: center; color: var(--dim); }
   .sl-contact { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px 14px; margin-top: 10px; font-size: 12.5px; color: var(--dim); -webkit-user-select: text; user-select: text; }
   /* Market messages */
@@ -3424,6 +3427,8 @@
   const bsNameOk = usernameField($("bs-name"), "bs-name-hint");
   const pfNameOk = usernameField($("pf-name"), "pf-name-hint");
 
+  const BADGE = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.85 8.62a4 4 0 0 1 4.78-4.77 4 4 0 0 1 6.74 0 4 4 0 0 1 4.78 4.78 4 4 0 0 1 0 6.74 4 4 0 0 1-4.77 4.78 4 4 0 0 1-6.75 0 4 4 0 0 1-4.78-4.77 4 4 0 0 1 0-6.76Z"/><path d="m9 12 2 2 4-4"/></svg>';
+  const VERIFIED = `<span class="verified" title="This wallet proved it belongs to this profile">${BADGE} Verified</span>`;
   // ---- Orien Market ----
   const CATS = [["", "Everything"], ["design", "Design"], ["software", "Software"], ["teaching", "Teaching"], ["goods", "Goods"], ["other", "Other"]];
   const CAT_ICON = {
@@ -3523,7 +3528,7 @@
     $("ls-title").textContent = l.title;
     $("ls-price").innerHTML = priceHtml(l);
     $("ls-seller").innerHTML = `${mkAvatar(seller.name || l.seller_name, seller.picture || l.seller_picture)}
-      <div><div class="nm">${esc(seller.name || l.seller_name || "")}${seller.wallet_verified ? '<span class="ok">✓ Verified</span>' : ""}</div><div class="sub">${esc(since(seller.created))}</div></div>
+      <div><div class="nm">${esc(seller.name || l.seller_name || "")}${seller.wallet_verified ? " " + VERIFIED : ""}</div><div class="sub">${esc(since(seller.created))}</div></div>
       <svg class="chev" width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m6 3 5 5-5 5"/></svg>`;
     const who = esc(seller.name || l.seller_name || "the seller");
     $("ls-note").innerHTML = market.mine
@@ -3553,9 +3558,9 @@
     const a = answer.account || {};
     $("sl-banner").innerHTML = picImg(a.banner);
     $("sl-face").innerHTML = esc((a.name || "?").slice(0, 1).toUpperCase()) + picImg(a.picture);
-    $("sl-name").textContent = a.name || "";
+    $("sl-name").innerHTML = esc(a.name || "") + (a.wallet_verified || (answer.wallets || []).length ? VERIFIED : "");
     $("sl-since").textContent = since(a.created);
-    $("sl-wallets").innerHTML = (answer.wallets || []).map((w) => `<span><b>✓</b> ${esc(w.name || "Wallet")} · ${short(w.address)}</span>`).join("");
+    $("sl-wallets").innerHTML = (answer.wallets || []).map((w) => `<span>${esc(w.name || "Wallet")} · ${short(w.address)}</span>`).join("");
     $("sl-bio").textContent = a.bio || "";
     $("sl-bio").hidden = !a.bio;
     const c = a.contact || {};
@@ -3840,7 +3845,7 @@
     const state = (a) => states.find((p) => (p.address || "").toLowerCase() === a);
     $("vf-list").innerHTML = walletList.map((w) => {
       const st = state(w.address);
-      const right = st && st.verified ? '<span class="vc-badge">✓ Verified</span>'
+      const right = st && st.verified ? VERIFIED
         : w.current ? `<button class="pill pearl" data-verify="${w.address}">Verify</button>`
         : '<span class="vf-wait">Open it to verify</span>';
       return `<div class="vf-row"><div><div class="vf-name">${esc(w.name)}</div><div class="vc-sub">${short(w.address)}</div></div>${right}</div>`;
