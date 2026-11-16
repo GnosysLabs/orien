@@ -459,6 +459,18 @@ pub fn image(dir: &Path, name: &str) -> Option<String> {
     Some(format!("data:{kind};base64,{}", base64::engine::general_purpose::STANDARD.encode(&bytes)))
 }
 
+/// Profiles whose name matches `text`, with their verified wallets, for
+/// paying someone by name. Public, so asked without the sign-in cookie.
+pub fn search(text: &str) -> Result<Value, String> {
+    let answer = agent()
+        .get(&format!("{}/api/market/profiles", base()))
+        .query("q", text.trim())
+        .call()
+        .map_err(|error| error.to_string())?;
+    let body: Value = answer.into_json().map_err(|error| error.to_string())?;
+    Ok(body["profiles"].clone())
+}
+
 /// Marketplace profiles for wallet addresses: name and picture for each
 /// address an account has proven, keyed by address; others are left out.
 /// Public, so asked without the sign-in cookie.

@@ -343,7 +343,6 @@
   .vc-badge { font-size: 12.5px; font-weight: 600; color: var(--good); }
   .vc-text { margin: 12px 0 0; font-size: 12.5px; color: var(--dim); }
   .verify-card .field { margin-top: 14px; }
-  .verify-card #vf-go { margin-top: 14px; }
   .profile-pic { display: flex; flex-direction: column; align-items: center; margin-bottom: 22px; }
   /* The banner, 3 wide to 1 tall as the marketplace makes it, with the
      picture sitting over its lower edge. */
@@ -2003,11 +2002,40 @@
     ];
     const score = (p) => p.name.toLowerCase().startsWith(q) ? 0 : p.name.toLowerCase().includes(q) ? 1 : p.address.startsWith(q) ? 2 : 3;
     const found = places.filter((p) => score(p) < 3).sort((a, b) => score(a) - score(b) || a.name.localeCompare(b.name)).slice(0, 5);
-    list.hidden = found.length === 0;
+    // People on Orien Market by name, each verified wallet a row, with the
+    // picture and how long they've been a member: names aren't unique.
+    const known = new Set(found.map((p) => p.address));
+    const market = (marketHits.q === q ? marketHits.rows : []).filter((r) => !known.has(r.address));
+    if (q.length >= 2 && marketHits.q !== q) searchMarket(q);
+    list.hidden = found.length + market.length === 0;
     list.innerHTML = found.map((p) => `<button class="tx" type="button" data-address="${p.address}">
       <div class="tx-main"><div class="title">${esc(p.name)}</div><div class="sub">${esc(p.sub)}</div></div>
+    </button>`).join("") + market.map((r) => `<button class="tx" type="button" data-address="${r.address}">
+      ${face(r.address, r.label)}
+      <div class="tx-main"><div class="title">${esc(r.label)}</div><div class="sub">${esc(r.since)}</div></div>
     </button>`).join("");
-    return found.length;
+    return found.length + market.length;
+  }
+  let marketHits = { q: "", rows: [] }, marketTimer = 0;
+  function searchMarket(q) {
+    clearTimeout(marketTimer);
+    marketTimer = setTimeout(async () => {
+      let found = [];
+      try { found = (await invoke("market_search", { text: q })) || []; } catch { return; }
+      const rows = [];
+      for (const p of found) {
+        const since = p.created ? `Member since ${new Date(p.created * 1000).toLocaleDateString([], { month: "long", year: "numeric" })}` : "On Orien Market";
+        for (const w of p.wallets || []) {
+          const address = (w.address || "").toLowerCase();
+          if (!/^[0-9a-f]{64}$/.test(address) || (view && address === view.address)) continue;
+          const info = { name: p.name, picture: p.picture, wallet_name: w.name || null };
+          profiles.set(address, info);
+          rows.push({ address, label: profileLabel(info), since });
+        }
+      }
+      marketHits = { q, rows };
+      if ($("to").value.trim().toLowerCase() === q) suggest(q);
+    }, 250);
   }
   $("suggest").onclick = (event) => {
     const pick = event.target.closest("[data-address]");
