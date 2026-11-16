@@ -2992,8 +2992,8 @@
       if (s.stage === "cancelled") say(`stopped:${s.id}`, `A swap stopped. ${s.status}`);
     }
     localStorage.setItem(ANNOUNCED, JSON.stringify(announced));
-    const waiting = swapList.filter(needsMe).length + board.waiting.filter((x) => x.needs_unlock).length;
-    if (!phone) invoke("plugin:window|set_badge_count", { label: "main", value: waiting || null }).catch(() => {});
+    swapsWaiting = swapList.filter(needsMe).length + board.waiting.filter((x) => x.needs_unlock).length;
+    setBadge();
   }
 
   // "Pay by 6:15 AM, in about 9 hours", from the Bitcoin lock's real limit;
@@ -3744,7 +3744,16 @@
   }
   const mkProblem = (e) => String(e).startsWith("signin:") ? "Sign in to Orien Market first." : String(e);
   async function mk(method, path, body) { return invoke("market_call", { method, path, body: body === undefined ? null : body }); }
+  // The number on the Dock or taskbar icon: swaps that need you, plus
+  // Market conversations with something new.
+  let swapsWaiting = 0;
+  function setBadge() {
+    if (phone) return;
+    const n = swapsWaiting + ((board.me && board.me.unread) || 0);
+    invoke("plugin:window|set_badge_count", { label: "main", value: n || null }).catch(() => {});
+  }
   function paintUnread() {
+    setBadge();
     const n = (board.me && board.me.unread) || 0;
     $("market-unread").hidden = !n;
     $("mk-unread").hidden = !n;
@@ -3960,7 +3969,7 @@
   // Live: an open chat every 4 seconds, the list every 10, the unread dot every 30.
   setInterval(() => { if (!$("chat").hidden && chat.id) refreshChat(); }, 4000);
   setInterval(() => { if (!$("inbox").hidden) loadInbox(); }, 10000);
-  setInterval(() => { if (board.me) invoke("board_me").then((me) => { board.me = me; paintUnread(); if (me && me.unread) marketNews(); }).catch(() => {}); }, 30000);
+  setInterval(() => { if (board.me) invoke("board_me").then((me) => { board.me = me; paintUnread(); if (me && me.unread) marketNews(); }).catch(() => {}); }, 20000);
   // A notification for each new Market message, on computers, as for ORN
   // arriving. What's been told is kept, so nothing is told twice; the first
   // look only learns what's there. Not for the chat that's open on screen.
@@ -4423,7 +4432,7 @@
   loadBook().then(start).then(syncBook).catch((e) => { covered(false); problem("welcome-problem", e); });
   // Signed in to the Market: this app's swaps move along from the start,
   // even with the window closed, as soon as someone takes an offer.
-  if (!phone) invoke("board_me").then((me) => { board.me = me; if (me) stepSwaps(); }).catch(() => {});
+  if (!phone) invoke("board_me").then((me) => { board.me = me; if (me) { stepSwaps(); paintUnread(); marketNews(); } }).catch(() => {});
 </script>
 </body>
 </html>
