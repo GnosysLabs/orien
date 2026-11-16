@@ -2,6 +2,22 @@
   "$schema": "../gen/schemas/desktop-schema.json",
   "identifier": "default",
   "description": "What the wallet window may ask of the app: the basics, and moving the window by its top bar.",
-  "windows": ["main"],
-  "permissions": ["core:default", "core:window:allow-start-dragging", "haptics:allow-impact-feedback", "haptics:allow-notification-feedback", "haptics:allow-selection-feedback", "notification:allow-notify", "notification:allow-is-permission-granted", "notification:allow-request-permission", "core:window:allow-set-badge-count", "core:window:allow-request-user-attention"]
+  "windows": [
+    "main"
+  ],
+  "permissions": [
+    "core:default",
+    "core:window:allow-start-dragging",
+    "haptics:allow-impact-feedback",
+    "haptics:allow-notification-feedback",
+    "haptics:allow-selection-feedback",
+    "notification:allow-notify",
+    "notification:allow-is-permission-granted",
+    "notification:allow-request-permission",
+    "core:window:allow-set-badge-count",
+    "core:window:allow-request-user-attention",
+    "core:window:allow-minimize",
+    "core:window:allow-close",
+    "core:window:allow-internal-toggle-maximize"
+  ]
 }
