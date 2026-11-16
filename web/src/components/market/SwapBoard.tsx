@@ -16,6 +16,7 @@ import {
   formatSol,
   sentence,
   type SwapOffer,
+  profileHref,
 } from "@/lib/market";
 import { Avatar } from "./Avatar";
 import { Notice } from "./Shell";
@@ -379,7 +380,7 @@ function Offers({
                 className="flex flex-wrap items-center gap-4 border-b border-line px-5 py-4 last:border-b-0"
               >
                 <Link
-                  href={`/marketplace/profile/?id=${offer.seller}`}
+                  href={profileHref(offer.seller_name)}
                   className="flex min-w-0 items-center gap-3 sm:w-52"
                 >
                   <Avatar

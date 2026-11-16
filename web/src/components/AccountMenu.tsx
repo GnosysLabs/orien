@@ -58,7 +58,7 @@ export function AccountMenu() {
   if (!account) {
     return (
       <Link
-        href="/marketplace/account/"
+        href="/account/"
         aria-label="Sign in to the Market"
         className="flex h-9 items-center gap-2 whitespace-nowrap rounded-[10px] border border-line px-2.5 text-sm font-semibold text-ink transition hover:bg-raised sm:h-10 sm:px-3"
       >
@@ -89,7 +89,7 @@ export function AccountMenu() {
         >
           <p className="truncate px-3 pb-2 pt-1.5 text-sm font-semibold text-ink">{account.name}</p>
           <Link
-            href="/marketplace/account/"
+            href="/account/"
             role="menuitem"
             className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-semibold text-ink transition hover:bg-raised"
           >

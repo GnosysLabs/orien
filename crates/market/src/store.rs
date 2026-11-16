@@ -14,7 +14,11 @@ pub const SESSION_SECONDS: u64 = 30 * 24 * 3600;
 /// The server's own record, which lapses after a month unused, decides.
 pub const COOKIE_SECONDS: u64 = 400 * 24 * 3600;
 
-pub const MAX_NAME: usize = 50;
+/// A name is a username: 3 to 20 letters, digits or underscores, unique
+/// whatever the case, so it can be a profile's address (/u/Cyph3r) and
+/// nobody can copy someone's with lookalike letters.
+pub const MIN_NAME: usize = 3;
+pub const MAX_NAME: usize = 20;
 pub const MAX_BIO: usize = 1000;
 pub const MAX_TITLE: usize = 100;
 pub const MAX_DESCRIPTION: usize = 5000;
@@ -295,6 +299,8 @@ impl Store {
         store.create_push_tables()?;
         store.create_account_wallet_table()?;
         store.create_proof_table()?;
+        // Names are unique whatever their case.
+        store.db.execute("CREATE UNIQUE INDEX IF NOT EXISTS accounts_name ON accounts (lower(name))", [])?;
         Ok(store)
     }
 
@@ -330,10 +336,7 @@ impl Store {
     }
 
     fn insert_account(&self, name: &str, handle: &str, email: Option<&str>) -> Result<Account> {
-        let name = clean(name);
-        if name.is_empty() || name.chars().count() > MAX_NAME {
-            bail!("a name is 1 to {MAX_NAME} characters");
-        }
+        let name = self.new_name(name, None)?;
         let created = now();
         self.db.execute(
             "INSERT INTO accounts (name, handle, email, created) VALUES (?1, ?2, ?3, ?4)",
@@ -399,9 +402,29 @@ impl Store {
         Ok(())
     }
 
+    /// `name` as a username nobody else has, `except` the account itself.
+    pub fn new_name(&self, name: &str, except: Option<i64>) -> Result<String> {
+        let name = username(name)?;
+        let taken: bool = self.db.query_row(
+            "SELECT COUNT(*) > 0 FROM accounts WHERE lower(name) = lower(?1) AND id IS NOT ?2",
+            params![name, except],
+            |row| row.get(0),
+        )?;
+        if taken {
+            bail!("the name {name} is taken; try another");
+        }
+        Ok(name)
+    }
+
+    /// The account with this name, whatever its case.
+    pub fn account_by_name(&self, name: &str) -> Result<Option<i64>> {
+        Ok(self.db.query_row("SELECT id FROM accounts WHERE lower(name) = lower(?1)", [name.trim()], |row| row.get(0)).optional()?)
+    }
+
     /// Changes an account's name and bio, tidied, or says why not.
     pub fn set_profile(&self, id: i64, name: &str, bio: &str, contact: &Contact) -> Result<Account> {
         let (name, bio) = profile_text(name, bio)?;
+        let name = self.new_name(&name, Some(id))?;
         let contact = contact.checked()?;
         self.db.execute(
             "UPDATE accounts SET name = ?2, bio = ?3, contact_email = ?4, telegram = ?5, x = ?6 WHERE id = ?1",
@@ -745,12 +768,19 @@ pub fn orien_address(text: &str) -> Result<String> {
     Ok(address)
 }
 
+/// A name as a username, or why it cannot be one.
+pub fn username(name: &str) -> Result<String> {
+    let name = name.trim();
+    let length = name.chars().count();
+    if !(MIN_NAME..=MAX_NAME).contains(&length) || !name.chars().all(|c| c.is_ascii_alphanumeric() || c == '_') {
+        bail!("a name is {MIN_NAME} to {MAX_NAME} letters, numbers or underscores, with no spaces");
+    }
+    Ok(name.to_string())
+}
+
 /// A name and bio tidied, or why they cannot be used.
 pub fn profile_text(name: &str, bio: &str) -> Result<(String, String)> {
-    let (name, bio) = (clean(name), clean(bio));
-    if name.is_empty() || name.chars().count() > MAX_NAME {
-        bail!("a name is 1 to {MAX_NAME} characters");
-    }
+    let (name, bio) = (username(name)?, clean(bio));
     if bio.chars().count() > MAX_BIO {
         bail!("a bio is at most {MAX_BIO} characters");
     }

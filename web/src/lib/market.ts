@@ -108,6 +108,13 @@ export const sentence = (text: string) => text.charAt(0).toUpperCase() + text.sl
 
 export const pictureUrl = (name: string) => `/api/market/images/${name}`
 
+/** A profile's page: /u/Cyph3r/. */
+export const profileHref = (name: string) => `/u/${encodeURIComponent(name)}/`
+
+/** The rule for names, as the server keeps it: a username. */
+export const NAME_RULE = '3 to 20 letters, numbers or underscores, with no spaces'
+export const NAME_PATTERN = '[A-Za-z0-9_]{3,20}'
+
 /** "Member since March 2026". */
 export const memberSince = (seconds: number) =>
   `Member since ${new Date(seconds * 1000).toLocaleDateString('en', { month: 'long', year: 'numeric' })}`

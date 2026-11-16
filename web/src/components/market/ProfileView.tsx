@@ -4,7 +4,7 @@ import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import { ArrowLeft, BadgeCheck, Wallet } from 'lucide-react'
-import { ask, me, memberSince, pictureUrl, type Account, type Listing, type VerifiedWallet } from '@/lib/market'
+import { ask, me, memberSince, pictureUrl, profileHref, type Account, type Listing, type VerifiedWallet } from '@/lib/market'
 import { Linked } from './Linked'
 import { Avatar } from './Avatar'
 import { ContactLinks } from './ContactLinks'
@@ -13,7 +13,17 @@ import { ReportButton } from './ReportButton'
 import { Notice } from './Shell'
 
 export function ProfileView() {
-  const id = useSearchParams().get('id')
+  // /u/NAME/, or the old /marketplace/profile/?id=, which moves to it.
+  // Read from the browser's own address: the web server sends every /u/
+  // address to one page, which only the browser knows the rest of.
+  const params = useSearchParams()
+  const [fromPath, setFromPath] = useState<string | null>(null)
+  useEffect(() => {
+    const path = window.location.pathname
+    setFromPath(path.startsWith('/u/') ? decodeURIComponent(path.slice(3).replace(/\/$/, '')) : '')
+  }, [])
+  const name = fromPath || params.get('name')
+  const id = name ? null : params.get('id')
   const [found, setFound] = useState<{ account: Account; listings: Listing[]; wallets?: VerifiedWallet[] } | null>(null)
   const [trouble, setTrouble] = useState('')
   const [viewer, setViewer] = useState<number | null>(null)
@@ -25,13 +35,19 @@ export function ProfileView() {
   }, [])
 
   useEffect(() => {
-    if (!id) return
-    ask<{ account: Account; listings: Listing[]; wallets?: VerifiedWallet[] }>(`/profiles/${encodeURIComponent(id)}`)
-      .then(setFound)
-      .catch((error: Error) => setTrouble(error.message === 'not found' ? 'There is no such seller.' : error.message))
-  }, [id])
+    if (fromPath === null || (!name && !id)) return
+    const path = name ? `/users/${encodeURIComponent(name)}` : `/profiles/${encodeURIComponent(id!)}`
+    ask<{ account: Account; listings: Listing[]; wallets?: VerifiedWallet[] }>(path)
+      .then((profile) => {
+        setFound(profile)
+        // An old link shows the profile's own address from now on.
+        if (!fromPath) window.history.replaceState(null, '', profileHref(profile.account.name))
+      })
+      .catch((error: Error) => setTrouble(error.message === 'not found' ? 'There is nobody with that name.' : error.message))
+  }, [name, id, fromPath])
 
-  if (!id) return <Notice tone="bad">No seller was named.</Notice>
+  if (fromPath === null) return <p className="text-muted">Loading…</p>
+  if (!name && !id) return <Notice tone="bad">No one was named.</Notice>
   if (trouble) return <Notice tone="bad">{trouble}</Notice>
   if (!found) return <p className="text-muted">Loading…</p>
   const { account, listings } = found

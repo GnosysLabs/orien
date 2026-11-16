@@ -16,6 +16,7 @@ import {
   sentence,
   type Conversation,
   type Message,
+  profileHref,
 } from '@/lib/market'
 import { Avatar } from './Avatar'
 import { Notice, SIGNED_IN_OR_OUT } from './Shell'
@@ -48,7 +49,7 @@ export function Messages() {
   if (signedOut) {
     return (
       <Notice>
-        <Link href="/marketplace/account/" className="font-semibold text-ink underline underline-offset-4">
+        <Link href="/account/" className="font-semibold text-ink underline underline-offset-4">
           Sign in
         </Link>{' '}
         to see your messages.
@@ -193,7 +194,7 @@ function Thread({ id, onChange }: { id: string; onChange: () => void }) {
         <Link href="/marketplace/messages/" className="text-muted hover:text-ink lg:hidden" aria-label="All messages">
           <ArrowLeft className="h-5 w-5" />
         </Link>
-        <Link href={`/marketplace/profile/?id=${c.with}`} className="flex min-w-0 items-center gap-3">
+        <Link href={profileHref(c.with_name)} className="flex min-w-0 items-center gap-3">
           <Avatar name={c.with_name} picture={c.with_picture} size={38} />
           <span className="flex min-w-0 flex-col">
             <span className="truncate font-semibold text-ink hover:underline">{c.with_name}</span>
@@ -390,7 +391,7 @@ export function MessageSeller({ listing, seller, signedIn }: { listing: number; 
   if (!signedIn) {
     return (
       <Notice>
-        <Link href="/marketplace/account/" className="font-semibold text-ink underline underline-offset-4">
+        <Link href="/account/" className="font-semibold text-ink underline underline-offset-4">
           Sign in
         </Link>{' '}
         to message {seller}.

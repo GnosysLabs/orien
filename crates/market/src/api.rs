@@ -278,6 +278,7 @@ pub fn router(app: Arc<App>) -> Router {
         .route("/api/market/me/delete", post(delete_me))
         .route("/api/market/profiles", get(search_profiles))
         .route("/api/market/profiles/{id}", get(profile))
+        .route("/api/market/users/{name}", get(user))
         .route("/api/market/listings/{id}/messages", post(message_seller))
         .route(
             "/api/market/listings/{id}/pictures",
@@ -451,6 +452,8 @@ async fn email_finish(State(app): State<Arc<App>>, Json(request): Json<EmailFini
             if request.name.trim().is_empty() {
                 return Ok(Json(json!({ "needs_name": true })).into_response());
             }
+            // Before the code is used up, so a taken name can be changed.
+            store.new_name(&request.name, None).map_err(refused)?;
         }
         existing
     };
@@ -475,10 +478,7 @@ struct SignUp {
 }
 
 async fn signup_start(State(app): State<Arc<App>>, Json(request): Json<SignUp>) -> Answer {
-    let name = request.name.trim().to_string();
-    if name.is_empty() || name.chars().count() > crate::store::MAX_NAME {
-        return Err(Failure::Refused(format!("a name is 1 to {} characters", crate::store::MAX_NAME)));
-    }
+    let name = app.store.lock().unwrap().new_name(&request.name, None).map_err(refused)?;
     screened_name(&app, &name).await?;
     let handle = Uuid::new_v4();
     let (options, state) = app
@@ -1185,6 +1185,12 @@ async fn profile(State(app): State<Arc<App>>, Path(id): Path<i64>) -> Answer {
     let swaps_done = store.swaps_done(id)?;
     let wallets = store.verified_wallets(id)?;
     Ok(Json(json!({ "account": account, "listings": listings, "swaps_done": swaps_done, "wallets": wallets })).into_response())
+}
+
+/// A profile by its name, as /u/NAME shows it.
+async fn user(State(app): State<Arc<App>>, Path(name): Path<String>) -> Answer {
+    let id = app.store.lock().unwrap().account_by_name(&name)?.ok_or(Failure::NotFound)?;
+    profile(State(app), Path(id)).await
 }
 
 async fn picture(State(app): State<Arc<App>>, Path(name): Path<String>) -> Answer {

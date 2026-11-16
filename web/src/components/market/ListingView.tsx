@@ -4,7 +4,7 @@ import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import { ArrowLeft, Pencil, ShieldCheck } from 'lucide-react'
-import { ask, categoryLabel, formatOrn, memberSince, perUnit, type Account, type Listing } from '@/lib/market'
+import { ask, categoryLabel, formatOrn, memberSince, perUnit, profileHref, type Account, type Listing } from '@/lib/market'
 import { Linked } from './Linked'
 import { ProfileBanner } from './ProfileView'
 import { Avatar } from './Avatar'
@@ -47,7 +47,7 @@ export function ListingView() {
               {!listing.open && ' · closed'}
             </p>
             <h1 className="text-balance text-3xl font-bold leading-tight tracking-tight text-ink sm:text-4xl">{listing.title}</h1>
-            <Link href={`/marketplace/profile/?id=${seller.id}`} className="group inline-flex items-center gap-3">
+            <Link href={profileHref(seller.name)} className="group inline-flex items-center gap-3">
               <Avatar name={seller.name} picture={seller.picture} size={40} />
               <span className="flex flex-col">
                 <span className="flex items-center gap-1.5 font-semibold text-ink group-hover:underline">
@@ -69,7 +69,7 @@ export function ListingView() {
           <section className={`${card} relative isolate ${seller.banner ? 'on-banner pt-28 sm:min-h-56 sm:pt-6' : ''}`}>
             {seller.banner && <ProfileBanner banner={seller.banner} />}
             <h2 className="mb-4 text-lg font-bold tracking-tight text-ink">About the seller</h2>
-            <Link href={`/marketplace/profile/?id=${seller.id}`} className="mb-4 flex items-center gap-3">
+            <Link href={profileHref(seller.name)} className="mb-4 flex items-center gap-3">
               <Avatar name={seller.name} picture={seller.picture} size={56} />
               <span className="flex flex-col">
                 <span className="font-semibold text-ink hover:underline">{seller.name}</span>

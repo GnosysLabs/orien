@@ -67,7 +67,7 @@ export function SellForm() {
     return (
       <Notice>
         Before your first listing,{' '}
-        <Link href="/marketplace/account/" className="font-semibold text-ink underline underline-offset-4">
+        <Link href="/account/" className="font-semibold text-ink underline underline-offset-4">
           add your Orien wallet
         </Link>
         , so buyers&apos; payments reach you. Signing in from Orien Wallet adds it for you.
@@ -78,7 +78,7 @@ export function SellForm() {
     return (
       <Notice>
         To sell something,{' '}
-        <Link href="/marketplace/account/" className="font-semibold text-ink underline underline-offset-4">
+        <Link href="/account/" className="font-semibold text-ink underline underline-offset-4">
           sign in or make an account
         </Link>{' '}
         first. It takes a few seconds, with your email.

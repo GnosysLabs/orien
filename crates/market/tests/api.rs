@@ -242,11 +242,21 @@ async fn a_seller_sets_up_a_profile_with_a_picture() {
     let market = Market::new();
     let maya = sign_in_for_tests(&market.app, "Maya");
     let (status, body) =
-        market.ask("PUT", "/api/market/me", Some(&maya), Some(json!({ "name": "Maya Lin", "bio": "Designer in Lisbon.", "contact": { "telegram": "@maya_designs" } }))).await;
+        market.ask("PUT", "/api/market/me", Some(&maya), Some(json!({ "name": "Maya_Lin", "bio": "Designer in Lisbon.", "contact": { "telegram": "@maya_designs" } }))).await;
     assert_eq!((status, body["account"]["bio"].as_str()), (StatusCode::OK, Some("Designer in Lisbon.")));
     let id = body["account"]["id"].as_i64().unwrap();
-    let (status, _) = market.ask("PUT", "/api/market/me", Some(&maya), Some(json!({ "name": "" }))).await;
-    assert_eq!(status, StatusCode::BAD_REQUEST);
+    // Names are usernames, unique whatever the case.
+    let sam = sign_in_for_tests(&market.app, "Sam");
+    for (bad, why) in [("", "empty"), ("Maya Lin", "a space"), ("Mа", "too short"), ("Mаya", "a Cyrillic а"), ("maya_lin", "taken")] {
+        let (status, body) = market.ask("PUT", "/api/market/me", Some(&sam), Some(json!({ "name": bad }))).await;
+        assert_eq!(status, StatusCode::BAD_REQUEST, "{why}: {body}");
+    }
+    let (status, _) = market.ask("PUT", "/api/market/me", Some(&maya), Some(json!({ "name": "maya_LIN", "bio": "Designer in Lisbon.", "contact": { "telegram": "@maya_designs" } }))).await;
+    assert_eq!(status, StatusCode::OK, "changing the case of your own name is fine");
+    let (status, body) = market.ask("GET", "/api/market/users/MAYA_lin", None, None).await;
+    assert_eq!((status, body["account"]["id"].as_i64()), (StatusCode::OK, Some(id)), "{body}");
+    let (status, _) = market.ask("GET", "/api/market/users/nobody", None, None).await;
+    assert_eq!(status, StatusCode::NOT_FOUND);
 
     // A picture is sent as the body, and comes back as a square JPEG.
     let mut png = Vec::new();
@@ -281,7 +291,7 @@ async fn a_seller_sets_up_a_profile_with_a_picture() {
     let closed = closed["listing"]["id"].as_i64().unwrap();
     market.ask("POST", &format!("/api/market/listings/{closed}/open"), Some(&maya), Some(json!({ "open": false }))).await;
     let (status, body) = market.ask("GET", &format!("/api/market/profiles/{id}"), None, None).await;
-    assert_eq!((status, body["account"]["name"].as_str()), (StatusCode::OK, Some("Maya Lin")));
+    assert_eq!((status, body["account"]["name"].as_str()), (StatusCode::OK, Some("maya_LIN")));
     assert_eq!(body["listings"].as_array().unwrap().len(), 1);
     assert_eq!(body["listings"][0]["id"], posted["listing"]["id"]);
     assert!(body["account"].get("email").is_none(), "a profile never shows the email used to sign in");
