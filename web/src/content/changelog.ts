@@ -66,6 +66,14 @@ export const CHANGELOG: Entry[] = [
   {
     date: '2026-11-16',
     products: ['marketplace'],
+    title: 'Buy and sell ORN in Orien Wallet',
+    changes: [
+      'Buying and selling ORN now happen only in Orien Wallet, which holds your keys and runs each swap. The website’s Buy & sell ORN page shows the live offers and prices and explains how it works.',
+    ],
+  },
+  {
+    date: '2026-11-16',
+    products: ['marketplace'],
     title: 'Fairer swap holds',
     changes: [
       'When a seller’s wallet doesn’t start a taken swap in time, the offer goes back on the board and the buyer is no longer counted as having let it lapse.',
