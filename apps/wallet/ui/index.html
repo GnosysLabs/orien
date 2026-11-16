@@ -399,6 +399,7 @@
   .review .row span:last-child { font-weight: 500; text-align: right; }
   .review .mono { font: 12.5px ui-monospace, "SF Mono", monospace; }
   .fineprint { margin: 16px 4px 0; font-size: 12.5px; color: var(--dim); }
+  .fineprint a { color: var(--ink); text-decoration: underline; text-underline-offset: 2px; }
 
   .done { align-items: center; justify-content: center; text-align: center; padding-bottom: 30px; }
   .done .mark {
@@ -799,11 +800,11 @@
     <section class="screen" id="get" hidden>
       <div class="topline"><button class="back" data-back aria-label="Back"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10 3 5 8l5 5"/></svg></button><h2>Get ORN</h2></div>
       <ul class="explain">
-        <li><strong>Be paid in ORN.</strong> Give someone your address and they can send you ORN from their wallet. Payments arrive in seconds.</li>
+        <li><strong>Swap for it on a computer.</strong> Orien Wallet on a computer can swap SOL or Bitcoin for ORN with other people, directly between your wallets. With SOL, it takes a few minutes, and you pay from the SOL wallet you already have, such as Phantom.</li>
         <li><strong>Mine it on a computer.</strong> Install Orien Wallet on your Mac, Windows or Linux computer, open this same wallet there with its recovery phrase, and press Mine. Your computer earns a share of each hour's new ORN.</li>
-        <li><strong>Swap for it on a computer.</strong> Orien Wallet on a computer can swap Bitcoin for ORN with other people, directly between your wallets.</li>
+        <li><strong>Be paid in ORN.</strong> Give someone your address and they can send you ORN from their wallet. Payments arrive in seconds.</li>
       </ul>
-      <p class="fineprint">Orien Wallet for computers is at orien.network.</p>
+      <p class="fineprint">Orien Wallet for computers is at <a href="#" id="get-site">orien.network</a>.</p>
     </section>
 
     <section class="screen" id="activity" hidden>
@@ -2486,7 +2487,10 @@
   const board = { me: null, offers: [], usd: null, waiting: [], taking: null, signin: "email" };
   const fmtOrn = (units) => (units / 1e9).toLocaleString(undefined, { maximumFractionDigits: 9 });
   const fmtBtc = (sats) => (sats / 1e8).toFixed(8).replace(/0+$/, "").replace(/\.$/, "");
-  const fmtUsd = (n) => n >= 100 ? "$" + Math.round(n).toLocaleString() : "$" + n.toFixed(2);
+  // Under a cent, two meaningful digits: $0.00079, not $0.00.
+  const fmtUsd = (n) => n >= 100 ? "$" + Math.round(n).toLocaleString()
+    : n > 0 && n < 0.01 ? "$" + n.toLocaleString("en-US", { maximumSignificantDigits: 2, maximumFractionDigits: 12 })
+    : "$" + n.toFixed(2);
   // "≈ $655", and "$1.31 per ORN · 2,000 satoshis per ORN", when the price is known.
   const fmtSol = (lamports) => (lamports / 1e9).toFixed(9).replace(/0+$/, "").replace(/\.$/, "");
   // An offer's price, in its own coin.
@@ -2706,11 +2710,14 @@
     $("bp-fine-btc").hidden = sol;
     postHint();
   }
+  $("get-site").onclick = (event) => { event.preventDefault(); invoke("open_site").catch(() => {}); };
   $("bp-tab-sol").onclick = () => setPostCoin("sol");
   $("bp-tab-btc").onclick = () => setPostCoin("btc");
   function postHint() {
     const orn = parseFloat($("bp-orn").value), btc = parseFloat($("bp-btc").value);
     const usd = postCoin === "sol" ? board.solUsd : board.usd;
+    // What the amount typed is worth, as soon as it's typed.
+    if (btc > 0 && !(orn > 0)) { $("bp-hint").textContent = usd ? `≈ ${fmtUsd(usd * btc)}` : ""; return; }
     if (!(orn > 0) || !(btc > 0)) { $("bp-hint").textContent = usd ? `1 ${postCoin === "sol" ? "SOL" : "BTC"} ≈ ${fmtUsd(usd)}` : ""; return; }
     const price = postCoin === "sol" ? priceOfSol(orn * 1e9, Math.round(btc * 1e9)) : priceOf(orn * 1e9, Math.round(btc * 1e8));
     $("bp-hint").textContent = `${price.total.replace(" ≈ ", "≈ ")}${price.total ? " · " : ""}${price.rate}`;
