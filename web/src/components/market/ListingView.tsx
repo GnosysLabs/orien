@@ -6,6 +6,7 @@ import { useEffect, useState } from 'react'
 import { ArrowLeft, Pencil, ShieldCheck } from 'lucide-react'
 import { ask, categoryLabel, formatOrn, memberSince, perUnit, type Account, type Listing } from '@/lib/market'
 import { Linked } from './Linked'
+import { ProfileBanner } from './ProfileView'
 import { Avatar } from './Avatar'
 import { ContactLinks } from './ContactLinks'
 import { MessageSeller } from './Messages'
@@ -65,7 +66,8 @@ export function ListingView() {
               </p>
             </section>
           )}
-          <section className={card}>
+          <section className={`${card} relative isolate ${seller.banner ? 'pt-28 sm:min-h-56 sm:pt-6' : ''}`}>
+            {seller.banner && <ProfileBanner banner={seller.banner} />}
             <h2 className="mb-4 text-lg font-bold tracking-tight text-ink">About the seller</h2>
             <Link href={`/marketplace/profile/?id=${seller.id}`} className="mb-4 flex items-center gap-3">
               <Avatar name={seller.name} picture={seller.picture} size={56} />

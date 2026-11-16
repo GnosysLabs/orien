@@ -46,6 +46,10 @@ struct Args {
     /// The Apple developer team the key belongs to
     #[arg(long, default_value = "4PDUNTF69S")]
     apns_team: String,
+    /// Turn away takes from wallets on swap rules older than this (2 for
+    /// Orien Wallet 1.8.0's shorter locks); 0 lets any wallet take
+    #[arg(long, default_value_t = 0)]
+    min_swap_version: u32,
     /// The Orien network's genesis file, for asking its validators.
     #[arg(long, default_value = "/var/lib/orien/genesis.json")]
     genesis: PathBuf,
@@ -186,7 +190,8 @@ async fn main() -> Result<()> {
         payments,
         &address,
     )?
-    .with_traffic(orien_market::traffic::Traffic::open(traffic)));
+    .with_traffic(orien_market::traffic::Traffic::open(traffic))
+    .with_min_swap_version(args.min_swap_version));
     let apns = match &args.apns_key {
         Some(key) => orien_market::push::Apns::load(key, &args.apns_key_id, &args.apns_team)?,
         None => {

@@ -58,6 +58,8 @@ pub struct App {
     contacts: Mutex<Vec<(Instant, String)>>,
     /// The website's traffic counts.
     traffic: Arc<crate::traffic::Traffic>,
+    /// The oldest swap rules a buyer's wallet may take offers with.
+    min_swap_version: u32,
 }
 
 impl App {
@@ -92,7 +94,14 @@ impl App {
             origin: site,
             contacts: Mutex::new(Vec::new()),
             traffic: Arc::new(crate::traffic::Traffic::in_memory()),
+            min_swap_version: 0,
         })
+    }
+
+    /// Turns away takes from wallets on swap rules older than `version`.
+    pub fn with_min_swap_version(mut self, version: u32) -> App {
+        self.min_swap_version = version;
+        self
     }
 
     /// Keeps the website's traffic counts in this folder.
@@ -739,11 +748,20 @@ struct Take {
     /// own. Without it, the account's verified wallet, if it has one.
     #[serde(default)]
     address: Option<String>,
+    /// The swap rules the buyer's wallet follows: 2 from Orien Wallet 1.8.0,
+    /// whose locks are shorter; older wallets send nothing.
+    #[serde(default)]
+    swap_version: u32,
 }
 
 async fn take_swap(State(app): State<Arc<App>>, headers: HeaderMap, Path(id): Path<i64>, body: Option<Json<Take>>) -> Answer {
     let buyer = app.signed_in(&headers)?;
     let request = body.map(|Json(b)| b).unwrap_or_default();
+    // A wallet on older swap rules would refuse a newer seller's shorter
+    // lock only after the ORN were locked: turn it away before anything is.
+    if request.swap_version < app.min_swap_version {
+        return Err(Failure::Refused("update Orien Wallet to take this offer".into()));
+    }
     let (swap, seller_email, taker) = {
         let store = app.store.lock().unwrap();
         let address = match request.address {

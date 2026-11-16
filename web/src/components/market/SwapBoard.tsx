@@ -4,22 +4,12 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import {
   ArrowLeftRight,
-  Bitcoin,
+  ArrowRight,
   Clock,
   ShieldCheck,
   Wallet,
 } from "lucide-react";
-import {
-  ask,
-  formatBtc,
-  formatOrn,
-  me,
-  parseBtc,
-  parseOrn,
-  sentence,
-  type Account,
-  type SwapOffer,
-} from "@/lib/market";
+import { ask, formatBtc, formatOrn, sentence, type SwapOffer } from "@/lib/market";
 import { Avatar } from "./Avatar";
 import { Notice } from "./Shell";
 
@@ -52,9 +42,7 @@ const TABS: { id: Tab; label: string }[] = [
 export function SwapBoard() {
   const [offers, setOffers] = useState<SwapOffer[] | null>(null);
   const [usd, setUsd] = useState<number | null>(null);
-  const [account, setAccount] = useState<Account | null | undefined>(undefined);
   const [trouble, setTrouble] = useState("");
-  const [taken, setTaken] = useState<SwapOffer | null>(null);
   const [tab, setTab] = useState<Tab>("buy");
 
   // The tab follows the address (#buy, #sell, #how), so links and the back
@@ -89,23 +77,9 @@ export function SwapBoard() {
 
   useEffect(() => {
     void load();
-    me()
-      .then((found) => setAccount(found?.account ?? null))
-      .catch(() => setAccount(null));
     const timer = setInterval(load, 20000);
     return () => clearInterval(timer);
   }, []);
-
-  const take = async (offer: SwapOffer) => {
-    setTrouble("");
-    try {
-      await ask(`/swaps/${offer.id}/take`, "POST");
-      setTaken(offer);
-      void load();
-    } catch (error) {
-      setTrouble(sentence((error as Error).message));
-    }
-  };
 
   return (
     <div className="space-y-8">
@@ -143,13 +117,6 @@ export function SwapBoard() {
         ))}
       </div>
 
-      {taken && (
-        <Notice>
-          You took {formatOrn(taken.orn)} ORN for {formatBtc(taken.sats)} BTC.
-          Open Orien Wallet, signed in to the Market, within 30 minutes: it
-          carries the swap through from here.
-        </Notice>
-      )}
       {trouble && <Notice tone="bad">{trouble}</Notice>}
 
       {tab === "buy" && (
@@ -157,8 +124,8 @@ export function SwapBoard() {
           <div className="flex flex-wrap items-end justify-between gap-3">
             <div>
               <p className="text-sm text-muted">
-                Offers from people selling ORN for Bitcoin. Take one in Orien
-                Wallet.
+                Offers from people selling ORN for Bitcoin right now. To buy
+                one, open the Swap screen in Orien Wallet.
               </p>
             </div>
             <p className="text-sm text-muted">
@@ -178,14 +145,13 @@ export function SwapBoard() {
                 onClick={() => show("sell")}
                 className="font-semibold text-ink underline underline-offset-4"
               >
-                Post the first one
+                Sell them in Orien Wallet
               </button>
               .
             </Notice>
           ) : (
             <ul className="overflow-hidden rounded-2xl border border-line bg-surface">
               {offers.map((offer) => {
-                const mine = account?.id === offer.seller;
                 return (
                   <li
                     key={offer.id}
@@ -232,46 +198,42 @@ export function SwapBoard() {
                         {perOrn(offer)} satoshis per ORN
                       </p>
                     </div>
-                    {mine ? (
-                      <button
-                        type="button"
-                        onClick={() =>
-                          ask(`/swaps/${offer.id}/close`, "POST")
-                            .then(load)
-                            .catch((e: Error) =>
-                              setTrouble(sentence(e.message)),
-                            )
-                        }
-                        className="h-10 rounded-xl border border-line px-4 text-sm font-semibold text-muted hover:bg-raised hover:text-ink"
-                      >
-                        Withdraw
-                      </button>
-                    ) : account ? (
-                      <button
-                        type="button"
-                        onClick={() => take(offer)}
-                        className="pearl-fill h-10 rounded-xl px-5 text-sm font-bold"
-                      >
-                        Take
-                      </button>
-                    ) : (
-                      <Link
-                        href="/marketplace/account/"
-                        className="h-10 rounded-xl border border-line px-4 text-sm font-semibold leading-10 text-ink hover:bg-raised"
-                      >
-                        Sign in to take
-                      </Link>
-                    )}
                   </li>
                 );
               })}
             </ul>
           )}
+          <InTheApp title="Buy in Orien Wallet">
+            <p>
+              Buying and selling happen in Orien Wallet, for Mac, Windows and
+              Linux: it holds your keys, so the swap runs between your wallet
+              and the seller&apos;s with nobody in the middle.
+            </p>
+            <p>
+              Open its <strong>Swap</strong> screen, pick an offer and take it.
+              The seller has 30 minutes to accept. Then the app shows exactly
+              how much Bitcoin to pay and where, and your ORN arrive once the
+              seller takes the Bitcoin. You need no ORN to buy your first.
+            </p>
+          </InTheApp>
         </section>
       )}
 
       {tab === "sell" && (
-        <PostOffer account={account} onPosted={load} usd={usd} />
+        <InTheApp title="Sell in Orien Wallet">
+          <p>
+            Open the <strong>Swap</strong> screen in Orien Wallet and post an
+            offer: how many ORN, the Bitcoin you want for them, and the Bitcoin
+            address to be paid at. It appears here for buyers to see.
+          </p>
+          <p>
+            When someone takes it, your wallet locks your ORN for them, collects
+            the Bitcoin once it confirms, and delivers their ORN, all by itself.
+            Orien Wallet keeps running in the menu bar or system tray, so just
+            leave it on. Nothing is locked until someone takes your offer, and
+            you can withdraw it any time before.
+          </p>
+        </InTheApp>
       )}
 
       {tab === "how" && (
@@ -349,189 +311,23 @@ export function SwapBoard() {
   );
 }
 
-function PostOffer({
-  account,
-  onPosted,
-  usd,
-}: {
-  account: Account | null | undefined;
-  onPosted: () => void;
-  usd: number | null;
-}) {
-  const [orn, setOrn] = useState("");
-  const [btc, setBtc] = useState("");
-  const [payout, setPayout] = useState("");
-  // The account's wallets, by the names given them in Orien Wallet.
-  const [wallets, setWallets] = useState<
-    { address: string; name: string }[] | null
-  >(null);
-  // Whether any of the account's Orien Wallet apps is new enough to run an
-  // offer posted here: those report their wallets.
-  const [reported, setReported] = useState(false);
-  const [from, setFrom] = useState("");
-  const [trouble, setTrouble] = useState("");
-  useEffect(() => {
-    if (!account) return;
-    ask<{ wallets: { address: string; name: string }[]; reported: number }>(
-      "/me/wallets",
-    )
-      .then((found) => {
-        setWallets(found.wallets);
-        setReported(found.reported > 0);
-        setFrom((now) => now || found.wallets[0]?.address || "");
-      })
-      .catch(() => setWallets([]));
-  }, [account]);
-  const [posted, setPosted] = useState(false);
-
-  if (account === undefined) return null;
-  const field =
-    "num h-11 w-full rounded-xl border border-line bg-bg px-4 text-ink outline-none focus:border-pearl/60";
-
-  const post = async (event: React.FormEvent) => {
-    event.preventDefault();
-    setTrouble("");
-    setPosted(false);
-    const units = parseOrn(orn);
-    const sats = parseBtc(btc);
-    if (units === null) return setTrouble("Write how many ORN, like 500.");
-    if (sats === null)
-      return setTrouble("Write the Bitcoin price in BTC, like 0.01.");
-    if (!from) return setTrouble("Choose the wallet you sell from.");
-    if (!payout.trim())
-      return setTrouble("Write the Bitcoin address the buyer's Bitcoin go to.");
-    try {
-      await ask("/swaps", "POST", {
-        orn: units,
-        sats,
-        payout: payout.trim(),
-        wallet: from,
-      });
-      setOrn("");
-      setBtc("");
-      setPayout("");
-      setPosted(true);
-      onPosted();
-    } catch (error) {
-      setTrouble(sentence((error as Error).message));
-    }
-  };
-
+/** Where every trade happens: Orien Wallet. */
+function InTheApp({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <form onSubmit={post} className={`${card} space-y-4`}>
+    <section className={`${card} flex flex-col gap-4`}>
       <div className="flex items-center gap-3">
-        <Bitcoin className="h-5 w-5 text-pearl" aria-hidden />
-        <h2 className="text-2xl font-bold tracking-tight text-ink">Sell ORN</h2>
-        <p className="text-sm text-muted">
-          Post an offer, and get Bitcoin for your ORN when someone takes it.
-        </p>
+        <Wallet className="h-5 w-5 text-pearl" aria-hidden />
+        <h2 className="text-xl font-bold tracking-tight text-ink">{title}</h2>
       </div>
-      {!account ? (
-        <p className="text-sm text-muted">
-          <Link
-            href="/marketplace/account/"
-            className="font-semibold text-ink underline underline-offset-4"
-          >
-            Sign in
-          </Link>{" "}
-          to post an offer.
-        </p>
-      ) : wallets === null ? null : !reported ? (
-        <p className="text-sm leading-relaxed text-muted">
-          Sign in to the Market from the latest{" "}
-          <Link
-            href="/try/"
-            className="font-semibold text-ink underline underline-offset-4"
-          >
-            Orien Wallet
-          </Link>
-          , and your wallets show here, by name, to choose which one sells. You
-          can also post your offer in Orien Wallet, on its Swap screen.
-        </p>
-      ) : (
-        <>
-          <div className="grid gap-4 sm:grid-cols-2">
-            <label className="flex flex-col gap-2">
-              <span className="text-sm font-semibold text-ink">
-                ORN you sell
-              </span>
-              <input
-                value={orn}
-                onChange={(e) => setOrn(e.target.value)}
-                inputMode="decimal"
-                placeholder="500"
-                className={field}
-              />
-            </label>
-            <label className="flex flex-col gap-2">
-              <span className="text-sm font-semibold text-ink">
-                Bitcoin you want, in BTC
-              </span>
-              <input
-                value={btc}
-                onChange={(e) => setBtc(e.target.value)}
-                inputMode="decimal"
-                placeholder="0.01"
-                className={field}
-              />
-              {usd && parseBtc(btc) !== null && (
-                <span className="num block text-xs text-muted">
-                  ≈ {dollars(((parseBtc(btc) ?? 0) / 1e8) * usd)}
-                  {parseOrn(orn) !== null &&
-                    " · " +
-                      dollars(
-                        (((parseBtc(btc) ?? 0) / 1e8) * usd) /
-                          ((parseOrn(orn) ?? 1) / 1e9),
-                      ) +
-                      " per ORN"}
-                </span>
-              )}
-            </label>
-          </div>
-          <label className="flex flex-col gap-2">
-            <span className="text-sm font-semibold text-ink">Sell from</span>
-            <select
-              value={from}
-              onChange={(e) => setFrom(e.target.value)}
-              className={`${field} appearance-none`}
-            >
-              {wallets.map((w) => (
-                <option key={w.address} value={w.address}>
-                  {w.name} · {w.address.slice(0, 6)}…{w.address.slice(-6)}
-                </option>
-              ))}
-            </select>
-          </label>
-          <label className="flex flex-col gap-2">
-            <span className="text-sm font-semibold text-ink">
-              Your Bitcoin address, where the buyer&apos;s Bitcoin go
-            </span>
-            <input
-              value={payout}
-              onChange={(e) => setPayout(e.target.value)}
-              spellCheck={false}
-              autoCapitalize="off"
-              placeholder="bc1q…"
-              className={`${field} font-mono text-sm`}
-            />
-          </label>
-          <p className="text-sm text-muted">
-            At least 0.00005 BTC, more when Bitcoin is busy. Nothing is locked
-            until someone takes your offer; then Orien Wallet, running on any of
-            your devices, finishes the swap. You get an email when it is taken.
-          </p>
-          {trouble && <Notice tone="bad">{trouble}</Notice>}
-          {posted && (
-            <p className="text-sm text-go">Your offer is on the board.</p>
-          )}
-          <button
-            type="submit"
-            className="pearl-fill h-11 rounded-xl px-6 text-sm font-bold"
-          >
-            Post offer
-          </button>
-        </>
-      )}
-    </form>
+      <div className="flex flex-col gap-3 text-sm leading-relaxed text-muted [&_strong]:font-semibold [&_strong]:text-ink">
+        {children}
+      </div>
+      <Link
+        href="/try/"
+        className="pearl-fill flex h-11 w-fit items-center gap-2 rounded-xl px-5 text-sm font-bold transition hover:brightness-105"
+      >
+        Get Orien Wallet <ArrowRight className="h-4 w-4" aria-hidden />
+      </Link>
+    </section>
   );
 }
