@@ -22,7 +22,3 @@ export const RANDOMX_FROM = 21
 /** The first epoch in which anyone may claim a locked payment for its payee.
  * The network code's LIVE_OPEN_CLAIMS_FROM is the same number. */
 export const OPEN_CLAIMS_FROM = 23
-
-/** Whether Orien Wallet runs offers posted anywhere, from any of the
- * seller's devices. Until it does, offers are posted in the wallet. */
-export const ANY_DEVICE_SWAPS = false
