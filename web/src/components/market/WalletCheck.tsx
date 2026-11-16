@@ -154,6 +154,15 @@ export function VerifiedWallets({ account, onChange }: { account: Account; onCha
     }
     setBusy(false)
   }
+  const payHere = async (address: string) => {
+    setTrouble('')
+    try {
+      await ask('/me/wallet', 'POST', { address })
+      onChange()
+    } catch (error) {
+      setTrouble(sentence((error as Error).message))
+    }
+  }
   const remove = async (address: string) => {
     try {
       await ask('/me/wallet/remove', 'POST', { address })
@@ -196,13 +205,25 @@ export function VerifiedWallets({ account, onChange }: { account: Account; onCha
                 ) : (
                   <span className="text-xs font-semibold text-muted">Waiting for its payment</span>
                 )}
-                <button
-                  type="button"
-                  onClick={() => remove(w.address)}
-                  className="ml-auto text-xs font-semibold text-muted underline underline-offset-4 hover:text-ink"
-                >
-                  Remove
-                </button>
+                {w.address === account.wallet && <span className="text-xs font-semibold text-pearl">Paid here</span>}
+                <span className="ml-auto flex items-center gap-4">
+                  {w.verified && w.address !== account.wallet && (
+                    <button
+                      type="button"
+                      onClick={() => payHere(w.address)}
+                      className="text-xs font-semibold text-ink underline underline-offset-4 hover:text-pearl"
+                    >
+                      Get paid here
+                    </button>
+                  )}
+                  <button
+                    type="button"
+                    onClick={() => remove(w.address)}
+                    className="text-xs font-semibold text-muted underline underline-offset-4 hover:text-ink"
+                  >
+                    Remove
+                  </button>
+                </span>
               </div>
               {!w.verified && (
                 <div className="space-y-3">

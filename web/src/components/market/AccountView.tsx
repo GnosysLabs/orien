@@ -128,10 +128,10 @@ function SignIn({ onDone, trouble: first }: { onDone: () => void; trouble: strin
       )}
       {step === 'name' && (
         <form onSubmit={finish} className="space-y-4">
-          <h1 className="text-2xl font-bold tracking-tight text-ink">Welcome! What should we call you?</h1>
+          <h1 className="text-2xl font-bold tracking-tight text-ink">Welcome! Choose a username</h1>
           <p className="leading-relaxed text-muted">
-            This is the name people will see, and your profile&apos;s address: orien.network/u/{name || 'yourname'}. Use{' '}
-            {NAME_RULE}. You can change it later.
+            It&apos;s what people see, and your profile&apos;s address: orien.network/u/{name || 'username'}. Use {NAME_RULE}.
+            You can change it later.
           </p>
           <input
             value={name}
@@ -139,12 +139,12 @@ function SignIn({ onDone, trouble: first }: { onDone: () => void; trouble: strin
             maxLength={20}
             minLength={3}
             pattern={NAME_PATTERN}
-            title={`Your name: ${NAME_RULE}`}
+            title={`Your username: ${NAME_RULE}`}
             required
             autoFocus
             spellCheck={false}
             autoCapitalize="off"
-            placeholder="Your name or your business's"
+            placeholder="Username"
             className={field}
           />
           <button type="submit" disabled={busy} className={button}>

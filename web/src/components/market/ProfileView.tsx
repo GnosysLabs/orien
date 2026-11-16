@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
 import { useEffect, useState } from 'react'
-import { ArrowLeft, BadgeCheck, Wallet } from 'lucide-react'
+import { ArrowLeft, BadgeCheck } from 'lucide-react'
 import { ask, me, memberSince, pictureUrl, profileHref, type Account, type Listing, type VerifiedWallet } from '@/lib/market'
 import { Linked } from './Linked'
 import { Avatar } from './Avatar'
@@ -74,37 +74,17 @@ export function ProfileView() {
         </div>
         {/* relative: drawn above the banner behind it. */}
         <div className={`relative min-w-0 space-y-2 ${account.banner ? 'on-banner' : ''}`}>
-          <h1 className="text-3xl font-bold tracking-tight text-ink">{account.name}</h1>
-          {account.wallet && (
-            <p className="inline-flex items-center gap-1.5 rounded-full border border-line bg-bg px-3 py-1 text-xs font-semibold text-muted">
-              <Wallet className="h-3.5 w-3.5" strokeWidth={2.25} aria-hidden /> Paid to{' '}
-              <span className="num">
-                {account.wallet.slice(0, 6)}…{account.wallet.slice(-6)}
+          <div className="flex flex-wrap items-center justify-center gap-3 sm:justify-start">
+            <h1 className="text-3xl font-bold tracking-tight text-ink">{account.name}</h1>
+            {wallets.length > 0 && (
+              <span
+                className="inline-flex items-center gap-1.5 rounded-full border border-line bg-bg px-3 py-1 text-xs font-semibold text-go"
+                title="This person proved at least one wallet is theirs"
+              >
+                <BadgeCheck className="h-3.5 w-3.5" strokeWidth={2.25} aria-hidden /> Verified
               </span>
-              {account.wallet_verified && (
-                <span className="ml-1 inline-flex items-center gap-1 text-go" title="This wallet proved it belongs to this profile">
-                  <BadgeCheck className="h-3.5 w-3.5" strokeWidth={2.25} aria-hidden /> Verified
-                </span>
-              )}
-            </p>
-          )}
-          {wallets.length > 0 && (
-            <div className="flex flex-wrap justify-center gap-2 sm:justify-start">
-              {wallets.map((w) => (
-                <span
-                  key={w.address}
-                  title={w.address}
-                  className="inline-flex items-center gap-1.5 rounded-full border border-line bg-bg px-3 py-1 text-xs font-semibold text-muted"
-                >
-                  <BadgeCheck className="h-3.5 w-3.5 text-go" strokeWidth={2.25} aria-hidden />
-                  {w.name && <span className="text-ink">{w.name}</span>}
-                  <span className="num">
-                    {w.address.slice(0, 6)}…{w.address.slice(-6)}
-                  </span>
-                </span>
-              ))}
-            </div>
-          )}
+            )}
+          </div>
           <p className="text-sm text-muted">{memberSince(account.created)}</p>
           {account.bio && (
             <p className="whitespace-pre-line pt-2 leading-relaxed text-muted">

@@ -3,28 +3,18 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
-import { LogIn, LogOut, UserRound } from "lucide-react";
-import { ask, me, type Account } from "@/lib/market";
+import { LogIn, LogOut, Pencil, UserRound } from "lucide-react";
+import { ask, profileHref } from "@/lib/market";
+import { SIGNED_IN_OR_OUT, useMe } from "@/lib/useMe";
 import { Avatar } from "./market/Avatar";
-import { SIGNED_IN_OR_OUT } from "./market/Shell";
 
 /** The top bar's account corner: your picture, with a menu to edit your
  * profile or sign out, or a Sign in button. */
 export function AccountMenu() {
   const pathname = usePathname();
-  const [account, setAccount] = useState<Account | null | undefined>(undefined);
+  const { account } = useMe();
   const [open, setOpen] = useState(false);
   const box = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    const load = () =>
-      me()
-        .then((found) => setAccount(found?.account ?? null))
-        .catch(() => setAccount(null));
-    void load();
-    window.addEventListener(SIGNED_IN_OR_OUT, load);
-    return () => window.removeEventListener(SIGNED_IN_OR_OUT, load);
-  }, []);
 
   // A click elsewhere, Escape, or moving to another page closes the menu.
   useEffect(() => setOpen(false), [pathname]);
@@ -46,7 +36,6 @@ export function AccountMenu() {
   const signOut = async () => {
     setOpen(false);
     await ask("/signout", "POST").catch(() => {});
-    setAccount(null);
     window.dispatchEvent(new Event(SIGNED_IN_OR_OUT));
     // Market pages drawn for the signed-in account start over.
     if (pathname.startsWith("/marketplace")) window.location.reload();
@@ -89,11 +78,18 @@ export function AccountMenu() {
         >
           <p className="truncate px-3 pb-2 pt-1.5 text-sm font-semibold text-ink">{account.name}</p>
           <Link
+            href={profileHref(account.name)}
+            role="menuitem"
+            className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-semibold text-ink transition hover:bg-raised"
+          >
+            <UserRound className="h-4 w-4 text-pearl" strokeWidth={2} aria-hidden /> View profile
+          </Link>
+          <Link
             href="/account/"
             role="menuitem"
             className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-semibold text-ink transition hover:bg-raised"
           >
-            <UserRound className="h-4 w-4 text-pearl" strokeWidth={2} aria-hidden /> Edit profile
+            <Pencil className="h-4 w-4 text-pearl" strokeWidth={2} aria-hidden /> Edit profile
           </Link>
           <button
             type="button"
