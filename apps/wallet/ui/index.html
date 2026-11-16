@@ -452,10 +452,11 @@
   .tile .dot { top: 9px; right: 9px; }
   /* On the round Messages button the dot sits on its rim, half outside. */
   .pill.icon .dot { top: -1px; right: -1px; width: 10px; height: 10px; }
-  .ls-ask { margin-top: 14px; padding: 12px; border: 1px solid var(--line); border-radius: 16px; background: var(--surface); }
-  .ls-ask textarea, .report-box textarea { display: block; width: 100%; min-height: 70px; padding: 10px 12px; border: 1px solid var(--line); border-radius: 12px;
+  .ls-message { display: flex; align-items: center; justify-content: center; gap: 9px; }
+  .ls-message svg { flex: none; }
+  .report-box textarea { display: block; width: 100%; min-height: 70px; padding: 10px 12px; border: 1px solid var(--line); border-radius: 12px;
     background: var(--field); color: var(--ink); font: inherit; font-size: 13.5px; letter-spacing: normal; resize: none; outline: none; }
-  .ls-ask textarea:focus, .report-box textarea:focus { border-color: #8f8aa8; }
+  .report-box textarea:focus { border-color: #8f8aa8; }
   .ls-ask-row { display: flex; align-items: center; justify-content: flex-end; gap: 8px; margin-top: 10px; }
   .ls-ask-row .hint { margin: 0 auto 0 2px; min-height: 0; }
   .ls-signin { display: flex; margin: 14px auto 0; }
@@ -1133,10 +1134,7 @@
       <div class="section-head"><h3>About this</h3></div>
       <div class="ls-desc" id="ls-desc"></div>
       <div class="note" id="ls-note"></div>
-      <div class="ls-ask" id="ls-ask" hidden>
-        <textarea id="ls-msg" rows="3" maxlength="2000"></textarea>
-        <div class="ls-ask-row"><span class="hint" id="ls-ask-hint"></span><button class="pill pearl" id="ls-send">Send message</button></div>
-      </div>
+      <button class="primary pearl ls-message" id="ls-ask" data-gap="lg" hidden><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 20.5l1.4-4.9A8 8 0 1 1 21 12z"/></svg><span id="ls-ask-label">Message the seller</span></button>
       <button class="pill ls-signin" id="ls-signin" hidden>Sign in to message the seller</button>
       <button class="pill ls-report" id="ls-report" hidden>Report this listing</button>
       <div class="report-box" id="ls-report-box" hidden>
@@ -3792,8 +3790,7 @@
     $("ls-ask").hidden = market.mine || !signedIn || l.open === false;
     $("ls-signin").hidden = market.mine || signedIn;
     $("ls-signin").textContent = `Sign in to message ${seller.name || l.seller_name || "the seller"}`;
-    $("ls-msg").placeholder = `Hi ${seller.name || l.seller_name || ""}, I'm interested. Could you…`;
-    $("ls-ask-hint").textContent = "";
+    $("ls-ask-label").textContent = `Message ${seller.name || l.seller_name || "the seller"}`;
     $("ls-report").hidden = market.mine || !signedIn;
     $("ls-mine").hidden = !market.mine;
     $("ls-close").textContent = l.open === false ? "Reopen" : "Close";
@@ -3921,18 +3918,27 @@
   }
 
   $("ls-signin").onclick = () => { signinReturn = "listing"; resetSignin(); show("board-signin"); };
-  $("ls-send").onclick = async () => {
-    const body = $("ls-msg").value.trim();
-    if (!body) { $("ls-msg").focus(); return; }
-    $("ls-send").disabled = true;
-    try {
-      const sent = await mk("POST", `/listings/${market.listing.id}/messages`, { body });
-      $("ls-msg").value = "";
-      feel("success");
-      await openChat(sent.conversation, "listing");
-    } catch (e) { problem("ls-problem", mkProblem(e)); }
-    finally { $("ls-send").disabled = false; }
+  // Message the seller: the chat about this listing if there is one;
+  // otherwise a new one, which starts with the first message sent.
+  $("ls-ask").onclick = async () => {
+    const l = market.listing, seller = market.seller || {};
+    $("ls-ask").disabled = true;
+    let found = null;
+    try { found = ((await mk("GET", "/conversations")).conversations || []).find((c) => c.listing === l.id && c.buying); } catch {}
+    $("ls-ask").disabled = false;
+    if (found) return openChat(found.id, "listing");
+    chat.id = null; chat.from = "listing"; chat.paying = null; chat.blockArmed = false; chat.key = null;
+    chat.draft = l.id;
+    chat.conv = { listing: l.id, listing_title: l.title, price: l.price, unit: l.unit, with_name: seller.name || l.seller_name || "the seller",
+      with_picture: seller.picture || l.seller_picture, buying: true, blocked: false };
+    chat.messages = []; chat.me = null;
+    $("ch-askbox").hidden = true; $("ch-menu").hidden = true; $("ch-problem").hidden = true;
+    await picReady(chat.conv.with_picture);
+    paintChat();
+    show("chat");
+    $("ch-text").focus();
   };
+
   $("ls-report").onclick = () => { $("ls-report-box").hidden = !$("ls-report-box").hidden; $("ls-report-done").textContent = ""; if (!$("ls-report-box").hidden) $("ls-report-text").focus(); };
   $("ls-report-send").onclick = async () => {
     $("ls-report-send").disabled = true;
@@ -3995,7 +4001,7 @@
     }
   }
   async function openChat(id, from) {
-    chat.id = id; chat.from = from || "inbox"; chat.paying = null; chat.blockArmed = false;
+    chat.id = id; chat.from = from || "inbox"; chat.paying = null; chat.blockArmed = false; chat.draft = null;
     $("ch-askbox").hidden = true; $("ch-menu").hidden = true; $("ch-problem").hidden = true;
     const kept = chatCache.get(id);
     if (kept) {
@@ -4033,6 +4039,7 @@
     $("ch-who").innerHTML = `${mkAvatar(c.with_name, c.with_picture)}<div style="min-width:0"><b>${other}</b><small>${c.buying ? "Seller" : "Buyer"}</small></div>`;
     $("ch-about").innerHTML = `<b>About ${esc(c.listing_title)}</b><span>${priceHtml(c)}</span>`;
     $("ch-ask").hidden = c.buying;
+    $("ch-more").hidden = !chat.id;
     $("ch-ask").textContent = phone ? "Request" : "Ask for payment";
     $("ch-block").firstChild.textContent = c.blocked ? `Unblock ${c.with_name}` : `Block ${c.with_name}`;
     $("ch-blocked").hidden = !c.blocked;
@@ -4152,10 +4159,14 @@
   $("ch-text").onkeydown = (e) => { if (e.key === "Enter" && !e.shiftKey && !e.isComposing) { e.preventDefault(); $("ch-send").click(); } };
   $("ch-send").onclick = async () => {
     const body = $("ch-text").value.trim();
-    if (!body || !chat.id) return;
+    if (!body || !(chat.id || chat.draft)) return;
     $("ch-send").disabled = true;
     try {
-      await mk("POST", `/conversations/${chat.id}/messages`, { body });
+      if (chat.draft) {
+        // The first message starts the conversation.
+        const sent = await mk("POST", `/listings/${chat.draft}/messages`, { body });
+        chat.draft = null; chat.id = sent.conversation;
+      } else await mk("POST", `/conversations/${chat.id}/messages`, { body });
       $("ch-text").value = ""; growText();
       await refreshChat(true);
     } catch (e) { problem("ch-problem", mkProblem(e)); }
