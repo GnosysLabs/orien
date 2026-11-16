@@ -4409,6 +4409,9 @@
   };
   checkUpdate();
   setInterval(checkUpdate, 60 * 60 * 1000);
+  // Contacts and wallet icons from this wallet's other devices, every few
+  // minutes while the app is open.
+  setInterval(syncBook, 3 * 60 * 1000);
   loadBook().then(loadIcons).then(start).then(syncBook).catch((e) => { covered(false); problem("welcome-problem", e); });
   // Signed in to the Market: this app's swaps move along from the start,
   // even with the window closed, as soon as someone takes an offer.
