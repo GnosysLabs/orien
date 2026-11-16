@@ -527,6 +527,10 @@ fn bad_offers_and_addresses_are_refused() {
     let unused = solana::text(&Keypair::random().pubkey());
     assert!(SolSwap::buy(&w.buyer, &w.sol, "test", &offer, &unused).is_err(), "a refund address that never held SOL");
     assert!(SolSwap::buy(&w.buyer, &w.sol, "test", &offer, "not an address").is_err());
+    // The seller's payout as the refund: orien-lock would refuse the lock.
+    w.pay(&offer.payout, LAMPORTS_PER_SOL / 100);
+    let refusal = SolSwap::buy(&w.buyer, &w.sol, "test", &offer, &offer.payout).unwrap_err().to_string();
+    assert!(refusal.contains("payout"), "{refusal}");
     assert!(SolSwap::buy(&w.seller, &w.sol, "test", &offer, &wallet).is_err(), "for another wallet");
     let mut other = offer.clone();
     other.network = "elsewhere".into();

@@ -427,7 +427,12 @@ impl Store {
             bail!("this swap is not waiting for your wallet");
         }
         let matches = if swap.offer.coin == "sol" {
-            SolReply::read(code.trim())?.hash == SolOffer::read(swap.offer_code.as_deref().unwrap_or_default())?.hash
+            let (reply, offer) = (SolReply::read(code.trim())?, SolOffer::read(swap.offer_code.as_deref().unwrap_or_default())?);
+            // orien-lock refuses a lock paying the same address both ways.
+            if reply.refund == offer.payout {
+                bail!("your refund address is the seller's payout address: give your own wallet's address");
+            }
+            reply.hash == offer.hash
         } else {
             Reply::read(code.trim())?.hash == Offer::read(swap.offer_code.as_deref().unwrap_or_default())?.hash
         };

@@ -625,9 +625,13 @@ async fn sol_offers_are_shown_and_taken_only_by_wallets_that_know_them() {
     assert_eq!(status, StatusCode::OK, "{body}");
 
     let reply = |hash: [u8; 32]| SolReply { hash, lock: payout.into(), refund: payout.into() }.code();
+    let good_reply = SolReply { hash: [7; 32], lock: payout.into(), refund: "11111111111111111111111111111111".into() }.code();
     let reply_path = format!("/api/market/swaps/{id}/reply");
     let (status, _) = market.ask("POST", &reply_path, Some(&sam), Some(json!({ "code": reply([8; 32]) }))).await;
     assert_eq!(status, StatusCode::BAD_REQUEST, "another swap's reply");
+    // The reply helper pays refunds to the payout itself: refused.
     let (status, body) = market.ask("POST", &reply_path, Some(&sam), Some(json!({ "code": reply([7; 32]) }))).await;
+    assert_eq!(status, StatusCode::BAD_REQUEST, "refund = payout: {body}");
+    let (status, body) = market.ask("POST", &reply_path, Some(&sam), Some(json!({ "code": good_reply }))).await;
     assert_eq!(status, StatusCode::OK, "{body}");
 }

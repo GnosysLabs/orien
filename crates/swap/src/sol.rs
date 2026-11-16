@@ -330,6 +330,10 @@ impl SolSwap {
         if offer.lamports < MIN_LAMPORTS {
             bail!("that offer is below the smallest SOL swap");
         }
+        // orien-lock refuses a lock that pays the same address both ways.
+        if solana::address(&offer.payout)? == refund_key {
+            bail!("your refund address is the seller's payout address: give your own wallet's address");
+        }
         if sol.balance(&refund_key)? == 0 {
             bail!("{refund} has never held SOL: give the address of the wallet you'll pay from");
         }
