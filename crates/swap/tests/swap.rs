@@ -11,7 +11,7 @@ use orien_crypto::Hash32;
 use orien_swap::chain::{Chain, Explorers};
 use orien_swap::htlc::{Coin, new_key};
 use orien_swap::swap::{
-    BTC_BLOCKS, CONFIRMATIONS, LockRef, LockState, ORN_HOURS, Offer, Orien, Reply, SETTLED, Stage, Swap, Waiting,
+    BTC_BLOCKS, CONFIRMATIONS, LockRef, LockState, ORN_HOURS, ORN_HOURS_LEFT, Offer, Orien, Reply, SETTLED, Stage, Swap, Waiting,
 };
 use orien_swap::testing::TestChain;
 use std::cell::{Cell, RefCell};
@@ -761,7 +761,7 @@ fn a_buyer_refuses_an_offer_orien_does_not_back() {
     assert!(buy(&offer).is_err());
     w.buyer.reachable.set(true);
     // A lock that ends too soon to swap safely.
-    for _ in 0..(ORN_HOURS - 20) {
+    for _ in 0..(ORN_HOURS - ORN_HOURS_LEFT + 2) {
         w.ledger.borrow_mut().close();
     }
     assert!(buy(&offer).is_err());

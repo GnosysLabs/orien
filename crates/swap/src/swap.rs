@@ -41,16 +41,17 @@ use orien_crypto::Hash32;
 use serde::{Deserialize, Serialize};
 use std::str::FromStr;
 
-/// How long the seller's ORN stay locked.
-pub const ORN_HOURS: u64 = 48;
+/// How long the seller's ORN stay locked: half a day at most, if the buyer
+/// never pays.
+pub const ORN_HOURS: u64 = 12;
 /// The buyer pays only if the ORN stay locked at least this much longer.
-pub const ORN_HOURS_LEFT: u64 = 30;
-/// How many Bitcoin blocks (about 12 hours) the buyer's Bitcoin stay locked.
-pub const BTC_BLOCKS: u32 = 72;
+pub const ORN_HOURS_LEFT: u64 = 10;
+/// How many Bitcoin blocks (about 6 hours) the buyer's Bitcoin stay locked.
+pub const BTC_BLOCKS: u32 = 36;
 /// Bitcoin's average time between blocks.
 pub const BLOCK_MINUTES: u64 = 10;
 /// The Bitcoin lock must end at least this long before the ORN lock.
-pub const MARGIN_HOURS: u64 = 18;
+pub const MARGIN_HOURS: u64 = 4;
 /// The seller takes the Bitcoin only while at least this many blocks are
 /// left before the buyer could take it back.
 pub const SAFETY_BLOCKS: u32 = 6;

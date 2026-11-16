@@ -11,6 +11,7 @@
 
 
 mod activity;
+mod approval;
 #[cfg(desktop)]
 mod background;
 mod board;
@@ -1122,12 +1123,27 @@ async fn board_sign_out(app: AppHandle) -> Result<(), String> {
 
 /// Posts an offer of `orn` ORN for `btc` Bitcoin, paid to `payout`.
 #[tauri::command]
-async fn board_post(app: AppHandle, orn: String, btc: String, payout: String) -> Result<(), String> {
+async fn board_post(app: AppHandle, orn: String, btc: String, payout: String, password: Option<String>) -> Result<(), String> {
     let orn = money::read(&orn)?;
     let sats = swaps::read_btc(&btc)?;
     let dir = folder(&app)?;
     let wallet = wallet_file(&dir).ok_or("no wallet yet")?;
-    tauri::async_runtime::spawn_blocking(move || board::post(&dir, &wallet, orn, sats, &payout)).await.map_err(|error| error.to_string())?
+    tauri::async_runtime::spawn_blocking(move || {
+        // Posting approves the offer: the wallet must open now, with the
+        // password typed or Touch ID a moment ago, so it can lock the ORN
+        // later with no one there.
+        let password = password.filter(|p| !p.is_empty()).or_else(|| biometric::unlocked(&wallet));
+        if has_password(&wallet) {
+            Wallet::open(&wallet, password.as_deref()).map_err(|error| match error.downcast_ref::<OpenError>() {
+                Some(OpenError::NeedsPassword) => "password: needed".to_string(),
+                Some(OpenError::WrongPassword) => "password: wrong".to_string(),
+                None => format!("could not open the wallet: {error}"),
+            })?;
+        }
+        board::post(&dir, &wallet, orn, sats, &payout, password.as_deref().filter(|_| has_password(&wallet)))
+    })
+    .await
+    .map_err(|error| error.to_string())?
 }
 
 /// Takes offer `offer` for this wallet; a refund would go to `refund`.

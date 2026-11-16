@@ -201,7 +201,7 @@
     padding: 14px 16px; border: 1px solid var(--line); border-radius: 16px; background: var(--surface);
     color: inherit; font: inherit; text-align: left; cursor: pointer; }
   .swap-row + .swap-row { margin-top: 8px; }
-  .swap-alert { display: flex; align-items: center; gap: 12px; width: 100%; margin: 10px 0 6px; padding: 14px 16px; text-align: left;
+  .swap-alert { display: flex; align-items: center; gap: 12px; width: 100%; margin: 12px 0 16px; padding: 14px 16px; text-align: left;
     border: 1px solid var(--line); border-radius: 16px; background: var(--surface); color: inherit; font: inherit; cursor: pointer; }
   .swap-alert .sa-main { flex: 1; min-width: 0; }
   .swap-alert .sa-title { font-weight: 600; }
@@ -1035,7 +1035,12 @@
         <label for="bp-payout">Your Bitcoin address</label>
         <div class="box plain"><input id="bp-payout" placeholder="Where the Bitcoin should go" spellcheck="false" autocomplete="off"></div>
       </div>
-      <p class="fineprint">Smallest swap: 0.00005 BTC, more when Bitcoin is busy<span class="min-now"></span>. Fees: the usual Orien fee to lock the ORN (0.1%, at most 1 ORN), and Bitcoin's network fee for taking the Bitcoin, out of what you receive. If a buyer never pays, your ORN come back on their own after 48 hours.</p>
+      <p class="fineprint">Smallest swap: 0.00005 BTC, more when Bitcoin is busy<span class="min-now"></span>. Fees: the usual Orien fee to lock the ORN (0.1%, at most 1 ORN), and Bitcoin's network fee for taking the Bitcoin, out of what you receive. If a buyer never pays, your ORN come back on their own within 12 hours.</p>
+      <p class="fineprint" id="bp-approve">You approve the sale once, now. When someone takes your offer, your wallet accepts it within seconds, even with the window closed. Keep Orien Wallet running.</p>
+      <div class="field" id="bp-pw-field" hidden>
+        <label for="bp-pw">Wallet password, to approve this sale</label>
+        <div class="box plain"><input id="bp-pw" type="password" autocomplete="current-password"></div>
+      </div>
       <div class="push"></div>
       <div class="problem" id="bp-problem" hidden></div>
       <button class="primary pearl" id="bp-go" data-gap="lg">Post the offer</button>
@@ -1051,7 +1056,7 @@
       <ul class="explain" data-gap="lg">
         <li><strong>What happens:</strong> the seller has 30 minutes to accept. Their wallet then locks the ORN for you, and this app shows you where to pay the Bitcoin. After you pay, the seller's wallet takes it and, in the same step, delivers your ORN to you. If the seller doesn't accept in time, the offer goes back on the board and nothing is lost.</li>
         <li><strong>You need</strong> the Bitcoin in any Bitcoin wallet, plus its sending fee. The usual Orien fee (0.1%, at most 1 ORN) comes out of the ORN you receive.</li>
-        <li><strong>If the seller never takes your Bitcoin,</strong> this app takes it back to the address below after about 12 hours.</li>
+        <li><strong>If the seller never takes your Bitcoin,</strong> this app takes it back to the address below after about 6 hours.</li>
       </ul>
       <div class="field" data-gap="xl">
         <label for="bt-refund">Your Bitcoin address</label>
@@ -1071,7 +1076,7 @@
         <li><strong>You need</strong> the buyer's Orien address (they find it in Orien Wallet under Swap, Buy ORN), a price you've agreed with them, and a Bitcoin address of yours to be paid at.</li>
         <li><strong>How it goes:</strong> this app locks your ORN for the buyer, you swap codes, the buyer pays the Bitcoin, and this app takes it. Usually one to two hours.</li>
         <li><strong>Fees:</strong> the usual Orien fee to lock the ORN (0.1%, at most 1 ORN), and Bitcoin's network fee for taking the Bitcoin, which comes out of what you receive. Orien Wallet itself takes nothing.</li>
-        <li><strong>Smallest swap:</strong> 0.00005 BTC, more when Bitcoin is busy<span class="min-now"></span>. <strong>If the buyer never pays,</strong> your ORN come back to you on their own after 48 hours.</li>
+        <li><strong>Smallest swap:</strong> 0.00005 BTC, more when Bitcoin is busy<span class="min-now"></span>. <strong>If the buyer never pays,</strong> your ORN come back to you on their own within 12 hours.</li>
       </ul>
       <div class="field" data-gap="xl">
         <label for="sell-buyer">Buyer's Orien address</label>
@@ -1107,7 +1112,7 @@
         <li><strong>You need</strong> Bitcoin in any Bitcoin wallet, enough for the price plus that wallet's sending fee, a Bitcoin address of yours for a refund if the swap stops, and a price you've agreed with the seller.</li>
         <li><strong>How it goes:</strong> the seller locks the ORN for you and sends an offer code, you send back a reply code and pay the Bitcoin, the seller's wallet takes it and delivers your ORN. Usually one to two hours after you pay.</li>
         <li><strong>Fees:</strong> your Bitcoin wallet's fee to pay, and the usual Orien fee (0.1%, at most 1 ORN), which comes out of the ORN you receive. Orien Wallet itself takes nothing.</li>
-        <li><strong>Smallest swap:</strong> 0.00005 BTC, more when Bitcoin is busy<span class="min-now"></span>. The wallet checks before anything is paid. <strong>If the seller never takes your Bitcoin,</strong> this app takes it back for you after about 12 hours.</li>
+        <li><strong>Smallest swap:</strong> 0.00005 BTC, more when Bitcoin is busy<span class="min-now"></span>. The wallet checks before anything is paid. <strong>If the seller never takes your Bitcoin,</strong> this app takes it back for you after about 6 hours.</li>
       </ul>
       <div class="label-line" data-gap="xl">First, send the seller your Orien address. They lock the ORN for it and send you an offer code.</div>
       <div class="codebox" id="buy-me" data-gap="sm"></div>
@@ -2048,25 +2053,28 @@
   // takes. `at` is the step under way; steps before it are done.
   function swapSteps(s) {
     const O = `${s.orn} ORN`, B = `${s.btc} BTC`;
-    // Board swaps: four plain steps, nothing to pass by hand.
+    // " (1 of 3)", while a payment is confirming.
+  const confirmCount = (s) => s.paid_seen && s.confirmations !== null && s.confirmations !== undefined
+    ? ` (${Math.min(s.confirmations, s.confirmations_needed)} of ${s.confirmations_needed})` : "";
+  // Board swaps: four plain steps, nothing to pass by hand.
     if (s.board && s.role === "sell") {
       const steps = [
         { name: "Accepted", what: `Your ${O} are locked for the buyer`, who: "This app · under a minute" },
-        { name: "Buyer pays", what: `The buyer pays ${B}`, who: "The buyer · within 30 minutes" },
-        { name: "Confirming", what: "Bitcoin confirms the payment, then this app takes the Bitcoin and delivers the buyer's ORN", who: "Automatic · usually 30 to 60 minutes" },
+        { name: "Buyer pays", what: `The buyer pays ${B}`, who: "The buyer · within a few hours" },
+        { name: "Confirming", what: `The buyer paid; Bitcoin confirms it${confirmCount(s)}, then this app takes it and delivers the buyer's ORN`, who: "Automatic · usually 30 to 60 minutes" },
         { name: "Done", what: `${B} on its way to your Bitcoin address`, who: "" },
       ];
-      const at = { locking: 0, reply: 1, bitcoin: 1, claiming: 2, done: 4 }[s.stage];
+      const at = { locking: 0, reply: 1, bitcoin: s.paid_seen ? 2 : 1, claiming: 2, done: 4 }[s.stage];
       return { steps, at: at ?? null };
     }
     if (s.board) {
       const steps = [
         { name: "Accepted", what: `The seller locked ${O} for you`, who: "The seller · done" },
-        { name: "Pay", what: `Pay ${B} from any Bitcoin wallet`, who: "You · within 30 minutes" },
-        { name: "Confirming", what: `Bitcoin confirms your payment, then your ${O} arrive`, who: "Automatic · usually 30 to 60 minutes" },
+        { name: "Pay", what: `Pay ${B} from any Bitcoin wallet`, who: "You · within a few hours" },
+        { name: "Confirming", what: `Bitcoin confirms your payment${confirmCount(s)}, then your ${O} arrive`, who: "Automatic · usually 30 to 60 minutes" },
         { name: "Done", what: `${O} in your wallet`, who: "" },
       ];
-      let at = { bitcoin: s.paid ? 2 : 1, secret: 2, claim: 2, done: 4 }[s.stage];
+      let at = { bitcoin: s.paid || s.paid_seen ? 2 : 1, secret: 2, claim: 2, done: 4 }[s.stage];
       if (s.stage === "secret" && s.orn_claimed) at = 4;
       return { steps, at: at ?? null };
     }
@@ -2085,7 +2093,7 @@
     const steps = [
       { what: `The seller locked ${O} for you, and this app checked with the validators that they really are`, who: "The seller · done" },
       s.board
-        ? { what: `You pay ${B} into the swap, from any Bitcoin wallet. The swap board passes your reply to the seller`, who: "You · pay within 30 minutes" }
+        ? { what: `You pay ${B} into the swap, from any Bitcoin wallet. The swap board passes your reply to the seller`, who: "You · pay within a few hours" }
         : { what: `You send the seller the reply code, and pay ${B} into the swap`, who: "You · pay within the next few hours" },
       { what: "The seller's wallet takes the Bitcoin once Bitcoin has confirmed your payment three times", who: "The seller · usually 30 to 60 minutes after you pay" },
       { what: `Your ${O} arrive: the seller's wallet delivers them once it takes the Bitcoin, or this app claims them if it gets there first`, who: "Automatic · a few minutes" },
@@ -2149,9 +2157,9 @@
     }
     for (const s of swapList) {
       if (needsMe(s)) say(`pay:${s.id}`, `Your swap was accepted. Pay ${s.btc} BTC now to get ${s.orn} ORN.` + (s.pay_by ? ` ${payDeadline(s.pay_by)}.` : ""), 10 * 60 * 1000);
-      if (s.role === "buy" && s.paid && !["done", "cancelled"].includes(s.stage)) say(`paid:${s.id}`, `Payment seen. Waiting for Bitcoin to confirm it; your ${s.orn} ORN follow by themselves.`);
+      if (s.role === "buy" && (s.paid || s.paid_seen) && !["done", "cancelled"].includes(s.stage)) say(`paid:${s.id}`, `Payment seen. Waiting for Bitcoin to confirm it; your ${s.orn} ORN follow by themselves.`);
       if (s.role === "sell" && s.board && s.stage === "reply") say(`locked:${s.id}`, `Your ${s.orn} ORN are locked for the buyer. Waiting for them to pay ${s.btc} BTC.`);
-      if (s.role === "sell" && s.stage === "claiming") say(`claiming:${s.id}`, `The buyer paid ${s.btc} BTC. Taking it now; keep Orien Wallet running.`);
+      if (s.role === "sell" && (s.paid_seen || s.stage === "claiming")) say(`claiming:${s.id}`, `The buyer paid ${s.btc} BTC. Bitcoin is confirming it; then this app takes it. Keep Orien Wallet running.`);
       if (s.stage === "done") say(`done:${s.id}`, s.role === "sell" ? `Swap done: ${s.btc} BTC is on its way to your Bitcoin address.` : `Swap done: ${s.orn} ORN are in your wallet.`);
       if (s.stage === "cancelled") say(`stopped:${s.id}`, `A swap stopped. ${s.status}`);
     }
@@ -2160,12 +2168,15 @@
     if (!phone) invoke("plugin:window|set_badge_count", { label: "main", value: waiting || null }).catch(() => {});
   }
 
-  // "Pay within 24 minutes", counting down; once past, what that means.
+  // "Pay by 6:15 AM, in about 9 hours", from the Bitcoin lock's real limit;
+  // once past, what a late payment means.
   function payDeadline(by) {
-    const left = Math.round((by * 1000 - Date.now()) / 60000);
-    if (left > 1) return `Pay within ${left} minutes`;
-    if (left === 1) return "Pay within a minute";
-    return "Pay now: the time to pay is up, and the seller may take the offer back";
+    const minutes = Math.round((by * 1000 - Date.now()) / 60000);
+    if (minutes <= 0) return "Too late to pay safely: a payment now would come back to you once the lock ends, about 2 hours from now";
+    const at = new Date(by * 1000).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
+    const hours = Math.round(minutes / 60);
+    const left = minutes < 60 ? `${minutes} minute${minutes === 1 ? "" : "s"}` : `about ${hours} hour${hours === 1 ? "" : "s"}`;
+    return `Pay by ${at}, in ${left}`;
   }
 
   // What happens if the other side disappears, at this point of the swap.
@@ -2177,20 +2188,20 @@
         return ornBack && s.orn_back_at * 1000 > Date.now()
           ? `<strong>Your ORN come back to you on their own</strong> ${ornBack}. You don't need to do anything.` : null;
       if (s.stage === "claiming")
-        return `<strong>Keep Orien Wallet open until this is done.</strong> The buyer can take their Bitcoin back ${btcBack || "about 12 hours after their reply"}, so this app takes it well before then.`;
-      let text = `<strong>If the buyer disappears,</strong> your ${s.orn} ORN come back to you on their own ${ornBack || "48 hours after they were locked"}. You don't need to do anything, and this app can be closed.`;
+        return `<strong>Keep Orien Wallet open until this is done.</strong> The buyer can take their Bitcoin back ${btcBack || "about 6 hours after their reply"}, so this app takes it well before then.`;
+      let text = `<strong>If the buyer disappears,</strong> your ${s.orn} ORN come back to you on their own ${ornBack || "12 hours after they were locked"}. You don't need to do anything, and this app can be closed.`;
       if (s.stage === "bitcoin")
-        text += ` If the buyer pays but this app stays closed for more than about 10 hours, they take their Bitcoin back and your ORN still come back to you. Nobody loses coins.`;
+        text += ` If the buyer pays but this app stays closed for more than about 4 hours, they take their Bitcoin back and your ORN still come back to you. Nobody loses coins.`;
       return text;
     }
     if (s.stage === "refunding")
       return `<strong>Keep Orien Wallet open</strong> until your Bitcoin is back at your Bitcoin address. Bitcoin's network fee for that comes out of it.`;
     if (s.stage === "cancelled") return null;
     if (s.stage === "bitcoin" && !s.paid)
-      return `<strong>Nothing has left your wallets yet.</strong> If you change your mind, just don't pay: the seller's ORN go back to them ${ornBack || "on their own"}. Pay soon if you do: the swap's Bitcoin lock ends ${btcBack || "about 12 hours after your reply"}.`;
+      return `<strong>Nothing has left your wallets yet.</strong> If you change your mind, just don't pay: the seller's ORN go back to them ${ornBack || "on their own"}. Pay soon if you do: the swap's Bitcoin lock ends ${btcBack || "about 6 hours after your reply"}.`;
     if (s.stage === "claim" || (s.stage === "secret" && s.orn_claimed))
       return `<strong>Keep Orien Wallet open until this is done.</strong> It must claim your ORN before ${ornBack || "the seller's lock ends"}.`;
-    return `<strong>If the seller disappears</strong> and never takes your Bitcoin, this app takes it back to your Bitcoin address ${btcBack || "about 12 hours after your reply"}. Have Orien Wallet open then, or open it before ${ornBack || "the seller's lock ends"}. If they do take it, the seller's wallet delivers your ORN to you, even with this app closed.`;
+    return `<strong>If the seller disappears</strong> and never takes your Bitcoin, this app takes it back to your Bitcoin address ${btcBack || "about 6 hours after your reply"}. Have Orien Wallet open then, or open it before ${ornBack || "the seller's lock ends"}. If they do take it, the seller's wallet delivers your ORN to you, even with this app closed.`;
   }
 
   // One line for the list of swaps.
@@ -2204,7 +2215,7 @@
     return `Step ${at + 1} of ${steps.length} · ${steps[at].name || steps[at].who.split(" · ")[0]}`;
   }
   // A swap waiting on this person: a buyer who hasn't paid yet.
-  const needsMe = (s) => s.role === "buy" && s.stage === "bitcoin" && !s.paid && !!s.pay_to;
+  const needsMe = (s) => s.role === "buy" && s.stage === "bitcoin" && !s.paid && !s.paid_seen && !!s.pay_to;
 
   // Someone took an offer, and its wallet is locked: say so, even with the
   // window closed, and ask for Touch ID at once, so one touch finishes it.
@@ -2319,7 +2330,7 @@
     $("sd-status").hidden = needsMe(s);
     renderExchange(s);
     // The one thing a buyer does: pay. Gone once the payment is seen.
-    $("sd-pay").hidden = !s.pay_to || s.paid;
+    $("sd-pay").hidden = !s.pay_to || s.paid || s.paid_seen;
     if (s.pay_to) {
       $("sd-pay-to").textContent = s.pay_to;
       $("sd-pay-amount").textContent = s.btc;
@@ -2512,6 +2523,12 @@
   $("board-post-go").onclick = () => {
     if (!ready()) return;
     $("bp-problem").hidden = true;
+    // Approving with Touch ID, or the password typed here; a wallet with
+    // no lock needs neither.
+    const typed = !!(view && !view.unprotected && !view.biometric);
+    $("bp-pw-field").hidden = !typed;
+    $("bp-pw").value = "";
+    $("bp-go").textContent = view && view.biometric ? `Post with ${bio}` : "Post the offer";
     postHint();
     show("board-post");
     showSmallest();
@@ -2526,12 +2543,20 @@
   $("bp-go").onclick = async () => {
     $("bp-go").disabled = true;
     try {
-      await invoke("board_post", { orn: $("bp-orn").value, btc: $("bp-btc").value, payout: $("bp-payout").value });
+      if (view && view.biometric) await invoke("biometric_unlock");
+      const password = $("bp-pw-field").hidden ? null : $("bp-pw").value;
+      await invoke("board_post", { orn: $("bp-orn").value, btc: $("bp-btc").value, payout: $("bp-payout").value, password });
+      $("bp-pw").value = "";
       $("bp-orn").value = $("bp-btc").value = "";
       show("swaps");
       await loadBoard();
       stepSwaps();
-    } catch (e) { problem("bp-problem", e); }
+    } catch (e) {
+      const text = String(e);
+      if (text === "password: needed") { $("bp-pw-field").hidden = false; $("bp-pw").focus(); problem("bp-problem", "Type this wallet's password to approve the sale."); }
+      else if (text === "password: wrong") { $("bp-pw").select(); problem("bp-problem", "That is not this wallet's password."); }
+      else problem("bp-problem", e);
+    }
     finally { $("bp-go").disabled = false; }
   };
 

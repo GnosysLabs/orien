@@ -296,11 +296,15 @@ fn bitcoin_address(text: &str, network: orien_swap::bitcoin::Network) -> Result<
 }
 
 /// Puts an offer on the board, with the Bitcoin address to be paid at.
-pub fn post(dir: &Path, wallet: &Path, orn: u64, sats: u64, payout: &str) -> Result<(), String> {
-    post_on(dir, wallet, swaps::bitcoin().0, orn, sats, payout)
+/// Posts an offer, approved with `password` (the wallet's, or None for a
+/// wallet with no lock): when it's taken, this app accepts by itself.
+pub fn post(dir: &Path, wallet: &Path, orn: u64, sats: u64, payout: &str, password: Option<&str>) -> Result<(), String> {
+    let offer = post_on(dir, wallet, swaps::bitcoin().0, orn, sats, payout)?;
+    crate::approval::approve(dir, offer, orn, wallet, password);
+    Ok(())
 }
 
-pub fn post_on(dir: &Path, wallet: &Path, network: orien_swap::bitcoin::Network, orn: u64, sats: u64, payout: &str) -> Result<(), String> {
+pub fn post_on(dir: &Path, wallet: &Path, network: orien_swap::bitcoin::Network, orn: u64, sats: u64, payout: &str) -> Result<i64, String> {
     let payout = bitcoin_address(payout, network)?;
     // The payout address and the wallet go on the offer too, so any of the
     // account's devices with this wallet can run the swap once it's taken.
@@ -309,7 +313,8 @@ pub fn post_on(dir: &Path, wallet: &Path, network: orien_swap::bitcoin::Network,
     let offer = posted["offer"]["id"].as_i64().ok_or("The swap board did not say which offer it posted.")?;
     let mut saved = load(dir);
     saved.links.push(Link { offer, selling: true, bitcoin: payout, swap: None, finished: false, wallet: Some(wallet.to_path_buf()) });
-    save(dir, &saved)
+    save(dir, &saved)?;
+    Ok(offer)
 }
 
 /// Takes an offer for this wallet, `address`, with the Bitcoin address a
@@ -320,7 +325,9 @@ pub fn take(dir: &Path, wallet: &Path, offer: i64, address: &str, refund: &str) 
 
 pub fn take_on(dir: &Path, wallet: &Path, network: orien_swap::bitcoin::Network, offer: i64, address: &str, refund: &str) -> Result<(), String> {
     let refund = bitcoin_address(refund, network)?;
-    call(dir, "POST", &format!("/swaps/{offer}/take"), Some(json!({ "address": address })))?;
+    // Version 2: the shorter locks (12 hours of ORN, 6 of Bitcoin). The
+    // board turns away takes from wallets that would refuse them.
+    call(dir, "POST", &format!("/swaps/{offer}/take"), Some(json!({ "address": address, "swap_version": 2 })))?;
     let mut saved = load(dir);
     saved.links.retain(|link| link.offer != offer);
     saved.links.push(Link { offer, selling: false, bitcoin: refund, swap: None, finished: false, wallet: Some(wallet.to_path_buf()) });
@@ -329,6 +336,7 @@ pub fn take_on(dir: &Path, wallet: &Path, network: orien_swap::bitcoin::Network,
 
 pub fn withdraw(dir: &Path, offer: i64) -> Result<(), String> {
     call(dir, "POST", &format!("/swaps/{offer}/close"), Some(json!({})))?;
+    crate::approval::forget(dir, offer);
     Ok(())
 }
 
@@ -443,6 +451,13 @@ pub fn drive_on(
                 let buyer = item["taker_wallet"].as_str().unwrap_or_default();
                 let (orn, sats) = (item["offer"]["orn"].as_u64().unwrap_or(0), item["offer"]["sats"].as_u64().unwrap_or(0));
                 let wallet = link.wallet.clone().unwrap_or_else(|| orien.wallet_file.clone());
+                // Approved when posted, for exactly this many ORN: no one
+                // needs to be at the computer.
+                let approved = crate::approval::approved(dir, id, orn, &wallet);
+                let orien = &match (&orien.password, approved) {
+                    (None, Some(password)) => orien.with_password(password),
+                    _ => orien.with_wallet(&orien.wallet_file),
+                };
                 let started = swaps::sell_on(orien, network, buyer, orn, sats, &link.bitcoin).map(|mut kept| {
                     kept.board = Some(id);
                     link.swap = Some(kept.id.clone());
@@ -515,6 +530,17 @@ pub fn drive_on(
             link.finished = true;
         }
     }
+    // Approvals last as long as their offer: on the board, or its swap not
+    // yet finished.
+    let mut live: Vec<i64> = mine
+        .as_array()
+        .into_iter()
+        .flatten()
+        .filter(|item| matches!(item["offer"]["state"].as_str(), Some("open" | "held" | "swapping")))
+        .filter_map(|item| item["offer"]["id"].as_i64())
+        .collect();
+    live.extend(all.iter().filter(|kept| !kept.swap.finished()).filter_map(|kept| kept.board));
+    crate::approval::keep_only(dir, &live);
     swaps::save(dir, all)?;
     save(dir, &saved)?;
     Ok(mine)

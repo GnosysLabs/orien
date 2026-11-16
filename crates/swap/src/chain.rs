@@ -7,8 +7,13 @@
 //! independent explorers, with a rule chosen for each decision:
 //!
 //! - Decisions that could cost the seller (revealing the secret, calling a
-//!   claim settled) need every explorer to agree, and take the least
-//!   favourable answer.
+//!   claim settled) need most explorers (two of three) to answer and agree,
+//!   and take the least favourable answer: one explorer that is down, busy
+//!   or lying can neither stall a swap nor fool it.
+//!
+//! Explorers are asked gently: an answer is reused for half a minute (the
+//! chain's height for a minute), since nothing on Bitcoin changes faster,
+//! and an explorer that says it's busy is left alone for a few minutes.
 //! - What keeps the buyer safe (seeing a payment, finding the secret,
 //!   refunding) works as long as any one explorer answers, since what it
 //!   says is checked or harmless if wrong.
@@ -18,8 +23,10 @@ use anyhow::{Context, Result, anyhow, bail};
 use bitcoin::consensus::encode;
 use bitcoin::{Address, Amount, OutPoint, Transaction, Txid};
 use serde::Deserialize;
+use std::collections::HashMap;
 use std::str::FromStr;
-use std::time::Duration;
+use std::sync::Mutex;
+use std::time::{Duration, Instant};
 
 /// The fee rates a swap accepts, in satoshis per virtual byte, whatever an
 /// explorer says.
@@ -67,12 +74,19 @@ fn check(chain: &dyn Chain, coin: &Coin, address: &Address) -> Result<Option<Coi
 pub struct Explorers(pub Vec<Box<dyn Chain>>);
 
 impl Explorers {
-    /// Bitcoin itself, through mempool.space and blockstream.info.
+    /// Bitcoin itself, through three independently run explorers.
     pub fn bitcoin() -> Explorers {
         Explorers(vec![
             Box::new(Esplora::at("https://mempool.space/api")),
             Box::new(Esplora::at("https://blockstream.info/api")),
+            Box::new(Esplora::at("https://mempool.emzy.de/api")),
         ])
+    }
+
+    /// How many explorers must answer a decision that could cost the
+    /// seller: most of them (two of three; both of two; the one of one).
+    fn quorum(&self) -> usize {
+        self.0.len() / 2 + 1
     }
 
     /// One explorer, for a test network.
@@ -96,12 +110,21 @@ impl Explorers {
         Ok(answers)
     }
 
-    /// Every explorer's answer; an error if any fails.
-    fn all<T>(&self, ask: impl Fn(&dyn Chain) -> Result<T>) -> Result<Vec<T>> {
-        if self.0.is_empty() {
-            bail!("no Bitcoin explorer is set");
+    /// The answers of most explorers; an error if too few answer.
+    fn most<T>(&self, ask: impl Fn(&dyn Chain) -> Result<T>) -> Result<Vec<T>> {
+        let mut answers = Vec::new();
+        let mut last = None;
+        for explorer in &self.0 {
+            match ask(explorer.as_ref()) {
+                Ok(answer) => answers.push(answer),
+                Err(error) => last = Some(error),
+            }
         }
-        self.0.iter().map(|explorer| ask(explorer.as_ref())).collect()
+        if answers.len() < self.quorum() {
+            return Err(last.unwrap_or_else(|| anyhow!("no Bitcoin explorer is set"))
+                .context("too few Bitcoin explorers answered; trying again shortly"));
+        }
+        Ok(answers)
     }
 
     /// The highest height any explorer reports: deadlines are never thought
@@ -110,11 +133,11 @@ impl Explorers {
         Ok(self.answers(|c| c.height())?.into_iter().max().expect("at least one"))
     }
 
-    /// The lowest height the explorers report, every one of them answering,
+    /// The lowest height the explorers report, most of them answering,
     /// refused if they disagree by more than `HEIGHT_SPREAD`: for setting
     /// or calling a deadline, so that no one explorer can move it.
     pub fn agreed_height(&self) -> Result<u32> {
-        let heights = self.all(|c| c.height())?;
+        let heights = self.most(|c| c.height())?;
         let (low, high) = (*heights.iter().min().expect("one"), *heights.iter().max().expect("one"));
         if high - low > HEIGHT_SPREAD {
             bail!("the Bitcoin explorers disagree about the chain's height ({low} and {high}); try again shortly");
@@ -130,17 +153,21 @@ impl Explorers {
         Ok(rates.into_iter().map(|r| r.clamp(*FEE_RATES.start(), *FEE_RATES.end())).max().expect("one"))
     }
 
-    /// The coins every explorer reports and checks out, at the smallest
-    /// depth any gives: for the seller, before revealing the secret.
+    /// The coins every answering explorer reports and checks out, most of
+    /// them answering, at the smallest depth any gives: for the seller,
+    /// before revealing the secret.
     pub fn coins_all(&self, address: &Address) -> Result<Vec<(Coin, u32)>> {
-        let mut agreed: Option<Vec<(Coin, u32)>> = None;
-        for explorer in &self.0 {
+        let said = self.most(|explorer| {
             let mut checked = Vec::new();
             for (coin, depth) in explorer.coins(address)? {
-                if let Some(coin) = check(explorer.as_ref(), &coin, address)? {
+                if let Some(coin) = check(explorer, &coin, address)? {
                     checked.push((coin, depth));
                 }
             }
+            Ok(checked)
+        })?;
+        let mut agreed: Option<Vec<(Coin, u32)>> = None;
+        for checked in said {
             agreed = Some(match agreed {
                 None => checked,
                 Some(before) => before
@@ -177,10 +204,11 @@ impl Explorers {
         Ok(found)
     }
 
-    /// How deep every explorer agrees a transaction is: `None` unless all
-    /// of them have it. For calling a claim settled.
+    /// How deep the answering explorers agree a transaction is, most of
+    /// them answering: `None` unless each of them has it. For calling a
+    /// claim settled.
     pub fn depth_all(&self, txid: &Txid) -> Result<Option<u32>> {
-        let depths = self.all(|c| c.confirmations(txid))?;
+        let depths = self.most(|c| c.confirmations(txid))?;
         Ok(depths.into_iter().try_fold(u32::MAX, |least, depth| depth.map(|d| least.min(d))))
     }
 
@@ -237,19 +265,74 @@ impl Esplora {
     }
 
     fn get(&self, path: &str) -> Result<String> {
-        let url = format!("{}{path}", self.base);
-        self.agent.get(&url).call().with_context(|| format!("cannot reach {url}"))?.into_string().map_err(Into::into)
+        self.find(path)?.ok_or_else(|| anyhow!("{}{path} was not found", self.base))
     }
 
-    /// Like `get`, but a 404 is an answer: "not there".
+    /// Like `get`, but a 404 is an answer: "not there". Answers are reused
+    /// while fresh, and an explorer that says it's busy (429) or failing
+    /// (5xx) is left alone for as long as it asks, a few minutes at most.
     fn find(&self, path: &str) -> Result<Option<String>> {
         let url = format!("{}{path}", self.base);
+        let fresh = if path == "/blocks/tip/height" { TIP_FRESH } else { FRESH };
+        if let Some(answer) = remembered(&url, fresh) {
+            return Ok(Some(answer));
+        }
+        if let Some(until) = resting(&self.base) {
+            bail!("{} is busy; asking again in {} seconds", self.base, until.saturating_duration_since(Instant::now()).as_secs());
+        }
         match self.agent.get(&url).call() {
-            Ok(response) => Ok(Some(response.into_string()?)),
+            Ok(response) => {
+                let answer = response.into_string()?;
+                remember(&url, &answer);
+                Ok(Some(answer))
+            }
             Err(ureq::Error::Status(404, _)) => Ok(None),
+            Err(ureq::Error::Status(code, response)) if code == 429 || code >= 500 => {
+                let asked = response.header("retry-after").and_then(|after| after.trim().parse::<u64>().ok());
+                rest(&self.base, Duration::from_secs(asked.unwrap_or(REST.as_secs()).clamp(10, MAX_REST.as_secs())));
+                bail!("{} is busy ({code}); asking the other explorers", self.base)
+            }
             Err(error) => Err(error).with_context(|| format!("cannot reach {url}")),
         }
     }
+}
+
+/// How long an answer is reused: nothing on Bitcoin changes much faster.
+const FRESH: Duration = Duration::from_secs(30);
+/// The chain's height, reused a little longer: a block comes every ten
+/// minutes or so.
+const TIP_FRESH: Duration = Duration::from_secs(60);
+/// How long a busy explorer is left alone when it doesn't say.
+const REST: Duration = Duration::from_secs(120);
+/// The longest it's left alone, whatever it says.
+const MAX_REST: Duration = Duration::from_secs(600);
+
+/// Recent answers by address, shared by every `Esplora`.
+static ANSWERS: Mutex<Option<HashMap<String, (Instant, String)>>> = Mutex::new(None);
+/// Explorers resting, and until when.
+static RESTING: Mutex<Option<HashMap<String, Instant>>> = Mutex::new(None);
+
+fn remembered(url: &str, fresh: Duration) -> Option<String> {
+    let guard = ANSWERS.lock().unwrap_or_else(|poisoned| poisoned.into_inner());
+    let (at, answer) = guard.as_ref()?.get(url)?;
+    (at.elapsed() < fresh).then(|| answer.clone())
+}
+
+fn remember(url: &str, answer: &str) {
+    let mut guard = ANSWERS.lock().unwrap_or_else(|poisoned| poisoned.into_inner());
+    let all = guard.get_or_insert_with(HashMap::new);
+    all.retain(|_, (at, _)| at.elapsed() < MAX_REST);
+    all.insert(url.to_string(), (Instant::now(), answer.to_string()));
+}
+
+fn resting(base: &str) -> Option<Instant> {
+    let guard = RESTING.lock().unwrap_or_else(|poisoned| poisoned.into_inner());
+    guard.as_ref()?.get(base).copied().filter(|until| *until > Instant::now())
+}
+
+fn rest(base: &str, length: Duration) {
+    let mut guard = RESTING.lock().unwrap_or_else(|poisoned| poisoned.into_inner());
+    guard.get_or_insert_with(HashMap::new).insert(base.to_string(), Instant::now() + length);
 }
 
 #[derive(Deserialize)]
@@ -378,11 +461,64 @@ impl Chain for Esplora {
 mod tests {
     use super::*;
 
-    /// Reads the real Bitcoin network through both explorers. Run with
+    /// An explorer that knows only the chain's height, or is down.
+    struct Height(Option<u32>);
+
+    impl Chain for Height {
+        fn height(&self) -> Result<u32> {
+            self.0.ok_or_else(|| anyhow!("busy"))
+        }
+        fn fee_rate(&self) -> Result<u64> {
+            bail!("not asked")
+        }
+        fn coins(&self, _: &Address) -> Result<Vec<(Coin, u32)>> {
+            bail!("not asked")
+        }
+        fn transaction(&self, _: &Txid) -> Result<Option<Transaction>> {
+            bail!("not asked")
+        }
+        fn confirmations(&self, _: &Txid) -> Result<Option<u32>> {
+            bail!("not asked")
+        }
+        fn spender(&self, _: &OutPoint) -> Result<Option<Transaction>> {
+            bail!("not asked")
+        }
+        fn broadcast(&self, _: &Transaction) -> Result<()> {
+            bail!("not asked")
+        }
+    }
+
+    fn explorers(heights: &[Option<u32>]) -> Explorers {
+        Explorers(heights.iter().map(|h| Box::new(Height(*h)) as Box<dyn Chain>).collect())
+    }
+
+    #[test]
+    fn one_explorer_down_of_three_stalls_nothing_but_two_do() {
+        assert_eq!(explorers(&[Some(100), None, Some(101)]).agreed_height().unwrap(), 100);
+        assert!(explorers(&[Some(100), None, None]).agreed_height().is_err());
+        // Two explorers: both must answer, as before.
+        assert!(explorers(&[Some(100), None]).agreed_height().is_err());
+        assert_eq!(explorers(&[Some(100)]).agreed_height().unwrap(), 100);
+        // The answering ones must still agree.
+        assert!(explorers(&[Some(100), None, Some(110)]).agreed_height().is_err());
+    }
+
+    #[test]
+    fn a_busy_explorer_is_left_alone_for_a_while() {
+        let base = "https://busy.example/api";
+        assert!(resting(base).is_none());
+        rest(base, Duration::from_secs(60));
+        assert!(resting(base).is_some());
+        let explorer = Esplora::at(base);
+        let error = explorer.height().unwrap_err().to_string();
+        assert!(error.contains("busy"), "{error}");
+    }
+
+    /// Reads the real Bitcoin network through the three explorers. Run with
     /// `--ignored`; it needs the internet.
     #[test]
     #[ignore]
-    fn reads_bitcoin_through_two_explorers() {
+    fn reads_bitcoin_through_three_explorers() {
         let chain = Explorers::bitcoin();
         let height = chain.agreed_height().unwrap();
         assert!(height > 900_000, "{height}");
@@ -401,11 +537,16 @@ mod tests {
         let spender = chain.spenders(&first).unwrap().pop().expect("spent");
         assert!(chain.depth_all(&spender.compute_txid()).unwrap().unwrap() > 900_000);
         // Hal Finney's address: more than 25 mined transactions, read page
-        // after page, every coin checked against its transaction.
+        // after page, every coin checked against its transaction. Far more
+        // than any swap's address, so public explorers may ask for a rest
+        // part way; then most must still have answered.
         let hal = Address::from_str("1Q2TWHE3GMdB6BZKafqwxXtWAWgFt5Jvm3").unwrap().assume_checked();
         let any = chain.coins_any(&hal).unwrap();
-        let all = chain.coins_all(&hal).unwrap();
-        assert!(!any.is_empty() && all.len() <= any.len());
+        assert!(!any.is_empty());
+        match chain.coins_all(&hal) {
+            Ok(all) => assert!(all.len() <= any.len()),
+            Err(error) => println!("coins_all waited, as it should with explorers resting: {error:#}"),
+        }
         println!("height {height}, fee {rate} sat/vB, Hal's address paid {} times", any.len());
     }
 }

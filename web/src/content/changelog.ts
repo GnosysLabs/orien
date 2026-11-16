@@ -28,6 +28,20 @@ export const CHANGELOG: Entry[] = [
   {
     date: '2026-11-16',
     products: ['wallet'],
+    version: '1.8.0',
+    title: 'Approve a sale once, shorter swaps, and steadier Bitcoin checks',
+    changes: [
+      'Posting a swap offer asks for Touch ID (or your password) once. When someone takes the offer, your wallet accepts it within seconds, even with the window closed. The approval covers only that offer and is erased when it ends.',
+      'Swaps hold coins for less time: if a buyer never pays, the seller’s ORN come back within 12 hours (was 48), and an unclaimed payment comes back to the buyer after about 6 hours (was 12). Taking an offer needs Orien Wallet 1.8.0 or later.',
+      'The app checks Bitcoin through three independent services and needs two of them to agree, so one that is busy or down no longer holds a swap up. It also asks them far less often.',
+      'The seller sees the buyer’s payment the moment it’s sent, and both sides count its confirmations (1 of 3, 2 of 3…).',
+      'The time to pay is the real one, a few hours, shown as “Pay by 6:15 AM, in about 9 hours”.',
+      'More space between the swap card and your balance on the home screen.',
+    ],
+  },
+  {
+    date: '2026-11-16',
+    products: ['wallet'],
     version: '1.7.1',
     title: 'Swaps you can’t miss',
     changes: [

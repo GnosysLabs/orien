@@ -40,6 +40,11 @@ pub struct Kept {
     /// before the app kept several wallets have none: the first one.
     #[serde(default)]
     pub wallet: Option<PathBuf>,
+    /// Bitcoin seen paid into the swap, confirmed or not: sats, and the
+    /// fewest confirmations among the coins. So both sides show the payment
+    /// the moment it's sent, and count its confirmations.
+    #[serde(default)]
+    pub seen: Option<(u64, u32)>,
 }
 
 /// What the window shows of a swap.
@@ -61,8 +66,13 @@ pub struct View {
     pub pay_uri: Option<String>,
     /// The same, as a QR code (SVG) for a phone's Bitcoin wallet to scan.
     pub pay_qr: Option<String>,
-    /// Board swaps: when the buyer must have paid by, seconds since 1970.
+    /// When the buyer must have paid by to be safe, seconds since 1970.
     pub pay_by: Option<u64>,
+    /// The buyer's payment has been seen, though perhaps not confirmed.
+    pub paid_seen: bool,
+    /// Its confirmations so far, and how many are wanted.
+    pub confirmations: Option<u32>,
+    pub confirmations_needed: u32,
     pub problem: Option<String>,
     pub created: u64,
     /// The other side's Orien address: the buyer's, or the seller's.
@@ -142,6 +152,9 @@ pub fn show_btc(sats: u64) -> String {
 
 pub fn view(kept: &Kept) -> View {
     let swap = &kept.swap;
+    let needed = orien_swap::swap::CONFIRMATIONS;
+    let paid_seen = kept.seen.is_some_and(|(sats, _)| sats >= swap.sats);
+    let confirmations = kept.seen.filter(|_| paid_seen).map(|(_, depth)| depth);
     let (stage, status) = match (&swap.role, &swap.stage) {
         (_, Stage::Preparing) => ("locking", "Locking your ORN for the buyer.".to_string()),
         (Role::Seller, Stage::Claiming) => ("claiming", "The Bitcoin arrived. Taking it; waiting for Bitcoin to confirm that. Keep this app open.".to_string()),
@@ -149,7 +162,8 @@ pub fn view(kept: &Kept) -> View {
         // Board swaps pass their codes by themselves: never a word about them.
         (Role::Seller, Stage::WaitingForReply) if kept.board.is_some() => ("reply", "Accepted: your ORN are locked for the buyer. Waiting for them to pay.".to_string()),
         (Role::Seller, Stage::WaitingForReply) => ("reply", "Your ORN are locked for the buyer. Send them the offer code, then paste their reply.".to_string()),
-        (Role::Seller, Stage::WaitingForBitcoin) => ("bitcoin", "Waiting for the buyer's Bitcoin to arrive and be confirmed three times, about half an hour. Keep this app open.".to_string()),
+        (Role::Seller, Stage::WaitingForBitcoin) if paid_seen => ("bitcoin", format!("The buyer paid. Bitcoin is confirming it ({} of {}); then this app takes it. Keep Orien Wallet running.", confirmations.unwrap_or(0).min(needed), needed)),
+        (Role::Seller, Stage::WaitingForBitcoin) => ("bitcoin", "Waiting for the buyer to pay. Keep Orien Wallet running.".to_string()),
         (Role::Buyer, Stage::WaitingForBitcoin) if kept.board.is_some() && !swap.coins.is_empty() => ("bitcoin", "Payment seen. Waiting for Bitcoin to confirm it; nothing more for you to do.".to_string()),
         (Role::Buyer, Stage::WaitingForBitcoin) if kept.board.is_some() => ("bitcoin", format!("The seller accepted. Pay exactly {} BTC to the address below, from any Bitcoin wallet. This app sees the payment by itself.", show_btc(swap.sats))),
         (Role::Buyer, Stage::WaitingForBitcoin) => ("bitcoin", "Send the seller the reply code below, then pay the Bitcoin.".to_string()),
@@ -175,8 +189,13 @@ pub fn view(kept: &Kept) -> View {
         reply: kept.reply.clone(),
         pay_uri: pay_to.as_ref().map(|address| format!("bitcoin:{address}?amount={}", show_btc(swap.sats))),
         pay_qr: pay_to.as_ref().and_then(|address| qr(&format!("bitcoin:{address}?amount={}", show_btc(swap.sats)))),
-        // The board holds a taken offer 30 minutes for each side's step.
-        pay_by: (kept.board.is_some() && swap.role == Role::Buyer).then_some(kept.created + 30 * 60),
+        // The Bitcoin lock sets the real limit: a payment must be confirmed,
+        // with a safety margin, before the lock ends for the seller to take
+        // it. Paid later, it comes back to the buyer once the lock ends.
+        pay_by: (swap.role == Role::Buyer)
+            .then_some(kept.btc_back_at)
+            .flatten()
+            .map(|end| end.saturating_sub((orien_swap::swap::CONFIRMATIONS + orien_swap::swap::SAFETY_BLOCKS) as u64 * orien_swap::swap::BLOCK_MINUTES * 60 + 30 * 60)),
         pay_to: pay_to.map(|address| address.to_string()),
         problem: kept.problem.clone(),
         created: kept.created,
@@ -190,6 +209,9 @@ pub fn view(kept: &Kept) -> View {
         orn_back_at: kept.orn_back_at,
         btc_back_at: kept.btc_back_at,
         board: kept.board.is_some(),
+        paid_seen,
+        confirmations,
+        confirmations_needed: needed,
         finished: swap.finished(),
     }
 }
@@ -236,6 +258,11 @@ impl<'a> AppOrien<'a> {
     /// The same, for the wallet a swap runs with.
     pub fn for_swap(&self, kept: &Kept) -> AppOrien<'a> {
         self.with_wallet(kept.wallet.as_deref().unwrap_or(&self.wallet_file))
+    }
+
+    /// The same, unlocked with `password`.
+    pub fn with_password(&self, password: Option<String>) -> AppOrien<'a> {
+        AppOrien { password, ..self.with_wallet(&self.wallet_file) }
     }
 
     fn send(&self, kind: Kind, to: Hash32, amount: u64, at: Option<u64>) -> anyhow::Result<send::Sent> {
@@ -329,7 +356,7 @@ pub fn sell_on(orien: &AppOrien, network: bitcoin::Network, buyer: &str, orn: u6
         return Err("That is this wallet's own address.".into());
     }
     let swap = Swap::sell(orien, network, buyer, orn, sats, payout.trim()).map_err(|error| error.to_string())?;
-    let mut kept = Kept { id: hex(&swap.hash), swap, offer: None, reply: None, problem: None, created: now(), orn_back_at: None, btc_back_at: None, board: None, wallet: Some(orien.wallet_file.clone()) };
+    let mut kept = Kept { id: hex(&swap.hash), swap, offer: None, reply: None, problem: None, created: now(), orn_back_at: None, btc_back_at: None, board: None, wallet: Some(orien.wallet_file.clone()), seen: None };
     note_times(orien, &mut kept);
     Ok(kept)
 }
@@ -356,6 +383,7 @@ pub fn buy_on(orien: &AppOrien, network: bitcoin::Network, chain: &Explorers, of
         btc_back_at: None,
         board: None,
         wallet: Some(orien.wallet_file.clone()),
+        seen: None,
     };
     note_times(orien, &mut kept);
     Ok(kept)
@@ -387,7 +415,16 @@ pub fn step_on(orien: &AppOrien, chain: &Explorers, dir: &Path, swaps: &mut [Kep
         if swaps[index].swap.finished() {
             continue;
         }
-        let orien = orien.for_swap(&swaps[index]);
+        let mut orien = orien.for_swap(&swaps[index]);
+        // A board offer approved when it was posted: its swap goes on with
+        // that approval, and with nothing else.
+        if orien.password.is_none()
+            && let Some(offer) = swaps[index].board
+            && swaps[index].swap.role == Role::Seller
+            && let Some(password) = crate::approval::approved(dir, offer, swaps[index].swap.orn, &orien.wallet_file)
+        {
+            orien = orien.with_password(password);
+        }
         advance(&orien, chain, &mut swaps[index]);
         save(dir, swaps)?;
     }
@@ -398,6 +435,17 @@ pub fn step_on(orien: &AppOrien, chain: &Explorers, dir: &Path, swaps: &mut [Kep
 pub fn advance(orien: &AppOrien, chain: &Explorers, kept: &mut Kept) {
     kept.problem = kept.swap.advance(chain, orien).err().map(|error| error.to_string());
     note_times(orien, kept);
+    // While Bitcoin is being paid and confirmed, look at the swap's address
+    // directly, so both sides see the payment from the moment it's sent.
+    let watching = matches!(
+        (&kept.swap.role, &kept.swap.stage),
+        (Role::Seller, Stage::WaitingForBitcoin) | (Role::Buyer, Stage::WaitingForBitcoin | Stage::WaitingForSecret)
+    );
+    if watching && let Ok(address) = kept.swap.bitcoin_address() && let Ok(coins) = chain.coins_any(&address) {
+        let sats: u64 = coins.iter().map(|(coin, _)| coin.value.to_sat()).sum();
+        let depth = coins.iter().map(|(_, depth)| *depth).min().unwrap_or(0);
+        kept.seen = (sats > 0).then_some((sats, depth));
+    }
     if kept.offer.is_none() && kept.swap.role == Role::Seller && kept.swap.lock.is_some() {
         kept.offer = kept.swap.offer(orien.network()).ok().map(|offer| offer.code());
     }
