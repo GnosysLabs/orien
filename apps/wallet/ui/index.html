@@ -308,9 +308,15 @@
   /* The swap board */
   .board-bar { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 12px;
     font-size: 12.5px; color: var(--dim); }
-  .linkish { background: none; border: 0; padding: 0; cursor: pointer; color: var(--ink); text-decoration: underline;
-    text-decoration-color: var(--line); text-underline-offset: 3px; font-size: 12.5px; }
-  .linkish:hover { text-decoration-color: var(--dim); }
+  /* Small actions are small pill buttons, never bare underlined text. */
+  .linkish, .link, .pill {
+    -webkit-appearance: none; appearance: none; display: inline-flex; align-items: center; justify-content: center;
+    height: 32px; padding: 0 14px; border: 1px solid var(--line); border-radius: 16px; background: var(--surface);
+    color: var(--ink); font-size: 12.5px; font-weight: 600; cursor: pointer; white-space: nowrap; transition: background .15s; }
+  .linkish:hover, .link:hover, .pill:hover { background: var(--surface-hover); }
+  .pill.pearl { border: 0; color: var(--pearl-ink); background: var(--pearl); background-size: 300% 100%; box-shadow: inset 0 1px 0 #ffffffa0, 0 4px 14px #00000033; }
+  .pill.pearl:hover { background: var(--pearl); background-size: 300% 100%; filter: brightness(1.04); }
+  .topline .account { margin-left: auto; display: flex; align-items: center; gap: 10px; font-size: 12.5px; color: var(--dim); }
   .offer { display: grid; grid-template-columns: 36px 1fr auto; gap: 12px; align-items: center;
     padding: 14px 14px 14px 16px; border: 1px solid var(--line); border-radius: 16px; background: var(--surface); }
   .offer + .offer { margin-top: 8px; }
@@ -328,7 +334,9 @@
   .offer .withdraw { background: transparent; border: 1px solid var(--line); }
   .hint { margin: 7px 0 0 2px; font-size: 12px; color: var(--dim); min-height: 18px; }
   .hint.warn { color: var(--bad, #e5484d); }
-  .small-link { margin: 22px auto 4px; display: block; }
+  .small-link { margin: 22px auto 4px; display: flex; }
+  #tab-offers .section-head { align-items: center; margin: 6px 4px 14px; }
+  #tab-offers .section-head .hint { margin: 2px 0 0; min-height: 0; }
   /* The swap screens can hold more than the window: they scroll, and
      nothing in them is squeezed. */
   #board-signin, #board-post, #board-take { overflow-y: auto; margin: 0 -28px; padding: 0 28px 8px; }
@@ -456,8 +464,6 @@
   /* ---- Activity ---- */
   .section-head { display: flex; align-items: baseline; justify-content: space-between; margin: 24px 4px 10px; }
   .section-head h3 { margin: 0; font-size: 13px; font-weight: 600; color: var(--dim); }
-  .link { -webkit-appearance: none; appearance: none; border: 0; background: none; padding: 0; color: #d8d3f4; font-size: 12.5px; cursor: pointer; }
-  .link:hover { color: #ece9fb; }
   .list { border-radius: 18px; background: var(--surface); border: 1px solid var(--line); overflow: hidden; }
   .tx { display: flex; align-items: center; gap: 12px; padding: 11px 14px; }
   .tx + .tx { border-top: 1px solid var(--line); }
@@ -1011,20 +1017,16 @@
 
     <!-- Swaps -->
     <section class="screen" id="swaps" hidden>
-      <div class="topline"><button class="back" data-back aria-label="Back"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10 3 5 8l5 5"/></svg></button><h2>Swap</h2></div>
-      <p class="lede">Swap ORN for SOL, or Bitcoin, with someone directly. Neither of you can cheat: either both get paid, or both get their coins back.</p>
-      <div class="board-bar">
-        <span id="board-who">Offers on the swap board</span>
-        <button class="linkish" id="board-signin-go">Sign up or sign in</button>
-      </div>
+      <div class="topline"><button class="back" data-back aria-label="Back"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10 3 5 8l5 5"/></svg></button><h2>Swap</h2>
+        <div class="account"><span id="board-who"></span><button class="pill" id="board-signin-go">Sign in</button></div></div>
+      <p class="lede">Swap ORN for SOL or Bitcoin, directly with another person. Either you both get paid, or you both get your coins back.</p>
       <div class="tabs" role="tablist">
         <button class="tab on" id="tab-offers-go" role="tab">Offers</button>
         <button class="tab" id="tab-mine-go" role="tab">Your swaps <span id="mine-count"></span></button>
       </div>
       <div id="tab-offers">
         <div class="note" id="board-wallet" hidden><span id="bw-text"></span> <button class="linkish" id="bw-go">Use this wallet instead</button></div>
-        <button class="primary pearl" id="board-post-go" data-gap="sm">Post an offer</button>
-        <div class="section-head"><h3>Open offers</h3><span class="hint" id="board-btc"></span></div>
+        <div class="section-head"><div><h3>Open offers</h3><div class="hint" id="board-btc"></div></div><button class="pill pearl" id="board-post-go">Post an offer</button></div>
         <div id="board-offers"><div class="empty">Loading offers…</div></div>
         <div class="problem" id="board-problem" hidden></div>
         <button class="linkish small-link" id="manual-go">Swap with someone you know</button>
@@ -2553,8 +2555,8 @@
 
   function renderBoardBar() {
     const me = board.me;
-    $("board-who").textContent = me ? `Signed in as ${me.name}` : "Offers on the swap board";
-    $("board-signin-go").textContent = me ? "Sign out" : "Sign up or sign in";
+    $("board-who").textContent = me ? me.name : "";
+    $("board-signin-go").textContent = me ? "Sign out" : "Sign in";
     // Marketplace payments go to one wallet per account. Say which, when it
     // isn't the open one, and switch it only when asked.
     const open = view && view.address;
@@ -2727,7 +2729,7 @@
       solOpen = !!open;
       $("bp-tabs").hidden = !solOpen;
       setPostCoin(solOpen ? "sol" : "btc");
-      document.querySelector("#swaps .lede").textContent = solOpen ? swapsLede : "Swap ORN and Bitcoin with someone directly. Neither of you can cheat: either both get paid, or both get their coins back.";
+      document.querySelector("#swaps .lede").textContent = solOpen ? swapsLede : "Swap ORN for Bitcoin, directly with another person. Either you both get paid, or you both get your coins back.";
       shownOffers = "";
       renderOffers();
       // Not live yet: look again in ten minutes, so SOL appears by itself.
