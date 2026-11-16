@@ -1714,6 +1714,12 @@
     </section>
   </main>
 
+<div id="upd-veil" hidden><div id="upd-card" role="dialog" aria-modal="true" aria-labelledby="upd-title">
+  <div id="upd-icon"></div>
+  <div id="upd-title"></div>
+  <p id="upd-text"></p>
+  <div id="upd-buttons"></div>
+</div></div>
 <script>
   const invoke = window.__TAURI__.core.invoke;
   // Windows draws its own title bar above the window, so the top bar there
@@ -4674,12 +4680,6 @@
   // even with the window closed, as soon as someone takes an offer.
   invoke("board_me").then((me) => { board.me = me; if (me) { stepSwaps(); paintUnread(); marketNews(); } }).catch(() => {});
 </script>
-<div id="upd-veil" hidden><div id="upd-card" role="dialog" aria-modal="true" aria-labelledby="upd-title">
-  <div id="upd-icon"></div>
-  <div id="upd-title"></div>
-  <p id="upd-text"></p>
-  <div id="upd-buttons"></div>
-</div></div>
 <button id="more-below" type="button" aria-label="More below"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg></button>
 <script>
   // More below: on whichever screen is showing, if what scrolls holds more
