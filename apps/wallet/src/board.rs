@@ -209,6 +209,8 @@ pub fn me(dir: &Path) -> Result<Option<Value>, String> {
                 "wallet_verified": account["wallet_verified"],
                 // Conversations with something new from the other side.
                 "unread": me["unread"],
+                // Their own listings, open first.
+                "listings": me["listings"],
                 "email": load(dir).email,
             })))
         }
@@ -499,6 +501,29 @@ pub fn market_call(dir: &Path, method: &str, path: &str, body: Option<Value>) ->
         return Err("not a Market call".into());
     }
     call(dir, method, path, body).map_err(String::from)
+}
+
+/// Adds the picture at `path` to listing `id`; the Market crops it to 16:9.
+pub fn listing_picture(dir: &Path, id: i64, path: &Path) -> Result<Value, String> {
+    let bytes = std::fs::read(path).map_err(|error| format!("could not read that picture: {error}"))?;
+    if bytes.len() > 8 * 1024 * 1024 {
+        return Err("That picture is too big. Pick one under 8 MB.".into());
+    }
+    let saved = load(dir);
+    let mut request = agent().post(&format!("{}/api/market/listings/{id}/pictures", base()));
+    if let Some(cookie) = &saved.cookie {
+        request = request.set("Cookie", &format!("{COOKIE}={cookie}"));
+    }
+    match request.send_bytes(&bytes) {
+        Ok(answer) => answer.into_json().map_err(|error| error.to_string()),
+        Err(ureq::Error::Status(401, _)) => Err("signin: sign in to the swap board".into()),
+        Err(ureq::Error::Status(_, response)) => Err(response
+            .into_json::<Value>()
+            .ok()
+            .and_then(|v| v["error"].as_str().map(capital))
+            .unwrap_or_else(|| "That picture couldn't be used.".into())),
+        Err(error) => Err(error.to_string()),
+    }
 }
 
 /// One listing, its seller, and whether it's this account's.

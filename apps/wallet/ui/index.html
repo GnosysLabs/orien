@@ -405,6 +405,30 @@
   .sl-since { text-align: center; font-size: 12px; color: var(--faint); margin-top: 4px; }
   .sl-bio { margin-top: 16px; text-align: center; color: var(--dim); }
   .sl-contact { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px 14px; margin-top: 10px; font-size: 12.5px; color: var(--dim); -webkit-user-select: text; user-select: text; }
+  /* Selling */
+  .ls-mine { display: flex; justify-content: flex-end; gap: 8px; margin-top: 12px; }
+  .field .se-desc { display: block; width: 100%; min-height: 120px; padding: 12px 14px; border: 1px solid var(--line); border-radius: var(--radius);
+    background: var(--field); color: var(--ink); font: inherit; font-size: 14px; letter-spacing: normal; resize: none; outline: none; }
+  .field .se-desc:focus { border-color: #8f8aa8; }
+  .se-chips { margin: 0; }
+  .se-pics { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+  .se-pic { position: relative; overflow: hidden; aspect-ratio: 16 / 9; border-radius: 14px; border: 1px solid var(--line); background: var(--surface); }
+  .se-pic img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+  .se-pic .cover { position: absolute; top: 8px; left: 8px; padding: 2px 8px; border-radius: 999px; background: #000000a0; color: #fff; font-size: 11px; font-weight: 600; }
+  .se-pic .acts { position: absolute; inset: 0; display: flex; align-items: flex-end; justify-content: space-between; padding: 8px;
+    background: linear-gradient(to top, #000000a0, transparent 60%); opacity: 0; transition: opacity .15s; }
+  .se-pic:hover .acts, .se-pic:focus-within .acts { opacity: 1; }
+  body.phone .se-pic .acts { opacity: 1; }
+  .se-pic .acts button { height: 26px; padding: 0 10px; border: 0; border-radius: 13px; background: #ffffffe0; color: #1b1c1f; font-size: 11.5px; font-weight: 600; cursor: pointer; }
+  .se-pic .acts button.x { width: 26px; padding: 0; margin-left: auto; }
+  .se-add { aspect-ratio: 16 / 9; border: 1.5px dashed var(--line); border-radius: 14px; background: transparent; color: var(--dim);
+    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; font-size: 12px; cursor: pointer; transition: background .15s, color .15s; }
+  .se-add:hover { background: var(--surface); color: var(--ink); }
+  .se-price { display: flex; align-items: center; gap: 8px; padding-right: 14px; }
+  .se-price input { flex: 1; }
+  .se-price span { color: var(--faint); }
+  .pf-listings-head { align-items: center; margin-top: 26px; }
+  .pf-listings-head h3 { line-height: 32px; }
   /* Market messages */
   .pill.icon { position: relative; }
   .pill .dot, .tile .dot { position: absolute; top: 4px; right: 4px; width: 8px; height: 8px; border-radius: 50%; background: var(--good); box-shadow: 0 0 0 2px var(--ground-deep); }
@@ -1095,7 +1119,7 @@
     <!-- Orien Market: work and things offered for ORN. -->
     <section class="screen" id="market" hidden>
       <div class="topline"><button class="back" data-back aria-label="Back"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10 3 5 8l5 5"/></svg></button><h2>Market</h2>
-        <div class="account mk-tools"><button class="pill icon mk-inbox" id="mk-inbox" title="Messages" aria-label="Messages"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M14 9a2 2 0 0 1-2 2H6l-4 4V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2z"/><path d="M18 9h2a2 2 0 0 1 2 2v11l-4-4h-6a2 2 0 0 1-2-2v-1"/></svg><span class="dot" id="mk-unread" hidden></span></button></div></div>
+        <div class="account mk-tools"><button class="pill pearl" id="mk-sell">Sell</button><button class="pill icon mk-inbox" id="mk-inbox" title="Messages" aria-label="Messages"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M14 9a2 2 0 0 1-2 2H6l-4 4V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2z"/><path d="M18 9h2a2 2 0 0 1 2 2v11l-4-4h-6a2 2 0 0 1-2-2v-1"/></svg><span class="dot" id="mk-unread" hidden></span></button></div></div>
       <p class="lede">Work and things offered for ORN. You pay the seller straight from your wallet: the Market never holds anyone's coins.</p>
       <div class="box plain mk-search"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="11" cy="11" r="6.5"/><path d="m16 16 4.5 4.5"/></svg><input id="mk-q" placeholder="Search listings" autocomplete="off" spellcheck="false"></div>
       <div class="mk-cats" id="mk-cats"></div>
@@ -1115,6 +1139,7 @@
       <div class="section-head"><h3>About this</h3></div>
       <div class="ls-desc" id="ls-desc"></div>
       <div class="note" id="ls-note"></div>
+      <div class="ls-mine" id="ls-mine" hidden><button class="pill" id="ls-close">Close listing</button><button class="pill pearl" id="ls-edit">Edit listing</button></div>
       <div class="ls-ask" id="ls-ask" hidden>
         <textarea id="ls-msg" rows="3" maxlength="2000"></textarea>
         <div class="ls-ask-row"><span class="hint" id="ls-ask-hint"></span><button class="pill pearl" id="ls-send">Send message</button></div>
@@ -1126,6 +1151,42 @@
         <div class="ls-ask-row"><span class="hint" id="ls-report-done"></span><button class="pill" id="ls-report-send">Send report</button></div>
       </div>
       <div class="problem" id="ls-problem" hidden></div>
+    </section>
+
+    <!-- Selling: a new listing, or changes to one -->
+    <section class="screen" id="sell" hidden>
+      <div class="topline"><button class="back" id="se-back" aria-label="Back"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10 3 5 8l5 5"/></svg></button><h2 id="se-title">Sell something</h2></div>
+      <div class="note" id="se-gate" hidden></div>
+      <div id="se-form">
+        <div class="field">
+          <label for="se-name">What are you offering?</label>
+          <div class="box plain"><input id="se-name" maxlength="100" placeholder="Logo design" autocomplete="off"></div>
+        </div>
+        <div class="field">
+          <label for="se-desc">Describe it</label>
+          <textarea id="se-desc" class="se-desc" maxlength="5000" placeholder="What the buyer gets, how long it takes, anything they should know."></textarea>
+        </div>
+        <div class="field">
+          <label>Category</label>
+          <div class="mk-cats se-chips" id="se-cats"></div>
+        </div>
+        <div class="field">
+          <label>Pictures</label>
+          <div class="se-pics" id="se-pics"></div>
+          <div class="hint">Up to four. The first is the one shown on your listing's card.</div>
+        </div>
+        <div class="field">
+          <label>How is it priced?</label>
+          <div class="mk-cats se-chips" id="se-units"></div>
+        </div>
+        <div class="field">
+          <label for="se-price" id="se-price-label">Price in ORN</label>
+          <div class="box plain se-price"><input id="se-price" inputmode="decimal" placeholder="200" autocomplete="off"><span>ORN</span></div>
+          <div class="hint" id="se-payto"></div>
+        </div>
+        <div class="problem" id="se-problem" hidden></div>
+        <button class="primary pearl" id="se-go" data-gap="lg">Post your listing</button>
+      </div>
     </section>
 
     <!-- Market messages -->
@@ -1205,6 +1266,8 @@
         <label for="pf-x">X</label>
         <div class="box plain"><input id="pf-x" placeholder="@username" autocomplete="off" spellcheck="false"></div>
       </div>
+      <div class="section-head pf-listings-head"><h3>Your listings</h3><button class="pill pearl" id="pf-sell">Sell something</button></div>
+      <div class="mk-grid" id="pf-listings"></div>
       <!-- Verifying wallets, so people paying them see "Name – Wallet". -->
       <div class="verify-card" id="pf-verify" hidden>
         <div class="vc-title">Your wallets</div>
@@ -3502,7 +3565,7 @@
   // Any card, in browse or on a seller's page, opens its listing.
   document.addEventListener("click", (e) => {
     const c = e.target.closest(".mk-card[data-listing]");
-    if (c) openListing(Number(c.dataset.listing), $("seller").hidden ? "market" : "seller");
+    if (c) openListing(Number(c.dataset.listing), !$("seller").hidden ? "seller" : !$("profile").hidden ? "profile" : "market");
   });
 
   function showPicture(i) {
@@ -3541,12 +3604,14 @@
     $("ls-msg").placeholder = `Hi ${seller.name || l.seller_name || ""}, I'm interested. Could you…`;
     $("ls-ask-hint").textContent = "";
     $("ls-report").hidden = market.mine || !signedIn;
+    $("ls-mine").hidden = !market.mine;
+    $("ls-close").textContent = l.open === false ? "Reopen listing" : "Close listing";
     $("ls-report-box").hidden = true;
     show("listing");
     $("listing").scrollTop = 0;
   }
   $("ls-thumbs").onclick = (e) => { const b = e.target.closest("[data-pic]"); if (b) showPicture(Number(b.dataset.pic)); };
-  $("ls-back").onclick = () => market.from === "seller" ? show("seller") : market.from === "chat" ? show("chat") : show("market");
+  $("ls-back").onclick = () => market.from === "seller" ? show("seller") : market.from === "chat" ? show("chat") : market.from === "profile" ? openProfile() : openMarket();
   $("ls-seller").onclick = () => market.listing && openSeller(market.listing.seller);
 
   async function openSeller(id) {
@@ -3809,6 +3874,127 @@
   setInterval(() => { if (!$("inbox").hidden) loadInbox(); }, 10000);
   setInterval(() => { if (board.me) invoke("board_me").then((me) => { board.me = me; paintUnread(); }).catch(() => {}); }, 30000);
 
+  // ---- Selling ----
+  const UNITS = [["", "Fixed price"], ["per hour", "Per hour"], ["per day", "Per day"], ["per week", "Per week"], ["per month", "Per month"], ["per item", "Per item"]];
+  // The listing being written: a new one, or changes to `editing`.
+  const sale = { editing: null, cat: "", unit: "", pics: [], removed: [], from: "market" };
+  function paintSale() {
+    $("se-cats").innerHTML = CATS.slice(1).map(([c, n]) => `<button type="button" data-cat="${c}"${c === sale.cat ? ' class="on"' : ""}>${n}</button>`).join("");
+    const units = UNITS.some(([u]) => u === sale.unit) ? UNITS : UNITS.concat([[sale.unit, sale.unit]]);
+    $("se-units").innerHTML = units.map(([u, n]) => `<button type="button" data-unit="${esc(u)}"${u === sale.unit ? ' class="on"' : ""}>${esc(n)}</button>`).join("");
+    $("se-price-label").textContent = sale.unit ? `Rate in ORN, ${sale.unit}` : "Price in ORN";
+    $("se-pics").innerHTML = sale.pics.map((p, i) => `<div class="se-pic">
+        ${p.name ? picImg(p.name) : `<img src="${p.url}" alt="">`}
+        ${i === 0 ? '<span class="cover">Cover</span>' : ""}
+        <div class="acts">${i === 0 ? "" : `<button type="button" data-cover="${i}">Make cover</button>`}<button type="button" class="x" data-drop="${i}" aria-label="Remove">✕</button></div>
+      </div>`).join("") + (sale.pics.length < 4 ? `<button type="button" class="se-add" id="se-add"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h3l1.5-2h7L17 8h3a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9a1 1 0 0 1 1-1z"/><circle cx="12" cy="13" r="3.5"/></svg>Add pictures</button>` : "");
+  }
+  function openSell(listing, from) {
+    sale.from = from || "market";
+    const me = board.me;
+    $("se-problem").hidden = true;
+    $("se-gate").hidden = true; $("se-form").hidden = false;
+    if (!me) {
+      $("se-gate").hidden = false; $("se-form").hidden = true;
+      $("se-gate").textContent = "To sell something, sign in to Orien Market first, from the home screen.";
+    } else if (!me.wallet) {
+      $("se-gate").hidden = false; $("se-form").hidden = true;
+      $("se-gate").textContent = "Before your first listing, your Orien wallet needs adding, so buyers' payments reach you. Open the Swap screen once while signed in and it's added for you.";
+    }
+    sale.editing = listing || null;
+    sale.cat = listing ? listing.category : "";
+    sale.unit = listing ? (listing.unit || "") : "";
+    sale.pics = listing ? (listing.pictures || []).map((name) => ({ name })) : [];
+    sale.removed = [];
+    $("se-title").textContent = listing ? "Edit listing" : "Sell something";
+    $("se-go").textContent = listing ? "Save changes" : "Post your listing";
+    $("se-name").value = listing ? listing.title : "";
+    $("se-desc").value = listing ? listing.description : "";
+    $("se-price").value = listing ? plainOrn(listing.price) : "";
+    $("se-payto").textContent = me && me.wallet ? `Buyers pay you straight to your wallet, ${short(me.wallet)}.` : "";
+    paintSale();
+    show("sell");
+    $("sell").scrollTop = 0;
+    if (!$("se-form").hidden) $("se-name").focus();
+  }
+  $("mk-sell").onclick = () => openSell(null, "market");
+  $("pf-sell").onclick = () => openSell(null, "profile");
+  $("ls-edit").onclick = () => openSell(market.listing, "listing");
+  $("ls-close").onclick = async () => {
+    const l = market.listing;
+    $("ls-close").disabled = true;
+    try {
+      await mk("POST", `/listings/${l.id}/open`, { open: l.open === false });
+      await openListing(l.id, market.from);
+      market.items = [];
+    } catch (e) { problem("ls-problem", mkProblem(e)); }
+    finally { $("ls-close").disabled = false; }
+  };
+  $("se-back").onclick = () => sale.from === "listing" ? show("listing") : sale.from === "profile" ? openProfile() : openMarket();
+  $("se-cats").onclick = (e) => { const b = e.target.closest("[data-cat]"); if (b) { sale.cat = b.dataset.cat; paintSale(); feel("selection"); } };
+  $("se-units").onclick = (e) => { const b = e.target.closest("[data-unit]"); if (b) { sale.unit = b.dataset.unit; paintSale(); feel("selection"); } };
+  $("se-pics").onclick = async (e) => {
+    const drop = e.target.closest("[data-drop]"), cover = e.target.closest("[data-cover]");
+    if (drop) {
+      const [gone] = sale.pics.splice(Number(drop.dataset.drop), 1);
+      if (gone && gone.name) sale.removed.push(gone.name);
+      paintSale();
+      return;
+    }
+    if (cover) {
+      const [p] = sale.pics.splice(Number(cover.dataset.cover), 1);
+      sale.pics.unshift(p);
+      paintSale();
+      feel("selection");
+      return;
+    }
+    if (e.target.closest("#se-add")) {
+      try {
+        const picked = await invoke("market_pick_pictures", { room: 4 - sale.pics.length });
+        sale.pics = sale.pics.concat(picked.map((p) => ({ path: p.path, url: p.url })));
+        paintSale();
+      } catch (err) { problem("se-problem", err); }
+    }
+  };
+  $("se-go").onclick = async () => {
+    const price = toUnits($("se-price").value);
+    if (!$("se-name").value.trim()) { problem("se-problem", "Say what you're offering."); $("se-name").focus(); return; }
+    if (!sale.cat) { problem("se-problem", "Pick a category."); return; }
+    if (!price) { problem("se-problem", "Write the price in ORN, like 200 or 12.5."); $("se-price").focus(); return; }
+    const draft = { title: $("se-name").value.trim(), description: $("se-desc").value.trim(), category: sale.cat, price: Number(price), unit: sale.unit };
+    const button = $("se-go");
+    button.disabled = true;
+    button.innerHTML = `<span class="spinner"></span>${sale.editing ? "Saving" : "Posting"}`;
+    $("se-problem").hidden = true;
+    let listing = null;
+    try {
+      // The words first, then pictures: removed ones, new ones, then the cover.
+      listing = sale.editing
+        ? (await mk("PUT", `/listings/${sale.editing.id}`, draft)).listing
+        : (await mk("POST", "/listings", draft)).listing;
+      for (const name of sale.removed) listing = (await mk("DELETE", `/listings/${listing.id}/pictures/${encodeURIComponent(name)}`)).listing;
+      sale.removed = [];
+      for (const p of sale.pics) {
+        if (p.name) continue;
+        listing = (await invoke("market_listing_picture", { id: listing.id, path: p.path })).listing;
+        p.name = listing.pictures[listing.pictures.length - 1];
+      }
+      const first = sale.pics[0] && sale.pics[0].name;
+      if (first && listing.pictures[0] !== first) listing = (await mk("POST", `/listings/${listing.id}/pictures/${encodeURIComponent(first)}`)).listing;
+      feel("success");
+      market.items = [];
+      board.me = await invoke("board_me").catch(() => board.me);
+      await openListing(listing.id, sale.from === "profile" ? "profile" : "market");
+    } catch (e) {
+      // Posted, but a picture failed: carry on as an edit of what was posted.
+      if (listing && !sale.editing) { sale.editing = listing; $("se-title").textContent = "Edit listing"; problem("se-problem", `Your listing is posted, but: ${mkProblem(e)}`); }
+      else problem("se-problem", mkProblem(e));
+    } finally {
+      button.disabled = false;
+      button.textContent = sale.editing ? "Save changes" : "Post your listing";
+    }
+  };
+
   // ---- Your profile ----
   function paintProfileFace() {
     const me = board.me;
@@ -3830,6 +4016,8 @@
     $("pf-problem").hidden = true;
     $("pf-save").textContent = "Save";
     renderVerify();
+    const mine = me.listings || [];
+    $("pf-listings").innerHTML = mine.length ? mine.map(card).join("") : '<div class="empty mk-empty">You have no listings yet.</div>';
     show("profile");
   }
   // Verifying: each wallet by choice, with one tiny payment from it to

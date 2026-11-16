@@ -1173,6 +1173,41 @@ async fn market_call(app: AppHandle, method: String, path: String, body: Option<
     tauri::async_runtime::spawn_blocking(move || board::market_call(&dir, &method, &path, body)).await.map_err(|error| error.to_string())?
 }
 
+/// Pictures the person picked, the only files a listing picture may be
+/// sent from.
+static PICKED: std::sync::Mutex<Vec<std::path::PathBuf>> = std::sync::Mutex::new(Vec::new());
+
+/// Picks up to `room` pictures for a listing: their paths, and each as a
+/// data: URL to show before it's sent.
+#[tauri::command]
+async fn market_pick_pictures(app: AppHandle, room: usize) -> Result<Vec<serde_json::Value>, String> {
+    use base64::Engine;
+    let picked = app.dialog().file().add_filter("Pictures", &["jpg", "jpeg", "png", "webp", "gif"]).blocking_pick_files().unwrap_or_default();
+    let mut out = Vec::new();
+    for file in picked.into_iter().take(room) {
+        let Ok(path) = file.into_path() else { continue };
+        PICKED.lock().unwrap_or_else(|p| p.into_inner()).push(path.clone());
+        let bytes = fs::read(&path).map_err(|error| format!("could not read that picture: {error}"))?;
+        if bytes.len() > 8 * 1024 * 1024 {
+            return Err("One of those pictures is too big. Pick ones under 8 MB.".into());
+        }
+        let kind = if bytes.starts_with(&[0x89, b'P', b'N', b'G']) { "image/png" } else if bytes.starts_with(b"RIFF") { "image/webp" } else if bytes.starts_with(b"GIF") { "image/gif" } else { "image/jpeg" };
+        out.push(serde_json::json!({ "path": path, "url": format!("data:{kind};base64,{}", base64::engine::general_purpose::STANDARD.encode(&bytes)) }));
+    }
+    Ok(out)
+}
+
+/// Sends a picked picture to listing `id`.
+#[tauri::command]
+async fn market_listing_picture(app: AppHandle, id: i64, path: String) -> Result<serde_json::Value, String> {
+    let dir = folder(&app)?;
+    let path = std::path::PathBuf::from(path);
+    if !PICKED.lock().unwrap_or_else(|p| p.into_inner()).contains(&path) {
+        return Err("Pick the picture again.".into());
+    }
+    tauri::async_runtime::spawn_blocking(move || board::listing_picture(&dir, id, &path)).await.map_err(|error| error.to_string())?
+}
+
 /// A page of Market listings.
 #[tauri::command]
 async fn market_listings(app: AppHandle, category: String, text: String, offset: u32) -> Result<serde_json::Value, String> {
@@ -1399,7 +1434,7 @@ pub fn run() {
             }
             Ok(())
         })
-        .invoke_handler(tauri::generate_handler![has_wallet, create_wallet, save_phrase, restore_wallet, set_password, choose_wallet, overview_now, send_payment, activity, quote, contacts, save_contact, delete_contact, contacts_sync, biometric_unlock, biometric_enable, update::check_update, update::install_update, mine_start, mine_stop, mine_set, mine_status, wallets, wallet_balances, use_wallet, rename_wallet, add_wallet, forget_wallet, swap_list, swap_sell, swap_buy, swap_accept, swap_step, swap_smallest, board_offers, board_me, board_email_start, board_email_finish, board_sign_out, board_post, board_take, board_withdraw, board_link, notifications_ask, push_sync, board_wallets_sync, board_post_sol, board_take_sol, sol_open, sol_payout_check, open_site, qr_code, wallet_profiles, board_profile_save, board_picture_pick, board_verify, board_wallet_states, market_image, board_banner_remove, market_search, market_listings, market_listing, market_profile, market_call])
+        .invoke_handler(tauri::generate_handler![has_wallet, create_wallet, save_phrase, restore_wallet, set_password, choose_wallet, overview_now, send_payment, activity, quote, contacts, save_contact, delete_contact, contacts_sync, biometric_unlock, biometric_enable, update::check_update, update::install_update, mine_start, mine_stop, mine_set, mine_status, wallets, wallet_balances, use_wallet, rename_wallet, add_wallet, forget_wallet, swap_list, swap_sell, swap_buy, swap_accept, swap_step, swap_smallest, board_offers, board_me, board_email_start, board_email_finish, board_sign_out, board_post, board_take, board_withdraw, board_link, notifications_ask, push_sync, board_wallets_sync, board_post_sol, board_take_sol, sol_open, sol_payout_check, open_site, qr_code, wallet_profiles, board_profile_save, board_picture_pick, board_verify, board_wallet_states, market_image, board_banner_remove, market_search, market_listings, market_listing, market_profile, market_call, market_pick_pictures, market_listing_picture])
         .build(tauri::generate_context!())
         .expect("the wallet window could not start")
         .run(|_app, _event| {
