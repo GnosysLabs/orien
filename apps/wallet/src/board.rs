@@ -207,6 +207,8 @@ pub fn me(dir: &Path) -> Result<Option<Value>, String> {
                 // marketplace. Swaps don't need one.
                 "wallet": account["wallet"],
                 "wallet_verified": account["wallet_verified"],
+                // Conversations with something new from the other side.
+                "unread": me["unread"],
                 "email": load(dir).email,
             })))
         }
@@ -487,6 +489,16 @@ fn market_get(dir: &Path, path: &str, query: &[(&str, &str)]) -> Result<Value, S
 pub fn listings(dir: &Path, category: &str, text: &str, offset: u32) -> Result<Value, String> {
     let offset = offset.to_string();
     market_get(dir, "/listings", &[("category", category), ("q", text.trim()), ("offset", &offset)])
+}
+
+/// A signed-in Market call for the Market screens: listings, messages and
+/// reports only, so the page can't reach anything else with the cookie.
+pub fn market_call(dir: &Path, method: &str, path: &str, body: Option<Value>) -> Result<Value, String> {
+    let allowed = ["/listings", "/conversations", "/reports"].iter().any(|p| path == *p || path.starts_with(&format!("{p}/")) || path.starts_with(&format!("{p}?")));
+    if !allowed || path.contains("..") || !["GET", "POST", "PUT", "DELETE"].contains(&method) {
+        return Err("not a Market call".into());
+    }
+    call(dir, method, path, body).map_err(String::from)
 }
 
 /// One listing, its seller, and whether it's this account's.

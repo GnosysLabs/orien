@@ -1166,6 +1166,13 @@ async fn sol_payout_check(payout: String) -> Option<String> {
     tauri::async_runtime::spawn_blocking(move || solswaps::payout_problem(&payout)).await.unwrap_or(None)
 }
 
+/// A signed-in Market call: listings, messages, payment requests, reports.
+#[tauri::command]
+async fn market_call(app: AppHandle, method: String, path: String, body: Option<serde_json::Value>) -> Result<serde_json::Value, String> {
+    let dir = folder(&app)?;
+    tauri::async_runtime::spawn_blocking(move || board::market_call(&dir, &method, &path, body)).await.map_err(|error| error.to_string())?
+}
+
 /// A page of Market listings.
 #[tauri::command]
 async fn market_listings(app: AppHandle, category: String, text: String, offset: u32) -> Result<serde_json::Value, String> {
@@ -1392,7 +1399,7 @@ pub fn run() {
             }
             Ok(())
         })
-        .invoke_handler(tauri::generate_handler![has_wallet, create_wallet, save_phrase, restore_wallet, set_password, choose_wallet, overview_now, send_payment, activity, quote, contacts, save_contact, delete_contact, contacts_sync, biometric_unlock, biometric_enable, update::check_update, update::install_update, mine_start, mine_stop, mine_set, mine_status, wallets, wallet_balances, use_wallet, rename_wallet, add_wallet, forget_wallet, swap_list, swap_sell, swap_buy, swap_accept, swap_step, swap_smallest, board_offers, board_me, board_email_start, board_email_finish, board_sign_out, board_post, board_take, board_withdraw, board_link, notifications_ask, push_sync, board_wallets_sync, board_post_sol, board_take_sol, sol_open, sol_payout_check, open_site, qr_code, wallet_profiles, board_profile_save, board_picture_pick, board_verify, board_wallet_states, market_image, board_banner_remove, market_search, market_listings, market_listing, market_profile])
+        .invoke_handler(tauri::generate_handler![has_wallet, create_wallet, save_phrase, restore_wallet, set_password, choose_wallet, overview_now, send_payment, activity, quote, contacts, save_contact, delete_contact, contacts_sync, biometric_unlock, biometric_enable, update::check_update, update::install_update, mine_start, mine_stop, mine_set, mine_status, wallets, wallet_balances, use_wallet, rename_wallet, add_wallet, forget_wallet, swap_list, swap_sell, swap_buy, swap_accept, swap_step, swap_smallest, board_offers, board_me, board_email_start, board_email_finish, board_sign_out, board_post, board_take, board_withdraw, board_link, notifications_ask, push_sync, board_wallets_sync, board_post_sol, board_take_sol, sol_open, sol_payout_check, open_site, qr_code, wallet_profiles, board_profile_save, board_picture_pick, board_verify, board_wallet_states, market_image, board_banner_remove, market_search, market_listings, market_listing, market_profile, market_call])
         .build(tauri::generate_context!())
         .expect("the wallet window could not start")
         .run(|_app, _event| {

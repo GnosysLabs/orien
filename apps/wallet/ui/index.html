@@ -404,6 +404,77 @@
   .sl-wallets b { color: var(--good); font-weight: 600; }
   .sl-bio { margin-top: 16px; text-align: center; color: var(--dim); }
   .sl-contact { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px 14px; margin-top: 10px; font-size: 12.5px; color: var(--dim); -webkit-user-select: text; user-select: text; }
+  /* Market messages */
+  .pill.icon { position: relative; }
+  .pill .dot, .tile .dot { position: absolute; top: 4px; right: 4px; width: 8px; height: 8px; border-radius: 50%; background: var(--good); box-shadow: 0 0 0 2px var(--ground-deep); }
+  #go-market { position: relative; }
+  .tile .dot { top: 9px; right: 9px; }
+  .ls-ask { margin-top: 14px; padding: 12px; border: 1px solid var(--line); border-radius: 16px; background: var(--surface); }
+  .ls-ask textarea, .report-box textarea { display: block; width: 100%; min-height: 70px; padding: 10px 12px; border: 1px solid var(--line); border-radius: 12px;
+    background: var(--field); color: var(--ink); font: inherit; font-size: 13.5px; letter-spacing: normal; resize: none; outline: none; }
+  .ls-ask textarea:focus, .report-box textarea:focus { border-color: #8f8aa8; }
+  .ls-ask-row { display: flex; align-items: center; justify-content: flex-end; gap: 8px; margin-top: 10px; }
+  .ls-ask-row .hint { margin: 0 auto 0 2px; min-height: 0; }
+  .ls-signin { display: flex; margin: 14px auto 0; }
+  .ls-report { display: flex; margin: 22px auto 4px; color: var(--dim); }
+  .report-box { margin-top: 14px; }
+  .ib-row { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 12px; align-items: center; width: 100%; padding: 12px 14px;
+    border: 0; border-top: 1px solid var(--line); background: none; color: inherit; font: inherit; text-align: left; cursor: pointer; }
+  .ib-row:first-child { border-top: 0; }
+  .ib-row:hover { background: #ffffff06; }
+  .ib-row .avatar { position: relative; overflow: hidden; width: 40px; height: 40px; border-radius: 50%; display: grid; place-items: center;
+    background: var(--surface-hover); color: var(--ink); font-weight: 600; }
+  .ib-row .avatar img, .ch-who .avatar img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+  .ib-row .nm { display: flex; justify-content: space-between; gap: 8px; }
+  .ib-row .nm b { font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .ib-row.unread .nm b { font-weight: 700; }
+  .ib-row .when { flex: none; font-size: 11.5px; color: var(--faint); }
+  .ib-row .what { font-size: 12px; color: var(--dim); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .ib-row .last { font-size: 12.5px; color: var(--faint); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .ib-row.unread .last { color: var(--ink); }
+  .ib-row .udot { width: 8px; height: 8px; border-radius: 50%; background: var(--good); }
+  .ib-row:not(.unread) .udot { visibility: hidden; }
+  #ib-list .list { border-radius: 18px; }
+  .ch-top { gap: 6px; }
+  .ch-who { display: flex; align-items: center; gap: 10px; min-width: 0; padding: 4px 8px 4px 4px; border: 0; border-radius: 12px; background: none; color: inherit; font: inherit; text-align: left; cursor: pointer; }
+  .ch-who:hover { background: #ffffff0a; }
+  .ch-who .avatar { position: relative; overflow: hidden; flex: none; width: 32px; height: 32px; border-radius: 50%; display: grid; place-items: center; background: var(--surface-hover); font-weight: 600; font-size: 13px; }
+  .ch-who b { display: block; font-size: 15px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .ch-who small { display: block; font-size: 11.5px; color: var(--faint); }
+  .ch-menu { display: flex; justify-content: flex-end; gap: 8px; margin: -12px 0 12px; }
+  .ch-about { display: flex; justify-content: space-between; gap: 10px; width: 100%; padding: 10px 14px; border: 1px solid var(--line); border-radius: 14px;
+    background: var(--surface); color: var(--dim); font: inherit; font-size: 12.5px; text-align: left; cursor: pointer; flex-shrink: 0; }
+  .ch-about:hover { background: var(--surface-hover); }
+  .ch-about b { color: var(--ink); font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .ch-about span { flex: none; }
+  .ch-log { display: flex; flex-direction: column; gap: 6px; padding-top: 14px; padding-bottom: 14px; }
+  .bubble { max-width: 78%; padding: 8px 12px; border-radius: 16px; font-size: 13.5px; line-height: 1.45; white-space: pre-wrap; overflow-wrap: anywhere;
+    -webkit-user-select: text; user-select: text; align-self: flex-start; background: var(--surface); border-bottom-left-radius: 6px; }
+  .bubble.mine { align-self: flex-end; background: #3a3850; border-bottom-left-radius: 16px; border-bottom-right-radius: 6px; }
+  .bubble time { display: block; margin-top: 3px; font-size: 10.5px; color: var(--faint); }
+  .bubble.mine time { text-align: right; }
+  .paycard { align-self: center; width: min(320px, 92%); margin: 6px 0; padding: 14px 16px; border: 1px solid var(--line); border-radius: 18px; background: var(--surface); text-align: center; }
+  .paycard .lbl { font-size: 11.5px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--dim); }
+  .paycard .amt { margin-top: 4px; font-size: 20px; font-weight: 600; }
+  .paycard .chip-paid { display: inline-block; margin-top: 6px; padding: 2px 10px; border-radius: 999px; background: #a6e3c61f; color: var(--good); font-size: 12px; font-weight: 600; }
+  .paycard .sub { margin-top: 6px; font-size: 12px; color: var(--dim); }
+  .paycard .pill { margin-top: 10px; }
+  .paycard .pw { margin-top: 10px; }
+  .paycard .pw input { width: 100%; height: 38px; padding: 0 12px; border: 1px solid var(--line); border-radius: 12px; background: var(--field); color: var(--ink); font: inherit; outline: none; }
+  .paycard.paid-note { padding: 10px 14px; }
+  .ch-day { align-self: center; margin: 8px 0 2px; font-size: 11px; color: var(--faint); }
+  .ch-askbox { flex-shrink: 0; padding: 12px; border: 1px solid var(--line); border-radius: 16px; background: var(--surface); margin-bottom: 10px; }
+  .ch-ask-title { font-size: 12.5px; color: var(--dim); }
+  .ch-amount { flex: 1; display: flex; align-items: center; gap: 8px; padding: 0 12px; height: 36px; border: 1px solid var(--line); border-radius: 12px; background: var(--field); }
+  .ch-amount input { flex: 1; min-width: 0; border: 0; background: none; color: var(--ink); font: inherit; outline: none; }
+  .ch-amount span { color: var(--faint); font-size: 12.5px; }
+  .ch-blocked { flex-shrink: 0; padding: 10px 14px; margin-bottom: 10px; border-radius: 14px; background: var(--surface); color: var(--dim); font-size: 12.5px; text-align: center; }
+  .ch-compose { flex-shrink: 0; display: flex; align-items: flex-end; gap: 8px; padding: 6px 6px 6px 14px; border: 1px solid var(--line); border-radius: 22px; background: var(--field); }
+  .ch-compose:focus-within { border-color: #8f8aa8; }
+  .ch-compose textarea { flex: 1; min-height: 22px; max-height: 120px; padding: 6px 0; border: 0; background: none; color: var(--ink); font: inherit; font-size: 13.5px; letter-spacing: normal; resize: none; outline: none; }
+  .ch-send { flex: none; width: 34px; height: 34px; border: 0; border-radius: 50%; display: grid; place-items: center; color: var(--pearl-ink); cursor: pointer; }
+  .ch-send:disabled { opacity: .4; cursor: default; }
+  #chat { padding-bottom: 8px; }
   .verify-card { margin-top: 22px; padding: 16px 18px; border: 1px solid var(--line); border-radius: 18px; background: var(--surface); }
   .vf-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 12px 0; border-top: 1px solid var(--line); }
   #vf-list { margin-top: 12px; }
@@ -962,7 +1033,7 @@
         </button>
         <button class="tile" id="go-market">
           <span class="icon pearl"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="m2 7 4.41-4.41A2 2 0 0 1 7.83 2h8.34a2 2 0 0 1 1.42.59L22 7"/><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><path d="M15 22v-4a2 2 0 0 0-2-2h-2a2 2 0 0 0-2 2v4"/><path d="M2 7h20"/><path d="M22 7v3a2 2 0 0 1-2 2a2.7 2.7 0 0 1-1.59-.63.7.7 0 0 0-.82 0A2.7 2.7 0 0 1 16 12a2.7 2.7 0 0 1-1.59-.63.7.7 0 0 0-.82 0A2.7 2.7 0 0 1 12 12a2.7 2.7 0 0 1-1.59-.63.7.7 0 0 0-.82 0A2.7 2.7 0 0 1 8 12a2.7 2.7 0 0 1-1.59-.63.7.7 0 0 0-.82 0A2.7 2.7 0 0 1 4 12a2 2 0 0 1-2-2V7"/></svg></span>
-          Market
+          Market<span class="dot" id="market-unread" hidden></span>
         </button>
         <button class="tile" id="go-get">
           <span class="icon pearl"><svg width="17" height="17" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.35" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3v10M3 8h10"/></svg></span>
@@ -1021,7 +1092,7 @@
     <!-- Orien Market: work and things offered for ORN. -->
     <section class="screen" id="market" hidden>
       <div class="topline"><button class="back" data-back aria-label="Back"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10 3 5 8l5 5"/></svg></button><h2>Market</h2>
-        <div class="account mk-tools"></div></div>
+        <div class="account mk-tools"><button class="pill icon mk-inbox" id="mk-inbox" title="Messages" aria-label="Messages"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 20.5l1.4-4.9A8 8 0 1 1 21 12z"/></svg><span class="dot" id="mk-unread" hidden></span></button></div></div>
       <p class="lede">Work and things offered for ORN. You pay the seller straight from your wallet: the Market never holds anyone's coins.</p>
       <div class="box plain mk-search"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="11" cy="11" r="6.5"/><path d="m16 16 4.5 4.5"/></svg><input id="mk-q" placeholder="Search listings" autocomplete="off" spellcheck="false"></div>
       <div class="mk-cats" id="mk-cats"></div>
@@ -1039,9 +1110,54 @@
       <div class="ls-price" id="ls-price"></div>
       <button class="ls-seller" id="ls-seller"></button>
       <div class="note" id="ls-note"></div>
+      <div class="ls-ask" id="ls-ask" hidden>
+        <textarea id="ls-msg" rows="3" maxlength="2000"></textarea>
+        <div class="ls-ask-row"><span class="hint" id="ls-ask-hint"></span><button class="pill pearl" id="ls-send">Send message</button></div>
+      </div>
+      <button class="pill ls-signin" id="ls-signin" hidden>Sign in to message the seller</button>
       <div class="section-head"><h3>About this</h3></div>
       <div class="ls-desc" id="ls-desc"></div>
+      <button class="pill ls-report" id="ls-report" hidden>Report this listing</button>
+      <div class="report-box" id="ls-report-box" hidden>
+        <textarea id="ls-report-text" rows="3" maxlength="1000" placeholder="A scam, something illegal, pretending to be someone…"></textarea>
+        <div class="ls-ask-row"><span class="hint" id="ls-report-done"></span><button class="pill" id="ls-report-send">Send report</button></div>
+      </div>
       <div class="problem" id="ls-problem" hidden></div>
+    </section>
+
+    <!-- Market messages -->
+    <section class="screen" id="inbox" hidden>
+      <div class="topline"><button class="back" id="ib-back" aria-label="Back"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10 3 5 8l5 5"/></svg></button><h2>Messages</h2></div>
+      <div class="scroll" id="ib-list"></div>
+      <div class="problem" id="ib-problem" hidden></div>
+    </section>
+
+    <!-- One conversation -->
+    <section class="screen" id="chat" hidden>
+      <div class="topline ch-top">
+        <button class="back" id="ch-back" aria-label="Back"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10 3 5 8l5 5"/></svg></button>
+        <button class="ch-who" id="ch-who"></button>
+        <div class="account">
+          <button class="pill" id="ch-ask" hidden>Ask for payment</button>
+          <button class="pill icon" id="ch-more" title="More" aria-label="More"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="19" cy="12" r="1.8"/></svg></button>
+        </div>
+      </div>
+      <div class="ch-menu" id="ch-menu" hidden>
+        <button class="pill" id="ch-block">Block</button>
+        <button class="pill" id="ch-report">Report</button>
+      </div>
+      <button class="ch-about" id="ch-about"></button>
+      <div class="scroll ch-log" id="ch-log"></div>
+      <div class="ch-askbox" id="ch-askbox" hidden>
+        <div class="ch-ask-title" id="ch-ask-title"></div>
+        <div class="ls-ask-row"><div class="box plain ch-amount"><input id="ch-amount" inputmode="decimal" autocomplete="off"><span>ORN</span></div><button class="pill" id="ch-ask-cancel">Cancel</button><button class="pill pearl" id="ch-ask-send">Send request</button></div>
+      </div>
+      <div class="ch-blocked" id="ch-blocked" hidden></div>
+      <div class="problem" id="ch-problem" hidden></div>
+      <div class="ch-compose" id="ch-compose">
+        <textarea id="ch-text" rows="1" maxlength="2000"></textarea>
+        <button class="ch-send pearl" id="ch-send" aria-label="Send"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M5 12l7-7 7 7"/></svg></button>
+      </div>
     </section>
 
     <!-- A seller on the Market -->
@@ -2991,6 +3107,7 @@
   function renderBoardBar() {
     const me = board.me;
     // The signed-in account is its picture (or initial); its name shows on hover.
+    paintUnread();
     $("board-who").hidden = !me;
     $("board-who").innerHTML = me ? avatar({ seller_name: me.name, seller_picture: me.picture }) : "";
     $("board-who").title = me ? `${me.name}: your profile` : "";
@@ -3394,11 +3511,19 @@
       ? "This is your listing."
       : `Agree the details in messages first. When you're ready, ${who} sends a payment request there, and you pay straight from this wallet to theirs.`;
     $("ls-desc").textContent = l.description || "No description.";
+    const signedIn = !!board.me;
+    $("ls-ask").hidden = market.mine || !signedIn || l.open === false;
+    $("ls-signin").hidden = market.mine || signedIn;
+    $("ls-signin").textContent = `Sign in to message ${seller.name || l.seller_name || "the seller"}`;
+    $("ls-msg").placeholder = `Hi ${seller.name || l.seller_name || ""}, I'm interested. Could you…`;
+    $("ls-ask-hint").textContent = "";
+    $("ls-report").hidden = market.mine || !signedIn;
+    $("ls-report-box").hidden = true;
     show("listing");
     $("listing").scrollTop = 0;
   }
   $("ls-thumbs").onclick = (e) => { const b = e.target.closest("[data-pic]"); if (b) showPicture(Number(b.dataset.pic)); };
-  $("ls-back").onclick = () => market.from === "seller" ? show("seller") : show("market");
+  $("ls-back").onclick = () => market.from === "seller" ? show("seller") : market.from === "chat" ? show("chat") : show("market");
   $("ls-seller").onclick = () => market.listing && openSeller(market.listing.seller);
 
   async function openSeller(id) {
@@ -3422,7 +3547,245 @@
     show("seller");
     $("seller").scrollTop = 0;
   }
-  $("sl-back").onclick = () => show("listing");
+  $("sl-back").onclick = () => market.sellerFrom === "chat" ? show("chat") : show("listing");
+
+  // ---- Market messages ----
+  // When: "just now", "5 min ago", "3 h ago", else a short date.
+  function ago(t) {
+    const s = Date.now() / 1000 - t;
+    if (s < 60) return "just now";
+    if (s < 3600) return `${Math.floor(s / 60)} min ago`;
+    if (s < 86400) return `${Math.floor(s / 3600)} h ago`;
+    return new Date(t * 1000).toLocaleDateString([], { month: "short", day: "numeric" });
+  }
+  const plainOrn = (units) => orn(units).replace(/,/g, "");
+  // "12.5" ORN as units, or null if it isn't an amount.
+  function toUnits(text) {
+    const t = String(text).replace(/,/g, "").trim();
+    if (!/^\d+(\.\d{0,9})?$/.test(t)) return null;
+    const [w, f = ""] = t.split(".");
+    const u = BigInt(w) * 1000000000n + BigInt((f + "000000000").slice(0, 9));
+    return u > 0n ? u : null;
+  }
+  const mkProblem = (e) => String(e).startsWith("signin:") ? "Sign in to Orien Market first." : String(e);
+  async function mk(method, path, body) { return invoke("market_call", { method, path, body: body === undefined ? null : body }); }
+  function paintUnread() {
+    const n = (board.me && board.me.unread) || 0;
+    $("market-unread").hidden = !n;
+    $("mk-unread").hidden = !n;
+    $("mk-inbox").hidden = !board.me;
+  }
+
+  $("ls-signin").onclick = () => { signinReturn = "listing"; resetSignin(); show("board-signin"); };
+  $("ls-send").onclick = async () => {
+    const body = $("ls-msg").value.trim();
+    if (!body) { $("ls-msg").focus(); return; }
+    $("ls-send").disabled = true;
+    try {
+      const sent = await mk("POST", `/listings/${market.listing.id}/messages`, { body });
+      $("ls-msg").value = "";
+      feel("success");
+      await openChat(sent.conversation, "listing");
+    } catch (e) { problem("ls-problem", mkProblem(e)); }
+    finally { $("ls-send").disabled = false; }
+  };
+  $("ls-report").onclick = () => { $("ls-report-box").hidden = !$("ls-report-box").hidden; $("ls-report-done").textContent = ""; if (!$("ls-report-box").hidden) $("ls-report-text").focus(); };
+  $("ls-report-send").onclick = async () => {
+    $("ls-report-send").disabled = true;
+    try {
+      await mk("POST", "/reports", { kind: "listing", id: market.listing.id, reason: $("ls-report-text").value.trim() });
+      $("ls-report-text").value = "";
+      $("ls-report-done").textContent = "Thanks. We will look at it.";
+      setTimeout(() => { $("ls-report-box").hidden = true; }, 1600);
+    } catch (e) { problem("ls-problem", mkProblem(e)); }
+    finally { $("ls-report-send").disabled = false; }
+  };
+
+  // The list of conversations, newest first.
+  const inbox = { items: [] };
+  function paintInbox() {
+    $("ib-list").innerHTML = inbox.items.length
+      ? `<div class="list">${inbox.items.map((c) => {
+          const last = c.last ? (c.last.kind === "request" ? "Payment request" : c.last.kind === "paid" ? "Marked as paid" : c.last.body) : "";
+          return `<button class="ib-row${c.unread ? " unread" : ""}" data-chat="${c.id}">
+            ${mkAvatar(c.with_name, c.with_picture)}
+            <div style="min-width:0"><div class="nm"><b>${esc(c.with_name)}</b><span class="when">${esc(ago(c.updated))}</span></div>
+              <div class="what">${esc(c.listing_title)}</div><div class="last">${esc(last)}</div></div>
+            <span class="udot"></span>
+          </button>`;
+        }).join("")}</div>`
+      : '<div class="empty">No messages yet. To ask a seller something, open their listing and write to them there.</div>';
+  }
+  async function loadInbox() {
+    try { inbox.items = (await mk("GET", "/conversations")).conversations || []; $("ib-problem").hidden = true; }
+    catch (e) { problem("ib-problem", mkProblem(e)); }
+    paintInbox();
+  }
+  async function openInbox() {
+    show("inbox");
+    if (!inbox.items.length) $("ib-list").innerHTML = '<div class="empty">Loading…</div>';
+    await loadInbox();
+  }
+  $("mk-inbox").onclick = openInbox;
+  $("ib-back").onclick = () => { show("market"); };
+  $("ib-list").onclick = (e) => { const r = e.target.closest("[data-chat]"); if (r) openChat(Number(r.dataset.chat), "inbox"); };
+
+  // One conversation.
+  const chat = { id: null, from: "inbox", conv: null, messages: [], me: null, paying: null, blockArmed: false };
+  async function openChat(id, from) {
+    chat.id = id; chat.from = from || "inbox"; chat.paying = null; chat.blockArmed = false;
+    $("ch-log").innerHTML = '<div class="empty">Loading…</div>';
+    $("ch-askbox").hidden = true; $("ch-menu").hidden = true; $("ch-problem").hidden = true;
+    show("chat");
+    await refreshChat(true);
+    $("ch-text").focus();
+  }
+  async function refreshChat(force) {
+    if (!chat.id) return;
+    let answer;
+    try { answer = await mk("GET", `/conversations/${chat.id}`); }
+    catch (e) { if (force) problem("ch-problem", mkProblem(e)); return; }
+    const changed = force || answer.messages.length !== chat.messages.length;
+    chat.conv = answer.conversation; chat.messages = answer.messages || []; chat.me = answer.me;
+    if (changed) paintChat();
+    // Reading it clears its unread mark.
+    if (board.me && board.me.unread) invoke("board_me").then((me) => { board.me = me; paintUnread(); }).catch(() => {});
+  }
+  function paintChat() {
+    const c = chat.conv, other = esc(c.with_name);
+    $("ch-who").innerHTML = `${mkAvatar(c.with_name, c.with_picture)}<div style="min-width:0"><b>${other}</b><small>${c.buying ? "Seller" : "Buyer"}</small></div>`;
+    $("ch-about").innerHTML = `<b>About ${esc(c.listing_title)}</b><span>${priceHtml(c)}</span>`;
+    $("ch-ask").hidden = c.buying;
+    $("ch-block").textContent = c.blocked ? `Unblock ${c.with_name}` : `Block ${c.with_name}`;
+    $("ch-blocked").hidden = !c.blocked;
+    $("ch-blocked").textContent = `You have blocked ${c.with_name}. Unblock them to write.`;
+    $("ch-compose").hidden = !!c.blocked;
+    $("ch-text").placeholder = `Write to ${c.with_name}`;
+    const paidAmounts = chat.messages.filter((m) => m.kind === "paid");
+    let day = "", html = "";
+    for (const m of chat.messages) {
+      const d = new Date(m.created * 1000).toLocaleDateString([], { weekday: "long", month: "short", day: "numeric" });
+      if (d !== day) { html += `<div class="ch-day">${esc(d)}</div>`; day = d; }
+      const mine = m.sender === chat.me;
+      const at = new Date(m.created * 1000).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
+      if (m.kind === "request") {
+        const paid = paidAmounts.some((p) => p.id > m.id && p.amount === m.amount);
+        let action = "";
+        if (paid) action = '<span class="chip-paid">Paid</span>';
+        else if (mine) action = `<div class="sub">Waiting for ${other} to pay.</div>`;
+        else if (chat.paying === m.id) {
+          const typed = !!(view && view.locked && !view.biometric);
+          action = `<div class="sub">Sends exactly ${orn(m.amount)} ORN from this wallet to ${other}'s wallet, ${short(c.pay_to)}. It can't be undone.</div>
+            ${typed ? '<div class="pw"><input type="password" id="ch-pay-pw" placeholder="Wallet password" autocomplete="off"></div>' : ""}
+            <div class="ls-ask-row" style="justify-content:center"><button class="pill" data-paycancel>Cancel</button><button class="pill pearl" data-paynow="${m.id}">${view && view.biometric && !typed ? `Pay with ${bio}` : "Pay now"}</button></div>`;
+        } else action = `<button class="pill pearl" data-pay="${m.id}">Pay ${orn(m.amount)} ORN</button>`;
+        html += `<div class="paycard"><div class="lbl">Payment request</div><div class="amt">${orn(m.amount)} ORN</div>${action}</div>`;
+      } else if (m.kind === "paid") {
+        html += `<div class="paycard paid-note"><div class="sub">${mine ? `You paid ${orn(m.amount)} ORN.` : `${other} says they paid ${orn(m.amount)} ORN. Check your wallet to be sure it arrived.`}</div></div>`;
+      } else {
+        html += `<div class="bubble${mine ? " mine" : ""}">${esc(m.body)}<time>${esc(at)}</time></div>`;
+      }
+    }
+    $("ch-log").innerHTML = html || `<div class="empty">Say hello to ${other}.</div>`;
+    $("ch-log").scrollTop = $("ch-log").scrollHeight;
+    const pw = document.getElementById("ch-pay-pw");
+    if (pw) pw.focus();
+  }
+  $("ch-back").onclick = () => { chat.id = null; chat.from === "listing" ? show("listing") : openInbox(); };
+  $("ch-who").onclick = () => { if (chat.conv) { market.sellerFrom = "chat"; openSeller(chat.conv.with); } };
+  $("ch-about").onclick = () => chat.conv && openListing(chat.conv.listing, "chat");
+  $("ch-more").onclick = () => { $("ch-menu").hidden = !$("ch-menu").hidden; chat.blockArmed = false; if (chat.conv) $("ch-block").textContent = chat.conv.blocked ? `Unblock ${chat.conv.with_name}` : `Block ${chat.conv.with_name}`; };
+  $("ch-block").onclick = async () => {
+    const c = chat.conv;
+    if (!c) return;
+    // Blocking asks twice: the first tap says what it does.
+    if (!c.blocked && !chat.blockArmed) { chat.blockArmed = true; $("ch-block").textContent = `Block ${c.with_name}? They can't message you. Tap again`; return; }
+    try { await mk("POST", `/conversations/${c.id}/block`, { block: !c.blocked }); $("ch-menu").hidden = true; await refreshChat(true); }
+    catch (e) { problem("ch-problem", mkProblem(e)); }
+  };
+  $("ch-report").onclick = async () => {
+    const c = chat.conv;
+    if (!c) return;
+    const box = document.getElementById("ch-report-box");
+    if (box) { box.remove(); return; }
+    $("ch-menu").insertAdjacentHTML("afterend", `<div class="report-box" id="ch-report-box" style="margin:0 0 12px"><textarea id="ch-report-text" rows="3" maxlength="1000" placeholder="What is wrong with ${esc(c.with_name)}? A scam, pretending to be someone…"></textarea><div class="ls-ask-row"><span class="hint" id="ch-report-done"></span><button class="pill" id="ch-report-send">Send report</button></div></div>`);
+    $("ch-report-text").focus();
+    $("ch-report-send").onclick = async () => {
+      try {
+        await mk("POST", "/reports", { kind: "account", id: c.with, reason: $("ch-report-text").value.trim() });
+        $("ch-report-done").textContent = "Thanks. We will look at it.";
+        setTimeout(() => { const b = document.getElementById("ch-report-box"); if (b) b.remove(); $("ch-menu").hidden = true; }, 1600);
+      } catch (e) { problem("ch-problem", mkProblem(e)); }
+    };
+  };
+  // Seller: ask for payment, the listing's price filled in.
+  $("ch-ask").onclick = () => {
+    const c = chat.conv;
+    $("ch-askbox").hidden = !$("ch-askbox").hidden;
+    $("ch-amount").value = plainOrn(c.price);
+    $("ch-ask-title").textContent = `Ask ${c.with_name} to pay`;
+    if (!$("ch-askbox").hidden) $("ch-amount").select();
+  };
+  $("ch-ask-cancel").onclick = () => { $("ch-askbox").hidden = true; };
+  $("ch-ask-send").onclick = async () => {
+    const u = toUnits($("ch-amount").value);
+    if (!u) { problem("ch-problem", "Write the amount in ORN, like 200 or 12.5."); return; }
+    $("ch-ask-send").disabled = true;
+    try {
+      await mk("POST", `/conversations/${chat.id}/request`, { amount: Number(u) });
+      $("ch-askbox").hidden = true;
+      feel("success");
+      await refreshChat(true);
+    } catch (e) { problem("ch-problem", mkProblem(e)); }
+    finally { $("ch-ask-send").disabled = false; }
+  };
+  // Buyer: pay a request from this wallet, then mark it paid, in one go.
+  $("ch-log").onclick = async (e) => {
+    const pay = e.target.closest("[data-pay]"), cancel = e.target.closest("[data-paycancel]"), now = e.target.closest("[data-paynow]");
+    if (pay) { chat.paying = Number(pay.dataset.pay); paintChat(); return; }
+    if (cancel) { chat.paying = null; paintChat(); return; }
+    if (!now) return;
+    const request = chat.messages.find((m) => m.id === Number(now.dataset.paynow));
+    if (!request || !chat.conv) return;
+    now.disabled = true;
+    now.innerHTML = '<span class="spinner"></span>Paying';
+    $("ch-problem").hidden = true;
+    try {
+      const pwBox = document.getElementById("ch-pay-pw");
+      const password = pwBox ? pwBox.value : null;
+      if (!password && view && view.locked && view.biometric) await invoke("biometric_unlock");
+      const sent = await invoke("send_payment", { to: chat.conv.pay_to, amount: plainOrn(request.amount), password });
+      if (sent && sent.earlier) { problem("ch-problem", "An earlier payment from this wallet had to finish first, so this one wasn't sent yet. Tap Pay again."); chat.paying = null; paintChat(); return; }
+      await mk("POST", `/conversations/${chat.id}/paid`, { request: request.id });
+      chat.paying = null;
+      feel("success");
+      refresh();
+      await refreshChat(true);
+    } catch (err) {
+      problem("ch-problem", mkProblem(err));
+      now.disabled = false;
+      now.textContent = "Try again";
+    }
+  };
+  // Writing: Enter sends, Shift+Enter starts a new line; the box grows.
+  function growText() { const t = $("ch-text"); t.style.height = "auto"; t.style.height = Math.min(t.scrollHeight, 120) + "px"; }
+  $("ch-text").oninput = growText;
+  $("ch-text").onkeydown = (e) => { if (e.key === "Enter" && !e.shiftKey && !e.isComposing) { e.preventDefault(); $("ch-send").click(); } };
+  $("ch-send").onclick = async () => {
+    const body = $("ch-text").value.trim();
+    if (!body || !chat.id) return;
+    $("ch-send").disabled = true;
+    try {
+      await mk("POST", `/conversations/${chat.id}/messages`, { body });
+      $("ch-text").value = ""; growText();
+      await refreshChat(true);
+    } catch (e) { problem("ch-problem", mkProblem(e)); }
+    finally { $("ch-send").disabled = false; $("ch-text").focus(); }
+  };
+  // Live: an open chat every 4 seconds, the list every 10, the unread dot every 30.
+  setInterval(() => { if (!$("chat").hidden && chat.id) refreshChat(); }, 4000);
+  setInterval(() => { if (!$("inbox").hidden) loadInbox(); }, 10000);
+  setInterval(() => { if (board.me) invoke("board_me").then((me) => { board.me = me; paintUnread(); }).catch(() => {}); }, 30000);
 
   // ---- Your profile ----
   function paintProfileFace() {
@@ -3580,6 +3943,7 @@
         resetSignin();
         invoke("board_wallets_sync").catch(() => {});
         if (signinReturn === "home") { signinReturn = "swaps"; await loadBoard(); home(); return; }
+        if (signinReturn === "listing") { signinReturn = "swaps"; await loadBoard(); if (market.listing) openListing(market.listing.id, market.from); return; }
         show("swaps");
         await loadBoard();
         stepSwaps();
