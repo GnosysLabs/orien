@@ -152,6 +152,8 @@
      squeezed. Its own lists (.scroll, Recent, Activity) still give way. */
   .screen { overflow-y: auto; overscroll-behavior: contain; margin: 0 -28px; padding: 0 28px 8px; }
   .screen::-webkit-scrollbar { width: 0; }
+  /* No visible scroll bars anywhere, on any system. */
+  * { scrollbar-width: none; }
   .screen > *:not(.scroll):not(#recent):not(#all-activity) { flex-shrink: 0; }
 
   /* ---- Shared pieces ---- */
