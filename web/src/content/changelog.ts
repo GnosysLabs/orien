@@ -28,6 +28,18 @@ export const CHANGELOG: Entry[] = [
   {
     date: '2026-11-16',
     products: ['wallet'],
+    version: '1.8.9',
+    title: 'Clearer swaps, and Check for Updates',
+    changes: [
+      'After you post a swap offer, a new page shows the deal and explains plainly: keep Orien Wallet running (minimized is fine) so the swap can go through.',
+      'Posting or taking a swap now needs the newest Orien Wallet, so both sides always run it the same way. The app offers the update right there.',
+      'Check for Updates is in the Orien Wallet menu on Macs, and in the tray icon\'s menu on Windows and Linux.',
+      'On Windows and Linux, the tray icon is now the Orien sunrise, easy to spot.',
+    ],
+  },
+  {
+    date: '2026-11-16',
+    products: ['wallet'],
     version: '1.8.8',
     title: 'Swaps on the right computer, and a nudge to scroll',
     changes: [
