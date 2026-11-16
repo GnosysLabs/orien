@@ -28,6 +28,15 @@ export const CHANGELOG: Entry[] = [
   {
     date: '2026-11-16',
     products: ['wallet'],
+    version: '1.8.8',
+    title: 'Swaps run on the right computer',
+    changes: [
+      'When your offer is taken, the computer you posted it from runs the swap by itself. Your other devices no longer step in and ask for your password.',
+    ],
+  },
+  {
+    date: '2026-11-16',
+    products: ['wallet'],
     version: '1.8.7',
     title: 'Contacts that follow you everywhere',
     changes: [
