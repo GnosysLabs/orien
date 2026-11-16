@@ -1,0 +1,41 @@
+<!doctype html>
+<!-- The share image (public/og.png), drawn with the site's own styles: the
+     sunrise mark and the ORIEN wordmark exactly as the header draws them.
+     scripts/og.sh fills in the classes and stylesheet of the latest build. -->
+<html lang="en" class="{{HTML_CLASS}}">
+<head>
+<meta charset="utf-8">
+<link rel="stylesheet" href="{{CSS}}">
+<style>
+  html, body { margin: 0; width: 1200px; height: 630px; overflow: hidden; background: #0b0b0f; }
+  *, *::before, *::after { animation: none !important; }
+  .stage {
+    position: relative; width: 1200px; height: 630px; box-sizing: border-box;
+    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 44px;
+    background: linear-gradient(rgba(11,11,15,0.30), rgba(11,11,15,0.55)), url(_og-nebula.jpg) center / cover;
+  }
+  .glow { position: absolute; inset: -60px; z-index: 0; opacity: 0.8; }
+  .word { position: relative; font-size: 150px; }
+  .tag {
+    position: relative; text-align: center; font-size: 54px; line-height: 1.15; font-weight: 700;
+    color: var(--color-ink); letter-spacing: -0.015em; max-width: 1000px;
+    font-family: var(--font-geist-sans), system-ui, sans-serif; text-shadow: 0 2px 18px rgba(0,0,0,0.55);
+  }
+  .site {
+    position: absolute; bottom: 40px; font-size: 30px; font-weight: 600; color: var(--color-ink); opacity: 0.85;
+    font-family: var(--font-geist-sans), system-ui, sans-serif; letter-spacing: 0.01em;
+  }
+</style>
+</head>
+<body>
+<div class="stage">
+  <div class="glow hero-glow"></div>
+  <span class="word inline-flex items-center gap-[0.26em] leading-none">
+    <span class="orien-mark pearl-fill shrink-0" aria-hidden></span>
+    <span class="-my-[0.1em] py-[0.1em] font-brand font-extrabold uppercase tracking-[0.14em] pearl-text [text-box:trim-both_cap_alphabetic]">ORIEN</span>
+  </span>
+  <div class="tag">The cryptocurrency built<br>for the quantum age</div>
+  <div class="site">orien.network</div>
+</div>
+</body>
+</html>
