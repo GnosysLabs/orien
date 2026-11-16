@@ -942,8 +942,9 @@
         <button class="pf-face-go editable" id="pf-picture" aria-label="Change picture" title="Change picture"><span class="face" id="pf-face"></span><span class="cam" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h3l1.5-2h7L17 8h3a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9a1 1 0 0 1 1-1z"/><circle cx="12" cy="13" r="3.5"/></svg></span></button>
       </div>
       <div class="field">
-        <label for="pf-name">Name</label>
-        <div class="box plain"><input id="pf-name" autocomplete="off" maxlength="50"></div>
+        <label for="pf-name">Username</label>
+        <div class="box plain"><input id="pf-name" autocomplete="off" maxlength="20" spellcheck="false" autocapitalize="off"></div>
+        <div class="hint" id="pf-name-hint">3 to 20 letters, numbers or _</div>
       </div>
       <div class="field">
         <label for="pf-bio">About you</label>
@@ -1173,8 +1174,9 @@
         <div class="box plain"><input id="bs-code" inputmode="numeric" placeholder="123456" autocomplete="one-time-code"></div>
       </div>
       <div class="field" id="bs-name-field" hidden>
-        <label for="bs-name">Your name, as others see it</label>
-        <div class="box plain"><input id="bs-name" placeholder="New account: pick a name" autocomplete="nickname"></div>
+        <label for="bs-name">Your username, as others see it</label>
+        <div class="box plain"><input id="bs-name" placeholder="New account: pick a username" autocomplete="nickname" maxlength="20" spellcheck="false" autocapitalize="off"></div>
+        <div class="hint" id="bs-name-hint">3 to 20 letters, numbers or _</div>
       </div>
       <div class="push"></div>
       <div class="problem" id="bs-problem" hidden></div>
@@ -3080,6 +3082,25 @@
     show("board-signin");
   };
 
+  // Usernames: 3 to 20 letters, numbers or _, unique on Orien Market.
+  // Checked as they're typed; spaces become _. Whether one is taken, only
+  // the server knows, and says so when saving.
+  function usernameField(input, hint) {
+    const check = () => {
+      const typed = input.value.replace(/ /g, "_");
+      if (typed !== input.value) input.value = typed;
+      const bad = typed && !/^[A-Za-z0-9_]*$/.test(typed) ? "Only letters, numbers and _"
+        : typed && typed.length < 3 ? `${3 - typed.length} more character${typed.length === 2 ? "" : "s"}` : "";
+      $(hint).textContent = bad || "3 to 20 letters, numbers or _";
+      $(hint).classList.toggle("warn", !!bad);
+      return !bad && typed.length >= 3;
+    };
+    input.addEventListener("input", check);
+    return check;
+  }
+  const bsNameOk = usernameField($("bs-name"), "bs-name-hint");
+  const pfNameOk = usernameField($("pf-name"), "pf-name-hint");
+
   // ---- Your profile ----
   function paintProfileFace() {
     const me = board.me;
@@ -3093,6 +3114,7 @@
     if (!me) return;
     paintProfileFace();
     $("pf-name").value = me.name || "";
+    pfNameOk();
     $("pf-bio").value = me.bio || "";
     $("pf-email").value = (me.contact && me.contact.email) || "";
     $("pf-telegram").value = (me.contact && me.contact.telegram) || "";
@@ -3197,6 +3219,7 @@
   $("pf-picture").onclick = () => pickPicture(false, $("pf-picture"));
   $("pf-banner-go").onclick = () => pickPicture(true, $("pf-banner-go"));
   $("pf-save").onclick = async () => {
+    if (!pfNameOk()) { $("pf-name").focus(); return; }
     $("pf-save").disabled = true;
     $("pf-problem").hidden = true;
     try {
@@ -3221,6 +3244,7 @@
         $("bs-problem").hidden = true;
         $("bs-code").focus();
       } else {
+        if (!$("bs-name-field").hidden && !bsNameOk()) { $("bs-name").focus(); return; }
         const name = $("bs-name-field").hidden ? null : $("bs-name").value;
         const done = await invoke("board_email_finish", { email: $("bs-email").value, code: $("bs-code").value, name });
         if (!done) {
