@@ -201,6 +201,7 @@ pub fn me(dir: &Path) -> Result<Option<Value>, String> {
                 "name": account["name"],
                 "picture": account["picture"],
                 "bio": account["bio"],
+                "banner": account["banner"],
                 "contact": account["contact"],
                 // The wallet the account has proven, for selling on the
                 // marketplace. Swaps don't need one.
@@ -393,29 +394,30 @@ pub fn wallet_verified(dir: &Path) -> Result<bool, String> {
 }
 
 /// Saves the signed-in account's name, bio and public usernames.
-pub fn save_profile(dir: &Path, name: &str, bio: &str, telegram: &str, x: &str) -> Result<(), String> {
-    let contact = match call(dir, "GET", "/me", None) {
-        Ok(me) => me["account"]["contact"].clone(),
-        Err(failed) => return Err(failed.into()),
-    };
-    let email = contact["email"].as_str().unwrap_or("");
+pub fn save_profile(dir: &Path, name: &str, bio: &str, email: &str, telegram: &str, x: &str) -> Result<(), String> {
     call(dir, "PUT", "/me", Some(json!({
         "name": name.trim(),
         "bio": bio.trim(),
-        "contact": { "email": email, "telegram": telegram.trim(), "x": x.trim() },
+        "contact": { "email": email.trim(), "telegram": telegram.trim(), "x": x.trim() },
     })))?;
+    Ok(())
+}
+
+/// Takes the profile's banner away.
+pub fn remove_banner(dir: &Path) -> Result<(), String> {
+    call(dir, "DELETE", "/me/banner", None)?;
     Ok(())
 }
 
 /// Sends a new profile picture, the file at `path`; the server makes it a
 /// square and checks it.
-pub fn set_picture(dir: &Path, path: &Path) -> Result<(), String> {
+pub fn set_picture(dir: &Path, path: &Path, banner: bool) -> Result<(), String> {
     let bytes = std::fs::read(path).map_err(|error| format!("could not read that picture: {error}"))?;
     if bytes.len() > 10 * 1024 * 1024 {
         return Err("That picture is too big. Pick one under 10 MB.".into());
     }
     let saved = load(dir);
-    let mut request = agent().post(&format!("{}/api/market/me/picture", base()));
+    let mut request = agent().post(&format!("{}/api/market/me/{}", base(), if banner { "banner" } else { "picture" }));
     if let Some(cookie) = &saved.cookie {
         request = request.set("Cookie", &format!("{COOKIE}={cookie}"));
     }

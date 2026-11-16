@@ -1173,6 +1173,13 @@ async fn market_image(app: AppHandle, name: String) -> Option<String> {
     tauri::async_runtime::spawn_blocking(move || board::image(&dir, &name)).await.ok().flatten()
 }
 
+/// Takes the profile's banner away.
+#[tauri::command]
+async fn board_banner_remove(app: AppHandle) -> Result<(), String> {
+    let dir = folder(&app)?;
+    tauri::async_runtime::spawn_blocking(move || board::remove_banner(&dir)).await.map_err(|error| error.to_string())?
+}
+
 /// What proving the profile's wallet takes: a tiny payment, its amount and
 /// where it goes.
 #[tauri::command]
@@ -1191,18 +1198,20 @@ async fn board_wallet_verified(app: AppHandle) -> Result<bool, String> {
 /// Saves the marketplace profile: name, a few lines about you, and your
 /// Telegram and X usernames.
 #[tauri::command]
-async fn board_profile_save(app: AppHandle, name: String, bio: String, telegram: String, x: String) -> Result<(), String> {
+async fn board_profile_save(app: AppHandle, name: String, bio: String, email: String, telegram: String, x: String) -> Result<(), String> {
     let dir = folder(&app)?;
-    tauri::async_runtime::spawn_blocking(move || board::save_profile(&dir, &name, &bio, &telegram, &x)).await.map_err(|error| error.to_string())?
+    tauri::async_runtime::spawn_blocking(move || board::save_profile(&dir, &name, &bio, &email, &telegram, &x)).await.map_err(|error| error.to_string())?
 }
 
-/// Picks a picture and makes it the profile picture. False if none was picked.
+/// Picks a picture and makes it the profile picture, or with `banner` the
+/// profile's wide banner. False if none was picked.
 #[tauri::command]
-async fn board_picture_pick(app: AppHandle) -> Result<bool, String> {
+async fn board_picture_pick(app: AppHandle, banner: Option<bool>) -> Result<bool, String> {
+    let banner = banner.unwrap_or(false);
     let dir = folder(&app)?;
     let picked = app.dialog().file().add_filter("Pictures", &["jpg", "jpeg", "png", "webp", "gif"]).blocking_pick_file();
     let Some(path) = picked.and_then(|file| file.into_path().ok()) else { return Ok(false) };
-    tauri::async_runtime::spawn_blocking(move || board::set_picture(&dir, &path)).await.map_err(|error| error.to_string())??;
+    tauri::async_runtime::spawn_blocking(move || board::set_picture(&dir, &path, banner)).await.map_err(|error| error.to_string())??;
     Ok(true)
 }
 
@@ -1356,7 +1365,7 @@ pub fn run() {
             }
             Ok(())
         })
-        .invoke_handler(tauri::generate_handler![has_wallet, create_wallet, save_phrase, restore_wallet, set_password, choose_wallet, overview_now, send_payment, activity, quote, contacts, save_contact, delete_contact, contacts_sync, biometric_unlock, biometric_enable, update::check_update, update::install_update, mine_start, mine_stop, mine_set, mine_status, wallets, wallet_balances, use_wallet, rename_wallet, add_wallet, forget_wallet, swap_list, swap_sell, swap_buy, swap_accept, swap_step, swap_smallest, board_offers, board_me, board_email_start, board_email_finish, board_sign_out, board_post, board_take, board_withdraw, board_link, notifications_ask, push_sync, board_wallets_sync, board_post_sol, board_take_sol, sol_open, sol_payout_check, open_site, qr_code, wallet_profiles, board_profile_save, board_picture_pick, board_verify, board_wallet_verified, market_image])
+        .invoke_handler(tauri::generate_handler![has_wallet, create_wallet, save_phrase, restore_wallet, set_password, choose_wallet, overview_now, send_payment, activity, quote, contacts, save_contact, delete_contact, contacts_sync, biometric_unlock, biometric_enable, update::check_update, update::install_update, mine_start, mine_stop, mine_set, mine_status, wallets, wallet_balances, use_wallet, rename_wallet, add_wallet, forget_wallet, swap_list, swap_sell, swap_buy, swap_accept, swap_step, swap_smallest, board_offers, board_me, board_email_start, board_email_finish, board_sign_out, board_post, board_take, board_withdraw, board_link, notifications_ask, push_sync, board_wallets_sync, board_post_sol, board_take_sol, sol_open, sol_payout_check, open_site, qr_code, wallet_profiles, board_profile_save, board_picture_pick, board_verify, board_wallet_verified, market_image, board_banner_remove])
         .build(tauri::generate_context!())
         .expect("the wallet window could not start")
         .run(|_app, _event| {

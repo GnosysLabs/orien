@@ -338,8 +338,14 @@
   .vc-text { margin: 12px 0 0; font-size: 12.5px; color: var(--dim); }
   .verify-card .field { margin-top: 14px; }
   .verify-card #vf-go { margin-top: 14px; }
-  .profile-pic { display: flex; flex-direction: column; align-items: center; gap: 12px; margin-bottom: 22px; }
-  .profile-pic .face { width: 88px; height: 88px; font-size: 32px; }
+  .profile-pic { display: flex; flex-direction: column; align-items: center; margin-bottom: 22px; }
+  /* The banner, 3 wide to 1 tall as the marketplace makes it, with the
+     picture sitting over its lower edge. */
+  .pf-banner { position: relative; overflow: hidden; width: 100%; aspect-ratio: 3 / 1; border-radius: 18px;
+    background: linear-gradient(135deg, var(--surface-hover), var(--surface)); border: 1px solid var(--line); }
+  .pf-banner img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+  .profile-pic .face { width: 88px; height: 88px; font-size: 32px; margin-top: -44px; box-shadow: 0 0 0 4px var(--ground-deep); }
+  .pf-buttons { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin-top: 14px; }
   #pf-bio { display: block; min-height: 96px; font: inherit; font-size: 14px; letter-spacing: normal; resize: none; }
   .topline .account { margin-left: auto; display: flex; align-items: center; gap: 10px; font-size: 12.5px; color: var(--dim); }
   .offer { display: grid; grid-template-columns: 36px 1fr auto; gap: 12px; align-items: center;
@@ -918,7 +924,11 @@
          once your wallet is proven, beside your address. -->
     <section class="screen" id="profile" hidden>
       <div class="topline"><button class="back" data-back aria-label="Back"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10 3 5 8l5 5"/></svg></button><h2>Your profile</h2></div>
-      <div class="profile-pic"><span class="face" id="pf-face"></span><button class="pill" id="pf-picture">Change picture</button></div>
+      <div class="profile-pic">
+        <div class="pf-banner" id="pf-banner"></div>
+        <span class="face" id="pf-face"></span>
+        <div class="pf-buttons"><button class="pill" id="pf-picture">Change picture</button><button class="pill" id="pf-banner-go">Change banner</button><button class="pill" id="pf-banner-off" hidden>Remove banner</button></div>
+      </div>
       <div class="field">
         <label for="pf-name">Name</label>
         <div class="box plain"><input id="pf-name" autocomplete="off" maxlength="50"></div>
@@ -926,6 +936,10 @@
       <div class="field">
         <label for="pf-bio">About you</label>
         <textarea id="pf-bio" maxlength="1000" placeholder="A few words for people you swap with"></textarea>
+      </div>
+      <div class="field">
+        <label for="pf-email">Email, shown on your profile</label>
+        <div class="box plain"><input id="pf-email" type="email" placeholder="you@example.com" autocomplete="off" spellcheck="false"></div>
       </div>
       <div class="field">
         <label for="pf-telegram">Telegram</label>
@@ -3020,6 +3034,9 @@
     if (!me) return;
     const img = picImg(me.picture);
     $("pf-face").innerHTML = esc((me.name || "?").slice(0, 1).toUpperCase()) + img;
+    $("pf-banner").innerHTML = picImg(me.banner);
+    $("pf-banner-off").hidden = !me.banner;
+    $("pf-banner-go").textContent = me.banner ? "Change banner" : "Add a banner";
   }
   function openProfile() {
     const me = board.me;
@@ -3027,6 +3044,7 @@
     paintProfileFace();
     $("pf-name").value = me.name || "";
     $("pf-bio").value = me.bio || "";
+    $("pf-email").value = (me.contact && me.contact.email) || "";
     $("pf-telegram").value = (me.contact && me.contact.telegram) || "";
     $("pf-x").value = (me.contact && me.contact.x) || "";
     $("pf-problem").hidden = true;
@@ -3114,24 +3132,35 @@
   };
   $("vf-pw").onkeydown = (e) => { if (e.key === "Enter") $("vf-go").click(); };
   $("board-who").onclick = openProfile;
-  $("pf-picture").onclick = async () => {
-    $("pf-picture").disabled = true;
+  async function pickPicture(banner, button) {
+    button.disabled = true;
     $("pf-problem").hidden = true;
     try {
-      if (await invoke("board_picture_pick")) {
+      if (await invoke("board_picture_pick", { banner })) {
         board.me = await invoke("board_me");
         renderBoardBar();
         paintProfileFace();
         feel("success");
       }
     } catch (e) { problem("pf-problem", e); }
-    finally { $("pf-picture").disabled = false; }
+    finally { button.disabled = false; }
+  }
+  $("pf-picture").onclick = () => pickPicture(false, $("pf-picture"));
+  $("pf-banner-go").onclick = () => pickPicture(true, $("pf-banner-go"));
+  $("pf-banner-off").onclick = async () => {
+    $("pf-banner-off").disabled = true;
+    try {
+      await invoke("board_banner_remove");
+      board.me = await invoke("board_me");
+      paintProfileFace();
+    } catch (e) { problem("pf-problem", e); }
+    finally { $("pf-banner-off").disabled = false; }
   };
   $("pf-save").onclick = async () => {
     $("pf-save").disabled = true;
     $("pf-problem").hidden = true;
     try {
-      await invoke("board_profile_save", { name: $("pf-name").value, bio: $("pf-bio").value, telegram: $("pf-telegram").value, x: $("pf-x").value });
+      await invoke("board_profile_save", { name: $("pf-name").value, bio: $("pf-bio").value, email: $("pf-email").value, telegram: $("pf-telegram").value, x: $("pf-x").value });
       board.me = await invoke("board_me");
       renderBoardBar();
       paintProfileFace();
