@@ -378,6 +378,22 @@ pub fn take_sol(dir: &Path, wallet: &Path, offer: i64, address: &str, refund: &s
     save(dir, &saved)
 }
 
+/// Marketplace profiles for wallet addresses: name and picture for each
+/// address an account has proven, keyed by address; others are left out.
+/// Public, so asked without the sign-in cookie.
+pub fn profiles(addresses: &[String]) -> Result<Value, String> {
+    let addresses: Vec<String> = addresses.iter().map(|a| a.trim().to_lowercase()).filter(|a| a.len() == 64).take(100).collect();
+    if addresses.is_empty() {
+        return Ok(json!({}));
+    }
+    let answer = agent()
+        .post(&format!("{}/api/market/wallets/lookup", base()))
+        .send_json(json!({ "addresses": addresses }))
+        .map_err(|error| error.to_string())?;
+    let body: Value = answer.into_json().map_err(|error| error.to_string())?;
+    Ok(body["profiles"].clone())
+}
+
 pub fn withdraw(dir: &Path, offer: i64) -> Result<(), String> {
     call(dir, "POST", &format!("/swaps/{offer}/close"), Some(json!({})))?;
     crate::approval::forget(dir, offer);

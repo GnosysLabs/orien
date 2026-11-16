@@ -480,6 +480,17 @@
   .list { border-radius: 18px; background: var(--surface); border: 1px solid var(--line); overflow: hidden; }
   .tx { display: flex; align-items: center; gap: 12px; padding: 11px 14px; }
   .tx + .tx { border-top: 1px solid var(--line); }
+  /* A marketplace profile's picture, over its first letter. */
+  .face { position: relative; overflow: hidden; flex: none; display: inline-grid; place-items: center;
+    width: 32px; height: 32px; border-radius: 50%; background: var(--surface-hover); color: var(--ink); font-weight: 600; font-size: 13px; }
+  .face img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+  body.phone .tx .face { width: 36px; height: 36px; }
+  .chosen { align-items: center; }
+  .chosen .face { width: 22px; height: 22px; font-size: 10.5px; }
+  .c-name-row { display: flex; align-items: center; gap: 10px; }
+  .c-name-row .box { flex: 1; }
+  .c-name-row .face { width: 44px; height: 44px; font-size: 17px; }
+  .field input:disabled { opacity: 0.45; }
   .tx-icon {
     flex: none; width: 32px; height: 32px; border-radius: 50%; display: grid; place-items: center;
     background: #ffffff0d; color: var(--dim);
@@ -888,13 +899,13 @@
         <h2 id="contact-title">New contact</h2>
       </div>
       <div class="field">
-        <label for="c-name">Name</label>
-        <div class="box plain"><input id="c-name" placeholder="Who is this?" autocomplete="off" maxlength="40"></div>
-      </div>
-      <div class="field">
         <label for="c-address">Address</label>
         <textarea id="c-address" placeholder="Their 64-character address" spellcheck="false"></textarea>
         <div class="check" id="c-check"></div>
+      </div>
+      <div class="field">
+        <label for="c-name">Name</label>
+        <div class="c-name-row"><span id="c-face" hidden></span><div class="box plain"><input id="c-name" placeholder="Who is this?" autocomplete="off" maxlength="40"></div></div>
       </div>
       <div class="push"></div>
       <div class="problem" id="contact-problem" hidden></div>
@@ -1374,6 +1385,28 @@
 
   let book = [];           // saved contacts, sorted by name
   const named = (address) => book.find((c) => c.address === address);
+  // Marketplace profiles of wallet addresses, for names and pictures: an
+  // address maps to {name, picture}, or to null once asked with no profile.
+  const profiles = new Map();
+  const profileOf = (address) => (address && profiles.get(address.toLowerCase())) || null;
+  // Asks for any of `addresses` not asked yet; true if a profile turned up.
+  async function loadProfiles(addresses) {
+    const want = [...new Set(addresses.filter((a) => a && /^[0-9a-f]{64}$/i.test(a)).map((a) => a.toLowerCase()))]
+      .filter((a) => !profiles.has(a)).slice(0, 100);
+    if (!want.length) return false;
+    let found;
+    try { found = (await invoke("wallet_profiles", { addresses: want })) || {}; } catch { return false; }
+    for (const a of want) profiles.set(a, found[a] || null);
+    return want.some((a) => found[a]);
+  }
+  // The circle for an address: its profile picture over the first letter
+  // of `name`.
+  function face(address, name) {
+    const p = profileOf(address);
+    const initial = esc((name || (p && p.name) || "?").slice(0, 1).toUpperCase());
+    const img = p && p.picture ? `<img src="${esc(`${boardBase}/api/market/images/${encodeURIComponent(p.picture)}`)}" alt="" loading="lazy" decoding="async">` : "";
+    return `<span class="face">${initial}${img}</span>`;
+  }
   const initial = (name) => name.trim().charAt(0).toUpperCase();
   const esc = (t) => t.replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
   // An address that shares a contact's first and last characters but is not
@@ -1816,8 +1849,10 @@
     const who = chosen && nameOf(lower);
     $("to").hidden = chosen;
     $("to-chosen").hidden = !chosen;
+    if (chosen && !profiles.has(lower)) loadProfiles([lower]).then((found) => found && validate());
+    const pic = chosen && profileOf(lower) && profileOf(lower).picture ? face(lower, who) : "";
     $("to-chosen").innerHTML = !chosen ? "" : who
-      ? `<span class="who">${esc(who)}</span><span class="addr">${short(lower)}</span>`
+      ? `${pic}<span class="who">${esc(who)}</span><span class="addr">${short(lower)}</span>`
       : `<span class="addr solo">${short(lower)}</span>`;
     $("paste").textContent = chosen ? "Clear" : "Paste";
     if (who && ok) check = "";
@@ -1837,7 +1872,7 @@
   };
   $("to").oninput = validate;
   // A contact's name, or the name of one of the person's own wallets.
-  const nameOf = (address) => (named(address) || walletList.find((w) => w.address === address) || {}).name;
+  const nameOf = (address) => (named(address) || walletList.find((w) => w.address === address) || profileOf(address) || {}).name;
   // The person's other wallets, as places to send to.
   const ownWallet = (address) => walletList.find((w) => w.address === address && !w.current);
   // As a name is typed: contacts and other wallets whose name or address
@@ -2014,20 +2049,30 @@
         // Worked out from the balance, with no record in the network's
         // history: often mining rewards from before validators kept one.
         }[e.kind] || ["Received", party ? "From " + party : "Not in the network's history"];
+    const pic = e.counterparty && profileOf(e.counterparty) && profileOf(e.counterparty).picture;
     return `<div class="tx" title="${e.counterparty || ""}">
-      <span class="tx-icon ${e.direction}">${ICON[e.direction]}</span>
+      ${pic ? face(e.counterparty, who) : `<span class="tx-icon ${e.direction}">${ICON[e.direction]}</span>`}
       <div class="tx-main"><div class="title">${title}</div><div class="sub">${sub}</div></div>
       <div class="tx-side"><div class="amt ${e.direction}">${sent ? "−" : "+"}${e.amount}</div><div class="sub">${when(e)}</div></div>
     </div>`;
   }
   const relative = (e) => { const d = dayName(e.time); return d === "Today" ? clock(e.time) : d === "Yesterday" ? "Yesterday" : new Date(e.time * 1000).toLocaleDateString([], { month: "short", day: "numeric" }); };
 
-  async function loadActivity() {
-    try { entries = await invoke("activity"); } catch { return; }
-    noticeIncoming();
+  function renderRecent() {
     $("recent").innerHTML = entries.length
       ? entries.slice(0, 20).map((e) => row(e, relative)).join("")
       : '<div class="empty">No payments yet</div>';
+  }
+  async function loadActivity() {
+    try { entries = await invoke("activity"); } catch { return; }
+    noticeIncoming();
+    renderRecent();
+    // Names and pictures of the people paid and paying, once known.
+    loadProfiles(entries.map((e) => e.counterparty)).then((found) => {
+      if (!found) return;
+      renderRecent();
+      if (!$("activity").hidden) renderAll();
+    });
     $("view-all").hidden = entries.length === 0;
     if (!$("activity").hidden) renderAll();
   }
@@ -2083,12 +2128,16 @@
   function renderContacts() {
     $("contact-list").innerHTML = book.length
       ? `<div class="list">${book.map((c) => `<div class="tx contact" data-address="${c.address}">
+          ${face(c.address, c.name)}
           <div class="tx-main"><div class="title">${esc(c.name)}</div><div class="sub">${short(c.address)}</div></div>
           <svg class="chevron" width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m6 3 5 5-5 5"/></svg>
         </div>`).join("")}</div>`
       : '<div class="empty">No contacts yet. Add someone you pay often, and pick them by name when you send.</div>';
   }
-  async function openContacts() { await loadBook(); renderContacts(); show("contacts"); syncBook(); }
+  async function openContacts() {
+    await loadBook(); renderContacts(); show("contacts"); syncBook();
+    loadProfiles(book.map((c) => c.address)).then((found) => found && renderContacts());
+  }
 
   function openContact(address, from) {
     returnTo = from;
@@ -2101,9 +2150,10 @@
     $("c-send").hidden = !contact;
     $("c-delete").hidden = !contact;
     $("c-delete").textContent = "Delete contact";
+    $("c-face").hidden = true;
     checkContact();
     show("contact");
-    (contact || address ? $("c-name") : $("c-name")).focus();
+    (contact || address ? $("c-name") : $("c-address")).focus();
   }
   function checkContact() {
     const a = $("c-address").value.trim();
@@ -2113,6 +2163,20 @@
     else if (a) { text = "✓ Valid address"; cls += " ok"; }
     $("c-check").textContent = text; $("c-check").className = cls;
     $("c-save").disabled = !($("c-name").value.trim() && isAddress(a));
+    // The name waits for a whole address. With one, a marketplace profile
+    // shows its picture and offers its name.
+    $("c-name").disabled = !isAddress(a);
+    if (!isAddress(a)) { $("c-face").hidden = true; return; }
+    const address = a.toLowerCase();
+    const showFace = () => {
+      if ($("c-address").value.trim().toLowerCase() !== address) return;
+      const p = profileOf(address);
+      $("c-face").hidden = !p;
+      if (!p) return;
+      $("c-face").outerHTML = face(address, p.name).replace('<span class="face">', '<span class="face" id="c-face">');
+      if (!$("c-name").value.trim()) { $("c-name").value = p.name; checkContact(); }
+    };
+    if (profiles.has(address)) showFace(); else loadProfiles([address]).then(showFace);
   }
   $("c-name").oninput = checkContact;
   $("c-address").oninput = checkContact;
@@ -2646,7 +2710,7 @@
   // A picture that can't load is removed, leaving the initial. One listener
   // for all, as onerror="" attributes are blocked in the built app.
   document.addEventListener("error", (e) => {
-    if (e.target instanceof HTMLImageElement && e.target.closest(".avatar")) e.target.remove();
+    if (e.target instanceof HTMLImageElement && e.target.closest(".avatar, .face")) e.target.remove();
   }, true);
 
   let shownOffers = "";
