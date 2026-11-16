@@ -33,6 +33,7 @@ export const CHANGELOG: Entry[] = [
     changes: [
       'Once your wallet sends a buyer’s Bitcoin on to you, the swap moves to its last step: “Paid · on its way to your Bitcoin address”, pending in your Bitcoin wallet until Bitcoin confirms it.',
       'Each swap step also makes the Orien Wallet icon in the Dock or taskbar ask for attention.',
+      'The smallest swap is now 0.00015 BTC, so any Bitcoin wallet can send it and its fees leave enough.',
     ],
   },
   {
