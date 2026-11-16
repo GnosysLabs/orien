@@ -99,6 +99,14 @@ impl Store {
                  DROP TABLE wallet_proofs;",
             )?;
         }
+        // Accounts that verified a wallet before that also made it the one
+        // they're paid at.
+        self.db.execute_batch(
+            "UPDATE accounts SET payout = (SELECT v.address FROM verified_wallets v WHERE v.account = accounts.id
+                                              AND v.proven IS NOT NULL ORDER BY v.proven LIMIT 1)
+             WHERE payout IS NULL
+               AND EXISTS (SELECT 1 FROM verified_wallets v WHERE v.account = accounts.id AND v.proven IS NOT NULL);",
+        )?;
         Ok(())
     }
 
@@ -186,11 +194,18 @@ impl Store {
         Ok(rows.collect::<rusqlite::Result<_>>()?)
     }
 
+    /// Marks a wallet verified. An account with no wallet to be paid at
+    /// yet is paid at this one from now on, so it can sell straight away.
     pub fn mark_proven(&self, account: i64, address: &str) -> Result<()> {
         self.db.execute(
             "UPDATE verified_wallets SET proven = ?3 WHERE account = ?1 AND address = ?2",
             params![account, address, now() as i64],
         )?;
+        let unpaid: bool =
+            self.db.query_row("SELECT payout IS NULL FROM accounts WHERE id = ?1", [account], |row| row.get(0)).optional()?.unwrap_or(false);
+        if unpaid {
+            self.set_wallet(account, address)?;
+        }
         Ok(())
     }
 
@@ -297,5 +312,18 @@ mod tests {
         assert_eq!(store.verified_wallets(maya).unwrap(), [VerifiedWallet { address: wallet, name: None }]);
         let gone: bool = store.db.query_row("SELECT COUNT(*) = 0 FROM sqlite_master WHERE name = 'wallet_proofs'", [], |r| r.get(0)).unwrap();
         assert!(gone);
+    }
+
+    #[test]
+    fn a_first_verified_wallet_is_the_one_paid_at() {
+        let store = Store::in_memory().unwrap();
+        let sam = store.create_account("Sam", "sam").unwrap().id;
+        let (first, second) = ("1a".repeat(32), "2b".repeat(32));
+        for wallet in [&first, &second] {
+            store.start_proof(sam, Some(wallet), 1, "to").unwrap();
+            store.mark_proven(sam, wallet).unwrap();
+        }
+        assert_eq!(store.account(sam).unwrap().unwrap().wallet.as_deref(), Some(first.as_str()), "the first, and it stays");
+        assert!(store.account(sam).unwrap().unwrap().wallet_verified);
     }
 }
