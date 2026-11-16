@@ -205,6 +205,7 @@ pub fn me(dir: &Path) -> Result<Option<Value>, String> {
                 // The wallet the account has proven, for selling on the
                 // marketplace. Swaps don't need one.
                 "wallet": account["wallet"],
+                "wallet_verified": account["wallet_verified"],
                 "email": load(dir).email,
             })))
         }
@@ -380,6 +381,17 @@ pub fn take_sol(dir: &Path, wallet: &Path, offer: i64, address: &str, refund: &s
     save(dir, &saved)
 }
 
+/// What proving the payout wallet takes: send `orn` ORN from `address` to
+/// `to`. The same amount until it's paid.
+pub fn verify(dir: &Path) -> Result<Value, String> {
+    Ok(call(dir, "POST", "/me/wallet/verify", Some(json!({})))?["proof"].clone())
+}
+
+/// Whether the payout wallet is proven yet.
+pub fn wallet_verified(dir: &Path) -> Result<bool, String> {
+    Ok(call(dir, "GET", "/me/wallet", None)?["verified"].as_bool().unwrap_or(false))
+}
+
 /// Saves the signed-in account's name, bio and public usernames.
 pub fn save_profile(dir: &Path, name: &str, bio: &str, telegram: &str, x: &str) -> Result<(), String> {
     let contact = match call(dir, "GET", "/me", None) {
@@ -417,6 +429,31 @@ pub fn set_picture(dir: &Path, path: &Path) -> Result<(), String> {
             .unwrap_or_else(|| "That picture couldn't be used.".into())),
         Err(error) => Err(error.to_string()),
     }
+}
+
+/// A marketplace picture, as a data: URL, kept on disk after the first
+/// fetch: picture names are new for every new picture, so a kept one never
+/// goes stale. None for a name that isn't a picture's or can't be fetched.
+pub fn image(dir: &Path, name: &str) -> Option<String> {
+    use base64::Engine;
+    if name.is_empty() || name.len() > 100 || !name.chars().all(|c| c.is_ascii_alphanumeric() || c == '.' || c == '-' || c == '_') || name.starts_with('.') {
+        return None;
+    }
+    let kept = dir.join("pictures");
+    let file = kept.join(name);
+    let bytes = match std::fs::read(&file) {
+        Ok(bytes) => bytes,
+        Err(_) => {
+            let response = agent().get(&format!("{}/api/market/images/{name}", base())).call().ok()?;
+            let mut bytes = Vec::new();
+            std::io::Read::read_to_end(&mut std::io::Read::take(response.into_reader(), 5 * 1024 * 1024), &mut bytes).ok()?;
+            let _ = std::fs::create_dir_all(&kept);
+            let _ = std::fs::write(&file, &bytes);
+            bytes
+        }
+    };
+    let kind = if bytes.starts_with(&[0x89, b'P', b'N', b'G']) { "image/png" } else if bytes.starts_with(b"RIFF") { "image/webp" } else { "image/jpeg" };
+    Some(format!("data:{kind};base64,{}", base64::engine::general_purpose::STANDARD.encode(&bytes)))
 }
 
 /// Marketplace profiles for wallet addresses: name and picture for each
