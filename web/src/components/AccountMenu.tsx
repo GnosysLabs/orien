@@ -3,8 +3,8 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
-import { LogIn, LogOut, UserRound } from "lucide-react";
-import { ask, me, type Account } from "@/lib/market";
+import { LogIn, LogOut, Pencil, UserRound } from "lucide-react";
+import { ask, me, profileHref, type Account } from "@/lib/market";
 import { Avatar } from "./market/Avatar";
 import { SIGNED_IN_OR_OUT } from "./market/Shell";
 
@@ -89,11 +89,18 @@ export function AccountMenu() {
         >
           <p className="truncate px-3 pb-2 pt-1.5 text-sm font-semibold text-ink">{account.name}</p>
           <Link
+            href={profileHref(account.name)}
+            role="menuitem"
+            className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-semibold text-ink transition hover:bg-raised"
+          >
+            <UserRound className="h-4 w-4 text-pearl" strokeWidth={2} aria-hidden /> View profile
+          </Link>
+          <Link
             href="/account/"
             role="menuitem"
             className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-semibold text-ink transition hover:bg-raised"
           >
-            <UserRound className="h-4 w-4 text-pearl" strokeWidth={2} aria-hidden /> Edit profile
+            <Pencil className="h-4 w-4 text-pearl" strokeWidth={2} aria-hidden /> Edit profile
           </Link>
           <button
             type="button"
