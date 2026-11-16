@@ -157,7 +157,7 @@ pub fn view(kept: &Kept) -> View {
     let confirmations = kept.seen.filter(|_| paid_seen).map(|(_, depth)| depth);
     let (stage, status) = match (&swap.role, &swap.stage) {
         (_, Stage::Preparing) => ("locking", "Locking your ORN for the buyer.".to_string()),
-        (Role::Seller, Stage::Claiming) => ("claiming", "The Bitcoin arrived. Taking it; waiting for Bitcoin to confirm that. Keep this app open.".to_string()),
+        (Role::Seller, Stage::Claiming) => ("claiming", format!("Paid: {} BTC is sent to your Bitcoin address, and your Bitcoin wallet may show it already. Bitcoin confirms it within about an hour; this app then hands the buyer their ORN.", show_btc(swap.sats))),
         (_, Stage::Refunding) => ("refunding", "The seller did not take the Bitcoin in time. Taking it back; keep this app open.".to_string()),
         // Board swaps pass their codes by themselves: never a word about them.
         (Role::Seller, Stage::WaitingForReply) if kept.board.is_some() => ("reply", "Accepted: your ORN are locked for the buyer. Waiting for them to pay.".to_string()),

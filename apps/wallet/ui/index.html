@@ -1935,9 +1935,11 @@
       await tell(`You received ${e.amount} ORN` + (who ? ` from ${who}` : ""));
     }
   }
-  // A notification from the app, on computers.
+  // A notification from the app, on computers. The Dock or taskbar icon
+  // also asks for attention, which shows even where notifications are off.
   async function tell(body) {
     if (phone) return;
+    invoke("plugin:window|request_user_attention", { label: "main", value: 2 }).catch(() => {});
     try {
       let allowed = await invoke("plugin:notification|is_permission_granted");
       if (allowed === null || allowed === undefined) allowed = (await invoke("plugin:notification|request_permission")) === "granted";
@@ -2062,9 +2064,10 @@
         { name: "Accepted", what: `Your ${O} are locked for the buyer`, who: "This app · under a minute" },
         { name: "Buyer pays", what: `The buyer pays ${B}`, who: "The buyer · within a few hours" },
         { name: "Confirming", what: `The buyer paid; Bitcoin confirms it${confirmCount(s)}, then this app takes it and delivers the buyer's ORN`, who: "Automatic · usually 30 to 60 minutes" },
-        { name: "Done", what: `${B} on its way to your Bitcoin address`, who: "" },
+        { name: "Paid", what: `${B} on its way to your Bitcoin address`, who: s.stage === "claiming" ? "Pending in your Bitcoin wallet until Bitcoin confirms it, usually within the hour" : "" },
       ];
-      const at = { locking: 0, reply: 1, bitcoin: s.paid_seen ? 2 : 1, claiming: 2, done: 4 }[s.stage];
+      // Once this app has sent the Bitcoin on, it's the seller's: paid.
+      const at = { locking: 0, reply: 1, bitcoin: s.paid_seen ? 2 : 1, claiming: 3, done: 4 }[s.stage];
       return { steps, at: at ?? null };
     }
     if (s.board) {
@@ -2159,6 +2162,7 @@
       if (needsMe(s)) say(`pay:${s.id}`, `Your swap was accepted. Pay ${s.btc} BTC now to get ${s.orn} ORN.` + (s.pay_by ? ` ${payDeadline(s.pay_by)}.` : ""), 10 * 60 * 1000);
       if (s.role === "buy" && (s.paid || s.paid_seen) && !["done", "cancelled"].includes(s.stage)) say(`paid:${s.id}`, `Payment seen. Waiting for Bitcoin to confirm it; your ${s.orn} ORN follow by themselves.`);
       if (s.role === "sell" && s.board && s.stage === "reply") say(`locked:${s.id}`, `Your ${s.orn} ORN are locked for the buyer. Waiting for them to pay ${s.btc} BTC.`);
+      if (s.role === "sell" && s.stage === "claiming") say(`sent:${s.id}`, `You've been paid: ${s.btc} BTC is sent to your Bitcoin address.`);
       if (s.role === "sell" && (s.paid_seen || s.stage === "claiming")) say(`claiming:${s.id}`, `The buyer paid ${s.btc} BTC. Bitcoin is confirming it; then this app takes it. Keep Orien Wallet running.`);
       if (s.stage === "done") say(`done:${s.id}`, s.role === "sell" ? `Swap done: ${s.btc} BTC is on its way to your Bitcoin address.` : `Swap done: ${s.orn} ORN are in your wallet.`);
       if (s.stage === "cancelled") say(`stopped:${s.id}`, `A swap stopped. ${s.status}`);
@@ -2188,7 +2192,7 @@
         return ornBack && s.orn_back_at * 1000 > Date.now()
           ? `<strong>Your ORN come back to you on their own</strong> ${ornBack}. You don't need to do anything.` : null;
       if (s.stage === "claiming")
-        return `<strong>Keep Orien Wallet open until this is done.</strong> The buyer can take their Bitcoin back ${btcBack || "about 6 hours after their reply"}, so this app takes it well before then.`;
+        return `<strong>You've been paid.</strong> Your Bitcoin wallet may show the payment as pending until Bitcoin confirms it, usually within the hour. Keep Orien Wallet running until then; it then hands the buyer their ORN.`;
       let text = `<strong>If the buyer disappears,</strong> your ${s.orn} ORN come back to you on their own ${ornBack || "12 hours after they were locked"}. You don't need to do anything, and this app can be closed.`;
       if (s.stage === "bitcoin")
         text += ` If the buyer pays but this app stays closed for more than about 4 hours, they take their Bitcoin back and your ORN still come back to you. Nobody loses coins.`;
@@ -2210,6 +2214,7 @@
     if (s.stage === "cancelled") return "Stopped";
     if (s.stage === "refunding") return "Taking your Bitcoin back";
     if (needsMe(s)) return `Your turn: pay ${s.btc} BTC now`;
+    if (s.role === "sell" && s.stage === "claiming") return "Paid · Bitcoin is confirming";
     const { steps, at } = swapSteps(s);
     if (at === null || at >= steps.length) return "";
     return `Step ${at + 1} of ${steps.length} · ${steps[at].name || steps[at].who.split(" · ")[0]}`;

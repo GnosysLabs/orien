@@ -28,6 +28,16 @@ export const CHANGELOG: Entry[] = [
   {
     date: '2026-11-16',
     products: ['wallet'],
+    version: '1.8.1',
+    title: 'Clearer when a seller has been paid',
+    changes: [
+      'Once your wallet sends a buyer’s Bitcoin on to you, the swap moves to its last step: “Paid · on its way to your Bitcoin address”, pending in your Bitcoin wallet until Bitcoin confirms it.',
+      'Each swap step also makes the Orien Wallet icon in the Dock or taskbar ask for attention.',
+    ],
+  },
+  {
+    date: '2026-11-16',
+    products: ['wallet'],
     version: '1.8.0',
     title: 'Approve a sale once, shorter swaps, and steadier Bitcoin checks',
     changes: [
