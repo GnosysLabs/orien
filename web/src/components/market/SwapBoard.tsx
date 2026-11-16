@@ -281,7 +281,7 @@ export function SwapBoard() {
               {
                 icon: ArrowLeftRight,
                 title: "Pick an offer",
-                text: "Sellers offer ORN for Bitcoin at their price. Take one in Orien Wallet, and it is held for you for 30 minutes.",
+                text: "Sellers offer ORN for Bitcoin at their price. Take one in Orien Wallet, and the seller has 30 minutes to accept; if they don't, the offer goes back on the board and nothing is lost.",
               },
               {
                 icon: Wallet,
