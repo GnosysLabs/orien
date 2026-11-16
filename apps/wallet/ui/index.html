@@ -426,6 +426,7 @@
   .se-price { display: flex; align-items: center; gap: 8px; padding-right: 14px; }
   .se-price input { flex: 1; }
   .se-price span { color: var(--faint); }
+  .pf-saved { margin-left: auto; font-size: 12px; color: var(--faint); }
   .pf-listings-head { align-items: center; margin-top: 26px; }
   .pf-listings-head h3 { line-height: 32px; }
   /* Market messages */
@@ -1250,7 +1251,7 @@
     <!-- Your marketplace profile: what others see beside your offers and,
          once your wallet is proven, beside your address. -->
     <section class="screen" id="profile" hidden>
-      <div class="topline"><button class="back" data-back aria-label="Back"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10 3 5 8l5 5"/></svg></button><h2>Your profile</h2></div>
+      <div class="topline"><button class="back" id="pf-back" aria-label="Back"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10 3 5 8l5 5"/></svg></button><h2>Your profile</h2><span class="pf-saved" id="pf-saved"></span></div>
       <div class="profile-pic">
         <button class="pf-banner editable" id="pf-banner-go" aria-label="Change banner" title="Change banner"><span id="pf-banner"></span><span class="cam" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h3l1.5-2h7L17 8h3a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9a1 1 0 0 1 1-1z"/><circle cx="12" cy="13" r="3.5"/></svg></span></button>
         <button class="pf-face-go editable" id="pf-picture" aria-label="Change picture" title="Change picture"><span class="face" id="pf-face"></span><span class="cam" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h3l1.5-2h7L17 8h3a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9a1 1 0 0 1 1-1z"/><circle cx="12" cy="13" r="3.5"/></svg></span></button>
@@ -1294,7 +1295,6 @@
       </div>
       <div class="push"></div>
       <div class="problem" id="pf-problem" hidden></div>
-      <button class="primary pearl" id="pf-save" data-gap="lg">Save</button>
     </section>
 
     <!-- One contact -->
@@ -2393,7 +2393,9 @@
   };
   $("to").oninput = validate;
   // A contact's name, or the name of one of the person's own wallets.
-  const nameOf = (address) => (named(address) || walletList.find((w) => w.address === address) || {}).name || profileLabel(profileOf(address));
+  // Your own wallets by your names for them; anyone with a Market profile by
+  // that profile, as they made it; else the name you saved.
+  const nameOf = (address) => (walletList.find((w) => w.address === address) || {}).name || profileLabel(profileOf(address)) || (named(address) || {}).name;
   // The person's other wallets, as places to send to.
   const ownWallet = (address) => walletList.find((w) => w.address === address && !w.current);
   // As a name is typed: contacts and other wallets whose name or address
@@ -2678,14 +2680,27 @@
     $("contact-list").innerHTML = book.length
       ? `<div class="list">${book.map((c) => `<div class="tx contact" data-address="${c.address}">
           ${face(c.address, c.name)}
-          <div class="tx-main"><div class="title">${esc(c.name)}</div><div class="sub">${short(c.address)}</div></div>
+          <div class="tx-main"><div class="title">${esc(profileLabel(profileOf(c.address)) || c.name)}</div><div class="sub">${short(c.address)}</div></div>
           <svg class="chevron" width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m6 3 5 5-5 5"/></svg>
         </div>`).join("")}</div>`
       : '<div class="empty">No contacts yet. Add someone you pay often, and pick them by name when you send.</div>';
   }
   async function openContacts() {
     await loadBook(); renderContacts(); show("contacts"); syncBook();
-    loadProfiles(book.map((c) => c.address)).then((found) => found && renderContacts());
+    // Fresh profiles each time: names and pictures follow their owners'
+    // changes, and saved names are brought in line so search finds them.
+    for (const c of book) profiles.delete(c.address);
+    const found = await loadProfiles(book.map((c) => c.address));
+    if (!found) return;
+    let renamed = false;
+    for (const c of book) {
+      const label = profileLabel(profileOf(c.address));
+      if (label && label.slice(0, 40) !== c.name) {
+        try { await invoke("save_contact", { name: label.slice(0, 40), address: c.address, previous: c.address }); renamed = true; } catch {}
+      }
+    }
+    if (renamed) await loadBook();
+    if (!$("contacts").hidden) renderContacts();
   }
 
   function openContact(address, from) {
@@ -2711,10 +2726,18 @@
     $("c-delete").classList.remove("armed");
     if (known) {
       const paint = () => {
+        const p = profileOf(contact.address);
+        if (p) {
+          $("c-name").value = profileLabel(p).slice(0, 40);
+          $("contact-title").textContent = profileLabel(p);
+          $("c-name").disabled = true;
+          $("c-saved").textContent = "From their Orien Market profile. It updates when they change it.";
+        }
         $("ct-face").outerHTML = face(contact.address, contact.name).replace('<span class="face">', '<span class="face ct-face" id="ct-face">');
         $("ct-addr").textContent = short(contact.address);
       };
       paint();
+      profiles.delete(contact.address);
       loadProfiles([contact.address]).then((found) => found && paint());
     }
     checkContact();
@@ -2731,23 +2754,26 @@
     $("c-save").disabled = !($("c-name").value.trim() && isAddress(a));
     // The name waits for a whole address. With one, a marketplace profile
     // shows its picture and offers its name.
-    $("c-name").disabled = !isAddress(a);
+    $("c-name").disabled = !isAddress(a) || !!profileOf(a.toLowerCase());
     if (!isAddress(a)) { $("c-face").hidden = true; return; }
     const address = a.toLowerCase();
     const showFace = () => {
       if ($("c-address").value.trim().toLowerCase() !== address) return;
       const p = profileOf(address);
       $("c-face").hidden = !p;
-      if (!p) return;
+      if (!p) { if ($("c-saved").textContent.startsWith("From their")) $("c-saved").textContent = ""; return; }
       $("c-face").outerHTML = face(address, p.name).replace('<span class="face">', '<span class="face" id="c-face">');
-      if (!$("c-name").value.trim()) { $("c-name").value = profileLabel(p).slice(0, 40); checkContact(); }
+      // Their name is theirs, from their profile, and isn't edited here.
+      if ($("c-name").value !== profileLabel(p).slice(0, 40)) { $("c-name").value = profileLabel(p).slice(0, 40); checkContact(); }
+      $("c-name").disabled = true;
+      $("c-saved").textContent = "From their Orien Market profile. It updates when they change it.";
     };
     if (profiles.has(address)) showFace(); else loadProfiles([address]).then(showFace);
   }
   let contactTimer = 0;
   $("c-name").oninput = () => {
     checkContact();
-    if (!editing) return;
+    if (!editing || $("c-name").disabled) return;
     clearTimeout(contactTimer);
     contactTimer = setTimeout(saveContactName, 700);
   };
@@ -2761,7 +2787,7 @@
       await loadBook();
       $("contact-title").textContent = name;
       $("c-saved").textContent = "Saved";
-      setTimeout(() => { $("c-saved").textContent = ""; }, 1400);
+      setTimeout(() => { if ($("c-saved").textContent === "Saved") $("c-saved").textContent = ""; }, 1400);
     } catch (error) { problem("contact-problem", error); }
   }
   $("ct-send").onclick = () => { $("c-send").onclick(); };
@@ -4076,7 +4102,6 @@
     $("pf-telegram").value = (me.contact && me.contact.telegram) || "";
     $("pf-x").value = (me.contact && me.contact.x) || "";
     $("pf-problem").hidden = true;
-    $("pf-save").textContent = "Save";
     renderVerify();
     const mine = me.listings || [];
     $("pf-listings").innerHTML = mine.length ? mine.map(card).join("") : '<div class="empty mk-empty">You have no listings yet.</div>';
@@ -4183,21 +4208,36 @@
   }
   $("pf-picture").onclick = () => pickPicture(false, $("pf-picture"));
   $("pf-banner-go").onclick = () => pickPicture(true, $("pf-banner-go"));
-  $("pf-save").onclick = async () => {
-    if (!pfNameOk()) { $("pf-name").focus(); return; }
-    $("pf-save").disabled = true;
-    $("pf-problem").hidden = true;
-    try {
-      await invoke("board_profile_save", { name: $("pf-name").value, bio: $("pf-bio").value, email: $("pf-email").value, telegram: $("pf-telegram").value, x: $("pf-x").value });
-      board.me = await invoke("board_me");
-      renderBoardBar();
-      paintProfileFace();
-      feel("success");
-      $("pf-save").textContent = "Saved";
-      setTimeout(() => { $("pf-save").textContent = "Save"; }, 1600);
-    } catch (e) { problem("pf-problem", e); }
-    finally { $("pf-save").disabled = false; }
-  };
+  // The profile saves itself a moment after typing stops, and on leaving.
+  let pfTimer = 0, pfSaving = null;
+  const pfFields = ["pf-name", "pf-bio", "pf-email", "pf-telegram", "pf-x"];
+  function pfChanged() {
+    const me = board.me || {}, c = me.contact || {};
+    return $("pf-name").value.trim() !== (me.name || "") || $("pf-bio").value.trim() !== (me.bio || "") || $("pf-email").value.trim() !== (c.email || "")
+      || $("pf-telegram").value.trim() !== (c.telegram || "") || $("pf-x").value.trim() !== (c.x || "");
+  }
+  async function saveProfile() {
+    clearTimeout(pfTimer);
+    if (!board.me || !pfChanged() || !pfNameOk()) return;
+    if (pfSaving) await pfSaving;
+    $("pf-saved").textContent = "Saving…";
+    pfSaving = (async () => {
+      try {
+        await invoke("board_profile_save", { name: $("pf-name").value, bio: $("pf-bio").value, email: $("pf-email").value, telegram: $("pf-telegram").value, x: $("pf-x").value });
+        board.me = await invoke("board_me");
+        renderBoardBar();
+        paintProfileFace();
+        $("pf-problem").hidden = true;
+        $("pf-saved").textContent = "Saved";
+        setTimeout(() => { if ($("pf-saved").textContent === "Saved") $("pf-saved").textContent = ""; }, 1600);
+      } catch (e) { $("pf-saved").textContent = ""; problem("pf-problem", e); }
+    })();
+    await pfSaving;
+    pfSaving = null;
+  }
+  for (const id of pfFields) $(id).addEventListener("input", () => { clearTimeout(pfTimer); pfTimer = setTimeout(saveProfile, 900); });
+  $("pf-back").onclick = async () => { await saveProfile(); home(); };
+
   $("bs-go").onclick = async () => {
     $("bs-go").disabled = true;
     try {
