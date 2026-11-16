@@ -8,7 +8,6 @@ import {
   MessageCircle,
   Plus,
   Store,
-  UserRound,
 } from "lucide-react";
 import { me, type Account } from "@/lib/market";
 
@@ -79,13 +78,6 @@ export function MarketBar() {
               )}
             </Link>
           )}
-          <Link
-            href="/marketplace/account/"
-            className="flex h-10 items-center gap-2 rounded-xl border border-line bg-surface px-4 text-sm font-semibold text-ink transition hover:bg-raised"
-          >
-            <UserRound className="h-4 w-4" aria-hidden />
-            {account ? account.name : "Sign in"}
-          </Link>
           <Link
             href="/marketplace/sell/"
             className="pearl-fill flex h-10 items-center gap-2 rounded-xl px-4 text-sm font-bold transition hover:brightness-105"

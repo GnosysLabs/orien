@@ -17,6 +17,7 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import { MARKETPLACE_LIVE } from "@/lib/brand";
+import { AccountMenu } from "./AccountMenu";
 import { Wordmark } from "./Wordmark";
 import { WINDOWS_INSTALLER, WindowsInstall } from "./WindowsDownload";
 
@@ -48,7 +49,7 @@ const ITEMS: NavItem[] = [
     ? [
         {
           href: "/swap/",
-          label: "Buy & sell ORN",
+          label: "Buy & sell",
           short: "Buy/sell",
           icon: ArrowLeftRight,
           match: (p: string) => p.startsWith("/swap"),
@@ -140,7 +141,7 @@ function DownloadsMenu() {
         aria-expanded={open}
         aria-haspopup="menu"
         onClick={() => setOpen(!open)}
-        className={`flex h-9 items-center gap-2 whitespace-nowrap rounded-lg px-2.5 text-sm font-semibold transition lg:px-3 ${
+        className={`flex h-9 items-center gap-2 whitespace-nowrap rounded-lg px-2.5 text-sm font-semibold transition ${
           open
             ? "bg-raised text-ink"
             : "text-muted hover:bg-raised/60 hover:text-ink"
@@ -246,7 +247,7 @@ export function Header() {
         ) : (
           <nav
             aria-label="Pages"
-            className="ml-4 hidden items-center gap-1 lg:flex"
+            className="ml-3 hidden items-center gap-1 lg:flex"
           >
             {ITEMS.filter((item) => item.href !== "/try/").map((item) => {
               const on = isActive(item, pathname);
@@ -256,7 +257,7 @@ export function Header() {
                   key={item.href}
                   href={item.href}
                   aria-current={on ? "page" : undefined}
-                  className={`flex h-9 items-center gap-2 whitespace-nowrap rounded-lg px-2.5 text-sm font-semibold transition lg:px-3 ${
+                  className={`flex h-9 items-center gap-2 whitespace-nowrap rounded-lg px-2.5 text-sm font-semibold transition ${
                     on
                       ? "bg-raised text-ink"
                       : "text-muted hover:bg-raised/60 hover:text-ink"
@@ -285,7 +286,7 @@ export function Header() {
               rel="noopener noreferrer"
               aria-label="Join Orien on Discord"
               title="Join Orien on Discord"
-              className="flex h-9 w-9 items-center justify-center rounded-lg text-muted transition hover:bg-raised/60 hover:text-ink sm:h-10 sm:w-10"
+              className="flex h-9 w-9 items-center justify-center rounded-lg text-muted transition hover:bg-raised/60 hover:text-ink"
             >
               <DiscordIcon className="h-5 w-5" />
             </a>
@@ -295,18 +296,23 @@ export function Header() {
               rel="noopener noreferrer"
               aria-label="Follow Orien on X"
               title="Follow Orien on X"
-              className="flex h-9 w-9 items-center justify-center rounded-lg text-muted transition hover:bg-raised/60 hover:text-ink sm:h-10 sm:w-10"
+              className="flex h-9 w-9 items-center justify-center rounded-lg text-muted transition hover:bg-raised/60 hover:text-ink"
             >
               <XIcon className="h-[18px] w-[18px]" />
             </a>
             <Link
               href="/try/"
               aria-current={onTry ? "page" : undefined}
-              className="pearl-fill pearl-sheen ml-2 flex h-9 items-center gap-2 whitespace-nowrap rounded-[10px] px-3.5 text-sm font-bold transition hover:brightness-105 sm:h-10"
+              className="pearl-fill pearl-sheen ml-1.5 hidden h-10 items-center gap-2 whitespace-nowrap rounded-[10px] px-3.5 text-sm font-bold transition hover:brightness-105 lg:flex"
             >
               <Terminal className="h-4 w-4" strokeWidth={2.25} aria-hidden />
               <span>Get started</span>
             </Link>
+            {MARKETPLACE_LIVE && (
+              <div className="ml-1.5">
+                <AccountMenu />
+              </div>
+            )}
           </div>
         )}
       </div>
