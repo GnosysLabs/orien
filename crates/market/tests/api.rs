@@ -551,6 +551,35 @@ async fn phones_hear_about_payments_to_their_wallets_once() {
 }
 
 #[tokio::test]
+async fn phones_hear_about_mining_rewards_merged() {
+    use orien_market::push::check_once;
+    let payments = Arc::new(Fake::default());
+    *payments.epoch.lock().unwrap() = 30;
+    let app = App::new(Store::in_memory().unwrap(), folder(), "https://orien.network", true, Mailer::log_only(), Screener::off(), payments.clone(), MARKET);
+    let market = Market { app: Arc::new(app.unwrap().with_prices(Prices::fixed_for_tests(65_000.0))) };
+    let (phone, miner) = ("ab".repeat(32), "cd".repeat(32));
+    let id = orien_crypto::Hash32(hex::decode(&miner).unwrap().try_into().unwrap());
+    let mine = |amount: u64, epoch: u64| payments.mined.lock().unwrap().push((id, amount, epoch));
+
+    mine(9_000_000_000, 30);
+    market.ask("POST", "/api/market/push/register", None, Some(json!({ "token": phone, "sandbox": true, "addresses": [miner] }))).await;
+    let notebook = Notebook::default();
+    assert_eq!(check_once(&market.app, &notebook).unwrap(), 0, "rewards from before registering are not told");
+
+    // Two rewards seen at once: one notification with their sum.
+    mine(4_000_000_000, 30);
+    mine(8_004_000_000, 31);
+    *payments.epoch.lock().unwrap() = 31;
+    assert_eq!(check_once(&market.app, &notebook).unwrap(), 1);
+    assert_eq!(check_once(&market.app, &notebook).unwrap(), 0, "not twice");
+    let sent = notebook.0.lock().unwrap().clone();
+    let payload: Value = serde_json::from_str(&sent[0].2).unwrap();
+    assert_eq!(payload["aps"]["alert"]["title"], "Orien Wallet");
+    assert_eq!(payload["aps"]["alert"]["body"], "You mined 12 ORN");
+    assert_eq!(payload["address"], miner);
+}
+
+#[tokio::test]
 async fn wallets_on_older_swap_rules_cannot_take_once_the_gate_is_on() {
     let app = App::new(Store::in_memory().unwrap(), folder(), "https://orien.network", true, Mailer::log_only(), Screener::off(), Arc::new(Fake::default()), MARKET)
         .unwrap()

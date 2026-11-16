@@ -84,7 +84,7 @@ pub fn of(state: &State, epoch: u64, start_time: u64, cap: u64, now: u64) -> Tok
         .each_account()
         .map(|(_, a)| a.unstaking as u128 + a.releases.iter().map(|(_, amount)| *amount as u128).sum::<u128>())
         .sum();
-    wallets.sort_by(|a, b| b.1.cmp(&a.1));
+    wallets.sort_by_key(|b| std::cmp::Reverse(b.1));
     let share = |n: usize| {
         if in_wallets == 0 {
             return 0.0;
