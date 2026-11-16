@@ -847,6 +847,12 @@
      the 16 points between the box and the edge). Nothing on these screens
      scrolls past their own edge, so they aren't clipped themselves. */
   body.phone main > #home, body.phone main > #activity { overflow: hidden; padding-bottom: 16px !important; border-radius: 0; }
+  /* Apple's smallest comfortable tap: 44 points, for every small button. */
+  body.phone .pill, body.phone .linkish, body.phone .link { height: 44px; padding: 0 18px; border-radius: 22px; font-size: 14px; }
+  body.phone .pill.icon { width: 44px; padding: 0; }
+  body.phone .account .avatar, body.phone .me-face .avatar { width: 44px; height: 44px; font-size: 16px; }
+  body.phone .back { width: 44px; height: 44px; }
+  body.phone .mk-cats button { height: 36px; padding: 0 14px; font-size: 13.5px; }
   body.phone #home #recent { flex: 1 1 0; -webkit-overflow-scrolling: touch; border-radius: 18px 18px 39px 39px; padding-bottom: max(12px, calc(env(safe-area-inset-bottom) - 12px)); }
   body.phone #all-activity { flex: 1 1 0; border-radius: 18px 18px 39px 39px; padding-bottom: max(12px, calc(env(safe-area-inset-bottom) - 12px)); }
 </style>
