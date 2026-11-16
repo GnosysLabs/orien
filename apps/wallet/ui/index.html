@@ -2004,8 +2004,8 @@
     ];
     const score = (p) => p.name.toLowerCase().startsWith(q) ? 0 : p.name.toLowerCase().includes(q) ? 1 : p.address.startsWith(q) ? 2 : 3;
     const found = places.filter((p) => score(p) < 3).sort((a, b) => score(a) - score(b) || a.name.localeCompare(b.name)).slice(0, 5);
-    // People on Orien Market by name, each verified wallet a row, with the
-    // picture and how long they've been a member: names aren't unique.
+    // People on Orien Market by username, each verified wallet a row, with
+    // the picture and the wallet's address.
     const known = new Set(found.map((p) => p.address));
     const market = (marketHits.q === q ? marketHits.rows : []).filter((r) => !known.has(r.address));
     if (q.length >= 2 && marketHits.q !== q) searchMarket(q);
@@ -2014,7 +2014,7 @@
       <div class="tx-main"><div class="title">${esc(p.name)}</div><div class="sub">${esc(p.sub)}</div></div>
     </button>`).join("") + market.map((r) => `<button class="tx" type="button" data-address="${r.address}">
       ${face(r.address, r.label)}
-      <div class="tx-main"><div class="title">${esc(r.label)}</div><div class="sub">${esc(r.since)}</div></div>
+      <div class="tx-main"><div class="title">${esc(r.label)}</div><div class="sub">${short(r.address)}</div></div>
     </button>`).join("");
     return found.length + market.length;
   }
@@ -2026,13 +2026,12 @@
       try { found = (await invoke("market_search", { text: q })) || []; } catch { return; }
       const rows = [];
       for (const p of found) {
-        const since = p.created ? `Member since ${new Date(p.created * 1000).toLocaleDateString([], { month: "long", year: "numeric" })}` : "On Orien Market";
         for (const w of p.wallets || []) {
           const address = (w.address || "").toLowerCase();
           if (!/^[0-9a-f]{64}$/.test(address) || (view && address === view.address)) continue;
           const info = { name: p.name, picture: p.picture, wallet_name: w.name || null };
           profiles.set(address, info);
-          rows.push({ address, label: profileLabel(info), since });
+          rows.push({ address, label: profileLabel(info) });
         }
       }
       marketHits = { q, rows };
