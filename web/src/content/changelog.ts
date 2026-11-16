@@ -28,6 +28,18 @@ export const CHANGELOG: Entry[] = [
   {
     date: '2026-11-16',
     products: ['wallet'],
+    version: '1.8.7',
+    title: 'Contacts that follow you everywhere',
+    changes: [
+      'Contacts and wallet icons now stay the same on all your devices, even when each has a different wallet open.',
+      'Where syncing isn\'t on yet, the app offers to turn it on with one unlock.',
+      'Report or block someone from their profile page.',
+      'Send suggestions show each contact\'s picture and each wallet\'s icon.',
+    ],
+  },
+  {
+    date: '2026-11-16',
+    products: ['wallet'],
     version: '1.8.6',
     title: 'Notifications that arrive, and easier swaps',
     changes: [
