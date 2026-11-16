@@ -109,9 +109,10 @@
     -webkit-tap-highlight-color: transparent; }
   body.phone header { height: 52px; margin: 0 -20px 10px; -webkit-app-region: no-drag; }
   body.phone .status { right: 20px; }
-  /* iPhones swap and use the Market too; mining stays on computers. */
-  body.phone #go-mine, body.phone #choose, body.phone .update { display: none !important; }
-  body.phone .actions.five { grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 6px; }
+  /* iPhones use the Market; mining and swaps stay on computers, which keep
+     the wallet running while a swap needs it. */
+  body.phone #go-mine, body.phone #go-swap, body.phone #swap-alert, body.phone #choose, body.phone .update { display: none !important; }
+  body.phone .actions.five { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
   /* Get ORN is the iPhone's; computers have Mine and Swap. */
   #go-get { display: none; }
   /* 16 points or more, or the iPhone zooms the page in on every tap into a box. */
@@ -1477,7 +1478,6 @@
         <div id="board-offers"><div class="empty">Loading offers…</div></div>
         <div class="problem" id="board-problem" hidden></div>
         <div class="hint board-prices" id="board-btc"></div>
-        <button class="linkish small-link" id="manual-go">Swap with someone you know</button>
       </div>
       <div id="tab-mine" hidden>
         <div class="scroll" id="swap-list"><div class="empty">No swaps yet</div></div>
@@ -1485,15 +1485,6 @@
     </section>
 
     <!-- Swapping with someone you know, passing the codes yourself -->
-    <section class="screen" id="swap-manual" hidden>
-      <div class="topline"><button class="back" data-to="swaps" aria-label="Back"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10 3 5 8l5 5"/></svg></button><h2>Swap with someone you know</h2></div>
-      <p class="lede">Agree a price with them, then pick your side. You'll pass two short codes to each other yourselves, by message or email. Neither of you can cheat: either both get paid, or both get their coins back.</p>
-      <div class="swap-choices">
-        <button class="secondary" id="go-sell">Sell ORN for Bitcoin</button>
-        <button class="secondary" id="go-buy">Buy ORN with Bitcoin</button>
-      </div>
-    </section>
-
     <!-- The swap board: signing in, posting an offer, taking one -->
     <section class="screen" id="board-signin" hidden>
       <div class="topline"><button class="back" data-to="swaps" aria-label="Back"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10 3 5 8l5 5"/></svg></button><h2>Sign up or sign in</h2></div>
@@ -1612,69 +1603,6 @@
       <div class="push"></div>
       <div class="problem" id="bt-problem" hidden></div>
       <button class="primary pearl" id="bt-go" data-gap="lg">Take the offer</button>
-    </section>
-
-    <section class="screen" id="swap-sell" hidden>
-      <div class="topline">
-        <button class="back" id="sell-back" aria-label="Back"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10 3 5 8l5 5"/></svg></button>
-        <h2>Sell ORN</h2>
-      </div>
-      <ul class="explain" data-gap="sm">
-        <li><strong>You need</strong> the buyer's Orien address (they find it in Orien Wallet under Swap, Buy ORN), a price you've agreed with them, and a Bitcoin address of yours to be paid at.</li>
-        <li><strong>How it goes:</strong> this app locks your ORN for the buyer, you swap codes, the buyer pays the Bitcoin, and this app takes it. Usually one to two hours.</li>
-        <li><strong>Fees:</strong> the usual Orien fee to lock the ORN (0.1%, at most 1 ORN), and Bitcoin's network fee for taking the Bitcoin, which comes out of what you receive. Orien Wallet itself takes nothing.</li>
-        <li><strong>Smallest swap:</strong> 0.00015 BTC, more when Bitcoin is busy<span class="min-now"></span>. <strong>If the buyer never pays,</strong> your ORN come back to you on their own within 12 hours.</li>
-      </ul>
-      <div class="field" data-gap="xl">
-        <label for="sell-buyer">Buyer's Orien address</label>
-        <div class="box plain"><input id="sell-buyer" placeholder="Ask the buyer for it" spellcheck="false" autocomplete="off"></div>
-      </div>
-      <div class="field">
-        <label for="sell-orn">ORN to sell</label>
-        <div class="box plain"><input id="sell-orn" placeholder="500" inputmode="decimal" autocomplete="off"></div>
-      </div>
-      <div class="field">
-        <label for="sell-btc">Bitcoin to receive</label>
-        <div class="box plain"><input id="sell-btc" placeholder="0.01" inputmode="decimal" autocomplete="off"></div>
-      </div>
-      <div class="field">
-        <label for="sell-payout">Your Bitcoin address</label>
-        <div class="box plain"><input id="sell-payout" placeholder="Where the Bitcoin should go" spellcheck="false" autocomplete="off"></div>
-      </div>
-      <div class="field" id="sell-pw-field" hidden>
-        <label for="sell-pw">Wallet password</label>
-        <div class="box plain"><input id="sell-pw" type="password" autocomplete="current-password"></div>
-      </div>
-      <div class="push"></div>
-      <div class="problem" id="sell-problem" hidden></div>
-      <button class="primary pearl" id="sell-go" data-gap="lg">Lock ORN and make the offer</button>
-    </section>
-
-    <section class="screen" id="swap-buy" hidden>
-      <div class="topline">
-        <button class="back" id="buy-back" aria-label="Back"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10 3 5 8l5 5"/></svg></button>
-        <h2>Buy ORN</h2>
-      </div>
-      <ul class="explain" data-gap="sm">
-        <li><strong>You need</strong> Bitcoin in any Bitcoin wallet, enough for the price plus that wallet's sending fee, a Bitcoin address of yours for a refund if the swap stops, and a price you've agreed with the seller.</li>
-        <li><strong>How it goes:</strong> the seller locks the ORN for you and sends an offer code, you send back a reply code and pay the Bitcoin, the seller's wallet takes it and delivers your ORN. Usually one to two hours after you pay.</li>
-        <li><strong>Fees:</strong> your Bitcoin wallet's fee to pay, and the usual Orien fee (0.1%, at most 1 ORN), which comes out of the ORN you receive. Orien Wallet itself takes nothing.</li>
-        <li><strong>Smallest swap:</strong> 0.00015 BTC, more when Bitcoin is busy<span class="min-now"></span>. The wallet checks before anything is paid. <strong>If the seller never takes your Bitcoin,</strong> this app takes it back for you after about 6 hours.</li>
-      </ul>
-      <div class="label-line" data-gap="xl">First, send the seller your Orien address. They lock the ORN for it and send you an offer code.</div>
-      <div class="codebox" id="buy-me" data-gap="sm"></div>
-      <button class="secondary" id="buy-copy-me" data-gap="sm">Copy your address</button>
-      <div class="field" data-gap="xl">
-        <label for="buy-offer">The seller's offer code</label>
-        <textarea id="buy-offer" class="tall" placeholder="orien-offer:…" spellcheck="false" autocomplete="off"></textarea>
-      </div>
-      <div class="field">
-        <label for="buy-refund">Your Bitcoin address</label>
-        <div class="box plain"><input id="buy-refund" placeholder="Where your Bitcoin comes back if the swap stops" spellcheck="false" autocomplete="off"></div>
-      </div>
-      <div class="push"></div>
-      <div class="problem" id="buy-problem" hidden></div>
-      <button class="primary pearl" id="buy-go" data-gap="lg">Check the offer</button>
     </section>
 
     <section class="screen" id="swap-detail" hidden>
@@ -4609,12 +4537,10 @@
   };
 
   for (const b of document.querySelectorAll("[data-to]")) b.onclick = () => show(b.dataset.to);
-  $("manual-go").onclick = () => show("swap-manual");
 
   $("go-get").onclick = () => show("get");
   $("go-swap").onclick = async () => { show("swaps"); await loadSwaps(); await loadWallets(); loadBoard(); stepSwaps(); };
   $("detail-back").onclick = async () => { show("swaps"); await loadSwaps(); };
-  $("sell-back").onclick = $("buy-back").onclick = () => show("swap-manual");
   // The smallest swap Bitcoin's fees allow right now, on the sell and buy
   // screens; nothing is shown if the explorers can't be reached.
   async function showSmallest() {
@@ -4624,13 +4550,6 @@
       for (const el of document.querySelectorAll(".min-now")) el.textContent = `; right now it's ${least} BTC`;
     } catch {}
   }
-  $("go-sell").onclick = () => { $("sell-pw-field").hidden = true; show("swap-sell"); showSmallest(); };
-  $("go-buy").onclick = () => {
-    $("buy-me").textContent = view ? view.address : "";
-    show("swap-buy");
-    showSmallest();
-  };
-  $("buy-copy-me").onclick = async () => { if (view) await navigator.clipboard.writeText(view.address); };
   // Copy, and say so on the button for a moment.
   async function copyFrom(button, text) {
     await navigator.clipboard.writeText(text);
@@ -4642,35 +4561,6 @@
   $("sd-copy-pay").onclick = () => copyFrom($("sd-copy-pay"), $("sd-pay-to").textContent);
   $("sd-copy-amount").onclick = () => copyFrom($("sd-copy-amount"), $("sd-pay-amount").textContent);
   $("sd-copy-code").onclick = async () => { await navigator.clipboard.writeText($("sd-code-text").textContent); };
-
-  $("sell-go").onclick = async () => {
-    $("sell-go").disabled = true;
-    try {
-      if (view && view.locked && view.biometric) await invoke("biometric_unlock");
-      const made = await invoke("swap_sell", { buyer: $("sell-buyer").value, orn: $("sell-orn").value,
-        btc: $("sell-btc").value, payout: $("sell-payout").value, password: $("sell-pw").value || null });
-      $("sell-pw").value = "";
-      await loadSwaps();
-      openSwap(made.id);
-    } catch (e) {
-      const text = String(e);
-      if (text.startsWith("password:")) {
-        $("sell-pw-field").hidden = false;
-        problem("sell-problem", text === "password: wrong" ? "That is not this wallet's password." : "Enter your wallet's password to lock the ORN.");
-      } else problem("sell-problem", text);
-    } finally { $("sell-go").disabled = false; }
-  };
-
-  $("buy-go").onclick = async () => {
-    $("buy-go").disabled = true;
-    try {
-      const made = await invoke("swap_buy", { offer: $("buy-offer").value, refund: $("buy-refund").value });
-      $("buy-offer").value = "";
-      await loadSwaps();
-      openSwap(made.id);
-    } catch (e) { problem("buy-problem", e); }
-    finally { $("buy-go").disabled = false; }
-  };
 
   $("sd-accept").onclick = async () => {
     try {

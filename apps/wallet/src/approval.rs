@@ -3,9 +3,9 @@
 //! that offer only, and to finish its swap: when someone takes it, the
 //! wallet accepts within seconds, with nobody at the computer.
 //!
-//! What's kept is what unlocks the wallet: on Macs in the Keychain (only
-//! this app can read it without macOS asking), elsewhere in a file only
-//! this user can read, as the app keeps its other keys. It's used only for
+//! What's kept is what unlocks the wallet: on Macs and iPhones in the
+//! Keychain (only this app can read it), elsewhere in a file only this user
+//! can read, as the app keeps its other keys. It's used only for
 //! the approved offer's swap, and erased when that offer ends: sold,
 //! withdrawn or gone from the board.
 
@@ -15,18 +15,18 @@ use std::collections::BTreeMap;
 use std::fs;
 use std::path::{Path, PathBuf};
 
-/// One approved offer, as listed (nothing secret on Macs).
+/// One approved offer, as listed (nothing secret on Macs and iPhones).
 #[derive(Clone, Serialize, Deserialize)]
 struct Approved {
     /// The ORN approved, in units: only an offer for exactly this many.
     orn: u64,
     wallet: PathBuf,
-    /// Elsewhere than Macs, the wallet's password itself.
+    /// Elsewhere than Macs and iPhones, the wallet's password itself.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     password: Option<String>,
 }
 
-#[cfg(target_os = "macos")]
+#[cfg(any(target_os = "macos", target_os = "ios"))]
 const KEYCHAIN_SERVICE: &str = "network.orien.wallet.offer";
 
 fn file(dir: &Path) -> PathBuf {
@@ -34,7 +34,18 @@ fn file(dir: &Path) -> PathBuf {
 }
 
 fn load(dir: &Path) -> BTreeMap<i64, Approved> {
-    fs::read(file(dir)).ok().and_then(|bytes| serde_json::from_slice(&bytes).ok()).unwrap_or_default()
+    let mut all: BTreeMap<i64, Approved> = fs::read(file(dir)).ok().and_then(|bytes| serde_json::from_slice(&bytes).ok()).unwrap_or_default();
+    // Kept in the file by an earlier iPhone copy: moved into the Keychain.
+    #[cfg(any(target_os = "macos", target_os = "ios"))]
+    if all.values().any(|approved| approved.password.is_some()) {
+        for (offer, approved) in all.iter_mut() {
+            if let Some(password) = approved.password.take() {
+                let _ = security_framework::passwords::set_generic_password(KEYCHAIN_SERVICE, &offer.to_string(), password.as_bytes());
+            }
+        }
+        save(dir, &all);
+    }
+    all
 }
 
 fn save(dir: &Path, all: &BTreeMap<i64, Approved>) {
@@ -50,14 +61,14 @@ fn save(dir: &Path, all: &BTreeMap<i64, Approved>) {
 /// `password` (None for a wallet with no lock).
 pub fn approve(dir: &Path, offer: i64, orn: u64, wallet: &Path, password: Option<&str>) {
     let mut all = load(dir);
-    #[cfg(target_os = "macos")]
+    #[cfg(any(target_os = "macos", target_os = "ios"))]
     let kept = {
         if let Some(password) = password {
             let _ = security_framework::passwords::set_generic_password(KEYCHAIN_SERVICE, &offer.to_string(), password.as_bytes());
         }
         None
     };
-    #[cfg(not(target_os = "macos"))]
+    #[cfg(not(any(target_os = "macos", target_os = "ios")))]
     let kept = password.map(str::to_string);
     all.insert(offer, Approved { orn, wallet: wallet.to_path_buf(), password: kept });
     save(dir, &all);
@@ -70,14 +81,14 @@ pub fn approved(dir: &Path, offer: i64, orn: u64, wallet: &Path) -> Option<Optio
     if approved.orn != orn || approved.wallet != wallet {
         return None;
     }
-    #[cfg(target_os = "macos")]
+    #[cfg(any(target_os = "macos", target_os = "ios"))]
     {
         let password = security_framework::passwords::get_generic_password(KEYCHAIN_SERVICE, &offer.to_string())
             .ok()
             .and_then(|bytes| String::from_utf8(bytes).ok());
         Some(password.or(approved.password))
     }
-    #[cfg(not(target_os = "macos"))]
+    #[cfg(not(any(target_os = "macos", target_os = "ios")))]
     Some(approved.password)
 }
 
@@ -87,7 +98,7 @@ pub fn forget(dir: &Path, offer: i64) {
     if all.remove(&offer).is_some() {
         save(dir, &all);
     }
-    #[cfg(target_os = "macos")]
+    #[cfg(any(target_os = "macos", target_os = "ios"))]
     let _ = security_framework::passwords::delete_generic_password(KEYCHAIN_SERVICE, &offer.to_string());
 }
 
