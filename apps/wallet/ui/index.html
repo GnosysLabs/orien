@@ -2096,7 +2096,19 @@
   <div id="upd-buttons"></div>
 </div></div>
 <script>
-  const invoke = window.__TAURI__.core.invoke;
+  // The app's own system sheets (pickers, Face ID, saving a file) aren't
+  // leaving the app: the lock doesn't close in while one is up.
+  let systemSheet = 0;
+  const SHEETS = new Set(["board_picture_pick", "market_pick_pictures", "save_phrase", "plugin:barcode-scanner|scan",
+    "plugin:barcode-scanner|request_permissions", "biometric_unlock", "biometric_enable", "app_unlock", "notifications_ask"]);
+  const invoke = (cmd, args) => {
+    const call = window.__TAURI__.core.invoke(cmd, args);
+    if (!SHEETS.has(cmd)) return call;
+    systemSheet++;
+    const done = () => setTimeout(() => { systemSheet = Math.max(0, systemSheet - 1); }, 1200);
+    call.then(done, done);
+    return call;
+  };
   // Windows draws its own title bar above the window, so the top bar there
   // needs no room for the Mac's window buttons.
   // Windows and Linux: no system bar; the app's own – and ✕ instead.
@@ -2943,17 +2955,31 @@
 
   // The app lock: Touch ID or Face ID when the app opens, and when it comes
   // back after a minute or more away.
-  let lockedAt = 0, hiddenAt = 0;
+  // On iPhones it locks the moment the app is left, and covers it (so the
+  // app switcher shows nothing); on Macs after a minute away.
+  let hiddenAt = 0, unlocking = false;
+  const lockOn = () => apple && localStorage.getItem("app-lock") === "on";
   async function lockApp() {
-    if (!apple || localStorage.getItem("app-lock") !== "on") return;
+    if (!lockOn() || unlocking) return;
     $("lock-veil").hidden = false;
+    unlocking = true;
     try { await invoke("app_unlock"); $("lock-veil").hidden = true; } catch {}
+    finally { unlocking = false; }
   }
   $("lock-go").onclick = lockApp;
   loadPrefs();
   document.addEventListener("visibilitychange", () => {
-    if (document.hidden) { hiddenAt = Date.now(); return; }
-    if (hiddenAt && Date.now() - hiddenAt > 60000) lockApp();
+    if (!lockOn()) return;
+    if (document.hidden) {
+      if (systemSheet || unlocking) return;
+      hiddenAt = Date.now();
+      if (phone) $("lock-veil").hidden = false;
+      return;
+    }
+    if (!hiddenAt) return;
+    const away = Date.now() - hiddenAt;
+    hiddenAt = 0;
+    if (phone || away > 60000) lockApp();
   });
   lockApp();
 
