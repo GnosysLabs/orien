@@ -145,7 +145,20 @@
     --brand: linear-gradient(115deg, #d9468f 0%, #4f6bf0 24%, #8b4ff0 46%, #13a37e 68%, #d99a14 84%, #d9468f 100%);
   }
   /* Daylight: lighter shadows, so cards float rather than darken the page. */
-  [data-theme="daylight"] .card, [data-theme="daylight"].card { box-shadow: 0 10px 28px rgba(60, 60, 110, 0.14), inset 0 1px 0 #ffffffb0; }
+  /* Shadows small enough to fade out inside the room around each scrolling
+     area, and more room there, so no shadow is ever cut off by its edge.
+     The same in every theme; only their colour changes. */
+  :root { --shade: 0, 0, 0; --shade-a: 0.34; }
+  [data-theme="daylight"] { --shade: 60, 60, 110; --shade-a: 0.13; }
+  html body .card { box-shadow: 0 6px 16px rgba(var(--shade), var(--shade-a)), inset 0 1px 0 #ffffffb0; }
+  html body .primary.pearl { box-shadow: inset 0 1px 0 #ffffffb0, 0 4px 12px rgba(var(--shade), var(--shade-a)); }
+  html body .pill.pearl { box-shadow: inset 0 1px 0 #ffffffa0, 0 3px 9px rgba(var(--shade), var(--shade-a)); }
+  html body .wallet-row.current { box-shadow: 0 0 0 2.5px var(--select), 0 4px 12px rgba(var(--shade), var(--shade-a)); }
+  html body .theme-card .tc-mini { box-shadow: 0 6px 14px rgba(var(--shade), var(--shade-a)); }
+  html body .screen, html body #mine, html body #board-signin, html body #board-post, html body #board-take,
+  html body #swaps, html body #swap-sell, html body #swap-buy, html body #swap-detail {
+    margin-left: -18px; margin-right: -18px; padding-left: 18px; padding-right: 18px; padding-bottom: 22px; }
+  html body .scroll { margin-left: -18px; margin-right: -18px; padding-left: 18px; padding-right: 18px; padding-bottom: 22px; }
   [data-theme="daylight"] .tile, [data-theme="daylight"] .set-group, [data-theme="daylight"] .pair-card { box-shadow: 0 1px 2px rgba(40, 40, 80, 0.05); }
   [data-theme="daylight"] .menu-row.bad { color: var(--bad); }
   /* Switching: the whole app fades into the new look. */
