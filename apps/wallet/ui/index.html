@@ -1554,7 +1554,13 @@
     </section>
 
     <section class="screen" id="wallet-rename" hidden>
-      <div class="topline"><button class="back" id="wr-back" aria-label="Back"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10 3 5 8l5 5"/></svg></button><h2>Edit wallet</h2></div>
+      <div class="topline"><button class="back" id="wr-back" aria-label="Back"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10 3 5 8l5 5"/></svg></button><h2>Edit wallet</h2>
+        <div class="account"><button class="pill icon" id="wr-more" title="More" aria-label="More"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="19" cy="12" r="1.8"/></svg></button></div></div>
+      <div class="ch-menu" id="wr-menu" role="menu" hidden>
+        <button class="menu-row" id="wr-reveal"><span>Show recovery phrase</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="7.5" cy="15.5" r="4.5"/><path d="M10.7 12.3 21 2M16 7l3 3M18.5 4.5l2 2"/></svg></button>
+        <button class="menu-row" id="wr-pair"><span>Add to another device</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="13" height="10" rx="2"/><path d="M5 18h7"/><rect x="17" y="8" width="5" height="12" rx="1.5"/></svg></button>
+        <button class="menu-row bad" id="wr-forget"><span>Remove from this app</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13"/></svg></button>
+      </div>
       <div class="field">
         <label for="wr-name">Name</label>
         <div class="box plain"><input id="wr-name" maxlength="24" autocomplete="off"></div>
@@ -1565,9 +1571,6 @@
         <div class="emoji-grid" id="wr-emoji"></div>
       </div>
       <div class="problem" id="wallet-rename-problem" hidden></div>
-      <button class="secondary pair-go" id="wr-reveal" data-gap="xl"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="7.5" cy="15.5" r="4.5"/><path d="M10.7 12.3 21 2M16 7l3 3M18.5 4.5l2 2"/></svg>Show recovery phrase</button>
-      <button class="secondary pair-go" id="wr-pair" data-gap="sm"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="13" height="10" rx="2"/><path d="M5 18h7"/><rect x="17" y="8" width="5" height="12" rx="1.5"/></svg>Add to another device</button>
-      <button class="pill ct-delete" id="wr-forget">Remove from this app</button>
     </section>
 
     <section class="screen" id="wallet-forget" hidden>
@@ -2454,6 +2457,7 @@
     $("rv-box").classList.add("blurred");
     $("rv-pw").value = "";
   }
+  $("wr-more").onclick = () => toggleMenu("wr-menu", "wr-more");
   $("wr-reveal").onclick = async () => {
     await saveName();
     revealClear();
@@ -4155,7 +4159,7 @@
   }
   document.addEventListener("pointerdown", (e) => {
     for (const m of document.querySelectorAll(".ch-menu:not([hidden])")) {
-      if (!m.contains(e.target) && !e.target.closest("#ch-more, #sl-more, #ls-more")) m.hidden = true;
+      if (!m.contains(e.target) && !e.target.closest("#ch-more, #sl-more, #ls-more, #wr-more")) m.hidden = true;
     }
   }, true);
   document.addEventListener("keydown", (e) => { if (e.key === "Escape") for (const m of document.querySelectorAll(".ch-menu")) m.hidden = true; });
