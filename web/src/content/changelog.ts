@@ -28,6 +28,21 @@ export const CHANGELOG: Entry[] = [
   {
     date: '2026-11-17',
     products: ['wallet'],
+    version: '1.8.12',
+    title: 'Three new themes, and a balance you can hide with one tap',
+    changes: [
+      'Three new themes: Daylight (light), Amethyst and Ember, and brighter Rosé.',
+      'An eye on the balance card hides your balance and blurs your activity; tap it again to show them.',
+      'Balances show two decimals; tap the balance to see every decimal, and tap again to go back.',
+      'The open wallet in your list stands out with a clear outline, and its icon stays easy to see.',
+      'Only one copy of the app runs at a time on computers: opening it again brings the running one forward.',
+      'On Linux, switching themes no longer crashes the app on computers with NVIDIA graphics.',
+      'Softer shadows that never get cut off, and roomier icons on the home screen.',
+    ],
+  },
+  {
+    date: '2026-11-17',
+    products: ['wallet'],
     version: '1.8.11',
     title: 'Settings, themes, and wallets that move between your devices',
     changes: [
