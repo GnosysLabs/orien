@@ -159,9 +159,14 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                 Contact
               </Link>
               {MARKETPLACE_LIVE && (
-                <Link href="/privacy/" className="hover:text-ink">
-                  Privacy
-                </Link>
+                <>
+                  <Link href="/privacy/" className="hover:text-ink">
+                    Privacy
+                  </Link>
+                  <Link href="/terms/" className="hover:text-ink">
+                    Terms
+                  </Link>
+                </>
               )}
               <a href={OPERATOR_URL} target="_blank" rel="noreferrer" className="hover:text-ink">
                 GnosysLabs
