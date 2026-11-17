@@ -119,9 +119,13 @@ function SignIn({ onDone, trouble: first }: { onDone: () => void; trouble: strin
           <button type="submit" disabled={busy || code.length !== 6} className={button}>
             {busy ? 'Checking…' : 'Sign in'}
           </button>
-          <p className="text-center text-sm text-muted">
-            Wrong email or no code?{' '}
-            <button type="button" onClick={() => setStep('email')} className="font-semibold text-ink underline underline-offset-4">
+          <p className="flex items-center justify-center gap-3 text-sm text-muted">
+            Wrong email or no code?
+            <button
+              type="button"
+              onClick={() => setStep('email')}
+              className="flex h-8 items-center rounded-lg border border-line px-3 text-xs font-semibold text-ink transition hover:border-pearl"
+            >
               Start again
             </button>
           </p>
@@ -237,7 +241,7 @@ function DeleteAccount({ name, onDeleted }: { name: string; onDeleted: () => voi
   if (!open) {
     return (
       <div className="border-t border-line pt-6">
-        <button type="button" onClick={() => setOpen(true)} className="text-sm text-muted underline underline-offset-4 hover:text-stop">
+        <button type="button" onClick={() => setOpen(true)} className="flex h-9 items-center rounded-lg border border-line px-3 text-sm font-semibold text-muted transition hover:border-stop hover:text-stop">
           Delete my account
         </button>
       </div>

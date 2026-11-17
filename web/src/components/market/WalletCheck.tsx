@@ -171,13 +171,13 @@ function WalletRow({
             <span className="text-xs font-semibold text-pearl">Paid here</span>
           ) : (
             verified && (
-              <button type="button" onClick={onPayHere} className="text-xs font-semibold text-ink underline underline-offset-4 hover:text-pearl">
+              <button type="button" onClick={onPayHere} className="flex h-8 items-center rounded-lg border border-line bg-surface px-3 text-xs font-semibold text-ink transition hover:border-pearl">
                 Get paid here
               </button>
             )
           )}
           {row.proof === null && (
-            <button type="button" onClick={onVerify} className="text-xs font-semibold text-ink underline underline-offset-4 hover:text-pearl">
+            <button type="button" onClick={onVerify} className="flex h-8 items-center rounded-lg border border-line bg-surface px-3 text-xs font-semibold text-ink transition hover:border-pearl">
               Verify
             </button>
           )}
