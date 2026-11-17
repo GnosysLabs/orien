@@ -569,6 +569,12 @@ async fn phones_hear_about_mining_rewards_merged() {
     let notebook = Notebook::default();
     assert_eq!(check_once(&market.app, &notebook).unwrap(), 0, "rewards from before registering are not told");
 
+    // Muting "received" leaves mining alone; muting "mining" stops it.
+    market.ask("POST", "/api/market/push/register", None, Some(json!({ "token": phone, "sandbox": true, "addresses": [miner], "mute": ["received", "mining"] }))).await;
+    mine(1_000_000_000, 30);
+    assert_eq!(check_once(&market.app, &notebook).unwrap(), 0, "mining muted");
+    market.ask("POST", "/api/market/push/register", None, Some(json!({ "token": phone, "sandbox": true, "addresses": [miner], "mute": ["received"] }))).await;
+
     // Two rewards seen at once: one notification with their sum.
     mine(4_000_000_000, 30);
     mine(8_004_000_000, 31);

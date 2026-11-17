@@ -31,7 +31,7 @@ use std::sync::{Arc, Mutex};
 use std::time::{Duration, Instant};
 
 /// The kinds of notification a phone can turn off.
-pub const MUTABLE: [&str; 3] = ["received", "market", "swaps"];
+pub const MUTABLE: [&str; 4] = ["received", "mining", "market", "swaps"];
 
 /// Wallets one phone may ask about.
 pub const MAX_ADDRESSES: usize = 50;
@@ -89,7 +89,7 @@ impl Store {
             self.db.execute("ALTER TABLE push_tokens ADD COLUMN account INTEGER REFERENCES accounts(id) ON DELETE SET NULL", [])?;
         }
         // The kinds of notification the phone's owner turned off, comma
-        // separated: received, market, swaps.
+        // separated: received, mining, market, swaps.
         let has_mute: bool =
             self.db.query_row("SELECT COUNT(*) > 0 FROM pragma_table_info('push_tokens') WHERE name = 'mute'", [], |row| row.get(0))?;
         if !has_mute {
@@ -103,7 +103,7 @@ impl Store {
     /// `account` is the Market account the app is signed in to, if any:
     /// registering again signed out stops its messages reaching the phone.
     /// `mute` lists the kinds of notification turned off: "received",
-    /// "market" or "swaps"; anything else is ignored.
+    /// "mining", "market" or "swaps"; anything else is ignored.
     pub fn register_push(&self, token: &str, sandbox: bool, addresses: &[String], account: Option<i64>, mute: &[String]) -> Result<usize> {
         let token = device_token(token)?;
         let mut muted: Vec<&str> = MUTABLE.iter().copied().filter(|kind| mute.iter().any(|m| m.trim() == *kind)).collect();
@@ -473,16 +473,16 @@ pub fn check_once(app: &App, notify: &dyn Notify) -> Result<usize> {
             if credit.mined {
                 mined = mined.saturating_add(credit.amount);
             } else {
-                bodies.push(received_text(credit.amount));
+                bodies.push(("received", received_text(credit.amount)));
             }
         }
         if mined > 0 {
-            bodies.push(mined_text(mined));
+            bodies.push(("mining", mined_text(mined)));
         }
-        for body in bodies {
+        for (kind, body) in bodies {
             let payload = payload(&body, &address);
             // Read first, so the store is not held while forgetting a phone.
-            let phones = app.store().phones_for(&address, "received")?;
+            let phones = app.store().phones_for(&address, kind)?;
             for (phone, sandbox) in phones {
                 match notify.notify(&phone, sandbox, &payload) {
                     Sent::Delivered => sent += 1,
@@ -541,7 +541,7 @@ pub struct Register {
     sandbox: bool,
     #[serde(default)]
     addresses: Vec<String>,
-    /// Kinds of notification turned off: "received", "market", "swaps".
+    /// Kinds of notification turned off: "received", "mining", "market", "swaps".
     #[serde(default)]
     mute: Vec<String>,
 }
