@@ -889,6 +889,11 @@
   #se-gate p { margin: 6px 0 0; }
   #se-gate .pill { margin-top: 12px; }
   #se-gate .hint { margin-top: 12px; font-size: 12.5px; }
+  /* Your wallets on the profile: status, Paid here or Get paid here, ⋯. */
+  .vf-who { min-width: 0; }
+  .vf-acts { display: flex; align-items: center; gap: 6px; flex: none; }
+  .vf-paid { font-size: 12.5px; font-weight: 600; color: var(--good); }
+  .vf-hint { display: block; margin-top: 6px; color: var(--faint); }
   .steps { list-style: none; margin: 18px 0 0; padding: 0; }
   .steps li { position: relative; display: grid; grid-template-columns: 26px 1fr; gap: 12px; padding-bottom: 16px; }
   .steps li:not(:last-child)::before { content: ""; position: absolute; left: 12px; top: 28px; bottom: 4px; width: 1px; background: var(--line); }
@@ -1595,6 +1600,9 @@
       <div class="section-head pf-listings-head"><h3>Your listings</h3><button class="pill pearl" id="pf-sell">Sell something</button></div>
       <div class="mk-grid" id="pf-listings"></div>
       <!-- Verifying wallets, so people paying them see "Name – Wallet". -->
+      <div class="ch-menu" id="vf-menu" role="menu" hidden>
+        <button class="menu-row bad" id="vf-remove"><span>Remove from your profile</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 11v6"/><path d="M14 11v6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></button>
+      </div>
       <div class="verify-card" id="pf-verify" hidden>
         <div class="vc-title">Your wallets</div>
         <p class="vc-text" id="vf-intro">Verify a wallet and people who pay it see your name with it.</p>
@@ -4722,7 +4730,7 @@
   }
   document.addEventListener("pointerdown", (e) => {
     for (const m of document.querySelectorAll(".ch-menu:not([hidden])")) {
-      if (!m.contains(e.target) && !e.target.closest("#ch-more, #sl-more, #ls-more, #wr-more")) m.hidden = true;
+      if (!m.contains(e.target) && !e.target.closest("#ch-more, #sl-more, #ls-more, #wr-more, .vf-more")) m.hidden = true;
     }
   }, true);
   document.addEventListener("keydown", (e) => { if (e.key === "Escape") for (const m of document.querySelectorAll(".ch-menu")) m.hidden = true; });
@@ -5256,18 +5264,41 @@
     if (card.hidden) return;
     try { states = (await invoke("board_wallet_states")) || []; } catch {}
     const state = (a) => states.find((p) => (p.address || "").toLowerCase() === a);
-    $("vf-list").innerHTML = walletList.map((w) => {
-      const st = state(w.address);
+    // Every wallet: this app's, and any the profile has from other devices.
+    const rows = walletList.map((w) => ({ address: w.address, name: w.name, here: true, current: w.current }));
+    for (const p of states) {
+      const a = (p.address || "").toLowerCase();
+      if (!rows.some((r) => r.address === a)) rows.push({ address: a, name: p.name || "Wallet", here: false, current: false });
+    }
+    const paidTo = ((board.me && board.me.wallet) || "").toLowerCase();
+    const anyVerified = states.some((p) => p.verified);
+    const noOrn = phone
+      ? "Don't have any ORN yet? Mine for an hour in Orien Wallet on a computer, or buy a little at orien.network."
+      : "Don't have any ORN yet? Mine for an hour from the Mine screen, or buy a little on Swap.";
+    $("vf-intro").innerHTML = anyVerified
+      ? "Buyers on the Market pay the wallet marked Paid here. Verify more to choose between them."
+      : `Verify a wallet to sell on the Market: buyers pay it, and see your name with it.<span class="vf-hint">${noOrn}</span>`;
+    $("vf-list").innerHTML = rows.map((r, i) => {
+      const st = state(r.address);
+      const verified = !!(st && st.verified), waiting = !!(st && !st.verified);
       // While one is being verified (confirming below, or sent and waiting)
       // its Verify button gives way to where it stands.
-      const busy = verifying === w.address;
-      const right = st && st.verified ? VERIFIED
+      const busy = verifying === r.address;
+      const status = verified ? "Verified" : waiting ? "Waiting" : "Not verified yet";
+      const action = verified
+        ? (r.address === paidTo ? '<span class="vf-paid">Paid here</span>' : `<button class="pill" data-paid="${r.address}">Get paid here</button>`)
         : busy ? `<span class="vf-wait">${proof ? "Confirm below" : "Verifying…"}</span>`
-        : w.current ? `<button class="pill pearl" data-verify="${w.address}">Verify</button>`
-        : '<span class="vf-wait">Open it to verify</span>';
-      return `<div class="vf-row"><div><div class="vf-name">${esc(w.name)}</div><div class="vc-sub">${short(w.address)}</div></div>${right}</div>`;
+        : r.current ? `<button class="pill pearl" data-verify="${r.address}">Verify</button>`
+        : r.here ? '<span class="vf-wait">Open it to verify</span>' : "";
+      const more = st ? `<button class="pill icon vf-more" id="vf-more-${i}" data-more="${r.address}" aria-label="More"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="19" cy="12" r="1.8"/></svg></button>` : "";
+      return `<div class="vf-row"><div class="vf-who"><div class="vf-name">${esc(r.name)}${verified ? " " + VERIFIED : ""}</div><div class="vc-sub">${short(r.address)} · ${status}</div></div><div class="vf-acts">${action}${more}</div></div>`;
     }).join("");
-    for (const b of $("vf-list").querySelectorAll("[data-verify]")) b.onclick = () => startVerify(b.dataset.verify, b);
+    for (const b of $("vf-list").querySelectorAll("[data-paid]")) b.onclick = async () => {
+      b.disabled = true; $("pf-problem").hidden = true;
+      try { await invoke("board_paid_wallet", { address: b.dataset.paid }); board.me = await invoke("board_me"); renderVerify(); feel("success"); }
+      catch (e) { b.disabled = false; problem("pf-problem", e); }
+    };
+    for (const b of $("vf-list").querySelectorAll("[data-more]")) b.onclick = () => { vfMenuFor = b.dataset.more; toggleMenu("vf-menu", b.id); };
     if (!note) { $("vf-confirm").hidden = true; proof = null; verifying = null; }
     else { $("vf-confirm").hidden = false; $("vf-text").textContent = note; $("vf-pw-field").hidden = true; $("vf-go").hidden = true; }
   }
@@ -5288,6 +5319,15 @@
     if (!$("vf-pw-field").hidden) $("vf-pw").focus();
   }
   $("vf-cancel").onclick = () => renderVerify();
+  // Taking a wallet off the profile, from its ⋯ menu.
+  let vfMenuFor = null;
+  $("vf-remove").onclick = async () => {
+    $("vf-menu").hidden = true;
+    if (!vfMenuFor) return;
+    $("pf-problem").hidden = true;
+    try { await invoke("board_wallet_remove", { address: vfMenuFor }); board.me = await invoke("board_me"); renderVerify(); }
+    catch (e) { problem("pf-problem", e); }
+  };
   $("vf-go").onclick = async () => {
     if (!proof || !view || (proof.address || "").toLowerCase() !== view.address) { renderVerify(); return; }
     $("vf-go").disabled = true;

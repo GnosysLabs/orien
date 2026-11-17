@@ -408,6 +408,19 @@ pub fn verify(dir: &Path, address: &str) -> Result<Value, String> {
     Ok(call(dir, "POST", "/me/wallet/verify", Some(json!({ "address": address.trim().to_lowercase() })))?["proof"].clone())
 }
 
+/// Makes `address` the wallet Market buyers pay (a verified one, once the
+/// account has any).
+pub fn set_paid_wallet(dir: &Path, address: &str) -> Result<(), String> {
+    call(dir, "POST", "/me/wallet", Some(json!({ "address": address.trim().to_lowercase(), "app": true })))?;
+    Ok(())
+}
+
+/// Takes a wallet off the profile, verified or waiting.
+pub fn remove_wallet(dir: &Path, address: &str) -> Result<(), String> {
+    call(dir, "POST", "/me/wallet/remove", Some(json!({ "address": address.trim().to_lowercase() })))?;
+    Ok(())
+}
+
 /// The account's wallets and where each stands: verified, or waiting for
 /// its payment.
 pub fn wallet_states(dir: &Path) -> Result<Value, String> {
