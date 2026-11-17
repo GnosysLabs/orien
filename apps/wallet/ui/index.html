@@ -1864,14 +1864,13 @@
       <div id="wallet-list"><div class="empty">Loading…</div></div>
       <div class="problem" id="wallets-problem" hidden></div>
       <button class="primary pearl" id="wallet-add-go" data-gap="lg">Add a wallet</button>
-      <button class="secondary" id="wallets-link" data-gap="sm">Link a new device</button>
     </section>
 
     <section class="screen" id="wallet-add-choose" hidden>
       <div class="topline"><button class="back" data-to="wallets" aria-label="Back"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg></button><h2>Add a wallet</h2></div>
       <div class="add-opts" data-gap="lg">
         <button class="add-opt" id="ac-new"><span class="add-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="M12 5v14"/></svg></span><span class="add-txt"><b>Make a new wallet</b><small>A fresh one, with its own recovery phrase</small></span><svg class="chev" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg></button>
-        <button class="add-opt" id="ac-pair"><span class="add-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v7a2 2 0 0 0 2 2h8"/><path d="M10 19v-3.96 3.15"/><path d="M7 19h5"/><rect width="6" height="10" x="16" y="12" rx="2"/></svg></span><span class="add-txt"><b>Use my other device</b><small>Bring your wallets over from your phone or computer</small></span><svg class="chev" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg></button>
+        <button class="add-opt" id="ac-pair"><span class="add-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v7a2 2 0 0 0 2 2h8"/><path d="M10 19v-3.96 3.15"/><path d="M7 19h5"/><rect width="6" height="10" x="16" y="12" rx="2"/></svg></span><span class="add-txt"><b>From my other device</b><small>Bring your wallets here from your phone or computer</small></span><svg class="chev" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg></button>
         <button class="add-opt" id="ac-restore"><span class="add-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5h10"/><path d="M11 12h10"/><path d="M11 19h10"/><path d="M4 4h1v5"/><path d="M4 9h2"/><path d="M6.5 20H3.4c0-1 2.6-1.925 2.6-3.5a1.5 1.5 0 0 0-2.6-1.02"/></svg></span><span class="add-txt"><b>Restore with recovery phrase</b><small>Type the 24 words of a wallet you have</small></span><svg class="chev" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg></button>
       </div>
     </section>
@@ -1998,7 +1997,6 @@
         <div class="account"><button class="pill icon" id="wr-more" title="More" aria-label="More"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg></button></div></div>
       <div class="ch-menu" id="wr-menu" role="menu" hidden>
         <button class="menu-row" id="wr-reveal"><span>Show recovery phrase</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2.586 17.414A2 2 0 0 0 2 18.828V21a1 1 0 0 0 1 1h3a1 1 0 0 0 1-1v-1a1 1 0 0 1 1-1h1a1 1 0 0 0 1-1v-1a1 1 0 0 1 1-1h.172a2 2 0 0 0 1.414-.586l.814-.814a6.5 6.5 0 1 0-4-4z"/><circle cx="16.5" cy="7.5" r=".5" fill="currentColor"/></svg></button>
-        <button class="menu-row" id="wr-pair"><span>Link a new device</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v7a2 2 0 0 0 2 2h8"/><path d="M10 19v-3.96 3.15"/><path d="M7 19h5"/><rect width="6" height="10" x="16" y="12" rx="2"/></svg></button>
         <button class="menu-row bad" id="wr-forget"><span>Remove from this app</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 11v6"/><path d="M14 11v6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></button>
       </div>
       <div class="field">
@@ -3235,8 +3233,6 @@
     if (!phone) $("pl-code").focus();
   }
   $("st-link").onclick = () => openPairLink("settings");
-  $("wallets-link").onclick = () => openPairLink("wallets");
-  $("wr-pair").onclick = async () => { await saveName(); openPairLink("wallet-rename"); };
   async function pairAccept(code) {
     const token = pairing && pairing.token;
     if (!token || !code.trim()) return;
