@@ -321,4 +321,51 @@ mod tests {
         assert_ne!(confirmation(&ka), confirmation(&kb));
         assert!(open(&kb, &seal(&ka, b"hello").unwrap()).is_err());
     }
+
+    /// A whole pairing against the live mailbox: one side offers, the other
+    /// joins with the code, both see the same emoji, and the parcel arrives
+    /// intact. A wrong code fails and closes the mailbox.
+    #[test]
+    #[ignore = "reaches orien.network"]
+    fn a_wallet_crosses_through_the_live_mailbox() {
+        let code = offer().unwrap();
+        let joiner = std::thread::spawn({
+            let code = code.clone();
+            move || join(&code).unwrap()
+        });
+        let mut seen = None;
+        for _ in 0..10 {
+            if let Some(emoji) = offer_wait().unwrap() {
+                seen = Some(emoji);
+                break;
+            }
+        }
+        let theirs = joiner.join().unwrap();
+        assert_eq!(seen.as_deref(), Some(theirs.as_str()));
+        offer_send(&Parcel { words: "test words".into(), account: 1, name: "Savings".into(), icon: Some("💎".into()) }).unwrap();
+        let mut got = None;
+        for _ in 0..10 {
+            if let Some(parcel) = join_wait().unwrap() {
+                got = Some(parcel);
+                break;
+            }
+        }
+        let got = got.unwrap();
+        assert_eq!((got.words.as_str(), got.name.as_str(), got.icon.as_deref()), ("test words", "Savings", Some("💎")));
+
+        // A wrong code: the joiner fails, or the offer sees the mismatch.
+        let code = offer().unwrap();
+        let number = code.split('-').next().unwrap().to_string();
+        let wrong = std::thread::spawn(move || join(&format!("{number}-wrong-words")));
+        let mut failed = false;
+        for _ in 0..6 {
+            match offer_wait() {
+                Err(_) => { failed = true; break; }
+                Ok(Some(_)) => panic!("a wrong code matched"),
+                Ok(None) => {}
+            }
+        }
+        let _ = wrong.join();
+        assert!(failed, "the offer noticed the wrong code");
+    }
 }
