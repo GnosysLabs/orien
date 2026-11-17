@@ -936,6 +936,13 @@
   body.phone .amount-entry input { font-size: var(--amount-size, 52px) !important; }
   body.phone #send .push { flex: 1 1 auto; }
   body.phone #send #to-review { margin-bottom: 4px; }
+  /* Keyboard up: the amount area compact, so everything, Review included,
+     fits above the keyboard. */
+  body.phone.kb-up .amount-entry { padding: 0 0 10px; }
+  body.phone.kb-up .amount-entry input { font-size: 40px !important; }
+  body.phone.kb-up .amount-entry .amount-unit { margin-top: 0; font-size: 11px; }
+  body.phone.kb-up .amount-entry .hint { margin-top: 4px; }
+  body.phone.kb-up .amount-entry .fee-line:empty { display: none; }
   .amount-mirror { position: absolute; left: -9999px; top: 0; visibility: hidden; white-space: pre; }
   .fee-line { margin-top: 4px; min-height: 18px; font-size: 12px; color: var(--faint); }
   .fee-line.bad { color: var(--bad); }
