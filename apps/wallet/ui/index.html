@@ -2756,7 +2756,7 @@
   // ---- Settings: balances, the app lock, notifications, this computer ----
   const prefs = { hide: false, short: false, noarrow: false };
   let mutedKinds = [];
-  let balancePeek = 0;   // a tap shows the hidden or full balance for a while
+  let balancePeek = 0;   // 1 while a tap has the hidden or full balance showing
   const shortBalance = (text) => {
     const n = Number(String(text).replace(/,/g, ""));
     return Number.isFinite(n) ? n.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : text;
@@ -2769,15 +2769,18 @@
       else if (prefs.short) text = shortBalance(text);
     }
     $("balance").textContent = text;
-    $("balance").title = prefs.hide || prefs.short ? "Tap to see it all" : "";
+    $("balance").title = prefs.hide || prefs.short ? (balancePeek ? "Tap to hide again" : "Tap to see it all") : "";
     fitBalance();
   }
+  // A tap shows the hidden or full balance; another tap puts it back.
   document.querySelector("#home .card").addEventListener("click", () => {
     if (!(prefs.hide || prefs.short)) return;
-    clearTimeout(balancePeek);
-    balancePeek = setTimeout(() => { balancePeek = 0; paintBalance(); }, 10000);
+    balancePeek = balancePeek ? 0 : 1;
+    feel("selection");
     paintBalance();
   });
+  // Leaving the app hides it again.
+  document.addEventListener("visibilitychange", () => { if (document.hidden && balancePeek) { balancePeek = 0; paintBalance(); } });
   function paintSettings() {
     $("st-hide").checked = prefs.hide; $("st-short").checked = prefs.short; $("st-arrow").checked = !prefs.noarrow;
     $("st-lock-row").hidden = !apple;
