@@ -62,6 +62,8 @@ pub struct App {
     min_swap_version: u32,
     /// Market events waiting for the push watcher to tell phones about.
     events: Mutex<Vec<crate::push::Event>>,
+    /// Pairing mailboxes, for moving a wallet between someone's devices.
+    pairs: crate::pair::Mailboxes,
 }
 
 impl App {
@@ -98,6 +100,7 @@ impl App {
             traffic: Arc::new(crate::traffic::Traffic::in_memory()),
             min_swap_version: 0,
             events: Mutex::new(Vec::new()),
+            pairs: crate::pair::Mailboxes::default(),
         })
     }
 
@@ -156,6 +159,11 @@ impl App {
 
     pub(crate) fn payments(&self) -> Arc<dyn Payments> {
         self.payments.clone()
+    }
+
+    #[doc(hidden)]
+    pub fn pairs(&self) -> &crate::pair::Mailboxes {
+        &self.pairs
     }
 
     /// Queues a notification for the phones of `event.account`.
@@ -314,6 +322,9 @@ pub fn router(app: Arc<App>) -> Router {
         .route("/api/market/contact", post(contact))
         .route("/api/market/t", post(ping))
         .route("/api/market/push/register", post(crate::push::register))
+        .route("/api/market/pair", post(crate::pair::open))
+        .route("/api/market/pair/{code}", axum::routing::delete(crate::pair::close))
+        .route("/api/market/pair/{code}/{slot}", get(crate::pair::read).put(crate::pair::write))
         .route("/api/market/push/unregister", post(crate::push::unregister))
         .route("/api/market/conversations", get(conversations))
         .route("/api/market/conversations/{id}", get(conversation))

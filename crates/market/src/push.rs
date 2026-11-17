@@ -504,7 +504,7 @@ fn allowed(keys: &[String]) -> bool {
     true
 }
 
-fn sender(headers: &HeaderMap) -> String {
+pub(crate) fn sender(headers: &HeaderMap) -> String {
     let header = |name: &str| headers.get(name).and_then(|v| v.to_str().ok()).unwrap_or("").trim().to_string();
     let forwarded = header("x-forwarded-for");
     [header("cf-connecting-ip"), forwarded.split(',').next().unwrap_or("").trim().to_string()]
