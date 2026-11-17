@@ -45,7 +45,7 @@ export const metadata: Metadata = {
     'buy ORN with SOL',
     'buy ORN with Bitcoin',
     'crypto wallet for Mac, Windows and Linux',
-    'GnosysLabs',
+    'Gnosys Labs',
   ],
   category: 'finance',
   creator: OPERATOR,
@@ -169,7 +169,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                 </>
               )}
               <a href={OPERATOR_URL} target="_blank" rel="noreferrer" className="hover:text-ink">
-                GnosysLabs
+                Gnosys Labs
               </a>
             </nav>
             <p className="mt-3">© 2026 {OPERATOR}</p>
