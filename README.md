@@ -424,6 +424,11 @@ What someone holding or sending ORN should know:
   Wallets, by contrast, can be sealed with a password, and Orien Wallet on
   Mac and iPhone can lock them with Touch ID or Face ID instead.
 
+## Founders and maintainers
+
+- Christopher McElvogue
+- Matthew Gregorini
+
 ## License
 
 Orien is free and open-source software, licensed under either of
