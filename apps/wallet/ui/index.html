@@ -928,7 +928,8 @@
   .amount-entry input::placeholder { color: var(--faint); }
   .amount-entry .amount-unit { margin-top: 2px; font-size: 13px; font-weight: 600; letter-spacing: 0.12em; color: var(--faint); }
   .amount-entry .hint { margin-top: 14px; font-size: 13px; color: var(--dim); display: flex; justify-content: center; align-items: center; gap: 4px; flex-wrap: wrap; }
-  .amount-entry .send-all { margin-top: 12px; }
+  .amount-entry .send-all { border: 0; background: none; padding: 6px 4px; font: inherit; font-weight: 600; color: var(--ink); cursor: pointer; }
+  .amount-entry .send-all::before { content: "·"; margin-right: 8px; color: var(--faint); font-weight: 400; }
   /* iPhones: the amount big, as on computers (16 points is only the least
      a box may be), and Review at the foot of the screen, above the keyboard. */
   body.phone .amount-entry { padding-top: 28px; }
@@ -1639,8 +1640,7 @@
       <div class="amount-entry">
         <input id="amount" placeholder="0" inputmode="decimal" autocomplete="off">
         <div class="amount-unit">ORN</div>
-        <div class="hint"><span id="available"></span></div>
-        <button class="chip send-all" id="all" type="button">Send all</button>
+        <div class="hint"><span id="available"></span><button class="send-all" id="all" type="button">Use max</button></div>
         <div class="fee-line" id="fee-line"></div>
       </div>
 
