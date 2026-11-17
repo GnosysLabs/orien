@@ -1,0 +1,18 @@
+{
+  "app": {
+    "windows": [
+      {
+        "title": "Orien Wallet",
+        "visible": false,
+        "backgroundThrottling": "disabled",
+        "width": 560,
+        "height": 580,
+        "resizable": true,
+        "theme": "Dark",
+        "minWidth": 520,
+        "minHeight": 540,
+        "decorations": false
+      }
+    ]
+  }
+}

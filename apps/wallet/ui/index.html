@@ -2007,7 +2007,8 @@
   const invoke = window.__TAURI__.core.invoke;
   // Windows draws its own title bar above the window, so the top bar there
   // needs no room for the Mac's window buttons.
-  if (navigator.userAgent.includes("Windows")) {
+  // Windows and Linux: no system bar; the app's own – and ✕ instead.
+  if (navigator.userAgent.includes("Windows") || (/Linux/.test(navigator.userAgent) && !/Android/.test(navigator.userAgent))) {
     document.body.classList.add("windows");
     // The app's own – and ✕. Closing hides it to the tray, as before.
     const win = window.__TAURI__.window.getCurrentWindow();
