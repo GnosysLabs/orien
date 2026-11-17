@@ -29,9 +29,9 @@ export const CHANGELOG: Entry[] = [
     date: '2026-11-17',
     products: ['wallet'],
     version: '1.8.12',
-    title: 'Three new themes, and a balance you can hide with one tap',
+    title: 'Four new themes, and a balance you can hide with one tap',
     changes: [
-      'Three new themes: Daylight (light), Amethyst and Ember, and brighter Rosé.',
+      'Four new themes: Daylight (light), Amethyst, Ruby and Ember, and a pinker Rosé.',
       'An eye on the balance card hides your balance and blurs your activity; tap it again to show them.',
       'Balances show two decimals; tap the balance to see every decimal, and tap again to go back.',
       'The open wallet in your list stands out with a clear outline, and its icon stays easy to see.',

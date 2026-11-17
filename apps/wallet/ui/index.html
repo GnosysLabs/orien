@@ -70,7 +70,7 @@
 
   /* ---- Themes: each a whole look, not only a colour. Pearl is the one
      above. Chosen in Settings, and the same on every device. ---- */
-  [data-theme="midnight"], [data-theme="aurora"], [data-theme="rose"], [data-theme="obsidian"], [data-theme="ember"], [data-theme="amethyst"] { --tint: 255, 255, 255; color-scheme: dark; }
+  [data-theme="midnight"], [data-theme="aurora"], [data-theme="rose"], [data-theme="obsidian"], [data-theme="ember"], [data-theme="amethyst"], [data-theme="ruby"] { --tint: 255, 255, 255; color-scheme: dark; }
   [data-theme="midnight"] {
     --ground: #1a2031; --ground-deep: #111626; --surface: #212a3e; --surface-hover: #29334b; --field: #141a2b;
     --ink: #e9eef8; --dim: #96a1ba; --faint: #64708a; --line: #2e3852; --pearl-ink: #1a2134;
@@ -130,6 +130,16 @@
     --glow: radial-gradient(110% 55% at 50% -12%, rgba(150, 100, 240, 0.22), transparent 62%);
     --pearl: linear-gradient(115deg, #e3d6fa 0%, #d2c0f7 14%, #ead2f5 28%, #c9c6fb 42%, #e8dcfa 56%, #d6bff3 70%, #dcd2fb 84%, #e3d6fa 100%);
     --brand: linear-gradient(115deg, #c9a8ff 0%, #f0a8e6 24%, #a8b4ff 46%, #d8b8ff 68%, #c9a8ff 100%);
+  }
+  [data-theme="ruby"] {
+    --ground: #1d1819; --ground-deep: #131011; --surface: #272022; --surface-hover: #31282b; --field: #171314;
+    --ink: #f8eeef; --dim: #b8a2a5; --faint: #806e71; --line: #3a2e31; --pearl-ink: #2e070c;
+    --good: #a9e6c6; --bad: #ffb0a8; --focus: #e06a78; --select: #ff8a96aa; --accent: #ff6b78;
+    --cover: linear-gradient(135deg, #2d2426, #1f191a); --glass: rgba(39, 32, 34, 0.74); --glass-button: rgba(34, 28, 30, 0.82);
+    --veil: rgba(10, 6, 7, 0.58); --bubble-mine: #7a2230; --chip-icon: #ffb8bf; --on-pearl-dim: #6e3540;
+    --glow: radial-gradient(100% 55% at 50% -12%, rgba(255, 40, 50, 0.24), transparent 62%);
+    --pearl: linear-gradient(115deg, #ff9b98 0%, #ff7378 14%, #ffad9c 28%, #ff5f66 42%, #ffbcae 56%, #f26a72 70%, #ff8f88 84%, #ff9b98 100%);
+    --brand: linear-gradient(115deg, #ff5a5f 0%, #ff8a6a 24%, #ff3b4f 46%, #ff9d84 68%, #ff5a5f 100%);
   }
   /* Daylight: the light theme. */
   [data-theme="daylight"] {
@@ -2757,7 +2767,7 @@
 
 
   // ---- Themes ----
-  const THEMES = [["pearl", "Pearl"], ["daylight", "Daylight"], ["midnight", "Midnight"], ["aurora", "Aurora"], ["amethyst", "Amethyst"], ["rose", "Rosé"], ["ember", "Ember"], ["obsidian", "Obsidian"]];
+  const THEMES = [["pearl", "Pearl"], ["daylight", "Daylight"], ["midnight", "Midnight"], ["aurora", "Aurora"], ["amethyst", "Amethyst"], ["rose", "Rosé"], ["ruby", "Ruby"], ["ember", "Ember"], ["obsidian", "Obsidian"]];
   const knownTheme = (name) => THEMES.some(([id]) => id === name) ? name : "pearl";
   // The colour behind the page matches the theme's deepest ground.
   function paintBackdrop() {
