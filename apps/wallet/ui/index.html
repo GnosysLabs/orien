@@ -904,7 +904,9 @@
   }
   @media (hover: hover) { .tile:hover { background: var(--surface-hover); } }
   .tile:active { transform: scale(0.985); }
-  .tile .icon { width: 26px; height: 26px; border-radius: 50%; display: grid; place-items: center; color: var(--pearl-ink); }
+  /* Room around each glyph: the circle is about twice the glyph's size. */
+  .tile .icon { width: 34px; height: 34px; border-radius: 50%; display: grid; place-items: center; color: var(--pearl-ink); }
+  .tile .icon svg { width: 17px; height: 17px; }
 
 
   /* ---- Send ---- */
