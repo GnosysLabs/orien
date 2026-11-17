@@ -52,7 +52,7 @@ export default function PaperPage() {
       />
       <header className="pb-6 pt-10 sm:pt-14 print:pt-0">
         <p className="mb-4 text-xs font-semibold uppercase tracking-[0.2em] text-muted print:text-neutral-500">
-          Technical paper · version 1.1
+          Technical paper
         </p>
         <h1 className="text-balance text-4xl font-bold leading-[1.1] tracking-tight text-ink sm:text-5xl print:text-3xl print:text-black">
           Orien: a quantum-proof cryptocurrency without blocks
@@ -66,8 +66,8 @@ export default function PaperPage() {
           proof-of-work.
         </p>
         <p className="mt-4 text-sm leading-relaxed text-muted print:text-[9pt] print:text-neutral-600">
-          This paper states the rules exactly as version 1.1 of the <strong className="text-ink print:text-black">orien</strong> program
-          implements them. Where the two could ever differ, the program’s source code is the reference.
+          This paper states the rules exactly as the <strong className="text-ink print:text-black">orien</strong> program implements
+          them. Where the two could ever differ, the program’s source code is the reference.
         </p>
         <a
           href="/orien-paper.pdf"
