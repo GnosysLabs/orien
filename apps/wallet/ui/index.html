@@ -98,7 +98,7 @@
     --cover: linear-gradient(135deg, #2c242b, #1f1a1f); --glass: rgba(39, 33, 39, 0.74); --glass-button: rgba(34, 29, 34, 0.82);
     --veil: rgba(10, 6, 9, 0.58); --bubble-mine: #6e2a4b; --chip-icon: #ffc2dc; --on-pearl-dim: #6a3a52;
     --glow: radial-gradient(100% 55% at 50% -12%, rgba(255, 110, 170, 0.26), transparent 62%);
-    --pearl: linear-gradient(115deg, #fcd5e5 0%, #f9b8d4 14%, #fdd9ea 28%, #f5a9cb 42%, #ffe2ef 56%, #f3b1d0 70%, #fac9df 84%, #fcd5e5 100%);
+    --pearl: linear-gradient(115deg, #fcd2e3 0%, #f9c0d9 17%, #fdd4e6 33%, #f7b6d2 50%, #fcd0e2 67%, #f6bad5 83%, #fcd2e3 100%);
     --brand: linear-gradient(115deg, #ff8fbd 0%, #ffb8d6 24%, #f27aae 46%, #ffc4dc 68%, #ff8fbd 100%);
   }
   [data-theme="obsidian"] {
@@ -118,7 +118,7 @@
     --cover: linear-gradient(135deg, #2b2724, #1e1b19); --glass: rgba(38, 35, 33, 0.74); --glass-button: rgba(33, 30, 28, 0.82);
     --veil: rgba(10, 8, 6, 0.58); --bubble-mine: #7a3c12; --chip-icon: #ffbf8a; --on-pearl-dim: #6a4428;
     --glow: radial-gradient(90% 45% at 50% -14%, rgba(255, 130, 50, 0.14), transparent 60%);
-    --pearl: linear-gradient(115deg, #ffd6ae 0%, #ffb57a 14%, #ffcf8e 28%, #ff9f66 42%, #ffe0b0 56%, #ffab72 70%, #ffc690 84%, #ffd6ae 100%);
+    --pearl: linear-gradient(115deg, #ffd3a8 0%, #ffc290 17%, #ffd09c 33%, #ffb985 50%, #ffcf9d 67%, #ffbf8c 83%, #ffd3a8 100%);
     --brand: linear-gradient(115deg, #ff9a4d 0%, #ffc857 24%, #ff7a45 46%, #ffb36b 68%, #ff9a4d 100%);
   }
   [data-theme="amethyst"] {
@@ -138,7 +138,7 @@
     --cover: linear-gradient(135deg, #2d2426, #1f191a); --glass: rgba(39, 32, 34, 0.74); --glass-button: rgba(34, 28, 30, 0.82);
     --veil: rgba(10, 6, 7, 0.58); --bubble-mine: #7a2230; --chip-icon: #ffb8bf; --on-pearl-dim: #6e3540;
     --glow: radial-gradient(100% 55% at 50% -12%, rgba(255, 40, 50, 0.24), transparent 62%);
-    --pearl: linear-gradient(115deg, #ff9b98 0%, #ff7378 14%, #ffad9c 28%, #ff5f66 42%, #ffbcae 56%, #f26a72 70%, #ff8f88 84%, #ff9b98 100%);
+    --pearl: linear-gradient(115deg, #ff9894 0%, #ff8282 17%, #ffa194 33%, #ff7678 50%, #ff9c90 67%, #fa7e80 83%, #ff9894 100%);
     --brand: linear-gradient(115deg, #ff5a5f 0%, #ff8a6a 24%, #ff3b4f 46%, #ff9d84 68%, #ff5a5f 100%);
   }
   /* Daylight: the light theme. */
@@ -186,7 +186,9 @@
   }
 
   /* The living pearl: the sheen drifts slowly across, never still. */
-  @keyframes drift { from { background-position: 0% 50%; } to { background-position: 300% 50%; } }
+  /* Back and forth across the whole sheen, never looping round: a diagonal
+     sheen that loops shows a seam where its ends meet. */
+  @keyframes drift { 0%, 100% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } }
   .pearl { background: var(--pearl); background-size: 300% 100%; animation: drift 24s linear infinite; }
   .pearl-text {
     background: var(--pearl); background-size: 300% 100%; animation: drift 24s linear infinite;
@@ -929,8 +931,7 @@
   .amount-entry input::placeholder { color: var(--faint); }
   .amount-entry .amount-unit { margin-top: 2px; font-size: 13px; font-weight: 600; letter-spacing: 0.12em; color: var(--faint); }
   .amount-entry .hint { margin-top: 14px; font-size: 13px; color: var(--dim); display: flex; justify-content: center; align-items: center; gap: 4px; flex-wrap: wrap; }
-  .amount-entry .send-all { border: 0; background: none; padding: 6px 4px; font: inherit; font-weight: 600; color: var(--ink); cursor: pointer; }
-  .amount-entry .send-all::before { content: "·"; margin-right: 8px; color: var(--faint); font-weight: 400; }
+  .amount-entry .send-all { margin-top: 12px; }
   /* iPhones: the amount big, as on computers (16 points is only the least
      a box may be), and Review at the foot of the screen, above the keyboard. */
   body.phone .amount-entry { padding-top: 28px; }
@@ -1641,7 +1642,8 @@
       <div class="amount-entry">
         <input id="amount" placeholder="0" inputmode="decimal" autocomplete="off">
         <div class="amount-unit">ORN</div>
-        <div class="hint"><span id="available"></span><button class="send-all" id="all" type="button">Use max</button></div>
+        <div class="hint"><span id="available"></span></div>
+        <button class="chip send-all" id="all" type="button">Send all</button>
         <div class="fee-line" id="fee-line"></div>
       </div>
 
