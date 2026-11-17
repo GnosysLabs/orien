@@ -1257,7 +1257,6 @@
       <p class="hint st-hint">Your theme follows you to your other devices.</p>
       <div class="theme-grid" id="theme-grid"></div>
       <div class="set-group" data-gap="xl">
-        <label class="set-row"><span class="set-txt"><b>Shorter balances</b><small>13,811.46 ORN instead of every decimal</small></span><input type="checkbox" class="switch" id="st-short"></label>
         <label class="set-row"><span class="set-txt"><b>Show scroll arrow</b><small>A small arrow on screens with more below</small></span><input type="checkbox" class="switch" id="st-arrow"></label>
       </div>
       </div>
@@ -2806,7 +2805,7 @@
 
 
   // ---- Settings: balances, the app lock, notifications, this computer ----
-  const prefs = { hide: false, short: false, noarrow: false };
+  const prefs = { hide: false, noarrow: false };
   let mutedKinds = [];
   let balancePeek = 0;   // 1 while a tap has the hidden or full balance showing
   const shortBalance = (text) => {
@@ -2820,14 +2819,14 @@
     // dots, then the shorter balance.
     if (text !== "—") {
       if (prefs.hide) text = "••••••";
-      else if (prefs.short && !balancePeek) text = shortBalance(text);
+      else if (!balancePeek) text = shortBalance(text);
     }
     const eyeBtn = $("bal-eye");
     eyeBtn.innerHTML = prefs.hide ? EYE_OFF : EYE_ON;
     eyeBtn.title = prefs.hide ? "Show balance" : "Hide balance";
     eyeBtn.setAttribute("aria-label", eyeBtn.title);
     $("balance").textContent = text;
-    $("balance").title = !prefs.hide && prefs.short ? (balancePeek ? "Tap for the shorter balance" : "Tap to see it all") : "";
+    $("balance").title = prefs.hide ? "" : balancePeek ? "Tap for the shorter balance" : "Tap to see every decimal";
     fitBalance();
   }
   // A tap shows the hidden or full balance; another tap puts it back.
@@ -2840,7 +2839,7 @@
     feel("selection");
   });
   document.querySelector("#home .card").addEventListener("click", () => {
-    if (prefs.hide || !prefs.short) return;
+    if (prefs.hide) return;
     balancePeek = balancePeek ? 0 : 1;
     feel("selection");
     paintBalance();
@@ -2848,7 +2847,7 @@
   // Leaving the app hides it again.
   document.addEventListener("visibilitychange", () => { if (document.hidden && balancePeek) { balancePeek = 0; paintBalance(); } });
   function paintSettings() {
-    $("st-short").checked = prefs.short; $("st-arrow").checked = !prefs.noarrow;
+ $("st-arrow").checked = !prefs.noarrow;
     $("st-lock-row").hidden = !apple;
     $("st-lock").checked = localStorage.getItem("app-lock") === "on";
     $("st-lock-row").querySelector("b").textContent = `Lock with ${bio}`;
@@ -2862,7 +2861,7 @@
   async function loadPrefs() {
     let all = {};
     try { all = (await invoke("app_prefs")) || {}; } catch {}
-    prefs.hide = all.hide === "on"; prefs.short = all.short === "on"; prefs.noarrow = all.arrow === "off";
+    prefs.hide = all.hide === "on"; prefs.noarrow = all.arrow === "off";
     if (all.theme) applyTheme(all.theme, true);
     try { mutedKinds = (await invoke("notifications_muted")) || []; } catch {}
     paintBalance();
@@ -2873,7 +2872,6 @@
     prefs.noarrow = !$("st-arrow").checked; feel("selection");
     invoke("set_app_pref", { name: "arrow", value: prefs.noarrow ? "off" : "on" }).catch(() => {});
   };
-  $("st-short").onchange = () => { setPref("short", $("st-short").checked); feel("selection"); };
   $("st-lock").onchange = async () => {
     const on = $("st-lock").checked;
     // Turning it on asks once, so it's sure to work.
