@@ -233,6 +233,18 @@
     body:not(.phone) .wallet-chip { color: var(--ink); }
     /* Section labels sit straight on the photo: a touch stronger there. */
     body:not(.phone) .section-head h3 { color: var(--ink); text-shadow: 0 1px 8px rgba(var(--shade), 0.35); }
+    /* Each screen sits in a frosted glass container: a clear shape with
+       rounded corners and a soft shadow, the sharp photo all around it.
+       Its width follows the screen shown (set as --panel by show()). */
+    body:not(.phone) main { position: relative; isolation: isolate; }
+    body:not(.phone) main::before { content: ""; position: absolute; z-index: -1; top: -14px; bottom: 0; left: 50%;
+      width: min(calc(var(--panel, 640px) + 56px), 100vw - 24px); transform: translateX(-50%);
+      border: 1px solid var(--line); border-radius: 28px;
+      --pane: color-mix(in srgb, var(--ground) 58%, transparent);
+      --dimmed: color-mix(in srgb, var(--ground-deep) 45%, transparent);
+      background: linear-gradient(var(--pane), var(--pane)), linear-gradient(var(--dimmed), var(--dimmed)),
+        var(--scene-blur, none) center / cover fixed, var(--ground-deep);
+      box-shadow: 0 30px 80px rgba(var(--shade), 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.06); }
   }
   @media (min-width: 900px) and (hover: hover) {
     body:not(.phone) :is(.codebox, .swap-row, .waiting-card, .swap-alert, .pay-card, .tabs, .mine-status, .wallet-row, .emoji-grid button:not(.on), .linkish, .link, .pill:not(.pearl), .mk-card, .ls-thumbs button, .ls-seller, .se-pic, .bubble:not(.mine), .paycard, .ch-askbox, .ch-blocked, .sync-card, .verify-card, .offer, .keep-open, .pair-card, .add-opt, .set-group, .note, .explain li, .tile, .review, #upd-card, .receive-card, .list:not(#all-activity .list), #all-activity, #all-activity .day, .words, .wallet-chip):is(button, a):hover { --glass: color-mix(in srgb, var(--surface-hover) 70%, transparent); }
@@ -2405,6 +2417,9 @@
     const both = !phone && wide.matches && (id === "inbox" || (id === "chat" && chat.from === "inbox" && chat.id));
     for (const s of document.querySelectorAll(".screen")) s.hidden = !(s.id === id || (both && (s.id === "inbox" || s.id === "chat")));
     document.body.classList.toggle("split", both);
+    // The frosted container behind it takes the screen's width.
+    const shown = $(id), col = shown && parseFloat(getComputedStyle(shown).getPropertyValue("--col"));
+    document.querySelector("main").style.setProperty("--panel", (both ? 1080 : col || 640) + "px");
     if (both) { $("chat").classList.toggle("none", !chat.id); paintInbox(); }
     else if (id === "chat") $("chat").classList.remove("none");
     for (const p of document.querySelectorAll(".problem")) p.hidden = true;
