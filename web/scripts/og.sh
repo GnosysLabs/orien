@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
-# Draws public/og.png, the image shown when orien.network is shared, from
+# Draws public/og-nebula.png, the image shown when orien.network is shared
+# (and a copy at og.png for old links), from
 # scripts/og.html and the latest build in out/ (run deploy/site.sh first).
 # The background is brand/source/nebula.jpg.
 set -euo pipefail
@@ -17,6 +18,9 @@ sleep 1
 chrome="/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
 profile=$(mktemp -d)
 "$chrome" --headless=new --disable-gpu --hide-scrollbars --user-data-dir="$profile" --window-size=1200,630 \
-  --virtual-time-budget=4000 --screenshot="$PWD/public/og.png" "http://127.0.0.1:$port/_og.html" 2>/dev/null
+  --virtual-time-budget=4000 --screenshot="$PWD/public/og-nebula.png" "http://127.0.0.1:$port/_og.html" 2>/dev/null
 rm -rf "$profile"
-echo "public/og.png drawn"
+cp public/og-nebula.png public/og.png
+# A new design needs a new file name: Cloudflare and the apps keep an image
+# by its address for a long time.
+echo "public/og-nebula.png drawn"
