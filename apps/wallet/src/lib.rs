@@ -208,7 +208,7 @@ mod keyboard {
     }
 
     /// Sets the colour behind and around the web view, for the theme.
-    pub fn backdrop(red: u8, green: u8, blue: u8) {
+    pub fn backdrop(red: u8, green: u8, blue: u8, light: bool) {
         use objc2::msg_send;
         let web = WEB.load(std::sync::atomic::Ordering::Relaxed) as *mut AnyObject;
         if web.is_null() {
@@ -225,6 +225,12 @@ mod keyboard {
             let holder: *mut AnyObject = msg_send![web, superview];
             if !holder.is_null() {
                 let _: () = msg_send![holder, setBackgroundColor: color];
+            }
+            // The clock and battery at the top: dark on a light theme.
+            let window: *mut AnyObject = msg_send![web, window];
+            if !window.is_null() {
+                // UIUserInterfaceStyleLight = 1, Dark = 2
+                let _: () = msg_send![window, setOverrideUserInterfaceStyle: if light { 1isize } else { 2isize }];
             }
         }
     }
@@ -1229,15 +1235,17 @@ fn set_computer_setting(app: AppHandle, name: String, on: bool) -> Result<(), St
 /// The colour behind the app's page, so its edges and the moments before
 /// it draws match the theme.
 #[tauri::command]
-fn set_backdrop(app: AppHandle, red: u8, green: u8, blue: u8) {
+fn set_backdrop(app: AppHandle, red: u8, green: u8, blue: u8, light: Option<bool>) {
+    let light = light.unwrap_or(false);
     #[cfg(desktop)]
     if let Some(window) = app.get_webview_window("main") {
         let _ = window.set_background_color(Some(tauri::window::Color(red, green, blue, 255)));
+        let _ = window.set_theme(Some(if light { tauri::Theme::Light } else { tauri::Theme::Dark }));
     }
     #[cfg(target_os = "ios")]
-    let _ = app.run_on_main_thread(move || keyboard::backdrop(red, green, blue));
+    let _ = app.run_on_main_thread(move || keyboard::backdrop(red, green, blue, light));
     #[cfg(not(any(desktop, target_os = "ios")))]
-    let _ = (app, red, green, blue);
+    let _ = (app, red, green, blue, light);
 }
 
 /// Sets a wallet's icon and shares it with this wallet's other devices.

@@ -39,6 +39,9 @@
     --chip-icon: #d6cdf3;
     --on-pearl-dim: #4a4b52;
     --glow: none;
+    /* Faint washes over the ground (hovers, hairlines): white on dark
+       themes, ink on light ones. */
+    --tint: 255, 255, 255;
     /* The pearl: soft pinks, lilacs, mints and ice blues over silver. */
     --pearl: linear-gradient(115deg,
       #e4e2ea 0%, #f1d3e1 14%, #d8d3f4 28%, #c9e8ec 42%,
@@ -67,6 +70,7 @@
 
   /* ---- Themes: each a whole look, not only a colour. Pearl is the one
      above. Chosen in Settings, and the same on every device. ---- */
+  [data-theme="midnight"], [data-theme="aurora"], [data-theme="rose"], [data-theme="obsidian"], [data-theme="ember"], [data-theme="amethyst"] { --tint: 255, 255, 255; color-scheme: dark; }
   [data-theme="midnight"] {
     --ground: #1a2031; --ground-deep: #111626; --surface: #212a3e; --surface-hover: #29334b; --field: #141a2b;
     --ink: #e9eef8; --dim: #96a1ba; --faint: #64708a; --line: #2e3852; --pearl-ink: #1a2134;
@@ -103,7 +107,47 @@
     --focus: #8a8a96; --select: #dcdce6aa; --accent: #d2d2de;
     --cover: linear-gradient(135deg, #18181a, #0f0f10); --glass: rgba(28, 28, 31, 0.74); --glass-button: rgba(22, 22, 24, 0.82);
     --veil: rgba(0, 0, 0, 0.62); --bubble-mine: #2c2c35; --chip-icon: #e1e1ea; --on-pearl-dim: #4a4a52;
+    --good: #a6e3c6; --bad: #f1a9a9; --glow: none;
+    --pearl: linear-gradient(115deg, #e4e2ea 0%, #f1d3e1 14%, #d8d3f4 28%, #c9e8ec 42%, #e9eed6 56%, #f0d6e3 70%, #d3daf4 84%, #e4e2ea 100%);
+    --brand: linear-gradient(115deg, #f4b6d4 0%, #b8c7ff 20%, #d3b6ff 38%, #a6ead6 56%, #f9dda4 74%, #f4b6d4 100%);
   }
+  [data-theme="ember"] {
+    --ground: #221a15; --ground-deep: #17110d; --surface: #2c221b; --surface-hover: #362a21; --field: #1c1510;
+    --ink: #f6ede6; --dim: #b7a293; --faint: #806c5e; --line: #3d3027; --pearl-ink: #2e1d12;
+    --good: #a9e6c6; --bad: #f6a5a0; --focus: #c4916a; --select: #f6c08faa; --accent: #f3a865;
+    --cover: linear-gradient(135deg, #33271f, #241b15); --glass: rgba(44, 34, 27, 0.72); --glass-button: rgba(38, 29, 23, 0.8);
+    --veil: rgba(14, 9, 6, 0.58); --bubble-mine: #5c3a22; --chip-icon: #f6c79c; --on-pearl-dim: #5e4636;
+    --glow: radial-gradient(110% 55% at 50% -12%, rgba(240, 140, 60, 0.18), transparent 62%);
+    --pearl: linear-gradient(115deg, #f8dcc2 0%, #f6c59e 14%, #fbe0b6 28%, #f3b98f 42%, #fde8c8 56%, #f0c09c 70%, #f8d3ad 84%, #f8dcc2 100%);
+    --brand: linear-gradient(115deg, #ffb37a 0%, #ffd27a 24%, #ff9a6e 46%, #ffcf96 68%, #ffb37a 100%);
+  }
+  [data-theme="amethyst"] {
+    --ground: #1e1829; --ground-deep: #140f1e; --surface: #271f36; --surface-hover: #302741; --field: #181222;
+    --ink: #f1ecf8; --dim: #a99cbf; --faint: #75688c; --line: #372c4b; --pearl-ink: #22173a;
+    --good: #a6e6c9; --bad: #f4a6b8; --focus: #9c84d0; --select: #d2bfffaa; --accent: #b99cff;
+    --cover: linear-gradient(135deg, #2c2340, #1f182e); --glass: rgba(39, 31, 54, 0.72); --glass-button: rgba(34, 27, 48, 0.8);
+    --veil: rgba(9, 5, 16, 0.58); --bubble-mine: #46306e; --chip-icon: #d9c8ff; --on-pearl-dim: #52466b;
+    --glow: radial-gradient(110% 55% at 50% -12%, rgba(150, 100, 240, 0.22), transparent 62%);
+    --pearl: linear-gradient(115deg, #e3d6fa 0%, #d2c0f7 14%, #ead2f5 28%, #c9c6fb 42%, #e8dcfa 56%, #d6bff3 70%, #dcd2fb 84%, #e3d6fa 100%);
+    --brand: linear-gradient(115deg, #c9a8ff 0%, #f0a8e6 24%, #a8b4ff 46%, #d8b8ff 68%, #c9a8ff 100%);
+  }
+  /* Daylight: the light theme. */
+  [data-theme="daylight"] {
+    color-scheme: light;
+    --ground: #f3f3f7; --ground-deep: #eaebf1; --surface: #ffffff; --surface-hover: #f1f1f6; --field: #f6f6f9;
+    --ink: #1b1c22; --dim: #5d6070; --faint: #8b8e9b; --line: #dcdde5; --pearl-ink: #26272e;
+    --good: #1f8a5b; --bad: #c43a3f; --focus: #8a80c4; --select: #6f5fdfaa; --accent: #6a5cf0;
+    --cover: linear-gradient(135deg, #e6e7ee, #dcdde6); --glass: rgba(255, 255, 255, 0.78); --glass-button: rgba(255, 255, 255, 0.85);
+    --veil: rgba(30, 30, 45, 0.28); --bubble-mine: #e6e0fb; --chip-icon: #6b5fc7; --on-pearl-dim: #4a4b52;
+    --tint: 30, 32, 60;
+    --glow: radial-gradient(110% 55% at 50% -12%, rgba(170, 150, 255, 0.18), transparent 62%);
+    --pearl: linear-gradient(115deg, #e4e2ea 0%, #f1d3e1 14%, #d8d3f4 28%, #c9e8ec 42%, #e9eed6 56%, #f0d6e3 70%, #d3daf4 84%, #e4e2ea 100%);
+    --brand: linear-gradient(115deg, #d9468f 0%, #4f6bf0 24%, #8b4ff0 46%, #13a37e 68%, #d99a14 84%, #d9468f 100%);
+  }
+  /* Daylight: lighter shadows, so cards float rather than darken the page. */
+  [data-theme="daylight"] .card, [data-theme="daylight"].card { box-shadow: 0 10px 28px rgba(60, 60, 110, 0.14), inset 0 1px 0 #ffffffb0; }
+  [data-theme="daylight"] .tile, [data-theme="daylight"] .set-group, [data-theme="daylight"] .pair-card { box-shadow: 0 1px 2px rgba(40, 40, 80, 0.05); }
+  [data-theme="daylight"] .menu-row.bad { color: var(--bad); }
   /* Switching: the whole app fades into the new look. */
   ::view-transition-old(root), ::view-transition-new(root) { animation-duration: 0.45s; animation-timing-function: ease; }
   @keyframes brand-drift { 0%, 100% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } }
@@ -240,7 +284,7 @@
     background: transparent; border: 1px solid var(--line); font-weight: 500;
     transition: background 0.15s;
   }
-  @media (hover: hover) { .secondary:hover { background: #ffffff08; } }
+  @media (hover: hover) { .secondary:hover { background: rgba(var(--tint), 0.031); } }
 
   /* Never squeezed by a long list below it. */
   .topline { display: flex; align-items: center; height: 36px; margin-bottom: 24px; flex-shrink: 0; }
@@ -248,10 +292,10 @@
     width: 36px; height: 36px; margin-left: -6px; border: 0; border-radius: 10px;
     background: transparent; cursor: pointer; display: grid; place-items: center; color: var(--dim);
   }
-  @media (hover: hover) { .back:hover { background: #ffffff0d; color: var(--ink); } }
+  @media (hover: hover) { .back:hover { background: rgba(var(--tint), 0.05); color: var(--ink); } }
   /* On touch screens: lit only while pressed (a hover look would stay on
      after the tap). */
-  .back:active { background: #ffffff0d; color: var(--ink); }
+  .back:active { background: rgba(var(--tint), 0.05); color: var(--ink); }
   .topline h2 { margin: 0 0 0 4px; font-size: 17px; font-weight: 600; }
 
   .problem {
@@ -273,6 +317,13 @@
     border-radius: 22px; padding: 22px 24px 24px; color: var(--pearl-ink);
     box-shadow: 0 18px 50px #00000059, inset 0 1px 0 #ffffffb0;
   }
+  /* Showing or hiding the balance: an eye on the card. */
+  .card { position: relative; }
+  .bal-eye { position: absolute; top: 14px; right: 14px; width: 34px; height: 34px; padding: 0; border: 0; border-radius: 50%;
+    display: grid; place-items: center; background: transparent; color: var(--pearl-ink); opacity: 0.55; cursor: pointer; transition: opacity 0.15s, background 0.15s; }
+  .bal-eye:active { opacity: 0.9; background: rgba(0, 0, 0, 0.06); }
+  @media (hover: hover) { .bal-eye:hover { opacity: 0.9; background: rgba(0, 0, 0, 0.06); } }
+  body.phone .bal-eye { width: 44px; height: 44px; top: 10px; right: 10px; }
   .card .label { font-size: 11.5px; letter-spacing: 0.1em; text-transform: uppercase; opacity: 0.6; }
   /* One height whatever the number, so the card never grows or shrinks
      as a balance loads or a wallet changes. */
@@ -351,7 +402,7 @@
   .mine-status .sub { margin-top: 4px; font-size: 12.5px; color: var(--dim); }
   .wallet-chip { display: inline-flex; align-items: center; gap: 6px; margin: 0 0 12px 2px; padding: 5px 10px;
     border: 1px solid var(--line); border-radius: 999px; background: transparent; cursor: pointer; font-size: 12.5px; color: var(--dim); }
-  @media (hover: hover) { .wallet-chip:hover { color: var(--ink); background: #ffffff08; } }
+  @media (hover: hover) { .wallet-chip:hover { color: var(--ink); background: rgba(var(--tint), 0.031); } }
   /* A wallet: name and address on the left, its balance on the right
      (amount over unit, mirroring the two lines opposite), and quiet edit
      tools at the far end, past a hairline. All on one centred line. */
@@ -364,7 +415,7 @@
   .wallet-row + .wallet-row { margin-top: 10px; }
   .wallet-row.current { border-color: transparent; box-shadow: 0 0 0 1.5px #cdc6ff66, 0 8px 24px #0000002e; }
   .wallet-row .coin { width: 40px; height: 40px; border-radius: 50%; display: grid; place-items: center; flex: none;
-    font: 700 16px/1 "Jost", sans-serif; color: var(--ink); background: #ffffff10; }
+    font: 700 16px/1 "Jost", sans-serif; color: var(--ink); background: rgba(var(--tint), 0.063); }
   .wallet-row.current .coin { color: var(--pearl-ink); background: var(--pearl); background-size: 300% 100%; box-shadow: inset 0 1px 0 #ffffffb0; }
   .wallet-row .coin.emoji { font: 20px/1 system-ui, "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif; }
   .emoji-grid { display: grid; grid-template-columns: repeat(8, minmax(0, 1fr)); gap: 6px; }
@@ -387,7 +438,7 @@
   @media (hover: hover) { .wallet-row:hover .tools, .wallet-row:focus-within .tools { opacity: 1; pointer-events: auto; } }
   .wallet-row .tool { width: 30px; height: 30px; padding: 0; border: 0; border-radius: 9px; display: grid; place-items: center;
     background: transparent; color: var(--faint); cursor: pointer; }
-  @media (hover: hover) { .wallet-row .tool:hover { background: #ffffff10; color: var(--ink); } }
+  @media (hover: hover) { .wallet-row .tool:hover { background: rgba(var(--tint), 0.063); color: var(--ink); } }
   @media (hover: hover) { .wallet-row .tool[data-forget]:hover { color: var(--bad); } }
   body.phone .wallet-row { gap: 12px; padding: 14px 10px 14px 14px; }
   body.phone .wallet-row { grid-template-columns: auto minmax(0, 1fr) auto auto; }
@@ -540,7 +591,7 @@
   .ib-row { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 12px; align-items: center; width: 100%; padding: 12px 14px;
     border: 0; border-top: 1px solid var(--line); background: none; color: inherit; font: inherit; text-align: left; cursor: pointer; }
   .ib-row:first-child { border-top: 0; }
-  @media (hover: hover) { .ib-row:hover { background: #ffffff06; } }
+  @media (hover: hover) { .ib-row:hover { background: rgba(var(--tint), 0.024); } }
   .ib-row .avatar { position: relative; overflow: hidden; width: 40px; height: 40px; border-radius: 50%; display: grid; place-items: center;
     background: var(--surface-hover); color: var(--ink); font-weight: 600; }
   .ib-row .avatar img, .ch-who .avatar img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
@@ -556,7 +607,7 @@
   #ib-list .list { border-radius: 18px; }
   .ch-top { gap: 6px; }
   .ch-who { display: flex; align-items: center; gap: 10px; min-width: 0; padding: 4px 8px 4px 4px; border: 0; border-radius: 12px; background: none; color: inherit; font: inherit; text-align: left; cursor: pointer; }
-  @media (hover: hover) { .ch-who:hover { background: #ffffff0a; } }
+  @media (hover: hover) { .ch-who:hover { background: rgba(var(--tint), 0.04); } }
   .ch-who .avatar { position: relative; overflow: hidden; flex: none; width: 32px; height: 32px; border-radius: 50%; display: grid; place-items: center; background: var(--surface-hover); font-weight: 600; font-size: 13px; }
   .ch-who b { display: block; font-size: 15px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .ch-who small { display: block; font-size: 11.5px; color: var(--faint); }
@@ -564,15 +615,15 @@
      systems; nothing on the screen moves. */
   .ch-menu { position: fixed; z-index: 50; width: 250px; padding: 5px; border-radius: 16px; display: grid;
     background: var(--glass); -webkit-backdrop-filter: blur(28px) saturate(1.8); backdrop-filter: blur(28px) saturate(1.8);
-    border: 0.5px solid rgba(255, 255, 255, 0.14); box-shadow: 0 18px 50px rgba(0, 0, 0, 0.5), 0 2px 8px rgba(0, 0, 0, 0.25);
+    border: 0.5px solid rgba(var(--tint), 0.14); box-shadow: 0 18px 50px rgba(0, 0, 0, 0.5), 0 2px 8px rgba(0, 0, 0, 0.25);
     transform-origin: top right; animation: menu-in 0.18s cubic-bezier(.2, .9, .3, 1.2); }
   @keyframes menu-in { from { opacity: 0; transform: scale(0.88); } to { opacity: 1; transform: scale(1); } }
   .menu-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; width: 100%; min-height: 44px; padding: 10px 12px;
     border: 0; border-radius: 11px; background: none; color: var(--ink); font: inherit; font-size: 15px; text-align: left; cursor: pointer; }
   .menu-row + .menu-row { position: relative; }
-  .menu-row + .menu-row::before { content: ""; position: absolute; left: 12px; right: 12px; top: 0; height: 0.5px; background: rgba(255, 255, 255, 0.12); }
-  .menu-row:active { background: rgba(255, 255, 255, 0.08); }
-  @media (hover: hover) { .menu-row:hover { background: rgba(255, 255, 255, 0.08); } }
+  .menu-row + .menu-row::before { content: ""; position: absolute; left: 12px; right: 12px; top: 0; height: 0.5px; background: rgba(var(--tint), 0.12); }
+  .menu-row:active { background: rgba(var(--tint), 0.08); }
+  @media (hover: hover) { .menu-row:hover { background: rgba(var(--tint), 0.08); } }
   @media (hover: hover) { .menu-row:hover + .menu-row::before, .menu-row:hover::before { opacity: 0; } }
   .menu-row svg { flex: none; width: 18px; height: 18px; }
   .menu-row span { line-height: 1.3; }
@@ -614,8 +665,8 @@
   /* Closing: a quiet ✕ beside the title, with a full-size tap area. */
   .ch-ask-x { flex: none; width: 32px; height: 32px; margin: -8px -8px -8px 0; border-radius: 50%; display: grid; place-items: center; padding: 0;
     border: 0; background: none; color: var(--faint); cursor: pointer; }
-  .ch-ask-x:active { color: var(--ink); background: #ffffff0d; }
-  @media (hover: hover) { .ch-ask-x:hover { color: var(--ink); background: #ffffff0d; } }
+  .ch-ask-x:active { color: var(--ink); background: rgba(var(--tint), 0.05); }
+  @media (hover: hover) { .ch-ask-x:hover { color: var(--ink); background: rgba(var(--tint), 0.05); } }
   body.phone .ch-ask-x { width: 44px; height: 44px; margin: -14px -14px -14px 0; }
   .ch-ask-row { display: flex; align-items: stretch; gap: 10px; margin-top: 12px; }
   .ch-askbox .ch-amount { flex: 1 1 auto; min-width: 0; height: 48px; border-radius: 16px; padding: 0 16px; font-size: 16px; }
@@ -730,7 +781,7 @@
   .rv-words .words { margin: 0; transition: filter 0.25s ease; }
   .rv-words.blurred .words { filter: blur(9px); -webkit-user-select: none; user-select: none; pointer-events: none; }
   .rv-tap { position: absolute; inset: 0; margin: auto; width: max-content; height: 44px; padding: 0 18px; display: none; align-items: center; gap: 8px;
-    border: 1px solid rgba(255, 255, 255, 0.16); border-radius: 22px; background: var(--glass-button); color: var(--ink);
+    border: 1px solid rgba(var(--tint), 0.16); border-radius: 22px; background: var(--glass-button); color: var(--ink);
     -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px); font: inherit; font-weight: 600; cursor: pointer; }
   .rv-words.blurred .rv-tap { display: inline-flex; }
   /* Adding a wallet: how, first. */
@@ -872,9 +923,9 @@
   .field input::placeholder { font-family: -apple-system, system-ui, sans-serif; font-size: 13.5px; color: var(--faint); }
   .chip {
     flex: none; height: 32px; padding: 0 12px; border-radius: 9px; border: 0; cursor: pointer;
-    background: #ffffff0f; color: var(--ink); font-size: 12.5px; font-weight: 500;
+    background: rgba(var(--tint), 0.06); color: var(--ink); font-size: 12.5px; font-weight: 500;
   }
-  @media (hover: hover) { .chip:hover { background: #ffffff1a; } }
+  @media (hover: hover) { .chip:hover { background: rgba(var(--tint), 0.1); } }
   .field .check { margin: 7px 0 0 2px; font-size: 12px; color: var(--faint); min-height: 18px; }
   .field .check.ok { color: var(--good); }
 
@@ -904,7 +955,7 @@
      until it's scrolled; tapping it scrolls down. */
   #more-below { position: fixed; z-index: 40; width: 36px; height: 36px; margin-left: -18px; border-radius: 50%;
     display: grid; place-items: center; padding: 0; cursor: pointer; color: var(--ink);
-    background: var(--glass-button); border: 1px solid rgba(255, 255, 255, 0.12);
+    background: var(--glass-button); border: 1px solid rgba(var(--tint), 0.12);
     -webkit-backdrop-filter: blur(14px) saturate(1.4); backdrop-filter: blur(14px) saturate(1.4);
     box-shadow: 0 6px 18px rgba(0, 0, 0, 0.35); opacity: 0; pointer-events: none; transition: opacity 0.35s ease; }
   #more-below.on { opacity: 1; pointer-events: auto; }
@@ -991,7 +1042,7 @@
   .field input:disabled { opacity: 0.45; }
   .tx-icon {
     flex: none; width: 32px; height: 32px; border-radius: 50%; display: grid; place-items: center;
-    background: #ffffff0d; color: var(--dim);
+    background: rgba(var(--tint), 0.05); color: var(--dim);
   }
   .tx-icon.received { color: var(--good); background: #a6e3c614; }
   .tx-main { flex: 1; min-width: 0; }
@@ -1038,7 +1089,7 @@
     color: var(--pearl-ink); font-weight: 600; font-size: 13px;
   }
   .tx.contact { cursor: pointer; }
-  @media (hover: hover) { .tx.contact:hover { background: #ffffff06; } }
+  @media (hover: hover) { .tx.contact:hover { background: rgba(var(--tint), 0.024); } }
   .chevron { color: var(--faint); }
   /* Names to pick from as the To box is typed in: contacts and the
      person's other wallets. */
@@ -1050,7 +1101,7 @@
   .chosen .addr.solo { color: var(--ink); }
   body.phone .chosen .addr { font-size: 15px; }
   .suggest .tx { width: 100%; border: 0; background: none; color: inherit; font: inherit; text-align: left; cursor: pointer; }
-  @media (hover: hover) { .suggest .tx:hover, .suggest .tx:active { background: #ffffff08; } }
+  @media (hover: hover) { .suggest .tx:hover, .suggest .tx:active { background: rgba(var(--tint), 0.031); } }
   .suggest .avatar.mine { background: var(--surface-hover); color: var(--ink); }
   .check.warn { color: var(--bad); font-weight: 500; }
   .field + .field { margin-top: 18px; }
@@ -1091,7 +1142,7 @@
   /* Buttons stacked in a screen never touch. */
   .screen > button + button { margin-top: 10px; }
   .welcome .link { align-self: center; margin: 24px 0 0; padding: 6px 12px; border-radius: 8px; line-height: 1.4; }
-  @media (hover: hover) { .welcome .link:hover { background: #ffffff08; } }
+  @media (hover: hover) { .welcome .link:hover { background: rgba(var(--tint), 0.031); } }
 
   /* ---- iPhone: the same design as on computers, with room for the notch
      and the home bar, a little larger text, and screens that run to the
@@ -1212,7 +1263,6 @@
       </div>
       <div class="st-page" data-page="privacy" hidden>
       <div class="set-group">
-        <label class="set-row"><span class="set-txt"><b>Hide balances</b><small>Show •••• until you tap the balance</small></span><input type="checkbox" class="switch" id="st-hide"></label>
         <label class="set-row" id="st-lock-row"><span class="set-txt"><b>Lock with Touch ID</b><small>Ask each time Orien Wallet opens</small></span><input type="checkbox" class="switch" id="st-lock"></label>
       </div>
       </div>
@@ -1251,6 +1301,7 @@
       </button>
       <div class="card pearl">
         <div class="label">Balance</div>
+        <button class="bal-eye" id="bal-eye" aria-label="Hide balance" title="Hide balance"></button>
         <div class="amount"><span class="balance" id="balance">—</span><span class="unit">ORN</span></div>
       </div>
 
@@ -2689,14 +2740,15 @@
 
 
   // ---- Themes ----
-  const THEMES = [["pearl", "Pearl"], ["midnight", "Midnight"], ["aurora", "Aurora"], ["rose", "Rosé"], ["obsidian", "Obsidian"]];
+  const THEMES = [["pearl", "Pearl"], ["daylight", "Daylight"], ["midnight", "Midnight"], ["aurora", "Aurora"], ["amethyst", "Amethyst"], ["rose", "Rosé"], ["ember", "Ember"], ["obsidian", "Obsidian"]];
   const knownTheme = (name) => THEMES.some(([id]) => id === name) ? name : "pearl";
   // The colour behind the page matches the theme's deepest ground.
   function paintBackdrop() {
     if (/Linux/.test(navigator.userAgent)) return;   // nothing shows behind the page there
     const color = getComputedStyle(document.documentElement).getPropertyValue("--ground-deep").trim();
     const m = /^#([0-9a-f]{2})([0-9a-f]{2})([0-9a-f]{2})$/i.exec(color);
-    if (m) invoke("set_backdrop", { red: parseInt(m[1], 16), green: parseInt(m[2], 16), blue: parseInt(m[3], 16) }).catch(() => {});
+    const light = (document.documentElement.dataset.theme || "pearl") === "daylight";
+    if (m) invoke("set_backdrop", { red: parseInt(m[1], 16), green: parseInt(m[2], 16), blue: parseInt(m[3], 16), light }).catch(() => {});
   }
   function paintThemeGrid() {
     const now = document.documentElement.dataset.theme || "pearl";
@@ -2764,17 +2816,31 @@
   function paintBalance() {
     const b = view ? view.balance : null;
     let text = b === null || b === undefined ? "—" : b;
-    if (text !== "—" && !balancePeek) {
+    // Hidden: dots until tapped. Shorter: two decimals until tapped. Both:
+    // dots, then the shorter balance.
+    if (text !== "—") {
       if (prefs.hide) text = "••••••";
-      else if (prefs.short) text = shortBalance(text);
+      else if (prefs.short && !balancePeek) text = shortBalance(text);
     }
+    const eyeBtn = $("bal-eye");
+    eyeBtn.innerHTML = prefs.hide ? EYE_OFF : EYE_ON;
+    eyeBtn.title = prefs.hide ? "Show balance" : "Hide balance";
+    eyeBtn.setAttribute("aria-label", eyeBtn.title);
     $("balance").textContent = text;
-    $("balance").title = prefs.hide || prefs.short ? (balancePeek ? "Tap to hide again" : "Tap to see it all") : "";
+    $("balance").title = !prefs.hide && prefs.short ? (balancePeek ? "Tap for the shorter balance" : "Tap to see it all") : "";
     fitBalance();
   }
   // A tap shows the hidden or full balance; another tap puts it back.
+  const EYE_ON = '<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0"/><circle cx="12" cy="12" r="3"/></svg>';
+  const EYE_OFF = '<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.733 5.076a10.744 10.744 0 0 1 11.205 6.575 1 1 0 0 1 0 .696 10.747 10.747 0 0 1-1.444 2.49"/><path d="M14.084 14.158a3 3 0 0 1-4.242-4.242"/><path d="M17.479 17.499a10.75 10.75 0 0 1-15.417-5.151 1 1 0 0 1 0-.696 10.75 10.75 0 0 1 4.446-5.143"/><path d="m2 2 20 20"/></svg>';
+  $("bal-eye").addEventListener("click", (e) => {
+    e.stopPropagation();
+    balancePeek = 0;
+    setPref("hide", !prefs.hide);
+    feel("selection");
+  });
   document.querySelector("#home .card").addEventListener("click", () => {
-    if (!(prefs.hide || prefs.short)) return;
+    if (prefs.hide || !prefs.short) return;
     balancePeek = balancePeek ? 0 : 1;
     feel("selection");
     paintBalance();
@@ -2782,13 +2848,14 @@
   // Leaving the app hides it again.
   document.addEventListener("visibilitychange", () => { if (document.hidden && balancePeek) { balancePeek = 0; paintBalance(); } });
   function paintSettings() {
-    $("st-hide").checked = prefs.hide; $("st-short").checked = prefs.short; $("st-arrow").checked = !prefs.noarrow;
+    $("st-short").checked = prefs.short; $("st-arrow").checked = !prefs.noarrow;
     $("st-lock-row").hidden = !apple;
     $("st-lock").checked = localStorage.getItem("app-lock") === "on";
     $("st-lock-row").querySelector("b").textContent = `Lock with ${bio}`;
     for (const kind of ["received", "mining", "market", "swaps"]) $(`st-n-${kind}`).checked = !mutedKinds.includes(kind);
     $("st-n-swaps-row").hidden = phone;
     $("st-cat-computer").hidden = phone;
+    $("st-cat-privacy").hidden = !apple;
     $("st-updates").hidden = phone;
     $("st-running").closest(".set-row").querySelector("small").textContent = `Swaps and payments carry on from ${apple ? "the menu bar" : "the system tray"}`;
   }
@@ -2806,7 +2873,6 @@
     prefs.noarrow = !$("st-arrow").checked; feel("selection");
     invoke("set_app_pref", { name: "arrow", value: prefs.noarrow ? "off" : "on" }).catch(() => {});
   };
-  $("st-hide").onchange = () => { setPref("hide", $("st-hide").checked); feel("selection"); };
   $("st-short").onchange = () => { setPref("short", $("st-short").checked); feel("selection"); };
   $("st-lock").onchange = async () => {
     const on = $("st-lock").checked;
