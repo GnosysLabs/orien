@@ -22,6 +22,7 @@ mod linux;
 #[cfg(desktop)]
 mod mining;
 mod money;
+mod pair;
 #[cfg(target_os = "ios")]
 mod push;
 
@@ -1598,6 +1599,97 @@ async fn wallet_profiles(addresses: Vec<String>) -> Result<serde_json::Value, St
     tauri::async_runtime::spawn_blocking(move || board::profiles(&addresses)).await.map_err(|error| error.to_string())?
 }
 
+/// Adds a wallet rebuilt from its recovery phrase on another device: the
+/// app's first, or one more. Its name and icon come along.
+fn rebuild_wallet(app: &AppHandle, parcel: pair::Parcel) -> Result<String, String> {
+    let dir = folder(app)?;
+    let master = orien_net::phrase::from_words(&parcel.words).map_err(|error| error.to_string())?;
+    let name: String = parcel.name.trim().chars().take(24).collect();
+    let name = if name.is_empty() { "Wallet".to_string() } else { name };
+    let first = wallet_file(&dir).is_none();
+    let path = if first { make_home()? } else {
+        let folder = wallets_folder(&dir)?;
+        (1..10_000).map(|n| folder.join(format!("wallet-{n}.wallet"))).find(|p| !p.exists()).ok_or("too many wallets")?
+    };
+    Wallet::from_master(&path, master, parcel.account.max(1)).map_err(|error| error.to_string())?;
+    let address = Wallet::peek(&path).map_err(|error| error.to_string())?.0;
+    if !first && known_wallets(&dir).iter().any(|w| w.path != path && Wallet::peek(&w.path).is_ok_and(|(a, _)| a == address)) {
+        let _ = fs::remove_file(&path);
+        return Err(format!("{name} is already on this device."));
+    }
+    if first {
+        use_shared(app)?;
+    }
+    let mut settings = settings(&dir);
+    settings.wallets.retain(|w| w.path != path);
+    settings.wallets.push(Named { path: path.clone(), name: name.clone() });
+    settings.current = Some(path);
+    save_settings(&dir, &settings)?;
+    if let Some(icon) = parcel.icon.filter(|icon| !icon.is_empty()) {
+        let _ = contacts::set_icon(&dir, &address.to_string(), &icon);
+    }
+    Ok(name)
+}
+
+/// Starts moving a wallet to another device: the code to show.
+#[tauri::command]
+async fn pair_offer() -> Result<String, String> {
+    tauri::async_runtime::spawn_blocking(pair::offer).await.map_err(|error| error.to_string())?
+}
+
+/// The emoji to compare once the other device has joined; None until then.
+#[tauri::command]
+async fn pair_offer_wait() -> Result<Option<String>, String> {
+    tauri::async_runtime::spawn_blocking(pair::offer_wait).await.map_err(|error| error.to_string())?
+}
+
+/// Sends the wallet at `path`, sealed, once the emoji match. Needs the
+/// wallet unlocked: Touch ID or Face ID a moment before, or its password.
+#[tauri::command]
+async fn pair_offer_send(app: AppHandle, path: String, password: Option<String>) -> Result<(), String> {
+    let dir = folder(&app)?;
+    let path = known(&dir, &path)?;
+    tauri::async_runtime::spawn_blocking(move || {
+        let wallet = match open_signing(&path, password.as_deref())? {
+            Signing::Here(wallet) => wallet,
+            _ => Wallet::open(&path, password.as_deref()).map_err(|_| "password: needed".to_string())?,
+        };
+        let words = wallet.phrase().ok_or("This wallet has no recovery phrase, so it can't be moved this way.")?.join(" ");
+        let account = wallet.account_number().unwrap_or(1);
+        let name = known_wallets(&dir).into_iter().find(|w| w.path == path).map(|w| w.name).unwrap_or_else(|| "Wallet".into());
+        let icon = contacts::icons(&dir).get(&wallet.address().to_string()).map(|icon| icon.emoji.clone());
+        pair::offer_send(&pair::Parcel { words, account, name, icon })
+    })
+    .await
+    .map_err(|error| error.to_string())?
+}
+
+/// Joins with a code from the other device: the emoji to compare.
+#[tauri::command]
+async fn pair_join(code: String) -> Result<String, String> {
+    tauri::async_runtime::spawn_blocking(move || pair::join(&code)).await.map_err(|error| error.to_string())?
+}
+
+/// The wallet's name once it has arrived and been added; None until then.
+#[tauri::command]
+async fn pair_join_wait(app: AppHandle) -> Result<Option<String>, String> {
+    tauri::async_runtime::spawn_blocking(move || match pair::join_wait()? {
+        Some(parcel) => rebuild_wallet(&app, parcel).map(Some),
+        None => Ok(None),
+    })
+    .await
+    .map_err(|error| error.to_string())?
+}
+
+#[tauri::command]
+async fn pair_cancel() {
+    let _ = tauri::async_runtime::spawn_blocking(|| {
+        pair::cancel_sending();
+        pair::cancel_receiving();
+    })
+    .await;
+}
+
 /// A QR code, as an SVG picture, for `text`: the Receive screen's address.
 #[tauri::command]
 fn qr_code(text: String) -> Option<String> {
@@ -1769,6 +1861,9 @@ pub fn run() {
     #[cfg(target_os = "linux")]
     linux::register_appimage();
     let builder = tauri::Builder::default().plugin(tauri_plugin_dialog::init()).plugin(tauri_plugin_haptics::init()).plugin(tauri_plugin_notification::init()).plugin(tauri_plugin_opener::init());
+    // iPhones scan the QR code another device shows, to move a wallet here.
+    #[cfg(mobile)]
+    let builder = builder.plugin(tauri_plugin_barcode_scanner::init());
     // Desktop copies update themselves; iPhone copies come from the App Store.
     #[cfg(desktop)]
     let builder = builder.plugin(tauri_plugin_updater::Builder::new().build()).plugin(
@@ -1795,7 +1890,7 @@ pub fn run() {
             }
             Ok(())
         })
-        .invoke_handler(tauri::generate_handler![has_wallet, create_wallet, save_phrase, restore_wallet, set_password, choose_wallet, overview_now, send_payment, activity, quote, contacts, save_contact, delete_contact, contacts_sync, biometric_unlock, biometric_enable, update::check_update, update::install_update, mine_start, mine_stop, mine_set, mine_status, wallets, wallet_balances, use_wallet, rename_wallet, add_wallet, forget_wallet, swap_list, swap_sell, swap_buy, swap_accept, swap_step, swap_smallest, board_offers, board_me, board_email_start, board_email_finish, board_sign_out, board_post, board_take, board_withdraw, board_link, notifications_ask, push_sync, board_wallets_sync, board_post_sol, board_take_sol, sol_open, sol_payout_check, open_site, qr_code, wallet_profiles, board_profile_save, board_picture_pick, board_verify, board_wallet_states, market_image, board_banner_remove, market_search, market_listings, market_listing, market_profile, market_call, market_pick_pictures, market_listing_picture, dock_badge, mac_notify, board_delete_account, wallet_icons, set_wallet_icon, vault_ready, vault_unlock, open_contact])
+        .invoke_handler(tauri::generate_handler![has_wallet, create_wallet, save_phrase, restore_wallet, set_password, choose_wallet, overview_now, send_payment, activity, quote, contacts, save_contact, delete_contact, contacts_sync, biometric_unlock, biometric_enable, update::check_update, update::install_update, mine_start, mine_stop, mine_set, mine_status, wallets, wallet_balances, use_wallet, rename_wallet, add_wallet, forget_wallet, swap_list, swap_sell, swap_buy, swap_accept, swap_step, swap_smallest, board_offers, board_me, board_email_start, board_email_finish, board_sign_out, board_post, board_take, board_withdraw, board_link, notifications_ask, push_sync, board_wallets_sync, board_post_sol, board_take_sol, sol_open, sol_payout_check, open_site, qr_code, wallet_profiles, board_profile_save, board_picture_pick, board_verify, board_wallet_states, market_image, board_banner_remove, market_search, market_listings, market_listing, market_profile, market_call, market_pick_pictures, market_listing_picture, dock_badge, mac_notify, board_delete_account, wallet_icons, set_wallet_icon, vault_ready, vault_unlock, open_contact, pair_offer, pair_offer_wait, pair_offer_send, pair_join, pair_join_wait, pair_cancel])
         .build(tauri::generate_context!())
         .expect("the wallet window could not start")
         .run(|_app, _event| {

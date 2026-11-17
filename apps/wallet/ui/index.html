@@ -640,6 +640,19 @@
   .keep-open .ko-icon svg { width: 20px; height: 20px; }
   .keep-open strong { display: block; font-size: 15px; font-weight: 600; margin-top: 1px; }
   .keep-open p { margin: 6px 0 0; color: var(--dim); font-size: 13.5px; line-height: 1.5; }
+  /* Moving a wallet to another device. */
+  .pair-card { padding: 26px 22px 22px; border: 1px solid var(--line); border-radius: 22px; background: var(--surface); text-align: center; }
+  .pair-qr { width: 196px; height: 196px; margin: 0 auto; padding: 12px; border-radius: 18px; background: #fff; }
+  .pair-qr svg { display: block; width: 100%; height: 100%; }
+  .pair-code { margin-top: 16px; font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: 22px; font-weight: 600; letter-spacing: 0.02em;
+    -webkit-user-select: all; user-select: all; }
+  .pair-sub { margin: 10px auto 0; max-width: 320px; color: var(--dim); font-size: 13.5px; line-height: 1.5; }
+  .pair-wait { display: inline-flex; align-items: center; gap: 8px; margin-top: 16px; color: var(--faint); font-size: 13px; }
+  .pair-wait .spinner { margin: 0; }
+  .pair-emoji { font-size: 44px; letter-spacing: 0.18em; margin: 4px 0 16px; }
+  .pair-go { display: flex; align-items: center; justify-content: center; gap: 9px; }
+  .phone-only-flex { display: none; }
+  body.phone .phone-only-flex { display: block; }
   .steps { list-style: none; margin: 18px 0 0; padding: 0; }
   .steps li { position: relative; display: grid; grid-template-columns: 26px 1fr; gap: 12px; padding-bottom: 16px; }
   .steps li:not(:last-child)::before { content: ""; position: absolute; left: 12px; top: 28px; bottom: 4px; width: 1px; background: var(--line); }
@@ -974,6 +987,7 @@
       <h2>Welcome to Orien Wallet</h2>
       <p>Create a wallet to hold ORN, or restore the one you already have.</p>
       <button class="primary pearl" id="create">Create a wallet</button>
+      <button class="secondary" id="go-pair">I have it on another device</button>
       <button class="secondary" id="go-restore">Restore with recovery phrase</button>
       <button class="link" id="choose">Open a wallet file</button>
       <div class="problem" id="welcome-problem" hidden></div>
@@ -1443,7 +1457,60 @@
       <div class="push"></div>
       <div class="problem" id="wallet-add-problem" hidden></div>
       <button class="primary pearl" id="wa-new" data-gap="lg">Make a new wallet</button>
+      <button class="secondary" id="wa-pair" data-gap="sm">From another device</button>
       <button class="secondary" id="wa-restore" data-gap="sm">Restore one from its recovery phrase</button>
+    </section>
+
+    <!-- Moving a wallet to another of one's own devices, with a short code -->
+    <section class="screen" id="pair-send" hidden>
+      <div class="topline"><button class="back" id="ps-back" aria-label="Back"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10 3 5 8l5 5"/></svg></button><h2>Add to another device</h2></div>
+      <div class="pair-card" data-gap="lg">
+        <div id="ps-step-code">
+          <div class="pair-qr" id="ps-qr"></div>
+          <div class="pair-code" id="ps-code"></div>
+          <p class="pair-sub">On your other device, open Orien Wallet and choose <b>Add a wallet</b>, then <b>From another device</b>. Scan this code, or type it.</p>
+          <div class="pair-wait"><span class="spinner"></span>Waiting for your other device</div>
+        </div>
+        <div id="ps-step-match" hidden>
+          <div class="pair-emoji" id="ps-emoji"></div>
+          <div class="wc-title">Does your other device show these?</div>
+          <p class="pair-sub">Only send if you see the same three emoji, in the same order.</p>
+        </div>
+        <div id="ps-step-done" hidden>
+          <div class="posted-mark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></div>
+          <div class="wc-title" id="ps-done-title"></div>
+          <p class="pair-sub">It's on your other device now, with its name and icon. It asks there whether to add a password.</p>
+        </div>
+      </div>
+      <div class="field" id="ps-pw-field" data-gap="lg" hidden>
+        <label for="ps-pw">This wallet's password</label>
+        <div class="box plain"><input id="ps-pw" type="password" autocomplete="current-password"></div>
+      </div>
+      <div class="push"></div>
+      <div class="problem" id="ps-problem" hidden></div>
+      <button class="primary pearl" id="ps-send" data-gap="lg" hidden>They match, send it</button>
+      <button class="secondary" id="ps-cancel" data-gap="sm">Cancel</button>
+    </section>
+
+    <section class="screen" id="pair-get" hidden>
+      <div class="topline"><button class="back" id="pg-back" aria-label="Back"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10 3 5 8l5 5"/></svg></button><h2>From another device</h2></div>
+      <div id="pg-step-code">
+        <p class="lede">On the device that has the wallet, open it and choose <b>Edit wallet</b>, then <b>Add to another device</b>. Then type the code it shows.</p>
+        <div class="field">
+          <label for="pg-code">Code</label>
+          <div class="box plain"><input id="pg-code" placeholder="7-orbit-lantern" autocomplete="off" autocapitalize="none" spellcheck="false"></div>
+        </div>
+        <button class="secondary phone-only-flex" id="pg-scan" data-gap="sm">Scan the QR code instead</button>
+      </div>
+      <div class="pair-card" id="pg-step-match" data-gap="lg" hidden>
+        <div class="pair-emoji" id="pg-emoji"></div>
+        <div class="wc-title">Check your other device shows these</div>
+        <p class="pair-sub">If it does, tap <b>They match, send it</b> there. The wallet arrives here by itself.</p>
+        <div class="pair-wait"><span class="spinner"></span>Waiting for your other device</div>
+      </div>
+      <div class="push"></div>
+      <div class="problem" id="pg-problem" hidden></div>
+      <button class="primary pearl" id="pg-go" data-gap="lg">Continue</button>
     </section>
 
     <section class="screen" id="wallet-rename" hidden>
@@ -1458,6 +1525,7 @@
         <div class="emoji-grid" id="wr-emoji"></div>
       </div>
       <div class="problem" id="wallet-rename-problem" hidden></div>
+      <button class="secondary pair-go" id="wr-pair" data-gap="xl"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="13" height="10" rx="2"/><path d="M5 18h7"/><rect x="17" y="8" width="5" height="12" rx="1.5"/></svg>Add to another device</button>
       <button class="pill ct-delete" id="wr-forget">Remove from this app</button>
     </section>
 
@@ -2333,6 +2401,131 @@
     } catch (e) { problem("restore-problem", e); }
     button.textContent = "Restore wallet"; checkPhrase();
   };
+
+  // ---- Moving a wallet to another of one's own devices ----
+  // Sending: a code (and its QR) to show; once the other device joins, the
+  // same three emoji on both; on "They match", the wallet goes, sealed.
+  let pairing = null;   // { path, name, token } while a pairing screen is up
+  async function pairEnd() {
+    if (pairing) { pairing.token = null; pairing = null; }
+    await invoke("pair_cancel").catch(() => {});
+  }
+  $("wr-pair").onclick = async () => {
+    await saveName();
+    const w = renaming;
+    pairing = { path: w.path, name: w.name, token: {} };
+    const token = pairing.token;
+    for (const id of ["ps-step-match", "ps-step-done", "ps-pw-field", "ps-send"]) $(id).hidden = true;
+    $("ps-step-code").hidden = false;
+    $("ps-cancel").textContent = "Cancel"; $("ps-cancel").hidden = false;
+    $("ps-code").textContent = ""; $("ps-qr").innerHTML = '<span class="spinner"></span>';
+    show("pair-send");
+    try {
+      const code = await invoke("pair_offer");
+      if (!pairing || pairing.token !== token) return;
+      $("ps-code").textContent = code;
+      $("ps-qr").innerHTML = (await invoke("qr_code", { text: `orien-pair:${code}` }).catch(() => "")) || "";
+      while (pairing && pairing.token === token) {
+        const emoji = await invoke("pair_offer_wait");
+        if (!pairing || pairing.token !== token) return;
+        if (emoji) {
+          $("ps-step-code").hidden = true;
+          $("ps-emoji").textContent = emoji;
+          $("ps-step-match").hidden = false;
+          $("ps-send").hidden = false;
+          $("ps-cancel").textContent = "They don't match";
+          feel("success");
+          return;
+        }
+      }
+    } catch (e) { if (pairing && pairing.token === token) problem("ps-problem", e); }
+  };
+  $("ps-send").onclick = async () => {
+    if (!pairing) return;
+    const button = $("ps-send");
+    button.disabled = true; button.innerHTML = '<span class="spinner"></span>Sending';
+    const send = (password) => invoke("pair_offer_send", { path: pairing.path, password });
+    try {
+      const typed = $("ps-pw-field").hidden ? null : $("ps-pw").value;
+      try { await send(typed); }
+      catch (e) {
+        if (String(e) !== "password: needed" || typed !== null) throw e;
+        // Touch ID or Face ID where the wallet has it; otherwise its password.
+        let unlocked = false;
+        try { await invoke("biometric_unlock", { path: pairing.path }); unlocked = true; } catch {}
+        if (!unlocked) throw e;
+        await send(null);
+      }
+      $("ps-pw").value = "";
+      $("ps-step-match").hidden = true; $("ps-pw-field").hidden = true; button.hidden = true;
+      $("ps-done-title").textContent = `${pairing.name} is on its way`;
+      $("ps-step-done").hidden = false;
+      $("ps-cancel").textContent = "Done";
+      pairing.token = null;
+      feel("success");
+    } catch (e) {
+      const t = String(e);
+      if (t === "password: needed") { $("ps-pw-field").hidden = false; $("ps-pw").focus(); problem("ps-problem", "Type this wallet's password to send it."); }
+      else if (t === "password: wrong") { $("ps-pw").select(); problem("ps-problem", "That is not this wallet's password."); }
+      else problem("ps-problem", e);
+    } finally { button.disabled = false; if (!button.hidden) button.textContent = "They match, send it"; }
+  };
+  const leavePairSend = async () => { await pairEnd(); show("wallet-rename"); };
+  $("ps-back").onclick = $("ps-cancel").onclick = leavePairSend;
+
+  // Receiving: the code typed or scanned, the emoji to compare, then the
+  // wallet arrives and opens, with its name and icon.
+  let pairFrom = "welcome";
+  function openPairGet(from) {
+    pairFrom = from;
+    pairing = { token: {} };
+    $("pg-step-code").hidden = false; $("pg-step-match").hidden = true; $("pg-go").hidden = false;
+    $("pg-code").value = ""; $("pg-problem").hidden = true;
+    show("pair-get");
+    $("pg-code").focus();
+  }
+  $("wa-pair").onclick = () => openPairGet("wallet-add");
+  $("go-pair").onclick = () => openPairGet("welcome");
+  $("pg-back").onclick = async () => { await pairEnd(); show(pairFrom); };
+  async function pairJoin(code) {
+    const token = pairing && pairing.token;
+    if (!token) return;
+    const button = $("pg-go");
+    button.disabled = true; button.innerHTML = '<span class="spinner"></span>Connecting';
+    try {
+      const emoji = await invoke("pair_join", { code });
+      if (!pairing || pairing.token !== token) return;
+      $("pg-step-code").hidden = true; button.hidden = true;
+      $("pg-emoji").textContent = emoji;
+      $("pg-step-match").hidden = false;
+      feel("success");
+      while (pairing && pairing.token === token) {
+        const name = await invoke("pair_join_wait");
+        if (!pairing || pairing.token !== token) return;
+        if (name) {
+          pairing = null;
+          walletOpened();
+          askPassword();
+          return;
+        }
+      }
+    } catch (e) {
+      if (pairing && pairing.token === token) { $("pg-step-code").hidden = false; $("pg-step-match").hidden = true; button.hidden = false; problem("pg-problem", e); }
+    } finally { button.disabled = false; button.textContent = "Continue"; }
+  }
+  $("pg-go").onclick = () => pairJoin($("pg-code").value);
+  $("pg-code").addEventListener("keydown", (e) => { if (e.key === "Enter") pairJoin($("pg-code").value); });
+  $("pg-scan").onclick = async () => {
+    try {
+      await invoke("plugin:barcode-scanner|request_permissions").catch(() => {});
+      const found = await invoke("plugin:barcode-scanner|scan", { windowed: false, formats: ["QR_CODE"] });
+      const text = String(found && found.content || "");
+      if (!text.startsWith("orien-pair:")) { problem("pg-problem", "That QR code isn't a pairing code from Orien Wallet."); return; }
+      $("pg-code").value = text.slice("orien-pair:".length);
+      pairJoin($("pg-code").value);
+    } catch (e) { if (!/cancel/i.test(String(e))) problem("pg-problem", e); }
+  };
+
   $("choose").onclick = async () => {
     try { if (await invoke("choose_wallet")) await start(); } catch (e) { problem("welcome-problem", e); }
   };

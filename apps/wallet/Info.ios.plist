@@ -6,5 +6,8 @@
 	     Face ID to an app that doesn't give one. -->
 	<key>NSFaceIDUsageDescription</key>
 	<string>Unlock your wallet with Face ID instead of typing its password.</string>
+	<!-- Scanning the QR code another device shows, to move a wallet here. -->
+	<key>NSCameraUsageDescription</key>
+	<string>Scan the code your other device shows, to add a wallet from it.</string>
 </dict>
 </plist>
