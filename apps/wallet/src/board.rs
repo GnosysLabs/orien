@@ -415,11 +415,11 @@ pub fn wallet_states(dir: &Path) -> Result<Value, String> {
 }
 
 /// Saves the signed-in account's name, bio and public usernames.
-pub fn save_profile(dir: &Path, name: &str, bio: &str, email: &str, telegram: &str, x: &str) -> Result<(), String> {
+pub fn save_profile(dir: &Path, name: &str, bio: &str, telegram: &str, x: &str, discord: &str) -> Result<(), String> {
     call(dir, "PUT", "/me", Some(json!({
         "name": name.trim(),
         "bio": bio.trim(),
-        "contact": { "email": email.trim(), "telegram": telegram.trim(), "x": x.trim() },
+        "contact": { "telegram": telegram.trim(), "x": x.trim(), "discord": discord.trim() },
     })))?;
     Ok(())
 }
