@@ -204,9 +204,8 @@
         radial-gradient(circle at 0 0, #000 calc(var(--rb) - 0.5px), transparent var(--rb)) calc(50% + (var(--cw) - var(--rb)) / 2) 100% / var(--rb) var(--rb) no-repeat;
       border-radius: 0; }
   }
-  /* Big windows: each theme's photograph behind the app, quiet. The column in the middle sits on the theme's own ground, fading
-     out toward the edges, so only the margins show the scene. */
-  :root, [data-theme="pearl"] { --scene: url(scenes/pearl.webp); --scene-veil: 0.2; }
+  /* Big windows: each theme's photograph behind the app, quiet. */
+  :root, [data-theme="pearl"] { --scene: url(scenes/pearl.webp); }
   [data-theme="daylight"] { --scene: url(scenes/daylight.webp); }
   [data-theme="midnight"] { --scene: url(scenes/midnight.webp); }
   [data-theme="aurora"] { --scene: url(scenes/aurora.webp); }
@@ -214,13 +213,22 @@
   [data-theme="rose"] { --scene: url(scenes/rose.webp); }
   [data-theme="ruby"] { --scene: url(scenes/ruby.webp); }
   [data-theme="ember"] { --scene: url(scenes/ember.webp); }
-  /* Even photos (Pearl, Obsidian): a strong fade would show as a band. */
-  [data-theme="obsidian"] { --scene: url(scenes/obsidian.webp); --scene-veil: 0.2; }
+  [data-theme="obsidian"] { --scene: url(scenes/obsidian.webp); }
+  /* The themes' solid panel colours, kept for frosting them below. */
+  :root { --surface-solid: var(--surface); --field-solid: var(--field); }
   @media (min-width: 900px) {
     body:not(.phone)::before, body:not(.phone)::after { content: ""; position: fixed; inset: 0; z-index: -1; pointer-events: none; }
     body:not(.phone)::before { background: var(--scene, none) center / cover no-repeat; opacity: 0.55; }
-    body:not(.phone)::after { background: linear-gradient(90deg, transparent calc(50% - 600px), var(--ground-deep) calc(50% - 330px),
-      var(--ground-deep) calc(50% + 330px), transparent calc(50% + 600px)); opacity: var(--scene-veil, 0.75); }
+    /* Behind the column, the same photo softly blurred and dimmed: frosted
+       glass the panels show through, fading out into the sharp photo. */
+    body:not(.phone)::after { inset: -60px;
+      background: linear-gradient(color-mix(in srgb, var(--ground-deep) 50%, transparent), color-mix(in srgb, var(--ground-deep) 50%, transparent)),
+        var(--scene, none) center / cover no-repeat, var(--ground-deep);
+      filter: blur(28px);
+      -webkit-mask-image: linear-gradient(90deg, transparent calc(50% - 620px), #000 calc(50% - 360px), #000 calc(50% + 360px), transparent calc(50% + 620px));
+      mask-image: linear-gradient(90deg, transparent calc(50% - 620px), #000 calc(50% - 360px), #000 calc(50% + 360px), transparent calc(50% + 620px)); }
+    /* Panels partly see-through, so the glow comes through. */
+    body:not(.phone) { --surface: color-mix(in srgb, var(--surface-solid) 66%, transparent); --field: color-mix(in srgb, var(--field-solid) 70%, transparent); }
     /* Over a photo, the wallet button needs a fill of its own to read. */
     body:not(.phone) .wallet-chip { background: var(--surface); color: var(--ink); }
   }
