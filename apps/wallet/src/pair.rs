@@ -31,6 +31,13 @@ pub struct Parcel {
     pub icon: Option<String>,
 }
 
+/// Every wallet on the sending device, sent together when the new device
+/// made the code ("Link a new device"). Older apps send one bare Parcel.
+#[derive(Serialize, Deserialize)]
+pub struct Bundle {
+    pub wallets: Vec<Parcel>,
+}
+
 /// A pairing under way on this device: the mailbox, the code, and, once the
 /// other device has answered, the agreed key.
 struct Pairing {
@@ -168,6 +175,16 @@ fn read_code(typed: &str) -> Result<(u32, String), String> {
 /// Opens a mailbox and starts: the code to show, typed or scanned.
 pub fn offer() -> Result<String, String> {
     cancel_sending();
+    let number = open_mailbox()?;
+    let code = format!("{number}-{}", two_words()?);
+    let (spake, message) = Spake2::<Ed25519Group>::start_a(&Password::new(code.as_bytes()), &Identity::new(SENDER), &Identity::new(RECEIVER));
+    put(number, "a", &message)?;
+    *SENDING.lock().unwrap_or_else(|p| p.into_inner()) = Some(Pairing { number, spake: Some(spake), key: None, confirmed: false });
+    Ok(code)
+}
+
+/// A new mailbox's number.
+fn open_mailbox() -> Result<u32, String> {
     let answer: Value = agent()
         .post(&url(""))
         .send_json(json!({}))
@@ -177,12 +194,7 @@ pub fn offer() -> Result<String, String> {
         })?
         .into_json()
         .map_err(|_| OFFLINE.to_string())?;
-    let number = answer["code"].as_u64().filter(|n| *n > 0 && *n < 100_000).ok_or(OFFLINE)? as u32;
-    let code = format!("{number}-{}", two_words()?);
-    let (spake, message) = Spake2::<Ed25519Group>::start_a(&Password::new(code.as_bytes()), &Identity::new(SENDER), &Identity::new(RECEIVER));
-    put(number, "a", &message)?;
-    *SENDING.lock().unwrap_or_else(|p| p.into_inner()) = Some(Pairing { number, spake: Some(spake), key: None, confirmed: false });
-    Ok(code)
+    Ok(answer["code"].as_u64().filter(|n| *n > 0 && *n < 100_000).ok_or(OFFLINE)? as u32)
 }
 
 /// How the other device stands: None while it hasn't answered yet; the
@@ -240,6 +252,41 @@ pub fn offer_send(parcel: &Parcel) -> Result<(), String> {
     Ok(())
 }
 
+/// "Link a new device": the code the new device shows, typed or scanned
+/// here, on the device that has the wallets. Returns the emoji to compare,
+/// once the new device has proven it made that code.
+pub fn accept(typed: &str) -> Result<String, String> {
+    cancel_sending();
+    let (number, code) = read_code(typed)?;
+    let (spake, message) = Spake2::<Ed25519Group>::start_a(&Password::new(code.as_bytes()), &Identity::new(SENDER), &Identity::new(RECEIVER));
+    let theirs = wait_for(number, "b", Duration::from_secs(5))?.ok_or(GONE)?;
+    put(number, "a", &message)?;
+    let key = key_of(spake.finish(&theirs).map_err(|_| "That code didn't work. Check it and try again.".to_string())?)?;
+    let Some(proof) = wait_for(number, "c", Duration::from_secs(10))? else {
+        close(number);
+        return Err("Your new device didn't answer. Check it's still showing the code, and try again.".into());
+    };
+    if proof != confirmation(&key) {
+        close(number);
+        return Err("That code didn't work. Check it and try again.".into());
+    }
+    *SENDING.lock().unwrap_or_else(|p| p.into_inner()) = Some(Pairing { number, spake: None, key: Some(key), confirmed: true });
+    Ok(emoji(&key))
+}
+
+/// Sends every wallet, sealed, once the person has said the emoji match.
+pub fn accept_send(bundle: &Bundle) -> Result<(), String> {
+    let (number, key) = {
+        let guard = SENDING.lock().unwrap_or_else(|p| p.into_inner());
+        let pairing = guard.as_ref().ok_or(GONE)?;
+        (pairing.number, pairing.key.ok_or(GONE)?)
+    };
+    let plain = serde_json::to_vec(bundle).map_err(|error| error.to_string())?;
+    put(number, "d", &seal(&key, &plain)?)?;
+    *SENDING.lock().unwrap_or_else(|p| p.into_inner()) = None;
+    Ok(())
+}
+
 pub fn cancel_sending() {
     if let Some(pairing) = SENDING.lock().unwrap_or_else(|p| p.into_inner()).take() {
         close(pairing.number);
@@ -247,6 +294,40 @@ pub fn cancel_sending() {
 }
 
 // ---- The receiving device ----
+
+/// "Use my other device": opens a mailbox and makes the code this new
+/// device shows, for the device that has the wallets to type or scan.
+pub fn invite() -> Result<String, String> {
+    cancel_receiving();
+    let number = open_mailbox()?;
+    let code = format!("{number}-{}", two_words()?);
+    let (spake, message) = Spake2::<Ed25519Group>::start_b(&Password::new(code.as_bytes()), &Identity::new(SENDER), &Identity::new(RECEIVER));
+    put(number, "b", &message)?;
+    *RECEIVING.lock().unwrap_or_else(|p| p.into_inner()) = Some(Pairing { number, spake: Some(spake), key: None, confirmed: false });
+    Ok(code)
+}
+
+/// None while the other device hasn't typed the code yet; then the emoji
+/// to compare. The wallets follow through `join_wait`.
+pub fn invite_wait() -> Result<Option<String>, String> {
+    let number = {
+        let guard = RECEIVING.lock().unwrap_or_else(|p| p.into_inner());
+        let pairing = guard.as_ref().ok_or(GONE)?;
+        if let Some(key) = pairing.key.as_ref() {
+            return Ok(Some(emoji(key)));
+        }
+        pairing.number
+    };
+    let Some(theirs) = wait_for(number, "a", Duration::from_millis(2500))? else { return Ok(None) };
+    let mut guard = RECEIVING.lock().unwrap_or_else(|p| p.into_inner());
+    let pairing = guard.as_mut().ok_or(GONE)?;
+    let spake = pairing.spake.take().ok_or(GONE)?;
+    let key = key_of(spake.finish(&theirs).map_err(|_| "The pairing failed. Start again.".to_string())?)?;
+    put(number, "c", &confirmation(&key))?;
+    pairing.key = Some(key);
+    pairing.confirmed = true;
+    Ok(Some(emoji(&key)))
+}
 
 /// Joins with the code typed or scanned; returns the emoji to compare.
 pub fn join(typed: &str) -> Result<String, String> {
@@ -261,8 +342,9 @@ pub fn join(typed: &str) -> Result<String, String> {
     Ok(emoji(&key))
 }
 
-/// The wallet, once the other device has sent it; None until then.
-pub fn join_wait() -> Result<Option<Parcel>, String> {
+/// The wallets, once the other device has sent them (one, from an older
+/// app or "Add to another device"); None until then.
+pub fn join_wait() -> Result<Option<Vec<Parcel>>, String> {
     let (number, key) = {
         let guard = RECEIVING.lock().unwrap_or_else(|p| p.into_inner());
         let pairing = guard.as_ref().ok_or(GONE)?;
@@ -278,7 +360,11 @@ pub fn join_wait() -> Result<Option<Parcel>, String> {
     };
     cancel_receiving();
     let plain = open(&key, &sealed)?;
-    serde_json::from_slice(&plain).map(Some).map_err(|_| "The other device sent something this one can't read.".into())
+    let unreadable = || "The other device sent something this one can't read.".to_string();
+    if let Ok(bundle) = serde_json::from_slice::<Bundle>(&plain) {
+        return if bundle.wallets.is_empty() { Err(unreadable()) } else { Ok(Some(bundle.wallets)) };
+    }
+    serde_json::from_slice::<Parcel>(&plain).map(|parcel| Some(vec![parcel])).map_err(|_| unreadable())
 }
 
 pub fn cancel_receiving() {
@@ -290,6 +376,9 @@ pub fn cancel_receiving() {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    /// The live tests share this device's one pairing at a time.
+    static LIVE: Mutex<()> = Mutex::new(());
 
     #[test]
     fn codes_are_read_however_they_are_typed() {
@@ -328,6 +417,7 @@ mod tests {
     #[test]
     #[ignore = "reaches orien.network"]
     fn a_wallet_crosses_through_the_live_mailbox() {
+        let _one = LIVE.lock().unwrap_or_else(|p| p.into_inner());
         let code = offer().unwrap();
         let joiner = std::thread::spawn({
             let code = code.clone();
@@ -350,7 +440,7 @@ mod tests {
                 break;
             }
         }
-        let got = got.unwrap();
+        let got = got.unwrap().remove(0);
         assert_eq!((got.words.as_str(), got.name.as_str(), got.icon.as_deref()), ("test words", "Savings", Some("💎")));
 
         // A wrong code: the joiner fails, or the offer sees the mismatch.
@@ -367,5 +457,56 @@ mod tests {
         }
         let _ = wrong.join();
         assert!(failed, "the offer noticed the wrong code");
+    }
+
+    /// "Link a new device": the new device makes the code, the old one types
+    /// it, both see the same emoji, and every wallet arrives together.
+    #[test]
+    #[ignore = "reaches orien.network"]
+    fn the_new_device_makes_the_code_and_all_wallets_arrive() {
+        let _one = LIVE.lock().unwrap_or_else(|p| p.into_inner());
+        let code = invite().unwrap();
+        let sender = std::thread::spawn({
+            let code = code.clone();
+            move || accept(&code).unwrap()
+        });
+        let mut seen = None;
+        for _ in 0..10 {
+            if let Some(emoji) = invite_wait().unwrap() {
+                seen = Some(emoji);
+                break;
+            }
+        }
+        let theirs = sender.join().unwrap();
+        assert_eq!(seen.as_deref(), Some(theirs.as_str()));
+        let wallets = vec![
+            Parcel { words: "one".into(), account: 1, name: "Main".into(), icon: None },
+            Parcel { words: "two".into(), account: 2, name: "Savings".into(), icon: Some("💎".into()) },
+        ];
+        accept_send(&Bundle { wallets }).unwrap();
+        let mut got = None;
+        for _ in 0..10 {
+            if let Some(parcels) = join_wait().unwrap() {
+                got = Some(parcels);
+                break;
+            }
+        }
+        let names: Vec<String> = got.unwrap().into_iter().map(|p| p.name).collect();
+        assert_eq!(names, ["Main", "Savings"]);
+
+        // A mistyped code on the old device fails there, and the new
+        // device's mailbox closes, so it makes a fresh code.
+        let code = invite().unwrap();
+        let number = code.split('-').next().unwrap().to_string();
+        let wrong = std::thread::spawn(move || accept(&format!("{number}-wrong-words")));
+        let mut gone = false;
+        for _ in 0..6 {
+            match invite_wait().and_then(|_| join_wait()) {
+                Err(_) => { gone = true; break; }
+                Ok(_) => {}
+            }
+        }
+        assert!(wrong.join().unwrap().is_err(), "a wrong code failed on the old device");
+        assert!(gone, "the new device noticed the closed mailbox");
     }
 }

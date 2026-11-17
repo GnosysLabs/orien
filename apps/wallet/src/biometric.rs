@@ -168,16 +168,42 @@ pub fn unlock(wallet: &Path) -> Result<(), String> {
     }
 }
 
+/// One Touch ID or Face ID for several wallets: on success, each that keeps
+/// its password in the Keychain is unlocked for a few minutes.
+pub fn unlock_all(wallets: &[std::path::PathBuf]) -> Result<(), String> {
+    ask("send your wallets to your new device", "Send your wallets to your new device")?;
+    #[cfg(any(target_os = "macos", target_os = "ios"))]
+    for wallet in wallets {
+        if let Ok(password) = security_framework::passwords::get_generic_password(SERVICE, &name(wallet))
+            && let Ok(password) = String::from_utf8(password)
+        {
+            UNLOCKED
+                .lock()
+                .unwrap_or_else(|poisoned| poisoned.into_inner())
+                .get_or_insert_with(HashMap::new)
+                .insert(name(wallet), (password, Instant::now() + UNLOCKED_FOR));
+        }
+    }
+    #[cfg(not(any(target_os = "macos", target_os = "ios")))]
+    let _ = wallets;
+    Ok(())
+}
+
 /// Asks for Touch ID or Face ID (or the device's passcode) to open the app,
 /// with nothing unlocked by it. Blocks until answered.
 pub fn check() -> Result<(), String> {
+    ask("open Orien Wallet", "Open Orien Wallet")
+}
+
+/// Asks for Touch ID or Face ID (or the device's passcode), saying why.
+fn ask(apple: &str, windows: &str) -> Result<(), String> {
     #[cfg(any(target_os = "macos", target_os = "ios"))]
     {
         use robius_authentication::{AndroidText, BiometricStrength, Context, PolicyBuilder, Text, WindowsText};
         let text = Text {
             android: AndroidText { title: "Orien Wallet", subtitle: None, description: None },
-            apple: "open Orien Wallet",
-            windows: WindowsText::new("Orien Wallet", "Open Orien Wallet").ok_or("prompt text too long")?,
+            apple,
+            windows: WindowsText::new("Orien Wallet", windows).ok_or("prompt text too long")?,
         };
         let policy = PolicyBuilder::new()
             .biometrics(Some(BiometricStrength::Strong))
@@ -197,7 +223,10 @@ pub fn check() -> Result<(), String> {
         }
     }
     #[cfg(not(any(target_os = "macos", target_os = "ios")))]
-    Err("Touch ID and Face ID are on Macs and iPhones only.".into())
+    {
+        let _ = (apple, windows);
+        Err("Touch ID and Face ID are on Macs and iPhones only.".into())
+    }
 }
 
 /// A new password for a wallet that will only ever be unlocked by Touch ID

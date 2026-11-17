@@ -1361,8 +1361,8 @@
       <h2>Welcome to Orien Wallet</h2>
       <p>Create a wallet to hold ORN, or restore the one you already have.</p>
       <button class="primary pearl" id="create">Create a wallet</button>
-      <button class="secondary" id="go-pair">I have it on another device</button>
-      <button class="secondary" id="go-restore">Restore with recovery phrase</button>
+      <button class="secondary" id="go-pair">Use my other device</button>
+      <button class="secondary" id="go-restore">Use my recovery phrase</button>
       <div class="problem" id="welcome-problem" hidden></div>
     </section>
 
@@ -1419,6 +1419,7 @@
     <section class="screen" id="settings" hidden>
       <div class="topline"><button class="back" id="st-back" aria-label="Back"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg></button><h2 id="st-title">Settings</h2></div>
       <div class="set-group" id="st-menu" data-gap="lg">
+        <button class="set-row st-cat" id="st-link"><span class="st-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v7a2 2 0 0 0 2 2h8"/><path d="M10 19v-3.96 3.15"/><path d="M7 19h5"/><rect width="6" height="10" x="16" y="12" rx="2"/></svg></span><span class="set-txt"><b>Link a new device</b><small>Send your wallets to your other phone or computer</small></span><svg class="chev" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg></button>
         <button class="set-row st-cat" data-page="appearance" id="st-cat-appearance"><span class="st-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22a1 1 0 0 1 0-20 10 9 0 0 1 10 9 5 5 0 0 1-5 5h-2.25a1.75 1.75 0 0 0-1.4 2.8l.3.4a1.75 1.75 0 0 1-1.4 2.8z"/><circle cx="13.5" cy="6.5" r=".5" fill="currentColor"/><circle cx="17.5" cy="10.5" r=".5" fill="currentColor"/><circle cx="6.5" cy="12.5" r=".5" fill="currentColor"/><circle cx="8.5" cy="7.5" r=".5" fill="currentColor"/></svg></span><span class="set-txt"><b>Appearance</b></span><svg class="chev" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg></button>
         <button class="set-row st-cat" data-page="privacy" id="st-cat-privacy"><span class="st-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></span><span class="set-txt"><b>Privacy and security</b></span><svg class="chev" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg></button>
         <button class="set-row st-cat" data-page="notify" id="st-cat-notify"><span class="st-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.268 21a2 2 0 0 0 3.464 0"/><path d="M3.262 15.326A1 1 0 0 0 4 17h16a1 1 0 0 0 .74-1.673C19.41 13.956 18 12.499 18 8A6 6 0 0 0 6 8c0 4.499-1.411 5.956-2.738 7.326"/></svg></span><span class="set-txt"><b>Notifications</b></span><svg class="chev" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg></button>
@@ -1863,13 +1864,14 @@
       <div id="wallet-list"><div class="empty">Loading…</div></div>
       <div class="problem" id="wallets-problem" hidden></div>
       <button class="primary pearl" id="wallet-add-go" data-gap="lg">Add a wallet</button>
+      <button class="secondary" id="wallets-link" data-gap="sm">Link a new device</button>
     </section>
 
     <section class="screen" id="wallet-add-choose" hidden>
       <div class="topline"><button class="back" data-to="wallets" aria-label="Back"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg></button><h2>Add a wallet</h2></div>
       <div class="add-opts" data-gap="lg">
         <button class="add-opt" id="ac-new"><span class="add-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="M12 5v14"/></svg></span><span class="add-txt"><b>Make a new wallet</b><small>A fresh one, with its own recovery phrase</small></span><svg class="chev" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg></button>
-        <button class="add-opt" id="ac-pair"><span class="add-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v7a2 2 0 0 0 2 2h8"/><path d="M10 19v-3.96 3.15"/><path d="M7 19h5"/><rect width="6" height="10" x="16" y="12" rx="2"/></svg></span><span class="add-txt"><b>From another device</b><small>Bring one over from your phone or computer</small></span><svg class="chev" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg></button>
+        <button class="add-opt" id="ac-pair"><span class="add-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v7a2 2 0 0 0 2 2h8"/><path d="M10 19v-3.96 3.15"/><path d="M7 19h5"/><rect width="6" height="10" x="16" y="12" rx="2"/></svg></span><span class="add-txt"><b>Use my other device</b><small>Bring your wallets over from your phone or computer</small></span><svg class="chev" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg></button>
         <button class="add-opt" id="ac-restore"><span class="add-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5h10"/><path d="M11 12h10"/><path d="M11 19h10"/><path d="M4 4h1v5"/><path d="M4 9h2"/><path d="M6.5 20H3.4c0-1 2.6-1.925 2.6-3.5a1.5 1.5 0 0 0-2.6-1.02"/></svg></span><span class="add-txt"><b>Restore with recovery phrase</b><small>Type the 24 words of a wallet you have</small></span><svg class="chev" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg></button>
       </div>
     </section>
@@ -1890,35 +1892,54 @@
       <button class="primary pearl" id="wa-restore" data-gap="lg">Restore wallet</button>
     </section>
 
-    <!-- Moving a wallet to another of one's own devices, with a short code -->
-    <section class="screen" id="pair-send" hidden>
-      <div class="topline"><button class="back" id="ps-back" aria-label="Back"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg></button><h2>Add to another device</h2></div>
-      <div class="pair-card" data-gap="lg">
-        <div id="ps-step-code">
-          <div class="pair-qr" id="ps-qr"></div>
-          <div class="pair-code" id="ps-code"></div>
-          <p class="pair-sub">On your other device, open Orien Wallet and choose <b>Add a wallet</b>, then <b>From another device</b>. Scan this code, or type it.</p>
-          <div class="pair-wait"><span class="spinner"></span>Waiting for your other device</div>
-        </div>
-        <div id="ps-step-match" hidden>
-          <div class="pair-emoji" id="ps-emoji"></div>
-          <div class="wc-title">Does your other device show these?</div>
-          <p class="pair-sub">Only send if you see the same three emoji, in the same order.</p>
-        </div>
-        <div id="ps-step-done" hidden>
-          <div class="posted-mark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></div>
-          <div class="wc-title" id="ps-done-title"></div>
-          <p class="pair-sub">It's on your other device now, with its name and icon. It asks there whether to add a password.</p>
-        </div>
+    <!-- "Use my other device": this new device shows a code; the other one,
+         which has the wallets, types or scans it and sends them all. -->
+    <section class="screen" id="pair-invite" hidden>
+      <div class="topline"><button class="back" id="pi-back" aria-label="Back"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg></button><h2>Use my other device</h2></div>
+      <div class="pair-card" id="pi-step-code" data-gap="lg">
+        <div class="pair-qr" id="pi-qr"></div>
+        <div class="pair-code" id="pi-code"></div>
+        <p class="pair-sub">On your other device, open Orien Wallet, go to <b>Settings</b> and choose <b>Link a new device</b>. Then scan this code, or type it.</p>
+        <div class="pair-wait"><span class="spinner"></span>Waiting for your other device</div>
       </div>
-      <div class="field" id="ps-pw-field" data-gap="lg" hidden>
-        <label for="ps-pw">This wallet's password</label>
-        <div class="box plain"><input id="ps-pw" type="password" autocomplete="current-password"></div>
+      <div class="pair-card" id="pi-step-match" data-gap="lg" hidden>
+        <div class="pair-emoji" id="pi-emoji"></div>
+        <div class="wc-title">Check your other device shows these</div>
+        <p class="pair-sub">If they match, tap <b>They match</b> there. Your wallets arrive here by themselves.</p>
+        <div class="pair-wait"><span class="spinner"></span>Waiting for your wallets</div>
       </div>
       <div class="push"></div>
-      <div class="problem" id="ps-problem" hidden></div>
-      <button class="primary pearl" id="ps-send" data-gap="lg" hidden>They match, send it</button>
-      <button class="secondary" id="ps-cancel" data-gap="sm">Cancel</button>
+      <div class="problem" id="pi-problem" hidden></div>
+      <button class="secondary" id="pi-old" data-gap="lg">My other device shows a code</button>
+    </section>
+
+    <!-- "Link a new device": on the device that has the wallets. -->
+    <section class="screen" id="pair-link" hidden>
+      <div class="topline"><button class="back" id="pl-back" aria-label="Back"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg></button><h2>Link a new device</h2></div>
+      <div id="pl-step-code">
+        <p class="lede">On your new device, open Orien Wallet and choose <b>Use my other device</b>. Then scan or type the code it shows.</p>
+        <button class="secondary phone-only-flex" id="pl-scan" data-gap="lg">Scan the code</button>
+        <div class="field" data-gap="lg">
+          <label for="pl-code">Code</label>
+          <div class="box plain"><input id="pl-code" placeholder="7-orbit-lantern" autocomplete="off" autocapitalize="none" spellcheck="false"></div>
+        </div>
+      </div>
+      <div class="pair-card" id="pl-step-match" data-gap="lg" hidden>
+        <div class="pair-emoji" id="pl-emoji"></div>
+        <div class="wc-title">Does your new device show these?</div>
+        <p class="pair-sub">Only send if you see the same three emoji, in the same order.</p>
+      </div>
+      <div id="pl-pws" hidden></div>
+      <div class="pair-card" id="pl-step-done" data-gap="lg" hidden>
+        <div class="posted-mark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></div>
+        <div class="wc-title" id="pl-done-title"></div>
+        <p class="pair-sub">With their names and icons. Your new device asks there whether to add a password.</p>
+      </div>
+      <div class="push"></div>
+      <div class="problem" id="pl-problem" hidden></div>
+      <button class="primary pearl" id="pl-go" data-gap="lg">Continue</button>
+      <button class="primary pearl" id="pl-send" data-gap="lg" hidden>They match, send</button>
+      <button class="secondary" id="pl-cancel" data-gap="sm">Cancel</button>
     </section>
 
     <section class="screen" id="pair-get" hidden>
@@ -1977,7 +1998,7 @@
         <div class="account"><button class="pill icon" id="wr-more" title="More" aria-label="More"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg></button></div></div>
       <div class="ch-menu" id="wr-menu" role="menu" hidden>
         <button class="menu-row" id="wr-reveal"><span>Show recovery phrase</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2.586 17.414A2 2 0 0 0 2 18.828V21a1 1 0 0 0 1 1h3a1 1 0 0 0 1-1v-1a1 1 0 0 1 1-1h1a1 1 0 0 0 1-1v-1a1 1 0 0 1 1-1h.172a2 2 0 0 0 1.414-.586l.814-.814a6.5 6.5 0 1 0-4-4z"/><circle cx="16.5" cy="7.5" r=".5" fill="currentColor"/></svg></button>
-        <button class="menu-row" id="wr-pair"><span>Add to another device</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v7a2 2 0 0 0 2 2h8"/><path d="M10 19v-3.96 3.15"/><path d="M7 19h5"/><rect width="6" height="10" x="16" y="12" rx="2"/></svg></button>
+        <button class="menu-row" id="wr-pair"><span>Link a new device</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v7a2 2 0 0 0 2 2h8"/><path d="M10 19v-3.96 3.15"/><path d="M7 19h5"/><rect width="6" height="10" x="16" y="12" rx="2"/></svg></button>
         <button class="menu-row bad" id="wr-forget"><span>Remove from this app</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 11v6"/><path d="M14 11v6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></button>
       </div>
       <div class="field">
@@ -2797,7 +2818,7 @@
     $("restore-go").textContent = "Continue";
     $("phrase-in").value = ""; checkPhrase(); show("restore"); $("phrase-in").focus();
   };
-  $("ac-pair").onclick = () => openPairGet("wallet-add-choose");
+  $("ac-pair").onclick = () => openPairInvite("wallet-add-choose");
   function addName() {
     const name = $("wa-name").value.trim();
     if (!name) { problem("wallet-add-problem", "Give the wallet a name, like Mining."); return null; }
@@ -2985,7 +3006,7 @@
     $("st-title").textContent = page ? settingsTitles[page] : "Settings";
     $("settings").scrollTop = 0;
   }
-  $("st-menu").onclick = (e) => { const row = e.target.closest(".st-cat"); if (row) settingsPage(row.dataset.page); };
+  $("st-menu").onclick = (e) => { const row = e.target.closest(".st-cat"); if (row && row.dataset.page) settingsPage(row.dataset.page); };
   async function openSettings() {
     paintThemeGrid(); paintSettings(); settingsPage(null); show("settings");
     try {
@@ -3195,73 +3216,169 @@
     if (pairing) { pairing.token = null; pairing = null; }
     await invoke("pair_cancel").catch(() => {});
   }
-  $("wr-pair").onclick = async () => {
-    await saveName();
-    const w = renaming;
-    pairing = { path: w.path, name: w.name, token: {} };
-    const token = pairing.token;
-    for (const id of ["ps-step-match", "ps-step-done", "ps-pw-field", "ps-send"]) $(id).hidden = true;
-    $("ps-step-code").hidden = false;
-    $("ps-cancel").textContent = "Cancel"; $("ps-cancel").hidden = false;
-    $("ps-code").textContent = ""; $("ps-qr").innerHTML = '<span class="spinner"></span>';
-    show("pair-send");
+  // "Link a new device", on the device that has the wallets: the code the
+  // new device shows, typed or scanned; the same three emoji on both; on
+  // "They match", every wallet goes, sealed, after one Touch ID.
+  let linkFrom = "settings";
+  let linkNeeds = [];   // wallets that need a typed password: { path, name }
+  function openPairLink(from) {
+    linkFrom = from;
+    pairing = { token: {} };
+    linkNeeds = [];
+    $("pl-step-code").hidden = false;
+    for (const id of ["pl-step-match", "pl-step-done", "pl-pws", "pl-send", "pl-problem"]) $(id).hidden = true;
+    $("pl-pws").innerHTML = "";
+    $("pl-go").hidden = false;
+    $("pl-cancel").textContent = "Cancel";
+    $("pl-code").value = "";
+    show("pair-link");
+    if (!phone) $("pl-code").focus();
+  }
+  $("st-link").onclick = () => openPairLink("settings");
+  $("wallets-link").onclick = () => openPairLink("wallets");
+  $("wr-pair").onclick = async () => { await saveName(); openPairLink("wallet-rename"); };
+  async function pairAccept(code) {
+    const token = pairing && pairing.token;
+    if (!token || !code.trim()) return;
+    const button = $("pl-go");
+    button.disabled = true; button.innerHTML = '<span class="spinner"></span>Connecting';
+    $("pl-problem").hidden = true;
     try {
-      const code = await invoke("pair_offer");
+      const [emoji, wallets] = await Promise.all([invoke("pair_accept", { code }), invoke("pair_wallets").catch(() => [])]);
       if (!pairing || pairing.token !== token) return;
-      $("ps-code").textContent = code;
-      $("ps-qr").innerHTML = (await invoke("qr_code", { text: `orien-pair:${code}` }).catch(() => "")) || "";
-      while (pairing && pairing.token === token) {
-        const emoji = await invoke("pair_offer_wait");
-        if (!pairing || pairing.token !== token) return;
-        if (emoji) {
-          $("ps-step-code").hidden = true;
-          $("ps-emoji").textContent = emoji;
-          $("ps-step-match").hidden = false;
-          $("ps-send").hidden = false;
-          $("ps-cancel").textContent = "They don't match";
-          feel("success");
-          return;
-        }
-      }
-    } catch (e) { if (pairing && pairing.token === token) problem("ps-problem", e); }
-  };
-  $("ps-send").onclick = async () => {
-    if (!pairing) return;
-    const button = $("ps-send");
-    button.disabled = true; button.innerHTML = '<span class="spinner"></span>Sending';
-    const send = (password) => invoke("pair_offer_send", { path: pairing.path, password });
+      $("pl-step-code").hidden = true; button.hidden = true;
+      $("pl-emoji").textContent = emoji;
+      $("pl-step-match").hidden = false;
+      $("pl-send").textContent = wallets.length > 1 ? "They match, send my wallets" : "They match, send my wallet";
+      $("pl-send").hidden = false;
+      $("pl-cancel").textContent = "They don't match";
+      // Wallets with a typed password (no Touch ID kept for them) ask for
+      // it here, one field each.
+      linkNeeds = wallets.filter((w) => w.password);
+      linkPasswords();
+      feel("success");
+    } catch (e) {
+      if (pairing && pairing.token === token) problem("pl-problem", e);
+    } finally { button.disabled = false; button.textContent = "Continue"; }
+  }
+  function linkPasswords() {
+    const box = $("pl-pws");
+    box.innerHTML = "";
+    linkNeeds.forEach((w, i) => {
+      const field = document.createElement("div");
+      field.className = "field"; field.dataset.gap = "lg";
+      const id = `pl-pw-${i}`;
+      field.innerHTML = `<label for="${id}"></label><div class="box plain"><input id="${id}" type="password" autocomplete="current-password"></div>`;
+      field.querySelector("label").textContent = linkNeeds.length > 1 ? `${w.name}'s password` : "Your wallet's password";
+      field.querySelector("input").dataset.path = w.path;
+      box.appendChild(field);
+    });
+    box.hidden = linkNeeds.length === 0;
+  }
+  $("pl-go").onclick = () => pairAccept($("pl-code").value);
+  $("pl-code").addEventListener("keydown", (e) => { if (e.key === "Enter") pairAccept($("pl-code").value); });
+  $("pl-scan").onclick = async () => {
     try {
-      const typed = $("ps-pw-field").hidden ? null : $("ps-pw").value;
-      try { await send(typed); }
-      catch (e) {
-        if (String(e) !== "password: needed" || typed !== null) throw e;
-        // Touch ID or Face ID where the wallet has it; otherwise its password.
-        let unlocked = false;
-        try { await invoke("biometric_unlock", { path: pairing.path }); unlocked = true; } catch {}
-        if (!unlocked) throw e;
-        await send(null);
-      }
-      $("ps-pw").value = "";
-      $("ps-step-match").hidden = true; $("ps-pw-field").hidden = true; button.hidden = true;
-      $("ps-done-title").textContent = `${pairing.name} is on its way`;
-      $("ps-step-done").hidden = false;
-      $("ps-cancel").textContent = "Done";
+      await invoke("plugin:barcode-scanner|request_permissions").catch(() => {});
+      const found = await invoke("plugin:barcode-scanner|scan", { windowed: false, formats: ["QR_CODE"] });
+      const text = String(found && found.content || "");
+      if (!text.startsWith("orien-link:")) { problem("pl-problem", "That QR code isn't from Orien Wallet's Use my other device."); return; }
+      $("pl-code").value = text.slice("orien-link:".length);
+      pairAccept($("pl-code").value);
+    } catch (e) { if (!/cancel/i.test(String(e))) problem("pl-problem", e); }
+  };
+  $("pl-send").onclick = async () => {
+    if (!pairing) return;
+    const button = $("pl-send");
+    const label = button.textContent;
+    button.disabled = true; button.innerHTML = '<span class="spinner"></span>Sending';
+    $("pl-problem").hidden = true;
+    const passwords = {};
+    for (const input of $("pl-pws").querySelectorAll("input")) if (input.value) passwords[input.dataset.path] = input.value;
+    try {
+      const count = await invoke("pair_accept_send", { passwords });
+      for (const input of $("pl-pws").querySelectorAll("input")) input.value = "";
+      for (const id of ["pl-step-match", "pl-pws"]) $(id).hidden = true;
+      button.hidden = true;
+      $("pl-done-title").textContent = count > 1 ? `Your ${count} wallets are on their way` : "Your wallet is on its way";
+      $("pl-step-done").hidden = false;
+      $("pl-cancel").textContent = "Done";
       pairing.token = null;
       feel("success");
     } catch (e) {
       const t = String(e);
-      if (t === "password: needed") { $("ps-pw-field").hidden = false; $("ps-pw").focus(); problem("ps-problem", "Type this wallet's password to send it."); }
-      else if (t === "password: wrong") { $("ps-pw").select(); problem("ps-problem", "That is not this wallet's password."); }
-      else problem("ps-problem", e);
-    } finally { button.disabled = false; if (!button.hidden) button.textContent = "They match, send it"; }
+      const m = t.match(/^password: (needed|wrong) (.+)$/);
+      if (m) {
+        // A wallet whose password wasn't known yet: ask for it.
+        let input = [...$("pl-pws").querySelectorAll("input")].find((i) => i.dataset.path === m[2]);
+        if (!input) {
+          const w = (await invoke("pair_wallets").catch(() => [])).find((x) => x.path === m[2]) || { path: m[2], name: "This wallet" };
+          linkNeeds.push(w); linkPasswords();
+          input = [...$("pl-pws").querySelectorAll("input")].find((i) => i.dataset.path === m[2]);
+        }
+        if (input) { m[1] === "wrong" ? input.select() : input.focus(); }
+        problem("pl-problem", m[1] === "wrong" ? "That password isn't right. Check it and try again." : "Type the password to send this wallet too.");
+      } else problem("pl-problem", e);
+    } finally { button.disabled = false; if (!button.hidden) button.textContent = label; }
   };
-  $("ps-back").onclick = async () => { await pairEnd(); show("wallet-rename"); };
-  // Cancel goes back to the wallet; Done, once it's sent, goes home.
-  $("ps-cancel").onclick = async () => {
-    const sent = !$("ps-step-done").hidden;
+  $("pl-back").onclick = async () => { await pairEnd(); show(linkFrom); };
+  // Cancel (or "They don't match") goes back; Done, once sent, goes home.
+  $("pl-cancel").onclick = async () => {
+    const sent = !$("pl-step-done").hidden;
     await pairEnd();
-    if (sent) home(); else show("wallet-rename");
+    if (sent) home(); else show(linkFrom);
   };
+
+  // "Use my other device", on the new device: a code to show, the emoji
+  // to compare, then the wallets arrive and the first opens. A code that
+  // runs out, or a mistyped one, gives way to a fresh code by itself.
+  let inviteFrom = "welcome";
+  async function openPairInvite(from) {
+    inviteFrom = from;
+    await pairEnd();
+    pairing = { token: {} };
+    const token = pairing.token;
+    $("pi-step-code").hidden = false; $("pi-step-match").hidden = true; $("pi-problem").hidden = true;
+    $("pi-code").textContent = ""; $("pi-qr").innerHTML = '<span class="spinner"></span>';
+    if ($("pair-invite").hidden) show("pair-invite");
+    try {
+      const code = await invoke("pair_invite");
+      if (!pairing || pairing.token !== token) return;
+      $("pi-code").textContent = code;
+      $("pi-qr").innerHTML = (await invoke("qr_code", { text: `orien-link:${code}` }).catch(() => "")) || "";
+      let matched = false;
+      while (pairing && pairing.token === token) {
+        if (!matched) {
+          const emoji = await invoke("pair_invite_wait");
+          if (!pairing || pairing.token !== token) return;
+          if (emoji) {
+            matched = true;
+            $("pi-step-code").hidden = true;
+            $("pi-emoji").textContent = emoji;
+            $("pi-step-match").hidden = false;
+            feel("success");
+          }
+          continue;
+        }
+        const name = await invoke("pair_join_wait");
+        if (!pairing || pairing.token !== token) return;
+        if (name) {
+          pairing = null;
+          await loadIcons();
+          walletOpened();
+          askPassword();
+          return;
+        }
+      }
+    } catch (e) {
+      if (!pairing || pairing.token !== token) return;
+      // Ran out, or the other device typed it wrong: a fresh code.
+      if (/ran out of time|Start again/.test(String(e))) { openPairInvite(inviteFrom); return; }
+      problem("pi-problem", e);
+    }
+  }
+  $("pi-back").onclick = async () => { await pairEnd(); show(inviteFrom); };
+  $("pi-old").onclick = async () => { await pairEnd(); openPairGet(inviteFrom); };
 
   // Receiving: the code typed or scanned, the emoji to compare, then the
   // wallet arrives and opens, with its name and icon.
@@ -3274,7 +3391,7 @@
     show("pair-get");
     $("pg-code").focus();
   }
-  $("go-pair").onclick = () => openPairGet("welcome");
+  $("go-pair").onclick = () => openPairInvite("welcome");
   $("pg-back").onclick = async () => { await pairEnd(); show(pairFrom); };
   async function pairJoin(code) {
     const token = pairing && pairing.token;
