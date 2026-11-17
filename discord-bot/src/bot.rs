@@ -446,8 +446,18 @@ impl EventHandler for Handler {
     }
 }
 
-pub async fn run(token: String, expert: Expert, per_person: usize, per_hour: usize, news: Option<(String, std::path::PathBuf)>) -> Result<()> {
+pub async fn run(
+    token: String,
+    expert: Expert,
+    per_person: usize,
+    per_hour: usize,
+    news: Option<(String, std::path::PathBuf)>,
+    shipped: Option<String>,
+) -> Result<()> {
     let expert = Arc::new(expert);
+    if let Some(shipped) = shipped {
+        tokio::spawn(crate::study::keep_current(expert.clone(), shipped));
+    }
     // Servers and their messages only: no private messages, no member lists.
     let intents = GatewayIntents::GUILDS | GatewayIntents::GUILD_MESSAGES | GatewayIntents::MESSAGE_CONTENT;
     let handler = Handler {

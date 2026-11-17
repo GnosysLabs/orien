@@ -15,6 +15,7 @@ mod bot;
 mod expert;
 mod news;
 mod safety;
+mod study;
 mod texts;
 
 use std::path::PathBuf;
@@ -68,6 +69,16 @@ enum Command {
         /// The changelog page to watch.
         #[arg(long, default_value = news::CHANGELOG)]
         changelog: String,
+        /// Answer only from the knowledge file, without reading the live
+        /// website again every half hour.
+        #[arg(long)]
+        offline: bool,
+    },
+    /// Show what the bot would know right now from the live website.
+    Study {
+        /// The shipped knowledge file, for the parts not on the website.
+        #[arg(long)]
+        knowledge: PathBuf,
     },
     /// The one-time catch-up in #announcements: one post telling the story
     /// of the older entries, then one post for each of the newest. First
@@ -142,9 +153,15 @@ fn expert(brain: &Brain) -> Result<expert::Expert> {
 #[tokio::main]
 async fn main() -> Result<()> {
     match Cli::parse().command {
-        Command::Run { token, brain, per_person, per_hour, state, changelog } => {
+        Command::Run { token, brain, per_person, per_hour, state, changelog, offline } => {
             let news = state.map(|folder| (changelog, folder.join("announced.json")));
-            bot::run(secret(&token)?, expert(&brain)?, per_person, per_hour, news).await
+            let shipped = if offline { None } else { Some(std::fs::read_to_string(&brain.knowledge)?) };
+            bot::run(secret(&token)?, expert(&brain)?, per_person, per_hour, news, shipped).await
+        }
+        Command::Study { knowledge } => {
+            let shipped = std::fs::read_to_string(&knowledge)?;
+            println!("{}", study::gather(&reqwest::Client::new(), &shipped).await?);
+            Ok(())
         }
         Command::CatchUp { brain, draft, post, token, newest, changelog } => {
             if let Some(file) = draft {
@@ -197,6 +214,11 @@ async fn main() -> Result<()> {
         }
         Command::Ask { brain, overheard, question } => {
             let expert = expert(&brain)?;
+            let shipped = std::fs::read_to_string(&brain.knowledge)?;
+            match study::gather(&reqwest::Client::new(), &shipped).await {
+                Ok(fresh) => expert.learn(&fresh),
+                Err(error) => eprintln!("[answering from the knowledge file alone: {error:#}]"),
+            }
             let answer = expert
                 .answer(&expert::Question { channel: "help", direct: !overheard, before: &[], author: "someone", text: &question })
                 .await?;

@@ -3,6 +3,8 @@
 //! knowledge.md and nothing else.
 
 use anyhow::{Context, Result, bail};
+use std::sync::{Arc, RwLock};
+
 use serde_json::{Value, json};
 
 const ENDPOINT: &str = "https://openrouter.ai/api/v1/chat/completions";
@@ -92,6 +94,10 @@ const STORY: &str = r#"Write one post that tells someone who has just joined wha
 
 Start with one or two sentences that set the scene. Then five to seven bullet points, each starting with "- " and a bold two-or-three-word label, grouping the changes by what they are about (for example the launch, mining, the wallet, swaps, the Market, validators) rather than listing them one by one. Pick what a newcomer would care about and leave the small fixes out. Keep it under 1,400 characters in all: count carefully, a longer post cannot be sent."#;
 
+fn system_text(knowledge: &str) -> String {
+    format!("{RULES}\n\n# Reference material\n\n{knowledge}")
+}
+
 /// One answered question, with what it cost.
 pub struct Answer {
     /// The text to post, or none when the model chose to stay quiet.
@@ -117,7 +123,9 @@ pub struct Expert {
     model: String,
     /// The model that writes announcements: few and public, so the best.
     news_model: String,
-    system: String,
+    /// The rules and the reference material. Replaced whenever the
+    /// website has changed.
+    system: RwLock<Arc<String>>,
 }
 
 impl Expert {
@@ -126,8 +134,13 @@ impl Expert {
             bail!("the knowledge file is nearly empty; run discord-bot/build-knowledge.py first");
         }
         let client = reqwest::Client::builder().timeout(std::time::Duration::from_secs(90)).build()?;
-        let system = format!("{RULES}\n\n# Reference material\n\n{knowledge}");
+        let system = RwLock::new(Arc::new(system_text(knowledge)));
         Ok(Expert { client, key, model, news_model, system })
+    }
+
+    /// Takes in newer reference material, for every answer from now on.
+    pub fn learn(&self, knowledge: &str) {
+        *self.system.write().unwrap() = Arc::new(system_text(knowledge));
     }
 
     /// A hello written for one new member, with `{user}` where they are
@@ -223,6 +236,7 @@ impl Expert {
         }
         ask.push_str(&format!("\nThe message to answer, from {}:\n{}", question.author, clip(question.text, 2000)));
 
+        let system = self.system.read().unwrap().clone();
         let body = json!({
             "model": self.model,
             // Room for the model to think before it writes; the rules keep
@@ -232,7 +246,7 @@ impl Expert {
             // they are kept warm and read back at a tenth of the price.
             "messages": [
                 { "role": "system", "content": [
-                    { "type": "text", "text": self.system, "cache_control": { "type": "ephemeral" } }
+                    { "type": "text", "text": system.as_str(), "cache_control": { "type": "ephemeral" } }
                 ]},
                 { "role": "user", "content": ask },
             ],

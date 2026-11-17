@@ -69,7 +69,8 @@ def changelog_text(source: str) -> str:
 
 def orien_help() -> str:
     """What `orien --help` and each command's help say."""
-    for program in (ROOT / "target/release/orien", Path.home() / ".orien/bin/orien"):
+    # The installed, released orien first: its help is what people have.
+    for program in (Path.home() / ".orien/bin/orien", ROOT / "target/release/orien"):
         if program.exists():
             break
     else:
@@ -96,7 +97,8 @@ def main() -> None:
         sections.append(f"# {heading}\nSource: {address}\n\n{text}")
     changelog = changelog_text((ROOT / "web/src/content/changelog.ts").read_text())
     sections.append(f"# Changelog, newest first\nSource: https://orien.network/changelog/\n\n{changelog}")
-    sections.append("# Design notes: how coins are created (docs/epochs.md, written for developers)\n\n" + (ROOT / "docs/epochs.md").read_text().strip())
+    # The running bot reads the website itself; from here on is what it cannot find there.
+    sections.append("<!-- not on the website -->\n\n# Design notes: how coins are created (docs/epochs.md, written for developers)\n\n" + (ROOT / "docs/epochs.md").read_text().strip())
     cli = orien_help()
     if cli:
         sections.append("# The orien command-line program's own help\n\n" + cli)
