@@ -947,6 +947,14 @@ async fn network<T: Send + 'static>(
 async fn link_wallet(State(app): State<Arc<App>>, headers: HeaderMap, Json(request): Json<WalletLink>) -> Answer {
     let id = app.signed_in(&headers)?;
     let address = store::orien_address(&request.address).map_err(refused)?;
+    // Buyers pay only verified wallets: once one is, the wallet paid at can
+    // only become another verified one.
+    {
+        let store = app.store.lock().unwrap();
+        if store.wallet_verified(id)? && !store.is_verified_wallet(id, &address)? {
+            return Err(Failure::Refused("verify that wallet first, then choose Get paid here".into()));
+        }
+    }
     if !request.app {
         let account: orien_ledger::AccountId = address.parse().map_err(|_| refused(anyhow::anyhow!("that is not an Orien address")))?;
         if !network(&app, move |p| p.has_held(&account)).await? {
@@ -1317,11 +1325,22 @@ impl App {
 
 /// For tests: signs an account in without a passkey.
 #[doc(hidden)]
+/// For tests: a signed-in account with no wallet yet.
+#[doc(hidden)]
+pub fn sign_in_without_wallet_for_tests(app: &App, name: &str) -> String {
+    let store = app.store.lock().unwrap();
+    let account = store.create_account(name, &hex::encode(rand_bytes())).unwrap();
+    store.start_session(account.id).unwrap()
+}
+
 pub fn sign_in_for_tests(app: &App, name: &str) -> String {
     let store = app.store.lock().unwrap();
     let account = store.create_account(name, &hex::encode(rand_bytes())).unwrap();
     // A verified wallet of its own and a way to be reached, so it can post listings.
-    store.set_wallet(account.id, &hex::encode(rand_bytes()).repeat(2)).unwrap();
+    let wallet = hex::encode(rand_bytes()).repeat(2);
+    store.set_wallet(account.id, &wallet).unwrap();
+    store.start_proof(account.id, Some(&wallet), 0, "to").unwrap();
+    store.mark_proven(account.id, &wallet).unwrap();
     let reach = store::Contact { discord: name.to_lowercase().replace(' ', "_"), ..Default::default() };
     store.set_profile(account.id, name, "", &reach).unwrap();
     store.start_session(account.id).unwrap()

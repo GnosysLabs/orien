@@ -6,7 +6,7 @@ import { LogOut, Mail } from 'lucide-react'
 import { ask, me, NAME_PATTERN, NAME_RULE, type Account, type Listing } from '@/lib/market'
 import { Card } from './Browse'
 import { ProfileEditor } from './ProfileEditor'
-import { VerifiedWallets, WalletCheck } from './WalletCheck'
+import { YourWallets } from './WalletCheck'
 import { Notice, SIGNED_IN_OR_OUT } from './Shell'
 
 type Found = { account: Account; listings: Listing[] }
@@ -190,8 +190,7 @@ function Mine({ found, onChange }: { found: Found; onChange: () => void }) {
         </button>
       </div>
       <ProfileEditor account={found.account} onSaved={onChange} />
-      <WalletCheck account={found.account} onVerified={onChange} />
-      <VerifiedWallets account={found.account} onChange={onChange} />
+      <YourWallets account={found.account} onChange={onChange} />
       <h2 className="pt-2 text-xl font-bold tracking-tight text-ink">Your listings</h2>
       {trouble && <Notice tone="bad">{trouble}</Notice>}
       {found.listings.length === 0 ? (

@@ -3,7 +3,7 @@
 use axum::body::Body;
 use axum::http::{Request, StatusCode, header};
 use http_body_util::BodyExt;
-use orien_market::api::{App, COOKIE, router, sign_in_for_tests};
+use orien_market::api::{sign_in_without_wallet_for_tests, App, COOKIE, router, sign_in_for_tests};
 use orien_market::images::Folder;
 use orien_market::mail::Mailer;
 use orien_market::prices::Prices;
@@ -310,7 +310,7 @@ async fn a_seller_links_their_wallet_before_listing() {
     // No listing before a wallet is linked.
     let (status, body) = market.ask("POST", "/api/market/listings", Some(&maya), Some(logo())).await;
     assert_eq!(status, StatusCode::BAD_REQUEST);
-    assert!(body["error"].as_str().unwrap().contains("link your Orien wallet"));
+    assert!(body["error"].as_str().unwrap().contains("verify a wallet"), "{body}");
 
     // Typed on the website: an address that never held ORN is likely a typo.
     let wallet = "be5b7cc81cbe475fe002bee2597c30b0ae4f030434e93f12ade7f1a266c6258b";
@@ -331,11 +331,23 @@ async fn a_seller_links_their_wallet_before_listing() {
     let (_, body) = market.ask("GET", "/api/market/me/wallet", Some(&maya), None).await;
     assert_eq!(body["wallet"], wallet);
 
-    // A way to be reached, then listings pay to the linked wallet, whatever the form says.
+    // Linked but not verified: still no listing.
     let reach = json!({ "name": "Maya", "contact": { "x": "maya" } });
     assert_eq!(market.ask("PUT", "/api/market/me", Some(&maya), Some(reach)).await.0, StatusCode::OK);
     let mut listing = logo();
     listing.as_object_mut().unwrap().remove("pay_to");
+    let (status, _) = market.ask("POST", "/api/market/listings", Some(&maya), Some(listing.clone())).await;
+    assert_eq!(status, StatusCode::BAD_REQUEST, "the wallet isn't verified yet");
+
+    // Verified by its small payment: listings pay to it, whatever the form says.
+    let (_, body) = market.ask("POST", "/api/market/me/wallet/verify", Some(&maya), None).await;
+    let amount = body["proof"]["amount"].as_u64().unwrap();
+    let id = |hex: &str| orien_crypto::Hash32(hex::decode(hex).unwrap().try_into().unwrap());
+    payments.payments.lock().unwrap().push((id(MARKET), orien_market::wallets::Incoming { from: id(wallet), amount, epoch: 0 }));
+    orien_market::proofs::check_once(&market.app).unwrap();
+    // Now only another verified wallet can be the one paid at.
+    let (status, _) = market.ask("POST", "/api/market/me/wallet", Some(&maya), Some(json!({ "address": other }))).await;
+    assert_eq!(status, StatusCode::BAD_REQUEST);
     let (status, body) = market.ask("POST", "/api/market/listings", Some(&maya), Some(listing)).await;
     assert_eq!((status, body["listing"]["pay_to"].as_str()), (StatusCode::CREATED, Some(wallet)));
     let (_, body) = market.ask("GET", "/api/market/me", Some(&maya), None).await;
@@ -682,7 +694,7 @@ async fn a_wallet_is_verified_by_a_small_payment_and_then_named() {
     let app = App::new(Store::in_memory().unwrap(), folder(), "https://orien.network", true, Mailer::log_only(), Screener::off(), payments.clone(), MARKET);
     let market = Market { app: Arc::new(app.unwrap().with_prices(Prices::fixed_for_tests(65_000.0))) };
     let id = |hex: &str| orien_crypto::Hash32(hex::decode(hex).unwrap().try_into().unwrap());
-    let (maya, eve) = (sign_in_for_tests(&market.app, "Maya"), sign_in_for_tests(&market.app, "Eve"));
+    let (maya, eve) = (sign_in_without_wallet_for_tests(&market.app, "Maya"), sign_in_without_wallet_for_tests(&market.app, "Eve"));
     let wallet = "7a".repeat(32);
     market.ask("POST", "/api/market/me/wallet", Some(&maya), Some(json!({ "address": wallet, "app": true }))).await;
     // Eve names Maya's wallet as her own: allowed for payouts, never verified.

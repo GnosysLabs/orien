@@ -448,7 +448,7 @@ mod tests {
     fn counts_what_the_marketplace_holds() {
         let store = Store::in_memory().unwrap();
         let maya = store.create_account("Maya", "maya").unwrap();
-        store.set_wallet(maya.id, &"a".repeat(64)).unwrap();
+        store.verified_wallet_for_tests(maya.id, &"a".repeat(64)).unwrap();
         let stats = store.market_stats().unwrap();
         assert_eq!((stats.accounts, stats.accounts_day, stats.with_wallet), (1, 1, 1));
         assert_eq!(stats.daily.len(), 14);

@@ -214,7 +214,7 @@ mod tests {
         let store = Store::in_memory().unwrap();
         let maya = store.create_account("Maya", "maya").unwrap().id;
         let sam = store.create_account("Sam", "sam").unwrap().id;
-        store.set_wallet(maya, &"a".repeat(64)).unwrap();
+        store.verified_wallet_for_tests(maya, &"a".repeat(64)).unwrap();
         let listing = store.post(maya, &draft()).unwrap().id;
         assert!(store.report(sam, "listing", 999, "spam").is_err(), "nothing to report");
         assert!(store.report(sam, "weather", listing, "spam").is_err());
@@ -234,7 +234,7 @@ mod tests {
         let store = Store::in_memory().unwrap();
         let maya = store.create_account("Maya", "maya").unwrap().id;
         let sam = store.create_account("Sam", "sam").unwrap().id;
-        store.set_wallet(maya, &"a".repeat(64)).unwrap();
+        store.verified_wallet_for_tests(maya, &"a".repeat(64)).unwrap();
         let listing = store.post(maya, &draft()).unwrap().id;
         store.add_listing_picture(maya, listing, "pic.jpg").unwrap();
         let c = store.conversation_about(sam, listing).unwrap();
@@ -251,7 +251,7 @@ mod tests {
     fn a_suspended_account_is_signed_out_and_its_listings_go() {
         let store = Store::in_memory().unwrap();
         let maya = store.create_account("Maya", "maya").unwrap().id;
-        store.set_wallet(maya, &"a".repeat(64)).unwrap();
+        store.verified_wallet_for_tests(maya, &"a".repeat(64)).unwrap();
         store.post(maya, &draft()).unwrap();
         let token = store.start_session(maya).unwrap();
         store.suspend(maya, "scams").unwrap();

@@ -486,10 +486,15 @@ impl Store {
         Ok(())
     }
 
+    /// The verified wallet `account` is paid at: selling needs one, so
+    /// buyers always pay a wallet proven to be the seller's.
     fn wallet_of(&self, account: i64) -> Result<String> {
         let wallet: Option<String> =
             self.db.query_row("SELECT payout FROM accounts WHERE id = ?1", [account], |row| row.get(0))?;
-        wallet.ok_or_else(|| anyhow::anyhow!("link your Orien wallet first, under Your profile, so buyers' payments reach you"))
+        match wallet {
+            Some(wallet) if self.wallet_verified(account)? => Ok(wallet),
+            _ => bail!("verify a wallet to be paid at first, under Your wallets on your account page"),
+        }
     }
 
     /// Forgets a code that could not be sent.
@@ -657,6 +662,9 @@ impl Store {
         if self.is_removed(id)? {
             bail!("this listing was taken down, and cannot be opened again");
         }
+        if open {
+            self.wallet_of(seller)?;
+        }
         let changed = self.db.execute(
             "UPDATE listings SET open = ?3, updated = ?4 WHERE id = ?1 AND seller = ?2",
             params![id, seller, open, now()],
@@ -823,8 +831,8 @@ mod tests {
         let maya = store.create_account("Maya", "maya").unwrap();
         let sam = store.create_account("Sam", "sam").unwrap();
         assert!(store.post(maya.id, &draft("Logo design")).is_err(), "a seller verifies a wallet first");
-        store.set_wallet(maya.id, &"a".repeat(64)).unwrap();
-        store.set_wallet(sam.id, &"b".repeat(64)).unwrap();
+        store.verified_wallet_for_tests(maya.id, &"a".repeat(64)).unwrap();
+        store.verified_wallet_for_tests(sam.id, &"b".repeat(64)).unwrap();
 
         let posted = store.post(maya.id, &draft("Logo design")).unwrap();
         assert_eq!((posted.seller_name.as_str(), posted.open), ("Maya", true));
@@ -858,7 +866,7 @@ mod tests {
     fn listings_are_checked() {
         let store = Store::in_memory().unwrap();
         let maya = store.create_account("Maya", "maya").unwrap();
-        store.set_wallet(maya.id, &"a".repeat(64)).unwrap();
+        store.verified_wallet_for_tests(maya.id, &"a".repeat(64)).unwrap();
         store.set_profile(maya.id, "Maya", "", &Contact { x: "maya".into(), ..Contact::default() }).unwrap();
         let bad = |change: fn(&mut Draft)| {
             let mut d = draft("Logo design");

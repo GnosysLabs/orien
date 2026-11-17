@@ -562,8 +562,8 @@ mod tests {
         let store = Store::in_memory().unwrap();
         let maya = store.create_account("Maya", "maya").unwrap().id;
         let sam = store.create_account("Sam", "sam").unwrap().id;
-        store.set_wallet(maya, MAYA_WALLET).unwrap();
-        store.set_wallet(sam, SAM_WALLET).unwrap();
+        store.verified_wallet_for_tests(maya, MAYA_WALLET).unwrap();
+        store.verified_wallet_for_tests(sam, SAM_WALLET).unwrap();
         (store, maya, sam)
     }
 
