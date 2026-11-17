@@ -2666,6 +2666,8 @@
         if (!pairing || pairing.token !== token) return;
         if (name) {
           pairing = null;
+          // Its icon came along: shown at once, not at the next refresh.
+          await loadIcons();
           walletOpened();
           askPassword();
           return;
