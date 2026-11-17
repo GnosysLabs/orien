@@ -169,6 +169,23 @@
   html body #swaps, html body #swap-sell, html body #swap-buy, html body #swap-detail {
     margin-left: -18px; margin-right: -18px; padding-left: 18px; padding-right: 18px; padding-bottom: 22px; }
   html body .scroll { margin-left: -18px; margin-right: -18px; padding-left: 18px; padding-right: 18px; padding-bottom: 22px; }
+  /* Big windows: every screen keeps its ideal width, centred, with the
+     theme's background filling the rest. The screen itself still spans the
+     window, so it scrolls from anywhere and its scrollbar sits at the edge.
+     The Market is wider, with more listings to a row. */
+  :root { --col: 640px; }
+  #market, #seller { --col: 1040px; }
+  @media (min-width: 720px) {
+    html body .screen, html body #mine, html body #board-signin, html body #board-post, html body #board-take,
+    html body #swaps, html body #swap-sell, html body #swap-buy, html body #swap-detail {
+      padding-left: max(18px, calc(18px + (100% - var(--col)) / 2));
+      padding-right: max(18px, calc(18px + (100% - var(--col)) / 2)); }
+  }
+  /* Tall windows: a screen's main button stays close under its form,
+     rather than alone at the foot of the window. */
+  @media (min-width: 720px) and (min-height: 780px) {
+    html body .push { flex: 0 1 40px; }
+  }
   [data-theme="daylight"] .tile, [data-theme="daylight"] .set-group, [data-theme="daylight"] .pair-card { box-shadow: 0 1px 2px rgba(40, 40, 80, 0.05); }
   [data-theme="daylight"] .menu-row.bad { color: var(--bad); }
   /* Switching: the whole app fades into the new look. */
@@ -515,6 +532,7 @@
   @media (hover: hover) { .mk-cats button:hover { background: var(--surface); color: var(--ink); } }
   .mk-cats button.on { border-color: transparent; color: var(--pearl-ink); background: var(--pearl); background-size: 300% 100%; font-weight: 600; }
   .mk-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+  @media (min-width: 720px) { .mk-grid { grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 16px; } }
   .mk-card { display: flex; flex-direction: column; padding: 0; border: 1px solid var(--line); border-radius: 18px; overflow: hidden;
     background: var(--surface); color: inherit; font: inherit; text-align: left; cursor: pointer; transition: transform .15s, background .15s; }
   @media (hover: hover) { .mk-card:hover { background: var(--surface-hover); transform: translateY(-1px); } }
