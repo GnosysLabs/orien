@@ -38,6 +38,9 @@ export const CHANGELOG: Entry[] = [
       'Only one copy of the app runs at a time on computers: opening it again brings the running one forward.',
       'On Linux, switching themes no longer crashes the app on computers with NVIDIA graphics.',
       'Softer shadows that never get cut off, and roomier icons on the home screen.',
+      'A cleaner Send screen: a big amount, "Use max" beside what\'s available, and on iPhones the Review button right above the keyboard.',
+      'Typing a name to send to suggests contacts whose name starts with it, not every name with that letter in it.',
+      'The balance card\'s shimmer drifts smoothly, with no visible edge.',
     ],
   },
   {
