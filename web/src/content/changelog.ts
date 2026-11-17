@@ -26,6 +26,21 @@ export const PRODUCTS: Record<Product, string> = {
 
 export const CHANGELOG: Entry[] = [
   {
+    date: '2026-11-17',
+    products: ['wallet'],
+    version: '1.8.11',
+    title: 'Settings, themes, and wallets that move between your devices',
+    changes: [
+      'Move a wallet to your other phone or computer with a short code or QR code, no typing 24 words. Both screens show the same three emoji so you know it\'s yours.',
+      'See a wallet\'s recovery phrase any time from its ⋯ menu, behind Touch ID or Face ID, blurred until you tap, with a Save as text file option.',
+      'A new Settings page: five themes (Pearl, Midnight, Aurora, Rosé, Obsidian) that follow you to your other devices, hide or shorten balances, lock the app with Touch ID or Face ID, choose which notifications you get (payments, mining rewards, Market messages, swaps), and on computers whether the app opens at login and keeps running.',
+      'Adding a wallet asks how first: a new one, from another device, or with a recovery phrase.',
+      'Signing in is now to your Orien Network account: one account for your profile, the Market and messages.',
+      'A calmer top bar: the connection is a small breathing dot beside the wordmark, with words only when something is wrong.',
+      'Every icon is redrawn in one consistent style, and Check for Updates answers in a clear card.',
+    ],
+  },
+  {
     date: '2026-11-16',
     products: ['wallet'],
     version: '1.8.10',
