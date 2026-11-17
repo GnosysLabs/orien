@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
 import { useEffect, useState } from 'react'
-import { ArrowLeft, BadgeCheck, Ban } from 'lucide-react'
+import { BadgeCheck, Ban, Store } from 'lucide-react'
 import { ask, me, memberSince, pictureUrl, profileHref, type Account, type Listing, type VerifiedWallet } from '@/lib/market'
 import { Linked } from './Linked'
 import { Avatar } from './Avatar'
@@ -58,9 +58,6 @@ export function ProfileView() {
 
   return (
     <div className="space-y-8">
-      <Link href="/marketplace/" className="inline-flex items-center gap-2 text-sm text-muted hover:text-ink">
-        <ArrowLeft className="h-4 w-4" aria-hidden /> All listings
-      </Link>
       <section
         className={`relative isolate flex flex-col items-center gap-4 rounded-2xl border border-line bg-surface p-8 text-center sm:flex-row sm:items-start sm:text-left ${
           account.banner ? 'pt-28 sm:min-h-56 sm:pt-8' : ''
@@ -113,18 +110,25 @@ export function ProfileView() {
           </div>
         </div>
       </section>
-      <section className="space-y-4">
-        <h2 className="text-xl font-bold tracking-tight text-ink">What {account.name} offers</h2>
-        {listings.length === 0 ? (
-          <Notice>Nothing on offer right now.</Notice>
-        ) : (
+      {listings.length > 0 && (
+        <section className="space-y-4">
+          <div className="flex flex-wrap items-center gap-3">
+            <Store className="h-5 w-5 text-pearl" strokeWidth={1.75} aria-hidden />
+            <h2 className="text-xl font-bold tracking-tight text-ink">On the Market</h2>
+            <Link
+              href="/marketplace/"
+              className="ml-auto flex h-8 items-center rounded-lg border border-line px-3 text-xs font-semibold text-ink transition hover:border-pearl"
+            >
+              Browse the Market
+            </Link>
+          </div>
           <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
             {listings.map((listing) => (
               <Card key={listing.id} listing={listing} />
             ))}
           </div>
-        )}
-      </section>
+        </section>
+      )}
     </div>
   )
 }

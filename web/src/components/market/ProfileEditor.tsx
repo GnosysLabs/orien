@@ -156,9 +156,6 @@ export function ProfileEditor({ account, onSaved }: { account: Account; onSaved:
         <div className="space-y-1">
           <p className="font-semibold text-ink">{busy === 'picture' ? 'Checking your picture…' : 'Your picture'}</p>
           <p className="text-sm text-muted">Click it to choose a new one. A photo of you or your logo works best.</p>
-          <Link href={profileHref(account.name)} className="text-sm font-semibold text-ink underline underline-offset-4">
-            See your public profile
-          </Link>
         </div>
       </div>
       <label className="flex flex-col gap-2">

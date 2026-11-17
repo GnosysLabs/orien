@@ -2,14 +2,14 @@
 
 import Link from 'next/link'
 import { useEffect, useState } from 'react'
-import { LogOut, Mail } from 'lucide-react'
-import { ask, me, NAME_PATTERN, NAME_RULE, type Account, type Listing } from '@/lib/market'
+import { LogOut, Mail, MessageCircle, UserRound } from 'lucide-react'
+import { ask, me, NAME_PATTERN, NAME_RULE, profileHref, type Account, type Listing } from '@/lib/market'
 import { Card } from './Browse'
 import { ProfileEditor } from './ProfileEditor'
 import { YourWallets } from './WalletCheck'
 import { Notice, SIGNED_IN_OR_OUT } from './Shell'
 
-type Found = { account: Account; listings: Listing[] }
+type Found = { account: Account; listings: Listing[]; unread?: number }
 
 export function AccountView() {
   const [found, setFound] = useState<Found | null | undefined>(undefined)
@@ -184,18 +184,37 @@ function Mine({ found, onChange }: { found: Found; onChange: () => void }) {
   return (
     <div className="space-y-6">
       <div className="flex flex-wrap items-center gap-3">
-        <h1 className="text-2xl font-bold tracking-tight text-ink">Your profile</h1>
-        <button
-          type="button"
-          onClick={signOut}
-          className="ml-auto flex h-9 items-center gap-2 rounded-lg px-3 text-sm font-semibold text-muted hover:bg-raised hover:text-ink"
-        >
-          <LogOut className="h-4 w-4" aria-hidden /> Sign out
-        </button>
+        <h1 className="text-2xl font-bold tracking-tight text-ink sm:text-3xl">Your account</h1>
+        <div className="ml-auto flex flex-wrap items-center gap-2">
+          <Link
+            href={profileHref(found.account.name)}
+            className="flex h-9 items-center gap-2 rounded-lg border border-line px-3 text-sm font-semibold text-ink transition hover:border-pearl"
+          >
+            <UserRound className="h-4 w-4" aria-hidden /> View profile
+          </Link>
+          <Link
+            href="/marketplace/messages/"
+            className="flex h-9 items-center gap-2 rounded-lg border border-line px-3 text-sm font-semibold text-ink transition hover:border-pearl"
+          >
+            <MessageCircle className="h-4 w-4" aria-hidden /> Messages
+            {(found.unread ?? 0) > 0 && (
+              <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-pearl px-1.5 text-[11px] font-bold text-bg">
+                {found.unread}
+              </span>
+            )}
+          </Link>
+          <button
+            type="button"
+            onClick={signOut}
+            className="flex h-9 items-center gap-2 rounded-lg border border-line px-3 text-sm font-semibold text-muted transition hover:border-pearl hover:text-ink"
+          >
+            <LogOut className="h-4 w-4" aria-hidden /> Sign out
+          </button>
+        </div>
       </div>
       <ProfileEditor account={found.account} onSaved={onChange} />
       <YourWallets account={found.account} onChange={onChange} />
-      <h2 className="pt-2 text-xl font-bold tracking-tight text-ink">Your listings</h2>
+      <h2 className="pt-2 text-xl font-bold tracking-tight text-ink">Your listings on the Market</h2>
       {trouble && <Notice tone="bad">{trouble}</Notice>}
       {found.listings.length === 0 ? (
         <Notice>
