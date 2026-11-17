@@ -62,8 +62,8 @@ export default function PrivacyPage() {
         </p>
       </Section>
 
-      <Section title="Your Market account">
-        <p>When you use the Market or the swap board, we keep:</p>
+      <Section title="Your Orien Network account">
+        <p>When you have an Orien Network account, for your profile, the Market or the swap board, we keep:</p>
         <ul>
           <li>
             <strong>Your email address,</strong> to send you sign-in codes and tell you about new messages and taken swap
@@ -75,7 +75,7 @@ export default function PrivacyPage() {
           </li>
           <li>
             <strong>The wallets you verify.</strong> If you verify a wallet, by sending a tiny amount from it to Orien
-            Market, it shows as yours on your profile, and your name, your picture and the wallet&apos;s name in your
+            Network, it shows as yours on your profile, and your name, your picture and the wallet&apos;s name in your
             Orien Wallet show beside its address in other people&apos;s Orien Wallet, for example when they pay you.
             Anyone can then see that wallet&apos;s balance and payments are yours. Remove it under Verified wallets to
             stop it.
@@ -85,8 +85,8 @@ export default function PrivacyPage() {
             can, for example to look into a report of a scam.
           </li>
           <li>
-            <strong>The names and addresses of the wallets in your Orien Wallet apps,</strong> when you sign in to the
-            Market from them, so the swap board can let you choose which wallet sells. Only you see them, unless you
+            <strong>The names and addresses of the wallets in your Orien Wallet apps,</strong> when you sign in to Orien
+            Network from them, so the swap board can let you choose which wallet sells. Only you see them, unless you
             verify a wallet.
           </li>
           <li>

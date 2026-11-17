@@ -82,8 +82,9 @@ function SignIn({ onDone, trouble: first }: { onDone: () => void; trouble: strin
       <Mail className="mb-4 h-6 w-6 text-pearl" strokeWidth={1.75} aria-hidden />
       {step === 'email' && (
         <form onSubmit={sendCode} className="space-y-4">
-          <h1 className="text-2xl font-bold tracking-tight text-ink">Sign in or make an account</h1>
-          <p className="leading-relaxed text-muted">We&apos;ll email you a 6-digit code. No password needed.</p>
+          <h1 className="text-2xl font-bold tracking-tight text-ink">Sign in to Orien Network</h1>
+          <p className="leading-relaxed text-muted">One account for your profile, the Market and messages. We&apos;ll email you a 6-digit code; no password needed, and new
+            emails make an account.</p>
           <input
             type="email"
             value={email}

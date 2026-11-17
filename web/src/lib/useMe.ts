@@ -7,7 +7,7 @@ import { me, type Account } from './market'
  * of the page catches up. */
 export const SIGNED_IN_OR_OUT = 'orien-market-account'
 
-/** Who is signed in to the Market and how many messages they haven't read:
+/** Who is signed in to Orien Network and how many messages they haven't read:
  * undefined until known, null when nobody is. */
 export type Me = { account: Account | null | undefined; unread: number }
 

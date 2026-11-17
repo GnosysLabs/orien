@@ -12,7 +12,7 @@ use std::path::PathBuf;
 use std::sync::Arc;
 
 #[derive(Parser)]
-#[command(name = "orien-market", version, about = "The Orien Market's server")]
+#[command(name = "orien-market", version, about = "The server for Orien Network accounts, the Market and the swap board")]
 struct Args {
     /// The database file, made if it does not exist.
     #[arg(long, default_value = "market.db")]

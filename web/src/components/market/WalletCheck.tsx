@@ -187,7 +187,7 @@ export function VerifiedWallets({ account, onChange }: { account: Account; onCha
       <p className="text-sm leading-relaxed text-muted">
         Prove a wallet is yours and people who pay you see it by name in Orien Wallet, as{' '}
         <strong className="text-ink">{account.name} – Savings</strong>, with your picture. Each wallet proves itself by
-        sending a tiny amount from its balance to Orien Market: less than 0.001 ORN, fee included.{' '}
+        sending a tiny amount from its balance to Orien Network: less than 0.001 ORN, fee included.{' '}
         <strong className="text-ink">
           Verifying ties the wallet to your name publicly: everyone will see it&apos;s yours, including its balance.
         </strong>
@@ -230,10 +230,10 @@ export function VerifiedWallets({ account, onChange }: { account: Account; onCha
                   <p className="text-sm leading-relaxed text-muted">
                     In Orien Wallet, tap <strong className="text-ink">Verify</strong> and it sends this for you. Or send it
                     yourself, <strong className="text-ink">from this wallet</strong>: exactly{' '}
-                    <strong className="num text-ink">{w.orn} ORN</strong> to Orien Market. This page shows Verified within
+                    <strong className="num text-ink">{w.orn} ORN</strong> to Orien Network. This page shows Verified within
                     seconds of the payment.
                   </p>
-                  <CopyText label="Orien Market's address" text={w.to} />
+                  <CopyText label="Orien Network's address" text={w.to} />
                   <CopyText label="Amount, in ORN" text={w.orn} />
                 </div>
               )}
