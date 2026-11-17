@@ -16,7 +16,7 @@ const field = 'w-full rounded-xl border border-line bg-bg px-4 py-3 text-ink out
 export function ProfileEditor({ account, onSaved }: { account: Account; onSaved: () => void }) {
   const [name, setName] = useState(account.name)
   const [bio, setBio] = useState(account.bio)
-  const [email, setEmail] = useState(account.contact.email)
+  const [discord, setDiscord] = useState(account.contact.discord ?? '')
   const [telegram, setTelegram] = useState(account.contact.telegram)
   const [x, setX] = useState(account.contact.x)
   const [busy, setBusy] = useState<'' | 'text' | 'picture' | 'banner'>('')
@@ -27,7 +27,7 @@ export function ProfileEditor({ account, onSaved }: { account: Account; onSaved:
   const changed =
     name !== account.name ||
     bio !== account.bio ||
-    email !== account.contact.email ||
+    discord !== (account.contact.discord ?? '') ||
     telegram !== account.contact.telegram ||
     x !== account.contact.x
 
@@ -42,16 +42,16 @@ export function ProfileEditor({ account, onSaved }: { account: Account; onSaved:
   useEffect(() => {
     if (!changed || !nameOk) return
     const timer = setTimeout(async () => {
-      const sent = { name, bio, email, telegram, x }
+      const sent = { name, bio, discord, telegram, x }
       setBusy((b) => (b === '' ? 'text' : b))
       setTrouble('')
       setSaved(false)
       try {
-        const answer = await ask<{ account: Account }>('/me', 'PUT', { name, bio, contact: { email, telegram, x } })
+        const answer = await ask<{ account: Account }>('/me', 'PUT', { name, bio, contact: { telegram, x, discord } })
         // Shown as the server tidied them, such as without the @, unless
         // they were changed again meanwhile.
         const c = answer.account.contact
-        setEmail((now) => (now === sent.email ? c.email : now))
+        setDiscord((now) => (now === sent.discord ? c.discord : now))
         setTelegram((now) => (now === sent.telegram ? c.telegram : now))
         setX((now) => (now === sent.x ? c.x : now))
         setSaved(true)
@@ -63,7 +63,7 @@ export function ProfileEditor({ account, onSaved }: { account: Account; onSaved:
     }, 1500)
     return () => clearTimeout(timer)
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [name, bio, email, telegram, x])
+  }, [name, bio, discord, telegram, x])
 
   const upload = async (file: File | undefined) => {
     if (!file) return
@@ -195,15 +195,16 @@ export function ProfileEditor({ account, onSaved }: { account: Account; onSaved:
           Buyers can always message you here. Add these too if you like: everyone can see them.
         </p>
         <div className="grid gap-3 sm:grid-cols-3">
-          <input
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            placeholder="Email"
-            className={field}
-          />
           <input value={telegram} onChange={(e) => setTelegram(e.target.value)} placeholder="Telegram" className={field} />
           <input value={x} onChange={(e) => setX(e.target.value)} placeholder="X" className={field} />
+          <input
+            value={discord}
+            onChange={(e) => setDiscord(e.target.value)}
+            placeholder="Discord"
+            spellCheck={false}
+            autoCapitalize="off"
+            className={field}
+          />
         </div>
       </fieldset>
       {trouble && <Notice tone="bad">{trouble}</Notice>}

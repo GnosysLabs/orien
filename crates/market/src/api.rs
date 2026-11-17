@@ -1107,7 +1107,7 @@ async fn edit_profile(State(app): State<Arc<App>>, headers: HeaderMap, Json(requ
     let (name, bio) = store::profile_text(&request.name, &request.bio).map_err(refused)?;
     let contact = request.contact.checked().map_err(refused)?;
     // The usernames are public too, so they are read with the bio.
-    let handles = format!("{bio}\n\nTelegram: {}\nX: {}", contact.telegram, contact.x);
+    let handles = format!("{bio}\n\nTelegram: {}\nX: {}\nDiscord: {}", contact.telegram, contact.x, contact.discord);
     let n = name.clone();
     screened(&app, "profile", move |s| s.profile(&n, &handles)).await?;
     let account = app.store.lock().unwrap().set_profile(id, &name, &bio, &contact).map_err(refused)?;
@@ -1322,7 +1322,7 @@ pub fn sign_in_for_tests(app: &App, name: &str) -> String {
     let account = store.create_account(name, &hex::encode(rand_bytes())).unwrap();
     // A verified wallet of its own and a way to be reached, so it can post listings.
     store.set_wallet(account.id, &hex::encode(rand_bytes()).repeat(2)).unwrap();
-    let reach = store::Contact { email: format!("{}@example.com", name.to_lowercase().replace(' ', "")), ..Default::default() };
+    let reach = store::Contact { discord: name.to_lowercase().replace(' ', "_"), ..Default::default() };
     store.set_profile(account.id, name, "", &reach).unwrap();
     store.start_session(account.id).unwrap()
 }
