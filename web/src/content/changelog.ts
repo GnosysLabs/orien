@@ -38,6 +38,7 @@ export const CHANGELOG: Entry[] = [
       'Signing in is now to your Orien Network account: one account for your profile, the Market and messages.',
       'A calmer top bar: the connection is a small breathing dot beside the wordmark, with words only when something is wrong.',
       'Every icon is redrawn in one consistent style, and Check for Updates answers in a clear card.',
+      'On Linux, the app has its own sleek top bar with minimize and close buttons, as on Windows.',
     ],
   },
   {
