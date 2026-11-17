@@ -28,6 +28,37 @@ pub struct Book {
     /// so a wallet looks the same on every device it's opened on.
     #[serde(default)]
     pub icons: std::collections::BTreeMap<String, Icon>,
+    /// The person's choices that follow them to every device, such as the
+    /// app's theme, by name.
+    #[serde(default)]
+    pub prefs: std::collections::BTreeMap<String, Pref>,
+}
+
+/// One such choice and when it was made: the newest wins across devices.
+#[derive(Clone, Debug, Default, PartialEq, Eq, Serialize, Deserialize)]
+pub struct Pref {
+    pub value: String,
+    pub updated: u64,
+}
+
+fn prefs_file(dir: &Path) -> std::path::PathBuf {
+    dir.join("prefs.json")
+}
+
+pub fn prefs(dir: &Path) -> std::collections::BTreeMap<String, Pref> {
+    fs::read(prefs_file(dir)).ok().and_then(|bytes| serde_json::from_slice(&bytes).ok()).unwrap_or_default()
+}
+
+fn store_prefs(dir: &Path, prefs: &std::collections::BTreeMap<String, Pref>) -> Result<(), String> {
+    let text = serde_json::to_string_pretty(prefs).map_err(|error| error.to_string())?;
+    fs::write(prefs_file(dir), text).map_err(|error| error.to_string())
+}
+
+/// Sets one of the person's choices, now.
+pub fn set_pref(dir: &Path, name: &str, value: &str) -> Result<(), String> {
+    let mut all = prefs(dir);
+    all.insert(name.to_string(), Pref { value: value.chars().take(64).collect(), updated: now() });
+    store_prefs(dir, &all)
 }
 
 /// A wallet's icon and when it was picked: the newest wins across devices.
@@ -68,7 +99,7 @@ fn deleted(dir: &Path) -> std::collections::BTreeMap<String, u64> {
 
 /// The book, with removals, as this device has it.
 pub fn book(dir: &Path) -> Book {
-    Book { contacts: list(dir), deleted: deleted(dir), icons: icons(dir) }
+    Book { contacts: list(dir), deleted: deleted(dir), icons: icons(dir), prefs: prefs(dir) }
 }
 
 /// Takes in another device's book: for each address, the newest of its
@@ -101,6 +132,16 @@ pub fn merge(dir: &Path, other: &Book) -> Result<bool, String> {
     }
     if icons != mine.icons {
         store_icons(dir, &icons)?;
+    }
+    // Choices: the newest of each.
+    let mut prefs = mine.prefs.clone();
+    for (name, pref) in &other.prefs {
+        if prefs.get(name).is_none_or(|kept| kept.updated < pref.updated) {
+            prefs.insert(name.clone(), pref.clone());
+        }
+    }
+    if prefs != mine.prefs {
+        store_prefs(dir, &prefs)?;
     }
     let changed = merged.len() != mine.contacts.len()
         || merged.iter().any(|c| !mine.contacts.iter().any(|m| m.address == c.address && m.name == c.name))

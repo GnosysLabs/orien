@@ -12,7 +12,7 @@
     font-weight: 100 900;
   }
 
-  :root {
+  :root, [data-theme="pearl"] {
     color-scheme: dark;
     --ground: #26272b;
     --ground-deep: #1b1c1f;
@@ -27,6 +27,18 @@
     --good: #a6e3c6;
     --bad: #f1a9a9;
     --radius: 14px;
+    /* Colours the themes change, beyond the ground and the pearl. */
+    --focus: #8f8aa8;
+    --select: #cdc6ffaa;
+    --accent: #b8c7ff;
+    --cover: linear-gradient(135deg, #2c2d33, #24252a);
+    --glass: rgba(48, 49, 55, 0.72);
+    --glass-button: rgba(40, 41, 46, 0.8);
+    --veil: rgba(15, 16, 18, 0.55);
+    --bubble-mine: #3a3850;
+    --chip-icon: #d6cdf3;
+    --on-pearl-dim: #4a4b52;
+    --glow: none;
     /* The pearl: soft pinks, lilacs, mints and ice blues over silver. */
     --pearl: linear-gradient(115deg,
       #e4e2ea 0%, #f1d3e1 14%, #d8d3f4 28%, #c9e8ec 42%,
@@ -38,7 +50,8 @@
     margin: 0; padding: 0 28px 28px;
     display: flex; flex-direction: column;
     font: 14px/1.5 -apple-system, "Segoe UI", system-ui, sans-serif;
-    background: var(--ground-deep);
+    background: var(--glow), var(--ground-deep);
+    background-attachment: fixed;
     color: var(--ink);
     -webkit-user-select: none; user-select: none;
     -webkit-font-smoothing: antialiased;
@@ -48,9 +61,51 @@
 
   /* The website's wordmark: the sunrise mark beside ORIEN, both in the
      website's pearl, which drifts the same way it does there. */
-  :root {
+  :root, [data-theme="pearl"] {
     --brand: linear-gradient(115deg, #f4b6d4 0%, #b8c7ff 20%, #d3b6ff 38%, #a6ead6 56%, #f9dda4 74%, #f4b6d4 100%);
   }
+
+  /* ---- Themes: each a whole look, not only a colour. Pearl is the one
+     above. Chosen in Settings, and the same on every device. ---- */
+  [data-theme="midnight"] {
+    --ground: #1a2031; --ground-deep: #111626; --surface: #212a3e; --surface-hover: #29334b; --field: #141a2b;
+    --ink: #e9eef8; --dim: #96a1ba; --faint: #64708a; --line: #2e3852; --pearl-ink: #1a2134;
+    --good: #9fe3cb; --bad: #f3a7ae; --focus: #7d90c4; --select: #b9cbffaa; --accent: #a9c1ff;
+    --cover: linear-gradient(135deg, #232c42, #192034); --glass: rgba(33, 42, 62, 0.72); --glass-button: rgba(29, 37, 55, 0.8);
+    --veil: rgba(7, 10, 20, 0.58); --bubble-mine: #2d3c66; --chip-icon: #c3d2ff; --on-pearl-dim: #47506a;
+    --glow: radial-gradient(120% 55% at 50% -12%, rgba(86, 118, 214, 0.22), transparent 62%);
+    --pearl: linear-gradient(115deg, #dfe6f3 0%, #c9d6f6 14%, #d9dbf8 28%, #c2e2f1 42%, #e1e8f6 56%, #ccd2f4 70%, #d6e4f7 84%, #dfe6f3 100%);
+    --brand: linear-gradient(115deg, #b8c7ff 0%, #9fd8ff 22%, #c7b8ff 44%, #a9e2ff 66%, #d8dcff 84%, #b8c7ff 100%);
+  }
+  [data-theme="aurora"] {
+    --ground: #121b1b; --ground-deep: #0a1212; --surface: #172324; --surface-hover: #1e2d2e; --field: #0e1616;
+    --ink: #e5f3ee; --dim: #8eaaa3; --faint: #5c7670; --line: #233637; --pearl-ink: #0f2020;
+    --good: #8ff0c4; --bad: #f2a8a8; --focus: #69b3a2; --select: #9ff0d6aa; --accent: #7fe3c4;
+    --cover: linear-gradient(135deg, #1c2a2b, #131e1f); --glass: rgba(23, 35, 36, 0.72); --glass-button: rgba(19, 30, 31, 0.8);
+    --veil: rgba(3, 9, 9, 0.58); --bubble-mine: #1d4a43; --chip-icon: #a9f0dc; --on-pearl-dim: #3d5751;
+    --glow: radial-gradient(90% 50% at 18% -8%, rgba(70, 230, 175, 0.2), transparent 62%), radial-gradient(80% 45% at 88% -4%, rgba(84, 156, 255, 0.16), transparent 60%);
+    --pearl: linear-gradient(115deg, #d6f5e9 0%, #b7f0da 14%, #c8e8f7 28%, #d8f6c8 42%, #bde7f2 56%, #d2c9f5 70%, #c2f2e2 84%, #d6f5e9 100%);
+    --brand: linear-gradient(115deg, #7ff0c8 0%, #6fd3ff 24%, #b39dff 46%, #9ff59a 68%, #7ff0c8 100%);
+  }
+  [data-theme="rose"] {
+    --ground: #221b1f; --ground-deep: #171114; --surface: #2b2227; --surface-hover: #352a30; --field: #1c1619;
+    --ink: #f5ecef; --dim: #b49ea7; --faint: #7e6971; --line: #3c2f36; --pearl-ink: #2b1d23;
+    --good: #a9e6c6; --bad: #f6a5ae; --focus: #b78b9b; --select: #f3c1cfaa; --accent: #f0b8c8;
+    --cover: linear-gradient(135deg, #31262c, #251d21); --glass: rgba(43, 34, 39, 0.72); --glass-button: rgba(38, 30, 34, 0.8);
+    --veil: rgba(14, 8, 11, 0.58); --bubble-mine: #5a3443; --chip-icon: #f2c7d3; --on-pearl-dim: #5e4850;
+    --glow: radial-gradient(110% 55% at 50% -12%, rgba(240, 148, 170, 0.17), transparent 62%);
+    --pearl: linear-gradient(115deg, #f3dcd6 0%, #f0c8c6 14%, #f6dcc3 28%, #ecc5d4 42%, #f7e3d2 56%, #e8c1c9 70%, #f4d6cd 84%, #f3dcd6 100%);
+    --brand: linear-gradient(115deg, #f6b8c4 0%, #f3cfa8 24%, #e8a9c9 46%, #f9dcb8 68%, #f6b8c4 100%);
+  }
+  [data-theme="obsidian"] {
+    --ground: #0b0b0c; --ground-deep: #000000; --surface: #151517; --surface-hover: #1d1d20; --field: #0e0e0f;
+    --ink: #f3f3f5; --dim: #9b9ba2; --faint: #66666d; --line: #262629; --pearl-ink: #18181b;
+    --focus: #8a8a96; --select: #dcdce6aa; --accent: #d2d2de;
+    --cover: linear-gradient(135deg, #18181a, #0f0f10); --glass: rgba(28, 28, 31, 0.74); --glass-button: rgba(22, 22, 24, 0.82);
+    --veil: rgba(0, 0, 0, 0.62); --bubble-mine: #2c2c35; --chip-icon: #e1e1ea; --on-pearl-dim: #4a4a52;
+  }
+  /* Switching: the whole app fades into the new look. */
+  ::view-transition-old(root), ::view-transition-new(root) { animation-duration: 0.45s; animation-timing-function: ease; }
   @keyframes brand-drift { 0%, 100% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } }
   .brand { background-image: var(--brand); background-size: 300% 300%; animation: brand-drift 12s ease-in-out infinite; }
   .wordmark { display: inline-flex; align-items: center; gap: 0.26em; line-height: 1; }
@@ -273,7 +328,7 @@
   .swap-group { margin: 4px 4px 10px; font-size: 12px; font-weight: 600; color: var(--dim); }
   .swap-group:not(:first-child) { margin-top: 22px; }
   /* Wallets */
-  #mn-cpu { width: 100%; accent-color: #b8c7ff; }
+  #mn-cpu { width: 100%; accent-color: var(--accent); }
   /* The Mine button while mining: a glowing dot, and "Mining". */
   #go-mine { position: relative; }
   #go-mine.on::after { content: ""; position: absolute; top: 9px; right: 9px; width: 7px; height: 7px; border-radius: 50%;
@@ -307,7 +362,7 @@
   .emoji-grid button { min-width: 0; width: 100%; aspect-ratio: 1; padding: 0; border: 1px solid transparent; border-radius: 12px; background: var(--surface); cursor: pointer;
     font: 20px/1 system-ui, "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif; color: var(--dim); transition: background .15s; }
   .emoji-grid button:hover { background: var(--surface-hover); }
-  .emoji-grid button.on { border-color: #cdc6ffaa; background: var(--surface-hover); }
+  .emoji-grid button.on { border-color: var(--select); background: var(--surface-hover); }
   .emoji-grid .letter { font: 700 16px/1 "Jost", sans-serif; }
   .wallet-chip .chip-emoji { font: 14px/1 system-ui, "Apple Color Emoji", "Segoe UI Emoji", sans-serif; }
   .wallet-row .who { min-width: 0; }
@@ -361,7 +416,7 @@
   /* ---- Orien Market ---- */
   .mk-search { display: flex; align-items: center; gap: 10px; padding: 0 14px; color: var(--faint);
     border: 1px solid var(--line); border-radius: var(--radius); background: var(--field); transition: border-color .15s; }
-  .mk-search:focus-within { border-color: #8f8aa8; }
+  .mk-search:focus-within { border-color: var(--focus); }
   .mk-search input { flex: 1; min-width: 0; border: 0; background: none; color: var(--ink); font: inherit; height: 44px; outline: none; }
   .mk-cats { display: flex; flex-wrap: wrap; gap: 6px; margin: 14px 0 16px; }
   .mk-cats button { flex: none; }
@@ -373,7 +428,7 @@
   .mk-card { display: flex; flex-direction: column; padding: 0; border: 1px solid var(--line); border-radius: 18px; overflow: hidden;
     background: var(--surface); color: inherit; font: inherit; text-align: left; cursor: pointer; transition: transform .15s, background .15s; }
   .mk-card:hover { background: var(--surface-hover); transform: translateY(-1px); }
-  .mk-cover { position: relative; aspect-ratio: 16 / 9; background: linear-gradient(135deg, #2c2d33, #24252a); display: grid; place-items: center; color: var(--faint); }
+  .mk-cover { position: relative; aspect-ratio: 16 / 9; background: var(--cover); display: grid; place-items: center; color: var(--faint); }
   .mk-cover img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
   .mk-closed { position: absolute; top: 8px; left: 8px; padding: 2px 8px; border-radius: 999px; background: #000000a0; color: #fff; font-size: 11px; font-weight: 600; }
   .mk-body { padding: 10px 12px 12px; display: flex; flex-direction: column; gap: 6px; flex: 1; }
@@ -389,12 +444,12 @@
   .mk-empty { grid-column: 1 / -1; }
   .mk-more { display: flex; margin: 18px auto 4px; }
   .ls-gallery { position: relative; overflow: hidden; aspect-ratio: 16 / 9; border-radius: 18px; border: 1px solid var(--line);
-    background: linear-gradient(135deg, #2c2d33, #24252a); display: grid; place-items: center; color: var(--faint); }
+    background: var(--cover); display: grid; place-items: center; color: var(--faint); }
   .ls-gallery img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
   .ls-thumbs { display: flex; gap: 8px; margin-top: 10px; }
   .ls-thumbs button { position: relative; overflow: hidden; width: 64px; aspect-ratio: 16 / 9; padding: 0; border-radius: 9px;
     border: 1.5px solid transparent; background: var(--surface); cursor: pointer; opacity: .65; transition: opacity .15s; }
-  .ls-thumbs button.on { border-color: #cdc6ffaa; opacity: 1; }
+  .ls-thumbs button.on { border-color: var(--select); opacity: 1; }
   .ls-thumbs img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
   .ls-title { margin: 18px 2px 0; font-size: 22px; font-weight: 600; line-height: 1.25; letter-spacing: -0.01em; }
   .ls-price { margin: 6px 2px 0; font-size: 18px; font-weight: 600; }
@@ -422,13 +477,13 @@
     background: var(--ground-deep); color: var(--ink); font: inherit; font-size: 13px; font-weight: 600; cursor: pointer; max-width: 100%; }
   .sl-chip:active { background: var(--surface-hover); }
   @media (hover: hover) { .sl-chip:hover { background: var(--surface-hover); } }
-  .sl-chip svg { flex: none; width: 16px; height: 16px; color: #d6cdf3; }
+  .sl-chip svg { flex: none; width: 16px; height: 16px; color: var(--chip-icon); }
   .sl-chip span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   body.phone .sl-chip { height: 44px; font-size: 14px; }
   /* Selling */
   .field .se-desc { display: block; width: 100%; min-height: 120px; padding: 12px 14px; border: 1px solid var(--line); border-radius: var(--radius);
     background: var(--field); color: var(--ink); font: inherit; font-size: 14px; letter-spacing: normal; resize: none; outline: none; }
-  .field .se-desc:focus { border-color: #8f8aa8; }
+  .field .se-desc:focus { border-color: var(--focus); }
   .se-chips { margin: 0; }
   .se-pics { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
   .se-pic { position: relative; overflow: hidden; aspect-ratio: 16 / 9; border-radius: 14px; border: 1px solid var(--line); background: var(--surface); }
@@ -463,7 +518,7 @@
   .ls-message svg { flex: none; }
   .report-box textarea { display: block; width: 100%; min-height: 70px; padding: 10px 12px; border: 1px solid var(--line); border-radius: 12px;
     background: var(--field); color: var(--ink); font: inherit; font-size: 13.5px; letter-spacing: normal; resize: none; outline: none; }
-  .report-box textarea:focus { border-color: #8f8aa8; }
+  .report-box textarea:focus { border-color: var(--focus); }
   .ls-ask-row { display: flex; align-items: center; justify-content: flex-end; gap: 8px; margin-top: 10px; }
   .ls-ask-row .hint { margin: 0 auto 0 2px; min-height: 0; }
   .ls-signin { display: flex; margin: 14px auto 0; }
@@ -494,7 +549,7 @@
   /* ⋯ menus: a frosted-glass menu floating by its button, as on Apple's
      systems; nothing on the screen moves. */
   .ch-menu { position: fixed; z-index: 50; width: 250px; padding: 5px; border-radius: 16px; display: grid;
-    background: rgba(48, 49, 55, 0.72); -webkit-backdrop-filter: blur(28px) saturate(1.8); backdrop-filter: blur(28px) saturate(1.8);
+    background: var(--glass); -webkit-backdrop-filter: blur(28px) saturate(1.8); backdrop-filter: blur(28px) saturate(1.8);
     border: 0.5px solid rgba(255, 255, 255, 0.14); box-shadow: 0 18px 50px rgba(0, 0, 0, 0.5), 0 2px 8px rgba(0, 0, 0, 0.25);
     transform-origin: top right; animation: menu-in 0.18s cubic-bezier(.2, .9, .3, 1.2); }
   @keyframes menu-in { from { opacity: 0; transform: scale(0.88); } to { opacity: 1; transform: scale(1); } }
@@ -516,17 +571,17 @@
   .ch-about { display: flex; justify-content: space-between; gap: 10px; width: 100%; padding: 10px 14px; border: 1px solid var(--line); border-radius: 14px;
     background: var(--surface); color: var(--dim); font: inherit; font-size: 12.5px; text-align: left; cursor: pointer; flex-shrink: 0; }
   /* The listing a chat is about: pearl, so it stands out from the messages. */
-  .ch-about { background: var(--pearl); background-size: 300% 100%; animation: drift 24s linear infinite; border-color: transparent; color: #4a4b52; }
+  .ch-about { background: var(--pearl); background-size: 300% 100%; animation: drift 24s linear infinite; border-color: transparent; color: var(--on-pearl-dim); }
   .ch-about:hover { background: var(--pearl); background-size: 300% 100%; filter: brightness(1.04); }
   .ch-about b { color: var(--pearl-ink); font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .ch-about span, .ch-about span * { color: #4a4b52 !important; }
+  .ch-about span, .ch-about span * { color: var(--on-pearl-dim) !important; }
   /* The messages start a little below it, never under it. */
   #ch-log { margin-top: 10px; }
   .ch-about span { flex: none; }
   .ch-log { display: flex; flex-direction: column; gap: 6px; padding-top: 14px; padding-bottom: 14px; }
   .bubble { max-width: 78%; padding: 8px 12px; border-radius: 16px; font-size: 13.5px; line-height: 1.45; white-space: pre-wrap; overflow-wrap: anywhere;
     -webkit-user-select: text; user-select: text; align-self: flex-start; background: var(--surface); border-bottom-left-radius: 6px; }
-  .bubble.mine { align-self: flex-end; background: #3a3850; border-bottom-left-radius: 16px; border-bottom-right-radius: 6px; }
+  .bubble.mine { align-self: flex-end; background: var(--bubble-mine); border-bottom-left-radius: 16px; border-bottom-right-radius: 6px; }
   .bubble time { display: block; margin-top: 3px; font-size: 10.5px; color: var(--faint); }
   .bubble.mine time { text-align: right; }
   .paycard { align-self: center; width: min(320px, 92%); margin: 6px 0; padding: 14px 16px; border: 1px solid var(--line); border-radius: 18px; background: var(--surface); text-align: center; }
@@ -558,7 +613,7 @@
   .ch-amount span { color: var(--faint); font-size: 12.5px; }
   .ch-blocked { flex-shrink: 0; padding: 10px 14px; margin-bottom: 10px; border-radius: 14px; background: var(--surface); color: var(--dim); font-size: 12.5px; text-align: center; }
   .ch-compose { flex-shrink: 0; display: flex; align-items: flex-end; gap: 8px; padding: 6px 6px 6px 14px; border: 1px solid var(--line); border-radius: 22px; background: var(--field); }
-  .ch-compose:focus-within { border-color: #8f8aa8; }
+  .ch-compose:focus-within { border-color: var(--focus); }
   .ch-compose textarea { flex: 1; min-height: 22px; max-height: 120px; padding: 6px 0; border: 0; background: none; color: var(--ink); font: inherit; font-size: 13.5px; letter-spacing: normal; resize: none; outline: none; }
   .ch-send { flex: none; width: 34px; height: 34px; border: 0; border-radius: 50%; display: grid; place-items: center; color: var(--pearl-ink); cursor: pointer; }
   .ch-send:disabled { opacity: .4; cursor: default; }
@@ -661,7 +716,7 @@
   .rv-words .words { margin: 0; transition: filter 0.25s ease; }
   .rv-words.blurred .words { filter: blur(9px); -webkit-user-select: none; user-select: none; pointer-events: none; }
   .rv-tap { position: absolute; inset: 0; margin: auto; width: max-content; height: 44px; padding: 0 18px; display: none; align-items: center; gap: 8px;
-    border: 1px solid rgba(255, 255, 255, 0.16); border-radius: 22px; background: rgba(40, 41, 46, 0.82); color: var(--ink);
+    border: 1px solid rgba(255, 255, 255, 0.16); border-radius: 22px; background: var(--glass-button); color: var(--ink);
     -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px); font: inherit; font-weight: 600; cursor: pointer; }
   .rv-words.blurred .rv-tap { display: inline-flex; }
   /* Adding a wallet: how, first. */
@@ -677,6 +732,34 @@
   .add-txt b { font-size: 15px; font-weight: 600; }
   .add-txt small { font-size: 13px; color: var(--dim); }
   .add-opt .chev { flex: none; color: var(--faint); }
+  /* Settings: themes as little living previews of the home screen. */
+  .st-hint { margin: -4px 0 14px; padding-left: 4px; }
+  .theme-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 14px; }
+  .theme-card { display: grid; gap: 9px; padding: 0; border: 0; background: none; color: var(--ink); font: inherit; text-align: left; cursor: pointer; }
+  .theme-card .tc-mini { position: relative; aspect-ratio: 4 / 5; padding: 12px 10px; border-radius: 18px; overflow: hidden;
+    background: var(--glow), var(--ground-deep); border: 1px solid var(--line); box-shadow: 0 10px 28px rgba(0, 0, 0, 0.35);
+    display: flex; flex-direction: column; gap: 8px; transition: transform 0.2s ease, box-shadow 0.2s ease; }
+  @media (hover: hover) { .theme-card:hover .tc-mini { transform: translateY(-2px); box-shadow: 0 14px 34px rgba(0, 0, 0, 0.45); } }
+  .theme-card:active .tc-mini { transform: scale(0.98); }
+  .tc-bar { display: flex; justify-content: space-between; align-items: center; }
+  .tc-word { width: 38%; height: 7px; border-radius: 4px; background-image: var(--brand); background-size: 200% 100%; }
+  .tc-dot { width: 12px; height: 12px; border-radius: 50%; background: var(--surface-hover); }
+  .tc-card { height: 34%; border-radius: 12px; background: var(--pearl); background-size: 300% 100%; animation: drift 24s linear infinite;
+    padding: 10px; display: flex; flex-direction: column; justify-content: flex-end; gap: 5px; }
+  .tc-card i { display: block; height: 5px; border-radius: 3px; background: var(--pearl-ink); opacity: 0.55; }
+  .tc-card i:first-child { width: 30%; opacity: 0.3; }
+  .tc-card i:last-child { width: 72%; height: 8px; }
+  .tc-tiles { display: grid; grid-template-columns: repeat(4, 1fr); gap: 5px; }
+  .tc-tiles span { aspect-ratio: 1; border-radius: 7px; background: var(--surface); border: 1px solid var(--line); display: grid; place-items: center; }
+  .tc-tiles span::after { content: ""; width: 38%; aspect-ratio: 1; border-radius: 50%; background: var(--pearl); background-size: 300% 100%; }
+  .tc-list { flex: 1; border-radius: 10px; background: var(--surface); border: 1px solid var(--line); padding: 8px; display: grid; gap: 6px; align-content: start; }
+  .tc-list i { display: block; height: 5px; border-radius: 3px; background: var(--faint); opacity: 0.6; }
+  .tc-list i:nth-child(2) { width: 70%; } .tc-list i:nth-child(3) { width: 85%; }
+  .theme-card .tc-name { display: flex; align-items: center; justify-content: space-between; padding: 0 4px; font-weight: 600; font-size: 14px; }
+  .theme-card .tc-check { width: 20px; height: 20px; border-radius: 50%; display: grid; place-items: center; color: var(--pearl-ink);
+    background: var(--pearl); background-size: 300% 100%; opacity: 0; transform: scale(0.6); transition: opacity 0.2s ease, transform 0.25s cubic-bezier(.2, .9, .3, 1.4); }
+  .theme-card.on .tc-check { opacity: 1; transform: scale(1); }
+  .theme-card.on .tc-mini { outline: 2px solid var(--select); outline-offset: 3px; }
   .steps { list-style: none; margin: 18px 0 0; padding: 0; }
   .steps li { position: relative; display: grid; grid-template-columns: 26px 1fr; gap: 12px; padding-bottom: 16px; }
   .steps li:not(:last-child)::before { content: ""; position: absolute; left: 12px; top: 28px; bottom: 4px; width: 1px; background: var(--line); }
@@ -735,7 +818,7 @@
     border-radius: var(--radius); background: var(--field); border: 1px solid var(--line);
     transition: border-color 0.15s;
   }
-  .field .box:focus-within { border-color: #8f8aa8; }
+  .field .box:focus-within { border-color: var(--focus); }
   .field input {
     flex: 1; min-width: 0; border: 0; background: transparent; color: var(--ink);
     font: 12.5px ui-monospace, "SF Mono", monospace; -webkit-user-select: text; user-select: text;
@@ -776,7 +859,7 @@
      until it's scrolled; tapping it scrolls down. */
   #more-below { position: fixed; z-index: 40; width: 36px; height: 36px; margin-left: -18px; border-radius: 50%;
     display: grid; place-items: center; padding: 0; cursor: pointer; color: var(--ink);
-    background: rgba(40, 41, 46, 0.78); border: 1px solid rgba(255, 255, 255, 0.12);
+    background: var(--glass-button); border: 1px solid rgba(255, 255, 255, 0.12);
     -webkit-backdrop-filter: blur(14px) saturate(1.4); backdrop-filter: blur(14px) saturate(1.4);
     box-shadow: 0 6px 18px rgba(0, 0, 0, 0.35); opacity: 0; pointer-events: none; transition: opacity 0.35s ease; }
   #more-below.on { opacity: 1; pointer-events: auto; }
@@ -785,7 +868,7 @@
   body.phone #more-below { width: 44px; height: 44px; margin-left: -22px; }
   /* Check for Updates: the answer, in a card over the app. */
   #upd-veil { position: fixed; inset: 0; z-index: 60; display: grid; place-items: center; padding: 24px;
-    background: rgba(15, 16, 18, 0.55); -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px);
+    background: var(--veil); -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px);
     opacity: 0; transition: opacity 0.2s ease; }
   #upd-veil.on { opacity: 1; }
   #upd-card { width: min(340px, 100%); padding: 28px 24px 22px; border-radius: 24px; text-align: center;
@@ -933,7 +1016,7 @@
     background: var(--field); border: 1px solid var(--line); color: var(--ink);
     font: 12.5px/1.5 ui-monospace, "SF Mono", monospace; -webkit-user-select: text; user-select: text;
   }
-  .field textarea:focus { outline: none; border-color: #8f8aa8; }
+  .field textarea:focus { outline: none; border-color: var(--focus); }
   .field textarea[readonly] { color: var(--dim); }
   .field .plain { padding-right: 14px; }
   .field .plain input { font: 14px -apple-system, system-ui, sans-serif; }
@@ -1065,10 +1148,18 @@
       <button class="primary pearl" id="restore-go" disabled data-gap="lg">Restore wallet</button>
     </section>
 
+    <!-- Settings -->
+    <section class="screen" id="settings" hidden>
+      <div class="topline"><button class="back" id="st-back" aria-label="Back"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10 3 5 8l5 5"/></svg></button><h2>Settings</h2></div>
+      <div class="section-head" data-gap="lg"><h3>Appearance</h3></div>
+      <p class="hint st-hint">Your theme follows you to your other devices.</p>
+      <div class="theme-grid" id="theme-grid"></div>
+    </section>
+
     <!-- Home -->
     <section class="screen" id="home" hidden>
       <div class="home-top"><button class="wallet-chip" id="wallet-chip"><span id="wallet-name">Wallet</span><svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m4 6 4 4 4-4"/></svg></button>
-        <div class="account"><button class="me-face" id="board-who" hidden aria-label="Your profile" title="Your profile"></button><button class="pill" id="board-signin-go">Sign in</button></div></div>
+        <div class="account"><button class="pill icon" id="go-settings" aria-label="Settings" title="Settings"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></button><button class="me-face" id="board-who" hidden aria-label="Your profile" title="Your profile"></button><button class="pill" id="board-signin-go">Sign in</button></div></div>
       <!-- A swap that needs you, or is under way: impossible to miss. -->
       <button class="swap-alert" id="swap-alert" hidden>
         <div class="sa-main"><div class="sa-title" id="sa-title"></div><div class="sa-sub" id="sa-sub"></div></div>
@@ -2004,6 +2095,7 @@
     try { await invoke("contacts_sync"); } catch { return; }
     await loadBook();
     await loadIcons();
+    loadTheme();
     loadWallets();
     if (!$("wallets").hidden) showWallets();
     if (!$("contacts").hidden) renderContacts();
@@ -2500,6 +2592,53 @@
     button.textContent = adding ? "Continue" : "Restore wallet"; checkPhrase();
   };
 
+
+
+  // ---- Themes ----
+  const THEMES = [["pearl", "Pearl"], ["midnight", "Midnight"], ["aurora", "Aurora"], ["rose", "Rosé"], ["obsidian", "Obsidian"]];
+  const knownTheme = (name) => THEMES.some(([id]) => id === name) ? name : "pearl";
+  // The colour behind the page matches the theme's deepest ground.
+  function paintBackdrop() {
+    const color = getComputedStyle(document.documentElement).getPropertyValue("--ground-deep").trim();
+    const m = /^#([0-9a-f]{2})([0-9a-f]{2})([0-9a-f]{2})$/i.exec(color);
+    if (m) invoke("set_backdrop", { red: parseInt(m[1], 16), green: parseInt(m[2], 16), blue: parseInt(m[3], 16) }).catch(() => {});
+  }
+  function paintThemeGrid() {
+    const now = document.documentElement.dataset.theme || "pearl";
+    for (const card of document.querySelectorAll(".theme-card")) card.classList.toggle("on", card.dataset.pick === now);
+  }
+  function applyTheme(name, animate) {
+    name = knownTheme(name);
+    if ((document.documentElement.dataset.theme || "pearl") === name) return;
+    const set = () => { document.documentElement.dataset.theme = name; paintThemeGrid(); };
+    try { localStorage.setItem("theme", name); } catch {}
+    if (animate && document.startViewTransition) document.startViewTransition(set).finished.then(paintBackdrop, paintBackdrop);
+    else { set(); paintBackdrop(); }
+  }
+  $("theme-grid").innerHTML = THEMES.map(([id, name]) => `<button class="theme-card" data-pick="${id}">
+      <div class="tc-mini" data-theme="${id}">
+        <div class="tc-bar"><span class="tc-word"></span><span class="tc-dot"></span></div>
+        <div class="tc-card"><i></i><i></i><i></i></div>
+        <div class="tc-tiles"><span></span><span></span><span></span><span></span></div>
+        <div class="tc-list"><i></i><i></i><i></i></div>
+      </div>
+      <div class="tc-name"><span>${name}</span><span class="tc-check"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></span></div>
+    </button>`).join("");
+  $("theme-grid").onclick = (e) => {
+    const card = e.target.closest(".theme-card");
+    if (!card) return;
+    feel("selection");
+    applyTheme(card.dataset.pick, true);
+    invoke("set_app_theme", { theme: card.dataset.pick }).catch(() => {});
+  };
+  // As this device last had it, at once; then as chosen on any device.
+  try { applyTheme(localStorage.getItem("theme") || "pearl", false); } catch { paintBackdrop(); }
+  const loadTheme = () => invoke("app_theme").then((name) => { if (name) applyTheme(name, true); }).catch(() => {});
+  loadTheme();
+  function openSettings() { paintThemeGrid(); show("settings"); }
+  $("go-settings").onclick = openSettings;
+  $("st-back").onclick = () => home();
+  window.__TAURI__.event.listen("open-settings", openSettings).catch(() => {});
 
   // ---- A wallet's recovery phrase ----
   // A warning, then Touch ID, Face ID or the password; the words blurred

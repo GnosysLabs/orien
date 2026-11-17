@@ -60,13 +60,21 @@ pub fn setup(app: &AppHandle) -> tauri::Result<()> {
         if let Some(tauri::menu::MenuItemKind::Submenu(first)) = bar.items()?.into_iter().next() {
             let item = MenuItem::with_id(app, "check-updates", "Check for Updates…", true, None::<&str>)?;
             first.insert(&item, 1)?;
+            let settings = MenuItem::with_id(app, "settings", "Settings…", true, Some("CmdOrCtrl+,"))?;
+            first.insert(&settings, 2)?;
         }
         app.set_menu(bar)?;
     }
     // Every menu's clicks reach here, the tray's included: answered once.
     app.on_menu_event(|app, event| {
-        if event.id().as_ref() == "check-updates" {
-            crate::update::check_now(app.clone());
+        match event.id().as_ref() {
+            "check-updates" => crate::update::check_now(app.clone()),
+            "settings" => {
+                use tauri::Emitter;
+                show(app);
+                let _ = app.emit("open-settings", ());
+            }
+            _ => {}
         }
     });
 
