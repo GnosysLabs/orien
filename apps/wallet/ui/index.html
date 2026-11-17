@@ -3272,6 +3272,12 @@
     box.hidden = linkNeeds.length === 0;
   }
   $("pl-go").onclick = () => pairAccept($("pl-code").value);
+  // Codes are typed with spaces as often as dashes: a space becomes a dash.
+  for (const id of ["pl-code", "pg-code"]) $(id).addEventListener("input", (e) => {
+    const box = e.target, at = box.selectionStart;
+    const fixed = box.value.replace(/\s/g, "-").replace(/-{2,}/g, "-");
+    if (fixed !== box.value) { const gone = box.value.length - fixed.length; box.value = fixed; box.setSelectionRange(at - gone, at - gone); }
+  });
   $("pl-code").addEventListener("keydown", (e) => { if (e.key === "Enter") pairAccept($("pl-code").value); });
   $("pl-scan").onclick = async () => {
     try {
