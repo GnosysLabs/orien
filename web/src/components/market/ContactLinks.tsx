@@ -1,9 +1,9 @@
 'use client'
 
 import { useState } from 'react'
-import { Check, Send } from 'lucide-react'
+import { Check } from 'lucide-react'
 import type { Contact } from '@/lib/market'
-import { DiscordIcon, XIcon as XLogo } from '@/components/Header'
+import { DiscordIcon, TelegramIcon, XIcon as XLogo } from '@/components/Header'
 
 const chip =
   'inline-flex h-10 items-center gap-2 rounded-xl border border-line bg-bg px-4 text-sm font-semibold text-ink transition hover:bg-raised'
@@ -13,7 +13,7 @@ const chip =
 export function ContactLinks({ contact }: { contact: Contact }) {
   const [copied, setCopied] = useState(false)
   const links = [
-    contact.telegram && { href: `https://t.me/${contact.telegram}`, label: `@${contact.telegram} on Telegram`, icon: Send },
+    contact.telegram && { href: `https://t.me/${contact.telegram}`, label: `@${contact.telegram} on Telegram`, icon: TelegramIcon },
     contact.x && { href: `https://x.com/${contact.x}`, label: `@${contact.x} on X`, icon: XLogo },
   ].filter(Boolean) as { href: string; label: string; icon: (props: { className?: string }) => React.ReactNode }[]
   if (links.length === 0 && !contact.discord) return null

@@ -8,6 +8,7 @@ import { ask, MarketError, NAME_PATTERN, NAME_RULE, pictureUrl, profileHref, typ
 import { Avatar } from './Avatar'
 import { Notice } from './Shell'
 import { AutoTextarea } from '@/components/AutoTextarea'
+import { DiscordIcon, TelegramIcon, XIcon } from '@/components/Header'
 
 const field = 'w-full rounded-xl border border-line bg-bg px-4 py-3 text-ink outline-none focus:border-pearl/60'
 
@@ -190,21 +191,29 @@ export function ProfileEditor({ account, onSaved }: { account: Account; onSaved:
         />
       </label>
       <fieldset className="space-y-3">
-        <legend className="text-sm font-semibold text-ink">Other ways to reach you (optional)</legend>
-        <p className="text-sm text-muted">
-          Buyers can always message you here. Add these too if you like: everyone can see them.
-        </p>
+        <legend className="text-sm font-semibold text-ink">Socials</legend>
+        <p className="text-sm text-muted">Show your accounts on your profile, if you like. Everyone can see them.</p>
         <div className="grid gap-3 sm:grid-cols-3">
-          <input value={telegram} onChange={(e) => setTelegram(e.target.value)} placeholder="Telegram" className={field} />
-          <input value={x} onChange={(e) => setX(e.target.value)} placeholder="X" className={field} />
-          <input
-            value={discord}
-            onChange={(e) => setDiscord(e.target.value)}
-            placeholder="Discord"
-            spellCheck={false}
-            autoCapitalize="off"
-            className={field}
-          />
+          {(
+            [
+              ['Telegram', telegram, setTelegram, TelegramIcon],
+              ['X', x, setX, XIcon],
+              ['Discord', discord, setDiscord, DiscordIcon],
+            ] as const
+          ).map(([label, value, set, Icon]) => (
+            <label key={label} className="relative block">
+              <Icon className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-muted" />
+              <input
+                value={value}
+                onChange={(e) => set(e.target.value)}
+                placeholder={label}
+                aria-label={`Your ${label} username`}
+                spellCheck={false}
+                autoCapitalize="off"
+                className={`${field} pl-11`}
+              />
+            </label>
+          ))}
         </div>
       </fieldset>
       {trouble && <Notice tone="bad">{trouble}</Notice>}
