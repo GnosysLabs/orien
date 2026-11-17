@@ -220,7 +220,7 @@
     /* Frosted glass, panel by panel: each panel shows a blurred copy of the
        photo, lined up with the photo behind it, under a tint of its own
        colour. Only the panels are frosted; around them the photo is sharp. */
-    body:not(.phone) :is(.codebox, .swap-row, .waiting-card, .swap-alert, .pay-card, .tabs, .mine-status, .wallet-row, .emoji-grid button:not(.on), .linkish, .link, .pill:not(.pearl), .mk-card, .ls-thumbs button, .ls-seller, .se-pic, .ch-about, .bubble:not(.mine), .paycard, .ch-askbox, .ch-blocked, .sync-card, .verify-card, .offer, .keep-open, .pair-card, .add-opt, .set-group, .note, .explain li, .tile, .review, #upd-card, .receive-card, .list, #all-activity, #all-activity .day, .words, .wallet-chip) {
+    body:not(.phone) :is(.codebox, .swap-row, .waiting-card, .swap-alert, .pay-card, .tabs, .mine-status, .wallet-row, .emoji-grid button:not(.on), .linkish, .link, .pill:not(.pearl), .mk-card, .ls-thumbs button, .ls-seller, .se-pic, .bubble:not(.mine), .paycard, .ch-askbox, .ch-blocked, .sync-card, .verify-card, .offer, .keep-open, .pair-card, .add-opt, .set-group, .note, .explain li, .tile, .review, #upd-card, .receive-card, .list:not(#all-activity .list), #all-activity, #all-activity .day, .words, .wallet-chip) {
       --glass: color-mix(in srgb, var(--surface) 62%, transparent);
       --dimmed: color-mix(in srgb, var(--ground-deep) 45%, transparent);
       background: linear-gradient(var(--glass), var(--glass)), linear-gradient(var(--dimmed), var(--dimmed)),
@@ -235,7 +235,7 @@
     body:not(.phone) .section-head h3 { color: var(--ink); text-shadow: 0 1px 8px rgba(var(--shade), 0.35); }
   }
   @media (min-width: 900px) and (hover: hover) {
-    body:not(.phone) :is(.codebox, .swap-row, .waiting-card, .swap-alert, .pay-card, .tabs, .mine-status, .wallet-row, .emoji-grid button:not(.on), .linkish, .link, .pill:not(.pearl), .mk-card, .ls-thumbs button, .ls-seller, .se-pic, .ch-about, .bubble:not(.mine), .paycard, .ch-askbox, .ch-blocked, .sync-card, .verify-card, .offer, .keep-open, .pair-card, .add-opt, .set-group, .note, .explain li, .tile, .review, #upd-card, .receive-card, .list, #all-activity, #all-activity .day, .words, .wallet-chip):is(button, a):hover { --glass: color-mix(in srgb, var(--surface-hover) 70%, transparent); }
+    body:not(.phone) :is(.codebox, .swap-row, .waiting-card, .swap-alert, .pay-card, .tabs, .mine-status, .wallet-row, .emoji-grid button:not(.on), .linkish, .link, .pill:not(.pearl), .mk-card, .ls-thumbs button, .ls-seller, .se-pic, .bubble:not(.mine), .paycard, .ch-askbox, .ch-blocked, .sync-card, .verify-card, .offer, .keep-open, .pair-card, .add-opt, .set-group, .note, .explain li, .tile, .review, #upd-card, .receive-card, .list:not(#all-activity .list), #all-activity, #all-activity .day, .words, .wallet-chip):is(button, a):hover { --glass: color-mix(in srgb, var(--surface-hover) 70%, transparent); }
   }
   /* Tall windows: a screen's main button stays close under its form,
      rather than alone at the foot of the window. */
@@ -707,7 +707,7 @@
   .ch-top { gap: 6px; }
   .ch-who { display: flex; align-items: center; gap: 10px; min-width: 0; padding: 4px 8px 4px 4px; border: 0; border-radius: 12px; background: none; color: inherit; font: inherit; text-align: left; cursor: pointer; }
   @media (hover: hover) { .ch-who:hover { background: rgba(var(--tint), 0.04); } }
-  .ch-who .avatar { position: relative; overflow: hidden; flex: none; width: 32px; height: 32px; border-radius: 50%; display: grid; place-items: center; background: var(--surface-hover); font-weight: 600; font-size: 13px; }
+  .ch-who .avatar { position: relative; overflow: hidden; flex: none; width: 32px; height: 32px; border-radius: 50%; display: grid; place-items: center; background: var(--surface-hover); color: var(--ink); font-weight: 600; font-size: 13px; }
   .ch-who b { display: block; font-size: 15px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .ch-who small { display: block; font-size: 11.5px; color: var(--faint); }
   /* ⋯ menus: a frosted-glass menu floating by its button, as on Apple's
@@ -732,6 +732,19 @@
   #chat.loading > :not(.ch-loading) { visibility: hidden; }
   #chat.loading .ch-loading { display: grid; place-items: center; position: absolute; inset: 0; }
   #chat { position: relative; }
+  /* Wide windows: Messages side by side, conversations on the left and
+     the open one on the right, as messaging apps on computers do. */
+  #chat .ch-none { display: none; }
+  #chat.none > :not(.ch-none) { display: none !important; }
+  #chat.none .ch-none { display: grid; place-items: center; flex: 1; color: var(--dim); font-size: 13.5px; text-shadow: 0 1px 8px rgba(var(--shade), 0.4); }
+  @media (min-width: 1160px) {
+    body.split main { flex-direction: row; justify-content: center; gap: 20px; }
+    html body.split #inbox, html body.split #chat { flex: 0 0 auto; margin-left: 0; margin-right: 0; padding-left: 18px; padding-right: 18px; }
+    html body.split #inbox { width: 340px; --cw: 304px; }
+    html body.split #chat { width: 720px; --cw: 684px; }
+    body.split #ch-back { display: none; }
+    body.split .ib-row.on { background: var(--surface-hover); }
+  }
   .ch-about { display: flex; justify-content: space-between; gap: 10px; width: 100%; padding: 10px 14px; border: 1px solid var(--line); border-radius: 14px;
     background: var(--surface); color: var(--dim); font: inherit; font-size: 12.5px; text-align: left; cursor: pointer; flex-shrink: 0; }
   /* The listing a chat is about: pearl, so it stands out from the messages. */
@@ -1599,6 +1612,7 @@
     <!-- One conversation -->
     <section class="screen" id="chat" hidden>
       <div class="ch-loading"><span class="spinner"></span></div>
+      <div class="ch-none">Choose a conversation</div>
       <div class="topline ch-top">
         <button class="back" id="ch-back" aria-label="Back"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg></button>
         <button class="ch-who" id="ch-who"></button>
@@ -2384,8 +2398,15 @@
     if (!$("contacts").hidden) renderContacts();
   }
 
+  // Wide windows show Messages side by side: the conversations and the
+  // open one together.
+  const wide = window.matchMedia("(min-width: 1160px)");
   function show(id) {
-    for (const s of document.querySelectorAll(".screen")) s.hidden = s.id !== id;
+    const both = !phone && wide.matches && (id === "inbox" || (id === "chat" && chat.from === "inbox" && chat.id));
+    for (const s of document.querySelectorAll(".screen")) s.hidden = !(s.id === id || (both && (s.id === "inbox" || s.id === "chat")));
+    document.body.classList.toggle("split", both);
+    if (both) { $("chat").classList.toggle("none", !chat.id); paintInbox(); }
+    else if (id === "chat") $("chat").classList.remove("none");
     for (const p of document.querySelectorAll(".problem")) p.hidden = true;
     for (const m of document.querySelectorAll(".ch-menu")) m.hidden = true;
   }
@@ -4929,7 +4950,7 @@
     $("ib-list").innerHTML = inbox.items.length
       ? `<div class="list">${inbox.items.map((c) => {
           const last = c.last ? (c.last.kind === "request" ? "Payment request" : c.last.kind === "paid" ? "Marked as paid" : c.last.body) : "";
-          return `<button class="ib-row${c.unread ? " unread" : ""}" data-chat="${c.id}">
+          return `<button class="ib-row${c.unread ? " unread" : ""}${c.id === chat.id ? " on" : ""}" data-chat="${c.id}">
             ${mkAvatar(c.with_name, c.with_picture)}
             <div style="min-width:0"><div class="nm"><b>${esc(c.with_name)}</b><span class="when">${esc(ago(c.updated))}</span></div>
               <div class="what">${esc(c.listing_title)}</div><div class="last">${esc(last)}</div></div>
@@ -4950,8 +4971,15 @@
     await loadInbox();
   }
   $("mk-inbox").onclick = openInbox;
-  $("ib-back").onclick = () => { show("market"); };
+  $("ib-back").onclick = () => { chat.id = null; show("market"); };
   $("ib-list").onclick = (e) => { const r = e.target.closest("[data-chat]"); if (r) openChat(Number(r.dataset.chat), "inbox"); };
+
+  // The window crossing the width while in Messages: one at a time, or
+  // side by side.
+  wide.addEventListener("change", () => {
+    if ($("inbox").hidden && $("chat").hidden) return;
+    show(chat.id && (chat.from === "inbox" || $("inbox").hidden) ? "chat" : "inbox");
+  });
 
   // One conversation.
   const chat = { id: null, from: "inbox", conv: null, messages: [], me: null, paying: null, blockArmed: false };
@@ -4974,6 +5002,9 @@
   }
   async function openChat(id, from) {
     chat.id = id; chat.from = from || "inbox"; chat.paying = null; chat.blockArmed = false; chat.draft = null;
+    // Opened: no longer unread in the list beside it.
+    const listed = inbox.items.find((c) => c.id === id);
+    if (listed) listed.unread = false;
     $("ch-askbox").hidden = true; $("ch-menu").hidden = true; $("ch-problem").hidden = true;
     const kept = chatCache.get(id);
     if (kept) {
