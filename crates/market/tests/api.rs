@@ -134,21 +134,8 @@ async fn a_bad_listing_is_refused_in_plain_words() {
 }
 
 #[tokio::test]
-async fn passkey_ceremonies_start_and_signing_out_ends_the_session() {
+async fn signing_out_ends_the_session() {
     let market = Market::new();
-    let (status, body) = market.ask("POST", "/api/market/signup/start", None, Some(json!({ "name": "Maya" }))).await;
-    assert_eq!(status, StatusCode::OK);
-    assert_eq!(body["options"]["publicKey"]["rp"]["id"], "orien.network");
-    assert!(body["options"]["publicKey"]["challenge"].is_string());
-    let (status, _) = market.ask("POST", "/api/market/signup/start", None, Some(json!({ "name": " " }))).await;
-    assert_eq!(status, StatusCode::BAD_REQUEST);
-    let (status, body) = market.ask("POST", "/api/market/signin/start", None, None).await;
-    assert_eq!((status, body["id"].is_string()), (StatusCode::OK, true));
-
-    // A ceremony nobody started cannot be finished.
-    let fake = json!({ "id": "made-up", "credential": {} });
-    assert_ne!(market.ask("POST", "/api/market/signin/finish", None, Some(fake)).await.0, StatusCode::OK);
-
     let maya = sign_in_for_tests(&market.app, "Maya");
     assert_eq!(market.ask("GET", "/api/market/me", Some(&maya), None).await.0, StatusCode::OK);
     assert_eq!(market.ask("POST", "/api/market/signout", Some(&maya), None).await.0, StatusCode::OK);

@@ -20,7 +20,7 @@ struct Args {
     /// Where to listen: behind nginx, on this computer only.
     #[arg(long, default_value = "127.0.0.1:7200")]
     listen: String,
-    /// The website's address, which passkeys are tied to.
+    /// The website's address, for links in emails.
     #[arg(long, default_value = "https://orien.network")]
     origin: String,
     /// Also serve the website from this folder (web/out), to try the

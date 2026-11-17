@@ -1,8 +1,8 @@
 //! What the marketplace pages ask the server, under /api/market.
 //!
-//! Signing in uses passkeys: the browser proves it holds an account's
-//! passkey, and the server answers with a cookie that keeps it signed in.
-//! Changes need that cookie; reading listings does not.
+//! Signing in uses a code sent by email; the server answers with a cookie
+//! that keeps the browser signed in. Changes need that cookie; reading
+//! listings does not.
 
 use crate::images::{self, Folder};
 use crate::mail::Mailer;
@@ -16,29 +16,14 @@ use axum::routing::{get, post};
 use axum::{Json, Router};
 use serde::Deserialize;
 use serde_json::json;
-use std::collections::HashMap;
 use std::sync::{Arc, Mutex};
-use std::time::{Duration, Instant};
-use webauthn_rs::prelude::*;
+use std::time::Instant;
 
 /// The cookie that keeps a browser signed in.
 pub const COOKIE: &str = "orien_market";
 
-/// How long a sign-up or sign-in may take between its two steps.
-const CEREMONY: Duration = Duration::from_secs(300);
-/// Sign-ups and sign-ins under way at once, at most. Beyond it the oldest
-/// are dropped, so nobody can fill the server's memory with them.
-const MAX_CEREMONIES: usize = 10_000;
-
-enum Ceremony {
-    SignUp { name: String, handle: Uuid, state: PasskeyRegistration },
-    SignIn { state: DiscoverableAuthentication },
-}
-
 pub struct App {
     store: Mutex<Store>,
-    webauthn: Webauthn,
-    ceremonies: Mutex<HashMap<String, (Ceremony, Instant)>>,
     mailer: Arc<Mailer>,
     screener: Arc<Screener>,
     images: Folder,
@@ -81,13 +66,9 @@ impl App {
     ) -> anyhow::Result<App> {
         let address = store::orien_address(address)?;
         let site = origin.trim_end_matches('/').to_string();
-        let origin = Url::parse(origin)?;
-        let id = origin.host_str().ok_or_else(|| anyhow::anyhow!("the origin has no host"))?.to_string();
-        let webauthn = WebauthnBuilder::new(&id, &origin)?.rp_name("Orien Network").build()?;
+        anyhow::ensure!(url::Url::parse(origin)?.host_str().is_some(), "the origin has no host");
         Ok(App {
             store: Mutex::new(store),
-            webauthn,
-            ceremonies: Mutex::new(HashMap::new()),
             mailer: Arc::new(mailer),
             screener: Arc::new(screener),
             images,
@@ -124,24 +105,6 @@ impl App {
     pub fn with_prices(mut self, prices: crate::prices::Prices) -> App {
         self.prices = Arc::new(prices);
         self
-    }
-
-    fn begin(&self, ceremony: Ceremony) -> String {
-        let mut ceremonies = self.ceremonies.lock().unwrap();
-        ceremonies.retain(|_, (_, at)| at.elapsed() < CEREMONY);
-        if ceremonies.len() >= MAX_CEREMONIES
-            && let Some(oldest) = ceremonies.iter().min_by_key(|(_, (_, at))| *at).map(|(id, _)| id.clone())
-        {
-            ceremonies.remove(&oldest);
-        }
-        let id = Uuid::new_v4().to_string();
-        ceremonies.insert(id.clone(), (ceremony, Instant::now()));
-        id
-    }
-
-    fn finish(&self, id: &str) -> Option<Ceremony> {
-        let (ceremony, at) = self.ceremonies.lock().unwrap().remove(id)?;
-        (at.elapsed() < CEREMONY).then_some(ceremony)
     }
 
     pub(crate) fn store(&self) -> std::sync::MutexGuard<'_, Store> {
@@ -279,10 +242,6 @@ pub fn router(app: Arc<App>) -> Router {
     Router::new()
         .route("/api/market/email/start", post(email_start))
         .route("/api/market/email/finish", post(email_finish))
-        .route("/api/market/signup/start", post(signup_start))
-        .route("/api/market/signup/finish", post(signup_finish))
-        .route("/api/market/signin/start", post(signin_start))
-        .route("/api/market/signin/finish", post(signin_finish))
         .route("/api/market/signout", post(signout))
         .route("/api/market/me", get(me).put(edit_profile))
         .route(
@@ -495,80 +454,6 @@ async fn email_finish(State(app): State<Arc<App>>, Json(request): Json<EmailFini
         None => store.create_account_with_email(&request.name, &email).map_err(refused)?,
     };
     let token = store.start_session(account.id)?;
-    let mut response = Json(json!({ "account": account })).into_response();
-    response.headers_mut().insert(header::SET_COOKIE, app.session_cookie(&token, COOKIE_SECONDS));
-    Ok(response)
-}
-
-#[derive(Deserialize)]
-struct SignUp {
-    name: String,
-}
-
-async fn signup_start(State(app): State<Arc<App>>, Json(request): Json<SignUp>) -> Answer {
-    let name = app.store.lock().unwrap().new_name(&request.name, None).map_err(refused)?;
-    screened_name(&app, &name).await?;
-    let handle = Uuid::new_v4();
-    let (options, state) = app
-        .webauthn
-        .start_passkey_registration(handle, &name, &name, None)
-        .map_err(|e| Failure::Broken(anyhow::anyhow!("passkey registration: {e}")))?;
-    let id = app.begin(Ceremony::SignUp { name, handle, state });
-    Ok(Json(json!({ "id": id, "options": options })).into_response())
-}
-
-#[derive(Deserialize)]
-struct Finish<T> {
-    id: String,
-    credential: T,
-}
-
-async fn signup_finish(State(app): State<Arc<App>>, Json(request): Json<Finish<RegisterPublicKeyCredential>>) -> Answer {
-    let Some(Ceremony::SignUp { name, handle, state }) = app.finish(&request.id) else {
-        return Err(Failure::Refused("that sign-up took too long; start again".into()));
-    };
-    let passkey = app
-        .webauthn
-        .finish_passkey_registration(&request.credential, &state)
-        .map_err(|_| Failure::Refused("the passkey could not be checked; try again".into()))?;
-    let store = app.store.lock().unwrap();
-    let account = store.create_account(&name, &handle.to_string()).map_err(refused)?;
-    let credential = hex::encode(passkey.cred_id());
-    store.add_passkey(account.id, &credential, &serde_json::to_string(&passkey).map_err(anyhow::Error::from)?)?;
-    let token = store.start_session(account.id)?;
-    let mut response = Json(json!({ "account": account })).into_response();
-    response.headers_mut().insert(header::SET_COOKIE, app.session_cookie(&token, COOKIE_SECONDS));
-    Ok(response)
-}
-
-async fn signin_start(State(app): State<Arc<App>>) -> Answer {
-    let (options, state) = app
-        .webauthn
-        .start_discoverable_authentication()
-        .map_err(|e| Failure::Broken(anyhow::anyhow!("passkey sign-in: {e}")))?;
-    let id = app.begin(Ceremony::SignIn { state });
-    Ok(Json(json!({ "id": id, "options": options })).into_response())
-}
-
-async fn signin_finish(State(app): State<Arc<App>>, Json(request): Json<Finish<PublicKeyCredential>>) -> Answer {
-    let Some(Ceremony::SignIn { state }) = app.finish(&request.id) else {
-        return Err(Failure::Refused("that sign-in took too long; start again".into()));
-    };
-    let unknown = || Failure::Refused("that passkey does not belong to a Market account".into());
-    let (_, credential_id) = app.webauthn.identify_discoverable_authentication(&request.credential).map_err(|_| unknown())?;
-    let credential = hex::encode(credential_id);
-    let store = app.store.lock().unwrap();
-    let (account, stored) = store.passkey(&credential)?.ok_or_else(unknown)?;
-    let mut passkey: Passkey = serde_json::from_str(&stored).map_err(anyhow::Error::from)?;
-    let result = app
-        .webauthn
-        .finish_discoverable_authentication_v2(&request.credential, state, &passkey)
-        .map_err(|_| Failure::Refused("the passkey could not be checked; try again".into()))?;
-    if passkey.update_credential(&result) == Some(true) {
-        store.update_passkey(&credential, &serde_json::to_string(&passkey).map_err(anyhow::Error::from)?)?;
-    }
-    let token = store.start_session(account)?;
-    let account = store.account(account)?.ok_or(Failure::NotFound)?;
     let mut response = Json(json!({ "account": account })).into_response();
     response.headers_mut().insert(header::SET_COOKIE, app.session_cookie(&token, COOKIE_SECONDS));
     Ok(response)
@@ -1385,10 +1270,17 @@ impl App {
 #[doc(hidden)]
 pub fn sign_in_for_tests(app: &App, name: &str) -> String {
     let store = app.store.lock().unwrap();
-    let account = store.create_account(name, &Uuid::new_v4().to_string()).unwrap();
+    let account = store.create_account(name, &hex::encode(rand_bytes())).unwrap();
     // A verified wallet of its own and a way to be reached, so it can post listings.
-    store.set_wallet(account.id, &hex::encode(Uuid::new_v4().as_bytes()).repeat(2)).unwrap();
+    store.set_wallet(account.id, &hex::encode(rand_bytes()).repeat(2)).unwrap();
     let reach = store::Contact { email: format!("{}@example.com", name.to_lowercase().replace(' ', "")), ..Default::default() };
     store.set_profile(account.id, name, "", &reach).unwrap();
     store.start_session(account.id).unwrap()
+}
+
+/// Sixteen random bytes, for tests.
+fn rand_bytes() -> [u8; 16] {
+    let mut bytes = [0u8; 16];
+    getrandom::fill(&mut bytes).expect("the system makes random numbers");
+    bytes
 }
