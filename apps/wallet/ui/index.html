@@ -152,11 +152,6 @@
     0%, 100% { transform: scale(0.85); opacity: 0.7; box-shadow: 0 0 0 0 color-mix(in srgb, var(--good) 0%, transparent); }
     50% { transform: scale(1.05); opacity: 1; box-shadow: 0 0 9px 1px color-mix(in srgb, var(--good) 55%, transparent); }
   }
-  /* Linux: rounded corners like a Mac's window, drawn by the app on a
-     see-through window, with a faint edge in place of the system's. */
-  html.linux { background: transparent; }
-  html.linux body { height: 100vh; border-radius: 16px; overflow: hidden; box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.09); }
-  html.linux.maximized body { border-radius: 0; box-shadow: none; }
   body.windows header { height: 52px; margin-bottom: 12px; }
   /* Windows: no system bar; the app's own top bar carries – and ✕ at the
      right, as Windows apps do, and the status moves to the left. */
@@ -2013,18 +2008,8 @@
   // Windows draws its own title bar above the window, so the top bar there
   // needs no room for the Mac's window buttons.
   // Windows and Linux: no system bar; the app's own – and ✕ instead.
-  const linux = /Linux/.test(navigator.userAgent) && !/Android/.test(navigator.userAgent);
-  if (navigator.userAgent.includes("Windows") || linux) {
+  if (navigator.userAgent.includes("Windows") || (/Linux/.test(navigator.userAgent) && !/Android/.test(navigator.userAgent))) {
     document.body.classList.add("windows");
-    // Linux: a see-through window, so the app draws its own rounded
-    // corners, as a Mac's window has; square again when maximized.
-    if (linux) {
-      document.documentElement.classList.add("linux");
-      const w = window.__TAURI__.window.getCurrentWindow();
-      const corners = () => w.isMaximized().then((m) => document.documentElement.classList.toggle("maximized", m)).catch(() => {});
-      w.onResized(corners).catch(() => {});
-      corners();
-    }
     // The app's own – and ✕. Closing hides it to the tray, as before.
     const win = window.__TAURI__.window.getCurrentWindow();
     document.getElementById("win-min").onclick = () => win.minimize();
@@ -2708,7 +2693,6 @@
   const knownTheme = (name) => THEMES.some(([id]) => id === name) ? name : "pearl";
   // The colour behind the page matches the theme's deepest ground.
   function paintBackdrop() {
-    if (document.documentElement.classList.contains("linux")) return;
     const color = getComputedStyle(document.documentElement).getPropertyValue("--ground-deep").trim();
     const m = /^#([0-9a-f]{2})([0-9a-f]{2})([0-9a-f]{2})$/i.exec(color);
     if (m) invoke("set_backdrop", { red: parseInt(m[1], 16), green: parseInt(m[2], 16), blue: parseInt(m[3], 16) }).catch(() => {});

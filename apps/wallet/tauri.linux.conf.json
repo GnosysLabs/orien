@@ -11,8 +11,7 @@
         "theme": "Dark",
         "minWidth": 520,
         "minHeight": 540,
-        "decorations": false,
-        "transparent": true
+        "decorations": false
       }
     ]
   }
