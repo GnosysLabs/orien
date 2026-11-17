@@ -988,10 +988,11 @@ Refund [lock, buyer]            at or after the deadline: buyer += everything`}<
           </li>
           <li>
             <strong>Swaps need a wallet that is running.</strong> Each side’s wallet moves a swap along only while it is
-            open. A buyer who stays away past the ORN deadline after the seller took the Bitcoin loses the ORN, which
-            the deadlines leave more than a day to avoid. The proof of waiting locked payments carries the whole list
-            in one message, which outgrows it past about 130,000 of them; until it is split into pages, a buyer then
-            relies on the lock’s certificate, which serves only within the epoch the lock was made in.
+            open, so Orien Wallet keeps running in the background. Once the seller takes the payment, the seller’s
+            wallet also claims the ORN for the buyer, so the buyer need not be online for that step. The proof of
+            waiting locked payments carries the whole list in one message, which outgrows it past about 130,000 of
+            them; until it is split into pages, a buyer then relies on the lock’s certificate, which serves only
+            within the epoch the lock was made in.
           </li>
           <li>
             <strong>Large signatures.</strong> Hash-based signatures are about 20 times larger than elliptic-curve ones.
