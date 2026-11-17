@@ -653,6 +653,17 @@
   .pair-go { display: flex; align-items: center; justify-content: center; gap: 9px; }
   .phone-only-flex { display: none; }
   body.phone .phone-only-flex { display: block; }
+  /* A wallet's recovery phrase: blurred until tapped. */
+  .rv-shield { width: 52px; height: 52px; margin: 0 auto 14px; border-radius: 50%; display: grid; place-items: center;
+    color: #f5b14c; background: rgba(245, 177, 76, 0.12); border: 1px solid rgba(245, 177, 76, 0.35); }
+  .rv-shield svg { width: 24px; height: 24px; }
+  .rv-words { position: relative; margin-top: 14px; }
+  .rv-words .words { margin: 0; transition: filter 0.25s ease; }
+  .rv-words.blurred .words { filter: blur(9px); -webkit-user-select: none; user-select: none; pointer-events: none; }
+  .rv-tap { position: absolute; inset: 0; margin: auto; width: max-content; height: 44px; padding: 0 18px; display: none; align-items: center; gap: 8px;
+    border: 1px solid rgba(255, 255, 255, 0.16); border-radius: 22px; background: rgba(40, 41, 46, 0.82); color: var(--ink);
+    -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px); font: inherit; font-weight: 600; cursor: pointer; }
+  .rv-words.blurred .rv-tap { display: inline-flex; }
   .steps { list-style: none; margin: 18px 0 0; padding: 0; }
   .steps li { position: relative; display: grid; grid-template-columns: 26px 1fr; gap: 12px; padding-bottom: 16px; }
   .steps li:not(:last-child)::before { content: ""; position: absolute; left: 12px; top: 28px; bottom: 4px; width: 1px; background: var(--line); }
@@ -989,7 +1000,6 @@
       <button class="primary pearl" id="create">Create a wallet</button>
       <button class="secondary" id="go-pair">I have it on another device</button>
       <button class="secondary" id="go-restore">Restore with recovery phrase</button>
-      <button class="link" id="choose">Open a wallet file</button>
       <div class="problem" id="welcome-problem" hidden></div>
     </section>
 
@@ -1513,6 +1523,36 @@
       <button class="primary pearl" id="pg-go" data-gap="lg">Continue</button>
     </section>
 
+    <!-- A wallet's recovery phrase, shown to its owner -->
+    <section class="screen" id="reveal" hidden>
+      <div class="topline"><button class="back" id="rv-back" aria-label="Back"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10 3 5 8l5 5"/></svg></button><h2>Recovery phrase</h2></div>
+      <div id="rv-warn" class="rv-step">
+        <div class="pair-card" data-gap="lg">
+          <div class="rv-shield"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 5 6v5c0 4.5 3 8.3 7 10 4-1.7 7-5.5 7-10V6z"/><path d="M12 8v4"/><circle cx="12" cy="15.5" r="0.6" fill="currentColor"/></svg></div>
+          <div class="wc-title">Keep these words secret</div>
+          <p class="pair-sub">Anyone who sees your 24 words can take everything in this wallet. Orien will never ask you for them, and no one helping you ever needs them.</p>
+        </div>
+        <div class="field" id="rv-pw-field" data-gap="lg" hidden>
+          <label for="rv-pw">This wallet's password</label>
+          <div class="box plain"><input id="rv-pw" type="password" autocomplete="current-password"></div>
+        </div>
+        <div class="push"></div>
+        <div class="problem" id="rv-problem" hidden></div>
+        <button class="primary pearl" id="rv-go" data-gap="lg">I understand, show them</button>
+      </div>
+      <div id="rv-show" class="rv-step" hidden>
+        <p class="lede">Write them down in order, on paper, and keep it somewhere safe.</p>
+        <div class="rv-words blurred" id="rv-box">
+          <ol class="words" id="rv-words"></ol>
+          <button class="rv-tap" id="rv-tap"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>Tap to reveal</button>
+        </div>
+        <button class="secondary" id="rv-save" data-gap="lg">Save as a text file</button>
+        <p class="fineprint" id="rv-saved">Anyone who opens the file can spend your ORN. Keep it somewhere only you can reach.</p>
+        <div class="push"></div>
+        <button class="primary pearl" id="rv-done" data-gap="lg">Done</button>
+      </div>
+    </section>
+
     <section class="screen" id="wallet-rename" hidden>
       <div class="topline"><button class="back" id="wr-back" aria-label="Back"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10 3 5 8l5 5"/></svg></button><h2>Edit wallet</h2></div>
       <div class="field">
@@ -1525,7 +1565,8 @@
         <div class="emoji-grid" id="wr-emoji"></div>
       </div>
       <div class="problem" id="wallet-rename-problem" hidden></div>
-      <button class="secondary pair-go" id="wr-pair" data-gap="xl"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="13" height="10" rx="2"/><path d="M5 18h7"/><rect x="17" y="8" width="5" height="12" rx="1.5"/></svg>Add to another device</button>
+      <button class="secondary pair-go" id="wr-reveal" data-gap="xl"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="7.5" cy="15.5" r="4.5"/><path d="M10.7 12.3 21 2M16 7l3 3M18.5 4.5l2 2"/></svg>Show recovery phrase</button>
+      <button class="secondary pair-go" id="wr-pair" data-gap="sm"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="13" height="10" rx="2"/><path d="M5 18h7"/><rect x="17" y="8" width="5" height="12" rx="1.5"/></svg>Add to another device</button>
       <button class="pill ct-delete" id="wr-forget">Remove from this app</button>
     </section>
 
@@ -2402,6 +2443,64 @@
     button.textContent = "Restore wallet"; checkPhrase();
   };
 
+
+  // ---- A wallet's recovery phrase ----
+  // A warning, then Touch ID, Face ID or the password; the words blurred
+  // until tapped, and gone as soon as the screen is left.
+  let revealWords = [];
+  function revealClear() {
+    revealWords = [];
+    $("rv-words").innerHTML = "";
+    $("rv-box").classList.add("blurred");
+    $("rv-pw").value = "";
+  }
+  $("wr-reveal").onclick = async () => {
+    await saveName();
+    revealClear();
+    $("rv-warn").hidden = false; $("rv-show").hidden = true;
+    $("rv-pw-field").hidden = true; $("rv-problem").hidden = true;
+    $("rv-saved").textContent = "Anyone who opens the file can spend your ORN. Keep it somewhere only you can reach.";
+    show("reveal");
+  };
+  $("rv-go").onclick = async () => {
+    const button = $("rv-go"), path = renaming.path;
+    button.disabled = true;
+    const typed = $("rv-pw-field").hidden ? null : $("rv-pw").value;
+    try {
+      let words;
+      try { words = await invoke("wallet_phrase", { path, password: typed }); }
+      catch (e) {
+        if (String(e) !== "password: needed" || typed !== null) throw e;
+        let unlocked = false;
+        try { await invoke("biometric_unlock", { path }); unlocked = true; } catch {}
+        if (!unlocked) throw e;
+        words = await invoke("wallet_phrase", { path, password: null });
+      }
+      revealWords = words;
+      $("rv-pw").value = "";
+      $("rv-words").innerHTML = words.map((w) => `<li>${esc(w)}</li>`).join("");
+      $("rv-warn").hidden = true; $("rv-show").hidden = false;
+    } catch (e) {
+      const t = String(e);
+      if (t === "password: needed") { $("rv-pw-field").hidden = false; $("rv-pw").focus(); problem("rv-problem", "Type this wallet's password to see its words."); }
+      else if (t === "password: wrong") { $("rv-pw").select(); problem("rv-problem", "That is not this wallet's password."); }
+      else problem("rv-problem", e);
+    } finally { button.disabled = false; }
+  };
+  $("rv-tap").onclick = () => $("rv-box").classList.remove("blurred");
+  $("rv-save").onclick = async () => {
+    $("rv-save").disabled = true;
+    try {
+      if (await invoke("save_phrase", { words: revealWords })) $("rv-saved").textContent = "Saved. Anyone who opens the file can spend your ORN: keep it somewhere only you can reach.";
+    } catch (e) { $("rv-saved").textContent = String(e); }
+    $("rv-save").disabled = false;
+  };
+  $("rv-back").onclick = $("rv-done").onclick = () => { revealClear(); show("wallet-rename"); };
+  // Leaving the app hides the words.
+  document.addEventListener("visibilitychange", () => {
+    if (document.hidden && !$("reveal").hidden && revealWords.length) { revealClear(); show("wallet-rename"); }
+  });
+
   // ---- Moving a wallet to another of one's own devices ----
   // Sending: a code (and its QR) to show; once the other device joins, the
   // same three emoji on both; on "They match", the wallet goes, sealed.
@@ -2526,9 +2625,6 @@
     } catch (e) { if (!/cancel/i.test(String(e))) problem("pg-problem", e); }
   };
 
-  $("choose").onclick = async () => {
-    try { if (await invoke("choose_wallet")) await start(); } catch (e) { problem("welcome-problem", e); }
-  };
 
   // ---- Navigation ----
   for (const b of document.querySelectorAll("[data-back]")) b.onclick = home;
