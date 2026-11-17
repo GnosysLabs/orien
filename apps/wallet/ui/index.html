@@ -728,17 +728,17 @@
   #chat { position: relative; }
   /* Wide windows: Messages as on the website, one box with the
      conversations on the left and the open one on the right, divided by
-     a line, as wide as the Market (320 + 720). */
+     a line, in place of the usual frame and as wide as the Market's (336 + 760). */
   #chat .ch-none { display: none; }
   #chat.none > :not(.ch-none) { display: none !important; }
   #chat.none .ch-none { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; flex: 1; color: var(--dim); font-size: 13.5px; }
   #chat .ch-none svg { width: 32px; height: 32px; color: var(--faint); }
   @media (min-width: 1160px) {
     body.split main { flex-direction: row; justify-content: center; gap: 0; }
-    html body.split #inbox, html body.split #chat { flex: 0 0 auto; margin: 14px 0 28px; padding: 0; overflow: hidden;
+    html body.split #inbox, html body.split #chat { flex: 0 0 auto; margin: -14px 0 0; padding: 0; overflow: hidden;
       -webkit-mask: none; mask: none; background: var(--surface); border: 1px solid var(--line); }
-    html body.split #inbox { width: 320px; border-radius: 18px 0 0 18px; border-right: 0; }
-    html body.split #chat { width: 720px; border-radius: 0 18px 18px 0; }
+    html body.split #inbox { width: 336px; border-radius: 28px 0 0 28px; border-right: 0; }
+    html body.split #chat { width: 760px; border-radius: 0 28px 28px 0; }
     html body.split #inbox::after { content: none; }
     /* The dividing line between the two halves. */
     html body.split #chat { box-shadow: inset 1px 0 0 var(--line); }
@@ -754,6 +754,9 @@
     body.split .ib-row.on { background: var(--surface-hover); }
     body.split #ib-list .empty { padding: 20px; text-align: left; }
     body.split #ch-back { display: none; }
+    /* The Messages box is the container itself: no frame around it, only
+       its shadow, in the frame's place. */
+    body.split:not(.phone) main::before { border: 0; background: none; }
     /* The listing it's about: a quiet strip under the header. */
     html body.split #chat .ch-about { margin: 0; border: 0; border-bottom: 1px solid var(--line); border-radius: 0; padding: 11px 16px;
       background: rgba(var(--shade), 0.12); animation: none; color: var(--dim); }
