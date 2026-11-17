@@ -181,16 +181,22 @@
       padding-left: max(18px, calc(18px + (100% - var(--col)) / 2));
       padding-right: max(18px, calc(18px + (100% - var(--col)) / 2)); }
   }
-  /* Big windows: a photograph behind the app, quiet, for themes that have
-     one. The column in the middle sits on the theme's own ground, fading
+  /* Big windows: each theme's photograph behind the app, quiet. The column in the middle sits on the theme's own ground, fading
      out toward the edges, so only the margins show the scene. */
+  :root, [data-theme="pearl"] { --scene: url(scenes/pearl.webp); }
+  [data-theme="daylight"] { --scene: url(scenes/daylight.webp); }
+  [data-theme="midnight"] { --scene: url(scenes/midnight.webp); }
   [data-theme="aurora"] { --scene: url(scenes/aurora.webp); }
+  [data-theme="amethyst"] { --scene: url(scenes/amethyst.webp); }
+  [data-theme="rose"] { --scene: url(scenes/rose.webp); }
+  [data-theme="ruby"] { --scene: url(scenes/ruby.webp); }
+  [data-theme="ember"] { --scene: url(scenes/ember.webp); }
+  [data-theme="obsidian"] { --scene: url(scenes/obsidian.webp); }
   @media (min-width: 900px) {
     body:not(.phone)::before, body:not(.phone)::after { content: ""; position: fixed; inset: 0; z-index: -1; pointer-events: none; }
     body:not(.phone)::before { background: var(--scene, none) center / cover no-repeat; opacity: 0.55; }
     body:not(.phone)::after { background: linear-gradient(90deg, transparent calc(50% - 600px), var(--ground-deep) calc(50% - 330px),
       var(--ground-deep) calc(50% + 330px), transparent calc(50% + 600px)); opacity: 0.75; }
-    html:not([data-theme="aurora"]) body::after { display: none; }
   }
   /* Tall windows: a screen's main button stays close under its form,
      rather than alone at the foot of the window. */
