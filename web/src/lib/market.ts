@@ -1,4 +1,4 @@
-// Talking to the marketplace server, and passkeys in the browser.
+// Talking to the marketplace server.
 
 export type Account = {
   id: number
@@ -212,87 +212,6 @@ export function parseOrn(text: string): number | null {
   const units = BigInt(match[1] || '0') * UNITS + BigInt((match[2] ?? '').padEnd(9, '0'))
   if (units <= BigInt(0) || units > BigInt(Number.MAX_SAFE_INTEGER)) return null
   return Number(units)
-}
-
-// Passkeys. The server speaks WebAuthn's JSON, with binary fields in
-// base64url; the browser's API wants them as bytes.
-
-const toBytes = (text: string) => {
-  const base64 = text.replace(/-/g, '+').replace(/_/g, '/').padEnd(Math.ceil(text.length / 4) * 4, '=')
-  return Uint8Array.from(atob(base64), (c) => c.charCodeAt(0))
-}
-
-const toText = (buffer: ArrayBuffer | null) =>
-  buffer === null
-    ? null
-    : btoa(String.fromCharCode(...new Uint8Array(buffer)))
-        .replace(/\+/g, '-')
-        .replace(/\//g, '_')
-        .replace(/=+$/, '')
-
-type Json = Record<string, any> // eslint-disable-line @typescript-eslint/no-explicit-any
-
-export function passkeysWork(): boolean {
-  return typeof window !== 'undefined' && !!window.PublicKeyCredential
-}
-
-/** Makes a passkey for a new account, as the server's options describe. */
-export async function createPasskey(options: Json): Promise<Json> {
-  const key = options.publicKey
-  const publicKey: PublicKeyCredentialCreationOptions = {
-    ...key,
-    challenge: toBytes(key.challenge),
-    user: { ...key.user, id: toBytes(key.user.id) },
-    excludeCredentials: (key.excludeCredentials ?? []).map((c: Json) => ({ ...c, id: toBytes(c.id) })),
-  }
-  const credential = (await navigator.credentials.create({ publicKey })) as PublicKeyCredential | null
-  if (!credential) throw new Error('No passkey was made.')
-  const response = credential.response as AuthenticatorAttestationResponse
-  return {
-    id: credential.id,
-    rawId: toText(credential.rawId),
-    type: credential.type,
-    extensions: credential.getClientExtensionResults(),
-    response: {
-      attestationObject: toText(response.attestationObject),
-      clientDataJSON: toText(response.clientDataJSON),
-      transports: response.getTransports?.() ?? [],
-    },
-  }
-}
-
-/** Signs in with any passkey this device holds for the marketplace. */
-export async function usePasskey(options: Json): Promise<Json> {
-  const key = options.publicKey
-  const publicKey: PublicKeyCredentialRequestOptions = {
-    ...key,
-    challenge: toBytes(key.challenge),
-    allowCredentials: (key.allowCredentials ?? []).map((c: Json) => ({ ...c, id: toBytes(c.id) })),
-  }
-  const credential = (await navigator.credentials.get({ publicKey, mediation: options.mediation })) as PublicKeyCredential | null
-  if (!credential) throw new Error('No passkey was chosen.')
-  const response = credential.response as AuthenticatorAssertionResponse
-  return {
-    id: credential.id,
-    rawId: toText(credential.rawId),
-    type: credential.type,
-    extensions: credential.getClientExtensionResults(),
-    response: {
-      authenticatorData: toText(response.authenticatorData),
-      clientDataJSON: toText(response.clientDataJSON),
-      signature: toText(response.signature),
-      userHandle: toText(response.userHandle),
-    },
-  }
-}
-
-/** What a failed passkey step means, in plain words. */
-export function passkeyTrouble(error: unknown): string {
-  if (error instanceof MarketError) return error.message
-  if (error instanceof DOMException && error.name === 'NotAllowedError') {
-    return 'The passkey step was cancelled or timed out. Try again when you are ready.'
-  }
-  return error instanceof Error ? error.message : 'Something went wrong with the passkey.'
 }
 
 /** How a listing can be priced: empty for a fixed price. */

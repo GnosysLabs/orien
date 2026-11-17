@@ -134,21 +134,8 @@ async fn a_bad_listing_is_refused_in_plain_words() {
 }
 
 #[tokio::test]
-async fn passkey_ceremonies_start_and_signing_out_ends_the_session() {
+async fn signing_out_ends_the_session() {
     let market = Market::new();
-    let (status, body) = market.ask("POST", "/api/market/signup/start", None, Some(json!({ "name": "Maya" }))).await;
-    assert_eq!(status, StatusCode::OK);
-    assert_eq!(body["options"]["publicKey"]["rp"]["id"], "orien.network");
-    assert!(body["options"]["publicKey"]["challenge"].is_string());
-    let (status, _) = market.ask("POST", "/api/market/signup/start", None, Some(json!({ "name": " " }))).await;
-    assert_eq!(status, StatusCode::BAD_REQUEST);
-    let (status, body) = market.ask("POST", "/api/market/signin/start", None, None).await;
-    assert_eq!((status, body["id"].is_string()), (StatusCode::OK, true));
-
-    // A ceremony nobody started cannot be finished.
-    let fake = json!({ "id": "made-up", "credential": {} });
-    assert_ne!(market.ask("POST", "/api/market/signin/finish", None, Some(fake)).await.0, StatusCode::OK);
-
     let maya = sign_in_for_tests(&market.app, "Maya");
     assert_eq!(market.ask("GET", "/api/market/me", Some(&maya), None).await.0, StatusCode::OK);
     assert_eq!(market.ask("POST", "/api/market/signout", Some(&maya), None).await.0, StatusCode::OK);
@@ -582,6 +569,12 @@ async fn phones_hear_about_mining_rewards_merged() {
     let notebook = Notebook::default();
     assert_eq!(check_once(&market.app, &notebook).unwrap(), 0, "rewards from before registering are not told");
 
+    // Muting "received" leaves mining alone; muting "mining" stops it.
+    market.ask("POST", "/api/market/push/register", None, Some(json!({ "token": phone, "sandbox": true, "addresses": [miner], "mute": ["received", "mining"] }))).await;
+    mine(1_000_000_000, 30);
+    assert_eq!(check_once(&market.app, &notebook).unwrap(), 0, "mining muted");
+    market.ask("POST", "/api/market/push/register", None, Some(json!({ "token": phone, "sandbox": true, "addresses": [miner], "mute": ["received"] }))).await;
+
     // Two rewards seen at once: one notification with their sum.
     mine(4_000_000_000, 30);
     mine(8_004_000_000, 31);
@@ -866,4 +859,91 @@ async fn blocking_a_person_from_their_profile_works_everywhere() {
     assert_eq!(status, StatusCode::OK);
     let (status, _) = market.ask("POST", &format!("/api/market/accounts/{sam_id}/block"), Some(&sam), Some(json!({ "block": true }))).await;
     assert_eq!(status, StatusCode::BAD_REQUEST, "not yourself");
+}
+
+#[tokio::test]
+async fn two_devices_pass_sealed_bytes_through_a_pairing_mailbox() {
+    use base64::Engine;
+    let market = Market::new();
+    let b64 = |bytes: &[u8]| base64::engine::general_purpose::STANDARD.encode(bytes);
+    let (status, body) = market.ask("POST", "/api/market/pair", None, None).await;
+    assert_eq!(status, StatusCode::OK, "{body}");
+    let code = body["code"].as_u64().unwrap();
+    assert!((1..=9999).contains(&code));
+    let slot = |s: &str| format!("/api/market/pair/{code}/{s}");
+
+    // Nothing there yet: keep polling.
+    assert_eq!(market.ask("GET", &slot("a"), None, None).await.0, StatusCode::ACCEPTED);
+    let (status, _) = market.ask("PUT", &slot("a"), None, Some(json!({ "data": b64(b"spake a") }))).await;
+    assert_eq!(status, StatusCode::OK);
+    let (status, body) = market.ask("GET", &slot("a"), None, None).await;
+    assert_eq!((status, body["data"].as_str()), (StatusCode::OK, Some(b64(b"spake a").as_str())));
+    // Write-once.
+    assert_eq!(market.ask("PUT", &slot("a"), None, Some(json!({ "data": b64(b"other") }))).await.0, StatusCode::CONFLICT);
+    // Bad slots, bad data, too much data.
+    assert_eq!(market.ask("PUT", &slot("e"), None, Some(json!({ "data": b64(b"x") }))).await.0, StatusCode::NOT_FOUND);
+    assert_eq!(market.ask("PUT", &slot("b"), None, Some(json!({ "data": "not base64!" }))).await.0, StatusCode::BAD_REQUEST);
+    let big = vec![7u8; 16 * 1024 + 1];
+    assert_eq!(market.ask("PUT", &slot("d"), None, Some(json!({ "data": b64(&big) }))).await.0, StatusCode::PAYLOAD_TOO_LARGE);
+    let full = vec![7u8; 16 * 1024];
+    assert_eq!(market.ask("PUT", &slot("d"), None, Some(json!({ "data": b64(&full) }))).await.0, StatusCode::OK);
+    // An unknown code.
+    let other = if code == 9999 { 1 } else { code + 1 };
+    assert_eq!(market.ask("GET", &format!("/api/market/pair/{other}/a"), None, None).await.0, StatusCode::NOT_FOUND);
+
+    // Closed by a device: gone.
+    assert_eq!(market.ask("DELETE", &format!("/api/market/pair/{code}"), None, None).await.0, StatusCode::OK);
+    assert_eq!(market.ask("GET", &slot("a"), None, None).await.0, StatusCode::NOT_FOUND);
+    assert_eq!(market.ask("DELETE", &format!("/api/market/pair/{code}"), None, None).await.0, StatusCode::NOT_FOUND);
+
+    // Ten minutes on, a mailbox lapses by itself.
+    let (_, body) = market.ask("POST", "/api/market/pair", None, None).await;
+    let code = body["code"].as_u64().unwrap();
+    market.app.pairs().age_for_tests(std::time::Duration::from_secs(601));
+    assert_eq!(market.ask("GET", &format!("/api/market/pair/{code}/a"), None, None).await.0, StatusCode::NOT_FOUND);
+
+    // At most 20 codes an hour from one address (two used above).
+    for _ in 0..18 {
+        assert_eq!(market.ask("POST", "/api/market/pair", None, None).await.0, StatusCode::OK);
+    }
+    assert_eq!(market.ask("POST", "/api/market/pair", None, None).await.0, StatusCode::TOO_MANY_REQUESTS);
+}
+
+#[tokio::test]
+async fn a_phone_can_mute_kinds_of_notification() {
+    use orien_market::push::check_once;
+    use orien_market::wallets::Incoming;
+    let payments = Arc::new(Fake::default());
+    *payments.epoch.lock().unwrap() = 30;
+    let app = App::new(Store::in_memory().unwrap(), folder(), "https://orien.network", true, Mailer::log_only(), Screener::off(), payments.clone(), MARKET);
+    let market = Market { app: Arc::new(app.unwrap().with_prices(Prices::fixed_for_tests(65_000.0))) };
+    let maya = sign_in_for_tests(&market.app, "Maya");
+    let sam = sign_in_for_tests(&market.app, "Sam");
+    let (phone, wallet) = ("ab".repeat(32), "cd".repeat(32));
+    let id = |hex: &str| orien_crypto::Hash32(hex::decode(hex).unwrap().try_into().unwrap());
+    let register = |mute: Option<Value>| {
+        let mut body = json!({ "token": phone, "addresses": [wallet] });
+        if let Some(mute) = mute {
+            body["mute"] = mute;
+        }
+        body
+    };
+    let notebook = Notebook::default();
+    market.ask("POST", "/api/market/push/register", Some(&maya), Some(register(Some(json!(["market", "received", "nonsense"]))))).await;
+    check_once(&market.app, &notebook).unwrap(); // primes the wallet
+
+    // Muted: a message and a payment are not told.
+    let (_, posted) = market.ask("POST", "/api/market/listings", Some(&maya), Some(logo())).await;
+    let listing = posted["listing"]["id"].as_i64().unwrap();
+    market.ask("POST", &format!("/api/market/listings/{listing}/messages"), Some(&sam), Some(json!({ "body": "Hi" }))).await;
+    payments.payments.lock().unwrap().push((id(&wallet), Incoming { from: id(&"ef".repeat(32)), amount: 5_000_000_000, epoch: 30 }));
+    assert_eq!(check_once(&market.app, &notebook).unwrap(), 0);
+
+    // Registered again without the field: nothing muted any more.
+    market.ask("POST", "/api/market/push/register", Some(&maya), Some(register(None))).await;
+    let (_, list) = market.ask("GET", "/api/market/conversations", Some(&sam), None).await;
+    let conversation = list["conversations"][0]["id"].as_i64().unwrap();
+    market.ask("POST", &format!("/api/market/conversations/{conversation}/messages"), Some(&sam), Some(json!({ "body": "Still there?" }))).await;
+    payments.payments.lock().unwrap().push((id(&wallet), Incoming { from: id(&"ef".repeat(32)), amount: 7_000_000_000, epoch: 30 }));
+    assert_eq!(check_once(&market.app, &notebook).unwrap(), 2, "the message and the payment");
 }

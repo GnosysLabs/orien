@@ -1,0 +1,3 @@
+/target
+# Gathered by build-knowledge.py at every deploy.
+/knowledge.md

@@ -12,7 +12,7 @@ use std::path::PathBuf;
 use std::sync::Arc;
 
 #[derive(Parser)]
-#[command(name = "orien-market", version, about = "The Orien Market's server")]
+#[command(name = "orien-market", version, about = "The server for Orien Network accounts, the Market and the swap board")]
 struct Args {
     /// The database file, made if it does not exist.
     #[arg(long, default_value = "market.db")]
@@ -20,7 +20,7 @@ struct Args {
     /// Where to listen: behind nginx, on this computer only.
     #[arg(long, default_value = "127.0.0.1:7200")]
     listen: String,
-    /// The website's address, which passkeys are tied to.
+    /// The website's address, for links in emails.
     #[arg(long, default_value = "https://orien.network")]
     origin: String,
     /// Also serve the website from this folder (web/out), to try the
@@ -69,7 +69,7 @@ struct Args {
     #[arg(long, value_delimiter = ',')]
     admin_logins: Vec<String>,
     /// Who the codes come from.
-    #[arg(long, default_value = "Orien Market <noreply@orien.network>")]
+    #[arg(long, default_value = "Orien Network <noreply@orien.network>")]
     from: String,
     /// Look after the marketplace instead of running it.
     #[command(subcommand)]

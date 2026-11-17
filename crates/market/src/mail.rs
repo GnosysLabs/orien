@@ -33,9 +33,9 @@ impl Mailer {
             return Ok(());
         };
         let escape = |text: &str| text.replace('&', "&amp;").replace('<', "&lt;").replace('>', "&gt;").replace('"', "&quot;");
-        let text = format!("{subject} on the Orien Market.\n\nRead it and reply: {link}\n");
+        let text = format!("{subject} on Orien Network.\n\nRead it and reply: {link}\n");
         let html = format!(
-            "<p>{} on the Orien Market.</p><p><a href=\"{link}\">Read it and reply</a></p>",
+            "<p>{} on Orien Network.</p><p><a href=\"{link}\">Read it and reply</a></p>",
             escape(&subject)
         );
         self.deliver(key, &notice.to_email, &subject, &text, &html)
@@ -136,16 +136,16 @@ impl Mailer {
             return Ok(());
         };
         let text = format!(
-            "Your code for the Orien Market is {code}\n\n\
+            "Your Orien Network code is {code}\n\n\
              It works for 15 minutes. If you did not ask for it, someone typed your email by mistake, \
              and you can ignore this.\n"
         );
         let html = format!(
-            "<p>Your code for the Orien Market is</p>\
+            "<p>Your Orien Network code is</p>\
              <p style=\"font-size:28px;font-weight:700;letter-spacing:6px\">{code}</p>\
              <p>It works for 15 minutes. If you did not ask for it, someone typed your email by mistake, \
              and you can ignore this.</p>"
         );
-        self.deliver(key, to, &format!("{code} is your Orien Market code"), &text, &html)
+        self.deliver(key, to, &format!("{code} is your Orien Network code"), &text, &html)
     }
 }

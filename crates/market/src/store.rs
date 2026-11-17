@@ -1,5 +1,5 @@
 //! Everything the marketplace keeps, in one SQLite file: accounts, their
-//! passkeys, signed-in sessions and listings.
+//! signed-in sessions and listings.
 
 use anyhow::{Result, bail};
 use rusqlite::{Connection, OptionalExtension, params};
@@ -206,9 +206,9 @@ impl Store {
              CREATE TABLE IF NOT EXISTS accounts (
                  id INTEGER PRIMARY KEY,
                  name TEXT NOT NULL,
-                 -- The id passkeys know the account by, which says nothing about it.
+                 -- A random id for the account, which says nothing about it.
                  handle TEXT NOT NULL UNIQUE,
-                 -- How the account signs in, lowercase; none for one that uses passkeys only.
+                 -- How the account signs in, lowercase.
                  email TEXT UNIQUE,
                  bio TEXT NOT NULL DEFAULT '',
                  picture TEXT,
@@ -226,12 +226,8 @@ impl Store {
                  sent INTEGER NOT NULL,
                  tries INTEGER NOT NULL
              );
-             CREATE TABLE IF NOT EXISTS passkeys (
-                 credential TEXT PRIMARY KEY,
-                 account INTEGER NOT NULL REFERENCES accounts(id) ON DELETE CASCADE,
-                 key TEXT NOT NULL,
-                 created INTEGER NOT NULL
-             );
+             -- Passkey sign-in was never used and is gone.
+             DROP TABLE IF EXISTS passkeys;
              CREATE TABLE IF NOT EXISTS sessions (
                  token TEXT PRIMARY KEY,
                  account INTEGER NOT NULL REFERENCES accounts(id) ON DELETE CASCADE,
@@ -330,7 +326,7 @@ impl Store {
         Ok(())
     }
 
-    /// A new account. `handle` is the id its passkeys know it by.
+    /// A new account. `handle` is a random id that says nothing about it.
     pub fn create_account(&self, name: &str, handle: &str) -> Result<Account> {
         self.insert_account(name, handle, None)
     }
@@ -510,32 +506,6 @@ impl Store {
                 },
             )
             .optional()?)
-    }
-
-    /// Keeps a passkey for an account: `credential` is its id, `key` the
-    /// stored public part, both as the passkey library writes them.
-    pub fn add_passkey(&self, account: i64, credential: &str, key: &str) -> Result<()> {
-        self.db.execute(
-            "INSERT INTO passkeys (credential, account, key, created) VALUES (?1, ?2, ?3, ?4)",
-            params![credential, account, key, now()],
-        )?;
-        Ok(())
-    }
-
-    /// The account a passkey belongs to, with the key as stored.
-    pub fn passkey(&self, credential: &str) -> Result<Option<(i64, String)>> {
-        Ok(self
-            .db
-            .query_row("SELECT account, key FROM passkeys WHERE credential = ?1", [credential], |row| {
-                Ok((row.get(0)?, row.get(1)?))
-            })
-            .optional()?)
-    }
-
-    /// Stores a passkey again after use: its counter moves on.
-    pub fn update_passkey(&self, credential: &str, key: &str) -> Result<()> {
-        self.db.execute("UPDATE passkeys SET key = ?2 WHERE credential = ?1", params![credential, key])?;
-        Ok(())
     }
 
     /// Signs an account in: returns the secret token the browser keeps.

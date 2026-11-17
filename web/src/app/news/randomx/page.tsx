@@ -36,7 +36,7 @@ export default function RandomXPost() {
           description:
             'From epoch 21, Orien mining uses RandomX, the CPU-friendly proof-of-work Monero uses, so any computer can mine.',
           datePublished: '2026-11-15',
-          image: `${SITE_URL}/og.png`,
+          image: `${SITE_URL}/og.png?v=2`,
           mainEntityOfPage: `${SITE_URL}/news/randomx/`,
           author: { '@id': `${SITE_URL}/#orien` },
           publisher: { '@id': `${SITE_URL}/#orien` },

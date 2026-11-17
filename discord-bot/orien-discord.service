@@ -1,0 +1,40 @@
+# /etc/systemd/system/orien-discord.service
+# The Orien community's Discord bot. It reads its two keys and what it knows
+# from /etc/orien-discord, talks to Discord and OpenRouter, reads the
+# website's changelog page, and keeps one small file in /var/lib/orien-discord:
+# the changelog entries it has already announced.
+#
+#   systemctl enable --now orien-discord
+#
+# Looking after it:
+#   journalctl -u orien-discord -n 50      what it has answered, and any trouble
+#   systemctl restart orien-discord        after a new knowledge.md or program
+
+[Unit]
+Description=Orien Discord bot
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+User=orien-discord
+Group=orien-discord
+ExecStart=/usr/local/bin/orien-discord run \
+    --token /etc/orien-discord/discord-bot.token \
+    --openrouter-key /etc/orien-discord/openrouter.key \
+    --knowledge /etc/orien-discord/knowledge.md \
+    --state /var/lib/orien-discord
+Restart=always
+RestartSec=10
+
+# It needs nothing but its own three files and the network.
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+PrivateTmp=true
+PrivateDevices=true
+# The one thing it writes: which changelog entries it has announced.
+StateDirectory=orien-discord
+UMask=0077
+
+[Install]
+WantedBy=multi-user.target

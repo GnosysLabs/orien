@@ -48,7 +48,7 @@ export function AccountMenu() {
     return (
       <Link
         href="/account/"
-        aria-label="Sign in to the Market"
+        aria-label="Sign in to Orien Network"
         className="flex h-9 items-center gap-2 whitespace-nowrap rounded-[10px] border border-line px-2.5 text-sm font-semibold text-ink transition hover:bg-raised sm:h-10 sm:px-3"
       >
         <LogIn className="h-4 w-4" strokeWidth={2.25} aria-hidden />

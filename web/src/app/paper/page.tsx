@@ -44,7 +44,7 @@ export default function PaperPage() {
           description:
             'The exact rules of the Orien cryptocurrency: hash-based one-time signatures, payment certificates, hourly checkpoints, staking, fees, RandomX mining and atomic swaps with SOL and Bitcoin.',
           mainEntityOfPage: `${SITE_URL}/paper/`,
-          image: `${SITE_URL}/og.png`,
+          image: `${SITE_URL}/og.png?v=2`,
           encoding: { '@type': 'MediaObject', contentUrl: `${SITE_URL}/orien-paper.pdf`, encodingFormat: 'application/pdf' },
           author: { '@id': `${SITE_URL}/#orien` },
           publisher: { '@id': `${SITE_URL}/#orien` },

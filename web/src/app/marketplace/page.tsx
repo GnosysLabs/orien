@@ -6,7 +6,7 @@ import { pageMeta } from '@/lib/seo'
 export const metadata: Metadata = pageMeta({
   title: 'Market: work and goods for ORN',
   description:
-    'The Orien Market: design, software, teaching and goods offered for ORN, paid straight from your own wallet, with messages and payment requests built in.',
+    'The Market on Orien Network: design, software, teaching and goods offered for ORN, paid straight from your own wallet, with messages and payment requests built in.',
   path: '/marketplace/',
 })
 

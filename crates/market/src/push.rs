@@ -30,6 +30,9 @@ use std::process::{Command, Stdio};
 use std::sync::{Arc, Mutex};
 use std::time::{Duration, Instant};
 
+/// The kinds of notification a phone can turn off.
+pub const MUTABLE: [&str; 4] = ["received", "mining", "market", "swaps"];
+
 /// Wallets one phone may ask about.
 pub const MAX_ADDRESSES: usize = 50;
 /// Registrations one phone, or one internet address, may make in an hour.
@@ -85,6 +88,13 @@ impl Store {
         if !has {
             self.db.execute("ALTER TABLE push_tokens ADD COLUMN account INTEGER REFERENCES accounts(id) ON DELETE SET NULL", [])?;
         }
+        // The kinds of notification the phone's owner turned off, comma
+        // separated: received, mining, market, swaps.
+        let has_mute: bool =
+            self.db.query_row("SELECT COUNT(*) > 0 FROM pragma_table_info('push_tokens') WHERE name = 'mute'", [], |row| row.get(0))?;
+        if !has_mute {
+            self.db.execute("ALTER TABLE push_tokens ADD COLUMN mute TEXT NOT NULL DEFAULT ''", [])?;
+        }
         Ok(())
     }
 
@@ -92,8 +102,13 @@ impl Store {
     /// No addresses is the same as `unregister_push`.
     /// `account` is the Market account the app is signed in to, if any:
     /// registering again signed out stops its messages reaching the phone.
-    pub fn register_push(&self, token: &str, sandbox: bool, addresses: &[String], account: Option<i64>) -> Result<usize> {
+    /// `mute` lists the kinds of notification turned off: "received",
+    /// "mining", "market" or "swaps"; anything else is ignored.
+    pub fn register_push(&self, token: &str, sandbox: bool, addresses: &[String], account: Option<i64>, mute: &[String]) -> Result<usize> {
         let token = device_token(token)?;
+        let mut muted: Vec<&str> = MUTABLE.iter().copied().filter(|kind| mute.iter().any(|m| m.trim() == *kind)).collect();
+        muted.dedup();
+        let muted = muted.join(",");
         let mut tidy = Vec::new();
         for address in addresses {
             let address = orien_address(address)?;
@@ -110,9 +125,9 @@ impl Store {
         }
         let tx = self.db.unchecked_transaction()?;
         tx.execute(
-            "INSERT INTO push_tokens (token, sandbox, updated, account) VALUES (?1, ?2, ?3, ?4)
-             ON CONFLICT(token) DO UPDATE SET sandbox = ?2, updated = ?3, account = ?4",
-            params![token, sandbox, now() as i64, account],
+            "INSERT INTO push_tokens (token, sandbox, updated, account, mute) VALUES (?1, ?2, ?3, ?4, ?5)
+             ON CONFLICT(token) DO UPDATE SET sandbox = ?2, updated = ?3, account = ?4, mute = ?5",
+            params![token, sandbox, now() as i64, account, muted],
         )?;
         tx.execute("DELETE FROM push_addresses WHERE token = ?1", [&token])?;
         for address in &tidy {
@@ -167,18 +182,22 @@ impl Store {
 
     /// The phones that ask about `address`: their tokens, and whether each
     /// is a development build's.
-    fn phones_for(&self, address: &str) -> Result<Vec<(String, bool)>> {
+    /// The phones that ask about `address` and haven't muted `kind`.
+    fn phones_for(&self, address: &str, kind: &str) -> Result<Vec<(String, bool)>> {
         let mut statement = self.db.prepare(
-            "SELECT t.token, t.sandbox FROM push_addresses a JOIN push_tokens t ON t.token = a.token WHERE a.address = ?1",
+            "SELECT t.token, t.sandbox FROM push_addresses a JOIN push_tokens t ON t.token = a.token
+             WHERE a.address = ?1 AND instr(',' || t.mute || ',', ',' || ?2 || ',') = 0",
         )?;
-        let rows = statement.query_map([address], |row| Ok((row.get(0)?, row.get(1)?)))?;
+        let rows = statement.query_map(params![address, kind], |row| Ok((row.get(0)?, row.get(1)?)))?;
         Ok(rows.collect::<rusqlite::Result<_>>()?)
     }
 
     /// The phones signed in to `account`.
-    fn phones_for_account(&self, account: i64) -> Result<Vec<(String, bool)>> {
-        let mut statement = self.db.prepare("SELECT token, sandbox FROM push_tokens WHERE account = ?1")?;
-        let rows = statement.query_map([account], |row| Ok((row.get(0)?, row.get(1)?)))?;
+    fn phones_for_account(&self, account: i64, kind: &str) -> Result<Vec<(String, bool)>> {
+        let mut statement = self.db.prepare(
+            "SELECT token, sandbox FROM push_tokens WHERE account = ?1 AND instr(',' || mute || ',', ',' || ?2 || ',') = 0",
+        )?;
+        let rows = statement.query_map(params![account, kind], |row| Ok((row.get(0)?, row.get(1)?)))?;
         Ok(rows.collect::<rusqlite::Result<_>>()?)
     }
 
@@ -279,9 +298,11 @@ pub fn message_text(sender: &str, kind: &str, body: &str, amount: Option<u64>) -
 fn deliver_events(app: &App, notify: &dyn Notify) -> Result<usize> {
     let mut sent = 0;
     for event in app.take_events() {
-        let mut phones = app.store().phones_for_account(event.account)?;
+        // Messages are "market", swap steps "swaps", as the phone mutes them.
+        let kind = if event.kind == "message" { "market" } else { "swaps" };
+        let mut phones = app.store().phones_for_account(event.account, kind)?;
         if let Some(address) = &event.address {
-            for phone in app.store().phones_for(address)? {
+            for phone in app.store().phones_for(address, kind)? {
                 if !phones.contains(&phone) {
                     phones.push(phone);
                 }
@@ -452,16 +473,16 @@ pub fn check_once(app: &App, notify: &dyn Notify) -> Result<usize> {
             if credit.mined {
                 mined = mined.saturating_add(credit.amount);
             } else {
-                bodies.push(received_text(credit.amount));
+                bodies.push(("received", received_text(credit.amount)));
             }
         }
         if mined > 0 {
-            bodies.push(mined_text(mined));
+            bodies.push(("mining", mined_text(mined)));
         }
-        for body in bodies {
+        for (kind, body) in bodies {
             let payload = payload(&body, &address);
             // Read first, so the store is not held while forgetting a phone.
-            let phones = app.store().phones_for(&address)?;
+            let phones = app.store().phones_for(&address, kind)?;
             for (phone, sandbox) in phones {
                 match notify.notify(&phone, sandbox, &payload) {
                     Sent::Delivered => sent += 1,
@@ -504,7 +525,7 @@ fn allowed(keys: &[String]) -> bool {
     true
 }
 
-fn sender(headers: &HeaderMap) -> String {
+pub(crate) fn sender(headers: &HeaderMap) -> String {
     let header = |name: &str| headers.get(name).and_then(|v| v.to_str().ok()).unwrap_or("").trim().to_string();
     let forwarded = header("x-forwarded-for");
     [header("cf-connecting-ip"), forwarded.split(',').next().unwrap_or("").trim().to_string()]
@@ -520,6 +541,9 @@ pub struct Register {
     sandbox: bool,
     #[serde(default)]
     addresses: Vec<String>,
+    /// Kinds of notification turned off: "received", "mining", "market", "swaps".
+    #[serde(default)]
+    mute: Vec<String>,
 }
 
 pub async fn register(State(app): State<Arc<App>>, headers: HeaderMap, Json(body): Json<Register>) -> Answer {
@@ -530,7 +554,7 @@ pub async fn register(State(app): State<Arc<App>>, headers: HeaderMap, Json(body
     // Signed in, the phone also hears about that account's messages and swaps.
     let account = app.signed_in(&headers).ok();
     let kept =
-        app.store().register_push(&token, body.sandbox, &body.addresses, account).map_err(|e| Failure::Refused(e.to_string()))?;
+        app.store().register_push(&token, body.sandbox, &body.addresses, account, &body.mute).map_err(|e| Failure::Refused(e.to_string()))?;
     Ok(Json(json!({ "addresses": kept, "account": account.is_some() })).into_response())
 }
 

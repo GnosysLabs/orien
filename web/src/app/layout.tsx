@@ -71,7 +71,7 @@ export const metadata: Metadata = {
     site: '@OrienNetwork',
     title: `${SITE_NAME}: the quantum-proof cryptocurrency, final in a blink`,
     description: SITE_DESCRIPTION,
-    images: ['/og.png'],
+    images: ['/og.png?v=2'],
   },
 }
 
