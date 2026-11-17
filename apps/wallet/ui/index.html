@@ -182,22 +182,23 @@
       padding-right: max(18px, calc(18px + (100% - var(--col)) / 2)); }
     /* Content scrolls inside a rounded container the width of the column:
        at the top and bottom edges, where things scroll away, the corners
-       round off right at the content's edge. Between them the mask runs
+       round off right at the content's edge (at the top, 6px out, where
+       the back button sits). Between them the mask runs
        the full width, so cards keep their side shadows. */
     .screen, #mine, #board-signin, #board-post, #board-take, #swaps, #swap-sell, #swap-buy, #swap-detail {
-      --rt: 16px; --rb: 16px; --cw: min(var(--col), 100vw - 56px);
+      --rt: 16px; --rb: 16px; --cw: min(var(--col), 100vw - 56px); --ct: calc(var(--cw) + 12px);
       --m: linear-gradient(#000, #000);
       -webkit-mask: var(--m) 0 var(--rt) / 100% calc(100% - var(--rt) - var(--rb)) no-repeat,
-        var(--m) 50% 0 / calc(var(--cw) - 2 * var(--rt)) var(--rt) no-repeat,
-        radial-gradient(circle at 100% 100%, #000 calc(var(--rt) - 0.5px), transparent var(--rt)) calc(50% - (var(--cw) - var(--rt)) / 2) 0 / var(--rt) var(--rt) no-repeat,
-        radial-gradient(circle at 0 100%, #000 calc(var(--rt) - 0.5px), transparent var(--rt)) calc(50% + (var(--cw) - var(--rt)) / 2) 0 / var(--rt) var(--rt) no-repeat,
+        var(--m) 50% 0 / calc(var(--ct) - 2 * var(--rt)) var(--rt) no-repeat,
+        radial-gradient(circle at 100% 100%, #000 calc(var(--rt) - 0.5px), transparent var(--rt)) calc(50% - (var(--ct) - var(--rt)) / 2) 0 / var(--rt) var(--rt) no-repeat,
+        radial-gradient(circle at 0 100%, #000 calc(var(--rt) - 0.5px), transparent var(--rt)) calc(50% + (var(--ct) - var(--rt)) / 2) 0 / var(--rt) var(--rt) no-repeat,
         var(--m) 50% 100% / calc(var(--cw) - 2 * var(--rb)) var(--rb) no-repeat,
         radial-gradient(circle at 100% 0, #000 calc(var(--rb) - 0.5px), transparent var(--rb)) calc(50% - (var(--cw) - var(--rb)) / 2) 100% / var(--rb) var(--rb) no-repeat,
         radial-gradient(circle at 0 0, #000 calc(var(--rb) - 0.5px), transparent var(--rb)) calc(50% + (var(--cw) - var(--rb)) / 2) 100% / var(--rb) var(--rb) no-repeat;
       mask: var(--m) 0 var(--rt) / 100% calc(100% - var(--rt) - var(--rb)) no-repeat,
-        var(--m) 50% 0 / calc(var(--cw) - 2 * var(--rt)) var(--rt) no-repeat,
-        radial-gradient(circle at 100% 100%, #000 calc(var(--rt) - 0.5px), transparent var(--rt)) calc(50% - (var(--cw) - var(--rt)) / 2) 0 / var(--rt) var(--rt) no-repeat,
-        radial-gradient(circle at 0 100%, #000 calc(var(--rt) - 0.5px), transparent var(--rt)) calc(50% + (var(--cw) - var(--rt)) / 2) 0 / var(--rt) var(--rt) no-repeat,
+        var(--m) 50% 0 / calc(var(--ct) - 2 * var(--rt)) var(--rt) no-repeat,
+        radial-gradient(circle at 100% 100%, #000 calc(var(--rt) - 0.5px), transparent var(--rt)) calc(50% - (var(--ct) - var(--rt)) / 2) 0 / var(--rt) var(--rt) no-repeat,
+        radial-gradient(circle at 0 100%, #000 calc(var(--rt) - 0.5px), transparent var(--rt)) calc(50% + (var(--ct) - var(--rt)) / 2) 0 / var(--rt) var(--rt) no-repeat,
         var(--m) 50% 100% / calc(var(--cw) - 2 * var(--rb)) var(--rb) no-repeat,
         radial-gradient(circle at 100% 0, #000 calc(var(--rb) - 0.5px), transparent var(--rb)) calc(50% - (var(--cw) - var(--rb)) / 2) 100% / var(--rb) var(--rb) no-repeat,
         radial-gradient(circle at 0 0, #000 calc(var(--rb) - 0.5px), transparent var(--rb)) calc(50% + (var(--cw) - var(--rb)) / 2) 100% / var(--rb) var(--rb) no-repeat;
