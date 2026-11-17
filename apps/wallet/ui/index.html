@@ -205,52 +205,31 @@
       border-radius: 0; }
   }
   /* Big windows: each theme's photograph behind the app, quiet. */
-  :root, [data-theme="pearl"] { --scene: url(scenes/pearl.webp); --scene-blur: url(scenes/pearl-blur.webp); }
-  [data-theme="daylight"] { --scene: url(scenes/daylight.webp); --scene-blur: url(scenes/daylight-blur.webp); }
-  [data-theme="midnight"] { --scene: url(scenes/midnight.webp); --scene-blur: url(scenes/midnight-blur.webp); }
-  [data-theme="aurora"] { --scene: url(scenes/aurora.webp); --scene-blur: url(scenes/aurora-blur.webp); }
-  [data-theme="amethyst"] { --scene: url(scenes/amethyst.webp); --scene-blur: url(scenes/amethyst-blur.webp); }
-  [data-theme="rose"] { --scene: url(scenes/rose.webp); --scene-blur: url(scenes/rose-blur.webp); }
-  [data-theme="ruby"] { --scene: url(scenes/ruby.webp); --scene-blur: url(scenes/ruby-blur.webp); }
-  [data-theme="ember"] { --scene: url(scenes/ember.webp); --scene-blur: url(scenes/ember-blur.webp); }
-  [data-theme="obsidian"] { --scene: url(scenes/obsidian.webp); --scene-blur: url(scenes/obsidian-blur.webp); }
+  :root, [data-theme="pearl"] { --scene: url(scenes/pearl.webp); }
+  [data-theme="daylight"] { --scene: url(scenes/daylight.webp); }
+  [data-theme="midnight"] { --scene: url(scenes/midnight.webp); }
+  [data-theme="aurora"] { --scene: url(scenes/aurora.webp); }
+  [data-theme="amethyst"] { --scene: url(scenes/amethyst.webp); }
+  [data-theme="rose"] { --scene: url(scenes/rose.webp); }
+  [data-theme="ruby"] { --scene: url(scenes/ruby.webp); }
+  [data-theme="ember"] { --scene: url(scenes/ember.webp); }
+  [data-theme="obsidian"] { --scene: url(scenes/obsidian.webp); }
   @media (min-width: 900px) {
     body:not(.phone)::before { content: ""; position: fixed; inset: 0; z-index: -1; pointer-events: none;
       background: var(--scene, none) center / cover no-repeat; opacity: 0.55; }
-    /* Frosted glass, panel by panel: each panel shows a blurred copy of the
-       photo, lined up with the photo behind it, under a tint of its own
-       colour. Only the panels are frosted; around them the photo is sharp. */
-    body:not(.phone) :is(.codebox, .swap-row, .waiting-card, .swap-alert, .pay-card, .tabs, .mine-status, .wallet-row, .emoji-grid button:not(.on), .linkish, .link, .pill:not(.pearl), .mk-card, .ls-thumbs button, .ls-seller, .se-pic, .bubble:not(.mine), .paycard, .ch-askbox, .ch-blocked, .sync-card, .verify-card, .offer, .keep-open, .pair-card, .add-opt, .set-group, .note, .explain li, .tile, .review, #upd-card, .receive-card, .list:not(#all-activity .list), #all-activity, #all-activity .day, .words, .wallet-chip) {
-      --glass: color-mix(in srgb, var(--surface) 62%, transparent);
-      --dimmed: color-mix(in srgb, var(--ground-deep) 45%, transparent);
-      background: linear-gradient(var(--glass), var(--glass)), linear-gradient(var(--dimmed), var(--dimmed)),
-        var(--scene-blur, none) center / cover fixed, var(--ground-deep); }
-    body:not(.phone) .field .box {
-      --glass: color-mix(in srgb, var(--field) 66%, transparent);
-      --dimmed: color-mix(in srgb, var(--ground-deep) 45%, transparent);
-      background: linear-gradient(var(--glass), var(--glass)), linear-gradient(var(--dimmed), var(--dimmed)),
-        var(--scene-blur, none) center / cover fixed, var(--ground-deep); }
-    body:not(.phone) .wallet-chip { color: var(--ink); }
-    /* Section labels sit straight on the photo: a touch stronger there. */
-    body:not(.phone) .section-head h3 { color: var(--ink); text-shadow: 0 1px 8px rgba(var(--shade), 0.35); }
     /* The message box and the activity lists keep room below them, like at
        their sides, rather than running into the foot of the glass. */
     html body:not(.phone) :is(#chat, #home, #activity) { padding-bottom: 30px; }
-    /* Each screen sits in a frosted glass container: a clear shape with
-       rounded corners and a soft shadow, the sharp photo all around it.
-       Its width follows the screen shown (set as --panel by show()). */
+    /* Each screen sits in a container that looks just like the app in a
+       normal window: the theme's own ground and solid panels, with rounded
+       corners and a soft shadow. The photo shows only around it, like a
+       wallpaper. Its width follows the screen shown (--panel, set by show()). */
     body:not(.phone) main { position: relative; isolation: isolate; }
     body:not(.phone) main::before { content: ""; position: absolute; z-index: -1; top: -14px; bottom: 0; left: 50%;
       width: min(calc(var(--panel, 640px) + 56px), 100vw - 24px); transform: translateX(-50%);
       border: 1px solid var(--line); border-radius: 28px;
-      --pane: color-mix(in srgb, var(--ground) 58%, transparent);
-      --dimmed: color-mix(in srgb, var(--ground-deep) 45%, transparent);
-      background: linear-gradient(var(--pane), var(--pane)), linear-gradient(var(--dimmed), var(--dimmed)),
-        var(--scene-blur, none) center / cover fixed, var(--ground-deep);
-      box-shadow: 0 30px 80px rgba(var(--shade), 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.06); }
-  }
-  @media (min-width: 900px) and (hover: hover) {
-    body:not(.phone) :is(.codebox, .swap-row, .waiting-card, .swap-alert, .pay-card, .tabs, .mine-status, .wallet-row, .emoji-grid button:not(.on), .linkish, .link, .pill:not(.pearl), .mk-card, .ls-thumbs button, .ls-seller, .se-pic, .bubble:not(.mine), .paycard, .ch-askbox, .ch-blocked, .sync-card, .verify-card, .offer, .keep-open, .pair-card, .add-opt, .set-group, .note, .explain li, .tile, .review, #upd-card, .receive-card, .list:not(#all-activity .list), #all-activity, #all-activity .day, .words, .wallet-chip):is(button, a):hover { --glass: color-mix(in srgb, var(--surface-hover) 70%, transparent); }
+      background: var(--glow), var(--ground-deep); background-attachment: fixed;
+      box-shadow: 0 30px 80px rgba(var(--shade), 0.45); }
   }
   /* Tall windows: a screen's main button stays close under its form,
      rather than alone at the foot of the window. */
