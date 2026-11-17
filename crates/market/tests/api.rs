@@ -902,3 +902,42 @@ async fn two_devices_pass_sealed_bytes_through_a_pairing_mailbox() {
     }
     assert_eq!(market.ask("POST", "/api/market/pair", None, None).await.0, StatusCode::TOO_MANY_REQUESTS);
 }
+
+#[tokio::test]
+async fn a_phone_can_mute_kinds_of_notification() {
+    use orien_market::push::check_once;
+    use orien_market::wallets::Incoming;
+    let payments = Arc::new(Fake::default());
+    *payments.epoch.lock().unwrap() = 30;
+    let app = App::new(Store::in_memory().unwrap(), folder(), "https://orien.network", true, Mailer::log_only(), Screener::off(), payments.clone(), MARKET);
+    let market = Market { app: Arc::new(app.unwrap().with_prices(Prices::fixed_for_tests(65_000.0))) };
+    let maya = sign_in_for_tests(&market.app, "Maya");
+    let sam = sign_in_for_tests(&market.app, "Sam");
+    let (phone, wallet) = ("ab".repeat(32), "cd".repeat(32));
+    let id = |hex: &str| orien_crypto::Hash32(hex::decode(hex).unwrap().try_into().unwrap());
+    let register = |mute: Option<Value>| {
+        let mut body = json!({ "token": phone, "addresses": [wallet] });
+        if let Some(mute) = mute {
+            body["mute"] = mute;
+        }
+        body
+    };
+    let notebook = Notebook::default();
+    market.ask("POST", "/api/market/push/register", Some(&maya), Some(register(Some(json!(["market", "received", "nonsense"]))))).await;
+    check_once(&market.app, &notebook).unwrap(); // primes the wallet
+
+    // Muted: a message and a payment are not told.
+    let (_, posted) = market.ask("POST", "/api/market/listings", Some(&maya), Some(logo())).await;
+    let listing = posted["listing"]["id"].as_i64().unwrap();
+    market.ask("POST", &format!("/api/market/listings/{listing}/messages"), Some(&sam), Some(json!({ "body": "Hi" }))).await;
+    payments.payments.lock().unwrap().push((id(&wallet), Incoming { from: id(&"ef".repeat(32)), amount: 5_000_000_000, epoch: 30 }));
+    assert_eq!(check_once(&market.app, &notebook).unwrap(), 0);
+
+    // Registered again without the field: nothing muted any more.
+    market.ask("POST", "/api/market/push/register", Some(&maya), Some(register(None))).await;
+    let (_, list) = market.ask("GET", "/api/market/conversations", Some(&sam), None).await;
+    let conversation = list["conversations"][0]["id"].as_i64().unwrap();
+    market.ask("POST", &format!("/api/market/conversations/{conversation}/messages"), Some(&sam), Some(json!({ "body": "Still there?" }))).await;
+    payments.payments.lock().unwrap().push((id(&wallet), Incoming { from: id(&"ef".repeat(32)), amount: 7_000_000_000, epoch: 30 }));
+    assert_eq!(check_once(&market.app, &notebook).unwrap(), 2, "the message and the payment");
+}
