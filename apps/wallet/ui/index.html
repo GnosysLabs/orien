@@ -317,6 +317,9 @@
     border-radius: 22px; padding: 22px 24px 24px; color: var(--pearl-ink);
     box-shadow: 0 18px 50px #00000059, inset 0 1px 0 #ffffffb0;
   }
+  /* Balance hidden: the whole activity is blurred too. */
+  html.hide-bal #recent .tx, html.hide-bal #all-activity .tx { filter: blur(7px); -webkit-user-select: none; user-select: none; }
+  #recent .tx, #all-activity .tx { transition: filter 0.2s ease; }
   /* Showing or hiding the balance: an eye on the card. */
   .card { position: relative; }
   .bal-eye { position: absolute; top: 14px; right: 14px; width: 34px; height: 34px; padding: 0; border: 0; border-radius: 50%;
@@ -2821,6 +2824,7 @@
       if (prefs.hide) text = "••••••";
       else if (!balancePeek) text = shortBalance(text);
     }
+    document.documentElement.classList.toggle("hide-bal", prefs.hide);
     const eyeBtn = $("bal-eye");
     eyeBtn.innerHTML = prefs.hide ? EYE_OFF : EYE_ON;
     eyeBtn.title = prefs.hide ? "Show balance" : "Hide balance";
