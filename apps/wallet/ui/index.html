@@ -135,15 +135,23 @@
     -webkit-app-region: drag;
   }
   h1 { margin: 0; font: 800 17px/1 "Jost", sans-serif; pointer-events: none; }
+  /* The network's heartbeat, just after the wordmark (which stays centred):
+     a dot that breathes while all is well; words only when it isn't. */
+  .wm-wrap { position: relative; display: inline-flex; align-items: center; }
   .status {
-    position: absolute; right: 22px; top: 50%; transform: translateY(-50%);
-    display: flex; align-items: center; gap: 7px;
-    font-size: 11.5px; color: var(--dim); pointer-events: auto; cursor: default;
+    position: absolute; left: calc(100% + 6px); top: 50%; transform: translateY(-50%);
+    display: flex; align-items: center; gap: 7px; padding: 6px; border: 0; background: none; white-space: nowrap;
+    font: inherit; font-size: 11.5px; color: var(--dim); pointer-events: auto; cursor: default; -webkit-app-region: no-drag;
   }
-  .status i { width: 7px; height: 7px; border-radius: 50%; background: var(--faint); }
-  .status.ok i { background: var(--good); box-shadow: 0 0 8px #a6e3c680; }
+  .status i { flex: none; width: 7px; height: 7px; border-radius: 50%; background: var(--faint); }
+  .status.ok i { background: var(--good); animation: heartbeat 3.2s ease-in-out infinite; }
   .status.warn i { background: #ecc58e; }
   .status.bad i { background: var(--bad); }
+  .status span:empty { display: none; }
+  @keyframes heartbeat {
+    0%, 100% { transform: scale(0.85); opacity: 0.7; box-shadow: 0 0 0 0 color-mix(in srgb, var(--good) 0%, transparent); }
+    50% { transform: scale(1.05); opacity: 1; box-shadow: 0 0 9px 1px color-mix(in srgb, var(--good) 55%, transparent); }
+  }
   body.windows header { height: 52px; margin-bottom: 12px; }
   /* Windows: no system bar; the app's own top bar carries – and ✕ at the
      right, as Windows apps do, and the status moves to the left. */
@@ -155,7 +163,6 @@
   }
   .win-controls button:hover { background: var(--surface-hover); color: var(--ink); }
   .win-controls button.close:hover { background: #c42b1c; color: #fff; }
-  body.windows .status { right: auto; left: 22px; }
   body.windows .update { right: auto; left: 16px; }
   /* iPhone: room for the notch and the home bar, no window to drag, no
      mining (Apple's rules forbid it), and text big enough that typing
@@ -163,7 +170,6 @@
   body.phone { padding: env(safe-area-inset-top) max(20px, env(safe-area-inset-right)) calc(14px + env(safe-area-inset-bottom)) max(20px, env(safe-area-inset-left));
     -webkit-tap-highlight-color: transparent; }
   body.phone header { height: 52px; margin: 0 -20px 10px; -webkit-app-region: no-drag; }
-  body.phone .status { right: 20px; }
   /* iPhones use the Market; mining and swaps stay on computers, which keep
      the wallet running while a swap needs it. */
   body.phone #go-mine, body.phone #go-swap, body.phone #swap-alert, body.phone #choose, body.phone .update { display: none !important; }
@@ -1058,7 +1064,6 @@
      bottom of the glass. ---- */
   body.phone { font-size: 15px; padding-left: max(16px, env(safe-area-inset-left)); padding-right: max(16px, env(safe-area-inset-right)); padding-bottom: 0; }
   body.phone header { height: 44px; margin: 0 -16px 8px; }
-  body.phone .status { right: 16px; }
   body.phone #swaps, body.phone #swap-sell, body.phone #swap-buy, body.phone #swap-detail, body.phone #mine,
   body.phone #board-signin, body.phone #board-post, body.phone #board-take { margin: -8px -8px 0; padding: 8px 8px 16px; }
   body.phone .scroll { margin: 0 -8px; padding: 0 8px 16px; }
@@ -1080,8 +1085,8 @@
 </head>
 <body>
   <header data-tauri-drag-region>
-    <h1 class="wordmark"><span class="mark brand"></span><span class="word brand">ORIEN</span></h1>
-    <div class="status" id="status" hidden><i></i><span id="status-text"></span></div>
+    <div class="wm-wrap"><h1 class="wordmark"><span class="mark brand"></span><span class="word brand">ORIEN</span></h1>
+      <button class="status" id="status" hidden><i></i><span id="status-text"></span></button></div>
     <button class="update pearl" id="update" hidden></button>
     <div class="win-controls">
       <button id="win-min" aria-label="Minimize"><svg width="10" height="10" viewBox="0 0 10 10"><path d="M0 5.5h10" stroke="currentColor" stroke-width="1"/></svg></button>
@@ -2116,8 +2121,17 @@
   function setStatus(kind, text) {
     $("status").hidden = false;
     $("status").className = "status " + kind;
-    $("status-text").textContent = text;
+    // All well: the dot alone. Otherwise, what's wrong, in a word or two.
+    if (!statusPeek) $("status-text").textContent = kind === "ok" ? "" : text;
+    $("status").setAttribute("aria-label", text);
   }
+  // Tapping the dot says a little more, for a moment.
+  let statusPeek = 0;
+  $("status").onclick = () => {
+    clearTimeout(statusPeek);
+    $("status-text").textContent = $("status").title || $("status").getAttribute("aria-label") || "";
+    statusPeek = setTimeout(() => { statusPeek = 0; if ($("status").classList.contains("ok")) $("status-text").textContent = ""; }, 3000);
+  };
 
   let lastBalance = null;
   function fitBalance() {
@@ -2154,7 +2168,7 @@
       lastBalance = view.balance;
       lockWithBiometrics();
       invoke("mine_status").then((m) => mineButton(m.status.running)).catch(() => {});
-      $("status").title = `${view.answered} of ${view.validators} validators answered`;
+      $("status").title = view.answered === view.validators ? `Connected to ${view.validators} validators` : `${view.answered} of ${view.validators} validators answered`;
       if (view.answered === view.validators) setStatus("ok", "Connected");
       else if (view.balance !== null) setStatus("warn", `${view.answered} of ${view.validators}`);
       else setStatus("bad", "Catching up");
@@ -5133,7 +5147,7 @@
   async function checkUpdate() {
     try { update = await invoke("check_update"); } catch { return; } // offline: try again later
     const button = $("update");
-    button.hidden = !update; $("status").style.visibility = update ? "hidden" : "";
+    button.hidden = !update;
     if (!update) return;
     button.classList.toggle("required", update.required);
     button.textContent = update.required ? "Update needed" : `Update to ${update.version}`;
