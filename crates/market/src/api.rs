@@ -83,7 +83,7 @@ impl App {
         let site = origin.trim_end_matches('/').to_string();
         let origin = Url::parse(origin)?;
         let id = origin.host_str().ok_or_else(|| anyhow::anyhow!("the origin has no host"))?.to_string();
-        let webauthn = WebauthnBuilder::new(&id, &origin)?.rp_name("Orien Market").build()?;
+        let webauthn = WebauthnBuilder::new(&id, &origin)?.rp_name("Orien Network").build()?;
         Ok(App {
             store: Mutex::new(store),
             webauthn,
