@@ -1148,7 +1148,7 @@ fn app_prefs(app: AppHandle) -> Result<std::collections::BTreeMap<String, String
 
 #[tauri::command]
 fn set_app_pref(app: AppHandle, name: String, value: String) -> Result<(), String> {
-    if !["theme", "hide", "short"].contains(&name.as_str()) {
+    if !["theme", "hide", "short", "arrow"].contains(&name.as_str()) {
         return Err("unknown setting".into());
     }
     let dir = folder(&app)?;
