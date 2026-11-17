@@ -1553,7 +1553,7 @@ async fn market_image(app: AppHandle, name: String) -> Option<String> {
     tauri::async_runtime::spawn_blocking(move || board::image(&dir, &name)).await.ok().flatten()
 }
 
-/// Deletes the Orien Market account for good, `confirm` being its name.
+/// Deletes the Orien Network account for good, `confirm` being its name.
 #[tauri::command]
 async fn board_delete_account(app: AppHandle, confirm: String) -> Result<(), String> {
     let dir = folder(&app)?;

@@ -498,7 +498,7 @@ fn market_get(dir: &Path, path: &str, query: &[(&str, &str)]) -> Result<Value, S
             .ok()
             .and_then(|v| v["error"].as_str().map(capital))
             .unwrap_or_else(|| "The Market could not do that.".into())),
-        Err(_) => Err("Can't reach Orien Market right now.".into()),
+        Err(_) => Err("Can't reach Orien Network right now.".into()),
     }
 }
 

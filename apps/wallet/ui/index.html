@@ -1629,8 +1629,8 @@
     <!-- Swapping with someone you know, passing the codes yourself -->
     <!-- The swap board: signing in, posting an offer, taking one -->
     <section class="screen" id="board-signin" hidden>
-      <div class="topline"><button class="back" data-to="swaps" aria-label="Back"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10 3 5 8l5 5"/></svg></button><h2>Sign up or sign in</h2></div>
-      <p class="lede">New here? Enter your email, type the 6-digit code we send, and pick a name: that's your account. Already signed up on orien.network? Use the same email.</p>
+      <div class="topline"><button class="back" data-to="swaps" aria-label="Back"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10 3 5 8l5 5"/></svg></button><h2>Sign in to Orien Network</h2></div>
+      <p class="lede">One account for your profile, the Market and messages. Enter your email and type the 6-digit code we send; new here, you'll pick a username too. Signed up on orien.network already? Use the same email.</p>
       <div class="field">
         <label for="bs-email" data-gap="sm">Email</label>
         <div class="box plain"><input id="bs-email" type="email" placeholder="you@example.com" autocomplete="email" spellcheck="false"></div>
@@ -4275,7 +4275,7 @@
     const u = BigInt(w) * 1000000000n + BigInt((f + "000000000").slice(0, 9));
     return u > 0n ? u : null;
   }
-  const mkProblem = (e) => String(e).startsWith("signin:") ? "Sign in to Orien Market first." : String(e);
+  const mkProblem = (e) => String(e).startsWith("signin:") ? "Sign in to Orien Network first." : String(e);
   async function mk(method, path, body) { return invoke("market_call", { method, path, body: body === undefined ? null : body }); }
   // The number on the Dock or taskbar icon: swaps that need you, plus
   // Market conversations with something new.
@@ -4605,7 +4605,7 @@
     $("se-gate").hidden = true; $("se-form").hidden = false;
     if (!me) {
       $("se-gate").hidden = false; $("se-form").hidden = true;
-      $("se-gate").textContent = "To sell something, sign in to Orien Market first, from the home screen.";
+      $("se-gate").textContent = "To sell something, sign in to Orien Network first, from the home screen.";
     } else if (!me.wallet) {
       $("se-gate").hidden = false; $("se-form").hidden = true;
       $("se-gate").textContent = "Before your first listing, your Orien wallet needs adding, so buyers' payments reach you. Open the Swap screen once while signed in and it's added for you.";
@@ -4762,7 +4762,7 @@
     verifying = address;
     button.outerHTML = '<span class="vf-wait">Confirm below</span>';
     // Plainly, before anything is sent: what verifying means, and the amount.
-    $("vf-text").textContent = `Verifying ties the wallet to your name publicly: everyone will see it's yours, including its balance. It sends ${proof.orn} ORN from this wallet to Orien Market: less than 0.001 ORN, fee included.`;
+    $("vf-text").textContent = `Verifying ties the wallet to your name publicly: everyone will see it's yours, including its balance. It sends ${proof.orn} ORN from this wallet to Orien Network: less than 0.001 ORN, fee included.`;
     $("vf-pw-field").hidden = !(view && view.locked && !view.biometric);
     $("vf-go").hidden = false;
     $("vf-go").disabled = false;
@@ -4838,7 +4838,7 @@
     if (!me) return;
     $("pf-delete-box").hidden = false;
     $("pf-delete").hidden = true;
-    $("pf-delete-text").textContent = `This deletes your Orien Market account for good: your profile, listings and messages. Your wallets and ORN stay yours. Type ${me.name} to confirm.`;
+    $("pf-delete-text").textContent = `This deletes your Orien Network account for good: your profile, listings and messages. Your wallets and ORN stay yours. Type ${me.name} to confirm.`;
     $("pf-delete-name").value = "";
     $("pf-delete-name").placeholder = me.name;
   };
