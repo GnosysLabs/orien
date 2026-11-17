@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
-import { LogIn, LogOut, Pencil, UserRound } from "lucide-react";
+import { LogIn, LogOut, Settings, UserRound } from "lucide-react";
 import { ask, profileHref } from "@/lib/market";
 import { SIGNED_IN_OR_OUT, useMe } from "@/lib/useMe";
 import { Avatar } from "./market/Avatar";
@@ -89,7 +89,7 @@ export function AccountMenu() {
             role="menuitem"
             className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-semibold text-ink transition hover:bg-raised"
           >
-            <Pencil className="h-4 w-4 text-pearl" strokeWidth={2} aria-hidden /> Edit profile
+            <Settings className="h-4 w-4 text-pearl" strokeWidth={2} aria-hidden /> Your account
           </Link>
           <button
             type="button"
