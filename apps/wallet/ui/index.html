@@ -1489,7 +1489,7 @@
       <div class="push"></div>
       <div class="problem" id="wallet-add-problem" hidden></div>
       <button class="primary pearl" id="wa-new" data-gap="lg">Make the wallet</button>
-      <button class="primary pearl" id="wa-restore" data-gap="lg">Continue</button>
+      <button class="primary pearl" id="wa-restore" data-gap="lg">Restore wallet</button>
     </section>
 
     <!-- Moving a wallet to another of one's own devices, with a short code -->
@@ -2359,8 +2359,12 @@
     $("wa-new").hidden = mode !== "new"; $("wa-restore").hidden = mode !== "restore";
     show("wallet-add"); $("wa-name").focus();
   }
-  $("ac-new").onclick = () => addDetails("new");
-  $("ac-restore").onclick = () => addDetails("restore");
+  $("ac-new").onclick = () => { restoreWords = null; addDetails("new"); };
+  $("ac-restore").onclick = () => {
+    adding = true; restoreWords = null;
+    $("restore-go").textContent = "Continue";
+    $("phrase-in").value = ""; checkPhrase(); show("restore"); $("phrase-in").focus();
+  };
   $("ac-pair").onclick = () => openPairGet("wallet-add-choose");
   function addName() {
     const name = $("wa-name").value.trim();
@@ -2381,11 +2385,20 @@
     } catch (e) { problem("wallet-add-problem", e); }
     $("wa-new").disabled = false;
   };
-  $("wa-restore").onclick = () => {
+  // Restoring into this app: the words first, then a name and icon.
+  let restoreWords = null;
+  $("wa-restore").onclick = async () => {
     const name = addName();
-    if (!name) return;
-    adding = name;
-    $("phrase-in").value = ""; checkPhrase(); show("restore"); $("phrase-in").focus();
+    if (!name || !restoreWords) return;
+    $("wa-restore").disabled = true; $("wa-restore").innerHTML = '<span class="spinner"></span>Restoring';
+    try {
+      await invoke("add_wallet", { name, words: restoreWords });
+      restoreWords = null;
+      pendingIcon = addIcon;
+      walletOpened();
+      askPassword();
+    } catch (e) { problem("wallet-add-problem", e); }
+    $("wa-restore").disabled = false; $("wa-restore").textContent = "Restore wallet";
   };
   // The icon grid: the wallet's first letter, then the emojis; `pick` is on.
   function emojiGrid(pick, name) {
@@ -2454,9 +2467,11 @@
 
   // ---- Restore ----
   $("go-restore").onclick = () => {
+    adding = null;
+    $("restore-go").textContent = "Restore wallet";
     $("phrase-in").value = ""; checkPhrase(); show("restore"); $("phrase-in").focus();
   };
-  $("restore-back").onclick = () => { $("phrase-in").value = ""; show(adding ? "wallet-add" : "welcome"); };
+  $("restore-back").onclick = () => { $("phrase-in").value = ""; show(adding ? "wallet-add-choose" : "welcome"); };
   function checkPhrase() {
     const n = $("phrase-in").value.trim().split(/\s+/).filter(Boolean).length;
     $("phrase-check").textContent = n ? `${n} of 24 words` : "";
@@ -2466,15 +2481,23 @@
   $("phrase-in").oninput = checkPhrase;
   $("restore-go").onclick = async () => {
     const button = $("restore-go");
-    button.disabled = true; button.innerHTML = '<span class="spinner"></span>Restoring';
+    button.disabled = true; button.innerHTML = `<span class="spinner"></span>${adding ? "Checking" : "Restoring"}`;
     try {
-      if (adding) { await invoke("add_wallet", { name: adding, words: $("phrase-in").value }); pendingIcon = addIcon; }
-      else await invoke("restore_wallet", { words: $("phrase-in").value });
+      if (adding) {
+        // Checked here, then on to the name and icon.
+        await invoke("phrase_check", { words: $("phrase-in").value });
+        restoreWords = $("phrase-in").value;
+        $("phrase-in").value = "";
+        button.textContent = "Continue"; checkPhrase();
+        addDetails("restore");
+        return;
+      }
+      await invoke("restore_wallet", { words: $("phrase-in").value });
       $("phrase-in").value = "";
       walletOpened();
       askPassword();
     } catch (e) { problem("restore-problem", e); }
-    button.textContent = "Restore wallet"; checkPhrase();
+    button.textContent = adding ? "Continue" : "Restore wallet"; checkPhrase();
   };
 
 
