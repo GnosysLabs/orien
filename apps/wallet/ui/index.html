@@ -2693,6 +2693,7 @@
   const knownTheme = (name) => THEMES.some(([id]) => id === name) ? name : "pearl";
   // The colour behind the page matches the theme's deepest ground.
   function paintBackdrop() {
+    if (/Linux/.test(navigator.userAgent)) return;   // nothing shows behind the page there
     const color = getComputedStyle(document.documentElement).getPropertyValue("--ground-deep").trim();
     const m = /^#([0-9a-f]{2})([0-9a-f]{2})([0-9a-f]{2})$/i.exec(color);
     if (m) invoke("set_backdrop", { red: parseInt(m[1], 16), green: parseInt(m[2], 16), blue: parseInt(m[3], 16) }).catch(() => {});
@@ -2706,7 +2707,9 @@
     if ((document.documentElement.dataset.theme || "pearl") === name) return;
     const set = () => { document.documentElement.dataset.theme = name; paintThemeGrid(); };
     try { localStorage.setItem("theme", name); } catch {}
-    if (animate && document.startViewTransition) document.startViewTransition(set).finished.then(paintBackdrop, paintBackdrop);
+    // The fade between themes: not on Linux, where WebKit can crash doing it.
+    const fade = animate && document.startViewTransition && !/Linux/.test(navigator.userAgent);
+    if (fade) document.startViewTransition(set).finished.then(paintBackdrop, paintBackdrop);
     else { set(); paintBackdrop(); }
   }
   $("theme-grid").innerHTML = THEMES.map(([id, name]) => `<button class="theme-card" data-pick="${id}">

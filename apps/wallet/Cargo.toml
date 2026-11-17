@@ -52,6 +52,9 @@ opt-level = 2
 tauri-plugin-updater = "2"
 # Starting at login, so swaps and notifications carry on with no window.
 tauri-plugin-autostart = "2"
+# One copy of the app at a time: opening it again brings the running one
+# forward (two copies of a wallet could sign at the same moment).
+tauri-plugin-single-instance = "2"
 orien-net = { path = "../../crates/net", features = ["randomx"] }
 orien-ledger = { path = "../../crates/ledger", features = ["randomx"] }
 

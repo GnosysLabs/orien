@@ -2028,7 +2028,19 @@ async fn push_sync() {
 pub fn run() {
     #[cfg(target_os = "linux")]
     linux::register_appimage();
-    let builder = tauri::Builder::default().plugin(tauri_plugin_dialog::init()).plugin(tauri_plugin_haptics::init()).plugin(tauri_plugin_notification::init()).plugin(tauri_plugin_opener::init());
+    // Linux with NVIDIA graphics: WebKit's newer way of drawing crashes the
+    // app (seen switching themes); the older way is steady everywhere.
+    #[cfg(target_os = "linux")]
+    if std::env::var_os("WEBKIT_DISABLE_DMABUF_RENDERER").is_none() {
+        // SAFETY: set before any other thread starts.
+        unsafe { std::env::set_var("WEBKIT_DISABLE_DMABUF_RENDERER", "1") };
+    }
+    let builder = tauri::Builder::default();
+    // One copy at a time on computers: opening it again shows the one that
+    // is running (from the tray, too) instead of starting another.
+    #[cfg(desktop)]
+    let builder = builder.plugin(tauri_plugin_single_instance::init(|app, _args, _cwd| background::show(app)));
+    let builder = builder.plugin(tauri_plugin_dialog::init()).plugin(tauri_plugin_haptics::init()).plugin(tauri_plugin_notification::init()).plugin(tauri_plugin_opener::init());
     // iPhones scan the QR code another device shows, to move a wallet here.
     #[cfg(mobile)]
     let builder = builder.plugin(tauri_plugin_barcode_scanner::init());
