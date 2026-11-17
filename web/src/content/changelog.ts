@@ -28,6 +28,25 @@ export const CHANGELOG: Entry[] = [
   {
     date: '2026-11-17',
     products: ['wallet'],
+    version: '1.8.13',
+    title: 'A beautiful home on big screens, and Messages side by side',
+    changes: [
+      'On big screens and maximized windows, the app sits in a rounded card over a photograph that matches your theme: northern lights for Aurora, the Milky Way for Midnight, and one for every theme.',
+      'Every screen keeps its ideal width on big screens, and the Market shows more listings to a row.',
+      'Messages on big screens: your conversations on the left and the open one on the right, as on the website.',
+      'Content scrolls inside softly rounded edges on every screen.',
+      'Midnight, Aurora, Amethyst, Rosé and Obsidian have a richer metallic shimmer.',
+      'Your profile shows your wallets as on the website: which are verified, which one you get paid in, and a ⋯ menu to remove one.',
+      'Selling on the Market needs a verified wallet first, so buyers always know who they are paying.',
+      'Profiles have Socials, each with its app\'s icon: Telegram, X, and a Discord username that copies with a tap.',
+      'The Privacy policy and Terms of service are in Settings › About, and on the sign-in screen.',
+      '"Use max" on the Send screen is now a button.',
+      'On iPhone, with the Face ID lock on, the app locks and covers itself the moment you leave it.',
+    ],
+  },
+  {
+    date: '2026-11-17',
+    products: ['wallet'],
     version: '1.8.12',
     title: 'Four new themes, and a balance you can hide with one tap',
     changes: [
