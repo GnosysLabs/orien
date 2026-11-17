@@ -1,0 +1,22 @@
+[package]
+name = "orien-discord"
+description = "The Orien community's Discord bot: answers questions about Orien and hands out roles"
+version = "0.1.0"
+edition = "2024"
+license = "MIT OR Apache-2.0"
+publish = false
+
+# Its own workspace: it shares no code with the network or the wallet, and
+# building it never touches their Cargo.lock.
+[workspace]
+
+[dependencies]
+anyhow = "1"
+clap = { version = "4", features = ["derive"] }
+serde_json = "1"
+tokio = { version = "1", features = ["rt-multi-thread", "macros", "sync", "time"] }
+reqwest = { version = "0.12", default-features = false, features = ["json", "rustls-tls"] }
+serenity = { version = "0.12", default-features = false, features = ["client", "gateway", "http", "model", "builder", "utils", "rustls_backend"] }
+
+[profile.release]
+strip = true
