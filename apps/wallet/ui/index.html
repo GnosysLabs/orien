@@ -745,15 +745,16 @@
   #chat.loading .ch-loading { display: grid; place-items: center; position: absolute; inset: 0; }
   #chat { position: relative; }
   /* Wide windows: Messages side by side, conversations on the left and
-     the open one on the right, as messaging apps on computers do. */
+     the open one on the right, as messaging apps on computers do. Together
+     as wide as the Market (320 + 20 + 700). */
   #chat .ch-none { display: none; }
   #chat.none > :not(.ch-none) { display: none !important; }
   #chat.none .ch-none { display: grid; place-items: center; flex: 1; color: var(--dim); font-size: 13.5px; text-shadow: 0 1px 8px rgba(var(--shade), 0.4); }
   @media (min-width: 1160px) {
     body.split main { flex-direction: row; justify-content: center; gap: 20px; }
     html body.split #inbox, html body.split #chat { flex: 0 0 auto; margin-left: 0; margin-right: 0; padding-left: 18px; padding-right: 18px; }
-    html body.split #inbox { width: 340px; --cw: 304px; }
-    html body.split #chat { width: 720px; --cw: 684px; }
+    html body.split #inbox { width: 320px; --cw: 284px; }
+    html body.split #chat { width: 700px; --cw: 664px; }
     body.split #ch-back { display: none; }
     body.split .ib-row.on { background: var(--surface-hover); }
   }
@@ -2419,7 +2420,7 @@
     document.body.classList.toggle("split", both);
     // The frosted container behind it takes the screen's width.
     const shown = $(id), col = shown && parseFloat(getComputedStyle(shown).getPropertyValue("--col"));
-    document.querySelector("main").style.setProperty("--panel", (both ? 1080 : col || 640) + "px");
+    document.querySelector("main").style.setProperty("--panel", (both ? 1040 : col || 640) + "px");
     if (both) { $("chat").classList.toggle("none", !chat.id); paintInbox(); }
     else if (id === "chat") $("chat").classList.remove("none");
     for (const p of document.querySelectorAll(".problem")) p.hidden = true;
