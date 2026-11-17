@@ -257,9 +257,6 @@
   body.phone { position: fixed; inset: 0; overflow: hidden; }
   /* With the keyboard up there's no home bar to keep clear of. */
   body.phone.kb-up main > .screen { padding-bottom: 8px !important; }
-  /* Typing: the ORIEN bar steps aside, so there's room for what matters. */
-  body.phone.kb-up header { display: none; }
-  body.phone.kb-up { padding-top: env(safe-area-inset-top); }
   /* A chat's title row on iPhones: the person takes the room, the buttons
      stay compact. */
   body.phone .ch-top .ch-who { flex: 1 1 auto; min-width: 0; }
