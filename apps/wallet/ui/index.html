@@ -233,8 +233,9 @@
     body:not(.phone) .wallet-chip { color: var(--ink); }
     /* Section labels sit straight on the photo: a touch stronger there. */
     body:not(.phone) .section-head h3 { color: var(--ink); text-shadow: 0 1px 8px rgba(var(--shade), 0.35); }
-    /* The message box keeps generous room below it, like at its sides. */
-    html body:not(.phone) #chat { padding-bottom: 30px; }
+    /* The message box and the activity lists keep room below them, like at
+       their sides, rather than running into the foot of the glass. */
+    html body:not(.phone) :is(#chat, #home, #activity) { padding-bottom: 30px; }
     /* Each screen sits in a frosted glass container: a clear shape with
        rounded corners and a soft shadow, the sharp photo all around it.
        Its width follows the screen shown (set as --panel by show()). */
