@@ -109,7 +109,7 @@ Notes:
 - **Messaging and chat: Yes** (Market messages).
 - Advertising: No.
 
-Apple works out the rating from these answers. User content and messaging usually lead to 13+.
+Apple works out the rating from these answers. Our Terms of Service require users to be **18 or older**, so in the age rating section choose to rate the app **18+** (the "override to a higher rating" option), so the store listing matches the Terms.
 
 ## Export compliance
 
