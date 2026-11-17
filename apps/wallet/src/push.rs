@@ -25,7 +25,7 @@ static APP: OnceLock<AppHandle> = OnceLock::new();
 /// This phone's token, once Apple has given it.
 static TOKEN: Mutex<Option<String>> = Mutex::new(None);
 /// What the server was last told, so it is only told again on a change.
-static TOLD: Mutex<Option<(String, Vec<String>, bool)>> = Mutex::new(None);
+static TOLD: Mutex<Option<(String, Vec<String>, bool, Vec<String>)>> = Mutex::new(None);
 
 /// Builds installed from Xcode use Apple's test service; TestFlight and the
 /// App Store use the real one. The server must be told which.
@@ -59,12 +59,13 @@ pub fn sync() {
     // Signed in to the Market, the token is tied to the account too, so
     // messages and swap news reach this phone; signed out, it's untied.
     let session = crate::board::session(&dir);
-    let now = Some((token.clone(), addresses.clone(), session.is_some()));
+    let mute = crate::muted(&dir);
+    let now = Some((token.clone(), addresses.clone(), session.is_some(), mute.clone()));
     if *TOLD.lock().unwrap() == now {
         return;
     }
     let url = format!("{}/api/market/push/register", crate::board::base());
-    let body = serde_json::json!({ "token": token, "sandbox": SANDBOX, "addresses": addresses });
+    let body = serde_json::json!({ "token": token, "sandbox": SANDBOX, "addresses": addresses, "mute": mute });
     let agent = ureq::AgentBuilder::new().timeout(std::time::Duration::from_secs(15)).user_agent("orien-wallet").build();
     let mut request = agent.post(&url);
     if let Some(cookie) = &session {

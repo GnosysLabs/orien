@@ -12,6 +12,53 @@ use tauri_plugin_autostart::ManagerExt;
 /// The argument the login start passes, to start with no window.
 pub const QUIET: &str = "--background";
 
+/// Whether closing the window keeps the wallet running in the menu bar or
+/// tray (the default), or quits it. The person's choice, kept in a file.
+static KEEP_RUNNING: std::sync::atomic::AtomicBool = std::sync::atomic::AtomicBool::new(true);
+
+fn quits_file(app: &AppHandle) -> Option<std::path::PathBuf> {
+    crate::folder(app).ok().map(|dir| dir.join("closing-quits"))
+}
+
+pub fn keep_running() -> bool {
+    KEEP_RUNNING.load(std::sync::atomic::Ordering::Relaxed)
+}
+
+pub fn set_keep_running(app: &AppHandle, keep: bool) {
+    KEEP_RUNNING.store(keep, std::sync::atomic::Ordering::Relaxed);
+    if let Some(file) = quits_file(app) {
+        if keep {
+            let _ = std::fs::remove_file(file);
+        } else {
+            let _ = std::fs::write(file, b"");
+        }
+    }
+}
+
+/// Whether the app opens at login.
+pub fn opens_at_login(app: &AppHandle) -> bool {
+    #[cfg(target_os = "macos")]
+    {
+        let _ = app;
+        mac::is_login_item()
+    }
+    #[cfg(not(target_os = "macos"))]
+    app.autolaunch().is_enabled().unwrap_or(false)
+}
+
+pub fn set_opens_at_login(app: &AppHandle, on: bool) -> Result<(), String> {
+    #[cfg(target_os = "macos")]
+    {
+        let _ = app;
+        if on { mac::open_at_login().then_some(()).ok_or_else(|| "macOS didn't allow it.".to_string()) } else { mac::stop_opening_at_login() }
+    }
+    #[cfg(not(target_os = "macos"))]
+    {
+        let manager = app.autolaunch();
+        if on { manager.enable() } else { manager.disable() }.map_err(|error| error.to_string())
+    }
+}
+
 /// Shows the window, in front.
 pub fn show(app: &AppHandle) {
     if let Some(window) = app.get_webview_window("main") {
@@ -89,11 +136,19 @@ pub fn setup(app: &AppHandle) -> tauri::Result<()> {
     if let Some(window) = app.get_webview_window("main")
         && can_come_back
     {
+        if quits_file(app).is_some_and(|file| file.exists()) {
+            KEEP_RUNNING.store(false, std::sync::atomic::Ordering::Relaxed);
+        }
         let hidden = window.clone();
+        let handle = app.clone();
         window.on_window_event(move |event| {
             if let WindowEvent::CloseRequested { api, .. } = event {
-                api.prevent_close();
-                let _ = hidden.hide();
+                if keep_running() {
+                    api.prevent_close();
+                    let _ = hidden.hide();
+                } else {
+                    handle.exit(0);
+                }
             }
         });
     }
@@ -150,6 +205,27 @@ mod mac {
             Ok(()) => true,
             Err(error) => error.code() == objc2_service_management::kSMErrorAlreadyRegistered as isize,
         }
+    }
+
+    /// Whether the app is on the Mac's list of login items.
+    pub fn is_login_item() -> bool {
+        if AnyClass::get(c"SMAppService").is_none() {
+            return false;
+        }
+        // SAFETY: the class exists on this macOS, checked just above.
+        let service = unsafe { SMAppService::mainAppService() };
+        let status = unsafe { service.status() };
+        status == objc2_service_management::SMAppServiceStatus::Enabled
+    }
+
+    /// Takes the app off the Mac's list of login items.
+    pub fn stop_opening_at_login() -> Result<(), String> {
+        if AnyClass::get(c"SMAppService").is_none() {
+            return Ok(());
+        }
+        // SAFETY: the class exists on this macOS, checked just above.
+        let service = unsafe { SMAppService::mainAppService() };
+        unsafe { service.unregisterAndReturnError() }.map_err(|error| error.localizedDescription().to_string())
     }
 
     /// Whether macOS opened the app as a login item: the "open" it sent

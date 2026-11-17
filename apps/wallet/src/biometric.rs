@@ -168,6 +168,38 @@ pub fn unlock(wallet: &Path) -> Result<(), String> {
     }
 }
 
+/// Asks for Touch ID or Face ID (or the device's passcode) to open the app,
+/// with nothing unlocked by it. Blocks until answered.
+pub fn check() -> Result<(), String> {
+    #[cfg(any(target_os = "macos", target_os = "ios"))]
+    {
+        use robius_authentication::{AndroidText, BiometricStrength, Context, PolicyBuilder, Text, WindowsText};
+        let text = Text {
+            android: AndroidText { title: "Orien Wallet", subtitle: None, description: None },
+            apple: "open Orien Wallet",
+            windows: WindowsText::new("Orien Wallet", "Open Orien Wallet").ok_or("prompt text too long")?,
+        };
+        let policy = PolicyBuilder::new()
+            .biometrics(Some(BiometricStrength::Strong))
+            .password(true)
+            .companion(true)
+            .build()
+            .ok_or("Touch ID and Face ID aren't available here")?;
+        let (tx, rx) = std::sync::mpsc::channel();
+        Context::new(())
+            .authenticate(text, &policy, move |result| {
+                let _ = tx.send(result);
+            })
+            .map_err(|error| format!("could not ask for Touch ID or Face ID: {error:?}"))?;
+        match rx.recv() {
+            Ok(Ok(_)) => Ok(()),
+            _ => Err("Not unlocked.".into()),
+        }
+    }
+    #[cfg(not(any(target_os = "macos", target_os = "ios")))]
+    Err("Touch ID and Face ID are on Macs and iPhones only.".into())
+}
+
 /// A new password for a wallet that will only ever be unlocked by Touch ID
 /// or Face ID: long and random, never shown.
 pub fn new_password() -> String {

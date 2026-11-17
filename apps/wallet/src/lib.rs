@@ -1138,6 +1138,94 @@ fn set_app_theme(app: AppHandle, theme: String) -> Result<(), String> {
     Ok(())
 }
 
+/// The person's choices that follow them to every device: the theme, hidden
+/// balances, shorter balances.
+#[tauri::command]
+fn app_prefs(app: AppHandle) -> Result<std::collections::BTreeMap<String, String>, String> {
+    let dir = folder(&app)?;
+    Ok(contacts::prefs(&dir).into_iter().map(|(name, pref)| (name, pref.value)).collect())
+}
+
+#[tauri::command]
+fn set_app_pref(app: AppHandle, name: String, value: String) -> Result<(), String> {
+    if !["theme", "hide", "short"].contains(&name.as_str()) {
+        return Err("unknown setting".into());
+    }
+    let dir = folder(&app)?;
+    contacts::set_pref(&dir, &name, &value)?;
+    sync_contacts_later(dir);
+    Ok(())
+}
+
+/// The kinds of notification this device has turned off: "received",
+/// "market", "swaps". Kept on this device only.
+pub(crate) fn muted(dir: &Path) -> Vec<String> {
+    fs::read(dir.join("notifications-off.json")).ok().and_then(|bytes| serde_json::from_slice(&bytes).ok()).unwrap_or_default()
+}
+
+#[tauri::command]
+fn notifications_muted(app: AppHandle) -> Result<Vec<String>, String> {
+    Ok(muted(&folder(&app)?))
+}
+
+/// Turns one kind of notification on or off on this device (and tells the
+/// server, which sends an iPhone's).
+#[tauri::command]
+fn set_notification(app: AppHandle, kind: String, on: bool) -> Result<(), String> {
+    if !["received", "market", "swaps"].contains(&kind.as_str()) {
+        return Err("unknown notification".into());
+    }
+    let dir = folder(&app)?;
+    let mut off = muted(&dir);
+    off.retain(|k| *k != kind);
+    if !on {
+        off.push(kind);
+    }
+    off.sort();
+    fs::write(dir.join("notifications-off.json"), serde_json::to_vec(&off).map_err(|error| error.to_string())?).map_err(|error| error.to_string())?;
+    #[cfg(target_os = "ios")]
+    std::thread::spawn(push::sync);
+    Ok(())
+}
+
+/// Asks for Touch ID or Face ID to open the app, when the person turned
+/// that on.
+#[tauri::command]
+async fn app_unlock() -> Result<(), String> {
+    tauri::async_runtime::spawn_blocking(biometric::check).await.map_err(|error| error.to_string())?
+}
+
+/// This computer's own settings: opening at login, and whether closing the
+/// window keeps the wallet running. None on iPhones.
+#[tauri::command]
+fn computer_settings(app: AppHandle) -> Option<(bool, bool)> {
+    #[cfg(desktop)]
+    return Some((background::opens_at_login(&app), background::keep_running()));
+    #[cfg(not(desktop))]
+    {
+        let _ = app;
+        None
+    }
+}
+
+#[tauri::command]
+fn set_computer_setting(app: AppHandle, name: String, on: bool) -> Result<(), String> {
+    #[cfg(desktop)]
+    match name.as_str() {
+        "login" => background::set_opens_at_login(&app, on),
+        "running" => {
+            background::set_keep_running(&app, on);
+            Ok(())
+        }
+        _ => Err("unknown setting".into()),
+    }
+    #[cfg(not(desktop))]
+    {
+        let _ = (app, name, on);
+        Err("Not on this device.".into())
+    }
+}
+
 /// The colour behind the app's page, so its edges and the moments before
 /// it draws match the theme.
 #[tauri::command]
@@ -1970,7 +2058,7 @@ pub fn run() {
             }
             Ok(())
         })
-        .invoke_handler(tauri::generate_handler![has_wallet, create_wallet, save_phrase, restore_wallet, set_password, choose_wallet, overview_now, send_payment, activity, quote, contacts, save_contact, delete_contact, contacts_sync, biometric_unlock, biometric_enable, update::check_update, update::install_update, mine_start, mine_stop, mine_set, mine_status, wallets, wallet_balances, use_wallet, rename_wallet, add_wallet, forget_wallet, swap_list, swap_sell, swap_buy, swap_accept, swap_step, swap_smallest, board_offers, board_me, board_email_start, board_email_finish, board_sign_out, board_post, board_take, board_withdraw, board_link, notifications_ask, push_sync, board_wallets_sync, board_post_sol, board_take_sol, sol_open, sol_payout_check, open_site, qr_code, wallet_profiles, board_profile_save, board_picture_pick, board_verify, board_wallet_states, market_image, board_banner_remove, market_search, market_listings, market_listing, market_profile, market_call, market_pick_pictures, market_listing_picture, dock_badge, mac_notify, board_delete_account, wallet_icons, set_wallet_icon, vault_ready, vault_unlock, open_contact, pair_offer, pair_offer_wait, pair_offer_send, pair_join, pair_join_wait, pair_cancel, wallet_phrase, phrase_check, app_theme, set_app_theme, set_backdrop])
+        .invoke_handler(tauri::generate_handler![has_wallet, create_wallet, save_phrase, restore_wallet, set_password, choose_wallet, overview_now, send_payment, activity, quote, contacts, save_contact, delete_contact, contacts_sync, biometric_unlock, biometric_enable, update::check_update, update::install_update, mine_start, mine_stop, mine_set, mine_status, wallets, wallet_balances, use_wallet, rename_wallet, add_wallet, forget_wallet, swap_list, swap_sell, swap_buy, swap_accept, swap_step, swap_smallest, board_offers, board_me, board_email_start, board_email_finish, board_sign_out, board_post, board_take, board_withdraw, board_link, notifications_ask, push_sync, board_wallets_sync, board_post_sol, board_take_sol, sol_open, sol_payout_check, open_site, qr_code, wallet_profiles, board_profile_save, board_picture_pick, board_verify, board_wallet_states, market_image, board_banner_remove, market_search, market_listings, market_listing, market_profile, market_call, market_pick_pictures, market_listing_picture, dock_badge, mac_notify, board_delete_account, wallet_icons, set_wallet_icon, vault_ready, vault_unlock, open_contact, pair_offer, pair_offer_wait, pair_offer_send, pair_join, pair_join_wait, pair_cancel, wallet_phrase, phrase_check, app_theme, set_app_theme, set_backdrop, app_prefs, set_app_pref, app_unlock, computer_settings, set_computer_setting, notifications_muted, set_notification])
         .build(tauri::generate_context!())
         .expect("the wallet window could not start")
         .run(|_app, _event| {
