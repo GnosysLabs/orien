@@ -947,3 +947,56 @@ async fn a_phone_can_mute_kinds_of_notification() {
     payments.payments.lock().unwrap().push((id(&wallet), Incoming { from: id(&"ef".repeat(32)), amount: 7_000_000_000, epoch: 30 }));
     assert_eq!(check_once(&market.app, &notebook).unwrap(), 2, "the message and the payment");
 }
+
+#[tokio::test]
+async fn the_review_email_signs_in_with_its_fixed_code_again_and_again() {
+    let app = App::new(Store::in_memory().unwrap(), folder(), "https://orien.network", true, Mailer::log_only(), Screener::off(), Arc::new(Fake::default()), MARKET)
+        .unwrap()
+        .with_review("Review@Example.com", "482913\n")
+        .unwrap();
+    let market = Market { app: Arc::new(app) };
+    let finish = |code: &str, name: &str| json!({ "email": "review@example.com", "code": code, "name": name });
+    // The cookie a sign-in sets.
+    let sign_in = |body: Value| {
+        let request = Request::builder()
+            .method("POST")
+            .uri("/api/market/email/finish")
+            .header(header::CONTENT_TYPE, "application/json")
+            .body(Body::from(body.to_string()))
+            .unwrap();
+        let router = router(market.app.clone());
+        async move {
+            let response = router.oneshot(request).await.unwrap();
+            let cookie = response.headers().get(header::SET_COOKIE).map(|c| c.to_str().unwrap().split(';').next().unwrap().split('=').nth(1).unwrap().to_string());
+            (response.status(), cookie)
+        }
+    };
+
+    for round in 0..2 {
+        // No code is made or sent; the fixed one works, a wrong one doesn't.
+        let (status, body) = market.ask("POST", "/api/market/email/start", None, Some(json!({ "email": "review@example.com" }))).await;
+        assert_eq!((status, body["sent"].as_str()), (StatusCode::OK, Some("review@example.com")));
+        assert_eq!(market.ask("POST", "/api/market/email/finish", None, Some(finish("111111", ""))).await.0, StatusCode::BAD_REQUEST);
+        let (status, body) = market.ask("POST", "/api/market/email/finish", None, Some(finish("482913", ""))).await;
+        assert_eq!((status, body["needs_name"].as_bool()), (StatusCode::OK, Some(true)), "round {round}: a fresh account asks for a name");
+        let (status, cookie) = sign_in(finish("482913", "Apple_Review")).await;
+        assert_eq!(status, StatusCode::OK);
+        // The reviewer deletes the account; the next round starts afresh.
+        let token = cookie.unwrap();
+        let (status, body) = market.ask("POST", "/api/market/me/delete", Some(&token), Some(json!({ "confirm": "Apple_Review" }))).await;
+        assert_eq!(status, StatusCode::OK, "{body}");
+    }
+
+    // Other emails still need their own emailed code, never the fixed one.
+    market.ask("POST", "/api/market/email/start", None, Some(json!({ "email": "sam@example.com" }))).await;
+    let other = json!({ "email": "sam@example.com", "code": "482913", "name": "" });
+    assert_eq!(market.ask("POST", "/api/market/email/finish", None, Some(other)).await.0, StatusCode::BAD_REQUEST);
+
+    // Guessing stops after ten wrong codes in an hour, even the right one.
+    for _ in 0..8 {
+        market.ask("POST", "/api/market/email/finish", None, Some(finish("000000", ""))).await;
+    }
+    let (status, body) = market.ask("POST", "/api/market/email/finish", None, Some(finish("482913", ""))).await;
+    assert_eq!(status, StatusCode::BAD_REQUEST);
+    assert!(body["error"].as_str().unwrap().contains("too many"), "{body}");
+}
