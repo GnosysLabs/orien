@@ -69,7 +69,7 @@ struct Args {
     #[arg(long, value_delimiter = ',')]
     admin_logins: Vec<String>,
     /// Who the codes come from.
-    #[arg(long, default_value = "Orien Market <noreply@orien.network>")]
+    #[arg(long, default_value = "Orien Network <noreply@orien.network>")]
     from: String,
     /// Look after the marketplace instead of running it.
     #[command(subcommand)]
