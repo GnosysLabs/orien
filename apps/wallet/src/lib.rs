@@ -1158,7 +1158,7 @@ fn set_app_pref(app: AppHandle, name: String, value: String) -> Result<(), Strin
 }
 
 /// The kinds of notification this device has turned off: "received",
-/// "market", "swaps". Kept on this device only.
+/// "mining", "market", "swaps". Kept on this device only.
 pub(crate) fn muted(dir: &Path) -> Vec<String> {
     fs::read(dir.join("notifications-off.json")).ok().and_then(|bytes| serde_json::from_slice(&bytes).ok()).unwrap_or_default()
 }
@@ -1172,7 +1172,7 @@ fn notifications_muted(app: AppHandle) -> Result<Vec<String>, String> {
 /// server, which sends an iPhone's).
 #[tauri::command]
 fn set_notification(app: AppHandle, kind: String, on: bool) -> Result<(), String> {
-    if !["received", "market", "swaps"].contains(&kind.as_str()) {
+    if !["received", "mining", "market", "swaps"].contains(&kind.as_str()) {
         return Err("unknown notification".into());
     }
     let dir = folder(&app)?;

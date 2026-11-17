@@ -1198,7 +1198,8 @@
 
       <div class="section-head" data-gap="xl"><h3>Notifications</h3></div>
       <div class="set-group">
-        <label class="set-row"><span class="set-txt"><b>ORN received</b><small>When ORN arrives at one of your wallets</small></span><input type="checkbox" class="switch" id="st-n-received"></label>
+        <label class="set-row"><span class="set-txt"><b>ORN received</b><small>When someone sends you ORN</small></span><input type="checkbox" class="switch" id="st-n-received"></label>
+        <label class="set-row"><span class="set-txt"><b>Mining rewards</b><small>Your share of each hour's new ORN</small></span><input type="checkbox" class="switch" id="st-n-mining"></label>
         <label class="set-row"><span class="set-txt"><b>Market messages</b><small>New messages and payment requests</small></span><input type="checkbox" class="switch" id="st-n-market"></label>
         <label class="set-row" id="st-n-swaps-row"><span class="set-txt"><b>Swap updates</b><small>When an offer is taken and as swaps finish</small></span><input type="checkbox" class="switch" id="st-n-swaps"></label>
       </div>
@@ -2747,7 +2748,7 @@
     $("st-lock-row").hidden = !apple;
     $("st-lock").checked = localStorage.getItem("app-lock") === "on";
     $("st-lock-row").querySelector("b").textContent = `Lock with ${bio}`;
-    for (const kind of ["received", "market", "swaps"]) $(`st-n-${kind}`).checked = !mutedKinds.includes(kind);
+    for (const kind of ["received", "mining", "market", "swaps"]) $(`st-n-${kind}`).checked = !mutedKinds.includes(kind);
     $("st-n-swaps-row").hidden = phone;
     $("st-computer").hidden = phone;
     $("st-updates").hidden = phone;
@@ -2774,7 +2775,7 @@
     try { localStorage.setItem("app-lock", on ? "on" : "off"); } catch {}
     feel("selection");
   };
-  for (const kind of ["received", "market", "swaps"]) {
+  for (const kind of ["received", "mining", "market", "swaps"]) {
     $(`st-n-${kind}`).onchange = async () => {
       const on = $(`st-n-${kind}`).checked;
       try { await invoke("set_notification", { kind, on }); mutedKinds = on ? mutedKinds.filter((k) => k !== kind) : [...mutedKinds, kind]; feel("selection"); }
@@ -3333,7 +3334,7 @@
   const paymentKey = (e) => `${e.time}/${e.amount}/${e.counterparty || ""}`;
   async function noticeIncoming() {
     if (phone || !view) return;
-    const incoming = entries.filter((e) => e.direction === "received" && (e.kind === "payment" || e.kind === "claim"));
+    const incoming = entries.filter((e) => e.direction === "received" && (e.kind === "payment" || e.kind === "claim" || e.kind === "mining"));
     const seen = heard.get(view.address);
     heard.set(view.address, new Set(incoming.map(paymentKey)));
     // The first look at a wallet only learns what it already has.
@@ -3342,6 +3343,7 @@
     const fresh = incoming.filter((e) => !seen.has(paymentKey(e)) && now - e.time < 600);
     if (!fresh.length) return;
     for (const e of fresh) {
+      if (e.kind === "mining") { await tell(`You mined ${e.amount} ORN`, "mining"); continue; }
       const who = e.counterparty && nameOf(e.counterparty);
       await tell(`You received ${e.amount} ORN` + (who ? ` from ${who}` : ""), "received");
     }
