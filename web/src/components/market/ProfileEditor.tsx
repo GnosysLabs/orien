@@ -1,10 +1,9 @@
 'use client'
 
 import { shrinkPicture } from '@/lib/shrink'
-import Link from 'next/link'
 import { useEffect, useRef, useState } from 'react'
 import { Camera, ImagePlus } from 'lucide-react'
-import { ask, MarketError, NAME_PATTERN, NAME_RULE, pictureUrl, profileHref, type Account } from '@/lib/market'
+import { ask, MarketError, NAME_PATTERN, NAME_RULE, pictureUrl, type Account } from '@/lib/market'
 import { Avatar } from './Avatar'
 import { Notice } from './Shell'
 import { AutoTextarea } from '@/components/AutoTextarea'
