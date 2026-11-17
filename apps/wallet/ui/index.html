@@ -2553,7 +2553,8 @@
     } catch (e) { $("rv-saved").textContent = String(e); }
     $("rv-save").disabled = false;
   };
-  $("rv-back").onclick = $("rv-done").onclick = () => { revealClear(); show("wallet-rename"); };
+  $("rv-back").onclick = () => { revealClear(); show("wallet-rename"); };
+  $("rv-done").onclick = () => { revealClear(); home(); };
   // Leaving the app hides the words.
   document.addEventListener("visibilitychange", () => {
     if (document.hidden && !$("reveal").hidden && revealWords.length) { revealClear(); show("wallet-rename"); }
@@ -2627,8 +2628,13 @@
       else problem("ps-problem", e);
     } finally { button.disabled = false; if (!button.hidden) button.textContent = "They match, send it"; }
   };
-  const leavePairSend = async () => { await pairEnd(); show("wallet-rename"); };
-  $("ps-back").onclick = $("ps-cancel").onclick = leavePairSend;
+  $("ps-back").onclick = async () => { await pairEnd(); show("wallet-rename"); };
+  // Cancel goes back to the wallet; Done, once it's sent, goes home.
+  $("ps-cancel").onclick = async () => {
+    const sent = !$("ps-step-done").hidden;
+    await pairEnd();
+    if (sent) home(); else show("wallet-rename");
+  };
 
   // Receiving: the code typed or scanned, the emoji to compare, then the
   // wallet arrives and opens, with its name and icon.
