@@ -49,7 +49,20 @@ pub struct App {
     events: Mutex<Vec<crate::push::Event>>,
     /// Pairing mailboxes, for moving a wallet between someone's devices.
     pairs: crate::pair::Mailboxes,
+    /// The App Store reviewers' email and its fixed code, if set.
+    review: Option<Review>,
 }
+
+/// One email, for App Store review, whose sign-in code never changes and is
+/// never emailed. Wrong codes for it are counted, so it can't be guessed.
+struct Review {
+    email: String,
+    code: String,
+    misses: Mutex<Vec<Instant>>,
+}
+
+/// Wrong codes allowed for the review email in an hour.
+const REVIEW_MISSES: usize = 10;
 
 impl App {
     /// `origin` is the site's address, such as https://orien.network.
@@ -82,7 +95,39 @@ impl App {
             min_swap_version: 0,
             events: Mutex::new(Vec::new()),
             pairs: crate::pair::Mailboxes::default(),
+            review: None,
         })
+    }
+
+    /// Lets `email` sign in with the fixed `code`, for App Store review.
+    pub fn with_review(mut self, email: &str, code: &str) -> anyhow::Result<App> {
+        let code = code.trim().to_string();
+        anyhow::ensure!(code.len() == 6 && code.bytes().all(|b| b.is_ascii_digit()), "the review code is 6 digits");
+        self.review = Some(Review { email: store::email(email)?, code, misses: Mutex::new(Vec::new()) });
+        Ok(self)
+    }
+
+    fn is_review(&self, email: &str) -> bool {
+        self.review.as_ref().is_some_and(|r| r.email == email)
+    }
+
+    /// Checks a sign-in code: the review email's fixed one, or one emailed.
+    fn check_code(&self, store: &Store, email: &str, code: &str, consume: bool) -> Result<(), Failure> {
+        let Some(review) = self.review.as_ref().filter(|r| r.email == email) else {
+            return store.check_code(email, code, consume).map_err(refused);
+        };
+        let mut misses = review.misses.lock().unwrap();
+        misses.retain(|at| at.elapsed() < std::time::Duration::from_secs(3600));
+        if misses.len() >= REVIEW_MISSES {
+            return Err(Failure::Refused("too many wrong codes; try again in an hour".into()));
+        }
+        let given = code.trim().as_bytes();
+        let same = given.len() == review.code.len() && given.iter().zip(review.code.as_bytes()).fold(0, |d, (a, b)| d | (a ^ b)) == 0;
+        if !same {
+            misses.push(Instant::now());
+            return Err(Failure::Refused("that code is not right; check it and try again".into()));
+        }
+        Ok(())
     }
 
     /// Turns away takes from wallets on swap rules older than `version`.
@@ -395,6 +440,10 @@ struct EmailStart {
 /// account, so nobody can use it to find out who is a member.
 async fn email_start(State(app): State<Arc<App>>, Json(request): Json<EmailStart>) -> Answer {
     let email = store::email(&request.email).map_err(refused)?;
+    // The review email's code is fixed and never sent.
+    if app.is_review(&email) {
+        return Ok(Json(json!({ "sent": email })).into_response());
+    }
     let Some(code) = app.store.lock().unwrap().issue_code(&email).map_err(refused)? else {
         // One was sent a moment ago, and still works.
         return Ok(Json(json!({ "sent": email })).into_response());
@@ -435,7 +484,7 @@ async fn email_finish(State(app): State<Arc<App>>, Json(request): Json<EmailFini
             return Err(Failure::Refused("this account is suspended".into()));
         }
         if existing.is_none() {
-            store.check_code(&email, &request.code, false).map_err(refused)?;
+            app.check_code(&store, &email, &request.code, false)?;
             if request.name.trim().is_empty() {
                 return Ok(Json(json!({ "needs_name": true })).into_response());
             }
@@ -448,7 +497,7 @@ async fn email_finish(State(app): State<Arc<App>>, Json(request): Json<EmailFini
         screened_name(&app, &request.name).await?;
     }
     let store = app.store.lock().unwrap();
-    store.check_code(&email, &request.code, true).map_err(refused)?;
+    app.check_code(&store, &email, &request.code, true)?;
     let account = match existing {
         Some(id) => store.account(id)?.ok_or(Failure::NotFound)?,
         None => store.create_account_with_email(&request.name, &email).map_err(refused)?,
@@ -898,6 +947,14 @@ async fn network<T: Send + 'static>(
 async fn link_wallet(State(app): State<Arc<App>>, headers: HeaderMap, Json(request): Json<WalletLink>) -> Answer {
     let id = app.signed_in(&headers)?;
     let address = store::orien_address(&request.address).map_err(refused)?;
+    // Buyers pay only verified wallets: once one is, the wallet paid at can
+    // only become another verified one.
+    {
+        let store = app.store.lock().unwrap();
+        if store.wallet_verified(id)? && !store.is_verified_wallet(id, &address)? {
+            return Err(Failure::Refused("verify that wallet first, then choose Get paid here".into()));
+        }
+    }
     if !request.app {
         let account: orien_ledger::AccountId = address.parse().map_err(|_| refused(anyhow::anyhow!("that is not an Orien address")))?;
         if !network(&app, move |p| p.has_held(&account)).await? {
@@ -1058,7 +1115,7 @@ async fn edit_profile(State(app): State<Arc<App>>, headers: HeaderMap, Json(requ
     let (name, bio) = store::profile_text(&request.name, &request.bio).map_err(refused)?;
     let contact = request.contact.checked().map_err(refused)?;
     // The usernames are public too, so they are read with the bio.
-    let handles = format!("{bio}\n\nTelegram: {}\nX: {}", contact.telegram, contact.x);
+    let handles = format!("{bio}\n\nTelegram: {}\nX: {}\nDiscord: {}", contact.telegram, contact.x, contact.discord);
     let n = name.clone();
     screened(&app, "profile", move |s| s.profile(&n, &handles)).await?;
     let account = app.store.lock().unwrap().set_profile(id, &name, &bio, &contact).map_err(refused)?;
@@ -1268,12 +1325,23 @@ impl App {
 
 /// For tests: signs an account in without a passkey.
 #[doc(hidden)]
+/// For tests: a signed-in account with no wallet yet.
+#[doc(hidden)]
+pub fn sign_in_without_wallet_for_tests(app: &App, name: &str) -> String {
+    let store = app.store.lock().unwrap();
+    let account = store.create_account(name, &hex::encode(rand_bytes())).unwrap();
+    store.start_session(account.id).unwrap()
+}
+
 pub fn sign_in_for_tests(app: &App, name: &str) -> String {
     let store = app.store.lock().unwrap();
     let account = store.create_account(name, &hex::encode(rand_bytes())).unwrap();
     // A verified wallet of its own and a way to be reached, so it can post listings.
-    store.set_wallet(account.id, &hex::encode(rand_bytes()).repeat(2)).unwrap();
-    let reach = store::Contact { email: format!("{}@example.com", name.to_lowercase().replace(' ', "")), ..Default::default() };
+    let wallet = hex::encode(rand_bytes()).repeat(2);
+    store.set_wallet(account.id, &wallet).unwrap();
+    store.start_proof(account.id, Some(&wallet), 0, "to").unwrap();
+    store.mark_proven(account.id, &wallet).unwrap();
+    let reach = store::Contact { discord: name.to_lowercase().replace(' ', "_"), ..Default::default() };
     store.set_profile(account.id, name, "", &reach).unwrap();
     store.start_session(account.id).unwrap()
 }

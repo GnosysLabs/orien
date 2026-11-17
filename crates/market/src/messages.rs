@@ -399,7 +399,7 @@ mod tests {
         let store = Store::in_memory().unwrap();
         let maya = store.create_account_with_email("Maya", "maya@example.com").unwrap().id;
         let sam = store.create_account_with_email("Sam", "sam@example.com").unwrap().id;
-        store.set_wallet(maya, &"a".repeat(64)).unwrap();
+        store.verified_wallet_for_tests(maya, &"a".repeat(64)).unwrap();
         store.set_profile(maya, "Maya", "", &Contact::default()).unwrap();
         let draft = Draft {
             title: "Logo design".into(),

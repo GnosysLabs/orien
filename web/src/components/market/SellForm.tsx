@@ -42,7 +42,7 @@ export function SellForm() {
     me()
       .then(async (found) => {
         if (!found) return setReady('signed-out')
-        if (!found.account.wallet) return setReady('no-wallet')
+        if (!found.account.wallet || !found.account.wallet_verified) return setReady('no-wallet')
         setPayTo(found.account.wallet)
         const editing = id && found.listings.find((l: Listing) => String(l.id) === id)
         if (editing) {
@@ -66,11 +66,12 @@ export function SellForm() {
   if (ready === 'no-wallet') {
     return (
       <Notice>
-        Before your first listing,{' '}
+        To sell, first{' '}
         <Link href="/account/" className="font-semibold text-ink underline underline-offset-4">
-          add your Orien wallet
-        </Link>
-        , so buyers&apos; payments reach you. Signing in from Orien Wallet adds it for you.
+          add and verify a wallet
+        </Link>{' '}
+        under Your wallets, so buyers know their payments reach you. Verifying sends less than 0.001 ORN from it; don&apos;t
+        have any yet? Mine for an hour in Orien Wallet, or buy a little on Buy &amp; sell.
       </Notice>
     )
   }

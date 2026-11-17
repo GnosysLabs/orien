@@ -170,11 +170,62 @@ impl Store {
         Ok(rows.collect::<rusqlite::Result<_>>()?)
     }
 
-    /// Stops `account` naming `address`, verified or waiting.
+    /// Stops `account` naming `address`, verified or waiting. The wallet
+    /// buyers pay moves to another verified one; with none left and
+    /// listings open, it can't be removed.
     pub fn remove_proof(&self, account: i64, address: &str) -> Result<()> {
         let address = orien_address(address)?;
+        let paid_here = self.payout_of(account)?.as_deref() == Some(address.as_str());
+        if paid_here {
+            let other: Option<String> = self
+                .db
+                .query_row(
+                    "SELECT address FROM verified_wallets WHERE account = ?1 AND address != ?2 AND proven IS NOT NULL ORDER BY proven LIMIT 1",
+                    params![account, address],
+                    |row| row.get(0),
+                )
+                .optional()?;
+            match other {
+                Some(other) => self.set_wallet(account, &other)?,
+                None => {
+                    let open: i64 =
+                        self.db.query_row("SELECT COUNT(*) FROM listings WHERE seller = ?1 AND open = 1", [account], |row| row.get(0))?;
+                    anyhow::ensure!(open == 0, "buyers pay this wallet: verify another first, or close your listings");
+                    self.db.execute("UPDATE accounts SET payout = NULL WHERE id = ?1", [account])?;
+                }
+            }
+        }
         self.db.execute("DELETE FROM verified_wallets WHERE account = ?1 AND address = ?2", params![account, address])?;
         Ok(())
+    }
+
+    /// For tests: makes `address` the account's verified wallet it is paid at.
+    #[doc(hidden)]
+    pub fn verified_wallet_for_tests(&self, account: i64, address: &str) -> Result<()> {
+        self.set_wallet(account, address)?;
+        self.start_proof(account, Some(address), 0, "to")?;
+        self.mark_proven(account, &orien_address(address)?)
+    }
+
+    /// Whether the wallet `account` is paid at is one of its verified ones.
+    pub fn wallet_verified(&self, account: i64) -> Result<bool> {
+        Ok(match self.payout_of(account)? {
+            Some(payout) => self.is_verified_wallet(account, &payout)?,
+            None => false,
+        })
+    }
+
+    /// Whether `address` is one of `account`'s verified wallets.
+    pub fn is_verified_wallet(&self, account: i64, address: &str) -> Result<bool> {
+        Ok(self
+            .db
+            .query_row(
+                "SELECT 1 FROM verified_wallets WHERE account = ?1 AND address = ?2 AND proven IS NOT NULL",
+                params![account, address],
+                |_| Ok(()),
+            )
+            .optional()?
+            .is_some())
     }
 
     /// `account`'s verified wallets, as its profile shows them.

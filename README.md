@@ -354,55 +354,75 @@ cargo test --release -p orien-net --test devnet throughput -- --ignored --nocapt
 | `deploy` | Publishing the website and releases, and the live validators' service |
 | `docs` | The design notes |
 
+## Security
+
+Orien is built only from standard, published constructions: the BLAKE3
+hash, one-time signatures in Merkle key trees, and SHA-256 for the locks
+swaps use. The way they are put together is new, and it has not yet had an
+independent review. Cryptographers and security researchers are welcome to
+look closely. Please report anything you find to hello@orien.network before
+publishing it.
+
 ## Known limitations
 
-- **No delegation.** Staking backs your own validator; backing someone
-  else's is designed for later.
-- **Work shares are kept in memory.** A validator restarted mid-hour
-  forgets the shares it had taken; those that reached other validators
-  still count.
+What someone holding or sending ORN should know:
+
+- **Signing twice with one key leaks it.** Two signatures from one one-time
+  key reveal enough to forge further payments under that number. A wallet
+  records what each of its keys signed, never signs anything different with
+  it, and asks the validators before it signs, but two copies of one wallet
+  signing at the same instant can still do it. Until validators holding a
+  third of the stake have voted on either payment, someone who sees both
+  signatures could get a forged third one accepted. The account's spare keys
+  are fixed in its address beforehand, so whoever can forge the burned key
+  has no hold on the account after the checkpoint.
 - **Sixteen spare keys per account.** Each time an owner signs two different
   payments under one number, a checkpoint cancels both and the account moves
   to its next spare key. After sixteen such accidents the account stays
   locked.
-- **Signing twice with one key leaks it.** Two signatures from one one-time
-  key reveal enough to forge further payments under that number. A wallet
-  records what each of its keys signed and never signs anything different
-  with it, and asks the validators before it signs, but two copies of a
-  wallet signing at the same instant can still do it. Until validators holding a third of the stake have voted on either
-  payment, someone who sees both signatures could get a forged third one
-  accepted. The spare keys are fixed in the address beforehand, so whoever
-  can forge the burned key has no hold on the account after the checkpoint.
-- **No receipt for a payment a checkpoint settled.** A payment that had its
+- **A signed payment can't be cancelled.** Once signed, a payment can only be
+  finished as it is, by any copy of the wallet.
+
+### How it works, by design
+
+- **Checkpoints and history are kept forever.** A validator deletes each
+  epoch's payment log and closing messages once it has moved on, and keeps
+  only its last three snapshots of the balances; one that has been away
+  catches up by the checkpoints. The checkpoints themselves, about 40 KB an
+  hour with 33 validators, are kept so that anyone can follow the network
+  from its genesis file, and so is each account's incoming history.
+- **Receipts grow with the validator set**, by 1 to 3 KB per vote.
+- **A receipt from a later epoch needs the checkpoints.** A receipt from the
+  first epoch checks against the genesis file alone; one from a later epoch
+  checks against that epoch's validators, which a computer learns by
+  following the checkpoints, one small download per epoch. `orien verify`
+  downloads the ones it needs by itself.
+
+### Still to come
+
+- **Delegation.** Staking backs your own validator; backing someone else's
+  is designed for later.
+- **Receipts for payments a checkpoint settled.** A payment that had its
   votes when a checkpoint began, and that the checkpoint took in, is final
   without confirmations. The wallet says so, but cannot yet hand over a
   proof of it.
-- **A receipt from a later epoch needs the checkpoints.** A receipt from the
-  first epoch checks against the genesis file alone. One from a later epoch
-  checks against that epoch's validators, which a computer learns by
-  following the checkpoints, one small download per epoch.
-- **Checkpoints are kept forever.** A validator deletes each epoch's
-  payment log and closing messages once it has moved on and keeps only its
-  last three snapshots of the balances; one that has been away catches up
-  by the checkpoints. The checkpoints themselves, about 40 KB an hour with
-  33 validators, are kept so that anyone can follow the network from its
-  genesis file.
-- **A wallet cannot replace a signed payment.** Once signed, a payment can
-  only be finished as it is, by any copy of the wallet. It cannot be
-  cancelled.
-- **A validator that uses up its whole key tree is stuck.** Validators build
+- **Encrypted connections.** Validators, wallets and miners talk without
+  encryption, with one thread per connection.
+- **Work shares on disk.** A validator restarted mid-hour forgets the shares
+  it had taken; those that reached other validators still count.
+- **A way back for a validator that uses up its key tree.** Validators build
   a fresh tree when the old one is half used and switch to it at a
-  checkpoint. One that still runs out completely, after a long outage at
-  the wrong moment, has no key left to announce the new tree with.
-- **Receipts grow with the validator set**, at 1 to 3 KB per vote.
-- **Networking is basic**: one thread per connection, and no encryption.
-  A validator takes at most 1,024 connections, 64 from one address. Raise
-  `ulimit -n` before putting real load on a validator.
+  checkpoint. One that still runs out completely, after a long outage at the
+  wrong moment, has no key left to announce the new tree with.
+
+### Running a validator
+
+- **Connections.** A validator takes at most 1,024 connections, 64 from one
+  address (the epoch's validators are exempt). Raise `ulimit -n` before
+  putting real load on one.
 - **Validator keys sit unencrypted on disk**, readable only by their owner.
-  Wallets can be sealed with a password.
-- **No outside review yet.** The building blocks are standard published
-  constructions, but this composition is new. Review by outside
-  cryptographers is the most important thing still to come.
+  Wallets, by contrast, can be sealed with a password, and Orien Wallet on
+  Mac and iPhone can lock them with Touch ID or Face ID instead.
 
 ## License
 

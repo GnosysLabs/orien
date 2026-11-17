@@ -8,6 +8,7 @@ import { ask, MarketError, NAME_PATTERN, NAME_RULE, pictureUrl, profileHref, typ
 import { Avatar } from './Avatar'
 import { Notice } from './Shell'
 import { AutoTextarea } from '@/components/AutoTextarea'
+import { DiscordIcon, TelegramIcon, XIcon } from '@/components/Header'
 
 const field = 'w-full rounded-xl border border-line bg-bg px-4 py-3 text-ink outline-none focus:border-pearl/60'
 
@@ -16,7 +17,7 @@ const field = 'w-full rounded-xl border border-line bg-bg px-4 py-3 text-ink out
 export function ProfileEditor({ account, onSaved }: { account: Account; onSaved: () => void }) {
   const [name, setName] = useState(account.name)
   const [bio, setBio] = useState(account.bio)
-  const [email, setEmail] = useState(account.contact.email)
+  const [discord, setDiscord] = useState(account.contact.discord ?? '')
   const [telegram, setTelegram] = useState(account.contact.telegram)
   const [x, setX] = useState(account.contact.x)
   const [busy, setBusy] = useState<'' | 'text' | 'picture' | 'banner'>('')
@@ -27,7 +28,7 @@ export function ProfileEditor({ account, onSaved }: { account: Account; onSaved:
   const changed =
     name !== account.name ||
     bio !== account.bio ||
-    email !== account.contact.email ||
+    discord !== (account.contact.discord ?? '') ||
     telegram !== account.contact.telegram ||
     x !== account.contact.x
 
@@ -42,16 +43,16 @@ export function ProfileEditor({ account, onSaved }: { account: Account; onSaved:
   useEffect(() => {
     if (!changed || !nameOk) return
     const timer = setTimeout(async () => {
-      const sent = { name, bio, email, telegram, x }
+      const sent = { name, bio, discord, telegram, x }
       setBusy((b) => (b === '' ? 'text' : b))
       setTrouble('')
       setSaved(false)
       try {
-        const answer = await ask<{ account: Account }>('/me', 'PUT', { name, bio, contact: { email, telegram, x } })
+        const answer = await ask<{ account: Account }>('/me', 'PUT', { name, bio, contact: { telegram, x, discord } })
         // Shown as the server tidied them, such as without the @, unless
         // they were changed again meanwhile.
         const c = answer.account.contact
-        setEmail((now) => (now === sent.email ? c.email : now))
+        setDiscord((now) => (now === sent.discord ? c.discord : now))
         setTelegram((now) => (now === sent.telegram ? c.telegram : now))
         setX((now) => (now === sent.x ? c.x : now))
         setSaved(true)
@@ -63,7 +64,7 @@ export function ProfileEditor({ account, onSaved }: { account: Account; onSaved:
     }, 1500)
     return () => clearTimeout(timer)
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [name, bio, email, telegram, x])
+  }, [name, bio, discord, telegram, x])
 
   const upload = async (file: File | undefined) => {
     if (!file) return
@@ -190,20 +191,29 @@ export function ProfileEditor({ account, onSaved }: { account: Account; onSaved:
         />
       </label>
       <fieldset className="space-y-3">
-        <legend className="text-sm font-semibold text-ink">Other ways to reach you (optional)</legend>
-        <p className="text-sm text-muted">
-          Buyers can always message you here. Add these too if you like: everyone can see them.
-        </p>
+        <legend className="text-sm font-semibold text-ink">Socials</legend>
+        <p className="text-sm text-muted">Show your accounts on your profile, if you like. Everyone can see them.</p>
         <div className="grid gap-3 sm:grid-cols-3">
-          <input
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            placeholder="Email"
-            className={field}
-          />
-          <input value={telegram} onChange={(e) => setTelegram(e.target.value)} placeholder="Telegram" className={field} />
-          <input value={x} onChange={(e) => setX(e.target.value)} placeholder="X" className={field} />
+          {(
+            [
+              ['Telegram', telegram, setTelegram, TelegramIcon],
+              ['X', x, setX, XIcon],
+              ['Discord', discord, setDiscord, DiscordIcon],
+            ] as const
+          ).map(([label, value, set, Icon]) => (
+            <label key={label} className="relative block">
+              <Icon className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-muted" />
+              <input
+                value={value}
+                onChange={(e) => set(e.target.value)}
+                placeholder={label}
+                aria-label={`Your ${label} username`}
+                spellCheck={false}
+                autoCapitalize="off"
+                className={`${field} pl-11`}
+              />
+            </label>
+          ))}
         </div>
       </fieldset>
       {trouble && <Notice tone="bad">{trouble}</Notice>}

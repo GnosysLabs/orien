@@ -1,96 +1,12 @@
 'use client'
 
-import { useEffect, useState } from 'react'
-import { BadgeCheck, Wallet } from 'lucide-react'
+import { useEffect, useRef, useState } from 'react'
+import { BadgeCheck, MoreHorizontal, Plus, Wallet } from 'lucide-react'
 import { CopyText } from '@/components/CopyText'
 import { ask, sentence, type Account, type WalletProof } from '@/lib/market'
 import { Notice } from './Shell'
 
 const short = (address: string) => `${address.slice(0, 8)}…${address.slice(-8)}`
-
-/** The Orien wallet buyers pay this seller's listings to. */
-export function WalletCheck({ account, onVerified }: { account: Account; onVerified: () => void }) {
-  const [address, setAddress] = useState('')
-  const [changing, setChanging] = useState(false)
-  const [busy, setBusy] = useState(false)
-  const [trouble, setTrouble] = useState('')
-
-  const link = async (event: React.FormEvent) => {
-    event.preventDefault()
-    setBusy(true)
-    setTrouble('')
-    try {
-      await ask('/me/wallet', 'POST', { address: address.trim() })
-      setAddress('')
-      setChanging(false)
-      onVerified()
-    } catch (error) {
-      setTrouble(sentence((error as Error).message))
-    }
-    setBusy(false)
-  }
-
-  const box = 'space-y-4 rounded-2xl border border-line bg-surface p-6 sm:p-8'
-
-  if (account.wallet && !changing) {
-    return (
-      <section className={box}>
-        <div className="flex flex-wrap items-center gap-3">
-          <Wallet className="h-5 w-5 text-pearl" strokeWidth={1.75} aria-hidden />
-          <h2 className="text-lg font-bold tracking-tight text-ink">Paid to</h2>
-          <code className="num text-sm text-muted">{short(account.wallet)}</code>
-          {account.wallet_verified && <VerifiedBadge />}
-          <button
-            type="button"
-            onClick={() => setChanging(true)}
-            className="ml-auto text-sm font-semibold text-muted underline underline-offset-4 hover:text-ink"
-          >
-            Use a different wallet
-          </button>
-        </div>
-        <p className="text-sm leading-relaxed text-muted">Buyers pay your listings straight to this wallet.</p>
-      </section>
-    )
-  }
-
-  return (
-    <form onSubmit={link} className={box}>
-      <div className="flex items-center gap-3">
-        <Wallet className="h-5 w-5 text-pearl" strokeWidth={1.75} aria-hidden />
-        <h2 className="text-lg font-bold tracking-tight text-ink">
-          {account.wallet ? 'Use a different wallet' : 'Add your wallet to start selling'}
-        </h2>
-      </div>
-      <p className="leading-relaxed text-muted">
-        Buyers pay you straight to your Orien wallet. The easiest way is to sign in from Orien Wallet, which adds itself.
-        Or paste its address here.
-      </p>
-      <input
-        value={address}
-        onChange={(e) => setAddress(e.target.value)}
-        required
-        spellCheck={false}
-        placeholder="Your Orien address: 64 letters and digits"
-        className="num w-full rounded-xl border border-line bg-bg px-4 py-3 text-sm text-ink outline-none focus:border-pearl/60"
-      />
-      {trouble && <Notice tone="bad">{trouble}</Notice>}
-      <div className="flex items-center gap-4">
-        <button
-          type="submit"
-          disabled={busy}
-          className="pearl-fill flex h-11 items-center rounded-xl px-6 text-sm font-bold transition hover:brightness-105 disabled:opacity-60"
-        >
-          {busy ? 'One moment…' : 'Use this wallet'}
-        </button>
-        {changing && (
-          <button type="button" onClick={() => setChanging(false)} className="text-sm font-semibold text-muted hover:text-ink">
-            Cancel
-          </button>
-        )}
-      </div>
-    </form>
-  )
-}
 
 /** A small green "Verified" mark for a wallet proven to be its owner's. */
 export function VerifiedBadge() {
@@ -103,21 +19,23 @@ export function VerifiedBadge() {
 
 type Named = { address: string; name: string }
 
-/** The wallets you've proven are yours, and proving more: each by one
- * tiny payment from it. */
-export function VerifiedWallets({ account, onChange }: { account: Account; onChange: () => void }) {
-  const [wallets, setWallets] = useState<WalletProof[] | null>(null)
+/** One row's place in the list: a proof (verified or waiting), or the wallet
+ * paid at from before verifying existed. */
+type Row = { address: string; name: string | null; proof: WalletProof | null }
+
+/** Your wallets, in one place: which ones are proven yours, which one buyers
+ * pay, and adding another, which proves it with one tiny payment. */
+export function YourWallets({ account, onChange }: { account: Account; onChange: () => void }) {
+  const [proofs, setProofs] = useState<WalletProof[] | null>(null)
   const [named, setNamed] = useState<Named[]>([])
-  const [choice, setChoice] = useState('')
-  const [typed, setTyped] = useState('')
-  const [busy, setBusy] = useState(false)
+  const [adding, setAdding] = useState(false)
   const [trouble, setTrouble] = useState('')
 
   const load = () =>
     ask<{ wallets: WalletProof[] }>('/me/wallet')
       .then((found) => {
-        setWallets((before) => {
-          // A wallet newly verified changes the profile's badge.
+        setProofs((before) => {
+          // A wallet newly verified can change the account: tell the page.
           if (before && found.wallets.some((w) => w.verified && !before.find((b) => b.address === w.address)?.verified)) {
             onChange()
           }
@@ -133,7 +51,7 @@ export function VerifiedWallets({ account, onChange }: { account: Account; onCha
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
   // While a wallet's payment is awaited, look every few seconds.
-  const waiting = wallets?.some((w) => !w.verified)
+  const waiting = proofs?.some((w) => !w.verified)
   useEffect(() => {
     if (!waiting) return
     const timer = setInterval(load, 5000)
@@ -141,31 +59,10 @@ export function VerifiedWallets({ account, onChange }: { account: Account; onCha
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [waiting])
 
-  const verify = async (address: string) => {
-    setBusy(true)
+  const act = async (run: () => Promise<unknown>) => {
     setTrouble('')
     try {
-      await ask('/me/wallet/verify', 'POST', { address: address.trim() })
-      setChoice('')
-      setTyped('')
-      await load()
-    } catch (error) {
-      setTrouble(sentence((error as Error).message))
-    }
-    setBusy(false)
-  }
-  const payHere = async (address: string) => {
-    setTrouble('')
-    try {
-      await ask('/me/wallet', 'POST', { address })
-      onChange()
-    } catch (error) {
-      setTrouble(sentence((error as Error).message))
-    }
-  }
-  const remove = async (address: string) => {
-    try {
-      await ask('/me/wallet/remove', 'POST', { address })
+      await run()
       await load()
       onChange()
     } catch (error) {
@@ -173,83 +70,182 @@ export function VerifiedWallets({ account, onChange }: { account: Account; onCha
     }
   }
 
-  const listed = new Set((wallets ?? []).map((w) => w.address))
-  const offered = named.filter((w) => !listed.has(w.address))
-  const label = (w: WalletProof) =>
-    w.name ?? named.find((n) => n.address === w.address)?.name ?? (w.address === account.wallet ? 'Paid-to wallet' : 'Wallet')
+  const nameOf = (address: string, proof: WalletProof | null) =>
+    proof?.name ?? named.find((n) => n.address === address)?.name ?? null
+  const rows: Row[] = (proofs ?? []).map((p) => ({ address: p.address, name: nameOf(p.address, p), proof: p }))
+  if (account.wallet && !rows.some((r) => r.address === account.wallet)) {
+    rows.unshift({ address: account.wallet, name: nameOf(account.wallet, null), proof: null })
+  }
 
   return (
     <section className="space-y-4 rounded-2xl border border-line bg-surface p-6 sm:p-8">
       <div className="flex items-center gap-3">
-        <BadgeCheck className="h-5 w-5 text-pearl" strokeWidth={1.75} aria-hidden />
-        <h2 className="text-lg font-bold tracking-tight text-ink">Verified wallets</h2>
+        <Wallet className="h-5 w-5 text-pearl" strokeWidth={1.75} aria-hidden />
+        <h2 className="text-lg font-bold tracking-tight text-ink">Your wallets</h2>
       </div>
       <p className="text-sm leading-relaxed text-muted">
-        Prove a wallet is yours and people who pay you see it by name in Orien Wallet, as{' '}
-        <strong className="text-ink">{account.name} – Savings</strong>, with your picture. Each wallet proves itself by
-        sending a tiny amount from its balance to Orien Network: less than 0.001 ORN, fee included.{' '}
-        <strong className="text-ink">
-          Verifying ties the wallet to your name publicly: everyone will see it&apos;s yours, including its balance.
-        </strong>
+        Buyers pay you straight to the wallet marked <strong className="text-ink">Paid here</strong>. Verified wallets show
+        your name and picture when people pay you in Orien Wallet. To sell, you need one.
       </p>
 
-      {wallets && wallets.length > 0 && (
+      {proofs !== null && rows.length > 0 && (
         <ul className="divide-y divide-line rounded-xl border border-line bg-bg">
-          {wallets.map((w) => (
-            <li key={w.address} className="space-y-3 px-4 py-3">
-              <div className="flex flex-wrap items-center gap-3">
-                <span className="font-semibold text-ink">{label(w)}</span>
-                <code className="num text-xs text-muted">{short(w.address)}</code>
-                {w.verified ? (
-                  <VerifiedBadge />
-                ) : (
-                  <span className="text-xs font-semibold text-muted">Waiting for its payment</span>
-                )}
-                {w.address === account.wallet && <span className="text-xs font-semibold text-pearl">Paid here</span>}
-                <span className="ml-auto flex items-center gap-4">
-                  {w.verified && w.address !== account.wallet && (
-                    <button
-                      type="button"
-                      onClick={() => payHere(w.address)}
-                      className="text-xs font-semibold text-ink underline underline-offset-4 hover:text-pearl"
-                    >
-                      Get paid here
-                    </button>
-                  )}
-                  <button
-                    type="button"
-                    onClick={() => remove(w.address)}
-                    className="text-xs font-semibold text-muted underline underline-offset-4 hover:text-ink"
-                  >
-                    Remove
-                  </button>
-                </span>
-              </div>
-              {!w.verified && (
-                <div className="space-y-3">
-                  <p className="text-sm leading-relaxed text-muted">
-                    In Orien Wallet, tap <strong className="text-ink">Verify</strong> and it sends this for you. Or send it
-                    yourself, <strong className="text-ink">from this wallet</strong>: exactly{' '}
-                    <strong className="num text-ink">{w.orn} ORN</strong> to Orien Network. This page shows Verified within
-                    seconds of the payment.
-                  </p>
-                  <CopyText label="Orien Network's address" text={w.to} />
-                  <CopyText label="Amount, in ORN" text={w.orn} />
-                </div>
-              )}
-            </li>
+          {rows.map((row) => (
+            <WalletRow
+              key={row.address}
+              row={row}
+              paidHere={row.address === account.wallet}
+              onPayHere={() => act(() => ask('/me/wallet', 'POST', { address: row.address }))}
+              onVerify={() => act(() => ask('/me/wallet/verify', 'POST', { address: row.address }))}
+              onRemove={() => act(() => ask('/me/wallet/remove', 'POST', { address: row.address }))}
+            />
           ))}
         </ul>
       )}
 
+      {adding ? (
+        <AddWallet
+          offered={named.filter((n) => !rows.some((r) => r.address === n.address))}
+          onAdd={(address) =>
+            act(async () => {
+              await ask('/me/wallet/verify', 'POST', { address })
+              setAdding(false)
+            })
+          }
+          onCancel={() => setAdding(false)}
+        />
+      ) : (
+        <button
+          type="button"
+          onClick={() => setAdding(true)}
+          className="flex h-10 items-center gap-2 rounded-xl border border-line bg-bg px-4 text-sm font-semibold text-ink transition hover:border-pearl"
+        >
+          <Plus className="h-4 w-4" aria-hidden /> Add a wallet
+        </button>
+      )}
+      {trouble && <Notice tone="bad">{trouble}</Notice>}
+    </section>
+  )
+}
+
+function WalletRow({
+  row,
+  paidHere,
+  onPayHere,
+  onVerify,
+  onRemove,
+}: {
+  row: Row
+  paidHere: boolean
+  onPayHere: () => void
+  onVerify: () => void
+  onRemove: () => void
+}) {
+  const [menu, setMenu] = useState(false)
+  const box = useRef<HTMLDivElement>(null)
+  useEffect(() => {
+    if (!menu) return
+    const close = (event: MouseEvent) => {
+      if (!box.current?.contains(event.target as Node)) setMenu(false)
+    }
+    document.addEventListener('mousedown', close)
+    return () => document.removeEventListener('mousedown', close)
+  }, [menu])
+  const verified = row.proof?.verified ?? false
+  const waiting = row.proof !== null && !verified
+
+  return (
+    <li className="space-y-3 px-4 py-3">
+      <div className="flex flex-wrap items-center gap-3">
+        <span className="font-semibold text-ink">{row.name ?? 'Wallet'}</span>
+        <code className="num text-xs text-muted">{short(row.address)}</code>
+        {verified ? (
+          <VerifiedBadge />
+        ) : waiting ? (
+          <span className="text-xs font-semibold text-muted">Waiting for its payment</span>
+        ) : (
+          <span className="text-xs font-semibold text-warn">Not verified yet</span>
+        )}
+        <span className="ml-auto flex items-center gap-3">
+          {paidHere ? (
+            <span className="text-xs font-semibold text-pearl">Paid here</span>
+          ) : (
+            verified && (
+              <button type="button" onClick={onPayHere} className="text-xs font-semibold text-ink underline underline-offset-4 hover:text-pearl">
+                Get paid here
+              </button>
+            )
+          )}
+          {row.proof === null && (
+            <button type="button" onClick={onVerify} className="text-xs font-semibold text-ink underline underline-offset-4 hover:text-pearl">
+              Verify
+            </button>
+          )}
+          {row.proof !== null && (
+            <div ref={box} className="relative">
+              <button
+                type="button"
+                aria-label="More"
+                onClick={() => setMenu(!menu)}
+                className="flex h-7 w-7 items-center justify-center rounded-lg text-muted transition hover:bg-raised hover:text-ink"
+              >
+                <MoreHorizontal className="h-4 w-4" aria-hidden />
+              </button>
+              {menu && (
+                <div className="absolute right-0 top-full z-10 mt-1 w-40 rounded-xl border border-line bg-surface p-1 shadow-2xl shadow-black/40">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setMenu(false)
+                      onRemove()
+                    }}
+                    className="w-full rounded-lg px-3 py-2 text-left text-sm font-semibold text-ink transition hover:bg-raised"
+                  >
+                    Remove
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
+        </span>
+      </div>
+      {waiting && row.proof && (
+        <div className="space-y-3">
+          <p className="text-sm leading-relaxed text-muted">
+            In Orien Wallet, tap <strong className="text-ink">Verify</strong> and it sends this for you. Or send it yourself,{' '}
+            <strong className="text-ink">from this wallet</strong>: exactly{' '}
+            <strong className="num text-ink">{row.proof.orn} ORN</strong> to Orien Network. This shows Verified within
+            seconds of the payment.
+          </p>
+          <CopyText label="Orien Network's address" text={row.proof.to} />
+          <CopyText label="Amount, in ORN" text={row.proof.orn} />
+        </div>
+      )}
+    </li>
+  )
+}
+
+/** Adding a wallet: one from your Orien Wallet apps, or an address. */
+function AddWallet({ offered, onAdd, onCancel }: { offered: Named[]; onAdd: (address: string) => void; onCancel: () => void }) {
+  const [choice, setChoice] = useState(offered[0]?.address ?? 'other')
+  const [typed, setTyped] = useState('')
+  const address = choice === 'other' ? typed.trim() : choice
+  return (
+    <div className="space-y-3 rounded-xl border border-line bg-bg p-4">
+      <h3 className="font-semibold text-ink">Add a wallet</h3>
+      <p className="text-sm leading-relaxed text-muted">
+        The wallet proves it&apos;s yours by sending a tiny amount from its balance to Orien Network: less than 0.001 ORN,
+        fee included.{' '}
+        <strong className="text-ink">Everyone will then see it&apos;s yours, including its balance.</strong> Don&apos;t
+        have any ORN yet? Mine for an hour in Orien Wallet, or buy a little on Buy &amp; sell.
+      </p>
       <div className="flex flex-wrap items-center gap-3">
         {offered.length > 0 && (
           <select
             value={choice}
             onChange={(e) => setChoice(e.target.value)}
-            className="h-10 rounded-xl border border-line bg-bg px-3 text-sm text-ink outline-none focus:border-pearl/60"
+            className="h-10 rounded-xl border border-line bg-surface px-3 text-sm text-ink outline-none focus:border-pearl/60"
           >
-            <option value="">Choose a wallet to verify…</option>
             {offered.map((w) => (
               <option key={w.address} value={w.address}>
                 {w.name} ({short(w.address)})
@@ -258,25 +254,29 @@ export function VerifiedWallets({ account, onChange }: { account: Account; onCha
             <option value="other">Another address…</option>
           </select>
         )}
-        {(offered.length === 0 || choice === 'other') && (
+        {choice === 'other' && (
           <input
             value={typed}
             onChange={(e) => setTyped(e.target.value)}
             spellCheck={false}
-            placeholder="Orien address of a wallet to verify"
-            className="num h-10 min-w-0 flex-1 rounded-xl border border-line bg-bg px-3 text-sm text-ink outline-none focus:border-pearl/60"
+            placeholder="Orien address: 64 letters and digits"
+            className="num h-10 min-w-0 flex-1 rounded-xl border border-line bg-surface px-3 text-sm text-ink outline-none focus:border-pearl/60"
           />
         )}
+      </div>
+      <div className="flex items-center gap-4">
         <button
           type="button"
-          onClick={() => verify(choice && choice !== 'other' ? choice : typed)}
-          disabled={busy || !((choice && choice !== 'other') || typed.trim())}
-          className="pearl-fill flex h-10 items-center rounded-xl px-4 text-sm font-bold transition hover:brightness-105 disabled:opacity-40"
+          onClick={() => onAdd(address)}
+          disabled={!address}
+          className="pearl-fill flex h-10 items-center rounded-xl px-5 text-sm font-bold transition hover:brightness-105 disabled:opacity-40"
         >
-          {busy ? 'One moment…' : 'Verify'}
+          Verify this wallet
+        </button>
+        <button type="button" onClick={onCancel} className="text-sm font-semibold text-muted hover:text-ink">
+          Cancel
         </button>
       </div>
-      {trouble && <Notice tone="bad">{trouble}</Notice>}
-    </section>
+    </div>
   )
 }

@@ -7,7 +7,7 @@ export const SITE_DESCRIPTION =
 export const DISCORD = 'https://discord.gg/5FFRZAw3u9'
 /** Orien on X. */
 export const X_ACCOUNT = 'https://x.com/OrienNetwork'
-export const OPERATOR = 'GnosysLabs LLC'
+export const OPERATOR = 'Gnosys Labs LLC'
 export const OPERATOR_URL = 'https://gnosyslabs.xyz'
 
 /** Whether this build of the site includes the marketplace, the swap board

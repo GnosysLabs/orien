@@ -101,25 +101,25 @@ pub struct Account {
     pub created: u64,
 }
 
-/// How buyers reach a seller: any of a public email, a Telegram username
-/// and an X username.
+/// How buyers reach a seller besides messages: any of a Telegram, an X and
+/// a Discord username. Messages are built in, so no email is shown.
 #[derive(Clone, Debug, Default, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Contact {
-    #[serde(default)]
-    pub email: String,
     #[serde(default)]
     pub telegram: String,
     #[serde(default)]
     pub x: String,
+    #[serde(default)]
+    pub discord: String,
 }
 
 impl Contact {
     pub fn is_empty(&self) -> bool {
-        self.email.is_empty() && self.telegram.is_empty() && self.x.is_empty()
+        self.telegram.is_empty() && self.x.is_empty() && self.discord.is_empty()
     }
 
-    /// Tidied: an email in lower case, and bare usernames, whether typed with
-    /// an @ or as a link. Or why one cannot be used.
+    /// Tidied: bare usernames, whether typed with an @ or as a link. Or why
+    /// one cannot be used.
     pub fn checked(&self) -> Result<Contact> {
         let handle = |text: &str, hosts: &[&str]| {
             let mut handle = text.trim();
@@ -136,6 +136,7 @@ impl Contact {
         };
         let telegram = handle(&self.telegram, &["t.me", "telegram.me"]);
         let x = handle(&self.x, &["x.com", "twitter.com"]);
+        let discord = self.discord.trim().trim_start_matches('@').to_lowercase();
         let word = |h: &str| h.bytes().all(|b| b.is_ascii_alphanumeric() || b == b'_');
         if !telegram.is_empty() && (!(5..=32).contains(&telegram.len()) || !word(&telegram)) {
             bail!("a Telegram username is 5 to 32 letters, digits and underscores");
@@ -143,8 +144,14 @@ impl Contact {
         if !x.is_empty() && (x.len() > 15 || !word(&x)) {
             bail!("an X username is up to 15 letters, digits and underscores");
         }
-        let email = if self.email.trim().is_empty() { String::new() } else { email(&self.email)? };
-        Ok(Contact { email, telegram, x })
+        if !discord.is_empty()
+            && (!(2..=32).contains(&discord.len())
+                || !discord.bytes().all(|b| b.is_ascii_lowercase() || b.is_ascii_digit() || b == b'_' || b == b'.')
+                || discord.contains(".."))
+        {
+            bail!("a Discord username is 2 to 32 lowercase letters, digits, underscores and full stops");
+        }
+        Ok(Contact { telegram, x, discord })
     }
 }
 
@@ -323,6 +330,19 @@ impl Store {
         if !has_banner {
             self.db.execute("ALTER TABLE accounts ADD COLUMN banner TEXT", [])?;
         }
+        // Profiles show a Discord username instead of a public email, which
+        // messages made needless: the emails shown before are forgotten.
+        let has_discord: bool = self.db.query_row(
+            "SELECT COUNT(*) > 0 FROM pragma_table_info('accounts') WHERE name = 'discord'",
+            [],
+            |row| row.get(0),
+        )?;
+        if !has_discord {
+            self.db.execute_batch(
+                "ALTER TABLE accounts ADD COLUMN discord TEXT NOT NULL DEFAULT '';
+                 UPDATE accounts SET contact_email = '';",
+            )?;
+        }
         Ok(())
     }
 
@@ -423,8 +443,8 @@ impl Store {
         let name = self.new_name(&name, Some(id))?;
         let contact = contact.checked()?;
         self.db.execute(
-            "UPDATE accounts SET name = ?2, bio = ?3, contact_email = ?4, telegram = ?5, x = ?6 WHERE id = ?1",
-            params![id, name, bio, contact.email, contact.telegram, contact.x],
+            "UPDATE accounts SET name = ?2, bio = ?3, discord = ?4, telegram = ?5, x = ?6 WHERE id = ?1",
+            params![id, name, bio, contact.discord, contact.telegram, contact.x],
         )?;
         self.account(id)?.ok_or_else(|| anyhow::anyhow!("no such account"))
     }
@@ -466,10 +486,15 @@ impl Store {
         Ok(())
     }
 
+    /// The verified wallet `account` is paid at: selling needs one, so
+    /// buyers always pay a wallet proven to be the seller's.
     fn wallet_of(&self, account: i64) -> Result<String> {
         let wallet: Option<String> =
             self.db.query_row("SELECT payout FROM accounts WHERE id = ?1", [account], |row| row.get(0))?;
-        wallet.ok_or_else(|| anyhow::anyhow!("link your Orien wallet first, under Your profile, so buyers' payments reach you"))
+        match wallet {
+            Some(wallet) if self.wallet_verified(account)? => Ok(wallet),
+            _ => bail!("verify a wallet to be paid at first, under Your wallets on your account page"),
+        }
     }
 
     /// Forgets a code that could not be sent.
@@ -487,7 +512,7 @@ impl Store {
         Ok(self
             .db
             .query_row(
-                "SELECT id, name, bio, picture, payout, created, contact_email, telegram, x, banner,
+                "SELECT id, name, bio, picture, payout, created, discord, telegram, x, banner,
                         EXISTS (SELECT 1 FROM verified_wallets p WHERE p.account = accounts.id AND p.proven IS NOT NULL AND p.address = accounts.payout)
                  FROM accounts WHERE id = ?1",
                 [id],
@@ -500,7 +525,7 @@ impl Store {
                         banner: row.get(9)?,
                         wallet: row.get(4)?,
                         wallet_verified: row.get(10)?,
-                        contact: Contact { email: row.get(6)?, telegram: row.get(7)?, x: row.get(8)? },
+                        contact: Contact { discord: row.get(6)?, telegram: row.get(7)?, x: row.get(8)? },
                         created: row.get(5)?,
                     })
                 },
@@ -636,6 +661,9 @@ impl Store {
     pub fn set_open(&self, seller: i64, id: i64, open: bool) -> Result<()> {
         if self.is_removed(id)? {
             bail!("this listing was taken down, and cannot be opened again");
+        }
+        if open {
+            self.wallet_of(seller)?;
         }
         let changed = self.db.execute(
             "UPDATE listings SET open = ?3, updated = ?4 WHERE id = ?1 AND seller = ?2",
@@ -803,8 +831,8 @@ mod tests {
         let maya = store.create_account("Maya", "maya").unwrap();
         let sam = store.create_account("Sam", "sam").unwrap();
         assert!(store.post(maya.id, &draft("Logo design")).is_err(), "a seller verifies a wallet first");
-        store.set_wallet(maya.id, &"a".repeat(64)).unwrap();
-        store.set_wallet(sam.id, &"b".repeat(64)).unwrap();
+        store.verified_wallet_for_tests(maya.id, &"a".repeat(64)).unwrap();
+        store.verified_wallet_for_tests(sam.id, &"b".repeat(64)).unwrap();
 
         let posted = store.post(maya.id, &draft("Logo design")).unwrap();
         assert_eq!((posted.seller_name.as_str(), posted.open), ("Maya", true));
@@ -838,7 +866,7 @@ mod tests {
     fn listings_are_checked() {
         let store = Store::in_memory().unwrap();
         let maya = store.create_account("Maya", "maya").unwrap();
-        store.set_wallet(maya.id, &"a".repeat(64)).unwrap();
+        store.verified_wallet_for_tests(maya.id, &"a".repeat(64)).unwrap();
         store.set_profile(maya.id, "Maya", "", &Contact { x: "maya".into(), ..Contact::default() }).unwrap();
         let bad = |change: fn(&mut Draft)| {
             let mut d = draft("Logo design");
@@ -895,18 +923,16 @@ mod tests {
 
     #[test]
     fn contact_details_are_tidied_or_refused() {
-        let typed = Contact {
-            email: " Maya@Example.com ".into(),
-            telegram: "https://t.me/maya_designs".into(),
-            x: "@MayaLin".into(),
-        };
+        let typed = Contact { telegram: "https://t.me/maya_designs".into(), x: "@MayaLin".into(), discord: " @Maya.Designs ".into() };
         let tidy = typed.checked().unwrap();
-        assert_eq!((tidy.email.as_str(), tidy.telegram.as_str(), tidy.x.as_str()), ("maya@example.com", "maya_designs", "MayaLin"));
+        assert_eq!((tidy.telegram.as_str(), tidy.x.as_str(), tidy.discord.as_str()), ("maya_designs", "MayaLin", "maya.designs"));
+        assert!(Contact { discord: "m".into(), ..Contact::default() }.checked().is_err());
+        assert!(Contact { discord: "two..dots".into(), ..Contact::default() }.checked().is_err());
+        assert!(Contact { discord: "has space".into(), ..Contact::default() }.checked().is_err());
         assert_eq!(Contact { x: "https://x.com/maya/".into(), ..Contact::default() }.checked().unwrap().x, "maya");
         assert!(Contact { telegram: "abc".into(), ..Contact::default() }.checked().is_err());
         assert!(Contact { x: "way_too_long_for_x_names".into(), ..Contact::default() }.checked().is_err());
         assert!(Contact { x: "no spaces".into(), ..Contact::default() }.checked().is_err());
-        assert!(Contact { email: "nope".into(), ..Contact::default() }.checked().is_err());
         assert!(Contact::default().checked().unwrap().is_empty());
     }
 

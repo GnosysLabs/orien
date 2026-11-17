@@ -52,7 +52,7 @@ export default function PaperPage() {
       />
       <header className="pb-6 pt-10 sm:pt-14 print:pt-0">
         <p className="mb-4 text-xs font-semibold uppercase tracking-[0.2em] text-muted print:text-neutral-500">
-          Technical paper · version 1.1
+          Technical paper
         </p>
         <h1 className="text-balance text-4xl font-bold leading-[1.1] tracking-tight text-ink sm:text-5xl print:text-3xl print:text-black">
           Orien: a quantum-proof cryptocurrency without blocks
@@ -66,8 +66,8 @@ export default function PaperPage() {
           proof-of-work.
         </p>
         <p className="mt-4 text-sm leading-relaxed text-muted print:text-[9pt] print:text-neutral-600">
-          This paper states the rules exactly as version 1.1 of the <strong className="text-ink print:text-black">orien</strong> program
-          implements them. Where the two could ever differ, the program’s source code is the reference.
+          This paper states the rules exactly as the <strong className="text-ink print:text-black">orien</strong> program implements
+          them. Where the two could ever differ, the program’s source code is the reference.
         </p>
         <a
           href="/orien-paper.pdf"
@@ -988,10 +988,11 @@ Refund [lock, buyer]            at or after the deadline: buyer += everything`}<
           </li>
           <li>
             <strong>Swaps need a wallet that is running.</strong> Each side’s wallet moves a swap along only while it is
-            open. A buyer who stays away past the ORN deadline after the seller took the Bitcoin loses the ORN, which
-            the deadlines leave more than a day to avoid. The proof of waiting locked payments carries the whole list
-            in one message, which outgrows it past about 130,000 of them; until it is split into pages, a buyer then
-            relies on the lock’s certificate, which serves only within the epoch the lock was made in.
+            open, so Orien Wallet keeps running in the background. Once the seller takes the payment, the seller’s
+            wallet also claims the ORN for the buyer, so the buyer need not be online for that step. The proof of
+            waiting locked payments carries the whole list in one message, which outgrows it past about 130,000 of
+            them; until it is split into pages, a buyer then relies on the lock’s certificate, which serves only
+            within the epoch the lock was made in.
           </li>
           <li>
             <strong>Large signatures.</strong> Hash-based signatures are about 20 times larger than elliptic-curve ones.

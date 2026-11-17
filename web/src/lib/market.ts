@@ -14,7 +14,7 @@ export type Account = {
   created: number
 }
 
-export type Contact = { email: string; telegram: string; x: string }
+export type Contact = { telegram: string; x: string; discord: string }
 
 /** A wallet its owner proved is theirs, by its name in their Orien Wallet. */
 export type VerifiedWallet = { address: string; name: string | null }

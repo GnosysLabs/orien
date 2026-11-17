@@ -140,7 +140,7 @@ const ogSvg = `<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630"
   </g>
 
   <text x="600" y="562" text-anchor="middle" font-family="Geist Mono, SFMono-Regular, Menlo, monospace" font-size="20" fill="#8d8d9e">
-    orien.network · GnosysLabs LLC
+    orien.network · Gnosys Labs LLC
   </text>
 </svg>`
 

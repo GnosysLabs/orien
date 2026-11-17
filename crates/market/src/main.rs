@@ -68,6 +68,12 @@ struct Args {
     /// Without any, everyone on the tailnet may.
     #[arg(long, value_delimiter = ',')]
     admin_logins: Vec<String>,
+    /// An email for App Store review that signs in with a fixed code, never
+    /// emailed; the code is read from --review-code-file.
+    #[arg(long, requires = "review_code_file")]
+    review_email: Option<String>,
+    #[arg(long)]
+    review_code_file: Option<PathBuf>,
     /// Who the codes come from.
     #[arg(long, default_value = "Orien Network <noreply@orien.network>")]
     from: String,
@@ -180,7 +186,7 @@ async fn main() -> Result<()> {
     // So are the website's traffic counts.
     let traffic = args.db.parent().unwrap_or(std::path::Path::new(".")).join("traffic");
     let payments = Arc::new(Network::open(&args.genesis)?);
-    let app = Arc::new(App::new(
+    let app = App::new(
         Store::open(&args.db)?,
         Folder::open(&images)?,
         &args.origin,
@@ -191,7 +197,14 @@ async fn main() -> Result<()> {
         &address,
     )?
     .with_traffic(orien_market::traffic::Traffic::open(traffic))
-    .with_min_swap_version(args.min_swap_version));
+    .with_min_swap_version(args.min_swap_version);
+    let app = Arc::new(match (&args.review_email, &args.review_code_file) {
+        (Some(email), Some(file)) => {
+            let code = std::fs::read_to_string(file).with_context(|| format!("cannot read {}", file.display()))?;
+            app.with_review(email, &code)?
+        }
+        _ => app,
+    });
     let apns = match &args.apns_key {
         Some(key) => orien_market::push::Apns::load(key, &args.apns_key_id, &args.apns_team)?,
         None => {
