@@ -927,13 +927,21 @@
   }
   .amount-entry input:focus { outline: none; }
   .amount-entry input::placeholder { color: var(--faint); }
-  .amount-entry .hint { margin-top: 8px; font-size: 12.5px; color: var(--dim); }
-  .amount-entry .send-all { margin-top: 10px; }
+  .amount-entry .amount-unit { margin-top: 2px; font-size: 13px; font-weight: 600; letter-spacing: 0.12em; color: var(--faint); }
+  .amount-entry .hint { margin-top: 14px; font-size: 13px; color: var(--dim); display: flex; justify-content: center; align-items: center; gap: 4px; flex-wrap: wrap; }
+  .amount-entry .send-all { border: 0; background: none; padding: 6px 4px; font: inherit; font-weight: 600; color: var(--ink); cursor: pointer; }
+  .amount-entry .send-all::before { content: "·"; margin-right: 8px; color: var(--faint); font-weight: 400; }
+  /* iPhones: the amount big, as on computers (16 points is only the least
+     a box may be), and Review at the foot of the screen, above the keyboard. */
+  body.phone .amount-entry { padding-top: 28px; }
+  body.phone .amount-entry input { font-size: var(--amount-size, 52px) !important; }
+  body.phone #send .push { flex: 1 1 auto; }
+  body.phone #send #to-review { margin-bottom: 4px; }
   .amount-mirror { position: absolute; left: -9999px; top: 0; visibility: hidden; white-space: pre; }
   .fee-line { margin-top: 4px; min-height: 18px; font-size: 12px; color: var(--faint); }
   .fee-line.bad { color: var(--bad); }
   .amount-entry .hint button {
-    border: 0; background: none; padding: 0; margin-left: 4px; color: #d8d3f4; cursor: pointer; font-size: 12.5px;
+    border: 0; background: none; padding: 6px 4px; margin-left: 4px; color: var(--ink); cursor: pointer; font-size: 13px; font-weight: 600;
   }
 
   .field label { display: block; margin: 0 0 7px 2px; font-size: 12px; color: var(--dim); }
@@ -1632,8 +1640,8 @@
 
       <div class="amount-entry">
         <input id="amount" placeholder="0" inputmode="decimal" autocomplete="off">
-        <div class="hint"><span id="available"></span></div>
-        <button class="chip send-all" id="all" type="button">Send all</button>
+        <div class="amount-unit">ORN</div>
+        <div class="hint"><span id="available"></span><button class="send-all" id="all" type="button">Use max</button></div>
         <div class="fee-line" id="fee-line"></div>
       </div>
 
@@ -3177,7 +3185,7 @@
 
   function validate() {
     const has = view && view.balance !== null;
-    $("available").textContent = has ? `${view.balance} ORN available` : "";
+    $("available").textContent = has ? `${shortBalance(view.balance)} ORN available` : "";
     $("all").hidden = !has || view.most === "0";
 
     const to = $("to").value.trim();
@@ -3229,8 +3237,8 @@
   const nameOf = (address) => (walletList.find((w) => w.address === address) || {}).name || profileLabel(profileOf(address)) || (named(address) || {}).name;
   // The person's other wallets, as places to send to.
   const ownWallet = (address) => walletList.find((w) => w.address === address && !w.current);
-  // As a name is typed: contacts and other wallets whose name or address
-  // matches, names starting with it first. Nothing while the box is empty
+  // As a name is typed: contacts and other wallets whose name (or the start
+  // of whose address) matches, names starting with it first. Nothing while the box is empty
   // or holds a whole address.
   function suggest(text) {
     const q = text.trim().toLowerCase();
@@ -3240,7 +3248,12 @@
       ...book.map((c) => ({ name: c.name, address: c.address, sub: short(c.address), mine: false })),
       ...walletList.filter((w) => !w.current).map((w) => ({ name: w.name, address: w.address, sub: "Your wallet", mine: true })),
     ];
-    const score = (p) => p.name.toLowerCase().startsWith(q) ? 0 : p.name.toLowerCase().includes(q) ? 1 : p.address.startsWith(q) ? 2 : 3;
+    // As Contacts does: a name matches where any of its words starts with
+    // what's typed; an address only by its start, and only from 4 characters.
+    const words = (name) => name.toLowerCase().split(/[\s\-–—_.]+/).filter(Boolean);
+    const score = (p) => p.name.toLowerCase().startsWith(q) ? 0
+      : words(p.name).some((w) => w.startsWith(q)) ? 1
+      : q.length >= 4 && p.address.startsWith(q) ? 2 : 3;
     const found = places.filter((p) => score(p) < 3).sort((a, b) => score(a) - score(b) || a.name.localeCompare(b.name)).slice(0, 5);
     // People on Orien Market by username, each verified wallet a row, with
     // the picture and the wallet's address.
