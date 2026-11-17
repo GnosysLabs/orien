@@ -940,9 +940,11 @@
   .amount-entry input:focus { outline: none; }
   .amount-entry input::placeholder { color: var(--faint); }
   .amount-entry .amount-unit { margin-top: 2px; font-size: 13px; font-weight: 600; letter-spacing: 0.12em; color: var(--faint); }
-  .amount-entry .hint { margin-top: 14px; font-size: 13px; color: var(--dim); display: flex; justify-content: center; align-items: center; gap: 4px; flex-wrap: wrap; }
-  .amount-entry .send-all { border: 0; background: none; padding: 6px 4px; font: inherit; font-weight: 600; color: var(--ink); cursor: pointer; }
-  .amount-entry .send-all::before { content: "·"; margin-right: 8px; color: var(--faint); font-weight: 400; }
+  .amount-entry .hint { margin-top: 14px; font-size: 13px; color: var(--dim); display: flex; justify-content: center; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .amount-entry .hint .send-all { height: 28px; padding: 0 12px; margin: 0; border-radius: 14px; font-size: 12.5px; }
+  body.phone .amount-entry .hint .send-all { height: 34px; padding: 0 14px; border-radius: 17px; font-size: 13px; }
+  .amount-entry .fee-line { margin-top: 10px; }
+  body.phone.kb-up .amount-entry .fee-line { margin-top: 4px; }
   /* iPhones: the amount big, as on computers (16 points is only the least
      a box may be), and Review at the foot of the screen, above the keyboard. */
   body.phone .amount-entry { padding-top: 28px; }
@@ -959,9 +961,7 @@
   .amount-mirror { position: absolute; left: -9999px; top: 0; visibility: hidden; white-space: pre; }
   .fee-line { margin-top: 4px; min-height: 18px; font-size: 12px; color: var(--faint); }
   .fee-line.bad { color: var(--bad); }
-  .amount-entry .hint button {
-    border: 0; background: none; padding: 6px 4px; margin-left: 4px; color: var(--ink); cursor: pointer; font-size: 13px; font-weight: 600;
-  }
+
 
   .field label { display: block; margin: 0 0 7px 2px; font-size: 12px; color: var(--dim); }
   .field .box {
@@ -1665,7 +1665,7 @@
       <div class="amount-entry">
         <input id="amount" placeholder="0" inputmode="decimal" autocomplete="off">
         <div class="amount-unit">ORN</div>
-        <div class="hint"><span id="available"></span><button class="send-all" id="all" type="button">Use max</button></div>
+        <div class="hint"><span id="available"></span><button class="pill send-all" id="all" type="button">Use max</button></div>
         <div class="fee-line" id="fee-line"></div>
       </div>
 
