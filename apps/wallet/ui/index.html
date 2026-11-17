@@ -726,19 +726,46 @@
   #chat.loading > :not(.ch-loading) { visibility: hidden; }
   #chat.loading .ch-loading { display: grid; place-items: center; position: absolute; inset: 0; }
   #chat { position: relative; }
-  /* Wide windows: Messages side by side, conversations on the left and
-     the open one on the right, as messaging apps on computers do. Together
-     as wide as the Market (320 + 20 + 700). */
+  /* Wide windows: Messages as on the website, one box with the
+     conversations on the left and the open one on the right, divided by
+     a line, as wide as the Market (320 + 720). */
   #chat .ch-none { display: none; }
   #chat.none > :not(.ch-none) { display: none !important; }
-  #chat.none .ch-none { display: grid; place-items: center; flex: 1; color: var(--dim); font-size: 13.5px; text-shadow: 0 1px 8px rgba(var(--shade), 0.4); }
+  #chat.none .ch-none { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; flex: 1; color: var(--dim); font-size: 13.5px; }
+  #chat .ch-none svg { width: 32px; height: 32px; color: var(--faint); }
   @media (min-width: 1160px) {
-    body.split main { flex-direction: row; justify-content: center; gap: 20px; }
-    html body.split #inbox, html body.split #chat { flex: 0 0 auto; margin-left: 0; margin-right: 0; padding-left: 18px; padding-right: 18px; }
-    html body.split #inbox { width: 320px; --cw: 284px; }
-    html body.split #chat { width: 700px; --cw: 664px; }
-    body.split #ch-back { display: none; }
+    body.split main { flex-direction: row; justify-content: center; gap: 0; }
+    html body.split #inbox, html body.split #chat { flex: 0 0 auto; margin: 14px 0 28px; padding: 0; overflow: hidden;
+      -webkit-mask: none; mask: none; background: var(--surface); border: 1px solid var(--line); }
+    html body.split #inbox { width: 320px; border-radius: 18px 0 0 18px; border-right: 0; }
+    html body.split #chat { width: 720px; border-radius: 0 18px 18px 0; }
+    html body.split #inbox::after { content: none; }
+    /* The dividing line between the two halves. */
+    html body.split #chat { box-shadow: inset 1px 0 0 var(--line); }
+    /* Headers: the same height on both sides, a line beneath. */
+    body.split #inbox > .topline, body.split #chat > .ch-top { height: 64px; margin: 0; padding: 0 16px; border-bottom: 1px solid var(--line); }
+    body.split #inbox > .topline .back { margin-left: -6px; }
+    body.split #inbox > .topline h2 { font-size: 17px; }
+    /* The list: rows divided by lines, no card around it. */
+    html body.split #ib-list { margin: 0; padding: 0; border-radius: 0; flex: 1; overflow-y: auto; }
+    body.split #ib-list .list { border: 0; border-radius: 0; background: none; box-shadow: none; }
+    body.split .ib-row { padding: 14px 16px; border-top: 0; border-bottom: 1px solid var(--line); border-radius: 0; }
+    @media (hover: hover) { body.split .ib-row:hover { background: rgba(var(--tint), 0.03); } }
     body.split .ib-row.on { background: var(--surface-hover); }
+    body.split #ib-list .empty { padding: 20px; text-align: left; }
+    body.split #ch-back { display: none; }
+    /* The listing it's about: a quiet strip under the header. */
+    html body.split #chat .ch-about { margin: 0; border: 0; border-bottom: 1px solid var(--line); border-radius: 0; padding: 11px 16px;
+      background: rgba(var(--shade), 0.12); animation: none; color: var(--dim); }
+    html body.split #chat .ch-about b { color: var(--ink); }
+    html body.split #chat .ch-about span, html body.split #chat .ch-about span * { color: var(--ink) !important; }
+    @media (hover: hover) { html body.split #chat .ch-about:hover { background: rgba(var(--tint), 0.03); filter: none; } }
+    /* The messages, then the box to write in, under a line. */
+    html body.split #ch-log { margin: 0; padding: 20px 16px; border-radius: 0; border-bottom: 1px solid var(--line); }
+    body.split #chat .ch-askbox, body.split #chat .ch-blocked, body.split #chat .problem { margin: 12px 12px 0; }
+    body.split #ch-compose { margin: 12px; }
+    /* Their messages a shade lighter than the box, as on the website. */
+    body.split #chat .bubble:not(.mine) { background: var(--surface-hover); }
   }
   .ch-about { display: flex; justify-content: space-between; gap: 10px; width: 100%; padding: 10px 14px; border: 1px solid var(--line); border-radius: 14px;
     background: var(--surface); color: var(--dim); font: inherit; font-size: 12.5px; text-align: left; cursor: pointer; flex-shrink: 0; }
@@ -1607,7 +1634,7 @@
     <!-- One conversation -->
     <section class="screen" id="chat" hidden>
       <div class="ch-loading"><span class="spinner"></span></div>
-      <div class="ch-none">Choose a conversation</div>
+      <div class="ch-none"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/></svg>Pick a conversation to read it.</div>
       <div class="topline ch-top">
         <button class="back" id="ch-back" aria-label="Back"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg></button>
         <button class="ch-who" id="ch-who"></button>
