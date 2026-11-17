@@ -884,6 +884,11 @@
   /* Links inside a line of text, such as the sign-in screen's terms. */
   .link-inline { border: 0; background: none; padding: 0; font: inherit; color: var(--ink); text-decoration: underline; text-underline-offset: 2px; cursor: pointer; }
   .legal-line { margin-top: 12px; text-align: center; }
+  /* Selling before a wallet is verified. */
+  #se-gate b { display: block; font-size: 15px; color: var(--ink); }
+  #se-gate p { margin: 6px 0 0; }
+  #se-gate .pill { margin-top: 12px; }
+  #se-gate .hint { margin-top: 12px; font-size: 12.5px; }
   .steps { list-style: none; margin: 18px 0 0; padding: 0; }
   .steps li { position: relative; display: grid; grid-template-columns: 26px 1fr; gap: 12px; padding-bottom: 16px; }
   .steps li:not(:last-child)::before { content: ""; position: absolute; left: 12px; top: 28px; bottom: 4px; width: 1px; background: var(--line); }
@@ -5112,9 +5117,15 @@
     if (!me) {
       $("se-gate").hidden = false; $("se-form").hidden = true;
       $("se-gate").textContent = "To sell something, sign in to Orien Network first, from the home screen.";
-    } else if (!me.wallet) {
+    } else if (!me.wallet_verified) {
+      // Selling needs a verified wallet to be paid at, as on the website.
       $("se-gate").hidden = false; $("se-form").hidden = true;
-      $("se-gate").textContent = "Before your first listing, your Orien wallet needs adding, so buyers' payments reach you. Open the Swap screen once while signed in and it's added for you.";
+      const noOrn = phone
+        ? "Don't have any ORN yet? Mine for an hour in Orien Wallet on a computer, or buy a little at orien.network."
+        : "Don't have any ORN yet? Mine for an hour from the Mine screen, or buy a little on Swap.";
+      $("se-gate").innerHTML = `<b>Verify a wallet to sell</b><p>Buyers pay you straight from their wallet, so your profile needs a verified wallet to be paid at. Verifying sends a tiny amount, less than 0.001 ORN, from that wallet.</p>
+        <button class="pill pearl" id="se-verify" type="button">Verify a wallet</button><p class="hint">${noOrn}</p>`;
+      $("se-verify").onclick = () => openProfile();
     }
     sale.editing = listing || null;
     sale.cat = listing ? listing.category : "";
