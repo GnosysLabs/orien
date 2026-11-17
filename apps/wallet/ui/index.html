@@ -205,15 +205,17 @@
       border-radius: 0; }
   }
   /* Big windows: each theme's photograph behind the app, quiet. */
-  :root, [data-theme="pearl"] { --scene: url(scenes/pearl.webp); --scene-blur: url(scenes/pearl-blur.webp); }
-  [data-theme="daylight"] { --scene: url(scenes/daylight.webp); --scene-blur: url(scenes/daylight-blur.webp); }
-  [data-theme="midnight"] { --scene: url(scenes/midnight.webp); --scene-blur: url(scenes/midnight-blur.webp); }
-  [data-theme="aurora"] { --scene: url(scenes/aurora.webp); --scene-blur: url(scenes/aurora-blur.webp); }
-  [data-theme="amethyst"] { --scene: url(scenes/amethyst.webp); --scene-blur: url(scenes/amethyst-blur.webp); }
-  [data-theme="rose"] { --scene: url(scenes/rose.webp); --scene-blur: url(scenes/rose-blur.webp); }
-  [data-theme="ruby"] { --scene: url(scenes/ruby.webp); --scene-blur: url(scenes/ruby-blur.webp); }
-  [data-theme="ember"] { --scene: url(scenes/ember.webp); --scene-blur: url(scenes/ember-blur.webp); }
-  [data-theme="obsidian"] { --scene: url(scenes/obsidian.webp); --scene-blur: url(scenes/obsidian-blur.webp); }
+  :root, [data-theme="pearl"] { --scene: url(scenes/pearl.webp); --scene-blur: url(scenes/pearl-blur.webp);
+    /* Pearl's grey looks flat over its pastel sky: its glass is a dusky violet. */
+    --glass-tint: #4a4560; --glass-dim: #221f30; }
+  [data-theme="daylight"] { --scene: url(scenes/daylight.webp); --scene-blur: url(scenes/daylight-blur.webp); --glass-tint: initial; --glass-dim: initial; }
+  [data-theme="midnight"] { --scene: url(scenes/midnight.webp); --scene-blur: url(scenes/midnight-blur.webp); --glass-tint: initial; --glass-dim: initial; }
+  [data-theme="aurora"] { --scene: url(scenes/aurora.webp); --scene-blur: url(scenes/aurora-blur.webp); --glass-tint: initial; --glass-dim: initial; }
+  [data-theme="amethyst"] { --scene: url(scenes/amethyst.webp); --scene-blur: url(scenes/amethyst-blur.webp); --glass-tint: initial; --glass-dim: initial; }
+  [data-theme="rose"] { --scene: url(scenes/rose.webp); --scene-blur: url(scenes/rose-blur.webp); --glass-tint: initial; --glass-dim: initial; }
+  [data-theme="ruby"] { --scene: url(scenes/ruby.webp); --scene-blur: url(scenes/ruby-blur.webp); --glass-tint: initial; --glass-dim: initial; }
+  [data-theme="ember"] { --scene: url(scenes/ember.webp); --scene-blur: url(scenes/ember-blur.webp); --glass-tint: initial; --glass-dim: initial; }
+  [data-theme="obsidian"] { --scene: url(scenes/obsidian.webp); --scene-blur: url(scenes/obsidian-blur.webp); --glass-tint: initial; --glass-dim: initial; }
   @media (min-width: 900px) {
     body:not(.phone)::before { content: ""; position: fixed; inset: 0; z-index: -1; pointer-events: none;
       background: var(--scene, none) center / cover no-repeat; opacity: 0.55; }
@@ -221,13 +223,13 @@
        photo, lined up with the photo behind it, under a tint of its own
        colour. Only the panels are frosted; around them the photo is sharp. */
     body:not(.phone) :is(.codebox, .swap-row, .waiting-card, .swap-alert, .pay-card, .tabs, .mine-status, .wallet-row, .emoji-grid button:not(.on), .linkish, .link, .pill:not(.pearl), .mk-card, .ls-thumbs button, .ls-seller, .se-pic, .ch-about, .bubble:not(.mine), .paycard, .ch-askbox, .ch-blocked, .sync-card, .verify-card, .offer, .keep-open, .pair-card, .add-opt, .set-group, .note, .explain li, .tile, .review, #upd-card, .receive-card, .list, #all-activity, #all-activity .day, .words, .wallet-chip) {
-      --glass: color-mix(in srgb, var(--surface) 62%, transparent);
-      --dimmed: color-mix(in srgb, var(--ground-deep) 45%, transparent);
+      --glass: color-mix(in srgb, var(--glass-tint, var(--surface)) 62%, transparent);
+      --dimmed: color-mix(in srgb, var(--glass-dim, var(--ground-deep)) 45%, transparent);
       background: linear-gradient(var(--glass), var(--glass)), linear-gradient(var(--dimmed), var(--dimmed)),
         var(--scene-blur, none) center / cover fixed, var(--ground-deep); }
     body:not(.phone) .field .box {
-      --glass: color-mix(in srgb, var(--field) 66%, transparent);
-      --dimmed: color-mix(in srgb, var(--ground-deep) 45%, transparent);
+      --glass: color-mix(in srgb, var(--glass-tint, var(--field)) 66%, transparent);
+      --dimmed: color-mix(in srgb, var(--glass-dim, var(--ground-deep)) 45%, transparent);
       background: linear-gradient(var(--glass), var(--glass)), linear-gradient(var(--dimmed), var(--dimmed)),
         var(--scene-blur, none) center / cover fixed, var(--ground-deep); }
     body:not(.phone) .wallet-chip { color: var(--ink); }
