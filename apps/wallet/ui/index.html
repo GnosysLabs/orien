@@ -664,6 +664,19 @@
     border: 1px solid rgba(255, 255, 255, 0.16); border-radius: 22px; background: rgba(40, 41, 46, 0.82); color: var(--ink);
     -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px); font: inherit; font-weight: 600; cursor: pointer; }
   .rv-words.blurred .rv-tap { display: inline-flex; }
+  /* Adding a wallet: how, first. */
+  .add-opts { display: grid; gap: 10px; }
+  .add-opt { display: flex; align-items: center; gap: 14px; width: 100%; padding: 16px; border: 1px solid var(--line); border-radius: 18px;
+    background: var(--surface); color: var(--ink); font: inherit; text-align: left; cursor: pointer; }
+  .add-opt:active { background: var(--surface-hover); }
+  @media (hover: hover) { .add-opt:hover { background: var(--surface-hover); } }
+  .add-ico { flex: none; width: 42px; height: 42px; border-radius: 50%; display: grid; place-items: center; color: var(--pearl-ink);
+    background: var(--pearl); background-size: 300% 100%; }
+  .add-ico svg { width: 20px; height: 20px; }
+  .add-txt { flex: 1; min-width: 0; display: grid; gap: 3px; }
+  .add-txt b { font-size: 15px; font-weight: 600; }
+  .add-txt small { font-size: 13px; color: var(--dim); }
+  .add-opt .chev { flex: none; color: var(--faint); }
   .steps { list-style: none; margin: 18px 0 0; padding: 0; }
   .steps li { position: relative; display: grid; grid-template-columns: 26px 1fr; gap: 12px; padding-bottom: 16px; }
   .steps li:not(:last-child)::before { content: ""; position: absolute; left: 12px; top: 28px; bottom: 4px; width: 1px; background: var(--line); }
@@ -1454,8 +1467,17 @@
       <button class="primary pearl" id="wallet-add-go" data-gap="lg">Add a wallet</button>
     </section>
 
-    <section class="screen" id="wallet-add" hidden>
+    <section class="screen" id="wallet-add-choose" hidden>
       <div class="topline"><button class="back" data-to="wallets" aria-label="Back"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10 3 5 8l5 5"/></svg></button><h2>Add a wallet</h2></div>
+      <div class="add-opts" data-gap="lg">
+        <button class="add-opt" id="ac-new"><span class="add-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></span><span class="add-txt"><b>Make a new wallet</b><small>A fresh one, with its own recovery phrase</small></span><svg class="chev" width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m6 3 5 5-5 5"/></svg></button>
+        <button class="add-opt" id="ac-pair"><span class="add-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="13" height="10" rx="2"/><path d="M5 18h7"/><rect x="17" y="8" width="5" height="12" rx="1.5"/></svg></span><span class="add-txt"><b>From another device</b><small>Bring one over from your phone or computer</small></span><svg class="chev" width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m6 3 5 5-5 5"/></svg></button>
+        <button class="add-opt" id="ac-restore"><span class="add-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h16M4 12h16M4 18h10"/></svg></span><span class="add-txt"><b>Restore with recovery phrase</b><small>Type the 24 words of a wallet you have</small></span><svg class="chev" width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m6 3 5 5-5 5"/></svg></button>
+      </div>
+    </section>
+
+    <section class="screen" id="wallet-add" hidden>
+      <div class="topline"><button class="back" data-to="wallet-add-choose" aria-label="Back"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10 3 5 8l5 5"/></svg></button><h2>Add a wallet</h2></div>
       <div class="field">
         <label for="wa-name">Name</label>
         <div class="box plain"><input id="wa-name" placeholder="Mining" maxlength="24" autocomplete="off"></div>
@@ -1466,9 +1488,8 @@
       </div>
       <div class="push"></div>
       <div class="problem" id="wallet-add-problem" hidden></div>
-      <button class="primary pearl" id="wa-new" data-gap="lg">Make a new wallet</button>
-      <button class="secondary" id="wa-pair" data-gap="sm">From another device</button>
-      <button class="secondary" id="wa-restore" data-gap="sm">Restore one from its recovery phrase</button>
+      <button class="primary pearl" id="wa-new" data-gap="lg">Make the wallet</button>
+      <button class="primary pearl" id="wa-restore" data-gap="lg">Continue</button>
     </section>
 
     <!-- Moving a wallet to another of one's own devices, with a short code -->
@@ -2330,7 +2351,17 @@
     $("mn-go").disabled = false;
     mineStatus(false);
   };
-  $("wallet-add-go").onclick = () => { $("wa-name").value = ""; addIcon = ""; paintAddIcons(); $("wallet-add-problem").hidden = true; show("wallet-add"); $("wa-name").focus(); };
+  $("wallet-add-go").onclick = () => show("wallet-add-choose");
+  // A name and icon next, for a new or restored wallet; one from another
+  // device brings its own.
+  function addDetails(mode) {
+    $("wa-name").value = ""; addIcon = ""; paintAddIcons(); $("wallet-add-problem").hidden = true;
+    $("wa-new").hidden = mode !== "new"; $("wa-restore").hidden = mode !== "restore";
+    show("wallet-add"); $("wa-name").focus();
+  }
+  $("ac-new").onclick = () => addDetails("new");
+  $("ac-restore").onclick = () => addDetails("restore");
+  $("ac-pair").onclick = () => openPairGet("wallet-add-choose");
   function addName() {
     const name = $("wa-name").value.trim();
     if (!name) { problem("wallet-add-problem", "Give the wallet a name, like Mining."); return null; }
@@ -2587,7 +2618,6 @@
     show("pair-get");
     $("pg-code").focus();
   }
-  $("wa-pair").onclick = () => openPairGet("wallet-add");
   $("go-pair").onclick = () => openPairGet("welcome");
   $("pg-back").onclick = async () => { await pairEnd(); show(pairFrom); };
   async function pairJoin(code) {
