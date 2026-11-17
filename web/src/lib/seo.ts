@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 import { SITE_NAME, SITE_URL } from './brand'
 
 /** The picture shown when a page is shared. */
-export const SHARE_IMAGE = { url: '/og.png?v=2', width: 1200, height: 630, alt: 'Orien: the quantum-proof cryptocurrency' }
+export const SHARE_IMAGE = { url: '/og-nebula.png', width: 1200, height: 630, alt: 'Orien: the quantum-proof cryptocurrency' }
 
 /** A page's metadata: its title and description for search results, and
  * the same for links shared on X, Discord, Telegram and the like, with the

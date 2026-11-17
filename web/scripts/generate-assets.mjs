@@ -150,7 +150,7 @@ await sharp(Buffer.from(iconRoundedSvg)).resize(192, 192).png().toFile(path.join
 await sharp(Buffer.from(iconRoundedSvg)).resize(512, 512).png().toFile(path.join(PUBLIC, 'icon-rounded-512.png'))
 await sharp(Buffer.from(iconSquareSvg)).resize(180, 180).png().toFile(path.join(PUBLIC, 'apple-icon.png'))
 await sharp(Buffer.from(faviconSvg), { density: 384 }).resize(32, 32).png().toFile(path.join(PUBLIC, 'favicon-32.png'))
-// public/og.png is drawn by scripts/og.sh, with the site's own font and mark.
+// public/og-nebula.png (and og.png) is drawn by scripts/og.sh, with the site's own font and mark.
 
 await writeFile(
   path.join(PUBLIC, 'robots.txt'),
