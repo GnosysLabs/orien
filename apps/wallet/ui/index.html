@@ -161,8 +161,8 @@
     width: 46px; height: 52px; border: 0; padding: 0; background: transparent; color: var(--dim);
     display: grid; place-items: center; cursor: default; transition: background .12s, color .12s;
   }
-  .win-controls button:hover { background: var(--surface-hover); color: var(--ink); }
-  .win-controls button.close:hover { background: #c42b1c; color: #fff; }
+  @media (hover: hover) { .win-controls button:hover { background: var(--surface-hover); color: var(--ink); } }
+  @media (hover: hover) { .win-controls button.close:hover { background: #c42b1c; color: #fff; } }
   body.windows .update { right: auto; left: 16px; }
   /* iPhone: room for the notch and the home bar, no window to drag, no
      mining (Apple's rules forbid it), and text big enough that typing
@@ -240,7 +240,7 @@
     background: transparent; border: 1px solid var(--line); font-weight: 500;
     transition: background 0.15s;
   }
-  .secondary:hover { background: #ffffff08; }
+  @media (hover: hover) { .secondary:hover { background: #ffffff08; } }
 
   /* Never squeezed by a long list below it. */
   .topline { display: flex; align-items: center; height: 36px; margin-bottom: 24px; flex-shrink: 0; }
@@ -248,7 +248,10 @@
     width: 36px; height: 36px; margin-left: -6px; border: 0; border-radius: 10px;
     background: transparent; cursor: pointer; display: grid; place-items: center; color: var(--dim);
   }
-  .back:hover { background: #ffffff0d; color: var(--ink); }
+  @media (hover: hover) { .back:hover { background: #ffffff0d; color: var(--ink); } }
+  /* On touch screens: lit only while pressed (a hover look would stay on
+     after the tap). */
+  .back:active { background: #ffffff0d; color: var(--ink); }
   .topline h2 { margin: 0 0 0 4px; font-size: 17px; font-weight: 600; }
 
   .problem {
@@ -321,7 +324,7 @@
   .pay-card .codehelp { text-align: left; }
   .swap-row .finish { display: flex; gap: 8px; align-items: center; flex: none; }
   .swap-row .finish input { width: 140px; padding: 8px 10px; }
-  .swap-row:hover { background: var(--surface-hover); }
+  @media (hover: hover) { .swap-row:hover { background: var(--surface-hover); } }
   .swap-row .sub { font-size: 12.5px; color: var(--dim); }
   .swap-status { margin: 14px 2px 0; line-height: 1.45; }
   .swap-choices { display: grid; gap: 10px; }
@@ -348,7 +351,7 @@
   .mine-status .sub { margin-top: 4px; font-size: 12.5px; color: var(--dim); }
   .wallet-chip { display: inline-flex; align-items: center; gap: 6px; margin: 0 0 12px 2px; padding: 5px 10px;
     border: 1px solid var(--line); border-radius: 999px; background: transparent; cursor: pointer; font-size: 12.5px; color: var(--dim); }
-  .wallet-chip:hover { color: var(--ink); background: #ffffff08; }
+  @media (hover: hover) { .wallet-chip:hover { color: var(--ink); background: #ffffff08; } }
   /* A wallet: name and address on the left, its balance on the right
      (amount over unit, mirroring the two lines opposite), and quiet edit
      tools at the far end, past a hairline. All on one centred line. */
@@ -357,7 +360,7 @@
   .wallet-row { position: relative; display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 14px; align-items: center; width: 100%;
     padding: 14px 18px 14px 14px; border: 1px solid var(--line); border-radius: 18px; background: var(--surface); text-align: left; cursor: pointer;
     transition: background .15s, border-color .15s; }
-  .wallet-row:hover { background: var(--surface-hover); }
+  @media (hover: hover) { .wallet-row:hover { background: var(--surface-hover); } }
   .wallet-row + .wallet-row { margin-top: 10px; }
   .wallet-row.current { border-color: transparent; box-shadow: 0 0 0 1.5px #cdc6ff66, 0 8px 24px #0000002e; }
   .wallet-row .coin { width: 40px; height: 40px; border-radius: 50%; display: grid; place-items: center; flex: none;
@@ -367,7 +370,7 @@
   .emoji-grid { display: grid; grid-template-columns: repeat(8, minmax(0, 1fr)); gap: 6px; }
   .emoji-grid button { min-width: 0; width: 100%; aspect-ratio: 1; padding: 0; border: 1px solid transparent; border-radius: 12px; background: var(--surface); cursor: pointer;
     font: 20px/1 system-ui, "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif; color: var(--dim); transition: background .15s; }
-  .emoji-grid button:hover { background: var(--surface-hover); }
+  @media (hover: hover) { .emoji-grid button:hover { background: var(--surface-hover); } }
   .emoji-grid button.on { border-color: var(--select); background: var(--surface-hover); }
   .emoji-grid .letter { font: 700 16px/1 "Jost", sans-serif; }
   .wallet-chip .chip-emoji { font: 14px/1 system-ui, "Apple Color Emoji", "Segoe UI Emoji", sans-serif; }
@@ -381,11 +384,11 @@
   .wallet-row .tools { position: absolute; right: 10px; top: 50%; transform: translateY(-50%); display: flex; gap: 2px;
     padding-left: 6px; background: var(--surface-hover); box-shadow: -18px 0 14px -6px var(--surface-hover);
     opacity: 0; pointer-events: none; transition: opacity .15s; }
-  .wallet-row:hover .tools, .wallet-row:focus-within .tools { opacity: 1; pointer-events: auto; }
+  @media (hover: hover) { .wallet-row:hover .tools, .wallet-row:focus-within .tools { opacity: 1; pointer-events: auto; } }
   .wallet-row .tool { width: 30px; height: 30px; padding: 0; border: 0; border-radius: 9px; display: grid; place-items: center;
     background: transparent; color: var(--faint); cursor: pointer; }
-  .wallet-row .tool:hover { background: #ffffff10; color: var(--ink); }
-  .wallet-row .tool[data-forget]:hover { color: var(--bad); }
+  @media (hover: hover) { .wallet-row .tool:hover { background: #ffffff10; color: var(--ink); } }
+  @media (hover: hover) { .wallet-row .tool[data-forget]:hover { color: var(--bad); } }
   body.phone .wallet-row { gap: 12px; padding: 14px 10px 14px 14px; }
   body.phone .wallet-row { grid-template-columns: auto minmax(0, 1fr) auto auto; }
   body.phone .wallet-row .tools { position: static; transform: none; opacity: 1; pointer-events: auto; background: none; box-shadow: none; padding: 0; }
@@ -402,14 +405,14 @@
     -webkit-appearance: none; appearance: none; display: inline-flex; align-items: center; justify-content: center;
     height: 32px; padding: 0 14px; border: 1px solid var(--line); border-radius: 16px; background: var(--surface);
     color: var(--ink); font-size: 12.5px; font-weight: 600; cursor: pointer; white-space: nowrap; transition: background .15s; }
-  .linkish:hover, .link:hover, .pill:hover { background: var(--surface-hover); }
+  @media (hover: hover) { .linkish:hover, .link:hover, .pill:hover { background: var(--surface-hover); } }
   .pill.pearl { border: 0; color: var(--pearl-ink); background: var(--pearl); background-size: 300% 100%; box-shadow: inset 0 1px 0 #ffffffa0, 0 4px 14px #00000033; }
-  .pill.pearl:hover { background: var(--pearl); background-size: 300% 100%; filter: brightness(1.04); }
+  @media (hover: hover) { .pill.pearl:hover { background: var(--pearl); background-size: 300% 100%; filter: brightness(1.04); } }
   .topline .account .avatar { position: relative; overflow: hidden; width: 32px; height: 32px; border-radius: 50%;
     background: var(--surface-hover); display: grid; place-items: center; font-weight: 600; color: var(--ink); font-size: 13px; }
   .topline .account .avatar img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
   .pill.icon { width: 32px; padding: 0; color: var(--dim); }
-  .pill.icon:hover { color: var(--ink); }
+  @media (hover: hover) { .pill.icon:hover { color: var(--ink); } }
   .home-top { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 12px; }
   .home-top .wallet-chip { margin: 0; }
   .home-left { display: flex; align-items: center; gap: 8px; min-width: 0; }
@@ -419,7 +422,7 @@
   body.phone .home-left .wallet-chip { height: 44px; padding: 0 14px; border-radius: 22px; }
   .me-face { padding: 0; border: 0; background: none; border-radius: 50%; cursor: pointer; }
   .me-face .avatar { transition: box-shadow .15s; }
-  .me-face:hover .avatar { box-shadow: 0 0 0 2px var(--line); }
+  @media (hover: hover) { .me-face:hover .avatar { box-shadow: 0 0 0 2px var(--line); } }
   .account .avatar { position: relative; overflow: hidden; width: 32px; height: 32px; border-radius: 50%;
     background: var(--surface-hover); display: grid; place-items: center; font-weight: 600; color: var(--ink); font-size: 13px; }
   .account .avatar img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
@@ -433,12 +436,12 @@
   .mk-cats button { flex: none; }
   .mk-cats button { height: 30px; padding: 0 12px; border: 1px solid var(--line); border-radius: 15px; background: transparent;
     color: var(--dim); font-size: 12.5px; font-weight: 500; cursor: pointer; transition: background .15s, color .15s; }
-  .mk-cats button:hover { background: var(--surface); color: var(--ink); }
+  @media (hover: hover) { .mk-cats button:hover { background: var(--surface); color: var(--ink); } }
   .mk-cats button.on { border-color: transparent; color: var(--pearl-ink); background: var(--pearl); background-size: 300% 100%; font-weight: 600; }
   .mk-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
   .mk-card { display: flex; flex-direction: column; padding: 0; border: 1px solid var(--line); border-radius: 18px; overflow: hidden;
     background: var(--surface); color: inherit; font: inherit; text-align: left; cursor: pointer; transition: transform .15s, background .15s; }
-  .mk-card:hover { background: var(--surface-hover); transform: translateY(-1px); }
+  @media (hover: hover) { .mk-card:hover { background: var(--surface-hover); transform: translateY(-1px); } }
   .mk-cover { position: relative; aspect-ratio: 16 / 9; background: var(--cover); display: grid; place-items: center; color: var(--faint); }
   .mk-cover img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
   .mk-closed { position: absolute; top: 8px; left: 8px; padding: 2px 8px; border-radius: 999px; background: #000000a0; color: #fff; font-size: 11px; font-weight: 600; }
@@ -466,7 +469,7 @@
   .ls-price { margin: 6px 2px 0; font-size: 18px; font-weight: 600; }
   .ls-seller { display: flex; align-items: center; gap: 12px; width: 100%; margin-top: 18px; padding: 12px 14px; border: 1px solid var(--line);
     border-radius: 16px; background: var(--surface); color: inherit; font: inherit; text-align: left; cursor: pointer; }
-  .ls-seller:hover { background: var(--surface-hover); }
+  @media (hover: hover) { .ls-seller:hover { background: var(--surface-hover); } }
   .ls-seller .avatar { width: 40px; height: 40px; font-size: 15px; }
   .ls-seller .nm { font-weight: 600; }
   .ls-seller .ok { color: var(--good); font-size: 12px; font-weight: 600; margin-left: 6px; }
@@ -502,13 +505,13 @@
   .se-pic .cover { position: absolute; top: 8px; left: 8px; padding: 2px 8px; border-radius: 999px; background: #000000a0; color: #fff; font-size: 11px; font-weight: 600; }
   .se-pic .acts { position: absolute; inset: 0; display: flex; align-items: flex-end; justify-content: space-between; padding: 8px;
     background: linear-gradient(to top, #000000a0, transparent 60%); opacity: 0; transition: opacity .15s; }
-  .se-pic:hover .acts, .se-pic:focus-within .acts { opacity: 1; }
+  @media (hover: hover) { .se-pic:hover .acts, .se-pic:focus-within .acts { opacity: 1; } }
   body.phone .se-pic .acts { opacity: 1; }
   .se-pic .acts button { height: 26px; padding: 0 10px; border: 0; border-radius: 13px; background: #ffffffe0; color: #1b1c1f; font-size: 11.5px; font-weight: 600; cursor: pointer; }
   .se-pic .acts button.x { width: 26px; padding: 0; margin-left: auto; }
   .se-add { aspect-ratio: 16 / 9; border: 1.5px dashed var(--line); border-radius: 14px; background: transparent; color: var(--dim);
     display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; font-size: 12px; cursor: pointer; transition: background .15s, color .15s; }
-  .se-add:hover { background: var(--surface); color: var(--ink); }
+  @media (hover: hover) { .se-add:hover { background: var(--surface); color: var(--ink); } }
   .se-price { display: flex; align-items: center; gap: 8px; padding-right: 14px; }
   .se-price input { flex: 1; }
   .se-price span { color: var(--faint); }
@@ -537,7 +540,7 @@
   .ib-row { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 12px; align-items: center; width: 100%; padding: 12px 14px;
     border: 0; border-top: 1px solid var(--line); background: none; color: inherit; font: inherit; text-align: left; cursor: pointer; }
   .ib-row:first-child { border-top: 0; }
-  .ib-row:hover { background: #ffffff06; }
+  @media (hover: hover) { .ib-row:hover { background: #ffffff06; } }
   .ib-row .avatar { position: relative; overflow: hidden; width: 40px; height: 40px; border-radius: 50%; display: grid; place-items: center;
     background: var(--surface-hover); color: var(--ink); font-weight: 600; }
   .ib-row .avatar img, .ch-who .avatar img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
@@ -553,7 +556,7 @@
   #ib-list .list { border-radius: 18px; }
   .ch-top { gap: 6px; }
   .ch-who { display: flex; align-items: center; gap: 10px; min-width: 0; padding: 4px 8px 4px 4px; border: 0; border-radius: 12px; background: none; color: inherit; font: inherit; text-align: left; cursor: pointer; }
-  .ch-who:hover { background: #ffffff0a; }
+  @media (hover: hover) { .ch-who:hover { background: #ffffff0a; } }
   .ch-who .avatar { position: relative; overflow: hidden; flex: none; width: 32px; height: 32px; border-radius: 50%; display: grid; place-items: center; background: var(--surface-hover); font-weight: 600; font-size: 13px; }
   .ch-who b { display: block; font-size: 15px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .ch-who small { display: block; font-size: 11.5px; color: var(--faint); }
@@ -570,7 +573,7 @@
   .menu-row + .menu-row::before { content: ""; position: absolute; left: 12px; right: 12px; top: 0; height: 0.5px; background: rgba(255, 255, 255, 0.12); }
   .menu-row:active { background: rgba(255, 255, 255, 0.08); }
   @media (hover: hover) { .menu-row:hover { background: rgba(255, 255, 255, 0.08); } }
-  .menu-row:hover + .menu-row::before, .menu-row:hover::before { opacity: 0; }
+  @media (hover: hover) { .menu-row:hover + .menu-row::before, .menu-row:hover::before { opacity: 0; } }
   .menu-row svg { flex: none; width: 18px; height: 18px; }
   .menu-row span { line-height: 1.3; }
   .menu-row.bad { color: #ff7b72; }
@@ -583,7 +586,7 @@
     background: var(--surface); color: var(--dim); font: inherit; font-size: 12.5px; text-align: left; cursor: pointer; flex-shrink: 0; }
   /* The listing a chat is about: pearl, so it stands out from the messages. */
   .ch-about { background: var(--pearl); background-size: 300% 100%; animation: drift 24s linear infinite; border-color: transparent; color: var(--on-pearl-dim); }
-  .ch-about:hover { background: var(--pearl); background-size: 300% 100%; filter: brightness(1.04); }
+  @media (hover: hover) { .ch-about:hover { background: var(--pearl); background-size: 300% 100%; filter: brightness(1.04); } }
   .ch-about b { color: var(--pearl-ink); font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .ch-about span, .ch-about span * { color: var(--on-pearl-dim) !important; }
   /* The messages start a little below it, never under it. */
@@ -658,7 +661,7 @@
   /* Point at the banner or the picture: a camera shows; click to change it. */
   .editable .cam { position: absolute; inset: 0; display: grid; place-items: center; color: #fff;
     background: #00000066; opacity: 0; transition: opacity .15s; border-radius: inherit; }
-  .editable:hover .cam, .editable:focus-visible .cam { opacity: 1; }
+  @media (hover: hover) { .editable:hover .cam, .editable:focus-visible .cam { opacity: 1; } }
   .editable:disabled .cam { opacity: 1; background: #00000088; }
   /* No pointer to hover with on iPhone: a small camera stays in the corner. */
   body.phone .editable .cam { inset: auto 6px 6px auto; width: 28px; height: 28px; border-radius: 50%; opacity: 1; }
@@ -832,7 +835,7 @@
     display: flex; align-items: center; justify-content: center; gap: 10px;
     font-weight: 500; transition: background 0.15s, transform 0.12s;
   }
-  .tile:hover { background: var(--surface-hover); }
+  @media (hover: hover) { .tile:hover { background: var(--surface-hover); } }
   .tile:active { transform: scale(0.985); }
   .tile .icon { width: 26px; height: 26px; border-radius: 50%; display: grid; place-items: center; color: var(--pearl-ink); }
 
@@ -871,7 +874,7 @@
     flex: none; height: 32px; padding: 0 12px; border-radius: 9px; border: 0; cursor: pointer;
     background: #ffffff0f; color: var(--ink); font-size: 12.5px; font-weight: 500;
   }
-  .chip:hover { background: #ffffff1a; }
+  @media (hover: hover) { .chip:hover { background: #ffffff1a; } }
   .field .check { margin: 7px 0 0 2px; font-size: 12px; color: var(--faint); min-height: 18px; }
   .field .check.ok { color: var(--good); }
 
@@ -977,7 +980,7 @@
     box-shadow: inset 0 1px 0 #ffffffb0, 0 10px 30px #00000040; }
   .ct-addr { display: inline-flex; align-items: center; gap: 8px; margin-top: 14px; padding: 6px 12px; border: 1px solid var(--line); border-radius: 999px;
     background: transparent; color: var(--dim); font: 12.5px ui-monospace, "SF Mono", monospace; cursor: pointer; transition: background .15s, color .15s; }
-  .ct-addr:hover { background: var(--surface); color: var(--ink); }
+  @media (hover: hover) { .ct-addr:hover { background: var(--surface); color: var(--ink); } }
   .ct-addr.copied { color: var(--good); }
   .ct-hero .ct-send { width: auto; min-width: 220px; padding: 0 36px; margin-top: 18px; }
   .ct-delete { display: flex; margin: 22px auto 4px; color: var(--bad); }
@@ -1035,7 +1038,7 @@
     color: var(--pearl-ink); font-weight: 600; font-size: 13px;
   }
   .tx.contact { cursor: pointer; }
-  .tx.contact:hover { background: #ffffff06; }
+  @media (hover: hover) { .tx.contact:hover { background: #ffffff06; } }
   .chevron { color: var(--faint); }
   /* Names to pick from as the To box is typed in: contacts and the
      person's other wallets. */
@@ -1047,7 +1050,7 @@
   .chosen .addr.solo { color: var(--ink); }
   body.phone .chosen .addr { font-size: 15px; }
   .suggest .tx { width: 100%; border: 0; background: none; color: inherit; font: inherit; text-align: left; cursor: pointer; }
-  .suggest .tx:hover, .suggest .tx:active { background: #ffffff08; }
+  @media (hover: hover) { .suggest .tx:hover, .suggest .tx:active { background: #ffffff08; } }
   .suggest .avatar.mine { background: var(--surface-hover); color: var(--ink); }
   .check.warn { color: var(--bad); font-weight: 500; }
   .field + .field { margin-top: 18px; }
@@ -1065,7 +1068,7 @@
   /* A button that deletes: the same shape as the others, in red. */
   .danger { width: 100%; height: 48px; border-radius: var(--radius); border: 1px solid #f1a9a933; background: #f1a9a90d;
     color: var(--bad); font-weight: 500; cursor: pointer; transition: background 0.15s; }
-  .danger:hover { background: #f1a9a91a; }
+  @media (hover: hover) { .danger:hover { background: #f1a9a91a; } }
   .done .secondary { margin-top: 10px; }
 
   /* ---- Recovery phrase, password, restore ---- */
@@ -1088,7 +1091,7 @@
   /* Buttons stacked in a screen never touch. */
   .screen > button + button { margin-top: 10px; }
   .welcome .link { align-self: center; margin: 24px 0 0; padding: 6px 12px; border-radius: 8px; line-height: 1.4; }
-  .welcome .link:hover { background: #ffffff08; }
+  @media (hover: hover) { .welcome .link:hover { background: #ffffff08; } }
 
   /* ---- iPhone: the same design as on computers, with room for the notch
      and the home bar, a little larger text, and screens that run to the
