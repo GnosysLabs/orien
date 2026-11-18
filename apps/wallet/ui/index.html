@@ -2796,6 +2796,7 @@
     $("phrase-in").value = ""; checkPhrase(); show("restore"); $("phrase-in").focus();
   };
   $("ac-pair").onclick = () => openPairInvite("wallet-add-choose");
+  $("go-pair").onclick = () => openPairInvite("welcome");
   function addName() {
     const name = $("wa-name").value.trim();
     if (!name) { problem("wallet-add-problem", "Give the wallet a name, like Mining."); return null; }
