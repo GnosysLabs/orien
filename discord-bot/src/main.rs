@@ -13,6 +13,7 @@
 
 mod bot;
 mod expert;
+mod holders;
 mod news;
 mod safety;
 mod study;
@@ -69,10 +70,26 @@ enum Command {
         /// The changelog page to watch.
         #[arg(long, default_value = news::CHANGELOG)]
         changelog: String,
+        /// The network's genesis file. With it and --state, people can
+        /// become Verified Holders by sending a tiny amount of ORN.
+        #[arg(long, requires = "state")]
+        genesis: Option<PathBuf>,
+        /// Where those tiny amounts are sent: the Market's wallet.
+        #[arg(long, default_value = "74fa1ab82c45ebeed539b03146243ddfc6f0ccb5163f45ea87d21692ba774b7a")]
+        verify_address: String,
         /// Answer only from the knowledge file, without reading the live
         /// website again every half hour.
         #[arg(long)]
         offline: bool,
+    },
+    /// Ask the network what the Verified Holder check would see now.
+    Network {
+        #[arg(long)]
+        genesis: PathBuf,
+        #[arg(long, default_value = "74fa1ab82c45ebeed539b03146243ddfc6f0ccb5163f45ea87d21692ba774b7a")]
+        verify_address: String,
+        /// A wallet address to look at.
+        wallet: Option<String>,
     },
     /// Show what the bot would know right now from the live website.
     Study {
@@ -153,10 +170,19 @@ fn expert(brain: &Brain) -> Result<expert::Expert> {
 #[tokio::main]
 async fn main() -> Result<()> {
     match Cli::parse().command {
-        Command::Run { token, brain, per_person, per_hour, state, changelog, offline } => {
+        Command::Run { token, brain, per_person, per_hour, state, changelog, offline, genesis, verify_address } => {
+            let holders = match (&genesis, &state) {
+                (Some(genesis), Some(folder)) => Some(holders::Holders::open(genesis, &verify_address, folder.join("holders.json"))?),
+                _ => None,
+            };
             let news = state.map(|folder| (changelog, folder.join("announced.json")));
             let shipped = if offline { None } else { Some(std::fs::read_to_string(&brain.knowledge)?) };
-            bot::run(secret(&token)?, expert(&brain)?, per_person, per_hour, news, shipped).await
+            bot::run(secret(&token)?, expert(&brain)?, per_person, per_hour, news, shipped, holders).await
+        }
+        Command::Network { genesis, verify_address, wallet } => {
+            let holders = holders::Holders::open(&genesis, &verify_address, std::env::temp_dir().join("orien-holders-unused.json"))?;
+            println!("{}", tokio::task::spawn_blocking(move || holders.report(wallet.as_deref())).await?);
+            Ok(())
         }
         Command::Study { knowledge } => {
             let shipped = std::fs::read_to_string(&knowledge)?;

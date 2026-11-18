@@ -16,8 +16,9 @@ Orien (ORN) is a cryptocurrency built for the quantum age. Payments are final in
 
 ## ⚠️ Stay safe
 - **The team will never message you first.** Anyone who does is a scammer.
+- **Staff only reply to private messages from Verified Holders**, and will never ask for your recovery phrase.
 - **Never share your recovery phrase with anyone**, for any reason.
-- All help happens in public, in {#help}.
+- Help happens in public, in {#help}.
 
 ## Rules
 1. Be kind. No harassment or hate.
@@ -35,7 +36,7 @@ Orien (ORN) is a cryptocurrency built for the quantum age. Payments are final in
 - {#validators}: staking and running a validator
 - {#bugs-and-ideas}: tell us what's broken or missing
 
-Press **I accept the rules** to open the rest of the server. Then, if you like, show what you do: **Miner** or **Validator**. Press one again to take it off.";
+Press **I accept the rules** to open the rest of the server. Then, if you like, show what you do: **Miner** or **Validator**. Press one again to take it off. Hold ORN? Press **Verify my ORN** to become a **Verified Holder**.";
 
 /// The hello posted in #general when someone accepts the rules, used when
 /// the model's own hello for that person is missing or unfit. `{user}`

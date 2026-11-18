@@ -25,7 +25,7 @@ ssh "$HOST" 'id orien-discord >/dev/null 2>&1 || useradd --system --no-create-ho
 install -d -o orien-discord -g orien-discord -m 700 /etc/orien-discord'
 scp -q "$PROGRAM" "$HOST:/usr/local/bin/orien-discord.new"
 scp -q discord-bot/orien-discord.service "$HOST:/etc/systemd/system/orien-discord.service"
-scp -q "$TOKEN" "$KEY" discord-bot/knowledge.md "$HOST:/etc/orien-discord/"
+scp -q "$TOKEN" "$KEY" discord-bot/knowledge.md web/public/network/genesis.json "$HOST:/etc/orien-discord/"
 ssh "$HOST" 'chown orien-discord:orien-discord /etc/orien-discord/* && chmod 600 /etc/orien-discord/*
 chmod 755 /usr/local/bin/orien-discord.new && mv /usr/local/bin/orien-discord.new /usr/local/bin/orien-discord
 systemctl daemon-reload && systemctl enable --quiet orien-discord && systemctl restart orien-discord

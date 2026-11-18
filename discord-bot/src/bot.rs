@@ -20,12 +20,14 @@ use serenity::async_trait;
 use tokio::sync::Mutex;
 
 use crate::expert::{Expert, Question, WARNING, clip};
+use crate::holders::{self, Holders};
 use crate::safety;
 use crate::texts;
 
 const ACCEPT: &str = "orien:accept-rules";
 const MINER: &str = "orien:toggle-miner";
 const VALIDATOR: &str = "orien:toggle-validator";
+const VERIFY: &str = "orien:verify-holder";
 
 /// How long the server's channels and roles are remembered before they
 /// are looked up again, so a rename needs no restart.
@@ -38,6 +40,7 @@ fn welcome_buttons() -> Vec<CreateActionRow> {
             CreateButton::new(MINER).label("Miner").emoji('⛏').style(ButtonStyle::Secondary),
             CreateButton::new(VALIDATOR).label("Validator").emoji('🛡').style(ButtonStyle::Secondary),
         ]),
+        CreateActionRow::Buttons(vec![CreateButton::new(VERIFY).label("Verify my ORN").emoji('✅').style(ButtonStyle::Primary)]),
     ]
 }
 
@@ -54,6 +57,7 @@ struct Places {
     member: Option<RoleId>,
     miner: Option<RoleId>,
     validator: Option<RoleId>,
+    holder: Option<RoleId>,
     /// The role Discord made for the bot itself, which people sometimes
     /// mention instead of the bot.
     own_role: Option<RoleId>,
@@ -117,6 +121,8 @@ impl Limits {
 
 struct Handler {
     expert: Arc<Expert>,
+    /// Present when the Verified Holder role is switched on.
+    holders: Option<Arc<Holders>>,
     me: OnceLock<UserId>,
     /// The one server the bot works in: the first it sees.
     home: OnceLock<GuildId>,
@@ -162,6 +168,7 @@ impl Handler {
             member: role("Member"),
             miner: role("Miner"),
             validator: role("Validator"),
+            holder: role(holders::ROLE),
             own_role: roles.values().find(|r| me.is_some() && r.tags.bot_id == me).map(|r| r.id),
         };
         for (what, found) in [
@@ -171,6 +178,7 @@ impl Handler {
             ("role Member", places.member.is_some()),
             ("role Miner", places.miner.is_some()),
             ("role Validator", places.validator.is_some()),
+            ("role Verified Holder", places.holder.is_some() || self.holders.is_none()),
         ] {
             if !found {
                 eprintln!("the server has no {what}");
@@ -186,7 +194,7 @@ impl Handler {
         let text = texts::fill(texts::WELCOME, |name| places.channel(name));
         let recent = welcome.messages(&ctx.http, GetMessages::new().limit(50)).await?;
         match recent.iter().find(|m| m.author.id == *me && !m.components.is_empty()) {
-            Some(mine) if mine.content.trim() == text.trim() => {}
+            Some(mine) if mine.content.trim() == text.trim() && mine.components.len() == welcome_buttons().len() => {}
             Some(mine) => {
                 let edit = EditMessage::new().content(text).components(welcome_buttons()).suppress_embeds(true);
                 welcome.edit_message(&ctx.http, mine.id, edit).await?;
@@ -315,7 +323,14 @@ impl Handler {
         if self.home.get() != Some(&guild) {
             return;
         }
-        let Some(places) = self.places(ctx, guild).await else { return };
+        let Some(mut places) = self.places(ctx, guild).await else { return };
+        // A role made a moment ago: look at the server again before saying it is missing.
+        if places.member.is_none() || places.miner.is_none() || places.validator.is_none() || places.holder.is_none() {
+            *self.places.lock().await = None;
+            if let Some(fresh) = self.places(ctx, guild).await {
+                places = fresh;
+            }
+        }
         let has = |role: Option<RoleId>| role.is_some_and(|role| press.member.as_ref().is_some_and(|m| m.roles.contains(&role)));
         let help = places.help.map(|id| format!("<#{id}>")).unwrap_or("#help".into());
         let who = press.user.id;
@@ -348,6 +363,21 @@ impl Handler {
                     },
                 }
             }
+            VERIFY => match (&self.holders, places.holder) {
+                (None, _) => "Verifying isn't switched on yet.".to_string(),
+                (_, None) => "The Verified Holder role is missing from the server. Please tell the founder.".to_string(),
+                _ if !has(places.member) => "Press **I accept the rules** first.".to_string(),
+                (Some(holders), _) if has(places.holder) && holders.is_verified(who) => "You're already a **Verified Holder**.".to_string(),
+                (Some(holders), _) => match holders.ask(press) {
+                    None => "I can't reach the Orien network right now. Please try again in a minute.".to_string(),
+                    Some(amount) => format!(
+                        "To become a **Verified Holder**, send exactly\n```\n{}\n```\nORN from your Orien Wallet to\n```\n{}\n```\nwithin {} minutes. I'll give you the role a minute or two after it arrives.\n\nSending it shows the wallet is yours. I will never ask for your recovery phrase or password.",
+                        holders::orn(amount),
+                        holders.address,
+                        holders::MINUTES
+                    ),
+                },
+            },
             _ => return,
         };
         // Shown only to the person who pressed.
@@ -453,7 +483,9 @@ pub async fn run(
     per_hour: usize,
     news: Option<(String, std::path::PathBuf)>,
     shipped: Option<String>,
+    holders: Option<Holders>,
 ) -> Result<()> {
+    let holders = holders.map(Arc::new);
     let expert = Arc::new(expert);
     if let Some(shipped) = shipped {
         tokio::spawn(crate::study::keep_current(expert.clone(), shipped));
@@ -462,12 +494,16 @@ pub async fn run(
     let intents = GatewayIntents::GUILDS | GatewayIntents::GUILD_MESSAGES | GatewayIntents::MESSAGE_CONTENT;
     let handler = Handler {
         expert: expert.clone(),
+        holders: holders.clone(),
         me: OnceLock::new(),
         home: OnceLock::new(),
         places: Mutex::new(None),
         limits: Mutex::new(Limits { per_person, per_hour, everyone: VecDeque::new(), people: HashMap::new(), told: HashMap::new() }),
     };
     let mut client = Client::builder(&token, intents).event_handler(handler).await?;
+    if let Some(holders) = holders {
+        tokio::spawn(holders.watch(client.http.clone()));
+    }
     if let Some((url, file)) = news {
         tokio::spawn(crate::news::watch(client.http.clone(), expert, url, file));
     }
