@@ -56,6 +56,19 @@ pub trait Payments: Send + Sync {
     fn status(&self) -> Result<NetworkStatus>;
     /// Where the ORN are, from the latest checkpoint.
     fn tokenomics(&self) -> Result<Tokenomics>;
+    /// Up to `max` checkpoints from epoch `from` on, as a validator hands
+    /// them out, for the explorer. Empty when there are none yet.
+    fn checkpoints(&self, _from: u64, _max: u32) -> Result<Vec<orien_ledger::close::Decided>> {
+        anyhow::bail!("checkpoints are not available here")
+    }
+    /// The validators the genesis file names: the first epoch's.
+    fn launch_seats(&self) -> Vec<orien_ledger::Member> {
+        Vec::new()
+    }
+    /// An address as the network knows it, for the explorer.
+    fn lookup(&self, _id: &AccountId) -> Result<crate::explorer::Looked> {
+        anyhow::bail!("addresses cannot be looked up here")
+    }
 }
 
 /// One validator, as it answered (or did not).
@@ -99,6 +112,8 @@ pub struct Network {
     start_time: u64,
     cap: u64,
     fees: orien_ledger::Fees,
+    /// The validators the genesis file names.
+    launch_seats: Vec<orien_ledger::Member>,
     /// Worked out once per epoch: the snapshot only changes at a checkpoint.
     tokenomics: Mutex<Option<Tokenomics>>,
 }
@@ -113,6 +128,7 @@ impl Network {
             start_time: genesis.start_time,
             cap: genesis.cap,
             fees: genesis.fee,
+            launch_seats: orien_ledger::Committee::new(&genesis).members().to_vec(),
             tokenomics: Mutex::new(None),
         })
     }
@@ -186,6 +202,54 @@ impl Payments for Network {
             return Ok(found);
         }
         anyhow::bail!("no validator handed over the state for epoch {epoch}")
+    }
+
+    fn checkpoints(&self, from: u64, max: u32) -> Result<Vec<orien_ledger::close::Decided>> {
+        use orien_net::wire::{Request, Response};
+        let request = Request::Checkpoints { from, max };
+        let mut answered = false;
+        for index in 0..self.client.validators() {
+            if let Ok(Response::Checkpoints(found)) = self.client.call(index, &request) {
+                if !found.is_empty() {
+                    return Ok(found);
+                }
+                answered = true;
+            }
+        }
+        anyhow::ensure!(answered, "no validator answers");
+        Ok(Vec::new())
+    }
+
+    fn launch_seats(&self) -> Vec<orien_ledger::Member> {
+        self.launch_seats.clone()
+    }
+
+    fn lookup(&self, id: &AccountId) -> Result<crate::explorer::Looked> {
+        let status = self.client.account(id, 0);
+        if status.views.iter().all(Option::is_none) {
+            anyhow::bail!("no validator answers");
+        }
+        let proven = status.proven.as_ref();
+        let balance = status.spendable.or(proven.map(|account| account.balance)).unwrap_or(0);
+        let staked = proven.map_or(0, |account| account.staked);
+        let returning = proven.map_or(0, |account| {
+            account.unstaking + account.releases.iter().map(|(_, amount)| amount).sum::<u64>()
+        });
+        // Everything, oldest first, a page at a time: an hour's activity
+        // fits in a page for all but the busiest addresses.
+        let mut entries = Vec::new();
+        let mut next = Some(0);
+        let mut since = 0;
+        for _ in 0..10 {
+            let Some(at) = next else { break };
+            let Some(page) = self.client.activity(id, at, 1000).or_else(|| self.client.history(id, at, 1000)) else {
+                break;
+            };
+            since = page.since;
+            entries.extend(page.entries);
+            next = page.next;
+        }
+        Ok(crate::explorer::Looked { balance, staked, returning, payments_made: status.seq, entries, since })
     }
 
     fn status(&self) -> Result<NetworkStatus> {

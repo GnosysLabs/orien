@@ -5,6 +5,7 @@
 pub mod account_wallets;
 pub mod admin;
 pub mod api;
+pub mod explorer;
 pub mod images;
 pub mod mail;
 pub mod messages;

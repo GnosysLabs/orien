@@ -51,6 +51,8 @@ pub struct App {
     pairs: crate::pair::Mailboxes,
     /// The App Store reviewers' email and its fixed code, if set.
     review: Option<Review>,
+    /// What the explorer pages have already asked the network.
+    explorer: crate::explorer::Explorer,
 }
 
 /// One email, for App Store review, whose sign-in code never changes and is
@@ -96,6 +98,7 @@ impl App {
             events: Mutex::new(Vec::new()),
             pairs: crate::pair::Mailboxes::default(),
             review: None,
+            explorer: crate::explorer::Explorer::default(),
         })
     }
 
@@ -163,6 +166,10 @@ impl App {
     /// The Market's own Orien address.
     pub(crate) fn address(&self) -> &str {
         &self.address
+    }
+
+    pub(crate) fn explorer(&self) -> &crate::explorer::Explorer {
+        &self.explorer
     }
 
     pub(crate) fn payments(&self) -> Arc<dyn Payments> {
@@ -341,6 +348,10 @@ pub fn router(app: Arc<App>) -> Router {
         .route("/api/market/listings", get(browse).post(post_listing))
         .route("/api/market/listings/{id}", get(listing).put(edit_listing))
         .route("/api/market/listings/{id}/open", post(open_listing))
+        .route("/api/explorer/overview", get(crate::explorer::overview))
+        .route("/api/explorer/checkpoints", get(crate::explorer::checkpoints))
+        .route("/api/explorer/checkpoints/{epoch}", get(crate::explorer::checkpoint))
+        .route("/api/explorer/address/{address}", get(crate::explorer::address))
         .with_state(app)
 }
 
