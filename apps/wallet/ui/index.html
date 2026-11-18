@@ -4737,9 +4737,17 @@
   // Bitcoin is busy (the figure fetched by showSmallest).
   let smallestBtc = "0.00015";
   const smallest = () => postCoin === "sol" ? "0.01" : smallestBtc;
+  // Too small as soon as no more digits could reach the smallest swap:
+  // for SOL, ".00" already can't, while ".0" still can.
   const tooSmall = () => {
-    const btc = parseFloat($("bp-btc").value);
-    return btc > 0 && btc < parseFloat(smallest());
+    const typed = $("bp-btc").value.trim().replace(/,/g, ".");
+    const least = parseFloat(smallest());
+    const value = parseFloat(typed);
+    if (!(value >= 0)) return false;
+    const point = typed.indexOf(".");
+    if (point < 0) return value > 0 && value < least;
+    const decimals = typed.length - point - 1;
+    return value + Math.pow(10, -decimals) <= least + 1e-12;
   };
   function postHint() {
     const unit = postCoin === "sol" ? "SOL" : "BTC";
