@@ -107,7 +107,7 @@ export function ExplorerHome() {
               <span>Made</span>
               <span>Payments</span>
               <span>New ORN</span>
-              <span>Signed</span>
+              <span>Agreed by</span>
               <span className="w-4" />
             </div>
             <ul className="divide-y divide-line">
@@ -128,7 +128,7 @@ export function ExplorerHome() {
                       <span className="text-muted md:hidden"> new ORN</span>
                     </span>
                     <span className="num hidden text-sm text-ink md:block">
-                      {checkpoint.signed.length} of {checkpoint.of}
+                      {checkpoint.agreed.length} of {checkpoint.of}
                     </span>
                     <ChevronRight className="hidden h-4 w-4 text-muted md:block" aria-hidden />
                   </Link>

@@ -6,7 +6,7 @@ export type Checkpoint = {
   time: number
   payments: number
   released: string
-  signed: number[]
+  agreed: number[]
   of: number
   round: number
   state: string
@@ -58,7 +58,7 @@ export type AddressInfo = {
 export type CheckpointInfo = {
   checkpoint: Checkpoint
   previous: string
-  validators: { seat: number; stake: string; account: string | null; signed: boolean }[]
+  validators: { seat: number; stake: string; account: string | null; agreed: boolean }[]
   latest: number
 }
 

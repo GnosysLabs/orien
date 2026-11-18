@@ -79,9 +79,9 @@ export function CheckpointView() {
             <Stat label="Payments" value={checkpoint.payments.toLocaleString('en')} note="Made final during its hour" />
             <Stat label="New ORN" value={orn(checkpoint.released, 2)} note="Released to miners with it" />
             <Stat
-              label="Signed by"
-              value={`${checkpoint.signed.length} of ${checkpoint.of}`}
-              note="It needs more than two thirds of the stake. The signatures it was settled with are kept."
+              label="Agreed by"
+              value={`${checkpoint.agreed.length} of ${checkpoint.of}`}
+              note="Validators holding this same checkpoint. It is final once more than two thirds of the stake has signed it."
             />
           </div>
 
@@ -106,13 +106,13 @@ export function CheckpointView() {
                         · {orn(validator.stake, 0)} ORN at stake
                       </span>
                     </span>
-                    <span className={`flex items-center gap-1.5 text-sm ${validator.signed ? 'text-go' : 'text-muted'}`}>
-                      {validator.signed ? (
+                    <span className={`flex items-center gap-1.5 text-sm ${validator.agreed ? 'text-go' : 'text-muted'}`}>
+                      {validator.agreed ? (
                         <Check className="h-4 w-4" aria-hidden />
                       ) : (
                         <Minus className="h-4 w-4" aria-hidden />
                       )}
-                      {validator.signed ? 'Signature kept' : 'Not kept'}
+                      {validator.agreed ? 'Agrees' : 'Didn’t answer'}
                     </span>
                   </li>
                 ))}

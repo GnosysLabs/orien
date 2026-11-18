@@ -58,8 +58,10 @@ pub struct Checkpoint {
     pub payments: u64,
     /// New ORN released with it, in units.
     pub released: String,
-    /// Which validators signed it, by seat, and how many there were.
-    pub signed: Vec<u16>,
+    /// Which validators hold this very checkpoint, by seat, and how many
+    /// there were. The checkpoint keeps only the signatures it needed (more
+    /// than two thirds of the stake), so each validator is asked.
+    pub agreed: Vec<u16>,
     pub of: usize,
     /// The voting round it was settled in.
     pub round: u32,
@@ -140,11 +142,14 @@ pub struct Address {
 pub struct Explorer {
     overview: Mutex<Option<(Instant, Overview)>>,
     checkpoints: Mutex<BTreeMap<u64, Checkpoint>>,
+    /// When validators missing from recent checkpoints were last asked again.
+    rechecked: Mutex<Option<Instant>>,
     addresses: Mutex<HashMap<String, (Instant, Address)>>,
 }
 
 impl Explorer {
-    /// Fetches the checkpoints after the last one kept, up to `epoch`.
+    /// Fetches the checkpoints after the last one kept, up to `epoch`, and
+    /// asks again about validators that did not answer for recent ones.
     fn catch_up(&self, payments: &dyn crate::wallets::Payments, epoch: u64) {
         loop {
             let (from, previous) = {
@@ -155,33 +160,40 @@ impl Explorer {
                 }
             };
             if from >= epoch {
-                return;
+                break;
             }
-            let Ok(found) = payments.checkpoints(from, 64) else { return };
-            if found.is_empty() {
-                return;
-            }
+            let answers = payments.checkpoints_each(from, 64);
+            // The chain comes from the first answer that has any; the others
+            // only say whether they hold the same checkpoints.
+            let Some(found) = answers.iter().flatten().find(|found| !found.is_empty()) else { break };
+            let holds = holdings(&answers);
             let mut previous = previous;
             let mut kept = self.checkpoints.lock().unwrap();
+            let mut added = false;
             for decided in found {
                 let checkpoint = &decided.checkpoint;
                 let expected = previous.as_ref().map_or(from, |p| p.epoch + 1);
                 if checkpoint.epoch != expected {
-                    return;
+                    break;
                 }
                 if let Some(previous) = &previous
                     && checkpoint.previous != previous.digest_bytes
                 {
-                    return;
+                    break;
                 }
                 let of = previous.as_ref().map_or_else(|| payments.launch_seats().len(), |p| p.next.len());
                 let digest = checkpoint.digest();
+                // Those whose signatures it carries, and those holding it.
+                let mut agreed: Vec<u16> = decided.precommits.iter().map(|vote| vote.validator).collect();
+                agreed.extend(holders(&holds, checkpoint.epoch, &digest));
+                agreed.sort_unstable();
+                agreed.dedup();
                 let row = Checkpoint {
                     epoch: checkpoint.epoch,
                     time: checkpoint.time,
                     payments: checkpoint.payments,
                     released: checkpoint.released.to_string(),
-                    signed: decided.precommits.iter().map(|vote| vote.validator).collect(),
+                    agreed,
                     of,
                     round: decided.round,
                     state: hex::encode(checkpoint.state.as_bytes()),
@@ -191,7 +203,38 @@ impl Explorer {
                 };
                 kept.insert(row.epoch, row.clone());
                 previous = Some(row);
+                added = true;
             }
+            if !added {
+                break;
+            }
+        }
+        self.recheck(payments);
+    }
+
+    /// Asks again, at most once a minute, about recent checkpoints some
+    /// validator did not answer for: one restarting a moment ago holds them
+    /// once it is back.
+    fn recheck(&self, payments: &dyn crate::wallets::Payments) {
+        {
+            let mut rechecked = self.rechecked.lock().unwrap();
+            if rechecked.is_some_and(|at| at.elapsed() < Duration::from_secs(60)) {
+                return;
+            }
+            *rechecked = Some(Instant::now());
+        }
+        let from = {
+            let kept = self.checkpoints.lock().unwrap();
+            kept.values().rev().take(64).filter(|c| c.agreed.len() < c.of).map(|c| c.epoch).min()
+        };
+        let Some(from) = from else { return };
+        let holds = holdings(&payments.checkpoints_each(from, 64));
+        let mut kept = self.checkpoints.lock().unwrap();
+        for checkpoint in kept.range_mut(from..).map(|(_, c)| c) {
+            let digest = checkpoint.digest_bytes;
+            checkpoint.agreed.extend(holders(&holds, checkpoint.epoch, &digest));
+            checkpoint.agreed.sort_unstable();
+            checkpoint.agreed.dedup();
         }
     }
 
@@ -297,6 +340,27 @@ impl Explorer {
     }
 }
 
+/// Each answering validator's checkpoints, by seat: epoch to digest.
+fn holdings(answers: &[Option<Vec<orien_ledger::close::Decided>>]) -> Vec<(u16, HashMap<u64, orien_crypto::Hash32>)> {
+    answers
+        .iter()
+        .enumerate()
+        .filter_map(|(seat, found)| {
+            let found = found.as_ref()?;
+            Some((seat as u16, found.iter().map(|d| (d.checkpoint.epoch, d.checkpoint.digest())).collect()))
+        })
+        .collect()
+}
+
+/// The seats holding the checkpoint of `epoch` with this digest.
+fn holders<'a>(
+    holds: &'a [(u16, HashMap<u64, orien_crypto::Hash32>)],
+    epoch: u64,
+    digest: &'a orien_crypto::Hash32,
+) -> impl Iterator<Item = u16> + 'a {
+    holds.iter().filter(move |(_, known)| known.get(&epoch) == Some(digest)).map(|(seat, _)| *seat)
+}
+
 type Answer = Result<Response, Failure>;
 
 fn unavailable(error: anyhow::Error) -> Failure {
@@ -354,7 +418,7 @@ pub async fn checkpoint(State(app): State<Arc<App>>, Path(epoch): Path<u64>) -> 
                     "seat": seat,
                     "stake": member.stake.to_string(),
                     "account": member.account.map(|id| hex::encode(id.as_bytes())),
-                    "signed": checkpoint.signed.contains(&(seat as u16)),
+                    "agreed": checkpoint.agreed.contains(&(seat as u16)),
                 })
             })
             .collect();

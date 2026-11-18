@@ -56,10 +56,11 @@ pub trait Payments: Send + Sync {
     fn status(&self) -> Result<NetworkStatus>;
     /// Where the ORN are, from the latest checkpoint.
     fn tokenomics(&self) -> Result<Tokenomics>;
-    /// Up to `max` checkpoints from epoch `from` on, as a validator hands
-    /// them out, for the explorer. Empty when there are none yet.
-    fn checkpoints(&self, _from: u64, _max: u32) -> Result<Vec<orien_ledger::close::Decided>> {
-        anyhow::bail!("checkpoints are not available here")
+    /// Up to `max` checkpoints from epoch `from` on, as each of this
+    /// epoch's validators hands them out (in seat order; None where one did
+    /// not answer), for the explorer.
+    fn checkpoints_each(&self, _from: u64, _max: u32) -> Vec<Option<Vec<orien_ledger::close::Decided>>> {
+        Vec::new()
     }
     /// The validators the genesis file names: the first epoch's.
     fn launch_seats(&self) -> Vec<orien_ledger::Member> {
@@ -204,20 +205,21 @@ impl Payments for Network {
         anyhow::bail!("no validator handed over the state for epoch {epoch}")
     }
 
-    fn checkpoints(&self, from: u64, max: u32) -> Result<Vec<orien_ledger::close::Decided>> {
+    fn checkpoints_each(&self, from: u64, max: u32) -> Vec<Option<Vec<orien_ledger::close::Decided>>> {
         use orien_net::wire::{Request, Response};
         let request = Request::Checkpoints { from, max };
-        let mut answered = false;
-        for index in 0..self.client.validators() {
-            if let Ok(Response::Checkpoints(found)) = self.client.call(index, &request) {
-                if !found.is_empty() {
-                    return Ok(found);
-                }
-                answered = true;
-            }
-        }
-        anyhow::ensure!(answered, "no validator answers");
-        Ok(Vec::new())
+        std::thread::scope(|scope| {
+            let asks: Vec<_> = (0..self.client.validators())
+                .map(|index| {
+                    let request = &request;
+                    scope.spawn(move || match self.client.call(index, request) {
+                        Ok(Response::Checkpoints(found)) => Some(found),
+                        _ => None,
+                    })
+                })
+                .collect();
+            asks.into_iter().map(|ask| ask.join().ok().flatten()).collect()
+        })
     }
 
     fn launch_seats(&self) -> Vec<orien_ledger::Member> {
