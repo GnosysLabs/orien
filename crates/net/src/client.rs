@@ -345,7 +345,29 @@ impl Client {
         let mut moved = 0;
         loop {
             let head = self.head();
-            let answers = self.ask_all(&Request::Checkpoints { from: head.epoch, max: 64 });
+            let request = Request::Checkpoints { from: head.epoch, max: 64 };
+            let mut answers = self.ask_all(&request);
+            // When none of the validators this client knows of answers (a
+            // new wallet whose genesis addresses have moved, or one offline
+            // since before a move), it looks where the launch seats are
+            // reached by name. Whatever answers there is checked like any
+            // other answer, back to the genesis file, so a wrong place can
+            // only fail to help.
+            if answers.iter().all(|answer| answer.is_err()) {
+                let known = self.endpoints();
+                let names: Vec<String> =
+                    self.origin.seat_names().iter().filter(|name| !known.contains(name)).cloned().collect();
+                answers.extend(thread::scope(|scope| {
+                    let workers: Vec<_> = names
+                        .iter()
+                        .map(|name| scope.spawn(|| rpc(name, &request, self.timeout)))
+                        .collect();
+                    workers
+                        .into_iter()
+                        .map(|worker| worker.join().unwrap_or_else(|_| Err(io::Error::other("request failed"))))
+                        .collect::<Vec<_>>()
+                }));
+            }
             // Validators may offer different lengths. Take the longest run
             // that checks out.
             let mut best = head.clone();

@@ -66,6 +66,16 @@ pub const LIVE_RANDOMX_FROM: u64 = 21;
 /// there the target moves each epoch, as before.
 pub const LIVE_RANDOMX_TARGET: u64 = u64::MAX / 400_000;
 
+/// The first epoch in which the live network's four launch seats are
+/// reached by name rather than at 217.77.11.197, so that each can move to
+/// its own server by changing its name record. Set to an epoch the release
+/// bringing it reaches every validator before.
+pub const LIVE_SEAT_NAMES_FROM: u64 = 117;
+
+/// The live network's launch seats' names, in genesis order.
+pub const LIVE_SEAT_NAMES: [&str; 4] =
+    ["v1.orien.network:7101", "v2.orien.network:7102", "v3.orien.network:7103", "v4.orien.network:7104"];
+
 /// What RandomX hashes for a share: the seed, the account and the nonce.
 #[cfg(feature = "randomx")]
 fn input(seed: &Hash32, share: &Share) -> [u8; 72] {

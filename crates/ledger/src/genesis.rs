@@ -79,6 +79,20 @@ pub struct Genesis {
     /// network, made before RandomX, has its own in `work`.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub randomx: Option<RandomXFrom>,
+    /// From an epoch on, the launch seats are reached at new addresses (in
+    /// genesis order), names rather than fixed numbers, so a seat can move
+    /// to another server with a change of name records. None for a network
+    /// whose seats keep the addresses above; the live network, made before
+    /// this, has its own in `work`.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub seat_addresses: Option<SeatAddresses>,
+}
+
+/// When the launch seats move to new addresses, and those addresses.
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+pub struct SeatAddresses {
+    pub from: u64,
+    pub addresses: Vec<String>,
 }
 
 /// When a network moves its mining to RandomX, and the target it starts at.
@@ -208,6 +222,7 @@ impl Genesis {
             first_target: a_first_target(),
             bitcoin: None,
             randomx: None,
+            seat_addresses: None,
         }
     }
 
@@ -254,6 +269,15 @@ impl Genesis {
             bytes.extend_from_slice(b"randomx");
             bytes.extend_from_slice(&randomx.epoch.to_le_bytes());
             bytes.extend_from_slice(&randomx.target.to_le_bytes());
+        }
+        if let Some(seats) = &self.seat_addresses {
+            bytes.extend_from_slice(b"seat addresses");
+            bytes.extend_from_slice(&seats.from.to_le_bytes());
+            bytes.extend_from_slice(&(seats.addresses.len() as u32).to_le_bytes());
+            for address in &seats.addresses {
+                bytes.extend_from_slice(&(address.len() as u32).to_le_bytes());
+                bytes.extend_from_slice(address.as_bytes());
+            }
         }
         hash(Tag::Genesis, &[&bytes])
     }
@@ -387,6 +411,9 @@ pub struct Committee {
     /// Each launch seat's share of the seats' weight: its stake in the
     /// genesis file, in genesis order.
     seats: Vec<u64>,
+    /// From which epoch the launch seats are reached at other addresses,
+    /// and those addresses, in genesis order.
+    seat_addresses: Option<SeatAddresses>,
 }
 
 impl Committee {
@@ -422,7 +449,29 @@ impl Committee {
             randomx_from: randomx.epoch,
             randomx_target: randomx.target,
         };
-        Committee { network, epoch: 0, members, total_stake, staking: genesis.staking(), work, seats }
+        let seat_addresses = if network.to_string() == crate::work::LIVE_NETWORK {
+            Some(SeatAddresses {
+                from: crate::work::LIVE_SEAT_NAMES_FROM,
+                addresses: crate::work::LIVE_SEAT_NAMES.iter().map(|name| name.to_string()).collect(),
+            })
+        } else {
+            genesis.seat_addresses.clone()
+        };
+        Committee { network, epoch: 0, members, total_stake, staking: genesis.staking(), work, seats, seat_addresses }
+    }
+
+    /// Where launch seat `seat` is reached in `epoch`, if it has moved from
+    /// its genesis address by then.
+    pub fn seat_address(&self, seat: u16, epoch: u64) -> Option<&str> {
+        let moved = self.seat_addresses.as_ref().filter(|moved| epoch >= moved.from)?;
+        moved.addresses.get(seat as usize).map(String::as_str)
+    }
+
+    /// Every address the launch seats will ever be reached at after moving,
+    /// whatever the epoch: a place to look for the network when the
+    /// addresses a client knows no longer answer.
+    pub fn seat_names(&self) -> &[String] {
+        self.seat_addresses.as_ref().map_or(&[], |moved| &moved.addresses)
     }
 
     /// Each launch seat's share of the seats' weight, in genesis order.
@@ -477,6 +526,7 @@ impl Committee {
             staking: self.staking,
             work: self.work,
             seats: self.seats.clone(),
+            seat_addresses: self.seat_addresses.clone(),
         }
     }
 

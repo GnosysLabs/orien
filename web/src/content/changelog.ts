@@ -27,6 +27,17 @@ export const PRODUCTS: Record<Product, string> = {
 export const CHANGELOG: Entry[] = [
   {
     date: '2026-11-18',
+    products: ['network', 'orien', 'validators'],
+    version: '1.9.0',
+    title: 'The founding validators can move to servers of their own',
+    changes: [
+      'From epoch 117, at 18:11 UTC on 19 November 2026, the four founding validators are reached by name, v1.orien.network to v4.orien.network, instead of at one fixed server address. Each can then move to a server of its own, and everyone follows it there without an update.',
+      'Orien Wallet and orien follow the change by themselves. A brand-new wallet that cannot reach the network’s first addresses looks for the founding validators by name instead.',
+      'Validators keep themselves up to date as usual. Balances, payments and history are unchanged.',
+    ],
+  },
+  {
+    date: '2026-11-18',
     products: ['wallet'],
     version: '1.8.15',
     title: 'Use my other device works from the first screen',

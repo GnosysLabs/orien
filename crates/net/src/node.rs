@@ -215,6 +215,39 @@ struct Shared {
     admission: Mutex<Admission>,
     idle: Duration,
     next_connection: AtomicU64,
+    /// The addresses the current validators' names stand for, looked up
+    /// every little while by `look_up_validators`, so that a validator
+    /// reached by name is known when it connects.
+    validator_ips: RwLock<std::collections::HashSet<IpAddr>>,
+}
+
+/// How often the validators' names are looked up again.
+const LOOK_UP_EVERY: Duration = Duration::from_secs(30);
+
+/// Keeps `validator_ips` up to date with the names the current validators
+/// are reached at, until the node stops.
+fn look_up_validators(shared: Arc<Shared>) {
+    use std::net::ToSocketAddrs;
+    while !shared.stopping.load(Ordering::SeqCst) {
+        let addresses: Vec<String> = shared
+            .committee()
+            .members()
+            .iter()
+            .map(|member| member.address.clone())
+            .filter(|address| address.parse::<SocketAddr>().is_err())
+            .collect();
+        let mut found = std::collections::HashSet::new();
+        for address in addresses {
+            if let Ok(resolved) = address.to_socket_addrs() {
+                found.extend(resolved.map(|address| address.ip()));
+            }
+        }
+        *shared.validator_ips.write().unwrap() = found;
+        let slept = Instant::now();
+        while slept.elapsed() < LOOK_UP_EVERY && !shared.stopping.load(Ordering::SeqCst) {
+            thread::sleep(Duration::from_millis(200));
+        }
+    }
 }
 
 /// How many RandomX shares this validator checks at once, so checking never
@@ -1601,7 +1634,8 @@ fn accept_loop(listener: TcpListener, shared: Arc<Shared>) {
                     .committee()
                     .members()
                     .iter()
-                    .any(|m| m.address.parse::<SocketAddr>().is_ok_and(|address| address.ip() == from));
+                    .any(|m| m.address.parse::<SocketAddr>().is_ok_and(|address| address.ip() == from))
+                    || shared.validator_ips.read().unwrap().contains(&from);
                 if !shared.admission.lock().unwrap().admit(from, validator) {
                     // Dropping the stream closes it.
                     continue;
@@ -2107,6 +2141,7 @@ impl Node {
             admission: Mutex::new(Admission::new(config.limits)),
             idle: config.limits.idle,
             next_connection: AtomicU64::new(0),
+            validator_ips: RwLock::new(std::collections::HashSet::new()),
         });
         let mut core = Core {
             name: name.clone(),
@@ -2169,6 +2204,8 @@ impl Node {
         let listener = thread::Builder::new()
             .name(format!("{name}-listen"))
             .spawn(move || accept_loop(listener, accepting))?;
+        let looking = shared.clone();
+        thread::Builder::new().name(format!("{name}-names")).spawn(move || look_up_validators(looking))?;
 
         Ok(Node { addr, index: index.map(|index| index as u16), name, shared, core: Some(core), listener: Some(listener) })
     }

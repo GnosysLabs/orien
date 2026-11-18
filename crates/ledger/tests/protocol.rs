@@ -105,6 +105,7 @@ impl Net {
             first_target: u64::MAX,
             bitcoin: None,
             randomx: None,
+            seat_addresses: None,
         };
         genesis.validate().unwrap();
         Net {
