@@ -478,7 +478,7 @@ impl EventHandler for Handler {
 
 pub async fn run(
     token: String,
-    expert: Expert,
+    expert: Arc<Expert>,
     per_person: usize,
     per_hour: usize,
     news: Option<(String, std::path::PathBuf)>,
@@ -486,7 +486,6 @@ pub async fn run(
     holders: Option<Holders>,
 ) -> Result<()> {
     let holders = holders.map(Arc::new);
-    let expert = Arc::new(expert);
     if let Some(shipped) = shipped {
         tokio::spawn(crate::study::keep_current(expert.clone(), shipped));
     }

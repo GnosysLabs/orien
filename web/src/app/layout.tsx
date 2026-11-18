@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import { Geist, Geist_Mono, Jost } from 'next/font/google'
 import { Analytics } from '@/components/Analytics'
+import { AskOrien } from '@/components/AskOrien'
 import { BottomNav, Header } from '@/components/Header'
 import { ScrollToTop } from '@/components/ScrollToTop'
 import { Main, SiteOnly } from '@/components/SiteOnly'
@@ -185,6 +186,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         </div>
         <SiteOnly>
           <BottomNav />
+          <AskOrien />
         </SiteOnly>
       </body>
     </html>

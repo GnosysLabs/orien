@@ -18,6 +18,7 @@ mod news;
 mod safety;
 mod study;
 mod texts;
+mod web;
 
 use std::path::PathBuf;
 
@@ -81,6 +82,24 @@ enum Command {
         /// website again every half hour.
         #[arg(long)]
         offline: bool,
+        /// Also answer the website's chat bubble here, such as
+        /// 127.0.0.1:7300, for nginx to pass /api/ask to.
+        #[arg(long)]
+        web_listen: Option<String>,
+        /// How many website answers one visitor may get in an hour.
+        #[arg(long, default_value_t = 20)]
+        web_per_visitor: usize,
+        /// How many website answers everyone together may get in a day.
+        #[arg(long, default_value_t = 1500)]
+        web_per_day: usize,
+    },
+    /// Answer only the website's chat, without Discord: for trying it on
+    /// this computer.
+    Web {
+        #[command(flatten)]
+        brain: Brain,
+        #[arg(long, default_value = "127.0.0.1:7300")]
+        listen: String,
     },
     /// Ask the network what the Verified Holder check would see now.
     Network {
@@ -170,14 +189,42 @@ fn expert(brain: &Brain) -> Result<expert::Expert> {
 #[tokio::main]
 async fn main() -> Result<()> {
     match Cli::parse().command {
-        Command::Run { token, brain, per_person, per_hour, state, changelog, offline, genesis, verify_address } => {
+        Command::Run {
+            token,
+            brain,
+            per_person,
+            per_hour,
+            state,
+            changelog,
+            offline,
+            genesis,
+            verify_address,
+            web_listen,
+            web_per_visitor,
+            web_per_day,
+        } => {
             let holders = match (&genesis, &state) {
                 (Some(genesis), Some(folder)) => Some(holders::Holders::open(genesis, &verify_address, folder.join("holders.json"))?),
                 _ => None,
             };
             let news = state.map(|folder| (changelog, folder.join("announced.json")));
             let shipped = if offline { None } else { Some(std::fs::read_to_string(&brain.knowledge)?) };
-            bot::run(secret(&token)?, expert(&brain)?, per_person, per_hour, news, shipped, holders).await
+            let expert = std::sync::Arc::new(expert(&brain)?);
+            if let Some(listen) = web_listen {
+                let expert = expert.clone();
+                tokio::spawn(async move {
+                    if let Err(error) = web::serve(expert, listen, web_per_visitor, web_per_day).await {
+                        eprintln!("website chat stopped: {error:#}");
+                    }
+                });
+            }
+            bot::run(secret(&token)?, expert, per_person, per_hour, news, shipped, holders).await
+        }
+        Command::Web { brain, listen } => {
+            let expert = std::sync::Arc::new(expert(&brain)?);
+            let shipped = std::fs::read_to_string(&brain.knowledge)?;
+            tokio::spawn(study::keep_current(expert.clone(), shipped));
+            web::serve(expert, listen, 20, 1500).await
         }
         Command::Network { genesis, verify_address, wallet } => {
             let holders = holders::Holders::open(&genesis, &verify_address, std::env::temp_dir().join("orien-holders-unused.json"))?;
