@@ -1093,6 +1093,22 @@
     background: rgba(var(--tint), 0.06); color: var(--ink); font-size: 12.5px; font-weight: 500;
   }
   @media (hover: hover) { .chip:hover { background: rgba(var(--tint), 0.1); } }
+  /* Scanning a QR code on a phone: the camera runs behind the app, which
+     turns see-through except for this frame and its Cancel button. */
+  #scanner { display: none; }
+  html.scanning, html.scanning body { background: transparent !important; }
+  html.scanning body > *:not(#scanner) { visibility: hidden !important; }
+  html.scanning #scanner {
+    display: flex; position: fixed; inset: 0; z-index: 1000; flex-direction: column; align-items: center; justify-content: center;
+    padding: env(safe-area-inset-top) 24px calc(28px + env(safe-area-inset-bottom));
+  }
+  #scanner .sc-frame { width: min(68vw, 280px); aspect-ratio: 1; border-radius: 26px; box-shadow: 0 0 0 100vmax rgba(0, 0, 0, 0.5); border: 2px solid rgba(255, 255, 255, 0.9); }
+  #scanner .sc-hint { margin: 26px 0 0; color: #fff; font-size: 15px; font-weight: 500; text-align: center; text-shadow: 0 1px 4px rgba(0, 0, 0, 0.5); }
+  #scanner .sc-cancel {
+    position: absolute; left: 50%; bottom: calc(32px + env(safe-area-inset-bottom)); transform: translateX(-50%);
+    min-width: 160px; height: 50px; padding: 0 28px; border: 0; border-radius: 25px; cursor: pointer;
+    background: rgba(255, 255, 255, 0.92); color: #16131f; font-size: 16px; font-weight: 600;
+  }
   /* Scanning an address QR: phones only, beside Paste. */
   .scan-chip { display: none; margin-left: 6px; padding: 0 10px; }
   body.phone .scan-chip { display: grid; place-items: center; }
@@ -1345,6 +1361,11 @@
 </style>
 </head>
 <body>
+  <div id="scanner" aria-live="polite">
+    <div class="sc-frame"></div>
+    <p class="sc-hint" id="sc-hint">Point the camera at the QR code</p>
+    <button class="sc-cancel" id="sc-cancel" type="button">Cancel</button>
+  </div>
   <header data-tauri-drag-region>
     <div class="wm-wrap"><h1 class="wordmark"><span class="mark brand"></span><span class="word brand">ORIEN</span></h1>
       <button class="status" id="status" hidden><i></i><span id="status-text"></span></button></div>
@@ -3265,11 +3286,28 @@
     if (fixed !== box.value) { const gone = box.value.length - fixed.length; box.value = fixed; box.setSelectionRange(at - gone, at - gone); }
   });
   $("pl-code").addEventListener("keydown", (e) => { if (e.key === "Enter") pairAccept($("pl-code").value); });
+  // Scan a QR code with the phone's camera, on our own screen with a
+  // Cancel button: the camera runs behind the see-through app. Gives the
+  // text read, or null when cancelled.
+  async function scanQr(hint) {
+    await invoke("plugin:barcode-scanner|request_permissions").catch(() => {});
+    $("sc-hint").textContent = hint;
+    document.documentElement.classList.add("scanning");
+    try {
+      const found = await invoke("plugin:barcode-scanner|scan", { windowed: true, formats: ["QR_CODE"] });
+      return String(found && found.content || "");
+    } catch (e) {
+      if (/cancel/i.test(String(e))) return null;
+      throw e;
+    } finally {
+      document.documentElement.classList.remove("scanning");
+    }
+  }
+  $("sc-cancel").onclick = () => { invoke("plugin:barcode-scanner|cancel").catch(() => {}); document.documentElement.classList.remove("scanning"); };
   $("pl-scan").onclick = async () => {
     try {
-      await invoke("plugin:barcode-scanner|request_permissions").catch(() => {});
-      const found = await invoke("plugin:barcode-scanner|scan", { windowed: false, formats: ["QR_CODE"] });
-      const text = String(found && found.content || "");
+      const text = await scanQr("Point the camera at the code on your other device");
+      if (text === null) return;
       if (!text.startsWith("orien-link:")) { problem("pl-problem", "That QR code isn't from Orien Wallet's Use my other device."); return; }
       $("pl-code").value = text.slice("orien-link:".length);
       pairAccept($("pl-code").value);
@@ -3569,9 +3607,8 @@
   // in front, from other apps, is taken off).
   $("scan-to").onclick = async () => {
     try {
-      await invoke("plugin:barcode-scanner|request_permissions").catch(() => {});
-      const found = await invoke("plugin:barcode-scanner|scan", { windowed: false, formats: ["QR_CODE"] });
-      const text = String(found && found.content || "").trim().replace(/^orien:/i, "").split("?")[0];
+      const read = await scanQr("Point the camera at their Receive QR code");
+      const text = String(read || "").trim().replace(/^orien:/i, "").split("?")[0];
       if (!text) return;
       $("to").value = text;
       feel("success");
