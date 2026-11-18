@@ -33,6 +33,7 @@ export const CHANGELOG: Entry[] = [
     changes: [
       'A new Benchmark button mines at a few settings for a minute or two and finds the one that earns the most without wasting heat. Shares found during it still count.',
       'The mining slider is now in cores instead of percent, coloured from cool blue up to the sweet spot and warm orange past it.',
+      'The Mine screen now estimates how many shares you can expect an hour at your speed, or how often if it’s less than one.',
       'Your choice of two decimals or every decimal for your balance is now remembered.',
       'In full screen, opening another wallet keeps the loading sun inside the wallet’s window.',
     ],

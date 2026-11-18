@@ -513,9 +513,15 @@
   @keyframes mining { 0%, 100% { opacity: 1; } 50% { opacity: 0.35; } }
   #mine { overflow-y: auto; margin: -8px -8px 0; padding: 8px 8px 16px; }
   #mine > * { flex-shrink: 0; }
-  .mine-status { padding: 16px 18px; border: 1px solid var(--line); border-radius: 18px; background: var(--surface); }
+  .mine-status { display: flex; align-items: center; gap: 20px; padding: 16px 18px; border: 1px solid var(--line); border-radius: 18px; background: var(--surface); }
   .mine-status .speed { font-size: 20px; font-weight: 500; }
   .mine-status .sub { margin-top: 4px; font-size: 12.5px; color: var(--dim); }
+  .mine-status .ms-left { flex: 1; min-width: 0; }
+  /* Shares to expect: big, on the right. */
+  .ms-rate { flex: none; text-align: right; }
+  .ms-rate b { display: block; font-size: 34px; font-weight: 500; line-height: 1.05; letter-spacing: -0.01em; }
+  .ms-rate span { display: block; margin-top: 3px; font-size: 12.5px; color: var(--dim); }
+  .ms-rate span + span { margin-top: 1px; }
   .wallet-chip { display: inline-flex; align-items: center; gap: 6px; margin: 0 0 12px 2px; padding: 5px 10px;
     border: 1px solid var(--line); border-radius: 999px; background: transparent; cursor: pointer; font-size: 12.5px; color: var(--dim); }
   @media (hover: hover) { .wallet-chip:hover { color: var(--ink); background: rgba(var(--tint), 0.031); } }
@@ -1889,9 +1895,12 @@
       <div class="topline"><button class="back" data-back aria-label="Back"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg></button><h2>Mine ORN</h2></div>
       <p class="lede">Earn a share of each hour's new ORN while this app is open.</p>
       <div class="mine-status">
-        <div class="speed" id="mn-speed">Stopped</div>
-        <div class="sub" id="mn-shares"></div>
-        <div class="sub">To <span id="mn-wallet"></span> · Last reward <span id="mn-reward">none yet</span></div>
+        <div class="ms-left">
+          <div class="speed" id="mn-speed">Stopped</div>
+          <div class="sub" id="mn-shares"></div>
+          <div class="sub">To <span id="mn-wallet"></span> · Last reward <span id="mn-reward">none yet</span></div>
+        </div>
+        <div class="ms-rate" id="mn-rate" hidden><b id="mn-rate-big"></b><span id="mn-rate-small"></span><span>estimated</span></div>
       </div>
       <div class="field" data-gap="lg">
         <label for="mn-cpu">Processor <span id="mn-cpu-text"></span></label>
@@ -2852,6 +2861,22 @@
       : s.preparing ? "Getting ready (about a minute)"
       : s.tries_per_second ? `${speed(s.tries_per_second)} tries a second` : "Starting…";
     $("mn-light").hidden = !(s.running && s.light);
+    // Shares to expect at this speed and today's difficulty.
+    let big = "", small = "";
+    if (s.running && !s.preparing && s.tries_per_second && s.one_in) {
+      const perHour = s.tries_per_second * 3600 / s.one_in;
+      if (perHour >= 1.5) { big = Math.round(perHour).toLocaleString(); small = "shares an hour"; }
+      else if (perHour >= 0.75) { big = "1"; small = "share an hour"; }
+      else {
+        const hours = 1 / perHour;
+        if (hours < 36) { big = `${Math.round(hours)} hours`; small = "for each share"; }
+        else { big = `${Math.round(hours / 24)} days`; small = "for each share"; }
+      }
+    }
+    $("mn-rate-big").textContent = big;
+    $("mn-rate-small").textContent = small;
+    $("mn-rate").hidden = !big;
+    $("mn-rate").title = big ? "At this speed and today's difficulty" : "";
     $("mn-shares").textContent = s.running && s.epoch !== null
       ? `This hour: ${s.found.toLocaleString()} shares found, ${s.taken.toLocaleString()} counted` : "";
     $("mn-reward").textContent = m.last_reward ? `+${m.last_reward.amount} ORN` : "none yet";
