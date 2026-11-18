@@ -1,46 +1,45 @@
 'use client'
 
 import { useState } from 'react'
-import { useRouter } from 'next/navigation'
 import { Search } from 'lucide-react'
 import { searchTarget } from '@/lib/explorer'
 
 /** The explorer's search: an address or a checkpoint number. */
 export function ExplorerSearch({ initial = '' }: { initial?: string }) {
-  const router = useRouter()
   const [text, setText] = useState(initial)
   const [wrong, setWrong] = useState(false)
   return (
     <form
+      className="relative"
       onSubmit={(event) => {
         event.preventDefault()
         const target = searchTarget(text)
         setWrong(!target)
-        if (target) router.push(target)
+        if (target) window.location.href = target
       }}
     >
-      <div className="flex gap-3">
+      <div className="flex gap-2">
         <input
           value={text}
           onChange={(event) => {
             setText(event.target.value)
             setWrong(false)
           }}
-          placeholder="An address, or a checkpoint number"
+          placeholder="Address or checkpoint number"
           spellCheck={false}
           autoCapitalize="off"
           autoCorrect="off"
-          className="num h-12 min-w-0 flex-1 rounded-xl border border-line bg-bg px-4 text-sm text-ink outline-none transition placeholder:font-sans placeholder:text-muted focus:border-pearl"
+          className="num h-10 min-w-0 flex-1 rounded-xl border border-line bg-bg px-4 text-sm text-ink outline-none transition placeholder:font-sans placeholder:text-muted focus:border-pearl"
         />
         <button
           type="submit"
-          className="pearl-fill flex h-12 shrink-0 items-center gap-2 rounded-xl px-5 text-sm font-bold transition hover:brightness-105"
+          className="pearl-fill flex h-10 shrink-0 items-center gap-2 rounded-xl px-4 text-sm font-bold transition hover:brightness-105"
         >
           <Search className="h-4 w-4" aria-hidden /> Search
         </button>
       </div>
       {wrong && (
-        <p className="mt-3 text-sm text-stop">
+        <p className="absolute inset-x-0 top-full z-10 mt-2 rounded-xl border border-line bg-surface px-4 py-3 text-sm text-stop shadow-2xl shadow-black/40">
           An address is 64 letters and digits (0-9 and a-f). A checkpoint is a number, such as 90.
         </p>
       )}

@@ -1,10 +1,9 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import Link from 'next/link'
 import { ChevronRight } from 'lucide-react'
 import { type Overview, ago, checkpointHref, explore, orn } from '@/lib/explorer'
-import { Card, ExplorerSearch, Loading, Problem, Stat } from './Parts'
+import { Card, Loading, Problem, Stat } from './Parts'
 
 /** "23 min" until the next checkpoint, ticking. */
 function useCountdown(overview: Overview | null) {
@@ -47,8 +46,6 @@ export function ExplorerHome() {
 
   return (
     <div className="space-y-10">
-      <ExplorerSearch />
-
       {error && !overview && <Problem text={error} />}
       {!error && !overview && <Loading />}
 
@@ -113,7 +110,7 @@ export function ExplorerHome() {
             <ul className="divide-y divide-line">
               {overview.checkpoints.map((checkpoint) => (
                 <li key={checkpoint.epoch}>
-                  <Link
+                  <a
                     href={checkpointHref(checkpoint.epoch)}
                     className="grid grid-cols-[1fr_auto] items-center gap-x-4 gap-y-1 px-5 py-4 transition hover:bg-raised sm:px-6 md:grid-cols-[1.2fr_1fr_0.8fr_1fr_0.8fr_auto]"
                   >
@@ -131,7 +128,7 @@ export function ExplorerHome() {
                       {checkpoint.agreed.length} of {checkpoint.of}
                     </span>
                     <ChevronRight className="hidden h-4 w-4 text-muted md:block" aria-hidden />
-                  </Link>
+                  </a>
                 </li>
               ))}
             </ul>

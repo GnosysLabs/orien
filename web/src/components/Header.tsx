@@ -52,10 +52,10 @@ const ITEMS: NavItem[] = [
     match: (p) => p.startsWith("/how-it-works"),
   },
   {
-    href: "/explorer/",
+    href: "https://explorer.orien.network/",
     label: "Explorer",
     icon: Activity,
-    match: (p) => p.startsWith("/explorer"),
+    match: () => false,
     wide: true,
   },
   ...(MARKETPLACE_LIVE

@@ -126,8 +126,22 @@ export function orn(units: string | number, digits = 9): string {
 /** "a3f9c2…8b41". */
 export const short = (address: string) => `${address.slice(0, 6)}…${address.slice(-4)}`
 
-export const addressHref = (address: string) => `/explorer/address/?a=${address}`
-export const checkpointHref = (epoch: number) => `/explorer/checkpoint/?n=${epoch}`
+/** On explorer.orien.network, short addresses (/address/ABC/); anywhere
+ * else, such as on this computer, the pages' own (/explorer/address/?a=ABC). */
+const own = () => typeof window !== 'undefined' && window.location.hostname.startsWith('explorer.')
+
+export const EXPLORER_URL = 'https://explorer.orien.network/'
+export const homeHref = () => (own() ? '/' : '/explorer/')
+export const addressHref = (address: string) => (own() ? `/address/${address}/` : `/explorer/address/?a=${address}`)
+export const checkpointHref = (epoch: number) => (own() ? `/checkpoint/${epoch}/` : `/explorer/checkpoint/?n=${epoch}`)
+
+/** What an explorer page was opened for: the part after /address/ or
+ * /checkpoint/ on explorer.orien.network, or the `key` in the query. */
+export function opened(kind: 'address' | 'checkpoint', key: string): string {
+  if (typeof window === 'undefined') return ''
+  const match = window.location.pathname.match(new RegExp(`^/${kind}/([^/]+)`))
+  return decodeURIComponent(match?.[1] ?? new URLSearchParams(window.location.search).get(key) ?? '')
+}
 
 /** "just now", "5 min ago", "3 h ago", or a date. */
 export function ago(seconds: number): string {

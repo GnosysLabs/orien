@@ -1,8 +1,6 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { useSearchParams } from 'next/navigation'
-import Link from 'next/link'
 import { ArrowDownLeft, ArrowUpRight, Pickaxe, RotateCcw, Unlock, Landmark, KeyRound } from 'lucide-react'
 import { CopyText } from '@/components/CopyText'
 import { profileHref } from '@/lib/market'
@@ -15,11 +13,12 @@ import {
   checkpointHref,
   explore,
   namesFor,
+  opened,
   orn,
   short,
   when,
 } from '@/lib/explorer'
-import { Card, ExplorerSearch, Loading, Problem, Stat } from './Parts'
+import { Card, Loading, Problem, Stat } from './Parts'
 
 const KINDS: Record<Entry['kind'], { label: string; to?: string; icon: typeof Pickaxe; out?: boolean }> = {
   received: { label: 'Received', to: 'from', icon: ArrowDownLeft },
@@ -32,21 +31,23 @@ const KINDS: Record<Entry['kind'], { label: string; to?: string; icon: typeof Pi
 }
 
 function Who({ address, names }: { address: string; names: Record<string, WalletProfile> }) {
-  const profile = names[address]
+  const profile = address ? names[address] : undefined
   return (
-    <Link href={addressHref(address)} className="num text-ink underline decoration-line underline-offset-4 hover:decoration-pearl">
+    <a href={addressHref(address)} className="num text-ink underline decoration-line underline-offset-4 hover:decoration-pearl">
       {profile ? `@${profile.name}` : short(address)}
-    </Link>
+    </a>
   )
 }
 
 export function AddressView() {
-  const address = (useSearchParams().get('a') ?? '').trim().toLowerCase()
+  const [address, setAddress] = useState<string | null>(null)
+  useEffect(() => setAddress(opened('address', 'a').trim().toLowerCase()), [])
   const [info, setInfo] = useState<AddressInfo | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [names, setNames] = useState<Record<string, WalletProfile>>({})
 
   useEffect(() => {
+    if (address === null) return
     setInfo(null)
     setError(null)
     if (!/^[0-9a-f]{64}$/.test(address)) {
@@ -67,21 +68,19 @@ export function AddressView() {
     }
   }, [address])
 
-  const profile = names[address]
+  const profile = address ? names[address] : undefined
   const empty = info && info.activity.length === 0 && info.balance === '0' && info.staked === '0'
 
   return (
     <div className="space-y-10">
-      <ExplorerSearch />
-
       <div className="space-y-4">
         <h1 className="text-3xl font-bold tracking-tight text-ink">Address</h1>
         {profile && (
           <p className="text-muted">
             Belongs to{' '}
-            <Link href={profileHref(profile.name)} className="font-semibold text-ink underline decoration-line underline-offset-4 hover:decoration-pearl">
+            <a href={profileHref(profile.name)} className="font-semibold text-ink underline decoration-line underline-offset-4 hover:decoration-pearl">
               @{profile.name}
-            </Link>{' '}
+            </a>{' '}
             on the Market, who showed they hold it.
           </p>
         )}
@@ -132,9 +131,9 @@ export function AddressView() {
                         </span>
                         <span className="block text-sm text-muted">
                           {entry.time ? ago(entry.time) : 'This hour'} ·{' '}
-                          <Link href={checkpointHref(entry.epoch)} className="hover:text-ink">
+                          <a href={checkpointHref(entry.epoch)} className="hover:text-ink">
                             checkpoint {entry.epoch}
-                          </Link>
+                          </a>
                         </span>
                       </span>
                       <span className={`num shrink-0 text-right font-semibold ${kind.out ? 'text-ink' : 'text-go'}`}>
