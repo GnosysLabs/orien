@@ -299,15 +299,15 @@ export default function HowItWorksPage() {
 
       <Section id="measured" title="Measured">
         <p>
-          These figures come from real validators that write every vote to disk before answering, with no in-memory
-          shortcuts.
+          Taken from real validators, with no shortcuts: each one writes every vote to disk before it answers. The time
+          until final comes from across the internet, the other figures from an ordinary laptop.
         </p>
         <Facts
           rows={[
-            ['Final, across the internet', 'about 160 ms'],
-            ['Payments per second, one laptop', '950 to 1,500'],
-            ['One signature', '1,248 bytes'],
-            ['Signatures checked per second, one core', 'about 40,000'],
+            ['Time until a payment is final', 'about 0.16 seconds'],
+            ['Payments per second', '950 to 1,500'],
+            ['Size of a signature', '1,248 bytes'],
+            ['Time to check a signature', 'about 25 millionths of a second'],
           ]}
         />
       </Section>
