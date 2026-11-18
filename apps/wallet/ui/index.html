@@ -1082,6 +1082,7 @@
     transition: border-color 0.15s;
   }
   .field .box:focus-within { border-color: var(--focus); }
+  .field .box.too-small, .field .box.too-small:focus-within { border-color: var(--bad, #e5484d); }
   .field input {
     flex: 1; min-width: 0; border: 0; background: transparent; color: var(--ink);
     font: 12.5px ui-monospace, "SF Mono", monospace; -webkit-user-select: text; user-select: text;
@@ -4723,7 +4724,6 @@
     $("bp-tab-sol").classList.toggle("on", sol);
     $("bp-tab-btc").classList.toggle("on", !sol);
     $("bp-amount-label").textContent = sol ? "SOL to receive" : "Bitcoin to receive";
-    $("bp-btc").placeholder = sol ? "0.5" : "0.01";
     $("bp-payout-label").textContent = sol ? "Your SOL address" : "Your Bitcoin address";
     $("bp-payout").placeholder = sol ? "Where the SOL should go, such as your Phantom wallet" : "Where the Bitcoin should go";
     $("bp-fine-sol").hidden = !sol;
@@ -4733,7 +4733,21 @@
   $("get-site").onclick = (event) => { event.preventDefault(); invoke("open_site").catch(() => {}); };
   $("bp-tab-sol").onclick = () => setPostCoin("sol");
   $("bp-tab-btc").onclick = () => setPostCoin("btc");
+  // The smallest swap: 0.01 SOL; for Bitcoin 0.00015 BTC, or more when
+  // Bitcoin is busy (the figure fetched by showSmallest).
+  let smallestBtc = "0.00015";
+  const smallest = () => postCoin === "sol" ? "0.01" : smallestBtc;
+  const tooSmall = () => {
+    const btc = parseFloat($("bp-btc").value);
+    return btc > 0 && btc < parseFloat(smallest());
+  };
   function postHint() {
+    const unit = postCoin === "sol" ? "SOL" : "BTC";
+    $("bp-btc").placeholder = `At least ${smallest()} ${unit}`;
+    const small = tooSmall();
+    $("bp-btc").parentElement.classList.toggle("too-small", small);
+    $("bp-hint").classList.toggle("warn", small);
+    if (small) { $("bp-hint").textContent = `The smallest swap is ${smallest()} ${unit}`; return; }
     const orn = parseFloat($("bp-orn").value), btc = parseFloat($("bp-btc").value);
     const usd = postCoin === "sol" ? board.solUsd : board.usd;
     // What the amount typed is worth, as soon as it's typed.
@@ -4761,6 +4775,7 @@
   $("bp-go").onclick = async () => {
     if (swapGate["bp-go"]) return installForSwap("bp-go");
     if (await gateSwap("bp-go", "bp-problem")) return;
+    if (tooSmall()) { postHint(); feel("error"); $("bp-btc").focus(); return; }
     $("bp-go").disabled = true;
     try {
       if (view && view.biometric) await invoke("biometric_unlock");
@@ -5784,6 +5799,8 @@
     try {
       const least = await invoke("swap_smallest");
       for (const el of document.querySelectorAll(".min-now")) el.textContent = `; right now it's ${least} BTC`;
+      smallestBtc = String(least);
+      postHint();
     } catch {}
   }
   // Copy, and say so on the button for a moment.
