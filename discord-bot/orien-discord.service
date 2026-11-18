@@ -22,7 +22,8 @@ ExecStart=/usr/local/bin/orien-discord run \
     --token /etc/orien-discord/discord-bot.token \
     --openrouter-key /etc/orien-discord/openrouter.key \
     --knowledge /etc/orien-discord/knowledge.md \
-    --state /var/lib/orien-discord
+    --state /var/lib/orien-discord \
+    --genesis /etc/orien-discord/genesis.json
 Restart=always
 RestartSec=10
 

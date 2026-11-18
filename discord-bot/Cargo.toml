@@ -6,14 +6,19 @@ edition = "2024"
 license = "MIT OR Apache-2.0"
 publish = false
 
-# Its own workspace: it shares no code with the network or the wallet, and
-# building it never touches their Cargo.lock.
+# Its own workspace, so building it never touches the network's and the
+# wallet's Cargo.lock. It uses their code for one thing: asking the network
+# who paid what, for the Verified Holder role.
 [workspace]
 
 [dependencies]
 anyhow = "1"
 clap = { version = "4", features = ["derive"] }
 serde_json = "1"
+serde = { version = "1", features = ["derive"] }
+hex = "0.4"
+orien-net = { path = "../crates/net", default-features = false }
+orien-ledger = { path = "../crates/ledger", default-features = false }
 tokio = { version = "1", features = ["rt-multi-thread", "macros", "sync", "time"] }
 reqwest = { version = "0.12", default-features = false, features = ["json", "rustls-tls"] }
 serenity = { version = "0.12", default-features = false, features = ["client", "gateway", "http", "model", "builder", "utils", "rustls_backend"] }
