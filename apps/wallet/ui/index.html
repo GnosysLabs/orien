@@ -3034,7 +3034,9 @@
   // ---- Settings: balances, the app lock, notifications, this computer ----
   const prefs = { hide: false, noarrow: false };
   let mutedKinds = [];
-  let balancePeek = 0;   // 1 while a tap has the hidden or full balance showing
+  // 1 while every decimal shows. A tap switches; the choice is remembered.
+  let balancePeek = 0;
+  try { balancePeek = localStorage.getItem("balance-full") === "on" ? 1 : 0; } catch {}
   const shortBalance = (text) => {
     const n = Number(String(text).replace(/,/g, ""));
     return Number.isFinite(n) ? n.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : text;
@@ -3057,24 +3059,22 @@
     $("balance").title = prefs.hide ? "" : balancePeek ? "Tap for the shorter balance" : "Tap to see every decimal";
     fitBalance();
   }
-  // A tap shows the hidden or full balance; another tap puts it back.
+  // A tap shows every decimal; another tap goes back to two.
   const EYE_ON = '<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0"/><circle cx="12" cy="12" r="3"/></svg>';
   const EYE_OFF = '<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.733 5.076a10.744 10.744 0 0 1 11.205 6.575 1 1 0 0 1 0 .696 10.747 10.747 0 0 1-1.444 2.49"/><path d="M14.084 14.158a3 3 0 0 1-4.242-4.242"/><path d="M17.479 17.499a10.75 10.75 0 0 1-15.417-5.151 1 1 0 0 1 0-.696 10.75 10.75 0 0 1 4.446-5.143"/><path d="m2 2 20 20"/></svg>';
   $("bal-eye").addEventListener("click", (e) => {
     e.stopPropagation();
-    balancePeek = 0;
     setPref("hide", !prefs.hide);
     feel("selection");
   });
   document.querySelector("#home .card").addEventListener("click", () => {
     if (prefs.hide) return;
     balancePeek = balancePeek ? 0 : 1;
+    try { localStorage.setItem("balance-full", balancePeek ? "on" : "off"); } catch {}
     feel("selection");
     paintBalance();
     repaintAmounts();
   });
-  // Leaving the app hides it again.
-  document.addEventListener("visibilitychange", () => { if (document.hidden && balancePeek) { balancePeek = 0; paintBalance(); repaintAmounts(); } });
   function paintSettings() {
  $("st-arrow").checked = !prefs.noarrow;
     $("st-lock-row").hidden = !apple;
