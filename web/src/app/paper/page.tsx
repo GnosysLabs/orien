@@ -130,7 +130,7 @@ export default function PaperPage() {
             themselves.
           </li>
           <li>
-            <strong>A fair start.</strong> The network starts with no coins. Every coin is released on a fixed schedule
+            <strong>A fair start.</strong> The network started with no coins. Every coin is released on a fixed schedule
             to whoever does proof-of-work, beginning at a Bitcoin block named in advance.
           </li>
         </ul>
@@ -727,9 +727,9 @@ Refund [lock, buyer]            at or after the deadline: buyer += everything`}<
         </p>
         <p>
           The launch configuration has no starting balances at all: every coin is earned. It names a Bitcoin block, by
-          height and hash, that will be mined after the genesis file is published. The block’s hash is part of the
-          network’s identity, and the identity is the seed of the first epoch’s mining, so nobody can mine before that
-          block exists.
+          height and hash, that was mined after the genesis file was published. The block’s hash is part of the
+          network’s identity, and the identity is the seed of the first epoch’s mining, so nobody could mine before that
+          block existed.
         </p>
       </PaperSection>
 

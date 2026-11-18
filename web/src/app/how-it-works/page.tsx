@@ -247,7 +247,7 @@ export default function HowItWorksPage() {
         </p>
         <p>
           The seed of each hour is the checkpoint before it, which nobody can know in advance. The very first seed
-          comes from a Bitcoin block announced ahead of time, so nobody can mine before everyone else. Work only
+          came from a Bitcoin block announced ahead of time, so nobody could mine before everyone else. Work only
           creates coins; it never decides which payments go through.
         </p>
         <div className="mt-6">

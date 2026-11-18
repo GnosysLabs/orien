@@ -23,7 +23,7 @@ const BENEFITS = [
   {
     icon: Sunrise,
     title: 'A fair launch from nothing',
-    body: 'No pre-mine, no sale, no founder’s share. The network starts with zero coins and every coin is earned. Its start is tied to a Bitcoin block announced in advance, so nobody can mine before everyone else.',
+    body: 'No pre-mine, no sale, no founder’s share. The network started with zero coins, and every coin is earned. Its start was tied to a Bitcoin block announced in advance, so nobody could mine before everyone else.',
   },
   {
     icon: Scale,
