@@ -14,6 +14,7 @@ import {
   Monitor,
   Smartphone,
   Store,
+  Rocket,
   Terminal,
   type LucideIcon,
 } from "lucide-react";
@@ -74,7 +75,7 @@ const ITEMS: NavItem[] = [
   {
     href: "/try/",
     label: "Get started",
-    icon: Terminal,
+    icon: Rocket,
     match: (p) => p.startsWith("/try"),
   },
 ];
@@ -344,7 +345,7 @@ export function Header() {
               aria-current={onTry ? "page" : undefined}
               className="pearl-fill pearl-sheen ml-1.5 hidden h-10 items-center gap-2 whitespace-nowrap rounded-[10px] px-3.5 text-sm font-bold transition hover:brightness-105 lg:flex"
             >
-              <Terminal className="h-4 w-4" strokeWidth={2.25} aria-hidden />
+              <Rocket className="h-4 w-4" strokeWidth={2.25} aria-hidden />
               <span>Get started</span>
             </Link>
             {MARKETPLACE_LIVE && (
