@@ -26,6 +26,15 @@ export const PRODUCTS: Record<Product, string> = {
 
 export const CHANGELOG: Entry[] = [
   {
+    date: '2026-11-18',
+    products: ['wallet'],
+    version: '1.8.15',
+    title: 'Use my other device works from the first screen',
+    changes: [
+      'On a brand-new install, Use my other device on the first screen now opens the code to link your devices.',
+    ],
+  },
+  {
     date: '2026-11-17',
     products: ['wallet'],
     version: '1.8.14',
