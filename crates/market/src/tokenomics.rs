@@ -30,6 +30,8 @@ pub struct Holder {
     /// Everything it holds: spendable, staked and on its way back.
     pub holds: u128,
     pub staked: u64,
+    /// How many payments it has sent.
+    pub sent: u64,
     /// Its share of the ORN in wallets, from 0 to 1.
     pub share: f64,
 }
@@ -140,6 +142,7 @@ pub fn of(state: &State, epoch: u64, start_time: u64, cap: u64, now: u64) -> Tok
                 address: id.to_string(),
                 holds: *holds,
                 staked: *staked,
+                sent: state.account(id).map_or(0, |a| a.seq),
                 share: if in_wallets == 0 { 0.0 } else { *holds as f64 / in_wallets as f64 },
             })
             .collect(),

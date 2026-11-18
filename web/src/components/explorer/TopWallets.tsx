@@ -53,11 +53,13 @@ export function TopWallets({ limit }: { limit?: number }) {
       {!error && !top && <Loading />}
       {top && (
         <>
-          <div className="hidden grid-cols-[3rem_1fr_auto_5rem] gap-4 border-b border-line px-6 py-3 text-xs font-semibold uppercase tracking-[0.14em] text-muted sm:grid">
+          <div className="hidden grid-cols-[3rem_1.6fr_1.2fr_0.7fr_1fr_0.9fr] gap-4 border-b border-line px-6 py-3 text-xs font-semibold uppercase tracking-[0.14em] text-muted md:grid">
             <span>#</span>
             <span>Wallet</span>
             <span className="text-right">Holds</span>
             <span className="text-right">Share</span>
+            <span className="text-right">Staked</span>
+            <span className="text-right">Payments sent</span>
           </div>
           <ol className="divide-y divide-line">
             {holders.map((holder, index) => {
@@ -66,14 +68,14 @@ export function TopWallets({ limit }: { limit?: number }) {
                 <li key={holder.address}>
                   <a
                     href={addressHref(holder.address)}
-                    className="grid grid-cols-[2rem_1fr_auto] items-center gap-x-4 gap-y-1 px-5 py-4 transition hover:bg-raised sm:grid-cols-[3rem_1fr_auto_5rem] sm:px-6"
+                    className="grid grid-cols-[1.25rem_1fr_auto] items-center gap-x-3 sm:gap-x-4 gap-y-1 px-5 py-4 transition hover:bg-raised sm:px-6 md:grid-cols-[3rem_1.6fr_1.2fr_0.7fr_1fr_0.9fr]"
                   >
                     <span className="num text-sm text-muted">{index + 1}</span>
-                    <span className="flex min-w-0 items-center gap-3">
+                    <span className="flex min-w-0 items-center gap-2.5 sm:gap-3">
                       {profile ? (
                         <Avatar name={profile.name} picture={profile.picture} size={32} />
                       ) : (
-                        <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-line bg-raised" aria-hidden>
+                        <span className="hidden h-8 w-8 shrink-0 items-center justify-center rounded-full border border-line bg-raised sm:flex" aria-hidden>
                           <Wallet className="h-3.5 w-3.5 text-muted" />
                         </span>
                       )}
@@ -90,9 +92,15 @@ export function TopWallets({ limit }: { limit?: number }) {
                     </span>
                     <span className="num text-right text-sm text-ink">
                       {orn(holder.holds, 2)} ORN
-                      <span className="block text-muted sm:hidden">{percent(holder.share)}</span>
+                      <span className="block text-muted md:hidden">{percent(holder.share)}</span>
                     </span>
-                    <span className="num hidden text-right text-sm text-muted sm:block">{percent(holder.share)}</span>
+                    <span className="num hidden text-right text-sm text-muted md:block">{percent(holder.share)}</span>
+                    <span className="num hidden text-right text-sm text-muted md:block">
+                      {holder.staked === '0' ? '–' : `${orn(holder.staked, 0)} ORN`}
+                    </span>
+                    <span className="num hidden text-right text-sm text-ink md:block">
+                      {holder.sent.toLocaleString('en')}
+                    </span>
                   </a>
                 </li>
               )

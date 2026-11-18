@@ -80,6 +80,11 @@ pub struct Validator {
     pub seat: usize,
     pub name: String,
     pub up: bool,
+    /// The epoch it says it is in: behind the others when catching up.
+    pub epoch: u64,
+    /// Of the latest checkpoints (up to 24), how many it holds too.
+    pub agreed: usize,
+    pub of: usize,
     pub stake: String,
     /// The account behind its stake; none for the launch seats.
     pub account: Option<String>,
@@ -248,6 +253,7 @@ impl Explorer {
         self.catch_up(payments, status.epoch);
         let kept = self.checkpoints.lock().unwrap();
         let members = kept.values().next_back().map(|last| last.next.clone()).unwrap_or_default();
+        let recent: Vec<&Checkpoint> = kept.values().rev().take(RECENT).collect();
         let validators = members
             .iter()
             .enumerate()
@@ -257,6 +263,9 @@ impl Explorer {
                     seat,
                     name: answered.map_or_else(|| format!("Validator {}", seat + 1), |v| v.name.clone()),
                     up: answered.is_some(),
+                    epoch: answered.map_or(0, |v| v.epoch),
+                    agreed: recent.iter().filter(|c| c.agreed.contains(&(seat as u16))).count(),
+                    of: recent.len(),
                     stake: member.stake.to_string(),
                     account: member.account.map(|id| hex::encode(id.as_bytes())),
                 }
@@ -452,6 +461,7 @@ pub async fn top(State(app): State<Arc<App>>) -> Answer {
                 "address": holder.address,
                 "holds": holder.holds.to_string(),
                 "staked": holder.staked.to_string(),
+                "sent": holder.sent,
                 "share": holder.share,
             })
         })

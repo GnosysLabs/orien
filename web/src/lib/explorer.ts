@@ -13,7 +13,18 @@ export type Checkpoint = {
   digest: string
 }
 
-export type Validator = { seat: number; name: string; up: boolean; stake: string; account: string | null }
+export type Validator = {
+  seat: number
+  name: string
+  up: boolean
+  /** The hour (epoch) it is working on. */
+  epoch: number
+  /** Of the latest checkpoints, how many it holds too. */
+  agreed: number
+  of: number
+  stake: string
+  account: string | null
+}
 
 export type Overview = {
   epoch: number
@@ -68,7 +79,7 @@ export type WalletProfile = { id: number; name: string; picture: string | null; 
 export const label = (profile: { name: string; wallet_name?: string | null }) =>
   profile.wallet_name ? `${profile.name} – ${profile.wallet_name}` : profile.name
 
-export type Holder = { address: string; holds: string; staked: string; share: number }
+export type Holder = { address: string; holds: string; staked: string; sent: number; share: number }
 export type Top = { epoch: number; in_wallets: string; holding: number; holders: Holder[] }
 
 /** A Market profile with wallets it showed it holds, as the name search finds it. */
