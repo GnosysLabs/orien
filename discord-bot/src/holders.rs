@@ -326,11 +326,20 @@ impl Holders {
     pub async fn watch(self: Arc<Self>, http: Arc<Http>) {
         tokio::time::sleep(Duration::from_secs(5)).await;
         let mut last_trouble = String::new();
+        // Asked once: the server list is one of Discord's most tightly
+        // limited questions, and other tools use the same bot.
+        let mut guild: Option<GuildId> = None;
         loop {
-            let looked = match http.get_guilds(None, None).await {
-                Ok(guilds) if guilds.len() == 1 => self.look(&http, guilds[0].id).await,
-                Ok(guilds) => Err(anyhow::anyhow!("the bot is in {} servers; it should be in exactly one", guilds.len())),
-                Err(error) => Err(error.into()),
+            if guild.is_none() {
+                match http.get_guilds(None, None).await {
+                    Ok(guilds) if guilds.len() == 1 => guild = Some(guilds[0].id),
+                    Ok(guilds) => eprintln!("holders: the bot is in {} servers; it should be in exactly one", guilds.len()),
+                    Err(error) => eprintln!("holders: could not ask Discord for the server: {error}"),
+                }
+            }
+            let looked = match guild {
+                Some(guild) => self.look(&http, guild).await,
+                None => Ok(()),
             };
             match looked {
                 Ok(()) => last_trouble.clear(),
