@@ -2304,7 +2304,7 @@
     if (!phone) return;
     const call = kind === "success" || kind === "warning" || kind === "error"
       ? invoke("plugin:haptics|notification_feedback", { type: kind })
-      : kind === "select" ? invoke("plugin:haptics|selection_feedback")
+      : kind === "select" || kind === "selection" ? invoke("plugin:haptics|selection_feedback")
       : invoke("plugin:haptics|impact_feedback", { style: kind || "light" });
     call.catch(() => {});
   }
