@@ -145,16 +145,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               <span>From the Latin <em>oriens</em>, rising</span>
             </p>
             <nav aria-label="Footer" className="mt-3 flex flex-wrap justify-center gap-x-5 gap-y-1">
-              <Link href="/" className="hover:text-ink">
-                Home
-              </Link>
-              <Link href="/how-it-works/" className="hover:text-ink">
-                How it works
-              </Link>
-              <Link href="/try/" className="hover:text-ink">
-                Get started
-              </Link>
-              <a href="https://explorer.orien.network/" className="hover:text-ink">
+              {/* The phone's bottom bar has no room for the explorer: it is here. */}
+              <a href="https://explorer.orien.network/" className="hover:text-ink lg:hidden">
                 Explorer
               </a>
               <Link href="/paper/" className="hover:text-ink">
