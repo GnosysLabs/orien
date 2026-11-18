@@ -71,16 +71,11 @@ export function CheckpointRewards({ rewards, epoch }: { rewards: Rewards; epoch:
 
   return (
     <>
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <Stat
           label="Miners paid"
           value={rewards.known ? miners.length.toLocaleString('en') : '—'}
           note={rewards.math ? `Mined with ${rewards.math === 'Blake3' ? 'BLAKE3' : rewards.math}` : undefined}
-        />
-        <Stat
-          label="Paid to miners"
-          value={rewards.known ? `${orn(rewards.mined, 2)} ORN` : '—'}
-          note="Split by how much mining work each wallet did"
         />
         <Stat
           label="The next hour"
