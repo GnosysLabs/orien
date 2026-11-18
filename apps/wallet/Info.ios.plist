@@ -8,7 +8,7 @@
 	<string>Unlock your wallet with Face ID instead of typing its password.</string>
 	<!-- Scanning the QR code another device shows, to move a wallet here. -->
 	<key>NSCameraUsageDescription</key>
-	<string>Scan the code your other device shows, to add a wallet from it.</string>
+	<string>Scan QR codes: an address to send ORN to, or the code your other device shows.</string>
 	<!-- Only standard encryption, to protect wallets and sign payments (exempt
 	     from export rules): App Store Connect stops asking on every upload. -->
 	<key>ITSAppUsesNonExemptEncryption</key>

@@ -1093,6 +1093,10 @@
     background: rgba(var(--tint), 0.06); color: var(--ink); font-size: 12.5px; font-weight: 500;
   }
   @media (hover: hover) { .chip:hover { background: rgba(var(--tint), 0.1); } }
+  /* Scanning an address QR: phones only, beside Paste. */
+  .scan-chip { display: none; margin-left: 6px; padding: 0 10px; }
+  body.phone .scan-chip { display: grid; place-items: center; }
+  body.phone .scan-chip[hidden] { display: none; }
   .field .check { margin: 7px 0 0 2px; font-size: 12px; color: var(--faint); min-height: 18px; }
   .field .check.ok { color: var(--good); }
 
@@ -1789,6 +1793,7 @@
           <input id="to" placeholder="Name or address" spellcheck="false" autocomplete="off">
           <div class="chosen" id="to-chosen" hidden></div>
           <button class="chip" id="paste" type="button">Paste</button>
+          <button class="chip scan-chip" id="scan-to" type="button" aria-label="Scan a QR code" title="Scan a QR code"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7V5a2 2 0 0 1 2-2h2"/><path d="M17 3h2a2 2 0 0 1 2 2v2"/><path d="M21 17v2a2 2 0 0 1-2 2h-2"/><path d="M7 21H5a2 2 0 0 1-2-2v-2"/><path d="M7 12h10"/></svg></button>
         </div>
         <div class="check" id="to-check"></div>
         <div class="list suggest" id="suggest" hidden></div>
@@ -3439,6 +3444,7 @@
       ? `${pic}<span class="who">${esc(who)}</span><span class="addr">${short(lower)}</span>`
       : `<span class="addr solo">${short(lower)}</span>`;
     $("paste").textContent = chosen ? "Clear" : "Paste";
+    $("scan-to").hidden = chosen;
     if (who && ok) check = "";
     $("to-check").textContent = check;
     $("to-check").className = "check" + (ok ? " ok" : "") + (warn ? " warn" : "");
@@ -3557,6 +3563,20 @@
   $("paste").onclick = async () => {
     if (!$("to-chosen").hidden) { $("to").value = ""; validate(); $("to").focus(); return; }
     try { $("to").value = (await navigator.clipboard.readText()).trim(); validate(); } catch { $("to").focus(); }
+  };
+
+  // Scan someone's Receive QR: it holds just their address (an "orien:"
+  // in front, from other apps, is taken off).
+  $("scan-to").onclick = async () => {
+    try {
+      await invoke("plugin:barcode-scanner|request_permissions").catch(() => {});
+      const found = await invoke("plugin:barcode-scanner|scan", { windowed: false, formats: ["QR_CODE"] });
+      const text = String(found && found.content || "").trim().replace(/^orien:/i, "").split("?")[0];
+      if (!text) return;
+      $("to").value = text;
+      feel("success");
+      validate();
+    } catch {}
   };
 
   $("to-review").onclick = () => {
