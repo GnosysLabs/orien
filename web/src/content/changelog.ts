@@ -27,6 +27,19 @@ export const PRODUCTS: Record<Product, string> = {
 export const CHANGELOG: Entry[] = [
   {
     date: '2026-11-18',
+    products: ['wallet'],
+    version: '1.8.16',
+    title: 'A QR code with the Orien sun, and scanning to send',
+    changes: [
+      'Receive shows a bigger QR code with the Orien sun in the middle.',
+      'Share address sends a picture of the QR code with your address, so the other person can scan it or copy it.',
+      'On iPhone, Send has a scan button next to Paste: point the camera at someone’s Receive QR code to fill in their address. Scanning has a Cancel button.',
+      'Payments in your history follow the balance: two decimals, or every decimal when you tap the balance.',
+      'A brand-new wallet that cannot reach the network’s first addresses looks for the founding validators by name instead.',
+    ],
+  },
+  {
+    date: '2026-11-18',
     products: ['network', 'orien', 'validators'],
     version: '1.9.0',
     title: 'The founding validators can move to servers of their own',
