@@ -174,6 +174,8 @@
      window, so it scrolls from anywhere and its scrollbar sits at the edge.
      The Market is wider, with more listings to a row. */
   :root { --col: 640px; }
+  :root { --mn-cool: #6fa8ff; --mn-good: #5fd39d; --mn-warm: #f2a35e; --mn-dim: rgba(0, 0, 0, 0.62); }
+  [data-theme="daylight"] { --mn-dim: rgba(255, 255, 255, 0.68); }
   #market, #seller { --col: 1040px; }
   @media (min-width: 720px) {
     html body .screen, html body #mine, html body #board-signin, html body #board-post, html body #board-take,
@@ -485,7 +487,24 @@
   .swap-group { margin: 4px 4px 10px; font-size: 12px; font-weight: 600; color: var(--dim); }
   .swap-group:not(:first-child) { margin-top: 22px; }
   /* Wallets */
-  #mn-cpu { width: 100%; accent-color: var(--accent); }
+  /* The mining slider, in cores: after a benchmark, green up to the sweet
+     spot and warm past it, brighter up to where it's set. */
+  #mn-cpu { -webkit-appearance: none; appearance: none; width: 100%; height: 24px; margin: 4px 0 0; background: transparent; cursor: pointer; }
+  #mn-cpu:disabled { cursor: default; opacity: 0.6; }
+  #mn-cpu::-webkit-slider-runnable-track { height: 6px; border-radius: 3px; background: var(--mn-track, var(--line)); }
+  #mn-cpu::-webkit-slider-thumb { -webkit-appearance: none; width: 20px; height: 20px; margin-top: -7px; border-radius: 50%;
+    background: #fff; border: 0; box-shadow: 0 1px 4px rgba(0, 0, 0, 0.35); }
+  #mn-cpu::-moz-range-track { height: 6px; border-radius: 3px; background: var(--mn-track, var(--line)); }
+  #mn-cpu::-moz-range-thumb { width: 20px; height: 20px; border-radius: 50%; background: #fff; border: 0; box-shadow: 0 1px 4px rgba(0, 0, 0, 0.35); }
+  .mn-legend { display: flex; justify-content: space-between; gap: 12px; margin-top: 8px; font-size: 12.5px; color: var(--dim); }
+  .mn-legend i.cool { background: var(--mn-cool); }
+  .mn-legend i.warm { background: var(--mn-warm); }
+  .mn-legend i { display: inline-block; width: 8px; height: 8px; margin-right: 6px; border-radius: 50%; vertical-align: 0; }
+  .bench { display: flex; align-items: center; gap: 16px; padding: 14px 16px; border: 1px solid var(--line); border-radius: 16px; background: var(--surface); }
+  .bench .bt { flex: 1; min-width: 0; }
+  .bench .bt b { display: block; font-weight: 500; }
+  .bench .bt span { display: block; margin-top: 3px; font-size: 12.5px; line-height: 1.45; color: var(--dim); }
+  .bench button { flex: none; width: auto; margin: 0; padding: 0 16px; height: 36px; }
   /* The Mine button while mining: a glowing dot, and "Mining". */
   #go-mine { position: relative; }
   #go-mine.on::after { content: ""; position: absolute; top: 9px; right: 9px; width: 7px; height: 7px; border-radius: 50%;
@@ -1876,7 +1895,12 @@
       </div>
       <div class="field" data-gap="lg">
         <label for="mn-cpu">Processor <span id="mn-cpu-text"></span></label>
-        <input type="range" id="mn-cpu" min="1" max="100" step="1" value="50">
+        <input type="range" id="mn-cpu" min="1" max="10" step="1" value="5">
+        <div class="mn-legend" id="mn-legend" hidden><span><i class="cool"></i>Cooler, fewer shares</span><span><i class="warm"></i>More heat, no more ORN</span></div>
+      </div>
+      <div class="bench" data-gap="lg">
+        <div class="bt"><b id="mn-bench-title">Find your sweet spot</b><span id="mn-bench-text"></span></div>
+        <button class="secondary" id="mn-bench">Benchmark</button>
       </div>
       <div class="problem" id="mine-problem" hidden></div>
       <button class="primary pearl" id="mn-go" data-gap="lg">Start mining</button>
@@ -2757,10 +2781,49 @@
 
   // ---- Mining ----
   let mineTimer = null, mineCores = 0;
-  function threadsFor(percent) { return Math.min(mineCores, Math.max(1, Math.round(mineCores * percent / 100))); }
+  let mineSweet = null, mineBench = null;
+  // The slider's label, and its colours once the sweet spot is known.
   function cpuText() {
-    const p = Number($("mn-cpu").value);
-    $("mn-cpu-text").textContent = mineCores ? `${p}% · ${threadsFor(p)} of ${mineCores} cores` : `${p}%`;
+    const n = Number($("mn-cpu").value), slider = $("mn-cpu");
+    $("mn-cpu-text").textContent = mineCores ? `${n} of ${mineCores} cores` : "";
+    const at = (k) => mineCores > 1 ? ((k - 1) / (mineCores - 1)) * 100 : 100;
+    let track;
+    if (mineSweet) {
+      // Blue to green up to the sweet spot (cooler, fewer shares), warm past
+      // it; dimmed beyond where it's set.
+      const v = at(n), sw = at(mineSweet.threads);
+      track = `linear-gradient(to right, transparent 0 ${v}%, var(--mn-dim) ${v}% 100%), `
+        + `linear-gradient(to right, var(--mn-cool) 0, var(--mn-good) ${sw}%, var(--mn-warm) ${Math.min(100, sw + 0.01)}%, var(--mn-warm) 100%)`;
+    } else {
+      const v = at(n);
+      track = `linear-gradient(to right, var(--accent) 0 ${v}%, var(--line) ${v}% 100%)`;
+    }
+    slider.style.setProperty("--mn-track", track);
+    $("mn-legend").hidden = !mineSweet;
+  }
+  // The benchmark card: an offer, progress, or what it found.
+  function benchText(s) {
+    const steps = (s.bench && s.bench.steps) || Math.min(mineCores, 6) || 6;
+    const minutes = Math.max(1, Math.round(steps * 17 / 60));
+    const go = $("mn-bench");
+    if (s.bench) {
+      $("mn-bench-title").textContent = "Benchmarking…";
+      $("mn-bench-text").textContent = s.bench.step
+        ? `Trying ${s.bench.threads} of ${mineCores} cores (${s.bench.step} of ${s.bench.steps}). Shares found still count.`
+        : "Waiting for mining to get going.";
+      go.textContent = "Cancel";
+    } else if (mineSweet) {
+      $("mn-bench-title").textContent = `Sweet spot: ${mineSweet.threads} of ${mineCores} cores`;
+      $("mn-bench-text").textContent = `About ${Math.round(mineSweet.tries_per_second).toLocaleString()} tries a second. Past it, the processor runs hotter for no more ORN.`;
+      go.textContent = "Benchmark again";
+    } else {
+      $("mn-bench-title").textContent = "Find your sweet spot";
+      $("mn-bench-text").textContent = `Mines at a few settings for about ${minutes === 1 ? "a minute" : `${minutes} minutes`} to find the one that earns the most without wasting heat. The fans may spin up.`;
+      go.textContent = "Benchmark";
+    }
+    // The first offer shines; afterwards it's a quiet button.
+    go.className = !s.bench && !mineSweet ? "primary pearl" : "secondary";
+    $("mn-cpu").disabled = !!s.bench;
   }
   // The Home button says whether mining is on.
   function mineButton(running) {
@@ -2773,8 +2836,16 @@
     const s = m.status;
     mineButton(s.running);
     mineCores = s.cores;
-    if (first) $("mn-cpu").value = m.percent;
+    mineSweet = m.sweet || null;
+    mineBench = s.bench || null;
+    $("mn-cpu").max = Math.max(1, mineCores);
+    // The slider follows the benchmark and its result; otherwise it stays
+    // where it was set.
+    if (first || s.bench || (s.running && s.threads && $("mn-cpu").dataset.follow)) $("mn-cpu").value = s.bench && s.bench.threads ? s.bench.threads : (s.running && s.threads ? s.threads : m.threads);
+    if (!s.bench) delete $("mn-cpu").dataset.follow;
+    if (s.bench) $("mn-cpu").dataset.follow = "1";
     cpuText();
+    benchText(s);
     $("mn-wallet").textContent = m.wallet || (s.address ? short(s.address) : "this wallet");
     const speed = (n) => n >= 1e6 ? `${(n / 1e6).toFixed(1)} million` : n >= 1e4 ? Math.round(n).toLocaleString() : n.toFixed(n < 10 ? 1 : 0);
     $("mn-speed").textContent = !s.running ? "Stopped"
@@ -2800,7 +2871,22 @@
   // A new percent while mining takes effect within a few seconds, without
   // getting ready again; when stopped, it's remembered for next time.
   $("mn-cpu").onchange = async () => {
-    try { await invoke("mine_set", { percent: Number($("mn-cpu").value) }); } catch (e) { problem("mine-problem", e); }
+    try { await invoke("mine_set", { threads: Number($("mn-cpu").value) }); } catch (e) { problem("mine-problem", e); }
+    mineStatus(false);
+  };
+  // Benchmark: starts mining if it's off, then tries several settings.
+  $("mn-bench").onclick = async () => {
+    const go = $("mn-bench");
+    go.disabled = true;
+    try {
+      if (mineBench) await invoke("mine_benchmark_cancel");
+      else {
+        const s = await mineStatus(false);
+        if (s && !s.running) await invoke("mine_start", { threads: Number($("mn-cpu").value) });
+        await invoke("mine_benchmark");
+      }
+    } catch (e) { problem("mine-problem", e); }
+    go.disabled = false;
     mineStatus(false);
   };
   $("mn-go").onclick = async () => {
@@ -2808,7 +2894,7 @@
     try {
       const s = await mineStatus(false);
       if (s && s.running) await invoke("mine_stop");
-      else await invoke("mine_start", { percent: Number($("mn-cpu").value) });
+      else await invoke("mine_start", { threads: Number($("mn-cpu").value) });
     } catch (e) { problem("mine-problem", e); }
     $("mn-go").disabled = false;
     mineStatus(false);

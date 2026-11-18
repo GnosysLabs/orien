@@ -335,9 +335,16 @@ struct Settings {
     /// The wallet open now; the first one when unset.
     #[serde(default)]
     current: Option<PathBuf>,
-    /// How much of the processor mining uses, in percent.
+    /// How much of the processor mining used, in percent, before it was
+    /// set in threads. Read once, for `mining_threads`.
     #[serde(default)]
     mining_percent: Option<u8>,
+    /// How many threads mining uses.
+    #[serde(default)]
+    mining_threads: Option<usize>,
+    /// What the benchmark found on this computer.
+    #[serde(default)]
+    mining_sweet: Option<mining::Sweet>,
 }
 
 /// A wallet the app knows, with the short name the person gave it.
@@ -969,19 +976,25 @@ fn forget_wallet(app: AppHandle, path: String) -> Result<(), String> {
 mod mine_commands {
     use super::*;
 
-/// Starts mining for the open wallet on `percent` of the processor, and
-/// remembers the percent.
+/// The threads mining uses: as set, or the old percent turned into threads.
+fn mine_threads(saved: &Settings) -> usize {
+    let cores = orien_net::miner::cores();
+    saved.mining_threads.unwrap_or_else(|| orien_net::miner::threads_for(saved.mining_percent.unwrap_or(50))).clamp(1, cores)
+}
+
+/// Starts mining for the open wallet on `threads` threads, and remembers
+/// them.
 #[tauri::command]
-pub fn mine_start(app: AppHandle, percent: u8) -> Result<(), String> {
+pub fn mine_start(app: AppHandle, threads: usize) -> Result<(), String> {
     let dir = folder(&app)?;
     let wallet = wallet_file(&dir).ok_or("no wallet yet")?;
     let account = Wallet::peek(&wallet).map_err(|error| error.to_string())?.0;
     let genesis = genesis_file(&dir)?;
     let mut saved = settings(&dir);
-    saved.mining_percent = Some(percent.clamp(1, 100));
+    saved.mining_threads = Some(threads.max(1));
     save_settings(&dir, &saved)?;
     let file = genesis.clone();
-    mining::start(account, percent, move || connect(&file), genesis);
+    mining::start(account, threads, move || connect(&file), genesis);
     Ok(())
 }
 
@@ -990,15 +1003,34 @@ pub async fn mine_stop() -> Result<(), String> {
     tauri::async_runtime::spawn_blocking(mining::stop).await.map_err(|error| error.to_string())
 }
 
-/// Changes how much of the processor mining uses while it runs, without
-/// restarting it, and remembers the percent.
+/// Changes how many threads mine while it runs, without restarting it,
+/// and remembers them.
 #[tauri::command]
-pub fn mine_set(app: AppHandle, percent: u8) -> Result<bool, String> {
+pub fn mine_set(app: AppHandle, threads: usize) -> Result<bool, String> {
     let dir = folder(&app)?;
     let mut saved = settings(&dir);
-    saved.mining_percent = Some(percent.clamp(1, 100));
+    saved.mining_threads = Some(threads.max(1));
     save_settings(&dir, &saved)?;
-    Ok(mining::set_percent(percent))
+    Ok(mining::set_threads(threads))
+}
+
+/// Finds this computer's sweet spot while mining runs, then mines there
+/// and remembers it. False if mining isn't running.
+#[tauri::command]
+pub fn mine_benchmark(app: AppHandle) -> Result<bool, String> {
+    let dir = folder(&app)?;
+    let back = mine_threads(&settings(&dir));
+    Ok(mining::benchmark(back, move |sweet| {
+        let mut saved = settings(&dir);
+        saved.mining_sweet = Some(sweet);
+        saved.mining_threads = Some(sweet.threads);
+        let _ = save_settings(&dir, &saved);
+    }))
+}
+
+#[tauri::command]
+pub fn mine_benchmark_cancel() {
+    mining::cancel_benchmark();
 }
 
 /// How mining is going, with the remembered percent, which wallet it mines
@@ -1019,7 +1051,8 @@ pub fn mine_status(app: AppHandle) -> Result<serde_json::Value, String> {
     });
     Ok(serde_json::json!({
         "status": status,
-        "percent": settings(&dir).mining_percent.unwrap_or(50),
+        "threads": mine_threads(&settings(&dir)),
+        "sweet": settings(&dir).mining_sweet.filter(|s| s.cores == orien_net::miner::cores()),
         "wallet": name,
         "last_reward": reward,
     }))
@@ -1041,11 +1074,17 @@ mod mine_commands {
         Ok(false)
     }
     #[tauri::command]
+    pub fn mine_benchmark() -> Result<bool, String> {
+        Ok(false)
+    }
+    #[tauri::command]
+    pub fn mine_benchmark_cancel() {}
+    #[tauri::command]
     pub fn mine_status() -> Result<serde_json::Value, String> {
-        Ok(serde_json::json!({ "status": { "running": false, "cores": 0 }, "percent": 50, "unavailable": true }))
+        Ok(serde_json::json!({ "status": { "running": false, "cores": 0 }, "threads": 1, "unavailable": true }))
     }
 }
-use mine_commands::{mine_set, mine_start, mine_status, mine_stop};
+use mine_commands::{mine_benchmark, mine_benchmark_cancel, mine_set, mine_start, mine_status, mine_stop};
 
 /// Asks the validators about the wallet's account.
 #[tauri::command]
@@ -2247,7 +2286,7 @@ pub fn run() {
             }
             Ok(())
         })
-        .invoke_handler(tauri::generate_handler![has_wallet, create_wallet, save_phrase, restore_wallet, set_password, choose_wallet, overview_now, send_payment, activity, quote, contacts, save_contact, delete_contact, contacts_sync, biometric_unlock, biometric_enable, update::check_update, update::install_update, mine_start, mine_stop, mine_set, mine_status, wallets, wallet_balances, use_wallet, rename_wallet, add_wallet, forget_wallet, swap_list, swap_sell, swap_buy, swap_accept, swap_step, swap_smallest, board_offers, board_me, board_email_start, board_email_finish, board_sign_out, board_post, board_take, board_withdraw, board_link, notifications_ask, push_sync, board_wallets_sync, board_post_sol, board_take_sol, sol_open, sol_payout_check, open_site, qr_code, address_qr, wallet_profiles, board_profile_save, board_picture_pick, board_verify, board_wallet_states, market_image, board_banner_remove, market_search, market_listings, market_listing, market_profile, market_call, market_pick_pictures, market_listing_picture, dock_badge, mac_notify, board_delete_account, wallet_icons, set_wallet_icon, vault_ready, vault_unlock, open_contact, pair_offer, pair_offer_wait, pair_offer_send, pair_join, pair_join_wait, pair_invite, pair_invite_wait, pair_accept, pair_wallets, pair_accept_send, pair_cancel, wallet_phrase, phrase_check, app_theme, set_app_theme, set_backdrop, app_prefs, set_app_pref, app_unlock, computer_settings, set_computer_setting, notifications_muted, set_notification, open_legal, board_paid_wallet, board_wallet_remove])
+        .invoke_handler(tauri::generate_handler![has_wallet, create_wallet, save_phrase, restore_wallet, set_password, choose_wallet, overview_now, send_payment, activity, quote, contacts, save_contact, delete_contact, contacts_sync, biometric_unlock, biometric_enable, update::check_update, update::install_update, mine_start, mine_stop, mine_set, mine_status, mine_benchmark, mine_benchmark_cancel, wallets, wallet_balances, use_wallet, rename_wallet, add_wallet, forget_wallet, swap_list, swap_sell, swap_buy, swap_accept, swap_step, swap_smallest, board_offers, board_me, board_email_start, board_email_finish, board_sign_out, board_post, board_take, board_withdraw, board_link, notifications_ask, push_sync, board_wallets_sync, board_post_sol, board_take_sol, sol_open, sol_payout_check, open_site, qr_code, address_qr, wallet_profiles, board_profile_save, board_picture_pick, board_verify, board_wallet_states, market_image, board_banner_remove, market_search, market_listings, market_listing, market_profile, market_call, market_pick_pictures, market_listing_picture, dock_badge, mac_notify, board_delete_account, wallet_icons, set_wallet_icon, vault_ready, vault_unlock, open_contact, pair_offer, pair_offer_wait, pair_offer_send, pair_join, pair_join_wait, pair_invite, pair_invite_wait, pair_accept, pair_wallets, pair_accept_send, pair_cancel, wallet_phrase, phrase_check, app_theme, set_app_theme, set_backdrop, app_prefs, set_app_pref, app_unlock, computer_settings, set_computer_setting, notifications_muted, set_notification, open_legal, board_paid_wallet, board_wallet_remove])
         .build(tauri::generate_context!())
         .expect("the wallet window could not start")
         .run(|_app, _event| {
