@@ -28,6 +28,19 @@ export const CHANGELOG: Entry[] = [
   {
     date: '2026-11-17',
     products: ['wallet'],
+    version: '1.8.14',
+    title: 'Move all your wallets to a new device in seconds',
+    changes: [
+      'On a new phone or computer, choose Use my other device: it shows a code and a QR code straight away.',
+      'On the device that has your wallets, go to Settings and choose Link a new device, then scan or type the code.',
+      'Check that both screens show the same three emoji, and every wallet comes over at once, with its name and icon, after a single Touch ID or Face ID.',
+      'A mistyped or expired code is replaced with a fresh one by itself, and spaces typed in a code become dashes.',
+      'Clearer first screen: Create a wallet, Use my other device, or Use my recovery phrase.',
+    ],
+  },
+  {
+    date: '2026-11-17',
+    products: ['wallet'],
     version: '1.8.13',
     title: 'A beautiful home on big screens, and Messages side by side',
     changes: [
