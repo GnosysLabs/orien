@@ -11,21 +11,32 @@ export function ExplorerBar() {
   const [home, setHome] = useState('/explorer/')
   useEffect(() => setHome(homeHref()), [])
   return (
-    <header className="sticky top-0 z-30 border-b border-line/70 bg-bg/70 backdrop-blur-md">
-      <div className="mx-auto flex max-w-[1200px] flex-wrap items-center gap-x-6 gap-y-3 px-4 py-3 md:h-16 md:flex-nowrap md:py-0">
-        <a href={home} aria-label="Orien Explorer home" className="flex shrink-0 items-center gap-2.5 sm:gap-3">
-          <Wordmark className="text-lg sm:text-xl" />
-          <span className="rounded-md border border-line px-1.5 py-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-muted sm:px-2 sm:text-xs">
+    <header className="sticky top-0 z-30 border-b border-line/70 bg-bg/55 backdrop-blur-md">
+      <div className="mx-auto max-w-[1200px] px-4">
+        {/* The same row as the website's own bar, so the wordmark sits in
+            exactly the same place and size when moving between them. */}
+        <div className="flex h-16 items-center gap-3">
+          <a href={home} aria-label="Orien Explorer home" className="flex items-center text-xl sm:text-2xl">
+            <Wordmark />
+          </a>
+          <span className="ml-1 rounded-md border border-line px-2 py-0.5 text-xs font-semibold uppercase tracking-[0.14em] text-muted">
             Explorer
           </span>
-        </a>
-        <a
-          href="https://orien.network/"
-          className="ml-auto flex h-9 shrink-0 items-center gap-1 rounded-xl border border-line bg-bg px-3 text-xs font-semibold sm:h-10 sm:gap-1.5 sm:px-4 sm:text-sm text-ink transition hover:border-pearl md:order-last md:ml-0"
-        >
-          orien.network <ArrowUpRight className="h-4 w-4" aria-hidden />
-        </a>
-        <div className="w-full md:mx-auto md:max-w-xl md:flex-1">
+          <div className="hidden min-w-0 flex-1 px-6 md:block">
+            <div className="mx-auto max-w-xl">
+              <ExplorerSearch />
+            </div>
+          </div>
+          <a
+            href="https://orien.network/"
+            className="ml-auto flex h-10 shrink-0 items-center gap-1.5 rounded-[10px] border border-line bg-bg px-3.5 text-sm font-semibold text-ink transition hover:border-pearl md:ml-0"
+          >
+            <span className="max-sm:hidden">orien.network</span>
+            <span className="sm:hidden">Site</span>
+            <ArrowUpRight className="h-4 w-4" aria-hidden />
+          </a>
+        </div>
+        <div className="pb-3 md:hidden">
           <ExplorerSearch />
         </div>
       </div>
