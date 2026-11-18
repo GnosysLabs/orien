@@ -230,6 +230,11 @@
       border: 1px solid var(--line); border-radius: 28px;
       background: var(--glow), var(--ground-deep); background-attachment: fixed;
       box-shadow: 0 30px 80px rgba(var(--shade), 0.45); }
+    /* The sunrise while a wallet opens covers just that container. */
+    body:not(.phone) #loading { position: absolute; inset: auto; top: -14px; bottom: 0; left: 50%;
+      width: min(calc(var(--panel, 640px) + 56px), 100vw - 24px); transform: translateX(-50%);
+      border: 1px solid var(--line); border-radius: 28px;
+      background: var(--glow), var(--ground-deep); background-attachment: fixed; }
   }
   /* Tall windows: a screen's main button stays close under its form,
      rather than alone at the foot of the window. */
@@ -1377,10 +1382,10 @@
     </div>
   </header>
 
-  <!-- Shown while a newly opened wallet's balance and activity load. -->
-  <div class="loading" id="loading"><span class="mark brand"></span></div>
-
   <main>
+    <!-- Shown while a newly opened wallet's balance and activity load. In
+         big windows it fills just the wallet's container, not the photo. -->
+    <div class="loading" id="loading"><span class="mark brand"></span></div>
     <!-- First run -->
     <section class="screen welcome" id="welcome" hidden>
       <div class="mark brand"></div>
