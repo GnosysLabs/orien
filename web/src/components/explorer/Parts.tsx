@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { Search } from 'lucide-react'
 import { Avatar } from '@/components/market/Avatar'
-import { type NamedProfile, addressHref, findNames, searchTarget, short } from '@/lib/explorer'
+import { type NamedProfile, addressHref, findNames, label, searchTarget, short } from '@/lib/explorer'
 
 /** The explorer's search: an address, a checkpoint number, or the name of
  * someone on the Market, whose wallets it offers as you type. */
@@ -111,11 +111,10 @@ export function ExplorerSearch({ initial = '' }: { initial?: string }) {
                   >
                     <Avatar name={profile.name} picture={profile.picture} size={32} />
                     <span className="min-w-0 flex-1">
-                      <span className="block truncate font-semibold text-ink">@{profile.name}</span>
-                      <span className="block truncate text-sm text-muted">
-                        <span className="num">{short(wallet.address)}</span>
-                        {wallet.name && ` · ${wallet.name}`}
+                      <span className="block truncate font-semibold text-ink">
+                        {label({ name: profile.name, wallet_name: wallet.name })}
                       </span>
+                      <span className="num block truncate text-sm text-muted">{short(wallet.address)}</span>
                     </span>
                   </a>
                 </li>

@@ -62,7 +62,11 @@ export type CheckpointInfo = {
   latest: number
 }
 
-export type WalletProfile = { id: number; name: string; picture: string | null }
+export type WalletProfile = { id: number; name: string; picture: string | null; wallet_name?: string | null }
+
+/** "Chris – Savings", or "Chris": as Orien Wallet names people it pays. */
+export const label = (profile: { name: string; wallet_name?: string | null }) =>
+  profile.wallet_name ? `${profile.name} – ${profile.wallet_name}` : profile.name
 
 export type Holder = { address: string; holds: string; staked: string; share: number }
 export type Top = { epoch: number; in_wallets: string; holding: number; holders: Holder[] }

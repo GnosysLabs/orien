@@ -1,8 +1,9 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { ArrowRight } from 'lucide-react'
-import { type Top, type WalletProfile, addressHref, explore, namesFor, orn, short, topHref } from '@/lib/explorer'
+import { ArrowRight, Wallet } from 'lucide-react'
+import { Avatar } from '@/components/market/Avatar'
+import { type Top, type WalletProfile, addressHref, explore, label, namesFor, orn, short, topHref } from '@/lib/explorer'
 import { Card, Loading, Problem } from './Parts'
 
 /** "12.34%", or "<0.01%". */
@@ -68,15 +69,24 @@ export function TopWallets({ limit }: { limit?: number }) {
                     className="grid grid-cols-[2rem_1fr_auto] items-center gap-x-4 gap-y-1 px-5 py-4 transition hover:bg-raised sm:grid-cols-[3rem_1fr_auto_5rem] sm:px-6"
                   >
                     <span className="num text-sm text-muted">{index + 1}</span>
-                    <span className="min-w-0">
+                    <span className="flex min-w-0 items-center gap-3">
                       {profile ? (
-                        <>
-                          <span className="block truncate font-semibold text-ink">@{profile.name}</span>
-                          <span className="num block truncate text-sm text-muted">{short(holder.address)}</span>
-                        </>
+                        <Avatar name={profile.name} picture={profile.picture} size={32} />
                       ) : (
-                        <span className="num block truncate text-ink">{short(holder.address)}</span>
+                        <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-line bg-raised" aria-hidden>
+                          <Wallet className="h-3.5 w-3.5 text-muted" />
+                        </span>
                       )}
+                      <span className="min-w-0">
+                        {profile ? (
+                          <>
+                            <span className="block truncate font-semibold text-ink">{label(profile)}</span>
+                            <span className="num block truncate text-sm text-muted">{short(holder.address)}</span>
+                          </>
+                        ) : (
+                          <span className="num block truncate text-ink">{short(holder.address)}</span>
+                        )}
+                      </span>
                     </span>
                     <span className="num text-right text-sm text-ink">
                       {orn(holder.holds, 2)} ORN
