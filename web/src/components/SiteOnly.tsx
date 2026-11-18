@@ -2,11 +2,11 @@
 
 import { usePathname } from 'next/navigation'
 
-/** On an explorer page: under /explorer/, or anywhere on
- * explorer.orien.network, whose short addresses (/address/…) are explorer
- * pages too. */
+/** On an explorer page: under /explorer/, or an explorer page served at
+ * another address, such as explorer.orien.network's short ones (/address/…).
+ * Those are known by the explorer's own frame already in the page. */
 const onExplorer = (path: string) =>
-  path.startsWith('/explorer') || (typeof window !== 'undefined' && window.location.hostname.startsWith('explorer.'))
+  path.startsWith('/explorer') || (typeof document !== 'undefined' && document.querySelector('[data-explorer]') !== null)
 
 /** The site's own menus and footer: left off the explorer, which has its own. */
 export function SiteOnly({ children }: { children: React.ReactNode }) {
