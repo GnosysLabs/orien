@@ -56,10 +56,11 @@ pub trait Payments: Send + Sync {
     fn status(&self) -> Result<NetworkStatus>;
     /// Where the ORN are, from the latest checkpoint.
     fn tokenomics(&self) -> Result<Tokenomics>;
-    /// Up to `max` checkpoints from epoch `from` on, as a validator hands
-    /// them out, for the explorer. Empty when there are none yet.
-    fn checkpoints(&self, _from: u64, _max: u32) -> Result<Vec<orien_ledger::close::Decided>> {
-        anyhow::bail!("checkpoints are not available here")
+    /// Up to `max` checkpoints from epoch `from` on, as each of this
+    /// epoch's validators hands them out (in seat order; None where one did
+    /// not answer), for the explorer.
+    fn checkpoints_each(&self, _from: u64, _max: u32) -> Vec<Option<Vec<orien_ledger::close::Decided>>> {
+        Vec::new()
     }
     /// The validators the genesis file names: the first epoch's.
     fn launch_seats(&self) -> Vec<orien_ledger::Member> {
@@ -69,6 +70,29 @@ pub trait Payments: Send + Sync {
     fn lookup(&self, _id: &AccountId) -> Result<crate::explorer::Looked> {
         anyhow::bail!("addresses cannot be looked up here")
     }
+    /// What came into `account` from epoch `from` on, as the fullest
+    /// validator record has it, for the explorer's reward lists.
+    fn earnings(&self, _account: &AccountId, _from: u64) -> Option<orien_net::history::HistoryPage> {
+        None
+    }
+    /// Mining's rules: shares wanted per hour, the first target, and the
+    /// math that judges `epoch`'s shares; whether the next epoch's target
+    /// was set by a switch of math rather than by the shares found.
+    fn work_rules(&self, _epoch: u64) -> Option<WorkRules> {
+        None
+    }
+}
+
+/// Mining's rules for one epoch, for the explorer.
+#[derive(Clone, Debug)]
+pub struct WorkRules {
+    pub wanted: u64,
+    /// The target the very first epoch was mined at.
+    pub first_target: u64,
+    /// "Blake3" or "RandomX".
+    pub math: String,
+    /// The next epoch starts a new math, at a target set for it.
+    pub switches: bool,
 }
 
 /// One validator, as it answered (or did not).
@@ -204,24 +228,40 @@ impl Payments for Network {
         anyhow::bail!("no validator handed over the state for epoch {epoch}")
     }
 
-    fn checkpoints(&self, from: u64, max: u32) -> Result<Vec<orien_ledger::close::Decided>> {
+    fn checkpoints_each(&self, from: u64, max: u32) -> Vec<Option<Vec<orien_ledger::close::Decided>>> {
         use orien_net::wire::{Request, Response};
         let request = Request::Checkpoints { from, max };
-        let mut answered = false;
-        for index in 0..self.client.validators() {
-            if let Ok(Response::Checkpoints(found)) = self.client.call(index, &request) {
-                if !found.is_empty() {
-                    return Ok(found);
-                }
-                answered = true;
-            }
-        }
-        anyhow::ensure!(answered, "no validator answers");
-        Ok(Vec::new())
+        std::thread::scope(|scope| {
+            let asks: Vec<_> = (0..self.client.validators())
+                .map(|index| {
+                    let request = &request;
+                    scope.spawn(move || match self.client.call(index, request) {
+                        Ok(Response::Checkpoints(found)) => Some(found),
+                        _ => None,
+                    })
+                })
+                .collect();
+            asks.into_iter().map(|ask| ask.join().ok().flatten()).collect()
+        })
     }
 
     fn launch_seats(&self) -> Vec<orien_ledger::Member> {
         self.launch_seats.clone()
+    }
+
+    fn earnings(&self, account: &AccountId, from: u64) -> Option<orien_net::history::HistoryPage> {
+        self.client.history(account, from, 1000)
+    }
+
+    fn work_rules(&self, epoch: u64) -> Option<WorkRules> {
+        let rules = self.client.committee().work();
+        let math = rules.math(epoch);
+        Some(WorkRules {
+            wanted: rules.shares_per_epoch,
+            first_target: if rules.randomx_from == 0 { rules.randomx_target } else { self.first_target },
+            math: format!("{math:?}"),
+            switches: rules.math(epoch + 1) != math,
+        })
     }
 
     fn lookup(&self, id: &AccountId) -> Result<crate::explorer::Looked> {

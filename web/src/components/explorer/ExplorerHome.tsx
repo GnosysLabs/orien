@@ -1,10 +1,14 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import Link from 'next/link'
 import { ChevronRight } from 'lucide-react'
-import { type Overview, ago, checkpointHref, explore, orn } from '@/lib/explorer'
-import { Card, ExplorerSearch, Loading, Problem, Stat } from './Parts'
+import { type Overview, addressHref, ago, checkpointHref, explore, orn, short } from '@/lib/explorer'
+import { Card, Loading, Problem, Stat } from './Parts'
+import { TopWallets } from './TopWallets'
+
+/** A table's column headings, on wide screens. */
+const HEAD =
+  'hidden gap-4 border-b border-line px-6 py-3 text-xs font-semibold uppercase tracking-[0.14em] text-muted md:grid'
 
 /** "23 min" until the next checkpoint, ticking. */
 function useCountdown(overview: Overview | null) {
@@ -47,8 +51,6 @@ export function ExplorerHome() {
 
   return (
     <div className="space-y-10">
-      <ExplorerSearch />
-
       {error && !overview && <Problem text={error} />}
       {!error && !overview && <Loading />}
 
@@ -81,25 +83,77 @@ export function ExplorerHome() {
               </span>
             }
           >
+            <div className={`${HEAD} md:grid-cols-[1.3fr_1.3fr_1fr_1fr_7rem]`}>
+              <span>Validator</span>
+              <span>Kind</span>
+              <span>Working on</span>
+              <span>Agreed, last {overview.validators[0]?.of ?? 24}</span>
+              <span className="text-right">Status</span>
+            </div>
             <ul className="divide-y divide-line">
-              {overview.validators.map((validator) => (
-                <li key={validator.seat} className="flex flex-wrap items-center gap-x-4 gap-y-1 px-5 py-4 sm:px-6">
-                  <span
-                    className={`h-2.5 w-2.5 shrink-0 rounded-full ${validator.up ? 'bg-go' : 'bg-stop'}`}
-                    aria-hidden
-                  />
-                  <span className="min-w-0 flex-1">
-                    <span className="block font-semibold text-ink">Validator {validator.seat + 1}</span>
-                    <span className="block text-sm text-muted">
-                      {validator.account ? 'Staked validator' : 'Launch validator'} ·{' '}
+              {overview.validators.map((validator) => {
+                const behind = validator.up && validator.epoch < overview.epoch
+                return (
+                  <li
+                    key={validator.seat}
+                    className="grid grid-cols-[1fr_auto] items-center gap-x-4 gap-y-1 px-5 py-4 sm:px-6 md:grid-cols-[1.3fr_1.3fr_1fr_1fr_7rem]"
+                  >
+                    <span className="flex min-w-0 items-center gap-3">
+                      <span
+                        className={`h-2.5 w-2.5 shrink-0 rounded-full ${validator.up ? 'bg-go' : 'bg-stop'}`}
+                        aria-hidden
+                      />
+                      <span className="font-semibold text-ink">Validator {validator.seat + 1}</span>
+                    </span>
+                    <span className={`text-right text-sm font-semibold md:hidden ${validator.up ? 'text-go' : 'text-stop'}`}>
                       {validator.up ? 'Running' : 'Not answering'}
                     </span>
-                  </span>
-                  <span className="num text-sm text-ink">{orn(validator.stake, 0)} ORN at stake</span>
-                </li>
-              ))}
+                    <span className="col-span-2 pl-[1.375rem] text-sm text-muted md:col-span-1 md:pl-0">
+                      {validator.account ? (
+                        <>
+                          Staked by{' '}
+                          <a href={addressHref(validator.account)} className="num hover:text-ink">
+                            {short(validator.account)}
+                          </a>{' '}
+                          · {orn(validator.stake, 0)} ORN
+                        </>
+                      ) : (
+                        'Launch validator'
+                      )}
+                      <span className="md:hidden">
+                        {' '}
+                        · agreed on {validator.agreed} of the last {validator.of} checkpoints
+                      </span>
+                    </span>
+                    <span className="hidden text-sm md:block">
+                      {!validator.up ? (
+                        <span className="text-muted">–</span>
+                      ) : behind ? (
+                        <span className="text-warn">Catching up</span>
+                      ) : (
+                        <span className="text-ink">Checkpoint {validator.epoch}</span>
+                      )}
+                    </span>
+                    <span className="num hidden text-sm text-ink md:block">
+                      {validator.agreed} of {validator.of}
+                    </span>
+                    <span className={`hidden text-right text-sm font-semibold md:block ${validator.up ? 'text-go' : 'text-stop'}`}>
+                      {validator.up ? 'Running' : 'Not answering'}
+                    </span>
+                  </li>
+                )
+              })}
             </ul>
+            {overview.validators.some((v) => !v.account) && (
+              <p className="border-t border-line px-5 py-4 text-sm leading-relaxed text-muted sm:px-6">
+                Launch validators have run the network since it started. Their say in each checkpoint was set at launch
+                and isn&apos;t made of ORN, so it adds nothing to the ORN in existence. Anyone can also stake ORN to run a
+                validator.
+              </p>
+            )}
           </Card>
+
+          <TopWallets limit={10} />
 
           <Card title="Latest checkpoints" aside={<span className="text-sm text-muted">One every hour</span>}>
             <div className="hidden grid-cols-[1.2fr_1fr_0.8fr_1fr_0.8fr_auto] gap-4 border-b border-line px-6 py-3 text-xs font-semibold uppercase tracking-[0.14em] text-muted md:grid">
@@ -107,13 +161,13 @@ export function ExplorerHome() {
               <span>Made</span>
               <span>Payments</span>
               <span>New ORN</span>
-              <span>Signed</span>
+              <span>Agreed by</span>
               <span className="w-4" />
             </div>
             <ul className="divide-y divide-line">
               {overview.checkpoints.map((checkpoint) => (
                 <li key={checkpoint.epoch}>
-                  <Link
+                  <a
                     href={checkpointHref(checkpoint.epoch)}
                     className="grid grid-cols-[1fr_auto] items-center gap-x-4 gap-y-1 px-5 py-4 transition hover:bg-raised sm:px-6 md:grid-cols-[1.2fr_1fr_0.8fr_1fr_0.8fr_auto]"
                   >
@@ -128,10 +182,10 @@ export function ExplorerHome() {
                       <span className="text-muted md:hidden"> new ORN</span>
                     </span>
                     <span className="num hidden text-sm text-ink md:block">
-                      {checkpoint.signed.length} of {checkpoint.of}
+                      {checkpoint.agreed.length} of {checkpoint.of}
                     </span>
                     <ChevronRight className="hidden h-4 w-4 text-muted md:block" aria-hidden />
-                  </Link>
+                  </a>
                 </li>
               ))}
             </ul>

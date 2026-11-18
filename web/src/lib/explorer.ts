@@ -6,14 +6,25 @@ export type Checkpoint = {
   time: number
   payments: number
   released: string
-  signed: number[]
+  agreed: number[]
   of: number
   round: number
   state: string
   digest: string
 }
 
-export type Validator = { seat: number; name: string; up: boolean; stake: string; account: string | null }
+export type Validator = {
+  seat: number
+  name: string
+  up: boolean
+  /** The hour (epoch) it is working on. */
+  epoch: number
+  /** Of the latest checkpoints, how many it holds too. */
+  agreed: number
+  of: number
+  stake: string
+  account: string | null
+}
 
 export type Overview = {
   epoch: number
@@ -58,11 +69,61 @@ export type AddressInfo = {
 export type CheckpointInfo = {
   checkpoint: Checkpoint
   previous: string
-  validators: { seat: number; stake: string; account: string | null; signed: boolean }[]
+  validators: { seat: number; stake: string; account: string | null; agreed: boolean }[]
   latest: number
+  rewards?: Rewards
 }
 
-export type WalletProfile = { id: number; name: string; picture: string | null }
+/** Who earned what at a checkpoint: mining rewards by work shares, and fee
+ * shares to stakers. Amounts in units. */
+export type Rewards = {
+  /** Whether validators' records cover this checkpoint. */
+  known: boolean
+  /** The first checkpoint they cover. */
+  since: number | null
+  math: string | null
+  /** Shares the network aims for each hour. */
+  wanted: number | null
+  /** Shares found that hour, when known. */
+  shares: number | null
+  /** How much harder mining got for the next hour (negative: easier). */
+  harder: number | null
+  mined: string
+  miners: { address: string; amount: string; shares: number | null; part: number }[]
+  fees: string
+  stakers: { address: string; amount: string }[]
+}
+
+export type WalletProfile = { id: number; name: string; picture: string | null; wallet_name?: string | null }
+
+/** "Chris – Savings", or "Chris": as Orien Wallet names people it pays. */
+export const label = (profile: { name: string; wallet_name?: string | null }) =>
+  profile.wallet_name ? `${profile.name} – ${profile.wallet_name}` : profile.name
+
+export type Holder = { address: string; holds: string; staked: string; sent: number; share: number }
+export type Top = { epoch: number; in_wallets: string; holding: number; holders: Holder[] }
+
+/** A Market profile with wallets it showed it holds, as the name search finds it. */
+export type NamedProfile = {
+  id: number
+  name: string
+  picture: string | null
+  wallets: { address: string; name: string | null }[]
+}
+
+/** Market profiles whose name holds `query`, with their wallets. */
+export async function findNames(query: string): Promise<NamedProfile[]> {
+  const text = query.trim().replace(/^@/, '')
+  if (text.length < 2) return []
+  try {
+    const response = await fetch(`/api/market/profiles?q=${encodeURIComponent(text)}`)
+    if (!response.ok) return []
+    const data = await response.json()
+    return (data.profiles ?? []).filter((p: NamedProfile) => p.wallets.length > 0)
+  } catch {
+    return []
+  }
+}
 
 export class ExplorerError extends Error {
   constructor(
@@ -126,8 +187,23 @@ export function orn(units: string | number, digits = 9): string {
 /** "a3f9c2…8b41". */
 export const short = (address: string) => `${address.slice(0, 6)}…${address.slice(-4)}`
 
-export const addressHref = (address: string) => `/explorer/address/?a=${address}`
-export const checkpointHref = (epoch: number) => `/explorer/checkpoint/?n=${epoch}`
+/** On explorer.orien.network, short addresses (/address/ABC/); anywhere
+ * else, such as on this computer, the pages' own (/explorer/address/?a=ABC). */
+const own = () => typeof window !== 'undefined' && window.location.hostname.startsWith('explorer.')
+
+export const EXPLORER_URL = 'https://explorer.orien.network/'
+export const homeHref = () => (own() ? '/' : '/explorer/')
+export const addressHref = (address: string) => (own() ? `/address/${address}/` : `/explorer/address/?a=${address}`)
+export const topHref = () => (own() ? '/top/' : '/explorer/top/')
+export const checkpointHref = (epoch: number) => (own() ? `/checkpoint/${epoch}/` : `/explorer/checkpoint/?n=${epoch}`)
+
+/** What an explorer page was opened for: the part after /address/ or
+ * /checkpoint/ on explorer.orien.network, or the `key` in the query. */
+export function opened(kind: 'address' | 'checkpoint', key: string): string {
+  if (typeof window === 'undefined') return ''
+  const match = window.location.pathname.match(new RegExp(`^/${kind}/([^/]+)`))
+  return decodeURIComponent(match?.[1] ?? new URLSearchParams(window.location.search).get(key) ?? '')
+}
 
 /** "just now", "5 min ago", "3 h ago", or a date. */
 export function ago(seconds: number): string {

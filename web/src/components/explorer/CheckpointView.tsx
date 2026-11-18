@@ -1,11 +1,10 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { useSearchParams } from 'next/navigation'
-import Link from 'next/link'
 import { Check, ChevronLeft, ChevronRight, Minus } from 'lucide-react'
-import { type CheckpointInfo, addressHref, checkpointHref, explore, orn, short, when } from '@/lib/explorer'
-import { Card, ExplorerSearch, Loading, Problem, Stat } from './Parts'
+import { type CheckpointInfo, addressHref, checkpointHref, explore, opened, orn, short, when } from '@/lib/explorer'
+import { CheckpointRewards } from './CheckpointRewards'
+import { Card, Loading, Problem, Stat } from './Parts'
 
 const step =
   'flex h-10 items-center gap-1.5 rounded-xl border border-line bg-bg px-4 text-sm font-semibold text-ink transition hover:border-pearl'
@@ -20,12 +19,14 @@ function Hash({ label, value }: { label: string; value: string }) {
 }
 
 export function CheckpointView() {
-  const text = useSearchParams().get('n') ?? ''
-  const epoch = /^\d{1,12}$/.test(text) ? Number(text) : null
+  const [text, setText] = useState<string | null>(null)
+  useEffect(() => setText(opened('checkpoint', 'n')), [])
+  const epoch = text !== null && /^\d{1,12}$/.test(text) ? Number(text) : null
   const [info, setInfo] = useState<CheckpointInfo | null>(null)
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
+    if (text === null) return
     setInfo(null)
     setError(null)
     if (epoch === null) {
@@ -41,14 +42,12 @@ export function CheckpointView() {
     return () => {
       live = false
     }
-  }, [epoch])
+  }, [epoch, text])
 
   const checkpoint = info?.checkpoint
 
   return (
     <div className="space-y-10">
-      <ExplorerSearch />
-
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
           <h1 className="text-3xl font-bold tracking-tight text-ink">Checkpoint {epoch ?? ''}</h1>
@@ -57,14 +56,14 @@ export function CheckpointView() {
         {epoch !== null && (
           <div className="flex gap-2">
             {epoch > 0 && (
-              <Link href={checkpointHref(epoch - 1)} className={step}>
+              <a href={checkpointHref(epoch - 1)} className={step}>
                 <ChevronLeft className="h-4 w-4" aria-hidden /> Earlier
-              </Link>
+              </a>
             )}
             {info && epoch < info.latest && (
-              <Link href={checkpointHref(epoch + 1)} className={step}>
+              <a href={checkpointHref(epoch + 1)} className={step}>
                 Later <ChevronRight className="h-4 w-4" aria-hidden />
-              </Link>
+              </a>
             )}
           </div>
         )}
@@ -79,11 +78,13 @@ export function CheckpointView() {
             <Stat label="Payments" value={checkpoint.payments.toLocaleString('en')} note="Made final during its hour" />
             <Stat label="New ORN" value={orn(checkpoint.released, 2)} note="Released to miners with it" />
             <Stat
-              label="Signed by"
-              value={`${checkpoint.signed.length} of ${checkpoint.of}`}
-              note="It needs more than two thirds of the stake. The signatures it was settled with are kept."
+              label="Agreed by"
+              value={`${checkpoint.agreed.length} of ${checkpoint.of}`}
+              note="Validators holding this same checkpoint. It is final once validators with more than two thirds of the say have signed it."
             />
           </div>
+
+          {info.rewards && <CheckpointRewards rewards={info.rewards} epoch={checkpoint.epoch} />}
 
           {info.validators.length > 0 && (
             <Card title="Validators that hour">
@@ -96,23 +97,23 @@ export function CheckpointView() {
                         {validator.account ? (
                           <>
                             Staked by{' '}
-                            <Link href={addressHref(validator.account)} className="num hover:text-ink">
+                            <a href={addressHref(validator.account)} className="num hover:text-ink">
                               {short(validator.account)}
-                            </Link>
+                            </a>{' '}
+                            · {orn(validator.stake, 0)} ORN staked
                           </>
                         ) : (
                           'Launch validator'
-                        )}{' '}
-                        · {orn(validator.stake, 0)} ORN at stake
+                        )}
                       </span>
                     </span>
-                    <span className={`flex items-center gap-1.5 text-sm ${validator.signed ? 'text-go' : 'text-muted'}`}>
-                      {validator.signed ? (
+                    <span className={`flex items-center gap-1.5 text-sm ${validator.agreed ? 'text-go' : 'text-muted'}`}>
+                      {validator.agreed ? (
                         <Check className="h-4 w-4" aria-hidden />
                       ) : (
                         <Minus className="h-4 w-4" aria-hidden />
                       )}
-                      {validator.signed ? 'Signature kept' : 'Not kept'}
+                      {validator.agreed ? 'Agrees' : 'Didn’t answer'}
                     </span>
                   </li>
                 ))}

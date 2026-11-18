@@ -2,7 +2,7 @@
 //! in #welcome and removing recovery phrases.
 //!
 //! It finds its channels and roles by name: #welcome, #help, #mining, and
-//! the roles Member, Miner and Validator. It never reads or sends private
+//! the roles Member, Miner and Verified Holder. Validator is the founder's to give. It never reads or sends private
 //! messages: it does not ask Discord for them at all.
 
 use std::collections::{HashMap, VecDeque};
@@ -38,7 +38,6 @@ fn welcome_buttons() -> Vec<CreateActionRow> {
         CreateActionRow::Buttons(vec![CreateButton::new(ACCEPT).label("I accept the rules").style(ButtonStyle::Success)]),
         CreateActionRow::Buttons(vec![
             CreateButton::new(MINER).label("Miner").emoji('⛏').style(ButtonStyle::Secondary),
-            CreateButton::new(VALIDATOR).label("Validator").emoji('🛡').style(ButtonStyle::Secondary),
         ]),
         CreateActionRow::Buttons(vec![CreateButton::new(VERIFY).label("Verify my ORN").emoji('✅').style(ButtonStyle::Primary)]),
     ]
@@ -162,7 +161,8 @@ impl Handler {
             seen: Instant::now(),
             welcome: channel("welcome"),
             help: channel("help"),
-            general: channel("general"),
+            // New members are greeted in #greetings; in #general if the server has none.
+            general: channel("greetings").or_else(|| channel("general")),
             answers: ["help", "mining"].into_iter().filter_map(channel).collect(),
             names: text.iter().map(|c| (c.id, plain(&c.name))).collect(),
             member: role("Member"),
@@ -291,7 +291,7 @@ impl Handler {
         }
     }
 
-    /// Greets someone who has just accepted the rules, in #general, with a
+    /// Greets someone who has just accepted the rules, in #greetings, with a
     /// hello written for them. The lines after it are always the same.
     async fn greet(&self, ctx: &Context, places: &Places, who: UserId, name: &str) {
         let Some(general) = places.general else { return };
@@ -313,8 +313,8 @@ impl Handler {
             .allowed_mentions(CreateAllowedMentions::new().users([who]))
             .flags(MessageFlags::SUPPRESS_EMBEDS);
         match general.send_message(&ctx.http, message).await {
-            Ok(_) => eprintln!("greeted a new member in #general"),
-            Err(error) => eprintln!("could not greet a new member in #general: {error}"),
+            Ok(_) => eprintln!("greeted a new member"),
+            Err(error) => eprintln!("could not greet a new member: {error}"),
         }
     }
 
@@ -348,8 +348,10 @@ impl Handler {
                     Err(error) => cannot(&error, "Member"),
                 },
             },
-            id @ (MINER | VALIDATOR) => {
-                let (name, role) = if id == MINER { ("Miner", places.miner) } else { ("Validator", places.validator) };
+            // The button is gone; this answers a press on an old copy of the message.
+            VALIDATOR => "The **Validator** role is given by the founder now, to people who run a validator.".to_string(),
+            MINER => {
+                let (name, role) = ("Miner", places.miner);
                 match role {
                     None => format!("The {name} role is missing from the server. Please tell the founder."),
                     Some(_) if !has(places.member) => "Press **I accept the rules** first.".to_string(),
@@ -478,7 +480,7 @@ impl EventHandler for Handler {
 
 pub async fn run(
     token: String,
-    expert: Expert,
+    expert: Arc<Expert>,
     per_person: usize,
     per_hour: usize,
     news: Option<(String, std::path::PathBuf)>,
@@ -486,7 +488,6 @@ pub async fn run(
     holders: Option<Holders>,
 ) -> Result<()> {
     let holders = holders.map(Arc::new);
-    let expert = Arc::new(expert);
     if let Some(shipped) = shipped {
         tokio::spawn(crate::study::keep_current(expert.clone(), shipped));
     }

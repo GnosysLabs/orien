@@ -11,7 +11,6 @@ import {
   ChevronDown,
   Compass,
   Download,
-  Mail,
   Monitor,
   Smartphone,
   Store,
@@ -34,8 +33,6 @@ type NavItem = {
   match?: (pathname: string) => boolean;
   /** Left out of the phone's bottom bar, which has room for five. */
   wide?: boolean;
-  /** In the top bar only on wide screens, where there is room for it. */
-  roomy?: boolean;
 };
 
 const ITEMS: NavItem[] = [
@@ -52,10 +49,10 @@ const ITEMS: NavItem[] = [
     match: (p) => p.startsWith("/how-it-works"),
   },
   {
-    href: "/explorer/",
+    href: "https://explorer.orien.network/",
     label: "Explorer",
     icon: Activity,
-    match: (p) => p.startsWith("/explorer"),
+    match: () => false,
     wide: true,
   },
   ...(MARKETPLACE_LIVE
@@ -75,14 +72,6 @@ const ITEMS: NavItem[] = [
         },
       ]
     : []),
-  {
-    href: "/contact/",
-    label: "Contact",
-    icon: Mail,
-    match: (p) => p.startsWith("/contact"),
-    wide: true,
-    roomy: true,
-  },
   {
     href: "/try/",
     label: "Get started",
@@ -167,7 +156,7 @@ function DownloadsMenu() {
             : "text-muted hover:bg-raised/60 hover:text-ink"
         }`}
       >
-        <Download className="hidden h-4 w-4 shrink-0 2xl:block" strokeWidth={2} aria-hidden />
+        <Download className="hidden h-4 w-4 shrink-0 xl:block" strokeWidth={2} aria-hidden />
         <span>Downloads</span>
         <ChevronDown
           className={`h-3.5 w-3.5 transition ${open ? "rotate-180" : ""}`}
@@ -307,7 +296,7 @@ export function Header() {
                   key={item.href}
                   href={item.href}
                   aria-current={on ? "page" : undefined}
-                  className={`relative ${item.roomy ? "hidden xl:flex" : "flex"} h-9 items-center gap-2 whitespace-nowrap rounded-lg px-2.5 text-sm font-semibold transition ${
+                  className={`relative flex h-9 items-center gap-2 whitespace-nowrap rounded-lg px-2.5 text-sm font-semibold transition ${
                     on
                       ? "bg-raised text-ink"
                       : "text-muted hover:bg-raised/60 hover:text-ink"
@@ -316,7 +305,7 @@ export function Header() {
                   {unreadOn(item) > 0 && <Dot count={unreadOn(item)} className="right-0.5 top-1" />}
                   {/* Icons and full labels where the bar has room for them. */}
                   <Icon
-                    className={`hidden h-4 w-4 shrink-0 2xl:block ${on ? "text-pearl" : ""}`}
+                    className={`hidden h-4 w-4 shrink-0 xl:block ${on ? "text-pearl" : ""}`}
                     strokeWidth={2}
                     aria-hidden
                   />

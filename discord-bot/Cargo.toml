@@ -19,8 +19,11 @@ serde = { version = "1", features = ["derive"] }
 hex = "0.4"
 orien-net = { path = "../crates/net", default-features = false }
 orien-ledger = { path = "../crates/ledger", default-features = false }
-tokio = { version = "1", features = ["rt-multi-thread", "macros", "sync", "time"] }
-reqwest = { version = "0.12", default-features = false, features = ["json", "rustls-tls"] }
+tokio = { version = "1", features = ["rt-multi-thread", "macros", "sync", "time", "net"] }
+reqwest = { version = "0.12", default-features = false, features = ["json", "rustls-tls", "stream"] }
+axum = "0.8"
+futures-util = "0.3"
+tokio-stream = "0.1"
 serenity = { version = "0.12", default-features = false, features = ["client", "gateway", "http", "model", "builder", "utils", "rustls_backend"] }
 
 [profile.release]

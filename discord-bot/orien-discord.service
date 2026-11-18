@@ -2,7 +2,8 @@
 # The Orien community's Discord bot. It reads its two keys and what it knows
 # from /etc/orien-discord, talks to Discord and OpenRouter, reads the
 # website's changelog page, and keeps one small file in /var/lib/orien-discord:
-# the changelog entries it has already announced.
+# the changelog entries it has already announced. It also answers the
+# website's chat bubble on 127.0.0.1:7300 (nginx passes it /api/ask).
 #
 #   systemctl enable --now orien-discord
 #
@@ -23,7 +24,8 @@ ExecStart=/usr/local/bin/orien-discord run \
     --openrouter-key /etc/orien-discord/openrouter.key \
     --knowledge /etc/orien-discord/knowledge.md \
     --state /var/lib/orien-discord \
-    --genesis /etc/orien-discord/genesis.json
+    --genesis /etc/orien-discord/genesis.json \
+    --web-listen 127.0.0.1:7300
 Restart=always
 RestartSec=10
 

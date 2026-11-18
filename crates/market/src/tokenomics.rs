@@ -11,6 +11,8 @@ use orien_ledger::{AccountId, FEES, FORFEITED, MINT, REWARDS, State};
 use serde::Serialize;
 
 const COIN: u128 = 1_000_000_000;
+/// How many of the largest holders are listed.
+pub const TOP: usize = 100;
 
 /// A range of holdings, and the wallets in it.
 #[derive(Clone, Debug, Serialize)]
@@ -28,6 +30,8 @@ pub struct Holder {
     /// Everything it holds: spendable, staked and on its way back.
     pub holds: u128,
     pub staked: u64,
+    /// How many payments it has sent.
+    pub sent: u64,
     /// Its share of the ORN in wallets, from 0 to 1.
     pub share: f64,
 }
@@ -65,6 +69,9 @@ pub struct Tokenomics {
     pub top100: f64,
     pub buckets: Vec<Bucket>,
     pub top: Vec<Holder>,
+    /// Every account the network knows, for the explorer to ask about.
+    #[serde(skip)]
+    pub ids: Vec<AccountId>,
 }
 
 /// The tokenomics of `state`, the state at the start of `epoch`, on a
@@ -130,14 +137,16 @@ pub fn of(state: &State, epoch: u64, start_time: u64, cap: u64, now: u64) -> Tok
         top10: share(10),
         top100: share(100),
         buckets,
+        ids: wallets.iter().map(|(id, _, _)| *id).collect(),
         top: wallets
             .iter()
-            .take(25)
+            .take(TOP)
             .filter(|(_, holds, _)| *holds > 0)
             .map(|(id, holds, staked)| Holder {
                 address: id.to_string(),
                 holds: *holds,
                 staked: *staked,
+                sent: state.account(id).map_or(0, |a| a.seq),
                 share: if in_wallets == 0 { 0.0 } else { *holds as f64 / in_wallets as f64 },
             })
             .collect(),

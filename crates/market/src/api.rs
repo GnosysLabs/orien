@@ -352,6 +352,7 @@ pub fn router(app: Arc<App>) -> Router {
         .route("/api/explorer/checkpoints", get(crate::explorer::checkpoints))
         .route("/api/explorer/checkpoints/{epoch}", get(crate::explorer::checkpoint))
         .route("/api/explorer/address/{address}", get(crate::explorer::address))
+        .route("/api/explorer/top", get(crate::explorer::top))
         .with_state(app)
 }
 

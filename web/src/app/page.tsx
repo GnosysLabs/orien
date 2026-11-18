@@ -3,6 +3,8 @@ import { ArrowLeftRight, ArrowRight, Gauge, Pickaxe, Scale, ServerCog, ShieldChe
 import type { Metadata } from 'next'
 import { SupplyCurve } from '@/components/SupplyCurve'
 import { IPhoneApp } from '@/components/IPhoneApp'
+import { DiscordIcon } from '@/components/Header'
+import { DISCORD } from '@/lib/brand'
 
 export const metadata: Metadata = {
   title: { absolute: 'Orien: the quantum-proof cryptocurrency, final in a blink' },
@@ -23,7 +25,7 @@ const BENEFITS = [
   {
     icon: Sunrise,
     title: 'A fair launch from nothing',
-    body: 'No pre-mine, no sale, no founder’s share. The network starts with zero coins and every coin is earned. Its start is tied to a Bitcoin block announced in advance, so nobody can mine before everyone else.',
+    body: 'No pre-mine, no sale, no founder’s share. The network started with zero coins, and every coin is earned. Its start was tied to a Bitcoin block announced in advance, so nobody could mine before everyone else.',
   },
   {
     icon: Scale,
@@ -69,18 +71,12 @@ export default function HomePage() {
           and every signature is designed to stay safe when quantum computers arrive.
         </p>
         <IPhoneApp />
-        <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
-          <Link
-            href="/how-it-works/"
-            className="pearl-fill flex h-11 items-center gap-2 rounded-xl px-5 text-sm font-bold transition hover:brightness-105"
-          >
-            How it works <ArrowRight className="h-4 w-4" aria-hidden />
-          </Link>
+        <div className="mt-8 flex justify-center">
           <Link
             href="/try/"
-            className="flex h-11 items-center rounded-xl border border-line bg-surface px-5 text-sm font-semibold text-ink transition hover:border-pearl"
+            className="pearl-fill flex h-11 items-center gap-2 rounded-xl px-5 text-sm font-bold transition hover:brightness-105"
           >
-            Get started
+            Get started <ArrowRight className="h-4 w-4" aria-hidden />
           </Link>
         </div>
       </section>
@@ -149,6 +145,27 @@ export default function HomePage() {
             </div>
           ))}
         </div>
+      </section>
+
+      {/* The community */}
+      <section className="mb-6 flex flex-col items-center gap-6 rounded-3xl border border-line bg-surface p-6 text-center sm:flex-row sm:p-8 sm:text-left">
+        <span className="grid h-14 w-14 shrink-0 place-items-center rounded-2xl border border-line bg-raised" aria-hidden>
+          <DiscordIcon className="h-7 w-7 text-pearl" />
+        </span>
+        <div className="min-w-0 flex-1">
+          <h2 className="text-xl font-bold tracking-tight text-ink sm:text-2xl">Join the Orien community</h2>
+          <p className="mt-2 text-sm leading-relaxed text-muted">
+            Ask questions, get help with mining, and hear about updates first.
+          </p>
+        </div>
+        <a
+          href={DISCORD}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="flex h-11 shrink-0 items-center gap-2 rounded-xl border border-line bg-bg px-5 text-sm font-semibold text-ink transition hover:border-pearl"
+        >
+          Join on Discord <ArrowRight className="h-4 w-4" aria-hidden />
+        </a>
       </section>
 
       {/* Closing invitation */}

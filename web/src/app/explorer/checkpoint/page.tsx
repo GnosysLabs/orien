@@ -7,7 +7,7 @@ export const metadata: Metadata = { title: 'Checkpoint · Explorer', robots: { i
 /** /explorer/checkpoint/?n=NUMBER: one hourly checkpoint. */
 export default function CheckpointPage() {
   return (
-    <div className="mx-auto max-w-[1100px] pb-16 pt-10 sm:pt-14">
+    <div className="pb-16 pt-10 sm:pt-12">
       <Suspense>
         <CheckpointView />
       </Suspense>

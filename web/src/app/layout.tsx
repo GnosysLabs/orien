@@ -2,8 +2,10 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import { Geist, Geist_Mono, Jost } from 'next/font/google'
 import { Analytics } from '@/components/Analytics'
+import { AskOrien } from '@/components/AskOrien'
 import { BottomNav, Header } from '@/components/Header'
 import { ScrollToTop } from '@/components/ScrollToTop'
+import { Main, SiteOnly } from '@/components/SiteOnly'
 import { Wordmark } from '@/components/Wordmark'
 import { DISCORD, MARKETPLACE_LIVE, OPERATOR, OPERATOR_URL, SITE_DESCRIPTION, SITE_NAME, SITE_URL, TAGLINE, X_ACCOUNT } from '@/lib/brand'
 import { SHARE_IMAGE } from '@/lib/seo'
@@ -131,8 +133,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <div className="flex min-h-full flex-1 flex-col">
           <ScrollToTop />
           <Analytics />
-          <Header />
-          <main className="mx-auto w-full max-w-[1200px] flex-1 px-4 py-6 sm:py-8">{children}</main>
+          <SiteOnly>
+            <Header />
+          </SiteOnly>
+          <Main>{children}</Main>
+          <SiteOnly>
           <footer className="border-t border-line px-4 print:hidden pb-24 pt-6 text-center text-xs text-muted lg:pb-8">
             <p className="mb-2 flex items-center justify-center gap-2 font-semibold text-ink/85">
               <Wordmark className="text-sm" />
@@ -140,15 +145,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               <span>From the Latin <em>oriens</em>, rising</span>
             </p>
             <nav aria-label="Footer" className="mt-3 flex flex-wrap justify-center gap-x-5 gap-y-1">
-              <Link href="/" className="hover:text-ink">
-                Home
-              </Link>
-              <Link href="/how-it-works/" className="hover:text-ink">
-                How it works
-              </Link>
-              <Link href="/try/" className="hover:text-ink">
-                Get started
-              </Link>
+              {/* The phone's bottom bar has no room for the explorer: it is here. */}
+              <a href="https://explorer.orien.network/" className="hover:text-ink lg:hidden">
+                Explorer
+              </a>
               <Link href="/paper/" className="hover:text-ink">
                 Technical paper
               </Link>
@@ -174,8 +174,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             </nav>
             <p className="mt-3">© 2026 {OPERATOR}</p>
           </footer>
+          </SiteOnly>
         </div>
-        <BottomNav />
+        <SiteOnly>
+          <BottomNav />
+          <AskOrien />
+        </SiteOnly>
       </body>
     </html>
   )
