@@ -20,7 +20,7 @@ export function IPhoneApp() {
       className="mx-auto mt-8 flex max-w-md items-center gap-3 rounded-2xl border border-pearl/40 bg-surface p-4 text-left transition hover:border-pearl"
     >
       {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img src="/icon-rounded-192.png" alt="" className="h-12 w-12 shrink-0 rounded-xl" />
+      <img src="/iphone-app-icon.png" alt="" className="h-12 w-12 shrink-0 rounded-[11px] ring-1 ring-white/15" />
       <span className="min-w-0 flex-1">
         <span className="block font-bold text-ink">Orien Wallet for iPhone</span>
         <span className="block text-sm text-muted">Free public beta on TestFlight</span>

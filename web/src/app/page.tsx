@@ -68,6 +68,7 @@ export default function HomePage() {
           Orien is a new cryptocurrency. Payments are final in a fraction of a second, they never wait in line,
           and every signature is designed to stay safe when quantum computers arrive.
         </p>
+        <IPhoneApp />
         <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
           <Link
             href="/how-it-works/"
@@ -82,7 +83,6 @@ export default function HomePage() {
             Get started
           </Link>
         </div>
-        <IPhoneApp />
       </section>
 
       {/* Benefits */}
