@@ -70,6 +70,29 @@ pub trait Payments: Send + Sync {
     fn lookup(&self, _id: &AccountId) -> Result<crate::explorer::Looked> {
         anyhow::bail!("addresses cannot be looked up here")
     }
+    /// What came into `account` from epoch `from` on, as the fullest
+    /// validator record has it, for the explorer's reward lists.
+    fn earnings(&self, _account: &AccountId, _from: u64) -> Option<orien_net::history::HistoryPage> {
+        None
+    }
+    /// Mining's rules: shares wanted per hour, the first target, and the
+    /// math that judges `epoch`'s shares; whether the next epoch's target
+    /// was set by a switch of math rather than by the shares found.
+    fn work_rules(&self, _epoch: u64) -> Option<WorkRules> {
+        None
+    }
+}
+
+/// Mining's rules for one epoch, for the explorer.
+#[derive(Clone, Debug)]
+pub struct WorkRules {
+    pub wanted: u64,
+    /// The target the very first epoch was mined at.
+    pub first_target: u64,
+    /// "Blake3" or "RandomX".
+    pub math: String,
+    /// The next epoch starts a new math, at a target set for it.
+    pub switches: bool,
 }
 
 /// One validator, as it answered (or did not).
@@ -224,6 +247,21 @@ impl Payments for Network {
 
     fn launch_seats(&self) -> Vec<orien_ledger::Member> {
         self.launch_seats.clone()
+    }
+
+    fn earnings(&self, account: &AccountId, from: u64) -> Option<orien_net::history::HistoryPage> {
+        self.client.history(account, from, 1000)
+    }
+
+    fn work_rules(&self, epoch: u64) -> Option<WorkRules> {
+        let rules = self.client.committee().work();
+        let math = rules.math(epoch);
+        Some(WorkRules {
+            wanted: rules.shares_per_epoch,
+            first_target: if rules.randomx_from == 0 { rules.randomx_target } else { self.first_target },
+            math: format!("{math:?}"),
+            switches: rules.math(epoch + 1) != math,
+        })
     }
 
     fn lookup(&self, id: &AccountId) -> Result<crate::explorer::Looked> {

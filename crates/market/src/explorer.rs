@@ -12,7 +12,7 @@ use axum::Json;
 use axum::extract::{Path, Query, State};
 use axum::http::header;
 use axum::response::{IntoResponse, Response};
-use orien_ledger::Income;
+use orien_ledger::{AccountId, Income};
 use orien_net::history::Received;
 use serde::{Deserialize, Serialize};
 use std::collections::{BTreeMap, HashMap};
@@ -71,6 +71,9 @@ pub struct Checkpoint {
     /// Validators named for the next epoch.
     #[serde(skip)]
     next: Vec<orien_ledger::Member>,
+    /// The next epoch's work target, which the shares found set.
+    #[serde(skip)]
+    target: u64,
     #[serde(skip)]
     digest_bytes: orien_crypto::Hash32,
 }
@@ -150,6 +153,160 @@ pub struct Explorer {
     /// When validators missing from recent checkpoints were last asked again.
     rechecked: Mutex<Option<Instant>>,
     addresses: Mutex<HashMap<String, (Instant, Address)>>,
+    earned: Mutex<Earned>,
+}
+
+/// Every account's mining rewards and fee shares, by checkpoint, gathered
+/// from validators' records of what each account received. Nothing else
+/// keeps them: the work shares themselves are deleted once an hour closes.
+#[derive(Default)]
+struct Earned {
+    /// Each account has been asked about up to this epoch, not included.
+    asked: HashMap<AccountId, u64>,
+    /// By epoch: who got what.
+    by_epoch: BTreeMap<u64, Vec<(AccountId, Income, u64)>>,
+    /// The first checkpoint validators' records cover.
+    since: Option<u64>,
+    /// Gathered up to this checkpoint, included.
+    upto: Option<u64>,
+}
+
+impl Earned {
+    /// Asks about every account for the checkpoints up to `latest` not asked
+    /// about yet.
+    fn gather(&mut self, payments: &dyn crate::wallets::Payments, latest: u64) -> anyhow::Result<()> {
+        if self.upto.is_some_and(|upto| upto >= latest) {
+            return Ok(());
+        }
+        let ids = payments.tokenomics()?.ids;
+        let asks: Vec<(AccountId, u64)> = ids.iter().map(|id| (*id, self.asked.get(id).copied().unwrap_or(0))).collect();
+        let found: Vec<Option<(u64, Vec<(u64, Income, u64)>)>> = std::thread::scope(|scope| {
+            asks.chunks(asks.len().div_ceil(16).max(1))
+                .map(|chunk| scope.spawn(move || chunk.iter().map(|(id, from)| earnings(payments, id, *from, latest)).collect::<Vec<_>>()))
+                .collect::<Vec<_>>()
+                .into_iter()
+                .flat_map(|ask| ask.join().unwrap_or_default())
+                .collect()
+        });
+        for ((id, _), answer) in asks.iter().zip(found) {
+            // An account no validator answered for is asked again next time.
+            let Some((since, entries)) = answer else { continue };
+            self.since = Some(self.since.map_or(since, |known| known.min(since)));
+            for (epoch, income, amount) in entries {
+                self.by_epoch.entry(epoch).or_default().push((*id, income, amount));
+            }
+            self.asked.insert(*id, latest + 1);
+        }
+        self.upto = Some(latest);
+        Ok(())
+    }
+}
+
+/// What `account` earned from mining and fees in the checkpoints from
+/// `from` to `latest`, and where the validator's records start.
+fn earnings(
+    payments: &dyn crate::wallets::Payments,
+    account: &AccountId,
+    from: u64,
+    latest: u64,
+) -> Option<(u64, Vec<(u64, Income, u64)>)> {
+    let mut found = Vec::new();
+    let mut since = None;
+    let mut next = Some(from);
+    while let Some(at) = next.filter(|at| *at <= latest) {
+        let page = payments.earnings(account, at)?;
+        since.get_or_insert(page.since);
+        found.extend(
+            page.entries
+                .iter()
+                .filter(|entry| entry.time.is_some() && entry.epoch >= from && entry.epoch <= latest)
+                .filter(|entry| matches!(entry.income, Income::Mining | Income::Fees))
+                .map(|entry| (entry.epoch, entry.income, entry.amount)),
+        );
+        next = page.next.filter(|n| *n > at);
+    }
+    Some((since.unwrap_or(0), found))
+}
+
+/// How many work shares an epoch found, worked out from how its target
+/// moved: the next target is this one times the shares wanted over the
+/// shares found, unless that moved it by more than a factor of four, when
+/// the count is not known.
+fn shares_found(target: u64, next: u64, wanted: u64) -> Option<u64> {
+    let (target, next, wanted) = (target as u128, next as u128, wanted.max(1) as u128);
+    if next <= (target / 4).max(1) || next >= target * 4 {
+        return None;
+    }
+    let guess = (target * wanted + next / 2) / next;
+    (guess.saturating_sub(2)..=guess + 2).find(|n| *n > 0 && target * wanted / n == next).map(|n| n as u64)
+}
+
+/// The mining rewards and fee shares of one checkpoint.
+fn rewards_of(
+    explorer: &Explorer,
+    payments: &dyn crate::wallets::Payments,
+    epoch: u64,
+    target: Option<u64>,
+    next: u64,
+) -> serde_json::Value {
+    let latest = explorer.checkpoints.lock().unwrap().keys().next_back().copied().unwrap_or(0);
+    let mut earned = explorer.earned.lock().unwrap();
+    let gathered = earned.gather(payments, latest);
+    let rules = payments.work_rules(epoch);
+    let target = target.or(rules.as_ref().map(|r| r.first_target));
+    let since = earned.since;
+    let known = gathered.is_ok() && since.is_some_and(|since| epoch >= since);
+    let entries = earned.by_epoch.get(&epoch).cloned().unwrap_or_default();
+    drop(earned);
+    let mut mined: Vec<(AccountId, u64)> =
+        entries.iter().filter(|(_, income, _)| *income == Income::Mining).map(|(id, _, amount)| (*id, *amount)).collect();
+    mined.sort_by_key(|(id, amount)| (std::cmp::Reverse(*amount), *id));
+    let mut fees: Vec<(AccountId, u64)> =
+        entries.iter().filter(|(_, income, _)| *income == Income::Fees).map(|(id, _, amount)| (*id, *amount)).collect();
+    fees.sort_by_key(|(id, amount)| (std::cmp::Reverse(*amount), *id));
+    let paid: u128 = mined.iter().map(|(_, amount)| *amount as u128).sum();
+    // The shares found, when the target's move tells; nobody paid means none.
+    let switches = rules.as_ref().is_some_and(|r| r.switches);
+    let shares = match (target, &rules) {
+        _ if known && mined.is_empty() => Some(0),
+        (Some(target), Some(rules)) if !switches => shares_found(target, next, rules.wanted),
+        _ => None,
+    };
+    // Each miner's shares, from its part of the rewards (paid in proportion
+    // to shares, rounded down): kept only if they add up exactly.
+    let each: Option<Vec<u64>> = shares.filter(|n| *n > 0 && paid > 0).and_then(|n| {
+        let each: Vec<u64> =
+            mined.iter().map(|(_, amount)| ((*amount as u128 * n as u128 + paid / 2) / paid) as u64).collect();
+        (each.iter().sum::<u64>() == n && each.iter().all(|s| *s > 0)).then_some(each)
+    });
+    let miners: Vec<serde_json::Value> = mined
+        .iter()
+        .enumerate()
+        .map(|(i, (id, amount))| {
+            serde_json::json!({
+                "address": hex::encode(id.as_bytes()),
+                "amount": amount.to_string(),
+                "shares": each.as_ref().map(|each| each[i]),
+                "part": if paid == 0 { 0.0 } else { *amount as f64 / paid as f64 },
+            })
+        })
+        .collect();
+    let stakers: Vec<serde_json::Value> = fees
+        .iter()
+        .map(|(id, amount)| serde_json::json!({ "address": hex::encode(id.as_bytes()), "amount": amount.to_string() }))
+        .collect();
+    serde_json::json!({
+        "known": known,
+        "since": since,
+        "math": rules.as_ref().map(|r| r.math.clone()),
+        "wanted": rules.as_ref().map(|r| r.wanted),
+        "shares": shares,
+        "harder": target.filter(|_| !switches && next > 0).map(|target| target as f64 / next as f64 - 1.0),
+        "mined": paid.to_string(),
+        "miners": miners,
+        "fees": fees.iter().map(|(_, amount)| *amount as u128).sum::<u128>().to_string(),
+        "stakers": stakers,
+    })
 }
 
 impl Explorer {
@@ -204,6 +361,7 @@ impl Explorer {
                     state: hex::encode(checkpoint.state.as_bytes()),
                     digest: hex::encode(digest.as_bytes()),
                     next: checkpoint.validators.clone(),
+                    target: checkpoint.target,
                     digest_bytes: digest,
                 };
                 kept.insert(row.epoch, row.clone());
@@ -431,14 +589,20 @@ pub async fn checkpoint(State(app): State<Arc<App>>, Path(epoch): Path<u64>) -> 
                 })
             })
             .collect();
-        Ok(Some(serde_json::json!({
+        let target = epoch.checked_sub(1).and_then(|b| kept.get(&b)).map(|c| c.target);
+        let next = checkpoint.target;
+        let found = serde_json::json!({
             "checkpoint": checkpoint,
             "previous": hex::encode(
                 epoch.checked_sub(1).and_then(|b| kept.get(&b)).map(|c| c.digest_bytes).unwrap_or_default().as_bytes()
             ),
             "validators": validators,
             "latest": kept.keys().next_back(),
-        })))
+        });
+        drop(kept);
+        let mut found = found;
+        found["rewards"] = rewards_of(explorer, app.payments().as_ref(), epoch, target, next);
+        Ok(Some(found))
     })
     .await
     .map_err(|e| Failure::Broken(e.into()))?
@@ -483,4 +647,21 @@ pub async fn address(State(app): State<Arc<App>>, Path(address): Path<String>) -
         .map_err(|e| Failure::Broken(e.into()))?
         .map_err(unavailable)?;
     Ok(([(header::CACHE_CONTROL, "public, max-age=20")], Json(found)).into_response())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::shares_found;
+
+    #[test]
+    fn shares_are_read_back_from_the_target_move() {
+        let target = u64::MAX >> 24;
+        for found in [251u64, 400, 999, 1000, 1001, 2345, 3999] {
+            let next = (target as u128 * 1000 / found as u128) as u64;
+            assert_eq!(shares_found(target, next, 1000), Some(found), "{found}");
+        }
+        // Moved by the most it may: the count is not known.
+        assert_eq!(shares_found(target, target * 4, 1000), None);
+        assert_eq!(shares_found(target, target / 4, 1000), None);
+    }
 }

@@ -71,6 +71,27 @@ export type CheckpointInfo = {
   previous: string
   validators: { seat: number; stake: string; account: string | null; agreed: boolean }[]
   latest: number
+  rewards?: Rewards
+}
+
+/** Who earned what at a checkpoint: mining rewards by work shares, and fee
+ * shares to stakers. Amounts in units. */
+export type Rewards = {
+  /** Whether validators' records cover this checkpoint. */
+  known: boolean
+  /** The first checkpoint they cover. */
+  since: number | null
+  math: string | null
+  /** Shares the network aims for each hour. */
+  wanted: number | null
+  /** Shares found that hour, when known. */
+  shares: number | null
+  /** How much harder mining got for the next hour (negative: easier). */
+  harder: number | null
+  mined: string
+  miners: { address: string; amount: string; shares: number | null; part: number }[]
+  fees: string
+  stakers: { address: string; amount: string }[]
 }
 
 export type WalletProfile = { id: number; name: string; picture: string | null; wallet_name?: string | null }

@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { Check, ChevronLeft, ChevronRight, Minus } from 'lucide-react'
 import { type CheckpointInfo, addressHref, checkpointHref, explore, opened, orn, short, when } from '@/lib/explorer'
+import { CheckpointRewards } from './CheckpointRewards'
 import { Card, Loading, Problem, Stat } from './Parts'
 
 const step =
@@ -82,6 +83,8 @@ export function CheckpointView() {
               note="Validators holding this same checkpoint. It is final once validators with more than two thirds of the say have signed it."
             />
           </div>
+
+          {info.rewards && <CheckpointRewards rewards={info.rewards} epoch={checkpoint.epoch} />}
 
           {info.validators.length > 0 && (
             <Card title="Validators that hour">

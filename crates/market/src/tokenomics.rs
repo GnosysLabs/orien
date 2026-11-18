@@ -69,6 +69,9 @@ pub struct Tokenomics {
     pub top100: f64,
     pub buckets: Vec<Bucket>,
     pub top: Vec<Holder>,
+    /// Every account the network knows, for the explorer to ask about.
+    #[serde(skip)]
+    pub ids: Vec<AccountId>,
 }
 
 /// The tokenomics of `state`, the state at the start of `epoch`, on a
@@ -134,6 +137,7 @@ pub fn of(state: &State, epoch: u64, start_time: u64, cap: u64, now: u64) -> Tok
         top10: share(10),
         top100: share(100),
         buckets,
+        ids: wallets.iter().map(|(id, _, _)| *id).collect(),
         top: wallets
             .iter()
             .take(TOP)
