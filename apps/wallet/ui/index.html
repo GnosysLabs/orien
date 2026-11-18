@@ -3039,9 +3039,10 @@
     balancePeek = balancePeek ? 0 : 1;
     feel("selection");
     paintBalance();
+    repaintAmounts();
   });
   // Leaving the app hides it again.
-  document.addEventListener("visibilitychange", () => { if (document.hidden && balancePeek) { balancePeek = 0; paintBalance(); } });
+  document.addEventListener("visibilitychange", () => { if (document.hidden && balancePeek) { balancePeek = 0; paintBalance(); repaintAmounts(); } });
   function paintSettings() {
  $("st-arrow").checked = !prefs.noarrow;
     $("st-lock-row").hidden = !apple;
@@ -3673,11 +3674,20 @@
     return `<div class="tx" title="${e.counterparty || ""}">
       ${pic ? face(e.counterparty, who) : `<span class="tx-icon ${e.direction}">${ICON[e.direction]}</span>`}
       <div class="tx-main"><div class="title">${title}</div><div class="sub">${sub}</div></div>
-      <div class="tx-side"><div class="amt ${e.direction}">${sent ? "−" : "+"}${e.amount}</div><div class="sub">${when(e)}</div></div>
+      <div class="tx-side"><div class="amt ${e.direction}"${balancePeek ? "" : ` title="${esc(e.amount)} ORN"`}>${sent ? "−" : "+"}${shortAmount(e.amount)}</div><div class="sub">${when(e)}</div></div>
     </div>`;
   }
   const relative = (e) => { const d = dayName(e.time); return d === "Today" ? clock(e.time) : d === "Yesterday" ? "Yesterday" : new Date(e.time * 1000).toLocaleDateString([], { month: "short", day: "numeric" }); };
 
+  // Payments follow the balance: two decimals until the balance is tapped
+  // for every decimal. A tiny amount still shows as more than nothing.
+  const shortAmount = (text) => {
+    if (balancePeek) return text;
+    const n = Number(String(text).replace(/,/g, ""));
+    if (!Number.isFinite(n)) return text;
+    return n > 0 && n < 0.005 ? "<0.01" : shortBalance(text);
+  };
+  function repaintAmounts() { renderRecent(); if ($("all-activity").innerHTML) renderAll(); }
   function renderRecent() {
     $("recent").innerHTML = entries.length
       ? entries.slice(0, 20).map((e) => row(e, relative)).join("")
