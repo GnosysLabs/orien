@@ -79,7 +79,7 @@ export function CheckpointView() {
             <Stat
               label="Agreed by"
               value={`${checkpoint.agreed.length} of ${checkpoint.of}`}
-              note="Validators holding this same checkpoint. It is final once more than two thirds of the stake has signed it."
+              note="Validators holding this same checkpoint. It is final once validators with more than two thirds of the say have signed it."
             />
           </div>
 
@@ -96,12 +96,12 @@ export function CheckpointView() {
                             Staked by{' '}
                             <a href={addressHref(validator.account)} className="num hover:text-ink">
                               {short(validator.account)}
-                            </a>
+                            </a>{' '}
+                            · {orn(validator.stake, 0)} ORN staked
                           </>
                         ) : (
                           'Launch validator'
-                        )}{' '}
-                        · {orn(validator.stake, 0)} ORN at stake
+                        )}
                       </span>
                     </span>
                     <span className={`flex items-center gap-1.5 text-sm ${validator.agreed ? 'text-go' : 'text-muted'}`}>

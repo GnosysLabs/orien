@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { ChevronRight } from 'lucide-react'
-import { type Overview, ago, checkpointHref, explore, orn } from '@/lib/explorer'
+import { type Overview, addressHref, ago, checkpointHref, explore, orn, short } from '@/lib/explorer'
 import { Card, Loading, Problem, Stat } from './Parts'
 import { TopWallets } from './TopWallets'
 
@@ -89,14 +89,32 @@ export function ExplorerHome() {
                   <span className="min-w-0 flex-1">
                     <span className="block font-semibold text-ink">Validator {validator.seat + 1}</span>
                     <span className="block text-sm text-muted">
-                      {validator.account ? 'Staked validator' : 'Launch validator'} ·{' '}
-                      {validator.up ? 'Running' : 'Not answering'}
+                      {validator.account ? (
+                        <>
+                          Staked by{' '}
+                          <a href={addressHref(validator.account)} className="num hover:text-ink">
+                            {short(validator.account)}
+                          </a>{' '}
+                          · {orn(validator.stake, 0)} ORN staked
+                        </>
+                      ) : (
+                        'Launch validator'
+                      )}
                     </span>
                   </span>
-                  <span className="num text-sm text-ink">{orn(validator.stake, 0)} ORN at stake</span>
+                  <span className={`text-sm font-semibold ${validator.up ? 'text-go' : 'text-stop'}`}>
+                    {validator.up ? 'Running' : 'Not answering'}
+                  </span>
                 </li>
               ))}
             </ul>
+            {overview.validators.some((v) => !v.account) && (
+              <p className="border-t border-line px-5 py-4 text-sm leading-relaxed text-muted sm:px-6">
+                Launch validators have run the network since it started. Their say in each checkpoint was set at launch
+                and isn&apos;t made of ORN, so it adds nothing to the ORN in existence. Anyone can also stake ORN to run a
+                validator.
+              </p>
+            )}
           </Card>
 
           <TopWallets limit={10} />
