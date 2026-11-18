@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { Activity, ArrowLeftRight, ArrowRight, Gauge, Pickaxe, Scale, ServerCog, ShieldCheck, Sunrise, Wallet } from 'lucide-react'
+import { ArrowLeftRight, ArrowRight, Gauge, Pickaxe, Scale, ServerCog, ShieldCheck, Sunrise, Wallet } from 'lucide-react'
 import type { Metadata } from 'next'
 import { SupplyCurve } from '@/components/SupplyCurve'
 import { IPhoneApp } from '@/components/IPhoneApp'
@@ -69,25 +69,13 @@ export default function HomePage() {
           and every signature is designed to stay safe when quantum computers arrive.
         </p>
         <IPhoneApp />
-        <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
-          <Link
-            href="/how-it-works/"
-            className="pearl-fill flex h-11 items-center gap-2 rounded-xl px-5 text-sm font-bold transition hover:brightness-105"
-          >
-            How it works <ArrowRight className="h-4 w-4" aria-hidden />
-          </Link>
+        <div className="mt-8 flex justify-center">
           <Link
             href="/try/"
-            className="flex h-11 items-center rounded-xl border border-line bg-surface px-5 text-sm font-semibold text-ink transition hover:border-pearl"
+            className="pearl-fill flex h-11 items-center gap-2 rounded-xl px-5 text-sm font-bold transition hover:brightness-105"
           >
-            Get started
+            Get started <ArrowRight className="h-4 w-4" aria-hidden />
           </Link>
-          <a
-            href="https://explorer.orien.network/"
-            className="flex h-11 items-center gap-2 rounded-xl border border-line bg-surface px-5 text-sm font-semibold text-ink transition hover:border-pearl"
-          >
-            <Activity className="h-4 w-4 text-pearl" aria-hidden /> Explorer
-          </a>
         </div>
       </section>
 

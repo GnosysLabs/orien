@@ -153,6 +153,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               <Link href="/try/" className="hover:text-ink">
                 Get started
               </Link>
+              <a href="https://explorer.orien.network/" className="hover:text-ink">
+                Explorer
+              </a>
               <Link href="/paper/" className="hover:text-ink">
                 Technical paper
               </Link>
