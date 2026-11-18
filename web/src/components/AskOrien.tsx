@@ -200,7 +200,7 @@ export function AskOrien() {
             </span>
             <div className="min-w-0 flex-1">
               <p className="font-bold leading-tight text-ink">Ask about Orien</p>
-              <p className="text-xs text-muted">AI assistant · answers from Orien&apos;s own pages</p>
+              <p className="text-xs text-muted">AI assistant</p>
             </div>
             {messages.length > 0 && !busy && (
               <button
