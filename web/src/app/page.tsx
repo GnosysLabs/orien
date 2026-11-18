@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { ArrowLeftRight, ArrowRight, Gauge, Pickaxe, Scale, ServerCog, ShieldCheck, Sunrise, Wallet } from 'lucide-react'
+import { Activity, ArrowLeftRight, ArrowRight, Gauge, Pickaxe, Scale, ServerCog, ShieldCheck, Sunrise, Wallet } from 'lucide-react'
 import type { Metadata } from 'next'
 import { SupplyCurve } from '@/components/SupplyCurve'
 import { IPhoneApp } from '@/components/IPhoneApp'
@@ -82,6 +82,12 @@ export default function HomePage() {
           >
             Get started
           </Link>
+          <a
+            href="https://explorer.orien.network/"
+            className="flex h-11 items-center gap-2 rounded-xl border border-line bg-surface px-5 text-sm font-semibold text-ink transition hover:border-pearl"
+          >
+            <Activity className="h-4 w-4 text-pearl" aria-hidden /> Explorer
+          </a>
         </div>
       </section>
 

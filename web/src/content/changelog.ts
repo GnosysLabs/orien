@@ -27,6 +27,16 @@ export const PRODUCTS: Record<Product, string> = {
 export const CHANGELOG: Entry[] = [
   {
     date: '2026-11-18',
+    products: ['network'],
+    title: 'The Orien Explorer',
+    changes: [
+      'explorer.orien.network shows the network as it runs: how many ORN exist, the validators, and every hourly checkpoint, with how many validators agreed on it.',
+      'Look up any address for its balance and payments, or search by the name of someone on the Market.',
+      'The top 100 wallets, with their share of all ORN in wallets.',
+    ],
+  },
+  {
+    date: '2026-11-18',
     products: ['wallet'],
     version: '1.8.17',
     title: 'Clearer swap offers',

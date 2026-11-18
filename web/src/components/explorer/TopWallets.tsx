@@ -86,7 +86,8 @@ export function TopWallets({ limit }: { limit?: number }) {
                             <span className="num block truncate text-sm text-muted">{short(holder.address)}</span>
                           </>
                         ) : (
-                          <span className="num block truncate text-ink">{short(holder.address)}</span>
+                          // As tall as a named row's two lines, so every row is the same.
+                          <span className="num flex min-h-11 items-center truncate text-ink">{short(holder.address)}</span>
                         )}
                       </span>
                     </span>
