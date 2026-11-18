@@ -96,7 +96,9 @@ if [ -z "${TAURI_SIGNING_PRIVATE_KEY_PASSWORD:-}" ]; then
 fi
 export TAURI_SIGNING_PRIVATE_KEY=$KEY TAURI_SIGNING_PRIVATE_KEY_PASSWORD
 if [ -z "${APPLE_SIGNING_IDENTITY:-}" ]; then
-    APPLE_SIGNING_IDENTITY=$(security find-identity -v -p codesigning | sed -n 's/.*"\(Developer ID Application: .*\)"/\1/p' | head -1)
+    # The company's certificate first (Gnosys Labs LLC, since 2026-11-17),
+    # then any other Developer ID one.
+    APPLE_SIGNING_IDENTITY=$(security find-identity -v -p codesigning | sed -n 's/.*"\(Developer ID Application: .*\)"/\1/p' | awk '/Gnosys Labs/ { print; found = 1; exit } { rest[NR] = $0 } END { if (!found && NR) print rest[1] }')
 fi
 NOTARY=${APPLE_KEYCHAIN_PROFILE:-AC_NOTARY}
 if [ -n "$APPLE_SIGNING_IDENTITY" ]; then
