@@ -28,6 +28,18 @@ export const CHANGELOG: Entry[] = [
   {
     date: '2026-11-18',
     products: ['wallet'],
+    version: '1.8.18',
+    title: 'Find your computer’s sweet spot for mining',
+    changes: [
+      'A new Benchmark button mines at a few settings for a minute or two and finds the one that earns the most without wasting heat. Shares found during it still count.',
+      'The mining slider is now in cores instead of percent, coloured from cool blue up to the sweet spot and warm orange past it.',
+      'Your choice of two decimals or every decimal for your balance is now remembered.',
+      'In full screen, opening another wallet keeps the loading sun inside the wallet’s window.',
+    ],
+  },
+  {
+    date: '2026-11-18',
+    products: ['wallet'],
     version: '1.8.17',
     title: 'Clearer swap offers',
     changes: [
