@@ -3694,19 +3694,25 @@
     const img = new Image();
     img.src = "data:image/svg+xml;charset=utf-8," + encodeURIComponent(svg);
     await img.decode();
-    const w = 1080, qr = 900, pad = 90;
+    // Orien's grey around a white card holding the code (a scanner needs
+    // light around a QR code), the words in light ink under it.
+    const w = 1080, qr = 840, card = 900, pad = 90;
     const canvas = document.createElement("canvas");
-    canvas.width = w; canvas.height = pad + qr + 230;
+    canvas.width = w; canvas.height = pad + card + 250;
     const g = canvas.getContext("2d");
-    g.fillStyle = "#fff"; g.fillRect(0, 0, canvas.width, canvas.height);
+    g.fillStyle = "#26272b"; g.fillRect(0, 0, canvas.width, canvas.height);
+    g.fillStyle = "#fff";
+    g.beginPath(); g.roundRect((w - card) / 2, pad, card, card, 48); g.fill();
     g.imageSmoothingEnabled = false;
-    g.drawImage(img, (w - qr) / 2, pad, qr, qr);
-    g.fillStyle = "#16131f"; g.textAlign = "center";
-    g.font = '600 34px -apple-system, "Segoe UI", sans-serif';
-    g.fillText("My Orien (ORN) address", w / 2, pad + qr + 70);
+    g.drawImage(img, (w - qr) / 2, pad + (card - qr) / 2, qr, qr);
+    g.textAlign = "center";
+    g.fillStyle = "#eceef2";
+    g.font = '600 36px -apple-system, "Segoe UI", sans-serif';
+    g.fillText("My Orien (ORN) address", w / 2, pad + card + 86);
+    g.fillStyle = "#b9bcc4";
     g.font = '30px ui-monospace, "SF Mono", Menlo, Consolas, monospace';
-    g.fillText(address.slice(0, 32), w / 2, pad + qr + 130);
-    g.fillText(address.slice(32), w / 2, pad + qr + 175);
+    g.fillText(address.slice(0, 32), w / 2, pad + card + 146);
+    g.fillText(address.slice(32), w / 2, pad + card + 191);
     const blob = await new Promise((done) => canvas.toBlob(done, "image/png"));
     return blob && new File([blob], "Orien address.png", { type: "image/png" });
   }
