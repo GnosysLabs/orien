@@ -2,6 +2,7 @@ import Link from 'next/link'
 import { ArrowLeftRight, ArrowRight, Gauge, Pickaxe, Scale, ServerCog, ShieldCheck, Sunrise, Wallet } from 'lucide-react'
 import type { Metadata } from 'next'
 import { SupplyCurve } from '@/components/SupplyCurve'
+import { IPhoneApp } from '@/components/IPhoneApp'
 
 export const metadata: Metadata = {
   title: { absolute: 'Orien: the quantum-proof cryptocurrency, final in a blink' },
@@ -67,6 +68,7 @@ export default function HomePage() {
           Orien is a new cryptocurrency. Payments are final in a fraction of a second, they never wait in line,
           and every signature is designed to stay safe when quantum computers arrive.
         </p>
+        <IPhoneApp />
         <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
           <Link
             href="/how-it-works/"

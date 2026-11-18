@@ -1,9 +1,10 @@
 import type { Metadata } from 'next'
 import { WindowsDownload } from '@/components/WindowsDownload'
 import Link from 'next/link'
-import { ArrowRight, Download, KeyRound, Monitor, Pickaxe, RefreshCw, Send, ServerCog, Wallet } from 'lucide-react'
+import { ArrowRight, Download, KeyRound, Monitor, Pickaxe, RefreshCw, Send, ServerCog, Smartphone, Wallet } from 'lucide-react'
 import { CopyText } from '@/components/CopyText'
 import { pageMeta } from '@/lib/seo'
+import { IPHONE_BETA } from '@/lib/brand'
 
 export const metadata: Metadata = pageMeta({
   title: 'Get started: download Orien Wallet and mine ORN',
@@ -62,7 +63,7 @@ export default function GetStartedPage() {
         </div>
         <div className="space-y-4 leading-relaxed text-muted">
           <p>
-            Orien Wallet is a desktop app: make a wallet with its 24-word recovery phrase, see your balance, send and
+            Orien Wallet is an app for Mac, Windows and Linux, and for iPhone as a public beta: make a wallet with its 24-word recovery phrase, see your balance, send and
             receive ORN, keep an address book, and swap ORN for SOL or Bitcoin with anyone, with no one in the middle. It uses
             the same wallet as orien, so you can use both. It updates itself.
           </p>
@@ -82,6 +83,14 @@ export default function GetStartedPage() {
             >
               <Download className="h-4 w-4" aria-hidden /> Download for Linux
             </a>
+            <a
+              href={IPHONE_BETA}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="pearl-fill flex h-11 items-center gap-2 rounded-xl px-5 text-sm font-bold transition hover:brightness-105"
+            >
+              <Smartphone className="h-4 w-4" aria-hidden /> Get the iPhone beta
+            </a>
             <a href="/wallet/SHA256SUMS" className="text-sm underline decoration-line underline-offset-4 hover:text-ink">
               Download fingerprints (SHA-256)
             </a>
@@ -99,6 +108,10 @@ export default function GetStartedPage() {
             double-click it. Afterwards Orien Wallet is in your app menu. If it does not open, your system needs FUSE:{' '}
             <code className="rounded bg-raised px-1.5 py-0.5 text-ink">sudo apt install libfuse2</code>, or{' '}
             <code className="rounded bg-raised px-1.5 py-0.5 text-ink">libfuse2t64</code> on Ubuntu 24.04 and newer.
+          </p>
+          <p className="text-sm">
+            On iPhone, open the beta link: it shows you how to install Apple&apos;s free TestFlight app, then Orien Wallet
+            from it. TestFlight keeps it up to date.
           </p>
         </div>
       </section>
