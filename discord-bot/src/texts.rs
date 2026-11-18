@@ -29,7 +29,9 @@ Orien (ORN) is a cryptocurrency built for the quantum age. Payments are final in
 
 ## Where to go
 - {#announcements}: new releases and network news
+- {#greetings}: a hello for everyone who joins
 - {#general}: say hi
+- {#x-posts}: our posts on X, as they go out
 - {#mining}: setups and questions about mining
 - {#swaps-and-market}: swap ORN for SOL or Bitcoin, and share Market listings
 - {#help}: stuck? Ask here
@@ -64,7 +66,7 @@ pub fn fit_hello(hello: &str) -> bool {
 
 /// Each channel's about line, shown at the top of the channel. Set once
 /// with `orien-discord topics`, never on its own.
-pub const TOPICS: [(&str, &str); 8] = [
+pub const TOPICS: [(&str, &str); 10] = [
     ("welcome", "Start here: what Orien is, how to begin, and the rules."),
     ("announcements", "New releases and network news from the team."),
     ("general", "Say hi and talk about anything Orien."),
@@ -76,21 +78,16 @@ pub const TOPICS: [(&str, &str); 8] = [
     ("help", "Stuck? Ask here. All help happens in public; never share your recovery phrase."),
     ("validators", "Staking, running a validator, and the orien command line."),
     ("bugs-and-ideas", "Tell us what's broken or what's missing."),
+    ("greetings", "A hello for everyone who joins. Say hi back!"),
+    ("x-posts", "Orien's posts on X, as they go out. Like and repost to help spread the word."),
 ];
 
 /// Each channel's introduction: the first message in it, saying what the
-/// channel is for. #welcome has the welcome message instead, and #general
+/// channel is for. #welcome has the welcome message instead, #announcements
+/// is kept to announcements alone, and #general
 /// and #help need none. Posted by hand with `orien-discord intros`; a
 /// changed text here replaces the message already there.
-pub const INTROS: [(&str, &str); 5] = [
-    (
-        "announcements",
-        "\
-## 📣 Announcements
-New releases and network news land here, each one summed up in plain words, with a link to the full notes.
-
-This channel is read-only. Questions go in {#help}.",
-    ),
+pub const INTROS: [(&str, &str); 6] = [
     (
         "mining",
         "\
@@ -132,6 +129,22 @@ Tell us what's broken, and what's missing.
 - **Found a bug?** Say what you did, what you expected, and what happened instead. Add your Orien Wallet version and whether you are on Mac, Windows, Linux or iPhone. A screenshot helps.
 - **Have an idea?** Describe what you would like to be able to do, and why.
 - **Never post your recovery phrase or password**, even in a bug report. Nobody needs them to fix anything.",
+    ),
+    (
+        "greetings",
+        "\
+## 👋 Greetings
+Everyone who joins gets a hello here from Orien Bot, written just for them.
+
+Say hi back, and make the new people feel at home. Longer chats go in {#general}.",
+    ),
+    (
+        "x-posts",
+        "\
+## 📢 X posts
+Orien's posts on X show up here as they go out, from https://x.com/oriennetwork
+
+If you like one, a like or a repost on X helps more people find Orien.",
     ),
 ];
 
