@@ -46,6 +46,9 @@ struct Options {
     first_target: u64,
     /// When mining moves to RandomX, if it does.
     randomx: Option<orien_ledger::RandomXFrom>,
+    /// From this epoch on, the launch seats are reached by the name
+    /// "localhost" rather than at 127.0.0.1.
+    seat_names_from: Option<u64>,
     limits: Limits,
 }
 
@@ -67,6 +70,7 @@ impl Default for Options {
             cap: 0,
             first_target: u64::MAX,
             randomx: None,
+            seat_names_from: None,
             limits: Limits::default(),
         }
     }
@@ -80,6 +84,66 @@ struct TestNet {
     keys: Vec<ValidatorKey>,
     nodes: Vec<Option<Node>>,
     options: Options,
+    /// Each validator's own listening address, whatever the genesis file
+    /// names.
+    direct: Vec<String>,
+    /// With `seat_names_from`, the genesis addresses are these stand-ins,
+    /// which pass connections on to the validators, so that a test can take
+    /// the old addresses away as if their server had gone.
+    proxies: Vec<Proxy>,
+}
+
+/// Passes every connection it receives on to `to`, until stopped.
+struct Proxy {
+    address: String,
+    stopping: Arc<std::sync::atomic::AtomicBool>,
+    open: Arc<std::sync::Mutex<Vec<std::net::TcpStream>>>,
+}
+
+impl Proxy {
+    fn start(to: String) -> Proxy {
+        use std::sync::atomic::Ordering;
+        let listener = TcpListener::bind("127.0.0.1:0").unwrap();
+        let address = listener.local_addr().unwrap().to_string();
+        let stopping = Arc::new(std::sync::atomic::AtomicBool::new(false));
+        let open = Arc::new(std::sync::Mutex::new(Vec::new()));
+        let (stop, kept) = (stopping.clone(), open.clone());
+        thread::spawn(move || {
+            for incoming in listener.incoming() {
+                if stop.load(Ordering::SeqCst) {
+                    break;
+                }
+                let Ok(incoming) = incoming else { continue };
+                let Ok(outgoing) = std::net::TcpStream::connect(&to) else { continue };
+                let _ = (incoming.set_nodelay(true), outgoing.set_nodelay(true));
+                {
+                    let mut kept = kept.lock().unwrap();
+                    kept.push(incoming.try_clone().unwrap());
+                    kept.push(outgoing.try_clone().unwrap());
+                }
+                let pipe = |mut from: std::net::TcpStream, mut to: std::net::TcpStream| {
+                    thread::spawn(move || {
+                        let _ = std::io::copy(&mut from, &mut to);
+                        let _ = to.shutdown(std::net::Shutdown::Both);
+                        let _ = from.shutdown(std::net::Shutdown::Both);
+                    });
+                };
+                pipe(incoming.try_clone().unwrap(), outgoing.try_clone().unwrap());
+                pipe(outgoing, incoming);
+            }
+        });
+        Proxy { address, stopping, open }
+    }
+
+    /// Takes the address away: nothing answers there any more.
+    fn stop(&self) {
+        self.stopping.store(true, std::sync::atomic::Ordering::SeqCst);
+        // The accept loop notices the flag when a connection arrives.
+        let _ = std::net::TcpStream::connect(&self.address);
+        for stream in self.open.lock().unwrap().drain(..) {
+            let _ = stream.shutdown(std::net::Shutdown::Both);
+        }
+    }
 }
 
 impl TestNet {
@@ -107,18 +171,23 @@ impl TestNet {
         let keys: Vec<ValidatorKey> = (0..options.validators)
             .map(|i| ValidatorKey { seed: [i as u8 + 1; 32], height: options.height })
             .collect();
+        let direct: Vec<String> = listeners.iter().map(|listener| listener.local_addr().unwrap().to_string()).collect();
+        let proxies: Vec<Proxy> = match options.seat_names_from {
+            Some(_) => direct.iter().map(|to| Proxy::start(to.clone())).collect(),
+            None => Vec::new(),
+        };
         let genesis = Genesis {
             network: name.into(),
             validators: keys
                 .iter()
-                .zip(&listeners)
+                .zip(&direct)
                 .enumerate()
-                .map(|(i, (key, listener))| ValidatorInfo {
+                .map(|(i, (key, direct))| ValidatorInfo {
                     name: format!("v{}", i + 1),
                     root: KeyTree::generate(key.seed, key.height).root(),
                     height: key.height,
                     stake: options.seat,
-                    address: listener.local_addr().unwrap().to_string(),
+                    address: proxies.get(i).map_or_else(|| direct.clone(), |proxy| proxy.address.clone()),
                 })
                 .collect(),
             allocations,
@@ -134,9 +203,16 @@ impl TestNet {
             first_target: options.first_target,
             bitcoin: None,
             randomx: options.randomx,
+            seat_addresses: options.seat_names_from.map(|from| orien_ledger::SeatAddresses {
+                from,
+                addresses: listeners
+                    .iter()
+                    .map(|listener| format!("localhost:{}", listener.local_addr().unwrap().port()))
+                    .collect(),
+            }),
         };
         let network = genesis.id();
-        let mut net = TestNet { dir, genesis, network, keys, nodes: Vec::new(), options };
+        let mut net = TestNet { dir, genesis, network, keys, nodes: Vec::new(), options, direct, proxies };
         for (i, listener) in listeners.into_iter().enumerate() {
             let node = Node::start(net.config(i), Some(listener)).unwrap();
             net.nodes.push(Some(node));
@@ -161,7 +237,7 @@ impl TestNet {
     }
 
     fn restart(&mut self, i: usize) {
-        let listener = TcpListener::bind(&self.genesis.validators[i].address).unwrap();
+        let listener = TcpListener::bind(&self.direct[i]).unwrap();
         self.nodes[i] = Some(Node::start(self.config(i), Some(listener)).unwrap());
     }
 
@@ -178,7 +254,7 @@ impl TestNet {
     }
 
     fn ask(&self, validator: usize, request: &Request) -> Response {
-        rpc(&self.genesis.validators[validator].address, request, Duration::from_secs(5)).unwrap()
+        rpc(&self.direct[validator], request, Duration::from_secs(5)).unwrap()
     }
 
     fn view(&self, validator: usize, id: &AccountId) -> AccountView {
@@ -250,9 +326,13 @@ impl TestNet {
     }
 
     fn pay_through(&self, from: &str, to: AccountId, amount: u64) -> Done {
+        self.pay_through_with(&self.client(), from, to, amount)
+    }
+
+    /// Pays as `pay_through` does, through `client`.
+    fn pay_through_with(&self, client: &Client, from: &str, to: AccountId, amount: u64) -> Done {
         let deadline = Instant::now() + Duration::from_secs(30);
         let mut wallet = self.wallet(from);
-        let client = self.client();
         let status = client.account(&wallet.address(), wallet.next_seq());
         let seq = status.seq;
         let signed = wallet.sign_order(seq, to, amount, status.signer.as_ref(), &self.network).unwrap();
@@ -1839,6 +1919,39 @@ fn mining_moves_to_randomx_at_the_epoch_set_and_keeps_paying() {
 }
 
 #[test]
+fn the_launch_seats_move_to_names_and_a_new_wallet_still_finds_them() {
+    // The seats are reached at their genesis addresses (stand-ins here)
+    // until epoch 2, and by name from then on.
+    let from = 2;
+    let options = Options { epoch: 3, seat_names_from: Some(from), ..Options::default() };
+    let net = TestNet::start_with("seat-names", options);
+    let carol = net.address("carol");
+    net.pay_through("alice", carol, 50);
+    net.wait_for_epoch(from);
+    // The validator list the checkpoint names is reached by name.
+    let client = net.client();
+    client.follow();
+    let names: Vec<String> = client.committee().members().iter().map(|m| m.address.clone()).collect();
+    assert!(names.iter().all(|name| name.starts_with("localhost:")), "seats are reached by name: {names:?}");
+    // The old addresses go, as if their server had stopped for good.
+    for proxy in &net.proxies {
+        proxy.stop();
+    }
+    // A brand-new wallet knows only the genesis file, whose addresses no
+    // longer answer, and still finds the network by the seats' names.
+    let fresh = net.client();
+    assert!(fresh.follow() >= from, "a new wallet catches up through the names");
+    assert!(fresh.committee().members().iter().all(|m| m.address.starts_with("localhost:")));
+    // Through it, payments are final and epochs carry on closing.
+    net.pay_through_with(&fresh, "alice", carol, 70);
+    let reached = fresh.epoch();
+    net.wait_for_epoch(reached + 1);
+    net.pay_through_with(&fresh, "bob", carol, 30);
+    net.wait_until_level();
+    assert_eq!(net.view(0, &carol).balance, 150);
+}
+
+#[test]
 fn the_live_networks_identity_is_unchanged() {
     let genesis = orien_net::keys::load_genesis(&std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../web/public/network/genesis.json")).unwrap();
     assert!(genesis.randomx.is_none());
@@ -1851,6 +1964,14 @@ fn the_live_networks_identity_is_unchanged() {
     assert_eq!(work.randomx_target, orien_ledger::work::LIVE_RANDOMX_TARGET);
     assert_eq!(work.target, genesis.first_target, "the live network started on BLAKE3's target");
     assert_eq!(orien_net::node::open_claims_from(&genesis.id()), 23);
+    // The four launch seats are reached by name from the epoch set.
+    assert!(genesis.seat_addresses.is_none());
+    let committee = orien_ledger::Committee::new(&genesis);
+    let from = orien_ledger::work::LIVE_SEAT_NAMES_FROM;
+    assert_eq!(committee.seat_address(0, from - 1), None);
+    assert_eq!(committee.seat_address(0, from), Some("v1.orien.network:7101"));
+    assert_eq!(committee.seat_address(3, from), Some("v4.orien.network:7104"));
+    assert!(committee.seat_names().iter().all(|name| name.len() <= orien_ledger::types::MAX_ADDRESS));
 
     // A network on RandomX from the start starts at RandomX's target.
     let mut fresh = genesis.clone();

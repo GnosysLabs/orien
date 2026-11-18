@@ -321,6 +321,11 @@ pub fn next_validators(committee: &Committee, statements: &[&Statement], end: &S
             continue;
         }
         let mut seat = member.clone();
+        // A seat whose network names a move for it is reached at its new
+        // address from that epoch on.
+        if let Some(address) = member.seat.and_then(|n| committee.seat_address(n, committee.epoch() + 1)) {
+            seat.address = address.to_string();
+        }
         if let Some(key) = replacement(committee, statements, index as u16)
             && !banned.contains(&key.root)
         {
