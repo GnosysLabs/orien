@@ -10,6 +10,8 @@ import { type NamedProfile, addressHref, findNames, label, searchTarget, short }
 export function ExplorerSearch({ initial = '' }: { initial?: string }) {
   const [text, setText] = useState(initial)
   const [found, setFound] = useState<NamedProfile[]>([])
+  // The name last looked up, once its answer is in: to say when nobody has it.
+  const [searched, setSearched] = useState('')
   const [open, setOpen] = useState(false)
   const [message, setMessage] = useState<string | null>(null)
   const box = useRef<HTMLFormElement>(null)
@@ -19,6 +21,7 @@ export function ExplorerSearch({ initial = '' }: { initial?: string }) {
     const query = text.trim()
     if (searchTarget(query) || query.replace(/^@/, '').length < 2) {
       setFound([])
+      setSearched('')
       return
     }
     let live = true
@@ -26,6 +29,7 @@ export function ExplorerSearch({ initial = '' }: { initial?: string }) {
       void findNames(query).then((profiles) => {
         if (!live) return
         setFound(profiles)
+        setSearched(query)
         setOpen(true)
       })
     }, 250)
@@ -45,6 +49,11 @@ export function ExplorerSearch({ initial = '' }: { initial?: string }) {
   }, [])
 
   const wallets = found.flatMap((profile) => profile.wallets.map((wallet) => ({ profile, wallet })))
+  const nobody =
+    !message && wallets.length === 0 && searched !== '' && searched === text.trim()
+      ? `Nobody on the Market is called “${searched.replace(/^@/, '')}”.`
+      : null
+  const note = message ?? nobody
 
   return (
     <form
@@ -83,7 +92,8 @@ export function ExplorerSearch({ initial = '' }: { initial?: string }) {
             setText(event.target.value)
             setMessage(null)
           }}
-          onFocus={() => found.length > 0 && setOpen(true)}
+          onFocus={() => setOpen(true)}
+          onKeyDown={(event) => event.key === 'Escape' && setOpen(false)}
           placeholder="Address, name or checkpoint"
           spellCheck={false}
           autoCapitalize="off"
@@ -97,10 +107,10 @@ export function ExplorerSearch({ initial = '' }: { initial?: string }) {
           <Search className="h-4 w-4" aria-hidden /> Search
         </button>
       </div>
-      {open && (wallets.length > 0 || message) && (
+      {open && (wallets.length > 0 || note) && (
         <div className="absolute inset-x-0 top-full z-10 mt-2 overflow-hidden rounded-xl border border-line bg-surface shadow-2xl shadow-black/40">
-          {message ? (
-            <p className="px-4 py-3 text-sm text-muted">{message}</p>
+          {note ? (
+            <p className="px-4 py-3 text-sm text-muted">{note}</p>
           ) : (
             <ul className="max-h-80 divide-y divide-line overflow-y-auto">
               {wallets.map(({ profile, wallet }) => (
