@@ -1,6 +1,6 @@
 "use client";
 
-import { DISCORD, X_ACCOUNT } from "@/lib/brand";
+import { DISCORD, IPHONE_BETA, X_ACCOUNT } from "@/lib/brand";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
@@ -12,6 +12,7 @@ import {
   Download,
   Mail,
   Monitor,
+  Smartphone,
   Store,
   Terminal,
   type LucideIcon,
@@ -104,6 +105,12 @@ const DOWNLOADS: {
     icon: Monitor,
   },
   {
+    href: IPHONE_BETA,
+    label: "Orien Wallet for iPhone",
+    detail: "Public beta, through TestFlight",
+    icon: Smartphone,
+  },
+  {
     href: "/try/",
     label: "orien command line",
     detail: "Mac, Linux and Windows",
@@ -167,6 +174,9 @@ function DownloadsMenu() {
               <a
                 key={item.href}
                 href={item.href}
+                {...(item.href.startsWith("https://")
+                  ? { target: "_blank", rel: "noopener noreferrer" }
+                  : {})}
                 role="menuitem"
                 onClick={(event) => {
                   setOpen(false);
