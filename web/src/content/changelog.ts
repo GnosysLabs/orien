@@ -28,6 +28,16 @@ export const CHANGELOG: Entry[] = [
   {
     date: '2026-11-18',
     products: ['wallet'],
+    version: '1.8.17',
+    title: 'Clearer swap offers',
+    changes: [
+      'When you offer ORN for SOL or Bitcoin, the amount box says the smallest swap, and turns red as soon as the amount can’t reach it.',
+      'Post the offer stays greyed out until every box is filled in properly.',
+    ],
+  },
+  {
+    date: '2026-11-18',
+    products: ['wallet'],
     version: '1.8.16',
     title: 'A QR code with the Orien sun, and scanning to send',
     changes: [
