@@ -2,12 +2,23 @@
 
 import { useEffect, useState } from 'react'
 import { Check, ChevronLeft, ChevronRight, Minus } from 'lucide-react'
-import { type CheckpointInfo, addressHref, checkpointHref, explore, opened, orn, short, when } from '@/lib/explorer'
-import { CheckpointRewards } from './CheckpointRewards'
-import { Card, Loading, Problem, Stat } from './Parts'
+import { type CheckpointInfo, addressHref, ago, checkpointHref, explore, opened, orn, short, when } from '@/lib/explorer'
+import { CheckpointRewards, change } from './CheckpointRewards'
+import { Card, Loading, Problem } from './Parts'
 
 const step =
   'flex h-10 items-center gap-1.5 rounded-xl border border-line bg-bg px-4 text-sm font-semibold text-ink transition hover:border-pearl'
+
+/** One figure in the summary: a label, the figure, and a few words on it. */
+function Fact({ label, value, note, wide }: { label: string; value: React.ReactNode; note?: React.ReactNode; wide?: boolean }) {
+  return (
+    <div className={`bg-surface px-5 py-5 sm:px-6 ${wide ? 'col-span-2 lg:col-span-1' : ''}`}>
+      <p className="text-xs font-semibold uppercase tracking-[0.14em] text-muted">{label}</p>
+      <p className="num mt-2 text-xl font-bold tracking-tight text-ink">{value}</p>
+      {note && <p className="mt-1 text-sm text-muted">{note}</p>}
+    </div>
+  )
+}
 
 function Hash({ label, value }: { label: string; value: string }) {
   return (
@@ -45,13 +56,13 @@ export function CheckpointView() {
   }, [epoch, text])
 
   const checkpoint = info?.checkpoint
+  const rewards = info?.rewards
 
   return (
     <div className="space-y-10">
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
           <h1 className="text-3xl font-bold tracking-tight text-ink">Checkpoint {epoch ?? ''}</h1>
-          {checkpoint && <p className="mt-2 text-muted">Made {when(checkpoint.time)}</p>}
         </div>
         {epoch !== null && (
           <div className="flex gap-2">
@@ -74,14 +85,29 @@ export function CheckpointView() {
 
       {info && checkpoint && (
         <>
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-            <Stat label="Payments" value={checkpoint.payments.toLocaleString('en')} note="Made final during its hour" />
-            <Stat label="New ORN" value={orn(checkpoint.released, 2)} note="Released to miners with it" />
-            <Stat
+          <div className="grid grid-cols-2 gap-px overflow-hidden rounded-2xl border border-line bg-line lg:grid-cols-5">
+            <Fact
+              wide
+              label="New ORN"
+              value={`${orn(checkpoint.released, 2)} ORN`}
+              note={
+                rewards?.known
+                  ? `To ${rewards.miners.length.toLocaleString('en')} ${rewards.miners.length === 1 ? 'miner' : 'miners'}`
+                  : 'Released to miners'
+              }
+            />
+            <Fact label="Payments" value={checkpoint.payments.toLocaleString('en')} note="Made final" />
+            <Fact
+              label="Mining"
+              value={rewards?.math ? (rewards.math === 'Blake3' ? 'BLAKE3' : rewards.math) : '—'}
+              note={rewards?.harder != null ? `Next hour ${change(rewards.harder).toLowerCase()}` : 'Next hour: new math'}
+            />
+            <Fact
               label="Agreed by"
               value={`${checkpoint.agreed.length} of ${checkpoint.of}`}
-              note="Validators holding this same checkpoint. It is final once validators with more than two thirds of the say have signed it."
+              note="Validators"
             />
+            <Fact label="Made" value={ago(checkpoint.time)} note={when(checkpoint.time)} />
           </div>
 
           {info.rewards && <CheckpointRewards rewards={info.rewards} epoch={checkpoint.epoch} />}
@@ -118,6 +144,9 @@ export function CheckpointView() {
                   </li>
                 ))}
               </ul>
+              <p className="border-t border-line px-5 py-4 text-sm leading-relaxed text-muted sm:px-6">
+                A checkpoint is final once validators with more than two thirds of the say have signed it.
+              </p>
             </Card>
           )}
 

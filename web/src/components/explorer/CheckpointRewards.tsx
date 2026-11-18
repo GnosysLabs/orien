@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react'
 import { Wallet } from 'lucide-react'
 import { Avatar } from '@/components/market/Avatar'
 import { type Rewards, type WalletProfile, addressHref, label, namesFor, orn, short } from '@/lib/explorer'
-import { Card, Stat } from './Parts'
+import { Card } from './Parts'
 
 /** "12.34%", or "<0.01%". */
 function percent(part: number): string {
@@ -13,8 +13,12 @@ function percent(part: number): string {
   return `${value.toFixed(2)}%`
 }
 
-/** "80% harder", "12% easier" or "About the same". */
-function change(harder: number): string {
+/** "80% harder", "4× harder", "12% easier" or "About the same". */
+export function change(harder: number): string {
+  // Twice as hard or more reads better as "4× harder"; likewise easier.
+  const ratio = 1 + harder
+  if (ratio >= 2) return `${Number(ratio.toFixed(1))}× harder`
+  if (ratio > 0 && ratio <= 0.5) return `${Number((1 / ratio).toFixed(1))}× easier`
   const value = Math.round(Math.abs(harder) * 100)
   if (value === 0) return 'About the same'
   return `${value}% ${harder > 0 ? 'harder' : 'easier'}`
@@ -71,23 +75,6 @@ export function CheckpointRewards({ rewards, epoch }: { rewards: Rewards; epoch:
 
   return (
     <>
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-        <Stat
-          label="Miners paid"
-          value={rewards.known ? miners.length.toLocaleString('en') : '—'}
-          note={rewards.math ? `Mined with ${rewards.math === 'Blake3' ? 'BLAKE3' : rewards.math}` : undefined}
-        />
-        <Stat
-          label="The next hour"
-          value={rewards.harder === null ? '—' : change(rewards.harder)}
-          note={
-            rewards.harder === null
-              ? 'Mining switched to new math, with a difficulty set for it.'
-              : 'More mining than the network aims for makes the next hour harder; less makes it easier.'
-          }
-        />
-      </div>
-
       <Card
         title="Mining rewards"
         aside={
@@ -137,7 +124,8 @@ export function CheckpointRewards({ rewards, epoch }: { rewards: Rewards; epoch:
             </ol>
             <p className="border-t border-line px-5 py-4 text-sm leading-relaxed text-muted sm:px-6">
               At each checkpoint the hour’s new ORN are split between wallets by how much mining work each did. Part is
-              each wallet’s share of what was paid.
+              each wallet’s share of what was paid. When there’s more mining than the network aims for, the next hour
+              gets harder; with less, easier.
             </p>
           </>
         )}
