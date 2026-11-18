@@ -2,7 +2,7 @@
 //! in #welcome and removing recovery phrases.
 //!
 //! It finds its channels and roles by name: #welcome, #help, #mining, and
-//! the roles Member, Miner and Validator. It never reads or sends private
+//! the roles Member, Miner and Verified Holder. Validator is the founder's to give. It never reads or sends private
 //! messages: it does not ask Discord for them at all.
 
 use std::collections::{HashMap, VecDeque};
@@ -38,7 +38,6 @@ fn welcome_buttons() -> Vec<CreateActionRow> {
         CreateActionRow::Buttons(vec![CreateButton::new(ACCEPT).label("I accept the rules").style(ButtonStyle::Success)]),
         CreateActionRow::Buttons(vec![
             CreateButton::new(MINER).label("Miner").emoji('⛏').style(ButtonStyle::Secondary),
-            CreateButton::new(VALIDATOR).label("Validator").emoji('🛡').style(ButtonStyle::Secondary),
         ]),
         CreateActionRow::Buttons(vec![CreateButton::new(VERIFY).label("Verify my ORN").emoji('✅').style(ButtonStyle::Primary)]),
     ]
@@ -349,8 +348,10 @@ impl Handler {
                     Err(error) => cannot(&error, "Member"),
                 },
             },
-            id @ (MINER | VALIDATOR) => {
-                let (name, role) = if id == MINER { ("Miner", places.miner) } else { ("Validator", places.validator) };
+            // The button is gone; this answers a press on an old copy of the message.
+            VALIDATOR => "The **Validator** role is given by the founder now, to people who run a validator.".to_string(),
+            MINER => {
+                let (name, role) = ("Miner", places.miner);
                 match role {
                     None => format!("The {name} role is missing from the server. Please tell the founder."),
                     Some(_) if !has(places.member) => "Press **I accept the rules** first.".to_string(),
