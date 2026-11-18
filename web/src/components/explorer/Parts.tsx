@@ -1,9 +1,75 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
-import { Search } from 'lucide-react'
+import { Blocks, Search } from 'lucide-react'
 import { Avatar } from '@/components/market/Avatar'
-import { type NamedProfile, addressHref, findNames, label, searchTarget, short } from '@/lib/explorer'
+import {
+  type CheckpointInfo,
+  type NamedProfile,
+  type Overview,
+  addressHref,
+  checkpointHref,
+  explore,
+  findNames,
+  label,
+  searchTarget,
+  short,
+  when,
+} from '@/lib/explorer'
+
+/** Most checkpoints offered at once. */
+const SUGGESTED = 5
+
+/** Checkpoints already looked up for the list, by number: they never change. */
+const known = new Map<number, CheckpointInfo['checkpoint']>()
+
+/** The network's current hour, asked again at most once a minute. */
+let now: { at: number; overview: Overview } | null = null
+async function current(): Promise<Overview | null> {
+  if (now && Date.now() - now.at < 60_000) return now.overview
+  try {
+    now = { at: Date.now(), overview: await explore<Overview>('/overview') }
+    return now.overview
+  } catch {
+    return now?.overview ?? null
+  }
+}
+
+type Suggestion =
+  | { kind: 'made'; epoch: number; checkpoint?: CheckpointInfo['checkpoint'] }
+  | { kind: 'making'; epoch: number; ready: number }
+
+/** The checkpoints whose number starts with `digits`: that very one first,
+ * then the newest. Each made one comes with its details. */
+async function checkpointsFor(digits: string): Promise<{ list: Suggestion[]; note: string | null }> {
+  const overview = await current()
+  if (!overview) return { list: [], note: null }
+  const making = overview.epoch
+  const latest = making - 1
+  const typed = Number(digits)
+  if (typed > making) {
+    return { list: [], note: `Checkpoint ${typed} hasn’t been made yet. The latest is ${latest}.` }
+  }
+  const numbers: number[] = []
+  if (typed <= latest) numbers.push(typed)
+  for (let n = latest; n >= 0 && numbers.length < SUGGESTED; n--) {
+    if (n !== typed && String(n).startsWith(digits)) numbers.push(n)
+  }
+  await Promise.all(
+    numbers
+      .filter((n) => !known.has(n))
+      .map((n) =>
+        explore<CheckpointInfo>(`/checkpoints/${n}`)
+          .then((found) => known.set(n, found.checkpoint))
+          .catch(() => undefined),
+      ),
+  )
+  const list: Suggestion[] = numbers.map((epoch) => ({ kind: 'made', epoch, checkpoint: known.get(epoch) }))
+  if (typed === making) list.unshift({ kind: 'making', epoch: making, ready: overview.epoch_started + overview.epoch_seconds })
+  return { list, note: null }
+}
+
+const plural = (n: number, one: string) => `${n.toLocaleString('en')} ${one}${n === 1 ? '' : 's'}`
 
 /** The explorer's search: an address, a checkpoint number, or the name of
  * someone on the Market, whose wallets it offers as you type. */
@@ -14,7 +80,29 @@ export function ExplorerSearch({ initial = '' }: { initial?: string }) {
   const [searched, setSearched] = useState('')
   const [open, setOpen] = useState(false)
   const [message, setMessage] = useState<string | null>(null)
+  const [checkpoints, setCheckpoints] = useState<{ digits: string; list: Suggestion[]; note: string | null } | null>(null)
   const box = useRef<HTMLFormElement>(null)
+
+  // Checkpoints, as soon as a number is typed.
+  useEffect(() => {
+    const digits = text.trim()
+    if (!/^\d{1,12}$/.test(digits)) {
+      setCheckpoints(null)
+      return
+    }
+    let live = true
+    const timer = setTimeout(() => {
+      void checkpointsFor(digits).then((found) => {
+        if (!live) return
+        setCheckpoints({ digits, ...found })
+        setOpen(true)
+      })
+    }, 150)
+    return () => {
+      live = false
+      clearTimeout(timer)
+    }
+  }, [text])
 
   // Names, a moment after typing stops.
   useEffect(() => {
@@ -53,7 +141,8 @@ export function ExplorerSearch({ initial = '' }: { initial?: string }) {
     !message && wallets.length === 0 && searched !== '' && searched === text.trim()
       ? `Nobody on the Market is called “${searched.replace(/^@/, '')}”.`
       : null
-  const note = message ?? nobody
+  const offered = checkpoints && checkpoints.digits === text.trim() ? checkpoints : null
+  const note = message ?? offered?.note ?? nobody
 
   return (
     <form
@@ -107,12 +196,34 @@ export function ExplorerSearch({ initial = '' }: { initial?: string }) {
           <Search className="h-4 w-4" aria-hidden /> Search
         </button>
       </div>
-      {open && (wallets.length > 0 || note) && (
+      {open && (wallets.length > 0 || (offered?.list.length ?? 0) > 0 || note) && (
         <div className="absolute inset-x-0 top-full z-10 mt-2 overflow-hidden rounded-xl border border-line bg-surface shadow-2xl shadow-black/40">
           {note ? (
             <p className="px-4 py-3 text-sm text-muted">{note}</p>
           ) : (
             <ul className="max-h-80 divide-y divide-line overflow-y-auto">
+              {offered?.list.map((suggestion) => (
+                <li key={`${suggestion.kind}-${suggestion.epoch}`}>
+                  <a
+                    href={checkpointHref(suggestion.epoch)}
+                    className="flex items-center gap-3 px-4 py-3 transition hover:bg-raised"
+                  >
+                    <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-line bg-raised" aria-hidden>
+                      <Blocks className="h-3.5 w-3.5 text-pearl" />
+                    </span>
+                    <span className="min-w-0 flex-1">
+                      <span className="block truncate font-semibold text-ink">Checkpoint {suggestion.epoch}</span>
+                      <span className="block truncate text-sm text-muted">
+                        {suggestion.kind === 'making'
+                          ? `Being made now, ready in about ${Math.max(1, Math.round((suggestion.ready - Date.now() / 1000) / 60))} min`
+                          : suggestion.checkpoint
+                            ? `${when(suggestion.checkpoint.time)} · ${plural(suggestion.checkpoint.payments, 'payment')} · agreed by ${suggestion.checkpoint.agreed.length} of ${suggestion.checkpoint.of}`
+                            : 'Made'}
+                      </span>
+                    </span>
+                  </a>
+                </li>
+              ))}
               {wallets.map(({ profile, wallet }) => (
                 <li key={wallet.address}>
                   <a
