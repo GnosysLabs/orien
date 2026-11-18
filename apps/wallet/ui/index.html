@@ -4695,7 +4695,7 @@
     postHint();
     show("board-post");
     showSmallest();
-    gateSwap("bp-go", "bp-problem");
+    gateSwap("bp-go", "bp-problem").then(postReady);
   };
   // SOL first; Bitcoin for those who'd rather. Until SOL swaps are open
   // in this copy of the app (live on Solana), only Bitcoin shows.
@@ -4719,6 +4719,7 @@
   function setPostCoin(coin) {
     postCoin = coin;
     $("bp-payout-note").hidden = true;
+    payoutBad = false;
     const sol = coin === "sol";
     $("bp-lede").textContent = `Offer your ORN for ${sol ? "SOL" : "Bitcoin"}. When someone takes it, this app locks the ORN for them and runs the swap, as long as it's open.`;
     $("bp-tab-sol").classList.toggle("on", sol);
@@ -4755,6 +4756,7 @@
     const small = tooSmall();
     $("bp-btc").parentElement.classList.toggle("too-small", small);
     $("bp-hint").classList.toggle("warn", small);
+    postReady();
     if (small) { $("bp-hint").textContent = `The smallest swap is ${smallest()} ${unit}`; return; }
     const orn = parseFloat($("bp-orn").value), btc = parseFloat($("bp-btc").value);
     const usd = postCoin === "sol" ? board.solUsd : board.usd;
@@ -4765,12 +4767,31 @@
     $("bp-hint").textContent = `${price.total.replace(" ≈ ", "≈ ")}${price.total ? " · " : ""}${price.rate}`;
   }
   $("bp-orn").oninput = $("bp-btc").oninput = postHint;
+  // Post stays greyed out until every box holds something that can go:
+  // ORN, an amount at least the smallest swap, a payout address that looks
+  // right (and, for SOL, isn't a program's), and the password if asked.
+  let payoutBad = false;
+  const payoutOk = () => {
+    const a = $("bp-payout").value.trim();
+    if (postCoin === "sol") return !payoutBad && /^[1-9A-HJ-NP-Za-km-z]{32,44}$/.test(a);
+    return /^((bc|tb|bcrt)1[02-9ac-hj-np-z]{8,87}|[123mn][1-9A-HJ-NP-Za-km-z]{25,34})$/i.test(a);
+  };
+  function postReady() {
+    if (swapGate["bp-go"]) { $("bp-go").disabled = false; return; }
+    const orn = parseFloat($("bp-orn").value), amount = parseFloat($("bp-btc").value);
+    const ready = orn > 0 && amount >= parseFloat(smallest()) && payoutOk()
+      && ($("bp-pw-field").hidden || $("bp-pw").value.length > 0);
+    $("bp-go").disabled = !ready;
+  }
+  $("bp-pw").addEventListener("input", postReady);
   // A SOL payout is checked as it's typed: a program's address can never
   // be paid, so it's caught before posting.
   let payoutTimer = 0;
   $("bp-payout").oninput = () => {
     clearTimeout(payoutTimer);
     $("bp-payout-note").hidden = true;
+    payoutBad = false;
+    postReady();
     const typed = $("bp-payout").value.trim();
     if (postCoin !== "sol" || typed.length < 32) return;
     payoutTimer = setTimeout(async () => {
@@ -4778,12 +4799,13 @@
       if ($("bp-payout").value.trim() !== typed || postCoin !== "sol") return;
       $("bp-payout-note").textContent = problem || "";
       $("bp-payout-note").hidden = !problem;
+      payoutBad = !!problem;
+      postReady();
     }, 500);
   };
   $("bp-go").onclick = async () => {
     if (swapGate["bp-go"]) return installForSwap("bp-go");
-    if (await gateSwap("bp-go", "bp-problem")) return;
-    if (tooSmall()) { postHint(); feel("error"); $("bp-btc").focus(); return; }
+    if (await gateSwap("bp-go", "bp-problem")) { postReady(); return; }
     $("bp-go").disabled = true;
     try {
       if (view && view.biometric) await invoke("biometric_unlock");
@@ -4805,7 +4827,7 @@
       else if (text === "password: wrong") { $("bp-pw").select(); problem("bp-problem", "That is not this wallet's password."); }
       else problem("bp-problem", e);
     }
-    finally { $("bp-go").disabled = false; }
+    finally { postReady(); }
   };
 
   $("sp-done").onclick = () => show("swaps");
