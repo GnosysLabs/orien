@@ -38,7 +38,7 @@ Orien (ORN) is a cryptocurrency built for the quantum age. Payments are final in
 
 Press **I accept the rules** to open the rest of the server. Then, if you like, show what you do: **Miner** or **Validator**. Press one again to take it off. Hold ORN? Press **Verify my ORN** to become a **Verified Holder**.";
 
-/// The hello posted in #general when someone accepts the rules, used when
+/// The hello posted in #greetings when someone accepts the rules, used when
 /// the model's own hello for that person is missing or unfit. `{user}`
 /// becomes a mention of the new member.
 pub const HELLO: &str = "👋 Welcome to Orien, {user}! Say hi, everyone.";

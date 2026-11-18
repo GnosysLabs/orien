@@ -162,7 +162,8 @@ impl Handler {
             seen: Instant::now(),
             welcome: channel("welcome"),
             help: channel("help"),
-            general: channel("general"),
+            // New members are greeted in #greetings; in #general if the server has none.
+            general: channel("greetings").or_else(|| channel("general")),
             answers: ["help", "mining"].into_iter().filter_map(channel).collect(),
             names: text.iter().map(|c| (c.id, plain(&c.name))).collect(),
             member: role("Member"),
@@ -291,7 +292,7 @@ impl Handler {
         }
     }
 
-    /// Greets someone who has just accepted the rules, in #general, with a
+    /// Greets someone who has just accepted the rules, in #greetings, with a
     /// hello written for them. The lines after it are always the same.
     async fn greet(&self, ctx: &Context, places: &Places, who: UserId, name: &str) {
         let Some(general) = places.general else { return };
@@ -313,8 +314,8 @@ impl Handler {
             .allowed_mentions(CreateAllowedMentions::new().users([who]))
             .flags(MessageFlags::SUPPRESS_EMBEDS);
         match general.send_message(&ctx.http, message).await {
-            Ok(_) => eprintln!("greeted a new member in #general"),
-            Err(error) => eprintln!("could not greet a new member in #general: {error}"),
+            Ok(_) => eprintln!("greeted a new member"),
+            Err(error) => eprintln!("could not greet a new member: {error}"),
         }
     }
 
