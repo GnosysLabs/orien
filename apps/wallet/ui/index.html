@@ -1163,7 +1163,7 @@
     width: 36px; height: 36px; margin: 0 auto 12px; border-radius: 50%;
     display: grid; place-items: center; color: var(--pearl-ink);
   }
-  .receive-qr { width: 144px; height: 144px; margin: 0 auto 16px; padding: 7px; border-radius: 14px; background: #fff; }
+  .receive-qr { width: 196px; height: 196px; margin: 0 auto 18px; padding: 4px; border-radius: 16px; background: #fff; }
   .receive-actions { display: grid; gap: 10px; margin-top: 16px; }
   .receive-actions.two { grid-template-columns: 1fr 1fr; }
   #receive .receive-card { padding: 20px 20px 16px; }
@@ -3380,10 +3380,11 @@
     if ($("receive-qr").dataset.for !== view.address) {
       const address = view.address;
       $("receive-qr").dataset.for = address;
-      invoke("qr_code", { text: address }).then((svg) => {
+      invoke("address_qr", { text: address }).then((svg) => {
         if (!svg || $("receive-qr").dataset.for !== address) return;
         $("receive-qr").innerHTML = svg;
         $("receive-qr").hidden = false;
+        if (navigator.share) prepareSharePicture(address);
       }).catch(() => {});
     }
     $("address-block").innerHTML = view.address.match(phone ? /.{16}/g : /.{32}/g).map((g) => `<span>${g.match(/.{4}/g).join(" ")}</span>`).join("");
@@ -3628,8 +3629,45 @@
     $("copy").className = "secondary";
     $("receive-actions").classList.add("two");
   }
+  // The QR goes along as a picture, with the address under it, wherever
+  // the system can share pictures; otherwise just the address.
+  async function addressPicture(address) {
+    const svg = await invoke("address_qr", { text: address });
+    if (!svg) return null;
+    const img = new Image();
+    img.src = "data:image/svg+xml;charset=utf-8," + encodeURIComponent(svg);
+    await img.decode();
+    const w = 1080, qr = 900, pad = 90;
+    const canvas = document.createElement("canvas");
+    canvas.width = w; canvas.height = pad + qr + 230;
+    const g = canvas.getContext("2d");
+    g.fillStyle = "#fff"; g.fillRect(0, 0, canvas.width, canvas.height);
+    g.imageSmoothingEnabled = false;
+    g.drawImage(img, (w - qr) / 2, pad, qr, qr);
+    g.fillStyle = "#16131f"; g.textAlign = "center";
+    g.font = '600 34px -apple-system, "Segoe UI", sans-serif';
+    g.fillText("My Orien (ORN) address", w / 2, pad + qr + 70);
+    g.font = '30px ui-monospace, "SF Mono", Menlo, Consolas, monospace';
+    g.fillText(address.slice(0, 32), w / 2, pad + qr + 130);
+    g.fillText(address.slice(32), w / 2, pad + qr + 175);
+    const blob = await new Promise((done) => canvas.toBlob(done, "image/png"));
+    return blob && new File([blob], "Orien address.png", { type: "image/png" });
+  }
+  // Made when Receive opens: Share has to open straight from the tap.
+  let sharePicture = { address: "", file: null };
+  function prepareSharePicture(address) {
+    if (sharePicture.address === address) return;
+    sharePicture = { address, file: null };
+    addressPicture(address).then((file) => { if (sharePicture.address === address) sharePicture.file = file; }).catch(() => {});
+  }
   $("share").onclick = async () => {
-    try { await navigator.share({ text: view.address }); feel("success"); } catch {}
+    const address = view.address;
+    const file = sharePicture.address === address ? sharePicture.file : null;
+    const withPicture = file && navigator.canShare && navigator.canShare({ files: [file], text: address });
+    try {
+      await navigator.share(withPicture ? { files: [file], text: address } : { text: address });
+      feel("success");
+    } catch {}
   };
   $("copy").onclick = async () => {
     await navigator.clipboard.writeText(view.address);

@@ -1979,6 +1979,42 @@ fn qr_code(text: String) -> Option<String> {
     swaps::qr(&text)
 }
 
+/// Your address as a QR code with Orien's sun in the middle. It uses the
+/// strongest error correction, so the code still reads with its centre
+/// covered by the sun.
+#[tauri::command]
+fn address_qr(text: String) -> Option<String> {
+    use qrcode::{Color, EcLevel, QrCode};
+    let code = QrCode::with_error_correction_level(text.as_bytes(), EcLevel::H).ok()?;
+    let width = code.width();
+    let colors = code.to_colors();
+    let quiet = 3;
+    let size = width + quiet * 2;
+    // A round clearing in the middle for the sun: a white disc drawn over
+    // the code, cutting the squares under its edge into a clean circle.
+    // About a quarter of the code across; the strongest error correction
+    // reads the code without what it covers.
+    let middle = width as f64 / 2.0;
+    let radius = width as f64 * 0.15;
+    let mut path = String::new();
+    for y in 0..width {
+        for x in 0..width {
+            if colors[y * width + x] == Color::Dark {
+                path.push_str(&format!("M{} {}h1v1h-1z", x + quiet, y + quiet));
+            }
+        }
+    }
+    // The sun, drawn in a 400-wide box (the favicon's), scaled to fit well
+    // inside the circle.
+    let centre = middle + quiet as f64;
+    let sun = radius * 2.0 * 0.62;
+    let box_at = centre - sun / 2.0;
+    let scale = sun / 400.0;
+    Some(format!(
+        r##"<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {size} {size}" shape-rendering="crispEdges"><defs><linearGradient id="orien-sun" x1="76" y1="74" x2="436" y2="442" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#d9468f"/><stop offset="0.25" stop-color="#4f6bf0"/><stop offset="0.48" stop-color="#8b4ff0"/><stop offset="0.72" stop-color="#13a37e"/><stop offset="1" stop-color="#d99a14"/></linearGradient></defs><rect width="{size}" height="{size}" fill="#fff"/><path d="{path}" fill="#16131f"/><circle cx="{centre}" cy="{centre}" r="{radius}" fill="#fff" shape-rendering="geometricPrecision"/><g transform="translate({box_at} {box_at}) scale({scale}) translate(-56 -58)" fill="url(#orien-sun)" shape-rendering="geometricPrecision"><rect x="239" y="74" width="36" height="66" rx="18"/><rect x="239" y="74" width="36" height="66" rx="18" transform="rotate(-44 256 298)"/><rect x="239" y="74" width="36" height="66" rx="18" transform="rotate(44 256 298)"/><path d="M138 298 A118 118 0 0 1 374 298 Z"/><rect x="76" y="338" width="360" height="40" rx="20"/><rect x="156" y="406" width="200" height="36" rx="18"/></g></svg>"##
+    ))
+}
+
 /// Opens Orien's website in the phone's or computer's browser. Only this
 /// one address, so the page can't be made to open anything else.
 #[tauri::command]
@@ -2211,7 +2247,7 @@ pub fn run() {
             }
             Ok(())
         })
-        .invoke_handler(tauri::generate_handler![has_wallet, create_wallet, save_phrase, restore_wallet, set_password, choose_wallet, overview_now, send_payment, activity, quote, contacts, save_contact, delete_contact, contacts_sync, biometric_unlock, biometric_enable, update::check_update, update::install_update, mine_start, mine_stop, mine_set, mine_status, wallets, wallet_balances, use_wallet, rename_wallet, add_wallet, forget_wallet, swap_list, swap_sell, swap_buy, swap_accept, swap_step, swap_smallest, board_offers, board_me, board_email_start, board_email_finish, board_sign_out, board_post, board_take, board_withdraw, board_link, notifications_ask, push_sync, board_wallets_sync, board_post_sol, board_take_sol, sol_open, sol_payout_check, open_site, qr_code, wallet_profiles, board_profile_save, board_picture_pick, board_verify, board_wallet_states, market_image, board_banner_remove, market_search, market_listings, market_listing, market_profile, market_call, market_pick_pictures, market_listing_picture, dock_badge, mac_notify, board_delete_account, wallet_icons, set_wallet_icon, vault_ready, vault_unlock, open_contact, pair_offer, pair_offer_wait, pair_offer_send, pair_join, pair_join_wait, pair_invite, pair_invite_wait, pair_accept, pair_wallets, pair_accept_send, pair_cancel, wallet_phrase, phrase_check, app_theme, set_app_theme, set_backdrop, app_prefs, set_app_pref, app_unlock, computer_settings, set_computer_setting, notifications_muted, set_notification, open_legal, board_paid_wallet, board_wallet_remove])
+        .invoke_handler(tauri::generate_handler![has_wallet, create_wallet, save_phrase, restore_wallet, set_password, choose_wallet, overview_now, send_payment, activity, quote, contacts, save_contact, delete_contact, contacts_sync, biometric_unlock, biometric_enable, update::check_update, update::install_update, mine_start, mine_stop, mine_set, mine_status, wallets, wallet_balances, use_wallet, rename_wallet, add_wallet, forget_wallet, swap_list, swap_sell, swap_buy, swap_accept, swap_step, swap_smallest, board_offers, board_me, board_email_start, board_email_finish, board_sign_out, board_post, board_take, board_withdraw, board_link, notifications_ask, push_sync, board_wallets_sync, board_post_sol, board_take_sol, sol_open, sol_payout_check, open_site, qr_code, address_qr, wallet_profiles, board_profile_save, board_picture_pick, board_verify, board_wallet_states, market_image, board_banner_remove, market_search, market_listings, market_listing, market_profile, market_call, market_pick_pictures, market_listing_picture, dock_badge, mac_notify, board_delete_account, wallet_icons, set_wallet_icon, vault_ready, vault_unlock, open_contact, pair_offer, pair_offer_wait, pair_offer_send, pair_join, pair_join_wait, pair_invite, pair_invite_wait, pair_accept, pair_wallets, pair_accept_send, pair_cancel, wallet_phrase, phrase_check, app_theme, set_app_theme, set_backdrop, app_prefs, set_app_pref, app_unlock, computer_settings, set_computer_setting, notifications_muted, set_notification, open_legal, board_paid_wallet, board_wallet_remove])
         .build(tauri::generate_context!())
         .expect("the wallet window could not start")
         .run(|_app, _event| {
