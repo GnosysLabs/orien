@@ -1,21 +1,79 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Search } from 'lucide-react'
-import { searchTarget } from '@/lib/explorer'
+import { Avatar } from '@/components/market/Avatar'
+import { type NamedProfile, addressHref, findNames, searchTarget, short } from '@/lib/explorer'
 
-/** The explorer's search: an address or a checkpoint number. */
+/** The explorer's search: an address, a checkpoint number, or the name of
+ * someone on the Market, whose wallets it offers as you type. */
 export function ExplorerSearch({ initial = '' }: { initial?: string }) {
   const [text, setText] = useState(initial)
-  const [wrong, setWrong] = useState(false)
+  const [found, setFound] = useState<NamedProfile[]>([])
+  const [open, setOpen] = useState(false)
+  const [message, setMessage] = useState<string | null>(null)
+  const box = useRef<HTMLFormElement>(null)
+
+  // Names, a moment after typing stops.
+  useEffect(() => {
+    const query = text.trim()
+    if (searchTarget(query) || query.replace(/^@/, '').length < 2) {
+      setFound([])
+      return
+    }
+    let live = true
+    const timer = setTimeout(() => {
+      void findNames(query).then((profiles) => {
+        if (!live) return
+        setFound(profiles)
+        setOpen(true)
+      })
+    }, 250)
+    return () => {
+      live = false
+      clearTimeout(timer)
+    }
+  }, [text])
+
+  // Closes the list on a click elsewhere.
+  useEffect(() => {
+    const close = (event: MouseEvent) => {
+      if (!box.current?.contains(event.target as Node)) setOpen(false)
+    }
+    document.addEventListener('mousedown', close)
+    return () => document.removeEventListener('mousedown', close)
+  }, [])
+
+  const wallets = found.flatMap((profile) => profile.wallets.map((wallet) => ({ profile, wallet })))
+
   return (
     <form
+      ref={box}
       className="relative"
-      onSubmit={(event) => {
+      onSubmit={async (event) => {
         event.preventDefault()
-        const target = searchTarget(text)
-        setWrong(!target)
-        if (target) window.location.href = target
+        const query = text.trim()
+        const target = searchTarget(query)
+        if (target) {
+          window.location.href = target
+          return
+        }
+        const profiles = query.replace(/^@/, '').length >= 2 ? await findNames(query) : []
+        const all = profiles.flatMap((profile) => profile.wallets)
+        const exact = profiles.filter((p) => p.name.toLowerCase() === query.replace(/^@/, '').toLowerCase())
+        // One wallet to go to: the only one found, or the only one of the exact name.
+        const only = all.length === 1 ? all[0] : exact.length === 1 && exact[0].wallets.length === 1 ? exact[0].wallets[0] : null
+        if (only) {
+          window.location.href = addressHref(only.address)
+          return
+        }
+        setFound(profiles)
+        setOpen(true)
+        setMessage(
+          profiles.length === 0
+            ? 'Nothing found. Search an address (64 letters and digits, 0-9 and a-f), a checkpoint number, or the name of someone on the Market.'
+            : null,
+        )
       }}
     >
       <div className="flex gap-2">
@@ -23,13 +81,14 @@ export function ExplorerSearch({ initial = '' }: { initial?: string }) {
           value={text}
           onChange={(event) => {
             setText(event.target.value)
-            setWrong(false)
+            setMessage(null)
           }}
-          placeholder="Address or checkpoint number"
+          onFocus={() => found.length > 0 && setOpen(true)}
+          placeholder="Address, name or checkpoint"
           spellCheck={false}
           autoCapitalize="off"
           autoCorrect="off"
-          className="num h-10 min-w-0 flex-1 rounded-xl border border-line bg-bg px-4 text-sm text-ink outline-none transition placeholder:font-sans placeholder:text-muted focus:border-pearl"
+          className="h-10 min-w-0 flex-1 rounded-xl border border-line bg-bg px-4 text-sm text-ink outline-none transition placeholder:text-muted focus:border-pearl"
         />
         <button
           type="submit"
@@ -38,10 +97,32 @@ export function ExplorerSearch({ initial = '' }: { initial?: string }) {
           <Search className="h-4 w-4" aria-hidden /> Search
         </button>
       </div>
-      {wrong && (
-        <p className="absolute inset-x-0 top-full z-10 mt-2 rounded-xl border border-line bg-surface px-4 py-3 text-sm text-stop shadow-2xl shadow-black/40">
-          An address is 64 letters and digits (0-9 and a-f). A checkpoint is a number, such as 90.
-        </p>
+      {open && (wallets.length > 0 || message) && (
+        <div className="absolute inset-x-0 top-full z-10 mt-2 overflow-hidden rounded-xl border border-line bg-surface shadow-2xl shadow-black/40">
+          {message ? (
+            <p className="px-4 py-3 text-sm text-muted">{message}</p>
+          ) : (
+            <ul className="max-h-80 divide-y divide-line overflow-y-auto">
+              {wallets.map(({ profile, wallet }) => (
+                <li key={wallet.address}>
+                  <a
+                    href={addressHref(wallet.address)}
+                    className="flex items-center gap-3 px-4 py-3 transition hover:bg-raised"
+                  >
+                    <Avatar name={profile.name} picture={profile.picture} size={32} />
+                    <span className="min-w-0 flex-1">
+                      <span className="block truncate font-semibold text-ink">@{profile.name}</span>
+                      <span className="block truncate text-sm text-muted">
+                        <span className="num">{short(wallet.address)}</span>
+                        {wallet.name && ` · ${wallet.name}`}
+                      </span>
+                    </span>
+                  </a>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
       )}
     </form>
   )

@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { ChevronRight } from 'lucide-react'
 import { type Overview, ago, checkpointHref, explore, orn } from '@/lib/explorer'
 import { Card, Loading, Problem, Stat } from './Parts'
+import { TopWallets } from './TopWallets'
 
 /** "23 min" until the next checkpoint, ticking. */
 function useCountdown(overview: Overview | null) {
@@ -97,6 +98,8 @@ export function ExplorerHome() {
               ))}
             </ul>
           </Card>
+
+          <TopWallets limit={10} />
 
           <Card title="Latest checkpoints" aside={<span className="text-sm text-muted">One every hour</span>}>
             <div className="hidden grid-cols-[1.2fr_1fr_0.8fr_1fr_0.8fr_auto] gap-4 border-b border-line px-6 py-3 text-xs font-semibold uppercase tracking-[0.14em] text-muted md:grid">

@@ -438,6 +438,33 @@ pub async fn checkpoint(State(app): State<Arc<App>>, Path(epoch): Path<u64>) -> 
     Ok(([(header::CACHE_CONTROL, "public, max-age=60")], Json(found)).into_response())
 }
 
+/// The largest holders, from the latest checkpoint.
+pub async fn top(State(app): State<Arc<App>>) -> Answer {
+    let found = tokio::task::spawn_blocking(move || app.payments().tokenomics())
+        .await
+        .map_err(|e| Failure::Broken(e.into()))?
+        .map_err(unavailable)?;
+    let holders: Vec<serde_json::Value> = found
+        .top
+        .iter()
+        .map(|holder| {
+            serde_json::json!({
+                "address": holder.address,
+                "holds": holder.holds.to_string(),
+                "staked": holder.staked.to_string(),
+                "share": holder.share,
+            })
+        })
+        .collect();
+    let body = serde_json::json!({
+        "epoch": found.epoch,
+        "in_wallets": found.in_wallets.to_string(),
+        "holding": found.holding,
+        "holders": holders,
+    });
+    Ok(([(header::CACHE_CONTROL, "public, max-age=60")], Json(body)).into_response())
+}
+
 /// An address's balance and activity.
 pub async fn address(State(app): State<Arc<App>>, Path(address): Path<String>) -> Answer {
     let address = crate::store::orien_address(&address).map_err(|e| Failure::Refused(e.to_string()))?;

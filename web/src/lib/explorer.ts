@@ -64,6 +64,31 @@ export type CheckpointInfo = {
 
 export type WalletProfile = { id: number; name: string; picture: string | null }
 
+export type Holder = { address: string; holds: string; staked: string; share: number }
+export type Top = { epoch: number; in_wallets: string; holding: number; holders: Holder[] }
+
+/** A Market profile with wallets it showed it holds, as the name search finds it. */
+export type NamedProfile = {
+  id: number
+  name: string
+  picture: string | null
+  wallets: { address: string; name: string | null }[]
+}
+
+/** Market profiles whose name holds `query`, with their wallets. */
+export async function findNames(query: string): Promise<NamedProfile[]> {
+  const text = query.trim().replace(/^@/, '')
+  if (text.length < 2) return []
+  try {
+    const response = await fetch(`/api/market/profiles?q=${encodeURIComponent(text)}`)
+    if (!response.ok) return []
+    const data = await response.json()
+    return (data.profiles ?? []).filter((p: NamedProfile) => p.wallets.length > 0)
+  } catch {
+    return []
+  }
+}
+
 export class ExplorerError extends Error {
   constructor(
     message: string,
@@ -133,6 +158,7 @@ const own = () => typeof window !== 'undefined' && window.location.hostname.star
 export const EXPLORER_URL = 'https://explorer.orien.network/'
 export const homeHref = () => (own() ? '/' : '/explorer/')
 export const addressHref = (address: string) => (own() ? `/address/${address}/` : `/explorer/address/?a=${address}`)
+export const topHref = () => (own() ? '/top/' : '/explorer/top/')
 export const checkpointHref = (epoch: number) => (own() ? `/checkpoint/${epoch}/` : `/explorer/checkpoint/?n=${epoch}`)
 
 /** What an explorer page was opened for: the part after /address/ or

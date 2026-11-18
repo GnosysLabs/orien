@@ -11,6 +11,8 @@ use orien_ledger::{AccountId, FEES, FORFEITED, MINT, REWARDS, State};
 use serde::Serialize;
 
 const COIN: u128 = 1_000_000_000;
+/// How many of the largest holders are listed.
+pub const TOP: usize = 100;
 
 /// A range of holdings, and the wallets in it.
 #[derive(Clone, Debug, Serialize)]
@@ -132,7 +134,7 @@ pub fn of(state: &State, epoch: u64, start_time: u64, cap: u64, now: u64) -> Tok
         buckets,
         top: wallets
             .iter()
-            .take(25)
+            .take(TOP)
             .filter(|(_, holds, _)| *holds > 0)
             .map(|(id, holds, staked)| Holder {
                 address: id.to_string(),
