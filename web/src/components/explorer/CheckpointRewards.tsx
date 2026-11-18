@@ -66,36 +66,21 @@ export function CheckpointRewards({ rewards, epoch }: { rewards: Rewards; epoch:
     }
   }, [rewards])
 
-  const { miners, shares } = rewards
-  const counted = miners.length > 0 && miners.every((m) => m.shares !== null)
-  const perShare = rewards.known && shares && shares > 0 ? (BigInt(rewards.mined) / BigInt(shares)).toString() : null
-  const cols = counted
-    ? 'md:grid-cols-[3rem_1.8fr_0.8fr_0.8fr_1.2fr]'
-    : 'md:grid-cols-[3rem_1.8fr_0.8fr_1.2fr]'
+  const { miners } = rewards
+  const cols = 'md:grid-cols-[3rem_1.8fr_0.8fr_1.2fr]'
 
   return (
     <>
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
         <Stat
-          label="Shares found"
-          value={shares === null ? '—' : shares.toLocaleString('en')}
-          note={
-            shares === null
-              ? 'Not known for this hour: mining’s difficulty changed by the most it can at once.'
-              : !rewards.known
-                ? `The network aims for ${(rewards.wanted ?? 1000).toLocaleString('en')} an hour.`
-                : `By ${miners.length.toLocaleString('en')} ${miners.length === 1 ? 'wallet' : 'wallets'}. The network aims for ${(rewards.wanted ?? 1000).toLocaleString('en')} an hour.`
-          }
+          label="Miners paid"
+          value={rewards.known ? miners.length.toLocaleString('en') : '—'}
+          note={rewards.math ? `Mined with ${rewards.math === 'Blake3' ? 'BLAKE3' : rewards.math}` : undefined}
         />
         <Stat
           label="Paid to miners"
           value={rewards.known ? `${orn(rewards.mined, 2)} ORN` : '—'}
-          note="Shared out by shares found"
-        />
-        <Stat
-          label="Per share"
-          value={perShare ? `${orn(perShare, 4)} ORN` : '—'}
-          note={rewards.math ? `Mined with ${rewards.math === 'Blake3' ? 'BLAKE3' : rewards.math}` : undefined}
+          note="Split by how much mining work each wallet did"
         />
         <Stat
           label="The next hour"
@@ -103,7 +88,7 @@ export function CheckpointRewards({ rewards, epoch }: { rewards: Rewards; epoch:
           note={
             rewards.harder === null
               ? 'Mining switched to new math, with a difficulty set for it.'
-              : 'More shares than aimed for make mining harder; fewer make it easier.'
+              : 'More mining than the network aims for makes the next hour harder; less makes it easier.'
           }
         />
       </div>
@@ -122,19 +107,18 @@ export function CheckpointRewards({ rewards, epoch }: { rewards: Rewards; epoch:
         {!rewards.known ? (
           <p className="px-5 py-5 leading-relaxed text-muted sm:px-6">
             {rewards.since !== null && epoch < rewards.since
-              ? `Validators’ records of who earned what start at checkpoint ${rewards.since}, so who found this hour’s shares isn’t known.`
+              ? `Validators’ records of who earned what start at checkpoint ${rewards.since}, so who mined this hour isn’t known.`
               : 'The validators didn’t answer about this checkpoint’s rewards just now. Try again in a moment.'}
           </p>
         ) : miners.length === 0 ? (
           <p className="px-5 py-5 leading-relaxed text-muted sm:px-6">
-            Nobody found a share this hour, so its new ORN went to the miners of the next one.
+            Nobody mined this hour, so its new ORN went to the miners of the next one.
           </p>
         ) : (
           <>
             <div className={`${HEAD} ${cols}`}>
               <span>#</span>
               <span>Wallet</span>
-              {counted && <span className="text-right">Shares</span>}
               <span className="text-right">Part</span>
               <span className="text-right">Earned</span>
             </div>
@@ -147,29 +131,18 @@ export function CheckpointRewards({ rewards, epoch }: { rewards: Rewards; epoch:
                   >
                     <span className="num text-sm text-muted">{index + 1}</span>
                     <Who address={miner.address} profile={names[miner.address]} />
-                    {counted && (
-                      <span className="num hidden text-right text-sm text-ink md:block">
-                        {miner.shares!.toLocaleString('en')}
-                      </span>
-                    )}
                     <span className="num hidden text-right text-sm text-muted md:block">{percent(miner.part)}</span>
                     <span className="num text-right text-sm text-ink">
                       {orn(miner.amount, 2)} ORN
-                      <span className="block text-muted md:hidden">
-                        {counted
-                          ? `${miner.shares!.toLocaleString('en')} ${miner.shares === 1 ? 'share' : 'shares'}`
-                          : percent(miner.part)}
-                      </span>
+                      <span className="block text-muted md:hidden">{percent(miner.part)}</span>
                     </span>
                   </a>
                 </li>
               ))}
             </ol>
             <p className="border-t border-line px-5 py-4 text-sm leading-relaxed text-muted sm:px-6">
-              A share is a small proof that a computer did mining work. At each checkpoint the new ORN are split between
-              wallets by how many shares each found that hour.
-              {counted &&
-                ' Validators don’t keep the shares once the hour closes, so each wallet’s count is worked out from what it earned and how the difficulty moved. The counts add up exactly.'}
+              At each checkpoint the hour’s new ORN are split between wallets by how much mining work each did. Part is
+              each wallet’s share of what was paid.
             </p>
           </>
         )}

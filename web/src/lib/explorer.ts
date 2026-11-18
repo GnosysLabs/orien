@@ -82,14 +82,10 @@ export type Rewards = {
   /** The first checkpoint they cover. */
   since: number | null
   math: string | null
-  /** Shares the network aims for each hour. */
-  wanted: number | null
-  /** Shares found that hour, when known. */
-  shares: number | null
   /** How much harder mining got for the next hour (negative: easier). */
   harder: number | null
   mined: string
-  miners: { address: string; amount: string; shares: number | null; part: number }[]
+  miners: { address: string; amount: string; part: number }[]
   fees: string
   stakers: { address: string; amount: string }[]
 }
