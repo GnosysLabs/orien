@@ -2,7 +2,11 @@
 
 import { usePathname } from 'next/navigation'
 
-const onExplorer = (path: string) => path.startsWith('/explorer')
+/** On an explorer page: under /explorer/, or anywhere on
+ * explorer.orien.network, whose short addresses (/address/…) are explorer
+ * pages too. */
+const onExplorer = (path: string) =>
+  path.startsWith('/explorer') || (typeof window !== 'undefined' && window.location.hostname.startsWith('explorer.'))
 
 /** The site's own menus and footer: left off the explorer, which has its own. */
 export function SiteOnly({ children }: { children: React.ReactNode }) {
