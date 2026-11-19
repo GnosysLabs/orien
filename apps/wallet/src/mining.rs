@@ -219,22 +219,6 @@ pub fn stop() {
 
 static BENCH_STOP: AtomicBool = AtomicBool::new(false);
 
-/// The thread counts the benchmark tries: about six, evenly spread, ending
-/// at every thread the computer has.
-fn bench_counts(cores: usize) -> Vec<usize> {
-    let step = cores.div_ceil(6).max(1);
-    let mut counts: Vec<usize> = (1..).map(|i| i * step).take_while(|&n| n < cores).collect();
-    counts.push(cores);
-    counts
-}
-
-/// The fewest threads within 3% of the fastest: about as much ORN, for less
-/// heat and power.
-fn sweet_of(results: &[(usize, f64)]) -> Option<(usize, f64)> {
-    let best = results.iter().map(|r| r.1).fold(0.0, f64::max);
-    results.iter().copied().filter(|r| r.1 >= best * 0.97).min_by_key(|r| r.0)
-}
-
 /// Mining's tries a second over two whole rounds on `threads` threads, or
 /// None if mining stopped or the benchmark was cancelled. Real mining, so
 /// shares found still count.
@@ -278,7 +262,7 @@ pub fn benchmark(back: usize, done: impl FnOnce(Sweet) + Send + 'static) -> bool
     if !status().running || status().bench.is_some() { return false; }
     BENCH_STOP.store(false, Ordering::Relaxed);
     let cores = miner::cores();
-    let counts = bench_counts(cores);
+    let counts = miner::bench_counts(cores);
     set(|s| s.bench = Some(Bench { step: 0, steps: counts.len(), threads: 0 }));
     std::thread::spawn(move || {
         // Wait for RandomX to be ready and a first round to be in.
@@ -294,7 +278,7 @@ pub fn benchmark(back: usize, done: impl FnOnce(Sweet) + Send + 'static) -> bool
             }
         }
         set(|s| s.bench = None);
-        match sweet_of(&results).filter(|_| results.len() == counts.len()) {
+        match miner::sweet_of(&results).filter(|_| results.len() == counts.len()) {
             Some((threads, tries_per_second)) => {
                 set_threads(threads);
                 done(Sweet { threads, tries_per_second, cores });
@@ -308,23 +292,4 @@ pub fn benchmark(back: usize, done: impl FnOnce(Sweet) + Send + 'static) -> bool
 /// Stops the benchmark, if it runs; mining goes on.
 pub fn cancel_benchmark() {
     BENCH_STOP.store(true, Ordering::Relaxed);
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn counts_end_at_every_thread() {
-        assert_eq!(bench_counts(10), vec![2, 4, 6, 8, 10]);
-        assert_eq!(bench_counts(28), vec![5, 10, 15, 20, 25, 28]);
-        assert_eq!(bench_counts(4), vec![1, 2, 3, 4]);
-        assert_eq!(bench_counts(1), vec![1]);
-    }
-
-    #[test]
-    fn sweet_is_fewest_near_the_best() {
-        let r = [(5, 3000.0), (10, 4900.0), (15, 5000.0), (20, 4600.0), (28, 3500.0)];
-        assert_eq!(sweet_of(&r).unwrap().0, 10);
-    }
 }

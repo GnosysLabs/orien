@@ -47,7 +47,7 @@ const QUESTIONS: Question[] = [
   },
   {
     q: 'Can I mine ORN on my own computer?',
-    a: 'Yes. Orien mines with RandomX, which suits an ordinary processor, so graphics cards and custom mining chips gain little. Orien Wallet mines on Macs with Apple chips, Windows and Linux, and you choose how much of the processor it uses.',
+    a: 'Yes. Orien mines with RandomX, which suits an ordinary processor, so graphics cards and custom mining chips gain little. Orien Wallet mines on Macs with Apple chips, Windows and Linux, and you choose how many processor cores it uses, or let it find the number that earns the most.',
   },
   {
     q: 'Was there a pre-mine?',

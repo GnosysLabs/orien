@@ -99,8 +99,10 @@ orien send --to ADDRESS --amount 5
   down. `orien wallet restore` rebuilds the same wallet, with the same
   address and coins, on another computer. `orien wallet password` seals
   the wallet file with a password (Argon2id and XChaCha20-Poly1305).
-- **Mining.** `orien mine` asks how much of the processor to use;
-  `--cpu 50` answers in advance. Each hour's new ORN are shared in
+- **Mining.** `orien mine` asks how many processor cores to use;
+  `--threads 4` answers in advance. `orien benchmark` finds the number that
+  earns the most without wasting heat, and `orien mine` suggests it from
+  then on. Each hour's new ORN are shared in
   proportion to the shares each miner found. The explorer shows, for every
   checkpoint, which wallets were paid and how much.
 - **Unlocking.** `orien unlock --for 1h --up-to 50` lets a script you trust
@@ -204,12 +206,12 @@ sent while one is being made simply waits for it.
 
 ### Mining
 
-`orien mine` does proof-of-work for an account, on as much of the processor
+`orien mine` does proof-of-work for an account, on as many processor cores
 as you choose. At each checkpoint the coins released since the last one are
 shared among the work done in that hour:
 
 ```bash
-./target/release/orien mine devnet/wallets/carol.wallet --cpu 50
+./target/release/orien mine devnet/wallets/carol.wallet --threads 2
 ```
 
 `orien status` shows how many coins have been released so far.

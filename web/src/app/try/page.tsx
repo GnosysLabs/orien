@@ -35,8 +35,8 @@ const STEPS: { title: string; body: React.ReactNode }[] = [
     title: 'Mine ORN',
     body: (
       <p>
-        On your computer, press <strong>Mine</strong>, choose how much of your processor to use, and press{' '}
-        <strong>Start mining</strong>. Every hour, that hour&apos;s new ORN are shared among everyone who mined, by the
+        On your computer, press <strong>Mine</strong>, then <strong>Benchmark</strong> to find how many processor
+        cores earn the most, or choose them yourself, and press <strong>Start mining</strong>. Every hour, that hour&apos;s new ORN are shared among everyone who mined, by the
         work each one did.
       </p>
     ),
@@ -125,6 +125,7 @@ export default function GetStartedPage() {
             <h3 className="text-lg font-bold tracking-tight text-ink">Everyday commands</h3>
             <CopyText label="Make a wallet" text="orien wallet new" />
             <CopyText label="Restore one with its 24 words" text="orien wallet restore" />
+            <CopyText label="Find how many cores earn the most, once" text="orien benchmark" />
             <CopyText label="Mine (press Ctrl-C to stop)" text="orien mine" />
             <CopyText label="Your balance" text="orien balance" />
             <CopyText label="Your address, to share with whoever pays you" text="orien wallet address" />

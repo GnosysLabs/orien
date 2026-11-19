@@ -226,14 +226,13 @@ enum Command {
         /// The account to be paid: a wallet file or an address (default:
         /// your wallet)
         account: Option<String>,
-        /// How much of this computer's processor to use, as a percentage:
-        /// 25 leaves most of it free for other work, 100 uses all of it
-        /// (asked if not given)
-        #[arg(long, value_parser = clap::value_parser!(u8).range(1..=100), conflicts_with = "threads")]
-        cpu: Option<u8>,
-        /// How many processor cores to use, instead of a percentage
+        /// How many processor cores to use (asked if not given; `orien
+        /// benchmark` finds the number that earns the most)
         #[arg(long)]
         threads: Option<usize>,
+        /// Or how much of the processor to use, as a percentage
+        #[arg(long, value_parser = clap::value_parser!(u8).range(1..=100), conflicts_with = "threads")]
+        cpu: Option<u8>,
         #[command(flatten)]
         network: Network,
         /// Do not install new releases of orien and carry on mining on them.
@@ -242,6 +241,16 @@ enum Command {
         /// leaves it doing work nobody counts.
         #[arg(long)]
         no_auto_update: bool,
+    },
+    /// Find this computer's sweet spot for mining: mines at a few numbers
+    /// of cores for a couple of minutes and says which earns the most
+    /// without wasting heat. Shares found meanwhile count as usual.
+    Benchmark {
+        /// The account to be paid meanwhile: a wallet file or an address
+        /// (default: your wallet)
+        account: Option<String>,
+        #[command(flatten)]
+        network: Network,
     },
     /// Show every validator's state
     Status {
@@ -604,12 +613,15 @@ fn run(cli: Cli) -> Result<()> {
         }
         Command::Verify { receipt, network } => verify(&receipt, &network.file()),
         Command::Status { network } => status(&network.file()),
+        Command::Benchmark { account, network } => {
+            benchmark(&account.unwrap_or_else(|| default_wallet().display().to_string()), &network.file())
+        }
         Command::Mine { account, cpu, threads, network, no_auto_update } => {
             let threads = mining_threads(cpu, threads)?;
             let account = account.unwrap_or_else(|| default_wallet().display().to_string());
             if !no_auto_update {
                 // Started again on a new version with the same choices, never
-                // asking the percentage again.
+                // asking the number again.
                 let account = account.clone();
                 let mut args: Vec<std::ffi::OsString> =
                     vec!["mine".into(), account.into(), "--threads".into(), threads.to_string().into()];
@@ -1368,25 +1380,116 @@ fn status(genesis: &Path) -> Result<()> {
 /// How many cores to mine with: as given, or a share of the processor,
 /// asked for when there is someone at the terminal to answer.
 fn mining_threads(cpu: Option<u8>, threads: Option<usize>) -> Result<usize> {
-    let cores = thread::available_parallelism().map_or(1, |n| n.get());
+    let cores = orien_net::miner::cores();
     if let Some(threads) = threads {
-        return Ok(threads.max(1));
+        return Ok(threads.clamp(1, cores));
     }
-    let percent = match cpu {
-        Some(percent) => percent,
-        None if std::io::stdin().is_terminal() => {
-            println!("This computer has {cores} processor cores. Mining on fewer leaves more for everything else.");
-            ask("how much of the processor should mining use, in percent?", "50", |text| {
-                match text.trim().trim_end_matches('%').trim().parse::<u8>() {
-                    Ok(percent) if (1..=100).contains(&percent) => Ok(percent),
-                    _ => Err("give a number from 1 to 100, like 25, 50 or 100".to_string()),
-                }
-            })?
+    if let Some(percent) = cpu {
+        return Ok(orien_net::miner::threads_for(percent));
+    }
+    let sweet = SweetSpot::load();
+    if !std::io::stdin().is_terminal() {
+        return Ok(sweet.map_or(cores, |s| s.threads));
+    }
+    println!("This computer has {cores} processor cores. Mining on fewer leaves more for everything else.");
+    match sweet {
+        Some(s) => println!("Its sweet spot is {} cores, found by orien benchmark.", s.threads),
+        None => println!("To find the number that earns the most without wasting heat, run: orien benchmark"),
+    }
+    let default = sweet.map_or(cores.div_ceil(2), |s| s.threads).to_string();
+    ask("how many cores should mining use?", &default, |text| match text.trim().parse::<usize>() {
+        Ok(n) if (1..=cores).contains(&n) => Ok(n),
+        _ => Err(format!("give a number of cores from 1 to {cores}")),
+    })
+}
+
+/// What `orien benchmark` found on this computer, kept for `orien mine`.
+#[derive(Clone, Copy, serde::Serialize, serde::Deserialize)]
+struct SweetSpot {
+    threads: usize,
+    tries_per_second: f64,
+    /// The cores the computer had then: another number means another
+    /// computer, or a changed one, so it no longer counts.
+    cores: usize,
+}
+
+impl SweetSpot {
+    fn file() -> PathBuf {
+        orien_home().join("sweet-spot.json")
+    }
+
+    fn load() -> Option<SweetSpot> {
+        let spot: SweetSpot = serde_json::from_slice(&fs::read(Self::file()).ok()?).ok()?;
+        (spot.cores == orien_net::miner::cores()).then_some(spot)
+    }
+}
+
+/// `orien benchmark`: mines on several numbers of cores in turn, two whole
+/// rounds each, and says which earns the most for the least heat.
+fn benchmark(account: &str, genesis_file: &Path) -> Result<()> {
+    use orien_net::miner::{self, Event};
+    use std::sync::atomic::{AtomicBool, AtomicUsize, Ordering};
+
+    let (_, client) = connect(genesis_file)?;
+    let account = resolve_account(account)?;
+    let cores = miner::cores();
+    let counts = miner::bench_counts(cores);
+    println!(
+        "Benchmarking: mining for {} on {} settings from {} to {cores} cores, about {} minutes after RandomX is ready. \
+         The fans may spin up. Shares found count as usual.",
+        account.short(),
+        counts.len(),
+        counts[0],
+        (counts.len() * 15).div_ceil(60) + 1,
+    );
+    let threads = AtomicUsize::new(counts[0]);
+    let stop = AtomicBool::new(false);
+    let (mut step, mut skip, mut speeds, mut results) = (0, true, Vec::new(), Vec::new());
+    miner::run_adjustable(&client, account, &threads, &stop, |_, event| match event {
+        Event::Preparing { .. } => println!("getting RandomX ready (up to a minute, with 2 GB of memory)..."),
+        Event::Prepared { light, large_pages, .. } => {
+            println!(
+                "  ready{}",
+                if light { ", in light mode (short of memory, so slower)" } else if large_pages { ", in large pages" } else { "" }
+            );
+            // A new epoch midway: this setting starts over.
+            skip = true;
+            speeds.clear();
         }
-        None => 100,
-    };
-    // Whole cores, at least one: a share of a core would only slow it down.
-    Ok(((cores * percent as usize + 50) / 100).clamp(1, cores))
+        Event::Round { tries_per_second, .. } => {
+            // The first round on a new setting may have begun on the old
+            // one, or with the machines warming up: two after it count.
+            if std::mem::take(&mut skip) {
+                return;
+            }
+            speeds.push(tries_per_second);
+            if speeds.len() < 2 {
+                return;
+            }
+            let speed = speeds.iter().sum::<f64>() / speeds.len() as f64;
+            println!("  {:>3} cores: {} tries a second", counts[step], speed.round() as u64);
+            results.push((counts[step], speed));
+            speeds.clear();
+            skip = true;
+            step += 1;
+            match counts.get(step) {
+                Some(&next) => threads.store(next, Ordering::Relaxed),
+                None => stop.store(true, Ordering::Relaxed),
+            }
+        }
+        Event::Epoch { .. } => {}
+    });
+    let _ = client.head().save(&head_file(genesis_file));
+    let (threads, speed) = miner::sweet_of(&results).ok_or_else(|| anyhow!("the benchmark found nothing to compare"))?;
+    let spot = SweetSpot { threads, tries_per_second: speed, cores };
+    fs::create_dir_all(orien_home())?;
+    fs::write(SweetSpot::file(), serde_json::to_vec_pretty(&spot)?)?;
+    println!(
+        "\nSweet spot: {threads} of {cores} cores, about {} tries a second. Past it the processor runs hotter for \
+         little or no more ORN.\norien mine now suggests {threads} cores; or run: orien mine --threads {threads}",
+        speed.round() as u64
+    );
+    Ok(())
 }
 
 fn mine(account: &str, threads: usize, genesis_file: &Path) -> Result<()> {
