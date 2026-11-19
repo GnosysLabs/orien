@@ -98,7 +98,7 @@ fn was_dropped(error: &io::Error) -> bool {
 }
 
 /// Idle connections kept per validator.
-const MAX_IDLE: usize = 64;
+const MAX_IDLE: usize = 8;
 
 /// How far a client has followed the network: the current epoch, and what
 /// the checkpoint before it fixed. Each step was checked against the one

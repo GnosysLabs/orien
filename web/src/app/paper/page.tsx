@@ -753,8 +753,8 @@ Refund [lock, buyer]            at or after the deadline: buyer += everything`}<
           <p>
             Connections are not encrypted. They do not need to be for safety: every vote, certificate, statement and
             checkpoint is signed and checked on arrival, so a message cannot be forged or altered in transit, only read
-            or dropped. To stay open to the internet, a validator accepts at most 1,024 connections in all and 64 from
-            any one address, closes a connection that stays silent for 30 seconds, and closes one that sends anything it
+            or dropped. To stay open to the internet, a validator accepts at most 20,000 connections in all and 256
+            from any one address, closes a connection that stays silent for 30 seconds, and closes one that sends anything it
             cannot decode. Other validators of the current epoch, when listed by IP address, are exempt from these limits.
           </p>
         </Sub>
@@ -1027,7 +1027,7 @@ Refund [lock, buyer]            at or after the deadline: buyer += everything`}<
             ['Spare keys per account', '16 (key tree of height 4)'],
             ['Recovery phrase', '24 words: 256-bit secret, 8-bit check'],
             ['Wallet password', 'Argon2id (64 MiB, 3 passes), XChaCha20-Poly1305'],
-            ['Connection limits', '1,024 in all, 64 per address, 30 s idle'],
+            ['Connection limits', '20,000 in all, 256 per address, 30 s idle'],
             ['States a validator keeps', 'the last 3 epochs'],
             ['Locked payment deadline', '2 to 720 epochs ahead'],
             ['Revealed secrets kept', '168 epochs'],

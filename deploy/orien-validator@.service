@@ -20,8 +20,9 @@ Group=orien
 ExecStart=/var/lib/orien/bin/orien node -g /var/lib/orien/genesis.json -k /var/lib/orien/v%i/validator.key -d /var/lib/orien/v%i/data --listen 0.0.0.0:710%i
 Restart=always
 RestartSec=5
-# Up to 1,024 connections at once, each a file.
-LimitNOFILE=8192
+# Up to 20,000 connections at once, each a thread and two open files.
+LimitNOFILE=65536
+TasksMax=24000
 
 # It needs nothing but its own folder.
 NoNewPrivileges=true

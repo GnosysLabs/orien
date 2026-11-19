@@ -89,7 +89,11 @@ pub struct Limits {
 
 impl Default for Limits {
     fn default() -> Limits {
-        Limits { total: 1024, per_address: 64, idle: Duration::from_secs(30) }
+        // One thread per connection: 20,000 for each of four validators on
+        // one server stays well under Linux's usual ceiling of about
+        // 190,000 threads. Each connection also takes two open files, so
+        // the service must allow about 45,000.
+        Limits { total: 20_000, per_address: 256, idle: Duration::from_secs(30) }
     }
 }
 

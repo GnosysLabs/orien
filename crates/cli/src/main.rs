@@ -252,6 +252,14 @@ enum Command {
         /// the Orien release key, restarting at a calm moment.
         #[arg(long)]
         no_auto_update: bool,
+        /// The most connections this validator takes at once, from
+        /// everyone together. Each uses a thread and two open files
+        #[arg(long, default_value_t = orien_net::node::Limits::default().total)]
+        max_connections: usize,
+        /// The most connections it takes from one internet address. Other
+        /// validators are never turned away
+        #[arg(long, default_value_t = orien_net::node::Limits::default().per_address)]
+        max_per_address: usize,
     },
     /// Create a validator key
     Keygen {
@@ -567,8 +575,13 @@ fn run(cli: Cli) -> Result<()> {
             }
             mine(&account, threads, &network.file())
         }
-        Command::Node { key, data, listen, network, no_auto_update } => {
-            node(&key, data, listen, &network.file(), !no_auto_update)
+        Command::Node { key, data, listen, network, no_auto_update, max_connections, max_per_address } => {
+            let limits = orien_net::node::Limits {
+                total: max_connections,
+                per_address: max_per_address,
+                ..orien_net::node::Limits::default()
+            };
+            node(&key, data, listen, &network.file(), !no_auto_update, limits)
         }
         Command::Keygen { out, height } => keygen(&out, height),
         Command::Update => release::update(),
@@ -1795,7 +1808,14 @@ fn genesis_show(genesis: &Genesis) -> Result<()> {
     Ok(())
 }
 
-fn node(key: &Path, data: PathBuf, listen: Option<String>, genesis: &Path, auto_update: bool) -> Result<()> {
+fn node(
+    key: &Path,
+    data: PathBuf,
+    listen: Option<String>,
+    genesis: &Path,
+    auto_update: bool,
+    limits: orien_net::node::Limits,
+) -> Result<()> {
     // Read before anything could replace it, for starting again after an update.
     let exe = std::env::current_exe()?;
     let genesis = load_genesis(genesis)?;
@@ -1803,6 +1823,7 @@ fn node(key: &Path, data: PathBuf, listen: Option<String>, genesis: &Path, auto_
     let mut config = NodeConfig::new(genesis.clone(), key, data);
     config.listen = listen;
     config.log = true;
+    config.limits = limits;
     println!("building the key tree...");
     let node = Node::start(config, None)?;
     println!("validator {} is listening on {}", node.name, node.addr);

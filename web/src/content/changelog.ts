@@ -27,6 +27,18 @@ export const PRODUCTS: Record<Product, string> = {
 export const CHANGELOG: Entry[] = [
   {
     date: '2026-11-19',
+    products: ['orien', 'validators'],
+    version: '1.9.2',
+    title: 'Room for many more miners',
+    changes: [
+      'A validator now takes up to 20,000 connections at once instead of 1,024, and up to 256 from one internet address instead of 64, so miners sharing one address are no longer turned away.',
+      'orien node --max-connections and --max-per-address change those limits without a new release.',
+      'orien keeps at most 8 spare connections to each validator instead of 64, so one computer leaves room for others.',
+      'Validators update themselves as usual, one at a time.',
+    ],
+  },
+  {
+    date: '2026-11-19',
     products: ['orien'],
     version: '1.9.1',
     title: 'Faster mining, and orien benchmark',

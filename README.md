@@ -316,8 +316,8 @@ and wallets and miners take balances and the work target only from
 checkpoints they check themselves, so nobody between two computers can
 forge or alter what matters. Traffic is not encrypted: payments are public
 anyway, but whoever is on the path can see who talks to whom. A validator
-takes at most 64 connections from one internet address and 1,024 in all,
-and closes connections that stay silent for 30 seconds or send junk; a
+takes at most 256 connections from one internet address and 20,000 in
+all (`--max-per-address` and `--max-connections` change that), and closes connections that stay silent for 30 seconds or send junk; a
 flood from thousands of machines at once needs protection in front of the
 server, as for any service on the internet.
 
@@ -453,9 +453,10 @@ What someone holding or sending ORN should know:
 
 ### Running a validator
 
-- **Connections.** A validator takes at most 1,024 connections, 64 from one
-  address (the epoch's validators are exempt). Raise `ulimit -n` before
-  putting real load on one.
+- **Connections.** A validator takes at most 20,000 connections, 256 from
+  one address (the epoch's validators are exempt). Each uses a thread and
+  two open files, so allow about 45,000 open files (`ulimit -n`, or
+  `LimitNOFILE` in a systemd service) before putting real load on one.
 - **Validator keys sit unencrypted on disk**, readable only by their owner.
   Wallets, by contrast, can be sealed with a password, and Orien Wallet on
   Mac and iPhone can lock them with Touch ID or Face ID instead.
