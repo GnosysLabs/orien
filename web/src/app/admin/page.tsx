@@ -154,22 +154,25 @@ export default function AdminPage() {
 
   return (
     <div className="mx-auto flex max-w-[1200px] flex-col gap-5 pb-16 pt-10">
-      <header className="flex flex-wrap items-baseline justify-between gap-2">
-        <h1 className="text-2xl font-bold tracking-tight text-ink">Admin</h1>
-        <p className="text-xs text-muted">
-          Signed in through Tailscale as {data.login} · updated {ago(data.generated)} · refreshes every 30s
-        </p>
+      <header className="flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight text-ink">Admin</h1>
+          <p className="mt-1 text-xs text-muted">
+            Signed in through Tailscale as {data.login} · updated {ago(data.generated)} · refreshes every 30s
+          </p>
+        </div>
+        <a
+          href="https://explorer.orien.network/"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="flex h-10 items-center rounded-xl border border-line bg-surface px-4 text-sm font-semibold text-ink transition hover:border-pearl"
+        >
+          Open the explorer
+        </a>
       </header>
       {overview.error && <p className="rounded-xl border border-stop/40 bg-stop/10 px-4 py-2 text-sm text-ink">{overview.error}</p>}
 
       <Reports reports={reports.data?.reports ?? null} onChange={reload} />
-
-      <Traffic />
-
-      <h2 className="-mb-2 text-sm font-bold text-muted">The network</h2>
-      <NetworkView network={data.network} />
-
-      <Tokenomics />
 
       <h2 className="-mb-2 text-sm font-bold text-muted">Market and swaps</h2>
       <section className="grid grid-cols-2 gap-3 lg:grid-cols-4">
@@ -187,7 +190,7 @@ export default function AdminPage() {
         <DailyChart title="Messages per day" data={m.daily.map((d) => ({ date: d.date, value: d.messages }))} />
         <DailyChart title="Swaps done per day" data={m.daily.map((d) => ({ date: d.date, value: d.swaps }))} />
       </section>
-      <section className="grid gap-3 lg:grid-cols-2">
+      <section className="flex flex-col gap-3">
         <Card title="Newest accounts">
           <AccountTable accounts={m.recent_accounts} onChange={reload} empty="No accounts yet." />
         </Card>
@@ -210,6 +213,11 @@ export default function AdminPage() {
       </section>
 
       <FindAccount onChange={reload} />
+
+      <Traffic />
+
+      <h2 className="-mb-2 text-sm font-bold text-muted">Validators</h2>
+      <NetworkView network={data.network} />
 
       <h2 className="-mb-2 text-sm font-bold text-muted">The server</h2>
       <section className="grid gap-3 lg:grid-cols-2">
@@ -331,35 +339,18 @@ function Traffic() {
 }
 
 function NetworkView({ network: n }: { network: Network }) {
-  const [now, setNow] = useState(() => Date.now() / 1000)
-  useEffect(() => {
-    const timer = setInterval(() => setNow(Date.now() / 1000), 1000)
-    return () => clearInterval(timer)
-  }, [])
   if (n.error) return <p className="rounded-xl border border-stop/40 bg-stop/10 px-4 py-3 text-sm text-ink">The validators did not answer: {n.error}</p>
   const up = n.validators.filter((v) => v.up).length
-  const left = Math.max(0, n.epoch_started + n.epoch_seconds - now)
   const behind = n.validators.filter((v) => v.up && v.epoch < n.epoch).length
-  const difficulty = n.target ? n.first_target / n.target : null
   const keysLeft = Math.min(...n.validators.filter((v) => v.up).map((v) => v.keys_total - v.keys_used))
   return (
     <>
-      <section className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <Tile
-          label="Epoch"
-          value={count(n.epoch)}
-          sub={left > 0 ? `next checkpoint in ${Math.floor(left / 60)} min ${Math.floor(left % 60)} s` : 'checkpoint due now'}
-        />
+      <section className="grid grid-cols-1 gap-3 sm:grid-cols-2">
         <Tile
           label="Validators answering"
           value={`${up} of ${n.validators.length}`}
           sub={behind ? `${behind} behind the latest epoch` : 'all in the same epoch'}
           bad={up < n.validators.length || behind > 0}
-        />
-        <Tile
-          label="Mining difficulty"
-          value={difficulty === null ? '–' : `${difficulty >= 10 ? Math.round(difficulty).toLocaleString('en') : difficulty.toFixed(1)}×`}
-          sub={n.math === 'RandomX' ? 'RandomX, compared with its start' : 'BLAKE3, compared with launch'}
         />
         <Tile
           label="Signing keys left"
@@ -368,17 +359,15 @@ function NetworkView({ network: n }: { network: Network }) {
           bad={Number.isFinite(keysLeft) && keysLeft < 5000}
         />
       </section>
-      <Card title="Validators">
+      <Card title="Each validator">
         <Table
-          head={['Validator', 'Seat', 'Epoch', 'State', 'Accounts', 'Payments', 'Keys left']}
+          head={['Validator', 'State', 'Accounts', 'Payments', 'Keys left']}
           rows={n.validators.map((v) =>
             v.up
               ? [
                   <span key="n" className="font-semibold text-ink">
                     {v.name} <span className="num text-xs font-normal text-muted">{v.endpoint}</span>
                   </span>,
-                  v.seat === null ? 'none' : String(v.seat),
-                  count(v.epoch),
                   <span key="s" className={v.epoch < n.epoch ? 'text-stop' : 'text-go'}>
                     {v.closing ? 'closing' : v.epoch < n.epoch ? 'behind' : 'running'}
                   </span>,
@@ -388,131 +377,9 @@ function NetworkView({ network: n }: { network: Network }) {
                     {count(v.keys_total - v.keys_used)} of {count(v.keys_total)}
                   </span>,
                 ]
-              : [
-                  <span key="n" className="num text-muted">{v.endpoint}</span>,
-                  '',
-                  '',
-                  <span key="s" className="text-stop">not answering</span>,
-                  '',
-                  '',
-                  '',
-                ],
+              : [<span key="n" className="num text-muted">{v.endpoint}</span>, <span key="s" className="text-stop">not answering</span>, '', '', ''],
           )}
           empty="No validators."
-        />
-      </Card>
-    </>
-  )
-}
-
-type Holder = { address: string; holds: number; staked: number; share: number }
-
-type TokenomicsData = {
-  epoch: number
-  cap: number
-  released: number
-  per_hour: number
-  in_wallets: number
-  rewards_pot: number
-  fees_pot: number
-  burned: number
-  locked: number
-  staked: number
-  unstaking: number
-  stakers: number
-  accounts: number
-  holding: number
-  holding_one: number
-  top1: number
-  top10: number
-  top100: number
-  buckets: { label: string; wallets: number; total: number }[]
-  top: Holder[]
-}
-
-/** Whole ORN with grouping: "35,576". */
-const wholeOrn = (units: number) => Math.floor(units / 1e9).toLocaleString('en')
-const percent = (share: number) => (share >= 0.1 ? `${Math.round(share * 100)}%` : share >= 0.001 ? `${(share * 100).toFixed(1)}%` : '<0.1%')
-
-// Where the ORN are, from the validators' snapshot at the last checkpoint:
-// worked out once an hour, so it loads separately from the rest.
-function Tokenomics() {
-  const { data, error } = usePoll<{ tokenomics: TokenomicsData; names: Record<string, string> }>('/tokenomics', 120_000)
-  if (!data) {
-    return (
-      <>
-        <h2 className="-mb-2 text-sm font-bold text-muted">Tokenomics</h2>
-        {error ? <p className="text-sm text-muted">{error}</p> : <div className="h-40 animate-pulse rounded-2xl bg-surface" />}
-      </>
-    )
-  }
-  const t = data.tokenomics
-  const largest = Math.max(...t.buckets.map((b) => b.wallets), 1)
-  return (
-    <>
-      <h2 className="-mb-2 text-sm font-bold text-muted">Tokenomics · as of the checkpoint that began epoch {count(t.epoch)}</h2>
-      <section className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <Tile
-          label="ORN that exist"
-          value={wholeOrn(t.released)}
-          sub={`${((t.released / t.cap) * 100).toFixed(3)}% of the ${wholeOrn(t.cap)} there will ever be`}
-        />
-        <Tile label="New ORN an hour" value={wholeOrn(t.per_hour)} sub="paid to miners; halves every 4 years" />
-        <Tile
-          label="Wallets holding ORN"
-          value={count(t.holding)}
-          sub={`${count(t.holding_one)} with 1 ORN or more · ${count(t.accounts)} the network knows`}
-        />
-        <Tile
-          label="Staked"
-          value={wholeOrn(t.staked)}
-          sub={`${count(t.stakers)} staker${t.stakers === 1 ? '' : 's'} · ${wholeOrn(t.unstaking)} on the way back`}
-        />
-      </section>
-      <section className="grid gap-3 lg:grid-cols-2">
-        <Card title="How the ORN are spread">
-          <Row label="Largest wallet holds">{percent(t.top1)}</Row>
-          <Row label="Largest 10 hold">{percent(t.top10)}</Row>
-          <Row label="Largest 100 hold">{percent(t.top100)}</Row>
-          <div className="mt-4 space-y-2">
-            {t.buckets.map((b) => (
-              <div key={b.label} className="text-sm">
-                <div className="mb-1 flex justify-between gap-3">
-                  <span className="text-muted">{b.label}</span>
-                  <span className="num text-ink">
-                    {count(b.wallets)} wallet{b.wallets === 1 ? '' : 's'}
-                    <span className="text-muted"> · {wholeOrn(b.total)} ORN</span>
-                  </span>
-                </div>
-                <div className="h-1.5 rounded-full bg-raised">
-                  <div className="h-1.5 rounded-full" style={{ width: `${(b.wallets / largest) * 100}%`, background: BAR }} />
-                </div>
-              </div>
-            ))}
-          </div>
-        </Card>
-        <Card title="Where the rest sits">
-          <Row label="In wallets">{wholeOrn(t.in_wallets)} ORN</Row>
-          <Row label="Locked in swaps under way">{wholeOrn(t.locked)} ORN</Row>
-          <Row label="Waiting to be paid to miners">{(t.rewards_pot / 1e9).toFixed(4)} ORN</Row>
-          <Row label="Fees waiting for the next checkpoint">{(t.fees_pot / 1e9).toFixed(4)} ORN</Row>
-          <Row label="Burned (validators caught cheating)">{wholeOrn(t.burned)} ORN</Row>
-          <Row label="Still to be mined">{wholeOrn(t.cap - t.released)} ORN</Row>
-        </Card>
-      </section>
-      <Card title="Largest holders">
-        <Table
-          head={['Wallet', 'Holds', 'Staked', 'Share']}
-          rows={t.top.map((h) => [
-            <span key="a" title={h.address}>
-              <span className="num text-ink">{short(h.address)}</span>
-              {data.names[h.address] && <span className="ml-2 text-xs text-muted">{data.names[h.address]}</span>}
-            </span>,
-            `${wholeOrn(h.holds)} ORN`,
-            h.staked ? `${wholeOrn(h.staked)} ORN` : '–',
-            percent(h.share),
-          ])}
-          empty="Nobody holds ORN yet."
         />
       </Card>
     </>

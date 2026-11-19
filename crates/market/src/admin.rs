@@ -308,7 +308,7 @@ fn server() -> serde_json::Value {
             let numbers: Vec<u64> = text.lines().nth(1)?.split_whitespace().filter_map(|n| n.parse().ok()).collect();
             Some(json!({ "total": numbers.first()?, "free": numbers.get(1)? }))
         });
-    let services: Vec<serde_json::Value> = ["orien-validator@1", "orien-validator@2", "orien-validator@3", "orien-validator@4", "orien-market", "nginx"]
+    let services: Vec<serde_json::Value> = ["orien-validator@1", "orien-validator@2", "orien-validator@3", "orien-validator@4", "orien-market", "orien-discord", "nginx"]
         .iter()
         .map(|name| {
             let state = std::process::Command::new("systemctl")
