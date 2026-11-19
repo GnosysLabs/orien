@@ -461,10 +461,9 @@ What someone holding or sending ORN should know:
   Wallets, by contrast, can be sealed with a password, and Orien Wallet on
   Mac and iPhone can lock them with Touch ID or Face ID instead.
 
-## Founders and maintainers
+## Maintainers
 
-- Christopher McElvogue
-- Matthew Gregorini
+Orien is built and maintained by Gnosys Labs LLC.
 
 ## License
 
