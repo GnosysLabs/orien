@@ -27,6 +27,16 @@ export const PRODUCTS: Record<Product, string> = {
 export const CHANGELOG: Entry[] = [
   {
     date: '2026-11-19',
+    products: ['wallet'],
+    version: '1.8.20',
+    title: 'Signed for Windows',
+    changes: [
+      'The Windows version of Orien Wallet is now signed with a code-signing certificate, so Windows shows who published it instead of “Unknown publisher”. The program, its installer and its uninstaller are all signed.',
+      'It updates over earlier versions as usual, keeping your wallet and settings.',
+    ],
+  },
+  {
+    date: '2026-11-19',
     products: ['orien', 'validators'],
     version: '1.9.2',
     title: 'Room for many more miners',

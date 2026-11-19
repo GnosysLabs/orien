@@ -10,7 +10,16 @@
 #                                     also publish Windows and Linux copies of
 #                                     the same version, built on those systems
 #                                     with: cargo tauri build --bundles nsis
-#                                     (or appimage) --config no-updater.json
+#                                     --config windows-signing.json (or
+#                                     --bundles appimage --config
+#                                     no-updater.json on Linux)
+#
+# Windows copies are signed as they are built, with the Certum code-signing
+# certificate (in Matthew Gregorini's name), on a PC where SimplySign Desktop
+# is installed and signed in with a code from the SimplySign phone app.
+# windows-signing.json has Tauri sign the program, the uninstaller and the
+# installer, so the installer reaching this script is already signed and the
+# update signature made here covers the signed file.
 #
 # What it does:
 #   1. Sets the version in tauri.conf.json and Cargo.toml.

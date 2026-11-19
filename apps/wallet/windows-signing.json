@@ -1,0 +1,11 @@
+{
+  "bundle": {
+    "createUpdaterArtifacts": false,
+    "windows": {
+      "signCommand": {
+        "cmd": "C:\\Program Files (x86)\\Windows Kits\\10\\bin\\10.0.26100.0\\x64\\signtool.exe",
+        "args": ["sign", "/sha1", "FB5FC8EEFAB2AF83CEAE9F2FA4E2657C21E29777", "/tr", "http://time.certum.pl", "/td", "sha256", "/fd", "sha256", "%1"]
+      }
+    }
+  }
+}
