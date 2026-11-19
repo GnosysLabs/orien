@@ -59,6 +59,18 @@ pub fn set_opens_at_login(app: &AppHandle, on: bool) -> Result<(), String> {
     }
 }
 
+/// What the window remembers between launches: its size, where it was, and
+/// whether it filled the screen.
+pub const WINDOW_STATE: tauri_plugin_window_state::StateFlags = tauri_plugin_window_state::StateFlags::SIZE
+    .union(tauri_plugin_window_state::StateFlags::POSITION)
+    .union(tauri_plugin_window_state::StateFlags::MAXIMIZED);
+
+/// Saves the window's size and place for the next launch.
+pub fn remember_window(app: &AppHandle) {
+    use tauri_plugin_window_state::AppHandleExt;
+    let _ = app.save_window_state(WINDOW_STATE);
+}
+
 /// Shows the window, in front.
 pub fn show(app: &AppHandle) {
     if let Some(window) = app.get_webview_window("main") {
@@ -91,7 +103,10 @@ pub fn setup(app: &AppHandle) -> tauri::Result<()> {
         .show_menu_on_left_click(cfg!(target_os = "macos"))
         .on_menu_event(|app, event| match event.id().as_ref() {
             "open" => show(app),
-            "quit" => app.exit(0),
+            "quit" => {
+                remember_window(app);
+                app.exit(0)
+            }
             _ => {}
         })
         .on_tray_icon_event(|tray, event| {
@@ -132,6 +147,26 @@ pub fn setup(app: &AppHandle) -> tauri::Result<()> {
         eprintln!("no tray icon: {error}");
     }
 
+    // The size and place are saved a moment after each resize or move, so
+    // they're kept however the app ends (a Mac's Quit skips the plugin's
+    // own save).
+    if let Some(window) = app.get_webview_window("main") {
+        let handle = app.clone();
+        window.on_window_event(move |event| {
+            if matches!(event, WindowEvent::Resized(_) | WindowEvent::Moved(_)) {
+                static MOVES: std::sync::atomic::AtomicU64 = std::sync::atomic::AtomicU64::new(0);
+                let this = MOVES.fetch_add(1, std::sync::atomic::Ordering::Relaxed) + 1;
+                let handle = handle.clone();
+                std::thread::spawn(move || {
+                    std::thread::sleep(std::time::Duration::from_millis(700));
+                    if MOVES.load(std::sync::atomic::Ordering::Relaxed) == this {
+                        remember_window(&handle);
+                    }
+                });
+            }
+        });
+    }
+
     // Closing the window only hides it: the wallet keeps going.
     if let Some(window) = app.get_webview_window("main")
         && can_come_back
@@ -143,6 +178,7 @@ pub fn setup(app: &AppHandle) -> tauri::Result<()> {
         let handle = app.clone();
         window.on_window_event(move |event| {
             if let WindowEvent::CloseRequested { api, .. } = event {
+                remember_window(&handle);
                 if keep_running() {
                     api.prevent_close();
                     let _ = hidden.hide();

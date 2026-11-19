@@ -2291,6 +2291,10 @@ pub fn run() {
     // is running (from the tray, too) instead of starting another.
     #[cfg(desktop)]
     let builder = builder.plugin(tauri_plugin_single_instance::init(|app, _args, _cwd| background::show(app)));
+    // The window opens at the size and place it was left, never shown by
+    // it: a start at login stays out of sight.
+    #[cfg(desktop)]
+    let builder = builder.plugin(tauri_plugin_window_state::Builder::default().with_state_flags(background::WINDOW_STATE).build());
     let builder = builder.plugin(tauri_plugin_dialog::init()).plugin(tauri_plugin_haptics::init()).plugin(tauri_plugin_notification::init()).plugin(tauri_plugin_opener::init());
     // iPhones scan the QR code another device shows, to move a wallet here.
     #[cfg(mobile)]

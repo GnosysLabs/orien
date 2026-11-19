@@ -55,6 +55,8 @@ tauri-plugin-autostart = "2"
 # One copy of the app at a time: opening it again brings the running one
 # forward (two copies of a wallet could sign at the same moment).
 tauri-plugin-single-instance = "2"
+# The window opens at the size and place it was left.
+tauri-plugin-window-state = "2"
 orien-net = { path = "../../crates/net", features = ["randomx"] }
 orien-ledger = { path = "../../crates/ledger", features = ["randomx"] }
 
