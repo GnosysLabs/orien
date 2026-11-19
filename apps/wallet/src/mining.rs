@@ -33,6 +33,8 @@ pub struct Status {
     /// Mining in RandomX's light mode, several times slower, for lack of
     /// the 2 GB of memory the full dataset needs.
     pub light: bool,
+    /// RandomX's dataset sits in large pages this epoch, which mines faster.
+    pub large_pages: bool,
     /// Rounds of mining reported so far, so the benchmark knows when a
     /// new thread count has had a whole round to itself.
     pub rounds: u64,
@@ -65,6 +67,69 @@ struct Running {
     /// changes the speed without getting RandomX ready again.
     threads: Arc<AtomicUsize>,
     thread: JoinHandle<()>,
+    /// Tells the system mining is under way, so it keeps full speed
+    /// while the window is in the background.
+    _busy: Busy,
+}
+
+/// Full speed with the window in the background, while it lives. Macs
+/// otherwise "App Nap" a window nobody is looking at; Windows 11 puts a
+/// background app in efficiency mode, on its slowest cores.
+struct Busy {
+    #[cfg(target_os = "macos")]
+    activity: objc2::rc::Retained<objc2::runtime::ProtocolObject<dyn objc2::runtime::NSObjectProtocol>>,
+}
+
+// SAFETY: the activity token is only handed back to NSProcessInfo, which
+// takes it on any thread.
+unsafe impl Send for Busy {}
+
+impl Busy {
+    fn begin() -> Busy {
+        #[cfg(windows)]
+        {
+            use windows_sys::Win32::System::Threading::{
+                GetCurrentProcess, PROCESS_POWER_THROTTLING_CURRENT_VERSION, PROCESS_POWER_THROTTLING_EXECUTION_SPEED,
+                PROCESS_POWER_THROTTLING_STATE, ProcessPowerThrottling, SetProcessInformation,
+            };
+            // Never throttle this app's speed, in front or not.
+            let state = PROCESS_POWER_THROTTLING_STATE {
+                Version: PROCESS_POWER_THROTTLING_CURRENT_VERSION,
+                ControlMask: PROCESS_POWER_THROTTLING_EXECUTION_SPEED,
+                StateMask: 0,
+            };
+            // SAFETY: the state is the size passed, and lives over the call.
+            unsafe {
+                SetProcessInformation(
+                    GetCurrentProcess(),
+                    ProcessPowerThrottling,
+                    (&state as *const PROCESS_POWER_THROTTLING_STATE).cast(),
+                    size_of::<PROCESS_POWER_THROTTLING_STATE>() as u32,
+                );
+            }
+        }
+        #[cfg(target_os = "macos")]
+        {
+            use objc2_foundation::{NSActivityOptions, NSProcessInfo, NSString};
+            let activity = NSProcessInfo::processInfo().beginActivityWithOptions_reason(
+                NSActivityOptions::UserInitiatedAllowingIdleSystemSleep,
+                &NSString::from_str("Mining ORN"),
+            );
+            return Busy { activity };
+        }
+        #[cfg(not(target_os = "macos"))]
+        Busy {}
+    }
+}
+
+impl Drop for Busy {
+    fn drop(&mut self) {
+        #[cfg(target_os = "macos")]
+        // SAFETY: the token beginActivity gave back.
+        unsafe {
+            objc2_foundation::NSProcessInfo::processInfo().endActivity(&self.activity)
+        };
+    }
 }
 
 static RUNNING: Mutex<Option<Running>> = Mutex::new(None);
@@ -112,9 +177,10 @@ pub fn start(account: AccountId, threads: usize, connect: impl FnOnce() -> Resul
                 s.taken = 0;
             }),
             Event::Preparing { .. } => set(|s| s.preparing = true),
-            Event::Prepared { light, .. } => set(|s| {
+            Event::Prepared { light, large_pages, .. } => set(|s| {
                 s.preparing = false;
                 s.light = light;
+                s.large_pages = large_pages;
             }),
             Event::Round { tries_per_second, sent, taken } => set(|s| {
                 s.tries_per_second = tries_per_second;
@@ -126,7 +192,7 @@ pub fn start(account: AccountId, threads: usize, connect: impl FnOnce() -> Resul
         let _ = client.head().save(&crate::head_file(&genesis));
         set(|s| s.running = false);
     });
-    *RUNNING.lock().unwrap_or_else(|poisoned| poisoned.into_inner()) = Some(Running { stop, threads: count, thread });
+    *RUNNING.lock().unwrap_or_else(|poisoned| poisoned.into_inner()) = Some(Running { stop, threads: count, thread, _busy: Busy::begin() });
 }
 
 /// Changes how many threads mine, from the next round, without stopping

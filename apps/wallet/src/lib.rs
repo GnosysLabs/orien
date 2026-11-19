@@ -20,6 +20,8 @@ mod contacts;
 #[cfg(target_os = "linux")]
 mod linux;
 #[cfg(desktop)]
+mod large_pages;
+#[cfg(desktop)]
 mod mining;
 mod money;
 mod pair;
@@ -345,6 +347,10 @@ struct Settings {
     /// What the benchmark found on this computer.
     #[serde(default)]
     mining_sweet: Option<mining::Sweet>,
+    /// This app granted Windows' "Lock pages in memory" right to the
+    /// account, so mining can use large pages from the next sign-in.
+    #[serde(default)]
+    large_pages_granted: bool,
 }
 
 /// A wallet the app knows, with the short name the person gave it.
@@ -1033,6 +1039,23 @@ pub fn mine_benchmark_cancel() {
     mining::cancel_benchmark();
 }
 
+/// Whether mining can use large pages here, and whether they're set up.
+#[tauri::command]
+pub fn large_pages_state(app: AppHandle) -> Result<large_pages::State, String> {
+    Ok(large_pages::state(settings(&folder(&app)?).large_pages_granted))
+}
+
+/// Sets this computer up for large pages, with an administrator's approval.
+#[tauri::command]
+pub async fn large_pages_set_up(app: AppHandle) -> Result<large_pages::State, String> {
+    let dir = folder(&app)?;
+    tauri::async_runtime::spawn_blocking(large_pages::set_up).await.map_err(|error| error.to_string())??;
+    let mut saved = settings(&dir);
+    saved.large_pages_granted = true;
+    save_settings(&dir, &saved)?;
+    Ok(large_pages::state(true))
+}
+
 /// How mining is going, with the remembered percent, which wallet it mines
 /// to, and the last mining reward that wallet received.
 #[tauri::command]
@@ -1080,11 +1103,19 @@ mod mine_commands {
     #[tauri::command]
     pub fn mine_benchmark_cancel() {}
     #[tauri::command]
+    pub fn large_pages_state() -> Result<serde_json::Value, String> {
+        Ok(serde_json::json!({ "supported": false }))
+    }
+    #[tauri::command]
+    pub async fn large_pages_set_up() -> Result<(), String> {
+        Err("Mining is on the desktop app.".into())
+    }
+    #[tauri::command]
     pub fn mine_status() -> Result<serde_json::Value, String> {
         Ok(serde_json::json!({ "status": { "running": false, "cores": 0 }, "threads": 1, "unavailable": true }))
     }
 }
-use mine_commands::{mine_benchmark, mine_benchmark_cancel, mine_set, mine_start, mine_status, mine_stop};
+use mine_commands::{large_pages_set_up, large_pages_state, mine_benchmark, mine_benchmark_cancel, mine_set, mine_start, mine_status, mine_stop};
 
 /// Asks the validators about the wallet's account.
 #[tauri::command]
@@ -2242,6 +2273,10 @@ async fn push_sync() {
 /// Starts the app: the desktop program's main, and the iPhone app's entry.
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
+    // Started as administrator to grant the right for large pages: do
+    // that and nothing else.
+    #[cfg(desktop)]
+    large_pages::grant_if_asked();
     #[cfg(target_os = "linux")]
     linux::register_appimage();
     // Linux with NVIDIA graphics: WebKit's newer way of drawing crashes the
@@ -2286,7 +2321,7 @@ pub fn run() {
             }
             Ok(())
         })
-        .invoke_handler(tauri::generate_handler![has_wallet, create_wallet, save_phrase, restore_wallet, set_password, choose_wallet, overview_now, send_payment, activity, quote, contacts, save_contact, delete_contact, contacts_sync, biometric_unlock, biometric_enable, update::check_update, update::install_update, mine_start, mine_stop, mine_set, mine_status, mine_benchmark, mine_benchmark_cancel, wallets, wallet_balances, use_wallet, rename_wallet, add_wallet, forget_wallet, swap_list, swap_sell, swap_buy, swap_accept, swap_step, swap_smallest, board_offers, board_me, board_email_start, board_email_finish, board_sign_out, board_post, board_take, board_withdraw, board_link, notifications_ask, push_sync, board_wallets_sync, board_post_sol, board_take_sol, sol_open, sol_payout_check, open_site, qr_code, address_qr, wallet_profiles, board_profile_save, board_picture_pick, board_verify, board_wallet_states, market_image, board_banner_remove, market_search, market_listings, market_listing, market_profile, market_call, market_pick_pictures, market_listing_picture, dock_badge, mac_notify, board_delete_account, wallet_icons, set_wallet_icon, vault_ready, vault_unlock, open_contact, pair_offer, pair_offer_wait, pair_offer_send, pair_join, pair_join_wait, pair_invite, pair_invite_wait, pair_accept, pair_wallets, pair_accept_send, pair_cancel, wallet_phrase, phrase_check, app_theme, set_app_theme, set_backdrop, app_prefs, set_app_pref, app_unlock, computer_settings, set_computer_setting, notifications_muted, set_notification, open_legal, board_paid_wallet, board_wallet_remove])
+        .invoke_handler(tauri::generate_handler![has_wallet, create_wallet, save_phrase, restore_wallet, set_password, choose_wallet, overview_now, send_payment, activity, quote, contacts, save_contact, delete_contact, contacts_sync, biometric_unlock, biometric_enable, update::check_update, update::install_update, mine_start, mine_stop, mine_set, mine_status, mine_benchmark, mine_benchmark_cancel, large_pages_state, large_pages_set_up, wallets, wallet_balances, use_wallet, rename_wallet, add_wallet, forget_wallet, swap_list, swap_sell, swap_buy, swap_accept, swap_step, swap_smallest, board_offers, board_me, board_email_start, board_email_finish, board_sign_out, board_post, board_take, board_withdraw, board_link, notifications_ask, push_sync, board_wallets_sync, board_post_sol, board_take_sol, sol_open, sol_payout_check, open_site, qr_code, address_qr, wallet_profiles, board_profile_save, board_picture_pick, board_verify, board_wallet_states, market_image, board_banner_remove, market_search, market_listings, market_listing, market_profile, market_call, market_pick_pictures, market_listing_picture, dock_badge, mac_notify, board_delete_account, wallet_icons, set_wallet_icon, vault_ready, vault_unlock, open_contact, pair_offer, pair_offer_wait, pair_offer_send, pair_join, pair_join_wait, pair_invite, pair_invite_wait, pair_accept, pair_wallets, pair_accept_send, pair_cancel, wallet_phrase, phrase_check, app_theme, set_app_theme, set_backdrop, app_prefs, set_app_pref, app_unlock, computer_settings, set_computer_setting, notifications_muted, set_notification, open_legal, board_paid_wallet, board_wallet_remove])
         .build(tauri::generate_context!())
         .expect("the wallet window could not start")
         .run(|_app, _event| {

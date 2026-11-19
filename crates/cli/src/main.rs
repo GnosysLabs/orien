@@ -1413,9 +1413,11 @@ fn mine(account: &str, threads: usize, genesis_file: &Path) -> Result<()> {
         Event::Preparing { epoch } => {
             println!("epoch {epoch}: getting RandomX ready (up to a minute, with 2 GB of memory)...");
         }
-        Event::Prepared { light, .. } => {
+        Event::Prepared { light, large_pages, .. } => {
             if light {
                 println!("  ready, in light mode: this computer lacks the memory for the full 2 GB, so it mines several times slower");
+            } else if large_pages {
+                println!("  ready, in large pages");
             } else {
                 println!("  ready");
             }

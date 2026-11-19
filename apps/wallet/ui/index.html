@@ -1911,9 +1911,14 @@
         <div class="bt"><b id="mn-bench-title">Find your sweet spot</b><span id="mn-bench-text"></span></div>
         <button class="secondary" id="mn-bench">Benchmark</button>
       </div>
+      <div class="bench" id="mn-large" data-gap="lg" hidden>
+        <div class="bt"><b id="mn-large-title">Make mining faster</b><span id="mn-large-text"></span></div>
+        <button class="secondary" id="mn-large-go">Set up</button>
+      </div>
       <div class="problem" id="mine-problem" hidden></div>
       <button class="primary pearl" id="mn-go" data-gap="lg">Start mining</button>
       <p class="fineprint" id="mn-light" hidden>Light mode: under 2 GB of free memory, so it mines more slowly.</p>
+      <p class="fineprint" id="mn-large-on" hidden>Mining in large pages of memory, for extra speed.</p>
       <p class="fineprint"><span id="mn-odds"></span>Needs about 2 GB of memory. Rewards depend on how much everyone else mines.</p>
     </section>
 
@@ -2834,6 +2839,48 @@
     go.className = !s.bench && !mineSweet ? "primary pearl" : "secondary";
     $("mn-cpu").disabled = !!s.bench;
   }
+  // Large pages: RandomX mines faster with its memory in them, once
+  // Windows or Linux is set up to give them.
+  let mineLarge = null;
+  function largeText(s) {
+    const L = mineLarge, card = $("mn-large"), go = $("mn-large-go");
+    // Set up, but this hour's mining began in ordinary memory.
+    const stale = L && L.ready && s.running && !s.preparing && s.tries_per_second && !s.light && !s.large_pages && !s.bench;
+    card.hidden = !L || !L.supported || (L.ready && !stale);
+    if (card.hidden) return;
+    go.hidden = false;
+    if (stale) {
+      $("mn-large-title").textContent = "Restart mining to go faster";
+      $("mn-large-text").textContent = "Large pages are set up, but mining is in ordinary memory this hour. If a restart doesn't switch it, restarting the computer frees the memory up.";
+      go.textContent = "Restart mining";
+    } else if (L.sign_out) {
+      $("mn-large-title").textContent = "Sign out to finish";
+      $("mn-large-text").textContent = "Sign out of Windows and back in, then open Orien Wallet. Mining runs faster from then on.";
+      go.hidden = true;
+    } else {
+      $("mn-large-title").textContent = "Make mining faster";
+      $("mn-large-text").textContent = L.windows
+        ? "Lets mining use large pages of memory, usually 10 to 30% faster. Windows asks for an administrator's approval once, then you sign out and back in."
+        : "Sets aside about 2.4 GB of memory for mining in large pages, usually 10 to 30% faster. Linux asks for your password once.";
+      go.textContent = "Set up";
+    }
+  }
+  $("mn-large-go").onclick = async () => {
+    const go = $("mn-large-go");
+    go.disabled = true;
+    try {
+      const restart = go.textContent === "Restart mining";
+      if (!restart) mineLarge = await invoke("large_pages_set_up");
+      const s = await mineStatus(false);
+      // Linux works at once: mining that was running starts again in them.
+      if (s && s.running && (restart || mineLarge.ready)) {
+        await invoke("mine_stop");
+        await invoke("mine_start", { threads: Number($("mn-cpu").value) });
+      }
+    } catch (e) { problem("mine-problem", e); }
+    go.disabled = false;
+    mineStatus(false);
+  };
   // The Home button says whether mining is on.
   function mineButton(running) {
     $("go-mine").classList.toggle("on", running);
@@ -2861,6 +2908,9 @@
       : s.preparing ? "Getting ready (about a minute)"
       : s.tries_per_second ? `${speed(s.tries_per_second)} tries a second` : "Starting…";
     $("mn-light").hidden = !(s.running && s.light);
+    $("mn-large-on").hidden = !(s.running && !s.preparing && s.large_pages);
+    if (first || !mineLarge) { try { mineLarge = await invoke("large_pages_state"); } catch (_) { mineLarge = null; } }
+    largeText(s);
     // Shares to expect at this speed and today's difficulty.
     let big = "", small = "";
     if (s.running && !s.preparing && s.tries_per_second && s.one_in) {

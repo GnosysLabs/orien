@@ -38,8 +38,9 @@ pub enum Event {
     /// once an hour, with 2 GB of memory.
     Preparing { epoch: u64 },
     /// RandomX is ready. `light` when this computer lacked the memory for
-    /// the full dataset and mines several times slower.
-    Prepared { epoch: u64, light: bool },
+    /// the full dataset and mines several times slower; `large_pages` when
+    /// the dataset sits in large pages, which mines faster.
+    Prepared { epoch: u64, light: bool, large_pages: bool },
     /// A round of searching ended.
     Round { tries_per_second: f64, sent: u64, taken: u64 },
 }
@@ -82,7 +83,7 @@ pub fn run_adjustable(
             }
             let ready = Prepared::for_mining(math, &seed);
             if math == Math::RandomX {
-                report(client, Event::Prepared { epoch, light: ready.light() });
+                report(client, Event::Prepared { epoch, light: ready.light(), large_pages: ready.large_pages() });
             }
             prepared = Some((seed, Arc::new(ready)));
             if stop.load(Ordering::Relaxed) {

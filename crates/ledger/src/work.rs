@@ -201,29 +201,62 @@ pub struct Prepared {
     seed: Hash32,
     dataset: Option<Dataset>,
     cache: Option<Cache>,
+    /// Whether the dataset sits in large pages, which makes RandomX faster.
+    large: bool,
 }
+
+/// Flags for mining machines and their memory: large pages first where the
+/// system can give them (Windows with the "Lock pages in memory" right,
+/// Linux with huge pages set aside), plain memory if not.
+#[cfg(feature = "randomx")]
+fn mining_flags(large: bool) -> RandomXFlag {
+    let flags = RandomXFlag::get_recommended_flags();
+    if large { flags | RandomXFlag::FLAG_LARGE_PAGES } else { flags }
+}
+
+/// Whether to try large pages at all: Macs cannot use them for RandomX.
+#[cfg(feature = "randomx")]
+const TRY_LARGE: bool = cfg!(any(target_os = "windows", target_os = "linux"));
 
 impl Prepared {
     /// Makes ready to mine against `seed`. For RandomX this takes a few
     /// seconds to a minute and 2 GB of memory; with less memory it falls
     /// back to light mode, which is several times slower.
     pub fn for_mining(math: Math, seed: &Hash32) -> Prepared {
+        #[cfg(feature = "randomx")]
+        return Prepared::prepare(math, seed, TRY_LARGE);
+        #[cfg(not(feature = "randomx"))]
+        Prepared::prepare(math, seed, false)
+    }
+
+    /// `for_mining`, trying large pages first only if `try_large`.
+    fn prepare(math: Math, seed: &Hash32, try_large: bool) -> Prepared {
+        let _ = try_large;
         #[allow(unused_mut)]
-        let (mut dataset, mut cache) = (None, None);
+        let (mut dataset, mut cache, mut large) = (None, None, false);
         #[cfg(not(feature = "randomx"))]
         if math == Math::RandomX {
             no_randomx();
         }
         #[cfg(feature = "randomx")]
         if math == Math::RandomX {
-            let flags = RandomXFlag::get_recommended_flags();
-            let made = RandomXCache::new(flags, seed.as_bytes()).expect("RandomX cannot allocate its 256 MB cache");
-            match RandomXDataset::new(flags | RandomXFlag::FLAG_FULL_MEM, made.clone(), 0) {
-                Ok(full) => dataset = Some(Shared(full)),
-                Err(_) => cache = Some(Shared(made)),
+            let cache_in = |large| RandomXCache::new(mining_flags(large), seed.as_bytes()).ok();
+            let made = try_large
+                .then(|| cache_in(true))
+                .flatten()
+                .or_else(|| cache_in(false))
+                .expect("RandomX cannot allocate its 256 MB cache");
+            if try_large && let Ok(full) = RandomXDataset::new(mining_flags(true) | RandomXFlag::FLAG_FULL_MEM, made.clone(), 0) {
+                dataset = Some(Shared(full));
+                large = true;
+            } else {
+                match RandomXDataset::new(mining_flags(false) | RandomXFlag::FLAG_FULL_MEM, made.clone(), 0) {
+                    Ok(full) => dataset = Some(Shared(full)),
+                    Err(_) => cache = Some(Shared(made)),
+                }
             }
         }
-        Prepared { math, seed: *seed, dataset, cache }
+        Prepared { math, seed: *seed, dataset, cache, large }
     }
 
     /// Makes ready to mine in light mode only: no 2 GB dataset, a quick
@@ -233,7 +266,7 @@ impl Prepared {
         let cache = (math == Math::RandomX).then(|| Shared(light_cache(seed)));
         #[cfg(not(feature = "randomx"))]
         let cache = if math == Math::RandomX { no_randomx() } else { None };
-        Prepared { math, seed: *seed, dataset: None, cache }
+        Prepared { math, seed: *seed, dataset: None, cache, large: false }
     }
 
     pub fn math(&self) -> Math {
@@ -243,6 +276,11 @@ impl Prepared {
     /// Whether RandomX runs in light mode here, short of memory.
     pub fn light(&self) -> bool {
         self.math == Math::RandomX && self.dataset.is_none()
+    }
+
+    /// Whether the dataset sits in large pages: RandomX runs faster so.
+    pub fn large_pages(&self) -> bool {
+        self.large
     }
 
     /// How many tries to make between looks at whether to stop.
@@ -265,8 +303,15 @@ impl Prepared {
         let flags = RandomXFlag::get_recommended_flags();
         #[cfg(feature = "randomx")]
         let vm = match (&self.dataset, &self.cache) {
+            // Each machine's 2 MB scratchpad goes in a large page too when
+            // the dataset did, and in plain memory if none is left.
             (Some(dataset), _) => Some(
-                RandomXVM::new(flags | RandomXFlag::FLAG_FULL_MEM, None, Some(dataset.0.clone())).expect("RandomX cannot make a machine"),
+                self.large
+                    .then(|| RandomXVM::new(mining_flags(true) | RandomXFlag::FLAG_FULL_MEM, None, Some(dataset.0.clone())).ok())
+                    .flatten()
+                    .unwrap_or_else(|| {
+                        RandomXVM::new(flags | RandomXFlag::FLAG_FULL_MEM, None, Some(dataset.0.clone())).expect("RandomX cannot make a machine")
+                    }),
             ),
             (None, Some(cache)) => Some(RandomXVM::new(flags, Some(cache.0.clone()), None).expect("RandomX cannot make a machine")),
             (None, None) => None,
@@ -302,7 +347,7 @@ mod tests {
     fn miners_and_validators_agree_on_every_share() {
         let seed = Hash32([5; 32]);
         let shares: Vec<Share> = (0..4).map(|nonce| Share { account: Hash32([9; 32]), nonce }).collect();
-        let light = Prepared { math: Math::RandomX, seed, dataset: None, cache: Some(Shared(light_cache(&seed))) };
+        let light = Prepared { math: Math::RandomX, seed, dataset: None, cache: Some(Shared(light_cache(&seed))), large: false };
         let hasher = light.hasher();
         for share in &shares {
             let judged = judge(Math::RandomX, &seed, share);
@@ -315,5 +360,37 @@ mod tests {
         assert_ne!(judge(Math::RandomX, &other, &shares[0]), judge(Math::RandomX, &seed, &shares[0]));
         let blake = Prepared::for_mining(Math::Blake3, &seed).hasher();
         assert_eq!(blake.number(&shares[0]), blake3(&seed, &shares[0]));
+    }
+
+    /// Tries a second on every thread, with large pages and without:
+    /// `cargo test -p orien-ledger --release large_pages_speed -- --ignored --nocapture`.
+    #[test]
+    #[ignore = "takes a minute and 2 GB, for measuring by hand"]
+    fn large_pages_speed() {
+        let seed = Hash32([7; 32]);
+        let threads = std::thread::available_parallelism().map_or(1, |n| n.get());
+        for try_large in [true, false] {
+            let ready = std::sync::Arc::new(Prepared::prepare(Math::RandomX, &seed, try_large));
+            let started = std::time::Instant::now();
+            let tries: u64 = std::thread::scope(|scope| {
+                let workers: Vec<_> = (0..threads as u64)
+                    .map(|t| {
+                        let ready = ready.clone();
+                        scope.spawn(move || {
+                            let hasher = ready.hasher();
+                            let mut n = 0;
+                            while started.elapsed().as_secs() < 15 {
+                                hasher.number(&Share { account: Hash32([1; 32]), nonce: t << 40 | n });
+                                n += 1;
+                            }
+                            n
+                        })
+                    })
+                    .collect();
+                workers.into_iter().map(|w| w.join().unwrap()).sum()
+            });
+            let rate = tries as f64 / started.elapsed().as_secs_f64();
+            println!("large pages asked {try_large}, got {}: {rate:.0} tries a second on {threads} threads", ready.large_pages());
+        }
     }
 }
