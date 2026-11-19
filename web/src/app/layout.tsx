@@ -126,6 +126,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en" className={`${geistSans.variable} ${geistMono.variable} ${jost.variable} h-full antialiased`}>
       <body className="flex min-h-full flex-col print:bg-white">
+        <div className="top-glow print:hidden" aria-hidden />
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(SITE_DATA) }}

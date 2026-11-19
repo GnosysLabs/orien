@@ -8,11 +8,12 @@ import { AutoTextarea } from '@/components/AutoTextarea'
 const FIELD =
   'w-full rounded-xl border border-line bg-bg px-4 py-3 text-ink outline-none transition placeholder:text-muted/60 focus:border-pearl/60'
 
-/** The contact form: a name, an email to reply to, and a message, emailed
- * to hello@orien.network. */
+/** The contact form: a name, an email to reply to, a business if they have
+ * one, and a message, emailed to hello@orien.network. */
 export function ContactForm() {
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
+  const [business, setBusiness] = useState('')
   const [message, setMessage] = useState('')
   // Hidden from people; a program filling it in is quietly ignored.
   const [website, setWebsite] = useState('')
@@ -29,12 +30,16 @@ export function ContactForm() {
     )
   }
 
+  // Name, an email that looks like one, and a message of at least 10
+  // characters (what the server asks for); the business is optional.
+  const ready = name.trim() !== '' && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim()) && message.trim().length >= 10
+
   const send = async (event: React.FormEvent) => {
     event.preventDefault()
     setState('sending')
     setTrouble('')
     try {
-      await ask('/contact', 'POST', { name, email, message, website })
+      await ask('/contact', 'POST', { name, email, business, message, website })
       setState('sent')
     } catch (error) {
       setTrouble(sentence((error as Error).message))
@@ -60,6 +65,18 @@ export function ContactForm() {
           className={FIELD}
         />
       </label>
+      <label className="flex flex-col gap-2">
+        <span className="text-sm font-semibold text-ink">
+          Your business <span className="font-normal text-muted">(optional)</span>
+        </span>
+        <input
+          value={business}
+          onChange={(e) => setBusiness(e.target.value)}
+          maxLength={150}
+          autoComplete="organization"
+          className={FIELD}
+        />
+      </label>
       <label className="absolute -left-[10000px] h-px w-px overflow-hidden" aria-hidden>
         Website
         <input value={website} onChange={(e) => setWebsite(e.target.value)} tabIndex={-1} autoComplete="off" />
@@ -79,8 +96,8 @@ export function ContactForm() {
       {trouble && <p className="text-sm text-stop">{trouble}</p>}
       <button
         type="submit"
-        disabled={state === 'sending'}
-        className="pearl-fill flex h-12 items-center justify-center gap-2 rounded-xl px-6 text-sm font-bold transition hover:brightness-105 disabled:opacity-60"
+        disabled={!ready || state === 'sending'}
+        className="pearl-fill flex h-12 items-center justify-center gap-2 rounded-xl px-6 text-sm font-bold transition hover:brightness-105 disabled:cursor-not-allowed disabled:opacity-40 disabled:grayscale disabled:hover:brightness-100"
       >
         <Send className="h-4 w-4" aria-hidden /> {state === 'sending' ? 'Sending…' : 'Send message'}
       </button>

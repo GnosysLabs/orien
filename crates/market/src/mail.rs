@@ -87,19 +87,22 @@ impl Mailer {
     }
 
     /// Sends a message from the contact form to CONTACT, with the sender's
-    /// address to reply to.
-    pub fn send_contact(&self, name: &str, email: &str, message: &str) -> Result<()> {
-        let subject = format!("Message from {name} on orien.network");
-        let text = format!("From: {name} <{email}>\n\n{message}\n\nReply to this email to answer them.\n");
+    /// address to reply to and their business, if they gave one.
+    pub fn send_contact(&self, name: &str, business: &str, email: &str, message: &str) -> Result<()> {
+        let at = if business.is_empty() { String::new() } else { format!(" at {business}") };
+        let subject = format!("Message from {name}{at} on orien.network");
+        let line = if business.is_empty() { String::new() } else { format!("Business: {business}\n") };
+        let text = format!("From: {name} <{email}>\n{line}\n{message}\n\nReply to this email to answer them.\n");
         let Some(key) = &self.key else {
             println!("would email {CONTACT}: {subject}\n{text}");
             return Ok(());
         };
         let escape = |t: &str| t.replace('&', "&amp;").replace('<', "&lt;").replace('>', "&gt;").replace('"', "&quot;");
         let html = format!(
-            "<p><strong>From:</strong> {} &lt;{}&gt;</p><p style=\"white-space:pre-wrap\">{}</p><p style=\"color:#888\">Reply to this email to answer them.</p>",
+            "<p><strong>From:</strong> {} &lt;{}&gt;</p>{}<p style=\"white-space:pre-wrap\">{}</p><p style=\"color:#888\">Reply to this email to answer them.</p>",
             escape(name),
             escape(email),
+            if business.is_empty() { String::new() } else { format!("<p><strong>Business:</strong> {}</p>", escape(business)) },
             escape(message)
         );
         self.send(key, CONTACT, Some(email), &subject, &text, &html)
