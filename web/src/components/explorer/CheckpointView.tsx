@@ -4,21 +4,10 @@ import { useEffect, useState } from 'react'
 import { Check, ChevronLeft, ChevronRight, Minus } from 'lucide-react'
 import { type CheckpointInfo, addressHref, ago, checkpointHref, explore, opened, orn, short, when } from '@/lib/explorer'
 import { CheckpointRewards, change } from './CheckpointRewards'
-import { Card, Loading, Problem } from './Parts'
+import { Card, Fact, Facts, Loading, Problem } from './Parts'
 
 const step =
   'flex h-10 items-center gap-1.5 rounded-xl border border-line bg-bg px-4 text-sm font-semibold text-ink transition hover:border-pearl'
-
-/** One figure in the summary: a label, the figure, and a few words on it. */
-function Fact({ label, value, note, wide }: { label: string; value: React.ReactNode; note?: React.ReactNode; wide?: boolean }) {
-  return (
-    <div className={`bg-surface px-5 py-5 sm:px-6 ${wide ? 'col-span-2 lg:col-span-1' : ''}`}>
-      <p className="text-xs font-semibold uppercase tracking-[0.14em] text-muted">{label}</p>
-      <p className="num mt-2 text-xl font-bold tracking-tight text-ink">{value}</p>
-      {note && <p className="mt-1 text-sm text-muted">{note}</p>}
-    </div>
-  )
-}
 
 function Hash({ label, value }: { label: string; value: string }) {
   return (
@@ -85,7 +74,7 @@ export function CheckpointView() {
 
       {info && checkpoint && (
         <>
-          <div className="grid grid-cols-2 gap-px overflow-hidden rounded-2xl border border-line bg-line lg:grid-cols-5">
+          <Facts className="grid-cols-2 lg:grid-cols-5">
             <Fact
               wide
               label="New ORN"
@@ -108,7 +97,7 @@ export function CheckpointView() {
               note="Validators"
             />
             <Fact label="Made" value={ago(checkpoint.time)} note={when(checkpoint.time)} />
-          </div>
+          </Facts>
 
           {info.rewards && <CheckpointRewards rewards={info.rewards} epoch={checkpoint.epoch} />}
 

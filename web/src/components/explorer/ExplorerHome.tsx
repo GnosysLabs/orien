@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import { ChevronRight } from 'lucide-react'
 import { type Overview, addressHref, ago, checkpointHref, explore, orn, short } from '@/lib/explorer'
-import { Card, Loading, Problem, Stat } from './Parts'
+import { Card, Fact, Facts, Loading, Problem } from './Parts'
 import { TopWallets } from './TopWallets'
 
 /** A table's column headings, on wide screens. */
@@ -56,24 +56,24 @@ export function ExplorerHome() {
 
       {overview && (
         <>
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            <Stat
+          <Facts className="grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
+            <Fact
               label="ORN released"
               value={overview.supply ? orn(overview.supply.released, 0) : '—'}
-              note={overview.supply && `of ${orn(overview.supply.cap, 0)} there will ever be`}
+              note={overview.supply && `Of ${orn(overview.supply.cap, 0)} there will ever be`}
             />
-            <Stat
+            <Fact
               label="New ORN this hour"
               value={overview.supply ? orn(overview.supply.per_hour, 0) : '—'}
-              note="Shared among everyone mining"
+              note="Shared among miners"
             />
-            <Stat
+            <Fact
               label="Wallets holding ORN"
               value={overview.supply ? overview.supply.holding.toLocaleString('en') : '—'}
               note={overview.supply && `${overview.supply.holding_one.toLocaleString('en')} hold at least 1 ORN`}
             />
-            <Stat label="Next checkpoint" value={next} note={`Checkpoint ${overview.epoch}, about every hour`} />
-          </div>
+            <Fact label="Next checkpoint" value={next} note={`Checkpoint ${overview.epoch}`} />
+          </Facts>
 
           <Card
             title="Validators"
