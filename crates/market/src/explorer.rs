@@ -114,7 +114,20 @@ pub struct Overview {
     pub mining: String,
     pub validators: Vec<Validator>,
     pub supply: Option<Supply>,
+    pub miners: Option<Miners>,
     pub checkpoints: Vec<Checkpoint>,
+}
+
+/// How many wallets were paid for mining, at the latest checkpoint whose
+/// rewards are gathered, and at least once in the day up to it.
+#[derive(Clone, Debug, Serialize)]
+pub struct Miners {
+    pub epoch: u64,
+    pub last_hour: usize,
+    pub last_day: usize,
+    /// Checkpoints the day's figure covers: 24, or fewer where validators'
+    /// records start later.
+    pub hours: u64,
 }
 
 #[derive(Clone, Debug, Serialize)]
@@ -172,6 +185,22 @@ struct Earned {
 }
 
 impl Earned {
+    /// The wallets paid for mining at the last checkpoint gathered and in
+    /// the 24 up to it.
+    fn miners(&self) -> Option<Miners> {
+        let upto = self.upto?;
+        let from = upto.saturating_sub(23).max(self.since?);
+        if from > upto {
+            return None;
+        }
+        let paid = |epoch: &u64| {
+            self.by_epoch.get(epoch).into_iter().flatten().filter(|(_, income, _)| *income == Income::Mining).map(|(id, _, _)| *id)
+        };
+        let last_hour: std::collections::HashSet<AccountId> = paid(&upto).collect();
+        let last_day: std::collections::HashSet<AccountId> = (from..=upto).flat_map(|epoch| paid(&epoch).collect::<Vec<_>>()).collect();
+        Some(Miners { epoch: upto, last_hour: last_hour.len(), last_day: last_day.len(), hours: upto - from + 1 })
+    }
+
     /// Asks about every account for the checkpoints up to `latest` not asked
     /// about yet.
     fn gather(&mut self, payments: &dyn crate::wallets::Payments, latest: u64) -> anyhow::Result<()> {
@@ -414,6 +443,11 @@ impl Explorer {
             holding_one: t.holding_one,
             burned: t.burned.to_string(),
         });
+        // Gathering rewards asks about every account, so it runs apart from
+        // this page (see `gather_rewards`); this shows what is gathered so far.
+        let miners = self.earned.try_lock().ok().and_then(|earned| earned.miners()).or_else(|| {
+            self.overview.lock().unwrap().as_ref().and_then(|(_, known)| known.miners.clone())
+        });
         let overview = Overview {
             epoch: status.epoch,
             epoch_started: status.epoch_started,
@@ -421,6 +455,7 @@ impl Explorer {
             mining: status.math,
             validators,
             supply,
+            miners,
             checkpoints,
         };
         *self.overview.lock().unwrap() = Some((Instant::now(), overview.clone()));
@@ -506,12 +541,24 @@ fn unavailable(error: anyhow::Error) -> Failure {
     Failure::Unavailable(format!("the network did not answer: {error:#}"))
 }
 
+/// Gathers the rewards of checkpoints made since the last time, unless that
+/// is already under way.
+fn gather_rewards(app: &App) {
+    let explorer = app.explorer();
+    let Some(latest) = explorer.checkpoints.lock().unwrap().keys().next_back().copied() else { return };
+    let Ok(mut earned) = explorer.earned.try_lock() else { return };
+    let _ = earned.gather(app.payments().as_ref(), latest);
+}
+
 /// The network now: validators, supply and the latest checkpoints.
 pub async fn overview(State(app): State<Arc<App>>) -> Answer {
+    let gatherer = app.clone();
     let found = tokio::task::spawn_blocking(move || app.explorer().overview(app.payments().as_ref()))
         .await
         .map_err(|e| Failure::Broken(e.into()))?
         .map_err(unavailable)?;
+    // Not waited for: the miners' figures catch up on a later visit.
+    tokio::task::spawn_blocking(move || gather_rewards(&gatherer));
     Ok(([(header::CACHE_CONTROL, "public, max-age=15")], Json(found)).into_response())
 }
 

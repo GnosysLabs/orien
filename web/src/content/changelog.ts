@@ -27,6 +27,14 @@ export const PRODUCTS: Record<Product, string> = {
 export const CHANGELOG: Entry[] = [
   {
     date: '2026-11-19',
+    products: ['network'],
+    title: 'Miners over the last day',
+    changes: [
+      'The explorer’s home page now shows how many wallets were paid for mining at the latest checkpoint, and how many different wallets were paid at least once in the last 24 hours. A small miner can go an hour without a share and still be mining.',
+    ],
+  },
+  {
+    date: '2026-11-19',
     products: ['wallet'],
     version: '1.8.20',
     title: 'Signed for Windows',

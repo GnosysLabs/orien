@@ -56,8 +56,9 @@ export function ExplorerHome() {
 
       {overview && (
         <>
-          <Facts className="grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
+          <Facts className="grid-cols-2 lg:grid-cols-5">
             <Fact
+              wide
               label="ORN released"
               value={overview.supply ? orn(overview.supply.released, 0) : '—'}
               note={overview.supply && `Of ${orn(overview.supply.cap, 0)} there will ever be`}
@@ -66,6 +67,14 @@ export function ExplorerHome() {
               label="New ORN this hour"
               value={overview.supply ? orn(overview.supply.per_hour, 0) : '—'}
               note="Shared among miners"
+            />
+            <Fact
+              label="Miners last hour"
+              value={overview.miners ? overview.miners.last_hour.toLocaleString('en') : '—'}
+              note={
+                overview.miners &&
+                `${overview.miners.last_day.toLocaleString('en')} in the last ${overview.miners.hours === 24 ? '24 hours' : `${overview.miners.hours} hours`}`
+              }
             />
             <Fact
               label="Wallets holding ORN"

@@ -32,6 +32,9 @@ export type Overview = {
   epoch_seconds: number
   mining: string
   validators: Validator[]
+  /** Wallets paid for mining at checkpoint `epoch`, and at least once in the
+   * `hours` checkpoints up to it. */
+  miners: { epoch: number; last_hour: number; last_day: number; hours: number } | null
   supply: {
     cap: string
     released: string
