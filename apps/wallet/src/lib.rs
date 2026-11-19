@@ -305,8 +305,7 @@ struct Overview {
     #[serde(skip)]
     units: Option<i128>,
     payments: u64,
-    /// The wallet has a password and no `orien unlock` session is running,
-    /// so sending needs the password.
+    /// The wallet has a password, so sending needs it.
     locked: bool,
     /// The password is kept behind Touch ID or Face ID.
     biometric: bool,
@@ -462,13 +461,9 @@ fn has_password(wallet_file: &Path) -> bool {
         .is_some_and(|file| file.get("sealed").is_some_and(|sealed| !sealed.is_null()))
 }
 
-/// The wallet, ready to sign: through a running `orien unlock` session if
-/// there is one, else opened here with its password if it has one. The
+/// The wallet, ready to sign, opened with its password if it has one. The
 /// window recognises the two answers that start with "password:".
 fn open_signing(wallet_file: &Path, password: Option<&str>) -> Result<Signing, String> {
-    if let Some(unlocked) = Signing::unlocked(wallet_file).map_err(|error| error.to_string())? {
-        return Ok(unlocked);
-    }
     let password = password.filter(|password| !password.is_empty());
     // Unlocked by Touch ID or Face ID a moment ago.
     let remembered = if password.is_none() { biometric::unlocked(wallet_file) } else { None };
@@ -535,9 +530,7 @@ fn overview(wallet_file: &Path, genesis_file: &Path) -> Result<(Overview, Client
         most: status.spendable.map(|balance| orien_ledger::coins(money::most(&money::fees(GENESIS), balance) as i128)),
         units: status.spendable,
         payments: status.seq,
-        locked: has_password(wallet_file)
-            && orien_net::unlock::Session::find(wallet_file).is_none()
-            && biometric::unlocked(wallet_file).is_none(),
+        locked: has_password(wallet_file) && biometric::unlocked(wallet_file).is_none(),
         biometric: biometric::enabled(wallet_file),
         unprotected: !has_password(wallet_file),
         biometric_available: biometric::available(),
@@ -1980,7 +1973,7 @@ async fn pair_wallets(app: AppHandle) -> Result<Vec<serde_json::Value>, String> 
         Ok(known_wallets(&dir)
             .into_iter()
             .map(|w| {
-                let typed = has_password(&w.path) && !biometric::enabled(&w.path) && Signing::unlocked(&w.path).ok().flatten().is_none();
+                let typed = has_password(&w.path) && !biometric::enabled(&w.path);
                 serde_json::json!({ "path": w.path.display().to_string(), "name": w.name, "password": typed })
             })
             .collect())
