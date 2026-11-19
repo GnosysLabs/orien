@@ -1973,6 +1973,22 @@ fn the_live_networks_identity_is_unchanged() {
     assert_eq!(committee.seat_address(3, from), Some("v4.orien.network:7104"));
     assert!(committee.seat_names().iter().all(|name| name.len() <= orien_ledger::types::MAX_ADDRESS));
 
+    // Ten thousand shares an hour from the epoch set: the target for that
+    // epoch is ten times easier on top of the usual step, and moves as
+    // before after it.
+    let more = orien_ledger::work::LIVE_MORE_SHARES_FROM;
+    assert_eq!((work.wanted(more - 1), work.wanted(more)), (1_000, 10_000));
+    let target = 1_000_000_000u64;
+    let before = committee.at_epoch(more - 1).with_target(target);
+    assert_eq!(orien_ledger::close::next_target(&before, 1_000), target * 10);
+    assert_eq!(orien_ledger::close::next_target(&before, 500), target * 20);
+    assert_eq!(orien_ledger::close::next_target(&before, 0), target * 40);
+    let after = committee.at_epoch(more).with_target(target);
+    assert_eq!(orien_ledger::close::next_target(&after, 10_000), target);
+    assert_eq!(orien_ledger::close::next_target(&after, 20_000), target / 2);
+    let earlier = committee.at_epoch(more - 2).with_target(target);
+    assert_eq!(orien_ledger::close::next_target(&earlier, 1_000), target);
+
     // A network on RandomX from the start starts at RandomX's target.
     let mut fresh = genesis.clone();
     fresh.network = "fresh".into();

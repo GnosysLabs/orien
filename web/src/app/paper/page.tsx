@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import { ArrowRight, Download } from 'lucide-react'
 import { Formula, PaperSection, Sub, Table } from '@/components/Paper'
-import { OPEN_CLAIMS_FROM, RANDOMX_FROM, SITE_URL, SOURCE_CODE } from '@/lib/brand'
+import { MORE_SHARES_FROM, OPEN_CLAIMS_FROM, RANDOMX_FROM, SITE_URL, SOURCE_CODE } from '@/lib/brand'
 import { jsonLd, pageMeta } from '@/lib/seo'
 
 export const metadata: Metadata = pageMeta({
@@ -576,11 +576,18 @@ a share counts when work < target           seed = digest of the previous checkp
 
         <Sub title="8.3 The target">
           <p>
-            The target aims for 1,000 shares per epoch, so that pay is spread finely however much work is done. After
-            each epoch with <em>n</em> shares under target <em>T</em>:
+            The target aims for <em>W</em> = 10,000 shares per epoch, so that pay is spread finely however much work
+            is done and even a small miner finds shares every hour. After each epoch with <em>n</em> shares under target{' '}
+            <em>T</em>:
           </p>
-          <Formula>{`T′ = 4 · T                                   if n = 0
-T′ = clamp( T · 1,000 / n,  ⌊T / 4⌋,  4 · T )  otherwise`}</Formula>
+          <Formula>{`T′ = 4 · T                                 if n = 0
+T′ = clamp( T · W / n,  ⌊T / 4⌋,  4 · T )  otherwise`}</Formula>
+          <p>
+            Before epoch {MORE_SHARES_FROM.toLocaleString('en')}, <em>W</em> was 1,000. The target for epoch{' '}
+            {MORE_SHARES_FROM.toLocaleString('en')} was the usual step from the epoch before, made ten times easier at
+            once. On average a miner earns the same either way; with ten times the shares, its pay arrives in smaller,
+            steadier amounts.
+          </p>
           <p>
             The first target was 2<sup>40</sup> − 1: about one share for every 16.8 million BLAKE3 hashes. At epoch{' '}
             {RANDOMX_FROM.toLocaleString('en')}, the first judged by RandomX, it started again at ⌊(2<sup>64</sup> − 1) /
@@ -1025,11 +1032,11 @@ Refund [lock, buyer]            at or after the deadline: buyer += everything`}<
             ['Unstaking', '168 epochs (about a week)'],
             ['Launch seats', '3,000,000 ORN of weight, shared equally, fading as stake arrives'],
             ['Fee', '0.1% of the amount, at least 0.000001 ORN, at most 1 ORN; stake and unstake 0.000001 ORN'],
-            ['Shares wanted per epoch', '1,000'],
+            ['Shares wanted per epoch', `10,000 (1,000 before epoch ${MORE_SHARES_FROM.toLocaleString('en')})`],
             ['Proof-of-work', `RandomX, keyed with each epoch’s seed (BLAKE3 before epoch ${RANDOMX_FROM.toLocaleString('en')})`],
             ['First target', `2⁴⁰ − 1; for RandomX, from epoch ${RANDOMX_FROM.toLocaleString('en')}, ⌊(2⁶⁴ − 1) / 400,000⌋`],
             ['Target change per epoch', 'at most × 4 or ÷ 4'],
-            ['Shares a validator counts per epoch', '40,000, or 300,000 ÷ validators if fewer'],
+            ['Shares a validator counts per epoch', '40 times the shares wanted, or 300,000 ÷ validators if fewer'],
             ['Hash function', 'BLAKE3, 32-byte output'],
             ['One-time signature', 'WOTS, w = 16, n = 24 bytes, 51 chains, 1,248 bytes'],
             ['Validator key tree', 'height 16 by default, at most 24'],

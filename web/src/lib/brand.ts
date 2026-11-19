@@ -26,3 +26,7 @@ export const RANDOMX_FROM = 21
 /** The first epoch in which anyone may claim a locked payment for its payee.
  * The network code's LIVE_OPEN_CLAIMS_FROM is the same number. */
 export const OPEN_CLAIMS_FROM = 23
+
+/** The first epoch that aims for 10,000 shares an hour instead of 1,000.
+ * The network code's LIVE_MORE_SHARES_FROM is the same number. */
+export const MORE_SHARES_FROM = 112

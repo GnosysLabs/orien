@@ -27,6 +27,17 @@ export const PRODUCTS: Record<Product, string> = {
 export const CHANGELOG: Entry[] = [
   {
     date: '2026-11-19',
+    products: ['orien', 'validators', 'network'],
+    version: '1.9.3',
+    title: 'Ten times the shares',
+    changes: [
+      'From 13:13 UTC on 19 November, the hour after checkpoint 111, the network aims for 10,000 work shares an hour instead of 1,000. A share is ten times easier to find, so a small computer now finds shares every hour instead of now and then.',
+      'Each share is worth a tenth of what it was, so on average every miner earns the same as before. Pay simply arrives in smaller, steadier amounts.',
+      'Miners and wallets need no update: they take each hour’s target from the network.',
+    ],
+  },
+  {
+    date: '2026-11-19',
     products: ['network'],
     title: 'Miners over the last day',
     changes: [

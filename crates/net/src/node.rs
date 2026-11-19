@@ -1437,7 +1437,7 @@ impl Core {
         // proposal closing the epoch, which carries every validator's
         // statement at 40 bytes a share, passes about 12 MB.
         let room = 300_000 / self.committee.members().len().max(1) as u64;
-        if self.shares.len() as u64 >= work.shares_per_epoch.saturating_mul(40).min(room) {
+        if self.shares.len() as u64 >= work.wanted(self.committee.epoch()).saturating_mul(40).min(room) {
             return Response::Unavailable("this epoch has all the shares it takes".into());
         }
         self.shares.insert(share);

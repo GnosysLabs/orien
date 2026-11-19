@@ -72,6 +72,19 @@ pub const LIVE_RANDOMX_TARGET: u64 = u64::MAX / 400_000;
 /// bringing it reaches every validator before.
 pub const LIVE_SEAT_NAMES_FROM: u64 = 117;
 
+/// The first epoch on the live network that aims for
+/// `LIVE_MORE_SHARES` shares instead of the genesis file's 1,000: epoch
+/// 112, which begins at 2026-11-19 13:13 UTC. With ten times the shares a
+/// small miner finds one ten times as often, so its pay arrives each hour
+/// instead of in rare lumps; on average every miner earns the same as
+/// before. The release bringing it reaches every validator before epoch
+/// 111 closes and sets 112's target.
+pub const LIVE_MORE_SHARES_FROM: u64 = 112;
+
+/// How many shares an epoch aims for on the live network from
+/// `LIVE_MORE_SHARES_FROM`.
+pub const LIVE_MORE_SHARES: u64 = 10_000;
+
 /// The live network's launch seats' names, in genesis order.
 pub const LIVE_SEAT_NAMES: [&str; 4] =
     ["v1.orien.network:7101", "v2.orien.network:7102", "v3.orien.network:7103", "v4.orien.network:7104"];

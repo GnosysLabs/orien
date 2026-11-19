@@ -141,12 +141,16 @@ pub fn next_target(committee: &Committee, shares: u64) -> u64 {
     if work.math(committee.epoch() + 1) != work.math(committee.epoch()) {
         return work.randomx_target;
     }
-    let (target, wanted) = (work.target as u128, work.shares_per_epoch.max(1) as u128);
+    let epoch = committee.epoch();
+    let (target, wanted) = (work.target as u128, work.wanted(epoch) as u128);
     let moved = match shares {
         0 => target * 4,
         n => target * wanted / n as u128,
     };
-    moved.clamp((target / 4).max(1), target * 4).min(u64::MAX as u128) as u64
+    let moved = moved.clamp((target / 4).max(1), target * 4);
+    // When the number aimed for changes, the target changes with it at once,
+    // on top of the usual step, rather than over several epochs.
+    (moved * work.wanted(epoch + 1) as u128 / wanted).clamp(1, u64::MAX as u128) as u64
 }
 
 /// Proof that a validator cheated, made of its own signatures. Nobody can
