@@ -75,9 +75,9 @@ pub trait Payments: Send + Sync {
     fn earnings(&self, _account: &AccountId, _from: u64) -> Option<orien_net::history::HistoryPage> {
         None
     }
-    /// Mining's rules: shares wanted per hour, the first target, and the
-    /// math that judges `epoch`'s shares; whether the next epoch's target
-    /// was set by a switch of math rather than by the shares found.
+    /// Mining's rules: the first target, the math that judges `epoch`'s
+    /// shares, and whether the next epoch's target was set by a switch of
+    /// math rather than by the shares found.
     fn work_rules(&self, _epoch: u64) -> Option<WorkRules> {
         None
     }
@@ -86,7 +86,6 @@ pub trait Payments: Send + Sync {
 /// Mining's rules for one epoch, for the explorer.
 #[derive(Clone, Debug)]
 pub struct WorkRules {
-    pub wanted: u64,
     /// The target the very first epoch was mined at.
     pub first_target: u64,
     /// "Blake3" or "RandomX".
@@ -257,7 +256,6 @@ impl Payments for Network {
         let rules = self.client.committee().work();
         let math = rules.math(epoch);
         Some(WorkRules {
-            wanted: rules.shares_per_epoch,
             first_target: if rules.randomx_from == 0 { rules.randomx_target } else { self.first_target },
             math: format!("{math:?}"),
             switches: rules.math(epoch + 1) != math,

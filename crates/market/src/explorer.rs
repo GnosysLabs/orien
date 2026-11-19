@@ -228,19 +228,6 @@ fn earnings(
     Some((since.unwrap_or(0), found))
 }
 
-/// How many work shares an epoch found, worked out from how its target
-/// moved: the next target is this one times the shares wanted over the
-/// shares found, unless that moved it by more than a factor of four, when
-/// the count is not known.
-fn shares_found(target: u64, next: u64, wanted: u64) -> Option<u64> {
-    let (target, next, wanted) = (target as u128, next as u128, wanted.max(1) as u128);
-    if next <= (target / 4).max(1) || next >= target * 4 {
-        return None;
-    }
-    let guess = (target * wanted + next / 2) / next;
-    (guess.saturating_sub(2)..=guess + 2).find(|n| *n > 0 && target * wanted / n == next).map(|n| n as u64)
-}
-
 /// The mining rewards and fee shares of one checkpoint.
 fn rewards_of(
     explorer: &Explorer,
@@ -265,28 +252,15 @@ fn rewards_of(
         entries.iter().filter(|(_, income, _)| *income == Income::Fees).map(|(id, _, amount)| (*id, *amount)).collect();
     fees.sort_by_key(|(id, amount)| (std::cmp::Reverse(*amount), *id));
     let paid: u128 = mined.iter().map(|(_, amount)| *amount as u128).sum();
-    // The shares found, when the target's move tells; nobody paid means none.
     let switches = rules.as_ref().is_some_and(|r| r.switches);
-    let shares = match (target, &rules) {
-        _ if known && mined.is_empty() => Some(0),
-        (Some(target), Some(rules)) if !switches => shares_found(target, next, rules.wanted),
-        _ => None,
-    };
-    // Each miner's shares, from its part of the rewards (paid in proportion
-    // to shares, rounded down): kept only if they add up exactly.
-    let each: Option<Vec<u64>> = shares.filter(|n| *n > 0 && paid > 0).and_then(|n| {
-        let each: Vec<u64> =
-            mined.iter().map(|(_, amount)| ((*amount as u128 * n as u128 + paid / 2) / paid) as u64).collect();
-        (each.iter().sum::<u64>() == n && each.iter().all(|s| *s > 0)).then_some(each)
-    });
+    // Rewards follow work shares, but validators delete the shares when the
+    // hour closes, so only each wallet's part of the rewards is shown.
     let miners: Vec<serde_json::Value> = mined
         .iter()
-        .enumerate()
-        .map(|(i, (id, amount))| {
+        .map(|(id, amount)| {
             serde_json::json!({
                 "address": hex::encode(id.as_bytes()),
                 "amount": amount.to_string(),
-                "shares": each.as_ref().map(|each| each[i]),
                 "part": if paid == 0 { 0.0 } else { *amount as f64 / paid as f64 },
             })
         })
@@ -299,8 +273,6 @@ fn rewards_of(
         "known": known,
         "since": since,
         "math": rules.as_ref().map(|r| r.math.clone()),
-        "wanted": rules.as_ref().map(|r| r.wanted),
-        "shares": shares,
         "harder": target.filter(|_| !switches && next > 0).map(|target| target as f64 / next as f64 - 1.0),
         "mined": paid.to_string(),
         "miners": miners,
@@ -649,19 +621,3 @@ pub async fn address(State(app): State<Arc<App>>, Path(address): Path<String>) -
     Ok(([(header::CACHE_CONTROL, "public, max-age=20")], Json(found)).into_response())
 }
 
-#[cfg(test)]
-mod tests {
-    use super::shares_found;
-
-    #[test]
-    fn shares_are_read_back_from_the_target_move() {
-        let target = u64::MAX >> 24;
-        for found in [251u64, 400, 999, 1000, 1001, 2345, 3999] {
-            let next = (target as u128 * 1000 / found as u128) as u64;
-            assert_eq!(shares_found(target, next, 1000), Some(found), "{found}");
-        }
-        // Moved by the most it may: the count is not known.
-        assert_eq!(shares_found(target, target * 4, 1000), None);
-        assert_eq!(shares_found(target, target / 4, 1000), None);
-    }
-}

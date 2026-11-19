@@ -40,6 +40,15 @@ export const CHANGELOG: Entry[] = [
   {
     date: '2026-11-18',
     products: ['network'],
+    title: 'Who earned what at each checkpoint',
+    changes: [
+      'Each checkpoint in the explorer lists every wallet paid for mining that hour, with the ORN it earned and its part of the total.',
+      'It also shows whether mining got harder or easier for the next hour.',
+    ],
+  },
+  {
+    date: '2026-11-18',
+    products: ['network'],
     title: 'The Orien Explorer',
     changes: [
       'explorer.orien.network shows the network as it runs: how many ORN exist, the validators, and every hourly checkpoint, with how many validators agreed on it.',

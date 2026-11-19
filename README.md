@@ -4,9 +4,17 @@ A quantum-proof cryptocurrency, ORN, with no blocks and no global ordering.
 A payment is final in a fraction of a second and never waits in a line
 behind other payments. The name is from the Latin *oriens*, rising.
 
-The network is live. The website is [orien.network](https://orien.network),
-and the [technical paper](https://orien.network/paper/) states every rule
-exactly.
+The network has been live since 14 November 2026.
+
+- Website and downloads: [orien.network](https://orien.network)
+- Technical paper, which states every rule exactly:
+  [orien.network/paper](https://orien.network/paper/)
+- Explorer, for every checkpoint, address and reward:
+  [explorer.orien.network](https://explorer.orien.network)
+- What changed, release by release:
+  [orien.network/changelog](https://orien.network/changelog/)
+- Community: [Discord](https://discord.gg/5FFRZAw3u9) and
+  [X](https://x.com/OrienNetwork)
 
 ## The idea
 
@@ -36,18 +44,27 @@ exactly.
    in `docs/epochs.md`.
 5. **Coins from nothing.** No coins exist at launch. Of a 100 million cap,
    half of what remains is released every four years, about 1,977 coins in
-   the first hour, shared out each hour in proportion to BLAKE3
-   proof-of-work. Work only hands out coins: it never decides payments. The
+   the first hour, shared out each hour in proportion to proof-of-work.
+   Mining has used RandomX, which suits ordinary computers' processors,
+   since epoch 21 (15 November 2026); the first 21 hours used BLAKE3.
+   Work only hands out coins: it never decides payments. The
    first seed comes from a Bitcoin block, so nobody can mine before that
    block exists; the live network starts from block 975,847. Every payment
    pays 0.1% of its amount, at least 0.000001 ORN and at most 1 ORN;
    amounts have nine decimal places.
 
-Everything rests on one assumption: the BLAKE3 hash function.
+The safety of payments rests on one assumption: the BLAKE3 hash function.
+RandomX only decides who receives new coins.
 
 ## Use it
 
-On a Mac or Linux:
+The easiest way is **Orien Wallet**, from [orien.network](https://orien.network):
+for Mac, Windows and Linux, and for iPhone as a free public beta on
+[TestFlight](https://testflight.apple.com/join/butuQ4Ms). It makes a wallet,
+sends and receives, mines, and swaps ORN for SOL or Bitcoin. The Windows app
+is not code-signed yet, so Windows shows a warning the first time it opens.
+
+For the command line, on a Mac or Linux:
 
 ```bash
 curl -fsSL https://orien.network/install.sh | sh
@@ -84,21 +101,38 @@ orien send --to ADDRESS --amount 5
   the wallet file with a password (Argon2id and XChaCha20-Poly1305).
 - **Mining.** `orien mine` asks how much of the processor to use;
   `--cpu 50` answers in advance. Each hour's new ORN are shared in
-  proportion to the shares each miner found.
+  proportion to the shares each miner found. The explorer shows, for every
+  checkpoint, which wallets were paid and how much.
 - **Unlocking.** `orien unlock --for 1h --up-to 50` lets a script you trust
   send from a password-protected wallet for a while, up to an amount,
   without learning the password; `orien lock` ends that early.
-- **Swaps.** Orien Wallet swaps ORN for Bitcoin with anyone, with no one in
-  the middle. Underneath are **locked payments**: `orien escrow --to ADDRESS
+- **Swaps.** Orien Wallet swaps ORN for SOL or Bitcoin with anyone, with no
+  one in the middle: each side's coins are locked so that either both
+  payments happen or both come back. On Solana the lock is a small program,
+  `programs/orien-lock`; on Bitcoin it is a script. Underneath, on Orien, are
+  **locked payments**: `orien escrow --to ADDRESS
   --amount 500 --hours 48` locks ORN that the receiver takes with
   `orien claim` by revealing a secret, and that come back on their own
   after the deadline; `orien escrow-status` shows one. The design is in
   `docs/locked-payments.md`.
 - **Updates.** `orien update` installs a newer version only if the Orien
   release key signed it.
-- **Orien Wallet.** `apps/wallet` is a desktop app (Tauri) for the same
-  wallet: balance, history, sending, an address book, and making or
-  restoring a wallet.
+- **Orien Wallet.** `apps/wallet` is the app (Tauri) for the same wallet, on
+  desktop and iPhone: balance, history, sending, an address book, mining,
+  swaps, the Market, and making or restoring a wallet.
+
+## The live network
+
+Anyone can stake 10,000 ORN to run a validator (see *Staking a new
+validator* below). A network that starts with no coins has no stake, so it
+started with four **launch validators**, named in the genesis file and run by
+Gnosys Labs LLC, today on one server. From epoch 117 (18:11 UTC on 19
+November 2026) they are reached by name, `v1.orien.network` to
+`v4.orien.network`, so each can move to a server of its own without anyone
+updating. Launch seats hold no coins and never earn fees. Their voting
+weight shrinks as real stake arrives, and once 3,000,000 ORN is staked they
+leave for good. Until more than 2,000,000 ORN is staked, the network depends
+on them being online.
 
 The rest of this file runs a local test network, with no real coins.
 
@@ -348,17 +382,20 @@ cargo test --release -p orien-net --test devnet throughput -- --ignored --nocapt
 | `crates/ledger` | The rules: orders, votes, certificates, when to vote, how balances change, what a checkpoint is and how validators agree on one |
 | `crates/net` | The validator node, the closing of epochs, storage, sync between validators, client, wallet files |
 | `crates/cli` | The `orien` command |
-| `crates/swap` | The Bitcoin side of swaps: the lock script, claim and refund, and each side's steps |
-| `apps/wallet` | Orien Wallet, the desktop app |
-| `web` | The website, orien.network, with the installers and the technical paper |
+| `crates/swap` | The Bitcoin and Solana sides of swaps: the locks, claim and refund, and each side's steps |
+| `crates/market` | The server behind accounts, the Market, swap offers and the explorer |
+| `programs/orien-lock` | The Solana program that locks SOL for swaps |
+| `apps/wallet` | Orien Wallet, for Mac, Windows, Linux and iPhone |
+| `web` | The website, orien.network, with the installers, the technical paper and the explorer |
+| `discord-bot` | The community Discord's bot, and the website's AI assistant |
 | `deploy` | Publishing the website and releases, and the live validators' service |
 | `docs` | The design notes |
 
 ## Security
 
 Orien is built only from standard, published constructions: the BLAKE3
-hash, one-time signatures in Merkle key trees, and SHA-256 for the locks
-swaps use. The way they are put together is new, and it has not yet had an
+hash, one-time signatures in Merkle key trees, RandomX for mining, and
+SHA-256 for the locks swaps use. The way they are put together is new, and it has not yet had an
 independent review. Cryptographers and security researchers are welcome to
 look closely. Please report anything you find to hello@orien.network before
 publishing it.
