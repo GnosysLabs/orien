@@ -51,53 +51,26 @@ pub fn run(client: &Client, account: AccountId, threads: usize, stop: &AtomicBoo
     run_adjustable(client, account, &AtomicUsize::new(threads), stop, report)
 }
 
-/// `run`, on as many threads as `threads` says at the start of each round:
-/// changing it takes effect within a few seconds, and keeps everything
-/// RandomX has prepared for the epoch.
-pub fn run_adjustable(
-    client: &Client,
-    account: AccountId,
-    threads: &AtomicUsize,
-    stop: &AtomicBool,
-    mut report: impl FnMut(&Client, Event),
-) {
-    // Two machines mining for one account must not find the same shares.
-    let mut next = u64::from_le_bytes(crate::keys::random_seed()[..8].try_into().expect("8 bytes"));
-    let mut shown_epoch = None;
-    let mut prepared: Option<(Hash32, Arc<Prepared>)> = None;
-    while !stop.load(Ordering::Relaxed) {
-        // The seed and target come from the checkpoints this client checks
-        // itself, so nobody can send it off doing worthless work.
-        client.follow();
-        let (epoch, seed, target) = client.followed_work();
-        if shown_epoch != Some(epoch) {
-            report(client, Event::Epoch { epoch, target });
-            shown_epoch = Some(epoch);
-        }
-        let math = client.committee().work().math(epoch);
-        if prepared.as_ref().is_none_or(|(key, ready)| *key != seed || ready.math() != math) {
-            // The old dataset goes first, so two never hold 4 GB at once.
-            drop(prepared.take());
-            if math == Math::RandomX {
-                report(client, Event::Preparing { epoch });
-            }
-            let ready = Prepared::for_mining(math, &seed);
-            if math == Math::RandomX {
-                report(client, Event::Prepared { epoch, light: ready.light(), large_pages: ready.large_pages() });
-            }
-            prepared = Some((seed, Arc::new(ready)));
-            if stop.load(Ordering::Relaxed) {
-                break;
-            }
-        }
-        let ready = prepared.as_ref().expect("set above").1.clone();
+/// The threads searching now, for one epoch's work at one target.
+struct Workers {
+    seed: Hash32,
+    target: u64,
+    threads: usize,
+    halt: Arc<AtomicBool>,
+    tries: Arc<AtomicU64>,
+    handles: Vec<thread::JoinHandle<()>>,
+    shares: std::sync::mpsc::Receiver<Share>,
+}
+
+impl Workers {
+    /// Starts `threads` threads searching from nonce `next`, each taking
+    /// every `threads`th nonce.
+    fn start(ready: &Arc<Prepared>, account: AccountId, seed: Hash32, target: u64, threads: usize, next: u64) -> Workers {
         let batch = ready.batch();
-        let threads = threads.load(Ordering::Relaxed).clamp(1, cores());
-        // Search for a few seconds, then check the epoch again.
         let halt = Arc::new(AtomicBool::new(false));
         let tries = Arc::new(AtomicU64::new(0));
         let (found, shares) = std::sync::mpsc::channel();
-        let workers: Vec<_> = (0..threads as u64)
+        let handles = (0..threads as u64)
             .map(|offset| {
                 let (halt, tries, found, ready) = (halt.clone(), tries.clone(), found.clone(), ready.clone());
                 let start = next.wrapping_add(offset);
@@ -117,30 +90,99 @@ pub fn run_adjustable(
                 })
             })
             .collect();
-        drop(found);
-        let started = Instant::now();
+        Workers { seed, target, threads, halt, tries, handles, shares }
+    }
+
+    /// Stops the threads, and gives the nonce to carry on from and any
+    /// shares they found last.
+    fn stop(self, next: u64, batch: u64) -> (u64, Vec<Share>) {
+        self.halt.store(true, Ordering::Relaxed);
+        for handle in self.handles {
+            let _ = handle.join();
+        }
+        let left = self.shares.try_iter().collect();
+        (next.wrapping_add(self.tries.load(Ordering::Relaxed) + self.threads as u64 * batch), left)
+    }
+}
+
+/// `run`, on as many threads as `threads` says: changing it takes effect
+/// within a few seconds, and keeps everything RandomX has prepared for the
+/// epoch. The threads keep searching while the epoch is checked, and start
+/// again only when the work or their number changes.
+pub fn run_adjustable(
+    client: &Client,
+    account: AccountId,
+    threads: &AtomicUsize,
+    stop: &AtomicBool,
+    mut report: impl FnMut(&Client, Event),
+) {
+    // Two machines mining for one account must not find the same shares.
+    let mut next = u64::from_le_bytes(crate::keys::random_seed()[..8].try_into().expect("8 bytes"));
+    let mut shown_epoch = None;
+    let mut prepared: Option<(Hash32, Arc<Prepared>)> = None;
+    let mut workers: Option<Workers> = None;
+    let submit = |share: Share, sent: &mut u64, taken: &mut u64| {
+        *sent += 1;
+        if client.submit_share(share) > 0 {
+            *taken += 1;
+        }
+    };
+    while !stop.load(Ordering::Relaxed) {
         let (mut sent, mut taken) = (0u64, 0u64);
+        // The seed and target come from the checkpoints this client checks
+        // itself, so nobody can send it off doing worthless work. The
+        // threads keep searching meanwhile.
+        client.follow();
+        let (epoch, seed, target) = client.followed_work();
+        if shown_epoch != Some(epoch) {
+            report(client, Event::Epoch { epoch, target });
+            shown_epoch = Some(epoch);
+        }
+        let math = client.committee().work().math(epoch);
+        let want = threads.load(Ordering::Relaxed).clamp(1, cores());
+        let fresh = prepared.as_ref().is_none_or(|(key, ready)| *key != seed || ready.math() != math);
+        // Other work, or another number of threads: the old threads stop.
+        if workers.as_ref().is_some_and(|w| fresh || w.seed != seed || w.target != target || w.threads != want) {
+            let batch = prepared.as_ref().map_or(1, |(_, ready)| ready.batch());
+            let (carry_on, left) = workers.take().expect("checked above").stop(next, batch);
+            next = carry_on;
+            for share in left {
+                submit(share, &mut sent, &mut taken);
+            }
+        }
+        if fresh {
+            // The old dataset goes first, so two never hold 4 GB at once.
+            drop(prepared.take());
+            if math == Math::RandomX {
+                report(client, Event::Preparing { epoch });
+            }
+            let ready = Prepared::for_mining(math, &seed);
+            if math == Math::RandomX {
+                report(client, Event::Prepared { epoch, light: ready.light(), large_pages: ready.large_pages() });
+            }
+            prepared = Some((seed, Arc::new(ready)));
+            if stop.load(Ordering::Relaxed) {
+                break;
+            }
+        }
+        let ready = &prepared.as_ref().expect("set above").1;
+        let running = workers.get_or_insert_with(|| Workers::start(ready, account, seed, target, want, next));
+        // Search for a few seconds, then check the epoch again.
+        let (started, before) = (Instant::now(), running.tries.load(Ordering::Relaxed));
         while started.elapsed() < ROUND && !stop.load(Ordering::Relaxed) {
-            if let Ok(share) = shares.recv_timeout(Duration::from_millis(200)) {
-                sent += 1;
-                if client.submit_share(share) > 0 {
-                    taken += 1;
-                }
+            if let Ok(share) = running.shares.recv_timeout(Duration::from_millis(200)) {
+                submit(share, &mut sent, &mut taken);
             }
         }
-        halt.store(true, Ordering::Relaxed);
-        for worker in workers {
-            let _ = worker.join();
-        }
-        while let Ok(share) = shares.try_recv() {
-            sent += 1;
-            if client.submit_share(share) > 0 {
-                taken += 1;
-            }
-        }
-        next = next.wrapping_add(tries.load(Ordering::Relaxed) + threads as u64 * batch);
-        let tries_per_second = tries.load(Ordering::Relaxed) as f64 / started.elapsed().as_secs_f64().max(0.001);
+        let tries = running.tries.load(Ordering::Relaxed) - before;
+        let tries_per_second = tries as f64 / started.elapsed().as_secs_f64().max(0.001);
         report(client, Event::Round { tries_per_second, sent, taken });
+    }
+    if let Some(running) = workers.take() {
+        let batch = prepared.as_ref().map_or(1, |(_, ready)| ready.batch());
+        for share in running.stop(next, batch).1 {
+            let _ = client.submit_share(share);
+        }
     }
 }
 
