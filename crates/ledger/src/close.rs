@@ -87,7 +87,67 @@ pub struct Statement {
     /// Proof that validators of this epoch cheated.
     pub cheats: Vec<Cheat>,
     /// Work shares it accepted this epoch.
-    pub shares: Vec<Share>,
+    pub shares: Shares,
+}
+
+/// A statement's work shares, written compactly: each account once, then
+/// the nonces of its shares, about 8 bytes a share instead of 40.
+///
+/// There is exactly one way to write a set of shares (accounts in rising
+/// order, each account's nonces in rising order, none repeated, no account
+/// without a nonce), so a statement's digest depends only on which shares it
+/// holds. Bytes written any other way are refused when read.
+#[derive(Clone, Debug, Default, PartialEq, Eq)]
+pub struct Shares(Vec<(AccountId, Vec<u64>)>);
+
+impl Shares {
+    pub fn len(&self) -> usize {
+        self.0.iter().map(|(_, nonces)| nonces.len()).sum()
+    }
+
+    pub fn is_empty(&self) -> bool {
+        self.0.is_empty()
+    }
+
+    pub fn iter(&self) -> impl Iterator<Item = Share> + '_ {
+        self.0.iter().flat_map(|(account, nonces)| nonces.iter().map(|&nonce| Share { account: *account, nonce }))
+    }
+
+    /// The groups as written: each account with its nonces.
+    pub fn groups(&self) -> &[(AccountId, Vec<u64>)] {
+        &self.0
+    }
+
+    fn is_canonical(groups: &[(AccountId, Vec<u64>)]) -> bool {
+        groups.windows(2).all(|pair| pair[0].0 < pair[1].0)
+            && groups.iter().all(|(_, nonces)| !nonces.is_empty() && nonces.windows(2).all(|pair| pair[0] < pair[1]))
+    }
+}
+
+impl FromIterator<Share> for Shares {
+    fn from_iter<I: IntoIterator<Item = Share>>(shares: I) -> Shares {
+        let mut grouped: BTreeMap<AccountId, BTreeSet<u64>> = BTreeMap::new();
+        for share in shares {
+            grouped.entry(share.account).or_default().insert(share.nonce);
+        }
+        Shares(grouped.into_iter().map(|(account, nonces)| (account, nonces.into_iter().collect())).collect())
+    }
+}
+
+impl BorshSerialize for Shares {
+    fn serialize<W: std::io::Write>(&self, writer: &mut W) -> std::io::Result<()> {
+        self.0.serialize(writer)
+    }
+}
+
+impl BorshDeserialize for Shares {
+    fn deserialize_reader<R: std::io::Read>(reader: &mut R) -> std::io::Result<Self> {
+        let groups = Vec::<(AccountId, Vec<u64>)>::deserialize_reader(reader)?;
+        if !Shares::is_canonical(&groups) {
+            return Err(std::io::Error::new(std::io::ErrorKind::InvalidData, "work shares not in their one written form"));
+        }
+        Ok(Shares(groups))
+    }
 }
 
 /// A piece of proof-of-work done for an account in one epoch: a number
@@ -122,7 +182,11 @@ pub fn tally(committee: &Committee, seed: &Hash32, statements: &[&Statement]) ->
     let work = committee.work();
     let math = work.math(committee.epoch());
     // Each share once, however many statements hold it, then judged.
-    let held: BTreeSet<&Share> = statements.iter().flat_map(|s| &s.shares).collect();
+    let held: BTreeSet<Share> = statements.iter().flat_map(|s| s.shares.iter()).collect();
+    // Any this validator has not checked yet, as when it started partway
+    // through the epoch, are checked on all its spare cores first.
+    let all: Vec<Share> = held.iter().copied().collect();
+    crate::work::judge_many(math, seed, &all, crate::work::spare_cores());
     let shares = held.into_iter().filter(|share| share.counts(math, seed, work.target));
     let mut counts = BTreeMap::new();
     for share in shares {
@@ -737,7 +801,14 @@ impl Ballot {
 
 /// A checkpoint put forward by a round's proposer, with what the others
 /// need in order to judge it.
-#[derive(Clone, Debug, PartialEq, Eq, BorshSerialize, BorshDeserialize)]
+///
+/// Written, it carries each work share once: the statements without their
+/// shares, then one table of every share any of them holds, each marked with
+/// which of the statements hold it (see `PackedShares`). Read back, every
+/// statement is whole again, exactly as its validator signed it. So a
+/// proposal's size follows the number of shares, not shares times
+/// validators.
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub struct Proposal {
     pub round: u32,
     pub checkpoint: Checkpoint,
@@ -765,6 +836,117 @@ impl Proposal {
                 self.checkpoint.digest().as_bytes(),
             ],
         )
+    }
+}
+
+/// The most statements a proposal can carry: one bit each in a share's
+/// mark. Far above the most validators a network may have.
+pub const MAX_PACKED_STATEMENTS: usize = 64;
+
+/// Every share the statements of a proposal hold, each once: by account in
+/// rising order, then by nonce in rising order, with a mark whose bit `i` is
+/// set when statement `i` holds the share. A mark is never zero and never
+/// names a statement that is not there.
+type PackedShares = Vec<(AccountId, Vec<(u64, u64)>)>;
+
+fn invalid(what: &str) -> std::io::Error {
+    std::io::Error::new(std::io::ErrorKind::InvalidData, what.to_string())
+}
+
+fn pack_shares(statements: &[Signed<Statement>]) -> std::io::Result<PackedShares> {
+    if statements.len() > MAX_PACKED_STATEMENTS {
+        return Err(invalid("too many statements for one proposal"));
+    }
+    let mut marks: BTreeMap<AccountId, BTreeMap<u64, u64>> = BTreeMap::new();
+    for (i, signed) in statements.iter().enumerate() {
+        for (account, nonces) in signed.body.shares.groups() {
+            let entry = marks.entry(*account).or_default();
+            for nonce in nonces {
+                *entry.entry(*nonce).or_insert(0) |= 1u64 << i;
+            }
+        }
+    }
+    Ok(marks.into_iter().map(|(account, nonces)| (account, nonces.into_iter().collect())).collect())
+}
+
+/// Each statement's own shares, from the table, in their one written form.
+fn unpack_shares(table: &PackedShares, statements: usize) -> std::io::Result<Vec<Shares>> {
+    let allowed = if statements >= 64 { u64::MAX } else { (1u64 << statements) - 1 };
+    if table.windows(2).any(|pair| pair[0].0 >= pair[1].0) {
+        return Err(invalid("share table accounts out of order"));
+    }
+    let mut each: Vec<Vec<(AccountId, Vec<u64>)>> = vec![Vec::new(); statements];
+    for (account, entries) in table {
+        if entries.is_empty() || entries.windows(2).any(|pair| pair[0].0 >= pair[1].0) {
+            return Err(invalid("share table nonces out of order"));
+        }
+        for &(nonce, mark) in entries {
+            if mark == 0 || mark & !allowed != 0 {
+                return Err(invalid("share marked for no statement, or one not there"));
+            }
+            for (i, groups) in each.iter_mut().enumerate() {
+                if mark & (1u64 << i) != 0 {
+                    match groups.last_mut() {
+                        Some((last, nonces)) if last == account => nonces.push(nonce),
+                        _ => groups.push((*account, vec![nonce])),
+                    }
+                }
+            }
+        }
+    }
+    Ok(each.into_iter().map(Shares).collect())
+}
+
+impl BorshSerialize for Proposal {
+    fn serialize<W: std::io::Write>(&self, writer: &mut W) -> std::io::Result<()> {
+        self.round.serialize(writer)?;
+        self.checkpoint.serialize(writer)?;
+        self.valid_round.serialize(writer)?;
+        self.backers.serialize(writer)?;
+        let table = pack_shares(&self.statements)?;
+        (self.statements.len() as u32).serialize(writer)?;
+        for signed in &self.statements {
+            let s = &signed.body;
+            s.epoch.serialize(writer)?;
+            s.validator.serialize(writer)?;
+            s.log.serialize(writer)?;
+            s.evidence.serialize(writer)?;
+            s.next_key.serialize(writer)?;
+            s.cheats.serialize(writer)?;
+            signed.proof.serialize(writer)?;
+        }
+        table.serialize(writer)
+    }
+}
+
+impl BorshDeserialize for Proposal {
+    fn deserialize_reader<R: std::io::Read>(reader: &mut R) -> std::io::Result<Self> {
+        let round = u32::deserialize_reader(reader)?;
+        let checkpoint = Checkpoint::deserialize_reader(reader)?;
+        let valid_round = Option::<u32>::deserialize_reader(reader)?;
+        let backers = Vec::<Vote>::deserialize_reader(reader)?;
+        let count = u32::deserialize_reader(reader)? as usize;
+        if count > MAX_PACKED_STATEMENTS {
+            return Err(invalid("too many statements for one proposal"));
+        }
+        let mut heads = Vec::with_capacity(count);
+        for _ in 0..count {
+            let statement = Statement {
+                epoch: u64::deserialize_reader(reader)?,
+                validator: u16::deserialize_reader(reader)?,
+                log: Pin::deserialize_reader(reader)?,
+                evidence: Vec::deserialize_reader(reader)?,
+                next_key: Option::deserialize_reader(reader)?,
+                cheats: Vec::deserialize_reader(reader)?,
+                shares: Shares::default(),
+            };
+            heads.push(Signed { body: statement, proof: Vote::deserialize_reader(reader)? });
+        }
+        let table = PackedShares::deserialize_reader(reader)?;
+        for (signed, shares) in heads.iter_mut().zip(unpack_shares(&table, count)?) {
+            signed.body.shares = shares;
+        }
+        Ok(Proposal { round, checkpoint, valid_round, backers, statements: heads })
     }
 }
 

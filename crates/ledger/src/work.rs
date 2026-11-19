@@ -85,6 +85,19 @@ pub const LIVE_MORE_SHARES_FROM: u64 = 112;
 /// `LIVE_MORE_SHARES_FROM`.
 pub const LIVE_MORE_SHARES: u64 = 10_000;
 
+/// The first epoch on the live network that aims for `LIVE_MOST_SHARES`
+/// shares instead of `LIVE_MORE_SHARES`: epoch 123, which begins at
+/// 2026-11-20 00:13 UTC. The release bringing it reaches every validator
+/// in the first minutes of epoch 122, so 122 closes under the new rule and
+/// sets 123's target five times easier.
+pub const LIVE_MOST_SHARES_FROM: u64 = 123;
+
+/// How many shares an epoch aims for on the live network from
+/// `LIVE_MOST_SHARES_FROM`: with five times the shares, a small miner is
+/// paid in finer steps. Proposals write each share once, so the number
+/// does not have to come down as validators join.
+pub const LIVE_MOST_SHARES: u64 = 50_000;
+
 /// The live network's launch seats' names, in genesis order.
 pub const LIVE_SEAT_NAMES: [&str; 4] =
     ["v1.orien.network:7101", "v2.orien.network:7102", "v3.orien.network:7103", "v4.orien.network:7104"];
@@ -128,6 +141,10 @@ static LIGHT: Mutex<Option<(Hash32, Shared<RandomXCache>)>> = Mutex::new(None);
 
 /// Shares already judged, by seed: each is checked once however often it
 /// arrives. Holds a couple of epochs at most.
+/// How many judged shares are remembered before an old epoch's are dropped:
+/// more than two epochs' worth at the most a validator takes in one.
+const JUDGED_KEPT: usize = 1_000_000;
+
 static JUDGED: Mutex<Option<HashMap<(Hash32, Share), u64>>> = Mutex::new(None);
 
 #[cfg(feature = "randomx")]
@@ -175,6 +192,18 @@ fn randomx_light(seed: &Hash32, share: &Share) -> u64 {
     })
 }
 
+/// Takes `number` as what RandomX makes of `share` under `seed`, without
+/// checking it: for a validator reading back the shares it checked itself
+/// before a restart.
+pub fn remember(seed: &Hash32, share: &Share, number: u64) {
+    let mut judged = JUDGED.lock().unwrap_or_else(|p| p.into_inner());
+    let judged = judged.get_or_insert_with(HashMap::new);
+    if judged.len() >= JUDGED_KEPT {
+        judged.retain(|(other, _), _| other == seed);
+    }
+    judged.insert((*seed, *share), number);
+}
+
 /// A share's number if it has been judged already, or is cheap to judge:
 /// whether checking it would cost nothing.
 pub fn judged(math: Math, seed: &Hash32, share: &Share) -> Option<u64> {
@@ -198,13 +227,49 @@ pub fn judge(math: Math, seed: &Hash32, share: &Share) -> u64 {
             let mut judged = JUDGED.lock().unwrap_or_else(|p| p.into_inner());
             let judged = judged.get_or_insert_with(HashMap::new);
             // Far more than two epochs' worth means an old epoch's are in it.
-            if judged.len() >= 400_000 {
+            if judged.len() >= JUDGED_KEPT {
                 judged.retain(|(other, _), _| other == seed);
             }
             judged.insert(key, found);
             found
         }
     }
+}
+
+/// How many threads a validator may give to checking many shares at once,
+/// as at a close: all its cores but one, which keeps answering.
+pub fn spare_cores() -> usize {
+    std::thread::available_parallelism().map_or(1, |n| n.get().saturating_sub(1)).max(1)
+}
+
+/// Judges every share in `shares` not judged yet, on up to `threads`
+/// threads at once, so that a validator holding many it has not seen, as
+/// one started partway through an epoch does at the close, checks them in a
+/// fraction of the time. Afterwards `judge` answers each from memory.
+pub fn judge_many(math: Math, seed: &Hash32, shares: &[Share], threads: usize) {
+    if math != Math::RandomX {
+        return;
+    }
+    let todo: Vec<Share> = {
+        let judged = JUDGED.lock().unwrap_or_else(|p| p.into_inner());
+        let known = |share: &Share| judged.as_ref().is_some_and(|j| j.contains_key(&(*seed, *share)));
+        shares.iter().filter(|share| !known(share)).copied().collect()
+    };
+    if todo.is_empty() {
+        return;
+    }
+    let next = std::sync::atomic::AtomicUsize::new(0);
+    std::thread::scope(|scope| {
+        for _ in 0..threads.clamp(1, todo.len()) {
+            scope.spawn(|| {
+                loop {
+                    let i = next.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
+                    let Some(share) = todo.get(i) else { break };
+                    judge(math, seed, share);
+                }
+            });
+        }
+    });
 }
 
 /// What a miner prepares for an epoch: nothing for BLAKE3; for RandomX the

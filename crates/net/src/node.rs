@@ -20,7 +20,7 @@ use crate::client::{connect, exchange, rpc};
 use crate::closer::{Closer, Env, Pace, Wanted};
 use crate::history::{History, Received};
 use crate::keys::ValidatorKey;
-use crate::store::{CertLog, Epochs, LeafCounter, OrderLog, sync_dir, write_replacing};
+use crate::store::{CertLog, Epochs, Journal, LeafCounter, OrderLog, sync_dir, write_replacing};
 use crate::wire::{AccountView, NodeInfo, Request, Response, read_frame, write_frame};
 use anyhow::{Context, Result, anyhow, bail};
 use orien_crypto::keytree::{self, KeyTree, TreeSignature};
@@ -225,6 +225,80 @@ struct Shared {
     validator_ips: RwLock<std::collections::HashSet<IpAddr>>,
 }
 
+/// Fetches the current epoch's work shares from another validator and
+/// takes the ones this validator lacks, checking them on its spare cores in
+/// the background. A validator started partway through an epoch, after a
+/// restart or a move, so holds the whole epoch's shares well before the
+/// close, instead of checking the missed ones one by one when it closes.
+fn catch_up_shares(shared: Arc<Shared>, me: Option<u16>, name: &str, log: bool) {
+    thread::sleep(Duration::from_secs(5));
+    let committee = shared.committee();
+    let epoch = committee.epoch();
+    let math = committee.work().math(epoch);
+    let seed = *shared.seed.read().unwrap();
+    if math != Math::RandomX {
+        return;
+    }
+    // One core fewer than at a close: shares keep arriving meanwhile.
+    let threads = orien_ledger::work::spare_cores().saturating_sub(1).max(1);
+    let mut taken = 0usize;
+    for (index, member) in committee.members().iter().enumerate() {
+        if Some(index as u16) == me {
+            continue;
+        }
+        let (mut after, mut answered) = (None, false);
+        loop {
+            if shared.stopping.load(Ordering::SeqCst) || *shared.seed.read().unwrap() != seed {
+                return;
+            }
+            let request = Request::Shares { epoch, after, max: 10_000 };
+            let Ok(Response::Shares { epoch: theirs, shares }) = rpc(&member.address, &request, Duration::from_secs(30))
+            else {
+                break;
+            };
+            answered = true;
+            if theirs != epoch || shares.is_empty() {
+                break;
+            }
+            after = shares.last().copied();
+            orien_ledger::work::judge_many(math, &seed, &shares, threads);
+            for share in shares {
+                match shared.handle(Request::SubmitShare(share)) {
+                    Response::Share { fresh: true } => taken += 1,
+                    Response::Closing => return,
+                    _ => {}
+                }
+            }
+        }
+        // One validator's shares are enough: they pass every share on.
+        if answered {
+            break;
+        }
+    }
+    if log && taken > 0 {
+        println!("[{name}] caught up on {taken} work share(s) of epoch {epoch} from the other validators");
+    }
+}
+
+/// Opens the current epoch's share log, putting the shares already in it
+/// into `shares` and what checking each found back in the remembered
+/// judgments, as if they had just arrived.
+fn open_share_log(epochs: &Epochs, seed: &Hash32, durable: bool, shares: &mut BTreeSet<Share>) -> io::Result<Journal> {
+    let (log, records) = Journal::open(&epochs.shares(), durable)?;
+    for record in records {
+        if let Ok((share, number)) = borsh::from_slice::<(Share, u64)>(&record) {
+            orien_ledger::work::remember(seed, &share, number);
+            shares.insert(share);
+        }
+    }
+    Ok(log)
+}
+
+/// The most work shares a validator takes in one epoch: about 2 MB in its
+/// statement at 8 bytes a share, and about 4 MB in a proposal, where each
+/// share is written once with a mark of which statements hold it.
+const MAX_SHARES: u64 = 250_000;
+
 /// How often the validators' names are looked up again.
 const LOOK_UP_EVERY: Duration = Duration::from_secs(30);
 
@@ -256,7 +330,7 @@ fn look_up_validators(shared: Arc<Shared>) {
 
 /// How many RandomX shares this validator checks at once, so checking never
 /// takes every processor. More wait their turn, for up to `SHARE_WAIT`.
-const SHARE_CHECKS: usize = 2;
+const SHARE_CHECKS: usize = 4;
 const SHARE_WAIT: Duration = Duration::from_secs(5);
 
 static CHECKING: Mutex<usize> = Mutex::new(0);
@@ -568,6 +642,9 @@ struct Core {
     caught: Vec<u16>,
     /// Work shares taken this epoch.
     shares: BTreeSet<Share>,
+    /// The same shares on disk, each with what checking it found, so that
+    /// a restart forgets none of them and checks none again.
+    share_log: Journal,
     commands: Sender<Command>,
     orders: OrderLog,
     /// The signed order behind each vote for a payment that is not final
@@ -1016,6 +1093,8 @@ impl Core {
         self.caught.clear();
         // Shares are for the epoch whose seed they were found against.
         self.shares.clear();
+        self.share_log = open_share_log(&self.epochs, &self.previous, self.durable, &mut BTreeSet::new())
+            .expect("cannot open the share log; stopping");
         self.root = None;
         self.checkpoint_saved = false;
 
@@ -1433,14 +1512,21 @@ impl Core {
         }
         // The target keeps the number near the one wanted. This only bounds a
         // statement while the target catches up, as after a sudden rise in
-        // mining: 40 times the number wanted, but never so many that the
-        // proposal closing the epoch, which carries every validator's
-        // statement at 40 bytes a share, passes about 12 MB.
-        let room = 300_000 / self.committee.members().len().max(1) as u64;
-        if self.shares.len() as u64 >= work.wanted(self.committee.epoch()).saturating_mul(40).min(room) {
+        // mining: ten times the number wanted, and never more than
+        // `MAX_SHARES`. Validators hold nearly the same shares, and a
+        // proposal writes each share once, so the bound does not shrink as
+        // validators join.
+        if self.shares.len() as u64 >= work.wanted(self.committee.epoch()).saturating_mul(10).min(MAX_SHARES) {
             return Response::Unavailable("this epoch has all the shares it takes".into());
         }
         self.shares.insert(share);
+        let number = orien_ledger::work::judged(math, &self.previous, &share).unwrap_or(0);
+        let record = borsh::to_vec(&(share, number)).expect("writing to memory cannot fail");
+        // Not forced to disk share by share: a crash loses at most the last
+        // moment's shares, which the other validators hold too.
+        if let Err(error) = self.share_log.append(&record) {
+            eprintln!("[{}] cannot record a work share: {error}", self.name);
+        }
         for peer in self.peers.values() {
             let _ = peer.send(Request::SubmitShare(share));
         }
@@ -1593,6 +1679,18 @@ impl Core {
             Request::Locks => {
                 let proofs = self.proofs.get_or_insert_with(|| self.start.proofs());
                 Response::Locks { epoch: self.committee.epoch(), proof: proofs.locks().clone() }
+            }
+            Request::Shares { epoch, after, max } => {
+                let shares = if epoch == self.committee.epoch() {
+                    let from = match after {
+                        Some(after) => std::ops::Bound::Excluded(after),
+                        None => std::ops::Bound::Unbounded,
+                    };
+                    self.shares.range((from, std::ops::Bound::Unbounded)).take(max.min(20_000) as usize).copied().collect()
+                } else {
+                    Vec::new()
+                };
+                Response::Shares { epoch: self.committee.epoch(), shares }
             }
             Request::Work => Response::Work {
                 epoch: self.committee.epoch(),
@@ -2100,6 +2198,9 @@ impl Node {
         let counter = data_dir.join(format!("leaf-{}", tree.root().short()));
         let leaves = LeafCounter::open(counter, tree_capacity, config.durable)?;
 
+        let mut shares = BTreeSet::new();
+        let share_log = open_share_log(&epochs, &previous, config.durable, &mut shares)?;
+
         let pace = Pace { unit: config.close_pace, clock_tolerance: config.clock_tolerance };
         let mut closer = Closer::open(&epochs.journal(), place, &committee, previous, pace, config.durable)?;
         if let Some(pinned) = closer.own_pin() {
@@ -2180,7 +2281,8 @@ impl Node {
             key_uses: HashMap::new(),
             cheats: Vec::new(),
             caught: Vec::new(),
-            shares: BTreeSet::new(),
+            shares,
+            share_log,
             shared: shared.clone(),
             sync_interval: config.sync_interval,
             commands,
@@ -2204,6 +2306,11 @@ impl Node {
         };
         core.connect_peers();
         let core = thread::Builder::new().name(format!("{name}-core")).spawn(move || core.run(receiver))?;
+        let catching = shared.clone();
+        let catcher = name.clone();
+        let _ = thread::Builder::new()
+            .name(format!("{name}-catch-up"))
+            .spawn(move || catch_up_shares(catching, place, &catcher, config.log));
         let accepting = shared.clone();
         let listener = thread::Builder::new()
             .name(format!("{name}-listen"))

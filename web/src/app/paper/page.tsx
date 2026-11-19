@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import { ArrowRight, Download } from 'lucide-react'
 import { Formula, PaperSection, Sub, Table } from '@/components/Paper'
-import { MORE_SHARES_FROM, OPEN_CLAIMS_FROM, RANDOMX_FROM, SITE_URL, SOURCE_CODE } from '@/lib/brand'
+import { MORE_SHARES_FROM, MOST_SHARES_FROM, OPEN_CLAIMS_FROM, RANDOMX_FROM, SITE_URL, SOURCE_CODE } from '@/lib/brand'
 import { jsonLd, pageMeta } from '@/lib/seo'
 
 export const metadata: Metadata = pageMeta({
@@ -562,11 +562,14 @@ a share counts when work < target           seed = digest of the previous checkp
             each account receives ⌊pot · its_shares / all_shares⌋, and the remainder waits.
           </p>
           <p>
-            Every counted share is listed in the statements that close the epoch, so each validator counts at most 40
-            times the shares wanted per epoch, 40,000, and refuses the rest until the next checkpoint. With many
-            validators the limit is lower, so that the proposal carrying all their statements stays under about 12 MB:
-            at most 300,000 shares divided by the number of validators. The target normally keeps shares far below this
-            limit; it is reached only for a few epochs after mining power rises sharply.
+            Every counted share is listed in the statements that close the epoch. A statement writes each account once,
+            followed by the nonces of its shares in rising order, about 8 bytes a share; there is exactly one way to
+            write a set of shares, and any other is refused. A proposal carries each share once, however many statements
+            hold it, in one table where each share is marked with the statements that hold it; read back, every
+            statement is exactly as its validator signed it. So a proposal grows with the number of shares, not with
+            shares times validators. Each validator counts at most 10 times the shares wanted per epoch, and never more
+            than 250,000, and refuses the rest until the next checkpoint. The target normally keeps shares far below
+            this limit; it is reached only after mining power rises sharply.
           </p>
           <p>
             Work only creates coins. It never decides which payments happen or in what order, so a miner with a great
@@ -576,17 +579,17 @@ a share counts when work < target           seed = digest of the previous checkp
 
         <Sub title="8.3 The target">
           <p>
-            The target aims for <em>W</em> = 10,000 shares per epoch, so that pay is spread finely however much work
+            The target aims for <em>W</em> = 50,000 shares per epoch, so that pay is spread finely however much work
             is done and even a small miner finds shares every hour. After each epoch with <em>n</em> shares under target{' '}
             <em>T</em>:
           </p>
           <Formula>{`T′ = 4 · T                                 if n = 0
 T′ = clamp( T · W / n,  ⌊T / 4⌋,  4 · T )  otherwise`}</Formula>
           <p>
-            Before epoch {MORE_SHARES_FROM.toLocaleString('en')}, <em>W</em> was 1,000. The target for epoch{' '}
-            {MORE_SHARES_FROM.toLocaleString('en')} was the usual step from the epoch before, made ten times easier at
-            once. On average a miner earns the same either way; with ten times the shares, its pay arrives in smaller,
-            steadier amounts.
+            Before epoch {MORE_SHARES_FROM.toLocaleString('en')}, <em>W</em> was 1,000, and before epoch{' '}
+            {MOST_SHARES_FROM.toLocaleString('en')} it was 10,000. The target for each of those epochs was the usual
+            step from the epoch before, made ten and then five times easier at once. On average a miner earns the
+            same either way; with more shares, its pay arrives in smaller, steadier amounts.
           </p>
           <p>
             The first target was 2<sup>40</sup> − 1: about one share for every 16.8 million BLAKE3 hashes. At epoch{' '}
@@ -1032,11 +1035,11 @@ Refund [lock, buyer]            at or after the deadline: buyer += everything`}<
             ['Unstaking', '168 epochs (about a week)'],
             ['Launch seats', '3,000,000 ORN of weight, shared equally, fading as stake arrives'],
             ['Fee', '0.1% of the amount, at least 0.000001 ORN, at most 1 ORN; stake and unstake 0.000001 ORN'],
-            ['Shares wanted per epoch', `10,000 (1,000 before epoch ${MORE_SHARES_FROM.toLocaleString('en')})`],
+            ['Shares wanted per epoch', `50,000 (10,000 before epoch ${MOST_SHARES_FROM.toLocaleString('en')}, 1,000 before epoch ${MORE_SHARES_FROM.toLocaleString('en')})`],
             ['Proof-of-work', `RandomX, keyed with each epoch’s seed (BLAKE3 before epoch ${RANDOMX_FROM.toLocaleString('en')})`],
             ['First target', `2⁴⁰ − 1; for RandomX, from epoch ${RANDOMX_FROM.toLocaleString('en')}, ⌊(2⁶⁴ − 1) / 400,000⌋`],
             ['Target change per epoch', 'at most × 4 or ÷ 4'],
-            ['Shares a validator counts per epoch', '40 times the shares wanted, or 300,000 ÷ validators if fewer'],
+            ['Shares a validator counts per epoch', '10 times the shares wanted, at most 250,000'],
             ['Hash function', 'BLAKE3, 32-byte output'],
             ['One-time signature', 'WOTS, w = 16, n = 24 bytes, 51 chains, 1,248 bytes'],
             ['Validator key tree', 'height 16 by default, at most 24'],

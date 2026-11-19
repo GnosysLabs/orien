@@ -328,7 +328,7 @@ fn vote(committee: &Committee, n: u8, place: u16, leaf: u32, item: Hash32) -> (H
 }
 
 fn statement(validator: u16, epoch: u64, cheats: Vec<Cheat>) -> Statement {
-    Statement { epoch, validator, log: Pin::start(epoch), evidence: Vec::new(), next_key: None, cheats, shares: Vec::new() }
+    Statement { epoch, validator, log: Pin::start(epoch), evidence: Vec::new(), next_key: None, cheats, shares: Default::default() }
 }
 
 #[test]

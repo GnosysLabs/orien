@@ -146,6 +146,12 @@ impl Epochs {
         self.folder(self.current).join("certs.log")
     }
 
+    /// The current epoch's work shares, each with what checking it found,
+    /// so that a restart neither forgets them nor checks them again.
+    pub fn shares(&self) -> PathBuf {
+        self.folder(self.current).join("shares.log")
+    }
+
     /// The state the current epoch started from. Epoch 0 has none: it
     /// starts from the genesis file.
     pub fn snapshot(&self) -> io::Result<Option<Vec<u8>>> {

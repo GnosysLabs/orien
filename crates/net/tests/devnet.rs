@@ -50,6 +50,8 @@ struct Options {
     /// "localhost" rather than at 127.0.0.1.
     seat_names_from: Option<u64>,
     limits: Limits,
+    /// How many work shares an epoch aims for.
+    shares: u64,
 }
 
 impl Default for Options {
@@ -72,6 +74,7 @@ impl Default for Options {
             randomx: None,
             seat_names_from: None,
             limits: Limits::default(),
+            shares: 1_000,
         }
     }
 }
@@ -199,7 +202,7 @@ impl TestNet {
             unstake_epochs: 168,
             fee: orien_ledger::Fees::NONE,
             cap: options.cap,
-            shares_per_epoch: 1_000,
+            shares_per_epoch: options.shares,
             first_target: options.first_target,
             bitcoin: None,
             randomx: options.randomx,
@@ -409,8 +412,12 @@ impl Drop for TestNet {
     }
 }
 
-fn wait_until(what: &str, mut done: impl FnMut() -> bool) {
-    let deadline = Instant::now() + Duration::from_secs(30);
+fn wait_until(what: &str, done: impl FnMut() -> bool) {
+    wait_up_to(30, what, done)
+}
+
+fn wait_up_to(seconds: u64, what: &str, mut done: impl FnMut() -> bool) {
+    let deadline = Instant::now() + Duration::from_secs(seconds);
     while !done() {
         assert!(Instant::now() < deadline, "timed out waiting until {what}");
         thread::sleep(Duration::from_millis(20));
@@ -1989,6 +1996,17 @@ fn the_live_networks_identity_is_unchanged() {
     let earlier = committee.at_epoch(more - 2).with_target(target);
     assert_eq!(orien_ledger::close::next_target(&earlier, 1_000), target);
 
+    // Fifty thousand from the next epoch set, the same way: five times
+    // easier at once on top of the usual step.
+    let most = orien_ledger::work::LIVE_MOST_SHARES_FROM;
+    assert_eq!((work.wanted(most - 1), work.wanted(most)), (10_000, 50_000));
+    let before = committee.at_epoch(most - 1).with_target(target);
+    assert_eq!(orien_ledger::close::next_target(&before, 10_000), target * 5);
+    assert_eq!(orien_ledger::close::next_target(&before, 5_000), target * 10);
+    let after = committee.at_epoch(most).with_target(target);
+    assert_eq!(orien_ledger::close::next_target(&after, 50_000), target);
+    assert_eq!(orien_ledger::close::next_target(&after, 100_000), target / 2);
+
     // A network on RandomX from the start starts at RandomX's target.
     let mut fresh = genesis.clone();
     fresh.network = "fresh".into();
@@ -2465,4 +2483,236 @@ fn a_locked_payment_and_its_secret_are_proven_by_checkpoints() {
     net.wait_for_epoch(epoch + 1);
     let proven = client.proven_lock(&alice, seq).expect("the secret is proven");
     assert_eq!((proven.made, proven.secret), (None, Some(secret)));
+}
+
+
+/// How many work shares validator `v` holds for `epoch`, by asking it page
+/// by page.
+fn shares_held(net: &TestNet, v: usize, epoch: u64) -> usize {
+    let (mut after, mut count) = (None, 0);
+    loop {
+        match net.ask(v, &Request::Shares { epoch, after, max: 20_000 }) {
+            Response::Shares { epoch: theirs, shares } if theirs == epoch && !shares.is_empty() => {
+                count += shares.len();
+                after = shares.last().copied();
+            }
+            _ => return count,
+        }
+    }
+}
+
+/// Waits for the start of a fresh epoch and returns it with its seed and target.
+fn fresh_epoch(client: &Client) -> (u64, orien_crypto::Hash32, u64) {
+    client.follow();
+    let (now, ..) = client.followed_work();
+    let mut work = client.followed_work();
+    wait_up_to(300, "a new epoch begins", || {
+        client.follow();
+        work = client.followed_work();
+        work.0 > now
+    });
+    work
+}
+
+/// Whether `account` was paid for work done in `epoch`, by every validator's records.
+fn mined_in(client: &Client, account: &orien_ledger::AccountId, epoch: u64) -> bool {
+    client
+        .history(account, 0, 1000)
+        .is_some_and(|page| page.entries.iter().any(|e| e.income == orien_ledger::Income::Mining && e.epoch == epoch))
+}
+
+#[test]
+fn ten_validators_close_an_epoch_of_forty_thousand_shares() {
+    // Before shares were written once per proposal, ten statements of
+    // 40,000 shares at 40 bytes each made a 16 MB proposal, past the frame
+    // limit, and each validator's share of 12 MB held only 30,000.
+    let options = Options {
+        validators: 10,
+        epoch: 120,
+        cap: orien_ledger::release::CAP,
+        first_target: u64::MAX >> 2,
+        shares: 40_000,
+        sync: Duration::from_millis(200),
+        ..Options::default()
+    };
+    let net = TestNet::start_with("ten-validators", options);
+    let carol = net.address("carol");
+    let client = net.client();
+    let (epoch, seed, target) = fresh_epoch(&client);
+    let math = client.committee().work().math(epoch);
+    let started = Instant::now();
+    let shares: Vec<orien_ledger::close::Share> = (0..)
+        .map(|nonce| orien_ledger::close::Share { account: carol, nonce })
+        .filter(|share| share.counts(math, &seed, target))
+        .take(40_000)
+        .collect();
+    // Each validator passes every share on to the others, so each share
+    // goes to one, from ten senders at once.
+    thread::scope(|scope| {
+        for (v, part) in shares.chunks(4_000).enumerate() {
+            let client = &client;
+            scope.spawn(move || {
+                for share in part {
+                    match client.call(v, &Request::SubmitShare(*share)) {
+                        Ok(Response::Share { .. }) => {}
+                        other => panic!("share refused by validator {v}: {other:?}"),
+                    }
+                }
+            });
+        }
+    });
+    println!("sent 40,000 shares in {:?}", started.elapsed());
+    wait_up_to(120, "every validator holds every share", || (0..10).all(|v| shares_held(&net, v, epoch) == 40_000));
+    println!("all ten hold all 40,000 after {:?}", started.elapsed());
+    wait_up_to(240, "the epoch closes and pays carol for it", || {
+        client.follow();
+        mined_in(&client, &carol, epoch)
+    });
+    net.wait_until_level();
+}
+
+#[test]
+fn a_restarted_validator_keeps_its_shares_and_fetches_the_ones_it_lost() {
+    use orien_ledger::work::Math;
+    // RandomX from the start, at an easy target, and long epochs, so the
+    // restarts all happen inside one.
+    let randomx = orien_ledger::RandomXFrom { epoch: 0, target: u64::MAX >> 3 };
+    let options = Options {
+        epoch: 150,
+        cap: orien_ledger::release::CAP,
+        first_target: u64::MAX >> 3,
+        randomx: Some(randomx),
+        ..Options::default()
+    };
+    let mut net = TestNet::start_with("restarts", options);
+    let (carol, bob) = (net.address("carol"), net.address("bob"));
+    let client = net.client();
+    client.follow();
+    let (epoch, seed, target) = client.followed_work();
+    assert_eq!(client.committee().work().math(epoch), Math::RandomX);
+    let ready = orien_ledger::work::Prepared::light_only(Math::RandomX, &seed);
+    let hasher = ready.hasher();
+    let mine = |account, from: u64, count: usize| -> Vec<orien_ledger::close::Share> {
+        (from..)
+            .map(|nonce| orien_ledger::close::Share { account, nonce })
+            .filter(|share| hasher.number(share) < target)
+            .take(count)
+            .collect()
+    };
+    for share in mine(carol, 0, 40) {
+        assert_eq!(client.submit_share(share), 4);
+    }
+    wait_until("all four hold carol's shares", || (0..4).all(|v| shares_held(&net, v, epoch) == 40));
+
+    // Restarted with its share file intact, a validator still has them all.
+    net.stop(2);
+    net.restart(2);
+    assert_eq!(shares_held(&net, 2, epoch), 40, "kept on disk");
+
+    // Restarted without it, as a validator moved without its share file,
+    // it fetches them from the others.
+    net.stop(3);
+    fs::remove_file(net.dir.join("data-3").join("epochs").join(epoch.to_string()).join("shares.log")).unwrap();
+    net.restart(3);
+    wait_until("the restarted validator fetches the shares it lost", || shares_held(&net, 3, epoch) == 40);
+
+    // All four restarted at once, mid-epoch: nobody holds carol's shares in
+    // memory any more, and still none are lost.
+    for v in 0..4 {
+        net.stop(v);
+    }
+    for v in 0..4 {
+        net.restart(v);
+    }
+    for share in mine(bob, 0, 10) {
+        client.submit_share(share);
+    }
+    wait_until("all four hold every share after restarting together", || {
+        (0..4).all(|v| shares_held(&net, v, epoch) == 50)
+    });
+    println!("epoch {epoch}: all four restarted together and still hold all 50 shares");
+    wait_up_to(300, "the epoch closes and pays both miners", || {
+        client.follow();
+        mined_in(&client, &carol, epoch) && mined_in(&client, &bob, epoch)
+    });
+    net.wait_until_level();
+}
+
+#[test]
+#[ignore = "a soak run of about seven minutes; run it by name"]
+fn many_hours_of_mining_survive_restarts_lost_files_and_absences() {
+    use orien_ledger::work::Math;
+    use std::sync::atomic::{AtomicBool, Ordering};
+    let randomx = orien_ledger::RandomXFrom { epoch: 0, target: u64::MAX >> 3 };
+    let options = Options {
+        epoch: 12,
+        cap: orien_ledger::release::CAP,
+        first_target: u64::MAX >> 3,
+        randomx: Some(randomx),
+        ..Options::default()
+    };
+    let mut net = TestNet::start_with("soak", options);
+    let carol = net.address("carol");
+    let genesis = net.genesis.clone();
+    let stop = AtomicBool::new(false);
+    let hours = 30u64;
+    thread::scope(|scope| {
+        // A miner that never stops: each epoch's seed, light hashing, every
+        // share to every validator that answers.
+        scope.spawn(|| {
+            let client = Client::new(&genesis);
+            let mut nonce = 0u64;
+            while !stop.load(Ordering::SeqCst) {
+                client.follow();
+                let (epoch, seed, target) = client.followed_work();
+                let ready = orien_ledger::work::Prepared::light_only(Math::RandomX, &seed);
+                let hasher = ready.hasher();
+                let started = Instant::now();
+                while !stop.load(Ordering::SeqCst) && started.elapsed() < Duration::from_secs(2) {
+                    let share = orien_ledger::close::Share { account: carol, nonce };
+                    nonce += 1;
+                    if hasher.number(&share) < target {
+                        client.submit_share(share);
+                    }
+                }
+                let _ = epoch;
+            }
+        });
+        let client = net.client();
+        let first = fresh_epoch(&client).0;
+        for hour in 0..hours {
+            let (epoch, ..) = client.followed_work();
+            // Somewhere mid-epoch, one validator goes down.
+            thread::sleep(Duration::from_millis(2_000 + (hour * 1_700) % 7_000));
+            let v = (hour % 4) as usize;
+            net.stop(v);
+            if hour % 3 == 1 {
+                // As if moved without its share file.
+                let file = net.dir.join(format!("data-{v}")).join("epochs").join(epoch.to_string()).join("shares.log");
+                let _ = fs::remove_file(file);
+            }
+            if hour == 12 {
+                // Away through three closes.
+                let back = epoch + 3;
+                wait_up_to(120, "three closes without one validator", || {
+                    client.follow();
+                    client.followed_work().0 >= back
+                });
+            } else {
+                thread::sleep(Duration::from_secs(1));
+            }
+            net.restart(v);
+            wait_up_to(120, "the next epoch", || {
+                client.follow();
+                client.followed_work().0 > epoch
+            });
+        }
+        stop.store(true, Ordering::SeqCst);
+        let last = client.followed_work().0;
+        println!("epochs {first} to {last} closed with a validator knocked out in each");
+        let paid = (first..last).filter(|epoch| mined_in(&client, &carol, *epoch)).count() as u64;
+        println!("carol paid for {paid} of {} epochs", last - first);
+        assert!(paid + 3 >= last - first, "nearly every epoch paid her work");
+    });
+    net.wait_until_level();
 }

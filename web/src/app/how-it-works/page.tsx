@@ -243,7 +243,7 @@ export default function HowItWorksPage() {
           RandomX, the mining math Monero uses, needs 2 GB of memory and suits an ordinary processor, so graphics cards
           and custom chips gain little and any computer can take part.
           Validators collect the shares, and at each checkpoint the hour’s new coins are paid out in proportion to
-          them. The target moves each hour to keep about ten thousand shares an hour, however many people mine, so even a small computer finds shares every hour.
+          them. The target moves each hour to keep about fifty thousand shares an hour, however many people mine, so even a small computer finds shares every hour.
         </p>
         <p>
           The seed of each hour is the checkpoint before it, which nobody can know in advance. The very first seed

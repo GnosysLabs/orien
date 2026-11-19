@@ -140,6 +140,10 @@ pub struct Work {
     /// `shares_per_epoch` (never, as u64::MAX).
     pub more_shares_from: u64,
     pub more_shares: u64,
+    /// The first epoch that aims for `most_shares` shares instead
+    /// (never, as u64::MAX).
+    pub most_shares_from: u64,
+    pub most_shares: u64,
 }
 
 impl Work {
@@ -150,7 +154,14 @@ impl Work {
 
     /// How many shares `epoch` aims for.
     pub fn wanted(&self, epoch: u64) -> u64 {
-        if epoch >= self.more_shares_from { self.more_shares } else { self.shares_per_epoch }.max(1)
+        if epoch >= self.most_shares_from {
+            self.most_shares
+        } else if epoch >= self.more_shares_from {
+            self.more_shares
+        } else {
+            self.shares_per_epoch
+        }
+        .max(1)
     }
 }
 
@@ -448,8 +459,14 @@ impl Committee {
         } else {
             genesis.randomx.unwrap_or(RandomXFrom { epoch: u64::MAX, target: genesis.first_target })
         };
-        let (more_shares_from, more_shares) = if network.to_string() == crate::work::LIVE_NETWORK {
+        let live = network.to_string() == crate::work::LIVE_NETWORK;
+        let (more_shares_from, more_shares) = if live {
             (crate::work::LIVE_MORE_SHARES_FROM, crate::work::LIVE_MORE_SHARES)
+        } else {
+            (u64::MAX, genesis.shares_per_epoch)
+        };
+        let (most_shares_from, most_shares) = if live {
+            (crate::work::LIVE_MOST_SHARES_FROM, crate::work::LIVE_MOST_SHARES)
         } else {
             (u64::MAX, genesis.shares_per_epoch)
         };
@@ -464,6 +481,8 @@ impl Committee {
             randomx_target: randomx.target,
             more_shares_from,
             more_shares,
+            most_shares_from,
+            most_shares,
         };
         let seat_addresses = if network.to_string() == crate::work::LIVE_NETWORK {
             Some(SeatAddresses {

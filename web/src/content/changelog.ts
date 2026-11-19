@@ -27,6 +27,20 @@ export const PRODUCTS: Record<Product, string> = {
 export const CHANGELOG: Entry[] = [
   {
     date: '2026-11-19',
+    products: ['orien', 'validators', 'network'],
+    version: '1.10.0',
+    title: 'Five times the shares, and validators that forget nothing',
+    changes: [
+      'From 00:13 UTC on 20 November, the hour after checkpoint 122, the network aims for 50,000 work shares an hour instead of 10,000. A share is five times easier to find, so a small computer finds many every hour. On average every miner earns the same; pay simply arrives in finer steps.',
+      'The messages that close each hour carry each share once, however many validators hold it, and list a miner’s address once with its shares under it. A 50,000-share hour now needs about 1 MB to close instead of 8 MB, and the room for shares no longer shrinks as more validators join.',
+      'A validator keeps the hour’s shares on disk. After a restart it carries on with all of them, and fetches any it missed from the other validators in the background, so a restart neither loses miners’ shares nor slows the close.',
+      'A validator checks shares that are new to it at the close on all its spare cores, and checks four incoming shares at once instead of two.',
+      'Validators that update themselves now restart in the first five minutes after a checkpoint, one at a time, instead of in the middle of an hour.',
+      'Miners and wallets need no update: they take each hour’s target from the network.',
+    ],
+  },
+  {
+    date: '2026-11-19',
     products: ['network'],
     title: 'Network hashrate',
     changes: [
