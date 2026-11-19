@@ -7,7 +7,7 @@ import { BottomNav, Header } from '@/components/Header'
 import { ScrollToTop } from '@/components/ScrollToTop'
 import { Main, SiteOnly } from '@/components/SiteOnly'
 import { Wordmark } from '@/components/Wordmark'
-import { DISCORD, MARKETPLACE_LIVE, OPERATOR, OPERATOR_URL, SITE_DESCRIPTION, SITE_NAME, SITE_URL, TAGLINE, X_ACCOUNT } from '@/lib/brand'
+import { DISCORD, MARKETPLACE_LIVE, OPERATOR, OPERATOR_URL, SITE_DESCRIPTION, SITE_NAME, SITE_URL, SOURCE_CODE, TAGLINE, X_ACCOUNT } from '@/lib/brand'
 import { SHARE_IMAGE } from '@/lib/seo'
 import './globals.css'
 
@@ -93,7 +93,7 @@ const SITE_DATA = {
       url: SITE_URL,
       logo: { '@type': 'ImageObject', url: `${SITE_URL}/icon-rounded-512.png`, width: 512, height: 512 },
       description: SITE_DESCRIPTION,
-      sameAs: [X_ACCOUNT, DISCORD],
+      sameAs: [X_ACCOUNT, DISCORD, SOURCE_CODE],
       parentOrganization: { '@id': `${SITE_URL}/#org` },
     },
     {
@@ -156,6 +156,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               <Link href="/changelog/" className="hover:text-ink">
                 Changelog
               </Link>
+              <a href={SOURCE_CODE} target="_blank" rel="noreferrer" className="hover:text-ink">
+                Source code
+              </a>
               <Link href="/contact/" className="hover:text-ink">
                 Contact
               </Link>

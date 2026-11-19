@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import { ArrowRight, Download } from 'lucide-react'
 import { Formula, PaperSection, Sub, Table } from '@/components/Paper'
-import { OPEN_CLAIMS_FROM, RANDOMX_FROM, SITE_URL } from '@/lib/brand'
+import { OPEN_CLAIMS_FROM, RANDOMX_FROM, SITE_URL, SOURCE_CODE } from '@/lib/brand'
 import { jsonLd, pageMeta } from '@/lib/seo'
 
 export const metadata: Metadata = pageMeta({
@@ -67,7 +67,16 @@ export default function PaperPage() {
         </p>
         <p className="mt-4 text-sm leading-relaxed text-muted print:text-[9pt] print:text-neutral-600">
           This paper states the rules exactly as the <strong className="text-ink print:text-black">orien</strong> program implements
-          them. Where the two could ever differ, the program’s source code is the reference.
+          them. Where the two could ever differ, the program’s{' '}
+          <a
+            href={SOURCE_CODE}
+            target="_blank"
+            rel="noreferrer"
+            className="text-ink underline decoration-muted underline-offset-4 hover:decoration-pearl print:text-black"
+          >
+            source code
+          </a>{' '}
+          is the reference.
         </p>
         <a
           href="/orien-paper.pdf"

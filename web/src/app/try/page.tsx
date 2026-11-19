@@ -3,6 +3,7 @@ import Link from 'next/link'
 import { ArrowRight, ChevronDown, Terminal } from 'lucide-react'
 import { CopyText } from '@/components/CopyText'
 import { WalletDownload } from '@/components/WalletDownload'
+import { SOURCE_CODE } from '@/lib/brand'
 import { pageMeta } from '@/lib/seo'
 
 export const metadata: Metadata = pageMeta({
@@ -80,6 +81,12 @@ export default function GetStartedPage() {
       <p className="mt-4 text-center text-sm text-muted">
         <a href="/wallet/SHA256SUMS" className="underline decoration-line underline-offset-4 hover:text-ink">
           Download fingerprints (SHA-256)
+        </a>
+        <span className="mx-3 text-muted/50" aria-hidden>
+          ·
+        </span>
+        <a href={SOURCE_CODE} target="_blank" rel="noreferrer" className="underline decoration-line underline-offset-4 hover:text-ink">
+          Source code
         </a>
       </p>
 

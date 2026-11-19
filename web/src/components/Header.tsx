@@ -1,6 +1,6 @@
 "use client";
 
-import { DISCORD, IPHONE_BETA, X_ACCOUNT } from "@/lib/brand";
+import { DISCORD, IPHONE_BETA, SOURCE_CODE, X_ACCOUNT } from "@/lib/brand";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
@@ -17,6 +17,7 @@ import {
   Rocket,
   Terminal,
   type LucideIcon,
+  Code2,
 } from "lucide-react";
 import { MARKETPLACE_LIVE } from "@/lib/brand";
 import { AccountMenu } from "./AccountMenu";
@@ -116,6 +117,12 @@ const DOWNLOADS: {
     label: "orien command line",
     detail: "Mac, Linux and Windows",
     icon: Terminal,
+  },
+  {
+    href: SOURCE_CODE,
+    label: "Source code",
+    detail: "Open source, on GitHub",
+    icon: Code2,
   },
 ];
 
