@@ -27,6 +27,14 @@ export const PRODUCTS: Record<Product, string> = {
 export const CHANGELOG: Entry[] = [
   {
     date: '2026-11-19',
+    products: ['network'],
+    title: 'Network hashrate',
+    changes: [
+      'The explorer’s home page now shows an estimate of the network’s hashrate: how many tries a second all miners make together, averaged over the last six hours. It is worked out from each hour’s checkpoint, which records how hard mining became from the shares found.',
+    ],
+  },
+  {
+    date: '2026-11-19',
     products: ['orien', 'validators', 'network'],
     version: '1.9.3',
     title: 'Ten times the shares',

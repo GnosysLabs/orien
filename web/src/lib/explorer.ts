@@ -35,6 +35,9 @@ export type Overview = {
   /** Wallets paid for mining at checkpoint `epoch`, and at least once in the
    * `hours` checkpoints up to it. */
   miners: { epoch: number; last_hour: number; last_day: number; hours: number } | null
+  /** The network's mining speed, estimated: tries a second over `hours`
+   * hours up to checkpoint `epoch`. */
+  hashrate: { epoch: number; per_second: number; hours: number } | null
   supply: {
     cap: string
     released: string
@@ -181,6 +184,19 @@ export function orn(units: string | number, digits = 9): string {
   const text = digits === 0 ? '' : fraction.toString().padStart(digits, '0').replace(/0+$/, '')
   const grouped = whole.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',')
   return text ? `${grouped}.${text}` : grouped
+}
+
+/** Tries a second as "3.16 MH/s". */
+export function hashrate(perSecond: number): string {
+  const units = ['H/s', 'kH/s', 'MH/s', 'GH/s', 'TH/s']
+  let value = perSecond
+  let unit = 0
+  while (value >= 1000 && unit < units.length - 1) {
+    value /= 1000
+    unit += 1
+  }
+  const digits = value >= 100 ? 0 : value >= 10 ? 1 : 2
+  return `${value.toFixed(digits)} ${units[unit]}`
 }
 
 /** "a3f9c2…8b41". */

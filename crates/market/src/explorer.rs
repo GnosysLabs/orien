@@ -28,6 +28,10 @@ const FRESH_ADDRESS: Duration = Duration::from_secs(20);
 const MAX_ADDRESSES: usize = 2000;
 /// Checkpoints on the overview, newest first.
 const RECENT: usize = 24;
+/// Hours the network's hashrate is averaged over, and how far back to look
+/// for them.
+const HASHRATE_HOURS: usize = 6;
+const HASHRATE_LOOK_BACK: usize = 12;
 /// Checkpoints per page of the list.
 const PAGE: u64 = 50;
 /// Most activity entries shown for one address, newest first.
@@ -115,7 +119,17 @@ pub struct Overview {
     pub validators: Vec<Validator>,
     pub supply: Option<Supply>,
     pub miners: Option<Miners>,
+    pub hashrate: Option<Hashrate>,
     pub checkpoints: Vec<Checkpoint>,
+}
+
+/// The network's mining speed, estimated: tries a second, averaged over
+/// `hours` hours up to checkpoint `epoch`.
+#[derive(Clone, Debug, Serialize)]
+pub struct Hashrate {
+    pub epoch: u64,
+    pub per_second: f64,
+    pub hours: usize,
 }
 
 /// How many wallets were paid for mining, at the latest checkpoint whose
@@ -229,6 +243,43 @@ impl Earned {
         self.upto = Some(latest);
         Ok(())
     }
+}
+
+/// The network's hashrate, from the targets checkpoints set. Each hour's
+/// target moves the one before towards the shares wanted, by how many were
+/// found: so the shares found, times the tries each took on average, are
+/// the tries made that hour. Hours where the move hit its limit of four
+/// times (a validator restart losing shares, say) say only that the speed
+/// was beyond the limit, and are left out, as are hours where the math
+/// changes.
+fn hashrate(kept: &BTreeMap<u64, Checkpoint>, payments: &dyn crate::wallets::Payments, epoch_seconds: u64) -> Option<Hashrate> {
+    let latest = *kept.keys().next_back()?;
+    let math = payments.work_rules(latest)?.math;
+    let (mut tries, mut seconds, mut hours) = (0f64, 0f64, 0usize);
+    for (epoch, checkpoint) in kept.range(..=latest).rev().take(HASHRATE_LOOK_BACK) {
+        if hours == HASHRATE_HOURS {
+            break;
+        }
+        let Some(before) = epoch.checked_sub(1).and_then(|b| kept.get(&b)) else { break };
+        let (Some(rules), Some(after)) = (payments.work_rules(*epoch), payments.work_rules(epoch + 1)) else { break };
+        if rules.math != math || rules.switches {
+            continue;
+        }
+        let target = before.target as f64;
+        // The target the shares asked for, before scaling to the next
+        // hour's shares wanted.
+        let moved = checkpoint.target as f64 * rules.wanted as f64 / after.wanted.max(1) as f64;
+        if target <= 0.0 || moved <= 0.0 || moved >= target * 3.999 || moved <= target / 3.999 {
+            continue;
+        }
+        let shares = target * rules.wanted as f64 / moved;
+        let per_share = u64::MAX as f64 / target;
+        let took = checkpoint.time.checked_sub(before.time).filter(|s| *s > 0).unwrap_or(epoch_seconds);
+        tries += shares * per_share;
+        seconds += took as f64;
+        hours += 1;
+    }
+    (hours > 0 && seconds > 0.0).then(|| Hashrate { epoch: latest, per_second: tries / seconds, hours })
 }
 
 /// What `account` earned from mining and fees in the checkpoints from
@@ -431,6 +482,7 @@ impl Explorer {
             })
             .collect();
         let checkpoints = kept.values().rev().take(RECENT).cloned().collect();
+        let hashrate = hashrate(&kept, payments, status.epoch_seconds);
         drop(kept);
         let supply = payments.tokenomics().ok().map(|t| Supply {
             cap: t.cap.to_string(),
@@ -456,6 +508,7 @@ impl Explorer {
             validators,
             supply,
             miners,
+            hashrate,
             checkpoints,
         };
         *self.overview.lock().unwrap() = Some((Instant::now(), overview.clone()));
