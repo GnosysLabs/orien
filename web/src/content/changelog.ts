@@ -26,6 +26,18 @@ export const PRODUCTS: Record<Product, string> = {
 
 export const CHANGELOG: Entry[] = [
   {
+    date: '2026-11-19',
+    products: ['wallet'],
+    version: '1.8.19',
+    title: 'Faster mining',
+    changes: [
+      'On Windows and Linux, mining now uses large pages of memory when the computer allows it, often 10 to 30% faster. If your computer isn’t set up for them, the Mine screen offers to do it once: Windows asks for an administrator, then you sign out and back in; Linux asks for your password.',
+      'Mining keeps full speed while the window is behind other windows, on Mac and Windows.',
+      'Mining no longer pauses every few seconds to check the network, for a few percent more shares.',
+      'The window opens at the size and place you left it.',
+    ],
+  },
+  {
     date: '2026-11-18',
     products: ['network'],
     title: 'The Orien Explorer',
