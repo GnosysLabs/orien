@@ -149,8 +149,8 @@ export default function HomePage() {
 
       {/* The community */}
       <section className="mb-6 flex flex-col items-center gap-6 rounded-3xl border border-line bg-surface p-6 text-center sm:flex-row sm:p-8 sm:text-left">
-        <span className="grid h-14 w-14 shrink-0 place-items-center rounded-2xl border border-line bg-raised" aria-hidden>
-          <DiscordIcon className="h-7 w-7 text-pearl" />
+        <span className="pearl-fill grid h-14 w-14 shrink-0 place-items-center rounded-2xl" aria-hidden>
+          <DiscordIcon className="h-7 w-7" />
         </span>
         <div className="min-w-0 flex-1">
           <h2 className="text-xl font-bold tracking-tight text-ink sm:text-2xl">Join the Orien community</h2>
