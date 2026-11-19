@@ -105,9 +105,6 @@ orien send --to ADDRESS --amount 5
   then on. Each hour's new ORN are shared in
   proportion to the shares each miner found. The explorer shows, for every
   checkpoint, which wallets were paid and how much.
-- **Unlocking.** `orien unlock --for 1h --up-to 50` lets a script you trust
-  send from a password-protected wallet for a while, up to an amount,
-  without learning the password; `orien lock` ends that early.
 - **Swaps.** Orien Wallet swaps ORN for SOL or Bitcoin with anyone, with no
   one in the middle: each side's coins are locked so that either both
   payments happen or both come back. On Solana the lock is a small program,

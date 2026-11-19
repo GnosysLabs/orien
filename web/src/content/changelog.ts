@@ -35,6 +35,7 @@ export const CHANGELOG: Entry[] = [
       'orien benchmark mines at a few numbers of cores for a few minutes and says which earns the most without wasting heat. orien mine suggests that number from then on.',
       'On Windows and Linux, mining uses large pages of memory when the computer is set up for them, often 10 to 30% faster.',
       'Mining no longer pauses every few seconds to check the network, for a few percent more shares.',
+      'orien unlock and orien lock are gone: they let other programs send from a wallet with a password, which nothing needs any more.',
       'orien mine updates itself to this version within about an hour and carries on mining, after up to a minute getting ready again. Validators update themselves as usual; nothing changes for them.',
     ],
   },
