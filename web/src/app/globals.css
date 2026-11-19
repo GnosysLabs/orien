@@ -153,11 +153,19 @@ body {
 body {
   position: relative;
   isolation: isolate;
-  background:
-    radial-gradient(55% 45% at 50% -8%, rgb(211 182 255 / 0.12), transparent 70%) fixed,
-    var(--color-bg);
+  background: var(--color-bg);
   color: var(--color-ink);
   font-family: var(--font-geist-sans), system-ui, sans-serif;
+}
+
+/* The soft glow at the top of the window. Its own fixed layer: Safari
+ * draws a fixed body background in the wrong place while scrolling. */
+.top-glow {
+  position: fixed;
+  inset: 0;
+  z-index: -2;
+  pointer-events: none;
+  background: radial-gradient(55% 45% at 50% -8%, rgb(211 182 255 / 0.12), transparent 70%);
 }
 
 /* Concentric living-pearl horizon ripples fixed behind all content. */

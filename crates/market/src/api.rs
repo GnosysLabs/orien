@@ -400,6 +400,9 @@ struct Contact {
     name: String,
     email: String,
     message: String,
+    /// The sender's business, if they gave one.
+    #[serde(default)]
+    business: String,
     /// A field people never see: only programs fill it in.
     #[serde(default)]
     website: String,
@@ -411,6 +414,10 @@ async fn contact(State(app): State<Arc<App>>, Json(request): Json<Contact>) -> A
     let message = request.message.trim().to_string();
     if name.is_empty() || name.chars().count() > 100 {
         return Err(Failure::Refused("a name is 1 to 100 characters".into()));
+    }
+    let business = request.business.trim().to_string();
+    if business.chars().count() > 150 {
+        return Err(Failure::Refused("a business name is at most 150 characters".into()));
     }
     let email = store::email(&request.email).map_err(refused)?;
     if message.chars().count() < 10 {
@@ -433,7 +440,7 @@ async fn contact(State(app): State<Arc<App>>, Json(request): Json<Contact>) -> A
         sent.push((Instant::now(), email.clone()));
     }
     let mailer = app.mailer.clone();
-    let sent = tokio::task::spawn_blocking(move || mailer.send_contact(&name, &email, &message))
+    let sent = tokio::task::spawn_blocking(move || mailer.send_contact(&name, &business, &email, &message))
         .await
         .map_err(|e| Failure::Broken(e.into()))?;
     if let Err(error) = sent {
