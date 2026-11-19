@@ -27,6 +27,19 @@ export const PRODUCTS: Record<Product, string> = {
 export const CHANGELOG: Entry[] = [
   {
     date: '2026-11-19',
+    products: ['orien'],
+    version: '1.9.1',
+    title: 'Faster mining, and orien benchmark',
+    changes: [
+      'orien mine asks how many processor cores to use instead of a percentage. --threads answers in advance, and --cpu still works.',
+      'orien benchmark mines at a few numbers of cores for a few minutes and says which earns the most without wasting heat. orien mine suggests that number from then on.',
+      'On Windows and Linux, mining uses large pages of memory when the computer is set up for them, often 10 to 30% faster.',
+      'Mining no longer pauses every few seconds to check the network, for a few percent more shares.',
+      'orien mine updates itself to this version within about an hour and carries on mining, after up to a minute getting ready again. Validators update themselves as usual; nothing changes for them.',
+    ],
+  },
+  {
+    date: '2026-11-19',
     products: ['wallet'],
     version: '1.8.19',
     title: 'Faster mining',
