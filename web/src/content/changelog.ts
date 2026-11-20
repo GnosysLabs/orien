@@ -30,7 +30,6 @@ export const CHANGELOG: Entry[] = [
     products: ['orien', 'validators'],
     version: '1.10.1',
     title: 'Closing messages never wait behind shares',
-    unreleased: true,
     changes: [
       'Validators pass work shares on to each other in batches of up to 500 at a time, instead of one per round trip, so a validator on another continent keeps up with a busy hour.',
       'Closing messages travel on their own connection, so the shares a busy hour brings can never hold up the close.',
