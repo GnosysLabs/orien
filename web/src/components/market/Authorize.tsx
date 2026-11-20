@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { ShieldCheck, Wallet } from 'lucide-react'
-import { ask, MarketError } from '@/lib/market'
+import { ask, takeWalletPass } from '@/lib/market'
 import { short } from '@/lib/explorer'
 import { Wordmark } from '@/components/Wordmark'
 import { SignIn } from './AccountView'
@@ -78,15 +78,7 @@ export function Authorize() {
   useEffect(() => {
     void (async () => {
       // A pass from Orien Wallet signs this browser in without an email code.
-      const pass = new URLSearchParams(window.location.hash.slice(1)).get('pass')
-      if (pass) {
-        history.replaceState(null, '', window.location.pathname + window.location.search)
-        try {
-          await ask('/oidc/pass/use', 'POST', { pass })
-        } catch (error) {
-          if (!(error instanceof MarketError)) throw error
-        }
-      }
+      await takeWalletPass()
       await load()
     })()
   }, [])

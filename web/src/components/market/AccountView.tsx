@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import { useEffect, useState } from 'react'
 import { LogOut, Mail, MessageCircle, UserRound } from 'lucide-react'
-import { ask, me, NAME_PATTERN, NAME_RULE, profileHref, type Account, type Listing } from '@/lib/market'
+import { ask, me, takeWalletPass, NAME_PATTERN, NAME_RULE, profileHref, type Account, type Listing } from '@/lib/market'
 import { Card } from './Browse'
 import { ProfileEditor } from './ProfileEditor'
 import { YourWallets } from './WalletCheck'
@@ -26,11 +26,12 @@ export function AccountView() {
         setFound(null)
       })
   useEffect(() => {
-    void reload()
+    // A pass from Orien Wallet signs this browser in without an email code.
+    void takeWalletPass().then(reload)
   }, [])
 
   if (found === undefined) return <p className="text-muted">Loading…</p>
-  if (found === null) return <SignIn onDone={reload} trouble={trouble} />
+  if (found === null) return <SignIn onDone={reload} trouble={trouble} wallet />
   return <Mine found={found} onChange={reload} />
 }
 
