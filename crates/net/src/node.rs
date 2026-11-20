@@ -72,6 +72,10 @@ pub struct NodeConfig {
     pub log: bool,
     /// Limits that keep one sender from tying a validator up.
     pub limits: Limits,
+    /// End the whole process if a thread the validator cannot work without
+    /// stops on a fault, so that the service starting it again brings it
+    /// back, instead of it running on unable to answer. Off in tests.
+    pub exit_on_fault: bool,
 }
 
 /// How many connections a validator takes, and how long it waits on them.
@@ -150,8 +154,24 @@ impl NodeConfig {
             clock_tolerance: 30,
             log: false,
             limits: Limits::default(),
+            exit_on_fault: false,
         }
     }
+}
+
+/// Starts a thread the validator cannot work without. If it stops on a
+/// fault and `exit` is set, the process ends, for the service to start it
+/// again; otherwise the fault carries on as usual.
+fn essential<F: FnOnce() + Send + 'static>(name: String, exit: bool, work: F) -> io::Result<thread::JoinHandle<()>> {
+    thread::Builder::new().name(name.clone()).spawn(move || {
+        if let Err(fault) = std::panic::catch_unwind(std::panic::AssertUnwindSafe(work)) {
+            if exit {
+                eprintln!("{name} stopped on a fault; ending so the service starts this validator again");
+                std::process::exit(70);
+            }
+            std::panic::resume_unwind(fault);
+        }
+    })
 }
 
 // Signatures are over a kilobyte and travel inline; these values are short-lived.
@@ -230,14 +250,31 @@ struct Shared {
 /// the background. A validator started partway through an epoch, after a
 /// restart or a move, so holds the whole epoch's shares well before the
 /// close, instead of checking the missed ones one by one when it closes.
+/// A validator that starts behind, still on an hour the others have closed,
+/// asks again once it has caught up with them.
 fn catch_up_shares(shared: Arc<Shared>, me: Option<u16>, name: &str, log: bool) {
     thread::sleep(Duration::from_secs(5));
+    for _ in 0..3 {
+        let Some(later) = catch_up_once(&shared, me, name, log) else { return };
+        let waited = Instant::now();
+        while shared.committee().epoch() < later {
+            if shared.stopping.load(Ordering::SeqCst) || waited.elapsed() > Duration::from_secs(600) {
+                return;
+            }
+            thread::sleep(Duration::from_secs(1));
+        }
+    }
+}
+
+/// One pass of `catch_up_shares` for the hour this validator is on. Gives
+/// the hour the others are on, if they are already past it.
+fn catch_up_once(shared: &Shared, me: Option<u16>, name: &str, log: bool) -> Option<u64> {
     let committee = shared.committee();
     let epoch = committee.epoch();
     let math = committee.work().math(epoch);
     let seed = *shared.seed.read().unwrap();
     if math != Math::RandomX {
-        return;
+        return None;
     }
     // One core fewer than at a close: shares keep arriving meanwhile.
     let threads = orien_ledger::work::spare_cores().saturating_sub(1).max(1);
@@ -249,15 +286,21 @@ fn catch_up_shares(shared: Arc<Shared>, me: Option<u16>, name: &str, log: bool) 
         let (mut after, mut answered) = (None, false);
         loop {
             if shared.stopping.load(Ordering::SeqCst) || *shared.seed.read().unwrap() != seed {
-                return;
+                return None;
             }
             let request = Request::Shares { epoch, after, max: 10_000 };
             let Ok(Response::Shares { epoch: theirs, shares }) = rpc(&member.address, &request, Duration::from_secs(30))
             else {
                 break;
             };
+            if theirs > epoch && after.is_none() {
+                return Some(theirs);
+            }
+            if theirs != epoch {
+                break;
+            }
             answered = true;
-            if theirs != epoch || shares.is_empty() {
+            if shares.is_empty() {
                 break;
             }
             after = shares.last().copied();
@@ -265,7 +308,7 @@ fn catch_up_shares(shared: Arc<Shared>, me: Option<u16>, name: &str, log: bool) 
             for share in shares {
                 match shared.handle(Request::SubmitShare(share)) {
                     Response::Share { fresh: true } => taken += 1,
-                    Response::Closing => return,
+                    Response::Closing => return None,
                     _ => {}
                 }
             }
@@ -278,6 +321,7 @@ fn catch_up_shares(shared: Arc<Shared>, me: Option<u16>, name: &str, log: bool) 
     if log && taken > 0 {
         println!("[{name}] caught up on {taken} work share(s) of epoch {epoch} from the other validators");
     }
+    None
 }
 
 /// Opens the current epoch's share log, putting the shares already in it
@@ -583,6 +627,8 @@ fn place_of(committee: &Committee, root: &Hash32) -> Option<u16> {
 
 struct Core {
     name: String,
+    /// See `NodeConfig::exit_on_fault`.
+    exit_on_fault: bool,
     /// Its place in this epoch's list of validators, or `None` while it is
     /// not one of them: it then follows the network and signs nothing.
     index: Option<u16>,
@@ -747,7 +793,10 @@ impl Core {
                     let _ = reply.send(self.state.seq(&from) <= seq);
                 }
                 Command::Query { request, reply } => {
-                    let _ = reply.send(self.on_query(request));
+                    // Answering changes nothing but caches, so a bug in an
+                    // answer costs only that answer, never the core.
+                    let answer = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| self.on_query(request)));
+                    let _ = reply.send(answer.unwrap_or_else(|_| Response::Unavailable("that question failed here".into())));
                 }
                 Command::Close { epoch, message } => {
                     if epoch == self.committee.epoch() {
@@ -834,26 +883,25 @@ impl Core {
             }
             let (shares, sending) = mpsc::channel();
             let pushing = address.clone();
-            if thread::Builder::new()
-                .name(format!("{}-shares-{address}", self.name))
-                .spawn(move || push_shares_to_peer(pushing, sending))
-                .is_ok()
+            if essential(format!("{}-shares-{address}", self.name), self.exit_on_fault, move || {
+                push_shares_to_peer(pushing, sending)
+            })
+            .is_ok()
             {
                 self.share_peers.insert(address.clone(), shares);
             }
             let (queue, sending) = mpsc::channel();
             let pushing = address.clone();
-            let spawned = thread::Builder::new()
-                .name(format!("{}-push-{address}", self.name))
-                .spawn(move || push_to_peer(pushing, sending));
+            let spawned =
+                essential(format!("{}-push-{address}", self.name), self.exit_on_fault, move || push_to_peer(pushing, sending));
             if spawned.is_err() {
                 continue;
             }
             if !self.sync_interval.is_zero() {
                 let (shared, interval, syncing) = (self.shared.clone(), self.sync_interval, address.clone());
-                let _ = thread::Builder::new()
-                    .name(format!("{}-sync-{address}", self.name))
-                    .spawn(move || sync_with_peer(shared, syncing, interval));
+                let _ = essential(format!("{}-sync-{address}", self.name), self.exit_on_fault, move || {
+                    sync_with_peer(shared, syncing, interval)
+                });
             }
             self.peers.insert(address, queue);
         }
@@ -2370,18 +2418,18 @@ impl Node {
             hurry: false,
             durable: config.durable,
             log: config.log,
+            exit_on_fault: config.exit_on_fault,
         };
         core.connect_peers();
-        let core = thread::Builder::new().name(format!("{name}-core")).spawn(move || core.run(receiver))?;
+        let exit_on_fault = config.exit_on_fault;
+        let core = essential(format!("{name}-core"), exit_on_fault, move || core.run(receiver))?;
         let catching = shared.clone();
         let catcher = name.clone();
         let _ = thread::Builder::new()
             .name(format!("{name}-catch-up"))
             .spawn(move || catch_up_shares(catching, place, &catcher, config.log));
         let accepting = shared.clone();
-        let listener = thread::Builder::new()
-            .name(format!("{name}-listen"))
-            .spawn(move || accept_loop(listener, accepting))?;
+        let listener = essential(format!("{name}-listen"), exit_on_fault, move || accept_loop(listener, accepting))?;
         let looking = shared.clone();
         thread::Builder::new().name(format!("{name}-names")).spawn(move || look_up_validators(looking))?;
 
@@ -2414,5 +2462,35 @@ impl Node {
 impl Drop for Node {
     fn drop(&mut self) {
         self.shutdown();
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn an_essential_thread_that_is_not_told_to_exit_fails_as_before() {
+        let fine = essential("fine".into(), false, || {}).unwrap();
+        assert!(fine.join().is_ok());
+        let faulty = essential("faulty".into(), false, || panic!("a fault")).unwrap();
+        assert!(faulty.join().is_err());
+    }
+
+    #[test]
+    fn an_essential_thread_told_to_exit_ends_the_process_for_the_service_to_restart() {
+        if std::env::var_os("ORIEN_TEST_ESSENTIAL_EXIT").is_some() {
+            let faulty = essential("faulty".into(), true, || panic!("a fault")).unwrap();
+            let _ = faulty.join();
+            return;
+        }
+        let status = std::process::Command::new(std::env::current_exe().unwrap())
+            .args(["--exact", "node::tests::an_essential_thread_told_to_exit_ends_the_process_for_the_service_to_restart"])
+            .env("ORIEN_TEST_ESSENTIAL_EXIT", "1")
+            .stdout(std::process::Stdio::null())
+            .stderr(std::process::Stdio::null())
+            .status()
+            .unwrap();
+        assert_eq!(status.code(), Some(70));
     }
 }

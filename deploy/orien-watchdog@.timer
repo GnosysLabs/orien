@@ -1,0 +1,12 @@
+# /etc/systemd/system/orien-watchdog@.timer
+#   systemctl enable --now orien-watchdog@N.timer
+[Unit]
+Description=Check each minute that Orien validator %i answers
+
+[Timer]
+OnBootSec=5min
+OnUnitActiveSec=1min
+AccuracySec=5s
+
+[Install]
+WantedBy=timers.target
