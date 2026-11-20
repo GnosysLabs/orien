@@ -1,4 +1,5 @@
-// On Sign in with Orien's page (orien.network only): when Orien Wallet is
+// On orien.network's sign-in pages (its account page, and Sign in with
+// Orien's), wherever the page has the wallet button: when Orien Wallet is
 // running and signed in to Orien Network, the page's "Sign in with Orien
 // Wallet" button shows. A click asks for Touch ID; Orien Wallet then hands
 // over a one-minute, single-use pass, which the page trades for a sign-in.
