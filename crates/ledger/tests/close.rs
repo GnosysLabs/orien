@@ -6,7 +6,7 @@ use orien_crypto::keytree::KeyTree;
 use orien_crypto::{Hash32, Kdf, merkle, ots, prf};
 use orien_ledger::agree::{Agreement, Message, Output, Timeout, Verdict};
 use orien_ledger::close::{
-    self, Ballot, Checkpoint, Decided, Gathered, Invalid, NextKey, Pin, Proposal, Signed, Statement,
+    self, Ballot, Checkpoint, Decided, Gathered, Invalid, NextKey, Pin, Proposal, Share, Shares, Signed, Statement,
 };
 use orien_ledger::VerifyError;
 use orien_ledger::{
@@ -263,7 +263,7 @@ impl World {
                 evidence: self.validators[v].evidence.clone(),
                 next_key: None,
                 cheats: Vec::new(),
-                shares: Vec::new(),
+                shares: Default::default(),
             };
             self.validators[v].statement = Some(statement);
         }
@@ -330,7 +330,7 @@ impl World {
                     evidence: Vec::new(),
                     next_key: None,
                     cheats: Vec::new(),
-                    shares: Vec::new(),
+                    shares: Default::default(),
                 };
                 let entry = checkpoint.merged.iter_mut().find(|(validator, _)| *validator == victim as u16).unwrap();
                 entry.1 = forged.digest(&self.network);
@@ -1011,7 +1011,7 @@ fn a_replacement_key_takes_over_only_as_the_merged_statements_say() {
         evidence: Vec::new(),
         next_key,
         cheats: Vec::new(),
-        shares: Vec::new(),
+        shares: Default::default(),
     };
     let next = |statements: &[Statement]| {
         let merged: Vec<&Statement> = statements.iter().collect();
@@ -1055,4 +1055,135 @@ fn a_replacement_key_takes_over_only_as_the_merged_statements_say() {
     let following = committee.following(checkpoint.validators.clone());
     assert_eq!(following.epoch(), 1);
     assert_eq!(following.members()[1].root, fresh.root);
+}
+
+/// A statement from validator `v` holding these shares, signed.
+fn signed_statement(world: &mut World, v: usize, shares: &[Share]) -> Signed<Statement> {
+    let statement = Statement {
+        epoch: 0,
+        validator: v as u16,
+        log: Pin::start(0),
+        evidence: Vec::new(),
+        next_key: None,
+        cheats: Vec::new(),
+        shares: shares.iter().copied().collect(),
+    };
+    let proof = world.sign(v, statement.digest(&world.network));
+    Signed { body: statement, proof }
+}
+
+fn share(account: u8, nonce: u64) -> Share {
+    Share { account: Hash32([account; 32]), nonce }
+}
+
+#[test]
+fn a_statements_shares_have_one_written_form() {
+    // However the shares come, they are written the same way.
+    let one: Shares = [share(2, 9), share(1, 5), share(2, 3), share(1, 5)].into_iter().collect();
+    let other: Shares = [share(1, 5), share(2, 3), share(2, 9)].into_iter().collect();
+    assert_eq!(borsh::to_vec(&one).unwrap(), borsh::to_vec(&other).unwrap());
+    assert_eq!(one.len(), 3);
+    assert_eq!(one.iter().collect::<Vec<_>>(), vec![share(1, 5), share(2, 3), share(2, 9)]);
+    // Each account once and each share 8 bytes, not 40.
+    let many: Shares = (0..1000).map(|n| share(7, n)).collect();
+    assert!(borsh::to_vec(&many).unwrap().len() < 1000 * 8 + 64);
+
+    // Any other way of writing them is refused when read.
+    let written = |groups: Vec<(AccountId, Vec<u64>)>| borsh::to_vec(&groups).unwrap();
+    let a = Hash32([1; 32]);
+    let b = Hash32([2; 32]);
+    for bad in [
+        written(vec![(b, vec![1]), (a, vec![1])]),
+        written(vec![(a, vec![1]), (a, vec![2])]),
+        written(vec![(a, vec![2, 1])]),
+        written(vec![(a, vec![1, 1])]),
+        written(vec![(a, vec![])]),
+    ] {
+        assert!(borsh::from_slice::<Shares>(&bad).is_err());
+    }
+    assert!(borsh::from_slice::<Shares>(&written(vec![(a, vec![1, 2]), (b, vec![0])])).is_ok());
+}
+
+#[test]
+fn a_proposal_carries_each_share_once_and_every_statement_whole() {
+    let mut world = World::new(4, &[]);
+    let common: Vec<Share> = (0..5000).map(|n| share(1 + (n % 7) as u8, n)).collect();
+    let mut statements = Vec::new();
+    for v in 0..4 {
+        // Mostly the same shares, as validators hold, plus a few each alone.
+        let mut held = common.clone();
+        held.extend((0..10).map(|n| share(200 + v as u8, n)));
+        statements.push(signed_statement(&mut world, v, &held));
+    }
+    let checkpoint = Checkpoint {
+        epoch: 0,
+        previous: world.previous,
+        time: 1,
+        state: Hash32([3; 32]),
+        payments: 0,
+        merged: statements.iter().map(|s| (s.body.validator, s.body.digest(&world.network))).collect(),
+        validators: world.committee.members().to_vec(),
+        released: 0,
+        target: 1,
+    };
+    let proposal = Proposal { round: 2, checkpoint, valid_round: Some(1), backers: Vec::new(), statements };
+    let bytes = borsh::to_vec(&proposal).unwrap();
+    let back: Proposal = borsh::from_slice(&bytes).unwrap();
+    assert_eq!(back, proposal);
+    for signed in &back.statements {
+        assert!(close::verify_statement(&world.committee, signed));
+    }
+    // Four statements of 5,010 shares, but each share written once: about
+    // 16 bytes a share, where four whole statements would take 160.
+    assert!(bytes.len() < 5040 * 16 + 4 * 20_000, "{} bytes", bytes.len());
+}
+
+#[test]
+fn a_tampered_share_table_is_refused_or_fails_the_signatures() {
+    let mut world = World::new(4, &[]);
+    let statements: Vec<Signed<Statement>> =
+        (0..3).map(|v| signed_statement(&mut world, v, &[share(1, 1), share(1, 2), share(2, 7)])).collect();
+    let checkpoint = Checkpoint {
+        epoch: 0,
+        previous: world.previous,
+        time: 1,
+        state: Hash32([3; 32]),
+        payments: 0,
+        merged: Vec::new(),
+        validators: world.committee.members().to_vec(),
+        released: 0,
+        target: 1,
+    };
+    let proposal = Proposal { round: 0, checkpoint, valid_round: None, backers: Vec::new(), statements };
+    let bytes = borsh::to_vec(&proposal).unwrap();
+    // The table is last: 2 accounts, then account 1 with 2 entries of
+    // (nonce, mark), then account 2 with 1 entry. Each mark is 0b111.
+    let table_at = bytes.len() - (4 + (32 + 4 + 2 * 16) + (32 + 4 + 16));
+    let mark_at = |entry: usize| table_at + 4 + 32 + 4 + entry * 16 + 8;
+    assert_eq!(&bytes[mark_at(0)..mark_at(0) + 8], &7u64.to_le_bytes());
+
+    let altered = |change: &dyn Fn(&mut Vec<u8>)| {
+        let mut copy = bytes.clone();
+        change(&mut copy);
+        borsh::from_slice::<Proposal>(&copy)
+    };
+    // A mark naming no statement, or one that is not there, is refused.
+    assert!(altered(&|b| b[mark_at(0)..mark_at(0) + 8].copy_from_slice(&0u64.to_le_bytes())).is_err());
+    assert!(altered(&|b| b[mark_at(0)..mark_at(0) + 8].copy_from_slice(&15u64.to_le_bytes())).is_err());
+    // Nonces out of order are refused.
+    assert!(altered(&|b| {
+        let first = mark_at(0) - 8;
+        b[first..first + 8].copy_from_slice(&9u64.to_le_bytes())
+    })
+    .is_err());
+    // Taking a share from one statement reads, but that statement's
+    // signature no longer holds: nobody can drop a validator's shares.
+    let dropped = altered(&|b| b[mark_at(0)..mark_at(0) + 8].copy_from_slice(&6u64.to_le_bytes())).unwrap();
+    assert!(!close::verify_statement(&world.committee, &dropped.statements[0]));
+    assert!(close::verify_statement(&world.committee, &dropped.statements[1]));
+    // Adding a share to a statement fails its signature the same way.
+    let mut more = proposal.clone();
+    more.statements[2].body.shares = [share(1, 1), share(1, 2), share(2, 7), share(2, 8)].into_iter().collect();
+    let read: Proposal = borsh::from_slice(&borsh::to_vec(&more).unwrap()).unwrap();
+    assert!(!close::verify_statement(&world.committee, &read.statements[2]));
 }

@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { ChevronRight } from 'lucide-react'
-import { type Overview, addressHref, ago, checkpointHref, explore, orn, short } from '@/lib/explorer'
+import { type Overview, addressHref, ago, checkpointHref, explore, hashrate, orn, short } from '@/lib/explorer'
 import { Card, Fact, Facts, Loading, Problem } from './Parts'
 import { TopWallets } from './TopWallets'
 
@@ -56,7 +56,7 @@ export function ExplorerHome() {
 
       {overview && (
         <>
-          <Facts className="grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
+          <Facts className="grid-cols-2 lg:grid-cols-3">
             <Fact
               label="ORN released"
               value={overview.supply ? orn(overview.supply.released, 0) : '—'}
@@ -67,12 +67,28 @@ export function ExplorerHome() {
               value={overview.supply ? orn(overview.supply.per_hour, 0) : '—'}
               note="Shared among miners"
             />
+            <Fact label="Next checkpoint" value={next} note={`Checkpoint ${overview.epoch}`} />
+            <Fact
+              label="Miners last hour"
+              value={overview.miners ? overview.miners.last_hour.toLocaleString('en') : '—'}
+              note={
+                overview.miners &&
+                `${overview.miners.last_day.toLocaleString('en')} in the last ${overview.miners.hours === 24 ? '24 hours' : `${overview.miners.hours} hours`}`
+              }
+            />
+            <Fact
+              label="Network hashrate"
+              value={overview.hashrate ? hashrate(overview.hashrate.per_second) : '—'}
+              note={
+                overview.hashrate &&
+                `Estimated, over the last ${overview.hashrate.hours === 1 ? 'hour' : `${overview.hashrate.hours} hours`}`
+              }
+            />
             <Fact
               label="Wallets holding ORN"
               value={overview.supply ? overview.supply.holding.toLocaleString('en') : '—'}
               note={overview.supply && `${overview.supply.holding_one.toLocaleString('en')} hold at least 1 ORN`}
             />
-            <Fact label="Next checkpoint" value={next} note={`Checkpoint ${overview.epoch}`} />
           </Facts>
 
           <Card

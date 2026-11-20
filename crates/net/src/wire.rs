@@ -70,6 +70,10 @@ pub enum Request {
     /// `History`, with what the account sent too (as `Income::Sent`).
     /// Validators recorded that only from release 1.7.0 on.
     Activity { account: AccountId, from: u64, max: u32 },
+    /// Up to `max` of the work shares this validator holds for `epoch`, in
+    /// order, from just after `after`: for a validator that started partway
+    /// through the epoch to catch up on the shares it missed.
+    Shares { epoch: u64, after: Option<Share>, max: u32 },
 }
 
 #[derive(Clone, Debug, BorshSerialize, BorshDeserialize)]
@@ -153,6 +157,9 @@ pub enum Response {
     Locked { epoch: u64, escrow: Option<Escrow>, secret: Option<[u8; 32]> },
     Locks { epoch: u64, proof: LocksProof },
     History(HistoryPage),
+    /// Shares held for `epoch`, the answering validator's current one. Empty
+    /// when the asker named another epoch, or there are no more.
+    Shares { epoch: u64, shares: Vec<Share> },
 }
 
 pub fn write_frame<W: Write>(writer: &mut W, payload: &[u8]) -> io::Result<()> {

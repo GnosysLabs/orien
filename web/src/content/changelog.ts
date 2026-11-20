@@ -26,6 +26,58 @@ export const PRODUCTS: Record<Product, string> = {
 
 export const CHANGELOG: Entry[] = [
   {
+    date: '2026-11-20',
+    products: ['orien', 'validators'],
+    version: '1.10.1',
+    title: 'Closing messages never wait behind shares',
+    changes: [
+      'Validators pass work shares on to each other in batches of up to 500 at a time, instead of one per round trip, so a validator on another continent keeps up with a busy hour.',
+      'Closing messages travel on their own connection, so the shares a busy hour brings can never hold up the close.',
+      'Validators install this release themselves, one at a time, in the first minutes after a checkpoint. Miners and wallets need no update.',
+    ],
+  },
+  {
+    date: '2026-11-19',
+    products: ['orien', 'validators', 'network'],
+    version: '1.10.0',
+    title: 'Five times the shares, and validators that forget nothing',
+    changes: [
+      'From 00:13 UTC on 20 November, the hour after checkpoint 122, the network aims for 50,000 work shares an hour instead of 10,000. A share is five times easier to find, so a small computer finds many every hour. On average every miner earns the same; pay simply arrives in finer steps.',
+      'The messages that close each hour carry each share once, however many validators hold it, and list a miner’s address once with its shares under it. A 50,000-share hour now needs about 1 MB to close instead of 8 MB, and the room for shares no longer shrinks as more validators join.',
+      'A validator keeps the hour’s shares on disk. After a restart it carries on with all of them, and fetches any it missed from the other validators in the background, so a restart neither loses miners’ shares nor slows the close.',
+      'A validator checks shares that are new to it at the close on all its spare cores, and checks four incoming shares at once instead of two.',
+      'Validators that update themselves now restart in the first five minutes after a checkpoint, one at a time, instead of in the middle of an hour.',
+      'Miners and wallets need no update: they take each hour’s target from the network.',
+    ],
+  },
+  {
+    date: '2026-11-19',
+    products: ['network'],
+    title: 'Network hashrate',
+    changes: [
+      'The explorer’s home page now shows an estimate of the network’s hashrate: how many tries a second all miners make together, averaged over the last six hours. It is worked out from each hour’s checkpoint, which records how hard mining became from the shares found.',
+    ],
+  },
+  {
+    date: '2026-11-19',
+    products: ['orien', 'validators', 'network'],
+    version: '1.9.3',
+    title: 'Ten times the shares',
+    changes: [
+      'From 13:13 UTC on 19 November, the hour after checkpoint 111, the network aims for 10,000 work shares an hour instead of 1,000. A share is ten times easier to find, so a small computer now finds shares every hour instead of now and then.',
+      'Each share is worth a tenth of what it was, so on average every miner earns the same as before. Pay simply arrives in smaller, steadier amounts.',
+      'Miners and wallets need no update: they take each hour’s target from the network.',
+    ],
+  },
+  {
+    date: '2026-11-19',
+    products: ['network'],
+    title: 'Miners over the last day',
+    changes: [
+      'The explorer’s home page now shows how many wallets were paid for mining at the latest checkpoint, and how many different wallets were paid at least once in the last 24 hours. A small miner can go an hour without a share and still be mining.',
+    ],
+  },
+  {
     date: '2026-11-19',
     products: ['wallet'],
     version: '1.8.20',

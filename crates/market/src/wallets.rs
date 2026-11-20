@@ -92,6 +92,8 @@ pub struct WorkRules {
     pub math: String,
     /// The next epoch starts a new math, at a target set for it.
     pub switches: bool,
+    /// How many work shares the epoch aims for.
+    pub wanted: u64,
 }
 
 /// One validator, as it answered (or did not).
@@ -259,6 +261,7 @@ impl Payments for Network {
             first_target: if rules.randomx_from == 0 { rules.randomx_target } else { self.first_target },
             math: format!("{math:?}"),
             switches: rules.math(epoch + 1) != math,
+            wanted: rules.wanted(epoch),
         })
     }
 

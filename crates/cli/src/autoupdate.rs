@@ -5,9 +5,11 @@
 //! About once an hour a validator looks for a newer release. One it finds is
 //! checked exactly as `orien update` checks it, and put in place of the
 //! program. The validator then starts again on it, at a moment that keeps
-//! the network running: well after a checkpoint and well before the next,
-//! at a random point in that time, and only while every validator answers,
-//! so no two restart together. Validators that share one program file, as
+//! the network running: in the first minutes after a checkpoint, at a
+//! random point in that time, and only while every validator answers, so
+//! no two restart together. So soon after a checkpoint it has missed almost
+//! none of the epoch's work shares, and it fetches those few from the
+//! others; restarting later in an epoch would leave it many to catch up on. Validators that share one program file, as
 //! the launch validators do, each notice the new version and restart in
 //! turn.
 //!
@@ -32,9 +34,9 @@ use std::time::{Duration, SystemTime, UNIX_EPOCH};
 const CHECK_EVERY: Duration = Duration::from_secs(3600);
 
 /// How long after a checkpoint a restart may happen, as a share of the
-/// epoch: from a twelfth to two thirds in, never near the next checkpoint.
-const EARLIEST: (u64, u64) = (1, 12);
-const LATEST: (u64, u64) = (2, 3);
+/// epoch: in an hour, from 15 seconds to 5 minutes in.
+const EARLIEST: (u64, u64) = (1, 240);
+const LATEST: (u64, u64) = (1, 12);
 
 pub struct Updater {
     /// The program file this validator was started from, read before any
@@ -258,14 +260,16 @@ mod tests {
     use super::*;
 
     #[test]
-    fn restarts_happen_in_the_calm_middle_of_an_epoch() {
+    fn restarts_happen_in_the_first_minutes_after_a_checkpoint() {
         let (started, hour) = (1_000_000, 3600);
-        assert!(!calm(started + 60, started, hour, 0), "not right after a checkpoint");
-        assert!(calm(started + 400, started, hour, 0));
-        assert!(!calm(started + 2500, started, hour, 999), "never in the last third");
+        assert!(!calm(started + 5, started, hour, 0), "not while the checkpoint is fresh");
+        assert!(calm(started + 20, started, hour, 0));
+        assert!(calm(started + 200, started, hour, 0));
+        assert!(!calm(started + 300, started, hour, 999), "never after five minutes");
+        assert!(!calm(started + 1800, started, hour, 500), "never mid-epoch");
         assert!(!calm(started + 3590, started, hour, 500));
         // Each validator's moment is its own.
-        assert!(!calm(started + 400, started, hour, 900));
-        assert!(calm(started + 2380, started, hour, 900));
+        assert!(!calm(started + 20, started, hour, 900));
+        assert!(calm(started + 275, started, hour, 900));
     }
 }

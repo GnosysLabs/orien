@@ -7,6 +7,8 @@ export const SITE_DESCRIPTION =
 export const DISCORD = 'https://discord.gg/5FFRZAw3u9'
 /** Orien on X. */
 export const X_ACCOUNT = 'https://x.com/OrienNetwork'
+/** Orien's source code, public on GitHub. */
+export const SOURCE_CODE = 'https://github.com/GnosysLabs/orien'
 /** Orien Wallet for iPhone's public beta, through Apple's TestFlight. */
 export const IPHONE_BETA = 'https://testflight.apple.com/join/butuQ4Ms'
 export const OPERATOR = 'Gnosys Labs LLC'
@@ -24,3 +26,11 @@ export const RANDOMX_FROM = 21
 /** The first epoch in which anyone may claim a locked payment for its payee.
  * The network code's LIVE_OPEN_CLAIMS_FROM is the same number. */
 export const OPEN_CLAIMS_FROM = 23
+
+/** The first epoch that aims for 10,000 shares an hour instead of 1,000.
+ * The network code's LIVE_MORE_SHARES_FROM is the same number. */
+export const MORE_SHARES_FROM = 112
+
+/** The first epoch that aims for 50,000 shares an hour instead of 10,000.
+ * The network code's LIVE_MOST_SHARES_FROM is the same number. */
+export const MOST_SHARES_FROM = 123

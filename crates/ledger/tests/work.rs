@@ -17,6 +17,7 @@ fn mine(account: Hash32, seed: &Hash32, target: u64, count: usize) -> Vec<Share>
 }
 
 fn statement(shares: Vec<Share>) -> Statement {
+    let shares = shares.into_iter().collect();
     Statement {
         epoch: 0,
         validator: 0,

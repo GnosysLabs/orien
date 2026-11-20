@@ -28,6 +28,10 @@ const FRESH_ADDRESS: Duration = Duration::from_secs(20);
 const MAX_ADDRESSES: usize = 2000;
 /// Checkpoints on the overview, newest first.
 const RECENT: usize = 24;
+/// Hours the network's hashrate is averaged over, and how far back to look
+/// for them.
+const HASHRATE_HOURS: usize = 6;
+const HASHRATE_LOOK_BACK: usize = 12;
 /// Checkpoints per page of the list.
 const PAGE: u64 = 50;
 /// Most activity entries shown for one address, newest first.
@@ -114,7 +118,30 @@ pub struct Overview {
     pub mining: String,
     pub validators: Vec<Validator>,
     pub supply: Option<Supply>,
+    pub miners: Option<Miners>,
+    pub hashrate: Option<Hashrate>,
     pub checkpoints: Vec<Checkpoint>,
+}
+
+/// The network's mining speed, estimated: tries a second, averaged over
+/// `hours` hours up to checkpoint `epoch`.
+#[derive(Clone, Debug, Serialize)]
+pub struct Hashrate {
+    pub epoch: u64,
+    pub per_second: f64,
+    pub hours: usize,
+}
+
+/// How many wallets were paid for mining, at the latest checkpoint whose
+/// rewards are gathered, and at least once in the day up to it.
+#[derive(Clone, Debug, Serialize)]
+pub struct Miners {
+    pub epoch: u64,
+    pub last_hour: usize,
+    pub last_day: usize,
+    /// Checkpoints the day's figure covers: 24, or fewer where validators'
+    /// records start later.
+    pub hours: u64,
 }
 
 #[derive(Clone, Debug, Serialize)]
@@ -172,6 +199,22 @@ struct Earned {
 }
 
 impl Earned {
+    /// The wallets paid for mining at the last checkpoint gathered and in
+    /// the 24 up to it.
+    fn miners(&self) -> Option<Miners> {
+        let upto = self.upto?;
+        let from = upto.saturating_sub(23).max(self.since?);
+        if from > upto {
+            return None;
+        }
+        let paid = |epoch: &u64| {
+            self.by_epoch.get(epoch).into_iter().flatten().filter(|(_, income, _)| *income == Income::Mining).map(|(id, _, _)| *id)
+        };
+        let last_hour: std::collections::HashSet<AccountId> = paid(&upto).collect();
+        let last_day: std::collections::HashSet<AccountId> = (from..=upto).flat_map(|epoch| paid(&epoch).collect::<Vec<_>>()).collect();
+        Some(Miners { epoch: upto, last_hour: last_hour.len(), last_day: last_day.len(), hours: upto - from + 1 })
+    }
+
     /// Asks about every account for the checkpoints up to `latest` not asked
     /// about yet.
     fn gather(&mut self, payments: &dyn crate::wallets::Payments, latest: u64) -> anyhow::Result<()> {
@@ -200,6 +243,43 @@ impl Earned {
         self.upto = Some(latest);
         Ok(())
     }
+}
+
+/// The network's hashrate, from the targets checkpoints set. Each hour's
+/// target moves the one before towards the shares wanted, by how many were
+/// found: so the shares found, times the tries each took on average, are
+/// the tries made that hour. Hours where the move hit its limit of four
+/// times (a validator restart losing shares, say) say only that the speed
+/// was beyond the limit, and are left out, as are hours where the math
+/// changes.
+fn hashrate(kept: &BTreeMap<u64, Checkpoint>, payments: &dyn crate::wallets::Payments, epoch_seconds: u64) -> Option<Hashrate> {
+    let latest = *kept.keys().next_back()?;
+    let math = payments.work_rules(latest)?.math;
+    let (mut tries, mut seconds, mut hours) = (0f64, 0f64, 0usize);
+    for (epoch, checkpoint) in kept.range(..=latest).rev().take(HASHRATE_LOOK_BACK) {
+        if hours == HASHRATE_HOURS {
+            break;
+        }
+        let Some(before) = epoch.checked_sub(1).and_then(|b| kept.get(&b)) else { break };
+        let (Some(rules), Some(after)) = (payments.work_rules(*epoch), payments.work_rules(epoch + 1)) else { break };
+        if rules.math != math || rules.switches {
+            continue;
+        }
+        let target = before.target as f64;
+        // The target the shares asked for, before scaling to the next
+        // hour's shares wanted.
+        let moved = checkpoint.target as f64 * rules.wanted as f64 / after.wanted.max(1) as f64;
+        if target <= 0.0 || moved <= 0.0 || moved >= target * 3.999 || moved <= target / 3.999 {
+            continue;
+        }
+        let shares = target * rules.wanted as f64 / moved;
+        let per_share = u64::MAX as f64 / target;
+        let took = checkpoint.time.checked_sub(before.time).filter(|s| *s > 0).unwrap_or(epoch_seconds);
+        tries += shares * per_share;
+        seconds += took as f64;
+        hours += 1;
+    }
+    (hours > 0 && seconds > 0.0).then(|| Hashrate { epoch: latest, per_second: tries / seconds, hours })
 }
 
 /// What `account` earned from mining and fees in the checkpoints from
@@ -402,6 +482,7 @@ impl Explorer {
             })
             .collect();
         let checkpoints = kept.values().rev().take(RECENT).cloned().collect();
+        let hashrate = hashrate(&kept, payments, status.epoch_seconds);
         drop(kept);
         let supply = payments.tokenomics().ok().map(|t| Supply {
             cap: t.cap.to_string(),
@@ -414,6 +495,11 @@ impl Explorer {
             holding_one: t.holding_one,
             burned: t.burned.to_string(),
         });
+        // Gathering rewards asks about every account, so it runs apart from
+        // this page (see `gather_rewards`); this shows what is gathered so far.
+        let miners = self.earned.try_lock().ok().and_then(|earned| earned.miners()).or_else(|| {
+            self.overview.lock().unwrap().as_ref().and_then(|(_, known)| known.miners.clone())
+        });
         let overview = Overview {
             epoch: status.epoch,
             epoch_started: status.epoch_started,
@@ -421,6 +507,8 @@ impl Explorer {
             mining: status.math,
             validators,
             supply,
+            miners,
+            hashrate,
             checkpoints,
         };
         *self.overview.lock().unwrap() = Some((Instant::now(), overview.clone()));
@@ -506,12 +594,24 @@ fn unavailable(error: anyhow::Error) -> Failure {
     Failure::Unavailable(format!("the network did not answer: {error:#}"))
 }
 
+/// Gathers the rewards of checkpoints made since the last time, unless that
+/// is already under way.
+fn gather_rewards(app: &App) {
+    let explorer = app.explorer();
+    let Some(latest) = explorer.checkpoints.lock().unwrap().keys().next_back().copied() else { return };
+    let Ok(mut earned) = explorer.earned.try_lock() else { return };
+    let _ = earned.gather(app.payments().as_ref(), latest);
+}
+
 /// The network now: validators, supply and the latest checkpoints.
 pub async fn overview(State(app): State<Arc<App>>) -> Answer {
+    let gatherer = app.clone();
     let found = tokio::task::spawn_blocking(move || app.explorer().overview(app.payments().as_ref()))
         .await
         .map_err(|e| Failure::Broken(e.into()))?
         .map_err(unavailable)?;
+    // Not waited for: the miners' figures catch up on a later visit.
+    tokio::task::spawn_blocking(move || gather_rewards(&gatherer));
     Ok(([(header::CACHE_CONTROL, "public, max-age=15")], Json(found)).into_response())
 }
 
