@@ -14,7 +14,9 @@ pub const PORT: u16 = 47_211;
 
 /// The Chrome extension, by its ID: the only web origin let in. Safari's
 /// extension asks from the app's own process, with no origin at all.
-const CHROME: &[&str] = &["chrome-extension://igcefhfeknmnoongmblfhmgclmbikioe"];
+/// The first is the Chrome Web Store's; the second the copy loaded by hand
+/// while testing (its fixed key is in chrome/manifest.json).
+const CHROME: &[&str] = &["chrome-extension://oogifphigefggbdlcomcohbjfbgomcmn", "chrome-extension://igcefhfeknmnoongmblfhmgclmbikioe"];
 
 /// The address, balance and most that can be sent, as the app last saw
 /// them.
