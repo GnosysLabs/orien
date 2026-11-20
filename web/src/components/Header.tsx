@@ -19,6 +19,7 @@ import {
   Terminal,
   Compass,
   Store,
+  Users,
   Rocket,
   type LucideIcon,
 } from "lucide-react";
@@ -58,6 +59,13 @@ const ITEMS: NavItem[] = [
     label: "Explorer",
     icon: Activity,
     match: () => false,
+    wide: true,
+  },
+  {
+    href: "/community/",
+    label: "Community",
+    icon: Users,
+    match: (p) => p.startsWith("/community"),
     wide: true,
   },
   ...(MARKETPLACE_LIVE
@@ -391,7 +399,7 @@ export function Header() {
             aria-label="Pages"
             className="ml-3 hidden items-center gap-1 lg:flex"
           >
-            {ITEMS.filter((item) => item.href === "https://explorer.orien.network/").map((item) => {
+            {ITEMS.filter((item) => ["https://explorer.orien.network/", "/community/"].includes(item.href)).map((item) => {
               const on = isActive(item, pathname);
               const Icon = item.icon;
               return (
