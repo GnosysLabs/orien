@@ -133,6 +133,8 @@ fn wallet(app: &AppHandle) -> serde_json::Value {
             "password"
         };
         seen["approve"] = approve.into();
+        // The theme chosen in the app, so the extension looks the same.
+        seen["theme"] = crate::contacts::prefs(dir).get("theme").map(|pref| pref.value.clone()).unwrap_or_default().into();
         // Signed in to Orien Network: websites' Sign in with Orien can use it.
         seen["signed_in"] = crate::board::session(dir).is_some().into();
     }

@@ -17,6 +17,10 @@ async function load() {
   try {
     wallet = await ask({ ask: "wallet" });
   } catch { wallet = null; }
+  if (wallet && wallet.theme !== undefined) {
+    if (wallet.theme) document.documentElement.dataset.theme = wallet.theme; else delete document.documentElement.dataset.theme;
+    try { localStorage.setItem("theme", wallet.theme || ""); } catch {}
+  }
   if (!wallet || !wallet.address) {
     $("balance").textContent = "—";
     $("home-buttons").hidden = true;

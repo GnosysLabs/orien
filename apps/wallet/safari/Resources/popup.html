@@ -2,19 +2,20 @@
 <html>
 <head>
 <meta charset="utf-8">
+<link rel="stylesheet" href="themes.css">
+<script src="theme.js"></script>
 <style>
   @font-face { font-family: "Jost"; src: url("Jost.ttf") format("truetype"); font-weight: 100 900; }
-  :root {
-    color-scheme: dark;
-    --ground: #1b1c1f; --surface: #2e2f34; --field: #202125; --ink: #eceef2; --dim: #9a9ca3; --faint: #6d6f76;
-    --line: #3a3b41; --pearl-ink: #2b2c31; --good: #a6e3c6; --bad: #f1a9a9; --radius: 14px;
-    --pearl: linear-gradient(115deg, #e4e2ea 0%, #f1d3e1 14%, #d8d3f4 28%, #c9e8ec 42%, #e9eed6 56%, #f0d6e3 70%, #d3daf4 84%, #e4e2ea 100%);
-    --brand: linear-gradient(115deg, #f4b6d4 0%, #b8c7ff 20%, #d3b6ff 38%, #a6ead6 56%, #f9dda4 74%, #f4b6d4 100%);
-  }
   * { box-sizing: border-box; }
   html, body { margin: 0; }
-  body { width: 360px; padding: 22px 22px 24px; background: var(--ground); color: var(--ink);
+  /* As the desktop wallet in a big window: the theme's photograph, and the
+     wallet on frosted glass over it. */
+  body { position: relative; width: 360px; padding: 12px; background: var(--ground-deep); color: var(--ink);
     font: 14px/1.5 -apple-system, system-ui, sans-serif; -webkit-font-smoothing: antialiased; }
+  body::before { content: ""; position: fixed; inset: 0; z-index: -1; background: var(--scene, none) center / cover no-repeat; }
+  .glass { padding: 18px 18px 20px; border: 1px solid var(--line); border-radius: 24px; background: var(--glass);
+    -webkit-backdrop-filter: blur(28px) saturate(1.8); backdrop-filter: blur(28px) saturate(1.8);
+    box-shadow: 0 10px 30px rgba(var(--shade), var(--shade-a)); }
   button { font: inherit; color: inherit; }
   [hidden] { display: none !important; }
   @keyframes drift { 0%, 100% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } }
@@ -29,16 +30,16 @@
   .wallet { display: inline-flex; align-items: center; gap: 8px; max-width: 170px; height: 32px; padding: 0 12px 0 4px;
     border: 1px solid var(--line); border-radius: 999px; font-size: 13px; font-weight: 500; }
   .wallet .coin { width: 24px; height: 24px; border-radius: 50%; display: grid; place-items: center; flex: none;
-    font: 700 12px/1 "Jost", sans-serif; background: rgba(255, 255, 255, 0.063); }
+    font: 700 12px/1 "Jost", sans-serif; background: rgba(var(--tint), 0.063); }
   .wallet .coin.emoji { font: 15px/1 system-ui, "Apple Color Emoji", sans-serif; background: transparent; }
   .wallet .wname { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .back { width: 32px; height: 32px; margin-left: -6px; border: 0; border-radius: 10px; background: transparent;
     color: var(--dim); cursor: pointer; display: grid; place-items: center; }
-  .back:hover { background: rgba(255, 255, 255, 0.05); color: var(--ink); }
-  h2 { margin: 0; font-size: 17px; font-weight: 600; flex: 1; padding-left: 6px; }
+  .back:hover { background: rgba(var(--tint), 0.05); color: var(--ink); }
+  h2 { margin: 0; font: 600 18px/1.2 "Jost", sans-serif; flex: 1; padding-left: 6px; }
 
   .card { border-radius: 22px; padding: 20px 22px 22px; color: var(--pearl-ink);
-    box-shadow: 0 14px 36px #00000059, inset 0 1px 0 #ffffffb0; }
+    box-shadow: 0 6px 16px rgba(var(--shade), var(--shade-a)), inset 0 1px 0 #ffffffb0; }
   .label { font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; opacity: 0.6; }
   .amount { margin-top: 6px; display: flex; align-items: baseline; gap: 8px; min-width: 0; }
   /* The whole number large, the decimals smaller: always fits, never cut. */
@@ -52,19 +53,19 @@
 
   .buttons { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 20px; }
   .primary { width: 100%; height: 46px; border: 0; border-radius: var(--radius); color: var(--pearl-ink); font-weight: 600;
-    cursor: pointer; box-shadow: inset 0 1px 0 #ffffffb0, 0 6px 18px #0000003d; transition: transform 0.12s, opacity 0.2s; }
+    cursor: pointer; box-shadow: inset 0 1px 0 #ffffffb0, 0 4px 12px rgba(var(--shade), var(--shade-a)); transition: transform 0.12s, opacity 0.2s; }
   .primary:active:not(:disabled) { transform: scale(0.985); }
   .primary:disabled { opacity: 0.4; cursor: default; }
   .secondary { width: 100%; height: 46px; border-radius: var(--radius); background: transparent; border: 1px solid var(--line);
     font-weight: 500; cursor: pointer; transition: background 0.15s; }
-  .secondary:hover { background: rgba(255, 255, 255, 0.04); }
+  .secondary:hover { background: rgba(var(--tint), 0.04); }
 
   .field { margin-bottom: 16px; }
   #send-go { margin-top: 6px; }
   .field label { display: block; margin-bottom: 7px; font-size: 12.5px; color: var(--dim); }
   .box { display: flex; align-items: center; gap: 8px; height: 46px; padding: 0 14px; border: 1px solid var(--line);
     border-radius: var(--radius); background: var(--field); }
-  .box:focus-within { border-color: #8f8aa8; }
+  .box:focus-within { border-color: var(--focus); }
   .box input { flex: 1; min-width: 0; height: 100%; border: 0; outline: none; background: transparent; color: var(--ink); font: inherit; }
   .box input.mono { font: 12.5px ui-monospace, "SF Mono", Menlo, monospace; }
   .box .unit { color: var(--dim); opacity: 1; }
@@ -74,9 +75,9 @@
   .pick { width: 100%; display: flex; align-items: center; gap: 12px; padding: 10px 14px; border: 0; background: none;
     text-align: left; cursor: pointer; }
   .pick + .pick { border-top: 1px solid var(--line); }
-  .pick:hover, .pick.on { background: rgba(255, 255, 255, 0.05); }
+  .pick:hover, .pick.on { background: rgba(var(--tint), 0.05); }
   .pick .coin { width: 30px; height: 30px; border-radius: 50%; display: grid; place-items: center; flex: none;
-    font: 700 13px/1 "Jost", sans-serif; background: rgba(255, 255, 255, 0.07); }
+    font: 700 13px/1 "Jost", sans-serif; background: rgba(var(--tint), 0.07); }
   .pick .coin { position: relative; overflow: hidden; }
   .pick .coin img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
   .pick .coin.emoji { font: 17px/1 system-ui, "Apple Color Emoji", sans-serif; background: transparent; }
@@ -95,13 +96,14 @@
 
   .done { text-align: center; padding: 6px 0 2px; }
   .tick { width: 56px; height: 56px; margin: 4px auto 16px; border-radius: 50%; display: grid; place-items: center; color: var(--pearl-ink); }
-  .done .big { font-size: 26px; font-weight: 300; }
+  .done .big { font: 400 28px/1.2 "Jost", sans-serif; }
   .done .sent-title { margin: 0 0 4px; font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; }
   .done .small { margin-top: 6px; color: var(--dim); font-size: 12.5px; }
   .done .primary { margin-top: 24px; }
 </style>
 </head>
 <body>
+<div class="glass">
   <!-- Home: the balance, the address, Send and Copy. -->
   <section id="home">
     <header><span class="wordmark"><span class="mark brand"></span><span class="word brand">ORIEN</span></span>
@@ -150,6 +152,7 @@
       <button class="primary pearl" id="sent-done">Done</button>
     </div>
   </section>
+</div>
   <script src="popup.js"></script>
 </body>
 </html>
