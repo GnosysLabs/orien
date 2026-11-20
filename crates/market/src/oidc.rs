@@ -573,7 +573,9 @@ async fn request(State(app): State<Arc<App>>, headers: HeaderMap, Query(asked): 
     let you = match account {
         Some(account) => {
             let claims = store.claims(account, app.origin())?;
-            Some(json!({ "name": claims["name"], "picture": claims["picture"], "wallets": claims["orien_wallets"], "allowed": store.allowed(account, site)? }))
+            let images = format!("{}/api/market/images/", app.origin());
+            let picture = claims["picture"].as_str().and_then(|p| p.strip_prefix(&images)).map(str::to_string);
+            Some(json!({ "name": claims["name"], "picture": picture, "wallets": claims["orien_wallets"], "allowed": store.allowed(account, site)? }))
         }
         None => None,
     };

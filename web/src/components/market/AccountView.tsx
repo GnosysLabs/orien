@@ -7,6 +7,7 @@ import { ask, me, NAME_PATTERN, NAME_RULE, profileHref, type Account, type Listi
 import { Card } from './Browse'
 import { ProfileEditor } from './ProfileEditor'
 import { YourWallets } from './WalletCheck'
+import { YourWebsites } from './YourWebsites'
 import { Notice, SIGNED_IN_OR_OUT } from './Shell'
 
 type Found = { account: Account; listings: Listing[]; unread?: number }
@@ -35,7 +36,18 @@ export function AccountView() {
 
 type Step = 'email' | 'code' | 'name'
 
-function SignIn({ onDone, trouble: first }: { onDone: () => void; trouble: string }) {
+export function SignIn({
+  onDone,
+  trouble: first,
+  title = 'Sign in to Orien Network',
+  blurb,
+}: {
+  onDone: () => void
+  trouble: string
+  /** For signing in on the way to something else, such as another website. */
+  title?: string
+  blurb?: React.ReactNode
+}) {
   const [step, setStep] = useState<Step>('email')
   const [email, setEmail] = useState('')
   const [code, setCode] = useState('')
@@ -82,9 +94,15 @@ function SignIn({ onDone, trouble: first }: { onDone: () => void; trouble: strin
       <Mail className="mb-4 h-6 w-6 text-pearl" strokeWidth={1.75} aria-hidden />
       {step === 'email' && (
         <form onSubmit={sendCode} className="space-y-4">
-          <h1 className="text-2xl font-bold tracking-tight text-ink">Sign in to Orien Network</h1>
-          <p className="leading-relaxed text-muted">One account for your profile, the Market and messages. We&apos;ll email you a 6-digit code; no password needed, and new
-            emails make an account.</p>
+          <h1 className="text-2xl font-bold tracking-tight text-ink">{title}</h1>
+          <p className="leading-relaxed text-muted">
+            {blurb ?? (
+              <>
+                One account for your profile, the Market and messages. We&apos;ll email you a 6-digit code; no password
+                needed, and new emails make an account.
+              </>
+            )}
+          </p>
           <input
             type="email"
             value={email}
@@ -247,6 +265,7 @@ function Mine({ found, onChange }: { found: Found; onChange: () => void }) {
           ))}
         </div>
       )}
+      <YourWebsites />
       <DeleteAccount name={found.account.name} onDeleted={onChange} />
     </div>
   )
