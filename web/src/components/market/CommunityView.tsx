@@ -152,12 +152,14 @@ function names(faces: Face[], count: number) {
   return rest > 0 ? `${head} and ${rest} ${rest === 1 ? 'other' : 'others'}` : head
 }
 
-const ACCENTS: Record<Exclude<Post['kind'], 'post'>, { eyebrow: string; ring: string; glow: string; text: string }> = {
-  record: { eyebrow: 'New record', ring: 'border-amber-300/40', glow: 'from-amber-300/15', text: 'text-amber-200' },
-  welcome: { eyebrow: 'Welcome', ring: 'border-emerald-300/40', glow: 'from-emerald-300/15', text: 'text-emerald-200' },
-  milestone: { eyebrow: 'Milestone', ring: 'border-violet-300/40', glow: 'from-violet-300/15', text: 'text-violet-200' },
-  streak: { eyebrow: 'On a streak', ring: 'border-orange-300/40', glow: 'from-orange-300/15', text: 'text-orange-200' },
-  top_day: { eyebrow: 'Top miner of the day', ring: 'border-pearl/50', glow: 'from-pearl/15', text: 'text-pearl' },
+/** The eyebrow over each kind of the network's card. One colour for all of
+ * them: the site's own living pearl. */
+const EYEBROWS: Record<Exclude<Post['kind'], 'post'>, string> = {
+  record: 'New record',
+  welcome: 'Welcome',
+  milestone: 'Milestone',
+  streak: 'On a streak',
+  top_day: 'Top miner of the day',
 }
 
 /** What the network says, as a card of its own kind. */
@@ -416,7 +418,7 @@ function PostCard({ post, me, onChange }: { post: Post; me: You | null; onChange
   const [open, setOpen] = useState(false)
   const [replies, setReplies] = useState<Post[] | null>(null)
   const network = post.kind !== 'post'
-  const accent = network ? ACCENTS[post.kind as keyof typeof ACCENTS] : null
+  const eyebrow = network ? EYEBROWS[post.kind as keyof typeof EYEBROWS] : null
   const loadReplies = useCallback(async () => {
     const found = await ask<{ replies: Post[] }>(`/community/posts/${post.id}`).catch(() => ({ replies: [] }))
     setReplies(found.replies)
@@ -427,15 +429,15 @@ function PostCard({ post, me, onChange }: { post: Post; me: You | null; onChange
   }
 
   return (
-    <article className={`relative overflow-hidden rounded-2xl border bg-surface ${accent ? accent.ring : 'border-line'}`}>
-      {accent && <div className={`pointer-events-none absolute inset-0 bg-gradient-to-br ${accent.glow} via-transparent to-transparent`} aria-hidden />}
+    <article className="relative overflow-hidden rounded-2xl border border-line bg-surface">
+      {network && <div className="pearl-fill absolute inset-x-0 top-0 h-0.5" aria-hidden />}
       <div className="relative p-5">
         <header className="flex items-center gap-3">
           {network ? <NetworkAvatar size={40} /> : post.author && <Avatar name={post.author.name} picture={post.author.picture} size={44} />}
           <div className="min-w-0 flex-1">
-            {network && accent ? (
+            {network && eyebrow ? (
               <>
-                <p className={`text-[11px] font-bold uppercase tracking-[0.16em] ${accent.text}`}>{accent.eyebrow}</p>
+                <p className="pearl-text text-[11px] font-bold uppercase tracking-[0.16em]">{eyebrow}</p>
                 <p className="text-sm text-muted">
                   <span className="font-semibold text-ink">Orien</span> · {since(post.created)}
                 </p>
