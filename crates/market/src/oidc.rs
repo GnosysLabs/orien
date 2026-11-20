@@ -11,7 +11,7 @@
 //! RS256) and an access token for the userinfo endpoint.
 //!
 //! What a website learns: a stable id for the account (its random handle),
-//! its name and picture, and its verified wallets: only those proven by the
+//! its name, picture and banner, and its verified wallets: only those proven by the
 //! small payment. Never the email address. No wallet key is ever involved.
 //!
 //! Anyone signed in may register websites, once the gate is open; until
@@ -393,10 +393,10 @@ impl Store {
 
     /// What a website learns about an account.
     fn claims(&self, account: i64, origin: &str) -> Result<Value> {
-        let (handle, name, picture): (String, String, Option<String>) = self.db.query_row(
-            "SELECT handle, name, picture FROM accounts WHERE id = ?1",
+        let (handle, name, picture, banner): (String, String, Option<String>, Option<String>) = self.db.query_row(
+            "SELECT handle, name, picture, banner FROM accounts WHERE id = ?1",
             [account],
-            |row| Ok((row.get(0)?, row.get(1)?, row.get(2)?)),
+            |row| Ok((row.get(0)?, row.get(1)?, row.get(2)?, row.get(3)?)),
         )?;
         let wallets: Vec<Value> = self
             .verified_wallets(account)?
@@ -412,6 +412,9 @@ impl Store {
         });
         if let Some(picture) = picture {
             claims["picture"] = json!(format!("{origin}/api/market/images/{picture}"));
+        }
+        if let Some(banner) = banner {
+            claims["orien_banner"] = json!(format!("{origin}/api/market/images/{banner}"));
         }
         Ok(claims)
     }
@@ -439,6 +442,12 @@ impl Store {
     /// access tokens stop working.
     pub fn set_site_off(&self, id: i64, off: bool) -> Result<bool> {
         Ok(self.db.execute("UPDATE oidc_sites SET off = ?2 WHERE id = ?1", params![id, off])? == 1)
+    }
+
+    /// For tests: an account's number by its name.
+    #[doc(hidden)]
+    pub fn account_id_for_tests(&self, name: &str) -> i64 {
+        self.db.query_row("SELECT id FROM accounts WHERE name = ?1", [name], |row| row.get(0)).unwrap()
     }
 
     fn account_name(&self, account: i64) -> Result<String> {
@@ -531,7 +540,7 @@ async fn discovery(State(app): State<Arc<App>>) -> Response {
             "scopes_supported": ["openid", "profile", "wallets"],
             "token_endpoint_auth_methods_supported": ["client_secret_basic", "client_secret_post", "none"],
             "code_challenge_methods_supported": ["S256"],
-            "claims_supported": ["sub", "iss", "aud", "exp", "iat", "nonce", "name", "preferred_username", "picture", "profile", "orien_wallets"],
+            "claims_supported": ["sub", "iss", "aud", "exp", "iat", "nonce", "name", "preferred_username", "picture", "profile", "orien_banner", "orien_wallets"],
             "service_documentation": format!("{origin}/developers/sign-in/"),
         }))
         .into_response(),

@@ -31,7 +31,7 @@ export const CHANGELOG: Entry[] = [
     title: 'Sign in with Orien',
     unreleased: true,
     changes: [
-      'Any website or app can now let people sign in with their Orien Network account. People see the website’s name and address, and exactly what it will receive: their Orien Network name and picture, and their verified wallets. They choose Allow or Cancel.',
+      'Any website or app can now let people sign in with their Orien Network account. People see the website’s name and address, and exactly what it will receive: their Orien Network name, picture and banner, and their verified wallets. They choose Allow or Cancel.',
       'Websites never receive the email address, and nothing they receive can move ORN or use a wallet.',
       'It’s standard OpenID Connect, free, with nothing to apply for: register a website from your account. orien.network/developers/sign-in/ explains it.',
     ],

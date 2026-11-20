@@ -184,6 +184,7 @@ async fn a_website_signs_someone_in_and_learns_their_verified_wallets() {
     assert_eq!(claims["name"], "Alice");
     assert!(claims["exp"].as_u64().unwrap() > claims["iat"].as_u64().unwrap());
     assert!(claims.get("email").is_none(), "the email address is never given");
+    assert!(claims.get("picture").is_none() && claims.get("orien_banner").is_none(), "none set yet");
     let wallets = claims["orien_wallets"].as_array().unwrap();
     assert_eq!(wallets.len(), 1);
     assert_eq!(wallets[0]["address"].as_str().unwrap().len(), 64);
@@ -199,6 +200,16 @@ async fn a_website_signs_someone_in_and_learns_their_verified_wallets() {
     assert_eq!((info["sub"].clone(), info["orien_wallets"].clone()), (claims["sub"].clone(), claims["orien_wallets"].clone()));
     let forged = [("authorization", "Bearer orna_forged".to_string())];
     assert_eq!(ask(&app, "GET", "/api/market/oidc/userinfo", None, &forged, None, None).await.0, StatusCode::UNAUTHORIZED);
+
+    // A picture and banner, once set, come as full addresses.
+    let id = orien_market::api::store_for_tests(&app, |store| store.account_id_for_tests("Alice"));
+    orien_market::api::store_for_tests(&app, |store| {
+        store.set_picture(id, "face.webp").unwrap();
+        store.set_banner(id, Some("wide.webp")).unwrap();
+    });
+    let (_, info, _) = ask(&app, "GET", "/api/market/oidc/userinfo", None, &bearer, None, None).await;
+    assert_eq!(info["picture"], "https://orien.network/api/market/images/face.webp");
+    assert_eq!(info["orien_banner"], "https://orien.network/api/market/images/wide.webp");
 
     // Next time the page knows Alice allowed it.
     let (_, shown, _) = ask(&app, "GET", &path, Some(&alice), &[], None, None).await;

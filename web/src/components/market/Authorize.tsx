@@ -164,7 +164,7 @@ export function Authorize() {
         <li className="flex items-center gap-3 px-4 py-3">
           <Avatar name={you.name} picture={you.picture} size={36} />
           <span className="min-w-0">
-            <span className="block text-sm text-muted">Your Orien Network name and picture</span>
+            <span className="block text-sm text-muted">Your Orien Network name, picture and banner</span>
             <span className="block truncate font-semibold text-ink">{you.name}</span>
           </span>
         </li>

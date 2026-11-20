@@ -17,6 +17,7 @@ const EXAMPLE = `{
   "name": "Satoshi",
   "preferred_username": "Satoshi",
   "picture": "https://orien.network/api/market/images/….jpg",
+  "orien_banner": "https://orien.network/api/market/images/….jpg",
   "profile": "https://orien.network/u/Satoshi/",
   "orien_wallets": [
     {
@@ -33,6 +34,7 @@ const CLAIMS: [string, string][] = [
   ['sub', 'The account’s id. It never changes, even if the person renames their account: use it to recognise them.'],
   ['name, preferred_username', 'Their Orien Network username, which they can change.'],
   ['picture', 'Their profile picture, when they have one.'],
+  ['orien_banner', 'Their profile’s wide banner (about 3:1), when they have one.'],
   ['profile', 'Their public profile page on orien.network.'],
   [
     'orien_wallets',
@@ -78,8 +80,8 @@ export default function SignInDevelopersPage() {
         <p>
           They press your Sign in with Orien button and come to orien.network. If they aren’t signed in there yet,
           they sign in with a code sent to their email. Then they see your website’s
-          name and address, and exactly what you’ll receive: their Orien Network name and picture, and their verified
-          wallets. They choose Allow or Cancel, and come back to you.
+          name and address, and exactly what you’ll receive: their Orien Network name, picture and banner, and their
+          verified wallets. They choose Allow or Cancel, and come back to you.
         </p>
         <p>
           You never receive their email address, and nothing you get can move ORN or use their wallets. The next
@@ -122,7 +124,7 @@ export default function SignInDevelopersPage() {
           <li>The authorization code flow: response_type=code.</li>
           <li>
             Scopes: <Code>openid</Code> is required. <Code>profile</Code> and <Code>wallets</Code> are accepted; the
-            name, picture and wallets come either way, as people are shown.
+            name, picture, banner and wallets come either way, as people are shown.
           </li>
           <li>
             PKCE with S256 is required for websites without a secret, and welcome for the rest. Send a nonce and
