@@ -88,7 +88,7 @@ export function WalletDownload() {
       />
       <h2 className="mt-5 text-2xl font-bold tracking-tight text-ink">Orien Wallet</h2>
       <p className="mx-auto mt-2 max-w-md leading-relaxed text-muted">
-        Hold, send, mine and swap ORN. Free, and it keeps itself up to date.
+        Hold, send, mine and swap ORN.
       </p>
 
       {platform !== 'other' && (
