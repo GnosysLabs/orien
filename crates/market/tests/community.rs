@@ -33,7 +33,7 @@ fn mined() -> Mined {
 }
 
 #[test]
-fn the_board_ranks_miners_by_what_they_mined_with_their_streaks() {
+fn the_board_ranks_verified_miners_by_what_they_mined_with_their_streaks() {
     // Alice (account 7) verified addresses 1 and 4; Bob (8) address 2.
     let owners = HashMap::from([(address(1), 7), (address(4), 7), (address(2), 8)]);
     let names = HashMap::from([(7, ("Alice".to_string(), None)), (8, ("Bob".to_string(), None))]);
@@ -45,9 +45,8 @@ fn the_board_ranks_miners_by_what_they_mined_with_their_streaks() {
     assert_eq!(board.miners[0].streak, 4);
     assert_eq!(board.miners[0].team.as_deref(), Some("Diggers"));
     assert_eq!(board.miners[1].name.as_deref(), Some("Bob"));
-    // An address nobody verified ranks as itself.
-    assert_eq!(board.miners[2].address.as_deref(), Some(address(3).as_str()));
-    assert_eq!(board.miners[2].streak, 1);
+    // Addresses nobody verified are not ranked.
+    assert_eq!(board.miners.len(), 2);
     assert_eq!(board.accounts[&7].rank, 1);
     assert_eq!(board.teams[0].mined, (1_405 * ORN).to_string());
     assert_eq!(board.teams[0].members, 2);

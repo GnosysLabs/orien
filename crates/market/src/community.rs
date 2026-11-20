@@ -43,7 +43,8 @@ const UNIT: u128 = 1_000_000_000;
 const BOARD: usize = 50;
 
 /// Who mined: an account (through its verified wallets), or an address no
-/// account verified.
+/// account verified. Only accounts are ranked; addresses still count for
+/// the network's news.
 #[derive(Clone, Debug, PartialEq, Eq, Hash, PartialOrd, Ord)]
 pub enum Miner {
     Account(i64),
@@ -159,7 +160,10 @@ pub fn board(
     teams: &[(i64, String, Vec<i64>)],
 ) -> Board {
     let tally = tally(mined, owners);
-    let mut ranked: Vec<(&Miner, u128)> = tally.totals.iter().map(|(m, t)| (m, *t)).collect();
+    // Only miners with a verified wallet on their profile are ranked: the
+    // board is about people, not addresses.
+    let mut ranked: Vec<(&Miner, u128)> =
+        tally.totals.iter().filter(|(m, _)| matches!(m, Miner::Account(_))).map(|(m, t)| (m, *t)).collect();
     ranked.sort_by(|a, b| b.1.cmp(&a.1).then_with(|| a.0.cmp(b.0)));
     let team_of: HashMap<i64, &str> =
         teams.iter().flat_map(|(_, name, members)| members.iter().map(move |m| (*m, name.as_str()))).collect();
