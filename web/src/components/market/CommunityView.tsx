@@ -451,7 +451,7 @@ function PostCard({ post, me, onChange }: { post: Post; me: You | null; onChange
           <img
             src={`/community/${post.kind}.jpg`}
             alt=""
-            className="pointer-events-none absolute right-0 top-0 h-full w-full object-cover opacity-80 [mask-image:linear-gradient(to_left,black,transparent_85%)] sm:w-3/5 sm:[mask-image:linear-gradient(to_left,black_20%,transparent)]"
+            className="pointer-events-none absolute right-0 top-0 h-full w-full object-cover opacity-80 [mask-image:linear-gradient(to_left,black,transparent_90%)] sm:w-4/5 sm:[mask-image:linear-gradient(to_left,black_15%,rgb(0_0_0/0.55)_50%,transparent_95%)]"
           />
         </>
       )}
