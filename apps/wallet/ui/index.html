@@ -1075,15 +1075,18 @@
 
   /* ---- Send ---- */
   /* Send: recent people as a row of faces to pick from. */
-  .recent-to { margin: 0 0 22px; }
+  .recent-to { margin: 0 0 14px; }
+  #send .topline { margin-bottom: 12px; }
   .recent-to.tucked { display: none; }
-  .recent-to .rt-label { margin: 0 0 10px 2px; font-size: 12px; color: var(--dim); }
+  .recent-to .rt-label { margin: 0 0 6px 2px; font-size: 12px; color: var(--dim); }
   .recent-to .rt-row { display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; }
   .recent-to .rt-row::-webkit-scrollbar { display: none; }
-  .recent-to .rt { flex: none; width: 72px; display: flex; flex-direction: column; align-items: center; gap: 7px;
-    padding: 8px 2px 6px; border: 0; border-radius: 14px; background: transparent; color: var(--ink); cursor: pointer; }
+  .recent-to .rt { flex: none; width: 72px; display: flex; flex-direction: column; align-items: center; gap: 6px;
+    padding: 6px 2px 4px; border: 0; border-radius: 14px; background: transparent; color: var(--ink); cursor: pointer; }
   @media (hover: hover) { .recent-to .rt:hover { background: rgba(var(--tint), 0.05); } }
-  .recent-to .rt .face { width: 44px; height: 44px; font-size: 16px; }
+  .recent-to .rt .face { width: 38px; height: 38px; font-size: 15px; transition: box-shadow 0.15s; }
+  .recent-to .rt.on .face { box-shadow: 0 0 0 2.5px var(--ground-deep), 0 0 0 4.5px var(--select); }
+  .recent-to .rt.on .rt-name { font-weight: 600; }
   .recent-to .rt .face.emoji { font-size: 22px; }
   .recent-to .rt .rt-name { max-width: 100%; font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   /* The amount box: Max inside it, as in the extension. */
@@ -1096,16 +1099,17 @@
   #send .fee-line { margin: 7px 0 0 2px; }
   /* What will happen, once the form is filled: the Review screen's rows,
      on this screen. */
-  .summary { margin-top: 22px; border: 1px solid var(--line); border-radius: 18px; background: var(--surface); overflow: hidden; }
-  .summary .row { display: flex; justify-content: space-between; align-items: center; padding: 12px 18px; gap: 16px; }
-  .summary .sm-fee { margin-left: 8px; font-size: 12px; font-weight: 400; color: var(--faint); }
+  .summary { margin-top: 14px; border: 1px solid var(--line); border-radius: 18px; background: var(--surface); overflow: hidden; }
+  .summary .row { display: flex; justify-content: space-between; align-items: center; padding: 10px 18px; gap: 16px; }
   .summary .row + .row { border-top: 1px solid var(--line); }
   .summary .row span:first-child { color: var(--dim); }
-  .summary .row span:last-child { font-weight: 500; text-align: right; min-width: 0; }
-  .summary .sm-to { display: inline-flex; align-items: center; gap: 8px; overflow: hidden; }
-  .summary .sm-to .face { width: 22px; height: 22px; font-size: 10.5px; }
-  .summary .sm-to .nm { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  #send #r-pw-field { margin-top: 22px; }
+  .summary .row > span:last-child { font-weight: 500; text-align: right; }
+  .summary .sm-fee { margin-right: 8px; font-size: 12px; font-weight: 400; color: var(--faint); }
+  /* Nothing to say under To: no empty line taking room. */
+  #send #to-check:empty { min-height: 0; margin: 0; }
+  #send #r-pw-field { margin-top: 18px; }
+  #send #confirm { margin-top: 16px; }
+  #send .field + .field { margin-top: 14px; }
   /* iPhones: Send at the foot of the screen, above the keyboard; while
      typing, only the form, so Send stays in sight. */
   body.phone #send .push { flex: 1 1 auto; }
@@ -1841,11 +1845,10 @@
     <section class="screen" id="send" hidden>
       <div class="topline">
         <button class="back" data-back aria-label="Back"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg></button>
-        <h2>Send</h2>
+        <h2>Send ORN</h2>
       </div>
 
       <div class="recent-to" id="recent-to" hidden>
-        <div class="rt-label">Recent</div>
         <div class="rt-row" id="recent-row"></div>
       </div>
 
@@ -1872,7 +1875,7 @@
       </div>
 
       <div class="summary" id="summary" hidden>
-        <div class="row"><span>Total</span><span><span id="r-amount"></span><span class="sm-fee" id="r-fee"></span></span></div>
+        <div class="row"><span>Total</span><span><span class="sm-fee" id="r-fee"></span><span id="r-amount"></span></span></div>
         <div class="row"><span>Balance after</span><span id="r-after"></span></div>
       </div>
 
@@ -1884,7 +1887,7 @@
 
       <div class="push"></div>
       <div class="problem" id="send-problem" hidden></div>
-      <button class="primary pearl" id="confirm" disabled data-gap="lg">Send</button>
+      <button class="primary pearl" id="confirm" disabled>Send</button>
     </section>
 
     <!-- Send: done -->
@@ -3669,10 +3672,11 @@
     $("summary").hidden = !ready;
     // The summary says the fee; the line under the amount keeps only problems.
     $("fee-line").hidden = ready;
-    // Someone picked: the recent faces give their room to the summary.
-    // So do the name suggestions as soon as anything is typed: one list of
-    // people at a time.
-    $("recent-to").classList.toggle("tucked", chosen || to !== "");
+    // While a name is typed, the suggestions replace the recent faces: one
+    // list of people at a time. Once someone is chosen, the faces stay, the
+    // chosen one marked.
+    $("recent-to").classList.toggle("tucked", to !== "" && !chosen);
+    for (const rt of document.querySelectorAll("#recent-row .rt")) rt.classList.toggle("on", chosen && rt.dataset.address === lower);
     if (ready) {
       $("r-amount").textContent = `${quoted.total} ORN`;
       $("r-fee").textContent = `incl. ${quoted.fee} fee`;
