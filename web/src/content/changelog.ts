@@ -27,6 +27,17 @@ export const PRODUCTS: Record<Product, string> = {
 export const CHANGELOG: Entry[] = [
   {
     date: '2026-11-20',
+    products: ['network', 'marketplace'],
+    title: 'The community',
+    unreleased: true,
+    changes: [
+      'orien.network/community/ is a feed the network writes into after every checkpoint: new records for miners paid in an hour, miners paid for the first time, and milestones of ORN mined. People post, reply and react in the same feed.',
+      'Beside it, the top miners by ORN mined with their hours paid in a row, and teams: start one or join one, and teams rank by what their members mine. Your own rank, ORN mined and streak show when you are signed in.',
+      'Posting and teams need a verified wallet. Posts are screened like Market messages, and anyone can report one.',
+    ],
+  },
+  {
+    date: '2026-11-20',
     products: ['wallet'],
     version: '1.8.22',
     title: 'Orien Wallet in your browser, and a new Send',
