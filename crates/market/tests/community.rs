@@ -22,15 +22,20 @@ fn address(n: u8) -> String {
     format!("{:064x}", n)
 }
 
-/// Checkpoints 10 to 13: a and b mine every hour, c joins at 13, d once at 11.
+/// Checkpoints 10 to 14: a and b mine every hour, c joins at 13, d once at
+/// 11, e once at 13. Six-hour blocks: 10 and 11 in the first, 12 and 13 in
+/// the second, 14 starts a third.
 fn mined() -> Mined {
     let mut by_epoch = BTreeMap::new();
     by_epoch.insert(10, vec![(address(1), 600 * ORN), (address(2), 50 * ORN)]);
     by_epoch.insert(11, vec![(address(1), 300 * ORN), (address(2), 50 * ORN), (address(4), 5 * ORN)]);
     by_epoch.insert(12, vec![(address(1), 200 * ORN), (address(2), 50 * ORN)]);
     by_epoch.insert(13, vec![(address(1), 100 * ORN), (address(2), 50 * ORN), (address(3), 70 * ORN), (address(5), 1 * ORN)]);
-    let times = (10..=13).map(|e| (e, 1_795_000_000 + e * 3600)).collect();
-    Mined { since: 10, upto: 13, by_epoch, times }
+    by_epoch.insert(14, vec![(address(1), 10 * ORN), (address(2), 50 * ORN)]);
+    let midnight = 1_795_000_000 - (1_795_000_000 % 86_400);
+    let hour = |h: u64| midnight + h * 3600;
+    let times = BTreeMap::from([(10, hour(0)), (11, hour(1)), (12, hour(6)), (13, hour(7)), (14, hour(12))]);
+    Mined { since: 10, upto: 14, by_epoch, times }
 }
 
 #[test]
@@ -40,16 +45,16 @@ fn the_board_ranks_verified_miners_by_what_they_mined_with_their_streaks() {
     let names = HashMap::from([(7, ("Alice".to_string(), None)), (8, ("Bob".to_string(), None))]);
     let teams = vec![(1, "Diggers".to_string(), vec![7, 8])];
     let board = board(&mined(), &owners, &names, &teams);
-    assert_eq!(board.epoch, 13);
+    assert_eq!(board.epoch, 14);
     assert_eq!(board.miners[0].name.as_deref(), Some("Alice"));
-    assert_eq!(board.miners[0].mined, (1_205 * ORN).to_string(), "both her wallets count");
-    assert_eq!(board.miners[0].streak, 4);
+    assert_eq!(board.miners[0].mined, (1_215 * ORN).to_string(), "both her wallets count");
+    assert_eq!(board.miners[0].streak, 5);
     assert_eq!(board.miners[0].team.as_deref(), Some("Diggers"));
     assert_eq!(board.miners[1].name.as_deref(), Some("Bob"));
     // Addresses nobody verified are not ranked.
     assert_eq!(board.miners.len(), 2);
     assert_eq!(board.accounts[&7].rank, 1);
-    assert_eq!(board.teams[0].mined, (1_405 * ORN).to_string());
+    assert_eq!(board.teams[0].mined, (1_465 * ORN).to_string());
     assert_eq!(board.teams[0].members, 2);
 }
 
@@ -62,12 +67,17 @@ fn the_network_posts_records_new_miners_and_milestones() {
     let kinds: Vec<&str> = said.iter().map(|(kind, _, _)| kind.as_str()).collect();
     // Four addresses paid, beating three: a record.
     assert!(kinds.contains(&"record"));
-    // Carol (9) is new and named, address 5 new and unnamed: one welcome, Carol first.
-    let welcome = said.iter().find(|(kind, _, _)| kind == "welcome").unwrap();
+    // Newcomers are welcomed once their six-hour block ends: Carol (9) and
+    // address 5 joined in the block of 12 and 13, so 14 posts the welcome,
+    // Carol first. Nobody is welcomed for the block the records begin in.
+    assert!(!kinds.contains(&"welcome"));
+    let at_14 = happenings(&mined(), &owners, 14);
+    let welcome = at_14.iter().find(|(kind, _, _)| kind == "welcome").expect("a welcome at 14");
     assert_eq!(welcome.1, Some(9));
-    assert_eq!(welcome.2["count"], 2);
+    assert_eq!((welcome.2["count"].as_u64(), welcome.2["from"].as_u64(), welcome.2["to"].as_u64()), (Some(2), Some(12), Some(13)));
     assert_eq!(welcome.2["miners"][0]["account"], 9);
     assert_eq!(welcome.2["miners"][1]["address"], address(5));
+    assert!(!happenings(&mined(), &owners, 12).iter().any(|(kind, _, _)| kind == "welcome"), "the first block has no welcome");
     // Alice passed 1,000 ORN at 12 (600+300+200), not at 13.
     assert!(!kinds.contains(&"milestone"));
     let at_12 = happenings(&mined(), &owners, 12);
@@ -205,14 +215,15 @@ async fn the_networks_story_is_backfilled_and_dated_at_its_checkpoints() {
     store_for_tests(&app, |s| s.tell(&mined(), &owners).unwrap());
     let (_, feed) = ask(&app, "GET", "/api/market/community/feed", None, None).await;
     let posts = feed["posts"].as_array().unwrap();
-    // Newest first by time: Alice's post today, then checkpoint 13's news, then 12's.
+    // Newest first by time: Alice's post today, then the news in checkpoint order.
     assert_eq!(posts[0]["body"], "hello");
-    assert!(posts[1]["kind"] != "post" && posts[1]["data"]["epoch"] == 13, "{}", posts[1]);
-    // Faces are named at read time.
-    let welcome = posts.iter().find(|p| p["kind"] == "welcome" && p["data"]["epoch"] == 13).unwrap();
-    assert_eq!(welcome["data"]["miners"][0]["name"], "Carol");
-    assert_eq!(posts[1]["created"], 1_795_000_000 + 13 * 3600);
+    let record = posts.iter().find(|p| p["kind"] == "record" && p["data"]["epoch"] == 13).expect("the record at 13");
+    let midnight = 1_795_000_000 - (1_795_000_000 % 86_400);
+    assert_eq!(record["created"], midnight + 7 * 3600, "dated when checkpoint 13 was made");
     assert!(posts.iter().any(|p| p["kind"] == "milestone" && p["data"]["epoch"] == 12));
+    // Faces are named at read time.
+    let welcome = posts.iter().find(|p| p["kind"] == "welcome").expect("a welcome");
+    assert_eq!(welcome["data"]["miners"][0]["name"], "Carol");
     // Only the network, only people.
     let (_, network) = ask(&app, "GET", "/api/market/community/feed?only=network", None, None).await;
     assert!(network["posts"].as_array().unwrap().iter().all(|p| p["kind"] != "post"));

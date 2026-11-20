@@ -38,6 +38,8 @@ pub const REACTIONS: [&str; 5] = ["⛏️", "🔥", "❤️", "👏", "😂"];
 const MILESTONES: [u64; 4] = [100, 1_000, 10_000, 100_000];
 /// New miners shown with a face on one hour's welcome card; more are counted.
 const FACES: usize = 12;
+/// New miners are welcomed in blocks of this long.
+const BLOCK_SECONDS: u64 = 6 * 3600;
 /// Checkpoints in a row that earn a streak post.
 const STREAKS: [u64; 5] = [24, 48, 100, 168, 336];
 const UNIT: u128 = 1_000_000_000;
@@ -237,21 +239,52 @@ pub fn happenings(mined: &Mined, owners: &HashMap<String, i64>, epoch: u64) -> V
         said.push(("record".to_string(), None, json!({ "epoch": epoch, "miners": addresses(&epoch), "before": most_before })));
     }
 
-    // Who was paid for the first time: named first, with what they earned.
-    let seen: HashSet<&Miner> = before.iter().flat_map(|(_, by)| by.keys()).collect();
-    let mut fresh: Vec<(&Miner, u128)> = now_paid.iter().filter(|(m, _)| !seen.contains(m)).map(|(m, a)| (m, *a)).collect();
-    fresh.sort_by(|a, b| {
-        let named = |m: &Miner| matches!(m, Miner::Account(_));
-        named(b.0).cmp(&named(a.0)).then_with(|| b.1.cmp(&a.1)).then_with(|| a.0.cmp(b.0))
-    });
-    if !fresh.is_empty() {
-        let subject = fresh.iter().find_map(|(m, _)| if let Miner::Account(id) = m { Some(*id) } else { None });
-        let faces: Vec<Value> = fresh.iter().take(FACES).map(|(m, a)| {
-            let mut face = who(m);
-            face["paid"] = json!(a.to_string());
-            face
-        }).collect();
-        said.push(("welcome".to_string(), subject, json!({ "epoch": epoch, "count": fresh.len(), "miners": faces })));
+    // Who was paid for the first time, in the six-hour block that has just
+    // ended: one welcome card per block, every newcomer on it. The block
+    // the records begin in has nothing to compare with, so it gets none.
+    let block = |e: u64| mined.times.get(&e).map(|t| t / BLOCK_SECONDS);
+    if let (Some(now_block), Some(last_block)) = (block(epoch), block(epoch - 1))
+        && now_block != last_block
+    {
+        let in_block: Vec<&(u64, HashMap<Miner, u128>)> = epochs.iter().filter(|(e, _)| block(*e) == Some(last_block)).collect();
+        let first = in_block.first().map(|(e, _)| *e).unwrap_or(epoch);
+        if first > mined.since {
+            let seen_before: HashSet<&Miner> = epochs.iter().filter(|(e, _)| *e < first).flat_map(|(_, by)| by.keys()).collect();
+            let mut fresh: Vec<(&Miner, u128)> = Vec::new();
+            for (_, by) in &in_block {
+                for (miner, amount) in by.iter() {
+                    if seen_before.contains(miner) {
+                        continue;
+                    }
+                    match fresh.iter_mut().find(|(m, _)| *m == miner) {
+                        Some(found) => found.1 += amount,
+                        None => fresh.push((miner, *amount)),
+                    }
+                }
+            }
+            fresh.sort_by(|a, b| {
+                let named = |m: &Miner| matches!(m, Miner::Account(_));
+                named(b.0).cmp(&named(a.0)).then_with(|| b.1.cmp(&a.1)).then_with(|| a.0.cmp(b.0))
+            });
+            if !fresh.is_empty() {
+                let subject = fresh.iter().find_map(|(m, _)| if let Miner::Account(id) = m { Some(*id) } else { None });
+                let faces: Vec<Value> = fresh
+                    .iter()
+                    .take(FACES)
+                    .map(|(m, a)| {
+                        let mut face = who(m);
+                        face["paid"] = json!(a.to_string());
+                        face
+                    })
+                    .collect();
+                let last = in_block.last().map(|(e, _)| *e).unwrap_or(epoch);
+                said.push((
+                    "welcome".to_string(),
+                    subject,
+                    json!({ "epoch": last, "from": first, "to": last, "hours": in_block.len(), "count": fresh.len(), "miners": faces }),
+                ));
+            }
+        }
     }
 
     // Milestones and streaks, for people.

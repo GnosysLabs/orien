@@ -183,13 +183,29 @@ function Happening({ post }: { post: Post }) {
       const faces = post.data.miners ?? []
       const count = Number(post.data.count)
       const who = names(faces, count)
+      const from = Number(post.data.from)
+      const span = (
+        <>
+          checkpoints{' '}
+          <a href={checkpointHref(from)} className="hover:text-ink hover:underline">
+            {from}
+          </a>{' '}
+          to{' '}
+          <a href={checkpointHref(epoch)} className="hover:text-ink hover:underline">
+            {epoch}
+          </a>
+        </>
+      )
       return (
         <div className="space-y-3">
           <FaceRow faces={faces} count={count} size={44} />
           <p className="text-lg font-semibold text-ink">
-            {count === 1 ? 'A new miner joined' : `${count} new miners joined`} this hour
+            {count === 1 ? 'A new miner joined' : `${count} new miners joined`} in the last six hours
           </p>
-          <p className="text-sm text-muted">{who ? <>Say hi to {who}. </> : null}Their first ORN were paid at {checkpoint}.</p>
+          <p className="text-sm text-muted">
+            {who ? <>Say hi to {who}. </> : null}
+            {count === 1 ? 'Their' : 'Their'} first ORN were paid between {span}.
+          </p>
         </div>
       )
     }
