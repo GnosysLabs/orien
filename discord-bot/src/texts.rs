@@ -70,7 +70,7 @@ pub fn fit_hello(hello: &str) -> bool {
 
 /// Each channel's about line, shown at the top of the channel. Set once
 /// with `orien-discord topics`, never on its own.
-pub const TOPICS: [(&str, &str); 11] = [
+pub const TOPICS: [(&str, &str); 12] = [
     ("welcome", "Start here: what Orien is, how to begin, and the rules."),
     ("announcements", "New releases and network news from the team."),
     ("general", "Say hi and talk about anything Orien."),
@@ -85,6 +85,7 @@ pub const TOPICS: [(&str, &str); 11] = [
     ("greetings", "A hello for everyone who joins. Say hi back!"),
     ("x-posts", "Orien's posts on X, as they go out. Like and repost to help spread the word."),
     ("youtube", "Orien's videos, as they come out. Watch them right here."),
+    ("checkpoints", "A summary after every hourly checkpoint: who mined, how the hour's ORN were shared, and how the network is doing."),
 ];
 
 /// Each channel's introduction: the first message in it, saying what the
@@ -92,7 +93,7 @@ pub const TOPICS: [(&str, &str); 11] = [
 /// is kept to announcements alone, and #general
 /// and #help need none. Posted by hand with `orien-discord intros`; a
 /// changed text here replaces the message already there.
-pub const INTROS: [(&str, &str); 7] = [
+pub const INTROS: [(&str, &str); 8] = [
     (
         "mining",
         "\
@@ -158,6 +159,14 @@ If you like one, a like or a repost on X helps more people find Orien.",
 Orien's videos show up here as they come out, from https://www.youtube.com/@OrienNetwork
 
 Watch them right here. A like or a subscribe on YouTube helps more people find Orien.",
+    ),
+    (
+        "checkpoints",
+        "\
+## ⛏️ Checkpoints
+Once an hour the network pauses for a moment, agrees on every balance, and shares out the hour's new ORN among everyone who mined. That moment is a checkpoint.
+
+After each one, Orien Bot posts a summary here: how many miners were paid, how the ORN were shared, how much work was done, and how the network is doing. Every figure comes from the Orien Explorer at https://explorer.orien.network",
     ),
 ];
 

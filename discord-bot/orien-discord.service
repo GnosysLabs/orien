@@ -24,6 +24,7 @@ ExecStart=/usr/local/bin/orien-discord run \
     --openrouter-key /etc/orien-discord/openrouter.key \
     --knowledge /etc/orien-discord/knowledge.md \
     --state /var/lib/orien-discord \
+    --checkpoints \
     --genesis /etc/orien-discord/genesis.json \
     --web-listen 127.0.0.1:7300
 Restart=always

@@ -486,6 +486,7 @@ pub async fn run(
     news: Option<(String, std::path::PathBuf)>,
     shipped: Option<String>,
     holders: Option<Holders>,
+    checkpoints: bool,
 ) -> Result<()> {
     let holders = holders.map(Arc::new);
     if let Some(shipped) = shipped {
@@ -507,6 +508,9 @@ pub async fn run(
     }
     if let Some((url, file)) = news {
         tokio::spawn(crate::videos::watch(client.http.clone(), file.with_file_name("videos.json")));
+        if checkpoints {
+            tokio::spawn(crate::checkpoints::watch(client.http.clone(), file.with_file_name("checkpoints.json")));
+        }
         tokio::spawn(crate::news::watch(client.http.clone(), expert, url, file));
     }
     client.start().await?;
