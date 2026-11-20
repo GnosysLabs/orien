@@ -3,7 +3,7 @@ import { ArrowLeftRight, ArrowRight, Gauge, Pickaxe, Scale, ServerCog, ShieldChe
 import type { Metadata } from 'next'
 import { SupplyCurve } from '@/components/SupplyCurve'
 import { IPhoneApp } from '@/components/IPhoneApp'
-import { IntroductionVideo } from '@/components/IntroductionVideo'
+import { SiteVideo } from '@/components/SiteVideo'
 import { DiscordIcon, YouTubeIcon } from '@/components/Header'
 import { DISCORD, INTRODUCTION_VIDEO } from '@/lib/brand'
 
@@ -75,7 +75,7 @@ export default function HomePage() {
 
         {/* The introduction video: nothing loads until it is played. */}
         <div className="mx-auto mt-10 max-w-3xl">
-          <IntroductionVideo />
+          <SiteVideo name="orien-introduction" label="Introduction to Orien, two minutes" />
           <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
             <Link
               href="/try/"
