@@ -77,13 +77,43 @@ function suggest() {
   const known = new Set(found.map((p) => p.address));
   const extra = (market.q === q ? market.rows : []).filter((r) => !known.has(r.address)).slice(0, 4);
   if (q.length >= 2 && market.q !== q) searchMarket(q);
-  const all = [...found, ...extra.map((r) => ({ name: r.name, address: r.address, sub: short(r.address) }))];
+  const all = [...found, ...extra.map((r) => ({ name: r.name, address: r.address, sub: short(r.address), picture: r.picture }))];
+  const unknown = all.filter((p) => !p.mine && !profiles.has(p.address)).map((p) => p.address);
+  if (unknown.length) loadProfiles(unknown).then((got) => got && suggest());
   list.hidden = all.length === 0;
   list.innerHTML = all.map((p) => `<button class="pick" type="button" data-address="${p.address}">
-    <span class="coin${p.icon ? " emoji" : ""}">${esc(p.icon || p.name.slice(0, 1).toUpperCase())}</span>
+    ${faceOf(p)}
     <span class="who"><div class="title">${esc(p.name)}</div><div class="sub${p.mine ? " words" : ""}">${esc(p.sub)}</div></span>
   </button>`).join("");
 }
+// Faces: a Market picture where the person has one, over their letter,
+// as the app shows them.
+const profiles = new Map(), pics = new Map(), picking = new Set();
+async function loadProfiles(addresses) {
+  const want = [...new Set(addresses)].filter((a) => !profiles.has(a)).slice(0, 100);
+  if (!want.length) return false;
+  const found = await ask({ ask: "profiles", addresses: want }).catch(() => null) || {};
+  for (const a of want) profiles.set(a, found[a] || null);
+  return want.some((a) => found[a] && found[a].picture);
+}
+function picture(name) {
+  if (!name) return "";
+  if (pics.has(name)) return pics.get(name) ? `<img src="${pics.get(name)}" alt="">` : "";
+  if (!picking.has(name)) {
+    picking.add(name);
+    ask({ ask: "image", name }).then((answer) => {
+      pics.set(name, (answer && answer.url) || "");
+      if (!$("suggest").hidden) suggest();
+    }).catch(() => pics.set(name, ""));
+  }
+  return "";
+}
+const faceOf = (p) => {
+  if (p.icon) return `<span class="coin emoji">${esc(p.icon)}</span>`;
+  const info = profiles.get(p.address);
+  return `<span class="coin">${esc(p.name.slice(0, 1).toUpperCase())}${picture((info && info.picture) || p.picture)}</span>`;
+};
+
 function searchMarket(q) {
   clearTimeout(marketTimer);
   marketTimer = setTimeout(async () => {
@@ -93,7 +123,7 @@ function searchMarket(q) {
     for (const p of found) for (const w of p.wallets || []) {
       const address = (w.address || "").toLowerCase();
       if (!/^[0-9a-f]{64}$/.test(address) || address === wallet.address) continue;
-      rows.push({ address, name: w.name ? `${p.name} – ${w.name}` : p.name });
+      rows.push({ address, name: w.name ? `${p.name} – ${w.name}` : p.name, picture: p.picture || "" });
     }
     market = { q, rows };
     if ($("to").value.trim().toLowerCase() === q) suggest();

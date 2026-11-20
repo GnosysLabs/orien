@@ -14,7 +14,7 @@ class SafariWebExtensionHandler: NSObject, NSExtensionRequestHandling {
         switch ask {
         case "people":
             request = URLRequest(url: URL(string: "http://127.0.0.1:47211/people")!, timeoutInterval: 3)
-        case "quote", "send", "search":
+        case "quote", "send", "search", "profiles", "image":
             request = URLRequest(url: URL(string: "http://127.0.0.1:47211/\(ask)")!, timeoutInterval: ask == "send" ? 180 : 8)
             request.httpMethod = "POST"
             request.httpBody = try? JSONSerialization.data(withJSONObject: message)

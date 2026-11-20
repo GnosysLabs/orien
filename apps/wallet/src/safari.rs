@@ -78,6 +78,16 @@ fn answer(app: &AppHandle, mut stream: TcpStream) {
                 "GET /wallet" => ("200 OK", wallet(app)),
                 "GET /people" => ("200 OK", people(app)),
                 "POST /search" => ("200 OK", crate::board::search(&text("text")).unwrap_or_default()),
+                "POST /profiles" => {
+                    let addresses: Vec<String> = body.get("addresses").and_then(|a| a.as_array()).map_or_else(Vec::new, |a| {
+                        a.iter().filter_map(|v| v.as_str().map(str::to_string)).collect()
+                    });
+                    ("200 OK", crate::board::profiles(&addresses).unwrap_or_default())
+                }
+                "POST /image" => {
+                    let url = crate::folder(app).ok().and_then(|dir| crate::board::image(&dir, &text("name")));
+                    ("200 OK", serde_json::json!({ "url": url }))
+                }
                 "POST /quote" => ("200 OK", serde_json::to_value(crate::quote(text("amount"))).unwrap_or_default()),
                 "POST /send" => {
                     let password = Some(text("password")).filter(|p| !p.is_empty());
