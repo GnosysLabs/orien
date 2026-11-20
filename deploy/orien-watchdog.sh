@@ -20,7 +20,13 @@ if [ "$(systemctl is-active "$UNIT")" != active ]; then
     exit 0
 fi
 
-if /var/lib/orien/bin/orien ping "127.0.0.1:710$N" --wait 20 >/dev/null 2>&1; then
+ORIEN=/var/lib/orien/bin/orien
+# Before orien 1.10.4 there is no ping to ask with.
+if ! "$ORIEN" ping --help >/dev/null 2>&1; then
+    exit 0
+fi
+
+if "$ORIEN" ping "127.0.0.1:710$N" --wait 20 >/dev/null 2>&1; then
     rm -f "$COUNT"
     exit 0
 fi
