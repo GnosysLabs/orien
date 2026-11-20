@@ -90,23 +90,28 @@ function WalletHelp({ state, onClose }: { state: State | 'install'; onClose: () 
           With Orien Wallet’s browser extension, you sign in here with Touch ID instead of an email code, whenever
           Orien Wallet is open and signed in.
         </p>
-        <div className="space-y-3 pt-1">
-          {(where === 'safari-mac' || where === 'other' || !CHROME_EXTENSION) && (
-            <a href="/wallet/Orien-Wallet.dmg" className={primary}>
-              <Download className="h-4 w-4" aria-hidden /> Get Orien Wallet for Mac
-            </a>
-          )}
-          {CHROME_EXTENSION && (where === 'chrome' || where === 'other') && (
+        <ul className="divide-y divide-line rounded-xl border border-line">
+          <li className="space-y-1 px-4 py-3">
+            <span className="block font-semibold text-ink">Safari on a Mac</span>
+            <span className="block text-sm">
+              Comes with the latest Orien Wallet for Mac. Turn it on in Safari’s settings, under Extensions.
+            </span>
+          </li>
+          <li className="space-y-1 px-4 py-3">
+            <span className="block font-semibold text-ink">Chrome</span>
+            <span className="block text-sm">{CHROME_EXTENSION ? 'In the Chrome Web Store.' : 'Coming soon.'}</span>
+          </li>
+        </ul>
+        <div className="space-y-3">
+          <a href="/wallet/Orien-Wallet.dmg" className={where === 'chrome' && CHROME_EXTENSION ? secondary : primary}>
+            <Download className="h-4 w-4" aria-hidden /> Get Orien Wallet for Mac
+          </a>
+          {CHROME_EXTENSION && (
             <a href={CHROME_EXTENSION} target="_blank" rel="noopener noreferrer" className={where === 'chrome' ? primary : secondary}>
               Add it to Chrome
             </a>
           )}
         </div>
-        <p className="text-sm">
-          {where === 'safari-mac' || !CHROME_EXTENSION
-            ? 'The Safari extension comes with Orien Wallet for Mac: turn it on in Safari’s settings, under Extensions.'
-            : 'On a Mac, the Safari extension comes with Orien Wallet for Mac.'}
-        </p>
       </>
     )
   }

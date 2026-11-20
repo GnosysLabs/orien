@@ -43,4 +43,4 @@ export const CHROME_EXTENSION = ''
 
 /** Whether everyone sees Sign in with Orien Wallet. Until Orien Wallet's
  * release with it, only people who already have its extension do. */
-export const WALLET_SIGN_IN_FOR_EVERYONE = false
+export const WALLET_SIGN_IN_FOR_EVERYONE = true
