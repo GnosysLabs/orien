@@ -122,13 +122,21 @@ else
     echo "Note: no Developer ID certificate on this Mac, so Macs will warn before opening the downloaded app."
 fi
 
+echo "Building the Safari extension"
+# Built and signed on its own, then placed inside the app (Contents/PlugIns)
+# by Tauri, before Tauri signs the app around it.
+(cd "$APP/safari" && rm -rf build OrienSafari.xcodeproj && xcodegen -q \
+    && xcodebuild -quiet -project OrienSafari.xcodeproj -target OrienWalletSafari -configuration Release SYMROOT=build \
+        ${APPLE_SIGNING_IDENTITY:+CODE_SIGN_IDENTITY="$APPLE_SIGNING_IDENTITY"})
+SAFARI='{"bundle":{"macOS":{"files":{"PlugIns/Orien Wallet Safari.appex":"safari/build/Release/Orien Wallet Safari.appex"}}}}'
+
 echo "Building Orien $VERSION for Macs with Apple chips"
 rustup target add $TARGET >/dev/null
 # Built for the live network: the genesis file in web/public/network.
 # Tauri signs the app here; notarizing is done below, with the keychain
 # login, so Tauri is not given Apple credentials of its own.
 env -u ORIEN_GENESIS -u APPLE_ID -u APPLE_PASSWORD -u APPLE_API_KEY -u APPLE_API_ISSUER \
-    cargo tauri build --target $TARGET
+    cargo tauri build --target $TARGET --config "$SAFARI"
 
 BUNDLE=$APP/target/$TARGET/release/bundle
 OUT=$APP/target/release-$VERSION
@@ -142,6 +150,7 @@ if [ -n "$APPLE_SIGNING_IDENTITY" ]; then
     xcrun stapler staple "$BUNDLE/macos/Orien Wallet.app"
     spctl -a -vv "$BUNDLE/macos/Orien Wallet.app"
 fi
+[ -d "$BUNDLE/macos/Orien Wallet.app/Contents/PlugIns/Orien Wallet Safari.appex" ] || { echo "The Safari extension is missing from the app." >&2; exit 1; }
 # The update: the (now notarized) app, packed and signed with the update key.
 COPYFILE_DISABLE=1 tar -czf "$OUT/Orien-Wallet.app.tar.gz" -C "$BUNDLE/macos" "Orien Wallet.app"
 # The password comes from the environment, not the command line.
