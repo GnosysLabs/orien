@@ -53,6 +53,8 @@ pub struct App {
     review: Option<Review>,
     /// What the explorer pages have already asked the network.
     explorer: crate::explorer::Explorer,
+    /// Who may register websites for Sign in with Orien.
+    sign_in: crate::oidc::Gate,
 }
 
 /// One email, for App Store review, whose sign-in code never changes and is
@@ -99,6 +101,7 @@ impl App {
             pairs: crate::pair::Mailboxes::default(),
             review: None,
             explorer: crate::explorer::Explorer::default(),
+            sign_in: crate::oidc::Gate::default(),
         })
     }
 
@@ -155,6 +158,21 @@ impl App {
         self
     }
 
+    /// Who may register websites for Sign in with Orien: everyone once it
+    /// is open, else only these account names.
+    pub fn with_sign_in(mut self, open: bool, developers: Vec<String>) -> App {
+        self.sign_in = crate::oidc::Gate { open, developers: developers.into_iter().map(|n| n.to_lowercase()).collect() };
+        self
+    }
+
+    pub(crate) fn sign_in_gate(&self) -> &crate::oidc::Gate {
+        &self.sign_in
+    }
+
+    pub(crate) fn origin(&self) -> &str {
+        &self.origin
+    }
+
     pub(crate) fn store(&self) -> std::sync::MutexGuard<'_, Store> {
         self.store.lock().unwrap()
     }
@@ -199,7 +217,7 @@ impl App {
         self.store.lock().unwrap().session(&token)?.ok_or(Failure::SignIn)
     }
 
-    fn session_cookie(&self, token: &str, max_age: u64) -> HeaderValue {
+    pub(crate) fn session_cookie(&self, token: &str, max_age: u64) -> HeaderValue {
         let secure = if self.secure { "; Secure" } else { "" };
         let value = format!("{COOKIE}={token}; Path=/api/market; HttpOnly; SameSite=Strict; Max-Age={max_age}{secure}");
         HeaderValue::from_str(&value).expect("a cookie of plain characters")
@@ -252,7 +270,7 @@ impl IntoResponse for Failure {
 }
 
 /// A store refusal the person can act on, such as a title too long.
-fn refused(error: anyhow::Error) -> Failure {
+pub(crate) fn refused(error: anyhow::Error) -> Failure {
     Failure::Refused(error.to_string())
 }
 
@@ -260,7 +278,7 @@ type Answer = Result<Response, Failure>;
 
 /// Runs a check by the screening model, off the async threads. Anything it
 /// refuses, or cannot check, is not saved.
-async fn screened(app: &App, what: &str, check: impl FnOnce(&Screener) -> anyhow::Result<Verdict> + Send + 'static) -> Result<(), Failure> {
+pub(crate) async fn screened(app: &App, what: &str, check: impl FnOnce(&Screener) -> anyhow::Result<Verdict> + Send + 'static) -> Result<(), Failure> {
     let screener = app.screener.clone();
     let verdict = tokio::task::spawn_blocking(move || check(&screener)).await.map_err(|e| Failure::Broken(e.into()))?;
     match verdict {
@@ -348,6 +366,7 @@ pub fn router(app: Arc<App>) -> Router {
         .route("/api/market/listings", get(browse).post(post_listing))
         .route("/api/market/listings/{id}", get(listing).put(edit_listing))
         .route("/api/market/listings/{id}/open", post(open_listing))
+        .merge(crate::oidc::routes())
         .route("/api/explorer/overview", get(crate::explorer::overview))
         .route("/api/explorer/checkpoints", get(crate::explorer::checkpoints))
         .route("/api/explorer/checkpoints/{epoch}", get(crate::explorer::checkpoint))
@@ -1346,6 +1365,12 @@ impl App {
 #[doc(hidden)]
 /// For tests: a signed-in account with no wallet yet.
 #[doc(hidden)]
+/// For tests: reads or changes the store directly.
+#[doc(hidden)]
+pub fn store_for_tests<T>(app: &App, work: impl FnOnce(&Store) -> T) -> T {
+    work(&app.store.lock().unwrap())
+}
+
 pub fn sign_in_without_wallet_for_tests(app: &App, name: &str) -> String {
     let store = app.store.lock().unwrap();
     let account = store.create_account(name, &hex::encode(rand_bytes())).unwrap();

@@ -302,6 +302,7 @@ impl Store {
         store.create_push_tables()?;
         store.create_account_wallet_table()?;
         store.create_proof_table()?;
+        store.create_oidc_tables()?;
         // Names are unique whatever their case.
         store.db.execute("CREATE UNIQUE INDEX IF NOT EXISTS accounts_name ON accounts (lower(name))", [])?;
         Ok(store)
@@ -744,7 +745,7 @@ impl Store {
     }
 }
 
-fn random<const N: usize>() -> Result<[u8; N]> {
+pub(crate) fn random<const N: usize>() -> Result<[u8; N]> {
     let mut bytes = [0u8; N];
     getrandom::fill(&mut bytes).map_err(|e| anyhow::anyhow!("no randomness: {e}"))?;
     Ok(bytes)
@@ -806,7 +807,7 @@ pub fn email(text: &str) -> Result<String> {
     Ok(email)
 }
 
-fn token_hash(token: &str) -> String {
+pub(crate) fn token_hash(token: &str) -> String {
     blake3::hash(token.as_bytes()).to_hex().to_string()
 }
 

@@ -64,6 +64,12 @@ struct Args {
     /// The website's folder, for the dashboard's page (/admin/).
     #[arg(long)]
     admin_site: Option<PathBuf>,
+    /// Let anyone signed in register websites for Sign in with Orien.
+    #[arg(long)]
+    sign_in_open: bool,
+    /// Until then, the account names that may, comma-separated.
+    #[arg(long, value_delimiter = ',')]
+    sign_in_developers: Vec<String>,
     /// Tailscale logins allowed to use the dashboard, comma-separated.
     /// Without any, everyone on the tailnet may.
     #[arg(long, value_delimiter = ',')]
@@ -197,7 +203,8 @@ async fn main() -> Result<()> {
         &address,
     )?
     .with_traffic(orien_market::traffic::Traffic::open(traffic))
-    .with_min_swap_version(args.min_swap_version);
+    .with_min_swap_version(args.min_swap_version)
+    .with_sign_in(args.sign_in_open, args.sign_in_developers.iter().map(|n| n.trim().to_string()).filter(|n| !n.is_empty()).collect());
     let app = Arc::new(match (&args.review_email, &args.review_code_file) {
         (Some(email), Some(file)) => {
             let code = std::fs::read_to_string(file).with_context(|| format!("cannot read {}", file.display()))?;
