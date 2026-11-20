@@ -16,14 +16,6 @@ export const metadata: Metadata = {
 export default function ExplorerPage() {
   return (
     <div className="pb-16">
-      <header className="pb-10 pt-10 text-center sm:pt-12">
-        <h1 className="text-balance text-3xl font-bold leading-[1.1] tracking-tight text-ink sm:text-4xl">
-          The Orien network, live
-        </h1>
-        <p className="mx-auto mt-4 max-w-xl leading-relaxed text-muted">
-          Every hourly checkpoint, the validators, and any address’s balance and payments.
-        </p>
-      </header>
       <ExplorerHome />
     </div>
   )
