@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { Flag, Flame, MessageCircle, MoreHorizontal, Plus, SmilePlus, Sparkles, Trash2, Trophy, Users } from 'lucide-react'
+import { Flag, Flame, MessageCircle, MoreHorizontal, Plus, SmilePlus, Trash2, Trophy, Users } from 'lucide-react'
 import { ask, profileHref } from '@/lib/market'
 import { checkpointHref, explore, hashrate as hashrateText, orn, short, type Overview } from '@/lib/explorer'
 import { useMe } from '@/lib/useMe'
@@ -86,28 +86,25 @@ function useDismiss(open: boolean, close: () => void) {
   return box
 }
 
-/** The network, as a poster. */
+/** The network, as a poster: the Orien sun on living pearl. */
 function NetworkAvatar({ size = 36 }: { size?: number }) {
   return (
     <span className="pearl-fill flex shrink-0 items-center justify-center rounded-full" style={{ width: size, height: size }} aria-hidden>
-      <Sparkles className="h-[46%] w-[46%]" strokeWidth={2.25} />
+      <span className="orien-mark bg-bg" style={{ width: size * 0.56, height: size * 0.56 }} />
     </span>
   )
 }
 
-/** A miner's face: their picture when they have a profile, else a sun. */
+/** A miner's face: their picture when they have a profile, else the sun. */
 function FaceAvatar({ face, size }: { face: Face; size: number }) {
   if (face.name) return <Avatar name={face.name} picture={face.picture ?? null} size={size} />
   return (
     <span
       title={face.address ? short(face.address) : undefined}
-      className="flex shrink-0 items-center justify-center rounded-full border border-line bg-bg text-pearl"
+      className="flex shrink-0 items-center justify-center rounded-full border border-line bg-bg"
       style={{ width: size, height: size }}
     >
-      <svg viewBox="0 0 24 24" className="h-[52%] w-[52%]" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden>
-        <path d="M4 15h16M6.5 18.5h11M12 3v2M5.6 6.6l1.4 1.4M18.4 6.6 17 8M2 12h2M20 12h2" />
-        <path d="M7 15a5 5 0 0 1 10 0" />
-      </svg>
+      <span className="orien-mark pearl-fill" style={{ width: size * 0.5, height: size * 0.5 }} aria-hidden />
     </span>
   )
 }
