@@ -9,6 +9,7 @@ import { ProfileEditor } from './ProfileEditor'
 import { YourWallets } from './WalletCheck'
 import { YourWebsites } from './YourWebsites'
 import { Notice, SIGNED_IN_OR_OUT } from './Shell'
+import { useMe } from '@/lib/useMe'
 
 type Found = { account: Account; listings: Listing[]; unread?: number }
 
@@ -29,6 +30,12 @@ export function AccountView() {
     // A pass from Orien Wallet signs this browser in without an email code.
     void takeWalletPass().then(reload)
   }, [])
+
+  // Signed out elsewhere, from the menu or another tab: show the sign-in.
+  const live = useMe()
+  useEffect(() => {
+    if (live.account === null && found) setFound(null)
+  }, [live.account])
 
   if (found === undefined) return <p className="text-muted">Loading…</p>
   if (found === null) return <SignIn onDone={reload} trouble={trouble} wallet />
