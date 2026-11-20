@@ -914,7 +914,8 @@ export function CommunityView() {
           )}
         </main>
 
-        <aside className="space-y-4">
+        {/* Stays in view beside the feed; taller than the window, it scrolls on its own. */}
+        <aside className="space-y-4 lg:sticky lg:top-24 lg:max-h-[calc(100vh-7rem)] lg:overflow-y-auto lg:pr-1 lg:[scrollbar-width:thin]">
           <YouCard you={you} onChange={reload} />
           {board ? (
             <>
