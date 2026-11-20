@@ -137,6 +137,7 @@ export function Authorize() {
       <SignIn
         onDone={() => void load()}
         trouble=""
+        wallet
         title={`Sign in to continue to ${asked.site.name}`}
         blurb={
           <>

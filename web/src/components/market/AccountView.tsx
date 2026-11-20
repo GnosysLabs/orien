@@ -41,12 +41,16 @@ export function SignIn({
   trouble: first,
   title = 'Sign in to Orien Network',
   blurb,
+  wallet = false,
 }: {
   onDone: () => void
   trouble: string
   /** For signing in on the way to something else, such as another website. */
   title?: string
   blurb?: React.ReactNode
+  /** Offer Orien Wallet: a hidden button its Safari extension shows when
+   * the wallet is running and signed in. */
+  wallet?: boolean
 }) {
   const [step, setStep] = useState<Step>('email')
   const [email, setEmail] = useState('')
@@ -103,6 +107,14 @@ export function SignIn({
               </>
             )}
           </p>
+          {wallet && (
+            <>
+              <button type="button" data-orien-wallet-signin hidden className={`peer ${button}`}>
+                Sign in with Orien Wallet
+              </button>
+              <p className="text-center text-sm text-muted peer-[[hidden]]:hidden">or with your email</p>
+            </>
+          )}
           <input
             type="email"
             value={email}
