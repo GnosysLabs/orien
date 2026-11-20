@@ -78,8 +78,9 @@ fn the_network_posts_records_new_miners_and_milestones() {
     assert_eq!(welcome.2["miners"][0]["account"], 9);
     assert_eq!(welcome.2["miners"][1]["address"], address(5));
     assert!(!happenings(&mined(), &owners, 12).iter().any(|(kind, _, _)| kind == "welcome"), "the first block has no welcome");
-    // Alice passed 1,000 ORN at 12 (600+300+200), not at 13.
-    assert!(!kinds.contains(&"milestone"));
+    // Alice passed 1,000 ORN at 12 (600+300+200), not at 13; at 13 Carol mined her first ORN.
+    assert!(said.iter().any(|(kind, subject, data)| kind == "milestone" && *subject == Some(9) && data["orn"] == 1));
+    assert!(!said.iter().any(|(kind, subject, _)| kind == "milestone" && *subject == Some(7)));
     let at_12 = happenings(&mined(), &owners, 12);
     assert!(at_12.iter().any(|(kind, subject, data)| kind == "milestone" && *subject == Some(7) && data["orn"] == 1000));
     let _ = Miner::Account(7);
