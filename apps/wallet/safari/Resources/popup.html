@@ -8,14 +8,10 @@
   @font-face { font-family: "Jost"; src: url("Jost.ttf") format("truetype"); font-weight: 100 900; }
   * { box-sizing: border-box; }
   html, body { margin: 0; }
-  /* As the desktop wallet in a big window: the theme's photograph, and the
-     wallet on frosted glass over it. */
-  body { position: relative; width: 360px; padding: 12px; background: var(--ground-deep); color: var(--ink);
+  /* As the desktop wallet in its normal window: the theme's ground and
+     glow, no photograph. */
+  body { width: 360px; padding: 22px 22px 24px; background: var(--glow), var(--ground-deep); color: var(--ink);
     font: 14px/1.5 -apple-system, system-ui, sans-serif; -webkit-font-smoothing: antialiased; }
-  body::before { content: ""; position: fixed; inset: 0; z-index: -1; background: var(--scene, none) center / cover no-repeat; }
-  .glass { padding: 18px 18px 20px; border: 1px solid var(--line); border-radius: 24px; background: var(--glass);
-    -webkit-backdrop-filter: blur(28px) saturate(1.8); backdrop-filter: blur(28px) saturate(1.8);
-    box-shadow: 0 10px 30px rgba(var(--shade), var(--shade-a)); }
   button { font: inherit; color: inherit; }
   [hidden] { display: none !important; }
   @keyframes drift { 0%, 100% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } }
@@ -103,7 +99,6 @@
 </style>
 </head>
 <body>
-<div class="glass">
   <!-- Home: the balance, the address, Send and Copy. -->
   <section id="home">
     <header><span class="wordmark"><span class="mark brand"></span><span class="word brand">ORIEN</span></span>
@@ -152,7 +147,6 @@
       <button class="primary pearl" id="sent-done">Done</button>
     </div>
   </section>
-</div>
   <script src="popup.js"></script>
 </body>
 </html>

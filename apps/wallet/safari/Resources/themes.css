@@ -127,12 +127,3 @@
      The same in every theme; only their colour changes. */
   :root { --shade: 0, 0, 0; --shade-a: 0.34; }
   [data-theme="daylight"] { --shade: 60, 60, 110; --shade-a: 0.13; }
-  :root, [data-theme="pearl"] { --scene: url(pearl.webp); }
-  [data-theme="daylight"] { --scene: url(daylight.webp); }
-  [data-theme="midnight"] { --scene: url(midnight.webp); }
-  [data-theme="aurora"] { --scene: url(aurora.webp); }
-  [data-theme="amethyst"] { --scene: url(amethyst.webp); }
-  [data-theme="rose"] { --scene: url(rose.webp); }
-  [data-theme="ruby"] { --scene: url(ruby.webp); }
-  [data-theme="ember"] { --scene: url(ember.webp); }
-  [data-theme="obsidian"] { --scene: url(obsidian.webp); }
