@@ -210,6 +210,72 @@ mod keyboard {
     }
 
     /// Sets the colour behind and around the web view, for the theme.
+    /// Opens the share sheet for `text` and, when given, a picture (PNG).
+    /// The web view's own share opens as a small panel pinned to the side
+    /// and cut off by the screen's edge; iPhones get the usual sheet from
+    /// the bottom this way.
+    pub fn share(text: &str, png: Option<&[u8]>) {
+        use objc2::{class, msg_send};
+        use objc2_foundation::{NSData, NSString};
+        let web = WEB.load(std::sync::atomic::Ordering::Relaxed) as *mut AnyObject;
+        if web.is_null() {
+            return;
+        }
+        // SAFETY: plain UIKit calls on the main thread with live objects;
+        // the controller made here is released once presented.
+        unsafe {
+            let window: *mut AnyObject = msg_send![web, window];
+            if window.is_null() {
+                return;
+            }
+            let mut top: *mut AnyObject = msg_send![window, rootViewController];
+            if top.is_null() {
+                return;
+            }
+            loop {
+                let next: *mut AnyObject = msg_send![top, presentedViewController];
+                if next.is_null() {
+                    break;
+                }
+                top = next;
+            }
+            let items: *mut AnyObject = msg_send![class!(NSMutableArray), array];
+            if let Some(png) = png {
+                let data = NSData::with_bytes(png);
+                let image: *mut AnyObject = msg_send![class!(UIImage), imageWithData: &*data];
+                if !image.is_null() {
+                    let _: () = msg_send![items, addObject: image];
+                }
+            }
+            let text = NSString::from_str(text);
+            let _: () = msg_send![items, addObject: &*text];
+            let sheet: *mut AnyObject = msg_send![class!(UIActivityViewController), alloc];
+            let sheet: *mut AnyObject = msg_send![sheet, initWithActivityItems: items, applicationActivities: std::ptr::null_mut::<AnyObject>()];
+            if sheet.is_null() {
+                return;
+            }
+            // iPads show it as a panel and need a place to point at: the
+            // bottom middle of the screen. iPhones get no place, so the
+            // sheet comes up from the bottom.
+            let device: *mut AnyObject = msg_send![class!(UIDevice), currentDevice];
+            let idiom: isize = msg_send![device, userInterfaceIdiom];
+            if idiom == 1 {
+                let panel: *mut AnyObject = msg_send![sheet, popoverPresentationController];
+                if !panel.is_null() {
+                    let bounds: objc2_core_foundation::CGRect = msg_send![web, bounds];
+                    let at = objc2_core_foundation::CGRect::new(
+                        objc2_core_foundation::CGPoint::new(bounds.size.width / 2.0, bounds.size.height - 80.0),
+                        objc2_core_foundation::CGSize::new(1.0, 1.0),
+                    );
+                    let _: () = msg_send![panel, setSourceView: web];
+                    let _: () = msg_send![panel, setSourceRect: at];
+                }
+            }
+            let _: () = msg_send![top, presentViewController: sheet, animated: true, completion: std::ptr::null_mut::<AnyObject>()];
+            let _: () = msg_send![sheet, release];
+        }
+    }
+
     pub fn backdrop(red: u8, green: u8, blue: u8, light: bool) {
         use objc2::msg_send;
         let web = WEB.load(std::sync::atomic::Ordering::Relaxed) as *mut AnyObject;
@@ -344,6 +410,7 @@ struct Settings {
     #[serde(default)]
     mining_threads: Option<usize>,
     /// What the benchmark found on this computer.
+    #[cfg(desktop)]
     #[serde(default)]
     mining_sweet: Option<mining::Sweet>,
     /// This app granted Windows' "Lock pages in memory" right to the
@@ -1703,6 +1770,20 @@ fn mac_notify(title: String, body: String) -> bool {
     }
 }
 
+/// iPhones: shares the address (and its QR picture, a PNG in base64)
+/// with the system's share sheet. Elsewhere the page shares by itself.
+#[tauri::command]
+fn share_address(app: AppHandle, text: String, picture: Option<String>) {
+    #[cfg(target_os = "ios")]
+    {
+        use base64::Engine;
+        let png = picture.and_then(|p| base64::engine::general_purpose::STANDARD.decode(p).ok());
+        let _ = app.run_on_main_thread(move || keyboard::share(&text, png.as_deref()));
+    }
+    #[cfg(not(target_os = "ios"))]
+    let _ = (app, text, picture);
+}
+
 /// The number on the Dock icon (none for 0). Tauri's badge call says it
 /// worked but leaves the Dock blank here, so this asks AppKit directly.
 #[tauri::command]
@@ -2318,7 +2399,7 @@ pub fn run() {
             }
             Ok(())
         })
-        .invoke_handler(tauri::generate_handler![has_wallet, create_wallet, save_phrase, restore_wallet, set_password, choose_wallet, overview_now, send_payment, activity, quote, contacts, save_contact, delete_contact, contacts_sync, biometric_unlock, biometric_enable, update::check_update, update::install_update, mine_start, mine_stop, mine_set, mine_status, mine_benchmark, mine_benchmark_cancel, large_pages_state, large_pages_set_up, wallets, wallet_balances, use_wallet, rename_wallet, add_wallet, forget_wallet, swap_list, swap_sell, swap_buy, swap_accept, swap_step, swap_smallest, board_offers, board_me, board_email_start, board_email_finish, board_sign_out, board_post, board_take, board_withdraw, board_link, notifications_ask, push_sync, board_wallets_sync, board_post_sol, board_take_sol, sol_open, sol_payout_check, open_site, qr_code, address_qr, wallet_profiles, board_profile_save, board_picture_pick, board_verify, board_wallet_states, market_image, board_banner_remove, market_search, market_listings, market_listing, market_profile, market_call, market_pick_pictures, market_listing_picture, dock_badge, mac_notify, board_delete_account, wallet_icons, set_wallet_icon, vault_ready, vault_unlock, open_contact, pair_offer, pair_offer_wait, pair_offer_send, pair_join, pair_join_wait, pair_invite, pair_invite_wait, pair_accept, pair_wallets, pair_accept_send, pair_cancel, wallet_phrase, phrase_check, app_theme, set_app_theme, set_backdrop, app_prefs, set_app_pref, app_unlock, computer_settings, set_computer_setting, notifications_muted, set_notification, open_legal, board_paid_wallet, board_wallet_remove])
+        .invoke_handler(tauri::generate_handler![share_address, has_wallet, create_wallet, save_phrase, restore_wallet, set_password, choose_wallet, overview_now, send_payment, activity, quote, contacts, save_contact, delete_contact, contacts_sync, biometric_unlock, biometric_enable, update::check_update, update::install_update, mine_start, mine_stop, mine_set, mine_status, mine_benchmark, mine_benchmark_cancel, large_pages_state, large_pages_set_up, wallets, wallet_balances, use_wallet, rename_wallet, add_wallet, forget_wallet, swap_list, swap_sell, swap_buy, swap_accept, swap_step, swap_smallest, board_offers, board_me, board_email_start, board_email_finish, board_sign_out, board_post, board_take, board_withdraw, board_link, notifications_ask, push_sync, board_wallets_sync, board_post_sol, board_take_sol, sol_open, sol_payout_check, open_site, qr_code, address_qr, wallet_profiles, board_profile_save, board_picture_pick, board_verify, board_wallet_states, market_image, board_banner_remove, market_search, market_listings, market_listing, market_profile, market_call, market_pick_pictures, market_listing_picture, dock_badge, mac_notify, board_delete_account, wallet_icons, set_wallet_icon, vault_ready, vault_unlock, open_contact, pair_offer, pair_offer_wait, pair_offer_send, pair_join, pair_join_wait, pair_invite, pair_invite_wait, pair_accept, pair_wallets, pair_accept_send, pair_cancel, wallet_phrase, phrase_check, app_theme, set_app_theme, set_backdrop, app_prefs, set_app_pref, app_unlock, computer_settings, set_computer_setting, notifications_muted, set_notification, open_legal, board_paid_wallet, board_wallet_remove])
         .build(tauri::generate_context!())
         .expect("the wallet window could not start")
         .run(|_app, _event| {

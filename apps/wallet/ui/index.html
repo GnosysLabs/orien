@@ -3893,6 +3893,18 @@
   $("share").onclick = async () => {
     const address = view.address;
     const file = sharePicture.address === address ? sharePicture.file : null;
+    // iPhones: the app's own share sheet, from the bottom (the page's one
+    // opens as a small panel cut off at the screen's edge).
+    if (phone) {
+      let picture = null;
+      if (file) {
+        const url = await new Promise((done) => { const r = new FileReader(); r.onload = () => done(r.result); r.onerror = () => done(""); r.readAsDataURL(file); });
+        picture = String(url).split(",")[1] || null;
+      }
+      invoke("share_address", { text: address, picture }).catch(() => {});
+      feel("success");
+      return;
+    }
     const withPicture = file && navigator.canShare && navigator.canShare({ files: [file], text: address });
     try {
       await navigator.share(withPicture ? { files: [file], text: address } : { text: address });
