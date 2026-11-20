@@ -11,8 +11,9 @@ targets:
     platform: macOS
     sources:
       - Sources
+      # Its files go straight into the extension's Resources, where Safari
+      # looks for manifest.json.
       - path: Resources
-        type: folder
         buildPhase: resources
     settings:
       PRODUCT_BUNDLE_IDENTIFIER: network.orien.wallet.safari
