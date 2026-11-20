@@ -8,6 +8,7 @@ import { Card } from './Browse'
 import { ProfileEditor } from './ProfileEditor'
 import { YourWallets } from './WalletCheck'
 import { YourWebsites } from './YourWebsites'
+import { WalletSignIn } from './WalletSignIn'
 import { Notice, SIGNED_IN_OR_OUT } from './Shell'
 import { useMe } from '@/lib/useMe'
 
@@ -56,8 +57,7 @@ export function SignIn({
   /** For signing in on the way to something else, such as another website. */
   title?: string
   blurb?: React.ReactNode
-  /** Offer Orien Wallet: a hidden button its Safari extension shows when
-   * the wallet is running and signed in. */
+  /** Offer signing in with Orien Wallet, through its browser extension. */
   wallet?: boolean
 }) {
   const [step, setStep] = useState<Step>('email')
@@ -117,10 +117,8 @@ export function SignIn({
           </p>
           {wallet && (
             <>
-              <button type="button" data-orien-wallet-signin hidden className={`peer ${button}`}>
-                Sign in with Orien Wallet
-              </button>
-              <p className="text-center text-sm text-muted peer-[[hidden]]:hidden">or with your email</p>
+              <WalletSignIn className={button} />
+              <p className="text-center text-sm text-muted">or with your email</p>
             </>
           )}
           <input

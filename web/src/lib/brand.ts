@@ -37,3 +37,6 @@ export const MORE_SHARES_FROM = 112
 /** The first epoch that aims for 50,000 shares an hour instead of 10,000.
  * The network code's LIVE_MOST_SHARES_FROM is the same number. */
 export const MOST_SHARES_FROM = 123
+
+/** Orien Wallet's extension in the Chrome Web Store; empty until it is listed. */
+export const CHROME_EXTENSION = ''
