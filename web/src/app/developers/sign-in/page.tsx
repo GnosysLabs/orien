@@ -79,7 +79,7 @@ export default function SignInDevelopersPage() {
       <Section title="What people see">
         <p>
           They press your Sign in with Orien button and come to orien.network. If they aren’t signed in there yet,
-          they sign in with a code sent to their email. Then they see your website’s
+          they sign in with a code sent to their email, or on a Mac with Orien Wallet’s Safari extension. Then they see your website’s
           name and address, and exactly what you’ll receive: their Orien Network name, picture and banner, and their
           verified wallets. They choose Allow or Cancel, and come back to you.
         </p>
@@ -92,10 +92,10 @@ export default function SignInDevelopersPage() {
       <Section title="1. Register your website">
         <p>
           Sign in at{' '}
-          <a href="/account/" className="font-semibold text-ink underline underline-offset-4">
-            orien.network/account
-          </a>
-          , and under Sign in with Orien choose Add a website. Give its name, shown to people when they sign in, and
+          <a href="/developers/websites/" className="font-semibold text-ink underline underline-offset-4">
+            orien.network/developers/websites
+          </a>{' '}
+          and choose Add a website. Give its name, shown to people when they sign in, and
           its return addresses: where people come back to after signing in. They must start with https://, or
           http://localhost while you build.
         </p>

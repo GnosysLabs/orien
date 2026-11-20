@@ -1,6 +1,6 @@
 "use client";
 
-import { DISCORD, IPHONE_BETA, X_ACCOUNT, YOUTUBE } from "@/lib/brand";
+import { DISCORD, IPHONE_BETA, OPERATOR_URL, SOURCE_CODE, X_ACCOUNT, YOUTUBE } from "@/lib/brand";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
@@ -8,17 +8,22 @@ import {
   Activity,
   ArrowLeftRight,
   BookOpen,
+  Code2,
+  FileText,
+  History,
+  KeyRound,
   ChevronDown,
-  Compass,
   Download,
   Monitor,
   Smartphone,
+  Terminal,
+  Compass,
   Store,
   Rocket,
-  Terminal,
   type LucideIcon,
 } from "lucide-react";
 import { MARKETPLACE_LIVE } from "@/lib/brand";
+import { SIDEBAR } from "@/lib/nav";
 import { AccountMenu } from "./AccountMenu";
 import { useMe } from "@/lib/useMe";
 import { Wordmark } from "./Wordmark";
@@ -157,7 +162,7 @@ function DownloadsMenu() {
         }`}
       >
         <Download className="hidden h-4 w-4 shrink-0 xl:block" strokeWidth={2} aria-hidden />
-        <span>Downloads</span>
+        <span>Download</span>
         <ChevronDown
           className={`h-3.5 w-3.5 transition ${open ? "rotate-180" : ""}`}
           strokeWidth={2.25}
@@ -208,6 +213,93 @@ function DownloadsMenu() {
     </div>
   );
 }
+
+type MenuItem = { href: string; label: string; detail: string; icon: LucideIcon };
+
+/** A group of links in the top bar, opening below it. */
+function NavMenu({ label, icon: Icon, items, on }: { label: string; icon: LucideIcon; items: MenuItem[]; on: boolean }) {
+  const [open, setOpen] = useState(false);
+  const box = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (!open) return;
+    const close = (event: MouseEvent | KeyboardEvent) => {
+      if (
+        event instanceof KeyboardEvent
+          ? event.key === "Escape"
+          : !box.current?.contains(event.target as Node)
+      ) {
+        setOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", close);
+    document.addEventListener("keydown", close);
+    return () => {
+      document.removeEventListener("mousedown", close);
+      document.removeEventListener("keydown", close);
+    };
+  }, [open]);
+
+  return (
+    <div ref={box} className="relative">
+      <button
+        type="button"
+        aria-expanded={open}
+        aria-haspopup="menu"
+        onClick={() => setOpen(!open)}
+        className={`flex h-9 items-center gap-1.5 whitespace-nowrap rounded-lg px-2.5 text-sm font-semibold transition ${
+          open || on ? "bg-raised text-ink" : "text-muted hover:bg-raised/60 hover:text-ink"
+        }`}
+      >
+        <Icon className={`hidden h-4 w-4 shrink-0 xl:block ${on ? "text-pearl" : ""}`} strokeWidth={2} aria-hidden />
+        <span>{label}</span>
+        <ChevronDown className={`h-3.5 w-3.5 transition ${open ? "rotate-180" : ""}`} strokeWidth={2.25} aria-hidden />
+      </button>
+      {open && (
+        <div
+          role="menu"
+          className="absolute left-0 top-full mt-2 w-72 overflow-hidden rounded-xl border border-line bg-surface p-1.5 shadow-2xl shadow-black/40"
+        >
+          {items.map((item) => {
+            const Icon = item.icon;
+            const outside = item.href.startsWith("https://");
+            return (
+              <a
+                key={item.href}
+                href={item.href}
+                {...(outside ? { target: "_blank", rel: "noopener noreferrer" } : {})}
+                role="menuitem"
+                onClick={() => setOpen(false)}
+                className="flex items-start gap-3 rounded-lg px-3 py-2.5 transition hover:bg-raised"
+              >
+                <Icon className="mt-0.5 h-4 w-4 shrink-0 text-pearl" strokeWidth={2} aria-hidden />
+                <span className="flex flex-col">
+                  <span className="text-sm font-semibold text-ink">{item.label}</span>
+                  <span className="text-xs leading-relaxed text-muted">{item.detail}</span>
+                </span>
+              </a>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
+
+/** The top bar's groups, also the sidebar's. */
+const TRADE: MenuItem[] = [
+  { href: "/swap/", label: "Buy & sell", detail: "Swap ORN for SOL or Bitcoin with anyone", icon: ArrowLeftRight },
+  { href: "/marketplace/", label: "Market", detail: "Buy and sell things and services for ORN", icon: Store },
+];
+const LEARN: MenuItem[] = [
+  { href: "/how-it-works/", label: "How it works", detail: "Payments, signatures, checkpoints and mining, in plain words", icon: BookOpen },
+  { href: "/paper/", label: "Technical paper", detail: "Every rule of the network, stated exactly", icon: FileText },
+  { href: "/changelog/", label: "Changelog", detail: "What changed, release by release", icon: History },
+];
+const BUILD: MenuItem[] = [
+  { href: "/developers/", label: "Developers", detail: "Everything you need to build with Orien", icon: Code2 },
+  { href: "/developers/websites/", label: "Sign in with Orien", detail: "Register the websites people sign in to", icon: KeyRound },
+  { href: "https://explorer.orien.network/api/", label: "Explorer API", detail: "The network's figures, as JSON", icon: Activity },
+];
 
 /** X's logo, which its brand guidelines let anyone use to link to an X account. */
 export function XIcon({ className = "" }: { className?: string }) {
@@ -274,11 +366,13 @@ export function Header() {
   const pathname = usePathname();
   const unreadOn = useUnreadDot();
   const onTry = pathname.startsWith("/try");
+  // Get started is for newcomers: once signed in, people are past it.
+  const { account } = useMe();
   // The admin dashboard is its own place: just the wordmark.
   const admin = pathname.startsWith("/admin");
 
   return (
-    <header className="sticky top-0 z-30 print:hidden border-b border-line/70 bg-bg/55 backdrop-blur-md">
+    <header className={`sticky top-0 z-30 print:hidden border-b border-line/70 bg-bg/55 backdrop-blur-md ${SIDEBAR && !admin ? "lg:hidden" : ""}`}>
       <div className="mx-auto flex h-16 max-w-[1200px] items-center gap-3 px-4">
         <Link
           href="/"
@@ -297,7 +391,7 @@ export function Header() {
             aria-label="Pages"
             className="ml-3 hidden items-center gap-1 lg:flex"
           >
-            {ITEMS.filter((item) => item.href !== "/try/").map((item) => {
+            {ITEMS.filter((item) => item.href === "https://explorer.orien.network/").map((item) => {
               const on = isActive(item, pathname);
               const Icon = item.icon;
               return (
@@ -311,18 +405,25 @@ export function Header() {
                       : "text-muted hover:bg-raised/60 hover:text-ink"
                   }`}
                 >
-                  {unreadOn(item) > 0 && <Dot count={unreadOn(item)} className="right-0.5 top-1" />}
-                  {/* Icons and full labels where the bar has room for them. */}
                   <Icon
                     className={`hidden h-4 w-4 shrink-0 xl:block ${on ? "text-pearl" : ""}`}
                     strokeWidth={2}
                     aria-hidden
                   />
-                  <span className="xl:hidden">{item.short ?? item.label}</span>
-                  <span className="hidden xl:inline">{item.label}</span>
+                  <span>{item.label}</span>
                 </Link>
               );
             })}
+            {MARKETPLACE_LIVE && (
+              <span className="relative">
+                <NavMenu label="Trade" icon={ArrowLeftRight} items={TRADE} on={TRADE.some((i) => pathname.startsWith(i.href))} />
+                {unreadOn(ITEMS.find((i) => i.href === "/marketplace/")!) > 0 && (
+                  <Dot count={unreadOn(ITEMS.find((i) => i.href === "/marketplace/")!)} className="right-0.5 top-1" />
+                )}
+              </span>
+            )}
+            <NavMenu label="Learn" icon={BookOpen} items={LEARN} on={LEARN.some((i) => pathname.startsWith(i.href))} />
+            <NavMenu label="Build" icon={Code2} items={BUILD} on={pathname.startsWith("/developers")} />
             <DownloadsMenu />
           </nav>
         )}
@@ -359,6 +460,7 @@ export function Header() {
             >
               <YouTubeIcon className="h-5 w-5" />
             </a>
+            {!account && (
             <Link
               href="/try/"
               aria-current={onTry ? "page" : undefined}
@@ -367,6 +469,7 @@ export function Header() {
               <Rocket className="h-4 w-4" strokeWidth={2.25} aria-hidden />
               <span>Get started</span>
             </Link>
+            )}
             {MARKETPLACE_LIVE && (
               <div className="ml-1.5">
                 <AccountMenu />
@@ -423,5 +526,178 @@ export function BottomNav() {
         );
       })}
     </nav>
+  );
+}
+
+/** A heading over a group of the sidebar's links. */
+function SidebarGroup({ title, children }: { title: string; children: React.ReactNode }) {
+  return (
+    <div className="space-y-0.5">
+      <p className="px-3 pb-1 pt-4 text-[11px] font-semibold uppercase tracking-[0.14em] text-muted/80">{title}</p>
+      {children}
+    </div>
+  );
+}
+
+function SidebarLink({
+  href,
+  label,
+  icon: Icon,
+  on = false,
+  dot = 0,
+  onClick,
+}: {
+  href: string;
+  label: string;
+  icon: LucideIcon;
+  on?: boolean;
+  dot?: number;
+  onClick?: (event: React.MouseEvent) => void;
+}) {
+  const outside = href.startsWith("https://");
+  const className = `relative flex h-9 items-center gap-3 rounded-lg px-3 text-sm font-semibold transition ${
+    on ? "bg-raised text-ink" : "text-muted hover:bg-raised/60 hover:text-ink"
+  }`;
+  const body = (
+    <>
+      <Icon className={`h-4 w-4 shrink-0 ${on ? "text-pearl" : ""}`} strokeWidth={2} aria-hidden />
+      <span className="min-w-0 flex-1 truncate">{label}</span>
+      {outside && <span className="text-xs text-muted/70" aria-hidden>↗</span>}
+      {dot > 0 && <Dot count={dot} className="right-2 top-1/2 -translate-y-1/2" />}
+    </>
+  );
+  return outside ? (
+    <a href={href} target="_blank" rel="noopener noreferrer" className={className} onClick={onClick}>
+      {body}
+    </a>
+  ) : (
+    <Link href={href} aria-current={on ? "page" : undefined} className={className} onClick={onClick}>
+      {body}
+    </Link>
+  );
+}
+
+/** The site's navigation on computers: down the left side, with room for
+ * everything. Phones keep the top bar and the bottom bar. */
+export function Sidebar() {
+  const pathname = usePathname();
+  const unreadOn = useUnreadDot();
+  if (!SIDEBAR || pathname.startsWith("/admin")) return null;
+  const item = (href: string) => ITEMS.find((i) => i.href === href);
+  const main = ["/", "/how-it-works/", "https://explorer.orien.network/"].map(item).filter((i): i is NavItem => !!i);
+  const trade = ["/swap/", "/marketplace/"].map(item).filter((i): i is NavItem => !!i);
+
+  return (
+    <aside
+      aria-label="Site"
+      className="fixed inset-y-0 left-0 z-30 hidden w-64 flex-col border-r border-line/70 bg-bg/55 backdrop-blur-md print:hidden lg:flex"
+    >
+      <div className="flex h-16 shrink-0 items-center px-5">
+        <Link href="/" aria-label="Orien home" className="flex items-center text-2xl">
+          <Wordmark />
+        </Link>
+      </div>
+
+      <div className="px-4">
+        <Link
+          href="/try/"
+          aria-current={pathname.startsWith("/try") ? "page" : undefined}
+          className="pearl-fill pearl-sheen flex h-10 w-full items-center justify-center gap-2 rounded-[10px] text-sm font-bold transition hover:brightness-105"
+        >
+          <Rocket className="h-4 w-4" strokeWidth={2.25} aria-hidden />
+          Get started
+        </Link>
+      </div>
+
+      <nav aria-label="Pages" className="min-h-0 flex-1 overflow-y-auto px-3 pb-4 [scrollbar-width:thin]">
+        <SidebarGroup title="Orien">
+          {main.map((i) => (
+            <SidebarLink key={i.href} href={i.href} label={i.label} icon={i.icon} on={isActive(i, pathname)} />
+          ))}
+        </SidebarGroup>
+        {trade.length > 0 && (
+          <SidebarGroup title="Trade">
+            {trade.map((i) => (
+              <SidebarLink key={i.href} href={i.href} label={i.label} icon={i.icon} on={isActive(i, pathname)} dot={unreadOn(i)} />
+            ))}
+          </SidebarGroup>
+        )}
+        <SidebarGroup title="Learn">
+          <SidebarLink href="/paper/" label="Technical paper" icon={FileText} on={pathname.startsWith("/paper")} />
+          <SidebarLink href="/changelog/" label="Changelog" icon={History} on={pathname.startsWith("/changelog")} />
+        </SidebarGroup>
+        <SidebarGroup title="Build">
+          <SidebarLink
+            href="/developers/"
+            label="Developers"
+            icon={Code2}
+            on={pathname.startsWith("/developers") && !pathname.startsWith("/developers/websites")}
+          />
+          <SidebarLink
+            href="/developers/websites/"
+            label="Sign in with Orien"
+            icon={KeyRound}
+            on={pathname.startsWith("/developers/websites")}
+          />
+        </SidebarGroup>
+      </nav>
+
+      <div className="shrink-0 space-y-3 border-t border-line/70 p-4">
+        {MARKETPLACE_LIVE && <AccountMenu inSidebar />}
+        <div className="flex items-center justify-center gap-1">
+          <a
+            href={DISCORD}
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label="Join Orien on Discord"
+            title="Join Orien on Discord"
+            className="flex h-9 w-9 items-center justify-center rounded-lg text-muted transition hover:bg-raised/60 hover:text-ink"
+          >
+            <DiscordIcon className="h-5 w-5" />
+          </a>
+          <a
+            href={X_ACCOUNT}
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label="Follow Orien on X"
+            title="Follow Orien on X"
+            className="flex h-9 w-9 items-center justify-center rounded-lg text-muted transition hover:bg-raised/60 hover:text-ink"
+          >
+            <XIcon className="h-[18px] w-[18px]" />
+          </a>
+          <a
+            href={YOUTUBE}
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label="Watch Orien on YouTube"
+            title="Watch Orien on YouTube"
+            className="flex h-9 w-9 items-center justify-center rounded-lg text-muted transition hover:bg-raised/60 hover:text-ink"
+          >
+            <YouTubeIcon className="h-5 w-5" />
+          </a>
+        </div>
+        <nav aria-label="About" className="flex flex-wrap justify-center gap-x-3 gap-y-1 text-xs text-muted">
+          {MARKETPLACE_LIVE && (
+            <>
+              <Link href="/privacy/" className="hover:text-ink">
+                Privacy
+              </Link>
+              <Link href="/terms/" className="hover:text-ink">
+                Terms
+              </Link>
+            </>
+          )}
+          <Link href="/contact/" className="hover:text-ink">
+            Contact
+          </Link>
+          <a href={SOURCE_CODE} target="_blank" rel="noreferrer" className="hover:text-ink">
+            Source code
+          </a>
+          <a href={OPERATOR_URL} target="_blank" rel="noreferrer" className="hover:text-ink">
+            © 2026 Gnosys Labs
+          </a>
+        </nav>
+      </div>
+    </aside>
   );
 }

@@ -16,6 +16,8 @@ export default function sitemap(): MetadataRoute.Sitemap {
         ] as const)
       : []),
     ['/paper/', 0.7, 'monthly'],
+    ['/developers/', 0.7, 'monthly'],
+    ['/developers/sign-in/', 0.6, 'monthly'],
     ['/news/randomx/', 0.6, 'yearly'],
     ['/changelog/', 0.5, 'weekly'],
     ['/contact/', 0.4, 'yearly'],

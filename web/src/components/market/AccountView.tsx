@@ -7,7 +7,6 @@ import { ask, me, takeWalletPass, NAME_PATTERN, NAME_RULE, profileHref, type Acc
 import { Card } from './Browse'
 import { ProfileEditor } from './ProfileEditor'
 import { YourWallets } from './WalletCheck'
-import { YourWebsites } from './YourWebsites'
 import { WalletSignIn } from './WalletSignIn'
 import { Notice, SIGNED_IN_OR_OUT } from './Shell'
 import { useMe } from '@/lib/useMe'
@@ -38,9 +37,21 @@ export function AccountView() {
     if (live.account === null && found) setFound(null)
   }, [live.account])
 
-  if (found === undefined) return <p className="text-muted">Loading…</p>
-  if (found === null) return <SignIn onDone={reload} trouble={trouble} wallet />
-  return <Mine found={found} onChange={reload} />
+  if (found === undefined) return <p className="pt-10 text-muted sm:pt-14">Loading…</p>
+  if (found === null)
+    return (
+      // Centred in the window on computers, and never taller than it.
+      <div className="pb-16 pt-10 sm:pt-14 lg:flex lg:min-h-[calc(100dvh-4rem)] lg:items-center lg:justify-center lg:py-0">
+        <div className="w-full">
+          <SignIn onDone={reload} trouble={trouble} wallet />
+        </div>
+      </div>
+    )
+  return (
+    <div className="pb-16 pt-10 sm:pt-14">
+      <Mine found={found} onChange={reload} />
+    </div>
+  )
 }
 
 type Step = 'email' | 'code' | 'name'
@@ -282,7 +293,6 @@ function Mine({ found, onChange }: { found: Found; onChange: () => void }) {
           ))}
         </div>
       )}
-      <YourWebsites />
       <DeleteAccount name={found.account.name} onDeleted={onChange} />
     </div>
   )

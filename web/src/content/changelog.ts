@@ -41,11 +41,11 @@ export const CHANGELOG: Entry[] = [
     date: '2026-11-20',
     products: ['marketplace'],
     title: 'Sign in with Orien',
-    unreleased: true,
     changes: [
       'Any website or app can now let people sign in with their Orien Network account. People see the website’s name and address, and exactly what it will receive: their Orien Network name, picture and banner, and their verified wallets. They choose Allow or Cancel.',
       'Websites never receive the email address, and nothing they receive can move ORN or use a wallet.',
-      'It’s standard OpenID Connect, free, with nothing to apply for: register a website from your account. orien.network/developers/sign-in/ explains it.',
+      'On a Mac, people with Orien Wallet’s Safari extension sign in with their wallet instead of an email code.',
+      'It’s standard OpenID Connect, free, with nothing to apply for: register a website under Build, Sign in with Orien. orien.network/developers/sign-in/ explains it.',
     ],
   },
   {

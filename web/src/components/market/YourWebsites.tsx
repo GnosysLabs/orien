@@ -14,8 +14,7 @@ const small =
 const main =
   'pearl-fill flex h-11 items-center justify-center rounded-xl px-6 text-sm font-bold transition hover:brightness-105 disabled:opacity-60'
 
-/** Websites this account registered for Sign in with Orien. Shown only to
- * accounts that may register them, or that already have. */
+/** Websites this account registered for Sign in with Orien. */
 export function YourWebsites() {
   const [found, setFound] = useState<{ may_register: boolean; sites: Site[] } | null>(null)
   const [adding, setAdding] = useState(false)
@@ -28,18 +27,15 @@ export function YourWebsites() {
     void reload()
   }, [])
 
-  if (!found || (!found.may_register && found.sites.length === 0)) return null
+  if (!found) return null
 
   return (
     <section className="space-y-5 rounded-2xl border border-line bg-surface p-6 sm:p-8">
       <div className="flex flex-wrap items-start gap-3">
         <div className="min-w-0 flex-1 space-y-1.5">
           <h2 className="flex items-center gap-2 text-xl font-bold tracking-tight text-ink">
-            <Code2 className="h-5 w-5 text-pearl" aria-hidden /> Sign in with Orien
+            <Code2 className="h-5 w-5 text-pearl" aria-hidden /> Your websites
           </h2>
-          <p className="leading-relaxed text-muted">
-            Let people sign in to your website with their Orien Network account, and see their verified wallets.
-          </p>
         </div>
         {found.may_register && !adding && (
           <button type="button" onClick={() => setAdding(true)} className={small}>
@@ -59,7 +55,10 @@ export function YourWebsites() {
         />
       )}
 
-      {found.sites.length === 0 && !adding && <Notice>No websites yet.</Notice>}
+      {!found.may_register && found.sites.length === 0 && (
+        <Notice>Registering websites opens soon.</Notice>
+      )}
+      {found.may_register && found.sites.length === 0 && !adding && <Notice>No websites yet.</Notice>}
 
       <ul className="space-y-4">
         {found.sites.map((site) => (

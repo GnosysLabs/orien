@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from 'react'
 import { Download, X } from 'lucide-react'
-import { BrowserLogo, type Browser } from '@/components/BrowserLogos'
 import { CHROME_EXTENSION, WALLET_SIGN_IN_FOR_EVERYONE } from '@/lib/brand'
 
 /** What Orien Wallet's browser extension says about itself, on <html
@@ -83,20 +82,6 @@ export function WalletSignIn({ className, after }: { className: string; after?: 
   )
 }
 
-/** A browser's logo, and whether the extension is there for it yet. The
- * browser this page is open in stands out. */
-function BrowserTile({ browser, status, here }: { browser: Browser; status: string; here: boolean }) {
-  return (
-    <div
-      className={`flex flex-1 flex-col items-center gap-2 rounded-xl border px-3 py-4 text-center ${here ? 'border-pearl bg-raised' : 'border-line'}`}
-    >
-      <BrowserLogo browser={browser} className="h-9 w-9 text-ink" />
-      <span className="text-sm font-semibold text-ink">{browser === 'safari' ? 'Safari' : browser === 'chrome' ? 'Chrome' : 'Firefox'}</span>
-      <span className={`text-xs font-semibold ${status === 'Available' ? 'text-go' : 'text-muted'}`}>{status}</span>
-    </div>
-  )
-}
-
 function Steps({ children }: { children: React.ReactNode }) {
   return <ol className="list-decimal space-y-1.5 pl-5 text-sm marker:font-semibold marker:text-ink">{children}</ol>
 }
@@ -126,7 +111,6 @@ function WalletHelp({ state, onClose }: { state: State | 'install'; onClose: () 
     body = <p>Open Orien Wallet and sign in to Orien Network (in Swap or Market), then try again.</p>
   } else {
     title = 'Sign in with Orien Wallet'
-    const chrome = CHROME_EXTENSION ? 'Available' : 'Coming soon'
     let advice: React.ReactNode
     if (here.phone) {
       advice = (
@@ -180,11 +164,6 @@ function WalletHelp({ state, onClose }: { state: State | 'install'; onClose: () 
           With Orien Wallet’s browser extension, you sign in here with your wallet instead of an email code,
           whenever Orien Wallet is open and signed in.
         </p>
-        <div className="flex gap-3">
-          <BrowserTile browser="safari" status="Available" here={here.browser === 'safari' && !here.phone} />
-          <BrowserTile browser="chrome" status={chrome} here={here.browser === 'chrome' && !here.phone} />
-          {here.browser === 'firefox' && <BrowserTile browser="firefox" status="Not yet" here />}
-        </div>
         {advice}
       </>
     )

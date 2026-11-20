@@ -41,7 +41,7 @@ ExecStart=/usr/local/bin/orien-market \
     --review-code-file /etc/orien-market/review.code \
     --admin-listen 127.0.0.1:7201 \
     --admin-site /var/www/orien.network/current \
-    --sign-in-developers cyph3r
+    --sign-in-open
 Restart=always
 RestartSec=5
 

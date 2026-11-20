@@ -270,7 +270,7 @@ export default function DevelopersPage() {
           library you already use works, with the issuer <Code>https://orien.network</Code>.
         </p>
         <p>
-          Register your website in <Link href="/account/">your account</Link>, under Sign in with Orien.{' '}
+          Register your website at <Link href="/developers/websites/">Sign in with Orien: your websites</Link>.{' '}
           <Link href="/developers/sign-in/">Sign in with Orien for developers</Link> covers the rest.
         </p>
       </Section>

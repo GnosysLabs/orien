@@ -3,9 +3,10 @@ import Link from 'next/link'
 import { Geist, Geist_Mono, Jost } from 'next/font/google'
 import { Analytics } from '@/components/Analytics'
 import { AskOrien } from '@/components/AskOrien'
-import { BottomNav, Header } from '@/components/Header'
+import { BottomNav, Header, Sidebar } from '@/components/Header'
 import { ScrollToTop } from '@/components/ScrollToTop'
-import { Main, SiteOnly } from '@/components/SiteOnly'
+import { Main, SiteColumn, SiteOnly } from '@/components/SiteOnly'
+import { SIDEBAR } from '@/lib/nav'
 import { Wordmark } from '@/components/Wordmark'
 import { DISCORD, MARKETPLACE_LIVE, OPERATOR, OPERATOR_URL, SITE_DESCRIPTION, SITE_NAME, SITE_URL, SOURCE_CODE, TAGLINE, X_ACCOUNT, YOUTUBE } from '@/lib/brand'
 import { SHARE_IMAGE } from '@/lib/seo'
@@ -131,7 +132,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(SITE_DATA) }}
         />
-        <div className="flex min-h-full flex-1 flex-col">
+        <SiteOnly>
+          <Sidebar />
+        </SiteOnly>
+        <SiteColumn>
           <ScrollToTop />
           <Analytics />
           <SiteOnly>
@@ -139,7 +143,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           </SiteOnly>
           <Main>{children}</Main>
           <SiteOnly>
-          <footer className="border-t border-line px-4 print:hidden pb-24 pt-6 text-center text-xs text-muted lg:pb-8">
+          {/* With the sidebar, computers have these links at its foot instead. */}
+          <footer className={`border-t border-line px-4 print:hidden pb-24 pt-6 text-center text-xs text-muted ${SIDEBAR ? 'lg:hidden' : 'lg:pb-8'}`}>
             <p className="mb-2 flex items-center justify-center gap-2 font-semibold text-ink/85">
               <Wordmark className="text-sm" />
               <span className="text-muted">·</span>
@@ -152,6 +157,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               </a>
               <Link href="/paper/" className="hover:text-ink">
                 Technical paper
+              </Link>
+              <Link href="/developers/" className="hover:text-ink">
+                Developers
               </Link>
               <Link href="/changelog/" className="hover:text-ink">
                 Changelog
@@ -179,7 +187,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <p className="mt-3">© 2026 {OPERATOR}</p>
           </footer>
           </SiteOnly>
-        </div>
+        </SiteColumn>
         <SiteOnly>
           <BottomNav />
           <AskOrien />
