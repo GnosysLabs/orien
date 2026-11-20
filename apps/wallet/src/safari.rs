@@ -96,7 +96,19 @@ fn answer(app: &AppHandle, mut stream: TcpStream) {
 /// "touch" (Touch ID), "password", or "none" (no password).
 fn wallet(app: &AppHandle) -> serde_json::Value {
     let mut seen = WALLET.lock().unwrap_or_else(|poisoned| poisoned.into_inner()).clone().unwrap_or_else(|| serde_json::json!({}));
-    if let Some(file) = crate::folder(app).ok().and_then(|dir| crate::wallet_file(&dir)) {
+    let dir = crate::folder(app).ok();
+    if let Some(dir) = &dir
+        && let Some(file) = crate::wallet_file(dir)
+    {
+        // Which wallet: its name and icon, as the app shows them.
+        if let Some(named) = crate::known_wallets(dir).into_iter().find(|w| w.path == file) {
+            seen["name"] = named.name.into();
+        }
+        if let Some(address) = seen.get("address").and_then(|a| a.as_str()).map(str::to_string)
+            && let Some(icon) = crate::contacts::icons(dir).get(&address)
+        {
+            seen["icon"] = icon.emoji.clone().into();
+        }
         let approve = if !crate::has_password(&file) {
             "none"
         } else if crate::biometric::enabled(&file) {

@@ -27,6 +27,12 @@ async function load() {
   if (cents) { const c = document.createElement("span"); c.className = "cents"; c.textContent = "." + cents; $("balance").append(c); }
   $("balance").title = wallet.balance ? `${wallet.balance} ORN` : "";
   $("address").textContent = spaced(wallet.address);
+  const name = wallet.name || "Wallet";
+  $("wallet-name").textContent = name;
+  $("wallet-coin").textContent = wallet.icon || name.slice(0, 1).toUpperCase();
+  $("wallet-coin").className = wallet.icon ? "coin emoji" : "coin";
+  $("wallet").title = name;
+  $("wallet").hidden = false;
   $("address-box").hidden = $("home-buttons").hidden = false;
   home();
 }

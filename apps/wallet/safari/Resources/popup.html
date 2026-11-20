@@ -25,6 +25,13 @@
   .wordmark { display: inline-flex; align-items: center; gap: 9px; font: 600 15px/1 "Jost", sans-serif; }
   .wordmark .mark { width: 18px; height: 18px; -webkit-mask: url("mark.svg") center / contain no-repeat; }
   .wordmark .word { letter-spacing: 0.16em; -webkit-background-clip: text; background-clip: text; color: transparent; }
+  /* The wallet open in Orien Wallet: its icon and name, as there. */
+  .wallet { display: inline-flex; align-items: center; gap: 8px; max-width: 170px; height: 32px; padding: 0 12px 0 4px;
+    border: 1px solid var(--line); border-radius: 999px; font-size: 13px; font-weight: 500; }
+  .wallet .coin { width: 24px; height: 24px; border-radius: 50%; display: grid; place-items: center; flex: none;
+    font: 700 12px/1 "Jost", sans-serif; background: rgba(255, 255, 255, 0.063); }
+  .wallet .coin.emoji { font: 15px/1 system-ui, "Apple Color Emoji", sans-serif; background: transparent; }
+  .wallet .wname { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .back { width: 32px; height: 32px; margin-left: -6px; border: 0; border-radius: 10px; background: transparent;
     color: var(--dim); cursor: pointer; display: grid; place-items: center; }
   .back:hover { background: rgba(255, 255, 255, 0.05); color: var(--ink); }
@@ -80,7 +87,8 @@
 <body>
   <!-- Home: the balance, the address, Send and Copy. -->
   <section id="home">
-    <header><span class="wordmark"><span class="mark brand"></span><span class="word brand">ORIEN</span></span></header>
+    <header><span class="wordmark"><span class="mark brand"></span><span class="word brand">ORIEN</span></span>
+      <span class="wallet" id="wallet" hidden><span class="coin" id="wallet-coin"></span><span class="wname" id="wallet-name"></span></span></header>
     <div class="card pearl">
       <div class="label">Balance</div>
       <div class="amount"><span class="balance" id="balance">—</span><span class="unit">ORN</span></div>
