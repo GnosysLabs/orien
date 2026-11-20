@@ -392,7 +392,8 @@
   /* On touch screens: lit only while pressed (a hover look would stay on
      after the tap). */
   .back:active { background: rgba(var(--tint), 0.05); color: var(--ink); }
-  .topline h2 { margin: 0 0 0 4px; font-size: 17px; font-weight: 600; }
+  /* Screen titles in Jost, as the wordmark and the Safari extension. */
+  .topline h2 { margin: 0 0 0 4px; font: 600 19px/1.2 "Jost", sans-serif; letter-spacing: 0.01em; }
 
   .problem {
     margin-top: 14px; padding: 11px 14px; border-radius: 12px;
@@ -775,7 +776,7 @@
     /* Headers: the same height on both sides, a line beneath. */
     body.split #inbox > .topline, body.split #chat > .ch-top { height: 64px; margin: 0; padding: 0 16px; border-bottom: 1px solid var(--line); }
     body.split #inbox > .topline .back { margin-left: -6px; }
-    body.split #inbox > .topline h2 { font-size: 17px; }
+    body.split #inbox > .topline h2 { font-size: 19px; }
     /* The list: rows divided by lines, no card around it. */
     html body.split #ib-list { margin: 0; padding: 0; border-radius: 0; flex: 1; overflow-y: auto; }
     body.split #ib-list .list { border: 0; border-radius: 0; background: none; box-shadow: none; }
