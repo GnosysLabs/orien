@@ -461,7 +461,7 @@ function PostCard({ post, me, onChange }: { post: Post; me: You | null; onChange
           <div className="min-w-0 flex-1">
             {network && eyebrow ? (
               <>
-                <p className="pearl-text text-[11px] font-bold uppercase tracking-[0.16em]">{eyebrow}</p>
+                <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-pearl">{eyebrow}</p>
                 <p className="text-sm text-muted">
                   <span className="font-semibold text-ink">Orien</span> · {since(post.created)}
                 </p>
