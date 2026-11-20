@@ -62,9 +62,12 @@ fn the_network_posts_records_new_miners_and_milestones() {
     let kinds: Vec<&str> = said.iter().map(|(kind, _, _)| kind.as_str()).collect();
     // Four addresses paid, beating three: a record.
     assert!(kinds.contains(&"record"));
-    // Carol (9) is new and named; address 5 is new and unnamed.
-    assert!(said.iter().any(|(kind, subject, _)| kind == "new_miner" && *subject == Some(9)));
-    assert!(said.iter().any(|(kind, _, data)| kind == "new_miners" && data["count"] == 1));
+    // Carol (9) is new and named, address 5 new and unnamed: one welcome, Carol first.
+    let welcome = said.iter().find(|(kind, _, _)| kind == "welcome").unwrap();
+    assert_eq!(welcome.1, Some(9));
+    assert_eq!(welcome.2["count"], 2);
+    assert_eq!(welcome.2["miners"][0]["account"], 9);
+    assert_eq!(welcome.2["miners"][1]["address"], address(5));
     // Alice passed 1,000 ORN at 12 (600+300+200), not at 13.
     assert!(!kinds.contains(&"milestone"));
     let at_12 = happenings(&mined(), &owners, 12);
@@ -205,6 +208,9 @@ async fn the_networks_story_is_backfilled_and_dated_at_its_checkpoints() {
     // Newest first by time: Alice's post today, then checkpoint 13's news, then 12's.
     assert_eq!(posts[0]["body"], "hello");
     assert!(posts[1]["kind"] != "post" && posts[1]["data"]["epoch"] == 13, "{}", posts[1]);
+    // Faces are named at read time.
+    let welcome = posts.iter().find(|p| p["kind"] == "welcome" && p["data"]["epoch"] == 13).unwrap();
+    assert_eq!(welcome["data"]["miners"][0]["name"], "Carol");
     assert_eq!(posts[1]["created"], 1_795_000_000 + 13 * 3600);
     assert!(posts.iter().any(|p| p["kind"] == "milestone" && p["data"]["epoch"] == 12));
     // Only the network, only people.
@@ -217,4 +223,28 @@ async fn the_networks_story_is_backfilled_and_dated_at_its_checkpoints() {
     store_for_tests(&app, |s| s.tell(&mined(), &owners).unwrap());
     let (_, again) = ask(&app, "GET", "/api/market/community/feed?only=network", None, None).await;
     assert_eq!(again["posts"].as_array().unwrap().len(), before);
+}
+
+#[test]
+fn streaks_and_the_days_top_miner_are_posted() {
+    // Alice mines every hour from 10 to 34: a 24-hour streak at 33 (10..=33).
+    let mut by_epoch = BTreeMap::new();
+    for e in 10..=34u64 {
+        by_epoch.insert(e, vec![(address(1), 10 * ORN), (address(2), 1 * ORN)]);
+    }
+    // Checkpoints at 23:00 and 00:00 across a day boundary: 12 → day n, 13 → day n+1 ... make 20 the first of a new day.
+    let base = 1_795_000_000 - (1_795_000_000 % 86_400) + 20 * 3600 - 20 * 3600; // midnight
+    let times = (10..=34).map(|e| (e, base + (e - 10) * 3600 + 4 * 3600)).collect(); // epoch 30 is the first past midnight
+    let mined = Mined { since: 10, upto: 34, by_epoch, times };
+    let owners = HashMap::from([(address(1), 7)]);
+    let at_33 = happenings(&mined, &owners, 33);
+    assert!(at_33.iter().any(|(kind, subject, data)| kind == "streak" && *subject == Some(7) && data["hours"] == 24), "{at_33:?}");
+    assert!(!happenings(&mined, &owners, 32).iter().any(|(kind, _, _)| kind == "streak"));
+    // Epoch 30 starts a new day: yesterday's top miner is posted then, and only then.
+    let at_30 = happenings(&mined, &owners, 30);
+    let top = at_30.iter().find(|(kind, _, _)| kind == "top_day").expect("a top miner for the day before");
+    assert_eq!(top.1, Some(7));
+    assert_eq!(top.2["miner"]["account"], 7);
+    assert_eq!(top.2["hours"], 20);
+    assert!(!happenings(&mined, &owners, 31).iter().any(|(kind, _, _)| kind == "top_day"));
 }

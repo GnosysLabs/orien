@@ -4,7 +4,7 @@ import Link from 'next/link'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { Flag, Flame, MessageCircle, MoreHorizontal, Plus, SmilePlus, Sparkles, Trash2, Trophy, Users } from 'lucide-react'
 import { ask, profileHref } from '@/lib/market'
-import { checkpointHref, orn } from '@/lib/explorer'
+import { checkpointHref, explore, hashrate as hashrateText, orn, short, type Overview } from '@/lib/explorer'
 import { useMe } from '@/lib/useMe'
 import { AutoTextarea } from '@/components/AutoTextarea'
 import { Avatar } from './Avatar'
@@ -12,12 +12,13 @@ import { ReportButton } from './ReportButton'
 import { Notice } from './Shell'
 
 type Person = { name: string; picture: string | null }
+type Face = { account?: number; address?: string; name?: string; picture?: string | null; paid?: string }
 type Reaction = { emoji: string; count: number; me: boolean }
 type Post = {
   id: number
-  kind: 'post' | 'record' | 'new_miner' | 'new_miners' | 'milestone'
+  kind: 'post' | 'record' | 'welcome' | 'milestone' | 'streak' | 'top_day'
   body: string
-  data: Record<string, unknown>
+  data: Record<string, unknown> & { miners?: Face[]; miner?: Face }
   created: number
   parent: number | null
   author: Person | null
@@ -42,8 +43,10 @@ const TABS: [Tab, string][] = [
 ]
 
 const pill = 'pearl-fill flex h-9 items-center justify-center rounded-full px-5 text-sm font-bold transition hover:brightness-105 disabled:opacity-50'
-const quiet = 'flex h-9 items-center justify-center gap-2 rounded-full border border-line px-4 text-sm font-semibold text-ink transition hover:border-pearl disabled:opacity-50'
+const quiet =
+  'flex h-9 items-center justify-center gap-2 rounded-full border border-line px-4 text-sm font-semibold text-ink transition hover:border-pearl disabled:opacity-50'
 const iconButton = 'flex h-8 w-8 items-center justify-center rounded-full text-muted transition hover:bg-raised hover:text-ink'
+const card = 'rounded-2xl border border-line bg-surface'
 
 const mined = (units: string) => orn(units, 2)
 
@@ -57,9 +60,9 @@ function since(seconds: number) {
   return new Date(seconds * 1000).toLocaleDateString('en', { day: 'numeric', month: 'short' })
 }
 
-function Name({ person }: { person: Person }) {
+function Name({ person, className = '' }: { person: { name: string }; className?: string }) {
   return (
-    <Link href={profileHref(person.name)} className="font-bold text-ink hover:underline">
+    <Link href={profileHref(person.name)} className={`font-bold text-ink hover:underline ${className}`}>
       {person.name}
     </Link>
   )
@@ -84,61 +87,159 @@ function useDismiss(open: boolean, close: () => void) {
 }
 
 /** The network, as a poster. */
-function NetworkAvatar({ size = 40 }: { size?: number }) {
+function NetworkAvatar({ size = 36 }: { size?: number }) {
   return (
     <span className="pearl-fill flex shrink-0 items-center justify-center rounded-full" style={{ width: size, height: size }} aria-hidden>
-      <Sparkles className="h-[45%] w-[45%]" strokeWidth={2.25} />
+      <Sparkles className="h-[46%] w-[46%]" strokeWidth={2.25} />
     </span>
   )
 }
 
-/** What the network says, in its own voice. */
+/** A miner's face: their picture when they have a profile, else a sun. */
+function FaceAvatar({ face, size }: { face: Face; size: number }) {
+  if (face.name) return <Avatar name={face.name} picture={face.picture ?? null} size={size} />
+  return (
+    <span
+      title={face.address ? short(face.address) : undefined}
+      className="flex shrink-0 items-center justify-center rounded-full border border-line bg-bg text-pearl"
+      style={{ width: size, height: size }}
+    >
+      <svg viewBox="0 0 24 24" className="h-[52%] w-[52%]" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden>
+        <path d="M4 15h16M6.5 18.5h11M12 3v2M5.6 6.6l1.4 1.4M18.4 6.6 17 8M2 12h2M20 12h2" />
+        <path d="M7 15a5 5 0 0 1 10 0" />
+      </svg>
+    </span>
+  )
+}
+
+/** Up to five faces, overlapping, and how many more. */
+function FaceRow({ faces, count, size = 40 }: { faces: Face[]; count: number; size?: number }) {
+  const shown = faces.slice(0, 5)
+  const more = count - shown.length
+  return (
+    <div className="flex items-center">
+      {shown.map((face, index) => (
+        <span key={face.account ?? face.address ?? index} className="rounded-full ring-[3px] ring-surface" style={{ marginLeft: index ? -size / 4 : 0 }}>
+          {face.name ? (
+            <Link href={profileHref(face.name)} title={face.name}>
+              <FaceAvatar face={face} size={size} />
+            </Link>
+          ) : (
+            <FaceAvatar face={face} size={size} />
+          )}
+        </span>
+      ))}
+      {more > 0 && (
+        <span
+          className="num flex items-center justify-center rounded-full border border-line bg-raised text-xs font-bold text-ink ring-[3px] ring-surface"
+          style={{ width: size, height: size, marginLeft: -size / 4 }}
+        >
+          +{more}
+        </span>
+      )}
+    </div>
+  )
+}
+
+/** "Cyph3r, Alice and 3 others". */
+function names(faces: Face[], count: number) {
+  const named = faces.filter((f) => f.name).map((f) => f.name as string)
+  const others = count - named.length
+  if (named.length === 0) return null
+  const list = named.slice(0, 3)
+  const rest = named.length - list.length + others
+  const head = list.length === 1 ? list[0] : `${list.slice(0, -1).join(', ')} and ${list[list.length - 1]}`
+  return rest > 0 ? `${head} and ${rest} ${rest === 1 ? 'other' : 'others'}` : head
+}
+
+const ACCENTS: Record<Exclude<Post['kind'], 'post'>, { eyebrow: string; ring: string; glow: string; text: string }> = {
+  record: { eyebrow: 'New record', ring: 'border-amber-300/40', glow: 'from-amber-300/15', text: 'text-amber-200' },
+  welcome: { eyebrow: 'Welcome', ring: 'border-emerald-300/40', glow: 'from-emerald-300/15', text: 'text-emerald-200' },
+  milestone: { eyebrow: 'Milestone', ring: 'border-violet-300/40', glow: 'from-violet-300/15', text: 'text-violet-200' },
+  streak: { eyebrow: 'On a streak', ring: 'border-orange-300/40', glow: 'from-orange-300/15', text: 'text-orange-200' },
+  top_day: { eyebrow: 'Top miner of the day', ring: 'border-pearl/50', glow: 'from-pearl/15', text: 'text-pearl' },
+}
+
+/** What the network says, as a card of its own kind. */
 function Happening({ post }: { post: Post }) {
   const epoch = Number(post.data.epoch)
   const checkpoint = (
-    <a href={checkpointHref(epoch)} className="text-muted hover:text-ink hover:underline">
+    <a href={checkpointHref(epoch)} className="text-xs text-muted hover:text-ink hover:underline">
       checkpoint {epoch}
     </a>
   )
   switch (post.kind) {
     case 'record':
       return (
-        <>
-          <p>
-            <strong className="text-ink">New record.</strong> {String(post.data.miners)} miners were paid this hour, the most ever. The last
-            record was {String(post.data.before)}.
-          </p>
-          <p className="text-sm">{checkpoint}</p>
-        </>
+        <div className="flex items-end justify-between gap-4">
+          <div>
+            <p className="num text-5xl font-bold leading-none tracking-tight text-ink">{String(post.data.miners)}</p>
+            <p className="mt-2 text-ink">miners paid this hour, the most ever</p>
+            <p className="mt-1 text-sm text-muted">The record before was {String(post.data.before)}.</p>
+          </div>
+          <div className="text-right">{checkpoint}</div>
+        </div>
       )
-    case 'new_miner':
-      return post.subject ? (
-        <>
-          <p>
-            Welcome, <Name person={post.subject} />! Paid for mining for the first time. ⛏️
-          </p>
-          <p className="text-sm">{checkpoint}</p>
-        </>
-      ) : null
-    case 'new_miners': {
+    case 'welcome': {
+      const faces = post.data.miners ?? []
       const count = Number(post.data.count)
+      const who = names(faces, count)
       return (
-        <>
-          <p>{count === 1 ? 'A new miner was' : `${count} new miners were`} paid for the first time this hour.</p>
-          <p className="text-sm">{checkpoint}</p>
-        </>
+        <div className="space-y-3">
+          <FaceRow faces={faces} count={count} size={44} />
+          <p className="text-lg font-semibold text-ink">
+            {count === 1 ? 'A new miner joined' : `${count} new miners joined`} this hour
+          </p>
+          <p className="text-sm text-muted">{who ? <>Say hi to {who}. </> : null}Their first ORN were paid at {checkpoint}.</p>
+        </div>
       )
     }
     case 'milestone':
       return post.subject ? (
-        <>
-          <p>
-            <Name person={post.subject} /> just passed{' '}
-            <strong className="text-ink">{Number(post.data.orn).toLocaleString('en')} ORN</strong> mined. 🎉
-          </p>
-          <p className="text-sm">{checkpoint}</p>
-        </>
+        <div className="flex items-center gap-4">
+          <Avatar name={post.subject.name} picture={post.subject.picture} size={56} />
+          <div className="min-w-0">
+            <p className="num text-3xl font-bold leading-none tracking-tight text-ink">{Number(post.data.orn).toLocaleString('en')} ORN</p>
+            <p className="mt-1.5 text-ink">
+              <Name person={post.subject} /> passed it mining. 🎉
+            </p>
+            <p className="mt-1">{checkpoint}</p>
+          </div>
+        </div>
       ) : null
+    case 'streak':
+      return post.subject ? (
+        <div className="flex items-center gap-4">
+          <Avatar name={post.subject.name} picture={post.subject.picture} size={56} />
+          <div className="min-w-0">
+            <p className="num text-3xl font-bold leading-none tracking-tight text-ink">
+              {String(post.data.hours)} hours in a row 🔥
+            </p>
+            <p className="mt-1.5 text-ink">
+              <Name person={post.subject} /> has been paid at every checkpoint for {Number(post.data.hours) >= 48 ? `${Number(post.data.hours) / 24} days` : 'a whole day'}.
+            </p>
+            <p className="mt-1">{checkpoint}</p>
+          </div>
+        </div>
+      ) : null
+    case 'top_day': {
+      const miner = post.data.miner ?? {}
+      const day = new Date(`${post.data.day}T00:00:00Z`).toLocaleDateString('en', { day: 'numeric', month: 'long', timeZone: 'UTC' })
+      return (
+        <div className="flex items-center gap-4">
+          <FaceAvatar face={miner} size={56} />
+          <div className="min-w-0">
+            <p className="text-lg font-semibold text-ink">
+              {miner.name ? <Name person={{ name: miner.name }} /> : <span className="num">{short(miner.address ?? '')}</span>} mined the most on {day}
+            </p>
+            <p className="num mt-1 text-2xl font-bold text-ink">{mined(String(post.data.mined))} ORN</p>
+            <p className="mt-1 text-sm text-muted">
+              Of {mined(String(post.data.total))} ORN paid to {String(post.data.miners)} miners that day.
+            </p>
+          </div>
+        </div>
+      )
+    }
     default:
       return null
   }
@@ -164,7 +265,7 @@ function Composer({ me, parent, onPosted, autoFocus = false }: { me: You; parent
   const left = MAX - body.length
   return (
     <form onSubmit={send} className="flex gap-3">
-      <Avatar name={me.name} picture={me.picture} size={parent ? 32 : 40} />
+      <Avatar name={me.name} picture={me.picture} size={parent ? 32 : 44} />
       <div className="min-w-0 flex-1 space-y-2">
         <AutoTextarea
           value={body}
@@ -311,10 +412,11 @@ function Reply({ reply, me, onChange }: { reply: Post; me: You | null; onChange:
   )
 }
 
-function PostItem({ post, me, onChange }: { post: Post; me: You | null; onChange: () => void }) {
+function PostCard({ post, me, onChange }: { post: Post; me: You | null; onChange: () => void }) {
   const [open, setOpen] = useState(false)
   const [replies, setReplies] = useState<Post[] | null>(null)
   const network = post.kind !== 'post'
+  const accent = network ? ACCENTS[post.kind as keyof typeof ACCENTS] : null
   const loadReplies = useCallback(async () => {
     const found = await ask<{ replies: Post[] }>(`/community/posts/${post.id}`).catch(() => ({ replies: [] }))
     setReplies(found.replies)
@@ -325,31 +427,36 @@ function PostItem({ post, me, onChange }: { post: Post; me: You | null; onChange
   }
 
   return (
-    <article className="flex gap-3 px-4 py-4 transition hover:bg-raised/30 sm:px-5">
-      {network ? <NetworkAvatar /> : post.author && <Avatar name={post.author.name} picture={post.author.picture} size={40} />}
-      <div className="min-w-0 flex-1">
-        <div className="flex items-start gap-2">
-          <p className="min-w-0 flex-1 truncate text-[15px]">
-            {network ? (
+    <article className={`relative overflow-hidden rounded-2xl border bg-surface ${accent ? accent.ring : 'border-line'}`}>
+      {accent && <div className={`pointer-events-none absolute inset-0 bg-gradient-to-br ${accent.glow} via-transparent to-transparent`} aria-hidden />}
+      <div className="relative p-5">
+        <header className="flex items-center gap-3">
+          {network ? <NetworkAvatar size={40} /> : post.author && <Avatar name={post.author.name} picture={post.author.picture} size={44} />}
+          <div className="min-w-0 flex-1">
+            {network && accent ? (
               <>
-                <span className="font-bold text-ink">Orien</span>{' '}
-                <span className="rounded-md border border-pearl/40 px-1.5 py-px align-middle text-[10px] font-semibold uppercase tracking-wider text-pearl">
-                  network
-                </span>
+                <p className={`text-[11px] font-bold uppercase tracking-[0.16em] ${accent.text}`}>{accent.eyebrow}</p>
+                <p className="text-sm text-muted">
+                  <span className="font-semibold text-ink">Orien</span> · {since(post.created)}
+                </p>
               </>
             ) : (
-              post.author && <Name person={post.author} />
-            )}{' '}
-            <span className="text-muted">· {since(post.created)}</span>
-          </p>
+              post.author && (
+                <>
+                  <Name person={post.author} className="block truncate text-[15px]" />
+                  <p className="text-sm text-muted">{since(post.created)}</p>
+                </>
+              )
+            )}
+          </div>
           <PostMenu post={post} signedIn={!!me} onRemoved={onChange} />
+        </header>
+
+        <div className={`mt-4 ${network ? '' : 'whitespace-pre-line break-words text-[17px] leading-relaxed text-ink'}`}>
+          {network ? <Happening post={post} /> : post.body}
         </div>
 
-        <div className="mt-1 space-y-1.5 text-[15px] leading-relaxed text-muted">
-          {network ? <Happening post={post} /> : <p className="whitespace-pre-line break-words text-ink">{post.body}</p>}
-        </div>
-
-        <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-2">
+        <div className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-2">
           <button
             type="button"
             onClick={() => {
@@ -386,10 +493,50 @@ function PostItem({ post, me, onChange }: { post: Post; me: You | null; onChange
   )
 }
 
+/** Miners this hour, ORN this hour, hashrate, and the next checkpoint, live. */
+function LiveStrip() {
+  const [overview, setOverview] = useState<Overview | null>(null)
+  const [now, setNow] = useState(() => Date.now() / 1000)
+  useEffect(() => {
+    let live = true
+    const load = () => explore<Overview>('/overview').then((o) => live && setOverview(o)).catch(() => undefined)
+    load()
+    const refresh = setInterval(load, 30_000)
+    const tick = setInterval(() => setNow(Date.now() / 1000), 1000)
+    return () => {
+      live = false
+      clearInterval(refresh)
+      clearInterval(tick)
+    }
+  }, [])
+  const left = overview ? overview.epoch_started + overview.epoch_seconds - now : 0
+  const countdown =
+    left <= 0 ? 'any moment' : `${Math.floor(left / 60)}:${String(Math.floor(left % 60)).padStart(2, '0')}`
+  const cells: [string, string][] = [
+    ['Miners this hour', overview?.miners ? overview.miners.last_hour.toLocaleString('en') : '—'],
+    ['ORN this hour', overview?.supply ? orn(overview.supply.per_hour, 0) : '—'],
+    ['Hashrate', overview?.hashrate ? hashrateText(overview.hashrate.per_second) : '—'],
+    ['Next checkpoint', overview ? countdown : '—'],
+  ]
+  return (
+    <div className={`${card} grid grid-cols-2 divide-line sm:grid-cols-4 sm:divide-x`}>
+      {cells.map(([label, value]) => (
+        <div key={label} className="px-4 py-3">
+          <p className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-[0.14em] text-muted">
+            {label === 'Miners this hour' && <span className="h-1.5 w-1.5 rounded-full bg-go" aria-hidden />}
+            {label}
+          </p>
+          <p className="num mt-0.5 text-xl font-bold text-ink">{value}</p>
+        </div>
+      ))}
+    </div>
+  )
+}
+
 function YouCard({ you, onChange }: { you: You | null; onChange: () => void }) {
   if (!you) {
     return (
-      <section className="rounded-2xl border border-line bg-surface p-4">
+      <section className={`${card} p-4`}>
         <p className="font-bold text-ink">New here?</p>
         <p className="mt-1 text-sm leading-relaxed text-muted">Sign in to post, react and join a team.</p>
         <Link href="/account/" className={`${pill} mt-3`}>
@@ -399,13 +546,11 @@ function YouCard({ you, onChange }: { you: You | null; onChange: () => void }) {
     )
   }
   return (
-    <section className="space-y-3 rounded-2xl border border-line bg-surface p-4">
+    <section className={`${card} space-y-3 p-4`}>
       <div className="flex items-center gap-3">
         <Avatar name={you.name} picture={you.picture} size={44} />
         <div className="min-w-0 flex-1">
-          <Link href={profileHref(you.name)} className="block truncate font-bold text-ink hover:underline">
-            {you.name}
-          </Link>
+          <Name person={you} className="block truncate" />
           <p className="truncate text-sm text-muted">{you.team ? `Team ${you.team.name}` : 'No team yet'}</p>
         </div>
       </div>
@@ -451,11 +596,13 @@ function YouCard({ you, onChange }: { you: You | null; onChange: () => void }) {
   )
 }
 
+const MEDALS = ['🥇', '🥈', '🥉']
+
 function Miners({ board }: { board: Board }) {
   const [all, setAll] = useState(false)
   const rows = all ? board.miners : board.miners.slice(0, 8)
   return (
-    <section className="rounded-2xl border border-line bg-surface">
+    <section className={card}>
       <h2 className="flex items-center gap-2 px-4 pb-1 pt-4 text-lg font-bold text-ink">
         <Trophy className="h-4 w-4 text-pearl" aria-hidden /> Top miners
       </h2>
@@ -465,7 +612,9 @@ function Miners({ board }: { board: Board }) {
         <ol>
           {rows.map((row) => (
             <li key={row.rank} className="flex items-center gap-3 px-4 py-2.5 transition hover:bg-raised/40">
-              <span className={`num w-5 shrink-0 text-sm ${row.rank <= 3 ? 'font-bold text-pearl' : 'text-muted'}`}>{row.rank}</span>
+              <span className={`num w-6 shrink-0 text-center text-sm ${row.rank <= 3 ? 'text-base' : 'text-muted'}`}>
+                {row.rank <= 3 ? MEDALS[row.rank - 1] : row.rank}
+              </span>
               <Avatar name={row.name ?? ''} picture={row.picture} size={32} />
               <span className="min-w-0 flex-1">
                 <Link href={profileHref(row.name ?? '')} className="block truncate text-sm font-bold text-ink hover:underline">
@@ -478,7 +627,7 @@ function Miners({ board }: { board: Board }) {
                       {row.streak}h
                     </span>
                   )}
-                  {row.team && <span className="truncate">{row.team}</span>}
+                  {row.team && <span className="truncate rounded-md border border-line px-1.5 text-[11px]">{row.team}</span>}
                 </span>
               </span>
               <span className="num shrink-0 text-sm font-semibold text-ink">{mined(row.mined)}</span>
@@ -517,7 +666,7 @@ function Teams({ board, you, onChange }: { board: Board; you: You | null; onChan
     setBusy(false)
   }
   return (
-    <section className="rounded-2xl border border-line bg-surface">
+    <section className={card}>
       <div className="flex items-center gap-2 px-4 pb-1 pt-4">
         <h2 className="flex flex-1 items-center gap-2 text-lg font-bold text-ink">
           <Users className="h-4 w-4 text-pearl" aria-hidden /> Teams
@@ -582,7 +731,9 @@ function Teams({ board, you, onChange }: { board: Board; you: You | null; onChan
                 }
                 className="flex w-full items-center gap-3 px-4 py-2.5 text-left transition hover:bg-raised/40"
               >
-                <span className={`num w-5 shrink-0 text-sm ${team.rank <= 3 ? 'font-bold text-pearl' : 'text-muted'}`}>{team.rank}</span>
+                <span className={`num w-6 shrink-0 text-center text-sm ${team.rank <= 3 ? 'text-base' : 'text-muted'}`}>
+                  {team.rank <= 3 ? MEDALS[team.rank - 1] : team.rank}
+                </span>
                 <span className="min-w-0 flex-1">
                   <span className="block truncate text-sm font-bold text-ink">{team.name}</span>
                   <span className="block text-xs text-muted">
@@ -625,7 +776,7 @@ function Teams({ board, you, onChange }: { board: Board; you: You | null; onChan
   )
 }
 
-/** /community/: a timeline of the network and its people. */
+/** /community/: the network and its people, as a feed of cards. */
 export function CommunityView() {
   const [tab, setTab] = useState<Tab>('all')
   const [posts, setPosts] = useState<Post[] | null>(null)
@@ -685,14 +836,16 @@ export function CommunityView() {
   }
 
   return (
-    <div className="mx-auto grid max-w-[1000px] items-start gap-8 pb-16 pt-2 lg:grid-cols-[minmax(0,1fr)_320px]">
-      <main className="min-w-0 rounded-2xl border border-line bg-surface/60">
-        <div className="sticky top-16 z-10 rounded-t-2xl border-b border-line bg-bg/70 backdrop-blur-md">
-          <div className="flex items-center justify-between px-4 pt-4 sm:px-5">
-            <h1 className="text-xl font-bold tracking-tight text-ink">Community</h1>
-            <p className="hidden text-xs text-muted sm:block">Be kind. Criticism welcome; scams and abuse are not.</p>
-          </div>
-          <div className="mt-2 flex">
+    <div className="mx-auto max-w-[1040px] space-y-5 pb-16 pt-4 sm:pt-6">
+      <div className="flex flex-wrap items-end justify-between gap-3 px-1">
+        <h1 className="text-3xl font-bold tracking-tight text-ink">Community</h1>
+        <p className="text-sm text-muted">Be kind. Criticism welcome; scams and abuse are not.</p>
+      </div>
+      <LiveStrip />
+
+      <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_320px]">
+        <main className="min-w-0 space-y-3">
+          <div className={`${card} flex overflow-hidden`}>
             {TABS.map(([key, label]) => (
               <button
                 key={key}
@@ -704,55 +857,49 @@ export function CommunityView() {
                 className={`relative flex-1 py-3 text-sm font-semibold transition hover:bg-raised/40 ${tab === key ? 'text-ink' : 'text-muted'}`}
               >
                 {label}
-                {tab === key && <span className="absolute inset-x-1/4 bottom-0 h-1 rounded-full bg-pearl" aria-hidden />}
+                {tab === key && <span className="absolute inset-x-1/3 bottom-0 h-1 rounded-full bg-pearl" aria-hidden />}
               </button>
             ))}
           </div>
-        </div>
 
-        {you?.verified ? (
-          <div className="border-b border-line px-4 py-4 sm:px-5">
-            <Composer me={you} onPosted={reload} />
-          </div>
-        ) : (
-          <div className="border-b border-line px-4 py-4 text-sm text-muted sm:px-5">
-            <Link href="/account/" className="font-semibold text-ink hover:underline">
-              {you ? 'Verify a wallet' : 'Sign in'}
-            </Link>{' '}
-            {you ? 'to post. Anyone signed in can react.' : 'to post and react.'}
-          </div>
-        )}
+          {you?.verified ? (
+            <div className="rounded-2xl p-px pearl-fill">
+              <div className="rounded-[15px] bg-surface p-4">
+                <Composer me={you} onPosted={reload} />
+              </div>
+            </div>
+          ) : (
+            <div className={`${card} px-5 py-4 text-sm text-muted`}>
+              <Link href="/account/" className="font-semibold text-ink hover:underline">
+                {you ? 'Verify a wallet' : 'Sign in'}
+              </Link>{' '}
+              {you ? 'to post. Anyone signed in can react.' : 'to post and react.'}
+            </div>
+          )}
 
-        {trouble && (
-          <div className="p-4">
-            <Notice tone="bad">{trouble}</Notice>
-          </div>
-        )}
-        {posts === null && !trouble && <p className="px-5 py-10 text-center text-muted">Loading…</p>}
-        {posts?.length === 0 && <p className="px-5 py-10 text-center text-muted">Nothing here yet.</p>}
-        <div className="divide-y divide-line">{posts?.map((post) => <PostItem key={post.id} post={post} me={you} onChange={reload} />)}</div>
-        {more && (
-          <button
-            type="button"
-            onClick={() => void older()}
-            className="w-full rounded-b-2xl py-4 text-sm font-semibold text-pearl transition hover:bg-raised/40"
-          >
-            Show more
-          </button>
-        )}
-      </main>
+          {trouble && <Notice tone="bad">{trouble}</Notice>}
+          {posts === null && !trouble && <p className="py-10 text-center text-muted">Loading…</p>}
+          {posts?.length === 0 && <p className={`${card} py-10 text-center text-muted`}>Nothing here yet.</p>}
+          {posts?.map((post) => <PostCard key={post.id} post={post} me={you} onChange={reload} />)}
+          {more && (
+            <button type="button" onClick={() => void older()} className={`${quiet} w-full`}>
+              Show more
+            </button>
+          )}
+        </main>
 
-      <aside className="space-y-4">
-        <YouCard you={you} onChange={reload} />
-        {board ? (
-          <>
-            <Miners board={board} />
-            <Teams board={board} you={you} onChange={reload} />
-          </>
-        ) : (
-          <p className="rounded-2xl border border-line bg-surface p-4 text-sm text-muted">The leaderboards appear once the network has been read.</p>
-        )}
-      </aside>
+        <aside className="space-y-4">
+          <YouCard you={you} onChange={reload} />
+          {board ? (
+            <>
+              <Miners board={board} />
+              <Teams board={board} you={you} onChange={reload} />
+            </>
+          ) : (
+            <p className={`${card} p-4 text-sm text-muted`}>The leaderboards appear once the network has been read.</p>
+          )}
+        </aside>
+      </div>
     </div>
   )
 }

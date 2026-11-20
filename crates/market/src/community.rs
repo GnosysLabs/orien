@@ -24,7 +24,7 @@ use axum::{Json, Router};
 use rusqlite::{OptionalExtension, params};
 use serde::{Deserialize, Serialize};
 use serde_json::{Value, json};
-use std::collections::{BTreeSet, HashMap, HashSet};
+use std::collections::{HashMap, HashSet};
 use std::sync::{Arc, Mutex};
 use std::time::Duration;
 
@@ -36,8 +36,10 @@ pub const MAX_TEAM_NAME: usize = 30;
 pub const REACTIONS: [&str; 5] = ["⛏️", "🔥", "❤️", "👏", "😂"];
 /// ORN mined that earns a milestone post.
 const MILESTONES: [u64; 4] = [100, 1_000, 10_000, 100_000];
-/// Named new miners posted by name in one hour; more are counted together.
-const NAMED_NEW_MINERS: usize = 10;
+/// New miners shown with a face on one hour's welcome card; more are counted.
+const FACES: usize = 12;
+/// Checkpoints in a row that earn a streak post.
+const STREAKS: [u64; 5] = [24, 48, 100, 168, 336];
 const UNIT: u128 = 1_000_000_000;
 /// Rows on each leaderboard.
 const BOARD: usize = 50;
@@ -205,8 +207,18 @@ pub fn board(
     board
 }
 
-/// What the network says about checkpoint `epoch`: a record, new miners and
-/// milestones, as (kind, subject account, data).
+/// A miner in a post's data: by account, so the name follows renames, or
+/// by address.
+fn who(miner: &Miner) -> Value {
+    match miner {
+        Miner::Account(id) => json!({ "account": id }),
+        Miner::Address(address) => json!({ "address": address }),
+    }
+}
+
+/// What the network says about checkpoint `epoch`: a record, who joined,
+/// milestones, streaks, and yesterday's top miner, as (kind, subject
+/// account, data).
 pub fn happenings(mined: &Mined, owners: &HashMap<String, i64>, epoch: u64) -> Vec<(String, Option<i64>, Value)> {
     let epochs = paid_by_epoch(mined, owners);
     let Some((_, now_paid)) = epochs.iter().find(|(e, _)| *e == epoch) else { return Vec::new() };
@@ -216,23 +228,33 @@ pub fn happenings(mined: &Mined, owners: &HashMap<String, i64>, epoch: u64) -> V
     if before.is_empty() {
         return said;
     }
+    let paid_at: HashMap<u64, &HashMap<Miner, u128>> = epochs.iter().map(|(e, by)| (*e, by)).collect();
+
+    // A record: more miners paid than any hour before.
     let addresses = |e: &u64| mined.by_epoch.get(e).map_or(0, |paid| paid.len());
     let most_before = before.iter().map(|(e, _)| addresses(e)).max().unwrap_or(0);
     if addresses(&epoch) > most_before {
         said.push(("record".to_string(), None, json!({ "epoch": epoch, "miners": addresses(&epoch), "before": most_before })));
     }
+
+    // Who was paid for the first time: named first, with what they earned.
     let seen: HashSet<&Miner> = before.iter().flat_map(|(_, by)| by.keys()).collect();
-    let fresh: BTreeSet<&Miner> = now_paid.keys().filter(|m| !seen.contains(m)).collect();
-    let (named, unnamed): (Vec<&Miner>, Vec<&Miner>) = fresh.into_iter().partition(|m| matches!(m, Miner::Account(_)));
-    for miner in named.iter().take(NAMED_NEW_MINERS) {
-        if let Miner::Account(id) = miner {
-            said.push(("new_miner".to_string(), Some(*id), json!({ "epoch": epoch, "paid": now_paid[*miner].to_string() })));
-        }
+    let mut fresh: Vec<(&Miner, u128)> = now_paid.iter().filter(|(m, _)| !seen.contains(m)).map(|(m, a)| (m, *a)).collect();
+    fresh.sort_by(|a, b| {
+        let named = |m: &Miner| matches!(m, Miner::Account(_));
+        named(b.0).cmp(&named(a.0)).then_with(|| b.1.cmp(&a.1)).then_with(|| a.0.cmp(b.0))
+    });
+    if !fresh.is_empty() {
+        let subject = fresh.iter().find_map(|(m, _)| if let Miner::Account(id) = m { Some(*id) } else { None });
+        let faces: Vec<Value> = fresh.iter().take(FACES).map(|(m, a)| {
+            let mut face = who(m);
+            face["paid"] = json!(a.to_string());
+            face
+        }).collect();
+        said.push(("welcome".to_string(), subject, json!({ "epoch": epoch, "count": fresh.len(), "miners": faces })));
     }
-    let others = unnamed.len() + named.len().saturating_sub(NAMED_NEW_MINERS);
-    if others > 0 {
-        said.push(("new_miners".to_string(), None, json!({ "epoch": epoch, "count": others })));
-    }
+
+    // Milestones and streaks, for people.
     let mut totals_before: HashMap<&Miner, u128> = HashMap::new();
     for (_, by) in &before {
         for (miner, amount) in by {
@@ -244,10 +266,65 @@ pub fn happenings(mined: &Mined, owners: &HashMap<String, i64>, epoch: u64) -> V
         let was = totals_before.get(miner).copied().unwrap_or(0);
         let is = was + amount;
         if let Some(mark) = MILESTONES.iter().rev().find(|m| was < **m as u128 * UNIT && is >= **m as u128 * UNIT) {
-            said.push(("milestone".to_string(), Some(*id), json!({ "epoch": epoch, "orn": mark })));
+            said.push(("milestone".to_string(), Some(*id), json!({ "epoch": epoch, "orn": mark, "mined": is.to_string() })));
+        }
+        let mut streak = 0u64;
+        let mut e = epoch;
+        while paid_at.get(&e).is_some_and(|by| by.contains_key(miner)) {
+            streak += 1;
+            if e == 0 {
+                break;
+            }
+            e -= 1;
+        }
+        if STREAKS.contains(&streak) {
+            said.push(("streak".to_string(), Some(*id), json!({ "epoch": epoch, "hours": streak })));
+        }
+    }
+
+    // The day before this checkpoint's, once it is over: its top miner.
+    let day = |e: u64| mined.times.get(&e).map(|t| t / 86_400);
+    if let (Some(today), Some(yesterday)) = (day(epoch), day(epoch - 1))
+        && today != yesterday
+    {
+        let mut by_miner: HashMap<&Miner, u128> = HashMap::new();
+        let mut hours = 0u64;
+        for (e, by) in &epochs {
+            if day(*e) == Some(yesterday) {
+                hours += 1;
+                for (miner, amount) in by {
+                    *by_miner.entry(miner).or_default() += amount;
+                }
+            }
+        }
+        let total: u128 = by_miner.values().sum();
+        if let Some((top, amount)) = by_miner.iter().max_by(|a, b| a.1.cmp(b.1).then_with(|| b.0.cmp(a.0))) {
+            let subject = if let Miner::Account(id) = top { Some(*id) } else { None };
+            let date = chrono_date(yesterday * 86_400);
+            said.push((
+                "top_day".to_string(),
+                subject,
+                json!({ "epoch": epoch, "day": date, "miner": who(top), "mined": amount.to_string(), "total": total.to_string(), "miners": by_miner.len(), "hours": hours }),
+            ));
         }
     }
     said
+}
+
+/// A day as "2026-11-19", from seconds since 1970.
+fn chrono_date(seconds: u64) -> String {
+    // Civil-from-days, Howard Hinnant's algorithm.
+    let z = (seconds / 86_400) as i64 + 719_468;
+    let era = z.div_euclid(146_097);
+    let doe = z.rem_euclid(146_097);
+    let yoe = (doe - doe / 1_460 + doe / 36_524 - doe / 146_096) / 365;
+    let y = yoe + era * 400;
+    let doy = doe - (365 * yoe + yoe / 4 - yoe / 100);
+    let mp = (5 * doy + 2) / 153;
+    let d = doy - (153 * mp + 2) / 5 + 1;
+    let m = if mp < 10 { mp + 3 } else { mp - 9 };
+    let y = if m <= 2 { y + 1 } else { y };
+    format!("{y:04}-{m:02}-{d:02}")
 }
 
 impl Store {
@@ -257,7 +334,7 @@ impl Store {
                  id INTEGER PRIMARY KEY,
                  -- None for posts the network writes.
                  author INTEGER REFERENCES accounts(id) ON DELETE CASCADE,
-                 -- post, or what the network says: record, new_miner, new_miners, milestone.
+                 -- post, or what the network says: record, welcome, milestone, streak, top_day.
                  kind TEXT NOT NULL,
                  body TEXT NOT NULL DEFAULT '',
                  data TEXT NOT NULL DEFAULT '{}',
@@ -458,6 +535,7 @@ impl Store {
             }))
         })?;
         let mut posts: Vec<Value> = rows.collect::<rusqlite::Result<_>>()?;
+        self.name_faces(&mut posts)?;
         for post in &mut posts {
             let id = post["id"].as_i64().unwrap_or(0);
             let mut counts = self.db.prepare("SELECT emoji, COUNT(*), MAX(account = ?2) FROM reactions WHERE post = ?1 GROUP BY emoji")?;
@@ -470,6 +548,58 @@ impl Store {
                 .collect::<Vec<_>>());
         }
         Ok(posts)
+    }
+
+    /// Fills in the name and picture of every account a post's data
+    /// mentions (`miners[].account`, `miner.account`), so names follow
+    /// renames. Suspended accounts lose their face.
+    fn name_faces(&self, posts: &mut [Value]) -> Result<()> {
+        let mut ids: Vec<i64> = Vec::new();
+        let mut visit = |v: &Value| {
+            if let Some(id) = v.get("account").and_then(Value::as_i64) {
+                ids.push(id);
+            }
+        };
+        for post in posts.iter() {
+            if let Some(list) = post["data"]["miners"].as_array() {
+                list.iter().for_each(&mut visit);
+            }
+            visit(&post["data"]["miner"]);
+        }
+        if ids.is_empty() {
+            return Ok(());
+        }
+        let mut names: HashMap<i64, (String, Option<String>)> = HashMap::new();
+        for id in ids {
+            if let Some(found) = self
+                .db
+                .query_row(
+                    "SELECT name, picture FROM accounts WHERE id = ?1 AND id NOT IN (SELECT account FROM suspended)",
+                    [id],
+                    |row| Ok((row.get::<_, String>(0)?, row.get::<_, Option<String>>(1)?)),
+                )
+                .optional()?
+            {
+                names.insert(id, found);
+            }
+        }
+        let fill = |v: &mut Value| {
+            if let Some(id) = v.get("account").and_then(Value::as_i64) {
+                if let Some((name, picture)) = names.get(&id) {
+                    v["name"] = json!(name);
+                    v["picture"] = json!(picture);
+                }
+            }
+        };
+        for post in posts.iter_mut() {
+            if let Some(list) = post["data"]["miners"].as_array_mut() {
+                list.iter_mut().for_each(fill);
+            }
+            if post["data"]["miner"].is_object() {
+                fill(&mut post["data"]["miner"]);
+            }
+        }
+        Ok(())
     }
 
     /// The team `account` is in, if any: id and name.
