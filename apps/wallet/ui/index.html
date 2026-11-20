@@ -1074,32 +1074,43 @@
 
 
   /* ---- Send ---- */
-  .amount-entry { text-align: center; padding: 8px 0 28px; }
-  .amount-entry input {
-    width: 100%; border: 0; background: transparent; text-align: center; color: var(--ink);
-    font: 300 var(--amount-size, 46px)/1.1 -apple-system, system-ui, sans-serif; letter-spacing: -0.01em; caret-color: transparent;
-  }
-  .amount-entry input:focus { outline: none; }
-  .amount-entry input::placeholder { color: var(--faint); }
-  .amount-entry .amount-unit { margin-top: 2px; font-size: 13px; font-weight: 600; letter-spacing: 0.12em; color: var(--faint); }
-  .amount-entry .hint { margin-top: 14px; font-size: 13px; color: var(--dim); display: flex; justify-content: center; align-items: center; gap: 10px; flex-wrap: wrap; }
-  .amount-entry .hint .send-all { height: 28px; padding: 0 12px; margin: 0; border-radius: 14px; font-size: 12.5px; }
-  body.phone .amount-entry .hint .send-all { height: 34px; padding: 0 14px; border-radius: 17px; font-size: 13px; }
-  .amount-entry .fee-line { margin-top: 10px; }
-  body.phone.kb-up .amount-entry .fee-line { margin-top: 4px; }
-  /* iPhones: the amount big, as on computers (16 points is only the least
-     a box may be), and Review at the foot of the screen, above the keyboard. */
-  body.phone .amount-entry { padding-top: 28px; }
-  body.phone .amount-entry input { font-size: var(--amount-size, 52px) !important; }
+  /* Send: recent people as a row of faces to pick from. */
+  .recent-to { margin: 0 0 22px; }
+  .recent-to.tucked { display: none; }
+  .recent-to .rt-label { margin: 0 0 10px 2px; font-size: 12px; color: var(--dim); }
+  .recent-to .rt-row { display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; }
+  .recent-to .rt-row::-webkit-scrollbar { display: none; }
+  .recent-to .rt { flex: none; width: 72px; display: flex; flex-direction: column; align-items: center; gap: 7px;
+    padding: 8px 2px 6px; border: 0; border-radius: 14px; background: transparent; color: var(--ink); cursor: pointer; }
+  @media (hover: hover) { .recent-to .rt:hover { background: rgba(var(--tint), 0.05); } }
+  .recent-to .rt .face { width: 44px; height: 44px; font-size: 16px; }
+  .recent-to .rt .face.emoji { font-size: 22px; }
+  .recent-to .rt .rt-name { max-width: 100%; font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  /* The amount box: Max inside it, as in the extension. */
+  .field .label-row { display: flex; justify-content: space-between; align-items: baseline; margin: 0 2px 7px; }
+  .field .label-row label { margin: 0; }
+  .field .label-row #available { font-size: 12px; color: var(--faint); }
+  .field .amount-box #amount { font: 15px -apple-system, system-ui, sans-serif; }
+  .field .amount-box .amount-unit { flex: none; font-size: 12.5px; color: var(--dim); }
+  .field + .field { margin-top: 18px; }
+  #send .fee-line { margin: 7px 0 0 2px; }
+  /* What will happen, once the form is filled: the Review screen's rows,
+     on this screen. */
+  .summary { margin-top: 22px; border: 1px solid var(--line); border-radius: 18px; background: var(--surface); overflow: hidden; }
+  .summary .row { display: flex; justify-content: space-between; align-items: center; padding: 12px 18px; gap: 16px; }
+  .summary .sm-fee { margin-left: 8px; font-size: 12px; font-weight: 400; color: var(--faint); }
+  .summary .row + .row { border-top: 1px solid var(--line); }
+  .summary .row span:first-child { color: var(--dim); }
+  .summary .row span:last-child { font-weight: 500; text-align: right; min-width: 0; }
+  .summary .sm-to { display: inline-flex; align-items: center; gap: 8px; overflow: hidden; }
+  .summary .sm-to .face { width: 22px; height: 22px; font-size: 10.5px; }
+  .summary .sm-to .nm { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  #send #r-pw-field { margin-top: 22px; }
+  /* iPhones: Send at the foot of the screen, above the keyboard; while
+     typing, only the form, so Send stays in sight. */
   body.phone #send .push { flex: 1 1 auto; }
-  body.phone #send #to-review { margin-bottom: 4px; }
-  /* Keyboard up: the amount area compact, so everything, Review included,
-     fits above the keyboard. */
-  body.phone.kb-up .amount-entry { padding: 0 0 10px; }
-  body.phone.kb-up .amount-entry input { font-size: 40px !important; }
-  body.phone.kb-up .amount-entry .amount-unit { margin-top: 0; font-size: 11px; }
-  body.phone.kb-up .amount-entry .hint { margin-top: 4px; }
-  body.phone.kb-up .amount-entry .fee-line:empty { display: none; }
+  body.phone #send #confirm { margin-bottom: 4px; }
+  body.phone.kb-up #send .recent-to, body.phone.kb-up #send .summary { display: none; }
   .amount-mirror { position: absolute; left: -9999px; top: 0; visibility: hidden; white-space: pre; }
   .fee-line { margin-top: 4px; min-height: 18px; font-size: 12px; color: var(--faint); }
   .fee-line.bad { color: var(--bad); }
@@ -1825,18 +1836,17 @@
       <button class="pill ct-delete" id="c-delete" hidden>Delete contact</button>
     </section>
 
-    <!-- Send: enter -->
+    <!-- Send: one screen, as in the Safari extension. Recent people to pick
+         from above the form; once it's filled, what will happen below it. -->
     <section class="screen" id="send" hidden>
       <div class="topline">
         <button class="back" data-back aria-label="Back"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg></button>
         <h2>Send</h2>
       </div>
 
-      <div class="amount-entry">
-        <input id="amount" placeholder="0" inputmode="decimal" autocomplete="off">
-        <div class="amount-unit">ORN</div>
-        <div class="hint"><span id="available"></span><button class="pill send-all" id="all" type="button">Use max</button></div>
-        <div class="fee-line" id="fee-line"></div>
+      <div class="recent-to" id="recent-to" hidden>
+        <div class="rt-label">Recent</div>
+        <div class="rt-row" id="recent-row"></div>
       </div>
 
       <div class="field">
@@ -1851,34 +1861,30 @@
         <div class="list suggest" id="suggest" hidden></div>
       </div>
 
-      <div class="push"></div>
-      <div class="problem" id="send-problem" hidden></div>
-      <button class="primary pearl" id="to-review" disabled data-gap="lg">Review</button>
-    </section>
-
-    <!-- Send: review -->
-    <section class="screen" id="review" hidden>
-      <div class="topline">
-        <button class="back" id="review-back" aria-label="Back"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg></button>
-        <h2>Review</h2>
+      <div class="field">
+        <div class="label-row"><label for="amount">Amount</label><span id="available"></span></div>
+        <div class="box amount-box">
+          <input id="amount" placeholder="0" inputmode="decimal" autocomplete="off">
+          <span class="amount-unit">ORN</span>
+          <button class="chip" id="all" type="button">Max</button>
+        </div>
+        <div class="fee-line" id="fee-line"></div>
       </div>
 
-      <div class="review">
-        <div class="row"><span>Amount</span><span id="r-amount"></span></div>
-        <div class="row"><span>Network fee</span><span id="r-fee"></span></div>
-        <div class="row"><span>To</span><span class="mono" id="r-to"></span></div>
+      <div class="summary" id="summary" hidden>
+        <div class="row"><span>Total</span><span><span id="r-amount"></span><span class="sm-fee" id="r-fee"></span></span></div>
         <div class="row"><span>Balance after</span><span id="r-after"></span></div>
       </div>
-      <p class="fineprint">Payments are final within a second or two and cannot be reversed. Check the address.</p>
-      <div class="field" id="r-pw-field" hidden data-gap="xl">
+
+      <div class="field" id="r-pw-field" hidden>
         <label for="r-pw">Wallet password</label>
         <div class="box plain"><input id="r-pw" type="password" autocomplete="current-password"></div>
         <label class="agree" id="r-bio-row" hidden data-gap="sm"><input type="checkbox" id="r-bio"> <span id="r-bio-text"></span></label>
       </div>
 
       <div class="push"></div>
-      <div class="problem" id="review-problem" hidden></div>
-      <button class="primary pearl" id="confirm" data-gap="lg">Confirm and send</button>
+      <div class="problem" id="send-problem" hidden></div>
+      <button class="primary pearl" id="confirm" disabled data-gap="lg">Send</button>
     </section>
 
     <!-- Send: done -->
@@ -2389,7 +2395,8 @@
   }
 
   let view = null;          // the latest overview from the validators
-  let pending = null;       // { to, amount } while reviewing
+  let pending = null;       // { to, amount } while sending
+  let sending = false, passwordAsked = false;
 
   const short = (a) => a.slice(0, 8) + "…" + a.slice(-8);
   const isAddress = (text) => /^[0-9a-f]{64}$/i.test(text.trim());
@@ -3581,9 +3588,10 @@
       problem("home-problem", "This version of Orien Wallet no longer works with the network. Press Update at the top to keep sending.");
       return;
     }
-    $("amount").value = ""; $("to").value = "";
+    $("amount").value = ""; $("to").value = ""; $("r-pw").value = "";
     quoted = null; $("fee-line").textContent = ""; $("amount").style.color = "";
-    validate(); show("send"); fitAmount(); $("amount").focus();
+    $("r-bio").checked = false; passwordAsked = false; $("send-problem").hidden = true;
+    validate(); show("send"); showRecent(); if (!phone) $("to").focus();
   };
   $("go-receive").onclick = () => {
     if (!view) return;
@@ -3611,7 +3619,7 @@
     const q = await invoke("quote", { amount: $("amount").value });
     if (ticket !== quoting) return;      // a newer keystroke has asked again
     quoted = q;
-    $("fee-line").textContent = q.problem || (q.fee ? `Network fee ${q.fee} ORN` : "");
+    $("fee-line").textContent = q.problem || (q.fee ? `Fee ${q.fee} ORN · ${q.total} ORN in all` : "");
     $("fee-line").className = "fee-line" + (q.problem ? " bad" : "");
     $("amount").style.color = q.problem && q.fee ? "var(--bad)" : "";
     validate();
@@ -3619,7 +3627,7 @@
 
   function validate() {
     const has = view && view.balance !== null;
-    $("available").textContent = has ? `${shortBalance(view.balance)} ORN available` : "";
+    $("available").textContent = has ? `${shortBalance(view.balance)} available` : "";
     $("all").hidden = !has || view.most === "0";
 
     const to = $("to").value.trim();
@@ -3655,8 +3663,57 @@
     $("to-check").className = "check" + (ok ? " ok" : "") + (warn ? " warn" : "");
 
     const amountOk = quoted && quoted.fee && !quoted.problem;
-    $("to-review").disabled = !(ok && amountOk);
+    const ready = ok && amountOk;
+    $("confirm").disabled = !ready || sending;
+    // Once both are right: what will happen, in place of a Review screen.
+    $("summary").hidden = !ready;
+    // The summary says the fee; the line under the amount keeps only problems.
+    $("fee-line").hidden = ready;
+    // Someone picked: the recent faces give their room to the summary.
+    $("recent-to").classList.toggle("tucked", chosen);
+    if (ready) {
+      $("r-amount").textContent = `${quoted.total} ORN`;
+      $("r-fee").textContent = `incl. ${quoted.fee} fee`;
+      $("r-after").textContent = quoted.after ? `${quoted.after} ORN` : "—";
+    }
+    // With Touch ID or Face ID set up, no password box: the system asks.
+    $("r-pw-field").hidden = !(ready && view && view.locked && !view.biometric) && !passwordAsked;
+    $("r-bio-row").hidden = !(apple && view && view.locked && !view.biometric);
+    $("r-bio-text").textContent = `Use ${bio} instead of the password from now on`;
+    if (!sending) $("confirm").textContent = view && view.locked && view.biometric ? `Send with ${bio}` : "Send";
   }
+  // Recent people: the last few this wallet sent to, newest first, as
+  // faces to pick. Hidden until there are any.
+  async function showRecent() {
+    let entries = [];
+    try { entries = await invoke("activity"); } catch {}
+    const seen = new Set(), recent = [];
+    for (const e of entries.slice().sort((a, b) => b.time - a.time)) {
+      const a = e.direction === "sent" && e.kind !== "swap" && e.counterparty;
+      if (!a || seen.has(a) || (view && a === view.address)) continue;
+      seen.add(a); recent.push(a);
+      if (recent.length === 8) break;
+    }
+    $("recent-to").hidden = recent.length === 0;
+    const draw = () => {
+      $("recent-row").innerHTML = recent.map((a) => {
+        const own = ownWallet(a);
+        const name = nameOf(a) || short(a).slice(0, 9);
+        const look = own ? `<span class="face${iconOf(a) ? " emoji" : ""}">${esc(iconOf(a) || own.name.slice(0, 1).toUpperCase())}</span>` : face(a, name);
+        return `<button class="rt" type="button" data-address="${a}" title="${esc(name)}">${look}<span class="rt-name">${esc(name.split(/\s+/)[0])}</span></button>`;
+      }).join("");
+    };
+    draw();
+    loadProfiles(recent).then((found) => found && draw());
+  }
+  $("recent-row").onclick = (event) => {
+    const pick = event.target.closest("[data-address]");
+    if (!pick) return;
+    $("to").value = pick.dataset.address;
+    feel("selection");
+    validate();
+    $("amount").focus();
+  };
   $("amount").oninput = () => {
     // Digits, one decimal point and thousands commas only. Where the
     // iPhone's keypad has a decimal comma, that comma is the point.
@@ -3783,29 +3840,15 @@
     } catch {}
   };
 
-  $("to-review").onclick = () => {
-    pending = { to: $("to").value.trim().toLowerCase(), amount: $("amount").value };
-    $("r-amount").textContent = `${quoted.amount} ORN`;
-    $("r-fee").textContent = `${quoted.fee} ORN`;
-    $("r-to").textContent = nameOf(pending.to) ? `${nameOf(pending.to)} · ${short(pending.to)}` : short(pending.to);
-    $("r-to").title = pending.to;
-    $("r-after").textContent = quoted.after ? `${quoted.after} ORN` : "—";
-    $("r-pw").value = "";
-    // With Touch ID or Face ID set up, no password box: the system asks.
-    $("r-pw-field").hidden = !(view && view.locked && !view.biometric);
-    $("r-bio-row").hidden = !(apple && view && !view.biometric);
-    $("r-bio-text").textContent = `Use ${bio} instead of the password from now on`;
-    $("r-bio").checked = false;
-    show("review");
-    if (!$("r-pw-field").hidden) $("r-pw").focus();
-  };
-  $("review-back").onclick = () => show("send");
-  $("r-pw").onkeydown = (e) => { if (e.key === "Enter") $("confirm").click(); };
+  $("r-pw").onkeydown = (e) => { if (e.key === "Enter" && !$("confirm").disabled) $("confirm").click(); };
+  $("r-pw").oninput = validate;
 
   // ---- Send: confirm ----
   $("confirm").onclick = async () => {
     const button = $("confirm");
-    button.disabled = true; $("review-back").disabled = true;
+    pending = { to: $("to").value.trim().toLowerCase(), amount: $("amount").value };
+    sending = true;
+    button.disabled = true;
     button.innerHTML = '<span class="spinner"></span>Sending';
     try {
       const password = $("r-pw-field").hidden ? null : $("r-pw").value;
@@ -3815,10 +3858,9 @@
       $("r-pw").value = "";
       if (sent.earlier) {
         // A payment signed earlier had to finish first; this one is not sent yet.
-        show("send");
         problem("send-problem",
           `An earlier payment of ${sent.amount_text} ORN to ${short(sent.to)} was still waiting and is now final. ` +
-          `Review and send this one again.`);
+          `Check this one and send it again.`);
         refresh();
       } else {
         $("d-title").textContent = `${sent.amount_text} ORN sent`;
@@ -3832,15 +3874,15 @@
     } catch (error) {
       const text = String(error);
       if (text === "password: needed") {
-        $("r-pw-field").hidden = false; $("r-pw").focus();
-        problem("review-problem", "This wallet has a password. Type it to send.");
+        passwordAsked = true; $("r-pw-field").hidden = false; $("r-pw").focus();
+        problem("send-problem", "This wallet has a password. Type it to send.");
       } else if (text === "password: wrong") {
         $("r-pw").select();
-        problem("review-problem", "That is not this wallet's password.");
-      } else problem("review-problem", text);
+        problem("send-problem", "That is not this wallet's password.");
+      } else problem("send-problem", text);
     } finally {
-      button.disabled = false; $("review-back").disabled = false;
-      button.textContent = "Confirm and send";
+      sending = false;
+      validate();
     }
   };
 
