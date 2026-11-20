@@ -27,6 +27,14 @@ export const PRODUCTS: Record<Product, string> = {
 export const CHANGELOG: Entry[] = [
   {
     date: '2026-11-20',
+    products: ['network'],
+    title: 'The explorer’s API, described',
+    changes: [
+      'The figures behind the explorer are free for any website or program to read as JSON, with no key: the network now, every checkpoint, any address, and the largest wallets. explorer.orien.network/api/ describes each one, with real answers, and how often to ask.',
+    ],
+  },
+  {
+    date: '2026-11-20',
     products: ['orien', 'validators'],
     version: '1.10.3',
     title: 'A validator a moment behind answers wallets instead of stopping',

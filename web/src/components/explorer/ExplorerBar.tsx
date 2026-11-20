@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import { ArrowUpRight } from 'lucide-react'
 import { Wordmark } from '@/components/Wordmark'
-import { homeHref } from '@/lib/explorer'
+import { apiHref, homeHref } from '@/lib/explorer'
 import { ExplorerSearch } from './Parts'
 
 /** The explorer's top bar: its name, the search, and the way to the site. */
@@ -44,5 +44,16 @@ export function ExplorerBar() {
         </div>
       </div>
     </header>
+  )
+}
+
+/** The footer's link to the API page, at this host's own address for it. */
+export function ExplorerApiLink() {
+  const [href, setHref] = useState('/explorer/api/')
+  useEffect(() => setHref(apiHref()), [])
+  return (
+    <a href={href} className="hover:text-ink">
+      API
+    </a>
   )
 }

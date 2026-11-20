@@ -1,4 +1,4 @@
-import { ExplorerBar } from '@/components/explorer/ExplorerBar'
+import { ExplorerApiLink, ExplorerBar } from '@/components/explorer/ExplorerBar'
 
 /** The explorer has its own bar and footer instead of the site's. */
 export default function ExplorerLayout({ children }: { children: React.ReactNode }) {
@@ -10,7 +10,8 @@ export default function ExplorerLayout({ children }: { children: React.ReactNode
         Orien Explorer reads the live Orien network. ·{' '}
         <a href="https://orien.network/" className="hover:text-ink">
           orien.network
-        </a>
+        </a>{' '}
+        · <ExplorerApiLink />
       </footer>
     </div>
   )
