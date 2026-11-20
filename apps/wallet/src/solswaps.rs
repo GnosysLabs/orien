@@ -117,26 +117,12 @@ pub fn payout_problem(payout: &str) -> Option<String> {
     }
 }
 
-/// Solana's loader for programs; a live program's account belongs to it.
-const UPGRADEABLE_LOADER: &str = "BPFLoaderUpgradeab1e11111111111111111111111";
-
-/// Whether orien-lock is live on `cluster`: its account is there, owned by
-/// the loader, and marks a deployed program. Asks Solana, so not on the
-/// main thread. Once live, it stays live.
+/// Whether SOL swaps are open on `cluster`: orien-lock is there.
 pub fn lock_live(cluster: &str) -> bool {
-    static LIVE: std::sync::atomic::AtomicBool = std::sync::atomic::AtomicBool::new(false);
-    if cluster == "devnet" || LIVE.load(std::sync::atomic::Ordering::Relaxed) {
-        return true;
-    }
-    let solana = solana(cluster);
-    let (Some(program), Ok(loader)) = (solana.lock_program, orien_swap::solana::address(UPGRADEABLE_LOADER)) else {
-        return false;
-    };
-    let live = matches!(solana.account(&program), Ok(Some(account)) if account.executable && account.owner == loader);
-    if live {
-        LIVE.store(true, std::sync::atomic::Ordering::Relaxed);
-    }
-    live
+    // The lock is live on Solana and final (it can never be changed), so
+    // knowing its address is enough: asking Solana at every start meant a
+    // slow or blocked first connection hid SOL until the app was reopened.
+    cluster == "devnet" || solana(cluster).lock_program.is_some()
 }
 
 /// "0.15", from lamports.

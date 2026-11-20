@@ -4898,8 +4898,8 @@
     postHint();
   }
   $("get-site").onclick = (event) => { event.preventDefault(); invoke("open_site").catch(() => {}); };
-  $("bp-tab-sol").onclick = () => setPostCoin("sol");
-  $("bp-tab-btc").onclick = () => setPostCoin("btc");
+  $("bp-tab-sol").onclick = () => { setPostCoin("sol"); $("bp-payout").oninput(); };
+  $("bp-tab-btc").onclick = () => { setPostCoin("btc"); $("bp-payout").oninput(); };
   // The smallest swap: 0.01 SOL; for Bitcoin 0.00015 BTC, or more when
   // Bitcoin is busy (the figure fetched by showSmallest).
   let smallestBtc = "0.00015";
@@ -4959,6 +4959,21 @@
     payoutBad = false;
     postReady();
     const typed = $("bp-payout").value.trim();
+    // An address for the other coin: say so, rather than just greying out.
+    const solLike = /^[1-9A-HJ-NP-Za-km-z]{32,44}$/.test(typed);
+    const btcLike = /^((bc|tb|bcrt)1[02-9ac-hj-np-z]{8,87}|[123mn][1-9A-HJ-NP-Za-km-z]{25,34})$/i.test(typed);
+    if (postCoin === "btc" && typed && !btcLike) {
+      $("bp-payout-note").textContent = solLike && solOpen
+        ? "That's a SOL address. To be paid in SOL, choose SOL above."
+        : "That isn't a Bitcoin address.";
+      $("bp-payout-note").hidden = typed.length < 26 && !solLike;
+      return;
+    }
+    if (postCoin === "sol" && typed.length >= 26 && !solLike) {
+      $("bp-payout-note").textContent = btcLike ? "That's a Bitcoin address. To be paid in Bitcoin, choose Bitcoin above." : "That isn't a SOL address.";
+      $("bp-payout-note").hidden = false;
+      return;
+    }
     if (postCoin !== "sol" || typed.length < 32) return;
     payoutTimer = setTimeout(async () => {
       const problem = await invoke("sol_payout_check", { payout: typed }).catch(() => null);
