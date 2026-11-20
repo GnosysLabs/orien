@@ -122,11 +122,17 @@ export function Authorize() {
       </Frame>
     )
   }
-  if (!asked) return <p className="py-16 text-center text-muted">Loading…</p>
+  if (!asked)
+    return (
+      <Overlay>
+        <p className="text-center text-muted">Loading…</p>
+      </Overlay>
+    )
 
   if (!asked.you) {
     return (
-      <SignIn
+      <Overlay>
+        <SignIn
         onDone={() => void load()}
         trouble=""
         wallet
@@ -137,7 +143,8 @@ export function Authorize() {
             make an account.
           </>
         }
-      />
+        />
+      </Overlay>
     )
   }
 
@@ -209,13 +216,26 @@ export function Authorize() {
   )
 }
 
+/** Over the whole page, the site frosted behind it, like a dialog. */
+function Overlay({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="fixed inset-0 z-[70] overflow-y-auto bg-bg/40 backdrop-blur-xl">
+      <div className="flex min-h-full items-center justify-center p-4 sm:p-8">
+        <div className="w-full max-w-[440px] rounded-2xl shadow-2xl shadow-black/60">{children}</div>
+      </div>
+    </div>
+  )
+}
+
 function Frame({ children }: { children: React.ReactNode }) {
   return (
-    <section className="mx-auto max-w-[440px] space-y-6 rounded-2xl border border-line bg-surface p-6 sm:p-8">
-      <div className="flex items-center gap-2 text-lg">
-        <Wordmark />
-      </div>
-      {children}
-    </section>
+    <Overlay>
+      <section role="dialog" aria-modal="true" className="space-y-6 rounded-2xl border border-line bg-surface p-6 sm:p-8">
+        <div className="flex items-center gap-2 text-lg">
+          <Wordmark />
+        </div>
+        {children}
+      </section>
+    </Overlay>
   )
 }
