@@ -18,6 +18,12 @@ After=network-online.target
 Wants=network-online.target
 
 [Service]
+# Behind the validator on a shared server: a small share of the processor
+# when it is busy, a memory ceiling, and stopped first if memory runs out.
+CPUWeight=50
+IOWeight=50
+MemoryMax=2G
+OOMScoreAdjust=500
 User=orien-market
 Group=orien-market
 ExecStart=/usr/local/bin/orien-market \
@@ -34,7 +40,8 @@ ExecStart=/usr/local/bin/orien-market \
     --review-email appreview@orien.network \
     --review-code-file /etc/orien-market/review.code \
     --admin-listen 127.0.0.1:7201 \
-    --admin-site /var/www/orien.network/current
+    --admin-site /var/www/orien.network/current \
+    --sign-in-developers cyph3r
 Restart=always
 RestartSec=5
 

@@ -12,11 +12,13 @@
 //!         --knowledge discord-bot/knowledge.md "How do I start mining?"
 
 mod bot;
+mod checkpoints;
 mod expert;
 mod holders;
 mod news;
 mod safety;
 mod study;
+mod videos;
 mod texts;
 mod web;
 
@@ -78,6 +80,10 @@ enum Command {
         /// Where those tiny amounts are sent: the Market's wallet.
         #[arg(long, default_value = "74fa1ab82c45ebeed539b03146243ddfc6f0ccb5163f45ea87d21692ba774b7a")]
         verify_address: String,
+        /// Post a summary in #checkpoints after every hourly checkpoint.
+        /// Needs --state.
+        #[arg(long, requires = "state")]
+        checkpoints: bool,
         /// Answer only from the knowledge file, without reading the live
         /// website again every half hour.
         #[arg(long)]
@@ -110,6 +116,9 @@ enum Command {
         /// A wallet address to look at.
         wallet: Option<String>,
     },
+    /// Print the summary of the checkpoint that closed last, as the bot
+    /// would post it in #checkpoints. Takes a few minutes; posts nothing.
+    Checkpoint,
     /// Show what the bot would know right now from the live website.
     Study {
         /// The shipped knowledge file, for the parts not on the website.
@@ -202,6 +211,7 @@ async fn main() -> Result<()> {
             web_listen,
             web_per_visitor,
             web_per_day,
+            checkpoints,
         } => {
             let holders = match (&genesis, &state) {
                 (Some(genesis), Some(folder)) => Some(holders::Holders::open(genesis, &verify_address, folder.join("holders.json"))?),
@@ -218,7 +228,7 @@ async fn main() -> Result<()> {
                     }
                 });
             }
-            bot::run(secret(&token)?, expert, per_person, per_hour, news, shipped, holders).await
+            bot::run(secret(&token)?, expert, per_person, per_hour, news, shipped, holders, checkpoints).await
         }
         Command::Web { brain, listen } => {
             let expert = std::sync::Arc::new(expert(&brain)?);
@@ -229,6 +239,10 @@ async fn main() -> Result<()> {
         Command::Network { genesis, verify_address, wallet } => {
             let holders = holders::Holders::open(&genesis, &verify_address, std::env::temp_dir().join("orien-holders-unused.json"))?;
             println!("{}", tokio::task::spawn_blocking(move || holders.report(wallet.as_deref())).await?);
+            Ok(())
+        }
+        Command::Checkpoint => {
+            println!("{}", checkpoints::preview().await?);
             Ok(())
         }
         Command::Study { knowledge } => {

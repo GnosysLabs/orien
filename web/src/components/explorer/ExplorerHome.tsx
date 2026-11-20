@@ -50,6 +50,26 @@ export function ExplorerHome() {
   const up = overview?.validators.filter((v) => v.up).length ?? 0
 
   return (
+    <>
+      <header className="pb-10 pt-10 text-center sm:pt-12">
+        <h1 className="text-balance text-3xl font-bold leading-[1.1] tracking-tight text-ink sm:text-4xl">
+          The Orien network, live
+        </h1>
+        <p className="mx-auto mt-4 max-w-xl leading-relaxed text-muted">
+          Every hourly checkpoint, the validators, and any address’s balance and payments.
+        </p>
+        {/* Its room is kept while the figures load, so nothing below jumps. */}
+        <div className="mt-6 flex h-10 justify-center">
+          {overview?.miners && (
+            <a
+              href={checkpointHref(overview.miners.epoch)}
+              className="inline-flex h-10 items-center gap-1 rounded-xl border border-line bg-bg px-4 text-sm font-semibold text-ink transition hover:border-pearl"
+            >
+              View the last checkpoint <ChevronRight className="h-4 w-4" aria-hidden />
+            </a>
+          )}
+        </div>
+      </header>
     <div className="space-y-10">
       {error && !overview && <Problem text={error} />}
       {!error && !overview && <Loading />}
@@ -209,5 +229,6 @@ export function ExplorerHome() {
         </>
       )}
     </div>
+    </>
   )
 }

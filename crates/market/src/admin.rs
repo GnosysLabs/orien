@@ -66,6 +66,9 @@ pub fn admin_router(app: Arc<App>, admins: Admins, site: Option<&std::path::Path
         .route("/api/admin/accounts/{id}", get(account))
         .route("/api/admin/accounts/{id}/suspend", post(suspend))
         .route("/api/admin/accounts/{id}/unsuspend", post(unsuspend))
+        .route("/api/admin/sites", get(sites))
+        .route("/api/admin/sites/{id}/off", post(site_off))
+        .route("/api/admin/sites/{id}/on", post(site_on))
         .with_state(state)
         .merge(router(app));
     match site {
@@ -457,4 +460,22 @@ mod tests {
         assert_eq!(store.find_accounts(&maya.id.to_string()).unwrap()[0].name, "Maya");
         assert!(store.find_accounts("nobody").unwrap().is_empty());
     }
+}
+
+/// Every website registered for Sign in with Orien.
+async fn sites(State(admin): State<Admin>, headers: HeaderMap) -> Answer {
+    admin.admins.check(&headers)?;
+    Ok(Json(json!({ "sites": admin.app.store().admin_sites()? })).into_response())
+}
+
+async fn site_off(State(admin): State<Admin>, headers: HeaderMap, Path(id): Path<i64>) -> Answer {
+    admin.admins.check(&headers)?;
+    admin.app.store().set_site_off(id, true)?.then_some(()).ok_or(Failure::NotFound)?;
+    Ok(Json(json!({ "ok": true })).into_response())
+}
+
+async fn site_on(State(admin): State<Admin>, headers: HeaderMap, Path(id): Path<i64>) -> Answer {
+    admin.admins.check(&headers)?;
+    admin.app.store().set_site_off(id, false)?.then_some(()).ok_or(Failure::NotFound)?;
+    Ok(Json(json!({ "ok": true })).into_response())
 }

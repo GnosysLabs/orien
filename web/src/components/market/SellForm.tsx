@@ -1,5 +1,6 @@
 'use client'
 
+import { useMe } from '@/lib/useMe'
 import { shrinkPicture } from '@/lib/shrink'
 import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
@@ -37,6 +38,12 @@ export function SellForm() {
   const [original, setOriginal] = useState<string[]>([])
   const [trouble, setTrouble] = useState('')
   const [saving, setSaving] = useState(false)
+
+  // Signed out elsewhere, from the menu or another tab: say so.
+  const live = useMe()
+  useEffect(() => {
+    if (live.account === null) setReady('signed-out')
+  }, [live.account])
 
   useEffect(() => {
     me()

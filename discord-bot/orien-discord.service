@@ -17,6 +17,12 @@ After=network-online.target
 Wants=network-online.target
 
 [Service]
+# Behind the validator on a shared server: a small share of the processor
+# when it is busy, a memory ceiling, and stopped first if memory runs out.
+CPUWeight=50
+IOWeight=50
+MemoryMax=512M
+OOMScoreAdjust=500
 User=orien-discord
 Group=orien-discord
 ExecStart=/usr/local/bin/orien-discord run \
@@ -24,6 +30,7 @@ ExecStart=/usr/local/bin/orien-discord run \
     --openrouter-key /etc/orien-discord/openrouter.key \
     --knowledge /etc/orien-discord/knowledge.md \
     --state /var/lib/orien-discord \
+    --checkpoints \
     --genesis /etc/orien-discord/genesis.json \
     --web-listen 127.0.0.1:7300
 Restart=always

@@ -39,6 +39,48 @@ export const CHANGELOG: Entry[] = [
   },
   {
     date: '2026-11-20',
+    products: ['marketplace'],
+    title: 'Sign in with Orien',
+    unreleased: true,
+    changes: [
+      'Any website or app can now let people sign in with their Orien Network account. People see the website’s name and address, and exactly what it will receive: their Orien Network name, picture and banner, and their verified wallets. They choose Allow or Cancel.',
+      'Websites never receive the email address, and nothing they receive can move ORN or use a wallet.',
+      'It’s standard OpenID Connect, free, with nothing to apply for: register a website from your account. orien.network/developers/sign-in/ explains it.',
+    ],
+  },
+  {
+    date: '2026-11-20',
+    products: ['orien', 'validators'],
+    version: '1.10.4',
+    title: 'A validator that stops working inside starts again by itself',
+    changes: [
+      'If the part of a validator that closes checkpoints, or one of its links to the other validators, ever stops on a fault, the validator now ends and its server starts it again within seconds, instead of running on without answering.',
+      'A fault while answering a wallet’s question now costs only that answer.',
+      'A validator that starts on an hour the others have already closed fetches the new hour’s work shares from them once it catches up, so it is ready for the next checkpoint on time.',
+      'orien ping checks that a validator answers. The validators’ servers use it each minute, and restart a validator that has not answered for ten minutes.',
+      'Validators install this release themselves, one at a time, in the first minutes after a checkpoint. Miners and wallets need no update.',
+    ],
+  },
+  {
+    date: '2026-11-20',
+    products: ['network'],
+    title: 'The explorer’s API, described',
+    changes: [
+      'The figures behind the explorer are free for any website or program to read as JSON, with no key: the network now, every checkpoint, any address, and the largest wallets. explorer.orien.network/api/ describes each one, with real answers, and how often to ask.',
+    ],
+  },
+  {
+    date: '2026-11-20',
+    products: ['orien', 'validators'],
+    version: '1.10.3',
+    title: 'A validator a moment behind answers wallets instead of stopping',
+    changes: [
+      'A wallet asking a validator for payment history from an hour that validator had not reached yet made it stop working. A validator a second behind the others at a checkpoint could be stopped this way, and validator 3 was, after checkpoint 135. It now answers that there is nothing yet.',
+      'Validators install this release themselves, one at a time, in the first minutes after a checkpoint. Miners and wallets need no update.',
+    ],
+  },
+  {
+    date: '2026-11-20',
     products: ['orien', 'validators'],
     version: '1.10.2',
     title: 'Closes reach far-away validators the first time',

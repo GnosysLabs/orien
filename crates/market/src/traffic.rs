@@ -34,6 +34,9 @@ pub struct Day {
     pub countries: BTreeMap<String, u64>,
     pub devices: BTreeMap<String, u64>,
     pub files: BTreeMap<String, u64>,
+    /// Times play was pressed on a video on the site, by video.
+    #[serde(default)]
+    pub plays: BTreeMap<String, u64>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     salt: Option<String>,
     /// Visitor hash, and when it was last seen (seconds since 1970).
@@ -56,7 +59,7 @@ impl Day {
 
 /// What a page sent, and who sent it, as the request says.
 pub struct Ping {
-    /// "view" or "download".
+    /// "view", "download" or "play".
     pub kind: String,
     /// The page, or the file downloaded.
     pub path: String,
@@ -195,6 +198,7 @@ impl Traffic {
                 day.downloads += 1;
                 bump(&mut day.files, path.rsplit('/').next().unwrap_or(&path));
             }
+            "play" => bump(&mut day.plays, path.rsplit('/').next().unwrap_or(&path)),
             _ => return,
         }
         inner.dirty = true;
@@ -297,6 +301,11 @@ mod tests {
         assert_eq!(day.countries["US"], 2);
         assert_eq!((day.devices["Computer"], day.devices["Phone"]), (1, 1));
         assert_eq!(day.files["Orien-Wallet.dmg"], 1);
+        traffic.record(ping("play", "/media/orien-introduction.mp4", "1.2.3.4", "Firefox"));
+        traffic.record(ping("play", "/media/orien-introduction.mp4", "5.6.7.8", "Safari"));
+        let day = traffic.stats(1).days.pop().unwrap();
+        assert_eq!(day.plays["orien-introduction.mp4"], 2);
+        assert_eq!(day.pageviews, 3, "a play is not a page view");
         assert_eq!(stats.active_now, 2);
         assert!(day.salt.is_none() && day.seen.is_none(), "no hashes leave the server");
     }

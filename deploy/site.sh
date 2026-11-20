@@ -31,6 +31,11 @@ MARKETPLACE="${MARKETPLACE:-0}"
 echo "Building static site in web/"
 (cd web && pnpm typecheck && NEXT_PUBLIC_MARKETPLACE="$MARKETPLACE" pnpm build)
 
+# Sign in with Orien's developer page stays off the live site until
+# SIGN_IN=1, while the founder tries it.
+if [ "${SIGN_IN:-0}" != 1 ]; then
+    rm -rf web/out/developers
+fi
 if [ "$MARKETPLACE" != 1 ]; then
     rm -rf web/out/marketplace web/out/swap web/out/privacy
     find web/out \( -name '*marketplace*' -o -name '*.swap.*' -o -name 'swap.*' -o -name '*privacy*' \) -prune -exec rm -rf {} +
@@ -51,6 +56,10 @@ chmod -R a+rX "$WEB_ROOT/releases/$RELEASE"
 # survive every deploy; apps/wallet/release.sh fills the folder.
 mkdir -p "$WEB_ROOT/wallet"
 ln -sfn "$WEB_ROOT/wallet" "$WEB_ROOT/releases/$RELEASE/wallet"
+# Large media, such as the introduction video, live outside the releases
+# too, so a deploy neither uploads nor keeps three copies of them.
+mkdir -p "$WEB_ROOT/media"
+ln -sfn "$WEB_ROOT/media" "$WEB_ROOT/releases/$RELEASE/media"
 ln -sfn "$WEB_ROOT/releases/$RELEASE" "$WEB_ROOT/current"
 
 # Keep the three newest releases.

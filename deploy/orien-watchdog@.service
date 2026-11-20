@@ -1,0 +1,10 @@
+# /etc/systemd/system/orien-watchdog@.service
+# One check of validator %i by deploy/orien-watchdog.sh, installed as
+# /usr/local/lib/orien/orien-watchdog.sh. Started each minute by its timer.
+[Unit]
+Description=Check that Orien validator %i answers
+After=orien-validator@%i.service
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/lib/orien/orien-watchdog.sh %i

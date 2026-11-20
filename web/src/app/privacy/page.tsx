@@ -62,6 +62,19 @@ export default function PrivacyPage() {
         </p>
       </Section>
 
+      <Section title="Browser extensions">
+        <p>
+          Orien Wallet&apos;s extensions for Chrome and Safari hold no keys and store nothing except the theme you choose.
+          They talk only to Orien Wallet on the same computer, over its own address (127.0.0.1), which never leaves the
+          computer, and to orien.network when you sign in with Orien Wallet.
+        </p>
+        <p>
+          They show your wallet&apos;s balance, your contacts and the people you know from the Market, all read from
+          Orien Wallet, and send a payment only after you approve it in Orien Wallet. We collect nothing through them,
+          and nothing is sold or shared.
+        </p>
+      </Section>
+
       <Section title="Your Orien Network account">
         <p>When you have an Orien Network account, for your profile, the Market or the swap board, we keep:</p>
         <ul>

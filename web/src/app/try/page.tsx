@@ -5,6 +5,7 @@ import { CopyText } from '@/components/CopyText'
 import { WalletDownload } from '@/components/WalletDownload'
 import { SOURCE_CODE } from '@/lib/brand'
 import { pageMeta } from '@/lib/seo'
+import { SiteVideo } from '@/components/SiteVideo'
 
 export const metadata: Metadata = pageMeta({
   title: 'Get started: download Orien Wallet and mine ORN',
@@ -35,11 +36,14 @@ const STEPS: { title: string; body: React.ReactNode }[] = [
   {
     title: 'Mine ORN',
     body: (
+      <>
       <p>
         On your computer, press <strong>Mine</strong>, then <strong>Benchmark</strong> to find how many processor
         cores earn the most, or choose them yourself, and press <strong>Start mining</strong>. Every hour, that hour&apos;s new ORN are shared among everyone who mined, by the
         work each one did.
       </p>
+      <SiteVideo name="how-to-mine" label="What is mining? Two minutes" className="mt-5" />
+      </>
     ),
   },
   {

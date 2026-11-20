@@ -254,6 +254,8 @@ type TrafficDay = {
   countries: Record<string, number>
   devices: Record<string, number>
   files: Record<string, number>
+  /** Times play was pressed on a video on the site, by video. */
+  plays?: Record<string, number>
 }
 
 const COUNTRIES = typeof Intl.DisplayNames === 'function' ? new Intl.DisplayNames(['en'], { type: 'region' }) : null
@@ -287,15 +289,19 @@ function Traffic() {
     for (const d of week) for (const [k, n] of Object.entries(d[key])) out[k] = (out[k] ?? 0) + n
     return Object.entries(out).sort((a, b) => b[1] - a[1])
   }
+  const plays = (list: TrafficDay[]) => list.reduce((n, d) => n + Object.values(d.plays ?? {}).reduce((a, b) => a + b, 0), 0)
   const site = 'https://orien.network'
   return (
     <>
       <h2 className="-mb-2 text-sm font-bold text-muted">Traffic</h2>
-      <section className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+      <section className="grid grid-cols-2 gap-3 lg:grid-cols-5">
         <Tile label="Visitors today" value={count(today.visitors)} sub={`${count(sum(week, 'visitors'))} this week`} />
         <Tile label="Page views today" value={count(today.pageviews)} sub={`${count(sum(week, 'pageviews'))} this week`} />
         <Tile label="Active now" value={count(data.active_now)} sub="visitors in the last 5 minutes" />
         <Tile label="Wallet downloads today" value={count(today.downloads)} sub={`${count(sum(week, 'downloads'))} this week · ${count(sum(days, 'downloads'))} in 30 days`} />
+        <div className="col-span-2 lg:col-span-1">
+          <Tile label="Video plays today" value={count(plays([today]))} sub={`${count(plays(week))} this week · ${count(plays(days))} in 30 days`} />
+        </div>
       </section>
       <section className="grid gap-3 lg:grid-cols-3">
         <DailyChart title="Visitors per day" data={fortnight.map((d) => ({ date: d.date, value: d.visitors }))} />

@@ -3,8 +3,9 @@ import { ArrowLeftRight, ArrowRight, Gauge, Pickaxe, Scale, ServerCog, ShieldChe
 import type { Metadata } from 'next'
 import { SupplyCurve } from '@/components/SupplyCurve'
 import { IPhoneApp } from '@/components/IPhoneApp'
-import { DiscordIcon } from '@/components/Header'
-import { DISCORD } from '@/lib/brand'
+import { SiteVideo } from '@/components/SiteVideo'
+import { DiscordIcon, YouTubeIcon } from '@/components/Header'
+import { DISCORD, INTRODUCTION_VIDEO } from '@/lib/brand'
 
 export const metadata: Metadata = {
   title: { absolute: 'Orien: the quantum-proof cryptocurrency, final in a blink' },
@@ -71,13 +72,26 @@ export default function HomePage() {
           and every signature is designed to stay safe when quantum computers arrive.
         </p>
         <IPhoneApp />
-        <div className="mt-8 flex justify-center">
-          <Link
-            href="/try/"
-            className="pearl-fill flex h-11 items-center gap-2 rounded-xl px-5 text-sm font-bold transition hover:brightness-105"
-          >
-            Get started <ArrowRight className="h-4 w-4" aria-hidden />
-          </Link>
+
+        {/* The introduction video: nothing loads until it is played. */}
+        <div className="mx-auto mt-10 max-w-3xl">
+          <SiteVideo name="orien-introduction" label="Introduction to Orien, two minutes" />
+          <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
+            <Link
+              href="/try/"
+              className="pearl-fill flex h-11 items-center gap-2 rounded-xl px-5 text-sm font-bold transition hover:brightness-105"
+            >
+              Get started <ArrowRight className="h-4 w-4" aria-hidden />
+            </Link>
+            <a
+              href={INTRODUCTION_VIDEO}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex h-11 items-center gap-2 rounded-xl border border-line bg-bg px-5 text-sm font-semibold text-ink transition hover:border-pearl"
+            >
+              <YouTubeIcon className="h-4 w-4" /> Watch on YouTube
+            </a>
+          </div>
         </div>
       </section>
 

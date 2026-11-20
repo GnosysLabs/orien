@@ -3,11 +3,14 @@
 import Link from 'next/link'
 import { useEffect, useState } from 'react'
 import { LogOut, Mail, MessageCircle, UserRound } from 'lucide-react'
-import { ask, me, NAME_PATTERN, NAME_RULE, profileHref, type Account, type Listing } from '@/lib/market'
+import { ask, me, takeWalletPass, NAME_PATTERN, NAME_RULE, profileHref, type Account, type Listing } from '@/lib/market'
 import { Card } from './Browse'
 import { ProfileEditor } from './ProfileEditor'
 import { YourWallets } from './WalletCheck'
+import { YourWebsites } from './YourWebsites'
+import { WalletSignIn } from './WalletSignIn'
 import { Notice, SIGNED_IN_OR_OUT } from './Shell'
+import { useMe } from '@/lib/useMe'
 
 type Found = { account: Account; listings: Listing[]; unread?: number }
 
@@ -25,17 +28,38 @@ export function AccountView() {
         setFound(null)
       })
   useEffect(() => {
-    void reload()
+    // A pass from Orien Wallet signs this browser in without an email code.
+    void takeWalletPass().then(reload)
   }, [])
 
+  // Signed out elsewhere, from the menu or another tab: show the sign-in.
+  const live = useMe()
+  useEffect(() => {
+    if (live.account === null && found) setFound(null)
+  }, [live.account])
+
   if (found === undefined) return <p className="text-muted">Loading…</p>
-  if (found === null) return <SignIn onDone={reload} trouble={trouble} />
+  if (found === null) return <SignIn onDone={reload} trouble={trouble} wallet />
   return <Mine found={found} onChange={reload} />
 }
 
 type Step = 'email' | 'code' | 'name'
 
-function SignIn({ onDone, trouble: first }: { onDone: () => void; trouble: string }) {
+export function SignIn({
+  onDone,
+  trouble: first,
+  title = 'Sign in to Orien Network',
+  blurb,
+  wallet = false,
+}: {
+  onDone: () => void
+  trouble: string
+  /** For signing in on the way to something else, such as another website. */
+  title?: string
+  blurb?: React.ReactNode
+  /** Offer signing in with Orien Wallet, through its browser extension. */
+  wallet?: boolean
+}) {
   const [step, setStep] = useState<Step>('email')
   const [email, setEmail] = useState('')
   const [code, setCode] = useState('')
@@ -82,9 +106,20 @@ function SignIn({ onDone, trouble: first }: { onDone: () => void; trouble: strin
       <Mail className="mb-4 h-6 w-6 text-pearl" strokeWidth={1.75} aria-hidden />
       {step === 'email' && (
         <form onSubmit={sendCode} className="space-y-4">
-          <h1 className="text-2xl font-bold tracking-tight text-ink">Sign in to Orien Network</h1>
-          <p className="leading-relaxed text-muted">One account for your profile, the Market and messages. We&apos;ll email you a 6-digit code; no password needed, and new
-            emails make an account.</p>
+          <h1 className="text-2xl font-bold tracking-tight text-ink">{title}</h1>
+          <p className="leading-relaxed text-muted">
+            {blurb ?? (
+              <>
+                One account for your profile, the Market and messages. We&apos;ll email you a 6-digit code; no password
+                needed, and new emails make an account.
+              </>
+            )}
+          </p>
+          {wallet && (
+            <>
+              <WalletSignIn className={button} after={<p className="text-center text-sm text-muted">or with your email</p>} />
+            </>
+          )}
           <input
             type="email"
             value={email}
@@ -247,6 +282,7 @@ function Mine({ found, onChange }: { found: Found; onChange: () => void }) {
           ))}
         </div>
       )}
+      <YourWebsites />
       <DeleteAccount name={found.account.name} onDeleted={onChange} />
     </div>
   )

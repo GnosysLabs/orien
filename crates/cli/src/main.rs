@@ -233,6 +233,14 @@ enum Command {
         #[command(flatten)]
         network: Network,
     },
+    /// Check that a validator answers: exits with 0 if it does, 1 if not
+    Ping {
+        /// The validator, as host:port
+        address: String,
+        /// Seconds to wait for its answer
+        #[arg(long, default_value_t = 20)]
+        wait: u64,
+    },
     /// Run one validator
     Node {
         /// This validator's key file
@@ -558,6 +566,20 @@ fn run(cli: Cli) -> Result<()> {
         }
         Command::Verify { receipt, network } => verify(&receipt, &network.file()),
         Command::Status { network } => status(&network.file()),
+        Command::Ping { address, wait } => match orien_net::client::rpc(&address, &Request::Info, Duration::from_secs(wait)) {
+            Ok(Response::Info(info)) => {
+                println!("{} answers ({address})", info.name);
+                Ok(())
+            }
+            Ok(_) => {
+                println!("{address} gave no proper answer");
+                std::process::exit(1)
+            }
+            Err(e) => {
+                println!("{address} does not answer: {e}");
+                std::process::exit(1)
+            }
+        },
         Command::Benchmark { account, network } => {
             benchmark(&account.unwrap_or_else(|| default_wallet().display().to_string()), &network.file())
         }
@@ -1824,6 +1846,7 @@ fn node(
     config.listen = listen;
     config.log = true;
     config.limits = limits;
+    config.exit_on_fault = true;
     println!("building the key tree...");
     let node = Node::start(config, None)?;
     println!("validator {} is listening on {}", node.name, node.addr);
