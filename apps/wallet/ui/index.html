@@ -3670,7 +3670,9 @@
     // The summary says the fee; the line under the amount keeps only problems.
     $("fee-line").hidden = ready;
     // Someone picked: the recent faces give their room to the summary.
-    $("recent-to").classList.toggle("tucked", chosen);
+    // So do the name suggestions as soon as anything is typed: one list of
+    // people at a time.
+    $("recent-to").classList.toggle("tucked", chosen || to !== "");
     if (ready) {
       $("r-amount").textContent = `${quoted.total} ORN`;
       $("r-fee").textContent = `incl. ${quoted.fee} fee`;
