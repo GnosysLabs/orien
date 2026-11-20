@@ -186,7 +186,11 @@ impl History {
         // Closed epochs this validator never recorded, past its last record,
         // are unknown too, until it records them.
         let recorded_to = self.last.map_or(self.since, |last| last + 1);
-        page.unknown = self.unknown.range(from..until).copied().chain(recorded_to.max(from)..until).collect();
+        // A wallet may already know a later epoch than this validator has
+        // reached (it asked another one), so `from` can be past `until`.
+        if from < until {
+            page.unknown = self.unknown.range(from..until).copied().chain(recorded_to.max(from)..until).collect();
+        }
         match stopped {
             Some(epoch) => page.next = Some(epoch),
             None if from <= current => page.entries.extend(pending.into_iter().filter(|e| sent || e.income.incoming())),
@@ -203,6 +207,18 @@ mod tests {
 
     fn credit(account: u8, income: Income, amount: u64) -> Credit {
         Credit { account: Hash32([account; 32]), income, amount, counterparty: None, order: None }
+    }
+
+    #[test]
+    fn asking_from_past_the_current_epoch_is_answered_not_a_crash() {
+        let dir = folder("ahead");
+        let mut history = History::open(&dir.join("history.log"), 5, false).unwrap();
+        history.record(5, 100, Some(vec![credit(7, Income::Mining, 10)])).unwrap();
+        let alice = Hash32([7; 32]);
+        for from in [7, 8, 1_000, u64::MAX] {
+            let page = history.page(&alice, from, 100, 6, Vec::new(), false);
+            assert!(page.entries.is_empty() && page.unknown.is_empty());
+        }
     }
 
     #[test]

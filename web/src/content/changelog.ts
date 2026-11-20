@@ -28,6 +28,16 @@ export const CHANGELOG: Entry[] = [
   {
     date: '2026-11-20',
     products: ['orien', 'validators'],
+    version: '1.10.3',
+    title: 'A validator a moment behind answers wallets instead of stopping',
+    changes: [
+      'A wallet asking a validator for payment history from an hour that validator had not reached yet made it stop working. A validator a second behind the others at a checkpoint could be stopped this way, and validator 3 was, after checkpoint 135. It now answers that there is nothing yet.',
+      'Validators install this release themselves, one at a time, in the first minutes after a checkpoint. Miners and wallets need no update.',
+    ],
+  },
+  {
+    date: '2026-11-20',
+    products: ['orien', 'validators'],
     version: '1.10.2',
     title: 'Closes reach far-away validators the first time',
     changes: [
