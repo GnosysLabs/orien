@@ -43,7 +43,75 @@ $("copy").onclick = async () => {
 };
 
 // ---- Send ----
-const cleanTo = () => $("to").value.replace(/\s+/g, "");
+// Names: the To box takes a name as well as an address. A picked name
+// puts its address in the box and says who it is under it.
+let people = { contacts: [], wallets: [] };
+let market = { q: "", rows: [] }, marketTimer = 0;
+const esc = (t) => String(t).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
+const short = (a) => `${a.slice(0, 4)} ${a.slice(4, 8)} … ${a.slice(-4)}`;
+const isAddress = (t) => /^[0-9a-f]{64}$/i.test(t.replace(/\s+/g, ""));
+function named(address) {
+  const a = address.toLowerCase();
+  const w = people.wallets.find((p) => p.address === a);
+  if (w) return w.name;
+  const c = people.contacts.find((p) => p.address === a);
+  if (c) return c.name;
+  const m = market.rows.find((r) => r.address === a);
+  return m ? m.name : "";
+}
+function suggest() {
+  const q = $("to").value.trim().toLowerCase();
+  const list = $("suggest");
+  if (!q || isAddress(q) || (chosen && $("to").value === chosen.name)) { list.hidden = true; list.innerHTML = ""; return; }
+  const places = [
+    ...people.contacts.map((c) => ({ name: c.name, address: c.address, sub: short(c.address) })),
+    ...people.wallets.map((w) => ({ name: w.name, address: w.address, sub: "Your wallet", icon: w.icon || "", mine: true })),
+  ];
+  // As the app does: a name matches where any of its words starts with
+  // what's typed; an address only by its start, from 4 characters.
+  const words = (name) => name.toLowerCase().split(/[\s\-–—_.]+/).filter(Boolean);
+  const score = (p) => p.name.toLowerCase().startsWith(q) ? 0
+    : words(p.name).some((w) => w.startsWith(q)) ? 1
+    : q.length >= 4 && p.address.startsWith(q) ? 2 : 3;
+  const found = places.filter((p) => score(p) < 3).sort((a, b) => score(a) - score(b) || a.name.localeCompare(b.name)).slice(0, 5);
+  const known = new Set(found.map((p) => p.address));
+  const extra = (market.q === q ? market.rows : []).filter((r) => !known.has(r.address)).slice(0, 4);
+  if (q.length >= 2 && market.q !== q) searchMarket(q);
+  const all = [...found, ...extra.map((r) => ({ name: r.name, address: r.address, sub: short(r.address) }))];
+  list.hidden = all.length === 0;
+  list.innerHTML = all.map((p) => `<button class="pick" type="button" data-address="${p.address}">
+    <span class="coin${p.icon ? " emoji" : ""}">${esc(p.icon || p.name.slice(0, 1).toUpperCase())}</span>
+    <span class="who"><div class="title">${esc(p.name)}</div><div class="sub${p.mine ? " words" : ""}">${esc(p.sub)}</div></span>
+  </button>`).join("");
+}
+function searchMarket(q) {
+  clearTimeout(marketTimer);
+  marketTimer = setTimeout(async () => {
+    const found = await ask({ ask: "search", text: q }).catch(() => null);
+    if (!Array.isArray(found)) return;
+    const rows = [];
+    for (const p of found) for (const w of p.wallets || []) {
+      const address = (w.address || "").toLowerCase();
+      if (!/^[0-9a-f]{64}$/.test(address) || address === wallet.address) continue;
+      rows.push({ address, name: w.name ? `${p.name} – ${w.name}` : p.name });
+    }
+    market = { q, rows };
+    if ($("to").value.trim().toLowerCase() === q) suggest();
+  }, 250);
+}
+$("suggest").onclick = (event) => {
+  const pick = event.target.closest("[data-address]");
+  if (!pick) return;
+  chosen = { address: pick.dataset.address, name: named(pick.dataset.address) || pick.dataset.address };
+  $("to").value = chosen.name;
+  $("suggest").hidden = true;
+  ready();
+  $("amount").focus();
+};
+
+// A picked name stays in the box as the name; the address goes under it.
+let chosen = null;
+const cleanTo = () => chosen && $("to").value === chosen.name ? chosen.address : $("to").value.replace(/\s+/g, "");
 const toOk = () => /^[0-9a-f]{64}$/i.test(cleanTo()) && cleanTo().toLowerCase() !== wallet.address.toLowerCase();
 let quoted = null;
 
@@ -52,6 +120,7 @@ $("go-send").onclick = () => {
   $("pw-field").hidden = wallet.approve !== "password";
   $("send-go").textContent = wallet.approve === "touch" ? "Send with Touch ID" : "Send";
   $("send-note").hidden = true;
+  ask({ ask: "people" }).then((p) => { if (p && p.contacts) people = p; }).catch(() => {});
   $("to").focus();
   ready();
 };
@@ -64,6 +133,11 @@ function ready() {
   if (to && to.length >= 64 && !toOk()) {
     $("to-hint").className = "hint bad";
     $("to-hint").textContent = to.toLowerCase() === wallet.address.toLowerCase() ? "That's this wallet's own address." : "That isn't an Orien address.";
+  } else if (toOk()) {
+    const who = named(to);
+    const picked = chosen && $("to").value === chosen.name;
+    $("to-hint").className = "hint good";
+    $("to-hint").textContent = picked ? short(to.toLowerCase()) : who ? `To ${who}` : `To ${short(to.toLowerCase())}`;
   }
   const pwOk = $("pw-field").hidden || $("pw").value.length > 0;
   $("send-go").disabled = !(toOk() && quoted && quoted.amount && !quoted.problem && pwOk);
@@ -85,7 +159,7 @@ async function quote() {
   ready();
 }
 $("amount").oninput = () => { clearTimeout(quoteTimer); quoteTimer = setTimeout(quote, 250); };
-$("to").oninput = ready;
+$("to").oninput = () => { if (chosen && $("to").value !== chosen.name) chosen = null; suggest(); ready(); };
 $("pw").oninput = ready;
 $("max").onclick = () => { if (wallet.most) { $("amount").value = wallet.most; quote(); } };
 
@@ -98,7 +172,7 @@ $("send-go").onclick = async () => {
   $("pw").value = "";
   if (answer && answer.to) {
     $("sent-amount").textContent = `${answer.amount_text} ORN`;
-    $("sent-to").textContent = `to ${spaced(answer.to).slice(0, 19)}…`;
+    $("sent-to").textContent = `to ${named(answer.to) || short(answer.to)}`;
     $("sent-fee").textContent = `Fee ${answer.fee_text} ORN`;
     show("sent");
     return;
@@ -114,6 +188,6 @@ $("send-go").onclick = async () => {
   ready();
 };
 
-$("sent-done").onclick = () => { $("to").value = $("amount").value = ""; quoted = null; load(); };
+$("sent-done").onclick = () => { $("to").value = $("amount").value = ""; quoted = null; chosen = null; load(); };
 
 load();

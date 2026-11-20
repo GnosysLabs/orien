@@ -12,8 +12,10 @@ class SafariWebExtensionHandler: NSObject, NSExtensionRequestHandling {
         let ask = message["ask"] as? String ?? "wallet"
         var request: URLRequest
         switch ask {
-        case "quote", "send":
-            request = URLRequest(url: URL(string: "http://127.0.0.1:47211/\(ask)")!, timeoutInterval: ask == "send" ? 180 : 5)
+        case "people":
+            request = URLRequest(url: URL(string: "http://127.0.0.1:47211/people")!, timeoutInterval: 3)
+        case "quote", "send", "search":
+            request = URLRequest(url: URL(string: "http://127.0.0.1:47211/\(ask)")!, timeoutInterval: ask == "send" ? 180 : 8)
             request.httpMethod = "POST"
             request.httpBody = try? JSONSerialization.data(withJSONObject: message)
             request.setValue("application/json", forHTTPHeaderField: "Content-Type")
@@ -22,8 +24,8 @@ class SafariWebExtensionHandler: NSObject, NSExtensionRequestHandling {
         }
         request.setValue("1", forHTTPHeaderField: "X-Orien-Extension")
         URLSession.shared.dataTask(with: request) { data, _, error in
-            var answer: [String: Any] = [:]
-            if let data, let found = try? JSONSerialization.jsonObject(with: data) as? [String: Any] {
+            var answer: Any = [String: Any]()
+            if let data, let found = try? JSONSerialization.jsonObject(with: data) {
                 answer = found
             } else if error != nil {
                 answer = ["closed": true]

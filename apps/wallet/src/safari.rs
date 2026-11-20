@@ -76,6 +76,8 @@ fn answer(app: &AppHandle, mut stream: TcpStream) {
             let text = |key: &str| body.get(key).and_then(|v| v.as_str()).unwrap_or("").to_string();
             match asked.as_str() {
                 "GET /wallet" => ("200 OK", wallet(app)),
+                "GET /people" => ("200 OK", people(app)),
+                "POST /search" => ("200 OK", crate::board::search(&text("text")).unwrap_or_default()),
                 "POST /quote" => ("200 OK", serde_json::to_value(crate::quote(text("amount"))).unwrap_or_default()),
                 "POST /send" => {
                     let password = Some(text("password")).filter(|p| !p.is_empty());
@@ -134,4 +136,24 @@ fn send(app: &AppHandle, to: String, amount: String, password: Option<String>) -
     let to = to.split_whitespace().collect::<String>();
     let sent = tauri::async_runtime::block_on(crate::send_payment(app.clone(), to, amount, password))?;
     serde_json::to_value(sent).map_err(|error| error.to_string())
+}
+
+/// Who can be sent to by name, as the app's own Send suggests: contacts,
+/// and this person's other wallets with their icons.
+fn people(app: &AppHandle) -> serde_json::Value {
+    let Ok(dir) = crate::folder(app) else { return serde_json::json!({}) };
+    let current = crate::wallet_file(&dir);
+    let icons = crate::contacts::icons(&dir);
+    let contacts: Vec<_> =
+        crate::contacts::list(&dir).into_iter().map(|c| serde_json::json!({ "name": c.name, "address": c.address })).collect();
+    let wallets: Vec<_> = crate::known_wallets(&dir)
+        .into_iter()
+        .filter(|w| Some(&w.path) != current.as_ref())
+        .filter_map(|w| {
+            let address = orien_net::keys::Wallet::peek(&w.path).ok()?.0.to_string();
+            let icon = icons.get(&address).map(|i| i.emoji.clone());
+            Some(serde_json::json!({ "name": w.name, "address": address, "icon": icon }))
+        })
+        .collect();
+    serde_json::json!({ "contacts": contacts, "wallets": wallets })
 }

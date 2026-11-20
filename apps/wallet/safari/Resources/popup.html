@@ -68,6 +68,21 @@
   .box input { flex: 1; min-width: 0; height: 100%; border: 0; outline: none; background: transparent; color: var(--ink); font: inherit; }
   .box input.mono { font: 12.5px ui-monospace, "SF Mono", Menlo, monospace; }
   .box .unit { color: var(--dim); opacity: 1; }
+  /* Names to pick from as the To box is typed in: contacts, the person's
+     other wallets, and people on the Market. */
+  .suggest { margin-top: 8px; border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface); overflow: hidden; }
+  .pick { width: 100%; display: flex; align-items: center; gap: 12px; padding: 10px 14px; border: 0; background: none;
+    text-align: left; cursor: pointer; }
+  .pick + .pick { border-top: 1px solid var(--line); }
+  .pick:hover, .pick.on { background: rgba(255, 255, 255, 0.05); }
+  .pick .coin { width: 30px; height: 30px; border-radius: 50%; display: grid; place-items: center; flex: none;
+    font: 700 13px/1 "Jost", sans-serif; background: rgba(255, 255, 255, 0.07); }
+  .pick .coin.emoji { font: 17px/1 system-ui, "Apple Color Emoji", sans-serif; background: transparent; }
+  .pick .who { min-width: 0; }
+  .pick .title { font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .pick .sub { font: 11.5px ui-monospace, "SF Mono", Menlo, monospace; color: var(--faint); }
+  .pick .sub.words { font: 12px -apple-system, system-ui, sans-serif; }
+  .hint.good { color: var(--good); }
   .max { height: 28px; padding: 0 10px; border: 1px solid var(--line); border-radius: 9px; background: transparent;
     font-size: 12px; color: var(--dim); cursor: pointer; }
   .max:hover { color: var(--ink); }
@@ -105,7 +120,8 @@
     <header><button class="back" id="back" aria-label="Back"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg></button><h2>Send ORN</h2></header>
     <div class="field">
       <label for="to">To</label>
-      <div class="box"><input id="to" class="mono" placeholder="Paste an Orien address" spellcheck="false" autocomplete="off"></div>
+      <div class="box"><input id="to" placeholder="A name, or an Orien address" spellcheck="false" autocomplete="off"></div>
+      <div class="suggest" id="suggest" hidden></div>
       <div class="hint" id="to-hint"></div>
     </div>
     <div class="field">
