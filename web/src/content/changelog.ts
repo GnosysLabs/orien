@@ -30,7 +30,6 @@ export const CHANGELOG: Entry[] = [
     products: ['orien', 'validators'],
     version: '1.10.2',
     title: 'Closes reach far-away validators the first time',
-    unreleased: true,
     changes: [
       'Validators allow up to 15 seconds, instead of 1 to 3, for closing messages to reach each other. A busy hour’s closing messages are about a megabyte, which takes about a second to cross an ocean, so a validator on another continent sometimes heard the close only by asking again, several seconds late.',
       'Validators install this release themselves, one at a time, in the first minutes after a checkpoint. Miners and wallets need no update.',
