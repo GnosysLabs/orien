@@ -8,6 +8,8 @@ export const DISCORD = 'https://discord.gg/5FFRZAw3u9'
 /** Orien on X. */
 export const X_ACCOUNT = 'https://x.com/OrienNetwork'
 export const YOUTUBE = 'https://www.youtube.com/@OrienNetwork'
+/** The introduction video on YouTube, the same as the one on the home page. */
+export const INTRODUCTION_VIDEO = 'https://www.youtube.com/watch?v=ddp3STGELd4'
 /** Orien's source code, public on GitHub. */
 export const SOURCE_CODE = 'https://github.com/GnosysLabs/orien'
 /** Orien Wallet for iPhone's public beta, through Apple's TestFlight. */

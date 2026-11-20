@@ -4,7 +4,7 @@ import type { Metadata } from 'next'
 import { SupplyCurve } from '@/components/SupplyCurve'
 import { IPhoneApp } from '@/components/IPhoneApp'
 import { DiscordIcon, YouTubeIcon } from '@/components/Header'
-import { DISCORD, YOUTUBE } from '@/lib/brand'
+import { DISCORD, INTRODUCTION_VIDEO } from '@/lib/brand'
 
 export const metadata: Metadata = {
   title: { absolute: 'Orien: the quantum-proof cryptocurrency, final in a blink' },
@@ -91,7 +91,7 @@ export default function HomePage() {
               Get started <ArrowRight className="h-4 w-4" aria-hidden />
             </Link>
             <a
-              href={YOUTUBE}
+              href={INTRODUCTION_VIDEO}
               target="_blank"
               rel="noopener noreferrer"
               className="flex h-11 items-center gap-2 rounded-xl border border-line bg-bg px-5 text-sm font-semibold text-ink transition hover:border-pearl"
