@@ -3,8 +3,8 @@ import { ArrowLeftRight, ArrowRight, Gauge, Pickaxe, Scale, ServerCog, ShieldChe
 import type { Metadata } from 'next'
 import { SupplyCurve } from '@/components/SupplyCurve'
 import { IPhoneApp } from '@/components/IPhoneApp'
-import { DiscordIcon } from '@/components/Header'
-import { DISCORD } from '@/lib/brand'
+import { DiscordIcon, YouTubeIcon } from '@/components/Header'
+import { DISCORD, YOUTUBE } from '@/lib/brand'
 
 export const metadata: Metadata = {
   title: { absolute: 'Orien: the quantum-proof cryptocurrency, final in a blink' },
@@ -78,6 +78,27 @@ export default function HomePage() {
           >
             Get started <ArrowRight className="h-4 w-4" aria-hidden />
           </Link>
+        </div>
+
+        {/* The introduction video: nothing loads until it is played. */}
+        <div className="mx-auto mt-12 max-w-3xl">
+          <video
+            className="aspect-video w-full rounded-2xl border border-line bg-surface shadow-2xl shadow-black/40"
+            src="/media/orien-introduction.mp4"
+            poster="/media/orien-introduction.jpg"
+            controls
+            playsInline
+            preload="none"
+            aria-label="Introduction to Orien, two minutes"
+          />
+          <a
+            href={YOUTUBE}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="mt-4 inline-flex h-10 items-center gap-2 rounded-xl border border-line bg-bg px-4 text-sm font-semibold text-ink transition hover:border-pearl"
+          >
+            <YouTubeIcon className="h-4 w-4" /> Watch on YouTube
+          </a>
         </div>
       </section>
 
