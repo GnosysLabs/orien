@@ -77,13 +77,9 @@ export function CheckpointView() {
           <Facts className="grid-cols-2 lg:grid-cols-5">
             <Fact
               wide
-              label="New ORN"
-              value={`${orn(checkpoint.released, 2)} ORN`}
-              note={
-                rewards?.known
-                  ? `To ${rewards.miners.length.toLocaleString('en')} ${rewards.miners.length === 1 ? 'miner' : 'miners'}`
-                  : 'Released to miners'
-              }
+              label="Miners paid"
+              value={rewards?.known ? rewards.miners.length.toLocaleString('en') : '—'}
+              note={`${orn(checkpoint.released, 2)} new ORN shared among them`}
             />
             <Fact label="Payments" value={checkpoint.payments.toLocaleString('en')} note="Made final" />
             <Fact
