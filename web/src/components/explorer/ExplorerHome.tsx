@@ -65,7 +65,7 @@ export function ExplorerHome() {
               href={checkpointHref(overview.miners.epoch)}
               className="inline-flex h-10 items-center gap-1 rounded-xl border border-line bg-bg px-4 text-sm font-semibold text-ink transition hover:border-pearl"
             >
-              See last checkpoint <ChevronRight className="h-4 w-4" aria-hidden />
+              View The Last Checkpoint <ChevronRight className="h-4 w-4" aria-hidden />
             </a>
           )}
         </div>
