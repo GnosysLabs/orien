@@ -506,6 +506,7 @@ pub async fn run(
         tokio::spawn(holders.watch(client.http.clone()));
     }
     if let Some((url, file)) = news {
+        tokio::spawn(crate::videos::watch(client.http.clone(), file.with_file_name("videos.json")));
         tokio::spawn(crate::news::watch(client.http.clone(), expert, url, file));
     }
     client.start().await?;

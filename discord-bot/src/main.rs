@@ -17,6 +17,7 @@ mod holders;
 mod news;
 mod safety;
 mod study;
+mod videos;
 mod texts;
 mod web;
 
