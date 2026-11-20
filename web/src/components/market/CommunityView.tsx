@@ -861,10 +861,7 @@ export function CommunityView() {
 
   return (
     <div className="mx-auto max-w-[1040px] space-y-5 pb-16 pt-4 sm:pt-6">
-      <div className="flex flex-wrap items-end justify-between gap-3 px-1">
-        <h1 className="text-3xl font-bold tracking-tight text-ink">Community</h1>
-        <p className="text-sm text-muted">Be kind. Criticism welcome; scams and abuse are not.</p>
-      </div>
+      <h1 className="px-1 text-3xl font-bold tracking-tight text-ink">Community</h1>
       <LiveStrip />
 
       <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_320px]">
