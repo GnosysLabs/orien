@@ -19,6 +19,7 @@ const button =
  * any website's pages would, to try the whole flow. */
 export function SignInTest() {
   const [clientId, setClientId] = useState('')
+  const [secret, setSecret] = useState('')
   const [result, setResult] = useState<{ claims?: unknown; userinfo?: unknown; error?: string } | null>(null)
   const here = () => `${window.location.origin}${window.location.pathname}`
 
@@ -26,7 +27,12 @@ export function SignInTest() {
     setClientId(localStorage.getItem(`${KEPT}-client`) ?? '')
     const query = new URLSearchParams(window.location.search)
     if (!query.has('code') && !query.has('error')) return
-    const kept = JSON.parse(sessionStorage.getItem(KEPT) ?? 'null') as { verifier: string; state: string; client: string } | null
+    const kept = JSON.parse(sessionStorage.getItem(KEPT) ?? 'null') as {
+      verifier: string
+      state: string
+      client: string
+      secret?: string
+    } | null
     history.replaceState(null, '', window.location.pathname)
     if (query.has('error')) {
       setResult({ error: `${query.get('error')}${query.get('error_description') ? `: ${query.get('error_description')}` : ''}` })
@@ -46,6 +52,7 @@ export function SignInTest() {
           redirect_uri: here(),
           client_id: kept.client,
           code_verifier: kept.verifier,
+          ...(kept.secret ? { client_secret: kept.secret } : {}),
         }),
       })
       const tokens = await response.json()
@@ -67,7 +74,8 @@ export function SignInTest() {
     const state = random()
     const challenge = b64(new Uint8Array(await crypto.subtle.digest('SHA-256', new TextEncoder().encode(verifier))))
     localStorage.setItem(`${KEPT}-client`, clientId.trim())
-    sessionStorage.setItem(KEPT, JSON.stringify({ verifier, state, client: clientId.trim() }))
+    // Only for trying it here: a real website keeps its secret on its server.
+    sessionStorage.setItem(KEPT, JSON.stringify({ verifier, state, client: clientId.trim(), secret: secret.trim() }))
     const query = new URLSearchParams({
       response_type: 'code',
       client_id: clientId.trim(),
@@ -86,9 +94,8 @@ export function SignInTest() {
       <div className="space-y-2">
         <h1 className="text-2xl font-bold tracking-tight text-ink">Sign in with Orien: test</h1>
         <p className="leading-relaxed text-muted">
-          This page acts as a website. Register it in your account as a website that signs in from its pages only,
-          with the return address <span className="num break-all text-ink">https://orien.network/oauth/test/</span>, then
-          paste its client ID here.
+          This page acts as a website. Register it in your account with the return address <span className="num break-all text-ink">https://orien.network/oauth/test/</span>, then
+          paste its client ID here, and its secret if you chose “From its server”.
         </p>
       </div>
       <input
@@ -96,6 +103,14 @@ export function SignInTest() {
         onChange={(e) => setClientId(e.target.value)}
         placeholder="Client ID, orn_…"
         spellCheck={false}
+        className="num h-11 w-full rounded-xl border border-line bg-bg px-4 text-sm text-ink outline-none focus:border-pearl/60"
+      />
+      <input
+        value={secret}
+        onChange={(e) => setSecret(e.target.value)}
+        placeholder="Client secret, orns_… (only if it signs in from its server)"
+        spellCheck={false}
+        autoComplete="off"
         className="num h-11 w-full rounded-xl border border-line bg-bg px-4 text-sm text-ink outline-none focus:border-pearl/60"
       />
       <button type="button" onClick={() => void start()} disabled={!clientId.trim()} className={button}>

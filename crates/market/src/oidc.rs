@@ -680,10 +680,17 @@ async fn token(State(app): State<Arc<App>>, headers: HeaderMap, Form(ask): Form<
     let Some((site, _, _, secret_kept)) = store.site_for(&client_id)? else {
         return Ok(oauth_error(StatusCode::UNAUTHORIZED, "invalid_client", "unknown or switched-off website"));
     };
-    if let Some(kept) = &secret_kept
-        && !secret.as_deref().is_some_and(|given| same(&secret_hash(given), kept))
-    {
-        return Ok(oauth_error(StatusCode::UNAUTHORIZED, "invalid_client", "wrong client secret"));
+    if let Some(kept) = &secret_kept {
+        match secret.as_deref() {
+            None | Some("") => {
+                let why = "this website was registered to sign in from its server, so its client secret must be sent";
+                return Ok(oauth_error(StatusCode::UNAUTHORIZED, "invalid_client", why));
+            }
+            Some(given) if !same(&secret_hash(given), kept) => {
+                return Ok(oauth_error(StatusCode::UNAUTHORIZED, "invalid_client", "wrong client secret"));
+            }
+            Some(_) => {}
+        }
     }
     let Some(code) = ask.code.as_deref() else {
         return Ok(oauth_error(StatusCode::BAD_REQUEST, "invalid_request", "code is missing"));
