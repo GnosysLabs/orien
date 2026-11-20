@@ -3,7 +3,7 @@ resolver = "3"
 members = ["crates/crypto", "crates/ledger", "crates/net", "crates/cli", "crates/swap", "crates/market"]
 
 [workspace.package]
-version = "1.10.0"
+version = "1.10.1"
 edition = "2024"
 license = "MIT OR Apache-2.0"
 repository = "https://github.com/GnosysLabs/orien"

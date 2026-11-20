@@ -631,7 +631,12 @@ struct Core {
     /// A queue of messages to each other validator of this epoch, by
     /// address. Refreshed at every checkpoint: a validator that joins is
     /// added, and one that leaves is dropped, which ends its threads.
+    /// Closing messages and payments to pass on, by other validator.
     peers: HashMap<String, Sender<Request>>,
+    /// Work shares to pass on, by other validator: their own queue and
+    /// connection, so that a busy hour's shares never hold up a closing
+    /// message.
+    share_peers: HashMap<String, Sender<Share>>,
     shared: Arc<Shared>,
     sync_interval: Duration,
     /// The first message each validator's one-time key was seen signing
@@ -822,9 +827,19 @@ impl Core {
             .map(|member| member.address.clone())
             .collect();
         self.peers.retain(|address, _| wanted.contains(address));
+        self.share_peers.retain(|address, _| wanted.contains(address));
         for address in wanted {
             if self.peers.contains_key(&address) {
                 continue;
+            }
+            let (shares, sending) = mpsc::channel();
+            let pushing = address.clone();
+            if thread::Builder::new()
+                .name(format!("{}-shares-{address}", self.name))
+                .spawn(move || push_shares_to_peer(pushing, sending))
+                .is_ok()
+            {
+                self.share_peers.insert(address.clone(), shares);
             }
             let (queue, sending) = mpsc::channel();
             let pushing = address.clone();
@@ -1527,8 +1542,8 @@ impl Core {
         if let Err(error) = self.share_log.append(&record) {
             eprintln!("[{}] cannot record a work share: {error}", self.name);
         }
-        for peer in self.peers.values() {
-            let _ = peer.send(Request::SubmitShare(share));
+        for peer in self.share_peers.values() {
+            let _ = peer.send(share);
         }
         Response::Share { fresh: true }
     }
@@ -1969,6 +1984,47 @@ fn fetch_log(shared: &Shared, address: &str, epoch: u64, wanted: &Wanted, timeou
 /// Sends this validator's closing messages to one other, in order. A
 /// message that cannot be delivered is dropped: the other validator also
 /// asks for what it has missed.
+/// The most shares passed on to a validator in one go.
+const SHARES_AT_ONCE: usize = 500;
+
+/// Passes work shares on to one other validator, many at a time: every
+/// share waiting is written before any answer is read, so a far-away
+/// validator gets a whole batch in one round trip instead of one share per
+/// round trip. One at a time, a link of 150 ms carries under seven shares a
+/// second, fewer than a busy hour brings.
+fn push_shares_to_peer(address: String, queue: Receiver<Share>) {
+    use std::io::Write;
+    let mut stream: Option<TcpStream> = None;
+    while let Ok(first) = queue.recv() {
+        let mut batch = vec![first];
+        batch.extend(queue.try_iter().take(SHARES_AT_ONCE - 1));
+        for _ in 0..2 {
+            if stream.is_none() {
+                // Patient: a share new to that validator waits its turn
+                // to be checked there.
+                stream = connect(&address, Duration::from_secs(10)).ok();
+            }
+            let Some(open) = stream.as_mut() else { continue };
+            let sent = (|| -> io::Result<()> {
+                let mut bytes = Vec::new();
+                for share in &batch {
+                    let request = borsh::to_vec(&Request::SubmitShare(*share))?;
+                    write_frame(&mut bytes, &request)?;
+                }
+                open.write_all(&bytes)?;
+                for _ in &batch {
+                    read_frame(open)?.ok_or_else(|| io::Error::new(io::ErrorKind::UnexpectedEof, "connection closed"))?;
+                }
+                Ok(())
+            })();
+            if sent.is_ok() {
+                break;
+            }
+            stream = None;
+        }
+    }
+}
+
 fn push_to_peer(address: String, queue: Receiver<Request>) {
     let mut stream: Option<TcpStream> = None;
     for request in queue {
@@ -2278,6 +2334,7 @@ impl Node {
             tended: Instant::now(),
             checkpoint_saved,
             peers: HashMap::new(),
+            share_peers: HashMap::new(),
             key_uses: HashMap::new(),
             cheats: Vec::new(),
             caught: Vec::new(),
