@@ -170,13 +170,11 @@ function Happening({ post }: { post: Post }) {
   switch (post.kind) {
     case 'record':
       return (
-        <div className="flex items-end justify-between gap-4">
-          <div>
-            <p className="num text-5xl font-bold leading-none tracking-tight text-ink">{String(post.data.miners)}</p>
-            <p className="mt-2 text-ink">miners paid this hour, the most ever</p>
-            <p className="mt-1 text-sm text-muted">The record before was {String(post.data.before)}.</p>
-          </div>
-          <div className="text-right">{checkpoint}</div>
+        <div>
+          <p className="num text-5xl font-bold leading-none tracking-tight text-ink">{String(post.data.miners)}</p>
+          <p className="mt-2 text-ink">miners paid this hour, the most ever</p>
+          <p className="mt-1 text-sm text-muted">The record before was {String(post.data.before)}.</p>
+          <p className="mt-1">{checkpoint}</p>
         </div>
       )
     case 'welcome': {
