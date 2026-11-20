@@ -117,8 +117,7 @@ export function SignIn({
           </p>
           {wallet && (
             <>
-              <WalletSignIn className={button} />
-              <p className="text-center text-sm text-muted">or with your email</p>
+              <WalletSignIn className={button} after={<p className="text-center text-sm text-muted">or with your email</p>} />
             </>
           )}
           <input

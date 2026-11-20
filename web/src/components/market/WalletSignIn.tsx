@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { Download, X } from 'lucide-react'
-import { CHROME_EXTENSION } from '@/lib/brand'
+import { CHROME_EXTENSION, WALLET_SIGN_IN_FOR_EVERYONE } from '@/lib/brand'
 
 /** What Orien Wallet's browser extension says about itself, on <html
  * data-orien-wallet>: "ready" (the wallet is running and signed in; the
@@ -33,8 +33,19 @@ const secondary =
 /** The Sign in with Orien Wallet button, always shown. With the wallet
  * running and signed in, its extension handles the click before this does;
  * otherwise this explains what's missing. */
-export function WalletSignIn({ className }: { className: string }) {
+export function WalletSignIn({ className, after }: { className: string; after?: React.ReactNode }) {
   const [open, setOpen] = useState<State | 'install' | undefined>(undefined)
+  // Before the release, shown only where the extension has said it is there.
+  const [present, setPresent] = useState(false)
+  useEffect(() => {
+    if (WALLET_SIGN_IN_FOR_EVERYONE) return
+    const look = () => setPresent(walletState() !== null)
+    look()
+    const watching = new MutationObserver(look)
+    watching.observe(document.documentElement, { attributes: true, attributeFilter: ['data-orien-wallet'] })
+    return () => watching.disconnect()
+  }, [])
+  if (!WALLET_SIGN_IN_FOR_EVERYONE && !present) return null
   return (
     <>
       <button
@@ -48,6 +59,7 @@ export function WalletSignIn({ className }: { className: string }) {
       >
         Sign in with Orien Wallet
       </button>
+      {after}
       {open && <WalletHelp state={open} onClose={() => setOpen(undefined)} />}
     </>
   )

@@ -40,3 +40,7 @@ export const MOST_SHARES_FROM = 123
 
 /** Orien Wallet's extension in the Chrome Web Store; empty until it is listed. */
 export const CHROME_EXTENSION = ''
+
+/** Whether everyone sees Sign in with Orien Wallet. Until Orien Wallet's
+ * release with it, only people who already have its extension do. */
+export const WALLET_SIGN_IN_FOR_EVERYONE = false
