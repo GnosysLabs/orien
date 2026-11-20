@@ -79,7 +79,7 @@ export function CheckpointView() {
               wide
               label="Miners paid"
               value={rewards?.known ? rewards.miners.length.toLocaleString('en') : '—'}
-              note={`${orn(checkpoint.released, 2)} new ORN shared among them`}
+              note={`${orn(checkpoint.released, 2)} new ORN`}
             />
             <Fact label="Payments" value={checkpoint.payments.toLocaleString('en')} note="Made final" />
             <Fact
