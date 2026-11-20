@@ -44,6 +44,10 @@ const secondary =
  * otherwise this explains what's missing. */
 export function WalletSignIn({ className, after }: { className: string; after?: React.ReactNode }) {
   const [open, setOpen] = useState<State | 'install' | undefined>(undefined)
+  // Never on phones and tablets: the extension is for computers. Decided
+  // once the page is open here, so phones never see it flash up.
+  const [computer, setComputer] = useState(false)
+  useEffect(() => setComputer(!where().phone), [])
   // Before the release, shown only where the extension has said it is there.
   const [present, setPresent] = useState(false)
   useEffect(() => {
@@ -54,7 +58,7 @@ export function WalletSignIn({ className, after }: { className: string; after?: 
     watching.observe(document.documentElement, { attributes: true, attributeFilter: ['data-orien-wallet'] })
     return () => watching.disconnect()
   }, [])
-  if (!WALLET_SIGN_IN_FOR_EVERYONE && !present) return null
+  if (!computer || (!WALLET_SIGN_IN_FOR_EVERYONE && !present)) return null
   return (
     <>
       <button
