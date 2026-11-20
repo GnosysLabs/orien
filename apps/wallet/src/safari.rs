@@ -1,38 +1,125 @@
 //! The Safari extension: it holds no wallet. It asks this app, over a
 //! connection only this Mac can make, for the wallet's address and
-//! balance; any signing stays here, in the app.
+//! balance, and asks it to send; the app approves each payment with
+//! Touch ID or the password, and does all signing itself.
 
 use std::io::{Read, Write};
+use std::net::TcpStream;
 use std::sync::Mutex;
+use tauri::AppHandle;
 
 /// Where the extension finds the app: this Mac only.
 pub const PORT: u16 = 47_211;
 
-/// What the extension is told, kept current by the app as it refreshes.
-static WALLET: Mutex<Option<String>> = Mutex::new(None);
+/// The address, balance and most that can be sent, as the app last saw
+/// them.
+static WALLET: Mutex<Option<serde_json::Value>> = Mutex::new(None);
 
-/// Keeps the address and balance for the extension to show.
-pub fn share(address: &str, balance: Option<&str>) {
-    let text = serde_json::json!({ "address": address, "balance": balance }).to_string();
-    *WALLET.lock().unwrap_or_else(|poisoned| poisoned.into_inner()) = Some(text);
+/// Keeps what the extension shows current, as the app refreshes.
+pub fn share(address: &str, balance: Option<&str>, most: Option<&str>) {
+    let seen = serde_json::json!({ "address": address, "balance": balance, "most": most });
+    *WALLET.lock().unwrap_or_else(|poisoned| poisoned.into_inner()) = Some(seen);
 }
 
 /// Answers the extension, for as long as the app runs.
-pub fn serve() {
-    std::thread::spawn(|| {
+pub fn serve(app: AppHandle) {
+    std::thread::spawn(move || {
         let Ok(listener) = std::net::TcpListener::bind(("127.0.0.1", PORT)) else { return };
         for stream in listener.incoming().flatten() {
-            let mut stream = stream;
-            let _ = stream.set_read_timeout(Some(std::time::Duration::from_secs(2)));
-            let mut request = [0u8; 1024];
-            let read = stream.read(&mut request).unwrap_or(0);
-            // Only the one question; a web page can't ask it (no page may
-            // send this header to another site without the app agreeing).
-            let request = String::from_utf8_lossy(&request[..read]);
-            let asked = request.starts_with("GET /wallet ") && request.contains("\r\nX-Orien-Extension: 1\r\n");
-            let body = if asked { WALLET.lock().unwrap_or_else(|poisoned| poisoned.into_inner()).clone().unwrap_or_else(|| "{}".into()) } else { "{}".into() };
-            let status = if asked { "200 OK" } else { "403 Forbidden" };
-            let _ = write!(stream, "HTTP/1.1 {status}\r\nContent-Type: application/json\r\nContent-Length: {}\r\nConnection: close\r\n\r\n{body}", body.len());
+            let app = app.clone();
+            std::thread::spawn(move || answer(&app, stream));
         }
     });
+}
+
+/// One question: its path and body, or None if it isn't the extension's.
+fn read(stream: &mut TcpStream) -> Option<(String, Vec<u8>)> {
+    let _ = stream.set_read_timeout(Some(std::time::Duration::from_secs(3)));
+    let mut data = Vec::new();
+    let mut buffer = [0u8; 4096];
+    let head_end = loop {
+        let read = stream.read(&mut buffer).ok().filter(|&n| n > 0)?;
+        data.extend_from_slice(&buffer[..read]);
+        if let Some(at) = data.windows(4).position(|w| w == b"\r\n\r\n") {
+            break at + 4;
+        }
+        if data.len() > 16 * 1024 {
+            return None;
+        }
+    };
+    let head = String::from_utf8_lossy(&data[..head_end]).to_string();
+    let lines: Vec<&str> = head.split("\r\n").collect();
+    let header = |name: &str| {
+        lines.iter().find_map(|l| l.split_once(':').filter(|(k, _)| k.trim().eq_ignore_ascii_case(name)).map(|(_, v)| v.trim().to_string()))
+    };
+    // Only the extension: it says so, and a web page can neither add that
+    // header to another site nor hide where it comes from.
+    if header("X-Orien-Extension").as_deref() != Some("1") || header("Origin").is_some() {
+        return None;
+    }
+    let mut parts = lines.first()?.split(' ');
+    let (method, path) = (parts.next()?, parts.next()?.to_string());
+    let length: usize = header("Content-Length").and_then(|v| v.parse().ok()).unwrap_or(0).min(64 * 1024);
+    let mut body = data[head_end..].to_vec();
+    while body.len() < length {
+        let read = stream.read(&mut buffer).ok().filter(|&n| n > 0)?;
+        body.extend_from_slice(&buffer[..read]);
+    }
+    Some((format!("{method} {path}"), body))
+}
+
+fn answer(app: &AppHandle, mut stream: TcpStream) {
+    let (status, body) = match read(&mut stream) {
+        None => ("403 Forbidden", serde_json::json!({})),
+        Some((asked, body)) => {
+            let body: serde_json::Value = serde_json::from_slice(&body).unwrap_or_default();
+            let text = |key: &str| body.get(key).and_then(|v| v.as_str()).unwrap_or("").to_string();
+            match asked.as_str() {
+                "GET /wallet" => ("200 OK", wallet(app)),
+                "POST /quote" => ("200 OK", serde_json::to_value(crate::quote(text("amount"))).unwrap_or_default()),
+                "POST /send" => {
+                    let password = Some(text("password")).filter(|p| !p.is_empty());
+                    match send(app, text("to"), text("amount"), password) {
+                        Ok(sent) => ("200 OK", sent),
+                        Err(problem) => ("200 OK", serde_json::json!({ "problem": problem })),
+                    }
+                }
+                _ => ("404 Not Found", serde_json::json!({})),
+            }
+        }
+    };
+    let body = body.to_string();
+    let _ = write!(stream, "HTTP/1.1 {status}\r\nContent-Type: application/json\r\nContent-Length: {}\r\nConnection: close\r\n\r\n{body}", body.len());
+}
+
+/// The wallet as the extension shows it, and how a payment is approved:
+/// "touch" (Touch ID), "password", or "none" (no password).
+fn wallet(app: &AppHandle) -> serde_json::Value {
+    let mut seen = WALLET.lock().unwrap_or_else(|poisoned| poisoned.into_inner()).clone().unwrap_or_else(|| serde_json::json!({}));
+    if let Some(file) = crate::folder(app).ok().and_then(|dir| crate::wallet_file(&dir)) {
+        let approve = if !crate::has_password(&file) {
+            "none"
+        } else if crate::biometric::enabled(&file) {
+            "touch"
+        } else {
+            "password"
+        };
+        seen["approve"] = approve.into();
+    }
+    seen
+}
+
+/// Sends, as the app's own Send does. With Touch ID on, it asks for it
+/// every time, so nothing leaves the wallet unseen.
+fn send(app: &AppHandle, to: String, amount: String, password: Option<String>) -> Result<serde_json::Value, String> {
+    let file = crate::wallet_file(&crate::folder(app)?).ok_or("no wallet yet")?;
+    if password.is_none() && crate::has_password(&file) {
+        if !crate::biometric::enabled(&file) {
+            return Err("password: needed".into());
+        }
+        crate::biometric::unlock(&file)?;
+    }
+    let to = to.split_whitespace().collect::<String>();
+    let sent = tauri::async_runtime::block_on(crate::send_payment(app.clone(), to, amount, password))?;
+    serde_json::to_value(sent).map_err(|error| error.to_string())
 }

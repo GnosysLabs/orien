@@ -3,31 +3,128 @@
 <head>
 <meta charset="utf-8">
 <style>
-  :root { color-scheme: dark; --bg: #1c1d21; --surface: #2e2f34; --ink: #eceef2; --dim: #9b9ba2; --line: #3a3b41; --accent: #b8c7ff; }
+  @font-face { font-family: "Jost"; src: url("Jost.ttf") format("truetype"); font-weight: 100 900; }
+  :root {
+    color-scheme: dark;
+    --ground: #1b1c1f; --surface: #2e2f34; --field: #202125; --ink: #eceef2; --dim: #9a9ca3; --faint: #6d6f76;
+    --line: #3a3b41; --pearl-ink: #2b2c31; --good: #a6e3c6; --bad: #f1a9a9; --radius: 14px;
+    --pearl: linear-gradient(115deg, #e4e2ea 0%, #f1d3e1 14%, #d8d3f4 28%, #c9e8ec 42%, #e9eed6 56%, #f0d6e3 70%, #d3daf4 84%, #e4e2ea 100%);
+    --brand: linear-gradient(115deg, #f4b6d4 0%, #b8c7ff 20%, #d3b6ff 38%, #a6ead6 56%, #f9dda4 74%, #f4b6d4 100%);
+  }
   * { box-sizing: border-box; }
-  body { margin: 0; width: 320px; padding: 22px 22px 24px; background: var(--bg); color: var(--ink);
-    font: 14px/1.45 -apple-system, BlinkMacSystemFont, sans-serif; }
-  .brand { display: flex; align-items: center; gap: 10px; margin-bottom: 22px; font-weight: 700; letter-spacing: 0.18em; font-size: 13px; }
-  .brand img { width: 22px; height: 22px; filter: invert(1); }
-  .card { padding: 18px; border: 1px solid var(--line); border-radius: 18px; background: var(--surface); }
-  .label { color: var(--dim); font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; margin-bottom: 6px; }
-  .balance { font-size: 30px; font-weight: 650; line-height: 1.15; }
-  .balance small { font-size: 15px; color: var(--dim); font-weight: 500; margin-left: 4px; }
-  .address { margin-top: 18px; font: 12.5px/1.6 ui-monospace, "SF Mono", Menlo, monospace; color: var(--dim); word-break: break-all; }
-  button { margin-top: 18px; width: 100%; height: 40px; border: 0; border-radius: 12px; background: var(--accent); color: #101426;
-    font: inherit; font-weight: 600; cursor: pointer; }
-  .note { margin-top: 16px; color: var(--dim); font-size: 12.5px; text-align: center; }
+  html, body { margin: 0; }
+  body { width: 360px; padding: 22px 22px 24px; background: var(--ground); color: var(--ink);
+    font: 14px/1.5 -apple-system, system-ui, sans-serif; -webkit-font-smoothing: antialiased; }
+  button { font: inherit; color: inherit; }
+  [hidden] { display: none !important; }
+  @keyframes drift { 0%, 100% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } }
+  .pearl { background: var(--pearl); background-size: 300% 100%; animation: drift 24s linear infinite; }
+  .brand { background-image: var(--brand); background-size: 300% 300%; animation: drift 12s ease-in-out infinite; }
+
+  header { display: flex; align-items: center; justify-content: space-between; height: 32px; margin-bottom: 20px; }
+  .wordmark { display: inline-flex; align-items: center; gap: 9px; font: 600 15px/1 "Jost", sans-serif; }
+  .wordmark .mark { width: 18px; height: 18px; -webkit-mask: url("mark.svg") center / contain no-repeat; }
+  .wordmark .word { letter-spacing: 0.16em; -webkit-background-clip: text; background-clip: text; color: transparent; }
+  .back { width: 32px; height: 32px; margin-left: -6px; border: 0; border-radius: 10px; background: transparent;
+    color: var(--dim); cursor: pointer; display: grid; place-items: center; }
+  .back:hover { background: rgba(255, 255, 255, 0.05); color: var(--ink); }
+  h2 { margin: 0; font-size: 17px; font-weight: 600; flex: 1; padding-left: 6px; }
+
+  .card { border-radius: 22px; padding: 20px 22px 22px; color: var(--pearl-ink);
+    box-shadow: 0 14px 36px #00000059, inset 0 1px 0 #ffffffb0; }
+  .label { font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; opacity: 0.6; }
+  .amount { margin-top: 6px; display: flex; align-items: baseline; gap: 8px; min-width: 0; }
+  /* The whole number large, the decimals smaller: always fits, never cut. */
+  .balance { font-size: 36px; font-weight: 300; line-height: 1.1; letter-spacing: -0.01em; white-space: nowrap; }
+  .balance .cents { font-size: 20px; opacity: 0.7; letter-spacing: 0; }
+  .unit { font-size: 13px; opacity: 0.6; flex: none; }
+
+  .address { margin-top: 18px; padding: 14px 16px; border: 1px solid var(--line); border-radius: var(--radius);
+    font: 12px/1.7 ui-monospace, "SF Mono", Menlo, monospace; color: var(--dim); word-spacing: 2px; }
+  .address .label { font: 10.5px/1 -apple-system, system-ui, sans-serif; letter-spacing: 0.1em; margin-bottom: 8px; color: var(--faint); opacity: 1; }
+
+  .buttons { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 18px; }
+  .primary { width: 100%; height: 46px; border: 0; border-radius: var(--radius); color: var(--pearl-ink); font-weight: 600;
+    cursor: pointer; box-shadow: inset 0 1px 0 #ffffffb0, 0 6px 18px #0000003d; transition: transform 0.12s, opacity 0.2s; }
+  .primary:active:not(:disabled) { transform: scale(0.985); }
+  .primary:disabled { opacity: 0.4; cursor: default; }
+  .secondary { width: 100%; height: 46px; border-radius: var(--radius); background: transparent; border: 1px solid var(--line);
+    font-weight: 500; cursor: pointer; transition: background 0.15s; }
+  .secondary:hover { background: rgba(255, 255, 255, 0.04); }
+
+  .field { margin-bottom: 16px; }
+  #send-go { margin-top: 6px; }
+  .field label { display: block; margin-bottom: 7px; font-size: 12.5px; color: var(--dim); }
+  .box { display: flex; align-items: center; gap: 8px; height: 46px; padding: 0 14px; border: 1px solid var(--line);
+    border-radius: var(--radius); background: var(--field); }
+  .box:focus-within { border-color: #8f8aa8; }
+  .box input { flex: 1; min-width: 0; height: 100%; border: 0; outline: none; background: transparent; color: var(--ink); font: inherit; }
+  .box input.mono { font: 12.5px ui-monospace, "SF Mono", Menlo, monospace; }
+  .box .unit { color: var(--dim); opacity: 1; }
+  .max { height: 28px; padding: 0 10px; border: 1px solid var(--line); border-radius: 9px; background: transparent;
+    font-size: 12px; color: var(--dim); cursor: pointer; }
+  .max:hover { color: var(--ink); }
+  .hint { min-height: 20px; margin-top: 7px; font-size: 12.5px; color: var(--dim); }
+  .hint.bad { color: var(--bad); }
+  .note { margin: 18px 0 0; color: var(--dim); font-size: 12.5px; text-align: center; line-height: 1.5; }
+  .note.bad { color: var(--bad); }
+
+  .done { text-align: center; padding: 6px 0 2px; }
+  .tick { width: 56px; height: 56px; margin: 4px auto 16px; border-radius: 50%; display: grid; place-items: center; color: var(--pearl-ink); }
+  .done .big { font-size: 26px; font-weight: 300; }
+  .done .sent-title { margin: 0 0 4px; font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; }
+  .done .small { margin-top: 6px; color: var(--dim); font-size: 12.5px; }
+  .done .primary { margin-top: 24px; }
 </style>
 </head>
 <body>
-  <div class="brand"><img src="mark.svg" alt="">ORIEN</div>
-  <div class="card" id="card">
-    <div class="label">Balance</div>
-    <div class="balance" id="balance">…</div>
-    <div class="address" id="address"></div>
-  </div>
-  <button id="copy" hidden>Copy address</button>
-  <p class="note" id="note">Open Orien Wallet to send.</p>
+  <!-- Home: the balance, the address, Send and Copy. -->
+  <section id="home">
+    <header><span class="wordmark"><span class="mark brand"></span><span class="word brand">ORIEN</span></span></header>
+    <div class="card pearl">
+      <div class="label">Balance</div>
+      <div class="amount"><span class="balance" id="balance">—</span><span class="unit">ORN</span></div>
+    </div>
+    <div class="address" id="address-box" hidden><div class="label">Your address</div><span id="address"></span></div>
+    <div class="buttons" id="home-buttons" hidden>
+      <button class="primary pearl" id="go-send">Send</button>
+      <button class="secondary" id="copy">Copy address</button>
+    </div>
+    <p class="note" id="home-note" hidden></p>
+  </section>
+
+  <!-- Send: who to, how much, then approve. -->
+  <section id="send" hidden>
+    <header><button class="back" id="back" aria-label="Back"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg></button><h2>Send ORN</h2></header>
+    <div class="field">
+      <label for="to">To</label>
+      <div class="box"><input id="to" class="mono" placeholder="Paste an Orien address" spellcheck="false" autocomplete="off"></div>
+      <div class="hint" id="to-hint"></div>
+    </div>
+    <div class="field">
+      <label for="amount">Amount</label>
+      <div class="box"><input id="amount" placeholder="0" inputmode="decimal" autocomplete="off"><span class="unit">ORN</span><button class="max" id="max">Max</button></div>
+      <div class="hint" id="amount-hint"></div>
+    </div>
+    <div class="field" id="pw-field" hidden>
+      <label for="pw">Wallet password</label>
+      <div class="box"><input id="pw" type="password" autocomplete="current-password"></div>
+    </div>
+    <button class="primary pearl" id="send-go" disabled>Send</button>
+    <p class="note" id="send-note" hidden></p>
+  </section>
+
+  <!-- Sent. -->
+  <section id="sent" hidden>
+    <div class="done">
+      <div class="tick pearl"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></div>
+      <div class="small sent-title">Sent</div>
+      <div class="big" id="sent-amount"></div>
+      <div class="small" id="sent-to"></div>
+      <div class="small" id="sent-fee"></div>
+      <button class="primary pearl" id="sent-done">Done</button>
+    </div>
+  </section>
   <script src="popup.js"></script>
 </body>
 </html>

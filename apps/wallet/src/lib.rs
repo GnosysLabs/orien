@@ -1222,7 +1222,7 @@ async fn overview_now(app: AppHandle) -> Result<Overview, String> {
         }
         *LAST_BALANCE.lock().unwrap_or_else(|poisoned| poisoned.into_inner()) = view.units;
         #[cfg(target_os = "macos")]
-        safari::share(&view.address, view.balance.as_deref());
+        safari::share(&view.address, view.balance.as_deref(), view.most.as_deref());
         Ok(view)
     })
     .await
@@ -2400,7 +2400,7 @@ pub fn run() {
             #[cfg(desktop)]
             background::setup(app.handle())?;
             #[cfg(target_os = "macos")]
-            safari::serve();
+            safari::serve(app.handle().clone());
             #[cfg(mobile)]
             if let Some(window) = app.get_webview_window("main") {
                 let _ = window.show();
