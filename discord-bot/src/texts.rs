@@ -36,6 +36,7 @@ Orien in plain words, how to start mining, wallet walkthroughs and network updat
 - {#general}: say hi
 - {#x-posts}: our posts on X, as they go out
 - {#youtube}: our videos, as they come out
+- {#checkpoints}: a summary of every hour's mining
 - {#mining}: setups and questions about mining
 - {#swaps-and-market}: swap ORN for SOL or Bitcoin, and share Market listings
 - {#help}: stuck? Ask here
