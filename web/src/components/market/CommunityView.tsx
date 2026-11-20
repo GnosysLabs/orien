@@ -443,8 +443,19 @@ function PostCard({ post, me, onChange }: { post: Post; me: You | null; onChange
 
   return (
     <article className="relative overflow-hidden rounded-2xl border border-line bg-surface">
-      {network && <div className="pearl-fill absolute inset-x-0 top-0 h-0.5" aria-hidden />}
-      <div className="relative p-5">
+      {network && (
+        <>
+          <div className="pearl-fill absolute inset-x-0 top-0 h-0.5" aria-hidden />
+          {/* A piece of space for each kind of news, fading into the card towards the words. */}
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={`/community/${post.kind}.jpg`}
+            alt=""
+            className="pointer-events-none absolute right-0 top-0 h-full w-full object-cover opacity-80 [mask-image:linear-gradient(to_left,black,transparent_85%)] sm:w-3/5 sm:[mask-image:linear-gradient(to_left,black_20%,transparent)]"
+          />
+        </>
+      )}
+      <div className={`relative p-5 ${network ? 'on-banner' : ''}`}>
         <header className="flex items-center gap-3">
           {network ? <NetworkAvatar size={40} /> : post.author && <Avatar name={post.author.name} picture={post.author.picture} size={44} />}
           <div className="min-w-0 flex-1">
