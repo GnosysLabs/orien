@@ -23,6 +23,11 @@ RestartSec=5
 # Up to 20,000 connections at once, each a thread and two open files.
 LimitNOFILE=65536
 TasksMax=24000
+# First in line for the processor and the disk on a shared server, and the
+# last thing stopped if memory ever runs out.
+CPUWeight=1000
+IOWeight=1000
+OOMScoreAdjust=-900
 
 # It needs nothing but its own folder.
 NoNewPrivileges=true
