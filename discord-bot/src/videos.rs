@@ -17,7 +17,10 @@ use serenity::all::{ChannelId, ChannelType, CreateAllowedMentions, CreateMessage
 use serenity::http::Http;
 
 /// Orien Network's channel, youtube.com/@OrienNetwork.
-pub const FEED: &str = "https://www.youtube.com/feeds/videos.xml?channel_id=UCyzIILxPmYH94f15MBIXHog";
+/// Its uploads list rather than the channel's own feed: YouTube brings the
+/// channel's feed up to date much later (it was still empty half an hour
+/// after the first video went public).
+pub const FEED: &str = "https://www.youtube.com/feeds/videos.xml?playlist_id=UUyzIILxPmYH94f15MBIXHog";
 
 const EVERY: Duration = Duration::from_secs(600);
 

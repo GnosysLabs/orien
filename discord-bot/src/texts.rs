@@ -35,6 +35,7 @@ Orien in plain words, how to start mining, wallet walkthroughs and network updat
 - {#greetings}: a hello for everyone who joins
 - {#general}: say hi
 - {#x-posts}: our posts on X, as they go out
+- {#youtube}: our videos, as they come out
 - {#mining}: setups and questions about mining
 - {#swaps-and-market}: swap ORN for SOL or Bitcoin, and share Market listings
 - {#help}: stuck? Ask here
@@ -69,7 +70,7 @@ pub fn fit_hello(hello: &str) -> bool {
 
 /// Each channel's about line, shown at the top of the channel. Set once
 /// with `orien-discord topics`, never on its own.
-pub const TOPICS: [(&str, &str); 10] = [
+pub const TOPICS: [(&str, &str); 11] = [
     ("welcome", "Start here: what Orien is, how to begin, and the rules."),
     ("announcements", "New releases and network news from the team."),
     ("general", "Say hi and talk about anything Orien."),
@@ -83,6 +84,7 @@ pub const TOPICS: [(&str, &str); 10] = [
     ("bugs-and-ideas", "Tell us what's broken or what's missing."),
     ("greetings", "A hello for everyone who joins. Say hi back!"),
     ("x-posts", "Orien's posts on X, as they go out. Like and repost to help spread the word."),
+    ("youtube", "Orien's videos, as they come out. Watch them right here."),
 ];
 
 /// Each channel's introduction: the first message in it, saying what the
@@ -90,7 +92,7 @@ pub const TOPICS: [(&str, &str); 10] = [
 /// is kept to announcements alone, and #general
 /// and #help need none. Posted by hand with `orien-discord intros`; a
 /// changed text here replaces the message already there.
-pub const INTROS: [(&str, &str); 6] = [
+pub const INTROS: [(&str, &str); 7] = [
     (
         "mining",
         "\
@@ -148,6 +150,14 @@ Say hi back, and make the new people feel at home. Longer chats go in {#general}
 Orien's posts on X show up here as they go out, from https://x.com/oriennetwork
 
 If you like one, a like or a repost on X helps more people find Orien.",
+    ),
+    (
+        "youtube",
+        "\
+## 📺 YouTube
+Orien's videos show up here as they come out, from https://www.youtube.com/@OrienNetwork
+
+Watch them right here. A like or a subscribe on YouTube helps more people find Orien.",
     ),
 ];
 
