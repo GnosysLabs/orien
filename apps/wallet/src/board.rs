@@ -287,10 +287,17 @@ pub fn sign_out(dir: &Path) -> Result<(), String> {
 }
 
 /// The Market sign-in, if this app is signed in: for registering the
-/// iPhone's push token to the account too.
+/// iPhone's push token to the account too, and for the Safari extension.
 #[allow(dead_code)]
 pub fn session(dir: &Path) -> Option<String> {
     load(dir).cookie
+}
+
+/// A single-use pass, good for a minute, that signs a browser in to this
+/// Orien Network account on orien.network: Sign in with Orien Wallet.
+pub fn sign_in_pass(dir: &Path) -> Result<String, String> {
+    let answer = call(dir, "POST", "/oidc/pass", Some(json!({})))?;
+    answer["pass"].as_str().filter(|p| p.starts_with("ornp_")).map(str::to_string).ok_or_else(|| "Orien Network gave no sign-in pass.".into())
 }
 
 /// Deletes the signed-in account for good: profile, listings and messages.

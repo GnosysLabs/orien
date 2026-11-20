@@ -88,6 +88,10 @@ fn answer(app: &AppHandle, mut stream: TcpStream) {
                     let url = crate::folder(app).ok().and_then(|dir| crate::board::image(&dir, &text("name")));
                     ("200 OK", serde_json::json!({ "url": url }))
                 }
+                "POST /signin" => match sign_in(app) {
+                    Ok(pass) => ("200 OK", serde_json::json!({ "pass": pass })),
+                    Err(problem) => ("200 OK", serde_json::json!({ "problem": problem })),
+                },
                 "POST /quote" => ("200 OK", serde_json::to_value(crate::quote(text("amount"))).unwrap_or_default()),
                 "POST /send" => {
                     let password = Some(text("password")).filter(|p| !p.is_empty());
@@ -129,6 +133,8 @@ fn wallet(app: &AppHandle) -> serde_json::Value {
             "password"
         };
         seen["approve"] = approve.into();
+        // Signed in to Orien Network: websites' Sign in with Orien can use it.
+        seen["signed_in"] = crate::board::session(dir).is_some().into();
     }
     seen
 }
@@ -166,4 +172,18 @@ fn people(app: &AppHandle) -> serde_json::Value {
         })
         .collect();
     serde_json::json!({ "contacts": contacts, "wallets": wallets })
+}
+
+/// Sign in with Orien Wallet: after Touch ID (or the Mac's password), a
+/// single-use pass that signs the browser in to this app's Orien Network
+/// account. No wallet keys are used.
+fn sign_in(app: &AppHandle) -> Result<String, String> {
+    let dir = crate::folder(app)?;
+    if crate::board::session(&dir).is_none() {
+        return Err("Sign in to Orien Network in Orien Wallet first.".into());
+    }
+    crate::biometric::confirm("sign in with your Orien Network account")?;
+    crate::board::sign_in_pass(&dir).map_err(|problem| {
+        if problem.starts_with("signin:") { "Sign in to Orien Network in Orien Wallet first.".to_string() } else { problem }
+    })
 }
