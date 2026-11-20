@@ -27,6 +27,9 @@ Orien (ORN) is a cryptocurrency built for the quantum age. Payments are final in
 4. No price promises or investment advice.
 5. Keep channels on topic.
 
+## 📺 Orien on YouTube
+Orien in plain words, how to start mining, wallet walkthroughs and network updates: https://www.youtube.com/@OrienNetwork
+
 ## Where to go
 - {#announcements}: new releases and network news
 - {#greetings}: a hello for everyone who joins
