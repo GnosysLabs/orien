@@ -2399,6 +2399,8 @@ pub fn run() {
             // window starts hidden so a login start shows nothing.
             #[cfg(desktop)]
             background::setup(app.handle())?;
+            #[cfg(target_os = "macos")]
+            safari::serve();
             #[cfg(mobile)]
             if let Some(window) = app.get_webview_window("main") {
                 let _ = window.show();

@@ -1,10 +1,10 @@
-// The extension holds no wallet: it asks Orien Wallet, which leaves the
-// address and balance in the folder the two share.
+// The extension holds no wallet: it asks Orien Wallet, running on this
+// Mac, for the address and balance.
 const $ = (id) => document.getElementById(id);
 browser.runtime.sendNativeMessage("network.orien.wallet", { ask: "wallet" }).then((wallet) => {
   if (!wallet || !wallet.address) {
     $("balance").textContent = "–";
-    $("note").textContent = "Open Orien Wallet once, and your wallet shows here.";
+    $("note").textContent = "Open Orien Wallet, and your wallet shows here.";
     return;
   }
   $("balance").innerHTML = "";
