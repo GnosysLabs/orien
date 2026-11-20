@@ -85,7 +85,7 @@ function BrowserTile({ browser, status, here }: { browser: Browser; status: stri
     <div
       className={`flex flex-1 flex-col items-center gap-2 rounded-xl border px-3 py-4 text-center ${here ? 'border-pearl bg-raised' : 'border-line'}`}
     >
-      <BrowserLogo browser={browser} className="h-9 w-9" />
+      <BrowserLogo browser={browser} className="h-9 w-9 text-ink" />
       <span className="text-sm font-semibold text-ink">{browser === 'safari' ? 'Safari' : browser === 'chrome' ? 'Chrome' : 'Firefox'}</span>
       <span className={`text-xs font-semibold ${status === 'Available' ? 'text-go' : 'text-muted'}`}>{status}</span>
     </div>
@@ -172,8 +172,8 @@ function WalletHelp({ state, onClose }: { state: State | 'install'; onClose: () 
     body = (
       <>
         <p>
-          With Orien Wallet’s browser extension, you sign in here with Touch ID instead of an email code, whenever
-          Orien Wallet is open and signed in.
+          With Orien Wallet’s browser extension, you sign in here with your wallet instead of an email code,
+          whenever Orien Wallet is open and signed in.
         </p>
         <div className="flex gap-3">
           <BrowserTile browser="safari" status="Available" here={here.browser === 'safari' && !here.phone} />
