@@ -29,7 +29,8 @@ fn mined() -> Mined {
     by_epoch.insert(11, vec![(address(1), 300 * ORN), (address(2), 50 * ORN), (address(4), 5 * ORN)]);
     by_epoch.insert(12, vec![(address(1), 200 * ORN), (address(2), 50 * ORN)]);
     by_epoch.insert(13, vec![(address(1), 100 * ORN), (address(2), 50 * ORN), (address(3), 70 * ORN), (address(5), 1 * ORN)]);
-    Mined { since: 10, upto: 13, by_epoch }
+    let times = (10..=13).map(|e| (e, 1_795_000_000 + e * 3600)).collect();
+    Mined { since: 10, upto: 13, by_epoch, times }
 }
 
 #[test]
@@ -187,4 +188,33 @@ async fn teams_are_started_joined_left_and_handed_on() {
     assert_eq!(members["members"][0]["name"], "Bob");
     assert_eq!(ask(&app, "POST", "/api/market/community/teams/leave", Some(&bob), None).await.0, StatusCode::OK);
     assert_eq!(ask(&app, "GET", &format!("/api/market/community/teams/{team}"), None, None).await.0, StatusCode::NOT_FOUND);
+}
+
+#[tokio::test]
+async fn the_networks_story_is_backfilled_and_dated_at_its_checkpoints() {
+    let app = market();
+    let alice = sign_in_for_tests(&app, "Alice");
+    // Alice posts first, now; then the network's story since the records began is filled in.
+    ask(&app, "POST", "/api/market/community/posts", Some(&alice), Some(json!({ "body": "hello" }))).await;
+    sign_in_for_tests(&app, "Carol");
+    let (alice_id, carol_id) = store_for_tests(&app, |s| (s.account_id_for_tests("Alice"), s.account_id_for_tests("Carol")));
+    let owners = HashMap::from([(address(1), alice_id), (address(3), carol_id)]);
+    store_for_tests(&app, |s| s.tell(&mined(), &owners).unwrap());
+    let (_, feed) = ask(&app, "GET", "/api/market/community/feed", None, None).await;
+    let posts = feed["posts"].as_array().unwrap();
+    // Newest first by time: Alice's post today, then checkpoint 13's news, then 12's.
+    assert_eq!(posts[0]["body"], "hello");
+    assert!(posts[1]["kind"] != "post" && posts[1]["data"]["epoch"] == 13, "{}", posts[1]);
+    assert_eq!(posts[1]["created"], 1_795_000_000 + 13 * 3600);
+    assert!(posts.iter().any(|p| p["kind"] == "milestone" && p["data"]["epoch"] == 12));
+    // Only the network, only people.
+    let (_, network) = ask(&app, "GET", "/api/market/community/feed?only=network", None, None).await;
+    assert!(network["posts"].as_array().unwrap().iter().all(|p| p["kind"] != "post"));
+    let (_, people) = ask(&app, "GET", "/api/market/community/feed?only=people", None, None).await;
+    assert_eq!(people["posts"].as_array().unwrap().len(), 1);
+    // Told once, nothing is told twice.
+    let before = network["posts"].as_array().unwrap().len();
+    store_for_tests(&app, |s| s.tell(&mined(), &owners).unwrap());
+    let (_, again) = ask(&app, "GET", "/api/market/community/feed?only=network", None, None).await;
+    assert_eq!(again["posts"].as_array().unwrap().len(), before);
 }

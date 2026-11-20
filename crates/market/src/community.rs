@@ -366,11 +366,11 @@ impl Store {
         Ok(self.db.last_insert_rowid())
     }
 
-    /// Something the network says.
-    pub fn add_happening(&self, kind: &str, subject: Option<i64>, data: &Value) -> Result<()> {
+    /// Something the network says, dated `at`: the checkpoint's time.
+    pub fn add_happening(&self, kind: &str, subject: Option<i64>, data: &Value, at: u64) -> Result<()> {
         self.db.execute(
             "INSERT INTO posts (kind, data, subject, created) VALUES (?1, ?2, ?3, ?4)",
-            params![kind, data.to_string(), subject, now() as i64],
+            params![kind, data.to_string(), subject, at as i64],
         )?;
         Ok(())
     }
@@ -412,11 +412,22 @@ impl Store {
     }
 
     /// Feed posts newest first, before post `before`, or a post's replies
-    /// oldest first. As seen by `viewer`.
-    pub fn feed(&self, viewer: Option<i64>, before: Option<i64>, replies_to: Option<i64>) -> Result<Vec<Value>> {
+    /// oldest first. As seen by `viewer`. `only` narrows the feed to
+    /// "people" or the "network".
+    pub fn feed(&self, viewer: Option<i64>, before: Option<i64>, replies_to: Option<i64>, only: Option<&str>) -> Result<Vec<Value>> {
+        let who = match only {
+            Some("people") => " AND p.kind = 'post'",
+            Some("network") => " AND p.kind <> 'post'",
+            _ => "",
+        };
         let (filter, order) = match replies_to {
-            Some(_) => ("p.parent = ?1", "p.id ASC"),
-            None => ("p.parent IS NULL AND p.id < ?1", "p.id DESC"),
+            Some(_) => ("p.parent = ?1".to_string(), "p.created ASC, p.id ASC"),
+            None => (
+                format!(
+                    "p.parent IS NULL{who} AND (p.created, p.id) < (SELECT COALESCE((SELECT created FROM posts WHERE id = ?1), 9223372036854775807), ?1)"
+                ),
+                "p.created DESC, p.id DESC",
+            ),
         };
         let key = replies_to.unwrap_or(before.unwrap_or(i64::MAX));
         let mut query = self.db.prepare(&format!(
@@ -560,13 +571,15 @@ impl Store {
     }
 
     /// Posts what the network has to say about checkpoints since the last
-    /// time. The first time, it only notes where it is, so the feed doesn't
-    /// fill with every hour there has been.
+    /// time. The first time, that is every checkpoint the records cover,
+    /// each post dated when its checkpoint was made, so the feed has the
+    /// network's whole story from the start.
     pub fn tell(&self, mined: &Mined, owners: &HashMap<String, i64>) -> Result<()> {
-        let Some(told) = self.last_told()? else { return self.set_told(mined.upto) };
+        let told = self.last_told()?.unwrap_or(mined.since);
         for epoch in (told + 1)..=mined.upto {
+            let at = mined.times.get(&epoch).copied().unwrap_or_else(now);
             for (kind, subject, data) in happenings(mined, owners, epoch) {
-                self.add_happening(&kind, subject, &data)?;
+                self.add_happening(&kind, subject, &data, at)?;
             }
             self.set_told(epoch)?;
         }
@@ -643,18 +656,19 @@ fn viewer(app: &App, headers: &HeaderMap) -> Option<i64> {
 #[derive(Deserialize)]
 pub struct Before {
     before: Option<i64>,
+    only: Option<String>,
 }
 
 async fn feed(State(app): State<Arc<App>>, headers: HeaderMap, Query(page): Query<Before>) -> Result<Response, Failure> {
     let me = viewer(&app, &headers);
-    let posts = app.store().feed(me, page.before, None)?;
+    let posts = app.store().feed(me, page.before, None, page.only.as_deref())?;
     let more = posts.len() as i64 == PAGE;
     Ok(Json(json!({ "posts": posts, "more": more, "reactions": REACTIONS, "max": MAX_POST })).into_response())
 }
 
 async fn replies(State(app): State<Arc<App>>, headers: HeaderMap, Path(id): Path<i64>) -> Result<Response, Failure> {
     let me = viewer(&app, &headers);
-    Ok(Json(json!({ "replies": app.store().feed(me, None, Some(id))? })).into_response())
+    Ok(Json(json!({ "replies": app.store().feed(me, None, Some(id), None)? })).into_response())
 }
 
 async fn board_answer(State(app): State<Arc<App>>, headers: HeaderMap) -> Result<Response, Failure> {

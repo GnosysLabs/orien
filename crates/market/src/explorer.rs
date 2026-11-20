@@ -601,6 +601,8 @@ pub struct Mined {
     pub since: u64,
     pub upto: u64,
     pub by_epoch: BTreeMap<u64, Vec<(String, u64)>>,
+    /// When each checkpoint was made, in seconds since 1970.
+    pub times: BTreeMap<u64, u64>,
 }
 
 impl Explorer {
@@ -608,7 +610,10 @@ impl Explorer {
     /// the explorer would, and gives the mining rewards.
     pub(crate) fn mined(&self, payments: &dyn crate::wallets::Payments) -> Option<Mined> {
         self.overview(payments).ok()?;
-        let latest = self.checkpoints.lock().unwrap().keys().next_back().copied()?;
+        let kept = self.checkpoints.lock().unwrap();
+        let latest = kept.keys().next_back().copied()?;
+        let times: BTreeMap<u64, u64> = kept.iter().map(|(epoch, c)| (*epoch, c.time)).collect();
+        drop(kept);
         let mut earned = self.earned.lock().unwrap();
         earned.gather(payments, latest).ok()?;
         let by_epoch = earned
@@ -623,7 +628,7 @@ impl Explorer {
                 (*epoch, paid)
             })
             .collect();
-        Some(Mined { since: earned.since?, upto: earned.upto?, by_epoch })
+        Some(Mined { since: earned.since?, upto: earned.upto?, by_epoch, times })
     }
 }
 
