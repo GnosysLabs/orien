@@ -6,6 +6,6 @@ chrome.runtime.onMessage.addListener((message, _sender, reply) => {
   if (!message || (message.ask !== "wallet" && message.ask !== "signin")) return;
   fetch(`${ORIEN}/${message.ask}`, { method: message.ask === "wallet" ? "GET" : "POST", headers: { "X-Orien-Extension": "1" } })
     .then((answer) => answer.json())
-    .then(reply, () => reply(null));
+    .then(reply, () => reply(null));   // null: Orien Wallet isn't running
   return true;
 });
