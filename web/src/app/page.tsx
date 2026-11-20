@@ -71,17 +71,9 @@ export default function HomePage() {
           and every signature is designed to stay safe when quantum computers arrive.
         </p>
         <IPhoneApp />
-        <div className="mt-8 flex justify-center">
-          <Link
-            href="/try/"
-            className="pearl-fill flex h-11 items-center gap-2 rounded-xl px-5 text-sm font-bold transition hover:brightness-105"
-          >
-            Get started <ArrowRight className="h-4 w-4" aria-hidden />
-          </Link>
-        </div>
 
         {/* The introduction video: nothing loads until it is played. */}
-        <div className="mx-auto mt-12 max-w-3xl">
+        <div className="mx-auto mt-10 max-w-3xl">
           <video
             className="aspect-video w-full rounded-2xl border border-line bg-surface shadow-2xl shadow-black/40"
             src="/media/orien-introduction.mp4"
@@ -91,14 +83,22 @@ export default function HomePage() {
             preload="none"
             aria-label="Introduction to Orien, two minutes"
           />
-          <a
-            href={YOUTUBE}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="mt-4 inline-flex h-10 items-center gap-2 rounded-xl border border-line bg-bg px-4 text-sm font-semibold text-ink transition hover:border-pearl"
-          >
-            <YouTubeIcon className="h-4 w-4" /> Watch on YouTube
-          </a>
+          <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
+            <Link
+              href="/try/"
+              className="pearl-fill flex h-11 items-center gap-2 rounded-xl px-5 text-sm font-bold transition hover:brightness-105"
+            >
+              Get started <ArrowRight className="h-4 w-4" aria-hidden />
+            </Link>
+            <a
+              href={YOUTUBE}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex h-11 items-center gap-2 rounded-xl border border-line bg-bg px-5 text-sm font-semibold text-ink transition hover:border-pearl"
+            >
+              <YouTubeIcon className="h-4 w-4" /> Watch on YouTube
+            </a>
+          </div>
         </div>
       </section>
 
