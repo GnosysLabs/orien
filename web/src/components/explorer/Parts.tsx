@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
-import { Blocks, Search } from 'lucide-react'
+import { Blocks, ChevronRight, Search } from 'lucide-react'
 import { Avatar } from '@/components/market/Avatar'
 import {
   type CheckpointInfo,
@@ -260,12 +260,33 @@ export function Facts({ className, children }: { className: string; children: Re
 
 /** One figure in a `Facts` strip: a label, the figure, and a few words on
  * it. `wide` takes the whole first row on phones. */
-export function Fact({ label, value, note, wide }: { label: string; value: React.ReactNode; note?: React.ReactNode; wide?: boolean }) {
+export function Fact({
+  label,
+  value,
+  note,
+  wide,
+  action,
+}: {
+  label: string
+  value: React.ReactNode
+  note?: React.ReactNode
+  wide?: boolean
+  /** A button under the figure, as a link: its words and where it goes. */
+  action?: { label: string; href: string }
+}) {
   return (
     <div className={`bg-surface px-5 py-5 sm:px-6 ${wide ? 'col-span-2 lg:col-span-1' : ''}`}>
       <p className="text-xs font-semibold uppercase tracking-[0.14em] text-muted">{label}</p>
       <p className="num mt-2 text-xl font-bold tracking-tight text-ink">{value}</p>
       {note && <p className="mt-1 text-sm text-muted">{note}</p>}
+      {action && (
+        <a
+          href={action.href}
+          className="mt-4 inline-flex h-9 items-center gap-1 rounded-lg border border-line bg-bg px-3 text-sm font-semibold text-ink transition hover:border-pearl"
+        >
+          {action.label} <ChevronRight className="h-4 w-4" aria-hidden />
+        </a>
+      )}
     </div>
   )
 }

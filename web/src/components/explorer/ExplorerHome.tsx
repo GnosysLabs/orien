@@ -75,6 +75,7 @@ export function ExplorerHome() {
                 overview.miners &&
                 `${overview.miners.last_day.toLocaleString('en')} in the last ${overview.miners.hours === 24 ? '24 hours' : `${overview.miners.hours} hours`}`
               }
+              action={overview.miners ? { label: 'See last checkpoint', href: checkpointHref(overview.miners.epoch) } : undefined}
             />
             <Fact
               label="Network hashrate"
