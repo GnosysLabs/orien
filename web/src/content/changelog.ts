@@ -26,6 +26,16 @@ export const PRODUCTS: Record<Product, string> = {
 
 export const CHANGELOG: Entry[] = [
   {
+    date: '2026-11-19',
+    products: ['wallet'],
+    version: '1.8.21',
+    title: 'SOL swaps always there',
+    changes: [
+      'SOL now always shows on the Swap screen. Before, a slow first connection could hide it, or switch Post an offer to Bitcoin after a minute or two, until the app was reopened.',
+      'When posting an offer, the address box says so if you paste an address for the other coin, such as a SOL address while Bitcoin is chosen.',
+    ],
+  },
+  {
     date: '2026-11-20',
     products: ['orien', 'validators'],
     version: '1.10.1',
