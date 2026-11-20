@@ -4,7 +4,7 @@
 // Wallet" button shows. A click asks for Touch ID; Orien Wallet then hands
 // over a one-minute, single-use pass, which the page trades for a sign-in.
 // No wallet keys are used.
-const ask = (message) => browser.runtime.sendMessage(message);
+const ask = (message) => (globalThis.browser || chrome).runtime.sendMessage(message);
 let ready = false;
 const wired = new WeakSet();
 

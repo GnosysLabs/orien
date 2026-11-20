@@ -1,0 +1,39 @@
+{
+  "manifest_version": 3,
+  "name": "Orien Wallet",
+  "description": "Your Orien Wallet in Chrome: your balance, sending, and Sign in with Orien. Works with Orien Wallet on this computer.",
+  "version": "1.0",
+  "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAyDU7NjxgdPvEWShH/RsYHexNZ1enc27zWEl3r0foPlt3ZpNGTFPsn9yKG33LDQj2oKAZQPEmZLoVRo9Fn2s46WgTVkX97KhHXdYexnzy8OE+Xb0/5koUu0VTrhmHsV1XiKNIaS0h19+Cha+z/mBYqCKPrfA2TGMLNjOw4YowJTg8jeeVevmkfaFINkhFb3AQvqhDoXi9vX/BaFSuA6qwWINAuJaOKUmS12G0zc+RZ+Lhj3+PRFfCuUhRunK6xOCGlGnOzShvc0u74PbjlHr8auUbDsdC2NIyaVhEisrQOCWTsBThV5TEXmSiVAZBLpkYMHW1nCvP599ExU1JHIbstQIDAQAB",
+  "icons": {
+    "32": "icon-32.png",
+    "64": "icon-64.png",
+    "128": "icon-128.png",
+    "256": "icon-256.png"
+  },
+  "action": {
+    "default_popup": "popup.html",
+    "default_icon": {
+      "16": "chrome-toolbar-16.png",
+      "32": "chrome-toolbar-32.png",
+      "48": "chrome-toolbar-48.png",
+      "64": "chrome-toolbar-64.png"
+    }
+  },
+  "host_permissions": [
+    "http://127.0.0.1:47211/*"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "https://orien.network/*"
+      ],
+      "js": [
+        "content.js"
+      ],
+      "run_at": "document_idle"
+    }
+  ]
+}

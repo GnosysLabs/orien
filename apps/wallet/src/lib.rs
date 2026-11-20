@@ -27,8 +27,8 @@ mod money;
 mod pair;
 #[cfg(target_os = "ios")]
 mod push;
-#[cfg(target_os = "macos")]
-mod safari;
+#[cfg(desktop)]
+mod extension;
 
 /// iPhones: no "previous / next / done" bar above the keyboard. Web views
 /// add it to every text box; apps don't have it.
@@ -1221,8 +1221,8 @@ async fn overview_now(app: AppHandle) -> Result<Overview, String> {
             activity::observe(&dir, &view.address, balance);
         }
         *LAST_BALANCE.lock().unwrap_or_else(|poisoned| poisoned.into_inner()) = view.units;
-        #[cfg(target_os = "macos")]
-        safari::share(&view.address, view.balance.as_deref(), view.most.as_deref());
+        #[cfg(desktop)]
+        extension::share(&view.address, view.balance.as_deref(), view.most.as_deref());
         Ok(view)
     })
     .await
@@ -2399,8 +2399,8 @@ pub fn run() {
             // window starts hidden so a login start shows nothing.
             #[cfg(desktop)]
             background::setup(app.handle())?;
-            #[cfg(target_os = "macos")]
-            safari::serve(app.handle().clone());
+            #[cfg(desktop)]
+            extension::serve(app.handle().clone());
             #[cfg(mobile)]
             if let Some(window) = app.get_webview_window("main") {
                 let _ = window.show();

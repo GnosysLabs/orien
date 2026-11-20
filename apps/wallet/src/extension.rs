@@ -1,5 +1,6 @@
-//! The Safari extension: it holds no wallet. It asks this app, over a
-//! connection only this Mac can make, for the wallet's address and
+//! The browser extensions (Safari, and Chrome on Macs, Windows and Linux):
+//! they hold no wallet. They ask this app, over a connection only this
+//! computer can make, for the wallet's address and
 //! balance, and asks it to send; the app approves each payment with
 //! Touch ID or the password, and does all signing itself.
 
@@ -8,8 +9,12 @@ use std::net::TcpStream;
 use std::sync::Mutex;
 use tauri::AppHandle;
 
-/// Where the extension finds the app: this Mac only.
+/// Where the extensions find the app: this computer only.
 pub const PORT: u16 = 47_211;
+
+/// The Chrome extension, by its ID: the only web origin let in. Safari's
+/// extension asks from the app's own process, with no origin at all.
+const CHROME: &[&str] = &["chrome-extension://igcefhfeknmnoongmblfhmgclmbikioe"];
 
 /// The address, balance and most that can be sent, as the app last saw
 /// them.
@@ -52,9 +57,11 @@ fn read(stream: &mut TcpStream) -> Option<(String, Vec<u8>)> {
     let header = |name: &str| {
         lines.iter().find_map(|l| l.split_once(':').filter(|(k, _)| k.trim().eq_ignore_ascii_case(name)).map(|(_, v)| v.trim().to_string()))
     };
-    // Only the extension: it says so, and a web page can neither add that
-    // header to another site nor hide where it comes from.
-    if header("X-Orien-Extension").as_deref() != Some("1") || header("Origin").is_some() {
+    // Only the extensions: they say so, and a web page can neither add that
+    // header to another site nor hide where it comes from. Chrome's comes
+    // from its own extension origin, Safari's from none.
+    let origin_ok = header("Origin").is_none_or(|origin| CHROME.contains(&origin.as_str()));
+    if header("X-Orien-Extension").as_deref() != Some("1") || !origin_ok {
         return None;
     }
     let mut parts = lines.first()?.split(' ');
@@ -184,6 +191,8 @@ fn sign_in(app: &AppHandle) -> Result<String, String> {
     if crate::board::session(&dir).is_none() {
         return Err("Sign in to Orien Network in Orien Wallet first.".into());
     }
+    // Macs confirm with Touch ID; elsewhere the click on the page is it.
+    #[cfg(target_os = "macos")]
     crate::biometric::confirm("sign in with your Orien Network account")?;
     crate::board::sign_in_pass(&dir).map_err(|problem| {
         if problem.starts_with("signin:") { "Sign in to Orien Network in Orien Wallet first.".to_string() } else { problem }

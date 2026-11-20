@@ -2,7 +2,9 @@
 // Mac, for the address and balance, and asks it to send. Orien Wallet
 // approves each payment with Touch ID or the password, and signs it.
 const $ = (id) => document.getElementById(id);
-const ask = (message) => browser.runtime.sendNativeMessage("network.orien.wallet", message);
+// How to reach Orien Wallet differs by browser: bridge.js says (Safari
+// through the app's extension, Chrome over this computer's own connection).
+const ask = (message) => window.orienAsk(message);
 const show = (id) => { for (const s of ["home", "send", "sent"]) $(s).hidden = s !== id; window.scrollTo(0, 0); };
 const spaced = (address) => address.replace(/(.{4})/g, "$1 ").trim();
 let wallet = null;
