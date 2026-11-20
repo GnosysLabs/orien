@@ -1,0 +1,12 @@
+{
+  "manifest_version": 3,
+  "name": "Orien Wallet",
+  "description": "Your Orien Wallet in Safari: your balance and address, one click away.",
+  "version": "1.0",
+  "icons": { "32": "images/icon-32.png", "64": "images/icon-64.png", "128": "images/icon-128.png", "256": "images/icon-256.png" },
+  "action": {
+    "default_popup": "popup.html",
+    "default_icon": { "32": "images/icon-32.png", "64": "images/icon-64.png" }
+  },
+  "permissions": ["nativeMessaging"]
+}

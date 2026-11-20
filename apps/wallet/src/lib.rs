@@ -27,6 +27,8 @@ mod money;
 mod pair;
 #[cfg(target_os = "ios")]
 mod push;
+#[cfg(target_os = "macos")]
+mod safari;
 
 /// iPhones: no "previous / next / done" bar above the keyboard. Web views
 /// add it to every text box; apps don't have it.
@@ -216,7 +218,7 @@ mod keyboard {
     /// the bottom this way.
     pub fn share(text: &str, png: Option<&[u8]>) {
         use objc2::{class, msg_send};
-        use objc2_foundation::{NSData, NSString};
+        use objc2_foundation::NSString;
         let web = WEB.load(std::sync::atomic::Ordering::Relaxed) as *mut AnyObject;
         if web.is_null() {
             return;
@@ -240,11 +242,16 @@ mod keyboard {
                 top = next;
             }
             let items: *mut AnyObject = msg_send![class!(NSMutableArray), array];
+            // The picture goes as a file, "Orien address.png", as the
+            // computers share it.
             if let Some(png) = png {
-                let data = NSData::with_bytes(png);
-                let image: *mut AnyObject = msg_send![class!(UIImage), imageWithData: &*data];
-                if !image.is_null() {
-                    let _: () = msg_send![items, addObject: image];
+                let path = std::env::temp_dir().join("Orien address.png");
+                if std::fs::write(&path, png).is_ok() {
+                    let path = NSString::from_str(&path.to_string_lossy());
+                    let url: *mut AnyObject = msg_send![class!(NSURL), fileURLWithPath: &*path];
+                    if !url.is_null() {
+                        let _: () = msg_send![items, addObject: url];
+                    }
                 }
             }
             let text = NSString::from_str(text);
@@ -259,7 +266,11 @@ mod keyboard {
             // sheet comes up from the bottom.
             let device: *mut AnyObject = msg_send![class!(UIDevice), currentDevice];
             let idiom: isize = msg_send![device, userInterfaceIdiom];
-            if idiom == 1 {
+            if idiom != 1 {
+                // Newer iPhones would show it as a small panel at the side;
+                // a sheet from the bottom, full width, as apps share.
+                let _: () = msg_send![sheet, setModalPresentationStyle: 1isize];
+            } else {
                 let panel: *mut AnyObject = msg_send![sheet, popoverPresentationController];
                 if !panel.is_null() {
                     let bounds: objc2_core_foundation::CGRect = msg_send![web, bounds];
@@ -1210,6 +1221,8 @@ async fn overview_now(app: AppHandle) -> Result<Overview, String> {
             activity::observe(&dir, &view.address, balance);
         }
         *LAST_BALANCE.lock().unwrap_or_else(|poisoned| poisoned.into_inner()) = view.units;
+        #[cfg(target_os = "macos")]
+        safari::share(&view.address, view.balance.as_deref());
         Ok(view)
     })
     .await
