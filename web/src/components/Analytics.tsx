@@ -20,7 +20,7 @@ const optedOut = () => {
   }
 }
 
-function send(body: object) {
+export function send(body: object) {
   if (location.hostname.endsWith('.ts.net') || location.hostname === 'localhost' || optedOut()) return
   const data = JSON.stringify(body)
   if (!navigator.sendBeacon?.('/api/market/t', new Blob([data], { type: 'application/json' })))
