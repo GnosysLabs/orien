@@ -50,7 +50,7 @@
     font: 12px/1.7 ui-monospace, "SF Mono", Menlo, monospace; color: var(--dim); word-spacing: 2px; }
   .address .label { font: 10.5px/1 -apple-system, system-ui, sans-serif; letter-spacing: 0.1em; margin-bottom: 8px; color: var(--faint); opacity: 1; }
 
-  .buttons { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 18px; }
+  .buttons { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 20px; }
   .primary { width: 100%; height: 46px; border: 0; border-radius: var(--radius); color: var(--pearl-ink); font-weight: 600;
     cursor: pointer; box-shadow: inset 0 1px 0 #ffffffb0, 0 6px 18px #0000003d; transition: transform 0.12s, opacity 0.2s; }
   .primary:active:not(:disabled) { transform: scale(0.985); }
@@ -93,7 +93,6 @@
       <div class="label">Balance</div>
       <div class="amount"><span class="balance" id="balance">—</span><span class="unit">ORN</span></div>
     </div>
-    <div class="address" id="address-box" hidden><div class="label">Your address</div><span id="address"></span></div>
     <div class="buttons" id="home-buttons" hidden>
       <button class="primary pearl" id="go-send">Send</button>
       <button class="secondary" id="copy">Copy address</button>

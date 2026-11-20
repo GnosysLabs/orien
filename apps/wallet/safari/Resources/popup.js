@@ -19,21 +19,20 @@ async function load() {
   } catch { wallet = null; }
   if (!wallet || !wallet.address) {
     $("balance").textContent = "—";
-    $("address-box").hidden = $("home-buttons").hidden = true;
+    $("home-buttons").hidden = true;
     return home("Orien Wallet isn't running. Open it once; it keeps running in the menu bar after you close its window.");
   }
   const [whole, cents] = (wallet.balance || "—").split(".");
   $("balance").textContent = whole;
   if (cents) { const c = document.createElement("span"); c.className = "cents"; c.textContent = "." + cents; $("balance").append(c); }
   $("balance").title = wallet.balance ? `${wallet.balance} ORN` : "";
-  $("address").textContent = spaced(wallet.address);
   const name = wallet.name || "Wallet";
   $("wallet-name").textContent = name;
   $("wallet-coin").textContent = wallet.icon || name.slice(0, 1).toUpperCase();
   $("wallet-coin").className = wallet.icon ? "coin emoji" : "coin";
   $("wallet").title = name;
   $("wallet").hidden = false;
-  $("address-box").hidden = $("home-buttons").hidden = false;
+  $("home-buttons").hidden = false;
   home();
 }
 
