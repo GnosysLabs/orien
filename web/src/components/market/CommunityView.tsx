@@ -395,8 +395,7 @@ function Miners({ board }: { board: Board }) {
         </div>
       )}
       <p className="border-t border-line px-5 py-3 text-xs leading-relaxed text-muted">
-        Miners with a verified wallet on their profile, by ORN mined since checkpoint {board.since}, as of checkpoint{' '}
-        {board.epoch}. An account counts all its verified wallets.
+        Miners with a verified wallet on their profile. An account counts all its verified wallets.
       </p>
     </section>
   )
