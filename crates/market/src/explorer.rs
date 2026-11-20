@@ -594,6 +594,39 @@ fn unavailable(error: anyhow::Error) -> Failure {
     Failure::Unavailable(format!("the network did not answer: {error:#}"))
 }
 
+/// Mining rewards by checkpoint, as gathered so far: for each epoch, each
+/// address paid and how much. With the first checkpoint the records cover
+/// and the last gathered.
+pub struct Mined {
+    pub since: u64,
+    pub upto: u64,
+    pub by_epoch: BTreeMap<u64, Vec<(String, u64)>>,
+}
+
+impl Explorer {
+    /// Brings the checkpoints and their rewards up to date, as a visit to
+    /// the explorer would, and gives the mining rewards.
+    pub(crate) fn mined(&self, payments: &dyn crate::wallets::Payments) -> Option<Mined> {
+        self.overview(payments).ok()?;
+        let latest = self.checkpoints.lock().unwrap().keys().next_back().copied()?;
+        let mut earned = self.earned.lock().unwrap();
+        earned.gather(payments, latest).ok()?;
+        let by_epoch = earned
+            .by_epoch
+            .iter()
+            .map(|(epoch, entries)| {
+                let paid = entries
+                    .iter()
+                    .filter(|(_, income, _)| *income == Income::Mining)
+                    .map(|(id, _, amount)| (hex::encode(id.as_bytes()), *amount))
+                    .collect();
+                (*epoch, paid)
+            })
+            .collect();
+        Some(Mined { since: earned.since?, upto: earned.upto?, by_epoch })
+    }
+}
+
 /// Gathers the rewards of checkpoints made since the last time, unless that
 /// is already under way.
 fn gather_rewards(app: &App) {

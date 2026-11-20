@@ -400,14 +400,14 @@ function Reports({ reports, onChange }: { reports: Report[] | null; onChange: ()
         {reports.length ? `Reports to look at: ${reports.length}` : 'Reports'}
       </h2>
       {reports.length === 0 ? (
-        <p className="text-sm text-muted">Nothing reported. When someone reports a listing, a profile or a message, it shows here.</p>
+        <p className="text-sm text-muted">Nothing reported. When someone reports a listing, a profile, a message or a community post, it shows here.</p>
       ) : (
         <ul className="space-y-3">
           {reports.map(({ report: r, owner, removed }) => (
             <li key={r.id} className="space-y-2 rounded-xl border border-line bg-surface p-4">
               <div className="flex flex-wrap items-baseline justify-between gap-2">
                 <p className="text-sm text-muted">
-                  <span className="font-semibold text-ink">{r.kind === 'listing' ? 'Listing' : r.kind === 'account' ? 'Profile' : 'Message'}</span>{' '}
+                  <span className="font-semibold text-ink">{r.kind === 'listing' ? 'Listing' : r.kind === 'account' ? 'Profile' : r.kind === 'post' ? 'Community post' : 'Message'}</span>{' '}
                   reported by {r.reporter_name ?? 'a deleted account'} · {ago(r.created)}
                 </p>
                 <span className="num text-xs text-muted">report {r.id}</span>
@@ -430,7 +430,7 @@ function Reports({ reports, onChange }: { reports: Report[] | null; onChange: ()
               </p>
               {owner && (
                 <p className="text-sm text-muted">
-                  {r.kind === 'message' ? 'Sent by' : r.kind === 'listing' ? 'Posted by' : 'Account'}{' '}
+                  {r.kind === 'message' ? 'Sent by' : r.kind === 'listing' || r.kind === 'post' ? 'Posted by' : 'Account'}{' '}
                   <Link href={`/marketplace/profile/?id=${owner.id}`} className="font-semibold text-ink hover:text-pearl">
                     {owner.name}
                   </Link>{' '}
@@ -441,6 +441,9 @@ function Reports({ reports, onChange }: { reports: Report[] | null; onChange: ()
               <div className="flex flex-wrap gap-2 pt-1">
                 {r.kind === 'listing' && !removed && (
                   <Action label="Take the listing down" ask="Why is it being taken down? (shown to no one but you)" path={`/listings/${r.target}/remove`} onDone={onChange} danger />
+                )}
+                {r.kind === 'post' && !removed && (
+                  <Action label="Take the post down" path={`/posts/${r.target}/remove`} onDone={onChange} danger />
                 )}
                 {owner && !owner.suspended && (
                   <Action

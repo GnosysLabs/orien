@@ -66,6 +66,7 @@ pub fn admin_router(app: Arc<App>, admins: Admins, site: Option<&std::path::Path
         .route("/api/admin/accounts/{id}", get(account))
         .route("/api/admin/accounts/{id}/suspend", post(suspend))
         .route("/api/admin/accounts/{id}/unsuspend", post(unsuspend))
+        .route("/api/admin/posts/{id}/remove", post(remove_post))
         .route("/api/admin/sites", get(sites))
         .route("/api/admin/sites/{id}/off", post(site_off))
         .route("/api/admin/sites/{id}/on", post(site_on))
@@ -294,6 +295,7 @@ impl Store {
             "listing" => "SELECT seller FROM listings WHERE id = ?1",
             "account" => "SELECT id FROM accounts WHERE id = ?1",
             "message" => "SELECT sender FROM messages WHERE id = ?1",
+            "post" => "SELECT author FROM posts WHERE id = ?1",
             _ => return Ok(None),
         };
         Ok(self.db.query_row(sql, params![target], |row| row.get(0)).optional()?)
@@ -377,7 +379,11 @@ async fn reports(State(admin): State<Admin>, headers: HeaderMap) -> Answer {
         .map(|report| {
             let owner = store.report_owner(&report.kind, report.target).ok().flatten();
             let owner = owner.and_then(|id| store.admin_account(id).ok().flatten());
-            let removed = report.kind == "listing" && store.is_removed(report.target).unwrap_or(false);
+            let removed = match report.kind.as_str() {
+                "listing" => store.is_removed(report.target).unwrap_or(false),
+                "post" => store.post_removed(report.target).unwrap_or(false),
+                _ => false,
+            };
             json!({ "report": report, "owner": owner, "removed": removed })
         })
         .collect();
@@ -477,5 +483,12 @@ async fn site_off(State(admin): State<Admin>, headers: HeaderMap, Path(id): Path
 async fn site_on(State(admin): State<Admin>, headers: HeaderMap, Path(id): Path<i64>) -> Answer {
     admin.admins.check(&headers)?;
     admin.app.store().set_site_off(id, false)?.then_some(()).ok_or(Failure::NotFound)?;
+    Ok(Json(json!({ "ok": true })).into_response())
+}
+
+/// Takes a community post down.
+async fn remove_post(State(admin): State<Admin>, headers: HeaderMap, Path(id): Path<i64>) -> Answer {
+    admin.admins.check(&headers)?;
+    admin.app.store().remove_post(id)?.then_some(()).ok_or(Failure::NotFound)?;
     Ok(Json(json!({ "ok": true })).into_response())
 }
