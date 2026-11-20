@@ -35,7 +35,7 @@ pub const MAX_TEAM_NAME: usize = 30;
 /// The reactions anyone can leave.
 pub const REACTIONS: [&str; 5] = ["⛏️", "🔥", "❤️", "👏", "😂"];
 /// ORN mined that earns a milestone post.
-const MILESTONES: [u64; 4] = [100, 1_000, 10_000, 100_000];
+const MILESTONES: [u64; 9] = [1, 100, 250, 500, 1_000, 5_000, 10_000, 50_000, 100_000];
 /// New miners shown with a face on one hour's welcome card; more are counted.
 const FACES: usize = 12;
 /// New miners are welcomed in blocks of this long.

@@ -212,9 +212,11 @@ function Happening({ post }: { post: Post }) {
         <div className="flex items-center gap-4">
           <Avatar name={post.subject.name} picture={post.subject.picture} size={56} />
           <div className="min-w-0">
-            <p className="num text-3xl font-bold leading-none tracking-tight text-ink">{Number(post.data.orn).toLocaleString('en')} ORN</p>
+            <p className="num text-3xl font-bold leading-none tracking-tight text-ink">
+              {Number(post.data.orn) === 1 ? 'First ORN' : `${Number(post.data.orn).toLocaleString('en')} ORN`}
+            </p>
             <p className="mt-1.5 text-ink">
-              <Name person={post.subject} /> passed it mining. 🎉
+              <Name person={post.subject} /> {Number(post.data.orn) === 1 ? 'mined their first ORN.' : 'passed it mining.'} 🎉
             </p>
             <p className="mt-1">{checkpoint}</p>
           </div>
