@@ -19,9 +19,12 @@ export function ExplorerBar() {
           <a href={home} aria-label="Orien Explorer home" className="flex items-center text-xl sm:text-2xl">
             <Wordmark />
           </a>
-          <span className="ml-1 rounded-md border border-line px-2 py-0.5 text-xs font-semibold uppercase tracking-[0.14em] text-muted">
+          <a
+            href={home}
+            className="ml-1 rounded-md border border-line px-2 py-0.5 text-xs font-semibold uppercase tracking-[0.14em] text-muted transition hover:border-pearl hover:text-ink"
+          >
             Explorer
-          </span>
+          </a>
           <div className="hidden min-w-0 flex-1 px-6 md:block">
             <div className="mx-auto max-w-xl">
               <ExplorerSearch />

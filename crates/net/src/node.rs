@@ -1810,7 +1810,9 @@ fn serve_requests(stream: &TcpStream, shared: &Shared) -> io::Result<()> {
 /// Keeps up with one other validator, for as long as it is one of the
 /// current epoch's validators.
 fn sync_with_peer(shared: Arc<Shared>, address: String, interval: Duration) {
-    const TIMEOUT: Duration = Duration::from_secs(3);
+    // An answer can carry megabytes of closing messages, which take more
+    // than a few seconds to cross an ocean on a connection starting slowly.
+    const TIMEOUT: Duration = Duration::from_secs(15);
     /// How long a log is left to the validator it belongs to before every
     /// peer is asked for it.
     const PATIENCE: Duration = Duration::from_millis(400);
@@ -2025,12 +2027,20 @@ fn push_shares_to_peer(address: String, queue: Receiver<Share>) {
     }
 }
 
+/// How long a closing message or payment may take to reach another
+/// validator and be answered. A proposal for a busy hour is about a
+/// megabyte; over a 150 ms link, on a connection idle since the last close
+/// and so starting slowly again, it takes over a second. With a one-second
+/// limit it failed twice and was dropped, and a validator on another
+/// continent heard the close only by asking for it, seconds later.
+const PUSH_PATIENCE: Duration = Duration::from_secs(15);
+
 fn push_to_peer(address: String, queue: Receiver<Request>) {
     let mut stream: Option<TcpStream> = None;
     for request in queue {
         for _ in 0..2 {
             if stream.is_none() {
-                stream = connect(&address, Duration::from_secs(1)).ok();
+                stream = connect(&address, PUSH_PATIENCE).ok();
             }
             let sent = stream.as_mut().is_some_and(|open| exchange(open, &request).is_ok());
             if sent {
