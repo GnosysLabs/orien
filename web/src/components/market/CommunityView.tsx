@@ -445,12 +445,14 @@ function PostCard({ post, me, onChange }: { post: Post; me: You | null; onChange
       {network && (
         <>
           <div className="pearl-fill absolute inset-x-0 top-0 h-0.5" aria-hidden />
-          {/* A piece of space for each kind of news, fading into the card towards the words. */}
+          {/* A piece of space for each kind of news, in its own shape at the top
+              of the card: it fades into the card towards the words, and fades out
+              downwards, so replies opening below it sit on the plain card. */}
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src={`/community/${post.kind}.jpg`}
             alt=""
-            className="pointer-events-none absolute right-0 top-0 h-full w-full object-cover opacity-80 [mask-image:linear-gradient(to_left,black,transparent_90%)] sm:w-4/5 sm:[mask-image:linear-gradient(to_left,black_15%,rgb(0_0_0/0.55)_50%,transparent_95%)]"
+            className="pointer-events-none absolute right-0 top-0 h-auto max-h-96 w-full object-cover opacity-80 [mask-composite:intersect] [mask-image:linear-gradient(to_left,black,transparent_90%),linear-gradient(to_bottom,black_55%,transparent)] sm:w-4/5 sm:[mask-image:linear-gradient(to_left,black_15%,rgb(0_0_0/0.55)_50%,transparent_95%),linear-gradient(to_bottom,black_55%,transparent)]"
           />
         </>
       )}
