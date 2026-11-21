@@ -19,7 +19,7 @@ export function MarketBar() {
   const { account, unread } = useMe();
   const swapping = pathname.startsWith("/swap");
   return (
-    <div className="flex flex-wrap items-center gap-3 pb-8 pt-10 sm:pt-14">
+    <div className="flex flex-wrap items-center gap-3 pb-8 pt-5 sm:pt-7">
       <Link
         href={swapping ? "/swap/" : "/marketplace/"}
         className="flex items-center gap-2.5"

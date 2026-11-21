@@ -41,7 +41,7 @@ export function AccountView() {
   if (found === undefined) return <p className="pt-10 text-muted sm:pt-14">Loading…</p>
   if (found === null) return trouble ? <Notice tone="bad">{trouble}</Notice> : null
   return (
-    <div className="pb-16 pt-10 sm:pt-14">
+    <div className="pb-16 pt-5 sm:pt-7">
       <Mine found={found} onChange={reload} />
     </div>
   )

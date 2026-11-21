@@ -12,7 +12,7 @@ export const metadata: Metadata = pageMeta({
 export default function ContactPage() {
   return (
     <div className="mx-auto max-w-[640px] pb-16">
-      <header className="pb-8 pt-10 sm:pt-14">
+      <header className="pb-8 pt-5 sm:pt-7">
         <p className="mb-4 text-xs font-semibold uppercase tracking-[0.2em] text-muted">Contact</p>
         <h1 className="text-balance text-4xl font-bold leading-[1.1] tracking-tight text-ink sm:text-5xl">Write to us</h1>
         <p className="mt-6 text-lg leading-relaxed text-muted">

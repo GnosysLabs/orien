@@ -42,7 +42,7 @@ export default function RandomXPost() {
           publisher: { '@id': `${SITE_URL}/#orien` },
         })}
       />
-      <header className="pt-10 sm:pt-14">
+      <header className="pt-5 sm:pt-7">
         <p className="mb-4 text-xs font-semibold uppercase tracking-[0.2em] text-muted">15 November 2026 · Network</p>
         <h1 className="text-balance text-4xl font-bold leading-[1.1] tracking-tight text-ink sm:text-5xl">
           Mining moves to RandomX

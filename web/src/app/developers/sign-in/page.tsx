@@ -83,7 +83,7 @@ function Section({ title, children }: { title: string; children: React.ReactNode
 
 export default function SignInDevelopersPage() {
   return (
-    <div className="mx-auto max-w-[860px] space-y-8 pb-16 pt-10 sm:pt-14">
+    <div className="mx-auto max-w-[860px] space-y-8 pb-16 pt-5 sm:pt-7">
       <header className="space-y-3">
         <p className="text-xs font-semibold uppercase tracking-[0.14em] text-muted">For developers</p>
         <h1 className="text-3xl font-bold tracking-tight text-ink sm:text-4xl">Sign in with Orien</h1>

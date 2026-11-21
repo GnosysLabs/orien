@@ -702,7 +702,7 @@ export function CommunityView() {
   }
 
   return (
-    <div className="mx-auto max-w-[1040px] space-y-5 pb-16 pt-4 sm:pt-6">
+    <div className="mx-auto max-w-[1040px] space-y-5 pb-16 pt-5 sm:pt-7">
       <h1 className="px-1 text-3xl font-bold tracking-tight text-ink">Community</h1>
 
       <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_320px]">

@@ -143,7 +143,7 @@ const ACTIVITY = `{
 
 export default function DevelopersPage() {
   return (
-    <div className="mx-auto max-w-[900px] space-y-8 pb-16 pt-10 sm:pt-14">
+    <div className="mx-auto max-w-[900px] space-y-8 pb-16 pt-5 sm:pt-7">
       <header className="space-y-4">
         <p className="text-xs font-semibold uppercase tracking-[0.14em] text-muted">For developers</p>
         <h1 className="text-balance text-4xl font-bold tracking-tight text-ink sm:text-5xl">Build with Orien</h1>
