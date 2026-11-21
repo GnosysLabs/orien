@@ -4865,7 +4865,7 @@
     swapGate[go] = !!newer;
     if (!newer) return false;
     update = newer; checkUpdate();
-    $(go).textContent = `Update to ${newer.version}`;
+    $(go).textContent = "Update to Latest";
     $(box).textContent = "Swaps need the newest Orien Wallet. Update first: it takes a moment, and the app reopens by itself.";
     $(box).hidden = false;
     return true;
@@ -6128,8 +6128,8 @@
     button.hidden = !update;
     if (!update) return;
     button.classList.toggle("required", update.required);
-    button.textContent = update.required ? "Update needed" : `Update to ${update.version}`;
-    button.title = update.notes || "";
+    button.textContent = update.required ? "Update needed" : "Update to Latest";
+    button.title = `Orien Wallet ${update.version} is out${update.notes ? `: ${update.notes}` : ""}`;
   }
   $("update").onclick = async () => {
     const button = $("update");

@@ -51,12 +51,20 @@ pub async fn check_update(app: AppHandle) -> Result<Option<Available>, String> {
     Ok(Some(available))
 }
 
-/// Downloads the update, checks its signature, installs it and restarts.
+/// Downloads the newest version, checks its signature, installs it and
+/// restarts. Asks orien.network again first, so a release that came out
+/// after the last check is the one installed, not the one before it; when
+/// that question can't be answered, the update found earlier is used.
 /// Waits for a payment that is going out to finish first, and lets none
 /// start meanwhile.
 #[tauri::command]
 pub async fn install_update(app: AppHandle) -> Result<(), String> {
-    let update = FOUND.lock().unwrap_or_else(|poisoned| poisoned.into_inner()).take().ok_or("no update found")?;
+    let newest = match app.updater() {
+        Ok(updater) => updater.check().await.ok().flatten(),
+        Err(_) => None,
+    };
+    let earlier = FOUND.lock().unwrap_or_else(|poisoned| poisoned.into_inner()).take();
+    let update = newest.or(earlier).ok_or("no update found")?;
     tauri::async_runtime::spawn_blocking(move || {
         let _turn = crate::TURNS.lock().unwrap_or_else(|poisoned| poisoned.into_inner());
         tauri::async_runtime::block_on(update.download_and_install(|_, _| {}, || {}))
