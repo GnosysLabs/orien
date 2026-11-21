@@ -23,7 +23,7 @@ function Section({ title, children }: { title: string; children: React.ReactNode
 export default function PrivacyPage() {
   return (
     <div className="mx-auto max-w-[760px] space-y-10 pb-16">
-      <header className="pt-10 sm:pt-14">
+      <header className="pt-5 sm:pt-7">
         <p className="mb-4 text-xs font-semibold uppercase tracking-[0.2em] text-muted">Privacy</p>
         <h1 className="text-balance text-4xl font-bold leading-[1.1] tracking-tight text-ink sm:text-5xl">
           What we keep, and why
@@ -119,6 +119,11 @@ export default function PrivacyPage() {
           <li>
             <strong>OpenRouter</strong> and the AI model it runs check everything posted before anyone else sees it:
             listings, names, bios, pictures and messages. They see what is checked, not who you are.
+          </li>
+          <li>
+            <strong>YouTube</strong> plays a video someone links to in the community, through its player that sets no
+            cookies. YouTube’s servers see your connection when such a post is on your screen, as on any page with a
+            video.
           </li>
           <li>
             Payments in ORN are on the Orien network, which is public by design: anyone can see an address&apos;s balance

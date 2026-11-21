@@ -10,6 +10,8 @@ import { AutoTextarea } from '@/components/AutoTextarea'
 import { Avatar } from './Avatar'
 import { ReportButton } from './ReportButton'
 import { Notice } from './Shell'
+import { Linked } from './Linked'
+import { YouTube, youtubeId } from './YouTube'
 import { openSignIn } from './SignInDialog'
 
 type Person = { name: string; picture: string | null }
@@ -58,6 +60,12 @@ function since(seconds: number) {
   if (s < 86400) return `${Math.floor(s / 3600)}h`
   if (s < 86400 * 30) return `${Math.floor(s / 86400)}d`
   return new Date(seconds * 1000).toLocaleDateString('en', { day: 'numeric', month: 'short' })
+}
+
+/** A YouTube video a post links to, playable in place. */
+function Video({ text }: { text: string }) {
+  const id = youtubeId(text)
+  return id ? <YouTube id={id} /> : null
 }
 
 function Name({ person, className = '' }: { person: { name: string }; className?: string }) {
@@ -419,7 +427,10 @@ function Reply({ reply, me, onChange }: { reply: Post; me: You | null; onChange:
           </p>
           <PostMenu post={reply} signedIn={!!me} onRemoved={onChange} />
         </div>
-        <p className="whitespace-pre-line break-words text-[15px] leading-relaxed text-ink">{reply.body}</p>
+        <p className="whitespace-pre-line break-words text-[15px] leading-relaxed text-ink">
+          <Linked text={reply.body} />
+        </p>
+        <Video text={reply.body} />
         <div className="mt-2">
           <ReactionBar post={reply} signedIn={!!me} onChange={onChange} />
         </div>
@@ -466,7 +477,7 @@ function PostCard({ post, me, onChange }: { post: Post; me: You | null; onChange
               <>
                 <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-pearl">{eyebrow}</p>
                 <p className="text-sm text-muted">
-                  <span className="font-semibold text-ink">Orien</span> · {since(post.created)}
+                  <span className="font-semibold text-ink">Orien Network</span> · {since(post.created)}
                 </p>
               </>
             ) : (
@@ -482,8 +493,9 @@ function PostCard({ post, me, onChange }: { post: Post; me: You | null; onChange
         </header>
 
         <div className={`mt-4 ${network ? '' : 'whitespace-pre-line break-words text-[17px] leading-relaxed text-ink'}`}>
-          {network ? <Happening post={post} /> : post.body}
+          {network ? <Happening post={post} /> : <Linked text={post.body} />}
         </div>
+        {!network && <Video text={post.body} />}
 
         <div className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-2">
           <button
@@ -690,7 +702,7 @@ export function CommunityView() {
   }
 
   return (
-    <div className="mx-auto max-w-[1040px] space-y-5 pb-16 pt-4 sm:pt-6">
+    <div className="mx-auto max-w-[1040px] space-y-5 pb-16 pt-5 sm:pt-7">
       <h1 className="px-1 text-3xl font-bold tracking-tight text-ink">Community</h1>
 
       <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_320px]">

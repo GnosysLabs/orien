@@ -6,7 +6,7 @@ export const metadata: Metadata = { title: 'Sign in with Orien', robots: { index
 /** Where websites send people to Sign in with Orien. */
 export default function AuthorizePage() {
   return (
-    <div className="mx-auto max-w-[1100px] pb-16 pt-10 sm:pt-14">
+    <div className="mx-auto max-w-[1100px] pb-16 pt-5 sm:pt-7">
       <Authorize />
     </div>
   )

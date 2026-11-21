@@ -31,7 +31,7 @@ export function WebsitesView() {
 
   return (
     <>
-      <div className="space-y-6 pb-16 pt-10 sm:pt-14">
+      <div className="space-y-6 pb-16 pt-5 sm:pt-7">
         <header className="space-y-3">
           <p className="text-xs font-semibold uppercase tracking-[0.14em] text-muted">Build</p>
           <h1 className="text-3xl font-bold tracking-tight text-ink">Sign in with Orien</h1>

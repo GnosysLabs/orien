@@ -62,7 +62,7 @@ export default function HomePage() {
   return (
     <div className="mx-auto max-w-[1040px]">
       {/* Hero */}
-      <section className="pb-14 pt-10 text-center sm:pb-20 sm:pt-16">
+      <section className="pb-14 pt-5 text-center sm:pb-20 sm:pt-7">
         <p className="mb-5 text-xs font-semibold uppercase tracking-[0.2em] text-muted">Quantum-proof cryptocurrency</p>
         <h1 className="mx-auto max-w-3xl text-balance text-4xl font-bold leading-[1.1] tracking-tight text-ink sm:text-6xl">
           The cryptocurrency that settles in a blink, <span className="pearl-text bg-clip-text text-transparent">built for the quantum age.</span>

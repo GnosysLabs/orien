@@ -80,6 +80,24 @@ enum Command {
     Balance {
         /// A wallet file or an account address (default: your wallet)
         account: Option<String>,
+        /// Answer in JSON, for programs: amounts in billionths of an ORN
+        #[arg(long)]
+        json: bool,
+        #[command(flatten)]
+        network: Network,
+    },
+    /// List what came into an account and what it sent, asking the
+    /// validators themselves: payments, mining rewards and the rest, oldest
+    /// first. Payments of the hour under way are final already.
+    Activity {
+        /// A wallet file or an account address (default: your wallet)
+        account: Option<String>,
+        /// Start from this checkpoint's hour (default: the last day's)
+        #[arg(long)]
+        from: Option<u64>,
+        /// Answer in JSON, for programs: amounts in billionths of an ORN
+        #[arg(long)]
+        json: bool,
         #[command(flatten)]
         network: Network,
     },
@@ -532,7 +550,12 @@ fn run(cli: Cli) -> Result<()> {
             println!("{}", Wallet::peek(&file)?.0);
             Ok(())
         }
-        Command::Balance { account, network } => balance(&account.unwrap_or_else(|| default_wallet().display().to_string()), &network.file()),
+        Command::Balance { account, json, network } => {
+            balance(&account.unwrap_or_else(|| default_wallet().display().to_string()), json, &network.file())
+        }
+        Command::Activity { account, from, json, network } => {
+            activity(&account.unwrap_or_else(|| default_wallet().display().to_string()), from, json, &network.file())
+        }
         Command::Send { wallet, to, amount, receipt, network } => {
             let to = resolve_account(&to)?;
             submit(&wallet.clone().unwrap_or_else(default_wallet), |_, _| Ok(Kind::Payment), Some(to), amount, receipt.as_deref(), &network.file())
@@ -807,7 +830,77 @@ fn locked(genesis: &Genesis, client: &Client, seq: u64, payments: &[Unfinished])
     )
 }
 
-fn balance(account: &str, genesis: &Path) -> Result<()> {
+/// What came into an account and what it sent, from the validators' own
+/// records. For people, a line each; with `json`, for programs.
+fn activity(account: &str, from: Option<u64>, json: bool, genesis: &Path) -> Result<()> {
+    let (_, client) = connect(genesis)?;
+    let id = resolve_account(account)?;
+    let from = from.unwrap_or_else(|| client.epoch().saturating_sub(24));
+    let mut entries = Vec::new();
+    let (mut since, mut unknown, mut next) = (0, Vec::new(), Some(from));
+    // Page by page, as far as the validators' records go.
+    while let Some(at) = next {
+        let Some(page) = client.activity(&id, at, orien_net::history::MAX_ENTRIES) else {
+            bail!("no validator answered with this account's activity; try again shortly");
+        };
+        since = page.since;
+        unknown.extend(page.unknown);
+        entries.extend(page.entries);
+        next = page.next.filter(|further| *further > at);
+    }
+    let kind = |income: &orien_ledger::Income| match income {
+        orien_ledger::Income::Payment => "received",
+        orien_ledger::Income::Sent => "sent",
+        orien_ledger::Income::Mining => "mined",
+        orien_ledger::Income::Fees => "fees",
+        orien_ledger::Income::Claim => "claimed",
+        orien_ledger::Income::Refund => "refunded",
+        orien_ledger::Income::Unstaked => "unstaked",
+    };
+    if json {
+        let list: Vec<serde_json::Value> = entries
+            .iter()
+            .map(|entry| {
+                serde_json::json!({
+                    "epoch": entry.epoch,
+                    "time": entry.time,
+                    "kind": kind(&entry.income),
+                    "amount": entry.amount.to_string(),
+                    "counterparty": entry.counterparty.map(|other| other.to_string()),
+                    // What tells one payment from another: its sender and its number.
+                    "payment": entry.order.map(|(sender, number)| format!("{sender}:{number}")),
+                })
+            })
+            .collect();
+        let answer = serde_json::json!({
+            "address": id.to_string(),
+            "epoch": client.epoch(),
+            "from": from.max(since),
+            "unknown": unknown,
+            "activity": list,
+        });
+        println!("{}", serde_json::to_string_pretty(&answer)?);
+        return Ok(());
+    }
+    println!("account   {id}");
+    if since > from {
+        println!("          the validators' records begin at checkpoint {since}");
+    }
+    if entries.is_empty() {
+        println!("          nothing since checkpoint {}", from.max(since));
+    }
+    for entry in &entries {
+        let when = match entry.time {
+            Some(_) => format!("checkpoint {}", entry.epoch),
+            None => "this hour, final".to_string(),
+        };
+        let other = entry.counterparty.map(|other| format!("  {other}")).unwrap_or_default();
+        println!("{:<9} {:>18} ORN  {when}{other}", kind(&entry.income), coins(entry.amount as i128));
+    }
+    Ok(())
+}
+
+fn balance(account: &str, json: bool, genesis: &Path) -> Result<()> {
     let (genesis, client) = connect(genesis)?;
     // A wallet with a password is read by its address alone: a balance
     // never needs the password.
@@ -829,10 +922,25 @@ fn balance(account: &str, genesis: &Path) -> Result<()> {
     if reachable == 0 {
         bail!("no validator could be reached");
     }
-    println!("account        {id}");
     // What the last checkpoint proves, checked against it here; and what
     // validators report has happened since, which nothing proves yet.
     let proven = client.proven(&id).map_or(0, |account| account.balance);
+    if json {
+        // For programs. `balance` is what validators holding more than two
+        // thirds of the stake report now; null when too few answered.
+        let answer = serde_json::json!({
+            "address": id.to_string(),
+            "balance": status.spendable.map(|now| now.to_string()),
+            "at_last_checkpoint": proven.to_string(),
+            "epoch": client.epoch(),
+            "payments_made": status.seq,
+            "validators_answered": reachable,
+            "validators": client.validators(),
+        });
+        println!("{}", serde_json::to_string_pretty(&answer)?);
+        return Ok(());
+    }
+    println!("account        {id}");
     // The balance is what validators holding enough stake all report now.
     // What arrived since the last checkpoint is final, but only the next
     // checkpoint proves it; say so only when it makes a difference.

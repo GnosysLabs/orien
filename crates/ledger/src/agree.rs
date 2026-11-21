@@ -278,6 +278,19 @@ impl<V: Value> Agreement<V> {
         out
     }
 
+    /// Whether `timeout` running out now would change anything: the wait it
+    /// stands for is still the one this validator is in.
+    pub fn waits_on(&self, timeout: Timeout) -> bool {
+        if self.decided.is_some() || !self.started {
+            return false;
+        }
+        match timeout {
+            Timeout::Propose(round) => round == self.round && self.step == Step::Propose,
+            Timeout::Prevote(round) => round == self.round && self.step == Step::Prevote,
+            Timeout::Precommit(round) => round == self.round,
+        }
+    }
+
     pub fn on_timeout(&mut self, timeout: Timeout) -> Vec<Output<V>> {
         let mut out = Vec::new();
         if self.decided.is_some() || !self.started {

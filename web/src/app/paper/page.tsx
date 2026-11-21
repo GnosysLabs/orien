@@ -50,7 +50,7 @@ export default function PaperPage() {
           publisher: { '@id': `${SITE_URL}/#orien` },
         })}
       />
-      <header className="pb-6 pt-10 sm:pt-14 print:pt-0">
+      <header className="pb-6 pt-5 sm:pt-7 print:pt-0">
         <p className="mb-4 text-xs font-semibold uppercase tracking-[0.2em] text-muted print:text-neutral-500">
           Technical paper
         </p>

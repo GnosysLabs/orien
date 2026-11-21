@@ -90,7 +90,7 @@ function Facts({ rows }: { rows: [string, string][] }) {
 export default function HowItWorksPage() {
   return (
     <div className="mx-auto max-w-[760px]">
-      <header className="pb-10 pt-10 sm:pt-14">
+      <header className="pb-10 pt-5 sm:pt-7">
         <p className="mb-4 text-xs font-semibold uppercase tracking-[0.2em] text-muted">How it works</p>
         <h1 className="text-balance text-4xl font-bold leading-[1.1] tracking-tight text-ink sm:text-5xl">
           A cryptocurrency without blocks
