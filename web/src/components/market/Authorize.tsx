@@ -7,7 +7,7 @@ import { short } from '@/lib/explorer'
 import { Wordmark } from '@/components/Wordmark'
 import { SignIn } from './AccountView'
 import { Avatar } from './Avatar'
-import { Notice } from './Shell'
+import { Notice, SIGNED_IN_OR_OUT } from './Shell'
 
 type Asked = {
   site: { name: string; host: string }
@@ -133,7 +133,11 @@ export function Authorize() {
     return (
       <Overlay>
         <SignIn
-        onDone={() => void load()}
+        onDone={() => {
+          // The header follows the same news.
+          window.dispatchEvent(new Event(SIGNED_IN_OR_OUT))
+          void load()
+        }}
         trouble=""
         wallet
         title={`Sign in to continue to ${asked.site.name}`}
