@@ -121,7 +121,7 @@ function WalletHelp({ state, onClose }: { state: State | 'install'; onClose: () 
     body = <p>Open Orien Wallet on this computer, then try again.</p>
   } else if (state === 'signed-out') {
     title = 'Sign in to Orien Wallet'
-    body = <p>Open Orien Wallet and sign in to Orien Network (in Swap or Market), then try again.</p>
+    body = <p>Open Orien Wallet and sign in to Orien Network from its home screen, then try again.</p>
   } else {
     title = 'Sign in with Orien Wallet'
     let advice: React.ReactNode
