@@ -27,6 +27,18 @@ export const PRODUCTS: Record<Product, string> = {
 export const CHANGELOG: Entry[] = [
   {
     date: '2026-11-21',
+    products: ['wallet'],
+    version: '1.8.24',
+    title: 'Browser extensions in Settings, and one update brings the newest',
+    changes: [
+      'Settings has a Browser Extensions page: Safari on a Mac, Chrome, Edge and Brave, each with its own button. The extension lets you send ORN, see your balance and sign in to orien.network with one click, right from your browser.',
+      'The update button now says Update to Latest and always installs the newest version, so one update is enough even when several came out.',
+      'On iPhone, Share address opens the full share sheet from the bottom of the screen, and Send keeps the total and balance after in view while you type an amount.',
+      'The Safari extension works properly even with two copies of Orien Wallet on the same Mac.',
+    ],
+  },
+  {
+    date: '2026-11-21',
     products: ['orien', 'validators'],
     version: '1.10.5',
     title: 'Checkpoints agree on the first try again, and orien answers programs',
