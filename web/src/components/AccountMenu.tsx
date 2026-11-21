@@ -7,6 +7,7 @@ import { LogIn, LogOut, Settings, UserRound } from "lucide-react";
 import { ask, profileHref } from "@/lib/market";
 import { SIGNED_IN_OR_OUT, useMe } from "@/lib/useMe";
 import { Avatar } from "./market/Avatar";
+import { openSignIn } from "./market/SignInDialog";
 
 /** The top bar's account corner: your picture, with a menu to edit your
  * profile or sign out, or a Sign in button. */
@@ -46,26 +47,28 @@ export function AccountMenu({ inSidebar = false }: { inSidebar?: boolean } = {})
 
   if (!account && inSidebar) {
     return (
-      <Link
-        href="/account/"
+      <button
+        type="button"
+        onClick={openSignIn}
         className="flex h-11 w-full items-center justify-center gap-2 rounded-xl border border-line text-sm font-semibold text-ink transition hover:bg-raised"
       >
         <LogIn className="h-4 w-4" strokeWidth={2.25} aria-hidden />
         Sign in
-      </Link>
+      </button>
     );
   }
 
   if (!account) {
     return (
-      <Link
-        href="/account/"
+      <button
+        type="button"
+        onClick={openSignIn}
         aria-label="Sign in to Orien Network"
         className="flex h-9 items-center gap-2 whitespace-nowrap rounded-[10px] border border-line px-2.5 text-sm font-semibold text-ink transition hover:bg-raised sm:h-10 sm:px-3"
       >
         <LogIn className="h-4 w-4" strokeWidth={2.25} aria-hidden />
         <span className="hidden sm:inline lg:hidden xl:inline">Sign in</span>
-      </Link>
+      </button>
     );
   }
 

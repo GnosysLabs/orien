@@ -10,6 +10,7 @@ import { AutoTextarea } from '@/components/AutoTextarea'
 import { Avatar } from './Avatar'
 import { ReportButton } from './ReportButton'
 import { Notice } from './Shell'
+import { openSignIn } from './SignInDialog'
 
 type Person = { name: string; picture: string | null }
 type Face = { account?: number; address?: string; name?: string; picture?: string | null; paid?: string }
@@ -309,7 +310,7 @@ function ReactionBar({ post, signedIn, onChange }: { post: Post; signedIn: boole
   const toggle = async (emoji: string) => {
     setOpen(false)
     if (!signedIn) {
-      window.location.href = '/account/'
+      openSignIn()
       return
     }
     await ask(`/community/posts/${post.id}/react`, 'POST', { emoji }).catch(() => undefined)
