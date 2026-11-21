@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "Orien Wallet",
   "description": "Your Orien Wallet in Chrome: your balance, sending, and Sign in with Orien. Works with Orien Wallet on this computer.",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAyDU7NjxgdPvEWShH/RsYHexNZ1enc27zWEl3r0foPlt3ZpNGTFPsn9yKG33LDQj2oKAZQPEmZLoVRo9Fn2s46WgTVkX97KhHXdYexnzy8OE+Xb0/5koUu0VTrhmHsV1XiKNIaS0h19+Cha+z/mBYqCKPrfA2TGMLNjOw4YowJTg8jeeVevmkfaFINkhFb3AQvqhDoXi9vX/BaFSuA6qwWINAuJaOKUmS12G0zc+RZ+Lhj3+PRFfCuUhRunK6xOCGlGnOzShvc0u74PbjlHr8auUbDsdC2NIyaVhEisrQOCWTsBThV5TEXmSiVAZBLpkYMHW1nCvP599ExU1JHIbstQIDAQAB",
   "icons": {
     "32": "icon-32.png",
