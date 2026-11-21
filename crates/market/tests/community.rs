@@ -226,4 +226,11 @@ fn streaks_and_the_days_top_miner_are_posted() {
     assert_eq!(top.2["miner"]["account"], 7);
     assert_eq!(top.2["hours"], 20);
     assert!(!happenings(&mined, &owners, 31).iter().any(|(kind, _, _)| kind == "top_day"));
+    // Only members count for the day's top miner, however much an address mined;
+    // with no member paid that day, nothing is posted.
+    let bob_only = HashMap::from([(address(2), 8)]);
+    let top = happenings(&mined, &bob_only, 30).into_iter().find(|(kind, _, _)| kind == "top_day").unwrap();
+    assert_eq!(top.1, Some(8));
+    assert_eq!(top.2["miners"], 2, "the day's totals still count everyone");
+    assert!(!happenings(&mined, &HashMap::new(), 30).iter().any(|(kind, _, _)| kind == "top_day"));
 }

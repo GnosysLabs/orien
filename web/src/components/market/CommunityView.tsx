@@ -244,7 +244,8 @@ function Happening({ post }: { post: Post }) {
           <FaceAvatar face={miner} size={56} />
           <div className="min-w-0">
             <p className="text-lg font-semibold text-ink">
-              {miner.name ? <Name person={{ name: miner.name }} /> : <span className="num">{short(miner.address ?? '')}</span>} mined the most on {day}
+              {miner.name ? <Name person={{ name: miner.name }} /> : <span className="num">{short(miner.address ?? '')}</span>} mined the most of Orien
+              Network’s members on {day}
             </p>
             <p className="num mt-1 text-2xl font-bold text-ink">{mined(String(post.data.mined))} ORN</p>
             <p className="mt-1 text-sm text-muted">

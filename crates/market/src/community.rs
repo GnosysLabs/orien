@@ -281,7 +281,9 @@ pub fn happenings(mined: &Mined, owners: &HashMap<String, i64>, epoch: u64) -> V
         }
     }
 
-    // The day before this checkpoint's, once it is over: its top miner.
+    // The day before this checkpoint's, once it is over: its top miner among
+    // the members, those with a verified wallet, like the leaderboard. The
+    // day's totals count everyone.
     let day = |e: u64| mined.times.get(&e).map(|t| t / 86_400);
     if let (Some(today), Some(yesterday)) = (day(epoch), day(epoch - 1))
         && today != yesterday
@@ -297,7 +299,8 @@ pub fn happenings(mined: &Mined, owners: &HashMap<String, i64>, epoch: u64) -> V
             }
         }
         let total: u128 = by_miner.values().sum();
-        if let Some((top, amount)) = by_miner.iter().max_by(|a, b| a.1.cmp(b.1).then_with(|| b.0.cmp(a.0))) {
+        let members = by_miner.iter().filter(|(m, _)| matches!(m, Miner::Account(_)));
+        if let Some((top, amount)) = members.max_by(|a, b| a.1.cmp(b.1).then_with(|| b.0.cmp(a.0))) {
             let subject = if let Miner::Account(id) = top { Some(*id) } else { None };
             let date = chrono_date(yesterday * 86_400);
             said.push((
