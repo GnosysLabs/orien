@@ -612,11 +612,18 @@ function Miners({ board }: { board: Board }) {
         <button
           type="button"
           onClick={() => setAll(!all)}
-          className="w-full rounded-b-2xl px-4 py-3 text-left text-sm font-semibold text-pearl transition hover:bg-raised/40"
+          className="w-full px-4 py-3 text-left text-sm font-semibold text-pearl transition hover:bg-raised/40"
         >
           {all ? 'Show less' : 'Show more'}
         </button>
       )}
+      <p className="border-t border-line px-4 py-3 text-xs leading-relaxed text-muted">
+        Miners who have verified a wallet on their Orien Network account, by ORN mined. To be on the list,{' '}
+        <Link href="/account/" className="font-semibold text-ink hover:underline">
+          verify your wallet
+        </Link>{' '}
+        on your account.
+      </p>
     </section>
   )
 }
