@@ -4,7 +4,7 @@ import Link from 'next/link'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { Flag, Flame, MessageCircle, MoreHorizontal, SmilePlus, Trash2, Trophy } from 'lucide-react'
 import { ask, profileHref } from '@/lib/market'
-import { checkpointHref, explore, hashrate as hashrateText, orn, short, type Overview } from '@/lib/explorer'
+import { checkpointHref, orn, short } from '@/lib/explorer'
 import { useMe } from '@/lib/useMe'
 import { AutoTextarea } from '@/components/AutoTextarea'
 import { Avatar } from './Avatar'
@@ -518,46 +518,6 @@ function PostCard({ post, me, onChange }: { post: Post; me: You | null; onChange
   )
 }
 
-/** Miners this hour, ORN this hour, hashrate, and the next checkpoint, live. */
-function LiveStrip() {
-  const [overview, setOverview] = useState<Overview | null>(null)
-  const [now, setNow] = useState(() => Date.now() / 1000)
-  useEffect(() => {
-    let live = true
-    const load = () => explore<Overview>('/overview').then((o) => live && setOverview(o)).catch(() => undefined)
-    load()
-    const refresh = setInterval(load, 30_000)
-    const tick = setInterval(() => setNow(Date.now() / 1000), 1000)
-    return () => {
-      live = false
-      clearInterval(refresh)
-      clearInterval(tick)
-    }
-  }, [])
-  const left = overview ? overview.epoch_started + overview.epoch_seconds - now : 0
-  const countdown =
-    left <= 0 ? 'any moment' : `${Math.floor(left / 60)}:${String(Math.floor(left % 60)).padStart(2, '0')}`
-  const cells: [string, string][] = [
-    ['Miners this hour', overview?.miners ? overview.miners.last_hour.toLocaleString('en') : '—'],
-    ['ORN this hour', overview?.supply ? orn(overview.supply.per_hour, 0) : '—'],
-    ['Hashrate', overview?.hashrate ? hashrateText(overview.hashrate.per_second) : '—'],
-    ['Next checkpoint', overview ? countdown : '—'],
-  ]
-  return (
-    <div className={`${card} grid grid-cols-2 divide-line sm:grid-cols-4 sm:divide-x`}>
-      {cells.map(([label, value]) => (
-        <div key={label} className="px-4 py-3">
-          <p className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-[0.14em] text-muted">
-            {label === 'Miners this hour' && <span className="h-1.5 w-1.5 rounded-full bg-go" aria-hidden />}
-            {label}
-          </p>
-          <p className="num mt-0.5 text-xl font-bold text-ink">{value}</p>
-        </div>
-      ))}
-    </div>
-  )
-}
-
 function YouCard({ you, onChange }: { you: You | null; onChange: () => void }) {
   if (!you) {
     return (
@@ -721,7 +681,6 @@ export function CommunityView() {
   return (
     <div className="mx-auto max-w-[1040px] space-y-5 pb-16 pt-4 sm:pt-6">
       <h1 className="px-1 text-3xl font-bold tracking-tight text-ink">Community</h1>
-      <LiveStrip />
 
       <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_320px]">
         <main className="min-w-0 space-y-3">
