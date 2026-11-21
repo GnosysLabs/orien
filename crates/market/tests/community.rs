@@ -208,6 +208,11 @@ async fn the_networks_story_is_backfilled_and_dated_at_its_checkpoints() {
     assert!(about.iter().any(|p| p["kind"] == "welcome"), "Carol's face is in a welcome");
     assert!(about.iter().all(|p| p["body"] != "hello"));
     assert_eq!(ask(&app, "GET", "/api/market/community/feed?about=Nobody", None, None).await.0, StatusCode::NOT_FOUND);
+    // Members are found by part of their name, the closest first.
+    let (_, found) = ask(&app, "GET", "/api/market/community/members?q=aro", None, None).await;
+    assert_eq!(found["members"][0]["name"], "Carol");
+    let (_, found) = ask(&app, "GET", "/api/market/community/members?q=a", None, None).await;
+    assert!(found["members"].as_array().unwrap().is_empty(), "two letters at least");
     // Told once, nothing is told twice.
     let before = network["posts"].as_array().unwrap().len();
     store_for_tests(&app, |s| s.tell(&mined(), &owners).unwrap());

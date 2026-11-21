@@ -687,6 +687,35 @@ impl Community {
         self.board.lock().unwrap().clone()
     }
 
+    /// Members whose names contain `text`, the closest first: name and
+    /// picture, and whether they verified a wallet.
+    pub(crate) fn find_members(&self, store: &Store, text: &str) -> Result<Vec<Value>> {
+        let query = text.trim().to_lowercase();
+        if query.chars().count() < 2 {
+            return Ok(Vec::new());
+        }
+        let escaped: String = query.chars().flat_map(|c| if matches!(c, '%' | '_' | '\\') { vec!['\\', c] } else { vec![c] }).collect();
+        let mut statement = store.db.prepare(
+            "SELECT a.id, a.name, a.picture,
+                    EXISTS (SELECT 1 FROM verified_wallets v WHERE v.account = a.id AND v.proven IS NOT NULL)
+             FROM accounts a
+             WHERE lower(a.name) LIKE ?1 ESCAPE '\\' AND a.id NOT IN (SELECT account FROM suspended)
+             ORDER BY lower(a.name) = ?2 DESC, lower(a.name) LIKE ?3 ESCAPE '\\' DESC, lower(a.name), a.id
+             LIMIT 8",
+        )?;
+        let rows = statement.query_map(params![format!("%{escaped}%"), query, format!("{escaped}%")], |row| {
+            let id: i64 = row.get(0)?;
+            Ok((id, row.get::<_, String>(1)?, row.get::<_, Option<String>>(2)?, row.get::<_, bool>(3)?))
+        })?;
+        let mut found = Vec::new();
+        for row in rows {
+            let (id, name, picture, verified) = row?;
+            let rank = self.stats_of(id).map(|stats| stats.rank);
+            found.push(json!({ "name": name, "picture": picture, "verified": verified, "rank": rank }));
+        }
+        Ok(found)
+    }
+
     /// An account's rank, ORN mined and streak, when its verified wallets
     /// have been paid for mining.
     pub(crate) fn stats_of(&self, account: i64) -> Option<Stats> {
@@ -711,6 +740,7 @@ pub fn routes() -> Router<Arc<App>> {
         .route("/api/market/community/posts", post(new_post))
         .route("/api/market/community/posts/{id}", get(replies).delete(remove_post))
         .route("/api/market/community/posts/{id}/react", post(react))
+        .route("/api/market/community/members", get(members))
 }
 
 fn viewer(app: &App, headers: &HeaderMap) -> Option<i64> {
@@ -723,6 +753,16 @@ pub struct Before {
     only: Option<String>,
     /// An account's name: only its own posts and the network's posts about it.
     about: Option<String>,
+}
+
+#[derive(Deserialize)]
+pub struct Find {
+    q: String,
+}
+
+async fn members(State(app): State<Arc<App>>, Query(find): Query<Find>) -> Result<Response, Failure> {
+    let found = app.community().find_members(&app.store(), &find.q)?;
+    Ok(([(axum::http::header::CACHE_CONTROL, "public, max-age=30")], Json(json!({ "members": found }))).into_response())
 }
 
 async fn feed(State(app): State<Arc<App>>, headers: HeaderMap, Query(page): Query<Before>) -> Result<Response, Failure> {
