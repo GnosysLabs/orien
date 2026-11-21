@@ -42,7 +42,7 @@ export const CHANGELOG: Entry[] = [
     title: 'Orien Wallet in your browser, and a new Send',
     changes: [
       'Orien Wallet for Safari comes with the Mac app: turn it on in Safari’s Settings, under Extensions. Orien Wallet for Chrome works on Mac, Windows and Linux. Both show your balance in your theme, send ORN with name suggestions, and sign you in with Orien. They hold no keys: Orien Wallet approves and signs everything.',
-      'Sign in with Orien Wallet: on orien.network, one click (and Touch ID on a Mac) signs you in, with no email code.',
+      'Sign in with Orien Wallet: on orien.network, one click signs you in, with no email code.',
       'Send ORN is one screen: your recent people to pick from, the amount with Max, a summary of the total and your balance after, then Send with Touch ID. No separate Review step.',
       'Screen titles are in Orien’s own typeface.',
     ],
