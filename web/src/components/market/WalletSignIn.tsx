@@ -86,7 +86,7 @@ export function WalletSignIn({ className, after }: { className: string; after?: 
           if (state !== 'ready') setOpen(state ?? 'install')
         }}
       >
-        <span className="orien-mark h-[1.6em] w-[1.6em] shrink-0 bg-bg" aria-hidden />
+        <span className="orien-mark shrink-0 bg-bg" style={{ width: 28, height: 28 }} aria-hidden />
         Sign in with Orien Wallet
       </button>
       {after}
