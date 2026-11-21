@@ -7,6 +7,7 @@
 use std::io::{Read, Write};
 use std::net::TcpStream;
 use std::sync::Mutex;
+use std::time::{Duration, Instant};
 use tauri::AppHandle;
 
 /// Where the extensions find the app: this computer only.
@@ -21,6 +22,30 @@ const CHROME: &[&str] = &["chrome-extension://oogifphigefggbdlcomcohbjfbgomcmn",
 /// The address, balance and most that can be sent, as the app last saw
 /// them.
 static WALLET: Mutex<Option<serde_json::Value>> = Mutex::new(None);
+
+/// Whether a sign-in is under way, and when one last started or ended. The
+/// extension asks, to tell a slow Touch ID from a question the browser
+/// lost on the way (Safari sometimes drops one), which it asks again.
+static SIGNING: Mutex<(bool, Option<Instant>)> = Mutex::new((false, None));
+
+fn confirming() -> bool {
+    let (running, when) = *SIGNING.lock().unwrap_or_else(|poisoned| poisoned.into_inner());
+    running || when.is_some_and(|when| when.elapsed() < Duration::from_secs(5))
+}
+
+/// Marks a sign-in as under way until dropped.
+struct Signing;
+impl Signing {
+    fn start() -> Self {
+        *SIGNING.lock().unwrap_or_else(|poisoned| poisoned.into_inner()) = (true, Some(Instant::now()));
+        Signing
+    }
+}
+impl Drop for Signing {
+    fn drop(&mut self) {
+        *SIGNING.lock().unwrap_or_else(|poisoned| poisoned.into_inner()) = (false, Some(Instant::now()));
+    }
+}
 
 /// Keeps what the extension shows current, as the app refreshes.
 pub fn share(address: &str, balance: Option<&str>, most: Option<&str>) {
@@ -147,6 +172,7 @@ fn wallet(app: &AppHandle) -> serde_json::Value {
         // Signed in to Orien Network: websites' Sign in with Orien can use it.
         seen["signed_in"] = crate::board::session(dir).is_some().into();
     }
+    seen["confirming"] = confirming().into();
     seen
 }
 
@@ -189,6 +215,7 @@ fn people(app: &AppHandle) -> serde_json::Value {
 /// single-use pass that signs the browser in to this app's Orien Network
 /// account. No wallet keys are used.
 fn sign_in(app: &AppHandle) -> Result<String, String> {
+    let _signing = Signing::start();
     let dir = crate::folder(app)?;
     if crate::board::session(&dir).is_none() {
         return Err("Sign in to Orien Network in Orien Wallet first.".into());
