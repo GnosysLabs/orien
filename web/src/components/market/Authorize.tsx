@@ -137,12 +137,7 @@ export function Authorize() {
         trouble=""
         wallet
         title={`Sign in to continue to ${asked.site.name}`}
-        blurb={
-          <>
-            Use your Orien Network account. We&apos;ll email you a 6-digit code; no password needed, and new emails
-            make an account.
-          </>
-        }
+        blurb="Use your Orien Network account."
         />
       </Overlay>
     )

@@ -34,12 +34,7 @@ export function WebsitesView() {
             trouble=""
             wallet
             title="Sign in to manage your websites"
-            blurb={
-              <>
-                Use your Orien Network account. We&apos;ll email you a 6-digit code; no password needed, and new
-                emails make an account.
-              </>
-            }
+            blurb="Use your Orien Network account."
           />
         </div>
       </div>

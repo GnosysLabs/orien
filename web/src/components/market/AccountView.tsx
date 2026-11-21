@@ -121,8 +121,7 @@ export function SignIn({
           <p className="leading-relaxed text-muted">
             {blurb ?? (
               <>
-                One account for your profile, the Market and messages. We&apos;ll email you a 6-digit code; no password
-                needed, and new emails make an account.
+                One account for your profile, the Market and messages.
               </>
             )}
           </p>
@@ -131,16 +130,21 @@ export function SignIn({
               <WalletSignIn className={button} after={<p className="text-center text-sm text-muted">or with your email</p>} />
             </>
           )}
-          <input
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-            autoFocus
-            autoComplete="email"
-            placeholder="you@example.com"
-            className={field}
-          />
+          <div className="space-y-2">
+            <input
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+              autoFocus
+              autoComplete="email"
+              placeholder="you@example.com"
+              className={field}
+            />
+            <p className="px-1 text-sm leading-relaxed text-muted">
+              New here? Your first code makes your account. No password.
+            </p>
+          </div>
           <button type="submit" disabled={busy} className={button}>
             {busy ? 'Sending…' : 'Email me a code'}
           </button>
