@@ -1,10 +1,9 @@
 'use client'
 
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import { LogOut, Mail, MessageCircle, UserRound } from 'lucide-react'
-import { ask, me, takeWalletPass, NAME_PATTERN, NAME_RULE, profileHref, type Account, type Listing } from '@/lib/market'
+import { ask, me, NAME_PATTERN, NAME_RULE, profileHref, type Account, type Listing } from '@/lib/market'
 import { Card } from './Browse'
 import { ProfileEditor } from './ProfileEditor'
 import { YourWallets } from './WalletCheck'
@@ -27,34 +26,20 @@ export function AccountView() {
         setTrouble(error.message)
         setFound(null)
       })
-  // Signing in here lands on the community; the header follows the
-  // signed-in state that the reload announces.
-  const router = useRouter()
-  const arrived = () => {
-    reload()
-    router.push('/community/')
-  }
   useEffect(() => {
-    // A pass from Orien Wallet signs this browser in without an email code.
-    void takeWalletPass().then((signedIn) => (signedIn ? arrived() : reload()))
+    void reload()
   }, [])
 
-  // Signed out elsewhere, from the menu or another tab: show the sign-in.
+  // Signed in or out elsewhere: the sign-in dialog over the site, the menu,
+  // another tab. Signed out here, the dialog is all there is to see.
   const live = useMe()
   useEffect(() => {
     if (live.account === null && found) setFound(null)
+    if (live.account && found === null) void reload()
   }, [live.account])
 
   if (found === undefined) return <p className="pt-10 text-muted sm:pt-14">Loading…</p>
-  if (found === null)
-    return (
-      // Centred in the window on computers, and never taller than it.
-      <div className="pb-16 pt-10 sm:pt-14 lg:flex lg:min-h-[calc(100dvh-4rem)] lg:items-center lg:justify-center lg:py-0">
-        <div className="w-full">
-          <SignIn onDone={arrived} trouble={trouble} wallet />
-        </div>
-      </div>
-    )
+  if (found === null) return trouble ? <Notice tone="bad">{trouble}</Notice> : null
   return (
     <div className="pb-16 pt-10 sm:pt-14">
       <Mine found={found} onChange={reload} />

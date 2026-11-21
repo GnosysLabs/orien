@@ -5,6 +5,7 @@ import { Analytics } from '@/components/Analytics'
 import { AskOrien } from '@/components/AskOrien'
 import { BottomNav, Header, Sidebar } from '@/components/Header'
 import { ScrollToTop } from '@/components/ScrollToTop'
+import { SignInGate } from '@/components/market/SignInDialog'
 import { Main, SiteColumn, SiteOnly } from '@/components/SiteOnly'
 import { SIDEBAR } from '@/lib/nav'
 import { COMMUNITY_LIVE } from '@/lib/brand'
@@ -141,6 +142,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <Analytics />
           <SiteOnly>
             <Header />
+            <SignInGate />
           </SiteOnly>
           <Main>{children}</Main>
           <SiteOnly>

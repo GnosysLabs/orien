@@ -1,9 +1,10 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { me, takeWalletPass } from '@/lib/market'
-import { SIGNED_IN_OR_OUT, useMe } from '@/lib/useMe'
-import { SignIn } from './AccountView'
+import { LogIn } from 'lucide-react'
+import { me } from '@/lib/market'
+import { useMe } from '@/lib/useMe'
+import { openSignIn } from './SignInDialog'
 import { YourWebsites } from './YourWebsites'
 
 /** /developers/websites/: the websites this account registered for Sign in
@@ -14,20 +15,19 @@ export function WebsitesView() {
     me()
       .then((found) => setSignedIn(found !== null))
       .catch(() => setSignedIn(false))
-  // Signing in here: the header follows the same news.
-  const arrived = () => {
-    window.dispatchEvent(new Event(SIGNED_IN_OR_OUT))
-    void reload()
-  }
   useEffect(() => {
-    void takeWalletPass().then((signedIn) => (signedIn ? arrived() : reload()))
+    void reload()
   }, [])
-  // Signed out elsewhere, from the menu or another tab.
+  // Signed in or out anywhere: the dialog over the site, the menu, another tab.
   const live = useMe()
   useEffect(() => {
     if (live.account === null) setSignedIn(false)
     else if (live.account) setSignedIn(true)
   }, [live.account])
+  // Signed out, the sign-in dialog opens over this page by itself.
+  useEffect(() => {
+    if (signedIn === false) openSignIn()
+  }, [signedIn])
 
   return (
     <>
@@ -44,17 +44,17 @@ export function WebsitesView() {
           </p>
         </header>
         {signedIn === undefined && <p className="text-muted">Loading…</p>}
+        {signedIn === false && (
+          <button
+            type="button"
+            onClick={openSignIn}
+            className="flex h-11 items-center gap-2 rounded-xl border border-line px-5 text-sm font-semibold text-ink transition hover:bg-raised"
+          >
+            <LogIn className="h-4 w-4" strokeWidth={2.25} aria-hidden /> Sign in to manage your websites
+          </button>
+        )}
         {signedIn && <YourWebsites />}
       </div>
-      {signedIn === false && (
-        <div className="fixed inset-0 z-[70] overflow-y-auto bg-bg/40 backdrop-blur-xl">
-          <div className="flex min-h-full items-center justify-center p-4 sm:p-8">
-            <div role="dialog" aria-modal="true" className="w-full max-w-[440px] rounded-2xl shadow-2xl shadow-black/60">
-              <SignIn onDone={arrived} trouble="" wallet title="Sign in to manage your websites" blurb="Use your Orien Network account." />
-            </div>
-          </div>
-        </div>
-      )}
     </>
   )
 }
