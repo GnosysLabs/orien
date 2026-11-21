@@ -24,6 +24,7 @@ use rusqlite::{OptionalExtension, params};
 use serde::{Deserialize, Serialize};
 use serde_json::{Value, json};
 use std::collections::{HashMap, HashSet};
+use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::{Arc, Mutex};
 use std::time::Duration;
 
@@ -90,6 +91,8 @@ pub struct MinerRow {
 #[derive(Default)]
 pub struct Community {
     board: Mutex<Option<Board>>,
+    /// Whether past days' top miners have been filled in since this start.
+    days_told: AtomicBool,
 }
 
 /// Each miner's total and streak, and which miners each checkpoint paid.
@@ -605,6 +608,33 @@ impl Store {
         }
         Ok(())
     }
+
+    /// Fills in the top miner of each past day that has no post yet, dated
+    /// at the checkpoint that closed the day. Days are checked one by one,
+    /// so this can run again and again without saying anything twice: it
+    /// catches days the rule for the post has changed since.
+    pub fn tell_days(&self, mined: &Mined, owners: &HashMap<String, i64>) -> Result<usize> {
+        let mut added = 0;
+        for epoch in (mined.since + 1)..=mined.upto {
+            for (kind, subject, data) in happenings(mined, owners, epoch) {
+                if kind != "top_day" {
+                    continue;
+                }
+                let day = data["day"].as_str().unwrap_or_default();
+                let posted: bool = self.db.query_row(
+                    "SELECT COUNT(*) > 0 FROM posts WHERE kind = 'top_day' AND json_extract(data, '$.day') = ?1",
+                    [day],
+                    |row| row.get(0),
+                )?;
+                if !posted {
+                    let at = mined.times.get(&epoch).copied().unwrap_or_else(now);
+                    self.add_happening(&kind, subject, &data, at)?;
+                    added += 1;
+                }
+            }
+        }
+        Ok(added)
+    }
 }
 
 fn post_text(text: &str) -> Result<String> {
@@ -628,6 +658,13 @@ impl Community {
         let (Ok(owners), Ok(names)) = (store.wallet_owners(), store.names()) else { return };
         if let Err(error) = store.tell(&mined, &owners) {
             eprintln!("community: could not post the network's news: {error:#}");
+        }
+        if !self.days_told.swap(true, Ordering::SeqCst) {
+            match store.tell_days(&mined, &owners) {
+                Ok(added) if added > 0 => eprintln!("community: filled in {added} past days' top miners"),
+                Ok(_) => {}
+                Err(error) => eprintln!("community: could not fill in past days: {error:#}"),
+            }
         }
         drop(store);
         *self.board.lock().unwrap() = Some(board(&mined, &owners, &names));

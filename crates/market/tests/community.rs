@@ -204,6 +204,34 @@ async fn the_networks_story_is_backfilled_and_dated_at_its_checkpoints() {
     assert_eq!(again["posts"].as_array().unwrap().len(), before);
 }
 
+#[tokio::test]
+async fn past_days_top_miners_are_filled_in_once_the_rule_knows_them() {
+    let app = market();
+    sign_in_for_tests(&app, "Alice");
+    let alice_id = store_for_tests(&app, |s| s.account_id_for_tests("Alice"));
+    let mut by_epoch = BTreeMap::new();
+    for e in 10..=34u64 {
+        by_epoch.insert(e, vec![(address(1), 10 * ORN), (address(2), 1 * ORN)]);
+    }
+    let base = 1_795_000_000 - (1_795_000_000 % 86_400);
+    let times: BTreeMap<u64, u64> = (10..=34).map(|e| (e, base + (e - 10) * 3600 + 4 * 3600)).collect();
+    let closed_the_day = times[&30];
+    let mined = Mined { since: 10, upto: 34, by_epoch, times };
+    // Told with nobody verified: no top miner of the day, since only members count.
+    store_for_tests(&app, |s| s.tell(&mined, &HashMap::new()).unwrap());
+    let (_, feed) = ask(&app, "GET", "/api/market/community/feed?only=network", None, None).await;
+    assert!(feed["posts"].as_array().unwrap().iter().all(|p| p["kind"] != "top_day"));
+    // Alice verifies address 1: the day is filled in, dated at the checkpoint that closed it, once.
+    let owners = HashMap::from([(address(1), alice_id)]);
+    assert_eq!(store_for_tests(&app, |s| s.tell_days(&mined, &owners).unwrap()), 1);
+    assert_eq!(store_for_tests(&app, |s| s.tell_days(&mined, &owners).unwrap()), 0);
+    let (_, feed) = ask(&app, "GET", "/api/market/community/feed?only=network", None, None).await;
+    let tops: Vec<&Value> = feed["posts"].as_array().unwrap().iter().filter(|p| p["kind"] == "top_day").collect();
+    assert_eq!(tops.len(), 1);
+    assert_eq!(tops[0]["created"], closed_the_day);
+    assert_eq!(tops[0]["subject"]["name"], "Alice");
+}
+
 #[test]
 fn streaks_and_the_days_top_miner_are_posted() {
     // Alice mines every hour from 10 to 34: a 24-hour streak at 33 (10..=33).
