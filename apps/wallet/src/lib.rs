@@ -2221,15 +2221,19 @@ fn open_site(app: AppHandle) -> Result<(), String> {
 
 /// Opens the place to add a browser extension: Safari's own settings at
 /// Orien Wallet's extension (Macs, where the extension comes with the app),
-/// or Orien Wallet's page on the Chrome Web Store.
+/// or Orien Wallet's page on the Chrome Web Store, which Chrome, Edge and
+/// Brave all add extensions from. The page opens in the browser named when
+/// it's on this computer, otherwise in the usual one.
 #[tauri::command]
 fn open_extension(app: AppHandle, browser: String) -> Result<(), String> {
+    const STORE: &str = "https://chromewebstore.google.com/detail/orien-wallet/oogifphigefggbdlcomcohbjfbgomcmn";
     match browser.as_str() {
-        "chrome" => {
-            use tauri_plugin_opener::OpenerExt;
-            app.opener()
-                .open_url("https://chromewebstore.google.com/detail/orien-wallet/oogifphigefggbdlcomcohbjfbgomcmn", None::<&str>)
-                .map_err(|error| error.to_string())
+        "chrome" | "edge" | "brave" => {
+            if !open_in(&browser, STORE) {
+                use tauri_plugin_opener::OpenerExt;
+                app.opener().open_url(STORE, None::<&str>).map_err(|error| error.to_string())?;
+            }
+            Ok(())
         }
         #[cfg(target_os = "macos")]
         "safari" => {
@@ -2249,6 +2253,49 @@ fn open_extension(app: AppHandle, browser: String) -> Result<(), String> {
         }
         _ => Err("That can't be opened.".into()),
     }
+}
+
+/// Opens `url` in that browser if it's installed here; false if it isn't.
+#[cfg(not(any(target_os = "ios", target_os = "android")))]
+fn open_in(browser: &str, url: &str) -> bool {
+    use std::path::PathBuf;
+    use std::process::Command;
+    #[cfg(target_os = "macos")]
+    {
+        let name = match browser { "chrome" => "Google Chrome", "edge" => "Microsoft Edge", _ => "Brave Browser" };
+        let home = std::env::var_os("HOME").map(PathBuf::from).unwrap_or_default();
+        let found = [PathBuf::from("/Applications"), home.join("Applications")].into_iter().map(|dir| dir.join(format!("{name}.app"))).find(|app| app.exists());
+        found.is_some_and(|app| Command::new("open").arg("-a").arg(app).arg(url).spawn().is_ok())
+    }
+    #[cfg(windows)]
+    {
+        let inside = match browser {
+            "chrome" => r"Google\Chrome\Application\chrome.exe",
+            "edge" => r"Microsoft\Edge\Application\msedge.exe",
+            _ => r"BraveSoftware\Brave-Browser\Application\brave.exe",
+        };
+        let found = ["ProgramFiles", "ProgramFiles(x86)", "LOCALAPPDATA"]
+            .into_iter()
+            .filter_map(std::env::var_os)
+            .map(|dir| PathBuf::from(dir).join(inside))
+            .find(|exe| exe.exists());
+        found.is_some_and(|exe| Command::new(exe).arg(url).spawn().is_ok())
+    }
+    #[cfg(target_os = "linux")]
+    {
+        let names: &[&str] = match browser {
+            "chrome" => &["google-chrome", "google-chrome-stable"],
+            "edge" => &["microsoft-edge", "microsoft-edge-stable"],
+            _ => &["brave-browser", "brave"],
+        };
+        let path = std::env::var_os("PATH").unwrap_or_default();
+        let found = names.iter().flat_map(|name| std::env::split_paths(&path).map(move |dir| dir.join(name))).find(|exe| exe.is_file());
+        found.is_some_and(|exe| Command::new(exe).arg(url).spawn().is_ok())
+    }
+}
+#[cfg(any(target_os = "ios", target_os = "android"))]
+fn open_in(_: &str, _: &str) -> bool {
+    false
 }
 
 /// Opens orien.network's privacy policy or terms of service.
