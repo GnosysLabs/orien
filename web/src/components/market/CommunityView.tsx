@@ -27,7 +27,7 @@ type Post = {
   mine: boolean
   reactions: Reaction[]
 }
-type Stats = { mined: string; streak: number; rank: number }
+export type Stats = { mined: string; streak: number; rank: number }
 type MinerRow = { rank: number; name: string | null; picture: string | null; address: string | null; mined: string; streak: number }
 type Board = { epoch: number; since: number; miners: MinerRow[] }
 type You = { name: string; picture: string | null; verified: boolean; stats: Stats | null }
@@ -747,6 +747,88 @@ export function CommunityView() {
           )}
         </aside>
       </div>
+    </div>
+  )
+}
+
+/** Someone's mining, on their profile: their place among the members,
+ * what they have mined and their streak, from the leaderboard. */
+export function MiningCard({ stats }: { stats: Stats }) {
+  return (
+    <section className={card}>
+      <h2 className="flex items-center gap-2 px-4 pb-1 pt-4 text-lg font-bold text-ink">
+        <Trophy className="h-4 w-4 text-pearl" aria-hidden /> Mining
+      </h2>
+      <div className="grid grid-cols-3 divide-x divide-line text-center">
+        {[
+          [stats.rank <= 3 ? MEDALS[stats.rank - 1] : `#${stats.rank}`, 'top miner'],
+          [mined(stats.mined), 'ORN mined'],
+          [`${stats.streak}h`, 'in a row'],
+        ].map(([value, label]) => (
+          <div key={label} className="px-1 py-3">
+            <p className="num text-base font-bold text-ink">{value}</p>
+            <p className="text-[11px] text-muted">{label}</p>
+          </div>
+        ))}
+      </div>
+      <p className="border-t border-line px-4 py-3 text-xs leading-relaxed text-muted">
+        Among members with a verified wallet, by ORN mined.{' '}
+        <Link href="/community/" className="font-semibold text-ink hover:underline">
+          See the top miners
+        </Link>
+      </p>
+    </section>
+  )
+}
+
+/** Someone's part of the community, on their profile: their own posts, and
+ * the network's posts that name them. */
+export function ProfileFeed({ name }: { name: string }) {
+  const [posts, setPosts] = useState<Post[] | null>(null)
+  const [more, setMore] = useState(false)
+  const [you, setYou] = useState<You | null>(null)
+  const live = useMe()
+  const path = useCallback(
+    (before?: number) => `/community/feed?about=${encodeURIComponent(name)}${before ? `&before=${before}` : ''}`,
+    [name],
+  )
+  const reload = useCallback(() => {
+    ask<{ posts: Post[]; more: boolean }>(path())
+      .then((found) => {
+        setPosts(found.posts)
+        setMore(found.more)
+      })
+      .catch(() => setPosts([]))
+    ask<{ you: You | null }>('/community/board')
+      .then((found) => setYou(found.you))
+      .catch(() => undefined)
+  }, [path])
+  useEffect(() => {
+    reload()
+  }, [reload, live.account])
+  const older = async () => {
+    const last = posts?.[posts.length - 1]
+    if (!last) return
+    const found = await ask<{ posts: Post[]; more: boolean }>(path(last.id)).catch(() => null)
+    if (found) {
+      setPosts([...(posts ?? []), ...found.posts])
+      setMore(found.more)
+    }
+  }
+  if (posts === null) return <p className="px-1 text-sm text-muted">Loading…</p>
+  if (posts.length === 0) {
+    return <p className={`${card} px-5 py-8 text-center text-sm text-muted`}>Nothing in the community yet.</p>
+  }
+  return (
+    <div className="space-y-3">
+      {posts.map((post) => (
+        <PostCard key={post.id} post={post} me={you} onChange={reload} />
+      ))}
+      {more && (
+        <button type="button" onClick={() => void older()} className={`${quiet} w-full`}>
+          Show more
+        </button>
+      )}
     </div>
   )
 }

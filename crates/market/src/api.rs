@@ -1261,7 +1261,8 @@ async fn profile(State(app): State<Arc<App>>, headers: HeaderMap, Path(id): Path
     let listings = store.open_listings_of(id)?;
     let swaps_done = store.swaps_done(id)?;
     let wallets = store.verified_wallets(id)?;
-    let mut answer = json!({ "account": account, "listings": listings, "swaps_done": swaps_done, "wallets": wallets });
+    let mining = app.community().stats_of(id);
+    let mut answer = json!({ "account": account, "listings": listings, "swaps_done": swaps_done, "wallets": wallets, "mining": mining });
     // Signed in: whether you've blocked this person.
     if let Some(viewer) = viewer {
         answer["blocked"] = json!(store.blocked_by(viewer, id)?);

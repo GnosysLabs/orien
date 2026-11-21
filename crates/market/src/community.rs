@@ -466,17 +466,30 @@ impl Store {
     /// Feed posts newest first, before post `before`, or a post's replies
     /// oldest first. As seen by `viewer`. `only` narrows the feed to
     /// "people" or the "network".
-    pub fn feed(&self, viewer: Option<i64>, before: Option<i64>, replies_to: Option<i64>, only: Option<&str>) -> Result<Vec<Value>> {
+    /// The feed, newest first, from `before` on; `replies_to` a post's
+    /// replies instead, oldest first; `only` people or the network; `about`
+    /// an account: its own posts, and the network's posts that name it.
+    pub fn feed(
+        &self,
+        viewer: Option<i64>,
+        before: Option<i64>,
+        replies_to: Option<i64>,
+        only: Option<&str>,
+        about: Option<i64>,
+    ) -> Result<Vec<Value>> {
         let who = match only {
             Some("people") => " AND p.kind = 'post'",
             Some("network") => " AND p.kind <> 'post'",
             _ => "",
         };
+        // ?3 is the account, or -1 for everyone.
+        let whom = " AND (?3 < 0 OR p.author = ?3 OR p.subject = ?3 OR json_extract(p.data, '$.miner.account') = ?3
+                      OR EXISTS (SELECT 1 FROM json_each(p.data, '$.miners') WHERE json_extract(value, '$.account') = ?3))";
         let (filter, order) = match replies_to {
-            Some(_) => ("p.parent = ?1".to_string(), "p.created ASC, p.id ASC"),
+            Some(_) => (format!("p.parent = ?1{whom}"), "p.created ASC, p.id ASC"),
             None => (
                 format!(
-                    "p.parent IS NULL{who} AND (p.created, p.id) < (SELECT COALESCE((SELECT created FROM posts WHERE id = ?1), 9223372036854775807), ?1)"
+                    "p.parent IS NULL{who}{whom} AND (p.created, p.id) < (SELECT COALESCE((SELECT created FROM posts WHERE id = ?1), 9223372036854775807), ?1)"
                 ),
                 "p.created DESC, p.id DESC",
             ),
@@ -494,7 +507,7 @@ impl Store {
                AND (p.subject IS NULL OR p.subject NOT IN (SELECT account FROM suspended))
              ORDER BY {order} LIMIT {PAGE}"
         ))?;
-        let rows = query.query_map(params![key, viewer.unwrap_or(-1)], |row| {
+        let rows = query.query_map(params![key, viewer.unwrap_or(-1), about.unwrap_or(-1)], |row| {
             let person = |name: Option<String>, picture: Option<String>| name.map(|name| json!({ "name": name, "picture": picture }));
             Ok(json!({
                 "id": row.get::<_, i64>(0)?,
@@ -673,6 +686,12 @@ impl Community {
     fn snapshot(&self) -> Option<Board> {
         self.board.lock().unwrap().clone()
     }
+
+    /// An account's rank, ORN mined and streak, when its verified wallets
+    /// have been paid for mining.
+    pub(crate) fn stats_of(&self, account: i64) -> Option<Stats> {
+        self.board.lock().unwrap().as_ref().and_then(|b| b.accounts.get(&account).cloned())
+    }
 }
 
 /// Keeps the leaderboards current and posts the network's news, each minute.
@@ -702,18 +721,25 @@ fn viewer(app: &App, headers: &HeaderMap) -> Option<i64> {
 pub struct Before {
     before: Option<i64>,
     only: Option<String>,
+    /// An account's name: only its own posts and the network's posts about it.
+    about: Option<String>,
 }
 
 async fn feed(State(app): State<Arc<App>>, headers: HeaderMap, Query(page): Query<Before>) -> Result<Response, Failure> {
     let me = viewer(&app, &headers);
-    let posts = app.store().feed(me, page.before, None, page.only.as_deref())?;
+    let store = app.store();
+    let about = match &page.about {
+        Some(name) => Some(store.account_by_name(name)?.ok_or(Failure::NotFound)?),
+        None => None,
+    };
+    let posts = store.feed(me, page.before, None, page.only.as_deref(), about)?;
     let more = posts.len() as i64 == PAGE;
     Ok(Json(json!({ "posts": posts, "more": more, "reactions": REACTIONS, "max": MAX_POST })).into_response())
 }
 
 async fn replies(State(app): State<Arc<App>>, headers: HeaderMap, Path(id): Path<i64>) -> Result<Response, Failure> {
     let me = viewer(&app, &headers);
-    Ok(Json(json!({ "replies": app.store().feed(me, None, Some(id), None)? })).into_response())
+    Ok(Json(json!({ "replies": app.store().feed(me, None, Some(id), None, None)? })).into_response())
 }
 
 async fn board_answer(State(app): State<Arc<App>>, headers: HeaderMap) -> Result<Response, Failure> {

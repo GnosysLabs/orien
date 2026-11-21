@@ -197,6 +197,17 @@ async fn the_networks_story_is_backfilled_and_dated_at_its_checkpoints() {
     assert!(network["posts"].as_array().unwrap().iter().all(|p| p["kind"] != "post"));
     let (_, people) = ask(&app, "GET", "/api/market/community/feed?only=people", None, None).await;
     assert_eq!(people["posts"].as_array().unwrap().len(), 1);
+    // About one person: their own posts, and the network's posts that name them.
+    let (_, about) = ask(&app, "GET", "/api/market/community/feed?about=Alice", None, None).await;
+    let about = about["posts"].as_array().unwrap();
+    assert!(about.iter().any(|p| p["body"] == "hello"));
+    assert!(about.iter().any(|p| p["kind"] == "milestone" && p["subject"]["name"] == "Alice"));
+    assert!(about.iter().all(|p| p["kind"] != "welcome"), "Alice was mining before the records began");
+    let (_, about) = ask(&app, "GET", "/api/market/community/feed?about=Carol", None, None).await;
+    let about = about["posts"].as_array().unwrap();
+    assert!(about.iter().any(|p| p["kind"] == "welcome"), "Carol's face is in a welcome");
+    assert!(about.iter().all(|p| p["body"] != "hello"));
+    assert_eq!(ask(&app, "GET", "/api/market/community/feed?about=Nobody", None, None).await.0, StatusCode::NOT_FOUND);
     // Told once, nothing is told twice.
     let before = network["posts"].as_array().unwrap().len();
     store_for_tests(&app, |s| s.tell(&mined(), &owners).unwrap());
