@@ -1,6 +1,7 @@
 'use client'
 
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import { LogOut, Mail, MessageCircle, UserRound } from 'lucide-react'
 import { ask, me, takeWalletPass, NAME_PATTERN, NAME_RULE, profileHref, type Account, type Listing } from '@/lib/market'
@@ -26,9 +27,16 @@ export function AccountView() {
         setTrouble(error.message)
         setFound(null)
       })
+  // Signing in here lands on the community; the header follows the
+  // signed-in state that the reload announces.
+  const router = useRouter()
+  const arrived = () => {
+    reload()
+    router.push('/community/')
+  }
   useEffect(() => {
     // A pass from Orien Wallet signs this browser in without an email code.
-    void takeWalletPass().then(reload)
+    void takeWalletPass().then((signedIn) => (signedIn ? arrived() : reload()))
   }, [])
 
   // Signed out elsewhere, from the menu or another tab: show the sign-in.
@@ -43,7 +51,7 @@ export function AccountView() {
       // Centred in the window on computers, and never taller than it.
       <div className="pb-16 pt-10 sm:pt-14 lg:flex lg:min-h-[calc(100dvh-4rem)] lg:items-center lg:justify-center lg:py-0">
         <div className="w-full">
-          <SignIn onDone={reload} trouble={trouble} wallet />
+          <SignIn onDone={arrived} trouble={trouble} wallet />
         </div>
       </div>
     )
