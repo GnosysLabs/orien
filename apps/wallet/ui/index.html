@@ -3224,9 +3224,17 @@
   // 1 while every decimal shows. A tap switches; the choice is remembered.
   let balancePeek = 0;
   try { balancePeek = localStorage.getItem("balance-full") === "on" ? 1 : 0; } catch {}
+  // The shorter form: two decimals from 1 ORN up; under 1 ORN, enough
+  // decimals to show its first two digits (0.027, 0.00041), so a small
+  // balance never reads as nothing. Cut, never rounded up: it never shows
+  // more than there is.
   const shortBalance = (text) => {
-    const n = Number(String(text).replace(/,/g, ""));
-    return Number.isFinite(n) ? n.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : text;
+    const m = /^(-?[\d,]+)(?:\.(\d*))?$/.exec(String(text).trim());
+    if (!m) return text;
+    const whole = m[1], frac = (m[2] || "").padEnd(9, "0");
+    if (/[1-9]/.test(whole)) return `${whole}.${frac.slice(0, 2)}`;
+    const first = frac.search(/[1-9]/);
+    return first < 0 ? `${whole}.00` : `${whole}.${frac.slice(0, Math.max(2, first + 2))}`;
   };
   function paintBalance() {
     const b = view ? view.balance : null;
@@ -4026,14 +4034,9 @@
   }
   const relative = (e) => { const d = dayName(e.time); return d === "Today" ? clock(e.time) : d === "Yesterday" ? "Yesterday" : new Date(e.time * 1000).toLocaleDateString([], { month: "short", day: "numeric" }); };
 
-  // Payments follow the balance: two decimals until the balance is tapped
-  // for every decimal. A tiny amount still shows as more than nothing.
-  const shortAmount = (text) => {
-    if (balancePeek) return text;
-    const n = Number(String(text).replace(/,/g, ""));
-    if (!Number.isFinite(n)) return text;
-    return n > 0 && n < 0.005 ? "<0.01" : shortBalance(text);
-  };
+  // Payments follow the balance: the shorter form until the balance is
+  // tapped for every decimal.
+  const shortAmount = (text) => balancePeek ? text : shortBalance(text);
   function repaintAmounts() { renderRecent(); if ($("all-activity").innerHTML) renderAll(); }
   function renderRecent() {
     $("recent").innerHTML = entries.length

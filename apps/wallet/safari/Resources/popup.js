@@ -28,10 +28,7 @@ async function load() {
     $("home-buttons").hidden = true;
     return home("Orien Wallet isn't running. Open it once; it keeps running in the menu bar after you close its window.");
   }
-  const [whole, cents] = (wallet.balance || "—").split(".");
-  $("balance").textContent = whole;
-  if (cents) { const c = document.createElement("span"); c.className = "cents"; c.textContent = "." + cents; $("balance").append(c); }
-  $("balance").title = wallet.balance ? `${wallet.balance} ORN` : "";
+  paintBalance();
   const name = wallet.name || "Wallet";
   $("wallet-name").textContent = name;
   $("wallet-coin").textContent = wallet.icon || name.slice(0, 1).toUpperCase();
@@ -41,6 +38,36 @@ async function load() {
   $("home-buttons").hidden = false;
   home();
 }
+
+// The balance as the app shows it: the shorter form (two decimals from
+// 1 ORN up; under 1 ORN, enough decimals for its first two digits) until
+// it's tapped for every decimal. Cut, never rounded up.
+let full = false;
+try { full = localStorage.getItem("balance-full") === "on"; } catch {}
+function shortBalance(text) {
+  const m = /^(-?[\d,]+)(?:\.(\d*))?$/.exec(String(text).trim());
+  if (!m) return text;
+  const whole = m[1], frac = (m[2] || "").padEnd(9, "0");
+  if (/[1-9]/.test(whole)) return `${whole}.${frac.slice(0, 2)}`;
+  const first = frac.search(/[1-9]/);
+  return first < 0 ? `${whole}.00` : `${whole}.${frac.slice(0, Math.max(2, first + 2))}`;
+}
+function paintBalance() {
+  const balance = wallet && wallet.balance;
+  const el = $("balance");
+  el.textContent = !balance ? "—" : full ? balance : shortBalance(balance);
+  el.title = !balance ? "" : full ? "Click for the shorter balance" : "Click to see every decimal";
+  // Smaller until it fits beside "ORN".
+  el.style.fontSize = "";
+  const room = el.parentElement.clientWidth - el.nextElementSibling.offsetWidth - 8;
+  for (let size = 36; size > 16 && el.scrollWidth > room; size -= 1) el.style.fontSize = size - 1 + "px";
+}
+$("balance-card").onclick = () => {
+  if (!wallet || !wallet.balance) return;
+  full = !full;
+  try { localStorage.setItem("balance-full", full ? "on" : "off"); } catch {}
+  paintBalance();
+};
 
 $("copy").onclick = async () => {
   await navigator.clipboard.writeText(wallet.address);

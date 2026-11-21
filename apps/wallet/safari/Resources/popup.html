@@ -38,9 +38,10 @@
     box-shadow: 0 6px 16px rgba(var(--shade), var(--shade-a)), inset 0 1px 0 #ffffffb0; }
   .label { font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; opacity: 0.6; }
   .amount { margin-top: 6px; display: flex; align-items: baseline; gap: 8px; min-width: 0; }
-  /* The whole number large, the decimals smaller: always fits, never cut. */
-  .balance { font-size: 36px; font-weight: 300; line-height: 1.1; letter-spacing: -0.01em; white-space: nowrap; }
-  .balance .cents { font-size: 20px; opacity: 0.7; letter-spacing: 0; }
+  /* One size for every digit, as in the app; a long balance gets smaller
+     to fit, never cut. A tap switches the shorter form and every decimal. */
+  .card { cursor: pointer; user-select: none; -webkit-user-select: none; }
+  .balance { font-size: 36px; font-weight: 300; line-height: 40px; letter-spacing: -0.01em; white-space: nowrap; }
   .unit { font-size: 13px; opacity: 0.6; flex: none; }
 
   .address { margin-top: 18px; padding: 14px 16px; border: 1px solid var(--line); border-radius: var(--radius);
@@ -103,7 +104,7 @@
   <section id="home">
     <header><span class="wordmark"><span class="mark brand"></span><span class="word brand">ORIEN</span></span>
       <span class="wallet" id="wallet" hidden><span class="coin" id="wallet-coin"></span><span class="wname" id="wallet-name"></span></span></header>
-    <div class="card pearl">
+    <div class="card pearl" id="balance-card">
       <div class="label">Balance</div>
       <div class="amount"><span class="balance" id="balance">—</span><span class="unit">ORN</span></div>
     </div>

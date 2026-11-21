@@ -34,6 +34,8 @@ export const CHANGELOG: Entry[] = [
       'Settings has a Browser Extensions page: Safari on a Mac, Chrome, Edge and Brave, each with its own button. The extension lets you send ORN, see your balance and sign in to orien.network with one click, right from your browser.',
       'The update button now says Update to Latest and always installs the newest version, so one update is enough even when several came out.',
       'On iPhone, Share address opens the full share sheet from the bottom of the screen, and Send keeps the total and balance after in view while you type an amount.',
+      'Small balances show their first digits, 0.027 ORN rather than 0.02, in the app and the browser extension, so a small balance never reads as nothing.',
+      'The browser extension shows every digit of the balance at the same size, and a click shows every decimal, as in the app.',
       'The Safari extension works properly even with two copies of Orien Wallet on the same Mac.',
     ],
   },
