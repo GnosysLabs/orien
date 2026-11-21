@@ -30,7 +30,6 @@ export const CHANGELOG: Entry[] = [
     products: ['orien', 'validators'],
     version: '1.10.5',
     title: 'Checkpoints agree on the first try again, and orien answers programs',
-    unreleased: true,
     changes: [
       'Since the validators moved to four servers, about one checkpoint in eight needed a second try, a few seconds later. The cause: one server’s name servers were slow, and a validator looked up the other validators’ names every time it opened a connection, so its messages left seconds late. That server’s name servers are fixed, and validators now remember each other’s addresses and refresh them in the background, so a slow lookup can never delay a checkpoint.',
       'Each validator’s log now tells a checkpoint’s story: when each validator’s statement arrived, whose turn it was to propose, and why a round was given up.',
