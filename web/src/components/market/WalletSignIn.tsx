@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { Download, X } from 'lucide-react'
 import { CHROME_EXTENSION, WALLET_SIGN_IN_FOR_EVERYONE } from '@/lib/brand'
+import { WindowsDownload } from '@/components/WindowsDownload'
 
 /** What Orien Wallet's browser extension says about itself, on <html
  * data-orien-wallet>: "ready" (the wallet is running and signed in; the
@@ -115,8 +116,8 @@ function WalletHelp({ state, onClose }: { state: State | 'install'; onClose: () 
     if (here.phone) {
       advice = (
         <p>
-          On a phone or tablet, sign in with your email for now. The extension is for Safari on a Mac, with Chrome
-          coming soon.
+          On a phone or tablet, sign in with your email for now. The extension is for Safari on a Mac and for Chrome
+          on a computer.
         </p>
       )
     } else if (here.browser === 'safari' && here.mac) {
@@ -143,9 +144,28 @@ function WalletHelp({ state, onClose }: { state: State | 'install'; onClose: () 
       )
     } else if (here.browser === 'chrome' && CHROME_EXTENSION) {
       advice = (
-        <a href={CHROME_EXTENSION} target="_blank" rel="noopener noreferrer" className={primary}>
-          Add it to Chrome
-        </a>
+        <>
+          <div className="space-y-3">
+            <p className="font-semibold text-ink">Already have Orien Wallet?</p>
+            <Steps>
+              <li>Update it to the latest version (1.8.22 or later).</li>
+              <li>Add the extension to your browser, and reload this page.</li>
+            </Steps>
+            <a href={CHROME_EXTENSION} target="_blank" rel="noopener noreferrer" className={primary}>
+              Add it to Chrome
+            </a>
+          </div>
+          <div className="space-y-3">
+            <p className="font-semibold text-ink">New to Orien Wallet?</p>
+            {here.mac ? (
+              download
+            ) : (
+              <WindowsDownload className={secondary}>
+                <Download className="h-4 w-4" aria-hidden /> Get Orien Wallet for Windows
+              </WindowsDownload>
+            )}
+          </div>
+        </>
       )
     } else {
       const which = here.browser === 'firefox' ? 'Firefox isn’t supported yet.' : here.browser === 'chrome' ? 'The Chrome extension is coming soon.' : 'Your browser isn’t supported yet.'

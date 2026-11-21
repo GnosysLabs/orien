@@ -7,6 +7,7 @@ import { BottomNav, Header, Sidebar } from '@/components/Header'
 import { ScrollToTop } from '@/components/ScrollToTop'
 import { Main, SiteColumn, SiteOnly } from '@/components/SiteOnly'
 import { SIDEBAR } from '@/lib/nav'
+import { COMMUNITY_LIVE } from '@/lib/brand'
 import { Wordmark } from '@/components/Wordmark'
 import { DISCORD, MARKETPLACE_LIVE, OPERATOR, OPERATOR_URL, SITE_DESCRIPTION, SITE_NAME, SITE_URL, SOURCE_CODE, TAGLINE, X_ACCOUNT, YOUTUBE } from '@/lib/brand'
 import { SHARE_IMAGE } from '@/lib/seo'
@@ -155,9 +156,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               <a href="https://explorer.orien.network/" className="hover:text-ink lg:hidden">
                 Explorer
               </a>
-              <Link href="/community/" className="hover:text-ink">
-                Community
-              </Link>
+              {COMMUNITY_LIVE && (
+                <Link href="/community/" className="hover:text-ink">
+                  Community
+                </Link>
+              )}
               <Link href="/paper/" className="hover:text-ink">
                 Technical paper
               </Link>

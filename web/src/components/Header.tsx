@@ -23,7 +23,7 @@ import {
   Rocket,
   type LucideIcon,
 } from "lucide-react";
-import { MARKETPLACE_LIVE } from "@/lib/brand";
+import { COMMUNITY_LIVE, MARKETPLACE_LIVE } from "@/lib/brand";
 import { SIDEBAR } from "@/lib/nav";
 import { AccountMenu } from "./AccountMenu";
 import { useMe } from "@/lib/useMe";
@@ -61,13 +61,17 @@ const ITEMS: NavItem[] = [
     match: () => false,
     wide: true,
   },
-  {
-    href: "/community/",
-    label: "Community",
-    icon: Users,
-    match: (p) => p.startsWith("/community"),
-    wide: true,
-  },
+  ...(COMMUNITY_LIVE
+    ? [
+        {
+          href: "/community/",
+          label: "Community",
+          icon: Users,
+          match: (p: string) => p.startsWith("/community"),
+          wide: true,
+        },
+      ]
+    : []),
   ...(MARKETPLACE_LIVE
     ? [
         {
