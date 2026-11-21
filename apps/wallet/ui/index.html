@@ -1079,7 +1079,7 @@
   .recent-to { margin: 0 0 14px; }
   #send .topline { margin-bottom: 12px; }
   .recent-to.tucked { display: none; }
-  .recent-to .rt-label { margin: 0 0 6px 2px; font-size: 12px; color: var(--dim); }
+  .recent-to .rt-label { margin: 0 0 7px 2px; font-size: 12px; color: var(--dim); }
   .recent-to .rt-row { display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; }
   .recent-to .rt-row::-webkit-scrollbar { display: none; }
   .recent-to .rt { flex: none; width: 72px; display: flex; flex-direction: column; align-items: center; gap: 6px;
@@ -1850,6 +1850,7 @@
       </div>
 
       <div class="recent-to" id="recent-to" hidden>
+        <div class="rt-label">Recents</div>
         <div class="rt-row" id="recent-row"></div>
       </div>
 
@@ -3690,28 +3691,28 @@
     if (!sending) $("confirm").textContent = view && view.locked && view.biometric ? `Send with ${bio}` : "Send";
   }
   // Recent people: the last few this wallet sent to, newest first, as
-  // faces to pick. Hidden until there are any.
+  // faces to pick. Only ones with a name and a picture (an icon, or a
+  // Market profile picture), so one-off addresses stay out. Hidden until
+  // there are any.
   async function showRecent() {
     let entries = [];
     try { entries = await invoke("activity"); } catch {}
-    const seen = new Set(), recent = [];
+    const seen = new Set(), sent = [];
     for (const e of entries.slice().sort((a, b) => b.time - a.time)) {
       const a = e.direction === "sent" && e.kind !== "swap" && e.counterparty;
       if (!a || seen.has(a) || (view && a === view.address)) continue;
-      seen.add(a); recent.push(a);
-      if (recent.length === 8) break;
+      seen.add(a); sent.push(a);
+      if (sent.length === 40) break;
     }
+    await loadProfiles(sent);
+    const pictured = (a) => iconOf(a) || (profileOf(a) && profileOf(a).picture);
+    const recent = sent.filter((a) => nameOf(a) && pictured(a)).slice(0, 8);
     $("recent-to").hidden = recent.length === 0;
-    const draw = () => {
-      $("recent-row").innerHTML = recent.map((a) => {
-        const own = ownWallet(a);
-        const name = nameOf(a) || short(a).slice(0, 9);
-        const look = own ? `<span class="face${iconOf(a) ? " emoji" : ""}">${esc(iconOf(a) || own.name.slice(0, 1).toUpperCase())}</span>` : face(a, name);
-        return `<button class="rt" type="button" data-address="${a}" title="${esc(name)}">${look}<span class="rt-name">${esc(name.split(/\s+/)[0])}</span></button>`;
-      }).join("");
-    };
-    draw();
-    loadProfiles(recent).then((found) => found && draw());
+    $("recent-row").innerHTML = recent.map((a) => {
+      const name = nameOf(a);
+      const look = iconOf(a) ? `<span class="face emoji">${esc(iconOf(a))}</span>` : face(a, name);
+      return `<button class="rt" type="button" data-address="${a}" title="${esc(name)}">${look}<span class="rt-name">${esc(name.split(/\s+/)[0])}</span></button>`;
+    }).join("");
   }
   $("recent-row").onclick = (event) => {
     const pick = event.target.closest("[data-address]");
