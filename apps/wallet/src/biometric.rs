@@ -168,35 +168,6 @@ pub fn unlock(wallet: &Path) -> Result<(), String> {
     }
 }
 
-/// Asks the person to confirm with Touch ID (or the Mac's password), for
-/// `what`, such as "sign in to example.com". Nothing is unlocked. Blocks
-/// until answered.
-#[cfg(target_os = "macos")]
-pub fn confirm(what: &str) -> Result<(), String> {
-    use robius_authentication::{AndroidText, BiometricStrength, Context, PolicyBuilder, Text, WindowsText};
-    let text = Text {
-        android: AndroidText { title: "Orien Wallet", subtitle: None, description: None },
-        apple: what,
-        windows: WindowsText::new("Orien Wallet", "Confirm").ok_or("prompt text too long")?,
-    };
-    let policy = PolicyBuilder::new()
-        .biometrics(Some(BiometricStrength::Strong))
-        .password(true)
-        .companion(true)
-        .build()
-        .ok_or("Touch ID isn't available here")?;
-    let (tx, rx) = std::sync::mpsc::channel();
-    Context::new(())
-        .authenticate(text, &policy, move |result| {
-            let _ = tx.send(result);
-        })
-        .map_err(|error| format!("could not ask for Touch ID: {error:?}"))?;
-    match rx.recv() {
-        Ok(Ok(_)) => Ok(()),
-        _ => Err("Not confirmed.".into()),
-    }
-}
-
 /// One Touch ID or Face ID for several wallets: on success, each that keeps
 /// its password in the Keychain is unlocked for a few minutes.
 pub fn unlock_all(wallets: &[std::path::PathBuf]) -> Result<(), String> {

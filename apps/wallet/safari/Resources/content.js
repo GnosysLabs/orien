@@ -7,7 +7,7 @@
 //   signed-out  it's running, but not signed in to Orien Network
 // Without the attribute the page offers to install the extension.
 // When ready, a real click on the button is taken here (the page's own
-// handler doesn't run): Touch ID on Macs, then Orien Wallet hands over a
+// handler doesn't run): Orien Wallet hands over a
 // one-minute, single-use pass, which the page trades for a sign-in. No
 // wallet keys are used.
 const ask = (message) => (globalThis.browser || chrome).runtime.sendMessage(message);
@@ -25,7 +25,7 @@ check();
 // the app or signing in to it is noticed.
 document.addEventListener("visibilitychange", () => { if (!document.hidden) check(); });
 
-// A pass after Touch ID. While waiting it asks every few seconds whether
+// A pass from Orien Wallet. While waiting it asks every few seconds whether
 // Orien Wallet is confirming; if it isn't, the question was lost on the
 // way, so it is asked again (once). Gives up after two minutes.
 async function signIn() {
@@ -64,7 +64,7 @@ document.addEventListener("click", async (event) => {
   button.dataset.busy = "1";
   const text = words(button);
   const label = text.textContent;
-  text.textContent = /Macintosh/.test(navigator.userAgent) ? "Confirm with Touch ID…" : "Signing in…";
+  text.textContent = "Signing in…";
   const answer = await signIn();
   if (answer && answer.pass) {
     location.hash = "pass=" + answer.pass;

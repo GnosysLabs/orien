@@ -24,7 +24,7 @@ const CHROME: &[&str] = &["chrome-extension://oogifphigefggbdlcomcohbjfbgomcmn",
 static WALLET: Mutex<Option<serde_json::Value>> = Mutex::new(None);
 
 /// Whether a sign-in is under way, and when one last started or ended. The
-/// extension asks, to tell a slow Touch ID from a question the browser
+/// extension asks, to tell a slow answer from a question the browser
 /// lost on the way (Safari sometimes drops one), which it asks again.
 static SIGNING: Mutex<(bool, Option<Instant>)> = Mutex::new((false, None));
 
@@ -211,8 +211,8 @@ fn people(app: &AppHandle) -> serde_json::Value {
     serde_json::json!({ "contacts": contacts, "wallets": wallets })
 }
 
-/// Sign in with Orien Wallet: after Touch ID (or the Mac's password), a
-/// single-use pass that signs the browser in to this app's Orien Network
+/// Sign in with Orien Wallet: the click on the page is the approval (no
+/// money moves, so no Touch ID), for a single-use pass that signs the browser in to this app's Orien Network
 /// account. No wallet keys are used.
 fn sign_in(app: &AppHandle) -> Result<String, String> {
     let _signing = Signing::start();
@@ -220,9 +220,6 @@ fn sign_in(app: &AppHandle) -> Result<String, String> {
     if crate::board::session(&dir).is_none() {
         return Err("Sign in to Orien Network in Orien Wallet first.".into());
     }
-    // Macs confirm with Touch ID; elsewhere the click on the page is it.
-    #[cfg(target_os = "macos")]
-    crate::biometric::confirm("sign in with your Orien Network account")?;
     crate::board::sign_in_pass(&dir).map_err(|problem| {
         if problem.starts_with("signin:") { "Sign in to Orien Network in Orien Wallet first.".to_string() } else { problem }
     })
