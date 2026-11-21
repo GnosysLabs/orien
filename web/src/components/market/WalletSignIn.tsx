@@ -18,7 +18,17 @@ function walletState(): State {
 
 /** Where this page is open: the browser, and whether on a Mac. Phones and
  * tablets first, since their browsers also say Safari or Chrome. */
-type Where = { browser: 'safari' | 'chrome' | 'firefox' | 'other'; mac: boolean; phone: boolean }
+type Where = { browser: 'safari' | 'chrome' | 'firefox' | 'other'; mac: boolean; phone: boolean; name: string }
+
+/** The name of the browser that takes Chrome's extensions, for the button:
+ * Brave says so itself; Edge, Opera and Vivaldi say so in the user agent. */
+function chromeName(agent: string): string {
+  if ('brave' in navigator) return 'Brave'
+  if (/Edg\//.test(agent)) return 'Edge'
+  if (/OPR\//.test(agent)) return 'Opera'
+  if (/Vivaldi\//.test(agent)) return 'Vivaldi'
+  return 'Chrome'
+}
 
 function where(): Where {
   const agent = navigator.userAgent
@@ -31,7 +41,8 @@ function where(): Where {
       : /Safari\//.test(agent)
         ? 'safari'
         : 'other'
-  return { browser, mac, phone }
+  const name = browser === 'chrome' ? chromeName(agent) : browser === 'safari' ? 'Safari' : browser === 'firefox' ? 'Firefox' : 'your browser'
+  return { browser, mac, phone, name }
 }
 
 const primary =
@@ -94,7 +105,7 @@ const download = (
 )
 
 function WalletHelp({ state, onClose }: { state: State | 'install'; onClose: () => void }) {
-  const [here, setHere] = useState<Where>({ browser: 'other', mac: false, phone: false })
+  const [here, setHere] = useState<Where>({ browser: 'other', mac: false, phone: false, name: 'your browser' })
   useEffect(() => {
     setHere(where())
     const close = (event: KeyboardEvent) => event.key === 'Escape' && onClose()
@@ -149,10 +160,10 @@ function WalletHelp({ state, onClose }: { state: State | 'install'; onClose: () 
             <p className="font-semibold text-ink">Already have Orien Wallet?</p>
             <Steps>
               <li>Update it to the latest version (1.8.22 or later).</li>
-              <li>Add the extension to your browser, and reload this page.</li>
+              <li>Add the extension to {here.name}, and reload this page.</li>
             </Steps>
             <a href={CHROME_EXTENSION} target="_blank" rel="noopener noreferrer" className={primary}>
-              Add it to Chrome
+              Add it to {here.name}
             </a>
           </div>
           <div className="space-y-3">
