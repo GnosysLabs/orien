@@ -10,6 +10,12 @@
 // handler doesn't run): Orien Wallet hands over a
 // one-minute, single-use pass, which the page trades for a sign-in. No
 // wallet keys are used.
+//
+// It runs once a page: a second copy of Orien Wallet on the same computer
+// (an older one left in Downloads, say) brings the same extension again,
+// and Safari would run this twice.
+if (!globalThis.__orienWallet) {
+globalThis.__orienWallet = true;
 const ask = (message) => (globalThis.browser || chrome).runtime.sendMessage(message);
 // The answer, or undefined if none came in `ms` (the browser can lose a
 // question on its way to Orien Wallet; null means the app isn't running).
@@ -76,3 +82,4 @@ document.addEventListener("click", async (event) => {
   if (!answer) html.dataset.orienWallet = "app-closed";
   else if (answer.problem && answer.problem.startsWith("Sign in to Orien Network")) html.dataset.orienWallet = "signed-out";
 }, true);
+}
