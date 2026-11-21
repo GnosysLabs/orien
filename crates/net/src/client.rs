@@ -45,27 +45,87 @@ use std::collections::{BTreeMap, HashMap};
 use std::fmt;
 use std::fs;
 use std::io;
-use std::net::{TcpStream, ToSocketAddrs};
+use std::net::{SocketAddr, TcpStream, ToSocketAddrs};
 use std::path::Path;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::{Mutex, RwLock};
 use std::thread;
 use std::time::{Duration, Instant, SystemTime, UNIX_EPOCH};
 
-pub(crate) fn connect(address: &str, timeout: Duration) -> io::Result<TcpStream> {
+/// How long a name's addresses are used before they are looked up again.
+const LOOK_UP_AGAIN: Duration = Duration::from_secs(60);
+
+/// Where each name was last found, and when. A name lookup can take
+/// seconds when a computer's name servers are slow, and a validator opens
+/// connections all the time: looking the name up for each one made a
+/// validator with slow name servers late to every close. So a name is
+/// looked up once, used from memory, and looked up again in the background.
+static FOUND: Mutex<Option<HashMap<String, (Vec<SocketAddr>, Instant)>>> = Mutex::new(None);
+
+fn look_up(address: &str) -> io::Result<Vec<SocketAddr>> {
+    let found: Vec<SocketAddr> = address.to_socket_addrs()?.collect();
+    if found.is_empty() {
+        return Err(io::Error::new(io::ErrorKind::NotFound, "address did not resolve"));
+    }
+    FOUND.lock().unwrap().get_or_insert_with(HashMap::new).insert(address.to_string(), (found.clone(), Instant::now()));
+    Ok(found)
+}
+
+/// The addresses behind `address`, and whether they came from memory. Never
+/// waits on a lookup for a name it has found before.
+fn found_at(address: &str) -> io::Result<(Vec<SocketAddr>, bool)> {
+    // An address in numbers needs no looking up.
+    if let Ok(numbers) = address.parse::<SocketAddr>() {
+        return Ok((vec![numbers], false));
+    }
+    let known = {
+        let mut found = FOUND.lock().unwrap();
+        found.get_or_insert_with(HashMap::new).get_mut(address).map(|(addresses, at)| {
+            let stale = at.elapsed() > LOOK_UP_AGAIN;
+            // One lookup at a time: the next is due a while from now, whatever this one finds.
+            if stale {
+                *at = Instant::now();
+            }
+            (addresses.clone(), stale)
+        })
+    };
+    match known {
+        Some((addresses, stale)) => {
+            if stale {
+                let address = address.to_string();
+                thread::spawn(move || {
+                    let _ = look_up(&address);
+                });
+            }
+            Ok((addresses, true))
+        }
+        None => Ok((look_up(address)?, false)),
+    }
+}
+
+fn first_to_answer(addresses: &[SocketAddr], timeout: Duration) -> io::Result<TcpStream> {
     // A name can resolve to several addresses (IPv6 and IPv4, say). Try each.
     let mut last_error = io::Error::new(io::ErrorKind::NotFound, "address did not resolve");
-    let mut connected = None;
-    for resolved in address.to_socket_addrs()? {
-        match TcpStream::connect_timeout(&resolved, timeout) {
-            Ok(stream) => {
-                connected = Some(stream);
-                break;
-            }
+    for resolved in addresses {
+        match TcpStream::connect_timeout(resolved, timeout) {
+            Ok(stream) => return Ok(stream),
             Err(error) => last_error = error,
         }
     }
-    let Some(stream) = connected else { return Err(last_error) };
+    Err(last_error)
+}
+
+pub(crate) fn connect(address: &str, timeout: Duration) -> io::Result<TcpStream> {
+    let (found, remembered) = found_at(address)?;
+    let stream = match first_to_answer(&found, timeout) {
+        Ok(stream) => stream,
+        // Nobody answers where the name was last found: it may have moved.
+        Err(error) if remembered => match look_up(address) {
+            Ok(now) if now != found => first_to_answer(&now, timeout)?,
+            _ => return Err(error),
+        },
+        Err(error) => return Err(error),
+    };
     let configure = || -> io::Result<()> {
         stream.set_nodelay(true)?;
         stream.set_read_timeout(Some(timeout))?;

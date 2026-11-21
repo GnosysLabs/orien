@@ -861,7 +861,15 @@ impl Core {
             sign: &mut sign,
             order: &order,
         };
-        step(closer, &mut env)
+        let done = step(closer, &mut env);
+        // What the close has been through since the last step, in the log:
+        // so that a slow close or a second round explains itself.
+        for note in closer.take_notes() {
+            if self.log {
+                println!("[{}] closing  epoch {}: {note}", self.name, committee.epoch());
+            }
+        }
+        done
     }
 
     /// Opens connections to every validator of this epoch it is not yet
@@ -2454,6 +2462,12 @@ impl Node {
             let _ = core.join();
         }
         if let Some(listener) = self.listener.take() {
+            // One knock can be lost on a busy computer, and the accept loop
+            // would then wait for ever: knock until it has noticed.
+            while !listener.is_finished() {
+                let _ = TcpStream::connect_timeout(&self.addr, Duration::from_millis(500));
+                thread::sleep(Duration::from_millis(20));
+            }
             let _ = listener.join();
         }
     }

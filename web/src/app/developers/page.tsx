@@ -28,7 +28,8 @@ const SECTIONS = [
 const COMMANDS: [string, string][] = [
   ['orien wallet new', 'A new wallet, with a 24-word recovery phrase to write down. orien wallet restore brings it back.'],
   ['orien wallet address', 'The wallet’s address.'],
-  ['orien balance [ADDRESS]', 'A balance: your wallet’s, or any address’s.'],
+  ['orien balance [ADDRESS]', 'A balance: your wallet’s, or any address’s. --json answers for programs.'],
+  ['orien activity [ADDRESS]', 'What came in and what was sent, from the validators themselves. --json answers for programs.'],
   ['orien send --to ADDRESS --amount 5', 'Pays, and waits until the payment is final. --receipt FILE keeps the proof.'],
   ['orien verify FILE', 'Checks a receipt offline, against the genesis file and the checkpoints.'],
   ['orien escrow / claim / escrow-status', 'Locked payments: lock ORN behind a secret, claim it, or look one up.'],
@@ -234,8 +235,9 @@ export default function DevelopersPage() {
         <Block>{ACTIVITY}</Block>
         <p>
           Entries of kind <Code>received</Code> are payments to you, from <Code>counterparty</Code>, of{' '}
-          <Code>amount</Code> billionths of an ORN. Or run <Code>orien balance ADDRESS</Code>, which asks the validators
-          themselves.
+          <Code>amount</Code> billionths of an ORN. Or ask the validators themselves, with nothing of ours in between:{' '}
+          <Code>orien activity ADDRESS --json</Code> lists the same payments, and{' '}
+          <Code>orien balance ADDRESS --json</Code> gives the balance.
         </p>
       </Section>
 

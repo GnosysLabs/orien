@@ -148,6 +148,11 @@ pub struct Closer {
     timers: Vec<(Instant, Timeout)>,
     /// The round this validator owes a proposal for, if any.
     need_value: Option<u32>,
+    /// When this validator stopped work on the epoch, and what has happened
+    /// in the close since, for the log: who was heard from, whose turn it
+    /// was, and why a round was given up.
+    since: Option<Instant>,
+    notes: Vec<String>,
     /// Since when enough logs have been at hand to propose.
     ready_since: Option<Instant>,
     /// The agreement's result, until the proof of it is put together.
@@ -210,6 +215,8 @@ impl Closer {
             ends: HashMap::new(),
             timers: Vec::new(),
             need_value: None,
+            since: None,
+            notes: Vec::new(),
             ready_since: None,
             outcome: None,
             decided: None,
@@ -306,7 +313,27 @@ impl Closer {
         }
     }
 
+    /// Notes something for the log, with the time since this validator
+    /// stopped work on the epoch. Nothing is noted while the journal is
+    /// played back after a restart.
+    fn note(&mut self, text: String) {
+        if self.replaying {
+            return;
+        }
+        let since = *self.since.get_or_insert_with(Instant::now);
+        self.notes.push(format!("+{:.2}s {text}", since.elapsed().as_secs_f64()));
+    }
+
+    /// What has happened in the close since this was last asked.
+    pub fn take_notes(&mut self) -> Vec<String> {
+        std::mem::take(&mut self.notes)
+    }
+
     fn take_statement(&mut self, digest: Hash32, signed: Signed<Statement>) {
+        if !self.first.contains_key(&signed.body.validator) {
+            let heard = self.first.len() + 1;
+            self.note(format!("statement of validator {} ({heard} of {})", signed.body.validator + 1, self.weights.len()));
+        }
         self.first.entry(signed.body.validator).or_insert(digest);
         // An empty log needs no fetching.
         if signed.body.log == Pin::start(self.epoch) {
@@ -329,6 +356,7 @@ impl Closer {
             return out;
         };
         let signed = Signed { body: statement, proof };
+        self.since = Some(env.now.max(Instant::now()));
         // On disk before it is sent: from here on this validator must not
         // confirm any payment its statement does not pin.
         self.record(&Event::Sent(Message::Statement(signed.clone())));
@@ -497,6 +525,7 @@ impl Closer {
                 Output::Broadcast(agree::Message::Commit { round, value, backers })
                 | Output::Decided { value, round, backers } => {
                     if self.outcome.is_none() {
+                        self.note(format!("round {round}: agreed, with the votes of {} of {}", backers.len(), self.weights.len()));
                         self.outcome = Some((round, value, backers));
                     }
                 }
@@ -507,6 +536,7 @@ impl Closer {
                 Output::NeedValue { round } => {
                     self.need_value = Some(round);
                     self.ready_since = None;
+                    self.note(format!("round {round}: this validator's turn to propose"));
                 }
             }
         }
@@ -659,6 +689,13 @@ impl Closer {
                 },
             };
             let timely = proposal.checkpoint.time.abs_diff(env.unix) <= self.pace.clock_tolerance;
+            self.note(format!(
+                "round {}: proposal of validator {} checked: {}{}",
+                proposal.round,
+                signed.proof.validator + 1,
+                if valid { "valid" } else { "NOT valid" },
+                if timely { "" } else { ", its time too far from this clock" },
+            ));
             self.valid.insert(digest, valid);
             self.record(&Event::Judged { proposal: signed.clone(), valid, timely });
             let outputs = self.agreement.on_proposal(
@@ -706,6 +743,7 @@ impl Closer {
         };
         let digest = checkpoint.digest();
         self.record(&Event::Proposed { round, checkpoint: checkpoint.clone() });
+        self.note(format!("round {round}: proposed, with the statements of {} of {}", merged.len(), self.weights.len()));
         self.valid.insert(digest, true);
         self.ends.insert(digest, end);
         let outputs = self.agreement.propose(round, checkpoint);
@@ -749,6 +787,15 @@ impl Closer {
             let (_, timeout) = self.timers.remove(index);
             let (step, round) = timeout_parts(timeout);
             self.record(&Event::Timeout { step, round });
+            if self.agreement.waits_on(timeout) {
+                let waited = self.wait(timeout).as_secs_f64();
+                let turn = self.agreement.proposer(round) + 1;
+                self.note(match timeout {
+                    Timeout::Propose(_) => format!("round {round}: no proposal from validator {turn}, whose turn it was, within {waited:.1}s"),
+                    Timeout::Prevote(_) => format!("round {round}: too few votes for one checkpoint within {waited:.1}s"),
+                    Timeout::Precommit(_) => format!("round {round}: too few final votes within {waited:.1}s; next round"),
+                });
+            }
             let outputs = self.agreement.on_timeout(timeout);
             self.perform(outputs, Some(env), &mut out);
         }

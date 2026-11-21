@@ -95,11 +95,13 @@ export default function ExchangesPage() {
           <strong>A deposit counts as soon as it shows.</strong> It is final then, with nothing to wait for. To check
           an address, ask the validators themselves:
         </p>
-        <CopyText text="orien balance ADDRESS" />
+        <CopyText text="orien activity ADDRESS --json" />
         <p>
-          That answers with the balance that validators holding more than two thirds of the stake agree on, and
-          depends on nothing of ours but the network. For each payment that came in, with its sender and amount, the{' '}
-          <Link href="https://explorer.orien.network/api/">explorer’s API</Link> answers in JSON.
+          That lists each payment that came in, with its sender, its amount and a <Code>payment</Code> id that tells
+          it from every other. <Code>orien balance ADDRESS --json</Code> gives the balance that validators holding
+          more than two thirds of the stake agree on. Both depend on nothing of ours but the network. The{' '}
+          <Link href="https://explorer.orien.network/api/">explorer’s API</Link> answers the same questions over the
+          web.
         </p>
         <p>
           Once an hour the validators sign a checkpoint of every balance. A deposit is final before that; the
