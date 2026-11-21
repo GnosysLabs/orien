@@ -1111,11 +1111,13 @@
   #send #r-pw-field { margin-top: 18px; }
   #send #confirm { margin-top: 16px; }
   #send .field + .field { margin-top: 14px; }
-  /* iPhones: Send at the foot of the screen, above the keyboard; while
-     typing, only the form, so Send stays in sight. */
+  /* iPhones: Send at the foot of the screen, above the keyboard. While
+     typing the recent faces step aside; the total and balance after stay,
+     unless the space above the keyboard is too short for them and Send. */
   body.phone #send .push { flex: 1 1 auto; }
   body.phone #send #confirm { margin-bottom: 4px; }
-  body.phone.kb-up #send .recent-to, body.phone.kb-up #send .summary { display: none; }
+  body.phone.kb-up #send .recent-to { display: none; }
+  @media (max-height: 499px) { body.phone.kb-up #send .summary { display: none; } }
   .amount-mirror { position: absolute; left: -9999px; top: 0; visibility: hidden; white-space: pre; }
   .fee-line { margin-top: 4px; min-height: 18px; font-size: 12px; color: var(--faint); }
   .fee-line.bad { color: var(--bad); }
