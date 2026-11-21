@@ -13,7 +13,7 @@ export function YouTube({ id }: { id: string }) {
   return (
     <div className="relative mt-3 aspect-video w-full overflow-hidden rounded-xl border border-line bg-black">
       <iframe
-        src={`https://www.youtube-nocookie.com/embed/${id}?rel=0`}
+        src={`https://www.youtube-nocookie.com/embed/${id}?rel=0&hl=en&cc_lang_pref=en`}
         title="YouTube video"
         loading="lazy"
         allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
