@@ -46,4 +46,4 @@ export const CHROME_EXTENSION = 'https://chromewebstore.google.com/detail/orien-
 export const WALLET_SIGN_IN_FOR_EVERYONE = true
 
 /** Whether the community page is open and linked. Until then it says it opens soon. */
-export const COMMUNITY_LIVE = false
+export const COMMUNITY_LIVE = true

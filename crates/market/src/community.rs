@@ -1,9 +1,8 @@
 //! The community feed at /community/: people's posts, replies and
 //! reactions, and posts the network writes by itself after each checkpoint
-//! (records, new miners, milestones), beside the miner and team
-//! leaderboards.
+//! (records, new miners, milestones), beside the miner leaderboard.
 //!
-//! Only accounts with a verified wallet post, reply or join a team: a
+//! Only accounts with a verified wallet post, reply or react: a
 //! verified wallet is what ties an account to real mining. Every post is
 //! screened like a Market message before anyone sees it, and can be
 //! reported to the dashboard.
@@ -31,7 +30,6 @@ use std::time::Duration;
 pub const MAX_POST: usize = 500;
 const POSTS_AN_HOUR: i64 = 20;
 const PAGE: i64 = 30;
-pub const MAX_TEAM_NAME: usize = 30;
 /// The reactions anyone can leave.
 pub const REACTIONS: [&str; 5] = ["⛏️", "🔥", "❤️", "👏", "😂"];
 /// ORN mined that earns a milestone post.
@@ -62,7 +60,6 @@ pub struct Board {
     pub epoch: u64,
     pub since: u64,
     pub miners: Vec<MinerRow>,
-    pub teams: Vec<TeamRow>,
     #[serde(skip)]
     pub accounts: HashMap<i64, Stats>,
 }
@@ -87,16 +84,6 @@ pub struct MinerRow {
     pub address: Option<String>,
     pub mined: String,
     pub streak: u64,
-    pub team: Option<String>,
-}
-
-#[derive(Clone, Debug, Serialize)]
-pub struct TeamRow {
-    pub rank: usize,
-    pub id: i64,
-    pub name: String,
-    pub members: usize,
-    pub mined: String,
 }
 
 /// The board, kept up to date by the watcher.
@@ -155,22 +142,15 @@ fn tally(mined: &Mined, owners: &HashMap<String, i64>) -> Tally {
     Tally { totals, streaks }
 }
 
-/// The leaderboards from what the network paid. `accounts` gives each
-/// account's name and picture, `teams` each team's members.
-pub fn board(
-    mined: &Mined,
-    owners: &HashMap<String, i64>,
-    accounts: &HashMap<i64, (String, Option<String>)>,
-    teams: &[(i64, String, Vec<i64>)],
-) -> Board {
+/// The leaderboard from what the network paid. `accounts` gives each
+/// account's name and picture.
+pub fn board(mined: &Mined, owners: &HashMap<String, i64>, accounts: &HashMap<i64, (String, Option<String>)>) -> Board {
     let tally = tally(mined, owners);
     // Only miners with a verified wallet on their profile are ranked: the
     // board is about people, not addresses.
     let mut ranked: Vec<(&Miner, u128)> =
         tally.totals.iter().filter(|(m, _)| matches!(m, Miner::Account(_))).map(|(m, t)| (m, *t)).collect();
     ranked.sort_by(|a, b| b.1.cmp(&a.1).then_with(|| a.0.cmp(b.0)));
-    let team_of: HashMap<i64, &str> =
-        teams.iter().flat_map(|(_, name, members)| members.iter().map(move |m| (*m, name.as_str()))).collect();
     let mut board = Board { epoch: mined.upto, since: mined.since, ..Board::default() };
     for (index, (miner, total)) in ranked.iter().enumerate() {
         let streak = tally.streaks.get(*miner).copied().unwrap_or(0);
@@ -182,30 +162,16 @@ pub fn board(
                 Miner::Account(id) => Some(*id),
                 Miner::Address(_) => None,
             };
-            let (name, picture, address, team) = match miner {
+            let (name, picture, address) = match miner {
                 Miner::Account(id) => {
                     let (name, picture) = accounts.get(id).cloned().unwrap_or_default();
-                    (Some(name), picture, None, team_of.get(id).map(|t| t.to_string()))
+                    (Some(name), picture, None)
                 }
-                Miner::Address(address) => (None, None, Some(address.clone()), None),
+                Miner::Address(address) => (None, None, Some(address.clone())),
             };
-            board.miners.push(MinerRow { account, rank: index + 1, name, picture, address, mined: total.to_string(), streak, team });
+            board.miners.push(MinerRow { account, rank: index + 1, name, picture, address, mined: total.to_string(), streak });
         }
     }
-    let mut team_rows: Vec<(i64, String, usize, u128)> = teams
-        .iter()
-        .map(|(id, name, members)| {
-            let total = members.iter().map(|m| tally.totals.get(&Miner::Account(*m)).copied().unwrap_or(0)).sum();
-            (*id, name.clone(), members.len(), total)
-        })
-        .collect();
-    team_rows.sort_by(|a, b| b.3.cmp(&a.3).then_with(|| a.1.to_lowercase().cmp(&b.1.to_lowercase())));
-    board.teams = team_rows
-        .into_iter()
-        .take(BOARD)
-        .enumerate()
-        .map(|(index, (id, name, members, mined))| TeamRow { rank: index + 1, id, name, members, mined: mined.to_string() })
-        .collect();
     board
 }
 
@@ -385,18 +351,6 @@ impl Store {
                  emoji TEXT NOT NULL,
                  PRIMARY KEY (post, account, emoji)
              );
-             CREATE TABLE IF NOT EXISTS teams (
-                 id INTEGER PRIMARY KEY,
-                 name TEXT NOT NULL,
-                 owner INTEGER NOT NULL REFERENCES accounts(id) ON DELETE CASCADE,
-                 created INTEGER NOT NULL
-             );
-             CREATE UNIQUE INDEX IF NOT EXISTS teams_name ON teams(lower(name));
-             CREATE TABLE IF NOT EXISTS team_members (
-                 account INTEGER PRIMARY KEY REFERENCES accounts(id) ON DELETE CASCADE,
-                 team INTEGER NOT NULL REFERENCES teams(id) ON DELETE CASCADE,
-                 joined INTEGER NOT NULL
-             );
              -- The last checkpoint the network has posted about.
              CREATE TABLE IF NOT EXISTS community_state (
                  key TEXT PRIMARY KEY,
@@ -420,24 +374,6 @@ impl Store {
         let mut query = self.db.prepare("SELECT id, name, picture FROM accounts")?;
         let rows = query.query_map([], |row| Ok((row.get::<_, i64>(0)?, (row.get(1)?, row.get(2)?))))?;
         Ok(rows.collect::<rusqlite::Result<_>>()?)
-    }
-
-    fn all_teams(&self) -> Result<Vec<(i64, String, Vec<i64>)>> {
-        let mut query = self.db.prepare(
-            "SELECT t.id, t.name, m.account FROM teams t LEFT JOIN team_members m ON m.team = t.id ORDER BY t.id, m.joined",
-        )?;
-        let rows = query.query_map([], |row| Ok((row.get::<_, i64>(0)?, row.get::<_, String>(1)?, row.get::<_, Option<i64>>(2)?)))?;
-        let mut teams: Vec<(i64, String, Vec<i64>)> = Vec::new();
-        for row in rows {
-            let (id, name, member) = row?;
-            if teams.last().is_none_or(|t| t.0 != id) {
-                teams.push((id, name, Vec::new()));
-            }
-            if let Some(member) = member {
-                teams.last_mut().unwrap().2.push(member);
-            }
-        }
-        Ok(teams)
     }
 
     fn may_post(&self, account: i64) -> Result<()> {
@@ -635,88 +571,6 @@ impl Store {
         Ok(())
     }
 
-    /// The team `account` is in, if any: id and name.
-    pub fn team_of(&self, account: i64) -> Result<Option<(i64, String)>> {
-        Ok(self
-            .db
-            .query_row(
-                "SELECT t.id, t.name FROM team_members m JOIN teams t ON t.id = m.team WHERE m.account = ?1",
-                [account],
-                |row| Ok((row.get(0)?, row.get(1)?)),
-            )
-            .optional()?)
-    }
-
-    /// Starts a team, with its founder as its first member. Screened first.
-    pub fn new_team(&self, owner: i64, name: &str) -> Result<i64> {
-        let name = team_name(name)?;
-        if self.verified_wallets(owner)?.is_empty() {
-            bail!("verify one of your wallets first: teams rank by what their members mine");
-        }
-        if self.team_of(owner)?.is_some() {
-            bail!("leave your team first");
-        }
-        let taken: bool =
-            self.db.query_row("SELECT COUNT(*) > 0 FROM teams WHERE lower(name) = lower(?1)", [&name], |row| row.get(0))?;
-        if taken {
-            bail!("there is already a team called {name}");
-        }
-        self.db.execute("INSERT INTO teams (name, owner, created) VALUES (?1, ?2, ?3)", params![name, owner, now() as i64])?;
-        let team = self.db.last_insert_rowid();
-        self.db.execute("INSERT INTO team_members (account, team, joined) VALUES (?1, ?2, ?3)", params![owner, team, now() as i64])?;
-        Ok(team)
-    }
-
-    pub fn join_team(&self, account: i64, team: i64) -> Result<()> {
-        if self.verified_wallets(account)?.is_empty() {
-            bail!("verify one of your wallets first: teams rank by what their members mine");
-        }
-        if self.team_of(account)?.is_some() {
-            bail!("leave your team first");
-        }
-        let exists: bool = self.db.query_row("SELECT COUNT(*) > 0 FROM teams WHERE id = ?1", [team], |row| row.get(0))?;
-        if !exists {
-            bail!("there is no such team");
-        }
-        self.db.execute("INSERT INTO team_members (account, team, joined) VALUES (?1, ?2, ?3)", params![account, team, now() as i64])?;
-        Ok(())
-    }
-
-    /// Leaves the team. Its founder leaving hands it to the longest member;
-    /// the last member leaving ends it.
-    pub fn leave_team(&self, account: i64) -> Result<()> {
-        let Some((team, _)) = self.team_of(account)? else { bail!("you aren't in a team") };
-        self.db.execute("DELETE FROM team_members WHERE account = ?1", [account])?;
-        let next: Option<i64> = self
-            .db
-            .query_row("SELECT account FROM team_members WHERE team = ?1 ORDER BY joined LIMIT 1", [team], |row| row.get(0))
-            .optional()?;
-        match next {
-            None => {
-                self.db.execute("DELETE FROM teams WHERE id = ?1", [team])?;
-            }
-            Some(next) => {
-                self.db.execute("UPDATE teams SET owner = ?2 WHERE id = ?1 AND owner = ?3", params![team, next, account])?;
-            }
-        }
-        Ok(())
-    }
-
-    /// A team's members, longest first: name and picture.
-    pub fn team_members(&self, team: i64) -> Result<Option<(String, Vec<Value>)>> {
-        let Some(name) = self.db.query_row("SELECT name FROM teams WHERE id = ?1", [team], |row| row.get::<_, String>(0)).optional()? else {
-            return Ok(None);
-        };
-        let mut query = self.db.prepare(
-            "SELECT a.id, a.name, a.picture FROM team_members m JOIN accounts a ON a.id = m.account
-             WHERE m.team = ?1 AND a.id NOT IN (SELECT account FROM suspended) ORDER BY m.joined",
-        )?;
-        let rows = query.query_map([team], |row| {
-            Ok(json!({ "id": row.get::<_, i64>(0)?, "name": row.get::<_, String>(1)?, "picture": row.get::<_, Option<String>>(2)? }))
-        })?;
-        Ok(Some((name, rows.collect::<rusqlite::Result<_>>()?)))
-    }
-
     fn last_told(&self) -> Result<Option<u64>> {
         Ok(self
             .db
@@ -764,24 +618,16 @@ fn post_text(text: &str) -> Result<String> {
     Ok(text)
 }
 
-fn team_name(text: &str) -> Result<String> {
-    let name: String = text.split_whitespace().collect::<Vec<_>>().join(" ");
-    if name.chars().count() < 2 || name.chars().count() > MAX_TEAM_NAME || name.chars().any(char::is_control) {
-        bail!("a team's name is 2 to {MAX_TEAM_NAME} characters");
-    }
-    Ok(name)
-}
-
 impl Community {
     fn refresh(&self, app: &App) {
         let Some(mined) = app.explorer().mined(app.payments().as_ref()) else { return };
         let store = app.store();
-        let (Ok(owners), Ok(names), Ok(teams)) = (store.wallet_owners(), store.names(), store.all_teams()) else { return };
+        let (Ok(owners), Ok(names)) = (store.wallet_owners(), store.names()) else { return };
         if let Err(error) = store.tell(&mined, &owners) {
             eprintln!("community: could not post the network's news: {error:#}");
         }
         drop(store);
-        *self.board.lock().unwrap() = Some(board(&mined, &owners, &names, &teams));
+        *self.board.lock().unwrap() = Some(board(&mined, &owners, &names));
     }
 
     fn snapshot(&self) -> Option<Board> {
@@ -806,10 +652,6 @@ pub fn routes() -> Router<Arc<App>> {
         .route("/api/market/community/posts", post(new_post))
         .route("/api/market/community/posts/{id}", get(replies).delete(remove_post))
         .route("/api/market/community/posts/{id}/react", post(react))
-        .route("/api/market/community/teams", post(new_team))
-        .route("/api/market/community/teams/leave", post(leave_team))
-        .route("/api/market/community/teams/{id}", get(team))
-        .route("/api/market/community/teams/{id}/join", post(join_team))
 }
 
 fn viewer(app: &App, headers: &HeaderMap) -> Option<i64> {
@@ -841,13 +683,9 @@ async fn board_answer(State(app): State<Arc<App>>, headers: HeaderMap) -> Result
         Some(account) => {
             let store = app.store();
             let name = store.account(account)?.map(|a| (a.name, a.picture));
-            let team = store.team_of(account)?;
             let verified = !store.verified_wallets(account)?.is_empty();
             let stats = board.as_ref().and_then(|b| b.accounts.get(&account).cloned());
-            name.map(|(name, picture)| {
-                json!({ "name": name, "picture": picture, "verified": verified, "stats": stats,
-                        "team": team.map(|(id, name)| json!({ "id": id, "name": name })) })
-            })
+            name.map(|(name, picture)| json!({ "name": name, "picture": picture, "verified": verified, "stats": stats }))
         }
         None => None,
     };
@@ -890,65 +728,4 @@ async fn react(State(app): State<Arc<App>>, headers: HeaderMap, Path(id): Path<i
     let account = app.signed_in(&headers)?;
     let on = app.store().react(account, id, &given.emoji).map_err(refused)?;
     Ok(Json(json!({ "on": on })).into_response())
-}
-
-#[derive(Deserialize)]
-pub struct NewTeam {
-    name: String,
-}
-
-async fn new_team(State(app): State<Arc<App>>, headers: HeaderMap, Json(given): Json<NewTeam>) -> Result<Response, Failure> {
-    let owner = app.signed_in(&headers)?;
-    team_name(&given.name).map_err(refused)?;
-    let name = given.name.clone();
-    screened(&app, "team name", move |s| s.profile(&name, "")).await?;
-    let id = app.store().new_team(owner, &given.name).map_err(refused)?;
-    app.community().refresh_soon(&app);
-    Ok(Json(json!({ "id": id })).into_response())
-}
-
-async fn join_team(State(app): State<Arc<App>>, headers: HeaderMap, Path(id): Path<i64>) -> Result<Response, Failure> {
-    let account = app.signed_in(&headers)?;
-    app.store().join_team(account, id).map_err(refused)?;
-    app.community().refresh_soon(&app);
-    Ok(Json(json!({ "joined": true })).into_response())
-}
-
-async fn leave_team(State(app): State<Arc<App>>, headers: HeaderMap) -> Result<Response, Failure> {
-    let account = app.signed_in(&headers)?;
-    app.store().leave_team(account).map_err(refused)?;
-    app.community().refresh_soon(&app);
-    Ok(Json(json!({ "left": true })).into_response())
-}
-
-async fn team(State(app): State<Arc<App>>, Path(id): Path<i64>) -> Result<Response, Failure> {
-    let (name, members) = app.store().team_members(id)?.ok_or(Failure::NotFound)?;
-    Ok(Json(json!({ "id": id, "name": name, "members": members })).into_response())
-}
-
-impl Community {
-    /// Teams changed: the board's team figures and labels follow at once,
-    /// without asking the network again.
-    fn refresh_soon(&self, app: &App) {
-        let Ok(teams) = app.store().all_teams() else { return };
-        let mut board = self.board.lock().unwrap();
-        let Some(current) = board.as_mut() else { return };
-        let team_of: HashMap<i64, String> =
-            teams.iter().flat_map(|(_, name, members)| members.iter().map(move |m| (*m, name.clone()))).collect();
-        for row in &mut current.miners {
-            if let Some(account) = row.account {
-                row.team = team_of.get(&account).cloned();
-            }
-        }
-        let mined_of = |id: &i64| current.accounts.get(id).and_then(|s| s.mined.parse::<u128>().ok()).unwrap_or(0);
-        let mut rows: Vec<(i64, String, usize, u128)> =
-            teams.iter().map(|(id, name, members)| (*id, name.clone(), members.len(), members.iter().map(mined_of).sum())).collect();
-        rows.sort_by(|a, b| b.3.cmp(&a.3).then_with(|| a.1.to_lowercase().cmp(&b.1.to_lowercase())));
-        current.teams = rows
-            .into_iter()
-            .take(BOARD)
-            .enumerate()
-            .map(|(index, (id, name, members, mined))| TeamRow { rank: index + 1, id, name, members, mined: mined.to_string() })
-            .collect();
-    }
 }

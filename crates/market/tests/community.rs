@@ -1,4 +1,4 @@
-//! The community feed, its leaderboards and teams.
+//! The community feed and its leaderboard.
 
 use axum::body::Body;
 use axum::http::{Request, StatusCode, header};
@@ -43,19 +43,15 @@ fn the_board_ranks_verified_miners_by_what_they_mined_with_their_streaks() {
     // Alice (account 7) verified addresses 1 and 4; Bob (8) address 2.
     let owners = HashMap::from([(address(1), 7), (address(4), 7), (address(2), 8)]);
     let names = HashMap::from([(7, ("Alice".to_string(), None)), (8, ("Bob".to_string(), None))]);
-    let teams = vec![(1, "Diggers".to_string(), vec![7, 8])];
-    let board = board(&mined(), &owners, &names, &teams);
+    let board = board(&mined(), &owners, &names);
     assert_eq!(board.epoch, 14);
     assert_eq!(board.miners[0].name.as_deref(), Some("Alice"));
     assert_eq!(board.miners[0].mined, (1_215 * ORN).to_string(), "both her wallets count");
     assert_eq!(board.miners[0].streak, 5);
-    assert_eq!(board.miners[0].team.as_deref(), Some("Diggers"));
     assert_eq!(board.miners[1].name.as_deref(), Some("Bob"));
     // Addresses nobody verified are not ranked.
     assert_eq!(board.miners.len(), 2);
     assert_eq!(board.accounts[&7].rank, 1);
-    assert_eq!(board.teams[0].mined, (1_465 * ORN).to_string());
-    assert_eq!(board.teams[0].members, 2);
 }
 
 #[test]
@@ -173,35 +169,6 @@ async fn verified_accounts_post_reply_and_react_and_screening_holds() {
     assert!(store_for_tests(&app, |s| s.remove_post(id).unwrap()));
     let (_, feed) = ask(&app, "GET", "/api/market/community/feed", None, None).await;
     assert!(feed["posts"].as_array().unwrap().is_empty());
-}
-
-#[tokio::test]
-async fn teams_are_started_joined_left_and_handed_on() {
-    let app = market();
-    let alice = sign_in_for_tests(&app, "Alice");
-    let bob = sign_in_for_tests(&app, "Bob");
-    let nobody = sign_in_without_wallet_for_tests(&app, "Nobody");
-
-    let (status, made) = ask(&app, "POST", "/api/market/community/teams", Some(&alice), Some(json!({ "name": "Diggers" }))).await;
-    assert_eq!(status, StatusCode::OK, "{made}");
-    let team = made["id"].as_i64().unwrap();
-    // Names are unique, whatever their case.
-    let (status, _) = ask(&app, "POST", "/api/market/community/teams", Some(&bob), Some(json!({ "name": "diggers" }))).await;
-    assert_eq!(status, StatusCode::BAD_REQUEST);
-    // Joining needs a verified wallet, and one team at a time.
-    let join = format!("/api/market/community/teams/{team}/join");
-    assert_eq!(ask(&app, "POST", &join, Some(&nobody), None).await.0, StatusCode::BAD_REQUEST);
-    assert_eq!(ask(&app, "POST", &join, Some(&bob), None).await.0, StatusCode::OK);
-    assert_eq!(ask(&app, "POST", &join, Some(&bob), None).await.0, StatusCode::BAD_REQUEST);
-    let (_, members) = ask(&app, "GET", &format!("/api/market/community/teams/{team}"), None, None).await;
-    assert_eq!(members["members"].as_array().unwrap().len(), 2);
-
-    // The founder leaves: Bob carries on with it. Bob leaves: it ends.
-    assert_eq!(ask(&app, "POST", "/api/market/community/teams/leave", Some(&alice), None).await.0, StatusCode::OK);
-    let (_, members) = ask(&app, "GET", &format!("/api/market/community/teams/{team}"), None, None).await;
-    assert_eq!(members["members"][0]["name"], "Bob");
-    assert_eq!(ask(&app, "POST", "/api/market/community/teams/leave", Some(&bob), None).await.0, StatusCode::OK);
-    assert_eq!(ask(&app, "GET", &format!("/api/market/community/teams/{team}"), None, None).await.0, StatusCode::NOT_FOUND);
 }
 
 #[tokio::test]

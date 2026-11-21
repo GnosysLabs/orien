@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { Flag, Flame, MessageCircle, MoreHorizontal, Plus, SmilePlus, Trash2, Trophy, Users } from 'lucide-react'
+import { Flag, Flame, MessageCircle, MoreHorizontal, SmilePlus, Trash2, Trophy } from 'lucide-react'
 import { ask, profileHref } from '@/lib/market'
 import { checkpointHref, explore, hashrate as hashrateText, orn, short, type Overview } from '@/lib/explorer'
 import { useMe } from '@/lib/useMe'
@@ -28,10 +28,9 @@ type Post = {
   reactions: Reaction[]
 }
 type Stats = { mined: string; streak: number; rank: number }
-type MinerRow = { rank: number; name: string | null; picture: string | null; address: string | null; mined: string; streak: number; team: string | null }
-type TeamRow = { rank: number; id: number; name: string; members: number; mined: string }
-type Board = { epoch: number; since: number; miners: MinerRow[]; teams: TeamRow[] }
-type You = { name: string; picture: string | null; verified: boolean; stats: Stats | null; team: { id: number; name: string } | null }
+type MinerRow = { rank: number; name: string | null; picture: string | null; address: string | null; mined: string; streak: number }
+type Board = { epoch: number; since: number; miners: MinerRow[] }
+type You = { name: string; picture: string | null; verified: boolean; stats: Stats | null }
 type Tab = 'all' | 'people' | 'network'
 
 const REACTIONS = ['⛏️', '🔥', '❤️', '👏', '😂']
@@ -564,7 +563,7 @@ function YouCard({ you, onChange }: { you: You | null; onChange: () => void }) {
     return (
       <section className={`${card} p-4`}>
         <p className="font-bold text-ink">New here?</p>
-        <p className="mt-1 text-sm leading-relaxed text-muted">Sign in to post, react and join a team.</p>
+        <p className="mt-1 text-sm leading-relaxed text-muted">Sign in to post and react.</p>
         <Link href="/account/" className={`${pill} mt-3`}>
           Sign in
         </Link>
@@ -577,7 +576,7 @@ function YouCard({ you, onChange }: { you: You | null; onChange: () => void }) {
         <Avatar name={you.name} picture={you.picture} size={44} />
         <div className="min-w-0 flex-1">
           <Name person={you} className="block truncate" />
-          <p className="truncate text-sm text-muted">{you.team ? `Team ${you.team.name}` : 'No team yet'}</p>
+          <p className="truncate text-sm text-muted">{you.verified ? 'Verified wallet' : 'No verified wallet yet'}</p>
         </div>
       </div>
       {you.stats ? (
@@ -597,26 +596,13 @@ function YouCard({ you, onChange }: { you: You | null; onChange: () => void }) {
         <p className="text-sm leading-relaxed text-muted">
           {you.verified
             ? 'Mine with a verified wallet and your figures show here after the next checkpoint.'
-            : 'Verify a wallet to post, join a team and see your mining here.'}
+            : 'Verify a wallet to post and see your mining here.'}
         </p>
       )}
       {!you.verified && (
         <Link href="/account/" className={quiet}>
           Verify a wallet
         </Link>
-      )}
-      {you.team && (
-        <button
-          type="button"
-          className={`${quiet} w-full`}
-          onClick={async () => {
-            if (!confirm(`Leave ${you.team!.name}?`)) return
-            await ask('/community/teams/leave', 'POST').catch(() => undefined)
-            onChange()
-          }}
-        >
-          Leave {you.team.name}
-        </button>
       )}
     </section>
   )
@@ -653,7 +639,6 @@ function Miners({ board }: { board: Board }) {
                       {row.streak}h
                     </span>
                   )}
-                  {row.team && <span className="truncate rounded-md border border-line px-1.5 text-[11px]">{row.team}</span>}
                 </span>
               </span>
               <span className="num shrink-0 text-sm font-semibold text-ink">{mined(row.mined)}</span>
@@ -669,134 +654,6 @@ function Miners({ board }: { board: Board }) {
         >
           {all ? 'Show less' : 'Show more'}
         </button>
-      )}
-    </section>
-  )
-}
-
-function Teams({ board, you, onChange }: { board: Board; you: You | null; onChange: () => void }) {
-  const [making, setMaking] = useState(false)
-  const [name, setName] = useState('')
-  const [trouble, setTrouble] = useState('')
-  const [busy, setBusy] = useState(false)
-  const [members, setMembers] = useState<{ id: number; list: Person[] } | null>(null)
-  const canJoin = !!you?.verified && !you.team
-  const run = async (work: () => Promise<void>) => {
-    setBusy(true)
-    setTrouble('')
-    try {
-      await work()
-    } catch (error) {
-      setTrouble((error as Error).message)
-    }
-    setBusy(false)
-  }
-  return (
-    <section className={card}>
-      <div className="flex items-center gap-2 px-4 pb-1 pt-4">
-        <h2 className="flex flex-1 items-center gap-2 text-lg font-bold text-ink">
-          <Users className="h-4 w-4 text-pearl" aria-hidden /> Teams
-        </h2>
-        {canJoin && !making && (
-          <button type="button" onClick={() => setMaking(true)} className={`${quiet} h-8 px-3 text-xs`}>
-            <Plus className="h-3.5 w-3.5" aria-hidden /> Start one
-          </button>
-        )}
-      </div>
-      {making && (
-        <form
-          className="space-y-2 px-4 py-3"
-          onSubmit={(event) => {
-            event.preventDefault()
-            void run(async () => {
-              await ask('/community/teams', 'POST', { name })
-              setMaking(false)
-              setName('')
-              onChange()
-            })
-          }}
-        >
-          <input
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            maxLength={30}
-            required
-            autoFocus
-            placeholder="Team name"
-            className="h-10 w-full rounded-xl border border-line bg-bg px-3 text-sm text-ink outline-none focus:border-pearl/60"
-          />
-          <div className="flex gap-2">
-            <button type="submit" disabled={busy} className={pill}>
-              {busy ? 'Starting…' : 'Start'}
-            </button>
-            <button type="button" onClick={() => setMaking(false)} className={quiet}>
-              Cancel
-            </button>
-          </div>
-        </form>
-      )}
-      {trouble && (
-        <div className="px-4 py-2">
-          <Notice tone="bad">{trouble.charAt(0).toUpperCase() + trouble.slice(1)}</Notice>
-        </div>
-      )}
-      {board.teams.length === 0 ? (
-        <p className="px-4 pb-4 pt-2 text-sm text-muted">No teams yet. Start the first one.</p>
-      ) : (
-        <ol className="pb-2">
-          {board.teams.map((team) => (
-            <li key={team.id}>
-              <button
-                type="button"
-                onClick={() =>
-                  void run(async () => {
-                    if (members?.id === team.id) return setMembers(null)
-                    const found = await ask<{ members: Person[] }>(`/community/teams/${team.id}`)
-                    setMembers({ id: team.id, list: found.members })
-                  })
-                }
-                className="flex w-full items-center gap-3 px-4 py-2.5 text-left transition hover:bg-raised/40"
-              >
-                <span className={`num w-6 shrink-0 text-center text-sm ${team.rank <= 3 ? 'text-base' : 'text-muted'}`}>
-                  {team.rank <= 3 ? MEDALS[team.rank - 1] : team.rank}
-                </span>
-                <span className="min-w-0 flex-1">
-                  <span className="block truncate text-sm font-bold text-ink">{team.name}</span>
-                  <span className="block text-xs text-muted">
-                    {team.members} {team.members === 1 ? 'member' : 'members'}
-                  </span>
-                </span>
-                <span className="num shrink-0 text-sm font-semibold text-ink">{mined(team.mined)}</span>
-              </button>
-              {members?.id === team.id && (
-                <div className="space-y-2 px-4 pb-3 pl-12">
-                  {members.list.map((person) => (
-                    <div key={person.name} className="flex items-center gap-2 text-sm">
-                      <Avatar name={person.name} picture={person.picture} size={22} />
-                      <Name person={person} />
-                    </div>
-                  ))}
-                  {canJoin && (
-                    <button
-                      type="button"
-                      disabled={busy}
-                      onClick={() =>
-                        void run(async () => {
-                          await ask(`/community/teams/${team.id}/join`, 'POST')
-                          setMembers(null)
-                          onChange()
-                        })
-                      }
-                      className={`${quiet} mt-1 h-8 px-3 text-xs`}
-                    >
-                      Join {team.name}
-                    </button>
-                  )}
-                </div>
-              )}
-            </li>
-          ))}
-        </ol>
       )}
     </section>
   )
@@ -915,12 +772,9 @@ export function CommunityView() {
         <aside className="space-y-4 lg:sticky lg:top-24 lg:max-h-[calc(100vh-7rem)] lg:overflow-y-auto lg:pr-1 lg:[scrollbar-width:thin]">
           <YouCard you={you} onChange={reload} />
           {board ? (
-            <>
-              <Miners board={board} />
-              <Teams board={board} you={you} onChange={reload} />
-            </>
+            <Miners board={board} />
           ) : (
-            <p className={`${card} p-4 text-sm text-muted`}>The leaderboards appear once the network has been read.</p>
+            <p className={`${card} p-4 text-sm text-muted`}>The leaderboard appears once the network has been read.</p>
           )}
         </aside>
       </div>
