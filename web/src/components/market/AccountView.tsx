@@ -121,7 +121,7 @@ export function SignIn({
           <p className="leading-relaxed text-muted">
             {blurb ?? (
               <>
-                One account for your profile, the Market and messages.
+                One account for all of Orien Network.
               </>
             )}
           </p>
