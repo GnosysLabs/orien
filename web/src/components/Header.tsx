@@ -311,7 +311,7 @@ const LEARN: MenuItem[] = [
 const BUILD: MenuItem[] = [
   { href: "/developers/", label: "Developers", detail: "Everything you need to build with Orien", icon: Code2 },
   { href: "/developers/websites/", label: "Sign in with Orien", detail: "Register the websites people sign in to", icon: KeyRound },
-  { href: "/developers/exchanges/", label: "Listing ORN", detail: "What an exchange needs, on one page", icon: Landmark },
+  { href: "/developers/exchanges/", label: "Exchanges", detail: "Listing ORN: what an exchange needs", icon: Landmark },
   { href: "https://explorer.orien.network/api/", label: "Explorer API", detail: "The network's figures, as JSON", icon: Activity },
 ];
 
