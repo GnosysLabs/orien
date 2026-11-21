@@ -27,6 +27,17 @@ export const PRODUCTS: Record<Product, string> = {
 export const CHANGELOG: Entry[] = [
   {
     date: '2026-11-21',
+    products: ['wallet'],
+    version: '1.8.23',
+    title: 'Smoother wallet sign-in, and Recents in Send',
+    changes: [
+      'Sign in with Orien Wallet is one click on every computer, with no Touch ID: it moves no ORN. Sending still asks for Touch ID.',
+      'If the browser loses the click on its way to Orien Wallet, the extension notices and asks again, so the button no longer stays busy.',
+      'Send ORN shows your Recents under their own heading, and only people with a name and a picture: your own wallets with an icon, and Market profiles. One-off addresses stay out of the row.',
+    ],
+  },
+  {
+    date: '2026-11-21',
     products: ['network', 'marketplace'],
     title: 'The community',
     changes: [
