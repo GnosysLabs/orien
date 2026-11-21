@@ -47,7 +47,3 @@ export const WALLET_SIGN_IN_FOR_EVERYONE = true
 
 /** Whether the community page is open and linked. Until then it says it opens soon. */
 export const COMMUNITY_LIVE = true
-
-/** Whether the page for exchanges, /developers/exchanges/, is published and
- * linked. Until then its address answers as a page that isn't there. */
-export const EXCHANGES_LIVE = false

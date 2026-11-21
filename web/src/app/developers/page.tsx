@@ -249,6 +249,10 @@ export default function DevelopersPage() {
           <Code>orien verify payment.receipt</Code>, which makes it proof of payment to anyone.
         </p>
         <p>
+          Listing ORN on an exchange? <Link href="/developers/exchanges/">Listing ORN</Link> puts what you need on one
+          page.
+        </p>
+        <p>
           <strong>Send one payment at a time from one wallet,</strong> and keep each wallet on one computer. See{' '}
           <Link href="#safety">Rules to build by</Link>.
         </p>

@@ -1,7 +1,5 @@
 import type { Metadata } from 'next'
-import { notFound } from 'next/navigation'
 import { CopyText } from '@/components/CopyText'
-import { EXCHANGES_LIVE } from '@/lib/brand'
 import { pageMeta } from '@/lib/seo'
 
 export const metadata: Metadata = pageMeta({
@@ -33,6 +31,23 @@ const FIGURES: [string, React.ReactNode][] = [
   ],
 ]
 
+const SAMPLE = `{
+  "address": "be5b7c…258b",
+  "epoch": 162,
+  "from": 20,
+  "unknown": [],
+  "activity": [
+    {
+      "kind": "received",
+      "amount": "1000000",
+      "counterparty": "5e6295…6a42",
+      "payment": "5e6295…6a42:3",
+      "epoch": 30,
+      "time": 1794802268
+    }
+  ]
+}`
+
 function Code({ children }: { children: string }) {
   return <code className="num break-all rounded-md border border-line bg-bg px-1.5 py-0.5 text-[0.85em] text-ink">{children}</code>
 }
@@ -57,7 +72,6 @@ function Link({ href, children }: { href: string; children: React.ReactNode }) {
 /** /developers/exchanges/: what an exchange's integration needs, on one
  * page. Everything else is in Build with Orien, so nothing is written twice. */
 export default function ExchangesPage() {
-  if (!EXCHANGES_LIVE) notFound()
   return (
     <div className="mx-auto max-w-[900px] space-y-8 pb-16 pt-5 sm:pt-7">
       <header className="space-y-4">
@@ -96,6 +110,28 @@ export default function ExchangesPage() {
           an address, ask the validators themselves:
         </p>
         <CopyText text="orien activity ADDRESS --json" />
+        <pre className="num overflow-auto rounded-xl border border-line bg-bg p-4 text-xs leading-relaxed text-ink">{SAMPLE}</pre>
+        <ul className="list-disc space-y-2 pl-5">
+          <li>
+            <Code>kind</Code> is <Code>received</Code> for a deposit. Other kinds are <Code>sent</Code>,{' '}
+            <Code>mined</Code>, <Code>fees</Code>, <Code>claimed</Code>, <Code>refunded</Code> and{' '}
+            <Code>unstaked</Code>.
+          </li>
+          <li>
+            <Code>amount</Code> is in billionths of an ORN, as text: 1000000 is 0.001 ORN.
+          </li>
+          <li>
+            <Code>payment</Code> is the sender’s address and its payment number. It never repeats, so use it to
+            credit each deposit once.
+          </li>
+          <li>
+            <Code>time</Code> is empty for payments of the hour under way. They are final already; the time fills in
+            at the hour’s checkpoint.
+          </li>
+          <li>
+            <Code>--from N</Code> starts at checkpoint N; without it, the last day.
+          </li>
+        </ul>
         <p>
           That lists each payment that came in, with its sender, its amount and a <Code>payment</Code> id that tells
           it from every other. <Code>orien balance ADDRESS --json</Code> gives the balance that validators holding
