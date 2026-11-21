@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Download, X } from 'lucide-react'
 import { CHROME_EXTENSION, WALLET_SIGN_IN_FOR_EVERYONE } from '@/lib/brand'
 import { WindowsDownload } from '@/components/WindowsDownload'
@@ -54,7 +54,35 @@ const secondary =
  * running and signed in, its extension handles the click before this does;
  * otherwise this explains what's missing. */
 export function WalletSignIn({ className, after }: { className: string; after?: React.ReactNode }) {
-  const [open, setOpen] = useState<State | 'install' | undefined>(undefined)
+  const [open, setOpen] = useState<State | 'install' | 'no-answer' | undefined>(undefined)
+  // The extension marks the button busy while it waits for the wallet. If
+  // the wallet never answers, the button would stay that way for ever: after
+  // a while the button is put back (remounted, so its label returns) and
+  // the dialog says what to do.
+  const button = useRef<HTMLButtonElement>(null)
+  const [attempt, setAttempt] = useState(0)
+  useEffect(() => {
+    const here = button.current
+    if (!here) return
+    let timer: ReturnType<typeof setTimeout> | undefined
+    const watching = new MutationObserver(() => {
+      if (here.dataset.busy) {
+        timer ??= setTimeout(() => {
+          delete here.dataset.busy
+          setAttempt((n) => n + 1)
+          setOpen('no-answer')
+        }, 20_000)
+      } else if (timer) {
+        clearTimeout(timer)
+        timer = undefined
+      }
+    })
+    watching.observe(here, { attributes: true, attributeFilter: ['data-busy'] })
+    return () => {
+      watching.disconnect()
+      if (timer) clearTimeout(timer)
+    }
+  }, [attempt])
   // Only where the extension works: Safari on a Mac, and Chrome (and the
   // browsers that take Chrome's extensions) once it is in the Chrome Web
   // Store. Never on phones and tablets. Decided once the page is open here,
@@ -78,6 +106,8 @@ export function WalletSignIn({ className, after }: { className: string; after?: 
   return (
     <>
       <button
+        key={attempt}
+        ref={button}
         type="button"
         data-orien-wallet-signin
         className={`${className} gap-2.5`}
@@ -105,7 +135,7 @@ const download = (
   </a>
 )
 
-function WalletHelp({ state, onClose }: { state: State | 'install'; onClose: () => void }) {
+function WalletHelp({ state, onClose }: { state: State | 'install' | 'no-answer'; onClose: () => void }) {
   const [here, setHere] = useState<Where>({ browser: 'other', mac: false, phone: false, name: 'your browser' })
   useEffect(() => {
     setHere(where())
@@ -119,6 +149,9 @@ function WalletHelp({ state, onClose }: { state: State | 'install'; onClose: () 
   if (state === 'app-closed') {
     title = 'Open Orien Wallet'
     body = <p>Open Orien Wallet on this computer, then try again.</p>
+  } else if (state === 'no-answer') {
+    title = 'Orien Wallet didn’t answer'
+    body = <p>Make sure Orien Wallet is open and signed in to Orien Network on this computer, then try again.</p>
   } else if (state === 'signed-out') {
     title = 'Sign in to Orien Wallet'
     body = <p>Open Orien Wallet and sign in to Orien Network from its home screen, then try again.</p>
