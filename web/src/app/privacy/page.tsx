@@ -121,6 +121,11 @@ export default function PrivacyPage() {
             listings, names, bios, pictures and messages. They see what is checked, not who you are.
           </li>
           <li>
+            <strong>YouTube</strong> shows the picture of a video someone links to in the community, and plays it when
+            you press play, through its player that sets no cookies. YouTube’s servers see your connection then, as on
+            any page with a video.
+          </li>
+          <li>
             Payments in ORN are on the Orien network, which is public by design: anyone can see an address&apos;s balance
             and payments. That is true of every cryptocurrency, and not something this website controls.
           </li>
