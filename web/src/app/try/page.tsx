@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import { OpenOnHash } from '@/components/OpenOnHash'
 import Link from 'next/link'
 import { ArrowRight, ChevronDown, Terminal } from 'lucide-react'
 import { CopyText } from '@/components/CopyText'
@@ -109,7 +110,8 @@ export default function GetStartedPage() {
         ))}
       </ol>
 
-      <details className="group mt-16 rounded-2xl border border-line bg-surface">
+      <OpenOnHash id="cli" />
+      <details id="cli" className="group mt-16 scroll-mt-24 rounded-2xl border border-line bg-surface">
         <summary className="flex cursor-pointer list-none items-center gap-4 p-6 transition hover:bg-raised sm:px-8 [&::-webkit-details-marker]:hidden group-open:rounded-t-2xl rounded-2xl">
           <Terminal className="h-5 w-5 shrink-0 text-pearl" strokeWidth={1.75} aria-hidden />
           <span className="min-w-0 flex-1">

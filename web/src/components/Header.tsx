@@ -130,7 +130,7 @@ const DOWNLOADS: {
     icon: Smartphone,
   },
   {
-    href: "/try/",
+    href: "/try/#cli",
     label: "orien command line",
     detail: "Mac, Linux and Windows",
     icon: Terminal,
