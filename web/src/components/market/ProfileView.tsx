@@ -113,7 +113,7 @@ export function ProfileView() {
       </section>
       {/* Their part of the community, beside their mining and what they sell. */}
       <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_320px]">
-        <aside className="space-y-4 lg:order-last">
+        <aside className="space-y-4 lg:sticky lg:top-24 lg:order-last lg:max-h-[calc(100vh-7rem)] lg:overflow-y-auto lg:pr-1 lg:[scrollbar-width:thin]">
           {found.mining && <MiningCard stats={found.mining} />}
           {listings.length > 0 && (
             <section className="space-y-3">
