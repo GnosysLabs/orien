@@ -261,16 +261,11 @@ mod keyboard {
             if sheet.is_null() {
                 return;
             }
-            // iPads show it as a panel and need a place to point at: the
-            // bottom middle of the screen. iPhones get no place, so the
-            // sheet comes up from the bottom.
             let device: *mut AnyObject = msg_send![class!(UIDevice), currentDevice];
             let idiom: isize = msg_send![device, userInterfaceIdiom];
-            if idiom != 1 {
-                // Newer iPhones would show it as a small panel at the side;
-                // a sheet from the bottom, full width, as apps share.
-                let _: () = msg_send![sheet, setModalPresentationStyle: 1isize];
-            } else {
+            if idiom == 1 {
+                // iPads show it as a panel and need a place to point at:
+                // the bottom middle of the screen.
                 let panel: *mut AnyObject = msg_send![sheet, popoverPresentationController];
                 if !panel.is_null() {
                     let bounds: objc2_core_foundation::CGRect = msg_send![web, bounds];
@@ -281,8 +276,52 @@ mod keyboard {
                     let _: () = msg_send![panel, setSourceView: web];
                     let _: () = msg_send![panel, setSourceRect: at];
                 }
+                let _: () = msg_send![top, presentViewController: sheet, animated: true, completion: std::ptr::null_mut::<AnyObject>()];
+            } else {
+                // iPhones: on newer iOS the share sheet insists on coming up
+                // as a narrow floating panel in the corner, its rows cut off,
+                // whatever style or place it is given. So it goes inside a
+                // sheet of our own, the usual one from the bottom, full width,
+                // half height and pulled up to full.
+                let holder: *mut AnyObject = msg_send![class!(UIViewController), new];
+                let _: () = msg_send![holder, setModalPresentationStyle: 1isize]; // page sheet
+                let sizes: *mut AnyObject = msg_send![holder, sheetPresentationController];
+                if !sizes.is_null() {
+                    let half: *mut AnyObject = msg_send![class!(UISheetPresentationControllerDetent), mediumDetent];
+                    let full: *mut AnyObject = msg_send![class!(UISheetPresentationControllerDetent), largeDetent];
+                    let detents: *mut AnyObject = msg_send![class!(NSMutableArray), array];
+                    let _: () = msg_send![detents, addObject: half];
+                    let _: () = msg_send![detents, addObject: full];
+                    let _: () = msg_send![sizes, setDetents: detents];
+                    let _: () = msg_send![sizes, setPrefersGrabberVisible: true];
+                }
+                let inside: *mut AnyObject = msg_send![holder, view];
+                let _: () = msg_send![holder, addChildViewController: sheet];
+                let shown: *mut AnyObject = msg_send![sheet, view];
+                let bounds: objc2_core_foundation::CGRect = msg_send![inside, bounds];
+                let _: () = msg_send![shown, setFrame: bounds];
+                let _: () = msg_send![shown, setAutoresizingMask: 18usize]; // follows the sheet's width and height
+                let _: () = msg_send![inside, addSubview: shown];
+                let _: () = msg_send![sheet, didMoveToParentViewController: holder];
+                // Once something is shared, or the sheet's own close is
+                // pressed, our sheet goes too.
+                // (The share sheet holds this; while it runs, the share sheet
+                // is alive and its parent is ours or gone.)
+                let asked = sheet as usize;
+                let done = block2::RcBlock::new(move |_: *mut AnyObject, _: objc2::runtime::Bool, _: *mut AnyObject, _: *mut AnyObject| {
+                    let holder: *mut AnyObject = msg_send![asked as *mut AnyObject, parentViewController];
+                    if holder.is_null() {
+                        return;
+                    }
+                    let under: *mut AnyObject = msg_send![holder, presentingViewController];
+                    if !under.is_null() {
+                        let _: () = msg_send![holder, dismissViewControllerAnimated: true, completion: std::ptr::null_mut::<AnyObject>()];
+                    }
+                });
+                let _: () = msg_send![sheet, setCompletionWithItemsHandler: &*done];
+                let _: () = msg_send![top, presentViewController: holder, animated: true, completion: std::ptr::null_mut::<AnyObject>()];
+                let _: () = msg_send![holder, release];
             }
-            let _: () = msg_send![top, presentViewController: sheet, animated: true, completion: std::ptr::null_mut::<AnyObject>()];
             let _: () = msg_send![sheet, release];
         }
     }
