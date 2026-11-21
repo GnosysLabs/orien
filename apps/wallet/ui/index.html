@@ -1498,6 +1498,7 @@
         <button class="set-row st-cat" data-page="privacy" id="st-cat-privacy"><span class="st-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></span><span class="set-txt"><b>Privacy and security</b></span><svg class="chev" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg></button>
         <button class="set-row st-cat" data-page="notify" id="st-cat-notify"><span class="st-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.268 21a2 2 0 0 0 3.464 0"/><path d="M3.262 15.326A1 1 0 0 0 4 17h16a1 1 0 0 0 .74-1.673C19.41 13.956 18 12.499 18 8A6 6 0 0 0 6 8c0 4.499-1.411 5.956-2.738 7.326"/></svg></span><span class="set-txt"><b>Notifications</b></span><svg class="chev" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg></button>
         <button class="set-row st-cat" data-page="computer" id="st-cat-computer"><span class="st-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="14" x="2" y="3" rx="2"/><line x1="8" x2="16" y1="21" y2="21"/><line x1="12" x2="12" y1="17" y2="21"/></svg></span><span class="set-txt"><b>This computer</b></span><svg class="chev" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg></button>
+        <button class="set-row st-cat" data-page="extensions" id="st-cat-extensions"><span class="st-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15.39 4.39a1 1 0 0 0 1.68-.474 2.5 2.5 0 1 1 3.014 3.015 1 1 0 0 0-.474 1.68l1.683 1.682a2.414 2.414 0 0 1 0 3.414L19.61 15.39a1 1 0 0 1-1.68-.474 2.5 2.5 0 1 0-3.014 3.015 1 1 0 0 1 .474 1.68l-1.683 1.682a2.414 2.414 0 0 1-3.414 0L8.61 19.61a1 1 0 0 0-1.68.474 2.5 2.5 0 1 1-3.014-3.015 1 1 0 0 0 .474-1.68l-1.683-1.682a2.414 2.414 0 0 1 0-3.414L4.39 8.61a1 1 0 0 1 1.68.474 2.5 2.5 0 1 0 3.014-3.015 1 1 0 0 1-.474-1.68l1.683-1.682a2.414 2.414 0 0 1 3.414 0z"/></svg></span><span class="set-txt"><b>Browser Extensions</b></span><svg class="chev" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg></button>
         <button class="set-row st-cat" data-page="about" id="st-cat-about"><span class="st-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg></span><span class="set-txt"><b>About</b></span><svg class="chev" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg></button>
       </div>
       <div class="st-page" data-page="appearance" hidden>
@@ -1526,6 +1527,13 @@
         <label class="set-row"><span class="set-txt"><b>Open at login</b><small>Start Orien Wallet when you log in</small></span><input type="checkbox" class="switch" id="st-login"></label>
         <label class="set-row"><span class="set-txt"><b>Keep running when closed</b><small>Swaps and payments carry on from the menu bar</small></span><input type="checkbox" class="switch" id="st-running"></label>
         </div>
+      </div>
+      <div class="st-page" data-page="extensions" hidden>
+      <p class="hint st-hint">Send ORN, see your balance, and sign in to orien.network with one click, right from your browser. Your keys never leave Orien Wallet.</p>
+      <div class="set-group">
+        <button class="set-row" id="st-ext-safari"><span class="set-txt"><b>Safari</b><small>Opens Safari's settings: tick Orien Wallet to turn it on</small></span><svg class="chev" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg></button>
+        <button class="set-row" id="st-ext-chrome"><span class="set-txt"><b>Chrome</b><small>Opens the Chrome Web Store, also for Brave and Edge</small></span><svg class="chev" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg></button>
+      </div>
       </div>
       <div class="st-page" data-page="about" hidden>
       <div class="set-group">
@@ -3184,7 +3192,7 @@
   // As this device last had it, at once; then as chosen on any device.
   try { applyTheme(localStorage.getItem("theme") || "pearl", false); } catch { paintBackdrop(); }
   // The categories, each with a hint of what's set; a tap opens its page.
-  const settingsTitles = { appearance: "Appearance", privacy: "Privacy and security", notify: "Notifications", computer: "This computer", about: "About" };
+  const settingsTitles = { appearance: "Appearance", privacy: "Privacy and security", notify: "Notifications", computer: "This computer", extensions: "Browser Extensions", about: "About" };
   function settingsPage(page) {
     $("st-menu").hidden = !!page;
     for (const p of document.querySelectorAll(".st-page")) p.hidden = p.dataset.page !== page;
@@ -3258,6 +3266,8 @@
     for (const kind of ["received", "mining", "market", "swaps"]) $(`st-n-${kind}`).checked = !mutedKinds.includes(kind);
     $("st-n-swaps-row").hidden = phone;
     $("st-cat-computer").hidden = phone;
+    $("st-cat-extensions").hidden = phone;
+    $("st-ext-safari").hidden = !apple || phone;
     $("st-cat-privacy").hidden = !apple;
     $("st-updates").hidden = phone;
     $("st-running").closest(".set-row").querySelector("small").textContent = `Swaps and payments carry on from ${apple ? "the menu bar" : "the system tray"}`;
@@ -3299,6 +3309,7 @@
     };
   }
   $("st-updates").onclick = () => checkForUpdatesNow();
+  for (const browser of ["safari", "chrome"]) $(`st-ext-${browser}`).onclick = () => invoke("open_extension", { browser }).catch(() => {});
   $("st-site").onclick = () => invoke("open_site").catch(() => {});
   $("st-privacy").onclick = () => invoke("open_legal", { page: "privacy" }).catch(() => {});
   $("st-terms").onclick = () => invoke("open_legal", { page: "terms" }).catch(() => {});

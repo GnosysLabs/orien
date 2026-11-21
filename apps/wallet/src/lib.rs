@@ -2219,6 +2219,38 @@ fn open_site(app: AppHandle) -> Result<(), String> {
     app.opener().open_url("https://orien.network", None::<&str>).map_err(|error| error.to_string())
 }
 
+/// Opens the place to add a browser extension: Safari's own settings at
+/// Orien Wallet's extension (Macs, where the extension comes with the app),
+/// or Orien Wallet's page on the Chrome Web Store.
+#[tauri::command]
+fn open_extension(app: AppHandle, browser: String) -> Result<(), String> {
+    match browser.as_str() {
+        "chrome" => {
+            use tauri_plugin_opener::OpenerExt;
+            app.opener()
+                .open_url("https://chromewebstore.google.com/detail/orien-wallet/oogifphigefggbdlcomcohbjfbgomcmn", None::<&str>)
+                .map_err(|error| error.to_string())
+        }
+        #[cfg(target_os = "macos")]
+        "safari" => {
+            #[link(name = "SafariServices", kind = "framework")]
+            unsafe extern "C" {}
+            let _ = app.run_on_main_thread(|| {
+                use objc2::runtime::AnyObject;
+                use objc2::{class, msg_send};
+                let id = objc2_foundation::NSString::from_str("network.orien.wallet.safari");
+                let done = block2::RcBlock::new(|_: *mut AnyObject| {});
+                // SAFETY: a class method of SafariServices with a string and a block.
+                unsafe {
+                    let _: () = msg_send![class!(SFSafariApplication), showPreferencesForExtensionWithIdentifier: &*id, completionHandler: &*done];
+                }
+            });
+            Ok(())
+        }
+        _ => Err("That can't be opened.".into()),
+    }
+}
+
 /// Opens orien.network's privacy policy or terms of service.
 #[tauri::command]
 fn open_legal(app: AppHandle, page: String) -> Result<(), String> {
@@ -2453,7 +2485,7 @@ pub fn run() {
             }
             Ok(())
         })
-        .invoke_handler(tauri::generate_handler![share_address, has_wallet, create_wallet, save_phrase, restore_wallet, set_password, choose_wallet, overview_now, send_payment, activity, quote, contacts, save_contact, delete_contact, contacts_sync, biometric_unlock, biometric_enable, update::check_update, update::install_update, mine_start, mine_stop, mine_set, mine_status, mine_benchmark, mine_benchmark_cancel, large_pages_state, large_pages_set_up, wallets, wallet_balances, use_wallet, rename_wallet, add_wallet, forget_wallet, swap_list, swap_sell, swap_buy, swap_accept, swap_step, swap_smallest, board_offers, board_me, board_email_start, board_email_finish, board_sign_out, board_post, board_take, board_withdraw, board_link, notifications_ask, push_sync, board_wallets_sync, board_post_sol, board_take_sol, sol_open, sol_payout_check, open_site, qr_code, address_qr, wallet_profiles, board_profile_save, board_picture_pick, board_verify, board_wallet_states, market_image, board_banner_remove, market_search, market_listings, market_listing, market_profile, market_call, market_pick_pictures, market_listing_picture, dock_badge, mac_notify, board_delete_account, wallet_icons, set_wallet_icon, vault_ready, vault_unlock, open_contact, pair_offer, pair_offer_wait, pair_offer_send, pair_join, pair_join_wait, pair_invite, pair_invite_wait, pair_accept, pair_wallets, pair_accept_send, pair_cancel, wallet_phrase, phrase_check, app_theme, set_app_theme, set_backdrop, app_prefs, set_app_pref, app_unlock, computer_settings, set_computer_setting, notifications_muted, set_notification, open_legal, board_paid_wallet, board_wallet_remove])
+        .invoke_handler(tauri::generate_handler![share_address, has_wallet, create_wallet, save_phrase, restore_wallet, set_password, choose_wallet, overview_now, send_payment, activity, quote, contacts, save_contact, delete_contact, contacts_sync, biometric_unlock, biometric_enable, update::check_update, update::install_update, mine_start, mine_stop, mine_set, mine_status, mine_benchmark, mine_benchmark_cancel, large_pages_state, large_pages_set_up, wallets, wallet_balances, use_wallet, rename_wallet, add_wallet, forget_wallet, swap_list, swap_sell, swap_buy, swap_accept, swap_step, swap_smallest, board_offers, board_me, board_email_start, board_email_finish, board_sign_out, board_post, board_take, board_withdraw, board_link, notifications_ask, push_sync, board_wallets_sync, board_post_sol, board_take_sol, sol_open, sol_payout_check, open_site, qr_code, address_qr, wallet_profiles, board_profile_save, board_picture_pick, board_verify, board_wallet_states, market_image, board_banner_remove, market_search, market_listings, market_listing, market_profile, market_call, market_pick_pictures, market_listing_picture, dock_badge, mac_notify, board_delete_account, wallet_icons, set_wallet_icon, vault_ready, vault_unlock, open_contact, pair_offer, pair_offer_wait, pair_offer_send, pair_join, pair_join_wait, pair_invite, pair_invite_wait, pair_accept, pair_wallets, pair_accept_send, pair_cancel, wallet_phrase, phrase_check, app_theme, set_app_theme, set_backdrop, app_prefs, set_app_pref, app_unlock, computer_settings, set_computer_setting, notifications_muted, set_notification, open_legal, open_extension, board_paid_wallet, board_wallet_remove])
         .build(tauri::generate_context!())
         .expect("the wallet window could not start")
         .run(|_app, _event| {
