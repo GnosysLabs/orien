@@ -313,7 +313,9 @@ fn server() -> serde_json::Value {
             let numbers: Vec<u64> = text.lines().nth(1)?.split_whitespace().filter_map(|n| n.parse().ok()).collect();
             Some(json!({ "total": numbers.first()?, "free": numbers.get(1)? }))
         });
-    let services: Vec<serde_json::Value> = ["orien-validator@1", "orien-validator@2", "orien-validator@3", "orien-validator@4", "orien-market", "orien-discord", "nginx"]
+    // Only what runs on this server: validators 2 to 4 have servers of their
+    // own, and are asked over the network instead.
+    let services: Vec<serde_json::Value> = ["orien-validator@1", "orien-market", "orien-discord", "nginx"]
         .iter()
         .map(|name| {
             let state = std::process::Command::new("systemctl")
@@ -333,14 +335,25 @@ async fn overview(State(admin): State<Admin>, headers: HeaderMap) -> Answer {
     let login = admin.admins.check(&headers)?;
     let market = admin.app.store().market_stats()?;
     let payments = admin.app.payments();
-    let (network, server) = tokio::task::spawn_blocking(move || (payments.status(), server()))
-        .await
-        .map_err(|e| Failure::Broken(e.into()))?;
+    let app = admin.app.clone();
+    let (network, server, validators) = tokio::task::spawn_blocking(move || {
+        // Each validator asked directly, wherever it runs, as the explorer does.
+        let validators = app.explorer().overview(payments.as_ref()).ok().map(|o| {
+            o.validators
+                .iter()
+                .map(|v| json!({ "seat": v.seat, "name": format!("Validator {}", v.seat + 1), "up": v.up, "epoch": v.epoch }))
+                .collect::<Vec<_>>()
+        });
+        (payments.status(), server(), validators)
+    })
+    .await
+    .map_err(|e| Failure::Broken(e.into()))?;
     let network = match network {
         Ok(network) => json!(network),
         Err(error) => json!({ "error": format!("{error:#}") }),
     };
-    Ok(Json(json!({ "login": login, "generated": now(), "network": network, "market": market, "server": server })).into_response())
+    Ok(Json(json!({ "login": login, "generated": now(), "network": network, "market": market, "server": server, "validators": validators }))
+        .into_response())
 }
 
 /// The website's visitors and downloads over the last 30 days.

@@ -88,6 +88,8 @@ type Overview = {
     recent_listings: AdminListing[]
   }
   server: { disk: { total: number; free: number } | null; services: { name: string; state: string }[] }
+  /** Each validator asked over the network, wherever it runs. */
+  validators: { seat: number; name: string; up: boolean; epoch: number }[] | null
 }
 
 type Report = {
@@ -232,7 +234,18 @@ export default function AdminPage() {
             <p className="text-sm text-muted">Could not read the disk.</p>
           )}
         </Card>
-        <Card title="Services">
+        <Card title="Validators">
+          {data.validators ? (
+            data.validators.map((v) => (
+              <Row key={v.seat} label={v.name}>
+                <span className={v.up ? 'text-go' : 'text-stop'}>{v.up ? `running · checkpoint ${v.epoch}` : 'not answering'}</span>
+              </Row>
+            ))
+          ) : (
+            <p className="text-sm text-muted">The network did not answer.</p>
+          )}
+        </Card>
+        <Card title="Services on this server">
           {data.server.services.map((s) => (
             <Row key={s.name} label={s.name}>
               <span className={s.state === 'active' ? 'text-go' : s.state === 'unknown' ? 'text-muted' : 'text-stop'}>{s.state}</span>

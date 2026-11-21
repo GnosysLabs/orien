@@ -453,7 +453,7 @@ impl Explorer {
         }
     }
 
-    fn overview(&self, payments: &dyn crate::wallets::Payments) -> anyhow::Result<Overview> {
+    pub(crate) fn overview(&self, payments: &dyn crate::wallets::Payments) -> anyhow::Result<Overview> {
         if let Some((at, known)) = self.overview.lock().unwrap().as_ref()
             && at.elapsed() < FRESH
         {
