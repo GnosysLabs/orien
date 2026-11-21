@@ -80,12 +80,13 @@ export function WalletSignIn({ className, after }: { className: string; after?: 
       <button
         type="button"
         data-orien-wallet-signin
-        className={className}
+        className={`${className} gap-2.5`}
         onClick={() => {
           const state = walletState()
           if (state !== 'ready') setOpen(state ?? 'install')
         }}
       >
+        <span className="orien-mark h-[1.15em] w-[1.15em] shrink-0 bg-bg" aria-hidden />
         Sign in with Orien Wallet
       </button>
       {after}
