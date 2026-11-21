@@ -10,7 +10,7 @@ import { Avatar } from "./market/Avatar";
 
 /** The top bar's account corner: your picture, with a menu to edit your
  * profile or sign out, or a Sign in button. */
-export function AccountMenu() {
+export function AccountMenu({ inSidebar = false }: { inSidebar?: boolean } = {}) {
   const pathname = usePathname();
   const { account } = useMe();
   const [open, setOpen] = useState(false);
@@ -42,7 +42,19 @@ export function AccountMenu() {
   };
 
   // Nothing until it's known, so the bar doesn't flash Sign in.
-  if (account === undefined) return <div className="w-9 sm:w-10" aria-hidden />;
+  if (account === undefined) return <div className={inSidebar ? "h-11" : "w-9 sm:w-10"} aria-hidden />;
+
+  if (!account && inSidebar) {
+    return (
+      <Link
+        href="/account/"
+        className="flex h-11 w-full items-center justify-center gap-2 rounded-xl border border-line text-sm font-semibold text-ink transition hover:bg-raised"
+      >
+        <LogIn className="h-4 w-4" strokeWidth={2.25} aria-hidden />
+        Sign in
+      </Link>
+    );
+  }
 
   if (!account) {
     return (
@@ -65,16 +77,23 @@ export function AccountMenu() {
         aria-expanded={open}
         aria-haspopup="menu"
         onClick={() => setOpen(!open)}
-        className={`flex h-9 w-9 items-center justify-center rounded-full transition sm:h-10 sm:w-10 ${
-          open ? "ring-2 ring-pearl/70" : "hover:ring-2 hover:ring-line"
-        }`}
+        className={
+          inSidebar
+            ? `flex h-12 w-full items-center gap-3 rounded-xl px-2 text-left transition ${open ? "bg-raised" : "hover:bg-raised/60"}`
+            : `flex h-9 w-9 items-center justify-center rounded-full transition sm:h-10 sm:w-10 ${
+                open ? "ring-2 ring-pearl/70" : "hover:ring-2 hover:ring-line"
+              }`
+        }
       >
         <Avatar name={account.name} picture={account.picture} size={34} />
+        {inSidebar && <span className="min-w-0 truncate text-sm font-semibold text-ink">{account.name}</span>}
       </button>
       {open && (
         <div
           role="menu"
-          className="absolute right-0 top-full mt-2 w-56 overflow-hidden rounded-xl border border-line bg-surface p-1.5 shadow-2xl shadow-black/40"
+          className={`absolute overflow-hidden rounded-xl border border-line bg-surface p-1.5 shadow-2xl shadow-black/40 ${
+            inSidebar ? "bottom-full left-0 mb-2 w-full" : "right-0 top-full mt-2 w-56"
+          }`}
         >
           <p className="truncate px-3 pb-2 pt-1.5 text-sm font-semibold text-ink">{account.name}</p>
           <Link

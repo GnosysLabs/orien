@@ -1,0 +1,797 @@
+//! The community feed at /community/: people's posts, replies and
+//! reactions, and posts the network writes by itself after each checkpoint
+//! (records, new miners, milestones), beside the miner leaderboard.
+//!
+//! Only accounts with a verified wallet post, reply or react: a
+//! verified wallet is what ties an account to real mining. Every post is
+//! screened like a Market message before anyone sees it, and can be
+//! reported to the dashboard.
+//!
+//! Mining figures come from the explorer's record of each checkpoint's
+//! rewards, which covers the checkpoints validators keep records for. An
+//! address belongs to an account when the account verified it.
+
+use crate::api::{App, Failure, refused, screened};
+use crate::explorer::Mined;
+use crate::store::{Store, now};
+use anyhow::{Result, bail};
+use axum::extract::{Path, Query, State};
+use axum::http::HeaderMap;
+use axum::response::{IntoResponse, Response};
+use axum::routing::{get, post};
+use axum::{Json, Router};
+use rusqlite::{OptionalExtension, params};
+use serde::{Deserialize, Serialize};
+use serde_json::{Value, json};
+use std::collections::{HashMap, HashSet};
+use std::sync::atomic::{AtomicBool, Ordering};
+use std::sync::{Arc, Mutex};
+use std::time::Duration;
+
+pub const MAX_POST: usize = 500;
+const POSTS_AN_HOUR: i64 = 20;
+const PAGE: i64 = 30;
+/// The reactions anyone can leave.
+pub const REACTIONS: [&str; 5] = ["⛏️", "🔥", "❤️", "👏", "😂"];
+/// ORN mined that earns a milestone post.
+const MILESTONES: [u64; 9] = [1, 100, 250, 500, 1_000, 5_000, 10_000, 50_000, 100_000];
+/// New miners shown with a face on one hour's welcome card; more are counted.
+const FACES: usize = 12;
+/// New miners are welcomed in blocks of this long.
+const BLOCK_SECONDS: u64 = 6 * 3600;
+/// Checkpoints in a row that earn a streak post.
+const STREAKS: [u64; 5] = [24, 48, 100, 168, 336];
+const UNIT: u128 = 1_000_000_000;
+/// Rows on each leaderboard.
+const BOARD: usize = 50;
+
+/// Who mined: an account (through its verified wallets), or an address no
+/// account verified. Only accounts are ranked; addresses still count for
+/// the network's news.
+#[derive(Clone, Debug, PartialEq, Eq, Hash, PartialOrd, Ord)]
+pub enum Miner {
+    Account(i64),
+    Address(String),
+}
+
+/// What the network has paid each miner, worked out from the explorer's
+/// records each minute.
+#[derive(Clone, Debug, Default, Serialize)]
+pub struct Board {
+    pub epoch: u64,
+    pub since: u64,
+    pub miners: Vec<MinerRow>,
+    #[serde(skip)]
+    pub accounts: HashMap<i64, Stats>,
+}
+
+#[derive(Clone, Debug, Default, Serialize, PartialEq, Eq)]
+pub struct Stats {
+    /// In ORN's smallest units, as text.
+    pub mined: String,
+    /// Checkpoints in a row, up to the latest, that paid this miner.
+    pub streak: u64,
+    pub rank: usize,
+}
+
+#[derive(Clone, Debug, Serialize)]
+pub struct MinerRow {
+    /// The account, for the board's own use.
+    #[serde(skip)]
+    pub account: Option<i64>,
+    pub rank: usize,
+    pub name: Option<String>,
+    pub picture: Option<String>,
+    pub address: Option<String>,
+    pub mined: String,
+    pub streak: u64,
+}
+
+/// The board, kept up to date by the watcher.
+#[derive(Default)]
+pub struct Community {
+    board: Mutex<Option<Board>>,
+    /// Whether past days' top miners have been filled in since this start.
+    days_told: AtomicBool,
+}
+
+/// Each miner's total and streak, and which miners each checkpoint paid.
+struct Tally {
+    totals: HashMap<Miner, u128>,
+    streaks: HashMap<Miner, u64>,
+}
+
+fn whose(address: &str, owners: &HashMap<String, i64>) -> Miner {
+    owners.get(address).map_or_else(|| Miner::Address(address.to_string()), |a| Miner::Account(*a))
+}
+
+/// The miners each checkpoint paid, and how much, by miner.
+fn paid_by_epoch(mined: &Mined, owners: &HashMap<String, i64>) -> Vec<(u64, HashMap<Miner, u128>)> {
+    mined
+        .by_epoch
+        .iter()
+        .map(|(epoch, paid)| {
+            let mut by: HashMap<Miner, u128> = HashMap::new();
+            for (address, amount) in paid {
+                *by.entry(whose(address, owners)).or_default() += *amount as u128;
+            }
+            (*epoch, by)
+        })
+        .collect()
+}
+
+fn tally(mined: &Mined, owners: &HashMap<String, i64>) -> Tally {
+    let epochs = paid_by_epoch(mined, owners);
+    let mut totals: HashMap<Miner, u128> = HashMap::new();
+    for (_, by) in &epochs {
+        for (miner, amount) in by {
+            *totals.entry(miner.clone()).or_default() += amount;
+        }
+    }
+    let mut streaks: HashMap<Miner, u64> = HashMap::new();
+    let paid: HashMap<u64, &HashMap<Miner, u128>> = epochs.iter().map(|(e, by)| (*e, by)).collect();
+    for miner in totals.keys() {
+        let mut streak = 0;
+        let mut epoch = mined.upto;
+        while paid.get(&epoch).is_some_and(|by| by.contains_key(miner)) {
+            streak += 1;
+            if epoch == 0 {
+                break;
+            }
+            epoch -= 1;
+        }
+        streaks.insert(miner.clone(), streak);
+    }
+    Tally { totals, streaks }
+}
+
+/// The leaderboard from what the network paid. `accounts` gives each
+/// account's name and picture.
+pub fn board(mined: &Mined, owners: &HashMap<String, i64>, accounts: &HashMap<i64, (String, Option<String>)>) -> Board {
+    let tally = tally(mined, owners);
+    // Only miners with a verified wallet on their profile are ranked: the
+    // board is about people, not addresses.
+    let mut ranked: Vec<(&Miner, u128)> =
+        tally.totals.iter().filter(|(m, _)| matches!(m, Miner::Account(_))).map(|(m, t)| (m, *t)).collect();
+    ranked.sort_by(|a, b| b.1.cmp(&a.1).then_with(|| a.0.cmp(b.0)));
+    let mut board = Board { epoch: mined.upto, since: mined.since, ..Board::default() };
+    for (index, (miner, total)) in ranked.iter().enumerate() {
+        let streak = tally.streaks.get(*miner).copied().unwrap_or(0);
+        if let Miner::Account(id) = miner {
+            board.accounts.insert(*id, Stats { mined: total.to_string(), streak, rank: index + 1 });
+        }
+        if index < BOARD {
+            let account = match miner {
+                Miner::Account(id) => Some(*id),
+                Miner::Address(_) => None,
+            };
+            let (name, picture, address) = match miner {
+                Miner::Account(id) => {
+                    let (name, picture) = accounts.get(id).cloned().unwrap_or_default();
+                    (Some(name), picture, None)
+                }
+                Miner::Address(address) => (None, None, Some(address.clone())),
+            };
+            board.miners.push(MinerRow { account, rank: index + 1, name, picture, address, mined: total.to_string(), streak });
+        }
+    }
+    board
+}
+
+/// A miner in a post's data: by account, so the name follows renames, or
+/// by address.
+fn who(miner: &Miner) -> Value {
+    match miner {
+        Miner::Account(id) => json!({ "account": id }),
+        Miner::Address(address) => json!({ "address": address }),
+    }
+}
+
+/// What the network says about checkpoint `epoch`: a record, who joined,
+/// milestones, streaks, and yesterday's top miner, as (kind, subject
+/// account, data).
+pub fn happenings(mined: &Mined, owners: &HashMap<String, i64>, epoch: u64) -> Vec<(String, Option<i64>, Value)> {
+    let epochs = paid_by_epoch(mined, owners);
+    let Some((_, now_paid)) = epochs.iter().find(|(e, _)| *e == epoch) else { return Vec::new() };
+    let before: Vec<&(u64, HashMap<Miner, u128>)> = epochs.iter().filter(|(e, _)| *e < epoch).collect();
+    let mut said = Vec::new();
+    // Nothing to compare the first hour of the records with.
+    if before.is_empty() {
+        return said;
+    }
+    let paid_at: HashMap<u64, &HashMap<Miner, u128>> = epochs.iter().map(|(e, by)| (*e, by)).collect();
+
+    // A record: more miners paid than any hour before.
+    let addresses = |e: &u64| mined.by_epoch.get(e).map_or(0, |paid| paid.len());
+    let most_before = before.iter().map(|(e, _)| addresses(e)).max().unwrap_or(0);
+    if addresses(&epoch) > most_before {
+        said.push(("record".to_string(), None, json!({ "epoch": epoch, "miners": addresses(&epoch), "before": most_before })));
+    }
+
+    // Who was paid for the first time, in the six-hour block that has just
+    // ended: one welcome card per block, every newcomer on it. The block
+    // the records begin in has nothing to compare with, so it gets none.
+    let block = |e: u64| mined.times.get(&e).map(|t| t / BLOCK_SECONDS);
+    if let (Some(now_block), Some(last_block)) = (block(epoch), block(epoch - 1))
+        && now_block != last_block
+    {
+        let in_block: Vec<&(u64, HashMap<Miner, u128>)> = epochs.iter().filter(|(e, _)| block(*e) == Some(last_block)).collect();
+        let first = in_block.first().map(|(e, _)| *e).unwrap_or(epoch);
+        if first > mined.since {
+            let seen_before: HashSet<&Miner> = epochs.iter().filter(|(e, _)| *e < first).flat_map(|(_, by)| by.keys()).collect();
+            let mut fresh: Vec<(&Miner, u128)> = Vec::new();
+            for (_, by) in &in_block {
+                for (miner, amount) in by.iter() {
+                    if seen_before.contains(miner) {
+                        continue;
+                    }
+                    match fresh.iter_mut().find(|(m, _)| *m == miner) {
+                        Some(found) => found.1 += amount,
+                        None => fresh.push((miner, *amount)),
+                    }
+                }
+            }
+            fresh.sort_by(|a, b| {
+                let named = |m: &Miner| matches!(m, Miner::Account(_));
+                named(b.0).cmp(&named(a.0)).then_with(|| b.1.cmp(&a.1)).then_with(|| a.0.cmp(b.0))
+            });
+            if !fresh.is_empty() {
+                let subject = fresh.iter().find_map(|(m, _)| if let Miner::Account(id) = m { Some(*id) } else { None });
+                let faces: Vec<Value> = fresh
+                    .iter()
+                    .take(FACES)
+                    .map(|(m, a)| {
+                        let mut face = who(m);
+                        face["paid"] = json!(a.to_string());
+                        face
+                    })
+                    .collect();
+                let last = in_block.last().map(|(e, _)| *e).unwrap_or(epoch);
+                said.push((
+                    "welcome".to_string(),
+                    subject,
+                    json!({ "epoch": last, "from": first, "to": last, "hours": in_block.len(), "count": fresh.len(), "miners": faces }),
+                ));
+            }
+        }
+    }
+
+    // Milestones and streaks, for people.
+    let mut totals_before: HashMap<&Miner, u128> = HashMap::new();
+    for (_, by) in &before {
+        for (miner, amount) in by {
+            *totals_before.entry(miner).or_default() += amount;
+        }
+    }
+    for (miner, amount) in now_paid {
+        let Miner::Account(id) = miner else { continue };
+        let was = totals_before.get(miner).copied().unwrap_or(0);
+        let is = was + amount;
+        if let Some(mark) = MILESTONES.iter().rev().find(|m| was < **m as u128 * UNIT && is >= **m as u128 * UNIT) {
+            said.push(("milestone".to_string(), Some(*id), json!({ "epoch": epoch, "orn": mark, "mined": is.to_string() })));
+        }
+        let mut streak = 0u64;
+        let mut e = epoch;
+        while paid_at.get(&e).is_some_and(|by| by.contains_key(miner)) {
+            streak += 1;
+            if e == 0 {
+                break;
+            }
+            e -= 1;
+        }
+        if STREAKS.contains(&streak) {
+            said.push(("streak".to_string(), Some(*id), json!({ "epoch": epoch, "hours": streak })));
+        }
+    }
+
+    // The day before this checkpoint's, once it is over: its top miner among
+    // the members, those with a verified wallet, like the leaderboard. The
+    // day's totals count everyone.
+    let day = |e: u64| mined.times.get(&e).map(|t| t / 86_400);
+    if let (Some(today), Some(yesterday)) = (day(epoch), day(epoch - 1))
+        && today != yesterday
+    {
+        let mut by_miner: HashMap<&Miner, u128> = HashMap::new();
+        let mut hours = 0u64;
+        for (e, by) in &epochs {
+            if day(*e) == Some(yesterday) {
+                hours += 1;
+                for (miner, amount) in by {
+                    *by_miner.entry(miner).or_default() += amount;
+                }
+            }
+        }
+        let total: u128 = by_miner.values().sum();
+        let members = by_miner.iter().filter(|(m, _)| matches!(m, Miner::Account(_)));
+        if let Some((top, amount)) = members.max_by(|a, b| a.1.cmp(b.1).then_with(|| b.0.cmp(a.0))) {
+            let subject = if let Miner::Account(id) = top { Some(*id) } else { None };
+            let date = chrono_date(yesterday * 86_400);
+            said.push((
+                "top_day".to_string(),
+                subject,
+                json!({ "epoch": epoch, "day": date, "miner": who(top), "mined": amount.to_string(), "total": total.to_string(), "miners": by_miner.len(), "hours": hours }),
+            ));
+        }
+    }
+    said
+}
+
+/// A day as "2026-11-19", from seconds since 1970.
+fn chrono_date(seconds: u64) -> String {
+    // Civil-from-days, Howard Hinnant's algorithm.
+    let z = (seconds / 86_400) as i64 + 719_468;
+    let era = z.div_euclid(146_097);
+    let doe = z.rem_euclid(146_097);
+    let yoe = (doe - doe / 1_460 + doe / 36_524 - doe / 146_096) / 365;
+    let y = yoe + era * 400;
+    let doy = doe - (365 * yoe + yoe / 4 - yoe / 100);
+    let mp = (5 * doy + 2) / 153;
+    let d = doy - (153 * mp + 2) / 5 + 1;
+    let m = if mp < 10 { mp + 3 } else { mp - 9 };
+    let y = if m <= 2 { y + 1 } else { y };
+    format!("{y:04}-{m:02}-{d:02}")
+}
+
+impl Store {
+    pub(crate) fn create_community_tables(&self) -> Result<()> {
+        self.db.execute_batch(
+            "CREATE TABLE IF NOT EXISTS posts (
+                 id INTEGER PRIMARY KEY,
+                 -- None for posts the network writes.
+                 author INTEGER REFERENCES accounts(id) ON DELETE CASCADE,
+                 -- post, or what the network says: record, welcome, milestone, streak, top_day.
+                 kind TEXT NOT NULL,
+                 body TEXT NOT NULL DEFAULT '',
+                 data TEXT NOT NULL DEFAULT '{}',
+                 -- Whom a network post is about.
+                 subject INTEGER REFERENCES accounts(id) ON DELETE CASCADE,
+                 parent INTEGER REFERENCES posts(id) ON DELETE CASCADE,
+                 created INTEGER NOT NULL,
+                 removed INTEGER NOT NULL DEFAULT 0
+             );
+             CREATE INDEX IF NOT EXISTS posts_feed ON posts(parent, id);
+             CREATE INDEX IF NOT EXISTS posts_by_author ON posts(author, created);
+             CREATE TABLE IF NOT EXISTS reactions (
+                 post INTEGER NOT NULL REFERENCES posts(id) ON DELETE CASCADE,
+                 account INTEGER NOT NULL REFERENCES accounts(id) ON DELETE CASCADE,
+                 emoji TEXT NOT NULL,
+                 PRIMARY KEY (post, account, emoji)
+             );
+             -- The last checkpoint the network has posted about.
+             CREATE TABLE IF NOT EXISTS community_state (
+                 key TEXT PRIMARY KEY,
+                 value INTEGER NOT NULL
+             );",
+        )?;
+        Ok(())
+    }
+
+    /// Verified wallets and the accounts they belong to.
+    pub(crate) fn wallet_owners(&self) -> Result<HashMap<String, i64>> {
+        let mut query = self.db.prepare(
+            "SELECT address, account FROM verified_wallets WHERE proven IS NOT NULL
+               AND account NOT IN (SELECT account FROM suspended)",
+        )?;
+        let rows = query.query_map([], |row| Ok((row.get::<_, String>(0)?, row.get::<_, i64>(1)?)))?;
+        Ok(rows.collect::<rusqlite::Result<_>>()?)
+    }
+
+    fn names(&self) -> Result<HashMap<i64, (String, Option<String>)>> {
+        let mut query = self.db.prepare("SELECT id, name, picture FROM accounts")?;
+        let rows = query.query_map([], |row| Ok((row.get::<_, i64>(0)?, (row.get(1)?, row.get(2)?))))?;
+        Ok(rows.collect::<rusqlite::Result<_>>()?)
+    }
+
+    fn may_post(&self, account: i64) -> Result<()> {
+        if self.verified_wallets(account)?.is_empty() {
+            bail!("verify one of your wallets first: only accounts with a verified wallet can post");
+        }
+        let lately: i64 = self.db.query_row(
+            "SELECT COUNT(*) FROM posts WHERE author = ?1 AND created > ?2",
+            params![account, now().saturating_sub(3600) as i64],
+            |row| row.get(0),
+        )?;
+        if lately >= POSTS_AN_HOUR {
+            bail!("that's {POSTS_AN_HOUR} posts in an hour; take a breather and post again soon");
+        }
+        Ok(())
+    }
+
+    /// A post, or a reply to `parent`. Screened before this is called.
+    pub fn add_post(&self, author: i64, body: &str, parent: Option<i64>) -> Result<i64> {
+        let body = post_text(body)?;
+        self.may_post(author)?;
+        if let Some(parent) = parent {
+            let open: bool = self
+                .db
+                .query_row("SELECT removed = 0 AND parent IS NULL FROM posts WHERE id = ?1", [parent], |row| row.get(0))
+                .optional()?
+                .unwrap_or(false);
+            if !open {
+                bail!("that post is gone, or is itself a reply");
+            }
+        }
+        self.db.execute(
+            "INSERT INTO posts (author, kind, body, parent, created) VALUES (?1, 'post', ?2, ?3, ?4)",
+            params![author, body, parent, now() as i64],
+        )?;
+        Ok(self.db.last_insert_rowid())
+    }
+
+    /// Something the network says, dated `at`: the checkpoint's time.
+    pub fn add_happening(&self, kind: &str, subject: Option<i64>, data: &Value, at: u64) -> Result<()> {
+        self.db.execute(
+            "INSERT INTO posts (kind, data, subject, created) VALUES (?1, ?2, ?3, ?4)",
+            params![kind, data.to_string(), subject, at as i64],
+        )?;
+        Ok(())
+    }
+
+    pub fn remove_own_post(&self, author: i64, post: i64) -> Result<bool> {
+        Ok(self.db.execute("UPDATE posts SET removed = 1 WHERE id = ?1 AND author = ?2", params![post, author])? == 1)
+    }
+
+    /// Takes a post down, from the dashboard.
+    pub fn remove_post(&self, post: i64) -> Result<bool> {
+        Ok(self.db.execute("UPDATE posts SET removed = 1 WHERE id = ?1", [post])? == 1)
+    }
+
+    pub fn post_removed(&self, post: i64) -> Result<bool> {
+        Ok(self.db.query_row("SELECT removed = 1 FROM posts WHERE id = ?1", [post], |row| row.get(0)).optional()?.unwrap_or(true))
+    }
+
+    /// Adds `emoji` from `account`, or takes it back. Gives whether it is on.
+    pub fn react(&self, account: i64, post: i64, emoji: &str) -> Result<bool> {
+        if !REACTIONS.contains(&emoji) {
+            bail!("that reaction isn't one of {}", REACTIONS.join(" "));
+        }
+        let there: bool = self
+            .db
+            .query_row("SELECT removed = 0 FROM posts WHERE id = ?1", [post], |row| row.get(0))
+            .optional()?
+            .unwrap_or(false);
+        if !there {
+            bail!("that post is gone");
+        }
+        let taken = self.db.execute(
+            "DELETE FROM reactions WHERE post = ?1 AND account = ?2 AND emoji = ?3",
+            params![post, account, emoji],
+        )?;
+        if taken == 0 {
+            self.db.execute("INSERT INTO reactions (post, account, emoji) VALUES (?1, ?2, ?3)", params![post, account, emoji])?;
+        }
+        Ok(taken == 0)
+    }
+
+    /// Feed posts newest first, before post `before`, or a post's replies
+    /// oldest first. As seen by `viewer`. `only` narrows the feed to
+    /// "people" or the "network".
+    /// The feed, newest first, from `before` on; `replies_to` a post's
+    /// replies instead, oldest first; `only` people or the network; `about`
+    /// an account: its own posts, and the network's posts that name it.
+    pub fn feed(
+        &self,
+        viewer: Option<i64>,
+        before: Option<i64>,
+        replies_to: Option<i64>,
+        only: Option<&str>,
+        about: Option<i64>,
+    ) -> Result<Vec<Value>> {
+        let who = match only {
+            Some("people") => " AND p.kind = 'post'",
+            Some("network") => " AND p.kind <> 'post'",
+            _ => "",
+        };
+        // ?3 is the account, or -1 for everyone.
+        let whom = " AND (?3 < 0 OR p.author = ?3 OR p.subject = ?3 OR json_extract(p.data, '$.miner.account') = ?3
+                      OR EXISTS (SELECT 1 FROM json_each(p.data, '$.miners') WHERE json_extract(value, '$.account') = ?3))";
+        let (filter, order) = match replies_to {
+            Some(_) => (format!("p.parent = ?1{whom}"), "p.created ASC, p.id ASC"),
+            None => (
+                format!(
+                    "p.parent IS NULL{who}{whom} AND (p.created, p.id) < (SELECT COALESCE((SELECT created FROM posts WHERE id = ?1), 9223372036854775807), ?1)"
+                ),
+                "p.created DESC, p.id DESC",
+            ),
+        };
+        let key = replies_to.unwrap_or(before.unwrap_or(i64::MAX));
+        let mut query = self.db.prepare(&format!(
+            "SELECT p.id, p.kind, p.body, p.data, p.created, p.parent,
+                    a.name, a.picture, s.name, s.picture,
+                    (SELECT COUNT(*) FROM posts r WHERE r.parent = p.id AND r.removed = 0
+                       AND (r.author IS NULL OR r.author NOT IN (SELECT account FROM suspended))),
+                    p.author = ?2
+             FROM posts p LEFT JOIN accounts a ON a.id = p.author LEFT JOIN accounts s ON s.id = p.subject
+             WHERE {filter} AND p.removed = 0
+               AND (p.author IS NULL OR p.author NOT IN (SELECT account FROM suspended))
+               AND (p.subject IS NULL OR p.subject NOT IN (SELECT account FROM suspended))
+             ORDER BY {order} LIMIT {PAGE}"
+        ))?;
+        let rows = query.query_map(params![key, viewer.unwrap_or(-1), about.unwrap_or(-1)], |row| {
+            let person = |name: Option<String>, picture: Option<String>| name.map(|name| json!({ "name": name, "picture": picture }));
+            Ok(json!({
+                "id": row.get::<_, i64>(0)?,
+                "kind": row.get::<_, String>(1)?,
+                "body": row.get::<_, String>(2)?,
+                "data": serde_json::from_str::<Value>(&row.get::<_, String>(3)?).unwrap_or(json!({})),
+                "created": row.get::<_, i64>(4)?,
+                "parent": row.get::<_, Option<i64>>(5)?,
+                "author": person(row.get(6)?, row.get(7)?),
+                "subject": person(row.get(8)?, row.get(9)?),
+                "replies": row.get::<_, i64>(10)?,
+                "mine": row.get::<_, Option<bool>>(11)?.unwrap_or(false),
+            }))
+        })?;
+        let mut posts: Vec<Value> = rows.collect::<rusqlite::Result<_>>()?;
+        self.name_faces(&mut posts)?;
+        for post in &mut posts {
+            let id = post["id"].as_i64().unwrap_or(0);
+            let mut counts = self.db.prepare("SELECT emoji, COUNT(*), MAX(account = ?2) FROM reactions WHERE post = ?1 GROUP BY emoji")?;
+            let reactions: Vec<(String, i64, bool)> = counts
+                .query_map(params![id, viewer.unwrap_or(-1)], |row| Ok((row.get(0)?, row.get(1)?, row.get(2)?)))?
+                .collect::<rusqlite::Result<_>>()?;
+            post["reactions"] = json!(reactions
+                .iter()
+                .map(|(emoji, count, me)| json!({ "emoji": emoji, "count": count, "me": me }))
+                .collect::<Vec<_>>());
+        }
+        Ok(posts)
+    }
+
+    /// Fills in the name and picture of every account a post's data
+    /// mentions (`miners[].account`, `miner.account`), so names follow
+    /// renames. Suspended accounts lose their face.
+    fn name_faces(&self, posts: &mut [Value]) -> Result<()> {
+        let mut ids: Vec<i64> = Vec::new();
+        let mut visit = |v: &Value| {
+            if let Some(id) = v.get("account").and_then(Value::as_i64) {
+                ids.push(id);
+            }
+        };
+        for post in posts.iter() {
+            if let Some(list) = post["data"]["miners"].as_array() {
+                list.iter().for_each(&mut visit);
+            }
+            visit(&post["data"]["miner"]);
+        }
+        if ids.is_empty() {
+            return Ok(());
+        }
+        let mut names: HashMap<i64, (String, Option<String>)> = HashMap::new();
+        for id in ids {
+            if let Some(found) = self
+                .db
+                .query_row(
+                    "SELECT name, picture FROM accounts WHERE id = ?1 AND id NOT IN (SELECT account FROM suspended)",
+                    [id],
+                    |row| Ok((row.get::<_, String>(0)?, row.get::<_, Option<String>>(1)?)),
+                )
+                .optional()?
+            {
+                names.insert(id, found);
+            }
+        }
+        let fill = |v: &mut Value| {
+            if let Some(id) = v.get("account").and_then(Value::as_i64) {
+                if let Some((name, picture)) = names.get(&id) {
+                    v["name"] = json!(name);
+                    v["picture"] = json!(picture);
+                }
+            }
+        };
+        for post in posts.iter_mut() {
+            if let Some(list) = post["data"]["miners"].as_array_mut() {
+                list.iter_mut().for_each(fill);
+            }
+            if post["data"]["miner"].is_object() {
+                fill(&mut post["data"]["miner"]);
+            }
+        }
+        Ok(())
+    }
+
+    fn last_told(&self) -> Result<Option<u64>> {
+        Ok(self
+            .db
+            .query_row("SELECT value FROM community_state WHERE key = 'told'", [], |row| row.get::<_, i64>(0))
+            .optional()?
+            .map(|v| v as u64))
+    }
+
+    fn set_told(&self, epoch: u64) -> Result<()> {
+        self.db.execute(
+            "INSERT INTO community_state (key, value) VALUES ('told', ?1) ON CONFLICT (key) DO UPDATE SET value = ?1",
+            [epoch as i64],
+        )?;
+        Ok(())
+    }
+
+    /// Posts what the network has to say about checkpoints since the last
+    /// time. The first time, that is every checkpoint the records cover,
+    /// each post dated when its checkpoint was made, so the feed has the
+    /// network's whole story from the start.
+    pub fn tell(&self, mined: &Mined, owners: &HashMap<String, i64>) -> Result<()> {
+        let told = self.last_told()?.unwrap_or(mined.since);
+        for epoch in (told + 1)..=mined.upto {
+            let at = mined.times.get(&epoch).copied().unwrap_or_else(now);
+            for (kind, subject, data) in happenings(mined, owners, epoch) {
+                self.add_happening(&kind, subject, &data, at)?;
+            }
+            self.set_told(epoch)?;
+        }
+        Ok(())
+    }
+
+    /// Fills in the top miner of each past day that has no post yet, dated
+    /// at the checkpoint that closed the day. Days are checked one by one,
+    /// so this can run again and again without saying anything twice: it
+    /// catches days the rule for the post has changed since.
+    pub fn tell_days(&self, mined: &Mined, owners: &HashMap<String, i64>) -> Result<usize> {
+        let mut added = 0;
+        for epoch in (mined.since + 1)..=mined.upto {
+            for (kind, subject, data) in happenings(mined, owners, epoch) {
+                if kind != "top_day" {
+                    continue;
+                }
+                let day = data["day"].as_str().unwrap_or_default();
+                let posted: bool = self.db.query_row(
+                    "SELECT COUNT(*) > 0 FROM posts WHERE kind = 'top_day' AND json_extract(data, '$.day') = ?1",
+                    [day],
+                    |row| row.get(0),
+                )?;
+                if !posted {
+                    let at = mined.times.get(&epoch).copied().unwrap_or_else(now);
+                    self.add_happening(&kind, subject, &data, at)?;
+                    added += 1;
+                }
+            }
+        }
+        Ok(added)
+    }
+}
+
+fn post_text(text: &str) -> Result<String> {
+    let text = text.trim().replace("\r\n", "\n");
+    if text.is_empty() {
+        bail!("write something first");
+    }
+    if text.chars().count() > MAX_POST {
+        bail!("a post is at most {MAX_POST} characters");
+    }
+    if text.chars().any(|c| c.is_control() && c != '\n') {
+        bail!("a post can't hold control characters");
+    }
+    Ok(text)
+}
+
+impl Community {
+    fn refresh(&self, app: &App) {
+        let Some(mined) = app.explorer().mined(app.payments().as_ref()) else { return };
+        let store = app.store();
+        let (Ok(owners), Ok(names)) = (store.wallet_owners(), store.names()) else { return };
+        if let Err(error) = store.tell(&mined, &owners) {
+            eprintln!("community: could not post the network's news: {error:#}");
+        }
+        if !self.days_told.swap(true, Ordering::SeqCst) {
+            match store.tell_days(&mined, &owners) {
+                Ok(added) if added > 0 => eprintln!("community: filled in {added} past days' top miners"),
+                Ok(_) => {}
+                Err(error) => eprintln!("community: could not fill in past days: {error:#}"),
+            }
+        }
+        drop(store);
+        *self.board.lock().unwrap() = Some(board(&mined, &owners, &names));
+    }
+
+    fn snapshot(&self) -> Option<Board> {
+        self.board.lock().unwrap().clone()
+    }
+
+    /// An account's rank, ORN mined and streak, when its verified wallets
+    /// have been paid for mining.
+    pub(crate) fn stats_of(&self, account: i64) -> Option<Stats> {
+        self.board.lock().unwrap().as_ref().and_then(|b| b.accounts.get(&account).cloned())
+    }
+}
+
+/// Keeps the leaderboards current and posts the network's news, each minute.
+pub fn watch(app: Arc<App>) {
+    std::thread::spawn(move || {
+        loop {
+            app.community().refresh(&app);
+            std::thread::sleep(Duration::from_secs(60));
+        }
+    });
+}
+
+pub fn routes() -> Router<Arc<App>> {
+    Router::new()
+        .route("/api/market/community/feed", get(feed))
+        .route("/api/market/community/board", get(board_answer))
+        .route("/api/market/community/posts", post(new_post))
+        .route("/api/market/community/posts/{id}", get(replies).delete(remove_post))
+        .route("/api/market/community/posts/{id}/react", post(react))
+}
+
+fn viewer(app: &App, headers: &HeaderMap) -> Option<i64> {
+    app.signed_in(headers).ok()
+}
+
+#[derive(Deserialize)]
+pub struct Before {
+    before: Option<i64>,
+    only: Option<String>,
+    /// An account's name: only its own posts and the network's posts about it.
+    about: Option<String>,
+}
+
+async fn feed(State(app): State<Arc<App>>, headers: HeaderMap, Query(page): Query<Before>) -> Result<Response, Failure> {
+    let me = viewer(&app, &headers);
+    let store = app.store();
+    let about = match &page.about {
+        Some(name) => Some(store.account_by_name(name)?.ok_or(Failure::NotFound)?),
+        None => None,
+    };
+    let posts = store.feed(me, page.before, None, page.only.as_deref(), about)?;
+    let more = posts.len() as i64 == PAGE;
+    Ok(Json(json!({ "posts": posts, "more": more, "reactions": REACTIONS, "max": MAX_POST })).into_response())
+}
+
+async fn replies(State(app): State<Arc<App>>, headers: HeaderMap, Path(id): Path<i64>) -> Result<Response, Failure> {
+    let me = viewer(&app, &headers);
+    Ok(Json(json!({ "replies": app.store().feed(me, None, Some(id), None, None)? })).into_response())
+}
+
+async fn board_answer(State(app): State<Arc<App>>, headers: HeaderMap) -> Result<Response, Failure> {
+    let me = viewer(&app, &headers);
+    let board = app.community().snapshot();
+    let you = match me {
+        Some(account) => {
+            let store = app.store();
+            let name = store.account(account)?.map(|a| (a.name, a.picture));
+            let verified = !store.verified_wallets(account)?.is_empty();
+            let stats = board.as_ref().and_then(|b| b.accounts.get(&account).cloned());
+            name.map(|(name, picture)| json!({ "name": name, "picture": picture, "verified": verified, "stats": stats }))
+        }
+        None => None,
+    };
+    Ok(Json(json!({ "board": board, "you": you })).into_response())
+}
+
+#[derive(Deserialize)]
+pub struct NewPost {
+    body: String,
+    parent: Option<i64>,
+}
+
+async fn new_post(State(app): State<Arc<App>>, headers: HeaderMap, Json(given): Json<NewPost>) -> Result<Response, Failure> {
+    let author = app.signed_in(&headers)?;
+    {
+        let store = app.store();
+        post_text(&given.body).map_err(refused)?;
+        store.may_post(author).map_err(refused)?;
+    }
+    let body = given.body.clone();
+    screened(&app, "post", move |s| s.message(&body)).await?;
+    let id = app.store().add_post(author, &given.body, given.parent).map_err(refused)?;
+    Ok(Json(json!({ "id": id })).into_response())
+}
+
+async fn remove_post(State(app): State<Arc<App>>, headers: HeaderMap, Path(id): Path<i64>) -> Result<Response, Failure> {
+    let author = app.signed_in(&headers)?;
+    if !app.store().remove_own_post(author, id)? {
+        return Err(Failure::NotFound);
+    }
+    Ok(Json(json!({ "removed": true })).into_response())
+}
+
+#[derive(Deserialize)]
+pub struct Reaction {
+    emoji: String,
+}
+
+async fn react(State(app): State<Arc<App>>, headers: HeaderMap, Path(id): Path<i64>, Json(given): Json<Reaction>) -> Result<Response, Failure> {
+    let account = app.signed_in(&headers)?;
+    let on = app.store().react(account, id, &given.emoji).map_err(refused)?;
+    Ok(Json(json!({ "on": on })).into_response())
+}

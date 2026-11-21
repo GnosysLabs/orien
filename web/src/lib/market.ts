@@ -181,12 +181,16 @@ export async function ask<T>(path: string, method = 'GET', body?: unknown): Prom
 /** The signed-in account and its listings, or null when signed out. */
 /** Signs this browser in with a pass from Orien Wallet, if its Safari
  * extension put one in the address's fragment (#pass=…). The pass is taken
- * out of the address at once; it works once, for a minute. */
-export async function takeWalletPass(): Promise<void> {
+ * out of the address at once; it works once, for a minute. True when it
+ * signed this browser in. */
+export async function takeWalletPass(): Promise<boolean> {
   const pass = new URLSearchParams(window.location.hash.slice(1)).get('pass')
-  if (!pass) return
+  if (!pass) return false
   history.replaceState(null, '', window.location.pathname + window.location.search)
-  await ask('/oidc/pass/use', 'POST', { pass }).catch(() => undefined)
+  return ask('/oidc/pass/use', 'POST', { pass }).then(
+    () => true,
+    () => false,
+  )
 }
 
 export async function me(): Promise<{ account: Account; listings: Listing[]; unread: number } | null> {

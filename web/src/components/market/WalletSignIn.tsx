@@ -1,8 +1,9 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Download, X } from 'lucide-react'
 import { CHROME_EXTENSION, WALLET_SIGN_IN_FOR_EVERYONE } from '@/lib/brand'
+import { WindowsDownload } from '@/components/WindowsDownload'
 
 /** What Orien Wallet's browser extension says about itself, on <html
  * data-orien-wallet>: "ready" (the wallet is running and signed in; the
@@ -15,14 +16,33 @@ function walletState(): State {
   return state === 'ready' || state === 'app-closed' || state === 'signed-out' ? state : null
 }
 
-/** Safari on a Mac, Chrome (or another browser that takes Chrome's
- * extensions), or anything else. */
-function browser(): 'safari-mac' | 'chrome' | 'other' {
+/** Where this page is open: the browser, and whether on a Mac. Phones and
+ * tablets first, since their browsers also say Safari or Chrome. */
+type Where = { browser: 'safari' | 'chrome' | 'firefox' | 'other'; mac: boolean; phone: boolean; name: string }
+
+/** The name of the browser that takes Chrome's extensions, for the button:
+ * Brave says so itself; Edge, Opera and Vivaldi say so in the user agent. */
+function chromeName(agent: string): string {
+  if ('brave' in navigator) return 'Brave'
+  if (/Edg\//.test(agent)) return 'Edge'
+  if (/OPR\//.test(agent)) return 'Opera'
+  if (/Vivaldi\//.test(agent)) return 'Vivaldi'
+  return 'Chrome'
+}
+
+function where(): Where {
   const agent = navigator.userAgent
-  const mac = /Macintosh/.test(agent) && navigator.maxTouchPoints < 2
-  if (/Chrome\/|Chromium\/|Edg\//.test(agent)) return 'chrome'
-  if (mac && /Safari\//.test(agent)) return 'safari-mac'
-  return 'other'
+  const phone = /iPhone|iPad|iPod|Android/.test(agent) || (/Macintosh/.test(agent) && navigator.maxTouchPoints > 1)
+  const mac = !phone && /Macintosh/.test(agent)
+  const browser = /Firefox\/|FxiOS/.test(agent)
+    ? 'firefox'
+    : /Chrome\/|Chromium\/|CriOS|Edg\//.test(agent)
+      ? 'chrome'
+      : /Safari\//.test(agent)
+        ? 'safari'
+        : 'other'
+  const name = browser === 'chrome' ? chromeName(agent) : browser === 'safari' ? 'Safari' : browser === 'firefox' ? 'Firefox' : 'your browser'
+  return { browser, mac, phone, name }
 }
 
 const primary =
@@ -34,7 +54,45 @@ const secondary =
  * running and signed in, its extension handles the click before this does;
  * otherwise this explains what's missing. */
 export function WalletSignIn({ className, after }: { className: string; after?: React.ReactNode }) {
-  const [open, setOpen] = useState<State | 'install' | undefined>(undefined)
+  const [open, setOpen] = useState<State | 'install' | 'no-answer' | undefined>(undefined)
+  // The extension marks the button busy while it waits for the wallet. If
+  // the wallet never answers, the button would stay that way for ever: after
+  // two minutes (Touch ID falling back to the password can take a while) the
+  // button is put back (remounted, so its label returns) and
+  // the dialog says what to do.
+  const button = useRef<HTMLButtonElement>(null)
+  const [attempt, setAttempt] = useState(0)
+  useEffect(() => {
+    const here = button.current
+    if (!here) return
+    let timer: ReturnType<typeof setTimeout> | undefined
+    const watching = new MutationObserver(() => {
+      if (here.dataset.busy) {
+        timer ??= setTimeout(() => {
+          delete here.dataset.busy
+          setAttempt((n) => n + 1)
+          setOpen('no-answer')
+        }, 120_000)
+      } else if (timer) {
+        clearTimeout(timer)
+        timer = undefined
+      }
+    })
+    watching.observe(here, { attributes: true, attributeFilter: ['data-busy'] })
+    return () => {
+      watching.disconnect()
+      if (timer) clearTimeout(timer)
+    }
+  }, [attempt])
+  // Only where the extension works: Safari on a Mac, and Chrome (and the
+  // browsers that take Chrome's extensions) once it is in the Chrome Web
+  // Store. Never on phones and tablets. Decided once the page is open here,
+  // so nobody else sees it flash up.
+  const [supported, setSupported] = useState(false)
+  useEffect(() => {
+    const here = where()
+    setSupported(!here.phone && ((here.browser === 'safari' && here.mac) || (here.browser === 'chrome' && !!CHROME_EXTENSION)))
+  }, [])
   // Before the release, shown only where the extension has said it is there.
   const [present, setPresent] = useState(false)
   useEffect(() => {
@@ -45,18 +103,21 @@ export function WalletSignIn({ className, after }: { className: string; after?: 
     watching.observe(document.documentElement, { attributes: true, attributeFilter: ['data-orien-wallet'] })
     return () => watching.disconnect()
   }, [])
-  if (!WALLET_SIGN_IN_FOR_EVERYONE && !present) return null
+  if (!supported || (!WALLET_SIGN_IN_FOR_EVERYONE && !present)) return null
   return (
     <>
       <button
+        key={attempt}
+        ref={button}
         type="button"
         data-orien-wallet-signin
-        className={className}
+        className={`${className} gap-2.5`}
         onClick={() => {
           const state = walletState()
           if (state !== 'ready') setOpen(state ?? 'install')
         }}
       >
+        <span className="orien-mark shrink-0 bg-bg" style={{ width: 28, height: 28 }} aria-hidden />
         Sign in with Orien Wallet
       </button>
       {after}
@@ -65,10 +126,20 @@ export function WalletSignIn({ className, after }: { className: string; after?: 
   )
 }
 
-function WalletHelp({ state, onClose }: { state: State | 'install'; onClose: () => void }) {
-  const [where, setWhere] = useState<ReturnType<typeof browser>>('other')
+function Steps({ children }: { children: React.ReactNode }) {
+  return <ol className="list-decimal space-y-1.5 pl-5 text-sm marker:font-semibold marker:text-ink">{children}</ol>
+}
+
+const download = (
+  <a href="/wallet/Orien-Wallet.dmg" className={primary}>
+    <Download className="h-4 w-4" aria-hidden /> Get Orien Wallet for Mac
+  </a>
+)
+
+function WalletHelp({ state, onClose }: { state: State | 'install' | 'no-answer'; onClose: () => void }) {
+  const [here, setHere] = useState<Where>({ browser: 'other', mac: false, phone: false, name: 'your browser' })
   useEffect(() => {
-    setWhere(browser())
+    setHere(where())
     const close = (event: KeyboardEvent) => event.key === 'Escape' && onClose()
     document.addEventListener('keydown', close)
     return () => document.removeEventListener('keydown', close)
@@ -79,39 +150,87 @@ function WalletHelp({ state, onClose }: { state: State | 'install'; onClose: () 
   if (state === 'app-closed') {
     title = 'Open Orien Wallet'
     body = <p>Open Orien Wallet on this computer, then try again.</p>
+  } else if (state === 'no-answer') {
+    title = 'Orien Wallet didn’t answer'
+    body = <p>Make sure Orien Wallet is open and signed in to Orien Network on this computer, then try again.</p>
   } else if (state === 'signed-out') {
     title = 'Sign in to Orien Wallet'
-    body = <p>Open Orien Wallet and sign in to Orien Network (in Swap or Market), then try again.</p>
+    body = <p>Open Orien Wallet and sign in to Orien Network from its home screen, then try again.</p>
   } else {
     title = 'Sign in with Orien Wallet'
+    let advice: React.ReactNode
+    if (here.phone) {
+      advice = (
+        <p>
+          On a phone or tablet, sign in with your email for now. The extension is for Safari on a Mac and for Chrome
+          on a computer.
+        </p>
+      )
+    } else if (here.browser === 'safari' && here.mac) {
+      advice = (
+        <>
+          <div className="space-y-2">
+            <p className="font-semibold text-ink">Already have Orien Wallet?</p>
+            <Steps>
+              <li>Update it to the latest version (1.8.22 or later).</li>
+              <li>
+                In Safari, choose <span className="font-semibold text-ink">Safari → Settings → Extensions</span>.
+              </li>
+              <li>
+                Tick <span className="font-semibold text-ink">Orien Wallet</span>, and allow it on orien.network.
+              </li>
+              <li>Reload this page.</li>
+            </Steps>
+          </div>
+          <div className="space-y-3">
+            <p className="font-semibold text-ink">New to Orien Wallet?</p>
+            {download}
+          </div>
+        </>
+      )
+    } else if (here.browser === 'chrome' && CHROME_EXTENSION) {
+      advice = (
+        <>
+          <div className="space-y-3">
+            <p className="font-semibold text-ink">Already have Orien Wallet?</p>
+            <Steps>
+              <li>Update it to the latest version (1.8.22 or later).</li>
+              <li>Add the extension to {here.name}, and reload this page.</li>
+            </Steps>
+            <a href={CHROME_EXTENSION} target="_blank" rel="noopener noreferrer" className={primary}>
+              Add it to {here.name}
+            </a>
+          </div>
+          <div className="space-y-3">
+            <p className="font-semibold text-ink">New to Orien Wallet?</p>
+            {here.mac ? (
+              download
+            ) : (
+              <WindowsDownload className={secondary}>
+                <Download className="h-4 w-4" aria-hidden /> Get Orien Wallet for Windows
+              </WindowsDownload>
+            )}
+          </div>
+        </>
+      )
+    } else {
+      const which = here.browser === 'firefox' ? 'Firefox isn’t supported yet.' : here.browser === 'chrome' ? 'The Chrome extension is coming soon.' : 'Your browser isn’t supported yet.'
+      advice = here.mac ? (
+        <>
+          <p>{which} On this Mac, it works today in Safari with the latest Orien Wallet.</p>
+          {download}
+        </>
+      ) : (
+        <p>{which} For now, sign in with your email.</p>
+      )
+    }
     body = (
       <>
         <p>
-          With Orien Wallet’s browser extension, you sign in here with Touch ID instead of an email code, whenever
-          Orien Wallet is open and signed in.
+          With Orien Wallet’s browser extension, you sign in here with your wallet instead of an email code,
+          whenever Orien Wallet is open and signed in.
         </p>
-        <ul className="divide-y divide-line rounded-xl border border-line">
-          <li className="space-y-1 px-4 py-3">
-            <span className="block font-semibold text-ink">Safari on a Mac</span>
-            <span className="block text-sm">
-              Comes with the latest Orien Wallet for Mac. Turn it on in Safari’s settings, under Extensions.
-            </span>
-          </li>
-          <li className="space-y-1 px-4 py-3">
-            <span className="block font-semibold text-ink">Chrome</span>
-            <span className="block text-sm">{CHROME_EXTENSION ? 'In the Chrome Web Store.' : 'Coming soon.'}</span>
-          </li>
-        </ul>
-        <div className="space-y-3">
-          <a href="/wallet/Orien-Wallet.dmg" className={where === 'chrome' && CHROME_EXTENSION ? secondary : primary}>
-            <Download className="h-4 w-4" aria-hidden /> Get Orien Wallet for Mac
-          </a>
-          {CHROME_EXTENSION && (
-            <a href={CHROME_EXTENSION} target="_blank" rel="noopener noreferrer" className={where === 'chrome' ? primary : secondary}>
-              Add it to Chrome
-            </a>
-          )}
-        </div>
+        {advice}
       </>
     )
   }

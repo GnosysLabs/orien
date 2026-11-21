@@ -72,7 +72,12 @@ impl Store {
                 )
                 .optional()?
                 .is_some(),
-            _ => bail!("a report is about a listing, an account or a message"),
+            "post" => self
+                .db
+                .query_row("SELECT 1 FROM posts WHERE id = ?1 AND author IS NOT NULL AND removed = 0", [target], |_| Ok(()))
+                .optional()?
+                .is_some(),
+            _ => bail!("a report is about a listing, an account, a message or a post"),
         };
         if !exists {
             bail!("there is nothing like that to report");
@@ -100,6 +105,7 @@ impl Store {
                         WHEN 'listing' THEN (SELECT title FROM listings WHERE id = r.target)
                         WHEN 'account' THEN (SELECT name FROM accounts WHERE id = r.target)
                         WHEN 'message' THEN (SELECT body FROM messages WHERE id = r.target)
+                        WHEN 'post' THEN (SELECT body FROM posts WHERE id = r.target)
                     END
              FROM reports r LEFT JOIN accounts a ON a.id = r.reporter
              WHERE r.handled = 0 ORDER BY r.id",

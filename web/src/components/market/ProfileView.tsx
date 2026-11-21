@@ -11,6 +11,7 @@ import { ContactLinks } from './ContactLinks'
 import { Card } from './Browse'
 import { ReportButton } from './ReportButton'
 import { Notice } from './Shell'
+import { MiningCard, ProfileFeed, type Stats } from './CommunityView'
 
 export function ProfileView() {
   // /u/NAME/, or the old /marketplace/profile/?id=, which moves to it.
@@ -24,7 +25,7 @@ export function ProfileView() {
   }, [])
   const name = fromPath || params.get('name')
   const id = name ? null : params.get('id')
-  const [found, setFound] = useState<{ account: Account; listings: Listing[]; wallets?: VerifiedWallet[]; blocked?: boolean } | null>(null)
+  const [found, setFound] = useState<{ account: Account; listings: Listing[]; wallets?: VerifiedWallet[]; blocked?: boolean; mining?: Stats | null } | null>(null)
   const [trouble, setTrouble] = useState('')
   const [viewer, setViewer] = useState<number | null>(null)
 
@@ -37,7 +38,7 @@ export function ProfileView() {
   useEffect(() => {
     if (fromPath === null || (!name && !id)) return
     const path = name ? `/users/${encodeURIComponent(name)}` : `/profiles/${encodeURIComponent(id!)}`
-    ask<{ account: Account; listings: Listing[]; wallets?: VerifiedWallet[]; blocked?: boolean }>(path)
+    ask<{ account: Account; listings: Listing[]; wallets?: VerifiedWallet[]; blocked?: boolean; mining?: Stats | null }>(path)
       .then((profile) => {
         // An old ?id= link goes to the profile's own address.
         if (id) {
@@ -110,25 +111,31 @@ export function ProfileView() {
           </div>
         </div>
       </section>
-      {listings.length > 0 && (
-        <section className="space-y-4">
-          <div className="flex flex-wrap items-center gap-3">
-            <Store className="h-5 w-5 text-pearl" strokeWidth={1.75} aria-hidden />
-            <h2 className="text-xl font-bold tracking-tight text-ink">On the Market</h2>
-            <Link
-              href="/marketplace/"
-              className="ml-auto flex h-8 items-center rounded-lg border border-line px-3 text-xs font-semibold text-ink transition hover:border-pearl"
-            >
-              Browse the Market
-            </Link>
-          </div>
-          <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-            {listings.map((listing) => (
-              <Card key={listing.id} listing={listing} />
-            ))}
-          </div>
-        </section>
-      )}
+      {/* Their part of the community, beside their mining and what they sell. */}
+      <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_320px]">
+        <aside className="space-y-4 lg:sticky lg:top-24 lg:order-last lg:max-h-[calc(100vh-7rem)] lg:overflow-y-auto lg:pr-1 lg:[scrollbar-width:thin]">
+          {found.mining && <MiningCard stats={found.mining} />}
+          {listings.length > 0 && (
+            <section className="space-y-3">
+              <div className="flex items-center gap-2 px-1">
+                <Store className="h-4 w-4 text-pearl" strokeWidth={1.75} aria-hidden />
+                <h2 className="text-lg font-bold text-ink">On the Market</h2>
+                <Link href="/marketplace/" className="ml-auto text-xs font-semibold text-muted hover:text-ink hover:underline">
+                  Browse
+                </Link>
+              </div>
+              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-1">
+                {listings.map((listing) => (
+                  <Card key={listing.id} listing={listing} />
+                ))}
+              </div>
+            </section>
+          )}
+        </aside>
+        <main className="min-w-0">
+          <ProfileFeed name={account.name} />
+        </main>
+      </div>
     </div>
   )
 }

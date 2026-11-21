@@ -7,7 +7,7 @@ import { short } from '@/lib/explorer'
 import { Wordmark } from '@/components/Wordmark'
 import { SignIn } from './AccountView'
 import { Avatar } from './Avatar'
-import { Notice } from './Shell'
+import { Notice, SIGNED_IN_OR_OUT } from './Shell'
 
 type Asked = {
   site: { name: string; host: string }
@@ -133,16 +133,15 @@ export function Authorize() {
     return (
       <Overlay>
         <SignIn
-        onDone={() => void load()}
+        onDone={() => {
+          // The header follows the same news.
+          window.dispatchEvent(new Event(SIGNED_IN_OR_OUT))
+          void load()
+        }}
         trouble=""
         wallet
         title={`Sign in to continue to ${asked.site.name}`}
-        blurb={
-          <>
-            Use your Orien Network account. We&apos;ll email you a 6-digit code; no password needed, and new emails
-            make an account.
-          </>
-        }
+        blurb="Use your Orien Network account."
         />
       </Overlay>
     )

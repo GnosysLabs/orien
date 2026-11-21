@@ -1,3 +1,4 @@
+import { CopySnippet } from '@/components/CopySnippet'
 import type { Metadata } from 'next'
 import { pageMeta } from '@/lib/seo'
 
@@ -50,6 +51,23 @@ const ENDPOINTS: [string, string][] = [
   ['Keys (JWKS)', `${ISSUER}/api/market/oidc/jwks`],
 ]
 
+/** The button developers paste in: the sun and the words on the pearl.
+ * Its address is wherever their sign-in library starts the flow. */
+const BUTTON = `<a href="/auth/orien" class="orien-signin">
+  <svg viewBox="0 0 512 512" width="28" height="28" aria-hidden="true"><g fill="currentColor"><rect x="239" y="74" width="36" height="66" rx="18"/><rect x="239" y="74" width="36" height="66" rx="18" transform="rotate(-44 256 298)"/><rect x="239" y="74" width="36" height="66" rx="18" transform="rotate(44 256 298)"/><path d="M138 298A118 118 0 0 1 374 298Z"/><rect x="76" y="338" width="360" height="40" rx="20"/><rect x="156" y="406" width="200" height="36" rx="18"/></g></svg>
+  Sign in with Orien Network
+</a>
+
+<style>
+  .orien-signin {
+    display: inline-flex; align-items: center; justify-content: center; gap: 10px;
+    height: 44px; padding: 0 24px; border-radius: 12px;
+    background: linear-gradient(115deg, #f4b6d4 0%, #b8c7ff 20%, #d3b6ff 38%, #a6ead6 56%, #f9dda4 74%, #f4b6d4 100%);
+    color: #0b0b0f; font: 700 14px/1 system-ui, sans-serif; text-decoration: none;
+  }
+  .orien-signin:hover { filter: brightness(1.05); }
+</style>`
+
 function Code({ children }: { children: string }) {
   return <code className="num break-all rounded-md border border-line bg-bg px-1.5 py-0.5 text-[0.85em] text-ink">{children}</code>
 }
@@ -78,8 +96,8 @@ export default function SignInDevelopersPage() {
 
       <Section title="What people see">
         <p>
-          They press your Sign in with Orien button and come to orien.network. If they aren’t signed in there yet,
-          they sign in with a code sent to their email. Then they see your website’s
+          They press your Sign in with Orien Network button and come to orien.network. If they aren’t signed in there
+          yet, they sign in with a code sent to their email, or with Orien Wallet’s browser extension. Then they see your website’s
           name and address, and exactly what you’ll receive: their Orien Network name, picture and banner, and their
           verified wallets. They choose Allow or Cancel, and come back to you.
         </p>
@@ -92,10 +110,10 @@ export default function SignInDevelopersPage() {
       <Section title="1. Register your website">
         <p>
           Sign in at{' '}
-          <a href="/account/" className="font-semibold text-ink underline underline-offset-4">
-            orien.network/account
-          </a>
-          , and under Sign in with Orien choose Add a website. Give its name, shown to people when they sign in, and
+          <a href="/developers/websites/" className="font-semibold text-ink underline underline-offset-4">
+            orien.network/developers/websites
+          </a>{' '}
+          and choose Add a website. Give its name, shown to people when they sign in, and
           its return addresses: where people come back to after signing in. They must start with https://, or
           http://localhost while you build.
         </p>
@@ -160,6 +178,24 @@ export default function SignInDevelopersPage() {
             explorer’s API
           </a>
           .
+        </p>
+      </Section>
+
+      <Section title="The button">
+        <p>
+          Use Orien’s own button so people recognise it: the sun and the words on the pearl. Copy it as it is, and
+          point its address at wherever your sign-in library starts the flow.
+        </p>
+        <div className="flex justify-center rounded-xl border border-line bg-bg px-6 py-8">
+          <span className="pearl-fill inline-flex h-11 items-center justify-center gap-2.5 rounded-xl px-6 text-sm font-bold">
+            <span className="orien-mark shrink-0 bg-bg" style={{ width: 28, height: 28 }} aria-hidden />
+            Sign in with Orien Network
+          </span>
+        </div>
+        <CopySnippet text={BUTTON} />
+        <p>
+          The words are “Sign in with Orien Network”. Keep the button on a plain background with a little room around
+          it, and don’t recolour it. Orien Wallet is the app; Orien Network is the account people sign in with.
         </p>
       </Section>
 

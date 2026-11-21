@@ -1,13 +1,13 @@
 'use client'
 
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import { LogOut, Mail, MessageCircle, UserRound } from 'lucide-react'
 import { ask, me, takeWalletPass, NAME_PATTERN, NAME_RULE, profileHref, type Account, type Listing } from '@/lib/market'
 import { Card } from './Browse'
 import { ProfileEditor } from './ProfileEditor'
 import { YourWallets } from './WalletCheck'
-import { YourWebsites } from './YourWebsites'
 import { WalletSignIn } from './WalletSignIn'
 import { Notice, SIGNED_IN_OR_OUT } from './Shell'
 import { useMe } from '@/lib/useMe'
@@ -27,9 +27,16 @@ export function AccountView() {
         setTrouble(error.message)
         setFound(null)
       })
+  // Signing in here lands on the community; the header follows the
+  // signed-in state that the reload announces.
+  const router = useRouter()
+  const arrived = () => {
+    reload()
+    router.push('/community/')
+  }
   useEffect(() => {
     // A pass from Orien Wallet signs this browser in without an email code.
-    void takeWalletPass().then(reload)
+    void takeWalletPass().then((signedIn) => (signedIn ? arrived() : reload()))
   }, [])
 
   // Signed out elsewhere, from the menu or another tab: show the sign-in.
@@ -38,9 +45,21 @@ export function AccountView() {
     if (live.account === null && found) setFound(null)
   }, [live.account])
 
-  if (found === undefined) return <p className="text-muted">Loading…</p>
-  if (found === null) return <SignIn onDone={reload} trouble={trouble} wallet />
-  return <Mine found={found} onChange={reload} />
+  if (found === undefined) return <p className="pt-10 text-muted sm:pt-14">Loading…</p>
+  if (found === null)
+    return (
+      // Centred in the window on computers, and never taller than it.
+      <div className="pb-16 pt-10 sm:pt-14 lg:flex lg:min-h-[calc(100dvh-4rem)] lg:items-center lg:justify-center lg:py-0">
+        <div className="w-full">
+          <SignIn onDone={arrived} trouble={trouble} wallet />
+        </div>
+      </div>
+    )
+  return (
+    <div className="pb-16 pt-10 sm:pt-14">
+      <Mine found={found} onChange={reload} />
+    </div>
+  )
 }
 
 type Step = 'email' | 'code' | 'name'
@@ -110,8 +129,7 @@ export function SignIn({
           <p className="leading-relaxed text-muted">
             {blurb ?? (
               <>
-                One account for your profile, the Market and messages. We&apos;ll email you a 6-digit code; no password
-                needed, and new emails make an account.
+                One account for all of Orien Network.
               </>
             )}
           </p>
@@ -120,16 +138,21 @@ export function SignIn({
               <WalletSignIn className={button} after={<p className="text-center text-sm text-muted">or with your email</p>} />
             </>
           )}
-          <input
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-            autoFocus
-            autoComplete="email"
-            placeholder="you@example.com"
-            className={field}
-          />
+          <div className="space-y-2">
+            <input
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+              autoFocus
+              autoComplete="email"
+              placeholder="you@example.com"
+              className={field}
+            />
+            <p className="px-1 text-sm leading-relaxed text-muted">
+              New here? Your first code makes your account. No password.
+            </p>
+          </div>
           <button type="submit" disabled={busy} className={button}>
             {busy ? 'Sending…' : 'Email me a code'}
           </button>
@@ -282,7 +305,6 @@ function Mine({ found, onChange }: { found: Found; onChange: () => void }) {
           ))}
         </div>
       )}
-      <YourWebsites />
       <DeleteAccount name={found.account.name} onDeleted={onChange} />
     </div>
   )

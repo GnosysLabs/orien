@@ -26,13 +26,23 @@ export const PRODUCTS: Record<Product, string> = {
 
 export const CHANGELOG: Entry[] = [
   {
+    date: '2026-11-21',
+    products: ['network', 'marketplace'],
+    title: 'The community',
+    changes: [
+      'orien.network/community/ is a feed the network writes into after every checkpoint: new records for miners paid in an hour, miners paid for the first time, and milestones of ORN mined. People post, reply and react in the same feed.',
+      'Beside it, the top miners by ORN mined with their hours paid in a row. Your own rank, ORN mined and streak show when you are signed in.',
+      'Posting needs a verified wallet. Posts are screened like Market messages, and anyone can report one.',
+    ],
+  },
+  {
     date: '2026-11-20',
     products: ['wallet'],
     version: '1.8.22',
     title: 'Orien Wallet in your browser, and a new Send',
     changes: [
       'Orien Wallet for Safari comes with the Mac app: turn it on in Safari’s Settings, under Extensions. Orien Wallet for Chrome works on Mac, Windows and Linux. Both show your balance in your theme, send ORN with name suggestions, and sign you in with Orien. They hold no keys: Orien Wallet approves and signs everything.',
-      'Sign in with Orien Wallet: on orien.network, one click (and Touch ID on a Mac) signs you in, with no email code.',
+      'Sign in with Orien Wallet: on orien.network, one click signs you in, with no email code.',
       'Send ORN is one screen: your recent people to pick from, the amount with Max, a summary of the total and your balance after, then Send with Touch ID. No separate Review step.',
       'Screen titles are in Orien’s own typeface.',
     ],
@@ -41,11 +51,11 @@ export const CHANGELOG: Entry[] = [
     date: '2026-11-20',
     products: ['marketplace'],
     title: 'Sign in with Orien',
-    unreleased: true,
     changes: [
       'Any website or app can now let people sign in with their Orien Network account. People see the website’s name and address, and exactly what it will receive: their Orien Network name, picture and banner, and their verified wallets. They choose Allow or Cancel.',
       'Websites never receive the email address, and nothing they receive can move ORN or use a wallet.',
-      'It’s standard OpenID Connect, free, with nothing to apply for: register a website from your account. orien.network/developers/sign-in/ explains it.',
+      'On a Mac, people with Orien Wallet’s Safari extension sign in with their wallet instead of an email code.',
+      'It’s standard OpenID Connect, free, with nothing to apply for: register a website under Build, Sign in with Orien. orien.network/developers/sign-in/ explains it.',
     ],
   },
   {

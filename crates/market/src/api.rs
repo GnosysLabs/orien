@@ -55,6 +55,8 @@ pub struct App {
     explorer: crate::explorer::Explorer,
     /// Who may register websites for Sign in with Orien.
     sign_in: crate::oidc::Gate,
+    /// The community's leaderboards, kept current by its watcher.
+    community: crate::community::Community,
 }
 
 /// One email, for App Store review, whose sign-in code never changes and is
@@ -102,6 +104,7 @@ impl App {
             review: None,
             explorer: crate::explorer::Explorer::default(),
             sign_in: crate::oidc::Gate::default(),
+            community: crate::community::Community::default(),
         })
     }
 
@@ -167,6 +170,10 @@ impl App {
 
     pub(crate) fn sign_in_gate(&self) -> &crate::oidc::Gate {
         &self.sign_in
+    }
+
+    pub(crate) fn community(&self) -> &crate::community::Community {
+        &self.community
     }
 
     pub(crate) fn origin(&self) -> &str {
@@ -367,6 +374,7 @@ pub fn router(app: Arc<App>) -> Router {
         .route("/api/market/listings/{id}", get(listing).put(edit_listing))
         .route("/api/market/listings/{id}/open", post(open_listing))
         .merge(crate::oidc::routes())
+        .merge(crate::community::routes())
         .route("/api/explorer/overview", get(crate::explorer::overview))
         .route("/api/explorer/checkpoints", get(crate::explorer::checkpoints))
         .route("/api/explorer/checkpoints/{epoch}", get(crate::explorer::checkpoint))
@@ -1253,7 +1261,8 @@ async fn profile(State(app): State<Arc<App>>, headers: HeaderMap, Path(id): Path
     let listings = store.open_listings_of(id)?;
     let swaps_done = store.swaps_done(id)?;
     let wallets = store.verified_wallets(id)?;
-    let mut answer = json!({ "account": account, "listings": listings, "swaps_done": swaps_done, "wallets": wallets });
+    let mining = app.community().stats_of(id);
+    let mut answer = json!({ "account": account, "listings": listings, "swaps_done": swaps_done, "wallets": wallets, "mining": mining });
     // Signed in: whether you've blocked this person.
     if let Some(viewer) = viewer {
         answer["blocked"] = json!(store.blocked_by(viewer, id)?);

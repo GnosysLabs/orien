@@ -5,6 +5,8 @@ const nextConfig: NextConfig = {
   trailingSlash: true,
   images: { unoptimized: true },
   poweredByHeader: false,
+  // The development badge sits over the sidebar's foot; the live site never has it.
+  devIndicators: false,
   turbopack: {
     rules: {
       '*.css': {

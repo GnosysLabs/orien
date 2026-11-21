@@ -8,7 +8,7 @@ export const metadata: Metadata = { title: 'Profile', robots: { index: false } }
  * which reads the name from the address. */
 export default function UserPage() {
   return (
-    <div className="mx-auto max-w-[1100px] pb-16 pt-10 sm:pt-14">
+    <div className="mx-auto max-w-[1100px] pb-16 pt-5 sm:pt-7">
       <Suspense>
         <ProfileView />
       </Suspense>
