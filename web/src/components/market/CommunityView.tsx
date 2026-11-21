@@ -477,7 +477,7 @@ function PostCard({ post, me, onChange }: { post: Post; me: You | null; onChange
               <>
                 <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-pearl">{eyebrow}</p>
                 <p className="text-sm text-muted">
-                  <span className="font-semibold text-ink">Orien</span> · {since(post.created)}
+                  <span className="font-semibold text-ink">Orien Network</span> · {since(post.created)}
                 </p>
               </>
             ) : (
