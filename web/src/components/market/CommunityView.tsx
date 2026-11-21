@@ -707,7 +707,7 @@ export function CommunityView() {
 
       <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_320px]">
         <main className="min-w-0 space-y-3">
-          <div className={`${card} flex overflow-hidden lg:sticky lg:top-24 lg:z-10 lg:shadow-lg lg:shadow-black/40`}>
+          <div className={`${card} flex overflow-hidden`}>
             {TABS.map(([key, label]) => (
               <button
                 key={key}
