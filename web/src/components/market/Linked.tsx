@@ -31,7 +31,7 @@ export function Linked({ text }: { text: string }) {
               href={url}
               target="_blank"
               rel="noopener noreferrer nofollow ugc"
-              className="break-all font-semibold text-ink underline decoration-line underline-offset-4 hover:decoration-pearl"
+              className="font-semibold text-ink underline decoration-line underline-offset-4 [overflow-wrap:anywhere] hover:decoration-pearl"
             >
               {shown}
             </a>
