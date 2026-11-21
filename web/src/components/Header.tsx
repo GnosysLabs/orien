@@ -22,6 +22,7 @@ import {
   Users,
   Rocket,
   type LucideIcon,
+  Landmark,
 } from "lucide-react";
 import { COMMUNITY_LIVE, MARKETPLACE_LIVE } from "@/lib/brand";
 import { SIDEBAR } from "@/lib/nav";
@@ -310,6 +311,7 @@ const LEARN: MenuItem[] = [
 const BUILD: MenuItem[] = [
   { href: "/developers/", label: "Developers", detail: "Everything you need to build with Orien", icon: Code2 },
   { href: "/developers/websites/", label: "Sign in with Orien", detail: "Register the websites people sign in to", icon: KeyRound },
+  { href: "/developers/exchanges/", label: "Listing ORN", detail: "What an exchange needs, on one page", icon: Landmark },
   { href: "https://explorer.orien.network/api/", label: "Explorer API", detail: "The network's figures, as JSON", icon: Activity },
 ];
 
