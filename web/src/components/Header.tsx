@@ -271,7 +271,7 @@ function NavMenu({ label, icon: Icon, items, on }: { label: string; icon: Lucide
       {open && (
         <div
           role="menu"
-          className="absolute left-0 top-full mt-2 w-72 overflow-hidden rounded-xl border border-line bg-surface p-1.5 shadow-2xl shadow-black/40"
+          className="absolute left-0 top-full mt-2 w-max overflow-hidden rounded-xl border border-line bg-surface p-1.5 shadow-2xl shadow-black/40"
         >
           {items.map((item) => {
             const Icon = item.icon;
@@ -288,7 +288,7 @@ function NavMenu({ label, icon: Icon, items, on }: { label: string; icon: Lucide
                 <Icon className="mt-0.5 h-4 w-4 shrink-0 text-pearl" strokeWidth={2} aria-hidden />
                 <span className="flex flex-col">
                   <span className="text-sm font-semibold text-ink">{item.label}</span>
-                  <span className="text-xs leading-relaxed text-muted">{item.detail}</span>
+                  <span className="whitespace-nowrap text-xs leading-relaxed text-muted">{item.detail}</span>
                 </span>
               </a>
             );
