@@ -1,8 +1,9 @@
 'use client'
 
 import Link from 'next/link'
+import { useSearchParams } from 'next/navigation'
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { BadgeCheck, Flag, Flame, MessageCircle, MoreHorizontal, Search, SmilePlus, Trash2, Trophy } from 'lucide-react'
+import { ArrowLeft, BadgeCheck, Flag, Flame, MessageCircle, MoreHorizontal, Search, SmilePlus, Trash2, Trophy } from 'lucide-react'
 import { ask, profileHref } from '@/lib/market'
 import { checkpointHref, orn, short } from '@/lib/explorer'
 import { useMe } from '@/lib/useMe'
@@ -13,6 +14,7 @@ import { Notice } from './Shell'
 import { Linked } from './Linked'
 import { YouTube, youtubeId } from './YouTube'
 import { openSignIn } from './SignInDialog'
+import { EYEBROWS, NetworkAvatar } from './network'
 
 type Person = { name: string; picture: string | null }
 type Face = { account?: number; address?: string; name?: string; picture?: string | null; paid?: string }
@@ -94,15 +96,6 @@ function useDismiss(open: boolean, close: () => void) {
   return box
 }
 
-/** The network, as a poster: the Orien sun on living pearl. */
-function NetworkAvatar({ size = 36 }: { size?: number }) {
-  return (
-    <span className="pearl-fill flex shrink-0 items-center justify-center rounded-full" style={{ width: size, height: size }} aria-hidden>
-      <span className="orien-mark bg-bg" style={{ width: size * 0.56, height: size * 0.56 }} />
-    </span>
-  )
-}
-
 /** A miner's face: their picture when they have a profile, else the sun. */
 function FaceAvatar({ face, size }: { face: Face; size: number }) {
   if (face.name) return <Avatar name={face.name} picture={face.picture ?? null} size={size} />
@@ -159,13 +152,6 @@ function names(faces: Face[], count: number) {
 
 /** The eyebrow over each kind of the network's card. One colour for all of
  * them: the site's own living pearl. */
-const EYEBROWS: Record<Exclude<Post['kind'], 'post'>, string> = {
-  record: 'New record',
-  welcome: 'Welcome',
-  milestone: 'Milestone',
-  streak: 'On a streak',
-  top_day: 'Top miner of the day',
-}
 
 /** What the network says, as a card of its own kind. */
 function Happening({ post }: { post: Post }) {
@@ -439,8 +425,8 @@ function Reply({ reply, me, onChange }: { reply: Post; me: You | null; onChange:
   )
 }
 
-function PostCard({ post, me, onChange }: { post: Post; me: You | null; onChange: () => void }) {
-  const [open, setOpen] = useState(false)
+function PostCard({ post, me, onChange, startOpen = false }: { post: Post; me: You | null; onChange: () => void; startOpen?: boolean }) {
+  const [open, setOpen] = useState(startOpen)
   const [replies, setReplies] = useState<Post[] | null>(null)
   const network = post.kind !== 'post'
   const eyebrow = network ? EYEBROWS[post.kind as keyof typeof EYEBROWS] : null
@@ -448,6 +434,10 @@ function PostCard({ post, me, onChange }: { post: Post; me: You | null; onChange
     const found = await ask<{ replies: Post[] }>(`/community/posts/${post.id}`).catch(() => ({ replies: [] }))
     setReplies(found.replies)
   }, [post.id])
+  // Opened from a notification: the replies show at once.
+  useEffect(() => {
+    if (startOpen) void loadReplies()
+  }, [startOpen, loadReplies])
   const changed = () => {
     if (open) void loadReplies()
     onChange()
@@ -716,6 +706,19 @@ export function CommunityView() {
   const [you, setYou] = useState<You | null>(null)
   const [trouble, setTrouble] = useState('')
   const live = useMe()
+  // A notification opens one post: /community/?post=ID.
+  const focus = Number(useSearchParams().get('post')) || null
+  const [focused, setFocused] = useState<Post | null | undefined>(undefined)
+  const loadFocused = useCallback(async () => {
+    if (!focus) return
+    const found = await ask<{ post: Post | null }>(`/community/posts/${focus}`).catch(() => ({ post: null }))
+    setFocused(found.post)
+  }, [focus])
+  useEffect(() => {
+    setFocused(undefined)
+    void loadFocused()
+    if (focus) window.scrollTo({ top: 0 })
+  }, [loadFocused, focus, live.account])
 
   const path = useCallback(
     (before?: number) => {
@@ -728,9 +731,14 @@ export function CommunityView() {
     [tab],
   )
 
+  // The latest feed asked for; an answer for an earlier tab is dropped.
+  const asked = useRef('')
   const loadFeed = useCallback(async () => {
+    const wanted = path()
+    asked.current = wanted
     try {
-      const found = await ask<{ posts: Post[]; more: boolean }>(path())
+      const found = await ask<{ posts: Post[]; more: boolean }>(wanted)
+      if (asked.current !== wanted) return
       setPosts(found.posts)
       setMore(found.more)
       setTrouble('')
@@ -772,12 +780,25 @@ export function CommunityView() {
 
       <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_320px]">
         <main className="min-w-0 space-y-3">
+          {focus ? (
+            <>
+              <Link href="/community/" className={`${quiet} w-fit`}>
+                <ArrowLeft className="h-4 w-4" aria-hidden /> Back to the feed
+              </Link>
+              {focused === undefined && <p className="py-10 text-center text-muted">Loading…</p>}
+              {focused === null && <p className={`${card} py-10 text-center text-muted`}>This post is gone.</p>}
+              {focused && <PostCard key={focused.id} post={focused} me={you} onChange={loadFocused} startOpen />}
+            </>
+          ) : (
+            <>
           <div className={`${card} flex overflow-hidden`}>
             {TABS.map(([key, label]) => (
               <button
                 key={key}
                 type="button"
                 onClick={() => {
+                  // The tab already open: fresh posts, without emptying it.
+                  if (key === tab) return void loadFeed()
                   setTab(key)
                   setPosts(null)
                 }}
@@ -812,6 +833,8 @@ export function CommunityView() {
             <button type="button" onClick={() => void older()} className={`${quiet} w-full`}>
               Show more
             </button>
+          )}
+            </>
           )}
         </main>
 

@@ -223,7 +223,7 @@ pub fn mined_text(amount: u64) -> String {
 }
 
 /// ORN written as people write them: "1,234.5".
-fn grouped(amount: u64) -> String {
+pub(crate) fn grouped(amount: u64) -> String {
     let written = orn(amount);
     let (whole, fraction) = written.split_once('.').map_or((written.as_str(), None), |(w, f)| (w, Some(f)));
     let mut grouped = String::new();

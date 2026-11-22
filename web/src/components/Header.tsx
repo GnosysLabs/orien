@@ -26,6 +26,7 @@ import {
 } from "lucide-react";
 import { COMMUNITY_LIVE, MARKETPLACE_LIVE } from "@/lib/brand";
 import { SIDEBAR } from "@/lib/nav";
+import { NotificationBell } from "./NotificationBell";
 import { AccountMenu } from "./AccountMenu";
 import { useMe } from "@/lib/useMe";
 import { Wordmark } from "./Wordmark";
@@ -484,6 +485,7 @@ export function Header() {
               <span>Get started</span>
             </Link>
             )}
+            {MARKETPLACE_LIVE && <NotificationBell />}
             {MARKETPLACE_LIVE && (
               <div className="ml-1.5">
                 <AccountMenu />

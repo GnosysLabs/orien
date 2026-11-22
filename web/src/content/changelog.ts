@@ -27,6 +27,16 @@ export const PRODUCTS: Record<Product, string> = {
 export const CHANGELOG: Entry[] = [
   {
     date: '2026-11-21',
+    products: ['marketplace'],
+    title: 'Notifications',
+    changes: [
+      'Signed in, a bell at the top of every page shows what happened for you: replies and reactions to your posts, replies after yours, the network’s posts about you, and new messages.',
+      'Each line opens the post with its replies, or the message. Opening the bell marks everything seen.',
+      'Clicking the community tab you are already on refreshes it at once, instead of showing Loading.',
+    ],
+  },
+  {
+    date: '2026-11-21',
     products: ['wallet'],
     version: '1.8.24',
     title: 'Browser extensions in Settings, and one update brings the newest',

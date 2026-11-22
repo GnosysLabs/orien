@@ -415,7 +415,11 @@ impl Store {
             "INSERT INTO posts (author, kind, body, parent, created) VALUES (?1, 'post', ?2, ?3, ?4)",
             params![author, body, parent, now() as i64],
         )?;
-        Ok(self.db.last_insert_rowid())
+        let id = self.db.last_insert_rowid();
+        if let Some(parent) = parent {
+            self.notice_reply(id, author, parent)?;
+        }
+        Ok(id)
     }
 
     /// Something the network says, dated `at`: the checkpoint's time.
@@ -424,7 +428,7 @@ impl Store {
             "INSERT INTO posts (kind, data, subject, created) VALUES (?1, ?2, ?3, ?4)",
             params![kind, data.to_string(), subject, at as i64],
         )?;
-        Ok(())
+        self.notice_happening(self.db.last_insert_rowid())
     }
 
     pub fn remove_own_post(&self, author: i64, post: i64) -> Result<bool> {
@@ -460,6 +464,7 @@ impl Store {
         if taken == 0 {
             self.db.execute("INSERT INTO reactions (post, account, emoji) VALUES (?1, ?2, ?3)", params![post, account, emoji])?;
         }
+        self.notice_reaction(post, account, emoji, taken == 0, Some(now()))?;
         Ok(taken == 0)
     }
 
@@ -495,6 +500,16 @@ impl Store {
             ),
         };
         let key = replies_to.unwrap_or(before.unwrap_or(i64::MAX));
+        self.posts_where(viewer, &filter, order, key, about)
+    }
+
+    /// One post as `viewer` sees it, if it is still up and not a reply.
+    pub fn one_post(&self, viewer: Option<i64>, id: i64) -> Result<Option<Value>> {
+        Ok(self.posts_where(viewer, "p.id = ?1 AND p.parent IS NULL AND ?3 < 0", "p.id", id, None)?.into_iter().next())
+    }
+
+    /// Posts matching `filter`, where ?1 is `key`, ?2 the viewer and ?3 `about`.
+    fn posts_where(&self, viewer: Option<i64>, filter: &str, order: &str, key: i64, about: Option<i64>) -> Result<Vec<Value>> {
         let mut query = self.db.prepare(&format!(
             "SELECT p.id, p.kind, p.body, p.data, p.created, p.parent,
                     a.name, a.picture, s.name, s.picture,
@@ -779,7 +794,8 @@ async fn feed(State(app): State<Arc<App>>, headers: HeaderMap, Query(page): Quer
 
 async fn replies(State(app): State<Arc<App>>, headers: HeaderMap, Path(id): Path<i64>) -> Result<Response, Failure> {
     let me = viewer(&app, &headers);
-    Ok(Json(json!({ "replies": app.store().feed(me, None, Some(id), None, None)? })).into_response())
+    let store = app.store();
+    Ok(Json(json!({ "post": store.one_post(me, id)?, "replies": store.feed(me, None, Some(id), None, None)? })).into_response())
 }
 
 async fn board_answer(State(app): State<Arc<App>>, headers: HeaderMap) -> Result<Response, Failure> {
