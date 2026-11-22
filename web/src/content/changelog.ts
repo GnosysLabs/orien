@@ -26,6 +26,14 @@ export const PRODUCTS: Record<Product, string> = {
 
 export const CHANGELOG: Entry[] = [
   {
+    date: '2026-11-22',
+    products: ['network'],
+    title: 'Logos to download',
+    changes: [
+      'orien.network/brand/ has the ORN coin icon, a square version and the Orien sun, as SVG and PNG from 32 to 1,024 pixels, with a button for each and one for the whole set. Exchanges and price trackers can take the coin icon from there; the Listing ORN page links to it.',
+    ],
+  },
+  {
     date: '2026-11-21',
     products: ['marketplace'],
     title: 'Notifications',

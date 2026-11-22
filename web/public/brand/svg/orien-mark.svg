@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="56 58 400 400">
+  <!-- Orien's rising sun in the pearl gradient, transparent, for dark pages. -->
+  <defs>
+    <linearGradient id="mark" x1="76" y1="74" x2="436" y2="442" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#f4b6d4"/>
+      <stop offset="0.25" stop-color="#b8c7ff"/>
+      <stop offset="0.48" stop-color="#d3b6ff"/>
+      <stop offset="0.72" stop-color="#a6ead6"/>
+      <stop offset="1" stop-color="#f9dda4"/>
+    </linearGradient>
+  </defs>
+  <g fill="url(#mark)">
+    <rect x="239" y="74" width="36" height="66" rx="18"/>
+    <rect x="239" y="74" width="36" height="66" rx="18" transform="rotate(-44 256 298)"/>
+    <rect x="239" y="74" width="36" height="66" rx="18" transform="rotate(44 256 298)"/>
+    <path d="M138 298 A118 118 0 0 1 374 298 Z"/>
+    <rect x="76" y="338" width="360" height="40" rx="20"/>
+    <rect x="156" y="406" width="200" height="36" rx="18"/>
+  </g>
+</svg>

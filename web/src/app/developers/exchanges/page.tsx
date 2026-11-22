@@ -24,6 +24,16 @@ const FIGURES: [string, React.ReactNode][] = [
   ['Addresses', <>64 characters, 0–9 and a–f. There is no memo or tag.</>],
   ['Confirmations', <>None to count. A payment is final in a fraction of a second.</>],
   [
+    'Logos',
+    <>
+      The coin icon as SVG and PNG, on the{' '}
+      <a href="/brand/" className="font-semibold text-ink underline underline-offset-4">
+        logos page
+      </a>
+      .
+    </>,
+  ],
+  [
     'Explorer',
     <>
       <span className="num break-all">https://explorer.orien.network/address/ADDRESS/</span> shows any address.

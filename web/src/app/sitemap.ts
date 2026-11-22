@@ -23,6 +23,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     ['/news/randomx/', 0.6, 'yearly'],
     ['/changelog/', 0.5, 'weekly'],
     ['/contact/', 0.4, 'yearly'],
+    ['/brand/', 0.3, 'yearly'],
     ...(MARKETPLACE_LIVE ? ([['/privacy/', 0.2, 'yearly'], ['/terms/', 0.2, 'yearly']] as const) : []),
   ]
   return pages.map(([path, priority, changeFrequency]) => ({ url: `${SITE_URL}${path}`, priority, changeFrequency }))

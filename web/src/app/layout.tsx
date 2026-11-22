@@ -172,6 +172,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               <Link href="/changelog/" className="hover:text-ink">
                 Changelog
               </Link>
+              <Link href="/brand/" className="hover:text-ink">
+                Logos
+              </Link>
               <a href={SOURCE_CODE} target="_blank" rel="noreferrer" className="hover:text-ink">
                 Source code
               </a>

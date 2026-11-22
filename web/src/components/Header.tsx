@@ -706,6 +706,9 @@ export function Sidebar() {
           <Link href="/contact/" className="hover:text-ink">
             Contact
           </Link>
+          <Link href="/brand/" className="hover:text-ink">
+            Logos
+          </Link>
           <a href={SOURCE_CODE} target="_blank" rel="noreferrer" className="hover:text-ink">
             Source code
           </a>
