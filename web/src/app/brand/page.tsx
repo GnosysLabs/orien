@@ -12,24 +12,21 @@ export const metadata: Metadata = pageMeta({
 
 const SIZES = [1024, 512, 256, 200, 128, 64, 32]
 
-const LOGOS: { file: string; name: string; use: string; light: boolean }[] = [
+const LOGOS: { file: string; name: string; use: string }[] = [
   {
     file: 'orien-coin-round',
     name: 'Coin icon',
     use: 'The one to use wherever a coin is shown: in a list, on a chart or next to a trading pair. Works on light and dark pages.',
-    light: true,
   },
   {
     file: 'orien-coin-square',
     name: 'Square coin icon',
     use: 'The same icon on a dark square, for places that crop the picture themselves, to a circle or a rounded square.',
-    light: true,
   },
   {
     file: 'orien-mark',
     name: 'The Orien sun',
-    use: 'The rising sun on its own, for dark pages only. On a light page, use the coin icon instead.',
-    light: false,
+    use: 'The rising sun on its own, in the pearl colours, with no circle behind it. Works on light and dark pages.',
   },
 ]
 
@@ -80,23 +77,14 @@ export default function BrandPage() {
         <Section key={logo.file} title={logo.name}>
           <div className="grid gap-6 sm:grid-cols-[15rem_1fr] sm:items-center">
             <div className="grid h-40 grid-cols-2 overflow-hidden rounded-xl border border-line">
-              {logo.light ? (
-                <>
-                  <div className="flex items-center justify-center bg-white">
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src={`/brand/svg/${logo.file}.svg`} alt={`${logo.name} on white`} className="h-24 w-24" />
-                  </div>
-                  <div className="flex items-center justify-center bg-[#0b0b0f]">
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src={`/brand/svg/${logo.file}.svg`} alt={`${logo.name} on dark`} className="h-24 w-24" />
-                  </div>
-                </>
-              ) : (
-                <div className="col-span-2 flex items-center justify-center bg-[#0b0b0f]">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={`/brand/svg/${logo.file}.svg`} alt={logo.name} className="h-24 w-24" />
-                </div>
-              )}
+              <div className="flex items-center justify-center bg-white">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={`/brand/svg/${logo.file}.svg`} alt={`${logo.name} on white`} className="h-24 w-24" />
+              </div>
+              <div className="flex items-center justify-center bg-[#0b0b0f]">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={`/brand/svg/${logo.file}.svg`} alt={`${logo.name} on dark`} className="h-24 w-24" />
+              </div>
             </div>
             <div className="space-y-5">
               <p className="leading-relaxed text-muted">{logo.use}</p>
@@ -132,8 +120,7 @@ export default function BrandPage() {
       <Section title="Please">
         <p className="leading-relaxed text-muted">
           Keep the icon’s proportions, colours and space around it as they are. Don’t stretch it, recolour it or add
-          effects, and don’t put the sun on its own on a light background: use the coin icon there. For anything else,
-          write to{' '}
+          effects. For anything else, write to{' '}
           <a href="mailto:hello@orien.network" className="font-semibold text-ink underline underline-offset-4">
             hello@orien.network
           </a>
