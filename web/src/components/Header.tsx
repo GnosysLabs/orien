@@ -305,7 +305,7 @@ const TRADE: MenuItem[] = [
   { href: "/marketplace/", label: "Market", detail: "Buy and sell things and services for ORN", icon: Store },
 ];
 const LEARN: MenuItem[] = [
-  { href: "/how-it-works/", label: "How it works", detail: "Payments, signatures, checkpoints and mining, in plain words", icon: BookOpen },
+  { href: "/how-it-works/", label: "How it works", detail: "Payments and mining, in plain words", icon: BookOpen },
   { href: "/paper/", label: "Technical paper", detail: "Every rule of the network, stated exactly", icon: FileText },
   { href: "/changelog/", label: "Changelog", detail: "What changed, release by release", icon: History },
 ];
