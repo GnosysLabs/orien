@@ -515,7 +515,7 @@ impl Store {
                     a.name, a.picture, s.name, s.picture,
                     (SELECT COUNT(*) FROM posts r WHERE r.parent = p.id AND r.removed = 0
                        AND (r.author IS NULL OR r.author NOT IN (SELECT account FROM suspended))),
-                    p.author = ?2
+                    p.author = ?2, a.banner
              FROM posts p LEFT JOIN accounts a ON a.id = p.author LEFT JOIN accounts s ON s.id = p.subject
              WHERE {filter} AND p.removed = 0
                AND (p.author IS NULL OR p.author NOT IN (SELECT account FROM suspended))
@@ -531,7 +531,10 @@ impl Store {
                 "data": serde_json::from_str::<Value>(&row.get::<_, String>(3)?).unwrap_or(json!({})),
                 "created": row.get::<_, i64>(4)?,
                 "parent": row.get::<_, Option<i64>>(5)?,
-                "author": person(row.get(6)?, row.get(7)?),
+                "author": person(row.get(6)?, row.get(7)?).map(|mut author| {
+                    author["banner"] = json!(row.get::<_, Option<String>>(12).ok().flatten());
+                    author
+                }),
                 "subject": person(row.get(8)?, row.get(9)?),
                 "replies": row.get::<_, i64>(10)?,
                 "mine": row.get::<_, Option<bool>>(11)?.unwrap_or(false),

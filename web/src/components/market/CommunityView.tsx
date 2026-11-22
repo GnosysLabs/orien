@@ -4,7 +4,7 @@ import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { ArrowLeft, BadgeCheck, Flag, Flame, MessageCircle, MoreHorizontal, Search, SmilePlus, Trash2, Trophy } from 'lucide-react'
-import { ask, profileHref } from '@/lib/market'
+import { ask, pictureUrl, profileHref } from '@/lib/market'
 import { checkpointHref, orn, short } from '@/lib/explorer'
 import { useMe } from '@/lib/useMe'
 import { AutoTextarea } from '@/components/AutoTextarea'
@@ -16,7 +16,7 @@ import { YouTube, youtubeId } from './YouTube'
 import { openSignIn } from './SignInDialog'
 import { EYEBROWS, NetworkAvatar } from './network'
 
-type Person = { name: string; picture: string | null }
+type Person = { name: string; picture: string | null; banner?: string | null }
 type Face = { account?: number; address?: string; name?: string; picture?: string | null; paid?: string }
 type Reaction = { emoji: string; count: number; me: boolean }
 type Post = {
@@ -429,6 +429,7 @@ function PostCard({ post, me, onChange, startOpen = false }: { post: Post; me: Y
   const [open, setOpen] = useState(startOpen)
   const [replies, setReplies] = useState<Post[] | null>(null)
   const network = post.kind !== 'post'
+  const banner = network ? null : post.author?.banner
   const eyebrow = network ? EYEBROWS[post.kind as keyof typeof EYEBROWS] : null
   const loadReplies = useCallback(async () => {
     const found = await ask<{ replies: Post[] }>(`/community/posts/${post.id}`).catch(() => ({ replies: [] }))
@@ -459,7 +460,16 @@ function PostCard({ post, me, onChange, startOpen = false }: { post: Post; me: Y
           />
         </>
       )}
-      <div className={`relative p-5 ${network ? 'on-banner' : ''}`}>
+      {banner && (
+        // The author's profile banner, fading into the card the same way.
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
+          src={pictureUrl(banner)}
+          alt=""
+          className="pointer-events-none absolute right-0 top-0 h-auto max-h-96 w-full object-cover opacity-70 [mask-composite:intersect] [mask-image:linear-gradient(to_left,black,transparent_90%),linear-gradient(to_bottom,black_55%,transparent)] sm:w-4/5 sm:[mask-image:linear-gradient(to_left,black_15%,rgb(0_0_0/0.55)_50%,transparent_95%),linear-gradient(to_bottom,black_55%,transparent)]"
+        />
+      )}
+      <div className={`relative p-5 ${network || banner ? 'on-banner' : ''}`}>
         <header className="flex items-center gap-3">
           {network ? <NetworkAvatar size={40} /> : post.author && <Avatar name={post.author.name} picture={post.author.picture} size={44} />}
           <div className="min-w-0 flex-1">
