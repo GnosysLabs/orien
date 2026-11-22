@@ -27,6 +27,15 @@ export const PRODUCTS: Record<Product, string> = {
 export const CHANGELOG: Entry[] = [
   {
     date: '2026-11-22',
+    products: ['orien', 'validators'],
+    version: '1.10.6',
+    title: 'Room for a validator across the ocean',
+    changes: [
+      'About one checkpoint in twelve needed a second try. Each time it was the turn of the validator in Europe to propose. Its proposal, which carries every validator’s statement and the hour’s work shares, takes two to three seconds to reach the validators in America, and they waited only three seconds for it, counted from the start of the close. They now wait six, so a proposal from across the ocean arrives in time. A validator that is really down still costs only a few seconds more.',
+    ],
+  },
+  {
+    date: '2026-11-22',
     products: ['network'],
     title: 'Logos to download',
     changes: [
