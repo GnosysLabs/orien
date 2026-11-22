@@ -23,6 +23,7 @@ import {
   Rocket,
   type LucideIcon,
   Landmark,
+  Image as ImageIcon,
 } from "lucide-react";
 import { COMMUNITY_LIVE, MARKETPLACE_LIVE } from "@/lib/brand";
 import { SIDEBAR } from "@/lib/nav";
@@ -314,6 +315,7 @@ const BUILD: MenuItem[] = [
   { href: "/developers/websites/", label: "Sign in with Orien", detail: "Register the websites people sign in to", icon: KeyRound },
   { href: "/developers/exchanges/", label: "Exchanges", detail: "Listing ORN: what an exchange needs", icon: Landmark },
   { href: "https://explorer.orien.network/api/", label: "Explorer API", detail: "The network's figures, as JSON", icon: Activity },
+  { href: "/brand/", label: "Logos", detail: "The ORN coin icon, as SVG and PNG", icon: ImageIcon },
 ];
 
 /** X's logo, which its brand guidelines let anyone use to link to an X account. */
@@ -438,7 +440,7 @@ export function Header() {
               </span>
             )}
             <NavMenu label="Learn" icon={BookOpen} items={LEARN} on={LEARN.some((i) => pathname.startsWith(i.href))} />
-            <NavMenu label="Build" icon={Code2} items={BUILD} on={pathname.startsWith("/developers")} />
+            <NavMenu label="Build" icon={Code2} items={BUILD} on={pathname.startsWith("/developers") || pathname.startsWith("/brand")} />
             <DownloadsMenu />
           </nav>
         )}
@@ -655,6 +657,7 @@ export function Sidebar() {
             icon={KeyRound}
             on={pathname.startsWith("/developers/websites")}
           />
+          <SidebarLink href="/brand/" label="Logos" icon={ImageIcon} on={pathname.startsWith("/brand")} />
         </SidebarGroup>
       </nav>
 
