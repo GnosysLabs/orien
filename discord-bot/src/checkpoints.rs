@@ -164,6 +164,11 @@ fn render(checkpoint: &Value, overview: &Value, memory: &Memory, new_wallets: us
     post
 }
 
+fn all_agreed(checkpoint: &Value) -> bool {
+    let validators = checkpoint["validators"].as_array().cloned().unwrap_or_default();
+    !validators.is_empty() && validators.iter().all(|v| v["agreed"] == true)
+}
+
 /// Takes in every checkpoint from where the memory stops up to `upto`, and
 /// gives the post for `upto`. None while the explorer has not worked out
 /// `upto`'s rewards yet.
@@ -176,9 +181,21 @@ async fn take_in(client: &reqwest::Client, memory: &mut Memory, upto: u64, overv
     let mut post = None;
     while next <= upto {
         tokio::time::sleep(PAUSE).await;
-        let checkpoint = ask(client, &format!("/checkpoints/{next}")).await?;
+        let mut checkpoint = ask(client, &format!("/checkpoints/{next}")).await?;
         if checkpoint["rewards"]["known"] == false && next == upto {
             return Ok(None);
+        }
+        // The close needs only three votes, and a far-away validator stores
+        // the checkpoint a moment later: give every validator up to about
+        // three minutes to show it before the post counts who agreed.
+        if next == upto {
+            for _ in 0..12 {
+                if all_agreed(&checkpoint) {
+                    break;
+                }
+                tokio::time::sleep(Duration::from_secs(15)).await;
+                checkpoint = ask(client, &format!("/checkpoints/{next}")).await?;
+            }
         }
         let addresses: Vec<String> = checkpoint["rewards"]["miners"].as_array().into_iter().flatten().filter_map(|m| m["address"].as_str().map(str::to_string)).collect();
         let new_wallets = addresses.iter().filter(|a| !memory.seen.contains(*a)).count();
