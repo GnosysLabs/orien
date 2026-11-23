@@ -889,6 +889,9 @@
     body.split #inbox > .topline h2 { font-size: 19px; }
     /* The list: rows divided by lines, no card around it. */
     html body.split #ib-list { margin: 0; padding: 0; border-radius: 0; flex: 1; overflow-y: auto; }
+    /* Side by side, the list and the chat run edge to edge under their
+       headers' lines, as in a mail app: no rounded scroll edges there. */
+    html body.split :is(#ib-list, #ch-log) { -webkit-mask: none; mask: none; }
     body.split #ib-list .list { border: 0; border-radius: 0; background: none; box-shadow: none; }
     body.split .ib-row { padding: 14px 16px; border-top: 0; border-bottom: 1px solid var(--line); border-radius: 0; }
     @media (hover: hover) { body.split .ib-row:hover { background: rgba(var(--tint), 0.03); } }
