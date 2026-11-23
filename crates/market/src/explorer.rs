@@ -95,6 +95,9 @@ pub struct Validator {
     pub stake: String,
     /// The account behind its stake; none for the launch seats.
     pub account: Option<String>,
+    /// Where it listens (host:port), as the network's seat list names it:
+    /// public, like the genesis file's addresses.
+    pub address: String,
 }
 
 #[derive(Clone, Debug, Serialize)]
@@ -478,6 +481,7 @@ impl Explorer {
                     of: recent.len(),
                     stake: member.stake.to_string(),
                     account: member.account.map(|id| hex::encode(id.as_bytes())),
+                    address: member.address.clone(),
                 }
             })
             .collect();

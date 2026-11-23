@@ -31,6 +31,7 @@ export const CHANGELOG: Entry[] = [
     title: 'A calmer network map',
     changes: [
       'The network map flags packet loss between two validators only when it lasts: one lossy test round shows as a brief blip, and a notice appears after 30 minutes in a row. A validator that stops answering still stands out.',
+      'New validators appear on the network map by themselves once they take a seat, and the map grows with them: with many validators, its path matrix becomes a compact grid with a short list of paths to watch.',
     ],
   },
   {
