@@ -227,6 +227,10 @@
        corners and a soft shadow. The photo shows only around it, like a
        wallpaper. Its width follows the screen shown (--panel, set by show()). */
     body:not(.phone) main { position: relative; isolation: isolate; }
+    /* Every screen scrolls inside the container with the same gap above and
+       below, so content never runs into its edge. */
+    body:not(.phone) :is(.screen, #mine, #board-signin, #board-post, #board-take, #swaps, #swap-sell, #swap-buy, #swap-detail) {
+      margin-top: 0; margin-bottom: 14px; }
     body:not(.phone) main::before { content: ""; position: absolute; z-index: -1; top: -14px; bottom: 0; left: 50%;
       width: min(calc(var(--panel, 640px) + 56px), 100vw - 24px); transform: translateX(-50%);
       border: 1px solid var(--line); border-radius: 28px;
@@ -5552,7 +5556,7 @@
     const rail = document.querySelector(".cm-rail");
     if (!rail || $("community").hidden) return;
     const box = $("community").getBoundingClientRect();
-    rail.style.setProperty("--rail-h", Math.max(200, Math.min(window.innerHeight, box.bottom) - rail.getBoundingClientRect().top - 28) + "px");
+    rail.style.setProperty("--rail-h", Math.max(200, Math.min(window.innerHeight, box.bottom) - rail.getBoundingClientRect().top - 8) + "px");
   }
   $("community").addEventListener("scroll", () => requestAnimationFrame(cmFitRail), { passive: true });
   window.addEventListener("resize", cmFitRail);
