@@ -1016,6 +1016,8 @@
   .offer .rate { font-size: 12px; color: var(--faint); }
   .offer button { height: 34px; padding: 0 14px; border-radius: 11px; font-weight: 600; cursor: pointer; }
   .offer .take { border: 0; color: var(--pearl-ink); }
+  .offer.away > :not(.offline) { opacity: 0.55; }
+  .offer .offline { flex: none; font-size: 12px; font-weight: 600; color: var(--dim); white-space: nowrap; }
   .offer .withdraw { background: transparent; border: 1px solid var(--line); }
   .hint { margin: 7px 0 0 2px; font-size: 12px; color: var(--dim); min-height: 18px; }
   .hint.warn { color: var(--bad, #e5484d); }
@@ -5485,12 +5487,16 @@
     list.innerHTML = offers.map((o) => {
       const price = offerValue(o);
       const mine = board.me && o.seller === board.me.id;
-      return `<div class="offer">
+      // Only the seller's own Orien Wallet can lock the ORN: while it's
+      // closed, the offer can't be taken, and says so rather than keeping a
+      // buyer waiting.
+      const away = !mine && o.seller_online === false;
+      return `<div class="offer${away ? " away" : ""}">
         ${avatar(o)}
         <div><div class="who">${esc(o.seller_name)} · ${o.seller_done} swap${o.seller_done === 1 ? "" : "s"} done</div>
           <div class="deal">${esc(fmtOrn(o.orn))} ORN for ${esc(offerPrice(o))}${esc(price.total)}</div>
           <div class="rate">${esc(price.rate)}</div></div>
-        ${mine ? `<button class="withdraw" data-withdraw="${o.id}">Withdraw</button>` : `<button class="take pearl" data-take="${o.id}">Take</button>`}
+        ${mine ? `<button class="withdraw" data-withdraw="${o.id}">Withdraw</button>` : away ? '<span class="offline">Seller offline</span>' : `<button class="take pearl" data-take="${o.id}">Take</button>`}
       </div>`;
     }).join("");
     for (const b of list.querySelectorAll("[data-take]")) b.onclick = () => startTake(Number(b.dataset.take));
