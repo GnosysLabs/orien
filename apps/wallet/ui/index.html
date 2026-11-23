@@ -5301,9 +5301,11 @@
     try {
       const before = more && hist.swaps.length ? `?before=${hist.swaps[hist.swaps.length - 1].at}` : "";
       const page = await mk("GET", `/swaps/history${before}`);
-      hist.swaps = more ? hist.swaps.concat(page.swaps || []) : page.swaps || [];
+      // Only swaps with a dollar price: older ones without it are left out.
+      const priced = (page.swaps || []).filter((x) => x.usd != null);
+      hist.swaps = more ? hist.swaps.concat(priced) : priced;
       hist.more = !!page.more;
-      if (!more) hist.last = page.last || null;
+      if (!more) hist.last = page.last && page.last.usd != null ? page.last : priced[0] || null;
     } catch (e) { if (!hist.swaps.length) $("hist-list").innerHTML = ""; problem("hist-problem", mkProblem(e)); }
     paintHistory();
   }
