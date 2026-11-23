@@ -200,10 +200,20 @@ impl Store {
         Ok(rows.collect::<rusqlite::Result<_>>()?)
     }
 
-    /// Keeps a finished swap's dollar value.
+    /// Keeps a finished swap's dollar value, and posts the swap to the
+    /// community, once, with no names: what ORN traded for.
     pub fn price_swap(&self, id: i64, usd: f64) -> Result<()> {
-        self.db.execute("UPDATE swap_offers SET usd = ?2 WHERE id = ?1 AND usd IS NULL", params![id, usd])?;
-        Ok(())
+        if self.db.execute("UPDATE swap_offers SET usd = ?2 WHERE id = ?1 AND usd IS NULL", params![id, usd])? == 0 {
+            return Ok(());
+        }
+        let (orn, coin, amount, finished): (i64, String, i64, Option<i64>) = self.db.query_row(
+            "SELECT orn, coin, sats, finished FROM swap_offers WHERE id = ?1",
+            [id],
+            |r| Ok((r.get(0)?, r.get(1)?, r.get(2)?, r.get(3)?)),
+        )?;
+        let mut data = serde_json::json!({ "orn": orn as u64, "coin": coin, "usd": usd });
+        data[if coin == "sol" { "lamports" } else { "sats" }] = serde_json::json!(amount as u64);
+        self.add_happening("swap", None, &data, finished.map_or_else(now, |f| f as u64))
     }
 
     fn create_swap_tables_first(&self) -> Result<()> {
@@ -449,6 +459,19 @@ impl Store {
             bail!("only an offer of yours that nobody has taken can be withdrawn");
         }
         Ok(if short { taker } else { None })
+    }
+
+    /// For tests: a swap between two accounts, finished as done just now.
+    #[doc(hidden)]
+    pub fn swap_done_for_tests(&self, seller: i64, buyer: i64, orn: u64, coin: &str, amount: u64) -> i64 {
+        let at = now() as i64;
+        self.db
+            .execute(
+                "INSERT INTO swap_offers (seller, orn, sats, state, taker, created, updated, coin, finished) VALUES (?1, ?2, ?3, 'done', ?4, ?5, ?5, ?6, ?5)",
+                params![seller, orn as i64, amount as i64, buyer, at, coin],
+            )
+            .unwrap();
+        self.db.last_insert_rowid()
     }
 
     /// For tests: how many lapses are counted against buyers.

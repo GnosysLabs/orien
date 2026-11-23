@@ -28,6 +28,13 @@ use std::sync::{Arc, Mutex};
 use std::time::Duration;
 
 pub const MAX_POST: usize = 500;
+/// Photos on one post.
+pub const MAX_PICTURES: usize = 4;
+/// A poll's choices: at least two, at most four, each this long at most.
+pub const POLL_OPTIONS: std::ops::RangeInclusive<usize> = 2..=4;
+pub const MAX_OPTION: usize = 25;
+/// How long a poll may run, in hours: a day, three days or a week.
+pub const POLL_HOURS: [u64; 3] = [24, 72, 168];
 const POSTS_AN_HOUR: i64 = 20;
 const PAGE: i64 = 30;
 /// The reactions anyone can leave.
@@ -38,6 +45,19 @@ const MILESTONES: [u64; 9] = [1, 100, 250, 500, 1_000, 5_000, 10_000, 50_000, 10
 const FACES: usize = 12;
 /// New miners are welcomed in blocks of this long.
 const BLOCK_SECONDS: u64 = 6 * 3600;
+/// What the network posts that every app knows how to show. Newer kinds
+/// (`NEWER_KINDS`) reach only apps that ask for them by name, so an older
+/// Orien Wallet never shows a card it can't draw.
+const KNOWN_KINDS: &str = "'post', 'record', 'welcome', 'milestone', 'streak', 'top_day'";
+/// Network posts added later: a finished swap, ORN mined so far, a new validator.
+pub const NEWER_KINDS: [&str; 3] = ["swap", "supply", "validator"];
+
+/// The next round number of ORN mined to post about after `orn`: every
+/// 100,000 up to a million, then every million.
+pub fn next_supply_mark(orn: u64) -> u64 {
+    if orn < 1_000_000 { (orn / 100_000 + 1) * 100_000 } else { (orn / 1_000_000 + 1) * 1_000_000 }
+}
+
 /// Checkpoints in a row that earn a streak post.
 const STREAKS: [u64; 5] = [24, 48, 100, 168, 336];
 const UNIT: u128 = 1_000_000_000;
@@ -350,6 +370,77 @@ impl Store {
                  removed INTEGER NOT NULL DEFAULT 0
              );
              CREATE INDEX IF NOT EXISTS posts_feed ON posts(parent, id);
+             -- Photos on posts: uploaded first (post NULL), then put on a
+             -- post by its author.
+             CREATE TABLE IF NOT EXISTS post_pictures (
+                 name TEXT PRIMARY KEY,
+                 account INTEGER NOT NULL REFERENCES accounts(id) ON DELETE CASCADE,
+                 post INTEGER REFERENCES posts(id) ON DELETE CASCADE,
+                 position INTEGER NOT NULL DEFAULT 0,
+                 width INTEGER NOT NULL,
+                 height INTEGER NOT NULL,
+                 created INTEGER NOT NULL
+             );
+             CREATE INDEX IF NOT EXISTS post_pictures_by_post ON post_pictures(post, position);
+             -- Link previews, once per address: what the page says about
+             -- itself, checked (ok = 0 while fetching, or if it can't show).
+             CREATE TABLE IF NOT EXISTS link_previews (
+                 url TEXT PRIMARY KEY,
+                 site TEXT NOT NULL DEFAULT '',
+                 title TEXT NOT NULL DEFAULT '',
+                 description TEXT NOT NULL DEFAULT '',
+                 image TEXT,
+                 width INTEGER,
+                 height INTEGER,
+                 fetched INTEGER NOT NULL,
+                 ok INTEGER NOT NULL DEFAULT 0
+             );
+             -- Which link a post previews.
+             CREATE TABLE IF NOT EXISTS post_links (
+                 post INTEGER PRIMARY KEY REFERENCES posts(id) ON DELETE CASCADE,
+                 url TEXT NOT NULL
+             );
+             -- A GIF on a post, as KLIPY gave it: loaded straight from
+             -- KLIPY, never copied here.
+             CREATE TABLE IF NOT EXISTS post_gifs (
+                 post INTEGER PRIMARY KEY REFERENCES posts(id) ON DELETE CASCADE,
+                 gif TEXT NOT NULL,
+                 url TEXT NOT NULL,
+                 preview TEXT NOT NULL,
+                 width INTEGER NOT NULL,
+                 height INTEGER NOT NULL
+             );
+             -- Polls: a post's choices, when it closes, and one final vote
+             -- per account.
+             CREATE TABLE IF NOT EXISTS polls (
+                 post INTEGER PRIMARY KEY REFERENCES posts(id) ON DELETE CASCADE,
+                 options TEXT NOT NULL,
+                 ends INTEGER NOT NULL
+             );
+             CREATE TABLE IF NOT EXISTS poll_votes (
+                 post INTEGER NOT NULL REFERENCES posts(id) ON DELETE CASCADE,
+                 account INTEGER NOT NULL REFERENCES accounts(id) ON DELETE CASCADE,
+                 option INTEGER NOT NULL,
+                 at INTEGER NOT NULL,
+                 PRIMARY KEY (post, account)
+             );
+             -- Tips paid to a post's author: each payment, by its sender and
+             -- order number, counted once. Totals show; who tipped doesn't.
+             CREATE TABLE IF NOT EXISTS post_tips (
+                 sender TEXT NOT NULL,
+                 seq INTEGER NOT NULL,
+                 post INTEGER NOT NULL REFERENCES posts(id) ON DELETE CASCADE,
+                 tipper INTEGER REFERENCES accounts(id) ON DELETE SET NULL,
+                 orn INTEGER NOT NULL,
+                 at INTEGER NOT NULL,
+                 PRIMARY KEY (sender, seq)
+             );
+             CREATE INDEX IF NOT EXISTS post_tips_by_post ON post_tips(post);
+             -- Validators the network has had, so a new one is posted once.
+             CREATE TABLE IF NOT EXISTS seen_validators (
+                 account TEXT PRIMARY KEY,
+                 at INTEGER NOT NULL
+             );
              CREATE INDEX IF NOT EXISTS posts_by_author ON posts(author, created);
              CREATE TABLE IF NOT EXISTS reactions (
                  post INTEGER NOT NULL REFERENCES posts(id) ON DELETE CASCADE,
@@ -481,6 +572,7 @@ impl Store {
         replies_to: Option<i64>,
         only: Option<&str>,
         about: Option<i64>,
+        kinds: &str,
     ) -> Result<Vec<Value>> {
         let who = match only {
             Some("people") => " AND p.kind = 'post'",
@@ -500,23 +592,42 @@ impl Store {
             ),
         };
         let key = replies_to.unwrap_or(before.unwrap_or(i64::MAX));
-        self.posts_where(viewer, &filter, order, key, about)
+        self.posts_where(viewer, &filter, order, key, about, Some(kinds))
     }
 
     /// One post as `viewer` sees it, if it is still up and not a reply.
     pub fn one_post(&self, viewer: Option<i64>, id: i64) -> Result<Option<Value>> {
-        Ok(self.posts_where(viewer, "p.id = ?1 AND p.parent IS NULL AND ?3 < 0", "p.id", id, None)?.into_iter().next())
+        Ok(self.posts_where(viewer, "p.id = ?1 AND p.parent IS NULL AND ?3 < 0", "p.id", id, None, None)?.into_iter().next())
     }
 
-    /// Posts matching `filter`, where ?1 is `key`, ?2 the viewer and ?3 `about`.
-    fn posts_where(&self, viewer: Option<i64>, filter: &str, order: &str, key: i64, about: Option<i64>) -> Result<Vec<Value>> {
+    /// Posts matching `filter`, where ?1 is `key`, ?2 the viewer and ?3
+    /// `about`. With `kinds`, the newer kinds of network post only where
+    /// named there (comma-separated): what the asking app can show.
+    fn posts_where(
+        &self,
+        viewer: Option<i64>,
+        filter: &str,
+        order: &str,
+        key: i64,
+        about: Option<i64>,
+        kinds: Option<&str>,
+    ) -> Result<Vec<Value>> {
         let mut query = self.db.prepare(&format!(
             "SELECT p.id, p.kind, p.body, p.data, p.created, p.parent,
                     a.name, a.picture, s.name, s.picture,
                     (SELECT COUNT(*) FROM posts r WHERE r.parent = p.id AND r.removed = 0
                        AND (r.author IS NULL OR r.author NOT IN (SELECT account FROM suspended))
                        AND (r.author IS NULL OR r.author NOT IN (SELECT blocker FROM blocks WHERE blocked = ?2 UNION SELECT blocked FROM blocks WHERE blocker = ?2))),
-                    p.author = ?2, a.banner
+                    p.author = ?2, a.banner,
+                    -- Where a tip goes: the author's Market wallet if it's
+                    -- verified, otherwise their first verified wallet.
+                    COALESCE(
+                        (SELECT a.payout WHERE a.payout IS NOT NULL AND EXISTS (SELECT 1 FROM verified_wallets v
+                            WHERE v.account = p.author AND v.address = a.payout AND v.proven IS NOT NULL)),
+                        (SELECT v.address FROM verified_wallets v WHERE v.account = p.author AND v.proven IS NOT NULL
+                            ORDER BY v.proven, v.address LIMIT 1)),
+                    (SELECT COUNT(*) FROM post_tips t WHERE t.post = p.id),
+                    (SELECT COALESCE(SUM(t.orn), 0) FROM post_tips t WHERE t.post = p.id)
              FROM posts p LEFT JOIN accounts a ON a.id = p.author LEFT JOIN accounts s ON s.id = p.subject
              WHERE {filter} AND p.removed = 0
                AND (p.author IS NULL OR p.author NOT IN (SELECT account FROM suspended))
@@ -524,9 +635,10 @@ impl Store {
                -- A block either way: each is gone for the other, as on other social apps.
                AND (p.author IS NULL OR p.author NOT IN (SELECT blocker FROM blocks WHERE blocked = ?2 UNION SELECT blocked FROM blocks WHERE blocker = ?2))
                AND (p.subject IS NULL OR p.subject NOT IN (SELECT blocker FROM blocks WHERE blocked = ?2 UNION SELECT blocked FROM blocks WHERE blocker = ?2))
+               AND (?4 IS NULL OR p.kind IN ({KNOWN_KINDS}) OR instr(',' || ?4 || ',', ',' || p.kind || ',') > 0)
              ORDER BY {order} LIMIT {PAGE}"
         ))?;
-        let rows = query.query_map(params![key, viewer.unwrap_or(-1), about.unwrap_or(-1)], |row| {
+        let rows = query.query_map(params![key, viewer.unwrap_or(-1), about.unwrap_or(-1), kinds], |row| {
             let person = |name: Option<String>, picture: Option<String>| name.map(|name| json!({ "name": name, "picture": picture }));
             Ok(json!({
                 "id": row.get::<_, i64>(0)?,
@@ -537,8 +649,10 @@ impl Store {
                 "parent": row.get::<_, Option<i64>>(5)?,
                 "author": person(row.get(6)?, row.get(7)?).map(|mut author| {
                     author["banner"] = json!(row.get::<_, Option<String>>(12).ok().flatten());
+                    author["tip_to"] = json!(row.get::<_, Option<String>>(13).ok().flatten());
                     author
                 }),
+                "tips": { "count": row.get::<_, i64>(14)?, "orn": row.get::<_, i64>(15)? },
                 "subject": person(row.get(8)?, row.get(9)?),
                 "replies": row.get::<_, i64>(10)?,
                 "mine": row.get::<_, Option<bool>>(11)?.unwrap_or(false),
@@ -546,6 +660,23 @@ impl Store {
         })?;
         let mut posts: Vec<Value> = rows.collect::<rusqlite::Result<_>>()?;
         self.name_faces(&mut posts)?;
+        for post in &mut posts {
+            let id = post["id"].as_i64().unwrap_or(0);
+            let pictures = self.post_pictures(id)?;
+            if !pictures.is_empty() {
+                post["pictures"] = json!(pictures);
+            }
+            if let Some(gif) = self.post_gif(id)? {
+                post["gif"] = gif;
+            }
+            if let Some(link) = self.post_link(id)? {
+                post["link"] = link;
+            }
+            let mine = post["mine"].as_bool().unwrap_or(false);
+            if let Some(poll) = self.poll(id, viewer, mine)? {
+                post["poll"] = poll;
+            }
+        }
         for post in &mut posts {
             let id = post["id"].as_i64().unwrap_or(0);
             let mut counts = self.db.prepare("SELECT emoji, COUNT(*), MAX(account = ?2) FROM reactions WHERE post = ?1 GROUP BY emoji")?;
@@ -628,6 +759,336 @@ impl Store {
             }
         }
         Ok(())
+    }
+
+    /// Notes a photo uploaded for a post that isn't written yet.
+    pub fn add_post_picture(&self, account: i64, name: &str, width: u32, height: u32) -> Result<()> {
+        self.db.execute(
+            "INSERT INTO post_pictures (name, account, width, height, created) VALUES (?1, ?2, ?3, ?4, ?5)",
+            params![name, account, width, height, now() as i64],
+        )?;
+        Ok(())
+    }
+
+    /// A post's photos, in order: {name, width, height}.
+    fn post_pictures(&self, post: i64) -> Result<Vec<Value>> {
+        let mut statement = self.db.prepare("SELECT name, width, height FROM post_pictures WHERE post = ?1 ORDER BY position")?;
+        let rows = statement.query_map([post], |row| {
+            Ok(json!({ "name": row.get::<_, String>(0)?, "width": row.get::<_, i64>(1)?, "height": row.get::<_, i64>(2)? }))
+        })?;
+        Ok(rows.collect::<rusqlite::Result<_>>()?)
+    }
+
+    /// A post's link preview, once it's fetched and passed its checks:
+    /// {url, site, title, description, image: {name, width, height} | null}.
+    fn post_link(&self, post: i64) -> Result<Option<Value>> {
+        Ok(self
+            .db
+            .query_row(
+                "SELECT l.url, l.site, l.title, l.description, l.image, l.width, l.height
+                 FROM post_links p JOIN link_previews l ON l.url = p.url WHERE p.post = ?1 AND l.ok = 1",
+                [post],
+                |row| {
+                    let image: Option<String> = row.get(4)?;
+                    Ok(json!({
+                        "url": row.get::<_, String>(0)?,
+                        "site": row.get::<_, String>(1)?,
+                        "title": row.get::<_, String>(2)?,
+                        "description": row.get::<_, String>(3)?,
+                        "image": image.map(|name| json!({ "name": name, "width": row.get::<_, Option<i64>>(5).ok().flatten(), "height": row.get::<_, Option<i64>>(6).ok().flatten() })),
+                    }))
+                },
+            )
+            .optional()?)
+    }
+
+    /// Notes the link a new post previews. Returns whether its preview
+    /// still has to be fetched: not fetched before, or over a week ago.
+    pub fn link_post(&self, post: i64, url: &str) -> Result<bool> {
+        self.db.execute("INSERT OR REPLACE INTO post_links (post, url) VALUES (?1, ?2)", params![post, url])?;
+        let week_ago = now().saturating_sub(7 * 24 * 3600) as i64;
+        // Claimed here, so a link posted twice at once is fetched once.
+        let claimed = self.db.execute(
+            "INSERT INTO link_previews (url, fetched, ok) VALUES (?1, ?2, 0)
+             ON CONFLICT (url) DO UPDATE SET fetched = ?2, ok = 0 WHERE link_previews.fetched < ?3",
+            params![url, now() as i64, week_ago],
+        )?;
+        Ok(claimed == 1)
+    }
+
+    /// Keeps a fetched preview: shown if `ok`.
+    pub fn save_preview(&self, url: &str, page: &crate::links::Page, image: Option<(&str, u32, u32)>, ok: bool) -> Result<()> {
+        self.db.execute(
+            "UPDATE link_previews SET site = ?2, title = ?3, description = ?4, image = ?5, width = ?6, height = ?7, ok = ?8 WHERE url = ?1",
+            params![url, page.site, page.title, page.description, image.map(|i| i.0), image.map(|i| i.1), image.map(|i| i.2), ok],
+        )?;
+        Ok(())
+    }
+
+    /// A post's GIF: {id, url, preview, width, height}.
+    fn post_gif(&self, post: i64) -> Result<Option<Value>> {
+        Ok(self
+            .db
+            .query_row("SELECT gif, url, preview, width, height FROM post_gifs WHERE post = ?1", [post], |row| {
+                Ok(json!({
+                    "id": row.get::<_, String>(0)?,
+                    "url": row.get::<_, String>(1)?,
+                    "preview": row.get::<_, String>(2)?,
+                    "width": row.get::<_, i64>(3)?,
+                    "height": row.get::<_, i64>(4)?,
+                }))
+            })
+            .optional()?)
+    }
+
+    /// A poll as `viewer` sees it: how many voted always; each choice's
+    /// votes once they voted, it closed, or it's their own.
+    fn poll(&self, post: i64, viewer: Option<i64>, mine: bool) -> Result<Option<Value>> {
+        let found: Option<(String, i64)> = self
+            .db
+            .query_row("SELECT options, ends FROM polls WHERE post = ?1", [post], |row| Ok((row.get(0)?, row.get(1)?)))
+            .optional()?;
+        let Some((options, ends)) = found else { return Ok(None) };
+        let options: Vec<String> = serde_json::from_str(&options).unwrap_or_default();
+        let mut counts = vec![0i64; options.len()];
+        let mut statement = self.db.prepare("SELECT option, COUNT(*) FROM poll_votes WHERE post = ?1 GROUP BY option")?;
+        for row in statement.query_map([post], |row| Ok((row.get::<_, i64>(0)?, row.get::<_, i64>(1)?)))? {
+            let (option, count) = row?;
+            if let Some(slot) = counts.get_mut(option as usize) {
+                *slot = count;
+            }
+        }
+        let voted: Option<i64> = match viewer {
+            Some(viewer) => self
+                .db
+                .query_row("SELECT option FROM poll_votes WHERE post = ?1 AND account = ?2", params![post, viewer], |row| row.get(0))
+                .optional()?,
+            None => None,
+        };
+        let closed = now() as i64 >= ends;
+        let shown = voted.is_some() || closed || mine;
+        let options: Vec<Value> = options
+            .iter()
+            .zip(&counts)
+            .map(|(text, votes)| json!({ "text": text, "votes": if shown { json!(votes) } else { Value::Null } }))
+            .collect();
+        Ok(Some(json!({ "options": options, "total": counts.iter().sum::<i64>(), "ends": ends, "closed": closed, "voted": voted })))
+    }
+
+    /// Puts photos the author uploaded on their new post, in order.
+    fn attach_pictures(&self, author: i64, post: i64, names: &[String]) -> Result<()> {
+        if names.len() > MAX_PICTURES {
+            bail!("a post has at most {MAX_PICTURES} photos");
+        }
+        for (position, name) in names.iter().enumerate() {
+            let taken = self.db.execute(
+                "UPDATE post_pictures SET post = ?3, position = ?4 WHERE name = ?1 AND account = ?2 AND post IS NULL",
+                params![name, author, post, position as i64],
+            )?;
+            if taken == 0 {
+                bail!("a photo on this post wasn't uploaded by you, or is on another post already");
+            }
+        }
+        Ok(())
+    }
+
+    /// A poll's choices, tidied, or why they can't be one.
+    pub fn poll_options(options: &[String], hours: u64) -> Result<Vec<String>> {
+        let options: Vec<String> = options.iter().map(|o| o.split_whitespace().collect::<Vec<_>>().join(" ")).collect();
+        if !POLL_OPTIONS.contains(&options.len()) {
+            bail!("a poll has 2 to 4 choices");
+        }
+        if options.iter().any(|o| o.is_empty() || o.chars().count() > MAX_OPTION) {
+            bail!("each choice is 1 to {MAX_OPTION} characters");
+        }
+        if !POLL_HOURS.contains(&hours) {
+            bail!("a poll runs for 1 day, 3 days or 7 days");
+        }
+        Ok(options)
+    }
+
+    /// A new post with photos or a poll. Checked and screened already.
+    pub fn add_post_with(
+        &self,
+        author: i64,
+        body: &str,
+        pictures: &[String],
+        poll: Option<(&[String], u64)>,
+        gif: Option<&Gif>,
+    ) -> Result<i64> {
+        self.may_post(author)?;
+        let body = body.trim().replace("\r\n", "\n");
+        if body.chars().count() > MAX_POST {
+            bail!("a post is at most {MAX_POST} characters");
+        }
+        if body.is_empty() && ((pictures.is_empty() && gif.is_none()) || poll.is_some()) {
+            bail!("write something first");
+        }
+        if let Some(gif) = gif {
+            gif.checked()?;
+        }
+        // Checked before anything is saved.
+        let poll = match poll {
+            Some((options, hours)) => Some((Store::poll_options(options, hours)?, hours)),
+            None => None,
+        };
+        if pictures.len() > MAX_PICTURES {
+            bail!("a post has at most {MAX_PICTURES} photos");
+        }
+        let at = now();
+        self.db.execute("INSERT INTO posts (author, kind, body, created) VALUES (?1, 'post', ?2, ?3)", params![author, body, at as i64])?;
+        let id = self.db.last_insert_rowid();
+        let done = (|| -> Result<()> {
+            self.attach_pictures(author, id, pictures)?;
+            if let Some(gif) = gif {
+                self.db.execute(
+                    "INSERT INTO post_gifs (post, gif, url, preview, width, height) VALUES (?1, ?2, ?3, ?4, ?5, ?6)",
+                    params![id, gif.id_text(), gif.url, gif.preview, gif.width, gif.height],
+                )?;
+            }
+            if let Some((options, hours)) = poll {
+                self.db.execute(
+                    "INSERT INTO polls (post, options, ends) VALUES (?1, ?2, ?3)",
+                    params![id, serde_json::to_string(&options)?, (at + hours * 3600) as i64],
+                )?;
+            }
+            Ok(())
+        })();
+        if let Err(error) = done {
+            self.db.execute("DELETE FROM posts WHERE id = ?1", [id])?;
+            self.db.execute("UPDATE post_pictures SET post = NULL WHERE post = ?1", [id])?;
+            return Err(error);
+        }
+        Ok(id)
+    }
+
+    /// `account` votes for choice `option` on a poll: once, and finally.
+    pub fn vote(&self, post: i64, account: i64, option: usize) -> Result<Value> {
+        let found: Option<(String, i64)> = self
+            .db
+            .query_row(
+                "SELECT l.options, l.ends FROM polls l JOIN posts p ON p.id = l.post WHERE l.post = ?1 AND p.removed = 0",
+                [post],
+                |row| Ok((row.get(0)?, row.get(1)?)),
+            )
+            .optional()?;
+        let Some((options, ends)) = found else { bail!("there is no such poll") };
+        let count = serde_json::from_str::<Vec<String>>(&options).map_or(0, |o| o.len());
+        if option >= count {
+            bail!("there is no such choice");
+        }
+        if now() as i64 >= ends {
+            bail!("this poll has closed");
+        }
+        let new = self.db.execute(
+            "INSERT OR IGNORE INTO poll_votes (post, account, option, at) VALUES (?1, ?2, ?3, ?4)",
+            params![post, account, option as i64, now() as i64],
+        )? == 1;
+        if !new {
+            bail!("you voted on this poll already");
+        }
+        let mine: bool = self.db.query_row("SELECT author = ?2 FROM posts WHERE id = ?1", params![post, account], |row| row.get(0))?;
+        Ok(self.poll(post, Some(account), mine)?.expect("just voted"))
+    }
+
+    /// Who a tip on `post` goes to, and the wallets it may be paid to: a
+    /// person's post or reply that's still up.
+    pub fn tip_target(&self, post: i64) -> Result<(i64, Vec<String>)> {
+        let author: Option<i64> = self
+            .db
+            .query_row(
+                "SELECT author FROM posts WHERE id = ?1 AND kind = 'post' AND removed = 0 AND author IS NOT NULL",
+                [post],
+                |row| row.get(0),
+            )
+            .optional()?;
+        let Some(author) = author else { bail!("there is no such post") };
+        let wallets = self.verified_wallets(author)?.into_iter().map(|w| w.address).collect();
+        Ok((author, wallets))
+    }
+
+    /// A post's tips: how many, and how much in all (ORN's smallest units).
+    pub fn tips_of(&self, post: i64) -> Result<(i64, i64)> {
+        Ok(self.db.query_row(
+            "SELECT COUNT(*), COALESCE(SUM(orn), 0) FROM post_tips WHERE post = ?1",
+            [post],
+            |row| Ok((row.get(0)?, row.get(1)?)),
+        )?)
+    }
+
+    /// Whether a payment already counts as a tip.
+    pub fn tip_known(&self, sender: &str, seq: u64) -> Result<bool> {
+        Ok(self
+            .db
+            .query_row("SELECT 1 FROM post_tips WHERE sender = ?1 AND seq = ?2", params![sender, seq as i64], |_| Ok(()))
+            .optional()?
+            .is_some())
+    }
+
+    /// Counts a verified payment as a tip on `post`, once, and tells its
+    /// author who sent it. Returns whether it was new.
+    pub fn add_tip(&self, post: i64, tipper: i64, sender: &str, seq: u64, orn: u64) -> Result<bool> {
+        let at = now();
+        let new = self.db.execute(
+            "INSERT OR IGNORE INTO post_tips (sender, seq, post, tipper, orn, at) VALUES (?1, ?2, ?3, ?4, ?5, ?6)",
+            params![sender, seq as i64, post, tipper, orn as i64, at as i64],
+        )? == 1;
+        if new && let (author, _) = self.tip_target(post)? {
+            self.notice_tip(author, post, tipper, orn, at)?;
+        }
+        Ok(new)
+    }
+
+    fn state(&self, key: &str) -> Result<Option<u64>> {
+        Ok(self
+            .db
+            .query_row("SELECT value FROM community_state WHERE key = ?1", [key], |row| row.get::<_, i64>(0))
+            .optional()?
+            .map(|v| v as u64))
+    }
+
+    fn set_state(&self, key: &str, value: u64) -> Result<()> {
+        self.db.execute(
+            "INSERT INTO community_state (key, value) VALUES (?1, ?2) ON CONFLICT (key) DO UPDATE SET value = ?2",
+            params![key, value as i64],
+        )?;
+        Ok(())
+    }
+
+    /// Posts the round number of ORN mined that `released` (whole ORN) has
+    /// just passed, once: every 100,000 up to a million, then every million.
+    /// The first time, it notes where things stand and posts nothing, so
+    /// only marks passed from then on are posted. `cap` is all the ORN
+    /// there will ever be.
+    pub fn tell_supply(&self, released: u64, cap: u64, at: u64) -> Result<bool> {
+        let passed = if released < 1_000_000 { released / 100_000 * 100_000 } else { released / 1_000_000 * 1_000_000 };
+        let Some(told) = self.state("supply_told")? else {
+            self.set_state("supply_told", passed)?;
+            return Ok(false);
+        };
+        if passed < next_supply_mark(told) {
+            return Ok(false);
+        }
+        let share = if cap > 0 { passed as f64 / cap as f64 * 100.0 } else { 0.0 };
+        self.add_happening("supply", None, &json!({ "orn": passed, "cap": cap, "share": share }), at)?;
+        self.set_state("supply_told", passed)?;
+        Ok(true)
+    }
+
+    /// Posts each validator the network hasn't had before: `seats` is every
+    /// seat now, (account, seat). The first time, the ones there are noted
+    /// without a post.
+    pub fn tell_validators(&self, seats: &[(String, usize)], at: u64) -> Result<usize> {
+        let first: bool = self.db.query_row("SELECT COUNT(*) = 0 FROM seen_validators", [], |row| row.get(0))?;
+        let mut told = 0;
+        for (account, seat) in seats {
+            let new = self.db.execute("INSERT OR IGNORE INTO seen_validators (account, at) VALUES (?1, ?2)", params![account, at as i64])? == 1;
+            if new && !first {
+                self.add_happening("validator", None, &json!({ "account": account, "seat": seat + 1, "seats": seats.len() }), at)?;
+                told += 1;
+            }
+        }
+        Ok(told)
     }
 
     fn last_told(&self) -> Result<Option<u64>> {
@@ -738,6 +1199,30 @@ impl Community {
         drop(told);
         drop(store);
         *self.board.lock().unwrap() = Some(board(&mined, &owners, &names));
+        // The network's own news: ORN mined so far, and new validators.
+        if let Ok(overview) = app.explorer().overview(app.payments().as_ref()) {
+            let store = app.store();
+            let at = crate::store::now();
+            if let Some(supply) = &overview.supply {
+                let whole = |units: &str| units.parse::<u128>().map_or(0, |n| (n / 1_000_000_000) as u64);
+                if let Err(error) = store.tell_supply(whole(&supply.released), whole(&supply.cap), at) {
+                    eprintln!("community: could not post ORN mined: {error:#}");
+                }
+            }
+            let seats: Vec<(String, usize)> =
+                // Known by account, or by address for the launch validators, which have none.
+                overview
+                    .validators
+                    .iter()
+                    .map(|v| (v.account.clone().unwrap_or_else(|| v.address.clone()), v.seat))
+                    .filter(|(id, _)| !id.is_empty())
+                    .collect();
+            if !seats.is_empty()
+                && let Err(error) = store.tell_validators(&seats, at)
+            {
+                eprintln!("community: could not post new validators: {error:#}");
+            }
+        }
     }
 
     fn snapshot(&self) -> Option<Board> {
@@ -798,6 +1283,13 @@ pub fn routes() -> Router<Arc<App>> {
         .route("/api/market/community/posts", post(new_post))
         .route("/api/market/community/posts/{id}", get(replies).delete(remove_post))
         .route("/api/market/community/posts/{id}/react", post(react))
+        .route("/api/market/community/posts/{id}/tips", post(tip))
+        .route("/api/market/community/posts/{id}/vote", post(vote))
+        .route("/api/market/community/gifs/key", get(gif_key))
+        .route(
+            "/api/market/community/pictures",
+            post(add_picture).layer(axum::extract::DefaultBodyLimit::max(crate::images::MAX_UPLOAD)),
+        )
         .route("/api/market/community/members", get(members))
 }
 
@@ -809,6 +1301,10 @@ fn viewer(app: &App, headers: &HeaderMap) -> Option<i64> {
 pub struct Before {
     before: Option<i64>,
     only: Option<String>,
+    /// The newer kinds of network post this app can show, comma-separated
+    /// ("swap,supply,validator"). Older apps send none and see none.
+    #[serde(default)]
+    kinds: String,
     /// An account's name: only its own posts and the network's posts about it.
     about: Option<String>,
 }
@@ -841,7 +1337,7 @@ async fn feed(State(app): State<Arc<App>>, headers: HeaderMap, Query(page): Quer
         }
         None => None,
     };
-    let posts = store.feed(me, page.before, None, page.only.as_deref(), about)?;
+    let posts = store.feed(me, page.before, None, page.only.as_deref(), about, &page.kinds)?;
     let more = posts.len() as i64 == PAGE;
     Ok(Json(json!({ "posts": posts, "more": more, "reactions": REACTIONS, "max": MAX_POST })).into_response())
 }
@@ -849,7 +1345,7 @@ async fn feed(State(app): State<Arc<App>>, headers: HeaderMap, Query(page): Quer
 async fn replies(State(app): State<Arc<App>>, headers: HeaderMap, Path(id): Path<i64>) -> Result<Response, Failure> {
     let me = viewer(&app, &headers);
     let store = app.store();
-    Ok(Json(json!({ "post": store.one_post(me, id)?, "replies": store.feed(me, None, Some(id), None, None)? })).into_response())
+    Ok(Json(json!({ "post": store.one_post(me, id)?, "replies": store.feed(me, None, Some(id), None, None, "")? })).into_response())
 }
 
 async fn board_answer(State(app): State<Arc<App>>, headers: HeaderMap) -> Result<Response, Failure> {
@@ -870,21 +1366,179 @@ async fn board_answer(State(app): State<Arc<App>>, headers: HeaderMap) -> Result
 
 #[derive(Deserialize)]
 pub struct NewPost {
+    #[serde(default)]
     body: String,
     parent: Option<i64>,
+    /// Photos uploaded first, by name, in order: up to four.
+    #[serde(default)]
+    pictures: Vec<String>,
+    /// A poll: its choices and how many hours it runs.
+    poll: Option<NewPoll>,
+    /// A GIF picked in KLIPY's search.
+    gif: Option<Gif>,
+}
+
+/// A GIF the person picked in KLIPY's search, as KLIPY gave it to their
+/// app: its id, the address to show it from, and a smaller one.
+#[derive(Deserialize)]
+pub struct Gif {
+    id: Value,
+    url: String,
+    preview: String,
+    width: u32,
+    height: u32,
+}
+
+impl Gif {
+    fn id_text(&self) -> String {
+        match &self.id {
+            Value::String(text) => text.clone(),
+            other => other.to_string(),
+        }
+    }
+
+    /// Only KLIPY's own addresses, as it gave them, and a sensible size.
+    fn checked(&self) -> Result<()> {
+        let klipy = |url: &str| {
+            url.len() <= 500
+                && url.strip_prefix("https://").and_then(|rest| rest.split_once('/')).is_some_and(|(host, _)| {
+                    host == "static.klipy.com" || (host.starts_with("static") && host.ends_with(".klipy.com") && host[6..host.len() - 10].bytes().all(|b| b.is_ascii_digit()))
+                })
+        };
+        let id = self.id_text();
+        if id.is_empty() || id.len() > 40 || !klipy(&self.url) || !klipy(&self.preview) {
+            bail!("that GIF isn't one from KLIPY");
+        }
+        if self.width == 0 || self.height == 0 || self.width > 4000 || self.height > 4000 {
+            bail!("that GIF's size doesn't look right");
+        }
+        Ok(())
+    }
+}
+
+#[derive(Deserialize)]
+pub struct NewPoll {
+    options: Vec<String>,
+    hours: u64,
 }
 
 async fn new_post(State(app): State<Arc<App>>, headers: HeaderMap, Json(given): Json<NewPost>) -> Result<Response, Failure> {
     let author = app.signed_in(&headers)?;
-    {
+    let media = !given.pictures.is_empty() || given.poll.is_some() || given.gif.is_some();
+    let kinds = usize::from(!given.pictures.is_empty()) + usize::from(given.poll.is_some()) + usize::from(given.gif.is_some());
+    if kinds > 1 {
+        return Err(Failure::Refused("a post has photos, a GIF or a poll: one of them".into()));
+    }
+    if media && given.parent.is_some() {
+        return Err(Failure::Refused("replies are words only for now".into()));
+    }
+    if !given.pictures.is_empty() && given.poll.is_some() {
+        return Err(Failure::Refused("a post has photos or a poll, not both".into()));
+    }
+    if !media {
         let store = app.store();
         post_text(&given.body).map_err(refused)?;
         store.may_post(author).map_err(refused)?;
+    } else {
+        app.store().may_post(author).map_err(refused)?;
+        if let Some(poll) = &given.poll {
+            Store::poll_options(&poll.options, poll.hours).map_err(refused)?;
+        }
     }
-    let body = given.body.clone();
-    screened(&app, "post", move |s| s.message(&body)).await?;
-    let id = app.store().add_post(author, &given.body, given.parent).map_err(refused)?;
+    // The words, and a poll's choices, are read like any post.
+    let mut text = given.body.trim().to_string();
+    if let Some(poll) = &given.poll {
+        for option in &poll.options {
+            text.push_str(&format!("\n- {option}"));
+        }
+    }
+    if !text.is_empty() {
+        screened(&app, "post", move |s| s.message(&text)).await?;
+    }
+    let id = if media {
+        let poll = given.poll.as_ref().map(|p| (p.options.as_slice(), p.hours));
+        app.store().add_post_with(author, &given.body, &given.pictures, poll, given.gif.as_ref()).map_err(refused)?
+    } else {
+        app.store().add_post(author, &given.body, given.parent).map_err(refused)?
+    };
+    // The first link's preview, fetched in the background: it shows on the
+    // next load of the feed.
+    if let Some(link) = crate::links::first_link(&given.body)
+        && app.store().link_post(id, &link).unwrap_or(false)
+    {
+        let app = app.clone();
+        tokio::task::spawn_blocking(move || preview(&app, &link));
+    }
     Ok(Json(json!({ "id": id })).into_response())
+}
+
+/// Fetches a link's preview and keeps it, checked: the words as a post's
+/// are, the picture as an uploaded photo is. A picture that can't be fetched
+/// or doesn't pass is left out; words that don't pass hide the preview.
+fn preview(app: &App, link: &str) {
+    let page = match crate::links::fetch_page(link) {
+        Ok(page) if !page.title.is_empty() || !page.description.is_empty() => page,
+        _ => return,
+    };
+    let words_ok = crate::links::words_allowed(&app.screener(), &page).unwrap_or(false);
+    let mut image: Option<(String, u32, u32)> = None;
+    if words_ok
+        && let Some(src) = &page.image
+        && let Ok(bytes) = crate::links::fetch_picture(src, crate::images::MAX_UPLOAD)
+        && let Ok((jpeg, width, height)) = crate::images::post_picture(&bytes)
+        && matches!(app.screener().picture(&jpeg), Ok(crate::screen::Verdict::Allowed))
+        && let Ok(name) = app.images().save(&jpeg)
+    {
+        image = Some((name, width, height));
+    }
+    let kept = image.as_ref().map(|(n, w, h)| (n.as_str(), *w, *h));
+    if let Err(error) = app.store().save_preview(link, &page, kept, words_ok) {
+        eprintln!("community: could not keep a link preview: {error:#}");
+    }
+}
+
+/// A photo for a post about to be written, sent as the request's whole
+/// body: checked like a profile picture, then kept until the post is.
+async fn add_picture(State(app): State<Arc<App>>, headers: HeaderMap, body: axum::body::Bytes) -> Result<Response, Failure> {
+    let author = app.signed_in(&headers)?;
+    app.store().may_post(author).map_err(refused)?;
+    let (jpeg, width, height) = tokio::task::spawn_blocking(move || crate::images::post_picture(&body))
+        .await
+        .map_err(|e| Failure::Broken(e.into()))?
+        .map_err(refused)?;
+    let checked = jpeg.clone();
+    screened(&app, "picture", move |s| s.picture(&checked)).await?;
+    let name = app.images().save(&jpeg)?;
+    app.store().add_post_picture(author, &name, width, height)?;
+    Ok(Json(json!({ "name": name, "width": width, "height": height })).into_response())
+}
+
+/// What a signed-in app needs to search KLIPY from the person's own
+/// device: the key, and an id KLIPY keeps per person that says nothing
+/// about them (the account's random handle). 404 when GIFs are off.
+async fn gif_key(State(app): State<Arc<App>>, headers: HeaderMap) -> Result<Response, Failure> {
+    let account = app.signed_in(&headers)?;
+    if app.klipy_key().is_empty() {
+        return Err(Failure::NotFound);
+    }
+    let handle: String = app.store().handle_of(account)?;
+    Ok((
+        [(axum::http::header::CACHE_CONTROL, "private, no-store")],
+        Json(json!({ "key": app.klipy_key(), "customer_id": handle, "placeholder": "Search KLIPY" })),
+    )
+        .into_response())
+}
+
+#[derive(Deserialize)]
+pub struct Vote {
+    option: usize,
+}
+
+/// A vote on a poll: one per account, final. Answers the poll.
+async fn vote(State(app): State<Arc<App>>, headers: HeaderMap, Path(id): Path<i64>, Json(given): Json<Vote>) -> Result<Response, Failure> {
+    let account = app.signed_in(&headers)?;
+    let poll = app.store().vote(id, account, given.option).map_err(refused)?;
+    Ok(Json(poll).into_response())
 }
 
 async fn remove_post(State(app): State<Arc<App>>, headers: HeaderMap, Path(id): Path<i64>) -> Result<Response, Failure> {
@@ -898,6 +1552,69 @@ async fn remove_post(State(app): State<Arc<App>>, headers: HeaderMap, Path(id): 
 #[derive(Deserialize)]
 pub struct Reaction {
     emoji: String,
+}
+
+#[derive(Deserialize)]
+pub struct Tip {
+    /// The sending wallet, 64 hex characters.
+    from: String,
+    /// The payment's order number in that wallet's account.
+    seq: u64,
+}
+
+/// A tip someone paid a post's author from their wallet: counted once the
+/// network shows the payment settled to one of the author's verified
+/// wallets. Answers the post's totals.
+async fn tip(State(app): State<Arc<App>>, headers: HeaderMap, Path(id): Path<i64>, Json(given): Json<Tip>) -> Result<Response, Failure> {
+    let tipper = app.signed_in(&headers)?;
+    let sender: orien_ledger::AccountId =
+        given.from.trim().parse().map_err(|_| Failure::Refused("that is not an Orien address".into()))?;
+    let sender_hex = hex::encode(sender.as_bytes());
+    let (author, wallets) = app.store().tip_target(id).map_err(|_| Failure::NotFound)?;
+    if author == tipper {
+        return Err(Failure::Refused("you can't tip your own post".into()));
+    }
+    if wallets.is_empty() {
+        return Err(Failure::Refused("this person has no verified wallet to tip".into()));
+    }
+    let answer = |count: i64, orn: i64| Json(json!({ "count": count, "orn": orn })).into_response();
+    // Counted already: the totals as they are.
+    if app.store().tip_known(&sender_hex, given.seq)? {
+        let (count, orn) = app.store().tips_of(id)?;
+        return Ok(answer(count, orn));
+    }
+    let key = format!("{sender_hex}:{}", given.seq);
+    let payments = app.payments();
+    let paid = tokio::task::spawn_blocking(move || -> anyhow::Result<Option<u64>> {
+        let epoch = payments.epoch()?;
+        for wallet in &wallets {
+            let Ok(to) = wallet.parse::<orien_ledger::AccountId>() else { continue };
+            let found = payments.credits(&to, epoch.saturating_sub(48))?.into_iter().find(|c| !c.mined && c.key == key);
+            if let Some(credit) = found {
+                return Ok(Some(credit.amount));
+            }
+        }
+        Ok(None)
+    })
+    .await
+    .map_err(|e| Failure::Broken(e.into()))?
+    .map_err(|_| Failure::Unavailable("the Orien network is not answering right now; try again in a minute".into()))?;
+    let Some(orn) = paid else {
+        return Err(Failure::Refused("that payment to this post's author isn't settled on the network yet".into()));
+    };
+    let new = app.store().add_tip(id, tipper, &sender_hex, given.seq, orn)?;
+    if new {
+        let name = app.store().account(tipper)?.map(|a| a.name).unwrap_or_default();
+        app.tell(crate::push::Event {
+            account: author,
+            address: None,
+            body: format!("{name} tipped you {} ORN for your post", crate::store::orn(orn)),
+            kind: "tip",
+            open: json!({ "post": id }),
+        });
+    }
+    let (count, orn) = app.store().tips_of(id)?;
+    Ok(answer(count, orn))
 }
 
 async fn react(State(app): State<Arc<App>>, headers: HeaderMap, Path(id): Path<i64>, Json(given): Json<Reaction>) -> Result<Response, Failure> {

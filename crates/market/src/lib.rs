@@ -9,6 +9,7 @@ pub mod community;
 pub mod explorer;
 pub mod oidc;
 pub mod images;
+pub mod links;
 pub mod mail;
 pub mod messages;
 pub mod moderation;

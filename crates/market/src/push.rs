@@ -31,7 +31,7 @@ use std::sync::{Arc, Mutex};
 use std::time::{Duration, Instant};
 
 /// The kinds of notification a phone can turn off.
-pub const MUTABLE: [&str; 4] = ["received", "mining", "market", "swaps"];
+pub const MUTABLE: [&str; 5] = ["received", "mining", "market", "swaps", "community"];
 
 /// Wallets one phone may ask about.
 pub const MAX_ADDRESSES: usize = 50;
@@ -298,8 +298,13 @@ pub fn message_text(sender: &str, kind: &str, body: &str, amount: Option<u64>) -
 fn deliver_events(app: &App, notify: &dyn Notify) -> Result<usize> {
     let mut sent = 0;
     for event in app.take_events() {
-        // Messages are "market", swap steps "swaps", as the phone mutes them.
-        let kind = if event.kind == "message" { "market" } else { "swaps" };
+        // Messages are "market", tips "community", swap steps "swaps", as
+        // the phone mutes them.
+        let kind = match event.kind {
+            "message" => "market",
+            "tip" => "community",
+            _ => "swaps",
+        };
         let mut phones = app.store().phones_for_account(event.account, kind)?;
         if let Some(address) = &event.address {
             for phone in app.store().phones_for(address, kind)? {
@@ -570,6 +575,15 @@ pub async fn unregister(State(app): State<Arc<App>>, Json(body): Json<Unregister
 
 #[cfg(test)]
 mod tests {
+    #[test]
+    fn a_phone_that_mutes_the_community_hears_no_tips() {
+        let store = crate::store::Store::in_memory().unwrap();
+        let maya = store.create_account("Maya", "maya").unwrap().id;
+        store.register_push(&"ab".repeat(32), false, &[], Some(maya), &["community".to_string()]).unwrap();
+        assert!(store.phones_for_account(maya, "community").unwrap().is_empty());
+        assert_eq!(store.phones_for_account(maya, "market").unwrap().len(), 1, "messages still come");
+    }
+
     use super::*;
 
     #[test]

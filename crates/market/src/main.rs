@@ -36,6 +36,10 @@ struct Args {
     /// on this computer.
     #[arg(long)]
     openrouter_key: Option<PathBuf>,
+    /// A file holding the KLIPY key for GIFs in the community composer.
+    /// Without it, GIFs can't be searched.
+    #[arg(long)]
+    klipy_key: Option<PathBuf>,
     /// Apple's push key (.p8), for notifications on iPhone; without it,
     /// notifications are written to the log
     #[arg(long)]
@@ -204,6 +208,10 @@ async fn main() -> Result<()> {
     )?
     .with_traffic(orien_market::traffic::Traffic::open(traffic))
     .with_min_swap_version(args.min_swap_version)
+    .with_klipy_key(match &args.klipy_key {
+        Some(path) => std::fs::read_to_string(path).with_context(|| format!("cannot read {}", path.display()))?.trim().to_string(),
+        None => String::new(),
+    })
     .with_sign_in(args.sign_in_open, args.sign_in_developers.iter().map(|n| n.trim().to_string()).filter(|n| !n.is_empty()).collect());
     let app = Arc::new(match (&args.review_email, &args.review_code_file) {
         (Some(email), Some(file)) => {

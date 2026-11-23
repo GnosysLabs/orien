@@ -21,7 +21,7 @@ export const PRODUCTS: Record<Product, string> = {
   orien: 'orien',
   validators: 'Validators',
   wallet: 'Orien Wallet',
-  marketplace: 'Market',
+  marketplace: 'Community',
 }
 
 export const CHANGELOG: Entry[] = [
@@ -39,6 +39,24 @@ export const CHANGELOG: Entry[] = [
       'Community shows the network’s own posts: finished swaps with what ORN sold for, each 100,000 ORN mined, and new validators, each with its own telescope photo.',
       'The full activity list has its rounded corners again.',
       'The Pearl theme has a metallic sheen, like the other themes.',
+    ],
+  },
+  {
+    date: '2026-11-23',
+    products: ['marketplace'],
+    title: 'Photos, GIFs, polls and link previews in the community',
+    changes: [
+      'Posts can carry up to four photos, a GIF from KLIPY, or a poll with two to four choices that runs for a day, three days or a week. Votes are final, and the results show once you’ve voted or the poll ends.',
+      'A link in a post shows a preview card: the page’s picture, site, title and a few words. Previews are checked like posts and photos before they show.',
+    ],
+  },
+  {
+    date: '2026-11-23',
+    products: ['network', 'marketplace'],
+    title: 'More of the network’s news in the community',
+    changes: [
+      'The community feed shows each swap as it finishes: how many ORN traded for how much SOL or Bitcoin, and its price, with no names.',
+      'The network posts each 100,000 ORN mined, then each million, and welcomes each new validator that takes a seat.',
     ],
   },
   {

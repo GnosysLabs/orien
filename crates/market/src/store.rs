@@ -528,6 +528,11 @@ impl Store {
         Ok(name)
     }
 
+    /// The account's random handle, which says nothing about it.
+    pub fn handle_of(&self, account: i64) -> Result<String> {
+        Ok(self.db.query_row("SELECT handle FROM accounts WHERE id = ?1", [account], |row| row.get(0))?)
+    }
+
     /// The account with this name, whatever its case.
     pub fn account_by_name(&self, name: &str) -> Result<Option<i64>> {
         Ok(self.db.query_row("SELECT id FROM accounts WHERE lower(name) = lower(?1)", [name.trim()], |row| row.get(0)).optional()?)

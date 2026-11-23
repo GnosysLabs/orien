@@ -52,6 +52,22 @@ pub fn banner(bytes: &[u8]) -> Result<Vec<u8>> {
     Ok(jpeg(&image.resize_to_fill(BANNER_WIDTH, BANNER_HEIGHT, image::imageops::FilterType::Lanczos3)))
 }
 
+/// A community post's photo: kept whole, made no bigger than 2000 pixels
+/// across or down. An animated GIF keeps its first frame. Gives the JPEG
+/// and its width and height.
+pub fn post_picture(bytes: &[u8]) -> Result<(Vec<u8>, u32, u32)> {
+    let image = decode(bytes)?;
+    let image = if image.width() > POST_PICTURE || image.height() > POST_PICTURE {
+        image.resize(POST_PICTURE, POST_PICTURE, image::imageops::FilterType::Lanczos3)
+    } else {
+        image
+    };
+    Ok((jpeg(&image), image.width(), image.height()))
+}
+
+/// A community photo's longest side, at most, in pixels.
+pub const POST_PICTURE: u32 = 2000;
+
 pub const BANNER_WIDTH: u32 = 1500;
 pub const BANNER_HEIGHT: u32 = 500;
 

@@ -49,6 +49,15 @@ impl Store {
                  at INTEGER NOT NULL
              );",
         )?;
+        // Added for tips: how much a tip was, in ORN's smallest units.
+        let has_amount: bool = self.db.query_row(
+            "SELECT COUNT(*) > 0 FROM pragma_table_info('notices') WHERE name = 'amount'",
+            [],
+            |row| row.get(0),
+        )?;
+        if !has_amount {
+            self.db.execute("ALTER TABLE notices ADD COLUMN amount INTEGER", [])?;
+        }
         if new {
             self.fill_notices()?;
         }
@@ -117,6 +126,18 @@ impl Store {
         self.db.execute(
             "INSERT INTO notices (account, kind, post, actor, emoji, created) VALUES (?1, ?2, ?3, ?4, ?5, ?6)",
             params![account, kind, post, actor, emoji, at as i64],
+        )?;
+        Ok(())
+    }
+
+    /// `tipper` tipped `author` `orn` for `post`: only the author hears who.
+    pub(crate) fn notice_tip(&self, author: i64, post: i64, tipper: i64, orn: u64, at: u64) -> Result<()> {
+        if author == tipper || self.blocked_by(author, tipper)? {
+            return Ok(());
+        }
+        self.db.execute(
+            "INSERT INTO notices (account, kind, post, actor, emoji, created, amount) VALUES (?1, 'tip', ?2, ?3, '', ?4, ?5)",
+            params![author, post, tipper, at as i64, orn as i64],
         )?;
         Ok(())
     }
@@ -207,7 +228,7 @@ impl Store {
         let (upto, at) = self.seen(account)?.unwrap_or((0, 0));
         let mut query = self.db.prepare(
             "SELECT n.id, n.kind, n.post, n.emoji, n.created, a.name, a.picture,
-                    p.kind, p.body, p.parent, COALESCE(p.parent, p.id), p.data
+                    p.kind, p.body, p.parent, COALESCE(p.parent, p.id), p.data, n.amount
              FROM notices n
              JOIN posts p ON p.id = n.post
              LEFT JOIN accounts a ON a.id = n.actor
@@ -229,6 +250,7 @@ impl Store {
             parent: Option<i64>,
             root: i64,
             data: String,
+            amount: Option<i64>,
         }
         let rows: Vec<Row> = query
             .query_map(params![account, now().saturating_sub(KEEP) as i64], |row| {
@@ -245,6 +267,7 @@ impl Store {
                     parent: row.get(9)?,
                     root: row.get(10)?,
                     data: row.get(11)?,
+                    amount: row.get(12)?,
                 })
             })?
             .collect::<rusqlite::Result<_>>()?;
@@ -252,7 +275,8 @@ impl Store {
         let mut lines: Vec<Value> = Vec::new();
         let mut at_line: HashMap<(String, i64), usize> = HashMap::new();
         for row in rows {
-            let key = (row.kind.clone(), row.post);
+            // Each tip is its own line, with who sent it and how much.
+            let key = if row.kind == "tip" { (format!("tip:{}", row.id), row.post) } else { (row.kind.clone(), row.post) };
             let index = match at_line.get(&key) {
                 Some(&index) => index,
                 None => {
@@ -270,6 +294,11 @@ impl Store {
                         "others": 0,
                         "emojis": [],
                     }));
+                    if row.kind == "tip" {
+                        let line = lines.last_mut().expect("just pushed");
+                        line["orn"] = json!(row.amount.unwrap_or(0));
+                        line["name"] = json!(row.name);
+                    }
                     at_line.insert(key, lines.len() - 1);
                     lines.len() - 1
                 }

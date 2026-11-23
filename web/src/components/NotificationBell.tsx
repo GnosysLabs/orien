@@ -11,7 +11,7 @@ import { EYEBROWS, NetworkAvatar } from "./market/network";
 
 type Person = { name: string; picture: string | null };
 type Line = {
-  kind: "reply" | "also" | "react" | "network" | "message";
+  kind: "reply" | "also" | "react" | "network" | "message" | "tip";
   post?: number;
   reply?: boolean;
   post_kind?: string;
@@ -23,6 +23,8 @@ type Line = {
   people: Person[];
   others: number;
   emojis: string[];
+  /** A tip's amount, in ORN's smallest units. */
+  orn?: number;
 };
 
 /** "Ana", "Ana and Sam", "Ana, Sam and 3 others". */
@@ -62,6 +64,8 @@ function said(line: Line) {
       return `reacted ${line.emojis.join(" ")} to ${theirs}`;
     case "message":
       return line.listing ? `wrote to you about ${line.listing}` : "wrote to you";
+    case "tip":
+      return `tipped you ${((line.orn ?? 0) / 1e9).toLocaleString("en", { maximumFractionDigits: 2 })} ORN for your post`;
     default:
       return "";
   }

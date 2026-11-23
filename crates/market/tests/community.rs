@@ -386,3 +386,226 @@ async fn a_block_makes_two_people_nobody_to_each_other() {
     let (_, list) = ask(&app, "GET", "/api/market/me/blocked", Some(&maya), None).await;
     assert!(list["blocked"].as_array().unwrap().is_empty());
 }
+
+#[tokio::test]
+async fn the_network_posts_orn_mined_new_validators_and_swaps_to_apps_that_know_them() {
+    use orien_market::community::next_supply_mark;
+    let app = market();
+    let at = 1_795_000_000;
+    // ORN mined: the first look notes where things stand, then each round
+    // number passed is posted once.
+    assert_eq!((next_supply_mark(424_238), next_supply_mark(900_000), next_supply_mark(1_000_000)), (500_000, 1_000_000, 2_000_000));
+    assert!(!store_for_tests(&app, |s| s.tell_supply(424_238, 100_000_000, at).unwrap()), "nothing on the first look");
+    assert!(!store_for_tests(&app, |s| s.tell_supply(499_999, 100_000_000, at).unwrap()));
+    assert!(store_for_tests(&app, |s| s.tell_supply(500_100, 100_000_000, at).unwrap()), "500,000 passed");
+    assert!(!store_for_tests(&app, |s| s.tell_supply(500_200, 100_000_000, at).unwrap()), "once");
+    // Validators: the ones there are noted; a new one is posted once.
+    let four: Vec<(String, usize)> = (0..4).map(|i| (format!("{i:064x}"), i)).collect();
+    assert_eq!(store_for_tests(&app, |s| s.tell_validators(&four, at).unwrap()), 0);
+    let mut five = four.clone();
+    five.push((format!("{:064x}", 9), 4));
+    assert_eq!(store_for_tests(&app, |s| s.tell_validators(&five, at).unwrap()), 1);
+    assert_eq!(store_for_tests(&app, |s| s.tell_validators(&five, at).unwrap()), 0);
+    // A swap, posted when it's priced: no names.
+    sign_in_for_tests(&app, "Maya");
+    sign_in_for_tests(&app, "Sam");
+    let (maya, sam) = (store_for_tests(&app, |s| s.account_id_for_tests("Maya")), store_for_tests(&app, |s| s.account_id_for_tests("Sam")));
+    let id = store_for_tests(&app, |s| s.swap_done_for_tests(maya, sam, 500_000_000_000, "sol", 500_000_000));
+    store_for_tests(&app, |s| s.price_swap(id, 36.5).unwrap());
+    store_for_tests(&app, |s| s.price_swap(id, 99.0).unwrap());
+
+    // Apps that don't ask for them never see them; those that ask do.
+    let (_, old) = ask(&app, "GET", "/api/market/community/feed?only=network", None, None).await;
+    assert!(old["posts"].as_array().unwrap().is_empty(), "{old}");
+    let (_, new) = ask(&app, "GET", "/api/market/community/feed?only=network&kinds=swap,supply,validator", None, None).await;
+    let posts = new["posts"].as_array().unwrap();
+    let kinds: Vec<&str> = posts.iter().map(|p| p["kind"].as_str().unwrap()).collect();
+    assert_eq!(kinds.iter().filter(|k| **k == "swap").count(), 1, "one post per swap: {kinds:?}");
+    assert!(kinds.contains(&"supply") && kinds.contains(&"validator"));
+    let swap = posts.iter().find(|p| p["kind"] == "swap").unwrap();
+    assert_eq!((swap["data"]["orn"].as_u64(), swap["data"]["lamports"].as_u64(), swap["data"]["usd"].as_f64()), (Some(500_000_000_000), Some(500_000_000), Some(36.5)));
+    assert!(swap["subject"].is_null() && swap["author"].is_null(), "no names");
+    let supply = posts.iter().find(|p| p["kind"] == "supply").unwrap();
+    assert_eq!((supply["data"]["orn"].as_u64(), supply["data"]["share"].as_f64()), (Some(500_000), Some(0.5)));
+    let validator = posts.iter().find(|p| p["kind"] == "validator").unwrap();
+    assert_eq!((validator["data"]["seat"].as_u64(), validator["data"]["seats"].as_u64()), (Some(5), Some(5)));
+    let (_, some) = ask(&app, "GET", "/api/market/community/feed?only=network&kinds=swap", None, None).await;
+    assert!(some["posts"].as_array().unwrap().iter().all(|p| p["kind"] == "swap"), "only the kinds asked for");
+}
+
+#[tokio::test]
+async fn tips_are_counted_once_the_network_shows_them_and_only_the_author_hears_who() {
+    let payments = Arc::new(Fake::default());
+    let mut random = [0u8; 8];
+    getrandom::fill(&mut random).unwrap();
+    let folder = Folder::open(&std::env::temp_dir().join(format!("orien-community-test-{}", hex::encode(random)))).unwrap();
+    let app = Arc::new(
+        App::new(Store::in_memory().unwrap(), folder, "https://orien.network", true, Mailer::log_only(), Screener::refusing_for_tests("scam"), payments.clone(), "0000000000000000000000000000000000000000000000000000000000000abc")
+            .unwrap(),
+    );
+    let alice = sign_in_for_tests(&app, "Alice");
+    let sam = sign_in_for_tests(&app, "Sam");
+    let (_, posted) = ask(&app, "POST", "/api/market/community/posts", Some(&alice), Some(json!({ "body": "Hello, miners" }))).await;
+    let post = posted["id"].as_i64().unwrap_or_else(|| posted["post"]["id"].as_i64().unwrap());
+    let alice_id = store_for_tests(&app, |s| s.account_id_for_tests("Alice"));
+    let sam_id = store_for_tests(&app, |s| s.account_id_for_tests("Sam"));
+    let wallet_of = |id: i64| store_for_tests(&app, |s| s.verified_wallets(id).unwrap()[0].address.clone());
+    let (alices, sams) = (wallet_of(alice_id), wallet_of(sam_id));
+    let account = |hex: &str| hex.parse::<orien_ledger::AccountId>().unwrap();
+
+    // The post says where a tip goes, and has none yet.
+    let (_, feed) = ask(&app, "GET", "/api/market/community/feed", None, None).await;
+    let shown = feed["posts"].as_array().unwrap().iter().find(|p| p["id"] == post).unwrap().clone();
+    assert_eq!(shown["author"]["tip_to"], alices);
+    assert_eq!(shown["tips"], json!({ "count": 0, "orn": 0 }));
+
+    let path = format!("/api/market/community/posts/{post}/tips");
+    let tip = json!({ "from": sams, "seq": 7 });
+    assert_eq!(ask(&app, "POST", &path, None, Some(tip.clone())).await.0, StatusCode::UNAUTHORIZED);
+    let (status, body) = ask(&app, "POST", &path, Some(&sam), Some(tip.clone())).await;
+    assert_eq!(status, StatusCode::BAD_REQUEST, "not on the network yet: {body}");
+    // Paid to someone else: not a tip for her.
+    payments.orders.lock().unwrap().push((account(&"ee".repeat(32)), account(&sams), 7, 5 * ORN));
+    assert_eq!(ask(&app, "POST", &path, Some(&sam), Some(tip.clone())).await.0, StatusCode::BAD_REQUEST);
+    // Paid to her verified wallet: counted, once.
+    payments.orders.lock().unwrap().push((account(&alices), account(&sams), 8, 5 * ORN));
+    let tip = json!({ "from": sams, "seq": 8 });
+    let (status, totals) = ask(&app, "POST", &path, Some(&sam), Some(tip.clone())).await;
+    assert_eq!((status, totals.clone()), (StatusCode::OK, json!({ "count": 1, "orn": 5 * ORN })));
+    let (status, again) = ask(&app, "POST", &path, Some(&sam), Some(tip)).await;
+    assert_eq!((status, again), (StatusCode::OK, totals), "the same payment counts once");
+    assert_eq!(ask(&app, "POST", &path, Some(&alice), Some(json!({ "from": alices, "seq": 1 }))).await.0, StatusCode::BAD_REQUEST, "not your own");
+
+    // Everyone sees the totals; only Alice hears who.
+    let (_, feed) = ask(&app, "GET", "/api/market/community/feed", None, None).await;
+    let shown = feed["posts"].as_array().unwrap().iter().find(|p| p["id"] == post).unwrap().clone();
+    assert_eq!(shown["tips"], json!({ "count": 1, "orn": 5 * ORN }));
+    let (_, notices) = ask(&app, "GET", "/api/market/notices", Some(&alice), None).await;
+    let line = notices["notices"].as_array().unwrap().iter().find(|l| l["kind"] == "tip").expect("a tip line").clone();
+    assert_eq!((line["name"].as_str(), line["orn"].as_u64(), line["post"].as_i64()), (Some("Sam"), Some(5 * ORN), Some(post)));
+    let (_, theirs) = ask(&app, "GET", "/api/market/notices", Some(&sam), None).await;
+    assert!(theirs["notices"].as_array().unwrap().iter().all(|l| l["kind"] != "tip"));
+}
+
+/// Sends raw bytes, as a photo upload does.
+async fn upload(app: &Arc<App>, path: &str, cookie: &str, bytes: Vec<u8>) -> (StatusCode, Value) {
+    let request = Request::builder().method("POST").uri(path).header(header::COOKIE, format!("{COOKIE}={cookie}")).body(Body::from(bytes)).unwrap();
+    let response = router(app.clone()).oneshot(request).await.unwrap();
+    let status = response.status();
+    let bytes = response.into_body().collect().await.unwrap().to_bytes();
+    (status, serde_json::from_slice(&bytes).unwrap_or(Value::Null))
+}
+
+#[tokio::test]
+async fn posts_carry_photos_or_a_poll() {
+    let app = market();
+    let alice = sign_in_for_tests(&app, "Alice");
+    let sam = sign_in_for_tests(&app, "Sam");
+    let mut png = Vec::new();
+    image::DynamicImage::new_rgb8(3000, 1500).write_to(&mut std::io::Cursor::new(&mut png), image::ImageFormat::Png).unwrap();
+
+    // Photos: uploaded, then put on a post, kept whole and at most 2000 across.
+    let (status, photo) = upload(&app, "/api/market/community/pictures", &alice, png.clone()).await;
+    assert_eq!(status, StatusCode::OK, "{photo}");
+    assert_eq!((photo["width"].as_u64(), photo["height"].as_u64()), (Some(2000), Some(1000)));
+    let name = photo["name"].as_str().unwrap().to_string();
+    assert_eq!(upload(&app, "/api/market/community/pictures", &alice, b"not a picture".to_vec()).await.0, StatusCode::BAD_REQUEST);
+    let (status, _) = ask(&app, "POST", "/api/market/community/posts", Some(&sam), Some(json!({ "body": "", "pictures": [name] }))).await;
+    assert_eq!(status, StatusCode::BAD_REQUEST, "someone else's photo");
+    let (status, posted) = ask(&app, "POST", "/api/market/community/posts", Some(&alice), Some(json!({ "body": "", "pictures": [name] }))).await;
+    assert_eq!(status, StatusCode::OK, "words are optional with a photo: {posted}");
+    let photo_post = posted["id"].as_i64().unwrap();
+    let (status, _) = ask(&app, "POST", "/api/market/community/posts", Some(&alice), Some(json!({ "body": "again", "pictures": [name] }))).await;
+    assert_eq!(status, StatusCode::BAD_REQUEST, "a photo goes on one post");
+
+    // Polls: 2 to 4 short choices, a day, three days or a week.
+    let poll = |options: Value, hours: u64| json!({ "body": "Best mining hour?", "poll": { "options": options, "hours": hours } });
+    for bad in [poll(json!(["One"]), 24), poll(json!(["A", "B", "C", "D", "E"]), 24), poll(json!(["A", "B"]), 12), poll(json!(["A", "this choice is far too long to fit"]), 24)] {
+        assert_eq!(ask(&app, "POST", "/api/market/community/posts", Some(&alice), Some(bad)).await.0, StatusCode::BAD_REQUEST);
+    }
+    let (status, posted) = ask(&app, "POST", "/api/market/community/posts", Some(&alice), Some(poll(json!(["Morning", "Night"]), 72))).await;
+    assert_eq!(status, StatusCode::OK, "{posted}");
+    let poll_post = posted["id"].as_i64().unwrap();
+
+    let find = |feed: &Value, id: i64| feed["posts"].as_array().unwrap().iter().find(|p| p["id"] == id).unwrap().clone();
+    let (_, feed) = ask(&app, "GET", "/api/market/community/feed", Some(&sam), None).await;
+    assert_eq!(find(&feed, photo_post)["pictures"], json!([{ "name": name, "width": 2000, "height": 1000 }]));
+    let shown = find(&feed, poll_post)["poll"].clone();
+    assert_eq!((shown["total"].as_i64(), shown["closed"].as_bool(), shown["voted"].clone()), (Some(0), Some(false), Value::Null));
+    assert!(shown["options"][0]["votes"].is_null(), "hidden until you vote");
+    assert!(shown["ends"].as_i64().unwrap() > 0);
+
+    // Voting: once, final; then the counts show.
+    let vote = format!("/api/market/community/posts/{poll_post}/vote");
+    assert_eq!(ask(&app, "POST", &vote, Some(&sam), Some(json!({ "option": 5 }))).await.0, StatusCode::BAD_REQUEST);
+    let (status, after) = ask(&app, "POST", &vote, Some(&sam), Some(json!({ "option": 1 }))).await;
+    assert_eq!(status, StatusCode::OK);
+    assert_eq!((after["voted"].as_i64(), after["total"].as_i64(), after["options"][1]["votes"].as_i64()), (Some(1), Some(1), Some(1)));
+    assert_eq!(ask(&app, "POST", &vote, Some(&sam), Some(json!({ "option": 0 }))).await.0, StatusCode::BAD_REQUEST, "final");
+    let (_, feed) = ask(&app, "GET", "/api/market/community/feed", Some(&alice), None).await;
+    assert_eq!(find(&feed, poll_post)["poll"]["options"][1]["votes"], 1, "the author sees the counts");
+    let (_, feed) = ask(&app, "GET", "/api/market/community/feed", None, None).await;
+    assert!(find(&feed, poll_post)["poll"]["options"][1]["votes"].is_null(), "others don't until they vote");
+    assert_eq!(ask(&app, "POST", &vote, None, Some(json!({ "option": 0 }))).await.0, StatusCode::UNAUTHORIZED);
+}
+
+#[tokio::test]
+async fn a_post_can_carry_a_klipy_gif_and_apps_get_the_key_to_search() {
+    let mut random = [0u8; 8];
+    getrandom::fill(&mut random).unwrap();
+    let folder = Folder::open(&std::env::temp_dir().join(format!("orien-community-test-{}", hex::encode(random)))).unwrap();
+    let app = Arc::new(
+        App::new(Store::in_memory().unwrap(), folder, "https://orien.network", true, Mailer::log_only(), Screener::refusing_for_tests("scam"), Arc::new(Fake::default()), "0000000000000000000000000000000000000000000000000000000000000abc")
+            .unwrap()
+            .with_klipy_key("test-key".into()),
+    );
+    let alice = sign_in_for_tests(&app, "Alice");
+    assert_eq!(ask(&app, "GET", "/api/market/community/gifs/key", None, None).await.0, StatusCode::UNAUTHORIZED);
+    let (status, key) = ask(&app, "GET", "/api/market/community/gifs/key", Some(&alice), None).await;
+    assert_eq!((status, key["key"].as_str(), key["placeholder"].as_str()), (StatusCode::OK, Some("test-key"), Some("Search KLIPY")));
+    assert!(key["customer_id"].as_str().unwrap().len() >= 8, "the account's random handle");
+
+    let gif = |url: &str| json!({ "id": 8041071659142944u64, "url": url, "preview": "https://static1.klipy.com/ii/a/b/c.webp", "width": 498, "height": 300 });
+    let post = |gif: Value| json!({ "body": "", "gif": gif });
+    for bad in ["https://evil.example/a.gif", "http://static.klipy.com/a.gif", "https://staticevil.klipy.com/a.gif"] {
+        assert_eq!(ask(&app, "POST", "/api/market/community/posts", Some(&alice), Some(post(gif(bad)))).await.0, StatusCode::BAD_REQUEST, "{bad}");
+    }
+    let both = json!({ "body": "hi", "gif": gif("https://static.klipy.com/ii/a/b/c.webp"), "poll": { "options": ["a", "b"], "hours": 24 } });
+    assert_eq!(ask(&app, "POST", "/api/market/community/posts", Some(&alice), Some(both)).await.0, StatusCode::BAD_REQUEST, "one kind per post");
+    let (status, posted) = ask(&app, "POST", "/api/market/community/posts", Some(&alice), Some(post(gif("https://static.klipy.com/ii/a/b/c.webp")))).await;
+    assert_eq!(status, StatusCode::OK, "{posted}");
+    let id = posted["id"].as_i64().unwrap();
+    let (_, feed) = ask(&app, "GET", "/api/market/community/feed", None, None).await;
+    let shown = feed["posts"].as_array().unwrap().iter().find(|p| p["id"] == id).unwrap().clone();
+    assert_eq!(shown["gif"], json!({ "id": "8041071659142944", "url": "https://static.klipy.com/ii/a/b/c.webp", "preview": "https://static1.klipy.com/ii/a/b/c.webp", "width": 498, "height": 300 }));
+}
+
+#[tokio::test]
+async fn a_posts_first_link_gets_one_checked_preview() {
+    let app = market();
+    let alice = sign_in_for_tests(&app, "Alice");
+    let sam = sign_in_for_tests(&app, "Sam");
+    let link = "https://news.example.invalid/story";
+    let (_, a) = ask(&app, "POST", "/api/market/community/posts", Some(&alice), Some(json!({ "body": format!("read this {link}") }))).await;
+    let (_, b) = ask(&app, "POST", "/api/market/community/posts", Some(&sam), Some(json!({ "body": format!("same: {link}.") }))).await;
+    let (a, b) = (a["id"].as_i64().unwrap(), b["id"].as_i64().unwrap());
+    // Fetched once for both posts: the second finds it claimed.
+    assert!(!store_for_tests(&app, |s| s.link_post(b, link).unwrap()), "claimed by the first post");
+
+    // Until it's fetched and passes its checks, no card.
+    let find = |feed: &Value, id: i64| feed["posts"].as_array().unwrap().iter().find(|p| p["id"] == id).unwrap().clone();
+    let (_, feed) = ask(&app, "GET", "/api/market/community/feed", None, None).await;
+    assert!(find(&feed, a).get("link").is_none());
+
+    let page = orien_market::links::Page { site: "Example News".into(), title: "A story".into(), description: "What happened".into(), image: None };
+    store_for_tests(&app, |s| s.save_preview(link, &page, Some(("ab.jpg", 1200, 630)), true).unwrap());
+    let (_, feed) = ask(&app, "GET", "/api/market/community/feed", None, None).await;
+    let expected = json!({ "url": link, "site": "Example News", "title": "A story", "description": "What happened", "image": { "name": "ab.jpg", "width": 1200, "height": 630 } });
+    assert_eq!(find(&feed, a)["link"], expected);
+    assert_eq!(find(&feed, b)["link"], expected, "both posts show it");
+
+    // Words that didn't pass hide it.
+    store_for_tests(&app, |s| s.save_preview(link, &page, None, false).unwrap());
+    let (_, feed) = ask(&app, "GET", "/api/market/community/feed", None, None).await;
+    assert!(find(&feed, a).get("link").is_none());
+}

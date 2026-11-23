@@ -8,6 +8,9 @@ export const EYEBROWS: Record<string, string> = {
   milestone: "Milestone",
   streak: "On a streak",
   top_day: "Top miner of the day",
+  swap: "Swap",
+  supply: "ORN mined",
+  validator: "New validator",
 };
 
 /** The network, as a poster: the Orien sun on living pearl. */
