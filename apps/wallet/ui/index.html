@@ -1611,6 +1611,25 @@
   .field .plain input { font: 14px -apple-system, system-ui, sans-serif; }
   /* Socials: each box with its app's icon, as on the website. */
   .pf-socials-note { margin: 0 2px 10px; }
+  /* Who can message you: three choices side by side, the chosen one lit. */
+  .pf-choice { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 4px; padding: 4px; border: 1px solid var(--line); border-radius: 14px; background: var(--surface); }
+  .pf-choice button { min-height: 38px; padding: 6px 8px; border: 0; border-radius: 10px; background: transparent; color: var(--dim); font: inherit; font-size: 13px; font-weight: 600; line-height: 1.25; cursor: pointer; }
+  .pf-choice button.on { background: var(--surface-hover); color: var(--ink); }
+  .pf-dm-note { margin: 10px 2px 0; line-height: 1.5; }
+  /* Narrow: your details, your listings, then your wallets. Big windows:
+     the details with the wallets beside them, the listings across below. */
+  .pf-layout { display: grid; grid-template-areas: "main" "shop" "side"; }
+  .pf-main { grid-area: main; min-width: 0; }
+  .pf-side { grid-area: side; min-width: 0; }
+  .pf-shop { grid-area: shop; min-width: 0; }
+  #profile { --col: 640px; }
+  @media (min-width: 980px) {
+    #profile { --col: 1040px; }
+    #profile .pf-banner { aspect-ratio: auto; height: 240px; }
+    .pf-layout { grid-template-columns: minmax(0, 1fr) 340px; grid-template-areas: "main side" "shop shop"; column-gap: 28px; align-items: start; }
+    .pf-side .verify-card { margin-top: 0; }
+    .pf-main > .field:first-child { margin-top: 0; }
+  }
   .field .box.social { gap: 12px; }
   .field .box.social + .box.social { margin-top: 10px; }
   .field .box.social svg { flex: none; width: 16px; height: 16px; color: var(--dim); }
@@ -2099,6 +2118,8 @@
         <button class="pf-banner editable" id="pf-banner-go" aria-label="Change banner" title="Change banner"><span id="pf-banner"></span><span class="cam" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13.997 4a2 2 0 0 1 1.76 1.05l.486.9A2 2 0 0 0 18.003 7H20a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V9a2 2 0 0 1 2-2h1.997a2 2 0 0 0 1.759-1.048l.489-.904A2 2 0 0 1 10.004 4z"/><circle cx="12" cy="13" r="3"/></svg></span></button>
         <button class="pf-face-go editable" id="pf-picture" aria-label="Change picture" title="Change picture"><span class="face" id="pf-face"></span><span class="cam" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13.997 4a2 2 0 0 1 1.76 1.05l.486.9A2 2 0 0 0 18.003 7H20a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V9a2 2 0 0 1 2-2h1.997a2 2 0 0 0 1.759-1.048l.489-.904A2 2 0 0 1 10.004 4z"/><circle cx="12" cy="13" r="3"/></svg></span></button>
       </div>
+      <div class="pf-layout">
+        <div class="pf-main">
       <div class="field">
         <label for="pf-name">Username</label>
         <div class="box plain"><input id="pf-name" autocomplete="off" maxlength="20" spellcheck="false" autocapitalize="off"></div>
@@ -2115,8 +2136,15 @@
         <div class="box plain social"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg><input id="pf-x" placeholder="X" aria-label="Your X username" autocomplete="off" autocapitalize="none" spellcheck="false"></div>
         <div class="box plain social"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028 14.09 14.09 0 0 0 1.226-1.994.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.956-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.956 2.418-2.157 2.418zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.946 2.418-2.157 2.418z"/></svg><input id="pf-discord" placeholder="Discord" aria-label="Your Discord username" autocomplete="off" autocapitalize="none" spellcheck="false"></div>
       </div>
-      <div class="section-head pf-listings-head"><h3>Your listings</h3><button class="pill pearl" id="pf-sell">Sell something</button></div>
-      <div class="mk-grid" id="pf-listings"></div>
+      <!-- Who can start a conversation with you; kept on the account, so it
+           holds in the app, on the website and on every device. -->
+      <div class="field pf-dm">
+        <label>Who can message you</label>
+        <div class="pf-choice" id="pf-dm" role="radiogroup"><button type="button" data-dm="everyone" role="radio">Everyone</button><button type="button" data-dm="talked" role="radio">People you've talked with</button><button type="button" data-dm="nobody" role="radio">No one</button></div>
+        <p class="hint pf-dm-note">Messages about your Market listings always come through whatever you pick, so buyers can ask about what you're selling. Blocking still works on top of this.</p>
+      </div>
+        </div>
+        <div class="pf-side">
       <!-- Verifying wallets, so people paying them see "Name – Wallet". -->
       <div class="ch-menu" id="vf-menu" role="menu" hidden>
         <button class="menu-row bad" id="vf-remove"><span>Remove from your profile</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 11v6"/><path d="M14 11v6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></button>
@@ -2132,6 +2160,12 @@
             <div class="box plain"><input type="password" id="vf-pw" autocomplete="off"></div>
           </div>
           <div class="vf-actions"><button class="pill" id="vf-cancel">Cancel</button><button class="pill pearl" id="vf-go">Send and verify</button></div>
+        </div>
+      </div>
+        </div>
+        <div class="pf-shop">
+      <div class="section-head pf-listings-head"><h3>Your listings</h3><button class="pill pearl" id="pf-sell">Sell something</button></div>
+      <div class="mk-grid" id="pf-listings"></div>
         </div>
       </div>
       <div class="push"></div>
@@ -6634,6 +6668,7 @@
     $("pf-discord").value = (me.contact && me.contact.discord) || "";
     $("pf-telegram").value = (me.contact && me.contact.telegram) || "";
     $("pf-x").value = (me.contact && me.contact.x) || "";
+    paintDm(me.messages_from || "everyone");
     $("pf-problem").hidden = true;
     renderVerify();
     $("pf-delete-box").hidden = true;
@@ -6809,7 +6844,7 @@
   function pfChanged() {
     const me = board.me || {}, c = me.contact || {};
     return $("pf-name").value.trim() !== (me.name || "") || $("pf-bio").value.trim() !== (me.bio || "") || $("pf-discord").value.trim() !== (c.discord || "")
-      || $("pf-telegram").value.trim() !== (c.telegram || "") || $("pf-x").value.trim() !== (c.x || "");
+      || $("pf-telegram").value.trim() !== (c.telegram || "") || $("pf-x").value.trim() !== (c.x || "") || dmChoice() !== (me.messages_from || "everyone");
   }
   async function saveProfile() {
     clearTimeout(pfTimer);
@@ -6818,7 +6853,7 @@
     $("pf-saved").textContent = "Saving…";
     pfSaving = (async () => {
       try {
-        await invoke("board_profile_save", { name: $("pf-name").value, bio: $("pf-bio").value, discord: $("pf-discord").value, telegram: $("pf-telegram").value, x: $("pf-x").value });
+        await invoke("board_profile_save", { name: $("pf-name").value, bio: $("pf-bio").value, discord: $("pf-discord").value, telegram: $("pf-telegram").value, x: $("pf-x").value, messagesFrom: dmChoice() });
         board.me = await invoke("board_me");
         renderBoardBar();
         paintProfileFace();
@@ -6831,6 +6866,14 @@
     pfSaving = null;
   }
   for (const id of pfFields) $(id).addEventListener("input", () => { clearTimeout(pfTimer); pfTimer = setTimeout(saveProfile, 900); });
+  // Who can message you: saved as soon as it's picked.
+  function paintDm(choice) {
+    for (const b of document.querySelectorAll("[data-dm]")) { const on = b.dataset.dm === choice; b.classList.toggle("on", on); b.setAttribute("aria-checked", on); }
+  }
+  const dmChoice = () => (document.querySelector("[data-dm].on") || {}).dataset?.dm || "everyone";
+  for (const b of document.querySelectorAll("[data-dm]")) b.onclick = () => { paintDm(b.dataset.dm); feel("selection"); saveProfile(); };
+  // The window crossing the big-window width while here: the column follows.
+  matchMedia("(min-width: 980px)").addEventListener("change", () => { if (!$("profile").hidden) show("profile"); });
   $("pf-back").onclick = async () => { await saveProfile(); home(); };
 
   $("bs-go").onclick = async () => {

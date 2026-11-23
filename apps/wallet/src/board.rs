@@ -207,6 +207,8 @@ pub fn me(dir: &Path) -> Result<Option<Value>, String> {
                 // marketplace. Swaps don't need one.
                 "wallet": account["wallet"],
                 "wallet_verified": account["wallet_verified"],
+                // Who can start a conversation with them.
+                "messages_from": if account["messages_from"].is_null() { me["messages_from"].clone() } else { account["messages_from"].clone() },
                 // Conversations with something new from the other side.
                 "unread": me["unread"],
                 // Their own listings, open first.
@@ -435,12 +437,17 @@ pub fn wallet_states(dir: &Path) -> Result<Value, String> {
 }
 
 /// Saves the signed-in account's name, bio and public usernames.
-pub fn save_profile(dir: &Path, name: &str, bio: &str, telegram: &str, x: &str, discord: &str) -> Result<(), String> {
-    call(dir, "PUT", "/me", Some(json!({
+pub fn save_profile(dir: &Path, name: &str, bio: &str, telegram: &str, x: &str, discord: &str, messages_from: Option<&str>) -> Result<(), String> {
+    let mut profile = json!({
         "name": name.trim(),
         "bio": bio.trim(),
         "contact": { "telegram": telegram.trim(), "x": x.trim(), "discord": discord.trim() },
-    })))?;
+    });
+    // Who can start a conversation: "everyone", "talked" or "nobody".
+    if let Some(from) = messages_from.filter(|f| ["everyone", "talked", "nobody"].contains(f)) {
+        profile["messages_from"] = json!(from);
+    }
+    call(dir, "PUT", "/me", Some(profile))?;
     Ok(())
 }
 

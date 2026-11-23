@@ -1951,13 +1951,15 @@ async fn board_wallet_states(app: AppHandle) -> Result<serde_json::Value, String
     tauri::async_runtime::spawn_blocking(move || board::wallet_states(&dir)).await.map_err(|error| error.to_string())?
 }
 
-/// Saves the marketplace profile: name, a few lines about you, and your
-/// Telegram and X usernames.
+/// Saves the marketplace profile: name, a few lines about you, your
+/// Telegram, X and Discord usernames, and who can message you.
 #[tauri::command]
-async fn board_profile_save(app: AppHandle, name: String, bio: String, telegram: String, x: String, discord: Option<String>) -> Result<(), String> {
+async fn board_profile_save(app: AppHandle, name: String, bio: String, telegram: String, x: String, discord: Option<String>, messages_from: Option<String>) -> Result<(), String> {
     let dir = folder(&app)?;
     let discord = discord.unwrap_or_default();
-    tauri::async_runtime::spawn_blocking(move || board::save_profile(&dir, &name, &bio, &telegram, &x, &discord)).await.map_err(|error| error.to_string())?
+    tauri::async_runtime::spawn_blocking(move || board::save_profile(&dir, &name, &bio, &telegram, &x, &discord, messages_from.as_deref()))
+        .await
+        .map_err(|error| error.to_string())?
 }
 
 /// Picks a picture and makes it the profile picture, or with `banner` the
