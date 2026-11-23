@@ -12,7 +12,8 @@ const LIVE = { map: 'https://explorer.orien.network/map/?view=simple', details: 
 /** The home page's live picture of the network: the validators on the
  * globe, and the miners and largest wallets on rings around it. It is the
  * network map's globe, shown in a frame (/netviz/embed.html) so it starts
- * afresh each time the page shows it and stays apart from the page. */
+ * afresh each time the page shows it and stays apart from the page. It loads
+ * with the page, so it is ready before the visitor scrolls to it. */
 export function NetworkGlobe() {
   const frame = useRef<HTMLIFrameElement>(null)
   const [links, setLinks] = useState(LIVE)
@@ -26,9 +27,45 @@ export function NetworkGlobe() {
     if (!/(^|\.)orien\.network$/.test(window.location.hostname)) {
       setLinks({ map: '/explorer/map/?view=simple', details: '/explorer/map/?view=details' })
     }
-    // The frame may have finished loading before this page's program started.
-    const doc = frame.current?.contentDocument
-    if (doc?.readyState === 'complete' && doc.location.pathname.endsWith('/embed.html')) dress()
+  }, [])
+
+  // Watches the frame rather than waiting for its load event, which may come
+  // before this page's program is running: dresses its page once it has
+  // loaded, and shows the frame once the globe inside has its pictures and
+  // has been drawn, or a few seconds after its page arrived whatever happens.
+  useEffect(() => {
+    let dressed: Document | null = null
+    let arrived = 0
+    let timer = 0
+    const check = () => {
+      const doc = frame.current?.contentDocument
+      const inside = frame.current?.contentWindow
+      if (doc && inside && doc.location.pathname.endsWith('/embed.html')) {
+        arrived ||= Date.now()
+        if (doc.readyState === 'complete' && dressed !== doc) {
+          dressed = doc
+          dress()
+        }
+        const loaded = (name: string) =>
+          inside.performance
+            .getEntriesByType('resource')
+            .some((e) => e.name.includes(name) && (e as PerformanceResourceTiming).responseEnd > 0)
+        const drawn =
+          doc.getElementById('app')?.classList.contains('is-embed') &&
+          doc.querySelector('#globe-container canvas') &&
+          loaded('earth-night') &&
+          loaded('earth-topology')
+        if (drawn || Date.now() - arrived > 6000) {
+          // A moment more for the pictures to reach the globe.
+          timer = window.setTimeout(() => setReady(true), drawn ? 400 : 0)
+          return
+        }
+      }
+      timer = window.setTimeout(check, 150)
+    }
+    check()
+    return () => clearTimeout(timer)
+    // dress reads only the frame and the page's own styles.
   }, [])
 
   /** Gives the frame the site's own type, so its labels match the page. */
@@ -56,31 +93,6 @@ export function NetworkGlobe() {
         --font-geist-mono: ${page.getPropertyValue('--font-geist-mono')};
       }`
     inside.head.appendChild(style)
-    reveal()
-  }
-
-  /** Shows the frame once the globe inside has its pictures and has been
-   * drawn, or after a few seconds whatever happens. */
-  const reveal = () => {
-    const started = Date.now()
-    const check = () => {
-      const inside = frame.current?.contentWindow
-      const doc = frame.current?.contentDocument
-      const loaded = (name: string) =>
-        inside?.performance.getEntriesByType('resource').some((e) => e.name.includes(name) && (e as PerformanceResourceTiming).responseEnd > 0)
-      const drawn =
-        doc?.getElementById('app')?.classList.contains('is-embed') &&
-        doc.querySelector('#globe-container canvas') &&
-        loaded('earth-night') &&
-        loaded('earth-topology')
-      if (drawn || Date.now() - started > 6000) {
-        // A moment more for the pictures to reach the globe.
-        setTimeout(() => setReady(true), drawn ? 400 : 0)
-        return
-      }
-      setTimeout(check, 100)
-    }
-    check()
   }
 
   return (
@@ -95,8 +107,6 @@ export function NetworkGlobe() {
           ref={frame}
           src="/netviz/embed.html"
           title="The Orien network, live: validators on the globe, miners and wallets around it"
-          loading="lazy"
-          onLoad={dress}
           className={`absolute inset-0 h-full w-full border-0 transition-opacity duration-700 ${ready ? 'opacity-100' : 'opacity-0'}`}
         />
       </div>
