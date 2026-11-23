@@ -3,7 +3,7 @@
 use crate::phrase;
 use crate::store::write_replacing;
 use anyhow::{Context, Result, anyhow, bail};
-use orien_crypto::keytree::KeyTree;
+use orien_crypto::keytree::{KeyTree, TreeSignature};
 use orien_crypto::{Hash32, Kdf, ots, prf, signin};
 use orien_ledger::{
     AccountId, Fees, Genesis, Kind, Order, SPARE_HEIGHT, Signature, SignedBy, SignedOrder, Signer, address,
@@ -455,14 +455,12 @@ impl Wallet {
         self.spares.root()
     }
 
-    /// Signs in to the website at `origin` with the one-time value it gave,
-    /// good from `issued` until `expires` (Unix seconds). See
-    /// `orien_crypto::signin`: a sign-in key of its own, tied to this
-    /// address by the last spare key, so payments are never touched.
-    ///
-    /// `slot` and `leaf` pick the one-time key. Each device keeps its own
-    /// slot and count and must use each pair once; the caller sees to that.
-    pub fn sign_in(&mut self, slot: u32, leaf: u32, origin: &str, nonce: &str, issued: u64, expires: u64) -> Result<signin::Proof> {
+    /// This wallet's key for signing in to websites (see
+    /// `orien_crypto::signin`), with the last spare key's signature tying
+    /// it to the address and the first key's commitment: all a device needs
+    /// to sign in from then on without the wallet's seed. The key can sign
+    /// in to websites and nothing else; payments are never touched.
+    pub fn sign_in_key(&mut self) -> Result<(signin::SignInKey, TreeSignature, Hash32)> {
         let key = signin::SignInKey::from_wallet_seed(&self.seed);
         let binding = signin::key_message(&key.top());
         // The last spare key signs the sign-in key once, always the same
@@ -478,14 +476,17 @@ impl Wallet {
             }
         }
         let spare = self.spares.sign_with_leaf(signin::BINDING_SPARE, binding.as_bytes());
-        let message = signin::Message {
-            origin: origin.to_owned(),
-            address: self.address,
-            nonce: nonce.to_owned(),
-            issued,
-            expires,
-        };
-        Ok(key.sign(slot, leaf, message, spare, wallet_key(&self.seed, 0).commitment()))
+        Ok((key, spare, wallet_key(&self.seed, 0).commitment()))
+    }
+
+    /// Signs in to the website at `origin` with the one-time value it gave,
+    /// good from `issued` until `expires` (Unix seconds). `slot` and `leaf`
+    /// pick the one-time key: each device keeps its own slot and count and
+    /// must use each pair once; the caller sees to that.
+    pub fn sign_in(&mut self, slot: u32, leaf: u32, origin: &str, nonce: &str, issued: u64, expires: u64) -> Result<signin::Proof> {
+        let (key, spare, first_key) = self.sign_in_key()?;
+        let message = signin::Message { origin: origin.to_owned(), address: self.address, nonce: nonce.to_owned(), issued, expires };
+        Ok(key.sign(slot, leaf, message, spare, first_key))
     }
 
     /// The order this wallet would sign for payment number `seq`. It is not

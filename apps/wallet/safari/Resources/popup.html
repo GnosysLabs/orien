@@ -35,6 +35,7 @@
     font: 700 12px/1 "Jost", sans-serif; background: rgba(var(--tint), 0.063); }
   .wallet .coin.emoji { font: 15px/1 system-ui, "Apple Color Emoji", sans-serif; background: transparent; }
   .wallet .wname { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .wallet .chev { flex: none; margin-left: -2px; color: var(--dim); }
   .back { width: 32px; height: 32px; margin-left: -6px; border: 0; border-radius: 10px; background: transparent;
     color: var(--dim); cursor: pointer; display: grid; place-items: center; }
   .back:hover { background: rgba(var(--tint), 0.05); color: var(--ink); }
@@ -148,7 +149,7 @@
   <!-- Home: the balance, the address, Send and Copy. -->
   <section id="home">
     <header><span class="wordmark"><span class="mark brand"></span><span class="word brand">ORIEN</span></span>
-      <button class="wallet" id="wallet" type="button" hidden><span class="coin" id="wallet-coin"></span><span class="wname" id="wallet-name"></span></button></header>
+      <button class="wallet" id="wallet" type="button" hidden><span class="coin" id="wallet-coin"></span><span class="wname" id="wallet-name"></span><svg class="chev" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg></button></header>
     <div class="card pearl" id="balance-card">
       <div class="label">Balance</div>
       <div class="amount"><span class="balance" id="balance">—</span><span class="unit">ORN</span></div>

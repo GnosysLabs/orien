@@ -173,6 +173,21 @@ pub fn unlock_for(wallet: &Path, what: &str) -> Result<(), String> {
     }
 }
 
+/// The password Touch ID keeps for this wallet, read without asking: for
+/// making a wallet's website sign-in key, which can't move ORN.
+pub fn kept_password(wallet: &Path) -> Option<String> {
+    #[cfg(any(target_os = "macos", target_os = "ios"))]
+    {
+        let password = security_framework::passwords::get_generic_password(SERVICE, &name(wallet)).ok()?;
+        String::from_utf8(password).ok()
+    }
+    #[cfg(not(any(target_os = "macos", target_os = "ios")))]
+    {
+        let _ = wallet;
+        None
+    }
+}
+
 /// One Touch ID or Face ID for several wallets: on success, each that keeps
 /// its password in the Keychain is unlocked for a few minutes.
 pub fn unlock_all(wallets: &[std::path::PathBuf]) -> Result<(), String> {

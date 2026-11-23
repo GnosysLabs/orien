@@ -173,6 +173,17 @@ impl SignInKey {
         SignInKey { seed: prf(wallet_seed, Kdf::WalletSignIn, 0) }
     }
 
+    /// The sign-in key's own secret. It signs in to websites and can do
+    /// nothing else, so a device may keep it where the wallet's seed isn't.
+    pub fn secret(&self) -> [u8; 32] {
+        self.seed
+    }
+
+    /// From a secret kept with `secret`.
+    pub fn from_secret(secret: [u8; 32]) -> Self {
+        SignInKey { seed: secret }
+    }
+
     /// The tree at `level` (0 just above the bottom trees, 2 the top) with
     /// this number; level `u8::MAX` is a bottom tree.
     fn tree(&self, level: u8, index: u32) -> KeyTree {

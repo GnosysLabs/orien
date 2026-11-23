@@ -31,10 +31,42 @@ struct Asked {
 /// Which one-time sign-in key this device uses next, for one wallet. Each
 /// device picks its own bottom tree at random and counts within it, so
 /// devices sharing a wallet never share a key.
-#[derive(Clone, Copy, Default, Serialize, Deserialize)]
+///
+/// After the first sign-in the device also keeps the wallet's sign-in key
+/// (hex) with the spare key's binding and the first key's commitment, so
+/// later sign-ins need neither the password nor Touch ID: the key signs in
+/// to websites and can never move ORN.
+#[derive(Clone, Default, Serialize, Deserialize)]
 pub struct Count {
     pub slot: u32,
     pub next: u32,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub key: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub binding: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub first_key: Option<String>,
+}
+
+type Kept = (orien_crypto::signin::SignInKey, orien_crypto::keytree::TreeSignature, orien_crypto::Hash32);
+
+/// The sign-in key this device keeps for the wallet at `address`, if any.
+fn kept(dir: &std::path::Path, address: &str) -> Option<Kept> {
+    let saved = crate::settings(dir);
+    let count = saved.sign_ins.get(address)?;
+    let secret: [u8; 32] = hex::decode(count.key.as_ref()?).ok()?.try_into().ok()?;
+    let binding = borsh::from_slice(&hex::decode(count.binding.as_ref()?).ok()?).ok()?;
+    let first_key = count.first_key.as_ref()?.parse().ok()?;
+    Some((orien_crypto::signin::SignInKey::from_secret(secret), binding, first_key))
+}
+
+fn keep(dir: &std::path::Path, address: &str, kept: &Kept) -> Result<(), String> {
+    let mut saved = crate::settings(dir);
+    let count = saved.sign_ins.entry(address.to_string()).or_default();
+    count.key = Some(hex::encode(kept.0.secret()));
+    count.binding = Some(hex::encode(borsh::to_vec(&kept.1).map_err(|error| error.to_string())?));
+    count.first_key = Some(kept.2.to_string());
+    crate::save_settings(dir, &saved)
 }
 
 /// What the window shows.
@@ -68,7 +100,9 @@ pub fn request(app: &AppHandle, origin: String, nonce: String) -> Result<serde_j
     let file = crate::wallet_file(&dir).ok_or("Make a wallet in Orien Wallet first.")?;
     let address = orien_net::keys::Wallet::peek(&file).map_err(|error| error.to_string())?.0.to_string();
     let wallet = crate::known_wallets(&dir).into_iter().find(|w| w.path == file).map(|w| w.name).unwrap_or_else(|| "Wallet".into());
-    let password = crate::has_password(&file) && !crate::biometric::enabled(&file);
+    // The password only the first time on this device, and only when Touch
+    // ID doesn't already hold it.
+    let password = crate::has_password(&file) && !crate::biometric::enabled(&file) && kept(&dir, &address).is_none();
     let id = {
         let mut next = NEXT.lock().unwrap_or_else(|poisoned| poisoned.into_inner());
         *next += 1;
@@ -93,9 +127,9 @@ pub fn request(app: &AppHandle, origin: String, nonce: String) -> Result<serde_j
     answer
 }
 
-/// The person's answer, from the window. Sign in: unlock (Touch ID on a
-/// Mac when it holds the password, or the password typed), sign, and send
-/// the proof to the website. A wrong password stays here, to try again.
+/// The person's answer, from the window. Sign in signs and sends the proof
+/// to the website; the click is the approval, as no ORN moves. A wrong
+/// password (first sign-in only) stays here, to try again.
 #[tauri::command]
 pub async fn site_signin_answer(app: AppHandle, id: u64, approve: bool, password: Option<String>) -> Result<(), String> {
     let asked = {
@@ -133,24 +167,38 @@ fn sign(app: &AppHandle, asked: &Asked, password: Option<String>) -> Result<serd
     use base64::Engine;
     let dir = crate::folder(app)?;
     let file = crate::wallet_file(&dir).ok_or("no wallet yet")?;
-    if password.as_deref().is_none_or(str::is_empty) && crate::has_password(&file) {
-        if !crate::biometric::enabled(&file) {
-            return Err("password: needed".into());
+    let address = orien_net::keys::Wallet::peek(&file).map_err(|error| error.to_string())?.0;
+    let (key, binding, first_key) = match kept(&dir, &address.to_string()) {
+        Some(kept) => kept,
+        // The first sign-in on this device: the wallet makes its sign-in
+        // key, once, which needs its seed.
+        None => {
+            let password = password
+                .filter(|p| !p.is_empty())
+                .or_else(|| crate::biometric::enabled(&file).then(|| crate::biometric::kept_password(&file)).flatten());
+            let mut wallet = match crate::open_signing(&file, password.as_deref())? {
+                orien_net::unlock::Signing::Here(wallet) => wallet,
+                _ => return Err("This wallet can't sign here.".into()),
+            };
+            let made = wallet.sign_in_key().map_err(|error| error.to_string())?;
+            keep(&dir, &address.to_string(), &made)?;
+            made
         }
-        crate::biometric::unlock_for(&file, &format!("sign in to {}", site(&asked.origin)))?;
-    }
-    let mut wallet = match crate::open_signing(&file, password.as_deref())? {
-        orien_net::unlock::Signing::Here(wallet) => wallet,
-        _ => return Err("This wallet can't sign here.".into()),
     };
-    let address = wallet.address().to_string();
     // The next one-time key, counted before it signs so it is never used twice.
-    let (slot, leaf) = crate::next_sign_in_key(&dir, &address)?;
+    let (slot, leaf) = crate::next_sign_in_key(&dir, &address.to_string())?;
     let now = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).map(|d| d.as_secs()).unwrap_or(0);
-    let proof = wallet.sign_in(slot, leaf, &asked.origin, &asked.nonce, now, now + GOOD_FOR).map_err(|error| error.to_string())?;
+    let message = orien_crypto::signin::Message {
+        origin: asked.origin.clone(),
+        address,
+        nonce: asked.nonce.clone(),
+        issued: now,
+        expires: now + GOOD_FOR,
+    };
+    let proof = key.sign(slot, leaf, message, binding, first_key);
     let bytes = borsh::to_vec(&proof).map_err(|error| error.to_string())?;
     Ok(serde_json::json!({
-        "address": address,
+        "address": address.to_string(),
         "proof": base64::engine::general_purpose::URL_SAFE_NO_PAD.encode(bytes),
     }))
 }
