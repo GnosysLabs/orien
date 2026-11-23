@@ -16,12 +16,19 @@ const LIVE = { map: 'https://explorer.orien.network/map/?view=simple', details: 
 export function NetworkGlobe() {
   const frame = useRef<HTMLIFrameElement>(null)
   const [links, setLinks] = useState(LIVE)
+  // The frame stays invisible until the globe inside is drawn: before that
+  // it is an empty white frame, then the map's panels before its program
+  // hides them, which flash as the page scrolls past.
+  const [ready, setReady] = useState(false)
 
   useEffect(() => {
     // Anywhere but the live site, such as on this computer, the map is the site's own page.
     if (!/(^|\.)orien\.network$/.test(window.location.hostname)) {
       setLinks({ map: '/explorer/map/?view=simple', details: '/explorer/map/?view=details' })
     }
+    // The frame may have finished loading before this page's program started.
+    const doc = frame.current?.contentDocument
+    if (doc?.readyState === 'complete' && doc.location.pathname.endsWith('/embed.html')) dress()
   }, [])
 
   /** Gives the frame the site's own type, so its labels match the page. */
@@ -49,6 +56,31 @@ export function NetworkGlobe() {
         --font-geist-mono: ${page.getPropertyValue('--font-geist-mono')};
       }`
     inside.head.appendChild(style)
+    reveal()
+  }
+
+  /** Shows the frame once the globe inside has its pictures and has been
+   * drawn, or after a few seconds whatever happens. */
+  const reveal = () => {
+    const started = Date.now()
+    const check = () => {
+      const inside = frame.current?.contentWindow
+      const doc = frame.current?.contentDocument
+      const loaded = (name: string) =>
+        inside?.performance.getEntriesByType('resource').some((e) => e.name.includes(name) && (e as PerformanceResourceTiming).responseEnd > 0)
+      const drawn =
+        doc?.getElementById('app')?.classList.contains('is-embed') &&
+        doc.querySelector('#globe-container canvas') &&
+        loaded('earth-night') &&
+        loaded('earth-topology')
+      if (drawn || Date.now() - started > 6000) {
+        // A moment more for the pictures to reach the globe.
+        setTimeout(() => setReady(true), drawn ? 400 : 0)
+        return
+      }
+      setTimeout(check, 100)
+    }
+    check()
   }
 
   return (
@@ -65,7 +97,7 @@ export function NetworkGlobe() {
           title="The Orien network, live: validators on the globe, miners and wallets around it"
           loading="lazy"
           onLoad={dress}
-          className="absolute inset-0 h-full w-full border-0"
+          className={`absolute inset-0 h-full w-full border-0 transition-opacity duration-700 ${ready ? 'opacity-100' : 'opacity-0'}`}
         />
       </div>
       <div className="mt-5 flex flex-wrap justify-center gap-3">
