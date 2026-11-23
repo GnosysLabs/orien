@@ -1726,7 +1726,10 @@ async fn swap_step(app: AppHandle, password: Option<String>) -> Result<serde_jso
         }
         let mut sol_views: Vec<solswaps::View> = sol.iter().map(solswaps::view).collect();
         sol_views.sort_by_key(|view| std::cmp::Reverse(view.created));
-        Ok(serde_json::json!({ "swaps": views(&all), "sol_swaps": sol_views, "waiting": board::waiting(dir, &mine), "problem": board_problem }))
+        // Offers taken down because the wallet couldn't lock their ORN.
+        let withdrawn: Vec<serde_json::Value> =
+            board::withdrawn().into_iter().map(|(offer, orn)| serde_json::json!({ "offer": offer, "orn": money::show(orn as i128) })).collect();
+        Ok(serde_json::json!({ "swaps": views(&all), "sol_swaps": sol_views, "waiting": board::waiting(dir, &mine), "problem": board_problem, "withdrawn": withdrawn }))
     })
     .await
     .map_err(|error| error.to_string())?

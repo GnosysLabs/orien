@@ -5376,6 +5376,9 @@
       solList = stepped.sol_swaps || [];
       swapList = stepped.swaps.concat(solList);
       board.waiting = stepped.waiting || [];
+      // An offer taken down because the wallet no longer holds its ORN.
+      for (const w of stepped.withdrawn || []) tell(`Your swap offer of ${w.orn} ORN was withdrawn: the wallet no longer holds enough ORN. Nothing was paid.`, "swaps");
+      if ((stepped.withdrawn || []).length) loadBoard().catch(() => {});
       renderSwaps();
       renderSwapAlert();
       arrived();

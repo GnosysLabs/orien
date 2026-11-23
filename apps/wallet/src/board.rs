@@ -617,6 +617,32 @@ pub fn profiles(dir: Option<&Path>, addresses: &[String]) -> Result<Value, Strin
     Ok(body["profiles"].clone())
 }
 
+/// Offers this app took down because the wallet couldn't lock their ORN,
+/// for the window to tell the seller: (offer, ORN units).
+static WITHDRAWN: std::sync::Mutex<Vec<(i64, u64)>> = std::sync::Mutex::new(Vec::new());
+
+/// The offers taken down since last asked.
+pub fn withdrawn() -> Vec<(i64, u64)> {
+    std::mem::take(&mut *WITHDRAWN.lock().unwrap_or_else(|poisoned| poisoned.into_inner()))
+}
+
+/// Whether locking failed because the wallet no longer holds the ORN.
+fn short_of_orn(problem: Option<&String>) -> bool {
+    problem.is_some_and(|p| p.to_lowercase().contains("insufficient funds"))
+}
+
+/// A taken offer whose ORN the wallet can't lock (the wallet no longer
+/// holds them): the offer comes off the board at once, so the buyer (who
+/// has paid nothing) isn't kept waiting, and the seller is told.
+fn give_up_short(dir: &Path, offer: i64, orn: u64) -> bool {
+    if call(dir, "POST", &format!("/swaps/{offer}/close"), Some(json!({ "short": true }))).is_err() {
+        return false;
+    }
+    crate::approval::forget(dir, offer);
+    WITHDRAWN.lock().unwrap_or_else(|poisoned| poisoned.into_inner()).push((offer, orn));
+    true
+}
+
 pub fn withdraw(dir: &Path, offer: i64) -> Result<(), String> {
     call(dir, "POST", &format!("/swaps/{offer}/close"), Some(json!({})))?;
     crate::approval::forget(dir, offer);
@@ -787,6 +813,17 @@ pub fn drive_on(
                     }
                 }
             }
+            // Seller: the wallet no longer holds the ORN to lock. Nothing
+            // is locked and nothing was paid: the offer comes down.
+            (true, Some(index)) if state == "held" && item["offer_code"].is_null() && short_of_orn(all[index].problem.as_ref()) => {
+                if give_up_short(dir, id, item["offer"]["orn"].as_u64().unwrap_or(0)) {
+                    link.finished = true;
+                    let gone = all[index].id.clone();
+                    link.swap = None;
+                    all.retain(|kept| kept.id != gone);
+                }
+                Ok(())
+            }
             // Seller: the ORN are locked; pass the offer code on.
             (true, Some(index)) if state == "held" && item["offer_code"].is_null() => match all[index].offer.clone() {
                 Some(code) => call(dir, "POST", &format!("/swaps/{id}/offer"), Some(json!({ "code": code, "device": device }))).map(|_| ()).map_err(String::from),
@@ -923,6 +960,17 @@ pub fn drive_sol(orien: &AppOrien, dir: &Path, mine: &Value, sol: &mut Vec<crate
                         other
                     }
                 }
+            }
+            // Seller: the wallet no longer holds the ORN to lock. Nothing
+            // is locked and nothing was paid: the offer comes down.
+            (true, Some(index)) if state == "held" && item["offer_code"].is_null() && short_of_orn(sol[index].problem.as_ref()) => {
+                if give_up_short(dir, id, orn) {
+                    link.finished = true;
+                    let gone = sol[index].id.clone();
+                    link.swap = None;
+                    sol.retain(|kept| kept.id != gone);
+                }
+                Ok(())
             }
             // Seller: the ORN are locked; pass the offer code on.
             (true, Some(index)) if state == "held" && item["offer_code"].is_null() => match sol[index].offer.clone() {
