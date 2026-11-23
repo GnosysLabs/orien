@@ -6,8 +6,8 @@ import { ChevronRight } from 'lucide-react'
 const BUTTON =
   'inline-flex h-11 items-center gap-1 rounded-xl border border-line bg-bg px-5 text-sm font-semibold text-ink transition hover:border-pearl'
 
-/** The network map's own page on the Explorer, and its details view. */
-const LIVE = { map: 'https://explorer.orien.network/map/?view=simple', details: 'https://explorer.orien.network/map/?view=details' }
+/** The network map's details view, on the Explorer. */
+const LIVE = { details: 'https://explorer.orien.network/map/?view=details' }
 
 /** The home page's live picture of the network: the validators on the
  * globe, and the miners and largest wallets on rings around it. It is the
@@ -25,7 +25,7 @@ export function NetworkGlobe() {
   useEffect(() => {
     // Anywhere but the live site, such as on this computer, the map is the site's own page.
     if (!/(^|\.)orien\.network$/.test(window.location.hostname)) {
-      setLinks({ map: '/explorer/map/?view=simple', details: '/explorer/map/?view=details' })
+      setLinks({ details: '/explorer/map/?view=details' })
     }
   }, [])
 
@@ -125,9 +125,6 @@ export function NetworkGlobe() {
         />
       </div>
       <div className="mt-5 flex flex-wrap justify-center gap-3">
-        <a href={links.map} className={BUTTON}>
-          Network map <ChevronRight className="h-4 w-4" aria-hidden />
-        </a>
         <a href={links.details} className={BUTTON}>
           Network details <ChevronRight className="h-4 w-4" aria-hidden />
         </a>
