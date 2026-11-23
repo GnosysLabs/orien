@@ -1437,6 +1437,8 @@
   .cm-join { align-items: center; color: var(--dim); font-size: 13.5px; line-height: 1.45; }
   .cm-join span { flex: 1; }
   .cm-feed { display: grid; gap: 14px; }
+  /* A post on its own replies inside its card, as in the feed. */
+  #cm-thread .cm-replies, #cm-reply-box, #cm-reply-join { display: none !important; }
   /* The mask keeps the corners round on the Mac even with a fading
      picture inside (WebKit lets masked children spill past a rounded
      overflow). */
@@ -5867,17 +5869,28 @@
     feel("selection");
     if (tab.dataset.cmTab === "market") openMarket(); else openCommunity();
   };
+  // One post on its own (from Notifications): exactly as in the feed, with
+  // its replies open inside it and the same box to reply.
+  function cmPaintThread() {
+    const p = cm.thread;
+    if (!p) return;
+    const was = cm.open.has(p.id);
+    cm.open.add(p.id);
+    $("cm-thread-post").innerHTML = cmCard(p);
+    if (!was) cm.open.delete(p.id);
+  }
   async function cmOpenThread(id) {
-    cm.thread = cm.posts.find((p) => p.id === id) || cm.thread;
+    const known = cm.posts.find((p) => p.id === id);
+    if (known) cm.thread = known;
     show("cm-thread");
-    $("cm-thread-post").innerHTML = cm.thread && cm.thread.id === id ? cmCard(cm.thread, true) : '<div class="cm-empty">Loading…</div>';
-    $("cm-replies").innerHTML = "";
-    cmPaintYou();
+    if (!(cm.thread && cm.thread.id === id && cm.repliesOf.has(id))) $("cm-thread-post").innerHTML = '<div class="cm-empty">Loading…</div>';
+    else cmPaintThread();
     try {
       const found = await cmCall("GET", `/posts/${id}`);
-      if (found.post) { cm.thread = found.post; $("cm-thread-post").innerHTML = cmCard(cm.thread, true); }
+      if (found.post) cm.thread = found.post;
       cm.replies = found.replies || [];
-      $("cm-replies").innerHTML = cm.replies.map((r) => cmCard(r, true)).join("");
+      cm.repliesOf.set(id, cm.replies);
+      cmPaintThread();
     } catch (e) { problem("cm-thread-problem", e); }
   }
   $("cm-thread-back").onclick = () => {
@@ -5893,6 +5906,8 @@
     if (!t) return;
     if (t.dataset.open) {
       const id = Number(t.dataset.open);
+      // On its own, a post's replies stay open.
+      if (t.closest("#cm-thread")) return;
       if (cm.open.has(id)) { cm.open.delete(id); cmPaintFeed(); return; }
       // Opened in one go once its replies are here: no "Loading" flash. A
       // post without replies opens at once, straight to the reply box.
@@ -5946,6 +5961,7 @@
   };
   $("cm-feed").addEventListener("input", cmReplyInput);
   $("sl-feed").addEventListener("input", cmReplyInput);
+  $("cm-thread").addEventListener("input", cmReplyInput);
   async function cmSendInline(id) {
     const box = document.querySelector(`[data-reply-box="${id}"]`), go = document.querySelector(`[data-reply-send="${id}"]`);
     const body = box ? box.value.trim() : "";
@@ -5957,7 +5973,8 @@
       await cmLoadReplies(id);
       await cmLoad(false);
       if (!$("seller").hidden) await slLoadFeed(false);
-    } catch (e) { problem($("seller").hidden ? "cm-problem" : "sl-problem", e); if (go) go.disabled = false; }
+      if (!$("cm-thread").hidden && cm.thread && cm.thread.id === id) { cm.thread.replies = (cm.repliesOf.get(id) || []).length; cmPaintThread(); }
+    } catch (e) { problem(!$("cm-thread").hidden ? "cm-thread-problem" : $("seller").hidden ? "cm-problem" : "sl-problem", e); if (go) go.disabled = false; }
   }
   $("cm-thread").addEventListener("click", cmClick);
   // Writing: the box grows with the words.
