@@ -2166,6 +2166,7 @@
       <div class="ch-menu" id="ch-menu" role="menu" hidden>
         <button class="menu-row" id="ch-report"><span>Report</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 22V4a1 1 0 0 1 .4-.8A6 6 0 0 1 8 2c3 0 5 2 7.333 2q2 0 3.067-.8A1 1 0 0 1 20 4v10a1 1 0 0 1-.4.8A6 6 0 0 1 16 16c-3 0-5-2-8-2a6 6 0 0 0-4 1.528"/></svg></button>
         <button class="menu-row bad" id="ch-block"><span>Block</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M4.929 4.929 19.07 19.071"/></svg></button>
+        <button class="menu-row bad" id="ch-delete"><span>Delete conversation</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M10 11v6"/><path d="M14 11v6"/></svg></button>
       </div>
       <button class="ch-about" id="ch-about"></button>
       <div class="scroll ch-log" id="ch-log"></div>
@@ -6831,7 +6832,22 @@
   $("ch-back").onclick = () => { chat.id = null; chat.direct = null; chat.from === "listing" ? show("listing") : chat.from === "profile" ? show("seller") : chat.from === "contact" ? show("contact") : chat.from === "notices" ? openNotices() : chat.from === "member" ? show("member") : openInbox(); };
   $("ch-who").onclick = () => { if (chat.conv && chat.conv.with) { market.sellerFrom = "chat"; openSeller(chat.conv.with); } };
   $("ch-about").onclick = () => chat.conv && chat.conv.listing && openListing(chat.conv.listing, "chat");
-  $("ch-more").onclick = () => { toggleMenu("ch-menu", "ch-more"); chat.blockArmed = false; if (chat.conv) $("ch-block").firstChild.textContent = chat.conv.blocked ? `Unblock ${chat.conv.with_name}` : `Block ${chat.conv.with_name}`; };
+  // Delete conversation: gone from your Messages (theirs stays); asks twice.
+  $("ch-delete").onclick = async () => {
+    const c = chat.conv;
+    if (!c || !chat.id) return;
+    if (!chat.deleteArmed) { chat.deleteArmed = true; $("ch-delete").firstChild.textContent = "Delete this conversation? Tap again"; return; }
+    try {
+      await mk("POST", `/conversations/${chat.id}/delete`, {});
+      $("ch-menu").hidden = true;
+      drafts.delete(`c${chat.id}`); chatCache.delete(chat.id);
+      inbox.items = inbox.items.filter((x) => x.id !== chat.id);
+      chat.id = null; draftKey = null;
+      feel("success");
+      openInbox();
+    } catch (e) { problem("ch-problem", mkProblem(e)); }
+  };
+  $("ch-more").onclick = () => { toggleMenu("ch-menu", "ch-more"); chat.blockArmed = false; chat.deleteArmed = false; $("ch-delete").firstChild.textContent = "Delete conversation"; if (chat.conv) $("ch-block").firstChild.textContent = chat.conv.blocked ? `Unblock ${chat.conv.with_name}` : `Block ${chat.conv.with_name}`; };
   $("ch-block").onclick = async () => {
     const c = chat.conv;
     if (!c) return;
