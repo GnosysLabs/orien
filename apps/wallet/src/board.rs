@@ -551,12 +551,22 @@ pub fn market_call(dir: &Path, method: &str, path: &str, body: Option<Value>) ->
 
 /// Adds the picture at `path` to listing `id`; the Market crops it to 16:9.
 pub fn listing_picture(dir: &Path, id: i64, path: &Path) -> Result<Value, String> {
+    upload_picture(dir, &format!("/api/market/listings/{id}/pictures"), path)
+}
+
+/// Sends a picture for a Community post; the server checks it as it does
+/// every picture, and answers its name and size.
+pub fn community_picture(dir: &Path, path: &Path) -> Result<Value, String> {
+    upload_picture(dir, "/api/market/community/pictures", path)
+}
+
+fn upload_picture(dir: &Path, route: &str, path: &Path) -> Result<Value, String> {
     let bytes = std::fs::read(path).map_err(|error| format!("could not read that picture: {error}"))?;
     if bytes.len() > 8 * 1024 * 1024 {
         return Err("That picture is too big. Pick one under 8 MB.".into());
     }
     let saved = load(dir);
-    let mut request = agent().post(&format!("{}/api/market/listings/{id}/pictures", base()));
+    let mut request = agent().post(&format!("{}{route}", base()));
     if let Some(cookie) = &saved.cookie {
         request = request.set("Cookie", &format!("{COOKIE}={cookie}"));
     }

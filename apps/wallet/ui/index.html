@@ -1489,6 +1489,108 @@
   .cm-join { align-items: center; color: var(--dim); font-size: 13.5px; line-height: 1.45; }
   .cm-join span { flex: 1; }
   .cm-feed { display: grid; gap: 14px; }
+  /* The composer's tools: photos, a GIF, a poll. */
+  .cm-send .cm-tools { display: flex; gap: 2px; margin-right: auto; margin-left: -8px; }
+  .cm-tool { width: 36px; height: 36px; display: grid; place-items: center; border: 0; border-radius: 50%;
+    background: none; color: var(--dim); cursor: pointer; }
+  .cm-tool:hover:not(:disabled) { color: var(--ink); background: var(--surface-hover); }
+  .cm-tool:disabled { opacity: 0.35; cursor: default; }
+  .cm-attach { margin-top: 6px; }
+  /* Squircle corners on pictures, as on iPhone icons: the corners keep their
+     shape at any size. */
+  .sq { -webkit-mask-box-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100' viewBox='0 0 100 100'%3E%3Cpath d='M0.00 40.00 L0.04 29.77 L0.17 25.55 L0.39 22.33 L0.69 19.65 L1.08 17.32 L1.55 15.26 L2.12 13.40 L2.78 11.72 L3.53 10.19 L4.37 8.79 L5.32 7.52 L6.36 6.36 L7.52 5.32 L8.79 4.37 L10.19 3.53 L11.72 2.78 L13.40 2.12 L15.26 1.55 L17.32 1.08 L19.65 0.69 L22.33 0.39 L25.55 0.17 L29.77 0.04 L40.00 0.00 L60.00 0.00 L70.23 0.04 L74.45 0.17 L77.67 0.39 L80.35 0.69 L82.68 1.08 L84.74 1.55 L86.60 2.12 L88.28 2.78 L89.81 3.53 L91.21 4.37 L92.48 5.32 L93.64 6.36 L94.68 7.52 L95.63 8.79 L96.47 10.19 L97.22 11.72 L97.88 13.40 L98.45 15.26 L98.92 17.32 L99.31 19.65 L99.61 22.33 L99.83 25.55 L99.96 29.77 L100.00 40.00 L100.00 60.00 L99.96 70.23 L99.83 74.45 L99.61 77.67 L99.31 80.35 L98.92 82.68 L98.45 84.74 L97.88 86.60 L97.22 88.28 L96.47 89.81 L95.63 91.21 L94.68 92.48 L93.64 93.64 L92.48 94.68 L91.21 95.63 L89.81 96.47 L88.28 97.22 L86.60 97.88 L84.74 98.45 L82.68 98.92 L80.35 99.31 L77.67 99.61 L74.45 99.83 L70.23 99.96 L60.00 100.00 L40.00 100.00 L29.77 99.96 L25.55 99.83 L22.33 99.61 L19.65 99.31 L17.32 98.92 L15.26 98.45 L13.40 97.88 L11.72 97.22 L10.19 96.47 L8.79 95.63 L7.52 94.68 L6.36 93.64 L5.32 92.48 L4.37 91.21 L3.53 89.81 L2.78 88.28 L2.12 86.60 L1.55 84.74 L1.08 82.68 L0.69 80.35 L0.39 77.67 L0.17 74.45 L0.04 70.23 L0.00 60.00Z'/%3E%3C/svg%3E") 40 fill / 30px stretch; }
+  .cm-media { position: relative; display: grid; gap: 3px; margin-top: 12px; overflow: hidden; background: rgba(var(--tint), 0.04); }
+  .cm-media > * { position: relative; min-width: 0; min-height: 0; overflow: hidden; }
+  .cm-media img { display: block; width: 100%; height: 100%; object-fit: cover; cursor: zoom-in; }
+  .cm-media.n1 img { height: auto; max-height: 520px; }
+  .cm-media.n2, .cm-media.n3, .cm-media.n4 { grid-template-columns: 1fr 1fr; aspect-ratio: 16 / 9; }
+  .cm-media.n3, .cm-media.n4 { grid-template-rows: 1fr 1fr; }
+  .cm-media.n3 > :first-child { grid-row: span 2; }
+  .cm-media.cm-gif img { cursor: default; }
+  .cm-gif-tag { position: absolute; left: 10px; bottom: 10px; padding: 2px 6px; border-radius: 6px; background: rgba(0, 0, 0, 0.6);
+    color: #fff; font-size: 11px; font-weight: 700; letter-spacing: 0.04em; overflow: visible; }
+  .cm-attach .cm-media { margin-top: 4px; }
+  .cm-x { position: absolute; top: 8px; right: 8px; width: 28px; height: 28px; display: grid; place-items: center;
+    border: 0; border-radius: 50%; background: rgba(0, 0, 0, 0.6); color: #fff; cursor: pointer; overflow: visible; }
+  .cm-x svg { width: 14px; height: 14px; }
+  .cm-attach .cm-media img { cursor: default; }
+  /* A poll being written. */
+  .cm-poll-edit { position: relative; display: grid; gap: 8px; padding: 12px 52px 12px 12px; border: 1px solid var(--line); border-radius: 16px; }
+  .cm-poll-x { position: absolute; top: 15px; right: 12px; width: 30px; height: 30px; display: grid; place-items: center;
+    border: 0; border-radius: 50%; background: none; color: var(--dim); cursor: pointer; }
+  .cm-poll-x:hover { color: var(--ink); background: var(--surface-hover); }
+  .cm-poll-x svg { width: 16px; height: 16px; }
+  .cm-poll-edit .field, .cm-poll-edit .field + .field { margin: 0; }
+  .cm-poll-edit .field .box { height: 42px; }
+  .cm-poll-edit .field input, #tip-own { font: inherit; font-size: 14px; }
+  .cm-poll-row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 4px; }
+  .cm-poll-row > span { color: var(--dim); font-size: 13px; margin-right: 4px; }
+  .cm-poll-row .pill.on { border-color: var(--select); color: var(--ink); background: var(--surface-hover); }
+  /* A poll on a post: choices to tap, then the results. */
+  .cm-poll { display: grid; gap: 8px; margin-top: 12px; }
+  .cm-opt { position: relative; display: flex; align-items: center; gap: 10px; min-height: 40px; padding: 0 14px;
+    border: 1px solid var(--line); border-radius: 12px; background: none; color: var(--ink); font: inherit; font-size: 14px;
+    text-align: left; overflow: hidden; }
+  button.cm-opt { cursor: pointer; justify-content: center; font-weight: 600; }
+  button.cm-opt:hover { border-color: var(--select); background: var(--surface-hover); }
+  .cm-opt .bar { position: absolute; inset: 0 auto 0 0; background: rgba(var(--tint), 0.08); }
+  .cm-opt.mine .bar { background: rgba(var(--tint), 0.16); }
+  .cm-opt .txt { position: relative; flex: 1; min-width: 0; overflow-wrap: anywhere; }
+  .cm-opt.mine .txt { font-weight: 600; }
+  .cm-opt .pct { position: relative; color: var(--dim); font-size: 13px; font-variant-numeric: tabular-nums; }
+  .cm-opt.mine .pct { color: var(--ink); font-weight: 600; }
+  .cm-opt .bar.w0 { width: 0%; }
+  .cm-opt .bar.w5 { width: 5%; }
+  .cm-opt .bar.w10 { width: 10%; }
+  .cm-opt .bar.w15 { width: 15%; }
+  .cm-opt .bar.w20 { width: 20%; }
+  .cm-opt .bar.w25 { width: 25%; }
+  .cm-opt .bar.w30 { width: 30%; }
+  .cm-opt .bar.w35 { width: 35%; }
+  .cm-opt .bar.w40 { width: 40%; }
+  .cm-opt .bar.w45 { width: 45%; }
+  .cm-opt .bar.w50 { width: 50%; }
+  .cm-opt .bar.w55 { width: 55%; }
+  .cm-opt .bar.w60 { width: 60%; }
+  .cm-opt .bar.w65 { width: 65%; }
+  .cm-opt .bar.w70 { width: 70%; }
+  .cm-opt .bar.w75 { width: 75%; }
+  .cm-opt .bar.w80 { width: 80%; }
+  .cm-opt .bar.w85 { width: 85%; }
+  .cm-opt .bar.w90 { width: 90%; }
+  .cm-opt .bar.w95 { width: 95%; }
+  .cm-opt .bar.w100 { width: 100%; }
+  .cm-poll-foot { color: var(--dim); font-size: 12.5px; }
+  /* Choosing a GIF: a card over the app, searched as you type. */
+  #gif-veil { position: fixed; inset: 0; z-index: 61; display: grid; place-items: center; padding: 24px;
+    background: var(--veil); -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px);
+    opacity: 0; transition: opacity 0.2s ease; }
+  #gif-veil.on { opacity: 1; }
+  #gif-card { width: min(560px, 100%); height: min(640px, 100%); display: flex; flex-direction: column; padding: 16px;
+    border-radius: 24px; background: var(--surface); border: 1px solid var(--line); box-shadow: 0 24px 60px rgba(0, 0, 0, 0.45);
+    transform: scale(0.96); transition: transform 0.2s ease; }
+  #gif-veil.on #gif-card { transform: scale(1); }
+  .gif-top { display: flex; gap: 10px; align-items: center; }
+  .gif-top .secondary { width: auto; height: 42px; padding: 0 16px; flex: none; }
+  .gif-search { flex: 1; height: 42px; margin: 0; display: flex; align-items: center; gap: 8px; padding: 0 14px; color: var(--dim);
+    border-radius: var(--radius); background: var(--field); border: 1px solid var(--line); }
+  .gif-search:focus-within { border-color: var(--focus); }
+  .gif-search input { flex: 1; min-width: 0; border: 0; outline: none; background: transparent; color: var(--ink); font: inherit; font-size: 14px; }
+  .gif-search input::placeholder { color: var(--faint); }
+  #gif-grid { flex: 1; margin-top: 14px; overflow-y: auto; columns: 3 140px; column-gap: 8px; }
+  #gif-grid::-webkit-scrollbar { width: 0; }
+  #gif-grid button { display: block; width: 100%; margin: 0 0 8px; padding: 0; border: 0; border-radius: 12px; overflow: hidden;
+    background: rgba(var(--tint), 0.05); cursor: pointer; break-inside: avoid; }
+  #gif-grid img { display: block; width: 100%; height: auto; }
+  #gif-grid .empty { column-span: all; }
+  .gif-by { margin-top: 10px; text-align: center; color: var(--faint); font-size: 11.5px; letter-spacing: 0.04em; }
+  body.phone #gif-veil { padding: 12px; }
+  body.phone #gif-card { height: 100%; }
+  /* A picture, large, over the app. */
+  #pic-veil { position: fixed; inset: 0; z-index: 62; display: grid; place-items: center; padding: 32px;
+    background: rgba(0, 0, 0, 0.85); opacity: 0; transition: opacity 0.2s ease; cursor: zoom-out; }
+  #pic-veil.on { opacity: 1; }
+  #pic-big { max-width: 100%; max-height: 100%; border-radius: 14px; object-fit: contain; }
   #cm-more, #sl-feed-more { display: none !important; }
   /* A post on its own replies inside its card, as in the feed. */
   #cm-thread .cm-replies, #cm-reply-box, #cm-reply-join { display: none !important; }
@@ -1530,6 +1632,7 @@
     background: transparent; color: var(--bad); cursor: pointer; }
   @media (hover: hover) { .cm-del:hover { background: color-mix(in srgb, var(--bad) 14%, transparent); border-color: var(--bad); } }
   .cm-text { margin-top: 12px; white-space: pre-wrap; overflow-wrap: anywhere; font-size: 15px; line-height: 1.5; }
+  .cm-text:empty { display: none; }
   .cm-news { margin-top: 14px; }
   .cm-news .cm-big { font: 700 34px/1 "Jost", sans-serif; letter-spacing: -0.01em; }
   body.phone .cm-news .cm-big { font-size: 26px; line-height: 1.1; }
@@ -2091,7 +2194,8 @@
         <div class="cm-compose" id="cm-compose" hidden>
           <span class="face cm-me" id="cm-me"></span>
           <div class="cm-write"><textarea id="cm-body" rows="1" maxlength="500" placeholder="What’s happening?"></textarea>
-            <div class="cm-send"><span class="cm-left" id="cm-left"></span><button class="pill pearl" id="cm-post" disabled>Post</button></div></div>
+            <div class="cm-attach" id="cm-attach" hidden></div>
+            <div class="cm-send"><div class="cm-tools"><button class="cm-tool" id="cm-add-photo" aria-label="Add photos" title="Photos"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg></button><button class="cm-tool" id="cm-add-gif" aria-label="Add a GIF" title="GIF"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="14" x="3" y="5" rx="2"/><path d="M10 10H8.5a1.5 1.5 0 0 0 0 3H10v-1.5"/><path d="M13 10v4"/><path d="M16.5 14v-4H18"/><path d="M16.5 12H18"/></svg></button><button class="cm-tool" id="cm-add-poll" aria-label="Add a poll" title="Poll"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v16a2 2 0 0 0 2 2h16"/><path d="M7 16h8"/><path d="M7 11h12"/><path d="M7 6h3"/></svg></button></div><span class="cm-left" id="cm-left"></span><button class="pill pearl" id="cm-post" disabled>Post</button></div></div>
         </div>
         <div class="cm-join" id="cm-join" hidden><span id="cm-join-text"></span><button class="pill" id="cm-join-go"></button></div>
         <div class="problem" id="cm-problem" hidden></div>
@@ -2894,6 +2998,12 @@
   <div class="problem" id="si-problem" hidden></div>
   <div id="si-buttons"><button class="primary pearl" id="si-yes">Sign in</button><button class="secondary" id="si-no">Cancel</button></div>
 </div></div>
+<div id="gif-veil" hidden><div id="gif-card" role="dialog" aria-modal="true" aria-label="Choose a GIF">
+  <div class="gif-top"><div class="box plain gif-search"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg><input id="gif-q" type="text" autocomplete="off" placeholder="Search GIFs"></div><button class="secondary" id="gif-close">Cancel</button></div>
+  <div id="gif-grid"></div>
+  <div class="gif-by" id="gif-by">Powered by KLIPY</div>
+</div></div>
+<div id="pic-veil" hidden><img id="pic-big" alt=""></div>
 <div id="tip-veil" hidden><div id="tip-card" role="dialog" aria-modal="true" aria-labelledby="tip-title">
   <div id="tip-icon"></div>
   <div id="tip-title"></div>
@@ -6105,6 +6215,41 @@
   }
   const REPLY_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2.992 16.342a2 2 0 0 1 .094 1.167l-1.065 3.29a1 1 0 0 0 1.236 1.168l3.413-.998a2 2 0 0 1 1.099.092 10 10 0 1 0-4.777-4.719"/></svg>';
   const COINS_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="8" r="6"/><path d="M18.09 10.37A6 6 0 1 1 10.34 18"/><path d="M7 6h1v4"/><path d="m16.71 13.88.7.71-2.82 2.82"/></svg>';
+  // A post's photos (up to four, in a grid), its GIF, or its poll.
+  const X_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>';
+  const fromOrien = (url) => typeof url === "string" && url.startsWith("https://orien.network/");
+  function cmMedia(post) {
+    const pics = (post.pictures || []).slice(0, 4);
+    if (pics.length) {
+      return `<div class="cm-media sq n${pics.length}">${pics.map((p) => `<div>${picImg(p.name).replace("<img ",
+        `<img data-big="${esc(p.name)}" ${pics.length === 1 && p.width && p.height ? `width="${Number(p.width)}" height="${Number(p.height)}" ` : ""}`)}</div>`).join("")}</div>`;
+    }
+    const g = post.gif;
+    if (g && fromOrien(g.url)) {
+      return `<div class="cm-media sq n1 cm-gif"><div><img src="${esc(g.url)}" ${g.width && g.height ? `width="${Number(g.width)}" height="${Number(g.height)}" ` : ""}alt="GIF" loading="lazy"></div><span class="cm-gif-tag">GIF</span></div>`;
+    }
+    return post.poll ? cmPoll(post) : "";
+  }
+  function pollLeft(ends) {
+    const s = Math.max(0, ends - Date.now() / 1000);
+    if (s >= 86400) { const d = Math.round(s / 86400); return `${d} ${d === 1 ? "day" : "days"} left`; }
+    if (s >= 3600) { const h = Math.round(s / 3600); return `${h} ${h === 1 ? "hour" : "hours"} left`; }
+    const m = Math.max(1, Math.round(s / 60)); return `${m} ${m === 1 ? "minute" : "minutes"} left`;
+  }
+  function cmPoll(post) {
+    const poll = post.poll, total = Number(poll.total || 0);
+    const closed = poll.closed || (poll.ends && poll.ends * 1000 <= Date.now());
+    const results = closed || poll.voted !== null && poll.voted !== undefined || post.mine;
+    const canVote = !results && !!cm.you;
+    const rows = (poll.options || []).map((o, i) => {
+      if (!results) return canVote ? `<button class="cm-opt" data-vote="${post.id}" data-opt="${i}">${esc(o.text)}</button>`
+        : `<div class="cm-opt"><span class="txt">${esc(o.text)}</span></div>`;
+      const pct = total && o.votes != null ? Math.round((o.votes / total) * 100) : 0;
+      return `<div class="cm-opt${poll.voted === i ? " mine" : ""}"><span class="bar w${Math.round(pct / 5) * 5}"></span><span class="txt">${esc(o.text)}</span><span class="pct">${pct}%</span></div>`;
+    }).join("");
+    const votes = `${total.toLocaleString()} ${total === 1 ? "vote" : "votes"}`;
+    return `<div class="cm-poll">${rows}<div class="cm-poll-foot">${votes} · ${closed ? "Final results" : pollLeft(poll.ends)}</div></div>`;
+  }
   // A post's tips: how many and how much, never who.
   function cmTips(post) {
     const t = post.tips;
@@ -6122,7 +6267,7 @@
     const replies = inThread || post.parent ? "" : `<button class="cm-chip${cm.open.has(post.id) ? " on" : ""}" data-open="${post.id}">${REPLY_ICON}${post.replies ? `<b>${post.replies}</b>` : ""}</button>`;
     return `<article class="cm-card${network ? " network" : ""}" data-post="${post.id}">${art}
       <div class="cm-in"><div class="cm-head">${head}</div>
-      ${network ? cmNews(post) : `<div class="cm-text">${esc(post.body || "")}</div>${cmYouTube(post.body)}`}
+      ${network ? cmNews(post) : `<div class="cm-text">${esc(post.body || "")}</div>${cmYouTube(post.body)}${cmMedia(post)}`}
       <div class="cm-foot">${replies}${chips}<button class="cm-chip" data-pick="${post.id}" aria-label="React" title="React">${SMILE_ICON}</button>${!network && !post.mine && post.author && post.author.tip_to ? `<button class="cm-chip" data-tip="${post.id}" title="Tip ${esc(post.author.name || "")} some ORN">${COINS_ICON}<span>Tip</span></button>` : ""}${network ? "" : cmTips(post)}</div>
       ${!post.parent && !inThread && cm.open.has(post.id) ? cmInline(post) : ""}</div></article>`;
   }
@@ -6389,6 +6534,11 @@
       tip.busy = false;
       tipClose();
       feel("success");
+      // On the post at once; the network's count follows once it settles.
+      const t = p.tips || { count: 0, orn: 0 };
+      p.tips = { count: t.count + 1, orn: Number(t.orn || 0) + Math.round(amount * 1e9) };
+      cmPaintFeed();
+      if (cm.thread && cm.thread.id === p.id) cmPaintThread();
       refresh();
       tipCount(p, view.address, sent.seq);
     } catch (error) {
@@ -6505,22 +6655,171 @@
       const el = $(box);
       el.style.height = "auto";
       el.style.height = Math.min(el.scrollHeight, 240) + "px";
-      $(go).disabled = !el.value.trim();
+      if (box === "cm-body") composeCheck(); else $(go).disabled = !el.value.trim();
       if (left) $(left).textContent = el.value.length ? String(cm.max - el.value.length) : "";
     });
   }
   async function cmSend(box, go, parent) {
     const body = $(box).value.trim();
-    if (!body) return;
+    const main = !parent;
+    if (main ? !composeReady() : !body) return;
     $(go).disabled = true;
+    if (main) $(go).innerHTML = '<span class="spinner"></span>Posting';
     try {
-      await cmCall("POST", "/posts", parent ? { body, parent } : { body });
+      let post = parent ? { body, parent } : { body };
+      if (main) {
+        if (draft.photos.length) {
+          // Each picture is checked by the server as it arrives.
+          const names = [];
+          for (const ph of draft.photos) names.push(ph.name || (ph.name = (await invoke("community_picture", { path: ph.path })).name));
+          post.pictures = names;
+        } else if (draft.gif) post.gif = draft.gif.id;
+        else if (draft.poll) post.poll = { options: pollChoices().filter(Boolean), hours: draft.poll.hours };
+      }
+      await cmCall("POST", "/posts", post);
       $(box).value = ""; $(box).style.height = "auto";
       if ($("cm-left")) $("cm-left").textContent = "";
+      if (main) { draft.photos = []; draft.gif = null; draft.poll = null; paintDraft(); }
       feel("success");
       if (parent) cmOpenThread(parent); else cmLoad(false);
-    } catch (e) { problem(parent ? "cm-thread-problem" : "cm-problem", e); $(go).disabled = false; }
+    } catch (e) { problem(parent ? "cm-thread-problem" : "cm-problem", String(e).replace(/^Error: /, "")); }
+    finally {
+      if (main) { $(go).textContent = "Post"; composeCheck(); } else $(go).disabled = !$(box).value.trim();
+    }
   }
+  // ---- The composer's photos, GIF and poll: one kind per post, as on X ----
+  const draft = { photos: [], gif: null, poll: null };
+  const pollChoices = () => [...document.querySelectorAll("[data-poll-opt]")].map((i) => i.value.trim());
+  function composeReady() {
+    const body = $("cm-body").value.trim();
+    if (draft.poll) { const c = pollChoices(); return !!body && !!c[0] && !!c[1]; }
+    return !!body || draft.photos.length > 0 || !!draft.gif;
+  }
+  function composeCheck() {
+    $("cm-post").disabled = !composeReady();
+    $("cm-add-photo").disabled = !!draft.gif || !!draft.poll || draft.photos.length >= 4;
+    $("cm-add-gif").disabled = draft.photos.length > 0 || !!draft.gif || !!draft.poll;
+    $("cm-add-poll").disabled = draft.photos.length > 0 || !!draft.gif || !!draft.poll;
+    $("cm-body").placeholder = draft.poll ? "Ask a question" : "What’s happening?";
+  }
+  function paintDraft() {
+    const box = $("cm-attach");
+    let html = "";
+    if (draft.photos.length) {
+      html = `<div class="cm-media sq n${draft.photos.length}">${draft.photos.map((ph, i) => `<div><img src="${ph.url}" alt=""><button class="cm-x" data-unphoto="${i}" aria-label="Remove photo">${X_ICON}</button></div>`).join("")}</div>`;
+    } else if (draft.gif) {
+      html = `<div class="cm-media sq n1 cm-gif"><div><img src="${esc(draft.gif.preview || draft.gif.url)}" alt="GIF"><button class="cm-x" data-ungif aria-label="Remove GIF">${X_ICON}</button></div><span class="cm-gif-tag">GIF</span></div>`;
+    } else if (draft.poll) {
+      const typed = pollChoices();
+      html = `<div class="cm-poll-edit">${draft.poll.count && Array.from({ length: draft.poll.count }, (_, i) =>
+          `<div class="field"><div class="box plain"><input data-poll-opt="${i}" maxlength="25" autocomplete="off" placeholder="Choice ${i + 1}${i >= 2 ? " (optional)" : ""}" value="${esc(typed[i] || "")}"></div></div>`).join("")}
+        <div class="cm-poll-row">${draft.poll.count < 4 ? '<button class="pill" data-poll-add>Add a choice</button>' : ""}</div>
+        <div class="cm-poll-row"><span>Lasts</span>${[[24, "1 day"], [72, "3 days"], [168, "7 days"]].map(([h, label]) => `<button class="pill${draft.poll.hours === h ? " on" : ""}" data-poll-hours="${h}">${label}</button>`).join("")}</div><button class="cm-poll-x" data-unpoll aria-label="Remove poll" title="Remove poll">${X_ICON}</button></div>`;
+    }
+    box.innerHTML = html;
+    box.hidden = !html;
+    composeCheck();
+  }
+  $("cm-attach").addEventListener("click", (e) => {
+    const t = e.target.closest("[data-unphoto], [data-ungif], [data-unpoll], [data-poll-add], [data-poll-hours]");
+    if (!t) return;
+    if (t.dataset.unphoto !== undefined) draft.photos.splice(Number(t.dataset.unphoto), 1);
+    else if (t.dataset.ungif !== undefined) draft.gif = null;
+    else if (t.dataset.unpoll !== undefined) draft.poll = null;
+    else if (t.dataset.pollAdd !== undefined) draft.poll.count = Math.min(4, draft.poll.count + 1);
+    else if (t.dataset.pollHours) draft.poll.hours = Number(t.dataset.pollHours);
+    paintDraft();
+    if (t.dataset.pollAdd !== undefined) { const last = document.querySelector(`[data-poll-opt="${draft.poll.count - 1}"]`); if (last) last.focus(); }
+  });
+  // Choices are allowed blank past the second: only the filled ones are sent.
+  $("cm-attach").addEventListener("input", composeCheck);
+  $("cm-body").addEventListener("input", composeCheck);
+  $("cm-add-photo").onclick = async () => {
+    try {
+      const picked = await invoke("market_pick_pictures", { room: 4 - draft.photos.length });
+      if (!picked || !picked.length) return;
+      draft.photos.push(...picked.map((p) => ({ path: p.path, url: p.url, name: null })));
+      paintDraft();
+    } catch (e) { problem("cm-problem", e); }
+  };
+  $("cm-add-poll").onclick = () => { draft.poll = { count: 2, hours: 24 }; paintDraft(); $("cm-body").focus(); const first = document.querySelector('[data-poll-opt="0"]'); if (first && $("cm-body").value.trim()) first.focus(); };
+  // GIFs, searched as you type, from KLIPY through orien.network.
+  const gifs = { q: "", next: null, busy: false, timer: 0, seq: 0 };
+  async function gifLoad(more) {
+    if (gifs.busy && more) return;
+    const seq = ++gifs.seq;
+    gifs.busy = true;
+    try {
+      const page = await cmCall("GET", `/gifs?q=${encodeURIComponent(gifs.q)}${more && gifs.next ? `&next=${encodeURIComponent(gifs.next)}` : ""}`);
+      if (seq !== gifs.seq) return;
+      const list = (page.gifs || []).filter((g) => fromOrien(g.preview) && fromOrien(g.url));
+      gifs.next = page.next || null;
+      const html = list.map((g) => `<button data-gif='${esc(JSON.stringify(g))}'><img src="${esc(g.preview)}" ${g.width && g.height ? `width="${Number(g.width)}" height="${Number(g.height)}" ` : ""}alt="" loading="lazy"></button>`).join("");
+      if (more) $("gif-grid").insertAdjacentHTML("beforeend", html);
+      else { $("gif-grid").innerHTML = html || `<div class="empty">${gifs.q ? "No GIFs found." : "No GIFs right now."}</div>`; $("gif-grid").scrollTop = 0; }
+    } catch (e) {
+      if (seq === gifs.seq && !more) $("gif-grid").innerHTML = `<div class="empty">${esc(String(e).replace(/^Error: /, "") || "GIFs can't be reached right now.")}</div>`;
+    } finally { if (seq === gifs.seq) gifs.busy = false; }
+  }
+  function gifOpen() {
+    gifs.q = ""; gifs.next = null;
+    $("gif-q").value = "";
+    $("gif-grid").innerHTML = '<div class="empty">Loading…</div>';
+    const veil = $("gif-veil");
+    if (veil.hidden) { veil.hidden = false; requestAnimationFrame(() => veil.classList.add("on")); }
+    if (!phone) setTimeout(() => $("gif-q").focus(), 50);
+    gifLoad(false);
+  }
+  function gifClose() {
+    const veil = $("gif-veil"); veil.classList.remove("on");
+    setTimeout(() => { veil.hidden = true; }, 200);
+  }
+  $("cm-add-gif").onclick = gifOpen;
+  $("gif-close").onclick = gifClose;
+  $("gif-veil").addEventListener("click", (e) => { if (e.target.id === "gif-veil") gifClose(); });
+  $("gif-q").addEventListener("input", () => {
+    clearTimeout(gifs.timer);
+    gifs.timer = setTimeout(() => { gifs.q = $("gif-q").value.trim(); gifs.next = null; gifLoad(false); }, 350);
+  });
+  $("gif-grid").addEventListener("scroll", () => {
+    const g = $("gif-grid");
+    if (gifs.next && g.scrollTop + g.clientHeight > g.scrollHeight - 300) gifLoad(true);
+  }, { passive: true });
+  $("gif-grid").addEventListener("click", (e) => {
+    const b = e.target.closest("[data-gif]");
+    if (!b) return;
+    try { draft.gif = JSON.parse(b.dataset.gif); } catch { return; }
+    gifClose(); paintDraft(); feel("selection");
+  });
+  // A post's picture, large; a tap anywhere closes it.
+  function picOpen(src) {
+    $("pic-big").src = src;
+    const veil = $("pic-veil");
+    if (veil.hidden) { veil.hidden = false; requestAnimationFrame(() => veil.classList.add("on")); }
+  }
+  function picClose() { const veil = $("pic-veil"); veil.classList.remove("on"); setTimeout(() => { veil.hidden = true; $("pic-big").src = ""; }, 200); }
+  $("pic-veil").onclick = picClose;
+  document.addEventListener("keydown", (e) => {
+    if (e.key !== "Escape") return;
+    if (!$("pic-veil").hidden) picClose(); else if (!$("gif-veil").hidden) gifClose();
+  });
+  // Voting, and opening a picture: from any post, wherever it shows.
+  document.addEventListener("click", async (e) => {
+    const big = e.target.closest("img[data-big]");
+    if (big && big.src && !big.closest("#cm-attach")) { e.stopPropagation(); picOpen(big.src); return; }
+    const v = e.target.closest("[data-vote]");
+    if (!v) return;
+    e.stopPropagation();
+    const id = Number(v.dataset.vote), post = tipPost(id);
+    if (!post || !post.poll) return;
+    for (const b of document.querySelectorAll(`[data-vote="${id}"]`)) b.disabled = true;
+    try {
+      post.poll = await cmCall("POST", `/posts/${id}/vote`, { option: Number(v.dataset.opt) });
+      feel("selection");
+    } catch (err) { problem(!$("seller").hidden ? "sl-problem" : !$("cm-thread").hidden ? "cm-thread-problem" : "cm-problem", String(err).replace(/^Error: /, "")); }
+    cmPaintFeed();
+    if (cm.thread && cm.thread.id === id) cmPaintThread();
+  }, true);
   $("cm-post").onclick = () => cmSend("cm-body", "cm-post", null);
   $("cm-reply-go").onclick = () => cmSend("cm-reply", "cm-reply-go", cm.thread && cm.thread.id);
   $("cm-more").onclick = () => cmLoad(true);
@@ -7956,7 +8255,7 @@
     // Offers still open on the board can wait for a buyer for days: only
     // ones someone has taken count.
     return swapList.some((s) => !s.finished) || board.waiting.some((x) => x.offer.state !== "open") || !!board.taking || !!mineBench
-      || !$("si-veil").hidden || !$("upd-veil").hidden || !$("tip-veil").hidden || typedSomewhere();
+      || !$("si-veil").hidden || !$("upd-veil").hidden || !$("tip-veil").hidden || !$("gif-veil").hidden || draft.photos.length > 0 || !!draft.gif || !!draft.poll || typedSomewhere();
   }
   async function updateByItself() {
     if (phone || !autoUpdate || !update || autoInstalling) return;
