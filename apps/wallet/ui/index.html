@@ -1687,6 +1687,10 @@
   .pf-choice button { min-height: 38px; padding: 6px 8px; border: 0; border-radius: 10px; background: transparent; color: var(--dim); font: inherit; font-size: 13px; font-weight: 600; line-height: 1.25; cursor: pointer; }
   .pf-choice button.on { background: var(--surface-hover); color: var(--ink); }
   .pf-dm-note { margin: 10px 2px 0; line-height: 1.5; }
+  .pf-blocks-go { width: auto; padding: 0 22px; height: 42px; }
+  .bk-note { margin: 0 2px 14px; line-height: 1.5; }
+  #bk-list .tx { align-items: center; }
+  #bk-list .tx .pill { flex: none; }
   /* Narrow: your details, your listings, then your wallets. Big windows:
      the details with the wallets beside them, the listings across below. */
   /* Your listings always come last: your wallets and deleting the account
@@ -2260,6 +2264,8 @@
         <div class="pf-choice" id="pf-dm" role="radiogroup"><button type="button" data-dm="everyone" role="radio">Everyone</button><button type="button" data-dm="talked" role="radio">People you've talked with</button><button type="button" data-dm="nobody" role="radio">No one</button></div>
         <p class="hint pf-dm-note">Messages about your Market listings always come through whatever you pick, so buyers can ask about what you're selling. Blocking still works on top of this.</p>
       </div>
+      <!-- The people you've blocked, to unblock: they're hidden from you until then. -->
+      <div class="field pf-blocks"><label>Blocked accounts</label><button class="secondary pf-blocks-go" id="pf-blocks">Manage blocks</button></div>
       <div class="problem" id="pf-problem" hidden></div>
         </div>
         <div class="pf-side">
@@ -2295,6 +2301,14 @@
       <div class="mk-grid" id="pf-listings"></div>
         </div>
       </div>
+    </section>
+
+    <!-- The people you've blocked: each with Unblock. -->
+    <section class="screen" id="blocks" hidden>
+      <div class="topline"><button class="back" id="bk-back" aria-label="Back"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg></button><h2>Blocked accounts</h2></div>
+      <p class="hint bk-note">People you block can't message you, and you don't see each other's profiles, posts or listings. Unblock someone to see them again.</p>
+      <div class="scroll" id="bk-list"></div>
+      <div class="problem" id="bk-problem" hidden></div>
     </section>
 
     <!-- One contact -->
@@ -6470,13 +6484,16 @@
   };
   $("sl-more").onclick = () => { toggleMenu("sl-menu", "sl-more"); sl.armed = false; $("sl-block").firstChild.textContent = sl.blocked ? `Unblock ${sl.name}` : `Block ${sl.name}`; };
   $("sl-block").onclick = async () => {
-    if (!sl.blocked && !sl.armed) { sl.armed = true; $("sl-block").firstChild.textContent = `Block ${sl.name}? They can't message you. Tap again`; return; }
+    if (!sl.blocked && !sl.armed) { sl.armed = true; $("sl-block").firstChild.textContent = `Block ${sl.name}? You won't see each other. Tap again`; return; }
     try {
       await mk("POST", `/accounts/${sl.id}/block`, { block: !sl.blocked });
       sl.blocked = !sl.blocked; sl.armed = false;
       $("sl-block").firstChild.textContent = sl.blocked ? `Unblock ${sl.name}` : `Block ${sl.name}`;
       $("sl-menu").hidden = true;
       feel("success");
+      // Blocked: they're hidden from you now, so their profile closes.
+      // Manage blocks, on your profile, unblocks them.
+      if (sl.blocked) $("sl-back").click();
     } catch (e) { problem("sl-problem", mkProblem(e)); }
   };
   $("sl-report").onclick = () => { $("sl-report-box").hidden = false; $("sl-menu").hidden = true; $("sl-report-done").textContent = ""; $("sl-report-text").focus(); };
@@ -7337,6 +7354,35 @@
     for (const b of document.querySelectorAll("[data-pf-tab]")) b.classList.toggle("on", b.dataset.pfTab === tab);
   }
   for (const b of document.querySelectorAll("[data-pf-tab]")) b.onclick = () => { pfTab(b.dataset.pfTab); feel("selection"); };
+  // ---- Blocked accounts ----
+  let blockedList = [];
+  function paintBlocks() {
+    $("bk-list").innerHTML = blockedList.length
+      ? `<div class="list">${blockedList.map((p) => `<div class="tx"><span class="face">${esc((p.name || "?").slice(0, 1).toUpperCase())}${p.picture ? picImg(p.picture) : ""}</span>
+          <div class="tx-main"><div class="title">${esc(p.name || "")}</div>${p.blocked_at ? `<div class="sub">Blocked ${esc(ago(p.blocked_at))}</div>` : ""}</div>
+          <button class="pill" data-unblock="${p.id}">Unblock</button></div>`).join("")}</div>`
+      : '<div class="empty">You haven\'t blocked anyone.</div>';
+  }
+  async function openBlocks() {
+    show("blocks");
+    $("bk-problem").hidden = true;
+    if (!blockedList.length) $("bk-list").innerHTML = '<div class="empty">Loading…</div>';
+    try { blockedList = (await mk("GET", "/me/blocked")).blocked || []; } catch (e) { blockedList = []; problem("bk-problem", mkProblem(e)); }
+    paintBlocks();
+  }
+  $("pf-blocks").onclick = () => openBlocks();
+  $("bk-back").onclick = () => show("profile");
+  $("bk-list").onclick = async (e) => {
+    const b = e.target.closest("[data-unblock]");
+    if (!b) return;
+    b.disabled = true;
+    try {
+      await mk("POST", `/accounts/${b.dataset.unblock}/block`, { block: false });
+      blockedList = blockedList.filter((p) => String(p.id) !== b.dataset.unblock);
+      feel("success");
+      paintBlocks();
+    } catch (err) { b.disabled = false; problem("bk-problem", mkProblem(err)); }
+  };
   // Who can message you: saved as soon as it's picked.
   function paintDm(choice) {
     for (const b of document.querySelectorAll("[data-dm]")) { const on = b.dataset.dm === choice; b.classList.toggle("on", on); b.setAttribute("aria-checked", on); }
