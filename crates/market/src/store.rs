@@ -99,7 +99,14 @@ pub struct Account {
     /// are left out.
     pub contact: Contact,
     pub created: u64,
+    /// Who may start a direct conversation with them: one of MESSAGES_FROM.
+    /// Messages about their listings always come through.
+    pub messages_from: String,
 }
+
+/// Who may message an account: anyone, only people they have talked with
+/// (a message either way, about a listing or not), or nobody.
+pub const MESSAGES_FROM: [&str; 3] = ["everyone", "talked", "nobody"];
 
 /// How buyers reach a seller besides messages: any of a Telegram, an X and
 /// a Discord username. Messages are built in, so no email is shown.
@@ -262,7 +269,9 @@ impl Store {
              );
              CREATE TABLE IF NOT EXISTS conversations (
                  id INTEGER PRIMARY KEY,
-                 listing INTEGER NOT NULL REFERENCES listings(id) ON DELETE CASCADE,
+                 -- NULL in a direct conversation, whose sides are stored
+                 -- lowest id first.
+                 listing INTEGER REFERENCES listings(id) ON DELETE CASCADE,
                  buyer INTEGER NOT NULL REFERENCES accounts(id) ON DELETE CASCADE,
                  seller INTEGER NOT NULL REFERENCES accounts(id) ON DELETE CASCADE,
                  created INTEGER NOT NULL,
@@ -273,6 +282,8 @@ impl Store {
                  -- Whether each side has been emailed since they last read.
                  buyer_told INTEGER NOT NULL DEFAULT 0,
                  seller_told INTEGER NOT NULL DEFAULT 0,
+                 -- Who started it, for the daily limit.
+                 starter INTEGER NOT NULL,
                  UNIQUE (listing, buyer)
              );
              CREATE TABLE IF NOT EXISTS messages (
@@ -305,9 +316,58 @@ impl Store {
         store.create_oidc_tables()?;
         store.create_community_tables()?;
         store.create_notice_tables()?;
+        store.allow_direct_conversations()?;
         // Names are unique whatever their case.
         store.db.execute("CREATE UNIQUE INDEX IF NOT EXISTS accounts_name ON accounts (lower(name))", [])?;
         Ok(store)
+    }
+
+    /// Databases from before direct messages: conversations had to have a
+    /// listing and did not record who started them. SQLite cannot drop NOT
+    /// NULL, so the table is rebuilt once, keeping every id, with foreign keys off so its
+    /// messages stay.
+    fn allow_direct_conversations(&self) -> Result<()> {
+        let has_starter: bool = self.db.query_row(
+            "SELECT COUNT(*) > 0 FROM pragma_table_info('conversations') WHERE name = 'starter'",
+            [],
+            |row| row.get(0),
+        )?;
+        if !has_starter {
+            self.db.execute_batch(
+                "PRAGMA foreign_keys = OFF;
+                 BEGIN;
+                 CREATE TABLE conversations_new (
+                     id INTEGER PRIMARY KEY,
+                     -- NULL in a direct conversation, whose sides are stored
+                     -- lowest id first.
+                     listing INTEGER REFERENCES listings(id) ON DELETE CASCADE,
+                     buyer INTEGER NOT NULL REFERENCES accounts(id) ON DELETE CASCADE,
+                     seller INTEGER NOT NULL REFERENCES accounts(id) ON DELETE CASCADE,
+                     created INTEGER NOT NULL,
+                     updated INTEGER NOT NULL,
+                     buyer_read INTEGER NOT NULL DEFAULT 0,
+                     seller_read INTEGER NOT NULL DEFAULT 0,
+                     buyer_told INTEGER NOT NULL DEFAULT 0,
+                     seller_told INTEGER NOT NULL DEFAULT 0,
+                     -- Who started it, for the daily limit.
+                     starter INTEGER NOT NULL,
+                     UNIQUE (listing, buyer)
+                 );
+                 INSERT INTO conversations_new
+                     (id, listing, buyer, seller, created, updated, buyer_read, seller_read, buyer_told, seller_told, starter)
+                     SELECT id, listing, buyer, seller, created, updated, buyer_read, seller_read, buyer_told, seller_told, buyer
+                     FROM conversations;
+                 DROP TABLE conversations;
+                 ALTER TABLE conversations_new RENAME TO conversations;
+                 COMMIT;
+                 PRAGMA foreign_keys = ON;",
+            )?;
+        }
+        self.db.execute_batch(
+            "CREATE UNIQUE INDEX IF NOT EXISTS conversations_direct ON conversations (buyer, seller) WHERE listing IS NULL;
+             CREATE INDEX IF NOT EXISTS conversations_by_starter ON conversations (starter, created);",
+        )?;
+        Ok(())
     }
 
     /// The wallet buyers pay, which any number of accounts may name. Copied
@@ -346,6 +406,14 @@ impl Store {
                  UPDATE accounts SET contact_email = '';",
             )?;
         }
+        let has_messages_from: bool = self.db.query_row(
+            "SELECT COUNT(*) > 0 FROM pragma_table_info('accounts') WHERE name = 'messages_from'",
+            [],
+            |row| row.get(0),
+        )?;
+        if !has_messages_from {
+            self.db.execute("ALTER TABLE accounts ADD COLUMN messages_from TEXT NOT NULL DEFAULT 'everyone'", [])?;
+        }
         Ok(())
     }
 
@@ -361,7 +429,7 @@ impl Store {
             "INSERT INTO accounts (name, handle, email, created) VALUES (?1, ?2, ?3, ?4)",
             params![name, handle, email, created],
         )?;
-        Ok(Account { id: self.db.last_insert_rowid(), name, bio: String::new(), picture: None, banner: None, wallet: None, wallet_verified: false, contact: Contact::default(), created })
+        Ok(Account { id: self.db.last_insert_rowid(), name, bio: String::new(), picture: None, banner: None, wallet: None, wallet_verified: false, contact: Contact::default(), created, messages_from: MESSAGES_FROM[0].into() })
     }
 
     /// A new account that signs in by email. The email must be one a code
@@ -452,6 +520,15 @@ impl Store {
         self.account(id)?.ok_or_else(|| anyhow::anyhow!("no such account"))
     }
 
+    /// Who may start a direct conversation with the account.
+    pub fn set_messages_from(&self, id: i64, choice: &str) -> Result<()> {
+        if !MESSAGES_FROM.contains(&choice) {
+            bail!("who can message you is everyone, talked or nobody");
+        }
+        self.db.execute("UPDATE accounts SET messages_from = ?2 WHERE id = ?1", params![id, choice])?;
+        Ok(())
+    }
+
     /// Sets an account's picture, and returns the one it replaces, whose
     /// file can go.
     pub fn set_picture(&self, id: i64, picture: &str) -> Result<Option<String>> {
@@ -516,7 +593,8 @@ impl Store {
             .db
             .query_row(
                 "SELECT id, name, bio, picture, payout, created, discord, telegram, x, banner,
-                        EXISTS (SELECT 1 FROM verified_wallets p WHERE p.account = accounts.id AND p.proven IS NOT NULL AND p.address = accounts.payout)
+                        EXISTS (SELECT 1 FROM verified_wallets p WHERE p.account = accounts.id AND p.proven IS NOT NULL AND p.address = accounts.payout),
+                        messages_from
                  FROM accounts WHERE id = ?1",
                 [id],
                 |row| {
@@ -530,6 +608,7 @@ impl Store {
                         wallet_verified: row.get(10)?,
                         contact: Contact { discord: row.get(6)?, telegram: row.get(7)?, x: row.get(8)? },
                         created: row.get(5)?,
+                        messages_from: row.get(11)?,
                     })
                 },
             )
@@ -815,6 +894,45 @@ pub(crate) fn token_hash(token: &str) -> String {
 
 #[cfg(test)]
 mod tests {
+    #[test]
+    fn an_old_database_keeps_its_conversations_when_direct_messages_come() {
+        let path = std::env::temp_dir().join(format!("orien-market-upgrade-{}.db", std::process::id()));
+        let _ = std::fs::remove_file(&path);
+        {
+            let db = rusqlite::Connection::open(&path).unwrap();
+            db.execute_batch(
+                "PRAGMA foreign_keys = ON;
+                 CREATE TABLE accounts (id INTEGER PRIMARY KEY, name TEXT NOT NULL, handle TEXT NOT NULL UNIQUE, email TEXT UNIQUE,
+                     bio TEXT NOT NULL DEFAULT '', picture TEXT, wallet TEXT UNIQUE, contact_email TEXT NOT NULL DEFAULT '',
+                     telegram TEXT NOT NULL DEFAULT '', x TEXT NOT NULL DEFAULT '', created INTEGER NOT NULL);
+                 CREATE TABLE listings (id INTEGER PRIMARY KEY, seller INTEGER NOT NULL REFERENCES accounts(id) ON DELETE CASCADE,
+                     title TEXT NOT NULL, description TEXT NOT NULL, category TEXT NOT NULL, price INTEGER NOT NULL, unit TEXT NOT NULL,
+                     pay_to TEXT NOT NULL, created INTEGER NOT NULL, updated INTEGER NOT NULL, open INTEGER NOT NULL);
+                 CREATE TABLE conversations (id INTEGER PRIMARY KEY, listing INTEGER NOT NULL REFERENCES listings(id) ON DELETE CASCADE,
+                     buyer INTEGER NOT NULL REFERENCES accounts(id) ON DELETE CASCADE, seller INTEGER NOT NULL REFERENCES accounts(id) ON DELETE CASCADE,
+                     created INTEGER NOT NULL, updated INTEGER NOT NULL, buyer_read INTEGER NOT NULL DEFAULT 0, seller_read INTEGER NOT NULL DEFAULT 0,
+                     buyer_told INTEGER NOT NULL DEFAULT 0, seller_told INTEGER NOT NULL DEFAULT 0, UNIQUE (listing, buyer));
+                 CREATE TABLE messages (id INTEGER PRIMARY KEY, conversation INTEGER NOT NULL REFERENCES conversations(id) ON DELETE CASCADE,
+                     sender INTEGER NOT NULL REFERENCES accounts(id) ON DELETE CASCADE, body TEXT NOT NULL, kind TEXT NOT NULL DEFAULT 'text',
+                     amount INTEGER, created INTEGER NOT NULL);
+                 INSERT INTO accounts (id, name, handle, created) VALUES (1, 'Maya', 'a', 1), (2, 'Sam', 'b', 1);
+                 INSERT INTO listings VALUES (1, 1, 'Logo', '', 'design', 1, '', '', 1, 1, 1);
+                 INSERT INTO conversations (id, listing, buyer, seller, created, updated) VALUES (7, 1, 2, 1, 1, 1);
+                 INSERT INTO messages (conversation, sender, body, created) VALUES (7, 2, 'Hi', 1);",
+            )
+            .unwrap();
+        }
+        let store = Store::open(&path).unwrap();
+        let mine = store.conversations(2).unwrap();
+        assert_eq!((mine.len(), mine[0].id, mine[0].listing, mine[0].last.as_ref().unwrap().body.as_str()), (1, 7, Some(1), "Hi"));
+        let direct = store.direct_conversation(2, "Maya").unwrap();
+        store.send(direct, 2, "Hello").unwrap();
+        assert_eq!(store.conversations(1).unwrap().len(), 2);
+        drop(store);
+        Store::open(&path).unwrap();
+        let _ = std::fs::remove_file(&path);
+    }
+
     use super::*;
 
     fn draft(title: &str) -> Draft {

@@ -12,7 +12,12 @@ export type Account = {
   wallet_verified?: boolean
   contact: Contact
   created: number
+  /** Who may start a direct conversation with them. Messages about their
+   * listings always come through. */
+  messages_from?: MessagesFrom
 }
+
+export type MessagesFrom = 'everyone' | 'talked' | 'nobody'
 
 export type Contact = { telegram: string; x: string; discord: string }
 
@@ -41,11 +46,12 @@ export type Message = {
 
 export type Conversation = {
   id: number
-  listing: number
-  listing_title: string
-  price: number
-  unit: string
-  pay_to: string
+  /** Null in a direct conversation, which is about no listing. */
+  listing: number | null
+  listing_title: string | null
+  price: number | null
+  unit: string | null
+  pay_to: string | null
   with: number
   with_name: string
   with_picture: string | null

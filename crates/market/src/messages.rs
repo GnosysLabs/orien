@@ -1,5 +1,6 @@
-//! Messages between a buyer and a seller about a listing, kept by the
-//! marketplace. Each conversation is one buyer and one listing.
+//! Messages between two accounts. A conversation is either about a listing
+//! (one buyer and one listing) or direct (two people, no listing; one per
+//! pair, stored with the lower account id as `buyer`).
 
 use crate::store::{Store, clean_text, now};
 use anyhow::{Result, bail};
@@ -44,21 +45,22 @@ impl Kind {
     }
 }
 
-/// A conversation as one side sees it.
+/// A conversation as one side sees it. The listing fields are null in a
+/// direct conversation.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize)]
 pub struct Conversation {
     pub id: i64,
-    pub listing: i64,
-    pub listing_title: String,
-    pub price: u64,
-    pub unit: String,
+    pub listing: Option<i64>,
+    pub listing_title: Option<String>,
+    pub price: Option<u64>,
+    pub unit: Option<String>,
     /// The seller's verified wallet, where payments go.
-    pub pay_to: String,
+    pub pay_to: Option<String>,
     /// The other side: who this account is talking to.
     pub with: i64,
     pub with_name: String,
     pub with_picture: Option<String>,
-    /// Whether this account is the buyer.
+    /// Whether this account is the buyer (always false in a direct conversation).
     pub buying: bool,
     pub last: Option<Message>,
     pub unread: bool,
@@ -71,7 +73,8 @@ pub struct Conversation {
 pub struct Notice {
     pub to_email: String,
     pub from_name: String,
-    pub listing_title: String,
+    /// None in a direct conversation.
+    pub listing_title: Option<String>,
     pub conversation: i64,
 }
 
@@ -167,20 +170,102 @@ impl Store {
         if !open {
             bail!("this listing is closed");
         }
+        self.may_start(buyer)?;
+        let at = now();
+        self.db.execute(
+            "INSERT INTO conversations (listing, buyer, seller, created, updated, starter) VALUES (?1, ?2, ?3, ?4, ?4, ?2)",
+            params![listing, buyer, seller, at],
+        )?;
+        Ok(self.db.last_insert_rowid())
+    }
+
+    /// The direct conversation between `from` and the account named `to`,
+    /// started if need be. Anyone signed in may write to anyone, as about a
+    /// listing; blocks, suspensions and the daily limits still apply.
+    pub fn direct_conversation(&self, from: i64, to: &str) -> Result<i64> {
+        let Some(to) = self.account_by_name(to)? else { bail!("there is no such person") };
+        if to == from {
+            bail!("you cannot message yourself");
+        }
+        if self.is_suspended(to)? {
+            bail!("this account is suspended");
+        }
+        if let Some(why) = self.block_between(from, to)? {
+            bail!(why);
+        }
+        if let Some(id) = self.direct_between(from, to)? {
+            return Ok(id);
+        }
+        if let Some(why) = self.new_messages_refused(from, to)? {
+            bail!(why);
+        }
+        self.may_start(from)?;
+        let (a, b) = (from.min(to), from.max(to));
+        let at = now();
+        self.db.execute(
+            "INSERT INTO conversations (listing, buyer, seller, created, updated, starter) VALUES (NULL, ?1, ?2, ?3, ?3, ?4)",
+            params![a, b, at, from],
+        )?;
+        Ok(self.db.last_insert_rowid())
+    }
+
+    /// The direct conversation two accounts have, if any.
+    fn direct_between(&self, one: i64, other: i64) -> Result<Option<i64>> {
+        Ok(self
+            .db
+            .query_row(
+                "SELECT id FROM conversations WHERE listing IS NULL AND buyer = ?1 AND seller = ?2",
+                params![one.min(other), one.max(other)],
+                |row| row.get(0),
+            )
+            .optional()?)
+    }
+
+    /// Why `to`'s choice of who may message them keeps `from` from starting
+    /// a direct conversation, if it does. "talked" lets in anyone they have
+    /// exchanged a message with before, about a listing or not.
+    fn new_messages_refused(&self, from: i64, to: i64) -> Result<Option<String>> {
+        let (name, choice): (String, String) =
+            self.db.query_row("SELECT name, messages_from FROM accounts WHERE id = ?1", [to], |row| Ok((row.get(0)?, row.get(1)?)))?;
+        let open = match choice.as_str() {
+            "nobody" => false,
+            "talked" => self.db.query_row(
+                "SELECT EXISTS (SELECT 1 FROM conversations c
+                     WHERE ((c.buyer = ?1 AND c.seller = ?2) OR (c.buyer = ?2 AND c.seller = ?1))
+                     AND EXISTS (SELECT 1 FROM messages m WHERE m.conversation = c.id))",
+                params![from, to],
+                |row| row.get(0),
+            )?,
+            _ => true,
+        };
+        Ok((!open).then(|| format!("{name} isn't taking new messages")))
+    }
+
+    /// Whether `viewer` can write to `to` directly now: in the conversation
+    /// they already have, or by starting one. For hiding a Message button.
+    pub fn takes_messages(&self, viewer: i64, to: i64) -> Result<bool> {
+        if viewer == to || self.is_suspended(to)? || self.block_between(viewer, to)?.is_some() {
+            return Ok(false);
+        }
+        Ok(self.direct_between(viewer, to)?.is_some() || self.new_messages_refused(viewer, to)?.is_none())
+    }
+
+    /// Checks `account` may start another conversation today.
+    fn may_start(&self, account: i64) -> Result<()> {
         let started: i64 = self.db.query_row(
-            "SELECT COUNT(*) FROM conversations WHERE buyer = ?1 AND created > ?2",
-            params![buyer, now().saturating_sub(DAY)],
+            "SELECT COUNT(*) FROM conversations WHERE starter = ?1 AND created > ?2",
+            params![account, now().saturating_sub(DAY)],
             |row| row.get(0),
         )?;
         if started >= NEW_CONVERSATIONS_A_DAY {
             bail!("you have started {NEW_CONVERSATIONS_A_DAY} conversations today; you can start more tomorrow");
         }
-        let at = now();
-        self.db.execute(
-            "INSERT INTO conversations (listing, buyer, seller, created, updated) VALUES (?1, ?2, ?3, ?4, ?4)",
-            params![listing, buyer, seller, at],
-        )?;
-        Ok(self.db.last_insert_rowid())
+        Ok(())
+    }
+
+    /// Whether a conversation is about a listing.
+    fn has_listing(&self, conversation: i64) -> Result<bool> {
+        Ok(self.db.query_row("SELECT listing IS NOT NULL FROM conversations WHERE id = ?1", [conversation], |row| row.get(0))?)
     }
 
     /// The two sides of a conversation, if `account` is one of them.
@@ -222,6 +307,9 @@ impl Store {
     /// The seller asks the buyer to pay `amount`.
     pub fn request_payment(&self, conversation: i64, seller: i64, amount: u64) -> Result<(Message, Option<Notice>)> {
         let (_, s) = self.sides(conversation, seller)?;
+        if !self.has_listing(conversation)? {
+            bail!("payment requests are for conversations about a listing");
+        }
         if s != seller {
             bail!("only the seller asks for payment");
         }
@@ -235,6 +323,9 @@ impl Store {
     /// The buyer says they have paid what the seller asked.
     pub fn mark_paid(&self, conversation: i64, buyer: i64, request: i64) -> Result<(Message, Option<Notice>)> {
         let (b, _) = self.sides(conversation, buyer)?;
+        if !self.has_listing(conversation)? {
+            bail!("payment requests are for conversations about a listing");
+        }
         if b != buyer {
             bail!("only the buyer pays");
         }
@@ -269,7 +360,7 @@ impl Store {
         };
         self.db.execute(&format!("UPDATE conversations SET updated = ?2, {read} = ?3 WHERE id = ?1"), params![conversation, at, id])?;
         // The other side is emailed once, until they read the conversation.
-        let notice: Option<(String, String, String, bool)> = self
+        let notice: Option<(String, String, Option<String>, bool)> = self
             .db
             .query_row(
                 &format!(
@@ -277,7 +368,7 @@ impl Store {
                      FROM conversations c
                      JOIN accounts o ON o.id = c.{other}
                      JOIN accounts s ON s.id = ?2
-                     JOIN listings l ON l.id = c.listing
+                     LEFT JOIN listings l ON l.id = c.listing
                      WHERE c.id = ?1"
                 ),
                 params![conversation, sender],
@@ -333,7 +424,7 @@ impl Store {
                     EXISTS (SELECT 1 FROM blocks WHERE blocker = ?1 AND blocked = o.id),
                     l.price, l.unit, l.pay_to, m.kind, m.amount
              FROM conversations c
-             JOIN listings l ON l.id = c.listing
+             LEFT JOIN listings l ON l.id = c.listing
              JOIN accounts o ON o.id = CASE WHEN c.buyer = ?1 THEN c.seller ELSE c.buyer END
              LEFT JOIN messages m ON m.id = (SELECT MAX(id) FROM messages WHERE conversation = c.id)
              WHERE c.buyer = ?1 OR c.seller = ?1
@@ -353,14 +444,15 @@ impl Store {
                 None => None,
             };
             let unread = last.as_ref().is_some_and(|m| m.id > read && m.sender != account);
+            let listing: Option<i64> = row.get(1)?;
             Ok(Conversation {
                 id: row.get(0)?,
-                listing: row.get(1)?,
+                listing,
                 listing_title: row.get(2)?,
-                price: row.get::<_, i64>(15)? as u64,
+                price: row.get::<_, Option<i64>>(15)?.map(|p| p as u64),
                 unit: row.get(16)?,
                 pay_to: row.get(17)?,
-                buying: row.get::<_, i64>(3)? == account,
+                buying: listing.is_some() && row.get::<_, i64>(3)? == account,
                 updated: row.get(5)?,
                 with: row.get(7)?,
                 with_name: row.get(8)?,
@@ -463,6 +555,73 @@ mod tests {
         assert!(store.conversations(maya).unwrap()[0].blocked);
         store.block(c, maya, false).unwrap();
         store.send(c, sam, "Hello again").unwrap();
+    }
+
+    #[test]
+    fn anyone_can_write_to_anyone_in_one_direct_conversation() {
+        let (store, maya, sam, listing) = store_with_listing();
+        assert!(store.direct_conversation(sam, "Sam").is_err(), "not to oneself");
+        assert!(store.direct_conversation(sam, "nobody").is_err());
+        let c = store.direct_conversation(sam, "maya").unwrap();
+        assert_eq!(store.direct_conversation(maya, "Sam").unwrap(), c, "one per pair, whoever starts");
+        assert_ne!(store.conversation_about(sam, listing).unwrap(), c, "apart from the listing's");
+
+        let (_, notice) = store.send(c, sam, "Hi Maya").unwrap();
+        let notice = notice.expect("maya is told");
+        assert_eq!((notice.from_name.as_str(), notice.listing_title), ("Sam", None));
+        let (seen, messages) = store.read(c, maya).unwrap();
+        assert_eq!((seen.listing, seen.listing_title, seen.price, seen.buying), (None, None, None, false));
+        assert_eq!((seen.with_name.as_str(), messages.len()), ("Sam", 1));
+        assert!(store.request_payment(c, maya, 5).is_err(), "payments need a listing");
+        assert!(store.request_payment(c, sam, 5).is_err());
+
+        store.block(c, maya, true).unwrap();
+        assert!(store.send(c, sam, "Hello?").is_err());
+        assert!(store.direct_conversation(sam, "Maya").is_err(), "a block stops it before it starts");
+        store.block(c, maya, false).unwrap();
+        store.suspend(maya, "test").unwrap();
+        assert!(store.direct_conversation(sam, "Maya").is_err(), "not to a suspended account");
+    }
+
+    #[test]
+    fn people_choose_who_may_start_a_conversation_with_them() {
+        let (store, maya, sam, listing) = store_with_listing();
+        let lena = store.create_account("Lena", "lena").unwrap().id;
+        assert!(store.takes_messages(sam, maya).unwrap(), "everyone, by default");
+
+        store.set_messages_from(maya, "nobody").unwrap();
+        let refused = store.direct_conversation(sam, "Maya").unwrap_err().to_string();
+        assert_eq!(refused, "Maya isn't taking new messages");
+        assert!(!store.takes_messages(sam, maya).unwrap());
+        // A listing's messages always come through.
+        let about = store.conversation_about(sam, listing).unwrap();
+        store.send(about, sam, "Is it still available?").unwrap();
+
+        store.set_messages_from(maya, "talked").unwrap();
+        assert!(store.direct_conversation(lena, "Maya").is_err(), "Lena never talked with her");
+        assert!(!store.takes_messages(lena, maya).unwrap());
+        let direct = store.direct_conversation(sam, "Maya").unwrap();
+        assert!(store.takes_messages(sam, maya).unwrap(), "Sam wrote about her listing");
+        store.send(direct, sam, "Hi").unwrap();
+
+        store.set_messages_from(maya, "nobody").unwrap();
+        assert_eq!(store.direct_conversation(sam, "Maya").unwrap(), direct, "an existing conversation goes on");
+        store.send(direct, sam, "Still here").unwrap();
+        assert!(store.takes_messages(sam, maya).unwrap());
+        assert!(store.set_messages_from(maya, "friends").is_err());
+        assert_eq!(store.account(maya).unwrap().unwrap().messages_from, "nobody");
+    }
+
+    #[test]
+    fn direct_conversations_count_toward_the_daily_limit() {
+        let (store, _, sam, _) = store_with_listing();
+        for n in 0..super::NEW_CONVERSATIONS_A_DAY {
+            let name = format!("Person_{n}");
+            store.create_account(&name, &format!("h{n}")).unwrap();
+            store.direct_conversation(sam, &name).unwrap();
+        }
+        store.create_account("One_more", "h99").unwrap();
+        assert!(store.direct_conversation(sam, "One_more").is_err());
     }
 
     #[test]

@@ -396,9 +396,22 @@ impl Handler {
                 .and_then(|m| m.nick.clone())
                 .or_else(|| press.user.global_name.clone())
                 .unwrap_or_else(|| press.user.name.clone());
-            self.greet(ctx, &places, who, &name).await;
+            let mut names = vec![name.as_str(), press.user.name.as_str()];
+            names.extend(press.user.global_name.as_deref());
+            if safety::announcement_like_name(&names) {
+                eprintln!("a new member's name looks like an announcement or staff; no public hello");
+            } else {
+                self.greet(ctx, &places, who, &name).await;
+            }
         }
     }
+}
+
+/// How long an account counts as just joined: no outside links until then.
+const NEW_FOR_SECONDS: i64 = 24 * 60 * 60;
+
+fn chrono_now() -> i64 {
+    std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).map(|d| d.as_secs() as i64).unwrap_or(0)
 }
 
 /// What to tell someone when Discord refuses a role change.
@@ -464,6 +477,22 @@ impl EventHandler for Handler {
             let message = CreateMessage::new().content(warning).allowed_mentions(CreateAllowedMentions::new().users([msg.author.id]));
             if let Err(error) = msg.channel_id.send_message(&ctx.http, message).await {
                 eprintln!("could not post the warning: {error}");
+            }
+            return;
+        }
+        // Join-and-spam: an account that joined in the last day may not post
+        // links to anywhere but Orien's own sites.
+        let joined = msg.member.as_ref().and_then(|m| m.joined_at).map(|at| at.unix_timestamp());
+        let new_here = joined.is_some_and(|at| chrono_now() - at < NEW_FOR_SECONDS);
+        if new_here && (safety::has_outside_link(&msg.content) || !msg.embeds.is_empty() && msg.embeds.iter().any(|e| e.url.as_deref().is_some_and(|u| safety::has_outside_link(u)))) {
+            let removed = msg.delete(&ctx.http).await.is_ok();
+            eprintln!("{} joined less than a day ago and posted a link; {}", msg.author.name, if removed { "removed" } else { "could not remove it" });
+            if removed {
+                let note = format!("<@{}> I removed your message: new members can post links after their first day here.", msg.author.id);
+                let message = CreateMessage::new().content(note).allowed_mentions(CreateAllowedMentions::new().users([msg.author.id]));
+                if let Err(error) = msg.channel_id.send_message(&ctx.http, message).await {
+                    eprintln!("could not post the note about the removed link: {error}");
+                }
             }
             return;
         }

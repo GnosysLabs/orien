@@ -225,7 +225,7 @@ function Happening({ post }: { post: Post }) {
               {String(post.data.hours)} hours in a row 🔥
             </p>
             <p className="mt-1.5 text-ink">
-              <Name person={post.subject} /> has been paid at every checkpoint for {Number(post.data.hours) >= 48 ? `${Number(post.data.hours) / 24} days` : 'a whole day'}.
+              <Name person={post.subject} /> has been paid at every checkpoint for {String(post.data.hours)} hours.
             </p>
             <p className="mt-1">{checkpoint}</p>
           </div>
@@ -282,7 +282,7 @@ function Composer({ me, parent, onPosted, autoFocus = false }: { me: You; parent
           onChange={(e) => setBody(e.target.value.slice(0, MAX))}
           rows={1}
           autoFocus={autoFocus}
-          placeholder={parent ? 'Post your reply' : 'What’s happening on Orien?'}
+          placeholder={parent ? 'Post your reply' : 'What’s happening?'}
           className={`w-full resize-none bg-transparent py-2 text-ink outline-none placeholder:text-muted ${parent ? 'text-[15px]' : 'text-lg'}`}
         />
         {trouble && <Notice tone="bad">{trouble.charAt(0).toUpperCase() + trouble.slice(1)}</Notice>}

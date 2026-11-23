@@ -46,7 +46,7 @@ export function MarketBar() {
         <div className="ml-auto flex items-center gap-2">
           {account && (
             <Link
-              href="/marketplace/messages/"
+              href="/messages/"
               aria-label={unread ? `Messages, ${unread} unread` : "Messages"}
               className="relative flex h-10 items-center gap-2 rounded-xl border border-line bg-surface px-3 text-sm font-semibold text-ink transition hover:bg-raised"
             >

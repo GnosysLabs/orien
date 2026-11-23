@@ -24,7 +24,11 @@ import { AutoTextarea } from '@/components/AutoTextarea'
 
 /** Conversations on the left and the open one on the right; one at a time on a phone. */
 export function Messages() {
-  const open = useSearchParams().get('c')
+  const params = useSearchParams()
+  const open = params.get('c')
+  // ?to=NAME, from a profile's Message button: their conversation, or a new one.
+  const to = open ? null : params.get('to')
+  const router = useRouter()
   const [conversations, setConversations] = useState<Conversation[] | null>(null)
   const [signedOut, setSignedOut] = useState(false)
   const [trouble, setTrouble] = useState('')
@@ -46,6 +50,12 @@ export function Messages() {
     return () => clearInterval(timer)
   }, [loadList])
 
+  // Someone you already talk to: their conversation opens instead.
+  useEffect(() => {
+    const existing = existingWith(conversations, to)
+    if (existing) router.replace(`/messages/?c=${existing.id}`)
+  }, [conversations, to, router])
+
   if (signedOut) {
     return (
       <Notice>
@@ -58,22 +68,24 @@ export function Messages() {
   }
   if (trouble) return <Notice tone="bad">{trouble}</Notice>
   if (!conversations) return <p className="text-muted">Loading…</p>
+  if (existingWith(conversations, to)) return <p className="text-muted">Loading…</p>
+  const right = open ?? to
 
   return (
     <div className="space-y-3">
-      <div className="grid h-[calc(100dvh-13rem)] min-h-[520px] overflow-hidden rounded-2xl border border-line bg-surface lg:grid-cols-[320px_minmax(0,1fr)]">
-        <aside className={`min-h-0 flex-col border-line lg:flex lg:border-r ${open ? 'hidden' : 'flex'}`}>
+      <div className="grid h-[calc(100dvh-15.5rem)] min-h-[480px] lg:h-[calc(100dvh-12rem)] overflow-hidden rounded-2xl border border-line bg-surface lg:grid-cols-[320px_minmax(0,1fr)]">
+        <aside className={`min-h-0 flex-col border-line lg:flex lg:border-r ${right ? 'hidden' : 'flex'}`}>
           <h1 className="border-b border-line px-5 py-4 text-lg font-bold tracking-tight text-ink">Messages</h1>
           {conversations.length === 0 ? (
             <p className="p-5 text-sm leading-relaxed text-muted">
-              No messages yet. To ask a seller something, open their listing and write to them there.
+              No messages yet. To write to someone, open their profile and press Message.
             </p>
           ) : (
             <ul className="min-h-0 flex-1 overflow-y-auto">
               {conversations.map((c) => (
                 <li key={c.id}>
                   <Link
-                    href={`/marketplace/messages/?c=${c.id}`}
+                    href={`/messages/?c=${c.id}`}
                     className={`flex items-center gap-3 border-b border-line/60 px-4 py-3.5 transition ${
                       String(c.id) === open ? 'bg-raised' : 'hover:bg-raised/50'
                     }`}
@@ -84,7 +96,7 @@ export function Messages() {
                         <span className={`truncate text-sm ${c.unread ? 'font-bold' : 'font-semibold'} text-ink`}>{c.with_name}</span>
                         <span className="ml-auto shrink-0 text-[11px] text-muted">{c.last && ago(c.last.created)}</span>
                       </div>
-                      <p className="truncate text-xs text-muted">{c.listing_title}</p>
+                      {c.listing_title && <p className="truncate text-xs text-muted">{c.listing_title}</p>}
                       <p className={`truncate text-sm ${c.unread ? 'text-ink' : 'text-muted'}`}>{c.last?.body}</p>
                     </div>
                     {c.unread && <span className="h-2.5 w-2.5 shrink-0 rounded-full bg-pearl" aria-label="Unread" />}
@@ -94,9 +106,11 @@ export function Messages() {
             </ul>
           )}
         </aside>
-        <section className={`min-h-0 flex-col lg:flex ${open ? 'flex' : 'hidden'}`}>
+        <section className={`min-h-0 flex-col lg:flex ${right ? 'flex' : 'hidden'}`}>
           {open ? (
             <Thread key={open} id={open} onChange={loadList} />
+          ) : to ? (
+            <NewThread key={to} name={to} onSent={loadList} />
           ) : (
             <div className="flex flex-1 flex-col items-center justify-center gap-3 p-8 text-center text-muted">
               <MessageCircle className="h-8 w-8 text-pearl/50" strokeWidth={1.5} aria-hidden />
@@ -106,11 +120,17 @@ export function Messages() {
         </section>
       </div>
       <p className="px-1 text-xs leading-relaxed text-muted">
-        Messages are kept by the Market so both of you can read them, and can be read by its operator, as on most
-        marketplaces. Never share your recovery phrase with anyone.
+        Messages are kept by Orien Network so both of you can read them, and can be read by its operator, as on
+        most websites. Never share your recovery phrase with anyone.
       </p>
     </div>
   )
+}
+
+/** The direct conversation with `name`, if there is one. */
+function existingWith(conversations: Conversation[] | null, name: string | null) {
+  if (!conversations || !name) return undefined
+  return conversations.find((c) => c.listing === null && c.with_name.toLowerCase() === name.toLowerCase())
 }
 
 type Found = { conversation: Conversation; messages: Message[]; me: number }
@@ -150,7 +170,8 @@ function Thread({ id, onChange }: { id: string; onChange: () => void }) {
   if (trouble && !found) return <div className="p-6"><Notice tone="bad">{trouble}</Notice></div>
   if (!found) return <p className="p-6 text-muted">Loading…</p>
   const { conversation: c, messages, me } = found
-  const selling = !c.buying
+  // Payment requests belong to a listing: a direct conversation has none.
+  const selling = c.listing !== null && !c.buying
 
   const act = async (path: string, body: unknown) => {
     setSending(true)
@@ -191,21 +212,21 @@ function Thread({ id, onChange }: { id: string; onChange: () => void }) {
   return (
     <>
       <header className="flex flex-wrap items-center gap-3 border-b border-line px-4 py-3">
-        <Link href="/marketplace/messages/" className="text-muted hover:text-ink lg:hidden" aria-label="All messages">
+        <Link href="/messages/" className="text-muted hover:text-ink lg:hidden" aria-label="All messages">
           <ArrowLeft className="h-5 w-5" />
         </Link>
         <Link href={profileHref(c.with_name)} className="flex min-w-0 items-center gap-3">
           <Avatar name={c.with_name} picture={c.with_picture} size={38} />
           <span className="flex min-w-0 flex-col">
             <span className="truncate font-semibold text-ink hover:underline">{c.with_name}</span>
-            <span className="text-xs text-muted">{c.buying ? 'Seller' : 'Buyer'}</span>
+            {c.listing !== null && <span className="text-xs text-muted">{c.buying ? 'Seller' : 'Buyer'}</span>}
           </span>
         </Link>
         <div className="ml-auto flex items-center gap-2">
           {selling && !c.blocked && (
             <button
               type="button"
-              onClick={() => setAsking(asking === null ? plainOrn(c.price) : null)}
+              onClick={() => setAsking(asking === null ? plainOrn(c.price ?? 0) : null)}
               className="pearl-fill flex h-9 items-center gap-1.5 rounded-lg px-3 text-sm font-bold"
             >
               <Wallet className="h-4 w-4" aria-hidden /> Ask for payment
@@ -223,6 +244,7 @@ function Thread({ id, onChange }: { id: string; onChange: () => void }) {
         </div>
       </header>
 
+      {c.listing !== null && (
       <Link
         href={`/marketplace/listing/?id=${c.listing}`}
         className="flex items-center justify-between gap-3 border-b border-line bg-bg/40 px-4 py-2.5 text-sm hover:bg-raised/40"
@@ -231,9 +253,10 @@ function Thread({ id, onChange }: { id: string; onChange: () => void }) {
           About <span className="font-semibold text-ink">{c.listing_title}</span>
         </span>
         <span className="num shrink-0 font-semibold text-ink">
-          {formatOrn(c.price)} ORN{c.unit && <span className="font-normal text-muted"> {perUnit(c.unit)}</span>}
+          {formatOrn(c.price ?? 0)} ORN{c.unit && <span className="font-normal text-muted"> {perUnit(c.unit)}</span>}
         </span>
       </Link>
+      )}
 
       {asking !== null && (
         <form onSubmit={requestPayment} className="flex flex-wrap items-center gap-3 border-b border-line bg-raised/40 px-4 py-3">
@@ -322,6 +345,84 @@ function Thread({ id, onChange }: { id: string; onChange: () => void }) {
   )
 }
 
+/** The first message to someone, opened from their profile. */
+function NewThread({ name, onSent }: { name: string; onSent: () => void }) {
+  const router = useRouter()
+  const [person, setPerson] = useState<{ name: string; picture: string | null } | null>(null)
+  const [draft, setDraft] = useState('')
+  const [sending, setSending] = useState(false)
+  const [trouble, setTrouble] = useState('')
+
+  useEffect(() => {
+    ask<{ account: { name: string; picture: string | null } }>(`/users/${encodeURIComponent(name)}`)
+      .then((found) => setPerson(found.account))
+      .catch((error) => setTrouble(error instanceof MarketError && error.status === 404 ? 'There is nobody with that name.' : sentence(error.message)))
+  }, [name])
+
+  if (trouble && !person) return <div className="p-6"><Notice tone="bad">{trouble}</Notice></div>
+  if (!person) return <p className="p-6 text-muted">Loading…</p>
+
+  const send = async (event: React.FormEvent) => {
+    event.preventDefault()
+    if (!draft.trim()) return
+    setSending(true)
+    setTrouble('')
+    try {
+      const sent = await ask<{ conversation: number }>(`/users/${encodeURIComponent(person.name)}/messages`, 'POST', { body: draft })
+      onSent()
+      router.replace(`/messages/?c=${sent.conversation}`)
+    } catch (error) {
+      setTrouble(sentence((error as Error).message))
+      setSending(false)
+    }
+  }
+
+  return (
+    <>
+      <header className="flex items-center gap-3 border-b border-line px-4 py-3">
+        <Link href="/messages/" className="text-muted hover:text-ink lg:hidden" aria-label="All messages">
+          <ArrowLeft className="h-5 w-5" />
+        </Link>
+        <Link href={profileHref(person.name)} className="flex min-w-0 items-center gap-3">
+          <Avatar name={person.name} picture={person.picture} size={38} />
+          <span className="truncate font-semibold text-ink hover:underline">{person.name}</span>
+        </Link>
+      </header>
+      <div className="flex min-h-0 flex-1 flex-col items-center justify-center gap-3 p-8 text-center text-muted">
+        <MessageCircle className="h-8 w-8 text-pearl/50" strokeWidth={1.5} aria-hidden />
+        <p>Write your first message to {person.name}.</p>
+      </div>
+      {trouble && <div className="px-4 pb-2"><Notice tone="bad">{trouble}</Notice></div>}
+      <form onSubmit={send} className="flex items-end gap-2 border-t border-line p-3">
+        <AutoTextarea
+          value={draft}
+          onChange={(e) => setDraft(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' && !e.shiftKey) {
+              e.preventDefault()
+              e.currentTarget.form?.requestSubmit()
+            }
+          }}
+          maxLength={2000}
+          rows={1}
+          maxRows={6}
+          autoFocus
+          placeholder={`Write to ${person.name}`}
+          className="max-h-40 min-h-11 flex-1 resize-none rounded-xl border border-line bg-bg px-4 py-2.5 text-ink outline-none focus:border-pearl/60"
+        />
+        <button
+          type="submit"
+          disabled={sending || !draft.trim()}
+          aria-label="Send"
+          className="pearl-fill flex h-11 w-11 shrink-0 items-center justify-center rounded-xl disabled:opacity-50"
+        >
+          <Send className="h-4 w-4" aria-hidden />
+        </button>
+      </form>
+    </>
+  )
+}
+
 /** A seller's payment request, in the chat. The buyer pays from here. */
 function RequestCard({
   message,
@@ -363,8 +464,8 @@ function RequestCard({
               cannot be undone.
             </p>
             <CopyText label="Amount" text={`${plainOrn(amount)} ORN`} />
-            <CopyText label={`${c.with_name}'s address`} text={c.pay_to} />
-            <CopyText label="Or with orien" text={`orien send --to ${c.pay_to} --amount ${plainOrn(amount)}`} />
+            <CopyText label={`${c.with_name}'s address`} text={c.pay_to ?? ''} />
+            <CopyText label="Or with orien" text={`orien send --to ${c.pay_to ?? ''} --amount ${plainOrn(amount)}`} />
             <button type="button" onClick={onPaid} className="pearl-fill h-11 w-full rounded-xl text-sm font-bold">
               I&apos;ve paid
             </button>
@@ -405,7 +506,7 @@ export function MessageSeller({ listing, seller, signedIn }: { listing: number; 
     setTrouble('')
     try {
       const sent = await ask<{ conversation: number }>(`/listings/${listing}/messages`, 'POST', { body: draft })
-      router.push(`/marketplace/messages/?c=${sent.conversation}`)
+      router.push(`/messages/?c=${sent.conversation}`)
     } catch (error) {
       setTrouble(sentence((error as Error).message))
       setSending(false)

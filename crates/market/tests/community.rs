@@ -237,15 +237,51 @@ async fn past_days_top_miners_are_filled_in_once_the_rule_knows_them() {
     store_for_tests(&app, |s| s.tell(&mined, &HashMap::new()).unwrap());
     let (_, feed) = ask(&app, "GET", "/api/market/community/feed?only=network", None, None).await;
     assert!(feed["posts"].as_array().unwrap().iter().all(|p| p["kind"] != "top_day"));
-    // Alice verifies address 1: the day is filled in, dated at the checkpoint that closed it, once.
+    // Alice verifies address 1 later: the day is filled in, dated at the
+    // checkpoint that closed it, with her milestones and streak, each where
+    // it happened. Once: told again, nothing is added.
     let owners = HashMap::from([(address(1), alice_id)]);
-    assert_eq!(store_for_tests(&app, |s| s.tell_days(&mined, &owners).unwrap()), 1);
-    assert_eq!(store_for_tests(&app, |s| s.tell_days(&mined, &owners).unwrap()), 0);
+    assert_eq!(store_for_tests(&app, |s| s.tell_late(&mined, &owners).unwrap()), 4);
+    assert_eq!(store_for_tests(&app, |s| s.tell_late(&mined, &owners).unwrap()), 0);
     let (_, feed) = ask(&app, "GET", "/api/market/community/feed?only=network", None, None).await;
-    let tops: Vec<&Value> = feed["posts"].as_array().unwrap().iter().filter(|p| p["kind"] == "top_day").collect();
+    let posts = feed["posts"].as_array().unwrap();
+    let tops: Vec<&Value> = posts.iter().filter(|p| p["kind"] == "top_day").collect();
     assert_eq!(tops.len(), 1);
     assert_eq!(tops[0]["created"], closed_the_day);
     assert_eq!(tops[0]["subject"]["name"], "Alice");
+    let hers = |kind: &str| -> Vec<(Value, Value)> {
+        posts
+            .iter()
+            .filter(|p| p["kind"] == kind && p["subject"]["name"] == "Alice")
+            .map(|p| (p["data"]["epoch"].clone(), p["created"].clone()))
+            .collect()
+    };
+    let mut milestones = hers("milestone");
+    milestones.sort_by_key(|(e, _)| e.as_u64());
+    assert_eq!(milestones, vec![(json!(19), json!(times_at(&mined, 19))), (json!(34), json!(times_at(&mined, 34)))], "100 and 250 ORN");
+    assert_eq!(hers("streak"), vec![(json!(33), json!(times_at(&mined, 33)))], "24 hours in a row");
+}
+
+fn times_at(mined: &Mined, epoch: u64) -> u64 {
+    mined.times[&epoch]
+}
+
+#[tokio::test]
+async fn a_welcome_card_shows_who_verified_its_wallet_since() {
+    let app = market();
+    sign_in_for_tests(&app, "Cara");
+    let cara = store_for_tests(&app, |s| s.account_id_for_tests("Cara"));
+    // Told while nobody had verified address 3: its face is just the address.
+    store_for_tests(&app, |s| s.tell(&mined(), &HashMap::new()).unwrap());
+    let face = |feed: &Value| {
+        let welcome = feed["posts"].as_array().unwrap().iter().find(|p| p["kind"] == "welcome").expect("a welcome card").clone();
+        welcome["data"]["miners"].as_array().unwrap().iter().find(|m| m["address"] == address(3)).expect("c on it").clone()
+    };
+    let (_, feed) = ask(&app, "GET", "/api/market/community/feed?only=network", None, None).await;
+    assert!(face(&feed)["name"].is_null());
+    store_for_tests(&app, |s| s.verified_wallet_for_tests(cara, &address(3)).unwrap());
+    let (_, feed) = ask(&app, "GET", "/api/market/community/feed?only=network", None, None).await;
+    assert_eq!(face(&feed)["name"], "Cara");
 }
 
 #[test]

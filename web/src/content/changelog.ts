@@ -28,6 +28,25 @@ export const CHANGELOG: Entry[] = [
   {
     date: '2026-11-23',
     products: ['network'],
+    title: 'Your mining story, even if you verified your wallet later',
+    changes: [
+      'When you verify a wallet, the community fills in what the network would have said about it before: your mining milestones, your streaks, and days you were the top miner that had none. Each is dated when it happened.',
+      'Welcome cards show your name and picture on a wallet you verified after it was welcomed.',
+    ],
+  },
+  {
+    date: '2026-11-23',
+    products: ['marketplace'],
+    title: 'Message anyone, and choose who can message you',
+    changes: [
+      'Messages has its own place at orien.network/messages/, with a Messages button beside the notifications, and is no longer only for the Market.',
+      'Every profile has a Message button: write to anyone with an Orien Network account, not only about a listing. Blocks work as before, and messages about a listing keep their payment requests.',
+      'Your profile settings choose who can message you: everyone, people you’ve talked with, or no one. Messages about your Market listings always come through, and conversations you already have go on.',
+    ],
+  },
+  {
+    date: '2026-11-23',
+    products: ['network'],
     title: 'A calmer network map',
     changes: [
       'The network map flags packet loss between two validators only when it lasts: one lossy test round shows as a brief blip, and a notice appears after 30 minutes in a row. A validator that stops answering still stands out.',

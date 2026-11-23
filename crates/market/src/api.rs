@@ -340,6 +340,7 @@ pub fn router(app: Arc<App>) -> Router {
         .route("/api/market/profiles/{id}", get(profile))
         .route("/api/market/accounts/{id}/block", post(block_account))
         .route("/api/market/users/{name}", get(user))
+        .route("/api/market/users/{name}/messages", post(message_person))
         .route("/api/market/listings/{id}/messages", post(message_seller))
         .route(
             "/api/market/listings/{id}/pictures",
@@ -652,6 +653,15 @@ async fn message_seller(State(app): State<Arc<App>>, headers: HeaderMap, Path(li
         store.conversation_about(buyer, listing).map_err(refused)?
     };
     deliver(&app, conversation, buyer, &request.body).await
+}
+
+/// The first message to anyone, by name, or the next one in the direct
+/// conversation the two already have. Answers as `message_seller` does.
+async fn message_person(State(app): State<Arc<App>>, headers: HeaderMap, Path(name): Path<String>, Json(request): Json<Write>) -> Answer {
+    let sender = app.signed_in(&headers)?;
+    Store::message_text(&request.body).map_err(refused)?;
+    let conversation = app.store.lock().unwrap().direct_conversation(sender, &name).map_err(refused)?;
+    deliver(&app, conversation, sender, &request.body).await
 }
 
 async fn reply(State(app): State<Arc<App>>, headers: HeaderMap, Path(id): Path<i64>, Json(request): Json<Write>) -> Answer {
@@ -1205,17 +1215,31 @@ struct ProfileText {
     bio: String,
     #[serde(default)]
     contact: store::Contact,
+    /// Who may message the account; left as it is when absent (older apps).
+    #[serde(default)]
+    messages_from: Option<String>,
 }
 
 async fn edit_profile(State(app): State<Arc<App>>, headers: HeaderMap, Json(request): Json<ProfileText>) -> Answer {
     let id = app.signed_in(&headers)?;
     let (name, bio) = store::profile_text(&request.name, &request.bio).map_err(refused)?;
     let contact = request.contact.checked().map_err(refused)?;
+    if let Some(choice) = &request.messages_from
+        && !store::MESSAGES_FROM.contains(&choice.as_str())
+    {
+        return Err(Failure::Refused("who can message you is everyone, talked or nobody".into()));
+    }
     // The usernames are public too, so they are read with the bio.
     let handles = format!("{bio}\n\nTelegram: {}\nX: {}\nDiscord: {}", contact.telegram, contact.x, contact.discord);
     let n = name.clone();
     screened(&app, "profile", move |s| s.profile(&n, &handles)).await?;
-    let account = app.store.lock().unwrap().set_profile(id, &name, &bio, &contact).map_err(refused)?;
+    let account = {
+        let store = app.store.lock().unwrap();
+        if let Some(choice) = &request.messages_from {
+            store.set_messages_from(id, choice).map_err(refused)?;
+        }
+        store.set_profile(id, &name, &bio, &contact).map_err(refused)?
+    };
     Ok(Json(json!({ "account": account })).into_response())
 }
 
@@ -1317,6 +1341,8 @@ async fn profile(State(app): State<Arc<App>>, headers: HeaderMap, Path(id): Path
     // Signed in: whether you've blocked this person.
     if let Some(viewer) = viewer {
         answer["blocked"] = json!(store.blocked_by(viewer, id)?);
+        // Whether a Message button would work: their choice, blocks, yourself.
+        answer["takes_messages"] = json!(store.takes_messages(viewer, id)?);
     }
     Ok(Json(answer).into_response())
 }

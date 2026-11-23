@@ -1,6 +1,7 @@
 'use client'
 
 import { Fragment, useEffect, useRef, useState } from 'react'
+import { usePathname } from 'next/navigation'
 import { ArrowUp, MessageCircleQuestion, RotateCcw, X } from 'lucide-react'
 import { DISCORD } from '@/lib/brand'
 
@@ -84,6 +85,7 @@ function Answer({ text }: { text: string }) {
 }
 
 export function AskOrien() {
+  const pathname = usePathname()
   const [open, setOpen] = useState(false)
   const [messages, setMessages] = useState<Msg[]>([])
   const [input, setInput] = useState('')
@@ -171,9 +173,12 @@ export function AskOrien() {
     field.current?.focus()
   }
 
+  // Not over a chat, whose send button sits in the same corner.
+  const chat = pathname.startsWith('/messages')
+
   return (
     <>
-      {!open && (
+      {!open && !chat && (
         // Above the phone's bottom bar; in the corner on larger screens.
         <div className="fixed bottom-[calc(5.5rem+env(safe-area-inset-bottom))] right-4 z-40 print:hidden sm:right-6 lg:bottom-6">
           <button

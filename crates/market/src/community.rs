@@ -24,7 +24,6 @@ use rusqlite::{OptionalExtension, params};
 use serde::{Deserialize, Serialize};
 use serde_json::{Value, json};
 use std::collections::{HashMap, HashSet};
-use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::{Arc, Mutex};
 use std::time::Duration;
 
@@ -91,8 +90,9 @@ pub struct MinerRow {
 #[derive(Default)]
 pub struct Community {
     board: Mutex<Option<Board>>,
-    /// Whether past days' top miners have been filled in since this start.
-    days_told: AtomicBool,
+    /// The verified wallets the late posts were last filled in for: they
+    /// are filled in again whenever someone verifies a wallet.
+    owners_told: Mutex<Option<Vec<(String, i64)>>>,
 }
 
 /// Each miner's total and streak, and which miners each checkpoint paid.
@@ -560,6 +560,24 @@ impl Store {
     /// mentions (`miners[].account`, `miner.account`), so names follow
     /// renames. Suspended accounts lose their face.
     fn name_faces(&self, posts: &mut [Value]) -> Result<()> {
+        // A face shown by its address whose wallet someone has verified
+        // since becomes theirs.
+        let owners = self.wallet_owners()?;
+        let claim = |v: &mut Value| {
+            if v.get("account").is_none()
+                && let Some(id) = v.get("address").and_then(Value::as_str).and_then(|a| owners.get(a))
+            {
+                v["account"] = json!(id);
+            }
+        };
+        for post in posts.iter_mut() {
+            if let Some(list) = post["data"]["miners"].as_array_mut() {
+                list.iter_mut().for_each(claim);
+            }
+            if post["data"]["miner"].is_object() {
+                claim(&mut post["data"]["miner"]);
+            }
+        }
         let mut ids: Vec<i64> = Vec::new();
         let mut visit = |v: &Value| {
             if let Some(id) = v.get("account").and_then(Value::as_i64) {
@@ -640,23 +658,31 @@ impl Store {
         Ok(())
     }
 
-    /// Fills in the top miner of each past day that has no post yet, dated
-    /// at the checkpoint that closed the day. Days are checked one by one,
-    /// so this can run again and again without saying anything twice: it
-    /// catches days the rule for the post has changed since.
-    pub fn tell_days(&self, mined: &Mined, owners: &HashMap<String, i64>) -> Result<usize> {
+    /// Fills in what the network would have said had today's verified
+    /// wallets been verified all along: the milestones and streaks of
+    /// someone who verified their wallet after they started mining, and
+    /// the top miner of each past day that has no post yet. Each is dated
+    /// at its own checkpoint, so it sits in the feed where it happened.
+    /// A day that already has its top miner keeps it. Nothing is said
+    /// twice, a post taken down included, so this can run again and again.
+    pub fn tell_late(&self, mined: &Mined, owners: &HashMap<String, i64>) -> Result<usize> {
         let mut added = 0;
         for epoch in (mined.since + 1)..=mined.upto {
             for (kind, subject, data) in happenings(mined, owners, epoch) {
-                if kind != "top_day" {
-                    continue;
-                }
-                let day = data["day"].as_str().unwrap_or_default();
-                let posted: bool = self.db.query_row(
-                    "SELECT COUNT(*) > 0 FROM posts WHERE kind = 'top_day' AND json_extract(data, '$.day') = ?1",
-                    [day],
-                    |row| row.get(0),
-                )?;
+                let posted: bool = match (kind.as_str(), subject) {
+                    ("top_day", _) => self.db.query_row(
+                        "SELECT COUNT(*) > 0 FROM posts WHERE kind = 'top_day' AND json_extract(data, '$.day') = ?1",
+                        [data["day"].as_str().unwrap_or_default()],
+                        |row| row.get(0),
+                    )?,
+                    ("milestone" | "streak", Some(account)) => self.db.query_row(
+                        "SELECT COUNT(*) > 0 FROM posts WHERE kind = ?1 AND subject = ?2 AND json_extract(data, '$.epoch') = ?3",
+                        params![kind, account, epoch as i64],
+                        |row| row.get(0),
+                    )?,
+                    // Records and welcome cards are about everyone, and were said at the time.
+                    _ => true,
+                };
                 if !posted {
                     let at = mined.times.get(&epoch).copied().unwrap_or_else(now);
                     self.add_happening(&kind, subject, &data, at)?;
@@ -690,13 +716,22 @@ impl Community {
         if let Err(error) = store.tell(&mined, &owners) {
             eprintln!("community: could not post the network's news: {error:#}");
         }
-        if !self.days_told.swap(true, Ordering::SeqCst) {
-            match store.tell_days(&mined, &owners) {
-                Ok(added) if added > 0 => eprintln!("community: filled in {added} past days' top miners"),
-                Ok(_) => {}
-                Err(error) => eprintln!("community: could not fill in past days: {error:#}"),
+        // On start, and whenever someone verifies (or loses) a wallet.
+        let mut now_owners: Vec<(String, i64)> = owners.iter().map(|(a, id)| (a.clone(), *id)).collect();
+        now_owners.sort();
+        let mut told = self.owners_told.lock().unwrap();
+        if told.as_ref() != Some(&now_owners) {
+            match store.tell_late(&mined, &owners) {
+                Ok(added) => {
+                    if added > 0 {
+                        eprintln!("community: filled in {added} posts from before wallets were verified");
+                    }
+                    *told = Some(now_owners);
+                }
+                Err(error) => eprintln!("community: could not fill in past posts: {error:#}"),
             }
         }
+        drop(told);
         drop(store);
         *self.board.lock().unwrap() = Some(board(&mined, &owners, &names));
     }

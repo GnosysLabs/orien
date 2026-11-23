@@ -53,6 +53,43 @@ pub fn looks_like_question(text: &str) -> bool {
     OPENERS.iter().any(|opener| lower.strip_prefix(opener).is_some_and(|rest| rest.starts_with(' ')))
 }
 
+/// Whether a message carries a link to anywhere but Orien's own sites. A
+/// masked link like [MINT HERE](https://...) still holds its address, and
+/// Discord turns bare "www." and invite addresses into links too.
+pub fn has_outside_link(text: &str) -> bool {
+    let lower = text.to_lowercase();
+    if lower.contains("discord.gg/") || lower.contains("discord.com/invite") {
+        return true;
+    }
+    let ours = |host: &str| host == "orien.network" || host.ends_with(".orien.network");
+    let mut rest = lower.as_str();
+    while let Some(at) = ["http://", "https://", "www."].iter().filter_map(|start| rest.find(start).map(|i| (i, start.len()))).min() {
+        let after = &rest[at.0 + at.1..];
+        let host: String = after.chars().take_while(|c| c.is_alphanumeric() || *c == '.' || *c == '-').collect();
+        let host = host.trim_start_matches("www.").trim_end_matches('.');
+        if !ours(host) {
+            return true;
+        }
+        rest = &after[host.len().min(after.len())..];
+    }
+    false
+}
+
+/// Whether a name dresses up as an announcement or as staff, like
+/// "🎉|community giveaway" or "Support Team": the bot gives such a name no
+/// public welcome, so its hello cannot make a scam look vouched for.
+pub fn announcement_like_name(names: &[&str]) -> bool {
+    const WORDS: [&str; 22] = [
+        "giveaway", "giveaways", "airdrop", "airdrops", "announcement", "announcements", "mint", "minting", "claim", "reward",
+        "rewards", "support", "helpdesk", "admin", "admins", "moderator", "mod", "mods", "official", "staff", "ticket", "verify",
+    ];
+    names.iter().any(|name| {
+        let lower = name.to_lowercase();
+        let words: Vec<&str> = lower.split(|c: char| !c.is_alphanumeric()).filter(|w| !w.is_empty()).collect();
+        words.iter().any(|w| WORDS.contains(w)) || lower.contains("community giveaway") || words.windows(2).any(|p| p == ["orien", "team"] || p == ["the", "team"])
+    })
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -89,5 +126,19 @@ mod tests {
         assert!(!looks_like_question("gm"));
         assert!(!looks_like_question("nice, got my first coins today"));
         assert!(!looks_like_question("however you like"));
+    }
+
+    #[test]
+    fn outside_links_and_dressed_up_names() {
+        assert!(has_outside_link("🎉 free Mint with OpenSea [MINT HERE](https://opensea-mint.xyz/claim)"));
+        assert!(has_outside_link("go to www.free-orn.com now"));
+        assert!(has_outside_link("join discord.gg/abc"));
+        assert!(has_outside_link("see https://orien.network.evil.com/x"));
+        assert!(!has_outside_link("my wallet: https://explorer.orien.network/address/abc/ and https://orien.network/try/"));
+        assert!(!has_outside_link("how do I start mining?"));
+        assert!(announcement_like_name(&["🎉|community giveaway"]));
+        assert!(announcement_like_name(&["Orien Support"]));
+        assert!(announcement_like_name(&["Luna", "airdrop_bot"]));
+        assert!(!announcement_like_name(&["Luna", "minty_fresh", "Steamboat Willie"]));
     }
 }
