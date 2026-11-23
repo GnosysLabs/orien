@@ -7816,7 +7816,9 @@
     return false;
   }
   function busyNow() {
-    return swapList.some((s) => !s.finished) || board.waiting.length > 0 || !!board.taking || !!mineBench
+    // Offers still open on the board can wait for a buyer for days: only
+    // ones someone has taken count.
+    return swapList.some((s) => !s.finished) || board.waiting.some((x) => x.offer.state !== "open") || !!board.taking || !!mineBench
       || !$("si-veil").hidden || !$("upd-veil").hidden || typedSomewhere();
   }
   async function updateByItself() {
