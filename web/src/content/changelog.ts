@@ -27,6 +27,19 @@ export const PRODUCTS: Record<Product, string> = {
 export const CHANGELOG: Entry[] = [
   {
     date: '2026-11-23',
+    products: ['wallet'],
+    version: '1.8.27',
+    title: 'Contacts that are people, and verifying wallets works again',
+    changes: [
+      'Verifying a wallet on your profile works again in the app: since November 17 its Verify button did nothing when tapped. Sorry about that.',
+      'Add any Orien Network member to your contacts from their profile. Their card shows every wallet they verify, now or later, each with Send, and wallets of theirs you had saved join the same card.',
+      'Messages: delete a conversation from its ⋯ menu, and what you type stays with its own conversation. Your profile has Manage blocks, and people you block stay out of Contacts and Send.',
+      'Swap offers come from a verified wallet: the sell screen offers to verify yours right there. A taken offer your wallet can no longer cover is withdrawn at once, and offers from sellers whose wallet is closed show Seller offline.',
+      'Find members on narrow windows, older posts load as you scroll, red bin buttons for deleting, Sign out on your profile, and many small fixes to spacing.',
+    ],
+  },
+  {
+    date: '2026-11-23',
     products: ['marketplace'],
     title: 'Swap offers you can actually take',
     changes: [
