@@ -6610,6 +6610,7 @@
     $("ls-ask").disabled = false;
     if (found) return openChat(found.id, "listing");
     chat.id = null; chat.from = "listing"; chat.paying = null; chat.blockArmed = false; chat.key = null;
+    swapDraft(`l${l.id}`);
     chat.draft = l.id; chat.direct = null;
     chat.conv = { listing: l.id, listing_title: l.title, price: l.price, unit: l.unit, with_name: seller.name || l.seller_name || "the seller",
       with_picture: seller.picture || l.seller_picture, buying: true, blocked: false };
@@ -6677,6 +6678,7 @@
     if (!found) try { found = ((await mk("GET", "/conversations")).conversations || []).find(same); } catch {}
     if (found) return openChat(found.id, from);
     chat.id = null; chat.from = from; chat.paying = null; chat.blockArmed = false; chat.key = null;
+    swapDraft(`u${person.name.toLowerCase()}`);
     chat.draft = null; chat.direct = person.name;
     chat.conv = { listing: null, listing_title: null, with: person.id, with_name: person.name, with_picture: person.picture, buying: false, blocked: false };
     chat.messages = []; chat.me = null;
@@ -6706,6 +6708,20 @@
 
   // One conversation.
   const chat = { id: null, from: "inbox", conv: null, messages: [], me: null, paying: null, blockArmed: false };
+  // What's typed and not sent stays with its conversation: switching to
+  // another shows that one's own unsent words, or an empty box.
+  const drafts = new Map();
+  let draftKey = null;
+  function swapDraft(next) {
+    if (draftKey !== null) {
+      const typed = $("ch-text").value;
+      if (typed.trim()) drafts.set(draftKey, typed); else drafts.delete(draftKey);
+    }
+    draftKey = next;
+    $("ch-text").value = drafts.get(next) || "";
+    $("ch-problem").hidden = true;
+    growText();
+  }
   // Conversations as last loaded, so one opens complete at once (as
   // messaging apps do) while anything new comes in behind it. Recent ones
   // are loaded ahead, quietly, when the inbox is.
@@ -6724,6 +6740,7 @@
     }
   }
   async function openChat(id, from) {
+    swapDraft(`c${id}`);
     chat.id = id; chat.from = from || "inbox"; chat.paying = null; chat.blockArmed = false; chat.draft = null; chat.direct = null;
     // Opened: no longer unread in the list beside it.
     const listed = inbox.items.find((c) => c.id === id);
@@ -6893,11 +6910,11 @@
       if (chat.draft) {
         // The first message starts the conversation.
         const sent = await mk("POST", `/listings/${chat.draft}/messages`, { body });
-        chat.draft = null; chat.id = sent.conversation;
+        chat.draft = null; chat.id = sent.conversation; draftKey = `c${sent.conversation}`;
       } else if (chat.direct) {
         // The first message to someone directly, by name.
         const sent = await mk("POST", `/users/${encodeURIComponent(chat.direct)}/messages`, { body });
-        chat.direct = null; chat.id = sent.conversation;
+        chat.direct = null; chat.id = sent.conversation; draftKey = `c${sent.conversation}`;
       } else await mk("POST", `/conversations/${chat.id}/messages`, { body });
       $("ch-text").value = ""; growText();
       await refreshChat(true);
