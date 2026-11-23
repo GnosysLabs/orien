@@ -1332,6 +1332,11 @@
         var(--bl) var(--f0) 100% / var(--rb) var(--rb) no-repeat, var(--br) calc(var(--f1) - var(--rb)) 100% / var(--rb) var(--rb) no-repeat,
         var(--bl) var(--r0) 100% / var(--rb) var(--rb) no-repeat, var(--br) calc(var(--r1) - var(--rb)) 100% / var(--rb) var(--rb) no-repeat;
       -webkit-mask: var(--M); mask: var(--M); }
+    /* The space under the last post is the feed's own, not the screen's:
+       so the sidebar, which reaches the window's foot, is never pushed up
+       (and seems to scroll) once the feed runs out. */
+    html body #community, html body #seller { padding-bottom: 0; }
+    .cm-main, .sl-main { padding-bottom: 22px; }
     /* Stays in view beside the feed; taller than the window, it scrolls on its own. */
     .cm-rail { display: grid; gap: 14px; align-content: start; position: sticky; top: -8px;
       max-height: var(--rail-h, calc(100vh - 150px)); overflow-y: auto; overscroll-behavior: contain; scrollbar-width: thin; border-radius: 18px; }
