@@ -180,15 +180,15 @@
   @media (min-width: 720px) {
     html body .screen, html body #mine, html body #board-signin, html body #board-post, html body #board-take,
     html body #swaps, html body #swap-sell, html body #swap-buy, html body #swap-detail {
-      padding-left: max(18px, calc(18px + (100% - var(--col)) / 2));
-      padding-right: max(18px, calc(18px + (100% - var(--col)) / 2)); }
+      padding-left: max(50px, calc(18px + (100% - var(--col)) / 2));
+      padding-right: max(50px, calc(18px + (100% - var(--col)) / 2)); }
     /* Content scrolls inside a rounded container the width of the column:
        at the top and bottom edges, where things scroll away, the corners
        round off right at the content's edge (at the top, 6px out, where
        the back button sits). Between them the mask runs
        the full width, so cards keep their side shadows. */
     .screen, #mine, #board-signin, #board-post, #board-take, #swaps, #swap-sell, #swap-buy, #swap-detail {
-      --rt: 24px; --rb: 24px; --cw: min(var(--col), 100vw - 56px); --ct: calc(var(--cw) + 12px);
+      --rt: 16px; --rb: 16px; --cw: min(var(--col), 100vw - 64px); --ct: var(--cw);
       --m: linear-gradient(#000, #000);
       -webkit-mask: var(--m) 0 var(--rt) / 100% calc(100% - var(--rt) - var(--rb)) no-repeat,
         var(--m) 50% 0 / calc(var(--ct) - 2 * var(--rt)) var(--rt) no-repeat,
@@ -227,19 +227,20 @@
        corners and a soft shadow. The photo shows only around it, like a
        wallpaper. Its width follows the screen shown (--panel, set by show()). */
     body:not(.phone) main { position: relative; isolation: isolate; }
-    /* Every screen scrolls inside the container with the same gap above and
-       below, so content never runs into its edge. */
+    /* Every screen scrolls inside the container with one 20px gap all
+       round (and the container's corners 20px rounder than the content's,
+       so the two curves run parallel): content never runs into its edge. */
     body:not(.phone) :is(.screen, #mine, #board-signin, #board-post, #board-take, #swaps, #swap-sell, #swap-buy, #swap-detail) {
-      margin-top: 0; margin-bottom: 14px; }
-    body:not(.phone) main::before { content: ""; position: absolute; z-index: -1; top: -14px; bottom: 0; left: 50%;
-      width: min(calc(var(--panel, 640px) + 56px), 100vw - 24px); transform: translateX(-50%);
-      border: 1px solid var(--line); border-radius: 28px;
+      margin-top: 0; margin-bottom: 20px; }
+    body:not(.phone) main::before { content: ""; position: absolute; z-index: -1; top: -20px; bottom: 0; left: 50%;
+      width: min(calc(var(--panel, 640px) + 40px), 100vw - 24px); transform: translateX(-50%);
+      border: 1px solid var(--line); border-radius: 36px;
       background: var(--glow), var(--ground-deep); background-attachment: fixed;
       box-shadow: 0 30px 80px rgba(var(--shade), 0.45); }
     /* The sunrise while a wallet opens covers just that container. */
-    body:not(.phone) #loading { position: absolute; inset: auto; top: -14px; bottom: 0; left: 50%;
-      width: min(calc(var(--panel, 640px) + 56px), 100vw - 24px); transform: translateX(-50%);
-      border: 1px solid var(--line); border-radius: 28px;
+    body:not(.phone) #loading { position: absolute; inset: auto; top: -20px; bottom: 0; left: 50%;
+      width: min(calc(var(--panel, 640px) + 40px), 100vw - 24px); transform: translateX(-50%);
+      border: 1px solid var(--line); border-radius: 36px;
       background: var(--glow), var(--ground-deep); background-attachment: fixed; }
   }
   /* Tall windows: a screen's main button stays close under its form,
@@ -770,10 +771,10 @@
   #chat .ch-none svg { width: 32px; height: 32px; color: var(--faint); }
   @media (min-width: 1160px) {
     body.split main { flex-direction: row; justify-content: center; gap: 0; }
-    html body.split #inbox, html body.split #chat { flex: 0 0 auto; margin: -14px 0 0; padding: 0; overflow: hidden;
+    html body.split #inbox, html body.split #chat { flex: 0 0 auto; margin: -20px 0 0; padding: 0; overflow: hidden;
       -webkit-mask: none; mask: none; background: var(--surface); border: 1px solid var(--line); }
-    html body.split #inbox { width: 336px; border-radius: 28px 0 0 28px; border-right: 0; }
-    html body.split #chat { width: 760px; border-radius: 0 28px 28px 0; }
+    html body.split #inbox { width: 336px; border-radius: 36px 0 0 36px; border-right: 0; }
+    html body.split #chat { width: 760px; border-radius: 0 36px 36px 0; }
     html body.split #inbox::after { content: none; }
     /* The dividing line between the two halves. */
     html body.split #chat { box-shadow: inset 1px 0 0 var(--line); }
@@ -1255,9 +1256,9 @@
   .cm-rail { display: none; }
   /* Big windows: the feed with the sidebar beside it, as on the website. */
   @media (min-width: 980px) {
-    .cm-layout { display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: 22px; align-items: start; }
+    .cm-layout { display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: 20px; align-items: start; }
     /* Stays in view beside the feed; taller than the window, it scrolls on its own. */
-    .cm-rail { display: grid; gap: 14px; align-content: start; position: sticky; top: 0;
+    .cm-rail { display: grid; gap: 14px; align-content: start; position: sticky; top: -8px;
       max-height: var(--rail-h, calc(100vh - 150px)); overflow-y: auto; overscroll-behavior: contain; scrollbar-width: thin; border-radius: 18px; }
   }
   .cm-filter { display: flex; margin-bottom: 14px; border: 1px solid var(--line); border-radius: 14px; background: var(--surface); overflow: hidden; }
@@ -5556,7 +5557,7 @@
     const rail = document.querySelector(".cm-rail");
     if (!rail || $("community").hidden) return;
     const box = $("community").getBoundingClientRect();
-    rail.style.setProperty("--rail-h", Math.max(200, Math.min(window.innerHeight, box.bottom) - rail.getBoundingClientRect().top - 8) + "px");
+    rail.style.setProperty("--rail-h", Math.max(200, Math.min(window.innerHeight, box.bottom) - rail.getBoundingClientRect().top) + "px");
   }
   $("community").addEventListener("scroll", () => requestAnimationFrame(cmFitRail), { passive: true });
   window.addEventListener("resize", cmFitRail);
