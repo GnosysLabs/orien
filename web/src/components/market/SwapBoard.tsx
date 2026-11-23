@@ -19,6 +19,7 @@ import {
   profileHref,
 } from "@/lib/market";
 import { Avatar } from "./Avatar";
+import { useMe } from "@/lib/useMe";
 import { Notice } from "./Shell";
 
 const card = "rounded-2xl border border-line bg-surface p-6";
@@ -357,6 +358,11 @@ function Offers({
   empty?: React.ReactNode;
   small?: boolean;
 }) {
+  // Only the seller's wallet can start a swap: offers whose seller's wallet
+  // is closed are left out, and counted below. Your own still show to you.
+  const { account } = useMe();
+  const closed = offers?.filter((o) => o.seller_online === false && o.seller !== account?.id).length ?? 0;
+  const shown = offers?.filter((o) => o.seller_online !== false || o.seller === account?.id) ?? null;
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap items-end justify-between gap-3">
@@ -374,21 +380,18 @@ function Offers({
           </p>
         )}
       </div>
-      {offers === null ? (
+      {shown === null ? (
         <p className="text-muted">Loading…</p>
-      ) : offers.length === 0 ? (
-        <Notice>{empty}</Notice>
+      ) : shown.length === 0 ? (
+        empty && <Notice>{empty}</Notice>
       ) : (
         <ul className="overflow-hidden rounded-2xl border border-line bg-surface">
-          {offers.map((offer) => {
+          {shown.map((offer) => {
             const value = usd ? price(offer) * usd : null;
-            // Only the seller's wallet can start a swap: while it's closed,
-            // the offer waits, greyed.
-            const offline = offer.seller_online === false;
             return (
               <li
                 key={offer.id}
-                className={`flex flex-wrap items-center gap-4 border-b border-line px-5 py-4 last:border-b-0 ${offline ? "opacity-55" : ""}`}
+                className="flex flex-wrap items-center gap-4 border-b border-line px-5 py-4 last:border-b-0"
               >
                 <Link
                   href={profileHref(offer.seller_name)}
@@ -431,15 +434,17 @@ function Offers({
                     {perOrn(offer)} per ORN
                   </p>
                 </div>
-                {offline && (
-                  <span className="shrink-0 rounded-full border border-line bg-bg px-3 py-1 text-xs font-semibold text-muted">
-                    Seller offline
-                  </span>
-                )}
               </li>
             );
           })}
         </ul>
+      )}
+      {closed > 0 && (
+        <p className="px-1 text-sm text-muted">
+          {closed === 1
+            ? "1 more offer from a seller whose Orien Wallet is closed right now."
+            : `${closed} more offers from sellers whose Orien Wallet is closed right now.`}
+        </p>
       )}
     </div>
   );
