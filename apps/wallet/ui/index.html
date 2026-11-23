@@ -5776,6 +5776,9 @@
     cmPaintYou();
     cmPaintRail();
     cmFitRail();
+    // Who's signed in decides the reply box: repaint what's open with it.
+    if (!$("cm-thread").hidden) cmPaintThread();
+    if (!$("seller").hidden) slPaintFeed();
   }
   // The sidebar, as on the website: you, and the top miners.
   const MEDALS = ["🥇", "🥈", "🥉"];
@@ -6122,7 +6125,7 @@
     $("sl-feed").innerHTML = "";
     $("sl-feed-more").hidden = true;
     slLoadFeed(false);
-    if (cm.you === null && !cm.youAsked) { cm.youAsked = true; cmLoadYou(); }
+    if (!cm.you) cmLoadYou();
     show("seller");
     $("seller").scrollTop = 0;
     slFitEdges();
@@ -6339,7 +6342,7 @@
     if (!l) return;
     if (l.kind === "message") return openChat(l.conversation, "notices");
     cm.threadFrom = "notices";
-    if (cm.you === null && !cm.youAsked) { cm.youAsked = true; cmLoadYou(); }
+    if (!cm.you) cmLoadYou();
     cmOpenThread(l.post);
   };
   // A notification on computers for each new line (messages have their own),
