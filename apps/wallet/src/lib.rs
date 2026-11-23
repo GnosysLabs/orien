@@ -1385,7 +1385,7 @@ fn notifications_muted(app: AppHandle) -> Result<Vec<String>, String> {
 /// server, which sends an iPhone's).
 #[tauri::command]
 fn set_notification(app: AppHandle, kind: String, on: bool) -> Result<(), String> {
-    if !["received", "mining", "market", "swaps"].contains(&kind.as_str()) {
+    if !["received", "mining", "market", "community", "swaps"].contains(&kind.as_str()) {
         return Err("unknown notification".into());
     }
     let dir = folder(&app)?;

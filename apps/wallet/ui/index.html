@@ -810,6 +810,16 @@
   .ib-row .udot { width: 8px; height: 8px; border-radius: 50%; background: #ff453a; }
   .ib-row:not(.unread) .udot { visibility: hidden; }
   #ib-list .list { border-radius: 18px; }
+  #nt-list .list { border-radius: 18px; }
+  .nt-row { grid-template-columns: auto minmax(0, 1fr); align-items: start; }
+  .nt-row .nt-faces { position: relative; width: 40px; height: 40px; }
+  .nt-row .nt-faces .avatar + .avatar { position: absolute; right: -6px; bottom: -6px; width: 22px; height: 22px; font-size: 10px; box-shadow: 0 0 0 2px var(--surface); }
+  .nt-row .nt-net { width: 40px; height: 40px; }
+  .nt-row .nt-said { font-size: 13.5px; line-height: 1.4; color: var(--dim); }
+  .nt-row .nt-said b { color: var(--ink); font-weight: 600; }
+  .nt-row .nt-text { margin-top: 3px; font-size: 13px; color: var(--faint); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .nt-row .when { display: block; margin-top: 4px; }
+  .nt-row.unread { background: rgba(var(--tint), 0.03); }
   .ch-top { gap: 6px; }
   .ch-who { display: flex; align-items: center; gap: 10px; min-width: 0; padding: 4px 8px 4px 4px; border: 0; border-radius: 12px; background: none; color: inherit; font: inherit; text-align: left; cursor: pointer; }
   @media (hover: hover) { .ch-who:hover { background: rgba(var(--tint), 0.04); } }
@@ -1810,7 +1820,8 @@
       <div class="set-group">
         <label class="set-row"><span class="set-txt"><b>ORN received</b><small>When someone sends you ORN</small></span><input type="checkbox" class="switch" id="st-n-received"></label>
         <label class="set-row"><span class="set-txt"><b>Mining rewards</b><small>Your share of each hour's new ORN</small></span><input type="checkbox" class="switch" id="st-n-mining"></label>
-        <label class="set-row"><span class="set-txt"><b>Market messages</b><small>New messages and payment requests</small></span><input type="checkbox" class="switch" id="st-n-market"></label>
+        <label class="set-row"><span class="set-txt"><b>Messages</b><small>New messages and payment requests</small></span><input type="checkbox" class="switch" id="st-n-market"></label>
+        <label class="set-row" id="st-n-community-row"><span class="set-txt"><b>Community</b><small>Replies, reactions and the network’s posts about you</small></span><input type="checkbox" class="switch" id="st-n-community"></label>
         <label class="set-row" id="st-n-swaps-row"><span class="set-txt"><b>Swap updates</b><small>When an offer is taken and as swaps finish</small></span><input type="checkbox" class="switch" id="st-n-swaps"></label>
       </div>
       </div>
@@ -1844,7 +1855,7 @@
 
     <!-- Home -->
     <section class="screen" id="home" hidden>
-      <div class="home-top"><div class="home-left"><button class="pill icon" id="go-settings" aria-label="Settings" title="Settings"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></button><button class="wallet-chip" id="wallet-chip"><span id="wallet-name">Wallet</span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg></button><button class="pill icon" id="go-contacts" aria-label="Contacts" title="Contacts"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><path d="M16 3.128a4 4 0 0 1 0 7.744"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><circle cx="9" cy="7" r="4"/></svg></button></div>
+      <div class="home-top"><div class="home-left"><button class="pill icon" id="go-settings" aria-label="Settings" title="Settings"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></button><button class="wallet-chip" id="wallet-chip"><span id="wallet-name">Wallet</span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg></button><button class="pill icon" id="go-contacts" aria-label="Contacts" title="Contacts"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><path d="M16 3.128a4 4 0 0 1 0 7.744"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><circle cx="9" cy="7" r="4"/></svg></button><button class="pill icon" id="go-notices" aria-label="Notifications" title="Notifications" hidden><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10.268 21a2 2 0 0 0 3.464 0"/><path d="M3.262 15.326A1 1 0 0 0 4 17h16a1 1 0 0 0 .74-1.673C19.41 13.956 18 12.499 18 8A6 6 0 0 0 6 8c0 4.499-1.411 5.956-2.738 7.326"/></svg><span class="dot" id="notices-dot" hidden></span></button></div>
         <div class="account"><button class="me-face" id="board-who" hidden aria-label="Your profile" title="Your profile"></button><button class="pill" id="board-signin-go">Sign in</button></div></div>
       <!-- A swap that needs you, or is under way: impossible to miss. -->
       <button class="swap-alert" id="swap-alert" hidden>
@@ -2048,6 +2059,14 @@
     </section>
 
     <!-- Market messages -->
+    <!-- Notifications, as the website's bell shows them: replies, reactions,
+         the network's posts about you, and messages. -->
+    <section class="screen" id="notices" hidden>
+      <div class="topline"><button class="back" id="nt-back" aria-label="Back"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg></button><h2>Notifications</h2></div>
+      <div class="scroll" id="nt-list"></div>
+      <div class="problem" id="nt-problem" hidden></div>
+    </section>
+
     <section class="screen" id="inbox" hidden>
       <div class="topline"><button class="back" id="ib-back" aria-label="Back"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg></button><h2>Messages</h2></div>
       <div class="scroll" id="ib-list"></div>
@@ -3673,8 +3692,9 @@
     $("st-lock-row").hidden = !apple;
     $("st-lock").checked = localStorage.getItem("app-lock") === "on";
     $("st-lock-row").querySelector("b").textContent = `Lock with ${bio}`;
-    for (const kind of ["received", "mining", "market", "swaps"]) $(`st-n-${kind}`).checked = !mutedKinds.includes(kind);
+    for (const kind of ["received", "mining", "market", "community", "swaps"]) $(`st-n-${kind}`).checked = !mutedKinds.includes(kind);
     $("st-n-swaps-row").hidden = phone;
+    $("st-n-community-row").hidden = phone;
     $("st-cat-computer").hidden = phone;
     $("st-cat-extensions").hidden = phone;
     $("st-ext-safari").hidden = !apple || phone;
@@ -3705,7 +3725,7 @@
     try { localStorage.setItem("app-lock", on ? "on" : "off"); } catch {}
     feel("selection");
   };
-  for (const kind of ["received", "mining", "market", "swaps"]) {
+  for (const kind of ["received", "mining", "market", "community", "swaps"]) {
     $(`st-n-${kind}`).onchange = async () => {
       const on = $(`st-n-${kind}`).checked;
       try { await invoke("set_notification", { kind, on }); mutedKinds = on ? mutedKinds.filter((k) => k !== kind) : [...mutedKinds, kind]; feel("selection"); }
@@ -5841,7 +5861,10 @@
       $("cm-replies").innerHTML = cm.replies.map((r) => cmCard(r, true)).join("");
     } catch (e) { problem("cm-thread-problem", e); }
   }
-  $("cm-thread-back").onclick = () => { show("community"); cmFitRail(); cmLoad(false); };
+  $("cm-thread-back").onclick = () => {
+    if (cm.threadFrom === "notices") { cm.threadFrom = null; openNotices(); return; }
+    show("community"); cmFitRail(); cmLoad(false);
+  };
   // Reactions, replies, deleting: one listener for every card.
   async function cmClick(e) {
     if (e.target.closest("[data-join]")) return cmJoin();
@@ -6220,6 +6243,84 @@
     setBadge();
     const n = (board.me && board.me.unread) || 0;
     $("market-unread").hidden = !n;
+    // The bell: only for an Orien Network account, with a dot for anything new.
+    $("go-notices").hidden = !board.me;
+    $("notices-dot").hidden = !(board.me && board.me.notices);
+  }
+  // ---- Notifications: the website's bell, in the app ----
+  const nt = { lines: [] };
+  const ntNames = (people, others) => {
+    const list = (people || []).map((p) => `<b>${esc(p.name)}</b>`);
+    if (others > 0) list.push(`${others} other${others === 1 ? "" : "s"}`);
+    if (list.length <= 1) return list[0] || "Someone";
+    return `${list.slice(0, -1).join(", ")} and ${list[list.length - 1]}`;
+  };
+  // What a line says, after the names, as on the website.
+  function ntSaid(l) {
+    const theirs = l.post_kind && l.post_kind !== "post" ? "the network’s post about you" : l.reply ? "your reply" : "your post";
+    switch (l.kind) {
+      case "reply": return `replied to ${theirs}`;
+      case "also": return "also replied to a post you replied to";
+      case "react": return `reacted ${(l.emojis || []).map(esc).join(" ")} to ${theirs}`;
+      case "message": return l.listing ? `wrote to you about ${esc(l.listing)}` : "wrote to you";
+      default: return "";
+    }
+  }
+  function ntLine(l) {
+    if (l.kind === "network") return `<b>Orien Network</b> posted about you: <b>${esc(EYEBROWS[l.post_kind] || "news")}</b>`;
+    return `${ntNames(l.people, l.others)} ${ntSaid(l)}`;
+  }
+  function paintNotices() {
+    $("nt-list").innerHTML = nt.lines.length
+      ? `<div class="list">${nt.lines.map((l, i) => {
+          const faces = l.kind === "network" ? '<span class="cm-net nt-net"><span class="mark"></span></span>'
+            : `<span class="nt-faces">${(l.people || []).slice(0, 2).map((p) => mkAvatar(p.name, p.picture)).join("")}</span>`;
+          return `<button class="ib-row nt-row${l.unseen ? " unread" : ""}" data-nt="${i}">${faces}
+            <div style="min-width:0"><div class="nt-said">${ntLine(l)}</div>${l.text ? `<div class="nt-text">${esc(l.text)}</div>` : ""}<span class="when">${esc(ago(l.time))}</span></div></button>`;
+        }).join("")}</div>`
+      : '<div class="empty">Nothing yet. Replies, reactions and messages show up here.</div>';
+  }
+  async function openNotices() {
+    show("notices");
+    if (!nt.lines.length) $("nt-list").innerHTML = '<div class="empty">Loading…</div>';
+    try { nt.lines = (await mk("GET", "/notices")).notices || []; $("nt-problem").hidden = true; }
+    catch (e) { problem("nt-problem", mkProblem(e)); }
+    paintNotices();
+    // Seen: the dot goes, here and on the website.
+    if (nt.lines.some((l) => l.unseen)) mk("POST", "/notices/seen", {}).then(() => { if (board.me) { board.me.notices = 0; paintUnread(); } }).catch(() => {});
+  }
+  $("go-notices").onclick = () => openNotices();
+  $("nt-back").onclick = () => home();
+  $("nt-list").onclick = async (e) => {
+    const r = e.target.closest("[data-nt]");
+    if (!r) return;
+    const l = nt.lines[Number(r.dataset.nt)];
+    if (!l) return;
+    if (l.kind === "message") return openChat(l.conversation, "notices");
+    cm.threadFrom = "notices";
+    if (cm.you === null && !cm.youAsked) { cm.youAsked = true; cmLoadYou(); }
+    cmOpenThread(l.post);
+  };
+  // A notification on computers for each new line (messages have their own),
+  // as for ORN arriving. What's been told is kept, so nothing is told twice.
+  async function noticeNews() {
+    if (phone || !board.me) return;
+    let lines;
+    try { lines = (await mk("GET", "/notices")).notices || []; } catch { return; }
+    let heard = null;
+    try { heard = JSON.parse(localStorage.getItem("notices-heard") || "null"); } catch {}
+    const first = heard === null;
+    heard = heard || {};
+    for (const l of lines) {
+      if (!l.unseen || l.kind === "message") continue;
+      const key = `${l.kind}:${l.post}`;
+      if ((heard[key] || 0) >= l.time) continue;
+      heard[key] = l.time;
+      if (first || !$("notices").hidden) continue;
+      const text = ntLine(l).replace(/<[^>]+>/g, "");
+      await tell(l.text && l.kind !== "react" ? `${text}: ${l.text}` : text, "community");
+    }
+    localStorage.setItem("notices-heard", JSON.stringify(heard));
   }
 
   $("ls-signin").onclick = () => { signinReturn = "listing"; resetSignin(); show("board-signin"); };
@@ -6427,7 +6528,7 @@
     const pw = document.getElementById("ch-pay-pw");
     if (pw) pw.focus();
   }
-  $("ch-back").onclick = () => { chat.id = null; chat.direct = null; chat.from === "listing" ? show("listing") : chat.from === "profile" ? show("seller") : chat.from === "contact" ? show("contact") : openInbox(); };
+  $("ch-back").onclick = () => { chat.id = null; chat.direct = null; chat.from === "listing" ? show("listing") : chat.from === "profile" ? show("seller") : chat.from === "contact" ? show("contact") : chat.from === "notices" ? openNotices() : openInbox(); };
   $("ch-who").onclick = () => { if (chat.conv && chat.conv.with) { market.sellerFrom = "chat"; openSeller(chat.conv.with); } };
   $("ch-about").onclick = () => chat.conv && chat.conv.listing && openListing(chat.conv.listing, "chat");
   $("ch-more").onclick = () => { toggleMenu("ch-menu", "ch-more"); chat.blockArmed = false; if (chat.conv) $("ch-block").firstChild.textContent = chat.conv.blocked ? `Unblock ${chat.conv.with_name}` : `Block ${chat.conv.with_name}`; };
@@ -6530,7 +6631,7 @@
   // Live: an open chat every 4 seconds, the list every 10, the unread dot every 30.
   setInterval(() => { if (!$("chat").hidden && chat.id) refreshChat(); }, 4000);
   setInterval(() => { if (!$("inbox").hidden) loadInbox(); }, 10000);
-  setInterval(() => { if (board.me) invoke("board_me").then((me) => { board.me = me; paintUnread(); if (me && me.unread) marketNews(); }).catch(() => {}); }, 20000);
+  setInterval(() => { if (board.me) invoke("board_me").then((me) => { board.me = me; paintUnread(); if (me && me.unread) marketNews(); if (me && me.notices) noticeNews(); }).catch(() => {}); }, 20000);
   // A notification for each new Market message, on computers, as for ORN
   // arriving. What's been told is kept, so nothing is told twice; the first
   // look only learns what's there. Not for the chat that's open on screen.
@@ -6557,7 +6658,7 @@
     localStorage.setItem("market-heard", JSON.stringify(heard));
   }
   // Learn what's already there once signed in, so only new ones are told.
-  setTimeout(() => { if (board.me) marketNews(); }, 5000);
+  setTimeout(() => { if (board.me) { marketNews(); noticeNews(); } }, 5000);
 
   // ---- Selling ----
   const UNITS = [["", "Fixed price"], ["per hour", "Per hour"], ["per day", "Per day"], ["per week", "Per week"], ["per month", "Per month"], ["per item", "Per item"]];

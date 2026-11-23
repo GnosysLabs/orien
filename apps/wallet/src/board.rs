@@ -211,6 +211,9 @@ pub fn me(dir: &Path) -> Result<Option<Value>, String> {
                 "messages_from": if account["messages_from"].is_null() { me["messages_from"].clone() } else { account["messages_from"].clone() },
                 // Conversations with something new from the other side.
                 "unread": me["unread"],
+                // New lines under the website's bell: replies, reactions,
+                // the network's posts about them, messages.
+                "notices": me["notices"],
                 // Their own listings, open first.
                 "listings": me["listings"],
                 "email": load(dir).email,
@@ -539,7 +542,7 @@ pub fn listings(dir: &Path, category: &str, text: &str, offset: u32) -> Result<V
 /// A signed-in Market call for the Market screens: listings, messages and
 /// reports only, so the page can't reach anything else with the cookie.
 pub fn market_call(dir: &Path, method: &str, path: &str, body: Option<Value>) -> Result<Value, String> {
-    let allowed = ["/listings", "/conversations", "/reports", "/accounts", "/community", "/users"].iter().any(|p| path == *p || path.starts_with(&format!("{p}/")) || path.starts_with(&format!("{p}?")));
+    let allowed = ["/listings", "/conversations", "/reports", "/accounts", "/community", "/users", "/notices"].iter().any(|p| path == *p || path.starts_with(&format!("{p}/")) || path.starts_with(&format!("{p}?")));
     if !allowed || path.contains("..") || !["GET", "POST", "PUT", "DELETE"].contains(&method) {
         return Err("not a Market call".into());
     }
