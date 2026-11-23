@@ -27,6 +27,14 @@ export const PRODUCTS: Record<Product, string> = {
 export const CHANGELOG: Entry[] = [
   {
     date: '2026-11-23',
+    products: ['network'],
+    title: 'A calmer network map',
+    changes: [
+      'The network map flags packet loss between two validators only when it lasts: one lossy test round shows as a brief blip, and a notice appears after 30 minutes in a row. A validator that stops answering still stands out.',
+    ],
+  },
+  {
+    date: '2026-11-23',
     products: ['wallet'],
     version: '1.8.25',
     title: 'Sign in to websites with Orien Wallet, and Orien Wallet in Firefox',
