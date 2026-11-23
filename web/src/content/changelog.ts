@@ -29,14 +29,16 @@ export const CHANGELOG: Entry[] = [
     date: '2026-11-23',
     products: ['wallet'],
     version: '1.9.0',
-    title: 'Tips, and updates that install themselves',
+    title: 'Photos, GIFs, polls and tips, and updates that install themselves',
     changes: [
+      'Posting in the Community works like X: add up to four photos, a GIF from KLIPY search, or a poll with up to four choices lasting one, three or seven days. Photos and GIFs show with smooth rounded corners, and a tap opens a photo large.',
       'New versions download quietly and install while you’re away from the app, then Orien Wallet comes back just as it was: closed, minimized or behind your other windows. It never updates during a swap, a payment, or while you’re typing. You can turn this off in Settings, under This computer.',
       'If you were mining when the app updated, mining starts again by itself afterwards, at the same setting.',
       'Tips: a Tip button on people’s Community posts sends them 1, 5, 10 ORN or any amount you choose. Each post shows how many tips it got and how much, without names, and the author hears who tipped them.',
       'Profiles have a Send button, which opens Send with that person’s wallet filled in.',
       'Community shows the network’s own posts: finished swaps with what ORN sold for, each 100,000 ORN mined, and new validators, each with its own telescope photo.',
       'The full activity list has its rounded corners again.',
+      'The Pearl theme has a metallic sheen, like the other themes.',
     ],
   },
   {
