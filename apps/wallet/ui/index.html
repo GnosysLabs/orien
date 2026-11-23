@@ -1535,6 +1535,7 @@
       <div class="set-group">
         <button class="set-row st-cat" id="st-ext-safari"><img class="br-ico" src="browsers/safari.png" alt=""><span class="set-txt"><b>Safari</b><small>Opens Safari's settings: tick Orien Wallet to turn it on</small></span><svg class="chev" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg></button>
         <button class="set-row st-cat" id="st-ext-chrome"><img class="br-ico" src="browsers/chrome.png" alt=""><span class="set-txt"><b>Chrome</b><small>Opens the Chrome Web Store: click Add to Chrome</small></span><svg class="chev" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg></button>
+        <button class="set-row st-cat" id="st-ext-firefox"><img class="br-ico" src="browsers/firefox.png" alt=""><span class="set-txt"><b>Firefox</b><small>Opens Firefox Add-ons: click Add to Firefox</small></span><svg class="chev" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg></button>
         <button class="set-row st-cat" id="st-ext-edge"><img class="br-ico" src="browsers/edge.png" alt=""><span class="set-txt"><b>Edge</b><small>Opens the Chrome Web Store: allow other stores, then add it</small></span><svg class="chev" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg></button>
         <button class="set-row st-cat" id="st-ext-brave"><img class="br-ico" src="browsers/brave.png" alt=""><span class="set-txt"><b>Brave</b><small>Opens the Chrome Web Store: click Add to Brave</small></span><svg class="chev" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg></button>
       </div>
@@ -3321,7 +3322,7 @@
     };
   }
   $("st-updates").onclick = () => checkForUpdatesNow();
-  for (const browser of ["safari", "chrome", "edge", "brave"]) $(`st-ext-${browser}`).onclick = () => invoke("open_extension", { browser }).catch(() => {});
+  for (const browser of ["safari", "chrome", "firefox", "edge", "brave"]) $(`st-ext-${browser}`).onclick = () => invoke("open_extension", { browser }).catch(() => {});
   $("st-site").onclick = () => invoke("open_site").catch(() => {});
   $("st-privacy").onclick = () => invoke("open_legal", { page: "privacy" }).catch(() => {});
   $("st-terms").onclick = () => invoke("open_legal", { page: "terms" }).catch(() => {});

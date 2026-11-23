@@ -63,7 +63,7 @@ orien-ledger = { path = "../../crates/ledger", features = ["randomx"] }
 # Granting Windows' "Lock pages in memory" right, so mining can use large
 # pages, and keeping mining at full speed in the background.
 [target.'cfg(windows)'.dependencies]
-windows-sys = { version = "0.61", features = ["Win32_Foundation", "Win32_Security", "Win32_Security_Authentication_Identity", "Win32_Security_Authorization", "Win32_System_Threading", "Win32_System_Power", "Win32_UI_Shell", "Win32_UI_WindowsAndMessaging"] }
+windows-sys = { version = "0.61", features = ["Win32_Foundation", "Win32_Security", "Win32_Security_Authentication_Identity", "Win32_Security_Authorization", "Win32_System_Threading", "Win32_System_Power", "Win32_System_Registry", "Win32_UI_Shell", "Win32_UI_WindowsAndMessaging"] }
 
 # Touch ID and Face ID, and Apple's Keychain to keep the wallet password
 # behind them: on Macs and iPhones only.

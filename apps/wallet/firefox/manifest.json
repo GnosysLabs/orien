@@ -1,0 +1,51 @@
+{
+  "manifest_version": 3,
+  "name": "Orien Wallet",
+  "description": "Your Orien Wallet in Firefox: your balance, sending, and Sign in with Orien. Works with Orien Wallet on this computer.",
+  "version": "1.0.0",
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "wallet@orien.network",
+      "strict_min_version": "128.0",
+      "data_collection_permissions": {
+        "required": [
+          "none"
+        ]
+      }
+    }
+  },
+  "icons": {
+    "32": "icon-32.png",
+    "64": "icon-64.png",
+    "128": "icon-128.png",
+    "256": "icon-256.png"
+  },
+  "action": {
+    "default_popup": "popup.html",
+    "default_icon": {
+      "16": "chrome-toolbar-16.png",
+      "32": "chrome-toolbar-32.png",
+      "48": "chrome-toolbar-48.png",
+      "64": "chrome-toolbar-64.png"
+    }
+  },
+  "permissions": [
+    "nativeMessaging"
+  ],
+  "background": {
+    "scripts": [
+      "background.js"
+    ]
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "https://orien.network/*"
+      ],
+      "js": [
+        "content.js"
+      ],
+      "run_at": "document_idle"
+    }
+  ]
+}

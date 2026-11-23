@@ -29,6 +29,8 @@ mod pair;
 mod push;
 #[cfg(desktop)]
 mod extension;
+#[cfg(desktop)]
+mod firefox;
 
 /// iPhones: no "previous / next / done" bar above the keyboard. Web views
 /// add it to every text box; apps don't have it.
@@ -2221,8 +2223,8 @@ fn open_site(app: AppHandle) -> Result<(), String> {
 
 /// Opens the place to add a browser extension: Safari's own settings at
 /// Orien Wallet's extension (Macs, where the extension comes with the app),
-/// or Orien Wallet's page on the Chrome Web Store, which Chrome, Edge and
-/// Brave all add extensions from. The page opens in the browser named when
+/// Orien Wallet's page on the Chrome Web Store, which Chrome, Edge and
+/// Brave all add extensions from, or on Firefox Add-ons. The page opens in the browser named when
 /// it's on this computer, otherwise in the usual one.
 #[tauri::command]
 fn open_extension(app: AppHandle, browser: String) -> Result<(), String> {
@@ -2251,6 +2253,14 @@ fn open_extension(app: AppHandle, browser: String) -> Result<(), String> {
             });
             Ok(())
         }
+        "firefox" => {
+            const ADDONS: &str = "https://addons.mozilla.org/firefox/addon/orien-wallet/";
+            if !open_in("firefox", ADDONS) {
+                use tauri_plugin_opener::OpenerExt;
+                app.opener().open_url(ADDONS, None::<&str>).map_err(|error| error.to_string())?;
+            }
+            Ok(())
+        }
         _ => Err("That can't be opened.".into()),
     }
 }
@@ -2262,7 +2272,7 @@ fn open_in(browser: &str, url: &str) -> bool {
     use std::process::Command;
     #[cfg(target_os = "macos")]
     {
-        let name = match browser { "chrome" => "Google Chrome", "edge" => "Microsoft Edge", _ => "Brave Browser" };
+        let name = match browser { "chrome" => "Google Chrome", "edge" => "Microsoft Edge", "firefox" => "Firefox", _ => "Brave Browser" };
         let home = std::env::var_os("HOME").map(PathBuf::from).unwrap_or_default();
         let found = [PathBuf::from("/Applications"), home.join("Applications")].into_iter().map(|dir| dir.join(format!("{name}.app"))).find(|app| app.exists());
         found.is_some_and(|app| Command::new("open").arg("-a").arg(app).arg(url).spawn().is_ok())
@@ -2272,6 +2282,7 @@ fn open_in(browser: &str, url: &str) -> bool {
         let inside = match browser {
             "chrome" => r"Google\Chrome\Application\chrome.exe",
             "edge" => r"Microsoft\Edge\Application\msedge.exe",
+            "firefox" => r"Mozilla Firefox\firefox.exe",
             _ => r"BraveSoftware\Brave-Browser\Application\brave.exe",
         };
         let found = ["ProgramFiles", "ProgramFiles(x86)", "LOCALAPPDATA"]
@@ -2286,6 +2297,7 @@ fn open_in(browser: &str, url: &str) -> bool {
         let names: &[&str] = match browser {
             "chrome" => &["google-chrome", "google-chrome-stable"],
             "edge" => &["microsoft-edge", "microsoft-edge-stable"],
+            "firefox" => &["firefox"],
             _ => &["brave-browser", "brave"],
         };
         let path = std::env::var_os("PATH").unwrap_or_default();
@@ -2478,6 +2490,13 @@ async fn push_sync() {
 /// Starts the app: the desktop program's main, and the iPhone app's entry.
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
+    // Started by Firefox for its extension: pass its questions to the
+    // running app and nothing else.
+    #[cfg(desktop)]
+    if firefox::asked_by_firefox() {
+        firefox::answer_firefox();
+        return;
+    }
     // Started as administrator to grant the right for large pages: do
     // that and nothing else.
     #[cfg(desktop)]
@@ -2519,6 +2538,8 @@ pub fn run() {
             background::setup(app.handle())?;
             #[cfg(desktop)]
             extension::serve(app.handle().clone());
+            #[cfg(desktop)]
+            std::thread::spawn(firefox::register);
             #[cfg(mobile)]
             if let Some(window) = app.get_webview_window("main") {
                 let _ = window.show();
