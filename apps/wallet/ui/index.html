@@ -6047,11 +6047,13 @@
           <div class="cm-big mt6">${cmOrn(d.mined)} ORN</div><div class="cm-small">Of ${cmOrn(d.total)} ORN paid to ${esc(String(d.miners))} miners that day.</div></div></div>`;
       }
       case "swap": {
-        const orn = Number(d.orn) / 1e9, price = d.coin === "sol" ? `${fmtSol(d.lamports)} SOL` : `${fmtBtc(d.sats)} BTC`;
-        const per = d.coin === "sol" ? `${(d.lamports / 1e9 / orn).toLocaleString(undefined, { maximumSignificantDigits: 3 })} SOL per ORN` : `${Math.round(d.sats / orn).toLocaleString()} satoshis per ORN`;
-        return `<div class="cm-news"><div class="cm-big">${esc(orn.toLocaleString())} ORN for ${esc(price)}</div>
-          <div class="cm-line">${d.usd != null ? `≈ ${esc(fmtUsd(Number(d.usd)))} · ` : ""}${esc(per)}</div>
-          <div class="cm-small">A swap finished on the swap board.</div><button class="pill cm-news-go" data-news-go="swaps">Swap history</button></div>`;
+        const orn = Number(d.orn) / 1e9, sol = d.coin === "sol";
+        const price = sol ? `${fmtSol(d.lamports)} SOL` : `${fmtBtc(d.sats)} BTC`;
+        const usd = d.usd != null ? Number(d.usd) : null;
+        const each = sol ? `${(d.lamports / 1e9 / orn).toLocaleString(undefined, { maximumSignificantDigits: 3 })} SOL` : `${Math.round(d.sats / orn).toLocaleString()} satoshis`;
+        return `<div class="cm-news"><div class="cm-big">Someone bought ${esc(orn.toLocaleString())} ORN</div>
+          <div class="cm-line">They paid ${esc(price)}${usd != null ? `, about ${esc(fmtUsd(usd))}` : ""}.</div>
+          <div class="cm-small">That's ${esc(each)}${usd != null && orn > 0 ? ` (about ${esc(fmtUsd(usd / orn))})` : ""} for each ORN.</div><button class="pill cm-news-go" data-news-go="swaps">See all swaps</button></div>`;
       }
       case "supply":
         return `<div class="cm-news"><div class="cm-big">${esc(Number(d.orn).toLocaleString())} ORN mined</div>
