@@ -91,6 +91,10 @@ fn reopen_on_the_mac(app: &AppHandle) {
         "while kill -0 {} 2>/dev/null; do sleep 0.2; done; exec /usr/bin/open \"$0\"",
         std::process::id()
     );
+    // In a process group of its own: the Mac ends every process in an
+    // app's group when the app quits, which would take this waiter with it
+    // and leave the app closed.
+    use std::os::unix::process::CommandExt;
     let started = std::process::Command::new("/bin/sh")
         .arg("-c")
         .arg(script)
@@ -98,6 +102,7 @@ fn reopen_on_the_mac(app: &AppHandle) {
         .stdin(std::process::Stdio::null())
         .stdout(std::process::Stdio::null())
         .stderr(std::process::Stdio::null())
+        .process_group(0)
         .spawn();
     if started.is_ok() {
         std::process::exit(0);
