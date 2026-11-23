@@ -5461,7 +5461,7 @@
   // to reply.
   function cmInline(post) {
     const replies = cm.repliesOf.get(post.id);
-    const list = !replies ? '<div class="cm-empty">Loading…</div>' : replies.map((r) => `<div class="cm-reply-row" data-post="${r.id}">
+    const list = (replies || []).map((r) => `<div class="cm-reply-row" data-post="${r.id}">
         <span data-user="${esc((r.author && r.author.name) || "")}">${cmFace(r.author)}</span>
         <div class="cm-reply-main"><div class="cm-reply-head"><b data-user="${esc((r.author && r.author.name) || "")}">${esc((r.author && r.author.name) || "")}</b><span class="cm-when"> · ${ago(r.created)}</span>${r.mine ? `<button class="cm-del" data-del="${r.id}" data-parent="${post.id}">Delete</button>` : ""}</div>
         <div class="cm-text">${esc(r.body || "")}</div>
@@ -5613,9 +5613,12 @@
     if (t.dataset.open) {
       const id = Number(t.dataset.open);
       if (cm.open.has(id)) { cm.open.delete(id); cmPaintFeed(); return; }
+      // Opened in one go once its replies are here: no "Loading" flash. A
+      // post without replies opens at once, straight to the reply box.
+      const post = cm.posts.find((p) => p.id === id);
+      if (post && !post.replies) cm.repliesOf.set(id, []);
+      else await cmLoadReplies(id);
       cm.open.add(id);
-      cmPaintFeed();
-      await cmLoadReplies(id);
       cmPaintFeed();
       const box = document.querySelector(`[data-reply-box="${id}"]`);
       if (box) box.focus();
