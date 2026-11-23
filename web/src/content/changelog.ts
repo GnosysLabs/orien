@@ -28,6 +28,17 @@ export const CHANGELOG: Entry[] = [
   {
     date: '2026-11-23',
     products: ['wallet'],
+    version: '1.8.28',
+    title: 'A tidier swap board, and updates that reopen the app',
+    changes: [
+      'The swap board lists only offers you can take: offers from sellers whose Orien Wallet is closed are left out, with a count of them underneath.',
+      'A seller’s name or picture on the swap board opens their profile.',
+      'On Macs, Orien Wallet opens again by itself after an update, as it should have.',
+    ],
+  },
+  {
+    date: '2026-11-23',
+    products: ['wallet'],
     version: '1.8.27',
     title: 'Contacts that are people, and verifying wallets works again',
     changes: [
