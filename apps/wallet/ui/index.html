@@ -1340,6 +1340,8 @@
   .cm-picker { display: inline-flex; gap: 2px; padding: 2px; border: 1px solid var(--line); border-radius: 999px; background: var(--surface); }
   .cm-picker button { width: 32px; height: 32px; border: 0; border-radius: 50%; background: transparent; font-size: 17px; cursor: pointer; }
   .cm-picker button:hover { background: var(--surface-hover); }
+  .cm-video { position: relative; margin-top: 12px; aspect-ratio: 16 / 9; overflow: hidden; border: 1px solid var(--line); border-radius: 14px; background: #000; }
+  .cm-video iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
   .cm-inline { margin-top: 14px; border-top: 1px solid var(--line); }
   .cm-reply-row { display: flex; gap: 12px; padding: 14px 0; }
   .cm-reply-row + .cm-reply-row { border-top: 1px solid var(--line); }
@@ -5440,6 +5442,13 @@
       default: return "";
     }
   }
+  // A YouTube video a post links to plays in the post, as on the website,
+  // through orien.network's embed page (YouTube refuses a player whose page
+  // has no web address, as the app's pages don't).
+  function cmYouTube(text) {
+    const m = String(text || "").match(/https?:\/\/(?:www\.|m\.)?(?:youtube\.com\/(?:watch\?(?:[^\s]*&)?v=|shorts\/|live\/|embed\/)|youtu\.be\/)([A-Za-z0-9_-]{11})/);
+    return m ? `<div class="cm-video"><iframe src="https://orien.network/embed/youtube/?v=${m[1]}" title="YouTube video" loading="lazy" allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share; fullscreen" allowfullscreen referrerpolicy="strict-origin-when-cross-origin"></iframe></div>` : "";
+  }
   const REPLY_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2.992 16.342a2 2 0 0 1 .094 1.167l-1.065 3.29a1 1 0 0 0 1.236 1.168l3.413-.998a2 2 0 0 1 1.099.092 10 10 0 1 0-4.777-4.719"/></svg>';
   const SMILE_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" x2="9.01" y1="9" y2="9"/><line x1="15" x2="15.01" y1="9" y2="9"/></svg>';
   function cmCard(post, inThread) {
@@ -5453,7 +5462,7 @@
     const replies = inThread || post.parent ? "" : `<button class="cm-chip${cm.open.has(post.id) ? " on" : ""}" data-open="${post.id}">${REPLY_ICON}${post.replies ? `<b>${post.replies}</b>` : ""}</button>`;
     return `<article class="cm-card${network ? " network" : ""}" data-post="${post.id}">${art}
       <div class="cm-in"><div class="cm-head">${head}</div>
-      ${network ? cmNews(post) : `<div class="cm-text">${esc(post.body || "")}</div>`}
+      ${network ? cmNews(post) : `<div class="cm-text">${esc(post.body || "")}</div>${cmYouTube(post.body)}`}
       <div class="cm-foot">${replies}${chips}<button class="cm-chip" data-pick="${post.id}" aria-label="React" title="React">${SMILE_ICON}</button></div>
       ${!post.parent && !inThread && cm.open.has(post.id) ? cmInline(post) : ""}</div></article>`;
   }
@@ -5464,7 +5473,7 @@
     const list = (replies || []).map((r) => `<div class="cm-reply-row" data-post="${r.id}">
         <span data-user="${esc((r.author && r.author.name) || "")}">${cmFace(r.author)}</span>
         <div class="cm-reply-main"><div class="cm-reply-head"><b data-user="${esc((r.author && r.author.name) || "")}">${esc((r.author && r.author.name) || "")}</b><span class="cm-when"> · ${ago(r.created)}</span>${r.mine ? `<button class="cm-del" data-del="${r.id}" data-parent="${post.id}">Delete</button>` : ""}</div>
-        <div class="cm-text">${esc(r.body || "")}</div>
+        <div class="cm-text">${esc(r.body || "")}</div>${cmYouTube(r.body)}
         <div class="cm-foot">${(r.reactions || []).map((x) => `<button class="cm-chip${x.me ? " on" : ""}" data-react="${r.id}" data-parent="${post.id}" data-emoji="${esc(x.emoji)}"><span>${esc(x.emoji)}</span><b>${x.count}</b></button>`).join("")}<button class="cm-chip" data-pick="${r.id}" data-parent="${post.id}" aria-label="React" title="React">${SMILE_ICON}</button></div></div></div>`).join("");
     const you = cm.you;
     const box = you && you.verified
@@ -5579,11 +5588,18 @@
     market.sellerFrom = $("cm-thread").hidden ? "community" : "cm-thread";
     showSeller(answer);
   }
+  // The first time, the Community waits behind the sunrise until it's
+  // in, as the wallet list does, so nothing pops in late. Never longer than
+  // a few seconds.
   async function openCommunity() {
+    const first = !cm.posts.length;
+    if (first) covered(true);
+    const loaded = Promise.all([cmLoad(false), cmLoadYou()]);
+    if (first) await Promise.race([loaded, new Promise((done) => setTimeout(done, 4000))]);
     show("community");
     requestAnimationFrame(cmFitRail);
-    if (!cm.posts.length) $("cm-feed").innerHTML = '<div class="cm-empty">Loading…</div>';
-    await Promise.all([cmLoad(false), cmLoadYou()]);
+    if (first) covered(false);
+    await loaded;
   }
   for (const tab of document.querySelectorAll("[data-cm-tab]")) tab.onclick = () => {
     feel("selection");
