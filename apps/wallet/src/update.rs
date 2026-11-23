@@ -151,7 +151,6 @@ pub async fn install_update(app: AppHandle, quiet: Option<bool>) -> Result<(), S
     // itself, and these must already be saved by then.
     crate::background::remember_window(&app);
     crate::mine_commands::remember_for_update(&app);
-    let _ = std::fs::write(dir.join("just-updated"), &update.version);
     if quiet {
         let _ = std::fs::write(dir.join("reopen-as"), window_now(&app));
     }
@@ -167,7 +166,7 @@ pub async fn install_update(app: AppHandle, quiet: Option<bool>) -> Result<(), S
     .map_err(|error| error.to_string())
     .and_then(|done| done);
     if let Err(error) = installed {
-        for file in ["just-updated", "reopen-as", "update-ready.bin", "update-ready.version"] {
+        for file in ["reopen-as", "update-ready.bin", "update-ready.version"] {
             let _ = std::fs::remove_file(dir.join(file));
         }
         crate::mine_commands::forget_resume(&app);
@@ -178,24 +177,14 @@ pub async fn install_update(app: AppHandle, quiet: Option<bool>) -> Result<(), S
     app.restart()
 }
 
-/// After an update: the version now running, once, for the window's
-/// "Updated to …" note. Clears what the update left behind.
-#[tauri::command]
-pub fn update_news(app: AppHandle) -> Option<String> {
-    let dir = crate::folder(&app).ok()?;
+/// How the window should come back after an update that installed by
+/// itself, read once at start. Clears the downloaded update, installed now.
+pub fn reopen_as(app: &AppHandle) -> Option<String> {
+    let dir = crate::folder(app).ok()?;
     for file in ["update-ready.bin", "update-ready.version"] {
         let _ = std::fs::remove_file(dir.join(file));
     }
-    let file = dir.join("just-updated");
-    let version = std::fs::read_to_string(&file).ok()?;
-    let _ = std::fs::remove_file(file);
-    Some(version)
-}
-
-/// How the window should come back after an update that installed by
-/// itself, read once at start.
-pub fn reopen_as(app: &AppHandle) -> Option<String> {
-    let file = crate::folder(app).ok()?.join("reopen-as");
+    let file = dir.join("reopen-as");
     let how = std::fs::read_to_string(&file).ok();
     let _ = std::fs::remove_file(file);
     how

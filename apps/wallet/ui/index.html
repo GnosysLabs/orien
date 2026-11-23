@@ -390,8 +390,6 @@
   }
   .update.required { background: var(--bad); animation: none; }
   .update:disabled { opacity: 0.7; cursor: default; }
-  /* After an update installed itself: a calm note in the same place. */
-  .update.done { background: var(--surface); color: var(--ink); animation: none; box-shadow: 0 4px 14px #00000030; }
 
   /* Opening another wallet: the sunrise breathes until it's ready, then the
      wallet appears, already loaded. */
@@ -2479,7 +2477,6 @@
       </div>
       <div class="problem" id="mine-problem" hidden></div>
       <button class="primary pearl" id="mn-go" data-gap="lg">Start mining</button>
-      <p class="fineprint" id="mn-resumed" hidden>Mining started again by itself after the update.</p>
       <p class="fineprint" id="mn-light" hidden>Light mode: under 2 GB of free memory, so it mines more slowly.</p>
       <p class="fineprint" id="mn-large-on" hidden>Mining in large pages of memory, for extra speed.</p>
       <p class="fineprint"><span id="mn-odds"></span>Needs about 2 GB of memory. Rewards depend on how much everyone else mines.</p>
@@ -3184,8 +3181,8 @@
   }
   // The balance may have changed while another screen was showing, when it
   // couldn't be measured: fit it as the screen appears, before it's drawn.
-  // Mining an update stopped and this copy started again.
-  let mineResumeAsked = false, mineResumed = false;
+  // Mining an update stopped: started again once, as the app opens.
+  let mineResumeAsked = false;
   async function home() {
     const waiting = opening;
     opening = false;
@@ -3197,7 +3194,7 @@
     // An update stopped mining that was running: start it again, once.
     if (!mineResumeAsked) {
       mineResumeAsked = true;
-      invoke("mine_resume").then((did) => { if (did) { mineResumed = true; mineButton(true); } }).catch(() => {});
+      invoke("mine_resume").then((did) => { if (did) mineButton(true); }).catch(() => {});
     }
     await refresh();
     if (waiting) { fitBalance(); covered(false); }
@@ -3518,8 +3515,6 @@
     $("mn-speed").textContent = !s.running ? "Stopped"
       : s.preparing ? "Getting ready (about a minute)"
       : s.tries_per_second ? `${speed(s.tries_per_second)} tries a second` : "Starting…";
-    if (!s.running) mineResumed = false;
-    $("mn-resumed").hidden = !mineResumed;
     $("mn-light").hidden = !(s.running && s.light);
     $("mn-large-on").hidden = !(s.running && !s.preparing && s.large_pages);
     if (first || !mineLarge) { try { mineLarge = await invoke("large_pages_state"); } catch (_) { mineLarge = null; } }
@@ -7678,8 +7673,6 @@
   async function checkUpdate() {
     try { update = await invoke("check_update"); } catch { return; } // offline: try again later
     const button = $("update");
-    if (button.classList.contains("done") && !update) return;
-    if (update) updatedDone();
     button.hidden = !update;
     if (!update) return;
     button.classList.toggle("required", update.required);
@@ -7688,8 +7681,6 @@
   }
   $("update").onclick = async () => {
     const button = $("update");
-    // The "Updated to …" note: what's new in it.
-    if (button.classList.contains("done")) { invoke("open_changelog").catch(() => {}); updatedDone(); return; }
     button.disabled = true; button.innerHTML = '<span class="spinner"></span>Updating';
     try { await invoke("install_update"); } // restarts the app when done
     catch (error) {
@@ -7800,7 +7791,8 @@
   // A newer version downloads quietly, then installs once the app has been
   // left alone for ten minutes (closed, minimized, or behind other windows)
   // with nothing underway: no swap moving, no buyer waiting, nothing typed
-  // and unsent, no question open. It comes back the way it was.
+  // and unsent, no question open. It comes back the way it was, without a
+  // word: seamless.
   let autoUpdate = true, readyVersion = null, autoInstalling = false;
   invoke("computer_settings").then((c) => { if (c) autoUpdate = c[2] !== false; }).catch(() => {});
   // Words the person typed (not ones the app filled in), still in a box
@@ -7836,26 +7828,7 @@
     catch { autoInstalling = false; readyVersion = null; }
   }
   setInterval(updateByItself, 60 * 1000);
-  // Just updated: a short note where the update button sits, for a few
-  // minutes of use; pressing it shows what's new.
-  function updatedDone() {
-    const button = $("update");
-    if (!button.classList.contains("done")) return;
-    button.classList.remove("done"); button.classList.add("pearl"); button.hidden = true;
-  }
-  invoke("update_news").then((version) => {
-    if (!version || update) return;
-    const button = $("update");
-    button.classList.remove("pearl", "required"); button.classList.add("done");
-    button.textContent = `Updated to ${version}`; button.title = "See what's new";
-    button.hidden = false;
-    // Gone after three minutes with the window in use.
-    let shown = 0;
-    const tick = setInterval(() => {
-      if (document.hasFocus()) shown++;
-      if (shown >= 18 || !button.classList.contains("done")) { clearInterval(tick); updatedDone(); }
-    }, 10 * 1000);
-  }).catch(() => {});
+
   // Contacts and wallet icons from this wallet's other devices, every few
   // minutes while the app is open.
   setInterval(syncBook, 3 * 60 * 1000);
