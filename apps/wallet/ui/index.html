@@ -1447,6 +1447,7 @@
   .cm-join { align-items: center; color: var(--dim); font-size: 13.5px; line-height: 1.45; }
   .cm-join span { flex: 1; }
   .cm-feed { display: grid; gap: 14px; }
+  #cm-more, #sl-feed-more { display: none !important; }
   /* A post on its own replies inside its card, as in the feed. */
   #cm-thread .cm-replies, #cm-reply-box, #cm-reply-join { display: none !important; }
   /* The mask keeps the corners round on the Mac even with a fading
@@ -6201,6 +6202,18 @@
   $("cm-post").onclick = () => cmSend("cm-body", "cm-post", null);
   $("cm-reply-go").onclick = () => cmSend("cm-reply", "cm-reply-go", cm.thread && cm.thread.id);
   $("cm-more").onclick = () => cmLoad(true);
+  // Older posts come in by themselves near the end of the feed, as in any
+  // feed app: no Show more button under the Back to top arrow.
+  function moreOnScroll(screen, more, load) {
+    let busy = false;
+    $(screen).addEventListener("scroll", () => {
+      const el = $(screen);
+      if (busy || !more() || el.scrollTop + el.clientHeight < el.scrollHeight - 700) return;
+      busy = true;
+      Promise.resolve(load()).finally(() => { busy = false; });
+    }, { passive: true });
+  }
+  moreOnScroll("community", () => cm.more, () => cmLoad(true));
   async function cmJoin() {
     if (cm.you) { await loadBoard(); openProfile(); return; }
     signinReturn = "community"; resetSignin(); show("board-signin");
@@ -6341,6 +6354,7 @@
     $("sl-feed-more").hidden = !sl.more;    slFitEdges();
   }
   $("sl-feed-more").onclick = () => slLoadFeed(true);
+  moreOnScroll("seller", () => sl.more, () => slLoadFeed(true));
   // Add to contacts: the person, by account, with every wallet they verify.
   async function paintSlAdd() {
     const b = $("sl-add");
