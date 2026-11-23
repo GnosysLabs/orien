@@ -1668,7 +1668,6 @@
   .pf-layout[data-tab="shop"] .pf-listings-head { margin-top: 0; }
   .pf-danger { display: flex; flex-direction: column; align-items: center; gap: 12px; }
   .pf-danger .ct-delete { margin: 0 auto; }
-  .pf-danger .pf-signout { min-width: 160px; }
   .pf-danger .report-box { align-self: stretch; }
   .pf-main { grid-area: main; min-width: 0; }
   .pf-side { grid-area: side; min-width: 0; }
@@ -1721,6 +1720,11 @@
      bottom of the glass. ---- */
   body.phone { font-size: 15px; padding-left: max(16px, env(safe-area-inset-left)); padding-right: max(16px, env(safe-area-inset-right)); padding-bottom: 0; }
   body.phone header { height: 44px; margin: 0 -16px 8px; }
+  .hd-btn { display: none; }
+  body.phone.at-home .hd-btn { display: grid; place-items: center; position: absolute; top: 50%; transform: translateY(-50%); width: 40px; height: 40px; }
+  body.phone.at-home .hd-left { left: max(16px, env(safe-area-inset-left)); }
+  body.phone.at-home .hd-right { right: max(16px, env(safe-area-inset-right)); }
+  body.phone .home-left :is(#go-settings, #go-notices) { display: none; }
   body.phone #swaps, body.phone #swap-sell, body.phone #swap-buy, body.phone #swap-detail, body.phone #mine,
   body.phone #board-signin, body.phone #board-post, body.phone #board-take { margin: -8px -8px 0; padding: 8px 8px 16px; }
   body.phone .scroll { margin: 0 -8px; padding: 0 8px 16px; }
@@ -1747,6 +1751,10 @@
     <button class="sc-cancel" id="sc-cancel" type="button">Cancel</button>
   </div>
   <header data-tauri-drag-region>
+    <!-- iPhone, on the home screen: Settings and Notifications sit at the
+         top corners, beside the wordmark, so the bar below has room. -->
+    <button class="pill icon hd-btn hd-left" id="hd-settings" aria-label="Settings"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></button>
+    <button class="pill icon hd-btn hd-right" id="hd-notices" aria-label="Notifications" hidden><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10.268 21a2 2 0 0 0 3.464 0"/><path d="M3.262 15.326A1 1 0 0 0 4 17h16a1 1 0 0 0 .74-1.673C19.41 13.956 18 12.499 18 8A6 6 0 0 0 6 8c0 4.499-1.411 5.956-2.738 7.326"/></svg><span class="dot" id="hd-notices-dot" hidden></span></button>
     <div class="wm-wrap"><h1 class="wordmark"><span class="mark brand"></span><span class="word brand">ORIEN</span></h1>
       <button class="status" id="status" hidden><i></i><span id="status-text"></span></button></div>
     <button class="update pearl" id="update" hidden></button>
@@ -2231,7 +2239,6 @@
         </div>
       </div>
         <div class="pf-danger">
-      <button class="pill pf-signout" id="pf-signout">Sign out</button>
       <button class="pill ct-delete" id="pf-delete">Delete my account</button>
       <div class="report-box" id="pf-delete-box" hidden>
         <p class="vc-text" id="pf-delete-text"></p>
@@ -2973,6 +2980,7 @@
     const shown = $(id), col = shown && parseFloat(getComputedStyle(shown).getPropertyValue("--col"));
     document.querySelector("main").style.setProperty("--panel", (both ? 1040 : col || 640) + "px");
     if (id === "community" && typeof cmFitRail === "function") cmFitRail();
+    document.body.classList.toggle("at-home", id === "home");
     if (id === "seller" && typeof slFitEdges === "function") slFitEdges();
     if (both) { $("chat").classList.toggle("none", !chat.id); paintInbox(); }
     else if (id === "chat") $("chat").classList.remove("none");
@@ -3755,7 +3763,6 @@
     try { localStorage.setItem("app-lock", on ? "on" : "off"); } catch {}
     feel("selection");
   };
-  $("pf-signout").onclick = () => signOut();
   for (const kind of ["received", "mining", "market", "community", "swaps"]) {
     $(`st-n-${kind}`).onchange = async () => {
       const on = $(`st-n-${kind}`).checked;
@@ -5192,11 +5199,14 @@
     $("board-who").hidden = !me;
     $("board-who").innerHTML = me ? avatar({ seller_name: me.name, seller_picture: me.picture }) : "";
     $("board-who").title = me ? `${me.name}: your profile` : "";
-    // Signed out: "Sign in". Signed in: just the picture; signing out is on
-    // your profile, so the top bar stays uncluttered.
+    // Signed in: a sign-out glyph beside the picture. Signed out: "Sign in".
     const go = $("board-signin-go");
-    go.hidden = !!me;
-    go.textContent = "Sign in";
+    go.classList.toggle("icon", !!me);
+    go.title = me ? "Sign out" : "";
+    go.setAttribute("aria-label", me ? "Sign out" : "Sign in");
+    go.innerHTML = me
+      ? `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m16 17 5-5-5-5"/><path d="M21 12H9"/><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/></svg>`
+      : "Sign in";
     // Marketplace payments go to one wallet per account. Say which, when it
     // isn't the open one, and switch it only when asked.
     const open = view && view.address;
@@ -6292,8 +6302,8 @@
     const n = (board.me && board.me.unread) || 0;
     $("market-unread").hidden = !n;
     // The bell: only for an Orien Network account, with a dot for anything new.
-    $("go-notices").hidden = !board.me;
-    $("notices-dot").hidden = !(board.me && board.me.notices);
+    $("go-notices").hidden = $("hd-notices").hidden = !board.me;
+    $("notices-dot").hidden = $("hd-notices-dot").hidden = !(board.me && board.me.notices);
   }
   // ---- Notifications: the website's bell, in the app ----
   const nt = { lines: [] };
@@ -6337,7 +6347,8 @@
     // Seen: the dot goes, here and on the website.
     if (nt.lines.some((l) => l.unseen)) mk("POST", "/notices/seen", {}).then(() => { if (board.me) { board.me.notices = 0; paintUnread(); } }).catch(() => {});
   }
-  $("go-notices").onclick = () => openNotices();
+  $("go-notices").onclick = $("hd-notices").onclick = () => openNotices();
+  $("hd-settings").onclick = () => $("go-settings").click();
   $("nt-back").onclick = () => home();
   $("nt-list").onclick = async (e) => {
     const r = e.target.closest("[data-nt]");
