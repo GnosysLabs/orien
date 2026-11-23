@@ -412,6 +412,9 @@
     background: transparent; cursor: pointer; display: grid; place-items: center; color: var(--dim);
   }
   @media (hover: hover) { .back:hover { background: rgba(var(--tint), 0.05); color: var(--ink); } }
+  /* On computers the content's edge is the rounded edge it scrolls under:
+     the back button sits inside it, so its hover never gets clipped. */
+  html body:not(.phone) .back { margin-left: 0; }
   /* On touch screens: lit only while pressed (a hover look would stay on
      after the tap). */
   .back:active { background: rgba(var(--tint), 0.05); color: var(--ink); }
@@ -3533,7 +3536,7 @@
 
 
   // ---- Themes ----
-  const THEMES = [["pearl", "Pearl"], ["daylight", "Daylight"], ["midnight", "Midnight"], ["aurora", "Aurora"], ["amethyst", "Amethyst"], ["rose", "Rosé"], ["ruby", "Ruby"], ["ember", "Ember"], ["obsidian", "Obsidian"]];
+  const THEMES = [["pearl", "Pearl"], ["daylight", "Daylight"], ["obsidian", "Obsidian"], ["midnight", "Midnight"], ["aurora", "Aurora"], ["amethyst", "Amethyst"], ["rose", "Rosé"], ["ruby", "Ruby"], ["ember", "Ember"]];
   const knownTheme = (name) => THEMES.some(([id]) => id === name) ? name : "pearl";
   // The colour behind the page matches the theme's deepest ground.
   function paintBackdrop() {
