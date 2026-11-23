@@ -24,6 +24,9 @@ export function SignInGate() {
   const router = useRouter()
   const { account } = useMe()
   const [open, setOpen] = useState(false)
+  // While a pass from Orien Wallet is being used, the browser isn't signed
+  // in yet: the dialog waits, rather than opening for a moment and closing.
+  const [taking, setTaking] = useState(false)
   const onAccountPage = pathname === '/account/' || pathname === '/account'
   const signedIn = () => window.dispatchEvent(new Event(SIGNED_IN_OR_OUT))
 
@@ -31,8 +34,10 @@ export function SignInGate() {
   // The allow page handles its own, as part of letting a website in.
   useEffect(() => {
     if (pathname.startsWith('/oauth/')) return
+    if (new URLSearchParams(window.location.hash.slice(1)).has('pass')) setTaking(true)
     void takeWalletPass().then((ok) => {
-      if (!ok) return
+      // Signed in, it stays waiting until the account arrives and closes it.
+      if (!ok) return setTaking(false)
       signedIn()
       if (onAccountPage) router.push('/community/')
     })
@@ -63,8 +68,8 @@ export function SignInGate() {
 
   // On the account page itself, signed out, there is only the dialog.
   useEffect(() => {
-    if (onAccountPage && account === null) setOpen(true)
-  }, [onAccountPage, account])
+    if (onAccountPage && account === null && !taking) setOpen(true)
+  }, [onAccountPage, account, taking])
 
   const close = useCallback(() => {
     if (onAccountPage && account === null) return
@@ -80,10 +85,12 @@ export function SignInGate() {
 
   // Signed in, by this dialog or any other way: it goes away.
   useEffect(() => {
-    if (account) setOpen(false)
+    if (!account) return
+    setOpen(false)
+    setTaking(false)
   }, [account])
 
-  if (!open || account) return null
+  if (!open || account || taking) return null
   const dismissable = !(onAccountPage && account === null)
   return (
     <div

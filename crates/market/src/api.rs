@@ -375,6 +375,7 @@ pub fn router(app: Arc<App>) -> Router {
         .route("/api/market/listings/{id}/open", post(open_listing))
         .merge(crate::oidc::routes())
         .merge(crate::community::routes())
+        .merge(crate::notices::routes())
         .route("/api/explorer/overview", get(crate::explorer::overview))
         .route("/api/explorer/checkpoints", get(crate::explorer::checkpoints))
         .route("/api/explorer/checkpoints/{epoch}", get(crate::explorer::checkpoint))
@@ -570,7 +571,8 @@ async fn me(State(app): State<Arc<App>>, headers: HeaderMap) -> Answer {
     let account = store.account(id)?.ok_or(Failure::SignIn)?;
     let listings = store.listings_of(id)?;
     let unread = store.unread(id)?;
-    Ok(Json(json!({ "account": account, "listings": listings, "unread": unread })).into_response())
+    let notices = store.unseen_notices(id)?;
+    Ok(Json(json!({ "account": account, "listings": listings, "unread": unread, "notices": notices })).into_response())
 }
 
 #[derive(Deserialize)]

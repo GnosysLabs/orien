@@ -344,16 +344,48 @@ function Traffic() {
           added up. Bots that don&apos;t run JavaScript aren&apos;t counted, and neither are dashboard or tailnet visits. Your
           own visits to orien.network look like anyone else&apos;s: stop counting each browser you use, once.
         </p>
-        <div className="flex gap-2">
-          <a href={`${site}/?notrack=1`} target="_blank" rel="noreferrer" className="rounded-lg border border-line bg-raised px-3 py-1.5 font-semibold text-ink hover:border-pearl">
-            Stop counting this browser
-          </a>
-          <a href={`${site}/?notrack=0`} target="_blank" rel="noreferrer" className="rounded-lg px-2 py-1.5 hover:text-ink">
-            Count it again
-          </a>
-        </div>
+        <NoTrack site={site} />
       </div>
     </>
+  )
+}
+
+// The choice lives in orien.network's own storage, which this tailnet page
+// can't read; so the dashboard remembers which way you last set it here.
+const NO_TRACK = 'orien_dashboard_no_track'
+
+/** Turns counting this browser off or on, showing which way it is set. */
+function NoTrack({ site }: { site: string }) {
+  const [off, setOff] = useState(false)
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem(NO_TRACK) === '1'
+      setTimeout(() => setOff(saved), 0)
+    } catch {}
+  }, [])
+  const choose = (value: boolean) => {
+    setOff(value)
+    try {
+      if (value) localStorage.setItem(NO_TRACK, '1')
+      else localStorage.removeItem(NO_TRACK)
+    } catch {}
+  }
+  return off ? (
+    <div className="flex items-center gap-2">
+      <span className="flex items-center gap-1.5 rounded-lg border border-go/40 bg-go/10 px-3 py-1.5 font-semibold text-go">
+        <svg viewBox="0 0 16 16" className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth="2.2" aria-hidden>
+          <path d="M3 8.5l3.2 3L13 4.5" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+        This browser isn&apos;t counted
+      </span>
+      <a href={`${site}/?notrack=0`} target="_blank" rel="noreferrer" onClick={() => choose(false)} className="rounded-lg border border-line bg-raised px-3 py-1.5 font-semibold text-ink hover:border-pearl">
+        Count it again
+      </a>
+    </div>
+  ) : (
+    <a href={`${site}/?notrack=1`} target="_blank" rel="noreferrer" onClick={() => choose(true)} className="rounded-lg border border-line bg-raised px-3 py-1.5 font-semibold text-ink hover:border-pearl">
+      Stop counting this browser
+    </a>
   )
 }
 

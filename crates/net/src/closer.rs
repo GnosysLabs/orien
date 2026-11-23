@@ -300,8 +300,11 @@ impl Closer {
 
     fn wait(&self, timeout: Timeout) -> Duration {
         match timeout {
-            // Long enough for the proposer to gather the pinned logs.
-            Timeout::Propose(round) => self.pace.unit * (6 + 2 * round.min(30)),
+            // Long enough for the proposer to gather the pinned logs, and for
+            // its proposal, which carries every statement and its shares, to
+            // cross an ocean: between Europe and America that takes two to
+            // three seconds at the close.
+            Timeout::Propose(round) => self.pace.unit * (12 + 2 * round.min(30)),
             Timeout::Prevote(round) | Timeout::Precommit(round) => self.pace.unit * (1 + round.min(30)),
         }
     }

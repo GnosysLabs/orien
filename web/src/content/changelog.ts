@@ -26,6 +26,43 @@ export const PRODUCTS: Record<Product, string> = {
 
 export const CHANGELOG: Entry[] = [
   {
+    date: '2026-11-23',
+    products: ['network'],
+    title: 'A live map of the network',
+    changes: [
+      'explorer.orien.network/map/ shows the network as a live picture: the four validators on the globe where they are, and around it every wallet that mined in the last hour and the 100 largest wallets. Pointing at a dot shows what it mined and what it holds; selecting it opens that wallet in the explorer.',
+      'Network details, on the same page, shows the links between the validators: the delay and loss between every pair, the route each takes across the internet and the carriers on it, and the last 24 hours. The links are measured from outside every ten minutes.',
+      'The home page of orien.network shows the same globe, live.',
+    ],
+  },
+  {
+    date: '2026-11-22',
+    products: ['orien', 'validators'],
+    version: '1.10.6',
+    title: 'Room for a validator across the ocean',
+    changes: [
+      'About one checkpoint in twelve needed a second try. Each time it was the turn of the validator in Europe to propose. Its proposal, which carries every validator’s statement and the hour’s work shares, takes two to three seconds to reach the validators in America, and they waited only three seconds for it, counted from the start of the close. They now wait six, so a proposal from across the ocean arrives in time. A validator that is really down still costs only a few seconds more.',
+    ],
+  },
+  {
+    date: '2026-11-22',
+    products: ['network'],
+    title: 'Logos to download',
+    changes: [
+      'orien.network/brand/ has the ORN coin icon, a square version and the Orien sun, as SVG and PNG from 32 to 1,024 pixels, with a button for each and one for the whole set. Exchanges and price trackers can take the coin icon from there; the Listing ORN page links to it.',
+    ],
+  },
+  {
+    date: '2026-11-21',
+    products: ['marketplace'],
+    title: 'Notifications',
+    changes: [
+      'Signed in, a bell at the top of every page shows what happened for you: replies and reactions to your posts, replies after yours, the network’s posts about you, and new messages.',
+      'Each line opens the post with its replies, or the message. Opening the bell marks everything seen.',
+      'Clicking the community tab you are already on refreshes it at once, instead of showing Loading.',
+    ],
+  },
+  {
     date: '2026-11-21',
     products: ['wallet'],
     version: '1.8.24',

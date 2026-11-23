@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import { Suspense } from 'react'
 import { CommunityView } from '@/components/market/CommunityView'
 import { pageMeta } from '@/lib/seo'
 import { COMMUNITY_LIVE } from '@/lib/brand'
@@ -21,7 +22,9 @@ export default function CommunityPage() {
   }
   return (
     <div className="mx-auto max-w-[1100px]">
-      <CommunityView />
+      <Suspense>
+        <CommunityView />
+      </Suspense>
     </div>
   )
 }

@@ -415,7 +415,11 @@ impl Store {
             "INSERT INTO posts (author, kind, body, parent, created) VALUES (?1, 'post', ?2, ?3, ?4)",
             params![author, body, parent, now() as i64],
         )?;
-        Ok(self.db.last_insert_rowid())
+        let id = self.db.last_insert_rowid();
+        if let Some(parent) = parent {
+            self.notice_reply(id, author, parent)?;
+        }
+        Ok(id)
     }
 
     /// Something the network says, dated `at`: the checkpoint's time.
@@ -424,7 +428,7 @@ impl Store {
             "INSERT INTO posts (kind, data, subject, created) VALUES (?1, ?2, ?3, ?4)",
             params![kind, data.to_string(), subject, at as i64],
         )?;
-        Ok(())
+        self.notice_happening(self.db.last_insert_rowid())
     }
 
     pub fn remove_own_post(&self, author: i64, post: i64) -> Result<bool> {
@@ -460,6 +464,7 @@ impl Store {
         if taken == 0 {
             self.db.execute("INSERT INTO reactions (post, account, emoji) VALUES (?1, ?2, ?3)", params![post, account, emoji])?;
         }
+        self.notice_reaction(post, account, emoji, taken == 0, Some(now()))?;
         Ok(taken == 0)
     }
 
@@ -495,12 +500,22 @@ impl Store {
             ),
         };
         let key = replies_to.unwrap_or(before.unwrap_or(i64::MAX));
+        self.posts_where(viewer, &filter, order, key, about)
+    }
+
+    /// One post as `viewer` sees it, if it is still up and not a reply.
+    pub fn one_post(&self, viewer: Option<i64>, id: i64) -> Result<Option<Value>> {
+        Ok(self.posts_where(viewer, "p.id = ?1 AND p.parent IS NULL AND ?3 < 0", "p.id", id, None)?.into_iter().next())
+    }
+
+    /// Posts matching `filter`, where ?1 is `key`, ?2 the viewer and ?3 `about`.
+    fn posts_where(&self, viewer: Option<i64>, filter: &str, order: &str, key: i64, about: Option<i64>) -> Result<Vec<Value>> {
         let mut query = self.db.prepare(&format!(
             "SELECT p.id, p.kind, p.body, p.data, p.created, p.parent,
                     a.name, a.picture, s.name, s.picture,
                     (SELECT COUNT(*) FROM posts r WHERE r.parent = p.id AND r.removed = 0
                        AND (r.author IS NULL OR r.author NOT IN (SELECT account FROM suspended))),
-                    p.author = ?2
+                    p.author = ?2, a.banner
              FROM posts p LEFT JOIN accounts a ON a.id = p.author LEFT JOIN accounts s ON s.id = p.subject
              WHERE {filter} AND p.removed = 0
                AND (p.author IS NULL OR p.author NOT IN (SELECT account FROM suspended))
@@ -516,7 +531,10 @@ impl Store {
                 "data": serde_json::from_str::<Value>(&row.get::<_, String>(3)?).unwrap_or(json!({})),
                 "created": row.get::<_, i64>(4)?,
                 "parent": row.get::<_, Option<i64>>(5)?,
-                "author": person(row.get(6)?, row.get(7)?),
+                "author": person(row.get(6)?, row.get(7)?).map(|mut author| {
+                    author["banner"] = json!(row.get::<_, Option<String>>(12).ok().flatten());
+                    author
+                }),
                 "subject": person(row.get(8)?, row.get(9)?),
                 "replies": row.get::<_, i64>(10)?,
                 "mine": row.get::<_, Option<bool>>(11)?.unwrap_or(false),
@@ -687,6 +705,35 @@ impl Community {
         self.board.lock().unwrap().clone()
     }
 
+    /// Members whose names contain `text`, the closest first: name and
+    /// picture, and whether they verified a wallet.
+    pub(crate) fn find_members(&self, store: &Store, text: &str) -> Result<Vec<Value>> {
+        let query = text.trim().to_lowercase();
+        if query.chars().count() < 2 {
+            return Ok(Vec::new());
+        }
+        let escaped: String = query.chars().flat_map(|c| if matches!(c, '%' | '_' | '\\') { vec!['\\', c] } else { vec![c] }).collect();
+        let mut statement = store.db.prepare(
+            "SELECT a.id, a.name, a.picture,
+                    EXISTS (SELECT 1 FROM verified_wallets v WHERE v.account = a.id AND v.proven IS NOT NULL)
+             FROM accounts a
+             WHERE lower(a.name) LIKE ?1 ESCAPE '\\' AND a.id NOT IN (SELECT account FROM suspended)
+             ORDER BY lower(a.name) = ?2 DESC, lower(a.name) LIKE ?3 ESCAPE '\\' DESC, lower(a.name), a.id
+             LIMIT 8",
+        )?;
+        let rows = statement.query_map(params![format!("%{escaped}%"), query, format!("{escaped}%")], |row| {
+            let id: i64 = row.get(0)?;
+            Ok((id, row.get::<_, String>(1)?, row.get::<_, Option<String>>(2)?, row.get::<_, bool>(3)?))
+        })?;
+        let mut found = Vec::new();
+        for row in rows {
+            let (id, name, picture, verified) = row?;
+            let rank = self.stats_of(id).map(|stats| stats.rank);
+            found.push(json!({ "name": name, "picture": picture, "verified": verified, "rank": rank }));
+        }
+        Ok(found)
+    }
+
     /// An account's rank, ORN mined and streak, when its verified wallets
     /// have been paid for mining.
     pub(crate) fn stats_of(&self, account: i64) -> Option<Stats> {
@@ -711,6 +758,7 @@ pub fn routes() -> Router<Arc<App>> {
         .route("/api/market/community/posts", post(new_post))
         .route("/api/market/community/posts/{id}", get(replies).delete(remove_post))
         .route("/api/market/community/posts/{id}/react", post(react))
+        .route("/api/market/community/members", get(members))
 }
 
 fn viewer(app: &App, headers: &HeaderMap) -> Option<i64> {
@@ -723,6 +771,16 @@ pub struct Before {
     only: Option<String>,
     /// An account's name: only its own posts and the network's posts about it.
     about: Option<String>,
+}
+
+#[derive(Deserialize)]
+pub struct Find {
+    q: String,
+}
+
+async fn members(State(app): State<Arc<App>>, Query(find): Query<Find>) -> Result<Response, Failure> {
+    let found = app.community().find_members(&app.store(), &find.q)?;
+    Ok(([(axum::http::header::CACHE_CONTROL, "public, max-age=30")], Json(json!({ "members": found }))).into_response())
 }
 
 async fn feed(State(app): State<Arc<App>>, headers: HeaderMap, Query(page): Query<Before>) -> Result<Response, Failure> {
@@ -739,7 +797,8 @@ async fn feed(State(app): State<Arc<App>>, headers: HeaderMap, Query(page): Quer
 
 async fn replies(State(app): State<Arc<App>>, headers: HeaderMap, Path(id): Path<i64>) -> Result<Response, Failure> {
     let me = viewer(&app, &headers);
-    Ok(Json(json!({ "replies": app.store().feed(me, None, Some(id), None, None)? })).into_response())
+    let store = app.store();
+    Ok(Json(json!({ "post": store.one_post(me, id)?, "replies": store.feed(me, None, Some(id), None, None)? })).into_response())
 }
 
 async fn board_answer(State(app): State<Arc<App>>, headers: HeaderMap) -> Result<Response, Failure> {

@@ -210,6 +210,7 @@ export const EXPLORER_URL = 'https://explorer.orien.network/'
 export const homeHref = () => (own() ? '/' : '/explorer/')
 export const addressHref = (address: string) => (own() ? `/address/${address}/` : `/explorer/address/?a=${address}`)
 export const topHref = () => (own() ? '/top/' : '/explorer/top/')
+export const mapHref = () => (own() ? '/map/' : '/explorer/map/')
 export const apiHref = () => (own() ? '/api/' : '/explorer/api/')
 export const checkpointHref = (epoch: number) => (own() ? `/checkpoint/${epoch}/` : `/explorer/checkpoint/?n=${epoch}`)
 

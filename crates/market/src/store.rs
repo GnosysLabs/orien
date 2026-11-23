@@ -304,6 +304,7 @@ impl Store {
         store.create_proof_table()?;
         store.create_oidc_tables()?;
         store.create_community_tables()?;
+        store.create_notice_tables()?;
         // Names are unique whatever their case.
         store.db.execute("CREATE UNIQUE INDEX IF NOT EXISTS accounts_name ON accounts (lower(name))", [])?;
         Ok(store)

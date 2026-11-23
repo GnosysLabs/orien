@@ -7,20 +7,21 @@ import { me, type Account } from './market'
  * of the page catches up. */
 export const SIGNED_IN_OR_OUT = 'orien-market-account'
 
-/** Who is signed in to Orien Network and how many messages they haven't read:
+/** Who is signed in to Orien Network, how many messages they haven't read
+ * and how many of the bell's lines are new:
  * undefined until known, null when nobody is. */
-export type Me = { account: Account | null | undefined; unread: number }
+export type Me = { account: Account | null | undefined; unread: number; notices: number }
 
-let current: Me = { account: undefined, unread: 0 }
+let current: Me = { account: undefined, unread: 0, notices: 0 }
 const listeners = new Set<(me: Me) => void>()
 let started = false
 
 async function refresh() {
   try {
     const found = await me()
-    current = { account: found?.account ?? null, unread: found?.unread ?? 0 }
+    current = { account: found?.account ?? null, unread: found?.unread ?? 0, notices: found?.notices ?? 0 }
   } catch {
-    current = { account: null, unread: 0 }
+    current = { account: null, unread: 0, notices: 0 }
   }
   listeners.forEach((listener) => listener(current))
 }

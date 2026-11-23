@@ -1,9 +1,10 @@
 'use client'
 
 import Link from 'next/link'
+import { useSearchParams } from 'next/navigation'
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { Flag, Flame, MessageCircle, MoreHorizontal, SmilePlus, Trash2, Trophy } from 'lucide-react'
-import { ask, profileHref } from '@/lib/market'
+import { ArrowLeft, BadgeCheck, Flag, Flame, MessageCircle, MoreHorizontal, Search, SmilePlus, Trash2, Trophy } from 'lucide-react'
+import { ask, pictureUrl, profileHref } from '@/lib/market'
 import { checkpointHref, orn, short } from '@/lib/explorer'
 import { useMe } from '@/lib/useMe'
 import { AutoTextarea } from '@/components/AutoTextarea'
@@ -13,8 +14,9 @@ import { Notice } from './Shell'
 import { Linked } from './Linked'
 import { YouTube, youtubeId } from './YouTube'
 import { openSignIn } from './SignInDialog'
+import { EYEBROWS, NetworkAvatar } from './network'
 
-type Person = { name: string; picture: string | null }
+type Person = { name: string; picture: string | null; banner?: string | null }
 type Face = { account?: number; address?: string; name?: string; picture?: string | null; paid?: string }
 type Reaction = { emoji: string; count: number; me: boolean }
 type Post = {
@@ -94,15 +96,6 @@ function useDismiss(open: boolean, close: () => void) {
   return box
 }
 
-/** The network, as a poster: the Orien sun on living pearl. */
-function NetworkAvatar({ size = 36 }: { size?: number }) {
-  return (
-    <span className="pearl-fill flex shrink-0 items-center justify-center rounded-full" style={{ width: size, height: size }} aria-hidden>
-      <span className="orien-mark bg-bg" style={{ width: size * 0.56, height: size * 0.56 }} />
-    </span>
-  )
-}
-
 /** A miner's face: their picture when they have a profile, else the sun. */
 function FaceAvatar({ face, size }: { face: Face; size: number }) {
   if (face.name) return <Avatar name={face.name} picture={face.picture ?? null} size={size} />
@@ -159,13 +152,6 @@ function names(faces: Face[], count: number) {
 
 /** The eyebrow over each kind of the network's card. One colour for all of
  * them: the site's own living pearl. */
-const EYEBROWS: Record<Exclude<Post['kind'], 'post'>, string> = {
-  record: 'New record',
-  welcome: 'Welcome',
-  milestone: 'Milestone',
-  streak: 'On a streak',
-  top_day: 'Top miner of the day',
-}
 
 /** What the network says, as a card of its own kind. */
 function Happening({ post }: { post: Post }) {
@@ -439,15 +425,20 @@ function Reply({ reply, me, onChange }: { reply: Post; me: You | null; onChange:
   )
 }
 
-function PostCard({ post, me, onChange }: { post: Post; me: You | null; onChange: () => void }) {
-  const [open, setOpen] = useState(false)
+function PostCard({ post, me, onChange, startOpen = false }: { post: Post; me: You | null; onChange: () => void; startOpen?: boolean }) {
+  const [open, setOpen] = useState(startOpen)
   const [replies, setReplies] = useState<Post[] | null>(null)
   const network = post.kind !== 'post'
+  const banner = network ? null : post.author?.banner
   const eyebrow = network ? EYEBROWS[post.kind as keyof typeof EYEBROWS] : null
   const loadReplies = useCallback(async () => {
     const found = await ask<{ replies: Post[] }>(`/community/posts/${post.id}`).catch(() => ({ replies: [] }))
     setReplies(found.replies)
   }, [post.id])
+  // Opened from a notification: the replies show at once.
+  useEffect(() => {
+    if (startOpen) void loadReplies()
+  }, [startOpen, loadReplies])
   const changed = () => {
     if (open) void loadReplies()
     onChange()
@@ -469,7 +460,16 @@ function PostCard({ post, me, onChange }: { post: Post; me: You | null; onChange
           />
         </>
       )}
-      <div className={`relative p-5 ${network ? 'on-banner' : ''}`}>
+      {banner && (
+        // The author's profile banner, fading into the card the same way.
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
+          src={pictureUrl(banner)}
+          alt=""
+          className="pointer-events-none absolute right-0 top-0 h-auto max-h-96 w-full object-cover opacity-70 [mask-composite:intersect] [mask-image:linear-gradient(to_left,black,transparent_90%),linear-gradient(to_bottom,black_55%,transparent)] sm:w-4/5 sm:[mask-image:linear-gradient(to_left,black_15%,rgb(0_0_0/0.55)_50%,transparent_95%),linear-gradient(to_bottom,black_55%,transparent)]"
+        />
+      )}
+      <div className={`relative p-5 ${network || banner ? 'on-banner' : ''}`}>
         <header className="flex items-center gap-3">
           {network ? <NetworkAvatar size={40} /> : post.author && <Avatar name={post.author.name} picture={post.author.picture} size={44} />}
           <div className="min-w-0 flex-1">
@@ -586,6 +586,71 @@ function YouCard({ you, onChange }: { you: You | null; onChange: () => void }) {
 
 const MEDALS = ['🥇', '🥈', '🥉']
 
+type Member = { name: string; picture: string | null; verified: boolean; rank: number | null }
+
+/** Finds members by name, as they type, each leading to their profile. */
+function FindMembers() {
+  const [text, setText] = useState('')
+  const [found, setFound] = useState<Member[] | null>(null)
+  useEffect(() => {
+    const query = text.trim()
+    if (query.length < 2) {
+      setFound(null)
+      return
+    }
+    let current = true
+    const timer = setTimeout(() => {
+      ask<{ members: Member[] }>(`/community/members?q=${encodeURIComponent(query)}`)
+        .then((answer) => current && setFound(answer.members))
+        .catch(() => current && setFound([]))
+    }, 200)
+    return () => {
+      current = false
+      clearTimeout(timer)
+    }
+  }, [text])
+  return (
+    <section className={card}>
+      <label className="flex items-center gap-2.5 px-4">
+        <Search className="h-4 w-4 shrink-0 text-muted" aria-hidden />
+        <input
+          type="search"
+          value={text}
+          onChange={(event) => setText(event.target.value)}
+          placeholder="Find members"
+          aria-label="Find members by name"
+          className="h-12 min-w-0 flex-1 bg-transparent text-sm text-ink outline-none placeholder:text-muted"
+        />
+      </label>
+      {found && (
+        <div className="border-t border-line py-1.5">
+          {found.length === 0 ? (
+            <p className="px-4 py-2.5 text-sm text-muted">Nobody by that name.</p>
+          ) : (
+            found.map((member) => (
+              <Link
+                key={member.name}
+                href={profileHref(member.name)}
+                className="flex items-center gap-3 px-4 py-2 transition hover:bg-raised/40"
+              >
+                <Avatar name={member.name} picture={member.picture} size={32} />
+                <span className="min-w-0 flex-1 truncate text-sm font-bold text-ink">{member.name}</span>
+                {member.rank !== null ? (
+                  <span className="num shrink-0 text-xs text-muted">
+                    {member.rank <= 3 ? MEDALS[member.rank - 1] : `#${member.rank}`} miner
+                  </span>
+                ) : (
+                  member.verified && <BadgeCheck className="h-4 w-4 shrink-0 text-go" aria-label="Verified" />
+                )}
+              </Link>
+            ))
+          )}
+        </div>
+      )}
+    </section>
+  )
+}
+
 function Miners({ board }: { board: Board }) {
   const [all, setAll] = useState(false)
   const rows = all ? board.miners : board.miners.slice(0, 8)
@@ -651,6 +716,19 @@ export function CommunityView() {
   const [you, setYou] = useState<You | null>(null)
   const [trouble, setTrouble] = useState('')
   const live = useMe()
+  // A notification opens one post: /community/?post=ID.
+  const focus = Number(useSearchParams().get('post')) || null
+  const [focused, setFocused] = useState<Post | null | undefined>(undefined)
+  const loadFocused = useCallback(async () => {
+    if (!focus) return
+    const found = await ask<{ post: Post | null }>(`/community/posts/${focus}`).catch(() => ({ post: null }))
+    setFocused(found.post)
+  }, [focus])
+  useEffect(() => {
+    setFocused(undefined)
+    void loadFocused()
+    if (focus) window.scrollTo({ top: 0 })
+  }, [loadFocused, focus, live.account])
 
   const path = useCallback(
     (before?: number) => {
@@ -663,9 +741,14 @@ export function CommunityView() {
     [tab],
   )
 
+  // The latest feed asked for; an answer for an earlier tab is dropped.
+  const asked = useRef('')
   const loadFeed = useCallback(async () => {
+    const wanted = path()
+    asked.current = wanted
     try {
-      const found = await ask<{ posts: Post[]; more: boolean }>(path())
+      const found = await ask<{ posts: Post[]; more: boolean }>(wanted)
+      if (asked.current !== wanted) return
       setPosts(found.posts)
       setMore(found.more)
       setTrouble('')
@@ -707,12 +790,25 @@ export function CommunityView() {
 
       <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_320px]">
         <main className="min-w-0 space-y-3">
+          {focus ? (
+            <>
+              <Link href="/community/" className={`${quiet} w-fit`}>
+                <ArrowLeft className="h-4 w-4" aria-hidden /> Back to the feed
+              </Link>
+              {focused === undefined && <p className="py-10 text-center text-muted">Loading…</p>}
+              {focused === null && <p className={`${card} py-10 text-center text-muted`}>This post is gone.</p>}
+              {focused && <PostCard key={focused.id} post={focused} me={you} onChange={loadFocused} startOpen />}
+            </>
+          ) : (
+            <>
           <div className={`${card} flex overflow-hidden`}>
             {TABS.map(([key, label]) => (
               <button
                 key={key}
                 type="button"
                 onClick={() => {
+                  // The tab already open: fresh posts, without emptying it.
+                  if (key === tab) return void loadFeed()
                   setTab(key)
                   setPosts(null)
                 }}
@@ -748,10 +844,13 @@ export function CommunityView() {
               Show more
             </button>
           )}
+            </>
+          )}
         </main>
 
         {/* Stays in view beside the feed; taller than the window, it scrolls on its own. */}
         <aside className="space-y-4 lg:sticky lg:top-24 lg:max-h-[calc(100vh-7rem)] lg:overflow-y-auto lg:pr-1 lg:[scrollbar-width:thin]">
+          <FindMembers />
           <YouCard you={you} onChange={reload} />
           {board ? (
             <Miners board={board} />

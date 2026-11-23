@@ -23,9 +23,11 @@ import {
   Rocket,
   type LucideIcon,
   Landmark,
+  Image as ImageIcon,
 } from "lucide-react";
 import { COMMUNITY_LIVE, MARKETPLACE_LIVE } from "@/lib/brand";
 import { SIDEBAR } from "@/lib/nav";
+import { NotificationBell } from "./NotificationBell";
 import { AccountMenu } from "./AccountMenu";
 import { useMe } from "@/lib/useMe";
 import { Wordmark } from "./Wordmark";
@@ -130,7 +132,7 @@ const DOWNLOADS: {
     icon: Smartphone,
   },
   {
-    href: "/try/",
+    href: "/try/#cli",
     label: "orien command line",
     detail: "Mac, Linux and Windows",
     icon: Terminal,
@@ -270,7 +272,7 @@ function NavMenu({ label, icon: Icon, items, on }: { label: string; icon: Lucide
       {open && (
         <div
           role="menu"
-          className="absolute left-0 top-full mt-2 w-72 overflow-hidden rounded-xl border border-line bg-surface p-1.5 shadow-2xl shadow-black/40"
+          className="absolute left-0 top-full mt-2 w-max overflow-hidden rounded-xl border border-line bg-surface p-1.5 shadow-2xl shadow-black/40"
         >
           {items.map((item) => {
             const Icon = item.icon;
@@ -287,7 +289,7 @@ function NavMenu({ label, icon: Icon, items, on }: { label: string; icon: Lucide
                 <Icon className="mt-0.5 h-4 w-4 shrink-0 text-pearl" strokeWidth={2} aria-hidden />
                 <span className="flex flex-col">
                   <span className="text-sm font-semibold text-ink">{item.label}</span>
-                  <span className="text-xs leading-relaxed text-muted">{item.detail}</span>
+                  <span className="whitespace-nowrap text-xs leading-relaxed text-muted">{item.detail}</span>
                 </span>
               </a>
             );
@@ -304,7 +306,7 @@ const TRADE: MenuItem[] = [
   { href: "/marketplace/", label: "Market", detail: "Buy and sell things and services for ORN", icon: Store },
 ];
 const LEARN: MenuItem[] = [
-  { href: "/how-it-works/", label: "How it works", detail: "Payments, signatures, checkpoints and mining, in plain words", icon: BookOpen },
+  { href: "/how-it-works/", label: "How it works", detail: "Payments and mining, in plain words", icon: BookOpen },
   { href: "/paper/", label: "Technical paper", detail: "Every rule of the network, stated exactly", icon: FileText },
   { href: "/changelog/", label: "Changelog", detail: "What changed, release by release", icon: History },
 ];
@@ -313,6 +315,7 @@ const BUILD: MenuItem[] = [
   { href: "/developers/websites/", label: "Sign in with Orien", detail: "Register the websites people sign in to", icon: KeyRound },
   { href: "/developers/exchanges/", label: "Exchanges", detail: "Listing ORN: what an exchange needs", icon: Landmark },
   { href: "https://explorer.orien.network/api/", label: "Explorer API", detail: "The network's figures, as JSON", icon: Activity },
+  { href: "/brand/", label: "Logos", detail: "The ORN coin icon, as SVG and PNG", icon: ImageIcon },
 ];
 
 /** X's logo, which its brand guidelines let anyone use to link to an X account. */
@@ -437,7 +440,7 @@ export function Header() {
               </span>
             )}
             <NavMenu label="Learn" icon={BookOpen} items={LEARN} on={LEARN.some((i) => pathname.startsWith(i.href))} />
-            <NavMenu label="Build" icon={Code2} items={BUILD} on={pathname.startsWith("/developers")} />
+            <NavMenu label="Build" icon={Code2} items={BUILD} on={pathname.startsWith("/developers") || pathname.startsWith("/brand")} />
             <DownloadsMenu />
           </nav>
         )}
@@ -484,6 +487,7 @@ export function Header() {
               <span>Get started</span>
             </Link>
             )}
+            {MARKETPLACE_LIVE && <NotificationBell />}
             {MARKETPLACE_LIVE && (
               <div className="ml-1.5">
                 <AccountMenu />
@@ -653,6 +657,7 @@ export function Sidebar() {
             icon={KeyRound}
             on={pathname.startsWith("/developers/websites")}
           />
+          <SidebarLink href="/brand/" label="Logos" icon={ImageIcon} on={pathname.startsWith("/brand")} />
         </SidebarGroup>
       </nav>
 
@@ -703,6 +708,9 @@ export function Sidebar() {
           )}
           <Link href="/contact/" className="hover:text-ink">
             Contact
+          </Link>
+          <Link href="/brand/" className="hover:text-ink">
+            Logos
           </Link>
           <a href={SOURCE_CODE} target="_blank" rel="noreferrer" className="hover:text-ink">
             Source code
