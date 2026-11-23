@@ -31,7 +31,7 @@ export const CHANGELOG: Entry[] = [
     version: '1.9.0',
     title: 'Photos, GIFs, polls and tips, and updates that install themselves',
     changes: [
-      'Posting in the Community works like X: add up to four photos, a GIF from KLIPY search, or a poll with up to four choices lasting one, three or seven days. Photos and GIFs show with smooth rounded corners, and a tap opens a photo large.',
+      'Posting in the Community works like X: add up to four photos, a GIF from KLIPY search, or a poll with up to four choices lasting one, three or seven days. Photos and GIFs show with smooth rounded corners, and a tap opens a photo large. Links show a preview card with the page’s picture and title.',
       'New versions download quietly and install while you’re away from the app, then Orien Wallet comes back just as it was: closed, minimized or behind your other windows. It never updates during a swap, a payment, or while you’re typing. You can turn this off in Settings, under This computer.',
       'If you were mining when the app updated, mining starts again by itself afterwards, at the same setting.',
       'Tips: a Tip button on people’s Community posts sends them 1, 5, 10 ORN or any amount you choose. Each post shows how many tips it got and how much, without names, and the author hears who tipped them.',
