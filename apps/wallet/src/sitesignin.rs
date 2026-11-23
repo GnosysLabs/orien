@@ -88,7 +88,8 @@ fn site(origin: &str) -> String {
 
 /// A website's request, from the extension: waits for the person's answer
 /// and gives the website the signed proof, or why not.
-pub fn request(app: &AppHandle, origin: String, nonce: String) -> Result<serde_json::Value, String> {
+/// Whether a website's request can be signed at all.
+fn check(origin: &str, nonce: &str) -> Result<(), String> {
     let secure = origin.starts_with("https://") || origin.starts_with("http://localhost") || origin.starts_with("http://127.0.0.1");
     if !secure || origin.len() > 200 || origin[origin.find("://").unwrap_or(0) + 3..].contains('/') {
         return Err("Sign-in works on secure (https) websites only.".into());
@@ -96,6 +97,19 @@ pub fn request(app: &AppHandle, origin: String, nonce: String) -> Result<serde_j
     if nonce.is_empty() || nonce.len() > 200 || nonce.chars().any(|c| c.is_control()) {
         return Err("The website's sign-in request isn't valid.".into());
     }
+    Ok(())
+}
+
+/// A request the person already approved in the extension's window, as
+/// Phantom asks in the browser: signed at once, with no window here. A
+/// password only the first time on this device ("password: needed").
+pub fn approved(app: &AppHandle, origin: String, nonce: String, password: Option<String>) -> Result<serde_json::Value, String> {
+    check(&origin, &nonce)?;
+    sign(app, &Asked { origin, nonce }, password)
+}
+
+pub fn request(app: &AppHandle, origin: String, nonce: String) -> Result<serde_json::Value, String> {
+    check(&origin, &nonce)?;
     let dir = crate::folder(app)?;
     let file = crate::wallet_file(&dir).ok_or("Make a wallet in Orien Wallet first.")?;
     let address = orien_net::keys::Wallet::peek(&file).map_err(|error| error.to_string())?.0.to_string();

@@ -126,7 +126,12 @@ fn answer(app: &AppHandle, mut stream: TcpStream) {
                     Ok(pass) => ("200 OK", serde_json::json!({ "pass": pass })),
                     Err(problem) => ("200 OK", serde_json::json!({ "problem": problem })),
                 },
-                "POST /signin-site" => match crate::sitesignin::request(app, text("origin"), text("nonce")) {
+                "POST /signin-site" => match if body.get("approved").and_then(|a| a.as_bool()) == Some(true) {
+                    let password = Some(text("password")).filter(|p| !p.is_empty());
+                    crate::sitesignin::approved(app, text("origin"), text("nonce"), password)
+                } else {
+                    crate::sitesignin::request(app, text("origin"), text("nonce"))
+                } {
                     Ok(proof) => ("200 OK", proof),
                     Err(problem) => ("200 OK", serde_json::json!({ "problem": problem })),
                 },

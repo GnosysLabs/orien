@@ -35,6 +35,7 @@
   "background": {
     "scripts": [
       "sites.js",
+      "pending.js",
       "background.js"
     ]
   },

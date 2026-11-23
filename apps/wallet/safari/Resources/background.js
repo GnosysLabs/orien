@@ -3,15 +3,17 @@
 // and, on any website, signing in with the wallet (window.orien).
 // sites.js comes first: listed before this file (Firefox) or loaded here
 // (a service worker: Safari).
-if (typeof siteOf === "undefined" && typeof importScripts === "function") importScripts("sites.js");
+if (typeof siteOf === "undefined" && typeof importScripts === "function") importScripts("sites.js", "pending.js");
 const api = globalThis.browser || chrome;
 const toApp = (message) => api.runtime.sendNativeMessage("network.orien.wallet", message);
+const appSignIn = (body) => toApp({ ask: "signin-site", ...body });
 api.runtime.onMessage.addListener((message, sender) => {
   if (!message) return;
   if (message.ask === "wallet" || message.ask === "signin") return toApp({ ask: message.ask });
   if (message.ask === "signin-site" && sender.tab) {
     const origin = siteOf(sender);
     if (!origin) return Promise.resolve({ problem: "This website can't be signed in to." });
-    return toApp({ ask: "signin-site", origin, nonce: String(message.nonce || "") });
+    return askToSignIn(origin, String(message.nonce || ""));
   }
+  if (!sender.tab) return pendingMessage(message) || undefined;
 });

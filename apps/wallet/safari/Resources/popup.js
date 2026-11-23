@@ -5,7 +5,7 @@ const $ = (id) => document.getElementById(id);
 // How to reach Orien Wallet differs by browser: bridge.js says (Safari
 // through the app's extension, Chrome over this computer's own connection).
 const ask = (message) => window.orienAsk(message);
-const show = (id) => { for (const s of ["home", "send", "sent", "wallets"]) $(s).hidden = s !== id; window.scrollTo(0, 0); };
+const show = (id) => { for (const s of ["home", "send", "sent", "wallets", "approve"]) $(s).hidden = s !== id; window.scrollTo(0, 0); };
 const spaced = (address) => address.replace(/(.{4})/g, "$1 ").trim();
 let wallet = null;
 
@@ -409,4 +409,59 @@ async function checkAccess() {
 }
 checkAccess();
 
-load();
+// ---- A website asking to sign in: opened by the extension itself ----
+const extensionApi = globalThis.browser || globalThis.chrome;
+let asking = null;
+async function checkAsking() {
+  const pending = await extensionApi.runtime.sendMessage({ ask: "pending" }).catch(() => null);
+  if (!pending || !pending.id) return false;
+  asking = pending;
+  if (!wallet) wallet = await ask({ ask: "wallet" }).catch(() => null);
+  show("approve");
+  let site = pending.origin;
+  try { site = new URL(pending.origin).host; } catch {}
+  $("ask-title").textContent = `Sign in to ${site}?`;
+  const name = (wallet && wallet.name) || "Wallet";
+  $("ask-name").textContent = name;
+  $("ask-address").textContent = wallet && wallet.address ? short(wallet.address) : "";
+  $("ask-coin").className = wallet && wallet.icon ? "coin emoji" : "coin";
+  $("ask-coin").textContent = (wallet && wallet.icon) || name.slice(0, 1).toUpperCase();
+  return true;
+}
+async function answer(approve) {
+  if (!asking) return window.close();
+  $("ask-yes").disabled = $("ask-no").disabled = true;
+  $("ask-note").hidden = true;
+  if (approve) $("ask-yes").textContent = "Signing in…";
+  const password = $("ask-pw-field").hidden ? "" : $("ask-pw").value;
+  const reply = await extensionApi.runtime.sendMessage({ ask: "answer", id: asking.id, approve, password }).catch(() => null);
+  $("ask-yes").disabled = $("ask-no").disabled = false;
+  $("ask-yes").textContent = "Sign in";
+  if (reply && reply.problem === "password: needed") {
+    $("ask-pw-field").hidden = false;
+    $("ask-pw").focus();
+    $("ask-note").textContent = "Type this wallet's password, once on this computer.";
+    $("ask-note").hidden = false;
+    return;
+  }
+  if (reply && reply.problem === "password: wrong") {
+    $("ask-pw").select();
+    $("ask-note").textContent = "That is not this wallet's password.";
+    $("ask-note").hidden = false;
+    return;
+  }
+  if (approve && (!reply || reply.closed || reply.problem)) {
+    $("ask-note").textContent = (reply && reply.problem) || "Orien Wallet isn't running. Open it, then try again.";
+    $("ask-note").hidden = false;
+    $("ask-yes").hidden = true;
+    $("ask-no").textContent = "Close";
+    asking = null;
+    return;
+  }
+  window.close();
+}
+$("ask-yes").onclick = () => answer(true);
+$("ask-no").onclick = () => answer(false);
+$("ask-pw").addEventListener("keydown", (e) => { if (e.key === "Enter") answer(true); });
+
+checkAsking().then((asked) => { if (!asked) load(); });
