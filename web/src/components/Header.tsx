@@ -302,9 +302,17 @@ function NavMenu({ label, icon: Icon, items, on }: { label: string; icon: Lucide
 }
 
 /** The top bar's groups, also the sidebar's. */
-const TRADE: MenuItem[] = [
-  { href: "/swap/", label: "Buy & sell", detail: "Swap ORN for SOL or Bitcoin with anyone", icon: ArrowLeftRight },
-  { href: "/marketplace/", label: "Market", detail: "Buy and sell things and services for ORN", icon: Store },
+/** The top bar's Community menu: the feed, then the Market and swaps. */
+const COMMUNITY: MenuItem[] = [
+  ...(COMMUNITY_LIVE
+    ? [{ href: "/community/", label: "Feed", detail: "What miners and the network are saying", icon: Users }]
+    : []),
+  ...(MARKETPLACE_LIVE
+    ? [
+        { href: "/marketplace/", label: "Market", detail: "Buy and sell things and services for ORN", icon: Store },
+        { href: "/swap/", label: "Swaps", detail: "Swap ORN for SOL or Bitcoin with anyone", icon: ArrowLeftRight },
+      ]
+    : []),
 ];
 const LEARN: MenuItem[] = [
   { href: "/how-it-works/", label: "How it works", detail: "Payments and mining, in plain words", icon: BookOpen },
@@ -420,7 +428,7 @@ export function Header() {
             aria-label="Pages"
             className="ml-3 hidden items-center gap-1 lg:flex"
           >
-            {ITEMS.filter((item) => ["https://explorer.orien.network/", "/community/"].includes(item.href)).map((item) => {
+            {ITEMS.filter((item) => item.href === "https://explorer.orien.network/").map((item) => {
               const on = isActive(item, pathname);
               const Icon = item.icon;
               return (
@@ -443,8 +451,8 @@ export function Header() {
                 </Link>
               );
             })}
-            {MARKETPLACE_LIVE && (
-              <NavMenu label="Trade" icon={ArrowLeftRight} items={TRADE} on={TRADE.some((i) => pathname.startsWith(i.href))} />
+            {COMMUNITY.length > 0 && (
+              <NavMenu label="Community" icon={Users} items={COMMUNITY} on={COMMUNITY.some((i) => pathname.startsWith(i.href))} />
             )}
             <NavMenu label="Learn" icon={BookOpen} items={LEARN} on={LEARN.some((i) => pathname.startsWith(i.href))} />
             <NavMenu label="Build" icon={Code2} items={BUILD} on={pathname.startsWith("/developers") || pathname.startsWith("/brand")} />
