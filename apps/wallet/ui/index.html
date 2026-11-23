@@ -390,6 +390,8 @@
   }
   .update.required { background: var(--bad); animation: none; }
   .update:disabled { opacity: 0.7; cursor: default; }
+  /* After an update installed itself: a calm note in the same place. */
+  .update.done { background: var(--surface); color: var(--ink); animation: none; box-shadow: 0 4px 14px #00000030; }
 
   /* Opening another wallet: the sunrise breathes until it's ready, then the
      wallet appears, already loaded. */
@@ -1944,6 +1946,7 @@
                 <div class="set-group">
         <label class="set-row"><span class="set-txt"><b>Open at login</b><small>Start Orien Wallet when you log in</small></span><input type="checkbox" class="switch" id="st-login"></label>
         <label class="set-row"><span class="set-txt"><b>Keep running when closed</b><small>Swaps and payments carry on from the menu bar</small></span><input type="checkbox" class="switch" id="st-running"></label>
+        <label class="set-row"><span class="set-txt"><b>Update automatically</b><small>New versions install while you're away from the app</small></span><input type="checkbox" class="switch" id="st-autoupdate"></label>
         </div>
       </div>
       <div class="st-page" data-page="extensions" hidden>
@@ -3793,7 +3796,7 @@
     try {
       const computer = await invoke("computer_settings");
       if (computer) {
-        $("st-login").checked = computer[0]; $("st-running").checked = computer[1];
+        $("st-login").checked = computer[0]; $("st-running").checked = computer[1]; $("st-autoupdate").checked = autoUpdate = computer[2] !== false;
       }
     } catch {}
   }
@@ -3900,10 +3903,10 @@
       catch { $(`st-n-${kind}`).checked = !on; }
     };
   }
-  for (const [id, name] of [["st-login", "login"], ["st-running", "running"]]) {
+  for (const [id, name] of [["st-login", "login"], ["st-running", "running"], ["st-autoupdate", "updates"]]) {
     $(id).onchange = async () => {
       const on = $(id).checked;
-      try { await invoke("set_computer_setting", { name, on }); } catch { $(id).checked = !on; }
+      try { await invoke("set_computer_setting", { name, on }); if (name === "updates") autoUpdate = on; } catch { $(id).checked = !on; }
     };
   }
   $("st-updates").onclick = () => checkForUpdatesNow();
@@ -7675,6 +7678,8 @@
   async function checkUpdate() {
     try { update = await invoke("check_update"); } catch { return; } // offline: try again later
     const button = $("update");
+    if (button.classList.contains("done") && !update) return;
+    if (update) updatedDone();
     button.hidden = !update;
     if (!update) return;
     button.classList.toggle("required", update.required);
@@ -7683,6 +7688,8 @@
   }
   $("update").onclick = async () => {
     const button = $("update");
+    // The "Updated to …" note: what's new in it.
+    if (button.classList.contains("done")) { invoke("open_changelog").catch(() => {}); updatedDone(); return; }
     button.disabled = true; button.innerHTML = '<span class="spinner"></span>Updating';
     try { await invoke("install_update"); } // restarts the app when done
     catch (error) {
@@ -7788,6 +7795,65 @@
   window.__TAURI__.event.listen("wallet-switched", () => { walletOpened(); home(); }).catch(() => {});
   checkUpdate();
   setInterval(checkUpdate, 60 * 60 * 1000);
+
+  // ---- Updating by itself ----
+  // A newer version downloads quietly, then installs once the app has been
+  // left alone for ten minutes (closed, minimized, or behind other windows)
+  // with nothing underway: no swap moving, no buyer waiting, nothing typed
+  // and unsent, no question open. It comes back the way it was.
+  let autoUpdate = true, readyVersion = null, autoInstalling = false;
+  invoke("computer_settings").then((c) => { if (c) autoUpdate = c[2] !== false; }).catch(() => {});
+  // Words the person typed (not ones the app filled in), still in a box
+  // that shows.
+  const typedInto = new Set();
+  document.addEventListener("input", (e) => { if (e.target.matches("textarea, input:not([type=range]):not([type=checkbox]):not([type=radio])")) typedInto.add(e.target); }, true);
+  function typedSomewhere() {
+    if ([...drafts.values()].some((t) => t.trim())) return true;
+    for (const el of typedInto) {
+      if (!el.isConnected || !el.value.trim()) typedInto.delete(el);
+      else if (el.offsetParent !== null) return true;
+    }
+    return false;
+  }
+  function busyNow() {
+    return swapList.some((s) => !s.finished) || board.waiting.length > 0 || !!board.taking || !!mineBench
+      || !$("si-veil").hidden || !$("upd-veil").hidden || typedSomewhere();
+  }
+  async function updateByItself() {
+    if (phone || !autoUpdate || !update || autoInstalling) return;
+    if (readyVersion !== update.version) {
+      try { readyVersion = await invoke("download_update"); } catch { return; } // offline: next time
+      if (!readyVersion) return;
+    }
+    // How long the window has been closed, minimized or behind other apps.
+    let away = 0;
+    try { away = await invoke("away_seconds"); } catch { return; }
+    if (away < 10 * 60 || busyNow()) return;
+    autoInstalling = true;
+    try { await invoke("install_update", { quiet: true }); } // the app restarts here
+    catch { autoInstalling = false; readyVersion = null; }
+  }
+  setInterval(updateByItself, 60 * 1000);
+  // Just updated: a short note where the update button sits, for a few
+  // minutes of use; pressing it shows what's new.
+  function updatedDone() {
+    const button = $("update");
+    if (!button.classList.contains("done")) return;
+    button.classList.remove("done"); button.classList.add("pearl"); button.hidden = true;
+  }
+  invoke("update_news").then((version) => {
+    if (!version || update) return;
+    const button = $("update");
+    button.classList.remove("pearl", "required"); button.classList.add("done");
+    button.textContent = `Updated to ${version}`; button.title = "See what's new";
+    button.hidden = false;
+    // Gone after three minutes with the window in use.
+    let shown = 0;
+    const tick = setInterval(() => {
+      if (document.hasFocus()) shown++;
+      if (shown >= 18 || !button.classList.contains("done")) { clearInterval(tick); updatedDone(); }
+    }, 10 * 1000);
+  }).catch(() => {});
   // Contacts and wallet icons from this wallet's other devices, every few
   // minutes while the app is open.
   setInterval(syncBook, 3 * 60 * 1000);

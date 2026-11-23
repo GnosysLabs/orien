@@ -389,6 +389,18 @@ mod update {
     pub async fn install_update() -> Result<(), String> {
         Err("Updates come from the App Store.".into())
     }
+    #[tauri::command]
+    pub async fn download_update() -> Result<Option<String>, String> {
+        Ok(None)
+    }
+    #[tauri::command]
+    pub fn update_news() -> Option<String> {
+        None
+    }
+    #[tauri::command]
+    pub fn away_seconds() -> u64 {
+        0
+    }
 }
 
 use orien_ledger::AccountId;
@@ -1156,6 +1168,15 @@ pub fn remember_for_update(app: &AppHandle) {
     let _ = save_settings(&dir, &saved);
 }
 
+/// An update that didn't install: nothing to start again.
+pub fn forget_resume(app: &AppHandle) {
+    let Ok(dir) = folder(app) else { return };
+    let mut saved = settings(&dir);
+    if saved.resume_mining.take().is_some() {
+        let _ = save_settings(&dir, &saved);
+    }
+}
+
 /// Starts mining again if an update stopped it, on the same threads, once.
 /// True when it did.
 #[tauri::command]
@@ -1468,12 +1489,13 @@ async fn app_unlock() -> Result<(), String> {
     tauri::async_runtime::spawn_blocking(biometric::check).await.map_err(|error| error.to_string())?
 }
 
-/// This computer's own settings: opening at login, and whether closing the
-/// window keeps the wallet running. None on iPhones.
+/// This computer's own settings: opening at login, whether closing the
+/// window keeps the wallet running, and whether updates install by
+/// themselves. None on iPhones.
 #[tauri::command]
-fn computer_settings(app: AppHandle) -> Option<(bool, bool)> {
+fn computer_settings(app: AppHandle) -> Option<(bool, bool, bool)> {
     #[cfg(desktop)]
-    return Some((background::opens_at_login(&app), background::keep_running()));
+    return Some((background::opens_at_login(&app), background::keep_running(), background::updates_itself(&app)));
     #[cfg(not(desktop))]
     {
         let _ = app;
@@ -1490,6 +1512,7 @@ fn set_computer_setting(app: AppHandle, name: String, on: bool) -> Result<(), St
             background::set_keep_running(&app, on);
             Ok(())
         }
+        "updates" => background::set_updates_itself(&app, on),
         _ => Err("unknown setting".into()),
     }
     #[cfg(not(desktop))]
@@ -2311,6 +2334,13 @@ fn open_site(app: AppHandle) -> Result<(), String> {
     app.opener().open_url("https://orien.network", None::<&str>).map_err(|error| error.to_string())
 }
 
+/// Opens what's new in each version, from the "Updated to …" note.
+#[tauri::command]
+fn open_changelog(app: AppHandle) -> Result<(), String> {
+    use tauri_plugin_opener::OpenerExt;
+    app.opener().open_url("https://orien.network/changelog", None::<&str>).map_err(|error| error.to_string())
+}
+
 /// Opens the network map's details view in the browser, from a Community
 /// post about a new validator.
 #[tauri::command]
@@ -2651,7 +2681,7 @@ pub fn run() {
             }
             Ok(())
         })
-        .invoke_handler(tauri::generate_handler![share_address, has_wallet, create_wallet, save_phrase, restore_wallet, set_password, choose_wallet, overview_now, send_payment, activity, quote, contacts, save_contact, delete_contact, contacts_sync, members, save_member, delete_member, biometric_unlock, biometric_enable, update::check_update, update::install_update, mine_start, mine_stop, mine_resume, mine_set, mine_status, mine_benchmark, mine_benchmark_cancel, large_pages_state, large_pages_set_up, wallets, wallet_balances, use_wallet, rename_wallet, add_wallet, forget_wallet, swap_list, swap_sell, swap_buy, swap_accept, swap_step, swap_smallest, board_offers, board_me, board_email_start, board_email_finish, board_sign_out, board_post, board_take, board_withdraw, board_link, notifications_ask, push_sync, open_network_map, board_wallets_sync, board_post_sol, board_take_sol, sol_open, sol_payout_check, open_site, qr_code, address_qr, wallet_profiles, board_profile_save, board_picture_pick, board_verify, board_wallet_states, market_image, board_banner_remove, market_search, market_listings, market_listing, market_profile, market_call, market_pick_pictures, market_listing_picture, dock_badge, mac_notify, board_delete_account, wallet_icons, set_wallet_icon, vault_ready, vault_unlock, open_contact, pair_offer, pair_offer_wait, pair_offer_send, pair_join, pair_join_wait, pair_invite, pair_invite_wait, pair_accept, pair_wallets, pair_accept_send, pair_cancel, wallet_phrase, phrase_check, app_theme, set_app_theme, set_backdrop, app_prefs, set_app_pref, app_unlock, computer_settings, set_computer_setting, notifications_muted, set_notification, open_legal, open_extension, sitesignin::site_signin_answer, board_paid_wallet, board_wallet_remove])
+        .invoke_handler(tauri::generate_handler![share_address, has_wallet, create_wallet, save_phrase, restore_wallet, set_password, choose_wallet, overview_now, send_payment, activity, quote, contacts, save_contact, delete_contact, contacts_sync, members, save_member, delete_member, biometric_unlock, biometric_enable, update::check_update, update::install_update, update::download_update, update::update_news, update::away_seconds, mine_start, mine_stop, mine_resume, mine_set, mine_status, mine_benchmark, mine_benchmark_cancel, large_pages_state, large_pages_set_up, wallets, wallet_balances, use_wallet, rename_wallet, add_wallet, forget_wallet, swap_list, swap_sell, swap_buy, swap_accept, swap_step, swap_smallest, board_offers, board_me, board_email_start, board_email_finish, board_sign_out, board_post, board_take, board_withdraw, board_link, notifications_ask, push_sync, open_network_map, open_changelog, board_wallets_sync, board_post_sol, board_take_sol, sol_open, sol_payout_check, open_site, qr_code, address_qr, wallet_profiles, board_profile_save, board_picture_pick, board_verify, board_wallet_states, market_image, board_banner_remove, market_search, market_listings, market_listing, market_profile, market_call, market_pick_pictures, market_listing_picture, dock_badge, mac_notify, board_delete_account, wallet_icons, set_wallet_icon, vault_ready, vault_unlock, open_contact, pair_offer, pair_offer_wait, pair_offer_send, pair_join, pair_join_wait, pair_invite, pair_invite_wait, pair_accept, pair_wallets, pair_accept_send, pair_cancel, wallet_phrase, phrase_check, app_theme, set_app_theme, set_backdrop, app_prefs, set_app_pref, app_unlock, computer_settings, set_computer_setting, notifications_muted, set_notification, open_legal, open_extension, sitesignin::site_signin_answer, board_paid_wallet, board_wallet_remove])
         .build(tauri::generate_context!())
         .expect("the wallet window could not start")
         .run(|_app, _event| {

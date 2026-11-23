@@ -35,6 +35,18 @@ pub fn set_keep_running(app: &AppHandle, keep: bool) {
     }
 }
 
+/// Whether new versions install by themselves while the person is away
+/// from the app (the default), or only when they say so.
+pub fn updates_itself(app: &AppHandle) -> bool {
+    !crate::folder(app).is_ok_and(|dir| dir.join("updates-by-hand").exists())
+}
+
+pub fn set_updates_itself(app: &AppHandle, on: bool) -> Result<(), String> {
+    let file = crate::folder(app)?.join("updates-by-hand");
+    if on { std::fs::remove_file(file).or_else(|e| if e.kind() == std::io::ErrorKind::NotFound { Ok(()) } else { Err(e) }) } else { std::fs::write(file, b"") }
+        .map_err(|error| error.to_string())
+}
+
 /// Whether the app opens at login.
 pub fn opens_at_login(app: &AppHandle) -> bool {
     #[cfg(target_os = "macos")]
@@ -153,6 +165,9 @@ pub fn setup(app: &AppHandle) -> tauri::Result<()> {
     if let Some(window) = app.get_webview_window("main") {
         let handle = app.clone();
         window.on_window_event(move |event| {
+            if let WindowEvent::Focused(focused) = event {
+                crate::update::window_focus(*focused);
+            }
             if matches!(event, WindowEvent::Resized(_) | WindowEvent::Moved(_)) {
                 static MOVES: std::sync::atomic::AtomicU64 = std::sync::atomic::AtomicU64::new(0);
                 let this = MOVES.fetch_add(1, std::sync::atomic::Ordering::Relaxed) + 1;
@@ -212,6 +227,25 @@ pub fn setup(app: &AppHandle) -> tauri::Result<()> {
         }
     }
 
+    // After an update that installed by itself: back the way it was, never
+    // in front.
+    match crate::update::reopen_as(app).as_deref() {
+        Some("hidden") if can_come_back => return Ok(()),
+        Some("minimized") => {
+            if let Some(window) = app.get_webview_window("main") {
+                let _ = window.show();
+                let _ = window.minimize();
+            }
+            return Ok(());
+        }
+        Some("behind") | Some("hidden") => {
+            if let Some(window) = app.get_webview_window("main") {
+                let _ = window.show();
+            }
+            return Ok(());
+        }
+        _ => {}
+    }
     // Started at login: stay out of sight. Otherwise, show the window.
     let at_login = std::env::args().any(|arg| arg == QUIET);
     #[cfg(target_os = "macos")]

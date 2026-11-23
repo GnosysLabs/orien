@@ -1,5 +1,6 @@
-//! Updates. The app asks orien.network whether a newer version is out,
-//! and installs it only when the person says so.
+//! Updates. The app asks orien.network whether a newer version is out.
+//! It downloads it quietly and installs it while the person is away from
+//! the app (unless they turned that off, then only when they say so).
 //!
 //! Every update is signed with Orien's update key, whose public half is in
 //! `tauri.conf.json`. A download without that signature is refused, even
@@ -51,32 +52,153 @@ pub async fn check_update(app: AppHandle) -> Result<Option<Available>, String> {
     Ok(Some(available))
 }
 
+/// When the window stopped being the one in use, in seconds since 1970;
+/// 0 while it is in use. Set as the app starts, so a window that never
+/// opened counts as left alone from then.
+static AWAY_SINCE: std::sync::atomic::AtomicU64 = std::sync::atomic::AtomicU64::new(0);
+
+fn now() -> u64 {
+    std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).map_or(0, |d| d.as_secs())
+}
+
+/// The window came into use (`true`) or was left (`false`).
+pub fn window_focus(focused: bool) {
+    AWAY_SINCE.store(if focused { 0 } else { now() }, std::sync::atomic::Ordering::Relaxed);
+}
+
+/// How long the window has been left alone: closed, minimized, or behind
+/// another app's windows. 0 while it is in use.
+#[tauri::command]
+pub fn away_seconds(app: AppHandle) -> u64 {
+    use tauri::Manager;
+    let focused = app.get_webview_window("main").is_some_and(|w| w.is_visible().unwrap_or(false) && w.is_focused().unwrap_or(false));
+    if focused {
+        window_focus(true);
+        return 0;
+    }
+    let since = AWAY_SINCE.load(std::sync::atomic::Ordering::Relaxed);
+    if since == 0 {
+        window_focus(false);
+        return 0;
+    }
+    now().saturating_sub(since)
+}
+
+/// The downloaded update waiting to be installed, beside the version it is.
+fn ready_files(app: &AppHandle) -> Option<(std::path::PathBuf, std::path::PathBuf)> {
+    let dir = crate::folder(app).ok()?;
+    Some((dir.join("update-ready.bin"), dir.join("update-ready.version")))
+}
+
+/// Downloads the newest version ahead of time, so installing it later
+/// takes a moment. The signature is checked now and again on installing.
+/// The version that is ready, or None when this copy is the newest.
+#[tauri::command]
+pub async fn download_update(app: AppHandle) -> Result<Option<String>, String> {
+    let updater = app.updater().map_err(|error| error.to_string())?;
+    let Some(update) = updater.check().await.map_err(|error| error.to_string())? else {
+        return Ok(None);
+    };
+    let (bin, version) = ready_files(&app).ok_or("no app folder")?;
+    if std::fs::read_to_string(&version).is_ok_and(|v| v == update.version) && bin.exists() {
+        return Ok(Some(update.version));
+    }
+    let bytes = update.download(|_, _| {}, || {}).await.map_err(|error| error.to_string())?;
+    std::fs::write(&bin, &bytes).map_err(|error| error.to_string())?;
+    std::fs::write(&version, &update.version).map_err(|error| error.to_string())?;
+    Ok(Some(update.version))
+}
+
+/// How the window was when an update installed by itself, so the new copy
+/// comes back the same way: "hidden" (closed to the menu bar or tray),
+/// "minimized", or "behind" (open, under other windows).
+fn window_now(app: &AppHandle) -> &'static str {
+    use tauri::Manager;
+    let Some(window) = app.get_webview_window("main") else { return "hidden" };
+    if !window.is_visible().unwrap_or(false) {
+        "hidden"
+    } else if window.is_minimized().unwrap_or(false) {
+        "minimized"
+    } else {
+        "behind"
+    }
+}
+
 /// Downloads the newest version, checks its signature, installs it and
 /// restarts. Asks orien.network again first, so a release that came out
 /// after the last check is the one installed, not the one before it; when
 /// that question can't be answered, the update found earlier is used.
 /// Waits for a payment that is going out to finish first, and lets none
 /// start meanwhile.
+///
+/// `quiet`: the app is installing it by itself, while the person is away;
+/// the new copy comes back the way the window was, without coming in front.
 #[tauri::command]
-pub async fn install_update(app: AppHandle) -> Result<(), String> {
+pub async fn install_update(app: AppHandle, quiet: Option<bool>) -> Result<(), String> {
+    let quiet = quiet.unwrap_or(false);
     let newest = match app.updater() {
         Ok(updater) => updater.check().await.ok().flatten(),
         Err(_) => None,
     };
     let earlier = FOUND.lock().unwrap_or_else(|poisoned| poisoned.into_inner()).take();
     let update = newest.or(earlier).ok_or("no update found")?;
-    tauri::async_runtime::spawn_blocking(move || {
-        let _turn = crate::TURNS.lock().unwrap_or_else(|poisoned| poisoned.into_inner());
-        tauri::async_runtime::block_on(update.download_and_install(|_, _| {}, || {}))
-            .map_err(|error| format!("The update could not be installed: {error}"))
-    })
-    .await
-    .map_err(|error| error.to_string())??;
+    // The one downloaded ahead of time, when it is this version.
+    let ready = ready_files(&app).and_then(|(bin, version)| {
+        std::fs::read_to_string(version).ok().filter(|v| *v == update.version).and_then(|_| std::fs::read(bin).ok())
+    });
+    let dir = crate::folder(&app)?;
+    // Noted before installing: on Windows the installer ends this copy
+    // itself, and these must already be saved by then.
     crate::background::remember_window(&app);
     crate::mine_commands::remember_for_update(&app);
+    let _ = std::fs::write(dir.join("just-updated"), &update.version);
+    if quiet {
+        let _ = std::fs::write(dir.join("reopen-as"), window_now(&app));
+    }
+    let installed = tauri::async_runtime::spawn_blocking(move || {
+        let _turn = crate::TURNS.lock().unwrap_or_else(|poisoned| poisoned.into_inner());
+        match ready {
+            Some(bytes) => update.install(bytes),
+            None => tauri::async_runtime::block_on(update.download_and_install(|_, _| {}, || {})),
+        }
+        .map_err(|error| format!("The update could not be installed: {error}"))
+    })
+    .await
+    .map_err(|error| error.to_string())
+    .and_then(|done| done);
+    if let Err(error) = installed {
+        for file in ["just-updated", "reopen-as", "update-ready.bin", "update-ready.version"] {
+            let _ = std::fs::remove_file(dir.join(file));
+        }
+        crate::mine_commands::forget_resume(&app);
+        return Err(error);
+    }
     #[cfg(target_os = "macos")]
-    reopen_on_the_mac(&app);
+    reopen_on_the_mac(&app, quiet);
     app.restart()
+}
+
+/// After an update: the version now running, once, for the window's
+/// "Updated to …" note. Clears what the update left behind.
+#[tauri::command]
+pub fn update_news(app: AppHandle) -> Option<String> {
+    let dir = crate::folder(&app).ok()?;
+    for file in ["update-ready.bin", "update-ready.version"] {
+        let _ = std::fs::remove_file(dir.join(file));
+    }
+    let file = dir.join("just-updated");
+    let version = std::fs::read_to_string(&file).ok()?;
+    let _ = std::fs::remove_file(file);
+    Some(version)
+}
+
+/// How the window should come back after an update that installed by
+/// itself, read once at start.
+pub fn reopen_as(app: &AppHandle) -> Option<String> {
+    let file = crate::folder(app).ok()?.join("reopen-as");
+    let how = std::fs::read_to_string(&file).ok();
+    let _ = std::fs::remove_file(file);
+    how
 }
 
 /// Reopens the app on a Mac once this copy has closed, the way clicking its
@@ -84,13 +206,15 @@ pub async fn install_update(app: AppHandle) -> Result<(), String> {
 /// is still running, and the Mac gives that copy a Dock icon of its own
 /// instead of the one the person keeps in their Dock.
 #[cfg(target_os = "macos")]
-fn reopen_on_the_mac(app: &AppHandle) {
+fn reopen_on_the_mac(app: &AppHandle, quiet: bool) {
     let Ok(binary) = tauri::process::current_binary(&tauri::Manager::env(app)) else { return };
     // .../Orien Wallet.app/Contents/MacOS/orien-wallet
     let Some(bundle) = binary.ancestors().nth(3).filter(|b| b.extension().is_some_and(|e| e == "app")) else { return };
+    // `-g`: installed by itself, so it opens without coming in front.
     let script = format!(
-        "while kill -0 {} 2>/dev/null; do sleep 0.2; done; exec /usr/bin/open \"$0\"",
-        std::process::id()
+        "while kill -0 {} 2>/dev/null; do sleep 0.2; done; exec /usr/bin/open {}\"$0\"",
+        std::process::id(),
+        if quiet { "-g " } else { "" }
     );
     // In a process group of its own: the Mac ends every process in an
     // app's group when the app quits, which would take this waiter with it
