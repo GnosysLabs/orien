@@ -4649,7 +4649,11 @@
         if (address) profiles.set(address, { id: a.id, name: a.name, picture: a.picture, wallet_name: w.name || null });
       }
       return answer;
-    } catch { return memberInfo.get(id) || null; }
+    } catch (e) {
+      // Gone, or they blocked you: the card says so, with nothing to tap.
+      if (/not found|no such|nobody/i.test(String(e))) memberInfo.set(id, { gone: true, wallets: [] });
+      return memberInfo.get(id) || null;
+    }
   }
   // The member an address belongs to, when it's one of their verified wallets.
   const memberOf = (address) => { const p = profileOf(address); return p && p.id ? p.id : null; };
@@ -4679,7 +4683,7 @@
       ...people.map((g) => {
         const info = memberInfo.get(g.id), a = (info && info.account) || {};
         const n = info ? (info.wallets || []).length : null;
-        const sub = n === null ? "Orien Network" : n ? `${n} verified wallet${n === 1 ? "" : "s"}` : "No verified wallets yet";
+        const sub = info && info.gone ? "Not available" : n === null ? "Orien Network" : n ? `${n} verified wallet${n === 1 ? "" : "s"}` : "No verified wallets yet";
         const picture = a.picture || (g.addresses[0] && (profileOf(g.addresses[0]) || {}).picture);
         return { key: g.name.toLowerCase(), html: `<div class="tx contact" data-member="${g.id}">
           <span class="face">${esc((g.name || "?").slice(0, 1).toUpperCase())}${picture ? picImg(picture) : ""}</span>
@@ -4841,7 +4845,8 @@
     $("mb-face").innerHTML = esc(name.slice(0, 1).toUpperCase()) + (a.picture ? picImg(a.picture) : "");
     const verified = (info && info.wallets) || [];
     $("mb-name").innerHTML = `<span>${esc(name)}</span>` + (verified.length ? VERIFIED : "");
-    $("mb-message").hidden = !!(board.me && board.me.id === id) || (info && info.takes_messages === false);
+    $("mb-message").hidden = !!(board.me && board.me.id === id) || (info && (info.takes_messages === false || info.gone));
+    $("mb-profile").hidden = !!(info && info.gone);
     // Their Market wallet first, then the rest; then any saved address of
     // theirs that isn't verified any more.
     const market = (a.wallet || "").toLowerCase();
@@ -4850,7 +4855,7 @@
     for (const address of group.addresses) if (!rows.some((r) => r.address === address)) rows.push({ address, name: (named(address) || {}).name || "Saved address" });
     $("mb-wallets").innerHTML = rows.length
       ? `<div class="list">${rows.map((r) => `<div class="tx mb-wallet"><div class="tx-main"><div class="title">${esc(r.name)}${r.address === market ? '<span class="mb-tag">Market</span>' : ""}</div><div class="sub">${short(r.address)}</div></div><button class="pill" data-send="${r.address}">Send</button></div>`).join("")}</div>`
-      : `<div class="empty">${info ? `No verified wallets yet. Wallets ${esc(name)} verifies show up here.` : "Loading…"}</div>`;
+      : `<div class="empty">${info && info.gone ? "This profile isn't available." : info ? `No verified wallets yet. Wallets ${esc(name)} verifies show up here.` : "Loading…"}</div>`;
     $("mb-remove").textContent = mb.armed ? `Remove ${name}? Tap again` : "Remove from contacts";
     $("mb-remove").classList.toggle("armed", mb.armed);
   }
@@ -6038,12 +6043,14 @@
     if (who.closest("#sl-feed") && who.dataset.user.toLowerCase() === sl.name.toLowerCase()) return;
     openPerson(who.dataset.user);
   });
+  // A profile that won't open: it's gone, suspended, or its owner blocked you.
+  const profileGone = (e) => /not found|no such|nobody/i.test(String(e)) ? "This profile isn't available." : e;
   async function openPerson(name) {
     if (!name) return;
     const fromProfile = !$("seller").hidden;
     let answer;
     try { answer = await invoke("market_call", { method: "GET", path: `/users/${encodeURIComponent(name)}`, body: null }); }
-    catch (e) { problem(fromProfile ? "sl-problem" : $("cm-thread").hidden ? "cm-problem" : "cm-thread-problem", e); return; }
+    catch (e) { problem(fromProfile ? "sl-problem" : $("cm-thread").hidden ? "cm-problem" : "cm-thread-problem", profileGone(e)); return; }
     if (!fromProfile) market.sellerFrom = $("cm-thread").hidden ? "community" : "cm-thread";
     showSeller(answer);
   }
@@ -6296,7 +6303,7 @@
     $("sl-problem").hidden = true;
     let answer;
     try { answer = await invoke("market_profile", { id }); }
-    catch (e) { problem("ls-problem", e); return; }
+    catch (e) { problem(!$("member").hidden ? "mb-problem" : !$("chat").hidden ? "ch-problem" : "ls-problem", profileGone(e)); return; }
     showSeller(answer);
   }
   function showSeller(answer) {
