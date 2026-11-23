@@ -37,6 +37,18 @@ export function NetworkGlobe() {
     let dressed: Document | null = null
     let arrived = 0
     let timer = 0
+    let watcher: IntersectionObserver | null = null
+    // Safari does not draw a frame that is off the screen, so the globe is
+    // drawn only once it scrolls into view: it is shown after it has drawn
+    // twice there, never before.
+    const showWhenDrawnInView = (inside: Window) => {
+      watcher = new IntersectionObserver((seen) => {
+        if (!seen.some((entry) => entry.isIntersecting)) return
+        watcher?.disconnect()
+        inside.requestAnimationFrame(() => inside.requestAnimationFrame(() => setReady(true)))
+      })
+      if (frame.current) watcher.observe(frame.current)
+    }
     const check = () => {
       const doc = frame.current?.contentDocument
       const inside = frame.current?.contentWindow
@@ -56,15 +68,17 @@ export function NetworkGlobe() {
           loaded('earth-night') &&
           loaded('earth-topology')
         if (drawn || Date.now() - arrived > 6000) {
-          // A moment more for the pictures to reach the globe.
-          timer = window.setTimeout(() => setReady(true), drawn ? 400 : 0)
+          showWhenDrawnInView(inside)
           return
         }
       }
       timer = window.setTimeout(check, 150)
     }
     check()
-    return () => clearTimeout(timer)
+    return () => {
+      clearTimeout(timer)
+      watcher?.disconnect()
+    }
     // dress reads only the frame and the page's own styles.
   }, [])
 
@@ -107,7 +121,7 @@ export function NetworkGlobe() {
           ref={frame}
           src="/netviz/embed.html"
           title="The Orien network, live: validators on the globe, miners and wallets around it"
-          className={`absolute inset-0 h-full w-full border-0 transition-opacity duration-700 ${ready ? 'opacity-100' : 'opacity-0'}`}
+          className={`absolute inset-0 h-full w-full border-0 transition-opacity duration-500 ${ready ? 'opacity-100' : 'opacity-0'}`}
         />
       </div>
       <div className="mt-5 flex flex-wrap justify-center gap-3">
