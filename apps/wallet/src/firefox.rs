@@ -53,9 +53,9 @@ pub fn answer_firefox() {
 fn ask(message: &serde_json::Value) -> serde_json::Value {
     let ask = message.get("ask").and_then(|a| a.as_str()).unwrap_or("wallet");
     let (path, post, wait) = match ask {
-        "people" => ("people", false, 3),
-        "send" | "signin" => (ask, true, 180),
-        "quote" | "search" | "profiles" | "image" => (ask, true, 8),
+        "people" | "wallets" | "activity" => (ask, false, 3),
+        "send" | "signin" | "signin-site" => (ask, true, 180),
+        "quote" | "search" | "profiles" | "image" | "use-wallet" | "open-app" => (ask, true, 8),
         _ => ("wallet", false, 3),
     };
     let body = if post { serde_json::to_vec(message).unwrap_or_default() } else { Vec::new() };

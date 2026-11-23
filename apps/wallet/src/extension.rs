@@ -136,6 +136,10 @@ fn answer(app: &AppHandle, mut stream: TcpStream) {
                     Err(problem) => ("200 OK", serde_json::json!({ "problem": problem })),
                 },
                 "GET /activity" => ("200 OK", recent(app)),
+                "POST /open-app" => {
+                    crate::background::show(app);
+                    ("200 OK", serde_json::json!({ "ok": true }))
+                }
                 "POST /quote" => ("200 OK", serde_json::to_value(crate::quote(text("amount"))).unwrap_or_default()),
                 "POST /send" => {
                     let password = Some(text("password")).filter(|p| !p.is_empty());

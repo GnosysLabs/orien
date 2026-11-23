@@ -296,6 +296,35 @@ mod tests {
         assert_eq!(wallet.address(), hash(Tag::Address, &[wallet.first_key.as_bytes(), wallet.spares.root().as_bytes()]));
     }
 
+    /// Writes proofs for the JavaScript checker's test
+    /// (apps/wallet/signin-js/test.js): ORIEN_SIGNIN_VECTORS=file cargo test
+    /// -p orien-crypto write_vectors -- --ignored
+    #[test]
+    #[ignore]
+    fn write_vectors() {
+        let path = std::env::var("ORIEN_SIGNIN_VECTORS").expect("ORIEN_SIGNIN_VECTORS");
+        let wallet = Wallet::new(7);
+        let encode = |proof: &Proof| hex::encode(borsh::to_vec(proof).unwrap());
+        let good = wallet.proof(0x00ab_cdef, 513, SITE, "n-1", 1_000);
+        let mut forged = good.clone();
+        forged.message.address = Wallet::new(8).address();
+        let long_site = "https://a-very-long-website-name-that-makes-the-message-longer.example.com";
+        let long = wallet.proof(5, 6, long_site, &"x".repeat(200), 1_000);
+        let vectors = serde_json::json!({
+            "address": wallet.address().to_string(),
+            "good": encode(&good),
+            "forged": encode(&forged),
+            "long": encode(&long),
+            "long_site": long_site,
+            "blake3": [
+                ["", hex::encode(blake3::hash(b"").as_bytes())],
+                [hex::encode([7u8; 1249]), hex::encode(blake3::hash(&[7u8; 1249]).as_bytes())],
+                [hex::encode(vec![9u8; 5000]), hex::encode(blake3::hash(&[9u8; 5000]).as_bytes())],
+            ],
+        });
+        std::fs::write(path, vectors.to_string()).unwrap();
+    }
+
     #[test]
     fn a_proof_survives_encoding() {
         let wallet = Wallet::new(7);

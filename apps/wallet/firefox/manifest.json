@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Orien Wallet",
-  "description": "Your Orien Wallet in Firefox: your balance, sending, and Sign in with Orien. Works with Orien Wallet on this computer.",
+  "description": "Your Orien Wallet in Firefox: your balance, sending, and signing in to websites with your wallet. Works with Orien Wallet on this computer.",
   "version": "1.0.0",
   "browser_specific_settings": {
     "gecko": {
@@ -30,10 +30,13 @@
     }
   },
   "permissions": [
-    "nativeMessaging"
+    "nativeMessaging",
+    "scripting",
+    "activeTab"
   ],
   "background": {
     "scripts": [
+      "sites.js",
       "background.js"
     ]
   },
@@ -46,6 +49,30 @@
         "content.js"
       ],
       "run_at": "document_idle"
+    },
+    {
+      "matches": [
+        "https://orien.network/*"
+      ],
+      "js": [
+        "provider.js"
+      ],
+      "run_at": "document_start",
+      "world": "MAIN"
+    },
+    {
+      "matches": [
+        "https://orien.network/*"
+      ],
+      "js": [
+        "relay.js"
+      ],
+      "run_at": "document_start"
     }
+  ],
+  "optional_host_permissions": [
+    "https://*/*",
+    "http://localhost/*",
+    "http://127.0.0.1/*"
   ]
 }

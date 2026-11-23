@@ -97,6 +97,42 @@
   .note { margin: 18px 0 0; color: var(--dim); font-size: 12.5px; text-align: center; line-height: 1.5; }
   .note.bad { color: var(--bad); }
 
+  /* The wallet chip opens the list of wallets to switch to. */
+  button.wallet { background: transparent; cursor: pointer; transition: background 0.15s; }
+  button.wallet:hover { background: rgba(var(--tint), 0.05); }
+  .wallets { border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface); overflow: hidden; }
+  .pick .tick-on { margin-left: auto; color: var(--good); flex: none; }
+
+  /* The latest payments, under the buttons. */
+  .recent { margin-top: 22px; }
+  .recent-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+  .recent-head .label { color: var(--dim); opacity: 1; }
+  .all { height: 26px; padding: 0 10px; border: 1px solid var(--line); border-radius: 8px; background: transparent;
+    font-size: 12px; color: var(--dim); cursor: pointer; }
+  .all:hover { color: var(--ink); }
+  .txs { border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; }
+  .tx { display: flex; align-items: center; gap: 12px; padding: 10px 14px; }
+  .tx + .tx { border-top: 1px solid var(--line); }
+  .tx .coin { width: 30px; height: 30px; border-radius: 50%; display: grid; place-items: center; flex: none; position: relative; overflow: hidden;
+    font: 700 13px/1 "Jost", sans-serif; background: rgba(var(--tint), 0.07); color: var(--dim); }
+  .tx .coin img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+  .tx .coin.received { color: var(--good); }
+  .tx-main { min-width: 0; flex: 1; }
+  .tx-main .title { font-weight: 500; font-size: 13.5px; }
+  .tx-main .sub, .tx-side .sub { font-size: 12px; color: var(--faint); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .tx-side { text-align: right; flex: none; }
+  .tx-side .amt { font-weight: 500; font-size: 13.5px; }
+  .tx-side .amt.received { color: var(--good); }
+
+  /* Chrome and Firefox: letting the website in this tab ask to sign in. */
+  .allow { margin-top: 18px; padding: 14px 16px; border: 1px solid var(--line); border-radius: var(--radius);
+    display: flex; align-items: center; gap: 12px; }
+  .allow p { margin: 0; flex: 1; min-width: 0; font-size: 12.5px; color: var(--dim); line-height: 1.45; }
+  .allow p b { color: var(--ink); font-weight: 600; overflow-wrap: anywhere; }
+  .allow button { flex: none; height: 32px; padding: 0 14px; border-radius: 10px; font-size: 12.5px; font-weight: 600; cursor: pointer; }
+  .allow .primary { width: auto; height: 32px; }
+  .allow .secondary { width: auto; height: 32px; }
+
   .done { text-align: center; padding: 6px 0 2px; }
   .tick { width: 56px; height: 56px; margin: 4px auto 16px; border-radius: 50%; display: grid; place-items: center; color: var(--pearl-ink); }
   .done .big { font: 400 28px/1.2 "Jost", sans-serif; }
@@ -110,7 +146,7 @@
   <!-- Home: the balance, the address, Send and Copy. -->
   <section id="home">
     <header><span class="wordmark"><span class="mark brand"></span><span class="word brand">ORIEN</span></span>
-      <span class="wallet" id="wallet" hidden><span class="coin" id="wallet-coin"></span><span class="wname" id="wallet-name"></span></span></header>
+      <button class="wallet" id="wallet" type="button" hidden><span class="coin" id="wallet-coin"></span><span class="wname" id="wallet-name"></span></button></header>
     <div class="card pearl" id="balance-card">
       <div class="label">Balance</div>
       <div class="amount"><span class="balance" id="balance">—</span><span class="unit">ORN</span></div>
@@ -120,6 +156,18 @@
       <button class="secondary" id="copy">Copy address</button>
     </div>
     <p class="note" id="home-note" hidden></p>
+    <div class="recent" id="recent" hidden>
+      <div class="recent-head"><span class="label">Recent</span><button class="all" id="view-all" type="button">View all</button></div>
+      <div class="txs" id="txs"></div>
+    </div>
+    <div class="allow" id="allow" hidden><p id="allow-text"></p><button type="button" id="allow-go"></button></div>
+  </section>
+
+  <!-- Wallets: switch to another of the person's wallets. -->
+  <section id="wallets" hidden>
+    <header><button class="back" id="wallets-back" aria-label="Back"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg></button><h2>Wallets</h2></header>
+    <div class="wallets" id="wallet-list"></div>
+    <p class="note" id="wallets-note" hidden></p>
   </section>
 
   <!-- Send: who to, how much, then approve. -->

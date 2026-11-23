@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Orien Wallet",
-  "description": "Your Orien Wallet in Safari: your balance, sending with Touch ID, and Sign in with Orien.",
+  "description": "Your Orien Wallet in Safari: your balance, sending with Touch ID, and signing in to websites with your wallet.",
   "version": "1.0",
   "icons": {
     "32": "icon-32.png",
@@ -35,6 +35,29 @@
         "content.js"
       ],
       "run_at": "document_idle"
+    },
+    {
+      "matches": [
+        "https://*/*",
+        "http://localhost/*",
+        "http://127.0.0.1/*"
+      ],
+      "js": [
+        "relay.js"
+      ],
+      "run_at": "document_start"
+    }
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": [
+        "provider.js"
+      ],
+      "matches": [
+        "https://*/*",
+        "http://localhost/*",
+        "http://127.0.0.1/*"
+      ]
     }
   ]
 }

@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Orien Wallet",
-  "description": "Your Orien Wallet in Chrome: your balance, sending, and Sign in with Orien. Works with Orien Wallet on this computer.",
+  "description": "Your Orien Wallet in Chrome: your balance, sending, and signing in to websites with your wallet. Works with Orien Wallet on this computer.",
   "version": "1.0.4",
   "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAyDU7NjxgdPvEWShH/RsYHexNZ1enc27zWEl3r0foPlt3ZpNGTFPsn9yKG33LDQj2oKAZQPEmZLoVRo9Fn2s46WgTVkX97KhHXdYexnzy8OE+Xb0/5koUu0VTrhmHsV1XiKNIaS0h19+Cha+z/mBYqCKPrfA2TGMLNjOw4YowJTg8jeeVevmkfaFINkhFb3AQvqhDoXi9vX/BaFSuA6qwWINAuJaOKUmS12G0zc+RZ+Lhj3+PRFfCuUhRunK6xOCGlGnOzShvc0u74PbjlHr8auUbDsdC2NIyaVhEisrQOCWTsBThV5TEXmSiVAZBLpkYMHW1nCvP599ExU1JHIbstQIDAQAB",
   "icons": {
@@ -34,6 +34,34 @@
         "content.js"
       ],
       "run_at": "document_idle"
+    },
+    {
+      "matches": [
+        "https://orien.network/*"
+      ],
+      "js": [
+        "provider.js"
+      ],
+      "run_at": "document_start",
+      "world": "MAIN"
+    },
+    {
+      "matches": [
+        "https://orien.network/*"
+      ],
+      "js": [
+        "relay.js"
+      ],
+      "run_at": "document_start"
     }
+  ],
+  "permissions": [
+    "scripting",
+    "activeTab"
+  ],
+  "optional_host_permissions": [
+    "https://*/*",
+    "http://localhost/*",
+    "http://127.0.0.1/*"
   ]
 }

@@ -12,10 +12,11 @@ class SafariWebExtensionHandler: NSObject, NSExtensionRequestHandling {
         let ask = message["ask"] as? String ?? "wallet"
         var request: URLRequest
         switch ask {
-        case "people":
-            request = URLRequest(url: URL(string: "http://127.0.0.1:47211/people")!, timeoutInterval: 3)
-        case "quote", "send", "search", "profiles", "image", "signin":
-            request = URLRequest(url: URL(string: "http://127.0.0.1:47211/\(ask)")!, timeoutInterval: ask == "send" || ask == "signin" ? 180 : 8)
+        case "people", "wallets", "activity":
+            request = URLRequest(url: URL(string: "http://127.0.0.1:47211/\(ask)")!, timeoutInterval: 3)
+        case "quote", "send", "search", "profiles", "image", "signin", "signin-site", "use-wallet", "open-app":
+            let long = ask == "send" || ask == "signin" || ask == "signin-site"
+            request = URLRequest(url: URL(string: "http://127.0.0.1:47211/\(ask)")!, timeoutInterval: long ? 180 : 8)
             request.httpMethod = "POST"
             request.httpBody = try? JSONSerialization.data(withJSONObject: message)
             request.setValue("application/json", forHTTPHeaderField: "Content-Type")

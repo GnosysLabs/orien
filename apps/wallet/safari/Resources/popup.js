@@ -5,7 +5,7 @@ const $ = (id) => document.getElementById(id);
 // How to reach Orien Wallet differs by browser: bridge.js says (Safari
 // through the app's extension, Chrome over this computer's own connection).
 const ask = (message) => window.orienAsk(message);
-const show = (id) => { for (const s of ["home", "send", "sent"]) $(s).hidden = s !== id; window.scrollTo(0, 0); };
+const show = (id) => { for (const s of ["home", "send", "sent", "wallets"]) $(s).hidden = s !== id; window.scrollTo(0, 0); };
 const spaced = (address) => address.replace(/(.{4})/g, "$1 ").trim();
 let wallet = null;
 
@@ -37,6 +37,7 @@ async function load() {
   $("home-buttons").hidden = false;
   home();
   paintBalance();   // once Home shows: hidden, it has no room to measure
+  loadRecent();
 }
 
 // The balance as the app shows it: the shorter form (two decimals from
@@ -68,6 +69,7 @@ $("balance-card").onclick = () => {
   full = !full;
   try { localStorage.setItem("balance-full", full ? "on" : "off"); } catch {}
   paintBalance();
+  loadRecent();
 };
 
 $("copy").onclick = async () => {
@@ -273,5 +275,117 @@ $("send-go").onclick = async () => {
 };
 
 $("sent-done").onclick = () => { $("to").value = $("amount").value = ""; quoted = null; chosen = null; load(); };
+
+// ---- Wallets: switch to another of the person's wallets ----
+$("wallet").onclick = async () => {
+  show("wallets");
+  $("wallets-note").hidden = true;
+  const list = await ask({ ask: "wallets" }).catch(() => null);
+  const wallets = Array.isArray(list) ? list : [];
+  $("wallet-list").replaceChildren(...wallets.map((w) => {
+    const pick = make("button", "pick");
+    pick.type = "button";
+    const who = make("span", "who");
+    who.append(make("div", "title", w.name), make("div", "sub", short(w.address)));
+    pick.append(w.icon ? make("span", "coin emoji", w.icon) : make("span", "coin", w.name.slice(0, 1).toUpperCase()), who);
+    if (w.current) {
+      const tick = make("span", "tick-on", "✓");
+      pick.append(tick);
+    }
+    pick.onclick = () => switchTo(w);
+    return pick;
+  }));
+};
+$("wallets-back").onclick = () => home();
+async function switchTo(w) {
+  if (w.current) return home();
+  const answer = await ask({ ask: "use-wallet", address: w.address }).catch(() => null);
+  if (!answer || answer.problem || answer.closed) {
+    $("wallets-note").textContent = (answer && answer.problem) || "Orien Wallet isn't running.";
+    $("wallets-note").hidden = false;
+    return;
+  }
+  // The balance follows a moment later, as Orien Wallet refreshes.
+  for (let tries = 0; tries < 12; tries++) {
+    await load();
+    if (wallet && wallet.address === w.address && wallet.balance) break;
+    await new Promise((done) => setTimeout(done, 400));
+  }
+}
+
+// ---- Recent: the three latest payments ----
+const TITLES = {
+  payment: "Received", claim: "Received", refund: "Refunded", fees: "Validator fees", mining: "Mining reward", unstaked: "Unstaked",
+};
+function when(time) {
+  const d = new Date(time * 1000), today = new Date();
+  if (d.toDateString() === today.toDateString()) return d.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
+  const yesterday = new Date(today); yesterday.setDate(today.getDate() - 1);
+  if (d.toDateString() === yesterday.toDateString()) return "Yesterday";
+  return d.toLocaleDateString([], { month: "short", day: "numeric" });
+}
+async function loadRecent() {
+  const list = await ask({ ask: "activity" }).catch(() => null);
+  const entries = Array.isArray(list) ? list.slice(0, 3) : [];
+  $("recent").hidden = entries.length === 0;
+  if (!entries.length) return;
+  await loadProfiles(entries.map((e) => e.counterparty).filter(Boolean));
+  if (!people.contacts.length && !people.wallets.length) {
+    const found = await ask({ ask: "people" }).catch(() => null);
+    if (found && found.contacts) people = found;
+  }
+  $("txs").replaceChildren(...entries.map((e) => {
+    const sent = e.direction === "sent";
+    const party = e.counterparty ? (named(e.counterparty) || short(e.counterparty)) : "";
+    const title = sent ? "Sent" : TITLES[e.kind] || "Received";
+    const sub = sent ? (party ? `To ${party}` : "Sent") : (party && (e.kind === "payment" || e.kind === "claim" || !e.kind) ? `From ${party}` : "");
+    const row = make("div", "tx");
+    const info = e.counterparty && profiles.get(e.counterparty);
+    const coin = make("span", `coin ${e.direction}`, sent ? "↗" : "↙");
+    if (info && info.picture) { coin.textContent = ""; coin.append(picture(info.picture)); }
+    const main = make("div", "tx-main");
+    main.append(make("div", "title", title));
+    if (sub) main.append(make("div", "sub", sub));
+    const side = make("div", "tx-side");
+    side.append(make("div", `amt ${e.direction}`, (sent ? "−" : "+") + (full ? e.amount : shortBalance(e.amount))), make("div", "sub", when(e.time)));
+    row.append(coin, main, side);
+    return row;
+  }));
+}
+$("view-all").onclick = async () => {
+  await ask({ ask: "open-app" }).catch(() => null);
+  window.close();
+};
+
+// ---- Websites: letting the one in this tab ask to sign in (Chrome, Firefox) ----
+const tabsApi = globalThis.browser || globalThis.chrome;
+async function checkSite() {
+  const optional = tabsApi && tabsApi.permissions && tabsApi.runtime.getManifest().optional_host_permissions;
+  if (!optional) return;
+  const [tab] = await tabsApi.tabs.query({ active: true, currentWindow: true }).catch(() => []);
+  let url;
+  try { url = new URL(tab.url); } catch { return; }
+  const local = url.protocol === "http:" && (url.hostname === "localhost" || url.hostname === "127.0.0.1");
+  if ((url.protocol !== "https:" && !local) || url.hostname === "orien.network") return;
+  const pattern = `${url.protocol}//${url.hostname}/*`;
+  const allowed = await tabsApi.permissions.contains({ origins: [pattern] }).catch(() => false);
+  const text = $("allow-text"), go = $("allow-go");
+  text.replaceChildren();
+  const site = make("b", "", url.host);
+  if (allowed) {
+    text.append(site, " can ask to sign in with Orien Wallet.");
+    go.className = "secondary";
+    go.textContent = "Remove";
+    go.onclick = async () => { await tabsApi.permissions.remove({ origins: [pattern] }).catch(() => {}); checkSite(); };
+  } else {
+    text.append("Let ", site, " ask to sign in with Orien Wallet?");
+    go.className = "primary pearl";
+    go.textContent = "Allow";
+    // Asked straight from the click: browsers only ask the person then.
+    go.onclick = () => { tabsApi.permissions.request({ origins: [pattern] }).then(() => checkSite(), () => {}); };
+  }
+  $("allow").hidden = false;
+}
+checkSite();
 
 load();
