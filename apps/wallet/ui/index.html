@@ -522,6 +522,7 @@
   .swap-row .finish input { width: 140px; padding: 8px 10px; }
   @media (hover: hover) { .swap-row:hover { background: var(--surface-hover); } }
   .swap-row .sub { font-size: 12.5px; color: var(--dim); }
+  .swap-row .sub.bad { color: var(--bad); }
   .swap-status { margin: 14px 2px 0; line-height: 1.45; }
   .swap-choices { display: grid; gap: 10px; }
   /* The Swap screen's two tabs */
@@ -5253,7 +5254,9 @@
     const going = swapList.filter(live), finished = swapList.filter((x) => !live(x));
     const openHtml = board.waiting.map((item) => `<div class="swap-row">
       <div><div>${item.selling ? "Sell" : "Buy"} ${esc(fmtOrn(item.offer.orn))} ORN for ${esc(offerPrice(item.offer))}</div>
-      <div class="sub">${esc(waitingLine(item))}</div></div>
+      <div class="sub${item.short_of_orn ? " bad" : ""}">${esc(item.short_of_orn
+        ? `Not enough ORN in ${(walletList.find((w) => w.address === item.wallet) || {}).name || short(item.wallet || "")}: hidden from buyers until it holds ${fmtOrn(item.offer.orn)} ORN again.`
+        : waitingLine(item))}</div></div>
       ${item.selling && item.offer.state === "open" ? `<button class="linkish" data-withdraw="${item.offer.id}">Withdraw</button>` : ""}
       ${item.needs_unlock ? (item.unlock_biometric
         ? `<button class="linkish" data-finish="${item.offer.id}">Use ${bio}</button>`
