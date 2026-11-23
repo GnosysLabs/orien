@@ -7,7 +7,7 @@ import { pageMeta } from '@/lib/seo'
 export const metadata: Metadata = pageMeta({
   title: 'Build with Orien: everything developers need',
   description:
-    'Everything a developer needs to build with the Orien cryptocurrency: accepting and sending ORN, the explorer API, Sign in with Orien, mining, running a validator, locked payments and swaps, and the code.',
+    'Everything a developer needs to build with the Orien cryptocurrency: accepting and sending ORN, the explorer API, Sign in with Orien Wallet, mining, running a validator, locked payments and swaps, and the code.',
   path: '/developers/',
 })
 
@@ -17,7 +17,7 @@ const SECTIONS = [
   { id: 'accept', title: 'Accepting ORN' },
   { id: 'send', title: 'Sending ORN' },
   { id: 'read', title: 'Reading the network' },
-  { id: 'sign-in', title: 'Sign in with Orien' },
+  { id: 'sign-in', title: 'Sign in with Orien Wallet' },
   { id: 'locks', title: 'Locked payments and swaps' },
   { id: 'mining', title: 'Mining' },
   { id: 'validators', title: 'Running a validator' },
@@ -150,7 +150,7 @@ export default function DevelopersPage() {
         <h1 className="text-balance text-4xl font-bold tracking-tight text-ink sm:text-5xl">Build with Orien</h1>
         <p className="max-w-2xl text-lg leading-relaxed text-muted">
           Orien is a quantum-proof cryptocurrency whose payments are final in a fraction of a second. Everything here is
-          free and open: the network, its code, the explorer’s API and Sign in with Orien. This page is everything you
+          free and open: the network, its code, the explorer’s API and Sign in with Orien Wallet. This page is everything you
           need to build with it.
         </p>
         <div className="flex flex-wrap gap-2 pt-1">
@@ -223,8 +223,8 @@ export default function DevelopersPage() {
           </li>
           <li>
             <strong>Know who your customers are.</strong> With{' '}
-            <Link href="#sign-in">Sign in with Orien</Link>, you learn the wallets each person proved are theirs, so a
-            payment from one of them is theirs.
+            <Link href="#sign-in">Sign in with Orien Wallet</Link>, people sign in with their wallet, so you know its
+            address and a payment from it is theirs.
           </li>
         </ul>
         <p>
@@ -269,15 +269,15 @@ export default function DevelopersPage() {
         </p>
       </Section>
 
-      <Section id="sign-in" title="Sign in with Orien">
+      <Section id="sign-in" title="Sign in with Orien Wallet">
         <p>
-          Let people sign in to your website or app with their Orien Network account, and see their verified wallets:
-          the wallets they proved are theirs by a small payment from each. It’s standard OpenID Connect, so the sign-in
-          library you already use works, with the issuer <Code>https://orien.network</Code>.
+          Let people sign in to your website with their Orien wallet, as with Phantom or MetaMask: no email, no
+          password, and no ORN moves. They approve in the Orien Wallet browser extension, and your website gets their
+          wallet address with a proof it checks itself, offline, with Orien’s quantum-safe signatures.
         </p>
         <p>
-          Register your website at <Link href="/developers/websites/">Sign in with Orien: your websites</Link>.{' '}
-          <Link href="/developers/sign-in/">Sign in with Orien for developers</Link> covers the rest.
+          <Link href="/developers/sign-in/">Sign in with Orien Wallet for developers</Link> has the code, and a demo to
+          try.
         </p>
       </Section>
 
