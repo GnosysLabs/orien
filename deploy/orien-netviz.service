@@ -1,0 +1,47 @@
+# /etc/systemd/system/orien-netviz.service
+# The network map's measuring service, behind nginx at
+# explorer.orien.network/api/netviz/ and orien.network/api/netviz/. Every ten
+# minutes it measures the links between the validators from outside
+# (Globalping), and it reads the explorer's own public figures. It only
+# answers questions: nobody on the web can start a measurement or change it.
+#
+# Its program is in /opt/orien-netviz, its database in /var/lib/orien-netviz.
+#
+#   systemctl enable --now orien-netviz
+#   journalctl -u orien-netviz
+
+[Unit]
+Description=Orien network map
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+# Behind the validator on a shared server: a small share of the processor
+# when it is busy, a memory ceiling, and stopped first if memory runs out.
+CPUWeight=30
+IOWeight=30
+MemoryMax=512M
+OOMScoreAdjust=600
+User=orien-netviz
+Group=orien-netviz
+WorkingDirectory=/opt/orien-netviz
+Environment=ORIEN_READ_ONLY=1
+Environment=ORIEN_HOST=127.0.0.1
+Environment=ORIEN_PORT=8765
+Environment=ORIEN_DB=/var/lib/orien-netviz/orien_netviz.db
+Environment=PYTHONUNBUFFERED=1
+ExecStart=/usr/bin/python3 /opt/orien-netviz/server.py
+Restart=always
+RestartSec=5
+
+# It needs nothing but its own folder and the network.
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+PrivateTmp=true
+PrivateDevices=true
+ReadWritePaths=/var/lib/orien-netviz
+UMask=0077
+
+[Install]
+WantedBy=multi-user.target

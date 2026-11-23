@@ -2,6 +2,7 @@ import Link from 'next/link'
 import { ArrowLeftRight, ArrowRight, Gauge, Pickaxe, Scale, ServerCog, ShieldCheck, Sunrise, Wallet } from 'lucide-react'
 import type { Metadata } from 'next'
 import { SupplyCurve } from '@/components/SupplyCurve'
+import { NetworkGlobe } from '@/components/NetworkGlobe'
 import { IPhoneApp } from '@/components/IPhoneApp'
 import { SiteVideo } from '@/components/SiteVideo'
 import { DiscordIcon, YouTubeIcon } from '@/components/Header'
@@ -146,6 +147,9 @@ export default function HomePage() {
         </div>
         <SupplyCurve />
       </section>
+
+      {/* The network, live */}
+      <NetworkGlobe />
 
       {/* Ways in */}
       <section className="py-20">

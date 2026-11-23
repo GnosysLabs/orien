@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { ChevronRight } from 'lucide-react'
-import { type Overview, addressHref, ago, checkpointHref, explore, hashrate, orn, short } from '@/lib/explorer'
+import { type Overview, addressHref, ago, checkpointHref, explore, hashrate, mapHref, orn, short } from '@/lib/explorer'
 import { Card, Fact, Facts, Loading, Problem } from './Parts'
 import { TopWallets } from './TopWallets'
 
@@ -59,14 +59,24 @@ export function ExplorerHome() {
           Every hourly checkpoint, the validators, and any address’s balance and payments.
         </p>
         {/* Its room is kept while the figures load, so nothing below jumps. */}
-        <div className="mt-6 flex h-10 justify-center">
+        <div className="mt-6 flex h-10 justify-center gap-3">
           {overview?.miners && (
-            <a
-              href={checkpointHref(overview.miners.epoch)}
-              className="inline-flex h-10 items-center gap-1 rounded-xl border border-line bg-bg px-4 text-sm font-semibold text-ink transition hover:border-pearl"
-            >
-              View the last checkpoint <ChevronRight className="h-4 w-4" aria-hidden />
-            </a>
+            <>
+              <a
+                href={checkpointHref(overview.miners.epoch)}
+                className="inline-flex h-10 items-center gap-1 rounded-xl border border-line bg-bg px-4 text-sm font-semibold text-ink transition hover:border-pearl"
+              >
+                <span className="max-sm:hidden">View the last checkpoint</span>
+                <span className="sm:hidden">Last checkpoint</span>
+                <ChevronRight className="h-4 w-4" aria-hidden />
+              </a>
+              <a
+                href={mapHref()}
+                className="inline-flex h-10 items-center gap-1 rounded-xl border border-line bg-bg px-4 text-sm font-semibold text-ink transition hover:border-pearl"
+              >
+                Network map <ChevronRight className="h-4 w-4" aria-hidden />
+              </a>
+            </>
           )}
         </div>
       </header>

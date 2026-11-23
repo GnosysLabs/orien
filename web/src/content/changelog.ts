@@ -26,6 +26,16 @@ export const PRODUCTS: Record<Product, string> = {
 
 export const CHANGELOG: Entry[] = [
   {
+    date: '2026-11-23',
+    products: ['network'],
+    title: 'A live map of the network',
+    changes: [
+      'explorer.orien.network/map/ shows the network as a live picture: the four validators on the globe where they are, and around it every wallet that mined in the last hour and the 100 largest wallets. Pointing at a dot shows what it mined and what it holds; selecting it opens that wallet in the explorer.',
+      'Network details, on the same page, shows the links between the validators: the delay and loss between every pair, the route each takes across the internet and the carriers on it, and the last 24 hours. The links are measured from outside every ten minutes.',
+      'The home page of orien.network shows the same globe, live.',
+    ],
+  },
+  {
     date: '2026-11-22',
     products: ['orien', 'validators'],
     version: '1.10.6',

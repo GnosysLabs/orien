@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en" style="height: 100%">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="color-scheme" content="dark" />
+  <meta name="robots" content="noindex" />
+  <title>The Orien network, live</title>
+  <link rel="stylesheet" href="/netviz/index-BYC68JCY.css" />
+</head>
+<body style="margin: 0; height: 100%; overflow: hidden; background: transparent">
+  <div id="app" class="app-root">
+    <div id="globe-container" class="globe-container" aria-label="Interactive 3D network globe"></div>
+    <div class="globe-vignette" aria-hidden="true"></div>
+    <canvas id="orbit-layer" class="orbit-layer" aria-hidden="true" hidden></canvas>
+    <section id="simple-card" class="simple-card glass-panel" aria-label="What this map shows"></section>
+    <button type="button" id="view-switch" class="view-switch hud-btn hud-btn-ghost">Network details</button>
+    <aside id="simple-detail" class="simple-detail glass-panel" aria-live="polite" hidden></aside>
+    <div id="orbit-tip" class="orbit-tip" role="tooltip" hidden></div>
+    <header id="hud-header" class="hud-header glass-panel" role="banner"></header>
+    <div id="incident-banner" class="incident-banner" role="alert" aria-live="assertive" hidden></div>
+    <aside id="matrix-hud" class="matrix-hud glass-panel" aria-label="Server pair latency and loss matrix"></aside>
+    <div id="carrier-legend" class="carrier-legend glass-panel" aria-label="Carrier color legend" hidden></div>
+    <aside id="inspector-drawer" class="inspector-drawer glass-panel" aria-label="Inspector panel" aria-hidden="true"></aside>
+    <footer id="timeline-hud" class="timeline-hud glass-panel" aria-label="24-hour network history timeline"></footer>
+    <div id="start-error" class="start-error" role="alert" hidden></div>
+    <div id="toast-root" class="toast-root" aria-live="polite"></div>
+  </div>
+  <script>window.__NETVIZ__ = { api: '/api/netviz', assets: '/netviz/', readOnly: true, embed: true };</script>
+  <script type="module" src="/netviz/app-5K6k3CS9.js"></script>
+</body>
+</html>
