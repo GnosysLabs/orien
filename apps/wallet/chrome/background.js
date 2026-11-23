@@ -11,6 +11,10 @@ const toApp = (path, body) => fetch(`${ORIEN}/${path}`, {
 }).then((answer) => answer.json());
 chrome.runtime.onMessage.addListener((message, sender, reply) => {
   if (!message) return;
+  if (message.ask === "sites-changed" && !sender.tab) {
+    syncSites().then(() => startOn(message.origins || [])).then(() => reply({ ok: true }), () => reply({ ok: false }));
+    return true;
+  }
   let asked;
   if (message.ask === "wallet") asked = toApp("wallet");
   else if (message.ask === "signin") asked = toApp("signin", {});

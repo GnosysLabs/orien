@@ -383,7 +383,7 @@ $("view-all").onclick = async () => {
   window.close();
 };
 
-// ---- Websites: letting the one in this tab ask to sign in (Chrome, Firefox) ----
+// ---- Websites: letting the one in this tab ask to sign in ----
 const tabsApi = globalThis.browser || globalThis.chrome;
 async function checkSite() {
   const optional = tabsApi && tabsApi.permissions && tabsApi.runtime.getManifest().optional_host_permissions;
@@ -408,7 +408,16 @@ async function checkSite() {
     go.className = "primary pearl";
     go.textContent = "Allow";
     // Asked straight from the click: browsers only ask the person then.
-    go.onclick = () => { tabsApi.permissions.request({ origins: [pattern] }).then(() => checkSite(), () => {}); };
+    go.onclick = () => {
+      tabsApi.permissions.request({ origins: [pattern] }).then(async (granted) => {
+        // Safari doesn't always tell the extension's background; this does.
+        if (granted && tabsApi.runtime.sendMessage) await tabsApi.runtime.sendMessage({ ask: "sites-changed", origins: [pattern] }).catch(() => {});
+        checkSite();
+      }, () => {
+        text.replaceChildren("Allow it in your browser's extension settings: Orien Wallet, then this website.");
+        go.hidden = true;
+      });
+    };
   }
   $("allow").hidden = false;
 }

@@ -8,6 +8,7 @@ const api = globalThis.browser || chrome;
 const toApp = (message) => api.runtime.sendNativeMessage("network.orien.wallet", message);
 api.runtime.onMessage.addListener((message, sender) => {
   if (!message) return;
+  if (message.ask === "sites-changed" && !sender.tab) return syncSites().then(() => startOn(message.origins || [])).then(() => ({ ok: true }));
   if (message.ask === "wallet" || message.ask === "signin") return toApp({ ask: message.ask });
   if (message.ask === "signin-site" && sender.tab) {
     const origin = siteOf(sender);
