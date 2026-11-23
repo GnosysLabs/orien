@@ -1514,6 +1514,7 @@
   .cm-news .cm-line { margin-top: 6px; }
   .cm-news .cm-small { margin-top: 4px; color: var(--dim); font-size: 13px; }
   .cm-news .cm-small b[data-user] { color: var(--ink); font-weight: 600; }
+  .cm-news .cm-news-go { margin-top: 12px; }
   .cm-news.row { display: flex; align-items: center; gap: 14px; }
   .cm-news.row .face, .cm-news.row .cm-net { width: 52px; height: 52px; font-size: 19px; }
   .cm-faces { display: flex; align-items: center; margin-bottom: 12px; }
@@ -5986,7 +5987,11 @@
   // people with a verified wallet post, reply and react. ----
   const cm = { open: new Set(), repliesOf: new Map(), posts: [], more: false, you: null, reactions: ["⛏️", "🔥", "❤️", "👏", "😂"], max: 500, thread: null, replies: [], picking: 0 };
   const cmCall = (method, path, body) => invoke("market_call", { method, path: "/community" + path, body: body === undefined ? null : body });
-  const EYEBROWS = { record: "New record", welcome: "Welcome", milestone: "Milestone", streak: "On a streak", top_day: "Top miner of the day" };
+  const EYEBROWS = { record: "New record", welcome: "Welcome", milestone: "Milestone", streak: "On a streak", top_day: "Top miner of the day", swap: "Swap", supply: "ORN mined", validator: "New validator" };
+  // The network's newer kinds of post: the feed sends them only to apps that ask.
+  const CM_KINDS = "swap,supply,validator";
+  // Their pictures, until each has its own.
+  const CM_ART = { swap: "top_day", supply: "record", validator: "milestone" };
   const cmFace = (person) => person && person.name
     ? `<span class="face">${esc(person.name.slice(0, 1).toUpperCase())}${person.picture ? picImg(person.picture) : ""}</span>`
     : '<span class="cm-net"><span class="mark"></span></span>';
@@ -6031,6 +6036,21 @@
         return `<div class="cm-news row">${m.name ? `<span data-user="${esc(m.name)}">${cmFace(m)}</span>` : cmFace(null)}<div><div class="cm-line"><b${m.name ? ` data-user="${esc(m.name)}"` : ""}>${m.name ? esc(m.name) : esc(short(m.address || ""))}</b> mined the most of Orien Network’s members on ${esc(day)}</div>
           <div class="cm-big mt6">${cmOrn(d.mined)} ORN</div><div class="cm-small">Of ${cmOrn(d.total)} ORN paid to ${esc(String(d.miners))} miners that day.</div></div></div>`;
       }
+      case "swap": {
+        const orn = Number(d.orn) / 1e9, price = d.coin === "sol" ? `${fmtSol(d.lamports)} SOL` : `${fmtBtc(d.sats)} BTC`;
+        const per = d.coin === "sol" ? `${(d.lamports / 1e9 / orn).toLocaleString(undefined, { maximumSignificantDigits: 3 })} SOL per ORN` : `${Math.round(d.sats / orn).toLocaleString()} satoshis per ORN`;
+        return `<div class="cm-news"><div class="cm-big">${esc(orn.toLocaleString())} ORN for ${esc(price)}</div>
+          <div class="cm-line">${d.usd != null ? `≈ ${esc(fmtUsd(Number(d.usd)))} · ` : ""}${esc(per)}</div>
+          <div class="cm-small">A swap finished on the swap board.</div><button class="pill cm-news-go" data-news-go="swaps">Swap history</button></div>`;
+      }
+      case "supply":
+        return `<div class="cm-news"><div class="cm-big">${esc(Number(d.orn).toLocaleString())} ORN mined</div>
+          <div class="cm-line">${esc(String(d.share))}% of all the ORN there will ever be.</div>
+          <div class="cm-small">Every ORN comes from mining, a little more every hour.</div></div>`;
+      case "validator":
+        return `<div class="cm-news"><div class="cm-big">A new validator took a seat</div>
+          <div class="cm-line">The network has ${esc(String(d.seats))} validators now, keeping its checkpoints together.</div>
+          <button class="pill cm-news-go" data-news-go="map">See the network</button></div>`;
       default: return "";
     }
   }
@@ -6045,7 +6065,7 @@
   const SMILE_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" x2="9.01" y1="9" y2="9"/><line x1="15" x2="15.01" y1="9" y2="9"/></svg>';
   function cmCard(post, inThread) {
     const network = post.kind !== "post";
-    const art = network ? `<img class="cm-art" src="community/${esc(post.kind)}.jpg" alt="">`
+    const art = network ? `<img class="cm-art" src="community/${esc(CM_ART[post.kind] || post.kind)}.jpg" alt="">`
       : post.author && post.author.banner ? picImg(post.author.banner).replace("<img ", '<img class="cm-art" ') : "";
     const head = network
       ? `${cmFace(null)}<div class="cm-who"><div class="cm-eyebrow pearl-text">${esc(EYEBROWS[post.kind] || "Orien Network")}</div><div class="cm-when"><b class="ink">Orien Network</b> · ${ago(post.created)}</div></div>`
@@ -6098,6 +6118,7 @@
     try {
       const query = new URLSearchParams();
       if (cm.only) query.set("only", cm.only);
+      query.set("kinds", CM_KINDS);
       if (more && cm.posts.length) query.set("before", cm.posts[cm.posts.length - 1].id);
       const page = await cmCall("GET", "/feed" + (query.toString() ? `?${query}` : ""));
       cm.posts = more ? cm.posts.concat(page.posts || []) : page.posts || [];
@@ -6247,6 +6268,13 @@
   // Reactions, replies, deleting: one listener for every card.
   async function cmClick(e) {
     if (e.target.closest("[data-join]")) return cmJoin();
+    // The network's posts point on: swap history, or the network map.
+    const go = e.target.closest("[data-news-go]");
+    if (go) {
+      if (go.dataset.newsGo === "map") invoke("open_network_map").catch(() => {});
+      else { show("swaps"); loadSwaps(); loadBoard(); swapTab("history"); }
+      return;
+    }
     const send = e.target.closest("[data-reply-send]");
     if (send) return cmSendInline(Number(send.dataset.replySend));
     const t = e.target.closest("[data-react], [data-open], [data-pick], [data-del], [data-emoji-pick]");
@@ -6500,7 +6528,7 @@
     if (!name) return;
     try {
       const before = more && sl.posts.length ? `&before=${sl.posts[sl.posts.length - 1].id}` : "";
-      const page = await cmCall("GET", `/feed?about=${encodeURIComponent(name)}${before}`);
+      const page = await cmCall("GET", `/feed?about=${encodeURIComponent(name)}&kinds=${CM_KINDS}${before}`);
       if (name !== sl.name) return;
       sl.posts = more ? sl.posts.concat(page.posts || []) : page.posts || [];
       sl.more = !!page.more;
