@@ -27,6 +27,15 @@ export const PRODUCTS: Record<Product, string> = {
 export const CHANGELOG: Entry[] = [
   {
     date: '2026-11-23',
+    products: ['marketplace'],
+    title: 'Message anyone',
+    changes: [
+      'Messages has its own place at orien.network/messages/, with a Messages button beside the notifications, and is no longer only for the Market.',
+      'Every profile has a Message button: write to anyone with an Orien Network account, not only about a listing. Blocks work as before, and messages about a listing keep their payment requests.',
+    ],
+  },
+  {
+    date: '2026-11-23',
     products: ['network'],
     title: 'A calmer network map',
     changes: [

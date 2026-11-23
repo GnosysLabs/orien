@@ -236,7 +236,7 @@ function Mine({ found, onChange }: { found: Found; onChange: () => void }) {
             <UserRound className="h-4 w-4" aria-hidden /> View profile
           </Link>
           <Link
-            href="/marketplace/messages/"
+            href="/messages/"
             className="flex h-9 items-center gap-2 rounded-lg border border-line px-3 text-sm font-semibold text-ink transition hover:border-pearl"
           >
             <MessageCircle className="h-4 w-4" aria-hidden /> Messages

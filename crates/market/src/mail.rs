@@ -26,8 +26,11 @@ impl Mailer {
     /// Tells someone they have a message, with a link to it. The message
     /// itself is not in the email: it is read on the site.
     pub fn send_notice(&self, notice: &crate::messages::Notice, origin: &str) -> Result<()> {
-        let link = format!("{origin}/marketplace/messages/?c={}", notice.conversation);
-        let subject = format!("{} sent you a message about {}", notice.from_name, notice.listing_title);
+        let link = format!("{origin}/messages/?c={}", notice.conversation);
+        let subject = match &notice.listing_title {
+            Some(title) => format!("{} sent you a message about {}", notice.from_name, title),
+            None => format!("{} sent you a message", notice.from_name),
+        };
         let Some(key) = &self.key else {
             println!("would email {}: {subject} ({link})", notice.to_email);
             return Ok(());

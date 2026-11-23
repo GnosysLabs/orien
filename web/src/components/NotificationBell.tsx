@@ -16,7 +16,7 @@ type Line = {
   reply?: boolean;
   post_kind?: string;
   conversation?: number;
-  listing?: string;
+  listing?: string | null;
   text: string;
   time: number;
   unseen: boolean;
@@ -61,7 +61,7 @@ function said(line: Line) {
     case "react":
       return `reacted ${line.emojis.join(" ")} to ${theirs}`;
     case "message":
-      return `wrote to you about ${line.listing}`;
+      return line.listing ? `wrote to you about ${line.listing}` : "wrote to you";
     default:
       return "";
   }
@@ -69,7 +69,7 @@ function said(line: Line) {
 
 function href(line: Line) {
   return line.kind === "message"
-    ? `/marketplace/messages/?c=${line.conversation}`
+    ? `/messages/?c=${line.conversation}`
     : `/community/?post=${line.post}`;
 }
 

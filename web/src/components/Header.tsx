@@ -24,6 +24,7 @@ import {
   type LucideIcon,
   Landmark,
   Image as ImageIcon,
+  MessageCircle,
 } from "lucide-react";
 import { COMMUNITY_LIVE, MARKETPLACE_LIVE, WALLET_SIGN_IN_DOCS } from "@/lib/brand";
 import { SIDEBAR } from "@/lib/nav";
@@ -364,26 +365,35 @@ export function DiscordIcon({ className = "" }: { className?: string }) {
 const isActive = (item: NavItem, pathname: string) =>
   item.match ? item.match(pathname) : pathname === item.href;
 
-/** A red dot on the Market when messages wait unread. */
-function useUnreadDot() {
+/** Messages, beside the notifications: the inbox, with how many
+ * conversations wait unread. For everyone signed in, Market or not. */
+function MessagesButton() {
+  const pathname = usePathname();
   const { account, unread } = useMe();
-  return (item: NavItem) =>
-    MARKETPLACE_LIVE && account && unread > 0 && item.href === "/marketplace/" ? unread : 0;
-}
-
-function Dot({ count, className }: { count: number; className: string }) {
+  if (!account) return null;
+  const on = pathname.startsWith("/messages");
   return (
-    <span
-      className={`absolute h-2.5 w-2.5 rounded-full bg-stop ring-2 ring-bg ${className}`}
-      aria-label={`${count} unread message${count === 1 ? "" : "s"}`}
-      role="status"
-    />
+    <Link
+      href="/messages/"
+      aria-label={unread > 0 ? `Messages: ${unread} unread` : "Messages"}
+      aria-current={on ? "page" : undefined}
+      title="Messages"
+      className={`relative flex h-9 w-9 items-center justify-center rounded-lg transition hover:bg-raised/60 hover:text-ink ${
+        on ? "bg-raised text-ink" : "text-muted"
+      }`}
+    >
+      <MessageCircle className="h-5 w-5" strokeWidth={2} aria-hidden />
+      {unread > 0 && (
+        <span className="num absolute -right-0.5 -top-0.5 flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-stop px-1 text-[11px] font-bold leading-none text-white ring-2 ring-bg">
+          {unread > 99 ? "99+" : unread}
+        </span>
+      )}
+    </Link>
   );
 }
 
 export function Header() {
   const pathname = usePathname();
-  const unreadOn = useUnreadDot();
   const onTry = pathname.startsWith("/try");
   // Get started is for newcomers: once signed in, people are past it.
   const { account } = useMe();
@@ -434,12 +444,7 @@ export function Header() {
               );
             })}
             {MARKETPLACE_LIVE && (
-              <span className="relative">
-                <NavMenu label="Trade" icon={ArrowLeftRight} items={TRADE} on={TRADE.some((i) => pathname.startsWith(i.href))} />
-                {unreadOn(ITEMS.find((i) => i.href === "/marketplace/")!) > 0 && (
-                  <Dot count={unreadOn(ITEMS.find((i) => i.href === "/marketplace/")!)} className="right-0.5 top-1" />
-                )}
-              </span>
+              <NavMenu label="Trade" icon={ArrowLeftRight} items={TRADE} on={TRADE.some((i) => pathname.startsWith(i.href))} />
             )}
             <NavMenu label="Learn" icon={BookOpen} items={LEARN} on={LEARN.some((i) => pathname.startsWith(i.href))} />
             <NavMenu label="Build" icon={Code2} items={BUILD} on={pathname.startsWith("/developers") || pathname.startsWith("/brand")} />
@@ -489,6 +494,7 @@ export function Header() {
               <span>Get started</span>
             </Link>
             )}
+            {MARKETPLACE_LIVE && <MessagesButton />}
             {MARKETPLACE_LIVE && <NotificationBell />}
             {MARKETPLACE_LIVE && (
               <div className="ml-1.5">
@@ -504,7 +510,6 @@ export function Header() {
 
 export function BottomNav() {
   const pathname = usePathname();
-  const unreadOn = useUnreadDot();
   if (pathname.startsWith("/admin")) return null;
   // The changelog is in the footer, as on larger screens.
   const mobileItems = ITEMS.filter((item) => !item.wide);
@@ -532,14 +537,11 @@ export function BottomNav() {
                 <Icon className="h-4 w-4" strokeWidth={2.5} aria-hidden />
               </span>
             ) : (
-              <span className="relative">
-                <Icon
-                  className={`h-5 w-5 ${on ? "text-pearl" : ""}`}
-                  strokeWidth={2}
-                  aria-hidden
-                />
-                {unreadOn(item) > 0 && <Dot count={unreadOn(item)} className="-right-1 -top-0.5" />}
-              </span>
+              <Icon
+                className={`h-5 w-5 ${on ? "text-pearl" : ""}`}
+                strokeWidth={2}
+                aria-hidden
+              />
             )}
             {item.short ?? item.label}
           </Link>
@@ -564,14 +566,12 @@ function SidebarLink({
   label,
   icon: Icon,
   on = false,
-  dot = 0,
   onClick,
 }: {
   href: string;
   label: string;
   icon: LucideIcon;
   on?: boolean;
-  dot?: number;
   onClick?: (event: React.MouseEvent) => void;
 }) {
   const outside = href.startsWith("https://");
@@ -583,7 +583,6 @@ function SidebarLink({
       <Icon className={`h-4 w-4 shrink-0 ${on ? "text-pearl" : ""}`} strokeWidth={2} aria-hidden />
       <span className="min-w-0 flex-1 truncate">{label}</span>
       {outside && <span className="text-xs text-muted/70" aria-hidden>↗</span>}
-      {dot > 0 && <Dot count={dot} className="right-2 top-1/2 -translate-y-1/2" />}
     </>
   );
   return outside ? (
@@ -601,7 +600,6 @@ function SidebarLink({
  * everything. Phones keep the top bar and the bottom bar. */
 export function Sidebar() {
   const pathname = usePathname();
-  const unreadOn = useUnreadDot();
   if (!SIDEBAR || pathname.startsWith("/admin")) return null;
   const item = (href: string) => ITEMS.find((i) => i.href === href);
   const main = ["/", "/how-it-works/", "https://explorer.orien.network/"].map(item).filter((i): i is NavItem => !!i);
@@ -638,7 +636,7 @@ export function Sidebar() {
         {trade.length > 0 && (
           <SidebarGroup title="Trade">
             {trade.map((i) => (
-              <SidebarLink key={i.href} href={i.href} label={i.label} icon={i.icon} on={isActive(i, pathname)} dot={unreadOn(i)} />
+              <SidebarLink key={i.href} href={i.href} label={i.label} icon={i.icon} on={isActive(i, pathname)} />
             ))}
           </SidebarGroup>
         )}

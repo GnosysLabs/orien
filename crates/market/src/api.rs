@@ -340,6 +340,7 @@ pub fn router(app: Arc<App>) -> Router {
         .route("/api/market/profiles/{id}", get(profile))
         .route("/api/market/accounts/{id}/block", post(block_account))
         .route("/api/market/users/{name}", get(user))
+        .route("/api/market/users/{name}/messages", post(message_person))
         .route("/api/market/listings/{id}/messages", post(message_seller))
         .route(
             "/api/market/listings/{id}/pictures",
@@ -652,6 +653,15 @@ async fn message_seller(State(app): State<Arc<App>>, headers: HeaderMap, Path(li
         store.conversation_about(buyer, listing).map_err(refused)?
     };
     deliver(&app, conversation, buyer, &request.body).await
+}
+
+/// The first message to anyone, by name, or the next one in the direct
+/// conversation the two already have. Answers as `message_seller` does.
+async fn message_person(State(app): State<Arc<App>>, headers: HeaderMap, Path(name): Path<String>, Json(request): Json<Write>) -> Answer {
+    let sender = app.signed_in(&headers)?;
+    Store::message_text(&request.body).map_err(refused)?;
+    let conversation = app.store.lock().unwrap().direct_conversation(sender, &name).map_err(refused)?;
+    deliver(&app, conversation, sender, &request.body).await
 }
 
 async fn reply(State(app): State<Arc<App>>, headers: HeaderMap, Path(id): Path<i64>, Json(request): Json<Write>) -> Answer {

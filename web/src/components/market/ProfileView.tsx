@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
 import { useEffect, useState } from 'react'
-import { BadgeCheck, Ban, Store } from 'lucide-react'
+import { BadgeCheck, Ban, MessageCircle, Store } from 'lucide-react'
 import { ask, me, memberSince, pictureUrl, profileHref, type Account, type Listing, type VerifiedWallet } from '@/lib/market'
 import { Linked } from './Linked'
 import { Avatar } from './Avatar'
@@ -109,6 +109,16 @@ export function ProfileView() {
           <div className="pt-3">
             <ContactLinks contact={account.contact} />
           </div>
+          {viewer !== null && viewer !== account.id && !found.blocked && (
+            <div className="flex justify-center pt-4 sm:justify-start">
+              <Link
+                href={`/messages/?to=${encodeURIComponent(account.name)}`}
+                className="pearl-fill flex h-10 items-center gap-2 rounded-xl px-4 text-sm font-bold transition hover:brightness-105"
+              >
+                <MessageCircle className="h-4 w-4" aria-hidden /> Message
+              </Link>
+            </div>
+          )}
         </div>
       </section>
       {/* Their part of the community, beside their mining and what they sell. */}

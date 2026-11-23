@@ -9,7 +9,7 @@ export default function robots(): MetadataRoute.Robots {
       userAgent: '*',
       allow: '/',
       // Private pages: your account, your messages, the admin dashboard.
-      disallow: ['/admin/', '/api/', '/account/', '/marketplace/account/', '/marketplace/messages/', '/marketplace/sell/'],
+      disallow: ['/admin/', '/api/', '/account/', '/marketplace/account/', '/marketplace/messages/', '/messages/', '/marketplace/sell/'],
     },
     sitemap: `${SITE_URL}/sitemap.xml`,
     host: SITE_URL,
