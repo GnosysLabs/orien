@@ -8,6 +8,7 @@
  *   const { verifySignIn } = require("./orien-sign-in.js");
  *   const address = verifySignIn(proof, { origin: "https://example.com", nonce });
  *   // Throws if the proof isn't good. Accept each nonce once, then forget it.
+ *   const who = await OrienSignIn.profile(address);   // name, picture, banner, links; null if not verified
  *
  * Orien's signatures are quantum-safe one-time signatures built from the
  * BLAKE3 hash alone, so the checker needs nothing but BLAKE3, included
@@ -224,6 +225,30 @@
     return root.orien.signIn({ nonce });
   }
 
+  /**
+   * The public Orien profile of a verified wallet, from orien.network: its
+   * name, bio, picture, banner, profile page and the social links its
+   * owner chose to show. Null for a wallet that isn't verified. Works in the
+   * page and on a server.
+   *   { name, bio, wallet, picture, banner, profile, links: [{ kind, handle, url }] }
+   */
+  async function profile(address) {
+    if (!/^[0-9a-f]{64}$/i.test(String(address))) throw new Error("An Orien address is 64 hex characters.");
+    const answer = await fetch(`https://orien.network/api/market/wallets/${String(address).toLowerCase()}`);
+    if (answer.status === 404) return null;
+    if (!answer.ok) throw new Error("orien.network couldn't be reached.");
+    const p = await answer.json();
+    return {
+      name: p.name,
+      bio: p.bio || "",
+      wallet: p.wallet_name || null,
+      picture: p.picture_url || null,
+      banner: p.banner_url || null,
+      profile: p.profile_url || null,
+      links: Array.isArray(p.links) ? p.links.map((l) => ({ kind: l.kind, handle: l.handle, url: l.url || null })) : [],
+    };
+  }
+
   /** A random one-time value, for servers that don't have their own. */
   function newNonce() {
     const bytes = new Uint8Array(16);
@@ -231,7 +256,7 @@
     return hex(bytes);
   }
 
-  const api = { verifySignIn, signIn, newNonce, blake3 };
+  const api = { verifySignIn, signIn, profile, newNonce, blake3 };
   if (typeof module === "object" && module.exports) module.exports = api;
   root.OrienSignIn = api;
 })(typeof globalThis !== "undefined" ? globalThis : this);

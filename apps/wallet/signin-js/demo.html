@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sign in with Orien Wallet: demo</title>
+<style>
+  body { margin: 0; min-height: 100vh; display: grid; place-items: center; background: #15161a; color: #eceef2;
+    font: 15px/1.5 -apple-system, system-ui, sans-serif; }
+  main { width: min(420px, 90vw); text-align: center; }
+  h1 { font-size: 22px; margin: 0 0 8px; }
+  p { color: #9ea2ab; margin: 0 0 24px; }
+  button { height: 48px; padding: 0 24px; border: 0; border-radius: 14px; font: 600 15px system-ui; cursor: pointer;
+    color: #24252b; background: linear-gradient(120deg, #e6dcf7, #c8e8ea, #f1ecd4); }
+  #out { margin-top: 24px; padding: 14px; border: 1px solid #2c2d33; border-radius: 14px; text-align: left; word-break: break-all;
+    font: 13px ui-monospace, Menlo, monospace; color: #cfd2d8; white-space: pre-wrap; }
+  #out.bad { color: #f08a8a; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Demo website</h1>
+  <p>Sign in with your Orien wallet. No email, no password.</p>
+  <button id="go">Sign in with Orien Wallet</button>
+  <div id="out" hidden></div>
+</main>
+<script src="orien-sign-in.js"></script>
+<script>
+  // A real website makes the nonce on its server and checks the proof there;
+  // this demo does both in the page.
+  const out = document.getElementById("out");
+  document.getElementById("go").onclick = async () => {
+    out.hidden = false; out.className = ""; out.textContent = "Waiting for Orien Wallet…";
+    try {
+      const nonce = OrienSignIn.newNonce();
+      const { proof } = await OrienSignIn.signIn({ nonce });
+      const address = OrienSignIn.verifySignIn(proof, { origin: location.origin, nonce });
+      out.textContent = "Signed in as " + address + " (proof checked: " + Math.round(proof.length * 3 / 4 / 1024) + " KB)";
+      const who = await OrienSignIn.profile(address).catch(() => null);
+      if (who) out.textContent += "\n\nProfile: " + who.name + (who.bio ? " (" + who.bio + ")" : "") + "\n" + who.links.map((l) => l.kind + ": " + (l.url || l.handle)).join("\n");
+    } catch (error) {
+      out.className = "bad"; out.textContent = error.message;
+    }
+  };
+</script>
+</body>
+</html>

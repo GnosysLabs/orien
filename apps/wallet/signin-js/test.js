@@ -25,4 +25,17 @@ for (const at of [200, 1500, 3000, 6000, good.length - 5]) {
   const bent = good.slice(); bent[at] ^= 1;
   assert.throws(() => verifySignIn(bent, { origin: site, nonce: "n-1", now: 1010 }));
 }
-console.log("orien-sign-in.js: all checks pass");
+// profile(): the public profile's shape, read from orien.network.
+(async () => {
+  const { profile } = require("./orien-sign-in.js");
+  const sample = { id: 12, name: "Maya", picture: "abc.jpg", wallet_name: "Savings", bio: "I draw logos.",
+    picture_url: "https://orien.network/api/market/images/abc.jpg", banner_url: null, profile_url: "https://orien.network/u/Maya/",
+    links: [{ kind: "x", handle: "maya_draws", url: "https://x.com/maya_draws" }, { kind: "discord", handle: "maya.draws", url: null }] };
+  global.fetch = async (url) => url.endsWith("a".repeat(64)) ? { status: 200, ok: true, json: async () => sample } : { status: 404, ok: false };
+  const p = await profile("A".repeat(64));
+  assert.deepStrictEqual(p, { name: "Maya", bio: "I draw logos.", wallet: "Savings", picture: sample.picture_url, banner: null,
+    profile: sample.profile_url, links: [{ kind: "x", handle: "maya_draws", url: "https://x.com/maya_draws" }, { kind: "discord", handle: "maya.draws", url: null }] });
+  assert.strictEqual(await profile("b".repeat(64)), null);
+  await assert.rejects(profile("nope"));
+  console.log("orien-sign-in.js: all checks pass");
+})();
