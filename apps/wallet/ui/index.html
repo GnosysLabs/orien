@@ -180,8 +180,12 @@
   @media (min-width: 720px) {
     html body .screen, html body #mine, html body #board-signin, html body #board-post, html body #board-take,
     html body #swaps, html body #swap-sell, html body #swap-buy, html body #swap-detail {
-      padding-left: max(50px, calc(18px + (100% - var(--col)) / 2));
-      padding-right: max(50px, calc(18px + (100% - var(--col)) / 2)); }
+      /* The content is exactly as wide as the rounded column it scrolls in
+         (--cw), at every window size: its edges are the column's edges, 20px
+         inside the container. (100% is the space the screen is in; the screen
+         itself is 36px wider.) */
+      padding-left: calc((100% + 36px - min(var(--col), 100vw - 64px)) / 2);
+      padding-right: calc((100% + 36px - min(var(--col), 100vw - 64px)) / 2); }
     /* Content scrolls inside a rounded container the width of the column:
        at the top and bottom edges, where things scroll away, the corners
        round off right at the content's edge (at the top, 6px out, where
@@ -1336,7 +1340,7 @@
        so the sidebar, which reaches the window's foot, is never pushed up
        (and seems to scroll) once the feed runs out. */
     html body #community, html body #seller { padding-bottom: 0; }
-    .cm-main, .sl-main { padding-bottom: 22px; }
+    .cm-main, .sl-main { padding-bottom: 22px; box-sizing: border-box; }
     /* Stays in view beside the feed; taller than the window, it scrolls on its own. */
     .cm-rail { display: grid; gap: 14px; align-content: start; position: sticky; top: -8px;
       max-height: var(--rail-h, calc(100vh - 150px)); overflow-y: auto; overscroll-behavior: contain; scrollbar-width: thin; border-radius: 18px; }
@@ -5671,7 +5675,9 @@
     const rail = document.querySelector(".cm-rail");
     if (!rail || $("community").hidden) return;
     const box = $("community").getBoundingClientRect();
-    rail.style.setProperty("--rail-h", Math.max(200, Math.min(window.innerHeight, box.bottom) - rail.getBoundingClientRect().top) + "px");
+    // Never past the feed's end, so the page stops where the feed does.
+    const feedEnd = document.querySelector(".cm-main").getBoundingClientRect().bottom;
+    rail.style.setProperty("--rail-h", Math.max(200, Math.min(window.innerHeight, box.bottom, feedEnd) - rail.getBoundingClientRect().top) + "px");
     // The rounded edges follow the feed and the sidebar where they really are.
     const feed = document.querySelector(".cm-main").getBoundingClientRect(), side = rail.getBoundingClientRect(), c = $("community").style;
     c.setProperty("--f0", `${feed.left - box.left}px`); c.setProperty("--f1", `${feed.right - box.left}px`);
@@ -6006,7 +6012,14 @@
     if (scr.hidden) return;
     const box = scr.getBoundingClientRect(), side = document.querySelector(".sl-side"), main = document.querySelector(".sl-main");
     const beside = bigProfile.matches && side.offsetParent !== null;
-    if (beside) side.style.setProperty("--side-h", Math.max(200, Math.min(window.innerHeight, box.bottom) - side.getBoundingClientRect().top) + "px");
+    if (beside) {
+      // The posts' column reaches at least the window's foot, and the
+      // sidebar never runs past the posts' end: the page stops where the
+      // posts do, and a long sidebar scrolls on its own.
+      main.style.minHeight = `${Math.max(0, box.bottom - main.getBoundingClientRect().top - scr.scrollTop)}px`;
+      const end = Math.min(window.innerHeight, box.bottom, main.getBoundingClientRect().bottom);
+      side.style.setProperty("--side-h", Math.max(120, end - side.getBoundingClientRect().top) + "px");
+    } else main.style.minHeight = "";
     const split = beside && $("sl-hero").getBoundingClientRect().bottom < box.top + 16;
     scr.classList.toggle("split-edges", split);
     if (!split) return;
