@@ -27,6 +27,16 @@ export const PRODUCTS: Record<Product, string> = {
 export const CHANGELOG: Entry[] = [
   {
     date: '2026-11-23',
+    products: ['wallet'],
+    version: '1.8.25',
+    title: 'Orien Wallet in Firefox',
+    changes: [
+      'Orien Wallet works with Firefox: its extension shows your balance, sends ORN and signs you in to orien.network with one click, with your keys kept in the app. Settings, Browser Extensions has a Firefox button.',
+      'In Safari, the extension sits inside Safari’s own glass, so the window and its arrow look as one.',
+    ],
+  },
+  {
+    date: '2026-11-23',
     products: ['network'],
     title: 'A live map of the network',
     changes: [
