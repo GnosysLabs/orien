@@ -5609,7 +5609,7 @@
         if (!post.subject) return "";
         const hours = Number(d.hours);
         return `<div class="cm-news row"><span data-user="${esc(post.subject.name)}">${cmFace(post.subject)}</span><div><div class="cm-big">${hours} hours in a row 🔥</div>
-          <div class="cm-line"><b data-user="${esc(post.subject.name)}">${esc(post.subject.name)}</b> has been paid at every checkpoint for ${hours >= 48 ? `${hours / 24} days` : "a whole day"}.</div></div></div>`;
+          <div class="cm-line"><b data-user="${esc(post.subject.name)}">${esc(post.subject.name)}</b> has been paid at every checkpoint for ${hours} hours.</div></div></div>`;
       }
       case "top_day": {
         const m = d.miner || {};
@@ -6088,7 +6088,8 @@
     $("sl-tools").hidden = !board.me || board.me.id === a.id;
     sl.picture = a.picture;
     // Anyone can be written to from their page, not only about a listing.
-    $("sl-actions").hidden = !a.name || (board.me && board.me.id === a.id);
+    // Not for someone who isn't taking new messages (unless the two already talk).
+    $("sl-actions").hidden = !a.name || (board.me && board.me.id === a.id) || answer.takes_messages === false;
     $("sl-menu").hidden = true;
     $("sl-report-box").hidden = true;
     $("sl-block").firstChild.textContent = sl.blocked ? `Unblock ${sl.name}` : `Block ${sl.name}`;
