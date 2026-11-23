@@ -4162,6 +4162,7 @@
     $("r-bio").checked = false; passwordAsked = false; $("send-problem").hidden = true;
     validate(); show("send"); showRecent(); if (!phone) $("to").focus();
     // Members saved as contacts, with their wallets, to find by name.
+    loadBlocked();
     loadMembers().then(() => Promise.all(members.map((m) => fetchMember(m.id))));
   };
   $("go-receive").onclick = () => {
@@ -4311,9 +4312,9 @@
     const list = $("suggest");
     if (!q || isAddress(q)) { list.hidden = true; list.innerHTML = ""; return 0; }
     const places = [
-      ...book.map((c) => ({ name: c.name, address: c.address, sub: short(c.address), mine: false })),
+      ...book.filter((c) => !blockedName(c.name)).map((c) => ({ name: c.name, address: c.address, sub: short(c.address), mine: false })),
       // Members' verified wallets, each by their name for it.
-      ...members.flatMap((m) => ((memberInfo.get(m.id) || {}).wallets || []).map((w) => ({ address: (w.address || "").toLowerCase(), wallet: w, m })))
+      ...members.filter((m) => !blockedPeople.ids.has(m.id)).flatMap((m) => ((memberInfo.get(m.id) || {}).wallets || []).map((w) => ({ address: (w.address || "").toLowerCase(), wallet: w, m })))
         .filter((x) => x.address && !book.some((c) => c.address === x.address))
         .map((x) => ({ name: profileLabel({ name: ((memberInfo.get(x.m.id) || {}).account || {}).name || x.m.name, wallet_name: x.wallet.name || null }), address: x.address, sub: short(x.address), mine: false })),
       ...walletList.filter((w) => !w.current).map((w) => ({ name: w.name, address: w.address, sub: "Your wallet", mine: true })),
@@ -4681,13 +4682,29 @@
   }
   // The member an address belongs to, when it's one of their verified wallets.
   const memberOf = (address) => { const p = profileOf(address); return p && p.id ? p.id : null; };
+  // People you've blocked stay out of Contacts (and Send) until you unblock
+  // them: by account, and saved addresses under their name ("Maya" or
+  // "Maya – Savings"), as their wallets no longer say whose they are.
+  let blockedPeople = { ids: new Set(), names: [] };
+  async function loadBlocked() {
+    if (!board.me) { blockedPeople = { ids: new Set(), names: [] }; return; }
+    try {
+      const list = (await mk("GET", "/me/blocked")).blocked || [];
+      blockedPeople = { ids: new Set(list.map((p) => p.id)), names: list.map((p) => (p.name || "").toLowerCase()).filter(Boolean) };
+    } catch {}
+  }
+  const blockedName = (name) => {
+    const n = (name || "").toLowerCase();
+    return blockedPeople.names.some((b) => n === b || n.startsWith(`${b} – `) || n.startsWith(`${b} - `));
+  };
   // The people in Contacts: each member once (saved, or through a saved
   // address of theirs), and plain addresses that belong to no member.
   function contactGroups() {
     const people = new Map();
-    for (const m of members) people.set(m.id, { id: m.id, name: m.name, addresses: [] });
+    for (const m of members) if (!blockedPeople.ids.has(m.id)) people.set(m.id, { id: m.id, name: m.name, addresses: [] });
     const loose = [];
     for (const c of book) {
+      if (blockedName(c.name) || blockedPeople.ids.has(memberOf(c.address))) continue;
       const id = memberOf(c.address);
       if (!id) { loose.push(c); continue; }
       if (!people.has(id)) people.set(id, { id, name: (profileOf(c.address) || {}).name || c.name, addresses: [] });
@@ -4722,7 +4739,7 @@
       : '<div class="empty">No contacts yet. Add someone you pay often, or add an Orien Network member from their profile.</div>';
   }
   async function openContacts() {
-    await Promise.all([loadBook(), loadMembers()]); renderContacts(); show("contacts"); paintSyncCard("sync-contacts"); syncBook();
+    await Promise.all([loadBook(), loadMembers(), loadBlocked()]); renderContacts(); show("contacts"); paintSyncCard("sync-contacts"); syncBook();
     // Fresh profiles each time: names and pictures follow their owners'
     // changes, and saved names are brought in line so search finds them.
     for (const c of book) profiles.delete(c.address);
