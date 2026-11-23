@@ -1644,6 +1644,9 @@
   #all-activity { flex: 0 1 auto; margin: 0; padding: 0 0 6px; border-radius: 18px; background: var(--surface);
     border: 1px solid var(--line); overscroll-behavior: contain; }
   #all-activity:has(> .empty) { padding-bottom: 0; }
+  /* Its own rounded box, edge to edge: its corners already clip what
+     scrolls, so no inset rounding on top. */
+  html body #all-activity { -webkit-mask: none; mask: none; }
   #all-activity .day { position: sticky; top: 0; z-index: 1; margin: 0; padding: 12px 14px 6px; background: var(--surface); }
   #all-activity .day:not(:first-child) { border-top: 1px solid var(--line); }
   #all-activity .list { border: 0; border-radius: 0; background: none; overflow: visible; }
