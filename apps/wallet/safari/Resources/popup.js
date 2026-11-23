@@ -95,7 +95,7 @@ function named(address) {
 function suggest() {
   const q = $("to").value.trim().toLowerCase();
   const list = $("suggest");
-  if (!q || isAddress(q) || (chosen && $("to").value === chosen.name)) { list.hidden = true; list.innerHTML = ""; return; }
+  if (!q || isAddress(q) || (chosen && $("to").value === chosen.name)) { list.hidden = true; list.replaceChildren(); return; }
   const places = [
     ...people.contacts.map((c) => ({ name: c.name, address: c.address, sub: short(c.address) })),
     ...people.wallets.map((w) => ({ name: w.name, address: w.address, sub: "Your wallet", icon: w.icon || "", mine: true })),
@@ -114,10 +114,22 @@ function suggest() {
   const unknown = all.filter((p) => !p.mine && !profiles.has(p.address)).map((p) => p.address);
   if (unknown.length) loadProfiles(unknown).then((got) => got && suggest());
   list.hidden = all.length === 0;
-  list.innerHTML = all.map((p) => `<button class="pick" type="button" data-address="${p.address}">
-    ${faceOf(p)}
-    <span class="who"><div class="title">${esc(p.name)}</div><div class="sub${p.mine ? " words" : ""}">${esc(p.sub)}</div></span>
-  </button>`).join("");
+  list.replaceChildren(...all.map((p) => {
+    const pick = make("button", "pick");
+    pick.type = "button";
+    pick.dataset.address = p.address;
+    const who = make("span", "who");
+    who.append(make("div", "title", p.name), make("div", p.mine ? "sub words" : "sub", p.sub));
+    pick.append(faceOf(p), who);
+    return pick;
+  }));
+}
+// An element with a class and, if given, its text.
+function make(tag, className, text) {
+  const element = document.createElement(tag);
+  element.className = className;
+  if (text !== undefined) element.textContent = text;
+  return element;
 }
 // Faces: a Market picture where the person has one, over their letter,
 // as the app shows them.
@@ -131,7 +143,13 @@ async function loadProfiles(addresses) {
 }
 function picture(name) {
   if (!name) return "";
-  if (pics.has(name)) return pics.get(name) ? `<img src="${pics.get(name)}" alt="">` : "";
+  if (pics.has(name)) {
+    if (!pics.get(name)) return "";
+    const img = document.createElement("img");
+    img.src = pics.get(name);
+    img.alt = "";
+    return img;
+  }
   if (!picking.has(name)) {
     picking.add(name);
     ask({ ask: "image", name }).then((answer) => {
@@ -142,9 +160,11 @@ function picture(name) {
   return "";
 }
 const faceOf = (p) => {
-  if (p.icon) return `<span class="coin emoji">${esc(p.icon)}</span>`;
+  if (p.icon) return make("span", "coin emoji", p.icon);
   const info = profiles.get(p.address);
-  return `<span class="coin">${esc(p.name.slice(0, 1).toUpperCase())}${picture((info && info.picture) || p.picture)}</span>`;
+  const face = make("span", "coin", p.name.slice(0, 1).toUpperCase());
+  face.append(picture((info && info.picture) || p.picture));
+  return face;
 };
 
 function searchMarket(q) {
