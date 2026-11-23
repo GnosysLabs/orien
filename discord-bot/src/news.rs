@@ -32,7 +32,7 @@ pub struct Entry {
     pub date: String,
     /// As people read it: 16 November 2026.
     pub day: String,
-    /// "Orien Wallet", "orien", "Validators", "Network", "Market".
+    /// "Orien Wallet", "orien", "Validators", "Network", "Community" (older entries say "Market").
     pub products: Vec<String>,
     pub version: Option<String>,
     pub title: String,
