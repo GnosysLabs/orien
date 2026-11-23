@@ -28,6 +28,16 @@ export const CHANGELOG: Entry[] = [
   {
     date: '2026-11-23',
     products: ['marketplace'],
+    title: 'Swap offers you can actually take',
+    changes: [
+      'The swap board shows when a seller’s Orien Wallet is closed: their offers are greyed as Seller offline and can’t be taken until it’s open again, since only the seller’s wallet can start the swap.',
+      'Offers whose seller’s wallet no longer holds the ORN leave the board, and the seller sees which ones.',
+      'If the seller’s wallet goes quiet after you take an offer, it goes back on the board after 5 minutes instead of 30, and a seller who can’t lock the ORN withdraws it at once. Either way nothing was paid, and it doesn’t count against you.',
+    ],
+  },
+  {
+    date: '2026-11-23',
+    products: ['marketplace'],
     title: 'Blocking hides you from them, and delete a conversation',
     changes: [
       'A block works both ways, as on other social apps: you and the person you block no longer see each other’s profiles, posts, listings or wallets, or each other’s names in searches, until you unblock them. Everyone else sees both of you as before.',

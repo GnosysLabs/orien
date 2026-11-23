@@ -19,6 +19,12 @@ use serde::Serialize;
 pub const HOLD_SECONDS: u64 = 30 * 60;
 /// How long a device's claim to run a taken offer lasts without its offer code.
 pub const RUN_SECONDS: u64 = 5 * 60;
+/// How recently a seller's Orien Wallet must have asked about its swaps to
+/// count as open: only it can lock the ORN.
+pub const ONLINE_SECONDS: u64 = 2 * 60;
+/// How long a taken offer waits for a seller whose wallet has gone quiet,
+/// before the hold lapses. An open wallet locks in about a minute.
+pub const QUIET_SECONDS: u64 = 5 * 60;
 /// Offers one account may have on the board at once.
 pub const MAX_OFFERS: i64 = 5;
 /// Lapses in a week after which an account may not take offers for a week.
@@ -46,6 +52,9 @@ pub struct SwapOffer {
     /// open, held, swapping, done, cancelled or closed.
     pub state: String,
     pub created: u64,
+    /// Whether the seller's Orien Wallet is open now (asked about its swaps
+    /// in the last two minutes): only then can a taken offer start.
+    pub seller_online: bool,
 }
 
 /// An offer as one of its two sides sees it, with what their wallet needs.
@@ -58,6 +67,9 @@ pub struct MySwap {
     pub payout: Option<String>,
     /// For the seller: the Orien address the ORN come from.
     pub wallet: Option<String>,
+    /// For the seller of an open offer: that wallet no longer holds the
+    /// offer's ORN, so the offer is off the board until it does.
+    pub short_of_orn: bool,
     /// For the seller: the device running the swap, once one claimed it.
     pub runner: Option<String>,
     pub taker: Option<i64>,
@@ -74,7 +86,9 @@ pub struct MySwap {
 
 const OFFER: &str = "SELECT o.id, o.seller, a.name, a.picture,
         (SELECT COUNT(*) FROM swap_offers d WHERE d.state = 'done' AND (d.seller = o.seller OR d.taker = o.seller)),
-        o.orn, o.sats, o.state, o.created, o.coin
+        o.orn, o.sats, o.state, o.created, o.coin,
+        EXISTS (SELECT 1 FROM app_seen s WHERE s.account = o.seller
+                AND s.at > CAST(strftime('%s', 'now') AS INTEGER) - 120)
      FROM swap_offers o JOIN accounts a ON a.id = o.seller";
 
 fn offer_row(row: &rusqlite::Row) -> rusqlite::Result<SwapOffer> {
@@ -91,6 +105,7 @@ fn offer_row(row: &rusqlite::Row) -> rusqlite::Result<SwapOffer> {
         coin: row.get(9)?,
         state: row.get(7)?,
         created: row.get(8)?,
+        seller_online: row.get(10)?,
     })
 }
 
@@ -167,6 +182,11 @@ impl Store {
              CREATE TABLE IF NOT EXISTS swap_lapses (
                  account INTEGER NOT NULL REFERENCES accounts(id) ON DELETE CASCADE,
                  at INTEGER NOT NULL
+             );
+             -- When each account's Orien Wallet last asked about its swaps.
+             CREATE TABLE IF NOT EXISTS app_seen (
+                 account INTEGER PRIMARY KEY REFERENCES accounts(id) ON DELETE CASCADE,
+                 at INTEGER NOT NULL
              );",
         )?;
         Ok(())
@@ -188,6 +208,14 @@ impl Store {
         for id in lonely {
             self.settle_swap(id, true)?;
         }
+        // A taken offer whose seller's wallet has gone quiet before locking:
+        // the buyer waits five minutes, not thirty. Not the buyer's doing.
+        self.db.execute(
+            "UPDATE swap_offers SET due = ?1
+             WHERE state = 'held' AND offer_code IS NULL AND due > ?1 AND due - ?2 <= ?1 - ?3
+               AND NOT EXISTS (SELECT 1 FROM app_seen s WHERE s.account = swap_offers.seller AND s.at > ?1 - ?4)",
+            params![at.saturating_sub(1), HOLD_SECONDS, QUIET_SECONDS, ONLINE_SECONDS],
+        )?;
         let lapsed: Vec<(i64, i64)> = {
             let mut statement = self
                 .db
@@ -281,6 +309,11 @@ impl Store {
         Ok(self.db.query_row(&sql, [id], offer_row).optional()?)
     }
 
+    /// The Orien wallet an offer's ORN come from, when it says.
+    pub fn offer_wallet(&self, id: i64) -> Result<Option<String>> {
+        Ok(self.db.query_row("SELECT wallet FROM swap_offers WHERE id = ?1", [id], |r| r.get(0)).optional()?.flatten())
+    }
+
     /// Open offers, cheapest Bitcoin per ORN first.
     pub fn open_swaps(&self) -> Result<Vec<SwapOffer>> {
         self.open_swaps_in(&["btc"])
@@ -340,13 +373,46 @@ impl Store {
 
     /// The seller withdraws an offer nobody holds.
     pub fn close_swap(&self, seller: i64, id: i64) -> Result<()> {
+        self.close_swap_short(seller, id, false).map(|_| ())
+    }
+
+    /// `close_swap`; with `short`, also an offer someone took that the
+    /// seller's wallet could not lock, being short of ORN: nothing was
+    /// locked yet, so the buyer lost nothing and isn't counted. Returns that
+    /// buyer, to be told.
+    pub fn close_swap_short(&self, seller: i64, id: i64, short: bool) -> Result<Option<i64>> {
+        let taker: Option<i64> = self
+            .db
+            .query_row(
+                "SELECT taker FROM swap_offers WHERE id = ?1 AND seller = ?2 AND state = 'held' AND offer_code IS NULL",
+                params![id, seller],
+                |r| r.get(0),
+            )
+            .optional()?
+            .flatten();
         let closed = self.db.execute(
-            "UPDATE swap_offers SET state = 'closed', updated = ?3 WHERE id = ?1 AND seller = ?2 AND state = 'open'",
-            params![id, seller, now()],
+            "UPDATE swap_offers SET state = 'closed', updated = ?3
+             WHERE id = ?1 AND seller = ?2 AND (state = 'open' OR (?4 AND state = 'held' AND offer_code IS NULL))",
+            params![id, seller, now(), short],
         )?;
         if closed == 0 {
             bail!("only an offer of yours that nobody has taken can be withdrawn");
         }
+        Ok(if short { taker } else { None })
+    }
+
+    /// For tests: how many lapses are counted against buyers.
+    #[doc(hidden)]
+    pub fn lapses_for_tests(&self) -> i64 {
+        self.db.query_row("SELECT COUNT(*) FROM swap_lapses", [], |r| r.get(0)).unwrap()
+    }
+
+    /// The account's Orien Wallet asked about its swaps: it is open.
+    pub fn saw_app(&self, account: i64) -> Result<()> {
+        self.db.execute(
+            "INSERT INTO app_seen (account, at) VALUES (?1, ?2) ON CONFLICT (account) DO UPDATE SET at = ?2",
+            params![account, now()],
+        )?;
         Ok(())
     }
 
@@ -511,6 +577,7 @@ impl Store {
             selling,
             payout,
             wallet,
+            short_of_orn: false,
             runner,
             taker,
             taker_name: taker_account.as_ref().map(|a| a.name.clone()),
@@ -633,6 +700,30 @@ mod tests {
         store.lapse_swaps().unwrap();
         assert_eq!(store.swap_offer(id).unwrap().unwrap().state, "cancelled");
         assert_eq!(store.swaps_done(maya).unwrap(), 0);
+    }
+
+    #[test]
+    fn a_taken_offer_lapses_after_five_minutes_when_the_sellers_wallet_is_quiet() {
+        let (store, maya, sam) = board();
+        let id = store.post_swap(maya, 500_000_000_000, 1_000_000).unwrap().id;
+        store.saw_app(maya).unwrap();
+        assert!(store.swap_offer(id).unwrap().unwrap().seller_online);
+        store.take_swap(sam, id, SAM_WALLET).unwrap();
+        // Taken six minutes ago, and Maya's wallet was last seen then.
+        let at = now();
+        store.db.execute("UPDATE swap_offers SET due = ?2 WHERE id = ?1", params![id, at - 360 + HOLD_SECONDS]).unwrap();
+        store.db.execute("UPDATE app_seen SET at = ?1", [at - 360]).unwrap();
+        store.lapse_swaps().unwrap();
+        let offer = store.swap_offer(id).unwrap().unwrap();
+        assert_eq!((offer.state.as_str(), offer.seller_online), ("open", false), "back on the board, as offline");
+        assert_eq!(store.lapses_for_tests(), 0, "not the buyer's doing");
+
+        // While her wallet is open, the buyer waits the usual time.
+        store.saw_app(maya).unwrap();
+        store.take_swap(sam, id, SAM_WALLET).unwrap();
+        store.db.execute("UPDATE swap_offers SET due = ?2 WHERE id = ?1", params![id, at - 360 + HOLD_SECONDS]).unwrap();
+        store.lapse_swaps().unwrap();
+        assert_eq!(store.swap_offer(id).unwrap().unwrap().state, "held");
     }
 
     #[test]

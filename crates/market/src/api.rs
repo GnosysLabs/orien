@@ -16,6 +16,7 @@ use axum::routing::{get, post};
 use axum::{Json, Router};
 use serde::Deserialize;
 use serde_json::json;
+use std::collections::HashMap;
 use std::sync::{Arc, Mutex};
 use std::time::Instant;
 
@@ -57,6 +58,8 @@ pub struct App {
     sign_in: crate::oidc::Gate,
     /// The community's leaderboards, kept current by its watcher.
     community: crate::community::Community,
+    /// What sellers' wallets could spend, a minute at most ago.
+    spendable: Mutex<HashMap<String, (std::time::Instant, u64)>>,
 }
 
 /// One email, for App Store review, whose sign-in code never changes and is
@@ -105,6 +108,7 @@ impl App {
             explorer: crate::explorer::Explorer::default(),
             sign_in: crate::oidc::Gate::default(),
             community: crate::community::Community::default(),
+            spendable: Mutex::new(HashMap::new()),
         })
     }
 
@@ -791,10 +795,58 @@ struct Board {
     coins: Option<String>,
 }
 
+/// What each of these wallets can spend now. Each is asked once a minute
+/// at most; one the network doesn't answer for is left out, so it counts
+/// as able, as before this check.
+async fn spendable_of(app: &Arc<App>, wallets: Vec<String>) -> HashMap<String, u64> {
+    let app = app.clone();
+    tokio::task::spawn_blocking(move || {
+        let mut found = HashMap::new();
+        for wallet in wallets {
+            let fresh = app
+                .spendable
+                .lock()
+                .unwrap()
+                .get(&wallet)
+                .filter(|(at, _)| at.elapsed() < std::time::Duration::from_secs(60))
+                .map(|(_, n)| *n);
+            let has = fresh.or_else(|| {
+                let n = app.payments.spendable(&wallet.parse::<orien_ledger::AccountId>().ok()?).ok()?;
+                app.spendable.lock().unwrap().insert(wallet.clone(), (std::time::Instant::now(), n));
+                Some(n)
+            });
+            if let Some(n) = has {
+                found.insert(wallet, n);
+            }
+        }
+        found
+    })
+    .await
+    .unwrap_or_default()
+}
+
+/// Whether a wallet is known to hold less than `orn`.
+fn short_of(spendable: &HashMap<String, u64>, wallet: &Option<String>, orn: u64) -> bool {
+    wallet.as_ref().and_then(|w| spendable.get(w)).is_some_and(|n| *n < orn)
+}
+
 async fn open_swaps(State(app): State<Arc<App>>, Query(board): Query<Board>) -> Answer {
     let wanted = board.coins.unwrap_or_else(|| "btc".into());
     let coins: Vec<&str> = wanted.split(',').map(str::trim).filter(|c| matches!(*c, "sol" | "btc")).collect();
-    let offers = app.store.lock().unwrap().open_swaps_in(&coins)?;
+    let (offers, wallets) = {
+        let store = app.store.lock().unwrap();
+        let offers = store.open_swaps_in(&coins)?;
+        let wallets: Vec<Option<String>> = offers.iter().map(|o| store.offer_wallet(o.id)).collect::<anyhow::Result<_>>()?;
+        (offers, wallets)
+    };
+    // Offers whose seller's wallet no longer holds the ORN would only hold
+    // a buyer up: they leave the board until it does again.
+    let mut asked: Vec<String> = wallets.iter().flatten().cloned().collect();
+    asked.sort();
+    asked.dedup();
+    let spendable = spendable_of(&app, asked).await;
+    let offers: Vec<_> =
+        offers.into_iter().zip(wallets).filter(|(offer, wallet)| !short_of(&spendable, wallet, offer.orn)).map(|(offer, _)| offer).collect();
     let prices = app.prices.clone();
     let (bitcoin, solana) = tokio::task::spawn_blocking(move || (prices.bitcoin(), prices.solana()))
         .await
@@ -823,7 +875,20 @@ async fn post_swap(State(app): State<Arc<App>>, headers: HeaderMap, Json(request
 
 async fn my_swaps(State(app): State<Arc<App>>, headers: HeaderMap) -> Answer {
     let account = app.signed_in(&headers)?;
-    let swaps = app.store.lock().unwrap().my_swaps(account)?;
+    // Orien Wallet asks this every few seconds while open: the seller is
+    // there to lock the ORN of an offer someone takes.
+    app.store.lock().unwrap().saw_app(account)?;
+    let mut swaps = app.store.lock().unwrap().my_swaps(account)?;
+    // The seller's open offers their wallet can no longer cover: off the
+    // board, so they can withdraw it or top the wallet up.
+    let asked: Vec<String> =
+        swaps.iter().filter(|s| s.selling && s.offer.state == "open").filter_map(|s| s.wallet.clone()).collect();
+    if !asked.is_empty() {
+        let spendable = spendable_of(&app, asked).await;
+        for swap in swaps.iter_mut().filter(|s| s.selling && s.offer.state == "open") {
+            swap.short_of_orn = short_of(&spendable, &swap.wallet, swap.offer.orn);
+        }
+    }
     Ok(Json(json!({ "swaps": swaps })).into_response())
 }
 
@@ -851,6 +916,22 @@ async fn take_swap(State(app): State<Arc<App>>, headers: HeaderMap, Path(id): Pa
     let coin = app.store.lock().unwrap().swap_offer(id)?.map(|o| o.coin).unwrap_or_default();
     if coin == "sol" && request.swap_version < 3 {
         return Err(Failure::Refused("update Orien Wallet to take SOL offers".into()));
+    }
+    let (orn, wallet, online) = {
+        let store = app.store.lock().unwrap();
+        let offer = store.swap_offer(id)?;
+        (offer.as_ref().map_or(0, |o| o.orn), store.offer_wallet(id)?, offer.is_none_or(|o| o.seller_online))
+    };
+    // Only the seller's wallet can lock the ORN: without it open, the buyer
+    // would wait for nothing.
+    if !online {
+        return Err(Failure::Refused("The seller's Orien Wallet isn't open right now, so this swap can't start. Try again later.".into()));
+    }
+    if let Some(w) = &wallet {
+        let spendable = spendable_of(&app, vec![w.clone()]).await;
+        if short_of(&spendable, &wallet, orn) {
+            return Err(Failure::Refused("That offer isn't available any more: the seller's wallet no longer holds enough ORN.".into()));
+        }
     }
     let (swap, seller_email, taker) = {
         let store = app.store.lock().unwrap();
@@ -883,9 +964,26 @@ async fn take_swap(State(app): State<Arc<App>>, headers: HeaderMap, Path(id): Pa
     Ok(Json(json!({ "swap": swap })).into_response())
 }
 
-async fn close_swap(State(app): State<Arc<App>>, headers: HeaderMap, Path(id): Path<i64>) -> Answer {
+#[derive(Deserialize, Default)]
+struct Close {
+    /// The seller's wallet could not lock a taken offer, being short of ORN.
+    #[serde(default)]
+    short: bool,
+}
+
+async fn close_swap(State(app): State<Arc<App>>, headers: HeaderMap, Path(id): Path<i64>, body: Option<Json<Close>>) -> Answer {
     let seller = app.signed_in(&headers)?;
-    app.store.lock().unwrap().close_swap(seller, id).map_err(refused)?;
+    let short = body.is_some_and(|Json(b)| b.short);
+    let buyer = app.store.lock().unwrap().close_swap_short(seller, id, short).map_err(refused)?;
+    if let Some(buyer) = buyer {
+        app.tell(crate::push::Event {
+            account: buyer,
+            address: None,
+            body: "The seller withdrew this offer before anything was locked. Nothing was paid.".into(),
+            kind: "swap",
+            open: json!({ "swap": id }),
+        });
+    }
     Ok(Json(json!({})).into_response())
 }
 
