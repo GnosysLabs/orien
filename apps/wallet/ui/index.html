@@ -1376,6 +1376,28 @@
   #si-pw-box { margin-top: 16px; text-align: left; }
   #si-card .problem { margin-top: 12px; text-align: left; }
   #si-buttons { display: grid; gap: 10px; margin-top: 20px; }
+  /* Tipping a post's author: a card over the app, like signing in. */
+  #tip-veil { position: fixed; inset: 0; z-index: 61; display: grid; place-items: center; padding: 24px;
+    background: var(--veil); -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px);
+    opacity: 0; transition: opacity 0.2s ease; }
+  #tip-veil.on { opacity: 1; }
+  #tip-card { width: min(360px, 100%); padding: 28px 24px 22px; border-radius: 24px; text-align: center;
+    background: var(--surface); border: 1px solid var(--line); box-shadow: 0 24px 60px rgba(0, 0, 0, 0.45);
+    transform: scale(0.96); transition: transform 0.2s ease; }
+  #tip-veil.on #tip-card { transform: scale(1); }
+  #tip-icon { width: 56px; height: 56px; margin: 0 auto 16px; border-radius: 50%; display: grid; place-items: center;
+    color: var(--pearl-ink); background: var(--pearl); background-size: 300% 100%; animation: drift 24s linear infinite; }
+  #tip-icon svg { width: 26px; height: 26px; }
+  #tip-title { font-size: 18px; font-weight: 600; letter-spacing: -0.01em; overflow-wrap: anywhere; }
+  #tip-amounts { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 18px; }
+  #tip-amounts .pill { height: 40px; justify-content: center; }
+  #tip-amounts .pill.on { border-color: var(--select); color: var(--ink); background: var(--surface-hover); }
+  #tip-own-box, #tip-pw-box { margin-top: 10px; text-align: left; }
+  #tip-text { margin: 12px auto 0; max-width: 300px; color: var(--dim); font-size: 13px; line-height: 1.45; }
+  #tip-card .problem { margin-top: 12px; text-align: left; }
+  #tip-buttons { display: grid; gap: 10px; margin-top: 20px; }
+  /* Tips on a post: how many and how much, no names. */
+  .cm-tips { margin-left: auto; color: var(--dim); font-size: 12.5px; white-space: nowrap; }
   /* Community: the network's news and people's posts, as on orien.network,
      with the Market as its second tab. */
   .cm-tabs { margin: 0 0 16px; }
@@ -2241,7 +2263,7 @@
           <div class="sl-since" id="sl-since"></div>
           <div class="sl-bio" id="sl-bio"></div>
           <div class="sl-contact" id="sl-contact"></div>
-          <div class="sl-actions" id="sl-actions" hidden><button class="primary pearl sl-message" id="sl-message"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/></svg><span>Message</span></button><button class="secondary sl-add" id="sl-add"></button></div>
+          <div class="sl-actions" id="sl-actions" hidden><button class="primary pearl sl-message" id="sl-message"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/></svg><span>Message</span></button><button class="secondary sl-add" id="sl-send" hidden>Send</button><button class="secondary sl-add" id="sl-add"></button></div>
         </div>
       </div>
       <div class="sl-layout">
@@ -2871,6 +2893,16 @@
   <div class="field" id="si-pw-box" hidden><div class="box plain"><input id="si-pw" type="password" autocomplete="current-password" placeholder="Wallet password"></div></div>
   <div class="problem" id="si-problem" hidden></div>
   <div id="si-buttons"><button class="primary pearl" id="si-yes">Sign in</button><button class="secondary" id="si-no">Cancel</button></div>
+</div></div>
+<div id="tip-veil" hidden><div id="tip-card" role="dialog" aria-modal="true" aria-labelledby="tip-title">
+  <div id="tip-icon"></div>
+  <div id="tip-title"></div>
+  <div id="tip-amounts"><button class="pill" data-tip-amount="1">1 ORN</button><button class="pill" data-tip-amount="5">5 ORN</button><button class="pill" data-tip-amount="10">10 ORN</button></div>
+  <div class="field" id="tip-own-box"><div class="box plain"><input id="tip-own" type="text" inputmode="decimal" autocomplete="off" placeholder="Another amount"></div></div>
+  <p id="tip-text"></p>
+  <div class="field" id="tip-pw-box" hidden><div class="box plain"><input id="tip-pw" type="password" autocomplete="current-password" placeholder="Wallet password"></div></div>
+  <div class="problem" id="tip-problem" hidden></div>
+  <div id="tip-buttons"><button class="primary pearl" id="tip-yes">Tip</button><button class="secondary" id="tip-no">Cancel</button></div>
 </div></div>
 <div id="upd-veil" hidden><div id="upd-card" role="dialog" aria-modal="true" aria-labelledby="upd-title">
   <div id="upd-icon"></div>
@@ -6072,6 +6104,12 @@
     return m ? `<div class="cm-video"><iframe src="https://orien.network/embed/youtube/?v=${m[1]}" title="YouTube video" loading="lazy" allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share; fullscreen" allowfullscreen referrerpolicy="strict-origin-when-cross-origin"></iframe></div>` : "";
   }
   const REPLY_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2.992 16.342a2 2 0 0 1 .094 1.167l-1.065 3.29a1 1 0 0 0 1.236 1.168l3.413-.998a2 2 0 0 1 1.099.092 10 10 0 1 0-4.777-4.719"/></svg>';
+  const COINS_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="8" r="6"/><path d="M18.09 10.37A6 6 0 1 1 10.34 18"/><path d="M7 6h1v4"/><path d="m16.71 13.88.7.71-2.82 2.82"/></svg>';
+  // A post's tips: how many and how much, never who.
+  function cmTips(post) {
+    const t = post.tips;
+    return t && t.count ? `<span class="cm-tips">${t.count.toLocaleString()} ${t.count === 1 ? "tip" : "tips"} · ${cmOrn(t.orn)} ORN</span>` : "";
+  }
   const SMILE_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" x2="9.01" y1="9" y2="9"/><line x1="15" x2="15.01" y1="9" y2="9"/></svg>';
   function cmCard(post, inThread) {
     const network = post.kind !== "post";
@@ -6085,7 +6123,7 @@
     return `<article class="cm-card${network ? " network" : ""}" data-post="${post.id}">${art}
       <div class="cm-in"><div class="cm-head">${head}</div>
       ${network ? cmNews(post) : `<div class="cm-text">${esc(post.body || "")}</div>${cmYouTube(post.body)}`}
-      <div class="cm-foot">${replies}${chips}<button class="cm-chip" data-pick="${post.id}" aria-label="React" title="React">${SMILE_ICON}</button></div>
+      <div class="cm-foot">${replies}${chips}<button class="cm-chip" data-pick="${post.id}" aria-label="React" title="React">${SMILE_ICON}</button>${!network && !post.mine && post.author && post.author.tip_to ? `<button class="cm-chip" data-tip="${post.id}" title="Tip ${esc(post.author.name || "")} some ORN">${COINS_ICON}<span>Tip</span></button>` : ""}${network ? "" : cmTips(post)}</div>
       ${!post.parent && !inThread && cm.open.has(post.id) ? cmInline(post) : ""}</div></article>`;
   }
   // A post's replies, opened inside its card as on the website, and a box
@@ -6276,6 +6314,94 @@
     show("community"); cmFitRail(); cmLoad(false);
   };
   // Reactions, replies, deleting: one listener for every card.
+  // ---- Tips: ORN to a post's author, straight from the post ----
+  const tip = { post: null, amount: 0, busy: false };
+  function tipPost(id) {
+    return cm.posts.find((p) => p.id === id) || sl.posts.find((p) => p.id === id) || (cm.thread && cm.thread.id === id ? cm.thread : null);
+  }
+  function tipAmount() {
+    const own = $("tip-own").value.trim();
+    return own ? Number(own.replace(/,/g, "")) : tip.amount;
+  }
+  function tipPaint() {
+    const p = tip.post, name = (p.author && p.author.name) || "them", amount = tipAmount();
+    for (const b of document.querySelectorAll("[data-tip-amount]")) b.classList.toggle("on", !$("tip-own").value.trim() && Number(b.dataset.tipAmount) === tip.amount);
+    const ok = amount > 0 && Number.isFinite(amount);
+    const typed = !!(view && view.locked && !view.biometric);
+    $("tip-pw-box").hidden = !typed;
+    $("tip-text").textContent = `Sends ${ok ? `${amount.toLocaleString(undefined, { maximumFractionDigits: 9 })} ORN` : "ORN"} from this wallet to ${name}. It can't be undone.`;
+    $("tip-yes").disabled = !ok || tip.busy || (typed && !$("tip-pw").value);
+    if (!tip.busy) $("tip-yes").textContent = ok ? (view && view.biometric && !typed ? `Tip with ${bio}` : `Tip ${amount.toLocaleString(undefined, { maximumFractionDigits: 9 })} ORN`) : "Tip";
+  }
+  function tipOpen(id) {
+    const p = tipPost(id);
+    if (!p || !p.author || !p.author.tip_to) return;
+    if (!cm.you) return cmJoin();
+    tip.post = p; tip.amount = 5; tip.busy = false;
+    $("tip-icon").innerHTML = COINS_ICON;
+    $("tip-title").textContent = `Tip ${p.author.name || ""}`;
+    $("tip-own").value = ""; $("tip-pw").value = "";
+    $("tip-problem").hidden = true;
+    $("tip-no").disabled = false;
+    tipPaint();
+    const veil = $("tip-veil");
+    if (veil.hidden) { veil.hidden = false; requestAnimationFrame(() => veil.classList.add("on")); }
+  }
+  function tipClose() {
+    if (tip.busy) return;
+    const veil = $("tip-veil"); veil.classList.remove("on");
+    setTimeout(() => { veil.hidden = true; }, 200);
+  }
+  $("tip-amounts").onclick = (e) => {
+    const b = e.target.closest("[data-tip-amount]");
+    if (!b) return;
+    tip.amount = Number(b.dataset.tipAmount); $("tip-own").value = ""; tipPaint(); feel("selection");
+  };
+  $("tip-own").oninput = tipPaint;
+  $("tip-pw").oninput = tipPaint;
+  $("tip-no").onclick = tipClose;
+  $("tip-veil").addEventListener("click", (e) => { if (e.target.id === "tip-veil") tipClose(); });
+  document.addEventListener("keydown", (e) => { if (e.key === "Escape" && !$("tip-veil").hidden) tipClose(); });
+  $("tip-pw").addEventListener("keydown", (e) => { if (e.key === "Enter" && !$("tip-yes").disabled) $("tip-yes").click(); });
+  // Counted on the post once the network has settled the payment: asked
+  // again for about a minute until it has.
+  async function tipCount(post, from, seq) {
+    for (let i = 0; i < 12; i++) {
+      try {
+        const t = await cmCall("POST", `/posts/${post.id}/tips`, { from, seq });
+        if (t && typeof t.count === "number") { post.tips = { count: t.count, orn: t.orn }; cmPaintFeed(); if (cm.thread && cm.thread.id === post.id) cmPaintThread(); return; }
+      } catch {}
+      await new Promise((r) => setTimeout(r, 5000));
+    }
+  }
+  $("tip-yes").onclick = async () => {
+    const p = tip.post, amount = tipAmount();
+    if (!p || !(amount > 0) || tip.busy) return;
+    tip.busy = true;
+    $("tip-yes").disabled = true; $("tip-no").disabled = true;
+    $("tip-yes").innerHTML = '<span class="spinner"></span>Sending';
+    $("tip-problem").hidden = true;
+    try {
+      const password = $("tip-pw-box").hidden ? null : $("tip-pw").value;
+      if (!password && view && view.locked && view.biometric) await invoke("biometric_unlock");
+      const sent = await invoke("send_payment", { to: p.author.tip_to, amount: String(amount), password });
+      if (sent && sent.earlier) throw "An earlier payment from this wallet had to finish first, so this tip wasn't sent yet. Tap Tip again.";
+      tip.busy = false;
+      tipClose();
+      feel("success");
+      refresh();
+      tipCount(p, view.address, sent.seq);
+    } catch (error) {
+      tip.busy = false;
+      $("tip-no").disabled = false;
+      problem("tip-problem", String(error).replace(/^Error: /, ""));
+      tipPaint();
+    }
+  };
+  document.addEventListener("click", (e) => {
+    const t = e.target.closest("[data-tip]");
+    if (t) { e.stopPropagation(); tipOpen(Number(t.dataset.tip)); }
+  }, true);
   async function cmClick(e) {
     if (e.target.closest("[data-join]")) return cmJoin();
     // The network's posts point on: swap history, or the network map.
@@ -6559,6 +6685,12 @@
     if (!members.length && !book.length) await Promise.all([loadMembers(), loadBook()]);
     b.textContent = isContact(sl.id) ? "In contacts" : "Add to contacts";
   }
+  $("sl-send").onclick = () => {
+    if (!sl.sendTo) return;
+    const address = sl.sendTo;
+    $("go-send").onclick();
+    $("to").value = address; validate(); $("amount").focus();
+  };
   $("sl-add").onclick = async () => {
     if (isContact(sl.id)) { openMember(sl.id, "seller"); return; }
     try {
@@ -6608,6 +6740,14 @@
     // Not for someone who isn't taking new messages (unless the two already talk).
     $("sl-actions").hidden = !a.name || (board.me && board.me.id === a.id);
     $("sl-message").hidden = answer.takes_messages === false;
+    // Send: to their Market wallet when it's verified, or their first
+    // verified wallet; none, no button.
+    const verified = (answer.wallets || []).map((w) => ({ address: (w.address || "").toLowerCase(), name: w.name || null }));
+    const market = (a.wallet || "").toLowerCase();
+    const to = verified.find((w) => w.address === market) || verified[0];
+    sl.sendTo = to ? to.address : null;
+    for (const w of verified) profiles.set(w.address, { id: a.id, name: a.name, picture: a.picture, wallet_name: w.name });
+    $("sl-send").hidden = !sl.sendTo || !view || sl.sendTo === (view.address || "").toLowerCase();
     paintSlAdd();
     $("sl-menu").hidden = true;
     $("sl-report-box").hidden = true;
@@ -6736,6 +6876,7 @@
       case "reply": return `replied to ${theirs}`;
       case "also": return "also replied to a post you replied to";
       case "react": return `reacted ${(l.emojis || []).map(esc).join(" ")} to ${theirs}`;
+      case "tip": return `tipped you ${cmOrn(l.orn)} ORN for ${theirs}`;
       case "message": return l.listing ? `wrote to you about ${esc(l.listing)}` : "wrote to you";
       default: return "";
     }
@@ -7813,7 +7954,7 @@
     // Offers still open on the board can wait for a buyer for days: only
     // ones someone has taken count.
     return swapList.some((s) => !s.finished) || board.waiting.some((x) => x.offer.state !== "open") || !!board.taking || !!mineBench
-      || !$("si-veil").hidden || !$("upd-veil").hidden || typedSomewhere();
+      || !$("si-veil").hidden || !$("upd-veil").hidden || !$("tip-veil").hidden || typedSomewhere();
   }
   async function updateByItself() {
     if (phone || !autoUpdate || !update || autoInstalling) return;
