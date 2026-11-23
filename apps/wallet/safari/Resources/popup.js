@@ -28,7 +28,6 @@ async function load() {
     $("home-buttons").hidden = true;
     return home("Orien Wallet isn't running. Open it once; it keeps running in the menu bar after you close its window.");
   }
-  paintBalance();
   const name = wallet.name || "Wallet";
   $("wallet-name").textContent = name;
   $("wallet-coin").textContent = wallet.icon || name.slice(0, 1).toUpperCase();
@@ -37,6 +36,7 @@ async function load() {
   $("wallet").hidden = false;
   $("home-buttons").hidden = false;
   home();
+  paintBalance();   // once Home shows: hidden, it has no room to measure
 }
 
 // The balance as the app shows it: the shorter form (two decimals from
@@ -60,6 +60,7 @@ function paintBalance() {
   // Smaller until it fits beside "ORN".
   el.style.fontSize = "";
   const room = el.parentElement.clientWidth - el.nextElementSibling.offsetWidth - 8;
+  if (room <= 0) return;
   for (let size = 36; size > 16 && el.scrollWidth > room; size -= 1) el.style.fontSize = size - 1 + "px";
 }
 $("balance-card").onclick = () => {
