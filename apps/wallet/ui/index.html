@@ -6729,6 +6729,7 @@
     $("ch-text").value = drafts.get(next) || "";
     $("ch-problem").hidden = true;
     growText();
+    requestAnimationFrame(growText);
   }
   // Conversations as last loaded, so one opens complete at once (as
   // messaging apps do) while anything new comes in behind it. Recent ones
@@ -6922,7 +6923,14 @@
     }
   };
   // Writing: Enter sends, Shift+Enter starts a new line; the box grows.
-  function growText() { const t = $("ch-text"); t.style.height = "auto"; t.style.height = Math.min(t.scrollHeight, 120) + "px"; }
+  // The box grows with the words. While the chat isn't on screen it can't be
+  // measured: it goes back to its own size then, never squashed.
+  function growText() {
+    const t = $("ch-text");
+    t.style.height = "auto";
+    if (!t.value || !t.scrollHeight) { t.style.height = ""; return; }
+    t.style.height = Math.min(t.scrollHeight, 120) + "px";
+  }
   $("ch-text").oninput = growText;
   $("ch-text").onkeydown = (e) => { if (e.key === "Enter" && !e.shiftKey && !e.isComposing) { e.preventDefault(); $("ch-send").click(); } };
   $("ch-send").onclick = async () => {
