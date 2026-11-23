@@ -1494,9 +1494,6 @@
     background: none; color: var(--dim); cursor: pointer; }
   .cm-tool:hover:not(:disabled) { color: var(--ink); background: var(--surface-hover); }
   .cm-tool:disabled { opacity: 0.35; cursor: default; }
-  /* GIF as letters in a rounded outline, the same weight as the other icons. */
-  .cm-gif-glyph { display: grid; place-items: center; height: 17px; padding: 0 3px 0 3.5px; border: 1.7px solid currentColor;
-    border-radius: 5px; font: 800 9px/1 -apple-system, system-ui, sans-serif; letter-spacing: 0.04em; }
   .cm-attach { margin-top: 6px; }
   /* Squircle corners on pictures, as on iPhone icons: the corners keep their
      shape at any size. */
@@ -2199,7 +2196,7 @@
           <span class="face cm-me" id="cm-me"></span>
           <div class="cm-write"><textarea id="cm-body" rows="1" maxlength="500" placeholder="What’s happening?"></textarea>
             <div class="cm-attach" id="cm-attach" hidden></div>
-            <div class="cm-send"><div class="cm-tools"><button class="cm-tool" id="cm-add-photo" aria-label="Add photos" title="Photos"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg></button><button class="cm-tool" id="cm-add-gif" aria-label="Add a GIF" title="GIF"><span class="cm-gif-glyph">GIF</span></button><button class="cm-tool" id="cm-add-poll" aria-label="Add a poll" title="Poll"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v16a2 2 0 0 0 2 2h16"/><path d="M7 16h8"/><path d="M7 11h12"/><path d="M7 6h3"/></svg></button></div><span class="cm-left" id="cm-left"></span><button class="pill pearl" id="cm-post" disabled>Post</button></div></div>
+            <div class="cm-send"><div class="cm-tools"><button class="cm-tool" id="cm-add-photo" aria-label="Add photos" title="Photos"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg></button><button class="cm-tool" id="cm-add-gif" aria-label="Add a GIF" title="GIF"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5.5" width="20" height="13" rx="3.5"/><path d="M10 9.75H8.25a2 2 0 0 0-2 2v.5a2 2 0 0 0 2 2H10V12H8.75"/><path d="M12.75 9.75v4.5"/><path d="M18 9.75h-2.75v4.5"/><path d="M15.25 12h2.25"/></svg></button><button class="cm-tool" id="cm-add-poll" aria-label="Add a poll" title="Poll"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v16a2 2 0 0 0 2 2h16"/><path d="M7 16h8"/><path d="M7 11h12"/><path d="M7 6h3"/></svg></button></div><span class="cm-left" id="cm-left"></span><button class="pill pearl" id="cm-post" disabled>Post</button></div></div>
         </div>
         <div class="cm-join" id="cm-join" hidden><span id="cm-join-text"></span><button class="pill" id="cm-join-go"></button></div>
         <div class="problem" id="cm-problem" hidden></div>
