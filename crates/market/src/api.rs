@@ -332,8 +332,8 @@ pub fn router(app: Arc<App>) -> Router {
         .route("/api/market/me/wallet", get(wallet).post(link_wallet))
         .route("/api/market/me/wallet/verify", post(verify_wallet))
         .route("/api/market/me/wallet/remove", post(remove_verified_wallet))
-        .route("/api/market/wallets/lookup", post(lookup_wallets))
-        .route("/api/market/wallets/{address}", get(wallet_profile))
+        .route("/api/market/wallets/lookup", post(lookup_wallets).options(open_preflight))
+        .route("/api/market/wallets/{address}", get(wallet_profile).options(open_preflight))
         .route("/api/market/me/wallets", get(my_wallets).put(report_wallets))
         .route("/api/market/me/delete", post(delete_me))
         .route("/api/market/profiles", get(search_profiles))
@@ -1103,11 +1103,59 @@ async fn search_profiles(State(app): State<Arc<App>>, Query(search): Query<Profi
     Ok(([(header::CACHE_CONTROL, "public, max-age=30")], Json(json!({ "profiles": profiles }))).into_response())
 }
 
-/// The name and picture of the account whose verified wallet this is.
+/// The public profile of the account whose verified wallet this is. Any
+/// website may read it from a visitor's browser, as for "Sign in with Orien
+/// Wallet".
 async fn wallet_profile(State(app): State<Arc<App>>, Path(address): Path<String>) -> Answer {
-    let found = app.store.lock().unwrap().wallet_profiles(&[address])?;
-    let (_, profile) = found.into_iter().next().ok_or(Failure::NotFound)?;
-    Ok(([(header::CACHE_CONTROL, "public, max-age=60")], Json(profile)).into_response())
+    let found = app.store.lock().unwrap().wallet_profiles(&[address]);
+    let (_, profile) = found?.into_iter().next().ok_or(Failure::NotFound)?;
+    let profile = public_wallet_profile(app.origin(), profile);
+    Ok(([(header::CACHE_CONTROL, "public, max-age=60"), (header::ACCESS_CONTROL_ALLOW_ORIGIN, "*")], Json(profile)).into_response())
+}
+
+/// The browser's question before another website sends JSON to a public
+/// endpoint: yes, from anywhere.
+async fn open_preflight() -> Response {
+    (
+        StatusCode::NO_CONTENT,
+        [
+            (header::ACCESS_CONTROL_ALLOW_ORIGIN, "*"),
+            (header::ACCESS_CONTROL_ALLOW_METHODS, "GET, POST"),
+            (header::ACCESS_CONTROL_ALLOW_HEADERS, "content-type"),
+            (header::ACCESS_CONTROL_MAX_AGE, "86400"),
+        ],
+    )
+        .into_response()
+}
+
+/// A verified wallet's profile as websites see it: the fields the apps read
+/// (`picture` is a file name under /api/market/images/), plus full addresses
+/// for the picture, banner and profile page, and the usernames the person
+/// shows on their profile.
+fn public_wallet_profile(origin: &str, profile: crate::proofs::WalletProfile) -> serde_json::Value {
+    let image = |name: &Option<String>| name.as_ref().map(|name| format!("{origin}/api/market/images/{name}"));
+    let contact = &profile.contact;
+    let mut links = Vec::new();
+    if !contact.x.is_empty() {
+        links.push(json!({ "kind": "x", "handle": contact.x, "url": format!("https://x.com/{}", contact.x) }));
+    }
+    if !contact.telegram.is_empty() {
+        links.push(json!({ "kind": "telegram", "handle": contact.telegram, "url": format!("https://t.me/{}", contact.telegram) }));
+    }
+    if !contact.discord.is_empty() {
+        links.push(json!({ "kind": "discord", "handle": contact.discord, "url": null }));
+    }
+    json!({
+        "id": profile.id,
+        "name": profile.name,
+        "picture": profile.picture,
+        "wallet_name": profile.wallet_name,
+        "bio": profile.bio,
+        "picture_url": image(&profile.picture),
+        "banner_url": image(&profile.banner),
+        "profile_url": format!("{origin}/u/{}/", profile.name),
+        "links": links,
+    })
 }
 
 #[derive(Deserialize)]
@@ -1115,15 +1163,16 @@ struct Lookup {
     addresses: Vec<String>,
 }
 
-/// Names and pictures for the verified wallets among up to 100 addresses.
+/// Public profiles for the verified wallets among up to 100 addresses, by
+/// address. Any website may ask, from a visitor's browser.
 async fn lookup_wallets(State(app): State<Arc<App>>, Json(request): Json<Lookup>) -> Answer {
     if request.addresses.len() > crate::proofs::MAX_LOOKUP {
         return Err(Failure::Refused(format!("at most {} addresses at a time", crate::proofs::MAX_LOOKUP)));
     }
     let found = app.store.lock().unwrap().wallet_profiles(&request.addresses)?;
     let profiles: serde_json::Map<String, serde_json::Value> =
-        found.into_iter().map(|(address, profile)| (address, json!(profile))).collect();
-    Ok(Json(json!({ "profiles": profiles })).into_response())
+        found.into_iter().map(|(address, profile)| (address, public_wallet_profile(app.origin(), profile))).collect();
+    Ok(([(header::ACCESS_CONTROL_ALLOW_ORIGIN, "*")], Json(json!({ "profiles": profiles }))).into_response())
 }
 
 /// A wallet's vault: sealed bytes, base64.
