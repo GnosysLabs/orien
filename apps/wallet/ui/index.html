@@ -1497,7 +1497,10 @@
   .cm-chip svg { width: 16px; height: 16px; }
   .cm-picker { display: inline-flex; gap: 2px; padding: 2px; border: 1px solid var(--line); border-radius: 999px; background: var(--surface); }
   .cm-picker button { width: 32px; height: 32px; border: 0; border-radius: 50%; background: transparent; font-size: 17px; cursor: pointer; }
-  .cm-picker button:hover { background: var(--surface-hover); }
+  @media (hover: hover) { .cm-picker button:hover { background: var(--surface-hover); } }
+  .cm-picker button:focus:not(:focus-visible) { outline: none; }
+  .cm-picker .cm-pick-x { display: grid; place-items: center; color: var(--dim); }
+  .cm-picker .cm-pick-x svg { width: 14px; height: 14px; }
   .cm-video { position: relative; margin-top: 12px; aspect-ratio: 16 / 9; overflow: hidden; border: 1px solid var(--line); border-radius: 14px; background: #000; }
   .cm-video iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
   .cm-inline { margin-top: 14px; border-top: 1px solid var(--line); }
@@ -5942,6 +5945,7 @@
     if (e.target.closest("[data-join]")) return cmJoin();
     const send = e.target.closest("[data-reply-send]");
     if (send) return cmSendInline(Number(send.dataset.replySend));
+    if (e.target.closest("[data-pick-close]")) { cmClosePickers(); return; }
     const t = e.target.closest("[data-react], [data-open], [data-pick], [data-del], [data-emoji-pick]");
     if (!t) return;
     if (t.dataset.open) {
@@ -5965,11 +5969,16 @@
       return;
     }
     if (t.dataset.pick) {
-      // The five reactions, in place of the button.
+      // The five reactions, in place of the button, with ✕ to put it back
+      // (as does a tap anywhere else). One open at a time.
+      cmClosePickers();
       const picker = document.createElement("span");
       picker.className = "cm-picker";
-      picker.innerHTML = cm.reactions.map((r) => `<button data-emoji-pick="${t.dataset.pick}"${t.dataset.parent ? ` data-parent="${t.dataset.parent}"` : ""} data-emoji="${esc(r)}">${esc(r)}</button>`).join("");
+      picker.innerHTML = cm.reactions.map((r) => `<button data-emoji-pick="${t.dataset.pick}"${t.dataset.parent ? ` data-parent="${t.dataset.parent}"` : ""} data-emoji="${esc(r)}">${esc(r)}</button>`).join("")
+        + '<button class="cm-pick-x" data-pick-close aria-label="Close" title="Close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg></button>';
+      picker.was = t;
       t.replaceWith(picker);
+      t.blur();
       return;
     }
     const id = Number(t.dataset.react || t.dataset.emojiPick || t.dataset.del);
@@ -5988,6 +5997,13 @@
     cmLoad(false);
     if (!$("seller").hidden) slLoadFeed(false);
   }
+  function cmClosePickers(except) {
+    for (const p of document.querySelectorAll(".cm-picker")) if (p !== except && p.was) p.replaceWith(p.was);
+  }
+  document.addEventListener("pointerdown", (e) => {
+    const inside = e.target.closest && e.target.closest(".cm-picker");
+    cmClosePickers(inside);
+  }, true);
   const cmWhere = (t) => t.closest("#cm-thread") ? "cm-thread-problem" : t.closest("#seller") ? "sl-problem" : "cm-problem";
   $("cm-feed").addEventListener("click", cmClick);
   $("sl-feed").addEventListener("click", cmClick);
