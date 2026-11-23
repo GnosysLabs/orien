@@ -1451,6 +1451,11 @@
   @media (hover: hover) { .ct-addr:hover { background: var(--surface); color: var(--ink); } }
   .ct-addr.copied { color: var(--good); }
   .ct-hero .ct-send { width: auto; min-width: 220px; padding: 0 36px; margin-top: 18px; }
+  .ct-hero .ct-message { width: auto; min-width: 220px; padding: 0 36px; margin-top: 10px; }
+  .sl-actions { display: flex; justify-content: center; margin-top: 20px; }
+  .sl-message { width: auto; min-width: 220px; padding: 0 36px; }
+  .sl-message, .ct-message { display: inline-flex; align-items: center; justify-content: center; gap: 8px; }
+  .sl-message svg, .ct-message svg { flex: none; }
   .ct-delete { display: flex; margin: 22px auto 4px; color: var(--bad); }
   .ct-delete.armed { border-color: var(--bad); }
   .c-name-row { display: flex; align-items: center; gap: 10px; }
@@ -1989,6 +1994,7 @@
       <div class="sl-since" id="sl-since"></div>
       <div class="ls-desc sl-bio" id="sl-bio"></div>
       <div class="sl-contact" id="sl-contact"></div>
+      <div class="sl-actions" id="sl-actions" hidden><button class="primary pearl sl-message" id="sl-message"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/></svg><span>Message</span></button></div>
       <div class="section-head"><h3 id="sl-offers"></h3></div>
       <div class="mk-grid" id="sl-grid"></div>
       <div class="problem" id="sl-problem" hidden></div>
@@ -2058,6 +2064,7 @@
         <span class="face ct-face" id="ct-face"></span>
         <button class="ct-addr" id="ct-copy" title="Copy the address"><span id="ct-addr"></span><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button>
         <button class="primary pearl ct-send" id="ct-send">Send ORN</button>
+        <button class="secondary ct-message" id="ct-message" hidden><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/></svg><span>Message</span></button>
       </div>
       <div class="field" id="c-address-field">
         <label for="c-address">Address</label>
@@ -4384,6 +4391,7 @@
     // saves as it's typed. A new one asks for the address first.
     const known = !!contact;
     $("ct-hero").hidden = !known;
+    $("ct-message").hidden = true;
     $("c-address-field").hidden = known;
     $("c-save").hidden = known;
     $("c-send").hidden = true;
@@ -4398,6 +4406,8 @@
           $("c-name").disabled = true;
           $("c-saved").textContent = "From their Orien profile. It updates when they change it.";
         }
+        // Their address has an Orien Network profile: they can be written to.
+        $("ct-message").hidden = !(p && p.name);
         $("ct-face").outerHTML = face(contact.address, contact.name).replace('<span class="face">', '<span class="face ct-face" id="ct-face">');
         $("ct-addr").textContent = short(contact.address);
       };
@@ -5833,7 +5843,7 @@
   function showSeller(answer) {
     $("sl-problem").hidden = true;
     // From the Community it's a person's profile; from the Market, a seller's.
-    document.querySelector("#seller .topline h2").textContent = market.sellerFrom === "community" || market.sellerFrom === "cm-thread" ? "Profile" : "Seller";
+    document.querySelector("#seller .topline h2").textContent = market.sellerFrom === "listing" ? "Seller" : "Profile";
     const a = answer.account || {};
     $("sl-banner").innerHTML = picImg(a.banner);
     $("sl-face").innerHTML = esc((a.name || "?").slice(0, 1).toUpperCase()) + picImg(a.picture);
@@ -5858,11 +5868,14 @@
   }
   // Report or block someone right from their page, as Apple asks of apps
   // where people meet. Blocking asks twice; it stops their messages.
-  const sl = { id: null, name: "", blocked: false, armed: false };
+  const sl = { id: null, name: "", picture: null, blocked: false, armed: false };
   function paintSellerTools(answer) {
     const a = answer.account || {};
     sl.id = a.id; sl.name = a.name || ""; sl.blocked = !!answer.blocked; sl.armed = false;
     $("sl-tools").hidden = !board.me || board.me.id === a.id;
+    sl.picture = a.picture;
+    // Anyone can be written to from their page, not only about a listing.
+    $("sl-actions").hidden = !a.name || (board.me && board.me.id === a.id);
     $("sl-menu").hidden = true;
     $("sl-report-box").hidden = true;
     $("sl-block").firstChild.textContent = sl.blocked ? `Unblock ${sl.name}` : `Block ${sl.name}`;
@@ -5974,7 +5987,7 @@
     $("ls-ask").disabled = false;
     if (found) return openChat(found.id, "listing");
     chat.id = null; chat.from = "listing"; chat.paying = null; chat.blockArmed = false; chat.key = null;
-    chat.draft = l.id;
+    chat.draft = l.id; chat.direct = null;
     chat.conv = { listing: l.id, listing_title: l.title, price: l.price, unit: l.unit, with_name: seller.name || l.seller_name || "the seller",
       with_picture: seller.picture || l.seller_picture, buying: true, blocked: false };
     chat.messages = []; chat.me = null;
@@ -6008,11 +6021,11 @@
           return `<button class="ib-row${c.unread ? " unread" : ""}${c.id === chat.id ? " on" : ""}" data-chat="${c.id}">
             ${mkAvatar(c.with_name, c.with_picture)}
             <div style="min-width:0"><div class="nm"><b>${esc(c.with_name)}</b><span class="when">${esc(ago(c.updated))}</span></div>
-              <div class="what">${esc(c.listing_title)}</div><div class="last">${esc(last)}</div></div>
+              ${c.listing_title ? `<div class="what">${esc(c.listing_title)}</div>` : ""}<div class="last">${esc(last)}</div></div>
             <span class="udot"></span>
           </button>`;
         }).join("")}</div>`
-      : '<div class="empty">No messages yet. To ask a seller something, open their listing and write to them there.</div>';
+      : '<div class="empty">No messages yet. To write to someone, open their profile and tap Message.</div>';
   }
   async function loadInbox() {
     try { inbox.items = (await mk("GET", "/conversations")).conversations || []; $("ib-problem").hidden = true; }
@@ -6031,6 +6044,34 @@
     openInbox();
   };
   $("ib-back").onclick = () => { chat.id = null; home(); };
+  // Writing to anyone by their Orien Network name: the conversation the two
+  // already have, or a new one that starts with the first message.
+  let messageAfterSignin = null;
+  async function messagePerson(person, from) {
+    if (!board.me) { messageAfterSignin = { person, from }; signinReturn = "message-person"; resetSignin(); show("board-signin"); return; }
+    const same = (c) => c.listing == null && (person.id ? c.with === person.id : c.with_name.toLowerCase() === person.name.toLowerCase());
+    let found = inbox.items.find(same);
+    if (!found) try { found = ((await mk("GET", "/conversations")).conversations || []).find(same); } catch {}
+    if (found) return openChat(found.id, from);
+    chat.id = null; chat.from = from; chat.paying = null; chat.blockArmed = false; chat.key = null;
+    chat.draft = null; chat.direct = person.name;
+    chat.conv = { listing: null, listing_title: null, with: person.id, with_name: person.name, with_picture: person.picture, buying: false, blocked: false };
+    chat.messages = []; chat.me = null;
+    $("ch-askbox").hidden = true; $("ch-menu").hidden = true; $("ch-problem").hidden = true;
+    await picReady(chat.conv.with_picture);
+    paintChat();
+    show("chat");
+    $("ch-text").focus();
+  }
+  $("sl-message").onclick = () => {
+    // Opened from their chat: back to it.
+    if (market.sellerFrom === "chat" && chat.conv && chat.conv.with === sl.id && !chat.conv.listing) { show("chat"); return; }
+    messagePerson({ id: sl.id, name: sl.name, picture: sl.picture }, "profile");
+  };
+  $("ct-message").onclick = () => {
+    const p = editing && profileOf(editing);
+    if (p && p.name) messagePerson({ name: p.name, picture: p.picture }, "contact");
+  };
   $("ib-list").onclick = (e) => { const r = e.target.closest("[data-chat]"); if (r) openChat(Number(r.dataset.chat), "inbox"); };
 
   // The window crossing the width while in Messages: one at a time, or
@@ -6060,7 +6101,7 @@
     }
   }
   async function openChat(id, from) {
-    chat.id = id; chat.from = from || "inbox"; chat.paying = null; chat.blockArmed = false; chat.draft = null;
+    chat.id = id; chat.from = from || "inbox"; chat.paying = null; chat.blockArmed = false; chat.draft = null; chat.direct = null;
     // Opened: no longer unread in the list beside it.
     const listed = inbox.items.find((c) => c.id === id);
     if (listed) listed.unread = false;
@@ -6098,9 +6139,11 @@
   }
   function paintChat() {
     const c = chat.conv, other = esc(c.with_name);
-    $("ch-who").innerHTML = `${mkAvatar(c.with_name, c.with_picture)}<div style="min-width:0"><b>${other}</b><small>${c.buying ? "Seller" : "Buyer"}</small></div>`;
-    $("ch-about").innerHTML = `<b>About ${esc(c.listing_title)}</b><span>${priceHtml(c)}</span>`;
-    $("ch-ask").hidden = c.buying;
+    $("ch-who").innerHTML = `${mkAvatar(c.with_name, c.with_picture)}<div style="min-width:0"><b>${other}</b>${c.listing ? `<small>${c.buying ? "Seller" : "Buyer"}</small>` : ""}</div>`;
+    // A direct conversation is about nothing in particular: no listing, no payment requests.
+    $("ch-about").hidden = !c.listing;
+    $("ch-about").innerHTML = c.listing ? `<b>About ${esc(c.listing_title)}</b><span>${priceHtml(c)}</span>` : "";
+    $("ch-ask").hidden = c.buying || !c.listing;
     $("ch-more").hidden = !chat.id;
     $("ch-ask").textContent = phone ? "Request" : "Ask for payment";
     $("ch-block").firstChild.textContent = c.blocked ? `Unblock ${c.with_name}` : `Block ${c.with_name}`;
@@ -6138,9 +6181,9 @@
     const pw = document.getElementById("ch-pay-pw");
     if (pw) pw.focus();
   }
-  $("ch-back").onclick = () => { chat.id = null; chat.from === "listing" ? show("listing") : openInbox(); };
-  $("ch-who").onclick = () => { if (chat.conv) { market.sellerFrom = "chat"; openSeller(chat.conv.with); } };
-  $("ch-about").onclick = () => chat.conv && openListing(chat.conv.listing, "chat");
+  $("ch-back").onclick = () => { chat.id = null; chat.direct = null; chat.from === "listing" ? show("listing") : chat.from === "profile" ? show("seller") : chat.from === "contact" ? show("contact") : openInbox(); };
+  $("ch-who").onclick = () => { if (chat.conv && chat.conv.with) { market.sellerFrom = "chat"; openSeller(chat.conv.with); } };
+  $("ch-about").onclick = () => chat.conv && chat.conv.listing && openListing(chat.conv.listing, "chat");
   $("ch-more").onclick = () => { toggleMenu("ch-menu", "ch-more"); chat.blockArmed = false; if (chat.conv) $("ch-block").firstChild.textContent = chat.conv.blocked ? `Unblock ${chat.conv.with_name}` : `Block ${chat.conv.with_name}`; };
   $("ch-block").onclick = async () => {
     const c = chat.conv;
@@ -6221,13 +6264,17 @@
   $("ch-text").onkeydown = (e) => { if (e.key === "Enter" && !e.shiftKey && !e.isComposing) { e.preventDefault(); $("ch-send").click(); } };
   $("ch-send").onclick = async () => {
     const body = $("ch-text").value.trim();
-    if (!body || !(chat.id || chat.draft)) return;
+    if (!body || !(chat.id || chat.draft || chat.direct)) return;
     $("ch-send").disabled = true;
     try {
       if (chat.draft) {
         // The first message starts the conversation.
         const sent = await mk("POST", `/listings/${chat.draft}/messages`, { body });
         chat.draft = null; chat.id = sent.conversation;
+      } else if (chat.direct) {
+        // The first message to someone directly, by name.
+        const sent = await mk("POST", `/users/${encodeURIComponent(chat.direct)}/messages`, { body });
+        chat.direct = null; chat.id = sent.conversation;
       } else await mk("POST", `/conversations/${chat.id}/messages`, { body });
       $("ch-text").value = ""; growText();
       await refreshChat(true);
@@ -6637,6 +6684,7 @@
         if (signinReturn === "home") { signinReturn = "swaps"; await loadBoard(); home(); return; }
         if (signinReturn === "community") { signinReturn = "swaps"; await loadBoard(); openCommunity(); return; }
         if (signinReturn === "messages") { signinReturn = "swaps"; await loadBoard(); openInbox(); return; }
+        if (signinReturn === "message-person") { signinReturn = "swaps"; await loadBoard(); const m = messageAfterSignin; messageAfterSignin = null; if (m) messagePerson(m.person, m.from); else openInbox(); return; }
         if (signinReturn === "listing") { signinReturn = "swaps"; await loadBoard(); if (market.listing) openListing(market.listing.id, market.from); return; }
         show("swaps");
         await loadBoard();
