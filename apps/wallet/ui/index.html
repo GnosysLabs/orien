@@ -5293,7 +5293,7 @@
           const p = histPrice(x);
           return `<div class="hist-row"><div class="mw0"><div class="deal">${esc(fmtOrn(x.orn))} ORN for ${esc(offerPrice(x))}</div><div class="rate">${esc([p.usd && `${p.usd} per ORN`, p.coin].filter(Boolean).join(" · "))}</div></div><span class="when">${esc(ago(x.at))}</span></div>`;
         }).join("")}</div>`
-      : '<div class="empty">No swaps have finished yet.</div>';
+      : '<div class="empty">No swaps to show yet. The next one to finish sets the price.</div>';
     $("hist-more").hidden = !hist.more;
   }
   async function loadHistory(more) {
