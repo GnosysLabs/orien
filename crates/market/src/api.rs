@@ -356,6 +356,7 @@ pub fn router(app: Arc<App>) -> Router {
         )
         .route("/api/market/listings/{id}/pictures/{name}", axum::routing::delete(remove_listing_picture).post(make_cover))
         .route("/api/market/swaps", get(open_swaps).post(post_swap))
+        .route("/api/market/swaps/history", get(swap_history))
         .route("/api/market/swaps/mine", get(my_swaps))
         .route("/api/market/swaps/{id}/take", post(take_swap))
         .route("/api/market/swaps/{id}/close", post(close_swap))
@@ -1119,9 +1120,47 @@ async fn swap_reply_code(State(app): State<Arc<App>>, headers: HeaderMap, Path(i
     Ok(Json(json!({ "swap": swap })).into_response())
 }
 
+/// Keeps the dollar value of swaps that just finished, at the coin's price
+/// now. Called when a swap finishes and when the history is read, so swaps
+/// settled by waiting are priced too.
+async fn price_finished_swaps(app: &Arc<App>) {
+    let Ok(unpriced) = app.store.lock().unwrap().unpriced_swaps() else { return };
+    if unpriced.is_empty() {
+        return;
+    }
+    let app = app.clone();
+    let _ = tokio::task::spawn_blocking(move || {
+        for (id, coin, amount) in unpriced {
+            let (price, units) = if coin == "sol" { (app.prices.solana(), 1e9) } else { (app.prices.bitcoin(), 1e8) };
+            if let Some(price) = price {
+                let _ = app.store.lock().unwrap().price_swap(id, amount as f64 / units * price.usd);
+            }
+        }
+    })
+    .await;
+}
+
+#[derive(Deserialize)]
+struct HistoryPage {
+    before: Option<u64>,
+}
+
+/// What ORN actually traded for: finished swaps, newest first, 30 a page,
+/// with no names or addresses. `last` is the latest, the last price.
+async fn swap_history(State(app): State<Arc<App>>, Query(page): Query<HistoryPage>) -> Answer {
+    price_finished_swaps(&app).await;
+    let store = app.store.lock().unwrap();
+    let swaps = store.swap_history(page.before, 31)?;
+    let more = swaps.len() > 30;
+    let swaps: Vec<_> = swaps.into_iter().take(30).collect();
+    let last = store.swap_history(None, 1)?.into_iter().next();
+    Ok(([(header::CACHE_CONTROL, "public, max-age=30")], Json(json!({ "last": last, "swaps": swaps, "more": more }))).into_response())
+}
+
 async fn finish_swap(State(app): State<Arc<App>>, headers: HeaderMap, Path(id): Path<i64>, Json(request): Json<Finish2>) -> Answer {
     let account = app.signed_in(&headers)?;
     let first_done = app.store.lock().unwrap().finish_swap(account, id, request.done).map_err(refused)?;
+    price_finished_swaps(&app).await;
     // The first wallet to finish tells both people's phones, once.
     if let Some(swap) = first_done {
         let orn = crate::store::orn(swap.offer.orn);

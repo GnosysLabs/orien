@@ -27,6 +27,14 @@ export const PRODUCTS: Record<Product, string> = {
 export const CHANGELOG: Entry[] = [
   {
     date: '2026-11-23',
+    products: ['marketplace'],
+    title: 'Swap history: what ORN actually trades for',
+    changes: [
+      'The swap page has a History tab: the last price ORN traded at, and every finished swap, newest first, with its price per ORN in SOL or Bitcoin and in dollars at the time. No names are shown.',
+    ],
+  },
+  {
+    date: '2026-11-23',
     products: ['wallet'],
     version: '1.8.29',
     title: 'Swap History',

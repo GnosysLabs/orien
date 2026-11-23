@@ -10,6 +10,7 @@ import {
   Wallet,
 } from "lucide-react";
 import {
+  ago,
   ask,
   formatBtc,
   formatOrn,
@@ -51,13 +52,38 @@ const perOrn = (offer: SwapOffer) => {
 
 type Prices = { sol: number | null; btc: number | null };
 
-type Tab = "buy" | "sell" | "how";
+type Tab = "buy" | "sell" | "history" | "how";
 
 const TABS: { id: Tab; label: string }[] = [
   { id: "buy", label: "Buy ORN" },
   { id: "sell", label: "Sell ORN" },
+  { id: "history", label: "History" },
   { id: "how", label: "How it works" },
 ];
+
+/** A finished swap, as the public history shows it: no names. */
+type Traded = {
+  orn: number;
+  coin: "sol" | "btc";
+  lamports?: number;
+  sats?: number;
+  /** What the whole swap was worth in dollars when it finished, if known. */
+  usd: number | null;
+  at: number;
+};
+
+/** The coin paid, in whole SOL or BTC. */
+const paid = (t: Traded) => (t.coin === "sol" ? (t.lamports ?? 0) / 1e9 : (t.sats ?? 0) / 1e8);
+
+/** A coin amount for reading: "0.5 SOL", "0.0123 BTC". */
+const coinText = (amount: number, coin: "sol" | "btc") =>
+  `${amount >= 1 ? Number(amount.toFixed(2)).toLocaleString("en") : Number(amount.toPrecision(3)).toLocaleString("en", { maximumSignificantDigits: 3 })} ${coin === "sol" ? "SOL" : "BTC"}`;
+
+/** Its price for one ORN, in its coin and in dollars when known. */
+const tradedPerOrn = (t: Traded) => {
+  const orn = t.orn / 1e9;
+  return { coin: coinText(paid(t) / orn, t.coin), usd: t.usd === null ? null : dollars(t.usd / orn) };
+};
 
 export function SwapBoard() {
   const [offers, setOffers] = useState<SwapOffer[] | null>(null);
@@ -75,7 +101,9 @@ export function SwapBoard() {
           ? "sell"
           : hash === "how"
             ? "how"
-            : "buy",
+            : hash === "history"
+              ? "history"
+              : "buy",
       );
     };
     read();
@@ -236,6 +264,8 @@ export function SwapBoard() {
           </p>
         </InTheApp>
       )}
+
+      {tab === "history" && <SwapHistory />}
 
       {tab === "how" && (
         <div className="space-y-6">
@@ -447,5 +477,88 @@ function Offers({
         </p>
       )}
     </div>
+  );
+}
+
+/** What ORN actually traded for: the last price, then every finished swap,
+ * newest first. No names: the history is public. */
+function SwapHistory() {
+  const [last, setLast] = useState<Traded | null>(null);
+  const [swaps, setSwaps] = useState<Traded[] | null>(null);
+  const [more, setMore] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [trouble, setTrouble] = useState("");
+
+  const load = async (before?: number) => {
+    setLoading(true);
+    try {
+      const found = await ask<{ last: Traded | null; swaps: Traded[]; more: boolean }>(
+        `/swaps/history${before ? `?before=${before}` : ""}`,
+      );
+      setLast(found.last);
+      setSwaps((had) => (before && had ? [...had, ...found.swaps] : found.swaps));
+      setMore(found.more);
+    } catch (error) {
+      setTrouble(sentence((error as Error).message));
+    }
+    setLoading(false);
+  };
+
+  useEffect(() => {
+    void load();
+  }, []);
+
+  if (trouble) return <Notice tone="bad">{trouble}</Notice>;
+  if (swaps === null) return <p className="text-muted">Loading…</p>;
+  const lastPrice = last && tradedPerOrn(last);
+
+  return (
+    <section className="space-y-5">
+      {lastPrice ? (
+        <div className={card}>
+          <p className="text-sm font-semibold text-muted">Last price</p>
+          <p className="num mt-1 text-2xl font-bold tracking-tight text-ink">
+            {lastPrice.coin} per ORN
+            {lastPrice.usd && <span className="text-lg font-semibold text-muted"> (≈ {lastPrice.usd})</span>}
+          </p>
+        </div>
+      ) : (
+        <Notice>No swaps to show yet. The next one to finish sets the price.</Notice>
+      )}
+      {swaps.length > 0 && (
+        <ul className="overflow-hidden rounded-2xl border border-line bg-surface">
+          {swaps.map((t, i) => {
+            const each = tradedPerOrn(t);
+            return (
+              <li key={`${t.at}-${i}`} className="flex flex-wrap items-center gap-x-4 gap-y-1 border-b border-line px-5 py-4 last:border-b-0">
+                <div className="min-w-0 flex-1">
+                  <p className="num font-bold text-ink">
+                    {formatOrn(t.orn)} ORN <span className="font-normal text-muted">for</span> {coinText(paid(t), t.coin)}
+                  </p>
+                  <p className="num text-xs text-muted">
+                    {each.coin} per ORN{each.usd && ` · ≈ ${each.usd} per ORN`}
+                  </p>
+                </div>
+                <span className="shrink-0 text-sm text-muted">{ago(t.at)}</span>
+              </li>
+            );
+          })}
+        </ul>
+      )}
+      {more && (
+        <button
+          type="button"
+          onClick={() => load(swaps[swaps.length - 1]?.at)}
+          disabled={loading}
+          className="flex h-10 items-center rounded-xl border border-line bg-surface px-4 text-sm font-semibold text-ink transition hover:bg-raised disabled:opacity-60"
+        >
+          {loading ? "Loading…" : "Show more"}
+        </button>
+      )}
+      <p className="px-1 text-sm leading-relaxed text-muted">
+        Every swap both people finished, newest first, without names. Dollar values use the coin&apos;s price when the
+        swap finished.
+      </p>
+    </section>
   );
 }
