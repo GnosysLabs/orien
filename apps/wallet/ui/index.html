@@ -1392,6 +1392,7 @@
   .cm-board .cm-showall:hover { background: var(--surface-hover); }
   .cm-board .cm-none { margin: 0; padding: 6px 14px 14px; color: var(--dim); font-size: 13px; }
   [data-user] { cursor: pointer; }
+  @media (hover: hover) { b[data-user]:hover, .cm-name[data-user]:hover, .cm-reply-head b[data-user]:hover { text-decoration: underline; text-underline-offset: 2px; } }
   .cm-compose, .cm-join { display: flex; gap: 12px; padding: 14px 16px; margin-bottom: 16px;
     border: 1px solid var(--line); border-radius: 18px; background: var(--surface); }
   .cm-compose .face { width: 40px; height: 40px; font-size: 15px; }
@@ -1435,6 +1436,7 @@
   .cm-news .cm-big { font: 700 34px/1 "Jost", sans-serif; letter-spacing: -0.01em; }
   .cm-news .cm-line { margin-top: 6px; }
   .cm-news .cm-small { margin-top: 4px; color: var(--dim); font-size: 13px; }
+  .cm-news .cm-small b[data-user] { color: var(--ink); font-weight: 600; }
   .cm-news.row { display: flex; align-items: center; gap: 14px; }
   .cm-news.row .face, .cm-news.row .cm-net { width: 52px; height: 52px; font-size: 19px; }
   .cm-faces { display: flex; align-items: center; margin-bottom: 12px; }
@@ -5576,7 +5578,8 @@
     : '<span class="cm-net"><span class="mark"></span></span>';
   const cmOrn = (units) => (Number(units || 0) / 1e9).toLocaleString(undefined, { maximumFractionDigits: 2 });
   function cmNames(faces, count) {
-    const named = faces.filter((f) => f.name).map((f) => f.name);
+    // Each name opens that person's profile.
+    const named = faces.filter((f) => f.name).map((f) => `<b data-user="${esc(f.name)}">${esc(f.name)}</b>`);
     if (!named.length) return "";
     const list = named.slice(0, 3), rest = named.length - list.length + (count - named.length);
     const head = list.length === 1 ? list[0] : `${list.slice(0, -1).join(", ")} and ${list[list.length - 1]}`;
@@ -5590,28 +5593,28 @@
         return `<div class="cm-news"><div class="cm-big">${esc(String(d.miners))}</div><div class="cm-line">miners paid this hour, the most ever</div><div class="cm-small">The record before was ${esc(String(d.before))}. Checkpoint ${esc(String(d.epoch))}.</div></div>`;
       case "welcome": {
         const faces = d.miners || [], count = Number(d.count) || faces.length, who = cmNames(faces, count);
-        const shown = faces.slice(0, 5).map((f) => cmFace(f.name ? f : null)).join("");
+        const shown = faces.slice(0, 5).map((f) => f.name ? `<span data-user="${esc(f.name)}">${cmFace(f)}</span>` : cmFace(null)).join("");
         const more = count - Math.min(faces.length, 5);
         return `<div class="cm-news"><div class="cm-faces">${shown}${more > 0 ? `<span class="face">+${more}</span>` : ""}</div>
           <div class="cm-line"><b>${count === 1 ? "A new miner joined" : `${count} new miners joined`} in the last six hours</b></div>
-          <div class="cm-small">${who ? `Say hi to ${esc(who)}. ` : ""}Their first ORN were paid between checkpoints ${esc(String(d.from))} and ${esc(String(d.epoch))}.</div></div>`;
+          <div class="cm-small">${who ? `Say hi to ${who}. ` : ""}Their first ORN were paid between checkpoints ${esc(String(d.from))} and ${esc(String(d.epoch))}.</div></div>`;
       }
       case "milestone": {
         if (!post.subject) return "";
         const first = Number(d.orn) === 1;
         return `<div class="cm-news row"><span data-user="${esc(post.subject.name)}">${cmFace(post.subject)}</span><div><div class="cm-big">${first ? "First ORN" : `${Number(d.orn).toLocaleString()} ORN`}</div>
-          <div class="cm-line"><b>${esc(post.subject.name)}</b> ${first ? "mined their first ORN." : "passed it mining."} 🎉</div><div class="cm-small">Checkpoint ${esc(String(d.epoch))}</div></div></div>`;
+          <div class="cm-line"><b data-user="${esc(post.subject.name)}">${esc(post.subject.name)}</b> ${first ? "mined their first ORN." : "passed it mining."} 🎉</div><div class="cm-small">Checkpoint ${esc(String(d.epoch))}</div></div></div>`;
       }
       case "streak": {
         if (!post.subject) return "";
         const hours = Number(d.hours);
         return `<div class="cm-news row"><span data-user="${esc(post.subject.name)}">${cmFace(post.subject)}</span><div><div class="cm-big">${hours} hours in a row 🔥</div>
-          <div class="cm-line"><b>${esc(post.subject.name)}</b> has been paid at every checkpoint for ${hours >= 48 ? `${hours / 24} days` : "a whole day"}.</div></div></div>`;
+          <div class="cm-line"><b data-user="${esc(post.subject.name)}">${esc(post.subject.name)}</b> has been paid at every checkpoint for ${hours >= 48 ? `${hours / 24} days` : "a whole day"}.</div></div></div>`;
       }
       case "top_day": {
         const m = d.miner || {};
         const day = new Date(`${d.day}T00:00:00Z`).toLocaleDateString([], { day: "numeric", month: "long", timeZone: "UTC" });
-        return `<div class="cm-news row">${cmFace(m.name ? m : null)}<div><div class="cm-line"><b>${m.name ? esc(m.name) : esc(short(m.address || ""))}</b> mined the most of Orien Network’s members on ${esc(day)}</div>
+        return `<div class="cm-news row">${m.name ? `<span data-user="${esc(m.name)}">${cmFace(m)}</span>` : cmFace(null)}<div><div class="cm-line"><b${m.name ? ` data-user="${esc(m.name)}"` : ""}>${m.name ? esc(m.name) : esc(short(m.address || ""))}</b> mined the most of Orien Network’s members on ${esc(day)}</div>
           <div class="cm-big" style="margin-top:6px">${cmOrn(d.mined)} ORN</div><div class="cm-small">Of ${cmOrn(d.total)} ORN paid to ${esc(String(d.miners))} miners that day.</div></div></div>`;
       }
       default: return "";
