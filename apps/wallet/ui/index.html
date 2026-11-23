@@ -957,6 +957,8 @@
   .ch-amount { flex: 1; display: flex; align-items: center; gap: 8px; padding: 0 12px; height: 36px; border: 1px solid var(--line); border-radius: 12px; background: var(--field); }
   .ch-amount input { flex: 1; min-width: 0; border: 0; background: none; color: var(--ink); font: inherit; outline: none; }
   .ch-amount span { color: var(--faint); font-size: 12.5px; }
+  /* A problem sits clear of the message box below it. */
+  #ch-problem { flex-shrink: 0; margin-bottom: 10px; }
   .ch-blocked { flex-shrink: 0; padding: 10px 14px; margin-bottom: 10px; border-radius: 14px; background: var(--surface); color: var(--dim); font-size: 12.5px; text-align: center; }
   .ch-compose { flex-shrink: 0; display: flex; align-items: flex-end; gap: 8px; padding: 6px 6px 6px 14px; border: 1px solid var(--line); border-radius: 22px; background: var(--field); }
   .ch-compose:focus-within { border-color: var(--focus); }
@@ -6899,7 +6901,11 @@
       } else await mk("POST", `/conversations/${chat.id}/messages`, { body });
       $("ch-text").value = ""; growText();
       await refreshChat(true);
-    } catch (e) { problem("ch-problem", mkProblem(e)); }
+    } catch (e) {
+      // Said plainly, with their name: the message wasn't sent, and why.
+      const why = mkProblem(e), who = (chat.conv && chat.conv.with_name) || "This person";
+      problem("ch-problem", /not taking messages from you/i.test(String(why)) ? `${who} isn't taking messages from you, so this wasn't sent.` : why);
+    }
     finally { $("ch-send").disabled = false; $("ch-text").focus(); }
   };
   // Live: an open chat every 4 seconds, the list every 10, the unread dot every 30.
