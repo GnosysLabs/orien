@@ -1309,6 +1309,8 @@
   #more-below.on { opacity: 1; pointer-events: auto; }
   #more-below svg { width: 16px; height: 16px; animation: more-bob 1.8s ease-in-out infinite; }
   @keyframes more-bob { 0%, 100% { transform: translateY(-2px); opacity: 0.75; } 50% { transform: translateY(2px); opacity: 1; } }
+  /* Back to top: the same button, pointing up, still. */
+  #more-below.up svg { animation: none; }
   body.phone #more-below { width: 44px; height: 44px; margin-left: -22px; }
   /* Check for Updates: the answer, in a card over the app. */
   #upd-veil { position: fixed; inset: 0; z-index: 60; display: grid; place-items: center; padding: 24px;
@@ -7293,10 +7295,21 @@
       const y = getComputedStyle(el).overflowY;
       return (y === "auto" || y === "scroll") && el.scrollHeight > el.clientHeight + 24 && el.clientHeight > 120;
     });
+    const DOWN = '<path d="m6 9 6 6 6-6"/>', UP = '<path d="m18 15-6-6-6 6"/>';
+    let up = false;
     const check = () => {
       const typing = document.body.classList.contains("kb-up") || (typeof prefs !== "undefined" && prefs.noarrow);
-      const found = typing ? null : scrollers().filter((el) => el.scrollTop + el.clientHeight < el.scrollHeight - 24)
-        .sort((a, b) => b.clientHeight - a.clientHeight)[0] || null;
+      // The feed and profiles: once a screen down, the button takes you back to the top.
+      const feed = typing ? null : ["community", "seller"].map((id) => document.getElementById(id)).find((el) => el && !el.hidden && el.scrollTop > el.clientHeight);
+      const found = feed || (typing ? null : scrollers().filter((el) => el.scrollTop + el.clientHeight < el.scrollHeight - 24)
+        .sort((a, b) => b.clientHeight - a.clientHeight)[0] || null);
+      if (up !== !!feed) {
+        up = !!feed;
+        hint.classList.toggle("up", up);
+        hint.querySelector("svg").innerHTML = up ? UP : DOWN;
+        hint.setAttribute("aria-label", up ? "Back to top" : "More below");
+        hint.title = up ? "Back to top" : "";
+      }
       target = found;
       if (found) {
         const box = found.getBoundingClientRect();
@@ -7310,6 +7323,7 @@
     // scroll on beyond it and leave the list stuck in empty space.
     hint.addEventListener("click", () => {
       if (!target) return;
+      if (up) { target.scrollTo({ top: 0, behavior: "smooth" }); return; }
       const end = target.scrollHeight - target.clientHeight;
       target.scrollTo({ top: Math.min(end, target.scrollTop + target.clientHeight * 0.8), behavior: "smooth" });
     });
