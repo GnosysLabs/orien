@@ -1755,6 +1755,12 @@
   body.phone .mk-cats button { height: 36px; padding: 0 14px; font-size: 13.5px; }
   body.phone #home #recent { flex: 1 1 0; -webkit-overflow-scrolling: touch; border-radius: 18px 18px 39px 39px; padding-bottom: max(12px, calc(env(safe-area-inset-bottom) - 12px)); }
   body.phone #all-activity { flex: 1 1 0; border-radius: 18px 18px 39px 39px; padding-bottom: max(12px, calc(env(safe-area-inset-bottom) - 12px)); }
+  /* Notifications and Messages, like the home screen's list: the list itself
+     reaches the foot of the screen, its bottom corners following the phone's. */
+  body.phone main > :is(#notices, #inbox) { overflow: hidden; padding-bottom: 16px !important; }
+  body.phone :is(#nt-list, #ib-list) { flex: 1 1 0; margin: 0; padding: 0 0 max(12px, calc(env(safe-area-inset-bottom) - 12px));
+    border: 1px solid var(--line); border-radius: 18px 18px 39px 39px; background: var(--surface); overscroll-behavior: contain; -webkit-overflow-scrolling: touch; }
+  body.phone :is(#nt-list, #ib-list) .list { border: 0; border-radius: 0; background: none; overflow: visible; }
 </style>
 </head>
 <body>
