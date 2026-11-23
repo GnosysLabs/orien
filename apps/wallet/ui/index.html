@@ -1457,6 +1457,13 @@
     -webkit-mask-image: linear-gradient(to left, black 15%, rgba(0, 0, 0, 0.5) 50%, transparent 95%), linear-gradient(to bottom, black 45%, transparent);
     mask-image: linear-gradient(to left, black 15%, rgba(0, 0, 0, 0.5) 50%, transparent 95%), linear-gradient(to bottom, black 45%, transparent);
     -webkit-mask-composite: source-in; mask-composite: intersect; }
+  /* Narrow, as on the website's phones: the picture spans the card's width
+     and fades into it from the left and below. */
+  @media (max-width: 639px) {
+    .cm-art { width: 100%; max-height: 384px;
+      -webkit-mask-image: linear-gradient(to left, black, transparent 90%), linear-gradient(to bottom, black 55%, transparent);
+      mask-image: linear-gradient(to left, black, transparent 90%), linear-gradient(to bottom, black 55%, transparent); }
+  }
   .cm-in { position: relative; padding: 16px 18px; }
   .cm-head { display: flex; align-items: center; gap: 12px; }
   .cm-head .face { width: 42px; height: 42px; font-size: 16px; }
@@ -1473,6 +1480,7 @@
   .cm-text { margin-top: 12px; white-space: pre-wrap; overflow-wrap: anywhere; font-size: 15px; line-height: 1.5; }
   .cm-news { margin-top: 14px; }
   .cm-news .cm-big { font: 700 34px/1 "Jost", sans-serif; letter-spacing: -0.01em; }
+  body.phone .cm-news .cm-big { font-size: 26px; line-height: 1.1; }
   .cm-news .cm-line { margin-top: 6px; }
   .cm-news .cm-small { margin-top: 4px; color: var(--dim); font-size: 13px; }
   .cm-news .cm-small b[data-user] { color: var(--ink); font-weight: 600; }
@@ -1721,7 +1729,11 @@
   body.phone { font-size: 15px; padding-left: max(16px, env(safe-area-inset-left)); padding-right: max(16px, env(safe-area-inset-right)); padding-bottom: 0; }
   body.phone header { height: 44px; margin: 0 -16px 8px; }
   .hd-btn { display: none; }
-  body.phone.at-home .hd-btn { display: grid; place-items: center; position: absolute; top: 50%; transform: translateY(-50%); width: 40px; height: 40px; }
+  /* Bare glyphs against the page, no button around them. */
+  body.phone.at-home .hd-btn { display: grid; place-items: center; position: absolute; top: 50%; transform: translateY(-50%); width: 40px; height: 40px;
+    padding: 0; border: 0; background: none; box-shadow: none; color: var(--dim); }
+  body.phone.at-home .hd-btn svg { width: 22px; height: 22px; }
+  body.phone.at-home .hd-btn .dot { top: 6px; right: 7px; }
   body.phone.at-home .hd-left { left: max(16px, env(safe-area-inset-left)); }
   body.phone.at-home .hd-right { right: max(16px, env(safe-area-inset-right)); }
   body.phone .home-left :is(#go-settings, #go-notices) { display: none; }
