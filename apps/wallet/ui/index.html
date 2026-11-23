@@ -526,6 +526,17 @@
   .swap-status { margin: 14px 2px 0; line-height: 1.45; }
   .swap-choices { display: grid; gap: 10px; }
   /* The Swap screen's two tabs */
+  .tabs.three { grid-template-columns: repeat(3, 1fr); }
+  /* Swap history: the last price, then each finished swap. */
+  .hist-last { margin: 0 0 14px; padding: 16px 18px; border: 1px solid var(--line); border-radius: 18px; background: var(--surface); }
+  .hist-last .hl-label { font-size: 12px; color: var(--dim); }
+  .hist-last .hl-price { margin-top: 4px; font: 700 26px/1.15 "Jost", sans-serif; }
+  .hist-last .hl-sub { margin-top: 4px; font-size: 12.5px; color: var(--dim); }
+  .hist-row { display: flex; align-items: center; gap: 12px; padding: 12px 14px; }
+  .hist-row + .hist-row { border-top: 1px solid var(--line); }
+  .hist-row .deal { font-weight: 600; font-size: 14px; }
+  .hist-row .rate { margin-top: 2px; font-size: 12.5px; color: var(--dim); }
+  .hist-row .when { margin-left: auto; flex: none; font-size: 12px; color: var(--faint); }
   .tabs { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; padding: 4px; margin-bottom: 14px;
     border: 1px solid var(--line); border-radius: 14px; background: var(--surface); }
   .tab { height: 34px; border: 0; border-radius: 10px; background: transparent; cursor: pointer; font-weight: 500; color: var(--dim); }
@@ -2620,8 +2631,9 @@
     <section class="screen" id="swaps" hidden>
       <div class="topline"><button class="back" data-back aria-label="Back"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg></button><h2>Swap</h2></div>
       <p class="lede">Swap ORN for SOL or Bitcoin, directly with another person. Either you both get paid, or you both get your coins back.</p>
-      <div class="tabs" role="tablist">
+      <div class="tabs three" role="tablist">
         <button class="tab on" id="tab-offers-go" role="tab">Offers</button>
+        <button class="tab" id="tab-history-go" role="tab">History</button>
         <button class="tab" id="tab-mine-go" role="tab">Your swaps <span id="mine-count"></span></button>
       </div>
       <div id="tab-offers">
@@ -2629,6 +2641,14 @@
         <div id="board-offers"><div class="empty">Loading offers…</div></div>
         <div class="problem" id="board-problem" hidden></div>
         <div class="hint board-prices" id="board-btc"></div>
+      </div>
+      <!-- What ORN has actually swapped for: the last price, then each
+           finished swap. No names: just the trades. -->
+      <div id="tab-history" hidden>
+        <div class="hist-last" id="hist-last" hidden></div>
+        <div id="hist-list"><div class="empty">Loading…</div></div>
+        <button class="pill mk-more" id="hist-more" hidden>Show more</button>
+        <div class="problem" id="hist-problem" hidden></div>
       </div>
       <div id="tab-mine" hidden>
         <div class="scroll" id="swap-list"><div class="empty">No swaps yet</div></div>
@@ -5239,14 +5259,55 @@
     return "Checking the ORN the seller locked for you";
   }
 
-  function swapTab(mine) {
-    $("tab-offers").hidden = mine;
-    $("tab-mine").hidden = !mine;
-    $("tab-offers-go").classList.toggle("on", !mine);
-    $("tab-mine-go").classList.toggle("on", mine);
+  // Offers, History, or Your swaps (true/false still mean Your swaps/Offers).
+  function swapTab(which) {
+    const tab = which === true ? "mine" : which === false ? "offers" : which;
+    for (const t of ["offers", "history", "mine"]) {
+      $(`tab-${t}`).hidden = t !== tab;
+      $(`tab-${t}-go`).classList.toggle("on", t === tab);
+    }
+    if (tab === "history") loadHistory(false);
   }
-  $("tab-offers-go").onclick = () => swapTab(false);
-  $("tab-mine-go").onclick = () => swapTab(true);
+  $("tab-offers-go").onclick = () => swapTab("offers");
+  $("tab-history-go").onclick = () => swapTab("history");
+  $("tab-mine-go").onclick = () => swapTab("mine");
+  // ---- Swap history: what ORN went for ----
+  const hist = { swaps: [], more: false, last: null };
+  // A finished swap's price per ORN, in its coin and (when known) dollars.
+  function histPrice(x) {
+    const orn = x.orn / 1e9;
+    const coin = x.coin === "sol" ? `${(x.lamports / 1e9 / orn).toLocaleString(undefined, { maximumSignificantDigits: 3 })} SOL per ORN`
+      : `${Math.round(x.sats / orn).toLocaleString()} satoshis per ORN`;
+    const usd = x.usd != null && orn > 0 ? fmtUsd(x.usd / orn) : "";
+    return { coin, usd };
+  }
+  function paintHistory() {
+    const last = hist.last;
+    $("hist-last").hidden = !last;
+    if (last) {
+      const p = histPrice(last);
+      $("hist-last").innerHTML = `<div class="hl-label">Last price</div><div class="hl-price">${esc(p.usd ? `${p.usd} per ORN` : p.coin)}</div><div class="hl-sub">${esc([p.usd ? p.coin : "", ago(last.at)].filter(Boolean).join(" · "))}</div>`;
+    }
+    $("hist-list").innerHTML = hist.swaps.length
+      ? `<div class="list">${hist.swaps.map((x) => {
+          const p = histPrice(x);
+          return `<div class="hist-row"><div class="mw0"><div class="deal">${esc(fmtOrn(x.orn))} ORN for ${esc(offerPrice(x))}</div><div class="rate">${esc([p.usd && `${p.usd} per ORN`, p.coin].filter(Boolean).join(" · "))}</div></div><span class="when">${esc(ago(x.at))}</span></div>`;
+        }).join("")}</div>`
+      : '<div class="empty">No swaps have finished yet.</div>';
+    $("hist-more").hidden = !hist.more;
+  }
+  async function loadHistory(more) {
+    $("hist-problem").hidden = true;
+    try {
+      const before = more && hist.swaps.length ? `?before=${hist.swaps[hist.swaps.length - 1].at}` : "";
+      const page = await mk("GET", `/swaps/history${before}`);
+      hist.swaps = more ? hist.swaps.concat(page.swaps || []) : page.swaps || [];
+      hist.more = !!page.more;
+      if (!more) hist.last = page.last || null;
+    } catch (e) { if (!hist.swaps.length) $("hist-list").innerHTML = ""; problem("hist-problem", mkProblem(e)); }
+    paintHistory();
+  }
+  $("hist-more").onclick = () => loadHistory(true);
 
   function renderSwaps() {
     const list = $("swap-list");
