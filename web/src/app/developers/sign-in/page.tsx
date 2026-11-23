@@ -1,72 +1,52 @@
 import { CopySnippet } from '@/components/CopySnippet'
+import { CopyText } from '@/components/CopyText'
 import type { Metadata } from 'next'
+import { ArrowUpRight } from 'lucide-react'
 import { pageMeta } from '@/lib/seo'
 
 export const metadata: Metadata = pageMeta({
-  title: 'Sign in with Orien: for developers',
+  title: 'Sign in with Orien Wallet: for developers',
   description:
-    'Let people sign in to your website or app with their Orien Network account and see the wallets they proved are theirs. Standard OpenID Connect, free, with no key to apply for.',
+    'Let people sign in to your website with their Orien wallet: no email, no password, and no ORN moves. Your website checks the proof itself with Orien’s quantum-safe signatures, offline.',
   path: '/developers/sign-in/',
 })
 
-const ISSUER = 'https://orien.network'
+const SCRIPT = `<script src="https://orien.network/orien-sign-in.js"></script>`
 
-const EXAMPLE = `{
-  "iss": "https://orien.network",
-  "aud": "orn_9e7ea2879fb3f326a68270de",
-  "sub": "15ab8d389f0a3a6f9c7eed22331c0e66",
-  "name": "Satoshi",
-  "preferred_username": "Satoshi",
-  "picture": "https://orien.network/api/market/images/….jpg",
-  "orien_banner": "https://orien.network/api/market/images/….jpg",
-  "profile": "https://orien.network/u/Satoshi/",
-  "orien_wallets": [
-    {
-      "address": "be5b7cc81cbe475fe002bee2597c30b0ae4f030434e93f12ade7f1a266c6258b",
-      "name": "Savings"
-    }
-  ],
-  "nonce": "…",
-  "iat": 1795198269,
-  "exp": 1795201869
+const BROWSER = `button.onclick = async () => {
+  const nonce = await fetch("/sign-in/nonce").then((r) => r.text())   // from your server
+  try {
+    const { address, proof } = await OrienSignIn.signIn({ nonce })
+    await fetch("/sign-in", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ address, proof }),
+    })
+  } catch (error) {
+    alert(error.message)   // plain sentences, fine to show people
+  }
 }`
 
-const CLAIMS: [string, string][] = [
-  ['sub', 'The account’s id. It never changes, even if the person renames their account: use it to recognise them.'],
-  ['name, preferred_username', 'Their Orien Network username, which they can change.'],
-  ['picture', 'Their profile picture, when they have one.'],
-  ['orien_banner', 'Their profile’s wide banner (about 3:1), when they have one.'],
-  ['profile', 'Their public profile page on orien.network.'],
-  [
-    'orien_wallets',
-    'The wallets the account proved are its own, by sending a small payment from each. Each has its 64-character address and the name the person gave it in Orien Wallet (null if none). The list can be empty.',
-  ],
-]
+const SERVER = `const { verifySignIn, newNonce } = require("./orien-sign-in.js")
 
-const ENDPOINTS: [string, string][] = [
-  ['Discovery', `${ISSUER}/.well-known/openid-configuration`],
-  ['Authorize', `${ISSUER}/oauth/authorize/`],
-  ['Token', `${ISSUER}/api/market/oidc/token`],
-  ['Userinfo', `${ISSUER}/api/market/oidc/userinfo`],
-  ['Keys (JWKS)', `${ISSUER}/api/market/oidc/jwks`],
-]
+// GET /sign-in/nonce: a one-time value, remembered until it is used.
+const nonce = newNonce()
 
-/** The button developers paste in: the sun and the words on the pearl.
- * Its address is wherever their sign-in library starts the flow. */
-const BUTTON = `<a href="/auth/orien" class="orien-signin">
-  <svg viewBox="0 0 512 512" width="28" height="28" aria-hidden="true"><g fill="currentColor"><rect x="239" y="74" width="36" height="66" rx="18"/><rect x="239" y="74" width="36" height="66" rx="18" transform="rotate(-44 256 298)"/><rect x="239" y="74" width="36" height="66" rx="18" transform="rotate(44 256 298)"/><path d="M138 298A118 118 0 0 1 374 298Z"/><rect x="76" y="338" width="360" height="40" rx="20"/><rect x="156" y="406" width="200" height="36" rx="18"/></g></svg>
-  Sign in with Orien Network
-</a>
+// POST /sign-in: throws with a plain reason if the proof isn't good.
+const address = verifySignIn(proof, { origin: "https://yoursite.com", nonce })
+// Accept each nonce once, forget it, then start the session for address.`
 
-<style>
-  .orien-signin {
-    display: inline-flex; align-items: center; justify-content: center; gap: 10px;
-    height: 44px; padding: 0 24px; border-radius: 12px;
-    background: linear-gradient(115deg, #f4b6d4 0%, #b8c7ff 20%, #d3b6ff 38%, #a6ead6 56%, #f9dda4 74%, #f4b6d4 100%);
-    color: #0b0b0f; font: 700 14px/1 system-ui, sans-serif; text-decoration: none;
-  }
-  .orien-signin:hover { filter: brightness(1.05); }
-</style>`
+const PROFILE = `const who = await OrienSignIn.profile(address)
+// null, or:
+{
+  name: "Satoshi",
+  bio: "…",
+  wallet: "Savings",
+  picture: "https://orien.network/api/market/images/….jpg",
+  banner: "https://orien.network/api/market/images/….jpg",
+  profile: "https://orien.network/u/Satoshi/",
+  links: [{ kind: "x", handle: "satoshi", url: "https://x.com/satoshi" }]
+}`
 
 function Code({ children }: { children: string }) {
   return <code className="num break-all rounded-md border border-line bg-bg px-1.5 py-0.5 text-[0.85em] text-ink">{children}</code>
@@ -76,141 +56,153 @@ function Section({ title, children }: { title: string; children: React.ReactNode
   return (
     <section className="space-y-4 rounded-2xl border border-line bg-surface p-6 sm:p-8">
       <h2 className="text-xl font-bold tracking-tight text-ink">{title}</h2>
-      <div className="space-y-4 leading-relaxed text-muted">{children}</div>
+      <div className="space-y-4 leading-relaxed text-muted [&_strong]:font-semibold [&_strong]:text-ink">{children}</div>
     </section>
   )
 }
 
+function Rows({ rows }: { rows: [string, React.ReactNode][] }) {
+  return (
+    <dl className="divide-y divide-line rounded-xl border border-line">
+      {rows.map(([name, meaning]) => (
+        <div key={name} className="grid gap-1 px-4 py-3 sm:grid-cols-[11rem_1fr] sm:gap-4">
+          <dt className="text-sm font-semibold text-ink">{name}</dt>
+          <dd className="text-sm leading-relaxed text-muted">{meaning}</dd>
+        </div>
+      ))}
+    </dl>
+  )
+}
+
+const link = 'font-semibold text-ink underline underline-offset-4'
+
+/** /developers/sign-in/: Sign in with Orien Wallet, for websites. The
+ * checker is public/orien-sign-in.js, a copy of apps/wallet/signin-js. */
 export default function SignInDevelopersPage() {
   return (
     <div className="mx-auto max-w-[860px] space-y-8 pb-16 pt-5 sm:pt-7">
-      <header className="space-y-3">
+      <header className="space-y-4">
         <p className="text-xs font-semibold uppercase tracking-[0.14em] text-muted">For developers</p>
-        <h1 className="text-3xl font-bold tracking-tight text-ink sm:text-4xl">Sign in with Orien</h1>
+        <h1 className="text-balance text-3xl font-bold tracking-tight text-ink sm:text-4xl">Sign in with Orien Wallet</h1>
         <p className="max-w-2xl text-lg leading-relaxed text-muted">
-          Let people sign in to your website or app with their Orien Network account, and see the wallets they
-          proved are theirs. It’s standard OpenID Connect, so the sign-in library you already use works. Free, with
-          nothing to apply for.
+          A person’s Orien wallet is their login: no email, no password, and no ORN moves. Your website checks the
+          proof itself, offline, with Orien’s quantum-safe signatures. Free, with nothing to register.
         </p>
+        <div className="flex flex-wrap gap-2 pt-1">
+          <a
+            href="/developers/sign-in/demo/"
+            className="pearl-fill pearl-sheen inline-flex h-11 items-center gap-2 rounded-[10px] px-4 text-sm font-bold transition hover:brightness-105"
+          >
+            Try the demo
+            <ArrowUpRight className="h-4 w-4" strokeWidth={2.25} aria-hidden />
+          </a>
+          <a
+            href="/orien-sign-in.js"
+            download
+            className="inline-flex h-11 items-center rounded-[10px] border border-line bg-raised px-4 text-sm font-semibold text-ink transition hover:border-pearl"
+          >
+            Download orien-sign-in.js
+          </a>
+        </div>
       </header>
 
-      <Section title="What people see">
+      <Section title="How it works">
         <p>
-          They press your Sign in with Orien Network button and come to orien.network. If they aren’t signed in there
-          yet, they sign in with a code sent to their email, or with Orien Wallet’s browser extension. Then they see your website’s
-          name and address, and exactly what you’ll receive: their Orien Network name, picture and banner, and their
-          verified wallets. They choose Allow or Cancel, and come back to you.
+          It works the way Phantom and MetaMask sign-ins do. People click your sign-in button and approve in the Orien
+          Wallet browser extension, for Chrome, Edge, Brave, Firefox and Safari. Your website receives their wallet
+          address and a proof that the wallet signed in to your website, just now.
         </p>
         <p>
-          You never receive their email address, and nothing you get can move ORN or use their wallets. The next
-          time, people who allowed you before come straight back.
+          Your server checks the proof by itself, with no network and no server to ask, orien.network included. Nothing
+          a website receives can move ORN.
+        </p>
+        <p>
+          People need Orien Wallet running on their computer. Phones aren’t supported yet.
         </p>
       </Section>
 
-      <Section title="1. Register your website">
+      <Section title="1. Add the script to your page">
+        <CopyText text={SCRIPT} />
         <p>
-          Sign in at{' '}
-          <a href="/developers/websites/" className="font-semibold text-ink underline underline-offset-4">
-            orien.network/developers/websites
+          It has no dependencies and is MIT licensed. The same file checks proofs on your server.
+        </p>
+      </Section>
+
+      <Section title="2. Make a nonce on your server">
+        <p>
+          A nonce is a one-time value: any string up to 200 characters. Your server makes one for each sign-in and
+          remembers it. <Code>OrienSignIn.newNonce()</Code> makes a good one.
+        </p>
+      </Section>
+
+      <Section title="3. Sign in from your button">
+        <p>
+          <Code>OrienSignIn.signIn(&#123; nonce &#125;)</Code> asks the extension, and resolves once the person
+          approves. Send the address and proof to your server.
+        </p>
+        <CopySnippet text={BROWSER} />
+      </Section>
+
+      <Section title="4. Check the proof on your server">
+        <p>
+          Download <a href="/orien-sign-in.js" download className={link}>orien-sign-in.js</a> next to your server’s
+          code. It runs in Node 18 and later, Deno and Bun.
+        </p>
+        <CopySnippet text={SERVER} />
+        <p>
+          <Code>verifySignIn</Code> returns the wallet’s address, or throws with a plain reason. Accept each nonce once,
+          then start the session.
+        </p>
+      </Section>
+
+      <Section title="5. Show who signed in (optional)">
+        <p>
+          People who verified their wallet on orien.network have a public profile. <Code>OrienSignIn.profile(address)</Code>{' '}
+          returns it, or null for a wallet that isn’t verified. Links hold only what the person chose to show.
+        </p>
+        <CopySnippet text={PROFILE} />
+      </Section>
+
+      <Section title="Details">
+        <Rows
+          rows={[
+            [
+              'Proofs',
+              <>
+                Good for 5 minutes, and only for the exact origin the browser reports: scheme, host and port, such as{' '}
+                <Code>https://yoursite.com</Code>.
+              </>,
+            ],
+            [
+              'The raw API',
+              <>
+                The extension adds <Code>window.orien</Code>, with <Code>window.orien.signIn(&#123; nonce &#125;)</Code>,
+                and fires <Code>orien#initialized</Code> on the page when it does.
+              </>,
+            ],
+            ['Errors', <>Plain sentences, fine to show to people.</>],
+            [
+              'Without the extension',
+              <>
+                <Code>signIn()</Code> throws “Orien Wallet isn’t set up for this website yet…”. Send people to{' '}
+                <a href="/" className={link}>
+                  orien.network
+                </a>{' '}
+                for Orien Wallet and its extension.
+              </>,
+            ],
+          ]}
+        />
+      </Section>
+
+      <Section title="See it working">
+        <p>
+          <a href="/developers/sign-in/demo/" className={link}>
+            The demo
           </a>{' '}
-          and choose Add a website. Give its name, shown to people when they sign in, and
-          its return addresses: where people come back to after signing in. They must start with https://, or
-          http://localhost while you build.
+          is a whole website on one page: it makes the nonce, signs in, checks the proof and shows the profile. View its
+          source for a complete example.
         </p>
-        <p>
-          Choose <span className="font-semibold text-ink">from its server</span> if your website has a server that
-          can keep a secret: you get a client ID and a client secret, shown once. Choose{' '}
-          <span className="font-semibold text-ink">from its pages only</span> for websites and apps with no server:
-          you get a client ID and use PKCE instead of a secret.
-        </p>
-      </Section>
-
-      <Section title="2. Point your sign-in library at Orien">
-        <p>
-          Most libraries need only the issuer, <Code>{ISSUER}</Code>, with your client ID, secret (if you have one)
-          and return address. They find the rest in the discovery document. For reference:
-        </p>
-        <dl className="divide-y divide-line rounded-xl border border-line">
-          {ENDPOINTS.map(([name, url]) => (
-            <div key={name} className="grid gap-1 px-4 py-3 sm:grid-cols-[9rem_1fr] sm:gap-4">
-              <dt className="text-sm font-semibold text-ink">{name}</dt>
-              <dd className="num break-all text-sm text-ink">{url}</dd>
-            </div>
-          ))}
-        </dl>
-        <ul className="list-disc space-y-2 pl-5">
-          <li>The authorization code flow: response_type=code.</li>
-          <li>
-            Scopes: <Code>openid</Code> is required. <Code>profile</Code> and <Code>wallets</Code> are accepted; the
-            name, picture, banner and wallets come either way, as people are shown.
-          </li>
-          <li>
-            PKCE with S256 is required for websites without a secret, and welcome for the rest. Send a nonce and
-            state; both come back.
-          </li>
-          <li>
-            A secret goes in an Authorization: Basic header, or as client_secret in the token request’s form.
-          </li>
-          <li>
-            prompt=none answers at once, with login_required or consent_required if the person must act;
-            prompt=consent always asks.
-          </li>
-          <li>ID tokens are signed with RS256; check them with the published keys. Tokens last an hour.</li>
-        </ul>
-      </Section>
-
-      <Section title="3. What you receive">
-        <p>In the ID token, and from the userinfo endpoint with the access token:</p>
-        <pre className="num overflow-auto rounded-xl border border-line bg-bg p-4 text-xs leading-relaxed text-ink">
-          {EXAMPLE}
-        </pre>
-        <dl className="divide-y divide-line rounded-xl border border-line">
-          {CLAIMS.map(([name, meaning]) => (
-            <div key={name} className="grid gap-1 px-4 py-3 sm:grid-cols-[11rem_1fr] sm:gap-4">
-              <dt className="num text-sm font-semibold text-ink">{name}</dt>
-              <dd className="text-sm leading-relaxed text-muted">{meaning}</dd>
-            </div>
-          ))}
-        </dl>
-        <p>
-          To check what a wallet holds or has received, read it from the{' '}
-          <a href="https://explorer.orien.network/api/" className="font-semibold text-ink underline underline-offset-4">
-            explorer’s API
-          </a>
-          .
-        </p>
-      </Section>
-
-      <Section title="The button">
-        <p>
-          Use Orien’s own button so people recognise it: the sun and the words on the pearl. Copy it as it is, and
-          point its address at wherever your sign-in library starts the flow.
-        </p>
-        <div className="flex justify-center rounded-xl border border-line bg-bg px-6 py-8">
-          <span className="pearl-fill inline-flex h-11 items-center justify-center gap-2.5 rounded-xl px-6 text-sm font-bold">
-            <span className="orien-mark shrink-0 bg-bg" style={{ width: 28, height: 28 }} aria-hidden />
-            Sign in with Orien Network
-          </span>
-        </div>
-        <CopySnippet text={BUTTON} />
-        <p>
-          The words are “Sign in with Orien Network”. Keep the button on a plain background with a little room around
-          it, and don’t recolour it. Orien Wallet is the app; Orien Network is the account people sign in with.
-        </p>
-      </Section>
-
-      <Section title="Good to know">
-        <ul className="list-disc space-y-2 pl-5">
-          <li>Label your button “Sign in with Orien”.</li>
-          <li>
-            Wallets in orien_wallets are proven by a payment from each, so they belong to that account. People can
-            add and remove them at any time, so read them again at each sign-in.
-          </li>
-          <li>
-            Websites that mislead people can be switched off, after which they sign nobody in and their tokens stop
-            working.
-          </li>
-        </ul>
       </Section>
     </div>
   )
