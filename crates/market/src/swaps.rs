@@ -153,6 +153,56 @@ impl Store {
                  ALTER TABLE swap_offers ADD COLUMN runner_at INTEGER;",
             )?;
         }
+        // Added for the public history: when a swap finished as done, and
+        // what it was worth in dollars then (unknown for older swaps).
+        let has_finished = self.db.prepare("SELECT 1 FROM pragma_table_info('swap_offers') WHERE name = 'finished'")?.exists([])?;
+        if !has_finished {
+            self.db.execute_batch(
+                "ALTER TABLE swap_offers ADD COLUMN finished INTEGER;
+                 ALTER TABLE swap_offers ADD COLUMN usd REAL;
+                 UPDATE swap_offers SET finished = updated WHERE state = 'done';",
+            )?;
+        }
+        Ok(())
+    }
+
+    /// Swaps finished as done whose dollar value was kept, newest first,
+    /// before `before` (seconds since 1970): what ORN traded for, with no
+    /// names or addresses. Up to `limit`.
+    pub fn swap_history(&self, before: Option<u64>, limit: u32) -> Result<Vec<serde_json::Value>> {
+        let mut statement = self.db.prepare(
+            "SELECT orn, coin, sats, usd, finished FROM swap_offers
+             WHERE state = 'done' AND finished IS NOT NULL AND usd IS NOT NULL AND finished < ?1
+             ORDER BY finished DESC, id DESC LIMIT ?2",
+        )?;
+        let rows = statement.query_map(params![before.unwrap_or(i64::MAX as u64) as i64, limit], |r| {
+            let coin: String = r.get(1)?;
+            let price = r.get::<_, i64>(2)? as u64;
+            let mut swap = serde_json::json!({
+                "orn": r.get::<_, i64>(0)? as u64,
+                "coin": coin,
+                "usd": r.get::<_, Option<f64>>(3)?,
+                "at": r.get::<_, i64>(4)? as u64,
+            });
+            swap[if coin == "sol" { "lamports" } else { "sats" }] = serde_json::json!(price);
+            Ok(swap)
+        })?;
+        Ok(rows.collect::<rusqlite::Result<_>>()?)
+    }
+
+    /// Swaps finished as done in the last ten minutes whose dollar value
+    /// isn't kept yet: (id, coin, coin amount in its smallest unit).
+    pub fn unpriced_swaps(&self) -> Result<Vec<(i64, String, u64)>> {
+        let mut statement = self.db.prepare(
+            "SELECT id, coin, sats FROM swap_offers WHERE state = 'done' AND usd IS NULL AND finished > ?1",
+        )?;
+        let rows = statement.query_map([now().saturating_sub(600)], |r| Ok((r.get(0)?, r.get(1)?, r.get::<_, i64>(2)? as u64)))?;
+        Ok(rows.collect::<rusqlite::Result<_>>()?)
+    }
+
+    /// Keeps a finished swap's dollar value.
+    pub fn price_swap(&self, id: i64, usd: f64) -> Result<()> {
+        self.db.execute("UPDATE swap_offers SET usd = ?2 WHERE id = ?1 AND usd IS NULL", params![id, usd])?;
         Ok(())
     }
 
@@ -543,7 +593,10 @@ impl Store {
         )?;
         if reports >= 2 || (waited && reports == 1) {
             let state = if all_done { "done" } else { "cancelled" };
-            self.db.execute("UPDATE swap_offers SET state = ?2, due = NULL, updated = ?3 WHERE id = ?1", params![id, state, now()])?;
+            self.db.execute(
+                "UPDATE swap_offers SET state = ?2, due = NULL, updated = ?3, finished = CASE WHEN ?2 = 'done' THEN ?3 END WHERE id = ?1",
+                params![id, state, now()],
+            )?;
         }
         Ok(())
     }
@@ -685,6 +738,19 @@ mod tests {
         store.finish_swap(maya, posted.id, true).unwrap();
         assert_eq!(store.swap_offer(posted.id).unwrap().unwrap().state, "done");
         assert_eq!((store.swaps_done(maya).unwrap(), store.swaps_done(sam).unwrap()), (1, 1));
+
+        // It goes into the public history once priced: no names, and its
+        // dollar value when it finished. Without one, it stays out.
+        assert!(store.swap_history(None, 30).unwrap().is_empty(), "not priced yet");
+        assert_eq!(store.unpriced_swaps().unwrap(), vec![(posted.id, "btc".to_string(), 1_000_000)]);
+        store.price_swap(posted.id, 650.0).unwrap();
+        assert!(store.unpriced_swaps().unwrap().is_empty());
+        let history = store.swap_history(None, 30).unwrap();
+        assert_eq!(history.len(), 1);
+        assert_eq!((history[0]["orn"].as_u64(), history[0]["coin"].as_str(), history[0]["sats"].as_u64()), (Some(500_000_000_000), Some("btc"), Some(1_000_000)));
+        assert!(history[0]["usd"] == 650.0 && history[0].get("seller").is_none() && history[0]["at"].as_u64().unwrap() > 0);
+        let at = history[0]["at"].as_u64().unwrap();
+        assert!(store.swap_history(Some(at), 30).unwrap().is_empty(), "paged by time");
     }
 
     #[test]

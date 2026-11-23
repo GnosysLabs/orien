@@ -519,6 +519,8 @@ async fn swap_offers_go_on_the_board_and_are_taken_through_requests() {
     let (_, board) = market.ask("GET", "/api/market/swaps", None, None).await;
     assert_eq!(board["offers"][0]["seller_name"], "Maya");
     assert_eq!(board["bitcoin"]["usd"], 65_000.0, "with Bitcoin's dollar price");
+    let (status, history) = market.ask("GET", "/api/market/swaps/history", None, None).await;
+    assert_eq!((status, history), (StatusCode::OK, json!({ "last": null, "swaps": [], "more": false })), "public, and empty with no swap done");
 
     let mayas_phone = "ab".repeat(32);
     market.ask("POST", "/api/market/push/register", Some(&maya), Some(json!({ "token": mayas_phone, "addresses": [] }))).await;
