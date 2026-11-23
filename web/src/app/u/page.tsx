@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import { Suspense } from 'react'
 import { ProfileView } from '@/components/market/ProfileView'
+import { BackToTop } from '@/components/BackToTop'
 
 export const metadata: Metadata = { title: 'Profile', robots: { index: false } }
 
@@ -12,6 +13,7 @@ export default function UserPage() {
       <Suspense>
         <ProfileView />
       </Suspense>
+      <BackToTop />
     </div>
   )
 }
