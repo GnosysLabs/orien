@@ -1218,6 +1218,30 @@
   #upd-title { font-size: 18px; font-weight: 600; letter-spacing: -0.01em; }
   #upd-text { margin: 8px auto 0; max-width: 260px; color: var(--dim); font-size: 14px; line-height: 1.45; }
   #upd-buttons { display: grid; gap: 10px; margin-top: 22px; }
+  /* A website asking to sign in with this wallet: a card over the app. */
+  #si-veil { position: fixed; inset: 0; z-index: 61; display: grid; place-items: center; padding: 24px;
+    background: var(--veil); -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px);
+    opacity: 0; transition: opacity 0.2s ease; }
+  #si-veil.on { opacity: 1; }
+  #si-card { width: min(360px, 100%); padding: 28px 24px 22px; border-radius: 24px; text-align: center;
+    background: var(--surface); border: 1px solid var(--line); box-shadow: 0 24px 60px rgba(0, 0, 0, 0.45);
+    transform: scale(0.96); transition: transform 0.2s ease; }
+  #si-veil.on #si-card { transform: scale(1); }
+  #si-icon { width: 56px; height: 56px; margin: 0 auto 16px; border-radius: 50%; display: grid; place-items: center;
+    color: var(--pearl-ink); background: var(--pearl); background-size: 300% 100%; animation: drift 24s linear infinite; }
+  #si-icon svg { width: 26px; height: 26px; }
+  #si-title { font-size: 18px; font-weight: 600; letter-spacing: -0.01em; overflow-wrap: anywhere; }
+  #si-wallet { margin: 14px 0 0; padding: 12px 14px; border: 1px solid var(--line); border-radius: 14px; text-align: left;
+    display: flex; align-items: center; gap: 12px; }
+  #si-wallet .coin { width: 40px; height: 40px; border-radius: 50%; display: grid; place-items: center; flex: none;
+    font: 700 16px/1 "Jost", sans-serif; color: var(--ink); background: rgba(var(--tint), 0.063); }
+  #si-wallet .coin.emoji { font: 20px/1 system-ui, "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif; }
+  #si-wallet .si-name { font-weight: 600; }
+  #si-wallet .si-addr { color: var(--dim); font: 12px ui-monospace, "SF Mono", Menlo, monospace; }
+  #si-text { margin: 12px auto 0; max-width: 300px; color: var(--dim); font-size: 13px; line-height: 1.45; }
+  #si-pw-box { margin-top: 16px; text-align: left; }
+  #si-card .problem { margin-top: 12px; text-align: left; }
+  #si-buttons { display: grid; gap: 10px; margin-top: 20px; }
   @keyframes spin { to { transform: rotate(360deg); } }
   .spinner {
     display: inline-block; width: 14px; height: 14px; margin-right: 8px; vertical-align: -2px;
@@ -2315,6 +2339,15 @@
   </main>
 
 <div id="lock-veil" hidden><div class="lv-in"><div class="mark brand"></div><button class="primary pearl" id="lock-go" style="width:auto;padding:0 28px">Unlock</button></div></div>
+<div id="si-veil" hidden><div id="si-card" role="dialog" aria-modal="true" aria-labelledby="si-title">
+  <div id="si-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m10 17 5-5-5-5"/><path d="M15 12H3"/><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/></svg></div>
+  <div id="si-title"></div>
+  <div id="si-wallet"><span class="si-face" id="si-face"></span><span><div class="si-name" id="si-name"></div><div class="si-addr" id="si-addr"></div></span></div>
+  <p id="si-text">The website learns this wallet's address.<br>No ORN moves.</p>
+  <div class="field" id="si-pw-box" hidden><div class="box plain"><input id="si-pw" type="password" autocomplete="current-password" placeholder="Wallet password"></div></div>
+  <div class="problem" id="si-problem" hidden></div>
+  <div id="si-buttons"><button class="primary pearl" id="si-yes">Sign in</button><button class="secondary" id="si-no">Cancel</button></div>
+</div></div>
 <div id="upd-veil" hidden><div id="upd-card" role="dialog" aria-modal="true" aria-labelledby="upd-title">
   <div id="upd-icon"></div>
   <div id="upd-title"></div>
@@ -6206,6 +6239,57 @@
   let appVersion = "";
   window.__TAURI__.app?.getVersion?.().then((v) => { appVersion = v; }).catch(() => {});
   window.__TAURI__.event.listen("check-updates", checkForUpdatesNow).catch(() => {});
+
+  // A website asking to sign in with this wallet, through the browser
+  // extension: Sign in signs its one-time value; nothing else happens.
+  let siAsk = null;
+  function siOpen(ask) {
+    siAsk = ask;
+    $("si-title").textContent = `Sign in to ${ask.site}?`;
+    $("si-name").textContent = ask.wallet;
+    $("si-addr").textContent = short(ask.address);
+    const icon = typeof iconOf === "function" ? iconOf(ask.address) : "";
+    $("si-face").className = "coin" + (icon ? " emoji" : "");
+    $("si-face").textContent = icon || ask.wallet.slice(0, 1).toUpperCase();
+    $("si-pw-box").hidden = !ask.password;
+    $("si-pw").value = "";
+    $("si-problem").hidden = true;
+    $("si-yes").disabled = $("si-no").disabled = false;
+    $("si-yes").textContent = "Sign in";
+    const veil = $("si-veil");
+    if (veil.hidden) { veil.hidden = false; requestAnimationFrame(() => veil.classList.add("on")); }
+    if (ask.password) setTimeout(() => $("si-pw").focus(), 50);
+  }
+  function siClose() {
+    siAsk = null;
+    const veil = $("si-veil"); veil.classList.remove("on");
+    setTimeout(() => { if (!siAsk) veil.hidden = true; }, 200);
+  }
+  async function siAnswer(approve) {
+    if (!siAsk) return;
+    const id = siAsk.id;
+    $("si-yes").disabled = $("si-no").disabled = true;
+    if (approve) $("si-yes").innerHTML = '<span class="spinner"></span>Signing in';
+    try {
+      await invoke("site_signin_answer", { id, approve, password: $("si-pw-box").hidden ? null : $("si-pw").value });
+      if (approve) feel("success");
+      siClose();
+    } catch (err) {
+      const text = String(err);
+      $("si-yes").disabled = $("si-no").disabled = false;
+      $("si-yes").textContent = "Sign in";
+      if (text === "password: needed") { $("si-pw-box").hidden = false; $("si-pw").focus(); problem("si-problem", "Type this wallet's password to sign in."); }
+      else if (text === "password: wrong") { $("si-pw").select(); problem("si-problem", "That is not this wallet's password."); }
+      else { problem("si-problem", text); $("si-yes").hidden = true; $("si-no").textContent = "Close"; $("si-no").onclick = () => { $("si-yes").hidden = false; $("si-no").textContent = "Cancel"; $("si-no").onclick = () => siAnswer(false); siClose(); }; }
+    }
+  }
+  $("si-yes").onclick = () => siAnswer(true);
+  $("si-no").onclick = () => siAnswer(false);
+  $("si-pw").addEventListener("keydown", (e) => { if (e.key === "Enter") siAnswer(true); });
+  window.__TAURI__.event.listen("site-signin", (e) => siOpen(e.payload)).catch(() => {});
+  window.__TAURI__.event.listen("site-signin-gone", (e) => { if (siAsk && siAsk.id === e.payload) siClose(); }).catch(() => {});
+  // The extension switched wallets: show the one it opened.
+  window.__TAURI__.event.listen("wallet-switched", () => { walletOpened(); home(); }).catch(() => {});
   checkUpdate();
   setInterval(checkUpdate, 60 * 60 * 1000);
   // Contacts and wallet icons from this wallet's other devices, every few

@@ -24,6 +24,7 @@ orien-net = { path = "../../crates/net", default-features = false }
 orien-ledger = { path = "../../crates/ledger", default-features = false }
 orien-swap = { path = "../../crates/swap" }
 orien-crypto = { path = "../../crates/crypto" }
+borsh = "1.5"
 anyhow = "1"
 tauri = { version = "2", features = ["tray-icon", "image-png"] }
 tauri-plugin-dialog = "2"

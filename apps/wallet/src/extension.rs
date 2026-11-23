@@ -126,6 +126,16 @@ fn answer(app: &AppHandle, mut stream: TcpStream) {
                     Ok(pass) => ("200 OK", serde_json::json!({ "pass": pass })),
                     Err(problem) => ("200 OK", serde_json::json!({ "problem": problem })),
                 },
+                "POST /signin-site" => match crate::sitesignin::request(app, text("origin"), text("nonce")) {
+                    Ok(proof) => ("200 OK", proof),
+                    Err(problem) => ("200 OK", serde_json::json!({ "problem": problem })),
+                },
+                "GET /wallets" => ("200 OK", wallets(app)),
+                "POST /use-wallet" => match use_wallet(app, &text("address")) {
+                    Ok(()) => ("200 OK", serde_json::json!({ "ok": true })),
+                    Err(problem) => ("200 OK", serde_json::json!({ "problem": problem })),
+                },
+                "GET /activity" => ("200 OK", recent(app)),
                 "POST /quote" => ("200 OK", serde_json::to_value(crate::quote(text("amount"))).unwrap_or_default()),
                 "POST /send" => {
                     let password = Some(text("password")).filter(|p| !p.is_empty());
@@ -209,6 +219,48 @@ fn people(app: &AppHandle) -> serde_json::Value {
         })
         .collect();
     serde_json::json!({ "contacts": contacts, "wallets": wallets })
+}
+
+/// Every wallet the app knows, for switching from the extension: name,
+/// address, icon, and which is open now.
+fn wallets(app: &AppHandle) -> serde_json::Value {
+    let Ok(dir) = crate::folder(app) else { return serde_json::json!([]) };
+    let current = crate::wallet_file(&dir);
+    let icons = crate::contacts::icons(&dir);
+    let list: Vec<_> = crate::known_wallets(&dir)
+        .into_iter()
+        .filter_map(|w| {
+            let address = orien_net::keys::Wallet::peek(&w.path).ok()?.0.to_string();
+            let icon = icons.get(&address).map(|i| i.emoji.clone());
+            Some(serde_json::json!({ "name": w.name, "address": address, "icon": icon, "current": Some(&w.path) == current.as_ref() }))
+        })
+        .collect();
+    serde_json::Value::Array(list)
+}
+
+/// Opens another of the person's wallets, by address, as choosing it in
+/// the app does; the app's window follows.
+fn use_wallet(app: &AppHandle, address: &str) -> Result<(), String> {
+    let dir = crate::folder(app)?;
+    let wallet = crate::known_wallets(&dir)
+        .into_iter()
+        .find(|w| orien_net::keys::Wallet::peek(&w.path).is_ok_and(|(a, _)| a.to_string() == address))
+        .ok_or("That wallet isn't in Orien Wallet.")?;
+    crate::use_wallet(app.clone(), wallet.path.to_string_lossy().into_owned())?;
+    // What the extension shows switches at once; the balance follows as
+    // the window refreshes.
+    share(address, None, None);
+    use tauri::Emitter;
+    let _ = app.emit("wallet-switched", address);
+    Ok(())
+}
+
+/// The three latest payments, for the extension's home.
+fn recent(app: &AppHandle) -> serde_json::Value {
+    let mut all = crate::activity(app.clone()).unwrap_or_default();
+    all.sort_by(|a, b| b.time.cmp(&a.time));
+    all.truncate(3);
+    serde_json::to_value(all).unwrap_or_default()
 }
 
 /// Sign in with Orien Wallet: the click on the page is the approval (no

@@ -127,12 +127,17 @@ pub fn unlocked(wallet: &Path) -> Option<String> {
 /// Asks for Touch ID or Face ID (or the device's passcode), and on success
 /// keeps the wallet unlocked for a few minutes. Blocks until answered.
 pub fn unlock(wallet: &Path) -> Result<(), String> {
+    unlock_for(wallet, "unlock your Orien wallet")
+}
+
+/// As `unlock`, with the prompt saying what for ("sign in to example.com").
+pub fn unlock_for(wallet: &Path, what: &str) -> Result<(), String> {
     #[cfg(any(target_os = "macos", target_os = "ios"))]
     {
         use robius_authentication::{AndroidText, BiometricStrength, Context, PolicyBuilder, Text, WindowsText};
         let text = Text {
             android: AndroidText { title: "Orien Wallet", subtitle: None, description: None },
-            apple: "unlock your Orien wallet",
+            apple: what,
             windows: WindowsText::new("Orien Wallet", "Unlock your wallet").ok_or("prompt text too long")?,
         };
         let policy = PolicyBuilder::new()
@@ -163,7 +168,7 @@ pub fn unlock(wallet: &Path) -> Result<(), String> {
     }
     #[cfg(not(any(target_os = "macos", target_os = "ios")))]
     {
-        let _ = wallet;
+        let _ = (wallet, what);
         Err("Touch ID and Face ID are on Macs and iPhones only.".into())
     }
 }
