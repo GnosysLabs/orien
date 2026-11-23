@@ -704,7 +704,7 @@
   /* Market messages */
   .pill.icon { position: relative; }
   .pill .dot, .tile .dot { position: absolute; top: 4px; right: 4px; width: 8px; height: 8px; border-radius: 50%; background: #ff453a; box-shadow: 0 0 0 2px var(--ground-deep); }
-  #go-market { position: relative; }
+  #go-market, #go-messages { position: relative; }
   .tile .dot { top: 9px; right: 9px; }
   /* On the round Messages button the dot sits on its rim, half outside. */
   .pill.icon .dot { top: -1px; right: -1px; width: 10px; height: 10px; }
@@ -1732,7 +1732,7 @@
 
     <!-- Home -->
     <section class="screen" id="home" hidden>
-      <div class="home-top"><div class="home-left"><button class="pill icon" id="go-settings" aria-label="Settings" title="Settings"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></button><button class="wallet-chip" id="wallet-chip"><span id="wallet-name">Wallet</span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg></button></div>
+      <div class="home-top"><div class="home-left"><button class="pill icon" id="go-settings" aria-label="Settings" title="Settings"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></button><button class="wallet-chip" id="wallet-chip"><span id="wallet-name">Wallet</span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg></button><button class="pill icon" id="go-contacts" aria-label="Contacts" title="Contacts"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><path d="M16 3.128a4 4 0 0 1 0 7.744"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><circle cx="9" cy="7" r="4"/></svg></button></div>
         <div class="account"><button class="me-face" id="board-who" hidden aria-label="Your profile" title="Your profile"></button><button class="pill" id="board-signin-go">Sign in</button></div></div>
       <!-- A swap that needs you, or is under way: impossible to miss. -->
       <button class="swap-alert" id="swap-alert" hidden>
@@ -1759,16 +1759,16 @@
           Swap
         </button>
         <button class="tile" id="go-market">
-          <span class="icon pearl"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2.992 16.342a2 2 0 0 1 .094 1.167l-1.065 3.29a1 1 0 0 0 1.236 1.168l3.413-.998a2 2 0 0 1 1.099.092 10 10 0 1 0-4.777-4.719"/><path d="M8 12h.01"/><path d="M12 12h.01"/><path d="M16 12h.01"/></svg></span>
-          Community<span class="dot" id="market-unread" hidden></span>
+          <span class="icon pearl"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/><path d="M2 12h20"/></svg></span>
+          Community
         </button>
         <button class="tile" id="go-get">
           <span class="icon pearl"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="M12 5v14"/></svg></span>
           Get ORN
         </button>
-        <button class="tile" id="go-contacts">
-          <span class="icon pearl"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><path d="M16 3.128a4 4 0 0 1 0 7.744"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><circle cx="9" cy="7" r="4"/></svg></span>
-          Contacts
+        <button class="tile" id="go-messages">
+          <span class="icon pearl"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2.992 16.342a2 2 0 0 1 .094 1.167l-1.065 3.29a1 1 0 0 0 1.236 1.168l3.413-.998a2 2 0 0 1 1.099.092 10 10 0 1 0-4.777-4.719"/></svg></span>
+          Messages<span class="dot" id="market-unread" hidden></span>
         </button>
         <button class="tile" id="go-mine">
           <span class="icon pearl"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m14 13-8.381 8.38a1 1 0 0 1-3.001-3L11 9.999"/><path d="M15.973 4.027A13 13 0 0 0 5.902 2.373c-1.398.342-1.092 2.158.277 2.601a19.9 19.9 0 0 1 5.822 3.024"/><path d="M16.001 11.999a19.9 19.9 0 0 1 3.024 5.824c.444 1.369 2.26 1.676 2.603.278A13 13 0 0 0 20 8.069"/><path d="M18.352 3.352a1.205 1.205 0 0 0-1.704 0l-5.296 5.296a1.205 1.205 0 0 0 0 1.704l2.296 2.296a1.205 1.205 0 0 0 1.704 0l5.296-5.296a1.205 1.205 0 0 0 0-1.704z"/></svg></span>
@@ -1864,7 +1864,7 @@
 
     <section class="screen" id="market" hidden>
       <div class="topline"><button class="back" data-back aria-label="Back"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg></button><h2>Community</h2>
-        <div class="account mk-tools"><button class="pill pearl" id="mk-sell">Sell</button><button class="pill icon mk-inbox" id="mk-inbox" title="Messages" aria-label="Messages"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 10a2 2 0 0 1-2 2H6.828a2 2 0 0 0-1.414.586l-2.202 2.202A.71.71 0 0 1 2 14.286V4a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/><path d="M20 9a2 2 0 0 1 2 2v10.286a.71.71 0 0 1-1.212.502l-2.202-2.202A2 2 0 0 0 17.172 19H10a2 2 0 0 1-2-2v-1"/></svg><span class="dot" id="mk-unread" hidden></span></button></div></div>
+        <div class="account mk-tools"><button class="pill pearl" id="mk-sell">Sell</button></div></div>
       <div class="tabs cm-tabs" role="tablist"><button class="tab" data-cm-tab="community" role="tab">Feed</button><button class="tab on" data-cm-tab="market" role="tab">Market</button></div>
       <p class="lede">Work and things offered for ORN. You pay the seller straight from your wallet: the Market never holds anyone's coins.</p>
       <div class="box plain mk-search"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m21 21-4.34-4.34"/><circle cx="11" cy="11" r="8"/></svg><input id="mk-q" placeholder="Search listings" autocomplete="off" spellcheck="false"></div>
@@ -5961,8 +5961,6 @@
     setBadge();
     const n = (board.me && board.me.unread) || 0;
     $("market-unread").hidden = !n;
-    $("mk-unread").hidden = !n;
-    $("mk-inbox").hidden = !board.me;
   }
 
   $("ls-signin").onclick = () => { signinReturn = "listing"; resetSignin(); show("board-signin"); };
@@ -6027,8 +6025,12 @@
     if (!inbox.items.length) $("ib-list").innerHTML = '<div class="empty">Loading…</div>';
     await loadInbox();
   }
-  $("mk-inbox").onclick = openInbox;
-  $("ib-back").onclick = () => { chat.id = null; show("market"); };
+  // Messages stands on its own: its own button on the home screen.
+  $("go-messages").onclick = () => {
+    if (!board.me) { signinReturn = "messages"; resetSignin(); show("board-signin"); return; }
+    openInbox();
+  };
+  $("ib-back").onclick = () => { chat.id = null; home(); };
   $("ib-list").onclick = (e) => { const r = e.target.closest("[data-chat]"); if (r) openChat(Number(r.dataset.chat), "inbox"); };
 
   // The window crossing the width while in Messages: one at a time, or
@@ -6634,6 +6636,7 @@
         if (phone) invoke("push_sync").catch(() => {});
         if (signinReturn === "home") { signinReturn = "swaps"; await loadBoard(); home(); return; }
         if (signinReturn === "community") { signinReturn = "swaps"; await loadBoard(); openCommunity(); return; }
+        if (signinReturn === "messages") { signinReturn = "swaps"; await loadBoard(); openInbox(); return; }
         if (signinReturn === "listing") { signinReturn = "swaps"; await loadBoard(); if (market.listing) openListing(market.listing.id, market.from); return; }
         show("swaps");
         await loadBoard();
