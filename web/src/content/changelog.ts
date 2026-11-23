@@ -27,6 +27,15 @@ export const PRODUCTS: Record<Product, string> = {
 export const CHANGELOG: Entry[] = [
   {
     date: '2026-11-23',
+    products: ['network'],
+    title: 'Your mining story, even if you verified your wallet later',
+    changes: [
+      'When you verify a wallet, the community fills in what the network would have said about it before: your mining milestones, your streaks, and days you were the top miner that had none. Each is dated when it happened.',
+      'Welcome cards show your name and picture on a wallet you verified after it was welcomed.',
+    ],
+  },
+  {
+    date: '2026-11-23',
     products: ['marketplace'],
     title: 'Message anyone, and choose who can message you',
     changes: [
