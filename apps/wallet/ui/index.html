@@ -1423,16 +1423,22 @@
       /* --f0/--f1 and --r0/--r1: where the feed and the sidebar really
          start and end, measured (cmFitRail), so the corners sit on them at
          any window width. */
-      --M: var(--m) 0 var(--rt) / 100% calc(100% - var(--rt) - var(--rb)) no-repeat,
-        var(--m) calc(var(--f0) + var(--rt)) 0 / calc(var(--f1) - var(--f0) - 2 * var(--rt)) var(--rt) no-repeat,
+      --Mt: var(--m) calc(var(--f0) + var(--rt)) 0 / calc(var(--f1) - var(--f0) - 2 * var(--rt)) var(--rt) no-repeat,
         var(--m) calc(var(--r0) + var(--rt)) 0 / calc(var(--r1) - var(--r0) - 2 * var(--rt)) var(--rt) no-repeat,
         var(--tl) var(--f0) 0 / var(--rt) var(--rt) no-repeat, var(--tr) calc(var(--f1) - var(--rt)) 0 / var(--rt) var(--rt) no-repeat,
-        var(--tl) var(--r0) 0 / var(--rt) var(--rt) no-repeat, var(--tr) calc(var(--r1) - var(--rt)) 0 / var(--rt) var(--rt) no-repeat,
+        var(--tl) var(--r0) 0 / var(--rt) var(--rt) no-repeat, var(--tr) calc(var(--r1) - var(--rt)) 0 / var(--rt) var(--rt) no-repeat;
+      --M: var(--m) 0 var(--rt) / 100% calc(100% - var(--rt) - var(--rb)) no-repeat, var(--Mt),
         var(--m) calc(var(--f0) + var(--rb)) 100% / calc(var(--f1) - var(--f0) - 2 * var(--rb)) var(--rb) no-repeat,
         var(--m) calc(var(--r0) + var(--rb)) 100% / calc(var(--r1) - var(--r0) - 2 * var(--rb)) var(--rb) no-repeat,
         var(--bl) var(--f0) 100% / var(--rb) var(--rb) no-repeat, var(--br) calc(var(--f1) - var(--rb)) 100% / var(--rb) var(--rb) no-repeat,
         var(--bl) var(--r0) 100% / var(--rb) var(--rb) no-repeat, var(--br) calc(var(--r1) - var(--rb)) 100% / var(--rb) var(--rb) no-repeat;
       -webkit-mask: var(--M); mask: var(--M); }
+    /* While the Feed and Market tabs, which run across both columns, are
+       still on screen, the top edge is one: rounded at the screen's own
+       corners only. The bottom edge stays cut into the two columns. */
+    html body #community:not(.split-top) {
+      --Mt: var(--m) calc(var(--f0) + var(--rt)) 0 / calc(var(--r1) - var(--f0) - 2 * var(--rt)) var(--rt) no-repeat,
+        var(--tl) var(--f0) 0 / var(--rt) var(--rt) no-repeat, var(--tr) calc(var(--r1) - var(--rt)) 0 / var(--rt) var(--rt) no-repeat; }
     /* The space under the last post is the feed's own, not the screen's:
        so the sidebar, which reaches the window's foot, is never pushed up
        (and seems to scroll) once the feed runs out. */
@@ -6394,6 +6400,10 @@
     const feed = document.querySelector(".cm-main").getBoundingClientRect(), side = rail.getBoundingClientRect(), c = $("community").style;
     c.setProperty("--f0", `${feed.left - box.left}px`); c.setProperty("--f1", `${feed.right - box.left}px`);
     c.setProperty("--r0", `${side.left - box.left}px`); c.setProperty("--r1", `${side.right - box.left}px`);
+    // The top edge splits into the two columns only once the tabs across
+    // both of them have scrolled out of sight.
+    const tabs = document.querySelector("#community .cm-tabs").getBoundingClientRect();
+    $("community").classList.toggle("split-top", tabs.bottom <= box.top);
   }
   $("community").addEventListener("scroll", () => requestAnimationFrame(cmFitRail), { passive: true });
   window.addEventListener("resize", cmFitRail);
