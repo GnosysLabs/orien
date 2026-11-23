@@ -1435,6 +1435,7 @@
   .cm-board .cm-showall { width: 100%; padding: 11px 14px; border: 0; border-top: 1px solid var(--line); background: transparent; text-align: left; font-weight: 600; font-size: 13px; cursor: pointer; }
   .cm-board .cm-showall:hover { background: var(--surface-hover); }
   .cm-board .cm-none { margin: 0; padding: 6px 14px 14px; color: var(--dim); font-size: 13px; }
+  .cm-found .cm-none { margin: 0; padding: 14px 16px; color: var(--dim); font-size: 13.5px; }
   [data-user] { cursor: pointer; }
   @media (hover: hover) { b[data-user]:hover, .cm-name[data-user]:hover, .cm-reply-head b[data-user]:hover { text-decoration: underline; text-underline-offset: 2px; } }
   .cm-compose, .cm-join { display: flex; gap: 12px; padding: 14px 16px; margin-bottom: 16px;
@@ -1743,6 +1744,14 @@
   /* Spacing above an element. Kept here, not in style="" attributes, which
      the app's security rules block. */
   [data-gap="sm"] { margin-top: 10px; }
+  /* What used to be style="" attributes, which those rules block too. */
+  .fineprint.center { text-align: center; }
+  #lock-go { width: auto; padding: 0 28px; }
+  .cm-big.mt6 { margin-top: 6px; }
+  .mw0 { min-width: 0; }
+  b.ink { color: var(--ink); }
+  .ls-ask-row.center { justify-content: center; }
+  .report-box.ch-report-inline { margin: 0 0 12px; }
   [data-gap="lg"] { margin-top: 14px; }
   [data-gap="xl"] { margin-top: 18px; }
   /* Buttons stacked in a screen never touch. */
@@ -2691,7 +2700,7 @@
       </div>
       <ol class="steps" id="sw-steps" data-gap="lg"></ol>
       <div class="push"></div>
-      <p class="fineprint" id="sw-fine" style="text-align:center"></p>
+      <p class="fineprint center" id="sw-fine"></p>
     </section>
 
     <section class="screen" id="swap-posted" hidden>
@@ -2815,7 +2824,7 @@
     </section>
   </main>
 
-<div id="lock-veil" hidden><div class="lv-in"><div class="mark brand"></div><button class="primary pearl" id="lock-go" style="width:auto;padding:0 28px">Unlock</button></div></div>
+<div id="lock-veil" hidden><div class="lv-in"><div class="mark brand"></div><button class="primary pearl" id="lock-go">Unlock</button></div></div>
 <div id="si-veil" hidden><div id="si-card" role="dialog" aria-modal="true" aria-labelledby="si-title">
   <div id="si-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m10 17 5-5-5-5"/><path d="M15 12H3"/><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/></svg></div>
   <div id="si-title"></div>
@@ -5901,7 +5910,7 @@
         const m = d.miner || {};
         const day = new Date(`${d.day}T00:00:00Z`).toLocaleDateString([], { day: "numeric", month: "long", timeZone: "UTC" });
         return `<div class="cm-news row">${m.name ? `<span data-user="${esc(m.name)}">${cmFace(m)}</span>` : cmFace(null)}<div><div class="cm-line"><b${m.name ? ` data-user="${esc(m.name)}"` : ""}>${m.name ? esc(m.name) : esc(short(m.address || ""))}</b> mined the most of Orien Network’s members on ${esc(day)}</div>
-          <div class="cm-big" style="margin-top:6px">${cmOrn(d.mined)} ORN</div><div class="cm-small">Of ${cmOrn(d.total)} ORN paid to ${esc(String(d.miners))} miners that day.</div></div></div>`;
+          <div class="cm-big mt6">${cmOrn(d.mined)} ORN</div><div class="cm-small">Of ${cmOrn(d.total)} ORN paid to ${esc(String(d.miners))} miners that day.</div></div></div>`;
       }
       default: return "";
     }
@@ -5920,7 +5929,7 @@
     const art = network ? `<img class="cm-art" src="community/${esc(post.kind)}.jpg" alt="">`
       : post.author && post.author.banner ? picImg(post.author.banner).replace("<img ", '<img class="cm-art" ') : "";
     const head = network
-      ? `${cmFace(null)}<div class="cm-who"><div class="cm-eyebrow pearl-text">${esc(EYEBROWS[post.kind] || "Orien Network")}</div><div class="cm-when"><b style="color:var(--ink)">Orien Network</b> · ${ago(post.created)}</div></div>`
+      ? `${cmFace(null)}<div class="cm-who"><div class="cm-eyebrow pearl-text">${esc(EYEBROWS[post.kind] || "Orien Network")}</div><div class="cm-when"><b class="ink">Orien Network</b> · ${ago(post.created)}</div></div>`
       : `<span data-user="${esc((post.author && post.author.name) || "")}">${cmFace(post.author)}</span><div class="cm-who"><div class="cm-name" data-user="${esc((post.author && post.author.name) || "")}">${esc((post.author && post.author.name) || "")}</div><div class="cm-when">${ago(post.created)}</div></div>${post.mine ? `<button class="cm-del" data-del="${post.id}" aria-label="Delete" title="Delete"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M10 11v6"/><path d="M14 11v6"/></svg></button>` : ""}`;
     const chips = (post.reactions || []).map((r) => `<button class="cm-chip${r.me ? " on" : ""}" data-react="${post.id}" data-emoji="${esc(r.emoji)}"><span>${esc(r.emoji)}</span><b>${r.count}</b></button>`).join("");
     const replies = inThread || post.parent ? "" : `<button class="cm-chip${cm.open.has(post.id) ? " on" : ""}" data-open="${post.id}">${REPLY_ICON}${post.replies ? `<b>${post.replies}</b>` : ""}</button>`;
@@ -5995,7 +6004,7 @@
     const you = cm.you;
     $("cm-you").innerHTML = !you
       ? '<b>New here?</b><p>Sign in to Orien Network to post and react.</p><button class="pill" data-rail-go="signin">Sign in</button>'
-      : `<div class="cm-me-row" data-user="${esc(you.name)}">${cmPerson(you.name, you.picture)}<div style="min-width:0"><div class="cm-name">${esc(you.name)}</div><div class="cm-when">${you.verified ? "Verified wallet" : "No verified wallet yet"}</div></div></div>`
+      : `<div class="cm-me-row" data-user="${esc(you.name)}">${cmPerson(you.name, you.picture)}<div class="mw0"><div class="cm-name">${esc(you.name)}</div><div class="cm-when">${you.verified ? "Verified wallet" : "No verified wallet yet"}</div></div></div>`
         + (you.stats ? `<div class="cm-stats"><div><b>#${you.stats.rank}</b><span>rank</span></div><div><b>${cmOrn(you.stats.mined)}</b><span>ORN mined</span></div><div><b>${you.stats.streak}h</b><span>in a row</span></div></div>`
           : `<p>${you.verified ? "Mine with a verified wallet and your figures show here after the next checkpoint." : "Verify a wallet to post and see your mining here."}</p>`)
         + (you.verified ? "" : '<button class="pill" data-rail-go="verify">Verify a wallet</button>');
@@ -6039,7 +6048,7 @@
       if ($("cm-find").value.trim() !== q) return;
       $("cm-found").innerHTML = found.length
         ? found.map((m) => `<button class="cm-row" data-user="${esc(m.name)}">${cmPerson(m.name, m.picture)}<span class="cm-rname">${esc(m.name)}</span>${m.rank ? `<span class="cm-when">${m.rank <= 3 ? MEDALS[m.rank - 1] : "#" + m.rank} miner</span>` : ""}</button>`).join("")
-        : '<p class="cm-none" style="padding:12px 14px">Nobody by that name.</p>';
+        : '<p class="cm-none">Nobody by that name.</p>';
       $("cm-found").hidden = false;
     }, 200);
   });
@@ -6576,7 +6585,7 @@
           const faces = l.kind === "network" ? '<span class="cm-net nt-net"><span class="mark"></span></span>'
             : `<span class="nt-faces">${(l.people || []).slice(0, 2).map((p) => mkAvatar(p.name, p.picture)).join("")}</span>`;
           return `<button class="ib-row nt-row${l.unseen ? " unread" : ""}" data-nt="${i}">${faces}
-            <div style="min-width:0"><div class="nt-said">${ntLine(l)}</div>${l.text ? `<div class="nt-text">${esc(l.text)}</div>` : ""}<span class="when">${esc(ago(l.time))}</span></div></button>`;
+            <div class="mw0"><div class="nt-said">${ntLine(l)}</div>${l.text ? `<div class="nt-text">${esc(l.text)}</div>` : ""}<span class="when">${esc(ago(l.time))}</span></div></button>`;
         }).join("")}</div>`
       : '<div class="empty">Nothing yet. Replies, reactions and messages show up here.</div>';
   }
@@ -6669,7 +6678,7 @@
           const last = c.last ? (c.last.kind === "request" ? "Payment request" : c.last.kind === "paid" ? "Marked as paid" : c.last.body) : "";
           return `<button class="ib-row${c.unread ? " unread" : ""}${c.id === chat.id ? " on" : ""}" data-chat="${c.id}">
             ${mkAvatar(c.with_name, c.with_picture)}
-            <div style="min-width:0"><div class="nm"><b>${esc(c.with_name)}</b><span class="when">${esc(ago(c.updated))}</span></div>
+            <div class="mw0"><div class="nm"><b>${esc(c.with_name)}</b><span class="when">${esc(ago(c.updated))}</span></div>
               ${c.listing_title ? `<div class="what">${esc(c.listing_title)}</div>` : ""}<div class="last">${esc(last)}</div></div>
             <span class="udot"></span>
           </button>`;
@@ -6805,7 +6814,7 @@
   }
   function paintChat() {
     const c = chat.conv, other = esc(c.with_name);
-    $("ch-who").innerHTML = `${mkAvatar(c.with_name, c.with_picture)}<div style="min-width:0"><b>${other}</b>${c.listing ? `<small>${c.buying ? "Seller" : "Buyer"}</small>` : ""}</div>`;
+    $("ch-who").innerHTML = `${mkAvatar(c.with_name, c.with_picture)}<div class="mw0"><b>${other}</b>${c.listing ? `<small>${c.buying ? "Seller" : "Buyer"}</small>` : ""}</div>`;
     // A direct conversation is about nothing in particular: no listing, no payment requests.
     $("ch-about").hidden = !c.listing;
     $("ch-about").innerHTML = c.listing ? `<b>About ${esc(c.listing_title)}</b><span>${priceHtml(c)}</span>` : "";
@@ -6833,7 +6842,7 @@
           const typed = !!(view && view.locked && !view.biometric);
           action = `<div class="sub">Sends exactly ${orn(m.amount)} ORN from this wallet to ${other}'s wallet, ${short(c.pay_to)}. It can't be undone.</div>
             ${typed ? '<div class="pw"><input type="password" id="ch-pay-pw" placeholder="Wallet password" autocomplete="off"></div>' : ""}
-            <div class="ls-ask-row" style="justify-content:center"><button class="pill" data-paycancel>Cancel</button><button class="pill pearl" data-paynow="${m.id}">${view && view.biometric && !typed ? `Pay with ${bio}` : "Pay now"}</button></div>`;
+            <div class="ls-ask-row center"><button class="pill" data-paycancel>Cancel</button><button class="pill pearl" data-paynow="${m.id}">${view && view.biometric && !typed ? `Pay with ${bio}` : "Pay now"}</button></div>`;
         } else action = `<button class="pill pearl" data-pay="${m.id}">Pay ${orn(m.amount)} ORN</button>`;
         html += `<div class="paycard"><div class="lbl">Payment request</div><div class="amt">${orn(m.amount)} ORN</div>${action}</div>`;
       } else if (m.kind === "paid") {
@@ -6880,7 +6889,7 @@
     const box = document.getElementById("ch-report-box");
     $("ch-menu").hidden = true;
     if (box) { box.remove(); return; }
-    $("ch-about").insertAdjacentHTML("beforebegin", `<div class="report-box" id="ch-report-box" style="margin:0 0 12px"><textarea id="ch-report-text" rows="3" maxlength="1000" placeholder="What is wrong with ${esc(c.with_name)}? A scam, pretending to be someone…"></textarea><div class="ls-ask-row"><span class="hint" id="ch-report-done"></span><button class="pill" id="ch-report-send">Send report</button></div></div>`);
+    $("ch-about").insertAdjacentHTML("beforebegin", `<div class="report-box ch-report-inline" id="ch-report-box"><textarea id="ch-report-text" rows="3" maxlength="1000" placeholder="What is wrong with ${esc(c.with_name)}? A scam, pretending to be someone…"></textarea><div class="ls-ask-row"><span class="hint" id="ch-report-done"></span><button class="pill" id="ch-report-send">Send report</button></div></div>`);
     $("ch-report-text").focus();
     $("ch-report-send").onclick = async () => {
       try {
