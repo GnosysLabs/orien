@@ -6876,20 +6876,21 @@
       case "reply": return `replied to ${theirs}`;
       case "also": return "also replied to a post you replied to";
       case "react": return `reacted ${(l.emojis || []).map(esc).join(" ")} to ${theirs}`;
-      case "tip": return `tipped you ${cmOrn(l.orn)} ORN for ${theirs}`;
       case "message": return l.listing ? `wrote to you about ${esc(l.listing)}` : "wrote to you";
       default: return "";
     }
   }
   function ntLine(l) {
     if (l.kind === "network") return `<b>Orien Network</b> posted about you: <b>${esc(EYEBROWS[l.post_kind] || "news")}</b>`;
+    // A tip names one person: each tip is its own line.
+    if (l.kind === "tip") return `<b>${esc(l.name || "Someone")}</b> tipped you ${cmOrn(l.orn)} ORN for your post`;
     return `${ntNames(l.people, l.others)} ${ntSaid(l)}`;
   }
   function paintNotices() {
     $("nt-list").innerHTML = nt.lines.length
       ? `<div class="list">${nt.lines.map((l, i) => {
           const faces = l.kind === "network" ? '<span class="cm-net nt-net"><span class="mark"></span></span>'
-            : `<span class="nt-faces">${(l.people || []).slice(0, 2).map((p) => mkAvatar(p.name, p.picture)).join("")}</span>`;
+            : `<span class="nt-faces">${(l.people || (l.name ? [{ name: l.name, picture: l.picture }] : [])).slice(0, 2).map((p) => mkAvatar(p.name, p.picture)).join("")}</span>`;
           return `<button class="ib-row nt-row${l.unseen ? " unread" : ""}" data-nt="${i}">${faces}
             <div class="mw0"><div class="nt-said">${ntLine(l)}</div>${l.text ? `<div class="nt-text">${esc(l.text)}</div>` : ""}<span class="when">${esc(ago(l.time))}</span></div></button>`;
         }).join("")}</div>`
@@ -6929,7 +6930,8 @@
     heard = heard || {};
     for (const l of lines) {
       if (!l.unseen || l.kind === "message") continue;
-      const key = `${l.kind}:${l.post}`;
+      // Each tip is its own line: told on its own.
+      const key = l.kind === "tip" ? `tip:${l.post}:${l.time}:${l.name}` : `${l.kind}:${l.post}`;
       if ((heard[key] || 0) >= l.time) continue;
       heard[key] = l.time;
       if (first || !$("notices").hidden) continue;
