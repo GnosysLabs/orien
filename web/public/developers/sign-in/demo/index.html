@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Sign in with Orien Wallet: demo</title>
 <style>
-  body { margin: 0; min-height: 100vh; display: grid; place-items: center; background: #15161a; color: #eceef2;
+  body { margin: 0; min-height: 100vh; box-sizing: border-box; padding: 88px 0 32px; display: grid; place-items: center; background: #15161a; color: #eceef2;
     font: 15px/1.5 -apple-system, system-ui, sans-serif; }
   main { width: min(420px, 90vw); text-align: center; }
   h1 { font-size: 22px; margin: 0 0 8px; }
@@ -24,9 +24,17 @@
   #out { margin-top: 24px; padding: 14px; border: 1px solid #2c2d33; border-radius: 14px; text-align: left; word-break: break-all;
     font: 13px ui-monospace, Menlo, monospace; color: #cfd2d8; white-space: pre-wrap; }
   #out.bad { color: #f08a8a; }
+  .notice { position: fixed; top: 16px; left: 50%; transform: translateX(-50%); width: max-content; max-width: calc(100vw - 32px);
+    display: flex; align-items: center; gap: 10px; padding: 12px 18px; border: 1px solid rgba(240, 180, 80, 0.4);
+    border-radius: 14px; background: rgba(240, 180, 80, 0.1); color: #eceef2; font-weight: 600; }
+  .notice svg { flex: none; color: #f0b450; }
 </style>
 </head>
 <body>
+<div class="notice" role="status">
+  <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+  Pending extension version 1.0.4
+</div>
 <main>
   <h1>Demo website</h1>
   <p>Sign in with your Orien wallet. No email, no password.</p>

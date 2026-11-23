@@ -47,11 +47,13 @@ export const WALLET_SIGN_IN_FOR_EVERYONE = true
 
 /** Whether the Sign in with Orien Wallet developer docs (/developers/sign-in/
  * and its demo) are linked from the menus, the Developers page and the
- * sitemap. Off until the Chrome and Firefox extensions that can do it are
- * approved in their stores; meanwhile the page still answers (Mozilla's
- * reviewers are sent to it), under a "Pending latest extension update
- * approval" notice and kept out of search results. */
-export const WALLET_SIGN_IN_DOCS = false
+ * sitemap, and open to search engines. */
+export const WALLET_SIGN_IN_DOCS = true
+
+/** A notice at the top of the sign-in docs and their demo while the browser
+ * extension that can do it waits for store approval. Empty: no notice. The
+ * demo (public/developers/sign-in/demo/index.html) has the same text. */
+export const WALLET_SIGN_IN_NOTICE = 'Pending extension version 1.0.4'
 
 /** Whether the community page is open and linked. Until then it says it opens soon. */
 export const COMMUNITY_LIVE = true

@@ -2,7 +2,7 @@ import { CopySnippet } from '@/components/CopySnippet'
 import { CopyText } from '@/components/CopyText'
 import type { Metadata } from 'next'
 import { ArrowUpRight, Clock } from 'lucide-react'
-import { WALLET_SIGN_IN_DOCS } from '@/lib/brand'
+import { WALLET_SIGN_IN_DOCS, WALLET_SIGN_IN_NOTICE } from '@/lib/brand'
 import { pageMeta } from '@/lib/seo'
 
 export const metadata: Metadata = {
@@ -119,10 +119,10 @@ const link = 'font-semibold text-ink underline underline-offset-4'
 export default function SignInDevelopersPage() {
   return (
     <div className="mx-auto max-w-[860px] space-y-8 pb-16 pt-5 sm:pt-7">
-      {!WALLET_SIGN_IN_DOCS && (
+      {WALLET_SIGN_IN_NOTICE && (
         <div role="status" className="flex items-center gap-3 rounded-2xl border border-warn/40 bg-warn/10 px-5 py-4">
           <Clock className="h-5 w-5 shrink-0 text-warn" aria-hidden />
-          <p className="font-semibold text-ink">Pending latest extension update approval</p>
+          <p className="font-semibold text-ink">{WALLET_SIGN_IN_NOTICE}</p>
         </div>
       )}
       <header className="space-y-4">
