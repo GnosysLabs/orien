@@ -17,6 +17,17 @@ pub struct Contact {
     pub updated: u64,
 }
 
+/// A person on Orien Network saved as a contact: by their account, so the
+/// card shows every wallet they verify, now or later. `name` is their name
+/// when saved, shown until their profile is fetched.
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+pub struct Member {
+    pub id: i64,
+    pub name: String,
+    #[serde(default)]
+    pub updated: u64,
+}
+
 /// The whole book as devices share it: contacts, and when each removed one
 /// was removed, so a removal on one device isn't undone by another.
 #[derive(Clone, Default, Serialize, Deserialize)]
@@ -32,6 +43,10 @@ pub struct Book {
     /// app's theme, by name.
     #[serde(default)]
     pub prefs: std::collections::BTreeMap<String, Pref>,
+    /// Orien Network members saved as contacts. A removed one is in
+    /// `deleted` as "member:ID".
+    #[serde(default)]
+    pub members: Vec<Member>,
 }
 
 /// One such choice and when it was made: the newest wins across devices.
@@ -99,7 +114,7 @@ fn deleted(dir: &Path) -> std::collections::BTreeMap<String, u64> {
 
 /// The book, with removals, as this device has it.
 pub fn book(dir: &Path) -> Book {
-    Book { contacts: list(dir), deleted: deleted(dir), icons: icons(dir), prefs: prefs(dir) }
+    Book { contacts: list(dir), deleted: deleted(dir), icons: icons(dir), prefs: prefs(dir), members: members(dir) }
 }
 
 /// Takes in another device's book: for each address, the newest of its
@@ -143,6 +158,20 @@ pub fn merge(dir: &Path, other: &Book) -> Result<bool, String> {
     if prefs != mine.prefs {
         store_prefs(dir, &prefs)?;
     }
+    // Members: the newest of each, unless removed since.
+    let mut people: std::collections::BTreeMap<i64, Member> = std::collections::BTreeMap::new();
+    for member in mine.members.iter().chain(&other.members) {
+        if people.get(&member.id).is_none_or(|kept| kept.updated < member.updated) {
+            people.insert(member.id, member.clone());
+        }
+    }
+    let people: Vec<Member> =
+        people.into_values().filter(|m| removed.get(&member_key(m.id)).is_none_or(|at| *at < m.updated)).collect();
+    let mut sorted_mine = mine.members.clone();
+    sorted_mine.sort_by_key(|m| m.id);
+    if people != sorted_mine {
+        store_members(dir, &people)?;
+    }
     let changed = merged.len() != mine.contacts.len()
         || merged.iter().any(|c| !mine.contacts.iter().any(|m| m.address == c.address && m.name == c.name))
         || removed != mine.deleted;
@@ -156,6 +185,51 @@ pub fn merge(dir: &Path, other: &Book) -> Result<bool, String> {
 fn store_deleted(dir: &Path, deleted: &std::collections::BTreeMap<String, u64>) -> Result<(), String> {
     let text = serde_json::to_string_pretty(deleted).map_err(|error| error.to_string())?;
     fs::write(dir.join("contacts-deleted.json"), text).map_err(|error| error.to_string())
+}
+
+fn member_key(id: i64) -> String {
+    format!("member:{id}")
+}
+
+/// The members saved as contacts, by id.
+pub fn members(dir: &Path) -> Vec<Member> {
+    let mut members: Vec<Member> =
+        fs::read(dir.join("members.json")).ok().and_then(|bytes| serde_json::from_slice(&bytes).ok()).unwrap_or_default();
+    members.sort_by_key(|m| m.id);
+    members
+}
+
+fn store_members(dir: &Path, members: &[Member]) -> Result<(), String> {
+    let text = serde_json::to_string_pretty(members).map_err(|error| error.to_string())?;
+    let temporary = dir.join("members.json.new");
+    fs::write(&temporary, text).map_err(|error| error.to_string())?;
+    fs::rename(temporary, dir.join("members.json")).map_err(|error| error.to_string())
+}
+
+/// Saves a member as a contact (again, if removed before).
+pub fn save_member(dir: &Path, id: i64, name: &str) -> Result<(), String> {
+    if id <= 0 {
+        return Err("That isn't an Orien Network member.".into());
+    }
+    let mut all = members(dir);
+    all.retain(|m| m.id != id);
+    all.push(Member { id, name: name.trim().chars().take(40).collect(), updated: now() });
+    all.sort_by_key(|m| m.id);
+    let mut removed = deleted(dir);
+    if removed.remove(&member_key(id)).is_some() {
+        store_deleted(dir, &removed)?;
+    }
+    store_members(dir, &all)
+}
+
+/// Removes a member from the contacts.
+pub fn delete_member(dir: &Path, id: i64) -> Result<(), String> {
+    let mut all = members(dir);
+    all.retain(|m| m.id != id);
+    let mut removed = deleted(dir);
+    removed.insert(member_key(id), now());
+    store_deleted(dir, &removed)?;
+    store_members(dir, &all)
 }
 
 pub fn list(dir: &Path) -> Vec<Contact> {
@@ -247,5 +321,33 @@ mod tests {
         delete(&dir, bob).unwrap();
         assert_eq!(list(&dir).len(), 1);
         fs::remove_dir_all(&dir).unwrap();
+    }
+
+    #[test]
+    fn members_merge_across_devices_and_stay_removed() {
+        let here = std::env::temp_dir().join(format!("orien-members-a-{}", std::process::id()));
+        let there = std::env::temp_dir().join(format!("orien-members-b-{}", std::process::id()));
+        for dir in [&here, &there] {
+            let _ = fs::remove_dir_all(dir);
+            fs::create_dir_all(dir).unwrap();
+        }
+        save_member(&here, 7, "Maya").unwrap();
+        save_member(&there, 9, "Sam").unwrap();
+        merge(&here, &book(&there)).unwrap();
+        assert_eq!(members(&here).iter().map(|m| m.id).collect::<Vec<_>>(), [7, 9]);
+        // A book from before members were kept leaves them alone.
+        let old = Book { members: Vec::new(), ..book(&there) };
+        merge(&here, &old).unwrap();
+        assert_eq!(members(&here).len(), 2);
+        // Removed on one device: gone on the other too, until saved again.
+        std::thread::sleep(std::time::Duration::from_millis(1100));
+        delete_member(&there, 7).unwrap();
+        merge(&there, &book(&here)).unwrap();
+        merge(&here, &book(&there)).unwrap();
+        assert_eq!(members(&here).iter().map(|m| m.id).collect::<Vec<_>>(), [9]);
+        assert!(save_member(&here, 0, "Nobody").is_err());
+        for dir in [&here, &there] {
+            fs::remove_dir_all(dir).unwrap();
+        }
     }
 }

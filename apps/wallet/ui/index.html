@@ -1578,8 +1578,17 @@
   .ct-addr.copied { color: var(--good); }
   .ct-hero .ct-send { width: auto; min-width: 220px; padding: 0 36px; margin-top: 18px; }
   .ct-hero .ct-message { width: auto; min-width: 220px; padding: 0 36px; margin-top: 10px; }
-  .sl-actions { display: flex; justify-content: center; margin-top: 20px; }
-  .sl-message { width: auto; height: 42px; padding: 0 22px; border-radius: 13px; font-size: 14px; font-weight: 700; }
+  .sl-actions { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; margin-top: 20px; }
+  .sl-message, .sl-add { width: auto; height: 42px; padding: 0 22px; border-radius: 13px; font-size: 14px; font-weight: 700; }
+  .sl-add { display: inline-flex; align-items: center; justify-content: center; }
+  /* A member's contact card. */
+  .mb-hero .mb-name { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 8px; margin-top: 14px; font-size: 22px; font-weight: 700; }
+  .mb-actions { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; margin-top: 18px; }
+  .mb-btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; width: auto; min-width: 140px; height: 44px; padding: 0 22px; }
+  .mb-wallet { align-items: center; }
+  .mb-wallet .pill { flex: none; }
+  .mb-tag { display: inline-block; margin-left: 6px; padding: 1px 7px; border-radius: 999px; background: rgba(var(--tint), 0.06); color: var(--dim); font-size: 11px; font-weight: 600; vertical-align: 1px; }
+  #mb-wallets .empty { text-align: center; }
   .sl-message, .ct-message { display: inline-flex; align-items: center; justify-content: center; gap: 8px; }
   .sl-message svg, .ct-message svg { flex: none; }
   .ct-delete { display: flex; margin: 22px auto 4px; color: var(--bad); }
@@ -2187,7 +2196,7 @@
           <div class="sl-since" id="sl-since"></div>
           <div class="sl-bio" id="sl-bio"></div>
           <div class="sl-contact" id="sl-contact"></div>
-          <div class="sl-actions" id="sl-actions" hidden><button class="primary pearl sl-message" id="sl-message"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/></svg><span>Message</span></button></div>
+          <div class="sl-actions" id="sl-actions" hidden><button class="primary pearl sl-message" id="sl-message"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/></svg><span>Message</span></button><button class="secondary sl-add" id="sl-add"></button></div>
         </div>
       </div>
       <div class="sl-layout">
@@ -2308,6 +2317,22 @@
       <button class="secondary" id="c-send" hidden data-gap="lg">Send to this contact</button>
       <button class="primary pearl" id="c-save" data-gap="sm">Save</button>
       <button class="pill ct-delete" id="c-delete" hidden>Delete contact</button>
+    </section>
+
+    <!-- A member saved as a contact: who they are and every wallet they
+         verified, each to send to. New wallets they verify show up here. -->
+    <section class="screen" id="member" hidden>
+      <div class="topline"><button class="back" id="mb-back" aria-label="Back"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg></button><h2 id="mb-title">Contact</h2></div>
+      <div class="ct-hero mb-hero">
+        <span class="face ct-face" id="mb-face"></span>
+        <div class="mb-name" id="mb-name"></div>
+        <div class="mb-actions"><button class="primary pearl mb-btn" id="mb-message"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/></svg><span>Message</span></button><button class="secondary mb-btn" id="mb-profile"><span>Profile</span></button></div>
+      </div>
+      <div class="section-head"><h3>Wallets</h3></div>
+      <div id="mb-wallets"></div>
+      <div class="problem" id="mb-problem" hidden></div>
+      <div class="push"></div>
+      <button class="pill ct-delete" id="mb-remove">Remove from contacts</button>
     </section>
 
     <!-- Send: one screen, as in the Safari extension. Recent people to pick
@@ -4105,6 +4130,8 @@
     quoted = null; $("fee-line").textContent = ""; $("amount").style.color = "";
     $("r-bio").checked = false; passwordAsked = false; $("send-problem").hidden = true;
     validate(); show("send"); showRecent(); if (!phone) $("to").focus();
+    // Members saved as contacts, with their wallets, to find by name.
+    loadMembers().then(() => Promise.all(members.map((m) => fetchMember(m.id))));
   };
   $("go-receive").onclick = () => {
     if (!view) return;
@@ -4254,6 +4281,10 @@
     if (!q || isAddress(q)) { list.hidden = true; list.innerHTML = ""; return 0; }
     const places = [
       ...book.map((c) => ({ name: c.name, address: c.address, sub: short(c.address), mine: false })),
+      // Members' verified wallets, each by their name for it.
+      ...members.flatMap((m) => ((memberInfo.get(m.id) || {}).wallets || []).map((w) => ({ address: (w.address || "").toLowerCase(), wallet: w, m })))
+        .filter((x) => x.address && !book.some((c) => c.address === x.address))
+        .map((x) => ({ name: profileLabel({ name: ((memberInfo.get(x.m.id) || {}).account || {}).name || x.m.name, wallet_name: x.wallet.name || null }), address: x.address, sub: short(x.address), mine: false })),
       ...walletList.filter((w) => !w.current).map((w) => ({ name: w.name, address: w.address, sub: "Your wallet", mine: true })),
     ];
     // As Contacts does: a name matches where any of its words starts with
@@ -4594,17 +4625,69 @@
   let editing = null;       // the address of the contact being edited, or null when adding
   let returnTo = "contacts";
 
+  // Members of Orien Network saved as contacts, by account, and what their
+  // profiles say (name, picture, verified wallets), as last fetched.
+  let members = [];
+  const memberInfo = new Map();
+  async function loadMembers() { try { members = (await invoke("members")) || []; } catch { members = []; } }
+  async function fetchMember(id, fresh) {
+    if (!fresh && memberInfo.has(id)) return memberInfo.get(id);
+    try {
+      const answer = await invoke("market_profile", { id });
+      memberInfo.set(id, answer);
+      // Their wallets get their names everywhere: Send, Activity.
+      const a = answer.account || {};
+      for (const w of answer.wallets || []) {
+        const address = (w.address || "").toLowerCase();
+        if (address) profiles.set(address, { id: a.id, name: a.name, picture: a.picture, wallet_name: w.name || null });
+      }
+      return answer;
+    } catch { return memberInfo.get(id) || null; }
+  }
+  // The member an address belongs to, when it's one of their verified wallets.
+  const memberOf = (address) => { const p = profileOf(address); return p && p.id ? p.id : null; };
+  // The people in Contacts: each member once (saved, or through a saved
+  // address of theirs), and plain addresses that belong to no member.
+  function contactGroups() {
+    const people = new Map();
+    for (const m of members) people.set(m.id, { id: m.id, name: m.name, addresses: [] });
+    const loose = [];
+    for (const c of book) {
+      const id = memberOf(c.address);
+      if (!id) { loose.push(c); continue; }
+      if (!people.has(id)) people.set(id, { id, name: (profileOf(c.address) || {}).name || c.name, addresses: [] });
+      people.get(id).addresses.push(c.address);
+    }
+    for (const g of people.values()) {
+      const a = (memberInfo.get(g.id) || {}).account;
+      if (a && a.name) g.name = a.name;
+    }
+    return { people: [...people.values()], loose };
+  }
+  const isContact = (id) => members.some((m) => m.id === id) || book.some((c) => memberOf(c.address) === id);
+  const CHEVRON = '<svg class="chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>';
   function renderContacts() {
-    $("contact-list").innerHTML = book.length
-      ? `<div class="list">${book.map((c) => `<div class="tx contact" data-address="${c.address}">
+    const { people, loose } = contactGroups();
+    const rows = [
+      ...people.map((g) => {
+        const info = memberInfo.get(g.id), a = (info && info.account) || {};
+        const n = info ? (info.wallets || []).length : null;
+        const sub = n === null ? "Orien Network" : n ? `${n} verified wallet${n === 1 ? "" : "s"}` : "No verified wallets yet";
+        const picture = a.picture || (g.addresses[0] && (profileOf(g.addresses[0]) || {}).picture);
+        return { key: g.name.toLowerCase(), html: `<div class="tx contact" data-member="${g.id}">
+          <span class="face">${esc((g.name || "?").slice(0, 1).toUpperCase())}${picture ? picImg(picture) : ""}</span>
+          <div class="tx-main"><div class="title">${esc(g.name)}</div><div class="sub">${esc(sub)}</div></div>${CHEVRON}</div>` };
+      }),
+      ...loose.map((c) => ({ key: c.name.toLowerCase(), html: `<div class="tx contact" data-address="${c.address}">
           ${face(c.address, c.name)}
-          <div class="tx-main"><div class="title">${esc(profileLabel(profileOf(c.address)) || c.name)}</div><div class="sub">${short(c.address)}</div></div>
-          <svg class="chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
-        </div>`).join("")}</div>`
-      : '<div class="empty">No contacts yet. Add someone you pay often, and pick them by name when you send.</div>';
+          <div class="tx-main"><div class="title">${esc(profileLabel(profileOf(c.address)) || c.name)}</div><div class="sub">${short(c.address)}</div></div>${CHEVRON}</div>` })),
+    ].sort((x, y) => x.key.localeCompare(y.key));
+    $("contact-list").innerHTML = rows.length
+      ? `<div class="list">${rows.map((r) => r.html).join("")}</div>`
+      : '<div class="empty">No contacts yet. Add someone you pay often, or add an Orien Network member from their profile.</div>';
   }
   async function openContacts() {
-    await loadBook(); renderContacts(); show("contacts"); paintSyncCard("sync-contacts"); syncBook();
+    await Promise.all([loadBook(), loadMembers()]); renderContacts(); show("contacts"); paintSyncCard("sync-contacts"); syncBook();
     // Fresh profiles each time: names and pictures follow their owners'
     // changes, and saved names are brought in line so search finds them.
     for (const c of book) profiles.delete(c.address);
@@ -4618,6 +4701,9 @@
       }
     }
     if (renamed) await loadBook();
+    if (!$("contacts").hidden) renderContacts();
+    // Each member's card as it is now: new wallets, new names and pictures.
+    await Promise.all(contactGroups().people.map((g) => fetchMember(g.id, true)));
     if (!$("contacts").hidden) renderContacts();
   }
 
@@ -4725,7 +4811,63 @@
   $("add-contact").onclick = () => openContact(null, "contacts");
   $("contact-list").onclick = (event) => {
     const row = event.target.closest(".tx.contact");
-    if (row) openContact(row.dataset.address, "contacts");
+    if (!row) return;
+    if (row.dataset.member) openMember(Number(row.dataset.member), "contacts");
+    else openContact(row.dataset.address, "contacts");
+  };
+  // ---- A member's card ----
+  const mb = { id: null, from: "contacts", armed: false };
+  async function openMember(id, from) {
+    mb.id = id; mb.from = from || "contacts"; mb.armed = false;
+    $("mb-problem").hidden = true;
+    if (!members.length) await loadMembers();
+    paintMember();
+    show("member");
+    await fetchMember(id, true);
+    if (mb.id === id && !$("member").hidden) paintMember();
+  }
+  function paintMember() {
+    const id = mb.id, info = memberInfo.get(id), a = (info && info.account) || {};
+    const group = contactGroups().people.find((g) => g.id === id) || { name: "", addresses: [] };
+    const name = a.name || group.name || "Contact";
+    $("mb-title").textContent = name;
+    $("mb-face").innerHTML = esc(name.slice(0, 1).toUpperCase()) + (a.picture ? picImg(a.picture) : "");
+    const verified = (info && info.wallets) || [];
+    $("mb-name").innerHTML = `<span>${esc(name)}</span>` + (verified.length ? VERIFIED : "");
+    $("mb-message").hidden = !!(board.me && board.me.id === id) || (info && info.takes_messages === false);
+    // Their Market wallet first, then the rest; then any saved address of
+    // theirs that isn't verified any more.
+    const market = (a.wallet || "").toLowerCase();
+    const rows = verified.map((w) => ({ address: (w.address || "").toLowerCase(), name: w.name || "Wallet" }))
+      .sort((x, y) => (y.address === market) - (x.address === market));
+    for (const address of group.addresses) if (!rows.some((r) => r.address === address)) rows.push({ address, name: (named(address) || {}).name || "Saved address" });
+    $("mb-wallets").innerHTML = rows.length
+      ? `<div class="list">${rows.map((r) => `<div class="tx mb-wallet"><div class="tx-main"><div class="title">${esc(r.name)}${r.address === market ? '<span class="mb-tag">Market</span>' : ""}</div><div class="sub">${short(r.address)}</div></div><button class="pill" data-send="${r.address}">Send</button></div>`).join("")}</div>`
+      : `<div class="empty">${info ? `No verified wallets yet. Wallets ${esc(name)} verifies show up here.` : "Loading…"}</div>`;
+    $("mb-remove").textContent = mb.armed ? `Remove ${name}? Tap again` : "Remove from contacts";
+    $("mb-remove").classList.toggle("armed", mb.armed);
+  }
+  $("mb-wallets").onclick = (e) => {
+    const go = e.target.closest("[data-send]");
+    if (!go) return;
+    $("go-send").onclick();
+    $("to").value = go.dataset.send; validate(); $("amount").focus();
+  };
+  $("mb-back").onclick = () => mb.from === "seller" ? show("seller") : openContacts();
+  $("mb-message").onclick = () => {
+    const a = (memberInfo.get(mb.id) || {}).account || {};
+    messagePerson({ id: mb.id, name: a.name || $("mb-title").textContent, picture: a.picture }, "member");
+  };
+  $("mb-profile").onclick = () => { market.sellerFrom = "member"; openSeller(mb.id); };
+  $("mb-remove").onclick = async () => {
+    if (!mb.armed) { mb.armed = true; paintMember(); return; }
+    const group = contactGroups().people.find((g) => g.id === mb.id);
+    try {
+      if (members.some((m) => m.id === mb.id)) await invoke("delete_member", { id: mb.id });
+      for (const address of (group && group.addresses) || []) await invoke("delete_contact", { address });
+      feel("success");
+      openContacts();
+    } catch (error) { problem("mb-problem", error); mb.armed = false; paintMember(); }
   };
   $("contact-back").onclick = async () => { if (editing) await saveContactName(); returnTo === "home" ? home() : openContacts(); };
   $("d-save").onclick = () => openContact($("d-save").dataset.address, "home");
@@ -6199,6 +6341,23 @@
     $("sl-feed-more").hidden = !sl.more;    slFitEdges();
   }
   $("sl-feed-more").onclick = () => slLoadFeed(true);
+  // Add to contacts: the person, by account, with every wallet they verify.
+  async function paintSlAdd() {
+    const b = $("sl-add");
+    b.hidden = !sl.id;
+    if (!sl.id) return;
+    if (!members.length && !book.length) await Promise.all([loadMembers(), loadBook()]);
+    b.textContent = isContact(sl.id) ? "In contacts" : "Add to contacts";
+  }
+  $("sl-add").onclick = async () => {
+    if (isContact(sl.id)) { openMember(sl.id, "seller"); return; }
+    try {
+      await invoke("save_member", { id: sl.id, name: sl.name });
+      await loadMembers();
+      feel("success");
+      paintSlAdd();
+    } catch (error) { problem("sl-problem", error); }
+  };
   function slTab(tab) {
     document.querySelector(".sl-layout").dataset.tab = tab;
     for (const b of document.querySelectorAll("[data-sl-tab]")) b.classList.toggle("on", b.dataset.slTab === tab);
@@ -6237,7 +6396,9 @@
     sl.picture = a.picture;
     // Anyone can be written to from their page, not only about a listing.
     // Not for someone who isn't taking new messages (unless the two already talk).
-    $("sl-actions").hidden = !a.name || (board.me && board.me.id === a.id) || answer.takes_messages === false;
+    $("sl-actions").hidden = !a.name || (board.me && board.me.id === a.id);
+    $("sl-message").hidden = answer.takes_messages === false;
+    paintSlAdd();
     $("sl-menu").hidden = true;
     $("sl-report-box").hidden = true;
     $("sl-block").firstChild.textContent = sl.blocked ? `Unblock ${sl.name}` : `Block ${sl.name}`;
@@ -6301,7 +6462,7 @@
     } catch (e) { problem("sl-problem", mkProblem(e)); }
     finally { $("sl-report-send").disabled = false; }
   };
-  $("sl-back").onclick = () => market.sellerFrom === "chat" ? show("chat") : market.sellerFrom === "community" || market.sellerFrom === "cm-thread" ? show(market.sellerFrom) : show("listing");
+  $("sl-back").onclick = () => market.sellerFrom === "member" ? show("member") : market.sellerFrom === "chat" ? show("chat") : market.sellerFrom === "community" || market.sellerFrom === "cm-thread" ? show(market.sellerFrom) : show("listing");
 
   // ---- Market messages ----
   // When: "just now", "5 min ago", "3 h ago", else a short date.
@@ -6622,7 +6783,7 @@
     const pw = document.getElementById("ch-pay-pw");
     if (pw) pw.focus();
   }
-  $("ch-back").onclick = () => { chat.id = null; chat.direct = null; chat.from === "listing" ? show("listing") : chat.from === "profile" ? show("seller") : chat.from === "contact" ? show("contact") : chat.from === "notices" ? openNotices() : openInbox(); };
+  $("ch-back").onclick = () => { chat.id = null; chat.direct = null; chat.from === "listing" ? show("listing") : chat.from === "profile" ? show("seller") : chat.from === "contact" ? show("contact") : chat.from === "notices" ? openNotices() : chat.from === "member" ? show("member") : openInbox(); };
   $("ch-who").onclick = () => { if (chat.conv && chat.conv.with) { market.sellerFrom = "chat"; openSeller(chat.conv.with); } };
   $("ch-about").onclick = () => chat.conv && chat.conv.listing && openListing(chat.conv.listing, "chat");
   $("ch-more").onclick = () => { toggleMenu("ch-menu", "ch-more"); chat.blockArmed = false; if (chat.conv) $("ch-block").firstChild.textContent = chat.conv.blocked ? `Unblock ${chat.conv.with_name}` : `Block ${chat.conv.with_name}`; };

@@ -189,7 +189,7 @@ pub fn sync(dir: &Path, keys: &VaultKeys) -> Result<(), String> {
         let mut b = names(&mine);
         a.sort();
         b.sort();
-        a == b && remote.deleted == mine.deleted && remote.icons == mine.icons && remote.prefs == mine.prefs
+        a == b && remote.deleted == mine.deleted && remote.icons == mine.icons && remote.prefs == mine.prefs && remote.members == mine.members
     });
     if !same {
         put(keys, &mine)?;
