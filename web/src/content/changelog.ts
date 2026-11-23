@@ -35,7 +35,7 @@ export const CHANGELOG: Entry[] = [
       'Messages has its own button on the home screen and is for anyone, not only the Market: profiles have a Message button, and so do contacts with an Orien Network profile. Contacts moved up beside the wallet name.',
       'Profiles look like the website’s: their banner, picture and links, their posts, their mining and what they sell. Every name in the Community opens that person’s profile.',
       'Your profile chooses who can message you: everyone, people you’ve talked with, or no one. In big windows it spreads out, and in small ones it has Settings and Market Listings tabs.',
-      'Big windows keep the same space around everything, and content rounds off at the edges where it scrolls. Obsidian sits beside Daylight in the themes.',
+      'Big windows keep the same space around everything, and content rounds off at the edges where it scrolls. A Back to top button appears once you’re a screen down the feed or a profile. Obsidian sits beside Daylight in the themes.',
       'Notifications, as on the website: a bell beside Contacts shows replies, reactions, the network’s posts about you and messages, and computers notify each new one. Settings, Notifications has a Community switch.',
       'On Windows and Linux, a button beside – and ✕ fills the screen with Orien Wallet, and puts it back.',
     ],
