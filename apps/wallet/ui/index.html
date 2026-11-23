@@ -3901,7 +3901,7 @@
   for (const [id, name] of [["st-login", "login"], ["st-running", "running"], ["st-autoupdate", "updates"]]) {
     $(id).onchange = async () => {
       const on = $(id).checked;
-      try { await invoke("set_computer_setting", { name, on }); if (name === "updates") autoUpdate = on; } catch { $(id).checked = !on; }
+      try { await invoke("set_computer_setting", { name, on }); if (name === "updates") { autoUpdate = on; checkUpdate(); } } catch { $(id).checked = !on; }
     };
   }
   $("st-updates").onclick = () => checkForUpdatesNow();
@@ -7669,11 +7669,13 @@
   loadSwaps();
 
   // ---- Updates: checked at start and every hour, installed only on a press ----
-  let update = null;
+  let update = null, autoUpdate = true;
   async function checkUpdate() {
     try { update = await invoke("check_update"); } catch { return; } // offline: try again later
     const button = $("update");
-    button.hidden = !update;
+    // Updating by itself (below): no button, unless this copy is too old to
+    // keep working, or the person turned that off.
+    button.hidden = !update || (autoUpdate && !update.required);
     if (!update) return;
     button.classList.toggle("required", update.required);
     button.textContent = update.required ? "Update needed" : "Update to Latest";
@@ -7793,8 +7795,8 @@
   // with nothing underway: no swap moving, no buyer waiting, nothing typed
   // and unsent, no question open. It comes back the way it was, without a
   // word: seamless.
-  let autoUpdate = true, readyVersion = null, autoInstalling = false;
-  invoke("computer_settings").then((c) => { if (c) autoUpdate = c[2] !== false; }).catch(() => {});
+  let readyVersion = null, autoInstalling = false;
+  invoke("computer_settings").then((c) => { if (c && c[2] === false) { autoUpdate = false; if (update) checkUpdate(); } }).catch(() => {});
   // Words the person typed (not ones the app filled in), still in a box
   // that shows.
   const typedInto = new Set();
