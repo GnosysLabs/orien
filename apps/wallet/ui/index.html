@@ -1666,7 +1666,10 @@
   .pf-tabs { margin: 0 0 22px; }
   .pf-layout[data-tab="shop"] :is(.pf-main, .pf-side), .pf-layout:not([data-tab="shop"]) .pf-shop { display: none; }
   .pf-layout[data-tab="shop"] .pf-listings-head { margin-top: 0; }
+  .pf-danger { display: flex; flex-direction: column; align-items: center; gap: 12px; }
   .pf-danger .ct-delete { margin: 0 auto; }
+  .pf-danger .pf-signout { min-width: 160px; }
+  .pf-danger .report-box { align-self: stretch; }
   .pf-main { grid-area: main; min-width: 0; }
   .pf-side { grid-area: side; min-width: 0; }
   .pf-shop { grid-area: shop; min-width: 0; }
@@ -2228,6 +2231,7 @@
         </div>
       </div>
         <div class="pf-danger">
+      <button class="pill pf-signout" id="pf-signout">Sign out</button>
       <button class="pill ct-delete" id="pf-delete">Delete my account</button>
       <div class="report-box" id="pf-delete-box" hidden>
         <p class="vc-text" id="pf-delete-text"></p>
@@ -3751,6 +3755,7 @@
     try { localStorage.setItem("app-lock", on ? "on" : "off"); } catch {}
     feel("selection");
   };
+  $("pf-signout").onclick = () => signOut();
   for (const kind of ["received", "mining", "market", "community", "swaps"]) {
     $(`st-n-${kind}`).onchange = async () => {
       const on = $(`st-n-${kind}`).checked;
@@ -5187,14 +5192,11 @@
     $("board-who").hidden = !me;
     $("board-who").innerHTML = me ? avatar({ seller_name: me.name, seller_picture: me.picture }) : "";
     $("board-who").title = me ? `${me.name}: your profile` : "";
-    // Signed in: a sign-out glyph beside the picture. Signed out: "Sign in".
+    // Signed out: "Sign in". Signed in: just the picture; signing out is on
+    // your profile, so the top bar stays uncluttered.
     const go = $("board-signin-go");
-    go.classList.toggle("icon", !!me);
-    go.title = me ? "Sign out" : "";
-    go.setAttribute("aria-label", me ? "Sign out" : "Sign in");
-    go.innerHTML = me
-      ? `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m16 17 5-5-5-5"/><path d="M21 12H9"/><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/></svg>`
-      : "Sign in";
+    go.hidden = !!me;
+    go.textContent = "Sign in";
     // Marketplace payments go to one wallet per account. Say which, when it
     // isn't the open one, and switch it only when asked.
     const open = view && view.address;
@@ -5552,18 +5554,20 @@
   }
   // Where a sign-in started from, to go back there once it's done.
   let signinReturn = "swaps";
-  $("board-signin-go").onclick = async () => {
+  // Signing out, from your profile.
+  async function signOut() {
+    try { await invoke("board_sign_out"); } catch {}
+    if (phone) invoke("push_sync").catch(() => {});
+    board.me = null;
+    board.waiting = [];
+    linking.done = false;
+    await loadBoard();
+    renderSwaps();
+    home();
+  }
+  $("board-signin-go").onclick = () => {
     signinReturn = "home";
-    if (board.me) {
-      try { await invoke("board_sign_out"); } catch {}
-      if (phone) invoke("push_sync").catch(() => {});
-      board.me = null;
-      board.waiting = [];
-      linking.done = false;
-      await loadBoard();
-      renderSwaps();
-      return;
-    }
+    if (board.me) return signOut();
     resetSignin();
     show("board-signin");
   };
