@@ -374,10 +374,13 @@ function Offers({
         <ul className="overflow-hidden rounded-2xl border border-line bg-surface">
           {offers.map((offer) => {
             const value = usd ? price(offer) * usd : null;
+            // Only the seller's wallet can start a swap: while it's closed,
+            // the offer waits, greyed.
+            const offline = offer.seller_online === false;
             return (
               <li
                 key={offer.id}
-                className="flex flex-wrap items-center gap-4 border-b border-line px-5 py-4 last:border-b-0"
+                className={`flex flex-wrap items-center gap-4 border-b border-line px-5 py-4 last:border-b-0 ${offline ? "opacity-55" : ""}`}
               >
                 <Link
                   href={profileHref(offer.seller_name)}
@@ -420,6 +423,11 @@ function Offers({
                     {perOrn(offer)} per ORN
                   </p>
                 </div>
+                {offline && (
+                  <span className="shrink-0 rounded-full border border-line bg-bg px-3 py-1 text-xs font-semibold text-muted">
+                    Seller offline
+                  </span>
+                )}
               </li>
             );
           })}

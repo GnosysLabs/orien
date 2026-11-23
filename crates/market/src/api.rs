@@ -16,6 +16,7 @@ use axum::routing::{get, post};
 use axum::{Json, Router};
 use serde::Deserialize;
 use serde_json::json;
+use std::collections::HashMap;
 use std::sync::{Arc, Mutex};
 use std::time::Instant;
 
@@ -57,6 +58,8 @@ pub struct App {
     sign_in: crate::oidc::Gate,
     /// The community's leaderboards, kept current by its watcher.
     community: crate::community::Community,
+    /// What sellers' wallets could spend, a minute at most ago.
+    spendable: Mutex<HashMap<String, (std::time::Instant, u64)>>,
 }
 
 /// One email, for App Store review, whose sign-in code never changes and is
@@ -105,6 +108,7 @@ impl App {
             explorer: crate::explorer::Explorer::default(),
             sign_in: crate::oidc::Gate::default(),
             community: crate::community::Community::default(),
+            spendable: Mutex::new(HashMap::new()),
         })
     }
 
@@ -339,6 +343,7 @@ pub fn router(app: Arc<App>) -> Router {
         .route("/api/market/profiles", get(search_profiles))
         .route("/api/market/profiles/{id}", get(profile))
         .route("/api/market/accounts/{id}/block", post(block_account))
+        .route("/api/market/me/blocked", get(my_blocks))
         .route("/api/market/users/{name}", get(user))
         .route("/api/market/users/{name}/messages", post(message_person))
         .route("/api/market/listings/{id}/messages", post(message_seller))
@@ -367,6 +372,7 @@ pub fn router(app: Arc<App>) -> Router {
         .route("/api/market/conversations/{id}", get(conversation))
         .route("/api/market/conversations/{id}/messages", post(reply))
         .route("/api/market/conversations/{id}/block", post(block))
+        .route("/api/market/conversations/{id}/delete", post(delete_conversation))
         .route("/api/market/conversations/{id}/request", post(request_payment))
         .route("/api/market/conversations/{id}/paid", post(mark_paid))
         .route("/api/market/images/{name}", get(picture))
@@ -681,6 +687,13 @@ async fn conversation(State(app): State<Arc<App>>, headers: HeaderMap, Path(id):
     Ok(Json(json!({ "conversation": conversation, "messages": messages, "me": account })).into_response())
 }
 
+/// Deletes a conversation for the signed-in side only.
+async fn delete_conversation(State(app): State<Arc<App>>, headers: HeaderMap, Path(id): Path<i64>) -> Answer {
+    let account = app.signed_in(&headers)?;
+    app.store.lock().unwrap().delete_conversation(id, account).map_err(|_| Failure::NotFound)?;
+    Ok(Json(json!({})).into_response())
+}
+
 #[derive(Deserialize)]
 struct Block {
     block: bool,
@@ -782,10 +795,58 @@ struct Board {
     coins: Option<String>,
 }
 
+/// What each of these wallets can spend now. Each is asked once a minute
+/// at most; one the network doesn't answer for is left out, so it counts
+/// as able, as before this check.
+async fn spendable_of(app: &Arc<App>, wallets: Vec<String>) -> HashMap<String, u64> {
+    let app = app.clone();
+    tokio::task::spawn_blocking(move || {
+        let mut found = HashMap::new();
+        for wallet in wallets {
+            let fresh = app
+                .spendable
+                .lock()
+                .unwrap()
+                .get(&wallet)
+                .filter(|(at, _)| at.elapsed() < std::time::Duration::from_secs(60))
+                .map(|(_, n)| *n);
+            let has = fresh.or_else(|| {
+                let n = app.payments.spendable(&wallet.parse::<orien_ledger::AccountId>().ok()?).ok()?;
+                app.spendable.lock().unwrap().insert(wallet.clone(), (std::time::Instant::now(), n));
+                Some(n)
+            });
+            if let Some(n) = has {
+                found.insert(wallet, n);
+            }
+        }
+        found
+    })
+    .await
+    .unwrap_or_default()
+}
+
+/// Whether a wallet is known to hold less than `orn`.
+fn short_of(spendable: &HashMap<String, u64>, wallet: &Option<String>, orn: u64) -> bool {
+    wallet.as_ref().and_then(|w| spendable.get(w)).is_some_and(|n| *n < orn)
+}
+
 async fn open_swaps(State(app): State<Arc<App>>, Query(board): Query<Board>) -> Answer {
     let wanted = board.coins.unwrap_or_else(|| "btc".into());
     let coins: Vec<&str> = wanted.split(',').map(str::trim).filter(|c| matches!(*c, "sol" | "btc")).collect();
-    let offers = app.store.lock().unwrap().open_swaps_in(&coins)?;
+    let (offers, wallets) = {
+        let store = app.store.lock().unwrap();
+        let offers = store.open_swaps_in(&coins)?;
+        let wallets: Vec<Option<String>> = offers.iter().map(|o| store.offer_wallet(o.id)).collect::<anyhow::Result<_>>()?;
+        (offers, wallets)
+    };
+    // Offers whose seller's wallet no longer holds the ORN would only hold
+    // a buyer up: they leave the board until it does again.
+    let mut asked: Vec<String> = wallets.iter().flatten().cloned().collect();
+    asked.sort();
+    asked.dedup();
+    let spendable = spendable_of(&app, asked).await;
+    let offers: Vec<_> =
+        offers.into_iter().zip(wallets).filter(|(offer, wallet)| !short_of(&spendable, wallet, offer.orn)).map(|(offer, _)| offer).collect();
     let prices = app.prices.clone();
     let (bitcoin, solana) = tokio::task::spawn_blocking(move || (prices.bitcoin(), prices.solana()))
         .await
@@ -814,7 +875,20 @@ async fn post_swap(State(app): State<Arc<App>>, headers: HeaderMap, Json(request
 
 async fn my_swaps(State(app): State<Arc<App>>, headers: HeaderMap) -> Answer {
     let account = app.signed_in(&headers)?;
-    let swaps = app.store.lock().unwrap().my_swaps(account)?;
+    // Orien Wallet asks this every few seconds while open: the seller is
+    // there to lock the ORN of an offer someone takes.
+    app.store.lock().unwrap().saw_app(account)?;
+    let mut swaps = app.store.lock().unwrap().my_swaps(account)?;
+    // The seller's open offers their wallet can no longer cover: off the
+    // board, so they can withdraw it or top the wallet up.
+    let asked: Vec<String> =
+        swaps.iter().filter(|s| s.selling && s.offer.state == "open").filter_map(|s| s.wallet.clone()).collect();
+    if !asked.is_empty() {
+        let spendable = spendable_of(&app, asked).await;
+        for swap in swaps.iter_mut().filter(|s| s.selling && s.offer.state == "open") {
+            swap.short_of_orn = short_of(&spendable, &swap.wallet, swap.offer.orn);
+        }
+    }
     Ok(Json(json!({ "swaps": swaps })).into_response())
 }
 
@@ -842,6 +916,22 @@ async fn take_swap(State(app): State<Arc<App>>, headers: HeaderMap, Path(id): Pa
     let coin = app.store.lock().unwrap().swap_offer(id)?.map(|o| o.coin).unwrap_or_default();
     if coin == "sol" && request.swap_version < 3 {
         return Err(Failure::Refused("update Orien Wallet to take SOL offers".into()));
+    }
+    let (orn, wallet, online) = {
+        let store = app.store.lock().unwrap();
+        let offer = store.swap_offer(id)?;
+        (offer.as_ref().map_or(0, |o| o.orn), store.offer_wallet(id)?, offer.is_none_or(|o| o.seller_online))
+    };
+    // Only the seller's wallet can lock the ORN: without it open, the buyer
+    // would wait for nothing.
+    if !online {
+        return Err(Failure::Refused("The seller's Orien Wallet isn't open right now, so this swap can't start. Try again later.".into()));
+    }
+    if let Some(w) = &wallet {
+        let spendable = spendable_of(&app, vec![w.clone()]).await;
+        if short_of(&spendable, &wallet, orn) {
+            return Err(Failure::Refused("That offer isn't available any more: the seller's wallet no longer holds enough ORN.".into()));
+        }
     }
     let (swap, seller_email, taker) = {
         let store = app.store.lock().unwrap();
@@ -874,9 +964,26 @@ async fn take_swap(State(app): State<Arc<App>>, headers: HeaderMap, Path(id): Pa
     Ok(Json(json!({ "swap": swap })).into_response())
 }
 
-async fn close_swap(State(app): State<Arc<App>>, headers: HeaderMap, Path(id): Path<i64>) -> Answer {
+#[derive(Deserialize, Default)]
+struct Close {
+    /// The seller's wallet could not lock a taken offer, being short of ORN.
+    #[serde(default)]
+    short: bool,
+}
+
+async fn close_swap(State(app): State<Arc<App>>, headers: HeaderMap, Path(id): Path<i64>, body: Option<Json<Close>>) -> Answer {
     let seller = app.signed_in(&headers)?;
-    app.store.lock().unwrap().close_swap(seller, id).map_err(refused)?;
+    let short = body.is_some_and(|Json(b)| b.short);
+    let buyer = app.store.lock().unwrap().close_swap_short(seller, id, short).map_err(refused)?;
+    if let Some(buyer) = buyer {
+        app.tell(crate::push::Event {
+            account: buyer,
+            address: None,
+            body: "The seller withdrew this offer before anything was locked. Nothing was paid.".into(),
+            kind: "swap",
+            open: json!({ "swap": id }),
+        });
+    }
     Ok(Json(json!({})).into_response())
 }
 
@@ -1108,19 +1215,30 @@ struct ProfileSearch {
 
 /// People to pay, found by name: profiles with verified wallets, at most
 /// ten, and none for under two letters.
-async fn search_profiles(State(app): State<Arc<App>>, Query(search): Query<ProfileSearch>) -> Answer {
-    let profiles = app.store.lock().unwrap().search_payable(&search.q)?;
-    Ok(([(header::CACHE_CONTROL, "public, max-age=30")], Json(json!({ "profiles": profiles }))).into_response())
+async fn search_profiles(State(app): State<Arc<App>>, headers: HeaderMap, Query(search): Query<ProfileSearch>) -> Answer {
+    let viewer = app.signed_in(&headers).ok();
+    let profiles = app.store.lock().unwrap().search_payable(&search.q, viewer)?;
+    Ok(([(header::CACHE_CONTROL, cache_for(viewer, 30))], Json(json!({ "profiles": profiles }))).into_response())
 }
 
 /// The public profile of the account whose verified wallet this is. Any
 /// website may read it from a visitor's browser, as for "Sign in with Orien
 /// Wallet".
-async fn wallet_profile(State(app): State<Arc<App>>, Path(address): Path<String>) -> Answer {
-    let found = app.store.lock().unwrap().wallet_profiles(&[address]);
+async fn wallet_profile(State(app): State<Arc<App>>, headers: HeaderMap, Path(address): Path<String>) -> Answer {
+    let viewer = app.signed_in(&headers).ok();
+    let found = app.store.lock().unwrap().wallet_profiles(&[address], viewer);
     let (_, profile) = found?.into_iter().next().ok_or(Failure::NotFound)?;
     let profile = public_wallet_profile(app.origin(), profile);
-    Ok(([(header::CACHE_CONTROL, "public, max-age=60"), (header::ACCESS_CONTROL_ALLOW_ORIGIN, "*")], Json(profile)).into_response())
+    Ok(([(header::CACHE_CONTROL, cache_for(viewer, 60)), (header::ACCESS_CONTROL_ALLOW_ORIGIN, "*".to_string())], Json(profile)).into_response())
+}
+
+/// How long an answer may be kept: by anyone, or only by the signed-in
+/// viewer's own browser, whose answer leaves out who blocked them.
+fn cache_for(viewer: Option<i64>, seconds: u32) -> String {
+    match viewer {
+        Some(_) => format!("private, max-age={seconds}"),
+        None => format!("public, max-age={seconds}"),
+    }
 }
 
 /// The browser's question before another website sends JSON to a public
@@ -1175,11 +1293,12 @@ struct Lookup {
 
 /// Public profiles for the verified wallets among up to 100 addresses, by
 /// address. Any website may ask, from a visitor's browser.
-async fn lookup_wallets(State(app): State<Arc<App>>, Json(request): Json<Lookup>) -> Answer {
+async fn lookup_wallets(State(app): State<Arc<App>>, headers: HeaderMap, Json(request): Json<Lookup>) -> Answer {
+    let viewer = app.signed_in(&headers).ok();
     if request.addresses.len() > crate::proofs::MAX_LOOKUP {
         return Err(Failure::Refused(format!("at most {} addresses at a time", crate::proofs::MAX_LOOKUP)));
     }
-    let found = app.store.lock().unwrap().wallet_profiles(&request.addresses)?;
+    let found = app.store.lock().unwrap().wallet_profiles(&request.addresses, viewer)?;
     let profiles: serde_json::Map<String, serde_json::Value> =
         found.into_iter().map(|(address, profile)| (address, public_wallet_profile(app.origin(), profile))).collect();
     Ok(([(header::ACCESS_CONTROL_ALLOW_ORIGIN, "*")], Json(json!({ "profiles": profiles }))).into_response())
@@ -1329,7 +1448,8 @@ async fn make_cover(State(app): State<Arc<App>>, headers: HeaderMap, Path((id, n
 async fn profile(State(app): State<Arc<App>>, headers: HeaderMap, Path(id): Path<i64>) -> Answer {
     let viewer = app.signed_in(&headers).ok();
     let store = app.store.lock().unwrap();
-    if store.is_suspended(id)? {
+    // A block either way makes them nobody to each other, as for an unknown name.
+    if store.is_suspended(id)? || viewer.is_some_and(|v| store.blocked_either(id, v).unwrap_or(false)) {
         return Err(Failure::NotFound);
     }
     let account = store.account(id)?.ok_or(Failure::NotFound)?;
@@ -1351,6 +1471,13 @@ async fn profile(State(app): State<Arc<App>>, headers: HeaderMap, Path(id): Path
 async fn user(State(app): State<Arc<App>>, headers: HeaderMap, Path(name): Path<String>) -> Answer {
     let id = app.store.lock().unwrap().account_by_name(&name)?.ok_or(Failure::NotFound)?;
     profile(State(app), headers, Path(id)).await
+}
+
+/// The people the signed-in account has blocked, most recent first.
+async fn my_blocks(State(app): State<Arc<App>>, headers: HeaderMap) -> Answer {
+    let account = app.signed_in(&headers)?;
+    let blocked = app.store.lock().unwrap().blocked_list(account)?;
+    Ok(Json(json!({ "blocked": blocked })).into_response())
 }
 
 /// Blocks or unblocks a person, everywhere, for the signed-in account.
@@ -1395,6 +1522,11 @@ async fn listing(State(app): State<Arc<App>>, headers: HeaderMap, Path(id): Path
     let store = app.store.lock().unwrap();
     let listing = store.listing(id)?.ok_or(Failure::NotFound)?;
     if !listing.open && viewer != Some(listing.seller) {
+        return Err(Failure::NotFound);
+    }
+    if let Some(viewer) = viewer
+        && store.blocked_either(listing.seller, viewer)?
+    {
         return Err(Failure::NotFound);
     }
     let seller = store.account(listing.seller)?.ok_or(Failure::NotFound)?;

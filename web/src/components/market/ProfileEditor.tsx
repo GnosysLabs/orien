@@ -2,7 +2,8 @@
 
 import { shrinkPicture } from '@/lib/shrink'
 import { useEffect, useRef, useState } from 'react'
-import { Camera, ImagePlus } from 'lucide-react'
+import Link from 'next/link'
+import { Ban, Camera, ImagePlus } from 'lucide-react'
 import { ask, MarketError, NAME_PATTERN, NAME_RULE, pictureUrl, type Account, type MessagesFrom } from '@/lib/market'
 import { Avatar } from './Avatar'
 import { Notice } from './Shell'
@@ -252,6 +253,12 @@ export function ProfileEditor({ account, onSaved }: { account: Account; onSaved:
           Messages about your Market listings always come through whatever you pick, so buyers can ask about what
           you’re selling. Blocking still works on top of this.
         </p>
+        <Link
+          href="/account/blocked/"
+          className="inline-flex h-10 items-center gap-2 rounded-xl border border-line bg-bg px-4 text-sm font-semibold text-ink transition hover:bg-raised"
+        >
+          <Ban className="h-4 w-4 text-muted" aria-hidden /> Manage blocks
+        </Link>
       </fieldset>
       {trouble && <Notice tone="bad">{trouble}</Notice>}
       <p className="h-5 text-sm" aria-live="polite">

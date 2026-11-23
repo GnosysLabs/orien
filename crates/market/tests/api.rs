@@ -3,7 +3,7 @@
 use axum::body::Body;
 use axum::http::{Request, StatusCode, header};
 use http_body_util::BodyExt;
-use orien_market::api::{sign_in_without_wallet_for_tests, App, COOKIE, router, sign_in_for_tests};
+use orien_market::api::{store_for_tests, sign_in_without_wallet_for_tests, App, COOKIE, router, sign_in_for_tests};
 use orien_market::images::Folder;
 use orien_market::mail::Mailer;
 use orien_market::prices::Prices;
@@ -506,6 +506,15 @@ async fn swap_offers_go_on_the_board_and_are_taken_through_requests() {
 
     let mayas_phone = "ab".repeat(32);
     market.ask("POST", "/api/market/push/register", Some(&maya), Some(json!({ "token": mayas_phone, "addresses": [] }))).await;
+    // Maya's wallet isn't open: the offer shows so, and can't be taken.
+    assert_eq!(board["offers"][0]["seller_online"], false);
+    let (status, body) = market.ask("POST", &format!("/api/market/swaps/{id}/take"), Some(&sam), None).await;
+    assert_eq!(status, StatusCode::BAD_REQUEST);
+    assert_eq!(body["error"], "The seller's Orien Wallet isn't open right now, so this swap can't start. Try again later.");
+    // Her wallet asks about its swaps, as it does every few seconds while open.
+    market.ask("GET", "/api/market/swaps/mine", Some(&maya), None).await;
+    let (_, board) = market.ask("GET", "/api/market/swaps", None, None).await;
+    assert_eq!(board["offers"][0]["seller_online"], true);
     let (status, body) = market.ask("POST", &format!("/api/market/swaps/{id}/take"), Some(&sam), None).await;
     assert_eq!((status, body["swap"]["offer"]["state"].as_str()), (StatusCode::OK, Some("held")));
     let notebook = Notebook::default();
@@ -520,6 +529,58 @@ async fn swap_offers_go_on_the_board_and_are_taken_through_requests() {
     assert_eq!(status, StatusCode::BAD_REQUEST);
     let (status, _) = market.ask("POST", &format!("/api/market/swaps/{id}/close"), Some(&maya), None).await;
     assert_eq!(status, StatusCode::BAD_REQUEST, "a held offer cannot be withdrawn");
+}
+
+#[tokio::test]
+async fn an_offer_whose_wallet_no_longer_holds_the_orn_leaves_the_board() {
+    const ORN: u64 = 1_000_000_000;
+    let payments = Arc::new(Fake::default());
+    let app = App::new(Store::in_memory().unwrap(), folder(), "https://orien.network", true, Mailer::log_only(), Screener::off(), payments.clone(), MARKET);
+    let market = Market { app: Arc::new(app.unwrap().with_prices(Prices::fixed_for_tests(65_000.0))) };
+    let maya = sign_in_for_tests(&market.app, "Maya");
+    let sam = sign_in_for_tests(&market.app, "Sam");
+    let wallet = "cd".repeat(32);
+    let id = |hex: &str| orien_crypto::Hash32(hex::decode(hex).unwrap().try_into().unwrap());
+    let offer = |orn: u64| json!({ "orn": orn, "sats": 1_000_000, "wallet": wallet, "payout": "bc1qar0srrr7xfkvy5l643lydnw9re59gtzzwf5mdq" });
+    let (status, body) = market.ask("POST", "/api/market/swaps", Some(&maya), Some(offer(500 * ORN))).await;
+    assert_eq!(status, StatusCode::CREATED, "{body}");
+    let big = body["offer"]["id"].as_i64().unwrap();
+    let (_, body) = market.ask("POST", "/api/market/swaps", Some(&maya), Some(offer(100 * ORN))).await;
+    let small = body["offer"]["id"].as_i64().unwrap();
+    // An old offer naming no wallet stays as before.
+    let (_, body) = market.ask("POST", "/api/market/swaps", Some(&maya), Some(json!({ "orn": 900 * ORN, "sats": 1_000_000 }))).await;
+    let old = body["offer"]["id"].as_i64().unwrap();
+
+    // The wallet holds 200 ORN: the 500 ORN offer leaves the board, the 100 stays.
+    payments.spendable.lock().unwrap().push((id(&wallet), 200 * ORN));
+    market.ask("GET", "/api/market/swaps/mine", Some(&maya), None).await;
+    let (_, board) = market.ask("GET", "/api/market/swaps", None, None).await;
+    let shown: Vec<i64> = board["offers"].as_array().unwrap().iter().map(|o| o["id"].as_i64().unwrap()).collect();
+    assert!(!shown.contains(&big) && shown.contains(&small) && shown.contains(&old), "{shown:?}");
+    let (status, body) = market.ask("POST", &format!("/api/market/swaps/{big}/take"), Some(&sam), Some(json!({ "address": "ab".repeat(32), "swap_version": 3 }))).await;
+    assert_eq!(status, StatusCode::BAD_REQUEST);
+    assert_eq!(body["error"], "That offer isn't available any more: the seller's wallet no longer holds enough ORN.");
+
+    // Its seller sees which offer their wallet can't cover.
+    let (_, mine) = market.ask("GET", "/api/market/swaps/mine", Some(&maya), None).await;
+    let flag = |offer: i64| mine["swaps"].as_array().unwrap().iter().find(|s| s["offer"]["id"] == offer).unwrap()["short_of_orn"].clone();
+    assert_eq!((flag(big), flag(small), flag(old)), (json!(true), json!(false), json!(false)));
+    let (_, theirs) = market.ask("GET", "/api/market/swaps/mine", Some(&sam), None).await;
+    assert!(theirs["swaps"].as_array().unwrap().is_empty());
+
+    // The smaller one can still be taken.
+    let (status, _) = market.ask("POST", &format!("/api/market/swaps/{small}/take"), Some(&sam), Some(json!({ "address": "ab".repeat(32), "swap_version": 3 }))).await;
+    assert_eq!(status, StatusCode::OK);
+    // Maya's wallet then can't lock it after all: it withdraws the taken
+    // offer, which only works so, and Sam isn't counted for it.
+    let close = format!("/api/market/swaps/{small}/close");
+    assert_eq!(market.ask("POST", &close, Some(&maya), None).await.0, StatusCode::BAD_REQUEST, "held, so not without short");
+    assert_eq!(market.ask("POST", &close, Some(&sam), Some(json!({ "short": true }))).await.0, StatusCode::BAD_REQUEST, "only the seller");
+    assert_eq!(market.ask("POST", &close, Some(&maya), Some(json!({ "short": true }))).await.0, StatusCode::OK);
+    let (_, theirs) = market.ask("GET", "/api/market/swaps/mine", Some(&sam), None).await;
+    assert!(theirs["swaps"].as_array().unwrap().is_empty(), "closed offers leave his list");
+    let lapses = store_for_tests(&market.app, |s| s.lapses_for_tests());
+    assert_eq!(lapses, 0, "the buyer isn't counted");
 }
 
 #[tokio::test]
@@ -671,6 +732,7 @@ async fn wallets_on_older_swap_rules_cannot_take_once_the_gate_is_on() {
     let id = body["offer"]["id"].as_i64().unwrap();
     let buyer = "bb".repeat(32);
     let path = format!("/api/market/swaps/{id}/take");
+    market.ask("GET", "/api/market/swaps/mine", Some(&maya), None).await;
     let (status, body) = market.ask("POST", &path, Some(&sam), Some(json!({ "address": buyer }))).await;
     assert_eq!(status, StatusCode::BAD_REQUEST);
     assert!(body["error"].as_str().unwrap().contains("update Orien Wallet"), "{body}");
@@ -707,6 +769,7 @@ async fn sol_offers_are_shown_and_taken_only_by_wallets_that_know_them() {
 
     let path = format!("/api/market/swaps/{id}/take");
     let buyer = "bb".repeat(32);
+    market.ask("GET", "/api/market/swaps/mine", Some(&maya), None).await;
     let (status, body) = market.ask("POST", &path, Some(&sam), Some(json!({ "address": buyer, "swap_version": 2 }))).await;
     assert_eq!(status, StatusCode::BAD_REQUEST);
     assert!(body["error"].as_str().unwrap().contains("SOL"), "{body}");
@@ -936,8 +999,8 @@ async fn blocking_a_person_from_their_profile_works_everywhere() {
     // Maya blocks Sam from his profile: he can't write, and nothing is made.
     let (status, _) = market.ask("POST", &format!("/api/market/accounts/{sam_id}/block"), Some(&maya), Some(json!({ "block": true }))).await;
     assert_eq!(status, StatusCode::OK);
-    let (_, profile) = market.ask("GET", "/api/market/users/sam", Some(&maya), None).await;
-    assert_eq!(profile["blocked"], true);
+    // Once blocked, he is nobody to her too, until she unblocks him.
+    assert_eq!(market.ask("GET", "/api/market/users/sam", Some(&maya), None).await.0, StatusCode::NOT_FOUND);
     let (status, body) = market.ask("POST", &format!("/api/market/listings/{listing}/messages"), Some(&sam), Some(json!({ "body": "Hi" }))).await;
     assert_eq!(status, StatusCode::BAD_REQUEST);
     assert!(body["error"].as_str().unwrap().contains("not taking messages"), "{body}");

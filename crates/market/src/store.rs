@@ -284,6 +284,10 @@ impl Store {
                  seller_told INTEGER NOT NULL DEFAULT 0,
                  -- Who started it, for the daily limit.
                  starter INTEGER NOT NULL,
+                 -- The last message each side had when they deleted the
+                 -- conversation: they see only what came after.
+                 buyer_cleared INTEGER NOT NULL DEFAULT 0,
+                 seller_cleared INTEGER NOT NULL DEFAULT 0,
                  UNIQUE (listing, buyer)
              );
              CREATE TABLE IF NOT EXISTS messages (
@@ -302,6 +306,8 @@ impl Store {
              CREATE TABLE IF NOT EXISTS blocks (
                  blocker INTEGER NOT NULL REFERENCES accounts(id) ON DELETE CASCADE,
                  blocked INTEGER NOT NULL REFERENCES accounts(id) ON DELETE CASCADE,
+                 -- When, for the list of people you've blocked (0: before it was kept).
+                 at INTEGER NOT NULL DEFAULT 0,
                  PRIMARY KEY (blocker, blocked)
              );",
         )?;
@@ -361,6 +367,25 @@ impl Store {
                  ALTER TABLE conversations_new RENAME TO conversations;
                  COMMIT;
                  PRAGMA foreign_keys = ON;",
+            )?;
+        }
+        let has_block_time: bool = self.db.query_row(
+            "SELECT COUNT(*) > 0 FROM pragma_table_info('blocks') WHERE name = 'at'",
+            [],
+            |row| row.get(0),
+        )?;
+        if !has_block_time {
+            self.db.execute("ALTER TABLE blocks ADD COLUMN at INTEGER NOT NULL DEFAULT 0", [])?;
+        }
+        let has_cleared: bool = self.db.query_row(
+            "SELECT COUNT(*) > 0 FROM pragma_table_info('conversations') WHERE name = 'buyer_cleared'",
+            [],
+            |row| row.get(0),
+        )?;
+        if !has_cleared {
+            self.db.execute_batch(
+                "ALTER TABLE conversations ADD COLUMN buyer_cleared INTEGER NOT NULL DEFAULT 0;
+                 ALTER TABLE conversations ADD COLUMN seller_cleared INTEGER NOT NULL DEFAULT 0;",
             )?;
         }
         self.db.execute_batch(
@@ -799,12 +824,13 @@ impl Store {
     }
 
     /// Open listings as `viewer` sees them: without those of people they
-    /// blocked.
+    /// blocked, or who blocked them.
     pub fn browse_for(&self, viewer: Option<i64>, category: Option<&str>, search: Option<&str>, limit: u32, offset: u32) -> Result<Vec<Listing>> {
         let sql = format!(
             "{} AND l.open = 1 AND (?1 IS NULL OR l.category = ?1)
                  AND (?2 IS NULL OR l.title LIKE ?2 ESCAPE '\\' OR l.description LIKE ?2 ESCAPE '\\')
-                 AND (?5 IS NULL OR NOT EXISTS (SELECT 1 FROM blocks b WHERE b.blocker = ?5 AND b.blocked = l.seller))
+                 AND (?5 IS NULL OR NOT EXISTS (SELECT 1 FROM blocks b
+                     WHERE (b.blocker = ?5 AND b.blocked = l.seller) OR (b.blocker = l.seller AND b.blocked = ?5)))
              ORDER BY l.updated DESC, l.id DESC LIMIT ?3 OFFSET ?4",
             Store::LISTING
         );

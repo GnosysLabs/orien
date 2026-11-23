@@ -52,6 +52,8 @@ pub trait Payments: Send + Sync {
     fn received(&self, to: &AccountId, from: u64) -> Result<Vec<Incoming>>;
     /// Whether `account` has ever held ORN or paid anything.
     fn has_held(&self, account: &AccountId) -> Result<bool>;
+    /// The ORN `account` can spend now, in the smallest units.
+    fn spendable(&self, account: &AccountId) -> Result<u64>;
     /// How the network is doing, for the founder's dashboard.
     fn status(&self) -> Result<NetworkStatus>;
     /// Where the ORN are, from the latest checkpoint.
@@ -201,6 +203,15 @@ impl Payments for Network {
                 mined: entry.income == Income::Mining,
             })
             .collect())
+    }
+
+    fn spendable(&self, account: &AccountId) -> Result<u64> {
+        let status = self.client.account(account, 0);
+        if status.views.iter().all(Option::is_none) {
+            anyhow::bail!("no validator answers");
+        }
+        let spendable = status.spendable.or(status.proven.as_ref().map(|a| a.balance)).unwrap_or(0);
+        Ok(u64::try_from(spendable.max(0)).unwrap_or(u64::MAX))
     }
 
     fn has_held(&self, account: &AccountId) -> Result<bool> {
@@ -369,6 +380,8 @@ pub struct Fake {
     pub held: Mutex<Vec<AccountId>>,
     /// Mining rewards: to whom, how much, in which epoch.
     pub mined: Mutex<Vec<(AccountId, u64, u64)>>,
+    /// What accounts can spend; any other has plenty.
+    pub spendable: Mutex<Vec<(AccountId, u64)>>,
 }
 
 impl Payments for Fake {
@@ -400,6 +413,10 @@ impl Payments for Fake {
 
     fn has_held(&self, account: &AccountId) -> Result<bool> {
         Ok(self.held.lock().unwrap().contains(account))
+    }
+
+    fn spendable(&self, account: &AccountId) -> Result<u64> {
+        Ok(self.spendable.lock().unwrap().iter().find(|(a, _)| a == account).map_or(u64::MAX, |(_, n)| *n))
     }
 
     fn tokenomics(&self) -> Result<Tokenomics> {
