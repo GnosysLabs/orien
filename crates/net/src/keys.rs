@@ -4,7 +4,7 @@ use crate::phrase;
 use crate::store::write_replacing;
 use anyhow::{Context, Result, anyhow, bail};
 use orien_crypto::keytree::KeyTree;
-use orien_crypto::{Hash32, Kdf, ots, prf};
+use orien_crypto::{Hash32, Kdf, ots, prf, signin};
 use orien_ledger::{
     AccountId, Fees, Genesis, Kind, Order, SPARE_HEIGHT, Signature, SignedBy, SignedOrder, Signer, address,
 };
@@ -455,6 +455,39 @@ impl Wallet {
         self.spares.root()
     }
 
+    /// Signs in to the website at `origin` with the one-time value it gave,
+    /// good from `issued` until `expires` (Unix seconds). See
+    /// `orien_crypto::signin`: a sign-in key of its own, tied to this
+    /// address by the last spare key, so payments are never touched.
+    ///
+    /// `slot` and `leaf` pick the one-time key. Each device keeps its own
+    /// slot and count and must use each pair once; the caller sees to that.
+    pub fn sign_in(&mut self, slot: u32, leaf: u32, origin: &str, nonce: &str, issued: u64, expires: u64) -> Result<signin::Proof> {
+        let key = signin::SignInKey::from_wallet_seed(&self.seed);
+        let binding = signin::key_message(&key.top());
+        // The last spare key signs the sign-in key once, always the same
+        // message, and is kept from ever signing a payment.
+        match self.used_spares.get(&signin::BINDING_SPARE) {
+            Some(earlier) if *earlier != binding => {
+                bail!("this wallet's last spare key has signed a payment, so it can't sign in to websites")
+            }
+            Some(_) => {}
+            None => {
+                self.used_spares.insert(signin::BINDING_SPARE, binding);
+                self.save()?;
+            }
+        }
+        let spare = self.spares.sign_with_leaf(signin::BINDING_SPARE, binding.as_bytes());
+        let message = signin::Message {
+            origin: origin.to_owned(),
+            address: self.address,
+            nonce: nonce.to_owned(),
+            issued,
+            expires,
+        };
+        Ok(key.sign(slot, leaf, message, spare, wallet_key(&self.seed, 0).commitment()))
+    }
+
     /// The order this wallet would sign for payment number `seq`. It is not
     /// signed and nothing is recorded.
     pub fn order(&self, seq: u64, to: AccountId, amount: u64) -> Order {
@@ -682,6 +715,33 @@ impl Wallet {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn a_wallet_signs_in_and_its_binding_spare_never_pays() {
+        let dir = std::env::temp_dir().join(format!("orien-keys-signin-{}", std::process::id()));
+        let _ = fs::remove_dir_all(&dir);
+        fs::create_dir_all(&dir).unwrap();
+        let path = dir.join("w.wallet");
+        let mut wallet = Wallet::create(&path).unwrap();
+        let proof = wallet.sign_in(77, 0, "https://example.com", "n-1", 1_000, 1_300).unwrap();
+        assert_eq!(signin::verify(&proof, "https://example.com", "n-1", 1_100), Ok(wallet.address()));
+        // The same ledger formula as the ledger itself.
+        assert_eq!(signin::address(&wallet.key(0).commitment(), &wallet.spare()), wallet.address());
+
+        // The binding is on file: spare 15 can't sign a payment now, even
+        // after a reload, and a reloaded wallet still signs in.
+        let (network, payee) = (Hash32([7; 32]), Hash32([9; 32]));
+        let mut reloaded = Wallet::load(&path).unwrap();
+        assert!(reloaded.sign_order(0, payee, 5, Some(&Signer::Spare(signin::BINDING_SPARE)), &network).is_err());
+        let again = reloaded.sign_in(77, 1, "https://example.com", "n-2", 1_000, 1_300).unwrap();
+        assert!(signin::verify(&again, "https://example.com", "n-2", 1_100).is_ok());
+
+        // A wallet whose last spare already paid can't sign in.
+        let mut paid = Wallet::create(&dir.join("paid.wallet")).unwrap();
+        paid.sign_order(0, payee, 5, Some(&Signer::Spare(signin::BINDING_SPARE)), &network).unwrap();
+        assert!(paid.sign_in(1, 0, "https://example.com", "n", 1_000, 1_300).is_err());
+        let _ = fs::remove_dir_all(&dir);
+    }
 
     #[test]
     fn no_key_ever_signs_two_different_orders() {

@@ -107,6 +107,12 @@ pub enum Tag {
     Escrows = 0x4B,
     /// The secrets claims have revealed, in the state root.
     Revealed = 0x4C,
+    /// A website sign-in message.
+    SignIn = 0x50,
+    /// A sign-in key's upper tree signing the root of a tree below it.
+    SignInTree = 0x51,
+    /// A spare key tying a sign-in key to its address.
+    SignInKey = 0x52,
 }
 
 /// Hashes `parts` under `tag`. Parts are concatenated without separators, so
@@ -129,6 +135,8 @@ pub enum Kdf {
     WalletKey = 0x03,
     TreeLeaf = 0x04,
     WalletSpare = 0x05,
+    WalletSignIn = 0x06,
+    SignInTree = 0x07,
 }
 
 /// Derives a secret from `key`. Keyed BLAKE3 is a pseudorandom function:

@@ -8,5 +8,6 @@ pub mod hash;
 pub mod keytree;
 pub mod merkle;
 pub mod ots;
+pub mod signin;
 
 pub use hash::{Hash32, Kdf, Tag, hash, prf};
