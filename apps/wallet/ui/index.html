@@ -2625,7 +2625,6 @@
         <button class="tab" id="tab-mine-go" role="tab">Your swaps <span id="mine-count"></span></button>
       </div>
       <div id="tab-offers">
-        <div class="note" id="board-wallet" hidden><span id="bw-text"></span> <button class="linkish" id="bw-go">Use this wallet instead</button></div>
         <div class="section-head"><h3>Open offers</h3><button class="pill pearl" id="board-post-go">Post an offer</button></div>
         <div id="board-offers"><div class="empty">Loading offers…</div></div>
         <div class="problem" id="board-problem" hidden></div>
@@ -5446,23 +5445,9 @@
     const go = $("board-signin-go");
     go.hidden = !!me;
     go.textContent = "Sign in";
-    // Marketplace payments go to one wallet per account. Say which, when it
-    // isn't the open one, and switch it only when asked.
-    const open = view && view.address;
-    const note = $("board-wallet");
-    note.hidden = !me || !open || me.wallet === open;
-    if (!note.hidden) {
-      const other = me.wallet && walletList.find((w) => w.address === me.wallet);
-      $("bw-text").textContent = me.wallet
-        ? `Market payments go to ${other ? other.name : short(me.wallet)}.`
-        : "Market payments don't go to any wallet yet.";
-    }
+    // Which wallet Market buyers pay is chosen on your profile, under Your
+    // wallets (Paid here): nothing about it on the Swap screen.
   }
-  $("bw-go").onclick = async () => {
-    $("bw-go").disabled = true;
-    try { await invoke("board_link"); await loadBoard(); } catch (e) { problem("board-problem", e); }
-    $("bw-go").disabled = false;
-  };
 
   // Signing in through the app also links this wallet to the account, so
   // the account's buyers on the marketplace pay it. Nothing is paid, and
