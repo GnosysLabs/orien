@@ -1620,7 +1620,11 @@
   .pf-dm-note { margin: 10px 2px 0; line-height: 1.5; }
   /* Narrow: your details, your listings, then your wallets. Big windows:
      the details with the wallets beside them, the listings across below. */
-  .pf-layout { display: grid; grid-template-areas: "main" "shop" "side"; }
+  /* Your listings always come last: your wallets and deleting the account
+     sit with your details, never under the listings. */
+  .pf-layout { display: grid; grid-template-areas: "main" "side" "shop"; }
+  .pf-danger { margin-top: 22px; }
+  .pf-danger .ct-delete { margin: 0 auto; }
   .pf-main { grid-area: main; min-width: 0; }
   .pf-side { grid-area: side; min-width: 0; }
   .pf-shop { grid-area: shop; min-width: 0; }
@@ -2145,6 +2149,7 @@
         <div class="pf-choice" id="pf-dm" role="radiogroup"><button type="button" data-dm="everyone" role="radio">Everyone</button><button type="button" data-dm="talked" role="radio">People you've talked with</button><button type="button" data-dm="nobody" role="radio">No one</button></div>
         <p class="hint pf-dm-note">Messages about your Market listings always come through whatever you pick, so buyers can ask about what you're selling. Blocking still works on top of this.</p>
       </div>
+      <div class="problem" id="pf-problem" hidden></div>
         </div>
         <div class="pf-side">
       <!-- Verifying wallets, so people paying them see "Name – Wallet". -->
@@ -2164,19 +2169,19 @@
           <div class="vf-actions"><button class="pill" id="vf-cancel">Cancel</button><button class="pill pearl" id="vf-go">Send and verify</button></div>
         </div>
       </div>
-        </div>
-        <div class="pf-shop">
-      <div class="section-head pf-listings-head"><h3>Your listings</h3><button class="pill pearl" id="pf-sell">Sell something</button></div>
-      <div class="mk-grid" id="pf-listings"></div>
-        </div>
-      </div>
-      <div class="push"></div>
-      <div class="problem" id="pf-problem" hidden></div>
+        <div class="pf-danger">
       <button class="pill ct-delete" id="pf-delete">Delete my account</button>
       <div class="report-box" id="pf-delete-box" hidden>
         <p class="vc-text" id="pf-delete-text"></p>
         <div class="box plain pf-delete-name"><input id="pf-delete-name" autocomplete="off" spellcheck="false" autocapitalize="off"></div>
         <div class="ls-ask-row"><button class="pill" id="pf-delete-cancel">Cancel</button><button class="pill pf-delete-go" id="pf-delete-go">Delete for good</button></div>
+      </div>
+        </div>
+        </div>
+        <div class="pf-shop">
+      <div class="section-head pf-listings-head"><h3>Your listings</h3><button class="pill pearl" id="pf-sell">Sell something</button></div>
+      <div class="mk-grid" id="pf-listings"></div>
+        </div>
       </div>
     </section>
 
