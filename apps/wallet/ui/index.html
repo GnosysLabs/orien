@@ -1579,12 +1579,14 @@
   .gif-search:focus-within { border-color: var(--focus); }
   .gif-search input { flex: 1; min-width: 0; border: 0; outline: none; background: transparent; color: var(--ink); font: inherit; font-size: 14px; }
   .gif-search input::placeholder { color: var(--faint); }
-  #gif-grid { flex: 1; margin-top: 14px; overflow-y: auto; columns: 3 140px; column-gap: 8px; }
+  #gif-grid { flex: 1; margin-top: 14px; overflow-y: auto; }
+  .gif-cols { display: flex; gap: 8px; align-items: flex-start; }
+  .gif-col { flex: 1; min-width: 0; }
   #gif-grid::-webkit-scrollbar { width: 0; }
   #gif-grid button { display: block; width: 100%; margin: 0 0 8px; padding: 0; border: 0; border-radius: 12px; overflow: hidden;
     background: rgba(var(--tint), 0.05); cursor: pointer; break-inside: avoid; }
   #gif-grid img { display: block; width: 100%; height: auto; }
-  #gif-grid .empty { column-span: all; }
+
   .gif-by { margin-top: 10px; text-align: center; color: var(--faint); font-size: 11.5px; letter-spacing: 0.04em; }
   body.phone #gif-veil { padding: calc(env(safe-area-inset-top) + 12px) 12px calc(env(safe-area-inset-bottom) + 12px); }
   body.phone #gif-card { width: calc(100vw - 24px); height: calc(100vh - env(safe-area-inset-top) - env(safe-area-inset-bottom) - 24px); }
@@ -6758,9 +6760,23 @@
       if (seq !== gifs.seq) return;
       const list = (page.gifs || []).filter((g) => fromKlipy(g.preview) && fromKlipy(g.url));
       gifs.next = page.next || null;
-      const html = list.map((g) => `<button data-gif='${esc(JSON.stringify(g))}'><img src="${esc(g.preview)}" ${g.width && g.height ? `width="${Number(g.width)}" height="${Number(g.height)}" ` : ""}alt="" loading="lazy"></button>`).join("");
-      if (more) $("gif-grid").insertAdjacentHTML("beforeend", html);
-      else { $("gif-grid").innerHTML = html || `<div class="empty">${gifs.q ? "No GIFs found." : "No GIFs right now."}</div>`; $("gif-grid").scrollTop = 0; }
+      if (!more) {
+        $("gif-grid").scrollTop = 0;
+        if (!list.length) { $("gif-grid").innerHTML = `<div class="empty">${gifs.q ? "No GIFs found." : "No GIFs right now."}</div>`; return; }
+        // Columns that each grow downwards: more GIFs add to the bottom,
+        // in KLIPY's order, each into the shortest column.
+        const cols = $("gif-grid").clientWidth < 400 ? 2 : 3;
+        $("gif-grid").innerHTML = `<div class="gif-cols">${'<div class="gif-col"></div>'.repeat(cols)}</div>`;
+        gifs.heights = new Array(cols).fill(0);
+      }
+      const columns = [...document.querySelectorAll("#gif-grid .gif-col")];
+      for (const g of list) {
+        const i = gifs.heights.indexOf(Math.min(...gifs.heights));
+        columns[i].insertAdjacentHTML("beforeend", `<button data-gif='${esc(JSON.stringify(g))}'><img src="${esc(g.preview)}" ${g.width && g.height ? `width="${Number(g.width)}" height="${Number(g.height)}" ` : ""}alt="" loading="lazy"></button>`);
+        gifs.heights[i] += g.width && g.height ? g.height / g.width : 0.75;
+      }
+      // A first page that doesn't fill the box: the next one at once.
+      requestAnimationFrame(() => { const el = $("gif-grid"); if (gifs.next && el.scrollHeight <= el.clientHeight + 300) gifLoad(true); });
     } catch (e) {
       if (seq === gifs.seq && !more) $("gif-grid").innerHTML = `<div class="empty">${esc(String(e).replace(/^Error: /, "") || "GIFs can't be reached right now.")}</div>`;
     } finally { if (seq === gifs.seq) gifs.busy = false; }

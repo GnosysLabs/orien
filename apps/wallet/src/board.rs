@@ -646,7 +646,14 @@ pub fn klipy(dir: &Path, q: &str, page: u32) -> Result<Value, String> {
         let id = item["id"].as_i64().map(|n| n.to_string()).or_else(|| item["id"].as_str().map(str::to_string)).or_else(|| item["slug"].as_str().map(str::to_string))?;
         Some(json!({ "id": id, "url": url, "preview": preview, "width": width, "height": height }))
     }).collect();
-    let next = data["has_next"].as_bool().unwrap_or(false).then(|| data["current_page"].as_u64().unwrap_or(1) + 1);
+    // More after this page: KLIPY says so, or (when it doesn't say) the
+    // page came back full.
+    let asked: u64 = page.parse().unwrap_or(1);
+    let more = match data["has_next"].as_bool().or_else(|| answer["has_next"].as_bool()) {
+        Some(more) => more,
+        None => gifs.len() >= 24,
+    };
+    let next = more.then(|| data["current_page"].as_u64().unwrap_or(asked) + 1);
     Ok(json!({ "gifs": gifs, "next": next }))
 }
 
