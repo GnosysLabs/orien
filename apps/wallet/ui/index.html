@@ -684,6 +684,17 @@
   /* Their mining and what they sell, then their posts; in big windows the
      posts with the two beside them. */
   .sl-layout { display: grid; gap: 20px; margin-top: 20px; }
+  /* Small windows: the sidebar's pieces join the column (mining, then the
+     tabs, then the chosen tab's content). */
+  @media (max-width: 979px) {
+    .sl-layout .sl-side { display: contents; }
+    #sl-mining { order: 1; }
+    .sl-tabs { order: 2; margin: 0; }
+    .sl-main, #sl-market { order: 3; }
+    .sl-layout:has(#sl-tabs:not([hidden])) .sl-market-head { display: none; }
+    .sl-layout[data-tab="feed"]:has(#sl-tabs:not([hidden])) #sl-market,
+    .sl-layout[data-tab="market"]:has(#sl-tabs:not([hidden])) .sl-main { display: none; }
+  }
   .sl-side { display: grid; gap: 20px; align-content: start; min-width: 0; }
   .sl-side:not(:has(> :not([hidden]))) { display: none; }
   .sl-main { min-width: 0; }
@@ -696,6 +707,7 @@
   .sl-stats span { font-size: 11px; color: var(--dim); }
   @media (min-width: 980px) {
     .sl-layout { grid-template-columns: minmax(0, 1fr) 300px; align-items: start; }
+    .sl-tabs { display: none; }
     /* Stays in view beside the posts; taller than the window, it scrolls on its own. */
     .sl-side { order: 2; position: sticky; top: -8px; max-height: var(--side-h, calc(100vh - 150px)); overflow-y: auto;
       overscroll-behavior: contain; scrollbar-width: thin; border-radius: 18px; }
@@ -2044,6 +2056,8 @@
             <div class="mk-grid" id="sl-grid"></div>
           </div>
         </aside>
+        <!-- Small windows: their posts and what they sell, one at a time. -->
+        <div class="tabs sl-tabs" id="sl-tabs" role="tablist" hidden><button class="tab on" data-sl-tab="feed" role="tab">Feed</button><button class="tab" data-sl-tab="market" role="tab">On the Market</button></div>
         <div class="sl-main">
           <div class="cm-feed" id="sl-feed"></div>
           <button class="pill mk-more" id="sl-feed-more" hidden>Show more</button>
@@ -5933,6 +5947,8 @@
     ].filter(Boolean).map(([kind, value, label, icon]) => `<button class="sl-chip" data-kind="${kind}" data-value="${esc(value)}">${icon}<span>${label}</span></button>`).join("");
     const offers = answer.listings || [];
     $("sl-market").hidden = !offers.length;
+    $("sl-tabs").hidden = !offers.length;
+    slTab("feed");
     $("sl-grid").innerHTML = offers.map(card).join("");
     // Their mining, as on the website: rank, ORN mined, hours in a row.
     const m = answer.mining;
@@ -5971,6 +5987,11 @@
     $("sl-feed-more").hidden = !sl.more;    slFitEdges();
   }
   $("sl-feed-more").onclick = () => slLoadFeed(true);
+  function slTab(tab) {
+    document.querySelector(".sl-layout").dataset.tab = tab;
+    for (const b of document.querySelectorAll("[data-sl-tab]")) b.classList.toggle("on", b.dataset.slTab === tab);
+  }
+  for (const b of document.querySelectorAll("[data-sl-tab]")) b.onclick = () => { slTab(b.dataset.slTab); feel("selection"); };
   // Big windows: once the card at the top has scrolled away, the posts and
   // the sidebar each round off at both sides where they pass the edges, as
   // in the Community.
