@@ -61,14 +61,18 @@ pub struct PayableProfile {
 /// Most profiles one search gives.
 pub const MAX_FOUND: usize = 10;
 
-/// Whose a verified wallet is: the account's name and picture, and the
-/// wallet's own name.
+/// Whose a verified wallet is: the account's public profile (name, bio,
+/// picture, banner and the usernames it shows), and the wallet's own name.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize)]
 pub struct WalletProfile {
     pub id: i64,
     pub name: String,
     pub picture: Option<String>,
     pub wallet_name: Option<String>,
+    pub bio: String,
+    pub banner: Option<String>,
+    #[serde(skip)]
+    pub contact: crate::store::Contact,
 }
 
 /// The wallet's newest name in any of the account's apps.
@@ -265,7 +269,8 @@ impl Store {
     pub fn wallet_profiles(&self, addresses: &[String]) -> Result<Vec<(String, WalletProfile)>> {
         let mut found: Vec<(String, WalletProfile)> = Vec::new();
         let mut query = self.db.prepare(&format!(
-            "SELECT a.id, a.name, a.picture, {NAME} FROM verified_wallets v JOIN accounts a ON a.id = v.account
+            "SELECT a.id, a.name, a.picture, {NAME}, a.bio, a.banner, a.telegram, a.x, a.discord
+             FROM verified_wallets v JOIN accounts a ON a.id = v.account
              WHERE v.address = ?1 AND v.proven IS NOT NULL
                AND NOT EXISTS (SELECT 1 FROM suspended s WHERE s.account = a.id)
              ORDER BY v.proven DESC LIMIT 1"
@@ -277,7 +282,15 @@ impl Store {
             }
             let profile = query
                 .query_row([&address], |row| {
-                    Ok(WalletProfile { id: row.get(0)?, name: row.get(1)?, picture: row.get(2)?, wallet_name: row.get(3)? })
+                    Ok(WalletProfile {
+                        id: row.get(0)?,
+                        name: row.get(1)?,
+                        picture: row.get(2)?,
+                        wallet_name: row.get(3)?,
+                        bio: row.get(4)?,
+                        banner: row.get(5)?,
+                        contact: crate::store::Contact { telegram: row.get(6)?, x: row.get(7)?, discord: row.get(8)? },
+                    })
                 })
                 .optional()?;
             if let Some(profile) = profile {

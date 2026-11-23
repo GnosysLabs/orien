@@ -736,6 +736,35 @@ async fn a_wallet_is_verified_by_a_small_payment_and_then_named() {
     let (_, body) = market.ask("POST", "/api/market/wallets/lookup", None, Some(json!({ "addresses": [wallet, "22".repeat(32), "nonsense"] }))).await;
     assert_eq!(body["profiles"].as_object().unwrap().len(), 1);
     assert_eq!(body["profiles"][&wallet]["name"], "Maya");
+
+    // Websites get the public profile: bio, full picture and profile
+    // addresses, and the usernames Maya shows. No email, ever.
+    let (status, _) = market
+        .ask("PUT", "/api/market/me", Some(&maya), Some(json!({ "name": "Maya", "bio": "I draw logos.", "contact": { "x": "@maya_draws", "telegram": "", "discord": "maya.draws" } })))
+        .await;
+    assert_eq!(status, StatusCode::OK);
+    let (_, body) = market.ask("GET", &format!("/api/market/wallets/{wallet}"), None, None).await;
+    assert_eq!(body["bio"], "I draw logos.");
+    assert_eq!(body["profile_url"], "https://orien.network/u/Maya/");
+    assert_eq!(body["picture_url"], Value::Null, "she has no picture yet");
+    assert_eq!(body["banner_url"], Value::Null);
+    assert_eq!(body["links"], json!([
+        { "kind": "x", "handle": "maya_draws", "url": "https://x.com/maya_draws" },
+        { "kind": "discord", "handle": "maya.draws", "url": null },
+    ]));
+    assert!(!body.to_string().contains('@'), "no email: {body}");
+    let (_, listed) = market.ask("POST", "/api/market/wallets/lookup", None, Some(json!({ "addresses": [wallet] }))).await;
+    assert_eq!(listed["profiles"][&wallet], body);
+
+    // Any website may read them from a visitor's browser.
+    for (method, path) in [("GET", format!("/api/market/wallets/{wallet}")), ("OPTIONS", "/api/market/wallets/lookup".to_string())] {
+        let response = router(market.app.clone())
+            .oneshot(Request::builder().method(method).uri(path).header(header::ORIGIN, "https://example.com").body(Body::empty()).unwrap())
+            .await
+            .unwrap();
+        assert!(response.status().is_success(), "{method}: {}", response.status());
+        assert_eq!(response.headers()[header::ACCESS_CONTROL_ALLOW_ORIGIN], "*", "{method}");
+    }
     let too_many: Vec<String> = (0..101).map(|i| format!("{i:064x}")).collect();
     let (status, _) = market.ask("POST", "/api/market/wallets/lookup", None, Some(json!({ "addresses": too_many }))).await;
     assert_eq!(status, StatusCode::BAD_REQUEST);
