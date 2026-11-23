@@ -1646,11 +1646,15 @@
   .cm-when { font-size: 12.5px; color: var(--dim); }
   /* Delete: a red bin, round. */
   /* The bin in a screen's top line; its first tap asks "Delete?". */
-  .tl-bin { margin-left: auto; color: var(--bad) !important; }
-  .tl-bin.armed { width: auto; padding: 0 14px; font-weight: 600; font-size: 13px; border-color: var(--bad); }
-  .cm-del { flex: none; display: grid; place-items: center; width: 32px; height: 32px; padding: 0; border: 1px solid var(--line); border-radius: 50%;
-    background: transparent; color: var(--bad); cursor: pointer; }
-  @media (hover: hover) { .cm-del:hover { background: color-mix(in srgb, var(--bad) 14%, transparent); border-color: var(--bad); } }
+  /* Delete buttons: a solid red circle with a dark glyph, clear on every
+     theme and over any picture. */
+  .tl-bin, .cm-del { background: #e5484d !important; color: #1b1113 !important; border: 0 !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25); }
+  @media (hover: hover) { .tl-bin:hover, .cm-del:hover { filter: brightness(1.1); } }
+  .tl-bin svg, .cm-del svg { stroke-width: 2.3; }
+  .tl-bin { margin-left: auto; }
+  .tl-bin.armed { width: auto; padding: 0 14px; font-weight: 700; font-size: 13px; }
+  .cm-del { flex: none; display: grid; place-items: center; width: 32px; height: 32px; padding: 0; border-radius: 50%; cursor: pointer; }
   .cm-text { margin-top: 12px; white-space: pre-wrap; overflow-wrap: anywhere; font-size: 15px; line-height: 1.5; }
   .cm-text:empty { display: none; }
   .cm-news { margin-top: 14px; }
