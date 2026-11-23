@@ -5939,7 +5939,7 @@
     $("sl-mining").hidden = !m;
     if (m) $("sl-mining").innerHTML = '<h3><span class="pearl-text">🏆</span> Mining</h3>'
       + `<div class="sl-stats"><div><b>${m.rank <= 3 ? MEDALS[m.rank - 1] : `#${m.rank}`}</b><span>top miner</span></div><div><b>${cmOrn(m.mined)}</b><span>ORN mined</span></div><div><b>${m.streak}h</b><span>in a row</span></div></div>`
-      + '<p class="cm-note">Among members with a verified wallet, by ORN mined.</p><button class="cm-showall" data-top-miners><span class="pearl-text">See the top miners</span></button>';
+      + '<p class="cm-note">Among members with a verified wallet, by ORN mined.</p>';
     paintSellerTools(answer);
     // Their part of the community: their posts, and the network's about them.
     sl.posts = []; sl.more = false;
@@ -5990,7 +5990,6 @@
   }
   $("seller").addEventListener("scroll", () => requestAnimationFrame(slFitEdges), { passive: true });
   window.addEventListener("resize", slFitEdges);
-  $("sl-mining").addEventListener("click", (e) => { if (e.target.closest("[data-top-miners]")) openCommunity(); });
   function paintSellerTools(answer) {
     const a = answer.account || {};
     sl.id = a.id; sl.name = a.name || ""; sl.blocked = !!answer.blocked; sl.armed = false;
