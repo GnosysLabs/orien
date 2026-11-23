@@ -27,6 +27,14 @@ export const PRODUCTS: Record<Product, string> = {
 export const CHANGELOG: Entry[] = [
   {
     date: '2026-11-23',
+    products: ['marketplace'],
+    title: 'Photos, GIFs and polls in the community',
+    changes: [
+      'Posts can carry up to four photos, a GIF from KLIPY, or a poll with two to four choices that runs for a day, three days or a week. Votes are final, and the results show once you’ve voted or the poll ends.',
+    ],
+  },
+  {
+    date: '2026-11-23',
     products: ['network', 'marketplace'],
     title: 'More of the network’s news in the community',
     changes: [

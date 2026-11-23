@@ -62,6 +62,9 @@ pub struct App {
     spendable: Mutex<HashMap<String, (std::time::Instant, u64)>>,
     /// Wallets being asked about in the background now.
     asking: Mutex<HashSet<String>>,
+    /// The KLIPY key the apps search GIFs with, from the user's own
+    /// device as KLIPY requires; empty when GIFs are off.
+    klipy_key: String,
 }
 
 /// One email, for App Store review, whose sign-in code never changes and is
@@ -112,6 +115,7 @@ impl App {
             community: crate::community::Community::default(),
             spendable: Mutex::new(HashMap::new()),
             asking: Mutex::new(HashSet::new()),
+            klipy_key: String::new(),
         })
     }
 
@@ -147,6 +151,16 @@ impl App {
     }
 
     /// Turns away takes from wallets on swap rules older than `version`.
+    /// GIFs in the community composer, searched with this KLIPY key.
+    pub fn with_klipy_key(mut self, key: String) -> App {
+        self.klipy_key = key;
+        self
+    }
+
+    pub(crate) fn klipy_key(&self) -> &str {
+        &self.klipy_key
+    }
+
     pub fn with_min_swap_version(mut self, version: u32) -> App {
         self.min_swap_version = version;
         self
@@ -198,6 +212,10 @@ impl App {
     /// The Market's own Orien address.
     pub(crate) fn address(&self) -> &str {
         &self.address
+    }
+
+    pub(crate) fn images(&self) -> &Folder {
+        &self.images
     }
 
     pub(crate) fn explorer(&self) -> &crate::explorer::Explorer {

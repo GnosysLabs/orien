@@ -486,3 +486,96 @@ async fn tips_are_counted_once_the_network_shows_them_and_only_the_author_hears_
     let (_, theirs) = ask(&app, "GET", "/api/market/notices", Some(&sam), None).await;
     assert!(theirs["notices"].as_array().unwrap().iter().all(|l| l["kind"] != "tip"));
 }
+
+/// Sends raw bytes, as a photo upload does.
+async fn upload(app: &Arc<App>, path: &str, cookie: &str, bytes: Vec<u8>) -> (StatusCode, Value) {
+    let request = Request::builder().method("POST").uri(path).header(header::COOKIE, format!("{COOKIE}={cookie}")).body(Body::from(bytes)).unwrap();
+    let response = router(app.clone()).oneshot(request).await.unwrap();
+    let status = response.status();
+    let bytes = response.into_body().collect().await.unwrap().to_bytes();
+    (status, serde_json::from_slice(&bytes).unwrap_or(Value::Null))
+}
+
+#[tokio::test]
+async fn posts_carry_photos_or_a_poll() {
+    let app = market();
+    let alice = sign_in_for_tests(&app, "Alice");
+    let sam = sign_in_for_tests(&app, "Sam");
+    let mut png = Vec::new();
+    image::DynamicImage::new_rgb8(3000, 1500).write_to(&mut std::io::Cursor::new(&mut png), image::ImageFormat::Png).unwrap();
+
+    // Photos: uploaded, then put on a post, kept whole and at most 2000 across.
+    let (status, photo) = upload(&app, "/api/market/community/pictures", &alice, png.clone()).await;
+    assert_eq!(status, StatusCode::OK, "{photo}");
+    assert_eq!((photo["width"].as_u64(), photo["height"].as_u64()), (Some(2000), Some(1000)));
+    let name = photo["name"].as_str().unwrap().to_string();
+    assert_eq!(upload(&app, "/api/market/community/pictures", &alice, b"not a picture".to_vec()).await.0, StatusCode::BAD_REQUEST);
+    let (status, _) = ask(&app, "POST", "/api/market/community/posts", Some(&sam), Some(json!({ "body": "", "pictures": [name] }))).await;
+    assert_eq!(status, StatusCode::BAD_REQUEST, "someone else's photo");
+    let (status, posted) = ask(&app, "POST", "/api/market/community/posts", Some(&alice), Some(json!({ "body": "", "pictures": [name] }))).await;
+    assert_eq!(status, StatusCode::OK, "words are optional with a photo: {posted}");
+    let photo_post = posted["id"].as_i64().unwrap();
+    let (status, _) = ask(&app, "POST", "/api/market/community/posts", Some(&alice), Some(json!({ "body": "again", "pictures": [name] }))).await;
+    assert_eq!(status, StatusCode::BAD_REQUEST, "a photo goes on one post");
+
+    // Polls: 2 to 4 short choices, a day, three days or a week.
+    let poll = |options: Value, hours: u64| json!({ "body": "Best mining hour?", "poll": { "options": options, "hours": hours } });
+    for bad in [poll(json!(["One"]), 24), poll(json!(["A", "B", "C", "D", "E"]), 24), poll(json!(["A", "B"]), 12), poll(json!(["A", "this choice is far too long to fit"]), 24)] {
+        assert_eq!(ask(&app, "POST", "/api/market/community/posts", Some(&alice), Some(bad)).await.0, StatusCode::BAD_REQUEST);
+    }
+    let (status, posted) = ask(&app, "POST", "/api/market/community/posts", Some(&alice), Some(poll(json!(["Morning", "Night"]), 72))).await;
+    assert_eq!(status, StatusCode::OK, "{posted}");
+    let poll_post = posted["id"].as_i64().unwrap();
+
+    let find = |feed: &Value, id: i64| feed["posts"].as_array().unwrap().iter().find(|p| p["id"] == id).unwrap().clone();
+    let (_, feed) = ask(&app, "GET", "/api/market/community/feed", Some(&sam), None).await;
+    assert_eq!(find(&feed, photo_post)["pictures"], json!([{ "name": name, "width": 2000, "height": 1000 }]));
+    let shown = find(&feed, poll_post)["poll"].clone();
+    assert_eq!((shown["total"].as_i64(), shown["closed"].as_bool(), shown["voted"].clone()), (Some(0), Some(false), Value::Null));
+    assert!(shown["options"][0]["votes"].is_null(), "hidden until you vote");
+    assert!(shown["ends"].as_i64().unwrap() > 0);
+
+    // Voting: once, final; then the counts show.
+    let vote = format!("/api/market/community/posts/{poll_post}/vote");
+    assert_eq!(ask(&app, "POST", &vote, Some(&sam), Some(json!({ "option": 5 }))).await.0, StatusCode::BAD_REQUEST);
+    let (status, after) = ask(&app, "POST", &vote, Some(&sam), Some(json!({ "option": 1 }))).await;
+    assert_eq!(status, StatusCode::OK);
+    assert_eq!((after["voted"].as_i64(), after["total"].as_i64(), after["options"][1]["votes"].as_i64()), (Some(1), Some(1), Some(1)));
+    assert_eq!(ask(&app, "POST", &vote, Some(&sam), Some(json!({ "option": 0 }))).await.0, StatusCode::BAD_REQUEST, "final");
+    let (_, feed) = ask(&app, "GET", "/api/market/community/feed", Some(&alice), None).await;
+    assert_eq!(find(&feed, poll_post)["poll"]["options"][1]["votes"], 1, "the author sees the counts");
+    let (_, feed) = ask(&app, "GET", "/api/market/community/feed", None, None).await;
+    assert!(find(&feed, poll_post)["poll"]["options"][1]["votes"].is_null(), "others don't until they vote");
+    assert_eq!(ask(&app, "POST", &vote, None, Some(json!({ "option": 0 }))).await.0, StatusCode::UNAUTHORIZED);
+}
+
+#[tokio::test]
+async fn a_post_can_carry_a_klipy_gif_and_apps_get_the_key_to_search() {
+    let mut random = [0u8; 8];
+    getrandom::fill(&mut random).unwrap();
+    let folder = Folder::open(&std::env::temp_dir().join(format!("orien-community-test-{}", hex::encode(random)))).unwrap();
+    let app = Arc::new(
+        App::new(Store::in_memory().unwrap(), folder, "https://orien.network", true, Mailer::log_only(), Screener::refusing_for_tests("scam"), Arc::new(Fake::default()), "0000000000000000000000000000000000000000000000000000000000000abc")
+            .unwrap()
+            .with_klipy_key("test-key".into()),
+    );
+    let alice = sign_in_for_tests(&app, "Alice");
+    assert_eq!(ask(&app, "GET", "/api/market/community/gifs/key", None, None).await.0, StatusCode::UNAUTHORIZED);
+    let (status, key) = ask(&app, "GET", "/api/market/community/gifs/key", Some(&alice), None).await;
+    assert_eq!((status, key["key"].as_str(), key["placeholder"].as_str()), (StatusCode::OK, Some("test-key"), Some("Search KLIPY")));
+    assert!(key["customer_id"].as_str().unwrap().len() >= 8, "the account's random handle");
+
+    let gif = |url: &str| json!({ "id": 8041071659142944u64, "url": url, "preview": "https://static1.klipy.com/ii/a/b/c.webp", "width": 498, "height": 300 });
+    let post = |gif: Value| json!({ "body": "", "gif": gif });
+    for bad in ["https://evil.example/a.gif", "http://static.klipy.com/a.gif", "https://staticevil.klipy.com/a.gif"] {
+        assert_eq!(ask(&app, "POST", "/api/market/community/posts", Some(&alice), Some(post(gif(bad)))).await.0, StatusCode::BAD_REQUEST, "{bad}");
+    }
+    let both = json!({ "body": "hi", "gif": gif("https://static.klipy.com/ii/a/b/c.webp"), "poll": { "options": ["a", "b"], "hours": 24 } });
+    assert_eq!(ask(&app, "POST", "/api/market/community/posts", Some(&alice), Some(both)).await.0, StatusCode::BAD_REQUEST, "one kind per post");
+    let (status, posted) = ask(&app, "POST", "/api/market/community/posts", Some(&alice), Some(post(gif("https://static.klipy.com/ii/a/b/c.webp")))).await;
+    assert_eq!(status, StatusCode::OK, "{posted}");
+    let id = posted["id"].as_i64().unwrap();
+    let (_, feed) = ask(&app, "GET", "/api/market/community/feed", None, None).await;
+    let shown = feed["posts"].as_array().unwrap().iter().find(|p| p["id"] == id).unwrap().clone();
+    assert_eq!(shown["gif"], json!({ "id": "8041071659142944", "url": "https://static.klipy.com/ii/a/b/c.webp", "preview": "https://static1.klipy.com/ii/a/b/c.webp", "width": 498, "height": 300 }));
+}

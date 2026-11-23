@@ -28,6 +28,13 @@ use std::sync::{Arc, Mutex};
 use std::time::Duration;
 
 pub const MAX_POST: usize = 500;
+/// Photos on one post.
+pub const MAX_PICTURES: usize = 4;
+/// A poll's choices: at least two, at most four, each this long at most.
+pub const POLL_OPTIONS: std::ops::RangeInclusive<usize> = 2..=4;
+pub const MAX_OPTION: usize = 25;
+/// How long a poll may run, in hours: a day, three days or a week.
+pub const POLL_HOURS: [u64; 3] = [24, 72, 168];
 const POSTS_AN_HOUR: i64 = 20;
 const PAGE: i64 = 30;
 /// The reactions anyone can leave.
@@ -363,6 +370,42 @@ impl Store {
                  removed INTEGER NOT NULL DEFAULT 0
              );
              CREATE INDEX IF NOT EXISTS posts_feed ON posts(parent, id);
+             -- Photos on posts: uploaded first (post NULL), then put on a
+             -- post by its author.
+             CREATE TABLE IF NOT EXISTS post_pictures (
+                 name TEXT PRIMARY KEY,
+                 account INTEGER NOT NULL REFERENCES accounts(id) ON DELETE CASCADE,
+                 post INTEGER REFERENCES posts(id) ON DELETE CASCADE,
+                 position INTEGER NOT NULL DEFAULT 0,
+                 width INTEGER NOT NULL,
+                 height INTEGER NOT NULL,
+                 created INTEGER NOT NULL
+             );
+             CREATE INDEX IF NOT EXISTS post_pictures_by_post ON post_pictures(post, position);
+             -- A GIF on a post, as KLIPY gave it: loaded straight from
+             -- KLIPY, never copied here.
+             CREATE TABLE IF NOT EXISTS post_gifs (
+                 post INTEGER PRIMARY KEY REFERENCES posts(id) ON DELETE CASCADE,
+                 gif TEXT NOT NULL,
+                 url TEXT NOT NULL,
+                 preview TEXT NOT NULL,
+                 width INTEGER NOT NULL,
+                 height INTEGER NOT NULL
+             );
+             -- Polls: a post's choices, when it closes, and one final vote
+             -- per account.
+             CREATE TABLE IF NOT EXISTS polls (
+                 post INTEGER PRIMARY KEY REFERENCES posts(id) ON DELETE CASCADE,
+                 options TEXT NOT NULL,
+                 ends INTEGER NOT NULL
+             );
+             CREATE TABLE IF NOT EXISTS poll_votes (
+                 post INTEGER NOT NULL REFERENCES posts(id) ON DELETE CASCADE,
+                 account INTEGER NOT NULL REFERENCES accounts(id) ON DELETE CASCADE,
+                 option INTEGER NOT NULL,
+                 at INTEGER NOT NULL,
+                 PRIMARY KEY (post, account)
+             );
              -- Tips paid to a post's author: each payment, by its sender and
              -- order number, counted once. Totals show; who tipped doesn't.
              CREATE TABLE IF NOT EXISTS post_tips (
@@ -601,6 +644,20 @@ impl Store {
         self.name_faces(&mut posts)?;
         for post in &mut posts {
             let id = post["id"].as_i64().unwrap_or(0);
+            let pictures = self.post_pictures(id)?;
+            if !pictures.is_empty() {
+                post["pictures"] = json!(pictures);
+            }
+            if let Some(gif) = self.post_gif(id)? {
+                post["gif"] = gif;
+            }
+            let mine = post["mine"].as_bool().unwrap_or(false);
+            if let Some(poll) = self.poll(id, viewer, mine)? {
+                post["poll"] = poll;
+            }
+        }
+        for post in &mut posts {
+            let id = post["id"].as_i64().unwrap_or(0);
             let mut counts = self.db.prepare("SELECT emoji, COUNT(*), MAX(account = ?2) FROM reactions WHERE post = ?1 GROUP BY emoji")?;
             let reactions: Vec<(String, i64, bool)> = counts
                 .query_map(params![id, viewer.unwrap_or(-1)], |row| Ok((row.get(0)?, row.get(1)?, row.get(2)?)))?
@@ -681,6 +738,190 @@ impl Store {
             }
         }
         Ok(())
+    }
+
+    /// Notes a photo uploaded for a post that isn't written yet.
+    pub fn add_post_picture(&self, account: i64, name: &str, width: u32, height: u32) -> Result<()> {
+        self.db.execute(
+            "INSERT INTO post_pictures (name, account, width, height, created) VALUES (?1, ?2, ?3, ?4, ?5)",
+            params![name, account, width, height, now() as i64],
+        )?;
+        Ok(())
+    }
+
+    /// A post's photos, in order: {name, width, height}.
+    fn post_pictures(&self, post: i64) -> Result<Vec<Value>> {
+        let mut statement = self.db.prepare("SELECT name, width, height FROM post_pictures WHERE post = ?1 ORDER BY position")?;
+        let rows = statement.query_map([post], |row| {
+            Ok(json!({ "name": row.get::<_, String>(0)?, "width": row.get::<_, i64>(1)?, "height": row.get::<_, i64>(2)? }))
+        })?;
+        Ok(rows.collect::<rusqlite::Result<_>>()?)
+    }
+
+    /// A post's GIF: {id, url, preview, width, height}.
+    fn post_gif(&self, post: i64) -> Result<Option<Value>> {
+        Ok(self
+            .db
+            .query_row("SELECT gif, url, preview, width, height FROM post_gifs WHERE post = ?1", [post], |row| {
+                Ok(json!({
+                    "id": row.get::<_, String>(0)?,
+                    "url": row.get::<_, String>(1)?,
+                    "preview": row.get::<_, String>(2)?,
+                    "width": row.get::<_, i64>(3)?,
+                    "height": row.get::<_, i64>(4)?,
+                }))
+            })
+            .optional()?)
+    }
+
+    /// A poll as `viewer` sees it: how many voted always; each choice's
+    /// votes once they voted, it closed, or it's their own.
+    fn poll(&self, post: i64, viewer: Option<i64>, mine: bool) -> Result<Option<Value>> {
+        let found: Option<(String, i64)> = self
+            .db
+            .query_row("SELECT options, ends FROM polls WHERE post = ?1", [post], |row| Ok((row.get(0)?, row.get(1)?)))
+            .optional()?;
+        let Some((options, ends)) = found else { return Ok(None) };
+        let options: Vec<String> = serde_json::from_str(&options).unwrap_or_default();
+        let mut counts = vec![0i64; options.len()];
+        let mut statement = self.db.prepare("SELECT option, COUNT(*) FROM poll_votes WHERE post = ?1 GROUP BY option")?;
+        for row in statement.query_map([post], |row| Ok((row.get::<_, i64>(0)?, row.get::<_, i64>(1)?)))? {
+            let (option, count) = row?;
+            if let Some(slot) = counts.get_mut(option as usize) {
+                *slot = count;
+            }
+        }
+        let voted: Option<i64> = match viewer {
+            Some(viewer) => self
+                .db
+                .query_row("SELECT option FROM poll_votes WHERE post = ?1 AND account = ?2", params![post, viewer], |row| row.get(0))
+                .optional()?,
+            None => None,
+        };
+        let closed = now() as i64 >= ends;
+        let shown = voted.is_some() || closed || mine;
+        let options: Vec<Value> = options
+            .iter()
+            .zip(&counts)
+            .map(|(text, votes)| json!({ "text": text, "votes": if shown { json!(votes) } else { Value::Null } }))
+            .collect();
+        Ok(Some(json!({ "options": options, "total": counts.iter().sum::<i64>(), "ends": ends, "closed": closed, "voted": voted })))
+    }
+
+    /// Puts photos the author uploaded on their new post, in order.
+    fn attach_pictures(&self, author: i64, post: i64, names: &[String]) -> Result<()> {
+        if names.len() > MAX_PICTURES {
+            bail!("a post has at most {MAX_PICTURES} photos");
+        }
+        for (position, name) in names.iter().enumerate() {
+            let taken = self.db.execute(
+                "UPDATE post_pictures SET post = ?3, position = ?4 WHERE name = ?1 AND account = ?2 AND post IS NULL",
+                params![name, author, post, position as i64],
+            )?;
+            if taken == 0 {
+                bail!("a photo on this post wasn't uploaded by you, or is on another post already");
+            }
+        }
+        Ok(())
+    }
+
+    /// A poll's choices, tidied, or why they can't be one.
+    pub fn poll_options(options: &[String], hours: u64) -> Result<Vec<String>> {
+        let options: Vec<String> = options.iter().map(|o| o.split_whitespace().collect::<Vec<_>>().join(" ")).collect();
+        if !POLL_OPTIONS.contains(&options.len()) {
+            bail!("a poll has 2 to 4 choices");
+        }
+        if options.iter().any(|o| o.is_empty() || o.chars().count() > MAX_OPTION) {
+            bail!("each choice is 1 to {MAX_OPTION} characters");
+        }
+        if !POLL_HOURS.contains(&hours) {
+            bail!("a poll runs for 1 day, 3 days or 7 days");
+        }
+        Ok(options)
+    }
+
+    /// A new post with photos or a poll. Checked and screened already.
+    pub fn add_post_with(
+        &self,
+        author: i64,
+        body: &str,
+        pictures: &[String],
+        poll: Option<(&[String], u64)>,
+        gif: Option<&Gif>,
+    ) -> Result<i64> {
+        self.may_post(author)?;
+        let body = body.trim().replace("\r\n", "\n");
+        if body.chars().count() > MAX_POST {
+            bail!("a post is at most {MAX_POST} characters");
+        }
+        if body.is_empty() && ((pictures.is_empty() && gif.is_none()) || poll.is_some()) {
+            bail!("write something first");
+        }
+        if let Some(gif) = gif {
+            gif.checked()?;
+        }
+        // Checked before anything is saved.
+        let poll = match poll {
+            Some((options, hours)) => Some((Store::poll_options(options, hours)?, hours)),
+            None => None,
+        };
+        if pictures.len() > MAX_PICTURES {
+            bail!("a post has at most {MAX_PICTURES} photos");
+        }
+        let at = now();
+        self.db.execute("INSERT INTO posts (author, kind, body, created) VALUES (?1, 'post', ?2, ?3)", params![author, body, at as i64])?;
+        let id = self.db.last_insert_rowid();
+        let done = (|| -> Result<()> {
+            self.attach_pictures(author, id, pictures)?;
+            if let Some(gif) = gif {
+                self.db.execute(
+                    "INSERT INTO post_gifs (post, gif, url, preview, width, height) VALUES (?1, ?2, ?3, ?4, ?5, ?6)",
+                    params![id, gif.id_text(), gif.url, gif.preview, gif.width, gif.height],
+                )?;
+            }
+            if let Some((options, hours)) = poll {
+                self.db.execute(
+                    "INSERT INTO polls (post, options, ends) VALUES (?1, ?2, ?3)",
+                    params![id, serde_json::to_string(&options)?, (at + hours * 3600) as i64],
+                )?;
+            }
+            Ok(())
+        })();
+        if let Err(error) = done {
+            self.db.execute("DELETE FROM posts WHERE id = ?1", [id])?;
+            self.db.execute("UPDATE post_pictures SET post = NULL WHERE post = ?1", [id])?;
+            return Err(error);
+        }
+        Ok(id)
+    }
+
+    /// `account` votes for choice `option` on a poll: once, and finally.
+    pub fn vote(&self, post: i64, account: i64, option: usize) -> Result<Value> {
+        let found: Option<(String, i64)> = self
+            .db
+            .query_row(
+                "SELECT l.options, l.ends FROM polls l JOIN posts p ON p.id = l.post WHERE l.post = ?1 AND p.removed = 0",
+                [post],
+                |row| Ok((row.get(0)?, row.get(1)?)),
+            )
+            .optional()?;
+        let Some((options, ends)) = found else { bail!("there is no such poll") };
+        let count = serde_json::from_str::<Vec<String>>(&options).map_or(0, |o| o.len());
+        if option >= count {
+            bail!("there is no such choice");
+        }
+        if now() as i64 >= ends {
+            bail!("this poll has closed");
+        }
+        let new = self.db.execute(
+            "INSERT OR IGNORE INTO poll_votes (post, account, option, at) VALUES (?1, ?2, ?3, ?4)",
+            params![post, account, option as i64, now() as i64],
+        )? == 1;
+        if !new {
+            bail!("you voted on this poll already");
+        }
+        let mine: bool = self.db.query_row("SELECT author = ?2 FROM posts WHERE id = ?1", params![post, account], |row| row.get(0))?;
+        Ok(self.poll(post, Some(account), mine)?.expect("just voted"))
     }
 
     /// Who a tip on `post` goes to, and the wallets it may be paid to: a
@@ -976,6 +1217,12 @@ pub fn routes() -> Router<Arc<App>> {
         .route("/api/market/community/posts/{id}", get(replies).delete(remove_post))
         .route("/api/market/community/posts/{id}/react", post(react))
         .route("/api/market/community/posts/{id}/tips", post(tip))
+        .route("/api/market/community/posts/{id}/vote", post(vote))
+        .route("/api/market/community/gifs/key", get(gif_key))
+        .route(
+            "/api/market/community/pictures",
+            post(add_picture).layer(axum::extract::DefaultBodyLimit::max(crate::images::MAX_UPLOAD)),
+        )
         .route("/api/market/community/members", get(members))
 }
 
@@ -1052,21 +1299,146 @@ async fn board_answer(State(app): State<Arc<App>>, headers: HeaderMap) -> Result
 
 #[derive(Deserialize)]
 pub struct NewPost {
+    #[serde(default)]
     body: String,
     parent: Option<i64>,
+    /// Photos uploaded first, by name, in order: up to four.
+    #[serde(default)]
+    pictures: Vec<String>,
+    /// A poll: its choices and how many hours it runs.
+    poll: Option<NewPoll>,
+    /// A GIF picked in KLIPY's search.
+    gif: Option<Gif>,
+}
+
+/// A GIF the person picked in KLIPY's search, as KLIPY gave it to their
+/// app: its id, the address to show it from, and a smaller one.
+#[derive(Deserialize)]
+pub struct Gif {
+    id: Value,
+    url: String,
+    preview: String,
+    width: u32,
+    height: u32,
+}
+
+impl Gif {
+    fn id_text(&self) -> String {
+        match &self.id {
+            Value::String(text) => text.clone(),
+            other => other.to_string(),
+        }
+    }
+
+    /// Only KLIPY's own addresses, as it gave them, and a sensible size.
+    fn checked(&self) -> Result<()> {
+        let klipy = |url: &str| {
+            url.len() <= 500
+                && url.strip_prefix("https://").and_then(|rest| rest.split_once('/')).is_some_and(|(host, _)| {
+                    host == "static.klipy.com" || (host.starts_with("static") && host.ends_with(".klipy.com") && host[6..host.len() - 10].bytes().all(|b| b.is_ascii_digit()))
+                })
+        };
+        let id = self.id_text();
+        if id.is_empty() || id.len() > 40 || !klipy(&self.url) || !klipy(&self.preview) {
+            bail!("that GIF isn't one from KLIPY");
+        }
+        if self.width == 0 || self.height == 0 || self.width > 4000 || self.height > 4000 {
+            bail!("that GIF's size doesn't look right");
+        }
+        Ok(())
+    }
+}
+
+#[derive(Deserialize)]
+pub struct NewPoll {
+    options: Vec<String>,
+    hours: u64,
 }
 
 async fn new_post(State(app): State<Arc<App>>, headers: HeaderMap, Json(given): Json<NewPost>) -> Result<Response, Failure> {
     let author = app.signed_in(&headers)?;
-    {
+    let media = !given.pictures.is_empty() || given.poll.is_some() || given.gif.is_some();
+    let kinds = usize::from(!given.pictures.is_empty()) + usize::from(given.poll.is_some()) + usize::from(given.gif.is_some());
+    if kinds > 1 {
+        return Err(Failure::Refused("a post has photos, a GIF or a poll: one of them".into()));
+    }
+    if media && given.parent.is_some() {
+        return Err(Failure::Refused("replies are words only for now".into()));
+    }
+    if !given.pictures.is_empty() && given.poll.is_some() {
+        return Err(Failure::Refused("a post has photos or a poll, not both".into()));
+    }
+    if !media {
         let store = app.store();
         post_text(&given.body).map_err(refused)?;
         store.may_post(author).map_err(refused)?;
+    } else {
+        app.store().may_post(author).map_err(refused)?;
+        if let Some(poll) = &given.poll {
+            Store::poll_options(&poll.options, poll.hours).map_err(refused)?;
+        }
     }
-    let body = given.body.clone();
-    screened(&app, "post", move |s| s.message(&body)).await?;
-    let id = app.store().add_post(author, &given.body, given.parent).map_err(refused)?;
+    // The words, and a poll's choices, are read like any post.
+    let mut text = given.body.trim().to_string();
+    if let Some(poll) = &given.poll {
+        for option in &poll.options {
+            text.push_str(&format!("\n- {option}"));
+        }
+    }
+    if !text.is_empty() {
+        screened(&app, "post", move |s| s.message(&text)).await?;
+    }
+    let id = if media {
+        let poll = given.poll.as_ref().map(|p| (p.options.as_slice(), p.hours));
+        app.store().add_post_with(author, &given.body, &given.pictures, poll, given.gif.as_ref()).map_err(refused)?
+    } else {
+        app.store().add_post(author, &given.body, given.parent).map_err(refused)?
+    };
     Ok(Json(json!({ "id": id })).into_response())
+}
+
+/// A photo for a post about to be written, sent as the request's whole
+/// body: checked like a profile picture, then kept until the post is.
+async fn add_picture(State(app): State<Arc<App>>, headers: HeaderMap, body: axum::body::Bytes) -> Result<Response, Failure> {
+    let author = app.signed_in(&headers)?;
+    app.store().may_post(author).map_err(refused)?;
+    let (jpeg, width, height) = tokio::task::spawn_blocking(move || crate::images::post_picture(&body))
+        .await
+        .map_err(|e| Failure::Broken(e.into()))?
+        .map_err(refused)?;
+    let checked = jpeg.clone();
+    screened(&app, "picture", move |s| s.picture(&checked)).await?;
+    let name = app.images().save(&jpeg)?;
+    app.store().add_post_picture(author, &name, width, height)?;
+    Ok(Json(json!({ "name": name, "width": width, "height": height })).into_response())
+}
+
+/// What a signed-in app needs to search KLIPY from the person's own
+/// device: the key, and an id KLIPY keeps per person that says nothing
+/// about them (the account's random handle). 404 when GIFs are off.
+async fn gif_key(State(app): State<Arc<App>>, headers: HeaderMap) -> Result<Response, Failure> {
+    let account = app.signed_in(&headers)?;
+    if app.klipy_key().is_empty() {
+        return Err(Failure::NotFound);
+    }
+    let handle: String = app.store().handle_of(account)?;
+    Ok((
+        [(axum::http::header::CACHE_CONTROL, "private, no-store")],
+        Json(json!({ "key": app.klipy_key(), "customer_id": handle, "placeholder": "Search KLIPY" })),
+    )
+        .into_response())
+}
+
+#[derive(Deserialize)]
+pub struct Vote {
+    option: usize,
+}
+
+/// A vote on a poll: one per account, final. Answers the poll.
+async fn vote(State(app): State<Arc<App>>, headers: HeaderMap, Path(id): Path<i64>, Json(given): Json<Vote>) -> Result<Response, Failure> {
+    let account = app.signed_in(&headers)?;
+    let poll = app.store().vote(id, account, given.option).map_err(refused)?;
+    Ok(Json(poll).into_response())
 }
 
 async fn remove_post(State(app): State<Arc<App>>, headers: HeaderMap, Path(id): Path<i64>) -> Result<Response, Failure> {
