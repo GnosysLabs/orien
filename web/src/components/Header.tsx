@@ -25,7 +25,7 @@ import {
   Landmark,
   Image as ImageIcon,
 } from "lucide-react";
-import { COMMUNITY_LIVE, MARKETPLACE_LIVE } from "@/lib/brand";
+import { COMMUNITY_LIVE, MARKETPLACE_LIVE, WALLET_SIGN_IN_DOCS } from "@/lib/brand";
 import { SIDEBAR } from "@/lib/nav";
 import { NotificationBell } from "./NotificationBell";
 import { AccountMenu } from "./AccountMenu";
@@ -312,7 +312,9 @@ const LEARN: MenuItem[] = [
 ];
 const BUILD: MenuItem[] = [
   { href: "/developers/", label: "Developers", detail: "Everything you need to build with Orien", icon: Code2 },
-  { href: "/developers/sign-in/", label: "Sign in with Orien Wallet", detail: "Let people sign in to your website with their wallet", icon: KeyRound },
+  ...(WALLET_SIGN_IN_DOCS
+    ? [{ href: "/developers/sign-in/", label: "Sign in with Orien Wallet", detail: "Let people sign in to your website with their wallet", icon: KeyRound }]
+    : []),
   { href: "/developers/exchanges/", label: "Exchanges", detail: "Listing ORN: what an exchange needs", icon: Landmark },
   { href: "https://explorer.orien.network/api/", label: "Explorer API", detail: "The network's figures, as JSON", icon: Activity },
   { href: "/brand/", label: "Logos", detail: "The ORN coin icon, as SVG and PNG", icon: ImageIcon },
@@ -651,12 +653,14 @@ export function Sidebar() {
             icon={Code2}
             on={pathname.startsWith("/developers") && !pathname.startsWith("/developers/sign-in")}
           />
-          <SidebarLink
-            href="/developers/sign-in/"
-            label="Sign in with Orien Wallet"
-            icon={KeyRound}
-            on={pathname.startsWith("/developers/sign-in")}
-          />
+          {WALLET_SIGN_IN_DOCS && (
+            <SidebarLink
+              href="/developers/sign-in/"
+              label="Sign in with Orien Wallet"
+              icon={KeyRound}
+              on={pathname.startsWith("/developers/sign-in")}
+            />
+          )}
           <SidebarLink href="/brand/" label="Logos" icon={ImageIcon} on={pathname.startsWith("/brand")} />
         </SidebarGroup>
       </nav>

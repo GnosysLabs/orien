@@ -2,6 +2,8 @@ import { CopySnippet } from '@/components/CopySnippet'
 import { CopyText } from '@/components/CopyText'
 import type { Metadata } from 'next'
 import { ArrowUpRight } from 'lucide-react'
+import { notFound } from 'next/navigation'
+import { WALLET_SIGN_IN_DOCS } from '@/lib/brand'
 import { pageMeta } from '@/lib/seo'
 
 export const metadata: Metadata = pageMeta({
@@ -112,6 +114,7 @@ const link = 'font-semibold text-ink underline underline-offset-4'
 /** /developers/sign-in/: Sign in with Orien Wallet, for websites. The
  * checker is public/orien-sign-in.js, a copy of apps/wallet/signin-js. */
 export default function SignInDevelopersPage() {
+  if (!WALLET_SIGN_IN_DOCS) notFound()
   return (
     <div className="mx-auto max-w-[860px] space-y-8 pb-16 pt-5 sm:pt-7">
       <header className="space-y-4">

@@ -1,5 +1,5 @@
 import type { MetadataRoute } from 'next'
-import { MARKETPLACE_LIVE, SITE_URL } from '@/lib/brand'
+import { MARKETPLACE_LIVE, SITE_URL, WALLET_SIGN_IN_DOCS } from '@/lib/brand'
 
 export const dynamic = 'force-static'
 
@@ -18,7 +18,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     ['/paper/', 0.7, 'monthly'],
     ['/community/', 0.8, 'hourly'],
     ['/developers/', 0.7, 'monthly'],
-    ['/developers/sign-in/', 0.6, 'monthly'],
+    ...(WALLET_SIGN_IN_DOCS ? ([['/developers/sign-in/', 0.6, 'monthly']] as const) : []),
     ['/developers/exchanges/', 0.6, 'monthly'],
     ['/news/randomx/', 0.6, 'yearly'],
     ['/changelog/', 0.5, 'weekly'],

@@ -45,5 +45,13 @@ export const CHROME_EXTENSION = 'https://chromewebstore.google.com/detail/orien-
  * release with it, only people who already have its extension do. */
 export const WALLET_SIGN_IN_FOR_EVERYONE = true
 
+/** Whether the Sign in with Orien Wallet developer docs (/developers/sign-in/
+ * and its demo) are shown and linked. Off until the Chrome and Firefox
+ * extensions that can do it are approved in their stores. To show them
+ * again: set this to true, and copy apps/wallet/signin-js/demo.html to
+ * public/developers/sign-in/demo/index.html with its script src set to
+ * "/orien-sign-in.js". */
+export const WALLET_SIGN_IN_DOCS = false
+
 /** Whether the community page is open and linked. Until then it says it opens soon. */
 export const COMMUNITY_LIVE = true
