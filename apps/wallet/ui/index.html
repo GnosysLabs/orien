@@ -1375,6 +1375,23 @@
   #si-pw-box { margin-top: 16px; text-align: left; }
   #si-card .problem { margin-top: 12px; text-align: left; }
   #si-buttons { display: grid; gap: 10px; margin-top: 20px; }
+  /* A post's ... button, and reporting it on a card over the app. */
+  .cm-more { flex: none; display: grid; place-items: center; width: 32px; height: 32px; padding: 0; border: 1px solid var(--line);
+    border-radius: 50%; background: transparent; color: var(--dim); cursor: pointer; }
+  @media (hover: hover) { .cm-more:hover { color: var(--ink); background: var(--surface-hover); } }
+  .cm-head .cm-more { margin-left: auto; }
+  .cm-reply-head .cm-more { margin-left: auto; width: 28px; height: 28px; }
+  #rp-veil { position: fixed; inset: 0; z-index: 61; display: grid; place-items: center; padding: 24px;
+    background: var(--veil); -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px); opacity: 0; transition: opacity 0.2s ease; }
+  #rp-veil.on { opacity: 1; }
+  #rp-card { width: min(380px, 100%); padding: 26px 24px 22px; border-radius: 24px; background: var(--surface); border: 1px solid var(--line);
+    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.45); transform: scale(0.96); transition: transform 0.2s ease; }
+  #rp-veil.on #rp-card { transform: scale(1); }
+  #rp-title { font-size: 18px; font-weight: 600; letter-spacing: -0.01em; text-align: center; }
+  #rp-text { margin: 8px auto 0; color: var(--dim); font-size: 13px; line-height: 1.45; text-align: center; }
+  #rp-card .report-box { margin-top: 16px; }
+  #rp-card .problem { margin-top: 12px; }
+  #rp-buttons { display: grid; gap: 10px; margin-top: 18px; }
   /* Tipping a post's author: a card over the app, like signing in. */
   #tip-veil { position: fixed; inset: 0; z-index: 61; display: grid; place-items: center; padding: 24px;
     background: var(--veil); -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px);
@@ -3041,6 +3058,16 @@
   <div class="gif-by" id="gif-by">Powered by KLIPY</div>
 </div></div>
 <div id="pic-veil" hidden><img id="pic-big" alt=""></div>
+<div class="ch-menu" id="cm-post-menu" role="menu" hidden>
+  <button class="menu-row" id="cm-report"><span>Report post</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 22V4a1 1 0 0 1 .4-.8A6 6 0 0 1 8 2c3 0 5 2 7.333 2q2 0 3.067-.8A1 1 0 0 1 20 4v10a1 1 0 0 1-.4.8A6 6 0 0 1 16 16c-3 0-5-2-8-2a6 6 0 0 0-4 1.528"/></svg></button>
+</div>
+<div id="rp-veil" hidden><div id="rp-card" role="dialog" aria-modal="true" aria-labelledby="rp-title">
+  <div id="rp-title">Report this post</div>
+  <p id="rp-text">Tell Orien Network what's wrong with it: a scam, spam, abuse, or something illegal. Every report is reviewed.</p>
+  <div class="report-box"><textarea id="rp-reason" rows="3" maxlength="1000" placeholder="What is wrong with this post?"></textarea></div>
+  <div class="problem" id="rp-problem" hidden></div>
+  <div id="rp-buttons"><button class="primary pearl" id="rp-send" disabled>Send report</button><button class="secondary" id="rp-cancel">Cancel</button></div>
+</div></div>
 <div id="tip-veil" hidden><div id="tip-card" role="dialog" aria-modal="true" aria-labelledby="tip-title">
   <div id="tip-icon"></div>
   <div id="tip-title"></div>
@@ -6313,7 +6340,7 @@
       : post.author && post.author.banner ? picImg(post.author.banner).replace("<img ", '<img class="cm-art" ') : "";
     const head = network
       ? `${cmFace(null)}<div class="cm-who"><div class="cm-eyebrow pearl-text">${esc(EYEBROWS[post.kind] || "Orien Network")}</div><div class="cm-when"><b class="ink">Orien Network</b> · ${ago(post.created)}</div></div>`
-      : `<span data-user="${esc((post.author && post.author.name) || "")}">${cmFace(post.author)}</span><div class="cm-who"><div class="cm-name" data-user="${esc((post.author && post.author.name) || "")}">${esc((post.author && post.author.name) || "")}</div><div class="cm-when">${ago(post.created)}</div></div>${post.mine ? `<button class="cm-del" data-del="${post.id}" aria-label="Delete" title="Delete"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M10 11v6"/><path d="M14 11v6"/></svg></button>` : ""}`;
+      : `<span data-user="${esc((post.author && post.author.name) || "")}">${cmFace(post.author)}</span><div class="cm-who"><div class="cm-name" data-user="${esc((post.author && post.author.name) || "")}">${esc((post.author && post.author.name) || "")}</div><div class="cm-when">${ago(post.created)}</div></div>${!post.mine ? `<button class="cm-more" data-more="${post.id}" aria-label="More" title="More"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg></button>` : ""}${post.mine ? `<button class="cm-del" data-del="${post.id}" aria-label="Delete" title="Delete"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M10 11v6"/><path d="M14 11v6"/></svg></button>` : ""}`;
     const chips = (post.reactions || []).map((r) => `<button class="cm-chip${r.me ? " on" : ""}" data-react="${post.id}" data-emoji="${esc(r.emoji)}"><span>${esc(r.emoji)}</span><b>${r.count}</b></button>`).join("");
     const replies = inThread || post.parent ? "" : `<button class="cm-chip${cm.open.has(post.id) ? " on" : ""}" data-open="${post.id}">${REPLY_ICON}${post.replies ? `<b>${post.replies}</b>` : ""}</button>`;
     return `<article class="cm-card${network ? " network" : ""}" data-post="${post.id}">${art}
@@ -6328,7 +6355,7 @@
     const replies = cm.repliesOf.get(post.id);
     const list = (replies || []).map((r) => `<div class="cm-reply-row" data-post="${r.id}">
         <span data-user="${esc((r.author && r.author.name) || "")}">${cmFace(r.author)}</span>
-        <div class="cm-reply-main"><div class="cm-reply-head"><b data-user="${esc((r.author && r.author.name) || "")}">${esc((r.author && r.author.name) || "")}</b><span class="cm-when"> · ${ago(r.created)}</span>${r.mine ? `<button class="cm-del" data-del="${r.id}" data-parent="${post.id}" aria-label="Delete" title="Delete"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M10 11v6"/><path d="M14 11v6"/></svg></button>` : ""}</div>
+        <div class="cm-reply-main"><div class="cm-reply-head"><b data-user="${esc((r.author && r.author.name) || "")}">${esc((r.author && r.author.name) || "")}</b><span class="cm-when"> · ${ago(r.created)}</span>${!r.mine ? `<button class="cm-more" data-more="${r.id}" aria-label="More" title="More"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg></button>` : ""}${r.mine ? `<button class="cm-del" data-del="${r.id}" data-parent="${post.id}" aria-label="Delete" title="Delete"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M10 11v6"/><path d="M14 11v6"/></svg></button>` : ""}</div>
         <div class="cm-text">${esc(r.body || "")}</div>${cmYouTube(r.body)}
         <div class="cm-foot">${(r.reactions || []).map((x) => `<button class="cm-chip${x.me ? " on" : ""}" data-react="${r.id}" data-parent="${post.id}" data-emoji="${esc(x.emoji)}"><span>${esc(x.emoji)}</span><b>${x.count}</b></button>`).join("")}<button class="cm-chip" data-pick="${r.id}" data-parent="${post.id}" aria-label="React" title="React">${SMILE_ICON}</button></div></div></div>`).join("");
     const you = cm.you;
@@ -6514,6 +6541,46 @@
     show("community"); cmFitRail(); cmLoad(false);
   };
   // Reactions, replies, deleting: one listener for every card.
+  // ---- Reporting a post or reply, from its ... menu ----
+  let reportPost = null;
+  document.addEventListener("click", (e) => {
+    const more = e.target.closest("[data-more]");
+    if (!more) return;
+    e.stopPropagation();
+    const menu = $("cm-post-menu"), id = Number(more.dataset.more);
+    if (!menu.hidden && reportPost === id) { menu.hidden = true; return; }
+    for (const other of document.querySelectorAll(".ch-menu")) other.hidden = true;
+    reportPost = id;
+    const b = more.getBoundingClientRect();
+    menu.style.top = `${Math.round(b.bottom + 8)}px`;
+    menu.style.right = `${Math.round(window.innerWidth - b.right)}px`;
+    menu.hidden = false;
+  }, true);
+  $("cm-report").onclick = () => {
+    $("cm-post-menu").hidden = true;
+    if (!board.me) { cmJoin(); return; }
+    $("rp-reason").value = ""; $("rp-send").disabled = true; $("rp-send").textContent = "Send report"; $("rp-problem").hidden = true;
+    const veil = $("rp-veil");
+    if (veil.hidden) { veil.hidden = false; requestAnimationFrame(() => veil.classList.add("on")); }
+    if (!phone) setTimeout(() => $("rp-reason").focus(), 50);
+  };
+  function reportClose() { const veil = $("rp-veil"); veil.classList.remove("on"); setTimeout(() => { veil.hidden = true; }, 200); }
+  $("rp-cancel").onclick = reportClose;
+  $("rp-veil").addEventListener("click", (e) => { if (e.target.id === "rp-veil") reportClose(); });
+  document.addEventListener("keydown", (e) => { if (e.key === "Escape" && !$("rp-veil").hidden) reportClose(); });
+  $("rp-reason").oninput = () => { $("rp-send").disabled = !$("rp-reason").value.trim(); };
+  $("rp-send").onclick = async () => {
+    const reason = $("rp-reason").value.trim();
+    if (!reason || reportPost === null) return;
+    $("rp-send").disabled = true; $("rp-cancel").disabled = true;
+    try {
+      await mk("POST", "/reports", { kind: "post", id: reportPost, reason });
+      $("rp-send").textContent = "Thanks. It will be reviewed.";
+      feel("success");
+      setTimeout(reportClose, 1400);
+    } catch (err) { problem("rp-problem", mkProblem(err)); $("rp-send").disabled = false; }
+    finally { $("rp-cancel").disabled = false; }
+  };
   // ---- Tips: ORN to a post's author, straight from the post ----
   const tip = { post: null, amount: 0, busy: false };
   function tipPost(id) {
@@ -7143,7 +7210,7 @@
   }
   document.addEventListener("pointerdown", (e) => {
     for (const m of document.querySelectorAll(".ch-menu:not([hidden])")) {
-      if (!m.contains(e.target) && !e.target.closest("#ch-more, #sl-more, #ls-more, #wr-more, .vf-more")) m.hidden = true;
+      if (!m.contains(e.target) && !e.target.closest("#ch-more, #sl-more, #ls-more, #wr-more, .vf-more, [data-more]")) m.hidden = true;
     }
   }, true);
   document.addEventListener("keydown", (e) => { if (e.key === "Escape") for (const m of document.querySelectorAll(".ch-menu")) m.hidden = true; });
@@ -8331,7 +8398,7 @@
     // Offers still open on the board can wait for a buyer for days: only
     // ones someone has taken count.
     return swapList.some((s) => !s.finished) || board.waiting.some((x) => x.offer.state !== "open") || !!board.taking || !!mineBench
-      || !$("si-veil").hidden || !$("upd-veil").hidden || !$("tip-veil").hidden || !$("gif-veil").hidden || draft.photos.length > 0 || !!draft.gif || !!draft.poll || typedSomewhere();
+      || !$("si-veil").hidden || !$("upd-veil").hidden || !$("tip-veil").hidden || !$("rp-veil").hidden || !$("gif-veil").hidden || draft.photos.length > 0 || !!draft.gif || !!draft.poll || typedSomewhere();
   }
   async function updateByItself() {
     if (phone || !autoUpdate || !update || autoInstalling) return;
