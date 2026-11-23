@@ -38,6 +38,19 @@ const MILESTONES: [u64; 9] = [1, 100, 250, 500, 1_000, 5_000, 10_000, 50_000, 10
 const FACES: usize = 12;
 /// New miners are welcomed in blocks of this long.
 const BLOCK_SECONDS: u64 = 6 * 3600;
+/// What the network posts that every app knows how to show. Newer kinds
+/// (`NEWER_KINDS`) reach only apps that ask for them by name, so an older
+/// Orien Wallet never shows a card it can't draw.
+const KNOWN_KINDS: &str = "'post', 'record', 'welcome', 'milestone', 'streak', 'top_day'";
+/// Network posts added later: a finished swap, ORN mined so far, a new validator.
+pub const NEWER_KINDS: [&str; 3] = ["swap", "supply", "validator"];
+
+/// The next round number of ORN mined to post about after `orn`: every
+/// 100,000 up to a million, then every million.
+pub fn next_supply_mark(orn: u64) -> u64 {
+    if orn < 1_000_000 { (orn / 100_000 + 1) * 100_000 } else { (orn / 1_000_000 + 1) * 1_000_000 }
+}
+
 /// Checkpoints in a row that earn a streak post.
 const STREAKS: [u64; 5] = [24, 48, 100, 168, 336];
 const UNIT: u128 = 1_000_000_000;
@@ -350,6 +363,11 @@ impl Store {
                  removed INTEGER NOT NULL DEFAULT 0
              );
              CREATE INDEX IF NOT EXISTS posts_feed ON posts(parent, id);
+             -- Validators the network has had, so a new one is posted once.
+             CREATE TABLE IF NOT EXISTS seen_validators (
+                 account TEXT PRIMARY KEY,
+                 at INTEGER NOT NULL
+             );
              CREATE INDEX IF NOT EXISTS posts_by_author ON posts(author, created);
              CREATE TABLE IF NOT EXISTS reactions (
                  post INTEGER NOT NULL REFERENCES posts(id) ON DELETE CASCADE,
@@ -481,6 +499,7 @@ impl Store {
         replies_to: Option<i64>,
         only: Option<&str>,
         about: Option<i64>,
+        kinds: &str,
     ) -> Result<Vec<Value>> {
         let who = match only {
             Some("people") => " AND p.kind = 'post'",
@@ -500,16 +519,26 @@ impl Store {
             ),
         };
         let key = replies_to.unwrap_or(before.unwrap_or(i64::MAX));
-        self.posts_where(viewer, &filter, order, key, about)
+        self.posts_where(viewer, &filter, order, key, about, Some(kinds))
     }
 
     /// One post as `viewer` sees it, if it is still up and not a reply.
     pub fn one_post(&self, viewer: Option<i64>, id: i64) -> Result<Option<Value>> {
-        Ok(self.posts_where(viewer, "p.id = ?1 AND p.parent IS NULL AND ?3 < 0", "p.id", id, None)?.into_iter().next())
+        Ok(self.posts_where(viewer, "p.id = ?1 AND p.parent IS NULL AND ?3 < 0", "p.id", id, None, None)?.into_iter().next())
     }
 
-    /// Posts matching `filter`, where ?1 is `key`, ?2 the viewer and ?3 `about`.
-    fn posts_where(&self, viewer: Option<i64>, filter: &str, order: &str, key: i64, about: Option<i64>) -> Result<Vec<Value>> {
+    /// Posts matching `filter`, where ?1 is `key`, ?2 the viewer and ?3
+    /// `about`. With `kinds`, the newer kinds of network post only where
+    /// named there (comma-separated): what the asking app can show.
+    fn posts_where(
+        &self,
+        viewer: Option<i64>,
+        filter: &str,
+        order: &str,
+        key: i64,
+        about: Option<i64>,
+        kinds: Option<&str>,
+    ) -> Result<Vec<Value>> {
         let mut query = self.db.prepare(&format!(
             "SELECT p.id, p.kind, p.body, p.data, p.created, p.parent,
                     a.name, a.picture, s.name, s.picture,
@@ -524,9 +553,10 @@ impl Store {
                -- A block either way: each is gone for the other, as on other social apps.
                AND (p.author IS NULL OR p.author NOT IN (SELECT blocker FROM blocks WHERE blocked = ?2 UNION SELECT blocked FROM blocks WHERE blocker = ?2))
                AND (p.subject IS NULL OR p.subject NOT IN (SELECT blocker FROM blocks WHERE blocked = ?2 UNION SELECT blocked FROM blocks WHERE blocker = ?2))
+               AND (?4 IS NULL OR p.kind IN ({KNOWN_KINDS}) OR instr(',' || ?4 || ',', ',' || p.kind || ',') > 0)
              ORDER BY {order} LIMIT {PAGE}"
         ))?;
-        let rows = query.query_map(params![key, viewer.unwrap_or(-1), about.unwrap_or(-1)], |row| {
+        let rows = query.query_map(params![key, viewer.unwrap_or(-1), about.unwrap_or(-1), kinds], |row| {
             let person = |name: Option<String>, picture: Option<String>| name.map(|name| json!({ "name": name, "picture": picture }));
             Ok(json!({
                 "id": row.get::<_, i64>(0)?,
@@ -628,6 +658,58 @@ impl Store {
             }
         }
         Ok(())
+    }
+
+    fn state(&self, key: &str) -> Result<Option<u64>> {
+        Ok(self
+            .db
+            .query_row("SELECT value FROM community_state WHERE key = ?1", [key], |row| row.get::<_, i64>(0))
+            .optional()?
+            .map(|v| v as u64))
+    }
+
+    fn set_state(&self, key: &str, value: u64) -> Result<()> {
+        self.db.execute(
+            "INSERT INTO community_state (key, value) VALUES (?1, ?2) ON CONFLICT (key) DO UPDATE SET value = ?2",
+            params![key, value as i64],
+        )?;
+        Ok(())
+    }
+
+    /// Posts the round number of ORN mined that `released` (whole ORN) has
+    /// just passed, once: every 100,000 up to a million, then every million.
+    /// The first time, it notes where things stand and posts nothing, so
+    /// only marks passed from then on are posted. `cap` is all the ORN
+    /// there will ever be.
+    pub fn tell_supply(&self, released: u64, cap: u64, at: u64) -> Result<bool> {
+        let passed = if released < 1_000_000 { released / 100_000 * 100_000 } else { released / 1_000_000 * 1_000_000 };
+        let Some(told) = self.state("supply_told")? else {
+            self.set_state("supply_told", passed)?;
+            return Ok(false);
+        };
+        if passed < next_supply_mark(told) {
+            return Ok(false);
+        }
+        let share = if cap > 0 { passed as f64 / cap as f64 * 100.0 } else { 0.0 };
+        self.add_happening("supply", None, &json!({ "orn": passed, "cap": cap, "share": share }), at)?;
+        self.set_state("supply_told", passed)?;
+        Ok(true)
+    }
+
+    /// Posts each validator the network hasn't had before: `seats` is every
+    /// seat now, (account, seat). The first time, the ones there are noted
+    /// without a post.
+    pub fn tell_validators(&self, seats: &[(String, usize)], at: u64) -> Result<usize> {
+        let first: bool = self.db.query_row("SELECT COUNT(*) = 0 FROM seen_validators", [], |row| row.get(0))?;
+        let mut told = 0;
+        for (account, seat) in seats {
+            let new = self.db.execute("INSERT OR IGNORE INTO seen_validators (account, at) VALUES (?1, ?2)", params![account, at as i64])? == 1;
+            if new && !first {
+                self.add_happening("validator", None, &json!({ "account": account, "seat": seat + 1, "seats": seats.len() }), at)?;
+                told += 1;
+            }
+        }
+        Ok(told)
     }
 
     fn last_told(&self) -> Result<Option<u64>> {
@@ -738,6 +820,30 @@ impl Community {
         drop(told);
         drop(store);
         *self.board.lock().unwrap() = Some(board(&mined, &owners, &names));
+        // The network's own news: ORN mined so far, and new validators.
+        if let Ok(overview) = app.explorer().overview(app.payments().as_ref()) {
+            let store = app.store();
+            let at = crate::store::now();
+            if let Some(supply) = &overview.supply {
+                let whole = |units: &str| units.parse::<u128>().map_or(0, |n| (n / 1_000_000_000) as u64);
+                if let Err(error) = store.tell_supply(whole(&supply.released), whole(&supply.cap), at) {
+                    eprintln!("community: could not post ORN mined: {error:#}");
+                }
+            }
+            let seats: Vec<(String, usize)> =
+                // Known by account, or by address for the launch validators, which have none.
+                overview
+                    .validators
+                    .iter()
+                    .map(|v| (v.account.clone().unwrap_or_else(|| v.address.clone()), v.seat))
+                    .filter(|(id, _)| !id.is_empty())
+                    .collect();
+            if !seats.is_empty()
+                && let Err(error) = store.tell_validators(&seats, at)
+            {
+                eprintln!("community: could not post new validators: {error:#}");
+            }
+        }
     }
 
     fn snapshot(&self) -> Option<Board> {
@@ -809,6 +915,10 @@ fn viewer(app: &App, headers: &HeaderMap) -> Option<i64> {
 pub struct Before {
     before: Option<i64>,
     only: Option<String>,
+    /// The newer kinds of network post this app can show, comma-separated
+    /// ("swap,supply,validator"). Older apps send none and see none.
+    #[serde(default)]
+    kinds: String,
     /// An account's name: only its own posts and the network's posts about it.
     about: Option<String>,
 }
@@ -841,7 +951,7 @@ async fn feed(State(app): State<Arc<App>>, headers: HeaderMap, Query(page): Quer
         }
         None => None,
     };
-    let posts = store.feed(me, page.before, None, page.only.as_deref(), about)?;
+    let posts = store.feed(me, page.before, None, page.only.as_deref(), about, &page.kinds)?;
     let more = posts.len() as i64 == PAGE;
     Ok(Json(json!({ "posts": posts, "more": more, "reactions": REACTIONS, "max": MAX_POST })).into_response())
 }
@@ -849,7 +959,7 @@ async fn feed(State(app): State<Arc<App>>, headers: HeaderMap, Query(page): Quer
 async fn replies(State(app): State<Arc<App>>, headers: HeaderMap, Path(id): Path<i64>) -> Result<Response, Failure> {
     let me = viewer(&app, &headers);
     let store = app.store();
-    Ok(Json(json!({ "post": store.one_post(me, id)?, "replies": store.feed(me, None, Some(id), None, None)? })).into_response())
+    Ok(Json(json!({ "post": store.one_post(me, id)?, "replies": store.feed(me, None, Some(id), None, None, "")? })).into_response())
 }
 
 async fn board_answer(State(app): State<Arc<App>>, headers: HeaderMap) -> Result<Response, Failure> {

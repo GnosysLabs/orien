@@ -21,7 +21,7 @@ type Face = { account?: number; address?: string; name?: string; picture?: strin
 type Reaction = { emoji: string; count: number; me: boolean }
 type Post = {
   id: number
-  kind: 'post' | 'record' | 'welcome' | 'milestone' | 'streak' | 'top_day'
+  kind: 'post' | 'record' | 'welcome' | 'milestone' | 'streak' | 'top_day' | 'swap' | 'supply' | 'validator'
   body: string
   data: Record<string, unknown> & { miners?: Face[]; miner?: Face }
   created: number
@@ -53,6 +53,17 @@ const iconButton = 'flex h-8 w-8 items-center justify-center rounded-full text-m
 const card = 'rounded-2xl border border-line bg-surface'
 
 const mined = (units: string) => orn(units, 2)
+
+/** The newer kinds of network post this page can show: the feed sends
+ * them only to apps that ask. */
+const KINDS = 'swap,supply,validator'
+
+/** A swap's coin amount, for reading: "0.5 SOL", "0.0123 BTC". */
+const coinAmount = (amount: number, coin: string) =>
+  `${amount >= 1 ? Number(amount.toFixed(2)).toLocaleString('en') : Number(amount.toPrecision(3)).toLocaleString('en', { maximumSignificantDigits: 3 })} ${coin === 'sol' ? 'SOL' : 'BTC'}`
+
+/** Dollars, rounded for reading. */
+const usdText = (usd: number) => (usd >= 100 ? `$${Math.round(usd).toLocaleString('en')}` : usd >= 1 ? `$${usd.toFixed(2)}` : `$${usd.toPrecision(2)}`)
 
 /** "2h", "3d": the short time a feed uses. */
 function since(seconds: number) {
@@ -250,6 +261,54 @@ function Happening({ post }: { post: Post }) {
         </div>
       )
     }
+    case 'swap': {
+      const coin = String(post.data.coin)
+      const paid = coin === 'sol' ? Number(post.data.lamports) / 1e9 : Number(post.data.sats) / 1e8
+      const ornAmount = Number(post.data.orn) / 1e9
+      const usd = Number(post.data.usd)
+      return (
+        <div className="min-w-0">
+          <p className="num text-2xl font-bold leading-tight tracking-tight text-ink">
+            {ornAmount.toLocaleString('en', { maximumFractionDigits: 2 })} ORN <span className="font-normal text-muted">for</span>{' '}
+            {coinAmount(paid, coin)}
+          </p>
+          <p className="num mt-1.5 text-ink">
+            ≈ {usdText(usd)} · {coinAmount(paid / ornAmount, coin)} per ORN
+          </p>
+          <p className="mt-1 text-sm text-muted">
+            A swap finished on the{' '}
+            <Link href="/swap/#history" className="hover:text-ink hover:underline">
+              swap board
+            </Link>
+            .
+          </p>
+        </div>
+      )
+    }
+    case 'supply':
+      return (
+        <div className="min-w-0">
+          <p className="num text-3xl font-bold leading-none tracking-tight text-ink">{Number(post.data.orn).toLocaleString('en')} ORN mined</p>
+          <p className="mt-1.5 text-ink">
+            {Number(post.data.share).toLocaleString('en', { maximumFractionDigits: 2 })}% of all the ORN there will ever be.
+          </p>
+          <p className="mt-1 text-sm text-muted">Every ORN comes from mining, a little more every hour.</p>
+        </div>
+      )
+    case 'validator':
+      return (
+        <div className="min-w-0">
+          <p className="text-2xl font-bold leading-tight tracking-tight text-ink">A new validator took a seat</p>
+          <p className="mt-1.5 text-ink">
+            The network has {String(post.data.seats)} validators now, keeping its checkpoints together.
+          </p>
+          <p className="mt-1 text-sm text-muted">
+            <a href="https://explorer.orien.network/map/?view=details" className="hover:text-ink hover:underline">
+              See the network
+            </a>
+          </p>
+        </div>
+      )
     default:
       return null
   }
@@ -734,6 +793,7 @@ export function CommunityView() {
     (before?: number) => {
       const query = new URLSearchParams()
       if (tab !== 'all') query.set('only', tab)
+      query.set('kinds', KINDS)
       if (before) query.set('before', String(before))
       const q = query.toString()
       return `/community/feed${q ? `?${q}` : ''}`
@@ -901,7 +961,7 @@ export function ProfileFeed({ name }: { name: string }) {
   const [you, setYou] = useState<You | null>(null)
   const live = useMe()
   const path = useCallback(
-    (before?: number) => `/community/feed?about=${encodeURIComponent(name)}${before ? `&before=${before}` : ''}`,
+    (before?: number) => `/community/feed?about=${encodeURIComponent(name)}&kinds=${KINDS}${before ? `&before=${before}` : ''}`,
     [name],
   )
   const reload = useCallback(() => {

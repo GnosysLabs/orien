@@ -21,10 +21,19 @@ export const PRODUCTS: Record<Product, string> = {
   orien: 'orien',
   validators: 'Validators',
   wallet: 'Orien Wallet',
-  marketplace: 'Market',
+  marketplace: 'Community',
 }
 
 export const CHANGELOG: Entry[] = [
+  {
+    date: '2026-11-23',
+    products: ['network', 'marketplace'],
+    title: 'More of the network’s news in the community',
+    changes: [
+      'The community feed shows each swap as it finishes: how many ORN traded for how much SOL or Bitcoin, and its price, with no names.',
+      'The network posts each 100,000 ORN mined, then each million, and welcomes each new validator that takes a seat.',
+    ],
+  },
   {
     date: '2026-11-23',
     products: ['marketplace'],

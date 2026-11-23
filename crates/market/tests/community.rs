@@ -386,3 +386,49 @@ async fn a_block_makes_two_people_nobody_to_each_other() {
     let (_, list) = ask(&app, "GET", "/api/market/me/blocked", Some(&maya), None).await;
     assert!(list["blocked"].as_array().unwrap().is_empty());
 }
+
+#[tokio::test]
+async fn the_network_posts_orn_mined_new_validators_and_swaps_to_apps_that_know_them() {
+    use orien_market::community::next_supply_mark;
+    let app = market();
+    let at = 1_795_000_000;
+    // ORN mined: the first look notes where things stand, then each round
+    // number passed is posted once.
+    assert_eq!((next_supply_mark(424_238), next_supply_mark(900_000), next_supply_mark(1_000_000)), (500_000, 1_000_000, 2_000_000));
+    assert!(!store_for_tests(&app, |s| s.tell_supply(424_238, 100_000_000, at).unwrap()), "nothing on the first look");
+    assert!(!store_for_tests(&app, |s| s.tell_supply(499_999, 100_000_000, at).unwrap()));
+    assert!(store_for_tests(&app, |s| s.tell_supply(500_100, 100_000_000, at).unwrap()), "500,000 passed");
+    assert!(!store_for_tests(&app, |s| s.tell_supply(500_200, 100_000_000, at).unwrap()), "once");
+    // Validators: the ones there are noted; a new one is posted once.
+    let four: Vec<(String, usize)> = (0..4).map(|i| (format!("{i:064x}"), i)).collect();
+    assert_eq!(store_for_tests(&app, |s| s.tell_validators(&four, at).unwrap()), 0);
+    let mut five = four.clone();
+    five.push((format!("{:064x}", 9), 4));
+    assert_eq!(store_for_tests(&app, |s| s.tell_validators(&five, at).unwrap()), 1);
+    assert_eq!(store_for_tests(&app, |s| s.tell_validators(&five, at).unwrap()), 0);
+    // A swap, posted when it's priced: no names.
+    sign_in_for_tests(&app, "Maya");
+    sign_in_for_tests(&app, "Sam");
+    let (maya, sam) = (store_for_tests(&app, |s| s.account_id_for_tests("Maya")), store_for_tests(&app, |s| s.account_id_for_tests("Sam")));
+    let id = store_for_tests(&app, |s| s.swap_done_for_tests(maya, sam, 500_000_000_000, "sol", 500_000_000));
+    store_for_tests(&app, |s| s.price_swap(id, 36.5).unwrap());
+    store_for_tests(&app, |s| s.price_swap(id, 99.0).unwrap());
+
+    // Apps that don't ask for them never see them; those that ask do.
+    let (_, old) = ask(&app, "GET", "/api/market/community/feed?only=network", None, None).await;
+    assert!(old["posts"].as_array().unwrap().is_empty(), "{old}");
+    let (_, new) = ask(&app, "GET", "/api/market/community/feed?only=network&kinds=swap,supply,validator", None, None).await;
+    let posts = new["posts"].as_array().unwrap();
+    let kinds: Vec<&str> = posts.iter().map(|p| p["kind"].as_str().unwrap()).collect();
+    assert_eq!(kinds.iter().filter(|k| **k == "swap").count(), 1, "one post per swap: {kinds:?}");
+    assert!(kinds.contains(&"supply") && kinds.contains(&"validator"));
+    let swap = posts.iter().find(|p| p["kind"] == "swap").unwrap();
+    assert_eq!((swap["data"]["orn"].as_u64(), swap["data"]["lamports"].as_u64(), swap["data"]["usd"].as_f64()), (Some(500_000_000_000), Some(500_000_000), Some(36.5)));
+    assert!(swap["subject"].is_null() && swap["author"].is_null(), "no names");
+    let supply = posts.iter().find(|p| p["kind"] == "supply").unwrap();
+    assert_eq!((supply["data"]["orn"].as_u64(), supply["data"]["share"].as_f64()), (Some(500_000), Some(0.5)));
+    let validator = posts.iter().find(|p| p["kind"] == "validator").unwrap();
+    assert_eq!((validator["data"]["seat"].as_u64(), validator["data"]["seats"].as_u64()), (Some(5), Some(5)));
+    let (_, some) = ask(&app, "GET", "/api/market/community/feed?only=network&kinds=swap", None, None).await;
+    assert!(some["posts"].as_array().unwrap().iter().all(|p| p["kind"] == "swap"), "only the kinds asked for");
+}
