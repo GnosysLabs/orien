@@ -10,8 +10,18 @@
   main { width: min(420px, 90vw); text-align: center; }
   h1 { font-size: 22px; margin: 0 0 8px; }
   p { color: #9ea2ab; margin: 0 0 24px; }
-  button { height: 48px; padding: 0 24px; border: 0; border-radius: 14px; font: 600 15px system-ui; cursor: pointer;
-    color: #24252b; background: linear-gradient(120deg, #e6dcf7, #c8e8ea, #f1ecd4); }
+  .orien-signin {
+    display: inline-flex; align-items: center; justify-content: center; gap: 10px;
+    height: 44px; padding: 0 24px; border: 0; border-radius: 12px; cursor: pointer;
+    background: linear-gradient(115deg, #f4b6d4 0%, #b8c7ff 20%, #d3b6ff 38%, #a6ead6 56%, #f9dda4 74%, #f4b6d4 100%);
+    background-size: 300% 300%; animation: orien-pearl 12s ease-in-out infinite;
+    color: #0b0b0f; font: 700 14px/1 system-ui, -apple-system, sans-serif;
+  }
+  .orien-signin:hover { filter: brightness(1.05); }
+  .orien-signin:disabled { opacity: 0.6; cursor: default; }
+  @keyframes orien-pearl { 0%, 100% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } }
+  @media (prefers-reduced-motion: reduce) { .orien-signin { animation: none; } }
+  .orien-signin { width: 100%; }
   #out { margin-top: 24px; padding: 14px; border: 1px solid #2c2d33; border-radius: 14px; text-align: left; word-break: break-all;
     font: 13px ui-monospace, Menlo, monospace; color: #cfd2d8; white-space: pre-wrap; }
   #out.bad { color: #f08a8a; }
@@ -21,7 +31,10 @@
 <main>
   <h1>Demo website</h1>
   <p>Sign in with your Orien wallet. No email, no password.</p>
-  <button id="go">Sign in with Orien Wallet</button>
+  <button id="go" type="button" class="orien-signin">
+    <svg viewBox="0 0 512 512" width="28" height="28" aria-hidden="true"><g fill="currentColor"><rect x="239" y="74" width="36" height="66" rx="18"/><rect x="239" y="74" width="36" height="66" rx="18" transform="rotate(-44 256 298)"/><rect x="239" y="74" width="36" height="66" rx="18" transform="rotate(44 256 298)"/><path d="M138 298A118 118 0 0 1 374 298Z"/><rect x="76" y="338" width="360" height="40" rx="20"/><rect x="156" y="406" width="200" height="36" rx="18"/></g></svg>
+    Sign in with Orien Wallet
+  </button>
   <div id="out" hidden></div>
 </main>
 <script src="/orien-sign-in.js"></script>
@@ -37,7 +50,16 @@
       const address = OrienSignIn.verifySignIn(proof, { origin: location.origin, nonce });
       out.textContent = "Signed in as " + address + " (proof checked: " + Math.round(proof.length * 3 / 4 / 1024) + " KB)";
       const who = await OrienSignIn.profile(address).catch(() => null);
-      if (who) out.textContent += "\n\nProfile: " + who.name + (who.bio ? " (" + who.bio + ")" : "") + "\n" + who.links.map((l) => l.kind + ": " + (l.url || l.handle)).join("\n");
+      if (who) {
+        const lines = ["", "Name: " + who.name];
+        if (who.bio) lines.push("Bio: " + who.bio);
+        if (who.wallet) lines.push("Wallet: " + who.wallet);
+        if (who.picture) lines.push("Picture: " + who.picture);
+        if (who.banner) lines.push("Banner: " + who.banner);
+        lines.push("Profile: " + who.profile);
+        for (const l of who.links) lines.push(l.kind + ": " + (l.url || l.handle));
+        out.textContent += "\n" + lines.join("\n");
+      }
     } catch (error) {
       out.className = "bad"; out.textContent = error.message;
     }

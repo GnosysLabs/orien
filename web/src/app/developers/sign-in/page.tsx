@@ -13,7 +13,40 @@ export const metadata: Metadata = pageMeta({
 
 const SCRIPT = `<script src="https://orien.network/orien-sign-in.js"></script>`
 
-const BROWSER = `button.onclick = async () => {
+const BUTTON = `<button type="button" class="orien-signin">
+  <svg viewBox="0 0 512 512" width="28" height="28" aria-hidden="true"><g fill="currentColor"><rect x="239" y="74" width="36" height="66" rx="18"/><rect x="239" y="74" width="36" height="66" rx="18" transform="rotate(-44 256 298)"/><rect x="239" y="74" width="36" height="66" rx="18" transform="rotate(44 256 298)"/><path d="M138 298A118 118 0 0 1 374 298Z"/><rect x="76" y="338" width="360" height="40" rx="20"/><rect x="156" y="406" width="200" height="36" rx="18"/></g></svg>
+  Sign in with Orien Wallet
+</button>
+
+<style>
+  .orien-signin {
+    display: inline-flex; align-items: center; justify-content: center; gap: 10px;
+    height: 44px; padding: 0 24px; border: 0; border-radius: 12px; cursor: pointer;
+    background: linear-gradient(115deg, #f4b6d4 0%, #b8c7ff 20%, #d3b6ff 38%, #a6ead6 56%, #f9dda4 74%, #f4b6d4 100%);
+    background-size: 300% 300%; animation: orien-pearl 12s ease-in-out infinite;
+    color: #0b0b0f; font: 700 14px/1 system-ui, -apple-system, sans-serif;
+  }
+  .orien-signin:hover { filter: brightness(1.05); }
+  .orien-signin:disabled { opacity: 0.6; cursor: default; }
+  @keyframes orien-pearl { 0%, 100% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } }
+  @media (prefers-reduced-motion: reduce) { .orien-signin { animation: none; } }
+</style>`
+
+const SUN = `<svg viewBox="0 0 512 512" width="28" height="28" aria-hidden="true"><g fill="currentColor"><rect x="239" y="74" width="36" height="66" rx="18"/><rect x="239" y="74" width="36" height="66" rx="18" transform="rotate(-44 256 298)"/><rect x="239" y="74" width="36" height="66" rx="18" transform="rotate(44 256 298)"/><path d="M138 298A118 118 0 0 1 374 298Z"/><rect x="76" y="338" width="360" height="40" rx="20"/><rect x="156" y="406" width="200" height="36" rx="18"/></g></svg>`
+
+const PREVIEW_CSS = `  .orien-signin {
+    display: inline-flex; align-items: center; justify-content: center; gap: 10px;
+    height: 44px; padding: 0 24px; border: 0; border-radius: 12px; cursor: pointer; text-decoration: none;
+    background: linear-gradient(115deg, #f4b6d4 0%, #b8c7ff 20%, #d3b6ff 38%, #a6ead6 56%, #f9dda4 74%, #f4b6d4 100%);
+    background-size: 300% 300%; animation: orien-pearl 12s ease-in-out infinite;
+    color: #0b0b0f; font: 700 14px/1 system-ui, -apple-system, sans-serif;
+  }
+  .orien-signin:hover { filter: brightness(1.05); }
+  .orien-signin:disabled { opacity: 0.6; cursor: default; }
+  @keyframes orien-pearl { 0%, 100% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } }
+  @media (prefers-reduced-motion: reduce) { .orien-signin { animation: none; } }`
+
+const BROWSER = `document.querySelector(".orien-signin").onclick = async () => {
   const nonce = await fetch("/sign-in/nonce").then((r) => r.text())   // from your server
   try {
     const { address, proof } = await OrienSignIn.signIn({ nonce })
@@ -135,7 +168,21 @@ export default function SignInDevelopersPage() {
         </p>
       </Section>
 
-      <Section title="3. Sign in from your button">
+      <Section title="3. Add the button">
+        <p>
+          The same button as on orien.network, so people recognise it. Copy it as it is: it needs no images or fonts.
+        </p>
+        <div className="flex justify-center rounded-xl border border-line bg-bg px-4 py-8">
+          <style>{PREVIEW_CSS}</style>
+          <a href="/developers/sign-in/demo/" className="orien-signin" aria-label="Sign in with Orien Wallet: try the demo">
+            <span dangerouslySetInnerHTML={{ __html: SUN }} className="flex" />
+            Sign in with Orien Wallet
+          </a>
+        </div>
+        <CopySnippet text={BUTTON} />
+      </Section>
+
+      <Section title="4. Sign in when it’s clicked">
         <p>
           <Code>OrienSignIn.signIn(&#123; nonce &#125;)</Code> asks the extension, and resolves once the person
           approves. Send the address and proof to your server.
@@ -143,7 +190,7 @@ export default function SignInDevelopersPage() {
         <CopySnippet text={BROWSER} />
       </Section>
 
-      <Section title="4. Check the proof on your server">
+      <Section title="5. Check the proof on your server">
         <p>
           Download <a href="/orien-sign-in.js" download className={link}>orien-sign-in.js</a> next to your server’s
           code. It runs in Node 18 and later, Deno and Bun.
@@ -155,7 +202,7 @@ export default function SignInDevelopersPage() {
         </p>
       </Section>
 
-      <Section title="5. Show who signed in (optional)">
+      <Section title="6. Show who signed in (optional)">
         <p>
           People who verified their wallet on orien.network have a public profile. <Code>OrienSignIn.profile(address)</Code>{' '}
           returns it, or null for a wallet that isn’t verified. Links hold only what the person chose to show.
