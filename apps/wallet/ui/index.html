@@ -188,7 +188,7 @@
        the back button sits). Between them the mask runs
        the full width, so cards keep their side shadows. */
     .screen, #mine, #board-signin, #board-post, #board-take, #swaps, #swap-sell, #swap-buy, #swap-detail {
-      --rt: 16px; --rb: 16px; --cw: min(var(--col), 100vw - 56px); --ct: calc(var(--cw) + 12px);
+      --rt: 24px; --rb: 24px; --cw: min(var(--col), 100vw - 56px); --ct: calc(var(--cw) + 12px);
       --m: linear-gradient(#000, #000);
       -webkit-mask: var(--m) 0 var(--rt) / 100% calc(100% - var(--rt) - var(--rb)) no-repeat,
         var(--m) 50% 0 / calc(var(--ct) - 2 * var(--rt)) var(--rt) no-repeat,
@@ -1299,7 +1299,11 @@
   .cm-join { align-items: center; color: var(--dim); font-size: 13.5px; line-height: 1.45; }
   .cm-join span { flex: 1; }
   .cm-feed { display: grid; gap: 14px; }
-  .cm-card { position: relative; overflow: hidden; border: 1px solid var(--line); border-radius: 20px; background: var(--surface); }
+  /* The mask keeps the corners round on the Mac even with a fading
+     picture inside (WebKit lets masked children spill past a rounded
+     overflow). */
+  .cm-card { position: relative; overflow: hidden; border: 1px solid var(--line); border-radius: 20px; background: var(--surface);
+    isolation: isolate; -webkit-mask-image: linear-gradient(#000, #000); mask-image: linear-gradient(#000, #000); }
   .cm-card.network::before { content: ""; position: absolute; inset: 0 0 auto 0; height: 2px; z-index: 1;
     background: var(--pearl); background-size: 300% 100%; animation: drift 24s linear infinite; }
   /* A piece of space for the network's news, or the author's banner, fading
