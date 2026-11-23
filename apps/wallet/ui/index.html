@@ -1245,6 +1245,46 @@
   /* Community: the network's news and people's posts, as on orien.network,
      with the Market as its second tab. */
   .cm-tabs { margin: 0 0 16px; }
+  #community { --col: 1040px; }
+  .cm-layout { display: block; }
+  .cm-main { min-width: 0; }
+  .cm-rail { display: none; }
+  /* Big windows: the feed with the sidebar beside it, as on the website. */
+  @media (min-width: 980px) {
+    .cm-layout { display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: 22px; align-items: start; }
+    .cm-rail { display: grid; gap: 14px; position: sticky; top: 0; }
+  }
+  .cm-filter { display: flex; margin-bottom: 14px; border: 1px solid var(--line); border-radius: 14px; background: var(--surface); overflow: hidden; }
+  .cm-filter button { position: relative; flex: 1; height: 40px; border: 0; background: transparent; color: var(--dim); font-weight: 600; font-size: 13.5px; cursor: pointer; }
+  .cm-filter button.on { color: var(--ink); }
+  .cm-filter button.on::after { content: ""; position: absolute; left: 36%; right: 36%; bottom: 0; height: 3px; border-radius: 3px;
+    background: var(--pearl); background-size: 300% 100%; }
+  .cm-box { border: 1px solid var(--line); border-radius: 18px; background: var(--surface); overflow: hidden; }
+  .cm-find { display: flex; align-items: center; gap: 10px; height: 46px; padding: 0 14px; color: var(--dim); }
+  .cm-find input { flex: 1; min-width: 0; border: 0; outline: none; background: transparent; color: var(--ink); font: inherit; font-size: 14px; }
+  .cm-row { display: flex; align-items: center; gap: 12px; width: 100%; padding: 9px 14px; border: 0; background: transparent; color: var(--ink); text-align: left; cursor: pointer; }
+  .cm-row:hover { background: var(--surface-hover); }
+  .cm-row .face { width: 32px; height: 32px; font-size: 13px; }
+  .cm-row .cm-rname { flex: 1; min-width: 0; font-weight: 600; font-size: 13.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .cm-row .cm-rsub { display: block; font-weight: 400; font-size: 12px; color: var(--dim); }
+  .cm-row .cm-rank { width: 24px; flex: none; text-align: center; font-size: 13px; color: var(--dim); }
+  .cm-row .cm-amt { flex: none; font-weight: 600; font-size: 13px; }
+  .cm-you { padding: 16px; }
+  .cm-you .cm-me-row { display: flex; align-items: center; gap: 12px; }
+  .cm-you .face { width: 44px; height: 44px; font-size: 16px; }
+  .cm-stats { display: grid; grid-template-columns: repeat(3, 1fr); margin-top: 14px; border: 1px solid var(--line); border-radius: 12px; text-align: center; }
+  .cm-stats div { padding: 9px 4px; }
+  .cm-stats div + div { border-left: 1px solid var(--line); }
+  .cm-stats b { display: block; font-size: 13.5px; }
+  .cm-stats span { font-size: 11px; color: var(--dim); }
+  .cm-you p { margin: 10px 0 0; color: var(--dim); font-size: 13px; line-height: 1.45; }
+  .cm-you .pill { margin-top: 12px; }
+  .cm-board h3 { display: flex; align-items: center; gap: 8px; margin: 0; padding: 16px 14px 6px; font-size: 16px; }
+  .cm-board .cm-note { margin: 0; padding: 12px 14px; border-top: 1px solid var(--line); color: var(--dim); font-size: 12px; line-height: 1.45; }
+  .cm-board .cm-showall { width: 100%; padding: 11px 14px; border: 0; background: transparent; text-align: left; font-weight: 600; font-size: 13px; cursor: pointer; }
+  .cm-board .cm-showall:hover { background: var(--surface-hover); }
+  .cm-board .cm-none { margin: 0; padding: 6px 14px 14px; color: var(--dim); font-size: 13px; }
+  [data-user] { cursor: pointer; }
   .cm-compose, .cm-join { display: flex; gap: 12px; padding: 14px 16px; margin-bottom: 16px;
     border: 1px solid var(--line); border-radius: 18px; background: var(--surface); }
   .cm-compose .face { width: 40px; height: 40px; font-size: 15px; }
@@ -1730,15 +1770,27 @@
     <section class="screen" id="community" hidden>
       <div class="topline"><button class="back" data-back aria-label="Back"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg></button><h2>Community</h2></div>
       <div class="tabs cm-tabs" role="tablist"><button class="tab on" data-cm-tab="community" role="tab">Community</button><button class="tab" data-cm-tab="market" role="tab">Market</button></div>
-      <div class="cm-compose" id="cm-compose" hidden>
-        <span class="face cm-me" id="cm-me"></span>
-        <div class="cm-write"><textarea id="cm-body" rows="1" maxlength="500" placeholder="What’s happening on Orien?"></textarea>
-          <div class="cm-send"><span class="cm-left" id="cm-left"></span><button class="pill pearl" id="cm-post" disabled>Post</button></div></div>
+      <div class="cm-layout">
+        <div class="cm-main">
+          <div class="cm-filter" role="tablist"><button class="on" data-only="">All</button><button data-only="people">People</button><button data-only="network">Network</button></div>
+        <div class="cm-compose" id="cm-compose" hidden>
+          <span class="face cm-me" id="cm-me"></span>
+          <div class="cm-write"><textarea id="cm-body" rows="1" maxlength="500" placeholder="What’s happening on Orien?"></textarea>
+            <div class="cm-send"><span class="cm-left" id="cm-left"></span><button class="pill pearl" id="cm-post" disabled>Post</button></div></div>
+        </div>
+        <div class="cm-join" id="cm-join" hidden><span id="cm-join-text"></span><button class="pill" id="cm-join-go"></button></div>
+        <div class="problem" id="cm-problem" hidden></div>
+        <div class="cm-feed" id="cm-feed"></div>
+        <button class="pill mk-more" id="cm-more" hidden>Show more</button>
+        </div>
+        <!-- Big windows: the website's sidebar, beside the feed. -->
+        <aside class="cm-rail">
+          <div class="cm-box cm-find"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m21 21-4.34-4.34"/><circle cx="11" cy="11" r="8"/></svg><input id="cm-find" placeholder="Find members" autocomplete="off" spellcheck="false"></div>
+          <div class="cm-box cm-found" id="cm-found" hidden></div>
+          <div class="cm-box cm-you" id="cm-you"></div>
+          <div class="cm-box cm-board" id="cm-board"></div>
+        </aside>
       </div>
-      <div class="cm-join" id="cm-join" hidden><span id="cm-join-text"></span><button class="pill" id="cm-join-go"></button></div>
-      <div class="problem" id="cm-problem" hidden></div>
-      <div class="cm-feed" id="cm-feed"></div>
-      <button class="pill mk-more" id="cm-more" hidden>Show more</button>
     </section>
 
     <!-- A community post and its replies. -->
@@ -5355,13 +5407,13 @@
       case "milestone": {
         if (!post.subject) return "";
         const first = Number(d.orn) === 1;
-        return `<div class="cm-news row">${cmFace(post.subject)}<div><div class="cm-big">${first ? "First ORN" : `${Number(d.orn).toLocaleString()} ORN`}</div>
+        return `<div class="cm-news row"><span data-user="${esc(post.subject.name)}">${cmFace(post.subject)}</span><div><div class="cm-big">${first ? "First ORN" : `${Number(d.orn).toLocaleString()} ORN`}</div>
           <div class="cm-line"><b>${esc(post.subject.name)}</b> ${first ? "mined their first ORN." : "passed it mining."} 🎉</div><div class="cm-small">Checkpoint ${esc(String(d.epoch))}</div></div></div>`;
       }
       case "streak": {
         if (!post.subject) return "";
         const hours = Number(d.hours);
-        return `<div class="cm-news row">${cmFace(post.subject)}<div><div class="cm-big">${hours} hours in a row 🔥</div>
+        return `<div class="cm-news row"><span data-user="${esc(post.subject.name)}">${cmFace(post.subject)}</span><div><div class="cm-big">${hours} hours in a row 🔥</div>
           <div class="cm-line"><b>${esc(post.subject.name)}</b> has been paid at every checkpoint for ${hours >= 48 ? `${hours / 24} days` : "a whole day"}.</div></div></div>`;
       }
       case "top_day": {
@@ -5381,7 +5433,7 @@
       : post.author && post.author.banner ? picImg(post.author.banner).replace("<img ", '<img class="cm-art" ') : "";
     const head = network
       ? `${cmFace(null)}<div class="cm-who"><div class="cm-eyebrow pearl-text">${esc(EYEBROWS[post.kind] || "Orien Network")}</div><div class="cm-when"><b style="color:var(--ink)">Orien Network</b> · ${ago(post.created)}</div></div>`
-      : `${cmFace(post.author)}<div class="cm-who"><div class="cm-name">${esc((post.author && post.author.name) || "")}</div><div class="cm-when">${ago(post.created)}</div></div>${post.mine ? `<button class="cm-del" data-del="${post.id}">Delete</button>` : ""}`;
+      : `<span data-user="${esc((post.author && post.author.name) || "")}">${cmFace(post.author)}</span><div class="cm-who"><div class="cm-name" data-user="${esc((post.author && post.author.name) || "")}">${esc((post.author && post.author.name) || "")}</div><div class="cm-when">${ago(post.created)}</div></div>${post.mine ? `<button class="cm-del" data-del="${post.id}">Delete</button>` : ""}`;
     const chips = (post.reactions || []).map((r) => `<button class="cm-chip${r.me ? " on" : ""}" data-react="${post.id}" data-emoji="${esc(r.emoji)}"><span>${esc(r.emoji)}</span><b>${r.count}</b></button>`).join("");
     const replies = inThread || post.parent ? "" : `<button class="cm-chip" data-open="${post.id}">${REPLY_ICON}${post.replies ? `<b>${post.replies}</b>` : ""}</button>`;
     return `<article class="cm-card${network ? " network" : ""}" data-post="${post.id}">${art}
@@ -5406,8 +5458,10 @@
   }
   async function cmLoad(more) {
     try {
-      const before = more && cm.posts.length ? `?before=${cm.posts[cm.posts.length - 1].id}` : "";
-      const page = await cmCall("GET", "/feed" + before);
+      const query = new URLSearchParams();
+      if (cm.only) query.set("only", cm.only);
+      if (more && cm.posts.length) query.set("before", cm.posts[cm.posts.length - 1].id);
+      const page = await cmCall("GET", "/feed" + (query.toString() ? `?${query}` : ""));
       cm.posts = more ? cm.posts.concat(page.posts || []) : page.posts || [];
       cm.more = !!page.more;
       if (page.reactions) cm.reactions = page.reactions;
@@ -5416,8 +5470,68 @@
     } catch (e) { problem("cm-problem", e); }
   }
   async function cmLoadYou() {
-    try { cm.you = (await cmCall("GET", "/board")).you || null; } catch { cm.you = null; }
+    try { const found = await cmCall("GET", "/board"); cm.you = found.you || null; cm.board = found.board || null; } catch { cm.you = null; }
     cmPaintYou();
+    cmPaintRail();
+  }
+  // The sidebar, as on the website: you, and the top miners.
+  const MEDALS = ["🥇", "🥈", "🥉"];
+  const cmPerson = (name, picture) => `<span class="face">${esc((name || "?").slice(0, 1).toUpperCase())}${picture ? picImg(picture) : ""}</span>`;
+  function cmPaintRail() {
+    const you = cm.you;
+    $("cm-you").innerHTML = !you
+      ? '<b>New here?</b><p>Sign in to Orien Network to post and react.</p><button class="pill" data-rail-go="signin">Sign in</button>'
+      : `<div class="cm-me-row" data-user="${esc(you.name)}">${cmPerson(you.name, you.picture)}<div style="min-width:0"><div class="cm-name">${esc(you.name)}</div><div class="cm-when">${you.verified ? "Verified wallet" : "No verified wallet yet"}</div></div></div>`
+        + (you.stats ? `<div class="cm-stats"><div><b>#${you.stats.rank}</b><span>rank</span></div><div><b>${cmOrn(you.stats.mined)}</b><span>ORN mined</span></div><div><b>${you.stats.streak}h</b><span>in a row</span></div></div>`
+          : `<p>${you.verified ? "Mine with a verified wallet and your figures show here after the next checkpoint." : "Verify a wallet to post and see your mining here."}</p>`)
+        + (you.verified ? "" : '<button class="pill" data-rail-go="verify">Verify a wallet</button>');
+    const miners = (cm.board && cm.board.miners) || [];
+    const rows = cm.allMiners ? miners : miners.slice(0, 8);
+    $("cm-board").innerHTML = '<h3><span class="pearl-text">🏆</span> Top miners</h3>'
+      + (rows.length ? rows.map((r) => `<button class="cm-row" ${r.name ? `data-user="${esc(r.name)}"` : ""}><span class="cm-rank">${r.rank <= 3 ? MEDALS[r.rank - 1] : r.rank}</span>${cmPerson(r.name, r.picture)}<span class="cm-rname">${esc(r.name || "")}${r.streak > 0 ? `<span class="cm-rsub">🔥 ${r.streak}h</span>` : ""}</span><span class="cm-amt">${cmOrn(r.mined)}</span></button>`).join("")
+        : '<p class="cm-none">Nobody with a verified wallet has been paid for mining yet.</p>')
+      + (miners.length > 8 ? `<button class="cm-showall pearl-text" data-rail-go="all">${cm.allMiners ? "Show less" : "Show more"}</button>` : "")
+      + '<p class="cm-note">Miners who have verified a wallet on their Orien Network account, by ORN mined. Verify your wallet on your account to be on the list.</p>';
+  }
+  $("cm-you").addEventListener("click", (e) => { const go = e.target.closest("[data-rail-go]"); if (go) cmJoin(); });
+  $("cm-board").addEventListener("click", (e) => {
+    if (e.target.closest('[data-rail-go="all"]')) { cm.allMiners = !cm.allMiners; cmPaintRail(); }
+  });
+  // Find members by name, as they type.
+  let cmFindTimer = 0;
+  $("cm-find").addEventListener("input", () => {
+    clearTimeout(cmFindTimer);
+    const q = $("cm-find").value.trim();
+    if (q.length < 2) { $("cm-found").hidden = true; return; }
+    cmFindTimer = setTimeout(async () => {
+      let found = [];
+      try { found = (await cmCall("GET", `/members?q=${encodeURIComponent(q)}`)).members || []; } catch {}
+      if ($("cm-find").value.trim() !== q) return;
+      $("cm-found").innerHTML = found.length
+        ? found.map((m) => `<button class="cm-row" data-user="${esc(m.name)}">${cmPerson(m.name, m.picture)}<span class="cm-rname">${esc(m.name)}</span>${m.rank ? `<span class="cm-when">${m.rank <= 3 ? MEDALS[m.rank - 1] : "#" + m.rank} miner</span>` : ""}</button>`).join("")
+        : '<p class="cm-none" style="padding:12px 14px">Nobody by that name.</p>';
+      $("cm-found").hidden = false;
+    }, 200);
+  });
+  // Feed: everything, people, or the network's news.
+  for (const b of document.querySelectorAll("[data-only]")) b.onclick = () => {
+    for (const o of document.querySelectorAll("[data-only]")) o.classList.toggle("on", o === b);
+    cm.only = b.dataset.only;
+    feel("selection");
+    cmLoad(false);
+  };
+  // A person's name or face anywhere in the Community opens their profile.
+  document.addEventListener("click", (e) => {
+    const who = e.target.closest("#community [data-user], #cm-thread [data-user]");
+    if (who) openPerson(who.dataset.user);
+  });
+  async function openPerson(name) {
+    if (!name) return;
+    let answer;
+    try { answer = await invoke("market_call", { method: "GET", path: `/users/${encodeURIComponent(name)}`, body: null }); }
+    catch (e) { problem($("cm-thread").hidden ? "cm-problem" : "cm-thread-problem", e); return; }
+    market.sellerFrom = $("cm-thread").hidden ? "community" : "cm-thread";
+    showSeller(answer);
   }
   async function openCommunity() {
     show("community");
@@ -5499,10 +5613,11 @@
   $("cm-post").onclick = () => cmSend("cm-body", "cm-post", null);
   $("cm-reply-go").onclick = () => cmSend("cm-reply", "cm-reply-go", cm.thread && cm.thread.id);
   $("cm-more").onclick = () => cmLoad(true);
-  for (const go of ["cm-join-go", "cm-reply-join-go"]) $(go).onclick = async () => {
+  async function cmJoin() {
     if (cm.you) { await loadBoard(); openProfile(); return; }
     signinReturn = "community"; resetSignin(); show("board-signin");
-  };
+  }
+  for (const go of ["cm-join-go", "cm-reply-join-go"]) $(go).onclick = cmJoin;
   $("go-market").onclick = openCommunity;
   $("mk-cats").onclick = (e) => {
     const b = e.target.closest("[data-cat]");
@@ -5567,13 +5682,19 @@
   }
   $("ls-thumbs").onclick = (e) => { const b = e.target.closest("[data-pic]"); if (b) showPicture(Number(b.dataset.pic)); };
   $("ls-back").onclick = () => market.from === "seller" ? show("seller") : market.from === "chat" ? show("chat") : market.from === "profile" ? openProfile() : openMarket();
-  $("ls-seller").onclick = () => market.listing && openSeller(market.listing.seller);
+  $("ls-seller").onclick = () => { if (market.listing) { market.sellerFrom = "listing"; openSeller(market.listing.seller); } };
 
   async function openSeller(id) {
     $("sl-problem").hidden = true;
     let answer;
     try { answer = await invoke("market_profile", { id }); }
     catch (e) { problem("ls-problem", e); return; }
+    showSeller(answer);
+  }
+  function showSeller(answer) {
+    $("sl-problem").hidden = true;
+    // From the Community it's a person's profile; from the Market, a seller's.
+    document.querySelector("#seller .topline h2").textContent = market.sellerFrom === "community" || market.sellerFrom === "cm-thread" ? "Profile" : "Seller";
     const a = answer.account || {};
     $("sl-banner").innerHTML = picImg(a.banner);
     $("sl-face").innerHTML = esc((a.name || "?").slice(0, 1).toUpperCase()) + picImg(a.picture);
@@ -5666,7 +5787,7 @@
     } catch (e) { problem("sl-problem", mkProblem(e)); }
     finally { $("sl-report-send").disabled = false; }
   };
-  $("sl-back").onclick = () => market.sellerFrom === "chat" ? show("chat") : show("listing");
+  $("sl-back").onclick = () => market.sellerFrom === "chat" ? show("chat") : market.sellerFrom === "community" || market.sellerFrom === "cm-thread" ? show(market.sellerFrom) : show("listing");
 
   // ---- Market messages ----
   // When: "just now", "5 min ago", "3 h ago", else a short date.
