@@ -31,6 +31,14 @@ export function YourWallets({ account, onChange }: { account: Account; onChange:
   const [adding, setAdding] = useState(false)
   const [trouble, setTrouble] = useState('')
 
+  // A link to /account/#wallets: this section comes after the page loads,
+  // too late for the browser to go to it by itself.
+  useEffect(() => {
+    if (window.location.hash === '#wallets') {
+      requestAnimationFrame(() => document.getElementById('wallets')?.scrollIntoView({ behavior: 'smooth', block: 'start' }))
+    }
+  }, [])
+
   const load = () =>
     ask<{ wallets: WalletProof[] }>('/me/wallet')
       .then((found) => {
@@ -78,7 +86,7 @@ export function YourWallets({ account, onChange }: { account: Account; onChange:
   }
 
   return (
-    <section className="space-y-4 rounded-2xl border border-line bg-surface p-6 sm:p-8">
+    <section id="wallets" className="scroll-mt-24 space-y-4 rounded-2xl border border-line bg-surface p-6 sm:p-8">
       <div className="flex items-center gap-3">
         <Wallet className="h-5 w-5 text-pearl" strokeWidth={1.75} aria-hidden />
         <h2 className="text-lg font-bold tracking-tight text-ink">Your wallets</h2>
