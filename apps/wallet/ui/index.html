@@ -1713,6 +1713,7 @@
     <button class="update pearl" id="update" hidden></button>
     <div class="win-controls">
       <button id="win-min" aria-label="Minimize"><svg width="10" height="10" viewBox="0 0 10 10"><path d="M0 5.5h10" stroke="currentColor" stroke-width="1"/></svg></button>
+      <button id="win-max" aria-label="Maximize"><svg width="10" height="10" viewBox="0 0 10 10"><rect x="0.5" y="0.5" width="9" height="9" fill="none" stroke="currentColor" stroke-width="1"/></svg></button>
       <button id="win-close" class="close" aria-label="Close"><svg width="10" height="10" viewBox="0 0 10 10"><path d="M0.5 0.5l9 9M9.5 0.5l-9 9" stroke="currentColor" stroke-width="1"/></svg></button>
     </div>
   </header>
@@ -2724,6 +2725,20 @@
     const win = window.__TAURI__.window.getCurrentWindow();
     document.getElementById("win-min").onclick = () => win.minimize();
     document.getElementById("win-close").onclick = () => win.close();
+    // The middle one fills the screen, and puts it back: a square, or two
+    // overlapping squares while it fills the screen, as Windows shows.
+    const max = document.getElementById("win-max");
+    const paintMax = async () => {
+      let big = false;
+      try { big = await win.isMaximized(); } catch {}
+      max.setAttribute("aria-label", big ? "Restore" : "Maximize");
+      max.innerHTML = big
+        ? '<svg width="10" height="10" viewBox="0 0 10 10"><path d="M2.5 2.5V0.5h7v7h-2" fill="none" stroke="currentColor" stroke-width="1"/><rect x="0.5" y="2.5" width="7" height="7" fill="none" stroke="currentColor" stroke-width="1"/></svg>'
+        : '<svg width="10" height="10" viewBox="0 0 10 10"><rect x="0.5" y="0.5" width="9" height="9" fill="none" stroke="currentColor" stroke-width="1"/></svg>';
+    };
+    max.onclick = () => win.toggleMaximize().then(paintMax);
+    win.onResized(() => paintMax()).catch(() => {});
+    paintMax();
   }
   // The iPhone app shares this window, laid out for a phone.
   const phone = /iPhone|iPad|iPod/.test(navigator.userAgent);
