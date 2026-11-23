@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "Orien Wallet",
   "description": "Your Orien Wallet in Firefox: your balance, sending ORN, and signing in to websites with your wallet.",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "browser_specific_settings": {
     "gecko": {
       "id": "wallet@orien.network",
