@@ -28,6 +28,16 @@ export const CHANGELOG: Entry[] = [
   {
     date: '2026-11-23',
     products: ['wallet'],
+    version: '1.8.29',
+    title: 'Swap History',
+    changes: [
+      'The Swap screen has a History tab: the last price ORN swapped for, then every finished swap with its price per ORN, newest first. No names, just the trades.',
+      'The Swap screen no longer shows which wallet your Market sales are paid to; that’s on your profile, under Your wallets.',
+    ],
+  },
+  {
+    date: '2026-11-23',
+    products: ['wallet'],
     version: '1.8.28',
     title: 'A tidier swap board, and updates that reopen the app',
     changes: [
