@@ -69,7 +69,7 @@ $("balance-card").onclick = () => {
   full = !full;
   try { localStorage.setItem("balance-full", full ? "on" : "off"); } catch {}
   paintBalance();
-  loadRecent();
+  renderRecent();
 };
 
 $("copy").onclick = async () => {
@@ -158,6 +158,7 @@ function picture(name) {
     ask({ ask: "image", name }).then((answer) => {
       pics.set(name, (answer && answer.url) || "");
       if (!$("suggest").hidden) suggest();
+      if (!$("recent").hidden) renderRecent();
     }).catch(() => pics.set(name, ""));
   }
   return "";
@@ -324,31 +325,56 @@ function when(time) {
   if (d.toDateString() === yesterday.toDateString()) return "Yesterday";
   return d.toLocaleDateString([], { month: "short", day: "numeric" });
 }
+// The arrows the app shows for a payment with no picture.
+function arrow(direction) {
+  const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+  for (const [k, v] of Object.entries({ width: 13, height: 13, viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", "stroke-width": 2, "stroke-linecap": "round", "stroke-linejoin": "round" })) svg.setAttribute(k, v);
+  for (const d of direction === "sent" ? ["M7 7h10v10", "M7 17 17 7"] : ["M17 7 7 17", "M17 17H7V7"]) {
+    const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+    path.setAttribute("d", d);
+    svg.append(path);
+  }
+  return svg;
+}
+let recentEntries = [];
 async function loadRecent() {
   const list = await ask({ ask: "activity" }).catch(() => null);
-  const entries = Array.isArray(list) ? list.slice(0, 3) : [];
-  $("recent").hidden = entries.length === 0;
-  if (!entries.length) return;
-  await loadProfiles(entries.map((e) => e.counterparty).filter(Boolean));
+  recentEntries = Array.isArray(list) ? list.slice(0, 3) : [];
+  $("recent").hidden = recentEntries.length === 0;
+  if (!recentEntries.length) return;
+  renderRecent();
+  await loadProfiles(recentEntries.map((e) => e.counterparty).filter(Boolean));
   if (!people.contacts.length && !people.wallets.length) {
     const found = await ask({ ask: "people" }).catch(() => null);
     if (found && found.contacts) people = found;
   }
-  $("txs").replaceChildren(...entries.map((e) => {
+  renderRecent();
+}
+// As the app shows them: a person's picture over their first letter, or
+// an arrow (green for money in).
+function renderRecent() {
+  $("txs").replaceChildren(...recentEntries.map((e) => {
     const sent = e.direction === "sent";
-    const party = e.counterparty ? (named(e.counterparty) || short(e.counterparty)) : "";
+    const name = e.counterparty ? named(e.counterparty) : "";
+    const info = e.counterparty && profiles.get(e.counterparty);
+    const party = e.counterparty ? (name || (info && info.name) || short(e.counterparty)) : "";
     const title = sent ? "Sent" : TITLES[e.kind] || "Received";
     const sub = sent ? (party ? `To ${party}` : "Sent") : (party && (e.kind === "payment" || e.kind === "claim" || !e.kind) ? `From ${party}` : "");
-    const row = make("div", "tx");
-    const info = e.counterparty && profiles.get(e.counterparty);
-    const coin = make("span", `coin ${e.direction}`, sent ? "↗" : "↙");
-    if (info && info.picture) { coin.textContent = ""; coin.append(picture(info.picture)); }
+    let icon;
+    if (info && info.picture) {
+      icon = make("span", "face", (name || info.name || "?").slice(0, 1).toUpperCase());
+      icon.append(picture(info.picture));
+    } else {
+      icon = make("span", `tx-icon ${e.direction}`);
+      icon.append(arrow(e.direction));
+    }
     const main = make("div", "tx-main");
     main.append(make("div", "title", title));
     if (sub) main.append(make("div", "sub", sub));
     const side = make("div", "tx-side");
     side.append(make("div", `amt ${e.direction}`, (sent ? "−" : "+") + (full ? e.amount : shortBalance(e.amount))), make("div", "sub", when(e.time)));
-    row.append(coin, main, side);
+    const row = make("div", "tx");
+    row.append(icon, main, side);
     return row;
   }));
 }
