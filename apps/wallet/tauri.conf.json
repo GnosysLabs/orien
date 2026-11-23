@@ -26,8 +26,8 @@
       }
     ],
     "security": {
-      "csp": "default-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https://orien.network; frame-src https://orien.network",
-      "devCsp": "default-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https://orien.network http://localhost:7200; frame-src https://orien.network"
+      "csp": "default-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https://orien.network https://*.klipy.com; frame-src https://orien.network",
+      "devCsp": "default-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https://orien.network https://*.klipy.com http://localhost:7200; frame-src https://orien.network"
     },
     "withGlobalTauri": true
   },

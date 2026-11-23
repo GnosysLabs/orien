@@ -582,6 +582,74 @@ fn upload_picture(dir: &Path, route: &str, path: &Path) -> Result<Value, String>
     }
 }
 
+/// KLIPY's key and this person's handle for it, from orien.network, kept
+/// while the app runs.
+static KLIPY: std::sync::Mutex<Option<(String, String)>> = std::sync::Mutex::new(None);
+
+/// GIFs from KLIPY, asked by this device itself as KLIPY's rules require:
+/// trending when `q` is empty, else a search, in KLIPY's order. Each as
+/// KLIPY gives it: its id, a picture to post (md) and a smaller one to pick
+/// from (sm).
+pub fn klipy(dir: &Path, q: &str, page: u32) -> Result<Value, String> {
+    let known = KLIPY.lock().unwrap_or_else(|p| p.into_inner()).clone();
+    let (key, customer) = match known {
+        Some(pair) => pair,
+        None => {
+            let answer = market_get(dir, "/community/gifs/key", &[]).map_err(|_| "GIFs aren't available right now.".to_string())?;
+            let key = answer["key"].as_str().ok_or("GIFs aren't available right now.")?.to_string();
+            let customer = answer["customer_id"].as_str().unwrap_or("").to_string();
+            *KLIPY.lock().unwrap_or_else(|p| p.into_inner()) = Some((key.clone(), customer.clone()));
+            (key, customer)
+        }
+    };
+    if !key.chars().all(|c| c.is_ascii_alphanumeric() || c == '-' || c == '_') {
+        return Err("GIFs aren't available right now.".into());
+    }
+    let page = page.max(1).to_string();
+    let url = if q.trim().is_empty() {
+        format!("https://api.klipy.com/api/v1/{key}/gifs/trending")
+    } else {
+        format!("https://api.klipy.com/api/v1/{key}/gifs/search")
+    };
+    let mut request = agent().get(&url).query("page", &page).query("per_page", "24").query("customer_id", &customer).query("content_filter", "high");
+    if !q.trim().is_empty() {
+        request = request.query("q", q.trim());
+    }
+    let answer: Value = match request.call() {
+        Ok(answer) => answer.into_json().map_err(|error| error.to_string())?,
+        Err(ureq::Error::Status(401 | 403, _)) => {
+            *KLIPY.lock().unwrap_or_else(|p| p.into_inner()) = None;
+            return Err("GIFs aren't available right now.".into());
+        }
+        Err(ureq::Error::Status(429, _)) => return Err("Too many GIF searches for now. Try again in a little while.".into()),
+        Err(_) => return Err("KLIPY can't be reached right now.".into()),
+    };
+    let from_klipy = |url: &str| {
+        url.strip_prefix("https://").and_then(|rest| rest.split('/').next()).is_some_and(|host| {
+            host.strip_prefix("static").and_then(|n| n.strip_suffix(".klipy.com")).is_some_and(|n| n.chars().all(|c| c.is_ascii_digit()))
+        })
+    };
+    let pick = |file: &Value, size: &str| -> Option<(String, u64, u64)> {
+        for format in ["webp", "gif"] {
+            let f = &file[size][format];
+            if let Some(url) = f["url"].as_str().filter(|u| from_klipy(u)) {
+                return Some((url.to_string(), f["width"].as_u64().unwrap_or(0), f["height"].as_u64().unwrap_or(0)));
+            }
+        }
+        None
+    };
+    let data = &answer["data"];
+    let gifs: Vec<Value> = data["data"].as_array().into_iter().flatten().filter_map(|item| {
+        let file = &item["file"];
+        let (url, width, height) = pick(file, "md").or_else(|| pick(file, "hd"))?;
+        let preview = pick(file, "sm").map(|p| p.0).unwrap_or_else(|| url.clone());
+        let id = item["id"].as_i64().map(|n| n.to_string()).or_else(|| item["id"].as_str().map(str::to_string)).or_else(|| item["slug"].as_str().map(str::to_string))?;
+        Some(json!({ "id": id, "url": url, "preview": preview, "width": width, "height": height }))
+    }).collect();
+    let next = data["has_next"].as_bool().unwrap_or(false).then(|| data["current_page"].as_u64().unwrap_or(1) + 1);
+    Ok(json!({ "gifs": gifs, "next": next }))
+}
+
 /// One listing, its seller, and whether it's this account's.
 pub fn listing(dir: &Path, id: i64) -> Result<Value, String> {
     market_get(dir, &format!("/listings/{id}"), &[])
