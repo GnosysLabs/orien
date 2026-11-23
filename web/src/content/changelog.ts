@@ -27,6 +27,20 @@ export const PRODUCTS: Record<Product, string> = {
 export const CHANGELOG: Entry[] = [
   {
     date: '2026-11-23',
+    products: ['wallet'],
+    version: '1.8.26',
+    title: 'The Community and Messages in Orien Wallet',
+    changes: [
+      'The Community is in Orien Wallet, where the Market button was: the feed of posts and the network’s news, with replies, reactions and videos inside each post, and the Market as its second tab. In big windows the sidebar is beside it, as on the website.',
+      'Messages has its own button on the home screen and is for anyone, not only the Market: profiles have a Message button, and so do contacts with an Orien Network profile. Contacts moved up beside the wallet name.',
+      'Profiles look like the website’s: their banner, picture and links, their posts, their mining and what they sell. Every name in the Community opens that person’s profile.',
+      'Your profile chooses who can message you: everyone, people you’ve talked with, or no one. In big windows it spreads out, and in small ones it has Settings and Market Listings tabs.',
+      'Big windows keep the same space around everything, and content rounds off at the edges where it scrolls. Obsidian sits beside Daylight in the themes.',
+      'On Windows and Linux, a button beside – and ✕ fills the screen with Orien Wallet, and puts it back.',
+    ],
+  },
+  {
+    date: '2026-11-23',
     products: ['network'],
     title: 'Your mining story, even if you verified your wallet later',
     changes: [
