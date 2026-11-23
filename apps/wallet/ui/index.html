@@ -227,6 +227,9 @@
         var(--bl) left 18px bottom 0 / var(--rb) var(--rb) no-repeat, var(--br) right 18px bottom 0 / var(--rb) var(--rb) no-repeat;
       -webkit-mask: var(--M); mask: var(--M); }
   }
+  /* A screen whose list scrolls on its own ends where the list does: the
+     same 20px to the container's foot as the home screen's list. */
+  html body:not(.phone) .screen:has(> .scroll):not(#chat) { padding-bottom: 0; }
   /* Lists that scroll on their own (Activity, Contacts, Notifications,
      Messages, a chat, Swaps) round off at their top and bottom edges the
      same way, at every window size: 16px corners at the content's edge,
