@@ -6230,7 +6230,7 @@
         const each = sol ? `${(d.lamports / 1e9 / orn).toLocaleString(undefined, { maximumSignificantDigits: 3 })} SOL` : `${Math.round(d.sats / orn).toLocaleString()} satoshis`;
         return `<div class="cm-news"><div class="cm-big">Someone bought ${esc(orn.toLocaleString())} ORN</div>
           <div class="cm-line">They paid ${esc(price)}${usd != null ? `, about ${esc(fmtUsd(usd))}` : ""}.</div>
-          <div class="cm-small">That's ${esc(each)}${usd != null && orn > 0 ? ` (about ${esc(fmtUsd(usd / orn))})` : ""} for each ORN.</div><button class="pill cm-news-go" data-news-go="swaps">See all swaps</button></div>`;
+          <div class="cm-small">That's ${esc(each)}${usd != null && orn > 0 ? ` (about ${esc(fmtUsd(usd / orn))})` : ""} for each ORN.</div>${phone ? "" : '<button class="pill cm-news-go" data-news-go="swaps">See all swaps</button>'}</div>`;
       }
       case "supply":
         return `<div class="cm-news"><div class="cm-big">${esc(Number(d.orn).toLocaleString())} ORN mined</div>
