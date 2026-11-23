@@ -1283,7 +1283,7 @@
   .cm-you .pill { margin-top: 12px; }
   .cm-board h3 { display: flex; align-items: center; gap: 8px; margin: 0; padding: 16px 14px 6px; font-size: 16px; }
   .cm-board .cm-note { margin: 0; padding: 12px 14px; border-top: 1px solid var(--line); color: var(--dim); font-size: 12px; line-height: 1.45; }
-  .cm-board .cm-showall { width: 100%; padding: 11px 14px; border: 0; background: transparent; text-align: left; font-weight: 600; font-size: 13px; cursor: pointer; }
+  .cm-board .cm-showall { width: 100%; padding: 11px 14px; border: 0; border-top: 1px solid var(--line); background: transparent; text-align: left; font-weight: 600; font-size: 13px; cursor: pointer; }
   .cm-board .cm-showall:hover { background: var(--surface-hover); }
   .cm-board .cm-none { margin: 0; padding: 6px 14px 14px; color: var(--dim); font-size: 13px; }
   [data-user] { cursor: pointer; }
@@ -1340,6 +1340,19 @@
   .cm-picker { display: inline-flex; gap: 2px; padding: 2px; border: 1px solid var(--line); border-radius: 999px; background: var(--surface); }
   .cm-picker button { width: 32px; height: 32px; border: 0; border-radius: 50%; background: transparent; font-size: 17px; cursor: pointer; }
   .cm-picker button:hover { background: var(--surface-hover); }
+  .cm-inline { margin-top: 14px; border-top: 1px solid var(--line); }
+  .cm-reply-row { display: flex; gap: 12px; padding: 14px 0; }
+  .cm-reply-row + .cm-reply-row { border-top: 1px solid var(--line); }
+  .cm-reply-row .face, .cm-inline-write .face { width: 32px; height: 32px; font-size: 13px; }
+  .cm-reply-main { flex: 1; min-width: 0; }
+  .cm-reply-head { display: flex; align-items: center; gap: 4px; font-size: 14px; }
+  .cm-reply-head .cm-del { margin-left: auto; }
+  .cm-reply-main .cm-text { margin-top: 4px; font-size: 14.5px; }
+  .cm-reply-main .cm-foot { margin-top: 8px; }
+  .cm-inline-write { display: flex; gap: 12px; padding-top: 14px; border-top: 1px solid var(--line); }
+  .cm-inline-join { display: flex; align-items: center; gap: 10px; padding-top: 14px; border-top: 1px solid var(--line); color: var(--dim); font-size: 13.5px; }
+  .cm-inline .cm-empty { padding: 18px 0 4px; }
+  .cm-inline > .cm-inline-write:first-child, .cm-inline > .cm-inline-join:first-child { border-top: 0; }
   .cm-replies { margin-top: 6px; }
   .cm-replies .cm-card { border-radius: 16px; margin-top: 10px; }
   .cm-reply { margin-top: 14px; }
@@ -1771,7 +1784,7 @@
     <!-- Orien Market: work and things offered for ORN. -->
     <section class="screen" id="community" hidden>
       <div class="topline"><button class="back" data-back aria-label="Back"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg></button><h2>Community</h2></div>
-      <div class="tabs cm-tabs" role="tablist"><button class="tab on" data-cm-tab="community" role="tab">Community</button><button class="tab" data-cm-tab="market" role="tab">Market</button></div>
+      <div class="tabs cm-tabs" role="tablist"><button class="tab on" data-cm-tab="community" role="tab">Feed</button><button class="tab" data-cm-tab="market" role="tab">Market</button></div>
       <div class="cm-layout">
         <div class="cm-main">
           <div class="cm-filter" role="tablist"><button class="on" data-only="">All</button><button data-only="people">People</button><button data-only="network">Network</button></div>
@@ -1812,7 +1825,7 @@
     <section class="screen" id="market" hidden>
       <div class="topline"><button class="back" data-back aria-label="Back"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg></button><h2>Community</h2>
         <div class="account mk-tools"><button class="pill pearl" id="mk-sell">Sell</button><button class="pill icon mk-inbox" id="mk-inbox" title="Messages" aria-label="Messages"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 10a2 2 0 0 1-2 2H6.828a2 2 0 0 0-1.414.586l-2.202 2.202A.71.71 0 0 1 2 14.286V4a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/><path d="M20 9a2 2 0 0 1 2 2v10.286a.71.71 0 0 1-1.212.502l-2.202-2.202A2 2 0 0 0 17.172 19H10a2 2 0 0 1-2-2v-1"/></svg><span class="dot" id="mk-unread" hidden></span></button></div></div>
-      <div class="tabs cm-tabs" role="tablist"><button class="tab" data-cm-tab="community" role="tab">Community</button><button class="tab on" data-cm-tab="market" role="tab">Market</button></div>
+      <div class="tabs cm-tabs" role="tablist"><button class="tab" data-cm-tab="community" role="tab">Feed</button><button class="tab on" data-cm-tab="market" role="tab">Market</button></div>
       <p class="lede">Work and things offered for ORN. You pay the seller straight from your wallet: the Market never holds anyone's coins.</p>
       <div class="box plain mk-search"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m21 21-4.34-4.34"/><circle cx="11" cy="11" r="8"/></svg><input id="mk-q" placeholder="Search listings" autocomplete="off" spellcheck="false"></div>
       <div class="mk-cats" id="mk-cats"></div>
@@ -5378,7 +5391,7 @@
   // ---- Community: the network's news and people's posts, as on
   // orien.network/community, with the Market as its second tab. Only
   // people with a verified wallet post, reply and react. ----
-  const cm = { posts: [], more: false, you: null, reactions: ["⛏️", "🔥", "❤️", "👏", "😂"], max: 500, thread: null, replies: [], picking: 0 };
+  const cm = { open: new Set(), repliesOf: new Map(), posts: [], more: false, you: null, reactions: ["⛏️", "🔥", "❤️", "👏", "😂"], max: 500, thread: null, replies: [], picking: 0 };
   const cmCall = (method, path, body) => invoke("market_call", { method, path: "/community" + path, body: body === undefined ? null : body });
   const EYEBROWS = { record: "New record", welcome: "Welcome", milestone: "Milestone", streak: "On a streak", top_day: "Top miner of the day" };
   const cmFace = (person) => person && person.name
@@ -5437,11 +5450,31 @@
       ? `${cmFace(null)}<div class="cm-who"><div class="cm-eyebrow pearl-text">${esc(EYEBROWS[post.kind] || "Orien Network")}</div><div class="cm-when"><b style="color:var(--ink)">Orien Network</b> · ${ago(post.created)}</div></div>`
       : `<span data-user="${esc((post.author && post.author.name) || "")}">${cmFace(post.author)}</span><div class="cm-who"><div class="cm-name" data-user="${esc((post.author && post.author.name) || "")}">${esc((post.author && post.author.name) || "")}</div><div class="cm-when">${ago(post.created)}</div></div>${post.mine ? `<button class="cm-del" data-del="${post.id}">Delete</button>` : ""}`;
     const chips = (post.reactions || []).map((r) => `<button class="cm-chip${r.me ? " on" : ""}" data-react="${post.id}" data-emoji="${esc(r.emoji)}"><span>${esc(r.emoji)}</span><b>${r.count}</b></button>`).join("");
-    const replies = inThread || post.parent ? "" : `<button class="cm-chip" data-open="${post.id}">${REPLY_ICON}${post.replies ? `<b>${post.replies}</b>` : ""}</button>`;
+    const replies = inThread || post.parent ? "" : `<button class="cm-chip${cm.open.has(post.id) ? " on" : ""}" data-open="${post.id}">${REPLY_ICON}${post.replies ? `<b>${post.replies}</b>` : ""}</button>`;
     return `<article class="cm-card${network ? " network" : ""}" data-post="${post.id}">${art}
       <div class="cm-in"><div class="cm-head">${head}</div>
       ${network ? cmNews(post) : `<div class="cm-text">${esc(post.body || "")}</div>`}
-      <div class="cm-foot">${replies}${chips}<button class="cm-chip" data-pick="${post.id}" aria-label="React" title="React">${SMILE_ICON}</button></div></div></article>`;
+      <div class="cm-foot">${replies}${chips}<button class="cm-chip" data-pick="${post.id}" aria-label="React" title="React">${SMILE_ICON}</button></div>
+      ${!post.parent && !inThread && cm.open.has(post.id) ? cmInline(post) : ""}</div></article>`;
+  }
+  // A post's replies, opened inside its card as on the website, and a box
+  // to reply.
+  function cmInline(post) {
+    const replies = cm.repliesOf.get(post.id);
+    const list = !replies ? '<div class="cm-empty">Loading…</div>' : replies.map((r) => `<div class="cm-reply-row" data-post="${r.id}">
+        <span data-user="${esc((r.author && r.author.name) || "")}">${cmFace(r.author)}</span>
+        <div class="cm-reply-main"><div class="cm-reply-head"><b data-user="${esc((r.author && r.author.name) || "")}">${esc((r.author && r.author.name) || "")}</b><span class="cm-when"> · ${ago(r.created)}</span>${r.mine ? `<button class="cm-del" data-del="${r.id}" data-parent="${post.id}">Delete</button>` : ""}</div>
+        <div class="cm-text">${esc(r.body || "")}</div>
+        <div class="cm-foot">${(r.reactions || []).map((x) => `<button class="cm-chip${x.me ? " on" : ""}" data-react="${r.id}" data-parent="${post.id}" data-emoji="${esc(x.emoji)}"><span>${esc(x.emoji)}</span><b>${x.count}</b></button>`).join("")}<button class="cm-chip" data-pick="${r.id}" data-parent="${post.id}" aria-label="React" title="React">${SMILE_ICON}</button></div></div></div>`).join("");
+    const you = cm.you;
+    const box = you && you.verified
+      ? `<div class="cm-inline-write">${cmFace(you)}<div class="cm-write"><textarea data-reply-box="${post.id}" rows="1" maxlength="500" placeholder="Post your reply"></textarea><div class="cm-send"><button class="pill pearl" data-reply-send="${post.id}" disabled>Reply</button></div></div></div>`
+      : `<div class="cm-inline-join"><button class="pill" data-join>${you ? "Verify a wallet" : "Sign in"}</button><span>to reply.</span></div>`;
+    return `<div class="cm-inline">${list}${box}</div>`;
+  }
+  async function cmLoadReplies(id) {
+    try { cm.repliesOf.set(id, (await cmCall("GET", `/posts/${id}`)).replies || []); }
+    catch (e) { cm.repliesOf.set(id, []); problem("cm-problem", e); }
   }
   function cmPaintFeed() {
     $("cm-feed").innerHTML = cm.posts.length ? cm.posts.map((p) => cmCard(p)).join("") : '<div class="cm-empty">Nothing here yet.</div>';
@@ -5493,7 +5526,7 @@
     $("cm-board").innerHTML = '<h3><span class="pearl-text">🏆</span> Top miners</h3>'
       + (rows.length ? rows.map((r) => `<button class="cm-row" ${r.name ? `data-user="${esc(r.name)}"` : ""}><span class="cm-rank">${r.rank <= 3 ? MEDALS[r.rank - 1] : r.rank}</span>${cmPerson(r.name, r.picture)}<span class="cm-rname">${esc(r.name || "")}${r.streak > 0 ? `<span class="cm-rsub">🔥 ${r.streak}h</span>` : ""}</span><span class="cm-amt">${cmOrn(r.mined)}</span></button>`).join("")
         : '<p class="cm-none">Nobody with a verified wallet has been paid for mining yet.</p>')
-      + (miners.length > 8 ? `<button class="cm-showall pearl-text" data-rail-go="all">${cm.allMiners ? "Show less" : "Show more"}</button>` : "")
+      + (miners.length > 8 ? `<button class="cm-showall" data-rail-go="all"><span class="pearl-text">${cm.allMiners ? "Show less" : "Show more"}</span></button>` : "")
       + '<p class="cm-note">Miners who have verified a wallet on their Orien Network account, by ORN mined. Verify your wallet on your account to be on the list.</p>';
   }
   $("cm-you").addEventListener("click", (e) => { const go = e.target.closest("[data-rail-go]"); if (go) cmJoin(); });
@@ -5572,9 +5605,22 @@
   $("cm-thread-back").onclick = () => { show("community"); cmLoad(false); };
   // Reactions, replies, deleting: one listener for every card.
   async function cmClick(e) {
+    if (e.target.closest("[data-join]")) return cmJoin();
+    const send = e.target.closest("[data-reply-send]");
+    if (send) return cmSendInline(Number(send.dataset.replySend));
     const t = e.target.closest("[data-react], [data-open], [data-pick], [data-del], [data-emoji-pick]");
     if (!t) return;
-    if (t.dataset.open) return cmOpenThread(Number(t.dataset.open));
+    if (t.dataset.open) {
+      const id = Number(t.dataset.open);
+      if (cm.open.has(id)) { cm.open.delete(id); cmPaintFeed(); return; }
+      cm.open.add(id);
+      cmPaintFeed();
+      await cmLoadReplies(id);
+      cmPaintFeed();
+      const box = document.querySelector(`[data-reply-box="${id}"]`);
+      if (box) box.focus();
+      return;
+    }
     if ((t.dataset.react || t.dataset.pick || t.dataset.emojiPick) && !(cm.you && cm.you.verified)) {
       problem(t.closest("#cm-thread") ? "cm-thread-problem" : "cm-problem", cm.you ? "Verify one of your wallets to react." : "Sign in to Orien Network to react.");
       return;
@@ -5583,7 +5629,7 @@
       // The five reactions, in place of the button.
       const picker = document.createElement("span");
       picker.className = "cm-picker";
-      picker.innerHTML = cm.reactions.map((r) => `<button data-emoji-pick="${t.dataset.pick}" data-emoji="${esc(r)}">${esc(r)}</button>`).join("");
+      picker.innerHTML = cm.reactions.map((r) => `<button data-emoji-pick="${t.dataset.pick}"${t.dataset.parent ? ` data-parent="${t.dataset.parent}"` : ""} data-emoji="${esc(r)}">${esc(r)}</button>`).join("");
       t.replaceWith(picker);
       return;
     }
@@ -5598,9 +5644,31 @@
         feel("selection");
       }
     } catch (err) { problem(t.closest("#cm-thread") ? "cm-thread-problem" : "cm-problem", err); return; }
-    if (!$("cm-thread").hidden && cm.thread) cmOpenThread(cm.thread.id); else cmLoad(false);
+    if (!$("cm-thread").hidden && cm.thread) return cmOpenThread(cm.thread.id);
+    if (t.dataset.parent) await cmLoadReplies(Number(t.dataset.parent));
+    cmLoad(false);
   }
   $("cm-feed").addEventListener("click", cmClick);
+  $("cm-feed").addEventListener("input", (e) => {
+    const box = e.target.closest("[data-reply-box]");
+    if (!box) return;
+    box.style.height = "auto";
+    box.style.height = Math.min(box.scrollHeight, 240) + "px";
+    const go = document.querySelector(`[data-reply-send="${box.dataset.replyBox}"]`);
+    if (go) go.disabled = !box.value.trim();
+  });
+  async function cmSendInline(id) {
+    const box = document.querySelector(`[data-reply-box="${id}"]`), go = document.querySelector(`[data-reply-send="${id}"]`);
+    const body = box ? box.value.trim() : "";
+    if (!body) return;
+    if (go) go.disabled = true;
+    try {
+      await cmCall("POST", "/posts", { body, parent: id });
+      feel("success");
+      await cmLoadReplies(id);
+      await cmLoad(false);
+    } catch (e) { problem("cm-problem", e); if (go) go.disabled = false; }
+  }
   $("cm-thread").addEventListener("click", cmClick);
   // Writing: the box grows with the words.
   for (const [box, go, left] of [["cm-body", "cm-post", "cm-left"], ["cm-reply", "cm-reply-go", null]]) {
