@@ -432,3 +432,57 @@ async fn the_network_posts_orn_mined_new_validators_and_swaps_to_apps_that_know_
     let (_, some) = ask(&app, "GET", "/api/market/community/feed?only=network&kinds=swap", None, None).await;
     assert!(some["posts"].as_array().unwrap().iter().all(|p| p["kind"] == "swap"), "only the kinds asked for");
 }
+
+#[tokio::test]
+async fn tips_are_counted_once_the_network_shows_them_and_only_the_author_hears_who() {
+    let payments = Arc::new(Fake::default());
+    let mut random = [0u8; 8];
+    getrandom::fill(&mut random).unwrap();
+    let folder = Folder::open(&std::env::temp_dir().join(format!("orien-community-test-{}", hex::encode(random)))).unwrap();
+    let app = Arc::new(
+        App::new(Store::in_memory().unwrap(), folder, "https://orien.network", true, Mailer::log_only(), Screener::refusing_for_tests("scam"), payments.clone(), "0000000000000000000000000000000000000000000000000000000000000abc")
+            .unwrap(),
+    );
+    let alice = sign_in_for_tests(&app, "Alice");
+    let sam = sign_in_for_tests(&app, "Sam");
+    let (_, posted) = ask(&app, "POST", "/api/market/community/posts", Some(&alice), Some(json!({ "body": "Hello, miners" }))).await;
+    let post = posted["id"].as_i64().unwrap_or_else(|| posted["post"]["id"].as_i64().unwrap());
+    let alice_id = store_for_tests(&app, |s| s.account_id_for_tests("Alice"));
+    let sam_id = store_for_tests(&app, |s| s.account_id_for_tests("Sam"));
+    let wallet_of = |id: i64| store_for_tests(&app, |s| s.verified_wallets(id).unwrap()[0].address.clone());
+    let (alices, sams) = (wallet_of(alice_id), wallet_of(sam_id));
+    let account = |hex: &str| hex.parse::<orien_ledger::AccountId>().unwrap();
+
+    // The post says where a tip goes, and has none yet.
+    let (_, feed) = ask(&app, "GET", "/api/market/community/feed", None, None).await;
+    let shown = feed["posts"].as_array().unwrap().iter().find(|p| p["id"] == post).unwrap().clone();
+    assert_eq!(shown["author"]["tip_to"], alices);
+    assert_eq!(shown["tips"], json!({ "count": 0, "orn": 0 }));
+
+    let path = format!("/api/market/community/posts/{post}/tips");
+    let tip = json!({ "from": sams, "seq": 7 });
+    assert_eq!(ask(&app, "POST", &path, None, Some(tip.clone())).await.0, StatusCode::UNAUTHORIZED);
+    let (status, body) = ask(&app, "POST", &path, Some(&sam), Some(tip.clone())).await;
+    assert_eq!(status, StatusCode::BAD_REQUEST, "not on the network yet: {body}");
+    // Paid to someone else: not a tip for her.
+    payments.orders.lock().unwrap().push((account(&"ee".repeat(32)), account(&sams), 7, 5 * ORN));
+    assert_eq!(ask(&app, "POST", &path, Some(&sam), Some(tip.clone())).await.0, StatusCode::BAD_REQUEST);
+    // Paid to her verified wallet: counted, once.
+    payments.orders.lock().unwrap().push((account(&alices), account(&sams), 8, 5 * ORN));
+    let tip = json!({ "from": sams, "seq": 8 });
+    let (status, totals) = ask(&app, "POST", &path, Some(&sam), Some(tip.clone())).await;
+    assert_eq!((status, totals.clone()), (StatusCode::OK, json!({ "count": 1, "orn": 5 * ORN })));
+    let (status, again) = ask(&app, "POST", &path, Some(&sam), Some(tip)).await;
+    assert_eq!((status, again), (StatusCode::OK, totals), "the same payment counts once");
+    assert_eq!(ask(&app, "POST", &path, Some(&alice), Some(json!({ "from": alices, "seq": 1 }))).await.0, StatusCode::BAD_REQUEST, "not your own");
+
+    // Everyone sees the totals; only Alice hears who.
+    let (_, feed) = ask(&app, "GET", "/api/market/community/feed", None, None).await;
+    let shown = feed["posts"].as_array().unwrap().iter().find(|p| p["id"] == post).unwrap().clone();
+    assert_eq!(shown["tips"], json!({ "count": 1, "orn": 5 * ORN }));
+    let (_, notices) = ask(&app, "GET", "/api/market/notices", Some(&alice), None).await;
+    let line = notices["notices"].as_array().unwrap().iter().find(|l| l["kind"] == "tip").expect("a tip line").clone();
+    assert_eq!((line["name"].as_str(), line["orn"].as_u64(), line["post"].as_i64()), (Some("Sam"), Some(5 * ORN), Some(post)));
+    let (_, theirs) = ask(&app, "GET", "/api/market/notices", Some(&sam), None).await;
+    assert!(theirs["notices"].as_array().unwrap().iter().all(|l| l["kind"] != "tip"));
+}

@@ -382,6 +382,8 @@ pub struct Fake {
     pub mined: Mutex<Vec<(AccountId, u64, u64)>>,
     /// What accounts can spend; any other has plenty.
     pub spendable: Mutex<Vec<(AccountId, u64)>>,
+    /// Settled payments by their order: (to, from, seq, amount).
+    pub orders: Mutex<Vec<(AccountId, AccountId, u64, u64)>>,
 }
 
 impl Payments for Fake {
@@ -407,6 +409,13 @@ impl Payments for Fake {
             amount: *amount,
             epoch: *epoch,
             mined: true,
+        }));
+        // Payments named by their order, as the network names them.
+        credits.extend(self.orders.lock().unwrap().iter().filter(|(t, ..)| t == to).map(|(_, from, seq, amount)| Credit {
+            key: format!("{}:{seq}", hex::encode(from.as_bytes())),
+            amount: *amount,
+            epoch: 0,
+            mined: false,
         }));
         Ok(credits)
     }

@@ -363,6 +363,18 @@ impl Store {
                  removed INTEGER NOT NULL DEFAULT 0
              );
              CREATE INDEX IF NOT EXISTS posts_feed ON posts(parent, id);
+             -- Tips paid to a post's author: each payment, by its sender and
+             -- order number, counted once. Totals show; who tipped doesn't.
+             CREATE TABLE IF NOT EXISTS post_tips (
+                 sender TEXT NOT NULL,
+                 seq INTEGER NOT NULL,
+                 post INTEGER NOT NULL REFERENCES posts(id) ON DELETE CASCADE,
+                 tipper INTEGER REFERENCES accounts(id) ON DELETE SET NULL,
+                 orn INTEGER NOT NULL,
+                 at INTEGER NOT NULL,
+                 PRIMARY KEY (sender, seq)
+             );
+             CREATE INDEX IF NOT EXISTS post_tips_by_post ON post_tips(post);
              -- Validators the network has had, so a new one is posted once.
              CREATE TABLE IF NOT EXISTS seen_validators (
                  account TEXT PRIMARY KEY,
@@ -545,7 +557,16 @@ impl Store {
                     (SELECT COUNT(*) FROM posts r WHERE r.parent = p.id AND r.removed = 0
                        AND (r.author IS NULL OR r.author NOT IN (SELECT account FROM suspended))
                        AND (r.author IS NULL OR r.author NOT IN (SELECT blocker FROM blocks WHERE blocked = ?2 UNION SELECT blocked FROM blocks WHERE blocker = ?2))),
-                    p.author = ?2, a.banner
+                    p.author = ?2, a.banner,
+                    -- Where a tip goes: the author's Market wallet if it's
+                    -- verified, otherwise their first verified wallet.
+                    COALESCE(
+                        (SELECT a.payout WHERE a.payout IS NOT NULL AND EXISTS (SELECT 1 FROM verified_wallets v
+                            WHERE v.account = p.author AND v.address = a.payout AND v.proven IS NOT NULL)),
+                        (SELECT v.address FROM verified_wallets v WHERE v.account = p.author AND v.proven IS NOT NULL
+                            ORDER BY v.proven, v.address LIMIT 1)),
+                    (SELECT COUNT(*) FROM post_tips t WHERE t.post = p.id),
+                    (SELECT COALESCE(SUM(t.orn), 0) FROM post_tips t WHERE t.post = p.id)
              FROM posts p LEFT JOIN accounts a ON a.id = p.author LEFT JOIN accounts s ON s.id = p.subject
              WHERE {filter} AND p.removed = 0
                AND (p.author IS NULL OR p.author NOT IN (SELECT account FROM suspended))
@@ -567,8 +588,10 @@ impl Store {
                 "parent": row.get::<_, Option<i64>>(5)?,
                 "author": person(row.get(6)?, row.get(7)?).map(|mut author| {
                     author["banner"] = json!(row.get::<_, Option<String>>(12).ok().flatten());
+                    author["tip_to"] = json!(row.get::<_, Option<String>>(13).ok().flatten());
                     author
                 }),
+                "tips": { "count": row.get::<_, i64>(14)?, "orn": row.get::<_, i64>(15)? },
                 "subject": person(row.get(8)?, row.get(9)?),
                 "replies": row.get::<_, i64>(10)?,
                 "mine": row.get::<_, Option<bool>>(11)?.unwrap_or(false),
@@ -658,6 +681,54 @@ impl Store {
             }
         }
         Ok(())
+    }
+
+    /// Who a tip on `post` goes to, and the wallets it may be paid to: a
+    /// person's post or reply that's still up.
+    pub fn tip_target(&self, post: i64) -> Result<(i64, Vec<String>)> {
+        let author: Option<i64> = self
+            .db
+            .query_row(
+                "SELECT author FROM posts WHERE id = ?1 AND kind = 'post' AND removed = 0 AND author IS NOT NULL",
+                [post],
+                |row| row.get(0),
+            )
+            .optional()?;
+        let Some(author) = author else { bail!("there is no such post") };
+        let wallets = self.verified_wallets(author)?.into_iter().map(|w| w.address).collect();
+        Ok((author, wallets))
+    }
+
+    /// A post's tips: how many, and how much in all (ORN's smallest units).
+    pub fn tips_of(&self, post: i64) -> Result<(i64, i64)> {
+        Ok(self.db.query_row(
+            "SELECT COUNT(*), COALESCE(SUM(orn), 0) FROM post_tips WHERE post = ?1",
+            [post],
+            |row| Ok((row.get(0)?, row.get(1)?)),
+        )?)
+    }
+
+    /// Whether a payment already counts as a tip.
+    pub fn tip_known(&self, sender: &str, seq: u64) -> Result<bool> {
+        Ok(self
+            .db
+            .query_row("SELECT 1 FROM post_tips WHERE sender = ?1 AND seq = ?2", params![sender, seq as i64], |_| Ok(()))
+            .optional()?
+            .is_some())
+    }
+
+    /// Counts a verified payment as a tip on `post`, once, and tells its
+    /// author who sent it. Returns whether it was new.
+    pub fn add_tip(&self, post: i64, tipper: i64, sender: &str, seq: u64, orn: u64) -> Result<bool> {
+        let at = now();
+        let new = self.db.execute(
+            "INSERT OR IGNORE INTO post_tips (sender, seq, post, tipper, orn, at) VALUES (?1, ?2, ?3, ?4, ?5, ?6)",
+            params![sender, seq as i64, post, tipper, orn as i64, at as i64],
+        )? == 1;
+        if new && let (author, _) = self.tip_target(post)? {
+            self.notice_tip(author, post, tipper, orn, at)?;
+        }
+        Ok(new)
     }
 
     fn state(&self, key: &str) -> Result<Option<u64>> {
@@ -904,6 +975,7 @@ pub fn routes() -> Router<Arc<App>> {
         .route("/api/market/community/posts", post(new_post))
         .route("/api/market/community/posts/{id}", get(replies).delete(remove_post))
         .route("/api/market/community/posts/{id}/react", post(react))
+        .route("/api/market/community/posts/{id}/tips", post(tip))
         .route("/api/market/community/members", get(members))
 }
 
@@ -1008,6 +1080,69 @@ async fn remove_post(State(app): State<Arc<App>>, headers: HeaderMap, Path(id): 
 #[derive(Deserialize)]
 pub struct Reaction {
     emoji: String,
+}
+
+#[derive(Deserialize)]
+pub struct Tip {
+    /// The sending wallet, 64 hex characters.
+    from: String,
+    /// The payment's order number in that wallet's account.
+    seq: u64,
+}
+
+/// A tip someone paid a post's author from their wallet: counted once the
+/// network shows the payment settled to one of the author's verified
+/// wallets. Answers the post's totals.
+async fn tip(State(app): State<Arc<App>>, headers: HeaderMap, Path(id): Path<i64>, Json(given): Json<Tip>) -> Result<Response, Failure> {
+    let tipper = app.signed_in(&headers)?;
+    let sender: orien_ledger::AccountId =
+        given.from.trim().parse().map_err(|_| Failure::Refused("that is not an Orien address".into()))?;
+    let sender_hex = hex::encode(sender.as_bytes());
+    let (author, wallets) = app.store().tip_target(id).map_err(|_| Failure::NotFound)?;
+    if author == tipper {
+        return Err(Failure::Refused("you can't tip your own post".into()));
+    }
+    if wallets.is_empty() {
+        return Err(Failure::Refused("this person has no verified wallet to tip".into()));
+    }
+    let answer = |count: i64, orn: i64| Json(json!({ "count": count, "orn": orn })).into_response();
+    // Counted already: the totals as they are.
+    if app.store().tip_known(&sender_hex, given.seq)? {
+        let (count, orn) = app.store().tips_of(id)?;
+        return Ok(answer(count, orn));
+    }
+    let key = format!("{sender_hex}:{}", given.seq);
+    let payments = app.payments();
+    let paid = tokio::task::spawn_blocking(move || -> anyhow::Result<Option<u64>> {
+        let epoch = payments.epoch()?;
+        for wallet in &wallets {
+            let Ok(to) = wallet.parse::<orien_ledger::AccountId>() else { continue };
+            let found = payments.credits(&to, epoch.saturating_sub(48))?.into_iter().find(|c| !c.mined && c.key == key);
+            if let Some(credit) = found {
+                return Ok(Some(credit.amount));
+            }
+        }
+        Ok(None)
+    })
+    .await
+    .map_err(|e| Failure::Broken(e.into()))?
+    .map_err(|_| Failure::Unavailable("the Orien network is not answering right now; try again in a minute".into()))?;
+    let Some(orn) = paid else {
+        return Err(Failure::Refused("that payment to this post's author isn't settled on the network yet".into()));
+    };
+    let new = app.store().add_tip(id, tipper, &sender_hex, given.seq, orn)?;
+    if new {
+        let name = app.store().account(tipper)?.map(|a| a.name).unwrap_or_default();
+        app.tell(crate::push::Event {
+            account: author,
+            address: None,
+            body: format!("{name} tipped you {} ORN for your post", crate::store::orn(orn)),
+            kind: "tip",
+            open: json!({ "post": id }),
+        });
+    }
+    let (count, orn) = app.store().tips_of(id)?;
+    Ok(answer(count, orn))
 }
 
 async fn react(State(app): State<Arc<App>>, headers: HeaderMap, Path(id): Path<i64>, Json(given): Json<Reaction>) -> Result<Response, Failure> {

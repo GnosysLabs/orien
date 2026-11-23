@@ -16,7 +16,7 @@ import { YouTube, youtubeId } from './YouTube'
 import { openSignIn } from './SignInDialog'
 import { EYEBROWS, NetworkAvatar } from './network'
 
-type Person = { name: string; picture: string | null; banner?: string | null }
+type Person = { name: string; picture: string | null; banner?: string | null; tip_to?: string | null }
 type Face = { account?: number; address?: string; name?: string; picture?: string | null; paid?: string }
 type Reaction = { emoji: string; count: number; me: boolean }
 type Post = {
@@ -31,6 +31,8 @@ type Post = {
   replies: number
   mine: boolean
   reactions: Reaction[]
+  /** Tips paid to its author: how many, and how much in ORN's smallest units. */
+  tips?: { count: number; orn: number }
 }
 export type Stats = { mined: string; streak: number; rank: number }
 type MinerRow = { rank: number; name: string | null; picture: string | null; address: string | null; mined: string; streak: number }
@@ -410,6 +412,12 @@ function ReactionBar({ post, signedIn, onChange }: { post: Post; signedIn: boole
           </div>
         )}
       </div>
+      {post.tips && post.tips.count > 0 && (
+        <span className="num ml-1 text-xs text-muted" title="Tips paid to its author from Orien Wallet">
+          {post.tips.count} {post.tips.count === 1 ? 'tip' : 'tips'} ·{' '}
+          {(post.tips.orn / 1e9).toLocaleString('en', { maximumFractionDigits: 2 })} ORN
+        </span>
+      )}
     </div>
   )
 }
