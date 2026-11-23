@@ -3,6 +3,7 @@ import { Suspense } from 'react'
 import { CommunityView } from '@/components/market/CommunityView'
 import { pageMeta } from '@/lib/seo'
 import { COMMUNITY_LIVE } from '@/lib/brand'
+import { BackToTop } from '@/components/BackToTop'
 
 export const metadata: Metadata = pageMeta({
   title: 'Community: the Orien network and its people',
@@ -25,6 +26,7 @@ export default function CommunityPage() {
       <Suspense>
         <CommunityView />
       </Suspense>
+      <BackToTop />
     </div>
   )
 }
