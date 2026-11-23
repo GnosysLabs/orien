@@ -1624,6 +1624,9 @@
      sit with your details, never under the listings. */
   .pf-layout { display: grid; grid-template-areas: "main" "side" "shop"; }
   .pf-danger { margin-top: 22px; }
+  .pf-tabs { margin: 0 0 22px; }
+  .pf-layout[data-tab="shop"] :is(.pf-main, .pf-side), .pf-layout:not([data-tab="shop"]) .pf-shop { display: none; }
+  .pf-layout[data-tab="shop"] .pf-listings-head { margin-top: 0; }
   .pf-danger .ct-delete { margin: 0 auto; }
   .pf-main { grid-area: main; min-width: 0; }
   .pf-side { grid-area: side; min-width: 0; }
@@ -1634,6 +1637,10 @@
     #profile .pf-banner { aspect-ratio: auto; height: 240px; }
     .pf-layout { grid-template-columns: minmax(0, 1fr) 340px; grid-template-areas: "main side" "shop shop"; column-gap: 28px; align-items: start; }
     .pf-side .verify-card { margin-top: 0; }
+    /* Big windows show everything at once: no tabs. */
+    .pf-tabs { display: none; }
+    .pf-layout[data-tab] :is(.pf-main, .pf-side, .pf-shop) { display: block; }
+    .pf-layout[data-tab="shop"] .pf-listings-head { margin-top: 26px; }
     .pf-main > .field:first-child { margin-top: 0; }
   }
   .field .box.social { gap: 12px; }
@@ -2124,6 +2131,8 @@
         <button class="pf-banner editable" id="pf-banner-go" aria-label="Change banner" title="Change banner"><span id="pf-banner"></span><span class="cam" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13.997 4a2 2 0 0 1 1.76 1.05l.486.9A2 2 0 0 0 18.003 7H20a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V9a2 2 0 0 1 2-2h1.997a2 2 0 0 0 1.759-1.048l.489-.904A2 2 0 0 1 10.004 4z"/><circle cx="12" cy="13" r="3"/></svg></span></button>
         <button class="pf-face-go editable" id="pf-picture" aria-label="Change picture" title="Change picture"><span class="face" id="pf-face"></span><span class="cam" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13.997 4a2 2 0 0 1 1.76 1.05l.486.9A2 2 0 0 0 18.003 7H20a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V9a2 2 0 0 1 2-2h1.997a2 2 0 0 0 1.759-1.048l.489-.904A2 2 0 0 1 10.004 4z"/><circle cx="12" cy="13" r="3"/></svg></span></button>
       </div>
+      <!-- Small windows: your settings and your Market listings, one at a time. -->
+      <div class="tabs pf-tabs" role="tablist"><button class="tab on" data-pf-tab="settings" role="tab">Settings</button><button class="tab" data-pf-tab="shop" role="tab">Market Listings</button></div>
       <div class="pf-layout">
         <div class="pf-main">
       <div class="field">
@@ -6678,6 +6687,7 @@
     $("pf-telegram").value = (me.contact && me.contact.telegram) || "";
     $("pf-x").value = (me.contact && me.contact.x) || "";
     paintDm(me.messages_from || "everyone");
+    pfTab("settings");
     $("pf-problem").hidden = true;
     renderVerify();
     $("pf-delete-box").hidden = true;
@@ -6875,6 +6885,11 @@
     pfSaving = null;
   }
   for (const id of pfFields) $(id).addEventListener("input", () => { clearTimeout(pfTimer); pfTimer = setTimeout(saveProfile, 900); });
+  function pfTab(tab) {
+    document.querySelector(".pf-layout").dataset.tab = tab;
+    for (const b of document.querySelectorAll("[data-pf-tab]")) b.classList.toggle("on", b.dataset.pfTab === tab);
+  }
+  for (const b of document.querySelectorAll("[data-pf-tab]")) b.onclick = () => { pfTab(b.dataset.pfTab); feel("selection"); };
   // Who can message you: saved as soon as it's picked.
   function paintDm(choice) {
     for (const b of document.querySelectorAll("[data-dm]")) { const on = b.dataset.dm === choice; b.classList.toggle("on", on); b.setAttribute("aria-checked", on); }
