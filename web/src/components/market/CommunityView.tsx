@@ -225,7 +225,7 @@ function Happening({ post }: { post: Post }) {
               {String(post.data.hours)} hours in a row 🔥
             </p>
             <p className="mt-1.5 text-ink">
-              <Name person={post.subject} /> has been paid at every checkpoint for {Number(post.data.hours) >= 48 ? `${Number(post.data.hours) / 24} days` : 'a whole day'}.
+              <Name person={post.subject} /> has been paid at every checkpoint for {String(post.data.hours)} hours.
             </p>
             <p className="mt-1">{checkpoint}</p>
           </div>

@@ -3,11 +3,18 @@
 import { shrinkPicture } from '@/lib/shrink'
 import { useEffect, useRef, useState } from 'react'
 import { Camera, ImagePlus } from 'lucide-react'
-import { ask, MarketError, NAME_PATTERN, NAME_RULE, pictureUrl, type Account } from '@/lib/market'
+import { ask, MarketError, NAME_PATTERN, NAME_RULE, pictureUrl, type Account, type MessagesFrom } from '@/lib/market'
 import { Avatar } from './Avatar'
 import { Notice } from './Shell'
 import { AutoTextarea } from '@/components/AutoTextarea'
 import { DiscordIcon, TelegramIcon, XIcon } from '@/components/Header'
+
+/** Who can message you, in the order shown. */
+const MESSAGES_FROM: [MessagesFrom, string][] = [
+  ['everyone', 'Everyone'],
+  ['talked', 'People you’ve talked with'],
+  ['nobody', 'No one'],
+]
 
 const field = 'w-full rounded-xl border border-line bg-bg px-4 py-3 text-ink outline-none focus:border-pearl/60'
 
@@ -19,6 +26,8 @@ export function ProfileEditor({ account, onSaved }: { account: Account; onSaved:
   const [discord, setDiscord] = useState(account.contact.discord ?? '')
   const [telegram, setTelegram] = useState(account.contact.telegram)
   const [x, setX] = useState(account.contact.x)
+  const savedFrom = account.messages_from ?? 'everyone'
+  const [messagesFrom, setMessagesFrom] = useState<MessagesFrom>(savedFrom)
   const [busy, setBusy] = useState<'' | 'text' | 'picture' | 'banner'>('')
   const [trouble, setTrouble] = useState('')
   const [saved, setSaved] = useState(false)
@@ -29,7 +38,8 @@ export function ProfileEditor({ account, onSaved }: { account: Account; onSaved:
     bio !== account.bio ||
     discord !== (account.contact.discord ?? '') ||
     telegram !== account.contact.telegram ||
-    x !== account.contact.x
+    x !== account.contact.x ||
+    messagesFrom !== savedFrom
 
   const say = (error: unknown) => {
     const message = (error as Error).message
@@ -47,7 +57,12 @@ export function ProfileEditor({ account, onSaved }: { account: Account; onSaved:
       setTrouble('')
       setSaved(false)
       try {
-        const answer = await ask<{ account: Account }>('/me', 'PUT', { name, bio, contact: { telegram, x, discord } })
+        const answer = await ask<{ account: Account }>('/me', 'PUT', {
+          name,
+          bio,
+          contact: { telegram, x, discord },
+          messages_from: messagesFrom,
+        })
         // Shown as the server tidied them, such as without the @, unless
         // they were changed again meanwhile.
         const c = answer.account.contact
@@ -63,7 +78,7 @@ export function ProfileEditor({ account, onSaved }: { account: Account; onSaved:
     }, 1500)
     return () => clearTimeout(timer)
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [name, bio, discord, telegram, x])
+  }, [name, bio, discord, telegram, x, messagesFrom])
 
   const upload = async (file: File | undefined) => {
     if (!file) return
@@ -211,6 +226,32 @@ export function ProfileEditor({ account, onSaved }: { account: Account; onSaved:
             </label>
           ))}
         </div>
+      </fieldset>
+      <fieldset className="space-y-3">
+        <legend className="text-sm font-semibold text-ink">Who can message you</legend>
+        <div role="radiogroup" aria-label="Who can message you" className="grid gap-2 sm:grid-cols-3">
+          {MESSAGES_FROM.map(([value, label]) => {
+            const on = messagesFrom === value
+            return (
+              <button
+                key={value}
+                type="button"
+                role="radio"
+                aria-checked={on}
+                onClick={() => setMessagesFrom(value)}
+                className={`flex h-11 items-center justify-center rounded-xl border px-4 text-sm font-semibold transition ${
+                  on ? 'border-pearl/60 bg-pearl/15 text-ink' : 'border-line bg-bg text-muted hover:bg-raised hover:text-ink'
+                }`}
+              >
+                {label}
+              </button>
+            )
+          })}
+        </div>
+        <p className="text-sm leading-relaxed text-muted">
+          Messages about your Market listings always come through whatever you pick, so buyers can ask about what
+          you’re selling. Blocking still works on top of this.
+        </p>
       </fieldset>
       {trouble && <Notice tone="bad">{trouble}</Notice>}
       <p className="h-5 text-sm" aria-live="polite">

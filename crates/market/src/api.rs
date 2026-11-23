@@ -1215,17 +1215,31 @@ struct ProfileText {
     bio: String,
     #[serde(default)]
     contact: store::Contact,
+    /// Who may message the account; left as it is when absent (older apps).
+    #[serde(default)]
+    messages_from: Option<String>,
 }
 
 async fn edit_profile(State(app): State<Arc<App>>, headers: HeaderMap, Json(request): Json<ProfileText>) -> Answer {
     let id = app.signed_in(&headers)?;
     let (name, bio) = store::profile_text(&request.name, &request.bio).map_err(refused)?;
     let contact = request.contact.checked().map_err(refused)?;
+    if let Some(choice) = &request.messages_from
+        && !store::MESSAGES_FROM.contains(&choice.as_str())
+    {
+        return Err(Failure::Refused("who can message you is everyone, talked or nobody".into()));
+    }
     // The usernames are public too, so they are read with the bio.
     let handles = format!("{bio}\n\nTelegram: {}\nX: {}\nDiscord: {}", contact.telegram, contact.x, contact.discord);
     let n = name.clone();
     screened(&app, "profile", move |s| s.profile(&n, &handles)).await?;
-    let account = app.store.lock().unwrap().set_profile(id, &name, &bio, &contact).map_err(refused)?;
+    let account = {
+        let store = app.store.lock().unwrap();
+        if let Some(choice) = &request.messages_from {
+            store.set_messages_from(id, choice).map_err(refused)?;
+        }
+        store.set_profile(id, &name, &bio, &contact).map_err(refused)?
+    };
     Ok(Json(json!({ "account": account })).into_response())
 }
 
@@ -1327,6 +1341,8 @@ async fn profile(State(app): State<Arc<App>>, headers: HeaderMap, Path(id): Path
     // Signed in: whether you've blocked this person.
     if let Some(viewer) = viewer {
         answer["blocked"] = json!(store.blocked_by(viewer, id)?);
+        // Whether a Message button would work: their choice, blocks, yourself.
+        answer["takes_messages"] = json!(store.takes_messages(viewer, id)?);
     }
     Ok(Json(answer).into_response())
 }

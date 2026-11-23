@@ -429,6 +429,25 @@ async fn anyone_messages_anyone_by_name() {
         .await;
     assert_eq!(status, StatusCode::BAD_REQUEST, "payment requests need a listing");
 
+    // Who may message: kept when an older app leaves it out, shown on /me,
+    // and told to viewers of the profile.
+    let (_, me) = market.ask("GET", "/api/market/me", Some(&maya), None).await;
+    assert_eq!(me["account"]["messages_from"], "everyone");
+    let (status, _) = market.ask("PUT", "/api/market/me", Some(&maya), Some(json!({ "name": "Maya", "messages_from": "anyone" }))).await;
+    assert_eq!(status, StatusCode::BAD_REQUEST);
+    market.ask("PUT", "/api/market/me", Some(&maya), Some(json!({ "name": "Maya", "messages_from": "nobody" }))).await;
+    market.ask("PUT", "/api/market/me", Some(&maya), Some(json!({ "name": "Maya", "bio": "Hello" }))).await;
+    let (_, me) = market.ask("GET", "/api/market/me", Some(&maya), None).await;
+    assert_eq!(me["account"]["messages_from"], "nobody");
+    let eve = sign_in_for_tests(&market.app, "Eve");
+    let (_, profile) = market.ask("GET", "/api/market/users/Maya", Some(&eve), None).await;
+    assert_eq!(profile["takes_messages"], false);
+    let (status, body) = market.ask("POST", path, Some(&eve), Some(json!({ "body": "Hi" }))).await;
+    assert_eq!((status, body["error"].as_str()), (StatusCode::BAD_REQUEST, Some("Maya isn't taking new messages")));
+    let (_, profile) = market.ask("GET", "/api/market/users/Maya", Some(&sam), None).await;
+    assert_eq!(profile["takes_messages"], true, "Sam's conversation goes on");
+    assert_eq!(market.ask("POST", path, Some(&sam), Some(json!({ "body": "Still there?" }))).await.0, StatusCode::OK);
+
     market.ask("POST", &format!("/api/market/conversations/{conversation}/block"), Some(&maya), Some(json!({ "block": true }))).await;
     let (status, body) = market.ask("POST", path, Some(&sam), Some(json!({ "body": "Hello?" }))).await;
     assert_eq!(status, StatusCode::BAD_REQUEST);

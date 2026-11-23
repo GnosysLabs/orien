@@ -25,7 +25,7 @@ export function ProfileView() {
   }, [])
   const name = fromPath || params.get('name')
   const id = name ? null : params.get('id')
-  const [found, setFound] = useState<{ account: Account; listings: Listing[]; wallets?: VerifiedWallet[]; blocked?: boolean; mining?: Stats | null } | null>(null)
+  const [found, setFound] = useState<{ account: Account; listings: Listing[]; wallets?: VerifiedWallet[]; blocked?: boolean; takes_messages?: boolean; mining?: Stats | null } | null>(null)
   const [trouble, setTrouble] = useState('')
   const [viewer, setViewer] = useState<number | null>(null)
 
@@ -38,7 +38,7 @@ export function ProfileView() {
   useEffect(() => {
     if (fromPath === null || (!name && !id)) return
     const path = name ? `/users/${encodeURIComponent(name)}` : `/profiles/${encodeURIComponent(id!)}`
-    ask<{ account: Account; listings: Listing[]; wallets?: VerifiedWallet[]; blocked?: boolean; mining?: Stats | null }>(path)
+    ask<{ account: Account; listings: Listing[]; wallets?: VerifiedWallet[]; blocked?: boolean; takes_messages?: boolean; mining?: Stats | null }>(path)
       .then((profile) => {
         // An old ?id= link goes to the profile's own address.
         if (id) {
@@ -109,7 +109,7 @@ export function ProfileView() {
           <div className="pt-3">
             <ContactLinks contact={account.contact} />
           </div>
-          {viewer !== null && viewer !== account.id && !found.blocked && (
+          {viewer !== null && viewer !== account.id && !found.blocked && found.takes_messages !== false && (
             <div className="flex justify-center pt-4 sm:justify-start">
               <Link
                 href={`/messages/?to=${encodeURIComponent(account.name)}`}

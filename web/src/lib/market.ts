@@ -12,7 +12,12 @@ export type Account = {
   wallet_verified?: boolean
   contact: Contact
   created: number
+  /** Who may start a direct conversation with them. Messages about their
+   * listings always come through. */
+  messages_from?: MessagesFrom
 }
+
+export type MessagesFrom = 'everyone' | 'talked' | 'nobody'
 
 export type Contact = { telegram: string; x: string; discord: string }
 

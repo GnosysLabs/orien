@@ -193,25 +193,61 @@ impl Store {
         if let Some(why) = self.block_between(from, to)? {
             bail!(why);
         }
-        let (a, b) = (from.min(to), from.max(to));
-        let existing: Option<i64> = self
-            .db
-            .query_row(
-                "SELECT id FROM conversations WHERE listing IS NULL AND buyer = ?1 AND seller = ?2",
-                params![a, b],
-                |row| row.get(0),
-            )
-            .optional()?;
-        if let Some(id) = existing {
+        if let Some(id) = self.direct_between(from, to)? {
             return Ok(id);
         }
+        if let Some(why) = self.new_messages_refused(from, to)? {
+            bail!(why);
+        }
         self.may_start(from)?;
+        let (a, b) = (from.min(to), from.max(to));
         let at = now();
         self.db.execute(
             "INSERT INTO conversations (listing, buyer, seller, created, updated, starter) VALUES (NULL, ?1, ?2, ?3, ?3, ?4)",
             params![a, b, at, from],
         )?;
         Ok(self.db.last_insert_rowid())
+    }
+
+    /// The direct conversation two accounts have, if any.
+    fn direct_between(&self, one: i64, other: i64) -> Result<Option<i64>> {
+        Ok(self
+            .db
+            .query_row(
+                "SELECT id FROM conversations WHERE listing IS NULL AND buyer = ?1 AND seller = ?2",
+                params![one.min(other), one.max(other)],
+                |row| row.get(0),
+            )
+            .optional()?)
+    }
+
+    /// Why `to`'s choice of who may message them keeps `from` from starting
+    /// a direct conversation, if it does. "talked" lets in anyone they have
+    /// exchanged a message with before, about a listing or not.
+    fn new_messages_refused(&self, from: i64, to: i64) -> Result<Option<String>> {
+        let (name, choice): (String, String) =
+            self.db.query_row("SELECT name, messages_from FROM accounts WHERE id = ?1", [to], |row| Ok((row.get(0)?, row.get(1)?)))?;
+        let open = match choice.as_str() {
+            "nobody" => false,
+            "talked" => self.db.query_row(
+                "SELECT EXISTS (SELECT 1 FROM conversations c
+                     WHERE ((c.buyer = ?1 AND c.seller = ?2) OR (c.buyer = ?2 AND c.seller = ?1))
+                     AND EXISTS (SELECT 1 FROM messages m WHERE m.conversation = c.id))",
+                params![from, to],
+                |row| row.get(0),
+            )?,
+            _ => true,
+        };
+        Ok((!open).then(|| format!("{name} isn't taking new messages")))
+    }
+
+    /// Whether `viewer` can write to `to` directly now: in the conversation
+    /// they already have, or by starting one. For hiding a Message button.
+    pub fn takes_messages(&self, viewer: i64, to: i64) -> Result<bool> {
+        if viewer == to || self.is_suspended(to)? || self.block_between(viewer, to)?.is_some() {
+            return Ok(false);
+        }
+        Ok(self.direct_between(viewer, to)?.is_some() || self.new_messages_refused(viewer, to)?.is_none())
     }
 
     /// Checks `account` may start another conversation today.
@@ -545,6 +581,35 @@ mod tests {
         store.block(c, maya, false).unwrap();
         store.suspend(maya, "test").unwrap();
         assert!(store.direct_conversation(sam, "Maya").is_err(), "not to a suspended account");
+    }
+
+    #[test]
+    fn people_choose_who_may_start_a_conversation_with_them() {
+        let (store, maya, sam, listing) = store_with_listing();
+        let lena = store.create_account("Lena", "lena").unwrap().id;
+        assert!(store.takes_messages(sam, maya).unwrap(), "everyone, by default");
+
+        store.set_messages_from(maya, "nobody").unwrap();
+        let refused = store.direct_conversation(sam, "Maya").unwrap_err().to_string();
+        assert_eq!(refused, "Maya isn't taking new messages");
+        assert!(!store.takes_messages(sam, maya).unwrap());
+        // A listing's messages always come through.
+        let about = store.conversation_about(sam, listing).unwrap();
+        store.send(about, sam, "Is it still available?").unwrap();
+
+        store.set_messages_from(maya, "talked").unwrap();
+        assert!(store.direct_conversation(lena, "Maya").is_err(), "Lena never talked with her");
+        assert!(!store.takes_messages(lena, maya).unwrap());
+        let direct = store.direct_conversation(sam, "Maya").unwrap();
+        assert!(store.takes_messages(sam, maya).unwrap(), "Sam wrote about her listing");
+        store.send(direct, sam, "Hi").unwrap();
+
+        store.set_messages_from(maya, "nobody").unwrap();
+        assert_eq!(store.direct_conversation(sam, "Maya").unwrap(), direct, "an existing conversation goes on");
+        store.send(direct, sam, "Still here").unwrap();
+        assert!(store.takes_messages(sam, maya).unwrap());
+        assert!(store.set_messages_from(maya, "friends").is_err());
+        assert_eq!(store.account(maya).unwrap().unwrap().messages_from, "nobody");
     }
 
     #[test]

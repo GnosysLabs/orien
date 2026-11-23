@@ -99,7 +99,14 @@ pub struct Account {
     /// are left out.
     pub contact: Contact,
     pub created: u64,
+    /// Who may start a direct conversation with them: one of MESSAGES_FROM.
+    /// Messages about their listings always come through.
+    pub messages_from: String,
 }
+
+/// Who may message an account: anyone, only people they have talked with
+/// (a message either way, about a listing or not), or nobody.
+pub const MESSAGES_FROM: [&str; 3] = ["everyone", "talked", "nobody"];
 
 /// How buyers reach a seller besides messages: any of a Telegram, an X and
 /// a Discord username. Messages are built in, so no email is shown.
@@ -399,6 +406,14 @@ impl Store {
                  UPDATE accounts SET contact_email = '';",
             )?;
         }
+        let has_messages_from: bool = self.db.query_row(
+            "SELECT COUNT(*) > 0 FROM pragma_table_info('accounts') WHERE name = 'messages_from'",
+            [],
+            |row| row.get(0),
+        )?;
+        if !has_messages_from {
+            self.db.execute("ALTER TABLE accounts ADD COLUMN messages_from TEXT NOT NULL DEFAULT 'everyone'", [])?;
+        }
         Ok(())
     }
 
@@ -414,7 +429,7 @@ impl Store {
             "INSERT INTO accounts (name, handle, email, created) VALUES (?1, ?2, ?3, ?4)",
             params![name, handle, email, created],
         )?;
-        Ok(Account { id: self.db.last_insert_rowid(), name, bio: String::new(), picture: None, banner: None, wallet: None, wallet_verified: false, contact: Contact::default(), created })
+        Ok(Account { id: self.db.last_insert_rowid(), name, bio: String::new(), picture: None, banner: None, wallet: None, wallet_verified: false, contact: Contact::default(), created, messages_from: MESSAGES_FROM[0].into() })
     }
 
     /// A new account that signs in by email. The email must be one a code
@@ -505,6 +520,15 @@ impl Store {
         self.account(id)?.ok_or_else(|| anyhow::anyhow!("no such account"))
     }
 
+    /// Who may start a direct conversation with the account.
+    pub fn set_messages_from(&self, id: i64, choice: &str) -> Result<()> {
+        if !MESSAGES_FROM.contains(&choice) {
+            bail!("who can message you is everyone, talked or nobody");
+        }
+        self.db.execute("UPDATE accounts SET messages_from = ?2 WHERE id = ?1", params![id, choice])?;
+        Ok(())
+    }
+
     /// Sets an account's picture, and returns the one it replaces, whose
     /// file can go.
     pub fn set_picture(&self, id: i64, picture: &str) -> Result<Option<String>> {
@@ -569,7 +593,8 @@ impl Store {
             .db
             .query_row(
                 "SELECT id, name, bio, picture, payout, created, discord, telegram, x, banner,
-                        EXISTS (SELECT 1 FROM verified_wallets p WHERE p.account = accounts.id AND p.proven IS NOT NULL AND p.address = accounts.payout)
+                        EXISTS (SELECT 1 FROM verified_wallets p WHERE p.account = accounts.id AND p.proven IS NOT NULL AND p.address = accounts.payout),
+                        messages_from
                  FROM accounts WHERE id = ?1",
                 [id],
                 |row| {
@@ -583,6 +608,7 @@ impl Store {
                         wallet_verified: row.get(10)?,
                         contact: Contact { discord: row.get(6)?, telegram: row.get(7)?, x: row.get(8)? },
                         created: row.get(5)?,
+                        messages_from: row.get(11)?,
                     })
                 },
             )
