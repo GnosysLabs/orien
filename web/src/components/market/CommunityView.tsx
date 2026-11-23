@@ -58,6 +58,14 @@ const mined = (units: string) => orn(units, 2)
  * them only to apps that ask. */
 const KINDS = 'swap,supply,validator'
 
+/** Newer kinds' pictures, named for what they show, so a changed picture
+ * never comes from a browser's saved copy of the one before. */
+const PICTURE: Record<string, string> = {
+  swap: 'swap-milky-way',
+  supply: 'supply-north-america-nebula',
+  validator: 'validator-helix-nebula',
+}
+
 /** A swap's coin amount, for reading: "0.5 SOL", "0.0123 BTC". */
 const coinAmount = (amount: number, coin: string) =>
   `${amount >= 1 ? Number(amount.toFixed(2)).toLocaleString('en') : Number(amount.toPrecision(3)).toLocaleString('en', { maximumSignificantDigits: 3 })} ${coin === 'sol' ? 'SOL' : 'BTC'}`
@@ -268,19 +276,17 @@ function Happening({ post }: { post: Post }) {
       const usd = Number(post.data.usd)
       return (
         <div className="min-w-0">
-          <p className="num text-2xl font-bold leading-tight tracking-tight text-ink">
-            {ornAmount.toLocaleString('en', { maximumFractionDigits: 2 })} ORN <span className="font-normal text-muted">for</span>{' '}
-            {coinAmount(paid, coin)}
+          <p className="text-3xl font-bold leading-tight tracking-tight text-ink">
+            Someone bought {ornAmount.toLocaleString('en', { maximumFractionDigits: 2 })} ORN
           </p>
-          <p className="num mt-1.5 text-ink">
-            ≈ {usdText(usd)} · {coinAmount(paid / ornAmount, coin)} per ORN
+          <p className="mt-1.5 text-lg text-ink">
+            They paid {coinAmount(paid, coin)}, about {usdText(usd)}.
           </p>
           <p className="mt-1 text-sm text-muted">
-            A swap finished on the{' '}
-            <Link href="/swap/#history" className="hover:text-ink hover:underline">
-              swap board
+            That&apos;s {coinAmount(paid / ornAmount, coin)} (about {usdText(usd / ornAmount)}) for each ORN.{' '}
+            <Link href="/swap/#history" className="font-semibold text-ink hover:underline">
+              See all swaps
             </Link>
-            .
           </p>
         </div>
       )
@@ -513,7 +519,7 @@ function PostCard({ post, me, onChange, startOpen = false }: { post: Post; me: Y
               downwards, so replies opening below it sit on the plain card. */}
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
-            src={`/community/${post.kind}.jpg`}
+            src={`/community/${PICTURE[post.kind] ?? post.kind}.jpg`}
             alt=""
             className="pointer-events-none absolute right-0 top-0 h-auto max-h-96 w-full object-cover opacity-80 [mask-composite:intersect] [mask-image:linear-gradient(to_left,black,transparent_90%),linear-gradient(to_bottom,black_55%,transparent)] sm:w-4/5 sm:[mask-image:linear-gradient(to_left,black_15%,rgb(0_0_0/0.55)_50%,transparent_95%),linear-gradient(to_bottom,black_55%,transparent)]"
           />
