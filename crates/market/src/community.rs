@@ -382,6 +382,24 @@ impl Store {
                  created INTEGER NOT NULL
              );
              CREATE INDEX IF NOT EXISTS post_pictures_by_post ON post_pictures(post, position);
+             -- Link previews, once per address: what the page says about
+             -- itself, checked (ok = 0 while fetching, or if it can't show).
+             CREATE TABLE IF NOT EXISTS link_previews (
+                 url TEXT PRIMARY KEY,
+                 site TEXT NOT NULL DEFAULT '',
+                 title TEXT NOT NULL DEFAULT '',
+                 description TEXT NOT NULL DEFAULT '',
+                 image TEXT,
+                 width INTEGER,
+                 height INTEGER,
+                 fetched INTEGER NOT NULL,
+                 ok INTEGER NOT NULL DEFAULT 0
+             );
+             -- Which link a post previews.
+             CREATE TABLE IF NOT EXISTS post_links (
+                 post INTEGER PRIMARY KEY REFERENCES posts(id) ON DELETE CASCADE,
+                 url TEXT NOT NULL
+             );
              -- A GIF on a post, as KLIPY gave it: loaded straight from
              -- KLIPY, never copied here.
              CREATE TABLE IF NOT EXISTS post_gifs (
@@ -651,6 +669,9 @@ impl Store {
             if let Some(gif) = self.post_gif(id)? {
                 post["gif"] = gif;
             }
+            if let Some(link) = self.post_link(id)? {
+                post["link"] = link;
+            }
             let mine = post["mine"].as_bool().unwrap_or(false);
             if let Some(poll) = self.poll(id, viewer, mine)? {
                 post["poll"] = poll;
@@ -756,6 +777,52 @@ impl Store {
             Ok(json!({ "name": row.get::<_, String>(0)?, "width": row.get::<_, i64>(1)?, "height": row.get::<_, i64>(2)? }))
         })?;
         Ok(rows.collect::<rusqlite::Result<_>>()?)
+    }
+
+    /// A post's link preview, once it's fetched and passed its checks:
+    /// {url, site, title, description, image: {name, width, height} | null}.
+    fn post_link(&self, post: i64) -> Result<Option<Value>> {
+        Ok(self
+            .db
+            .query_row(
+                "SELECT l.url, l.site, l.title, l.description, l.image, l.width, l.height
+                 FROM post_links p JOIN link_previews l ON l.url = p.url WHERE p.post = ?1 AND l.ok = 1",
+                [post],
+                |row| {
+                    let image: Option<String> = row.get(4)?;
+                    Ok(json!({
+                        "url": row.get::<_, String>(0)?,
+                        "site": row.get::<_, String>(1)?,
+                        "title": row.get::<_, String>(2)?,
+                        "description": row.get::<_, String>(3)?,
+                        "image": image.map(|name| json!({ "name": name, "width": row.get::<_, Option<i64>>(5).ok().flatten(), "height": row.get::<_, Option<i64>>(6).ok().flatten() })),
+                    }))
+                },
+            )
+            .optional()?)
+    }
+
+    /// Notes the link a new post previews. Returns whether its preview
+    /// still has to be fetched: not fetched before, or over a week ago.
+    pub fn link_post(&self, post: i64, url: &str) -> Result<bool> {
+        self.db.execute("INSERT OR REPLACE INTO post_links (post, url) VALUES (?1, ?2)", params![post, url])?;
+        let week_ago = now().saturating_sub(7 * 24 * 3600) as i64;
+        // Claimed here, so a link posted twice at once is fetched once.
+        let claimed = self.db.execute(
+            "INSERT INTO link_previews (url, fetched, ok) VALUES (?1, ?2, 0)
+             ON CONFLICT (url) DO UPDATE SET fetched = ?2, ok = 0 WHERE link_previews.fetched < ?3",
+            params![url, now() as i64, week_ago],
+        )?;
+        Ok(claimed == 1)
+    }
+
+    /// Keeps a fetched preview: shown if `ok`.
+    pub fn save_preview(&self, url: &str, page: &crate::links::Page, image: Option<(&str, u32, u32)>, ok: bool) -> Result<()> {
+        self.db.execute(
+            "UPDATE link_previews SET site = ?2, title = ?3, description = ?4, image = ?5, width = ?6, height = ?7, ok = ?8 WHERE url = ?1",
+            params![url, page.site, page.title, page.description, image.map(|i| i.0), image.map(|i| i.1), image.map(|i| i.2), ok],
+        )?;
+        Ok(())
     }
 
     /// A post's GIF: {id, url, preview, width, height}.
@@ -1394,7 +1461,40 @@ async fn new_post(State(app): State<Arc<App>>, headers: HeaderMap, Json(given): 
     } else {
         app.store().add_post(author, &given.body, given.parent).map_err(refused)?
     };
+    // The first link's preview, fetched in the background: it shows on the
+    // next load of the feed.
+    if let Some(link) = crate::links::first_link(&given.body)
+        && app.store().link_post(id, &link).unwrap_or(false)
+    {
+        let app = app.clone();
+        tokio::task::spawn_blocking(move || preview(&app, &link));
+    }
     Ok(Json(json!({ "id": id })).into_response())
+}
+
+/// Fetches a link's preview and keeps it, checked: the words as a post's
+/// are, the picture as an uploaded photo is. A picture that can't be fetched
+/// or doesn't pass is left out; words that don't pass hide the preview.
+fn preview(app: &App, link: &str) {
+    let page = match crate::links::fetch_page(link) {
+        Ok(page) if !page.title.is_empty() || !page.description.is_empty() => page,
+        _ => return,
+    };
+    let words_ok = crate::links::words_allowed(&app.screener(), &page).unwrap_or(false);
+    let mut image: Option<(String, u32, u32)> = None;
+    if words_ok
+        && let Some(src) = &page.image
+        && let Ok(bytes) = crate::links::fetch_picture(src, crate::images::MAX_UPLOAD)
+        && let Ok((jpeg, width, height)) = crate::images::post_picture(&bytes)
+        && matches!(app.screener().picture(&jpeg), Ok(crate::screen::Verdict::Allowed))
+        && let Ok(name) = app.images().save(&jpeg)
+    {
+        image = Some((name, width, height));
+    }
+    let kept = image.as_ref().map(|(n, w, h)| (n.as_str(), *w, *h));
+    if let Err(error) = app.store().save_preview(link, &page, kept, words_ok) {
+        eprintln!("community: could not keep a link preview: {error:#}");
+    }
 }
 
 /// A photo for a post about to be written, sent as the request's whole

@@ -214,6 +214,10 @@ impl App {
         &self.address
     }
 
+    pub(crate) fn screener(&self) -> Arc<Screener> {
+        self.screener.clone()
+    }
+
     pub(crate) fn images(&self) -> &Folder {
         &self.images
     }

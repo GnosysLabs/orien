@@ -37,6 +37,7 @@ type Person = { name: string; picture: string | null; banner?: string | null; ti
 type Face = { account?: number; address?: string; name?: string; picture?: string | null; paid?: string }
 type Reaction = { emoji: string; count: number; me: boolean }
 type Picture = { name: string; width: number; height: number }
+type LinkPreview = { url: string; site: string; title: string; description: string; image: Picture | null }
 type PollState = {
   options: { text: string; votes: number | null }[]
   total: number
@@ -63,6 +64,8 @@ type Post = {
   pictures?: Picture[]
   poll?: PollState
   gif?: Gif
+  /** A preview of the first link in its words, once fetched and checked. */
+  link?: LinkPreview
   /** Tips paid to its author: how many, and how much in ORN's smallest units. */
   tips?: { count: number; orn: number }
 }
@@ -693,6 +696,36 @@ function Composer({ me, parent, onPosted, autoFocus = false }: { me: You; parent
   )
 }
 
+/** A link's preview, as Discord shows one: its picture, then the site,
+ * title and a few words. Opens the link. */
+function LinkCard({ link }: { link: LinkPreview }) {
+  return (
+    <a
+      href={link.url}
+      target="_blank"
+      rel="noopener noreferrer nofollow"
+      className="mt-4 block overflow-hidden rounded-2xl border border-line bg-bg/40 transition hover:border-pearl/50"
+    >
+      {link.image && (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
+          src={pictureUrl(link.image.name)}
+          alt=""
+          loading="lazy"
+          width={link.image.width}
+          height={link.image.height}
+          className="block max-h-72 w-full object-cover"
+        />
+      )}
+      <div className="space-y-1 px-4 py-3">
+        <p className="truncate text-xs font-semibold uppercase tracking-[0.08em] text-muted">{link.site}</p>
+        {link.title && <p className="font-semibold leading-snug text-ink">{link.title}</p>}
+        {link.description && <p className="line-clamp-2 text-sm leading-relaxed text-muted">{link.description}</p>}
+      </div>
+    </a>
+  )
+}
+
 /** A post's photos, as on X: one whole, two side by side, three with the
  * first tall, four in a square. Each opens full size. */
 function Photos({ pictures }: { pictures: Picture[] }) {
@@ -912,6 +945,7 @@ function Reply({ reply, me, onChange }: { reply: Post; me: You | null; onChange:
           <Linked text={reply.body} />
         </p>
         <Video text={reply.body} />
+        {reply.link && <LinkCard link={reply.link} />}
         <div className="mt-2">
           <ReactionBar post={reply} signedIn={!!me} onChange={onChange} />
         </div>
@@ -994,6 +1028,7 @@ function PostCard({ post, me, onChange, startOpen = false }: { post: Post; me: Y
         )}
         {!network && <Video text={post.body} />}
         {post.pictures && post.pictures.length > 0 && <Photos pictures={post.pictures} />}
+        {post.link && <LinkCard link={post.link} />}
         {post.gif && (
           <div className="mt-4 w-fit max-w-full overflow-hidden rounded-2xl border border-line bg-bg">
             {/* eslint-disable-next-line @next/next/no-img-element */}

@@ -579,3 +579,33 @@ async fn a_post_can_carry_a_klipy_gif_and_apps_get_the_key_to_search() {
     let shown = feed["posts"].as_array().unwrap().iter().find(|p| p["id"] == id).unwrap().clone();
     assert_eq!(shown["gif"], json!({ "id": "8041071659142944", "url": "https://static.klipy.com/ii/a/b/c.webp", "preview": "https://static1.klipy.com/ii/a/b/c.webp", "width": 498, "height": 300 }));
 }
+
+#[tokio::test]
+async fn a_posts_first_link_gets_one_checked_preview() {
+    let app = market();
+    let alice = sign_in_for_tests(&app, "Alice");
+    let sam = sign_in_for_tests(&app, "Sam");
+    let link = "https://news.example.invalid/story";
+    let (_, a) = ask(&app, "POST", "/api/market/community/posts", Some(&alice), Some(json!({ "body": format!("read this {link}") }))).await;
+    let (_, b) = ask(&app, "POST", "/api/market/community/posts", Some(&sam), Some(json!({ "body": format!("same: {link}.") }))).await;
+    let (a, b) = (a["id"].as_i64().unwrap(), b["id"].as_i64().unwrap());
+    // Fetched once for both posts: the second finds it claimed.
+    assert!(!store_for_tests(&app, |s| s.link_post(b, link).unwrap()), "claimed by the first post");
+
+    // Until it's fetched and passes its checks, no card.
+    let find = |feed: &Value, id: i64| feed["posts"].as_array().unwrap().iter().find(|p| p["id"] == id).unwrap().clone();
+    let (_, feed) = ask(&app, "GET", "/api/market/community/feed", None, None).await;
+    assert!(find(&feed, a).get("link").is_none());
+
+    let page = orien_market::links::Page { site: "Example News".into(), title: "A story".into(), description: "What happened".into(), image: None };
+    store_for_tests(&app, |s| s.save_preview(link, &page, Some(("ab.jpg", 1200, 630)), true).unwrap());
+    let (_, feed) = ask(&app, "GET", "/api/market/community/feed", None, None).await;
+    let expected = json!({ "url": link, "site": "Example News", "title": "A story", "description": "What happened", "image": { "name": "ab.jpg", "width": 1200, "height": 630 } });
+    assert_eq!(find(&feed, a)["link"], expected);
+    assert_eq!(find(&feed, b)["link"], expected, "both posts show it");
+
+    // Words that didn't pass hide it.
+    store_for_tests(&app, |s| s.save_preview(link, &page, None, false).unwrap());
+    let (_, feed) = ask(&app, "GET", "/api/market/community/feed", None, None).await;
+    assert!(find(&feed, a).get("link").is_none());
+}

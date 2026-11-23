@@ -28,9 +28,10 @@ export const CHANGELOG: Entry[] = [
   {
     date: '2026-11-23',
     products: ['marketplace'],
-    title: 'Photos, GIFs and polls in the community',
+    title: 'Photos, GIFs, polls and link previews in the community',
     changes: [
       'Posts can carry up to four photos, a GIF from KLIPY, or a poll with two to four choices that runs for a day, three days or a week. Votes are final, and the results show once you’ve voted or the poll ends.',
+      'A link in a post shows a preview card: the page’s picture, site, title and a few words. Previews are checked like posts and photos before they show.',
     ],
   },
   {
