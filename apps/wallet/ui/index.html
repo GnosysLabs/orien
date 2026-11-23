@@ -6519,7 +6519,14 @@
       feel("success");
       // Blocked: they're hidden from you now, so their profile closes.
       // Manage blocks, on your profile, unblocks them.
-      if (sl.blocked) $("sl-back").click();
+      // Back where you came from, unless that showed them too: from their
+      // contact card, to Contacts (where they're hidden now); from a chat
+      // with them, to Messages.
+      if (sl.blocked) {
+        if (market.sellerFrom === "member") openContacts();
+        else if (market.sellerFrom === "chat") { chat.id = null; openInbox(); }
+        else $("sl-back").click();
+      }
     } catch (e) { problem("sl-problem", mkProblem(e)); }
   };
   $("sl-report").onclick = () => { $("sl-report-box").hidden = false; $("sl-menu").hidden = true; $("sl-report-done").textContent = ""; $("sl-report-text").focus(); };
