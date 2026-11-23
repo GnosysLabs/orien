@@ -218,6 +218,14 @@ export function SwapBoard() {
             so any Bitcoin wallet can pay it.
           </p>
           <p>
+            Offers come from a verified wallet, so buyers know who they&apos;re
+            dealing with. Verify the wallet you sell from first, under{" "}
+            <Link href="/account/#wallets" className="font-semibold text-ink underline underline-offset-4">
+              Your wallets
+            </Link>{" "}
+            on your Orien Network profile. Buying needs no verifying.
+          </p>
+          <p>
             When someone takes it, your wallet accepts within seconds, even with
             its window closed: it locks your ORN for them, collects the SOL or
             Bitcoin once it&apos;s final, and delivers their ORN, all by itself.

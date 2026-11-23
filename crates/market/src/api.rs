@@ -16,7 +16,7 @@ use axum::routing::{get, post};
 use axum::{Json, Router};
 use serde::Deserialize;
 use serde_json::json;
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 use std::sync::{Arc, Mutex};
 use std::time::Instant;
 
@@ -58,8 +58,10 @@ pub struct App {
     sign_in: crate::oidc::Gate,
     /// The community's leaderboards, kept current by its watcher.
     community: crate::community::Community,
-    /// What sellers' wallets could spend, a minute at most ago.
+    /// What sellers' wallets could spend, and when that was asked.
     spendable: Mutex<HashMap<String, (std::time::Instant, u64)>>,
+    /// Wallets being asked about in the background now.
+    asking: Mutex<HashSet<String>>,
 }
 
 /// One email, for App Store review, whose sign-in code never changes and is
@@ -109,6 +111,7 @@ impl App {
             sign_in: crate::oidc::Gate::default(),
             community: crate::community::Community::default(),
             spendable: Mutex::new(HashMap::new()),
+            asking: Mutex::new(HashSet::new()),
         })
     }
 
@@ -795,27 +798,74 @@ struct Board {
     coins: Option<String>,
 }
 
-/// What each of these wallets can spend now. Each is asked once a minute
-/// at most; one the network doesn't answer for is left out, so it counts
-/// as able, as before this check.
-async fn spendable_of(app: &Arc<App>, wallets: Vec<String>) -> HashMap<String, u64> {
+/// What each of these wallets can spend. A wallet asked about in the last
+/// minute answers from memory; an older answer is used while a fresh one is
+/// fetched in the background. Wallets never asked are asked all at once
+/// (a lookup takes seconds); with `wait` false they are asked in the
+/// background instead and left out this time, so the swap board never
+/// waits. One the network doesn't answer for is left out, so it counts as
+/// able, as before this check.
+async fn spendable_of(app: &Arc<App>, wallets: Vec<String>, wait: bool) -> HashMap<String, u64> {
     let app = app.clone();
     tokio::task::spawn_blocking(move || {
+        let ask = |app: &App, wallet: &str| -> Option<u64> {
+            let n = app.payments.spendable(&wallet.parse::<orien_ledger::AccountId>().ok()?).ok()?;
+            app.spendable.lock().unwrap().insert(wallet.to_string(), (std::time::Instant::now(), n));
+            Some(n)
+        };
         let mut found = HashMap::new();
-        for wallet in wallets {
-            let fresh = app
-                .spendable
-                .lock()
-                .unwrap()
-                .get(&wallet)
-                .filter(|(at, _)| at.elapsed() < std::time::Duration::from_secs(60))
-                .map(|(_, n)| *n);
-            let has = fresh.or_else(|| {
-                let n = app.payments.spendable(&wallet.parse::<orien_ledger::AccountId>().ok()?).ok()?;
-                app.spendable.lock().unwrap().insert(wallet.clone(), (std::time::Instant::now(), n));
-                Some(n)
+        let mut missing = Vec::new();
+        let mut stale = Vec::new();
+        {
+            let cache = app.spendable.lock().unwrap();
+            for wallet in wallets {
+                match cache.get(&wallet) {
+                    Some((at, n)) => {
+                        found.insert(wallet.clone(), *n);
+                        if at.elapsed() >= std::time::Duration::from_secs(60) {
+                            stale.push(wallet);
+                        }
+                    }
+                    None => missing.push(wallet),
+                }
+            }
+        }
+        if !wait {
+            stale.append(&mut missing);
+        }
+        if !stale.is_empty() {
+            // Marked fresh now, so a burst of requests refreshes each once.
+            let mut asking = app.asking.lock().unwrap();
+            stale.retain(|wallet| asking.insert(wallet.clone()));
+            drop(asking);
+            let app = app.clone();
+            std::thread::spawn(move || {
+                std::thread::scope(|scope| {
+                    for wallet in &stale {
+                        let app = &app;
+                        scope.spawn(move || {
+                            ask(app, wallet);
+                            app.asking.lock().unwrap().remove(wallet);
+                        });
+                    }
+                });
             });
-            if let Some(n) = has {
+        }
+        let fetched: Vec<(String, Option<u64>)> = std::thread::scope(|scope| {
+            let handles: Vec<_> = missing
+                .into_iter()
+                .map(|wallet| {
+                    let app = &app;
+                    scope.spawn(move || {
+                        let n = ask(app, &wallet);
+                        (wallet, n)
+                    })
+                })
+                .collect();
+            handles.into_iter().filter_map(|h| h.join().ok()).collect()
+        });
+        for (wallet, n) in fetched {
+            if let Some(n) = n {
                 found.insert(wallet, n);
             }
         }
@@ -844,7 +894,7 @@ async fn open_swaps(State(app): State<Arc<App>>, Query(board): Query<Board>) -> 
     let mut asked: Vec<String> = wallets.iter().flatten().cloned().collect();
     asked.sort();
     asked.dedup();
-    let spendable = spendable_of(&app, asked).await;
+    let spendable = spendable_of(&app, asked, false).await;
     let offers: Vec<_> =
         offers.into_iter().zip(wallets).filter(|(offer, wallet)| !short_of(&spendable, wallet, offer.orn)).map(|(offer, _)| offer).collect();
     let prices = app.prices.clone();
@@ -857,6 +907,18 @@ async fn open_swaps(State(app): State<Arc<App>>, Query(board): Query<Board>) -> 
 
 async fn post_swap(State(app): State<Arc<App>>, headers: HeaderMap, Json(request): Json<NewSwap>) -> Answer {
     let seller = app.signed_in(&headers)?;
+    // New offers come from one of the seller's verified wallets, so buyers
+    // know who they deal with. Offers already up stay as they are.
+    let verified = match request.wallet.as_deref() {
+        Some(wallet) => {
+            let wallet = store::orien_address(wallet).unwrap_or_default();
+            app.store.lock().unwrap().is_verified_wallet(seller, &wallet)?
+        }
+        None => false,
+    };
+    if !verified {
+        return Err(Failure::Refused("Verify this wallet on your Orien Network profile before offering a swap from it.".into()));
+    }
     let offer = app
         .store
         .lock()
@@ -884,7 +946,8 @@ async fn my_swaps(State(app): State<Arc<App>>, headers: HeaderMap) -> Answer {
     let asked: Vec<String> =
         swaps.iter().filter(|s| s.selling && s.offer.state == "open").filter_map(|s| s.wallet.clone()).collect();
     if !asked.is_empty() {
-        let spendable = spendable_of(&app, asked).await;
+        // Waits on a first lookup: the seller's own list should be right.
+        let spendable = spendable_of(&app, asked, true).await;
         for swap in swaps.iter_mut().filter(|s| s.selling && s.offer.state == "open") {
             swap.short_of_orn = short_of(&spendable, &swap.wallet, swap.offer.orn);
         }
@@ -928,7 +991,7 @@ async fn take_swap(State(app): State<Arc<App>>, headers: HeaderMap, Path(id): Pa
         return Err(Failure::Refused("The seller's Orien Wallet isn't open right now, so this swap can't start. Try again later.".into()));
     }
     if let Some(w) = &wallet {
-        let spendable = spendable_of(&app, vec![w.clone()]).await;
+        let spendable = spendable_of(&app, vec![w.clone()], true).await;
         if short_of(&spendable, &wallet, orn) {
             return Err(Failure::Refused("That offer isn't available any more: the seller's wallet no longer holds enough ORN.".into()));
         }

@@ -33,6 +33,7 @@ export const CHANGELOG: Entry[] = [
       'The swap board shows when a seller’s Orien Wallet is closed: their offers are greyed as Seller offline and can’t be taken until it’s open again, since only the seller’s wallet can start the swap.',
       'Offers whose seller’s wallet no longer holds the ORN leave the board, and the seller sees which ones.',
       'If the seller’s wallet goes quiet after you take an offer, it goes back on the board after 5 minutes instead of 30, and a seller who can’t lock the ORN withdraws it at once. Either way nothing was paid, and it doesn’t count against you.',
+      'New offers come from a verified wallet, so buyers know who they’re dealing with: verify the wallet you sell from on your Orien Network profile first. Buying needs no verifying, and offers already up stay.',
     ],
   },
   {
