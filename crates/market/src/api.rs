@@ -339,6 +339,7 @@ pub fn router(app: Arc<App>) -> Router {
         .route("/api/market/profiles", get(search_profiles))
         .route("/api/market/profiles/{id}", get(profile))
         .route("/api/market/accounts/{id}/block", post(block_account))
+        .route("/api/market/me/blocked", get(my_blocks))
         .route("/api/market/users/{name}", get(user))
         .route("/api/market/users/{name}/messages", post(message_person))
         .route("/api/market/listings/{id}/messages", post(message_seller))
@@ -1349,8 +1350,8 @@ async fn make_cover(State(app): State<Arc<App>>, headers: HeaderMap, Path((id, n
 async fn profile(State(app): State<Arc<App>>, headers: HeaderMap, Path(id): Path<i64>) -> Answer {
     let viewer = app.signed_in(&headers).ok();
     let store = app.store.lock().unwrap();
-    // Someone who blocked you is nobody, to you, as for an unknown name.
-    if store.is_suspended(id)? || viewer.is_some_and(|v| store.blocked_by(id, v).unwrap_or(false)) {
+    // A block either way makes them nobody to each other, as for an unknown name.
+    if store.is_suspended(id)? || viewer.is_some_and(|v| store.blocked_either(id, v).unwrap_or(false)) {
         return Err(Failure::NotFound);
     }
     let account = store.account(id)?.ok_or(Failure::NotFound)?;
@@ -1372,6 +1373,13 @@ async fn profile(State(app): State<Arc<App>>, headers: HeaderMap, Path(id): Path
 async fn user(State(app): State<Arc<App>>, headers: HeaderMap, Path(name): Path<String>) -> Answer {
     let id = app.store.lock().unwrap().account_by_name(&name)?.ok_or(Failure::NotFound)?;
     profile(State(app), headers, Path(id)).await
+}
+
+/// The people the signed-in account has blocked, most recent first.
+async fn my_blocks(State(app): State<Arc<App>>, headers: HeaderMap) -> Answer {
+    let account = app.signed_in(&headers)?;
+    let blocked = app.store.lock().unwrap().blocked_list(account)?;
+    Ok(Json(json!({ "blocked": blocked })).into_response())
 }
 
 /// Blocks or unblocks a person, everywhere, for the signed-in account.
@@ -1419,7 +1427,7 @@ async fn listing(State(app): State<Arc<App>>, headers: HeaderMap, Path(id): Path
         return Err(Failure::NotFound);
     }
     if let Some(viewer) = viewer
-        && store.blocked_by(listing.seller, viewer)?
+        && store.blocked_either(listing.seller, viewer)?
     {
         return Err(Failure::NotFound);
     }

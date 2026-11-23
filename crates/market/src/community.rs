@@ -515,15 +515,15 @@ impl Store {
                     a.name, a.picture, s.name, s.picture,
                     (SELECT COUNT(*) FROM posts r WHERE r.parent = p.id AND r.removed = 0
                        AND (r.author IS NULL OR r.author NOT IN (SELECT account FROM suspended))
-                       AND (r.author IS NULL OR r.author NOT IN (SELECT blocker FROM blocks WHERE blocked = ?2))),
+                       AND (r.author IS NULL OR r.author NOT IN (SELECT blocker FROM blocks WHERE blocked = ?2 UNION SELECT blocked FROM blocks WHERE blocker = ?2))),
                     p.author = ?2, a.banner
              FROM posts p LEFT JOIN accounts a ON a.id = p.author LEFT JOIN accounts s ON s.id = p.subject
              WHERE {filter} AND p.removed = 0
                AND (p.author IS NULL OR p.author NOT IN (SELECT account FROM suspended))
                AND (p.subject IS NULL OR p.subject NOT IN (SELECT account FROM suspended))
-               -- Someone who blocked the viewer is gone for them, as on other social apps.
-               AND (p.author IS NULL OR p.author NOT IN (SELECT blocker FROM blocks WHERE blocked = ?2))
-               AND (p.subject IS NULL OR p.subject NOT IN (SELECT blocker FROM blocks WHERE blocked = ?2))
+               -- A block either way: each is gone for the other, as on other social apps.
+               AND (p.author IS NULL OR p.author NOT IN (SELECT blocker FROM blocks WHERE blocked = ?2 UNION SELECT blocked FROM blocks WHERE blocker = ?2))
+               AND (p.subject IS NULL OR p.subject NOT IN (SELECT blocker FROM blocks WHERE blocked = ?2 UNION SELECT blocked FROM blocks WHERE blocker = ?2))
              ORDER BY {order} LIMIT {PAGE}"
         ))?;
         let rows = query.query_map(params![key, viewer.unwrap_or(-1), about.unwrap_or(-1)], |row| {
@@ -757,7 +757,7 @@ impl Community {
                     EXISTS (SELECT 1 FROM verified_wallets v WHERE v.account = a.id AND v.proven IS NOT NULL)
              FROM accounts a
              WHERE lower(a.name) LIKE ?1 ESCAPE '\\' AND a.id NOT IN (SELECT account FROM suspended)
-               AND a.id NOT IN (SELECT blocker FROM blocks WHERE blocked = ?4)
+               AND a.id NOT IN (SELECT blocker FROM blocks WHERE blocked = ?4 UNION SELECT blocked FROM blocks WHERE blocker = ?4)
              ORDER BY lower(a.name) = ?2 DESC, lower(a.name) LIKE ?3 ESCAPE '\\' DESC, lower(a.name), a.id
              LIMIT 8",
         )?;
@@ -831,9 +831,9 @@ async fn feed(State(app): State<Arc<App>>, headers: HeaderMap, Query(page): Quer
     let about = match &page.about {
         Some(name) => {
             let id = store.account_by_name(name)?.ok_or(Failure::NotFound)?;
-            // Someone who blocked you is nobody, to you.
+            // A block either way makes them nobody to each other.
             if let Some(me) = me
-                && store.blocked_by(id, me)?
+                && store.blocked_either(id, me)?
             {
                 return Err(Failure::NotFound);
             }

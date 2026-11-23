@@ -122,7 +122,7 @@ impl Store {
             bail!("there is no such person");
         }
         if block {
-            self.db.execute("INSERT OR IGNORE INTO blocks (blocker, blocked) VALUES (?1, ?2)", params![blocker, blocked])?;
+            self.db.execute("INSERT OR IGNORE INTO blocks (blocker, blocked, at) VALUES (?1, ?2, ?3)", params![blocker, blocked, now()])?;
         } else {
             self.db.execute("DELETE FROM blocks WHERE blocker = ?1 AND blocked = ?2", params![blocker, blocked])?;
         }
@@ -138,6 +138,29 @@ impl Store {
         } else {
             None
         })
+    }
+
+    /// Whether either of two accounts has blocked the other: then each is
+    /// gone for the other.
+    pub fn blocked_either(&self, one: i64, other: i64) -> Result<bool> {
+        Ok(self.blocked_by(one, other)? || self.blocked_by(other, one)?)
+    }
+
+    /// The people `account` has blocked, most recently blocked first.
+    pub fn blocked_list(&self, account: i64) -> Result<Vec<serde_json::Value>> {
+        let mut statement = self.db.prepare(
+            "SELECT a.id, a.name, a.picture, b.at FROM blocks b JOIN accounts a ON a.id = b.blocked
+             WHERE b.blocker = ?1 ORDER BY b.at DESC, b.rowid DESC",
+        )?;
+        let rows = statement.query_map([account], |row| {
+            Ok(serde_json::json!({
+                "id": row.get::<_, i64>(0)?,
+                "name": row.get::<_, String>(1)?,
+                "picture": row.get::<_, Option<String>>(2)?,
+                "blocked_at": row.get::<_, i64>(3)?,
+            }))
+        })?;
+        Ok(rows.collect::<rusqlite::Result<_>>()?)
     }
 
     pub fn blocked_by(&self, blocker: i64, blocked: i64) -> Result<bool> {
@@ -504,7 +527,7 @@ impl Store {
         let (buyer, seller) = self.sides(conversation, account)?;
         let other = if account == buyer { seller } else { buyer };
         if block {
-            self.db.execute("INSERT OR IGNORE INTO blocks (blocker, blocked) VALUES (?1, ?2)", params![account, other])?;
+            self.db.execute("INSERT OR IGNORE INTO blocks (blocker, blocked, at) VALUES (?1, ?2, ?3)", params![account, other, now()])?;
         } else {
             self.db.execute("DELETE FROM blocks WHERE blocker = ?1 AND blocked = ?2", params![account, other])?;
         }

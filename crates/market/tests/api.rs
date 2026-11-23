@@ -936,8 +936,8 @@ async fn blocking_a_person_from_their_profile_works_everywhere() {
     // Maya blocks Sam from his profile: he can't write, and nothing is made.
     let (status, _) = market.ask("POST", &format!("/api/market/accounts/{sam_id}/block"), Some(&maya), Some(json!({ "block": true }))).await;
     assert_eq!(status, StatusCode::OK);
-    let (_, profile) = market.ask("GET", "/api/market/users/sam", Some(&maya), None).await;
-    assert_eq!(profile["blocked"], true);
+    // Once blocked, he is nobody to her too, until she unblocks him.
+    assert_eq!(market.ask("GET", "/api/market/users/sam", Some(&maya), None).await.0, StatusCode::NOT_FOUND);
     let (status, body) = market.ask("POST", &format!("/api/market/listings/{listing}/messages"), Some(&sam), Some(json!({ "body": "Hi" }))).await;
     assert_eq!(status, StatusCode::BAD_REQUEST);
     assert!(body["error"].as_str().unwrap().contains("not taking messages"), "{body}");

@@ -306,6 +306,8 @@ impl Store {
              CREATE TABLE IF NOT EXISTS blocks (
                  blocker INTEGER NOT NULL REFERENCES accounts(id) ON DELETE CASCADE,
                  blocked INTEGER NOT NULL REFERENCES accounts(id) ON DELETE CASCADE,
+                 -- When, for the list of people you've blocked (0: before it was kept).
+                 at INTEGER NOT NULL DEFAULT 0,
                  PRIMARY KEY (blocker, blocked)
              );",
         )?;
@@ -366,6 +368,14 @@ impl Store {
                  COMMIT;
                  PRAGMA foreign_keys = ON;",
             )?;
+        }
+        let has_block_time: bool = self.db.query_row(
+            "SELECT COUNT(*) > 0 FROM pragma_table_info('blocks') WHERE name = 'at'",
+            [],
+            |row| row.get(0),
+        )?;
+        if !has_block_time {
+            self.db.execute("ALTER TABLE blocks ADD COLUMN at INTEGER NOT NULL DEFAULT 0", [])?;
         }
         let has_cleared: bool = self.db.query_row(
             "SELECT COUNT(*) > 0 FROM pragma_table_info('conversations') WHERE name = 'buyer_cleared'",

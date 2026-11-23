@@ -30,7 +30,8 @@ export const CHANGELOG: Entry[] = [
     products: ['marketplace'],
     title: 'Blocking hides you from them, and delete a conversation',
     changes: [
-      'When someone blocks you, they’re gone for you, as on other social apps: their profile, posts, listings and wallets no longer show for you, and their name doesn’t come up in searches. Everyone else sees them as before.',
+      'A block works both ways, as on other social apps: you and the person you block no longer see each other’s profiles, posts, listings or wallets, or each other’s names in searches, until you unblock them. Everyone else sees both of you as before.',
+      'Your profile settings have Manage blocks: everyone you’ve blocked, with an Unblock button.',
       'Delete a conversation from its ⋯ menu. It goes from your messages only; the other person keeps theirs, and a new message starts it afresh.',
     ],
   },

@@ -266,7 +266,7 @@ impl Store {
 
     /// Whose verified wallets are among `addresses`, by address. When
     /// several accounts verified one wallet, the latest wins.
-    /// Leaves out accounts that blocked `viewer`.
+    /// Leaves out accounts that blocked `viewer`, or that `viewer` blocked.
     pub fn wallet_profiles(&self, addresses: &[String], viewer: Option<i64>) -> Result<Vec<(String, WalletProfile)>> {
         let mut found: Vec<(String, WalletProfile)> = Vec::new();
         let mut query = self.db.prepare(&format!(
@@ -274,7 +274,7 @@ impl Store {
              FROM verified_wallets v JOIN accounts a ON a.id = v.account
              WHERE v.address = ?1 AND v.proven IS NOT NULL
                AND NOT EXISTS (SELECT 1 FROM suspended s WHERE s.account = a.id)
-               AND NOT EXISTS (SELECT 1 FROM blocks b WHERE b.blocker = a.id AND b.blocked = ?2)
+               AND NOT EXISTS (SELECT 1 FROM blocks b WHERE (b.blocker = a.id AND b.blocked = ?2) OR (b.blocker = ?2 AND b.blocked = a.id))
              ORDER BY v.proven DESC LIMIT 1"
         ))?;
         for address in addresses {
@@ -315,7 +315,7 @@ impl Store {
              WHERE lower(a.name) LIKE ?1 ESCAPE '\\'
                AND EXISTS (SELECT 1 FROM verified_wallets v WHERE v.account = a.id AND v.proven IS NOT NULL)
                AND NOT EXISTS (SELECT 1 FROM suspended s WHERE s.account = a.id)
-               AND NOT EXISTS (SELECT 1 FROM blocks b WHERE b.blocker = a.id AND b.blocked = ?5)
+               AND NOT EXISTS (SELECT 1 FROM blocks b WHERE (b.blocker = a.id AND b.blocked = ?5) OR (b.blocker = ?5 AND b.blocked = a.id))
              ORDER BY lower(a.name) = ?2 DESC, lower(a.name) LIKE ?3 ESCAPE '\\' DESC, lower(a.name), a.id
              LIMIT ?4",
         )?;
