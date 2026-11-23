@@ -1363,7 +1363,12 @@
   #community { --col: 1040px; }
   .cm-layout { display: block; }
   .cm-main { min-width: 0; }
-  .cm-rail { display: none; }
+  /* Narrow: of the sidebar, Find members stays, above the feed. */
+  @media (max-width: 979px) {
+    .cm-layout { display: flex; flex-direction: column; }
+    .cm-rail { display: grid; gap: 10px; order: -1; margin-bottom: 14px; }
+    .cm-rail > :not(.cm-find):not(.cm-found) { display: none; }
+  }
   /* Big windows: the feed with the sidebar beside it, as on the website. */
   @media (min-width: 980px) {
     .cm-layout { display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: 20px; align-items: start; }
