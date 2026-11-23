@@ -5990,8 +5990,8 @@
   const EYEBROWS = { record: "New record", welcome: "Welcome", milestone: "Milestone", streak: "On a streak", top_day: "Top miner of the day", swap: "Swap", supply: "ORN mined", validator: "New validator" };
   // The network's newer kinds of post: the feed sends them only to apps that ask.
   const CM_KINDS = "swap,supply,validator";
-  // Their pictures, until each has its own.
-  const CM_ART = { swap: "top_day", supply: "record", validator: "milestone" };
+  // Each kind of post has its own picture, in community/.
+  const CM_ART = {};
   const cmFace = (person) => person && person.name
     ? `<span class="face">${esc(person.name.slice(0, 1).toUpperCase())}${person.picture ? picImg(person.picture) : ""}</span>`
     : '<span class="cm-net"><span class="mark"></span></span>';
