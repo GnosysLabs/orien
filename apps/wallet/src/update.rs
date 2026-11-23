@@ -73,6 +73,7 @@ pub async fn install_update(app: AppHandle) -> Result<(), String> {
     .await
     .map_err(|error| error.to_string())??;
     crate::background::remember_window(&app);
+    crate::mine_commands::remember_for_update(&app);
     #[cfg(target_os = "macos")]
     reopen_on_the_mac(&app);
     app.restart()

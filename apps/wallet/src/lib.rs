@@ -462,6 +462,10 @@ struct Settings {
     /// How many threads mining uses.
     #[serde(default)]
     mining_threads: Option<usize>,
+    /// Mining was running on this many threads when an update restarted
+    /// the app: the new copy starts it again once, then clears this.
+    #[serde(default)]
+    resume_mining: Option<usize>,
     /// What the benchmark found on this computer.
     #[cfg(desktop)]
     #[serde(default)]
@@ -1139,6 +1143,34 @@ pub fn mine_start(app: AppHandle, threads: usize) -> Result<(), String> {
     Ok(())
 }
 
+/// Notes that mining is running, just before an update restarts the app,
+/// so the new copy starts it again. Quitting or stopping never sets this.
+pub fn remember_for_update(app: &AppHandle) {
+    let status = mining::status();
+    if !status.running {
+        return;
+    }
+    let Ok(dir) = folder(app) else { return };
+    let mut saved = settings(&dir);
+    saved.resume_mining = Some(status.threads.max(1));
+    let _ = save_settings(&dir, &saved);
+}
+
+/// Starts mining again if an update stopped it, on the same threads, once.
+/// True when it did.
+#[tauri::command]
+pub fn mine_resume(app: AppHandle) -> Result<bool, String> {
+    let dir = folder(&app)?;
+    let mut saved = settings(&dir);
+    let Some(threads) = saved.resume_mining.take() else { return Ok(false) };
+    save_settings(&dir, &saved)?;
+    if mining::status().running {
+        return Ok(false);
+    }
+    mine_start(app, threads)?;
+    Ok(true)
+}
+
 #[tauri::command]
 pub async fn mine_stop() -> Result<(), String> {
     tauri::async_runtime::spawn_blocking(mining::stop).await.map_err(|error| error.to_string())
@@ -1228,6 +1260,10 @@ mod mine_commands {
         Ok(())
     }
     #[tauri::command]
+    pub fn mine_resume() -> Result<bool, String> {
+        Ok(false)
+    }
+    #[tauri::command]
     pub fn mine_set() -> Result<bool, String> {
         Ok(false)
     }
@@ -1250,7 +1286,7 @@ mod mine_commands {
         Ok(serde_json::json!({ "status": { "running": false, "cores": 0 }, "threads": 1, "unavailable": true }))
     }
 }
-use mine_commands::{large_pages_set_up, large_pages_state, mine_benchmark, mine_benchmark_cancel, mine_set, mine_start, mine_status, mine_stop};
+use mine_commands::{large_pages_set_up, large_pages_state, mine_benchmark, mine_benchmark_cancel, mine_resume, mine_set, mine_start, mine_status, mine_stop};
 
 /// Asks the validators about the wallet's account.
 #[tauri::command]
@@ -2615,7 +2651,7 @@ pub fn run() {
             }
             Ok(())
         })
-        .invoke_handler(tauri::generate_handler![share_address, has_wallet, create_wallet, save_phrase, restore_wallet, set_password, choose_wallet, overview_now, send_payment, activity, quote, contacts, save_contact, delete_contact, contacts_sync, members, save_member, delete_member, biometric_unlock, biometric_enable, update::check_update, update::install_update, mine_start, mine_stop, mine_set, mine_status, mine_benchmark, mine_benchmark_cancel, large_pages_state, large_pages_set_up, wallets, wallet_balances, use_wallet, rename_wallet, add_wallet, forget_wallet, swap_list, swap_sell, swap_buy, swap_accept, swap_step, swap_smallest, board_offers, board_me, board_email_start, board_email_finish, board_sign_out, board_post, board_take, board_withdraw, board_link, notifications_ask, push_sync, open_network_map, board_wallets_sync, board_post_sol, board_take_sol, sol_open, sol_payout_check, open_site, qr_code, address_qr, wallet_profiles, board_profile_save, board_picture_pick, board_verify, board_wallet_states, market_image, board_banner_remove, market_search, market_listings, market_listing, market_profile, market_call, market_pick_pictures, market_listing_picture, dock_badge, mac_notify, board_delete_account, wallet_icons, set_wallet_icon, vault_ready, vault_unlock, open_contact, pair_offer, pair_offer_wait, pair_offer_send, pair_join, pair_join_wait, pair_invite, pair_invite_wait, pair_accept, pair_wallets, pair_accept_send, pair_cancel, wallet_phrase, phrase_check, app_theme, set_app_theme, set_backdrop, app_prefs, set_app_pref, app_unlock, computer_settings, set_computer_setting, notifications_muted, set_notification, open_legal, open_extension, sitesignin::site_signin_answer, board_paid_wallet, board_wallet_remove])
+        .invoke_handler(tauri::generate_handler![share_address, has_wallet, create_wallet, save_phrase, restore_wallet, set_password, choose_wallet, overview_now, send_payment, activity, quote, contacts, save_contact, delete_contact, contacts_sync, members, save_member, delete_member, biometric_unlock, biometric_enable, update::check_update, update::install_update, mine_start, mine_stop, mine_resume, mine_set, mine_status, mine_benchmark, mine_benchmark_cancel, large_pages_state, large_pages_set_up, wallets, wallet_balances, use_wallet, rename_wallet, add_wallet, forget_wallet, swap_list, swap_sell, swap_buy, swap_accept, swap_step, swap_smallest, board_offers, board_me, board_email_start, board_email_finish, board_sign_out, board_post, board_take, board_withdraw, board_link, notifications_ask, push_sync, open_network_map, board_wallets_sync, board_post_sol, board_take_sol, sol_open, sol_payout_check, open_site, qr_code, address_qr, wallet_profiles, board_profile_save, board_picture_pick, board_verify, board_wallet_states, market_image, board_banner_remove, market_search, market_listings, market_listing, market_profile, market_call, market_pick_pictures, market_listing_picture, dock_badge, mac_notify, board_delete_account, wallet_icons, set_wallet_icon, vault_ready, vault_unlock, open_contact, pair_offer, pair_offer_wait, pair_offer_send, pair_join, pair_join_wait, pair_invite, pair_invite_wait, pair_accept, pair_wallets, pair_accept_send, pair_cancel, wallet_phrase, phrase_check, app_theme, set_app_theme, set_backdrop, app_prefs, set_app_pref, app_unlock, computer_settings, set_computer_setting, notifications_muted, set_notification, open_legal, open_extension, sitesignin::site_signin_answer, board_paid_wallet, board_wallet_remove])
         .build(tauri::generate_context!())
         .expect("the wallet window could not start")
         .run(|_app, _event| {

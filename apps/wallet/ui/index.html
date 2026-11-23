@@ -2476,6 +2476,7 @@
       </div>
       <div class="problem" id="mine-problem" hidden></div>
       <button class="primary pearl" id="mn-go" data-gap="lg">Start mining</button>
+      <p class="fineprint" id="mn-resumed" hidden>Mining started again by itself after the update.</p>
       <p class="fineprint" id="mn-light" hidden>Light mode: under 2 GB of free memory, so it mines more slowly.</p>
       <p class="fineprint" id="mn-large-on" hidden>Mining in large pages of memory, for extra speed.</p>
       <p class="fineprint"><span id="mn-odds"></span>Needs about 2 GB of memory. Rewards depend on how much everyone else mines.</p>
@@ -3180,6 +3181,8 @@
   }
   // The balance may have changed while another screen was showing, when it
   // couldn't be measured: fit it as the screen appears, before it's drawn.
+  // Mining an update stopped and this copy started again.
+  let mineResumeAsked = false, mineResumed = false;
   async function home() {
     const waiting = opening;
     opening = false;
@@ -3188,6 +3191,11 @@
     show("home"); fitBalance(); loadWallets(); renderSwapAlert();
     invoke("board_me").then((me) => { board.me = me; renderBoardBar(); }).catch(() => {});
     invoke("notifications_ask").catch(() => {});
+    // An update stopped mining that was running: start it again, once.
+    if (!mineResumeAsked) {
+      mineResumeAsked = true;
+      invoke("mine_resume").then((did) => { if (did) { mineResumed = true; mineButton(true); } }).catch(() => {});
+    }
     await refresh();
     if (waiting) { fitBalance(); covered(false); }
   }
@@ -3507,6 +3515,8 @@
     $("mn-speed").textContent = !s.running ? "Stopped"
       : s.preparing ? "Getting ready (about a minute)"
       : s.tries_per_second ? `${speed(s.tries_per_second)} tries a second` : "Starting…";
+    if (!s.running) mineResumed = false;
+    $("mn-resumed").hidden = !mineResumed;
     $("mn-light").hidden = !(s.running && s.light);
     $("mn-large-on").hidden = !(s.running && !s.preparing && s.large_pages);
     if (first || !mineLarge) { try { mineLarge = await invoke("large_pages_state"); } catch (_) { mineLarge = null; } }
