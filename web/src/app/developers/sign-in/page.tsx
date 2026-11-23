@@ -1,17 +1,20 @@
 import { CopySnippet } from '@/components/CopySnippet'
 import { CopyText } from '@/components/CopyText'
 import type { Metadata } from 'next'
-import { ArrowUpRight } from 'lucide-react'
-import { notFound } from 'next/navigation'
+import { ArrowUpRight, Clock } from 'lucide-react'
 import { WALLET_SIGN_IN_DOCS } from '@/lib/brand'
 import { pageMeta } from '@/lib/seo'
 
-export const metadata: Metadata = pageMeta({
-  title: 'Sign in with Orien Wallet: for developers',
-  description:
-    'Let people sign in to your website with their Orien wallet: no email, no password, and no ORN moves. Your website checks the proof itself with Orien’s quantum-safe signatures, offline.',
-  path: '/developers/sign-in/',
-})
+export const metadata: Metadata = {
+  ...pageMeta({
+    title: 'Sign in with Orien Wallet: for developers',
+    description:
+      'Let people sign in to your website with their Orien wallet: no email, no password, and no ORN moves. Your website checks the proof itself with Orien’s quantum-safe signatures, offline.',
+    path: '/developers/sign-in/',
+  }),
+  // Kept out of search results while it waits for the extensions' approval.
+  ...(WALLET_SIGN_IN_DOCS ? {} : { robots: { index: false } }),
+}
 
 const SCRIPT = `<script src="https://orien.network/orien-sign-in.js"></script>`
 
@@ -114,9 +117,14 @@ const link = 'font-semibold text-ink underline underline-offset-4'
 /** /developers/sign-in/: Sign in with Orien Wallet, for websites. The
  * checker is public/orien-sign-in.js, a copy of apps/wallet/signin-js. */
 export default function SignInDevelopersPage() {
-  if (!WALLET_SIGN_IN_DOCS) notFound()
   return (
     <div className="mx-auto max-w-[860px] space-y-8 pb-16 pt-5 sm:pt-7">
+      {!WALLET_SIGN_IN_DOCS && (
+        <div role="status" className="flex items-center gap-3 rounded-2xl border border-warn/40 bg-warn/10 px-5 py-4">
+          <Clock className="h-5 w-5 shrink-0 text-warn" aria-hidden />
+          <p className="font-semibold text-ink">Pending latest extension update approval</p>
+        </div>
+      )}
       <header className="space-y-4">
         <p className="text-xs font-semibold uppercase tracking-[0.14em] text-muted">For developers</p>
         <h1 className="text-balance text-3xl font-bold tracking-tight text-ink sm:text-4xl">Sign in with Orien Wallet</h1>
