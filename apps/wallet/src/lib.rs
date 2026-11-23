@@ -1935,8 +1935,9 @@ async fn market_profile(app: AppHandle, id: i64) -> Result<serde_json::Value, St
 
 /// Marketplace profiles matching a name, for Send.
 #[tauri::command]
-async fn market_search(text: String) -> Result<serde_json::Value, String> {
-    tauri::async_runtime::spawn_blocking(move || board::search(&text)).await.map_err(|error| error.to_string())?
+async fn market_search(app: AppHandle, text: String) -> Result<serde_json::Value, String> {
+    let dir = folder(&app).ok();
+    tauri::async_runtime::spawn_blocking(move || board::search(dir.as_deref(), &text)).await.map_err(|error| error.to_string())?
 }
 
 /// A marketplace picture by name, as a data: URL, from the app's own copy.
@@ -2001,8 +2002,9 @@ async fn board_picture_pick(app: AppHandle, banner: Option<bool>) -> Result<bool
 /// Marketplace names and pictures for wallet addresses, where the
 /// address's owner has a profile.
 #[tauri::command]
-async fn wallet_profiles(addresses: Vec<String>) -> Result<serde_json::Value, String> {
-    tauri::async_runtime::spawn_blocking(move || board::profiles(&addresses)).await.map_err(|error| error.to_string())?
+async fn wallet_profiles(app: AppHandle, addresses: Vec<String>) -> Result<serde_json::Value, String> {
+    let dir = folder(&app).ok();
+    tauri::async_runtime::spawn_blocking(move || board::profiles(dir.as_deref(), &addresses)).await.map_err(|error| error.to_string())?
 }
 
 /// Adds a wallet rebuilt from its recovery phrase on another device: the

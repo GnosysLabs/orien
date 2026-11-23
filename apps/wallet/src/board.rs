@@ -584,9 +584,17 @@ pub fn profile(dir: &Path, id: i64) -> Result<Value, String> {
 
 /// Profiles whose name matches `text`, with their verified wallets, for
 /// paying someone by name. Public, so asked without the sign-in cookie.
-pub fn search(text: &str) -> Result<Value, String> {
-    let answer = agent()
-        .get(&format!("{}/api/market/profiles", base()))
+/// Signed in, a public question carries the sign-in cookie, so people who
+/// blocked this account are left out of the answer.
+fn as_viewer(request: ureq::Request, dir: Option<&Path>) -> ureq::Request {
+    match dir.and_then(|dir| load(dir).cookie) {
+        Some(cookie) => request.set("Cookie", &format!("{COOKIE}={cookie}")),
+        None => request,
+    }
+}
+
+pub fn search(dir: Option<&Path>, text: &str) -> Result<Value, String> {
+    let answer = as_viewer(agent().get(&format!("{}/api/market/profiles", base())), dir)
         .query("q", text.trim())
         .call()
         .map_err(|error| error.to_string())?;
@@ -596,14 +604,13 @@ pub fn search(text: &str) -> Result<Value, String> {
 
 /// Marketplace profiles for wallet addresses: name and picture for each
 /// address an account has proven, keyed by address; others are left out.
-/// Public, so asked without the sign-in cookie.
-pub fn profiles(addresses: &[String]) -> Result<Value, String> {
+/// Public; signed in, people who blocked this account are left out.
+pub fn profiles(dir: Option<&Path>, addresses: &[String]) -> Result<Value, String> {
     let addresses: Vec<String> = addresses.iter().map(|a| a.trim().to_lowercase()).filter(|a| a.len() == 64).take(100).collect();
     if addresses.is_empty() {
         return Ok(json!({}));
     }
-    let answer = agent()
-        .post(&format!("{}/api/market/wallets/lookup", base()))
+    let answer = as_viewer(agent().post(&format!("{}/api/market/wallets/lookup", base())), dir)
         .send_json(json!({ "addresses": addresses }))
         .map_err(|error| error.to_string())?;
     let body: Value = answer.into_json().map_err(|error| error.to_string())?;

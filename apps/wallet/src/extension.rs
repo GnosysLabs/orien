@@ -111,12 +111,12 @@ fn answer(app: &AppHandle, mut stream: TcpStream) {
             match asked.as_str() {
                 "GET /wallet" => ("200 OK", wallet(app)),
                 "GET /people" => ("200 OK", people(app)),
-                "POST /search" => ("200 OK", crate::board::search(&text("text")).unwrap_or_default()),
+                "POST /search" => ("200 OK", crate::board::search(crate::folder(app).ok().as_deref(), &text("text")).unwrap_or_default()),
                 "POST /profiles" => {
                     let addresses: Vec<String> = body.get("addresses").and_then(|a| a.as_array()).map_or_else(Vec::new, |a| {
                         a.iter().filter_map(|v| v.as_str().map(str::to_string)).collect()
                     });
-                    ("200 OK", crate::board::profiles(&addresses).unwrap_or_default())
+                    ("200 OK", crate::board::profiles(crate::folder(app).ok().as_deref(), &addresses).unwrap_or_default())
                 }
                 "POST /image" => {
                     let url = crate::folder(app).ok().and_then(|dir| crate::board::image(&dir, &text("name")));
