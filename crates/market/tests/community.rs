@@ -314,3 +314,57 @@ fn streaks_and_the_days_top_miner_are_posted() {
     assert_eq!(top.2["miners"], 2, "the day's totals still count everyone");
     assert!(!happenings(&mined, &HashMap::new(), 30).iter().any(|(kind, _, _)| kind == "top_day"));
 }
+
+#[tokio::test]
+async fn someone_who_blocked_you_is_nobody_to_you() {
+    let app = market();
+    let maya = sign_in_for_tests(&app, "Maya");
+    let sam = sign_in_for_tests(&app, "Sam");
+    let maya_id = store_for_tests(&app, |s| s.account_id_for_tests("Maya"));
+    let sam_id = store_for_tests(&app, |s| s.account_id_for_tests("Sam"));
+    let (status, _) = ask(&app, "POST", "/api/market/community/posts", Some(&maya), Some(json!({ "body": "Hello, miners" }))).await;
+    assert_eq!(status, StatusCode::OK);
+    let listing = json!({ "title": "Logo design", "description": "Clean logos.", "category": "design", "price": ORN, "unit": "" });
+    let (_, posted) = ask(&app, "POST", "/api/market/listings", Some(&maya), Some(listing)).await;
+    let listing = posted["listing"]["id"].as_i64().unwrap();
+    let (_, me) = ask(&app, "GET", "/api/market/me/wallet", Some(&maya), None).await;
+    let wallet = me["wallet"].as_str().unwrap().to_string();
+
+    // Everything Sam can see of Maya before.
+    let sees = |sam: String, wallet: String| {
+        let app = app.clone();
+        async move {
+            let ok = |s: StatusCode| s == StatusCode::OK;
+            let profile = ok(ask(&app, "GET", "/api/market/users/maya", Some(&sam), None).await.0);
+            let by_id = ok(ask(&app, "GET", &format!("/api/market/profiles/{maya_id}"), Some(&sam), None).await.0);
+            let (_, feed) = ask(&app, "GET", "/api/market/community/feed", Some(&sam), None).await;
+            let post = feed["posts"].as_array().unwrap().iter().any(|p| p["author"]["name"] == "Maya");
+            let (_, members) = ask(&app, "GET", "/api/market/community/members?q=may", Some(&sam), None).await;
+            let member = !members["members"].as_array().unwrap().is_empty();
+            let (_, payees) = ask(&app, "GET", "/api/market/profiles?q=may", Some(&sam), None).await;
+            let payee = !payees["profiles"].as_array().unwrap().is_empty();
+            let (_, lookup) = ask(&app, "POST", "/api/market/wallets/lookup", Some(&sam), Some(json!({ "addresses": [wallet] }))).await;
+            let looked_up = !lookup["profiles"].as_object().unwrap().is_empty();
+            let one = ok(ask(&app, "GET", &format!("/api/market/listings/{listing}"), Some(&sam), None).await.0);
+            let (_, browse) = ask(&app, "GET", "/api/market/listings", Some(&sam), None).await;
+            let listed = !browse["listings"].as_array().unwrap().is_empty();
+            [profile, by_id, post, member, payee, looked_up, one, listed]
+        }
+    };
+    assert_eq!(sees(sam.clone(), wallet.clone()).await, [true; 8]);
+
+    // Maya blocks Sam: to him, she is gone everywhere.
+    let (status, _) = ask(&app, "POST", &format!("/api/market/accounts/{sam_id}/block"), Some(&maya), Some(json!({ "block": true }))).await;
+    assert_eq!(status, StatusCode::OK);
+    assert_eq!(sees(sam.clone(), wallet.clone()).await, [false; 8]);
+    let (status, _) = ask(&app, "GET", "/api/market/community/feed?about=Maya", Some(&sam), None).await;
+    assert_eq!(status, StatusCode::NOT_FOUND);
+    // Everyone else still sees her, signed out included.
+    assert_eq!(ask(&app, "GET", "/api/market/users/maya", None, None).await.0, StatusCode::OK);
+    let eve = sign_in_for_tests(&app, "Eve");
+    assert_eq!(sees(eve, wallet.clone()).await, [true; 8]);
+
+    // Unblocked, she is back.
+    ask(&app, "POST", &format!("/api/market/accounts/{sam_id}/block"), Some(&maya), Some(json!({ "block": false }))).await;
+    assert_eq!(sees(sam, wallet).await, [true; 8]);
+}

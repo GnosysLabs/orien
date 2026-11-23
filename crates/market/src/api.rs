@@ -367,6 +367,7 @@ pub fn router(app: Arc<App>) -> Router {
         .route("/api/market/conversations/{id}", get(conversation))
         .route("/api/market/conversations/{id}/messages", post(reply))
         .route("/api/market/conversations/{id}/block", post(block))
+        .route("/api/market/conversations/{id}/delete", post(delete_conversation))
         .route("/api/market/conversations/{id}/request", post(request_payment))
         .route("/api/market/conversations/{id}/paid", post(mark_paid))
         .route("/api/market/images/{name}", get(picture))
@@ -679,6 +680,13 @@ async fn conversation(State(app): State<Arc<App>>, headers: HeaderMap, Path(id):
     let account = app.signed_in(&headers)?;
     let (conversation, messages) = app.store.lock().unwrap().read(id, account).map_err(|_| Failure::NotFound)?;
     Ok(Json(json!({ "conversation": conversation, "messages": messages, "me": account })).into_response())
+}
+
+/// Deletes a conversation for the signed-in side only.
+async fn delete_conversation(State(app): State<Arc<App>>, headers: HeaderMap, Path(id): Path<i64>) -> Answer {
+    let account = app.signed_in(&headers)?;
+    app.store.lock().unwrap().delete_conversation(id, account).map_err(|_| Failure::NotFound)?;
+    Ok(Json(json!({})).into_response())
 }
 
 #[derive(Deserialize)]
@@ -1108,19 +1116,30 @@ struct ProfileSearch {
 
 /// People to pay, found by name: profiles with verified wallets, at most
 /// ten, and none for under two letters.
-async fn search_profiles(State(app): State<Arc<App>>, Query(search): Query<ProfileSearch>) -> Answer {
-    let profiles = app.store.lock().unwrap().search_payable(&search.q)?;
-    Ok(([(header::CACHE_CONTROL, "public, max-age=30")], Json(json!({ "profiles": profiles }))).into_response())
+async fn search_profiles(State(app): State<Arc<App>>, headers: HeaderMap, Query(search): Query<ProfileSearch>) -> Answer {
+    let viewer = app.signed_in(&headers).ok();
+    let profiles = app.store.lock().unwrap().search_payable(&search.q, viewer)?;
+    Ok(([(header::CACHE_CONTROL, cache_for(viewer, 30))], Json(json!({ "profiles": profiles }))).into_response())
 }
 
 /// The public profile of the account whose verified wallet this is. Any
 /// website may read it from a visitor's browser, as for "Sign in with Orien
 /// Wallet".
-async fn wallet_profile(State(app): State<Arc<App>>, Path(address): Path<String>) -> Answer {
-    let found = app.store.lock().unwrap().wallet_profiles(&[address]);
+async fn wallet_profile(State(app): State<Arc<App>>, headers: HeaderMap, Path(address): Path<String>) -> Answer {
+    let viewer = app.signed_in(&headers).ok();
+    let found = app.store.lock().unwrap().wallet_profiles(&[address], viewer);
     let (_, profile) = found?.into_iter().next().ok_or(Failure::NotFound)?;
     let profile = public_wallet_profile(app.origin(), profile);
-    Ok(([(header::CACHE_CONTROL, "public, max-age=60"), (header::ACCESS_CONTROL_ALLOW_ORIGIN, "*")], Json(profile)).into_response())
+    Ok(([(header::CACHE_CONTROL, cache_for(viewer, 60)), (header::ACCESS_CONTROL_ALLOW_ORIGIN, "*".to_string())], Json(profile)).into_response())
+}
+
+/// How long an answer may be kept: by anyone, or only by the signed-in
+/// viewer's own browser, whose answer leaves out who blocked them.
+fn cache_for(viewer: Option<i64>, seconds: u32) -> String {
+    match viewer {
+        Some(_) => format!("private, max-age={seconds}"),
+        None => format!("public, max-age={seconds}"),
+    }
 }
 
 /// The browser's question before another website sends JSON to a public
@@ -1175,11 +1194,12 @@ struct Lookup {
 
 /// Public profiles for the verified wallets among up to 100 addresses, by
 /// address. Any website may ask, from a visitor's browser.
-async fn lookup_wallets(State(app): State<Arc<App>>, Json(request): Json<Lookup>) -> Answer {
+async fn lookup_wallets(State(app): State<Arc<App>>, headers: HeaderMap, Json(request): Json<Lookup>) -> Answer {
+    let viewer = app.signed_in(&headers).ok();
     if request.addresses.len() > crate::proofs::MAX_LOOKUP {
         return Err(Failure::Refused(format!("at most {} addresses at a time", crate::proofs::MAX_LOOKUP)));
     }
-    let found = app.store.lock().unwrap().wallet_profiles(&request.addresses)?;
+    let found = app.store.lock().unwrap().wallet_profiles(&request.addresses, viewer)?;
     let profiles: serde_json::Map<String, serde_json::Value> =
         found.into_iter().map(|(address, profile)| (address, public_wallet_profile(app.origin(), profile))).collect();
     Ok(([(header::ACCESS_CONTROL_ALLOW_ORIGIN, "*")], Json(json!({ "profiles": profiles }))).into_response())
@@ -1329,7 +1349,8 @@ async fn make_cover(State(app): State<Arc<App>>, headers: HeaderMap, Path((id, n
 async fn profile(State(app): State<Arc<App>>, headers: HeaderMap, Path(id): Path<i64>) -> Answer {
     let viewer = app.signed_in(&headers).ok();
     let store = app.store.lock().unwrap();
-    if store.is_suspended(id)? {
+    // Someone who blocked you is nobody, to you, as for an unknown name.
+    if store.is_suspended(id)? || viewer.is_some_and(|v| store.blocked_by(id, v).unwrap_or(false)) {
         return Err(Failure::NotFound);
     }
     let account = store.account(id)?.ok_or(Failure::NotFound)?;
@@ -1395,6 +1416,11 @@ async fn listing(State(app): State<Arc<App>>, headers: HeaderMap, Path(id): Path
     let store = app.store.lock().unwrap();
     let listing = store.listing(id)?.ok_or(Failure::NotFound)?;
     if !listing.open && viewer != Some(listing.seller) {
+        return Err(Failure::NotFound);
+    }
+    if let Some(viewer) = viewer
+        && store.blocked_by(listing.seller, viewer)?
+    {
         return Err(Failure::NotFound);
     }
     let seller = store.account(listing.seller)?.ok_or(Failure::NotFound)?;

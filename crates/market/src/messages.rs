@@ -389,10 +389,12 @@ impl Store {
     /// A conversation's messages, oldest first, marked read for `account`.
     pub fn read(&self, conversation: i64, account: i64) -> Result<(Conversation, Vec<Message>)> {
         let (buyer, _) = self.sides(conversation, account)?;
-        let mut statement =
-            self.db.prepare("SELECT id, sender, body, kind, amount, created FROM messages WHERE conversation = ?1 ORDER BY id")?;
+        let cleared = self.cleared(conversation, account == buyer)?;
+        let mut statement = self
+            .db
+            .prepare("SELECT id, sender, body, kind, amount, created FROM messages WHERE conversation = ?1 AND id > ?2 ORDER BY id")?;
         let messages: Vec<Message> = statement
-            .query_map([conversation], |row| {
+            .query_map(params![conversation, cleared], |row| {
                 Ok(Message {
                     id: row.get(0)?,
                     sender: row.get(1)?,
@@ -406,12 +408,35 @@ impl Store {
         let last = messages.last().map_or(0, |m| m.id);
         let (read, told) = if account == buyer { ("buyer_read", "buyer_told") } else { ("seller_read", "seller_told") };
         self.db.execute(&format!("UPDATE conversations SET {read} = MAX({read}, ?2), {told} = 0 WHERE id = ?1"), params![conversation, last])?;
-        let conversation = self
-            .conversations(account)?
-            .into_iter()
-            .find(|c| c.id == conversation)
-            .expect("one of this account's conversations");
+        // Deleted, with nothing new since: gone for them.
+        let Some(conversation) = self.conversations(account)?.into_iter().find(|c| c.id == conversation) else {
+            bail!("there is no such conversation of yours");
+        };
         Ok((conversation, messages))
+    }
+
+    /// The last message one side had when they deleted the conversation.
+    fn cleared(&self, conversation: i64, buying: bool) -> Result<i64> {
+        let column = if buying { "buyer_cleared" } else { "seller_cleared" };
+        Ok(self.db.query_row(&format!("SELECT {column} FROM conversations WHERE id = ?1"), [conversation], |row| row.get(0))?)
+    }
+
+    /// Deletes a conversation for `account` only: they no longer see its
+    /// messages, payment requests included, and it leaves their list until
+    /// a new message comes, which starts it afresh. The other side keeps
+    /// theirs.
+    pub fn delete_conversation(&self, conversation: i64, account: i64) -> Result<()> {
+        let (buyer, _) = self.sides(conversation, account)?;
+        let last: i64 =
+            self.db.query_row("SELECT COALESCE(MAX(id), 0) FROM messages WHERE conversation = ?1", [conversation], |row| row.get(0))?;
+        let (cleared, read, told) =
+            if account == buyer { ("buyer_cleared", "buyer_read", "buyer_told") } else { ("seller_cleared", "seller_read", "seller_told") };
+        // Read up to the mark too, so nothing before it counts as unread.
+        self.db.execute(
+            &format!("UPDATE conversations SET {cleared} = ?2, {read} = MAX({read}, ?2), {told} = 0 WHERE id = ?1"),
+            params![conversation, last],
+        )?;
+        Ok(())
     }
 
     /// Every conversation of `account`, most recent first.
@@ -422,7 +447,8 @@ impl Store {
                     o.id, o.name, o.picture,
                     m.id, m.sender, m.body, m.created,
                     EXISTS (SELECT 1 FROM blocks WHERE blocker = ?1 AND blocked = o.id),
-                    l.price, l.unit, l.pay_to, m.kind, m.amount
+                    l.price, l.unit, l.pay_to, m.kind, m.amount,
+                    CASE WHEN c.buyer = ?1 THEN c.buyer_cleared ELSE c.seller_cleared END
              FROM conversations c
              LEFT JOIN listings l ON l.id = c.listing
              JOIN accounts o ON o.id = CASE WHEN c.buyer = ?1 THEN c.seller ELSE c.buyer END
@@ -443,6 +469,9 @@ impl Store {
                 }),
                 None => None,
             };
+            // Deleted by this account, with nothing new since: left out below.
+            let cleared: i64 = row.get(20)?;
+            let last = last.filter(|m| m.id > cleared);
             let unread = last.as_ref().is_some_and(|m| m.id > read && m.sender != account);
             let listing: Option<i64> = row.get(1)?;
             Ok(Conversation {
@@ -610,6 +639,33 @@ mod tests {
         assert!(store.takes_messages(sam, maya).unwrap());
         assert!(store.set_messages_from(maya, "friends").is_err());
         assert_eq!(store.account(maya).unwrap().unwrap().messages_from, "nobody");
+    }
+
+    #[test]
+    fn deleting_a_conversation_clears_it_for_one_side_until_a_new_message() {
+        let (store, maya, sam, listing) = store_with_listing();
+        let c = store.conversation_about(sam, listing).unwrap();
+        store.send(c, sam, "Hi").unwrap();
+        let (request, _) = store.request_payment(c, maya, 5).unwrap();
+        store.send(c, sam, "Paying soon").unwrap();
+        assert_eq!(store.unread(maya).unwrap(), 1);
+
+        store.delete_conversation(c, maya).unwrap();
+        assert!(store.conversations(maya).unwrap().is_empty(), "gone from her list");
+        assert_eq!(store.unread(maya).unwrap(), 0);
+        assert!(store.read(c, maya).is_err(), "nothing to open");
+        let (_, his) = store.read(c, sam).unwrap();
+        assert_eq!(his.len(), 3, "Sam keeps his");
+        assert!(store.delete_conversation(c, store.create_account("Eve", "eve").unwrap().id).is_err(), "only the two sides");
+
+        // A new message brings it back, starting from that message.
+        store.mark_paid(c, sam, request.id).unwrap();
+        assert_eq!(store.unread(maya).unwrap(), 1);
+        let (seen, hers) = store.read(c, maya).unwrap();
+        assert_eq!((hers.len(), hers[0].kind.as_str()), (1, "paid"));
+        assert_eq!(seen.last.unwrap().kind, "paid");
+        let (_, his) = store.read(c, sam).unwrap();
+        assert_eq!(his.len(), 4);
     }
 
     #[test]

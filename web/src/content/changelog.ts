@@ -27,6 +27,15 @@ export const PRODUCTS: Record<Product, string> = {
 export const CHANGELOG: Entry[] = [
   {
     date: '2026-11-23',
+    products: ['marketplace'],
+    title: 'Blocking hides you from them, and delete a conversation',
+    changes: [
+      'When someone blocks you, they’re gone for you, as on other social apps: their profile, posts, listings and wallets no longer show for you, and their name doesn’t come up in searches. Everyone else sees them as before.',
+      'Delete a conversation from its ⋯ menu. It goes from your messages only; the other person keeps theirs, and a new message starts it afresh.',
+    ],
+  },
+  {
+    date: '2026-11-23',
     products: ['wallet'],
     version: '1.8.26',
     title: 'The Community and Messages in Orien Wallet',

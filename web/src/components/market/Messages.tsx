@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { ArrowLeft, Ban, CheckCircle2, MessageCircle, Send, Wallet } from 'lucide-react'
+import { ArrowLeft, Ban, CheckCircle2, MessageCircle, MoreHorizontal, Send, Trash2, Wallet } from 'lucide-react'
 import { CopyText } from '@/components/CopyText'
 import {
   ago,
@@ -135,7 +135,51 @@ function existingWith(conversations: Conversation[] | null, name: string | null)
 
 type Found = { conversation: Conversation; messages: Message[]; me: number }
 
+/** The chat's ⋯ menu: block, and delete the conversation for yourself. */
+function ThreadMenu({ blocked, onBlock, onDelete }: { blocked: boolean; onBlock: () => void; onDelete: () => void }) {
+  const [open, setOpen] = useState(false)
+  const box = useRef<HTMLDivElement>(null)
+  useEffect(() => {
+    if (!open) return
+    const close = (event: MouseEvent | KeyboardEvent) => {
+      if (event instanceof KeyboardEvent ? event.key === 'Escape' : !box.current?.contains(event.target as Node)) setOpen(false)
+    }
+    document.addEventListener('mousedown', close)
+    document.addEventListener('keydown', close)
+    return () => {
+      document.removeEventListener('mousedown', close)
+      document.removeEventListener('keydown', close)
+    }
+  }, [open])
+  const item = 'flex w-full items-center gap-2.5 rounded-lg px-3 py-2.5 text-left text-sm font-semibold transition hover:bg-raised'
+  return (
+    <div ref={box} className="relative">
+      <button
+        type="button"
+        onClick={() => setOpen(!open)}
+        aria-label="More"
+        aria-expanded={open}
+        aria-haspopup="menu"
+        className={`flex h-9 w-9 items-center justify-center rounded-lg transition hover:bg-raised hover:text-ink ${open ? 'bg-raised text-ink' : 'text-muted'}`}
+      >
+        <MoreHorizontal className="h-5 w-5" aria-hidden />
+      </button>
+      {open && (
+        <div role="menu" className="absolute right-0 top-full z-20 mt-2 w-56 rounded-xl border border-line bg-surface p-1.5 shadow-2xl shadow-black/60">
+          <button type="button" role="menuitem" onClick={() => { setOpen(false); onBlock() }} className={`${item} text-ink`}>
+            <Ban className="h-4 w-4 text-muted" aria-hidden /> {blocked ? 'Unblock' : 'Block'}
+          </button>
+          <button type="button" role="menuitem" onClick={() => { setOpen(false); onDelete() }} className={`${item} text-stop`}>
+            <Trash2 className="h-4 w-4" aria-hidden /> Delete conversation
+          </button>
+        </div>
+      )}
+    </div>
+  )
+}
+
 function Thread({ id, onChange }: { id: string; onChange: () => void }) {
+  const router = useRouter()
   const [found, setFound] = useState<Found | null>(null)
   const [trouble, setTrouble] = useState('')
   const [draft, setDraft] = useState('')
@@ -206,6 +250,18 @@ function Thread({ id, onChange }: { id: string; onChange: () => void }) {
     await act('block', { block: !c.blocked })
   }
 
+  // Gone for you only: they keep their copy, and a new message starts it afresh.
+  const deleteConversation = async () => {
+    if (!window.confirm(`Delete this conversation with ${c.with_name}? It goes from your messages; ${c.with_name} keeps theirs.`)) return
+    try {
+      await ask(`/conversations/${c.id}/delete`, 'POST')
+      onChange()
+      router.push('/messages/')
+    } catch (error) {
+      setTrouble(sentence((error as Error).message))
+    }
+  }
+
   // A request counts as paid once the buyer has said so after it.
   const paidAfter = (request: Message) => messages.some((m) => m.kind === 'paid' && m.id > request.id && m.amount === request.amount)
 
@@ -232,15 +288,7 @@ function Thread({ id, onChange }: { id: string; onChange: () => void }) {
               <Wallet className="h-4 w-4" aria-hidden /> Ask for payment
             </button>
           )}
-          <button
-            type="button"
-            onClick={toggleBlock}
-            title={c.blocked ? 'Unblock' : 'Block'}
-            className="flex h-9 items-center gap-1.5 rounded-lg px-2.5 text-sm font-semibold text-muted hover:bg-raised hover:text-ink"
-          >
-            <Ban className="h-4 w-4" aria-hidden />
-            <span className="hidden sm:inline">{c.blocked ? 'Unblock' : 'Block'}</span>
-          </button>
+          <ThreadMenu blocked={c.blocked} onBlock={toggleBlock} onDelete={deleteConversation} />
         </div>
       </header>
 

@@ -514,12 +514,16 @@ impl Store {
             "SELECT p.id, p.kind, p.body, p.data, p.created, p.parent,
                     a.name, a.picture, s.name, s.picture,
                     (SELECT COUNT(*) FROM posts r WHERE r.parent = p.id AND r.removed = 0
-                       AND (r.author IS NULL OR r.author NOT IN (SELECT account FROM suspended))),
+                       AND (r.author IS NULL OR r.author NOT IN (SELECT account FROM suspended))
+                       AND (r.author IS NULL OR r.author NOT IN (SELECT blocker FROM blocks WHERE blocked = ?2))),
                     p.author = ?2, a.banner
              FROM posts p LEFT JOIN accounts a ON a.id = p.author LEFT JOIN accounts s ON s.id = p.subject
              WHERE {filter} AND p.removed = 0
                AND (p.author IS NULL OR p.author NOT IN (SELECT account FROM suspended))
                AND (p.subject IS NULL OR p.subject NOT IN (SELECT account FROM suspended))
+               -- Someone who blocked the viewer is gone for them, as on other social apps.
+               AND (p.author IS NULL OR p.author NOT IN (SELECT blocker FROM blocks WHERE blocked = ?2))
+               AND (p.subject IS NULL OR p.subject NOT IN (SELECT blocker FROM blocks WHERE blocked = ?2))
              ORDER BY {order} LIMIT {PAGE}"
         ))?;
         let rows = query.query_map(params![key, viewer.unwrap_or(-1), about.unwrap_or(-1)], |row| {
@@ -742,7 +746,7 @@ impl Community {
 
     /// Members whose names contain `text`, the closest first: name and
     /// picture, and whether they verified a wallet.
-    pub(crate) fn find_members(&self, store: &Store, text: &str) -> Result<Vec<Value>> {
+    pub(crate) fn find_members(&self, store: &Store, text: &str, viewer: Option<i64>) -> Result<Vec<Value>> {
         let query = text.trim().to_lowercase();
         if query.chars().count() < 2 {
             return Ok(Vec::new());
@@ -753,10 +757,11 @@ impl Community {
                     EXISTS (SELECT 1 FROM verified_wallets v WHERE v.account = a.id AND v.proven IS NOT NULL)
              FROM accounts a
              WHERE lower(a.name) LIKE ?1 ESCAPE '\\' AND a.id NOT IN (SELECT account FROM suspended)
+               AND a.id NOT IN (SELECT blocker FROM blocks WHERE blocked = ?4)
              ORDER BY lower(a.name) = ?2 DESC, lower(a.name) LIKE ?3 ESCAPE '\\' DESC, lower(a.name), a.id
              LIMIT 8",
         )?;
-        let rows = statement.query_map(params![format!("%{escaped}%"), query, format!("{escaped}%")], |row| {
+        let rows = statement.query_map(params![format!("%{escaped}%"), query, format!("{escaped}%"), viewer.unwrap_or(-1)], |row| {
             let id: i64 = row.get(0)?;
             Ok((id, row.get::<_, String>(1)?, row.get::<_, Option<String>>(2)?, row.get::<_, bool>(3)?))
         })?;
@@ -813,16 +818,27 @@ pub struct Find {
     q: String,
 }
 
-async fn members(State(app): State<Arc<App>>, Query(find): Query<Find>) -> Result<Response, Failure> {
-    let found = app.community().find_members(&app.store(), &find.q)?;
-    Ok(([(axum::http::header::CACHE_CONTROL, "public, max-age=30")], Json(json!({ "members": found }))).into_response())
+async fn members(State(app): State<Arc<App>>, headers: HeaderMap, Query(find): Query<Find>) -> Result<Response, Failure> {
+    let me = viewer(&app, &headers);
+    let found = app.community().find_members(&app.store(), &find.q, me)?;
+    // Each viewer's answer leaves out who blocked them: kept by their browser only.
+    Ok(([(axum::http::header::CACHE_CONTROL, "private, max-age=30")], Json(json!({ "members": found }))).into_response())
 }
 
 async fn feed(State(app): State<Arc<App>>, headers: HeaderMap, Query(page): Query<Before>) -> Result<Response, Failure> {
     let me = viewer(&app, &headers);
     let store = app.store();
     let about = match &page.about {
-        Some(name) => Some(store.account_by_name(name)?.ok_or(Failure::NotFound)?),
+        Some(name) => {
+            let id = store.account_by_name(name)?.ok_or(Failure::NotFound)?;
+            // Someone who blocked you is nobody, to you.
+            if let Some(me) = me
+                && store.blocked_by(id, me)?
+            {
+                return Err(Failure::NotFound);
+            }
+            Some(id)
+        }
         None => None,
     };
     let posts = store.feed(me, page.before, None, page.only.as_deref(), about)?;

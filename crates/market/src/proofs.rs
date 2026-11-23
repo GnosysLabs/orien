@@ -266,13 +266,15 @@ impl Store {
 
     /// Whose verified wallets are among `addresses`, by address. When
     /// several accounts verified one wallet, the latest wins.
-    pub fn wallet_profiles(&self, addresses: &[String]) -> Result<Vec<(String, WalletProfile)>> {
+    /// Leaves out accounts that blocked `viewer`.
+    pub fn wallet_profiles(&self, addresses: &[String], viewer: Option<i64>) -> Result<Vec<(String, WalletProfile)>> {
         let mut found: Vec<(String, WalletProfile)> = Vec::new();
         let mut query = self.db.prepare(&format!(
             "SELECT a.id, a.name, a.picture, {NAME}, a.bio, a.banner, a.telegram, a.x, a.discord
              FROM verified_wallets v JOIN accounts a ON a.id = v.account
              WHERE v.address = ?1 AND v.proven IS NOT NULL
                AND NOT EXISTS (SELECT 1 FROM suspended s WHERE s.account = a.id)
+               AND NOT EXISTS (SELECT 1 FROM blocks b WHERE b.blocker = a.id AND b.blocked = ?2)
              ORDER BY v.proven DESC LIMIT 1"
         ))?;
         for address in addresses {
@@ -281,7 +283,7 @@ impl Store {
                 continue;
             }
             let profile = query
-                .query_row([&address], |row| {
+                .query_row(params![&address, viewer.unwrap_or(-1)], |row| {
                     Ok(WalletProfile {
                         id: row.get(0)?,
                         name: row.get(1)?,
@@ -302,7 +304,7 @@ impl Store {
 
     /// Profiles whose name holds `query`, with at least one verified
     /// wallet: exact names first, then names that start with it.
-    pub fn search_payable(&self, query: &str) -> Result<Vec<PayableProfile>> {
+    pub fn search_payable(&self, query: &str, viewer: Option<i64>) -> Result<Vec<PayableProfile>> {
         let query = query.trim().to_lowercase();
         if query.chars().count() < 2 {
             return Ok(Vec::new());
@@ -313,11 +315,12 @@ impl Store {
              WHERE lower(a.name) LIKE ?1 ESCAPE '\\'
                AND EXISTS (SELECT 1 FROM verified_wallets v WHERE v.account = a.id AND v.proven IS NOT NULL)
                AND NOT EXISTS (SELECT 1 FROM suspended s WHERE s.account = a.id)
+               AND NOT EXISTS (SELECT 1 FROM blocks b WHERE b.blocker = a.id AND b.blocked = ?5)
              ORDER BY lower(a.name) = ?2 DESC, lower(a.name) LIKE ?3 ESCAPE '\\' DESC, lower(a.name), a.id
              LIMIT ?4",
         )?;
         let found: Vec<(i64, String, Option<String>, u64)> = statement
-            .query_map(params![format!("%{escaped}%"), query, format!("{escaped}%"), MAX_FOUND as i64], |row| {
+            .query_map(params![format!("%{escaped}%"), query, format!("{escaped}%"), MAX_FOUND as i64, viewer.unwrap_or(-1)], |row| {
                 Ok((row.get(0)?, row.get(1)?, row.get(2)?, row.get::<_, i64>(3)? as u64))
             })?
             .collect::<rusqlite::Result<_>>()?;
