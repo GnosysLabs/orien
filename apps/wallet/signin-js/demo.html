@@ -37,7 +37,16 @@
       const address = OrienSignIn.verifySignIn(proof, { origin: location.origin, nonce });
       out.textContent = "Signed in as " + address + " (proof checked: " + Math.round(proof.length * 3 / 4 / 1024) + " KB)";
       const who = await OrienSignIn.profile(address).catch(() => null);
-      if (who) out.textContent += "\n\nProfile: " + who.name + (who.bio ? " (" + who.bio + ")" : "") + "\n" + who.links.map((l) => l.kind + ": " + (l.url || l.handle)).join("\n");
+      if (who) {
+        const lines = ["", "Name: " + who.name];
+        if (who.bio) lines.push("Bio: " + who.bio);
+        if (who.wallet) lines.push("Wallet: " + who.wallet);
+        if (who.picture) lines.push("Picture: " + who.picture);
+        if (who.banner) lines.push("Banner: " + who.banner);
+        lines.push("Profile: " + who.profile);
+        for (const l of who.links) lines.push(l.kind + ": " + (l.url || l.handle));
+        out.textContent += "\n" + lines.join("\n");
+      }
     } catch (error) {
       out.className = "bad"; out.textContent = error.message;
     }
