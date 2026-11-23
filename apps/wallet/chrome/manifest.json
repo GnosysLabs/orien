@@ -20,7 +20,10 @@
     }
   },
   "host_permissions": [
-    "http://127.0.0.1:47211/*"
+    "http://127.0.0.1:47211/*",
+    "https://*/*",
+    "http://localhost/*",
+    "http://127.0.0.1/*"
   ],
   "background": {
     "service_worker": "background.js"
@@ -37,7 +40,9 @@
     },
     {
       "matches": [
-        "https://orien.network/*"
+        "https://*/*",
+        "http://localhost/*",
+        "http://127.0.0.1/*"
       ],
       "js": [
         "provider.js"
@@ -47,21 +52,14 @@
     },
     {
       "matches": [
-        "https://orien.network/*"
+        "https://*/*",
+        "http://localhost/*",
+        "http://127.0.0.1/*"
       ],
       "js": [
         "relay.js"
       ],
       "run_at": "document_start"
     }
-  ],
-  "permissions": [
-    "scripting",
-    "activeTab"
-  ],
-  "optional_host_permissions": [
-    "https://*/*",
-    "http://localhost/*",
-    "http://127.0.0.1/*"
   ]
 }

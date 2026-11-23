@@ -383,44 +383,30 @@ $("view-all").onclick = async () => {
   window.close();
 };
 
-// ---- Websites: letting the one in this tab ask to sign in ----
+// ---- Websites: signing in with Orien Wallet ----
+// Chrome and Firefox give the extension every website when it's added.
+// Safari leaves it to the person: until it's on, the window says how.
 const tabsApi = globalThis.browser || globalThis.chrome;
-async function checkSite() {
-  const optional = tabsApi && tabsApi.permissions && tabsApi.runtime.getManifest().optional_host_permissions;
-  if (!optional) return;
-  const [tab] = await tabsApi.tabs.query({ active: true, currentWindow: true }).catch(() => []);
-  let url;
-  try { url = new URL(tab.url); } catch { return; }
-  const local = url.protocol === "http:" && (url.hostname === "localhost" || url.hostname === "127.0.0.1");
-  if ((url.protocol !== "https:" && !local) || url.hostname === "orien.network") return;
-  const pattern = `${url.protocol}//${url.hostname}/*`;
-  const allowed = await tabsApi.permissions.contains({ origins: [pattern] }).catch(() => false);
+const ALL_SITES = ["https://*/*", "http://localhost/*", "http://127.0.0.1/*"];
+async function checkAccess() {
+  if (!tabsApi || !tabsApi.permissions) return;
+  const on = await tabsApi.permissions.contains({ origins: ["https://*/*"] }).catch(() => true);
+  if (on) return;
   const text = $("allow-text"), go = $("allow-go");
-  text.replaceChildren();
-  const site = make("b", "", url.host);
-  if (allowed) {
-    text.append(site, " can ask to sign in with Orien Wallet.");
-    go.className = "secondary";
-    go.textContent = "Remove";
-    go.onclick = async () => { await tabsApi.permissions.remove({ origins: [pattern] }).catch(() => {}); checkSite(); };
-  } else {
-    text.append("Let ", site, " ask to sign in with Orien Wallet?");
-    go.className = "primary pearl";
-    go.textContent = "Allow";
-    // Asked straight from the click: browsers only ask the person then.
-    go.onclick = () => {
-      tabsApi.permissions.request({ origins: [pattern] }).then(async (granted) => {
-        // Safari doesn't always tell the extension's background; this does.
-        if (granted && tabsApi.runtime.sendMessage) await tabsApi.runtime.sendMessage({ ask: "sites-changed", origins: [pattern] }).catch(() => {});
-        checkSite();
-      }, () => {
-        text.replaceChildren("Allow it in your browser's extension settings: Orien Wallet, then this website.");
-        go.hidden = true;
-      });
-    };
-  }
+  text.replaceChildren(make("b", "", "Sign in to websites with Orien Wallet"), document.createElement("br"), "Let websites ask Orien Wallet to sign you in. Nothing happens until you approve it in the app.");
+  go.className = "primary pearl";
+  go.textContent = "Turn on";
+  // Asked straight from the click: browsers only ask the person then.
+  go.onclick = () => {
+    tabsApi.permissions.request({ origins: ALL_SITES }).then((granted) => {
+      if (granted) $("allow").hidden = true;
+    }, () => {
+      text.replaceChildren("In Safari: Settings, then Extensions, then Orien Wallet: allow it on every website.");
+      go.hidden = true;
+    });
+  };
   $("allow").hidden = false;
 }
-checkSite();
+checkAccess();
 
 load();

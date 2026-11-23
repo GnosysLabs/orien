@@ -21,9 +21,7 @@
     }
   },
   "permissions": [
-    "nativeMessaging",
-    "scripting",
-    "activeTab"
+    "nativeMessaging"
   ],
   "background": {
     "service_worker": "background.js"
@@ -40,7 +38,9 @@
     },
     {
       "matches": [
-        "https://orien.network/*"
+        "https://*/*",
+        "http://localhost/*",
+        "http://127.0.0.1/*"
       ],
       "js": [
         "relay.js"
@@ -60,7 +60,7 @@
       ]
     }
   ],
-  "optional_host_permissions": [
+  "host_permissions": [
     "https://*/*",
     "http://localhost/*",
     "http://127.0.0.1/*"

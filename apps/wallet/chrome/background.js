@@ -1,7 +1,7 @@
 // Passes websites' questions to Orien Wallet on this computer:
 // orien.network's sign-in page (is it running and signed in, and after a
 // click a pass that signs this browser in), and, on websites the person
-// allowed (sites.js), signing in with the wallet.
+// visits (window.orien), signing in with the wallet.
 importScripts("sites.js");
 const ORIEN = "http://127.0.0.1:47211";
 const toApp = (path, body) => fetch(`${ORIEN}/${path}`, {
@@ -11,10 +11,6 @@ const toApp = (path, body) => fetch(`${ORIEN}/${path}`, {
 }).then((answer) => answer.json());
 chrome.runtime.onMessage.addListener((message, sender, reply) => {
   if (!message) return;
-  if (message.ask === "sites-changed" && !sender.tab) {
-    syncSites().then(() => startOn(message.origins || [])).then(() => reply({ ok: true }), () => reply({ ok: false }));
-    return true;
-  }
   let asked;
   if (message.ask === "wallet") asked = toApp("wallet");
   else if (message.ask === "signin") asked = toApp("signin", {});

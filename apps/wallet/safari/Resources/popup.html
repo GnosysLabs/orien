@@ -128,13 +128,10 @@
   .tx-side .amt.received { color: var(--good); }
 
   /* Chrome and Firefox: letting the website in this tab ask to sign in. */
-  .allow { margin-top: 18px; padding: 14px 16px; border: 1px solid var(--line); border-radius: var(--radius);
-    display: flex; align-items: center; gap: 12px; }
-  .allow p { margin: 0; flex: 1; min-width: 0; font-size: 12.5px; color: var(--dim); line-height: 1.45; }
-  .allow p b { color: var(--ink); font-weight: 600; overflow-wrap: anywhere; }
-  .allow button { flex: none; height: 32px; padding: 0 14px; border-radius: 10px; font-size: 12.5px; font-weight: 600; cursor: pointer; }
-  .allow .primary { width: auto; height: 32px; }
-  .allow .secondary { width: auto; height: 32px; }
+  .allow { margin-top: 18px; padding: 16px; border: 1px solid var(--line); border-radius: var(--radius); }
+  .allow p { margin: 0; font-size: 12.5px; color: var(--dim); line-height: 1.5; }
+  .allow p b { display: inline-block; margin-bottom: 2px; color: var(--ink); font-size: 13.5px; font-weight: 600; }
+  .allow button { margin-top: 12px; height: 40px; }
 
   .done { text-align: center; padding: 6px 0 2px; }
   .tick { width: 56px; height: 56px; margin: 4px auto 16px; border-radius: 50%; display: grid; place-items: center; color: var(--pearl-ink); }
@@ -159,11 +156,11 @@
       <button class="secondary" id="copy">Copy address</button>
     </div>
     <p class="note" id="home-note" hidden></p>
+    <div class="allow" id="allow" hidden><p id="allow-text"></p><button type="button" id="allow-go"></button></div>
     <div class="recent" id="recent" hidden>
       <div class="recent-head"><span class="label">Recent</span><button class="all" id="view-all" type="button">View all</button></div>
       <div class="txs" id="txs"></div>
     </div>
-    <div class="allow" id="allow" hidden><p id="allow-text"></p><button type="button" id="allow-go"></button></div>
   </section>
 
   <!-- Wallets: switch to another of the person's wallets. -->

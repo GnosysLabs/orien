@@ -30,9 +30,7 @@
     }
   },
   "permissions": [
-    "nativeMessaging",
-    "scripting",
-    "activeTab"
+    "nativeMessaging"
   ],
   "background": {
     "scripts": [
@@ -52,7 +50,9 @@
     },
     {
       "matches": [
-        "https://orien.network/*"
+        "https://*/*",
+        "http://localhost/*",
+        "http://127.0.0.1/*"
       ],
       "js": [
         "provider.js"
@@ -62,7 +62,9 @@
     },
     {
       "matches": [
-        "https://orien.network/*"
+        "https://*/*",
+        "http://localhost/*",
+        "http://127.0.0.1/*"
       ],
       "js": [
         "relay.js"
@@ -70,7 +72,7 @@
       "run_at": "document_start"
     }
   ],
-  "optional_host_permissions": [
+  "host_permissions": [
     "https://*/*",
     "http://localhost/*",
     "http://127.0.0.1/*"
