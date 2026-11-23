@@ -1013,6 +1013,9 @@
     background: var(--surface-hover); display: grid; place-items: center; font-weight: 600; color: var(--ink); }
   .offer .avatar img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
   .offer .who { font-size: 12px; color: var(--dim); }
+  .offer .who b[data-user] { font-weight: 600; color: var(--ink); }
+  .offer-face { display: grid; cursor: pointer; }
+  .board-away { margin: 12px 4px 0; text-align: center; font-size: 12.5px; color: var(--dim); }
   .offer .deal { margin-top: 2px; font-weight: 500; }
   .offer .rate { font-size: 12px; color: var(--faint); }
   .offer button { height: 34px; padding: 0 14px; border-radius: 11px; font-weight: 600; cursor: pointer; }
@@ -5493,8 +5496,12 @@
     shownOffers = key;
     $("board-btc").textContent = [board.solUsd && `1 SOL ≈ ${fmtUsd(board.solUsd)}`, board.usd && `1 BTC ≈ ${fmtUsd(board.usd)}`].filter(Boolean).join(" · ");
     // Your own offers live under Your swaps, where you can withdraw them.
-    const offers = board.offers.filter((o) => (solOpen || o.coin !== "sol") && !(board.me && o.seller === board.me.id));
-    if (!offers.length) { list.innerHTML = '<div class="empty">No open offers right now</div>'; return; }
+    const all = board.offers.filter((o) => (solOpen || o.coin !== "sol") && !(board.me && o.seller === board.me.id));
+    // Offers from sellers whose Orien Wallet is closed can't be taken (only
+    // the seller's wallet can lock the ORN): they're left out, and counted.
+    const offers = all.filter((o) => o.seller_online !== false), away = all.length - offers.length;
+    const awayLine = away ? `<p class="board-away">${away} more offer${away === 1 ? "" : "s"} from sellers whose Orien Wallet is closed right now.</p>` : "";
+    if (!offers.length) { list.innerHTML = `<div class="empty">No open offers right now</div>${awayLine}`; return; }
     list.innerHTML = offers.map((o) => {
       const price = offerValue(o);
       const mine = board.me && o.seller === board.me.id;
@@ -5503,14 +5510,16 @@
       // buyer waiting.
       const away = !mine && o.seller_online === false;
       return `<div class="offer${away ? " away" : ""}">
-        ${avatar(o)}
-        <div><div class="who">${esc(o.seller_name)} · ${o.seller_done} swap${o.seller_done === 1 ? "" : "s"} done</div>
+        <span class="offer-face" data-user="${esc(o.seller_name || "")}">${avatar(o)}</span>
+        <div><div class="who"><b data-user="${esc(o.seller_name || "")}">${esc(o.seller_name)}</b> · ${o.seller_done} swap${o.seller_done === 1 ? "" : "s"} done</div>
           <div class="deal">${esc(fmtOrn(o.orn))} ORN for ${esc(offerPrice(o))}${esc(price.total)}</div>
           <div class="rate">${esc(price.rate)}</div></div>
         ${mine ? `<button class="withdraw" data-withdraw="${o.id}">Withdraw</button>` : away ? '<span class="offline">Seller offline</span>' : `<button class="take pearl" data-take="${o.id}">Take</button>`}
       </div>`;
-    }).join("");
+    }).join("") + awayLine;
     for (const b of list.querySelectorAll("[data-take]")) b.onclick = () => startTake(Number(b.dataset.take));
+    // A seller's name or picture opens their profile.
+    for (const u of list.querySelectorAll("[data-user]")) u.onclick = () => u.dataset.user && openPerson(u.dataset.user, "swaps");
     for (const b of list.querySelectorAll("[data-withdraw]")) b.onclick = () => withdraw(Number(b.dataset.withdraw));
   }
 
@@ -6128,13 +6137,14 @@
   });
   // A profile that won't open: it's gone, suspended, or its owner blocked you.
   const profileGone = (e) => /not found|no such|nobody/i.test(String(e)) ? "This profile isn't available." : e;
-  async function openPerson(name) {
+  async function openPerson(name, from) {
     if (!name) return;
-    const fromProfile = !$("seller").hidden;
+    const fromProfile = !from && !$("seller").hidden;
     let answer;
     try { answer = await invoke("market_call", { method: "GET", path: `/users/${encodeURIComponent(name)}`, body: null }); }
-    catch (e) { problem(fromProfile ? "sl-problem" : $("cm-thread").hidden ? "cm-problem" : "cm-thread-problem", profileGone(e)); return; }
-    if (!fromProfile) market.sellerFrom = $("cm-thread").hidden ? "community" : "cm-thread";
+    catch (e) { problem(from === "swaps" ? "board-problem" : fromProfile ? "sl-problem" : $("cm-thread").hidden ? "cm-problem" : "cm-thread-problem", profileGone(e)); return; }
+    if (from) market.sellerFrom = from;
+    else if (!fromProfile) market.sellerFrom = $("cm-thread").hidden ? "community" : "cm-thread";
     showSeller(answer);
   }
   // The first time, the Community waits behind the sunrise until it's
@@ -6583,7 +6593,7 @@
     } catch (e) { problem("sl-problem", mkProblem(e)); }
     finally { $("sl-report-send").disabled = false; }
   };
-  $("sl-back").onclick = () => market.sellerFrom === "member" ? show("member") : market.sellerFrom === "chat" ? show("chat") : market.sellerFrom === "community" || market.sellerFrom === "cm-thread" ? show(market.sellerFrom) : show("listing");
+  $("sl-back").onclick = () => market.sellerFrom === "swaps" ? show("swaps") : market.sellerFrom === "member" ? show("member") : market.sellerFrom === "chat" ? show("chat") : market.sellerFrom === "community" || market.sellerFrom === "cm-thread" ? show(market.sellerFrom) : show("listing");
 
   // ---- Market messages ----
   // When: "just now", "5 min ago", "3 h ago", else a short date.
