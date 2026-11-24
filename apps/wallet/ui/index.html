@@ -7061,7 +7061,8 @@
   function cmAuthorOf(id) {
     const all = [...cm.posts, ...sl.posts, ...(cm.thread ? [cm.thread] : []), ...[...cm.repliesOf.values()].flat()];
     const found = all.find((p) => p && p.id === id);
-    return found && found.author && found.author.id && !found.mine ? found.author : null;
+    // By name: posts carry the author's name, not their account number.
+    return found && found.author && found.author.name && !found.mine ? found.author : null;
   }
   document.addEventListener("click", (e) => {
     const more = e.target.closest("[data-more]");
@@ -7098,11 +7099,14 @@
     const who = blockWho;
     $("cm-post-menu").hidden = true;
     try {
-      await mk("POST", `/accounts/${who.id}/block`, { block: true });
+      // Their account, found by name, unless the post already says it.
+      const id = who.id || ((await mk("GET", `/users/${encodeURIComponent(who.name)}`)).account || {}).id;
+      if (!id) throw new Error("That account can't be found.");
+      await mk("POST", `/accounts/${id}/block`, { block: true });
       feel("success");
       loadBlocked();
       for (const id of cm.open) await cmLoadReplies(id);
-      if (!$("cm-thread").hidden && cm.thread) { if (cm.thread.author && cm.thread.author.id === who.id) { show("community"); cmFitRail(); } else await cmOpenThread(cm.thread.id); }
+      if (!$("cm-thread").hidden && cm.thread) { if (cm.thread.author && cm.thread.author.name === who.name) { show("community"); cmFitRail(); } else await cmOpenThread(cm.thread.id); }
       await cmLoad(false);
       if (!$("seller").hidden) await slLoadFeed(false);
     } catch (e) { problem(!$("cm-thread").hidden ? "cm-thread-problem" : $("seller").hidden ? "cm-problem" : "sl-problem", mkProblem(e)); }
