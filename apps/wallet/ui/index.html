@@ -1084,6 +1084,21 @@
   .hint.warn { color: var(--bad, #e5484d); }
   .small-link { margin: 22px auto 4px; display: flex; }
   #tab-offers .section-head { align-items: center; margin: 6px 4px 14px; }
+  .sw-side-head { display: none; }
+  /* Big windows: offers on the left; your swaps, then recent finished
+     swaps, in a column beside them. Every part shows at once, so no tabs. */
+  @media (min-width: 960px) {
+    body:not(.phone) #swaps { --col: 1040px; }
+    body:not(.phone) #swaps > .tabs { display: none; }
+    body:not(.phone) .sw-grid { display: grid; grid-template-columns: minmax(0, 1.55fr) minmax(0, 1fr); grid-template-areas: "offers mine" "offers hist";
+      grid-template-rows: auto 1fr; gap: 26px 28px; align-items: start; }
+    body:not(.phone) .sw-grid > #tab-offers { grid-area: offers; }
+    body:not(.phone) .sw-grid > #tab-mine { grid-area: mine; }
+    body:not(.phone) .sw-grid > #tab-history { grid-area: hist; }
+    body:not(.phone) .sw-grid > [hidden] { display: block !important; }
+    body:not(.phone) .sw-side-head { display: block; margin: 6px 4px 14px; font-size: 13px; font-weight: 600; color: var(--dim); line-height: 32px; }
+    body:not(.phone) .sw-grid #swap-list { overflow: visible; margin: 0; padding: 0; -webkit-mask: none; mask: none; }
+  }
   #tab-offers .section-head h3 { line-height: 32px; }
   .board-prices { margin: 14px 0 0; min-height: 0; text-align: center; }
   /* The swap screens can hold more than the window: they scroll, and
@@ -2947,6 +2962,9 @@
         <button class="tab" id="tab-history-go" role="tab">History</button>
         <button class="tab" id="tab-mine-go" role="tab">Your swaps <span id="mine-count"></span></button>
       </div>
+      <!-- Big windows: the offers on the left, your swaps and the latest
+           finished ones beside them; no tabs. -->
+      <div class="sw-grid">
       <div id="tab-offers">
         <div class="section-head"><h3>Open offers</h3><button class="pill pearl" id="board-post-go">Post an offer</button></div>
         <div id="board-offers"><div class="empty">Loading offers…</div></div>
@@ -2956,13 +2974,16 @@
       <!-- What ORN has actually swapped for: the last price, then each
            finished swap. No names: just the trades. -->
       <div id="tab-history" hidden>
+        <h3 class="sw-side-head">Recent swaps</h3>
         <div class="hist-last" id="hist-last" hidden></div>
         <div id="hist-list"><div class="empty">Loading…</div></div>
         <button class="pill mk-more" id="hist-more" hidden>Show more</button>
         <div class="problem" id="hist-problem" hidden></div>
       </div>
       <div id="tab-mine" hidden>
+        <h3 class="sw-side-head">Your swaps</h3>
         <div class="scroll" id="swap-list"><div class="empty">No swaps yet</div></div>
+      </div>
       </div>
     </section>
 
@@ -3461,6 +3482,8 @@
     const shown = $(id), col = shown && parseFloat(getComputedStyle(shown).getPropertyValue("--col"));
     document.querySelector("main").style.setProperty("--panel", (both ? 1040 : col || 640) + "px");
     if (id === "community" && typeof cmFitRail === "function") cmFitRail();
+    // A big window shows recent swaps beside the offers: fetched as it opens.
+    if (id === "swaps" && !phone && matchMedia("(min-width: 960px)").matches && typeof loadHistory === "function") loadHistory(false);
     document.body.classList.toggle("at-home", id === "home");
     if (id === "seller" && typeof slFitEdges === "function") slFitEdges();
     if (both) { $("chat").classList.toggle("none", !chat.id); paintInbox(); }
