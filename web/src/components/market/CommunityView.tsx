@@ -485,6 +485,7 @@ function Composer({
   replyTo,
   replyingTo,
   onPosted,
+  onCancel,
   autoFocus = false,
 }: {
   me: You
@@ -493,6 +494,8 @@ function Composer({
   replyTo?: number
   replyingTo?: string
   onPosted: () => void
+  /** Answering a comment: gives up the answer. */
+  onCancel?: () => void
   autoFocus?: boolean
 }) {
   const [body, setBody] = useState('')
@@ -704,6 +707,11 @@ function Composer({
             </>
           <div className="ml-auto flex items-center gap-3">
             {body.length > 0 && <span className={`num text-xs ${left < 50 ? 'text-ink' : 'text-muted'}`}>{left}</span>}
+            {onCancel && (
+              <button type="button" onClick={onCancel} className={quiet}>
+                Cancel
+              </button>
+            )}
             <button type="submit" disabled={!ready} className={pill}>
               {busy ? 'Posting…' : parent ? 'Reply' : 'Post'}
             </button>
@@ -839,7 +847,7 @@ function PollView({ post, signedIn, onChange }: { post: Post; signedIn: boolean;
   )
 }
 
-function ReactionBar({ post, signedIn, onChange }: { post: Post; signedIn: boolean; onChange: () => void }) {
+function ReactionBar({ post, signedIn, onChange, small = false }: { post: Post; signedIn: boolean; onChange: () => void; small?: boolean }) {
   const [open, setOpen] = useState(false)
   const close = useCallback(() => setOpen(false), [])
   const box = useDismiss(open, close)
@@ -869,8 +877,14 @@ function ReactionBar({ post, signedIn, onChange }: { post: Post; signedIn: boole
         </button>
       ))}
       <div ref={box} className="relative">
-        <button type="button" onClick={() => setOpen(!open)} aria-label="React" title="React" className={iconButton}>
-          <SmilePlus className="h-[18px] w-[18px]" aria-hidden />
+        <button
+          type="button"
+          onClick={() => setOpen(!open)}
+          aria-label="React"
+          title="React"
+          className={small ? 'flex h-7 w-7 items-center justify-center rounded-full text-muted transition hover:bg-raised hover:text-ink' : iconButton}
+        >
+          <SmilePlus className={small ? 'h-4 w-4' : 'h-[18px] w-[18px]'} aria-hidden />
         </button>
         {open && (
           <div className="absolute bottom-10 left-0 z-20 flex gap-1 rounded-full border border-line bg-surface p-1 shadow-2xl shadow-black/50">
@@ -958,6 +972,8 @@ function Reply({
   post,
   me,
   onChange,
+  answering = false,
+  onAnswer = () => undefined,
   small = false,
 }: {
   reply: Post
@@ -965,19 +981,23 @@ function Reply({
   post: number
   me: You | null
   onChange: () => void
+  /** Whether this comment is being answered, and turning that on or off. */
+  answering?: boolean
+  onAnswer?: (on: boolean) => void
   small?: boolean
 }) {
-  const [answering, setAnswering] = useState(false)
   return (
-    <div className={small ? 'pt-3' : 'py-3'}>
+    <div className={small ? 'pt-3' : 'py-2'}>
     <div className="flex gap-3">
       {reply.author && <Avatar name={reply.author.name} picture={reply.author.picture} size={small ? 24 : 32} />}
       <div className="min-w-0 flex-1">
-        <div className="flex items-start gap-2">
-          <p className="min-w-0 flex-1 truncate text-[15px]">
+        <div className="flex items-center gap-2">
+          <p className="min-w-0 flex-1 truncate text-[15px] leading-6">
             {reply.author && <Name person={reply.author} />} <span className="text-muted">· {since(reply.created)}</span>
           </p>
-          <PostMenu post={reply} signedIn={!!me} onRemoved={onChange} />
+          <div className="-my-1 shrink-0">
+            <PostMenu post={reply} signedIn={!!me} onRemoved={onChange} />
+          </div>
         </div>
         <p className="whitespace-pre-line break-words text-[15px] leading-relaxed text-ink">
           <Linked text={reply.body} />
@@ -991,22 +1011,22 @@ function Reply({
           </div>
         )}
         {reply.link && <LinkCard link={reply.link} />}
-        <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-2">
+        <div className={`mt-1 flex flex-wrap items-center gap-x-2 gap-y-2 ${small && reply.reactions.length === 0 ? '-ml-1.5' : ''}`}>
           {me?.verified && !small && (
             <button
               type="button"
-              onClick={() => setAnswering(!answering)}
-              className={`-ml-2 flex h-8 items-center gap-1.5 rounded-full px-2 text-sm font-semibold transition hover:bg-raised hover:text-ink ${answering ? 'text-ink' : 'text-muted'}`}
+              onClick={() => onAnswer(!answering)}
+              className={`-ml-2 flex h-7 items-center gap-1 rounded-full px-2 text-[13px] font-semibold transition hover:bg-raised hover:text-ink ${answering ? 'text-ink' : 'text-muted'}`}
             >
-              <MessageCircle className="h-4 w-4" aria-hidden /> Reply
+              <MessageCircle className="h-3.5 w-3.5" aria-hidden /> Reply
             </button>
           )}
-          <ReactionBar post={reply} signedIn={!!me} onChange={onChange} />
+          <ReactionBar post={reply} signedIn={!!me} onChange={onChange} small />
         </div>
       </div>
     </div>
       {(answers.length > 0 || answering) && (
-        <div className="ml-11 border-l border-line pl-4">
+        <div className="ml-11">
           {answers.map((answer) => (
             <Reply key={answer.id} reply={answer} post={post} me={me} onChange={onChange} small />
           ))}
@@ -1018,8 +1038,9 @@ function Reply({
                 replyTo={reply.id}
                 replyingTo={reply.author?.name}
                 autoFocus
+                onCancel={() => onAnswer(false)}
                 onPosted={() => {
-                  setAnswering(false)
+                  onAnswer(false)
                   onChange()
                 }}
               />
@@ -1044,6 +1065,9 @@ function threaded(replies: Post[]): { reply: Post; answers: Post[] }[] {
 
 function PostCard({ post, me, onChange, startOpen = false }: { post: Post; me: You | null; onChange: () => void; startOpen?: boolean }) {
   const [open, setOpen] = useState(startOpen)
+  // The comment being answered: while there is one, the post's own reply
+  // box steps aside.
+  const [answering, setAnswering] = useState<number | null>(null)
   const [replies, setReplies] = useState<Post[] | null>(null)
   const network = post.kind !== 'post'
   const banner = network ? null : post.author?.banner
@@ -1141,16 +1165,25 @@ function PostCard({ post, me, onChange, startOpen = false }: { post: Post; me: Y
         </div>
 
         {open && (
-          <div className="mt-3 border-t border-line">
-            <div className="divide-y divide-line">
+          <div className="mt-2">
+            <div>
               {replies &&
                 threaded(replies).map(({ reply, answers }) => (
-                  <Reply key={reply.id} reply={reply} answers={answers} post={post.id} me={me} onChange={changed} />
+                  <Reply
+                    key={reply.id}
+                    reply={reply}
+                    answers={answers}
+                    post={post.id}
+                    me={me}
+                    onChange={changed}
+                    answering={answering === reply.id}
+                    onAnswer={(on) => setAnswering(on ? reply.id : null)}
+                  />
                 ))}
             </div>
-            <div className="pt-3">
+            <div className="pt-2">
               {me?.verified ? (
-                <Composer me={me} parent={post.id} autoFocus onPosted={changed} />
+                answering === null && <Composer me={me} parent={post.id} autoFocus onPosted={changed} />
               ) : (
                 <p className="text-sm text-muted">
                   <Link href="/account/" className="font-semibold text-ink hover:underline">
