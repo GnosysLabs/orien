@@ -1713,9 +1713,13 @@
   .cm-chip:hover { color: var(--ink); }
   .cm-chip.on { border-color: var(--select); color: var(--ink); background: var(--surface-hover); }
   .cm-chip svg { width: 16px; height: 16px; }
-  .cm-picker { display: inline-flex; gap: 2px; padding: 2px; border: 1px solid var(--line); border-radius: 999px; background: var(--surface); }
+  .cm-foot { position: relative; }
+  .cm-picker { position: absolute; z-index: 6; display: inline-flex; gap: 2px; padding: 3px; border: 1px solid var(--line); border-radius: 999px;
+    background: var(--surface-hover); box-shadow: 0 10px 28px #00000066; animation: picker-in .14s ease-out; }
+  @keyframes picker-in { from { opacity: 0; transform: translateY(4px) scale(.96); } }
+  .cm-chip.open { color: var(--ink); background: var(--surface-hover); }
   .cm-picker button { width: 32px; height: 32px; border: 0; border-radius: 50%; background: transparent; font-size: 17px; cursor: pointer; }
-  @media (hover: hover) { .cm-picker button:hover { background: var(--surface-hover); } }
+  @media (hover: hover) { .cm-picker button:hover { background: rgba(var(--tint), 0.1); } }
   .cm-picker button:focus:not(:focus-visible) { outline: none; }
   .cm-video { position: relative; margin-top: 12px; aspect-ratio: 16 / 9; overflow: hidden; border: 1px solid var(--line); border-radius: 14px; background: #000; }
   .cm-video iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
@@ -1738,7 +1742,7 @@
   .cm-chip.bare { border-color: transparent; }
   .cm-reply-main .cm-foot:has(> .cm-chip:not(.bare):first-child) { margin-left: 0; }
   @media (hover: hover) { .cm-chip.bare:hover { background: var(--surface-hover); } }
-  .cm-reply-main .cm-picker button { width: 26px; height: 26px; font-size: 14px; }
+  .cm-reply-main .cm-picker button { width: 30px; height: 30px; font-size: 16px; }
   /* Answers to a reply: under it, in line with its words, smaller faces. */
   .cm-sub { margin: 4px 0 0 45px; }
   .cm-sub .cm-reply-row { padding-top: 10px; }
@@ -6790,14 +6794,20 @@
       return;
     }
     if (t.dataset.pick) {
-      // The five reactions, in place of the button; a tap anywhere else puts
-      // it back. One open at a time.
+      // The five reactions, floating just above the button so nothing
+      // around it moves; a tap anywhere else closes them. One open at a time.
+      // A tap on the same button while they're open just closes them.
+      if (Date.now() - (t.closedAt || 0) < 400) return;
       cmClosePickers();
       const picker = document.createElement("span");
       picker.className = "cm-picker";
       picker.innerHTML = cm.reactions.map((r) => `<button data-emoji-pick="${t.dataset.pick}"${t.dataset.parent ? ` data-parent="${t.dataset.parent}"` : ""} data-emoji="${esc(r)}">${esc(r)}</button>`).join("");
       picker.was = t;
-      t.replaceWith(picker);
+      const foot = t.parentElement;
+      foot.appendChild(picker);
+      picker.style.left = Math.max(0, Math.min(t.offsetLeft, foot.clientWidth - picker.offsetWidth)) + "px";
+      picker.style.top = (t.offsetTop - picker.offsetHeight - 6) + "px";
+      t.classList.add("open");
       t.blur();
       return;
     }
@@ -6818,7 +6828,11 @@
     if (!$("seller").hidden) slLoadFeed(false);
   }
   function cmClosePickers(except) {
-    for (const p of document.querySelectorAll(".cm-picker")) if (p !== except && p.was) p.replaceWith(p.was);
+    for (const p of document.querySelectorAll(".cm-picker")) {
+      if (p === except) continue;
+      if (p.was) { p.was.classList.remove("open"); p.was.closedAt = Date.now(); }
+      p.remove();
+    }
   }
   document.addEventListener("pointerdown", (e) => {
     const inside = e.target.closest && e.target.closest(".cm-picker");
