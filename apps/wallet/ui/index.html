@@ -476,6 +476,9 @@
      so nothing below moves as it changes. Computers only: iPhones swipe
      back from the edge instead. */
   body:not(.phone) .screen > .topline { position: sticky; top: 6px; z-index: 6; transition: background .2s, box-shadow .2s; }
+  /* Not Messages beside a chat: those headers sit flush at the top, and
+     neither half scrolls as a whole. */
+  body.split :is(#inbox, #chat) > .topline { position: static; }
   body:not(.phone) .screen > .topline.stuck { border-radius: 999px; width: fit-content; max-width: calc(100% - 12px); padding: 0 18px 0 2px;
     background: var(--glass); -webkit-backdrop-filter: blur(24px) saturate(1.6); backdrop-filter: blur(24px) saturate(1.6);
     box-shadow: inset 0 0 0 0.5px rgba(var(--tint), 0.16), 0 10px 28px rgba(0, 0, 0, 0.35); }
