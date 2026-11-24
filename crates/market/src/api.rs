@@ -443,6 +443,13 @@ pub fn router(app: Arc<App>) -> Router {
         .route("/api/market/conversations/{id}/paid", post(mark_paid))
         .route("/api/market/images/{name}", get(picture))
         .route("/api/market/vault/{id}", get(read_vault).put(write_vault))
+        .route(
+            "/api/market/vault/{id}/pictures/{picture}",
+            get(read_vault_picture)
+                .put(write_vault_picture)
+                .delete(delete_vault_picture)
+                .layer(axum::extract::DefaultBodyLimit::max(3 * 1024 * 1024)),
+        )
         .route("/api/market/listings", get(browse).post(post_listing))
         .route("/api/market/listings/{id}", get(listing).put(edit_listing))
         .route("/api/market/listings/{id}/open", post(open_listing))
@@ -1474,6 +1481,10 @@ async fn lookup_wallets(State(app): State<Arc<App>>, headers: HeaderMap, Json(re
 /// A wallet's vault: sealed bytes, base64.
 async fn read_vault(State(app): State<Arc<App>>, Path(id): Path<String>) -> Answer {
     let found = app.store().vault(&id).map_err(refused)?.ok_or(Failure::NotFound)?;
+    // Started by a picture, not yet written: nothing to give.
+    if found.0.is_empty() {
+        return Err(Failure::NotFound);
+    }
     use base64::Engine;
     let blob = base64::engine::general_purpose::STANDARD.encode(&found.0);
     Ok(Json(json!({ "blob": blob, "updated": found.1 })).into_response())
@@ -1492,6 +1503,44 @@ async fn write_vault(State(app): State<Arc<App>>, Path(id): Path<String>, Json(b
         .map_err(|_| Failure::Refused("the vault's contents are not base64".into()))?;
     app.store().put_vault(&id, &body.token, &blob).map_err(refused)?;
     Ok(Json(json!({ "ok": true })).into_response())
+}
+
+#[derive(Deserialize)]
+struct VaultToken {
+    token: String,
+}
+
+/// A sealed picture beside a wallet's vault, base64: for its token's holder.
+async fn read_vault_picture(
+    State(app): State<Arc<App>>,
+    Path((id, picture)): Path<(String, String)>,
+    Query(given): Query<VaultToken>,
+) -> Answer {
+    let found = app.store().vault_picture(&id, &given.token, &picture).map_err(refused)?.ok_or(Failure::NotFound)?;
+    use base64::Engine;
+    Ok(Json(json!({ "blob": base64::engine::general_purpose::STANDARD.encode(&found) })).into_response())
+}
+
+async fn write_vault_picture(
+    State(app): State<Arc<App>>,
+    Path((id, picture)): Path<(String, String)>,
+    Json(body): Json<VaultWrite>,
+) -> Answer {
+    use base64::Engine;
+    let blob = base64::engine::general_purpose::STANDARD
+        .decode(body.blob.as_bytes())
+        .map_err(|_| Failure::Refused("the picture is not base64".into()))?;
+    app.store().put_vault_picture(&id, &body.token, &picture, &blob).map_err(refused)?;
+    Ok(Json(json!({ "ok": true })).into_response())
+}
+
+async fn delete_vault_picture(
+    State(app): State<Arc<App>>,
+    Path((id, picture)): Path<(String, String)>,
+    Json(body): Json<VaultToken>,
+) -> Answer {
+    let gone = app.store().delete_vault_picture(&id, &body.token, &picture).map_err(refused)?;
+    Ok(Json(json!({ "deleted": gone })).into_response())
 }
 
 #[derive(Deserialize)]
