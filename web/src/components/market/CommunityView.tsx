@@ -5,6 +5,7 @@ import { useSearchParams } from 'next/navigation'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import {
   ArrowLeft,
+  Ban,
   BadgeCheck,
   CheckCircle2,
   Coins,
@@ -930,52 +931,100 @@ function Tips({ tips }: { tips: { count: number; orn: number } }) {
   )
 }
 
-/** The "…" menu on a post: delete your own, report another's. */
-function PostMenu({ post, signedIn, onRemoved }: { post: Post; signedIn: boolean; onRemoved: () => void }) {
+/** On a post, as in Orien Wallet: your own has a red bin that deletes it
+ * (after asking); someone else's has a round "…" button for reporting it
+ * or blocking them. In a comment (`small`) both are a size smaller, and the
+ * "…" is quieter: there's no banner behind it. */
+function PostMenu({ post, signedIn, onRemoved, small = false }: { post: Post; signedIn: boolean; onRemoved: () => void; small?: boolean }) {
   const [open, setOpen] = useState(false)
   const [reporting, setReporting] = useState(false)
+  const [blockArmed, setBlockArmed] = useState(false)
   const close = useCallback(() => {
     setOpen(false)
     setReporting(false)
+    setBlockArmed(false)
   }, [])
   const box = useDismiss(open || reporting, close)
   if (post.kind !== 'post') return null
+  const size = small ? 'h-7 w-7' : 'h-8 w-8'
+  if (post.mine) {
+    return (
+      <button
+        type="button"
+        aria-label="Delete"
+        title="Delete"
+        onClick={async () => {
+          if (!confirm('Delete this post?')) return
+          await ask(`/community/posts/${post.id}`, 'DELETE').catch(() => undefined)
+          onRemoved()
+        }}
+        className={`${size} grid shrink-0 place-items-center rounded-full bg-[#e5484d] text-[#1b1113] shadow-[0_2px_8px_rgba(0,0,0,0.25)] transition hover:brightness-110`}
+      >
+        <Trash2 className={small ? 'h-3.5 w-3.5' : 'h-[15px] w-[15px]'} strokeWidth={2.3} aria-hidden />
+      </button>
+    )
+  }
+  const who = post.author?.name
+  const block = async () => {
+    if (!signedIn) {
+      close()
+      openSignIn()
+      return
+    }
+    if (!blockArmed) {
+      setBlockArmed(true)
+      return
+    }
+    close()
+    // Their account, found by name: posts carry the name, not the number.
+    const found = await ask<{ account: { id: number } }>(`/users/${encodeURIComponent(who ?? '')}`).catch(() => null)
+    if (!found) return
+    await ask(`/accounts/${found.account.id}/block`, 'POST', { block: true }).catch(() => undefined)
+    onRemoved()
+  }
   return (
     <div ref={box} className="relative">
-      <button type="button" onClick={() => setOpen(!open)} aria-label="More" className={iconButton}>
-        <MoreHorizontal className="h-[18px] w-[18px]" aria-hidden />
+      <button
+        type="button"
+        onClick={() => {
+          setOpen(!open)
+          setBlockArmed(false)
+        }}
+        aria-label="More"
+        title="More"
+        className={`${size} grid shrink-0 place-items-center rounded-full border transition ${
+          small
+            ? 'border-line bg-transparent text-muted hover:text-ink'
+            : 'frosted border-white/15 text-ink hover:bg-raised'
+        }`}
+      >
+        <MoreHorizontal className="h-4 w-4" aria-hidden />
       </button>
       {open && (
-        <div className="absolute right-0 top-9 z-20 w-44 overflow-hidden rounded-xl border border-line bg-surface p-1 shadow-2xl shadow-black/50">
-          {post.mine ? (
+        <div className="absolute right-0 top-10 z-20 w-52 overflow-hidden rounded-xl border border-line bg-surface p-1 shadow-2xl shadow-black/50">
+          <button
+            type="button"
+            onClick={() => {
+              setOpen(false)
+              setReporting(true)
+            }}
+            className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-left text-sm font-semibold text-ink transition hover:bg-raised"
+          >
+            <Flag className="h-4 w-4" aria-hidden /> Report
+          </button>
+          {who && (
             <button
               type="button"
-              onClick={async () => {
-                setOpen(false)
-                if (!confirm('Delete this post?')) return
-                await ask(`/community/posts/${post.id}`, 'DELETE').catch(() => undefined)
-                onRemoved()
-              }}
-              className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-semibold text-stop transition hover:bg-raised"
+              onClick={() => void block()}
+              className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-left text-sm font-semibold text-stop transition hover:bg-raised"
             >
-              <Trash2 className="h-4 w-4" aria-hidden /> Delete
-            </button>
-          ) : (
-            <button
-              type="button"
-              onClick={() => {
-                setOpen(false)
-                setReporting(true)
-              }}
-              className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-semibold text-ink transition hover:bg-raised"
-            >
-              <Flag className="h-4 w-4" aria-hidden /> Report
+              <Ban className="h-4 w-4 shrink-0" aria-hidden /> {blockArmed ? `Block ${who}? Click again` : `Block ${who}`}
             </button>
           )}
         </div>
       )}
       {reporting && (
-        <div className="absolute right-0 top-9 z-20 w-80 max-w-[calc(100vw-3rem)] rounded-xl border border-line bg-surface p-2 shadow-2xl shadow-black/50">
+        <div className="absolute right-0 top-10 z-20 w-80 max-w-[calc(100vw-3rem)] rounded-xl border border-line bg-surface p-2 shadow-2xl shadow-black/50">
           <ReportButton kind="post" id={post.id} what={post.parent ? 'this reply' : 'this post'} signedIn={signedIn} />
         </div>
       )}
@@ -1015,7 +1064,7 @@ function Reply({
             {reply.author && <Name person={reply.author} />} <span className="text-muted">· {since(reply.created)}</span>
           </p>
           <div className="-my-1 shrink-0">
-            <PostMenu post={reply} signedIn={!!me} onRemoved={onChange} />
+            <PostMenu post={reply} signedIn={!!me} onRemoved={onChange} small />
           </div>
         </div>
         <p className="whitespace-pre-line break-words text-[15px] leading-relaxed text-ink">
