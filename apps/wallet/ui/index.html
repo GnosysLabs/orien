@@ -1769,6 +1769,11 @@
   .face { position: relative; overflow: hidden; flex: none; display: inline-grid; place-items: center;
     width: 32px; height: 32px; border-radius: 50%; background: var(--surface-hover); color: var(--ink); font-weight: 600; font-size: 13px; }
   .face.emoji { font: 17px/1 system-ui, "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif; }
+  .face.official { background: var(--pearl); background-size: 300% 100%; animation: drift 24s linear infinite; }
+  .face.official .mark { width: 58%; height: 58%; margin: 0; background: var(--pearl-ink); }
+  .off-tag { display: inline-flex; align-items: center; gap: 3px; margin-left: 6px; padding: 1px 7px 1px 6px; border-radius: 999px; vertical-align: 1px;
+    background: var(--pearl); background-size: 300% 100%; animation: drift 24s linear infinite; color: var(--pearl-ink); font-size: 10.5px; font-weight: 700; line-height: 15px; }
+  .off-tag svg { flex: none; }
   .face img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
   body.phone .tx .face { width: 36px; height: 36px; }
   .chosen { align-items: center; }
@@ -3245,7 +3250,16 @@
   }
   // The circle for an address: its profile picture over the first letter
   // of `name`.
+  // Orien's own wallets, recognised by the app itself rather than by a
+  // profile anyone could copy: the name, the coin as their picture, and an
+  // Official mark. Verifying a wallet (here or for the Discord role) pays
+  // the Market's wallet.
+  const OFFICIAL = { "74fa1ab82c45ebeed539b03146243ddfc6f0ccb5163f45ea87d21692ba774b7a": "Orien Verify" };
+  const official = (address) => (address && OFFICIAL[address.toLowerCase()]) || null;
+  const officialTag = (address) => official(address)
+    ? '<span class="off-tag"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>Official</span>' : "";
   function face(address, name) {
+    if (official(address)) return '<span class="face official"><span class="mark"></span></span>';
     const p = profileOf(address);
     const initial = esc((name || (p && p.name) || "?").slice(0, 1).toUpperCase());
     const img = p && p.picture ? picImg(p.picture) : "";
@@ -4476,9 +4490,9 @@
     $("to").hidden = chosen;
     $("to-chosen").hidden = !chosen;
     if (chosen && !profiles.has(lower)) loadProfiles([lower]).then((found) => found && validate());
-    const pic = chosen && profileOf(lower) && profileOf(lower).picture ? face(lower, who) : "";
+    const pic = chosen && (official(lower) || (profileOf(lower) && profileOf(lower).picture)) ? face(lower, who) : "";
     $("to-chosen").innerHTML = !chosen ? "" : who
-      ? `${pic}<span class="who">${esc(who)}</span><span class="addr">${short(lower)}</span>`
+      ? `${pic}<span class="who">${esc(who)}</span>${officialTag(lower)}<span class="addr">${short(lower)}</span>`
       : `<span class="addr solo">${short(lower)}</span>`;
     $("paste").textContent = chosen ? "Clear" : "Paste";
     $("scan-to").hidden = chosen;
@@ -4553,7 +4567,7 @@
   // A contact's name, or the name of one of the person's own wallets.
   // Your own wallets by your names for them; anyone with a Market profile by
   // that profile, as they made it; else the name you saved.
-  const nameOf = (address) => (walletList.find((w) => w.address === address) || {}).name || profileLabel(profileOf(address)) || (named(address) || {}).name;
+  const nameOf = (address) => official(address) || (walletList.find((w) => w.address === address) || {}).name || profileLabel(profileOf(address)) || (named(address) || {}).name;
   // The person's other wallets, as places to send to.
   const ownWallet = (address) => walletList.find((w) => w.address === address && !w.current);
   // As a name is typed: contacts and other wallets whose name (or the start
@@ -4812,9 +4826,9 @@
     const who = e.counterparty && nameOf(e.counterparty);
     const party = e.counterparty && (who ? esc(who) : short(e.counterparty));
     const [title, sub] = sent
-      ? ["Sent", party ? "To " + party : "Sent from another app"]
+      ? ["Sent", party ? "To " + party + officialTag(e.counterparty) : "Sent from another app"]
       : {
-          payment: ["Received", party ? "From " + party : "Payment"],
+          payment: ["Received", party ? "From " + party + officialTag(e.counterparty) : "Payment"],
           claim: ["Received", party ? "Locked payment from " + party : "Locked payment"],
           refund: ["Refunded", "A locked payment nobody claimed"],
           fees: ["Validator fees", "Your share of the hour's fees"],
@@ -4823,7 +4837,7 @@
         // Worked out from the balance, with no record in the network's
         // history: often mining rewards from before validators kept one.
         }[e.kind] || ["Received", party ? "From " + party : "Not in the network's history"];
-    const pic = e.counterparty && profileOf(e.counterparty) && profileOf(e.counterparty).picture;
+    const pic = e.counterparty && (official(e.counterparty) || (profileOf(e.counterparty) && profileOf(e.counterparty).picture));
     return `<div class="tx" title="${e.counterparty || ""}">
       ${pic ? face(e.counterparty, who) : `<span class="tx-icon ${e.direction}">${ICON[e.direction]}</span>`}
       <div class="tx-main"><div class="title">${title}</div><div class="sub">${sub}</div></div>
