@@ -1673,9 +1673,7 @@
   .cm-media.n2, .cm-media.n3, .cm-media.n4 { grid-template-columns: 1fr 1fr; aspect-ratio: 16 / 9; }
   .cm-media.n3, .cm-media.n4 { grid-template-rows: 1fr 1fr; }
   .cm-media.n3 > :first-child { grid-row: span 2; }
-  /* Each GIF on its own layer: it plays on there, untouched when the screen
-     around it repaints as it scrolls. */
-  .cm-media.cm-gif img { cursor: default; transform: translateZ(0); }
+  .cm-media.cm-gif img { cursor: default; }
   .cm-gif-tag { position: absolute; left: 10px; bottom: 10px; padding: 2px 6px; border-radius: 6px; background: rgba(0, 0, 0, 0.6);
     color: #fff; font-size: 11px; font-weight: 700; letter-spacing: 0.04em; overflow: visible; }
   .cm-attach .cm-media { margin-top: 4px; }
@@ -6910,13 +6908,34 @@
     try { cm.repliesOf.set(id, (await cmCall("GET", `/posts/${id}`)).replies || []); }
     catch (e) { cm.repliesOf.set(id, []); problem("cm-problem", e); }
   }
+  // Paints a list of posts again, keeping the pictures already showing: a
+  // picture made anew (a GIF above all) shows blank until it has loaded
+  // again, so a repaint would make every one of them flash.
+  function paintKeeping(box, html) {
+    const old = new Map();
+    for (const img of box.querySelectorAll("img[src]")) {
+      const k = img.getAttribute("src");
+      if (!old.has(k)) old.set(k, []);
+      old.get(k).push(img);
+    }
+    const t = document.createElement("template");
+    t.innerHTML = html;
+    for (const img of t.content.querySelectorAll("img[src]")) {
+      const keep = old.get(img.getAttribute("src"))?.shift();
+      if (!keep) continue;
+      for (const a of [...keep.attributes]) if (!img.hasAttribute(a.name)) keep.removeAttribute(a.name);
+      for (const a of img.attributes) if (keep.getAttribute(a.name) !== a.value) keep.setAttribute(a.name, a.value);
+      img.replaceWith(keep);
+    }
+    box.replaceChildren(t.content);
+  }
   function cmPaintFeed() {
     // A post opened from a notification, as on the website: that post alone,
     // its comments open, however old it is, titled Post.
     const pin = cm.pinned ? cm.posts.find((p) => p.id === cm.pinned.id) || cm.pinned : null;
     $("community").classList.toggle("focus", !!pin);
     $("cm-title").textContent = pin ? "Post" : "Community";
-    $("cm-feed").innerHTML = pin ? cmCard(pin) : cm.posts.length ? cm.posts.map((p) => cmCard(p)).join("") : '<div class="cm-empty">Nothing here yet.</div>';
+    paintKeeping($("cm-feed"), pin ? cmCard(pin) : cm.posts.length ? cm.posts.map((p) => cmCard(p)).join("") : '<div class="cm-empty">Nothing here yet.</div>');
     $("cm-more").hidden = !cm.more;
     cmFitRail();
     // A profile's posts open, react and reply the same way.
@@ -7672,7 +7691,9 @@
       Promise.resolve(load()).finally(() => { busy = false; });
     }, { passive: true });
   }
-  moreOnScroll("community", () => cm.more, () => cmLoad(true));
+  // Not behind a post opened on its own: nothing more shows there, and
+  // loading would only repaint it.
+  moreOnScroll("community", () => cm.more && !cm.pinned, () => cmLoad(true));
   async function cmJoin() {
     if (cm.you) { await loadBoard(); openProfile(); return; }
     signinReturn = "community"; resetSignin(); show("board-signin");
@@ -7828,7 +7849,7 @@
   };
   function slPaintFeed() {
     const none = sl.only === "people" ? `${esc(sl.name)} hasn’t posted yet.` : sl.only === "network" ? "Nothing from the network about them yet." : "Nothing in the community yet.";
-    $("sl-feed").innerHTML = sl.posts.length ? sl.posts.map((p) => cmCard(p)).join("") : `<div class="cm-empty cm-box">${none}</div>`;
+    paintKeeping($("sl-feed"), sl.posts.length ? sl.posts.map((p) => cmCard(p)).join("") : `<div class="cm-empty cm-box">${none}</div>`);
     $("sl-feed-more").hidden = !sl.more;    slFitEdges();
   }
   $("sl-feed-more").onclick = () => slLoadFeed(true);
