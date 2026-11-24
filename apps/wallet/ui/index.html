@@ -797,6 +797,10 @@
   .sl-since { text-align: center; font-size: 13px; color: var(--dim); margin-top: 6px; }
   .sl-bio { margin: 12px 0 0; white-space: pre-line; overflow-wrap: anywhere; -webkit-user-select: text; user-select: text; text-align: center; color: var(--dim); font-size: 14.5px; line-height: 1.55; }
   .sl-contact { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin-top: 16px; }
+  /* Over a banner: the words a shade brighter, with a soft halo of the
+     card's own colour behind them, so any picture stays behind them. */
+  .sl-hero.banner :is(.sl-name, .sl-since, .sl-bio) { text-shadow: 0 0 2px var(--surface), 0 0 8px var(--surface), 0 0 18px var(--surface), 0 0 30px var(--surface); }
+  .sl-hero.banner :is(.sl-since, .sl-bio) { color: color-mix(in srgb, var(--ink) 82%, var(--surface)); }
   .sl-contact:empty { display: none; }
   .sl-chip { display: inline-flex; align-items: center; gap: 8px; height: 38px; padding: 0 14px; border: 1px solid var(--line); border-radius: 12px;
     background: var(--ground-deep); color: var(--ink); font: inherit; font-size: 13px; font-weight: 600; cursor: pointer; max-width: 100%; }
