@@ -1519,23 +1519,33 @@ export function MiningCard({ stats }: { stats: Stats }) {
 }
 
 /** Someone's part of the community, on their profile: their own posts, and
- * the network's posts that name them. */
+ * the network's posts that name them, with tabs for all, theirs alone, or
+ * the network's alone. */
 export function ProfileFeed({ name }: { name: string }) {
+  const [tab, setTab] = useState<Tab>('all')
   const [posts, setPosts] = useState<Post[] | null>(null)
   const [more, setMore] = useState(false)
   const [you, setYou] = useState<You | null>(null)
   const live = useMe()
+  // The latest feed asked for; an answer for an earlier tab is dropped.
+  const latest = useRef('')
   const path = useCallback(
-    (before?: number) => `/community/feed?about=${encodeURIComponent(name)}&kinds=${KINDS}${before ? `&before=${before}` : ''}`,
-    [name],
+    (before?: number) =>
+      `/community/feed?about=${encodeURIComponent(name)}&kinds=${KINDS}${tab !== 'all' ? `&only=${tab}` : ''}${before ? `&before=${before}` : ''}`,
+    [name, tab],
   )
   const reload = useCallback(() => {
-    ask<{ posts: Post[]; more: boolean }>(path())
+    const asked = path()
+    latest.current = asked
+    ask<{ posts: Post[]; more: boolean }>(asked)
       .then((found) => {
+        if (latest.current !== asked) return
         setPosts(found.posts)
         setMore(found.more)
       })
-      .catch(() => setPosts([]))
+      .catch(() => {
+        if (latest.current === asked) setPosts([])
+      })
     ask<{ you: You | null }>('/community/board')
       .then((found) => setYou(found.you))
       .catch(() => undefined)
@@ -1546,19 +1556,43 @@ export function ProfileFeed({ name }: { name: string }) {
   const older = async () => {
     const last = posts?.[posts.length - 1]
     if (!last) return
+    const asked = latest.current
     const found = await ask<{ posts: Post[]; more: boolean }>(path(last.id)).catch(() => null)
-    if (found) {
+    if (found && latest.current === asked) {
       setPosts([...(posts ?? []), ...found.posts])
       setMore(found.more)
     }
   }
-  if (posts === null) return <p className="px-1 text-sm text-muted">Loading…</p>
-  if (posts.length === 0) {
-    return <p className={`${card} px-5 py-8 text-center text-sm text-muted`}>Nothing in the community yet.</p>
-  }
+  const tabs: [Tab, string][] = [
+    ['all', 'All'],
+    ['people', name],
+    ['network', 'Network'],
+  ]
+  const empty =
+    tab === 'people' ? `${name} hasn’t posted yet.` : tab === 'network' ? 'Nothing from the network about them yet.' : 'Nothing in the community yet.'
   return (
     <div className="space-y-3">
-      {posts.map((post) => (
+      <div className={`${card} flex overflow-hidden`}>
+        {tabs.map(([key, label]) => (
+          <button
+            key={key}
+            type="button"
+            onClick={() => {
+              // The tab already open: fresh posts, without emptying it.
+              if (key === tab) return void reload()
+              setTab(key)
+              setPosts(null)
+            }}
+            className={`relative min-w-0 flex-1 px-3 py-3 text-sm font-semibold transition hover:bg-raised/40 ${tab === key ? 'text-ink' : 'text-muted'}`}
+          >
+            <span className="block truncate">{label}</span>
+            {tab === key && <span className="absolute inset-x-1/3 bottom-0 h-1 rounded-full bg-pearl" aria-hidden />}
+          </button>
+        ))}
+      </div>
+      {posts === null && <p className="px-1 text-sm text-muted">Loading…</p>}
+      {posts?.length === 0 && <p className={`${card} px-5 py-8 text-center text-sm text-muted`}>{empty}</p>}
+      {posts?.map((post) => (
         <PostCard key={post.id} post={post} me={you} onChange={reload} />
       ))}
       {more && (
