@@ -1673,7 +1673,9 @@
   .cm-media.n2, .cm-media.n3, .cm-media.n4 { grid-template-columns: 1fr 1fr; aspect-ratio: 16 / 9; }
   .cm-media.n3, .cm-media.n4 { grid-template-rows: 1fr 1fr; }
   .cm-media.n3 > :first-child { grid-row: span 2; }
-  .cm-media.cm-gif img { cursor: default; }
+  /* Each GIF on its own layer: it plays on there, untouched when the screen
+     around it repaints as it scrolls. */
+  .cm-media.cm-gif img { cursor: default; transform: translateZ(0); }
   .cm-gif-tag { position: absolute; left: 10px; bottom: 10px; padding: 2px 6px; border-radius: 6px; background: rgba(0, 0, 0, 0.6);
     color: #fff; font-size: 11px; font-weight: 700; letter-spacing: 0.04em; overflow: visible; }
   .cm-attach .cm-media { margin-top: 4px; }
@@ -6983,6 +6985,13 @@
   });
   // The sidebar ends just above the window's foot wherever it sits: lower
   // down before the feed is scrolled, at the top once it sticks.
+  // Sizes set while scrolling are written only when they change: rewriting
+  // them every frame repaints the whole scrolling screen, and animated GIFs
+  // in it flicker as it does.
+  function setVar(el, name, px) {
+    const v = `${Math.round(px)}px`;
+    if (el.style.getPropertyValue(name) !== v) el.style.setProperty(name, v);
+  }
   function cmFitRail() {
     // The sidebar sits beside the feed, or beside a post open on its own.
     const rail = document.querySelector(".cm-rail");
@@ -6993,11 +7002,11 @@
     // feed shorter than the window (one post from a notification) doesn't
     // cut the sidebar short.
     const feedEnd = main.offsetHeight < box.height ? Infinity : main.getBoundingClientRect().bottom;
-    rail.style.setProperty("--rail-h", Math.max(200, Math.min(window.innerHeight, box.bottom, feedEnd) - rail.getBoundingClientRect().top) + "px");
+    setVar(rail, "--rail-h", Math.max(200, Math.min(window.innerHeight, box.bottom, feedEnd) - rail.getBoundingClientRect().top));
     // The rounded edges follow the feed and the sidebar where they really are.
-    const feed = main.getBoundingClientRect(), side = rail.getBoundingClientRect(), c = screen.style;
-    c.setProperty("--f0", `${feed.left - box.left}px`); c.setProperty("--f1", `${feed.right - box.left}px`);
-    c.setProperty("--r0", `${side.left - box.left}px`); c.setProperty("--r1", `${side.right - box.left}px`);
+    const feed = main.getBoundingClientRect(), side = rail.getBoundingClientRect();
+    setVar(screen, "--f0", feed.left - box.left); setVar(screen, "--f1", feed.right - box.left);
+    setVar(screen, "--r0", side.left - box.left); setVar(screen, "--r1", side.right - box.left);
     // The top edge splits into the two columns only once the tabs across
     // both of them have scrolled out of sight.
     const tabs = document.querySelector("#community .cm-tabs").getBoundingClientRect();
@@ -7865,16 +7874,17 @@
       // The posts' column reaches at least the window's foot, and the
       // sidebar never runs past the posts' end: the page stops where the
       // posts do, and a long sidebar scrolls on its own.
-      main.style.minHeight = `${Math.max(0, box.bottom - main.getBoundingClientRect().top - scr.scrollTop)}px`;
+      const min = `${Math.round(Math.max(0, box.bottom - main.getBoundingClientRect().top - scr.scrollTop))}px`;
+      if (main.style.minHeight !== min) main.style.minHeight = min;
       const end = Math.min(window.innerHeight, box.bottom, main.getBoundingClientRect().bottom);
-      side.style.setProperty("--side-h", Math.max(120, end - side.getBoundingClientRect().top) + "px");
-    } else main.style.minHeight = "";
+      setVar(side, "--side-h", Math.max(120, end - side.getBoundingClientRect().top));
+    } else if (main.style.minHeight) main.style.minHeight = "";
     const split = beside && $("sl-hero").getBoundingClientRect().bottom < box.top + 16;
     scr.classList.toggle("split-edges", split);
     if (!split) return;
     const f = main.getBoundingClientRect(), r = side.getBoundingClientRect();
-    scr.style.setProperty("--f0", `${f.left - box.left}px`); scr.style.setProperty("--f1", `${f.right - box.left}px`);
-    scr.style.setProperty("--r0", `${r.left - box.left}px`); scr.style.setProperty("--r1", `${r.right - box.left}px`);
+    setVar(scr, "--f0", f.left - box.left); setVar(scr, "--f1", f.right - box.left);
+    setVar(scr, "--r0", r.left - box.left); setVar(scr, "--r1", r.right - box.left);
   }
   $("seller").addEventListener("scroll", () => requestAnimationFrame(slFitEdges), { passive: true });
   window.addEventListener("resize", slFitEdges);
