@@ -27,6 +27,14 @@ export const PRODUCTS: Record<Product, string> = {
 export const CHANGELOG: Entry[] = [
   {
     date: '2026-11-24',
+    products: ['marketplace'],
+    title: 'A planet for everyone without a picture',
+    changes: [
+      'Members who haven’t put up a picture now each have their own planet instead of a letter. It’s made from their name, and an uploaded picture always takes its place.',
+    ],
+  },
+  {
+    date: '2026-11-24',
     products: ['network'],
     title: 'Network map lines say why',
     changes: [
