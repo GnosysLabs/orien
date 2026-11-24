@@ -399,6 +399,9 @@
   body.phone .ch-top .ch-who { flex: 1 1 auto; min-width: 0; }
   body.phone .ch-top .ch-who > div { min-width: 0; }
   body.phone .screen { overflow-y: auto; overscroll-behavior: contain; -webkit-overflow-scrolling: touch; }
+  /* Swiping back: the screen follows the finger, then slides off or back. */
+  body.phone .screen.swiping { transition: none; will-change: transform; }
+  body.phone .screen.swipe-settle { transition: transform .2s cubic-bezier(.2, .8, .2, 1); }
   body.phone .screen::-webkit-scrollbar { width: 0; }
   body.phone #swaps, body.phone #swap-sell, body.phone #swap-buy, body.phone #swap-detail, body.phone #mine,
   body.phone #board-signin, body.phone #board-post, body.phone #board-take { margin: 0 -20px; padding: 0 20px 8px; }
@@ -3390,6 +3393,62 @@
     else if (id === "chat") $("chat").classList.remove("none");
     for (const p of document.querySelectorAll(".problem")) p.hidden = true;
     for (const m of document.querySelectorAll(".ch-menu")) m.hidden = true;
+  }
+  // iPhones: swipe in from the left edge to go back, as in other iPhone
+  // apps. The screen follows the finger; past a third of the way (or with a
+  // quick flick) it slides off and the screen's own Back runs, with a tap of
+  // haptic as it lets go. Nothing happens where there's no Back to press, or
+  // while a card is open over the app.
+  if (phone) {
+    const EDGE = 30;
+    let sw = null;
+    const backOf = (screen) => [...screen.querySelectorAll(".topline .back, .topline [data-back]")].find((b) => !b.hidden && b.offsetParent !== null);
+    document.addEventListener("touchstart", (e) => {
+      sw = null;
+      if (e.touches.length !== 1) return;
+      const t = e.touches[0];
+      if (t.clientX > EDGE) return;
+      if (document.querySelector('[id$="-veil"]:not([hidden])') || document.documentElement.classList.contains("scanning")) return;
+      const screen = document.querySelector("main > .screen:not([hidden])");
+      const back = screen && backOf(screen);
+      if (!back) return;
+      sw = { screen, back, x: t.clientX, y: t.clientY, t: Date.now(), dx: 0, going: false, past: false };
+    }, { passive: true });
+    document.addEventListener("touchmove", (e) => {
+      if (!sw) return;
+      const t = e.touches[0], dx = t.clientX - sw.x, dy = t.clientY - sw.y;
+      if (!sw.going) {
+        // Up or down first: a scroll, not a swipe.
+        if (Math.abs(dy) > 10 && Math.abs(dy) > Math.abs(dx)) { sw = null; return; }
+        if (dx < 8) return;
+        sw.going = true;
+        sw.screen.classList.add("swiping");
+        if (document.activeElement && document.activeElement.blur) document.activeElement.blur();
+      }
+      e.preventDefault();
+      sw.dx = Math.max(0, dx);
+      sw.screen.style.transform = `translateX(${sw.dx}px)`;
+      const past = sw.dx > sw.screen.offsetWidth / 3;
+      if (past !== sw.past) { sw.past = past; feel("selection"); }
+    }, { passive: false });
+    const done = () => {
+      if (!sw) return;
+      const s = sw; sw = null;
+      if (!s.going) return;
+      const w = s.screen.offsetWidth, speed = s.dx / Math.max(1, Date.now() - s.t);
+      const go = s.dx > w / 3 || (speed > 0.5 && s.dx > 40);
+      s.screen.classList.remove("swiping");
+      s.screen.classList.add("swipe-settle");
+      s.screen.style.transform = go ? `translateX(${w}px)` : "";
+      setTimeout(() => {
+        s.screen.classList.remove("swipe-settle");
+        // Pressing Back gives its own tap of haptic.
+        if (go) s.back.click();
+        s.screen.style.transform = "";
+      }, 200);
+    };
+    document.addEventListener("touchend", done, { passive: true });
+    document.addEventListener("touchcancel", done, { passive: true });
   }
   function problem(id, text) { $(id).textContent = String(text); $(id).hidden = false; feel("error"); }
 
