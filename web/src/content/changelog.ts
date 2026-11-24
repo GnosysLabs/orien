@@ -31,6 +31,7 @@ export const CHANGELOG: Entry[] = [
     title: 'Cleaner comments',
     changes: [
       'Comments have no dividing lines, with smaller Reply and react buttons. While you answer a comment, the post’s own reply box steps aside, and Cancel puts it back.',
+      'A post’s tips show at the right end of its buttons, as in Orien Wallet.',
     ],
   },
   {

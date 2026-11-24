@@ -901,12 +901,6 @@ function ReactionBar({ post, signedIn, onChange, small = false }: { post: Post; 
           </div>
         )}
       </div>
-      {post.tips && post.tips.count > 0 && (
-        <span className="num ml-1 text-xs text-muted" title="Tips paid to its author from Orien Wallet">
-          {post.tips.count} {post.tips.count === 1 ? 'tip' : 'tips'} ·{' '}
-          {(post.tips.orn / 1e9).toLocaleString('en', { maximumFractionDigits: 2 })} ORN
-        </span>
-      )}
     </div>
   )
 }
@@ -1162,6 +1156,11 @@ function PostCard({ post, me, onChange, startOpen = false }: { post: Post; me: Y
             {post.replies > 0 && <span className="num text-xs font-semibold">{post.replies}</span>}
           </button>
           <ReactionBar post={post} signedIn={!!me} onChange={onChange} />
+          {post.tips && post.tips.count > 0 && (
+            <span className="ml-auto whitespace-nowrap text-[12.5px] text-muted" title="Tips paid to its author from Orien Wallet">
+              {post.tips.count.toLocaleString('en')} {post.tips.count === 1 ? 'tip' : 'tips'} · {(post.tips.orn / 1e9).toLocaleString('en', { maximumFractionDigits: 2 })} ORN
+            </span>
+          )}
         </div>
 
         {open && (
