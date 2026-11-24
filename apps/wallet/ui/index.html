@@ -4412,9 +4412,15 @@
     // and deep bands that slide past each other, the others as a shimmer
     // of tinted light in between. A smooth blend from one colour to the
     // next looks flat, like plastic, however good the colours.
+    // Each colour gets a light and a deep band, and the whole run of them
+    // comes three times: a sheen is three times as wide as what it colours,
+    // so whatever part shows holds every colour at once as it drifts,
+    // rather than one colour at a time.
     const metal = (hi, lo, mid) => {
       const band = (x, l) => hsl(x.h, Math.min(Math.max(x.s, 55), 95), l);
-      return [band(a, hi), band(a, lo), band(b, hi + 1), band(a, lo - 6), band(a, hi + 2), band(c, lo + 2), band(a, mid), band(a, hi)];
+      const run = one ? [band(a, hi), band(a, lo), band(a, mid + 4), band(a, lo - 6)]
+        : colors.map((_, i) => [a, b, c][i]).flatMap((x) => [band(x, hi), band(x, lo)]);
+      return [...run, ...run, ...run, run[0]];
     };
     if (base === "light") {
       const pearl = metal(91, 80, 86);
