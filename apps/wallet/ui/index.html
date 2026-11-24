@@ -247,7 +247,7 @@
     --rt: 20px; --rb: 20px; --it: 8px; --ib: 8px; --m: linear-gradient(#000, #000); }
   /* Lists that are boxes themselves: rounded at their own edges, with
      their own corners. */
-  body.phone :is(#recent, #all-activity, #ib-list) { --rt: 18px; --rb: 39px; --it: 0px; --ib: 0px; --m: linear-gradient(#000, #000); }
+  body.phone :is(#recent, #all-activity, #nt-list, #ib-list) { --rt: 18px; --rb: 39px; --it: 0px; --ib: 0px; --m: linear-gradient(#000, #000); }
   body.phone :is(.screen, #mine, #board-signin, #board-post, #board-take, #swaps, #swap-sell, #swap-buy, #swap-detail, .scroll, #recent, #all-activity) {
     --tl: radial-gradient(circle at 100% 100%, #000 calc(var(--rt) - 0.5px), transparent var(--rt));
     --tr: radial-gradient(circle at 0 100%, #000 calc(var(--rt) - 0.5px), transparent var(--rt));
@@ -913,9 +913,9 @@
     background: var(--surface); border: 1px solid var(--line); box-shadow: 0 24px 60px rgba(0, 0, 0, 0.55), 0 2px 8px rgba(0, 0, 0, 0.25); }
   .nt-head { flex: none; padding: 16px 20px; font-size: 16px; font-weight: 700; color: var(--ink); border-bottom: 1px solid var(--line); }
   .nt-body { flex: 1 1 auto; min-height: 0; overflow-y: auto; padding: 6px; overscroll-behavior: contain; }
-  .nt-body .list { display: grid; gap: 2px; border: 0; border-radius: 0; background: none; }
-  .nt-body .ib-row { border: 0; border-radius: 14px; }
-  .nt-body .empty { padding: 34px 20px; text-align: center; }
+  .nt-panel .nt-body .list { display: grid; gap: 2px; border: 0; border-radius: 0; background: none; }
+  .nt-panel .nt-body .ib-row { border: 0; border-radius: 14px; }
+  .nt-panel .nt-body .empty { padding: 34px 20px; text-align: center; }
   .nt-panel > .problem { margin: 0 12px 12px; }
   .nt-row { grid-template-columns: auto minmax(0, 1fr); align-items: start; }
   .nt-row .nt-faces { position: relative; width: 40px; height: 40px; }
@@ -2174,10 +2174,10 @@
   body.phone #all-activity { flex: 1 1 0; border-radius: 18px 18px 39px 39px; padding-bottom: max(12px, calc(env(safe-area-inset-bottom) - 12px)); }
   /* Notifications and Messages, like the home screen's list: the list itself
      reaches the foot of the screen, its bottom corners following the phone's. */
-  body.phone main > #inbox { overflow: hidden; padding-bottom: 16px !important; }
-  body.phone #ib-list { flex: 1 1 0; margin: 0; padding: 0 0 max(12px, calc(env(safe-area-inset-bottom) - 12px));
+  body.phone main > :is(#notices, #inbox) { overflow: hidden; padding-bottom: 16px !important; }
+  body.phone :is(#nt-list, #ib-list) { flex: 1 1 0; margin: 0; padding: 0 0 max(12px, calc(env(safe-area-inset-bottom) - 12px));
     border: 1px solid var(--line); border-radius: 18px 18px 39px 39px; background: var(--surface); overscroll-behavior: contain; -webkit-overflow-scrolling: touch; }
-  body.phone #ib-list .list { border: 0; border-radius: 0; background: none; overflow: visible; }
+  body.phone :is(#nt-list, #ib-list) .list { border: 0; border-radius: 0; background: none; overflow: visible; }
 </style>
 </head>
 <body>
@@ -2557,6 +2557,12 @@
     <!-- Market messages -->
     <!-- Notifications, as the website's bell shows them: replies, reactions,
          the network's posts about you, and messages. -->
+
+    <!-- iPhones: Notifications as a page (computers use the panel below; its
+         list moves in here). -->
+    <section class="screen" id="notices" hidden>
+      <div class="topline"><button class="back" id="nt-back" aria-label="Back"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg></button><h2>Notifications</h2></div>
+    </section>
 
     <section class="screen" id="inbox" hidden>
       <div class="topline"><button class="back" id="ib-back" aria-label="Back"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg></button><h2>Messages</h2></div>
@@ -7096,7 +7102,7 @@
     } catch (e) { problem("cm-thread-problem", e); }
   }
   $("cm-thread-back").onclick = () => {
-    if (cm.threadFrom === "notices") { cm.threadFrom = null; home(); return; }
+    if (cm.threadFrom === "notices") { cm.threadFrom = null; phone ? openNotices() : home(); return; }
     show("community"); cmFitRail(); cmLoad(false);
   };
   // Reactions, replies, deleting: one listener for every card.
@@ -7665,11 +7671,12 @@
   for (const go of ["cm-join-go", "cm-reply-join-go"]) $(go).onclick = cmJoin;
   // From Home, always the feed first.
   $("go-market").onclick = () => { cm.pinned = null; cmMode(false); openCommunity(); };
-  // A post from a notification goes back Home; the Community opens on the
-  // whole feed next time.
+  // A post from a notification goes back Home (on iPhones, to the
+  // Notifications page); the Community opens on the whole feed next time.
   $("community").querySelector(".topline [data-back]").onclick = () => {
-    if (cm.pinned) { cm.pinned = null; cmPaintFeed(); }
-    home();
+    const pinned = !!cm.pinned;
+    if (pinned) { cm.pinned = null; cmPaintFeed(); }
+    if (pinned && phone) openNotices(); else home();
   };
   $("mk-cats").onclick = (e) => {
     const b = e.target.closest("[data-cat]");
@@ -8054,13 +8061,18 @@
     if (phone) m.style.maxHeight = `calc(100dvh - ${Math.round(b.bottom + 10)}px - max(16px, env(safe-area-inset-bottom)))`;
   }
   function closeNotices() { $("nt-panel").hidden = true; }
+  // iPhones keep Notifications as a page: the list lives there.
+  if (phone) { $("nt-list").classList.add("scroll"); $("notices").append($("nt-list"), $("nt-problem")); }
   async function openNotices(button) {
     const m = $("nt-panel");
-    if (!m.hidden) return closeNotices();
-    for (const other of document.querySelectorAll(".ch-menu")) other.hidden = true;
     $("nt-problem").hidden = true;
-    placeNotices(button);
-    m.hidden = false;
+    if (phone) show("notices");
+    else {
+      if (!m.hidden) return closeNotices();
+      for (const other of document.querySelectorAll(".ch-menu")) other.hidden = true;
+      placeNotices(button);
+      m.hidden = false;
+    }
     $("nt-list").scrollTop = 0;
     if (!nt.lines.length) $("nt-list").innerHTML = '<div class="empty">Loading…</div>';
     try { nt.lines = (await mk("GET", "/notices")).notices || []; $("nt-problem").hidden = true; }
@@ -8069,8 +8081,9 @@
     // Seen: the dot goes, here and on the website.
     if (nt.lines.some((l) => l.unseen)) mk("POST", "/notices/seen", {}).then(() => { if (board.me) { board.me.notices = 0; paintUnread(); } }).catch(() => {});
   }
-  $("go-notices").onclick = () => { feel("selection"); openNotices($("go-notices")); };
-  $("hd-notices").onclick = () => { feel("selection"); openNotices($("hd-notices")); };
+  $("go-notices").onclick = () => openNotices($("go-notices"));
+  $("hd-notices").onclick = () => openNotices($("hd-notices"));
+  $("nt-back").onclick = () => home();
   document.addEventListener("pointerdown", (e) => {
     if (!$("nt-panel").hidden && !$("nt-panel").contains(e.target) && !e.target.closest("#go-notices, #hd-notices")) closeNotices();
   }, true);
@@ -8114,7 +8127,7 @@
       const key = l.kind === "tip" ? `tip:${l.post}:${l.time}:${l.name}` : `${l.kind}:${l.post}`;
       if ((heard[key] || 0) >= l.time) continue;
       heard[key] = l.time;
-      if (first || !$("nt-panel").hidden) continue;
+      if (first || !$("nt-panel").hidden || !$("notices").hidden) continue;
       const text = ntLine(l).replace(/<[^>]+>/g, "");
       await tell(l.text && l.kind !== "react" ? `${text}: ${l.text}` : text, "community");
     }
@@ -8344,7 +8357,7 @@
     const pw = document.getElementById("ch-pay-pw");
     if (pw) pw.focus();
   }
-  $("ch-back").onclick = () => { chat.id = null; chat.direct = null; chat.from === "listing" ? show("listing") : chat.from === "profile" ? show("seller") : chat.from === "contact" ? show("contact") : chat.from === "notices" ? home() : chat.from === "member" ? show("member") : openInbox(); };
+  $("ch-back").onclick = () => { chat.id = null; chat.direct = null; chat.from === "listing" ? show("listing") : chat.from === "profile" ? show("seller") : chat.from === "contact" ? show("contact") : chat.from === "notices" ? (phone ? openNotices() : home()) : chat.from === "member" ? show("member") : openInbox(); };
   $("ch-who").onclick = () => { if (chat.conv && chat.conv.with) { market.sellerFrom = "chat"; openSeller(chat.conv.with); } };
   $("ch-about").onclick = () => chat.conv && chat.conv.listing && openListing(chat.conv.listing, "chat");
   // Delete conversation: gone from your Messages (theirs stays); asks twice.
