@@ -27,6 +27,22 @@ export const PRODUCTS: Record<Product, string> = {
 export const CHANGELOG: Entry[] = [
   {
     date: '2026-11-24',
+    products: ['wallet'],
+    version: '1.9.1',
+    title: 'Answer comments, Activity tabs and Orien Verify',
+    changes: [
+      'Comments have a Reply button: answers sit under the comment they answer, one level deep. Comments and answers can carry up to four photos or a GIF.',
+      'Comments look lighter, with no dividing lines, and the reaction picker floats above its button so nothing on the page moves.',
+      'A ⋯ menu on other people’s posts and comments has Report post, which sends what’s wrong to Orien Network for review.',
+      'Activity has All, Payments and Rewards tabs, so payments aren’t lost among the hourly mining rewards and validator fees.',
+      'The wallet that verifying payments go to shows as Orien Verify, with the Orien coin and an Official mark. Only that one address can show it.',
+      'Profiles have All, the person’s name, and Network tabs above their posts.',
+      'A post’s tips show as a pill with the ORN total in pearl.',
+      'The poll editor is laid out more clearly.',
+    ],
+  },
+  {
+    date: '2026-11-24',
     products: ['marketplace'],
     title: 'Photos and GIFs in comments',
     changes: [
