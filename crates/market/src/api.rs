@@ -805,6 +805,9 @@ struct ReportRequest {
 async fn report(State(app): State<Arc<App>>, headers: HeaderMap, Json(request): Json<ReportRequest>) -> Answer {
     let reporter = app.signed_in(&headers)?;
     app.store.lock().unwrap().report(reporter, &request.kind, request.id, &request.reason).map_err(refused)?;
+    let reason: String = request.reason.trim().chars().take(300).collect();
+    let why = if reason.is_empty() { String::new() } else { format!(": “{reason}”") };
+    app.alerts().event(format!("🚩 Someone reported a {} (#{}){why}. It's on the dashboard under Reports.", request.kind, request.id));
     Ok(Json(json!({})).into_response())
 }
 

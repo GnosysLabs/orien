@@ -237,9 +237,14 @@ async fn main() -> Result<()> {
     orien_market::push::watch(app.clone(), apns);
     orien_market::community::watch(app.clone());
     orien_market::proofs::watch(app.clone());
-    if args.openrouter_key.is_some() {
+    let openrouter = match &args.openrouter_key {
+        Some(path) => Some(std::fs::read_to_string(path).with_context(|| format!("cannot read {}", path.display()))?.trim().to_string()),
+        None => None,
+    };
+    if openrouter.is_some() {
         orien_market::api::watch_screening(app.clone());
     }
+    orien_market::alerts::watch(app.clone(), openrouter);
     let listener = tokio::net::TcpListener::bind(&args.listen).await?;
     println!("marketplace server for {} listening on {}", args.origin, args.listen);
     if let Some(at) = &args.admin_listen {
