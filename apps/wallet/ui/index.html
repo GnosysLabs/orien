@@ -293,6 +293,9 @@
   @media (min-width: 720px) {
     body:not(.phone)::before { content: ""; position: fixed; inset: 0; z-index: -1; pointer-events: none;
       background: var(--scene, none) center / cover no-repeat; opacity: 0.55; }
+    /* A light theme you built: your picture as it is. Faded over a light
+       ground it would only wash out to white. */
+    html[data-base="light"] body:not(.phone)::before { opacity: 1; }
     /* Each screen sits in a container that looks just like the app in a
        normal window: the theme's own ground and solid panels, with rounded
        corners and a soft shadow. The photo shows only around it, like a
