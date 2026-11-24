@@ -27,6 +27,15 @@ export const PRODUCTS: Record<Product, string> = {
 export const CHANGELOG: Entry[] = [
   {
     date: '2026-11-24',
+    products: ['network'],
+    title: 'Network map lines say why',
+    changes: [
+      'A path that loses nothing stays green on the network map, even when a test trip is slower than usual. Pointing at it shows the time and the usual time.',
+      'A yellow path has lost test messages, and says how many. Orange and red still mean loss that lasts, or a validator not answering.',
+    ],
+  },
+  {
+    date: '2026-11-24',
     products: ['wallet'],
     version: '1.9.2',
     title: 'Wallet cards, a User Guide and roomier big windows',
