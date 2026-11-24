@@ -28,6 +28,17 @@ export const CHANGELOG: Entry[] = [
   {
     date: '2026-11-24',
     products: ['wallet'],
+    version: '1.9.5',
+    title: 'Themes you build follow you',
+    changes: [
+      'Themes you build now come with you to your other devices, iPhone included, where you can pick them too. Their pictures stay on the computer that has them.',
+      'On a dark base, the balance card starts at exactly the colour you pick and deepens it toward black, so it matches the colour you chose. The builder starts on gold.',
+      'The little theme previews show each theme’s sheen as on its card, and a dark theme’s wordmark is its own colour.',
+    ],
+  },
+  {
+    date: '2026-11-24',
+    products: ['wallet'],
     version: '1.9.4',
     title: 'Build your own theme',
     changes: [
