@@ -1210,12 +1210,13 @@
   .theme-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 14px; }
   /* Themes you built: a bin in the corner; a first press arms it. */
   .theme-card .tc-label { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .tc-del { flex: none; height: 26px; min-width: 26px; margin: -3px 6px -3px 6px; padding: 0 7px; border-radius: 999px;
+  .tc-del { flex: none; height: 26px; min-width: 26px; margin: -3px 0 -3px 6px; padding: 0 7px; border-radius: 999px;
     display: inline-flex; align-items: center; justify-content: center; gap: 5px; font-size: 12px; font-weight: 600;
     background: rgba(var(--tint), 0.07); color: var(--dim); transition: background .15s, color .15s; }
   .tc-del svg { width: 13px; height: 13px; }
+  .tc-del + .tc-check { margin-left: 6px; }
   .tc-del.armed { background: #e5484d; color: #fff; }
-  @media (hover: hover) { .tc-del:hover { background: #e5484d; color: #fff; } }
+  @media (hover: hover) { .tc-del:not(.tc-edit):hover { background: #e5484d; color: #fff; } .tc-edit:hover { background: rgba(var(--tint), 0.13); color: var(--ink); } }
   /* The builder: the theme as it will look, over its picture. */
   .tb-stage { position: relative; display: grid; place-items: center; aspect-ratio: 16 / 9; margin: 4px 0 22px; border-radius: 22px; overflow: hidden;
     border: 1px solid var(--line); background: var(--ground-deep) center / cover no-repeat; }
@@ -2380,10 +2381,10 @@
 
     <!-- Build a theme: two or three colours and a picture, kept on this device. -->
     <section class="screen" id="theme-build" hidden>
-      <div class="topline"><button class="back" id="tb-back" aria-label="Back"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg></button><h2>Build a theme</h2></div>
+      <div class="topline"><button class="back" id="tb-back" aria-label="Back"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg></button><h2 id="tb-title">Build a theme</h2></div>
       <div class="tb-layout">
       <div class="tb-stage" id="tb-stage">
-        <div class="tc-mini tb-mini" data-theme="c-draft">
+        <div class="tc-mini tb-mini">
           <div class="tc-bar"><span class="tc-word"></span><span class="tc-dot"></span></div>
           <div class="tc-card"><i></i><i></i><i></i></div>
           <div class="tc-tiles"><span></span><span></span><span></span><span></span></div>
@@ -4414,18 +4415,38 @@
   const sceneAsk = (mode, act) => scenesStore(mode).then((store) => new Promise((done, fail) => {
     const req = act(store); req.onsuccess = () => done(req.result); req.onerror = () => fail(req.error);
   }));
-  function paintCustomCss() {
-    let el = document.getElementById("custom-theme-css");
-    if (!el) { el = document.createElement("style"); el.id = "custom-theme-css"; document.head.appendChild(el); }
-    const rule = (id, colors, scene) => `[data-theme="${id}"] { ${themeVars(colors)}${scene ? ` --scene: url("${scene}");` : ""} }`;
-    el.textContent = customThemes().map((t) => rule(t.id, t.colors, scenes.get(t.id))).join("\n")
-      + (tb.colors.length ? "\n" + rule("c-draft", tb.colors, tb.scene) : "");
+  // A built theme's colours go straight onto the elements that wear it:
+  // the app's own rules refuse a style sheet made while it runs (that's
+  // what left a built theme looking like Pearl).
+  const ownVars = new WeakMap();
+  function setThemeVars(el, colors, scene) {
+    clearThemeVars(el);
+    const names = [];
+    for (const part of themeVars(colors).split(";")) {
+      const at = part.indexOf(":");
+      if (at < 0) continue;
+      const name = part.slice(0, at).trim(), value = part.slice(at + 1).trim();
+      if (name === "color-scheme") el.style.colorScheme = value;
+      else if (name.startsWith("--")) { el.style.setProperty(name, value); names.push(name); }
+    }
+    if (scene) { el.style.setProperty("--scene", `url("${scene}")`); names.push("--scene"); }
+    ownVars.set(el, names);
+  }
+  function clearThemeVars(el) {
+    for (const name of ownVars.get(el) || []) el.style.removeProperty(name);
+    ownVars.delete(el);
+    el.style.colorScheme = "";
+  }
+  // The whole app, when the theme in use is one you built.
+  function paintOwnTheme() {
+    const html = document.documentElement, t = customThemes().find((x) => x.id === html.dataset.theme);
+    if (t) setThemeVars(html, t.colors, scenes.get(t.id)); else clearThemeVars(html);
   }
   async function loadScenes() {
     for (const t of customThemes()) {
       try { const pic = await sceneAsk("readonly", (st) => st.get(t.id)); if (pic) scenes.set(t.id, pic); } catch {}
     }
-    paintCustomCss();
+    paintOwnTheme();
   }
   // The colour behind the page matches the theme's deepest ground.
   function paintBackdrop() {
@@ -4442,7 +4463,7 @@
   function applyTheme(name, animate) {
     name = knownTheme(name);
     if ((document.documentElement.dataset.theme || "pearl") === name) return;
-    const set = () => { document.documentElement.dataset.theme = name; paintThemeGrid(); };
+    const set = () => { document.documentElement.dataset.theme = name; paintOwnTheme(); paintThemeGrid(); };
     try { localStorage.setItem("theme", name); } catch {}
     // The fade between themes: not on Linux, where WebKit can crash doing it.
     const fade = animate && document.startViewTransition && !/Linux/.test(navigator.userAgent);
@@ -4450,7 +4471,7 @@
     else { set(); paintBackdrop(); }
   }
   // The builder's work in progress.
-  const tb = { colors: [], scene: null };
+  const tb = { colors: [], scene: null, editing: null };
   function paintThemeCards() {
     const all = THEMES.map(([id, name]) => [id, name, false]).concat(customThemes().map((t) => [t.id, t.name, true]));
     $("theme-grid").innerHTML = all.map(([id, name, own]) => `<button class="theme-card" data-pick="${id}">
@@ -4460,12 +4481,18 @@
         <div class="tc-tiles"><span></span><span></span><span></span><span></span></div>
         <div class="tc-list"><i></i><i></i><i></i></div>
       </div>
-      <div class="tc-name"><span class="tc-label">${esc(name)}</span>${own ? `<span class="tc-del" data-del="${id}" role="button" aria-label="Delete ${esc(name)}" title="Delete">${TRASH}</span>` : ""}<span class="tc-check"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></span></div>
+      <div class="tc-name"><span class="tc-label">${esc(name)}</span>${own ? `<span class="tc-del tc-edit" data-edit="${id}" role="button" aria-label="Edit ${esc(name)}" title="Edit">${COG}</span><span class="tc-del" data-del="${id}" role="button" aria-label="Delete ${esc(name)}" title="Delete">${TRASH}</span>` : ""}<span class="tc-check"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></span></div>
     </button>`).join("");
+    for (const t of customThemes()) {
+      const mini = $("theme-grid").querySelector(`[data-pick="${t.id}"] .tc-mini`);
+      if (mini) setThemeVars(mini, t.colors);
+    }
     paintThemeGrid();
   }
   let delArmed = null, delTimer = 0;
   $("theme-grid").onclick = async (e) => {
+    const edit = e.target.closest("[data-edit]");
+    if (edit) { openThemeBuilder(edit.dataset.edit); return; }
     const del = e.target.closest("[data-del]");
     if (del) {
       // A first press arms the bin; a second deletes.
@@ -4486,7 +4513,6 @@
         try { back = (await invoke("app_theme")) || "pearl"; } catch {}
         applyTheme(isCustomTheme(back) ? "pearl" : back, true);
       }
-      paintCustomCss();
       paintThemeCards();
       return;
     }
@@ -4497,7 +4523,6 @@
     // Your own themes stay on this device; the others follow you.
     if (!isCustomTheme(card.dataset.pick)) invoke("set_app_theme", { theme: card.dataset.pick }).catch(() => {});
   };
-  paintCustomCss();
   paintThemeCards();
   loadScenes();
   // As this device last had it, at once; then as chosen on any device.
@@ -4513,8 +4538,8 @@
     tbLook();
   }
   function tbLook() {
-    paintCustomCss();
     const stage = $("tb-stage");
+    setThemeVars(stage, tb.colors);
     stage.style.backgroundImage = tb.scene ? `url("${tb.scene}")` : "";
     stage.classList.toggle("has-pic", !!tb.scene);
     $("tb-save").disabled = !($("tb-name").value.trim() && tb.colors.length && tb.scene);
@@ -4537,15 +4562,23 @@
     }
   });
   $("tb-name").addEventListener("input", tbLook);
-  function openThemeBuilder() {
-    tb.colors = TB_DEFAULT.slice(); tb.scene = null;
-    $("tb-name").value = ""; $("tb-pic-name").textContent = ""; $("tb-problem").hidden = true;
-    $("tb-pick").textContent = "Choose a picture";
+  // A new theme, or one you built to change: its name, colours and picture.
+  function openThemeBuilder(id) {
+    const t = typeof id === "string" ? customThemes().find((x) => x.id === id) : null;
+    tb.editing = t ? t.id : null;
+    tb.colors = t ? t.colors.slice() : TB_DEFAULT.slice();
+    tb.scene = t ? scenes.get(t.id) || null : null;
+    $("tb-name").value = t ? t.name : "";
+    $("tb-pic-name").textContent = "";
+    $("tb-problem").hidden = true;
+    $("tb-pick").textContent = tb.scene ? "Change picture" : "Choose a picture";
+    $("tb-title").textContent = t ? "Edit theme" : "Build a theme";
+    $("tb-save").textContent = t ? "Save changes" : "Save theme";
     tbPaint();
     show("theme-build");
   }
-  $("st-build").onclick = openThemeBuilder;
-  $("tb-back").onclick = () => { tb.colors = []; tb.scene = null; paintCustomCss(); show("settings"); settingsPage("appearance"); };
+  $("st-build").onclick = () => openThemeBuilder();
+  $("tb-back").onclick = () => { tb.colors = []; tb.scene = null; tb.editing = null; show("settings"); settingsPage("appearance"); };
   $("tb-pick").onclick = () => $("tb-file").click();
   $("tb-file").onchange = async () => {
     const file = $("tb-file").files[0];
@@ -4570,16 +4603,21 @@
   $("tb-save").onclick = async () => {
     const name = $("tb-name").value.trim();
     if (!name || !tb.colors.length || !tb.scene) return;
-    const id = "c-" + Date.now().toString(36);
+    const id = tb.editing || "c-" + Date.now().toString(36);
     $("tb-save").disabled = true;
-    try { await sceneAsk("readwrite", (st) => st.put(tb.scene, id)); }
-    catch { problem("tb-problem", "The picture couldn't be saved on this device. Try a smaller one."); $("tb-save").disabled = false; return; }
-    localStorage.setItem("custom-themes", JSON.stringify(customThemes().concat([{ id, name, colors: tb.colors.slice() }])));
+    if (scenes.get(id) !== tb.scene) {
+      try { await sceneAsk("readwrite", (st) => st.put(tb.scene, id)); }
+      catch { problem("tb-problem", "The picture couldn't be saved on this device. Try a smaller one."); $("tb-save").disabled = false; return; }
+    }
+    const theme = { id, name, colors: tb.colors.slice() }, list = customThemes();
+    const at = list.findIndex((t) => t.id === id);
+    if (at >= 0) list[at] = theme; else list.push(theme);
+    localStorage.setItem("custom-themes", JSON.stringify(list));
     scenes.set(id, tb.scene);
-    tb.colors = []; tb.scene = null;
-    paintCustomCss();
+    tb.colors = []; tb.scene = null; tb.editing = null;
     paintThemeCards();
-    applyTheme(id, true);
+    // Changed while in use: wear the changes now.
+    if (document.documentElement.dataset.theme === id) paintOwnTheme(); else applyTheme(id, true);
     feel("success");
     show("settings"); settingsPage("appearance");
   };
