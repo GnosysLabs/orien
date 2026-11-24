@@ -27,6 +27,16 @@ export const PRODUCTS: Record<Product, string> = {
 export const CHANGELOG: Entry[] = [
   {
     date: '2026-11-24',
+    products: ['wallet'],
+    version: '1.9.3',
+    title: 'A robot for everyone without a picture',
+    changes: [
+      'Members who haven’t put up a picture show their own robot instead of a letter, the same one as on orien.network. It’s drawn in the app from their name, and an uploaded picture always takes its place.',
+      'The Back pill at the top of a scrolled screen sits a little in from the edge.',
+    ],
+  },
+  {
+    date: '2026-11-24',
     products: ['marketplace'],
     title: 'A robot for everyone without a picture',
     changes: [
