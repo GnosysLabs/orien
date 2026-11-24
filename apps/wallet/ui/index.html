@@ -1085,6 +1085,8 @@
   .small-link { margin: 22px auto 4px; display: flex; }
   #tab-offers .section-head { align-items: center; margin: 6px 4px 14px; }
   .sw-side-head { display: none; }
+  #board-last { display: none; }
+  @media (min-width: 960px) { body:not(.phone) #board-last:not([hidden]) { display: block; } }
   /* Big windows: offers on the left; your swaps, then recent finished
      swaps, in a column beside them. Every part shows at once, so no tabs. */
   @media (min-width: 960px) {
@@ -1096,6 +1098,8 @@
     body:not(.phone) .sw-grid > #tab-mine { grid-area: mine; }
     body:not(.phone) .sw-grid > #tab-history { grid-area: hist; }
     body:not(.phone) .sw-grid > [hidden] { display: block !important; }
+    body:not(.phone) #tab-history #hist-last { display: none; }
+    body:not(.phone) #board-last { margin-bottom: 18px; }
     body:not(.phone) .sw-side-head { display: block; margin: 6px 4px 14px; font-size: 13px; font-weight: 600; color: var(--dim); line-height: 32px; }
     body:not(.phone) .sw-grid #swap-list { overflow: visible; margin: 0; padding: 0; -webkit-mask: none; mask: none; }
   }
@@ -2966,6 +2970,7 @@
            finished ones beside them; no tabs. -->
       <div class="sw-grid">
       <div id="tab-offers">
+        <div class="hist-last" id="board-last" hidden></div>
         <div class="section-head"><h3>Open offers</h3><button class="pill pearl" id="board-post-go">Post an offer</button></div>
         <div id="board-offers"><div class="empty">Loading offers…</div></div>
         <div class="problem" id="board-problem" hidden></div>
@@ -5928,6 +5933,9 @@
       const p = histPrice(last);
       $("hist-last").innerHTML = `<div class="hl-label">Last price</div><div class="hl-price">${esc(p.usd ? `${p.usd} per ORN` : p.coin)}</div><div class="hl-sub">${esc([p.usd ? p.coin : "", ago(last.at)].filter(Boolean).join(" · "))}</div>`;
     }
+    // Big windows: the last price heads the offers instead.
+    $("board-last").innerHTML = $("hist-last").innerHTML;
+    $("board-last").hidden = !last;
     $("hist-list").innerHTML = hist.swaps.length
       ? `<div class="list">${hist.swaps.map((x) => {
           const p = histPrice(x);
@@ -5964,7 +5972,9 @@
     const row = (s) => `<button class="swap-row" data-swap="${esc(s.id)}">
       <div><div>${s.role === "sell" ? "Sell" : "Buy"} ${esc(s.orn)} ORN for ${esc(cost(s))}</div>
       <div class="sub">${esc(stageLine(s))}</div></div></button>`;
-    const going = swapList.filter(live), finished = swapList.filter((x) => !live(x));
+    // Newest first in each group.
+    const newest = (a, b) => (b.created || 0) - (a.created || 0);
+    const going = swapList.filter(live).sort(newest), finished = swapList.filter((x) => !live(x)).sort(newest);
     const openHtml = board.waiting.map((item) => `<div class="swap-row">
       <div><div>${item.selling ? "Sell" : "Buy"} ${esc(fmtOrn(item.offer.orn))} ORN for ${esc(offerPrice(item.offer))}</div>
       <div class="sub${item.short_of_orn ? " bad" : ""}">${esc(item.short_of_orn
