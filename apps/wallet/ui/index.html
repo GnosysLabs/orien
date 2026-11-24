@@ -1036,7 +1036,9 @@
   .bubble { max-width: 78%; padding: 8px 12px; border-radius: 16px; font-size: 13.5px; line-height: 1.45; white-space: pre-wrap; overflow-wrap: anywhere;
     -webkit-user-select: text; user-select: text; align-self: flex-start; background: var(--surface); border-bottom-left-radius: 6px; }
   .bubble.mine { align-self: flex-end; background: var(--bubble-mine); border-bottom-left-radius: 16px; border-bottom-right-radius: 6px; }
-  .bubble time { display: block; margin-top: 3px; font-size: 10.5px; color: var(--faint); }
+  /* The time in the bubble's own words colour, softened: a fixed grey
+     would vanish into a coloured bubble. */
+  .bubble time { display: block; margin-top: 3px; font-size: 10.5px; color: inherit; opacity: 0.62; }
   .bubble.mine time { text-align: right; }
   .paycard { align-self: center; width: min(320px, 92%); margin: 6px 0; padding: 14px 16px; border: 1px solid var(--line); border-radius: 18px; background: var(--surface); text-align: center; }
   .paycard .lbl { font-size: 11.5px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--dim); }
