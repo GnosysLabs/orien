@@ -1208,6 +1208,35 @@
   .st-credit { margin: 16px 4px 0; color: var(--faint); font-size: 12px; }
   .st-credit a { color: var(--dim); }
   .theme-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 14px; }
+  /* Themes you built: a bin in the corner; a first press arms it. */
+  .theme-card .tc-label { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .tc-del { flex: none; height: 26px; min-width: 26px; margin: -3px 6px -3px 6px; padding: 0 7px; border-radius: 999px;
+    display: inline-flex; align-items: center; justify-content: center; gap: 5px; font-size: 12px; font-weight: 600;
+    background: rgba(var(--tint), 0.07); color: var(--dim); transition: background .15s, color .15s; }
+  .tc-del svg { width: 13px; height: 13px; }
+  .tc-del.armed { background: #e5484d; color: #fff; }
+  @media (hover: hover) { .tc-del:hover { background: #e5484d; color: #fff; } }
+  /* The builder: the theme as it will look, over its picture. */
+  .tb-stage { position: relative; display: grid; place-items: center; aspect-ratio: 16 / 9; margin: 4px 0 22px; border-radius: 22px; overflow: hidden;
+    border: 1px solid var(--line); background: var(--ground-deep) center / cover no-repeat; }
+  .tb-stage.has-pic::before { content: ""; position: absolute; inset: 0; background: rgba(0, 0, 0, 0.12); }
+  .tb-mini { position: relative; width: min(42%, 190px); aspect-ratio: 4 / 5; padding: 12px 10px; border-radius: 18px; overflow: hidden;
+    background: var(--glow), var(--ground-deep); border: 1px solid var(--line); box-shadow: 0 18px 44px rgba(0, 0, 0, 0.5);
+    display: flex; flex-direction: column; gap: 8px; }
+  .tb-colors { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+  .tb-swatch { position: relative; width: 52px; height: 52px; border-radius: 50%; border: 1px solid var(--line); padding: 0; cursor: pointer;
+    border: 2px solid rgba(var(--tint), 0.16); box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3); }
+  .tb-swatch input { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; border: 0; padding: 0; }
+  .tb-swatch .tb-x { position: absolute; top: -4px; right: -4px; width: 22px; height: 22px; padding: 0; border: 0; border-radius: 50%;
+    display: grid; place-items: center; background: var(--surface-hover); color: var(--ink); box-shadow: 0 0 0 2px var(--ground); cursor: pointer; }
+  .tb-swatch .tb-x svg { width: 11px; height: 11px; }
+  .tb-add { width: 52px; height: 52px; border-radius: 50%; border: 1.5px dashed var(--faint); background: none; color: var(--dim);
+    display: grid; place-items: center; cursor: pointer; padding: 0; }
+  .tb-add svg { width: 18px; height: 18px; }
+  .tb-pic { display: flex; align-items: center; gap: 12px; min-width: 0; }
+  .tb-pic .pill { flex: none; }
+  .tb-pic-name { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 13px; color: var(--dim); }
+  #theme-build #tb-save { margin-top: 26px; }
   .theme-card { display: grid; gap: 9px; padding: 0; border: 0; background: none; color: var(--ink); font: inherit; text-align: left; cursor: pointer; }
   .theme-card .tc-mini { position: relative; aspect-ratio: 4 / 5; padding: 12px 10px; border-radius: 18px; overflow: hidden;
     background: var(--glow), var(--ground-deep); border: 1px solid var(--line); box-shadow: 0 10px 28px rgba(0, 0, 0, 0.35);
@@ -2267,7 +2296,8 @@
 
     <!-- Settings -->
     <section class="screen" id="settings" hidden>
-      <div class="topline"><button class="back" id="st-back" aria-label="Back"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg></button><h2 id="st-title">Settings</h2></div>
+      <div class="topline"><button class="back" id="st-back" aria-label="Back"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg></button><h2 id="st-title">Settings</h2>
+        <div class="account"><button class="pill pearl wl-add" id="st-build" hidden><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="M12 5v14"/></svg>Build a theme</button></div></div>
       <div class="set-group" id="st-menu" data-gap="lg">
         <button class="set-row st-cat" id="st-link"><span class="st-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v7a2 2 0 0 0 2 2h8"/><path d="M10 19v-3.96 3.15"/><path d="M7 19h5"/><rect width="6" height="10" x="16" y="12" rx="2"/></svg></span><span class="set-txt"><b>Link a new device</b><small>Send your wallets to your other phone or computer</small></span><svg class="chev" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg></button>
         <button class="set-row st-cat" data-page="appearance" id="st-cat-appearance"><span class="st-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22a1 1 0 0 1 0-20 10 9 0 0 1 10 9 5 5 0 0 1-5 5h-2.25a1.75 1.75 0 0 0-1.4 2.8l.3.4a1.75 1.75 0 0 1-1.4 2.8z"/><circle cx="13.5" cy="6.5" r=".5" fill="currentColor"/><circle cx="17.5" cy="10.5" r=".5" fill="currentColor"/><circle cx="6.5" cy="12.5" r=".5" fill="currentColor"/><circle cx="8.5" cy="7.5" r=".5" fill="currentColor"/></svg></span><span class="set-txt"><b>Appearance</b></span><svg class="chev" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg></button>
@@ -2338,6 +2368,36 @@
         <button class="set-row st-cat" id="st-youtube"><span class="so-ico youtube"><svg width="19" height="19" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg></span><span class="set-txt"><b>YouTube</b><small>Videos about Orien</small></span><svg class="chev" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg></button>
       </div>
       </div>
+    </section>
+
+    <!-- Build a theme: two or three colours and a picture, kept on this device. -->
+    <section class="screen" id="theme-build" hidden>
+      <div class="topline"><button class="back" id="tb-back" aria-label="Back"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg></button><h2>Build a theme</h2></div>
+      <div class="tb-stage" id="tb-stage">
+        <div class="tc-mini tb-mini" data-theme="c-draft">
+          <div class="tc-bar"><span class="tc-word"></span><span class="tc-dot"></span></div>
+          <div class="tc-card"><i></i><i></i><i></i></div>
+          <div class="tc-tiles"><span></span><span></span><span></span><span></span></div>
+          <div class="tc-list"><i></i><i></i><i></i></div>
+        </div>
+      </div>
+      <div class="field">
+        <label for="tb-name">Name</label>
+        <div class="box plain"><input id="tb-name" maxlength="24" placeholder="My theme" autocomplete="off" spellcheck="false"></div>
+      </div>
+      <div class="field">
+        <label>Colours</label>
+        <div class="tb-colors" id="tb-colors"></div>
+        <div class="hint">One to three. They colour the buttons, the balance card and the glow.</div>
+      </div>
+      <div class="field">
+        <label>Background picture</label>
+        <div class="tb-pic"><button class="pill" id="tb-pick">Choose a picture</button><span class="tb-pic-name" id="tb-pic-name"></span></div>
+        <div class="hint">At least 1920 × 1080. It shows behind the app in big windows.</div>
+        <input type="file" id="tb-file" accept="image/jpeg,image/png,image/webp" hidden>
+      </div>
+      <div class="problem" id="tb-problem" hidden></div>
+      <button class="primary pearl" id="tb-save" disabled>Save theme</button>
     </section>
 
     <!-- Home -->
@@ -4287,7 +4347,74 @@
 
   // ---- Themes ----
   const THEMES = [["pearl", "Pearl"], ["daylight", "Daylight"], ["obsidian", "Obsidian"], ["midnight", "Midnight"], ["aurora", "Aurora"], ["amethyst", "Amethyst"], ["rose", "Rosé"], ["ruby", "Ruby"], ["ember", "Ember"]];
-  const knownTheme = (name) => THEMES.some(([id]) => id === name) ? name : "pearl";
+  // ---- Themes you build: one to three colours and a picture ----
+  // Kept on this device: the list (names and colours) here, the pictures in
+  // the app's own database, too big for this store. Everything else a theme
+  // has is made from the colours, kept dark and readable whatever they are.
+  const customThemes = () => { try { return JSON.parse(localStorage.getItem("custom-themes") || "[]"); } catch { return []; } };
+  const isCustomTheme = (name) => /^c-/.test(name || "");
+  const knownTheme = (name) => THEMES.some(([id]) => id === name) || customThemes().some((t) => t.id === name) ? name : "pearl";
+  function hexHsl(hex) {
+    const n = parseInt(hex.slice(1), 16), r = (n >> 16 & 255) / 255, g = (n >> 8 & 255) / 255, b = (n & 255) / 255;
+    const max = Math.max(r, g, b), min = Math.min(r, g, b), l = (max + min) / 2, d = max - min;
+    let h = 0;
+    if (d) h = max === r ? ((g - b) / d) % 6 : max === g ? (b - r) / d + 2 : (r - g) / d + 4;
+    return { h: (h * 60 + 360) % 360, s: d ? (d / (1 - Math.abs(2 * l - 1))) * 100 : 0, l: l * 100 };
+  }
+  function hsl(h, s, l) {
+    s /= 100; l /= 100;
+    const k = (n) => (n + h / 30) % 12, a = s * Math.min(l, 1 - l);
+    const f = (n) => Math.round(255 * (l - a * Math.max(-1, Math.min(k(n) - 3, 9 - k(n), 1))));
+    return "#" + [f(0), f(8), f(4)].map((v) => v.toString(16).padStart(2, "0")).join("");
+  }
+  const rgbOf = (hex) => { const n = parseInt(hex.slice(1), 16); return `${n >> 16 & 255}, ${n >> 8 & 255}, ${n & 255}`; };
+  function themeVars(colors) {
+    const [a, b, c] = [colors[0], colors[1] || colors[0], colors[2] || colors[1] || colors[0]].map(hexHsl);
+    const ts = Math.min(a.s * 0.4, 24), g = (l, sat = ts) => hsl(a.h, sat, l);
+    const soft = (x, l) => hsl(x.h, Math.max(x.s, 45), l), vivid = (x, l) => hsl(x.h, Math.max(x.s, 55), l);
+    // One colour: its own lighter and deeper shades make the gradients.
+    const one = colors.length === 1;
+    const pearl = [soft(a, 86), soft(a, 70), soft(b, one ? 90 : 88), soft(b, one ? 64 : 68), soft(c, 90), soft(c, 72), soft(b, 82), soft(a, 86)];
+    const brand = [vivid(a, 74), vivid(b, one ? 84 : 78), vivid(c, one ? 66 : 68), vivid(b, 82), vivid(a, 74)];
+    const stops = (list) => list.map((x, i) => `${x} ${Math.round(i * 100 / (list.length - 1))}%`).join(", ");
+    return `--tint: 255, 255, 255; color-scheme: dark;
+      --ground: ${g(10)}; --ground-deep: ${g(6.5)}; --surface: ${g(14)}; --surface-hover: ${g(17)}; --field: ${g(8)};
+      --ink: ${g(94, Math.min(a.s, 30))}; --dim: ${g(66, Math.min(a.s, 14))}; --faint: ${g(46, Math.min(a.s, 10))}; --line: ${g(21)}; --pearl-ink: ${hsl(a.h, Math.min(a.s, 55), 12)};
+      --good: #a9e6c6; --bad: #f4a6ae; --focus: ${vivid(a, 62)}; --select: ${vivid(a, 78)}aa; --accent: ${vivid(a, 72)};
+      --cover: linear-gradient(135deg, ${g(16)}, ${g(11)}); --glass: rgba(${rgbOf(g(14))}, 0.74); --glass-button: rgba(${rgbOf(g(12))}, 0.82);
+      --veil: rgba(${rgbOf(g(4))}, 0.58); --bubble-mine: ${hsl(a.h, Math.min(Math.max(a.s, 30), 60), 28)}; --chip-icon: ${hsl(a.h, Math.min(a.s, 80), 84)}; --on-pearl-dim: ${hsl(a.h, Math.min(a.s, 20), 34)};
+      --glow: radial-gradient(90% 50% at 18% -8%, rgba(${rgbOf(vivid(a, 60))}, 0.22), transparent 62%), radial-gradient(80% 45% at 88% -4%, rgba(${rgbOf(vivid(b, 60))}, 0.16), transparent 60%);
+      --pearl: linear-gradient(115deg, ${stops(pearl)});
+      --brand: linear-gradient(115deg, ${stops(brand)});`;
+  }
+  // The pictures, from the database once the app opens.
+  const scenes = new Map();
+  let sceneDb = null;
+  function scenesStore(mode) {
+    if (!sceneDb) sceneDb = new Promise((done, fail) => {
+      const open = indexedDB.open("orien-themes", 1);
+      open.onupgradeneeded = () => open.result.createObjectStore("scenes");
+      open.onsuccess = () => done(open.result);
+      open.onerror = () => fail(open.error);
+    });
+    return sceneDb.then((db) => db.transaction("scenes", mode).objectStore("scenes"));
+  }
+  const sceneAsk = (mode, act) => scenesStore(mode).then((store) => new Promise((done, fail) => {
+    const req = act(store); req.onsuccess = () => done(req.result); req.onerror = () => fail(req.error);
+  }));
+  function paintCustomCss() {
+    let el = document.getElementById("custom-theme-css");
+    if (!el) { el = document.createElement("style"); el.id = "custom-theme-css"; document.head.appendChild(el); }
+    const rule = (id, colors, scene) => `[data-theme="${id}"] { ${themeVars(colors)}${scene ? ` --scene: url("${scene}");` : ""} }`;
+    el.textContent = customThemes().map((t) => rule(t.id, t.colors, scenes.get(t.id))).join("\n")
+      + (tb.colors.length ? "\n" + rule("c-draft", tb.colors, tb.scene) : "");
+  }
+  async function loadScenes() {
+    for (const t of customThemes()) {
+      try { const pic = await sceneAsk("readonly", (st) => st.get(t.id)); if (pic) scenes.set(t.id, pic); } catch {}
+    }
+    paintCustomCss();
+  }
   // The colour behind the page matches the theme's deepest ground.
   function paintBackdrop() {
     if (/Linux/.test(navigator.userAgent)) return;   // nothing shows behind the page there
@@ -4310,24 +4437,140 @@
     if (fade) document.startViewTransition(set).finished.then(paintBackdrop, paintBackdrop);
     else { set(); paintBackdrop(); }
   }
-  $("theme-grid").innerHTML = THEMES.map(([id, name]) => `<button class="theme-card" data-pick="${id}">
+  // The builder's work in progress.
+  const tb = { colors: [], scene: null };
+  function paintThemeCards() {
+    const all = THEMES.map(([id, name]) => [id, name, false]).concat(customThemes().map((t) => [t.id, t.name, true]));
+    $("theme-grid").innerHTML = all.map(([id, name, own]) => `<button class="theme-card" data-pick="${id}">
       <div class="tc-mini" data-theme="${id}">
         <div class="tc-bar"><span class="tc-word"></span><span class="tc-dot"></span></div>
         <div class="tc-card"><i></i><i></i><i></i></div>
         <div class="tc-tiles"><span></span><span></span><span></span><span></span></div>
         <div class="tc-list"><i></i><i></i><i></i></div>
       </div>
-      <div class="tc-name"><span>${name}</span><span class="tc-check"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></span></div>
+      <div class="tc-name"><span class="tc-label">${esc(name)}</span>${own ? `<span class="tc-del" data-del="${id}" role="button" aria-label="Delete ${esc(name)}" title="Delete">${TRASH}</span>` : ""}<span class="tc-check"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></span></div>
     </button>`).join("");
-  $("theme-grid").onclick = (e) => {
+    paintThemeGrid();
+  }
+  let delArmed = null, delTimer = 0;
+  $("theme-grid").onclick = async (e) => {
+    const del = e.target.closest("[data-del]");
+    if (del) {
+      // A first press arms the bin; a second deletes.
+      if (delArmed !== del.dataset.del) {
+        for (const d of document.querySelectorAll(".tc-del.armed")) { d.classList.remove("armed"); d.innerHTML = TRASH; }
+        delArmed = del.dataset.del; del.classList.add("armed"); del.innerHTML = `${TRASH}Delete`;
+        clearTimeout(delTimer);
+        delTimer = setTimeout(() => { delArmed = null; del.classList.remove("armed"); del.innerHTML = TRASH; }, 3500);
+        return;
+      }
+      const id = delArmed; delArmed = null; clearTimeout(delTimer);
+      localStorage.setItem("custom-themes", JSON.stringify(customThemes().filter((t) => t.id !== id)));
+      scenes.delete(id);
+      sceneAsk("readwrite", (st) => st.delete(id)).catch(() => {});
+      // The theme in use: back to the one chosen on your devices.
+      if (document.documentElement.dataset.theme === id) {
+        let back = "pearl";
+        try { back = (await invoke("app_theme")) || "pearl"; } catch {}
+        applyTheme(isCustomTheme(back) ? "pearl" : back, true);
+      }
+      paintCustomCss();
+      paintThemeCards();
+      return;
+    }
     const card = e.target.closest(".theme-card");
     if (!card) return;
     feel("selection");
     applyTheme(card.dataset.pick, true);
-    invoke("set_app_theme", { theme: card.dataset.pick }).catch(() => {});
+    // Your own themes stay on this device; the others follow you.
+    if (!isCustomTheme(card.dataset.pick)) invoke("set_app_theme", { theme: card.dataset.pick }).catch(() => {});
   };
+  paintCustomCss();
+  paintThemeCards();
+  loadScenes();
   // As this device last had it, at once; then as chosen on any device.
   try { applyTheme(localStorage.getItem("theme") || "pearl", false); } catch { paintBackdrop(); }
+
+  // The builder.
+  const TB_DEFAULT = ["#8a7dff", "#5fd3c6"];
+  function tbPaint() {
+    const box = $("tb-colors");
+    box.innerHTML = tb.colors.map((c, i) => `<label class="tb-swatch" title="Change this colour"><input type="color" value="${c}" data-tb-color="${i}" aria-label="Colour ${i + 1}">${tb.colors.length > 1 ? `<button class="tb-x" data-tb-drop="${i}" aria-label="Remove this colour">${X_ICON}</button>` : ""}</label>`).join("")
+      + (tb.colors.length < 3 ? `<button class="tb-add" id="tb-add" aria-label="Add a colour" title="Add a colour"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="M12 5v14"/></svg></button>` : "");
+    box.querySelectorAll(".tb-swatch").forEach((sw, i) => { sw.style.background = tb.colors[i]; });
+    tbLook();
+  }
+  function tbLook() {
+    paintCustomCss();
+    const stage = $("tb-stage");
+    stage.style.backgroundImage = tb.scene ? `url("${tb.scene}")` : "";
+    stage.classList.toggle("has-pic", !!tb.scene);
+    $("tb-save").disabled = !($("tb-name").value.trim() && tb.colors.length && tb.scene);
+  }
+  $("tb-colors").addEventListener("input", (e) => {
+    const i = e.target.dataset && e.target.dataset.tbColor;
+    if (i === undefined) return;
+    tb.colors[Number(i)] = e.target.value;
+    e.target.parentElement.style.background = e.target.value;
+    tbLook();
+  });
+  $("tb-colors").addEventListener("click", (e) => {
+    const drop = e.target.closest("[data-tb-drop]");
+    if (drop) { e.preventDefault(); tb.colors.splice(Number(drop.dataset.tbDrop), 1); tbPaint(); return; }
+    if (e.target.closest("#tb-add")) {
+      // A new colour: a step round the wheel from the last.
+      const last = hexHsl(tb.colors[tb.colors.length - 1]);
+      tb.colors.push(hsl((last.h + 50) % 360, Math.max(last.s, 50), Math.min(Math.max(last.l, 45), 70)));
+      tbPaint();
+    }
+  });
+  $("tb-name").addEventListener("input", tbLook);
+  function openThemeBuilder() {
+    tb.colors = TB_DEFAULT.slice(); tb.scene = null;
+    $("tb-name").value = ""; $("tb-pic-name").textContent = ""; $("tb-problem").hidden = true;
+    $("tb-pick").textContent = "Choose a picture";
+    tbPaint();
+    show("theme-build");
+  }
+  $("st-build").onclick = openThemeBuilder;
+  $("tb-back").onclick = () => { tb.colors = []; tb.scene = null; paintCustomCss(); show("settings"); settingsPage("appearance"); };
+  $("tb-pick").onclick = () => $("tb-file").click();
+  $("tb-file").onchange = async () => {
+    const file = $("tb-file").files[0];
+    $("tb-file").value = "";
+    if (!file) return;
+    $("tb-problem").hidden = true;
+    try {
+      const url = await new Promise((done, fail) => { const r = new FileReader(); r.onload = () => done(r.result); r.onerror = () => fail(r.error); r.readAsDataURL(file); });
+      const img = await new Promise((done, fail) => { const i = new Image(); i.onload = () => done(i); i.onerror = () => fail(new Error("That file isn't a picture this app can open.")); i.src = url; });
+      const w = img.naturalWidth, h = img.naturalHeight;
+      if (w < 1920 || h < 1080) { problem("tb-problem", `That picture is ${w} × ${h}. It needs to be at least 1920 × 1080.`); return; }
+      // Kept at no more than 2560 across, so it's quick to show and store.
+      const k = Math.min(1, 2560 / Math.max(w, h)), canvas = document.createElement("canvas");
+      canvas.width = Math.round(w * k); canvas.height = Math.round(h * k);
+      canvas.getContext("2d").drawImage(img, 0, 0, canvas.width, canvas.height);
+      tb.scene = canvas.toDataURL("image/jpeg", 0.86);
+      $("tb-pic-name").textContent = file.name;
+      $("tb-pick").textContent = "Change picture";
+      tbLook();
+    } catch (err) { problem("tb-problem", err); }
+  };
+  $("tb-save").onclick = async () => {
+    const name = $("tb-name").value.trim();
+    if (!name || !tb.colors.length || !tb.scene) return;
+    const id = "c-" + Date.now().toString(36);
+    $("tb-save").disabled = true;
+    try { await sceneAsk("readwrite", (st) => st.put(tb.scene, id)); }
+    catch { problem("tb-problem", "The picture couldn't be saved on this device. Try a smaller one."); $("tb-save").disabled = false; return; }
+    localStorage.setItem("custom-themes", JSON.stringify(customThemes().concat([{ id, name, colors: tb.colors.slice() }])));
+    scenes.set(id, tb.scene);
+    tb.colors = []; tb.scene = null;
+    paintCustomCss();
+    paintThemeCards();
+    applyTheme(id, true);
+    feel("success");
+    show("settings"); settingsPage("appearance");
+  };
   // The categories, each with a hint of what's set; a tap opens its page.
   const settingsTitles = { appearance: "Appearance", privacy: "Privacy and security", notify: "Notifications", computer: "This computer", extensions: "Browser Extensions", about: "About", social: "Social Links", guide: "User Guide", "guide-view": "User Guide" };
   // Pages inside another page: Back returns there.
@@ -4338,6 +4581,7 @@
     $("st-menu").hidden = !!page;
     for (const p of document.querySelectorAll(".st-page")) p.hidden = p.dataset.page !== page;
     $("st-title").textContent = page ? settingsTitles[page] : "Settings";
+    $("st-build").hidden = page !== "appearance";
     $("settings").scrollTop = 0;
   }
   $("st-menu").onclick = (e) => { const row = e.target.closest(".st-cat"); if (row && row.dataset.page) settingsPage(row.dataset.page); };
@@ -4572,7 +4816,8 @@
     let all = {};
     try { all = (await invoke("app_prefs")) || {}; } catch {}
     prefs.hide = all.hide === "on"; prefs.noarrow = all.arrow === "off";
-    if (all.theme) applyTheme(all.theme, true);
+    // A theme built on this device stays until you pick another here.
+    if (all.theme && !isCustomTheme(document.documentElement.dataset.theme)) applyTheme(all.theme, true);
     try { mutedKinds = (await invoke("notifications_muted")) || []; } catch {}
     paintBalance();
     if (!$("settings").hidden) paintSettings();
