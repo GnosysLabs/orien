@@ -4653,8 +4653,11 @@
     if (suggest(to) && !isAddress(to)) check = "";
     // A whole address: shown by name if it has one, else by its two ends,
     // and Paste becomes Clear.
-    const chosen = isAddress(to) && !(view && lower === view.address);
-    const who = chosen && nameOf(lower);
+    // This wallet's own address too: shown as the person it belongs to,
+    // with the note under it that it's this wallet.
+    const chosen = isAddress(to);
+    const mine = !!(view && lower === view.address);
+    const who = chosen && (mine ? profileLabel(profileOf(lower)) || nameOf(lower) : nameOf(lower));
     $("to").hidden = chosen;
     $("to-chosen").hidden = !chosen;
     if (chosen && !profiles.has(lower)) loadProfiles([lower]).then((found) => found && validate());
