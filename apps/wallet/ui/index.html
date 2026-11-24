@@ -1538,7 +1538,7 @@
   /* Community: the network's news and people's posts, as on orien.network,
      with the Market as its second tab. */
   .cm-tabs { margin: 0 0 16px; }
-  #community, #cm-thread { --col: 1040px; }
+  #community { --col: 1040px; }
   .cm-layout { display: block; }
   .cm-main { min-width: 0; }
   /* Narrow: of the sidebar, Find members stays, above the feed. Top
@@ -1560,7 +1560,7 @@
     /* Where posts scroll under the top and bottom edges, the feed and the
        sidebar each round off at both of their sides, not only at the
        outer ones: the screen's mask, cut into the two columns. */
-    html body #community, html body #seller.split-edges, html body #cm-thread.split-edges {
+    html body #community, html body #seller.split-edges {
       --tl: radial-gradient(circle at 100% 100%, #000 calc(var(--rt) - 0.5px), transparent var(--rt));
       --tr: radial-gradient(circle at 0 100%, #000 calc(var(--rt) - 0.5px), transparent var(--rt));
       --bl: radial-gradient(circle at 100% 0, #000 calc(var(--rb) - 0.5px), transparent var(--rb));
@@ -1587,7 +1587,7 @@
     /* The space under the last post is the feed's own, not the screen's:
        so the sidebar, which reaches the window's foot, is never pushed up
        (and seems to scroll) once the feed runs out. */
-    html body #community, html body #seller, html body #cm-thread { padding-bottom: 0; }
+    html body #community, html body #seller { padding-bottom: 0; }
     .cm-main, .sl-main { padding-bottom: 22px; box-sizing: border-box; }
     /* Stays in view beside the feed; taller than the window, it scrolls on its own. */
     .cm-rail { display: grid; gap: 14px; align-content: start; position: sticky; top: -8px;
@@ -1881,6 +1881,13 @@
   .cm-replies .cm-card { border-radius: 16px; margin-top: 10px; }
   .cm-reply { margin-top: 14px; }
   .cm-empty { padding: 28px 16px; text-align: center; color: var(--dim); }
+  /* A post pinned at the top of the feed from a notification. */
+  .cm-pin { margin-bottom: 18px; }
+  .cm-pin-head { display: flex; align-items: center; justify-content: space-between; margin: 0 4px 8px; font-size: 13px; font-weight: 600; color: var(--dim); }
+  .cm-pin-x { display: grid; place-items: center; width: 28px; height: 28px; padding: 0; border: 0; border-radius: 50%; background: rgba(var(--tint), 0.06); color: var(--dim); cursor: pointer; }
+  .cm-pin-x svg { width: 14px; height: 14px; }
+  @media (hover: hover) { .cm-pin-x:hover { background: rgba(var(--tint), 0.11); color: var(--ink); } }
+  .cm-pin .cm-card { box-shadow: 0 0 0 2px var(--select); border-color: transparent; }
   @keyframes spin { to { transform: rotate(360deg); } }
   .spinner {
     display: inline-block; width: 14px; height: 14px; margin-right: 8px; vertical-align: -2px;
@@ -2444,9 +2451,6 @@
     <!-- A community post and its replies. -->
     <section class="screen" id="cm-thread" hidden>
       <div class="topline"><button class="back" id="cm-thread-back" aria-label="Back"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg></button><h2>Post</h2></div>
-      <!-- Big windows: the post wide, with the Community's sidebar beside
-           it, moved here from the feed while the post is open. -->
-      <div class="cm-layout" id="cm-thread-layout"><div class="cm-main">
       <div id="cm-thread-post"></div>
       <div class="cm-replies" id="cm-replies"></div>
       <div class="cm-compose cm-reply" id="cm-reply-box" hidden>
@@ -2456,7 +2460,6 @@
       </div>
       <div class="cm-join" id="cm-reply-join" hidden><span id="cm-reply-join-text"></span><button class="pill" id="cm-reply-join-go"></button></div>
       <div class="problem" id="cm-thread-problem" hidden></div>
-      </div></div>
     </section>
 
     <section class="screen" id="market" hidden>
@@ -3539,11 +3542,6 @@
     // The frosted container behind it takes the screen's width.
     const shown = $(id), col = shown && parseFloat(getComputedStyle(shown).getPropertyValue("--col"));
     document.querySelector("main").style.setProperty("--panel", (both ? 1040 : col || 640) + "px");
-    // The sidebar goes with you between the feed and a post on its own.
-    const rail = document.querySelector(".cm-rail");
-    if (rail && id === "cm-thread" && matchMedia("(min-width: 980px)").matches && rail.parentElement.id !== "cm-thread-layout") { rail.style.removeProperty("--rail-h"); $("cm-thread-layout").appendChild(rail); }
-    if (rail && id === "community" && rail.parentElement.id === "cm-thread-layout") { document.querySelector("#community .cm-layout").appendChild(rail); $("cm-thread").classList.remove("split-edges"); }
-    if (id === "cm-thread" && typeof cmFitRail === "function") requestAnimationFrame(cmFitRail);
     if (id === "community" && typeof cmFitRail === "function") cmFitRail();
     // A big window shows recent swaps beside the offers: fetched as it opens.
     if (id === "swaps" && !phone && matchMedia("(min-width: 960px)").matches && typeof loadHistory === "function") loadHistory(false);
@@ -6885,7 +6883,12 @@
     catch (e) { cm.repliesOf.set(id, []); problem("cm-problem", e); }
   }
   function cmPaintFeed() {
-    $("cm-feed").innerHTML = cm.posts.length ? cm.posts.map((p) => cmCard(p)).join("") : '<div class="cm-empty">Nothing here yet.</div>';
+    // A post opened from a notification: pinned at the top, its comments
+    // open, however old it is; the feed carries on below without it.
+    const pin = cm.pinned ? cm.posts.find((p) => p.id === cm.pinned.id) || cm.pinned : null;
+    const pinned = pin ? `<div class="cm-pin"><div class="cm-pin-head"><span>From your notifications</span><button class="cm-pin-x" data-unpin aria-label="Close" title="Close">${X_ICON}</button></div>${cmCard(pin)}</div>` : "";
+    const rest = cm.posts.filter((p) => !pin || p.id !== pin.id);
+    $("cm-feed").innerHTML = pinned + (rest.length ? rest.map((p) => cmCard(p)).join("") : pin ? "" : '<div class="cm-empty">Nothing here yet.</div>');
     $("cm-more").hidden = !cm.more;
     // A profile's posts open, react and reply the same way.
     if (!$("seller").hidden) slPaintFeed();
@@ -6912,6 +6915,10 @@
       cm.more = !!page.more;
       if (page.reactions) cm.reactions = page.reactions;
       if (page.max) cm.max = page.max;
+      // The pinned post too, so its reactions and comments stay current.
+      if (cm.pinned && !more) {
+        try { const fresh = await cmCall("GET", `/posts/${cm.pinned.id}`); if (fresh && fresh.post) cm.pinned = fresh.post; } catch {}
+      }
       cmPaintFeed();
     } catch (e) { problem("cm-problem", e); }
   }
@@ -6962,15 +6969,12 @@
     const feed = main.getBoundingClientRect(), side = rail.getBoundingClientRect(), c = screen.style;
     c.setProperty("--f0", `${feed.left - box.left}px`); c.setProperty("--f1", `${feed.right - box.left}px`);
     c.setProperty("--r0", `${side.left - box.left}px`); c.setProperty("--r1", `${side.right - box.left}px`);
-    // A post on its own: two columns from the top, each with its own corners.
-    if (screen.id === "cm-thread") { screen.classList.toggle("split-edges", side.width > 0); return; }
     // The top edge splits into the two columns only once the tabs across
     // both of them have scrolled out of sight.
     const tabs = document.querySelector("#community .cm-tabs").getBoundingClientRect();
     $("community").classList.toggle("split-top", tabs.bottom <= box.top);
   }
   $("community").addEventListener("scroll", () => requestAnimationFrame(cmFitRail), { passive: true });
-  $("cm-thread").addEventListener("scroll", () => requestAnimationFrame(cmFitRail), { passive: true });
   window.addEventListener("resize", cmFitRail);
   // Find members by name, as they type.
   let cmFindTimer = 0;
@@ -7051,7 +7055,6 @@
     cm.open.add(p.id);
     $("cm-thread-post").innerHTML = cmCard(p);
     if (!was) cm.open.delete(p.id);
-    requestAnimationFrame(cmFitRail);
   }
   async function cmOpenThread(id) {
     const known = cm.posts.find((p) => p.id === id);
@@ -7240,6 +7243,7 @@
   }, true);
   async function cmClick(e) {
     if (e.target.closest("[data-join]")) return cmJoin();
+    if (e.target.closest("[data-unpin]")) { cm.pinned = null; cmPaintFeed(); return; }
     if (await cmReplyTools(e)) return;
     // The network's posts point on: swap history, or the network map.
     const go = e.target.closest("[data-news-go]");
@@ -7636,7 +7640,7 @@
   }
   for (const go of ["cm-join-go", "cm-reply-join-go"]) $(go).onclick = cmJoin;
   // From Home, always the feed first.
-  $("go-market").onclick = () => { cmMode(false); openCommunity(); };
+  $("go-market").onclick = () => { cm.pinned = null; cmMode(false); openCommunity(); };
   $("mk-cats").onclick = (e) => {
     const b = e.target.closest("[data-cat]");
     if (!b || b.dataset.cat === market.cat) return;
@@ -8028,9 +8032,17 @@
     const l = nt.lines[Number(r.dataset.nt)];
     if (!l) return;
     if (l.kind === "message") return openChat(l.conversation, "notices");
-    cm.threadFrom = "notices";
-    if (!cm.you) cmLoadYou();
-    cmOpenThread(l.post);
+    // The post, pinned at the top of the Community feed with its comments open.
+    let found;
+    try { found = await cmCall("GET", `/posts/${l.post}`); } catch (err) { problem("nt-problem", /not found|gone|no such/i.test(String(err)) ? "That post has been removed." : err); return; }
+    if (!found || !found.post) return;
+    cm.pinned = found.post;
+    cm.repliesOf.set(found.post.id, found.replies || []);
+    cm.open.add(found.post.id);
+    cmMode(false);
+    await openCommunity();
+    cmPaintFeed();
+    $("community").scrollTop = 0;
   };
   // A notification on computers for each new line (messages have their own),
   // as for ORN arriving. What's been told is kept, so nothing is told twice.
