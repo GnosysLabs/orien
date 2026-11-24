@@ -1,17 +1,17 @@
 //! Checking listings and account names before anyone sees them, with Liquid
-//! AI's d1.1 decision model through OpenRouter's Decisions API, as
+//! AI's d1.2 decision model through OpenRouter's Decisions API, as
 //! synthrise.xyz checks coins. Each question is answered with a probability;
 //! anything that reaches a question's threshold is refused, and the seller is
 //! told why in plain words.
 //!
-//! Docs: https://openrouter.ai/liquid/d1.1/api
+//! Docs: https://openrouter.ai/liquid/d1.2/api
 
 use anyhow::{Context, Result, bail};
 use serde_json::{Value, json};
 use std::collections::BTreeMap;
 
 const ENDPOINT: &str = "https://openrouter.ai/api/alpha/decisions";
-const MODEL: &str = "liquid/d1.1";
+const MODEL: &str = "liquid/d1.2";
 
 struct Check {
     id: &'static str,

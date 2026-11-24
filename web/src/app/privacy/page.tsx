@@ -64,7 +64,7 @@ export default function PrivacyPage() {
 
       <Section title="Browser extensions">
         <p>
-          Orien Wallet&apos;s extensions for Chrome and Safari hold no keys and store nothing except the theme you choose.
+          Orien Wallet&apos;s extensions for Chrome, Firefox and Safari hold no keys and store nothing except the theme you choose.
           They talk only to Orien Wallet on the same computer, over its own address (127.0.0.1), which never leaves the
           computer, and to orien.network when you sign in with Orien Wallet.
         </p>

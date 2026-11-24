@@ -352,7 +352,16 @@ async fn overview(State(admin): State<Admin>, headers: HeaderMap) -> Answer {
         Ok(network) => json!(network),
         Err(error) => json!({ "error": format!("{error:#}") }),
     };
-    Ok(Json(json!({ "login": login, "generated": now(), "network": network, "market": market, "server": server, "validators": validators }))
+    let usage = admin.app.mailer().usage();
+    let email = json!({
+        "daily": usage.daily,
+        "monthly": usage.monthly,
+        "at": usage.at,
+        "daily_limit": crate::mail::DAILY_LIMIT,
+        "monthly_limit": crate::mail::MONTHLY_LIMIT,
+        "refused": usage.refused,
+    });
+    Ok(Json(json!({ "login": login, "generated": now(), "network": network, "market": market, "server": server, "validators": validators, "email": email }))
         .into_response())
 }
 

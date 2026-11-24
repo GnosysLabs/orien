@@ -40,6 +40,11 @@ struct Args {
     /// Without it, GIFs can't be searched.
     #[arg(long)]
     klipy_key: Option<PathBuf>,
+    /// The Discord bot's alert inbox, such as http://127.0.0.1:7301/alert:
+    /// problems (screening failing, for one) are posted in its private
+    /// #network-alerts channel. Without it, they're only written to the log.
+    #[arg(long)]
+    alerts: Option<String>,
     /// Apple's push key (.p8), for notifications on iPhone; without it,
     /// notifications are written to the log
     #[arg(long)]
@@ -179,6 +184,7 @@ async fn main() -> Result<()> {
         Some(path) => {
             let key = std::fs::read_to_string(path).with_context(|| format!("cannot read {}", path.display()))?;
             Mailer::resend(key.trim().to_string(), &args.from)
+                .keeping_usage_in(args.db.parent().unwrap_or(std::path::Path::new(".")).join("resend-usage.json"))
         }
         None if secure => anyhow::bail!("a live marketplace needs --resend-key to send sign-in codes"),
         None => Mailer::log_only(),
@@ -208,6 +214,7 @@ async fn main() -> Result<()> {
     )?
     .with_traffic(orien_market::traffic::Traffic::open(traffic))
     .with_min_swap_version(args.min_swap_version)
+    .with_alerts(args.alerts.clone())
     .with_klipy_key(match &args.klipy_key {
         Some(path) => std::fs::read_to_string(path).with_context(|| format!("cannot read {}", path.display()))?.trim().to_string(),
         None => String::new(),
@@ -230,6 +237,14 @@ async fn main() -> Result<()> {
     orien_market::push::watch(app.clone(), apns);
     orien_market::community::watch(app.clone());
     orien_market::proofs::watch(app.clone());
+    let openrouter = match &args.openrouter_key {
+        Some(path) => Some(std::fs::read_to_string(path).with_context(|| format!("cannot read {}", path.display()))?.trim().to_string()),
+        None => None,
+    };
+    if openrouter.is_some() {
+        orien_market::api::watch_screening(app.clone());
+    }
+    orien_market::alerts::watch(app.clone(), openrouter);
     let listener = tokio::net::TcpListener::bind(&args.listen).await?;
     println!("marketplace server for {} listening on {}", args.origin, args.listen);
     if let Some(at) = &args.admin_listen {

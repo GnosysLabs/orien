@@ -27,6 +27,22 @@ export const PRODUCTS: Record<Product, string> = {
 export const CHANGELOG: Entry[] = [
   {
     date: '2026-11-24',
+    products: ['marketplace'],
+    title: 'Easier to read profiles',
+    changes: [
+      'On a profile with a banner, the name, “Member since” and bio have a soft glow behind them, and the buttons over the picture are frosted, as in Orien Wallet.',
+    ],
+  },
+  {
+    date: '2026-11-24',
+    products: ['wallet'],
+    title: 'Sign in with Orien Wallet in Firefox',
+    changes: [
+      'Orien Wallet’s extension is on Firefox Add-ons. With it and Orien Wallet 1.8.25 or later, Sign in with Orien Wallet works in Firefox, as it does in Safari and Chrome.',
+    ],
+  },
+  {
+    date: '2026-11-24',
     products: ['wallet'],
     version: '1.9.1',
     title: 'Answer comments, Activity tabs and Orien Verify',

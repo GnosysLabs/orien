@@ -32,7 +32,8 @@ ExecStart=/usr/local/bin/orien-discord run \
     --state /var/lib/orien-discord \
     --checkpoints \
     --genesis /etc/orien-discord/genesis.json \
-    --web-listen 127.0.0.1:7300
+    --web-listen 127.0.0.1:7300 \
+    --alerts-listen 127.0.0.1:7301
 Restart=always
 RestartSec=10
 

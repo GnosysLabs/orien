@@ -65,6 +65,8 @@ pub struct App {
     /// The KLIPY key the apps search GIFs with, from the user's own
     /// device as KLIPY requires; empty when GIFs are off.
     klipy_key: String,
+    /// Problems told to the founder in Discord's #network-alerts.
+    alerts: crate::alerts::Alerts,
 }
 
 /// One email, for App Store review, whose sign-in code never changes and is
@@ -116,6 +118,7 @@ impl App {
             spendable: Mutex::new(HashMap::new()),
             asking: Mutex::new(HashSet::new()),
             klipy_key: String::new(),
+            alerts: crate::alerts::Alerts::default(),
         })
     }
 
@@ -152,6 +155,17 @@ impl App {
 
     /// Turns away takes from wallets on swap rules older than `version`.
     /// GIFs in the community composer, searched with this KLIPY key.
+    /// Where to send alerts: the Discord bot's inbox, such as
+    /// http://127.0.0.1:7301/alert.
+    pub fn with_alerts(mut self, url: Option<String>) -> App {
+        self.alerts = crate::alerts::Alerts::to(url);
+        self
+    }
+
+    pub fn alerts(&self) -> &crate::alerts::Alerts {
+        &self.alerts
+    }
+
     pub fn with_klipy_key(mut self, key: String) -> App {
         self.klipy_key = key;
         self
@@ -220,6 +234,10 @@ impl App {
 
     pub(crate) fn images(&self) -> &Folder {
         &self.images
+    }
+
+    pub(crate) fn mailer(&self) -> &Mailer {
+        &self.mailer
     }
 
     pub(crate) fn explorer(&self) -> &crate::explorer::Explorer {
@@ -317,6 +335,13 @@ type Answer = Result<Response, Failure>;
 pub(crate) async fn screened(app: &App, what: &str, check: impl FnOnce(&Screener) -> anyhow::Result<Verdict> + Send + 'static) -> Result<(), Failure> {
     let screener = app.screener.clone();
     let verdict = tokio::task::spawn_blocking(move || check(&screener)).await.map_err(|e| Failure::Broken(e.into()))?;
+    match &verdict {
+        Ok(_) => app.alerts().fine("screening", "Content checks are working again: posts, photos, profiles and listings can be saved."),
+        Err(error) => app.alerts().trouble(
+            "screening",
+            format!("Content checks are failing, so new posts, photos, profiles and listings can't be saved.\nReason: {error:#}"),
+        ),
+    }
     match verdict {
         Ok(Verdict::Allowed) => Ok(()),
         Ok(Verdict::Refused(reasons)) => Err(Failure::Refused(format!(
@@ -330,6 +355,18 @@ pub(crate) async fn screened(app: &App, what: &str, check: impl FnOnce(&Screener
             )))
         }
     }
+}
+
+/// Every 15 minutes, checks a harmless line, so a broken screening service
+/// is noticed (and told in #network-alerts) before someone runs into it.
+pub fn watch_screening(app: Arc<App>) {
+    tokio::spawn(async move {
+        let mut every = tokio::time::interval(std::time::Duration::from_secs(15 * 60));
+        loop {
+            every.tick().await;
+            let _ = screened(&app, "self-check", |s| s.message("Good morning, miners. The network is running well today.")).await;
+        }
+    });
 }
 
 async fn screened_listing(app: &App, draft: Draft) -> Result<Draft, Failure> {
@@ -768,6 +805,9 @@ struct ReportRequest {
 async fn report(State(app): State<Arc<App>>, headers: HeaderMap, Json(request): Json<ReportRequest>) -> Answer {
     let reporter = app.signed_in(&headers)?;
     app.store.lock().unwrap().report(reporter, &request.kind, request.id, &request.reason).map_err(refused)?;
+    let reason: String = request.reason.trim().chars().take(300).collect();
+    let why = if reason.is_empty() { String::new() } else { format!(": “{reason}”") };
+    app.alerts().event(format!("🚩 Someone reported a {} (#{}){why}. It's on the dashboard under Reports.", request.kind, request.id));
     Ok(Json(json!({})).into_response())
 }
 

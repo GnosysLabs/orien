@@ -90,6 +90,35 @@ type Overview = {
   server: { disk: { total: number; free: number } | null; services: { name: string; state: string }[] }
   /** Each validator asked over the network, wherever it runs. */
   validators: { seat: number; name: string; up: boolean; epoch: number }[] | null
+  /** Emails Resend says we've used, as of the last email sent. */
+  email?: Email
+}
+
+type Email = {
+  daily: number | null
+  monthly: number | null
+  /** When Resend last said, in seconds; 0 when it hasn't yet. */
+  at: number
+  daily_limit: number
+  monthly_limit: number
+  refused: { why: string; at: number } | null
+}
+
+/** Today's and this month's emails against the plan's limits. Today's
+ * count starts again at midnight UTC, so an older count means none yet. */
+function emailUse(email: Email) {
+  const now = Date.now() / 1000
+  const midnight = Math.floor(now / 86400) * 86400
+  const today = email.at >= midnight ? (email.daily ?? 0) : 0
+  const month = email.monthly ?? 0
+  const near = today >= email.daily_limit * 0.8 || month >= email.monthly_limit * 0.8
+  // Refused for the quota today (daily), or since the month's count last grew.
+  const refused =
+    email.refused &&
+    ((email.refused.why.startsWith('daily') && email.refused.at >= midnight) || (email.refused.why.startsWith('monthly') && email.refused.at >= email.at))
+      ? email.refused
+      : null
+  return { today, month, near, refused }
 }
 
 type Report = {
@@ -173,6 +202,7 @@ export default function AdminPage() {
         </a>
       </header>
       {overview.error && <p className="rounded-xl border border-stop/40 bg-stop/10 px-4 py-2 text-sm text-ink">{overview.error}</p>}
+      {data.email && <EmailWarning email={data.email} />}
 
       <Reports reports={reports.data?.reports ?? null} onChange={reload} />
 
@@ -245,6 +275,7 @@ export default function AdminPage() {
             <p className="text-sm text-muted">The network did not answer.</p>
           )}
         </Card>
+        {data.email && <EmailCard email={data.email} />}
         <Card title="Services on this server">
           {data.server.services.map((s) => (
             <Row key={s.name} label={s.name}>
@@ -614,6 +645,37 @@ function FindAccount({ onChange }: { onChange: () => void }) {
           empty="No account matches."
         />
       )}
+    </Card>
+  )
+}
+
+/** A red line at the top of the page when emails are near or past the
+ * plan's limit: sign-in codes stop when they run out. */
+function EmailWarning({ email }: { email: Email }) {
+  const use = emailUse(email)
+  if (!use.near && !use.refused) return null
+  return (
+    <p className="rounded-xl border border-stop/40 bg-stop/10 px-4 py-2 text-sm text-ink">
+      {use.refused
+        ? `Resend stopped sending ${ago(use.refused.at)}: the ${use.refused.why.startsWith('daily') ? 'daily' : 'monthly'} email limit is used up. Sign-in codes can't be sent until it resets.`
+        : `Emails are near Resend's limit: ${count(use.today)} of ${count(email.daily_limit)} today, ${count(use.month)} of ${count(email.monthly_limit)} this month.`}
+    </p>
+  )
+}
+
+function EmailCard({ email }: { email: Email }) {
+  const use = emailUse(email)
+  const line = (used: number, limit: number) => (
+    <span className={used >= limit * 0.8 ? 'text-stop' : 'text-ink'}>
+      {count(used)} of {count(limit)} · {Math.round((used / limit) * 100)}%
+    </span>
+  )
+  return (
+    <Card title="Emails (Resend, free plan)">
+      <Row label="Today (UTC)">{line(use.today, email.daily_limit)}</Row>
+      <Row label="This month">{line(use.month, email.monthly_limit)}</Row>
+      <Row label="Last count">{email.at ? ago(email.at) : 'no email sent yet'}</Row>
+      <p className="mt-2 text-xs leading-relaxed text-muted">Resend gives the count with each email it sends, so it updates when an email goes out.</p>
     </Card>
   )
 }
