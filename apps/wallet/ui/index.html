@@ -1256,6 +1256,9 @@
   .tb-pic-name { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 13px; color: var(--dim); }
   #theme-build #tb-save { margin-top: 26px; }
   .tabs.tb-base { margin-bottom: 0; }
+  /* iPhones wear the themes built on a computer, but build, change and
+     delete none: the builder is for big windows, where the picture shows. */
+  body.phone #st-build, body.phone .tc-del { display: none !important; }
   /* Big windows: the preview large on the left, the choices beside it. */
   @media (min-width: 980px) {
     #theme-build { --col: 1040px; }
@@ -4560,6 +4563,7 @@
       }
       const id = delArmed; delArmed = null; clearTimeout(delTimer);
       localStorage.setItem("custom-themes", JSON.stringify(customThemes().filter((t) => t.id !== id)));
+      shareThemes();
       scenes.delete(id);
       sceneAsk("readwrite", (st) => st.delete(id)).catch(() => {});
       // The theme in use: back to the one chosen on your devices.
@@ -4567,6 +4571,7 @@
         let back = "pearl";
         try { back = (await invoke("app_theme")) || "pearl"; } catch {}
         applyTheme(isCustomTheme(back) ? "pearl" : back, true);
+        invoke("set_app_theme", { theme: document.documentElement.dataset.theme }).catch(() => {});
       }
       paintThemeCards();
       return;
@@ -4575,11 +4580,24 @@
     if (!card) return;
     feel("selection");
     applyTheme(card.dataset.pick, true);
-    // Your own themes stay on this device; the others follow you.
-    if (!isCustomTheme(card.dataset.pick)) invoke("set_app_theme", { theme: card.dataset.pick }).catch(() => {});
+    invoke("set_app_theme", { theme: card.dataset.pick }).catch(() => {});
   };
   paintThemeCards();
   loadScenes();
+  // Built themes follow you to your other devices: the list, without the
+  // pictures. A list from elsewhere replaces this device's; a device whose
+  // themes were never shared shares them now.
+  const shareThemes = () => invoke("set_app_pref", { name: "themes", value: JSON.stringify(customThemes().slice(0, 24)) }).catch(() => {});
+  function takeThemes(text) {
+    if (text === undefined) { if (customThemes().length) shareThemes(); return; }
+    let list;
+    try { list = JSON.parse(text); } catch { return; }
+    if (!Array.isArray(list) || JSON.stringify(list) === JSON.stringify(customThemes())) return;
+    localStorage.setItem("custom-themes", JSON.stringify(list));
+    for (const id of [...scenes.keys()]) if (!list.some((t) => t.id === id)) { scenes.delete(id); sceneAsk("readwrite", (st) => st.delete(id)).catch(() => {}); }
+    paintThemeCards();
+    paintOwnTheme();
+  }
   // As this device last had it, at once; then as chosen on any device.
   try { applyTheme(localStorage.getItem("theme") || "pearl", false); } catch { paintBackdrop(); }
 
@@ -4660,7 +4678,7 @@
     if (!name || !tb.colors.length || !tb.scene) return;
     const id = tb.editing || "c-" + Date.now().toString(36);
     $("tb-save").disabled = true;
-    if (scenes.get(id) !== tb.scene) {
+    if (tb.scene && scenes.get(id) !== tb.scene) {
       try { await sceneAsk("readwrite", (st) => st.put(tb.scene, id)); }
       catch { problem("tb-problem", "The picture couldn't be saved on this device. Try a smaller one."); $("tb-save").disabled = false; return; }
     }
@@ -4668,11 +4686,13 @@
     const at = list.findIndex((t) => t.id === id);
     if (at >= 0) list[at] = theme; else list.push(theme);
     localStorage.setItem("custom-themes", JSON.stringify(list));
-    scenes.set(id, tb.scene);
+    shareThemes();
+    if (tb.scene) scenes.set(id, tb.scene);
     tb.colors = []; tb.scene = null; tb.editing = null;
     paintThemeCards();
     // Changed while in use: wear the changes now.
     if (document.documentElement.dataset.theme === id) paintOwnTheme(); else applyTheme(id, true);
+    invoke("set_app_theme", { theme: id }).catch(() => {});
     feel("success");
     show("settings"); settingsPage("appearance");
   };
@@ -4921,8 +4941,14 @@
     let all = {};
     try { all = (await invoke("app_prefs")) || {}; } catch {}
     prefs.hide = all.hide === "on"; prefs.noarrow = all.arrow === "off";
-    // A theme built on this device stays until you pick another here.
-    if (all.theme && !isCustomTheme(document.documentElement.dataset.theme)) applyTheme(all.theme, true);
+    // The themes you built, as on your other devices (their pictures stay on
+    // the computer that has them); then the theme chosen on any of them.
+    // Before built themes followed you, picking one stayed on its computer:
+    // the first time, the one in use here is shared rather than replaced.
+    const sharedBefore = all.themes !== undefined, here = document.documentElement.dataset.theme;
+    takeThemes(all.themes);
+    if (!sharedBefore && isCustomTheme(here)) invoke("set_app_theme", { theme: here }).catch(() => {});
+    else if (all.theme) applyTheme(all.theme, true);
     try { mutedKinds = (await invoke("notifications_muted")) || []; } catch {}
     paintBalance();
     if (!$("settings").hidden) paintSettings();

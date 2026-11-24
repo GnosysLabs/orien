@@ -69,10 +69,12 @@ fn store_prefs(dir: &Path, prefs: &std::collections::BTreeMap<String, Pref>) -> 
     fs::write(prefs_file(dir), text).map_err(|error| error.to_string())
 }
 
-/// Sets one of the person's choices, now.
+/// Sets one of the person's choices, now. Most are a word; the themes the
+/// person built (names, bases and colours, no pictures) are a short list.
 pub fn set_pref(dir: &Path, name: &str, value: &str) -> Result<(), String> {
     let mut all = prefs(dir);
-    all.insert(name.to_string(), Pref { value: value.chars().take(64).collect(), updated: now() });
+    let room = if name == "themes" { 4000 } else { 64 };
+    all.insert(name.to_string(), Pref { value: value.chars().take(room).collect(), updated: now() });
     store_prefs(dir, &all)
 }
 
