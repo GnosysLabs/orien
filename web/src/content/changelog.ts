@@ -28,6 +28,16 @@ export const CHANGELOG: Entry[] = [
   {
     date: '2026-11-24',
     products: ['wallet'],
+    version: '1.9.6',
+    title: 'Your themes first, your picture in full',
+    changes: [
+      'Themes you build come first in the theme list.',
+      'Their pictures show at full strength behind the app on dark themes too, never faded.',
+    ],
+  },
+  {
+    date: '2026-11-24',
+    products: ['wallet'],
     version: '1.9.5',
     title: 'Themes you build follow you',
     changes: [
