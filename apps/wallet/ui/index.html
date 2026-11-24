@@ -176,7 +176,9 @@
   :root { --col: 640px; }
   :root { --mn-cool: #6fa8ff; --mn-good: #5fd39d; --mn-warm: #f2a35e; --mn-dim: rgba(0, 0, 0, 0.62); }
   [data-theme="daylight"] { --mn-dim: rgba(255, 255, 255, 0.68); }
-  #market, #seller { --col: 1040px; }
+  /* Wide screens stay the container's usual width until there's room for
+     their expanded layouts. */
+  @media (min-width: 980px) { #market, #seller { --col: 1040px; } }
   /* A listing, in a big window: wider, its pictures large on the left and
      the title, price, seller and description beside them. */
   @media (min-width: 980px) {
@@ -276,9 +278,9 @@
       var(--m) 50% 100% / calc(100% - 36px - 2 * var(--rb)) var(--rb) no-repeat,
       var(--bl) left 18px bottom 0 / var(--rb) var(--rb) no-repeat, var(--br) right 18px bottom 0 / var(--rb) var(--rb) no-repeat;
     -webkit-mask: var(--M); mask: var(--M); }
-  /* Big windows: each theme's photograph behind the app, quiet. From
-     980px wide, the same width every wide layout starts at, so the photo
-     and the expanded views arrive together. */
+  /* Big windows: each theme's photograph behind the app, quiet, as soon as
+     the window is wider than the container; the screens keep the
+     container's width until 980px, where the wide ones expand. */
   :root, [data-theme="pearl"] { --scene: url(scenes/pearl.webp); }
   [data-theme="daylight"] { --scene: url(scenes/daylight.webp); }
   [data-theme="midnight"] { --scene: url(scenes/midnight.webp); }
@@ -288,7 +290,7 @@
   [data-theme="ruby"] { --scene: url(scenes/ruby.webp); }
   [data-theme="ember"] { --scene: url(scenes/ember.webp); }
   [data-theme="obsidian"] { --scene: url(scenes/obsidian.webp); }
-  @media (min-width: 980px) {
+  @media (min-width: 720px) {
     body:not(.phone)::before { content: ""; position: fixed; inset: 0; z-index: -1; pointer-events: none;
       background: var(--scene, none) center / cover no-repeat; opacity: 0.55; }
     /* Each screen sits in a container that looks just like the app in a
@@ -1540,7 +1542,7 @@
   /* Community: the network's news and people's posts, as on orien.network,
      with the Market as its second tab. */
   .cm-tabs { margin: 0 0 16px; }
-  #community { --col: 1040px; }
+  @media (min-width: 980px) { #community { --col: 1040px; } }
   .cm-layout { display: block; }
   .cm-main { min-width: 0; }
   /* Narrow: of the sidebar, Find members stays, above the feed. Top
@@ -3535,13 +3537,19 @@
   // Wide windows show Messages side by side: the conversations and the
   // open one together.
   const wide = window.matchMedia("(min-width: 1160px)");
+  // The frosted container behind the screen takes its width, again whenever
+  // the window crosses the width where wide screens expand.
+  function fitPanel() {
+    const shown = [...document.querySelectorAll(".screen")].find((s) => !s.hidden);
+    const col = shown && parseFloat(getComputedStyle(shown).getPropertyValue("--col"));
+    document.querySelector("main").style.setProperty("--panel", (document.body.classList.contains("split") ? 1040 : col || 640) + "px");
+  }
+  matchMedia("(min-width: 980px)").addEventListener("change", fitPanel);
   function show(id) {
     const both = !phone && wide.matches && (id === "inbox" || (id === "chat" && chat.from === "inbox" && chat.id));
     for (const s of document.querySelectorAll(".screen")) s.hidden = !(s.id === id || (both && (s.id === "inbox" || s.id === "chat")));
     document.body.classList.toggle("split", both);
-    // The frosted container behind it takes the screen's width.
-    const shown = $(id), col = shown && parseFloat(getComputedStyle(shown).getPropertyValue("--col"));
-    document.querySelector("main").style.setProperty("--panel", (both ? 1040 : col || 640) + "px");
+    fitPanel();
     if (id === "community" && typeof cmFitRail === "function") cmFitRail();
     // A big window shows recent swaps beside the offers: fetched as it opens.
     if (id === "swaps" && !phone && matchMedia("(min-width: 980px)").matches && typeof loadHistory === "function") loadHistory(false);
