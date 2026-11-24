@@ -4,6 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 <title>Orien Wallet</title>
+<script type="module" src="vendor/planet.js"></script>
 <style>
   /* The wordmark's typeface, bundled so the app never fetches fonts. */
   @font-face {
@@ -711,6 +712,8 @@
   .account .avatar { position: relative; overflow: hidden; width: 32px; height: 32px; border-radius: 50%;
     background: var(--surface-hover); display: grid; place-items: center; font-weight: 600; color: var(--ink); font-size: 13px; }
   .account .avatar img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+  /* A planet, for an account with no picture of its own: fills the circle. */
+  :is(.avatar, .face) img.planet { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
   .account { display: flex; align-items: center; gap: 8px; }
   /* ---- Orien Market ---- */
   .mk-search { display: flex; align-items: center; gap: 10px; padding: 0 14px; color: var(--faint);
@@ -3445,11 +3448,20 @@
   const official = (address) => (address && OFFICIAL[address.toLowerCase()]) || null;
   const officialTag = (address) => official(address)
     ? '<span class="off-tag"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>Official</span>' : "";
+  // An account with no picture of its own shows its planet (drawn on this
+  // device, the same as on the website), else the first letter as before.
+  // Drawn a moment after the app starts: anything shown before then gets
+  // its planet as soon as the drawing code is ready.
+  const planet = (id) => id == null || id === "" ? ""
+    : window.orienPlanet ? `<img class="planet" alt="" src="${window.orienPlanet(id)}">`
+    : `<img class="planet" alt="" data-planet="${esc(String(id))}" hidden>`;
+  const fillPlanets = () => { for (const img of document.querySelectorAll("img[data-planet]")) { img.src = window.orienPlanet(img.dataset.planet); img.hidden = false; delete img.dataset.planet; } };
+  if (window.orienPlanet) fillPlanets(); else window.addEventListener("orien-planets", fillPlanets, { once: true });
   function face(address, name) {
     if (official(address)) return '<span class="face official"><span class="mark"></span></span>';
     const p = profileOf(address);
     const initial = esc((name || (p && p.name) || "?").slice(0, 1).toUpperCase());
-    const img = p && p.picture ? picImg(p.picture) : "";
+    const img = p && p.picture ? picImg(p.picture) : planet(p && p.id);
     return `<span class="face">${initial}${img}</span>`;
   }
   const initial = (name) => name.trim().charAt(0).toUpperCase();
@@ -5429,7 +5441,7 @@
         const sub = info && info.gone ? "Not available" : n === null ? "Orien Network" : n ? `${n} verified wallet${n === 1 ? "" : "s"}` : "No verified wallets yet";
         const picture = a.picture || (g.addresses[0] && (profileOf(g.addresses[0]) || {}).picture);
         return { key: g.name.toLowerCase(), html: `<div class="tx contact" data-member="${g.id}">
-          <span class="face">${esc((g.name || "?").slice(0, 1).toUpperCase())}${picture ? picImg(picture) : ""}</span>
+          <span class="face">${esc((g.name || "?").slice(0, 1).toUpperCase())}${picture ? picImg(picture) : planet(g.id)}</span>
           <div class="tx-main"><div class="title">${esc(g.name)}</div><div class="sub">${esc(sub)}</div></div>${CHEVRON}</div>` };
       }),
       ...loose.map((c) => ({ key: c.name.toLowerCase(), html: `<div class="tx contact" data-address="${c.address}">
@@ -5585,7 +5597,7 @@
     const group = contactGroups().people.find((g) => g.id === id) || { name: "", addresses: [] };
     const name = a.name || group.name || "Contact";
     $("mb-title").textContent = name;
-    $("mb-face").innerHTML = esc(name.slice(0, 1).toUpperCase()) + (a.picture ? picImg(a.picture) : "");
+    $("mb-face").innerHTML = esc(name.slice(0, 1).toUpperCase()) + (a.picture ? picImg(a.picture) : planet(a.id || id));
     const verified = (info && info.wallets) || [];
     $("mb-name").innerHTML = `<span>${esc(name)}</span>` + (verified.length ? VERIFIED : "");
     $("mb-message").hidden = !!(board.me && board.me.id === id) || (info && (info.takes_messages === false || info.gone));
@@ -6175,7 +6187,7 @@
     // The signed-in account is its picture (or initial); its name shows on hover.
     paintUnread();
     $("board-who").hidden = !me;
-    $("board-who").innerHTML = me ? avatar({ seller_name: me.name, seller_picture: me.picture }) : "";
+    $("board-who").innerHTML = me ? avatar({ seller_name: me.name, seller_picture: me.picture, seller: me.id }) : "";
     $("board-who").title = me ? `${me.name}: your profile` : "";
     // Signed out: "Sign in". Signed in: just the picture; signing out is on
     // your profile, so the top bar stays uncluttered.
@@ -6201,7 +6213,7 @@
   // picture has loaded, and stays if it can't.
   function avatar(o) {
     const initial = esc((o.seller_name || "?").slice(0, 1).toUpperCase());
-    return `<div class="avatar">${initial}${picImg(o.seller_picture)}</div>`;
+    return `<div class="avatar">${initial}${o.seller_picture ? picImg(o.seller_picture) : planet(o.seller)}</div>`;
   }
   // A picture that can't load is removed, leaving the initial. One listener
   // for all, as onerror="" attributes are blocked in the built app.
@@ -6615,14 +6627,14 @@
   const perUnit = (unit) => unit ? ` <span class="per">${esc(/^(per|\/|each|an?\b)/i.test(unit) ? unit : "per " + unit)}</span>` : "";
   const priceHtml = (l) => `${orn(l.price)} ORN${perUnit(l.unit)}`;
   const since = (t) => t ? `Member since ${new Date(t * 1000).toLocaleDateString([], { month: "long", year: "numeric" })}` : "";
-  const mkAvatar = (name, picture) => `<span class="avatar">${esc((name || "?").slice(0, 1).toUpperCase())}${picImg(picture)}</span>`;
+  const mkAvatar = (name, picture, id) => `<span class="avatar">${esc((name || "?").slice(0, 1).toUpperCase())}${picture ? picImg(picture) : planet(id)}</span>`;
   function card(l) {
     return `<button class="mk-card" data-listing="${l.id}">
       <div class="mk-cover">${l.pictures && l.pictures[0] ? picImg(l.pictures[0]) : catIcon(l.category)}${l.open === false ? '<span class="mk-closed">Closed</span>' : ""}</div>
       <div class="mk-body">
         <div class="mk-title">${esc(l.title)}</div>
         <div class="mk-price">${priceHtml(l)}</div>
-        <div class="mk-who">${mkAvatar(l.seller_name, l.seller_picture)}<span>${esc(l.seller_name || "")}</span></div>
+        <div class="mk-who">${mkAvatar(l.seller_name, l.seller_picture, l.seller)}<span>${esc(l.seller_name || "")}</span></div>
       </div>
     </button>`;
   }
@@ -6663,7 +6675,7 @@
   // Each kind of post has its own picture, in community/.
   const CM_ART = {};
   const cmFace = (person) => person && person.name
-    ? `<span class="face">${esc(person.name.slice(0, 1).toUpperCase())}${person.picture ? picImg(person.picture) : ""}</span>`
+    ? `<span class="face">${esc(person.name.slice(0, 1).toUpperCase())}${person.picture ? picImg(person.picture) : planet(person.id)}</span>`
     : '<span class="cm-net"><span class="mark"></span></span>';
   const cmOrn = (units) => (Number(units || 0) / 1e9).toLocaleString(undefined, { maximumFractionDigits: 2 });
   function cmNames(faces, count) {
@@ -6855,7 +6867,7 @@
     for (const [box, join, text, go, me] of [["cm-compose", "cm-join", "cm-join-text", "cm-join-go", "cm-me"], ["cm-reply-box", "cm-reply-join", "cm-reply-join-text", "cm-reply-join-go", "cm-me2"]]) {
       $(box).hidden = !verified;
       $(join).hidden = !!verified;
-      if (verified) $(me).innerHTML = `${esc(you.name.slice(0, 1).toUpperCase())}${you.picture ? picImg(you.picture) : ""}`;
+      if (verified) $(me).innerHTML = `${esc(you.name.slice(0, 1).toUpperCase())}${you.picture ? picImg(you.picture) : planet(you.id)}`;
       $(text).textContent = you ? "Verify one of your wallets on your Orien Network profile to post, reply and react." : "Sign in to Orien Network to post, reply and react.";
       $(go).textContent = you ? "Verify a wallet" : "Sign in";
     }
@@ -6885,19 +6897,19 @@
   }
   // The sidebar, as on the website: you, and the top miners.
   const MEDALS = ["🥇", "🥈", "🥉"];
-  const cmPerson = (name, picture) => `<span class="face">${esc((name || "?").slice(0, 1).toUpperCase())}${picture ? picImg(picture) : ""}</span>`;
+  const cmPerson = (name, picture, id) => `<span class="face">${esc((name || "?").slice(0, 1).toUpperCase())}${picture ? picImg(picture) : planet(id)}</span>`;
   function cmPaintRail() {
     const you = cm.you;
     $("cm-you").innerHTML = !you
       ? '<b>New here?</b><p>Sign in to Orien Network to post and react.</p><button class="pill" data-rail-go="signin">Sign in</button>'
-      : `<div class="cm-me-row" data-user="${esc(you.name)}">${cmPerson(you.name, you.picture)}<div class="mw0"><div class="cm-name">${esc(you.name)}</div><div class="cm-when">${you.verified ? "Verified wallet" : "No verified wallet yet"}</div></div></div>`
+      : `<div class="cm-me-row" data-user="${esc(you.name)}">${cmPerson(you.name, you.picture, you.id)}<div class="mw0"><div class="cm-name">${esc(you.name)}</div><div class="cm-when">${you.verified ? "Verified wallet" : "No verified wallet yet"}</div></div></div>`
         + (you.stats ? `<div class="cm-stats"><div><b>#${you.stats.rank}</b><span>rank</span></div><div><b>${cmOrn(you.stats.mined)}</b><span>ORN mined</span></div><div><b>${you.stats.streak}h</b><span>in a row</span></div></div>`
           : `<p>${you.verified ? "Mine with a verified wallet and your figures show here after the next checkpoint." : "Verify a wallet to post and see your mining here."}</p>`)
         + (you.verified ? "" : '<button class="pill" data-rail-go="verify">Verify a wallet</button>');
     const miners = (cm.board && cm.board.miners) || [];
     const rows = cm.allMiners ? miners : miners.slice(0, 8);
     $("cm-board").innerHTML = '<h3><span class="pearl-text">🏆</span> Top miners</h3>'
-      + (rows.length ? rows.map((r) => `<button class="cm-row" ${r.name ? `data-user="${esc(r.name)}"` : ""}><span class="cm-rank">${r.rank <= 3 ? MEDALS[r.rank - 1] : r.rank}</span>${cmPerson(r.name, r.picture)}<span class="cm-rname">${esc(r.name || "")}${r.streak > 0 ? `<span class="cm-rsub">🔥 ${r.streak}h</span>` : ""}</span><span class="cm-amt">${cmOrn(r.mined)}</span></button>`).join("")
+      + (rows.length ? rows.map((r) => `<button class="cm-row" ${r.name ? `data-user="${esc(r.name)}"` : ""}><span class="cm-rank">${r.rank <= 3 ? MEDALS[r.rank - 1] : r.rank}</span>${cmPerson(r.name, r.picture, r.id)}<span class="cm-rname">${esc(r.name || "")}${r.streak > 0 ? `<span class="cm-rsub">🔥 ${r.streak}h</span>` : ""}</span><span class="cm-amt">${cmOrn(r.mined)}</span></button>`).join("")
         : '<p class="cm-none">Nobody with a verified wallet has been paid for mining yet.</p>')
       + (miners.length > 8 ? `<button class="cm-showall" data-rail-go="all"><span class="pearl-text">${cm.allMiners ? "Show less" : "Show more"}</span></button>` : "")
       + '<p class="cm-note">Miners who have verified a wallet on their Orien Network account, by ORN mined. Verify your wallet on your account to be on the list.</p>';
@@ -6937,7 +6949,7 @@
       try { found = (await cmCall("GET", `/members?q=${encodeURIComponent(q)}`)).members || []; } catch {}
       if ($("cm-find").value.trim() !== q) return;
       $("cm-found").innerHTML = found.length
-        ? found.map((m) => `<button class="cm-row" data-user="${esc(m.name)}">${cmPerson(m.name, m.picture)}<span class="cm-rname">${esc(m.name)}</span>${m.rank ? `<span class="cm-when">${m.rank <= 3 ? MEDALS[m.rank - 1] : "#" + m.rank} miner</span>` : ""}</button>`).join("")
+        ? found.map((m) => `<button class="cm-row" data-user="${esc(m.name)}">${cmPerson(m.name, m.picture, m.id)}<span class="cm-rname">${esc(m.name)}</span>${m.rank ? `<span class="cm-when">${m.rank <= 3 ? MEDALS[m.rank - 1] : "#" + m.rank} miner</span>` : ""}</button>`).join("")
         : '<p class="cm-none">Nobody by that name.</p>';
       $("cm-found").hidden = false;
     }, 200);
@@ -7617,7 +7629,7 @@
     showPicture(0);
     $("ls-title").textContent = l.title;
     $("ls-price").innerHTML = priceHtml(l);
-    $("ls-seller").innerHTML = `${mkAvatar(seller.name || l.seller_name, seller.picture || l.seller_picture)}
+    $("ls-seller").innerHTML = `${mkAvatar(seller.name || l.seller_name, seller.picture || l.seller_picture, seller.id || l.seller)}
       <div><div class="nm">${esc(seller.name || l.seller_name || "")}${seller.wallet_verified ? " " + VERIFIED : ""}</div><div class="sub">${esc(since(seller.created))}</div></div>
       <svg class="chev" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>`;
     const who = esc(seller.name || l.seller_name || "the seller");
@@ -7655,7 +7667,7 @@
     const a = answer.account || {};
     $("sl-banner").innerHTML = a.banner ? picImg(a.banner) : "";
     $("sl-hero").classList.toggle("banner", !!a.banner);
-    $("sl-face").innerHTML = esc((a.name || "?").slice(0, 1).toUpperCase()) + picImg(a.picture);
+    $("sl-face").innerHTML = esc((a.name || "?").slice(0, 1).toUpperCase()) + (a.picture ? picImg(a.picture) : planet(a.id));
     $("sl-name").innerHTML = `<span>${esc(a.name || "")}</span>` + (a.wallet_verified || (answer.wallets || []).length ? VERIFIED : "");
     $("sl-since").textContent = since(a.created);
     $("sl-bio").textContent = a.bio || "";
@@ -7938,7 +7950,7 @@
     $("nt-list").innerHTML = nt.lines.length
       ? `<div class="list">${nt.lines.map((l, i) => {
           const faces = l.kind === "network" ? '<span class="cm-net nt-net"><span class="mark"></span></span>'
-            : `<span class="nt-faces">${(l.people || (l.name ? [{ name: l.name, picture: l.picture }] : [])).slice(0, 2).map((p) => mkAvatar(p.name, p.picture)).join("")}</span>`;
+            : `<span class="nt-faces">${(l.people || (l.name ? [{ name: l.name, picture: l.picture }] : [])).slice(0, 2).map((p) => mkAvatar(p.name, p.picture, p.id)).join("")}</span>`;
           return `<button class="ib-row nt-row${l.unseen ? " unread" : ""}" data-nt="${i}">${faces}
             <div class="mw0"><div class="nt-said">${ntLine(l)}</div>${l.text ? `<div class="nt-text">${esc(l.text)}</div>` : ""}<span class="when">${esc(ago(l.time))}</span></div></button>`;
         }).join("")}</div>`
@@ -8033,7 +8045,7 @@
       ? `<div class="list">${inbox.items.map((c) => {
           const last = c.last ? (c.last.kind === "request" ? "Payment request" : c.last.kind === "paid" ? "Marked as paid" : c.last.body) : "";
           return `<button class="ib-row${c.unread ? " unread" : ""}${c.id === chat.id ? " on" : ""}" data-chat="${c.id}">
-            ${mkAvatar(c.with_name, c.with_picture)}
+            ${mkAvatar(c.with_name, c.with_picture, c.with_id)}
             <div class="mw0"><div class="nm"><b>${esc(c.with_name)}</b><span class="when">${esc(ago(c.updated))}</span></div>
               ${c.listing_title ? `<div class="what">${esc(c.listing_title)}</div>` : ""}<div class="last">${esc(last)}</div></div>
             <span class="udot"></span>
@@ -8170,7 +8182,7 @@
   }
   function paintChat() {
     const c = chat.conv, other = esc(c.with_name);
-    $("ch-who").innerHTML = `${mkAvatar(c.with_name, c.with_picture)}<div class="mw0"><b>${other}</b>${c.listing ? `<small>${c.buying ? "Seller" : "Buyer"}</small>` : ""}</div>`;
+    $("ch-who").innerHTML = `${mkAvatar(c.with_name, c.with_picture, c.with_id)}<div class="mw0"><b>${other}</b>${c.listing ? `<small>${c.buying ? "Seller" : "Buyer"}</small>` : ""}</div>`;
     // A direct conversation is about nothing in particular: no listing, no payment requests.
     $("ch-about").hidden = !c.listing;
     $("ch-about").innerHTML = c.listing ? `<b>About ${esc(c.listing_title)}</b><span>${priceHtml(c)}</span>` : "";
@@ -8501,7 +8513,7 @@
   function paintProfileFace() {
     const me = board.me;
     if (!me) return;
-    const img = picImg(me.picture);
+    const img = me.picture ? picImg(me.picture) : planet(me.id);
     $("pf-face").innerHTML = esc((me.name || "?").slice(0, 1).toUpperCase()) + img;
     $("pf-banner").innerHTML = picImg(me.banner);
   }
@@ -8729,7 +8741,7 @@
   let blockedList = [];
   function paintBlocks() {
     $("bk-list").innerHTML = blockedList.length
-      ? `<div class="list">${blockedList.map((p) => `<div class="tx"><span class="face">${esc((p.name || "?").slice(0, 1).toUpperCase())}${p.picture ? picImg(p.picture) : ""}</span>
+      ? `<div class="list">${blockedList.map((p) => `<div class="tx"><span class="face">${esc((p.name || "?").slice(0, 1).toUpperCase())}${p.picture ? picImg(p.picture) : planet(p.id)}</span>
           <div class="tx-main"><div class="title">${esc(p.name || "")}</div>${p.blocked_at ? `<div class="sub">Blocked ${esc(ago(p.blocked_at))}</div>` : ""}</div>
           <button class="pill" data-unblock="${p.id}">Unblock</button></div>`).join("")}</div>`
       : '<div class="empty">You haven\'t blocked anyone.</div>';
