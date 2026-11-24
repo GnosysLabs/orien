@@ -2219,6 +2219,7 @@
         <button class="back" data-back aria-label="Back"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg></button>
         <h2>Activity</h2>
       </div>
+      <div class="tabs three" id="act-tabs" role="tablist"><button class="tab on" data-act="all" role="tab">All</button><button class="tab" data-act="payments" role="tab">Payments</button><button class="tab" data-act="rewards" role="tab">Rewards</button></div>
       <div class="scroll" id="all-activity"></div>
     </section>
 
@@ -4891,16 +4892,27 @@
       if (allowed) await invoke("plugin:notification|notify", { options: { title: "Orien Wallet", body } });
     } catch {}
   }
+  // Activity's filter: everything, payments only, or only what arrives
+  // every hour by itself (mining rewards and validator fees). Remembered.
+  let actShow = localStorage.getItem("activity-show") || "all";
+  const isReward = (e) => e.direction === "received" && (e.kind === "mining" || e.kind === "fees");
+  const shown = (e) => actShow === "all" || (actShow === "rewards") === isReward(e);
+  function paintActTabs() { for (const t of document.querySelectorAll("[data-act]")) t.classList.toggle("on", t.dataset.act === actShow); }
+  document.querySelectorAll("[data-act]").forEach((t) => t.onclick = () => {
+    actShow = t.dataset.act; localStorage.setItem("activity-show", actShow);
+    paintActTabs(); renderAll(); $("all-activity").scrollTop = 0;
+  });
+  paintActTabs();
   function renderAll() {
     let html = "", day = null, group = [];
     const flush = () => { if (group.length) html += `<div class="day">${day}</div><div class="list">${group.join("")}</div>`; group = []; };
-    for (const e of entries) {
+    for (const e of entries.filter(shown)) {
       const d = dayName(e.time);
       if (d !== day) { flush(); day = d; }
       group.push(row(e, (x) => clock(x.time)));
     }
     flush();
-    $("all-activity").innerHTML = html || '<div class="empty">No payments yet</div>';
+    $("all-activity").innerHTML = html || `<div class="empty">${actShow === "rewards" ? "No rewards yet" : "No payments yet"}</div>`;
   }
   $("view-all").onclick = () => { renderAll(); show("activity"); };
 
