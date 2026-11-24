@@ -919,7 +919,7 @@ function Tips({ tips }: { tips: { count: number; orn: number } }) {
       <span className="pearl-fill grid h-[22px] w-[22px] flex-none place-items-center rounded-full text-bg shadow-[inset_0_1px_0_#ffffff90,0_1px_4px_#00000040]">
         <Coins className="h-[15px] w-[15px]" strokeWidth={2.4} aria-hidden />
       </span>
-      <b className="pearl-text font-bold tracking-[0.01em]">{total} ORN</b>
+      <b className="silver-text font-bold tracking-[0.01em]">{total} ORN</b>
       <span className="text-xs text-muted">
         <span className="mr-1.5 opacity-60" aria-hidden>
           ·
