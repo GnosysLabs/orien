@@ -1553,6 +1553,8 @@
     .cm-miners-tab { display: block; }
     #community.miners .cm-main, #community.miners .cm-rail > :is(.cm-find, .cm-found) { display: none; }
     #community.miners .cm-rail > :is(.cm-you, .cm-board) { display: block; }
+    /* One post from a notification: Back to the feed right under the title. */
+    #community.focus .cm-rail { display: none; }
   }
   /* Big windows: the feed with the sidebar beside it, as on the website. */
   @media (min-width: 980px) {
@@ -1883,7 +1885,7 @@
   .cm-empty { padding: 28px 16px; text-align: center; color: var(--dim); }
   /* A post opened from a notification, as on the website: that post alone,
      its comments open, with a way back to the whole feed. */
-  #community.focus :is(.cm-filter, #cm-compose, #cm-join, #cm-more) { display: none !important; }
+  #community.focus :is(.cm-tabs, .cm-filter, #cm-compose, #cm-join, #cm-more) { display: none !important; }
   .cm-back-feed { display: inline-flex; align-items: center; gap: 6px; margin: 0 0 14px; }
   .cm-back-feed svg { width: 15px; height: 15px; }
   @keyframes spin { to { transform: rotate(360deg); } }
