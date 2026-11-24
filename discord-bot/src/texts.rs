@@ -39,7 +39,7 @@ Explainers, mining guides and wallet walkthroughs: https://www.youtube.com/@Orie
 - {#checkpoints}: a summary of every hour's mining
 - {#themes}: show off your wallet themes
 - {#mining}: setups and questions about mining
-- {#swaps-and-market}: swap ORN for SOL or Bitcoin, and share Market listings
+- {#swaps-market}: swap ORN for SOL or Bitcoin, and share Market listings
 - {#help}: stuck? Ask here
 - {#validators}: staking and running a validator
 - {#bugs-and-ideas}: tell us what's broken or missing
@@ -78,7 +78,7 @@ pub const TOPICS: [(&str, &str); 13] = [
     ("general", "Say hi and talk about anything Orien."),
     ("mining", "Mining setups, your share of the hourly ORN, and \"is my miner working?\""),
     (
-        "swaps-and-market",
+        "swaps-market",
         "Find someone to swap ORN for SOL or Bitcoin with, and share your Market listings. The team will never message you first.",
     ),
     ("help", "Stuck? Ask here. All help happens in public; never share your recovery phrase."),
@@ -108,7 +108,7 @@ Everything about mining ORN: your setup, your speed, your share of each hour's c
 - **Ask anything here.** Orien Bot answers questions in this channel, and other miners help too.",
     ),
     (
-        "swaps-and-market",
+        "swaps-market",
         "\
 ## 🔁 Swaps and the Market
 Find someone to swap with, and show what you offer in the Market.
