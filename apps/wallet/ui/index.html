@@ -1553,7 +1553,7 @@
     .cm-miners-tab { display: block; }
     #community.miners .cm-main, #community.miners .cm-rail > :is(.cm-find, .cm-found) { display: none; }
     #community.miners .cm-rail > :is(.cm-you, .cm-board) { display: block; }
-    /* One post from a notification: Back to the feed right under the title. */
+    /* One post from a notification: the post right under the title. */
     #community.focus .cm-rail { display: none; }
   }
   /* Big windows: the feed with the sidebar beside it, as on the website. */
@@ -1883,11 +1883,9 @@
   .cm-replies .cm-card { border-radius: 16px; margin-top: 10px; }
   .cm-reply { margin-top: 14px; }
   .cm-empty { padding: 28px 16px; text-align: center; color: var(--dim); }
-  /* A post opened from a notification, as on the website: that post alone,
-     its comments open, with a way back to the whole feed. */
+  /* A post opened from a notification: that post alone, its comments open,
+     titled Post; the back arrow returns to Notifications. */
   #community.focus :is(.cm-tabs, .cm-filter, #cm-compose, #cm-join, #cm-more) { display: none !important; }
-  .cm-back-feed { display: inline-flex; align-items: center; gap: 6px; margin: 0 0 14px; }
-  .cm-back-feed svg { width: 15px; height: 15px; }
   @keyframes spin { to { transform: rotate(360deg); } }
   .spinner {
     display: inline-block; width: 14px; height: 14px; margin-right: 8px; vertical-align: -2px;
@@ -2422,7 +2420,7 @@
 
     <!-- Orien Market: work and things offered for ORN. -->
     <section class="screen" id="community" hidden>
-      <div class="topline"><button class="back" data-back aria-label="Back"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg></button><h2>Community</h2></div>
+      <div class="topline"><button class="back" data-back aria-label="Back"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg></button><h2 id="cm-title">Community</h2></div>
       <div class="tabs cm-tabs" role="tablist"><button class="tab on" data-cm-tab="community" role="tab">Feed</button><button class="tab" data-cm-tab="market" role="tab">Market</button><button class="tab cm-miners-tab" data-cm-tab="miners" role="tab">Top miners</button></div>
       <div class="cm-layout">
         <div class="cm-main">
@@ -2434,7 +2432,6 @@
             <div class="cm-send"><div class="cm-tools"><button class="cm-tool" id="cm-add-photo" aria-label="Add photos" title="Photos"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg></button><button class="cm-tool" id="cm-add-gif" aria-label="Add a GIF" title="GIF"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 7.5H6.25A3.25 3.25 0 0 0 3 10.75v2.5a3.25 3.25 0 0 0 3.25 3.25H9V12H7"/><path d="M12.5 7.5v9"/><path d="M20.75 7.5h-4v9"/><path d="M16.75 12h3.25"/></svg></button><button class="cm-tool" id="cm-add-poll" aria-label="Add a poll" title="Poll"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v16a2 2 0 0 0 2 2h16"/><path d="M7 16h8"/><path d="M7 11h12"/><path d="M7 6h3"/></svg></button></div><span class="cm-left" id="cm-left"></span><button class="pill pearl" id="cm-post" disabled>Post</button></div></div>
         </div>
         <div class="cm-join" id="cm-join" hidden><span id="cm-join-text"></span><button class="pill" id="cm-join-go"></button></div>
-        <button class="pill cm-back-feed" id="cm-back-feed" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg>Back to the feed</button>
         <div class="problem" id="cm-problem" hidden></div>
         <div class="cm-feed" id="cm-feed"></div>
         <button class="pill mk-more" id="cm-more" hidden>Show more</button>
@@ -6885,10 +6882,10 @@
   }
   function cmPaintFeed() {
     // A post opened from a notification, as on the website: that post alone,
-    // its comments open, however old it is, and a button back to the feed.
+    // its comments open, however old it is, titled Post.
     const pin = cm.pinned ? cm.posts.find((p) => p.id === cm.pinned.id) || cm.pinned : null;
     $("community").classList.toggle("focus", !!pin);
-    $("cm-back-feed").hidden = !pin;
+    $("cm-title").textContent = pin ? "Post" : "Community";
     $("cm-feed").innerHTML = pin ? cmCard(pin) : cm.posts.length ? cm.posts.map((p) => cmCard(p)).join("") : '<div class="cm-empty">Nothing here yet.</div>';
     $("cm-more").hidden = !cm.more;
     cmFitRail();
@@ -7646,7 +7643,14 @@
   for (const go of ["cm-join-go", "cm-reply-join-go"]) $(go).onclick = cmJoin;
   // From Home, always the feed first.
   $("go-market").onclick = () => { cm.pinned = null; cmMode(false); openCommunity(); };
-  $("cm-back-feed").onclick = () => { cm.pinned = null; cmPaintFeed(); $("community").scrollTop = 0; };
+  // A post from a notification goes back to Notifications; the Community
+  // opens on the whole feed next time.
+  $("community").querySelector(".topline [data-back]").onclick = () => {
+    if (!cm.pinned) return home();
+    cm.pinned = null;
+    cmPaintFeed();
+    openNotices();
+  };
   $("mk-cats").onclick = (e) => {
     const b = e.target.closest("[data-cat]");
     if (!b || b.dataset.cat === market.cat) return;
