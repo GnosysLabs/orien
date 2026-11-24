@@ -4517,8 +4517,8 @@
     $("st-lock").checked = localStorage.getItem("app-lock") === "on";
     $("st-lock-row").querySelector("b").textContent = `Lock with ${bio}`;
     for (const kind of ["received", "mining", "market", "community", "swaps"]) $(`st-n-${kind}`).checked = !mutedKinds.includes(kind);
-    $("st-n-swaps-row").hidden = phone;
-    $("st-n-community-row").hidden = phone;
+    // Every kind on iPhones too: the network sends them as push notifications,
+    // and these switches tell it which to leave out.
     $("st-cat-computer").hidden = phone;
     $("st-cat-extensions").hidden = phone;
     $("st-ext-safari").hidden = !apple || phone;
