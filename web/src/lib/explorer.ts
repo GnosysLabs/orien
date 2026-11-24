@@ -96,7 +96,17 @@ export type Rewards = {
   stakers: { address: string; amount: string }[]
 }
 
-export type WalletProfile = { id: number; name: string; picture: string | null; wallet_name?: string | null }
+export type WalletProfile = { id: number; name: string; picture: string | null; wallet_name?: string | null; official?: boolean }
+
+/** Orien's own wallets, named here by address so no profile can pass for
+ * them: the Market's, where wallet verifications are paid. */
+export const OFFICIAL: Record<string, string> = {
+  '74fa1ab82c45ebeed539b03146243ddfc6f0ccb5163f45ea87d21692ba774b7a': 'Orien Verify',
+}
+
+/** Orien's own name for an address, if it's one of its wallets. */
+const officialProfile = (address: string): WalletProfile | null =>
+  OFFICIAL[address] ? { id: 0, name: OFFICIAL[address], picture: null, official: true } : null
 
 /** "Chris – Savings", or "Chris": as Orien Wallet names people it pays. */
 export const label = (profile: { name: string; wallet_name?: string | null }) =>
@@ -152,17 +162,23 @@ export async function explore<T>(path: string): Promise<T> {
 export async function namesFor(addresses: string[]): Promise<Record<string, WalletProfile>> {
   const unique = [...new Set(addresses)].slice(0, 100)
   if (unique.length === 0) return {}
+  // Orien's own wallets are named here, over anything a profile says.
+  const official: Record<string, WalletProfile> = {}
+  for (const address of unique) {
+    const named = officialProfile(address)
+    if (named) official[address] = named
+  }
   try {
     const response = await fetch('/api/market/wallets/lookup', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ addresses: unique }),
     })
-    if (!response.ok) return {}
+    if (!response.ok) return official
     const data = await response.json()
-    return data.profiles ?? {}
+    return { ...(data.profiles ?? {}), ...official }
   } catch {
-    return {}
+    return official
   }
 }
 

@@ -1,8 +1,8 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { OfficialTag, WalletFace } from './Official'
 import { Wallet } from 'lucide-react'
-import { Avatar } from '@/components/market/Avatar'
 import { type Rewards, type WalletProfile, addressHref, label, namesFor, orn, short } from '@/lib/explorer'
 import { Card } from './Parts'
 
@@ -30,7 +30,7 @@ function Who({ address, profile }: { address: string; profile?: WalletProfile })
   return (
     <span className="flex min-w-0 items-center gap-2.5 sm:gap-3">
       {profile ? (
-        <Avatar name={profile.name} picture={profile.picture} size={32} />
+        <WalletFace profile={profile} size={32} />
       ) : (
         <span
           className="hidden h-8 w-8 shrink-0 items-center justify-center rounded-full border border-line bg-raised sm:flex"
@@ -42,7 +42,10 @@ function Who({ address, profile }: { address: string; profile?: WalletProfile })
       <span className="min-w-0">
         {profile ? (
           <>
-            <span className="block truncate font-semibold text-ink">{label(profile)}</span>
+            <span className="block truncate font-semibold text-ink">
+                              {label(profile)}
+                              {profile.official && <OfficialTag />}
+                            </span>
             <span className="num block truncate text-sm text-muted">{short(address)}</span>
           </>
         ) : (

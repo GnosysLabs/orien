@@ -21,6 +21,7 @@ import {
   when,
 } from '@/lib/explorer'
 import { Card, Loading, Problem, Stat } from './Parts'
+import { OfficialTag, WalletFace } from './Official'
 
 const KINDS: Record<Entry['kind'], { label: string; to?: string; icon: typeof Pickaxe; out?: boolean }> = {
   received: { label: 'Received', to: 'from', icon: ArrowDownLeft },
@@ -37,6 +38,7 @@ function Who({ address, names }: { address: string; names: Record<string, Wallet
   return (
     <a href={addressHref(address)} className="num text-ink underline decoration-line underline-offset-4 hover:decoration-pearl">
       {profile ? label(profile) : short(address)}
+      {profile?.official && <OfficialTag />}
     </a>
   )
 }
@@ -77,17 +79,30 @@ export function AddressView() {
     <div className="space-y-10">
       <div className="space-y-4">
         <h1 className="text-3xl font-bold tracking-tight text-ink">Address</h1>
-        {profile && (
-          <a
-            href={profileHref(profile.name)}
-            className="flex w-fit items-center gap-3 rounded-xl border border-line bg-surface py-2 pl-2 pr-4 transition hover:border-pearl"
-          >
-            <Avatar name={profile.name} picture={profile.picture} size={36} />
+        {profile?.official ? (
+          <div className="flex w-fit items-center gap-3 rounded-xl border border-line bg-surface py-2 pl-2 pr-4">
+            <WalletFace profile={profile} size={36} />
             <span>
-              <span className="block font-semibold text-ink">{label(profile)}</span>
-              <span className="block text-sm text-muted">Showed on the Market that they hold this wallet</span>
+              <span className="block font-semibold text-ink">
+                {profile.name}
+                <OfficialTag />
+              </span>
+              <span className="block text-sm text-muted">Orien’s own wallet: verifying a wallet sends a tiny payment here</span>
             </span>
-          </a>
+          </div>
+        ) : (
+          profile && (
+            <a
+              href={profileHref(profile.name)}
+              className="flex w-fit items-center gap-3 rounded-xl border border-line bg-surface py-2 pl-2 pr-4 transition hover:border-pearl"
+            >
+              <Avatar name={profile.name} picture={profile.picture} size={36} />
+              <span>
+                <span className="block font-semibold text-ink">{label(profile)}</span>
+                <span className="block text-sm text-muted">Showed on the Market that they hold this wallet</span>
+              </span>
+            </a>
+          )
         )}
         {address && <CopyText text={address} />}
       </div>
