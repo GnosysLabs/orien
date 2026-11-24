@@ -163,6 +163,11 @@
   html body .card { box-shadow: 0 6px 16px rgba(var(--shade), var(--shade-a)), inset 0 1px 0 #ffffffb0; }
   html body .primary.pearl { box-shadow: inset 0 1px 0 #ffffffb0, 0 4px 12px rgba(var(--shade), var(--shade-a)); }
   html body .pill.pearl { box-shadow: inset 0 1px 0 #ffffffa0, 0 3px 9px rgba(var(--shade), var(--shade-a)); }
+  /* A dark built theme's sheen is deep: a bright top edge on it reads as a
+     hard white rim, so a faint one. */
+  html[data-base="dark"] body .card { box-shadow: 0 6px 16px rgba(var(--shade), var(--shade-a)), inset 0 1px 0 rgba(255, 255, 255, 0.16); }
+  html[data-base="dark"] body .primary.pearl { box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.16), 0 4px 12px rgba(var(--shade), var(--shade-a)); }
+  html[data-base="dark"] body .pill.pearl { box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.16), 0 3px 9px rgba(var(--shade), var(--shade-a)); }
   html body .wallet-row.current { box-shadow: 0 0 0 2.5px var(--select), 0 4px 12px rgba(var(--shade), var(--shade-a)); }
   html body .theme-card .tc-mini { box-shadow: 0 6px 14px rgba(var(--shade), var(--shade-a)); }
   html body .screen, html body #mine, html body #board-signin, html body #board-post, html body #board-take,
@@ -4428,6 +4433,9 @@
       return 0.2126 * lin(n >> 16 & 255) + 0.7152 * lin(n >> 8 & 255) + 0.0722 * lin(n & 255);
     };
     const shade = (l, least = 0) => { const sat = clamp(a.s, 50, 92); while (looks(hsl(a.h, sat, l)) < least && l < 92) l += 2; return hsl(a.h, sat, l); };
+    // The dark base's sheen runs from the colour down toward black, as
+    // anodised metal, with black words and glyphs on it.
+    const deep = (l) => hsl(a.h, clamp(a.s, 50, 92), l);
     if (base === "light") {
       return `${BASES.light}
         --pearl-ink: ${hsl(a.h, Math.min(a.s, 30), 16)}; --on-pearl-dim: ${hsl(a.h, Math.min(a.s, 15), 30)};
@@ -4438,11 +4446,11 @@
         --brand: linear-gradient(115deg, ${stops([shade(44), shade(50), shade(38), shade(48), shade(44)])});`;
     }
     return `${BASES.dark}
-      --pearl-ink: ${hsl(a.h, Math.min(a.s, 60), 12)}; --on-pearl-dim: ${hsl(a.h, Math.min(a.s, 25), 34)};
+      --pearl-ink: #000000; --on-pearl-dim: #000000;
       --focus: ${hsl(a.h, clamp(a.s, 40, 70), 66)}; --select: ${shade(78)}aa; --accent: ${shade(76)};
       --bubble-mine: ${hsl(a.h, clamp(a.s, 30, 50), 30)}; --chip-icon: ${shade(86)};
       --glow: radial-gradient(100% 55% at 50% -12%, rgba(${rgbOf(shade(62))}, 0.24), transparent 62%);
-      --pearl: linear-gradient(115deg, ${stops([shade(84), shade(72, 0.34), shade(86), shade(66, 0.3), shade(87), shade(70, 0.32), shade(80), shade(84)])});
+      --pearl: linear-gradient(115deg, ${stops([deep(46), deep(32), deep(50), deep(26), deep(52), deep(30), deep(42), deep(46)])});
       --brand: linear-gradient(115deg, ${stops([shade(78), shade(86), shade(71), shade(88), shade(78)])});`;
   }
   // The pictures, from the database once the app opens.
@@ -4487,7 +4495,7 @@
     const html = document.documentElement, t = customThemes().find((x) => x.id === html.dataset.theme);
     if (t) setThemeVars(html, t.colors, scenes.get(t.id), t.base); else clearThemeVars(html);
     // Light ones get Daylight's softer shadows and the like.
-    if (t && t.base === "light") html.dataset.base = "light"; else delete html.dataset.base;
+    if (t) html.dataset.base = t.base === "light" ? "light" : "dark"; else delete html.dataset.base;
   }
   async function loadScenes() {
     for (const t of customThemes()) {
