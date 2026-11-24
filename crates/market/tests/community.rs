@@ -680,3 +680,15 @@ async fn replies_and_answers_can_carry_a_gif_but_not_a_poll() {
     let (_, bell) = ask(&app, "GET", "/api/market/notices", Some(&alice), None).await;
     assert!(bell["notices"].as_array().unwrap().iter().any(|l| l["kind"] == "reply"), "Alice hears of the reply");
 }
+
+#[tokio::test]
+async fn a_failing_screening_service_raises_an_alert_and_clears_it_when_back() {
+    let app = market();
+    let alice = sign_in_for_tests(&app, "Alice");
+    let (status, _) = ask(&app, "POST", "/api/market/community/posts", Some(&alice), Some(json!({ "body": "this check will fail" }))).await;
+    assert_eq!(status, StatusCode::SERVICE_UNAVAILABLE);
+    assert!(app.alerts().in_trouble("screening"));
+    let (status, _) = ask(&app, "POST", "/api/market/community/posts", Some(&alice), Some(json!({ "body": "Hello, miners" }))).await;
+    assert_eq!(status, StatusCode::OK);
+    assert!(!app.alerts().in_trouble("screening"), "a good check clears it");
+}

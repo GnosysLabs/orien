@@ -76,7 +76,7 @@ export function ProfileView() {
                   await ask(`/accounts/${account.id}/block`, 'POST', { block }).catch(() => {})
                   setFound({ ...found, blocked: block })
                 }}
-                className="flex h-8 items-center gap-1.5 rounded-lg bg-surface/80 px-2.5 text-xs font-semibold text-muted backdrop-blur transition hover:text-ink"
+                className={`flex h-8 items-center gap-1.5 rounded-lg px-2.5 text-xs font-semibold text-muted transition hover:text-ink ${account.banner ? 'frosted border' : 'bg-surface/80 backdrop-blur'}`}
               >
                 <Ban className="h-3.5 w-3.5" aria-hidden /> {found.blocked ? 'Unblock' : 'Block'}
               </button>
@@ -88,7 +88,7 @@ export function ProfileView() {
           <Avatar name={account.name} picture={account.picture} size={112} />
         </div>
         {/* relative: drawn above the banner behind it. */}
-        <div className={`relative min-w-0 space-y-2 ${account.banner ? 'on-banner' : ''}`}>
+        <div className={`relative min-w-0 space-y-2 ${account.banner ? 'profile-halo' : ''}`}>
           <div className="flex flex-wrap items-center justify-center gap-3 sm:justify-start">
             <h1 className="text-3xl font-bold tracking-tight text-ink">{account.name}</h1>
             {wallets.length > 0 && (

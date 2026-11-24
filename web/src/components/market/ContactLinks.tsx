@@ -6,7 +6,7 @@ import type { Contact } from '@/lib/market'
 import { DiscordIcon, TelegramIcon, XIcon as XLogo } from '@/components/Header'
 
 const chip =
-  'inline-flex h-10 items-center gap-2 rounded-xl border border-line bg-bg px-4 text-sm font-semibold text-ink transition hover:bg-raised'
+  'contact-chip inline-flex h-10 items-center gap-2 rounded-xl border border-line bg-bg px-4 text-sm font-semibold text-ink transition hover:bg-raised'
 
 /** A seller's ways to be reached besides messages: Telegram and X as links,
  * Discord as a username to copy, since Discord has no page for one. */

@@ -11,6 +11,7 @@
 //!     orien-discord ask --openrouter-key ~/.config/orien/openrouter.key \
 //!         --knowledge discord-bot/knowledge.md "How do I start mining?"
 
+mod alerts;
 mod bot;
 mod checkpoints;
 mod expert;
@@ -92,6 +93,10 @@ enum Command {
         /// 127.0.0.1:7300, for nginx to pass /api/ask to.
         #[arg(long)]
         web_listen: Option<String>,
+        /// Take network alerts here, such as 127.0.0.1:7301, and post them
+        /// in the private #network-alerts channel. Never behind nginx.
+        #[arg(long)]
+        alerts_listen: Option<String>,
         /// How many website answers one visitor may get in an hour.
         #[arg(long, default_value_t = 20)]
         web_per_visitor: usize,
@@ -209,6 +214,7 @@ async fn main() -> Result<()> {
             genesis,
             verify_address,
             web_listen,
+            alerts_listen,
             web_per_visitor,
             web_per_day,
             checkpoints,
@@ -228,7 +234,16 @@ async fn main() -> Result<()> {
                     }
                 });
             }
-            bot::run(secret(&token)?, expert, per_person, per_hour, news, shipped, holders, checkpoints).await
+            let token = secret(&token)?;
+            if let Some(listen) = alerts_listen {
+                let http = std::sync::Arc::new(serenity::http::Http::new(&token));
+                tokio::spawn(async move {
+                    if let Err(error) = alerts::serve(http, listen).await {
+                        eprintln!("alerts stopped: {error:#}");
+                    }
+                });
+            }
+            bot::run(token, expert, per_person, per_hour, news, shipped, holders, checkpoints).await
         }
         Command::Web { brain, listen } => {
             let expert = std::sync::Arc::new(expert(&brain)?);

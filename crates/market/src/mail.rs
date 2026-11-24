@@ -4,23 +4,91 @@
 /// Where the contact form's messages go.
 pub const CONTACT: &str = "hello@orien.network";
 
+use std::path::PathBuf;
+use std::sync::Mutex;
+
 use anyhow::{Context, Result, bail};
+use serde::{Deserialize, Serialize};
 use serde_json::json;
+
+/// Resend's free plan: 100 emails a day (until midnight UTC), 3,000 a month.
+pub const DAILY_LIMIT: u64 = 100;
+pub const MONTHLY_LIMIT: u64 = 3000;
+
+/// How many emails Resend says the account has used, as of its last answer.
+/// Resend says so on every email it sends: our key can only send, so these
+/// are only as fresh as the last email.
+#[derive(Clone, Debug, Default, PartialEq, Serialize, Deserialize)]
+pub struct Usage {
+    /// Today's emails, as of `at`; the count starts again at midnight UTC.
+    pub daily: Option<u64>,
+    pub monthly: Option<u64>,
+    /// When Resend last said, in seconds since 1970.
+    pub at: u64,
+    /// When Resend last refused an email for the daily or monthly quota.
+    pub refused: Option<Refused>,
+}
+
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+pub struct Refused {
+    /// "daily_quota_exceeded" or "monthly_quota_exceeded".
+    pub why: String,
+    pub at: u64,
+}
 
 pub struct Mailer {
     /// The Resend key, or none to print codes to the server's log instead,
     /// which is for trying the marketplace on one's own computer only.
     key: Option<String>,
     from: String,
+    usage: Mutex<Usage>,
+    /// Where the usage is kept between restarts.
+    file: Option<PathBuf>,
 }
 
 impl Mailer {
     pub fn resend(key: String, from: &str) -> Mailer {
-        Mailer { key: Some(key), from: from.into() }
+        Mailer { key: Some(key), from: from.into(), usage: Mutex::new(Usage::default()), file: None }
     }
 
     pub fn log_only() -> Mailer {
-        Mailer { key: None, from: String::new() }
+        Mailer { key: None, from: String::new(), usage: Mutex::new(Usage::default()), file: None }
+    }
+
+    /// Keeps the usage in `file`, and starts from what it holds.
+    pub fn keeping_usage_in(mut self, file: PathBuf) -> Mailer {
+        if let Some(kept) = std::fs::read_to_string(&file).ok().and_then(|text| serde_json::from_str::<Usage>(&text).ok()) {
+            self.usage = Mutex::new(kept);
+        }
+        self.file = Some(file);
+        self
+    }
+
+    /// The usage as Resend last told it.
+    pub fn usage(&self) -> Usage {
+        self.usage.lock().unwrap().clone()
+    }
+
+    /// Notes what one of Resend's answers says about the usage.
+    pub fn note_usage(&self, daily: Option<u64>, monthly: Option<u64>, refused: Option<&str>, at: u64) {
+        if daily.is_none() && monthly.is_none() && refused.is_none() {
+            return;
+        }
+        let mut usage = self.usage.lock().unwrap();
+        if daily.is_some() || monthly.is_some() {
+            usage.daily = daily.or(usage.daily);
+            usage.monthly = monthly.or(usage.monthly);
+            usage.at = at;
+        }
+        if let Some(why) = refused {
+            usage.refused = Some(Refused { why: why.into(), at });
+        }
+        if let (Some(file), Ok(text)) = (&self.file, serde_json::to_string(&*usage)) {
+            let fresh = file.with_extension("new");
+            if std::fs::write(&fresh, text).is_ok() {
+                let _ = std::fs::rename(&fresh, file);
+            }
+        }
     }
 
     /// Tells someone they have a message, with a link to it. The message
@@ -127,11 +195,20 @@ impl Mailer {
             .build()
             .send_json(&body)
             .context("cannot reach Resend")?;
+        let count = |name: &str| response.headers().get(name).and_then(|v| v.to_str().ok()).and_then(|v| v.trim().parse::<u64>().ok());
+        let (daily, monthly) = (count("x-resend-daily-quota"), count("x-resend-monthly-quota"));
+        let at = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).map_or(0, |d| d.as_secs());
         if !response.status().is_success() {
             let status = response.status();
             let detail = response.into_body().read_to_string().unwrap_or_default();
+            let why = serde_json::from_str::<serde_json::Value>(&detail)
+                .ok()
+                .and_then(|answer| answer["name"].as_str().map(str::to_string))
+                .filter(|name| name.ends_with("_quota_exceeded"));
+            self.note_usage(daily, monthly, why.as_deref(), at);
             bail!("Resend refused the email ({status}): {detail}");
         }
+        self.note_usage(daily, monthly, None, at);
         Ok(())
     }
 
@@ -153,5 +230,28 @@ impl Mailer {
              and you can ignore this.</p>"
         );
         self.deliver(key, to, &format!("{code} is your Orien Network code"), &text, &html)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn usage_is_kept_across_restarts_and_refusals_are_noted() {
+        let mut random = [0u8; 8];
+        getrandom::fill(&mut random).unwrap();
+        let file = std::env::temp_dir().join(format!("orien-resend-usage-{}.json", hex::encode(random)));
+        let mailer = Mailer::log_only().keeping_usage_in(file.clone());
+        assert_eq!(mailer.usage(), Usage::default());
+        mailer.note_usage(None, None, None, 5);
+        assert_eq!(mailer.usage().at, 0, "an answer without counts changes nothing");
+        mailer.note_usage(Some(41), Some(1200), None, 10);
+        mailer.note_usage(None, None, Some("daily_quota_exceeded"), 20);
+        let again = Mailer::log_only().keeping_usage_in(file.clone());
+        let usage = again.usage();
+        assert_eq!((usage.daily, usage.monthly, usage.at), (Some(41), Some(1200), 10));
+        assert_eq!(usage.refused, Some(Refused { why: "daily_quota_exceeded".into(), at: 20 }));
+        let _ = std::fs::remove_file(file);
     }
 }
