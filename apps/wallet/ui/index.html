@@ -3185,11 +3185,12 @@
       const box = document.activeElement;
       if (!keyboardUp || !box || !box.matches("input, textarea")) return;
       if (box.closest(".ch-compose")) { const log = document.getElementById("ch-log"); if (log) log.scrollTop = log.scrollHeight; }
-      else (box.closest(".cm-inline-write, .cm-compose") || box).scrollIntoView({ block: "nearest" });
+      else (box.closest(".cm-inline-write, .cm-compose") || box).scrollIntoView({ block: "nearest", behavior: "smooth" });
     };
-    // Asked again a moment later: the page finishes getting shorter after
-    // the keyboard says it's up.
-    const showSoon = () => { requestAnimationFrame(showTyping); setTimeout(showTyping, 120); setTimeout(showTyping, 360); };
+    // Once, gliding, after the page has settled at its shorter height: the
+    // keyboard, the resize and the focus each ask, and only the last counts.
+    let showTimer = 0;
+    const showSoon = () => { clearTimeout(showTimer); showTimer = setTimeout(showTyping, 90); };
     window.__TAURI__.event.listen("keyboard", (e) => {
       keyboardUp = Number(e.payload) > 40;
       document.body.classList.toggle("kb-up", keyboardUp);
