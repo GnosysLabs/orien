@@ -4584,6 +4584,8 @@
         .filter((x) => x.address && !book.some((c) => c.address === x.address))
         .map((x) => ({ name: profileLabel({ name: ((memberInfo.get(x.m.id) || {}).account || {}).name || x.m.name, wallet_name: x.wallet.name || null }), address: x.address, sub: short(x.address), mine: false })),
       ...walletList.filter((w) => !w.current).map((w) => ({ name: w.name, address: w.address, sub: "Your wallet", mine: true })),
+      // Orien's own wallets, by name.
+      ...Object.entries(OFFICIAL).filter(([a]) => !book.some((c) => c.address === a)).map(([address, name]) => ({ name, address, sub: short(address), mine: false })),
     ];
     // As Contacts does: a name matches where any of its words starts with
     // what's typed; an address only by its start, and only from 4 characters.
@@ -4602,7 +4604,7 @@
     if (found.some((p) => !p.mine && !profiles.has(p.address))) loadProfiles(found.filter((p) => !p.mine).map((p) => p.address)).then((got) => got && suggest($("to").value));
     list.innerHTML = found.map((p) => `<button class="tx" type="button" data-address="${p.address}">
       ${p.mine ? `<span class="face${iconOf(p.address) ? " emoji" : ""}">${esc(iconOf(p.address) || p.name.slice(0, 1).toUpperCase())}</span>` : face(p.address, nameOf(p.address) || p.name)}
-      <div class="tx-main"><div class="title">${esc(nameOf(p.address) || p.name)}</div><div class="sub">${esc(p.sub)}</div></div>
+      <div class="tx-main"><div class="title">${esc(nameOf(p.address) || p.name)}${officialTag(p.address)}</div><div class="sub">${esc(p.sub)}</div></div>
     </button>`).join("") + market.map((r) => `<button class="tx" type="button" data-address="${r.address}">
       ${face(r.address, r.label)}
       <div class="tx-main"><div class="title">${esc(r.label)}</div><div class="sub">${short(r.address)}</div></div>
