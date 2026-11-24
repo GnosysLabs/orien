@@ -44,6 +44,15 @@ export const CHANGELOG: Entry[] = [
   {
     date: '2026-11-24',
     products: ['marketplace'],
+    title: 'Cleaner comments',
+    changes: [
+      'Comments have no dividing lines, with smaller Reply and react buttons. While you answer a comment, the post’s own reply box steps aside, and Cancel puts it back.',
+      'A post’s tips show at the right end of its buttons, as in Orien Wallet.',
+    ],
+  },
+  {
+    date: '2026-11-24',
+    products: ['marketplace'],
     title: 'Photos and GIFs in comments',
     changes: [
       'Comments, and answers to them, can carry up to four photos or a GIF, picked the same way as on a post.',
