@@ -176,6 +176,14 @@
   :root { --mn-cool: #6fa8ff; --mn-good: #5fd39d; --mn-warm: #f2a35e; --mn-dim: rgba(0, 0, 0, 0.62); }
   [data-theme="daylight"] { --mn-dim: rgba(255, 255, 255, 0.68); }
   #market, #seller { --col: 1040px; }
+  /* A listing, in a big window: wider, its pictures large on the left and
+     the title, price, seller and description beside them. */
+  @media (min-width: 960px) {
+    #listing { --col: 1040px; }
+    .ls-layout { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); gap: 32px; align-items: start; }
+    .ls-media { position: sticky; top: 56px; }
+    .ls-info .ls-title { margin-top: 2px; font-size: 26px; }
+  }
   @media (min-width: 720px) {
     html body .screen, html body #mine, html body #board-signin, html body #board-post, html body #board-take,
     html body #swaps, html body #swap-sell, html body #swap-buy, html body #swap-detail {
@@ -2415,8 +2423,13 @@
         <textarea id="ls-report-text" rows="3" maxlength="1000" placeholder="A scam, something illegal, pretending to be someone…"></textarea>
         <div class="ls-ask-row"><span class="hint" id="ls-report-done"></span><button class="pill" id="ls-report-cancel">Cancel</button><button class="pill" id="ls-report-send">Send report</button></div>
       </div>
+      <!-- Big windows: the pictures on the left, everything else beside them. -->
+      <div class="ls-layout">
+      <div class="ls-media">
       <div class="ls-gallery" id="ls-gallery"></div>
       <div class="ls-thumbs" id="ls-thumbs" hidden></div>
+      </div>
+      <div class="ls-info">
       <h1 class="ls-title" id="ls-title"></h1>
       <div class="ls-price" id="ls-price"></div>
       <button class="ls-seller" id="ls-seller"></button>
@@ -2426,6 +2439,8 @@
       <button class="primary pearl ls-message" id="ls-ask" data-gap="lg" hidden><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2.992 16.342a2 2 0 0 1 .094 1.167l-1.065 3.29a1 1 0 0 0 1.236 1.168l3.413-.998a2 2 0 0 1 1.099.092 10 10 0 1 0-4.777-4.719"/></svg><span id="ls-ask-label">Message the seller</span></button>
       <button class="pill ls-signin" id="ls-signin" hidden>Sign in to message the seller</button>
       <div class="problem" id="ls-problem" hidden></div>
+      </div>
+      </div>
     </section>
 
     <!-- Selling: a new listing, or changes to one -->
