@@ -4408,8 +4408,16 @@
     const stops = (list) => list.map((x, i) => `${x} ${Math.round(i * 100 / (list.length - 1))}%`).join(", ");
     // One colour: its own lighter and deeper shades make the gradients.
     const one = colors.length === 1;
+    // The metal, as the built-in themes make it: the first colour in light
+    // and deep bands that slide past each other, the others as a shimmer
+    // of tinted light in between. A smooth blend from one colour to the
+    // next looks flat, like plastic, however good the colours.
+    const metal = (hi, lo, mid) => {
+      const band = (x, l) => hsl(x.h, Math.min(Math.max(x.s, 55), 95), l);
+      return [band(a, hi), band(a, lo), band(b, hi + 1), band(a, lo - 6), band(a, hi + 2), band(c, lo + 2), band(a, mid), band(a, hi)];
+    };
     if (base === "light") {
-      const pearl = [soft(a, 88), soft(a, 80), soft(b, one ? 92 : 89), soft(b, one ? 76 : 80), soft(c, 91), soft(c, 82), soft(b, 86), soft(a, 88)];
+      const pearl = metal(91, 80, 86);
       const brand = [hsl(a.h, Math.max(a.s, 45), 55), hsl(b.h, Math.max(b.s, 45), one ? 64 : 58), hsl(c.h, Math.max(c.s, 45), one ? 48 : 54), hsl(b.h, Math.max(b.s, 45), 60), hsl(a.h, Math.max(a.s, 45), 55)];
       return `${BASES.light}
         --pearl-ink: ${hsl(a.h, Math.min(a.s, 30), 16)}; --on-pearl-dim: ${hsl(a.h, Math.min(a.s, 15), 30)};
@@ -4419,7 +4427,7 @@
         --pearl: linear-gradient(115deg, ${stops(pearl)});
         --brand: linear-gradient(115deg, ${stops(brand)});`;
     }
-    const pearl = [soft(a, 86), soft(a, 70), soft(b, one ? 90 : 88), soft(b, one ? 64 : 68), soft(c, 90), soft(c, 72), soft(b, 82), soft(a, 86)];
+    const pearl = metal(88, 70, 82);
     const brand = [vivid(a, 74), vivid(b, one ? 84 : 78), vivid(c, one ? 66 : 68), vivid(b, 82), vivid(a, 74)];
     return `${BASES.dark}
       --pearl-ink: ${hsl(a.h, Math.min(a.s, 55), 12)}; --on-pearl-dim: ${hsl(a.h, Math.min(a.s, 20), 34)};
