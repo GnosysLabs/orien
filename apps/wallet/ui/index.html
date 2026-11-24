@@ -3471,6 +3471,19 @@
     document.addEventListener("touchend", done, { passive: true });
     document.addEventListener("touchcancel", done, { passive: true });
   }
+  // The pearl sheens all keep one clock. A post repainted after a tap
+  // makes its buttons anew, and a new element's animation would start over
+  // from the beginning; set to the page's own start, it carries on exactly
+  // where the old one was.
+  {
+    const SHEENS = new Set(["drift", "brand-drift"]);
+    // Before the next paint, so a new button never shows a frame out of step.
+    const align = () => {
+      for (const a of document.getAnimations()) if (a.animationName && SHEENS.has(a.animationName) && a.startTime !== 0) a.startTime = 0;
+    };
+    new MutationObserver(align).observe(document.body, { childList: true, subtree: true, attributes: true, attributeFilter: ["class", "hidden"] });
+    requestAnimationFrame(align);
+  }
   function problem(id, text) { $(id).textContent = String(text); $(id).hidden = false; feel("error"); }
 
   function setStatus(kind, text) {
