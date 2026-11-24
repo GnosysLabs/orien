@@ -952,8 +952,13 @@
     html body.split :is(#ib-list, #ch-log) { -webkit-mask: none; mask: none; }
     body.split #ib-list .list { border: 0; border-radius: 0; background: none; box-shadow: none; }
     body.split .ib-row { padding: 14px 16px; border-top: 0; border-bottom: 1px solid var(--line); border-radius: 0; }
-    @media (hover: hover) { body.split .ib-row:hover { background: rgba(var(--tint), 0.03); } }
-    body.split .ib-row.on { background: var(--surface-hover); }
+    /* The open chat, and the one under the pointer: a rounded highlight
+       inset from the edges, clear of the dividing lines around it. */
+    body.split .ib-row { position: relative; isolation: isolate; }
+    body.split .ib-row::before { content: ""; position: absolute; inset: 5px 8px; z-index: -1; border-radius: 14px; background: transparent; transition: background .15s; }
+    @media (hover: hover) { body.split .ib-row:hover { background: none; } body.split .ib-row:hover::before { background: rgba(var(--tint), 0.04); } }
+    body.split .ib-row.on, body.split .ib-row.on:hover { background: none; }
+    body.split .ib-row.on::before { background: var(--surface-hover); }
     body.split #ib-list .empty { padding: 20px; text-align: left; }
     body.split #ch-back { display: none; }
     /* The Messages box is the container itself: no frame around it, only
