@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react'
 import { Download, X } from 'lucide-react'
-import { CHROME_EXTENSION, WALLET_SIGN_IN_FOR_EVERYONE } from '@/lib/brand'
+import { CHROME_EXTENSION, FIREFOX_EXTENSION, WALLET_SIGN_IN_FOR_EVERYONE } from '@/lib/brand'
 import { WindowsDownload } from '@/components/WindowsDownload'
 
 /** What Orien Wallet's browser extension says about itself, on <html
@@ -84,14 +84,17 @@ export function WalletSignIn({ className, after }: { className: string; after?: 
       if (timer) clearTimeout(timer)
     }
   }, [attempt])
-  // Only where the extension works: Safari on a Mac, and Chrome (and the
-  // browsers that take Chrome's extensions) once it is in the Chrome Web
-  // Store. Never on phones and tablets. Decided once the page is open here,
+  // Only where the extension works: Safari on a Mac, Chrome (and the
+  // browsers that take Chrome's extensions), and Firefox. Never on phones
+  // and tablets. Decided once the page is open here,
   // so nobody else sees it flash up.
   const [supported, setSupported] = useState(false)
   useEffect(() => {
     const here = where()
-    setSupported(!here.phone && ((here.browser === 'safari' && here.mac) || (here.browser === 'chrome' && !!CHROME_EXTENSION)))
+    setSupported(
+      !here.phone &&
+        ((here.browser === 'safari' && here.mac) || (here.browser === 'chrome' && !!CHROME_EXTENSION) || (here.browser === 'firefox' && !!FIREFOX_EXTENSION)),
+    )
   }, [])
   // Before the release, shown only where the extension has said it is there.
   const [present, setPresent] = useState(false)
@@ -162,8 +165,8 @@ function WalletHelp({ state, onClose }: { state: State | 'install' | 'no-answer'
     if (here.phone) {
       advice = (
         <p>
-          On a phone or tablet, sign in with your email for now. The extension is for Safari on a Mac and for Chrome
-          on a computer.
+          On a phone or tablet, sign in with your email for now. The extension is for Safari on a Mac, and for Chrome
+          and Firefox on a computer.
         </p>
       )
     } else if (here.browser === 'safari' && here.mac) {
@@ -188,16 +191,17 @@ function WalletHelp({ state, onClose }: { state: State | 'install' | 'no-answer'
           </div>
         </>
       )
-    } else if (here.browser === 'chrome' && CHROME_EXTENSION) {
+    } else if ((here.browser === 'chrome' && CHROME_EXTENSION) || (here.browser === 'firefox' && FIREFOX_EXTENSION)) {
+      const firefox = here.browser === 'firefox'
       advice = (
         <>
           <div className="space-y-3">
             <p className="font-semibold text-ink">Already have Orien Wallet?</p>
             <Steps>
-              <li>Update it to the latest version (1.8.22 or later).</li>
+              <li>Update it to the latest version ({firefox ? '1.8.25' : '1.8.22'} or later).</li>
               <li>Add the extension to {here.name}, and reload this page.</li>
             </Steps>
-            <a href={CHROME_EXTENSION} target="_blank" rel="noopener noreferrer" className={primary}>
+            <a href={firefox ? FIREFOX_EXTENSION : CHROME_EXTENSION} target="_blank" rel="noopener noreferrer" className={primary}>
               Add it to {here.name}
             </a>
           </div>
@@ -214,7 +218,7 @@ function WalletHelp({ state, onClose }: { state: State | 'install' | 'no-answer'
         </>
       )
     } else {
-      const which = here.browser === 'firefox' ? 'Firefox isn’t supported yet.' : here.browser === 'chrome' ? 'The Chrome extension is coming soon.' : 'Your browser isn’t supported yet.'
+      const which = 'Your browser isn’t supported yet.'
       advice = here.mac ? (
         <>
           <p>{which} On this Mac, it works today in Safari with the latest Orien Wallet.</p>

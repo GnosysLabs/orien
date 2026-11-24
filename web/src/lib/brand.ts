@@ -41,6 +41,9 @@ export const MOST_SHARES_FROM = 123
 /** Orien Wallet's extension in the Chrome Web Store. */
 export const CHROME_EXTENSION = 'https://chromewebstore.google.com/detail/orien-wallet/oogifphigefggbdlcomcohbjfbgomcmn'
 
+/** Orien Wallet's extension on Firefox Add-ons. */
+export const FIREFOX_EXTENSION = 'https://addons.mozilla.org/firefox/addon/orien-wallet/'
+
 /** Whether everyone sees Sign in with Orien Wallet. Until Orien Wallet's
  * release with it, only people who already have its extension do. */
 export const WALLET_SIGN_IN_FOR_EVERYONE = true
