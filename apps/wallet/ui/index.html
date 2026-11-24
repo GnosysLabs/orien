@@ -7865,6 +7865,11 @@
   }, true);
   document.addEventListener("keydown", (e) => { if (e.key === "Escape") for (const m of document.querySelectorAll(".ch-menu")) m.hidden = true; });
   window.addEventListener("resize", () => { for (const m of document.querySelectorAll(".ch-menu")) m.hidden = true; });
+  // A menu floats by its button; once what's under it scrolls, it closes
+  // rather than stay behind in mid-air.
+  document.addEventListener("scroll", (e) => {
+    for (const m of document.querySelectorAll(".ch-menu:not([hidden])")) if (!m.contains(e.target)) m.hidden = true;
+  }, { capture: true, passive: true });
 
   $("sl-contact").onclick = (e) => {
     const chip = e.target.closest(".sl-chip");
