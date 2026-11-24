@@ -296,13 +296,23 @@ pub fn message_text(sender: &str, kind: &str, body: &str, amount: Option<u64>) -
 
 /// Sends what the Market has queued for phones.
 fn deliver_events(app: &App, notify: &dyn Notify) -> Result<usize> {
+    // The bell's new replies, answers, reactions and network posts, said as
+    // the bell says them; none older than ten minutes, so a first look or a
+    // filled-in history never floods a phone.
+    use std::sync::atomic::Ordering;
+    let since = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).map_or(0, |d| d.as_secs()).saturating_sub(600);
+    let (last, fresh) = app.store().fresh_for_phones(app.pushed_notice.load(Ordering::Relaxed), since)?;
+    app.pushed_notice.store(last, Ordering::Relaxed);
+    for (account, body, post) in fresh {
+        app.tell(Event { account, address: None, body, kind: "community", open: json!({ "post": post }) });
+    }
     let mut sent = 0;
     for event in app.take_events() {
-        // Messages are "market", tips "community", swap steps "swaps", as
-        // the phone mutes them.
+        // Messages are "market", tips and the bell's community lines
+        // "community", swap steps "swaps", as the phone mutes them.
         let kind = match event.kind {
             "message" => "market",
-            "tip" => "community",
+            "tip" | "community" => "community",
             _ => "swaps",
         };
         let mut phones = app.store().phones_for_account(event.account, kind)?;
