@@ -436,6 +436,7 @@ impl Store {
                  PRIMARY KEY (sender, seq)
              );
              CREATE INDEX IF NOT EXISTS post_tips_by_post ON post_tips(post);
+             -- (posts.reply_to, added later: the reply a reply answers.)
              -- Validators the network has had, so a new one is posted once.
              CREATE TABLE IF NOT EXISTS seen_validators (
                  account TEXT PRIMARY KEY,
@@ -454,6 +455,11 @@ impl Store {
                  value INTEGER NOT NULL
              );",
         )?;
+        let has_reply_to: bool =
+            self.db.query_row("SELECT COUNT(*) > 0 FROM pragma_table_info('posts') WHERE name = 'reply_to'", [], |row| row.get(0))?;
+        if !has_reply_to {
+            self.db.execute("ALTER TABLE posts ADD COLUMN reply_to INTEGER REFERENCES posts(id) ON DELETE SET NULL", [])?;
+        }
         Ok(())
     }
 
@@ -490,8 +496,33 @@ impl Store {
 
     /// A post, or a reply to `parent`. Screened before this is called.
     pub fn add_post(&self, author: i64, body: &str, parent: Option<i64>) -> Result<i64> {
+        self.add_reply(author, body, parent, None)
+    }
+
+    /// A post, or a reply to one; with `reply_to`, a reply that answers
+    /// another reply on the same post. Answers stay one deep: answering an
+    /// answer answers the reply it answered.
+    pub fn add_reply(&self, author: i64, body: &str, parent: Option<i64>, reply_to: Option<i64>) -> Result<i64> {
         let body = post_text(body)?;
         self.may_post(author)?;
+        let reply_to = match (reply_to, parent) {
+            (None, _) => None,
+            (Some(_), None) => bail!("only a reply can answer a reply"),
+            (Some(target), Some(parent)) => {
+                let found: Option<(Option<i64>, Option<i64>)> = self
+                    .db
+                    .query_row(
+                        "SELECT parent, reply_to FROM posts WHERE id = ?1 AND removed = 0 AND kind = 'post'",
+                        [target],
+                        |row| Ok((row.get(0)?, row.get(1)?)),
+                    )
+                    .optional()?;
+                match found {
+                    Some((Some(on), answers)) if on == parent => Some(answers.unwrap_or(target)),
+                    _ => bail!("that reply is gone, or is on another post"),
+                }
+            }
+        };
         if let Some(parent) = parent {
             let open: bool = self
                 .db
@@ -503,12 +534,12 @@ impl Store {
             }
         }
         self.db.execute(
-            "INSERT INTO posts (author, kind, body, parent, created) VALUES (?1, 'post', ?2, ?3, ?4)",
-            params![author, body, parent, now() as i64],
+            "INSERT INTO posts (author, kind, body, parent, created, reply_to) VALUES (?1, 'post', ?2, ?3, ?4, ?5)",
+            params![author, body, parent, now() as i64, reply_to],
         )?;
         let id = self.db.last_insert_rowid();
         if let Some(parent) = parent {
-            self.notice_reply(id, author, parent)?;
+            self.notice_reply(id, author, parent, reply_to)?;
         }
         Ok(id)
     }
@@ -618,7 +649,7 @@ impl Store {
                     (SELECT COUNT(*) FROM posts r WHERE r.parent = p.id AND r.removed = 0
                        AND (r.author IS NULL OR r.author NOT IN (SELECT account FROM suspended))
                        AND (r.author IS NULL OR r.author NOT IN (SELECT blocker FROM blocks WHERE blocked = ?2 UNION SELECT blocked FROM blocks WHERE blocker = ?2))),
-                    p.author = ?2, a.banner,
+                    p.author = ?2, a.banner, p.reply_to,
                     -- Where a tip goes: the author's Market wallet if it's
                     -- verified, otherwise their first verified wallet.
                     COALESCE(
@@ -649,10 +680,11 @@ impl Store {
                 "parent": row.get::<_, Option<i64>>(5)?,
                 "author": person(row.get(6)?, row.get(7)?).map(|mut author| {
                     author["banner"] = json!(row.get::<_, Option<String>>(12).ok().flatten());
-                    author["tip_to"] = json!(row.get::<_, Option<String>>(13).ok().flatten());
+                    author["tip_to"] = json!(row.get::<_, Option<String>>(14).ok().flatten());
                     author
                 }),
-                "tips": { "count": row.get::<_, i64>(14)?, "orn": row.get::<_, i64>(15)? },
+                "tips": { "count": row.get::<_, i64>(15)?, "orn": row.get::<_, i64>(16)? },
+                "reply_to": row.get::<_, Option<i64>>(13)?,
                 "subject": person(row.get(8)?, row.get(9)?),
                 "replies": row.get::<_, i64>(10)?,
                 "mine": row.get::<_, Option<bool>>(11)?.unwrap_or(false),
@@ -1369,6 +1401,9 @@ pub struct NewPost {
     #[serde(default)]
     body: String,
     parent: Option<i64>,
+    /// The reply this reply answers, on the same post.
+    #[serde(default)]
+    reply_to: Option<i64>,
     /// Photos uploaded first, by name, in order: up to four.
     #[serde(default)]
     pictures: Vec<String>,
@@ -1459,7 +1494,7 @@ async fn new_post(State(app): State<Arc<App>>, headers: HeaderMap, Json(given): 
         let poll = given.poll.as_ref().map(|p| (p.options.as_slice(), p.hours));
         app.store().add_post_with(author, &given.body, &given.pictures, poll, given.gif.as_ref()).map_err(refused)?
     } else {
-        app.store().add_post(author, &given.body, given.parent).map_err(refused)?
+        app.store().add_reply(author, &given.body, given.parent, given.reply_to).map_err(refused)?
     };
     // The first link's preview, fetched in the background: it shows on the
     // next load of the feed.

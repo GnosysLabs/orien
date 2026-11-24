@@ -56,6 +56,8 @@ type Post = {
   data: Record<string, unknown> & { miners?: Face[]; miner?: Face }
   created: number
   parent: number | null
+  /** On a reply: the reply it answers, one deep. */
+  reply_to?: number | null
   author: Person | null
   subject: Person | null
   replies: number
@@ -477,7 +479,22 @@ const POLL_LENGTHS: [number, string][] = [
   [168, '7 days'],
 ]
 
-function Composer({ me, parent, onPosted, autoFocus = false }: { me: You; parent?: number; onPosted: () => void; autoFocus?: boolean }) {
+function Composer({
+  me,
+  parent,
+  replyTo,
+  replyingTo,
+  onPosted,
+  autoFocus = false,
+}: {
+  me: You
+  parent?: number
+  /** Answering a reply: its id, and whose it is. */
+  replyTo?: number
+  replyingTo?: string
+  onPosted: () => void
+  autoFocus?: boolean
+}) {
   const [body, setBody] = useState('')
   const [busy, setBusy] = useState(false)
   const [trouble, setTrouble] = useState('')
@@ -522,6 +539,7 @@ function Composer({ me, parent, onPosted, autoFocus = false }: { me: You; parent
       await ask('/community/posts', 'POST', {
         body,
         parent,
+        ...(replyTo ? { reply_to: replyTo } : {}),
         ...(pictures.length ? { pictures } : {}),
         ...(poll ? { poll: { options: poll.options.map((o) => o.trim()), hours: poll.hours } } : {}),
         ...(gif ? { gif } : {}),
@@ -549,7 +567,7 @@ function Composer({ me, parent, onPosted, autoFocus = false }: { me: You; parent
           onChange={(e) => setBody(e.target.value.slice(0, MAX))}
           rows={1}
           autoFocus={autoFocus}
-          placeholder={parent ? 'Post your reply' : poll ? 'Ask a question' : 'What’s happening?'}
+          placeholder={replyingTo ? `Reply to ${replyingTo}` : parent ? 'Post your reply' : poll ? 'Ask a question' : 'What’s happening?'}
           className={`w-full resize-none bg-transparent py-2 text-ink outline-none placeholder:text-muted ${parent ? 'text-[15px]' : 'text-lg'}`}
         />
         {photos.length > 0 && (
@@ -930,10 +948,28 @@ function PostMenu({ post, signedIn, onRemoved }: { post: Post; signedIn: boolean
   )
 }
 
-function Reply({ reply, me, onChange }: { reply: Post; me: You | null; onChange: () => void }) {
+/** A reply, with a Reply button that answers it, and the answers to it
+ * indented under it with smaller faces: one deep. */
+function Reply({
+  reply,
+  answers = [],
+  post,
+  me,
+  onChange,
+  small = false,
+}: {
+  reply: Post
+  answers?: Post[]
+  post: number
+  me: You | null
+  onChange: () => void
+  small?: boolean
+}) {
+  const [answering, setAnswering] = useState(false)
   return (
-    <div className="flex gap-3 py-3">
-      {reply.author && <Avatar name={reply.author.name} picture={reply.author.picture} size={32} />}
+    <div className={small ? 'pt-3' : 'py-3'}>
+    <div className="flex gap-3">
+      {reply.author && <Avatar name={reply.author.name} picture={reply.author.picture} size={small ? 24 : 32} />}
       <div className="min-w-0 flex-1">
         <div className="flex items-start gap-2">
           <p className="min-w-0 flex-1 truncate text-[15px]">
@@ -946,12 +982,55 @@ function Reply({ reply, me, onChange }: { reply: Post; me: You | null; onChange:
         </p>
         <Video text={reply.body} />
         {reply.link && <LinkCard link={reply.link} />}
-        <div className="mt-2">
+        <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-2">
+          {me?.verified && !small && (
+            <button
+              type="button"
+              onClick={() => setAnswering(!answering)}
+              className={`-ml-2 flex h-8 items-center gap-1.5 rounded-full px-2 text-sm font-semibold transition hover:bg-raised hover:text-ink ${answering ? 'text-ink' : 'text-muted'}`}
+            >
+              <MessageCircle className="h-4 w-4" aria-hidden /> Reply
+            </button>
+          )}
           <ReactionBar post={reply} signedIn={!!me} onChange={onChange} />
         </div>
       </div>
     </div>
+      {(answers.length > 0 || answering) && (
+        <div className="ml-11 border-l border-line pl-4">
+          {answers.map((answer) => (
+            <Reply key={answer.id} reply={answer} post={post} me={me} onChange={onChange} small />
+          ))}
+          {answering && me && (
+            <div className="pt-3">
+              <Composer
+                me={me}
+                parent={post}
+                replyTo={reply.id}
+                replyingTo={reply.author?.name}
+                autoFocus
+                onPosted={() => {
+                  setAnswering(false)
+                  onChange()
+                }}
+              />
+            </div>
+          )}
+        </div>
+      )}
+    </div>
   )
+}
+
+/** Replies as a thread: those answering another reply go under it, one
+ * deep; an answer whose reply is gone shows as an ordinary reply. */
+function threaded(replies: Post[]): { reply: Post; answers: Post[] }[] {
+  const ids = new Set(replies.map((r) => r.id))
+  const answers = new Map<number, Post[]>()
+  for (const r of replies) {
+    if (r.reply_to && ids.has(r.reply_to)) answers.set(r.reply_to, [...(answers.get(r.reply_to) ?? []), r])
+  }
+  return replies.filter((r) => !(r.reply_to && ids.has(r.reply_to))).map((reply) => ({ reply, answers: answers.get(reply.id) ?? [] }))
 }
 
 function PostCard({ post, me, onChange, startOpen = false }: { post: Post; me: You | null; onChange: () => void; startOpen?: boolean }) {
@@ -1054,7 +1133,12 @@ function PostCard({ post, me, onChange, startOpen = false }: { post: Post; me: Y
 
         {open && (
           <div className="mt-3 border-t border-line">
-            <div className="divide-y divide-line">{replies?.map((reply) => <Reply key={reply.id} reply={reply} me={me} onChange={changed} />)}</div>
+            <div className="divide-y divide-line">
+              {replies &&
+                threaded(replies).map(({ reply, answers }) => (
+                  <Reply key={reply.id} reply={reply} answers={answers} post={post.id} me={me} onChange={changed} />
+                ))}
+            </div>
             <div className="pt-3">
               {me?.verified ? (
                 <Composer me={me} parent={post.id} autoFocus onPosted={changed} />

@@ -609,3 +609,44 @@ async fn a_posts_first_link_gets_one_checked_preview() {
     let (_, feed) = ask(&app, "GET", "/api/market/community/feed", None, None).await;
     assert!(find(&feed, a).get("link").is_none());
 }
+
+#[tokio::test]
+async fn replies_answer_replies_one_deep_and_their_authors_hear() {
+    let app = market();
+    let alice = sign_in_for_tests(&app, "Alice");
+    let sam = sign_in_for_tests(&app, "Sam");
+    let maya = sign_in_for_tests(&app, "Maya");
+    let say = |who: String, body: Value| {
+        let app = app.clone();
+        async move { ask(&app, "POST", "/api/market/community/posts", Some(&who), Some(body)).await }
+    };
+    let (_, post) = say(alice.clone(), json!({ "body": "Hello, miners" })).await;
+    let post = post["id"].as_i64().unwrap();
+    let (_, other) = say(alice.clone(), json!({ "body": "Another post" })).await;
+    let other = other["id"].as_i64().unwrap();
+    let (_, sams) = say(sam.clone(), json!({ "body": "Hi Alice", "parent": post })).await;
+    let sams = sams["id"].as_i64().unwrap();
+
+    // Maya answers Sam's reply; then answers her own answer: still under Sam's.
+    let (status, answer) = say(maya.clone(), json!({ "body": "Hi Sam", "parent": post, "reply_to": sams })).await;
+    assert_eq!(status, StatusCode::OK, "{answer}");
+    let answer = answer["id"].as_i64().unwrap();
+    let (_, deeper) = say(maya.clone(), json!({ "body": "And again", "parent": post, "reply_to": answer })).await;
+    let deeper = deeper["id"].as_i64().unwrap();
+    assert_eq!(say(maya.clone(), json!({ "body": "x", "parent": other, "reply_to": sams })).await.0, StatusCode::BAD_REQUEST, "another post's reply");
+    assert_eq!(say(maya.clone(), json!({ "body": "x", "reply_to": sams })).await.0, StatusCode::BAD_REQUEST, "only a reply answers");
+
+    let (_, thread) = ask(&app, "GET", &format!("/api/market/community/posts/{post}"), None, None).await;
+    let reply_to = |id: i64| thread["replies"].as_array().unwrap().iter().find(|r| r["id"] == id).unwrap()["reply_to"].clone();
+    assert_eq!((reply_to(sams), reply_to(answer), reply_to(deeper)), (Value::Null, json!(sams), json!(sams)), "one deep");
+    assert_eq!(thread["post"]["replies"], 3, "all count as the post's replies");
+
+    // Sam hears "replied to your reply" once; Alice hears about her post.
+    let (_, bell) = ask(&app, "GET", "/api/market/notices", Some(&sam), None).await;
+    let lines = bell["notices"].as_array().unwrap();
+    let to_his_reply: Vec<&Value> = lines.iter().filter(|l| l["kind"] == "reply" && l["reply"] == true).collect();
+    assert_eq!(to_his_reply.len(), 1, "{lines:?}");
+    assert!(lines.iter().all(|l| l["kind"] != "also"), "not told twice");
+    let (_, bell) = ask(&app, "GET", "/api/market/notices", Some(&alice), None).await;
+    assert!(bell["notices"].as_array().unwrap().iter().any(|l| l["kind"] == "reply" && l["reply"] == false));
+}

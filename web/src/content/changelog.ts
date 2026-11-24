@@ -26,6 +26,14 @@ export const PRODUCTS: Record<Product, string> = {
 
 export const CHANGELOG: Entry[] = [
   {
+    date: '2026-11-24',
+    products: ['marketplace'],
+    title: 'Answer a comment',
+    changes: [
+      'Each comment on a post has a Reply button. Answers show under the comment they answer, and the person who wrote it hears about it.',
+    ],
+  },
+  {
     date: '2026-11-23',
     products: ['wallet'],
     version: '1.9.0',
