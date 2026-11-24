@@ -4416,14 +4416,30 @@
     // comes three times: a sheen is three times as wide as what it colours,
     // so whatever part shows holds every colour at once as it drifts,
     // rather than one colour at a time.
-    const metal = (hi, lo, mid) => {
-      const band = (x, l) => hsl(x.h, Math.min(Math.max(x.s, 55), 95), l);
-      const run = one ? [band(a, hi), band(a, lo), band(a, mid + 4), band(a, lo - 6)]
-        : colors.map((_, i) => [a, b, c][i]).flatMap((x) => [band(x, hi), band(x, lo)]);
+    // The light band stays clearly the colour, only a little lighter than
+    // chosen: lightened near to white, white shows between the colours.
+    // Both stay light enough for the dark words on top to read.
+    const clamp = (v, lo, hi) => Math.min(Math.max(v, lo), hi);
+    // How bright a colour looks (blues and purples look darker than
+    // yellows at the same setting), and a colour lifted until it looks at
+    // least that bright, so the words on it always read.
+    const looks = (hex) => {
+      const lin = (v) => { v /= 255; return v <= 0.04045 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4); };
+      const n = parseInt(hex.slice(1), 16);
+      return 0.2126 * lin(n >> 16 & 255) + 0.7152 * lin(n >> 8 & 255) + 0.0722 * lin(n & 255);
+    };
+    const lifted = (h, sat, l, least) => { while (looks(hsl(h, sat, l)) < least && l < 90) l += 2; return hsl(h, sat, l); };
+    const metal = (light) => {
+      // Soft, as the built-in themes are: pastel, never white, never loud.
+      const sat = (x) => clamp(x.s, 45, 78);
+      const up = (x) => lifted(x.h, sat(x), light ? 86 : 83, 0.5);
+      const down = (x) => lifted(x.h, sat(x), light ? 76 : 72, 0.38);
+      const run = one ? [up(a), down(a), lifted(a.h, sat(a), light ? 82 : 79, 0.45), down(a)]
+        : colors.map((_, i) => [a, b, c][i]).flatMap((x) => [up(x), down(x)]);
       return [...run, ...run, ...run, run[0]];
     };
     if (base === "light") {
-      const pearl = metal(91, 80, 86);
+      const pearl = metal(true);
       const brand = [hsl(a.h, Math.max(a.s, 45), 55), hsl(b.h, Math.max(b.s, 45), one ? 64 : 58), hsl(c.h, Math.max(c.s, 45), one ? 48 : 54), hsl(b.h, Math.max(b.s, 45), 60), hsl(a.h, Math.max(a.s, 45), 55)];
       return `${BASES.light}
         --pearl-ink: ${hsl(a.h, Math.min(a.s, 30), 16)}; --on-pearl-dim: ${hsl(a.h, Math.min(a.s, 15), 30)};
@@ -4433,7 +4449,7 @@
         --pearl: linear-gradient(115deg, ${stops(pearl)});
         --brand: linear-gradient(115deg, ${stops(brand)});`;
     }
-    const pearl = metal(88, 70, 82);
+    const pearl = metal(false);
     const brand = [vivid(a, 74), vivid(b, one ? 84 : 78), vivid(c, one ? 66 : 68), vivid(b, 82), vivid(a, 74)];
     return `${BASES.dark}
       --pearl-ink: ${hsl(a.h, Math.min(a.s, 55), 12)}; --on-pearl-dim: ${hsl(a.h, Math.min(a.s, 20), 34)};
