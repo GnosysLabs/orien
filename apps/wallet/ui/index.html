@@ -3166,6 +3166,7 @@
 </div>
 <div class="ch-menu" id="cm-post-menu" role="menu" hidden>
   <button class="menu-row" id="cm-report"><span>Report post</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 22V4a1 1 0 0 1 .4-.8A6 6 0 0 1 8 2c3 0 5 2 7.333 2q2 0 3.067-.8A1 1 0 0 1 20 4v10a1 1 0 0 1-.4.8A6 6 0 0 1 16 16c-3 0-5-2-8-2a6 6 0 0 0-4 1.528"/></svg></button>
+  <button class="menu-row bad" id="cm-block"><span>Block</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M4.929 4.929 19.07 19.071"/></svg></button>
 </div>
 <div id="rp-veil" hidden><div id="rp-card" role="dialog" aria-modal="true" aria-labelledby="rp-title">
   <div id="rp-title">Report this post</div>
@@ -6926,8 +6927,14 @@
     show("community"); cmFitRail(); cmLoad(false);
   };
   // Reactions, replies, deleting: one listener for every card.
-  // ---- Reporting a post or reply, from its ... menu ----
-  let reportPost = null;
+  // ---- Reporting a post or reply, or blocking its author, from its ... menu ----
+  let reportPost = null, blockWho = null, blockArmed = false;
+  // Who wrote a post or reply, wherever it's shown.
+  function cmAuthorOf(id) {
+    const all = [...cm.posts, ...sl.posts, ...(cm.thread ? [cm.thread] : []), ...[...cm.repliesOf.values()].flat()];
+    const found = all.find((p) => p && p.id === id);
+    return found && found.author && found.author.id && !found.mine ? found.author : null;
+  }
   document.addEventListener("click", (e) => {
     const more = e.target.closest("[data-more]");
     if (!more) return;
@@ -6936,6 +6943,11 @@
     if (!menu.hidden && reportPost === id) { menu.hidden = true; return; }
     for (const other of document.querySelectorAll(".ch-menu")) other.hidden = true;
     reportPost = id;
+    // Block, by the author's name, for a post or reply by someone.
+    blockWho = cmAuthorOf(id);
+    blockArmed = false;
+    $("cm-block").hidden = !blockWho;
+    if (blockWho) $("cm-block").firstChild.textContent = `Block ${blockWho.name}`;
     const b = more.getBoundingClientRect();
     menu.style.top = `${Math.round(b.bottom + 8)}px`;
     menu.style.right = `${Math.round(window.innerWidth - b.right)}px`;
@@ -6948,6 +6960,24 @@
     const veil = $("rp-veil");
     if (veil.hidden) { veil.hidden = false; requestAnimationFrame(() => veil.classList.add("on")); }
     if (!phone) setTimeout(() => $("rp-reason").focus(), 50);
+  };
+  // Blocking, as on their profile: a second tap to be sure. You won't see
+  // each other's posts or messages; Manage blocks, on your profile, undoes it.
+  $("cm-block").onclick = async () => {
+    if (!blockWho) return;
+    if (!board.me) { $("cm-post-menu").hidden = true; cmJoin(); return; }
+    if (!blockArmed) { blockArmed = true; $("cm-block").firstChild.textContent = `Block ${blockWho.name}? ${phone ? "Tap" : "Click"} again`; return; }
+    const who = blockWho;
+    $("cm-post-menu").hidden = true;
+    try {
+      await mk("POST", `/accounts/${who.id}/block`, { block: true });
+      feel("success");
+      loadBlocked();
+      for (const id of cm.open) await cmLoadReplies(id);
+      if (!$("cm-thread").hidden && cm.thread) { if (cm.thread.author && cm.thread.author.id === who.id) { show("community"); cmFitRail(); } else await cmOpenThread(cm.thread.id); }
+      await cmLoad(false);
+      if (!$("seller").hidden) await slLoadFeed(false);
+    } catch (e) { problem(!$("cm-thread").hidden ? "cm-thread-problem" : $("seller").hidden ? "cm-problem" : "sl-problem", mkProblem(e)); }
   };
   function reportClose() { const veil = $("rp-veil"); veil.classList.remove("on"); setTimeout(() => { veil.hidden = true; }, 200); }
   $("rp-cancel").onclick = reportClose;
