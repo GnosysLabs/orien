@@ -4436,9 +4436,17 @@
       return 0.2126 * lin(n >> 16 & 255) + 0.7152 * lin(n >> 8 & 255) + 0.0722 * lin(n & 255);
     };
     const shade = (l, least = 0) => { const sat = clamp(a.s, 50, 92); while (looks(hsl(a.h, sat, l)) < least && l < 92) l += 2; return hsl(a.h, sat, l); };
-    // The dark base's sheen runs from the colour down toward black, as
-    // anodised metal, with black words and glyphs on it.
-    const deep = (l) => hsl(a.h, clamp(a.s, 50, 92), l);
+    // The dark base's sheen runs from the colour itself (its brightest bands
+    // are exactly the colour chosen) down toward black, as anodised metal,
+    // with black words and glyphs on it. A very dark or very pale choice is
+    // brought just far enough in for those words to read.
+    // Darkened the way paint is, mixed with black, so it stays the same
+    // colour all the way down rather than turning a louder one.
+    const rgb = (hex) => { const n = parseInt(hex.slice(1), 16); return [n >> 16 & 255, n >> 8 & 255, n & 255]; };
+    const hexOf = (c) => "#" + c.map((v) => Math.round(clamp(v, 0, 255)).toString(16).padStart(2, "0")).join("");
+    let face = rgb(colors[0]);
+    while (looks(hexOf(face)) < 0.22) face = face.map((v) => v + (255 - v) * 0.08);
+    const deep = (f) => hexOf(face.map((v) => v * (1 - f)));
     if (base === "light") {
       return `${BASES.light}
         --pearl-ink: ${hsl(a.h, Math.min(a.s, 30), 16)}; --on-pearl-dim: ${hsl(a.h, Math.min(a.s, 15), 30)};
@@ -4453,7 +4461,7 @@
       --focus: ${hsl(a.h, clamp(a.s, 40, 70), 66)}; --select: ${shade(78)}aa; --accent: ${shade(76)};
       --bubble-mine: ${hsl(a.h, clamp(a.s, 30, 50), 30)}; --chip-icon: ${shade(86)};
       --glow: radial-gradient(100% 55% at 50% -12%, rgba(${rgbOf(shade(62))}, 0.24), transparent 62%);
-      --pearl: linear-gradient(115deg, ${stops([deep(46), deep(32), deep(50), deep(26), deep(52), deep(30), deep(42), deep(46)])});
+      --pearl: linear-gradient(115deg, ${stops([deep(0), deep(0.3), deep(0.05), deep(0.42), deep(0), deep(0.36), deep(0.16), deep(0)])});
       --brand: linear-gradient(115deg, ${stops([shade(78), shade(86), shade(71), shade(88), shade(78)])});`;
   }
   // The pictures, from the database once the app opens.
@@ -4602,7 +4610,7 @@
   try { applyTheme(localStorage.getItem("theme") || "pearl", false); } catch { paintBackdrop(); }
 
   // The builder.
-  const TB_DEFAULT = ["#8a7dff"];
+  const TB_DEFAULT = ["#f0b341"];
   function tbPaint() {
     const box = $("tb-colors");
     box.innerHTML = `<label class="tb-swatch" title="Change the colour"><input type="color" value="${tb.colors[0]}" data-tb-color="0" aria-label="Accent colour"></label><span class="tb-hex">${tb.colors[0].toUpperCase()}</span>`;
