@@ -1582,6 +1582,10 @@
   /* Phones: photos, a GIF or a poll being written use the composer's whole
      width, not only the part beside the picture. */
   body.phone .cm-attach { margin-left: -52px; }
+  body.phone .cm-inline .cm-attach { margin-left: 0; }
+  /* A comment's photo or GIF: smaller than a post's. */
+  .cm-reply-main .cm-media { max-width: 340px; margin-top: 8px; }
+  .cm-inline .cm-attach .cm-media { max-width: 260px; }
   /* A poll on a post: choices to tap, then the results. */
   .cm-poll { display: grid; gap: 8px; margin-top: 12px; }
   .cm-opt { position: relative; display: flex; align-items: center; gap: 10px; min-height: 40px; padding: 0 14px;
@@ -6256,7 +6260,7 @@
   // ---- Community: the network's news and people's posts, as on
   // orien.network/community, with the Market as its second tab. Only
   // people with a verified wallet post, reply and react. ----
-  const cm = { open: new Set(), repliesOf: new Map(), posts: [], more: false, you: null, reactions: ["⛏️", "🔥", "❤️", "👏", "😂"], max: 500, thread: null, replies: [], picking: 0, answering: new Map() };
+  const cm = { open: new Set(), repliesOf: new Map(), posts: [], more: false, you: null, reactions: ["⛏️", "🔥", "❤️", "👏", "😂"], max: 500, thread: null, replies: [], picking: 0, answering: new Map(), rdraft: new Map() };
   const cmCall = (method, path, body) => invoke("market_call", { method, path: "/community" + path, body: body === undefined ? null : body });
   const EYEBROWS = { record: "New record", welcome: "Welcome", milestone: "Milestone", streak: "On a streak", top_day: "Top miner of the day", swap: "Swap", supply: "ORN mined", validator: "New validator" };
   // The network's newer kinds of post: the feed sends them only to apps that ask.
@@ -6424,11 +6428,11 @@
       return `<div class="cm-reply-row" data-post="${r.id}">
         <span data-user="${esc(name)}">${cmFace(r.author)}</span>
         <div class="cm-reply-main"><div class="cm-reply-head"><b data-user="${esc(name)}">${esc(name)}</b><span class="cm-when">· ${ago(r.created)}</span>${!r.mine ? `<button class="cm-more" data-more="${r.id}" aria-label="More" title="More"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg></button>` : ""}${r.mine ? `<button class="cm-del" data-del="${r.id}" data-parent="${post.id}" aria-label="Delete" title="Delete"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M10 11v6"/><path d="M14 11v6"/></svg></button>` : ""}</div>
-        <div class="cm-text">${esc(r.body || "")}</div>${cmYouTube(r.body)}
+        ${r.body ? `<div class="cm-text">${esc(r.body)}</div>` : ""}${cmYouTube(r.body)}${cmMedia(r)}
         <div class="cm-foot">${(r.reactions || []).map((x) => `<button class="cm-chip${x.me ? " on" : ""}" data-react="${r.id}" data-parent="${post.id}" data-emoji="${esc(x.emoji)}"><span>${esc(x.emoji)}</span><b>${x.count}</b></button>`).join("")}<button class="cm-chip bare" data-pick="${r.id}" data-parent="${post.id}" aria-label="React" title="React">${SMILE_ICON}</button>${r.id === root ? `<button class="cm-chip bare" data-answer="${post.id}:${root}:${esc(name)}" title="Reply to ${esc(name)}">${REPLY_ICON}<span>Reply</span></button>` : ""}</div></div></div>`;
     };
     const box = (key, placeholder, small) => you && you.verified
-      ? `<div class="cm-inline-write${small ? " sub" : ""}">${cmFace(you)}<div class="cm-write"><textarea data-reply-box="${key}" rows="1" maxlength="500" placeholder="${esc(placeholder)}"></textarea><div class="cm-send"><button class="pill pearl" data-reply-send="${key}" disabled>Reply</button></div></div></div>`
+      ? `<div class="cm-inline-write${small ? " sub" : ""}">${cmFace(you)}<div class="cm-write"><textarea data-reply-box="${key}" rows="1" maxlength="500" placeholder="${esc(placeholder)}"></textarea><div class="cm-attach" data-rattach="${key}"${rdraftHtml(key) ? "" : " hidden"}>${rdraftHtml(key)}</div><div class="cm-send"><div class="cm-tools"><button class="cm-tool" data-rphoto="${key}" aria-label="Add photos" title="Photos"${rdraftOf(key).gif || rdraftOf(key).photos.length >= 4 ? " disabled" : ""}><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg></button><button class="cm-tool" data-rgif="${key}" aria-label="Add a GIF" title="GIF"${rdraftOf(key).gif || rdraftOf(key).photos.length ? " disabled" : ""}><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 7.5H6.25A3.25 3.25 0 0 0 3 10.75v2.5a3.25 3.25 0 0 0 3.25 3.25H9V12H7"/><path d="M12.5 7.5v9"/><path d="M20.75 7.5h-4v9"/><path d="M16.75 12h3.25"/></svg></button></div><button class="pill pearl" data-reply-send="${key}"${rdraftReady(key) ? "" : " disabled"}>Reply</button></div></div></div>`
       : `<div class="cm-inline-join"><button class="pill" data-join>${you ? "Verify a wallet" : "Sign in"}</button><span>to reply.</span></div>`;
     const list = top.map((r) => {
       const kids = under(r.id);
@@ -6749,6 +6753,7 @@
   }, true);
   async function cmClick(e) {
     if (e.target.closest("[data-join]")) return cmJoin();
+    if (await cmReplyTools(e)) return;
     // The network's posts point on: swap history, or the network map.
     const go = e.target.closest("[data-news-go]");
     if (go) {
@@ -6847,20 +6852,68 @@
     box.style.height = "auto";
     box.style.height = Math.min(box.scrollHeight, 240) + "px";
     const go = document.querySelector(`[data-reply-send="${box.dataset.replyBox}"]`);
-    if (go) go.disabled = !box.value.trim();
+    if (go) go.disabled = !rdraftReady(box.dataset.replyBox);
   };
   $("cm-feed").addEventListener("input", cmReplyInput);
   $("sl-feed").addEventListener("input", cmReplyInput);
   $("cm-thread").addEventListener("input", cmReplyInput);
+  // A comment's photos or GIF, before it's sent: per reply box, kept while
+  // the feed repaints. One kind at a time, as for posts; no polls.
+  function rdraftOf(key) { if (!cm.rdraft.has(key)) cm.rdraft.set(key, { photos: [], gif: null }); return cm.rdraft.get(key); }
+  const rdraftUsed = () => [...cm.rdraft.values()].some((d) => d.photos.length || d.gif);
+  function rdraftHtml(key) {
+    const d = cm.rdraft.get(key);
+    if (!d) return "";
+    if (d.photos.length) return `<div class="cm-media sq n${d.photos.length}">${d.photos.map((ph, i) => `<div><img src="${ph.url}" alt=""><button class="cm-x" data-unrphoto="${key}|${i}" aria-label="Remove photo">${X_ICON}</button></div>`).join("")}</div>`;
+    if (d.gif) return `<div class="cm-media sq n1 cm-gif"><div><img src="${esc(d.gif.preview || d.gif.url)}" alt="GIF"><button class="cm-x" data-unrgif="${key}" aria-label="Remove GIF">${X_ICON}</button></div><span class="cm-gif-tag">GIF</span></div>`;
+    return "";
+  }
+  function rdraftReady(key) {
+    const box = document.querySelector(`[data-reply-box="${key}"]`), d = cm.rdraft.get(key);
+    return !!(box && box.value.trim()) || !!(d && (d.photos.length || d.gif));
+  }
+  // Repaints one reply box's attachments and buttons, leaving its words.
+  function rdraftPaint(key) {
+    const at = document.querySelector(`[data-rattach="${key}"]`);
+    if (at) { const html = rdraftHtml(key); at.innerHTML = html; at.hidden = !html; }
+    const d = rdraftOf(key);
+    const photo = document.querySelector(`[data-rphoto="${key}"]`), gif = document.querySelector(`[data-rgif="${key}"]`), go = document.querySelector(`[data-reply-send="${key}"]`);
+    if (photo) photo.disabled = !!d.gif || d.photos.length >= 4;
+    if (gif) gif.disabled = !!d.gif || d.photos.length > 0;
+    if (go) go.disabled = !rdraftReady(key);
+  }
+  async function cmReplyTools(e) {
+    const t = e.target.closest("[data-rphoto], [data-rgif], [data-unrphoto], [data-unrgif]");
+    if (!t) return false;
+    if (t.dataset.rphoto) {
+      const key = t.dataset.rphoto, d = rdraftOf(key);
+      try {
+        const picked = await invoke("market_pick_pictures", { room: 4 - d.photos.length });
+        if (picked && picked.length) { d.photos.push(...picked.map((p) => ({ path: p.path, url: p.url, name: null }))); rdraftPaint(key); }
+      } catch (err) { problem(cmWhere(t), err); }
+    } else if (t.dataset.rgif) gifOpen(t.dataset.rgif);
+    else if (t.dataset.unrphoto) { const [key, i] = t.dataset.unrphoto.split("|"); rdraftOf(key).photos.splice(Number(i), 1); rdraftPaint(key); }
+    else if (t.dataset.unrgif) { rdraftOf(t.dataset.unrgif).gif = null; rdraftPaint(t.dataset.unrgif); }
+    return true;
+  }
   async function cmSendInline(key) {
     // "post" or "post:reply", for an answer to a reply.
     const [id, replyTo] = String(key).split(":").map(Number);
     const box = document.querySelector(`[data-reply-box="${key}"]`), go = document.querySelector(`[data-reply-send="${key}"]`);
     const body = box ? box.value.trim() : "";
-    if (!body) return;
+    const d = rdraftOf(key);
+    if (!body && !d.photos.length && !d.gif) return;
     if (go) go.disabled = true;
     try {
-      await cmCall("POST", "/posts", replyTo ? { body, parent: id, reply_to: replyTo } : { body, parent: id });
+      const post = replyTo ? { body, parent: id, reply_to: replyTo } : { body, parent: id };
+      if (d.photos.length) {
+        // Each picture is checked by the server as it arrives.
+        const names = [];
+        for (const ph of d.photos) names.push(ph.name || (ph.name = (await invoke("community_picture", { path: ph.path })).name));
+        post.pictures = names;
+      } else if (d.gif) post.gif = { id: d.gif.id, url: d.gif.url, preview: d.gif.preview, width: d.gif.width, height: d.gif.height };
+      await cmCall("POST", "/posts", post);
+      cm.rdraft.delete(key);
       feel("success");
       if (replyTo) cm.answering.delete(id);
       await cmLoadReplies(id);
@@ -7001,7 +7054,9 @@
       if (seq === gifs.seq && !more) $("gif-grid").innerHTML = `<div class="empty">${esc(String(e).replace(/^Error: /, "") || "GIFs can't be reached right now.")}</div>`;
     } finally { if (seq === gifs.seq) gifs.busy = false; }
   }
-  function gifOpen() {
+  // `target`: a reply box's key when choosing for a comment; none for a post.
+  function gifOpen(target) {
+    gifs.target = typeof target === "string" ? target : null;
     gifs.q = ""; gifs.next = null;
     $("gif-q").value = "";
     $("gif-grid").innerHTML = '<div class="empty">Loading…</div>';
@@ -7014,7 +7069,7 @@
     const veil = $("gif-veil"); veil.classList.remove("on");
     setTimeout(() => { veil.hidden = true; }, 200);
   }
-  $("cm-add-gif").onclick = gifOpen;
+  $("cm-add-gif").onclick = () => gifOpen();
   $("gif-close").onclick = gifClose;
   $("gif-veil").addEventListener("click", (e) => { if (e.target.id === "gif-veil") gifClose(); });
   $("gif-q").addEventListener("input", () => {
@@ -7028,7 +7083,10 @@
   $("gif-grid").addEventListener("click", (e) => {
     const b = e.target.closest("[data-gif]");
     if (!b) return;
-    try { draft.gif = JSON.parse(b.dataset.gif); } catch { return; }
+    let g;
+    try { g = JSON.parse(b.dataset.gif); } catch { return; }
+    if (gifs.target) { rdraftOf(gifs.target).gif = g; gifClose(); rdraftPaint(gifs.target); feel("selection"); return; }
+    draft.gif = g;
     gifClose(); paintDraft(); feel("selection");
   });
   // A post's picture, large; a tap anywhere closes it.
@@ -7048,7 +7106,7 @@
     const link = e.target.closest("[data-link]");
     if (link) { e.stopPropagation(); invoke("open_post_link", { url: link.dataset.link }).catch(() => {}); return; }
     const big = e.target.closest("img[data-big]");
-    if (big && big.src && !big.closest("#cm-attach")) { e.stopPropagation(); picOpen(big.src); return; }
+    if (big && big.src && !big.closest(".cm-attach")) { e.stopPropagation(); picOpen(big.src); return; }
     const v = e.target.closest("[data-vote]");
     if (!v) return;
     e.stopPropagation();
@@ -8511,7 +8569,7 @@
     // Offers still open on the board can wait for a buyer for days: only
     // ones someone has taken count.
     return swapList.some((s) => !s.finished) || board.waiting.some((x) => x.offer.state !== "open") || !!board.taking || !!mineBench
-      || !$("si-veil").hidden || !$("upd-veil").hidden || !$("tip-veil").hidden || !$("rp-veil").hidden || !$("gif-veil").hidden || draft.photos.length > 0 || !!draft.gif || !!draft.poll || typedSomewhere();
+      || !$("si-veil").hidden || !$("upd-veil").hidden || !$("tip-veil").hidden || !$("rp-veil").hidden || !$("gif-veil").hidden || draft.photos.length > 0 || !!draft.gif || !!draft.poll || rdraftUsed() || typedSomewhere();
   }
   async function updateByItself() {
     if (phone || !autoUpdate || !update || autoInstalling) return;
