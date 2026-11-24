@@ -27,6 +27,22 @@ export const PRODUCTS: Record<Product, string> = {
 export const CHANGELOG: Entry[] = [
   {
     date: '2026-11-24',
+    products: ['wallet'],
+    version: '1.9.2',
+    title: 'Wallet cards, a User Guide and roomier big windows',
+    changes: [
+      'Settings has a User Guide: short step-by-step guides for backing up, sending, using another device, verifying wallets, tipping, mining, swapping and more.',
+      'Wallets show as cards, with a gear for each wallet’s settings and a bin to remove it, always in view. A wallet’s settings has its recovery phrase one click from its name. Add a wallet and Add a contact sit at the top right.',
+      'Your picture opens a menu: View Profile, Edit Profile and Sign Out. A post’s ⋯ menu can block its author as well as report the post.',
+      'Big windows: a Market listing shows its pictures beside the details, and Swap shows the offers beside your swaps and the latest swaps on Orien, with the last price on top.',
+      'Scrolled down a screen, Back and its name stay at the top in a small pill.',
+      'Big buttons are only as wide as their words. The mining button says Getting ready… until mining has begun.',
+      'Settings, About has Official Website and Social Links: Discord, X and YouTube.',
+      'Profiles are easier to read over a banner, and the sheen on buttons no longer restarts when you tap.',
+    ],
+  },
+  {
+    date: '2026-11-24',
     products: ['marketplace'],
     title: 'Easier to read profiles',
     changes: [
