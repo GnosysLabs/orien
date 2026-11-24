@@ -1536,7 +1536,7 @@
   /* Community: the network's news and people's posts, as on orien.network,
      with the Market as its second tab. */
   .cm-tabs { margin: 0 0 16px; }
-  #community { --col: 1040px; }
+  #community, #cm-thread { --col: 1040px; }
   .cm-layout { display: block; }
   .cm-main { min-width: 0; }
   /* Narrow: of the sidebar, Find members stays, above the feed. Top
@@ -2442,6 +2442,9 @@
     <!-- A community post and its replies. -->
     <section class="screen" id="cm-thread" hidden>
       <div class="topline"><button class="back" id="cm-thread-back" aria-label="Back"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg></button><h2>Post</h2></div>
+      <!-- Big windows: the post wide, with the Community's sidebar beside
+           it, moved here from the feed while the post is open. -->
+      <div class="cm-layout" id="cm-thread-layout"><div class="cm-main">
       <div id="cm-thread-post"></div>
       <div class="cm-replies" id="cm-replies"></div>
       <div class="cm-compose cm-reply" id="cm-reply-box" hidden>
@@ -2451,6 +2454,7 @@
       </div>
       <div class="cm-join" id="cm-reply-join" hidden><span id="cm-reply-join-text"></span><button class="pill" id="cm-reply-join-go"></button></div>
       <div class="problem" id="cm-thread-problem" hidden></div>
+      </div></div>
     </section>
 
     <section class="screen" id="market" hidden>
@@ -3533,6 +3537,10 @@
     // The frosted container behind it takes the screen's width.
     const shown = $(id), col = shown && parseFloat(getComputedStyle(shown).getPropertyValue("--col"));
     document.querySelector("main").style.setProperty("--panel", (both ? 1040 : col || 640) + "px");
+    // The sidebar goes with you between the feed and a post on its own.
+    const rail = document.querySelector(".cm-rail");
+    if (rail && id === "cm-thread" && matchMedia("(min-width: 980px)").matches && rail.parentElement.id !== "cm-thread-layout") { rail.style.removeProperty("--rail-h"); $("cm-thread-layout").appendChild(rail); }
+    if (rail && id === "community" && rail.parentElement.id === "cm-thread-layout") document.querySelector("#community .cm-layout").appendChild(rail);
     if (id === "community" && typeof cmFitRail === "function") cmFitRail();
     // A big window shows recent swaps beside the offers: fetched as it opens.
     if (id === "swaps" && !phone && matchMedia("(min-width: 960px)").matches && typeof loadHistory === "function") loadHistory(false);
@@ -6943,10 +6951,10 @@
     if (!rail || $("community").hidden) return;
     const box = $("community").getBoundingClientRect();
     // Never past the feed's end, so the page stops where the feed does.
-    const feedEnd = document.querySelector(".cm-main").getBoundingClientRect().bottom;
+    const feedEnd = document.querySelector("#community .cm-main").getBoundingClientRect().bottom;
     rail.style.setProperty("--rail-h", Math.max(200, Math.min(window.innerHeight, box.bottom, feedEnd) - rail.getBoundingClientRect().top) + "px");
     // The rounded edges follow the feed and the sidebar where they really are.
-    const feed = document.querySelector(".cm-main").getBoundingClientRect(), side = rail.getBoundingClientRect(), c = $("community").style;
+    const feed = document.querySelector("#community .cm-main").getBoundingClientRect(), side = rail.getBoundingClientRect(), c = $("community").style;
     c.setProperty("--f0", `${feed.left - box.left}px`); c.setProperty("--f1", `${feed.right - box.left}px`);
     c.setProperty("--r0", `${side.left - box.left}px`); c.setProperty("--r1", `${side.right - box.left}px`);
     // The top edge splits into the two columns only once the tabs across
