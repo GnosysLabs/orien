@@ -6889,6 +6889,7 @@
     $("cm-back-feed").hidden = !pin;
     $("cm-feed").innerHTML = pin ? cmCard(pin) : cm.posts.length ? cm.posts.map((p) => cmCard(p)).join("") : '<div class="cm-empty">Nothing here yet.</div>';
     $("cm-more").hidden = !cm.more;
+    cmFitRail();
     // A profile's posts open, react and reply the same way.
     if (!$("seller").hidden) slPaintFeed();
   }
@@ -6961,8 +6962,10 @@
     const screen = rail && rail.closest(".screen");
     if (!screen || screen.hidden) return;
     const box = screen.getBoundingClientRect(), main = screen.querySelector(".cm-main");
-    // Never past the feed's end, so the page stops where the feed does.
-    const feedEnd = main.getBoundingClientRect().bottom;
+    // Never past the feed's end, so the page stops where the feed does; a
+    // feed shorter than the window (one post from a notification) doesn't
+    // cut the sidebar short.
+    const feedEnd = main.offsetHeight < box.height ? Infinity : main.getBoundingClientRect().bottom;
     rail.style.setProperty("--rail-h", Math.max(200, Math.min(window.innerHeight, box.bottom, feedEnd) - rail.getBoundingClientRect().top) + "px");
     // The rounded edges follow the feed and the sidebar where they really are.
     const feed = main.getBoundingClientRect(), side = rail.getBoundingClientRect(), c = screen.style;
@@ -8040,10 +8043,12 @@
     cm.pinned = found.post;
     cm.repliesOf.set(found.post.id, found.replies || []);
     cm.open.add(found.post.id);
+    // Painted before the screen shows, so the old feed never flashes first.
     cmMode(false);
-    await openCommunity();
     cmPaintFeed();
     $("community").scrollTop = 0;
+    await openCommunity();
+    cmPaintFeed();
   };
   // A notification on computers for each new line (messages have their own),
   // as for ORN arriving. What's been told is kept, so nothing is told twice.
