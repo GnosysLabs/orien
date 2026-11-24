@@ -1712,14 +1712,30 @@
   .cm-video { position: relative; margin-top: 12px; aspect-ratio: 16 / 9; overflow: hidden; border: 1px solid var(--line); border-radius: 14px; background: #000; }
   .cm-video iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
   .cm-inline { margin-top: 14px; border-top: 1px solid var(--line); }
-  .cm-reply-row { display: flex; gap: 12px; padding: 14px 0; }
-  .cm-reply-row + .cm-reply-row { border-top: 1px solid var(--line); }
-  .cm-reply-row .face, .cm-inline-write .face { width: 32px; height: 32px; font-size: 13px; }
+  /* A reply: the face beside the name, the words straight under it, and a
+     quiet row of small actions, lighter than a post's. */
+  .cm-reply-thread { padding: 14px 0 12px; }
+  .cm-reply-thread + .cm-reply-thread { border-top: 1px solid var(--line); }
+  .cm-reply-row { display: flex; align-items: flex-start; gap: 11px; }
+  .cm-reply-row .face, .cm-inline-write .face { width: 34px; height: 34px; font-size: 13px; }
   .cm-reply-main { flex: 1; min-width: 0; }
-  .cm-reply-head { display: flex; align-items: center; gap: 4px; font-size: 14px; }
-  .cm-reply-head .cm-del { margin-left: auto; }
-  .cm-reply-main .cm-text { margin-top: 4px; font-size: 14.5px; }
-  .cm-reply-main .cm-foot { margin-top: 8px; }
+  .cm-reply-head { display: flex; align-items: center; gap: 5px; min-height: 20px; font-size: 14px; line-height: 20px; }
+  .cm-reply-head .cm-when { font-size: 12.5px; }
+  .cm-reply-head .cm-del, .cm-reply-head .cm-more { margin: -4px 0 -4px auto; }
+  .cm-reply-main .cm-text { margin-top: 1px; font-size: 14.5px; line-height: 1.45; }
+  .cm-reply-main .cm-foot { gap: 4px; margin-top: 6px; margin-left: -6px; }
+  .cm-reply-main .cm-chip { height: 26px; padding: 0 8px; gap: 5px; font-size: 12.5px; }
+  .cm-reply-main .cm-chip svg { width: 14px; height: 14px; }
+  .cm-reply-main .cm-chip span { font-size: 13px; }
+  .cm-chip.bare { border-color: transparent; }
+  .cm-reply-main .cm-foot:has(> .cm-chip:not(.bare):first-child) { margin-left: 0; }
+  @media (hover: hover) { .cm-chip.bare:hover { background: var(--surface-hover); } }
+  .cm-reply-main .cm-picker button { width: 26px; height: 26px; font-size: 14px; }
+  /* Answers to a reply: under it, in line with its words, smaller faces. */
+  .cm-sub { margin: 4px 0 0 45px; }
+  .cm-sub .cm-reply-row { padding-top: 10px; }
+  .cm-sub .cm-reply-row .face, .cm-inline-write.sub .face { width: 26px; height: 26px; font-size: 11px; }
+  .cm-inline-write.sub { padding-top: 10px; border-top: 0; }
   .cm-inline-write { display: flex; gap: 12px; padding-top: 14px; border-top: 1px solid var(--line); }
   .cm-inline-join { display: flex; align-items: center; gap: 10px; padding-top: 14px; border-top: 1px solid var(--line); color: var(--dim); font-size: 13.5px; }
   .cm-inline .cm-empty { padding: 18px 0 4px; }
@@ -6227,7 +6243,7 @@
   // ---- Community: the network's news and people's posts, as on
   // orien.network/community, with the Market as its second tab. Only
   // people with a verified wallet post, reply and react. ----
-  const cm = { open: new Set(), repliesOf: new Map(), posts: [], more: false, you: null, reactions: ["⛏️", "🔥", "❤️", "👏", "😂"], max: 500, thread: null, replies: [], picking: 0 };
+  const cm = { open: new Set(), repliesOf: new Map(), posts: [], more: false, you: null, reactions: ["⛏️", "🔥", "❤️", "👏", "😂"], max: 500, thread: null, replies: [], picking: 0, answering: new Map() };
   const cmCall = (method, path, body) => invoke("market_call", { method, path: "/community" + path, body: body === undefined ? null : body });
   const EYEBROWS = { record: "New record", welcome: "Welcome", milestone: "Milestone", streak: "On a streak", top_day: "Top miner of the day", swap: "Swap", supply: "ORN mined", validator: "New validator" };
   // The network's newer kinds of post: the feed sends them only to apps that ask.
@@ -6380,17 +6396,31 @@
   // A post's replies, opened inside its card as on the website, and a box
   // to reply.
   function cmInline(post) {
-    const replies = cm.repliesOf.get(post.id);
-    const list = (replies || []).map((r) => `<div class="cm-reply-row" data-post="${r.id}">
-        <span data-user="${esc((r.author && r.author.name) || "")}">${cmFace(r.author)}</span>
-        <div class="cm-reply-main"><div class="cm-reply-head"><b data-user="${esc((r.author && r.author.name) || "")}">${esc((r.author && r.author.name) || "")}</b><span class="cm-when"> · ${ago(r.created)}</span>${!r.mine ? `<button class="cm-more" data-more="${r.id}" aria-label="More" title="More"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg></button>` : ""}${r.mine ? `<button class="cm-del" data-del="${r.id}" data-parent="${post.id}" aria-label="Delete" title="Delete"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M10 11v6"/><path d="M14 11v6"/></svg></button>` : ""}</div>
-        <div class="cm-text">${esc(r.body || "")}</div>${cmYouTube(r.body)}
-        <div class="cm-foot">${(r.reactions || []).map((x) => `<button class="cm-chip${x.me ? " on" : ""}" data-react="${r.id}" data-parent="${post.id}" data-emoji="${esc(x.emoji)}"><span>${esc(x.emoji)}</span><b>${x.count}</b></button>`).join("")}<button class="cm-chip" data-pick="${r.id}" data-parent="${post.id}" aria-label="React" title="React">${SMILE_ICON}</button></div></div></div>`).join("");
+    const replies = cm.repliesOf.get(post.id) || [];
+    // One level deep: answers to a reply sit under it, indented. An answer
+    // whose reply is gone shows as an ordinary reply.
+    const ids = new Set(replies.map((r) => r.id));
+    const top = replies.filter((r) => !r.reply_to || !ids.has(r.reply_to));
+    const under = (id) => replies.filter((r) => r.reply_to === id);
     const you = cm.you;
-    const box = you && you.verified
-      ? `<div class="cm-inline-write">${cmFace(you)}<div class="cm-write"><textarea data-reply-box="${post.id}" rows="1" maxlength="500" placeholder="Post your reply"></textarea><div class="cm-send"><button class="pill pearl" data-reply-send="${post.id}" disabled>Reply</button></div></div></div>`
+    const writing = cm.answering.get(post.id);
+    const one = (r, root) => {
+      const name = (r.author && r.author.name) || "";
+      return `<div class="cm-reply-row" data-post="${r.id}">
+        <span data-user="${esc(name)}">${cmFace(r.author)}</span>
+        <div class="cm-reply-main"><div class="cm-reply-head"><b data-user="${esc(name)}">${esc(name)}</b><span class="cm-when">· ${ago(r.created)}</span>${!r.mine ? `<button class="cm-more" data-more="${r.id}" aria-label="More" title="More"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg></button>` : ""}${r.mine ? `<button class="cm-del" data-del="${r.id}" data-parent="${post.id}" aria-label="Delete" title="Delete"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M10 11v6"/><path d="M14 11v6"/></svg></button>` : ""}</div>
+        <div class="cm-text">${esc(r.body || "")}</div>${cmYouTube(r.body)}
+        <div class="cm-foot">${(r.reactions || []).map((x) => `<button class="cm-chip${x.me ? " on" : ""}" data-react="${r.id}" data-parent="${post.id}" data-emoji="${esc(x.emoji)}"><span>${esc(x.emoji)}</span><b>${x.count}</b></button>`).join("")}<button class="cm-chip bare" data-pick="${r.id}" data-parent="${post.id}" aria-label="React" title="React">${SMILE_ICON}</button><button class="cm-chip bare" data-answer="${post.id}:${root}:${esc(name)}" title="Reply to ${esc(name)}">${REPLY_ICON}<span>Reply</span></button></div></div></div>`;
+    };
+    const box = (key, placeholder, small) => you && you.verified
+      ? `<div class="cm-inline-write${small ? " sub" : ""}">${cmFace(you)}<div class="cm-write"><textarea data-reply-box="${key}" rows="1" maxlength="500" placeholder="${esc(placeholder)}"></textarea><div class="cm-send"><button class="pill pearl" data-reply-send="${key}" disabled>Reply</button></div></div></div>`
       : `<div class="cm-inline-join"><button class="pill" data-join>${you ? "Verify a wallet" : "Sign in"}</button><span>to reply.</span></div>`;
-    return `<div class="cm-inline">${list}${box}</div>`;
+    const list = top.map((r) => {
+      const kids = under(r.id);
+      const open = writing && writing.id === r.id;
+      return `<div class="cm-reply-thread">${one(r, r.id)}${kids.length || open ? `<div class="cm-sub">${kids.map((k) => one(k, r.id)).join("")}${open ? box(`${post.id}:${r.id}`, `Reply to ${writing.name}`, true) : ""}</div>` : ""}</div>`;
+    }).join("");
+    return `<div class="cm-inline">${list}${box(String(post.id), "Post your reply")}</div>`;
   }
   async function cmLoadReplies(id) {
     try { cm.repliesOf.set(id, (await cmCall("GET", `/posts/${id}`)).replies || []); }
@@ -6712,7 +6742,20 @@
       return;
     }
     const send = e.target.closest("[data-reply-send]");
-    if (send) return cmSendInline(Number(send.dataset.replySend));
+    if (send) return cmSendInline(send.dataset.replySend);
+    // Reply to a reply: a box under it, with their name.
+    const answer = e.target.closest("[data-answer]");
+    if (answer) {
+      if (!(cm.you && cm.you.verified)) { problem(cmWhere(answer), cm.you ? "Verify one of your wallets to reply." : "Sign in to Orien Network to reply."); return; }
+      const [postId, id, ...name] = answer.dataset.answer.split(":");
+      const was = cm.answering.get(Number(postId));
+      if (was && was.id === Number(id)) cm.answering.delete(Number(postId));
+      else cm.answering.set(Number(postId), { id: Number(id), name: name.join(":") });
+      if (!$("cm-thread").hidden && cm.thread) cmPaintThread(); else { cmPaintFeed(); if (!$("seller").hidden) slPaintFeed(); }
+      const sub = document.querySelector(`[data-reply-box="${postId}:${id}"]`);
+      if (sub) sub.focus();
+      return;
+    }
     const t = e.target.closest("[data-react], [data-open], [data-pick], [data-del], [data-emoji-pick]");
     if (!t) return;
     if (t.dataset.open) {
@@ -6784,14 +6827,17 @@
   $("cm-feed").addEventListener("input", cmReplyInput);
   $("sl-feed").addEventListener("input", cmReplyInput);
   $("cm-thread").addEventListener("input", cmReplyInput);
-  async function cmSendInline(id) {
-    const box = document.querySelector(`[data-reply-box="${id}"]`), go = document.querySelector(`[data-reply-send="${id}"]`);
+  async function cmSendInline(key) {
+    // "post" or "post:reply", for an answer to a reply.
+    const [id, replyTo] = String(key).split(":").map(Number);
+    const box = document.querySelector(`[data-reply-box="${key}"]`), go = document.querySelector(`[data-reply-send="${key}"]`);
     const body = box ? box.value.trim() : "";
     if (!body) return;
     if (go) go.disabled = true;
     try {
-      await cmCall("POST", "/posts", { body, parent: id });
+      await cmCall("POST", "/posts", replyTo ? { body, parent: id, reply_to: replyTo } : { body, parent: id });
       feel("success");
+      if (replyTo) cm.answering.delete(id);
       await cmLoadReplies(id);
       await cmLoad(false);
       if (!$("seller").hidden) await slLoadFeed(false);
