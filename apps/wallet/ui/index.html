@@ -347,6 +347,10 @@
     background: var(--pearl); background-size: 300% 100%; animation: drift 24s linear infinite;
     -webkit-background-clip: text; background-clip: text; color: transparent;
   }
+  /* Light themes: the sheen is pastel, made for dark words on it, and as
+     words on white it all but vanishes. The wordmark's deeper colours,
+     made to show on white, instead. */
+  :is([data-theme="daylight"], [data-base="light"]) .pearl-text { background-image: var(--brand); }
 
   /* ---- Top bar: the window is moved by it, and the window's own red,
      yellow and green buttons sit inside it on the left. ---- */
@@ -4431,7 +4435,7 @@
         --bubble-mine: ${hsl(a.h, clamp(a.s, 50, 90), 92)}; --chip-icon: ${hsl(a.h, clamp(a.s, 45, 85), 45)};
         --glow: radial-gradient(110% 55% at 50% -12%, rgba(${rgbOf(shade(65))}, 0.18), transparent 62%);
         --pearl: linear-gradient(115deg, ${stops([shade(87), shade(78, 0.42), shade(89), shade(74, 0.38), shade(90), shade(76, 0.4), shade(84), shade(87)])});
-        --brand: linear-gradient(115deg, ${stops([shade(55), shade(62), shade(48), shade(60), shade(55)])});`;
+        --brand: linear-gradient(115deg, ${stops([shade(44), shade(50), shade(38), shade(48), shade(44)])});`;
     }
     return `${BASES.dark}
       --pearl-ink: ${hsl(a.h, Math.min(a.s, 60), 12)}; --on-pearl-dim: ${hsl(a.h, Math.min(a.s, 25), 34)};
