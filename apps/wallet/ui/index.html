@@ -463,6 +463,16 @@
   .back:active { background: rgba(var(--tint), 0.05); color: var(--ink); }
   /* Screen titles in Jost, as the wordmark and the Safari extension. */
   .topline h2 { margin: 0 0 0 4px; font: 600 19px/1.2 "Jost", sans-serif; letter-spacing: 0.01em; }
+  /* Back and the screen's name stay at the top as you scroll down, in a
+     frosted pill, so Back is always one tap away. Same height as at rest,
+     so nothing below moves as it changes. Computers only: iPhones swipe
+     back from the edge instead. */
+  body:not(.phone) .screen > .topline { position: sticky; top: 6px; z-index: 6; border-radius: 999px; transition: background .2s, box-shadow .2s; }
+  body:not(.phone) .screen > .topline.stuck { width: fit-content; max-width: calc(100% - 12px); padding: 0 18px 0 2px;
+    background: var(--glass); -webkit-backdrop-filter: blur(24px) saturate(1.6); backdrop-filter: blur(24px) saturate(1.6);
+    box-shadow: inset 0 0 0 0.5px rgba(var(--tint), 0.16), 0 10px 28px rgba(0, 0, 0, 0.35); }
+  body:not(.phone) .screen > .topline.stuck > :not(.back):not(h2) { display: none; }
+  body:not(.phone) .screen > .topline.stuck h2 { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
   .problem {
     margin-top: 14px; padding: 11px 14px; border-radius: 12px;
@@ -3512,6 +3522,13 @@
     new MutationObserver(align).observe(document.body, { childList: true, subtree: true, attributes: true, attributeFilter: ["class", "hidden"] });
     requestAnimationFrame(align);
   }
+  // A screen scrolled down: its Back and name turn into a pill at the top.
+  document.addEventListener("scroll", (e) => {
+    const screen = e.target;
+    if (!(screen instanceof Element) || !screen.classList.contains("screen")) return;
+    const top = screen.querySelector(":scope > .topline");
+    if (top) top.classList.toggle("stuck", screen.scrollTop > 4);
+  }, { capture: true, passive: true });
   function problem(id, text) { $(id).textContent = String(text); $(id).hidden = false; feel("error"); }
 
   function setStatus(kind, text) {
