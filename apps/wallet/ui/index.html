@@ -1539,11 +1539,18 @@
   #community { --col: 1040px; }
   .cm-layout { display: block; }
   .cm-main { min-width: 0; }
-  /* Narrow: of the sidebar, Find members stays, above the feed. */
+  /* Narrow: of the sidebar, Find members stays, above the feed. Top
+     miners and your own mining get a tab of their own beside Feed and
+     Market. Big windows show them in the sidebar, so no tab there. */
+  .cm-miners-tab { display: none; }
   @media (max-width: 979px) {
     .cm-layout { display: flex; flex-direction: column; }
     .cm-rail { display: grid; gap: 10px; order: -1; margin-bottom: 14px; }
     .cm-rail > :not(.cm-find):not(.cm-found) { display: none; }
+    .cm-tabs { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    .cm-miners-tab { display: block; }
+    #community.miners .cm-main, #community.miners .cm-rail > :is(.cm-find, .cm-found) { display: none; }
+    #community.miners .cm-rail > :is(.cm-you, .cm-board) { display: block; }
   }
   /* Big windows: the feed with the sidebar beside it, as on the website. */
   @media (min-width: 980px) {
@@ -2407,7 +2414,7 @@
     <!-- Orien Market: work and things offered for ORN. -->
     <section class="screen" id="community" hidden>
       <div class="topline"><button class="back" data-back aria-label="Back"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg></button><h2>Community</h2></div>
-      <div class="tabs cm-tabs" role="tablist"><button class="tab on" data-cm-tab="community" role="tab">Feed</button><button class="tab" data-cm-tab="market" role="tab">Market</button></div>
+      <div class="tabs cm-tabs" role="tablist"><button class="tab on" data-cm-tab="community" role="tab">Feed</button><button class="tab" data-cm-tab="market" role="tab">Market</button><button class="tab cm-miners-tab" data-cm-tab="miners" role="tab">Top miners</button></div>
       <div class="cm-layout">
         <div class="cm-main">
           <div class="cm-filter" role="tablist"><button class="on" data-only="">All</button><button data-only="people">People</button><button data-only="network">Network</button></div>
@@ -2449,7 +2456,7 @@
     <section class="screen" id="market" hidden>
       <div class="topline"><button class="back" data-back aria-label="Back"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg></button><h2>Community</h2>
         <div class="account mk-tools"><button class="pill pearl" id="mk-sell">Sell</button></div></div>
-      <div class="tabs cm-tabs" role="tablist"><button class="tab" data-cm-tab="community" role="tab">Feed</button><button class="tab on" data-cm-tab="market" role="tab">Market</button></div>
+      <div class="tabs cm-tabs" role="tablist"><button class="tab" data-cm-tab="community" role="tab">Feed</button><button class="tab on" data-cm-tab="market" role="tab">Market</button><button class="tab cm-miners-tab" data-cm-tab="miners" role="tab">Top miners</button></div>
       <p class="lede">Work and things offered for ORN. You pay the seller straight from your wallet: the Market never holds anyone's coins.</p>
       <div class="box plain mk-search"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m21 21-4.34-4.34"/><circle cx="11" cy="11" r="8"/></svg><input id="mk-q" placeholder="Search listings" autocomplete="off" spellcheck="false"></div>
       <div class="mk-cats" id="mk-cats"></div>
@@ -7006,9 +7013,18 @@
     if (first) covered(false);
     await loaded;
   }
-  for (const tab of document.querySelectorAll("[data-cm-tab]")) tab.onclick = () => {
+  // Feed or Top miners, on the Community screen; Market is its own screen.
+  function cmMode(miners) {
+    $("community").classList.toggle("miners", miners);
+    for (const t of document.querySelectorAll("#community [data-cm-tab]")) t.classList.toggle("on", t.dataset.cmTab === (miners ? "miners" : "community"));
+    $("community").scrollTop = 0;
+  }
+  for (const tab of document.querySelectorAll("[data-cm-tab]")) tab.onclick = async () => {
     feel("selection");
-    if (tab.dataset.cmTab === "market") openMarket(); else openCommunity();
+    if (tab.dataset.cmTab === "market") { openMarket(); return; }
+    const miners = tab.dataset.cmTab === "miners";
+    cmMode(miners);
+    if ($("community").hidden) await openCommunity();
   };
   // One post on its own (from Notifications): exactly as in the feed, with
   // its replies open inside it and the same box to reply.
@@ -7598,7 +7614,8 @@
     signinReturn = "community"; resetSignin(); show("board-signin");
   }
   for (const go of ["cm-join-go", "cm-reply-join-go"]) $(go).onclick = cmJoin;
-  $("go-market").onclick = openCommunity;
+  // From Home, always the feed first.
+  $("go-market").onclick = () => { cmMode(false); openCommunity(); };
   $("mk-cats").onclick = (e) => {
     const b = e.target.closest("[data-cat]");
     if (!b || b.dataset.cat === market.cat) return;
