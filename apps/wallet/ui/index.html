@@ -319,8 +319,8 @@
   @media (min-width: 720px) and (min-height: 780px) {
     html body .push { flex: 0 1 40px; }
   }
-  [data-theme="daylight"] .tile, [data-theme="daylight"] .set-group, [data-theme="daylight"] .pair-card { box-shadow: 0 1px 2px rgba(40, 40, 80, 0.05); }
-  [data-theme="daylight"] .menu-row.bad { color: var(--bad); }
+  :is([data-theme="daylight"], [data-base="light"]) :is(.tile, .set-group, .pair-card) { box-shadow: 0 1px 2px rgba(40, 40, 80, 0.05); }
+  :is([data-theme="daylight"], [data-base="light"]) .menu-row.bad { color: var(--bad); }
   /* Switching: the whole app fades into the new look. */
   ::view-transition-old(root), ::view-transition-new(root) { animation-duration: 0.45s; animation-timing-function: ease; }
   @keyframes brand-drift { 0%, 100% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } }
@@ -1238,6 +1238,7 @@
   .tb-pic .pill { flex: none; }
   .tb-pic-name { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 13px; color: var(--dim); }
   #theme-build #tb-save { margin-top: 26px; }
+  .tabs.tb-base { margin-bottom: 0; }
   /* Big windows: the preview large on the left, the choices beside it. */
   @media (min-width: 980px) {
     #theme-build { --col: 1040px; }
@@ -2397,9 +2398,13 @@
         <div class="box plain"><input id="tb-name" maxlength="24" placeholder="My theme" autocomplete="off" spellcheck="false"></div>
       </div>
       <div class="field">
+        <label>Base</label>
+        <div class="tabs tb-base" id="tb-base" role="tablist"><button class="tab on" data-base-pick="dark" role="tab">Dark</button><button class="tab" data-base-pick="light" role="tab">Light</button></div>
+      </div>
+      <div class="field">
         <label>Colours</label>
         <div class="tb-colors" id="tb-colors"></div>
-        <div class="hint">One to three. They colour the buttons, the balance card and the glow.</div>
+        <div class="hint">One to three. They colour the buttons, the balance card, the glow and the highlights.</div>
       </div>
       <div class="field">
         <label>Background picture</label>
@@ -4381,21 +4386,42 @@
     return "#" + [f(0), f(8), f(4)].map((v) => v.toString(16).padStart(2, "0")).join("");
   }
   const rgbOf = (hex) => { const n = parseInt(hex.slice(1), 16); return `${n >> 16 & 255}, ${n >> 8 & 255}, ${n & 255}`; };
-  function themeVars(colors) {
+  // A base (Obsidian's dark or Daylight's light) makes the body: grounds,
+  // cards, lines and words. The colours make the rest: the buttons, the
+  // balance card, the wordmark, the glow and the highlights.
+  const BASES = {
+    dark: `--tint: 255, 255, 255; color-scheme: dark; --shade: 0, 0, 0; --shade-a: 0.34; --mn-dim: rgba(0, 0, 0, 0.62);
+      --ground: #0b0b0c; --ground-deep: #000000; --surface: #151517; --surface-hover: #1d1d20; --field: #0e0e0f;
+      --ink: #f3f3f5; --dim: #9b9ba2; --faint: #66666d; --line: #262629; --good: #a6e3c6; --bad: #f1a9a9;
+      --cover: linear-gradient(135deg, #18181a, #0f0f10); --glass: rgba(28, 28, 31, 0.74); --glass-button: rgba(22, 22, 24, 0.82); --veil: rgba(0, 0, 0, 0.62);`,
+    light: `--tint: 30, 32, 60; color-scheme: light; --shade: 60, 60, 110; --shade-a: 0.13; --mn-dim: rgba(255, 255, 255, 0.68);
+      --ground: #f3f3f7; --ground-deep: #eaebf1; --surface: #ffffff; --surface-hover: #f1f1f6; --field: #f6f6f9;
+      --ink: #1b1c22; --dim: #5d6070; --faint: #8b8e9b; --line: #dcdde5; --good: #1f8a5b; --bad: #c43a3f;
+      --cover: linear-gradient(135deg, #e6e7ee, #dcdde6); --glass: rgba(255, 255, 255, 0.78); --glass-button: rgba(255, 255, 255, 0.85); --veil: rgba(30, 30, 45, 0.28);`,
+  };
+  function themeVars(colors, base) {
     const [a, b, c] = [colors[0], colors[1] || colors[0], colors[2] || colors[1] || colors[0]].map(hexHsl);
-    const ts = Math.min(a.s * 0.4, 24), g = (l, sat = ts) => hsl(a.h, sat, l);
     const soft = (x, l) => hsl(x.h, Math.max(x.s, 45), l), vivid = (x, l) => hsl(x.h, Math.max(x.s, 55), l);
+    const stops = (list) => list.map((x, i) => `${x} ${Math.round(i * 100 / (list.length - 1))}%`).join(", ");
     // One colour: its own lighter and deeper shades make the gradients.
     const one = colors.length === 1;
+    if (base === "light") {
+      const pearl = [soft(a, 88), soft(a, 80), soft(b, one ? 92 : 89), soft(b, one ? 76 : 80), soft(c, 91), soft(c, 82), soft(b, 86), soft(a, 88)];
+      const brand = [hsl(a.h, Math.max(a.s, 45), 55), hsl(b.h, Math.max(b.s, 45), one ? 64 : 58), hsl(c.h, Math.max(c.s, 45), one ? 48 : 54), hsl(b.h, Math.max(b.s, 45), 60), hsl(a.h, Math.max(a.s, 45), 55)];
+      return `${BASES.light}
+        --pearl-ink: ${hsl(a.h, Math.min(a.s, 30), 16)}; --on-pearl-dim: ${hsl(a.h, Math.min(a.s, 15), 30)};
+        --focus: ${hsl(a.h, Math.max(a.s, 40), 62)}; --select: ${hsl(a.h, Math.max(a.s, 55), 52)}aa; --accent: ${hsl(a.h, Math.max(a.s, 60), 50)};
+        --bubble-mine: ${hsl(a.h, Math.max(a.s, 50), 92)}; --chip-icon: ${hsl(a.h, Math.max(a.s, 45), 45)};
+        --glow: radial-gradient(110% 55% at 50% -12%, rgba(${rgbOf(vivid(a, 65))}, 0.18), transparent 62%);
+        --pearl: linear-gradient(115deg, ${stops(pearl)});
+        --brand: linear-gradient(115deg, ${stops(brand)});`;
+    }
     const pearl = [soft(a, 86), soft(a, 70), soft(b, one ? 90 : 88), soft(b, one ? 64 : 68), soft(c, 90), soft(c, 72), soft(b, 82), soft(a, 86)];
     const brand = [vivid(a, 74), vivid(b, one ? 84 : 78), vivid(c, one ? 66 : 68), vivid(b, 82), vivid(a, 74)];
-    const stops = (list) => list.map((x, i) => `${x} ${Math.round(i * 100 / (list.length - 1))}%`).join(", ");
-    return `--tint: 255, 255, 255; color-scheme: dark;
-      --ground: ${g(10)}; --ground-deep: ${g(6.5)}; --surface: ${g(14)}; --surface-hover: ${g(17)}; --field: ${g(8)};
-      --ink: ${g(94, Math.min(a.s, 30))}; --dim: ${g(66, Math.min(a.s, 14))}; --faint: ${g(46, Math.min(a.s, 10))}; --line: ${g(21)}; --pearl-ink: ${hsl(a.h, Math.min(a.s, 55), 12)};
-      --good: #a9e6c6; --bad: #f4a6ae; --focus: ${vivid(a, 62)}; --select: ${vivid(a, 78)}aa; --accent: ${vivid(a, 72)};
-      --cover: linear-gradient(135deg, ${g(16)}, ${g(11)}); --glass: rgba(${rgbOf(g(14))}, 0.74); --glass-button: rgba(${rgbOf(g(12))}, 0.82);
-      --veil: rgba(${rgbOf(g(4))}, 0.58); --bubble-mine: ${hsl(a.h, Math.min(Math.max(a.s, 30), 60), 28)}; --chip-icon: ${hsl(a.h, Math.min(a.s, 80), 84)}; --on-pearl-dim: ${hsl(a.h, Math.min(a.s, 20), 34)};
+    return `${BASES.dark}
+      --pearl-ink: ${hsl(a.h, Math.min(a.s, 55), 12)}; --on-pearl-dim: ${hsl(a.h, Math.min(a.s, 20), 34)};
+      --focus: ${vivid(a, 62)}; --select: ${vivid(a, 78)}aa; --accent: ${vivid(a, 72)};
+      --bubble-mine: ${hsl(a.h, Math.min(Math.max(a.s, 30), 60), 28)}; --chip-icon: ${hsl(a.h, Math.min(a.s, 80), 84)};
       --glow: radial-gradient(90% 50% at 18% -8%, rgba(${rgbOf(vivid(a, 60))}, 0.22), transparent 62%), radial-gradient(80% 45% at 88% -4%, rgba(${rgbOf(vivid(b, 60))}, 0.16), transparent 60%);
       --pearl: linear-gradient(115deg, ${stops(pearl)});
       --brand: linear-gradient(115deg, ${stops(brand)});`;
@@ -4419,10 +4445,10 @@
   // the app's own rules refuse a style sheet made while it runs (that's
   // what left a built theme looking like Pearl).
   const ownVars = new WeakMap();
-  function setThemeVars(el, colors, scene) {
+  function setThemeVars(el, colors, scene, base) {
     clearThemeVars(el);
     const names = [];
-    for (const part of themeVars(colors).split(";")) {
+    for (const part of themeVars(colors, base).split(";")) {
       const at = part.indexOf(":");
       if (at < 0) continue;
       const name = part.slice(0, at).trim(), value = part.slice(at + 1).trim();
@@ -4440,7 +4466,9 @@
   // The whole app, when the theme in use is one you built.
   function paintOwnTheme() {
     const html = document.documentElement, t = customThemes().find((x) => x.id === html.dataset.theme);
-    if (t) setThemeVars(html, t.colors, scenes.get(t.id)); else clearThemeVars(html);
+    if (t) setThemeVars(html, t.colors, scenes.get(t.id), t.base); else clearThemeVars(html);
+    // Light ones get Daylight's softer shadows and the like.
+    if (t && t.base === "light") html.dataset.base = "light"; else delete html.dataset.base;
   }
   async function loadScenes() {
     for (const t of customThemes()) {
@@ -4453,7 +4481,7 @@
     if (/Linux/.test(navigator.userAgent)) return;   // nothing shows behind the page there
     const color = getComputedStyle(document.documentElement).getPropertyValue("--ground-deep").trim();
     const m = /^#([0-9a-f]{2})([0-9a-f]{2})([0-9a-f]{2})$/i.exec(color);
-    const light = (document.documentElement.dataset.theme || "pearl") === "daylight";
+    const light = (document.documentElement.dataset.theme || "pearl") === "daylight" || document.documentElement.dataset.base === "light";
     if (m) invoke("set_backdrop", { red: parseInt(m[1], 16), green: parseInt(m[2], 16), blue: parseInt(m[3], 16), light }).catch(() => {});
   }
   function paintThemeGrid() {
@@ -4471,7 +4499,7 @@
     else { set(); paintBackdrop(); }
   }
   // The builder's work in progress.
-  const tb = { colors: [], scene: null, editing: null };
+  const tb = { colors: [], scene: null, editing: null, base: "dark" };
   function paintThemeCards() {
     const all = THEMES.map(([id, name]) => [id, name, false]).concat(customThemes().map((t) => [t.id, t.name, true]));
     $("theme-grid").innerHTML = all.map(([id, name, own]) => `<button class="theme-card" data-pick="${id}">
@@ -4485,7 +4513,7 @@
     </button>`).join("");
     for (const t of customThemes()) {
       const mini = $("theme-grid").querySelector(`[data-pick="${t.id}"] .tc-mini`);
-      if (mini) setThemeVars(mini, t.colors);
+      if (mini) setThemeVars(mini, t.colors, null, t.base);
     }
     paintThemeGrid();
   }
@@ -4539,7 +4567,8 @@
   }
   function tbLook() {
     const stage = $("tb-stage");
-    setThemeVars(stage, tb.colors);
+    setThemeVars(stage, tb.colors, null, tb.base);
+    for (const b of document.querySelectorAll("[data-base-pick]")) b.classList.toggle("on", b.dataset.basePick === tb.base);
     stage.style.backgroundImage = tb.scene ? `url("${tb.scene}")` : "";
     stage.classList.toggle("has-pic", !!tb.scene);
     $("tb-save").disabled = !($("tb-name").value.trim() && tb.colors.length && tb.scene);
@@ -4562,11 +4591,19 @@
     }
   });
   $("tb-name").addEventListener("input", tbLook);
+  $("tb-base").onclick = (e) => {
+    const b = e.target.closest("[data-base-pick]");
+    if (!b || b.dataset.basePick === tb.base) return;
+    feel("selection");
+    tb.base = b.dataset.basePick;
+    tbLook();
+  };
   // A new theme, or one you built to change: its name, colours and picture.
   function openThemeBuilder(id) {
     const t = typeof id === "string" ? customThemes().find((x) => x.id === id) : null;
     tb.editing = t ? t.id : null;
     tb.colors = t ? t.colors.slice() : TB_DEFAULT.slice();
+    tb.base = t && t.base === "light" ? "light" : "dark";
     tb.scene = t ? scenes.get(t.id) || null : null;
     $("tb-name").value = t ? t.name : "";
     $("tb-pic-name").textContent = "";
@@ -4609,7 +4646,7 @@
       try { await sceneAsk("readwrite", (st) => st.put(tb.scene, id)); }
       catch { problem("tb-problem", "The picture couldn't be saved on this device. Try a smaller one."); $("tb-save").disabled = false; return; }
     }
-    const theme = { id, name, colors: tb.colors.slice() }, list = customThemes();
+    const theme = { id, name, base: tb.base, colors: tb.colors.slice() }, list = customThemes();
     const at = list.findIndex((t) => t.id === id);
     if (at >= 0) list[at] = theme; else list.push(theme);
     localStorage.setItem("custom-themes", JSON.stringify(list));
