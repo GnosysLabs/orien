@@ -498,7 +498,7 @@ function Composer({
   const [body, setBody] = useState('')
   const [busy, setBusy] = useState(false)
   const [trouble, setTrouble] = useState('')
-  // Photos or a poll, on posts only: replies are words.
+  // Photos, a GIF or a poll; replies take photos or a GIF, not polls.
   const [photos, setPhotos] = useState<Upload[]>([])
   const [poll, setPoll] = useState<{ options: string[]; hours: number } | null>(null)
   const [gif, setGif] = useState<Gif | null>(null)
@@ -665,7 +665,6 @@ function Composer({
         )}
         {trouble && <Notice tone="bad">{trouble.charAt(0).toUpperCase() + trouble.slice(1)}</Notice>}
         <div className="flex items-center gap-1">
-          {!parent && (
             <>
               <input ref={chooser} type="file" accept="image/jpeg,image/png,image/webp,image/gif" multiple className="hidden" onChange={(e) => void addPhotos(e.target.files)} />
               <button
@@ -690,18 +689,19 @@ function Composer({
                   GIF
                 </span>
               </button>
-              <button
-                type="button"
-                onClick={() => setPoll({ options: ['', ''], hours: 24 })}
-                disabled={busyWith}
-                aria-label="Add a poll"
-                title="Poll"
-                className={`${iconButton} disabled:opacity-40`}
-              >
-                <ListChecks className="h-[18px] w-[18px]" aria-hidden />
-              </button>
+              {!parent && (
+                <button
+                  type="button"
+                  onClick={() => setPoll({ options: ['', ''], hours: 24 })}
+                  disabled={busyWith}
+                  aria-label="Add a poll"
+                  title="Poll"
+                  className={`${iconButton} disabled:opacity-40`}
+                >
+                  <ListChecks className="h-[18px] w-[18px]" aria-hidden />
+                </button>
+              )}
             </>
-          )}
           <div className="ml-auto flex items-center gap-3">
             {body.length > 0 && <span className={`num text-xs ${left < 50 ? 'text-ink' : 'text-muted'}`}>{left}</span>}
             <button type="submit" disabled={!ready} className={pill}>
@@ -746,10 +746,12 @@ function LinkCard({ link }: { link: LinkPreview }) {
 
 /** A post's photos, as on X: one whole, two side by side, three with the
  * first tall, four in a square. Each opens full size. */
-function Photos({ pictures }: { pictures: Picture[] }) {
+function Photos({ pictures, small = false }: { pictures: Picture[]; small?: boolean }) {
   const one = pictures.length === 1
   return (
-    <div className={`mt-4 grid gap-1 overflow-hidden rounded-2xl border border-line ${one ? 'grid-cols-1' : 'aspect-[16/10] grid-cols-2'} ${pictures.length > 2 ? 'grid-rows-2' : ''}`}>
+    <div
+      className={`grid gap-1 overflow-hidden border border-line ${small ? 'mt-2 max-w-sm rounded-xl' : 'mt-4 rounded-2xl'} ${one ? 'grid-cols-1' : 'aspect-[16/10] grid-cols-2'} ${pictures.length > 2 ? 'grid-rows-2' : ''}`}
+    >
       {pictures.map((p, i) => (
         <a
           key={p.name}
@@ -765,7 +767,7 @@ function Photos({ pictures }: { pictures: Picture[] }) {
             loading="lazy"
             width={p.width}
             height={p.height}
-            className={one ? 'max-h-[560px] w-full object-cover' : 'h-full w-full object-cover'}
+            className={one ? `${small ? 'max-h-72' : 'max-h-[560px]'} w-full object-cover` : 'h-full w-full object-cover'}
           />
         </a>
       ))}
@@ -981,6 +983,13 @@ function Reply({
           <Linked text={reply.body} />
         </p>
         <Video text={reply.body} />
+        {reply.pictures && reply.pictures.length > 0 && <Photos pictures={reply.pictures} small />}
+        {reply.gif && (
+          <div className="mt-2 w-fit max-w-full overflow-hidden rounded-xl border border-line bg-bg">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={reply.gif.url} alt="GIF" width={reply.gif.width} height={reply.gif.height} loading="lazy" className="block max-h-64 w-auto max-w-full" />
+          </div>
+        )}
         {reply.link && <LinkCard link={reply.link} />}
         <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-2">
           {me?.verified && !small && (

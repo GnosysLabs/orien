@@ -505,6 +505,21 @@ impl Store {
     pub fn add_reply(&self, author: i64, body: &str, parent: Option<i64>, reply_to: Option<i64>) -> Result<i64> {
         let body = post_text(body)?;
         self.may_post(author)?;
+        let reply_to = self.reply_target(parent, reply_to)?;
+        self.db.execute(
+            "INSERT INTO posts (author, kind, body, parent, created, reply_to) VALUES (?1, 'post', ?2, ?3, ?4, ?5)",
+            params![author, body, parent, now() as i64, reply_to],
+        )?;
+        let id = self.db.last_insert_rowid();
+        if let Some(parent) = parent {
+            self.notice_reply(id, author, parent, reply_to)?;
+        }
+        Ok(id)
+    }
+
+    /// Where a reply goes: checks `parent` is a post that's up, and gives
+    /// the reply `reply_to` answers, one deep.
+    fn reply_target(&self, parent: Option<i64>, reply_to: Option<i64>) -> Result<Option<i64>> {
         let reply_to = match (reply_to, parent) {
             (None, _) => None,
             (Some(_), None) => bail!("only a reply can answer a reply"),
@@ -533,15 +548,7 @@ impl Store {
                 bail!("that post is gone, or is itself a reply");
             }
         }
-        self.db.execute(
-            "INSERT INTO posts (author, kind, body, parent, created, reply_to) VALUES (?1, 'post', ?2, ?3, ?4, ?5)",
-            params![author, body, parent, now() as i64, reply_to],
-        )?;
-        let id = self.db.last_insert_rowid();
-        if let Some(parent) = parent {
-            self.notice_reply(id, author, parent, reply_to)?;
-        }
-        Ok(id)
+        Ok(reply_to)
     }
 
     /// Something the network says, dated `at`: the checkpoint's time.
@@ -939,16 +946,25 @@ impl Store {
         Ok(options)
     }
 
-    /// A new post with photos or a poll. Checked and screened already.
+    /// A new post with photos, a GIF or a poll, or with `parent` a reply
+    /// with photos or a GIF (polls are for posts). Checked and screened
+    /// already.
+    #[allow(clippy::too_many_arguments)]
     pub fn add_post_with(
         &self,
         author: i64,
         body: &str,
+        parent: Option<i64>,
+        reply_to: Option<i64>,
         pictures: &[String],
         poll: Option<(&[String], u64)>,
         gif: Option<&Gif>,
     ) -> Result<i64> {
         self.may_post(author)?;
+        if parent.is_some() && poll.is_some() {
+            bail!("polls are for posts, not replies");
+        }
+        let reply_to = self.reply_target(parent, reply_to)?;
         let body = body.trim().replace("\r\n", "\n");
         if body.chars().count() > MAX_POST {
             bail!("a post is at most {MAX_POST} characters");
@@ -968,7 +984,10 @@ impl Store {
             bail!("a post has at most {MAX_PICTURES} photos");
         }
         let at = now();
-        self.db.execute("INSERT INTO posts (author, kind, body, created) VALUES (?1, 'post', ?2, ?3)", params![author, body, at as i64])?;
+        self.db.execute(
+            "INSERT INTO posts (author, kind, body, parent, created, reply_to) VALUES (?1, 'post', ?2, ?3, ?4, ?5)",
+            params![author, body, parent, at as i64, reply_to],
+        )?;
         let id = self.db.last_insert_rowid();
         let done = (|| -> Result<()> {
             self.attach_pictures(author, id, pictures)?;
@@ -990,6 +1009,9 @@ impl Store {
             self.db.execute("DELETE FROM posts WHERE id = ?1", [id])?;
             self.db.execute("UPDATE post_pictures SET post = NULL WHERE post = ?1", [id])?;
             return Err(error);
+        }
+        if let Some(parent) = parent {
+            self.notice_reply(id, author, parent, reply_to)?;
         }
         Ok(id)
     }
@@ -1464,8 +1486,8 @@ async fn new_post(State(app): State<Arc<App>>, headers: HeaderMap, Json(given): 
     if kinds > 1 {
         return Err(Failure::Refused("a post has photos, a GIF or a poll: one of them".into()));
     }
-    if media && given.parent.is_some() {
-        return Err(Failure::Refused("replies are words only for now".into()));
+    if given.poll.is_some() && given.parent.is_some() {
+        return Err(Failure::Refused("polls are for posts, not replies".into()));
     }
     if !given.pictures.is_empty() && given.poll.is_some() {
         return Err(Failure::Refused("a post has photos or a poll, not both".into()));
@@ -1492,7 +1514,9 @@ async fn new_post(State(app): State<Arc<App>>, headers: HeaderMap, Json(given): 
     }
     let id = if media {
         let poll = given.poll.as_ref().map(|p| (p.options.as_slice(), p.hours));
-        app.store().add_post_with(author, &given.body, &given.pictures, poll, given.gif.as_ref()).map_err(refused)?
+        app.store()
+            .add_post_with(author, &given.body, given.parent, given.reply_to, &given.pictures, poll, given.gif.as_ref())
+            .map_err(refused)?
     } else {
         app.store().add_reply(author, &given.body, given.parent, given.reply_to).map_err(refused)?
     };

@@ -650,3 +650,33 @@ async fn replies_answer_replies_one_deep_and_their_authors_hear() {
     let (_, bell) = ask(&app, "GET", "/api/market/notices", Some(&alice), None).await;
     assert!(bell["notices"].as_array().unwrap().iter().any(|l| l["kind"] == "reply" && l["reply"] == false));
 }
+
+#[tokio::test]
+async fn replies_and_answers_can_carry_a_gif_but_not_a_poll() {
+    let app = market();
+    let alice = sign_in_for_tests(&app, "Alice");
+    let sam = sign_in_for_tests(&app, "Sam");
+    let say = |who: String, body: Value| {
+        let app = app.clone();
+        async move { ask(&app, "POST", "/api/market/community/posts", Some(&who), Some(body)).await }
+    };
+    let gif = json!({ "id": 8041071659142944u64, "url": "https://static.klipy.com/ii/a/b/c.webp", "preview": "https://static1.klipy.com/ii/a/b/c.webp", "width": 498, "height": 300 });
+    let (_, post) = say(alice.clone(), json!({ "body": "Hello, miners" })).await;
+    let post = post["id"].as_i64().unwrap();
+    let (status, reply) = say(sam.clone(), json!({ "body": "", "parent": post, "gif": gif })).await;
+    assert_eq!(status, StatusCode::OK, "{reply}");
+    let reply = reply["id"].as_i64().unwrap();
+    let (status, answer) = say(alice.clone(), json!({ "body": "ha", "parent": post, "reply_to": reply, "gif": gif })).await;
+    assert_eq!(status, StatusCode::OK, "{answer}");
+    let answer = answer["id"].as_i64().unwrap();
+    let poll = json!({ "body": "which?", "parent": post, "poll": { "options": ["a", "b"], "hours": 24 } });
+    assert_eq!(say(sam.clone(), poll).await.0, StatusCode::BAD_REQUEST, "polls are for posts");
+
+    let (_, thread) = ask(&app, "GET", &format!("/api/market/community/posts/{post}"), None, None).await;
+    let find = |id: i64| thread["replies"].as_array().unwrap().iter().find(|r| r["id"] == id).unwrap().clone();
+    assert_eq!(find(reply)["gif"]["url"], "https://static.klipy.com/ii/a/b/c.webp");
+    assert_eq!((find(answer)["reply_to"].clone(), find(answer)["gif"]["width"].clone()), (json!(reply), json!(498)));
+    assert_eq!(thread["post"]["replies"], 2);
+    let (_, bell) = ask(&app, "GET", "/api/market/notices", Some(&alice), None).await;
+    assert!(bell["notices"].as_array().unwrap().iter().any(|l| l["kind"] == "reply"), "Alice hears of the reply");
+}

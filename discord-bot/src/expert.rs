@@ -136,6 +136,10 @@ Begin your reply with a line holding one emoji and nothing else: the one that be
 
 Start with one sentence that says, in plain words, what this change means for the people it touches. Then two to five short bullet points, each starting with "- ", covering what matters most to them. If the entry says people must do something (update to keep mining, for example), end with one line that starts with "**What to do:**" and says it; otherwise leave that line out. At most 110 words in all."#;
 
+const ROUNDUP: &str = r#"Write one post covering the changes below, which went out over the last couple of hours (oldest first). The post's title is added above your text and a link to the full notes below it.
+
+Start with one short sentence. Then one bullet point per change, each starting with "- " and a bold two-or-three-word label, saying in a sentence what people will see or can now do. Keep it under 1,400 characters in all: count carefully, a longer post cannot be sent."#;
+
 const STORY: &str = r#"Write one post that tells someone who has just joined what has happened so far, from the entries below (newest first). The post's title is added above your text and a link to the full notes below it.
 
 Start with one or two sentences that set the scene. Then five to seven bullet points, each starting with "- " and a bold two-or-three-word label, grouping the changes by what they are about (for example the launch, mining, the wallet, swaps, the Market, validators) rather than listing them one by one. Pick what a newcomer would care about and leave the small fixes out. Keep it under 1,400 characters in all: count carefully, a longer post cannot be sent."#;
@@ -282,6 +286,12 @@ impl Expert {
     /// The body of the post announcing one changelog entry.
     pub async fn announce(&self, entry: &crate::news::Entry) -> Result<String> {
         self.news(&format!("{ONE_ENTRY}\n\n{}", entry.plain()), 1500).await
+    }
+
+    /// One post for the few entries published since the last one.
+    pub async fn roundup(&self, entries: &[crate::news::Entry]) -> Result<String> {
+        let all: Vec<String> = entries.iter().map(|entry| entry.plain()).collect();
+        self.news(&format!("{ROUNDUP}\n\n{}", all.join("\n")), 1500).await
     }
 
     /// One post telling the story of many entries.
