@@ -56,6 +56,8 @@ type Post = {
   data: Record<string, unknown> & { miners?: Face[]; miner?: Face }
   created: number
   parent: number | null
+  /** On a reply: the reply it answers, one deep. */
+  reply_to?: number | null
   author: Person | null
   subject: Person | null
   replies: number
@@ -477,11 +479,26 @@ const POLL_LENGTHS: [number, string][] = [
   [168, '7 days'],
 ]
 
-function Composer({ me, parent, onPosted, autoFocus = false }: { me: You; parent?: number; onPosted: () => void; autoFocus?: boolean }) {
+function Composer({
+  me,
+  parent,
+  replyTo,
+  replyingTo,
+  onPosted,
+  autoFocus = false,
+}: {
+  me: You
+  parent?: number
+  /** Answering a reply: its id, and whose it is. */
+  replyTo?: number
+  replyingTo?: string
+  onPosted: () => void
+  autoFocus?: boolean
+}) {
   const [body, setBody] = useState('')
   const [busy, setBusy] = useState(false)
   const [trouble, setTrouble] = useState('')
-  // Photos or a poll, on posts only: replies are words.
+  // Photos, a GIF or a poll; replies take photos or a GIF, not polls.
   const [photos, setPhotos] = useState<Upload[]>([])
   const [poll, setPoll] = useState<{ options: string[]; hours: number } | null>(null)
   const [gif, setGif] = useState<Gif | null>(null)
@@ -522,6 +539,7 @@ function Composer({ me, parent, onPosted, autoFocus = false }: { me: You; parent
       await ask('/community/posts', 'POST', {
         body,
         parent,
+        ...(replyTo ? { reply_to: replyTo } : {}),
         ...(pictures.length ? { pictures } : {}),
         ...(poll ? { poll: { options: poll.options.map((o) => o.trim()), hours: poll.hours } } : {}),
         ...(gif ? { gif } : {}),
@@ -549,7 +567,7 @@ function Composer({ me, parent, onPosted, autoFocus = false }: { me: You; parent
           onChange={(e) => setBody(e.target.value.slice(0, MAX))}
           rows={1}
           autoFocus={autoFocus}
-          placeholder={parent ? 'Post your reply' : poll ? 'Ask a question' : 'What’s happening?'}
+          placeholder={replyingTo ? `Reply to ${replyingTo}` : parent ? 'Post your reply' : poll ? 'Ask a question' : 'What’s happening?'}
           className={`w-full resize-none bg-transparent py-2 text-ink outline-none placeholder:text-muted ${parent ? 'text-[15px]' : 'text-lg'}`}
         />
         {photos.length > 0 && (
@@ -647,7 +665,6 @@ function Composer({ me, parent, onPosted, autoFocus = false }: { me: You; parent
         )}
         {trouble && <Notice tone="bad">{trouble.charAt(0).toUpperCase() + trouble.slice(1)}</Notice>}
         <div className="flex items-center gap-1">
-          {!parent && (
             <>
               <input ref={chooser} type="file" accept="image/jpeg,image/png,image/webp,image/gif" multiple className="hidden" onChange={(e) => void addPhotos(e.target.files)} />
               <button
@@ -672,18 +689,19 @@ function Composer({ me, parent, onPosted, autoFocus = false }: { me: You; parent
                   GIF
                 </span>
               </button>
-              <button
-                type="button"
-                onClick={() => setPoll({ options: ['', ''], hours: 24 })}
-                disabled={busyWith}
-                aria-label="Add a poll"
-                title="Poll"
-                className={`${iconButton} disabled:opacity-40`}
-              >
-                <ListChecks className="h-[18px] w-[18px]" aria-hidden />
-              </button>
+              {!parent && (
+                <button
+                  type="button"
+                  onClick={() => setPoll({ options: ['', ''], hours: 24 })}
+                  disabled={busyWith}
+                  aria-label="Add a poll"
+                  title="Poll"
+                  className={`${iconButton} disabled:opacity-40`}
+                >
+                  <ListChecks className="h-[18px] w-[18px]" aria-hidden />
+                </button>
+              )}
             </>
-          )}
           <div className="ml-auto flex items-center gap-3">
             {body.length > 0 && <span className={`num text-xs ${left < 50 ? 'text-ink' : 'text-muted'}`}>{left}</span>}
             <button type="submit" disabled={!ready} className={pill}>
@@ -728,10 +746,12 @@ function LinkCard({ link }: { link: LinkPreview }) {
 
 /** A post's photos, as on X: one whole, two side by side, three with the
  * first tall, four in a square. Each opens full size. */
-function Photos({ pictures }: { pictures: Picture[] }) {
+function Photos({ pictures, small = false }: { pictures: Picture[]; small?: boolean }) {
   const one = pictures.length === 1
   return (
-    <div className={`mt-4 grid gap-1 overflow-hidden rounded-2xl border border-line ${one ? 'grid-cols-1' : 'aspect-[16/10] grid-cols-2'} ${pictures.length > 2 ? 'grid-rows-2' : ''}`}>
+    <div
+      className={`grid gap-1 overflow-hidden border border-line ${small ? 'mt-2 max-w-sm rounded-xl' : 'mt-4 rounded-2xl'} ${one ? 'grid-cols-1' : 'aspect-[16/10] grid-cols-2'} ${pictures.length > 2 ? 'grid-rows-2' : ''}`}
+    >
       {pictures.map((p, i) => (
         <a
           key={p.name}
@@ -747,7 +767,7 @@ function Photos({ pictures }: { pictures: Picture[] }) {
             loading="lazy"
             width={p.width}
             height={p.height}
-            className={one ? 'max-h-[560px] w-full object-cover' : 'h-full w-full object-cover'}
+            className={one ? `${small ? 'max-h-72' : 'max-h-[560px]'} w-full object-cover` : 'h-full w-full object-cover'}
           />
         </a>
       ))}
@@ -930,10 +950,28 @@ function PostMenu({ post, signedIn, onRemoved }: { post: Post; signedIn: boolean
   )
 }
 
-function Reply({ reply, me, onChange }: { reply: Post; me: You | null; onChange: () => void }) {
+/** A reply, with a Reply button that answers it, and the answers to it
+ * indented under it with smaller faces: one deep. */
+function Reply({
+  reply,
+  answers = [],
+  post,
+  me,
+  onChange,
+  small = false,
+}: {
+  reply: Post
+  answers?: Post[]
+  post: number
+  me: You | null
+  onChange: () => void
+  small?: boolean
+}) {
+  const [answering, setAnswering] = useState(false)
   return (
-    <div className="flex gap-3 py-3">
-      {reply.author && <Avatar name={reply.author.name} picture={reply.author.picture} size={32} />}
+    <div className={small ? 'pt-3' : 'py-3'}>
+    <div className="flex gap-3">
+      {reply.author && <Avatar name={reply.author.name} picture={reply.author.picture} size={small ? 24 : 32} />}
       <div className="min-w-0 flex-1">
         <div className="flex items-start gap-2">
           <p className="min-w-0 flex-1 truncate text-[15px]">
@@ -945,13 +983,63 @@ function Reply({ reply, me, onChange }: { reply: Post; me: You | null; onChange:
           <Linked text={reply.body} />
         </p>
         <Video text={reply.body} />
+        {reply.pictures && reply.pictures.length > 0 && <Photos pictures={reply.pictures} small />}
+        {reply.gif && (
+          <div className="mt-2 w-fit max-w-full overflow-hidden rounded-xl border border-line bg-bg">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={reply.gif.url} alt="GIF" width={reply.gif.width} height={reply.gif.height} loading="lazy" className="block max-h-64 w-auto max-w-full" />
+          </div>
+        )}
         {reply.link && <LinkCard link={reply.link} />}
-        <div className="mt-2">
+        <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-2">
+          {me?.verified && !small && (
+            <button
+              type="button"
+              onClick={() => setAnswering(!answering)}
+              className={`-ml-2 flex h-8 items-center gap-1.5 rounded-full px-2 text-sm font-semibold transition hover:bg-raised hover:text-ink ${answering ? 'text-ink' : 'text-muted'}`}
+            >
+              <MessageCircle className="h-4 w-4" aria-hidden /> Reply
+            </button>
+          )}
           <ReactionBar post={reply} signedIn={!!me} onChange={onChange} />
         </div>
       </div>
     </div>
+      {(answers.length > 0 || answering) && (
+        <div className="ml-11 border-l border-line pl-4">
+          {answers.map((answer) => (
+            <Reply key={answer.id} reply={answer} post={post} me={me} onChange={onChange} small />
+          ))}
+          {answering && me && (
+            <div className="pt-3">
+              <Composer
+                me={me}
+                parent={post}
+                replyTo={reply.id}
+                replyingTo={reply.author?.name}
+                autoFocus
+                onPosted={() => {
+                  setAnswering(false)
+                  onChange()
+                }}
+              />
+            </div>
+          )}
+        </div>
+      )}
+    </div>
   )
+}
+
+/** Replies as a thread: those answering another reply go under it, one
+ * deep; an answer whose reply is gone shows as an ordinary reply. */
+function threaded(replies: Post[]): { reply: Post; answers: Post[] }[] {
+  const ids = new Set(replies.map((r) => r.id))
+  const answers = new Map<number, Post[]>()
+  for (const r of replies) {
+    if (r.reply_to && ids.has(r.reply_to)) answers.set(r.reply_to, [...(answers.get(r.reply_to) ?? []), r])
+  }
+  return replies.filter((r) => !(r.reply_to && ids.has(r.reply_to))).map((reply) => ({ reply, answers: answers.get(reply.id) ?? [] }))
 }
 
 function PostCard({ post, me, onChange, startOpen = false }: { post: Post; me: You | null; onChange: () => void; startOpen?: boolean }) {
@@ -1054,7 +1142,12 @@ function PostCard({ post, me, onChange, startOpen = false }: { post: Post; me: Y
 
         {open && (
           <div className="mt-3 border-t border-line">
-            <div className="divide-y divide-line">{replies?.map((reply) => <Reply key={reply.id} reply={reply} me={me} onChange={changed} />)}</div>
+            <div className="divide-y divide-line">
+              {replies &&
+                threaded(replies).map(({ reply, answers }) => (
+                  <Reply key={reply.id} reply={reply} answers={answers} post={post.id} me={me} onChange={changed} />
+                ))}
+            </div>
             <div className="pt-3">
               {me?.verified ? (
                 <Composer me={me} parent={post.id} autoFocus onPosted={changed} />
@@ -1435,23 +1528,33 @@ export function MiningCard({ stats }: { stats: Stats }) {
 }
 
 /** Someone's part of the community, on their profile: their own posts, and
- * the network's posts that name them. */
+ * the network's posts that name them, with tabs for all, theirs alone, or
+ * the network's alone. */
 export function ProfileFeed({ name }: { name: string }) {
+  const [tab, setTab] = useState<Tab>('all')
   const [posts, setPosts] = useState<Post[] | null>(null)
   const [more, setMore] = useState(false)
   const [you, setYou] = useState<You | null>(null)
   const live = useMe()
+  // The latest feed asked for; an answer for an earlier tab is dropped.
+  const latest = useRef('')
   const path = useCallback(
-    (before?: number) => `/community/feed?about=${encodeURIComponent(name)}&kinds=${KINDS}${before ? `&before=${before}` : ''}`,
-    [name],
+    (before?: number) =>
+      `/community/feed?about=${encodeURIComponent(name)}&kinds=${KINDS}${tab !== 'all' ? `&only=${tab}` : ''}${before ? `&before=${before}` : ''}`,
+    [name, tab],
   )
   const reload = useCallback(() => {
-    ask<{ posts: Post[]; more: boolean }>(path())
+    const asked = path()
+    latest.current = asked
+    ask<{ posts: Post[]; more: boolean }>(asked)
       .then((found) => {
+        if (latest.current !== asked) return
         setPosts(found.posts)
         setMore(found.more)
       })
-      .catch(() => setPosts([]))
+      .catch(() => {
+        if (latest.current === asked) setPosts([])
+      })
     ask<{ you: You | null }>('/community/board')
       .then((found) => setYou(found.you))
       .catch(() => undefined)
@@ -1462,19 +1565,43 @@ export function ProfileFeed({ name }: { name: string }) {
   const older = async () => {
     const last = posts?.[posts.length - 1]
     if (!last) return
+    const asked = latest.current
     const found = await ask<{ posts: Post[]; more: boolean }>(path(last.id)).catch(() => null)
-    if (found) {
+    if (found && latest.current === asked) {
       setPosts([...(posts ?? []), ...found.posts])
       setMore(found.more)
     }
   }
-  if (posts === null) return <p className="px-1 text-sm text-muted">Loading…</p>
-  if (posts.length === 0) {
-    return <p className={`${card} px-5 py-8 text-center text-sm text-muted`}>Nothing in the community yet.</p>
-  }
+  const tabs: [Tab, string][] = [
+    ['all', 'All'],
+    ['people', name],
+    ['network', 'Network'],
+  ]
+  const empty =
+    tab === 'people' ? `${name} hasn’t posted yet.` : tab === 'network' ? 'Nothing from the network about them yet.' : 'Nothing in the community yet.'
   return (
     <div className="space-y-3">
-      {posts.map((post) => (
+      <div className={`${card} flex overflow-hidden`}>
+        {tabs.map(([key, label]) => (
+          <button
+            key={key}
+            type="button"
+            onClick={() => {
+              // The tab already open: fresh posts, without emptying it.
+              if (key === tab) return void reload()
+              setTab(key)
+              setPosts(null)
+            }}
+            className={`relative min-w-0 flex-1 px-3 py-3 text-sm font-semibold transition hover:bg-raised/40 ${tab === key ? 'text-ink' : 'text-muted'}`}
+          >
+            <span className="block truncate">{label}</span>
+            {tab === key && <span className="absolute inset-x-1/3 bottom-0 h-1 rounded-full bg-pearl" aria-hidden />}
+          </button>
+        ))}
+      </div>
+      {posts === null && <p className="px-1 text-sm text-muted">Loading…</p>}
+      {posts?.length === 0 && <p className={`${card} px-5 py-8 text-center text-sm text-muted`}>{empty}</p>}
+      {posts?.map((post) => (
         <PostCard key={post.id} post={post} me={you} onChange={reload} />
       ))}
       {more && (

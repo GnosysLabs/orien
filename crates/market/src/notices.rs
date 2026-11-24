@@ -79,7 +79,7 @@ impl Store {
         let found: Vec<(i64, i64, i64)> =
             replies.query_map([], |row| Ok((row.get(0)?, row.get(1)?, row.get(2)?)))?.collect::<rusqlite::Result<_>>()?;
         for (reply, author, parent) in found {
-            self.notice_reply(reply, author, parent)?;
+            self.notice_reply(reply, author, parent, None)?;
         }
         let mut reactions = self.db.prepare("SELECT post, account, emoji FROM reactions")?;
         let found: Vec<(i64, i64, String)> =
@@ -144,18 +144,27 @@ impl Store {
 
     /// `author` replied to `parent` with `reply`: its owner hears, and so does
     /// everyone who replied before.
-    pub(crate) fn notice_reply(&self, reply: i64, author: i64, parent: i64) -> Result<()> {
+    pub(crate) fn notice_reply(&self, reply: i64, author: i64, parent: i64, reply_to: Option<i64>) -> Result<()> {
         let at: i64 = self.db.query_row("SELECT created FROM posts WHERE id = ?1", [reply], |row| row.get(0))?;
         let owner = self.owner(parent)?;
         if let Some(owner) = owner {
             self.tell_one(owner, "reply", parent, Some(author), "", at as u64)?;
+        }
+        // The author of the reply answered hears "replied to your reply",
+        // once, unless they own the post (told above) or answered themself.
+        let answered = match reply_to {
+            Some(target) => self.owner(target)?.filter(|a| Some(*a) != owner && *a != author),
+            None => None,
+        };
+        if let (Some(person), Some(target)) = (answered, reply_to) {
+            self.tell_one(person, "reply", target, Some(author), "", at as u64)?;
         }
         let mut earlier = self.db.prepare(
             "SELECT DISTINCT author FROM posts WHERE parent = ?1 AND id < ?2 AND author IS NOT NULL AND removed = 0",
         )?;
         let earlier: Vec<i64> = earlier.query_map(params![parent, reply], |row| row.get(0))?.collect::<rusqlite::Result<_>>()?;
         for person in earlier {
-            if Some(person) != owner {
+            if Some(person) != owner && Some(person) != answered {
                 self.tell_one(person, "also", parent, Some(author), "", at as u64)?;
             }
         }

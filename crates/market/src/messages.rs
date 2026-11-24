@@ -382,7 +382,14 @@ impl Store {
             ("seller_read", "buyer_told", "buyer")
         };
         self.db.execute(&format!("UPDATE conversations SET updated = ?2, {read} = ?3 WHERE id = ?1"), params![conversation, at, id])?;
-        // The other side is emailed once, until they read the conversation.
+        // Email only for the first message someone sends about a listing:
+        // after that, and for direct messages, the phone and the bell tell
+        // them. (The told columns are no longer used.)
+        let first_from_sender: bool = self.db.query_row(
+            "SELECT COUNT(*) = 1 FROM messages WHERE conversation = ?1 AND sender = ?2",
+            params![conversation, sender],
+            |row| row.get(0),
+        )?;
         let notice: Option<(String, String, Option<String>, bool)> = self
             .db
             .query_row(
@@ -399,9 +406,8 @@ impl Store {
             )
             .optional()?;
         let notice = match notice {
-            Some((to_email, from_name, listing_title, false)) if !to_email.is_empty() => {
-                self.db.execute(&format!("UPDATE conversations SET {other_told} = 1 WHERE id = ?1"), [conversation])?;
-                Some(Notice { to_email, from_name, listing_title, conversation })
+            Some((to_email, from_name, Some(listing_title), _)) if first_from_sender && !to_email.is_empty() => {
+                Some(Notice { to_email, from_name, listing_title: Some(listing_title), conversation })
             }
             _ => None,
         };
@@ -558,7 +564,7 @@ mod tests {
     }
 
     #[test]
-    fn a_buyer_and_a_seller_talk_and_each_is_emailed_once_until_they_read() {
+    fn a_buyer_and_a_seller_talk_and_each_is_emailed_only_for_the_first_message() {
         let (store, maya, sam, listing) = store_with_listing();
         assert!(store.conversation_about(maya, listing).is_err(), "not with oneself");
         let c = store.conversation_about(sam, listing).unwrap();
@@ -569,7 +575,7 @@ mod tests {
         let notice = notice.expect("maya is told");
         assert_eq!((notice.to_email.as_str(), notice.from_name.as_str()), ("maya@example.com", "Sam"));
         let (_, again) = store.send(c, sam, "And in blue?").unwrap();
-        assert!(again.is_none(), "one email until she reads");
+        assert!(again.is_none(), "one email per person per listing");
         assert_eq!(store.unread(maya).unwrap(), 1);
         assert_eq!(store.unread(sam).unwrap(), 0, "one's own messages are read");
 
@@ -577,9 +583,9 @@ mod tests {
         assert_eq!((seen.with_name.as_str(), seen.buying, messages.len()), ("Sam", false, 2));
         assert_eq!(store.unread(maya).unwrap(), 0);
         let (_, reply) = store.send(c, maya, "Friday works.").unwrap();
-        assert_eq!(reply.unwrap().to_email, "sam@example.com");
+        assert_eq!(reply.unwrap().to_email, "sam@example.com", "her first message to him is emailed too");
         let (_, later) = store.send(c, sam, "Great").unwrap();
-        assert!(later.is_some(), "told again after reading");
+        assert!(later.is_none(), "not again, even after she read: the phone and the bell tell her");
 
         // Asking for payment, and saying it is paid.
         assert!(store.request_payment(c, sam, 5).is_err(), "only the seller asks");
@@ -619,8 +625,7 @@ mod tests {
         assert_ne!(store.conversation_about(sam, listing).unwrap(), c, "apart from the listing's");
 
         let (_, notice) = store.send(c, sam, "Hi Maya").unwrap();
-        let notice = notice.expect("maya is told");
-        assert_eq!((notice.from_name.as_str(), notice.listing_title), ("Sam", None));
+        assert!(notice.is_none(), "direct messages are never emailed");
         let (seen, messages) = store.read(c, maya).unwrap();
         assert_eq!((seen.listing, seen.listing_title, seen.price, seen.buying), (None, None, None, false));
         assert_eq!((seen.with_name.as_str(), messages.len()), ("Sam", 1));

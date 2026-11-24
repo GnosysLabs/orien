@@ -1,6 +1,7 @@
-//! Announcements: the bot reads the website's changelog page, and for each
-//! entry it has not announced yet it writes a short, friendly post in
-//! #announcements.
+//! Announcements: the bot reads the website's changelog page, and what it
+//! has not announced yet it posts in #announcements: not straight away, but
+//! two hours after it first sees something new, so the changes made in
+//! that time go out together in one post.
 //!
 //! What has been announced is remembered in one small file, so a restart
 //! never repeats a post. The very first time, everything already on the
@@ -21,9 +22,13 @@ use crate::expert::Expert;
 /// How often the page is read.
 const EVERY: Duration = Duration::from_secs(600);
 
+/// How long new entries wait, from when the first of them is seen, so the
+/// ones that follow go out in the same post.
+const GATHER: Duration = Duration::from_secs(2 * 3600);
+
 /// More new entries than this at once is a changed page, not news: they
 /// are noted and not posted, so the channel is never flooded.
-const MOST_AT_ONCE: usize = 5;
+const MOST_AT_ONCE: usize = 12;
 
 /// One entry of the changelog, as the page shows it.
 #[derive(Clone, Debug, PartialEq)]
@@ -235,24 +240,56 @@ async fn look(http: &Http, expert: &Expert, client: &reqwest::Client, url: &str,
     };
     // Oldest first, so the channel reads in order.
     let new: Vec<&Entry> = entries.iter().rev().filter(|entry| !announced.keys.contains(&entry.key())).collect();
+    // When the first of the waiting entries was seen: kept in a file beside
+    // the announced ones, so a restart doesn't start the wait again.
+    let waiting = file.with_extension("waiting");
     if new.is_empty() {
+        let _ = std::fs::remove_file(&waiting);
         return Ok(());
     }
     if new.len() > MOST_AT_ONCE {
         eprintln!("announcements: {} new entries at once looks like a changed page, not news; none posted", new.len());
         announced.keys.extend(new.iter().map(|entry| entry.key()));
+        let _ = std::fs::remove_file(&waiting);
         return announced.save();
     }
-    let channel = announcements(http).await?;
-    for entry in new {
-        let written = expert.announce(entry).await?;
-        let (emoji, body) = emoji_and_body(&written);
-        publish(http, channel, &entry.post(emoji, body)).await.with_context(|| format!("could not post \"{}\" in #announcements", entry.title))?;
-        announced.keys.insert(entry.key());
-        announced.save()?;
-        eprintln!("announcements: posted \"{}\"", entry.title);
+    let now = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH)?.as_secs();
+    let since = std::fs::read_to_string(&waiting).ok().and_then(|text| text.trim().parse::<u64>().ok());
+    let Some(since) = since else {
+        std::fs::write(&waiting, now.to_string())?;
+        eprintln!("announcements: {} new, posting them together in {} minutes", new.len(), GATHER.as_secs() / 60);
+        return Ok(());
+    };
+    if now < since + GATHER.as_secs() {
+        return Ok(());
     }
+    let channel = announcements(http).await?;
+    let post = match new.as_slice() {
+        [entry] => {
+            let written = expert.announce(entry).await?;
+            let (emoji, body) = emoji_and_body(&written);
+            entry.post(emoji, body)
+        }
+        several => {
+            let owned: Vec<Entry> = several.iter().map(|entry| (*entry).clone()).collect();
+            let body = expert.roundup(&owned).await?;
+            roundup_post(&owned, &body)
+        }
+    };
+    publish(http, channel, &post).await.context("could not post in #announcements")?;
+    announced.keys.extend(new.iter().map(|entry| entry.key()));
+    announced.save()?;
+    let _ = std::fs::remove_file(&waiting);
+    eprintln!("announcements: posted {} entries together", new.len());
     Ok(())
+}
+
+/// One post for several entries, oldest first: a title, how many and
+/// when, the body the model wrote, and where the full notes are.
+pub fn roundup_post(entries: &[Entry], body: &str) -> String {
+    let (first, last) = (&entries[0], &entries[entries.len() - 1]);
+    let when = if first.day == last.day { last.day.clone() } else { format!("{} to {}", first.day, last.day) };
+    format!("## ✨ What's new\n**{} changes** · {when}\n\n{}\n\nFull notes: <{CHANGELOG}>", entries.len(), body.trim())
 }
 
 /// Watches the changelog page for as long as the bot runs.
@@ -282,6 +319,15 @@ mod tests {
     use super::*;
 
     const PAGE: &str = r#"<ol><li class="relative"><span class="absolute" aria-hidden="true"></span><article class="rounded-2xl border"><div class="mb-3 flex"><time dateTime="2026-11-16" class="text-sm text-muted">16 November 2026</time><span class="rounded-full bg-raised px-2.5 text-xs">Orien Wallet</span><span class="num ml-auto text-sm font-semibold text-pearl">1.8.10</span></div><h2 class="mb-3 text-xl">Smoother Market chats</h2><ul class="list-disc"><li>Chats open complete straight away, the listing they&#x27;re about shines at the top.</li><li>Report &amp; block are in a tidy ⋯ menu.</li></ul></article></li><li class="relative"><article class="rounded-2xl"><div><time dateTime="2026-11-15" class="text-sm">15 November 2026</time><span class="rounded-full">Network</span><span class="rounded-full">Validators</span></div><h2 class="mb-3">Mining moves to RandomX</h2><ul><li>From epoch 21, mining uses RandomX.</li></ul></article></li></ol>"#;
+
+    #[test]
+    fn several_entries_go_out_as_one_post() {
+        let entries = parse(PAGE);
+        let oldest_first: Vec<Entry> = entries.into_iter().rev().collect();
+        let post = roundup_post(&oldest_first, "Two things changed.\n- **Mining** RandomX.");
+        assert!(post.starts_with("## ✨ What's new\n**2 changes** · 15 November 2026 to 16 November 2026\n\nTwo things changed."), "{post}");
+        assert!(post.ends_with("Full notes: <https://orien.network/changelog/>"));
+    }
 
     #[test]
     fn the_page_is_read_entry_by_entry() {

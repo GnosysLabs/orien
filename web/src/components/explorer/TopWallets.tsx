@@ -1,8 +1,8 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { OfficialTag, WalletFace } from './Official'
 import { ArrowRight, Wallet } from 'lucide-react'
-import { Avatar } from '@/components/market/Avatar'
 import { type Top, type WalletProfile, addressHref, explore, label, namesFor, orn, short, topHref } from '@/lib/explorer'
 import { Card, Loading, Problem } from './Parts'
 
@@ -73,7 +73,7 @@ export function TopWallets({ limit }: { limit?: number }) {
                     <span className="num text-sm text-muted">{index + 1}</span>
                     <span className="flex min-w-0 items-center gap-2.5 sm:gap-3">
                       {profile ? (
-                        <Avatar name={profile.name} picture={profile.picture} size={32} />
+                        <WalletFace profile={profile} size={32} />
                       ) : (
                         <span className="hidden h-8 w-8 shrink-0 items-center justify-center rounded-full border border-line bg-raised sm:flex" aria-hidden>
                           <Wallet className="h-3.5 w-3.5 text-muted" />
@@ -82,7 +82,10 @@ export function TopWallets({ limit }: { limit?: number }) {
                       <span className="min-w-0">
                         {profile ? (
                           <>
-                            <span className="block truncate font-semibold text-ink">{label(profile)}</span>
+                            <span className="block truncate font-semibold text-ink">
+                              {label(profile)}
+                              {profile.official && <OfficialTag />}
+                            </span>
                             <span className="num block truncate text-sm text-muted">{short(holder.address)}</span>
                           </>
                         ) : (

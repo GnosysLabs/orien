@@ -517,6 +517,15 @@ impl Store {
     /// `name` as a username nobody else has, `except` the account itself.
     pub fn new_name(&self, name: &str, except: Option<i64>) -> Result<String> {
         let name = username(name)?;
+        // Names that could pass for Orien itself are kept back, unless it's
+        // the name the account already has.
+        let current: Option<String> = match except {
+            Some(id) => self.db.query_row("SELECT name FROM accounts WHERE id = ?1", [id], |row| row.get(0)).optional()?,
+            None => None,
+        };
+        if reserved(&name) && current.is_none_or(|c| !c.eq_ignore_ascii_case(&name)) {
+            bail!("that name is kept for Orien itself; pick another");
+        }
         let taken: bool = self.db.query_row(
             "SELECT COUNT(*) > 0 FROM accounts WHERE lower(name) = lower(?1) AND id IS NOT ?2",
             params![name, except],
@@ -896,6 +905,35 @@ pub fn username(name: &str) -> Result<String> {
     Ok(name.to_string())
 }
 
+/// Whether a name could pass for Orien or its people: any name holding
+/// "orien", "official", "support", "admin", "moderator" or "verif", once
+/// look-alike digits are read as letters and underscores dropped; or one
+/// whose whole name, or a word of it between underscores, is "mod",
+/// "mods", "staff", "team", "helpdesk", "security", "founder" or "system".
+pub fn reserved(name: &str) -> bool {
+    let lower = name.to_ascii_lowercase();
+    let folded: String = lower
+        .chars()
+        .filter(|c| *c != '_')
+        .map(|c| match c {
+            '0' => 'o',
+            '1' => 'i',
+            '3' => 'e',
+            '4' => 'a',
+            '5' => 's',
+            '7' => 't',
+            c => c,
+        })
+        .collect();
+    const WITHIN: [&str; 6] = ["orien", "official", "support", "admin", "moderator", "verif"];
+    const WORDS: [&str; 8] = ["mod", "mods", "staff", "team", "helpdesk", "security", "founder", "system"];
+    // "1" also stands for "l": "0ffic1al" and "supp0rt" are caught by the
+    // first reading, "a1min" by neither, which is fine.
+    WITHIN.iter().any(|w| folded.contains(w) || folded.replace('i', "l").contains(w))
+        || lower.split('_').any(|part| WORDS.contains(&part))
+        || WORDS.contains(&folded.as_str())
+}
+
 /// A name and bio tidied, or why they cannot be used.
 pub fn profile_text(name: &str, bio: &str) -> Result<(String, String)> {
     let (name, bio) = (username(name)?, clean(bio));
@@ -925,6 +963,23 @@ pub(crate) fn token_hash(token: &str) -> String {
 
 #[cfg(test)]
 mod tests {
+    #[test]
+    fn names_that_could_pass_for_orien_are_kept_back() {
+        for name in ["Orien", "orien_support", "TheOrienTeam", "0r1en", "official_help", "Supp0rt", "site_admin", "verify_bot", "mod", "orn_mods", "Staff", "founder"] {
+            assert!(super::reserved(name), "{name}");
+        }
+        for name in ["Maya", "niko_dev", "modest", "teamwork", "steamer", "orn_fan", "SpaceFace"] {
+            assert!(!super::reserved(name), "{name}");
+        }
+        let store = Store::in_memory().unwrap();
+        assert!(store.create_account("OrienSupport", "a").is_err());
+        let maya = store.create_account("Maya", "b").unwrap().id;
+        assert!(store.set_profile(maya, "orien_maya", "", &Contact::default()).is_err());
+        // An account that has such a name already keeps it.
+        store.db.execute("UPDATE accounts SET name = 'Orien' WHERE id = ?1", [maya]).unwrap();
+        assert!(store.set_profile(maya, "Orien", "Hello", &Contact::default()).is_ok());
+    }
+
     #[test]
     fn an_old_database_keeps_its_conversations_when_direct_messages_come() {
         let path = std::env::temp_dir().join(format!("orien-market-upgrade-{}.db", std::process::id()));

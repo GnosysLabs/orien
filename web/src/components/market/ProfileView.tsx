@@ -143,7 +143,7 @@ export function ProfileView() {
           )}
         </aside>
         <main className="min-w-0">
-          <ProfileFeed name={account.name} />
+          <ProfileFeed key={account.name} name={account.name} />
         </main>
       </div>
     </div>

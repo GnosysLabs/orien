@@ -314,8 +314,8 @@ async fn return_addresses_are_https_or_this_computer() {
 
 #[tokio::test]
 async fn until_it_opens_only_the_named_accounts_register_websites() {
-    let app = market(false, &["Founder"]);
-    let founder = sign_in_without_wallet_for_tests(&app, "Founder");
+    let app = market(false, &["Chris"]);
+    let founder = sign_in_without_wallet_for_tests(&app, "Chris");
     let other = sign_in_without_wallet_for_tests(&app, "Someone");
     let site = json!({ "name": "Shop", "returns": [BACK] });
     let (_, mine, _) = ask(&app, "GET", "/api/market/me/sites", Some(&other), &[], None, None).await;

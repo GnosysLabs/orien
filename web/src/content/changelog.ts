@@ -26,6 +26,30 @@ export const PRODUCTS: Record<Product, string> = {
 
 export const CHANGELOG: Entry[] = [
   {
+    date: '2026-11-24',
+    products: ['marketplace'],
+    title: 'Photos and GIFs in comments',
+    changes: [
+      'Comments, and answers to them, can carry up to four photos or a GIF, picked the same way as on a post.',
+    ],
+  },
+  {
+    date: '2026-11-24',
+    products: ['marketplace'],
+    title: 'Tabs on profiles',
+    changes: [
+      'A profile’s feed has three tabs: All, the person’s own posts, and the network’s posts about them.',
+    ],
+  },
+  {
+    date: '2026-11-24',
+    products: ['marketplace'],
+    title: 'Answer a comment',
+    changes: [
+      'Each comment on a post has a Reply button. Answers show under the comment they answer, and the person who wrote it hears about it.',
+    ],
+  },
+  {
     date: '2026-11-23',
     products: ['wallet'],
     version: '1.9.0',
