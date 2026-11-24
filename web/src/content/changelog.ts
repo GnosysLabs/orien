@@ -28,6 +28,16 @@ export const CHANGELOG: Entry[] = [
   {
     date: '2026-11-24',
     products: ['wallet'],
+    version: '1.9.7',
+    title: 'Your theme pictures follow you',
+    changes: [
+      'The background pictures of the themes you build now come with you to your other computers, sealed with your wallet’s keys so only your devices can see them.',
+      'A big picture is made small enough to keep, never refused: as large and sharp as fits.',
+    ],
+  },
+  {
+    date: '2026-11-24',
+    products: ['wallet'],
     version: '1.9.6',
     title: 'Your themes first, your picture in full',
     changes: [
