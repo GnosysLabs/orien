@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 <title>Orien Wallet</title>
-<script type="module" src="vendor/planet.js"></script>
+<script type="module" src="vendor/robot.js"></script>
 <style>
   /* The wordmark's typeface, bundled so the app never fetches fonts. */
   @font-face {
@@ -712,8 +712,8 @@
   .account .avatar { position: relative; overflow: hidden; width: 32px; height: 32px; border-radius: 50%;
     background: var(--surface-hover); display: grid; place-items: center; font-weight: 600; color: var(--ink); font-size: 13px; }
   .account .avatar img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
-  /* A planet, for an account with no picture of its own: fills the circle. */
-  :is(.avatar, .face) img.planet { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+  /* A robot, for an account with no picture of its own: fills the circle. */
+  :is(.avatar, .face) img.robot { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
   .account { display: flex; align-items: center; gap: 8px; }
   /* ---- Orien Market ---- */
   .mk-search { display: flex; align-items: center; gap: 10px; padding: 0 14px; color: var(--faint);
@@ -1189,6 +1189,8 @@
   .add-opt .chev { flex: none; color: var(--faint); }
   /* Settings: themes as little living previews of the home screen. */
   .st-hint { margin: -4px 0 14px; padding-left: 4px; }
+  .st-credit { margin: 16px 4px 0; color: var(--faint); font-size: 12px; }
+  .st-credit a { color: var(--dim); }
   .theme-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 14px; }
   .theme-card { display: grid; gap: 9px; padding: 0; border: 0; background: none; color: var(--ink); font: inherit; text-align: left; cursor: pointer; }
   .theme-card .tc-mini { position: relative; aspect-ratio: 4 / 5; padding: 12px 10px; border-radius: 18px; overflow: hidden;
@@ -2296,6 +2298,7 @@
         <button class="set-row" id="st-privacy"><span class="set-txt"><b>Privacy policy</b></span><svg class="chev" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg></button>
         <button class="set-row" id="st-terms"><span class="set-txt"><b>Terms of service</b></span><svg class="chev" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg></button>
       </div>
+      <p class="hint st-credit">Robot avatars: <a href="#" id="st-bottts">Bottts</a> by Pablo Stanley, drawn with <a href="#" id="st-dicebear">DiceBear</a>.</p>
       </div>
       <!-- How to do things, step by step: the list, then one guide. -->
       <div class="st-page" data-page="guide" id="guide-list" hidden></div>
@@ -3448,24 +3451,24 @@
   const official = (address) => (address && OFFICIAL[address.toLowerCase()]) || null;
   const officialTag = (address) => official(address)
     ? '<span class="off-tag"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>Official</span>' : "";
-  // An account with no picture of its own shows its planet, drawn on this
+  // An account with no picture of its own shows its robot, drawn on this
   // device from its username (trimmed, lower case), exactly as the website
   // draws it. Not for a bare address with no account: that keeps its letter.
   // Drawn a moment after the app starts: anything shown before then gets
-  // its planet as soon as the drawing code is ready.
-  const planet = (name) => {
+  // its robot as soon as the drawing code is ready.
+  const robot = (name) => {
     const seed = String(name || "").trim().toLowerCase();
     if (!seed) return "";
-    return window.orienPlanet ? `<img class="planet" alt="" src="${window.orienPlanet(seed)}">`
-      : `<img class="planet" alt="" data-planet="${esc(seed)}" hidden>`;
+    return window.orienRobot ? `<img class="robot" alt="" src="${window.orienRobot(seed)}">`
+      : `<img class="robot" alt="" data-robot="${esc(seed)}" hidden>`;
   };
-  const fillPlanets = () => { for (const img of document.querySelectorAll("img[data-planet]")) { img.src = window.orienPlanet(img.dataset.planet); img.hidden = false; delete img.dataset.planet; } };
-  if (window.orienPlanet) fillPlanets(); else window.addEventListener("orien-planets", fillPlanets, { once: true });
+  const fillRobots = () => { for (const img of document.querySelectorAll("img[data-robot]")) { img.src = window.orienRobot(img.dataset.robot); img.hidden = false; delete img.dataset.robot; } };
+  if (window.orienRobot) fillRobots(); else window.addEventListener("orien-robots", fillRobots, { once: true });
   function face(address, name) {
     if (official(address)) return '<span class="face official"><span class="mark"></span></span>';
     const p = profileOf(address);
     const initial = esc((name || (p && p.name) || "?").slice(0, 1).toUpperCase());
-    const img = p && p.picture ? picImg(p.picture) : planet(p && p.name);
+    const img = p && p.picture ? picImg(p.picture) : robot(p && p.name);
     return `<span class="face">${initial}${img}</span>`;
   }
   const initial = (name) => name.trim().charAt(0).toUpperCase();
@@ -4308,6 +4311,8 @@
   $("go-settings").onclick = openSettings;
   $("st-back").onclick = () => { if ($("st-menu").hidden) settingsPage(settingsParent[settingsAt] || null); else home(); };
   $("st-cat-social").onclick = () => settingsPage("social");
+  for (const [id, url] of [["st-bottts", "https://bottts.com/"], ["st-dicebear", "https://www.dicebear.com/styles/bottts-neutral/"]])
+    $(id).onclick = (e) => { e.preventDefault(); invoke("open_post_link", { url }).catch(() => {}); };
   // ---- User Guide ----
   // Short guides, step by step, in the app's own words for each button.
   // What a computer has and an iPhone doesn't (and the other way) is left
@@ -5445,7 +5450,7 @@
         const sub = info && info.gone ? "Not available" : n === null ? "Orien Network" : n ? `${n} verified wallet${n === 1 ? "" : "s"}` : "No verified wallets yet";
         const picture = a.picture || (g.addresses[0] && (profileOf(g.addresses[0]) || {}).picture);
         return { key: g.name.toLowerCase(), html: `<div class="tx contact" data-member="${g.id}">
-          <span class="face">${esc((g.name || "?").slice(0, 1).toUpperCase())}${picture ? picImg(picture) : planet(a.name || (g.addresses[0] && (profileOf(g.addresses[0]) || {}).name))}</span>
+          <span class="face">${esc((g.name || "?").slice(0, 1).toUpperCase())}${picture ? picImg(picture) : robot(a.name || (g.addresses[0] && (profileOf(g.addresses[0]) || {}).name))}</span>
           <div class="tx-main"><div class="title">${esc(g.name)}</div><div class="sub">${esc(sub)}</div></div>${CHEVRON}</div>` };
       }),
       ...loose.map((c) => ({ key: c.name.toLowerCase(), html: `<div class="tx contact" data-address="${c.address}">
@@ -5601,7 +5606,7 @@
     const group = contactGroups().people.find((g) => g.id === id) || { name: "", addresses: [] };
     const name = a.name || group.name || "Contact";
     $("mb-title").textContent = name;
-    $("mb-face").innerHTML = esc(name.slice(0, 1).toUpperCase()) + (a.picture ? picImg(a.picture) : planet(a.name));
+    $("mb-face").innerHTML = esc(name.slice(0, 1).toUpperCase()) + (a.picture ? picImg(a.picture) : robot(a.name));
     const verified = (info && info.wallets) || [];
     $("mb-name").innerHTML = `<span>${esc(name)}</span>` + (verified.length ? VERIFIED : "");
     $("mb-message").hidden = !!(board.me && board.me.id === id) || (info && (info.takes_messages === false || info.gone));
@@ -6217,7 +6222,7 @@
   // picture has loaded, and stays if it can't.
   function avatar(o) {
     const initial = esc((o.seller_name || "?").slice(0, 1).toUpperCase());
-    return `<div class="avatar">${initial}${o.seller_picture ? picImg(o.seller_picture) : planet(o.seller_name)}</div>`;
+    return `<div class="avatar">${initial}${o.seller_picture ? picImg(o.seller_picture) : robot(o.seller_name)}</div>`;
   }
   // A picture that can't load is removed, leaving the initial. One listener
   // for all, as onerror="" attributes are blocked in the built app.
@@ -6631,9 +6636,9 @@
   const perUnit = (unit) => unit ? ` <span class="per">${esc(/^(per|\/|each|an?\b)/i.test(unit) ? unit : "per " + unit)}</span>` : "";
   const priceHtml = (l) => `${orn(l.price)} ORN${perUnit(l.unit)}`;
   const since = (t) => t ? `Member since ${new Date(t * 1000).toLocaleDateString([], { month: "long", year: "numeric" })}` : "";
-  // A face with no name behind it (an address-only row) gets the planet
+  // A face with no name behind it (an address-only row) gets the robot
   // seeded "orien", as on the website.
-  const mkAvatar = (name, picture) => `<span class="avatar">${esc((name || "?").slice(0, 1).toUpperCase())}${picture ? picImg(picture) : planet(name || "orien")}</span>`;
+  const mkAvatar = (name, picture) => `<span class="avatar">${esc((name || "?").slice(0, 1).toUpperCase())}${picture ? picImg(picture) : robot(name || "orien")}</span>`;
   function card(l) {
     return `<button class="mk-card" data-listing="${l.id}">
       <div class="mk-cover">${l.pictures && l.pictures[0] ? picImg(l.pictures[0]) : catIcon(l.category)}${l.open === false ? '<span class="mk-closed">Closed</span>' : ""}</div>
@@ -6681,7 +6686,7 @@
   // Each kind of post has its own picture, in community/.
   const CM_ART = {};
   const cmFace = (person) => person && person.name
-    ? `<span class="face">${esc(person.name.slice(0, 1).toUpperCase())}${person.picture ? picImg(person.picture) : planet(person.name)}</span>`
+    ? `<span class="face">${esc(person.name.slice(0, 1).toUpperCase())}${person.picture ? picImg(person.picture) : robot(person.name)}</span>`
     : '<span class="cm-net"><span class="mark"></span></span>';
   const cmOrn = (units) => (Number(units || 0) / 1e9).toLocaleString(undefined, { maximumFractionDigits: 2 });
   function cmNames(faces, count) {
@@ -6873,7 +6878,7 @@
     for (const [box, join, text, go, me] of [["cm-compose", "cm-join", "cm-join-text", "cm-join-go", "cm-me"], ["cm-reply-box", "cm-reply-join", "cm-reply-join-text", "cm-reply-join-go", "cm-me2"]]) {
       $(box).hidden = !verified;
       $(join).hidden = !!verified;
-      if (verified) $(me).innerHTML = `${esc(you.name.slice(0, 1).toUpperCase())}${you.picture ? picImg(you.picture) : planet(you.name)}`;
+      if (verified) $(me).innerHTML = `${esc(you.name.slice(0, 1).toUpperCase())}${you.picture ? picImg(you.picture) : robot(you.name)}`;
       $(text).textContent = you ? "Verify one of your wallets on your Orien Network profile to post, reply and react." : "Sign in to Orien Network to post, reply and react.";
       $(go).textContent = you ? "Verify a wallet" : "Sign in";
     }
@@ -6903,7 +6908,7 @@
   }
   // The sidebar, as on the website: you, and the top miners.
   const MEDALS = ["🥇", "🥈", "🥉"];
-  const cmPerson = (name, picture) => `<span class="face">${esc((name || "?").slice(0, 1).toUpperCase())}${picture ? picImg(picture) : planet(name || "orien")}</span>`;
+  const cmPerson = (name, picture) => `<span class="face">${esc((name || "?").slice(0, 1).toUpperCase())}${picture ? picImg(picture) : robot(name || "orien")}</span>`;
   function cmPaintRail() {
     const you = cm.you;
     $("cm-you").innerHTML = !you
@@ -7673,7 +7678,7 @@
     const a = answer.account || {};
     $("sl-banner").innerHTML = a.banner ? picImg(a.banner) : "";
     $("sl-hero").classList.toggle("banner", !!a.banner);
-    $("sl-face").innerHTML = esc((a.name || "?").slice(0, 1).toUpperCase()) + (a.picture ? picImg(a.picture) : planet(a.name));
+    $("sl-face").innerHTML = esc((a.name || "?").slice(0, 1).toUpperCase()) + (a.picture ? picImg(a.picture) : robot(a.name));
     $("sl-name").innerHTML = `<span>${esc(a.name || "")}</span>` + (a.wallet_verified || (answer.wallets || []).length ? VERIFIED : "");
     $("sl-since").textContent = since(a.created);
     $("sl-bio").textContent = a.bio || "";
@@ -8519,7 +8524,7 @@
   function paintProfileFace() {
     const me = board.me;
     if (!me) return;
-    const img = me.picture ? picImg(me.picture) : planet(me.name);
+    const img = me.picture ? picImg(me.picture) : robot(me.name);
     $("pf-face").innerHTML = esc((me.name || "?").slice(0, 1).toUpperCase()) + img;
     $("pf-banner").innerHTML = picImg(me.banner);
   }
@@ -8747,7 +8752,7 @@
   let blockedList = [];
   function paintBlocks() {
     $("bk-list").innerHTML = blockedList.length
-      ? `<div class="list">${blockedList.map((p) => `<div class="tx"><span class="face">${esc((p.name || "?").slice(0, 1).toUpperCase())}${p.picture ? picImg(p.picture) : planet(p.name)}</span>
+      ? `<div class="list">${blockedList.map((p) => `<div class="tx"><span class="face">${esc((p.name || "?").slice(0, 1).toUpperCase())}${p.picture ? picImg(p.picture) : robot(p.name)}</span>
           <div class="tx-main"><div class="title">${esc(p.name || "")}</div>${p.blocked_at ? `<div class="sub">Blocked ${esc(ago(p.blocked_at))}</div>` : ""}</div>
           <button class="pill" data-unblock="${p.id}">Unblock</button></div>`).join("")}</div>`
       : '<div class="empty">You haven\'t blocked anyone.</div>';
