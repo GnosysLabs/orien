@@ -226,6 +226,26 @@
         var(--bl) left 18px bottom 0 / var(--rb) var(--rb) no-repeat, var(--br) right 18px bottom 0 / var(--rb) var(--rb) no-repeat;
       -webkit-mask: var(--M); mask: var(--M); }
   }
+  /* iPhones: the same rounded edges, as a mask. Rounded corners on a
+     scrolling box alone don't hold on an iPhone: pictures, banners and
+     anything else drawn on its own layer slide out past them as they
+     scroll away. A mask cuts everything. The corners sit at the content's
+     edges (8px in), the top ones 6px further out, where the back button
+     sits; between them the mask runs the full width, for cards' shadows. */
+  body.phone :is(.screen, #mine, #board-signin, #board-post, #board-take, #swaps, #swap-sell, #swap-buy, #swap-detail, .scroll) {
+    --rt: 22px; --rb: 20px; --it: 2px; --ib: 8px; --m: linear-gradient(#000, #000); }
+  body.phone :is(#recent, #all-activity) { --rt: 18px; --rb: 39px; --it: 0px; --ib: 0px; --m: linear-gradient(#000, #000); }
+  body.phone :is(.screen, #mine, #board-signin, #board-post, #board-take, #swaps, #swap-sell, #swap-buy, #swap-detail, .scroll, #recent, #all-activity) {
+    --tl: radial-gradient(circle at 100% 100%, #000 calc(var(--rt) - 0.5px), transparent var(--rt));
+    --tr: radial-gradient(circle at 0 100%, #000 calc(var(--rt) - 0.5px), transparent var(--rt));
+    --bl: radial-gradient(circle at 100% 0, #000 calc(var(--rb) - 0.5px), transparent var(--rb));
+    --br: radial-gradient(circle at 0 0, #000 calc(var(--rb) - 0.5px), transparent var(--rb));
+    --M: var(--m) 0 var(--rt) / 100% calc(100% - var(--rt) - var(--rb)) no-repeat,
+      var(--m) 50% 0 / calc(100% - 2 * var(--it) - 2 * var(--rt)) var(--rt) no-repeat,
+      var(--tl) left var(--it) top 0 / var(--rt) var(--rt) no-repeat, var(--tr) right var(--it) top 0 / var(--rt) var(--rt) no-repeat,
+      var(--m) 50% 100% / calc(100% - 2 * var(--ib) - 2 * var(--rb)) var(--rb) no-repeat,
+      var(--bl) left var(--ib) bottom 0 / var(--rb) var(--rb) no-repeat, var(--br) right var(--ib) bottom 0 / var(--rb) var(--rb) no-repeat;
+    -webkit-mask: var(--M); mask: var(--M); }
   /* A screen whose list scrolls on its own ends where the list does: the
      same 20px to the container's foot as the home screen's list. */
   html body:not(.phone) .screen:has(> .scroll):not(#chat) { padding-bottom: 0; }
