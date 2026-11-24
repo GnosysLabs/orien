@@ -28,7 +28,7 @@ Orien (ORN) is a cryptocurrency built for the quantum age. Payments are final in
 5. Keep channels on topic.
 
 ## 📺 Orien on YouTube
-Orien in plain words, how to start mining, wallet walkthroughs and network updates: https://www.youtube.com/@OrienNetwork
+Explainers, mining guides and wallet walkthroughs: https://www.youtube.com/@OrienNetwork
 
 ## Where to go
 - {#announcements}: new releases and network news
@@ -37,8 +37,9 @@ Orien in plain words, how to start mining, wallet walkthroughs and network updat
 - {#x-posts}: our posts on X, as they go out
 - {#youtube}: our videos, as they come out
 - {#checkpoints}: a summary of every hour's mining
+- {#themes}: show off your wallet themes
 - {#mining}: setups and questions about mining
-- {#swaps-and-market}: swap ORN for SOL or Bitcoin, and share Market listings
+- {#swaps-market}: swap ORN for SOL or Bitcoin, and share Market listings
 - {#help}: stuck? Ask here
 - {#validators}: staking and running a validator
 - {#bugs-and-ideas}: tell us what's broken or missing
@@ -71,13 +72,13 @@ pub fn fit_hello(hello: &str) -> bool {
 
 /// Each channel's about line, shown at the top of the channel. Set once
 /// with `orien-discord topics`, never on its own.
-pub const TOPICS: [(&str, &str); 12] = [
+pub const TOPICS: [(&str, &str); 13] = [
     ("welcome", "Start here: what Orien is, how to begin, and the rules."),
     ("announcements", "New releases and network news from the team."),
     ("general", "Say hi and talk about anything Orien."),
     ("mining", "Mining setups, your share of the hourly ORN, and \"is my miner working?\""),
     (
-        "swaps-and-market",
+        "swaps-market",
         "Find someone to swap ORN for SOL or Bitcoin with, and share your Market listings. The team will never message you first.",
     ),
     ("help", "Stuck? Ask here. All help happens in public; never share your recovery phrase."),
@@ -87,6 +88,7 @@ pub const TOPICS: [(&str, &str); 12] = [
     ("x-posts", "Orien's posts on X, as they go out. Like and repost to help spread the word."),
     ("youtube", "Orien's videos, as they come out. Watch them right here."),
     ("checkpoints", "A summary after every hourly checkpoint: who mined, how the hour's ORN were shared, and how the network is doing."),
+    ("themes", "Show off the wallet themes you build in Orien Wallet: Settings › Appearance › Build a theme."),
 ];
 
 /// Each channel's introduction: the first message in it, saying what the
@@ -94,7 +96,7 @@ pub const TOPICS: [(&str, &str); 12] = [
 /// is kept to announcements alone, and #general
 /// and #help need none. Posted by hand with `orien-discord intros`; a
 /// changed text here replaces the message already there.
-pub const INTROS: [(&str, &str); 8] = [
+pub const INTROS: [(&str, &str); 9] = [
     (
         "mining",
         "\
@@ -106,7 +108,7 @@ Everything about mining ORN: your setup, your speed, your share of each hour's c
 - **Ask anything here.** Orien Bot answers questions in this channel, and other miners help too.",
     ),
     (
-        "swaps-and-market",
+        "swaps-market",
         "\
 ## 🔁 Swaps and the Market
 Find someone to swap with, and show what you offer in the Market.
@@ -168,6 +170,16 @@ Watch them right here. A like or a subscribe on YouTube helps more people find O
 Once an hour the network pauses for a moment, agrees on every balance, and shares out the hour's new ORN among everyone who mined. That moment is a checkpoint.
 
 After each one, Orien Bot posts a summary here: how many miners were paid, how the ORN were shared, how much work was done, and how the network is doing. Every figure comes from the Orien Explorer at https://explorer.orien.network",
+    ),
+    (
+        "themes",
+        "\
+## 🎨 Themes
+Show off the wallet themes you build in Orien Wallet, and find ideas for your next one.
+
+- **Build one:** open **Settings › Appearance** and press **Build a theme**. Give it a name, pick a dark or light base, one accent colour and a background picture, and the app makes the rest.
+- **Share it here:** post a screenshot, and say which colour and picture you used so others can make one like it.
+- **Keep your balance private:** you can hide it in Settings before you take the screenshot.",
     ),
 ];
 
