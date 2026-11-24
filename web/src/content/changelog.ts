@@ -27,6 +27,19 @@ export const PRODUCTS: Record<Product, string> = {
 export const CHANGELOG: Entry[] = [
   {
     date: '2026-11-24',
+    products: ['wallet'],
+    version: '1.9.4',
+    title: 'Build your own theme',
+    changes: [
+      'Settings › Appearance has a Build a theme button. Give your theme a name, pick a dark or light base, one accent colour and a background picture, and the app makes the rest: on a dark base your colour becomes a deep metallic sheen. Your themes sit with the others, each with buttons to edit or delete it, and stay on that computer.',
+      'Notifications drop down from the bell instead of opening a page. A notification opens its post on its own page, comments open, and Back returns home.',
+      'Big windows fit together better: the background picture and the floating panel appear as soon as the window is wider than the app, and the Community, Market, Swap, profiles and Messages all expand at the same width.',
+      'GIFs no longer flash blank while you scroll, and the post menu closes as soon as the page under it scrolls.',
+      'Block in a post’s menu now works on every post. On light themes the wallet switcher looks like a button, and the network’s post titles are easier to read.',
+    ],
+  },
+  {
+    date: '2026-11-24',
     products: ['marketplace'],
     title: 'Community notifications on iPhone',
     changes: [
