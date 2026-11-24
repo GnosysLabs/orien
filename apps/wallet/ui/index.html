@@ -179,7 +179,7 @@
   #market, #seller { --col: 1040px; }
   /* A listing, in a big window: wider, its pictures large on the left and
      the title, price, seller and description beside them. */
-  @media (min-width: 960px) {
+  @media (min-width: 980px) {
     #listing { --col: 1040px; }
     .ls-layout { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); gap: 32px; align-items: start; }
     .ls-media { position: sticky; top: 56px; }
@@ -276,7 +276,9 @@
       var(--m) 50% 100% / calc(100% - 36px - 2 * var(--rb)) var(--rb) no-repeat,
       var(--bl) left 18px bottom 0 / var(--rb) var(--rb) no-repeat, var(--br) right 18px bottom 0 / var(--rb) var(--rb) no-repeat;
     -webkit-mask: var(--M); mask: var(--M); }
-  /* Big windows: each theme's photograph behind the app, quiet. */
+  /* Big windows: each theme's photograph behind the app, quiet. From
+     980px wide, the same width every wide layout starts at, so the photo
+     and the expanded views arrive together. */
   :root, [data-theme="pearl"] { --scene: url(scenes/pearl.webp); }
   [data-theme="daylight"] { --scene: url(scenes/daylight.webp); }
   [data-theme="midnight"] { --scene: url(scenes/midnight.webp); }
@@ -286,7 +288,7 @@
   [data-theme="ruby"] { --scene: url(scenes/ruby.webp); }
   [data-theme="ember"] { --scene: url(scenes/ember.webp); }
   [data-theme="obsidian"] { --scene: url(scenes/obsidian.webp); }
-  @media (min-width: 900px) {
+  @media (min-width: 980px) {
     body:not(.phone)::before { content: ""; position: fixed; inset: 0; z-index: -1; pointer-events: none;
       background: var(--scene, none) center / cover no-repeat; opacity: 0.55; }
     /* Each screen sits in a container that looks just like the app in a
@@ -1106,10 +1108,10 @@
   #tab-offers .section-head { align-items: center; margin: 6px 4px 14px; }
   .sw-side-head, .sw-side-sub { display: none; }
   #board-last { display: none; }
-  @media (min-width: 960px) { body:not(.phone) #board-last:not([hidden]) { display: block; } }
+  @media (min-width: 980px) { body:not(.phone) #board-last:not([hidden]) { display: block; } }
   /* Big windows: offers on the left; your swaps, then recent finished
      swaps, in a column beside them. Every part shows at once, so no tabs. */
-  @media (min-width: 960px) {
+  @media (min-width: 980px) {
     body:not(.phone) #swaps { --col: 1040px; }
     body:not(.phone) #swaps > .tabs { display: none; }
     body:not(.phone) .sw-grid { display: grid; grid-template-columns: minmax(0, 1.55fr) minmax(0, 1fr); grid-template-areas: "offers mine" "offers hist";
@@ -3542,7 +3544,7 @@
     document.querySelector("main").style.setProperty("--panel", (both ? 1040 : col || 640) + "px");
     if (id === "community" && typeof cmFitRail === "function") cmFitRail();
     // A big window shows recent swaps beside the offers: fetched as it opens.
-    if (id === "swaps" && !phone && matchMedia("(min-width: 960px)").matches && typeof loadHistory === "function") loadHistory(false);
+    if (id === "swaps" && !phone && matchMedia("(min-width: 980px)").matches && typeof loadHistory === "function") loadHistory(false);
     document.body.classList.toggle("at-home", id === "home");
     if (id === "seller" && typeof slFitEdges === "function") slFitEdges();
     if (both) { $("chat").classList.toggle("none", !chat.id); paintInbox(); }
