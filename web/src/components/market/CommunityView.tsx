@@ -7,6 +7,7 @@ import {
   ArrowLeft,
   BadgeCheck,
   CheckCircle2,
+  Coins,
   Flag,
   Flame,
   ImagePlus,
@@ -905,6 +906,30 @@ function ReactionBar({ post, signedIn, onChange, small = false }: { post: Post; 
   )
 }
 
+/** A post's tips, as in Orien Wallet: the tip coins, the total in ORN
+ * shining beside them, and how many tips. Never who. */
+function Tips({ tips }: { tips: { count: number; orn: number } }) {
+  const total = (tips.orn / 1e9).toLocaleString('en', { maximumFractionDigits: 2 })
+  const count = tips.count.toLocaleString('en')
+  return (
+    <span
+      title={`Tipped ${total} ORN by ${count} ${tips.count === 1 ? 'person' : 'people'}`}
+      className="ml-auto inline-flex h-[30px] items-center gap-[7px] whitespace-nowrap rounded-full border border-white/10 bg-white/[0.04] pl-1 pr-3 text-[13px]"
+    >
+      <span className="pearl-fill grid h-[22px] w-[22px] flex-none place-items-center rounded-full text-bg shadow-[inset_0_1px_0_#ffffff90,0_1px_4px_#00000040]">
+        <Coins className="h-[15px] w-[15px]" strokeWidth={2.4} aria-hidden />
+      </span>
+      <b className="pearl-text font-bold tracking-[0.01em]">{total} ORN</b>
+      <span className="text-xs text-muted">
+        <span className="mr-1.5 opacity-60" aria-hidden>
+          ·
+        </span>
+        {count} {tips.count === 1 ? 'tip' : 'tips'}
+      </span>
+    </span>
+  )
+}
+
 /** The "…" menu on a post: delete your own, report another's. */
 function PostMenu({ post, signedIn, onRemoved }: { post: Post; signedIn: boolean; onRemoved: () => void }) {
   const [open, setOpen] = useState(false)
@@ -1156,11 +1181,7 @@ function PostCard({ post, me, onChange, startOpen = false }: { post: Post; me: Y
             {post.replies > 0 && <span className="num text-xs font-semibold">{post.replies}</span>}
           </button>
           <ReactionBar post={post} signedIn={!!me} onChange={onChange} />
-          {post.tips && post.tips.count > 0 && (
-            <span className="ml-auto whitespace-nowrap text-[12.5px] text-muted" title="Tips paid to its author from Orien Wallet">
-              {post.tips.count.toLocaleString('en')} {post.tips.count === 1 ? 'tip' : 'tips'} · {(post.tips.orn / 1e9).toLocaleString('en', { maximumFractionDigits: 2 })} ORN
-            </span>
-          )}
+          {post.tips && post.tips.count > 0 && <Tips tips={post.tips} />}
         </div>
 
         {open && (
