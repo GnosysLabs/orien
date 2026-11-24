@@ -1234,6 +1234,7 @@
   .tb-swatch .tb-x { position: absolute; top: -4px; right: -4px; width: 22px; height: 22px; padding: 0; border: 0; border-radius: 50%;
     display: grid; place-items: center; background: var(--surface-hover); color: var(--ink); box-shadow: 0 0 0 2px var(--ground); cursor: pointer; }
   .tb-swatch .tb-x svg { width: 11px; height: 11px; }
+  .tb-hex { font: 13px ui-monospace, SFMono-Regular, Menlo, monospace; color: var(--dim); letter-spacing: 0.04em; }
   .tb-add { width: 52px; height: 52px; border-radius: 50%; border: 1.5px dashed var(--faint); background: none; color: var(--dim);
     display: grid; place-items: center; cursor: pointer; padding: 0; }
   .tb-add svg { width: 18px; height: 18px; }
@@ -2405,9 +2406,9 @@
         <div class="tabs tb-base" id="tb-base" role="tablist"><button class="tab on" data-base-pick="dark" role="tab">Dark</button><button class="tab" data-base-pick="light" role="tab">Light</button></div>
       </div>
       <div class="field">
-        <label>Colours</label>
+        <label>Accent colour</label>
         <div class="tb-colors" id="tb-colors"></div>
-        <div class="hint">One to three. They colour the buttons, the balance card, the glow and the highlights.</div>
+        <div class="hint">It colours the buttons, the balance card, the glow and the highlights, the way each built-in theme has its own.</div>
       </div>
       <div class="field">
         <label>Background picture</label>
@@ -4402,62 +4403,39 @@
       --ink: #1b1c22; --dim: #5d6070; --faint: #8b8e9b; --line: #dcdde5; --good: #1f8a5b; --bad: #c43a3f;
       --cover: linear-gradient(135deg, #e6e7ee, #dcdde6); --glass: rgba(255, 255, 255, 0.78); --glass-button: rgba(255, 255, 255, 0.85); --veil: rgba(30, 30, 45, 0.28);`,
   };
+  // One accent colour, made into a theme the way Rosé, Midnight and Ember
+  // are: the sheen is that colour in light and deep bands (the numbers
+  // below are the built-in themes' own), the wordmark its brighter tints,
+  // the glow and the highlights the colour itself.
   function themeVars(colors, base) {
-    const [a, b, c] = [colors[0], colors[1] || colors[0], colors[2] || colors[1] || colors[0]].map(hexHsl);
-    const soft = (x, l) => hsl(x.h, Math.max(x.s, 45), l), vivid = (x, l) => hsl(x.h, Math.max(x.s, 55), l);
-    const stops = (list) => list.map((x, i) => `${x} ${Math.round(i * 100 / (list.length - 1))}%`).join(", ");
-    // One colour: its own lighter and deeper shades make the gradients.
-    const one = colors.length === 1;
-    // The metal, as the built-in themes make it: the first colour in light
-    // and deep bands that slide past each other, the others as a shimmer
-    // of tinted light in between. A smooth blend from one colour to the
-    // next looks flat, like plastic, however good the colours.
-    // Each colour gets a light and a deep band, and the whole run of them
-    // comes three times: a sheen is three times as wide as what it colours,
-    // so whatever part shows holds every colour at once as it drifts,
-    // rather than one colour at a time.
-    // The light band stays clearly the colour, only a little lighter than
-    // chosen: lightened near to white, white shows between the colours.
-    // Both stay light enough for the dark words on top to read.
+    const a = hexHsl(colors[0]);
     const clamp = (v, lo, hi) => Math.min(Math.max(v, lo), hi);
+    const stops = (list) => list.map((x, i) => `${x} ${Math.round(i * 100 / (list.length - 1))}%`).join(", ");
     // How bright a colour looks (blues and purples look darker than
-    // yellows at the same setting), and a colour lifted until it looks at
-    // least that bright, so the words on it always read.
+    // yellows at the same setting), and a shade lifted until it looks at
+    // least that bright, so the dark words on the sheen always read.
     const looks = (hex) => {
       const lin = (v) => { v /= 255; return v <= 0.04045 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4); };
       const n = parseInt(hex.slice(1), 16);
       return 0.2126 * lin(n >> 16 & 255) + 0.7152 * lin(n >> 8 & 255) + 0.0722 * lin(n & 255);
     };
-    const lifted = (h, sat, l, least) => { while (looks(hsl(h, sat, l)) < least && l < 90) l += 2; return hsl(h, sat, l); };
-    const metal = (light) => {
-      // Soft, as the built-in themes are: pastel, never white, never loud.
-      const sat = (x) => clamp(x.s, 45, 78);
-      const up = (x) => lifted(x.h, sat(x), light ? 86 : 83, 0.5);
-      const down = (x) => lifted(x.h, sat(x), light ? 76 : 72, 0.38);
-      const run = one ? [up(a), down(a), lifted(a.h, sat(a), light ? 82 : 79, 0.45), down(a)]
-        : colors.map((_, i) => [a, b, c][i]).flatMap((x) => [up(x), down(x)]);
-      return [...run, ...run, ...run, run[0]];
-    };
+    const shade = (l, least = 0) => { const sat = clamp(a.s, 50, 92); while (looks(hsl(a.h, sat, l)) < least && l < 92) l += 2; return hsl(a.h, sat, l); };
     if (base === "light") {
-      const pearl = metal(true);
-      const brand = [hsl(a.h, Math.max(a.s, 45), 55), hsl(b.h, Math.max(b.s, 45), one ? 64 : 58), hsl(c.h, Math.max(c.s, 45), one ? 48 : 54), hsl(b.h, Math.max(b.s, 45), 60), hsl(a.h, Math.max(a.s, 45), 55)];
       return `${BASES.light}
         --pearl-ink: ${hsl(a.h, Math.min(a.s, 30), 16)}; --on-pearl-dim: ${hsl(a.h, Math.min(a.s, 15), 30)};
-        --focus: ${hsl(a.h, Math.max(a.s, 40), 62)}; --select: ${hsl(a.h, Math.max(a.s, 55), 52)}aa; --accent: ${hsl(a.h, Math.max(a.s, 60), 50)};
-        --bubble-mine: ${hsl(a.h, Math.max(a.s, 50), 92)}; --chip-icon: ${hsl(a.h, Math.max(a.s, 45), 45)};
-        --glow: radial-gradient(110% 55% at 50% -12%, rgba(${rgbOf(vivid(a, 65))}, 0.18), transparent 62%);
-        --pearl: linear-gradient(115deg, ${stops(pearl)});
-        --brand: linear-gradient(115deg, ${stops(brand)});`;
+        --focus: ${hsl(a.h, clamp(a.s, 40, 80), 62)}; --select: ${hsl(a.h, clamp(a.s, 55, 90), 52)}aa; --accent: ${hsl(a.h, clamp(a.s, 60, 95), 50)};
+        --bubble-mine: ${hsl(a.h, clamp(a.s, 50, 90), 92)}; --chip-icon: ${hsl(a.h, clamp(a.s, 45, 85), 45)};
+        --glow: radial-gradient(110% 55% at 50% -12%, rgba(${rgbOf(shade(65))}, 0.18), transparent 62%);
+        --pearl: linear-gradient(115deg, ${stops([shade(91), shade(81, 0.42), shade(93), shade(76, 0.38), shade(94), shade(79, 0.4), shade(87), shade(91)])});
+        --brand: linear-gradient(115deg, ${stops([shade(55), shade(62), shade(48), shade(60), shade(55)])});`;
     }
-    const pearl = metal(false);
-    const brand = [vivid(a, 74), vivid(b, one ? 84 : 78), vivid(c, one ? 66 : 68), vivid(b, 82), vivid(a, 74)];
     return `${BASES.dark}
-      --pearl-ink: ${hsl(a.h, Math.min(a.s, 55), 12)}; --on-pearl-dim: ${hsl(a.h, Math.min(a.s, 20), 34)};
-      --focus: ${vivid(a, 62)}; --select: ${vivid(a, 78)}aa; --accent: ${vivid(a, 72)};
-      --bubble-mine: ${hsl(a.h, Math.min(Math.max(a.s, 30), 60), 28)}; --chip-icon: ${hsl(a.h, Math.min(a.s, 80), 84)};
-      --glow: radial-gradient(90% 50% at 18% -8%, rgba(${rgbOf(vivid(a, 60))}, 0.22), transparent 62%), radial-gradient(80% 45% at 88% -4%, rgba(${rgbOf(vivid(b, 60))}, 0.16), transparent 60%);
-      --pearl: linear-gradient(115deg, ${stops(pearl)});
-      --brand: linear-gradient(115deg, ${stops(brand)});`;
+      --pearl-ink: ${hsl(a.h, Math.min(a.s, 60), 12)}; --on-pearl-dim: ${hsl(a.h, Math.min(a.s, 25), 34)};
+      --focus: ${hsl(a.h, clamp(a.s, 40, 70), 66)}; --select: ${shade(78)}aa; --accent: ${shade(76)};
+      --bubble-mine: ${hsl(a.h, clamp(a.s, 30, 50), 30)}; --chip-icon: ${shade(86)};
+      --glow: radial-gradient(100% 55% at 50% -12%, rgba(${rgbOf(shade(62))}, 0.24), transparent 62%);
+      --pearl: linear-gradient(115deg, ${stops([shade(89), shade(75, 0.36), shade(91), shade(68, 0.3), shade(93), shade(72, 0.33), shade(84), shade(89)])});
+      --brand: linear-gradient(115deg, ${stops([shade(78), shade(86), shade(71), shade(88), shade(78)])});`;
   }
   // The pictures, from the database once the app opens.
   const scenes = new Map();
@@ -4590,11 +4568,10 @@
   try { applyTheme(localStorage.getItem("theme") || "pearl", false); } catch { paintBackdrop(); }
 
   // The builder.
-  const TB_DEFAULT = ["#8a7dff", "#5fd3c6"];
+  const TB_DEFAULT = ["#8a7dff"];
   function tbPaint() {
     const box = $("tb-colors");
-    box.innerHTML = tb.colors.map((c, i) => `<label class="tb-swatch" title="Change this colour"><input type="color" value="${c}" data-tb-color="${i}" aria-label="Colour ${i + 1}">${tb.colors.length > 1 ? `<button class="tb-x" data-tb-drop="${i}" aria-label="Remove this colour">${X_ICON}</button>` : ""}</label>`).join("")
-      + (tb.colors.length < 3 ? `<button class="tb-add" id="tb-add" aria-label="Add a colour" title="Add a colour"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="M12 5v14"/></svg></button>` : "");
+    box.innerHTML = `<label class="tb-swatch" title="Change the colour"><input type="color" value="${tb.colors[0]}" data-tb-color="0" aria-label="Accent colour"></label><span class="tb-hex">${tb.colors[0].toUpperCase()}</span>`;
     box.querySelectorAll(".tb-swatch").forEach((sw, i) => { sw.style.background = tb.colors[i]; });
     tbLook();
   }
@@ -4611,17 +4588,9 @@
     if (i === undefined) return;
     tb.colors[Number(i)] = e.target.value;
     e.target.parentElement.style.background = e.target.value;
+    const hex = $("tb-colors").querySelector(".tb-hex");
+    if (hex) hex.textContent = e.target.value.toUpperCase();
     tbLook();
-  });
-  $("tb-colors").addEventListener("click", (e) => {
-    const drop = e.target.closest("[data-tb-drop]");
-    if (drop) { e.preventDefault(); tb.colors.splice(Number(drop.dataset.tbDrop), 1); tbPaint(); return; }
-    if (e.target.closest("#tb-add")) {
-      // A new colour: a step round the wheel from the last.
-      const last = hexHsl(tb.colors[tb.colors.length - 1]);
-      tb.colors.push(hsl((last.h + 50) % 360, Math.max(last.s, 50), Math.min(Math.max(last.l, 45), 70)));
-      tbPaint();
-    }
   });
   $("tb-name").addEventListener("input", tbLook);
   $("tb-base").onclick = (e) => {
@@ -4635,7 +4604,7 @@
   function openThemeBuilder(id) {
     const t = typeof id === "string" ? customThemes().find((x) => x.id === id) : null;
     tb.editing = t ? t.id : null;
-    tb.colors = t ? t.colors.slice() : TB_DEFAULT.slice();
+    tb.colors = t ? t.colors.slice(0, 1) : TB_DEFAULT.slice();
     tb.base = t && t.base === "light" ? "light" : "dark";
     tb.scene = t ? scenes.get(t.id) || null : null;
     $("tb-name").value = t ? t.name : "";
