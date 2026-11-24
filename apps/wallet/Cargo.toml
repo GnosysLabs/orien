@@ -89,7 +89,7 @@ objc2-foundation = { version = "0.3", features = ["NSAppleEventManager", "NSAppl
 [target.'cfg(target_os = "ios")'.dependencies]
 # Scanning the code another device shows, to move a wallet here.
 tauri-plugin-barcode-scanner = "2"
-objc2-ui-kit = { version = "0.3", features = ["UIApplication", "UIResponder", "UIWindow", "UIGeometry", "objc2-core-foundation"] }
+objc2-ui-kit = { version = "0.3", features = ["UIApplication", "UIResponder", "UIWindow", "UIGeometry", "objc2-core-foundation", "UIFeedbackGenerator", "UIImpactFeedbackGenerator", "UISelectionFeedbackGenerator", "UINotificationFeedbackGenerator"] }
 # Where the keyboard is, to fit the app above it exactly.
 objc2-core-foundation = { version = "0.3", features = ["CFCGTypes"] }
 
