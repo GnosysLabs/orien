@@ -1406,6 +1406,72 @@ async fn contacts_sync(app: AppHandle) -> Result<bool, String> {
     .map_err(|error| error.to_string())?
 }
 
+/// A theme's name as its picture is kept: "c-" and a few letters and digits.
+fn theme_picture_id(id: &str) -> Result<(), String> {
+    let ok = id.len() <= 40 && id.starts_with("c-") && id[2..].chars().all(|c| c.is_ascii_lowercase() || c.is_ascii_digit()) && id.len() > 2;
+    if ok { Ok(()) } else { Err("not a theme".into()) }
+}
+
+/// Keeps a built theme's picture (a data: address) for the person's other
+/// computers, sealed in every vault whose keys this app knows.
+#[tauri::command]
+async fn theme_picture_save(app: AppHandle, id: String, data: String) -> Result<(), String> {
+    theme_picture_id(&id)?;
+    use base64::Engine;
+    let body = data.split_once(";base64,").map(|(_, b)| b).ok_or("not a picture")?;
+    let bytes = base64::engine::general_purpose::STANDARD.decode(body).map_err(|_| "not a picture")?;
+    let dir = folder(&app)?;
+    tauri::async_runtime::spawn_blocking(move || {
+        let keys = vault::all_keys(&dir, wallet_file(&dir).as_deref());
+        if keys.is_empty() {
+            return Err("This wallet's keys aren't known yet: open it with its password once.".to_string());
+        }
+        let mut last = None;
+        let mut kept = false;
+        for k in &keys {
+            match vault::put_picture(k, &id, &bytes) {
+                Ok(()) => kept = true,
+                Err(error) => last = Some(error),
+            }
+        }
+        if kept { Ok(()) } else { Err(last.unwrap_or_default()) }
+    })
+    .await
+    .map_err(|error| error.to_string())?
+}
+
+/// A built theme's picture from the person's vault, as a data: address, if
+/// another of their computers kept one.
+#[tauri::command]
+async fn theme_picture_load(app: AppHandle, id: String) -> Result<Option<String>, String> {
+    use base64::Engine;
+    theme_picture_id(&id)?;
+    let dir = folder(&app)?;
+    tauri::async_runtime::spawn_blocking(move || {
+        for k in vault::all_keys(&dir, wallet_file(&dir).as_deref()) {
+            if let Ok(Some(bytes)) = vault::get_picture(&k, &id) {
+                return Ok(Some(format!("data:image/jpeg;base64,{}", base64::engine::general_purpose::STANDARD.encode(bytes))));
+            }
+        }
+        Ok(None)
+    })
+    .await
+    .map_err(|error| error.to_string())?
+}
+
+#[tauri::command]
+async fn theme_picture_delete(app: AppHandle, id: String) -> Result<(), String> {
+    theme_picture_id(&id)?;
+    let dir = folder(&app)?;
+    tauri::async_runtime::spawn_blocking(move || {
+        for k in vault::all_keys(&dir, wallet_file(&dir).as_deref()) {
+            vault::delete_picture(&k, &id);
+        }
+    })
+    .await
+    .map_err(|error| error.to_string())
+}
+
 /// The wallets' icons, by address: shared across devices with the contacts.
 #[tauri::command]
 fn wallet_icons(app: AppHandle) -> Result<std::collections::BTreeMap<String, String>, String> {
@@ -2707,7 +2773,7 @@ pub fn run() {
             }
             Ok(())
         })
-        .invoke_handler(tauri::generate_handler![share_address, has_wallet, create_wallet, save_phrase, restore_wallet, set_password, choose_wallet, overview_now, send_payment, activity, quote, contacts, save_contact, delete_contact, contacts_sync, members, save_member, delete_member, biometric_unlock, biometric_enable, update::check_update, update::install_update, update::download_update, update::away_seconds, mine_start, mine_stop, mine_resume, mine_set, mine_status, mine_benchmark, mine_benchmark_cancel, large_pages_state, large_pages_set_up, wallets, wallet_balances, use_wallet, rename_wallet, add_wallet, forget_wallet, swap_list, swap_sell, swap_buy, swap_accept, swap_step, swap_smallest, board_offers, board_me, board_email_start, board_email_finish, board_sign_out, board_post, board_take, board_withdraw, board_link, notifications_ask, push_sync, open_network_map, board_wallets_sync, board_post_sol, board_take_sol, sol_open, sol_payout_check, open_site, qr_code, address_qr, wallet_profiles, board_profile_save, board_picture_pick, board_verify, board_wallet_states, market_image, board_banner_remove, market_search, market_listings, market_listing, market_profile, market_call, market_pick_pictures, market_listing_picture, community_picture, klipy_gifs, dock_badge, mac_notify, board_delete_account, wallet_icons, set_wallet_icon, vault_ready, vault_unlock, open_contact, pair_offer, pair_offer_wait, pair_offer_send, pair_join, pair_join_wait, pair_invite, pair_invite_wait, pair_accept, pair_wallets, pair_accept_send, pair_cancel, wallet_phrase, phrase_check, app_theme, set_app_theme, set_backdrop, app_prefs, set_app_pref, app_unlock, computer_settings, set_computer_setting, notifications_muted, set_notification, open_legal, open_post_link, open_extension, haptics::haptic, haptics::haptic_ready, sitesignin::site_signin_answer, board_paid_wallet, board_wallet_remove])
+        .invoke_handler(tauri::generate_handler![share_address, has_wallet, create_wallet, save_phrase, restore_wallet, set_password, choose_wallet, overview_now, send_payment, activity, quote, contacts, save_contact, delete_contact, contacts_sync, members, save_member, delete_member, biometric_unlock, biometric_enable, update::check_update, update::install_update, update::download_update, update::away_seconds, mine_start, mine_stop, mine_resume, mine_set, mine_status, mine_benchmark, mine_benchmark_cancel, large_pages_state, large_pages_set_up, wallets, wallet_balances, use_wallet, rename_wallet, add_wallet, forget_wallet, swap_list, swap_sell, swap_buy, swap_accept, swap_step, swap_smallest, board_offers, board_me, board_email_start, board_email_finish, board_sign_out, board_post, board_take, board_withdraw, board_link, notifications_ask, push_sync, open_network_map, board_wallets_sync, board_post_sol, board_take_sol, sol_open, sol_payout_check, open_site, qr_code, address_qr, wallet_profiles, board_profile_save, board_picture_pick, board_verify, board_wallet_states, market_image, board_banner_remove, market_search, market_listings, market_listing, market_profile, market_call, market_pick_pictures, market_listing_picture, community_picture, klipy_gifs, dock_badge, mac_notify, board_delete_account, wallet_icons, set_wallet_icon, vault_ready, vault_unlock, open_contact, pair_offer, pair_offer_wait, pair_offer_send, pair_join, pair_join_wait, pair_invite, pair_invite_wait, pair_accept, pair_wallets, pair_accept_send, pair_cancel, wallet_phrase, phrase_check, app_theme, set_app_theme, set_backdrop, theme_picture_save, theme_picture_load, theme_picture_delete, app_prefs, set_app_pref, app_unlock, computer_settings, set_computer_setting, notifications_muted, set_notification, open_legal, open_post_link, open_extension, haptics::haptic, haptics::haptic_ready, sitesignin::site_signin_answer, board_paid_wallet, board_wallet_remove])
         .build(tauri::generate_context!())
         .expect("the wallet window could not start")
         .run(|_app, _event| {

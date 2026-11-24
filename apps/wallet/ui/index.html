@@ -4514,6 +4514,40 @@
       try { const pic = await sceneAsk("readonly", (st) => st.get(t.id)); if (pic) scenes.set(t.id, pic); } catch {}
     }
     paintOwnTheme();
+    shareScenes();
+    fetchScenes();
+  }
+  // The pictures follow the person to their other computers, sealed in
+  // their wallet's vault so nobody else can see them. iPhones never show
+  // them, so never fetch them. Each picture is sent once; one that couldn't
+  // be sent is tried again next time.
+  const sharedScenes = () => { try { return JSON.parse(localStorage.getItem("scenes-shared") || "[]"); } catch { return []; } };
+  async function shareScenes() {
+    if (phone) return;
+    for (const [id, pic] of scenes) {
+      if (sharedScenes().includes(id)) continue;
+      try {
+        await invoke("theme_picture_save", { id, data: pic });
+        localStorage.setItem("scenes-shared", JSON.stringify(sharedScenes().concat([id])));
+      } catch {}
+    }
+  }
+  let fetching = false;
+  async function fetchScenes() {
+    if (phone || fetching) return;
+    fetching = true;
+    for (const t of customThemes()) {
+      if (scenes.has(t.id)) continue;
+      try {
+        const pic = await invoke("theme_picture_load", { id: t.id });
+        if (!pic || !customThemes().some((x) => x.id === t.id)) continue;
+        scenes.set(t.id, pic);
+        localStorage.setItem("scenes-shared", JSON.stringify([...new Set(sharedScenes().concat([t.id]))]));
+        sceneAsk("readwrite", (st) => st.put(pic, t.id)).catch(() => {});
+        if (document.documentElement.dataset.theme === t.id) paintOwnTheme();
+      } catch {}
+    }
+    fetching = false;
   }
   // The colour behind the page matches the theme's deepest ground.
   function paintBackdrop() {
@@ -4576,6 +4610,8 @@
       shareThemes();
       scenes.delete(id);
       sceneAsk("readwrite", (st) => st.delete(id)).catch(() => {});
+      invoke("theme_picture_delete", { id }).catch(() => {});
+      localStorage.setItem("scenes-shared", JSON.stringify(sharedScenes().filter((x) => x !== id)));
       // The theme in use: back to the one chosen on your devices.
       if (document.documentElement.dataset.theme === id) {
         let back = "pearl";
@@ -4607,6 +4643,7 @@
     for (const id of [...scenes.keys()]) if (!list.some((t) => t.id === id)) { scenes.delete(id); sceneAsk("readwrite", (st) => st.delete(id)).catch(() => {}); }
     paintThemeCards();
     paintOwnTheme();
+    fetchScenes();
   }
   // As this device last had it, at once; then as chosen on any device.
   try { applyTheme(localStorage.getItem("theme") || "pearl", false); } catch { paintBackdrop(); }
@@ -4688,6 +4725,8 @@
     if (!name || !tb.colors.length || !tb.scene) return;
     const id = tb.editing || "c-" + Date.now().toString(36);
     $("tb-save").disabled = true;
+    const newPicture = tb.scene && scenes.get(id) !== tb.scene;
+    if (newPicture) localStorage.setItem("scenes-shared", JSON.stringify(sharedScenes().filter((x) => x !== id)));
     if (tb.scene && scenes.get(id) !== tb.scene) {
       try { await sceneAsk("readwrite", (st) => st.put(tb.scene, id)); }
       catch { problem("tb-problem", "The picture couldn't be saved on this device. Try a smaller one."); $("tb-save").disabled = false; return; }
@@ -4698,6 +4737,7 @@
     localStorage.setItem("custom-themes", JSON.stringify(list));
     shareThemes();
     if (tb.scene) scenes.set(id, tb.scene);
+    shareScenes();
     tb.colors = []; tb.scene = null; tb.editing = null;
     paintThemeCards();
     // Changed while in use: wear the changes now.

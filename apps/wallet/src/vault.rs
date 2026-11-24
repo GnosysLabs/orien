@@ -117,6 +117,57 @@ fn agent() -> ureq::Agent {
     ureq::AgentBuilder::new().timeout(Duration::from_secs(15)).user_agent("orien-wallet").build()
 }
 
+/// The vault keys of every wallet in the app whose keys are known, the open
+/// one first.
+pub fn all_keys(dir: &Path, open: Option<&Path>) -> Vec<VaultKeys> {
+    let mut wallets: Vec<std::path::PathBuf> = open.map(Path::to_path_buf).into_iter().collect();
+    for named in crate::known_wallets(dir) {
+        if !wallets.contains(&named.path) {
+            wallets.push(named.path);
+        }
+    }
+    wallets.iter().filter_map(|wallet| keys(dir, wallet, None)).collect()
+}
+
+// ---- Pictures kept beside the vault: the background pictures of the
+// themes the person built, sealed with the vault's keys, so they follow
+// the person to their other computers and nobody else can see them. ----
+
+fn picture_url(keys: &VaultKeys, pid: &str) -> String {
+    format!("{}/api/market/vault/{}/pictures/{}", crate::board::base(), keys.id, pid)
+}
+
+fn slow_agent() -> ureq::Agent {
+    ureq::AgentBuilder::new().timeout(Duration::from_secs(90)).user_agent("orien-wallet").build()
+}
+
+pub fn put_picture(keys: &VaultKeys, pid: &str, plain: &[u8]) -> Result<(), String> {
+    let sealed = keys.seal_picture(plain).map_err(|_| "That picture is too big to keep for your other devices.".to_string())?;
+    match slow_agent().put(&picture_url(keys, pid)).send_json(json!({ "token": keys.token, "blob": STANDARD.encode(sealed) })) {
+        Ok(_) => Ok(()),
+        Err(ureq::Error::Status(_, response)) => {
+            let said = response.into_json::<Value>().ok().and_then(|v| v["error"].as_str().map(str::to_string));
+            Err(said.unwrap_or_else(|| "The picture store refused it.".into()))
+        }
+        Err(_) => Err("The picture store can't be reached.".into()),
+    }
+}
+
+/// The picture, if this vault keeps one by that name.
+pub fn get_picture(keys: &VaultKeys, pid: &str) -> Result<Option<Vec<u8>>, String> {
+    let answer = match slow_agent().get(&picture_url(keys, pid)).query("token", &keys.token).call() {
+        Ok(response) => response.into_json::<Value>().map_err(|_| "The picture store sent an answer this app can't read.".to_string())?,
+        Err(ureq::Error::Status(404, _)) => return Ok(None),
+        Err(_) => return Err("The picture store can't be reached.".into()),
+    };
+    let sealed = STANDARD.decode(answer["blob"].as_str().unwrap_or_default()).map_err(|_| "The picture store holds something damaged.")?;
+    keys.open(&sealed).map(Some).map_err(|error| error.to_string())
+}
+
+pub fn delete_picture(keys: &VaultKeys, pid: &str) {
+    let _ = agent().delete(&picture_url(keys, pid)).send_json(json!({ "token": keys.token }));
+}
+
 /// The book as the vault holds it: None if there's nothing there yet.
 fn get(keys: &VaultKeys) -> Result<Option<Book>, String> {
     let answer = match agent().get(&url(keys)).call() {
