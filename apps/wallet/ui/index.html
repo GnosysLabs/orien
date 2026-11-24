@@ -1237,6 +1237,14 @@
   .tb-pic .pill { flex: none; }
   .tb-pic-name { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 13px; color: var(--dim); }
   #theme-build #tb-save { margin-top: 26px; }
+  /* Big windows: the preview large on the left, the choices beside it. */
+  @media (min-width: 980px) {
+    #theme-build { --col: 1040px; }
+    .tb-layout { display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr); gap: 32px; align-items: start; }
+    .tb-stage { position: sticky; top: 56px; margin: 4px 0 0; }
+    .tb-form > .field:first-child { margin-top: 4px; }
+    body:not(.phone) #theme-build #tb-save { width: 100%; min-width: 0; }
+  }
   .theme-card { display: grid; gap: 9px; padding: 0; border: 0; background: none; color: var(--ink); font: inherit; text-align: left; cursor: pointer; }
   .theme-card .tc-mini { position: relative; aspect-ratio: 4 / 5; padding: 12px 10px; border-radius: 18px; overflow: hidden;
     background: var(--glow), var(--ground-deep); border: 1px solid var(--line); box-shadow: 0 10px 28px rgba(0, 0, 0, 0.35);
@@ -2373,6 +2381,7 @@
     <!-- Build a theme: two or three colours and a picture, kept on this device. -->
     <section class="screen" id="theme-build" hidden>
       <div class="topline"><button class="back" id="tb-back" aria-label="Back"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg></button><h2>Build a theme</h2></div>
+      <div class="tb-layout">
       <div class="tb-stage" id="tb-stage">
         <div class="tc-mini tb-mini" data-theme="c-draft">
           <div class="tc-bar"><span class="tc-word"></span><span class="tc-dot"></span></div>
@@ -2381,6 +2390,7 @@
           <div class="tc-list"><i></i><i></i><i></i></div>
         </div>
       </div>
+      <div class="tb-form">
       <div class="field">
         <label for="tb-name">Name</label>
         <div class="box plain"><input id="tb-name" maxlength="24" placeholder="My theme" autocomplete="off" spellcheck="false"></div>
@@ -2398,6 +2408,8 @@
       </div>
       <div class="problem" id="tb-problem" hidden></div>
       <button class="primary pearl" id="tb-save" disabled>Save theme</button>
+      </div>
+      </div>
     </section>
 
     <!-- Home -->
