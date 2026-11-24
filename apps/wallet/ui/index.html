@@ -4663,7 +4663,9 @@
     if (chosen && !profiles.has(lower)) loadProfiles([lower]).then((found) => found && validate());
     const pic = chosen && (official(lower) || (profileOf(lower) && profileOf(lower).picture)) ? face(lower, who) : "";
     $("to-chosen").innerHTML = !chosen ? "" : who
-      ? `${pic}<span class="who">${esc(who)}</span>${officialTag(lower)}<span class="addr">${short(lower)}</span>`
+      // iPhones: with a name shown, only the address's last four, so the
+      // name has the room.
+      ? `${pic}<span class="who">${esc(who)}</span>${officialTag(lower)}<span class="addr">${phone ? "…" + lower.slice(-4) : short(lower)}</span>`
       : `<span class="addr solo">${short(lower)}</span>`;
     $("paste").textContent = chosen ? "Clear" : "Paste";
     $("scan-to").hidden = chosen;
