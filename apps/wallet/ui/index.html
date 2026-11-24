@@ -1476,6 +1476,7 @@
   .cm-filter { display: flex; margin-bottom: 14px; border: 1px solid var(--line); border-radius: 14px; background: var(--surface); overflow: hidden; }
   .cm-filter button { position: relative; flex: 1; height: 40px; border: 0; background: transparent; color: var(--dim); font-weight: 600; font-size: 13.5px; cursor: pointer; }
   .cm-filter button.on { color: var(--ink); }
+  #sl-filter button { min-width: 0; padding: 0 10px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .cm-filter button.on::after { content: ""; position: absolute; left: 36%; right: 36%; bottom: 0; height: 3px; border-radius: 3px;
     background: var(--pearl); background-size: 300% 100%; }
   .cm-box { border: 1px solid var(--line); border-radius: 18px; background: var(--surface); overflow: hidden; }
@@ -2464,6 +2465,7 @@
         <!-- Small windows: their posts and what they sell, one at a time. -->
         <div class="tabs sl-tabs" id="sl-tabs" role="tablist" hidden><button class="tab on" data-sl-tab="feed" role="tab">Feed</button><button class="tab" data-sl-tab="market" role="tab">On the Market</button></div>
         <div class="sl-main">
+          <div class="cm-filter" id="sl-filter" role="tablist"><button class="on" data-sl-only="">All</button><button data-sl-only="people" id="sl-only-name"></button><button data-sl-only="network">Network</button></div>
           <div class="cm-feed" id="sl-feed"></div>
           <button class="pill mk-more" id="sl-feed-more" hidden>Show more</button>
         </div>
@@ -7183,21 +7185,32 @@
   }
   // Report or block someone right from their page, as Apple asks of apps
   // where people meet. Blocking asks twice; it stops their messages.
-  const sl = { id: null, name: "", picture: null, blocked: false, armed: false, posts: [], more: false };
+  const sl = { id: null, name: "", picture: null, blocked: false, armed: false, posts: [], more: false, only: "" };
   async function slLoadFeed(more) {
     const name = sl.name;
     if (!name) return;
     try {
       const before = more && sl.posts.length ? `&before=${sl.posts[sl.posts.length - 1].id}` : "";
-      const page = await cmCall("GET", `/feed?about=${encodeURIComponent(name)}&kinds=${CM_KINDS}${before}`);
-      if (name !== sl.name) return;
+      const only = sl.only;
+      const page = await cmCall("GET", `/feed?about=${encodeURIComponent(name)}&kinds=${CM_KINDS}${only ? `&only=${only}` : ""}${before}`);
+      if (name !== sl.name || only !== sl.only) return;
       sl.posts = more ? sl.posts.concat(page.posts || []) : page.posts || [];
       sl.more = !!page.more;
     } catch { if (!more) sl.posts = []; }
     slPaintFeed();
   }
+  // Their page's feed: everything, only what they posted, or only what the
+  // network said about them.
+  function slPaintFilter() { for (const b of document.querySelectorAll("[data-sl-only]")) b.classList.toggle("on", b.dataset.slOnly === sl.only); }
+  for (const b of document.querySelectorAll("[data-sl-only]")) b.onclick = () => {
+    if (sl.only === b.dataset.slOnly) return;
+    sl.only = b.dataset.slOnly; slPaintFilter();
+    sl.posts = []; sl.more = false;
+    slLoadFeed(false);
+  };
   function slPaintFeed() {
-    $("sl-feed").innerHTML = sl.posts.length ? sl.posts.map((p) => cmCard(p)).join("") : '<div class="cm-empty cm-box">Nothing in the community yet.</div>';
+    const none = sl.only === "people" ? `${esc(sl.name)} hasn’t posted yet.` : sl.only === "network" ? "Nothing from the network about them yet." : "Nothing in the community yet.";
+    $("sl-feed").innerHTML = sl.posts.length ? sl.posts.map((p) => cmCard(p)).join("") : `<div class="cm-empty cm-box">${none}</div>`;
     $("sl-feed-more").hidden = !sl.more;    slFitEdges();
   }
   $("sl-feed-more").onclick = () => slLoadFeed(true);
@@ -7258,6 +7271,9 @@
   window.addEventListener("resize", slFitEdges);
   function paintSellerTools(answer) {
     const a = answer.account || {};
+    // Another person's page starts on All.
+    if (a.id !== sl.id) { sl.only = ""; slPaintFilter(); }
+    $("sl-only-name").textContent = a.name || "Posts";
     sl.id = a.id; sl.name = a.name || ""; sl.blocked = !!answer.blocked; sl.armed = false;
     $("sl-tools").hidden = !board.me || board.me.id === a.id;
     sl.picture = a.picture;
