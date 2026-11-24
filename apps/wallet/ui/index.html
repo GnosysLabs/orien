@@ -453,6 +453,7 @@
      iPhones keep them full width, under the thumb. */
   body:not(.phone) :is(.primary, .secondary) { width: fit-content; min-width: 240px; max-width: 100%; padding-left: 36px; padding-right: 36px; margin-left: auto; margin-right: auto; }
   .primary:disabled { opacity: 0.4; cursor: default; }
+  .secondary:disabled { opacity: 0.55; cursor: default; }
   .secondary {
     width: 100%; height: 48px; border-radius: var(--radius); cursor: pointer;
     background: transparent; border: 1px solid var(--line); font-weight: 500;
@@ -4017,8 +4018,12 @@
       ? `This hour: ${s.found.toLocaleString()} shares found, ${s.taken.toLocaleString()} counted` : "";
     $("mn-reward").textContent = m.last_reward ? `+${m.last_reward.amount} ORN` : "none yet";
     $("mn-odds").textContent = s.one_in ? `About one try in ${s.one_in.toLocaleString()} makes a share. ` : "";
-    $("mn-go").textContent = s.running ? "Stop mining" : "Start mining";
+    // While it gets ready (about a minute) it can't be stopped yet: the
+    // button says so and waits, then becomes Stop mining.
+    const readying = !!(s.running && s.preparing);
+    $("mn-go").textContent = readying ? "Getting ready…" : s.running ? "Stop mining" : "Start mining";
     $("mn-go").className = s.running ? "secondary" : "primary pearl";
+    $("mn-go").disabled = readying;
     if (s.problem && !s.running) problem("mine-problem", s.problem); else $("mine-problem").hidden = true;
     return s;
   }
@@ -4055,7 +4060,11 @@
     try {
       const s = await mineStatus(false);
       if (s && s.running) await invoke("mine_stop");
-      else await invoke("mine_start", { threads: Number($("mn-cpu").value) });
+      else {
+        // At once, before the first status arrives.
+        $("mn-go").textContent = "Getting ready…"; $("mn-go").className = "secondary"; $("mn-go").disabled = true;
+        await invoke("mine_start", { threads: Number($("mn-cpu").value) });
+      }
     } catch (e) { problem("mine-problem", e); }
     $("mn-go").disabled = false;
     mineStatus(false);
