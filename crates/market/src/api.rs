@@ -48,6 +48,8 @@ pub struct App {
     min_swap_version: u32,
     /// Market events waiting for the push watcher to tell phones about.
     events: Mutex<Vec<crate::push::Event>>,
+    /// The last notice phones were told of; below zero until the first look.
+    pub(crate) pushed_notice: std::sync::atomic::AtomicI64,
     /// Pairing mailboxes, for moving a wallet between someone's devices.
     pairs: crate::pair::Mailboxes,
     /// The App Store reviewers' email and its fixed code, if set.
@@ -110,6 +112,7 @@ impl App {
             traffic: Arc::new(crate::traffic::Traffic::in_memory()),
             min_swap_version: 0,
             events: Mutex::new(Vec::new()),
+            pushed_notice: std::sync::atomic::AtomicI64::new(-1),
             pairs: crate::pair::Mailboxes::default(),
             review: None,
             explorer: crate::explorer::Explorer::default(),

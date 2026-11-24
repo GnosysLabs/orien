@@ -211,6 +211,62 @@ impl Store {
         Ok(())
     }
 
+    /// The bell's lines worth a phone notification, made after notice
+    /// `after` and no earlier than `since`: replies, answers, reactions and
+    /// the network's posts about someone. Tips and messages are told on
+    /// their own. Gives the last notice looked at, and for each line whose
+    /// phones to tell, what to say, and the post to open. With `after`
+    /// below zero, only finds where the notices are up to.
+    pub(crate) fn fresh_for_phones(&self, after: i64, since: u64) -> Result<(i64, Vec<(i64, String, i64)>)> {
+        let last: i64 = self.db.query_row("SELECT COALESCE(MAX(id), 0) FROM notices", [], |row| row.get(0))?;
+        if after < 0 {
+            return Ok((last, Vec::new()));
+        }
+        let mut query = self.db.prepare(
+            "SELECT n.account, n.kind, n.emoji, a.name, p.kind, p.parent, COALESCE(p.parent, p.id), p.data
+             FROM notices n
+             JOIN posts p ON p.id = n.post
+             LEFT JOIN accounts a ON a.id = n.actor
+             WHERE n.id > ?1 AND n.id <= ?2 AND n.created >= ?3 AND p.removed = 0
+               AND n.kind IN ('reply', 'also', 'react', 'network')
+               AND (n.actor IS NULL OR n.actor NOT IN (SELECT account FROM suspended))
+             ORDER BY n.id",
+        )?;
+        let rows = query.query_map(params![after, last, since as i64], |row| {
+            Ok((
+                row.get::<_, i64>(0)?,
+                row.get::<_, String>(1)?,
+                row.get::<_, String>(2)?,
+                row.get::<_, Option<String>>(3)?,
+                row.get::<_, String>(4)?,
+                row.get::<_, Option<i64>>(5)?,
+                row.get::<_, i64>(6)?,
+                row.get::<_, String>(7)?,
+            ))
+        })?;
+        let mut fresh = Vec::new();
+        for row in rows {
+            let (account, kind, emoji, name, post_kind, parent, root, data) = row?;
+            // As the bell says it.
+            let theirs = if post_kind != "post" {
+                "the network’s post about you"
+            } else if parent.is_some() {
+                "your reply"
+            } else {
+                "your post"
+            };
+            let name = name.unwrap_or_default();
+            let body = match kind.as_str() {
+                "reply" => format!("{name} replied to {theirs}"),
+                "also" => format!("{name} also replied to a post you replied to"),
+                "react" => format!("{name} reacted {emoji} to {theirs}"),
+                _ => network_line(&post_kind, &data),
+            };
+            fresh.push((account, body, root));
+        }
+        Ok((last, fresh))
+    }
+
     fn seen(&self, account: i64) -> Result<Option<(i64, u64)>> {
         Ok(self
             .db
@@ -389,6 +445,25 @@ async fn see(State(app): State<Arc<App>>, headers: HeaderMap) -> Result<Response
     Ok(Json(json!({})).into_response())
 }
 
+/// A phone's line for the network's post about someone, under the post's
+/// heading as the Community shows it.
+fn network_line(kind: &str, data: &str) -> String {
+    let data: Value = serde_json::from_str(data).unwrap_or(json!({}));
+    let heading = match kind {
+        "record" => "New record",
+        "welcome" => "Welcome",
+        "milestone" => "Milestone",
+        "streak" => "On a streak",
+        "top_day" => "Top miner of the day",
+        "validator" => "New validator",
+        _ => "Orien Network",
+    };
+    match (kind, data["hours"].as_u64()) {
+        ("streak", Some(hours)) => format!("{heading}: you’ve been paid for mining {hours} hours in a row"),
+        _ => format!("{heading}: the network posted about you in the Community"),
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use crate::store::Store;
@@ -403,6 +478,24 @@ mod tests {
             ids.push(id);
         }
         (store, ids[0], ids[1], ids[2])
+    }
+
+    #[test]
+    fn phones_hear_replies_answers_and_reactions_as_the_bell_says_them() {
+        let (store, maya, sam, ana) = people();
+        let (start, nothing) = store.fresh_for_phones(-1, 0).unwrap();
+        assert!(nothing.is_empty());
+        let post = store.add_post(maya, "First block mined", None).unwrap();
+        let reply = store.add_post(sam, "Nice one", Some(post)).unwrap();
+        store.add_reply(ana, "Agreed", Some(post), Some(reply)).unwrap();
+        store.react(ana, reply, "🔥").unwrap();
+        let (last, fresh) = store.fresh_for_phones(start, 0).unwrap();
+        let said = |who: i64| fresh.iter().filter(|(a, _, _)| *a == who).map(|(_, b, p)| (b.clone(), *p)).collect::<Vec<_>>();
+        assert_eq!(said(maya), vec![("Sam replied to your post".to_string(), post), ("Ana replied to your post".to_string(), post)]);
+        assert_eq!(said(sam), vec![("Ana replied to your reply".to_string(), post), ("Ana reacted 🔥 to your reply".to_string(), post)]);
+        assert!(said(ana).is_empty());
+        assert!(store.fresh_for_phones(last, 0).unwrap().1.is_empty(), "each said once");
+        assert!(store.fresh_for_phones(start, u64::MAX / 2).unwrap().1.is_empty(), "nothing old");
     }
 
     #[test]

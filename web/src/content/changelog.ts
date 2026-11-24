@@ -27,6 +27,14 @@ export const PRODUCTS: Record<Product, string> = {
 export const CHANGELOG: Entry[] = [
   {
     date: '2026-11-24',
+    products: ['marketplace'],
+    title: 'Community notifications on iPhone',
+    changes: [
+      'Orien Wallet on iPhone now tells you when someone replies to your post or comment, reacts to it, or the network posts about you, worded as in the bell. The Community switch in Settings turns them off.',
+    ],
+  },
+  {
+    date: '2026-11-24',
     products: ['wallet'],
     version: '1.9.3',
     title: 'A robot for everyone without a picture',
