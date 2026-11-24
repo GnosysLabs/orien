@@ -678,7 +678,8 @@
     background: rgba(var(--tint), 0.06); color: var(--dim); cursor: pointer; transition: background .15s, color .15s; }
   @media (hover: hover) { .wallet-row .tool:hover { background: rgba(var(--tint), 0.11); color: var(--ink); } }
   @media (hover: hover) { .wallet-row .tool[data-forget]:hover { background: #e5484d; color: #1b1113; } }
-  body.phone #wallet-list { gap: 10px; }
+  /* iPhones: one card to a row. */
+  body.phone #wallet-list { grid-template-columns: minmax(0, 1fr); gap: 10px; }
   body.phone .wallet-row { padding: 12px 12px 14px; }
   body.phone .wallet-row .bal { font-size: 18px; }
   /* The swap board */
