@@ -21,6 +21,10 @@ use chacha20poly1305::{XChaCha20Poly1305, XNonce};
 /// The most a vault may hold, sealed.
 pub const MAX_BLOB: usize = 64 * 1024;
 
+/// The most one picture kept beside a vault may be, sealed: a theme's
+/// background picture, at most 2560 across.
+pub const MAX_PICTURE: usize = 2 * 1024 * 1024;
+
 /// Saved by the wallet app, privately, so a wallet with a password can keep
 /// its contacts in step without asking for the password each time.
 #[derive(Clone, serde::Serialize, serde::Deserialize)]
@@ -44,13 +48,22 @@ impl VaultKeys {
 
     /// `plain`, sealed with a fresh nonce in front.
     pub fn seal(&self, plain: &[u8]) -> Result<Vec<u8>> {
+        self.seal_at_most(plain, MAX_BLOB)
+    }
+
+    /// A picture kept beside the vault, sealed the same way.
+    pub fn seal_picture(&self, plain: &[u8]) -> Result<Vec<u8>> {
+        self.seal_at_most(plain, MAX_PICTURE)
+    }
+
+    fn seal_at_most(&self, plain: &[u8], most: usize) -> Result<Vec<u8>> {
         let nonce: [u8; 24] = crate::keys::random_seed()[..24].try_into().expect("24 of 32 bytes");
         let sealed = XChaCha20Poly1305::new(&self.key.into())
             .encrypt(XNonce::from_slice(&nonce), plain)
             .map_err(|_| anyhow!("could not seal the vault"))?;
         let mut out = nonce.to_vec();
         out.extend(sealed);
-        if out.len() > MAX_BLOB {
+        if out.len() > most {
             return Err(anyhow!("too much to keep in the vault"));
         }
         Ok(out)
