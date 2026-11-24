@@ -272,6 +272,23 @@ mod tests {
         let _ = fs::remove_dir_all(&base);
     }
 
+    /// A theme's picture kept on one computer is read back on another, and
+    /// gone once deleted. Against the live store, with a throwaway wallet.
+    #[test]
+    #[ignore = "reaches the live picture store"]
+    fn a_picture_follows_the_wallet() {
+        let base = std::env::temp_dir().join(format!("orien-vpic-{}", std::process::id()));
+        fs::create_dir_all(&base).unwrap();
+        let wallet = base.join("test.wallet");
+        let keys = Wallet::create(&wallet).unwrap().vault();
+        let picture: Vec<u8> = (0..1_200_000u32).map(|i| (i.wrapping_mul(2654435761) >> 13) as u8).collect();
+        put_picture(&keys, "c-test1", &picture).unwrap();
+        assert_eq!(get_picture(&keys, "c-test1").unwrap().as_deref(), Some(picture.as_slice()));
+        delete_picture(&keys, "c-test1");
+        assert_eq!(get_picture(&keys, "c-test1").unwrap(), None, "gone once deleted");
+        let _ = fs::remove_dir_all(&base);
+    }
+
     /// Two devices with the same wallet keep one address book: added on one,
     /// shown on the other; removed on one, removed on the other. Against the
     /// live store, with a throwaway wallet.

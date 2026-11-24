@@ -4521,13 +4521,33 @@
   // their wallet's vault so nobody else can see them. iPhones never show
   // them, so never fetch them. Each picture is sent once; one that couldn't
   // be sent is tried again next time.
+  // A picture made small enough to keep and to send to the person's other
+  // computers (at most 1.6 MB): as large and sharp as fits, stepping down in
+  // size and quality only as far as a very detailed photo needs. Never
+  // refused for being too big.
+  const PICTURE_MOST = 1.6 * 1024 * 1024;
+  function fitPicture(img) {
+    const w = img.naturalWidth, h = img.naturalHeight, canvas = document.createElement("canvas");
+    let url = "";
+    for (const [side, quality] of [[2560, 0.86], [2200, 0.82], [1920, 0.8], [1600, 0.76], [1280, 0.72]]) {
+      const k = Math.min(1, side / Math.max(w, h));
+      canvas.width = Math.round(w * k); canvas.height = Math.round(h * k);
+      canvas.getContext("2d").drawImage(img, 0, 0, canvas.width, canvas.height);
+      url = canvas.toDataURL("image/jpeg", quality);
+      if (url.length * 0.75 <= PICTURE_MOST) break;
+    }
+    return url;
+  }
+  const pictureOf = (url) => new Promise((done, fail) => { const i = new Image(); i.onload = () => done(i); i.onerror = fail; i.src = url; });
   const sharedScenes = () => { try { return JSON.parse(localStorage.getItem("scenes-shared") || "[]"); } catch { return []; } };
   async function shareScenes() {
     if (phone) return;
     for (const [id, pic] of scenes) {
       if (sharedScenes().includes(id)) continue;
       try {
-        await invoke("theme_picture_save", { id, data: pic });
+        // A picture kept here before pictures were fitted may be too big to send.
+        const fitted = pic.length * 0.75 > PICTURE_MOST ? fitPicture(await pictureOf(pic)) : pic;
+        await invoke("theme_picture_save", { id, data: fitted });
         localStorage.setItem("scenes-shared", JSON.stringify(sharedScenes().concat([id])));
       } catch {}
     }
@@ -4710,11 +4730,7 @@
       const img = await new Promise((done, fail) => { const i = new Image(); i.onload = () => done(i); i.onerror = () => fail(new Error("That file isn't a picture this app can open.")); i.src = url; });
       const w = img.naturalWidth, h = img.naturalHeight;
       if (w < 1920 || h < 1080) { problem("tb-problem", `That picture is ${w} × ${h}. It needs to be at least 1920 × 1080.`); return; }
-      // Kept at no more than 2560 across, so it's quick to show and store.
-      const k = Math.min(1, 2560 / Math.max(w, h)), canvas = document.createElement("canvas");
-      canvas.width = Math.round(w * k); canvas.height = Math.round(h * k);
-      canvas.getContext("2d").drawImage(img, 0, 0, canvas.width, canvas.height);
-      tb.scene = canvas.toDataURL("image/jpeg", 0.86);
+      tb.scene = fitPicture(img);
       $("tb-pic-name").textContent = file.name;
       $("tb-pick").textContent = "Change picture";
       tbLook();
