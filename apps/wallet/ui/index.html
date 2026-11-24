@@ -1274,7 +1274,8 @@
   @media (hover: hover) { .theme-card:hover .tc-mini { transform: translateY(-2px); box-shadow: 0 14px 34px rgba(0, 0, 0, 0.45); } }
   .theme-card:active .tc-mini { transform: scale(0.98); }
   .tc-bar { display: flex; justify-content: space-between; align-items: center; }
-  .tc-word { width: 38%; height: 7px; border-radius: 4px; background-image: var(--brand); background-size: 200% 100%; }
+  /* The little previews' strip shows the theme's sheen, as on its card. */
+  .tc-word { width: 38%; height: 7px; border-radius: 4px; background-image: var(--pearl); background-size: 200% 100%; }
   .tc-dot { width: 12px; height: 12px; border-radius: 50%; background: var(--surface-hover); }
   .tc-card { height: 34%; border-radius: 12px; background: var(--pearl); background-size: 300% 100%; animation: drift 24s linear infinite;
     padding: 10px; display: flex; flex-direction: column; justify-content: flex-end; gap: 5px; }
@@ -4462,7 +4463,7 @@
       --bubble-mine: ${hsl(a.h, clamp(a.s, 30, 50), 30)}; --chip-icon: ${shade(86)};
       --glow: radial-gradient(100% 55% at 50% -12%, rgba(${rgbOf(shade(62))}, 0.24), transparent 62%);
       --pearl: linear-gradient(115deg, ${stops([deep(0), deep(0.3), deep(0.05), deep(0.42), deep(0), deep(0.36), deep(0.16), deep(0)])});
-      --brand: linear-gradient(115deg, ${stops([shade(78), shade(86), shade(71), shade(88), shade(78)])});`;
+      --brand: linear-gradient(115deg, ${stops([deep(0), deep(0.12), deep(0.03), deep(0.18), deep(0)])});`;
   }
   // The pictures, from the database once the app opens.
   const scenes = new Map();
