@@ -663,6 +663,11 @@
   .wallet-row .bal { margin-top: 16px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 20px; font-weight: 600; font-variant-numeric: tabular-nums; letter-spacing: -0.01em; }
   .wallet-row .bal .unit { margin-left: 5px; font-size: 12px; font-weight: 500; color: var(--faint); letter-spacing: 0.04em; }
   .wallet-row .tools { display: flex; gap: 6px; }
+  /* A wallet's settings: the name, and Recovery phrase beside it. */
+  .wr-name-row { display: flex; align-items: stretch; gap: 10px; }
+  .wr-name-row .box { flex: 1; min-width: 0; }
+  .wr-name-row .pill.wr-reveal { flex: none; display: inline-flex; align-items: center; gap: 7px; height: auto; align-self: stretch; padding: 0 16px; border-radius: 14px; }
+  .wr-reveal svg { flex: none; }
   .wallet-row .tool { width: 34px; height: 34px; padding: 0; border: 0; border-radius: 50%; display: grid; place-items: center;
     background: rgba(var(--tint), 0.06); color: var(--dim); cursor: pointer; transition: background .15s, color .15s; }
   @media (hover: hover) { .wallet-row .tool:hover { background: rgba(var(--tint), 0.11); color: var(--ink); } }
@@ -2937,15 +2942,12 @@
     </section>
 
     <section class="screen" id="wallet-rename" hidden>
-      <div class="topline"><button class="back" id="wr-back" aria-label="Back"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg></button><h2>Edit wallet</h2>
-        <div class="account"><button class="pill icon" id="wr-more" title="More" aria-label="More"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg></button></div></div>
-      <div class="ch-menu" id="wr-menu" role="menu" hidden>
-        <button class="menu-row" id="wr-reveal"><span>Show recovery phrase</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2.586 17.414A2 2 0 0 0 2 18.828V21a1 1 0 0 0 1 1h3a1 1 0 0 0 1-1v-1a1 1 0 0 1 1-1h1a1 1 0 0 0 1-1v-1a1 1 0 0 1 1-1h.172a2 2 0 0 0 1.414-.586l.814-.814a6.5 6.5 0 1 0-4-4z"/><circle cx="16.5" cy="7.5" r=".5" fill="currentColor"/></svg></button>
-        <button class="menu-row bad" id="wr-forget"><span>Remove from this app</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 11v6"/><path d="M14 11v6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></button>
-      </div>
+      <div class="topline"><button class="back" id="wr-back" aria-label="Back"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg></button><h2>Wallet settings</h2>
+</div>
       <div class="field">
         <label for="wr-name">Name</label>
-        <div class="box plain"><input id="wr-name" maxlength="24" autocomplete="off"></div>
+        <div class="wr-name-row"><div class="box plain"><input id="wr-name" maxlength="24" autocomplete="off"></div>
+          <button class="pill wr-reveal" id="wr-reveal"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2.586 17.414A2 2 0 0 0 2 18.828V21a1 1 0 0 0 1 1h3a1 1 0 0 0 1-1v-1a1 1 0 0 1 1-1h1a1 1 0 0 0 1-1v-1a1 1 0 0 1 1-1h.172a2 2 0 0 0 1.414-.586l.814-.814a6.5 6.5 0 1 0-4-4z"/><circle cx="16.5" cy="7.5" r=".5" fill="currentColor"/></svg><span>Recovery phrase</span></button></div>
         <div class="hint" id="wr-saved"></div>
       </div>
       <div class="field">
@@ -3831,6 +3833,8 @@
       localStorage.removeItem("wallet-icons");
     }
   }
+  // A wallet's settings: its name, icon and recovery phrase.
+  const COG = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>';
   const PENCIL = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"/><path d="m15 5 4 4"/></svg>';
   const TRASH = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 11v6"/><path d="M14 11v6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>';
   function renderWallets(balances) {
@@ -3841,7 +3845,7 @@
     };
     $("wallet-list").innerHTML = walletList.map((w, i) => `<div class="wallet-row${w.current ? " current" : ""}" data-open="${i}">
       <div class="wc-top"><span class="coin${iconOf(w.address) ? " emoji" : ""}">${esc(iconOf(w.address) || (w.name || "?").slice(0, 1).toUpperCase())}</span>
-        <div class="tools"><button class="tool" data-rename="${i}" aria-label="Edit" title="Edit">${PENCIL}</button>${w.shared ? "" : `<button class="tool" data-forget="${i}" aria-label="Remove from this app" title="Remove from this app">${TRASH}</button>`}</div></div>
+        <div class="tools"><button class="tool" data-rename="${i}" aria-label="Wallet settings" title="Wallet settings">${COG}</button>${w.shared ? "" : `<button class="tool" data-forget="${i}" aria-label="Remove from this app" title="Remove from this app">${TRASH}</button>`}</div></div>
       <div class="who"><div class="name"><span>${esc(w.name)}</span>${w.current ? '<span class="here">Open</span>' : ""}</div><div class="addr">${esc(short(w.address))}</div></div>
       <div class="bal"${balances[w.address] !== undefined ? ` title="${esc(balances[w.address])} ORN"` : ""}>${balances[w.address] !== undefined ? `${prefs.hide ? "••••" : esc(brief(balances[w.address]))}<span class="unit">ORN</span>` : "&nbsp;"}</div>
     </div>`).join("");
@@ -3856,7 +3860,6 @@
     for (const b of $("wallet-list").querySelectorAll("[data-rename]")) b.onclick = () => {
       renaming = walletList[Number(b.dataset.rename)];
       $("wr-name").value = renaming.name;
-      $("wr-forget").hidden = !!renaming.shared;
       renaming.icon = iconOf(renaming.address);
       paintIcons();
       $("wallet-rename-problem").hidden = true;
@@ -3870,13 +3873,6 @@
     };
   }
   $("wallet-chip").onclick = showWallets;
-  // Removing, from the wallet's own page too (on iPhones, the only place).
-  $("wr-forget").onclick = async () => {
-    await saveName();
-    $("wf-text").textContent = `${renaming.name} (${short(renaming.address)}) comes off this app's list.`;
-    $("wallet-forget-problem").hidden = true;
-    show("wallet-forget");
-  };
 
   // ---- Mining ----
   let mineTimer = null, mineCores = 0;
@@ -4292,8 +4288,8 @@
     const add = (group, id, title, steps, note) => g.push({ group, id, title, steps, note });
     add("Getting started", "backup", "Back up your recovery phrase", [
       `On Home, ${tap} the wallet’s name at the top to open <b>Wallets</b>.`,
-      `${Tap} the pencil on the wallet to open <b>Edit wallet</b>.`,
-      `${Tap} <b>⋯</b>, then <b>Show recovery phrase</b>, then <b>I understand, show them</b>.`,
+      `${Tap} the gear on the wallet’s card.`,
+      `${Tap} <b>Recovery phrase</b>, then <b>I understand, show them</b>.`,
       confirm,
       `${Tap} <b>Tap to reveal</b> and write the 24 words on paper, in order. Keep them somewhere safe and private.`,
     ], "Anyone with these words can spend this wallet’s ORN. Orien never asks for them.");
@@ -4579,7 +4575,6 @@
     $("rv-box").classList.add("blurred");
     $("rv-pw").value = "";
   }
-  $("wr-more").onclick = () => toggleMenu("wr-menu", "wr-more");
   $("wr-reveal").onclick = async () => {
     await saveName();
     revealClear();
@@ -7804,7 +7799,7 @@
   }
   document.addEventListener("pointerdown", (e) => {
     for (const m of document.querySelectorAll(".ch-menu:not([hidden])")) {
-      if (!m.contains(e.target) && !e.target.closest("#ch-more, #sl-more, #ls-more, #wr-more, .vf-more, [data-more], #board-who")) m.hidden = true;
+      if (!m.contains(e.target) && !e.target.closest("#ch-more, #sl-more, #ls-more, .vf-more, [data-more], #board-who")) m.hidden = true;
     }
   }, true);
   document.addEventListener("keydown", (e) => { if (e.key === "Escape") for (const m of document.querySelectorAll(".ch-menu")) m.hidden = true; });
