@@ -939,8 +939,8 @@
     html body.split #inbox { width: 336px; border-radius: 36px 0 0 36px; border-right: 0; }
     html body.split #chat { width: 760px; border-radius: 0 36px 36px 0; }
     html body.split #inbox::after { content: none; }
-    /* The dividing line between the two halves. */
-    html body.split #chat { box-shadow: inset 1px 0 0 var(--line); }
+    /* The dividing line between the two halves is the chat's own left
+       border: a real edge, so nothing lit inside either half covers it. */
     /* Headers: the same height on both sides, a line beneath. */
     body.split #inbox > .topline, body.split #chat > .ch-top { height: 64px; margin: 0; padding: 0 16px; border-bottom: 1px solid var(--line); }
     body.split #inbox > .topline .back { margin-left: -6px; }
