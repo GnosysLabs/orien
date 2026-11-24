@@ -1583,6 +1583,7 @@
      width, not only the part beside the picture. */
   body.phone .cm-attach { margin-left: -52px; }
   body.phone .cm-inline .cm-attach { margin-left: 0; }
+  body.phone .cm-inline-write, body.phone .cm-compose { scroll-margin: 12px 0 16px; }
   /* A comment's photo or GIF: smaller than a post's. */
   .cm-reply-main .cm-media { max-width: 340px; margin-top: 8px; }
   .cm-inline .cm-attach .cm-media { max-width: 260px; }
@@ -3178,17 +3179,24 @@
     // keyboard starts, as iPhone apps do, and says how much it covers. The
     // page never scrolls; screens scroll inside themselves.
     let keyboardUp = false;
+    // A comment box shows whole above the keyboard, its photo, GIF and
+    // Reply buttons too, not only the line being typed on.
     const showTyping = () => {
       const box = document.activeElement;
       if (!keyboardUp || !box || !box.matches("input, textarea")) return;
       if (box.closest(".ch-compose")) { const log = document.getElementById("ch-log"); if (log) log.scrollTop = log.scrollHeight; }
-      else box.scrollIntoView({ block: "nearest" });
+      else (box.closest(".cm-inline-write, .cm-compose") || box).scrollIntoView({ block: "nearest" });
     };
+    // Asked again a moment later: the page finishes getting shorter after
+    // the keyboard says it's up.
+    const showSoon = () => { requestAnimationFrame(showTyping); setTimeout(showTyping, 120); setTimeout(showTyping, 360); };
     window.__TAURI__.event.listen("keyboard", (e) => {
       keyboardUp = Number(e.payload) > 40;
       document.body.classList.toggle("kb-up", keyboardUp);
+      if (keyboardUp) showSoon();
     }).catch(() => {});
-    window.addEventListener("resize", () => requestAnimationFrame(showTyping));
+    window.addEventListener("resize", showSoon);
+    document.addEventListener("focusin", () => { if (keyboardUp) showSoon(); });
     // No pinching to zoom.
     for (const gesture of ["gesturestart", "gesturechange", "gestureend"]) {
       document.addEventListener(gesture, (e) => e.preventDefault(), { passive: false });
