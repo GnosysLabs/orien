@@ -4020,7 +4020,9 @@
     $("mn-odds").textContent = s.one_in ? `About one try in ${s.one_in.toLocaleString()} makes a share. ` : "";
     // While it gets ready (about a minute) it can't be stopped yet: the
     // button says so and waits, then becomes Stop mining.
-    const readying = !!(s.running && s.preparing);
+    // Ready means trying: until the first tries are counted it's still
+    // getting ready, so Stop mining never flashes up in between.
+    const readying = !!(s.running && (s.preparing || !s.tries_per_second));
     $("mn-go").textContent = readying ? "Getting ready…" : s.running ? "Stop mining" : "Start mining";
     $("mn-go").className = s.running ? "secondary" : "primary pearl";
     $("mn-go").disabled = readying;
