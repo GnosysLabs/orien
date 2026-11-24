@@ -163,6 +163,11 @@
   html body .card { box-shadow: 0 6px 16px rgba(var(--shade), var(--shade-a)), inset 0 1px 0 #ffffffb0; }
   html body .primary.pearl { box-shadow: inset 0 1px 0 #ffffffb0, 0 4px 12px rgba(var(--shade), var(--shade-a)); }
   html body .pill.pearl { box-shadow: inset 0 1px 0 #ffffffa0, 0 3px 9px rgba(var(--shade), var(--shade-a)); }
+  /* A dark built theme's sheen is deep: a bright top edge on it reads as a
+     hard white rim, so a faint one. */
+  html[data-base="dark"] body .card { box-shadow: 0 6px 16px rgba(var(--shade), var(--shade-a)), inset 0 1px 0 rgba(255, 255, 255, 0.16); }
+  html[data-base="dark"] body .primary.pearl { box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.16), 0 4px 12px rgba(var(--shade), var(--shade-a)); }
+  html[data-base="dark"] body .pill.pearl { box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.16), 0 3px 9px rgba(var(--shade), var(--shade-a)); }
   html body .wallet-row.current { box-shadow: 0 0 0 2.5px var(--select), 0 4px 12px rgba(var(--shade), var(--shade-a)); }
   html body .theme-card .tc-mini { box-shadow: 0 6px 14px rgba(var(--shade), var(--shade-a)); }
   html body .screen, html body #mine, html body #board-signin, html body #board-post, html body #board-take,
@@ -176,10 +181,12 @@
   :root { --col: 640px; }
   :root { --mn-cool: #6fa8ff; --mn-good: #5fd39d; --mn-warm: #f2a35e; --mn-dim: rgba(0, 0, 0, 0.62); }
   [data-theme="daylight"] { --mn-dim: rgba(255, 255, 255, 0.68); }
-  #market, #seller { --col: 1040px; }
+  /* Wide screens stay the container's usual width until there's room for
+     their expanded layouts. */
+  @media (min-width: 980px) { #market, #seller { --col: 1040px; } }
   /* A listing, in a big window: wider, its pictures large on the left and
      the title, price, seller and description beside them. */
-  @media (min-width: 960px) {
+  @media (min-width: 980px) {
     #listing { --col: 1040px; }
     .ls-layout { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); gap: 32px; align-items: start; }
     .ls-media { position: sticky; top: 56px; }
@@ -276,7 +283,9 @@
       var(--m) 50% 100% / calc(100% - 36px - 2 * var(--rb)) var(--rb) no-repeat,
       var(--bl) left 18px bottom 0 / var(--rb) var(--rb) no-repeat, var(--br) right 18px bottom 0 / var(--rb) var(--rb) no-repeat;
     -webkit-mask: var(--M); mask: var(--M); }
-  /* Big windows: each theme's photograph behind the app, quiet. */
+  /* Big windows: each theme's photograph behind the app, quiet, as soon as
+     the window is wider than the container; the screens keep the
+     container's width until 980px, where the wide ones expand. */
   :root, [data-theme="pearl"] { --scene: url(scenes/pearl.webp); }
   [data-theme="daylight"] { --scene: url(scenes/daylight.webp); }
   [data-theme="midnight"] { --scene: url(scenes/midnight.webp); }
@@ -286,9 +295,12 @@
   [data-theme="ruby"] { --scene: url(scenes/ruby.webp); }
   [data-theme="ember"] { --scene: url(scenes/ember.webp); }
   [data-theme="obsidian"] { --scene: url(scenes/obsidian.webp); }
-  @media (min-width: 900px) {
+  @media (min-width: 720px) {
     body:not(.phone)::before { content: ""; position: fixed; inset: 0; z-index: -1; pointer-events: none;
       background: var(--scene, none) center / cover no-repeat; opacity: 0.55; }
+    /* A light theme you built: your picture as it is. Faded over a light
+       ground it would only wash out to white. */
+    html[data-base="light"] body:not(.phone)::before { opacity: 1; }
     /* Each screen sits in a container that looks just like the app in a
        normal window: the theme's own ground and solid panels, with rounded
        corners and a soft shadow. The photo shows only around it, like a
@@ -315,8 +327,8 @@
   @media (min-width: 720px) and (min-height: 780px) {
     html body .push { flex: 0 1 40px; }
   }
-  [data-theme="daylight"] .tile, [data-theme="daylight"] .set-group, [data-theme="daylight"] .pair-card { box-shadow: 0 1px 2px rgba(40, 40, 80, 0.05); }
-  [data-theme="daylight"] .menu-row.bad { color: var(--bad); }
+  :is([data-theme="daylight"], [data-base="light"]) :is(.tile, .set-group, .pair-card) { box-shadow: 0 1px 2px rgba(40, 40, 80, 0.05); }
+  :is([data-theme="daylight"], [data-base="light"]) .menu-row.bad { color: var(--bad); }
   /* Switching: the whole app fades into the new look. */
   ::view-transition-old(root), ::view-transition-new(root) { animation-duration: 0.45s; animation-timing-function: ease; }
   @keyframes brand-drift { 0%, 100% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } }
@@ -340,6 +352,10 @@
     background: var(--pearl); background-size: 300% 100%; animation: drift 24s linear infinite;
     -webkit-background-clip: text; background-clip: text; color: transparent;
   }
+  /* Light themes: the sheen is pastel, made for dark words on it, and as
+     words on white it all but vanishes. The wordmark's deeper colours,
+     made to show on white, instead. */
+  :is([data-theme="daylight"], [data-base="light"]) .pearl-text { background-image: var(--brand); }
 
   /* ---- Top bar: the window is moved by it, and the window's own red,
      yellow and green buttons sit inside it on the left. ---- */
@@ -481,7 +497,9 @@
      frosted pill, so Back is always one tap away. Same height as at rest,
      so nothing below moves as it changes. Computers only: iPhones swipe
      back from the edge instead. */
-  body:not(.phone) .screen > .topline { position: sticky; top: 6px; z-index: 6; transition: background .2s, box-shadow .2s; }
+  /* No fading: a fading background would show as a full-width bar for a
+     moment as the pill turns back into the plain title. */
+  body:not(.phone) .screen > .topline { position: sticky; top: 6px; z-index: 6; }
   /* Not Messages beside a chat: those headers sit flush at the top, and
      neither half scrolls as a whole. */
   body.split :is(#inbox, #chat) > .topline { position: static; }
@@ -634,6 +652,10 @@
   .wallet-chip { display: inline-flex; align-items: center; gap: 6px; margin: 0 0 12px 2px; padding: 5px 10px;
     border: 1px solid var(--line); border-radius: 999px; background: transparent; cursor: pointer; font-size: 12.5px; color: var(--dim); }
   @media (hover: hover) { .wallet-chip:hover { color: var(--ink); background: rgba(var(--tint), 0.031); } }
+  /* Light themes: the same white as the buttons beside it, so it reads as
+     one to press rather than a label. */
+  :is([data-theme="daylight"], [data-base="light"]) .wallet-chip { background: var(--surface); color: var(--ink); }
+  @media (hover: hover) { :is([data-theme="daylight"], [data-base="light"]) .wallet-chip:hover { background: var(--surface-hover); } }
   /* A wallet: name and address on the left, its balance on the right
      (amount over unit, mirroring the two lines opposite), and quiet edit
      tools at the far end, past a hairline. All on one centred line. */
@@ -902,7 +924,15 @@
   .ib-row .udot { width: 8px; height: 8px; border-radius: 50%; background: #ff453a; }
   .ib-row:not(.unread) .udot { visibility: hidden; }
   #ib-list .list { border-radius: 18px; }
-  #nt-list .list { border-radius: 18px; }
+  .nt-panel { position: fixed; z-index: 55; width: 400px; max-width: calc(100vw - 24px); display: flex; flex-direction: column;
+    max-height: min(70vh, 560px); overflow: hidden; border-radius: 20px;
+    background: var(--surface); border: 1px solid var(--line); box-shadow: 0 24px 60px rgba(0, 0, 0, 0.55), 0 2px 8px rgba(0, 0, 0, 0.25); }
+  .nt-head { flex: none; padding: 16px 20px; font-size: 16px; font-weight: 700; color: var(--ink); border-bottom: 1px solid var(--line); }
+  .nt-body { flex: 1 1 auto; min-height: 0; overflow-y: auto; padding: 6px; overscroll-behavior: contain; }
+  .nt-panel .nt-body .list { display: grid; gap: 2px; border: 0; border-radius: 0; background: none; }
+  .nt-panel .nt-body .ib-row { border: 0; border-radius: 14px; }
+  .nt-panel .nt-body .empty { padding: 34px 20px; text-align: center; }
+  .nt-panel > .problem { margin: 0 12px 12px; }
   .nt-row { grid-template-columns: auto minmax(0, 1fr); align-items: start; }
   .nt-row .nt-faces { position: relative; width: 40px; height: 40px; }
   .nt-row .nt-faces .avatar + .avatar { position: absolute; right: -6px; bottom: -6px; width: 22px; height: 22px; font-size: 10px; box-shadow: 0 0 0 2px var(--surface); }
@@ -947,12 +977,14 @@
   #chat.none > :not(.ch-none) { display: none !important; }
   #chat.none .ch-none { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; flex: 1; color: var(--dim); font-size: 13.5px; }
   #chat .ch-none svg { width: 32px; height: 32px; color: var(--faint); }
-  @media (min-width: 1160px) {
+  @media (min-width: 980px) {
     body.split main { flex-direction: row; justify-content: center; gap: 0; }
     html body.split #inbox, html body.split #chat { flex: 0 0 auto; margin: -20px 0 0; padding: 0; overflow: hidden;
       -webkit-mask: none; mask: none; background: var(--surface); border: 1px solid var(--line); }
     html body.split #inbox { width: 336px; border-radius: 36px 0 0 36px; border-right: 0; }
-    html body.split #chat { width: 760px; border-radius: 0 36px 36px 0; }
+    /* The conversation takes the room left, up to 760px: at 980px wide the
+       two fill the window as the Community does, 12px from each side. */
+    html body.split #chat { width: min(760px, 100vw - 24px - 337px); border-radius: 0 36px 36px 0; }
     html body.split #inbox::after { content: none; }
     /* The dividing line between the two halves is the chat's own left
        border: a real edge, so nothing lit inside either half covers it. */
@@ -1104,10 +1136,10 @@
   #tab-offers .section-head { align-items: center; margin: 6px 4px 14px; }
   .sw-side-head, .sw-side-sub { display: none; }
   #board-last { display: none; }
-  @media (min-width: 960px) { body:not(.phone) #board-last:not([hidden]) { display: block; } }
+  @media (min-width: 980px) { body:not(.phone) #board-last:not([hidden]) { display: block; } }
   /* Big windows: offers on the left; your swaps, then recent finished
      swaps, in a column beside them. Every part shows at once, so no tabs. */
-  @media (min-width: 960px) {
+  @media (min-width: 980px) {
     body:not(.phone) #swaps { --col: 1040px; }
     body:not(.phone) #swaps > .tabs { display: none; }
     body:not(.phone) .sw-grid { display: grid; grid-template-columns: minmax(0, 1.55fr) minmax(0, 1fr); grid-template-areas: "offers mine" "offers hist";
@@ -1192,6 +1224,46 @@
   .st-credit { margin: 16px 4px 0; color: var(--faint); font-size: 12px; }
   .st-credit a { color: var(--dim); }
   .theme-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 14px; }
+  /* Themes you built: a bin in the corner; a first press arms it. */
+  .theme-card .tc-label { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .tc-del { flex: none; height: 26px; min-width: 26px; margin: -3px 0 -3px 6px; padding: 0 7px; border-radius: 999px;
+    display: inline-flex; align-items: center; justify-content: center; gap: 5px; font-size: 12px; font-weight: 600;
+    background: rgba(var(--tint), 0.07); color: var(--dim); transition: background .15s, color .15s; }
+  .tc-del svg { width: 13px; height: 13px; }
+  .tc-del + .tc-check { margin-left: 6px; }
+  .tc-del.armed { background: #e5484d; color: #fff; }
+  @media (hover: hover) { .tc-del:not(.tc-edit):hover { background: #e5484d; color: #fff; } .tc-edit:hover { background: rgba(var(--tint), 0.13); color: var(--ink); } }
+  /* The builder: the theme as it will look, over its picture. */
+  .tb-stage { position: relative; display: grid; place-items: center; aspect-ratio: 16 / 9; margin: 4px 0 22px; border-radius: 22px; overflow: hidden;
+    border: 1px solid var(--line); background: var(--ground-deep) center / cover no-repeat; }
+  .tb-stage.has-pic::before { content: ""; position: absolute; inset: 0; background: rgba(0, 0, 0, 0.12); }
+  .tb-mini { position: relative; width: min(42%, 190px); aspect-ratio: 4 / 5; padding: 12px 10px; border-radius: 18px; overflow: hidden;
+    background: var(--glow), var(--ground-deep); border: 1px solid var(--line); box-shadow: 0 18px 44px rgba(0, 0, 0, 0.5);
+    display: flex; flex-direction: column; gap: 8px; }
+  .tb-colors { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+  .tb-swatch { position: relative; width: 52px; height: 52px; border-radius: 50%; border: 1px solid var(--line); padding: 0; cursor: pointer;
+    border: 2px solid rgba(var(--tint), 0.16); box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3); }
+  .tb-swatch input { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; border: 0; padding: 0; }
+  .tb-swatch .tb-x { position: absolute; top: -4px; right: -4px; width: 22px; height: 22px; padding: 0; border: 0; border-radius: 50%;
+    display: grid; place-items: center; background: var(--surface-hover); color: var(--ink); box-shadow: 0 0 0 2px var(--ground); cursor: pointer; }
+  .tb-swatch .tb-x svg { width: 11px; height: 11px; }
+  .tb-hex { font: 13px ui-monospace, SFMono-Regular, Menlo, monospace; color: var(--dim); letter-spacing: 0.04em; }
+  .tb-add { width: 52px; height: 52px; border-radius: 50%; border: 1.5px dashed var(--faint); background: none; color: var(--dim);
+    display: grid; place-items: center; cursor: pointer; padding: 0; }
+  .tb-add svg { width: 18px; height: 18px; }
+  .tb-pic { display: flex; align-items: center; gap: 12px; min-width: 0; }
+  .tb-pic .pill { flex: none; }
+  .tb-pic-name { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 13px; color: var(--dim); }
+  #theme-build #tb-save { margin-top: 26px; }
+  .tabs.tb-base { margin-bottom: 0; }
+  /* Big windows: the preview large on the left, the choices beside it. */
+  @media (min-width: 980px) {
+    #theme-build { --col: 1040px; }
+    .tb-layout { display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr); gap: 32px; align-items: start; }
+    .tb-stage { position: sticky; top: 56px; margin: 4px 0 0; }
+    .tb-form > .field:first-child { margin-top: 4px; }
+    body:not(.phone) #theme-build #tb-save { width: 100%; min-width: 0; }
+  }
   .theme-card { display: grid; gap: 9px; padding: 0; border: 0; background: none; color: var(--ink); font: inherit; text-align: left; cursor: pointer; }
   .theme-card .tc-mini { position: relative; aspect-ratio: 4 / 5; padding: 12px 10px; border-radius: 18px; overflow: hidden;
     background: var(--glow), var(--ground-deep); border: 1px solid var(--line); box-shadow: 0 10px 28px rgba(0, 0, 0, 0.35);
@@ -1536,7 +1608,7 @@
   /* Community: the network's news and people's posts, as on orien.network,
      with the Market as its second tab. */
   .cm-tabs { margin: 0 0 16px; }
-  #community { --col: 1040px; }
+  @media (min-width: 980px) { #community { --col: 1040px; } }
   .cm-layout { display: block; }
   .cm-main { min-width: 0; }
   /* Narrow: of the sidebar, Find members stays, above the feed. Top
@@ -1551,6 +1623,8 @@
     .cm-miners-tab { display: block; }
     #community.miners .cm-main, #community.miners .cm-rail > :is(.cm-find, .cm-found) { display: none; }
     #community.miners .cm-rail > :is(.cm-you, .cm-board) { display: block; }
+    /* One post from a notification: the post right under the title. */
+    #community.focus .cm-rail { display: none; }
   }
   /* Big windows: the feed with the sidebar beside it, as on the website. */
   @media (min-width: 980px) {
@@ -1879,6 +1953,9 @@
   .cm-replies .cm-card { border-radius: 16px; margin-top: 10px; }
   .cm-reply { margin-top: 14px; }
   .cm-empty { padding: 28px 16px; text-align: center; color: var(--dim); }
+  /* A post opened from a notification: that post alone, its comments open,
+     titled Post; the back arrow returns to Notifications. */
+  #community.focus :is(.cm-tabs, .cm-filter, #cm-compose, #cm-join, #cm-more) { display: none !important; }
   @keyframes spin { to { transform: rotate(360deg); } }
   .spinner {
     display: inline-block; width: 14px; height: 14px; margin-right: 8px; vertical-align: -2px;
@@ -2246,7 +2323,8 @@
 
     <!-- Settings -->
     <section class="screen" id="settings" hidden>
-      <div class="topline"><button class="back" id="st-back" aria-label="Back"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg></button><h2 id="st-title">Settings</h2></div>
+      <div class="topline"><button class="back" id="st-back" aria-label="Back"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg></button><h2 id="st-title">Settings</h2>
+        <div class="account"><button class="pill pearl wl-add" id="st-build" hidden><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="M12 5v14"/></svg>Build a theme</button></div></div>
       <div class="set-group" id="st-menu" data-gap="lg">
         <button class="set-row st-cat" id="st-link"><span class="st-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v7a2 2 0 0 0 2 2h8"/><path d="M10 19v-3.96 3.15"/><path d="M7 19h5"/><rect width="6" height="10" x="16" y="12" rx="2"/></svg></span><span class="set-txt"><b>Link a new device</b><small>Send your wallets to your other phone or computer</small></span><svg class="chev" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg></button>
         <button class="set-row st-cat" data-page="appearance" id="st-cat-appearance"><span class="st-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22a1 1 0 0 1 0-20 10 9 0 0 1 10 9 5 5 0 0 1-5 5h-2.25a1.75 1.75 0 0 0-1.4 2.8l.3.4a1.75 1.75 0 0 1-1.4 2.8z"/><circle cx="13.5" cy="6.5" r=".5" fill="currentColor"/><circle cx="17.5" cy="10.5" r=".5" fill="currentColor"/><circle cx="6.5" cy="12.5" r=".5" fill="currentColor"/><circle cx="8.5" cy="7.5" r=".5" fill="currentColor"/></svg></span><span class="set-txt"><b>Appearance</b></span><svg class="chev" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg></button>
@@ -2315,6 +2393,44 @@
         <button class="set-row st-cat" id="st-discord"><span class="so-ico discord"><svg width="19" height="19" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028 14.09 14.09 0 0 0 1.226-1.994.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.956-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.956 2.418-2.157 2.418zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.946 2.418-2.157 2.418z"/></svg></span><span class="set-txt"><b>Discord</b><small>Updates as they happen, and chat with the community</small></span><svg class="chev" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg></button>
         <button class="set-row st-cat" id="st-x"><span class="so-ico x"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg></span><span class="set-txt"><b>X</b><small>Follow Orien’s posts</small></span><svg class="chev" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg></button>
         <button class="set-row st-cat" id="st-youtube"><span class="so-ico youtube"><svg width="19" height="19" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg></span><span class="set-txt"><b>YouTube</b><small>Videos about Orien</small></span><svg class="chev" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg></button>
+      </div>
+      </div>
+    </section>
+
+    <!-- Build a theme: two or three colours and a picture, kept on this device. -->
+    <section class="screen" id="theme-build" hidden>
+      <div class="topline"><button class="back" id="tb-back" aria-label="Back"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg></button><h2 id="tb-title">Build a theme</h2></div>
+      <div class="tb-layout">
+      <div class="tb-stage" id="tb-stage">
+        <div class="tc-mini tb-mini">
+          <div class="tc-bar"><span class="tc-word"></span><span class="tc-dot"></span></div>
+          <div class="tc-card"><i></i><i></i><i></i></div>
+          <div class="tc-tiles"><span></span><span></span><span></span><span></span></div>
+          <div class="tc-list"><i></i><i></i><i></i></div>
+        </div>
+      </div>
+      <div class="tb-form">
+      <div class="field">
+        <label for="tb-name">Name</label>
+        <div class="box plain"><input id="tb-name" maxlength="24" placeholder="My theme" autocomplete="off" spellcheck="false"></div>
+      </div>
+      <div class="field">
+        <label>Base</label>
+        <div class="tabs tb-base" id="tb-base" role="tablist"><button class="tab on" data-base-pick="dark" role="tab">Dark</button><button class="tab" data-base-pick="light" role="tab">Light</button></div>
+      </div>
+      <div class="field">
+        <label>Accent colour</label>
+        <div class="tb-colors" id="tb-colors"></div>
+        <div class="hint">It colours the buttons, the balance card, the glow and the highlights, the way each built-in theme has its own.</div>
+      </div>
+      <div class="field">
+        <label>Background picture</label>
+        <div class="tb-pic"><button class="pill" id="tb-pick">Choose a picture</button><span class="tb-pic-name" id="tb-pic-name"></span></div>
+        <div class="hint">At least 1920 × 1080. It shows behind the app in big windows.</div>
+        <input type="file" id="tb-file" accept="image/jpeg,image/png,image/webp" hidden>
+      </div>
+      <div class="problem" id="tb-problem" hidden></div>
+      <button class="primary pearl" id="tb-save" disabled>Save theme</button>
       </div>
       </div>
     </section>
@@ -2413,7 +2529,7 @@
 
     <!-- Orien Market: work and things offered for ORN. -->
     <section class="screen" id="community" hidden>
-      <div class="topline"><button class="back" data-back aria-label="Back"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg></button><h2>Community</h2></div>
+      <div class="topline"><button class="back" data-back aria-label="Back"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg></button><h2 id="cm-title">Community</h2></div>
       <div class="tabs cm-tabs" role="tablist"><button class="tab on" data-cm-tab="community" role="tab">Feed</button><button class="tab" data-cm-tab="market" role="tab">Market</button><button class="tab cm-miners-tab" data-cm-tab="miners" role="tab">Top miners</button></div>
       <div class="cm-layout">
         <div class="cm-main">
@@ -2536,10 +2652,11 @@
     <!-- Market messages -->
     <!-- Notifications, as the website's bell shows them: replies, reactions,
          the network's posts about you, and messages. -->
+
+    <!-- iPhones: Notifications as a page (computers use the panel below; its
+         list moves in here). -->
     <section class="screen" id="notices" hidden>
       <div class="topline"><button class="back" id="nt-back" aria-label="Back"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg></button><h2>Notifications</h2></div>
-      <div class="scroll" id="nt-list"></div>
-      <div class="problem" id="nt-problem" hidden></div>
     </section>
 
     <section class="screen" id="inbox" hidden>
@@ -3244,6 +3361,12 @@
   <div class="gif-by" id="gif-by">Powered by KLIPY</div>
 </div></div>
 <div id="pic-veil" hidden><img id="pic-big" alt=""></div>
+<!-- Notifications: a panel that drops from the bell, as on the website. -->
+<div class="nt-panel" id="nt-panel" role="dialog" aria-label="Notifications" hidden>
+  <div class="nt-head">Notifications</div>
+  <div class="nt-body" id="nt-list"></div>
+  <div class="problem" id="nt-problem" hidden></div>
+</div>
 <div class="ch-menu" id="me-menu" role="menu" hidden>
   <button class="menu-row" id="me-view"><span>View Profile</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21v-1a6 6 0 0 1 6-6h4a6 6 0 0 1 6 6v1"/></svg></button>
   <button class="menu-row" id="me-edit"><span>Edit Profile</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"/></svg></button>
@@ -3525,23 +3648,30 @@
 
   // Wide windows show Messages side by side: the conversations and the
   // open one together.
-  const wide = window.matchMedia("(min-width: 1160px)");
+  const wide = window.matchMedia("(min-width: 980px)");
+  // The frosted container behind the screen takes its width, again whenever
+  // the window crosses the width where wide screens expand.
+  function fitPanel() {
+    const shown = [...document.querySelectorAll(".screen")].find((s) => !s.hidden);
+    const col = shown && parseFloat(getComputedStyle(shown).getPropertyValue("--col"));
+    document.querySelector("main").style.setProperty("--panel", (document.body.classList.contains("split") ? 1040 : col || 640) + "px");
+  }
+  matchMedia("(min-width: 980px)").addEventListener("change", fitPanel);
   function show(id) {
     const both = !phone && wide.matches && (id === "inbox" || (id === "chat" && chat.from === "inbox" && chat.id));
     for (const s of document.querySelectorAll(".screen")) s.hidden = !(s.id === id || (both && (s.id === "inbox" || s.id === "chat")));
     document.body.classList.toggle("split", both);
-    // The frosted container behind it takes the screen's width.
-    const shown = $(id), col = shown && parseFloat(getComputedStyle(shown).getPropertyValue("--col"));
-    document.querySelector("main").style.setProperty("--panel", (both ? 1040 : col || 640) + "px");
+    fitPanel();
     if (id === "community" && typeof cmFitRail === "function") cmFitRail();
     // A big window shows recent swaps beside the offers: fetched as it opens.
-    if (id === "swaps" && !phone && matchMedia("(min-width: 960px)").matches && typeof loadHistory === "function") loadHistory(false);
+    if (id === "swaps" && !phone && matchMedia("(min-width: 980px)").matches && typeof loadHistory === "function") loadHistory(false);
     document.body.classList.toggle("at-home", id === "home");
     if (id === "seller" && typeof slFitEdges === "function") slFitEdges();
     if (both) { $("chat").classList.toggle("none", !chat.id); paintInbox(); }
     else if (id === "chat") $("chat").classList.remove("none");
     for (const p of document.querySelectorAll(".problem")) p.hidden = true;
     for (const m of document.querySelectorAll(".ch-menu")) m.hidden = true;
+    $("nt-panel").hidden = true;
   }
   // iPhones: swipe in from the left edge to go back, as in other iPhone
   // apps. The screen follows the finger; past a third of the way (or with a
@@ -4252,13 +4382,133 @@
 
   // ---- Themes ----
   const THEMES = [["pearl", "Pearl"], ["daylight", "Daylight"], ["obsidian", "Obsidian"], ["midnight", "Midnight"], ["aurora", "Aurora"], ["amethyst", "Amethyst"], ["rose", "Rosé"], ["ruby", "Ruby"], ["ember", "Ember"]];
-  const knownTheme = (name) => THEMES.some(([id]) => id === name) ? name : "pearl";
+  // ---- Themes you build: one to three colours and a picture ----
+  // Kept on this device: the list (names and colours) here, the pictures in
+  // the app's own database, too big for this store. Everything else a theme
+  // has is made from the colours, kept dark and readable whatever they are.
+  const customThemes = () => { try { return JSON.parse(localStorage.getItem("custom-themes") || "[]"); } catch { return []; } };
+  const isCustomTheme = (name) => /^c-/.test(name || "");
+  const knownTheme = (name) => THEMES.some(([id]) => id === name) || customThemes().some((t) => t.id === name) ? name : "pearl";
+  function hexHsl(hex) {
+    const n = parseInt(hex.slice(1), 16), r = (n >> 16 & 255) / 255, g = (n >> 8 & 255) / 255, b = (n & 255) / 255;
+    const max = Math.max(r, g, b), min = Math.min(r, g, b), l = (max + min) / 2, d = max - min;
+    let h = 0;
+    if (d) h = max === r ? ((g - b) / d) % 6 : max === g ? (b - r) / d + 2 : (r - g) / d + 4;
+    return { h: (h * 60 + 360) % 360, s: d ? (d / (1 - Math.abs(2 * l - 1))) * 100 : 0, l: l * 100 };
+  }
+  function hsl(h, s, l) {
+    s /= 100; l /= 100;
+    const k = (n) => (n + h / 30) % 12, a = s * Math.min(l, 1 - l);
+    const f = (n) => Math.round(255 * (l - a * Math.max(-1, Math.min(k(n) - 3, 9 - k(n), 1))));
+    return "#" + [f(0), f(8), f(4)].map((v) => v.toString(16).padStart(2, "0")).join("");
+  }
+  const rgbOf = (hex) => { const n = parseInt(hex.slice(1), 16); return `${n >> 16 & 255}, ${n >> 8 & 255}, ${n & 255}`; };
+  // A base (Obsidian's dark or Daylight's light) makes the body: grounds,
+  // cards, lines and words. The colours make the rest: the buttons, the
+  // balance card, the wordmark, the glow and the highlights.
+  const BASES = {
+    dark: `--tint: 255, 255, 255; color-scheme: dark; --shade: 0, 0, 0; --shade-a: 0.34; --mn-dim: rgba(0, 0, 0, 0.62);
+      --ground: #0b0b0c; --ground-deep: #000000; --surface: #151517; --surface-hover: #1d1d20; --field: #0e0e0f;
+      --ink: #f3f3f5; --dim: #9b9ba2; --faint: #66666d; --line: #262629; --good: #a6e3c6; --bad: #f1a9a9;
+      --cover: linear-gradient(135deg, #18181a, #0f0f10); --glass: rgba(28, 28, 31, 0.74); --glass-button: rgba(22, 22, 24, 0.82); --veil: rgba(0, 0, 0, 0.62);`,
+    light: `--tint: 30, 32, 60; color-scheme: light; --shade: 60, 60, 110; --shade-a: 0.13; --mn-dim: rgba(255, 255, 255, 0.68);
+      --ground: #f3f3f7; --ground-deep: #eaebf1; --surface: #ffffff; --surface-hover: #f1f1f6; --field: #f6f6f9;
+      --ink: #1b1c22; --dim: #5d6070; --faint: #8b8e9b; --line: #dcdde5; --good: #1f8a5b; --bad: #c43a3f;
+      --cover: linear-gradient(135deg, #e6e7ee, #dcdde6); --glass: rgba(255, 255, 255, 0.78); --glass-button: rgba(255, 255, 255, 0.85); --veil: rgba(30, 30, 45, 0.28);`,
+  };
+  // One accent colour, made into a theme the way Rosé, Midnight and Ember
+  // are: the sheen is that colour in light and deep bands (the numbers
+  // below are the built-in themes' own), the wordmark its brighter tints,
+  // the glow and the highlights the colour itself.
+  function themeVars(colors, base) {
+    const a = hexHsl(colors[0]);
+    const clamp = (v, lo, hi) => Math.min(Math.max(v, lo), hi);
+    const stops = (list) => list.map((x, i) => `${x} ${Math.round(i * 100 / (list.length - 1))}%`).join(", ");
+    // How bright a colour looks (blues and purples look darker than
+    // yellows at the same setting), and a shade lifted until it looks at
+    // least that bright, so the dark words on the sheen always read.
+    const looks = (hex) => {
+      const lin = (v) => { v /= 255; return v <= 0.04045 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4); };
+      const n = parseInt(hex.slice(1), 16);
+      return 0.2126 * lin(n >> 16 & 255) + 0.7152 * lin(n >> 8 & 255) + 0.0722 * lin(n & 255);
+    };
+    const shade = (l, least = 0) => { const sat = clamp(a.s, 50, 92); while (looks(hsl(a.h, sat, l)) < least && l < 92) l += 2; return hsl(a.h, sat, l); };
+    // The dark base's sheen runs from the colour down toward black, as
+    // anodised metal, with black words and glyphs on it.
+    const deep = (l) => hsl(a.h, clamp(a.s, 50, 92), l);
+    if (base === "light") {
+      return `${BASES.light}
+        --pearl-ink: ${hsl(a.h, Math.min(a.s, 30), 16)}; --on-pearl-dim: ${hsl(a.h, Math.min(a.s, 15), 30)};
+        --focus: ${hsl(a.h, clamp(a.s, 40, 80), 62)}; --select: ${hsl(a.h, clamp(a.s, 55, 90), 52)}aa; --accent: ${hsl(a.h, clamp(a.s, 60, 95), 50)};
+        --bubble-mine: ${hsl(a.h, clamp(a.s, 50, 90), 92)}; --chip-icon: ${hsl(a.h, clamp(a.s, 45, 85), 45)};
+        --glow: radial-gradient(110% 55% at 50% -12%, rgba(${rgbOf(shade(65))}, 0.18), transparent 62%);
+        --pearl: linear-gradient(115deg, ${stops([shade(87), shade(78, 0.42), shade(89), shade(74, 0.38), shade(90), shade(76, 0.4), shade(84), shade(87)])});
+        --brand: linear-gradient(115deg, ${stops([shade(44), shade(50), shade(38), shade(48), shade(44)])});`;
+    }
+    return `${BASES.dark}
+      --pearl-ink: #000000; --on-pearl-dim: #000000;
+      --focus: ${hsl(a.h, clamp(a.s, 40, 70), 66)}; --select: ${shade(78)}aa; --accent: ${shade(76)};
+      --bubble-mine: ${hsl(a.h, clamp(a.s, 30, 50), 30)}; --chip-icon: ${shade(86)};
+      --glow: radial-gradient(100% 55% at 50% -12%, rgba(${rgbOf(shade(62))}, 0.24), transparent 62%);
+      --pearl: linear-gradient(115deg, ${stops([deep(46), deep(32), deep(50), deep(26), deep(52), deep(30), deep(42), deep(46)])});
+      --brand: linear-gradient(115deg, ${stops([shade(78), shade(86), shade(71), shade(88), shade(78)])});`;
+  }
+  // The pictures, from the database once the app opens.
+  const scenes = new Map();
+  let sceneDb = null;
+  function scenesStore(mode) {
+    if (!sceneDb) sceneDb = new Promise((done, fail) => {
+      const open = indexedDB.open("orien-themes", 1);
+      open.onupgradeneeded = () => open.result.createObjectStore("scenes");
+      open.onsuccess = () => done(open.result);
+      open.onerror = () => fail(open.error);
+    });
+    return sceneDb.then((db) => db.transaction("scenes", mode).objectStore("scenes"));
+  }
+  const sceneAsk = (mode, act) => scenesStore(mode).then((store) => new Promise((done, fail) => {
+    const req = act(store); req.onsuccess = () => done(req.result); req.onerror = () => fail(req.error);
+  }));
+  // A built theme's colours go straight onto the elements that wear it:
+  // the app's own rules refuse a style sheet made while it runs (that's
+  // what left a built theme looking like Pearl).
+  const ownVars = new WeakMap();
+  function setThemeVars(el, colors, scene, base) {
+    clearThemeVars(el);
+    const names = [];
+    for (const part of themeVars(colors, base).split(";")) {
+      const at = part.indexOf(":");
+      if (at < 0) continue;
+      const name = part.slice(0, at).trim(), value = part.slice(at + 1).trim();
+      if (name === "color-scheme") el.style.colorScheme = value;
+      else if (name.startsWith("--")) { el.style.setProperty(name, value); names.push(name); }
+    }
+    if (scene) { el.style.setProperty("--scene", `url("${scene}")`); names.push("--scene"); }
+    ownVars.set(el, names);
+  }
+  function clearThemeVars(el) {
+    for (const name of ownVars.get(el) || []) el.style.removeProperty(name);
+    ownVars.delete(el);
+    el.style.colorScheme = "";
+  }
+  // The whole app, when the theme in use is one you built.
+  function paintOwnTheme() {
+    const html = document.documentElement, t = customThemes().find((x) => x.id === html.dataset.theme);
+    if (t) setThemeVars(html, t.colors, scenes.get(t.id), t.base); else clearThemeVars(html);
+    // Light ones get Daylight's softer shadows and the like.
+    if (t) html.dataset.base = t.base === "light" ? "light" : "dark"; else delete html.dataset.base;
+  }
+  async function loadScenes() {
+    for (const t of customThemes()) {
+      try { const pic = await sceneAsk("readonly", (st) => st.get(t.id)); if (pic) scenes.set(t.id, pic); } catch {}
+    }
+    paintOwnTheme();
+  }
   // The colour behind the page matches the theme's deepest ground.
   function paintBackdrop() {
     if (/Linux/.test(navigator.userAgent)) return;   // nothing shows behind the page there
     const color = getComputedStyle(document.documentElement).getPropertyValue("--ground-deep").trim();
     const m = /^#([0-9a-f]{2})([0-9a-f]{2})([0-9a-f]{2})$/i.exec(color);
-    const light = (document.documentElement.dataset.theme || "pearl") === "daylight";
+    const light = (document.documentElement.dataset.theme || "pearl") === "daylight" || document.documentElement.dataset.base === "light";
     if (m) invoke("set_backdrop", { red: parseInt(m[1], 16), green: parseInt(m[2], 16), blue: parseInt(m[3], 16), light }).catch(() => {});
   }
   function paintThemeGrid() {
@@ -4268,31 +4518,164 @@
   function applyTheme(name, animate) {
     name = knownTheme(name);
     if ((document.documentElement.dataset.theme || "pearl") === name) return;
-    const set = () => { document.documentElement.dataset.theme = name; paintThemeGrid(); };
+    const set = () => { document.documentElement.dataset.theme = name; paintOwnTheme(); paintThemeGrid(); };
     try { localStorage.setItem("theme", name); } catch {}
     // The fade between themes: not on Linux, where WebKit can crash doing it.
     const fade = animate && document.startViewTransition && !/Linux/.test(navigator.userAgent);
     if (fade) document.startViewTransition(set).finished.then(paintBackdrop, paintBackdrop);
     else { set(); paintBackdrop(); }
   }
-  $("theme-grid").innerHTML = THEMES.map(([id, name]) => `<button class="theme-card" data-pick="${id}">
+  // The builder's work in progress.
+  const tb = { colors: [], scene: null, editing: null, base: "dark" };
+  function paintThemeCards() {
+    const all = THEMES.map(([id, name]) => [id, name, false]).concat(customThemes().map((t) => [t.id, t.name, true]));
+    $("theme-grid").innerHTML = all.map(([id, name, own]) => `<button class="theme-card" data-pick="${id}">
       <div class="tc-mini" data-theme="${id}">
         <div class="tc-bar"><span class="tc-word"></span><span class="tc-dot"></span></div>
         <div class="tc-card"><i></i><i></i><i></i></div>
         <div class="tc-tiles"><span></span><span></span><span></span><span></span></div>
         <div class="tc-list"><i></i><i></i><i></i></div>
       </div>
-      <div class="tc-name"><span>${name}</span><span class="tc-check"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></span></div>
+      <div class="tc-name"><span class="tc-label">${esc(name)}</span>${own ? `<span class="tc-del tc-edit" data-edit="${id}" role="button" aria-label="Edit ${esc(name)}" title="Edit">${COG}</span><span class="tc-del" data-del="${id}" role="button" aria-label="Delete ${esc(name)}" title="Delete">${TRASH}</span>` : ""}<span class="tc-check"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></span></div>
     </button>`).join("");
-  $("theme-grid").onclick = (e) => {
+    for (const t of customThemes()) {
+      const mini = $("theme-grid").querySelector(`[data-pick="${t.id}"] .tc-mini`);
+      if (mini) setThemeVars(mini, t.colors, null, t.base);
+    }
+    paintThemeGrid();
+  }
+  let delArmed = null, delTimer = 0;
+  $("theme-grid").onclick = async (e) => {
+    const edit = e.target.closest("[data-edit]");
+    if (edit) { openThemeBuilder(edit.dataset.edit); return; }
+    const del = e.target.closest("[data-del]");
+    if (del) {
+      // A first press arms the bin; a second deletes.
+      if (delArmed !== del.dataset.del) {
+        for (const d of document.querySelectorAll(".tc-del.armed")) { d.classList.remove("armed"); d.innerHTML = TRASH; }
+        delArmed = del.dataset.del; del.classList.add("armed"); del.innerHTML = `${TRASH}Delete`;
+        clearTimeout(delTimer);
+        delTimer = setTimeout(() => { delArmed = null; del.classList.remove("armed"); del.innerHTML = TRASH; }, 3500);
+        return;
+      }
+      const id = delArmed; delArmed = null; clearTimeout(delTimer);
+      localStorage.setItem("custom-themes", JSON.stringify(customThemes().filter((t) => t.id !== id)));
+      scenes.delete(id);
+      sceneAsk("readwrite", (st) => st.delete(id)).catch(() => {});
+      // The theme in use: back to the one chosen on your devices.
+      if (document.documentElement.dataset.theme === id) {
+        let back = "pearl";
+        try { back = (await invoke("app_theme")) || "pearl"; } catch {}
+        applyTheme(isCustomTheme(back) ? "pearl" : back, true);
+      }
+      paintThemeCards();
+      return;
+    }
     const card = e.target.closest(".theme-card");
     if (!card) return;
     feel("selection");
     applyTheme(card.dataset.pick, true);
-    invoke("set_app_theme", { theme: card.dataset.pick }).catch(() => {});
+    // Your own themes stay on this device; the others follow you.
+    if (!isCustomTheme(card.dataset.pick)) invoke("set_app_theme", { theme: card.dataset.pick }).catch(() => {});
   };
+  paintThemeCards();
+  loadScenes();
   // As this device last had it, at once; then as chosen on any device.
   try { applyTheme(localStorage.getItem("theme") || "pearl", false); } catch { paintBackdrop(); }
+
+  // The builder.
+  const TB_DEFAULT = ["#8a7dff"];
+  function tbPaint() {
+    const box = $("tb-colors");
+    box.innerHTML = `<label class="tb-swatch" title="Change the colour"><input type="color" value="${tb.colors[0]}" data-tb-color="0" aria-label="Accent colour"></label><span class="tb-hex">${tb.colors[0].toUpperCase()}</span>`;
+    box.querySelectorAll(".tb-swatch").forEach((sw, i) => { sw.style.background = tb.colors[i]; });
+    tbLook();
+  }
+  function tbLook() {
+    const stage = $("tb-stage");
+    setThemeVars(stage, tb.colors, null, tb.base);
+    for (const b of document.querySelectorAll("[data-base-pick]")) b.classList.toggle("on", b.dataset.basePick === tb.base);
+    stage.style.backgroundImage = tb.scene ? `url("${tb.scene}")` : "";
+    stage.classList.toggle("has-pic", !!tb.scene);
+    $("tb-save").disabled = !($("tb-name").value.trim() && tb.colors.length && tb.scene);
+  }
+  $("tb-colors").addEventListener("input", (e) => {
+    const i = e.target.dataset && e.target.dataset.tbColor;
+    if (i === undefined) return;
+    tb.colors[Number(i)] = e.target.value;
+    e.target.parentElement.style.background = e.target.value;
+    const hex = $("tb-colors").querySelector(".tb-hex");
+    if (hex) hex.textContent = e.target.value.toUpperCase();
+    tbLook();
+  });
+  $("tb-name").addEventListener("input", tbLook);
+  $("tb-base").onclick = (e) => {
+    const b = e.target.closest("[data-base-pick]");
+    if (!b || b.dataset.basePick === tb.base) return;
+    feel("selection");
+    tb.base = b.dataset.basePick;
+    tbLook();
+  };
+  // A new theme, or one you built to change: its name, colours and picture.
+  function openThemeBuilder(id) {
+    const t = typeof id === "string" ? customThemes().find((x) => x.id === id) : null;
+    tb.editing = t ? t.id : null;
+    tb.colors = t ? t.colors.slice(0, 1) : TB_DEFAULT.slice();
+    tb.base = t && t.base === "light" ? "light" : "dark";
+    tb.scene = t ? scenes.get(t.id) || null : null;
+    $("tb-name").value = t ? t.name : "";
+    $("tb-pic-name").textContent = "";
+    $("tb-problem").hidden = true;
+    $("tb-pick").textContent = tb.scene ? "Change picture" : "Choose a picture";
+    $("tb-title").textContent = t ? "Edit theme" : "Build a theme";
+    $("tb-save").textContent = t ? "Save changes" : "Save theme";
+    tbPaint();
+    show("theme-build");
+  }
+  $("st-build").onclick = () => openThemeBuilder();
+  $("tb-back").onclick = () => { tb.colors = []; tb.scene = null; tb.editing = null; show("settings"); settingsPage("appearance"); };
+  $("tb-pick").onclick = () => $("tb-file").click();
+  $("tb-file").onchange = async () => {
+    const file = $("tb-file").files[0];
+    $("tb-file").value = "";
+    if (!file) return;
+    $("tb-problem").hidden = true;
+    try {
+      const url = await new Promise((done, fail) => { const r = new FileReader(); r.onload = () => done(r.result); r.onerror = () => fail(r.error); r.readAsDataURL(file); });
+      const img = await new Promise((done, fail) => { const i = new Image(); i.onload = () => done(i); i.onerror = () => fail(new Error("That file isn't a picture this app can open.")); i.src = url; });
+      const w = img.naturalWidth, h = img.naturalHeight;
+      if (w < 1920 || h < 1080) { problem("tb-problem", `That picture is ${w} × ${h}. It needs to be at least 1920 × 1080.`); return; }
+      // Kept at no more than 2560 across, so it's quick to show and store.
+      const k = Math.min(1, 2560 / Math.max(w, h)), canvas = document.createElement("canvas");
+      canvas.width = Math.round(w * k); canvas.height = Math.round(h * k);
+      canvas.getContext("2d").drawImage(img, 0, 0, canvas.width, canvas.height);
+      tb.scene = canvas.toDataURL("image/jpeg", 0.86);
+      $("tb-pic-name").textContent = file.name;
+      $("tb-pick").textContent = "Change picture";
+      tbLook();
+    } catch (err) { problem("tb-problem", err); }
+  };
+  $("tb-save").onclick = async () => {
+    const name = $("tb-name").value.trim();
+    if (!name || !tb.colors.length || !tb.scene) return;
+    const id = tb.editing || "c-" + Date.now().toString(36);
+    $("tb-save").disabled = true;
+    if (scenes.get(id) !== tb.scene) {
+      try { await sceneAsk("readwrite", (st) => st.put(tb.scene, id)); }
+      catch { problem("tb-problem", "The picture couldn't be saved on this device. Try a smaller one."); $("tb-save").disabled = false; return; }
+    }
+    const theme = { id, name, base: tb.base, colors: tb.colors.slice() }, list = customThemes();
+    const at = list.findIndex((t) => t.id === id);
+    if (at >= 0) list[at] = theme; else list.push(theme);
+    localStorage.setItem("custom-themes", JSON.stringify(list));
+    scenes.set(id, tb.scene);
+    tb.colors = []; tb.scene = null; tb.editing = null;
+    paintThemeCards();
+    // Changed while in use: wear the changes now.
+    if (document.documentElement.dataset.theme === id) paintOwnTheme(); else applyTheme(id, true);
+    feel("success");
+    show("settings"); settingsPage("appearance");
+  };
   // The categories, each with a hint of what's set; a tap opens its page.
   const settingsTitles = { appearance: "Appearance", privacy: "Privacy and security", notify: "Notifications", computer: "This computer", extensions: "Browser Extensions", about: "About", social: "Social Links", guide: "User Guide", "guide-view": "User Guide" };
   // Pages inside another page: Back returns there.
@@ -4303,6 +4686,7 @@
     $("st-menu").hidden = !!page;
     for (const p of document.querySelectorAll(".st-page")) p.hidden = p.dataset.page !== page;
     $("st-title").textContent = page ? settingsTitles[page] : "Settings";
+    $("st-build").hidden = page !== "appearance";
     $("settings").scrollTop = 0;
   }
   $("st-menu").onclick = (e) => { const row = e.target.closest(".st-cat"); if (row && row.dataset.page) settingsPage(row.dataset.page); };
@@ -4537,7 +4921,8 @@
     let all = {};
     try { all = (await invoke("app_prefs")) || {}; } catch {}
     prefs.hide = all.hide === "on"; prefs.noarrow = all.arrow === "off";
-    if (all.theme) applyTheme(all.theme, true);
+    // A theme built on this device stays until you pick another here.
+    if (all.theme && !isCustomTheme(document.documentElement.dataset.theme)) applyTheme(all.theme, true);
     try { mutedKinds = (await invoke("notifications_muted")) || []; } catch {}
     paintBalance();
     if (!$("settings").hidden) paintSettings();
@@ -6873,9 +7258,36 @@
     try { cm.repliesOf.set(id, (await cmCall("GET", `/posts/${id}`)).replies || []); }
     catch (e) { cm.repliesOf.set(id, []); problem("cm-problem", e); }
   }
+  // Paints a list of posts again, keeping the pictures already showing: a
+  // picture made anew (a GIF above all) shows blank until it has loaded
+  // again, so a repaint would make every one of them flash.
+  function paintKeeping(box, html) {
+    const old = new Map();
+    for (const img of box.querySelectorAll("img[src]")) {
+      const k = img.getAttribute("src");
+      if (!old.has(k)) old.set(k, []);
+      old.get(k).push(img);
+    }
+    const t = document.createElement("template");
+    t.innerHTML = html;
+    for (const img of t.content.querySelectorAll("img[src]")) {
+      const keep = old.get(img.getAttribute("src"))?.shift();
+      if (!keep) continue;
+      for (const a of [...keep.attributes]) if (!img.hasAttribute(a.name)) keep.removeAttribute(a.name);
+      for (const a of img.attributes) if (keep.getAttribute(a.name) !== a.value) keep.setAttribute(a.name, a.value);
+      img.replaceWith(keep);
+    }
+    box.replaceChildren(t.content);
+  }
   function cmPaintFeed() {
-    $("cm-feed").innerHTML = cm.posts.length ? cm.posts.map((p) => cmCard(p)).join("") : '<div class="cm-empty">Nothing here yet.</div>';
+    // A post opened from a notification, as on the website: that post alone,
+    // its comments open, however old it is, titled Post.
+    const pin = cm.pinned ? cm.posts.find((p) => p.id === cm.pinned.id) || cm.pinned : null;
+    $("community").classList.toggle("focus", !!pin);
+    $("cm-title").textContent = pin ? "Post" : "Community";
+    paintKeeping($("cm-feed"), pin ? cmCard(pin) : cm.posts.length ? cm.posts.map((p) => cmCard(p)).join("") : '<div class="cm-empty">Nothing here yet.</div>');
     $("cm-more").hidden = !cm.more;
+    cmFitRail();
     // A profile's posts open, react and reply the same way.
     if (!$("seller").hidden) slPaintFeed();
   }
@@ -6901,6 +7313,10 @@
       cm.more = !!page.more;
       if (page.reactions) cm.reactions = page.reactions;
       if (page.max) cm.max = page.max;
+      // The pinned post too, so its reactions and comments stay current.
+      if (cm.pinned && !more) {
+        try { const fresh = await cmCall("GET", `/posts/${cm.pinned.id}`); if (fresh && fresh.post) cm.pinned = fresh.post; } catch {}
+      }
       cmPaintFeed();
     } catch (e) { problem("cm-problem", e); }
   }
@@ -6938,17 +7354,28 @@
   });
   // The sidebar ends just above the window's foot wherever it sits: lower
   // down before the feed is scrolled, at the top once it sticks.
+  // Sizes set while scrolling are written only when they change: rewriting
+  // them every frame repaints the whole scrolling screen, and animated GIFs
+  // in it flicker as it does.
+  function setVar(el, name, px) {
+    const v = `${Math.round(px)}px`;
+    if (el.style.getPropertyValue(name) !== v) el.style.setProperty(name, v);
+  }
   function cmFitRail() {
+    // The sidebar sits beside the feed, or beside a post open on its own.
     const rail = document.querySelector(".cm-rail");
-    if (!rail || $("community").hidden) return;
-    const box = $("community").getBoundingClientRect();
-    // Never past the feed's end, so the page stops where the feed does.
-    const feedEnd = document.querySelector(".cm-main").getBoundingClientRect().bottom;
-    rail.style.setProperty("--rail-h", Math.max(200, Math.min(window.innerHeight, box.bottom, feedEnd) - rail.getBoundingClientRect().top) + "px");
+    const screen = rail && rail.closest(".screen");
+    if (!screen || screen.hidden) return;
+    const box = screen.getBoundingClientRect(), main = screen.querySelector(".cm-main");
+    // Never past the feed's end, so the page stops where the feed does; a
+    // feed shorter than the window (one post from a notification) doesn't
+    // cut the sidebar short.
+    const feedEnd = main.offsetHeight < box.height ? Infinity : main.getBoundingClientRect().bottom;
+    setVar(rail, "--rail-h", Math.max(200, Math.min(window.innerHeight, box.bottom, feedEnd) - rail.getBoundingClientRect().top));
     // The rounded edges follow the feed and the sidebar where they really are.
-    const feed = document.querySelector(".cm-main").getBoundingClientRect(), side = rail.getBoundingClientRect(), c = $("community").style;
-    c.setProperty("--f0", `${feed.left - box.left}px`); c.setProperty("--f1", `${feed.right - box.left}px`);
-    c.setProperty("--r0", `${side.left - box.left}px`); c.setProperty("--r1", `${side.right - box.left}px`);
+    const feed = main.getBoundingClientRect(), side = rail.getBoundingClientRect();
+    setVar(screen, "--f0", feed.left - box.left); setVar(screen, "--f1", feed.right - box.left);
+    setVar(screen, "--r0", side.left - box.left); setVar(screen, "--r1", side.right - box.left);
     // The top edge splits into the two columns only once the tabs across
     // both of them have scrolled out of sight.
     const tabs = document.querySelector("#community .cm-tabs").getBoundingClientRect();
@@ -7023,6 +7450,8 @@
     feel("selection");
     if (tab.dataset.cmTab === "market") { openMarket(); return; }
     const miners = tab.dataset.cmTab === "miners";
+    // Feed means the whole feed, as on the website.
+    if (!miners && cm.pinned) { cm.pinned = null; cmPaintFeed(); }
     cmMode(miners);
     if ($("community").hidden) await openCommunity();
   };
@@ -7051,7 +7480,7 @@
     } catch (e) { problem("cm-thread-problem", e); }
   }
   $("cm-thread-back").onclick = () => {
-    if (cm.threadFrom === "notices") { cm.threadFrom = null; openNotices(); return; }
+    if (cm.threadFrom === "notices") { cm.threadFrom = null; phone ? openNotices() : home(); return; }
     show("community"); cmFitRail(); cmLoad(false);
   };
   // Reactions, replies, deleting: one listener for every card.
@@ -7612,14 +8041,23 @@
       Promise.resolve(load()).finally(() => { busy = false; });
     }, { passive: true });
   }
-  moreOnScroll("community", () => cm.more, () => cmLoad(true));
+  // Not behind a post opened on its own: nothing more shows there, and
+  // loading would only repaint it.
+  moreOnScroll("community", () => cm.more && !cm.pinned, () => cmLoad(true));
   async function cmJoin() {
     if (cm.you) { await loadBoard(); openProfile(); return; }
     signinReturn = "community"; resetSignin(); show("board-signin");
   }
   for (const go of ["cm-join-go", "cm-reply-join-go"]) $(go).onclick = cmJoin;
   // From Home, always the feed first.
-  $("go-market").onclick = () => { cmMode(false); openCommunity(); };
+  $("go-market").onclick = () => { cm.pinned = null; cmMode(false); openCommunity(); };
+  // A post from a notification goes back Home (on iPhones, to the
+  // Notifications page); the Community opens on the whole feed next time.
+  $("community").querySelector(".topline [data-back]").onclick = () => {
+    const pinned = !!cm.pinned;
+    if (pinned) { cm.pinned = null; cmPaintFeed(); }
+    if (pinned && phone) openNotices(); else home();
+  };
   $("mk-cats").onclick = (e) => {
     const b = e.target.closest("[data-cat]");
     if (!b || b.dataset.cat === market.cat) return;
@@ -7761,7 +8199,7 @@
   };
   function slPaintFeed() {
     const none = sl.only === "people" ? `${esc(sl.name)} hasn’t posted yet.` : sl.only === "network" ? "Nothing from the network about them yet." : "Nothing in the community yet.";
-    $("sl-feed").innerHTML = sl.posts.length ? sl.posts.map((p) => cmCard(p)).join("") : `<div class="cm-empty cm-box">${none}</div>`;
+    paintKeeping($("sl-feed"), sl.posts.length ? sl.posts.map((p) => cmCard(p)).join("") : `<div class="cm-empty cm-box">${none}</div>`);
     $("sl-feed-more").hidden = !sl.more;    slFitEdges();
   }
   $("sl-feed-more").onclick = () => slLoadFeed(true);
@@ -7807,16 +8245,17 @@
       // The posts' column reaches at least the window's foot, and the
       // sidebar never runs past the posts' end: the page stops where the
       // posts do, and a long sidebar scrolls on its own.
-      main.style.minHeight = `${Math.max(0, box.bottom - main.getBoundingClientRect().top - scr.scrollTop)}px`;
+      const min = `${Math.round(Math.max(0, box.bottom - main.getBoundingClientRect().top - scr.scrollTop))}px`;
+      if (main.style.minHeight !== min) main.style.minHeight = min;
       const end = Math.min(window.innerHeight, box.bottom, main.getBoundingClientRect().bottom);
-      side.style.setProperty("--side-h", Math.max(120, end - side.getBoundingClientRect().top) + "px");
-    } else main.style.minHeight = "";
+      setVar(side, "--side-h", Math.max(120, end - side.getBoundingClientRect().top));
+    } else if (main.style.minHeight) main.style.minHeight = "";
     const split = beside && $("sl-hero").getBoundingClientRect().bottom < box.top + 16;
     scr.classList.toggle("split-edges", split);
     if (!split) return;
     const f = main.getBoundingClientRect(), r = side.getBoundingClientRect();
-    scr.style.setProperty("--f0", `${f.left - box.left}px`); scr.style.setProperty("--f1", `${f.right - box.left}px`);
-    scr.style.setProperty("--r0", `${r.left - box.left}px`); scr.style.setProperty("--r1", `${r.right - box.left}px`);
+    setVar(scr, "--f0", f.left - box.left); setVar(scr, "--f1", f.right - box.left);
+    setVar(scr, "--r0", r.left - box.left); setVar(scr, "--r1", r.right - box.left);
   }
   $("seller").addEventListener("scroll", () => requestAnimationFrame(slFitEdges), { passive: true });
   window.addEventListener("resize", slFitEdges);
@@ -7993,8 +8432,29 @@
         }).join("")}</div>`
       : '<div class="empty">Nothing yet. Replies, reactions and messages show up here.</div>';
   }
-  async function openNotices() {
-    show("notices");
+  // The panel drops from the bell that opened it: on computers lined up with
+  // it, on iPhones across the screen under the header.
+  function placeNotices(button) {
+    const m = $("nt-panel"), b = button.getBoundingClientRect();
+    m.style.top = `${Math.round(b.bottom + 10)}px`;
+    if (phone) { m.style.left = m.style.right = "12px"; m.style.width = "auto"; }
+    else { m.style.right = "auto"; m.style.width = ""; m.style.left = `${Math.round(Math.max(12, Math.min(b.left, window.innerWidth - 12 - Math.min(400, window.innerWidth - 24))))}px`; }
+    if (phone) m.style.maxHeight = `calc(100dvh - ${Math.round(b.bottom + 10)}px - max(16px, env(safe-area-inset-bottom)))`;
+  }
+  function closeNotices() { $("nt-panel").hidden = true; }
+  // iPhones keep Notifications as a page: the list lives there.
+  if (phone) { $("nt-list").classList.add("scroll"); $("notices").append($("nt-list"), $("nt-problem")); }
+  async function openNotices(button) {
+    const m = $("nt-panel");
+    $("nt-problem").hidden = true;
+    if (phone) show("notices");
+    else {
+      if (!m.hidden) return closeNotices();
+      for (const other of document.querySelectorAll(".ch-menu")) other.hidden = true;
+      placeNotices(button);
+      m.hidden = false;
+    }
+    $("nt-list").scrollTop = 0;
     if (!nt.lines.length) $("nt-list").innerHTML = '<div class="empty">Loading…</div>';
     try { nt.lines = (await mk("GET", "/notices")).notices || []; $("nt-problem").hidden = true; }
     catch (e) { problem("nt-problem", mkProblem(e)); }
@@ -8002,18 +8462,35 @@
     // Seen: the dot goes, here and on the website.
     if (nt.lines.some((l) => l.unseen)) mk("POST", "/notices/seen", {}).then(() => { if (board.me) { board.me.notices = 0; paintUnread(); } }).catch(() => {});
   }
-  $("go-notices").onclick = $("hd-notices").onclick = () => openNotices();
-  $("hd-settings").onclick = () => $("go-settings").click();
+  $("go-notices").onclick = () => openNotices($("go-notices"));
+  $("hd-notices").onclick = () => openNotices($("hd-notices"));
   $("nt-back").onclick = () => home();
+  document.addEventListener("pointerdown", (e) => {
+    if (!$("nt-panel").hidden && !$("nt-panel").contains(e.target) && !e.target.closest("#go-notices, #hd-notices")) closeNotices();
+  }, true);
+  document.addEventListener("keydown", (e) => { if (e.key === "Escape") closeNotices(); });
+  window.addEventListener("resize", closeNotices);
+  $("hd-settings").onclick = () => $("go-settings").click();
   $("nt-list").onclick = async (e) => {
     const r = e.target.closest("[data-nt]");
     if (!r) return;
     const l = nt.lines[Number(r.dataset.nt)];
     if (!l) return;
-    if (l.kind === "message") return openChat(l.conversation, "notices");
-    cm.threadFrom = "notices";
-    if (!cm.you) cmLoadYou();
-    cmOpenThread(l.post);
+    if (l.kind === "message") { closeNotices(); return openChat(l.conversation, "notices"); }
+    // The post on its own in the Community, its comments open.
+    let found;
+    try { found = await cmCall("GET", `/posts/${l.post}`); } catch (err) { problem("nt-problem", /not found|gone|no such/i.test(String(err)) ? "That post has been removed." : err); return; }
+    if (!found || !found.post) return;
+    closeNotices();
+    cm.pinned = found.post;
+    cm.repliesOf.set(found.post.id, found.replies || []);
+    cm.open.add(found.post.id);
+    // Painted before the screen shows, so the old feed never flashes first.
+    cmMode(false);
+    cmPaintFeed();
+    $("community").scrollTop = 0;
+    await openCommunity();
+    cmPaintFeed();
   };
   // A notification on computers for each new line (messages have their own),
   // as for ORN arriving. What's been told is kept, so nothing is told twice.
@@ -8031,7 +8508,7 @@
       const key = l.kind === "tip" ? `tip:${l.post}:${l.time}:${l.name}` : `${l.kind}:${l.post}`;
       if ((heard[key] || 0) >= l.time) continue;
       heard[key] = l.time;
-      if (first || !$("notices").hidden) continue;
+      if (first || !$("nt-panel").hidden || !$("notices").hidden) continue;
       const text = ntLine(l).replace(/<[^>]+>/g, "");
       await tell(l.text && l.kind !== "react" ? `${text}: ${l.text}` : text, "community");
     }
@@ -8261,7 +8738,7 @@
     const pw = document.getElementById("ch-pay-pw");
     if (pw) pw.focus();
   }
-  $("ch-back").onclick = () => { chat.id = null; chat.direct = null; chat.from === "listing" ? show("listing") : chat.from === "profile" ? show("seller") : chat.from === "contact" ? show("contact") : chat.from === "notices" ? openNotices() : chat.from === "member" ? show("member") : openInbox(); };
+  $("ch-back").onclick = () => { chat.id = null; chat.direct = null; chat.from === "listing" ? show("listing") : chat.from === "profile" ? show("seller") : chat.from === "contact" ? show("contact") : chat.from === "notices" ? (phone ? openNotices() : home()) : chat.from === "member" ? show("member") : openInbox(); };
   $("ch-who").onclick = () => { if (chat.conv && chat.conv.with) { market.sellerFrom = "chat"; openSeller(chat.conv.with); } };
   $("ch-about").onclick = () => chat.conv && chat.conv.listing && openListing(chat.conv.listing, "chat");
   // Delete conversation: gone from your Messages (theirs stays); asks twice.
