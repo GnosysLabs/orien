@@ -1985,7 +1985,6 @@
   .pf-danger { display: flex; flex-direction: column; align-items: center; gap: 12px; }
   .pf-danger .ct-delete { margin: 0 auto; }
   .pf-danger .report-box { align-self: stretch; }
-  .pf-danger .pf-signout { min-width: 160px; }
   .pf-main { grid-area: main; min-width: 0; }
   .pf-side { grid-area: side; min-width: 0; }
   .pf-shop { grid-area: shop; min-width: 0; }
@@ -2589,7 +2588,6 @@
         </div>
       </div>
         <div class="pf-danger">
-      <button class="pill pf-signout" id="pf-signout">Sign out</button>
       <button class="pill ct-delete" id="pf-delete">Delete my account</button>
       <div class="report-box" id="pf-delete-box" hidden>
         <p class="vc-text" id="pf-delete-text"></p>
@@ -3147,6 +3145,11 @@
   <div class="gif-by" id="gif-by">Powered by KLIPY</div>
 </div></div>
 <div id="pic-veil" hidden><img id="pic-big" alt=""></div>
+<div class="ch-menu" id="me-menu" role="menu" hidden>
+  <button class="menu-row" id="me-view"><span>View Profile</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21v-1a6 6 0 0 1 6-6h4a6 6 0 0 1 6 6v1"/></svg></button>
+  <button class="menu-row" id="me-edit"><span>Edit Profile</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"/></svg></button>
+  <button class="menu-row bad" id="me-signout"><span>Sign Out</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="m16 17 5-5-5-5"/><path d="M21 12H9"/></svg></button>
+</div>
 <div class="ch-menu" id="cm-post-menu" role="menu" hidden>
   <button class="menu-row" id="cm-report"><span>Report post</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 22V4a1 1 0 0 1 .4-.8A6 6 0 0 1 8 2c3 0 5 2 7.333 2q2 0 3.067-.8A1 1 0 0 1 20 4v10a1 1 0 0 1-.4.8A6 6 0 0 1 16 16c-3 0-5-2-8-2a6 6 0 0 0-4 1.528"/></svg></button>
 </div>
@@ -4282,7 +4285,6 @@
     try { localStorage.setItem("app-lock", on ? "on" : "off"); } catch {}
     feel("selection");
   };
-  $("pf-signout").onclick = () => signOut();
   for (const kind of ["received", "mining", "market", "community", "swaps"]) {
     $(`st-n-${kind}`).onchange = async () => {
       const on = $(`st-n-${kind}`).checked;
@@ -7538,7 +7540,7 @@
   }
   document.addEventListener("pointerdown", (e) => {
     for (const m of document.querySelectorAll(".ch-menu:not([hidden])")) {
-      if (!m.contains(e.target) && !e.target.closest("#ch-more, #sl-more, #ls-more, #wr-more, .vf-more, [data-more]")) m.hidden = true;
+      if (!m.contains(e.target) && !e.target.closest("#ch-more, #sl-more, #ls-more, #wr-more, .vf-more, [data-more], #board-who")) m.hidden = true;
     }
   }, true);
   document.addEventListener("keydown", (e) => { if (e.key === "Escape") for (const m of document.querySelectorAll(".ch-menu")) m.hidden = true; });
@@ -7592,7 +7594,7 @@
     } catch (e) { problem("sl-problem", mkProblem(e)); }
     finally { $("sl-report-send").disabled = false; }
   };
-  $("sl-back").onclick = () => market.sellerFrom === "swaps" ? show("swaps") : market.sellerFrom === "member" ? show("member") : market.sellerFrom === "chat" ? show("chat") : market.sellerFrom === "community" || market.sellerFrom === "cm-thread" ? show(market.sellerFrom) : show("listing");
+  $("sl-back").onclick = () => market.sellerFrom === "swaps" ? show("swaps") : market.sellerFrom === "member" ? show("member") : market.sellerFrom === "chat" ? show("chat") : market.sellerFrom === "community" || market.sellerFrom === "cm-thread" ? show(market.sellerFrom) : market.sellerFrom === "home" ? home() : show("listing");
 
   // ---- Market messages ----
   // When: "just now", "5 min ago", "3 h ago", else a short date.
@@ -8365,7 +8367,12 @@
     }
   };
   $("vf-pw").onkeydown = (e) => { if (e.key === "Enter") $("vf-go").click(); };
-  $("board-who").onclick = openProfile;
+  // Your picture: a menu to see your profile as others do, edit it, or
+  // sign out.
+  $("board-who").onclick = () => toggleMenu("me-menu", "board-who");
+  $("me-view").onclick = () => { $("me-menu").hidden = true; if (board.me) openPerson(board.me.name, "home"); };
+  $("me-edit").onclick = () => { $("me-menu").hidden = true; openProfile(); };
+  $("me-signout").onclick = () => { $("me-menu").hidden = true; signOut(); };
   async function pickPicture(banner, button) {
     button.disabled = true;
     $("pf-problem").hidden = true;
