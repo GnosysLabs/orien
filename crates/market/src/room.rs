@@ -130,7 +130,7 @@ impl Store {
 
     /// Everything `author` wrote changed (banned, lifted, made moderator),
     /// so apps asking what changed redraw their name.
-    fn bump_room_author(&self, author: i64) -> Result<()> {
+    pub(crate) fn bump_room_author(&self, author: i64) -> Result<()> {
         self.db.execute(
             "UPDATE room_messages SET version = (SELECT COALESCE(MAX(version), 0) + 1 FROM room_messages) WHERE author = ?1 AND removed = 0",
             [author],
@@ -942,5 +942,19 @@ mod tests {
         store.react(sam, post, "⛏️").unwrap();
         let names = store.reactor_names(false, post).unwrap();
         assert_eq!(names["⛏️"], vec!["Sam".to_string()]);
+    }
+
+    #[test]
+    fn a_removed_picture_is_gone_and_the_chat_redraws_its_author() {
+        let (store, maya, _sam, _ana) = people();
+        store.room_send(maya, "gm", &[], None, None).unwrap();
+        store.set_picture(maya, "pic.jpg").unwrap();
+        store.set_banner(maya, Some("ban.jpg")).unwrap();
+        let before = store.room_version().unwrap();
+        assert_eq!(store.clear_picture(maya).unwrap().as_deref(), Some("pic.jpg"));
+        assert!(store.room_version().unwrap() > before);
+        assert_eq!(store.account(maya).unwrap().unwrap().picture, None);
+        assert_eq!(store.set_banner(maya, None).unwrap().as_deref(), Some("ban.jpg"));
+        assert_eq!(store.clear_picture(maya).unwrap(), None);
     }
 }

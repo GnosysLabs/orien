@@ -119,6 +119,11 @@ enum Admin {
     },
     /// Lift a suspension.
     Unsuspend { account: i64 },
+    /// Take an account's profile picture away (it shows the robot face),
+    /// without suspending it.
+    RemovePicture { account: i64 },
+    /// Take an account's profile banner away, without suspending it.
+    RemoveBanner { account: i64 },
     /// Show an account, by its number or the email it signs in with.
     Account { who: String },
     /// Make an account (by number or email) a group chat moderator, or with
@@ -130,7 +135,7 @@ enum Admin {
     },
 }
 
-fn admin(store: &Store, command: Admin) -> Result<()> {
+fn admin(store: &Store, images: &Folder, command: Admin) -> Result<()> {
     match command {
         Admin::Reports => {
             let reports = store.open_reports()?;
@@ -156,6 +161,18 @@ fn admin(store: &Store, command: Admin) -> Result<()> {
         Admin::Suspend { account, reason } => {
             store.suspend(account, &reason)?;
             println!("account {account} suspended");
+        }
+        Admin::RemovePicture { account } => {
+            if let Some(old) = store.clear_picture(account)? {
+                images.remove(&old);
+            }
+            println!("account {account}'s picture removed");
+        }
+        Admin::RemoveBanner { account } => {
+            if let Some(old) = store.set_banner(account, None)? {
+                images.remove(&old);
+            }
+            println!("account {account}'s banner removed");
         }
         Admin::Unsuspend { account } => {
             store.unsuspend(account)?;
@@ -193,7 +210,8 @@ fn admin(store: &Store, command: Admin) -> Result<()> {
 async fn main() -> Result<()> {
     let args = Args::parse();
     if let Some(command) = args.admin {
-        return admin(&Store::open(&args.db)?, command);
+        let images = Folder::open(&args.db.parent().unwrap_or(std::path::Path::new(".")).join("images"))?;
+        return admin(&Store::open(&args.db)?, &images, command);
     }
     let address = args.address.clone().ok_or_else(|| anyhow::anyhow!("say the marketplace's own Orien address with --address"))?;
     let secure = args.origin.starts_with("https://");
