@@ -2184,6 +2184,15 @@
   }
   .tx.contact { cursor: pointer; }
   @media (hover: hover) { .tx.contact:hover { background: rgba(var(--tint), 0.024); } }
+  /* Bigger windows: contacts as cards in two columns, never a row stretched
+     across the whole width. */
+  @media (min-width: 720px) {
+    body:not(.phone) .ct-list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px;
+      background: none; border: 0; border-radius: 0; overflow: visible; }
+    body:not(.phone) .ct-list > .tx { background: var(--surface); border: 1px solid var(--line); border-radius: 18px; }
+    body:not(.phone) .ct-list > .tx + .tx { border-top: 1px solid var(--line); }
+    @media (hover: hover) { body:not(.phone) .ct-list > .tx.contact:hover { background: var(--surface-hover); } }
+  }
   .chevron { color: var(--faint); }
   /* Names to pick from as the To box is typed in: contacts and the
      person's other wallets. */
@@ -6045,7 +6054,7 @@
           <div class="tx-main"><div class="title">${esc(profileLabel(profileOf(c.address)) || c.name)}</div><div class="sub">${short(c.address)}</div></div>${CHEVRON}</div>` })),
     ].sort((x, y) => x.key.localeCompare(y.key));
     $("contact-list").innerHTML = rows.length
-      ? `<div class="list">${rows.map((r) => r.html).join("")}</div>`
+      ? `<div class="list ct-list">${rows.map((r) => r.html).join("")}</div>`
       : '<div class="empty">No contacts yet. Add someone you pay often, or add an Orien Network member from their profile.</div>';
   }
   async function openContacts() {
