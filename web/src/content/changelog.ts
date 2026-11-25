@@ -32,7 +32,7 @@ export const CHANGELOG: Entry[] = [
     title: 'A wider Home',
     changes: [
       'In a big window, Home shows mining and the Orien group chat beside your wallet: start or stop mining, see your speed and last reward, and read and reply to the chat without leaving Home.',
-      'Send and Receive open as a card over Home in a big window, so you never lose your place.',
+      'Send, Receive and Contacts open as a card over Home in a big window, so you never lose your place; the Mine screen spreads out, with the whole network’s hashrate, your share of it and the next checkpoint.',
       'The explorer’s button on Home is now a telescope: Orien is made of checkpoints, not blocks.',
     ],
   },
