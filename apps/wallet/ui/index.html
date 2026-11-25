@@ -449,9 +449,12 @@
   body.phone .ex-fact .n { display: none; }
   body.phone #explorer.ex-one .ex-panel { margin-top: 12px; border-radius: 18px 18px 39px 39px; }
   body.phone #explorer.ex-one .ex-pane { padding-bottom: max(12px, calc(env(safe-area-inset-bottom) - 12px)); }
-  .phone-only-tile { display: none !important; }
-  body.phone .phone-only-tile { display: flex !important; }
-  body.phone #go-explorer { display: none !important; }
+  /* Contacts and the explorer join the round buttons: the explorer
+     everywhere but big windows (where Home's network card leads to it),
+     Contacts on computers (iPhones keep it at the top). */
+  #home #go-explorer { display: none !important; }
+  body:not(.phone) #home #go-contacts { display: none !important; }
+  body.phone .desk-tile { display: none !important; }
   /* Get ORN is the iPhone's; computers have Mine and Swap. */
   #go-get { display: none; }
   /* 16 points or more, or the iPhone zooms the page in on every tap into a box. */
@@ -596,6 +599,8 @@
   .actions.three { grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
   .actions.four { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
   .actions.five { grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 7px; }
+  /* Computers: as many round buttons as are showing, evenly across. */
+  body:not(.phone) #home .actions.five { grid-template-columns: none; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); }
   .actions.five .tile { flex-direction: column; gap: 6px; height: auto; padding: 12px 2px; font-size: 12px; }
   /* Home's actions are round buttons, their glyphs alone, with no box or
      word around them (each keeps its name for VoiceOver, and as a tip on
@@ -2500,7 +2505,7 @@
     body:not(.phone) #home .home-side { display: flex; flex-direction: column; gap: 14px; flex: 0 0 340px; min-height: 0; }
     /* Mining and the group chat are in the column beside: their buttons go,
        and the rest share the row evenly. */
-    body:not(.phone) #home :is(#go-mine, #go-explorer) { display: none; }
+    body:not(.phone) #home :is(#go-mine, #go-explorer, #go-explorer-tile) { display: none; }
     body:not(.phone) #home .actions.five { grid-template-columns: none; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); }
   }
   .hs-card { display: flex; flex-direction: column; padding: 14px 16px 16px; border: 1px solid var(--line); border-radius: 18px; background: var(--surface); }
@@ -2997,7 +3002,11 @@
           <span class="icon pearl"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="M12 5v14"/></svg></span>
           Get ORN
         </button>
-        <button class="tile phone-only-tile" id="go-explorer-tile" aria-label="Explorer" title="Explorer">
+        <button class="tile desk-tile" id="go-contacts-tile" aria-label="Contacts" title="Contacts">
+          <span class="icon pearl"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><path d="M16 3.128a4 4 0 0 1 0 7.744"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><circle cx="9" cy="7" r="4"/></svg></span>
+          Contacts
+        </button>
+        <button class="tile ex-tile" id="go-explorer-tile" aria-label="Explorer" title="Explorer">
           <span class="icon pearl"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m10.065 12.493-6.18 1.318a.934.934 0 0 1-1.108-.702l-.537-2.15a1.07 1.07 0 0 1 .691-1.265l13.504-4.44"/><path d="m13.56 11.747 4.332-.924"/><path d="m16 21-3.105-6.21"/><path d="M16.485 5.94a2 2 0 0 1 1.455-2.425l1.09-.272a1 1 0 0 1 1.212.727l1.515 6.06a1 1 0 0 1-.727 1.213l-1.09.272a2 2 0 0 1-2.425-1.455z"/><path d="m6.158 8.633 1.114 4.456"/><path d="m8 21 3.105-6.21"/><circle cx="12" cy="13" r="2"/></svg></span>
           Explorer
         </button>
@@ -6797,7 +6806,7 @@
   };
   $("c-address").oninput = checkContact;
 
-  $("go-contacts").onclick = openContacts;
+  $("go-contacts").onclick = $("go-contacts-tile").onclick = openContacts;
   $("add-contact").onclick = () => openContact(null, "contacts");
   $("contact-list").onclick = (event) => {
     const row = event.target.closest(".tx.contact");
