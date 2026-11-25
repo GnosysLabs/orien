@@ -2255,6 +2255,11 @@
   .cm-picker button { width: 32px; height: 32px; border: 0; border-radius: 50%; background: transparent; font-size: 17px; cursor: pointer; }
   @media (hover: hover) { .cm-picker button:hover { background: rgba(var(--tint), 0.1); } }
   .cm-picker button:focus:not(:focus-visible) { outline: none; }
+  /* Who reacted: a small bubble over the reaction, on hover or long press. */
+  .react-who { position: fixed; z-index: 60; max-width: min(280px, calc(100vw - 16px)); padding: 7px 11px; border: 1px solid var(--line); border-radius: 12px;
+    background: var(--surface-hover); color: var(--ink); font-size: 12.5px; line-height: 1.35; box-shadow: 0 10px 28px #00000066; pointer-events: none; animation: picker-in .12s ease-out; }
+  .react-who[hidden] { display: none; }
+  body.phone [data-who] { -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; }
   .cm-video { position: relative; margin-top: 12px; aspect-ratio: 16 / 9; overflow: hidden; border: 1px solid var(--line); border-radius: 14px; background: #000; }
   .cm-video iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
   .cm-inline { margin-top: 6px; }
@@ -2267,6 +2272,9 @@
   .cm-reply-head { display: flex; align-items: center; gap: 5px; min-height: 20px; font-size: 14px; line-height: 20px; }
   .cm-reply-head .cm-when { font-size: 12.5px; }
   .cm-reply-head .cm-del, .cm-reply-head .cm-more { margin: -4px 0 -4px auto; }
+  /* A reply's bin is a size smaller, so it doesn't crowd the words under it. */
+  .cm-reply-head .cm-del { width: 24px; height: 24px; margin: -2px 0 -2px auto; }
+  .cm-reply-head .cm-del svg { width: 12px; height: 12px; }
   .cm-reply-main .cm-text { margin-top: 1px; font-size: 14.5px; line-height: 1.45; }
   .cm-reply-main .cm-foot { gap: 4px; margin-top: 6px; margin-left: -6px; }
   .cm-reply-main .cm-chip { height: 26px; padding: 0 8px; gap: 5px; font-size: 12.5px; }
@@ -4221,6 +4229,16 @@
   }
   const initial = (name) => name.trim().charAt(0).toUpperCase();
   const esc = (t) => t.replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
+  // Who reacted, for the bubble a hover (a long press on iPhones) shows over
+  // a reaction: "Ana, Musty and 3 more". Only once the server sends names.
+  function reactWho(r) {
+    const names = (r.names || []).filter(Boolean);
+    if (!names.length) return "";
+    const rest = Math.max(0, (r.count || 0) - names.length);
+    const list = rest ? [...names, `${rest} more`] : names;
+    const text = list.length > 1 ? `${list.slice(0, -1).join(", ")} and ${list[list.length - 1]}` : list[0];
+    return ` data-who="${esc(text)}"`;
+  }
   // An address that shares a contact's first and last characters but is not
   // theirs: the shape of an address-poisoning scam.
   const lookalike = (address) => book.find((c) => c.address !== address &&
@@ -7966,6 +7984,49 @@
   // ---- Community: the network's news and people's posts, as on
   // orien.network/community, with the Market as its second tab. Only
   // people with a verified wallet post, reply and react. ----
+  // The bubble naming who reacted: a hover on computers, a long press on
+  // iPhones (which then doesn't toggle the reaction). One bubble, reused.
+  {
+    const bubble = document.createElement("div");
+    bubble.className = "react-who";
+    bubble.hidden = true;
+    document.body.appendChild(bubble);
+    let timer = 0, held = 0, over = null;
+    const hide = () => { clearTimeout(timer); bubble.hidden = true; over = null; };
+    const showFor = (chip) => {
+      if (!chip.isConnected || !chip.dataset.who) return;
+      bubble.textContent = chip.dataset.who;
+      bubble.hidden = false;
+      const at = chip.getBoundingClientRect();
+      const w = bubble.offsetWidth, h = bubble.offsetHeight;
+      let top = at.top - h - 8;
+      if (top < 8) top = at.bottom + 8;
+      bubble.style.left = Math.max(8, Math.min(at.left + at.width / 2 - w / 2, innerWidth - w - 8)) + "px";
+      bubble.style.top = top + "px";
+    };
+    if (phone) {
+      document.addEventListener("touchstart", (e) => {
+        hide();
+        const chip = e.target.closest && e.target.closest("[data-who]");
+        if (chip) timer = setTimeout(() => { held = Date.now(); feel("light"); showFor(chip); }, 450);
+      }, { capture: true, passive: true });
+      for (const kind of ["touchend", "touchmove", "touchcancel"]) document.addEventListener(kind, () => clearTimeout(timer), { capture: true, passive: true });
+      document.addEventListener("click", (e) => {
+        if (Date.now() - held < 800 && e.target.closest && e.target.closest("[data-who]")) { e.preventDefault(); e.stopPropagation(); }
+      }, true);
+    } else {
+      document.addEventListener("mouseover", (e) => {
+        const chip = e.target.closest && e.target.closest("[data-who]");
+        if (chip === over) return;
+        hide();
+        if (!chip) return;
+        over = chip;
+        timer = setTimeout(() => showFor(chip), 250);
+      });
+      document.addEventListener("mousedown", hide, true);
+    }
+    document.addEventListener("scroll", hide, true);
+  }
   const cm = { open: new Set(), repliesOf: new Map(), posts: [], more: false, you: null, reactions: ["⛏️", "🔥", "❤️", "👏", "😂"], max: 500, thread: null, replies: [], picking: 0, answering: new Map(), rdraft: new Map() };
   const cmCall = (method, path, body) => invoke("market_call", { method, path: "/community" + path, body: body === undefined ? null : body });
   const EYEBROWS = { record: "New record", welcome: "Welcome", milestone: "Milestone", streak: "On a streak", top_day: "Top miner of the day", swap: "Swap", supply: "ORN mined", validator: "New validator" };
@@ -8109,7 +8170,7 @@
     const head = network
       ? `${cmFace(null)}<div class="cm-who"><div class="cm-eyebrow pearl-text">${esc(EYEBROWS[post.kind] || "Orien Network")}</div><div class="cm-when"><b class="ink">Orien Network</b> · ${ago(post.created)}</div></div>`
       : `<span data-user="${esc((post.author && post.author.name) || "")}">${cmFace(post.author)}</span><div class="cm-who"><div class="cm-name" data-user="${esc((post.author && post.author.name) || "")}">${esc((post.author && post.author.name) || "")}</div><div class="cm-when">${ago(post.created)}</div></div>${!post.mine ? `<button class="cm-more" data-more="${post.id}" aria-label="More" title="More"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg></button>` : ""}${post.mine ? `<button class="cm-del" data-del="${post.id}" aria-label="Delete" title="Delete"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M10 11v6"/><path d="M14 11v6"/></svg></button>` : ""}`;
-    const chips = (post.reactions || []).map((r) => `<button class="cm-chip${r.me ? " on" : ""}" data-react="${post.id}" data-emoji="${esc(r.emoji)}"><span>${esc(r.emoji)}</span><b>${r.count}</b></button>`).join("");
+    const chips = (post.reactions || []).map((r) => `<button class="cm-chip${r.me ? " on" : ""}" data-react="${post.id}" data-emoji="${esc(r.emoji)}"${reactWho(r)}><span>${esc(r.emoji)}</span><b>${r.count}</b></button>`).join("");
     const replies = inThread || post.parent ? "" : `<button class="cm-chip${cm.open.has(post.id) ? " on" : ""}" data-open="${post.id}">${REPLY_ICON}${post.replies ? `<b>${post.replies}</b>` : ""}</button>`;
     return `<article class="cm-card${network ? " network" : ""}" data-post="${post.id}">${art}
       <div class="cm-in"><div class="cm-head">${head}</div>
@@ -8135,7 +8196,7 @@
         <span data-user="${esc(name)}">${cmFace(r.author)}</span>
         <div class="cm-reply-main"><div class="cm-reply-head"><b data-user="${esc(name)}">${esc(name)}</b><span class="cm-when">· ${ago(r.created)}</span>${!r.mine ? `<button class="cm-more" data-more="${r.id}" aria-label="More" title="More"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg></button>` : ""}${r.mine ? `<button class="cm-del" data-del="${r.id}" data-parent="${post.id}" aria-label="Delete" title="Delete"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M10 11v6"/><path d="M14 11v6"/></svg></button>` : ""}</div>
         ${r.body ? `<div class="cm-text">${esc(r.body)}</div>` : ""}${cmYouTube(r.body)}${cmMedia(r)}
-        <div class="cm-foot">${(r.reactions || []).map((x) => `<button class="cm-chip${x.me ? " on" : ""}" data-react="${r.id}" data-parent="${post.id}" data-emoji="${esc(x.emoji)}"><span>${esc(x.emoji)}</span><b>${x.count}</b></button>`).join("")}<button class="cm-chip bare" data-pick="${r.id}" data-parent="${post.id}" aria-label="React" title="React">${SMILE_ICON}</button>${r.id === root ? `<button class="cm-chip bare" data-answer="${post.id}:${root}:${esc(name)}" title="Reply to ${esc(name)}">${REPLY_ICON}<span>Reply</span></button>` : ""}${!r.mine && r.author && r.author.tip_to ? `<button class="cm-chip bare" data-tip="${r.id}" title="Tip ${esc(name)} some ORN">${COINS_ICON}<span>Tip</span></button>` : ""}${cmTips(r)}</div></div></div>`;
+        <div class="cm-foot">${(r.reactions || []).map((x) => `<button class="cm-chip${x.me ? " on" : ""}" data-react="${r.id}" data-parent="${post.id}" data-emoji="${esc(x.emoji)}"${reactWho(x)}><span>${esc(x.emoji)}</span><b>${x.count}</b></button>`).join("")}<button class="cm-chip bare" data-pick="${r.id}" data-parent="${post.id}" aria-label="React" title="React">${SMILE_ICON}</button>${r.id === root ? `<button class="cm-chip bare" data-answer="${post.id}:${root}:${esc(name)}" title="Reply to ${esc(name)}">${REPLY_ICON}<span>Reply</span></button>` : ""}${!r.mine && r.author && r.author.tip_to ? `<button class="cm-chip bare" data-tip="${r.id}" title="Tip ${esc(name)} some ORN">${COINS_ICON}<span>Tip</span></button>` : ""}${cmTips(r)}</div></div></div>`;
     };
     const box = (key, placeholder, small) => you && you.verified
       ? `<div class="cm-inline-write${small ? " sub" : ""}">${cmFace(you)}<div class="cm-write"><textarea data-reply-box="${key}" rows="1" maxlength="500" placeholder="${esc(placeholder)}"></textarea><div class="cm-attach" data-rattach="${key}"${rdraftHtml(key) ? "" : " hidden"}>${rdraftHtml(key)}</div><div class="cm-send"><div class="cm-tools"><button class="cm-tool" data-rphoto="${key}" aria-label="Add photos" title="Photos"${rdraftOf(key).gif || rdraftOf(key).photos.length >= 4 ? " disabled" : ""}><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg></button><button class="cm-tool" data-rgif="${key}" aria-label="Add a GIF" title="GIF"${rdraftOf(key).gif || rdraftOf(key).photos.length ? " disabled" : ""}><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 7.5H6.25A3.25 3.25 0 0 0 3 10.75v2.5a3.25 3.25 0 0 0 3.25 3.25H9V12H7"/><path d="M12.5 7.5v9"/><path d="M20.75 7.5h-4v9"/><path d="M16.75 12h3.25"/></svg></button></div>${small ? `<button class="pill" data-answer-cancel="${post.id}">Cancel</button>` : ""}<button class="pill pearl" data-reply-send="${key}"${rdraftReady(key) ? "" : " disabled"}>Reply</button></div></div></div>`
@@ -9960,7 +10021,7 @@
     const mine = m.mine !== undefined ? !!m.mine : !!(room.you && a.id === room.you.id);
     const mod = !!(room.you && room.you.moderator);
     const q = m.reply_to;
-    const chips = (m.reactions || []).map((r) => `<button class="cm-chip${rmMine(r) ? " on" : ""}" data-rm-react="${m.id}" data-emoji="${esc(r.emoji)}"><span>${esc(r.emoji)}</span><b>${r.count}</b></button>`).join("");
+    const chips = (m.reactions || []).map((r) => `<button class="cm-chip${rmMine(r) ? " on" : ""}" data-rm-react="${m.id}" data-emoji="${esc(r.emoji)}"${reactWho(r)}><span>${esc(r.emoji)}</span><b>${r.count}</b></button>`).join("");
     const armed = room.armed === m.id;
     return `<div class="rm-msg${cont ? " cont" : ""}${q ? " quoted" : ""}" data-rm="${m.id}">
       ${q ? `<button class="rm-quote" data-rm-jump="${q.id}">${REPLY_ICON}<b>${esc(q.author_name || "Someone")}</b><span>${esc(q.body || "")}</span></button>` : ""}
