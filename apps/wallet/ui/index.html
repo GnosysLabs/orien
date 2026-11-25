@@ -2276,6 +2276,10 @@
     body:not(.phone) #home .home-body { display: flex; gap: 20px; flex: 0 1 auto; min-height: 0; }
     body:not(.phone) #home .home-main { display: flex; flex-direction: column; flex: 1 1 auto; min-width: 0; min-height: 0; }
     body:not(.phone) #home .home-side { display: flex; flex-direction: column; gap: 14px; flex: 0 0 340px; min-height: 0; }
+    /* Mining and the group chat are in the column beside: their buttons go,
+       and the rest share the row evenly. */
+    body:not(.phone) #home :is(#go-mine, #go-room) { display: none; }
+    body:not(.phone) #home .actions.five { grid-template-columns: none; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); }
   }
   .hs-card { display: flex; flex-direction: column; padding: 14px 16px 16px; border: 1px solid var(--line); border-radius: 18px; background: var(--surface); }
   /* Each card opens with its sign in a pearl circle, its name and a line
@@ -2766,7 +2770,7 @@
       <aside class="home-side" id="home-side">
         <div class="hs-card" id="hs-mine">
           <button class="hs-head hs-open" id="hs-mine-more" title="Open Mine"><span class="hs-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m14 13-8.381 8.38a1 1 0 0 1-3.001-3L11 9.999"/><path d="M15.973 4.027A13 13 0 0 0 5.902 2.373c-1.398.342-1.092 2.158.277 2.601a19.9 19.9 0 0 1 5.822 3.024"/><path d="M16.001 11.999a19.9 19.9 0 0 1 3.024 5.824c.444 1.369 2.26 1.676 2.603.278A13 13 0 0 0 20 8.069"/><path d="M18.352 3.352a1.205 1.205 0 0 0-1.704 0l-5.296 5.296a1.205 1.205 0 0 0 0 1.704l2.296 2.296a1.205 1.205 0 0 0 1.704 0l5.296-5.296a1.205 1.205 0 0 0 0-1.704z"/></svg></span><span class="hs-title"><b>Mining</b><small class="hs-state" id="hs-mine-state">Stopped</small></span><span class="hs-arrow" aria-hidden="true"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg></span></button>
-          <div class="hs-figs"><div><span>Speed</span><b id="hs-speed">—</b></div><div><span id="hs-rate-label">Shares</span><b id="hs-rate">—</b></div><div><span>Last reward</span><b id="hs-reward">—</b></div></div>
+          <div class="hs-figs"><div><span>Speed</span><b id="hs-speed">—</b></div><div><span id="hs-rate-label">Shares</span><b id="hs-rate">—</b></div><div><span>Network</span><b id="hs-net" title="Every miner on Orien together, estimated">—</b></div></div>
           <div class="hs-acts"><button class="pill pearl" id="hs-mine-go">Start mining</button></div>
         </div>
         <div class="hs-card hs-chat" id="hs-chat">
@@ -4510,7 +4514,6 @@
     $("hs-speed").textContent = s.running && s.tries_per_second ? `${speed(s.tries_per_second)}/s` : "—";
     $("hs-rate-label").textContent = small === "for each share" ? "Each share" : "Shares an hour";
     $("hs-rate").textContent = big || "—";
-    $("hs-reward").textContent = m.last_reward ? `+${m.last_reward.amount}` : "—";
     $("hs-mine-go").textContent = readying ? "Getting ready…" : s.running ? "Stop mining" : "Start mining";
     $("hs-mine-go").className = s.running ? "pill" : "pill pearl";
     $("hs-mine-go").disabled = readying;
@@ -9986,10 +9989,16 @@
   // ---- Home in a big window: mining and the group chat beside the wallet.
   const homeWide = () => !phone && wide.matches && !$("home").hidden;
   let hsReady = false;
+  let hsNetAt = 0;
   async function homeSide() {
     if (!homeWide()) return;
     if (!hsReady) { hsReady = true; await mineStatus(true); } else mineStatus(false);
     hsChat();
+    // The whole network's hashrate, from the explorer: once a minute is plenty.
+    if (Date.now() - hsNetAt > 60000) {
+      hsNetAt = Date.now();
+      invoke("explorer", { path: "/overview" }).then((o) => { $("hs-net").textContent = o && o.hashrate ? exRate(o.hashrate.per_second) : "—"; }).catch(() => { hsNetAt = 0; });
+    }
   }
   $("hs-mine-go").onclick = async () => { $("hs-mine-go").disabled = true; await $("mn-go").onclick(); };
   $("hs-mine-more").onclick = () => $("go-mine").onclick();
