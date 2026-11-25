@@ -4373,6 +4373,21 @@
       finally { go.disabled = false; }
     };
   }
+  // Settings, contacts and themes chosen on your other devices, fetched
+  // again while the app stays open: every two minutes, and as soon as it
+  // comes back to the front (an iPhone app sits open for days). Never more
+  // than twice a minute.
+  let syncedAt = Date.now();
+  async function resync() {
+    if (Date.now() - syncedAt < 30000 || document.hidden) return;
+    syncedAt = Date.now();
+    try { await invoke("contacts_sync"); } catch { return; }
+    await loadBook();
+    await loadIcons();
+    loadPrefs();
+  }
+  document.addEventListener("visibilitychange", () => { if (!document.hidden) resync(); });
+  setInterval(resync, 120000);
   async function syncBook() {
     try { await invoke("contacts_sync"); } catch { return; }
     await loadBook();
