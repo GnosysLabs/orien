@@ -192,6 +192,10 @@
   html body #swaps, html body #swap-sell, html body #swap-buy, html body #swap-detail {
     margin-left: -18px; margin-right: -18px; padding-left: 18px; padding-right: 18px; padding-bottom: 22px; }
   html body .scroll { margin-left: -18px; margin-right: -18px; padding-left: 18px; padding-right: 18px; padding-bottom: 22px; }
+  /* Computers: no extra room under a screen, so the gap below its content
+     is the same as the gap beside it (20px inside the container in big
+     windows, the window's own 28px margin in smaller ones). */
+  body:not(.phone) :is(.screen, #mine, #board-signin, #board-post, #board-take, #swaps, #swap-sell, #swap-buy, #swap-detail) { padding-bottom: 0; }
   /* Big windows: every screen keeps its ideal width, centred, with the
      theme's background filling the rest. The screen itself still spans the
      window, so it scrolls from anywhere and its scrollbar sits at the edge.
@@ -447,8 +451,14 @@
   body.phone .ex-fact .l { font-size: 11px; line-height: 1.3; }
   body.phone .ex-fact .v { margin-top: 0; font-size: 15px; letter-spacing: -0.01em; }
   body.phone .ex-fact .n { display: none; }
-  body.phone #explorer.ex-one .ex-panel { margin-top: 12px; border-radius: 18px 18px 39px 39px; }
-  body.phone #explorer.ex-one .ex-pane { padding-bottom: max(12px, calc(env(safe-area-inset-bottom) - 12px)); }
+  body.phone #explorer.ex-one .ex-panel { margin-top: 12px; }
+  /* At the foot of the screen, its bottom corners follow the phone's. */
+  body.phone #explorer.ex-one .ex-panel:last-child { border-radius: 18px 18px 39px 39px; }
+  body.phone #explorer.ex-one .ex-panel:last-child .ex-pane { padding-bottom: max(12px, calc(env(safe-area-inset-bottom) - 12px)); }
+  /* A checkpoint's five figures: three, then two, each row filled. */
+  body.phone .ex-facts.five { grid-template-columns: repeat(6, minmax(0, 1fr)); }
+  body.phone .ex-facts.five > :nth-child(-n+3) { grid-column: span 2; }
+  body.phone .ex-facts.five > :nth-child(n+4) { grid-column: span 3; }
   /* Contacts and the explorer join the round buttons: the explorer
      everywhere but big windows (where Home's network card leads to it),
      Contacts on computers (iPhones keep it at the top). */
@@ -2419,17 +2429,24 @@
      lists (checkpoints, top wallets, validators) scroll inside it. */
   #explorer.ex-one #ex-body { flex: 1 1 0; min-height: 0; display: flex; flex-direction: column; }
   #explorer.ex-one #ex-body > * { flex-shrink: 0; }
-  #explorer.ex-one #ex-body > .ex-panel { flex: 1 1 0; min-height: 280px; }
+  #explorer.ex-one #ex-body > .ex-panel { flex: 1 1 0; min-height: 190px; }
   /* Smaller windows: the six figures three to a row, two rows. */
   body:not(.phone) #explorer.ex-one .ex-facts { grid-template-columns: repeat(3, minmax(0, 1fr)); }
   body:not(.phone) #explorer.ex-one .ex-fact { display: flex; flex-direction: column; }
   body:not(.phone) #explorer.ex-one .ex-fact .n { margin-top: auto; padding-top: 4px; }
+  body:not(.phone) #explorer.ex-one .ex-facts.five { grid-template-columns: repeat(5, minmax(0, 1fr)); }
   .ex-panel { display: flex; flex-direction: column; margin-top: 16px; border: 1px solid var(--line); border-radius: 18px; background: var(--surface); overflow: hidden; }
   .tabs.ex-tabs { grid-template-columns: repeat(3, minmax(0, 1fr)); flex: none; margin: 8px 8px 0; }
   .ex-pane { flex: 1 1 0; min-height: 0; overflow-y: auto; overscroll-behavior: contain; padding: 6px 0 8px; }
   .ex-pane .list { border: 0; border-radius: 0; background: none; box-shadow: none; }
   .ex-pane-note { padding: 6px 18px 2px; font-size: 12.5px; color: var(--dim); }
   .ex-more { display: flex; justify-content: center; padding: 10px 0 6px; }
+  .ex-panel-head { flex: none; display: flex; align-items: baseline; justify-content: space-between; gap: 12px; padding: 14px 18px 8px; border-bottom: 1px solid var(--line); }
+  .ex-panel-head b { font-weight: 600; font-size: 14.5px; }
+  .ex-panel-head span { font-size: 12.5px; color: var(--dim); }
+  #explorer.ex-one #ex-body > .ex-panel-only { margin-top: 0; }
+  #explorer.ex-one .ex-steps { flex: none; margin: 14px 0 0; }
+  #explorer.ex-one .ex-steps + .ex-panel { margin-top: 12px; }
   .ex-row { width: 100%; border: 0; background: none; color: inherit; font: inherit; text-align: left; cursor: pointer; }
   @media (hover: hover) { .ex-row:hover { background: rgba(var(--tint), 0.03); } }
   .ex-rank { flex: none; width: 22px; text-align: right; font-size: 12.5px; color: var(--faint); font-variant-numeric: tabular-nums; }
@@ -2438,14 +2455,6 @@
   .ex-num { min-width: 52px; height: 32px; padding: 0 10px; box-sizing: border-box; flex: none; border-radius: 10px; display: grid; place-items: center; font-size: 11px; font-weight: 700;
     background: rgba(var(--tint), 0.05); color: var(--dim); font-variant-numeric: tabular-nums; }
   /* Room under it for the back-to-top arrow, so they never overlap. */
-  .ex-pages { display: flex; justify-content: center; align-items: center; gap: 6px; margin: 14px 0 58px; flex-wrap: wrap; }
-  .ex-pages:empty { display: none; }
-  .ex-pg { min-width: 34px; height: 34px; padding: 0 10px; border-radius: 999px; border: 1px solid var(--line); background: var(--surface);
-    color: var(--ink); font: inherit; font-size: 13px; font-weight: 600; font-variant-numeric: tabular-nums; cursor: pointer; }
-  @media (hover: hover) { .ex-pg:not(:disabled):not(.on):hover { background: var(--surface-hover); } }
-  .ex-pg.on { border-color: transparent; background: var(--pearl); background-size: 300% 100%; color: var(--pearl-ink); cursor: default; }
-  .ex-pg:disabled { opacity: 0.35; cursor: default; }
-  .ex-gap { color: var(--faint); padding: 0 2px; }
   .ex-steps { display: flex; justify-content: space-between; gap: 10px; margin: 18px 0 0; }
   .ex-hash { padding: 12px 14px; }
   .ex-hash + .ex-hash { border-top: 1px solid var(--line); }
@@ -2473,10 +2482,10 @@
     .ex-facts.five { grid-template-columns: repeat(5, minmax(0, 1fr)); }
     /* The overview's six figures in one row, so its card has the height. */
     body:not(.phone) #explorer.ex-one .ex-facts { grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 10px; }
+    body:not(.phone) #explorer.ex-one .ex-facts.five { grid-template-columns: repeat(5, minmax(0, 1fr)); }
     body:not(.phone) #explorer.ex-one .ex-fact { padding: 12px 14px 13px; }
     body:not(.phone) #explorer.ex-one .ex-fact .v { font-size: 19px; }
     body:not(.phone) .ex-search.field { max-width: 480px; }
-    .ex-split { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 0 24px; align-items: start; }
     /* An address: who it is on the left, its figures stacked on the right. */
     .ex-addr-top { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 360px); gap: 24px; align-items: center; }
     .ex-addr-top .ex-hero { flex-direction: row; align-items: center; gap: 22px; margin: 0; text-align: left; }
@@ -10819,7 +10828,7 @@
   // ---- Explorer: the network, live, as on explorer.orien.network ----
   // One screen moving between the overview, a checkpoint, an address and
   // the top wallets; Back goes to the view before, then home.
-  const ex = { stack: [], at: null, timer: 0, paged: null, tab: "cps", paneTop: {} };
+  const ex = { stack: [], at: null, timer: 0, tabs: { home: "cps", checkpoint: "rewards" }, paneTop: {} };
   const EX_UNITS = 1000000000n;
   // Units as ORN, grouped, with at most `digits` decimals.
   function exOrn(units, digits = 2) {
@@ -10863,7 +10872,7 @@
   async function exGet(path) { return invoke("explorer", { path }); }
   function exShow(view, push = true) {
     const pane = $("ex-pane");
-    if (pane && ex.at && ex.at.kind === "home") ex.paneTop[ex.tab] = pane.scrollTop;
+    if (pane && ex.at && ex.at.kind === "home") ex.paneTop[ex.tabs.home] = pane.scrollTop;
     if (!push && !ex.at) ex.paneTop = {};
     if (push && ex.at) ex.stack.push(ex.at);
     ex.at = view;
@@ -10872,8 +10881,8 @@
     $("explorer").scrollTop = 0;
     $("ex-title").textContent = view.kind === "home" ? "Explorer" : view.kind === "top" ? "Top wallets" : view.kind === "checkpoint" ? `Checkpoint ${view.epoch}` : "Address";
     $("ex-search").hidden = view.kind !== "home";
-    // The overview fits one screen, its lists scrolling in a card of their own.
-    $("explorer").classList.toggle("ex-one", view.kind === "home");
+    // Every page fits one screen, its lists scrolling in a card of their own.
+    $("explorer").classList.add("ex-one");
     $("ex-body").innerHTML = '<div class="empty">Loading…</div>';
     if (view.kind === "home") { exHome(); ex.timer = setInterval(() => { if (!$("explorer").hidden && ex.at === view) exHome(true); }, 30000); }
     else if (view.kind === "checkpoint") exCheckpoint(view.epoch);
@@ -10974,15 +10983,18 @@
   };
   $("ex-body").onclick = (e) => {
     const tab = e.target.closest("[data-ex-tab]");
-    if (tab) { if (tab.dataset.exTab !== ex.tab) { $("ex-pane").scrollTop && (ex.paneTop[ex.tab] = $("ex-pane").scrollTop); feel("selection"); exTab(tab.dataset.exTab); } return; }
-    const go = e.target.closest("[data-ex-cp],[data-ex-addr],[data-ex-top],[data-ex-page],[data-ex-copy],[data-ex-send]");
+    if (tab) {
+      const kind = ex.at.kind;
+      if (tab.dataset.exTab !== ex.tabs[kind]) { if (kind === "home") ex.paneTop[ex.tabs.home] = $("ex-pane").scrollTop; feel("selection"); exTab(tab.dataset.exTab); }
+      return;
+    }
+    const go = e.target.closest("[data-ex-cp],[data-ex-addr],[data-ex-top],[data-ex-copy],[data-ex-send]");
     if (!go) return;
     if (go.dataset.exCopy !== undefined) {
       navigator.clipboard.writeText(go.dataset.exCopy).then(() => { go.classList.add("copied"); setTimeout(() => go.classList.remove("copied"), 1200); }).catch(() => {});
     } else if (go.dataset.exSend !== undefined) {
       $("go-send").onclick(); $("to").value = go.dataset.exSend; validate(); $("amount").focus();
-    } else if (go.dataset.exPage !== undefined) { if (!go.disabled) exPage(Number(go.dataset.exPage)); }
-    else if (go.dataset.exTop !== undefined) exShow({ kind: "top" });
+    } else if (go.dataset.exTop !== undefined) exShow({ kind: "top" });
     else if (go.dataset.exCp !== undefined) exShow({ kind: "checkpoint", epoch: Number(go.dataset.exCp) });
     else exShow({ kind: "address", address: go.dataset.exAddr });
   };
@@ -11032,16 +11044,18 @@
             <div class="tx-side"><div class="amt">${!v.up ? "Not answering" : v.epoch < o.epoch ? "Catching up" : "Running"}</div><div class="sub">${v.up ? `Checkpoint ${v.epoch}` : ""}</div></div></div>`).join("")}</div></div>
         </div>
       </div>`;
-    exTab(ex.tab, keep);
+    exTab(ex.tabs.home, keep);
   }
-  // The overview's card: one list at a time, each keeping where it was scrolled to.
+  // A page's card: one list at a time. The overview's lists keep where
+  // they were scrolled to; a checkpoint's start at the top.
   function exTab(tab, top) {
     const pane = $("ex-pane");
     if (!pane) return;
-    ex.tab = tab;
+    const kind = ex.at.kind;
+    ex.tabs[kind] = tab;
     for (const b of document.querySelectorAll("[data-ex-tab]")) b.classList.toggle("on", b.dataset.exTab === tab);
     for (const p of pane.querySelectorAll("[data-ex-pane]")) p.hidden = p.dataset.exPane !== tab;
-    pane.scrollTop = top != null ? top : ex.paneTop[tab] || 0;
+    pane.scrollTop = top != null ? top : kind === "home" ? ex.paneTop[tab] || 0 : 0;
   }
   function exChange(harder) {
     const ratio = 1 + harder, value = Math.round(Math.abs(harder) * 1000) / 10;
@@ -11064,23 +11078,27 @@
         ${exFact("Agreed by", `${c.agreed.length} of ${c.of}`, "Validators")}
         ${exFact("Made", exAgo(c.time), exWhen(c.time))}
       </div>
-      <div class="ex-split"><div>
-      ${exHead("Mining rewards", `<span class="sub">${miners.length.toLocaleString()} ${miners.length === 1 ? "wallet" : "wallets"}</span>`)}
-      <div class="list" id="ex-paged">${!r.known ? `<div class="empty">${r.since != null && epoch < r.since ? `Who mined this hour isn't known: the validators' records start at checkpoint ${r.since}.` : "The validators didn't answer about this hour's rewards just now. Try again in a moment."}</div>`
-        : miners.length ? "" : '<div class="empty">Nobody mined this hour.</div>'}</div>
-      <div class="ex-pages" id="ex-pages"></div>
-      </div><div>
-      ${exHead("Validators that hour")}
-      <div class="list">${(d.validators || []).map((v) => `<div class="tx"><span class="ex-dot${v.agreed ? " up" : ""}"></span><div class="tx-main"><div class="title">Validator ${v.seat + 1}</div><div class="sub">${v.account ? `Staked by ${esc(exWho(v.account).name || short(v.account))}` : "Launch validator"}</div></div><div class="tx-side"><div class="amt">${v.agreed ? "Agrees" : "Didn't answer"}</div></div></div>`).join("")}</div>
-      ${exHead("For checking")}
-      <div class="list">
-        <button class="ex-hash ex-row" data-ex-copy="${c.state}" title="Copy"><div class="l">State after it: every account's balance, as one fingerprint</div><div class="h">${c.state}</div></button>
-        <button class="ex-hash ex-row" data-ex-copy="${c.digest}" title="Copy"><div class="l">This checkpoint's fingerprint</div><div class="h">${c.digest}</div></button>
-        ${epoch !== 0 && d.previous ? `<button class="ex-hash ex-row" data-ex-copy="${d.previous}" title="Copy"><div class="l">The checkpoint before it</div><div class="h">${d.previous}</div></button>` : ""}
+      <div class="ex-steps">${epoch > 0 ? `<button class="pill" data-ex-cp="${epoch - 1}">← Checkpoint ${epoch - 1}</button>` : "<span></span>"}${d.latest != null && epoch < d.latest ? `<button class="pill" data-ex-cp="${epoch + 1}">Checkpoint ${epoch + 1} →</button>` : ""}</div>
+      <div class="ex-panel">
+        <div class="tabs ex-tabs" role="tablist">
+          <button class="tab" data-ex-tab="rewards" role="tab">Rewards</button>
+          <button class="tab" data-ex-tab="vals" role="tab">Validators</button>
+          <button class="tab" data-ex-tab="check" role="tab">Fingerprints</button>
+        </div>
+        <div class="ex-pane" id="ex-pane">
+          <div data-ex-pane="rewards">${r.known && miners.length ? `<div class="ex-pane-note">${miners.length.toLocaleString()} ${miners.length === 1 ? "wallet" : "wallets"} paid</div>` : ""}
+            <div class="list">${!r.known ? `<div class="empty">${r.since != null && epoch < r.since ? `Who mined this hour isn't known: the validators' records start at checkpoint ${r.since}.` : "The validators didn't answer about this hour's rewards just now. Try again in a moment."}</div>`
+              : miners.length ? miners.map(exMinerRow).join("") : '<div class="empty">Nobody mined this hour.</div>'}</div></div>
+          <div data-ex-pane="vals"><div class="list">${(d.validators || []).map((v) => `<div class="tx"><span class="ex-dot${v.agreed ? " up" : ""}"></span><div class="tx-main"><div class="title">Validator ${v.seat + 1}</div><div class="sub">${v.account ? `Staked by ${esc(exWho(v.account).name || short(v.account))}` : "Launch validator"}</div></div><div class="tx-side"><div class="amt">${v.agreed ? "Agrees" : "Didn't answer"}</div></div></div>`).join("")}</div></div>
+          <div data-ex-pane="check"><div class="list">
+            <button class="ex-hash ex-row" data-ex-copy="${c.state}" title="Copy"><div class="l">State after it: every account's balance, as one fingerprint</div><div class="h">${c.state}</div></button>
+            <button class="ex-hash ex-row" data-ex-copy="${c.digest}" title="Copy"><div class="l">This checkpoint's fingerprint</div><div class="h">${c.digest}</div></button>
+            ${epoch !== 0 && d.previous ? `<button class="ex-hash ex-row" data-ex-copy="${d.previous}" title="Copy"><div class="l">The checkpoint before it</div><div class="h">${d.previous}</div></button>` : ""}
+          </div></div>
+        </div>
       </div>
-      </div></div>
-      <div class="ex-steps">${epoch > 0 ? `<button class="pill" data-ex-cp="${epoch - 1}">← Checkpoint ${epoch - 1}</button>` : "<span></span>"}${d.latest != null && epoch < d.latest ? `<button class="pill" data-ex-cp="${epoch + 1}">Checkpoint ${epoch + 1} →</button>` : ""}</div>`;
-    if (r.known && miners.length) exPaged(miners, 10, exMinerRow);
+`;
+    exTab(ex.tabs.checkpoint);
   }
   function exMinerRow(m, i) {
     const who = exWho(m.address);
@@ -11104,31 +11122,10 @@
         <button class="ct-addr" data-ex-copy="${address}" title="Copy the address"><span>${short(address)}</span><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button>
         ${mine ? "" : `<button class="pill pearl" data-ex-send="${address}">Send ORN</button>`}</div></div>
       <div class="list ex-stats"><div><b title="${exOrn(d.balance, 9)} ORN">${exOrn(d.balance, 2)}</b><span>ORN held</span></div><div><b>${exOrn(d.staked, 2)}</b><span>${d.returning && d.returning !== "0" ? `staked · ${exOrn(d.returning, 4)} returning` : "staked"}</span></div><div><b>${(d.payments_made || 0).toLocaleString()}</b><span>payments sent</span></div></div></div>
-      ${exHead("Activity", d.more ? '<span class="sub">The latest 500</span>' : "")}
-      <div class="list" id="ex-paged">${acts.length ? "" : `<div class="empty">${d.since != null ? "Nothing has happened at this address yet." : "No activity is recorded for this address."}</div>`}</div>
-      <div class="ex-pages" id="ex-pages"></div>`;
-    if (acts.length) exPaged(acts, EX_PAGE, exActRow);
-  }
-  // A long list in numbered pages (a wallet's activity, 25 to a page; a
-  // checkpoint's miners, 10, so the column beside ends with them). It all
-  // arrives at once, so turning a page is instant.
-  const EX_PAGE = 25;
-  function exPaged(rows, per, rowOf) { ex.paged = { rows, per, rowOf }; exPage(1, false); }
-  function exPage(n, scroll = true) {
-    const { rows, per, rowOf } = ex.paged;
-    const pages = Math.ceil(rows.length / per);
-    n = Math.min(Math.max(1, n), pages);
-    $("ex-paged").innerHTML = rows.slice((n - 1) * per, n * per).map((r, i) => rowOf(r, (n - 1) * per + i)).join("");
-    // The first, the last, and the pages either side of this one.
-    const nums = [...new Set([1, n - 1, n, n + 1, pages])].filter((x) => x >= 1 && x <= pages).sort((a, b) => a - b);
-    let html = `<button class="ex-pg" data-ex-page="${n - 1}" aria-label="Previous page"${n === 1 ? " disabled" : ""}>‹</button>`;
-    nums.forEach((x, i) => {
-      if (i && x - nums[i - 1] > 1) html += '<span class="ex-gap">…</span>';
-      html += `<button class="ex-pg${x === n ? " on" : ""}" data-ex-page="${x}">${x}</button>`;
-    });
-    html += `<button class="ex-pg" data-ex-page="${n + 1}" aria-label="Next page"${n === pages ? " disabled" : ""}>›</button>`;
-    $("ex-pages").innerHTML = pages > 1 ? html : "";
-    if (scroll) $("ex-paged").previousElementSibling.scrollIntoView({ block: "start", behavior: "smooth" });
+      <div class="ex-panel">
+        <div class="ex-panel-head"><b>Activity</b>${d.more ? '<span>The latest 500</span>' : acts.length ? `<span>${acts.length.toLocaleString()} ${acts.length === 1 ? "payment" : "payments"}</span>` : ""}</div>
+        <div class="ex-pane" id="ex-pane"><div class="list">${acts.length ? acts.map(exActRow).join("") : `<div class="empty">${d.since != null ? "Nothing has happened at this address yet." : "No activity is recorded for this address."}</div>`}</div></div>
+      </div>`;
   }
   function exActRow(a) {
         const k = EX_KINDS[a.kind] || [a.kind];
@@ -11144,8 +11141,10 @@
     try { t = await exGet("/top"); } catch (e) { exFail(e); return; }
     await loadProfiles((t.holders || []).map((h) => h.address));
     if (ex.at.kind !== "top") return;
-    $("ex-body").innerHTML = `${exHead("Ranked by ORN held", `<span class="sub">${(t.holding || 0).toLocaleString()} wallets hold ORN</span>`)}
-      <div class="list">${(t.holders || []).map(exHolderRow).join("")}</div>`;
+    $("ex-body").innerHTML = `<div class="ex-panel ex-panel-only">
+        <div class="ex-panel-head"><b>Ranked by ORN held</b><span>${(t.holding || 0).toLocaleString()} wallets hold ORN</span></div>
+        <div class="ex-pane" id="ex-pane"><div class="list">${(t.holders || []).map(exHolderRow).join("")}</div></div>
+      </div>`;
   }
   // A payment in your activity opens in the explorer: the other side, or
   // for mining and the like, your own wallet's page.
