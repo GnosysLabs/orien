@@ -28,6 +28,19 @@ export const CHANGELOG: Entry[] = [
   {
     date: '2026-11-24',
     products: ['wallet'],
+    version: '1.9.8',
+    title: 'The Orien group chat, and the explorer in your wallet',
+    changes: [
+      'The Orien group chat: one room for everyone on Orien Network, pinned first in Messages, with its own button on Home that lights up when there’s something new. Anyone can read along; a verified wallet chats, replies and reacts, with pictures and GIFs.',
+      'The explorer is built in: the network at a glance, the top wallets, every checkpoint and any address, searchable by address, name or checkpoint number.',
+      'Verify your wallet in one tap, from Home, the group chat, the Community or a swap.',
+      'Themes you build darken softly at the edges and top, so the ORIEN wordmark and message times always read.',
+      'Tidier big windows: contacts in two columns, a sensible search box on the Market, and the wallet picker styled like the buttons beside it.',
+    ],
+  },
+  {
+    date: '2026-11-24',
+    products: ['wallet'],
     version: '1.9.7',
     title: 'Your theme pictures follow you',
     changes: [
