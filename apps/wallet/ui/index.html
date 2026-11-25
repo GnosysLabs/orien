@@ -2167,7 +2167,10 @@
     transform: scale(0.96); transition: transform 0.2s ease; }
   #gif-veil.on #gif-card { transform: scale(1); }
   .gif-top { display: flex; gap: 10px; align-items: center; }
-  .gif-top .secondary { width: auto; height: 42px; padding: 0 16px; flex: none; }
+  /* Closes with ✕ in the corner, as the other cards over the app do. */
+  .gif-x { display: grid; place-items: center; flex: none; width: 36px; height: 36px; padding: 0; border: 0; border-radius: 50%;
+    background: rgba(var(--tint), 0.06); color: var(--dim); cursor: pointer; transition: background .15s, color .15s; }
+  @media (hover: hover) { .gif-x:hover { background: rgba(var(--tint), 0.1); color: var(--ink); } }
   .gif-search { flex: 1; min-width: 0; height: 42px; margin: 0; display: flex; align-items: center; gap: 8px; padding: 0 14px; color: var(--dim);
     border-radius: var(--radius); background: var(--field); border: 1px solid var(--line); }
   .gif-search:focus-within { border-color: var(--focus); }
@@ -3999,7 +4002,7 @@
   <div id="si-buttons"><button class="primary pearl" id="si-yes">Sign in</button><button class="secondary" id="si-no">Cancel</button></div>
 </div></div>
 <div id="gif-veil" hidden><div id="gif-card" role="dialog" aria-modal="true" aria-label="Choose a GIF">
-  <div class="gif-top"><div class="box plain gif-search"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg><input id="gif-q" type="text" autocomplete="off" placeholder="Search KLIPY"></div><button class="secondary" id="gif-close">Cancel</button></div>
+  <div class="gif-top"><div class="box plain gif-search"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg><input id="gif-q" type="text" autocomplete="off" placeholder="Search KLIPY"></div><button class="gif-x" id="gif-close" aria-label="Close" title="Close"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></button></div>
   <div id="gif-grid"></div>
   <div class="gif-by" id="gif-by">Powered by KLIPY</div>
 </div></div>
