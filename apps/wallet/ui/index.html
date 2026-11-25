@@ -713,11 +713,14 @@
   .bench .bt b { display: block; font-weight: 500; }
   .bench .bt span { display: block; margin-top: 3px; font-size: 12.5px; line-height: 1.45; color: var(--dim); }
   .bench button { flex: none; width: auto; margin: 0; padding: 0 16px; height: 36px; }
-  /* The Mine button while mining: a glowing dot on its circle. */
+  /* The Mine button while mining: its circle breathes a soft green glow. */
   #go-mine { position: relative; }
-  #go-mine.on::after { content: ""; position: absolute; top: 2px; right: calc(50% - 25px); width: 10px; height: 10px; border-radius: 50%;
-    background: var(--good); box-shadow: 0 0 8px #a6e3c6aa; animation: mining 1.6s ease-in-out infinite; }
-  @keyframes mining { 0%, 100% { opacity: 1; } 50% { opacity: 0.35; } }
+  #go-mine.on .icon { animation: mining 2.8s ease-in-out infinite; }
+  @keyframes mining {
+    0%, 100% { box-shadow: 0 5px 14px rgba(0, 0, 0, 0.26), 0 0 0 0 rgba(166, 227, 198, 0), 0 0 8px 1px rgba(166, 227, 198, 0.25); }
+    50% { box-shadow: 0 5px 14px rgba(0, 0, 0, 0.26), 0 0 0 3px rgba(166, 227, 198, 0.35), 0 0 22px 6px rgba(166, 227, 198, 0.55); }
+  }
+  @media (prefers-reduced-motion: reduce) { #go-mine.on .icon { animation: none; box-shadow: 0 0 0 3px rgba(166, 227, 198, 0.35), 0 0 16px 4px rgba(166, 227, 198, 0.45); } }
   #mine { overflow-y: auto; margin: -8px -8px 0; padding: 8px 8px 16px; }
   #mine > *, #mine .mn-col > * { flex-shrink: 0; }
   /* One column until a big window; then the status and network on the
