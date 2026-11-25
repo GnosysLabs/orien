@@ -1219,7 +1219,15 @@
   @media (hover: hover) { .rm-tools button:hover { color: var(--ink); background: rgba(var(--tint), 0.07); } }
   .rm-tools button.bad { color: #ff7b72; }
   .rm-tools svg { width: 16px; height: 16px; }
+  /* iPhones: the tapped message is marked, and its buttons are finger-sized. */
+  body.phone .rm-msg.tools { background: rgba(var(--tint), 0.05); }
+  body.phone .rm-tools { position: static; grid-column: 2; justify-self: start; margin-top: 8px; gap: 4px; padding: 4px; border-radius: 14px; }
+  body.phone .rm-tools button { width: 42px; height: 38px; border-radius: 10px; }
+  body.phone .rm-tools svg { width: 19px; height: 19px; }
   .rm-msg .cm-picker { top: -52px; right: 10px; }
+  /* iPhones: the reactions open in line, under the message's buttons. */
+  body.phone .rm-msg .cm-picker { position: static; grid-column: 2; justify-self: start; margin-top: 8px; padding: 4px; }
+  body.phone .rm-msg .cm-picker button { width: 42px; height: 42px; font-size: 21px; }
   .rm-msg .report-box { grid-column: 2; margin-top: 8px; }
   .rm-more { align-self: center; margin: 4px 0 10px; }
   .rm-start { align-self: center; margin: 18px 0 8px; font-size: 12.5px; color: var(--faint); text-align: center; }
@@ -2330,6 +2338,13 @@
     -webkit-backdrop-filter: blur(16px) saturate(1.3); backdrop-filter: blur(16px) saturate(1.3); }
   .sl-act svg { width: 17px; height: 17px; }
   .sl-act.main { border-color: transparent; background: var(--pearl); background-size: 300% 100%; color: var(--pearl-ink); animation: drift 24s linear infinite; }
+  /* Narrow (iPhones, the smallest window), where the card is centred: the
+     buttons in a row under the bio instead, finger-sized on iPhones. */
+  @media (max-width: 719px) {
+    .sl-actions { position: static; order: 5; justify-content: center; gap: 12px; margin-top: 2px; }
+  }
+  body.phone .sl-act { width: 46px; height: 46px; }
+  body.phone .sl-act svg { width: 19px; height: 19px; }
   @media (hover: hover) { .sl-act:not(.main):hover { background: color-mix(in srgb, var(--surface-hover) 82%, transparent); } .sl-act.main:hover { filter: brightness(1.06); } }
   /* A member's contact card. */
   .mb-hero .mb-name { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 8px; margin-top: 14px; font-size: 22px; font-weight: 700; }
