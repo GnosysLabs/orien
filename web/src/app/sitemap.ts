@@ -20,6 +20,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     ['/developers/', 0.7, 'monthly'],
     ...(WALLET_SIGN_IN_DOCS ? ([['/developers/sign-in/', 0.6, 'monthly']] as const) : []),
     ['/developers/exchanges/', 0.6, 'monthly'],
+    ['/developers/validators/', 0.6, 'monthly'],
     ['/news/randomx/', 0.6, 'yearly'],
     ['/changelog/', 0.5, 'weekly'],
     ['/contact/', 0.4, 'yearly'],

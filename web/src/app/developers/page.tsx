@@ -333,7 +333,8 @@ export default function DevelopersPage() {
       <Section id="validators" title="Running a validator">
         <p>
           Anyone can run a validator by staking at least 10,000 ORN behind a validator key. It joins at the next
-          checkpoint, earns a share of the fees in proportion to its stake, and votes on every payment.
+          checkpoint, earns a share of the fees in proportion to its stake, and votes on every payment.{' '}
+          <Link href="/developers/validators/">Run a validator</Link> walks through it step by step.
         </p>
         <Block>{`orien keygen validator.key
 orien node -k validator.key -d data --listen 0.0.0.0:7100

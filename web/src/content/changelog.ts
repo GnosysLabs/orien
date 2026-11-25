@@ -27,6 +27,14 @@ export const PRODUCTS: Record<Product, string> = {
 export const CHANGELOG: Entry[] = [
   {
     date: '2026-11-25',
+    products: ['validators'],
+    title: 'A guide to running a validator',
+    changes: [
+      'Run a validator, under Build, walks through the stake, setting it up, the one port to open to the internet, keeping its key safe and staying up to date.',
+    ],
+  },
+  {
+    date: '2026-11-25',
     products: ['marketplace'],
     title: 'See who reacted',
     changes: [
