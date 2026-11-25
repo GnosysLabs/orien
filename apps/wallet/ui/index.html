@@ -11404,9 +11404,9 @@
           <div class="list" data-ex-pane="cps" id="ex-cps">${cps.map(exCpRow).join("")}</div>
           <div data-ex-pane="top"><div class="list">${holders.map(exHolderRow).join("") || '<div class="empty">No wallets yet.</div>'}</div>
             <div class="ex-more"><button class="pill" data-ex-top>See the top 100</button></div></div>
-          <div data-ex-pane="vals"><div class="ex-pane-note">${up} of ${o.validators.length} running</div><div class="list">${o.validators.map((v) => `<div class="tx"><span class="ex-dot${v.up ? " up" : ""}"></span>
+          <div data-ex-pane="vals"><div class="ex-pane-note">${up} of ${o.validators.length} running</div><div class="list">${o.validators.map((v) => `<${v.account ? `button class="tx ex-row" data-ex-addr="${v.account}"` : `div class="tx"`}><span class="ex-dot${v.up ? " up" : ""}"></span>
             <div class="tx-main"><div class="title">Validator ${v.seat + 1}</div><div class="sub">${v.account ? `Staked by ${esc(exWho(v.account).name || short(v.account))} · ${exOrn(v.stake, 0)} ORN` : "Launch validator"} · agreed on ${v.agreed} of the last ${v.of}</div></div>
-            <div class="tx-side"><div class="amt">${!v.up ? "Not answering" : v.epoch < o.epoch ? "Catching up" : "Running"}</div><div class="sub">${v.up ? `Checkpoint ${v.epoch}` : ""}</div></div></div>`).join("")}</div></div>
+            <div class="tx-side"><div class="amt">${!v.up ? "Not answering" : v.epoch < o.epoch ? "Catching up" : "Running"}</div><div class="sub">${v.up ? `Checkpoint ${v.epoch}` : ""}</div></div></${v.account ? "button" : "div"}>`).join("")}</div></div>
         </div>
       </div>`;
     exTab(ex.tabs.home, keep);
@@ -11439,7 +11439,8 @@
     await loadProfiles(miners.slice(0, 100).map((m) => m.address));
     if (ex.at.kind !== "checkpoint" || ex.at.epoch !== epoch) return;
     const math = r.math ? (r.math === "Blake3" ? "BLAKE3" : r.math) : "—";
-    const vals = (d.validators || []).map((v) => `<div class="tx"><span class="ex-dot${v.agreed ? " up" : ""}"></span><div class="tx-main"><div class="title">Validator ${v.seat + 1}</div><div class="sub">${v.account ? `Staked by ${esc(exWho(v.account).name || short(v.account))}` : "Launch validator"}</div></div><div class="tx-side"><div class="amt">${v.agreed ? "Agreed" : "Didn't answer"}</div></div></div>`).join("");
+    // A staked validator opens the wallet that staked it.
+    const vals = (d.validators || []).map((v) => `<${v.account ? `button class="tx ex-row" data-ex-addr="${v.account}"` : `div class="tx"`}><span class="ex-dot${v.agreed ? " up" : ""}"></span><div class="tx-main"><div class="title">Validator ${v.seat + 1}</div><div class="sub">${v.account ? `Staked by ${esc(exWho(v.account).name || short(v.account))}` : "Launch validator"}</div></div><div class="tx-side"><div class="amt">${v.agreed ? "Agreed" : "Didn't answer"}</div></div></${v.account ? "button" : "div"}>`).join("");
     const prints = `<button class="ex-hash ex-row" data-ex-copy="${c.state}" title="Copy"><div class="l">State after it: every account's balance, as one fingerprint</div><div class="h">${c.state}</div></button>
             <button class="ex-hash ex-row" data-ex-copy="${c.digest}" title="Copy"><div class="l">This checkpoint's fingerprint</div><div class="h">${c.digest}</div></button>
             ${epoch !== 0 && d.previous ? `<button class="ex-hash ex-row" data-ex-copy="${d.previous}" title="Copy"><div class="l">The checkpoint before it</div><div class="h">${d.previous}</div></button>` : ""}`;
