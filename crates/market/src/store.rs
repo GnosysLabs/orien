@@ -578,6 +578,17 @@ impl Store {
         Ok(old)
     }
 
+    /// Takes an account's picture away (a moderator's call): it shows the
+    /// robot face again. Returns the picture, whose file can go.
+    pub fn clear_picture(&self, id: i64) -> Result<Option<String>> {
+        let old: Option<String> =
+            self.db.query_row("SELECT picture FROM accounts WHERE id = ?1", [id], |row| row.get(0)).optional()?.flatten();
+        self.db.execute("UPDATE accounts SET picture = NULL WHERE id = ?1", [id])?;
+        // The group chat redraws their messages with the new face.
+        self.bump_room_author(id)?;
+        Ok(old)
+    }
+
     /// Sets or clears an account's banner, and returns the one it replaces,
     /// whose file can go.
     pub fn set_banner(&self, id: i64, banner: Option<&str>) -> Result<Option<String>> {

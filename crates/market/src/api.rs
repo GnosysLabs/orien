@@ -27,7 +27,7 @@ pub struct App {
     store: Mutex<Store>,
     mailer: Arc<Mailer>,
     screener: Arc<Screener>,
-    images: Folder,
+    pub(crate) images: Folder,
     /// What the network says about addresses.
     payments: Arc<dyn Payments>,
     /// Bitcoin's price in dollars.

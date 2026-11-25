@@ -66,6 +66,8 @@ pub fn admin_router(app: Arc<App>, admins: Admins, site: Option<&std::path::Path
         .route("/api/admin/accounts/{id}", get(account))
         .route("/api/admin/accounts/{id}/suspend", post(suspend))
         .route("/api/admin/accounts/{id}/unsuspend", post(unsuspend))
+        .route("/api/admin/accounts/{id}/picture/remove", post(remove_picture))
+        .route("/api/admin/accounts/{id}/banner/remove", post(remove_banner))
         .route("/api/admin/posts/{id}/remove", post(remove_post))
         .route("/api/admin/room/{id}/remove", post(remove_room_message))
         .route("/api/admin/room", get(room))
@@ -103,6 +105,7 @@ pub struct AdminAccount {
     pub name: String,
     pub email: Option<String>,
     pub picture: Option<String>,
+    pub banner: Option<String>,
     pub wallet: Option<String>,
     pub created: u64,
     pub suspended: Option<String>,
@@ -224,7 +227,8 @@ impl Store {
         let sql = format!(
             "SELECT a.id, a.name, a.email, a.picture, a.payout, a.created, s.reason,
                     (SELECT COUNT(*) FROM listings WHERE seller = a.id),
-                    (SELECT COUNT(*) FROM swap_offers WHERE (seller = a.id OR taker = a.id) AND state = 'done')
+                    (SELECT COUNT(*) FROM swap_offers WHERE (seller = a.id OR taker = a.id) AND state = 'done'),
+                    a.banner
              FROM accounts a LEFT JOIN suspended s ON s.account = a.id
              WHERE ({filter}) AND ?1 = ?1 ORDER BY a.id DESC LIMIT {limit}"
         );
@@ -240,6 +244,7 @@ impl Store {
                 suspended: row.get(6)?,
                 listings: row.get(7)?,
                 swaps_done: row.get(8)?,
+                banner: row.get(9)?,
             })
         })?;
         Ok(rows.collect::<rusqlite::Result<_>>()?)
@@ -466,6 +471,27 @@ async fn suspend(State(admin): State<Admin>, headers: HeaderMap, Path(id): Path<
 async fn unsuspend(State(admin): State<Admin>, headers: HeaderMap, Path(id): Path<i64>) -> Answer {
     admin.admins.check(&headers)?;
     admin.app.store().unsuspend(id).map_err(refused)?;
+    Ok(Json(json!({ "ok": true })).into_response())
+}
+
+/// A profile picture that slipped past the checker: gone, and the robot
+/// face shows instead. The account is otherwise untouched.
+async fn remove_picture(State(admin): State<Admin>, headers: HeaderMap, Path(id): Path<i64>) -> Answer {
+    let login = admin.admins.check(&headers)?;
+    if let Some(old) = admin.app.store().clear_picture(id).map_err(refused)? {
+        admin.app.images.remove(&old);
+    }
+    println!("{login} removed account {id}'s picture");
+    Ok(Json(json!({ "ok": true })).into_response())
+}
+
+/// A banner that slipped past the checker: gone, as if never set.
+async fn remove_banner(State(admin): State<Admin>, headers: HeaderMap, Path(id): Path<i64>) -> Answer {
+    let login = admin.admins.check(&headers)?;
+    if let Some(old) = admin.app.store().set_banner(id, None).map_err(refused)? {
+        admin.app.images.remove(&old);
+    }
+    println!("{login} removed account {id}'s banner");
     Ok(Json(json!({ "ok": true })).into_response())
 }
 

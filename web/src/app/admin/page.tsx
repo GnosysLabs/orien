@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { useCallback, useEffect, useState } from 'react'
-import { ago, formatOrn } from '@/lib/market'
+import { ago, formatOrn, pictureUrl } from '@/lib/market'
 import { Avatar } from '@/components/market/Avatar'
 
 // The founder's dashboard. It only opens through `tailscale serve` on the
@@ -41,6 +41,7 @@ type AdminAccount = {
   name: string
   email: string | null
   picture: string | null
+  banner: string | null
   wallet: string | null
   created: number
   suspended: string | null
@@ -516,6 +517,34 @@ function Reports({ reports, onChange }: { reports: Report[] | null; onChange: ()
                   {owner.suspended && <span className="text-stop"> · suspended</span>}
                 </p>
               )}
+              {r.kind === 'account' && owner && (owner.picture || owner.banner) && (
+                <div className="flex flex-wrap items-end gap-5 py-1.5">
+                  {owner.picture && (
+                    <div className="flex items-end gap-3">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img src={pictureUrl(owner.picture)} alt="Their profile picture" className="h-20 w-20 rounded-full border border-line object-cover" />
+                      <Action
+                        label="Remove picture"
+                        sure={`Remove ${owner.name}'s profile picture? They get the robot face, and can choose a new picture.`}
+                        path={`/accounts/${owner.id}/picture/remove`}
+                        onDone={onChange}
+                      />
+                    </div>
+                  )}
+                  {owner.banner && (
+                    <div className="flex items-end gap-3">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img src={pictureUrl(owner.banner)} alt="Their banner" className="h-20 w-60 rounded-xl border border-line object-cover" />
+                      <Action
+                        label="Remove banner"
+                        sure={`Remove ${owner.name}'s banner? They can choose a new one.`}
+                        path={`/accounts/${owner.id}/banner/remove`}
+                        onDone={onChange}
+                      />
+                    </div>
+                  )}
+                </div>
+              )}
               <div className="flex flex-wrap gap-2 pt-1">
                 {r.kind === 'listing' && !removed && (
                   <Action label="Take the listing down" ask="Why is it being taken down? (shown to no one but you)" path={`/listings/${r.target}/remove`} onDone={onChange} danger />
@@ -602,9 +631,25 @@ function GroupChat() {
 }
 
 /** A button that posts to the dashboard, first asking for a reason when `ask` is given. */
-function Action({ label, ask, path, onDone, danger }: { label: string; ask?: string; path: string; onDone: () => void; danger?: boolean }) {
+function Action({
+  label,
+  ask,
+  sure,
+  path,
+  onDone,
+  danger,
+}: {
+  label: string
+  ask?: string
+  /** A yes/no question first, when no reason is needed. */
+  sure?: string
+  path: string
+  onDone: () => void
+  danger?: boolean
+}) {
   const [busy, setBusy] = useState(false)
   const run = async () => {
+    if (sure && !window.confirm(sure)) return
     let reason = ''
     if (ask) {
       const typed = window.prompt(ask)
@@ -650,18 +695,35 @@ function AccountTable({ accounts, onChange, empty }: { accounts: AdminAccount[];
         count(a.listings),
         count(a.swaps_done),
         ago(a.created),
-        a.suspended ? (
-          <Action key="u" label="Lift suspension" path={`/accounts/${a.id}/unsuspend`} onDone={onChange} />
-        ) : (
-          <Action
-            key="s"
-            label="Suspend"
-            ask={`Suspend ${a.name}? They are signed out, cannot sign in, and their listings and offers come down. Why?`}
-            path={`/accounts/${a.id}/suspend`}
-            onDone={onChange}
-            danger
-          />
-        ),
+        <div key="a" className="flex flex-wrap justify-end gap-2">
+          {a.picture && (
+            <Action
+              label="Remove picture"
+              sure={`Remove ${a.name}'s profile picture? They get the robot face, and can choose a new picture.`}
+              path={`/accounts/${a.id}/picture/remove`}
+              onDone={onChange}
+            />
+          )}
+          {a.banner && (
+            <Action
+              label="Remove banner"
+              sure={`Remove ${a.name}'s banner? They can choose a new one.`}
+              path={`/accounts/${a.id}/banner/remove`}
+              onDone={onChange}
+            />
+          )}
+          {a.suspended ? (
+            <Action label="Lift suspension" path={`/accounts/${a.id}/unsuspend`} onDone={onChange} />
+          ) : (
+            <Action
+              label="Suspend"
+              ask={`Suspend ${a.name}? They are signed out, cannot sign in, and their listings and offers come down. Why?`}
+              path={`/accounts/${a.id}/suspend`}
+              onDone={onChange}
+              danger
+            />
+          )}
+        </div>,
       ])}
       empty={empty}
     />
