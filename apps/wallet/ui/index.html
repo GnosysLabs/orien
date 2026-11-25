@@ -1959,7 +1959,7 @@
   .cm-miners-tab { display: none; }
   @media (max-width: 859px) {
     .cm-layout { display: flex; flex-direction: column; }
-    .cm-rail { display: grid; gap: 10px; order: -1; margin-bottom: 14px; }
+    .cm-rail { display: grid; gap: 10px; order: -1; margin-bottom: 14px; position: relative; z-index: 5; }
     .cm-rail > :not(.cm-find):not(.cm-found) { display: none; }
     .cm-tabs { grid-template-columns: repeat(3, minmax(0, 1fr)); }
     .cm-miners-tab { display: block; }
@@ -2040,6 +2040,9 @@
   .cm-board .cm-showall:hover { background: var(--surface-hover); }
   .cm-board .cm-none { margin: 0; padding: 6px 14px 14px; color: var(--dim); font-size: 13px; }
   .cm-found .cm-none { margin: 0; padding: 14px 16px; color: var(--dim); font-size: 13.5px; }
+  /* Who matches the search floats over what's below, rather than pushing it down. */
+  .cm-found { position: absolute; left: 0; right: 0; top: 54px; z-index: 8; max-height: min(360px, 60vh); overflow-y: auto;
+    box-shadow: 0 16px 40px rgba(var(--shade), 0.45); }
   [data-user] { cursor: pointer; }
   @media (hover: hover) { b[data-user]:hover, .cm-name[data-user]:hover, .cm-reply-head b[data-user]:hover { text-decoration: underline; text-underline-offset: 2px; } }
   .cm-compose, .cm-join { display: flex; gap: 12px; padding: 14px 16px; margin-bottom: 16px;
@@ -8391,6 +8394,12 @@
       $("cm-found").hidden = false;
     }, 200);
   });
+  // A click elsewhere, or Escape, puts the results away; back in the box, they return.
+  document.addEventListener("pointerdown", (e) => {
+    if (!$("cm-found").hidden && !e.target.closest(".cm-find, .cm-found")) $("cm-found").hidden = true;
+  }, true);
+  $("cm-find").addEventListener("keydown", (e) => { if (e.key === "Escape") $("cm-found").hidden = true; });
+  $("cm-find").addEventListener("focus", () => { if ($("cm-find").value.trim().length >= 2 && $("cm-found").innerHTML) $("cm-found").hidden = false; });
   // Feed: everything, people, or the network's news.
   for (const b of document.querySelectorAll("[data-only]")) b.onclick = () => {
     for (const o of document.querySelectorAll("[data-only]")) o.classList.toggle("on", o === b);
