@@ -26,6 +26,19 @@ export const PRODUCTS: Record<Product, string> = {
 
 export const CHANGELOG: Entry[] = [
   {
+    date: '2026-11-25',
+    products: ['wallet'],
+    version: '1.9.11',
+    title: 'Settings side by side, and a wider Wallets page',
+    changes: [
+      'In a big window, Settings lists its sections on the left and opens the one you pick beside them, each side scrolling on its own. Link a new device is one of those sections now.',
+      'In a big window, Wallets shows three to a row, with what all your wallets hold together above them.',
+      'On someone\'s profile, Message, Send and Add to contacts are round buttons at the top of their card. Send opens over their profile and closes back to it; Message opens your conversation with them in Messages.',
+      'Every theme card is the same size, and the down arrow no longer shows over the loading screen.',
+      'On Linux and Windows the window can no longer be made too short for the wide Home, and on Linux the app opens again by itself after it updates.',
+    ],
+  },
+  {
     date: '2026-11-24',
     products: ['wallet'],
     version: '1.9.10',
