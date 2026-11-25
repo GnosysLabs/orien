@@ -23,6 +23,7 @@ import {
   Rocket,
   type LucideIcon,
   Landmark,
+  Server,
   Image as ImageIcon,
   MessageCircle,
 } from "lucide-react";
@@ -324,6 +325,7 @@ const BUILD: MenuItem[] = [
   ...(WALLET_SIGN_IN_DOCS
     ? [{ href: "/developers/sign-in/", label: "Sign in with Orien Wallet", detail: "Let people sign in to your website with their wallet", icon: KeyRound }]
     : []),
+  { href: "/developers/validators/", label: "Run a validator", detail: "Stake ORN, run a validator and earn fees", icon: Server },
   { href: "/developers/exchanges/", label: "Exchanges", detail: "Listing ORN: what an exchange needs", icon: Landmark },
   { href: "https://explorer.orien.network/api/", label: "Explorer API", detail: "The network's figures, as JSON", icon: Activity },
   { href: "/brand/", label: "Logos", detail: "The ORN coin icon, as SVG and PNG", icon: ImageIcon },
@@ -657,7 +659,7 @@ export function Sidebar() {
             href="/developers/"
             label="Developers"
             icon={Code2}
-            on={pathname.startsWith("/developers") && !pathname.startsWith("/developers/sign-in")}
+            on={pathname.startsWith("/developers") && !pathname.startsWith("/developers/sign-in") && !pathname.startsWith("/developers/validators")}
           />
           {WALLET_SIGN_IN_DOCS && (
             <SidebarLink
@@ -667,6 +669,7 @@ export function Sidebar() {
               on={pathname.startsWith("/developers/sign-in")}
             />
           )}
+          <SidebarLink href="/developers/validators/" label="Run a validator" icon={Server} on={pathname.startsWith("/developers/validators")} />
           <SidebarLink href="/brand/" label="Logos" icon={ImageIcon} on={pathname.startsWith("/brand")} />
         </SidebarGroup>
       </nav>
