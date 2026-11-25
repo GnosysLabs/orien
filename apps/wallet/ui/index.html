@@ -2542,6 +2542,8 @@
   .ex-hero .ex-name { margin-top: 12px; font-size: 20px; font-weight: 700; }
   .ex-hero .ct-addr { margin-top: 10px; }
   .ex-hero .pill { margin-top: 14px; }
+  /* Round buttons, as on a profile: view their profile, send them ORN. */
+  .ex-acts { display: flex; gap: 10px; margin-top: 14px; }
   /* A verified wallet's banner. Small windows: across the top behind the
      face and name, soft on every edge. Big ones: the whole right side,
      fading towards the face, with the figures over it. */
@@ -9419,7 +9421,7 @@
     } catch (e) { problem("sl-problem", mkProblem(e)); }
     finally { $("sl-report-send").disabled = false; }
   };
-  $("sl-back").onclick = () => market.sellerFrom === "swaps" ? show("swaps") : market.sellerFrom === "member" ? show("member") : market.sellerFrom === "chat" ? show("chat") : market.sellerFrom === "community" || market.sellerFrom === "cm-thread" ? show(market.sellerFrom) : market.sellerFrom === "home" ? home() : show("listing");
+  $("sl-back").onclick = () => market.sellerFrom === "explorer" ? show("explorer") : market.sellerFrom === "swaps" ? show("swaps") : market.sellerFrom === "member" ? show("member") : market.sellerFrom === "chat" ? show("chat") : market.sellerFrom === "community" || market.sellerFrom === "cm-thread" ? show(market.sellerFrom) : market.sellerFrom === "home" ? home() : show("listing");
 
   // ---- Market messages ----
   // When: "just now", "5 min ago", "3 h ago", else a short date.
@@ -11257,10 +11259,12 @@
       if (tab.dataset.exTab !== ex.tabs[kind]) { if (kind === "home") ex.paneTop[ex.tabs.home] = $("ex-pane").scrollTop; feel("selection"); exTab(tab.dataset.exTab); }
       return;
     }
-    const go = e.target.closest("[data-ex-cp],[data-ex-addr],[data-ex-top],[data-ex-copy],[data-ex-send]");
+    const go = e.target.closest("[data-ex-cp],[data-ex-addr],[data-ex-top],[data-ex-copy],[data-ex-send],[data-ex-profile]");
     if (!go) return;
     if (go.dataset.exCopy !== undefined) {
       navigator.clipboard.writeText(go.dataset.exCopy).then(() => { go.classList.add("copied"); setTimeout(() => go.classList.remove("copied"), 1200); }).catch(() => {});
+    } else if (go.dataset.exProfile !== undefined) {
+      market.sellerFrom = "explorer"; openSeller(Number(go.dataset.exProfile));
     } else if (go.dataset.exSend !== undefined) {
       $("go-send").onclick(); $("to").value = go.dataset.exSend; validate(); $("amount").focus();
     } else if (go.dataset.exTop !== undefined) exShow({ kind: "top" });
@@ -11400,7 +11404,7 @@
     if (ex.at.kind !== "address" || ex.at.address !== address) return;
     $("ex-body").innerHTML = `<div class="ex-addr-top${banner ? " banner" : ""}">${banner ? `<div class="ex-art">${picImg(banner)}</div>` : ""}<div class="ex-hero">${who.face}<div class="ex-hero-info"><div class="ex-name">${who.name ? who.html : "Address"}</div>
         <button class="ct-addr" data-ex-copy="${address}" title="Copy the address"><span>${short(address)}</span><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button>
-        ${mine ? "" : `<button class="pill pearl" data-ex-send="${address}">Send ORN</button>`}</div></div>
+        ${!mine || (prof && prof.id) ? `<div class="ex-acts">${prof && prof.id ? `<button class="sl-act main" data-ex-profile="${prof.id}" title="View profile" aria-label="View profile"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="5"/><path d="M20 21a8 8 0 0 0-16 0"/></svg></button>` : ""}${mine ? "" : `<button class="sl-act main" data-ex-send="${address}" title="Send ORN" aria-label="Send ORN"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 7h10v10"/><path d="M7 17 17 7"/></svg></button>`}</div>` : ""}</div></div>
       <div class="list ex-stats"><div><b title="${exOrn(d.balance, 9)} ORN">${exOrn(d.balance, 2)}</b><span>ORN held</span></div><div><b>${exOrn(d.staked, 2)}</b><span>${d.returning && d.returning !== "0" ? `staked · ${exOrn(d.returning, 4)} returning` : "staked"}</span></div><div><b>${(d.payments_made || 0).toLocaleString()}</b><span>payments sent</span></div></div></div>
       <div class="ex-panel">
         <div class="ex-panel-head"><b>Activity</b>${d.more ? '<span>The latest 500</span>' : acts.length ? `<span>${acts.length.toLocaleString()} ${acts.length === 1 ? "payment" : "payments"}</span>` : ""}</div>
