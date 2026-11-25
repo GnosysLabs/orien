@@ -160,6 +160,19 @@ fn was_dropped(error: &io::Error) -> bool {
 /// Idle connections kept per validator.
 const MAX_IDLE: usize = 8;
 
+/// Validators that hung up on every try, and when they last did, shared by
+/// all clients in this process. One that keeps hanging up isn't busy (the
+/// retries below are for busy ones) but closed to clients: waiting through
+/// its retries on every request held a wallet up for many seconds at a
+/// time. So for a while it isn't asked at all, then once, with no retries,
+/// and it's forgotten the moment it answers.
+static HUNG_UP: std::sync::OnceLock<Mutex<HashMap<String, std::time::Instant>>> = std::sync::OnceLock::new();
+const SKIP_FOR: Duration = Duration::from_secs(20);
+
+fn hung_up() -> std::sync::MutexGuard<'static, HashMap<String, std::time::Instant>> {
+    HUNG_UP.get_or_init(Default::default).lock().unwrap_or_else(|poisoned| poisoned.into_inner())
+}
+
 /// How far a client has followed the network: the current epoch, and what
 /// the checkpoint before it fixed. Each step was checked against the one
 /// before, back to the genesis file, so none of it rests on any one
@@ -652,6 +665,13 @@ impl Client {
             self.keep(&address, stream);
             return Ok(response);
         }
+        // One that hung up on every try lately: not asked for a while, then
+        // tried once without the retries.
+        let known = hung_up().get(&address).copied();
+        if known.is_some_and(|at| at.elapsed() < SKIP_FOR) {
+            return Err(io::Error::new(io::ErrorKind::ConnectionReset, "this validator has been hanging up"));
+        }
+        let tries = if known.is_some() { 0 } else { 5 };
         // A validator whose accept queue is momentarily full drops new
         // connections. Back off briefly, with jitter, and try again.
         let mut attempt = 0u32;
@@ -661,8 +681,17 @@ impl Client {
                 self.keep(&address, stream);
                 Ok(response)
             });
+            match &result {
+                Ok(_) if known.is_some() => {
+                    hung_up().remove(&address);
+                }
+                Err(error) if attempt >= tries && was_dropped(error) => {
+                    hung_up().insert(address.clone(), std::time::Instant::now());
+                }
+                _ => {}
+            }
             match result {
-                Err(error) if attempt < 5 && was_dropped(&error) => {
+                Err(error) if attempt < tries && was_dropped(&error) => {
                     attempt += 1;
                     let base = 10u64 << attempt;
                     let jitter = SystemTime::now()
