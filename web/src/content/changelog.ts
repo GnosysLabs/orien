@@ -27,6 +27,27 @@ export const PRODUCTS: Record<Product, string> = {
 export const CHANGELOG: Entry[] = [
   {
     date: '2026-11-24',
+    products: ['wallet'],
+    version: '1.9.10',
+    title: 'A clearer theme builder, and your wide size remembered',
+    changes: [
+      'Building a theme: the preview stays beside your choices at every window size, with ready accent colours to tap or any colour you like, a picture picker that shows your picture, and a line saying what is still needed to save.',
+      'The button beside your picture brings the window back to the width you had it wide, not a fixed size.',
+    ],
+  },
+  {
+    date: '2026-11-24',
+    products: ['wallet'],
+    version: '1.9.9',
+    title: 'A wider Home',
+    changes: [
+      'In a big window, Home shows mining and the network beside your wallet: start or stop mining and see your speed, and the next checkpoint, the validators running and the latest checkpoints at a glance.',
+      'Send, Receive and Contacts open as a card over Home in a big window, so you never lose your place; the Mine screen spreads out, with the whole network’s hashrate, your share of it, the next checkpoint, and a chart of your speed over the last half hour.',
+      'The explorer’s button on Home is now a telescope: Orien is made of checkpoints, not blocks.',
+    ],
+  },
+  {
+    date: '2026-11-24',
     products: ['marketplace'],
     title: 'The Orien group chat, on the website',
     changes: [

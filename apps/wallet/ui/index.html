@@ -4,8 +4,26 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 <title>Orien Wallet</title>
+<script>
+  // The theme last used, before anything is drawn: no flash of the default
+  // one at launch. A theme you built needs the rest of the app to paint its
+  // colours, so the page waits unseen until it has (never more than 1.5 s).
+  try {
+    var t = localStorage.getItem("theme");
+    if (t) {
+      document.documentElement.dataset.theme = t;
+      if (t.indexOf("c-") === 0) {
+        var own = (JSON.parse(localStorage.getItem("custom-themes") || "[]") || []).filter(function (x) { return x && x.id === t; })[0];
+        if (own) document.documentElement.dataset.base = own.base === "light" ? "light" : "dark";
+        document.documentElement.classList.add("theming");
+        setTimeout(function () { document.documentElement.classList.remove("theming"); }, 1500);
+      }
+    }
+  } catch (e) {}
+</script>
 <script type="module" src="vendor/robot.js"></script>
 <style>
+  html.theming body { visibility: hidden; }
   /* The wordmark's typeface, bundled so the app never fetches fonts. */
   @font-face {
     font-family: "Jost";
@@ -183,10 +201,10 @@
   [data-theme="daylight"] { --mn-dim: rgba(255, 255, 255, 0.68); }
   /* Wide screens stay the container's usual width until there's room for
      their expanded layouts. */
-  @media (min-width: 980px) { #market, #seller { --col: 1040px; } }
+  @media (min-width: 860px) { #market, #seller { --col: 1040px; } }
   /* A listing, in a big window: wider, its pictures large on the left and
      the title, price, seller and description beside them. */
-  @media (min-width: 980px) {
+  @media (min-width: 860px) {
     #listing { --col: 1040px; }
     .ls-layout { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); gap: 32px; align-items: start; }
     .ls-media { position: sticky; top: 56px; }
@@ -224,6 +242,15 @@
         radial-gradient(circle at 100% 0, #000 calc(var(--rb) - 0.5px), transparent var(--rb)) calc(50% - (var(--cw) - var(--rb)) / 2) 100% / var(--rb) var(--rb) no-repeat,
         radial-gradient(circle at 0 0, #000 calc(var(--rb) - 0.5px), transparent var(--rb)) calc(50% + (var(--cw) - var(--rb)) / 2) 100% / var(--rb) var(--rb) no-repeat;
       border-radius: 0; }
+  }
+  /* Between the smallest window and the wide layouts: just as at the
+     smallest size, no picture and no container; the content keeps that
+     width (663px) and the space either side grows. */
+  @media (min-width: 720px) and (max-width: 859px) {
+    html body:not(.phone) :is(.screen, #mine, #board-signin, #board-post, #board-take, #swaps, #swap-sell, #swap-buy, #swap-detail) {
+      --cw: min(663px, 100vw - 56px); --ct: var(--cw);
+      padding-left: calc((100% + 36px - min(663px, 100vw - 56px)) / 2);
+      padding-right: calc((100% + 36px - min(663px, 100vw - 56px)) / 2); }
   }
   /* Small windows (not the phone) too: where content scrolls under the top
      and bottom edges it rounds off at its own edges, 18px in from the
@@ -283,9 +310,8 @@
       var(--m) 50% 100% / calc(100% - 36px - 2 * var(--rb)) var(--rb) no-repeat,
       var(--bl) left 18px bottom 0 / var(--rb) var(--rb) no-repeat, var(--br) right 18px bottom 0 / var(--rb) var(--rb) no-repeat;
     -webkit-mask: var(--M); mask: var(--M); }
-  /* Big windows: each theme's photograph behind the app, quiet, as soon as
-     the window is wider than the container; the screens keep the
-     container's width until 980px, where the wide ones expand. */
+  /* Big windows: each theme's photograph behind the app, and the screens
+     in a container, from 860px, where the wide layouts begin. */
   :root, [data-theme="pearl"] { --scene: url(scenes/pearl.webp); }
   [data-theme="daylight"] { --scene: url(scenes/daylight.webp); }
   [data-theme="midnight"] { --scene: url(scenes/midnight.webp); }
@@ -295,7 +321,7 @@
   [data-theme="ruby"] { --scene: url(scenes/ruby.webp); }
   [data-theme="ember"] { --scene: url(scenes/ember.webp); }
   [data-theme="obsidian"] { --scene: url(scenes/obsidian.webp); }
-  @media (min-width: 720px) {
+  @media (min-width: 860px) {
     body:not(.phone)::before { content: ""; position: fixed; inset: 0; z-index: -1; pointer-events: none;
       background: var(--scene, none) center / cover no-repeat; opacity: 0.55; }
     /* A theme you built, dark or light: your picture as it is, never faded
@@ -464,7 +490,7 @@
   .screen::-webkit-scrollbar { width: 0; }
   /* No visible scroll bars anywhere, on any system. */
   * { scrollbar-width: none; }
-  .screen > *:not(.scroll):not(#recent):not(#all-activity) { flex-shrink: 0; }
+  .screen > *:not(.scroll):not(#recent):not(#all-activity):not(.home-body) { flex-shrink: 0; }
 
   /* ---- Shared pieces ---- */
   .primary {
@@ -648,7 +674,42 @@
   #go-mine.on { border-color: #a6e3c655; }
   @keyframes mining { 0%, 100% { opacity: 1; } 50% { opacity: 0.35; } }
   #mine { overflow-y: auto; margin: -8px -8px 0; padding: 8px 8px 16px; }
-  #mine > * { flex-shrink: 0; }
+  #mine > *, #mine .mn-col > * { flex-shrink: 0; }
+  /* One column until a big window; then the status and network on the
+     left, the processor and speed-ups on the right. */
+  .mn-cols, .mn-col { display: contents; }
+  #mine .mn-side > * { order: 1; }
+  #mine :is(#mine-problem, #mn-go) { order: 2; }
+  #mine > .fineprint { order: 3; }
+  .mn-net, .mn-graph { display: none; }
+  @media (min-width: 860px) {
+    body:not(.phone) #mine { --col: 1040px; }
+    body:not(.phone) #mine .mn-cols { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 20px; align-items: start; }
+    body:not(.phone) #mine .mn-col { display: flex; flex-direction: column; min-width: 0; }
+    body:not(.phone) #mine .mn-col > :first-child { margin-top: 0; }
+    body:not(.phone) #mine > .fineprint { margin-top: 18px; }
+    body:not(.phone) #mine .mn-col #mn-go { width: 100%; max-width: none; }
+    body:not(.phone) #mine .mn-graph { display: flex; flex-direction: column; order: 2; flex: 1 1 auto; min-height: 190px; margin-top: 20px; padding: 16px 18px 18px;
+      border: 1px solid var(--line); border-radius: 18px; background: var(--surface); }
+    .mn-graph-head { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; }
+    .mn-graph-head b { font-size: 14px; font-weight: 600; }
+    .mn-graph-head span { font-size: 12px; color: var(--faint); }
+    .mn-chart-box { position: relative; flex: 1 1 auto; min-height: 90px; margin-top: 12px; }
+    .mn-chart-box canvas { position: absolute; inset: 0; width: 100%; height: 100%; }
+    .mn-chart-empty { position: absolute; inset: 0; display: grid; place-items: center; font-size: 13px; color: var(--faint); }
+    .mn-stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--line); }
+    .mn-stats span { display: block; font-size: 11.5px; color: var(--faint); }
+    .mn-stats b { display: block; margin-top: 3px; font-size: 15px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    body:not(.phone) #mine .mn-side { padding: 16px 18px 18px; border: 1px solid var(--line); border-radius: 18px; background: var(--surface); }
+    /* The sweet-spot and speed-up rows: words above, the button full width
+       under them, so neither is squeezed in the narrower column. */
+    body:not(.phone) #mine .mn-side .bench { flex-direction: column; align-items: stretch; gap: 12px; }
+    body:not(.phone) #mine .mn-side .bench > button { width: 100%; min-width: 0; }
+    body:not(.phone) #mine .mn-side .bench { margin-left: -18px; margin-right: -18px; padding-left: 18px; padding-right: 18px; border-left: 0; border-right: 0; border-radius: 0; background: none; border-bottom: 0; }
+    body:not(.phone) #mine .mn-net { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; padding: 14px 18px; border: 1px solid var(--line); border-radius: 18px; background: var(--surface); }
+    .mn-net span { display: block; font-size: 11.5px; color: var(--faint); }
+    .mn-net b { display: block; margin-top: 3px; font-size: 16px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  }
   .mine-status { display: flex; align-items: center; gap: 20px; padding: 16px 18px; border: 1px solid var(--line); border-radius: 18px; background: var(--surface); }
   .mine-status .speed { font-size: 20px; font-weight: 500; }
   .mine-status .sub { margin-top: 4px; font-size: 12.5px; color: var(--dim); }
@@ -753,10 +814,10 @@
   .mk-cats { display: flex; flex-wrap: wrap; gap: 6px; margin: 14px 0 16px; }
   .mk-cats button { flex: none; }
   /* Big windows: the search keeps a sensible width, the kinds beside it. */
-  @media (min-width: 980px) {
+  @media (min-width: 860px) {
     body:not(.phone) .mk-bar { display: flex; align-items: center; gap: 16px; margin: 0 0 18px; }
-    body:not(.phone) .mk-bar .mk-search { flex: 0 0 340px; }
-    body:not(.phone) .mk-bar .mk-cats { margin: 0; }
+    body:not(.phone) .mk-bar .mk-search { flex: 0 1 340px; min-width: 200px; }
+    body:not(.phone) .mk-bar .mk-cats { margin: 0; flex: none; flex-wrap: nowrap; }
   }
   .mk-cats button { height: 30px; padding: 0 12px; border: 1px solid var(--line); border-radius: 15px; background: transparent;
     color: var(--dim); font-size: 12.5px; font-weight: 500; cursor: pointer; transition: background .15s, color .15s; }
@@ -831,7 +892,7 @@
   .sl-layout { display: grid; gap: 20px; margin-top: 20px; }
   /* Small windows: the sidebar's pieces join the column (mining, then the
      tabs, then the chosen tab's content). */
-  @media (max-width: 979px) {
+  @media (max-width: 859px) {
     .sl-layout .sl-side { display: contents; }
     #sl-mining { order: 1; }
     .sl-tabs { order: 2; margin: 0; }
@@ -850,7 +911,7 @@
   .sl-stats div + div { border-left: 1px solid var(--line); }
   .sl-stats b { display: block; font-size: 15px; }
   .sl-stats span { font-size: 11px; color: var(--dim); }
-  @media (min-width: 980px) {
+  @media (min-width: 860px) {
     .sl-layout { grid-template-columns: minmax(0, 1fr) 300px; align-items: start; }
     .sl-tabs { display: none; }
     /* Stays in view beside the posts; taller than the window, it scrolls on its own. */
@@ -994,12 +1055,12 @@
   #chat.none > :not(.ch-none) { display: none !important; }
   #chat.none .ch-none { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; flex: 1; color: var(--dim); font-size: 13.5px; }
   #chat .ch-none svg { width: 32px; height: 32px; color: var(--faint); }
-  @media (min-width: 980px) {
+  @media (min-width: 860px) {
     body.split main { flex-direction: row; justify-content: center; gap: 0; }
     html body.split #inbox, html body.split #chat { flex: 0 0 auto; margin: -20px 0 0; padding: 0; overflow: hidden;
       -webkit-mask: none; mask: none; background: var(--surface); border: 1px solid var(--line); }
     html body.split #inbox { width: 336px; border-radius: 36px 0 0 36px; border-right: 0; }
-    /* The conversation takes the room left, up to 760px: at 980px wide the
+    /* The conversation takes the room left, up to 760px: at 860px wide the
        two fill the window as the Community does, 12px from each side. */
     html body.split #chat { width: min(760px, 100vw - 24px - 337px); border-radius: 0 36px 36px 0; }
     html body.split #inbox::after { content: none; }
@@ -1230,10 +1291,10 @@
   #tab-offers .section-head { align-items: center; margin: 6px 4px 14px; }
   .sw-side-head, .sw-side-sub { display: none; }
   #board-last { display: none; }
-  @media (min-width: 980px) { body:not(.phone) #board-last:not([hidden]) { display: block; } }
+  @media (min-width: 860px) { body:not(.phone) #board-last:not([hidden]) { display: block; } }
   /* Big windows: offers on the left; your swaps, then recent finished
      swaps, in a column beside them. Every part shows at once, so no tabs. */
-  @media (min-width: 980px) {
+  @media (min-width: 860px) {
     body:not(.phone) #swaps { --col: 1040px; }
     body:not(.phone) #swaps > .tabs { display: none; }
     body:not(.phone) .sw-grid { display: grid; grid-template-columns: minmax(0, 1.55fr) minmax(0, 1fr); grid-template-areas: "offers mine" "offers hist";
@@ -1317,7 +1378,11 @@
   .st-hint { margin: -4px 0 14px; padding-left: 4px; }
   .st-credit { margin: 16px 4px 0; color: var(--faint); font-size: 12px; }
   .st-credit a { color: var(--dim); }
-  .theme-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 14px; }
+  /* Every card the same width: a name with its buttons never widens one. */
+  .theme-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 18px 14px; }
+  .theme-grid > .theme-card { min-width: 0; }
+  body.phone .theme-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .theme-card .tc-name { min-width: 0; min-height: 26px; }
   /* Themes you built: a bin in the corner; a first press arms it. */
   .theme-card .tc-label { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .tc-del { flex: none; height: 26px; min-width: 26px; margin: -3px 0 -3px 6px; padding: 0 7px; border-radius: 999px;
@@ -1327,40 +1392,52 @@
   .tc-del + .tc-check { margin-left: 6px; }
   .tc-del.armed { background: #e5484d; color: #fff; }
   @media (hover: hover) { .tc-del:not(.tc-edit):hover { background: #e5484d; color: #fff; } .tc-edit:hover { background: rgba(var(--tint), 0.13); color: var(--ink); } }
-  /* The builder: the theme as it will look, over its picture. */
-  .tb-stage { position: relative; display: grid; place-items: center; aspect-ratio: 16 / 9; margin: 4px 0 22px; border-radius: 22px; overflow: hidden;
-    border: 1px solid var(--line); background: var(--ground-deep) center / cover no-repeat; }
+  /* The builder: the theme as it will look, over its picture, with the
+     choices beside it at every window size. */
+  #theme-build { --col: 1040px; }
+  .tb-layout { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); gap: 28px; align-items: start; }
+  .tb-stage { position: sticky; top: 56px; display: grid; place-items: center; aspect-ratio: 4 / 3; margin: 4px 0 0; border-radius: 22px; overflow: hidden;
+    border: 1px solid var(--line); background: var(--ground-deep) center / cover no-repeat; cursor: pointer; }
   .tb-stage.has-pic::before { content: ""; position: absolute; inset: 0; background: rgba(0, 0, 0, 0.12); }
-  .tb-mini { position: relative; width: min(42%, 190px); aspect-ratio: 4 / 5; padding: 12px 10px; border-radius: 18px; overflow: hidden;
+  .tb-stage-hint { position: absolute; left: 50%; bottom: 16px; transform: translateX(-50%); padding: 7px 14px; border-radius: 999px; white-space: nowrap;
+    background: rgba(255, 255, 255, 0.1); color: rgba(255, 255, 255, 0.8); font-size: 12.5px; pointer-events: none; }
+  .tb-stage.has-pic .tb-stage-hint { display: none; }
+  .tb-mini { position: relative; width: min(46%, 200px); aspect-ratio: 4 / 5; padding: 12px 10px; border-radius: 18px; overflow: hidden;
     background: var(--glow), var(--ground-deep); border: 1px solid var(--line); box-shadow: 0 18px 44px rgba(0, 0, 0, 0.5);
     display: flex; flex-direction: column; gap: 8px; }
-  .tb-colors { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
-  .tb-swatch { position: relative; width: 52px; height: 52px; border-radius: 50%; border: 1px solid var(--line); padding: 0; cursor: pointer;
-    border: 2px solid rgba(var(--tint), 0.16); box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3); }
+  .tb-form > .field:first-child { margin-top: 4px; }
+  .tabs.tb-base { flex: none; margin: 0; }
+  .tb-colors { display: grid; grid-template-columns: repeat(5, 38px); justify-content: space-between; row-gap: 12px; max-width: 290px; }
+  .tb-swatch { position: relative; width: 38px; height: 38px; border-radius: 50%; padding: 0; cursor: pointer;
+    border: 0; box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.18); transition: transform 0.12s ease; }
+  .tb-swatch.on { box-shadow: 0 0 0 2px var(--ground), 0 0 0 4px var(--ink); }
+  .tb-swatch.own { background: conic-gradient(#ff5a5a, #ffc94d, #5bd17a, #4cc3ff, #8b7bff, #ff5ac8, #ff5a5a); }
+  .tb-swatch.own::after { content: "+"; position: absolute; inset: 9px; display: grid; place-items: center; border-radius: 50%;
+    background: var(--ground); color: var(--ink); font: 600 15px/1 -apple-system, system-ui, sans-serif; }
+  .tb-swatch.own.on::after { content: ""; inset: 7px; background: var(--own, transparent); }
   .tb-swatch input { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; border: 0; padding: 0; }
-  .tb-swatch .tb-x { position: absolute; top: -4px; right: -4px; width: 22px; height: 22px; padding: 0; border: 0; border-radius: 50%;
-    display: grid; place-items: center; background: var(--surface-hover); color: var(--ink); box-shadow: 0 0 0 2px var(--ground); cursor: pointer; }
-  .tb-swatch .tb-x svg { width: 11px; height: 11px; }
-  .tb-hex { font: 13px ui-monospace, SFMono-Regular, Menlo, monospace; color: var(--dim); letter-spacing: 0.04em; }
-  .tb-add { width: 52px; height: 52px; border-radius: 50%; border: 1.5px dashed var(--faint); background: none; color: var(--dim);
-    display: grid; place-items: center; cursor: pointer; padding: 0; }
-  .tb-add svg { width: 18px; height: 18px; }
-  .tb-pic { display: flex; align-items: center; gap: 12px; min-width: 0; }
-  .tb-pic .pill { flex: none; }
-  .tb-pic-name { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 13px; color: var(--dim); }
-  #theme-build #tb-save { margin-top: 26px; }
-  .tabs.tb-base { margin-bottom: 0; }
+  @media (hover: hover) { .tb-swatch:hover { transform: scale(1.08); } }
+  .tb-pic { display: flex; align-items: center; gap: 14px; width: 100%; padding: 10px; border: 1.5px dashed var(--line); border-radius: var(--radius);
+    background: none; color: var(--ink); font: inherit; text-align: left; cursor: pointer; }
+  .tb-pic.has { border-style: solid; }
+  @media (hover: hover) { .tb-pic:hover { background: rgba(var(--tint), 0.05); border-color: var(--faint); } }
+  .tb-thumb { flex: none; display: grid; place-items: center; width: 64px; height: 40px; border-radius: 9px; color: var(--dim);
+    background: rgba(var(--tint), 0.07) center / cover no-repeat; }
+  .tb-pic.has .tb-thumb svg { display: none; }
+  .tb-pic-text { display: grid; gap: 2px; min-width: 0; }
+  .tb-pic-text b { font-weight: 600; font-size: 14px; }
+  #tb-pic-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 12.5px; color: var(--dim); }
+  body:not(.phone) #theme-build #tb-save { display: block; width: 100%; min-width: 0; margin: 26px 0 0; }
+  .tb-need { margin-top: 10px; min-height: 18px; text-align: center; font-size: 12.5px; color: var(--dim); }
+  /* Smaller windows: the preview a little smaller, the same side by side. */
+  @media (max-width: 859px) {
+    .tb-layout { gap: 22px; }
+    .tb-stage { aspect-ratio: 4 / 5; }
+    .tb-mini { width: min(64%, 200px); }
+  }
   /* iPhones wear the themes built on a computer, but build, change and
      delete none: the builder is for big windows, where the picture shows. */
   body.phone #st-build, body.phone .tc-del { display: none !important; }
-  /* Big windows: the preview large on the left, the choices beside it. */
-  @media (min-width: 980px) {
-    #theme-build { --col: 1040px; }
-    .tb-layout { display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr); gap: 32px; align-items: start; }
-    .tb-stage { position: sticky; top: 56px; margin: 4px 0 0; }
-    .tb-form > .field:first-child { margin-top: 4px; }
-    body:not(.phone) #theme-build #tb-save { width: 100%; min-width: 0; }
-  }
   .theme-card { display: grid; gap: 9px; padding: 0; border: 0; background: none; color: var(--ink); font: inherit; text-align: left; cursor: pointer; }
   .theme-card .tc-mini { position: relative; aspect-ratio: 4 / 5; padding: 12px 10px; border-radius: 18px; overflow: hidden;
     background: var(--glow), var(--ground-deep); border: 1px solid var(--line); box-shadow: 0 10px 28px rgba(0, 0, 0, 0.35);
@@ -1731,14 +1808,14 @@
   /* Community: the network's news and people's posts, as on orien.network,
      with the Market as its second tab. */
   .cm-tabs { margin: 0 0 16px; }
-  @media (min-width: 980px) { #community { --col: 1040px; } }
+  @media (min-width: 860px) { #community { --col: 1040px; } }
   .cm-layout { display: block; }
   .cm-main { min-width: 0; }
   /* Narrow: of the sidebar, Find members stays, above the feed. Top
      miners and your own mining get a tab of their own beside Feed and
      Market. Big windows show them in the sidebar, so no tab there. */
   .cm-miners-tab { display: none; }
-  @media (max-width: 979px) {
+  @media (max-width: 859px) {
     .cm-layout { display: flex; flex-direction: column; }
     .cm-rail { display: grid; gap: 10px; order: -1; margin-bottom: 14px; }
     .cm-rail > :not(.cm-find):not(.cm-found) { display: none; }
@@ -1750,7 +1827,7 @@
     #community.focus .cm-rail { display: none; }
   }
   /* Big windows: the feed with the sidebar beside it, as on the website. */
-  @media (min-width: 980px) {
+  @media (min-width: 860px) {
     .cm-layout { display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: 20px; align-items: start; }
     /* Where posts scroll under the top and bottom edges, the feed and the
        sidebar each round off at both of their sides, not only at the
@@ -2099,6 +2176,47 @@
   .receive-actions { display: grid; gap: 10px; margin-top: 16px; }
   .receive-actions.two { grid-template-columns: 1fr 1fr; }
   #receive .receive-card { padding: 20px 20px 16px; }
+  /* Big windows: Send and Receive as a card over a dimmed Home. */
+  #pop-shade { display: none; }
+  @media (min-width: 860px) {
+    body.pop:not(.phone) main { isolation: auto; }
+    body.pop:not(.phone) #pop-shade { display: block; position: fixed; inset: 0; z-index: 50;
+      background: var(--veil); -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px); animation: pop-fade .18s ease; }
+    html body.pop:not(.phone) :is(#send, #receive, #contacts, #contact, #member) { position: fixed; z-index: 51; inset: 0; margin: auto;
+      width: min(480px, calc(100vw - 48px)); height: fit-content; max-height: calc(100vh - 96px); overflow-y: auto;
+      padding: 18px 24px 24px; -webkit-mask: none; mask: none; border-radius: 24px; background: var(--surface); border: 1px solid var(--line);
+      box-shadow: 0 24px 60px rgba(0, 0, 0, 0.5), 0 2px 8px rgba(0, 0, 0, 0.25); animation: pop-in .2s cubic-bezier(.2, .9, .3, 1.2); }
+    body.pop:not(.phone) :is(#send, #receive, #contacts, #contact, #member) .topline { position: static; }
+    html body.pop:not(.phone) :is(#contacts, #contact, #member) { width: min(600px, calc(100vw - 48px)); }
+    body.pop:not(.phone) #contacts #contact-list { flex: none; overflow: visible; margin: 0; padding: 0; -webkit-mask: none; mask: none; }
+    html body.pop:not(.phone) :is(#send, #receive, #contacts, #contact, #member):not(#x) { padding-bottom: 24px; }
+    body.pop:not(.phone) :is(#send, #receive, #contacts, #contact, #member) .push { display: none; }
+    /* Solid, a step lighter than the card: a see-through fill over the
+       blurred Home drew a ghost beside each contact. */
+    body.pop:not(.phone) #contacts .ct-list > .tx { background: color-mix(in srgb, var(--ink) 4%, var(--surface)); }
+    @media (hover: hover) { body.pop:not(.phone) #contacts .ct-list > .tx:hover { background: color-mix(in srgb, var(--ink) 8%, var(--surface)); } }
+    body.pop:not(.phone) #send #confirm { margin-top: 22px; }
+    body.pop:not(.phone) #receive .receive-actions { margin-top: 18px; }
+    /* In the pop-up, the card is the frame: no box inside it, no rule above the note. */
+    body.pop:not(.phone) #receive .receive-card { border: 0; background: none; box-shadow: none; padding: 4px 0 0; }
+    body.pop:not(.phone) #receive .receive-card .fineprint { border-top: 0; padding-top: 0; margin-top: 12px; }
+  }
+  @keyframes pop-fade { from { opacity: 0; } to { opacity: 1; } }
+  @keyframes pop-in { from { opacity: 0; transform: translateY(8px) scale(.97); } to { opacity: 1; transform: none; } }
+  /* A pop-up closes with ✕ at the top right; Back stays only where it leads
+     back inside the pop-up (a contact, to the list). */
+  .pop-x { display: none; }
+  @media (min-width: 860px) {
+    body.pop:not(.phone) .pop-x { display: grid; place-items: center; flex: none; width: 32px; height: 32px; margin-left: auto; padding: 0; border: 0; border-radius: 50%;
+      background: rgba(var(--tint), 0.06); color: var(--dim); cursor: pointer; transition: background .15s, color .15s; }
+    body.pop:not(.phone) .account .pop-x { margin-left: 0; }
+    body.pop:not(.phone) #contact .tl-bin:not([hidden]) + .pop-x { margin-left: 10px; }
+    @media (hover: hover) { body.pop:not(.phone) .pop-x:hover { background: rgba(var(--tint), 0.1); color: var(--ink); } }
+    body.pop:not(.phone) :is(#send, #receive, #contacts) .topline .back { display: none; }
+    body.pop:not(.phone) :is(#send, #receive, #contacts) .topline h2 { margin-left: 4px; }
+    body.pop:not(.phone) #receive .receive-actions.two { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+    body.pop:not(.phone) #receive .receive-actions :is(.primary, .secondary) { width: 100%; min-width: 0; padding-left: 12px; padding-right: 12px; }
+  }
   #receive .address-block { margin-top: 8px; font-size: 13px; line-height: 1.7; }
   #receive .receive-card .fineprint { margin-top: 14px; padding-top: 12px; }
   .receive-qr svg { width: 100%; height: 100%; display: block; }
@@ -2228,7 +2346,7 @@
   .face.ex-anon svg { width: 46%; height: 46%; }
   .tx.ex-link { cursor: pointer; }
   @media (hover: hover) { .tx.ex-link:hover { background: rgba(var(--tint), 0.03); } }
-  @media (min-width: 980px) {
+  @media (min-width: 860px) {
     #explorer { --col: 1040px; }
     .ex-facts { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
     .ex-facts.five { grid-template-columns: repeat(5, minmax(0, 1fr)); }
@@ -2249,7 +2367,59 @@
   /* Home: the balance and buttons stay put; recent activity scrolls inside
      its own rounded box, which takes the rest of the window when there's
      more than fits. */
-  #home > * { flex-shrink: 0; }
+  #home > *:not(.home-body), #home .home-main > * { flex-shrink: 0; }
+  /* Home is one column until a big window; then the wallet keeps the left
+     and mining and the group chat sit beside it. */
+  .home-body, .home-main { display: contents; }
+  body.phone #go-size { display: none; }
+  .home-side { display: none; }
+  @media (min-width: 860px) {
+    body:not(.phone) #home { --col: 1040px; }
+    body:not(.phone) #home .home-body { display: flex; gap: 20px; flex: 0 1 auto; min-height: 0; }
+    body:not(.phone) #home .home-main { display: flex; flex-direction: column; flex: 1 1 auto; min-width: 0; min-height: 0; }
+    body:not(.phone) #home .home-side { display: flex; flex-direction: column; gap: 14px; flex: 0 0 340px; min-height: 0; }
+    /* Mining and the group chat are in the column beside: their buttons go,
+       and the rest share the row evenly. */
+    body:not(.phone) #home :is(#go-mine, #go-explorer) { display: none; }
+    body:not(.phone) #home .actions.five { grid-template-columns: none; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); }
+  }
+  .hs-card { display: flex; flex-direction: column; padding: 14px 16px 16px; border: 1px solid var(--line); border-radius: 18px; background: var(--surface); }
+  /* Each card opens with its sign in a pearl circle, its name and a line
+     under it, and an arrow to its own screen. */
+  .hs-head { display: flex; align-items: center; gap: 12px; width: calc(100% + 16px); margin: -6px -8px 0; padding: 6px 8px; border: 0; border-radius: 14px;
+    background: none; color: var(--ink); font: inherit; text-align: left; }
+  .hs-ico { flex: none; width: 36px; height: 36px; border-radius: 50%; display: grid; place-items: center; color: var(--pearl-ink);
+    background: var(--pearl); background-size: 300% 100%; animation: drift 24s linear infinite; }
+  .hs-ico svg { width: 18px; height: 18px; }
+  .hs-title { flex: 1; min-width: 0; }
+  .hs-title b { display: block; font-size: 14px; font-weight: 600; }
+  .hs-title small { display: block; margin-top: 1px; font-size: 12px; color: var(--dim); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .hs-state.on { color: var(--good); }
+  .hs-arrow { flex: none; width: 28px; height: 28px; border-radius: 50%; display: grid; place-items: center; color: var(--faint); transition: background .15s, color .15s; }
+  @media (hover: hover) { .hs-open:hover { background: rgba(var(--tint), 0.04); } .hs-open:hover .hs-arrow { color: var(--ink); background: rgba(var(--tint), 0.06); } }
+  .hs-figs { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--line); }
+  .hs-figs span { display: block; font-size: 11px; color: var(--faint); }
+  .hs-figs b { display: block; margin-top: 2px; font-size: 14px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .hs-acts { display: flex; gap: 8px; margin-top: 14px; }
+  .hs-acts .pill { flex: 1; }
+  /* The network card runs down as far as the wallet column beside it, its
+     latest checkpoints filling what's left. */
+  .hs-net { flex: 1 1 auto; min-height: 0; }
+  .hs-figs2 { grid-template-columns: repeat(2, minmax(0, 1fr)); row-gap: 12px; }
+  /* The list reaches 8px past the card's text on each side, so a row's
+     highlight has room at both ends instead of being cut off. */
+  .hs-cps { flex: 1 1 0; min-height: 96px; overflow: hidden; display: flex; flex-direction: column; gap: 2px; margin: 0 -8px; padding: 10px 0 0; }
+  .hs-cp { display: flex; align-items: center; gap: 10px; width: 100%; padding: 7px 8px; border: 0; border-radius: 10px;
+    background: none; color: inherit; font: inherit; text-align: left; cursor: pointer; }
+  @media (hover: hover) { .hs-cp:hover { background: rgba(var(--tint), 0.04); } }
+  .hs-cp .ex-num { min-width: 46px; height: 26px; padding: 0 8px; font-size: 10.5px; border-radius: 8px; }
+  .hs-cp .mw0 { flex: 1; min-width: 0; }
+  .hs-cp b { display: block; font-size: 12.5px; font-weight: 600; }
+  .hs-cp span.sub { display: block; font-size: 11.5px; color: var(--faint); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .hs-cp .amt { flex: none; font-size: 12px; color: var(--dim); }
+  .hs-open { cursor: pointer; }
+  .hs-rule { flex: none; height: 1px; margin-top: 14px; background: var(--line); }
+  .hs-empty { font-size: 13px; color: var(--faint); }
   #home #recent { flex: 0 1 auto; min-height: 0; overflow-y: auto; overscroll-behavior: contain; }
   #home #recent::-webkit-scrollbar { width: 0; }
   /* All activity: one rounded box that scrolls, each day headed inside it. */
@@ -2351,7 +2521,7 @@
   .pf-side { grid-area: side; min-width: 0; }
   .pf-shop { grid-area: shop; min-width: 0; }
   #profile { --col: 640px; }
-  @media (min-width: 980px) {
+  @media (min-width: 860px) {
     #profile { --col: 1040px; }
     #profile .pf-banner { aspect-ratio: auto; height: 240px; }
     .pf-layout { grid-template-columns: minmax(0, 1fr) 340px; grid-template-areas: "main side" "shop shop"; column-gap: 28px; align-items: start; }
@@ -2612,6 +2782,7 @@
           <div class="tc-tiles"><span></span><span></span><span></span><span></span></div>
           <div class="tc-list"><i></i><i></i><i></i></div>
         </div>
+        <span class="tb-stage-hint">Click to add a picture</span>
       </div>
       <div class="tb-form">
       <div class="field">
@@ -2620,29 +2791,30 @@
       </div>
       <div class="field">
         <label>Base</label>
-        <div class="tabs tb-base" id="tb-base" role="tablist"><button class="tab on" data-base-pick="dark" role="tab">Dark</button><button class="tab" data-base-pick="light" role="tab">Light</button></div>
+        <div class="tabs tb-base" id="tb-base" role="tablist" aria-label="Base"><button class="tab on" data-base-pick="dark" role="tab">Dark</button><button class="tab" data-base-pick="light" role="tab">Light</button></div>
       </div>
       <div class="field">
         <label>Accent colour</label>
         <div class="tb-colors" id="tb-colors"></div>
-        <div class="hint">It colours the buttons, the balance card, the glow and the highlights, the way each built-in theme has its own.</div>
+        <div class="hint">It colours the buttons, the balance card, the glow and the highlights.</div>
       </div>
       <div class="field">
         <label>Background picture</label>
-        <div class="tb-pic"><button class="pill" id="tb-pick">Choose a picture</button><span class="tb-pic-name" id="tb-pic-name"></span></div>
-        <div class="hint">At least 1920 × 1080. It shows behind the app in big windows.</div>
+        <button class="tb-pic" id="tb-pick"><span class="tb-thumb" id="tb-thumb"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="3"/><circle cx="9" cy="10" r="2"/><path d="m21 16-5-5-9 9"/></svg></span><span class="tb-pic-text"><b id="tb-pic-title">Choose a picture</b><span id="tb-pic-name">At least 1920 × 1080</span></span></button>
         <input type="file" id="tb-file" accept="image/jpeg,image/png,image/webp" hidden>
       </div>
       <div class="problem" id="tb-problem" hidden></div>
       <button class="primary pearl" id="tb-save" disabled>Save theme</button>
+      <div class="tb-need" id="tb-need"></div>
       </div>
       </div>
     </section>
 
     <!-- Home -->
     <section class="screen" id="home" hidden>
-      <div class="home-top"><div class="home-left"><button class="pill icon" id="go-settings" aria-label="Settings" title="Settings"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></button><button class="wallet-chip" id="wallet-chip"><span id="wallet-name">Wallet</span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg></button><button class="pill icon" id="go-contacts" aria-label="Contacts" title="Contacts"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><path d="M16 3.128a4 4 0 0 1 0 7.744"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><circle cx="9" cy="7" r="4"/></svg></button><button class="pill icon" id="go-explorer" aria-label="Explorer" title="Explorer"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/></svg></button><button class="pill icon" id="go-room" aria-label="Group chat" title="Group chat"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 9a2 2 0 0 1-2 2H6l-4 4V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2z"/><path d="M18 9h2a2 2 0 0 1 2 2v11l-4-4h-6a2 2 0 0 1-2-2v-1"/></svg><span class="dot" id="room-dot" hidden></span></button><button class="pill icon" id="go-notices" aria-label="Notifications" title="Notifications" hidden><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10.268 21a2 2 0 0 0 3.464 0"/><path d="M3.262 15.326A1 1 0 0 0 4 17h16a1 1 0 0 0 .74-1.673C19.41 13.956 18 12.499 18 8A6 6 0 0 0 6 8c0 4.499-1.411 5.956-2.738 7.326"/></svg><span class="dot" id="notices-dot" hidden></span></button></div>
-        <div class="account"><button class="me-face" id="board-who" hidden aria-label="Your profile" title="Your profile"></button><button class="pill" id="board-signin-go">Sign in</button></div></div>
+      <div class="home-top"><div class="home-left"><button class="pill icon" id="go-settings" aria-label="Settings" title="Settings"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></button><button class="wallet-chip" id="wallet-chip"><span id="wallet-name">Wallet</span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg></button><button class="pill icon" id="go-contacts" aria-label="Contacts" title="Contacts"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><path d="M16 3.128a4 4 0 0 1 0 7.744"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><circle cx="9" cy="7" r="4"/></svg></button><button class="pill icon" id="go-explorer" aria-label="Explorer" title="Explorer"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m10.065 12.493-6.18 1.318a.934.934 0 0 1-1.108-.702l-.537-2.15a1.07 1.07 0 0 1 .691-1.265l13.504-4.44"/><path d="m13.56 11.747 4.332-.924"/><path d="m16 21-3.105-6.21"/><path d="M16.485 5.94a2 2 0 0 1 1.455-2.425l1.09-.272a1 1 0 0 1 1.212.727l1.515 6.06a1 1 0 0 1-.727 1.213l-1.09.272a2 2 0 0 1-2.425-1.455z"/><path d="m6.158 8.633 1.114 4.456"/><path d="m8 21 3.105-6.21"/><circle cx="12" cy="13" r="2"/></svg></button><button class="pill icon" id="go-room" aria-label="Group chat" title="Group chat"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 9a2 2 0 0 1-2 2H6l-4 4V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2z"/><path d="M18 9h2a2 2 0 0 1 2 2v11l-4-4h-6a2 2 0 0 1-2-2v-1"/></svg><span class="dot" id="room-dot" hidden></span></button><button class="pill icon" id="go-notices" aria-label="Notifications" title="Notifications" hidden><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10.268 21a2 2 0 0 0 3.464 0"/><path d="M3.262 15.326A1 1 0 0 0 4 17h16a1 1 0 0 0 .74-1.673C19.41 13.956 18 12.499 18 8A6 6 0 0 0 6 8c0 4.499-1.411 5.956-2.738 7.326"/></svg><span class="dot" id="notices-dot" hidden></span></button></div>
+        <div class="account"><button class="pill icon" id="go-size" aria-label="Make the window wide" title="Make the window wide"></button><button class="me-face" id="board-who" hidden aria-label="Your profile" title="Your profile"></button><button class="pill" id="board-signin-go">Sign in</button></div></div>
+      <div class="home-body"><div class="home-main">
       <!-- A swap that needs you, or is under way: impossible to miss. -->
       <button class="swap-alert" id="swap-alert" hidden>
         <div class="sa-main"><div class="sa-title" id="sa-title"></div><div class="sa-sub" id="sa-sub"></div></div>
@@ -2694,6 +2866,22 @@
       <div class="list" id="recent"><div class="empty">No payments yet</div></div>
 
       <div class="problem" id="home-problem" hidden></div>
+      </div>
+      <!-- Big windows: mining and the group chat beside the wallet. -->
+      <aside class="home-side" id="home-side">
+        <div class="hs-card" id="hs-mine">
+          <button class="hs-head hs-open" id="hs-mine-more" title="Open Mine"><span class="hs-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m14 13-8.381 8.38a1 1 0 0 1-3.001-3L11 9.999"/><path d="M15.973 4.027A13 13 0 0 0 5.902 2.373c-1.398.342-1.092 2.158.277 2.601a19.9 19.9 0 0 1 5.822 3.024"/><path d="M16.001 11.999a19.9 19.9 0 0 1 3.024 5.824c.444 1.369 2.26 1.676 2.603.278A13 13 0 0 0 20 8.069"/><path d="M18.352 3.352a1.205 1.205 0 0 0-1.704 0l-5.296 5.296a1.205 1.205 0 0 0 0 1.704l2.296 2.296a1.205 1.205 0 0 0 1.704 0l5.296-5.296a1.205 1.205 0 0 0 0-1.704z"/></svg></span><span class="hs-title"><b>Mining</b><small class="hs-state" id="hs-mine-state">Stopped</small></span><span class="hs-arrow" aria-hidden="true"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg></span></button>
+          <div class="hs-figs"><div><span>Speed</span><b id="hs-speed">—</b></div><div><span id="hs-rate-label">Shares</span><b id="hs-rate">—</b></div><div><span>Network</span><b id="hs-net" title="Every miner on Orien together, estimated">—</b></div></div>
+          <div class="hs-acts"><button class="pill pearl" id="hs-mine-go">Start mining</button></div>
+        </div>
+        <div class="hs-card hs-net" id="hs-net-card">
+          <button class="hs-head hs-open" id="hs-net-open" title="Open the explorer"><span class="hs-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m10.065 12.493-6.18 1.318a.934.934 0 0 1-1.108-.702l-.537-2.15a1.07 1.07 0 0 1 .691-1.265l13.504-4.44"/><path d="m13.56 11.747 4.332-.924"/><path d="m16 21-3.105-6.21"/><path d="M16.485 5.94a2 2 0 0 1 1.455-2.425l1.09-.272a1 1 0 0 1 1.212.727l1.515 6.06a1 1 0 0 1-.727 1.213l-1.09.272a2 2 0 0 1-2.425-1.455z"/><path d="m6.158 8.633 1.114 4.456"/><path d="m8 21 3.105-6.21"/><circle cx="12" cy="13" r="2"/></svg></span><span class="hs-title"><b>Network</b><small>Orien right now</small></span><span class="hs-arrow" aria-hidden="true"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg></span></button>
+          <div class="hs-figs hs-figs2"><div><span>Next checkpoint</span><b id="hs-n-next">—</b></div><div><span>Validators</span><b id="hs-n-validators">—</b></div><div><span>New ORN this hour</span><b id="hs-n-new">—</b></div><div><span>ORN released</span><b id="hs-n-released">—</b></div></div>
+          <div class="hs-rule"></div>
+          <div class="hs-cps" id="hs-cps"><div class="hs-empty">Loading…</div></div>
+        </div>
+      </aside>
+      </div>
     </section>
 
     <!-- Activity -->
@@ -2733,7 +2921,7 @@
       <div class="topline">
         <button class="back" data-back aria-label="Back"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg></button>
         <h2>Contacts</h2>
-        <div class="account"><button class="pill pearl wl-add" id="add-contact"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="M12 5v14"/></svg>Add a contact</button></div>
+        <div class="account"><button class="pill pearl wl-add" id="add-contact"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="M12 5v14"/></svg>Add a contact</button><button class="pop-x" data-pop-close aria-label="Close" title="Close"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></button></div>
       </div>
       <div class="sync-card" id="sync-contacts" hidden>
         <div class="sync-text">Turn on syncing, so your contacts and wallet icons match on all your devices. It needs this wallet unlocked once.</div>
@@ -3048,6 +3236,7 @@
       <div class="topline">
         <button class="back" id="contact-back" aria-label="Back"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg></button>
         <h2 id="contact-title">New contact</h2>
+        <button class="pop-x" data-pop-close aria-label="Close" title="Close"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></button>
         <button class="pill icon tl-bin" id="c-delete" hidden aria-label="Delete contact" title="Delete contact"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M10 11v6"/><path d="M14 11v6"/></svg></button>
       </div>
       <!-- A saved contact: who they are, their address, and paying them. -->
@@ -3076,7 +3265,7 @@
     <!-- A member saved as a contact: who they are and every wallet they
          verified, each to send to. New wallets they verify show up here. -->
     <section class="screen" id="member" hidden>
-      <div class="topline"><button class="back" id="mb-back" aria-label="Back"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg></button><h2 id="mb-title">Contact</h2></div>
+      <div class="topline"><button class="back" id="mb-back" aria-label="Back"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg></button><h2 id="mb-title">Contact</h2><button class="pop-x" data-pop-close aria-label="Close" title="Close"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></button></div>
       <div class="ct-hero mb-hero">
         <span class="face ct-face" id="mb-face"></span>
         <div class="mb-name" id="mb-name"></div>
@@ -3095,6 +3284,7 @@
       <div class="topline">
         <button class="back" data-back aria-label="Back"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg></button>
         <h2>Send ORN</h2>
+        <button class="pop-x" data-pop-close aria-label="Close" title="Close"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></button>
       </div>
 
       <div class="recent-to" id="recent-to" hidden>
@@ -3153,6 +3343,7 @@
     <section class="screen" id="mine" hidden>
       <div class="topline"><button class="back" data-back aria-label="Back"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg></button><h2>Mine ORN</h2></div>
       <p class="lede">Earn a share of each hour's new ORN while this app is open.</p>
+      <div class="mn-cols"><div class="mn-col">
       <div class="mine-status">
         <div class="ms-left">
           <div class="speed" id="mn-speed">Stopped</div>
@@ -3161,6 +3352,11 @@
         </div>
         <div class="ms-rate" id="mn-rate" hidden><b id="mn-rate-big"></b><span id="mn-rate-small"></span><span>estimated</span></div>
       </div>
+      <!-- Big windows: where this computer stands in the whole network. -->
+      <div class="mn-net" data-gap="lg"><div><span>Network</span><b id="mn-net-rate">—</b></div><div><span>Your share</span><b id="mn-net-share">—</b></div><div><span>Next checkpoint</span><b id="mn-net-next">—</b></div></div>
+      <div class="problem" id="mine-problem" hidden></div>
+      <button class="primary pearl" id="mn-go" data-gap="lg">Start mining</button>
+      </div><div class="mn-col mn-side">
       <div class="field" data-gap="lg">
         <label for="mn-cpu">Processor <span id="mn-cpu-text"></span></label>
         <input type="range" id="mn-cpu" min="1" max="10" step="1" value="5">
@@ -3174,8 +3370,13 @@
         <div class="bt"><b id="mn-large-title">Make mining faster</b><span id="mn-large-text"></span></div>
         <button class="secondary" id="mn-large-go">Set up</button>
       </div>
-      <div class="problem" id="mine-problem" hidden></div>
-      <button class="primary pearl" id="mn-go" data-gap="lg">Start mining</button>
+      </div></div>
+      <!-- Big windows: this computer's speed over the last half hour, and how it's mining. -->
+      <div class="mn-graph" data-gap="lg">
+        <div class="mn-graph-head"><b>Your speed</b><span>Last 30 minutes</span></div>
+        <div class="mn-chart-box"><canvas id="mn-chart"></canvas><div class="mn-chart-empty" id="mn-chart-empty">Start mining to see your speed here.</div></div>
+        <div class="mn-stats"><div><span>Cores in use</span><b id="mn-st-cores">—</b></div><div><span>Memory</span><b id="mn-st-mem">—</b></div><div><span>Mining for</span><b id="mn-st-for">—</b></div><div><span>Shares this hour</span><b id="mn-st-shares">—</b></div></div>
+      </div>
       <p class="fineprint" id="mn-light" hidden>Light mode: under 2 GB of free memory, so it mines more slowly.</p>
       <p class="fineprint" id="mn-large-on" hidden>Mining in large pages of memory, for extra speed.</p>
       <p class="fineprint"><span id="mn-odds"></span>Needs about 2 GB of memory. Rewards depend on how much everyone else mines.</p>
@@ -3551,6 +3752,7 @@
       <div class="topline">
         <button class="back" data-back aria-label="Back"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg></button>
         <h2>Receive</h2>
+        <button class="pop-x" data-pop-close aria-label="Close" title="Close"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></button>
       </div>
       <div class="push"></div>
       <div class="receive-card">
@@ -3567,6 +3769,7 @@
     </section>
   </main>
 
+<div id="pop-shade"></div>
 <div id="lock-veil" hidden><div class="lv-in"><div class="mark brand"></div><button class="primary pearl" id="lock-go">Unlock</button></div></div>
 <div id="si-veil" hidden><div id="si-card" role="dialog" aria-modal="true" aria-labelledby="si-title">
   <div id="si-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m10 17 5-5-5-5"/><path d="M15 12H3"/><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/></svg></div>
@@ -3878,7 +4081,7 @@
 
   // Wide windows show Messages side by side: the conversations and the
   // open one together.
-  const wide = window.matchMedia("(min-width: 980px)");
+  const wide = window.matchMedia("(min-width: 860px)");
   // The frosted container behind the screen takes its width, again whenever
   // the window crosses the width where wide screens expand.
   function fitPanel() {
@@ -3886,15 +4089,20 @@
     const col = shown && parseFloat(getComputedStyle(shown).getPropertyValue("--col"));
     document.querySelector("main").style.setProperty("--panel", (document.body.classList.contains("split") ? 1040 : col || 640) + "px");
   }
-  matchMedia("(min-width: 980px)").addEventListener("change", fitPanel);
+  matchMedia("(min-width: 860px)").addEventListener("change", fitPanel);
   function show(id) {
     const both = !phone && wide.matches && (id === "inbox" || (id === "chat" && chat.from === "inbox" && chat.id));
-    for (const s of document.querySelectorAll(".screen")) s.hidden = !(s.id === id || (both && (s.id === "inbox" || s.id === "chat")));
+    // Big windows: Send and Receive float over Home rather than replace it.
+    // So does Contacts, with the contact or member opened from it.
+    const inContacts = document.body.classList.contains("pop") && ["contacts", "contact", "member"].some((x) => !$(x).hidden);
+    const pop = !phone && wide.matches && (id === "send" || id === "receive" || id === "contacts" || ((id === "contact" || id === "member") && inContacts));
+    for (const s of document.querySelectorAll(".screen")) s.hidden = !(s.id === id || (both && (s.id === "inbox" || s.id === "chat")) || (pop && s.id === "home"));
     document.body.classList.toggle("split", both);
+    document.body.classList.toggle("pop", pop);
     fitPanel();
     if (id === "community" && typeof cmFitRail === "function") cmFitRail();
     // A big window shows recent swaps beside the offers: fetched as it opens.
-    if (id === "swaps" && !phone && matchMedia("(min-width: 980px)").matches && typeof loadHistory === "function") loadHistory(false);
+    if (id === "swaps" && !phone && matchMedia("(min-width: 860px)").matches && typeof loadHistory === "function") loadHistory(false);
     document.body.classList.toggle("at-home", id === "home");
     if (id === "seller" && typeof slFitEdges === "function") slFitEdges();
     if (both) { $("chat").classList.toggle("none", !chat.id); paintInbox(); }
@@ -4063,6 +4271,7 @@
     // Never longer than a few seconds, even with the network slow.
     if (waiting) { covered(true); setTimeout(() => covered(false), 8000); }
     show("home"); fitBalance(); loadWallets(); renderSwapAlert();
+    if (typeof homeSide === "function") homeSide();
     invoke("board_me").then((me) => { board.me = me; renderBoardBar(); paintVerifyCard(); }).catch(() => {});
     invoke("notifications_ask").catch(() => {});
     // An update stopped mining that was running: start it again, once.
@@ -4405,7 +4614,7 @@
     $("mn-rate").title = big ? "At this speed and today's difficulty" : "";
     $("mn-shares").textContent = s.running && s.epoch !== null
       ? `This hour: ${s.found.toLocaleString()} shares found, ${s.taken.toLocaleString()} counted` : "";
-    $("mn-reward").textContent = m.last_reward ? `+${m.last_reward.amount} ORN` : "none yet";
+    $("mn-reward").textContent = m.last_reward ? `+${Number(String(m.last_reward.amount).replace(/,/g, "")).toLocaleString([], { maximumFractionDigits: 2 })} ORN` : "none yet";
     $("mn-odds").textContent = s.one_in ? `About one try in ${s.one_in.toLocaleString()} makes a share. ` : "";
     // While it gets ready (about a minute) it can't be stopped yet: the
     // button says so and waits, then becomes Stop mining.
@@ -4416,7 +4625,98 @@
     $("mn-go").className = s.running ? "secondary" : "primary pearl";
     $("mn-go").disabled = readying;
     if (s.problem && !s.running) problem("mine-problem", s.problem); else $("mine-problem").hidden = true;
+    // Home's mining card, in big windows: the same figures, briefly.
+    $("hs-mine-state").textContent = readying ? "Getting ready…" : s.running ? `Running · into ${m.wallet || "this wallet"}` : "Stopped";
+    $("hs-mine-state").classList.toggle("on", !!s.running && !readying);
+    $("hs-speed").textContent = s.running && s.tries_per_second ? `${speed(s.tries_per_second)}/s` : "—";
+    $("hs-rate-label").textContent = small === "for each share" ? "Each share" : "Shares an hour";
+    $("hs-rate").textContent = big || "—";
+    // Someone new starts on the Mine screen, with the processor and the
+    // benchmark in view; after their first mining or benchmark, Home starts it.
+    if (s.running || mineSweet) localStorage.setItem("mined-before", "1");
+    const firstTime = !s.running && !localStorage.getItem("mined-before");
+    $("hs-mine-go").dataset.setup = firstTime ? "1" : "";
+    $("hs-mine-go").textContent = readying ? "Getting ready…" : s.running ? "Stop mining" : firstTime ? "Set up mining" : "Start mining";
+    $("hs-mine-go").className = s.running ? "pill" : "pill pearl";
+    $("hs-mine-go").disabled = readying;
+    mnNet(s);
+    mnRecord(s);
     return s;
+  }
+  // ---- The speed chart: tries a second, sampled while the app is open,
+  // the last half hour kept (nothing saved).
+  var mnHist = [], mnSince = null, mnLast = null;
+  function mnRecord(s) {
+    if (!s || !mnHist) return;
+    mnLast = s;
+    const now = Date.now();
+    if (s.running && !mnSince) mnSince = now;
+    if (!s.running) mnSince = null;
+    const prev = mnHist[mnHist.length - 1];
+    if (!prev || now - prev.t >= 4000) mnHist.push({ t: now, v: s.running && !s.preparing ? s.tries_per_second || 0 : 0 });
+    while (mnHist.length && now - mnHist[0].t > 30 * 60000) mnHist.shift();
+    mnPaint();
+  }
+  function mnPaint() {
+    if (phone || !wide.matches || $("mine").hidden) return;
+    const s = mnLast;
+    // The figures under the chart.
+    $("mn-st-cores").textContent = s && s.running && s.threads ? `${s.threads} of ${s.cores}` : s ? `0 of ${s.cores}` : "—";
+    $("mn-st-mem").textContent = !s || !s.running ? "—" : s.light ? "Light" : s.large_pages ? "Large pages" : "Normal";
+    const mins = mnSince ? Math.floor((Date.now() - mnSince) / 60000) : null;
+    $("mn-st-for").textContent = mins === null ? "—" : mins < 1 ? "Just started" : mins < 60 ? `${mins} min` : `${Math.floor(mins / 60)} h ${mins % 60} min`;
+    $("mn-st-shares").textContent = s && s.running && s.epoch !== null ? `${(s.found || 0).toLocaleString()} found` : "—";
+    // The chart itself, drawn at the screen's sharpness.
+    const c = $("mn-chart"), box = c.parentElement, dpr = window.devicePixelRatio || 1;
+    const w = box.clientWidth, h = box.clientHeight;
+    if (!w || !h) return;
+    if (c.width !== Math.round(w * dpr) || c.height !== Math.round(h * dpr)) { c.width = Math.round(w * dpr); c.height = Math.round(h * dpr); }
+    const g = c.getContext("2d");
+    g.setTransform(dpr, 0, 0, dpr, 0, 0);
+    g.clearRect(0, 0, w, h);
+    const pts = mnHist.filter((p) => p.v > 0);
+    $("mn-chart-empty").hidden = pts.length > 1;
+    if (mnHist.length < 2 || pts.length < 2) return;
+    const look = getComputedStyle(document.documentElement), tint = look.getPropertyValue("--tint").trim() || "255, 255, 255";
+    const line = look.getPropertyValue("--accent").trim() || look.getPropertyValue("--mn-cool").trim() || "#6fa8ff";
+    const now = Date.now(), span = 30 * 60000, top = Math.max(...mnHist.map((p) => p.v)) * 1.15 || 1;
+    const padL = 0, padB = 18, padT = 18, ch = h - padB - padT;
+    const x = (t) => padL + (w - padL) * (1 - (now - t) / span), y = (v) => padT + ch * (1 - v / top);
+    // Guide lines and labels: the top speed, and the time across the bottom.
+    g.strokeStyle = `rgba(${tint}, 0.08)`; g.lineWidth = 1;
+    for (const f of [0, 0.5, 1]) { const yy = Math.round(padT + ch * f) + 0.5; g.beginPath(); g.moveTo(0, yy); g.lineTo(w, yy); g.stroke(); }
+    g.fillStyle = `rgba(${tint}, 0.45)`; g.font = "11px " + getComputedStyle(document.body).fontFamily;
+    g.textBaseline = "top"; g.textAlign = "left"; g.fillText(`${Math.round(top / 1.15).toLocaleString()} tries a second`, 0, 0);
+    g.textBaseline = "bottom"; g.fillText("30 min ago", 0, h); g.textAlign = "right"; g.fillText("now", w, h);
+    // The line, softened, with a fill fading below it.
+    g.beginPath();
+    mnHist.forEach((p, i) => { const px = x(p.t), py = y(p.v); i ? g.lineTo(px, py) : g.moveTo(px, py); });
+    // The theme's colour, whatever its form, at two strengths.
+    g.fillStyle = line; const solid = g.fillStyle;
+    const faded = (a) => solid.startsWith("#") ? solid + Math.round(a * 255).toString(16).padStart(2, "0") : solid.replace(/rgba?\(([^)]+?)(,\s*[\d.]+)?\)/, (m0, rgb) => `rgba(${rgb.split(",").slice(0, 3).join(",")}, ${a})`);
+    const fill = g.createLinearGradient(0, padT, 0, padT + ch);
+    fill.addColorStop(0, faded(0.33)); fill.addColorStop(1, faded(0));
+    g.save(); g.lineTo(x(mnHist[mnHist.length - 1].t), padT + ch); g.lineTo(x(mnHist[0].t), padT + ch); g.closePath(); g.fillStyle = fill; g.fill(); g.restore();
+    g.beginPath();
+    mnHist.forEach((p, i) => { const px = x(p.t), py = y(p.v); i ? g.lineTo(px, py) : g.moveTo(px, py); });
+    g.strokeStyle = line; g.lineWidth = 2; g.lineJoin = "round"; g.stroke();
+  }
+  window.addEventListener("resize", mnPaint);
+  // Sampled every ten seconds wherever you are in the app, so the chart
+  // already has a story when you open Mine.
+  setInterval(() => { if ($("mine").hidden && !homeWide()) invoke("mine_status").then((m) => mnRecord(m.status)).catch(() => {}); }, 10000);
+  // The network's figures for the big Mine screen: the explorer's overview,
+  // fetched once a minute, with this computer's share worked out from it.
+  let mnOver = null, mnOverAt = 0;
+  async function mnNet(s) {
+    if (phone || !wide.matches || $("mine").hidden) return;
+    if (Date.now() - mnOverAt > 60000) { mnOverAt = Date.now(); try { mnOver = await invoke("explorer", { path: "/overview" }); } catch { mnOverAt = 0; } }
+    const o = mnOver, net = o && o.hashrate ? o.hashrate.per_second : 0;
+    $("mn-net-rate").textContent = net ? exRate(net) : "—";
+    const share = s && s.running && s.tries_per_second && net ? (s.tries_per_second / net) * 100 : null;
+    $("mn-net-share").textContent = share === null ? "—" : share >= 10 ? `${share.toFixed(0)}%` : share >= 1 ? `${share.toFixed(1)}%` : `${share.toFixed(2)}%`;
+    const left = o ? o.epoch_started + o.epoch_seconds - Date.now() / 1000 : null;
+    $("mn-net-next").textContent = left === null ? "—" : left <= 0 ? "any moment" : left >= 60 ? `in ${Math.floor(left / 60)} min` : `in ${Math.ceil(left)} s`;
   }
   $("go-mine").onclick = async () => {
     show("mine");
@@ -4813,9 +5113,13 @@
     const now = document.documentElement.dataset.theme || "pearl";
     for (const card of document.querySelectorAll(".theme-card")) card.classList.toggle("on", card.dataset.pick === now);
   }
+  // The first time it runs it always paints: the page may already carry the
+  // theme's name (set before anything drew), but not yet its colours.
+  let themePainted = false;
   function applyTheme(name, animate) {
     name = knownTheme(name);
-    if ((document.documentElement.dataset.theme || "pearl") === name) return;
+    if (themePainted && (document.documentElement.dataset.theme || "pearl") === name) return;
+    themePainted = true;
     const set = () => { document.documentElement.dataset.theme = name; paintOwnTheme(); paintThemeGrid(); };
     try { localStorage.setItem("theme", name); } catch {}
     // The fade between themes: not on Linux, where WebKit can crash doing it.
@@ -4899,13 +5203,20 @@
   }
   // As this device last had it, at once; then as chosen on any device.
   try { applyTheme(localStorage.getItem("theme") || "pearl", false); } catch { paintBackdrop(); }
+  // Painted: the page can be seen.
+  requestAnimationFrame(() => document.documentElement.classList.remove("theming"));
 
   // The builder.
   const TB_DEFAULT = ["#f0b341"];
+  // Ready accent colours, and a last swatch for any colour you like.
+  const TB_READY = ["#f0b341", "#ff7a45", "#f0567a", "#c86bff", "#7b7bff", "#4c9dff", "#2ec4b6", "#5bd17a", "#e8e4dc"];
   function tbPaint() {
-    const box = $("tb-colors");
-    box.innerHTML = `<label class="tb-swatch" title="Change the colour"><input type="color" value="${tb.colors[0]}" data-tb-color="0" aria-label="Accent colour"></label><span class="tb-hex">${tb.colors[0].toUpperCase()}</span>`;
-    box.querySelectorAll(".tb-swatch").forEach((sw, i) => { sw.style.background = tb.colors[i]; });
+    const box = $("tb-colors"), now = (tb.colors[0] || TB_DEFAULT[0]).toLowerCase();
+    const ready = TB_READY.includes(now);
+    box.innerHTML = TB_READY.map((c) => `<button class="tb-swatch${c === now ? " on" : ""}" data-tb-ready="${c}" aria-label="${c}" title="${c.toUpperCase()}"></button>`).join("")
+      + `<label class="tb-swatch own${ready ? "" : " on"}" title="${ready ? "Any colour you like" : now.toUpperCase()}"><input type="color" value="${now}" aria-label="Any colour you like"></label>`;
+    box.querySelectorAll("[data-tb-ready]").forEach((b) => { b.style.background = b.dataset.tbReady; });
+    box.querySelector(".own").style.setProperty("--own", now);
     tbLook();
   }
   function tbLook() {
@@ -4914,15 +5225,27 @@
     for (const b of document.querySelectorAll("[data-base-pick]")) b.classList.toggle("on", b.dataset.basePick === tb.base);
     stage.style.backgroundImage = tb.scene ? `url("${tb.scene}")` : "";
     stage.classList.toggle("has-pic", !!tb.scene);
-    $("tb-save").disabled = !($("tb-name").value.trim() && tb.colors.length && tb.scene);
+    $("tb-pick").classList.toggle("has", !!tb.scene);
+    $("tb-thumb").style.backgroundImage = tb.scene ? `url("${tb.scene}")` : "";
+    $("tb-pic-title").textContent = tb.scene ? "Change picture" : "Choose a picture";
+    const named = !!$("tb-name").value.trim();
+    $("tb-save").disabled = !(named && tb.colors.length && tb.scene);
+    $("tb-need").textContent = named && tb.scene ? "" : !named && !tb.scene ? "Name your theme and choose a picture to save it." : named ? "Choose a picture to save it." : "Name your theme to save it.";
   }
+  $("tb-colors").addEventListener("click", (e) => {
+    const b = e.target.closest("[data-tb-ready]");
+    if (!b) return;
+    feel("selection");
+    tb.colors = [b.dataset.tbReady];
+    tbPaint();
+  });
   $("tb-colors").addEventListener("input", (e) => {
-    const i = e.target.dataset && e.target.dataset.tbColor;
-    if (i === undefined) return;
-    tb.colors[Number(i)] = e.target.value;
-    e.target.parentElement.style.background = e.target.value;
-    const hex = $("tb-colors").querySelector(".tb-hex");
-    if (hex) hex.textContent = e.target.value.toUpperCase();
+    if (e.target.type !== "color") return;
+    tb.colors = [e.target.value];
+    const own = e.target.parentElement;
+    $("tb-colors").querySelectorAll(".tb-swatch").forEach((x) => x.classList.toggle("on", x === own));
+    own.style.setProperty("--own", e.target.value);
+    own.title = e.target.value.toUpperCase();
     tbLook();
   });
   $("tb-name").addEventListener("input", tbLook);
@@ -4941,9 +5264,8 @@
     tb.base = t && t.base === "light" ? "light" : "dark";
     tb.scene = t ? scenes.get(t.id) || null : null;
     $("tb-name").value = t ? t.name : "";
-    $("tb-pic-name").textContent = "";
+    $("tb-pic-name").textContent = tb.scene ? "Your picture" : "At least 1920 × 1080";
     $("tb-problem").hidden = true;
-    $("tb-pick").textContent = tb.scene ? "Change picture" : "Choose a picture";
     $("tb-title").textContent = t ? "Edit theme" : "Build a theme";
     $("tb-save").textContent = t ? "Save changes" : "Save theme";
     tbPaint();
@@ -4952,6 +5274,7 @@
   $("st-build").onclick = () => openThemeBuilder();
   $("tb-back").onclick = () => { tb.colors = []; tb.scene = null; tb.editing = null; show("settings"); settingsPage("appearance"); };
   $("tb-pick").onclick = () => $("tb-file").click();
+  $("tb-stage").onclick = () => $("tb-file").click();
   $("tb-file").onchange = async () => {
     const file = $("tb-file").files[0];
     $("tb-file").value = "";
@@ -4964,7 +5287,6 @@
       if (w < 1920 || h < 1080) { problem("tb-problem", `That picture is ${w} × ${h}. It needs to be at least 1920 × 1080.`); return; }
       tb.scene = fitPicture(img);
       $("tb-pic-name").textContent = file.name;
-      $("tb-pick").textContent = "Change picture";
       tbLook();
     } catch (err) { problem("tb-problem", err); }
   };
@@ -5573,6 +5895,14 @@
 
   // ---- Navigation ----
   for (const b of document.querySelectorAll("[data-back]")) b.onclick = home;
+  // The pop-up closes by a click beside it, or Escape.
+  $("pop-shade").onclick = () => home();
+  for (const b of document.querySelectorAll("[data-pop-close]")) b.onclick = () => home();
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape" && document.body.classList.contains("pop") && !document.querySelector('[id$="-veil"]:not([hidden])')) home();
+  });
+  // The window narrowing or widening with one open: a page or a pop-up again.
+  wide.addEventListener("change", () => { const open = ["send", "receive", "contacts"].find((x) => !$(x).hidden); if (open) show(open); });
   $("go-send").onclick = () => {
     if (update && update.required) {
       problem("home-problem", "This version of Orien Wallet no longer works with the network. Press Update at the top to keep sending.");
@@ -8559,7 +8889,7 @@
   // Big windows: once the card at the top has scrolled away, the posts and
   // the sidebar each round off at both sides where they pass the edges, as
   // in the Community.
-  const bigProfile = matchMedia("(min-width: 980px)");
+  const bigProfile = matchMedia("(min-width: 860px)");
   function slFitEdges() {
     const scr = $("seller");
     if (scr.hidden) return;
@@ -9877,6 +10207,103 @@
   };
   $("vf-pw").onkeydown = (e) => { if (e.key === "Enter") $("vf-go").click(); };
 
+
+  // ---- Home in a big window: mining and the group chat beside the wallet.
+  const homeWide = () => !phone && wide.matches && !$("home").hidden;
+  let hsReady = false;
+  let hsNetAt = 0;
+  async function homeSide() {
+    if (!homeWide()) return;
+    if (!hsReady) { hsReady = true; await mineStatus(true); } else mineStatus(false);
+    hsNetwork();
+    // The whole network's hashrate, from the explorer: once a minute is plenty.
+    if (Date.now() - hsNetAt > 60000) {
+      hsNetAt = Date.now();
+      invoke("explorer", { path: "/overview" }).then((o) => { $("hs-net").textContent = o && o.hashrate ? exRate(o.hashrate.per_second) : "—"; }).catch(() => { hsNetAt = 0; });
+    }
+  }
+  $("hs-mine-go").onclick = async () => {
+    if ($("hs-mine-go").dataset.setup) { $("go-mine").onclick(); return; }
+    $("hs-mine-go").disabled = true; await $("mn-go").onclick();
+  };
+  $("hs-mine-more").onclick = () => $("go-mine").onclick();
+  // The network, as the explorer shows it: the next checkpoint, who mined,
+  // what's released, and the latest checkpoints. Once a minute is plenty;
+  // the countdown ticks with Home's own refresh.
+  let hsOver = null, hsOverAt = 0, hsMinersBusy = false;
+  const hsMiners = new Map();
+  async function hsNetwork() {
+    if (Date.now() - hsOverAt > 60000) {
+      hsOverAt = Date.now();
+      try { hsOver = await invoke("explorer", { path: "/overview" }); } catch { hsOverAt = 0; }
+    }
+    const o = hsOver;
+    if (!o) return;
+    const sup = o.supply || {};
+    const left = o.epoch_started + o.epoch_seconds - Date.now() / 1000;
+    $("hs-n-next").textContent = left <= 0 ? "Any moment" : left >= 60 ? `In ${Math.floor(left / 60)} min` : `In ${Math.ceil(left)} s`;
+    // The network's health: how many of its validators are up right now.
+    const vals = o.validators || [];
+    $("hs-n-validators").textContent = vals.length ? `${vals.filter((v) => v.up).length} of ${vals.length} running` : "—";
+    $("hs-n-new").textContent = sup.per_hour ? exOrn(sup.per_hour, 0) : "—";
+    $("hs-n-released").textContent = sup.released ? exOrn(sup.released, 0) : "—";
+    const cps = (o.checkpoints || []).slice(0, 8);
+    // Who each checkpoint paid: fetched once per checkpoint (they never change).
+    const missing = cps.filter((c) => !hsMiners.has(c.epoch));
+    if (missing.length && !hsMinersBusy) {
+      hsMinersBusy = true;
+      (async () => {
+        for (const c of missing) {
+          try { const d = await invoke("explorer", { path: `/checkpoints/${c.epoch}` }); hsMiners.set(c.epoch, ((d.rewards || {}).miners || []).length); } catch { break; }
+        }
+        hsMinersBusy = false;
+        hsNetwork();
+      })();
+    }
+    const plural = (n, one) => `${n.toLocaleString()} ${one}${n === 1 ? "" : "s"}`;
+    paintKeeping($("hs-cps"), cps.length ? cps.map((c) => `<button class="hs-cp" data-hs-cp="${c.epoch}"><span class="ex-num">#${c.epoch}</span>
+      <span class="mw0"><b>${hsMiners.has(c.epoch) ? `${plural(hsMiners.get(c.epoch), "miner")} paid` : "Checkpoint " + c.epoch}</b><span class="sub">${esc(exAgo(c.time))}${c.payments ? ` · ${plural(c.payments, "payment")}` : ""} · agreed by ${c.agreed.length} of ${c.of}</span></span>
+      <span class="amt">+${exOrn(c.released, 0)}</span></button>`).join("") : '<div class="hs-empty">No checkpoints yet.</div>');
+    hsFitCps();
+  }
+  // Only whole rows: one that would be cut off at the bottom isn't shown.
+  function hsFitCps() {
+    const box = $("hs-cps"), bottom = box.getBoundingClientRect().bottom;
+    for (const row of box.children) {
+      row.style.removeProperty("visibility");
+      if (row.getBoundingClientRect().bottom > bottom + 0.5) row.style.setProperty("visibility", "hidden");
+    }
+  }
+  window.addEventListener("resize", () => { if (homeWide()) hsFitCps(); });
+  $("hs-net-open").onclick = () => openExplorer();
+  $("hs-cps").onclick = (e) => { const b = e.target.closest("[data-hs-cp]"); if (b) openExplorer({ kind: "checkpoint", epoch: Number(b.dataset.hsCp) }); };
+  wide.addEventListener("change", homeSide);
+  setInterval(homeSide, 5000);
+
+  // The window between its two sizes: wide, with everything side by side,
+  // or its smallest. The arrows point the way it would go.
+  const SIZE_OUT = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h6v6"/><path d="m21 3-7 7"/><path d="m3 21 7-7"/><path d="M9 21H3v-6"/></svg>';
+  const SIZE_IN = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m14 10 7-7"/><path d="M20 10h-6V4"/><path d="m3 21 7-7"/><path d="M4 14h6v6"/></svg>';
+  function paintSize() {
+    const isWide = window.innerWidth >= 860, b = $("go-size");
+    b.innerHTML = isWide ? SIZE_IN : SIZE_OUT;
+    const say = isWide ? "Make the window small" : "Make the window wide";
+    b.title = say; b.setAttribute("aria-label", say);
+  }
+  // Wide is the width you last had it wide (kept whenever the window is
+  // wide), so shrinking and growing again comes back to your own size.
+  const keepWide = () => { if (window.innerWidth >= 860) localStorage.setItem("wide-width", String(window.innerWidth)); };
+  $("go-size").onclick = () => {
+    if (phone) return;
+    const goWide = window.innerWidth < 860;
+    if (!goWide) keepWide();
+    const width = Number(localStorage.getItem("wide-width")) || null;
+    invoke("window_wide", { wide: goWide, width: goWide ? width : null }).catch(() => {});
+  };
+  let keepTimer = 0;
+  window.addEventListener("resize", () => { paintSize(); clearTimeout(keepTimer); keepTimer = setTimeout(keepWide, 500); });
+  keepWide();
+  paintSize();
   // ---- Verifying the open wallet in one tap, from Home or wherever a
   // verified wallet is asked for. It still says plainly what it does
   // before sending: the wallet becomes publicly yours, for a tiny payment.
@@ -10107,7 +10534,7 @@
   const dmChoice = () => (document.querySelector("[data-dm].on") || {}).dataset?.dm || "everyone";
   for (const b of document.querySelectorAll("[data-dm]")) b.onclick = () => { paintDm(b.dataset.dm); feel("selection"); saveProfile(); };
   // The window crossing the big-window width while here: the column follows.
-  matchMedia("(min-width: 980px)").addEventListener("change", () => { if (!$("profile").hidden) show("profile"); });
+  matchMedia("(min-width: 860px)").addEventListener("change", () => { if (!$("profile").hidden) show("profile"); });
   $("pf-back").onclick = async () => { await saveProfile(); home(); };
 
   $("bs-go").onclick = async () => {
@@ -10395,7 +10822,7 @@
     const sup = o.supply || {};
     // Big windows: the latest 15, so the list ends near the column beside
     // it. Older ones are a search away, by number.
-    const cps = !phone && matchMedia("(min-width: 980px)").matches ? o.checkpoints.slice(0, 15) : o.checkpoints;
+    const cps = !phone && matchMedia("(min-width: 860px)").matches ? o.checkpoints.slice(0, 15) : o.checkpoints;
     $("ex-body").innerHTML = `<div class="ex-facts">
         ${exFact("ORN released", sup.released ? exOrn(sup.released, 0) : "—", sup.cap ? `Of ${exOrn(sup.cap, 0)} there will ever be` : "")}
         ${exFact("New ORN this hour", sup.per_hour ? exOrn(sup.per_hour, 0) : "—", "Shared among miners")}

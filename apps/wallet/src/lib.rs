@@ -1406,6 +1406,41 @@ async fn contacts_sync(app: AppHandle) -> Result<bool, String> {
     .map_err(|error| error.to_string())?
 }
 
+/// The window between its two sizes, from the button on Home: wide (the
+/// width it last had wide, else 1200, and never past the screen) or its
+/// smallest (719), keeping its height, and kept on the screen. Not async, so
+/// it runs where the window lives (the main thread), never beside it.
+#[tauri::command]
+fn window_wide(app: AppHandle, wide: bool, width: Option<f64>) -> Result<(), String> {
+    #[cfg(desktop)]
+    {
+        let window = app.get_webview_window("main").ok_or("no window")?;
+        if window.is_maximized().unwrap_or(false) {
+            let _ = window.unmaximize();
+        }
+        let scale = window.scale_factor().map_err(|e| e.to_string())?;
+        let height = window.inner_size().map_err(|e| e.to_string())?.height as f64 / scale;
+        let monitor = window.current_monitor().ok().flatten();
+        let mut width: f64 = if wide { width.filter(|w| *w >= 860.0).unwrap_or(1200.0) } else { 719.0 };
+        if let (true, Some(m)) = (wide, &monitor) {
+            let room = m.size().width as f64 / m.scale_factor() - 40.0;
+            width = width.min(room).max(719.0);
+        }
+        window.set_size(tauri::LogicalSize::new(width, height)).map_err(|e| e.to_string())?;
+        // Grown past the screen's right edge: moved back onto it.
+        if let (Some(m), Ok(pos), Ok(outer)) = (&monitor, window.outer_position(), window.outer_size()) {
+            let right = m.position().x + m.size().width as i32;
+            if pos.x + outer.width as i32 > right {
+                let x = (right - outer.width as i32).max(m.position().x);
+                let _ = window.set_position(tauri::PhysicalPosition::new(x, pos.y));
+            }
+        }
+    }
+    #[cfg(not(desktop))]
+    let _ = (app, wide, width);
+    Ok(())
+}
+
 /// A page of the explorer's figures: the overview, checkpoints, an address,
 /// the top wallets.
 #[tauri::command]
@@ -2780,7 +2815,7 @@ pub fn run() {
             }
             Ok(())
         })
-        .invoke_handler(tauri::generate_handler![share_address, has_wallet, create_wallet, save_phrase, restore_wallet, set_password, choose_wallet, overview_now, send_payment, activity, quote, contacts, save_contact, delete_contact, contacts_sync, members, save_member, delete_member, biometric_unlock, biometric_enable, update::check_update, update::install_update, update::download_update, update::away_seconds, mine_start, mine_stop, mine_resume, mine_set, mine_status, mine_benchmark, mine_benchmark_cancel, large_pages_state, large_pages_set_up, wallets, wallet_balances, use_wallet, rename_wallet, add_wallet, forget_wallet, swap_list, swap_sell, swap_buy, swap_accept, swap_step, swap_smallest, board_offers, board_me, board_email_start, board_email_finish, board_sign_out, board_post, board_take, board_withdraw, board_link, notifications_ask, push_sync, open_network_map, board_wallets_sync, board_post_sol, board_take_sol, sol_open, sol_payout_check, open_site, qr_code, address_qr, wallet_profiles, board_profile_save, board_picture_pick, board_verify, board_wallet_states, market_image, board_banner_remove, market_search, market_listings, market_listing, market_profile, market_call, market_pick_pictures, market_listing_picture, community_picture, klipy_gifs, dock_badge, mac_notify, board_delete_account, wallet_icons, set_wallet_icon, vault_ready, vault_unlock, open_contact, pair_offer, pair_offer_wait, pair_offer_send, pair_join, pair_join_wait, pair_invite, pair_invite_wait, pair_accept, pair_wallets, pair_accept_send, pair_cancel, wallet_phrase, phrase_check, app_theme, set_app_theme, set_backdrop, theme_picture_save, theme_picture_load, theme_picture_delete, explorer, app_prefs, set_app_pref, app_unlock, computer_settings, set_computer_setting, notifications_muted, set_notification, open_legal, open_post_link, open_extension, haptics::haptic, haptics::haptic_ready, sitesignin::site_signin_answer, board_paid_wallet, board_wallet_remove])
+        .invoke_handler(tauri::generate_handler![share_address, has_wallet, create_wallet, save_phrase, restore_wallet, set_password, choose_wallet, overview_now, send_payment, activity, quote, contacts, save_contact, delete_contact, contacts_sync, members, save_member, delete_member, biometric_unlock, biometric_enable, update::check_update, update::install_update, update::download_update, update::away_seconds, mine_start, mine_stop, mine_resume, mine_set, mine_status, mine_benchmark, mine_benchmark_cancel, large_pages_state, large_pages_set_up, wallets, wallet_balances, use_wallet, rename_wallet, add_wallet, forget_wallet, swap_list, swap_sell, swap_buy, swap_accept, swap_step, swap_smallest, board_offers, board_me, board_email_start, board_email_finish, board_sign_out, board_post, board_take, board_withdraw, board_link, notifications_ask, push_sync, open_network_map, board_wallets_sync, board_post_sol, board_take_sol, sol_open, sol_payout_check, open_site, qr_code, address_qr, wallet_profiles, board_profile_save, board_picture_pick, board_verify, board_wallet_states, market_image, board_banner_remove, market_search, market_listings, market_listing, market_profile, market_call, market_pick_pictures, market_listing_picture, community_picture, klipy_gifs, dock_badge, mac_notify, board_delete_account, wallet_icons, set_wallet_icon, vault_ready, vault_unlock, open_contact, pair_offer, pair_offer_wait, pair_offer_send, pair_join, pair_join_wait, pair_invite, pair_invite_wait, pair_accept, pair_wallets, pair_accept_send, pair_cancel, wallet_phrase, phrase_check, app_theme, set_app_theme, set_backdrop, theme_picture_save, theme_picture_load, theme_picture_delete, explorer, window_wide, app_prefs, set_app_pref, app_unlock, computer_settings, set_computer_setting, notifications_muted, set_notification, open_legal, open_post_link, open_extension, haptics::haptic, haptics::haptic_ready, sitesignin::site_signin_answer, board_paid_wallet, board_wallet_remove])
         .build(tauri::generate_context!())
         .expect("the wallet window could not start")
         .run(|_app, _event| {
