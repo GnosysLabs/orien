@@ -8685,6 +8685,7 @@
       case "also": return "also replied to a post you replied to";
       case "react": return `reacted ${(l.emojis || []).map(esc).join(" ")} to ${theirs}`;
       case "message": return l.listing ? `wrote to you about ${esc(l.listing)}` : "wrote to you";
+      case "room_reply": return "replied to you in the Orien group chat";
       default: return "";
     }
   }
@@ -8749,6 +8750,7 @@
     const l = nt.lines[Number(r.dataset.nt)];
     if (!l) return;
     if (l.kind === "message") { closeNotices(); return openChat(l.conversation, "notices"); }
+    if (l.kind === "room_reply") { closeNotices(); return openRoom("notices"); }
     // The post on its own in the Community, its comments open.
     let found;
     try { found = await cmCall("GET", `/posts/${l.post}`); } catch (err) { problem("nt-problem", /not found|gone|no such/i.test(String(err)) ? "That post has been removed." : err); return; }
@@ -8777,7 +8779,7 @@
     for (const l of lines) {
       if (!l.unseen || l.kind === "message") continue;
       // Each tip is its own line: told on its own.
-      const key = l.kind === "tip" ? `tip:${l.post}:${l.time}:${l.name}` : `${l.kind}:${l.post}`;
+      const key = l.kind === "tip" ? `tip:${l.post}:${l.time}:${l.name}` : l.kind === "room_reply" ? `room:${l.message}` : `${l.kind}:${l.post}`;
       if ((heard[key] || 0) >= l.time) continue;
       heard[key] = l.time;
       if (first || !$("nt-panel").hidden || !$("notices").hidden) continue;
