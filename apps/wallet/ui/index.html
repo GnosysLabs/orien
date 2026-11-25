@@ -9429,8 +9429,19 @@
   $("go-notices").onclick = () => openNotices($("go-notices"));
   $("hd-notices").onclick = () => openNotices($("hd-notices"));
   $("nt-back").onclick = () => home();
+  // A click outside only closes the panel: it doesn't also press whatever
+  // was under it, as menus everywhere behave.
+  let ntSwallow = 0;
   document.addEventListener("pointerdown", (e) => {
-    if (!$("nt-panel").hidden && !$("nt-panel").contains(e.target) && !e.target.closest("#go-notices, #hd-notices")) closeNotices();
+    ntSwallow = 0;
+    if (!$("nt-panel").hidden && !$("nt-panel").contains(e.target) && !e.target.closest("#go-notices, #hd-notices")) {
+      closeNotices();
+      ntSwallow = Date.now();
+      e.preventDefault();
+    }
+  }, true);
+  document.addEventListener("click", (e) => {
+    if (Date.now() - ntSwallow < 1500) { ntSwallow = 0; e.preventDefault(); e.stopPropagation(); }
   }, true);
   document.addEventListener("keydown", (e) => { if (e.key === "Escape") closeNotices(); });
   window.addEventListener("resize", closeNotices);
