@@ -1107,7 +1107,10 @@
   @media (min-width: 860px) {
     body.split main { flex-direction: row; justify-content: center; gap: 0; }
     html body.split #inbox, html body.split #chat { flex: 0 0 auto; margin: -20px 0 0; padding: 0; overflow: hidden;
-      -webkit-mask: none; mask: none; background: var(--surface); border: 1px solid var(--line); }
+      -webkit-mask: none; mask: none; border: 1px solid var(--line);
+      /* The same deep ground as every other page's container, so the words
+         and the bubbles stand out as they do elsewhere. */
+      background: var(--glow), var(--ground-deep); background-attachment: fixed; }
     html body.split #inbox { width: 336px; border-radius: 36px 0 0 36px; border-right: 0; }
     /* The conversation takes the room left, up to 760px: at 860px wide the
        two fill the window as the Community does, 12px from each side. */
