@@ -4955,7 +4955,9 @@
     // Home's mining card, in big windows: the same figures, briefly.
     $("hs-mine-state").textContent = readying ? "Getting ready…" : s.running ? `Running · into ${m.wallet || "this wallet"}` : "Stopped";
     $("hs-mine-state").classList.toggle("on", !!s.running && !readying);
-    $("hs-mine").classList.toggle("mining", !!s.running && !readying);
+    // Glowing from the moment mining starts, getting ready included, as
+    // the Mine button does.
+    $("hs-mine").classList.toggle("mining", !!s.running);
     $("hs-speed").textContent = s.running && s.tries_per_second ? `${speed(s.tries_per_second)}/s` : "—";
     $("hs-rate-label").textContent = small === "for each share" ? "Each share" : "Shares an hour";
     $("hs-rate").textContent = big || "—";
