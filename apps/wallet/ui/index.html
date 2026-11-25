@@ -716,12 +716,18 @@
   /* The Mine button while mining: a soft green aura, always there, breathing
      in strength; no solid ring. */
   #go-mine { position: relative; }
-  #go-mine.on .icon { animation: mining 2.8s ease-in-out infinite; }
+  #go-mine.on .icon { animation: drift 24s linear infinite, mining 2.8s ease-in-out infinite; }
+  /* The same aura round the mining card's icon in big windows. */
+  #hs-mine.mining .hs-ico { animation: drift 24s linear infinite, mining-small 2.8s ease-in-out infinite; }
+  @keyframes mining-small {
+    0%, 100% { box-shadow: 0 0 12px 3px rgba(166, 227, 198, 0.4); }
+    50% { box-shadow: 0 0 18px 6px rgba(166, 227, 198, 0.65); }
+  }
   @keyframes mining {
     0%, 100% { box-shadow: 0 5px 14px rgba(0, 0, 0, 0.26), 0 0 18px 5px rgba(166, 227, 198, 0.4); }
     50% { box-shadow: 0 5px 14px rgba(0, 0, 0, 0.26), 0 0 26px 9px rgba(166, 227, 198, 0.65); }
   }
-  @media (prefers-reduced-motion: reduce) { #go-mine.on .icon { animation: none; box-shadow: 0 5px 14px rgba(0, 0, 0, 0.26), 0 0 20px 6px rgba(166, 227, 198, 0.4); } }
+  @media (prefers-reduced-motion: reduce) { #hs-mine.mining .hs-ico { animation: none; box-shadow: 0 0 14px 4px rgba(166, 227, 198, 0.5); } #go-mine.on .icon { animation: none; box-shadow: 0 5px 14px rgba(0, 0, 0, 0.26), 0 0 20px 6px rgba(166, 227, 198, 0.4); } }
   #mine { overflow-y: auto; margin: -8px -8px 0; padding: 8px 8px 16px; }
   #mine > *, #mine .mn-col > * { flex-shrink: 0; }
   /* One column until a big window; then the status and network on the
@@ -4944,6 +4950,7 @@
     // Home's mining card, in big windows: the same figures, briefly.
     $("hs-mine-state").textContent = readying ? "Getting ready…" : s.running ? `Running · into ${m.wallet || "this wallet"}` : "Stopped";
     $("hs-mine-state").classList.toggle("on", !!s.running && !readying);
+    $("hs-mine").classList.toggle("mining", !!s.running && !readying);
     $("hs-speed").textContent = s.running && s.tries_per_second ? `${speed(s.tries_per_second)}/s` : "—";
     $("hs-rate-label").textContent = small === "for each share" ? "Each share" : "Shares an hour";
     $("hs-rate").textContent = big || "—";
