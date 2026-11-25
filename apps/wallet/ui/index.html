@@ -897,7 +897,7 @@
     .sl-hero .sl-face { width: 112px; height: 112px; font-size: 42px; }
     .sl-name { justify-content: flex-start; font-size: 28px; }
     .sl-hero .sl-since, .sl-hero .sl-bio { text-align: left; }
-    .sl-hero .sl-contact, .sl-hero .sl-actions { justify-content: flex-start; }
+    .sl-hero .sl-contact { justify-content: flex-start; }
   }
   /* Their mining and what they sell, then their posts; in big windows the
      posts with the two beside them. */
@@ -2321,13 +2321,16 @@
   .ct-addr.copied { color: var(--good); }
   .ct-hero .ct-send { width: auto; min-width: 220px; padding: 0 36px; margin-top: 18px; }
   .ct-hero .ct-message { width: auto; min-width: 220px; padding: 0 36px; margin-top: 10px; }
-  .sl-actions { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; margin-top: 20px; }
-  .sl-message, .sl-add { width: auto; height: 42px; padding: 0 22px; border-radius: 13px; font-size: 14px; font-weight: 700; }
-  /* Frosted, so it reads over a profile's banner as well as without one. */
-  .sl-add { display: inline-flex; align-items: center; justify-content: center;
-    background: color-mix(in srgb, var(--surface) 72%, transparent); border-color: rgba(var(--tint), 0.14);
+  /* Message, Send and Add to contacts: round buttons at the top right of
+     the card, frosted so they read over a banner as well as without one. */
+  .sl-actions { position: absolute; top: 14px; right: 14px; z-index: 1; display: flex; gap: 8px; }
+  .sl-act { display: grid; place-items: center; width: 40px; height: 40px; padding: 0; border-radius: 50%; cursor: pointer;
+    border: 1px solid rgba(var(--tint), 0.14); color: var(--ink);
+    background: color-mix(in srgb, var(--surface) 72%, transparent);
     -webkit-backdrop-filter: blur(16px) saturate(1.3); backdrop-filter: blur(16px) saturate(1.3); }
-  @media (hover: hover) { .sl-add:hover { background: color-mix(in srgb, var(--surface-hover) 82%, transparent); } }
+  .sl-act svg { width: 17px; height: 17px; }
+  .sl-act.main { border-color: transparent; background: var(--pearl); background-size: 300% 100%; color: var(--pearl-ink); animation: drift 24s linear infinite; }
+  @media (hover: hover) { .sl-act:not(.main):hover { background: color-mix(in srgb, var(--surface-hover) 82%, transparent); } .sl-act.main:hover { filter: brightness(1.06); } }
   /* A member's contact card. */
   .mb-hero .mb-name { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 8px; margin-top: 14px; font-size: 22px; font-weight: 700; }
   .mb-actions { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; margin-top: 18px; }
@@ -2779,7 +2782,7 @@
       <div class="st-pane-head"><button class="back" id="st-pane-back" aria-label="Back" hidden><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg></button><h3 class="st-pane-title" id="st-pane-title"></h3><button class="pill pearl wl-add" id="st-build-wide" hidden><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="M12 5v14"/></svg>Build a theme</button></div>
       <div class="st-page" data-page="link" hidden>
       <div id="pl-step-code">
-        <p class="lede">On your new device, open Orien Wallet and choose <b>Use my other device</b>. Then scan or type the code it shows.</p>
+        <p class="lede">On your new device, open Orien Wallet and choose <b>Use my other device</b>. Then <span id="pl-how">type</span> the code it shows.</p>
         <button class="secondary phone-only-flex" id="pl-scan" data-gap="lg">Scan the code</button>
         <div class="field" data-gap="lg">
           <label for="pl-code">Code</label>
@@ -3216,13 +3219,13 @@
            into it; below, their posts, with their mining and what they sell. -->
       <div class="sl-hero" id="sl-hero">
         <div class="sl-art" id="sl-banner"></div>
+        <div class="sl-actions" id="sl-actions" hidden><button class="sl-act main" id="sl-message" title="Message" aria-label="Message"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/></svg></button><button class="sl-act" id="sl-send" title="Send ORN" aria-label="Send ORN" hidden><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 7h10v10"/><path d="M7 17 17 7"/></svg></button><button class="sl-act" id="sl-add" title="Add to contacts" aria-label="Add to contacts" hidden><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" x2="19" y1="8" y2="14"/><line x1="22" x2="16" y1="11" y2="11"/></svg></button></div>
         <span class="face sl-face" id="sl-face"></span>
         <div class="sl-info">
           <div class="sl-name" id="sl-name"></div>
           <div class="sl-since" id="sl-since"></div>
           <div class="sl-bio" id="sl-bio"></div>
           <div class="sl-contact" id="sl-contact"></div>
-          <div class="sl-actions" id="sl-actions" hidden><button class="primary pearl sl-message" id="sl-message"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/></svg><span>Message</span></button><button class="primary pearl sl-message" id="sl-send" hidden><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 7h10v10"/><path d="M7 17 17 7"/></svg><span>Send</span></button><button class="secondary sl-add" id="sl-add"></button></div>
         </div>
       </div>
       <div class="sl-layout">
@@ -5819,6 +5822,8 @@
     $("pl-go").hidden = false;
     $("pl-cancel").textContent = "Cancel";
     $("pl-code").value = "";
+    // Only iPhones can scan the code; computers type it.
+    $("pl-how").textContent = phone ? "scan or type" : "type";
     if ($("settings").hidden) { paintThemeGrid(); paintSettings(); show("settings"); }
     settingsPage("link");
     if (!phone) $("pl-code").focus();
@@ -8959,10 +8964,11 @@
   // Add to contacts: the person, by account, with every wallet they verify.
   async function paintSlAdd() {
     const b = $("sl-add");
-    b.hidden = !sl.id;
+    b.hidden = true;
     if (!sl.id) return;
     if (!members.length && !book.length) await Promise.all([loadMembers(), loadBook()]);
-    b.textContent = isContact(sl.id) ? "In contacts" : "Add to contacts";
+    // Already a contact: nothing to add, so no button.
+    b.hidden = isContact(sl.id);
   }
   $("sl-send").onclick = () => {
     if (!sl.sendTo) return;
@@ -8971,7 +8977,7 @@
     $("to").value = address; validate(); $("amount").focus();
   };
   $("sl-add").onclick = async () => {
-    if (isContact(sl.id)) { openMember(sl.id, "seller"); return; }
+    if (isContact(sl.id)) return;
     try {
       await invoke("save_member", { id: sl.id, name: sl.name });
       await loadMembers();
