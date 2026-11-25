@@ -8729,7 +8729,7 @@
     }
     $("nt-list").scrollTop = 0;
     if (!nt.lines.length) $("nt-list").innerHTML = '<div class="empty">Loading…</div>';
-    try { nt.lines = (await mk("GET", "/notices")).notices || []; $("nt-problem").hidden = true; }
+    try { nt.lines = (await mk("GET", "/notices?room=1")).notices || []; $("nt-problem").hidden = true; }
     catch (e) { problem("nt-problem", mkProblem(e)); }
     paintNotices();
     // Seen: the dot goes, here and on the website.
@@ -8771,7 +8771,7 @@
   async function noticeNews() {
     if (phone || !board.me) return;
     let lines;
-    try { lines = (await mk("GET", "/notices")).notices || []; } catch { return; }
+    try { lines = (await mk("GET", "/notices?room=1")).notices || []; } catch { return; }
     let heard = null;
     try { heard = JSON.parse(localStorage.getItem("notices-heard") || "null"); } catch {}
     const first = heard === null;
@@ -9152,7 +9152,9 @@
   // ---- The group chat: one room for everyone on Orien Network, pinned
   // first in Messages. Anyone reads it; sending, replying and reacting take
   // a verified wallet, and every message is checked like any other post.
-  const room = { msgs: [], newest: 0, more: false, loadingOlder: false, last: null, you: null, reply: null, photos: [], gif: null, key: "", armed: null };
+  const room = { msgs: [], newest: 0, version: null, more: false, loadingOlder: false, last: null, you: null, reply: null, photos: [], gif: null, key: "", armed: null, reactions: null };
+  // The server marks your own reactions `mine`; Community's say `me`.
+  const rmMine = (r) => !!(r.mine || r.me);
   // The Orien sunrise, as beside the wordmark.
   const ROOM_ICON = '<svg viewBox="0 0 512 512" fill="currentColor"><rect x="239" y="74" width="36" height="66" rx="18"/><rect x="239" y="74" width="36" height="66" rx="18" transform="rotate(-44 256 298)"/><rect x="239" y="74" width="36" height="66" rx="18" transform="rotate(44 256 298)"/><path d="M138 298 A118 118 0 0 1 374 298 Z"/><rect x="76" y="338" width="360" height="40" rx="20"/><rect x="156" y="406" width="200" height="36" rx="18"/></svg>';
   const DOTS_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg>';
@@ -9188,7 +9190,14 @@
   // Who you are here: signed in, and whether a wallet of yours is verified.
   async function roomWho() {
     if (!board.me) { room.you = null; return; }
+    if (room.you) return;
     try { const b = await cmCall("GET", "/board"); room.you = b.you ? { ...b.you, id: board.me.id } : null; } catch {}
+  }
+  // Every answer says who you are here and what the room allows.
+  function roomTake(a) {
+    if ("you" in a) room.you = board.me ? a.you || null : null;
+    if (a.reactions && a.reactions.length) room.reactions = a.reactions;
+    if (a.version !== undefined) room.version = a.version;
   }
   async function openRoom(from) {
     if (!chat.room) swapDraft("room");
@@ -9228,8 +9237,9 @@
   async function roomLoad() {
     try {
       const a = await mk("GET", "/room/messages?limit=50");
+      roomTake(a);
       room.msgs = a.messages || [];
-      room.more = room.msgs.length >= 50;
+      room.more = a.more !== undefined ? !!a.more : room.msgs.length >= 50;
       room.newest = room.msgs.length ? room.msgs[room.msgs.length - 1].id : 0;
       room.last = room.msgs[room.msgs.length - 1] || null;
       $("ch-problem").hidden = true;
@@ -9242,15 +9252,19 @@
     if (!chat.room || roomPolling) return;
     roomPolling = true;
     try {
-      const a = await mk("GET", "/room/messages?limit=50");
+      // Only what's new, and what changed since last time (reactions,
+      // removals), by the room's version.
+      if (!room.msgs.length || room.version === null) { await roomLoad(); roomPaint(false); return; }
+      const a = await mk("GET", `/room/messages?after=${room.newest}&changes=${encodeURIComponent(room.version)}&limit=100`);
       if (!chat.room) return;
-      const latest = a.messages || [];
-      if (latest.length) {
-        const from = latest[0].id;
-        room.msgs = room.msgs.filter((m) => m.id < from).concat(latest);
-        room.newest = latest[latest.length - 1].id;
-        room.last = latest[latest.length - 1];
+      roomTake(a);
+      for (const c of a.changed || []) {
+        if (c.removed) room.msgs = room.msgs.filter((m) => m.id !== c.id);
+        else { const i = room.msgs.findIndex((m) => m.id === c.id); if (i >= 0) room.msgs[i] = c; }
       }
+      const fresh = (a.messages || []).filter((m) => m.id > room.newest);
+      if (fresh.length) { room.msgs = room.msgs.concat(fresh); room.newest = fresh[fresh.length - 1].id; }
+      room.last = room.msgs[room.msgs.length - 1] || null;
       roomPaint(false);
     } catch {} finally { roomPolling = false; }
   }
@@ -9260,7 +9274,7 @@
     try {
       const a = await mk("GET", `/room/messages?before=${room.msgs[0].id}&limit=50`);
       const older = a.messages || [];
-      room.more = older.length >= 50;
+      room.more = a.more !== undefined ? !!a.more : older.length >= 50;
       const log = $("ch-log"), below = log.scrollHeight - log.scrollTop;
       room.msgs = older.concat(room.msgs);
       roomPaint(false, true);
@@ -9273,9 +9287,9 @@
     const cont = !!(prev && prev.author && a.id && prev.author.id === a.id && m.created - prev.created < 300 && !m.reply_to
       && new Date(prev.created * 1000).toDateString() === new Date(m.created * 1000).toDateString());
     const at = new Date(m.created * 1000).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
-    const mine = !!(room.you && a.id === room.you.id);
+    const mine = m.mine !== undefined ? !!m.mine : !!(room.you && a.id === room.you.id);
     const q = m.reply_to;
-    const chips = (m.reactions || []).map((r) => `<button class="cm-chip${r.me ? " on" : ""}" data-rm-react="${m.id}" data-emoji="${esc(r.emoji)}"><span>${esc(r.emoji)}</span><b>${r.count}</b></button>`).join("");
+    const chips = (m.reactions || []).map((r) => `<button class="cm-chip${rmMine(r) ? " on" : ""}" data-rm-react="${m.id}" data-emoji="${esc(r.emoji)}"><span>${esc(r.emoji)}</span><b>${r.count}</b></button>`).join("");
     const armed = room.armed === m.id;
     return `<div class="rm-msg${cont ? " cont" : ""}${q ? " quoted" : ""}" data-rm="${m.id}">
       ${q ? `<button class="rm-quote" data-rm-jump="${q.id}">${REPLY_ICON}<b>${esc(q.author_name || "Someone")}</b><span>${esc(q.body || "")}</span></button>` : ""}
@@ -9362,7 +9376,7 @@
       cmClosePickers();
       const row = t.closest(".rm-msg"), picker = document.createElement("span");
       picker.className = "cm-picker";
-      picker.innerHTML = cm.reactions.map((r) => `<button data-rm-emoji="${id}" data-emoji="${esc(r)}">${esc(r)}</button>`).join("");
+      picker.innerHTML = (room.reactions || cm.reactions).map((r) => `<button data-rm-emoji="${id}" data-emoji="${esc(r)}">${esc(r)}</button>`).join("");
       picker.was = t;
       row.appendChild(picker);
       row.classList.add("picking");
