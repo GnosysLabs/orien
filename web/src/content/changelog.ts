@@ -29,8 +29,9 @@ export const CHANGELOG: Entry[] = [
     date: '2026-11-24',
     products: ['wallet'],
     version: '1.9.9',
-    title: 'A telescope for the explorer',
+    title: 'A wider Home',
     changes: [
+      'In a big window, Home shows mining and the Orien group chat beside your wallet: start or stop mining, see your speed and last reward, and read and reply to the chat without leaving Home.',
       'The explorer’s button on Home is now a telescope: Orien is made of checkpoints, not blocks.',
     ],
   },

@@ -464,7 +464,7 @@
   .screen::-webkit-scrollbar { width: 0; }
   /* No visible scroll bars anywhere, on any system. */
   * { scrollbar-width: none; }
-  .screen > *:not(.scroll):not(#recent):not(#all-activity) { flex-shrink: 0; }
+  .screen > *:not(.scroll):not(#recent):not(#all-activity):not(.home-body) { flex-shrink: 0; }
 
   /* ---- Shared pieces ---- */
   .primary {
@@ -2249,7 +2249,45 @@
   /* Home: the balance and buttons stay put; recent activity scrolls inside
      its own rounded box, which takes the rest of the window when there's
      more than fits. */
-  #home > * { flex-shrink: 0; }
+  #home > *:not(.home-body), #home .home-main > * { flex-shrink: 0; }
+  /* Home is one column until a big window; then the wallet keeps the left
+     and mining and the group chat sit beside it. */
+  .home-body, .home-main { display: contents; }
+  .home-side { display: none; }
+  @media (min-width: 980px) {
+    body:not(.phone) #home { --col: 1040px; }
+    body:not(.phone) #home .home-body { display: flex; gap: 20px; flex: 0 1 auto; min-height: 0; }
+    body:not(.phone) #home .home-main { display: flex; flex-direction: column; flex: 1 1 auto; min-width: 0; min-height: 0; }
+    body:not(.phone) #home .home-side { display: flex; flex-direction: column; gap: 14px; flex: 0 0 340px; min-height: 0; }
+  }
+  .hs-card { display: flex; flex-direction: column; padding: 14px 16px 16px; border: 1px solid var(--line); border-radius: 18px; background: var(--surface); }
+  .hs-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; width: 100%; padding: 0; border: 0; background: none; color: var(--ink); font: inherit; text-align: left; }
+  .hs-head b { font-size: 14px; font-weight: 600; }
+  .hs-state { font-size: 12px; color: var(--dim); }
+  .hs-state.on { color: var(--good); }
+  .hs-figs { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; margin-top: 12px; }
+  .hs-figs span { display: block; font-size: 11px; color: var(--faint); }
+  .hs-figs b { display: block; margin-top: 2px; font-size: 14px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .hs-acts { display: flex; gap: 8px; margin-top: 14px; }
+  .hs-acts .pill { flex: 1; }
+  /* The chat card runs down as far as the wallet column beside it, showing
+     as many of the latest messages as fit, newest at the bottom. */
+  .hs-chat { flex: 1 1 auto; min-height: 0; }
+  .hs-open { cursor: pointer; }
+  .hs-go { font-size: 12px; color: var(--dim); }
+  @media (hover: hover) { .hs-open:hover .hs-go { color: var(--ink); } }
+  .hs-msgs { display: flex; flex-direction: column; justify-content: flex-end; gap: 10px; margin-top: 12px; flex: 1 1 0; min-height: 150px; overflow: hidden; cursor: pointer; }
+  .hs-msgs > :first-child { margin-top: auto; }
+  .hs-msg { display: grid; grid-template-columns: 28px minmax(0, 1fr); gap: 10px; align-items: start; }
+  .hs-msg .avatar { position: relative; overflow: hidden; width: 28px; height: 28px; font-size: 11px; background: var(--surface-hover); color: var(--ink); }
+  .hs-msg .avatar img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+  .hs-msg b { display: block; font-size: 12.5px; font-weight: 600; }
+  .hs-msg p { margin: 1px 0 0; font-size: 13px; line-height: 1.4; color: var(--dim); overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow-wrap: anywhere; }
+  .hs-empty { font-size: 13px; color: var(--faint); }
+  .hs-say { display: flex; align-items: center; gap: 8px; margin-top: 14px; padding: 4px 4px 4px 14px; border: 1px solid var(--line); border-radius: 22px; background: var(--field); }
+  .hs-say:focus-within { border-color: var(--focus); }
+  .hs-say input { flex: 1; min-width: 0; height: 30px; border: 0; background: none; color: var(--ink); font: inherit; font-size: 13px; outline: none; }
+  .hs-say .ch-send { width: 30px; height: 30px; }
   #home #recent { flex: 0 1 auto; min-height: 0; overflow-y: auto; overscroll-behavior: contain; }
   #home #recent::-webkit-scrollbar { width: 0; }
   /* All activity: one rounded box that scrolls, each day headed inside it. */
@@ -2643,6 +2681,7 @@
     <section class="screen" id="home" hidden>
       <div class="home-top"><div class="home-left"><button class="pill icon" id="go-settings" aria-label="Settings" title="Settings"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></button><button class="wallet-chip" id="wallet-chip"><span id="wallet-name">Wallet</span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg></button><button class="pill icon" id="go-contacts" aria-label="Contacts" title="Contacts"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><path d="M16 3.128a4 4 0 0 1 0 7.744"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><circle cx="9" cy="7" r="4"/></svg></button><button class="pill icon" id="go-explorer" aria-label="Explorer" title="Explorer"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m10.065 12.493-6.18 1.318a.934.934 0 0 1-1.108-.702l-.537-2.15a1.07 1.07 0 0 1 .691-1.265l13.504-4.44"/><path d="m13.56 11.747 4.332-.924"/><path d="m16 21-3.105-6.21"/><path d="M16.485 5.94a2 2 0 0 1 1.455-2.425l1.09-.272a1 1 0 0 1 1.212.727l1.515 6.06a1 1 0 0 1-.727 1.213l-1.09.272a2 2 0 0 1-2.425-1.455z"/><path d="m6.158 8.633 1.114 4.456"/><path d="m8 21 3.105-6.21"/><circle cx="12" cy="13" r="2"/></svg></button><button class="pill icon" id="go-room" aria-label="Group chat" title="Group chat"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 9a2 2 0 0 1-2 2H6l-4 4V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2z"/><path d="M18 9h2a2 2 0 0 1 2 2v11l-4-4h-6a2 2 0 0 1-2-2v-1"/></svg><span class="dot" id="room-dot" hidden></span></button><button class="pill icon" id="go-notices" aria-label="Notifications" title="Notifications" hidden><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10.268 21a2 2 0 0 0 3.464 0"/><path d="M3.262 15.326A1 1 0 0 0 4 17h16a1 1 0 0 0 .74-1.673C19.41 13.956 18 12.499 18 8A6 6 0 0 0 6 8c0 4.499-1.411 5.956-2.738 7.326"/></svg><span class="dot" id="notices-dot" hidden></span></button></div>
         <div class="account"><button class="me-face" id="board-who" hidden aria-label="Your profile" title="Your profile"></button><button class="pill" id="board-signin-go">Sign in</button></div></div>
+      <div class="home-body"><div class="home-main">
       <!-- A swap that needs you, or is under way: impossible to miss. -->
       <button class="swap-alert" id="swap-alert" hidden>
         <div class="sa-main"><div class="sa-title" id="sa-title"></div><div class="sa-sub" id="sa-sub"></div></div>
@@ -2694,6 +2733,21 @@
       <div class="list" id="recent"><div class="empty">No payments yet</div></div>
 
       <div class="problem" id="home-problem" hidden></div>
+      </div>
+      <!-- Big windows: mining and the group chat beside the wallet. -->
+      <aside class="home-side" id="home-side">
+        <div class="hs-card" id="hs-mine">
+          <div class="hs-head"><b>Mining</b><span class="hs-state" id="hs-mine-state">Stopped</span></div>
+          <div class="hs-figs"><div><span>Speed</span><b id="hs-speed">—</b></div><div><span id="hs-rate-label">Shares</span><b id="hs-rate">—</b></div><div><span>Last reward</span><b id="hs-reward">—</b></div></div>
+          <div class="hs-acts"><button class="pill pearl" id="hs-mine-go">Start mining</button><button class="pill" id="hs-mine-more">Details</button></div>
+        </div>
+        <div class="hs-card hs-chat" id="hs-chat">
+          <button class="hs-head hs-open" id="hs-chat-open"><b>Orien group chat</b><span class="hs-go">Open</span></button>
+          <div class="hs-msgs" id="hs-msgs"><div class="hs-empty">Loading…</div></div>
+          <form class="hs-say" id="hs-say" autocomplete="off" hidden><input id="hs-text" maxlength="500" placeholder="Message everyone" enterkeyhint="send"><button class="ch-send pearl" id="hs-send" aria-label="Send"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 7-7 7 7"/><path d="M12 19V5"/></svg></button></form>
+        </div>
+      </aside>
+      </div>
     </section>
 
     <!-- Activity -->
@@ -4063,6 +4117,7 @@
     // Never longer than a few seconds, even with the network slow.
     if (waiting) { covered(true); setTimeout(() => covered(false), 8000); }
     show("home"); fitBalance(); loadWallets(); renderSwapAlert();
+    if (typeof homeSide === "function") homeSide();
     invoke("board_me").then((me) => { board.me = me; renderBoardBar(); paintVerifyCard(); }).catch(() => {});
     invoke("notifications_ask").catch(() => {});
     // An update stopped mining that was running: start it again, once.
@@ -4416,6 +4471,16 @@
     $("mn-go").className = s.running ? "secondary" : "primary pearl";
     $("mn-go").disabled = readying;
     if (s.problem && !s.running) problem("mine-problem", s.problem); else $("mine-problem").hidden = true;
+    // Home's mining card, in big windows: the same figures, briefly.
+    $("hs-mine-state").textContent = readying ? "Getting ready" : s.running ? "Mining" : "Stopped";
+    $("hs-mine-state").classList.toggle("on", !!s.running && !readying);
+    $("hs-speed").textContent = s.running && s.tries_per_second ? `${speed(s.tries_per_second)}/s` : "—";
+    $("hs-rate-label").textContent = small === "for each share" ? "Each share" : "Shares an hour";
+    $("hs-rate").textContent = big || "—";
+    $("hs-reward").textContent = m.last_reward ? `+${m.last_reward.amount}` : "—";
+    $("hs-mine-go").textContent = readying ? "Getting ready…" : s.running ? "Stop mining" : "Start mining";
+    $("hs-mine-go").className = s.running ? "pill" : "pill pearl";
+    $("hs-mine-go").disabled = readying;
     return s;
   }
   $("go-mine").onclick = async () => {
@@ -9877,6 +9942,50 @@
   };
   $("vf-pw").onkeydown = (e) => { if (e.key === "Enter") $("vf-go").click(); };
 
+
+  // ---- Home in a big window: mining and the group chat beside the wallet.
+  const homeWide = () => !phone && wide.matches && !$("home").hidden;
+  let hsReady = false;
+  async function homeSide() {
+    if (!homeWide()) return;
+    if (!hsReady) { hsReady = true; await mineStatus(true); } else mineStatus(false);
+    hsChat();
+  }
+  $("hs-mine-go").onclick = async () => { $("hs-mine-go").disabled = true; await $("mn-go").onclick(); };
+  $("hs-mine-more").onclick = () => $("go-mine").onclick();
+  async function hsChat() {
+    let a;
+    try { a = await mk("GET", "/room/messages?limit=20"); } catch { return; }
+    const you = board.me ? a.you : null, ok = !!(you && you.verified && !you.banned);
+    $("hs-say").hidden = !ok;
+    const list = (a.messages || []).slice(-20);
+    const html = list.length ? list.map((m) => `<div class="hs-msg">${mkAvatar((m.author || {}).name, (m.author || {}).picture)}<div class="mw0"><b>${esc((m.author || {}).name || "Someone")}</b><p>${esc(roomText(m))}</p></div></div>`).join("")
+      : '<div class="hs-empty">No messages yet. Say hello to everyone.</div>';
+    paintKeeping($("hs-msgs"), html);
+    hsFit();
+  }
+  // Only whole messages: one cut off at the top is hidden, never shown in half.
+  function hsFit() {
+    const box = $("hs-msgs"), top = box.getBoundingClientRect().top;
+    for (const el of box.children) {
+      el.style.removeProperty("visibility");
+      if (el.getBoundingClientRect().top < top - 0.5) el.style.setProperty("visibility", "hidden");
+    }
+  }
+  window.addEventListener("resize", () => { if (homeWide()) hsFit(); });
+  $("hs-chat-open").onclick = () => { openRoom("inbox"); loadInbox(); };
+  $("hs-msgs").onclick = () => $("hs-chat-open").onclick();
+  $("hs-say").onsubmit = async (e) => {
+    e.preventDefault();
+    const body = $("hs-text").value.trim();
+    if (!body) return;
+    $("hs-send").disabled = true;
+    try { await mk("POST", "/room/messages", { body }); $("hs-text").value = ""; feel("success"); hsChat(); roomPeek(); }
+    catch (err) { problem("home-problem", mkProblem(err)); }
+    finally { $("hs-send").disabled = false; }
+  };
+  wide.addEventListener("change", homeSide);
+  setInterval(homeSide, 5000);
   // ---- Verifying the open wallet in one tap, from Home or wherever a
   // verified wallet is asked for. It still says plainly what it does
   // before sending: the wallet becomes publicly yours, for a tiny payment.
