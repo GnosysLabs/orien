@@ -400,9 +400,9 @@ impl Explorer {
                 }
                 let of = previous.as_ref().map_or_else(|| payments.launch_seats().len(), |p| p.next.len());
                 let digest = checkpoint.digest();
-                // Those whose signatures it carries, and those holding it.
+                // Those whose signatures it carries, and those of its hour holding it.
                 let mut agreed: Vec<u16> = decided.precommits.iter().map(|vote| vote.validator).collect();
-                agreed.extend(holders(&holds, checkpoint.epoch, &digest));
+                agreed.extend(holders(&holds, checkpoint.epoch, &digest, of));
                 agreed.sort_unstable();
                 agreed.dedup();
                 let row = Checkpoint {
@@ -450,7 +450,8 @@ impl Explorer {
         let mut kept = self.checkpoints.lock().unwrap();
         for checkpoint in kept.range_mut(from..).map(|(_, c)| c) {
             let digest = checkpoint.digest_bytes;
-            checkpoint.agreed.extend(holders(&holds, checkpoint.epoch, &digest));
+            let of = checkpoint.of;
+            checkpoint.agreed.extend(holders(&holds, checkpoint.epoch, &digest, of));
             checkpoint.agreed.sort_unstable();
             checkpoint.agreed.dedup();
         }
@@ -583,13 +584,19 @@ fn holdings(answers: &[Option<Vec<orien_ledger::close::Decided>>]) -> Vec<(u16, 
         .collect()
 }
 
-/// The seats holding the checkpoint of `epoch` with this digest.
+/// The seats of its hour (the first `of`) holding the checkpoint of
+/// `epoch` with this digest. A validator that checkpoint names for the
+/// next hour holds it too, but was not one of those agreeing to it.
 fn holders<'a>(
     holds: &'a [(u16, HashMap<u64, orien_crypto::Hash32>)],
     epoch: u64,
     digest: &'a orien_crypto::Hash32,
+    of: usize,
 ) -> impl Iterator<Item = u16> + 'a {
-    holds.iter().filter(move |(_, known)| known.get(&epoch) == Some(digest)).map(|(seat, _)| *seat)
+    holds
+        .iter()
+        .filter(move |(seat, known)| usize::from(*seat) < of && known.get(&epoch) == Some(digest))
+        .map(|(seat, _)| *seat)
 }
 
 type Answer = Result<Response, Failure>;
@@ -763,3 +770,19 @@ pub async fn address(State(app): State<Arc<App>>, Path(address): Path<String>) -
     Ok(([(header::CACHE_CONTROL, "public, max-age=20")], Json(found)).into_response())
 }
 
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn a_validator_joining_holds_its_first_checkpoint_without_agreeing_to_it() {
+        let digest = orien_crypto::Hash32::default();
+        let holding: HashMap<u64, orien_crypto::Hash32> = [(259, digest)].into();
+        // Five answer, the fifth named in 259 for the next hour.
+        let holds: Vec<(u16, HashMap<u64, orien_crypto::Hash32>)> = (0..5).map(|seat| (seat, holding.clone())).collect();
+        assert_eq!(holders(&holds, 259, &digest, 4).collect::<Vec<_>>(), vec![0, 1, 2, 3]);
+        assert_eq!(holders(&holds, 259, &digest, 5).count(), 5);
+        assert_eq!(holders(&holds, 258, &digest, 5).count(), 0);
+    }
+}
