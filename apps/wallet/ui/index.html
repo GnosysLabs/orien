@@ -11108,6 +11108,12 @@
     // until it is truly finished.
     if (board.me || swapList.some((s) => !s.finished)) stepSwaps();
     if (!$("swaps").hidden) loadBoard();
+    // "This wallet is open", on its own: a slow swap step must never make
+    // the person's offers look like their wallet is closed.
+    if (board.me) invoke("board_here").catch(() => {});
+    // Not yet known whether it's signed in (the board couldn't be reached as
+    // the app opened): asked again, so check-ins start once it answers.
+    else invoke("board_me").then((me) => { if (me && !board.me) { board.me = me; renderBoardBar(); } }).catch(() => {});
   }, 15000);
   loadSwaps();
 
