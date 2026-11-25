@@ -1703,6 +1703,8 @@
   .vw-text b { display: block; font-weight: 600; color: var(--ink); }
   .vw-text span { color: var(--dim); }
   .vw-card .pill { flex: none; }
+  .vw-card .vw-x { margin: 0 -4px 0 -6px; }
+  body.phone .vw-card .vw-x { margin: -6px -8px -6px -10px; }
   #vw-veil { position: fixed; inset: 0; z-index: 61; display: grid; place-items: center; padding: 24px;
     background: var(--veil); -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px); opacity: 0; transition: opacity 0.2s ease; }
   #vw-veil.on { opacity: 1; }
@@ -2684,7 +2686,7 @@
       </div>
 
       <!-- Verifying the open wallet: one tap from Home, while it isn't yet. -->
-      <div class="vw-card" id="vw-card" hidden><span class="vw-badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/><path d="m9 12 2 2 4-4"/></svg></span><div class="vw-text" id="vw-text"></div><button class="pill pearl" id="vw-go">Verify</button></div>
+      <div class="vw-card" id="vw-card" hidden><span class="vw-badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/><path d="m9 12 2 2 4-4"/></svg></span><div class="vw-text" id="vw-text"></div><button class="pill pearl" id="vw-go">Verify</button><button class="ch-ask-x vw-x" id="vw-x" aria-label="Don't show this again" title="Don't show this again"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></button></div>
       <div class="section-head">
         <h3>Activity</h3>
         <button class="link" id="view-all" hidden>View all</button>
@@ -9885,6 +9887,8 @@
   async function paintVerifyCard() {
     const card = $("vw-card");
     if (!board.me || !view || !view.address) { card.hidden = true; return; }
+    // Closed with its ✕: gone for good for this account on this computer.
+    if (localStorage.getItem(`verify-card-closed:${board.me.id}`)) { card.hidden = true; return; }
     let states = [];
     try { states = (await invoke("board_wallet_states")) || []; } catch { card.hidden = true; return; }
     const st = states.find((p) => (p.address || "").toLowerCase() === view.address);
@@ -9921,6 +9925,7 @@
     if (typed) $("vw-pw").focus();
   }
   $("vw-go").onclick = quickVerify;
+  $("vw-x").onclick = () => { if (board.me) localStorage.setItem(`verify-card-closed:${board.me.id}`, "1"); $("vw-card").hidden = true; };
   $("vw-no").onclick = vwClose;
   $("vw-veil").addEventListener("click", (e) => { if (e.target.id === "vw-veil") vwClose(); });
   document.addEventListener("keydown", (e) => { if (e.key === "Escape" && !$("vw-veil").hidden) vwClose(); });
