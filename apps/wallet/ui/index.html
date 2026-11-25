@@ -2084,7 +2084,15 @@
   .ex-dot.up { background: var(--good); }
   .ex-num { width: 32px; height: 32px; flex: none; border-radius: 10px; display: grid; place-items: center; font-size: 11px; font-weight: 700;
     background: rgba(var(--tint), 0.05); color: var(--dim); font-variant-numeric: tabular-nums; }
-  .ex-more { display: flex; margin: 12px auto 0; }
+  /* Room under it for the back-to-top arrow, so they never overlap. */
+  .ex-pages { display: flex; justify-content: center; align-items: center; gap: 6px; margin: 14px 0 58px; flex-wrap: wrap; }
+  .ex-pages:empty { display: none; }
+  .ex-pg { min-width: 34px; height: 34px; padding: 0 10px; border-radius: 999px; border: 1px solid var(--line); background: var(--surface);
+    color: var(--ink); font: inherit; font-size: 13px; font-weight: 600; font-variant-numeric: tabular-nums; cursor: pointer; }
+  @media (hover: hover) { .ex-pg:not(:disabled):not(.on):hover { background: var(--surface-hover); } }
+  .ex-pg.on { border-color: transparent; background: var(--pearl); background-size: 300% 100%; color: var(--pearl-ink); cursor: default; }
+  .ex-pg:disabled { opacity: 0.35; cursor: default; }
+  .ex-gap { color: var(--faint); padding: 0 2px; }
   .ex-steps { display: flex; justify-content: space-between; gap: 10px; margin: 18px 0 0; }
   .ex-hash { padding: 12px 14px; }
   .ex-hash + .ex-hash { border-top: 1px solid var(--line); }
@@ -9624,13 +9632,13 @@
     else problem("ex-problem", "Type an address (64 letters and digits, 0-9 and a-f) or a checkpoint number.");
   };
   $("ex-body").onclick = (e) => {
-    const go = e.target.closest("[data-ex-cp],[data-ex-addr],[data-ex-top],[data-ex-more],[data-ex-copy],[data-ex-send]");
+    const go = e.target.closest("[data-ex-cp],[data-ex-addr],[data-ex-top],[data-ex-page],[data-ex-copy],[data-ex-send]");
     if (!go) return;
     if (go.dataset.exCopy !== undefined) {
       navigator.clipboard.writeText(go.dataset.exCopy).then(() => { go.classList.add("copied"); setTimeout(() => go.classList.remove("copied"), 1200); }).catch(() => {});
     } else if (go.dataset.exSend !== undefined) {
       $("go-send").onclick(); $("to").value = go.dataset.exSend; validate(); $("amount").focus();
-    } else if (go.dataset.exMore !== undefined) exMoreActivity(go);
+    } else if (go.dataset.exPage !== undefined) { if (!go.disabled) exPage(Number(go.dataset.exPage)); }
     else if (go.dataset.exTop !== undefined) exShow({ kind: "top" });
     else if (go.dataset.exCp !== undefined) exShow({ kind: "checkpoint", epoch: Number(go.dataset.exCp) });
     else exShow({ kind: "address", address: go.dataset.exAddr });
@@ -9733,18 +9741,28 @@
         ${mine ? "" : `<button class="pill pearl" data-ex-send="${address}">Send ORN</button>`}</div>
       <div class="list ex-stats"><div><b>${exOrn(d.balance, 4)}</b><span>ORN held</span></div><div><b>${exOrn(d.staked, 4)}</b><span>${d.returning && d.returning !== "0" ? `staked · ${exOrn(d.returning, 4)} returning` : "staked"}</span></div><div><b>${(d.payments_made || 0).toLocaleString()}</b><span>payments sent</span></div></div>
       ${exHead("Activity", d.more ? '<span class="sub">The latest 500</span>' : "")}
-      <div class="list" id="ex-acts">${acts.length ? acts.slice(0, EX_PAGE).map(exActRow).join("") : `<div class="empty">${d.since != null ? "Nothing has happened at this address yet." : "No activity is recorded for this address."}</div>`}</div>
-      ${acts.length > EX_PAGE ? '<button class="pill ex-more" data-ex-more>Show more</button>' : ""}`;
-    ex.acts = acts; ex.shown = Math.min(acts.length, EX_PAGE);
+      <div class="list" id="ex-acts">${acts.length ? "" : `<div class="empty">${d.since != null ? "Nothing has happened at this address yet." : "No activity is recorded for this address."}</div>`}</div>
+      <div class="ex-pages" id="ex-pages"></div>`;
+    ex.acts = acts;
+    if (acts.length) exPage(1, false);
   }
-  // A wallet's activity, 50 at a time: it all arrives at once, so more is
-  // shown at once too.
-  const EX_PAGE = 50;
-  function exMoreActivity(button) {
-    const next = ex.acts.slice(ex.shown, ex.shown + EX_PAGE);
-    $("ex-acts").insertAdjacentHTML("beforeend", next.map(exActRow).join(""));
-    ex.shown += next.length;
-    if (ex.shown >= ex.acts.length) button.remove();
+  // A wallet's activity, 25 to a page, with the pages numbered: it all
+  // arrives at once, so turning a page is instant.
+  const EX_PAGE = 25;
+  function exPage(n, scroll = true) {
+    const pages = Math.ceil(ex.acts.length / EX_PAGE);
+    n = Math.min(Math.max(1, n), pages);
+    $("ex-acts").innerHTML = ex.acts.slice((n - 1) * EX_PAGE, n * EX_PAGE).map(exActRow).join("");
+    // The first, the last, and the pages either side of this one.
+    const nums = [...new Set([1, n - 1, n, n + 1, pages])].filter((x) => x >= 1 && x <= pages).sort((a, b) => a - b);
+    let html = `<button class="ex-pg" data-ex-page="${n - 1}" aria-label="Previous page"${n === 1 ? " disabled" : ""}>‹</button>`;
+    nums.forEach((x, i) => {
+      if (i && x - nums[i - 1] > 1) html += '<span class="ex-gap">…</span>';
+      html += `<button class="ex-pg${x === n ? " on" : ""}" data-ex-page="${x}">${x}</button>`;
+    });
+    html += `<button class="ex-pg" data-ex-page="${n + 1}" aria-label="Next page"${n === pages ? " disabled" : ""}>›</button>`;
+    $("ex-pages").innerHTML = pages > 1 ? html : "";
+    if (scroll) $("ex-acts").previousElementSibling.scrollIntoView({ block: "start", behavior: "smooth" });
   }
   function exActRow(a) {
         const k = EX_KINDS[a.kind] || [a.kind];
