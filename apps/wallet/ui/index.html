@@ -4330,7 +4330,11 @@
   // Big windows: posting and taking an offer float over Swaps, with what
   // follows each (posted, waiting for the seller) in the same card.
   const SWAP_POPS = ["board-post", "board-take", "swap-waiting", "swap-posted"];
+  // The first screen shown at launch: until then the window stays out of sight.
+  var markShown = null;
+  const shownOnce = new Promise((done) => { markShown = done; });
   function show(id) {
+    if (markShown) { markShown(); markShown = null; }
     const both = !phone && wide.matches && (id === "inbox" || (id === "chat" && chat.from === "inbox" && (chat.id || chat.direct)));
     // Big windows: Send and Receive float over Home rather than replace it.
     // So does Contacts, with the contact or member opened from it.
@@ -5434,7 +5438,7 @@
     invoke("set_app_theme", { theme: card.dataset.pick }).catch(() => {});
   };
   paintThemeCards();
-  loadScenes();
+  const scenesLoaded = loadScenes();
   // Built themes follow you to your other devices: the list, without the
   // pictures. A list from elsewhere replaces this device's; a device whose
   // themes were never shared shares them now.
@@ -5453,7 +5457,19 @@
   // As this device last had it, at once; then as chosen on any device.
   try { applyTheme(localStorage.getItem("theme") || "pearl", false); } catch { paintBackdrop(); }
   // Painted: the page can be seen.
-  requestAnimationFrame(() => document.documentElement.classList.remove("theming"));
+  // (A timer, not a frame: a window that isn't shown yet draws no frames.)
+  setTimeout(() => document.documentElement.classList.remove("theming"), 0);
+  // At launch the window comes up only once the first screen is in place,
+  // in the person's own theme with its picture drawn: nothing flashes past
+  // first. (If this takes too long, the app shows the window anyway.)
+  (async () => {
+    try {
+      await Promise.race([Promise.all([scenesLoaded, shownOnce]), new Promise((r) => setTimeout(r, 2500))]);
+      const pic = /url\(["']?([^"')]+)["']?\)/.exec(getComputedStyle(document.body).backgroundImage + " " + getComputedStyle(document.documentElement).getPropertyValue("--scene"));
+      if (pic) { const img = new Image(); img.src = pic[1]; await Promise.race([img.decode(), new Promise((r) => setTimeout(r, 1200))]); }
+    } catch {}
+    setTimeout(() => invoke("window_ready").catch(() => {}), 30);
+  })();
 
   // The builder.
   const TB_DEFAULT = ["#f0b341"];

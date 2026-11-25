@@ -85,10 +85,39 @@ pub fn remember_window(app: &AppHandle) {
 
 /// Shows the window, in front.
 pub fn show(app: &AppHandle) {
+    WAITING.store(false, std::sync::atomic::Ordering::SeqCst);
+    bring_forward(app);
+}
+
+fn bring_forward(app: &AppHandle) {
     if let Some(window) = app.get_webview_window("main") {
         let _ = window.unminimize();
         let _ = window.show();
         let _ = window.set_focus();
+    }
+}
+
+/// A launch shows the window once the page has drawn itself in the person's
+/// theme, so nothing half-made flashes past first (an empty window, then a
+/// white one, then the default theme). Should the page take too long, it
+/// shows anyway after three seconds.
+static WAITING: std::sync::atomic::AtomicBool = std::sync::atomic::AtomicBool::new(false);
+
+fn show_when_ready(app: &AppHandle) {
+    WAITING.store(true, std::sync::atomic::Ordering::SeqCst);
+    let app = app.clone();
+    std::thread::spawn(move || {
+        std::thread::sleep(std::time::Duration::from_secs(3));
+        let main = app.clone();
+        // Window calls belong on the main thread, never this one.
+        let _ = app.run_on_main_thread(move || ready(&main));
+    });
+}
+
+/// The page is drawn (or it took too long): the window comes up, once.
+pub fn ready(app: &AppHandle) {
+    if WAITING.swap(false, std::sync::atomic::Ordering::SeqCst) {
+        bring_forward(app);
     }
 }
 
@@ -251,7 +280,7 @@ pub fn setup(app: &AppHandle) -> tauri::Result<()> {
     #[cfg(target_os = "macos")]
     let at_login = at_login || mac::opened_at_login();
     if !(can_come_back && at_login) {
-        show(app);
+        show_when_ready(app);
     }
     Ok(())
 }
