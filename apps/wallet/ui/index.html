@@ -2071,6 +2071,8 @@
   .field .box.ex-find { gap: 10px; padding: 0 14px; color: var(--faint); }
   .ex-find svg { flex: none; }
   .ex-find input { flex: 1; min-width: 0; }
+  .ex-found { margin: -6px 0 18px; }
+  .ex-found .note { padding: 14px 16px; color: var(--dim); font-size: 13px; line-height: 1.45; }
   .ex-facts { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
   .ex-fact { padding: 14px 16px 15px; border-radius: 18px; background: var(--surface); border: 1px solid var(--line); min-width: 0; }
   .ex-fact .l { font-size: 12px; color: var(--dim); }
@@ -2082,7 +2084,7 @@
   .ex-rank { flex: none; width: 22px; text-align: right; font-size: 12.5px; color: var(--faint); font-variant-numeric: tabular-nums; }
   .ex-dot { flex: none; width: 9px; height: 9px; margin: 0 4px; border-radius: 50%; background: var(--bad); }
   .ex-dot.up { background: var(--good); }
-  .ex-num { width: 32px; height: 32px; flex: none; border-radius: 10px; display: grid; place-items: center; font-size: 11px; font-weight: 700;
+  .ex-num { min-width: 32px; height: 32px; padding: 0 10px; box-sizing: border-box; flex: none; border-radius: 10px; display: grid; place-items: center; font-size: 11px; font-weight: 700;
     background: rgba(var(--tint), 0.05); color: var(--dim); font-variant-numeric: tabular-nums; }
   /* Room under it for the back-to-top arrow, so they never overlap. */
   .ex-pages { display: flex; justify-content: center; align-items: center; gap: 6px; margin: 14px 0 58px; flex-wrap: wrap; }
@@ -2597,7 +2599,7 @@
          and the top wallets, with its own way back. -->
     <section class="screen" id="explorer" hidden>
       <div class="topline"><button class="back" id="ex-back" aria-label="Back"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg></button><h2 id="ex-title">Explorer</h2></div>
-      <form class="ex-search field" id="ex-search" autocomplete="off"><div class="box plain ex-find"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m21 21-4.34-4.34"/><circle cx="11" cy="11" r="8"/></svg><input id="ex-q" placeholder="An address or a checkpoint number" spellcheck="false" autocapitalize="off" enterkeyhint="search"></div></form>
+      <form class="ex-search field" id="ex-search" autocomplete="off"><div class="box plain ex-find"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m21 21-4.34-4.34"/><circle cx="11" cy="11" r="8"/></svg><input id="ex-q" placeholder="An address, a name or a checkpoint number" spellcheck="false" autocapitalize="off" autocorrect="off" enterkeyhint="search"></div><div class="list suggest ex-found" id="ex-found" hidden></div></form>
       <div class="problem" id="ex-problem" hidden></div>
       <div id="ex-body"></div>
     </section>
@@ -9637,12 +9639,61 @@
   $("ex-back").onclick = () => { const back = ex.stack.pop(); if (back) exShow(back, false); else { clearInterval(ex.timer); home(); } };
   $("go-explorer").onclick = () => openExplorer();
   function exFail(e) { $("ex-body").innerHTML = ""; problem("ex-problem", e && /not found/i.test(String(e)) ? "That isn't on the network yet." : e); }
-  $("ex-search").onsubmit = (e) => {
+  // Names: Market profiles with wallets they showed they hold, as on the website.
+  let exNames = { q: "", rows: null }, exNameTimer = 0;
+  async function exFindNames(q) {
+    let found = [];
+    try { found = (await invoke("market_search", { text: q })) || []; } catch { return null; }
+    const rows = [];
+    for (const p of found) for (const w of p.wallets || []) {
+      const address = (w.address || "").toLowerCase();
+      if (!/^[0-9a-f]{64}$/.test(address)) continue;
+      const info = { name: p.name, picture: p.picture, wallet_name: w.name || null };
+      profiles.set(address, info);
+      rows.push({ address, label: profileLabel(info), exact: p.name.toLowerCase() === q });
+    }
+    exNames = { q, rows };
+    return rows;
+  }
+  function exShowNames(rows, note) {
+    const box = $("ex-found");
+    box.innerHTML = (rows || []).map((r) => `<button class="tx" type="button" data-ex-addr="${r.address}">${face(r.address, r.label)}
+      <div class="tx-main"><div class="title">${esc(r.label)}${officialTag(r.address)}</div><div class="sub mono">${short(r.address)}</div></div>${CHEV}</button>`).join("")
+      + (note ? `<div class="note">${esc(note)}</div>` : "");
+    box.hidden = !box.innerHTML;
+  }
+  const exNameQuery = () => $("ex-q").value.trim().toLowerCase().replace(/^@/, "");
+  const exIsTarget = (q) => /^\d{1,9}$/.test(q) || /^[0-9a-f]{64}$/.test(q);
+  $("ex-q").oninput = () => {
+    clearTimeout(exNameTimer);
+    $("ex-problem").hidden = true;
+    const q = exNameQuery();
+    if (q.length < 2 || exIsTarget(q)) { exShowNames(null); return; }
+    exNameTimer = setTimeout(async () => {
+      const rows = await exFindNames(q);
+      if (rows && exNameQuery() === q) exShowNames(rows, rows.length ? null : `Nobody on the Market is called “${q}”.`);
+    }, 250);
+  };
+  $("ex-found").onclick = (e) => {
+    const go = e.target.closest("[data-ex-addr]");
+    if (!go) return;
+    $("ex-q").value = ""; exShowNames(null);
+    exShow({ kind: "address", address: go.dataset.exAddr });
+  };
+  $("ex-search").onsubmit = async (e) => {
     e.preventDefault();
-    const q = $("ex-q").value.trim().toLowerCase();
-    if (/^\d{1,9}$/.test(q)) { $("ex-q").value = ""; exShow({ kind: "checkpoint", epoch: Number(q) }); }
-    else if (/^[0-9a-f]{64}$/.test(q)) { $("ex-q").value = ""; exShow({ kind: "address", address: q }); }
-    else problem("ex-problem", "Type an address (64 letters and digits, 0-9 and a-f) or a checkpoint number.");
+    clearTimeout(exNameTimer);
+    const q = exNameQuery();
+    const go = (view) => { $("ex-q").value = ""; exShowNames(null); exShow(view); };
+    if (/^\d{1,9}$/.test(q)) return go({ kind: "checkpoint", epoch: Number(q) });
+    if (/^[0-9a-f]{64}$/.test(q)) return go({ kind: "address", address: q });
+    const rows = q.length >= 2 ? (exNames.q === q && exNames.rows) || await exFindNames(q) || [] : [];
+    if (exNameQuery() !== q) return;
+    // One wallet to go to: the only one found, or the only one of the exact name.
+    const exact = rows.filter((r) => r.exact);
+    const only = rows.length === 1 ? rows[0] : exact.length === 1 ? exact[0] : null;
+    if (only) return go({ kind: "address", address: only.address });
+    exShowNames(rows, rows.length ? null : "Nothing found. Search an address (64 letters and digits, 0-9 and a-f), a checkpoint number, or the name of someone on the Market.");
   };
   $("ex-body").onclick = (e) => {
     const go = e.target.closest("[data-ex-cp],[data-ex-addr],[data-ex-top],[data-ex-page],[data-ex-copy],[data-ex-send]");
