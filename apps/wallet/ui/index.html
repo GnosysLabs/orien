@@ -2439,6 +2439,8 @@
   .tabs.ex-tabs { grid-template-columns: repeat(3, minmax(0, 1fr)); flex: none; margin: 8px 8px 0; }
   .ex-pane { flex: 1 1 0; min-height: 0; overflow-y: auto; overscroll-behavior: contain; padding: 6px 0 8px; }
   .ex-pane .list { border: 0; border-radius: 0; background: none; box-shadow: none; }
+  .ex-pane .day { position: sticky; top: -6px; z-index: 1; margin: 0; padding: 12px 18px 6px; background: var(--surface); }
+  .ex-pane .day:not(:first-child) { border-top: 1px solid var(--line); }
   .ex-pane-note { padding: 6px 18px 2px; font-size: 12.5px; color: var(--dim); }
   .ex-more { display: flex; justify-content: center; padding: 10px 0 6px; }
   .ex-panel-head { flex: none; display: flex; align-items: baseline; justify-content: space-between; gap: 12px; padding: 14px 18px 8px; border-bottom: 1px solid var(--line); }
@@ -11126,8 +11128,21 @@
       <div class="list ex-stats"><div><b title="${exOrn(d.balance, 9)} ORN">${exOrn(d.balance, 2)}</b><span>ORN held</span></div><div><b>${exOrn(d.staked, 2)}</b><span>${d.returning && d.returning !== "0" ? `staked · ${exOrn(d.returning, 4)} returning` : "staked"}</span></div><div><b>${(d.payments_made || 0).toLocaleString()}</b><span>payments sent</span></div></div></div>
       <div class="ex-panel">
         <div class="ex-panel-head"><b>Activity</b>${d.more ? '<span>The latest 500</span>' : acts.length ? `<span>${acts.length.toLocaleString()} ${acts.length === 1 ? "payment" : "payments"}</span>` : ""}</div>
-        <div class="ex-pane" id="ex-pane"><div class="list">${acts.length ? acts.map(exActRow).join("") : `<div class="empty">${d.since != null ? "Nothing has happened at this address yet." : "No activity is recorded for this address."}</div>`}</div></div>
+        <div class="ex-pane" id="ex-pane">${acts.length ? exActDays(acts) : `<div class="list"><div class="empty">${d.since != null ? "Nothing has happened at this address yet." : "No activity is recorded for this address."}</div></div>`}</div>
       </div>`;
+  }
+  // A wallet's activity under day headings, as on Home: Today, Yesterday,
+  // then the date; each row shows its time.
+  function exActDays(acts) {
+    let html = "", day = null, group = [];
+    const flush = () => { if (group.length) html += `<div class="day">${day}</div><div class="list">${group.join("")}</div>`; group = []; };
+    for (const a of acts) {
+      const d = a.time ? dayName(a.time) : "This hour";
+      if (d !== day) { flush(); day = d; }
+      group.push(exActRow(a));
+    }
+    flush();
+    return html;
   }
   function exActRow(a) {
         const k = EX_KINDS[a.kind] || [a.kind];
@@ -11135,7 +11150,7 @@
         const other = a.counterparty && k[1] ? ` ${k[1]} ${esc(exWho(a.counterparty).name || short(a.counterparty))}` : "";
         const target = a.counterparty ? `data-ex-addr="${a.counterparty}"` : a.epoch != null ? `data-ex-cp="${a.epoch}"` : "";
         return `<button class="tx ex-row" ${target}><span class="tx-icon ${out ? "sent" : "received"}">${ICON[out ? "sent" : "received"]}</span>
-          <div class="tx-main"><div class="title">${k[0]}${other}</div><div class="sub">${a.time ? exAgo(a.time) : "This hour"}${a.epoch != null ? ` · checkpoint ${a.epoch}` : ""}</div></div>
+          <div class="tx-main"><div class="title">${k[0]}${other}</div><div class="sub">${a.time ? clock(a.time) : "This hour"}${a.epoch != null ? ` · checkpoint ${a.epoch}` : ""}</div></div>
           <div class="tx-side"><div class="amt ${out ? "sent" : "received"}">${out ? "−" : "+"}${exOrn(a.amount, 4)}</div><div class="sub">ORN</div></div></button>`;
   }
   async function exTop() {
