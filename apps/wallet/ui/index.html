@@ -2345,7 +2345,7 @@
     body:not(.phone) #home .home-side { display: flex; flex-direction: column; gap: 14px; flex: 0 0 340px; min-height: 0; }
     /* Mining and the group chat are in the column beside: their buttons go,
        and the rest share the row evenly. */
-    body:not(.phone) #home :is(#go-mine, #go-room) { display: none; }
+    body:not(.phone) #home #go-mine { display: none; }
     body:not(.phone) #home .actions.five { grid-template-columns: none; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); }
   }
   .hs-card { display: flex; flex-direction: column; padding: 14px 16px 16px; border: 1px solid var(--line); border-radius: 18px; background: var(--surface); }
@@ -2356,7 +2356,6 @@
   .hs-ico { flex: none; width: 36px; height: 36px; border-radius: 50%; display: grid; place-items: center; color: var(--pearl-ink);
     background: var(--pearl); background-size: 300% 100%; animation: drift 24s linear infinite; }
   .hs-ico svg { width: 18px; height: 18px; }
-  .hs-chat .hs-ico svg { width: 21px; height: 21px; }
   .hs-title { flex: 1; min-width: 0; }
   .hs-title b { display: block; font-size: 14px; font-weight: 600; }
   .hs-title small { display: block; margin-top: 1px; font-size: 12px; color: var(--dim); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -2368,25 +2367,22 @@
   .hs-figs b { display: block; margin-top: 2px; font-size: 14px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .hs-acts { display: flex; gap: 8px; margin-top: 14px; }
   .hs-acts .pill { flex: 1; }
-  /* The chat card runs down as far as the wallet column beside it, showing
-     as many of the latest messages as fit, newest at the bottom. */
-  .hs-chat { flex: 1 1 auto; min-height: 0; }
+  /* The network card runs down as far as the wallet column beside it, its
+     latest checkpoints filling what's left. */
+  .hs-net { flex: 1 1 auto; min-height: 0; }
+  .hs-figs2 { grid-template-columns: repeat(2, minmax(0, 1fr)); row-gap: 12px; }
+  .hs-cps { flex: 1 1 0; min-height: 96px; overflow: hidden; display: flex; flex-direction: column; gap: 2px; padding-top: 10px; }
+  .hs-cp { display: flex; align-items: center; gap: 10px; width: 100%; padding: 7px 8px; margin: 0 -8px; width: calc(100% + 16px); border: 0; border-radius: 10px;
+    background: none; color: inherit; font: inherit; text-align: left; cursor: pointer; }
+  @media (hover: hover) { .hs-cp:hover { background: rgba(var(--tint), 0.04); } }
+  .hs-cp .ex-num { min-width: 46px; height: 26px; padding: 0 8px; font-size: 10.5px; border-radius: 8px; }
+  .hs-cp .mw0 { flex: 1; min-width: 0; }
+  .hs-cp b { display: block; font-size: 12.5px; font-weight: 600; }
+  .hs-cp span.sub { display: block; font-size: 11.5px; color: var(--faint); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .hs-cp .amt { flex: none; font-size: 12px; color: var(--dim); }
   .hs-open { cursor: pointer; }
   .hs-rule { flex: none; height: 1px; margin-top: 14px; background: var(--line); }
-  .hs-msgs { display: flex; flex-direction: column; gap: 12px; padding-top: 14px;
-    -webkit-mask: linear-gradient(transparent, #000 22px); mask: linear-gradient(transparent, #000 22px); flex: 1 1 0; min-height: 150px; overflow-y: auto; overscroll-behavior: contain; cursor: pointer; }
-  .hs-msgs::-webkit-scrollbar { width: 0; }
-  .hs-msgs > :first-child { margin-top: auto; }
-  .hs-msg { display: grid; grid-template-columns: 28px minmax(0, 1fr); gap: 10px; align-items: start; }
-  .hs-msg .avatar { position: relative; overflow: hidden; width: 28px; height: 28px; font-size: 11px; background: var(--surface-hover); color: var(--ink); }
-  .hs-msg .avatar img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
-  .hs-msg b { display: block; font-size: 12.5px; font-weight: 600; }
-  .hs-msg p { margin: 1px 0 0; font-size: 13px; line-height: 1.4; color: var(--dim); white-space: pre-wrap; overflow-wrap: anywhere; }
   .hs-empty { font-size: 13px; color: var(--faint); }
-  .hs-say { display: flex; align-items: center; gap: 8px; margin-top: 14px; padding: 4px 4px 4px 14px; border: 1px solid var(--line); border-radius: 22px; background: var(--field); }
-  .hs-say:focus-within { border-color: var(--focus); }
-  .hs-say input { flex: 1; min-width: 0; height: 30px; border: 0; background: none; color: var(--ink); font: inherit; font-size: 13px; outline: none; }
-  .hs-say .ch-send { width: 30px; height: 30px; }
   #home #recent { flex: 0 1 auto; min-height: 0; overflow-y: auto; overscroll-behavior: contain; }
   #home #recent::-webkit-scrollbar { width: 0; }
   /* All activity: one rounded box that scrolls, each day headed inside it. */
@@ -2840,11 +2836,11 @@
           <div class="hs-figs"><div><span>Speed</span><b id="hs-speed">—</b></div><div><span id="hs-rate-label">Shares</span><b id="hs-rate">—</b></div><div><span>Network</span><b id="hs-net" title="Every miner on Orien together, estimated">—</b></div></div>
           <div class="hs-acts"><button class="pill pearl" id="hs-mine-go">Start mining</button></div>
         </div>
-        <div class="hs-card hs-chat" id="hs-chat">
-          <button class="hs-head hs-open" id="hs-chat-open" title="Open the group chat"><span class="hs-ico"><svg viewBox="0 0 512 512" fill="currentColor"><rect x="239" y="74" width="36" height="66" rx="18"/><rect x="239" y="74" width="36" height="66" rx="18" transform="rotate(-44 256 298)"/><rect x="239" y="74" width="36" height="66" rx="18" transform="rotate(44 256 298)"/><path d="M138 298 A118 118 0 0 1 374 298 Z"/><rect x="76" y="338" width="360" height="40" rx="20"/><rect x="156" y="406" width="200" height="36" rx="18"/></svg></span><span class="hs-title"><b>Orien</b><small>Group chat · everyone on Orien Network</small></span><span class="hs-arrow" aria-hidden="true"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg></span></button>
+        <div class="hs-card hs-net" id="hs-net-card">
+          <button class="hs-head hs-open" id="hs-net-open" title="Open the explorer"><span class="hs-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m10.065 12.493-6.18 1.318a.934.934 0 0 1-1.108-.702l-.537-2.15a1.07 1.07 0 0 1 .691-1.265l13.504-4.44"/><path d="m13.56 11.747 4.332-.924"/><path d="m16 21-3.105-6.21"/><path d="M16.485 5.94a2 2 0 0 1 1.455-2.425l1.09-.272a1 1 0 0 1 1.212.727l1.515 6.06a1 1 0 0 1-.727 1.213l-1.09.272a2 2 0 0 1-2.425-1.455z"/><path d="m6.158 8.633 1.114 4.456"/><path d="m8 21 3.105-6.21"/><circle cx="12" cy="13" r="2"/></svg></span><span class="hs-title"><b>Network</b><small>Orien right now</small></span><span class="hs-arrow" aria-hidden="true"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg></span></button>
+          <div class="hs-figs hs-figs2"><div><span>Next checkpoint</span><b id="hs-n-next">—</b></div><div><span>Miners last hour</span><b id="hs-n-miners">—</b></div><div><span>New ORN this hour</span><b id="hs-n-new">—</b></div><div><span>ORN released</span><b id="hs-n-released">—</b></div></div>
           <div class="hs-rule"></div>
-          <div class="hs-msgs" id="hs-msgs"><div class="hs-empty">Loading…</div></div>
-          <form class="hs-say" id="hs-say" autocomplete="off" hidden><input id="hs-text" maxlength="500" placeholder="Message everyone" enterkeyhint="send"><button class="ch-send pearl" id="hs-send" aria-label="Send"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 7-7 7 7"/><path d="M12 19V5"/></svg></button></form>
+          <div class="hs-cps" id="hs-cps"><div class="hs-empty">Loading…</div></div>
         </div>
       </aside>
       </div>
@@ -10159,7 +10155,7 @@
   async function homeSide() {
     if (!homeWide()) return;
     if (!hsReady) { hsReady = true; await mineStatus(true); } else mineStatus(false);
-    hsChat();
+    hsNetwork();
     // The whole network's hashrate, from the explorer: once a minute is plenty.
     if (Date.now() - hsNetAt > 60000) {
       hsNetAt = Date.now();
@@ -10171,30 +10167,40 @@
     $("hs-mine-go").disabled = true; await $("mn-go").onclick();
   };
   $("hs-mine-more").onclick = () => $("go-mine").onclick();
-  async function hsChat() {
-    let a;
-    try { a = await mk("GET", "/room/messages?limit=20"); } catch { return; }
-    const you = board.me ? a.you : null, ok = !!(you && you.verified && !you.banned);
-    $("hs-say").hidden = !ok;
-    const list = (a.messages || []).slice(-20);
-    const html = list.length ? list.map((m) => `<div class="hs-msg">${mkAvatar((m.author || {}).name, (m.author || {}).picture)}<div class="mw0"><b>${esc((m.author || {}).name || "Someone")}</b><p>${esc(roomText(m))}</p></div></div>`).join("")
-      : '<div class="hs-empty">No messages yet. Say hello to everyone.</div>';
-    // Scrolls like a chat: held at the newest, unless you've scrolled up to read.
-    const box = $("hs-msgs"), atEnd = box.scrollHeight - box.scrollTop - box.clientHeight < 40;
-    paintKeeping(box, html);
-    if (atEnd) box.scrollTop = box.scrollHeight;
+  // The network, as the explorer shows it: the next checkpoint, who mined,
+  // what's released, and the latest checkpoints. Once a minute is plenty;
+  // the countdown ticks with Home's own refresh.
+  let hsOver = null, hsOverAt = 0;
+  async function hsNetwork() {
+    if (Date.now() - hsOverAt > 60000) {
+      hsOverAt = Date.now();
+      try { hsOver = await invoke("explorer", { path: "/overview" }); } catch { hsOverAt = 0; }
+    }
+    const o = hsOver;
+    if (!o) return;
+    const sup = o.supply || {};
+    const left = o.epoch_started + o.epoch_seconds - Date.now() / 1000;
+    $("hs-n-next").textContent = left <= 0 ? "Any moment" : left >= 60 ? `In ${Math.floor(left / 60)} min` : `In ${Math.ceil(left)} s`;
+    $("hs-n-miners").textContent = o.miners ? o.miners.last_hour.toLocaleString() : "—";
+    $("hs-n-new").textContent = sup.per_hour ? exOrn(sup.per_hour, 0) : "—";
+    $("hs-n-released").textContent = sup.released ? exOrn(sup.released, 0) : "—";
+    const cps = (o.checkpoints || []).slice(0, 8);
+    paintKeeping($("hs-cps"), cps.length ? cps.map((c) => `<button class="hs-cp" data-hs-cp="${c.epoch}"><span class="ex-num">#${c.epoch}</span>
+      <span class="mw0"><b>${c.payments.toLocaleString()} ${c.payments === 1 ? "payment" : "payments"}</b><span class="sub">${esc(exAgo(c.time))} · agreed by ${c.agreed.length} of ${c.of}</span></span>
+      <span class="amt">+${exOrn(c.released, 0)}</span></button>`).join("") : '<div class="hs-empty">No checkpoints yet.</div>');
+    hsFitCps();
   }
-  $("hs-chat-open").onclick = () => { openRoom("inbox"); loadInbox(); };
-  $("hs-msgs").onclick = () => $("hs-chat-open").onclick();
-  $("hs-say").onsubmit = async (e) => {
-    e.preventDefault();
-    const body = $("hs-text").value.trim();
-    if (!body) return;
-    $("hs-send").disabled = true;
-    try { await mk("POST", "/room/messages", { body }); $("hs-text").value = ""; feel("success"); hsChat(); roomPeek(); }
-    catch (err) { problem("home-problem", mkProblem(err)); }
-    finally { $("hs-send").disabled = false; }
-  };
+  // Only whole rows: one that would be cut off at the bottom isn't shown.
+  function hsFitCps() {
+    const box = $("hs-cps"), bottom = box.getBoundingClientRect().bottom;
+    for (const row of box.children) {
+      row.style.removeProperty("visibility");
+      if (row.getBoundingClientRect().bottom > bottom + 0.5) row.style.setProperty("visibility", "hidden");
+    }
+  }
+  window.addEventListener("resize", () => { if (homeWide()) hsFitCps(); });
+  $("hs-net-open").onclick = () => openExplorer();
+  $("hs-cps").onclick = (e) => { const b = e.target.closest("[data-hs-cp]"); if (b) openExplorer({ kind: "checkpoint", epoch: Number(b.dataset.hsCp) }); };
   wide.addEventListener("change", homeSide);
   setInterval(homeSide, 5000);
   // ---- Verifying the open wallet in one tap, from Home or wherever a
