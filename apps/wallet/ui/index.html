@@ -440,13 +440,17 @@
   /* iPhones use the Market; mining and swaps stay on computers, which keep
      the wallet running while a swap needs it. */
   body.phone #go-mine, body.phone #go-swap, body.phone #swap-alert, body.phone #choose, body.phone .update { display: none !important; }
-  body.phone .actions.five { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
-  /* iPhones: Send, Receive, Community and Messages are big round buttons,
-     their glyphs alone, with no box or word around them. */
+  body.phone .actions.five { grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 8px; }
+  /* iPhones: Send, Receive, Community, Explorer and Messages are round
+     buttons, their glyphs alone, with no box or word around them. The
+     explorer moves down here from the row at the top. */
   body.phone .actions.five .tile { position: relative; height: auto; padding: 0; border: 0; background: none; font-size: 0; }
-  body.phone .actions.five .tile .icon { width: 66px; height: 66px; box-shadow: 0 6px 18px rgba(0, 0, 0, 0.28); }
-  body.phone .actions.five .tile .icon svg { width: 26px; height: 26px; }
-  body.phone .actions.five .tile .dot { top: 2px; right: calc(50% - 31px); width: 12px; height: 12px; }
+  body.phone .actions.five .tile .icon { width: 54px; height: 54px; box-shadow: 0 5px 14px rgba(0, 0, 0, 0.26); }
+  body.phone .actions.five .tile .icon svg { width: 22px; height: 22px; }
+  body.phone .actions.five .tile .dot { top: 1px; right: calc(50% - 26px); width: 11px; height: 11px; }
+  .phone-only-tile { display: none !important; }
+  body.phone .phone-only-tile { display: flex !important; }
+  body.phone #go-explorer { display: none !important; }
   /* Get ORN is the iPhone's; computers have Mine and Swap. */
   #go-get { display: none; }
   /* 16 points or more, or the iPhone zooms the page in on every tap into a box. */
@@ -2965,6 +2969,10 @@
         <button class="tile" id="go-get" aria-label="Get ORN">
           <span class="icon pearl"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="M12 5v14"/></svg></span>
           Get ORN
+        </button>
+        <button class="tile phone-only-tile" id="go-explorer-tile" aria-label="Explorer">
+          <span class="icon pearl"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m10.065 12.493-6.18 1.318a.934.934 0 0 1-1.108-.702l-.537-2.15a1.07 1.07 0 0 1 .691-1.265l13.504-4.44"/><path d="m13.56 11.747 4.332-.924"/><path d="m16 21-3.105-6.21"/><path d="M16.485 5.94a2 2 0 0 1 1.455-2.425l1.09-.272a1 1 0 0 1 1.212.727l1.515 6.06a1 1 0 0 1-.727 1.213l-1.09.272a2 2 0 0 1-2.425-1.455z"/><path d="m6.158 8.633 1.114 4.456"/><path d="m8 21 3.105-6.21"/><circle cx="12" cy="13" r="2"/></svg></span>
+          Explorer
         </button>
         <button class="tile" id="go-messages" aria-label="Messages">
           <span class="icon pearl"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2.992 16.342a2 2 0 0 1 .094 1.167l-1.065 3.29a1 1 0 0 0 1.236 1.168l3.413-.998a2 2 0 0 1 1.099.092 10 10 0 1 0-4.777-4.719"/></svg><span class="dot" id="market-unread" hidden></span></span>
@@ -10834,7 +10842,7 @@
   }
   function openExplorer(view) { ex.stack = []; ex.at = null; exShow(view || { kind: "home" }, false); }
   $("ex-back").onclick = () => { const back = ex.stack.pop(); if (back) exShow(back, false); else { clearInterval(ex.timer); home(); } };
-  $("go-explorer").onclick = () => openExplorer();
+  $("go-explorer").onclick = $("go-explorer-tile").onclick = () => openExplorer();
   function exFail(e) { $("ex-body").innerHTML = ""; problem("ex-problem", e && /not found/i.test(String(e)) ? "That isn't on the network yet." : e); }
   // Names: Market profiles with wallets they showed they hold, as on the website.
   let exNames = { q: "", rows: null }, exNameTimer = 0;
