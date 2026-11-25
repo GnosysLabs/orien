@@ -542,11 +542,31 @@ pub fn listings(dir: &Path, category: &str, text: &str, offset: u32) -> Result<V
 /// A signed-in Market call for the Market screens: listings, messages and
 /// reports only, so the page can't reach anything else with the cookie.
 pub fn market_call(dir: &Path, method: &str, path: &str, body: Option<Value>) -> Result<Value, String> {
-    let allowed = ["/listings", "/conversations", "/reports", "/accounts", "/community", "/users", "/notices", "/me/blocked", "/swaps/history"].iter().any(|p| path == *p || path.starts_with(&format!("{p}/")) || path.starts_with(&format!("{p}?")));
+    let allowed = ["/listings", "/conversations", "/reports", "/accounts", "/community", "/users", "/notices", "/me/blocked", "/swaps/history", "/room"].iter().any(|p| path == *p || path.starts_with(&format!("{p}/")) || path.starts_with(&format!("{p}?")));
     if !allowed || path.contains("..") || !["GET", "POST", "PUT", "DELETE"].contains(&method) {
         return Err("not a Market call".into());
     }
     call(dir, method, path, body).map_err(String::from)
+}
+
+/// The explorer's public figures, as on explorer.orien.network: read only,
+/// and only its own pages.
+pub fn explorer_get(path: &str) -> Result<Value, String> {
+    let page = path.split('?').next().unwrap_or_default();
+    let known = page == "/overview" || page == "/top" || page == "/checkpoints" || page.starts_with("/checkpoints/") || page.starts_with("/address/");
+    if !known || path.contains("..") {
+        return Err("not an explorer page".into());
+    }
+    match agent().get(&format!("{}/api/explorer{path}", base())).call() {
+        Ok(response) => response.into_json::<Value>().map_err(|_| "The explorer sent an answer this app can't read.".into()),
+        Err(ureq::Error::Status(404, _)) => Err("Not found.".into()),
+        Err(ureq::Error::Status(_, response)) => Err(response
+            .into_json::<Value>()
+            .ok()
+            .and_then(|v| v["error"].as_str().map(capital))
+            .unwrap_or_else(|| "The network isn't answering right now. Try again in a moment.".into())),
+        Err(_) => Err("The explorer can't be reached. Check your internet connection.".into()),
+    }
 }
 
 /// Adds the picture at `path` to listing `id`; the Market crops it to 16:9.

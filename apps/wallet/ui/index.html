@@ -301,6 +301,15 @@
     /* A theme you built, dark or light: your picture as it is, never faded
        over the ground. */
     html[data-base] body:not(.phone)::before { opacity: 1; }
+    /* Over a built theme's picture, dark or light: a vignette darkening its
+       edges, and a dark fade at the top so the ORIEN wordmark always reads.
+       The built-in themes' photos are faded already. */
+    html[data-base] body:not(.phone)::after { content: ""; position: fixed; inset: 0; z-index: -1; pointer-events: none;
+      background: linear-gradient(to bottom, var(--top-fade, rgba(0, 0, 0, 0.6)), transparent 150px),
+        radial-gradient(ellipse at 50% 45%, transparent 38%, rgba(0, 0, 0, 0.62) 100%); }
+    /* So a light built theme's wordmark, dark everywhere else, is light
+       above the picture, over the dark fade. */
+    html[data-base="light"] body:not(.phone) .wm-wrap .brand { background-image: var(--brand-top); }
     /* Each screen sits in a container that looks just like the app in a
        normal window: the theme's own ground and solid panels, with rounded
        corners and a soft shadow. The photo shows only around it, like a
@@ -650,12 +659,11 @@
   .ms-rate span { display: block; margin-top: 3px; font-size: 12.5px; color: var(--dim); }
   .ms-rate span + span { margin-top: 1px; }
   .wallet-chip { display: inline-flex; align-items: center; gap: 6px; margin: 0 0 12px 2px; padding: 5px 10px;
-    border: 1px solid var(--line); border-radius: 999px; background: transparent; cursor: pointer; font-size: 12.5px; color: var(--dim); }
-  @media (hover: hover) { .wallet-chip:hover { color: var(--ink); background: rgba(var(--tint), 0.031); } }
-  /* Light themes: the same white as the buttons beside it, so it reads as
-     one to press rather than a label. */
-  :is([data-theme="daylight"], [data-base="light"]) .wallet-chip { background: var(--surface); color: var(--ink); }
-  @media (hover: hover) { :is([data-theme="daylight"], [data-base="light"]) .wallet-chip:hover { background: var(--surface-hover); } }
+    border: 1px solid var(--line); border-radius: 999px; background: var(--surface); cursor: pointer; font-size: 12.5px; color: var(--dim); }
+  /* Every theme: the same background as the buttons beside it, so it reads
+     as one to press rather than a label. */
+  @media (hover: hover) { .wallet-chip:hover { color: var(--ink); background: var(--surface-hover); } }
+  :is([data-theme="daylight"], [data-base="light"]) .wallet-chip { color: var(--ink); }
   /* A wallet: name and address on the left, its balance on the right
      (amount over unit, mirroring the two lines opposite), and quiet edit
      tools at the far end, past a hairline. All on one centred line. */
@@ -744,6 +752,12 @@
   .mk-search input { flex: 1; min-width: 0; border: 0; background: none; color: var(--ink); font: inherit; height: 44px; outline: none; }
   .mk-cats { display: flex; flex-wrap: wrap; gap: 6px; margin: 14px 0 16px; }
   .mk-cats button { flex: none; }
+  /* Big windows: the search keeps a sensible width, the kinds beside it. */
+  @media (min-width: 980px) {
+    body:not(.phone) .mk-bar { display: flex; align-items: center; gap: 16px; margin: 0 0 18px; }
+    body:not(.phone) .mk-bar .mk-search { flex: 0 0 340px; }
+    body:not(.phone) .mk-bar .mk-cats { margin: 0; }
+  }
   .mk-cats button { height: 30px; padding: 0 12px; border: 1px solid var(--line); border-radius: 15px; background: transparent;
     color: var(--dim); font-size: 12.5px; font-weight: 500; cursor: pointer; transition: background .15s, color .15s; }
   @media (hover: hover) { .mk-cats button:hover { background: var(--surface); color: var(--ink); } }
@@ -945,6 +959,9 @@
   .ch-top { gap: 6px; }
   .ch-who { display: flex; align-items: center; gap: 10px; min-width: 0; padding: 4px 8px 4px 4px; border: 0; border-radius: 12px; background: none; color: inherit; font: inherit; text-align: left; cursor: pointer; }
   @media (hover: hover) { .ch-who:hover { background: rgba(var(--tint), 0.04); } }
+  /* The group chat's name leads nowhere: no hover, no pointer. */
+  #chat.room .ch-who { cursor: default; }
+  @media (hover: hover) { #chat.room .ch-who:hover { background: none; } }
   .ch-who .avatar { position: relative; overflow: hidden; flex: none; width: 32px; height: 32px; border-radius: 50%; display: grid; place-items: center; background: var(--surface-hover); color: var(--ink); font-weight: 600; font-size: 13px; }
   .ch-who b { display: block; font-size: 15px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .ch-who small { display: block; font-size: 11.5px; color: var(--faint); }
@@ -1036,7 +1053,9 @@
   .bubble { max-width: 78%; padding: 8px 12px; border-radius: 16px; font-size: 13.5px; line-height: 1.45; white-space: pre-wrap; overflow-wrap: anywhere;
     -webkit-user-select: text; user-select: text; align-self: flex-start; background: var(--surface); border-bottom-left-radius: 6px; }
   .bubble.mine { align-self: flex-end; background: var(--bubble-mine); border-bottom-left-radius: 16px; border-bottom-right-radius: 6px; }
-  .bubble time { display: block; margin-top: 3px; font-size: 10.5px; color: var(--faint); }
+  /* The time in the bubble's own words colour, softened: a fixed grey
+     would vanish into a coloured bubble. */
+  .bubble time { display: block; margin-top: 3px; font-size: 10.5px; color: inherit; opacity: 0.62; }
   .bubble.mine time { text-align: right; }
   .paycard { align-self: center; width: min(320px, 92%); margin: 6px 0; padding: 14px 16px; border: 1px solid var(--line); border-radius: 18px; background: var(--surface); text-align: center; }
   .paycard .lbl { font-size: 11.5px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--dim); }
@@ -1070,6 +1089,81 @@
   .ch-blocked { flex-shrink: 0; padding: 10px 14px; margin-bottom: 10px; border-radius: 14px; background: var(--surface); color: var(--dim); font-size: 12.5px; text-align: center; }
   .ch-compose { flex-shrink: 0; display: flex; align-items: flex-end; gap: 8px; padding: 6px 6px 6px 14px; border: 1px solid var(--line); border-radius: 22px; background: var(--field); }
   .ch-compose:focus-within { border-color: var(--focus); }
+  /* ---- The group chat: everyone on Orien Network, as on Discord ---- */
+  .avatar.rm-icon { background: var(--pearl); background-size: 300% 100%; color: var(--pearl-ink); }
+  .avatar.rm-icon svg { width: 62%; height: 62%; }
+  #chat.room .ch-compose { padding-left: 6px; }
+  .rm-tool { flex: none; height: 34px; min-width: 34px; padding: 0 6px; border: 0; border-radius: 17px; display: grid; place-items: center;
+    background: none; color: var(--dim); font: inherit; font-size: 11px; font-weight: 700; letter-spacing: 0.04em; cursor: pointer; }
+  @media (hover: hover) { .rm-tool:hover { color: var(--ink); background: rgba(var(--tint), 0.06); } }
+  .rm-tool:disabled { opacity: .35; cursor: default; }
+  .rm-reply { flex-shrink: 0; display: flex; align-items: center; gap: 10px; margin-bottom: 8px; padding: 8px 12px 8px 14px; border-radius: 14px;
+    background: var(--surface); font-size: 12.5px; color: var(--dim); }
+  .rm-reply-text { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .rm-reply-text b { color: var(--ink); font-weight: 600; }
+  .rm-reply .ch-ask-x { margin: -6px -6px -6px 0; }
+  .rm-attach { flex-shrink: 0; display: flex; gap: 8px; margin-bottom: 8px; }
+  .rm-attach > div { position: relative; width: 64px; height: 64px; border-radius: 12px; overflow: hidden; background: var(--surface); }
+  .rm-attach img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .rm-attach button { position: absolute; top: 4px; right: 4px; width: 22px; height: 22px; padding: 0; border: 0; border-radius: 50%;
+    display: grid; place-items: center; background: rgba(0, 0, 0, 0.65); color: #fff; cursor: pointer; }
+  #chat.room .ch-log { gap: 0; }
+  .rm-msg { position: relative; display: grid; grid-template-columns: 40px minmax(0, 1fr); column-gap: 12px; padding: 8px 10px; border-radius: 12px; }
+  .rm-msg.cont { padding-top: 2px; }
+  .rm-msg + .rm-msg:not(.cont) { margin-top: 8px; }
+  @media (hover: hover) { .rm-msg:hover { background: rgba(var(--tint), 0.03); } }
+  .rm-msg.flash { background: rgba(var(--tint), 0.08); transition: background .6s; }
+  .rm-face { grid-row: span 9; align-self: start; width: 40px; height: 40px; padding: 0; border: 0; border-radius: 50%; background: none; cursor: pointer; }
+  .rm-face .avatar { position: relative; overflow: hidden; width: 40px; height: 40px; border-radius: 50%; display: grid; place-items: center;
+    background: var(--surface-hover); color: var(--ink); font-weight: 600; }
+  .rm-face .avatar img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+  .rm-at { grid-row: span 9; align-self: start; padding-top: 3px; text-align: center; font-size: 10px; color: var(--faint); opacity: 0; }
+  @media (hover: hover) { .rm-msg:hover .rm-at { opacity: 1; } }
+  .rm-main { min-width: 0; }
+  .rm-head { display: flex; align-items: baseline; gap: 8px; min-width: 0; }
+  .rm-name { padding: 0; border: 0; background: none; color: var(--ink); font: inherit; font-size: 14px; font-weight: 600; cursor: pointer;
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  @media (hover: hover) { .rm-name:hover { text-decoration: underline; } }
+  .rm-head time { flex: none; font-size: 11px; color: var(--faint); }
+  .rm-body { margin-top: 2px; font-size: 14px; line-height: 1.45; white-space: pre-wrap; overflow-wrap: anywhere; -webkit-user-select: text; user-select: text; }
+  .rm-msg.cont .rm-body { margin-top: 0; }
+  .rm-quote { display: flex; align-items: center; gap: 6px; max-width: 100%; margin: 0 0 4px; padding: 0; border: 0; background: none;
+    color: var(--faint); font: inherit; font-size: 12px; text-align: left; cursor: pointer; }
+  .rm-msg > .rm-quote { grid-column: 2; }
+  .rm-msg.quoted :is(.rm-face, .rm-at) { grid-row: 2 / span 9; }
+  .rm-quote svg { flex: none; width: 12px; height: 12px; transform: scaleX(-1); }
+  .rm-quote b { flex: none; color: var(--dim); font-weight: 600; }
+  .rm-quote span { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .rm-main .cm-media { max-width: 420px; margin-top: 6px; border-radius: 14px; }
+  .rm-reacts { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
+  .rm-reacts .cm-chip { height: 26px; padding: 0 8px; gap: 5px; font-size: 12.5px; }
+  .rm-tools { position: absolute; top: -14px; right: 10px; z-index: 5; display: none; gap: 2px; padding: 3px; border: 1px solid var(--line);
+    border-radius: 12px; background: var(--surface); box-shadow: 0 6px 18px rgba(0, 0, 0, 0.3); }
+  @media (hover: hover) { .rm-msg:hover .rm-tools { display: flex; } }
+  .rm-msg.tools .rm-tools, .rm-msg.picking .rm-tools { display: flex; }
+  .rm-tools button { width: 30px; height: 28px; padding: 0; border: 0; border-radius: 8px; display: grid; place-items: center;
+    background: none; color: var(--dim); cursor: pointer; }
+  @media (hover: hover) { .rm-tools button:hover { color: var(--ink); background: rgba(var(--tint), 0.07); } }
+  .rm-tools button.bad { color: #ff7b72; }
+  .rm-tools svg { width: 16px; height: 16px; }
+  .rm-msg .cm-picker { top: -52px; right: 10px; }
+  .rm-msg .report-box { grid-column: 2; margin-top: 8px; }
+  .rm-more { align-self: center; margin: 4px 0 10px; }
+  .rm-start { align-self: center; margin: 18px 0 8px; font-size: 12.5px; color: var(--faint); text-align: center; }
+  .ch-blocked .pill { margin-top: 8px; }
+  .rm-badge { flex: none; padding: 1px 7px; border-radius: 999px; background: #ff453a26; color: #ff7b72; font-size: 10.5px; font-weight: 600; }
+  .rm-badge.mod { background: rgba(var(--tint), 0.08); color: var(--dim); }
+  /* The banned list drops from its button, as the notifications do: it
+     floats over the chat, and a click anywhere else closes it. */
+  .rm-bans { position: fixed; z-index: 55; width: 360px; max-width: calc(100vw - 24px); display: flex; flex-direction: column;
+    max-height: min(60vh, 460px); overflow: hidden; border-radius: 20px; background: var(--surface); border: 1px solid var(--line);
+    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.55), 0 2px 8px rgba(0, 0, 0, 0.25); transform-origin: top right; animation: menu-in 0.18s cubic-bezier(.2, .9, .3, 1.2); }
+  .rm-bans-head { flex: none; padding: 16px 20px; font-size: 16px; font-weight: 700; color: var(--ink); border-bottom: 1px solid var(--line); }
+  .rm-bans-body { flex: 1 1 auto; min-height: 0; overflow-y: auto; padding: 6px; overscroll-behavior: contain; }
+  .rm-bans .ib-row { border: 0; border-radius: 14px; cursor: default; grid-template-columns: auto minmax(0, 1fr) auto; padding: 10px 12px; }
+  .rm-bans .ib-row .avatar { width: 36px; height: 36px; font-size: 14px; }
+  .rm-bans .empty { padding: 30px 20px; text-align: center; }
+  .ib-signin { display: flex; flex-direction: column; align-items: center; gap: 10px; margin-top: 18px; padding: 0 16px; color: var(--dim); font-size: 13px; text-align: center; }
   .ch-compose textarea { flex: 1; min-height: 22px; max-height: 120px; padding: 6px 0; border: 0; background: none; color: var(--ink); font: inherit; font-size: 13.5px; letter-spacing: normal; resize: none; outline: none; }
   .ch-send { flex: none; width: 34px; height: 34px; border: 0; border-radius: 50%; display: grid; place-items: center; color: var(--pearl-ink); cursor: pointer; }
   .ch-send:disabled { opacity: .4; cursor: default; }
@@ -1600,6 +1694,31 @@
   #tip-text { margin: 12px auto 0; max-width: 300px; color: var(--dim); font-size: 13px; line-height: 1.45; }
   #tip-card .problem { margin-top: 12px; text-align: left; }
   #tip-buttons { display: grid; gap: 10px; margin-top: 20px; }
+  /* Verifying a wallet from Home: a slim card, then a confirm over the app. */
+  .vw-card { display: flex; align-items: center; gap: 12px; margin: 18px 0 4px; padding: 12px 12px 12px 14px; border: 1px solid var(--line); border-radius: 18px; background: var(--surface); }
+  .vw-badge { flex: none; width: 34px; height: 34px; border-radius: 50%; display: grid; place-items: center; color: var(--pearl-ink);
+    background: var(--pearl); background-size: 300% 100%; animation: drift 24s linear infinite; }
+  .vw-badge svg { width: 18px; height: 18px; }
+  .vw-text { flex: 1; min-width: 0; font-size: 13px; line-height: 1.35; }
+  .vw-text b { display: block; font-weight: 600; color: var(--ink); }
+  .vw-text span { color: var(--dim); }
+  .vw-card .pill { flex: none; }
+  .vw-card .vw-x { margin: 0 -4px 0 -6px; }
+  body.phone .vw-card .vw-x { margin: -6px -8px -6px -10px; }
+  #vw-veil { position: fixed; inset: 0; z-index: 61; display: grid; place-items: center; padding: 24px;
+    background: var(--veil); -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px); opacity: 0; transition: opacity 0.2s ease; }
+  #vw-veil.on { opacity: 1; }
+  #vw-sheet { width: min(360px, 100%); padding: 28px 24px 22px; border-radius: 24px; text-align: center;
+    background: var(--surface); border: 1px solid var(--line); box-shadow: 0 24px 60px rgba(0, 0, 0, 0.45); transform: scale(0.96); transition: transform 0.2s ease; }
+  #vw-veil.on #vw-sheet { transform: scale(1); }
+  #vw-icon { width: 56px; height: 56px; margin: 0 auto 16px; border-radius: 50%; display: grid; place-items: center;
+    color: var(--pearl-ink); background: var(--pearl); background-size: 300% 100%; animation: drift 24s linear infinite; }
+  #vw-icon svg { width: 26px; height: 26px; }
+  #vw-title { font-size: 18px; font-weight: 600; letter-spacing: -0.01em; overflow-wrap: anywhere; }
+  #vw-say { margin: 12px auto 0; max-width: 300px; min-height: 19px; color: var(--dim); font-size: 13px; line-height: 1.45; }
+  #vw-pw-box { margin-top: 14px; text-align: left; }
+  #vw-sheet .problem { margin-top: 12px; text-align: left; }
+  #vw-buttons { display: grid; gap: 10px; margin-top: 20px; }
   /* Tips on a post: how many and how much, no names. */
   .cm-tips { margin-left: auto; display: inline-flex; align-items: center; gap: 7px; height: 30px; padding: 0 12px 0 4px; border-radius: 999px;
     border: 1px solid rgba(var(--tint), 0.1); background: rgba(var(--tint), 0.04); font-size: 13px; white-space: nowrap; }
@@ -2055,6 +2174,78 @@
   .tx-side .amt { font-weight: 500; font-variant-numeric: tabular-nums; }
   .tx-side .amt.received { color: var(--good); }
   .empty { padding: 22px 14px; text-align: center; color: var(--faint); font-size: 13px; }
+  /* ---- Explorer ---- */
+  .ex-search.field { margin: 0 0 18px; }
+  .field .box.ex-find { gap: 10px; padding: 0 14px; color: var(--faint); }
+  .ex-find svg { flex: none; }
+  .ex-find input { flex: 1; min-width: 0; }
+  /* Names found float over the page, as a drop-down, never pushing it down. */
+  .ex-search { position: relative; }
+  .ex-found .ex-making { cursor: default; }
+  .ex-found { position: absolute; z-index: 20; left: 0; right: 0; top: calc(100% + 8px); margin: 0; max-height: min(60vh, 420px); overflow-y: auto;
+    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.55), 0 2px 8px rgba(0, 0, 0, 0.25); }
+  .ex-found .note { padding: 14px 16px; color: var(--dim); font-size: 13px; line-height: 1.45; }
+  .ex-facts { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+  .ex-fact { padding: 14px 16px 15px; border-radius: 18px; background: var(--surface); border: 1px solid var(--line); min-width: 0; }
+  .ex-fact .l { font-size: 12px; color: var(--dim); }
+  .ex-fact .v { margin-top: 6px; font-size: 21px; font-weight: 600; font-variant-numeric: tabular-nums; color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .ex-fact .n { margin-top: 4px; font-size: 12px; color: var(--faint); line-height: 1.4; }
+  .ex-hint { margin: 10px 4px 0; font-size: 12.5px; line-height: 1.5; color: var(--faint); }
+  .ex-row { width: 100%; border: 0; background: none; color: inherit; font: inherit; text-align: left; cursor: pointer; }
+  @media (hover: hover) { .ex-row:hover { background: rgba(var(--tint), 0.03); } }
+  .ex-rank { flex: none; width: 22px; text-align: right; font-size: 12.5px; color: var(--faint); font-variant-numeric: tabular-nums; }
+  .ex-dot { flex: none; width: 9px; height: 9px; margin: 0 4px; border-radius: 50%; background: var(--bad); }
+  .ex-dot.up { background: var(--good); }
+  .ex-num { min-width: 52px; height: 32px; padding: 0 10px; box-sizing: border-box; flex: none; border-radius: 10px; display: grid; place-items: center; font-size: 11px; font-weight: 700;
+    background: rgba(var(--tint), 0.05); color: var(--dim); font-variant-numeric: tabular-nums; }
+  /* Room under it for the back-to-top arrow, so they never overlap. */
+  .ex-pages { display: flex; justify-content: center; align-items: center; gap: 6px; margin: 14px 0 58px; flex-wrap: wrap; }
+  .ex-pages:empty { display: none; }
+  .ex-pg { min-width: 34px; height: 34px; padding: 0 10px; border-radius: 999px; border: 1px solid var(--line); background: var(--surface);
+    color: var(--ink); font: inherit; font-size: 13px; font-weight: 600; font-variant-numeric: tabular-nums; cursor: pointer; }
+  @media (hover: hover) { .ex-pg:not(:disabled):not(.on):hover { background: var(--surface-hover); } }
+  .ex-pg.on { border-color: transparent; background: var(--pearl); background-size: 300% 100%; color: var(--pearl-ink); cursor: default; }
+  .ex-pg:disabled { opacity: 0.35; cursor: default; }
+  .ex-gap { color: var(--faint); padding: 0 2px; }
+  .ex-steps { display: flex; justify-content: space-between; gap: 10px; margin: 18px 0 0; }
+  .ex-hash { padding: 12px 14px; }
+  .ex-hash + .ex-hash { border-top: 1px solid var(--line); }
+  .ex-hash .l { font-size: 12px; color: var(--dim); }
+  .ex-hash .h { margin-top: 4px; font: 12px/1.5 ui-monospace, "SF Mono", monospace; color: var(--ink); overflow-wrap: anywhere; }
+  .ex-hero { display: flex; flex-direction: column; align-items: center; margin: 2px 0 22px; text-align: center; }
+  .ex-hero .face { width: 64px; height: 64px; font-size: 24px; }
+  .ex-hero-info { display: flex; flex-direction: column; align-items: center; min-width: 0; }
+  .ex-hero .ex-name { margin-top: 12px; font-size: 20px; font-weight: 700; }
+  .ex-hero .ct-addr { margin-top: 10px; }
+  .ex-hero .pill { margin-top: 14px; }
+  .ex-stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .ex-stats > div { padding: 12px 6px 13px; text-align: center; min-width: 0; }
+  .ex-stats > div + div { border-left: 1px solid var(--line); }
+  .ex-stats b { display: block; font-size: 15px; font-variant-numeric: tabular-nums; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .ex-stats span { font-size: 11.5px; color: var(--dim); }
+  .tx .ex-go { flex: none; color: var(--faint); }
+  .face.ex-anon { color: var(--dim); }
+  .face.ex-anon svg { width: 46%; height: 46%; }
+  .tx.ex-link { cursor: pointer; }
+  @media (hover: hover) { .tx.ex-link:hover { background: rgba(var(--tint), 0.03); } }
+  @media (min-width: 980px) {
+    #explorer { --col: 1040px; }
+    .ex-facts { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+    .ex-facts.five { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+    body:not(.phone) .ex-search.field { max-width: 480px; }
+    .ex-split { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 0 24px; align-items: start; }
+    /* An address: who it is on the left, its figures stacked on the right. */
+    .ex-addr-top { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 360px); gap: 24px; align-items: center; }
+    .ex-addr-top .ex-hero { flex-direction: row; align-items: center; gap: 22px; margin: 0; text-align: left; }
+    .ex-addr-top .ex-hero .face { width: 88px; height: 88px; font-size: 32px; }
+    .ex-addr-top .ex-hero-info { align-items: flex-start; }
+    .ex-addr-top .ex-hero .ex-name { margin-top: 0; font-size: 24px; }
+    .ex-addr-top .ex-stats { grid-template-columns: minmax(0, 1fr); }
+    .ex-addr-top .ex-stats > div { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; padding: 14px 18px; text-align: left; }
+    .ex-addr-top .ex-stats > div + div { border-left: 0; border-top: 1px solid var(--line); }
+    .ex-addr-top .ex-stats b { font-size: 16px; order: 2; }
+    .ex-addr-top .ex-stats span { font-size: 13px; }
+  }
   /* Home: the balance and buttons stay put; recent activity scrolls inside
      its own rounded box, which takes the rest of the window when there's
      more than fits. */
@@ -2096,6 +2287,15 @@
   }
   .tx.contact { cursor: pointer; }
   @media (hover: hover) { .tx.contact:hover { background: rgba(var(--tint), 0.024); } }
+  /* Desktop, at every size: contacts as cards in two columns, never a row
+     stretched across the whole width. */
+  @media (min-width: 0) {
+    body:not(.phone) .ct-list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px;
+      background: none; border: 0; border-radius: 0; overflow: visible; }
+    body:not(.phone) .ct-list > .tx { background: var(--surface); border: 1px solid var(--line); border-radius: 18px; }
+    body:not(.phone) .ct-list > .tx + .tx { border-top: 1px solid var(--line); }
+    @media (hover: hover) { body:not(.phone) .ct-list > .tx.contact:hover { background: var(--surface-hover); } }
+  }
   .chevron { color: var(--faint); }
   /* Names to pick from as the To box is typed in: contacts and the
      person's other wallets. */
@@ -2441,7 +2641,7 @@
 
     <!-- Home -->
     <section class="screen" id="home" hidden>
-      <div class="home-top"><div class="home-left"><button class="pill icon" id="go-settings" aria-label="Settings" title="Settings"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></button><button class="wallet-chip" id="wallet-chip"><span id="wallet-name">Wallet</span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg></button><button class="pill icon" id="go-contacts" aria-label="Contacts" title="Contacts"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><path d="M16 3.128a4 4 0 0 1 0 7.744"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><circle cx="9" cy="7" r="4"/></svg></button><button class="pill icon" id="go-notices" aria-label="Notifications" title="Notifications" hidden><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10.268 21a2 2 0 0 0 3.464 0"/><path d="M3.262 15.326A1 1 0 0 0 4 17h16a1 1 0 0 0 .74-1.673C19.41 13.956 18 12.499 18 8A6 6 0 0 0 6 8c0 4.499-1.411 5.956-2.738 7.326"/></svg><span class="dot" id="notices-dot" hidden></span></button></div>
+      <div class="home-top"><div class="home-left"><button class="pill icon" id="go-settings" aria-label="Settings" title="Settings"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></button><button class="wallet-chip" id="wallet-chip"><span id="wallet-name">Wallet</span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg></button><button class="pill icon" id="go-contacts" aria-label="Contacts" title="Contacts"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><path d="M16 3.128a4 4 0 0 1 0 7.744"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><circle cx="9" cy="7" r="4"/></svg></button><button class="pill icon" id="go-explorer" aria-label="Explorer" title="Explorer"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/></svg></button><button class="pill icon" id="go-room" aria-label="Group chat" title="Group chat"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 9a2 2 0 0 1-2 2H6l-4 4V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2z"/><path d="M18 9h2a2 2 0 0 1 2 2v11l-4-4h-6a2 2 0 0 1-2-2v-1"/></svg><span class="dot" id="room-dot" hidden></span></button><button class="pill icon" id="go-notices" aria-label="Notifications" title="Notifications" hidden><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10.268 21a2 2 0 0 0 3.464 0"/><path d="M3.262 15.326A1 1 0 0 0 4 17h16a1 1 0 0 0 .74-1.673C19.41 13.956 18 12.499 18 8A6 6 0 0 0 6 8c0 4.499-1.411 5.956-2.738 7.326"/></svg><span class="dot" id="notices-dot" hidden></span></button></div>
         <div class="account"><button class="me-face" id="board-who" hidden aria-label="Your profile" title="Your profile"></button><button class="pill" id="board-signin-go">Sign in</button></div></div>
       <!-- A swap that needs you, or is under way: impossible to miss. -->
       <button class="swap-alert" id="swap-alert" hidden>
@@ -2485,6 +2685,8 @@
         </button>
       </div>
 
+      <!-- Verifying the open wallet: one tap from Home, while it isn't yet. -->
+      <div class="vw-card" id="vw-card" hidden><span class="vw-badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/><path d="m9 12 2 2 4-4"/></svg></span><div class="vw-text" id="vw-text"></div><button class="pill pearl" id="vw-go">Verify</button><button class="ch-ask-x vw-x" id="vw-x" aria-label="Don't show this again" title="Don't show this again"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></button></div>
       <div class="section-head">
         <h3>Activity</h3>
         <button class="link" id="view-all" hidden>View all</button>
@@ -2515,6 +2717,16 @@
       <div class="scroll" id="all-activity"></div>
     </section>
 
+
+    <!-- Explorer: the network, live, as on explorer.orien.network. One
+         screen that moves between the overview, a checkpoint, an address
+         and the top wallets, with its own way back. -->
+    <section class="screen" id="explorer" hidden>
+      <div class="topline"><button class="back" id="ex-back" aria-label="Back"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg></button><h2 id="ex-title">Explorer</h2></div>
+      <form class="ex-search field" id="ex-search" autocomplete="off"><div class="box plain ex-find"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m21 21-4.34-4.34"/><circle cx="11" cy="11" r="8"/></svg><input id="ex-q" placeholder="An address, a name or a checkpoint number" spellcheck="false" autocapitalize="off" autocorrect="off" enterkeyhint="search"></div><div class="list suggest ex-found" id="ex-found" hidden></div></form>
+      <div class="problem" id="ex-problem" hidden></div>
+      <div id="ex-body"></div>
+    </section>
 
     <!-- Contacts -->
     <section class="screen" id="contacts" hidden>
@@ -2578,8 +2790,8 @@
         <div class="account mk-tools"><button class="pill pearl" id="mk-sell">Sell</button></div></div>
       <div class="tabs cm-tabs" role="tablist"><button class="tab" data-cm-tab="community" role="tab">Feed</button><button class="tab on" data-cm-tab="market" role="tab">Market</button><button class="tab cm-miners-tab" data-cm-tab="miners" role="tab">Top miners</button></div>
       <p class="lede">Work and things offered for ORN. You pay the seller straight from your wallet: the Market never holds anyone's coins.</p>
-      <div class="box plain mk-search"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m21 21-4.34-4.34"/><circle cx="11" cy="11" r="8"/></svg><input id="mk-q" placeholder="Search listings" autocomplete="off" spellcheck="false"></div>
-      <div class="mk-cats" id="mk-cats"></div>
+      <div class="mk-bar"><div class="box plain mk-search"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m21 21-4.34-4.34"/><circle cx="11" cy="11" r="8"/></svg><input id="mk-q" placeholder="Search listings" autocomplete="off" spellcheck="false"></div>
+      <div class="mk-cats" id="mk-cats"></div></div>
       <div class="mk-grid" id="mk-grid"></div>
       <div class="problem" id="mk-problem" hidden></div>
       <button class="pill mk-more" id="mk-more" hidden>Show more</button>
@@ -2678,6 +2890,7 @@
         <button class="ch-who" id="ch-who"></button>
         <div class="account">
           <button class="pill" id="ch-ask" hidden>Ask for payment</button>
+          <button class="pill" id="rm-bans-go" hidden>Banned</button>
           <button class="pill icon" id="ch-more" title="More" aria-label="More"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg></button>
         </div>
       </div>
@@ -2687,6 +2900,7 @@
         <button class="menu-row bad" id="ch-delete"><span>Delete conversation</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M10 11v6"/><path d="M14 11v6"/></svg></button>
       </div>
       <button class="ch-about" id="ch-about"></button>
+      <div class="rm-bans" id="rm-bans" hidden></div>
       <div class="scroll ch-log" id="ch-log"></div>
       <div class="ch-askbox" id="ch-askbox" hidden>
         <div class="ch-ask-head"><div class="ch-ask-title" id="ch-ask-title"></div><button class="ch-ask-x" id="ch-ask-cancel" aria-label="Cancel"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></button></div>
@@ -2694,7 +2908,11 @@
       </div>
       <div class="ch-blocked" id="ch-blocked" hidden></div>
       <div class="problem" id="ch-problem" hidden></div>
+      <div class="rm-reply" id="rm-reply" hidden><span class="rm-reply-text" id="rm-reply-text"></span><button class="ch-ask-x" id="rm-reply-x" aria-label="Stop replying"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></button></div>
+      <div class="rm-attach" id="rm-attach" hidden></div>
       <div class="ch-compose" id="ch-compose">
+        <button class="rm-tool" id="rm-photo" type="button" title="Add pictures" aria-label="Add pictures" hidden><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg></button>
+        <button class="rm-tool rm-gif" id="rm-gif" type="button" title="Add a GIF" aria-label="Add a GIF" hidden>GIF</button>
         <textarea id="ch-text" rows="1" maxlength="2000"></textarea>
         <button class="ch-send pearl" id="ch-send" aria-label="Send"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 7-7 7 7"/><path d="M12 19V5"/></svg></button>
       </div>
@@ -3397,6 +3615,14 @@
   <div class="problem" id="tip-problem" hidden></div>
   <div id="tip-buttons"><button class="primary pearl" id="tip-yes">Tip</button><button class="secondary" id="tip-no">Cancel</button></div>
 </div></div>
+<div id="vw-veil" hidden><div id="vw-sheet" role="dialog" aria-modal="true" aria-labelledby="vw-title">
+  <div id="vw-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/><path d="m9 12 2 2 4-4"/></svg></div>
+  <div id="vw-title"></div>
+  <p id="vw-say"></p>
+  <div class="field" id="vw-pw-box" hidden><div class="box plain"><input id="vw-pw" type="password" autocomplete="current-password" placeholder="Wallet password"></div></div>
+  <div class="problem" id="vw-problem" hidden></div>
+  <div id="vw-buttons"><button class="primary pearl" id="vw-yes">Verify</button><button class="secondary" id="vw-no">Cancel</button></div>
+</div></div>
 <div id="upd-veil" hidden><div id="upd-card" role="dialog" aria-modal="true" aria-labelledby="upd-title">
   <div id="upd-icon"></div>
   <div id="upd-title"></div>
@@ -3801,6 +4027,8 @@
     try {
       view = await invoke("overview_now");
       paintBalance();
+      // Enough ORN to verify just arrived (or went): the Home card follows.
+      if (lastBalance !== view.balance && board.me && typeof paintVerifyCard === "function") paintVerifyCard();
       lastBalance = view.balance;
       lockWithBiometrics();
       invoke("mine_status").then((m) => mineButton(m.status.running)).catch(() => {});
@@ -3835,7 +4063,7 @@
     // Never longer than a few seconds, even with the network slow.
     if (waiting) { covered(true); setTimeout(() => covered(false), 8000); }
     show("home"); fitBalance(); loadWallets(); renderSwapAlert();
-    invoke("board_me").then((me) => { board.me = me; renderBoardBar(); }).catch(() => {});
+    invoke("board_me").then((me) => { board.me = me; renderBoardBar(); paintVerifyCard(); }).catch(() => {});
     invoke("notifications_ask").catch(() => {});
     // An update stopped mining that was running: start it again, once.
     if (!mineResumeAsked) {
@@ -4448,6 +4676,9 @@
     let face = rgb(colors[0]);
     while (looks(hexOf(face)) < 0.22) face = face.map((v) => v + (255 - v) * 0.08);
     const deep = (f) => hexOf(face.map((v) => v * (1 - f)));
+    // On white the wordmark and words in the sheen's colours go deep enough
+    // to read, however light the colour (a gold or a yellow most of all).
+    const ink = (l) => { const sat = clamp(a.s, 50, 92); while (looks(hsl(a.h, sat, l)) > 0.16 && l > 18) l -= 2; return hsl(a.h, sat, l); };
     if (base === "light") {
       return `${BASES.light}
         --pearl-ink: ${hsl(a.h, Math.min(a.s, 30), 16)}; --on-pearl-dim: ${hsl(a.h, Math.min(a.s, 15), 30)};
@@ -4455,7 +4686,8 @@
         --bubble-mine: ${hsl(a.h, clamp(a.s, 50, 90), 92)}; --chip-icon: ${hsl(a.h, clamp(a.s, 45, 85), 45)};
         --glow: radial-gradient(110% 55% at 50% -12%, rgba(${rgbOf(shade(65))}, 0.18), transparent 62%);
         --pearl: linear-gradient(115deg, ${stops([shade(87), shade(78, 0.42), shade(89), shade(74, 0.38), shade(90), shade(76, 0.4), shade(84), shade(87)])});
-        --brand: linear-gradient(115deg, ${stops([shade(44), shade(50), shade(38), shade(48), shade(44)])});`;
+        --brand: linear-gradient(115deg, ${stops([ink(44), ink(50), ink(38), ink(48), ink(44)])});
+        --brand-top: linear-gradient(115deg, ${stops([shade(78), shade(86), shade(71), shade(88), shade(78)])});`;
     }
     return `${BASES.dark}
       --pearl-ink: #000000; --on-pearl-dim: #000000;
@@ -5768,7 +6000,8 @@
         // history: often mining rewards from before validators kept one.
         }[e.kind] || ["Received", party ? "From " + party : "Not in the network's history"];
     const pic = e.counterparty && (official(e.counterparty) || (profileOf(e.counterparty) && profileOf(e.counterparty).picture));
-    return `<div class="tx" title="${e.counterparty || ""}">
+    const opens = e.counterparty || (view && view.address) || "";
+    return `<div class="tx${opens ? " ex-link" : ""}" title="${e.counterparty || ""}"${opens ? ` data-ex="${opens}"` : ""}>
       ${pic ? face(e.counterparty, who) : `<span class="tx-icon ${e.direction}">${ICON[e.direction]}</span>`}
       <div class="tx-main"><div class="title">${title}</div><div class="sub">${sub}</div></div>
       <div class="tx-side"><div class="amt ${e.direction}"${balancePeek ? "" : ` title="${esc(e.amount)} ORN"`}>${sent ? "−" : "+"}${shortAmount(e.amount)}</div><div class="sub">${when(e)}</div></div>
@@ -5942,7 +6175,7 @@
           <div class="tx-main"><div class="title">${esc(profileLabel(profileOf(c.address)) || c.name)}</div><div class="sub">${short(c.address)}</div></div>${CHEVRON}</div>` })),
     ].sort((x, y) => x.key.localeCompare(y.key));
     $("contact-list").innerHTML = rows.length
-      ? `<div class="list">${rows.map((r) => r.html).join("")}</div>`
+      ? `<div class="list ct-list">${rows.map((r) => r.html).join("")}</div>`
       : '<div class="empty">No contacts yet. Add someone you pay often, or add an Orien Network member from their profile.</div>';
   }
   async function openContacts() {
@@ -6892,16 +7125,14 @@
     const open = view && view.address;
     postUnverified = !!open && !states.some((p) => (p.address || "").toLowerCase() === open && p.verified);
     $("bp-verify").hidden = !postUnverified;
+    // Sent and waiting for the network: said on the button, not offered again.
+    const busy = typeof vw !== "undefined" && vw.waiting === open;
+    $("bp-verify-go").disabled = busy;
+    $("bp-verify-go").textContent = busy ? "Verifying… usually within a minute" : "Verify this wallet";
     postReady();
   }
-  $("bp-verify-go").onclick = async () => {
-    // Your profile, its wallets, with this one's verifying under way.
-    openProfile();
-    if (typeof pfTab === "function") pfTab("settings");
-    await renderVerify();
-    const b = document.querySelector(`#vf-list [data-verify="${view && view.address}"]`);
-    if (b) { b.scrollIntoView({ block: "center" }); startVerify(b.dataset.verify, b); }
-  };
+  // The same one-tap confirm as Home's: posting opens once it's verified.
+  $("bp-verify-go").onclick = () => quickVerify();
   // SOL first; Bitcoin for those who'd rather. Until SOL swaps are open
   // in this copy of the app (live on Solana), only Bitcoin shows.
   let postCoin = "sol";
@@ -8084,6 +8315,7 @@
     if (!b) return;
     let g;
     try { g = JSON.parse(b.dataset.gif); } catch { return; }
+    if (gifs.target === "room") { room.gif = g; room.photos = []; gifClose(); roomAttachPaint(); feel("selection"); return; }
     if (gifs.target) { rdraftOf(gifs.target).gif = g; gifClose(); rdraftPaint(gifs.target); feel("selection"); return; }
     draft.gif = g;
     gifClose(); paintDraft(); feel("selection");
@@ -8137,7 +8369,7 @@
   // loading would only repaint it.
   moreOnScroll("community", () => cm.more && !cm.pinned, () => cmLoad(true));
   async function cmJoin() {
-    if (cm.you) { await loadBoard(); openProfile(); return; }
+    if (cm.you) { quickVerify(); return; }
     signinReturn = "community"; resetSignin(); show("board-signin");
   }
   for (const go of ["cm-join-go", "cm-reply-join-go"]) $(go).onclick = cmJoin;
@@ -8505,6 +8737,7 @@
       case "also": return "also replied to a post you replied to";
       case "react": return `reacted ${(l.emojis || []).map(esc).join(" ")} to ${theirs}`;
       case "message": return l.listing ? `wrote to you about ${esc(l.listing)}` : "wrote to you";
+      case "room_reply": return "replied to you in the Orien group chat";
       default: return "";
     }
   }
@@ -8548,7 +8781,7 @@
     }
     $("nt-list").scrollTop = 0;
     if (!nt.lines.length) $("nt-list").innerHTML = '<div class="empty">Loading…</div>';
-    try { nt.lines = (await mk("GET", "/notices")).notices || []; $("nt-problem").hidden = true; }
+    try { nt.lines = (await mk("GET", "/notices?room=1")).notices || []; $("nt-problem").hidden = true; }
     catch (e) { problem("nt-problem", mkProblem(e)); }
     paintNotices();
     // Seen: the dot goes, here and on the website.
@@ -8569,6 +8802,7 @@
     const l = nt.lines[Number(r.dataset.nt)];
     if (!l) return;
     if (l.kind === "message") { closeNotices(); return openChat(l.conversation, "notices"); }
+    if (l.kind === "room_reply") { closeNotices(); return openRoom("notices"); }
     // The post on its own in the Community, its comments open.
     let found;
     try { found = await cmCall("GET", `/posts/${l.post}`); } catch (err) { problem("nt-problem", /not found|gone|no such/i.test(String(err)) ? "That post has been removed." : err); return; }
@@ -8589,7 +8823,7 @@
   async function noticeNews() {
     if (phone || !board.me) return;
     let lines;
-    try { lines = (await mk("GET", "/notices")).notices || []; } catch { return; }
+    try { lines = (await mk("GET", "/notices?room=1")).notices || []; } catch { return; }
     let heard = null;
     try { heard = JSON.parse(localStorage.getItem("notices-heard") || "null"); } catch {}
     const first = heard === null;
@@ -8597,7 +8831,7 @@
     for (const l of lines) {
       if (!l.unseen || l.kind === "message") continue;
       // Each tip is its own line: told on its own.
-      const key = l.kind === "tip" ? `tip:${l.post}:${l.time}:${l.name}` : `${l.kind}:${l.post}`;
+      const key = l.kind === "tip" ? `tip:${l.post}:${l.time}:${l.name}` : l.kind === "room_reply" ? `room:${l.message}` : `${l.kind}:${l.post}`;
       if ((heard[key] || 0) >= l.time) continue;
       heard[key] = l.time;
       if (first || !$("nt-panel").hidden || !$("notices").hidden) continue;
@@ -8617,6 +8851,7 @@
     try { found = ((await mk("GET", "/conversations")).conversations || []).find((c) => c.listing === l.id && c.buying); } catch {}
     $("ls-ask").disabled = false;
     if (found) return openChat(found.id, "listing");
+    leaveRoom();
     chat.id = null; chat.from = "listing"; chat.paying = null; chat.blockArmed = false; chat.key = null;
     swapDraft(`l${l.id}`);
     chat.draft = l.id; chat.direct = null;
@@ -8647,8 +8882,8 @@
   // The list of conversations, newest first.
   const inbox = { items: [] };
   function paintInbox() {
-    $("ib-list").innerHTML = inbox.items.length
-      ? `<div class="list">${inbox.items.map((c) => {
+    const signedIn = !!board.me;
+    $("ib-list").innerHTML = `<div class="list">${roomRow()}${inbox.items.map((c) => {
           const last = c.last ? (c.last.kind === "request" ? "Payment request" : c.last.kind === "paid" ? "Marked as paid" : c.last.body) : "";
           return `<button class="ib-row${c.unread ? " unread" : ""}${c.id === chat.id ? " on" : ""}" data-chat="${c.id}">
             ${mkAvatar(c.with_name, c.with_picture)}
@@ -8657,9 +8892,12 @@
             <span class="udot"></span>
           </button>`;
         }).join("")}</div>`
-      : '<div class="empty">No messages yet. To write to someone, open their profile and tap Message.</div>';
+      + (!signedIn ? '<div class="ib-signin">Sign in to Orien Network to see your own messages and to chat.<button class="pill pearl" id="ib-signin">Sign in</button></div>'
+        : inbox.items.length ? "" : '<div class="empty">No messages of your own yet. To write to someone, open their profile and tap Message.</div>');
   }
   async function loadInbox() {
+    roomPeek();
+    if (!board.me) { inbox.items = []; paintInbox(); return; }
     try { inbox.items = (await mk("GET", "/conversations")).conversations || []; $("ib-problem").hidden = true; }
     catch (e) { problem("ib-problem", mkProblem(e)); }
     paintInbox();
@@ -8671,10 +8909,8 @@
     await loadInbox();
   }
   // Messages stands on its own: its own button on the home screen.
-  $("go-messages").onclick = () => {
-    if (!board.me) { signinReturn = "messages"; resetSignin(); show("board-signin"); return; }
-    openInbox();
-  };
+  // Open to everyone: the group chat reads without signing in.
+  $("go-messages").onclick = () => openInbox();
   $("ib-back").onclick = () => { chat.id = null; home(); };
   // Writing to anyone by their Orien Network name: the conversation the two
   // already have, or a new one that starts with the first message.
@@ -8685,6 +8921,7 @@
     let found = inbox.items.find(same);
     if (!found) try { found = ((await mk("GET", "/conversations")).conversations || []).find(same); } catch {}
     if (found) return openChat(found.id, from);
+    leaveRoom();
     chat.id = null; chat.from = from; chat.paying = null; chat.blockArmed = false; chat.key = null;
     swapDraft(`u${person.name.toLowerCase()}`);
     chat.draft = null; chat.direct = person.name;
@@ -8705,7 +8942,11 @@
     const p = editing && profileOf(editing);
     if (p && p.name) messagePerson({ name: p.name, picture: p.picture }, "contact");
   };
-  $("ib-list").onclick = (e) => { const r = e.target.closest("[data-chat]"); if (r) openChat(Number(r.dataset.chat), "inbox"); };
+  $("ib-list").onclick = (e) => {
+    if (e.target.closest("#ib-signin")) { signinReturn = "messages"; resetSignin(); show("board-signin"); return; }
+    if (e.target.closest("[data-room]")) { openRoom("inbox"); return; }
+    const r = e.target.closest("[data-chat]"); if (r) openChat(Number(r.dataset.chat), "inbox");
+  };
 
   // The window crossing the width while in Messages: one at a time, or
   // side by side.
@@ -8749,6 +8990,7 @@
     }
   }
   async function openChat(id, from) {
+    leaveRoom();
     swapDraft(`c${id}`);
     chat.id = id; chat.from = from || "inbox"; chat.paying = null; chat.blockArmed = false; chat.draft = null; chat.direct = null;
     // Opened: no longer unread in the list beside it.
@@ -8772,7 +9014,7 @@
     $("ch-text").focus();
   }
   async function refreshChat(force) {
-    if (!chat.id) return;
+    if (!chat.id || chat.room) return;
     const id = chat.id;
     let answer;
     try { answer = await fetchChat(id); }
@@ -8830,7 +9072,7 @@
     const pw = document.getElementById("ch-pay-pw");
     if (pw) pw.focus();
   }
-  $("ch-back").onclick = () => { chat.id = null; chat.direct = null; chat.from === "listing" ? show("listing") : chat.from === "profile" ? show("seller") : chat.from === "contact" ? show("contact") : chat.from === "notices" ? (phone ? openNotices() : home()) : chat.from === "member" ? show("member") : openInbox(); };
+  $("ch-back").onclick = () => { const wasRoom = chat.room; leaveRoom(); chat.id = null; chat.direct = null; if (wasRoom && chat.from === "inbox") return openInbox(); chat.from === "listing" ? show("listing") : chat.from === "profile" ? show("seller") : chat.from === "contact" ? show("contact") : chat.from === "notices" ? (phone ? openNotices() : home()) : chat.from === "member" ? show("member") : openInbox(); };
   $("ch-who").onclick = () => { if (chat.conv && chat.conv.with) { market.sellerFrom = "chat"; openSeller(chat.conv.with); } };
   $("ch-about").onclick = () => chat.conv && chat.conv.listing && openListing(chat.conv.listing, "chat");
   // Delete conversation: gone from your Messages (theirs stays); asks twice.
@@ -8896,6 +9138,7 @@
   };
   // Buyer: pay a request from this wallet, then mark it paid, in one go.
   $("ch-log").onclick = async (e) => {
+    if (chat.room) return roomClick(e);
     const pay = e.target.closest("[data-pay]"), cancel = e.target.closest("[data-paycancel]"), now = e.target.closest("[data-paynow]");
     if (pay) { chat.paying = Number(pay.dataset.pay); paintChat(); return; }
     if (cancel) { chat.paying = null; paintChat(); return; }
@@ -8934,6 +9177,7 @@
   $("ch-text").oninput = growText;
   $("ch-text").onkeydown = (e) => { if (e.key === "Enter" && !e.shiftKey && !e.isComposing) { e.preventDefault(); $("ch-send").click(); } };
   $("ch-send").onclick = async () => {
+    if (chat.room) return roomSend();
     const body = $("ch-text").value.trim();
     if (!body || !(chat.id || chat.draft || chat.direct)) return;
     $("ch-send").disabled = true;
@@ -8956,8 +9200,379 @@
     }
     finally { $("ch-send").disabled = false; $("ch-text").focus(); }
   };
+
+  // ---- The group chat: one room for everyone on Orien Network, pinned
+  // first in Messages. Anyone reads it; sending, replying and reacting take
+  // a verified wallet, and every message is checked like any other post.
+  const room = { banArmed: null, msgs: [], newest: 0, version: null, more: false, loadingOlder: false, last: null, you: null, reply: null, photos: [], gif: null, key: "", armed: null, reactions: null };
+  // The server marks your own reactions `mine`; Community's say `me`.
+  const rmMine = (r) => !!(r.mine || r.me);
+  // The Orien sunrise, as beside the wordmark.
+  const ROOM_ICON = '<svg viewBox="0 0 512 512" fill="currentColor"><rect x="239" y="74" width="36" height="66" rx="18"/><rect x="239" y="74" width="36" height="66" rx="18" transform="rotate(-44 256 298)"/><rect x="239" y="74" width="36" height="66" rx="18" transform="rotate(44 256 298)"/><path d="M138 298 A118 118 0 0 1 374 298 Z"/><rect x="76" y="338" width="360" height="40" rx="20"/><rect x="156" y="406" width="200" height="36" rx="18"/></svg>';
+  const DOTS_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg>';
+  const FLAG_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 22V4a1 1 0 0 1 .4-.8A6 6 0 0 1 8 2c3 0 5 2 7.333 2q2 0 3.067-.8A1 1 0 0 1 20 4v10a1 1 0 0 1-.4.8A6 6 0 0 1 16 16c-3 0-5-2-8-2a6 6 0 0 0-4 1.528"/></svg>';
+  const BAN_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M4.929 4.929 19.07 19.071"/></svg>';
+  const UNBAN_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>';
+  const BIN_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>';
+  const roomRead = () => Number(localStorage.getItem("room-read") || 0);
+  function roomMarkRead() { if (room.newest > roomRead()) localStorage.setItem("room-read", String(room.newest)); if (typeof roomDot === "function") roomDot(); }
+  const roomText = (m) => m.body || ((m.pictures || []).length ? "Sent a picture" : m.gif ? "Sent a GIF" : "");
+  function roomRow() {
+    const m = room.last, unread = m && m.id > roomRead() && !(chat.room && !$("chat").hidden);
+    return `<button class="ib-row${unread ? " unread" : ""}${chat.room ? " on" : ""}" data-room>
+      <span class="avatar rm-icon">${ROOM_ICON}</span>
+      <div class="mw0"><div class="nm"><b>Orien</b><span class="when">${m ? esc(ago(m.created)) : ""}</span></div>
+        <div class="what">Group chat · everyone on Orien Network</div>
+        <div class="last">${m ? `${esc((m.author && m.author.name) || "Someone")}: ${esc(roomText(m))}` : "Say hello to everyone."}</div></div>
+      <span class="udot"></span>
+    </button>`;
+  }
+  // The newest message, for the row in Messages and the dot on Home's
+  // group chat button. Your own messages are never news to you.
+  async function roomPeek() {
+    try {
+      const a = await mk("GET", "/room/messages?limit=1");
+      const m = (a.messages || []).slice(-1)[0] || null;
+      if ((m && m.id) !== (room.last && room.last.id)) { room.last = m; if (!$("inbox").hidden) paintInbox(); }
+    } catch {}
+    roomDot();
+  }
+  function roomDot() {
+    const m = room.last, open = chat.room && !$("chat").hidden;
+    if (m && m.mine && m.id > roomRead()) localStorage.setItem("room-read", String(m.id));
+    $("room-dot").hidden = !(m && m.id > roomRead() && !open);
+  }
+  // Straight into Messages with the group chat open.
+  $("go-room").onclick = () => { openRoom("inbox"); loadInbox(); };
+  roomPeek();
+  setInterval(() => { if (!document.hidden && !(chat.room && !$("chat").hidden)) roomPeek(); }, 30000);
+  function leaveRoom() {
+    if (!chat.room) return;
+    chat.room = false;
+    $("chat").classList.remove("room");
+    for (const id of ["rm-reply", "rm-attach", "rm-photo", "rm-gif", "rm-bans-go", "rm-bans"]) $(id).hidden = true;
+  }
+  // Who you are here: signed in, and whether a wallet of yours is verified.
+  async function roomWho() {
+    if (!board.me) { room.you = null; return; }
+    if (room.you) return;
+    try { const b = await cmCall("GET", "/board"); room.you = b.you ? { ...b.you, id: board.me.id } : null; } catch {}
+  }
+  // Every answer says who you are here and what the room allows.
+  function roomTake(a) {
+    if ("you" in a) {
+      const was = JSON.stringify(room.you);
+      room.you = board.me ? a.you || null : null;
+      if (JSON.stringify(room.you) !== was && chat.room) roomGate();
+    }
+    if (a.reactions && a.reactions.length) room.reactions = a.reactions;
+    if (a.version !== undefined) room.version = a.version;
+  }
+  async function openRoom(from) {
+    if (!chat.room) swapDraft("room");
+    chat.room = true; chat.id = "room"; chat.from = from || "inbox"; chat.conv = null; chat.draft = null; chat.direct = null; chat.paying = null;
+    $("chat").classList.add("room");
+    $("ch-askbox").hidden = true; $("ch-menu").hidden = true; $("ch-problem").hidden = true;
+    $("ch-about").hidden = true; $("ch-ask").hidden = true; $("ch-more").hidden = true;
+    $("ch-who").innerHTML = `<span class="avatar rm-icon">${ROOM_ICON}</span><div class="mw0"><b>Orien</b><small>Everyone on Orien Network</small></div>`;
+    $("ch-text").placeholder = "Message everyone";
+    room.key = "";
+    if (room.msgs.length) { roomPaint(true); show("chat"); roomGate(); roomWho().then(roomGate); roomPoll(); return; }
+    $("chat").classList.add("loading");
+    show("chat");
+    await Promise.all([roomLoad(), roomWho()]);
+    $("chat").classList.remove("loading");
+    roomGate();
+    roomPaint(true);
+  }
+  // Sending needs a sign-in and a verified wallet; reading never does.
+  function roomGate() {
+    if (!chat.room) return;
+    const you = room.you, ok = !!(you && you.verified && !you.banned);
+    $("rm-bans-go").hidden = !(you && you.moderator);
+    $("ch-compose").hidden = !ok;
+    $("rm-photo").hidden = !ok; $("rm-gif").hidden = !ok;
+    $("ch-blocked").hidden = ok;
+    $("ch-blocked").innerHTML = !board.me
+      ? 'Sign in to Orien Network to chat.<br><button class="pill pearl" id="rm-signin">Sign in</button>'
+      : !you ? "Loading…" : you.banned ? "You can't send in the group chat right now. You can still read along."
+      : 'Verify one of your wallets to chat. Anyone can read along.<br><button class="pill pearl" id="rm-verify">Verify a wallet</button>';
+    if (!ok) { room.reply = null; $("rm-reply").hidden = true; $("rm-attach").hidden = true; }
+    else roomAttachPaint();
+  }
+  $("ch-blocked").addEventListener("click", (e) => {
+    if (e.target.closest("#rm-signin")) { signinReturn = "messages"; resetSignin(); show("board-signin"); }
+    else if (e.target.closest("#rm-verify")) quickVerify();
+  });
+  const roomPics = (m) => (m.pictures || []).map((p) => typeof p === "string" ? { name: p } : p);
+  async function roomLoad() {
+    try {
+      const a = await mk("GET", "/room/messages?limit=50");
+      roomTake(a);
+      room.msgs = a.messages || [];
+      room.more = a.more !== undefined ? !!a.more : room.msgs.length >= 50;
+      room.newest = room.msgs.length ? room.msgs[room.msgs.length - 1].id : 0;
+      room.last = room.msgs[room.msgs.length - 1] || null;
+      $("ch-problem").hidden = true;
+    } catch (e) { problem("ch-problem", mkProblem(e)); }
+  }
+  // Live: the latest fifty again, so new messages, reactions and removals
+  // all show; anything older stays as it was.
+  let roomPolling = false;
+  async function roomPoll() {
+    if (!chat.room || roomPolling) return;
+    roomPolling = true;
+    try {
+      // Only what's new, and what changed since last time (reactions,
+      // removals), by the room's version.
+      if (!room.msgs.length || room.version === null) { await roomLoad(); roomPaint(false); return; }
+      const a = await mk("GET", `/room/messages?after=${room.newest}&changes=${encodeURIComponent(room.version)}&limit=100`);
+      if (!chat.room) return;
+      roomTake(a);
+      for (const c of a.changed || []) {
+        if (c.removed) room.msgs = room.msgs.filter((m) => m.id !== c.id);
+        else { const i = room.msgs.findIndex((m) => m.id === c.id); if (i >= 0) room.msgs[i] = c; }
+      }
+      const fresh = (a.messages || []).filter((m) => m.id > room.newest);
+      if (fresh.length) { room.msgs = room.msgs.concat(fresh); room.newest = fresh[fresh.length - 1].id; }
+      room.last = room.msgs[room.msgs.length - 1] || null;
+      roomPaint(false);
+    } catch {} finally { roomPolling = false; }
+  }
+  async function roomOlder() {
+    if (!room.more || room.loadingOlder || !room.msgs.length) return;
+    room.loadingOlder = true;
+    try {
+      const a = await mk("GET", `/room/messages?before=${room.msgs[0].id}&limit=50`);
+      const older = a.messages || [];
+      room.more = a.more !== undefined ? !!a.more : older.length >= 50;
+      const log = $("ch-log"), below = log.scrollHeight - log.scrollTop;
+      room.msgs = older.concat(room.msgs);
+      roomPaint(false, true);
+      log.scrollTop = log.scrollHeight - below;
+    } catch {} finally { room.loadingOlder = false; }
+  }
+  $("ch-log").addEventListener("scroll", () => { if (chat.room && $("ch-log").scrollTop < 300) roomOlder(); }, { passive: true });
+  function roomMsg(m, prev) {
+    const a = m.author || {};
+    const cont = !!(prev && prev.author && a.id && prev.author.id === a.id && m.created - prev.created < 300 && !m.reply_to
+      && new Date(prev.created * 1000).toDateString() === new Date(m.created * 1000).toDateString());
+    const at = new Date(m.created * 1000).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
+    const mine = m.mine !== undefined ? !!m.mine : !!(room.you && a.id === room.you.id);
+    const mod = !!(room.you && room.you.moderator);
+    const q = m.reply_to;
+    const chips = (m.reactions || []).map((r) => `<button class="cm-chip${rmMine(r) ? " on" : ""}" data-rm-react="${m.id}" data-emoji="${esc(r.emoji)}"><span>${esc(r.emoji)}</span><b>${r.count}</b></button>`).join("");
+    const armed = room.armed === m.id;
+    return `<div class="rm-msg${cont ? " cont" : ""}${q ? " quoted" : ""}" data-rm="${m.id}">
+      ${q ? `<button class="rm-quote" data-rm-jump="${q.id}">${REPLY_ICON}<b>${esc(q.author_name || "Someone")}</b><span>${esc(q.body || "")}</span></button>` : ""}
+      ${cont ? `<span class="rm-at">${esc(at)}</span>` : `<button class="rm-face" data-rm-who="${a.id || ""}" aria-label="${esc(a.name || "")}">${mkAvatar(a.name, a.picture)}</button>`}
+      <div class="rm-main">
+        ${cont ? "" : `<div class="rm-head"><button class="rm-name" data-rm-who="${a.id || ""}">${esc(a.name || "Someone")}</button>${a.moderator ? '<span class="rm-badge mod">Moderator</span>' : ""}${a.banned ? '<span class="rm-badge">Banned</span>' : ""}<time>${esc(at)}</time></div>`}
+        ${m.body ? `<div class="rm-body">${esc(m.body)}</div>` : ""}
+        ${cmMedia({ pictures: roomPics(m), gif: m.gif })}
+        ${chips ? `<div class="rm-reacts">${chips}</div>` : ""}
+      </div>
+      <div class="rm-tools">
+        <button data-rm-pick="${m.id}" title="React" aria-label="React">${SMILE_ICON}</button>
+        <button data-rm-reply="${m.id}" title="Reply" aria-label="Reply">${REPLY_ICON}</button>
+        ${mine ? "" : `<button data-rm-report="${m.id}" title="Report" aria-label="Report">${FLAG_ICON}</button>`}
+        ${mine || mod ? `<button class="bad" data-rm-del="${m.id}" title="${armed ? "Tap again to delete" : "Delete"}" aria-label="Delete">${armed ? "✓" : BIN_ICON}</button>` : ""}
+        ${mod && !mine && a.id && !a.moderator ? (a.banned
+          ? `<button data-rm-unban="${a.id}" title="Let ${esc(a.name || "them")} send again" aria-label="Unban">${UNBAN_ICON}</button>`
+          : `<button class="bad" data-rm-ban="${a.id}" title="${room.banArmed === a.id ? `Tap again to ban ${esc(a.name || "them")} from the chat` : `Ban ${esc(a.name || "them")} from the chat`}" aria-label="Ban">${room.banArmed === a.id ? "✓" : BAN_ICON}</button>`) : ""}
+      </div>
+    </div>`;
+  }
+  function roomPaint(toBottom, keepPlace) {
+    if (!chat.room) return;
+    const key = JSON.stringify([room.msgs.map((m) => [m.id, m.body, m.reactions, m.author && m.author.banned]), room.more, room.armed, room.banArmed, room.you && [room.you.id, room.you.moderator, room.you.banned]]);
+    if (key === room.key && !toBottom) return;
+    room.key = key;
+    const log = $("ch-log");
+    const atBottom = toBottom || log.scrollHeight - log.scrollTop - log.clientHeight < 80;
+    let html = room.more ? "" : '<div class="rm-start">This is the start of the Orien group chat. Be kind; everything here is public.</div>', day = "", prev = null;
+    for (const m of room.msgs) {
+      const d = new Date(m.created * 1000).toLocaleDateString([], { weekday: "long", month: "short", day: "numeric" });
+      if (d !== day) { html += `<div class="ch-day">${esc(d)}</div>`; day = d; prev = null; }
+      html += roomMsg(m, prev);
+      prev = m;
+    }
+    const open = document.querySelector("#ch-log .report-box");
+    paintKeeping(log, html || '<div class="empty">No messages yet. Say hello to everyone.</div>');
+    if (open) { const host = log.querySelector(`[data-rm="${open.dataset.for}"]`); if (host) host.appendChild(open); }
+    if (atBottom && !keepPlace) log.scrollTop = log.scrollHeight;
+    if (!$("chat").hidden) { roomMarkRead(); if (!$("inbox").hidden) paintInbox(); }
+  }
+  function roomCan(t) {
+    if (room.you && room.you.verified && !room.you.banned) return true;
+    // The card above the box already says why: it nudges instead of a second message.
+    if (!$("ch-blocked").hidden) { const c = $("ch-blocked"); c.animate([{ transform: "translateX(0)" }, { transform: "translateX(-6px)" }, { transform: "translateX(6px)" }, { transform: "translateX(0)" }], { duration: 260 }); return false; }
+    problem("ch-problem", board.me ? "Verify one of your wallets to chat, reply or react." : "Sign in to Orien Network to chat, reply or react.");
+    return false;
+  }
+  async function roomClick(e) {
+    const t = e.target.closest("[data-rm-who],[data-rm-jump],[data-rm-pick],[data-rm-emoji],[data-rm-react],[data-rm-reply],[data-rm-del],[data-rm-report],[data-rm-report-send],[data-rm-ban],[data-rm-unban]");
+    if (!t) {
+      // Phones: a tap on a message shows what can be done with it.
+      const row = phone && e.target.closest(".rm-msg");
+      for (const r of document.querySelectorAll(".rm-msg.tools")) if (r !== row) r.classList.remove("tools");
+      if (row) row.classList.toggle("tools");
+      return;
+    }
+    if (t.dataset.rmWho) { market.sellerFrom = "chat"; openSeller(Number(t.dataset.rmWho)); return; }
+    if (t.dataset.rmJump) {
+      const row = $("ch-log").querySelector(`[data-rm="${t.dataset.rmJump}"]`);
+      if (row) { row.scrollIntoView({ block: "center", behavior: "smooth" }); row.classList.add("flash"); setTimeout(() => row.classList.remove("flash"), 1200); }
+      return;
+    }
+    if (t.dataset.rmReportSend) {
+      const box = t.closest(".report-box");
+      t.disabled = true;
+      try {
+        await mk("POST", "/reports", { kind: "room", id: Number(t.dataset.rmReportSend), reason: box.querySelector("textarea").value.trim() });
+        box.querySelector(".hint").textContent = "Thanks. We will look at it.";
+        setTimeout(() => box.remove(), 1600);
+      } catch (err) { problem("ch-problem", mkProblem(err)); t.disabled = false; }
+      return;
+    }
+    if (t.dataset.rmReport) {
+      if (!board.me) { problem("ch-problem", "Sign in to Orien Network to report a message."); return; }
+      const old = document.querySelector("#ch-log .report-box");
+      if (old) { const same = old.dataset.for === t.dataset.rmReport; old.remove(); if (same) return; }
+      const row = t.closest(".rm-msg");
+      row.insertAdjacentHTML("beforeend", `<div class="report-box" data-for="${t.dataset.rmReport}"><textarea rows="2" maxlength="1000" placeholder="What is wrong with this message?"></textarea><div class="ls-ask-row"><span class="hint"></span><button class="pill" data-rm-report-send="${t.dataset.rmReport}">Send report</button></div></div>`);
+      row.querySelector(".report-box textarea").focus();
+      return;
+    }
+    if (t.dataset.rmBan || t.dataset.rmUnban) {
+      const who = Number(t.dataset.rmBan || t.dataset.rmUnban);
+      if (t.dataset.rmBan && room.banArmed !== who) {
+        room.banArmed = who; roomPaint(false);
+        setTimeout(() => { if (room.banArmed === who) { room.banArmed = null; roomPaint(false); } }, 4000);
+        return;
+      }
+      room.banArmed = null;
+      try {
+        if (t.dataset.rmBan) await mk("POST", "/room/bans", { account: who }); else await mk("DELETE", `/room/bans/${who}`);
+        for (const m of room.msgs) if (m.author && m.author.id === who) m.author.banned = !!t.dataset.rmBan;
+        feel("success");
+        roomPaint(false);
+        if (!$("rm-bans").hidden) roomBans();
+      } catch (err) { problem("ch-problem", mkProblem(err)); }
+      return;
+    }
+    if (!roomCan(t)) return;
+    const id = Number(t.dataset.rmPick || t.dataset.rmEmoji || t.dataset.rmReact || t.dataset.rmReply || t.dataset.rmDel);
+    if (t.dataset.rmPick) {
+      if (Date.now() - (t.closedAt || 0) < 400) return;
+      cmClosePickers();
+      const row = t.closest(".rm-msg"), picker = document.createElement("span");
+      picker.className = "cm-picker";
+      picker.innerHTML = (room.reactions || cm.reactions).map((r) => `<button data-rm-emoji="${id}" data-emoji="${esc(r)}">${esc(r)}</button>`).join("");
+      picker.was = t;
+      row.appendChild(picker);
+      row.classList.add("picking");
+      t.classList.add("open");
+      return;
+    }
+    if (t.dataset.rmReply) {
+      const m = room.msgs.find((x) => x.id === id);
+      if (!m) return;
+      room.reply = m;
+      $("rm-reply-text").innerHTML = `Replying to <b>${esc((m.author && m.author.name) || "Someone")}</b>`;
+      $("rm-reply").hidden = false;
+      $("ch-text").focus();
+      return;
+    }
+    try {
+      if (t.dataset.rmDel) {
+        if (room.armed !== id) { room.armed = id; roomPaint(false); setTimeout(() => { if (room.armed === id) { room.armed = null; roomPaint(false); } }, 4000); return; }
+        room.armed = null;
+        await mk("DELETE", `/room/messages/${id}`);
+        room.msgs = room.msgs.filter((m) => m.id !== id);
+        feel("success");
+      } else {
+        cmClosePickers();
+        await mk("POST", `/room/messages/${id}/react`, { emoji: t.dataset.emoji });
+        feel("selection");
+      }
+    } catch (err) { problem("ch-problem", mkProblem(err)); }
+    roomPoll();
+  }
+  // The reaction picker closing takes its message's tools with it.
+  document.addEventListener("pointerdown", () => setTimeout(() => {
+    for (const r of document.querySelectorAll(".rm-msg.picking")) if (!r.querySelector(".cm-picker")) r.classList.remove("picking");
+  }, 0), true);
+  // Moderators: who can't send in the chat, each with Unban.
+  async function roomBans() {
+    const box = $("rm-bans");
+    let list = [];
+    try { list = (await mk("GET", "/room/bans")).bans || []; } catch (e) { problem("ch-problem", mkProblem(e)); return; }
+    box.innerHTML = '<div class="rm-bans-head">Banned from the group chat</div><div class="rm-bans-body">' + (list.length ? list.map((b) => `<div class="ib-row">${mkAvatar(b.name, b.picture)}
+      <div class="mw0"><div class="nm"><b>${esc(b.name || "Someone")}</b></div><div class="last">Banned ${esc(ago(b.banned_at))}${b.by ? ` by ${esc(b.by)}` : ""}</div></div>
+      <button class="pill" data-rm-unban="${b.account}">Unban</button></div>`).join("") : '<div class="empty">Nobody is banned.</div>') + "</div>";
+    if (box.hidden) {
+      // Under its button, its right edge lined up with the button's.
+      const r = $("rm-bans-go").getBoundingClientRect(), w = Math.min(360, window.innerWidth - 24);
+      box.style.setProperty("top", `${Math.round(r.bottom + 10)}px`);
+      box.style.setProperty("left", `${Math.round(Math.max(12, Math.min(r.right - w, window.innerWidth - 12 - w)))}px`);
+      box.hidden = false;
+    }
+  }
+  $("rm-bans-go").onclick = () => { if ($("rm-bans").hidden) roomBans(); else $("rm-bans").hidden = true; };
+  document.addEventListener("pointerdown", (e) => {
+    if (!$("rm-bans").hidden && !e.target.closest("#rm-bans, #rm-bans-go")) $("rm-bans").hidden = true;
+  }, true);
+  document.addEventListener("keydown", (e) => { if (e.key === "Escape") $("rm-bans").hidden = true; });
+  $("rm-bans").onclick = (e) => { if (e.target.closest("[data-rm-unban]")) roomClick(e); };
+  $("rm-reply-x").onclick = () => { room.reply = null; $("rm-reply").hidden = true; };
+  function roomAttachPaint() {
+    const box = $("rm-attach");
+    box.innerHTML = room.gif ? `<div><img src="${esc(room.gif.preview || room.gif.url)}" alt="GIF"><button data-rm-unattach="gif" aria-label="Remove">✕</button></div>`
+      : room.photos.map((p, i) => `<div><img src="${esc(p.url)}" alt=""><button data-rm-unattach="${i}" aria-label="Remove">✕</button></div>`).join("");
+    box.hidden = !box.innerHTML;
+    $("rm-photo").disabled = !!room.gif || room.photos.length >= 4;
+    $("rm-gif").disabled = room.photos.length > 0;
+  }
+  $("rm-attach").onclick = (e) => {
+    const b = e.target.closest("[data-rm-unattach]");
+    if (!b) return;
+    if (b.dataset.rmUnattach === "gif") room.gif = null; else room.photos.splice(Number(b.dataset.rmUnattach), 1);
+    roomAttachPaint();
+  };
+  $("rm-photo").onclick = async () => {
+    try {
+      const picked = await invoke("market_pick_pictures", { room: 4 - room.photos.length });
+      if (picked && picked.length) { room.photos.push(...picked.map((p) => ({ path: p.path, url: p.url, name: null }))); room.gif = null; roomAttachPaint(); }
+    } catch (err) { problem("ch-problem", err); }
+  };
+  $("rm-gif").onclick = () => gifOpen("room");
+  async function roomSend() {
+    const body = $("ch-text").value.trim();
+    if (!body && !room.photos.length && !room.gif) return;
+    if (!roomCan()) return;
+    $("ch-send").disabled = true;
+    try {
+      const msg = { body };
+      if (room.reply) msg.reply_to = room.reply.id;
+      if (room.photos.length) {
+        // Each picture is checked by the server as it arrives.
+        const names = [];
+        for (const ph of room.photos) names.push(ph.name || (ph.name = (await invoke("community_picture", { path: ph.path })).name));
+        msg.pictures = names;
+      } else if (room.gif) msg.gif = { id: room.gif.id, url: room.gif.url, preview: room.gif.preview, width: room.gif.width, height: room.gif.height };
+      await mk("POST", "/room/messages", msg);
+      $("ch-text").value = ""; growText();
+      room.reply = null; $("rm-reply").hidden = true;
+      room.photos = []; room.gif = null; roomAttachPaint();
+      drafts.delete("room");
+      await roomPoll();
+      $("ch-log").scrollTop = $("ch-log").scrollHeight;
+    } catch (e) { problem("ch-problem", mkProblem(e)); }
+    finally { $("ch-send").disabled = false; $("ch-text").focus(); }
+  }
   // Live: an open chat every 4 seconds, the list every 10, the unread dot every 30.
-  setInterval(() => { if (!$("chat").hidden && chat.id) refreshChat(); }, 4000);
+  setInterval(() => { if (!$("chat").hidden && chat.id) chat.room ? roomPoll() : refreshChat(); }, 4000);
   setInterval(() => { if (!$("inbox").hidden) loadInbox(); }, 10000);
   setInterval(() => { if (board.me) invoke("board_me").then((me) => { board.me = me; paintUnread(); if (me && me.unread) marketNews(); if (me && me.notices) noticeNews(); }).catch(() => {}); }, 20000);
   // A notification for each new Market message, on computers, as for ORN
@@ -9261,6 +9876,119 @@
     }
   };
   $("vf-pw").onkeydown = (e) => { if (e.key === "Enter") $("vf-go").click(); };
+
+  // ---- Verifying the open wallet in one tap, from Home or wherever a
+  // verified wallet is asked for. It still says plainly what it does
+  // before sending: the wallet becomes publicly yours, for a tiny payment.
+  const vw = { proof: null, waiting: null, short: false };
+  const vwName = () => ((walletList.find((w) => w.address === (view && view.address)) || {}).name) || "this wallet";
+  async function paintVerifyCard() {
+    const card = $("vw-card");
+    if (!board.me || !view || !view.address) { card.hidden = true; return; }
+    // Closed with its ✕: gone for good for this account on this computer.
+    if (localStorage.getItem(`verify-card-closed:${board.me.id}`)) { card.hidden = true; return; }
+    let states = [];
+    try { states = (await invoke("board_wallet_states")) || []; } catch { card.hidden = true; return; }
+    const st = states.find((p) => (p.address || "").toLowerCase() === view.address);
+    if (st && st.verified) { card.hidden = true; if (vw.waiting === view.address) vw.waiting = null; return; }
+    const waiting = vw.waiting === view.address || !!st;
+    // Only until the account has a verified wallet (more can be added from
+    // the profile), and only when this one holds enough to pay for it.
+    const anyVerified = states.some((p) => p.verified);
+    const enough = Number(String(view.most || "0").replace(/,/g, "")) >= 0.001;
+    if (!waiting && (anyVerified || !enough)) { card.hidden = true; return; }
+    $("vw-text").innerHTML = waiting ? `<b>Verifying ${esc(vwName())}</b><span>Usually within a minute.</span>`
+      : `<b>Verify ${esc(vwName())}</b><span>To chat, post and sell on Orien Network.</span>`;
+    $("vw-go").hidden = waiting;
+    card.hidden = false;
+  }
+  function vwClose() { const v = $("vw-veil"); v.classList.remove("on"); setTimeout(() => { v.hidden = true; }, 200); $("vw-pw").value = ""; }
+  async function quickVerify() {
+    if (!view || !view.address) return;
+    if (!board.me) return;
+    const typed = !!(view.locked && !view.biometric);
+    $("vw-problem").hidden = true;
+    $("vw-title").textContent = `Verify ${vwName()}`;
+    $("vw-say").textContent = "Getting it ready…";
+    $("vw-pw-box").hidden = !typed;
+    $("vw-yes").disabled = true;
+    $("vw-yes").hidden = false;
+    $("vw-yes").textContent = "Verify";
+    $("vw-no").textContent = "Cancel";
+    vw.short = false;
+    const veil = $("vw-veil");
+    if (veil.hidden) { veil.hidden = false; requestAnimationFrame(() => veil.classList.add("on")); }
+    // Too little ORN to pay for it: said first, with where to get some,
+    // rather than a failed send.
+    if (Number(String(view.most || "0").replace(/,/g, "")) < 0.001) { vwShort(); return; }
+    try { vw.proof = await invoke("board_verify", { address: view.address }); }
+    catch (e) { $("vw-say").textContent = ""; problem("vw-problem", e); return; }
+    $("vw-say").textContent = `This ties ${vwName()} to your name publicly: everyone will see it's yours, including its balance. It sends ${vw.proof.orn} ORN to Orien Network, less than 0.001 ORN with the fee.`;
+    $("vw-yes").textContent = view.biometric && !typed ? `Verify with ${bio}` : `Send ${vw.proof.orn} ORN and verify`;
+    $("vw-yes").disabled = false;
+    if (typed) $("vw-pw").focus();
+  }
+  function vwShort() {
+    vw.short = true; vw.proof = null;
+    $("vw-pw-box").hidden = true;
+    $("vw-say").textContent = `Verifying sends less than 0.001 ORN from ${vwName()}, and it doesn't hold that yet. `
+      + (phone ? "Mine for an hour in Orien Wallet on a computer, or buy a little at orien.network." : "Mine for an hour from the Mine screen, or buy a little on Swap.");
+    $("vw-yes").hidden = phone;
+    $("vw-yes").disabled = false;
+    $("vw-yes").textContent = "Open Mine";
+    $("vw-no").textContent = phone ? "Close" : "Not now";
+  }
+  $("vw-go").onclick = quickVerify;
+  $("vw-x").onclick = () => { if (board.me) localStorage.setItem(`verify-card-closed:${board.me.id}`, "1"); $("vw-card").hidden = true; };
+  $("vw-no").onclick = vwClose;
+  $("vw-veil").addEventListener("click", (e) => { if (e.target.id === "vw-veil") vwClose(); });
+  document.addEventListener("keydown", (e) => { if (e.key === "Escape" && !$("vw-veil").hidden) vwClose(); });
+  $("vw-pw").onkeydown = (e) => { if (e.key === "Enter") $("vw-yes").click(); };
+  $("vw-yes").onclick = async () => {
+    if (vw.short) { vwClose(); $("go-mine").onclick(); return; }
+    const proof = vw.proof;
+    if (!proof || !view || (proof.address || "").toLowerCase() !== view.address) { vwClose(); return; }
+    const address = view.address, label = $("vw-yes").textContent;
+    $("vw-yes").disabled = true;
+    $("vw-problem").hidden = true;
+    try {
+      $("vw-yes").innerHTML = '<span class="spinner"></span>Sending';
+      const password = $("vw-pw-box").hidden ? null : $("vw-pw").value;
+      if (!password && view.locked && view.biometric) await invoke("biometric_unlock");
+      const sent = await invoke("send_payment", { to: proof.to, amount: proof.orn, password });
+      if (sent && sent.earlier) {
+        $("vw-yes").textContent = label; $("vw-yes").disabled = false;
+        $("vw-say").textContent = "An earlier payment from this wallet had to finish first, so nothing was sent for verifying yet. Tap again to send it.";
+        return;
+      }
+      vw.proof = null; vw.waiting = address;
+      vwClose();
+      if (!$("bp-verify").hidden) checkPostWallet();
+      feel("success");
+      refresh();
+      paintVerifyCard();
+    } catch (e) {
+      if (/not enough|insufficient|too little|balance/i.test(String(e))) { vwShort(); return; }
+      $("vw-yes").textContent = label; $("vw-yes").disabled = false; problem("vw-problem", e); return;
+    }
+    // The network sees the payment a few seconds after it's final.
+    for (let i = 0; i < 36; i++) {
+      await new Promise((r) => setTimeout(r, 5000));
+      let done = false;
+      try { done = ((await invoke("board_wallet_states")) || []).some((p) => (p.address || "").toLowerCase() === address && p.verified); } catch {}
+      if (!done) continue;
+      vw.waiting = null;
+      try { board.me = await invoke("board_me"); } catch {}
+      renderBoardBar();
+      paintVerifyCard();
+      if (cm.you) { cm.you.verified = true; cmPaintYou(); }
+      if (room.you) { room.you.verified = true; roomGate(); }
+      if (!$("bp-verify").hidden) checkPostWallet();
+      if (!$("profile").hidden) renderVerify();
+      feel("success");
+      return;
+    }
+  };
   // Your picture: a menu to see your profile as others do, edit it, or
   // sign out.
   $("board-who").onclick = () => toggleMenu("me-menu", "board-who");
@@ -9482,6 +10210,323 @@
   }, 15000);
   loadSwaps();
 
+  // ---- Explorer: the network, live, as on explorer.orien.network ----
+  // One screen moving between the overview, a checkpoint, an address and
+  // the top wallets; Back goes to the view before, then home.
+  const ex = { stack: [], at: null, timer: 0, paged: null };
+  const EX_UNITS = 1000000000n;
+  // Units as ORN, grouped, with at most `digits` decimals.
+  function exOrn(units, digits = 2) {
+    let v; try { v = BigInt(units || 0); } catch { return "—"; }
+    let whole = v / EX_UNITS, frac = v % EX_UNITS;
+    if (digits < 9) {
+      const step = 10n ** BigInt(9 - digits);
+      frac = (frac + step / 2n) / step;
+      if (frac >= 10n ** BigInt(digits)) { whole += 1n; frac = 0n; }
+    }
+    const f = digits === 0 ? "" : frac.toString().padStart(digits, "0").replace(/0+$/, "");
+    return whole.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",") + (f ? "." + f : "");
+  }
+  function exRate(perSecond) {
+    const units = ["H/s", "kH/s", "MH/s", "GH/s", "TH/s"];
+    let v = perSecond, u = 0;
+    while (v >= 1000 && u < units.length - 1) { v /= 1000; u++; }
+    return `${v.toFixed(v >= 100 ? 0 : v >= 10 ? 1 : 2)} ${units[u]}`;
+  }
+  const exWhen = (t) => new Date(t * 1000).toLocaleString([], { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
+  function exAgo(t) {
+    const gone = Date.now() / 1000 - t;
+    if (gone < 60) return "just now";
+    if (gone < 3600) return `${Math.floor(gone / 60)} min ago`;
+    if (gone < 86400) return `${Math.floor(gone / 3600)} h ago`;
+    return exWhen(t);
+  }
+  const exFact = (label, value, note) => `<div class="ex-fact"><div class="l">${label}</div><div class="v">${value}</div>${note ? `<div class="n">${note}</div>` : ""}</div>`;
+  const exHead = (title, aside) => `<div class="section-head"><h3>${title}</h3>${aside || ""}</div>`;
+  const EX_WALLET = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 7V4a1 1 0 0 0-1-1H5a2 2 0 0 0 0 4h15a1 1 0 0 1 1 1v4h-3a2 2 0 0 0 0 4h3a1 1 0 0 0 1-1v-2a1 1 0 0 0-1-1"/><path d="M3 5v14a2 2 0 0 0 2 2h15a1 1 0 0 0 1-1v-4"/></svg>';
+  const CHEV = '<svg class="ex-go" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>';
+  // Who an address is: one of your wallets, a contact, a member, or itself.
+  function exWho(address) {
+    const mine = walletList.find((w) => w.address === address);
+    const name = mine ? `${mine.name} (yours)` : nameOf(address);
+    // A wallet nobody has named: a wallet, not a question mark.
+    const plain = !name && !profileOf(address) && !official(address);
+    return { name, html: name ? `${esc(name)}${officialTag(address)}` : `<span class="mono">${short(address)}</span>`,
+      face: plain ? `<span class="face ex-anon">${EX_WALLET}</span>` : face(address, name) };
+  }
+  async function exGet(path) { return invoke("explorer", { path }); }
+  function exShow(view, push = true) {
+    if (push && ex.at) ex.stack.push(ex.at);
+    ex.at = view;
+    clearInterval(ex.timer);
+    $("ex-problem").hidden = true;
+    $("explorer").scrollTop = 0;
+    $("ex-title").textContent = view.kind === "home" ? "Explorer" : view.kind === "top" ? "Top wallets" : view.kind === "checkpoint" ? `Checkpoint ${view.epoch}` : "Address";
+    $("ex-search").hidden = view.kind !== "home";
+    $("ex-body").innerHTML = '<div class="empty">Loading…</div>';
+    if (view.kind === "home") { exHome(); ex.timer = setInterval(() => { if (!$("explorer").hidden && ex.at === view) exHome(true); }, 30000); }
+    else if (view.kind === "checkpoint") exCheckpoint(view.epoch);
+    else if (view.kind === "address") exAddress(view.address);
+    else exTop();
+    if ($("explorer").hidden) show("explorer");
+  }
+  function openExplorer(view) { ex.stack = []; ex.at = null; exShow(view || { kind: "home" }, false); }
+  $("ex-back").onclick = () => { const back = ex.stack.pop(); if (back) exShow(back, false); else { clearInterval(ex.timer); home(); } };
+  $("go-explorer").onclick = () => openExplorer();
+  function exFail(e) { $("ex-body").innerHTML = ""; problem("ex-problem", e && /not found/i.test(String(e)) ? "That isn't on the network yet." : e); }
+  // Names: Market profiles with wallets they showed they hold, as on the website.
+  let exNames = { q: "", rows: null }, exNameTimer = 0;
+  async function exFindNames(q) {
+    let found = [];
+    try { found = (await invoke("market_search", { text: q })) || []; } catch { return null; }
+    const rows = [];
+    for (const p of found) for (const w of p.wallets || []) {
+      const address = (w.address || "").toLowerCase();
+      if (!/^[0-9a-f]{64}$/.test(address)) continue;
+      const info = { name: p.name, picture: p.picture, wallet_name: w.name || null };
+      profiles.set(address, info);
+      rows.push({ address, label: profileLabel(info), exact: p.name.toLowerCase() === q });
+    }
+    exNames = { q, rows };
+    return rows;
+  }
+  function exShowNames(rows, note, before = "") {
+    const box = $("ex-found");
+    box.innerHTML = before + (rows || []).map((r) => `<button class="tx" type="button" data-ex-addr="${r.address}">${face(r.address, r.label)}
+      <div class="tx-main"><div class="title">${esc(r.label)}${officialTag(r.address)}</div><div class="sub mono">${short(r.address)}</div></div>${CHEV}</button>`).join("")
+      + (note ? `<div class="note">${esc(note)}</div>` : "");
+    box.hidden = !box.innerHTML;
+  }
+  const exNameQuery = () => $("ex-q").value.trim().toLowerCase().replace(/^@/, "");
+  const exIsTarget = (q) => /^\d{1,9}$/.test(q) || /^[0-9a-f]{64}$/.test(q);
+  // Checkpoints, as soon as a number is typed, as on the website: the one
+  // typed and the latest few starting with those digits.
+  const exCps = new Map();
+  async function exCheckpointsFor(digits) {
+    if (!ex.over || Date.now() - ex.over.at > 60000) {
+      try { ex.over = { at: Date.now(), o: await exGet("/overview") }; } catch { return null; }
+    }
+    const o = ex.over.o, making = o.epoch, latest = making - 1, typed = Number(digits);
+    if (typed > making) return { html: "", note: `Checkpoint ${typed} hasn't been made yet. The latest is ${latest}.` };
+    const numbers = typed <= latest ? [typed] : [];
+    for (let n = latest; n >= 0 && numbers.length < 5; n--) if (n !== typed && String(n).startsWith(digits)) numbers.push(n);
+    await Promise.all(numbers.filter((n) => !exCps.has(n)).map((n) => exGet(`/checkpoints/${n}`).then((d) => exCps.set(n, d.checkpoint)).catch(() => {})));
+    const row = (n, sub) => `<button class="tx" type="button" data-ex-cp="${n}"><span class="ex-num">#${n}</span>
+      <div class="tx-main"><div class="title">Checkpoint ${n}</div><div class="sub">${sub}</div></div>${CHEV}</button>`;
+    let html = numbers.map((n) => { const c = exCps.get(n);
+      return row(n, c ? `${exAgo(c.time)} · ${c.payments.toLocaleString()} ${c.payments === 1 ? "payment" : "payments"} · agreed by ${c.agreed.length} of ${c.of}` : "Made"); }).join("");
+    if (typed === making) html = `<div class="tx ex-making"><span class="ex-num">#${making}</span><div class="tx-main"><div class="title">Checkpoint ${making}</div>
+      <div class="sub">Being made now, ready in about ${Math.max(1, Math.round((o.epoch_started + o.epoch_seconds - Date.now() / 1000) / 60))} min</div></div></div>` + html;
+    return { html, note: null };
+  }
+  $("ex-q").oninput = () => {
+    clearTimeout(exNameTimer);
+    $("ex-problem").hidden = true;
+    const q = exNameQuery();
+    if (/^\d{1,9}$/.test(q)) {
+      exNameTimer = setTimeout(async () => {
+        const got = await exCheckpointsFor(q);
+        if (got && exNameQuery() === q) exShowNames(null, got.note, got.html);
+      }, 150);
+      return;
+    }
+    if (q.length < 2 || exIsTarget(q)) { exShowNames(null); return; }
+    exNameTimer = setTimeout(async () => {
+      const rows = await exFindNames(q);
+      if (rows && exNameQuery() === q) exShowNames(rows, rows.length ? null : `Nobody on the Market is called “${q}”.`);
+    }, 250);
+  };
+  // Closed by a click elsewhere or Escape; open again on returning to the box.
+  document.addEventListener("mousedown", (e) => { if (!$("ex-search").contains(e.target)) $("ex-found").hidden = true; });
+  $("ex-q").addEventListener("keydown", (e) => { if (e.key === "Escape") $("ex-found").hidden = true; });
+  $("ex-q").addEventListener("focus", () => { if ($("ex-found").innerHTML) $("ex-found").hidden = false; });
+  $("ex-found").onclick = (e) => {
+    const go = e.target.closest("[data-ex-addr],[data-ex-cp]");
+    if (!go) return;
+    $("ex-q").value = ""; exShowNames(null);
+    exShow(go.dataset.exCp !== undefined ? { kind: "checkpoint", epoch: Number(go.dataset.exCp) } : { kind: "address", address: go.dataset.exAddr });
+  };
+  $("ex-search").onsubmit = async (e) => {
+    e.preventDefault();
+    clearTimeout(exNameTimer);
+    const q = exNameQuery();
+    const go = (view) => { $("ex-q").value = ""; exShowNames(null); exShow(view); };
+    if (/^\d{1,9}$/.test(q)) return go({ kind: "checkpoint", epoch: Number(q) });
+    if (/^[0-9a-f]{64}$/.test(q)) return go({ kind: "address", address: q });
+    const rows = q.length >= 2 ? (exNames.q === q && exNames.rows) || await exFindNames(q) || [] : [];
+    if (exNameQuery() !== q) return;
+    // One wallet to go to: the only one found, or the only one of the exact name.
+    const exact = rows.filter((r) => r.exact);
+    const only = rows.length === 1 ? rows[0] : exact.length === 1 ? exact[0] : null;
+    if (only) return go({ kind: "address", address: only.address });
+    exShowNames(rows, rows.length ? null : "Nothing found. Search an address (64 letters and digits, 0-9 and a-f), a checkpoint number, or the name of someone on the Market.");
+  };
+  $("ex-body").onclick = (e) => {
+    const go = e.target.closest("[data-ex-cp],[data-ex-addr],[data-ex-top],[data-ex-page],[data-ex-copy],[data-ex-send]");
+    if (!go) return;
+    if (go.dataset.exCopy !== undefined) {
+      navigator.clipboard.writeText(go.dataset.exCopy).then(() => { go.classList.add("copied"); setTimeout(() => go.classList.remove("copied"), 1200); }).catch(() => {});
+    } else if (go.dataset.exSend !== undefined) {
+      $("go-send").onclick(); $("to").value = go.dataset.exSend; validate(); $("amount").focus();
+    } else if (go.dataset.exPage !== undefined) { if (!go.disabled) exPage(Number(go.dataset.exPage)); }
+    else if (go.dataset.exTop !== undefined) exShow({ kind: "top" });
+    else if (go.dataset.exCp !== undefined) exShow({ kind: "checkpoint", epoch: Number(go.dataset.exCp) });
+    else exShow({ kind: "address", address: go.dataset.exAddr });
+  };
+  const exCpRow = (c) => `<button class="tx ex-row" data-ex-cp="${c.epoch}"><span class="ex-num">#${c.epoch}</span>
+      <div class="tx-main"><div class="title">${c.payments.toLocaleString()} ${c.payments === 1 ? "payment" : "payments"}</div><div class="sub">${exAgo(c.time)} · agreed by ${c.agreed.length} of ${c.of}</div></div>
+      <div class="tx-side"><div class="amt">${exOrn(c.released, 0)}</div><div class="sub">new ORN</div></div>${CHEV}</button>`;
+  function exHolderRow(h, i) {
+    const who = exWho(h.address);
+    return `<button class="tx ex-row" data-ex-addr="${h.address}"><span class="ex-rank">${i + 1}</span>${who.face}
+      <div class="tx-main"><div class="title">${who.html}</div><div class="sub">${(h.share * 100).toFixed(2)}% of ORN in wallets</div></div>
+      <div class="tx-side"><div class="amt">${exOrn(h.holds, 0)}</div><div class="sub">ORN</div></div></button>`;
+  }
+  async function exHome(quiet) {
+    let o, top;
+    try { [o, top] = await Promise.all([exGet("/overview"), exGet("/top")]); } catch (e) { if (!quiet) exFail(e); return; }
+    ex.over = { at: Date.now(), o };
+    if (ex.at.kind !== "home") return;
+    const holders = (top.holders || []).slice(0, 10);
+    if (await loadProfiles(holders.map((h) => h.address)) && ex.at.kind !== "home") return;
+    const left = o.epoch_started + o.epoch_seconds - Date.now() / 1000;
+    const next = left <= 0 ? "any moment" : left >= 60 ? `in ${Math.floor(left / 60)} min` : `in ${Math.ceil(left)} s`;
+    const up = o.validators.filter((v) => v.up).length;
+    const sup = o.supply || {};
+    // Big windows: the latest 15, so the list ends near the column beside
+    // it. Older ones are a search away, by number.
+    const cps = !phone && matchMedia("(min-width: 980px)").matches ? o.checkpoints.slice(0, 15) : o.checkpoints;
+    $("ex-body").innerHTML = `<div class="ex-facts">
+        ${exFact("ORN released", sup.released ? exOrn(sup.released, 0) : "—", sup.cap ? `Of ${exOrn(sup.cap, 0)} there will ever be` : "")}
+        ${exFact("New ORN this hour", sup.per_hour ? exOrn(sup.per_hour, 0) : "—", "Shared among miners")}
+        ${exFact("Next checkpoint", next, `Checkpoint ${o.epoch}`)}
+        ${exFact("Miners last hour", o.miners ? o.miners.last_hour.toLocaleString() : "—", o.miners ? `${o.miners.last_day.toLocaleString()} in the last ${o.miners.hours === 24 ? "24 hours" : `${o.miners.hours} hours`}` : "")}
+        ${exFact("Network hashrate", o.hashrate ? exRate(o.hashrate.per_second) : "—", o.hashrate ? `Estimated, over the last ${o.hashrate.hours === 1 ? "hour" : `${o.hashrate.hours} hours`}` : "")}
+        ${exFact("Wallets holding ORN", sup.holding != null ? sup.holding.toLocaleString() : "—", sup.holding_one != null ? `${sup.holding_one.toLocaleString()} hold at least 1 ORN` : "")}
+      </div>
+      <div class="ex-split"><div>
+      ${exHead("Validators", `<span class="sub">${up} of ${o.validators.length} running</span>`)}
+      <div class="list">${o.validators.map((v) => `<div class="tx"><span class="ex-dot${v.up ? " up" : ""}"></span>
+        <div class="tx-main"><div class="title">Validator ${v.seat + 1}</div><div class="sub">${v.account ? `Staked by ${esc(exWho(v.account).name || short(v.account))} · ${exOrn(v.stake, 0)} ORN` : "Launch validator"} · agreed on ${v.agreed} of the last ${v.of}</div></div>
+        <div class="tx-side"><div class="amt">${!v.up ? "Not answering" : v.epoch < o.epoch ? "Catching up" : "Running"}</div><div class="sub">${v.up ? `Checkpoint ${v.epoch}` : ""}</div></div></div>`).join("")}</div>
+      ${exHead("Top wallets", `<button class="pill" data-ex-top>See the top 100</button>`)}
+      <div class="list">${holders.map(exHolderRow).join("") || '<div class="empty">No wallets yet.</div>'}</div>
+      </div><div>
+      ${exHead("Latest checkpoints", '<span class="sub">One every hour</span>')}
+      <div class="list" id="ex-cps">${cps.map(exCpRow).join("")}</div>
+      </div></div>`;
+  }
+  function exChange(harder) {
+    const ratio = 1 + harder, value = Math.round(Math.abs(harder) * 1000) / 10;
+    if (value === 0) return "About the same";
+    if (ratio >= 2) return `${Number(ratio.toFixed(1))}× harder`;
+    if (ratio > 0 && ratio <= 0.5) return `${Number((1 / ratio).toFixed(1))}× easier`;
+    return `${value}% ${harder > 0 ? "harder" : "easier"}`;
+  }
+  async function exCheckpoint(epoch) {
+    let d;
+    try { d = await exGet(`/checkpoints/${epoch}`); } catch (e) { exFail(/not found/i.test(String(e)) ? `Checkpoint ${epoch} hasn't been made yet.` : e); return; }
+    const c = d.checkpoint, r = d.rewards || {}, miners = r.miners || [];
+    await loadProfiles(miners.slice(0, 100).map((m) => m.address));
+    if (ex.at.kind !== "checkpoint" || ex.at.epoch !== epoch) return;
+    const math = r.math ? (r.math === "Blake3" ? "BLAKE3" : r.math) : "—";
+    $("ex-body").innerHTML = `<div class="ex-facts five">
+        ${exFact("Miners paid", miners.length.toLocaleString(), `${exOrn(c.released, 2)} new ORN`)}
+        ${exFact("Payments", c.payments.toLocaleString(), "Made final")}
+        ${exFact("Mining", math, r.harder != null ? `Next hour ${exChange(r.harder).toLowerCase()}` : "")}
+        ${exFact("Agreed by", `${c.agreed.length} of ${c.of}`, "Validators")}
+        ${exFact("Made", exAgo(c.time), exWhen(c.time))}
+      </div>
+      <div class="ex-split"><div>
+      ${exHead("Mining rewards", `<span class="sub">${miners.length.toLocaleString()} ${miners.length === 1 ? "wallet" : "wallets"}</span>`)}
+      <div class="list" id="ex-paged">${!r.known ? `<div class="empty">${r.since != null && epoch < r.since ? `Who mined this hour isn't known: the validators' records start at checkpoint ${r.since}.` : "The validators didn't answer about this hour's rewards just now. Try again in a moment."}</div>`
+        : miners.length ? "" : '<div class="empty">Nobody mined this hour.</div>'}</div>
+      <div class="ex-pages" id="ex-pages"></div>
+      </div><div>
+      ${exHead("Validators that hour")}
+      <div class="list">${(d.validators || []).map((v) => `<div class="tx"><span class="ex-dot${v.agreed ? " up" : ""}"></span><div class="tx-main"><div class="title">Validator ${v.seat + 1}</div><div class="sub">${v.account ? `Staked by ${esc(exWho(v.account).name || short(v.account))}` : "Launch validator"}</div></div><div class="tx-side"><div class="amt">${v.agreed ? "Agrees" : "Didn't answer"}</div></div></div>`).join("")}</div>
+      ${exHead("For checking")}
+      <div class="list">
+        <button class="ex-hash ex-row" data-ex-copy="${c.state}" title="Copy"><div class="l">State after it: every account's balance, as one fingerprint</div><div class="h">${c.state}</div></button>
+        <button class="ex-hash ex-row" data-ex-copy="${c.digest}" title="Copy"><div class="l">This checkpoint's fingerprint</div><div class="h">${c.digest}</div></button>
+        ${epoch !== 0 && d.previous ? `<button class="ex-hash ex-row" data-ex-copy="${d.previous}" title="Copy"><div class="l">The checkpoint before it</div><div class="h">${d.previous}</div></button>` : ""}
+      </div>
+      </div></div>
+      <div class="ex-steps">${epoch > 0 ? `<button class="pill" data-ex-cp="${epoch - 1}">← Checkpoint ${epoch - 1}</button>` : "<span></span>"}${d.latest != null && epoch < d.latest ? `<button class="pill" data-ex-cp="${epoch + 1}">Checkpoint ${epoch + 1} →</button>` : ""}</div>`;
+    if (r.known && miners.length) exPaged(miners, 10, exMinerRow);
+  }
+  function exMinerRow(m, i) {
+    const who = exWho(m.address);
+    return `<button class="tx ex-row" data-ex-addr="${m.address}"><span class="ex-rank">${i + 1}</span>${who.face}
+      <div class="tx-main"><div class="title">${who.html}</div><div class="sub">${(Number(m.part) * 100).toFixed(2)}% of the work</div></div>
+      <div class="tx-side"><div class="amt received">+${exOrn(m.amount, 2)}</div><div class="sub">ORN</div></div></button>`;
+  }
+  const EX_KINDS = {
+    received: ["Received", "from"], sent: ["Sent", "to"], mined: ["Mining reward"], fees: ["Validator fees"],
+    claimed: ["Locked payment received", "from"], refunded: ["Locked payment returned"], unstaked: ["Stake returned"],
+  };
+  async function exAddress(address) {
+    let d;
+    try { d = await exGet(`/address/${address}`); } catch (e) { exFail(e); return; }
+    const acts = d.activity || [];
+    await loadProfiles([address, ...acts.map((a) => a.counterparty).filter(Boolean)]);
+    if (ex.at.kind !== "address" || ex.at.address !== address) return;
+    const who = exWho(address);
+    const mine = walletList.some((w) => w.address === address);
+    $("ex-body").innerHTML = `<div class="ex-addr-top"><div class="ex-hero">${who.face}<div class="ex-hero-info"><div class="ex-name">${who.name ? who.html : "Address"}</div>
+        <button class="ct-addr" data-ex-copy="${address}" title="Copy the address"><span>${short(address)}</span><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button>
+        ${mine ? "" : `<button class="pill pearl" data-ex-send="${address}">Send ORN</button>`}</div></div>
+      <div class="list ex-stats"><div><b title="${exOrn(d.balance, 9)} ORN">${exOrn(d.balance, 2)}</b><span>ORN held</span></div><div><b>${exOrn(d.staked, 2)}</b><span>${d.returning && d.returning !== "0" ? `staked · ${exOrn(d.returning, 4)} returning` : "staked"}</span></div><div><b>${(d.payments_made || 0).toLocaleString()}</b><span>payments sent</span></div></div></div>
+      ${exHead("Activity", d.more ? '<span class="sub">The latest 500</span>' : "")}
+      <div class="list" id="ex-paged">${acts.length ? "" : `<div class="empty">${d.since != null ? "Nothing has happened at this address yet." : "No activity is recorded for this address."}</div>`}</div>
+      <div class="ex-pages" id="ex-pages"></div>`;
+    if (acts.length) exPaged(acts, EX_PAGE, exActRow);
+  }
+  // A long list in numbered pages (a wallet's activity, 25 to a page; a
+  // checkpoint's miners, 10, so the column beside ends with them). It all
+  // arrives at once, so turning a page is instant.
+  const EX_PAGE = 25;
+  function exPaged(rows, per, rowOf) { ex.paged = { rows, per, rowOf }; exPage(1, false); }
+  function exPage(n, scroll = true) {
+    const { rows, per, rowOf } = ex.paged;
+    const pages = Math.ceil(rows.length / per);
+    n = Math.min(Math.max(1, n), pages);
+    $("ex-paged").innerHTML = rows.slice((n - 1) * per, n * per).map((r, i) => rowOf(r, (n - 1) * per + i)).join("");
+    // The first, the last, and the pages either side of this one.
+    const nums = [...new Set([1, n - 1, n, n + 1, pages])].filter((x) => x >= 1 && x <= pages).sort((a, b) => a - b);
+    let html = `<button class="ex-pg" data-ex-page="${n - 1}" aria-label="Previous page"${n === 1 ? " disabled" : ""}>‹</button>`;
+    nums.forEach((x, i) => {
+      if (i && x - nums[i - 1] > 1) html += '<span class="ex-gap">…</span>';
+      html += `<button class="ex-pg${x === n ? " on" : ""}" data-ex-page="${x}">${x}</button>`;
+    });
+    html += `<button class="ex-pg" data-ex-page="${n + 1}" aria-label="Next page"${n === pages ? " disabled" : ""}>›</button>`;
+    $("ex-pages").innerHTML = pages > 1 ? html : "";
+    if (scroll) $("ex-paged").previousElementSibling.scrollIntoView({ block: "start", behavior: "smooth" });
+  }
+  function exActRow(a) {
+        const k = EX_KINDS[a.kind] || [a.kind];
+        const out = a.kind === "sent";
+        const other = a.counterparty && k[1] ? ` ${k[1]} ${esc(exWho(a.counterparty).name || short(a.counterparty))}` : "";
+        const target = a.counterparty ? `data-ex-addr="${a.counterparty}"` : a.epoch != null ? `data-ex-cp="${a.epoch}"` : "";
+        return `<button class="tx ex-row" ${target}><span class="tx-icon ${out ? "sent" : "received"}">${ICON[out ? "sent" : "received"]}</span>
+          <div class="tx-main"><div class="title">${k[0]}${other}</div><div class="sub">${a.time ? exAgo(a.time) : "This hour"}${a.epoch != null ? ` · checkpoint ${a.epoch}` : ""}</div></div>
+          <div class="tx-side"><div class="amt ${out ? "sent" : "received"}">${out ? "−" : "+"}${exOrn(a.amount, 4)}</div><div class="sub">ORN</div></div></button>`;
+  }
+  async function exTop() {
+    let t;
+    try { t = await exGet("/top"); } catch (e) { exFail(e); return; }
+    await loadProfiles((t.holders || []).map((h) => h.address));
+    if (ex.at.kind !== "top") return;
+    $("ex-body").innerHTML = `${exHead("Ranked by ORN held", `<span class="sub">${(t.holding || 0).toLocaleString()} wallets hold ORN</span>`)}
+      <div class="list">${(t.holders || []).map(exHolderRow).join("")}</div>`;
+  }
+  // A payment in your activity opens in the explorer: the other side, or
+  // for mining and the like, your own wallet's page.
+  for (const id of ["recent", "all-activity"]) $(id).addEventListener("click", (e) => {
+    const r = e.target.closest(".tx[data-ex]");
+    if (r) openExplorer({ kind: "address", address: r.dataset.ex });
+  });
+
   // ---- Updates: checked at start and every hour, installed only on a press ----
   let update = null, autoUpdate = true;
   async function checkUpdate() {
@@ -9627,7 +10672,7 @@
     // Offers still open on the board can wait for a buyer for days: only
     // ones someone has taken count.
     return swapList.some((s) => !s.finished) || board.waiting.some((x) => x.offer.state !== "open") || !!board.taking || !!mineBench
-      || !$("si-veil").hidden || !$("upd-veil").hidden || !$("tip-veil").hidden || !$("rp-veil").hidden || !$("gif-veil").hidden || draft.photos.length > 0 || !!draft.gif || !!draft.poll || rdraftUsed() || typedSomewhere();
+      || !$("si-veil").hidden || !$("upd-veil").hidden || !$("tip-veil").hidden || !$("vw-veil").hidden || !$("rp-veil").hidden || !$("gif-veil").hidden || draft.photos.length > 0 || !!draft.gif || !!draft.poll || rdraftUsed() || typedSomewhere();
   }
   async function updateByItself() {
     if (phone || !autoUpdate || !update || autoInstalling) return;
@@ -9669,8 +10714,8 @@
     let up = false;
     const check = () => {
       const typing = document.body.classList.contains("kb-up") || (typeof prefs !== "undefined" && prefs.noarrow);
-      // The feed and profiles: once a screen down, the button takes you back to the top.
-      const feed = typing ? null : ["community", "seller"].map((id) => document.getElementById(id)).find((el) => el && !el.hidden && el.scrollTop > el.clientHeight);
+      // The feed, profiles and the explorer: once a screen down, the button takes you back to the top.
+      const feed = typing ? null : ["community", "seller", "explorer"].map((id) => document.getElementById(id)).find((el) => el && !el.hidden && el.scrollTop > el.clientHeight);
       const found = feed || (typing ? null : scrollers().filter((el) => el.scrollTop + el.clientHeight < el.scrollHeight - 24)
         .sort((a, b) => b.clientHeight - a.clientHeight)[0] || null);
       if (up !== !!feed) {
