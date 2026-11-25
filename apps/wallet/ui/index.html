@@ -2439,11 +2439,11 @@
   /* The tabs sit above the card, as everywhere else in the app. */
   .tabs.ex-tabs { grid-template-columns: repeat(3, minmax(0, 1fr)); flex: none; margin: 16px 0 12px; }
   .ex-tabs + .ex-panel { margin-top: 0 !important; }
-  .ex-pane { flex: 1 1 0; min-height: 0; overflow-y: auto; overscroll-behavior: contain; padding: 6px 0 8px; }
+  .ex-pane { flex: 1 1 0; min-height: 0; overflow-y: auto; overscroll-behavior: contain; padding: 0 0 8px; }
   .ex-pane .list { border: 0; border-radius: 0; background: none; box-shadow: none; }
-  .ex-pane .day { position: sticky; top: -6px; z-index: 1; margin: 0; padding: 12px 18px 6px; background: var(--surface); }
+  .ex-pane .day { position: sticky; top: 0; z-index: 1; margin: 0; padding: 12px 18px 6px; background: var(--surface); }
   .ex-pane .day:not(:first-child) { border-top: 1px solid var(--line); }
-  .ex-pane-note { padding: 6px 18px 2px; font-size: 12.5px; color: var(--dim); }
+  .ex-pane-note { padding: 12px 18px 2px; font-size: 12.5px; color: var(--dim); }
   .ex-more { display: flex; justify-content: center; padding: 10px 0 6px; }
   .ex-panel-head { flex: none; display: flex; align-items: baseline; justify-content: space-between; gap: 12px; padding: 14px 18px 8px; border-bottom: 1px solid var(--line); }
   .ex-panel-head b { font-weight: 600; font-size: 14.5px; }
