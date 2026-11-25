@@ -4589,7 +4589,12 @@
     $("hs-speed").textContent = s.running && s.tries_per_second ? `${speed(s.tries_per_second)}/s` : "—";
     $("hs-rate-label").textContent = small === "for each share" ? "Each share" : "Shares an hour";
     $("hs-rate").textContent = big || "—";
-    $("hs-mine-go").textContent = readying ? "Getting ready…" : s.running ? "Stop mining" : "Start mining";
+    // Someone new starts on the Mine screen, with the processor and the
+    // benchmark in view; after their first mining or benchmark, Home starts it.
+    if (s.running || mineSweet) localStorage.setItem("mined-before", "1");
+    const firstTime = !s.running && !localStorage.getItem("mined-before");
+    $("hs-mine-go").dataset.setup = firstTime ? "1" : "";
+    $("hs-mine-go").textContent = readying ? "Getting ready…" : s.running ? "Stop mining" : firstTime ? "Set up mining" : "Start mining";
     $("hs-mine-go").className = s.running ? "pill" : "pill pearl";
     $("hs-mine-go").disabled = readying;
     mnNet(s);
@@ -10153,7 +10158,10 @@
       invoke("explorer", { path: "/overview" }).then((o) => { $("hs-net").textContent = o && o.hashrate ? exRate(o.hashrate.per_second) : "—"; }).catch(() => { hsNetAt = 0; });
     }
   }
-  $("hs-mine-go").onclick = async () => { $("hs-mine-go").disabled = true; await $("mn-go").onclick(); };
+  $("hs-mine-go").onclick = async () => {
+    if ($("hs-mine-go").dataset.setup) { $("go-mine").onclick(); return; }
+    $("hs-mine-go").disabled = true; await $("mn-go").onclick();
+  };
   $("hs-mine-more").onclick = () => $("go-mine").onclick();
   async function hsChat() {
     let a;
