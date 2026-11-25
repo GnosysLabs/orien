@@ -772,6 +772,18 @@
   @media (hover: hover) { .wallet-row .tool[data-forget]:hover { background: #e5484d; color: #1b1113; } }
   /* iPhones: one card to a row. */
   body.phone #wallet-list { grid-template-columns: minmax(0, 1fr); gap: 10px; }
+  /* All your wallets together, above the cards, when there are several. */
+  .wl-total { display: flex; align-items: baseline; gap: 10px; margin: 0 2px 16px; }
+  .wl-total[hidden] { display: none; }
+  .wl-total .k { font-size: 12.5px; color: var(--dim); }
+  .wl-total .v { font-size: 22px; font-weight: 650; font-variant-numeric: tabular-nums; letter-spacing: -0.01em; }
+  .wl-total .v .unit { margin-left: 5px; font-size: 12px; font-weight: 500; color: var(--faint); letter-spacing: 0.04em; }
+  /* Big windows: the wide page, three wallets to a row. */
+  @media (min-width: 860px) {
+    body:not(.phone) #wallets { --col: 1040px; }
+    body:not(.phone) #wallet-list { grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 16px; }
+    body:not(.phone) .wallet-row .bal { font-size: 24px; }
+  }
   body.phone .wallet-row { padding: 12px 12px 14px; }
   body.phone .wallet-row .bal { font-size: 18px; }
   /* The swap board */
@@ -3392,6 +3404,7 @@
         <div class="box plain sync-pw" hidden><input type="password" placeholder="Wallet password" autocomplete="current-password"></div>
         <button class="pill pearl sync-go">Turn on syncing</button>
       </div>
+      <div class="wl-total" id="wallet-total" hidden><span class="k">All your wallets</span><span class="v" id="wallet-total-v"></span></div>
       <div id="wallet-list"><div class="empty">Loading…</div></div>
       <div class="problem" id="wallets-problem" hidden></div>
     </section>
@@ -4388,7 +4401,7 @@
   let opening = true;
   function covered(on) {
     const cover = $("loading");
-    if (on) { cover.hidden = false; cover.classList.remove("gone"); return; }
+    if (on) { cover.hidden = false; cover.classList.remove("gone"); $("more-below").classList.remove("on"); return; }
     if (cover.hidden) return;
     cover.classList.add("gone");
     setTimeout(() => { cover.hidden = true; }, 260);
@@ -4453,6 +4466,13 @@
       <div class="who"><div class="name"><span>${esc(w.name)}</span>${w.current ? '<span class="here">Open</span>' : ""}</div><div class="addr">${esc(short(w.address))}</div></div>
       <div class="bal"${balances[w.address] !== undefined ? ` title="${esc(balances[w.address])} ORN"` : ""}>${balances[w.address] !== undefined ? `${prefs.hide ? "••••" : esc(brief(balances[w.address]))}<span class="unit">ORN</span>` : "&nbsp;"}</div>
     </div>`).join("");
+    // Several wallets: what they hold together, above them.
+    const amounts = walletList.map((w) => balances[w.address] === undefined ? NaN : Number(String(balances[w.address]).replace(/,/g, "")));
+    $("wallet-total").hidden = walletList.length < 2 || !amounts.every(Number.isFinite);
+    if (!$("wallet-total").hidden) {
+      const sum = amounts.reduce((a, b) => a + b, 0);
+      $("wallet-total-v").innerHTML = `${prefs.hide ? "••••" : esc(sum.toLocaleString(undefined, { maximumFractionDigits: 2 }))}<span class="unit">ORN</span>`;
+    }
     for (const row of $("wallet-list").querySelectorAll("[data-open]")) row.onclick = async (e) => {
       if (e.target.closest("button")) return;
       const w = walletList[Number(row.dataset.open)];
@@ -11140,7 +11160,10 @@
     const DOWN = '<path d="m6 9 6 6 6-6"/>', UP = '<path d="m18 15-6-6-6 6"/>';
     let up = false;
     const check = () => {
-      const typing = document.body.classList.contains("kb-up") || (typeof prefs !== "undefined" && prefs.noarrow);
+      // Never over the sunrise while something loads behind it.
+      const cover = document.getElementById("loading");
+      const typing = document.body.classList.contains("kb-up") || (typeof prefs !== "undefined" && prefs.noarrow)
+        || (cover && !cover.hidden && !cover.classList.contains("gone"));
       // The feed, profiles and the explorer: once a screen down, the button takes you back to the top.
       const feed = typing ? null : ["community", "seller", "explorer"].map((id) => document.getElementById(id)).find((el) => el && !el.hidden && el.scrollTop > el.clientHeight);
       const found = feed || (typing ? null : scrollers().filter((el) => el.scrollTop + el.clientHeight < el.scrollHeight - 24)
