@@ -1801,17 +1801,17 @@
 
   /* More below: a small arrow floats at the foot of a screen that scrolls,
      until it's scrolled; tapping it scrolls down. */
-  #more-below { position: fixed; z-index: 40; width: 36px; height: 36px; margin-left: -18px; border-radius: 50%;
+  .more-below { position: fixed; z-index: 40; width: 36px; height: 36px; margin-left: -18px; border-radius: 50%;
     display: grid; place-items: center; padding: 0; cursor: pointer; color: var(--ink);
     background: var(--glass-button); border: 1px solid rgba(var(--tint), 0.12);
     -webkit-backdrop-filter: blur(14px) saturate(1.4); backdrop-filter: blur(14px) saturate(1.4);
     box-shadow: 0 6px 18px rgba(0, 0, 0, 0.35); opacity: 0; pointer-events: none; transition: opacity 0.35s ease; }
-  #more-below.on { opacity: 1; pointer-events: auto; }
-  #more-below svg { width: 16px; height: 16px; animation: more-bob 1.8s ease-in-out infinite; }
+  .more-below.on { opacity: 1; pointer-events: auto; }
+  .more-below svg { width: 16px; height: 16px; animation: more-bob 1.8s ease-in-out infinite; }
   @keyframes more-bob { 0%, 100% { transform: translateY(-2px); opacity: 0.75; } 50% { transform: translateY(2px); opacity: 1; } }
   /* Back to top: the same button, pointing up, still. */
-  #more-below.up svg { animation: none; }
-  body.phone #more-below { width: 44px; height: 44px; margin-left: -22px; }
+  .more-below.up svg { animation: none; }
+  body.phone .more-below { width: 44px; height: 44px; margin-left: -22px; }
   /* Check for Updates: the answer, in a card over the app. */
   #upd-veil { position: fixed; inset: 0; z-index: 60; display: grid; place-items: center; padding: 24px;
     background: var(--veil); -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px);
@@ -4562,7 +4562,7 @@
   let opening = true;
   function covered(on) {
     const cover = $("loading");
-    if (on) { cover.hidden = false; cover.classList.remove("gone"); document.getElementById("more-below")?.classList.remove("on"); return; }
+    if (on) { cover.hidden = false; cover.classList.remove("gone"); for (const b of document.querySelectorAll(".more-below")) b.classList.remove("on"); return; }
     if (cover.hidden) return;
     cover.classList.add("gone");
     setTimeout(() => { cover.hidden = true; }, 260);
@@ -11368,53 +11368,72 @@
   // even with the window closed, as soon as someone takes an offer.
   invoke("board_me").then((me) => { board.me = me; if (me) { stepSwaps(); paintUnread(); marketNews(); } }).catch(() => {});
 </script>
-<button id="more-below" type="button" aria-label="More below"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg></button>
+<button id="more-below" class="more-below" type="button" aria-label="More below"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg></button>
 <script>
-  // More below: on whichever screen is showing, if what scrolls holds more
-  // than fits and isn't scrolled to its end, the arrow shows at its foot.
+  // More below: every card or screen that scrolls and holds more than fits
+  // gets an arrow at its foot (pages with several cards, one each).
   (() => {
-    const hint = document.getElementById("more-below");
-    let target = null;
-    const scrollers = () => [...document.querySelectorAll(".screen, .st-pane, .ex-pane, #mine, #board-signin, #board-post, #board-take, #swaps, #swap-sell, #swap-buy, #swap-detail, .scroll, #recent")].filter((el) => {
+    const first = document.getElementById("more-below");
+    const pool = [first];
+    const DOWN = '<path d="m6 9 6 6 6-6"/>', UP = '<path d="m18 15-6-6-6 6"/>';
+    // Down by most of a screen, never past the end: iPhones carry a smooth
+    // scroll on beyond it and leave the list stuck in empty space.
+    const go = (b) => {
+      const t = b.target;
+      if (!t) return;
+      if (b.up) { t.scrollTo({ top: 0, behavior: "smooth" }); return; }
+      const end = t.scrollHeight - t.clientHeight;
+      t.scrollTo({ top: Math.min(end, t.scrollTop + t.clientHeight * 0.8), behavior: "smooth" });
+    };
+    first.addEventListener("click", () => go(first));
+    const more = () => {
+      const b = first.cloneNode(true);
+      b.removeAttribute("id");
+      b.classList.remove("on", "up");
+      b.addEventListener("click", () => go(b));
+      first.after(b);
+      pool.push(b);
+    };
+    const scrollers = () => [...document.querySelectorAll(".screen, .st-pane, .ex-pane, #mine, #board-signin, #board-post, #board-take, #swaps, #swap-sell, #swap-buy, #swap-detail, .scroll, #recent, #board-offers, #hist-list")].filter((el) => {
       if (el.id === "ch-log" || el.offsetParent === null) return false;
       const y = getComputedStyle(el).overflowY;
       return (y === "auto" || y === "scroll") && el.scrollHeight > el.clientHeight + 24 && el.clientHeight > 120;
     });
-    const DOWN = '<path d="m6 9 6 6 6-6"/>', UP = '<path d="m18 15-6-6-6 6"/>';
-    let up = false;
     const check = () => {
       // Never over the sunrise while something loads behind it.
       const cover = document.getElementById("loading");
       const typing = document.body.classList.contains("kb-up") || (typeof prefs !== "undefined" && prefs.noarrow)
         || (cover && !cover.hidden && !cover.classList.contains("gone"));
+      const size = first.offsetHeight || 36;
+      const at = (el) => { const box = el.getBoundingClientRect(); return { x: box.left + box.width / 2, y: Math.min(box.bottom, window.innerHeight) - size - 14 }; };
       // The feed, profiles and the explorer: once a screen down, the button takes you back to the top.
       const feed = typing ? null : ["community", "seller", "explorer"].map((id) => document.getElementById(id)).find((el) => el && !el.hidden && el.scrollTop > el.clientHeight);
-      const found = feed || (typing ? null : scrollers().filter((el) => el.scrollTop + el.clientHeight < el.scrollHeight - 24)
-        .sort((a, b) => b.clientHeight - a.clientHeight)[0] || null);
-      if (up !== !!feed) {
-        up = !!feed;
-        hint.classList.toggle("up", up);
-        hint.querySelector("svg").innerHTML = up ? UP : DOWN;
-        hint.setAttribute("aria-label", up ? "Back to top" : "More below");
-        hint.title = up ? "Back to top" : "";
+      const list = [];
+      if (feed) list.push({ el: feed, up: true, ...at(feed) });
+      else if (!typing) {
+        // Biggest first; one that would sit where another already does is left out.
+        for (const el of scrollers().filter((x) => x.scrollTop + x.clientHeight < x.scrollHeight - 24).sort((a, b) => b.clientHeight - a.clientHeight)) {
+          const p = at(el);
+          if (!list.some((q) => Math.abs(q.x - p.x) < 48 && Math.abs(q.y - p.y) < 48)) list.push({ el, up: false, ...p });
+        }
       }
-      target = found;
-      if (found) {
-        const box = found.getBoundingClientRect();
-        const bottom = Math.min(box.bottom, window.innerHeight);
-        hint.style.left = `${box.left + box.width / 2}px`;
-        hint.style.top = `${bottom - (hint.offsetHeight || 36) - 14}px`;
-      }
-      hint.classList.toggle("on", !!found);
+      while (pool.length < list.length) more();
+      pool.forEach((b, i) => {
+        const it = list[i];
+        b.target = it ? it.el : null;
+        if (!it) { b.classList.remove("on"); return; }
+        if (b.up !== it.up) {
+          b.up = it.up;
+          b.classList.toggle("up", it.up);
+          b.querySelector("svg").innerHTML = it.up ? UP : DOWN;
+          b.setAttribute("aria-label", it.up ? "Back to top" : "More below");
+          b.title = it.up ? "Back to top" : "";
+        }
+        b.style.left = `${it.x}px`;
+        b.style.top = `${it.y}px`;
+        b.classList.add("on");
+      });
     };
-    // Down by most of a screen, never past the end: iPhones carry a smooth
-    // scroll on beyond it and leave the list stuck in empty space.
-    hint.addEventListener("click", () => {
-      if (!target) return;
-      if (up) { target.scrollTo({ top: 0, behavior: "smooth" }); return; }
-      const end = target.scrollHeight - target.clientHeight;
-      target.scrollTo({ top: Math.min(end, target.scrollTop + target.clientHeight * 0.8), behavior: "smooth" });
-    });
     let queued = false;
     const soon = () => { if (!queued) { queued = true; requestAnimationFrame(() => { queued = false; check(); }); } };
     document.addEventListener("scroll", soon, true);
