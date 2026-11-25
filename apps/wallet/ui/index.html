@@ -9555,7 +9555,7 @@
   // ---- Explorer: the network, live, as on explorer.orien.network ----
   // One screen moving between the overview, a checkpoint, an address and
   // the top wallets; Back goes to the view before, then home.
-  const ex = { stack: [], at: null, timer: 0, more: null, names: false };
+  const ex = { stack: [], at: null, timer: 0, acts: [], shown: 0 };
   const EX_UNITS = 1000000000n;
   // Units as ORN, grouped, with at most `digits` decimals.
   function exOrn(units, digits = 2) {
@@ -9630,7 +9630,7 @@
       navigator.clipboard.writeText(go.dataset.exCopy).then(() => { go.classList.add("copied"); setTimeout(() => go.classList.remove("copied"), 1200); }).catch(() => {});
     } else if (go.dataset.exSend !== undefined) {
       $("go-send").onclick(); $("to").value = go.dataset.exSend; validate(); $("amount").focus();
-    } else if (go.dataset.exMore !== undefined) exMoreCheckpoints(go);
+    } else if (go.dataset.exMore !== undefined) exMoreActivity(go);
     else if (go.dataset.exTop !== undefined) exShow({ kind: "top" });
     else if (go.dataset.exCp !== undefined) exShow({ kind: "checkpoint", epoch: Number(go.dataset.exCp) });
     else exShow({ kind: "address", address: go.dataset.exAddr });
@@ -9655,9 +9655,8 @@
     const up = o.validators.filter((v) => v.up).length;
     const sup = o.supply || {};
     // Big windows: the latest 15, so the list ends near the column beside
-    // it; Show more brings older ones.
+    // it. Older ones are a search away, by number.
     const cps = !phone && matchMedia("(min-width: 980px)").matches ? o.checkpoints.slice(0, 15) : o.checkpoints;
-    ex.more = cps.length ? cps[cps.length - 1].epoch : null;
     $("ex-body").innerHTML = `<div class="ex-facts">
         ${exFact("ORN released", sup.released ? exOrn(sup.released, 0) : "—", sup.cap ? `Of ${exOrn(sup.cap, 0)} there will ever be` : "")}
         ${exFact("New ORN this hour", sup.per_hour ? exOrn(sup.per_hour, 0) : "—", "Shared among miners")}
@@ -9676,18 +9675,7 @@
       </div><div>
       ${exHead("Latest checkpoints", '<span class="sub">One every hour</span>')}
       <div class="list" id="ex-cps">${cps.map(exCpRow).join("")}</div>
-      ${ex.more > 0 ? '<button class="pill ex-more" data-ex-more>Show more</button>' : ""}
       </div></div>`;
-  }
-  async function exMoreCheckpoints(button) {
-    button.disabled = true;
-    try {
-      const page = await exGet(`/checkpoints?before=${ex.more}`);
-      const list = page.checkpoints || [];
-      $("ex-cps").insertAdjacentHTML("beforeend", list.map(exCpRow).join(""));
-      ex.more = list.length ? list[list.length - 1].epoch : 0;
-      if (!page.more || !list.length) button.remove(); else button.disabled = false;
-    } catch (e) { button.disabled = false; problem("ex-problem", e); }
   }
   function exChange(harder) {
     const ratio = 1 + harder, value = Math.round(Math.abs(harder) * 1000) / 10;
@@ -9745,7 +9733,20 @@
         ${mine ? "" : `<button class="pill pearl" data-ex-send="${address}">Send ORN</button>`}</div>
       <div class="list ex-stats"><div><b>${exOrn(d.balance, 4)}</b><span>ORN held</span></div><div><b>${exOrn(d.staked, 4)}</b><span>${d.returning && d.returning !== "0" ? `staked · ${exOrn(d.returning, 4)} returning` : "staked"}</span></div><div><b>${(d.payments_made || 0).toLocaleString()}</b><span>payments sent</span></div></div>
       ${exHead("Activity", d.more ? '<span class="sub">The latest 500</span>' : "")}
-      <div class="list">${acts.length ? acts.map((a) => {
+      <div class="list" id="ex-acts">${acts.length ? acts.slice(0, EX_PAGE).map(exActRow).join("") : `<div class="empty">${d.since != null ? "Nothing has happened at this address yet." : "No activity is recorded for this address."}</div>`}</div>
+      ${acts.length > EX_PAGE ? '<button class="pill ex-more" data-ex-more>Show more</button>' : ""}`;
+    ex.acts = acts; ex.shown = Math.min(acts.length, EX_PAGE);
+  }
+  // A wallet's activity, 50 at a time: it all arrives at once, so more is
+  // shown at once too.
+  const EX_PAGE = 50;
+  function exMoreActivity(button) {
+    const next = ex.acts.slice(ex.shown, ex.shown + EX_PAGE);
+    $("ex-acts").insertAdjacentHTML("beforeend", next.map(exActRow).join(""));
+    ex.shown += next.length;
+    if (ex.shown >= ex.acts.length) button.remove();
+  }
+  function exActRow(a) {
         const k = EX_KINDS[a.kind] || [a.kind];
         const out = a.kind === "sent";
         const other = a.counterparty && k[1] ? ` ${k[1]} ${esc(exWho(a.counterparty).name || short(a.counterparty))}` : "";
@@ -9753,7 +9754,6 @@
         return `<button class="tx ex-row" ${target}><span class="tx-icon ${out ? "sent" : "received"}">${ICON[out ? "sent" : "received"]}</span>
           <div class="tx-main"><div class="title">${k[0]}${other}</div><div class="sub">${a.time ? exAgo(a.time) : "This hour"}${a.epoch != null ? ` · checkpoint ${a.epoch}` : ""}</div></div>
           <div class="tx-side"><div class="amt ${out ? "sent" : "received"}">${out ? "−" : "+"}${exOrn(a.amount, 4)}</div><div class="sub">ORN</div></div></button>`;
-      }).join("") : `<div class="empty">${d.since != null ? "Nothing has happened at this address yet." : "No activity is recorded for this address."}</div>`}</div>`;
   }
   async function exTop() {
     let t;
