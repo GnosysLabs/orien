@@ -2372,8 +2372,10 @@
      latest checkpoints filling what's left. */
   .hs-net { flex: 1 1 auto; min-height: 0; }
   .hs-figs2 { grid-template-columns: repeat(2, minmax(0, 1fr)); row-gap: 12px; }
-  .hs-cps { flex: 1 1 0; min-height: 96px; overflow: hidden; display: flex; flex-direction: column; gap: 2px; padding-top: 10px; }
-  .hs-cp { display: flex; align-items: center; gap: 10px; width: 100%; padding: 7px 8px; margin: 0 -8px; width: calc(100% + 16px); border: 0; border-radius: 10px;
+  /* The list reaches 8px past the card's text on each side, so a row's
+     highlight has room at both ends instead of being cut off. */
+  .hs-cps { flex: 1 1 0; min-height: 96px; overflow: hidden; display: flex; flex-direction: column; gap: 2px; margin: 0 -8px; padding: 10px 0 0; }
+  .hs-cp { display: flex; align-items: center; gap: 10px; width: 100%; padding: 7px 8px; border: 0; border-radius: 10px;
     background: none; color: inherit; font: inherit; text-align: left; cursor: pointer; }
   @media (hover: hover) { .hs-cp:hover { background: rgba(var(--tint), 0.04); } }
   .hs-cp .ex-num { min-width: 46px; height: 26px; padding: 0 8px; font-size: 10.5px; border-radius: 8px; }
@@ -10171,7 +10173,8 @@
   // The network, as the explorer shows it: the next checkpoint, who mined,
   // what's released, and the latest checkpoints. Once a minute is plenty;
   // the countdown ticks with Home's own refresh.
-  let hsOver = null, hsOverAt = 0;
+  let hsOver = null, hsOverAt = 0, hsMinersBusy = false;
+  const hsMiners = new Map();
   async function hsNetwork() {
     if (Date.now() - hsOverAt > 60000) {
       hsOverAt = Date.now();
@@ -10186,8 +10189,21 @@
     $("hs-n-new").textContent = sup.per_hour ? exOrn(sup.per_hour, 0) : "—";
     $("hs-n-released").textContent = sup.released ? exOrn(sup.released, 0) : "—";
     const cps = (o.checkpoints || []).slice(0, 8);
+    // Who each checkpoint paid: fetched once per checkpoint (they never change).
+    const missing = cps.filter((c) => !hsMiners.has(c.epoch));
+    if (missing.length && !hsMinersBusy) {
+      hsMinersBusy = true;
+      (async () => {
+        for (const c of missing) {
+          try { const d = await invoke("explorer", { path: `/checkpoints/${c.epoch}` }); hsMiners.set(c.epoch, ((d.rewards || {}).miners || []).length); } catch { break; }
+        }
+        hsMinersBusy = false;
+        hsNetwork();
+      })();
+    }
+    const plural = (n, one) => `${n.toLocaleString()} ${one}${n === 1 ? "" : "s"}`;
     paintKeeping($("hs-cps"), cps.length ? cps.map((c) => `<button class="hs-cp" data-hs-cp="${c.epoch}"><span class="ex-num">#${c.epoch}</span>
-      <span class="mw0"><b>${c.payments.toLocaleString()} ${c.payments === 1 ? "payment" : "payments"}</b><span class="sub">${esc(exAgo(c.time))} · agreed by ${c.agreed.length} of ${c.of}</span></span>
+      <span class="mw0"><b>${hsMiners.has(c.epoch) ? `${plural(hsMiners.get(c.epoch), "miner")} paid` : "Checkpoint " + c.epoch}</b><span class="sub">${esc(exAgo(c.time))}${c.payments ? ` · ${plural(c.payments, "payment")}` : ""} · agreed by ${c.agreed.length} of ${c.of}</span></span>
       <span class="amt">+${exOrn(c.released, 0)}</span></button>`).join("") : '<div class="hs-empty">No checkpoints yet.</div>');
     hsFitCps();
   }
