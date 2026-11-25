@@ -1,16 +1,9 @@
 import type { Metadata } from 'next'
-import { Suspense } from 'react'
-import { Messages } from '@/components/market/Messages'
 
 export const metadata: Metadata = { title: 'Messages', robots: { index: false } }
 
-/** Your conversations: with anyone directly, or about a listing on the Market. */
+/** Messages opens as a window over the page (MessagesGate, in the layout);
+ * landing here from an email link, it opens by itself. */
 export default function MessagesPage() {
-  return (
-    <div className="mx-auto max-w-[1100px] pb-16 pt-5 sm:pt-7">
-      <Suspense>
-        <Messages />
-      </Suspense>
-    </div>
-  )
+  return <div className="min-h-[60dvh]" />
 }

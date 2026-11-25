@@ -26,6 +26,15 @@ export const PRODUCTS: Record<Product, string> = {
 
 export const CHANGELOG: Entry[] = [
   {
+    date: '2026-11-25',
+    products: ['marketplace'],
+    title: 'Messages opens over the page you are on',
+    changes: [
+      'On the website, Messages opens as a window over whatever page you are on, like signing in, and closes back to it.',
+      'Moving between conversations and the group chat inside it is instant, and the address of the page stays the same.',
+    ],
+  },
+  {
     date: '2026-11-24',
     products: ['wallet'],
     version: '1.9.10',
