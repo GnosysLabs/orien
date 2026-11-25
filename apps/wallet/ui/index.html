@@ -1149,6 +1149,8 @@
     html body.split #ch-log { margin: 0; padding: 20px 16px; border-radius: 0; border-bottom: 1px solid var(--line); }
     body.split #chat .ch-askbox, body.split #chat .ch-blocked, body.split #chat .problem { margin: 12px 12px 0; }
     body.split #ch-compose { margin: 12px; }
+    /* "Replying to" runs edge to edge under the messages, not as a rounded box. */
+    body.split #rm-reply { margin: 0; padding: 10px 12px 10px 16px; border-radius: 0; border-bottom: 1px solid var(--line); }
     /* Their messages a shade lighter than the box, as on the website. */
     body.split #chat .bubble:not(.mine) { background: var(--surface-hover); }
   }
@@ -1244,7 +1246,7 @@
     color: var(--faint); font: inherit; font-size: 12px; text-align: left; cursor: pointer; }
   .rm-msg > .rm-quote { grid-column: 2; }
   .rm-msg.quoted :is(.rm-face, .rm-at) { grid-row: 2 / span 9; }
-  .rm-quote svg { flex: none; width: 12px; height: 12px; transform: scaleX(-1); }
+  .rm-quote svg { flex: none; width: 12px; height: 12px; }
   .rm-quote b { flex: none; color: var(--dim); font-weight: 600; }
   .rm-quote span { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .rm-main .cm-media { max-width: 420px; margin-top: 6px; border-radius: 14px; }
@@ -8133,6 +8135,8 @@
     const m = String(text || "").match(/https?:\/\/(?:www\.|m\.)?(?:youtube\.com\/(?:watch\?(?:[^\s]*&)?v=|shorts\/|live\/|embed\/)|youtu\.be\/)([A-Za-z0-9_-]{11})/);
     return m ? `<div class="cm-video"><iframe src="https://orien.network/embed/youtube/?v=${m[1]}" title="YouTube video" loading="lazy" allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share; fullscreen" allowfullscreen referrerpolicy="strict-origin-when-cross-origin"></iframe></div>` : "";
   }
+  // Replying to one message: a bent arrow, as in mail and chat apps.
+  const REPLY_ARROW = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 17-5-5 5-5"/><path d="M20 18v-2a4 4 0 0 0-4-4H4"/></svg>';
   const REPLY_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2.992 16.342a2 2 0 0 1 .094 1.167l-1.065 3.29a1 1 0 0 0 1.236 1.168l3.413-.998a2 2 0 0 1 1.099.092 10 10 0 1 0-4.777-4.719"/></svg>';
   const COINS_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="8" r="6"/><path d="M18.09 10.37A6 6 0 1 1 10.34 18"/><path d="M7 6h1v4"/><path d="m16.71 13.88.7.71-2.82 2.82"/></svg>';
   // A post's photos (up to four, in a grid), its GIF, or its poll.
@@ -8224,7 +8228,7 @@
         <span data-user="${esc(name)}">${cmFace(r.author)}</span>
         <div class="cm-reply-main"><div class="cm-reply-head"><b data-user="${esc(name)}">${esc(name)}</b><span class="cm-when">· ${ago(r.created)}</span>${!r.mine ? `<button class="cm-more" data-more="${r.id}" aria-label="More" title="More"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg></button>` : ""}${r.mine ? `<button class="cm-del" data-del="${r.id}" data-parent="${post.id}" aria-label="Delete" title="Delete"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M10 11v6"/><path d="M14 11v6"/></svg></button>` : ""}</div>
         ${r.body ? `<div class="cm-text">${esc(r.body)}</div>` : ""}${cmYouTube(r.body)}${cmMedia(r)}
-        <div class="cm-foot">${(r.reactions || []).map((x) => `<button class="cm-chip${x.me ? " on" : ""}" data-react="${r.id}" data-parent="${post.id}" data-emoji="${esc(x.emoji)}"${reactWho(x)}><span>${esc(x.emoji)}</span><b>${x.count}</b></button>`).join("")}<button class="cm-chip bare" data-pick="${r.id}" data-parent="${post.id}" aria-label="React" title="React">${SMILE_ICON}</button>${r.id === root ? `<button class="cm-chip bare" data-answer="${post.id}:${root}:${esc(name)}" title="Reply to ${esc(name)}">${REPLY_ICON}<span>Reply</span></button>` : ""}${!r.mine && r.author && r.author.tip_to ? `<button class="cm-chip bare" data-tip="${r.id}" title="Tip ${esc(name)} some ORN">${COINS_ICON}<span>Tip</span></button>` : ""}${cmTips(r)}</div></div></div>`;
+        <div class="cm-foot">${(r.reactions || []).map((x) => `<button class="cm-chip${x.me ? " on" : ""}" data-react="${r.id}" data-parent="${post.id}" data-emoji="${esc(x.emoji)}"${reactWho(x)}><span>${esc(x.emoji)}</span><b>${x.count}</b></button>`).join("")}<button class="cm-chip bare" data-pick="${r.id}" data-parent="${post.id}" aria-label="React" title="React">${SMILE_ICON}</button>${r.id === root ? `<button class="cm-chip bare" data-answer="${post.id}:${root}:${esc(name)}" title="Reply to ${esc(name)}">${REPLY_ARROW}<span>Reply</span></button>` : ""}${!r.mine && r.author && r.author.tip_to ? `<button class="cm-chip bare" data-tip="${r.id}" title="Tip ${esc(name)} some ORN">${COINS_ICON}<span>Tip</span></button>` : ""}${cmTips(r)}</div></div></div>`;
     };
     const box = (key, placeholder, small) => you && you.verified
       ? `<div class="cm-inline-write${small ? " sub" : ""}">${cmFace(you)}<div class="cm-write"><textarea data-reply-box="${key}" rows="1" maxlength="500" placeholder="${esc(placeholder)}"></textarea><div class="cm-attach" data-rattach="${key}"${rdraftHtml(key) ? "" : " hidden"}>${rdraftHtml(key)}</div><div class="cm-send"><div class="cm-tools"><button class="cm-tool" data-rphoto="${key}" aria-label="Add photos" title="Photos"${rdraftOf(key).gif || rdraftOf(key).photos.length >= 4 ? " disabled" : ""}><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg></button><button class="cm-tool" data-rgif="${key}" aria-label="Add a GIF" title="GIF"${rdraftOf(key).gif || rdraftOf(key).photos.length ? " disabled" : ""}><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 7.5H6.25A3.25 3.25 0 0 0 3 10.75v2.5a3.25 3.25 0 0 0 3.25 3.25H9V12H7"/><path d="M12.5 7.5v9"/><path d="M20.75 7.5h-4v9"/><path d="M16.75 12h3.25"/></svg></button></div>${small ? `<button class="pill" data-answer-cancel="${post.id}">Cancel</button>` : ""}<button class="pill pearl" data-reply-send="${key}"${rdraftReady(key) ? "" : " disabled"}>Reply</button></div></div></div>`
@@ -10065,7 +10069,7 @@
     const chips = (m.reactions || []).map((r) => `<button class="cm-chip${rmMine(r) ? " on" : ""}" data-rm-react="${m.id}" data-emoji="${esc(r.emoji)}"${reactWho(r)}><span>${esc(r.emoji)}</span><b>${r.count}</b></button>`).join("");
     const armed = room.armed === m.id;
     return `<div class="rm-msg${cont ? " cont" : ""}${q ? " quoted" : ""}" data-rm="${m.id}">
-      ${q ? `<button class="rm-quote" data-rm-jump="${q.id}">${REPLY_ICON}<b>${esc(q.author_name || "Someone")}</b><span>${esc(q.body || "")}</span></button>` : ""}
+      ${q ? `<button class="rm-quote" data-rm-jump="${q.id}">${REPLY_ARROW}<b>${esc(q.author_name || "Someone")}</b><span>${esc(q.body || "")}</span></button>` : ""}
       ${cont ? `<span class="rm-at">${esc(at)}</span>` : `<button class="rm-face" data-rm-who="${a.id || ""}" aria-label="${esc(a.name || "")}">${mkAvatar(a.name, a.picture)}</button>`}
       <div class="rm-main">
         ${cont ? "" : `<div class="rm-head"><button class="rm-name" data-rm-who="${a.id || ""}">${esc(a.name || "Someone")}</button>${a.moderator ? '<span class="rm-badge mod">Moderator</span>' : ""}${a.banned ? '<span class="rm-badge">Banned</span>' : ""}<time>${esc(at)}</time></div>`}
@@ -10075,7 +10079,7 @@
       </div>
       <div class="rm-tools">
         <button data-rm-pick="${m.id}" title="React" aria-label="React">${SMILE_ICON}</button>
-        <button data-rm-reply="${m.id}" title="Reply" aria-label="Reply">${REPLY_ICON}</button>
+        <button data-rm-reply="${m.id}" title="Reply" aria-label="Reply">${REPLY_ARROW}</button>
         ${mine ? "" : `<button data-rm-report="${m.id}" title="Report" aria-label="Report">${FLAG_ICON}</button>`}
         ${mine || mod ? `<button class="bad" data-rm-del="${m.id}" title="${armed ? "Tap again to delete" : "Delete"}" aria-label="Delete">${armed ? "✓" : BIN_ICON}</button>` : ""}
         ${mod && !mine && a.id && !a.moderator ? (a.banned
