@@ -9575,7 +9575,7 @@
   // ---- Explorer: the network, live, as on explorer.orien.network ----
   // One screen moving between the overview, a checkpoint, an address and
   // the top wallets; Back goes to the view before, then home.
-  const ex = { stack: [], at: null, timer: 0, acts: [], shown: 0 };
+  const ex = { stack: [], at: null, timer: 0, paged: null };
   const EX_UNITS = 1000000000n;
   // Units as ORN, grouped, with at most `digits` decimals.
   function exOrn(units, digits = 2) {
@@ -9720,10 +9720,9 @@
       </div>
       <div class="ex-split"><div>
       ${exHead("Mining rewards", `<span class="sub">${miners.length.toLocaleString()} ${miners.length === 1 ? "wallet" : "wallets"}</span>`)}
-      <div class="list">${!r.known ? `<div class="empty">${r.since != null && epoch < r.since ? `Who mined this hour isn't known: the validators' records start at checkpoint ${r.since}.` : "The validators didn't answer about this hour's rewards just now. Try again in a moment."}</div>`
-        : miners.length ? miners.map((m, i) => { const who = exWho(m.address); return `<button class="tx ex-row" data-ex-addr="${m.address}"><span class="ex-rank">${i + 1}</span>${who.face}
-          <div class="tx-main"><div class="title">${who.html}</div><div class="sub">${(Number(m.part) * 100).toFixed(2)}% of the work</div></div>
-          <div class="tx-side"><div class="amt received">+${exOrn(m.amount, 2)}</div><div class="sub">ORN</div></div></button>`; }).join("") : '<div class="empty">Nobody mined this hour.</div>'}</div>
+      <div class="list" id="ex-paged">${!r.known ? `<div class="empty">${r.since != null && epoch < r.since ? `Who mined this hour isn't known: the validators' records start at checkpoint ${r.since}.` : "The validators didn't answer about this hour's rewards just now. Try again in a moment."}</div>`
+        : miners.length ? "" : '<div class="empty">Nobody mined this hour.</div>'}</div>
+      <div class="ex-pages" id="ex-pages"></div>
       </div><div>
       ${exHead("Validators that hour")}
       <div class="list">${(d.validators || []).map((v) => `<div class="tx"><span class="ex-dot${v.agreed ? " up" : ""}"></span><div class="tx-main"><div class="title">Validator ${v.seat + 1}</div><div class="sub">${v.account ? `Staked by ${esc(exWho(v.account).name || short(v.account))}` : "Launch validator"}</div></div><div class="tx-side"><div class="amt">${v.agreed ? "Agrees" : "Didn't answer"}</div></div></div>`).join("")}</div>
@@ -9735,6 +9734,13 @@
       </div>
       </div></div>
       <div class="ex-steps">${epoch > 0 ? `<button class="pill" data-ex-cp="${epoch - 1}">← Checkpoint ${epoch - 1}</button>` : "<span></span>"}${d.latest != null && epoch < d.latest ? `<button class="pill" data-ex-cp="${epoch + 1}">Checkpoint ${epoch + 1} →</button>` : ""}</div>`;
+    if (r.known && miners.length) exPaged(miners, 10, exMinerRow);
+  }
+  function exMinerRow(m, i) {
+    const who = exWho(m.address);
+    return `<button class="tx ex-row" data-ex-addr="${m.address}"><span class="ex-rank">${i + 1}</span>${who.face}
+      <div class="tx-main"><div class="title">${who.html}</div><div class="sub">${(Number(m.part) * 100).toFixed(2)}% of the work</div></div>
+      <div class="tx-side"><div class="amt received">+${exOrn(m.amount, 2)}</div><div class="sub">ORN</div></div></button>`;
   }
   const EX_KINDS = {
     received: ["Received", "from"], sent: ["Sent", "to"], mined: ["Mining reward"], fees: ["Validator fees"],
@@ -9753,18 +9759,20 @@
         ${mine ? "" : `<button class="pill pearl" data-ex-send="${address}">Send ORN</button>`}</div></div>
       <div class="list ex-stats"><div><b title="${exOrn(d.balance, 9)} ORN">${exOrn(d.balance, 2)}</b><span>ORN held</span></div><div><b>${exOrn(d.staked, 2)}</b><span>${d.returning && d.returning !== "0" ? `staked · ${exOrn(d.returning, 4)} returning` : "staked"}</span></div><div><b>${(d.payments_made || 0).toLocaleString()}</b><span>payments sent</span></div></div></div>
       ${exHead("Activity", d.more ? '<span class="sub">The latest 500</span>' : "")}
-      <div class="list" id="ex-acts">${acts.length ? "" : `<div class="empty">${d.since != null ? "Nothing has happened at this address yet." : "No activity is recorded for this address."}</div>`}</div>
+      <div class="list" id="ex-paged">${acts.length ? "" : `<div class="empty">${d.since != null ? "Nothing has happened at this address yet." : "No activity is recorded for this address."}</div>`}</div>
       <div class="ex-pages" id="ex-pages"></div>`;
-    ex.acts = acts;
-    if (acts.length) exPage(1, false);
+    if (acts.length) exPaged(acts, EX_PAGE, exActRow);
   }
-  // A wallet's activity, 25 to a page, with the pages numbered: it all
+  // A long list in numbered pages (a wallet's activity, 25 to a page; a
+  // checkpoint's miners, 10, so the column beside ends with them). It all
   // arrives at once, so turning a page is instant.
   const EX_PAGE = 25;
+  function exPaged(rows, per, rowOf) { ex.paged = { rows, per, rowOf }; exPage(1, false); }
   function exPage(n, scroll = true) {
-    const pages = Math.ceil(ex.acts.length / EX_PAGE);
+    const { rows, per, rowOf } = ex.paged;
+    const pages = Math.ceil(rows.length / per);
     n = Math.min(Math.max(1, n), pages);
-    $("ex-acts").innerHTML = ex.acts.slice((n - 1) * EX_PAGE, n * EX_PAGE).map(exActRow).join("");
+    $("ex-paged").innerHTML = rows.slice((n - 1) * per, n * per).map((r, i) => rowOf(r, (n - 1) * per + i)).join("");
     // The first, the last, and the pages either side of this one.
     const nums = [...new Set([1, n - 1, n, n + 1, pages])].filter((x) => x >= 1 && x <= pages).sort((a, b) => a - b);
     let html = `<button class="ex-pg" data-ex-page="${n - 1}" aria-label="Previous page"${n === 1 ? " disabled" : ""}>‹</button>`;
@@ -9774,7 +9782,7 @@
     });
     html += `<button class="ex-pg" data-ex-page="${n + 1}" aria-label="Next page"${n === pages ? " disabled" : ""}>›</button>`;
     $("ex-pages").innerHTML = pages > 1 ? html : "";
-    if (scroll) $("ex-acts").previousElementSibling.scrollIntoView({ block: "start", behavior: "smooth" });
+    if (scroll) $("ex-paged").previousElementSibling.scrollIntoView({ block: "start", behavior: "smooth" });
   }
   function exActRow(a) {
         const k = EX_KINDS[a.kind] || [a.kind];
