@@ -27,6 +27,15 @@ export const PRODUCTS: Record<Product, string> = {
 export const CHANGELOG: Entry[] = [
   {
     date: '2026-11-24',
+    products: ['wallet'],
+    version: '1.9.9',
+    title: 'A telescope for the explorer',
+    changes: [
+      'The explorer’s button on Home is now a telescope: Orien is made of checkpoints, not blocks.',
+    ],
+  },
+  {
+    date: '2026-11-24',
     products: ['marketplace'],
     title: 'The Orien group chat, on the website',
     changes: [
