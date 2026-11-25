@@ -1813,6 +1813,7 @@
     -webkit-backdrop-filter: blur(14px) saturate(1.4); backdrop-filter: blur(14px) saturate(1.4);
     box-shadow: 0 6px 18px rgba(0, 0, 0, 0.35); opacity: 0; pointer-events: none; transition: opacity 0.35s ease; }
   .more-below.on { opacity: 1; pointer-events: auto; }
+  body.pop .more-below { z-index: 52; }
   .more-below svg { width: 16px; height: 16px; animation: more-bob 1.8s ease-in-out infinite; }
   @keyframes more-bob { 0%, 100% { transform: translateY(-2px); opacity: 0.75; } 50% { transform: translateY(2px); opacity: 1; } }
   /* Back to top: the same button, pointing up, still. */
@@ -2480,6 +2481,22 @@
   /* The tabs sit above the card, as everywhere else in the app. */
   .tabs.ex-tabs { grid-template-columns: repeat(3, minmax(0, 1fr)); flex: none; margin: 16px 0 12px; }
   .ex-tabs + .ex-panel { margin-top: 0 !important; }
+  /* A checkpoint in a big window: validators and fingerprints side by side,
+     under one tab. */
+  .ex-and, .ex-two .ex-panel-head, .ex-col-prints { display: none; }
+  @media (min-width: 860px) {
+    body:not(.phone) .tabs.ex-cp-tabs { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    body:not(.phone) .ex-cp-tabs [data-ex-tab="check"] { display: none; }
+    body:not(.phone) .ex-and { display: inline; }
+    /* Two cards of their own, side by side, each scrolling inside itself. */
+    body:not(.phone) .ex-panel.ex-split { border: 0; border-radius: 0; background: none; }
+    body:not(.phone) .ex-split > .ex-pane { overflow: hidden; padding: 0; }
+    body:not(.phone) .ex-pane > [data-ex-pane="vals"]:not([hidden]) { height: 100%; }
+    body:not(.phone) .ex-two { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); grid-template-rows: minmax(0, 1fr); gap: 10px; height: 100%; }
+    body:not(.phone) .ex-two > section { display: flex; flex-direction: column; min-height: 0; border: 1px solid var(--line); border-radius: 18px; background: var(--surface); overflow: hidden; }
+    body:not(.phone) .ex-two .ex-panel-head { display: flex; }
+    body:not(.phone) .ex-card-body { flex: 1 1 0; min-height: 0; overflow-y: auto; overscroll-behavior: contain; padding-bottom: 8px; }
+  }
   .ex-pane { flex: 1 1 0; min-height: 0; overflow-y: auto; overscroll-behavior: contain; padding: 0 0 8px; }
   .ex-pane .list { border: 0; border-radius: 0; background: none; box-shadow: none; }
   .ex-pane .day { position: sticky; top: 0; z-index: 1; margin: 0; padding: 12px 18px 6px; background: var(--surface); }
@@ -7364,10 +7381,11 @@
     const swap = swapList.find((s) => s.role === "buy" && s.created >= waitFor.since);
     if (!swap) return;
     waitFor = null;
-    if (!$("swap-waiting").hidden) openSwap(swap.id);
+    // Still waiting, or on Swaps after closing the waiting card: on to paying.
+    if (!$("swap-waiting").hidden || !$("swaps").hidden) openSwap(swap.id);
   }
   // Ask often while waiting: the seller's wallet usually answers in seconds.
-  setInterval(() => { if (waitFor && !$("swap-waiting").hidden) stepSwaps(); }, 4000);
+  setInterval(() => { if (waitFor && (!$("swap-waiting").hidden || !$("swaps").hidden)) stepSwaps(); }, 4000);
 
   function openSwap(id) {
     current = id;
@@ -11215,9 +11233,12 @@
     const pane = $("ex-pane");
     if (!pane) return;
     const kind = ex.at.kind;
+    if (tab === "check" && !phone && wide.matches) tab = "vals";
     ex.tabs[kind] = tab;
     for (const b of document.querySelectorAll("[data-ex-tab]")) b.classList.toggle("on", b.dataset.exTab === tab);
     for (const p of pane.querySelectorAll("[data-ex-pane]")) p.hidden = p.dataset.exPane !== tab;
+    // A checkpoint's validators and fingerprints: two cards, not one.
+    pane.parentElement.classList.toggle("ex-split", kind === "checkpoint" && tab === "vals");
     pane.scrollTop = top != null ? top : kind === "home" ? ex.paneTop[tab] || 0 : 0;
   }
   function exChange(harder) {
@@ -11234,6 +11255,10 @@
     await loadProfiles(miners.slice(0, 100).map((m) => m.address));
     if (ex.at.kind !== "checkpoint" || ex.at.epoch !== epoch) return;
     const math = r.math ? (r.math === "Blake3" ? "BLAKE3" : r.math) : "—";
+    const vals = (d.validators || []).map((v) => `<div class="tx"><span class="ex-dot${v.agreed ? " up" : ""}"></span><div class="tx-main"><div class="title">Validator ${v.seat + 1}</div><div class="sub">${v.account ? `Staked by ${esc(exWho(v.account).name || short(v.account))}` : "Launch validator"}</div></div><div class="tx-side"><div class="amt">${v.agreed ? "Agrees" : "Didn't answer"}</div></div></div>`).join("");
+    const prints = `<button class="ex-hash ex-row" data-ex-copy="${c.state}" title="Copy"><div class="l">State after it: every account's balance, as one fingerprint</div><div class="h">${c.state}</div></button>
+            <button class="ex-hash ex-row" data-ex-copy="${c.digest}" title="Copy"><div class="l">This checkpoint's fingerprint</div><div class="h">${c.digest}</div></button>
+            ${epoch !== 0 && d.previous ? `<button class="ex-hash ex-row" data-ex-copy="${d.previous}" title="Copy"><div class="l">The checkpoint before it</div><div class="h">${d.previous}</div></button>` : ""}`;
     $("ex-body").innerHTML = `<div class="ex-facts five">
         ${exFact("Miners paid", miners.length.toLocaleString(), `${exOrn(c.released, 2)} new ORN`)}
         ${exFact("Payments", c.payments.toLocaleString(), "Made final")}
@@ -11242,9 +11267,9 @@
         ${exFact("Made", exAgo(c.time), exWhen(c.time))}
       </div>
       <div class="ex-steps">${epoch > 0 ? `<button class="pill" data-ex-cp="${epoch - 1}" data-ex-step>← Checkpoint ${epoch - 1}</button>` : "<span></span>"}${d.latest != null && epoch < d.latest ? `<button class="pill" data-ex-cp="${epoch + 1}" data-ex-step>Checkpoint ${epoch + 1} →</button>` : ""}</div>
-      <div class="tabs ex-tabs" role="tablist">
+      <div class="tabs ex-tabs ex-cp-tabs" role="tablist">
         <button class="tab" data-ex-tab="rewards" role="tab">Rewards</button>
-        <button class="tab" data-ex-tab="vals" role="tab">Validators</button>
+        <button class="tab" data-ex-tab="vals" role="tab">Validators<span class="ex-and"> and fingerprints</span></button>
         <button class="tab" data-ex-tab="check" role="tab">Fingerprints</button>
       </div>
       <div class="ex-panel">
@@ -11252,12 +11277,8 @@
           <div data-ex-pane="rewards">${r.known && miners.length ? `<div class="ex-pane-note">${miners.length.toLocaleString()} ${miners.length === 1 ? "wallet" : "wallets"} paid</div>` : ""}
             <div class="list">${!r.known ? `<div class="empty">${r.since != null && epoch < r.since ? `Who mined this hour isn't known: the validators' records start at checkpoint ${r.since}.` : "The validators didn't answer about this hour's rewards just now. Try again in a moment."}</div>`
               : miners.length ? miners.map(exMinerRow).join("") : '<div class="empty">Nobody mined this hour.</div>'}</div></div>
-          <div data-ex-pane="vals"><div class="list">${(d.validators || []).map((v) => `<div class="tx"><span class="ex-dot${v.agreed ? " up" : ""}"></span><div class="tx-main"><div class="title">Validator ${v.seat + 1}</div><div class="sub">${v.account ? `Staked by ${esc(exWho(v.account).name || short(v.account))}` : "Launch validator"}</div></div><div class="tx-side"><div class="amt">${v.agreed ? "Agrees" : "Didn't answer"}</div></div></div>`).join("")}</div></div>
-          <div data-ex-pane="check"><div class="list">
-            <button class="ex-hash ex-row" data-ex-copy="${c.state}" title="Copy"><div class="l">State after it: every account's balance, as one fingerprint</div><div class="h">${c.state}</div></button>
-            <button class="ex-hash ex-row" data-ex-copy="${c.digest}" title="Copy"><div class="l">This checkpoint's fingerprint</div><div class="h">${c.digest}</div></button>
-            ${epoch !== 0 && d.previous ? `<button class="ex-hash ex-row" data-ex-copy="${d.previous}" title="Copy"><div class="l">The checkpoint before it</div><div class="h">${d.previous}</div></button>` : ""}
-          </div></div>
+          <div data-ex-pane="vals"><div class="ex-two"><section><div class="ex-panel-head"><b>Validators</b></div><div class="ex-card-body"><div class="list">${vals}</div></div></section><section class="ex-col-prints"><div class="ex-panel-head"><b>Fingerprints</b></div><div class="ex-card-body"><div class="list">${prints}</div></div></section></div></div>
+          <div data-ex-pane="check"><div class="list">${prints}</div></div>
         </div>
       </div>
 `;
@@ -11528,8 +11549,13 @@
       first.after(b);
       pool.push(b);
     };
-    const scrollers = () => [...document.querySelectorAll(".screen, .st-pane, .ex-pane, #mine, #board-signin, #board-post, #board-take, #swaps, #swap-sell, #swap-buy, #swap-detail, .scroll, #recent, #board-offers, #hist-list")].filter((el) => {
-      if (el.id === "ch-log" || el.offsetParent === null) return false;
+    // With a card open over the app, only what's in the card counts.
+    const popped = () => document.body.classList.contains("pop") ? [...document.querySelectorAll("main > .screen:not([hidden])")].filter((s) => getComputedStyle(s).position === "fixed") : null;
+    const scrollers = () => [...document.querySelectorAll(".screen, .st-pane, .ex-pane, #mine, #board-signin, #board-post, #board-take, #swaps, #swap-sell, #swap-buy, #swap-detail, .scroll, #recent, #board-offers, #hist-list, .ex-card-body")].filter((el) => {
+      // Hidden ones out (a card over the app has no offsetParent, being fixed).
+      if (el.id === "ch-log" || !el.getClientRects().length) return false;
+      const cards = popped();
+      if (cards && !cards.some((c) => c.contains(el))) return false;
       const y = getComputedStyle(el).overflowY;
       return (y === "auto" || y === "scroll") && el.scrollHeight > el.clientHeight + 24 && el.clientHeight > 120;
     });
