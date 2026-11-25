@@ -449,13 +449,6 @@
   body.phone .ex-fact .n { display: none; }
   body.phone #explorer.ex-one .ex-panel { margin-top: 12px; border-radius: 18px 18px 39px 39px; }
   body.phone #explorer.ex-one .ex-pane { padding-bottom: max(12px, calc(env(safe-area-inset-bottom) - 12px)); }
-  /* iPhones: Send, Receive, Community, Explorer and Messages are round
-     buttons, their glyphs alone, with no box or word around them. The
-     explorer moves down here from the row at the top. */
-  body.phone .actions.five .tile { position: relative; height: auto; padding: 0; border: 0; background: none; font-size: 0; }
-  body.phone .actions.five .tile .icon { width: 54px; height: 54px; box-shadow: 0 5px 14px rgba(0, 0, 0, 0.26); }
-  body.phone .actions.five .tile .icon svg { width: 22px; height: 22px; }
-  body.phone .actions.five .tile .dot { top: 1px; right: calc(50% - 26px); width: 11px; height: 11px; }
   .phone-only-tile { display: none !important; }
   body.phone .phone-only-tile { display: flex !important; }
   body.phone #go-explorer { display: none !important; }
@@ -604,6 +597,14 @@
   .actions.four { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
   .actions.five { grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 7px; }
   .actions.five .tile { flex-direction: column; gap: 6px; height: auto; padding: 12px 2px; font-size: 12px; }
+  /* Home's actions are round buttons, their glyphs alone, with no box or
+     word around them (each keeps its name for VoiceOver, and as a tip on
+     computers). On iPhones the explorer moves down here from the top row. */
+  .actions.five .tile { position: relative; height: auto; padding: 0; border: 0; background: none; font-size: 0; }
+  .actions.five .tile .icon { width: 54px; height: 54px; box-shadow: 0 5px 14px rgba(0, 0, 0, 0.26); transition: transform 0.15s ease, filter 0.15s ease; }
+  .actions.five .tile .icon svg { width: 22px; height: 22px; }
+  .actions.five .tile .dot { top: 1px; right: calc(50% - 26px); width: 11px; height: 11px; }
+  @media (hover: hover) { .actions.five .tile:hover { background: none; } .actions.five .tile:hover .icon { transform: translateY(-1px); filter: brightness(1.07); } }
   .actions.four .tile { flex-direction: column; gap: 6px; height: auto; padding: 12px 4px; font-size: 12.5px; }
   /* Swaps */
   .codebox { font: 11.5px ui-monospace, "SF Mono", monospace; word-break: break-all; color: var(--dim);
@@ -686,11 +687,10 @@
   .bench .bt b { display: block; font-weight: 500; }
   .bench .bt span { display: block; margin-top: 3px; font-size: 12.5px; line-height: 1.45; color: var(--dim); }
   .bench button { flex: none; width: auto; margin: 0; padding: 0 16px; height: 36px; }
-  /* The Mine button while mining: a glowing dot, and "Mining". */
+  /* The Mine button while mining: a glowing dot on its circle. */
   #go-mine { position: relative; }
-  #go-mine.on::after { content: ""; position: absolute; top: 9px; right: 9px; width: 7px; height: 7px; border-radius: 50%;
+  #go-mine.on::after { content: ""; position: absolute; top: 2px; right: calc(50% - 25px); width: 10px; height: 10px; border-radius: 50%;
     background: var(--good); box-shadow: 0 0 8px #a6e3c6aa; animation: mining 1.6s ease-in-out infinite; }
-  #go-mine.on { border-color: #a6e3c655; }
   @keyframes mining { 0%, 100% { opacity: 1; } 50% { opacity: 0.35; } }
   #mine { overflow-y: auto; margin: -8px -8px 0; padding: 8px 8px 16px; }
   #mine > *, #mine .mn-col > * { flex-shrink: 0; }
@@ -2415,6 +2415,10 @@
   #explorer.ex-one #ex-body { flex: 1 1 0; min-height: 0; display: flex; flex-direction: column; }
   #explorer.ex-one #ex-body > * { flex-shrink: 0; }
   #explorer.ex-one #ex-body > .ex-panel { flex: 1 1 0; min-height: 280px; }
+  /* Smaller windows: the six figures three to a row, two rows. */
+  body:not(.phone) #explorer.ex-one .ex-facts { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  body:not(.phone) #explorer.ex-one .ex-fact { display: flex; flex-direction: column; }
+  body:not(.phone) #explorer.ex-one .ex-fact .n { margin-top: auto; padding-top: 4px; }
   .ex-panel { display: flex; flex-direction: column; margin-top: 16px; border: 1px solid var(--line); border-radius: 18px; background: var(--surface); overflow: hidden; }
   .tabs.ex-tabs { grid-template-columns: repeat(3, minmax(0, 1fr)); flex: none; margin: 8px 8px 0; }
   .ex-pane { flex: 1 1 0; min-height: 0; overflow-y: auto; overscroll-behavior: contain; padding: 6px 0 8px; }
@@ -2973,35 +2977,35 @@
       </div>
 
       <div class="actions five">
-        <button class="tile" id="go-send" aria-label="Send">
+        <button class="tile" id="go-send" aria-label="Send" title="Send">
           <span class="icon pearl"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 7h10v10"/><path d="M7 17 17 7"/></svg></span>
           Send
         </button>
-        <button class="tile" id="go-receive" aria-label="Receive">
+        <button class="tile" id="go-receive" aria-label="Receive" title="Receive">
           <span class="icon pearl"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 7 7 17"/><path d="M17 17H7V7"/></svg></span>
           Receive
         </button>
-        <button class="tile" id="go-swap" aria-label="Swap">
+        <button class="tile" id="go-swap" aria-label="Swap" title="Swap">
           <span class="icon pearl"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3 4 7l4 4"/><path d="M4 7h16"/><path d="m16 21 4-4-4-4"/><path d="M20 17H4"/></svg></span>
           Swap
         </button>
-        <button class="tile" id="go-market" aria-label="Community">
+        <button class="tile" id="go-market" aria-label="Community" title="Community">
           <span class="icon pearl"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/><path d="M2 12h20"/></svg></span>
           Community
         </button>
-        <button class="tile" id="go-get" aria-label="Get ORN">
+        <button class="tile" id="go-get" aria-label="Get ORN" title="Get ORN">
           <span class="icon pearl"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="M12 5v14"/></svg></span>
           Get ORN
         </button>
-        <button class="tile phone-only-tile" id="go-explorer-tile" aria-label="Explorer">
+        <button class="tile phone-only-tile" id="go-explorer-tile" aria-label="Explorer" title="Explorer">
           <span class="icon pearl"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m10.065 12.493-6.18 1.318a.934.934 0 0 1-1.108-.702l-.537-2.15a1.07 1.07 0 0 1 .691-1.265l13.504-4.44"/><path d="m13.56 11.747 4.332-.924"/><path d="m16 21-3.105-6.21"/><path d="M16.485 5.94a2 2 0 0 1 1.455-2.425l1.09-.272a1 1 0 0 1 1.212.727l1.515 6.06a1 1 0 0 1-.727 1.213l-1.09.272a2 2 0 0 1-2.425-1.455z"/><path d="m6.158 8.633 1.114 4.456"/><path d="m8 21 3.105-6.21"/><circle cx="12" cy="13" r="2"/></svg></span>
           Explorer
         </button>
-        <button class="tile" id="go-messages" aria-label="Messages">
+        <button class="tile" id="go-messages" aria-label="Messages" title="Messages">
           <span class="icon pearl"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2.992 16.342a2 2 0 0 1 .094 1.167l-1.065 3.29a1 1 0 0 0 1.236 1.168l3.413-.998a2 2 0 0 1 1.099.092 10 10 0 1 0-4.777-4.719"/></svg><span class="dot" id="market-unread" hidden></span></span>
           Messages
         </button>
-        <button class="tile" id="go-mine">
+        <button class="tile" id="go-mine" aria-label="Mine" title="Mine">
           <span class="icon pearl"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m14 13-8.381 8.38a1 1 0 0 1-3.001-3L11 9.999"/><path d="M15.973 4.027A13 13 0 0 0 5.902 2.373c-1.398.342-1.092 2.158.277 2.601a19.9 19.9 0 0 1 5.822 3.024"/><path d="M16.001 11.999a19.9 19.9 0 0 1 3.024 5.824c.444 1.369 2.26 1.676 2.603.278A13 13 0 0 0 20 8.069"/><path d="M18.352 3.352a1.205 1.205 0 0 0-1.704 0l-5.296 5.296a1.205 1.205 0 0 0 0 1.704l2.296 2.296a1.205 1.205 0 0 0 1.704 0l5.296-5.296a1.205 1.205 0 0 0 0-1.704z"/></svg></span>
           <span id="mine-label">Mine</span>
         </button>
