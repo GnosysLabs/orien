@@ -909,16 +909,22 @@ function ReactionBar({ post, signedIn, onChange, small = false }: { post: Post; 
 
 /** A post's tips, as in Orien Wallet: the tip coins, the total in ORN
  * shining beside them, and how many tips. Never who. */
-function Tips({ tips }: { tips: { count: number; orn: number } }) {
+function Tips({ tips, small = false }: { tips: { count: number; orn: number }; small?: boolean }) {
   const total = (tips.orn / 1e9).toLocaleString('en', { maximumFractionDigits: 2 })
   const count = tips.count.toLocaleString('en')
   return (
     <span
       title={`Tipped ${total} ORN by ${count} ${tips.count === 1 ? 'person' : 'people'}`}
-      className="ml-auto inline-flex h-[30px] items-center gap-[7px] whitespace-nowrap rounded-full border border-white/10 bg-white/[0.04] pl-1 pr-3 text-[13px]"
+      className={`ml-auto inline-flex items-center whitespace-nowrap rounded-full border border-white/10 bg-white/[0.04] pl-1 ${
+        small ? 'h-[26px] gap-1.5 pr-2.5 text-xs' : 'h-[30px] gap-[7px] pr-3 text-[13px]'
+      }`}
     >
-      <span className="pearl-fill grid h-[22px] w-[22px] flex-none place-items-center rounded-full text-bg shadow-[inset_0_1px_0_#ffffff90,0_1px_4px_#00000040]">
-        <Coins className="h-[15px] w-[15px]" strokeWidth={2.4} aria-hidden />
+      <span
+        className={`pearl-fill grid flex-none place-items-center rounded-full text-bg shadow-[inset_0_1px_0_#ffffff90,0_1px_4px_#00000040] ${
+          small ? 'h-[18px] w-[18px]' : 'h-[22px] w-[22px]'
+        }`}
+      >
+        <Coins className={small ? 'h-3 w-3' : 'h-[15px] w-[15px]'} strokeWidth={2.4} aria-hidden />
       </span>
       <b className="silver-text font-bold tracking-[0.01em]">{total} ORN</b>
       <span className="text-xs text-muted">
@@ -1090,6 +1096,7 @@ function Reply({
             </button>
           )}
           <ReactionBar post={reply} signedIn={!!me} onChange={onChange} small />
+          {reply.tips && reply.tips.count > 0 && <Tips tips={reply.tips} small />}
         </div>
       </div>
     </div>
