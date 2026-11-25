@@ -9440,8 +9440,10 @@
     if (!r) return;
     const l = nt.lines[Number(r.dataset.nt)];
     if (!l) return;
-    if (l.kind === "message") { closeNotices(); return openChat(l.conversation, "notices"); }
-    if (l.kind === "room_reply") { closeNotices(); return openRoom("notices"); }
+    // Big windows: in Messages, beside the other conversations.
+    const into = !phone && wide.matches ? "inbox" : "notices";
+    if (l.kind === "message") { closeNotices(); return openChat(l.conversation, into); }
+    if (l.kind === "room_reply") { closeNotices(); return openRoom(into); }
     // The post on its own in the Community, its comments open.
     let found;
     try { found = await cmCall("GET", `/posts/${l.post}`); } catch (err) { problem("nt-problem", /not found|gone|no such/i.test(String(err)) ? "That post has been removed." : err); return; }
