@@ -424,6 +424,10 @@
   .status.warn i { background: #ecc58e; }
   .status.bad i { background: var(--bad); }
   .status span:empty { display: none; }
+  /* iPhones: the words go in a small bubble under the dot, clear of the
+     bell beside it. */
+  body.phone .status span { position: absolute; top: calc(100% + 2px); left: 50%; transform: translateX(-50%); padding: 5px 10px; border-radius: 999px;
+    background: var(--glass); -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px); color: var(--ink); box-shadow: 0 6px 18px rgba(var(--shade), 0.35); }
   @keyframes heartbeat {
     0%, 100% { transform: scale(0.85); opacity: 0.7; box-shadow: 0 0 0 0 color-mix(in srgb, var(--good) 0%, transparent); }
     50% { transform: scale(1.05); opacity: 1; box-shadow: 0 0 9px 1px color-mix(in srgb, var(--good) 55%, transparent); }
@@ -4536,9 +4540,14 @@
       lastBalance = view.balance;
       lockWithBiometrics();
       invoke("mine_status").then((m) => mineButton(m.status.running)).catch(() => {});
-      $("status").title = view.answered === view.validators ? `Connected to ${view.validators} validators` : `${view.answered} of ${view.validators} validators answered`;
-      if (view.answered === view.validators) setStatus("ok", "Connected");
-      else if (view.balance !== null) setStatus("warn", `${view.answered} of ${view.validators}`);
+      // Connected when the validators that answer hold enough of the stake
+      // to make payments final: one of many being down is nothing to worry
+      // about, so no count here (the explorer has each validator's state).
+      // A warning only when payments can't be made final right now.
+      const enough = view.quorum !== undefined ? view.quorum : view.answered === view.validators;
+      $("status").title = enough ? "Connected to the network" : "Waiting for validators";
+      if (enough) setStatus("ok", "Connected");
+      else if (view.balance !== null) setStatus("warn", "Connecting");
       else setStatus("bad", "Catching up");
       $("home-problem").hidden = true;
       if (!$("send").hidden) validate();

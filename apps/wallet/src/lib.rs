@@ -445,6 +445,10 @@ struct Overview {
     biometric_available: bool,
     answered: usize,
     validators: usize,
+    /// The validators that answered hold more than two thirds of the stake:
+    /// enough to make payments final, so the wallet is fully connected even
+    /// when some validator is down.
+    quorum: bool,
     epoch: u64,
 }
 
@@ -681,6 +685,10 @@ fn overview(wallet_file: &Path, genesis_file: &Path) -> Result<(Overview, Client
     if answered == 0 {
         return Err("no validator could be reached".into());
     }
+    // The views come in the validators' order, as the committee lists them.
+    let committee = client.committee();
+    let reached: u64 = status.views.iter().enumerate().filter(|(_, view)| view.is_some()).map(|(seat, _)| committee.stake_of(seat as u16)).sum();
+    let quorum = committee.has_quorum(reached);
     let view = Overview {
         address: address.to_string(),
         balance: status.spendable.map(money::show),
@@ -693,6 +701,7 @@ fn overview(wallet_file: &Path, genesis_file: &Path) -> Result<(Overview, Client
         biometric_available: biometric::available(),
         answered,
         validators: client.validators(),
+        quorum,
         epoch: client.epoch(),
     };
     Ok((view, client, address))
