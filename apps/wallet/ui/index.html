@@ -1148,6 +1148,13 @@
   .rm-more { align-self: center; margin: 4px 0 10px; }
   .rm-start { align-self: center; margin: 18px 0 8px; font-size: 12.5px; color: var(--faint); text-align: center; }
   .ch-blocked .pill { margin-top: 8px; }
+  .rm-badge { flex: none; padding: 1px 7px; border-radius: 999px; background: #ff453a26; color: #ff7b72; font-size: 10.5px; font-weight: 600; }
+  .rm-badge.mod { background: rgba(var(--tint), 0.08); color: var(--dim); }
+  .rm-bans { flex-shrink: 0; max-height: 40%; overflow-y: auto; margin: 10px 0 0; padding: 6px; border: 1px solid var(--line); border-radius: 16px; background: var(--surface); }
+  .rm-bans .ib-row { border: 0; border-radius: 12px; cursor: default; grid-template-columns: auto minmax(0, 1fr) auto; padding: 8px 10px; }
+  .rm-bans .ib-row .avatar { width: 32px; height: 32px; font-size: 13px; }
+  .rm-bans .empty { padding: 14px; text-align: center; }
+  .rm-bans-head { padding: 8px 10px 4px; font-size: 12px; color: var(--dim); }
   .ib-signin { display: flex; flex-direction: column; align-items: center; gap: 10px; margin-top: 18px; padding: 0 16px; color: var(--dim); font-size: 13px; text-align: center; }
   .ch-compose textarea { flex: 1; min-height: 22px; max-height: 120px; padding: 6px 0; border: 0; background: none; color: var(--ink); font: inherit; font-size: 13.5px; letter-spacing: normal; resize: none; outline: none; }
   .ch-send { flex: none; width: 34px; height: 34px; border: 0; border-radius: 50%; display: grid; place-items: center; color: var(--pearl-ink); cursor: pointer; }
@@ -2848,6 +2855,7 @@
         <button class="ch-who" id="ch-who"></button>
         <div class="account">
           <button class="pill" id="ch-ask" hidden>Ask for payment</button>
+          <button class="pill" id="rm-bans-go" hidden>Banned</button>
           <button class="pill icon" id="ch-more" title="More" aria-label="More"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg></button>
         </div>
       </div>
@@ -2857,6 +2865,7 @@
         <button class="menu-row bad" id="ch-delete"><span>Delete conversation</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M10 11v6"/><path d="M14 11v6"/></svg></button>
       </div>
       <button class="ch-about" id="ch-about"></button>
+      <div class="rm-bans" id="rm-bans" hidden></div>
       <div class="scroll ch-log" id="ch-log"></div>
       <div class="ch-askbox" id="ch-askbox" hidden>
         <div class="ch-ask-head"><div class="ch-ask-title" id="ch-ask-title"></div><button class="ch-ask-x" id="ch-ask-cancel" aria-label="Cancel"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></button></div>
@@ -9152,13 +9161,15 @@
   // ---- The group chat: one room for everyone on Orien Network, pinned
   // first in Messages. Anyone reads it; sending, replying and reacting take
   // a verified wallet, and every message is checked like any other post.
-  const room = { msgs: [], newest: 0, version: null, more: false, loadingOlder: false, last: null, you: null, reply: null, photos: [], gif: null, key: "", armed: null, reactions: null };
+  const room = { banArmed: null, msgs: [], newest: 0, version: null, more: false, loadingOlder: false, last: null, you: null, reply: null, photos: [], gif: null, key: "", armed: null, reactions: null };
   // The server marks your own reactions `mine`; Community's say `me`.
   const rmMine = (r) => !!(r.mine || r.me);
   // The Orien sunrise, as beside the wordmark.
   const ROOM_ICON = '<svg viewBox="0 0 512 512" fill="currentColor"><rect x="239" y="74" width="36" height="66" rx="18"/><rect x="239" y="74" width="36" height="66" rx="18" transform="rotate(-44 256 298)"/><rect x="239" y="74" width="36" height="66" rx="18" transform="rotate(44 256 298)"/><path d="M138 298 A118 118 0 0 1 374 298 Z"/><rect x="76" y="338" width="360" height="40" rx="20"/><rect x="156" y="406" width="200" height="36" rx="18"/></svg>';
   const DOTS_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg>';
   const FLAG_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 22V4a1 1 0 0 1 .4-.8A6 6 0 0 1 8 2c3 0 5 2 7.333 2q2 0 3.067-.8A1 1 0 0 1 20 4v10a1 1 0 0 1-.4.8A6 6 0 0 1 16 16c-3 0-5-2-8-2a6 6 0 0 0-4 1.528"/></svg>';
+  const BAN_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M4.929 4.929 19.07 19.071"/></svg>';
+  const UNBAN_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>';
   const BIN_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>';
   const roomRead = () => Number(localStorage.getItem("room-read") || 0);
   function roomMarkRead() { if (room.newest > roomRead()) localStorage.setItem("room-read", String(room.newest)); }
@@ -9185,7 +9196,7 @@
     if (!chat.room) return;
     chat.room = false;
     $("chat").classList.remove("room");
-    for (const id of ["rm-reply", "rm-attach", "rm-photo", "rm-gif"]) $(id).hidden = true;
+    for (const id of ["rm-reply", "rm-attach", "rm-photo", "rm-gif", "rm-bans-go", "rm-bans"]) $(id).hidden = true;
   }
   // Who you are here: signed in, and whether a wallet of yours is verified.
   async function roomWho() {
@@ -9195,7 +9206,11 @@
   }
   // Every answer says who you are here and what the room allows.
   function roomTake(a) {
-    if ("you" in a) room.you = board.me ? a.you || null : null;
+    if ("you" in a) {
+      const was = JSON.stringify(room.you);
+      room.you = board.me ? a.you || null : null;
+      if (JSON.stringify(room.you) !== was && chat.room) roomGate();
+    }
     if (a.reactions && a.reactions.length) room.reactions = a.reactions;
     if (a.version !== undefined) room.version = a.version;
   }
@@ -9219,13 +9234,15 @@
   // Sending needs a sign-in and a verified wallet; reading never does.
   function roomGate() {
     if (!chat.room) return;
-    const you = room.you, ok = !!(you && you.verified);
+    const you = room.you, ok = !!(you && you.verified && !you.banned);
+    $("rm-bans-go").hidden = !(you && you.moderator);
     $("ch-compose").hidden = !ok;
     $("rm-photo").hidden = !ok; $("rm-gif").hidden = !ok;
     $("ch-blocked").hidden = ok;
     $("ch-blocked").innerHTML = !board.me
       ? 'Sign in to Orien Network to chat.<br><button class="pill pearl" id="rm-signin">Sign in</button>'
-      : !you ? "Loading…" : 'Verify one of your wallets to chat. Anyone can read along.<br><button class="pill pearl" id="rm-verify">Verify a wallet</button>';
+      : !you ? "Loading…" : you.banned ? "You can't send in the group chat right now. You can still read along."
+      : 'Verify one of your wallets to chat. Anyone can read along.<br><button class="pill pearl" id="rm-verify">Verify a wallet</button>';
     if (!ok) { room.reply = null; $("rm-reply").hidden = true; $("rm-attach").hidden = true; }
     else roomAttachPaint();
   }
@@ -9288,6 +9305,7 @@
       && new Date(prev.created * 1000).toDateString() === new Date(m.created * 1000).toDateString());
     const at = new Date(m.created * 1000).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
     const mine = m.mine !== undefined ? !!m.mine : !!(room.you && a.id === room.you.id);
+    const mod = !!(room.you && room.you.moderator);
     const q = m.reply_to;
     const chips = (m.reactions || []).map((r) => `<button class="cm-chip${rmMine(r) ? " on" : ""}" data-rm-react="${m.id}" data-emoji="${esc(r.emoji)}"><span>${esc(r.emoji)}</span><b>${r.count}</b></button>`).join("");
     const armed = room.armed === m.id;
@@ -9295,7 +9313,7 @@
       ${q ? `<button class="rm-quote" data-rm-jump="${q.id}">${REPLY_ICON}<b>${esc(q.author_name || "Someone")}</b><span>${esc(q.body || "")}</span></button>` : ""}
       ${cont ? `<span class="rm-at">${esc(at)}</span>` : `<button class="rm-face" data-rm-who="${a.id || ""}" aria-label="${esc(a.name || "")}">${mkAvatar(a.name, a.picture)}</button>`}
       <div class="rm-main">
-        ${cont ? "" : `<div class="rm-head"><button class="rm-name" data-rm-who="${a.id || ""}">${esc(a.name || "Someone")}</button><time>${esc(at)}</time></div>`}
+        ${cont ? "" : `<div class="rm-head"><button class="rm-name" data-rm-who="${a.id || ""}">${esc(a.name || "Someone")}</button>${a.moderator ? '<span class="rm-badge mod">Moderator</span>' : ""}${a.banned ? '<span class="rm-badge">Banned</span>' : ""}<time>${esc(at)}</time></div>`}
         ${m.body ? `<div class="rm-body">${esc(m.body)}</div>` : ""}
         ${cmMedia({ pictures: roomPics(m), gif: m.gif })}
         ${chips ? `<div class="rm-reacts">${chips}</div>` : ""}
@@ -9303,14 +9321,17 @@
       <div class="rm-tools">
         <button data-rm-pick="${m.id}" title="React" aria-label="React">${SMILE_ICON}</button>
         <button data-rm-reply="${m.id}" title="Reply" aria-label="Reply">${REPLY_ICON}</button>
-        ${mine ? `<button class="bad" data-rm-del="${m.id}" title="${armed ? "Tap again to delete" : "Delete"}" aria-label="Delete">${armed ? "✓" : BIN_ICON}</button>`
-          : `<button data-rm-report="${m.id}" title="Report" aria-label="Report">${FLAG_ICON}</button>`}
+        ${mine ? "" : `<button data-rm-report="${m.id}" title="Report" aria-label="Report">${FLAG_ICON}</button>`}
+        ${mine || mod ? `<button class="bad" data-rm-del="${m.id}" title="${armed ? "Tap again to delete" : "Delete"}" aria-label="Delete">${armed ? "✓" : BIN_ICON}</button>` : ""}
+        ${mod && !mine && a.id && !a.moderator ? (a.banned
+          ? `<button data-rm-unban="${a.id}" title="Let ${esc(a.name || "them")} send again" aria-label="Unban">${UNBAN_ICON}</button>`
+          : `<button class="bad" data-rm-ban="${a.id}" title="${room.banArmed === a.id ? `Tap again to ban ${esc(a.name || "them")} from the chat` : `Ban ${esc(a.name || "them")} from the chat`}" aria-label="Ban">${room.banArmed === a.id ? "✓" : BAN_ICON}</button>`) : ""}
       </div>
     </div>`;
   }
   function roomPaint(toBottom, keepPlace) {
     if (!chat.room) return;
-    const key = JSON.stringify([room.msgs.map((m) => [m.id, m.body, m.reactions]), room.more, room.armed, room.you && room.you.id]);
+    const key = JSON.stringify([room.msgs.map((m) => [m.id, m.body, m.reactions, m.author && m.author.banned]), room.more, room.armed, room.banArmed, room.you && [room.you.id, room.you.moderator, room.you.banned]]);
     if (key === room.key && !toBottom) return;
     room.key = key;
     const log = $("ch-log");
@@ -9329,14 +9350,14 @@
     if (!$("chat").hidden) { roomMarkRead(); if (!$("inbox").hidden) paintInbox(); }
   }
   function roomCan(t) {
-    if (room.you && room.you.verified) return true;
+    if (room.you && room.you.verified && !room.you.banned) return true;
     // The card above the box already says why: it nudges instead of a second message.
     if (!$("ch-blocked").hidden) { const c = $("ch-blocked"); c.animate([{ transform: "translateX(0)" }, { transform: "translateX(-6px)" }, { transform: "translateX(6px)" }, { transform: "translateX(0)" }], { duration: 260 }); return false; }
     problem("ch-problem", board.me ? "Verify one of your wallets to chat, reply or react." : "Sign in to Orien Network to chat, reply or react.");
     return false;
   }
   async function roomClick(e) {
-    const t = e.target.closest("[data-rm-who],[data-rm-jump],[data-rm-pick],[data-rm-emoji],[data-rm-react],[data-rm-reply],[data-rm-del],[data-rm-report],[data-rm-report-send]");
+    const t = e.target.closest("[data-rm-who],[data-rm-jump],[data-rm-pick],[data-rm-emoji],[data-rm-react],[data-rm-reply],[data-rm-del],[data-rm-report],[data-rm-report-send],[data-rm-ban],[data-rm-unban]");
     if (!t) {
       // Phones: a tap on a message shows what can be done with it.
       const row = phone && e.target.closest(".rm-msg");
@@ -9367,6 +9388,23 @@
       const row = t.closest(".rm-msg");
       row.insertAdjacentHTML("beforeend", `<div class="report-box" data-for="${t.dataset.rmReport}"><textarea rows="2" maxlength="1000" placeholder="What is wrong with this message?"></textarea><div class="ls-ask-row"><span class="hint"></span><button class="pill" data-rm-report-send="${t.dataset.rmReport}">Send report</button></div></div>`);
       row.querySelector(".report-box textarea").focus();
+      return;
+    }
+    if (t.dataset.rmBan || t.dataset.rmUnban) {
+      const who = Number(t.dataset.rmBan || t.dataset.rmUnban);
+      if (t.dataset.rmBan && room.banArmed !== who) {
+        room.banArmed = who; roomPaint(false);
+        setTimeout(() => { if (room.banArmed === who) { room.banArmed = null; roomPaint(false); } }, 4000);
+        return;
+      }
+      room.banArmed = null;
+      try {
+        if (t.dataset.rmBan) await mk("POST", "/room/bans", { account: who }); else await mk("DELETE", `/room/bans/${who}`);
+        for (const m of room.msgs) if (m.author && m.author.id === who) m.author.banned = !!t.dataset.rmBan;
+        feel("success");
+        roomPaint(false);
+        if (!$("rm-bans").hidden) roomBans();
+      } catch (err) { problem("ch-problem", mkProblem(err)); }
       return;
     }
     if (!roomCan(t)) return;
@@ -9411,6 +9449,18 @@
   document.addEventListener("pointerdown", () => setTimeout(() => {
     for (const r of document.querySelectorAll(".rm-msg.picking")) if (!r.querySelector(".cm-picker")) r.classList.remove("picking");
   }, 0), true);
+  // Moderators: who can't send in the chat, each with Unban.
+  async function roomBans() {
+    const box = $("rm-bans");
+    let list = [];
+    try { list = (await mk("GET", "/room/bans")).bans || []; } catch (e) { problem("ch-problem", mkProblem(e)); return; }
+    box.innerHTML = '<div class="rm-bans-head">Banned from the group chat</div>' + (list.length ? list.map((b) => `<div class="ib-row">${mkAvatar(b.name, b.picture)}
+      <div class="mw0"><div class="nm"><b>${esc(b.name || "Someone")}</b></div><div class="last">Banned ${esc(ago(b.banned_at))}${b.by ? ` by ${esc(b.by)}` : ""}</div></div>
+      <button class="pill" data-rm-unban="${b.account}">Unban</button></div>`).join("") : '<div class="empty">Nobody is banned.</div>');
+    box.hidden = false;
+  }
+  $("rm-bans-go").onclick = () => { if ($("rm-bans").hidden) roomBans(); else $("rm-bans").hidden = true; };
+  $("rm-bans").onclick = (e) => { if (e.target.closest("[data-rm-unban]")) roomClick(e); };
   $("rm-reply-x").onclick = () => { room.reply = null; $("rm-reply").hidden = true; };
   function roomAttachPaint() {
     const box = $("rm-attach");
