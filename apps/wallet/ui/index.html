@@ -7381,11 +7381,12 @@
     const swap = swapList.find((s) => s.role === "buy" && s.created >= waitFor.since);
     if (!swap) return;
     waitFor = null;
-    // Still waiting, or on Swaps after closing the waiting card: on to paying.
-    if (!$("swap-waiting").hidden || !$("swaps").hidden) openSwap(swap.id);
+    // On to paying, wherever the person is in the app: the seller has
+    // locked the ORN, and the swap now waits on their payment.
+    openSwap(swap.id);
   }
   // Ask often while waiting: the seller's wallet usually answers in seconds.
-  setInterval(() => { if (waitFor && (!$("swap-waiting").hidden || !$("swaps").hidden)) stepSwaps(); }, 4000);
+  setInterval(() => { if (waitFor) stepSwaps(); }, 4000);
 
   function openSwap(id) {
     current = id;
@@ -11255,7 +11256,7 @@
     await loadProfiles(miners.slice(0, 100).map((m) => m.address));
     if (ex.at.kind !== "checkpoint" || ex.at.epoch !== epoch) return;
     const math = r.math ? (r.math === "Blake3" ? "BLAKE3" : r.math) : "—";
-    const vals = (d.validators || []).map((v) => `<div class="tx"><span class="ex-dot${v.agreed ? " up" : ""}"></span><div class="tx-main"><div class="title">Validator ${v.seat + 1}</div><div class="sub">${v.account ? `Staked by ${esc(exWho(v.account).name || short(v.account))}` : "Launch validator"}</div></div><div class="tx-side"><div class="amt">${v.agreed ? "Agrees" : "Didn't answer"}</div></div></div>`).join("");
+    const vals = (d.validators || []).map((v) => `<div class="tx"><span class="ex-dot${v.agreed ? " up" : ""}"></span><div class="tx-main"><div class="title">Validator ${v.seat + 1}</div><div class="sub">${v.account ? `Staked by ${esc(exWho(v.account).name || short(v.account))}` : "Launch validator"}</div></div><div class="tx-side"><div class="amt">${v.agreed ? "Agreed" : "Didn't answer"}</div></div></div>`).join("");
     const prints = `<button class="ex-hash ex-row" data-ex-copy="${c.state}" title="Copy"><div class="l">State after it: every account's balance, as one fingerprint</div><div class="h">${c.state}</div></button>
             <button class="ex-hash ex-row" data-ex-copy="${c.digest}" title="Copy"><div class="l">This checkpoint's fingerprint</div><div class="h">${c.digest}</div></button>
             ${epoch !== 0 && d.previous ? `<button class="ex-hash ex-row" data-ex-copy="${d.previous}" title="Copy"><div class="l">The checkpoint before it</div><div class="h">${d.previous}</div></button>` : ""}`;
