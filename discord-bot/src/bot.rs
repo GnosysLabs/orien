@@ -488,7 +488,7 @@ impl EventHandler for Handler {
             let removed = msg.delete(&ctx.http).await.is_ok();
             eprintln!("{} joined less than a day ago and posted a link; {}", msg.author.name, if removed { "removed" } else { "could not remove it" });
             if removed {
-                let note = format!("<@{}> I removed your message: new members can post links after their first day here.", msg.author.id);
+                let note = format!("<@{}> I removed your message. New members can't post links yet. A moderator can help if you need to share one.", msg.author.id);
                 let message = CreateMessage::new().content(note).allowed_mentions(CreateAllowedMentions::new().users([msg.author.id]));
                 if let Err(error) = msg.channel_id.send_message(&ctx.http, message).await {
                     eprintln!("could not post the note about the removed link: {error}");
