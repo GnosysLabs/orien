@@ -34,10 +34,11 @@ import { Linked } from './Linked'
 import { YouTube, youtubeId } from './YouTube'
 import { openSignIn } from './SignInDialog'
 import { EYEBROWS, NetworkAvatar } from './network'
+import { ReactionChip, type ReactionCount } from './ReactionChip'
 
 type Person = { name: string; picture: string | null; banner?: string | null; tip_to?: string | null }
 type Face = { account?: number; address?: string; name?: string; picture?: string | null; paid?: string }
-type Reaction = { emoji: string; count: number; me: boolean }
+type Reaction = ReactionCount
 export type Picture = { name: string; width: number; height: number }
 type LinkPreview = { url: string; site: string; title: string; description: string; image: Picture | null }
 type PollState = {
@@ -339,7 +340,7 @@ function Happening({ post }: { post: Post }) {
           <p className="mt-1.5 text-ink">
             {Number(post.data.share).toLocaleString('en', { maximumFractionDigits: 2 })}% of all the ORN there will ever be.
           </p>
-          <p className="mt-1 text-sm text-muted">Every ORN comes from mining, a little more every hour.</p>
+          <p className="mt-1 text-sm text-muted">Every ORN comes from mining, released hour by hour, a little less each hour.</p>
         </div>
       )
     case 'validator':
@@ -865,18 +866,7 @@ function ReactionBar({ post, signedIn, onChange, small = false }: { post: Post; 
   return (
     <div className="flex flex-wrap items-center gap-1.5">
       {post.reactions.map((r) => (
-        <button
-          key={r.emoji}
-          type="button"
-          onClick={() => void toggle(r.emoji)}
-          aria-pressed={r.me}
-          className={`flex h-7 items-center gap-1 rounded-full border px-2 text-sm transition ${
-            r.me ? 'border-pearl/70 bg-raised text-ink' : 'border-line text-muted hover:border-pearl/60 hover:text-ink'
-          }`}
-        >
-          <span aria-hidden>{r.emoji}</span>
-          <span className="num text-xs font-semibold">{r.count}</span>
-        </button>
+        <ReactionChip key={r.emoji} r={r} onClick={() => void toggle(r.emoji)} />
       ))}
       <div ref={box} className="relative">
         <button
@@ -909,16 +899,22 @@ function ReactionBar({ post, signedIn, onChange, small = false }: { post: Post; 
 
 /** A post's tips, as in Orien Wallet: the tip coins, the total in ORN
  * shining beside them, and how many tips. Never who. */
-function Tips({ tips }: { tips: { count: number; orn: number } }) {
+function Tips({ tips, small = false }: { tips: { count: number; orn: number }; small?: boolean }) {
   const total = (tips.orn / 1e9).toLocaleString('en', { maximumFractionDigits: 2 })
   const count = tips.count.toLocaleString('en')
   return (
     <span
       title={`Tipped ${total} ORN by ${count} ${tips.count === 1 ? 'person' : 'people'}`}
-      className="ml-auto inline-flex h-[30px] items-center gap-[7px] whitespace-nowrap rounded-full border border-white/10 bg-white/[0.04] pl-1 pr-3 text-[13px]"
+      className={`ml-auto inline-flex items-center whitespace-nowrap rounded-full border border-white/10 bg-white/[0.04] pl-1 ${
+        small ? 'h-[26px] gap-1.5 pr-2.5 text-xs' : 'h-[30px] gap-[7px] pr-3 text-[13px]'
+      }`}
     >
-      <span className="pearl-fill grid h-[22px] w-[22px] flex-none place-items-center rounded-full text-bg shadow-[inset_0_1px_0_#ffffff90,0_1px_4px_#00000040]">
-        <Coins className="h-[15px] w-[15px]" strokeWidth={2.4} aria-hidden />
+      <span
+        className={`pearl-fill grid flex-none place-items-center rounded-full text-bg shadow-[inset_0_1px_0_#ffffff90,0_1px_4px_#00000040] ${
+          small ? 'h-[18px] w-[18px]' : 'h-[22px] w-[22px]'
+        }`}
+      >
+        <Coins className={small ? 'h-3 w-3' : 'h-[15px] w-[15px]'} strokeWidth={2.4} aria-hidden />
       </span>
       <b className="silver-text font-bold tracking-[0.01em]">{total} ORN</b>
       <span className="text-xs text-muted">
@@ -1090,6 +1086,7 @@ function Reply({
             </button>
           )}
           <ReactionBar post={reply} signedIn={!!me} onChange={onChange} small />
+          {reply.tips && reply.tips.count > 0 && <Tips tips={reply.tips} small />}
         </div>
       </div>
     </div>

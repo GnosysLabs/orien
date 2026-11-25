@@ -39,6 +39,10 @@ const POSTS_AN_HOUR: i64 = 20;
 const PAGE: i64 = 30;
 /// The reactions anyone can leave.
 pub const REACTIONS: [&str; 5] = ["⛏️", "🔥", "❤️", "👏", "😂"];
+
+/// How many names a reaction lists, for hovering over it; the rest are
+/// counted ("and 3 others").
+pub const REACTION_NAMES: usize = 10;
 /// ORN mined that earns a milestone post.
 const MILESTONES: [u64; 9] = [1, 100, 250, 500, 1_000, 5_000, 10_000, 50_000, 100_000];
 /// New miners shown with a face on one hour's welcome card; more are counted.
@@ -353,6 +357,28 @@ fn chrono_date(seconds: u64) -> String {
 }
 
 impl Store {
+    /// Who left each reaction on `id`, first to react first, up to
+    /// REACTION_NAMES each; suspended accounts aren't named.
+    pub(crate) fn reactor_names(&self, room: bool, id: i64) -> Result<HashMap<String, Vec<String>>> {
+        let sql = if room {
+            "SELECT r.emoji, a.name FROM room_reactions r JOIN accounts a ON a.id = r.account
+             WHERE r.message = ?1 AND r.account NOT IN (SELECT account FROM suspended) ORDER BY r.rowid"
+        } else {
+            "SELECT r.emoji, a.name FROM reactions r JOIN accounts a ON a.id = r.account
+             WHERE r.post = ?1 AND r.account NOT IN (SELECT account FROM suspended) ORDER BY r.rowid"
+        };
+        let mut names: HashMap<String, Vec<String>> = HashMap::new();
+        let mut rows = self.db.prepare_cached(sql)?;
+        for row in rows.query_map(params![id], |row| Ok((row.get::<_, String>(0)?, row.get::<_, String>(1)?)))? {
+            let (emoji, name) = row?;
+            let list = names.entry(emoji).or_default();
+            if list.len() < REACTION_NAMES {
+                list.push(name);
+            }
+        }
+        Ok(names)
+    }
+
     pub(crate) fn create_community_tables(&self) -> Result<()> {
         self.db.execute_batch(
             "CREATE TABLE IF NOT EXISTS posts (
@@ -722,9 +748,12 @@ impl Store {
             let reactions: Vec<(String, i64, bool)> = counts
                 .query_map(params![id, viewer.unwrap_or(-1)], |row| Ok((row.get(0)?, row.get(1)?, row.get(2)?)))?
                 .collect::<rusqlite::Result<_>>()?;
+            let mut names = self.reactor_names(false, id)?;
             post["reactions"] = json!(reactions
                 .iter()
-                .map(|(emoji, count, me)| json!({ "emoji": emoji, "count": count, "me": me }))
+                .map(|(emoji, count, me)| {
+                    json!({ "emoji": emoji, "count": count, "me": me, "names": names.remove(emoji).unwrap_or_default() })
+                })
                 .collect::<Vec<_>>());
         }
         Ok(posts)
