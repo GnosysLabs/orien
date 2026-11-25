@@ -444,10 +444,9 @@
   /* iPhones use the Market; mining and swaps stay on computers, which keep
      the wallet running while a swap needs it. */
   body.phone #go-mine, body.phone #go-swap, body.phone #swap-alert, body.phone #choose, body.phone .update { display: none !important; }
-  body.phone .actions.five { grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 6px; }
-  body.phone .actions.five .tile .icon { width: 50px; height: 50px; }
-  body.phone .actions.five .tile .icon svg { width: 21px; height: 21px; }
-  body.phone .actions.five .tile .dot { right: calc(50% - 24px); }
+  body.phone .actions.five { grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 8px; }
+  /* iPhones keep Settings in the header. */
+  body.phone #go-settings-tile { display: none; }
   /* iPhones: the explorer's figures compact, three to a row, so its card has room. */
   body.phone .ex-facts { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
   body.phone .ex-fact { display: flex; flex-direction: column; justify-content: space-between; gap: 4px; padding: 10px 10px 11px; border-radius: 15px; }
@@ -2740,8 +2739,6 @@
   body.phone.at-home .hd-btn svg { width: 22px; height: 22px; }
   body.phone.at-home .hd-btn .dot { top: 6px; right: 7px; }
   body.phone.at-home .hd-left { left: max(16px, env(safe-area-inset-left)); }
-  /* Settings is among Home's round buttons now. */
-  body.phone.at-home #hd-settings { display: none; }
   body.phone.at-home .hd-right { right: max(16px, env(safe-area-inset-right)); }
   body.phone .home-left :is(#go-settings, #go-notices) { display: none; }
   body.phone #swaps, body.phone #swap-sell, body.phone #swap-buy, body.phone #swap-detail, body.phone #mine,
