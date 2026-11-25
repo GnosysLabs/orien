@@ -2117,6 +2117,7 @@
   @media (min-width: 980px) {
     #explorer { --col: 1040px; }
     .ex-facts { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+    .ex-facts.five { grid-template-columns: repeat(5, minmax(0, 1fr)); }
     .ex-split { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 0 24px; align-items: start; }
     /* An address: who it is on the left, its figures stacked on the right. */
     .ex-addr-top { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 360px); gap: 24px; align-items: center; }
@@ -9711,7 +9712,7 @@
     await loadProfiles(miners.slice(0, 100).map((m) => m.address));
     if (ex.at.kind !== "checkpoint" || ex.at.epoch !== epoch) return;
     const math = r.math ? (r.math === "Blake3" ? "BLAKE3" : r.math) : "—";
-    $("ex-body").innerHTML = `<div class="ex-facts">
+    $("ex-body").innerHTML = `<div class="ex-facts five">
         ${exFact("Miners paid", miners.length.toLocaleString(), `${exOrn(c.released, 2)} new ORN`)}
         ${exFact("Payments", c.payments.toLocaleString(), "Made final")}
         ${exFact("Mining", math, r.harder != null ? `Next hour ${exChange(r.harder).toLowerCase()}` : "")}
