@@ -1524,8 +1524,24 @@
     body:not(.phone) #st-menu .set-txt small, body:not(.phone) #st-menu .chev { display: none; }
     body:not(.phone) #st-menu .set-txt b { font-size: 14px; }
     body:not(.phone) #st-menu .st-cat.on { background: rgba(var(--tint), 0.1); }
-    body:not(.phone) .st-pane { display: block; min-height: 0; overflow-y: auto; overscroll-behavior: contain; padding: 15px 6px 28px;
-      -webkit-mask: linear-gradient(transparent, #000 15px); mask: linear-gradient(transparent, #000 15px); }
+    /* Where the section scrolls under its top and bottom edges it rounds
+       off at its content's edges (6px in), as every screen does. */
+    body:not(.phone) .st-pane { display: block; min-height: 0; overflow-y: auto; overscroll-behavior: contain; padding: 16px 6px 28px;
+      --r: 16px; --i: 6px; --m: linear-gradient(#000, #000);
+      -webkit-mask: var(--m) 0 var(--r) / 100% calc(100% - 2 * var(--r)) no-repeat,
+        var(--m) 50% 0 / calc(100% - 2 * var(--i) - 2 * var(--r)) var(--r) no-repeat,
+        var(--m) 50% 100% / calc(100% - 2 * var(--i) - 2 * var(--r)) var(--r) no-repeat,
+        radial-gradient(circle at 100% 100%, #000 calc(var(--r) - 0.5px), transparent var(--r)) var(--i) 0 / var(--r) var(--r) no-repeat,
+        radial-gradient(circle at 0 100%, #000 calc(var(--r) - 0.5px), transparent var(--r)) calc(100% - var(--i)) 0 / var(--r) var(--r) no-repeat,
+        radial-gradient(circle at 100% 0, #000 calc(var(--r) - 0.5px), transparent var(--r)) var(--i) 100% / var(--r) var(--r) no-repeat,
+        radial-gradient(circle at 0 0, #000 calc(var(--r) - 0.5px), transparent var(--r)) calc(100% - var(--i)) 100% / var(--r) var(--r) no-repeat;
+      mask: var(--m) 0 var(--r) / 100% calc(100% - 2 * var(--r)) no-repeat,
+        var(--m) 50% 0 / calc(100% - 2 * var(--i) - 2 * var(--r)) var(--r) no-repeat,
+        var(--m) 50% 100% / calc(100% - 2 * var(--i) - 2 * var(--r)) var(--r) no-repeat,
+        radial-gradient(circle at 100% 100%, #000 calc(var(--r) - 0.5px), transparent var(--r)) var(--i) 0 / var(--r) var(--r) no-repeat,
+        radial-gradient(circle at 0 100%, #000 calc(var(--r) - 0.5px), transparent var(--r)) calc(100% - var(--i)) 0 / var(--r) var(--r) no-repeat,
+        radial-gradient(circle at 100% 0, #000 calc(var(--r) - 0.5px), transparent var(--r)) var(--i) 100% / var(--r) var(--r) no-repeat,
+        radial-gradient(circle at 0 0, #000 calc(var(--r) - 0.5px), transparent var(--r)) calc(100% - var(--i)) 100% / var(--r) var(--r) no-repeat; }
     body:not(.phone) .st-pane-head { display: flex; align-items: center; gap: 8px; height: 36px; margin: 0 0 20px; }
     body:not(.phone) .st-pane-head .back[hidden], body:not(.phone) .st-pane-head .pill[hidden] { display: none; }
     body:not(.phone) .st-pane-title { margin: 0 0 0 4px; font: 600 19px/1.2 "Jost", sans-serif; letter-spacing: 0.01em; }
