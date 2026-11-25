@@ -1086,6 +1086,69 @@
   .ch-blocked { flex-shrink: 0; padding: 10px 14px; margin-bottom: 10px; border-radius: 14px; background: var(--surface); color: var(--dim); font-size: 12.5px; text-align: center; }
   .ch-compose { flex-shrink: 0; display: flex; align-items: flex-end; gap: 8px; padding: 6px 6px 6px 14px; border: 1px solid var(--line); border-radius: 22px; background: var(--field); }
   .ch-compose:focus-within { border-color: var(--focus); }
+  /* ---- The group chat: everyone on Orien Network, as on Discord ---- */
+  .avatar.rm-icon { background: var(--pearl); background-size: 300% 100%; color: var(--pearl-ink); }
+  .avatar.rm-icon svg { width: 62%; height: 62%; }
+  #chat.room .ch-compose { padding-left: 6px; }
+  .rm-tool { flex: none; height: 34px; min-width: 34px; padding: 0 6px; border: 0; border-radius: 17px; display: grid; place-items: center;
+    background: none; color: var(--dim); font: inherit; font-size: 11px; font-weight: 700; letter-spacing: 0.04em; cursor: pointer; }
+  @media (hover: hover) { .rm-tool:hover { color: var(--ink); background: rgba(var(--tint), 0.06); } }
+  .rm-tool:disabled { opacity: .35; cursor: default; }
+  .rm-reply { flex-shrink: 0; display: flex; align-items: center; gap: 10px; margin-bottom: 8px; padding: 8px 12px 8px 14px; border-radius: 14px;
+    background: var(--surface); font-size: 12.5px; color: var(--dim); }
+  .rm-reply-text { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .rm-reply-text b { color: var(--ink); font-weight: 600; }
+  .rm-reply .ch-ask-x { margin: -6px -6px -6px 0; }
+  .rm-attach { flex-shrink: 0; display: flex; gap: 8px; margin-bottom: 8px; }
+  .rm-attach > div { position: relative; width: 64px; height: 64px; border-radius: 12px; overflow: hidden; background: var(--surface); }
+  .rm-attach img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .rm-attach button { position: absolute; top: 4px; right: 4px; width: 22px; height: 22px; padding: 0; border: 0; border-radius: 50%;
+    display: grid; place-items: center; background: rgba(0, 0, 0, 0.65); color: #fff; cursor: pointer; }
+  #chat.room .ch-log { gap: 0; }
+  .rm-msg { position: relative; display: grid; grid-template-columns: 40px minmax(0, 1fr); column-gap: 12px; padding: 8px 10px; border-radius: 12px; }
+  .rm-msg.cont { padding-top: 2px; }
+  .rm-msg + .rm-msg:not(.cont) { margin-top: 8px; }
+  @media (hover: hover) { .rm-msg:hover { background: rgba(var(--tint), 0.03); } }
+  .rm-msg.flash { background: rgba(var(--tint), 0.08); transition: background .6s; }
+  .rm-face { grid-row: span 9; align-self: start; width: 40px; height: 40px; padding: 0; border: 0; border-radius: 50%; background: none; cursor: pointer; }
+  .rm-face .avatar { position: relative; overflow: hidden; width: 40px; height: 40px; border-radius: 50%; display: grid; place-items: center;
+    background: var(--surface-hover); color: var(--ink); font-weight: 600; }
+  .rm-face .avatar img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+  .rm-at { grid-row: span 9; align-self: start; padding-top: 3px; text-align: center; font-size: 10px; color: var(--faint); opacity: 0; }
+  @media (hover: hover) { .rm-msg:hover .rm-at { opacity: 1; } }
+  .rm-main { min-width: 0; }
+  .rm-head { display: flex; align-items: baseline; gap: 8px; min-width: 0; }
+  .rm-name { padding: 0; border: 0; background: none; color: var(--ink); font: inherit; font-size: 14px; font-weight: 600; cursor: pointer;
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  @media (hover: hover) { .rm-name:hover { text-decoration: underline; } }
+  .rm-head time { flex: none; font-size: 11px; color: var(--faint); }
+  .rm-body { margin-top: 2px; font-size: 14px; line-height: 1.45; white-space: pre-wrap; overflow-wrap: anywhere; -webkit-user-select: text; user-select: text; }
+  .rm-msg.cont .rm-body { margin-top: 0; }
+  .rm-quote { display: flex; align-items: center; gap: 6px; max-width: 100%; margin: 0 0 4px; padding: 0; border: 0; background: none;
+    color: var(--faint); font: inherit; font-size: 12px; text-align: left; cursor: pointer; }
+  .rm-msg > .rm-quote { grid-column: 2; }
+  .rm-msg.quoted :is(.rm-face, .rm-at) { grid-row: 2 / span 9; }
+  .rm-quote svg { flex: none; width: 12px; height: 12px; transform: scaleX(-1); }
+  .rm-quote b { flex: none; color: var(--dim); font-weight: 600; }
+  .rm-quote span { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .rm-main .cm-media { max-width: 420px; margin-top: 6px; border-radius: 14px; }
+  .rm-reacts { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
+  .rm-reacts .cm-chip { height: 26px; padding: 0 8px; gap: 5px; font-size: 12.5px; }
+  .rm-tools { position: absolute; top: -14px; right: 10px; z-index: 5; display: none; gap: 2px; padding: 3px; border: 1px solid var(--line);
+    border-radius: 12px; background: var(--surface); box-shadow: 0 6px 18px rgba(0, 0, 0, 0.3); }
+  @media (hover: hover) { .rm-msg:hover .rm-tools { display: flex; } }
+  .rm-msg.tools .rm-tools, .rm-msg.picking .rm-tools { display: flex; }
+  .rm-tools button { width: 30px; height: 28px; padding: 0; border: 0; border-radius: 8px; display: grid; place-items: center;
+    background: none; color: var(--dim); cursor: pointer; }
+  @media (hover: hover) { .rm-tools button:hover { color: var(--ink); background: rgba(var(--tint), 0.07); } }
+  .rm-tools button.bad { color: #ff7b72; }
+  .rm-tools svg { width: 16px; height: 16px; }
+  .rm-msg .cm-picker { top: -52px; right: 10px; }
+  .rm-msg .report-box { grid-column: 2; margin-top: 8px; }
+  .rm-more { align-self: center; margin: 4px 0 10px; }
+  .rm-start { align-self: center; margin: 18px 0 8px; font-size: 12.5px; color: var(--faint); text-align: center; }
+  .ch-blocked .pill { margin-top: 8px; }
+  .ib-signin { display: flex; flex-direction: column; align-items: center; gap: 10px; margin-top: 18px; padding: 0 16px; color: var(--dim); font-size: 13px; text-align: center; }
   .ch-compose textarea { flex: 1; min-height: 22px; max-height: 120px; padding: 6px 0; border: 0; background: none; color: var(--ink); font: inherit; font-size: 13.5px; letter-spacing: normal; resize: none; outline: none; }
   .ch-send { flex: none; width: 34px; height: 34px; border: 0; border-radius: 50%; display: grid; place-items: center; color: var(--pearl-ink); cursor: pointer; }
   .ch-send:disabled { opacity: .4; cursor: default; }
@@ -2184,9 +2247,9 @@
   }
   .tx.contact { cursor: pointer; }
   @media (hover: hover) { .tx.contact:hover { background: rgba(var(--tint), 0.024); } }
-  /* Bigger windows: contacts as cards in two columns, never a row stretched
-     across the whole width. */
-  @media (min-width: 720px) {
+  /* Desktop, at every size: contacts as cards in two columns, never a row
+     stretched across the whole width. */
+  @media (min-width: 0) {
     body:not(.phone) .ct-list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px;
       background: none; border: 0; border-radius: 0; overflow: visible; }
     body:not(.phone) .ct-list > .tx { background: var(--surface); border: 1px solid var(--line); border-radius: 18px; }
@@ -2801,7 +2864,11 @@
       </div>
       <div class="ch-blocked" id="ch-blocked" hidden></div>
       <div class="problem" id="ch-problem" hidden></div>
+      <div class="rm-reply" id="rm-reply" hidden><span class="rm-reply-text" id="rm-reply-text"></span><button class="ch-ask-x" id="rm-reply-x" aria-label="Stop replying"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></button></div>
+      <div class="rm-attach" id="rm-attach" hidden></div>
       <div class="ch-compose" id="ch-compose">
+        <button class="rm-tool" id="rm-photo" type="button" title="Add pictures" aria-label="Add pictures" hidden><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg></button>
+        <button class="rm-tool rm-gif" id="rm-gif" type="button" title="Add a GIF" aria-label="Add a GIF" hidden>GIF</button>
         <textarea id="ch-text" rows="1" maxlength="2000"></textarea>
         <button class="ch-send pearl" id="ch-send" aria-label="Send"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 7-7 7 7"/><path d="M12 19V5"/></svg></button>
       </div>
@@ -8196,6 +8263,7 @@
     if (!b) return;
     let g;
     try { g = JSON.parse(b.dataset.gif); } catch { return; }
+    if (gifs.target === "room") { room.gif = g; room.photos = []; gifClose(); roomAttachPaint(); feel("selection"); return; }
     if (gifs.target) { rdraftOf(gifs.target).gif = g; gifClose(); rdraftPaint(gifs.target); feel("selection"); return; }
     draft.gif = g;
     gifClose(); paintDraft(); feel("selection");
@@ -8729,6 +8797,7 @@
     try { found = ((await mk("GET", "/conversations")).conversations || []).find((c) => c.listing === l.id && c.buying); } catch {}
     $("ls-ask").disabled = false;
     if (found) return openChat(found.id, "listing");
+    leaveRoom();
     chat.id = null; chat.from = "listing"; chat.paying = null; chat.blockArmed = false; chat.key = null;
     swapDraft(`l${l.id}`);
     chat.draft = l.id; chat.direct = null;
@@ -8759,8 +8828,8 @@
   // The list of conversations, newest first.
   const inbox = { items: [] };
   function paintInbox() {
-    $("ib-list").innerHTML = inbox.items.length
-      ? `<div class="list">${inbox.items.map((c) => {
+    const signedIn = !!board.me;
+    $("ib-list").innerHTML = `<div class="list">${roomRow()}${inbox.items.map((c) => {
           const last = c.last ? (c.last.kind === "request" ? "Payment request" : c.last.kind === "paid" ? "Marked as paid" : c.last.body) : "";
           return `<button class="ib-row${c.unread ? " unread" : ""}${c.id === chat.id ? " on" : ""}" data-chat="${c.id}">
             ${mkAvatar(c.with_name, c.with_picture)}
@@ -8769,9 +8838,12 @@
             <span class="udot"></span>
           </button>`;
         }).join("")}</div>`
-      : '<div class="empty">No messages yet. To write to someone, open their profile and tap Message.</div>';
+      + (!signedIn ? '<div class="ib-signin">Sign in to Orien Network to see your own messages and to chat.<button class="pill pearl" id="ib-signin">Sign in</button></div>'
+        : inbox.items.length ? "" : '<div class="empty">No messages of your own yet. To write to someone, open their profile and tap Message.</div>');
   }
   async function loadInbox() {
+    roomPeek();
+    if (!board.me) { inbox.items = []; paintInbox(); return; }
     try { inbox.items = (await mk("GET", "/conversations")).conversations || []; $("ib-problem").hidden = true; }
     catch (e) { problem("ib-problem", mkProblem(e)); }
     paintInbox();
@@ -8783,10 +8855,8 @@
     await loadInbox();
   }
   // Messages stands on its own: its own button on the home screen.
-  $("go-messages").onclick = () => {
-    if (!board.me) { signinReturn = "messages"; resetSignin(); show("board-signin"); return; }
-    openInbox();
-  };
+  // Open to everyone: the group chat reads without signing in.
+  $("go-messages").onclick = () => openInbox();
   $("ib-back").onclick = () => { chat.id = null; home(); };
   // Writing to anyone by their Orien Network name: the conversation the two
   // already have, or a new one that starts with the first message.
@@ -8797,6 +8867,7 @@
     let found = inbox.items.find(same);
     if (!found) try { found = ((await mk("GET", "/conversations")).conversations || []).find(same); } catch {}
     if (found) return openChat(found.id, from);
+    leaveRoom();
     chat.id = null; chat.from = from; chat.paying = null; chat.blockArmed = false; chat.key = null;
     swapDraft(`u${person.name.toLowerCase()}`);
     chat.draft = null; chat.direct = person.name;
@@ -8817,7 +8888,11 @@
     const p = editing && profileOf(editing);
     if (p && p.name) messagePerson({ name: p.name, picture: p.picture }, "contact");
   };
-  $("ib-list").onclick = (e) => { const r = e.target.closest("[data-chat]"); if (r) openChat(Number(r.dataset.chat), "inbox"); };
+  $("ib-list").onclick = (e) => {
+    if (e.target.closest("#ib-signin")) { signinReturn = "messages"; resetSignin(); show("board-signin"); return; }
+    if (e.target.closest("[data-room]")) { openRoom("inbox"); return; }
+    const r = e.target.closest("[data-chat]"); if (r) openChat(Number(r.dataset.chat), "inbox");
+  };
 
   // The window crossing the width while in Messages: one at a time, or
   // side by side.
@@ -8861,6 +8936,7 @@
     }
   }
   async function openChat(id, from) {
+    leaveRoom();
     swapDraft(`c${id}`);
     chat.id = id; chat.from = from || "inbox"; chat.paying = null; chat.blockArmed = false; chat.draft = null; chat.direct = null;
     // Opened: no longer unread in the list beside it.
@@ -8884,7 +8960,7 @@
     $("ch-text").focus();
   }
   async function refreshChat(force) {
-    if (!chat.id) return;
+    if (!chat.id || chat.room) return;
     const id = chat.id;
     let answer;
     try { answer = await fetchChat(id); }
@@ -8942,7 +9018,7 @@
     const pw = document.getElementById("ch-pay-pw");
     if (pw) pw.focus();
   }
-  $("ch-back").onclick = () => { chat.id = null; chat.direct = null; chat.from === "listing" ? show("listing") : chat.from === "profile" ? show("seller") : chat.from === "contact" ? show("contact") : chat.from === "notices" ? (phone ? openNotices() : home()) : chat.from === "member" ? show("member") : openInbox(); };
+  $("ch-back").onclick = () => { const wasRoom = chat.room; leaveRoom(); chat.id = null; chat.direct = null; if (wasRoom && chat.from === "inbox") return openInbox(); chat.from === "listing" ? show("listing") : chat.from === "profile" ? show("seller") : chat.from === "contact" ? show("contact") : chat.from === "notices" ? (phone ? openNotices() : home()) : chat.from === "member" ? show("member") : openInbox(); };
   $("ch-who").onclick = () => { if (chat.conv && chat.conv.with) { market.sellerFrom = "chat"; openSeller(chat.conv.with); } };
   $("ch-about").onclick = () => chat.conv && chat.conv.listing && openListing(chat.conv.listing, "chat");
   // Delete conversation: gone from your Messages (theirs stays); asks twice.
@@ -9008,6 +9084,7 @@
   };
   // Buyer: pay a request from this wallet, then mark it paid, in one go.
   $("ch-log").onclick = async (e) => {
+    if (chat.room) return roomClick(e);
     const pay = e.target.closest("[data-pay]"), cancel = e.target.closest("[data-paycancel]"), now = e.target.closest("[data-paynow]");
     if (pay) { chat.paying = Number(pay.dataset.pay); paintChat(); return; }
     if (cancel) { chat.paying = null; paintChat(); return; }
@@ -9046,6 +9123,7 @@
   $("ch-text").oninput = growText;
   $("ch-text").onkeydown = (e) => { if (e.key === "Enter" && !e.shiftKey && !e.isComposing) { e.preventDefault(); $("ch-send").click(); } };
   $("ch-send").onclick = async () => {
+    if (chat.room) return roomSend();
     const body = $("ch-text").value.trim();
     if (!body || !(chat.id || chat.draft || chat.direct)) return;
     $("ch-send").disabled = true;
@@ -9068,8 +9146,303 @@
     }
     finally { $("ch-send").disabled = false; $("ch-text").focus(); }
   };
+
+  // ---- The group chat: one room for everyone on Orien Network, pinned
+  // first in Messages. Anyone reads it; sending, replying and reacting take
+  // a verified wallet, and every message is checked like any other post.
+  const room = { msgs: [], newest: 0, more: false, loadingOlder: false, last: null, you: null, reply: null, photos: [], gif: null, key: "", armed: null };
+  // The Orien sunrise, as beside the wordmark.
+  const ROOM_ICON = '<svg viewBox="0 0 512 512" fill="currentColor"><rect x="239" y="74" width="36" height="66" rx="18"/><rect x="239" y="74" width="36" height="66" rx="18" transform="rotate(-44 256 298)"/><rect x="239" y="74" width="36" height="66" rx="18" transform="rotate(44 256 298)"/><path d="M138 298 A118 118 0 0 1 374 298 Z"/><rect x="76" y="338" width="360" height="40" rx="20"/><rect x="156" y="406" width="200" height="36" rx="18"/></svg>';
+  const DOTS_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg>';
+  const FLAG_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 22V4a1 1 0 0 1 .4-.8A6 6 0 0 1 8 2c3 0 5 2 7.333 2q2 0 3.067-.8A1 1 0 0 1 20 4v10a1 1 0 0 1-.4.8A6 6 0 0 1 16 16c-3 0-5-2-8-2a6 6 0 0 0-4 1.528"/></svg>';
+  const BIN_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>';
+  const roomRead = () => Number(localStorage.getItem("room-read") || 0);
+  function roomMarkRead() { if (room.newest > roomRead()) localStorage.setItem("room-read", String(room.newest)); }
+  const roomText = (m) => m.body || ((m.pictures || []).length ? "Sent a picture" : m.gif ? "Sent a GIF" : "");
+  function roomRow() {
+    const m = room.last, unread = m && m.id > roomRead() && !(chat.room && !$("chat").hidden);
+    return `<button class="ib-row${unread ? " unread" : ""}${chat.room ? " on" : ""}" data-room>
+      <span class="avatar rm-icon">${ROOM_ICON}</span>
+      <div class="mw0"><div class="nm"><b>Orien</b><span class="when">${m ? esc(ago(m.created)) : ""}</span></div>
+        <div class="what">Group chat · everyone on Orien Network</div>
+        <div class="last">${m ? `${esc((m.author && m.author.name) || "Someone")}: ${esc(roomText(m))}` : "Say hello to everyone."}</div></div>
+      <span class="udot"></span>
+    </button>`;
+  }
+  // The newest message, for the row in Messages.
+  async function roomPeek() {
+    try {
+      const a = await mk("GET", "/room/messages?limit=1");
+      const m = (a.messages || []).slice(-1)[0] || null;
+      if ((m && m.id) !== (room.last && room.last.id)) { room.last = m; if (!$("inbox").hidden) paintInbox(); }
+    } catch {}
+  }
+  function leaveRoom() {
+    if (!chat.room) return;
+    chat.room = false;
+    $("chat").classList.remove("room");
+    for (const id of ["rm-reply", "rm-attach", "rm-photo", "rm-gif"]) $(id).hidden = true;
+  }
+  // Who you are here: signed in, and whether a wallet of yours is verified.
+  async function roomWho() {
+    if (!board.me) { room.you = null; return; }
+    try { const b = await cmCall("GET", "/board"); room.you = b.you ? { ...b.you, id: board.me.id } : null; } catch {}
+  }
+  async function openRoom(from) {
+    if (!chat.room) swapDraft("room");
+    chat.room = true; chat.id = "room"; chat.from = from || "inbox"; chat.conv = null; chat.draft = null; chat.direct = null; chat.paying = null;
+    $("chat").classList.add("room");
+    $("ch-askbox").hidden = true; $("ch-menu").hidden = true; $("ch-problem").hidden = true;
+    $("ch-about").hidden = true; $("ch-ask").hidden = true; $("ch-more").hidden = true;
+    $("ch-who").innerHTML = `<span class="avatar rm-icon">${ROOM_ICON}</span><div class="mw0"><b>Orien</b><small>Everyone on Orien Network</small></div>`;
+    $("ch-text").placeholder = "Message everyone";
+    room.key = "";
+    if (room.msgs.length) { roomPaint(true); show("chat"); roomGate(); roomWho().then(roomGate); roomPoll(); return; }
+    $("chat").classList.add("loading");
+    show("chat");
+    await Promise.all([roomLoad(), roomWho()]);
+    $("chat").classList.remove("loading");
+    roomGate();
+    roomPaint(true);
+  }
+  // Sending needs a sign-in and a verified wallet; reading never does.
+  function roomGate() {
+    if (!chat.room) return;
+    const you = room.you, ok = !!(you && you.verified);
+    $("ch-compose").hidden = !ok;
+    $("rm-photo").hidden = !ok; $("rm-gif").hidden = !ok;
+    $("ch-blocked").hidden = ok;
+    $("ch-blocked").innerHTML = !board.me
+      ? 'Sign in to Orien Network to chat.<br><button class="pill pearl" id="rm-signin">Sign in</button>'
+      : !you ? "Loading…" : 'Verify one of your wallets to chat. Anyone can read along.<br><button class="pill pearl" id="rm-verify">Verify a wallet</button>';
+    if (!ok) { room.reply = null; $("rm-reply").hidden = true; $("rm-attach").hidden = true; }
+    else roomAttachPaint();
+  }
+  $("ch-blocked").addEventListener("click", (e) => {
+    if (e.target.closest("#rm-signin")) { signinReturn = "messages"; resetSignin(); show("board-signin"); }
+    else if (e.target.closest("#rm-verify")) { leaveRoom(); chat.id = null; loadBoard().then(openProfile); }
+  });
+  const roomPics = (m) => (m.pictures || []).map((p) => typeof p === "string" ? { name: p } : p);
+  async function roomLoad() {
+    try {
+      const a = await mk("GET", "/room/messages?limit=50");
+      room.msgs = a.messages || [];
+      room.more = room.msgs.length >= 50;
+      room.newest = room.msgs.length ? room.msgs[room.msgs.length - 1].id : 0;
+      room.last = room.msgs[room.msgs.length - 1] || null;
+      $("ch-problem").hidden = true;
+    } catch (e) { problem("ch-problem", mkProblem(e)); }
+  }
+  // Live: the latest fifty again, so new messages, reactions and removals
+  // all show; anything older stays as it was.
+  let roomPolling = false;
+  async function roomPoll() {
+    if (!chat.room || roomPolling) return;
+    roomPolling = true;
+    try {
+      const a = await mk("GET", "/room/messages?limit=50");
+      if (!chat.room) return;
+      const latest = a.messages || [];
+      if (latest.length) {
+        const from = latest[0].id;
+        room.msgs = room.msgs.filter((m) => m.id < from).concat(latest);
+        room.newest = latest[latest.length - 1].id;
+        room.last = latest[latest.length - 1];
+      }
+      roomPaint(false);
+    } catch {} finally { roomPolling = false; }
+  }
+  async function roomOlder() {
+    if (!room.more || room.loadingOlder || !room.msgs.length) return;
+    room.loadingOlder = true;
+    try {
+      const a = await mk("GET", `/room/messages?before=${room.msgs[0].id}&limit=50`);
+      const older = a.messages || [];
+      room.more = older.length >= 50;
+      const log = $("ch-log"), below = log.scrollHeight - log.scrollTop;
+      room.msgs = older.concat(room.msgs);
+      roomPaint(false, true);
+      log.scrollTop = log.scrollHeight - below;
+    } catch {} finally { room.loadingOlder = false; }
+  }
+  $("ch-log").addEventListener("scroll", () => { if (chat.room && $("ch-log").scrollTop < 300) roomOlder(); }, { passive: true });
+  function roomMsg(m, prev) {
+    const a = m.author || {};
+    const cont = !!(prev && prev.author && a.id && prev.author.id === a.id && m.created - prev.created < 300 && !m.reply_to
+      && new Date(prev.created * 1000).toDateString() === new Date(m.created * 1000).toDateString());
+    const at = new Date(m.created * 1000).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
+    const mine = !!(room.you && a.id === room.you.id);
+    const q = m.reply_to;
+    const chips = (m.reactions || []).map((r) => `<button class="cm-chip${r.me ? " on" : ""}" data-rm-react="${m.id}" data-emoji="${esc(r.emoji)}"><span>${esc(r.emoji)}</span><b>${r.count}</b></button>`).join("");
+    const armed = room.armed === m.id;
+    return `<div class="rm-msg${cont ? " cont" : ""}${q ? " quoted" : ""}" data-rm="${m.id}">
+      ${q ? `<button class="rm-quote" data-rm-jump="${q.id}">${REPLY_ICON}<b>${esc(q.author_name || "Someone")}</b><span>${esc(q.body || "")}</span></button>` : ""}
+      ${cont ? `<span class="rm-at">${esc(at)}</span>` : `<button class="rm-face" data-rm-who="${a.id || ""}" aria-label="${esc(a.name || "")}">${mkAvatar(a.name, a.picture)}</button>`}
+      <div class="rm-main">
+        ${cont ? "" : `<div class="rm-head"><button class="rm-name" data-rm-who="${a.id || ""}">${esc(a.name || "Someone")}</button><time>${esc(at)}</time></div>`}
+        ${m.body ? `<div class="rm-body">${esc(m.body)}</div>` : ""}
+        ${cmMedia({ pictures: roomPics(m), gif: m.gif })}
+        ${chips ? `<div class="rm-reacts">${chips}</div>` : ""}
+      </div>
+      <div class="rm-tools">
+        <button data-rm-pick="${m.id}" title="React" aria-label="React">${SMILE_ICON}</button>
+        <button data-rm-reply="${m.id}" title="Reply" aria-label="Reply">${REPLY_ICON}</button>
+        ${mine ? `<button class="bad" data-rm-del="${m.id}" title="${armed ? "Tap again to delete" : "Delete"}" aria-label="Delete">${armed ? "✓" : BIN_ICON}</button>`
+          : `<button data-rm-report="${m.id}" title="Report" aria-label="Report">${FLAG_ICON}</button>`}
+      </div>
+    </div>`;
+  }
+  function roomPaint(toBottom, keepPlace) {
+    if (!chat.room) return;
+    const key = JSON.stringify([room.msgs.map((m) => [m.id, m.body, m.reactions]), room.more, room.armed, room.you && room.you.id]);
+    if (key === room.key && !toBottom) return;
+    room.key = key;
+    const log = $("ch-log");
+    const atBottom = toBottom || log.scrollHeight - log.scrollTop - log.clientHeight < 80;
+    let html = room.more ? "" : '<div class="rm-start">This is the start of the Orien group chat. Be kind; everything here is public.</div>', day = "", prev = null;
+    for (const m of room.msgs) {
+      const d = new Date(m.created * 1000).toLocaleDateString([], { weekday: "long", month: "short", day: "numeric" });
+      if (d !== day) { html += `<div class="ch-day">${esc(d)}</div>`; day = d; prev = null; }
+      html += roomMsg(m, prev);
+      prev = m;
+    }
+    const open = document.querySelector("#ch-log .report-box");
+    paintKeeping(log, html || '<div class="empty">No messages yet. Say hello to everyone.</div>');
+    if (open) { const host = log.querySelector(`[data-rm="${open.dataset.for}"]`); if (host) host.appendChild(open); }
+    if (atBottom && !keepPlace) log.scrollTop = log.scrollHeight;
+    if (!$("chat").hidden) { roomMarkRead(); if (!$("inbox").hidden) paintInbox(); }
+  }
+  function roomCan(t) {
+    if (room.you && room.you.verified) return true;
+    // The card above the box already says why: it nudges instead of a second message.
+    if (!$("ch-blocked").hidden) { const c = $("ch-blocked"); c.animate([{ transform: "translateX(0)" }, { transform: "translateX(-6px)" }, { transform: "translateX(6px)" }, { transform: "translateX(0)" }], { duration: 260 }); return false; }
+    problem("ch-problem", board.me ? "Verify one of your wallets to chat, reply or react." : "Sign in to Orien Network to chat, reply or react.");
+    return false;
+  }
+  async function roomClick(e) {
+    const t = e.target.closest("[data-rm-who],[data-rm-jump],[data-rm-pick],[data-rm-emoji],[data-rm-react],[data-rm-reply],[data-rm-del],[data-rm-report],[data-rm-report-send]");
+    if (!t) {
+      // Phones: a tap on a message shows what can be done with it.
+      const row = phone && e.target.closest(".rm-msg");
+      for (const r of document.querySelectorAll(".rm-msg.tools")) if (r !== row) r.classList.remove("tools");
+      if (row) row.classList.toggle("tools");
+      return;
+    }
+    if (t.dataset.rmWho) { market.sellerFrom = "chat"; openSeller(Number(t.dataset.rmWho)); return; }
+    if (t.dataset.rmJump) {
+      const row = $("ch-log").querySelector(`[data-rm="${t.dataset.rmJump}"]`);
+      if (row) { row.scrollIntoView({ block: "center", behavior: "smooth" }); row.classList.add("flash"); setTimeout(() => row.classList.remove("flash"), 1200); }
+      return;
+    }
+    if (t.dataset.rmReportSend) {
+      const box = t.closest(".report-box");
+      t.disabled = true;
+      try {
+        await mk("POST", "/reports", { kind: "room", id: Number(t.dataset.rmReportSend), reason: box.querySelector("textarea").value.trim() });
+        box.querySelector(".hint").textContent = "Thanks. We will look at it.";
+        setTimeout(() => box.remove(), 1600);
+      } catch (err) { problem("ch-problem", mkProblem(err)); t.disabled = false; }
+      return;
+    }
+    if (t.dataset.rmReport) {
+      if (!board.me) { problem("ch-problem", "Sign in to Orien Network to report a message."); return; }
+      const old = document.querySelector("#ch-log .report-box");
+      if (old) { const same = old.dataset.for === t.dataset.rmReport; old.remove(); if (same) return; }
+      const row = t.closest(".rm-msg");
+      row.insertAdjacentHTML("beforeend", `<div class="report-box" data-for="${t.dataset.rmReport}"><textarea rows="2" maxlength="1000" placeholder="What is wrong with this message?"></textarea><div class="ls-ask-row"><span class="hint"></span><button class="pill" data-rm-report-send="${t.dataset.rmReport}">Send report</button></div></div>`);
+      row.querySelector(".report-box textarea").focus();
+      return;
+    }
+    if (!roomCan(t)) return;
+    const id = Number(t.dataset.rmPick || t.dataset.rmEmoji || t.dataset.rmReact || t.dataset.rmReply || t.dataset.rmDel);
+    if (t.dataset.rmPick) {
+      if (Date.now() - (t.closedAt || 0) < 400) return;
+      cmClosePickers();
+      const row = t.closest(".rm-msg"), picker = document.createElement("span");
+      picker.className = "cm-picker";
+      picker.innerHTML = cm.reactions.map((r) => `<button data-rm-emoji="${id}" data-emoji="${esc(r)}">${esc(r)}</button>`).join("");
+      picker.was = t;
+      row.appendChild(picker);
+      row.classList.add("picking");
+      t.classList.add("open");
+      return;
+    }
+    if (t.dataset.rmReply) {
+      const m = room.msgs.find((x) => x.id === id);
+      if (!m) return;
+      room.reply = m;
+      $("rm-reply-text").innerHTML = `Replying to <b>${esc((m.author && m.author.name) || "Someone")}</b>`;
+      $("rm-reply").hidden = false;
+      $("ch-text").focus();
+      return;
+    }
+    try {
+      if (t.dataset.rmDel) {
+        if (room.armed !== id) { room.armed = id; roomPaint(false); setTimeout(() => { if (room.armed === id) { room.armed = null; roomPaint(false); } }, 4000); return; }
+        room.armed = null;
+        await mk("DELETE", `/room/messages/${id}`);
+        room.msgs = room.msgs.filter((m) => m.id !== id);
+        feel("success");
+      } else {
+        cmClosePickers();
+        await mk("POST", `/room/messages/${id}/react`, { emoji: t.dataset.emoji });
+        feel("selection");
+      }
+    } catch (err) { problem("ch-problem", mkProblem(err)); }
+    roomPoll();
+  }
+  // The reaction picker closing takes its message's tools with it.
+  document.addEventListener("pointerdown", () => setTimeout(() => {
+    for (const r of document.querySelectorAll(".rm-msg.picking")) if (!r.querySelector(".cm-picker")) r.classList.remove("picking");
+  }, 0), true);
+  $("rm-reply-x").onclick = () => { room.reply = null; $("rm-reply").hidden = true; };
+  function roomAttachPaint() {
+    const box = $("rm-attach");
+    box.innerHTML = room.gif ? `<div><img src="${esc(room.gif.preview || room.gif.url)}" alt="GIF"><button data-rm-unattach="gif" aria-label="Remove">✕</button></div>`
+      : room.photos.map((p, i) => `<div><img src="${esc(p.url)}" alt=""><button data-rm-unattach="${i}" aria-label="Remove">✕</button></div>`).join("");
+    box.hidden = !box.innerHTML;
+    $("rm-photo").disabled = !!room.gif || room.photos.length >= 4;
+    $("rm-gif").disabled = room.photos.length > 0;
+  }
+  $("rm-attach").onclick = (e) => {
+    const b = e.target.closest("[data-rm-unattach]");
+    if (!b) return;
+    if (b.dataset.rmUnattach === "gif") room.gif = null; else room.photos.splice(Number(b.dataset.rmUnattach), 1);
+    roomAttachPaint();
+  };
+  $("rm-photo").onclick = async () => {
+    try {
+      const picked = await invoke("market_pick_pictures", { room: 4 - room.photos.length });
+      if (picked && picked.length) { room.photos.push(...picked.map((p) => ({ path: p.path, url: p.url, name: null }))); room.gif = null; roomAttachPaint(); }
+    } catch (err) { problem("ch-problem", err); }
+  };
+  $("rm-gif").onclick = () => gifOpen("room");
+  async function roomSend() {
+    const body = $("ch-text").value.trim();
+    if (!body && !room.photos.length && !room.gif) return;
+    if (!roomCan()) return;
+    $("ch-send").disabled = true;
+    try {
+      const msg = { body };
+      if (room.reply) msg.reply_to = room.reply.id;
+      if (room.photos.length) {
+        // Each picture is checked by the server as it arrives.
+        const names = [];
+        for (const ph of room.photos) names.push(ph.name || (ph.name = (await invoke("community_picture", { path: ph.path })).name));
+        msg.pictures = names;
+      } else if (room.gif) msg.gif = { id: room.gif.id, url: room.gif.url, preview: room.gif.preview, width: room.gif.width, height: room.gif.height };
+      await mk("POST", "/room/messages", msg);
+      $("ch-text").value = ""; growText();
+      room.reply = null; $("rm-reply").hidden = true;
+      room.photos = []; room.gif = null; roomAttachPaint();
+      drafts.delete("room");
+      await roomPoll();
+      $("ch-log").scrollTop = $("ch-log").scrollHeight;
+    } catch (e) { problem("ch-problem", mkProblem(e)); }
+    finally { $("ch-send").disabled = false; $("ch-text").focus(); }
+  }
   // Live: an open chat every 4 seconds, the list every 10, the unread dot every 30.
-  setInterval(() => { if (!$("chat").hidden && chat.id) refreshChat(); }, 4000);
+  setInterval(() => { if (!$("chat").hidden && chat.id) chat.room ? roomPoll() : refreshChat(); }, 4000);
   setInterval(() => { if (!$("inbox").hidden) loadInbox(); }, 10000);
   setInterval(() => { if (board.me) invoke("board_me").then((me) => { board.me = me; paintUnread(); if (me && me.unread) marketNews(); if (me && me.notices) noticeNews(); }).catch(() => {}); }, 20000);
   // A notification for each new Market message, on computers, as for ORN
