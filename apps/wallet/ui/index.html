@@ -444,7 +444,10 @@
   /* iPhones use the Market; mining and swaps stay on computers, which keep
      the wallet running while a swap needs it. */
   body.phone #go-mine, body.phone #go-swap, body.phone #swap-alert, body.phone #choose, body.phone .update { display: none !important; }
-  body.phone .actions.five { grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 8px; }
+  body.phone .actions.five { grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 6px; }
+  body.phone .actions.five .tile .icon { width: 50px; height: 50px; }
+  body.phone .actions.five .tile .icon svg { width: 21px; height: 21px; }
+  body.phone .actions.five .tile .dot { right: calc(50% - 24px); }
   /* iPhones: the explorer's figures compact, three to a row, so its card has room. */
   body.phone .ex-facts { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
   body.phone .ex-fact { display: flex; flex-direction: column; justify-content: space-between; gap: 4px; padding: 10px 10px 11px; border-radius: 15px; }
@@ -462,7 +465,7 @@
   /* Contacts and the explorer join the round buttons: the explorer
      everywhere but big windows (where Home's network card leads to it),
      Contacts on computers (iPhones keep it at the top). */
-  #home #go-explorer { display: none !important; }
+  #home #go-explorer, #home #go-settings { display: none !important; }
   body:not(.phone) #home #go-contacts { display: none !important; }
   body.phone .desk-tile { display: none !important; }
   /* Get ORN is the iPhone's; computers have Mine and Swap. */
@@ -1351,12 +1354,12 @@
   @media (min-width: 860px) {
     body:not(.phone) #swaps { --col: 1040px; }
     body:not(.phone) #swaps > .tabs { display: none; }
-    body:not(.phone) .sw-grid { display: grid; grid-template-columns: minmax(0, 1.55fr) minmax(0, 1fr); grid-template-areas: "offers mine" "offers hist";
-      grid-template-rows: auto 1fr; gap: 26px 28px; align-items: start; }
+    body:not(.phone) #swaps > .sw-grid { display: grid; grid-template-columns: minmax(0, 1.55fr) minmax(0, 1fr); grid-template-areas: "offers mine" "offers hist";
+      grid-template-rows: fit-content(50%) minmax(0, 1fr); gap: 20px 28px; align-items: stretch; }
     body:not(.phone) .sw-grid > #tab-offers { grid-area: offers; }
     body:not(.phone) .sw-grid > #tab-mine { grid-area: mine; }
     body:not(.phone) .sw-grid > #tab-history { grid-area: hist; }
-    body:not(.phone) .sw-grid > [hidden] { display: block !important; }
+    body:not(.phone) .sw-grid > [hidden] { display: flex !important; flex-direction: column; }
     body:not(.phone) #tab-history #hist-last { display: none; }
     body:not(.phone) #board-last { margin-bottom: 18px; }
     /* Each side part is its own panel, titled, as in the Community's sidebar. */
@@ -1366,11 +1369,27 @@
     body:not(.phone) .sw-grid #swap-list { overflow: visible; margin: 0; padding: 0 0 4px; -webkit-mask: none; mask: none; }
     body:not(.phone) .sw-grid #swap-list .swap-row { border: 0; border-radius: 0; background: none; border-top: 1px solid var(--line); margin: 0; }
     body:not(.phone) .sw-grid #swap-list .swap-group { margin: 12px 16px 6px; }
-    body:not(.phone) .sw-grid #swap-list .empty, body:not(.phone) .sw-grid #hist-list .empty { border-top: 1px solid var(--line); }
-    body:not(.phone) .sw-grid #hist-list .list { border: 0; border-radius: 0; background: none; border-top: 1px solid var(--line); }
+    /* In the side panels the lists are the panel's own: no card of their own. */
+    body:not(.phone) #swaps .sw-grid :is(#swap-list, #hist-list) { border: 0; border-radius: 0; background: none; border-top: 1px solid var(--line); }
   }
   #tab-offers .section-head h3 { line-height: 32px; }
+  /* The swaps page fits one screen: each list is a card as tall as what's
+     in it, scrolling inside itself once it reaches the foot of the screen. */
+  #swaps { overflow: hidden; }
+  #swaps > .sw-grid { flex: 1 1 0; min-height: 0; display: flex; flex-direction: column; }
+  #swaps .sw-grid > div:not([hidden]) { min-height: 0; display: flex; flex-direction: column; }
+  #swaps .sw-grid > div > * { flex-shrink: 0; }
+  #swaps :is(#board-offers, #hist-list, #swap-list) { flex: 0 1 auto; min-height: 0; overflow-y: auto; overscroll-behavior: contain;
+    margin: 0; padding: 0; border: 1px solid var(--line); border-radius: 18px; background: var(--surface); -webkit-mask: none; mask: none; }
+  #swaps #board-offers .offer { border: 0; border-radius: 0; background: none; margin: 0; }
+  #swaps #board-offers .offer + .offer { border-top: 1px solid var(--line); }
+  #swaps #hist-list .list { border: 0; border-radius: 0; background: none; box-shadow: none; }
+  #swaps #swap-list .swap-row { border: 0; border-radius: 0; background: none; margin: 0; }
+  #swaps #swap-list .swap-row + .swap-row { border-top: 1px solid var(--line); }
+  #swaps #swap-list .swap-group { margin: 12px 16px 6px; }
+  #swaps #board-offers .board-away { margin: 0; padding: 10px 16px 12px; border-top: 1px solid var(--line); }
   .board-prices { margin: 14px 0 0; min-height: 0; text-align: center; }
+  .board-prices:empty { display: none; }
   /* The swap screens can hold more than the window: they scroll, and
      nothing in them is squeezed. */
   #board-signin, #board-post, #board-take { overflow-y: auto; margin: -8px -8px 0; padding: 8px 8px 16px; }
@@ -2721,6 +2740,8 @@
   body.phone.at-home .hd-btn svg { width: 22px; height: 22px; }
   body.phone.at-home .hd-btn .dot { top: 6px; right: 7px; }
   body.phone.at-home .hd-left { left: max(16px, env(safe-area-inset-left)); }
+  /* Settings is among Home's round buttons now. */
+  body.phone.at-home #hd-settings { display: none; }
   body.phone.at-home .hd-right { right: max(16px, env(safe-area-inset-right)); }
   body.phone .home-left :is(#go-settings, #go-notices) { display: none; }
   body.phone #swaps, body.phone #swap-sell, body.phone #swap-buy, body.phone #swap-detail, body.phone #mine,
@@ -3030,6 +3051,10 @@
         <button class="tile" id="go-mine" aria-label="Mine" title="Mine">
           <span class="icon pearl"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m14 13-8.381 8.38a1 1 0 0 1-3.001-3L11 9.999"/><path d="M15.973 4.027A13 13 0 0 0 5.902 2.373c-1.398.342-1.092 2.158.277 2.601a19.9 19.9 0 0 1 5.822 3.024"/><path d="M16.001 11.999a19.9 19.9 0 0 1 3.024 5.824c.444 1.369 2.26 1.676 2.603.278A13 13 0 0 0 20 8.069"/><path d="M18.352 3.352a1.205 1.205 0 0 0-1.704 0l-5.296 5.296a1.205 1.205 0 0 0 0 1.704l2.296 2.296a1.205 1.205 0 0 0 1.704 0l5.296-5.296a1.205 1.205 0 0 0 0-1.704z"/></svg></span>
           <span id="mine-label">Mine</span>
+        </button>
+        <button class="tile" id="go-settings-tile" aria-label="Settings" title="Settings">
+          <span class="icon pearl"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></span>
+          Settings
         </button>
       </div>
 
@@ -5516,7 +5541,7 @@
       }
     } catch {}
   }
-  $("go-settings").onclick = openSettings;
+  $("go-settings").onclick = $("go-settings-tile").onclick = openSettings;
   $("st-back").onclick = () => {
     if (settingsParent[settingsAt]) settingsPage(settingsParent[settingsAt]);
     else if ($("st-menu").hidden) settingsPage(null);
