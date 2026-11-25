@@ -410,7 +410,7 @@
      a dot that breathes while all is well; words only when it isn't. */
   .wm-wrap { position: relative; display: inline-flex; align-items: center; }
   /* The name at the top is a way Home from anywhere: it says so on a hover. */
-  #wm-home { cursor: pointer; border-radius: 10px; transition: filter .15s, opacity .15s; -webkit-app-region: no-drag; }
+  #wm-home { pointer-events: auto; cursor: pointer; border-radius: 10px; transition: filter .15s, opacity .15s; -webkit-app-region: no-drag; }
   @media (hover: hover) { #wm-home:hover { filter: brightness(1.25) drop-shadow(0 0 10px rgba(var(--tint), 0.25)); } }
   #wm-home:active { opacity: 0.75; }
   #wm-home:focus:not(:focus-visible) { outline: none; }
