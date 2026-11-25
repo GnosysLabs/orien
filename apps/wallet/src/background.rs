@@ -93,16 +93,21 @@ pub fn widen_once(app: &AppHandle) {
     if marker.exists() {
         return;
     }
-    let _ = std::fs::create_dir_all(&dir);
-    let _ = std::fs::write(&marker, b"1");
-    let Some(window) = app.get_webview_window("main") else { return };
-    let (Ok(size), Ok(scale)) = (window.inner_size(), window.scale_factor()) else { return };
-    let width = size.width as f64 / scale;
-    if (width - 719.0).abs() < 1.5 && !window.is_maximized().unwrap_or(false) {
-        let _ = window.set_size(tauri::LogicalSize::new(1200.0, 800.0));
-        let _ = window.center();
-        remember_window(app);
-    }
+    // The saved size is put back a moment after start: look once it has.
+    let app = app.clone();
+    std::thread::spawn(move || {
+        std::thread::sleep(std::time::Duration::from_millis(600));
+        let Some(window) = app.get_webview_window("main") else { return };
+        let (Ok(size), Ok(scale)) = (window.inner_size(), window.scale_factor()) else { return };
+        let _ = std::fs::create_dir_all(&dir);
+        let _ = std::fs::write(&marker, b"1");
+        let width = size.width as f64 / scale;
+        if (width - 719.0).abs() < 1.5 && !window.is_maximized().unwrap_or(false) {
+            let _ = window.set_size(tauri::LogicalSize::new(1200.0, 800.0));
+            let _ = window.center();
+            remember_window(&app);
+        }
+    });
 }
 
 /// Shows the window, in front.
