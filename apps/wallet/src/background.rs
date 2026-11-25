@@ -83,28 +83,6 @@ pub fn remember_window(app: &AppHandle) {
     let _ = app.save_window_state(WINDOW_STATE);
 }
 
-/// Once, after the update that brought the wide layouts: a window still at
-/// the old default width (719, so never widened) opens at the new default,
-/// 1200 by 800, centred. A size someone chose is left alone, and so is
-/// every window after this first look.
-pub fn widen_once(app: &AppHandle) {
-    let Ok(dir) = app.path().app_config_dir() else { return };
-    let marker = dir.join("window-widened");
-    if marker.exists() {
-        return;
-    }
-    let _ = std::fs::create_dir_all(&dir);
-    let _ = std::fs::write(&marker, b"1");
-    let Some(window) = app.get_webview_window("main") else { return };
-    let (Ok(size), Ok(scale)) = (window.inner_size(), window.scale_factor()) else { return };
-    let width = size.width as f64 / scale;
-    if (width - 719.0).abs() < 1.5 && !window.is_maximized().unwrap_or(false) {
-        let _ = window.set_size(tauri::LogicalSize::new(1200.0, 800.0));
-        let _ = window.center();
-        remember_window(app);
-    }
-}
-
 /// Shows the window, in front.
 pub fn show(app: &AppHandle) {
     if let Some(window) = app.get_webview_window("main") {

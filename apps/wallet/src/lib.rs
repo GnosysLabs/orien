@@ -2764,8 +2764,6 @@ pub fn run() {
             #[cfg(desktop)]
             background::setup(app.handle())?;
             #[cfg(desktop)]
-            background::widen_once(app.handle());
-            #[cfg(desktop)]
             extension::serve(app.handle().clone());
             #[cfg(desktop)]
             std::thread::spawn(firefox::register);
