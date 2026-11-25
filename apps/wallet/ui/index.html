@@ -7125,16 +7125,14 @@
     const open = view && view.address;
     postUnverified = !!open && !states.some((p) => (p.address || "").toLowerCase() === open && p.verified);
     $("bp-verify").hidden = !postUnverified;
+    // Sent and waiting for the network: said on the button, not offered again.
+    const busy = typeof vw !== "undefined" && vw.waiting === open;
+    $("bp-verify-go").disabled = busy;
+    $("bp-verify-go").textContent = busy ? "Verifying… usually within a minute" : "Verify this wallet";
     postReady();
   }
-  $("bp-verify-go").onclick = async () => {
-    // Your profile, its wallets, with this one's verifying under way.
-    openProfile();
-    if (typeof pfTab === "function") pfTab("settings");
-    await renderVerify();
-    const b = document.querySelector(`#vf-list [data-verify="${view && view.address}"]`);
-    if (b) { b.scrollIntoView({ block: "center" }); startVerify(b.dataset.verify, b); }
-  };
+  // The same one-tap confirm as Home's: posting opens once it's verified.
+  $("bp-verify-go").onclick = () => quickVerify();
   // SOL first; Bitcoin for those who'd rather. Until SOL swaps are open
   // in this copy of the app (live on Solana), only Bitcoin shows.
   let postCoin = "sol";
@@ -9948,6 +9946,7 @@
       }
       vw.proof = null; vw.waiting = address;
       vwClose();
+      if (!$("bp-verify").hidden) checkPostWallet();
       feel("success");
       refresh();
       paintVerifyCard();
@@ -9964,6 +9963,7 @@
       paintVerifyCard();
       if (cm.you) { cm.you.verified = true; cmPaintYou(); }
       if (room.you) { room.you.verified = true; roomGate(); }
+      if (!$("bp-verify").hidden) checkPostWallet();
       if (!$("profile").hidden) renderVerify();
       feel("success");
       return;
