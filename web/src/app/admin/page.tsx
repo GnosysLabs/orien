@@ -206,6 +206,8 @@ export default function AdminPage() {
 
       <Reports reports={reports.data?.reports ?? null} onChange={reload} />
 
+      <GroupChat />
+
       <h2 className="-mb-2 text-sm font-bold text-muted">Market and swaps</h2>
       <section className="grid grid-cols-2 gap-3 lg:grid-cols-4">
         <Tile label="Accounts" value={count(m.accounts)} sub={`${m.accounts_day} today · ${m.accounts_week} this week · ${m.with_wallet} with a wallet`} />
@@ -539,6 +541,62 @@ function Reports({ reports, onChange }: { reports: Report[] | null; onChange: ()
           ))}
         </ul>
       )}
+    </section>
+  )
+}
+
+type RoomBan = { account: number; name: string; banned_at: number; by: string | null; reason: string }
+type RoomAction = { id: number; action: string; by: string | null; account: number | null; name: string | null; message: number | null; body: string | null; reason: string; at: number }
+
+/** The group chat in Orien Wallet: who is banned from sending, and what moderators did lately. */
+function GroupChat() {
+  const room = usePoll<{ bans: RoomBan[]; log: RoomAction[] }>('/room', 30_000)
+  const reload = () => void room.reload()
+  if (!room.data) return null
+  const { bans, log } = room.data
+  const what = (a: RoomAction) =>
+    a.action === 'remove' ? (
+      <>
+        took down {a.name ?? 'someone'}’s message{a.body ? <span className="italic"> “{a.body}”</span> : null}
+      </>
+    ) : a.action === 'ban' ? (
+      <>
+        banned {a.name ?? 'someone'}
+        {a.reason ? <span className="italic"> (“{a.reason}”)</span> : null}
+      </>
+    ) : (
+      <>lifted {a.name ?? 'someone'}’s ban</>
+    )
+  return (
+    <section className="grid gap-3 lg:grid-cols-2">
+      <Card title="Group chat bans">
+        <Table
+          head={['Person', 'Banned by', 'When', '']}
+          rows={bans.map((b) => [
+            <span key="n" className="text-ink">
+              {b.name}
+              {b.reason && <span className="ml-1.5 text-xs italic text-muted">“{b.reason}”</span>}
+            </span>,
+            b.by ?? 'the dashboard',
+            ago(b.banned_at),
+            <Action key="a" label="Lift" path={`/room/bans/${b.account}/lift`} onDone={reload} />,
+          ])}
+          empty="Nobody is banned from the group chat."
+        />
+      </Card>
+      <Card title="Group chat moderation">
+        {log.length ? (
+          <ul className="space-y-2 text-sm text-muted">
+            {log.map((a) => (
+              <li key={a.id}>
+                <span className="font-semibold text-ink">{a.by ?? 'The dashboard'}</span> {what(a)} · {ago(a.at)}
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p className="text-sm text-muted">Nothing done yet.</p>
+        )}
+      </Card>
     </section>
   )
 }

@@ -121,6 +121,13 @@ enum Admin {
     Unsuspend { account: i64 },
     /// Show an account, by its number or the email it signs in with.
     Account { who: String },
+    /// Make an account (by number or email) a group chat moderator, or with
+    /// --remove stop it being one. Kept in the database, never in the code.
+    Moderator {
+        who: String,
+        #[arg(long)]
+        remove: bool,
+    },
 }
 
 fn admin(store: &Store, command: Admin) -> Result<()> {
@@ -153,6 +160,16 @@ fn admin(store: &Store, command: Admin) -> Result<()> {
         Admin::Unsuspend { account } => {
             store.unsuspend(account)?;
             println!("account {account} may sign in again");
+        }
+        Admin::Moderator { who, remove } => {
+            let id = match who.parse::<i64>() {
+                Ok(id) => Some(id),
+                Err(_) => store.account_by_email(&who.trim().to_lowercase())?,
+            };
+            let account = id.and_then(|id| store.account(id).ok().flatten());
+            let Some(account) = account else { anyhow::bail!("no account {who}") };
+            store.room_set_moderator(account.id, !remove)?;
+            println!("{} ({}) is {} a group chat moderator", account.name, account.id, if remove { "no longer" } else { "now" });
         }
         Admin::Account { who } => {
             let id = match who.parse::<i64>() {

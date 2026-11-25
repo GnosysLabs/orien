@@ -68,6 +68,8 @@ pub fn admin_router(app: Arc<App>, admins: Admins, site: Option<&std::path::Path
         .route("/api/admin/accounts/{id}/unsuspend", post(unsuspend))
         .route("/api/admin/posts/{id}/remove", post(remove_post))
         .route("/api/admin/room/{id}/remove", post(remove_room_message))
+        .route("/api/admin/room", get(room))
+        .route("/api/admin/room/bans/{account}/lift", post(room_lift))
         .route("/api/admin/sites", get(sites))
         .route("/api/admin/sites/{id}/off", post(site_off))
         .route("/api/admin/sites/{id}/on", post(site_on))
@@ -520,6 +522,19 @@ async fn remove_post(State(admin): State<Admin>, headers: HeaderMap, Path(id): P
 
 async fn remove_room_message(State(admin): State<Admin>, headers: HeaderMap, Path(id): Path<i64>) -> Answer {
     admin.admins.check(&headers)?;
-    admin.app.store().room_remove(id)?.then_some(()).ok_or(Failure::NotFound)?;
+    admin.app.store().room_remove(None, id)?.then_some(()).ok_or(Failure::NotFound)?;
+    Ok(Json(json!({ "ok": true })).into_response())
+}
+
+/// The group chat: who is banned and what moderators did lately.
+async fn room(State(admin): State<Admin>, headers: HeaderMap) -> Answer {
+    admin.admins.check(&headers)?;
+    let store = admin.app.store();
+    Ok(Json(json!({ "bans": store.room_bans()?, "log": store.room_log(30)? })).into_response())
+}
+
+async fn room_lift(State(admin): State<Admin>, headers: HeaderMap, Path(account): Path<i64>) -> Answer {
+    admin.admins.check(&headers)?;
+    admin.app.store().room_unban(None, account)?.then_some(()).ok_or(Failure::NotFound)?;
     Ok(Json(json!({ "ok": true })).into_response())
 }
