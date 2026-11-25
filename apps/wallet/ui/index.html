@@ -4267,6 +4267,9 @@
   // How a profile's wallet is shown: "Cyph3r – Savings", or just the name.
   const profileLabel = (p) => p && (p.wallet_name ? `${p.name} – ${p.wallet_name}` : p.name);
   // Asks for any of `addresses` not asked yet; true if a profile turned up.
+  // What's known of a wallet's owner, added to rather than replaced: a
+  // search or a profile page knows less than the wallet lookup (no banner).
+  const keepProfile = (address, info) => profiles.set(address, { ...(profiles.get(address) || {}), ...info });
   async function loadProfiles(addresses) {
     const want = [...new Set(addresses.filter((a) => a && /^[0-9a-f]{64}$/i.test(a)).map((a) => a.toLowerCase()))]
       .filter((a) => !profiles.has(a)).slice(0, 100);
@@ -6483,7 +6486,7 @@
           const address = (w.address || "").toLowerCase();
           if (!/^[0-9a-f]{64}$/.test(address) || (view && address === view.address)) continue;
           const info = { name: p.name, picture: p.picture, wallet_name: w.name || null };
-          profiles.set(address, info);
+          keepProfile(address, info);
           rows.push({ address, label: profileLabel(info) });
         }
       }
@@ -6811,7 +6814,7 @@
       const a = answer.account || {};
       for (const w of answer.wallets || []) {
         const address = (w.address || "").toLowerCase();
-        if (address) profiles.set(address, { id: a.id, name: a.name, picture: a.picture, wallet_name: w.name || null });
+        if (address) keepProfile(address, { id: a.id, name: a.name, picture: a.picture, wallet_name: w.name || null, ...(a.banner ? { banner: a.banner } : {}) });
       }
       return answer;
     } catch (e) {
@@ -9358,7 +9361,7 @@
     const market = (a.wallet || "").toLowerCase();
     const to = verified.find((w) => w.address === market) || verified[0];
     sl.sendTo = to ? to.address : null;
-    for (const w of verified) profiles.set(w.address, { id: a.id, name: a.name, picture: a.picture, wallet_name: w.name });
+    for (const w of verified) keepProfile(w.address, { id: a.id, name: a.name, picture: a.picture, wallet_name: w.name, ...(a.banner ? { banner: a.banner } : {}) });
     $("sl-send").hidden = !sl.sendTo || !view || sl.sendTo === (view.address || "").toLowerCase();
     paintSlAdd();
     $("sl-menu").hidden = true;
@@ -11193,7 +11196,7 @@
       const address = (w.address || "").toLowerCase();
       if (!/^[0-9a-f]{64}$/.test(address)) continue;
       const info = { name: p.name, picture: p.picture, wallet_name: w.name || null };
-      profiles.set(address, info);
+      keepProfile(address, info);
       rows.push({ address, label: profileLabel(info), exact: p.name.toLowerCase() === q });
     }
     exNames = { q, rows };
@@ -11417,7 +11420,7 @@
     // A verified wallet: its owner's banner fades in behind the name, as on
     // their profile (in place before the page shows, so it doesn't pop in).
     const prof = profileOf(address);
-    const banner = prof && prof.banner_url ? prof.banner_url.split("/").pop() : "";
+    const banner = prof ? prof.banner || (prof.banner_url ? prof.banner_url.split("/").pop() : "") : "";
     if (banner) await picReady(banner);
     if (ex.at.kind !== "address" || ex.at.address !== address) return;
     $("ex-body").innerHTML = `<div class="ex-addr-top${banner ? " banner" : ""}">${banner ? `<div class="ex-art">${picImg(banner)}</div>` : ""}<div class="ex-hero">${who.face}<div class="ex-hero-info"><div class="ex-name">${who.name ? who.html : "Address"}</div>
