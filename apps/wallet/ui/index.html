@@ -2100,6 +2100,7 @@
   .ex-hash .h { margin-top: 4px; font: 12px/1.5 ui-monospace, "SF Mono", monospace; color: var(--ink); overflow-wrap: anywhere; }
   .ex-hero { display: flex; flex-direction: column; align-items: center; margin: 2px 0 22px; text-align: center; }
   .ex-hero .face { width: 64px; height: 64px; font-size: 24px; }
+  .ex-hero-info { display: flex; flex-direction: column; align-items: center; min-width: 0; }
   .ex-hero .ex-name { margin-top: 12px; font-size: 20px; font-weight: 700; }
   .ex-hero .ct-addr { margin-top: 10px; }
   .ex-hero .pill { margin-top: 14px; }
@@ -2117,6 +2118,17 @@
     #explorer { --col: 1040px; }
     .ex-facts { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
     .ex-split { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 0 24px; align-items: start; }
+    /* An address: who it is on the left, its figures stacked on the right. */
+    .ex-addr-top { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 360px); gap: 24px; align-items: center; }
+    .ex-addr-top .ex-hero { flex-direction: row; align-items: center; gap: 22px; margin: 0; text-align: left; }
+    .ex-addr-top .ex-hero .face { width: 88px; height: 88px; font-size: 32px; }
+    .ex-addr-top .ex-hero-info { align-items: flex-start; }
+    .ex-addr-top .ex-hero .ex-name { margin-top: 0; font-size: 24px; }
+    .ex-addr-top .ex-stats { grid-template-columns: minmax(0, 1fr); }
+    .ex-addr-top .ex-stats > div { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; padding: 14px 18px; text-align: left; }
+    .ex-addr-top .ex-stats > div + div { border-left: 0; border-top: 1px solid var(--line); }
+    .ex-addr-top .ex-stats b { font-size: 16px; order: 2; }
+    .ex-addr-top .ex-stats span { font-size: 13px; }
   }
   /* Home: the balance and buttons stay put; recent activity scrolls inside
      its own rounded box, which takes the rest of the window when there's
@@ -9736,10 +9748,10 @@
     if (ex.at.kind !== "address" || ex.at.address !== address) return;
     const who = exWho(address);
     const mine = walletList.some((w) => w.address === address);
-    $("ex-body").innerHTML = `<div class="ex-hero">${who.face}<div class="ex-name">${who.name ? who.html : "Address"}</div>
+    $("ex-body").innerHTML = `<div class="ex-addr-top"><div class="ex-hero">${who.face}<div class="ex-hero-info"><div class="ex-name">${who.name ? who.html : "Address"}</div>
         <button class="ct-addr" data-ex-copy="${address}" title="Copy the address"><span>${short(address)}</span><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button>
-        ${mine ? "" : `<button class="pill pearl" data-ex-send="${address}">Send ORN</button>`}</div>
-      <div class="list ex-stats"><div><b>${exOrn(d.balance, 4)}</b><span>ORN held</span></div><div><b>${exOrn(d.staked, 4)}</b><span>${d.returning && d.returning !== "0" ? `staked · ${exOrn(d.returning, 4)} returning` : "staked"}</span></div><div><b>${(d.payments_made || 0).toLocaleString()}</b><span>payments sent</span></div></div>
+        ${mine ? "" : `<button class="pill pearl" data-ex-send="${address}">Send ORN</button>`}</div></div>
+      <div class="list ex-stats"><div><b title="${exOrn(d.balance, 9)} ORN">${exOrn(d.balance, 2)}</b><span>ORN held</span></div><div><b>${exOrn(d.staked, 2)}</b><span>${d.returning && d.returning !== "0" ? `staked · ${exOrn(d.returning, 4)} returning` : "staked"}</span></div><div><b>${(d.payments_made || 0).toLocaleString()}</b><span>payments sent</span></div></div></div>
       ${exHead("Activity", d.more ? '<span class="sub">The latest 500</span>' : "")}
       <div class="list" id="ex-acts">${acts.length ? "" : `<div class="empty">${d.since != null ? "Nothing has happened at this address yet." : "No activity is recorded for this address."}</div>`}</div>
       <div class="ex-pages" id="ex-pages"></div>`;
