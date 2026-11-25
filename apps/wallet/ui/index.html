@@ -2066,6 +2066,50 @@
   .tx-side .amt { font-weight: 500; font-variant-numeric: tabular-nums; }
   .tx-side .amt.received { color: var(--good); }
   .empty { padding: 22px 14px; text-align: center; color: var(--faint); font-size: 13px; }
+  /* ---- Explorer ---- */
+  .ex-search.field { margin: 0 0 18px; }
+  .field .box.ex-find { gap: 10px; padding: 0 14px; color: var(--faint); }
+  .ex-find svg { flex: none; }
+  .ex-find input { flex: 1; min-width: 0; }
+  .ex-facts { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+  .ex-fact { padding: 14px 16px 15px; border-radius: 18px; background: var(--surface); border: 1px solid var(--line); min-width: 0; }
+  .ex-fact .l { font-size: 12px; color: var(--dim); }
+  .ex-fact .v { margin-top: 6px; font-size: 21px; font-weight: 600; font-variant-numeric: tabular-nums; color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .ex-fact .n { margin-top: 4px; font-size: 12px; color: var(--faint); line-height: 1.4; }
+  .ex-hint { margin: 10px 4px 0; font-size: 12.5px; line-height: 1.5; color: var(--faint); }
+  .ex-row { width: 100%; border: 0; background: none; color: inherit; font: inherit; text-align: left; cursor: pointer; }
+  @media (hover: hover) { .ex-row:hover { background: rgba(var(--tint), 0.03); } }
+  .ex-rank { flex: none; width: 22px; text-align: right; font-size: 12.5px; color: var(--faint); font-variant-numeric: tabular-nums; }
+  .ex-dot { flex: none; width: 9px; height: 9px; margin: 0 4px; border-radius: 50%; background: var(--bad); }
+  .ex-dot.up { background: var(--good); }
+  .ex-num { width: 32px; height: 32px; flex: none; border-radius: 10px; display: grid; place-items: center; font-size: 11px; font-weight: 700;
+    background: rgba(var(--tint), 0.05); color: var(--dim); font-variant-numeric: tabular-nums; }
+  .ex-more { display: flex; margin: 12px auto 0; }
+  .ex-steps { display: flex; justify-content: space-between; gap: 10px; margin: 18px 0 0; }
+  .ex-hash { padding: 12px 14px; }
+  .ex-hash + .ex-hash { border-top: 1px solid var(--line); }
+  .ex-hash .l { font-size: 12px; color: var(--dim); }
+  .ex-hash .h { margin-top: 4px; font: 12px/1.5 ui-monospace, "SF Mono", monospace; color: var(--ink); overflow-wrap: anywhere; }
+  .ex-hero { display: flex; flex-direction: column; align-items: center; margin: 2px 0 22px; text-align: center; }
+  .ex-hero .face { width: 64px; height: 64px; font-size: 24px; }
+  .ex-hero .ex-name { margin-top: 12px; font-size: 20px; font-weight: 700; }
+  .ex-hero .ct-addr { margin-top: 10px; }
+  .ex-hero .pill { margin-top: 14px; }
+  .ex-stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .ex-stats > div { padding: 12px 6px 13px; text-align: center; min-width: 0; }
+  .ex-stats > div + div { border-left: 1px solid var(--line); }
+  .ex-stats b { display: block; font-size: 15px; font-variant-numeric: tabular-nums; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .ex-stats span { font-size: 11.5px; color: var(--dim); }
+  .tx .ex-go { flex: none; color: var(--faint); }
+  .face.ex-anon { color: var(--dim); }
+  .face.ex-anon svg { width: 46%; height: 46%; }
+  .tx.ex-link { cursor: pointer; }
+  @media (hover: hover) { .tx.ex-link:hover { background: rgba(var(--tint), 0.03); } }
+  @media (min-width: 980px) {
+    #explorer { --col: 1040px; }
+    .ex-facts { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+    .ex-split { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 0 24px; align-items: start; }
+  }
   /* Home: the balance and buttons stay put; recent activity scrolls inside
      its own rounded box, which takes the rest of the window when there's
      more than fits. */
@@ -2452,7 +2496,7 @@
 
     <!-- Home -->
     <section class="screen" id="home" hidden>
-      <div class="home-top"><div class="home-left"><button class="pill icon" id="go-settings" aria-label="Settings" title="Settings"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></button><button class="wallet-chip" id="wallet-chip"><span id="wallet-name">Wallet</span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg></button><button class="pill icon" id="go-contacts" aria-label="Contacts" title="Contacts"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><path d="M16 3.128a4 4 0 0 1 0 7.744"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><circle cx="9" cy="7" r="4"/></svg></button><button class="pill icon" id="go-notices" aria-label="Notifications" title="Notifications" hidden><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10.268 21a2 2 0 0 0 3.464 0"/><path d="M3.262 15.326A1 1 0 0 0 4 17h16a1 1 0 0 0 .74-1.673C19.41 13.956 18 12.499 18 8A6 6 0 0 0 6 8c0 4.499-1.411 5.956-2.738 7.326"/></svg><span class="dot" id="notices-dot" hidden></span></button></div>
+      <div class="home-top"><div class="home-left"><button class="pill icon" id="go-settings" aria-label="Settings" title="Settings"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></button><button class="wallet-chip" id="wallet-chip"><span id="wallet-name">Wallet</span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg></button><button class="pill icon" id="go-contacts" aria-label="Contacts" title="Contacts"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><path d="M16 3.128a4 4 0 0 1 0 7.744"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><circle cx="9" cy="7" r="4"/></svg></button><button class="pill icon" id="go-explorer" aria-label="Explorer" title="Explorer"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/></svg></button><button class="pill icon" id="go-notices" aria-label="Notifications" title="Notifications" hidden><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10.268 21a2 2 0 0 0 3.464 0"/><path d="M3.262 15.326A1 1 0 0 0 4 17h16a1 1 0 0 0 .74-1.673C19.41 13.956 18 12.499 18 8A6 6 0 0 0 6 8c0 4.499-1.411 5.956-2.738 7.326"/></svg><span class="dot" id="notices-dot" hidden></span></button></div>
         <div class="account"><button class="me-face" id="board-who" hidden aria-label="Your profile" title="Your profile"></button><button class="pill" id="board-signin-go">Sign in</button></div></div>
       <!-- A swap that needs you, or is under way: impossible to miss. -->
       <button class="swap-alert" id="swap-alert" hidden>
@@ -2526,6 +2570,16 @@
       <div class="scroll" id="all-activity"></div>
     </section>
 
+
+    <!-- Explorer: the network, live, as on explorer.orien.network. One
+         screen that moves between the overview, a checkpoint, an address
+         and the top wallets, with its own way back. -->
+    <section class="screen" id="explorer" hidden>
+      <div class="topline"><button class="back" id="ex-back" aria-label="Back"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg></button><h2 id="ex-title">Explorer</h2></div>
+      <form class="ex-search field" id="ex-search" autocomplete="off"><div class="box plain ex-find"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m21 21-4.34-4.34"/><circle cx="11" cy="11" r="8"/></svg><input id="ex-q" placeholder="An address or a checkpoint number" spellcheck="false" autocapitalize="off" enterkeyhint="search"></div></form>
+      <div class="problem" id="ex-problem" hidden></div>
+      <div id="ex-body"></div>
+    </section>
 
     <!-- Contacts -->
     <section class="screen" id="contacts" hidden>
@@ -5783,7 +5837,8 @@
         // history: often mining rewards from before validators kept one.
         }[e.kind] || ["Received", party ? "From " + party : "Not in the network's history"];
     const pic = e.counterparty && (official(e.counterparty) || (profileOf(e.counterparty) && profileOf(e.counterparty).picture));
-    return `<div class="tx" title="${e.counterparty || ""}">
+    const opens = e.counterparty || (view && view.address) || "";
+    return `<div class="tx${opens ? " ex-link" : ""}" title="${e.counterparty || ""}"${opens ? ` data-ex="${opens}"` : ""}>
       ${pic ? face(e.counterparty, who) : `<span class="tx-icon ${e.direction}">${ICON[e.direction]}</span>`}
       <div class="tx-main"><div class="title">${title}</div><div class="sub">${sub}</div></div>
       <div class="tx-side"><div class="amt ${e.direction}"${balancePeek ? "" : ` title="${esc(e.amount)} ORN"`}>${sent ? "−" : "+"}${shortAmount(e.amount)}</div><div class="sub">${when(e)}</div></div>
@@ -9496,6 +9551,221 @@
     if (!$("swaps").hidden) loadBoard();
   }, 15000);
   loadSwaps();
+
+  // ---- Explorer: the network, live, as on explorer.orien.network ----
+  // One screen moving between the overview, a checkpoint, an address and
+  // the top wallets; Back goes to the view before, then home.
+  const ex = { stack: [], at: null, timer: 0, more: null, names: false };
+  const EX_UNITS = 1000000000n;
+  // Units as ORN, grouped, with at most `digits` decimals.
+  function exOrn(units, digits = 2) {
+    let v; try { v = BigInt(units || 0); } catch { return "—"; }
+    let whole = v / EX_UNITS, frac = v % EX_UNITS;
+    if (digits < 9) {
+      const step = 10n ** BigInt(9 - digits);
+      frac = (frac + step / 2n) / step;
+      if (frac >= 10n ** BigInt(digits)) { whole += 1n; frac = 0n; }
+    }
+    const f = digits === 0 ? "" : frac.toString().padStart(digits, "0").replace(/0+$/, "");
+    return whole.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",") + (f ? "." + f : "");
+  }
+  function exRate(perSecond) {
+    const units = ["H/s", "kH/s", "MH/s", "GH/s", "TH/s"];
+    let v = perSecond, u = 0;
+    while (v >= 1000 && u < units.length - 1) { v /= 1000; u++; }
+    return `${v.toFixed(v >= 100 ? 0 : v >= 10 ? 1 : 2)} ${units[u]}`;
+  }
+  const exWhen = (t) => new Date(t * 1000).toLocaleString([], { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
+  function exAgo(t) {
+    const gone = Date.now() / 1000 - t;
+    if (gone < 60) return "just now";
+    if (gone < 3600) return `${Math.floor(gone / 60)} min ago`;
+    if (gone < 86400) return `${Math.floor(gone / 3600)} h ago`;
+    return exWhen(t);
+  }
+  const exFact = (label, value, note) => `<div class="ex-fact"><div class="l">${label}</div><div class="v">${value}</div>${note ? `<div class="n">${note}</div>` : ""}</div>`;
+  const exHead = (title, aside) => `<div class="section-head"><h3>${title}</h3>${aside || ""}</div>`;
+  const EX_WALLET = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 7V4a1 1 0 0 0-1-1H5a2 2 0 0 0 0 4h15a1 1 0 0 1 1 1v4h-3a2 2 0 0 0 0 4h3a1 1 0 0 0 1-1v-2a1 1 0 0 0-1-1"/><path d="M3 5v14a2 2 0 0 0 2 2h15a1 1 0 0 0 1-1v-4"/></svg>';
+  const CHEV = '<svg class="ex-go" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>';
+  // Who an address is: one of your wallets, a contact, a member, or itself.
+  function exWho(address) {
+    const mine = walletList.find((w) => w.address === address);
+    const name = mine ? `${mine.name} (yours)` : nameOf(address);
+    // A wallet nobody has named: a wallet, not a question mark.
+    const plain = !name && !profileOf(address) && !official(address);
+    return { name, html: name ? `${esc(name)}${officialTag(address)}` : `<span class="mono">${short(address)}</span>`,
+      face: plain ? `<span class="face ex-anon">${EX_WALLET}</span>` : face(address, name) };
+  }
+  async function exGet(path) { return invoke("explorer", { path }); }
+  function exShow(view, push = true) {
+    if (push && ex.at) ex.stack.push(ex.at);
+    ex.at = view;
+    clearInterval(ex.timer);
+    $("ex-problem").hidden = true;
+    $("explorer").scrollTop = 0;
+    $("ex-title").textContent = view.kind === "home" ? "Explorer" : view.kind === "top" ? "Top wallets" : view.kind === "checkpoint" ? `Checkpoint ${view.epoch}` : "Address";
+    $("ex-search").hidden = view.kind !== "home";
+    $("ex-body").innerHTML = '<div class="empty">Loading…</div>';
+    if (view.kind === "home") { exHome(); ex.timer = setInterval(() => { if (!$("explorer").hidden && ex.at === view) exHome(true); }, 30000); }
+    else if (view.kind === "checkpoint") exCheckpoint(view.epoch);
+    else if (view.kind === "address") exAddress(view.address);
+    else exTop();
+    if ($("explorer").hidden) show("explorer");
+  }
+  function openExplorer(view) { ex.stack = []; ex.at = null; exShow(view || { kind: "home" }, false); }
+  $("ex-back").onclick = () => { const back = ex.stack.pop(); if (back) exShow(back, false); else { clearInterval(ex.timer); home(); } };
+  $("go-explorer").onclick = () => openExplorer();
+  function exFail(e) { $("ex-body").innerHTML = ""; problem("ex-problem", e && /not found/i.test(String(e)) ? "That isn't on the network yet." : e); }
+  $("ex-search").onsubmit = (e) => {
+    e.preventDefault();
+    const q = $("ex-q").value.trim().toLowerCase();
+    if (/^\d{1,9}$/.test(q)) { $("ex-q").value = ""; exShow({ kind: "checkpoint", epoch: Number(q) }); }
+    else if (/^[0-9a-f]{64}$/.test(q)) { $("ex-q").value = ""; exShow({ kind: "address", address: q }); }
+    else problem("ex-problem", "Type an address (64 letters and digits, 0-9 and a-f) or a checkpoint number.");
+  };
+  $("ex-body").onclick = (e) => {
+    const go = e.target.closest("[data-ex-cp],[data-ex-addr],[data-ex-top],[data-ex-more],[data-ex-copy],[data-ex-send]");
+    if (!go) return;
+    if (go.dataset.exCopy !== undefined) {
+      navigator.clipboard.writeText(go.dataset.exCopy).then(() => { go.classList.add("copied"); setTimeout(() => go.classList.remove("copied"), 1200); }).catch(() => {});
+    } else if (go.dataset.exSend !== undefined) {
+      $("go-send").onclick(); $("to").value = go.dataset.exSend; validate(); $("amount").focus();
+    } else if (go.dataset.exMore !== undefined) exMoreCheckpoints(go);
+    else if (go.dataset.exTop !== undefined) exShow({ kind: "top" });
+    else if (go.dataset.exCp !== undefined) exShow({ kind: "checkpoint", epoch: Number(go.dataset.exCp) });
+    else exShow({ kind: "address", address: go.dataset.exAddr });
+  };
+  const exCpRow = (c) => `<button class="tx ex-row" data-ex-cp="${c.epoch}"><span class="ex-num">#${c.epoch}</span>
+      <div class="tx-main"><div class="title">${c.payments.toLocaleString()} ${c.payments === 1 ? "payment" : "payments"}</div><div class="sub">${exAgo(c.time)} · agreed by ${c.agreed.length} of ${c.of}</div></div>
+      <div class="tx-side"><div class="amt">${exOrn(c.released, 0)}</div><div class="sub">new ORN</div></div>${CHEV}</button>`;
+  function exHolderRow(h, i) {
+    const who = exWho(h.address);
+    return `<button class="tx ex-row" data-ex-addr="${h.address}"><span class="ex-rank">${i + 1}</span>${who.face}
+      <div class="tx-main"><div class="title">${who.html}</div><div class="sub">${(h.share * 100).toFixed(2)}% of ORN in wallets</div></div>
+      <div class="tx-side"><div class="amt">${exOrn(h.holds, 0)}</div><div class="sub">ORN</div></div></button>`;
+  }
+  async function exHome(quiet) {
+    let o, top;
+    try { [o, top] = await Promise.all([exGet("/overview"), exGet("/top")]); } catch (e) { if (!quiet) exFail(e); return; }
+    if (ex.at.kind !== "home") return;
+    const holders = (top.holders || []).slice(0, 10);
+    if (await loadProfiles(holders.map((h) => h.address)) && ex.at.kind !== "home") return;
+    const left = o.epoch_started + o.epoch_seconds - Date.now() / 1000;
+    const next = left <= 0 ? "any moment" : left >= 60 ? `in ${Math.floor(left / 60)} min` : `in ${Math.ceil(left)} s`;
+    const up = o.validators.filter((v) => v.up).length;
+    const sup = o.supply || {};
+    ex.more = o.checkpoints.length ? o.checkpoints[o.checkpoints.length - 1].epoch : null;
+    $("ex-body").innerHTML = `<div class="ex-facts">
+        ${exFact("ORN released", sup.released ? exOrn(sup.released, 0) : "—", sup.cap ? `Of ${exOrn(sup.cap, 0)} there will ever be` : "")}
+        ${exFact("New ORN this hour", sup.per_hour ? exOrn(sup.per_hour, 0) : "—", "Shared among miners")}
+        ${exFact("Next checkpoint", next, `Checkpoint ${o.epoch}`)}
+        ${exFact("Miners last hour", o.miners ? o.miners.last_hour.toLocaleString() : "—", o.miners ? `${o.miners.last_day.toLocaleString()} in the last ${o.miners.hours === 24 ? "24 hours" : `${o.miners.hours} hours`}` : "")}
+        ${exFact("Network hashrate", o.hashrate ? exRate(o.hashrate.per_second) : "—", o.hashrate ? `Estimated, over the last ${o.hashrate.hours === 1 ? "hour" : `${o.hashrate.hours} hours`}` : "")}
+        ${exFact("Wallets holding ORN", sup.holding != null ? sup.holding.toLocaleString() : "—", sup.holding_one != null ? `${sup.holding_one.toLocaleString()} hold at least 1 ORN` : "")}
+      </div>
+      <div class="ex-split"><div>
+      ${exHead("Validators", `<span class="sub">${up} of ${o.validators.length} running</span>`)}
+      <div class="list">${o.validators.map((v) => `<div class="tx"><span class="ex-dot${v.up ? " up" : ""}"></span>
+        <div class="tx-main"><div class="title">Validator ${v.seat + 1}</div><div class="sub">${v.account ? `Staked by ${esc(exWho(v.account).name || short(v.account))} · ${exOrn(v.stake, 0)} ORN` : "Launch validator"} · agreed on ${v.agreed} of the last ${v.of}</div></div>
+        <div class="tx-side"><div class="amt">${!v.up ? "Not answering" : v.epoch < o.epoch ? "Catching up" : "Running"}</div><div class="sub">${v.up ? `Checkpoint ${v.epoch}` : ""}</div></div></div>`).join("")}</div>
+      ${exHead("Top wallets", `<button class="pill" data-ex-top>See the top 100</button>`)}
+      <div class="list">${holders.map(exHolderRow).join("") || '<div class="empty">No wallets yet.</div>'}</div>
+      </div><div>
+      ${exHead("Latest checkpoints", '<span class="sub">One every hour</span>')}
+      <div class="list" id="ex-cps">${o.checkpoints.map(exCpRow).join("")}</div>
+      ${ex.more > 0 ? '<button class="pill ex-more" data-ex-more>Show more</button>' : ""}
+      </div></div>`;
+  }
+  async function exMoreCheckpoints(button) {
+    button.disabled = true;
+    try {
+      const page = await exGet(`/checkpoints?before=${ex.more}`);
+      const list = page.checkpoints || [];
+      $("ex-cps").insertAdjacentHTML("beforeend", list.map(exCpRow).join(""));
+      ex.more = list.length ? list[list.length - 1].epoch : 0;
+      if (!page.more || !list.length) button.remove(); else button.disabled = false;
+    } catch (e) { button.disabled = false; problem("ex-problem", e); }
+  }
+  function exChange(harder) {
+    const ratio = 1 + harder, value = Math.round(Math.abs(harder) * 1000) / 10;
+    if (value === 0) return "About the same";
+    if (ratio >= 2) return `${Number(ratio.toFixed(1))}× harder`;
+    if (ratio > 0 && ratio <= 0.5) return `${Number((1 / ratio).toFixed(1))}× easier`;
+    return `${value}% ${harder > 0 ? "harder" : "easier"}`;
+  }
+  async function exCheckpoint(epoch) {
+    let d;
+    try { d = await exGet(`/checkpoints/${epoch}`); } catch (e) { exFail(/not found/i.test(String(e)) ? `Checkpoint ${epoch} hasn't been made yet.` : e); return; }
+    const c = d.checkpoint, r = d.rewards || {}, miners = r.miners || [];
+    await loadProfiles(miners.slice(0, 100).map((m) => m.address));
+    if (ex.at.kind !== "checkpoint" || ex.at.epoch !== epoch) return;
+    const math = r.math ? (r.math === "Blake3" ? "BLAKE3" : r.math) : "—";
+    $("ex-body").innerHTML = `<div class="ex-facts">
+        ${exFact("Miners paid", miners.length.toLocaleString(), `${exOrn(c.released, 2)} new ORN`)}
+        ${exFact("Payments", c.payments.toLocaleString(), "Made final")}
+        ${exFact("Mining", math, r.harder != null ? `Next hour ${exChange(r.harder).toLowerCase()}` : "")}
+        ${exFact("Agreed by", `${c.agreed.length} of ${c.of}`, "Validators")}
+        ${exFact("Made", exAgo(c.time), exWhen(c.time))}
+      </div>
+      <div class="ex-split"><div>
+      ${exHead("Mining rewards", `<span class="sub">${miners.length.toLocaleString()} ${miners.length === 1 ? "wallet" : "wallets"}</span>`)}
+      <div class="list">${!r.known ? `<div class="empty">${r.since != null && epoch < r.since ? `Who mined this hour isn't known: the validators' records start at checkpoint ${r.since}.` : "The validators didn't answer about this hour's rewards just now. Try again in a moment."}</div>`
+        : miners.length ? miners.map((m, i) => { const who = exWho(m.address); return `<button class="tx ex-row" data-ex-addr="${m.address}"><span class="ex-rank">${i + 1}</span>${who.face}
+          <div class="tx-main"><div class="title">${who.html}</div><div class="sub">${(Number(m.part) * 100).toFixed(2)}% of the work</div></div>
+          <div class="tx-side"><div class="amt received">+${exOrn(m.amount, 2)}</div><div class="sub">ORN</div></div></button>`; }).join("") : '<div class="empty">Nobody mined this hour.</div>'}</div>
+      </div><div>
+      ${exHead("Validators that hour")}
+      <div class="list">${(d.validators || []).map((v) => `<div class="tx"><span class="ex-dot${v.agreed ? " up" : ""}"></span><div class="tx-main"><div class="title">Validator ${v.seat + 1}</div><div class="sub">${v.account ? `Staked by ${esc(exWho(v.account).name || short(v.account))}` : "Launch validator"}</div></div><div class="tx-side"><div class="amt">${v.agreed ? "Agrees" : "Didn't answer"}</div></div></div>`).join("")}</div>
+      ${exHead("For checking")}
+      <div class="list">
+        <button class="ex-hash ex-row" data-ex-copy="${c.state}" title="Copy"><div class="l">State after it: every account's balance, as one fingerprint</div><div class="h">${c.state}</div></button>
+        <button class="ex-hash ex-row" data-ex-copy="${c.digest}" title="Copy"><div class="l">This checkpoint's fingerprint</div><div class="h">${c.digest}</div></button>
+        ${epoch !== 0 && d.previous ? `<button class="ex-hash ex-row" data-ex-copy="${d.previous}" title="Copy"><div class="l">The checkpoint before it</div><div class="h">${d.previous}</div></button>` : ""}
+      </div>
+      </div></div>
+      <div class="ex-steps">${epoch > 0 ? `<button class="pill" data-ex-cp="${epoch - 1}">← Checkpoint ${epoch - 1}</button>` : "<span></span>"}${d.latest != null && epoch < d.latest ? `<button class="pill" data-ex-cp="${epoch + 1}">Checkpoint ${epoch + 1} →</button>` : ""}</div>`;
+  }
+  const EX_KINDS = {
+    received: ["Received", "from"], sent: ["Sent", "to"], mined: ["Mining reward"], fees: ["Validator fees"],
+    claimed: ["Locked payment received", "from"], refunded: ["Locked payment returned"], unstaked: ["Stake returned"],
+  };
+  async function exAddress(address) {
+    let d;
+    try { d = await exGet(`/address/${address}`); } catch (e) { exFail(e); return; }
+    const acts = d.activity || [];
+    await loadProfiles([address, ...acts.map((a) => a.counterparty).filter(Boolean)]);
+    if (ex.at.kind !== "address" || ex.at.address !== address) return;
+    const who = exWho(address);
+    const mine = walletList.some((w) => w.address === address);
+    $("ex-body").innerHTML = `<div class="ex-hero">${who.face}<div class="ex-name">${who.name ? who.html : "Address"}</div>
+        <button class="ct-addr" data-ex-copy="${address}" title="Copy the address"><span>${short(address)}</span><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button>
+        ${mine ? "" : `<button class="pill pearl" data-ex-send="${address}">Send ORN</button>`}</div>
+      <div class="list ex-stats"><div><b>${exOrn(d.balance, 4)}</b><span>ORN held</span></div><div><b>${exOrn(d.staked, 4)}</b><span>${d.returning && d.returning !== "0" ? `staked · ${exOrn(d.returning, 4)} returning` : "staked"}</span></div><div><b>${(d.payments_made || 0).toLocaleString()}</b><span>payments sent</span></div></div>
+      ${exHead("Activity", d.more ? '<span class="sub">The latest 500</span>' : "")}
+      <div class="list">${acts.length ? acts.map((a) => {
+        const k = EX_KINDS[a.kind] || [a.kind];
+        const out = a.kind === "sent";
+        const other = a.counterparty && k[1] ? ` ${k[1]} ${esc(exWho(a.counterparty).name || short(a.counterparty))}` : "";
+        const target = a.counterparty ? `data-ex-addr="${a.counterparty}"` : a.epoch != null ? `data-ex-cp="${a.epoch}"` : "";
+        return `<button class="tx ex-row" ${target}><span class="tx-icon ${out ? "sent" : "received"}">${ICON[out ? "sent" : "received"]}</span>
+          <div class="tx-main"><div class="title">${k[0]}${other}</div><div class="sub">${a.time ? exAgo(a.time) : "This hour"}${a.epoch != null ? ` · checkpoint ${a.epoch}` : ""}</div></div>
+          <div class="tx-side"><div class="amt ${out ? "sent" : "received"}">${out ? "−" : "+"}${exOrn(a.amount, 4)}</div><div class="sub">ORN</div></div></button>`;
+      }).join("") : `<div class="empty">${d.since != null ? "Nothing has happened at this address yet." : "No activity is recorded for this address."}</div>`}</div>`;
+  }
+  async function exTop() {
+    let t;
+    try { t = await exGet("/top"); } catch (e) { exFail(e); return; }
+    await loadProfiles((t.holders || []).map((h) => h.address));
+    if (ex.at.kind !== "top") return;
+    $("ex-body").innerHTML = `${exHead("Ranked by ORN held", `<span class="sub">${(t.holding || 0).toLocaleString()} wallets hold ORN</span>`)}
+      <div class="list">${(t.holders || []).map(exHolderRow).join("")}</div>`;
+  }
+  // A payment in your activity opens in the explorer: the other side, or
+  // for mining and the like, your own wallet's page.
+  for (const id of ["recent", "all-activity"]) $(id).addEventListener("click", (e) => {
+    const r = e.target.closest(".tx[data-ex]");
+    if (r) openExplorer({ kind: "address", address: r.dataset.ex });
+  });
 
   // ---- Updates: checked at start and every hour, installed only on a press ----
   let update = null, autoUpdate = true;
