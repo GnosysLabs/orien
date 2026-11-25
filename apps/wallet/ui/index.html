@@ -655,7 +655,7 @@
   #mine .mn-side > * { order: 1; }
   #mine :is(#mine-problem, #mn-go) { order: 2; }
   #mine > .fineprint { order: 3; }
-  .mn-net { display: none; }
+  .mn-net, .mn-graph { display: none; }
   @media (min-width: 980px) {
     body:not(.phone) #mine { --col: 1040px; }
     body:not(.phone) #mine .mn-cols { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 20px; align-items: start; }
@@ -663,6 +663,17 @@
     body:not(.phone) #mine .mn-col > :first-child { margin-top: 0; }
     body:not(.phone) #mine > .fineprint { margin-top: 18px; }
     body:not(.phone) #mine .mn-col #mn-go { width: 100%; max-width: none; }
+    body:not(.phone) #mine .mn-graph { display: flex; flex-direction: column; order: 2; flex: 1 1 auto; min-height: 190px; margin-top: 20px; padding: 16px 18px 18px;
+      border: 1px solid var(--line); border-radius: 18px; background: var(--surface); }
+    .mn-graph-head { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; }
+    .mn-graph-head b { font-size: 14px; font-weight: 600; }
+    .mn-graph-head span { font-size: 12px; color: var(--faint); }
+    .mn-chart-box { position: relative; flex: 1 1 auto; min-height: 90px; margin-top: 12px; }
+    .mn-chart-box canvas { position: absolute; inset: 0; width: 100%; height: 100%; }
+    .mn-chart-empty { position: absolute; inset: 0; display: grid; place-items: center; font-size: 13px; color: var(--faint); }
+    .mn-stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--line); }
+    .mn-stats span { display: block; font-size: 11.5px; color: var(--faint); }
+    .mn-stats b { display: block; margin-top: 3px; font-size: 15px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     body:not(.phone) #mine .mn-side { padding: 16px 18px 18px; border: 1px solid var(--line); border-radius: 18px; background: var(--surface); }
     body:not(.phone) #mine .mn-side .bench { margin-left: -18px; margin-right: -18px; padding-left: 18px; padding-right: 18px; border-left: 0; border-right: 0; border-radius: 0; background: none; border-bottom: 0; }
     body:not(.phone) #mine .mn-net { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; padding: 14px 18px; border: 1px solid var(--line); border-radius: 18px; background: var(--surface); }
@@ -3311,6 +3322,12 @@
         <button class="secondary" id="mn-large-go">Set up</button>
       </div>
       </div></div>
+      <!-- Big windows: this computer's speed over the last half hour, and how it's mining. -->
+      <div class="mn-graph" data-gap="lg">
+        <div class="mn-graph-head"><b>Your speed</b><span>Last 30 minutes</span></div>
+        <div class="mn-chart-box"><canvas id="mn-chart"></canvas><div class="mn-chart-empty" id="mn-chart-empty">Start mining to see your speed here.</div></div>
+        <div class="mn-stats"><div><span>Cores in use</span><b id="mn-st-cores">—</b></div><div><span>Memory</span><b id="mn-st-mem">—</b></div><div><span>Mining for</span><b id="mn-st-for">—</b></div><div><span>Shares this hour</span><b id="mn-st-shares">—</b></div></div>
+      </div>
       <p class="fineprint" id="mn-light" hidden>Light mode: under 2 GB of free memory, so it mines more slowly.</p>
       <p class="fineprint" id="mn-large-on" hidden>Mining in large pages of memory, for extra speed.</p>
       <p class="fineprint"><span id="mn-odds"></span>Needs about 2 GB of memory. Rewards depend on how much everyone else mines.</p>
@@ -4569,8 +4586,71 @@
     $("hs-mine-go").className = s.running ? "pill" : "pill pearl";
     $("hs-mine-go").disabled = readying;
     mnNet(s);
+    mnRecord(s);
     return s;
   }
+  // ---- The speed chart: tries a second, sampled while the app is open,
+  // the last half hour kept (nothing saved).
+  var mnHist = [], mnSince = null, mnLast = null;
+  function mnRecord(s) {
+    if (!s || !mnHist) return;
+    mnLast = s;
+    const now = Date.now();
+    if (s.running && !mnSince) mnSince = now;
+    if (!s.running) mnSince = null;
+    const prev = mnHist[mnHist.length - 1];
+    if (!prev || now - prev.t >= 4000) mnHist.push({ t: now, v: s.running && !s.preparing ? s.tries_per_second || 0 : 0 });
+    while (mnHist.length && now - mnHist[0].t > 30 * 60000) mnHist.shift();
+    mnPaint();
+  }
+  function mnPaint() {
+    if (phone || !wide.matches || $("mine").hidden) return;
+    const s = mnLast;
+    // The figures under the chart.
+    $("mn-st-cores").textContent = s && s.running && s.threads ? `${s.threads} of ${s.cores}` : s ? `0 of ${s.cores}` : "—";
+    $("mn-st-mem").textContent = !s || !s.running ? "—" : s.light ? "Light" : s.large_pages ? "Large pages" : "Normal";
+    const mins = mnSince ? Math.floor((Date.now() - mnSince) / 60000) : null;
+    $("mn-st-for").textContent = mins === null ? "—" : mins < 1 ? "Just started" : mins < 60 ? `${mins} min` : `${Math.floor(mins / 60)} h ${mins % 60} min`;
+    $("mn-st-shares").textContent = s && s.running && s.epoch !== null ? `${(s.found || 0).toLocaleString()} found` : "—";
+    // The chart itself, drawn at the screen's sharpness.
+    const c = $("mn-chart"), box = c.parentElement, dpr = window.devicePixelRatio || 1;
+    const w = box.clientWidth, h = box.clientHeight;
+    if (!w || !h) return;
+    if (c.width !== Math.round(w * dpr) || c.height !== Math.round(h * dpr)) { c.width = Math.round(w * dpr); c.height = Math.round(h * dpr); }
+    const g = c.getContext("2d");
+    g.setTransform(dpr, 0, 0, dpr, 0, 0);
+    g.clearRect(0, 0, w, h);
+    const pts = mnHist.filter((p) => p.v > 0);
+    $("mn-chart-empty").hidden = pts.length > 1;
+    if (mnHist.length < 2 || pts.length < 2) return;
+    const look = getComputedStyle(document.documentElement), tint = look.getPropertyValue("--tint").trim() || "255, 255, 255";
+    const line = look.getPropertyValue("--accent").trim() || look.getPropertyValue("--mn-cool").trim() || "#6fa8ff";
+    const now = Date.now(), span = 30 * 60000, top = Math.max(...mnHist.map((p) => p.v)) * 1.15 || 1;
+    const padL = 0, padB = 18, padT = 18, ch = h - padB - padT;
+    const x = (t) => padL + (w - padL) * (1 - (now - t) / span), y = (v) => padT + ch * (1 - v / top);
+    // Guide lines and labels: the top speed, and the time across the bottom.
+    g.strokeStyle = `rgba(${tint}, 0.08)`; g.lineWidth = 1;
+    for (const f of [0, 0.5, 1]) { const yy = Math.round(padT + ch * f) + 0.5; g.beginPath(); g.moveTo(0, yy); g.lineTo(w, yy); g.stroke(); }
+    g.fillStyle = `rgba(${tint}, 0.45)`; g.font = "11px " + getComputedStyle(document.body).fontFamily;
+    g.textBaseline = "top"; g.textAlign = "left"; g.fillText(`${Math.round(top / 1.15).toLocaleString()} tries a second`, 0, 0);
+    g.textBaseline = "bottom"; g.fillText("30 min ago", 0, h); g.textAlign = "right"; g.fillText("now", w, h);
+    // The line, softened, with a fill fading below it.
+    g.beginPath();
+    mnHist.forEach((p, i) => { const px = x(p.t), py = y(p.v); i ? g.lineTo(px, py) : g.moveTo(px, py); });
+    // The theme's colour, whatever its form, at two strengths.
+    g.fillStyle = line; const solid = g.fillStyle;
+    const faded = (a) => solid.startsWith("#") ? solid + Math.round(a * 255).toString(16).padStart(2, "0") : solid.replace(/rgba?\(([^)]+?)(,\s*[\d.]+)?\)/, (m0, rgb) => `rgba(${rgb.split(",").slice(0, 3).join(",")}, ${a})`);
+    const fill = g.createLinearGradient(0, padT, 0, padT + ch);
+    fill.addColorStop(0, faded(0.33)); fill.addColorStop(1, faded(0));
+    g.save(); g.lineTo(x(mnHist[mnHist.length - 1].t), padT + ch); g.lineTo(x(mnHist[0].t), padT + ch); g.closePath(); g.fillStyle = fill; g.fill(); g.restore();
+    g.beginPath();
+    mnHist.forEach((p, i) => { const px = x(p.t), py = y(p.v); i ? g.lineTo(px, py) : g.moveTo(px, py); });
+    g.strokeStyle = line; g.lineWidth = 2; g.lineJoin = "round"; g.stroke();
+  }
+  window.addEventListener("resize", mnPaint);
+  // Sampled every ten seconds wherever you are in the app, so the chart
+  // already has a story when you open Mine.
+  setInterval(() => { if ($("mine").hidden && !homeWide()) invoke("mine_status").then((m) => mnRecord(m.status)).catch(() => {}); }, 10000);
   // The network's figures for the big Mine screen: the explorer's overview,
   // fetched once a minute, with this computer's share worked out from it.
   let mnOver = null, mnOverAt = 0;
