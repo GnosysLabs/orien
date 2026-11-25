@@ -13,6 +13,8 @@
 mod activity;
 mod approval;
 #[cfg(desktop)]
+mod awake;
+#[cfg(desktop)]
 mod background;
 mod board;
 mod biometric;
@@ -1595,12 +1597,12 @@ async fn app_unlock() -> Result<(), String> {
 }
 
 /// This computer's own settings: opening at login, whether closing the
-/// window keeps the wallet running, and whether updates install by
-/// themselves. None on iPhones.
+/// window keeps the wallet running, whether updates install by themselves,
+/// and whether the computer is kept awake. None on iPhones.
 #[tauri::command]
-fn computer_settings(app: AppHandle) -> Option<(bool, bool, bool)> {
+fn computer_settings(app: AppHandle) -> Option<(bool, bool, bool, bool)> {
     #[cfg(desktop)]
-    return Some((background::opens_at_login(&app), background::keep_running(), background::updates_itself(&app)));
+    return Some((background::opens_at_login(&app), background::keep_running(), background::updates_itself(&app), awake::on(&app)));
     #[cfg(not(desktop))]
     {
         let _ = app;
@@ -1618,6 +1620,7 @@ fn set_computer_setting(app: AppHandle, name: String, on: bool) -> Result<(), St
             Ok(())
         }
         "updates" => background::set_updates_itself(&app, on),
+        "awake" => awake::set(&app, on),
         _ => Err("unknown setting".into()),
     }
     #[cfg(not(desktop))]
@@ -2798,6 +2801,9 @@ pub fn run() {
             // window starts hidden so a login start shows nothing.
             #[cfg(desktop)]
             background::setup(app.handle())?;
+            // Kept awake, if the person asked, from the moment it starts.
+            #[cfg(desktop)]
+            awake::start(app.handle());
             #[cfg(desktop)]
             extension::serve(app.handle().clone());
             #[cfg(desktop)]

@@ -2927,6 +2927,7 @@
         <label class="set-row"><span class="set-txt"><b>Open at login</b><small>Start Orien Wallet when you log in</small></span><input type="checkbox" class="switch" id="st-login"></label>
         <label class="set-row"><span class="set-txt"><b>Keep running when closed</b><small>Swaps and payments carry on from the menu bar</small></span><input type="checkbox" class="switch" id="st-running"></label>
         <label class="set-row"><span class="set-txt"><b>Update automatically</b><small>New versions install while you're away from the app</small></span><input type="checkbox" class="switch" id="st-autoupdate"></label>
+        <label class="set-row"><span class="set-txt"><b>Keep this computer awake</b><small>So swap offers stay open, and payments and mining carry on. The screen can still turn off.</small></span><input type="checkbox" class="switch" id="st-awake"></label>
         </div>
       </div>
       <div class="st-page" data-page="extensions" hidden>
@@ -5541,6 +5542,7 @@
       const computer = await invoke("computer_settings");
       if (computer) {
         $("st-login").checked = computer[0]; $("st-running").checked = computer[1]; $("st-autoupdate").checked = autoUpdate = computer[2] !== false;
+        $("st-awake").checked = !!computer[3];
       }
     } catch {}
   }
@@ -5803,7 +5805,7 @@
       catch { $(`st-n-${kind}`).checked = !on; }
     };
   }
-  for (const [id, name] of [["st-login", "login"], ["st-running", "running"], ["st-autoupdate", "updates"]]) {
+  for (const [id, name] of [["st-login", "login"], ["st-running", "running"], ["st-autoupdate", "updates"], ["st-awake", "awake"]]) {
     $(id).onchange = async () => {
       const on = $(id).checked;
       try { await invoke("set_computer_setting", { name, on }); if (name === "updates") { autoUpdate = on; checkUpdate(); } } catch { $(id).checked = !on; }
