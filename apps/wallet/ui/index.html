@@ -2436,7 +2436,9 @@
   body:not(.phone) #explorer.ex-one .ex-fact .n { margin-top: auto; padding-top: 4px; }
   body:not(.phone) #explorer.ex-one .ex-facts.five { grid-template-columns: repeat(5, minmax(0, 1fr)); }
   .ex-panel { display: flex; flex-direction: column; margin-top: 16px; border: 1px solid var(--line); border-radius: 18px; background: var(--surface); overflow: hidden; }
-  .tabs.ex-tabs { grid-template-columns: repeat(3, minmax(0, 1fr)); flex: none; margin: 8px 8px 0; }
+  /* The tabs sit above the card, as everywhere else in the app. */
+  .tabs.ex-tabs { grid-template-columns: repeat(3, minmax(0, 1fr)); flex: none; margin: 16px 0 12px; }
+  .ex-tabs + .ex-panel { margin-top: 0 !important; }
   .ex-pane { flex: 1 1 0; min-height: 0; overflow-y: auto; overscroll-behavior: contain; padding: 6px 0 8px; }
   .ex-pane .list { border: 0; border-radius: 0; background: none; box-shadow: none; }
   .ex-pane .day { position: sticky; top: -6px; z-index: 1; margin: 0; padding: 12px 18px 6px; background: var(--surface); }
@@ -2448,7 +2450,7 @@
   .ex-panel-head span { font-size: 12.5px; color: var(--dim); }
   #explorer.ex-one #ex-body > .ex-panel-only { margin-top: 0; }
   #explorer.ex-one .ex-steps { flex: none; margin: 14px 0 0; }
-  #explorer.ex-one .ex-steps + .ex-panel { margin-top: 12px; }
+  #explorer.ex-one .ex-steps + .ex-tabs { margin-top: 12px; }
   .ex-row { width: 100%; border: 0; background: none; color: inherit; font: inherit; text-align: left; cursor: pointer; }
   @media (hover: hover) { .ex-row:hover { background: rgba(var(--tint), 0.03); } }
   .ex-rank { flex: none; width: 22px; text-align: right; font-size: 12.5px; color: var(--faint); font-variant-numeric: tabular-nums; }
@@ -11033,12 +11035,12 @@
         ${exFact("Network hashrate", o.hashrate ? exRate(o.hashrate.per_second) : "—", o.hashrate ? `Estimated, over the last ${o.hashrate.hours === 1 ? "hour" : `${o.hashrate.hours} hours`}` : "")}
         ${exFact("Wallets holding ORN", sup.holding != null ? sup.holding.toLocaleString() : "—", sup.holding_one != null ? `${sup.holding_one.toLocaleString()} hold at least 1 ORN` : "")}
       </div>
+      <div class="tabs ex-tabs" role="tablist">
+        <button class="tab" data-ex-tab="cps" role="tab">Checkpoints</button>
+        <button class="tab" data-ex-tab="top" role="tab">Top wallets</button>
+        <button class="tab" data-ex-tab="vals" role="tab">Validators</button>
+      </div>
       <div class="ex-panel">
-        <div class="tabs ex-tabs" role="tablist">
-          <button class="tab" data-ex-tab="cps" role="tab">Checkpoints</button>
-          <button class="tab" data-ex-tab="top" role="tab">Top wallets</button>
-          <button class="tab" data-ex-tab="vals" role="tab">Validators</button>
-        </div>
         <div class="ex-pane" id="ex-pane">
           <div class="list" data-ex-pane="cps" id="ex-cps">${cps.map(exCpRow).join("")}</div>
           <div data-ex-pane="top"><div class="list">${holders.map(exHolderRow).join("") || '<div class="empty">No wallets yet.</div>'}</div>
@@ -11083,12 +11085,12 @@
         ${exFact("Made", exAgo(c.time), exWhen(c.time))}
       </div>
       <div class="ex-steps">${epoch > 0 ? `<button class="pill" data-ex-cp="${epoch - 1}" data-ex-step>← Checkpoint ${epoch - 1}</button>` : "<span></span>"}${d.latest != null && epoch < d.latest ? `<button class="pill" data-ex-cp="${epoch + 1}" data-ex-step>Checkpoint ${epoch + 1} →</button>` : ""}</div>
+      <div class="tabs ex-tabs" role="tablist">
+        <button class="tab" data-ex-tab="rewards" role="tab">Rewards</button>
+        <button class="tab" data-ex-tab="vals" role="tab">Validators</button>
+        <button class="tab" data-ex-tab="check" role="tab">Fingerprints</button>
+      </div>
       <div class="ex-panel">
-        <div class="tabs ex-tabs" role="tablist">
-          <button class="tab" data-ex-tab="rewards" role="tab">Rewards</button>
-          <button class="tab" data-ex-tab="vals" role="tab">Validators</button>
-          <button class="tab" data-ex-tab="check" role="tab">Fingerprints</button>
-        </div>
         <div class="ex-pane" id="ex-pane">
           <div data-ex-pane="rewards">${r.known && miners.length ? `<div class="ex-pane-note">${miners.length.toLocaleString()} ${miners.length === 1 ? "wallet" : "wallets"} paid</div>` : ""}
             <div class="list">${!r.known ? `<div class="empty">${r.since != null && epoch < r.since ? `Who mined this hour isn't known: the validators' records start at checkpoint ${r.since}.` : "The validators didn't answer about this hour's rewards just now. Try again in a moment."}</div>`
