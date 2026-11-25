@@ -2542,16 +2542,18 @@
   .ex-hero .ex-name { margin-top: 12px; font-size: 20px; font-weight: 700; }
   .ex-hero .ct-addr { margin-top: 10px; }
   .ex-hero .pill { margin-top: 14px; }
-  /* A verified wallet's banner: soft on every edge, so it reads as light
-     behind the name rather than a picture with corners. Small windows: across
-     the top, fading down. Big ones: from the right, fading towards the face. */
-  .ex-hero.banner { position: relative; isolation: isolate; padding-top: 18px; }
+  /* A verified wallet's banner. Small windows: across the top behind the
+     face and name, soft on every edge. Big ones: the whole right side,
+     fading towards the face, with the figures over it. */
+  .ex-addr-top.banner { position: relative; isolation: isolate; }
+  .ex-banner { display: none; }
+  .ex-addr-top.banner .ex-hero { padding-top: 18px; }
   .ex-art { position: absolute; inset: -14px -20px auto; height: 150px; z-index: -1; pointer-events: none; }
   .ex-art img { width: 100%; height: 100%; object-fit: cover; opacity: 0.85;
     -webkit-mask-image: linear-gradient(to bottom, transparent, black 18%, black 45%, transparent), linear-gradient(to right, transparent, black 12%, black 88%, transparent);
     mask-image: linear-gradient(to bottom, transparent, black 18%, black 45%, transparent), linear-gradient(to right, transparent, black 12%, black 88%, transparent);
     -webkit-mask-composite: source-in; mask-composite: intersect; }
-  .ex-hero.banner .ex-name { text-shadow: 0 0 2px var(--ground-deep), 0 0 10px var(--ground-deep), 0 0 22px var(--ground-deep); }
+  .ex-addr-top.banner .ex-name { text-shadow: 0 0 2px var(--ground-deep), 0 0 10px var(--ground-deep), 0 0 22px var(--ground-deep); }
   .ex-stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); }
   .ex-stats > div { padding: 12px 6px 13px; text-align: center; min-width: 0; }
   .ex-stats > div + div { border-left: 1px solid var(--line); }
@@ -2578,11 +2580,25 @@
     .ex-addr-top .ex-hero .face { width: 88px; height: 88px; font-size: 32px; }
     .ex-addr-top .ex-hero-info { align-items: flex-start; }
     .ex-addr-top .ex-hero .ex-name { margin-top: 0; font-size: 24px; }
-    .ex-addr-top .ex-hero.banner { align-self: stretch; padding: 0; }
-    .ex-addr-top .ex-art { inset: -12px 0 -12px 22%; height: auto; }
-    .ex-addr-top .ex-art img {
-      -webkit-mask-image: linear-gradient(to left, transparent, black 15%, black 45%, transparent), linear-gradient(to bottom, transparent, black 20%, black 80%, transparent);
-      mask-image: linear-gradient(to left, transparent, black 15%, black 45%, transparent), linear-gradient(to bottom, transparent, black 20%, black 80%, transparent); }
+    .ex-addr-top.banner .ex-hero { padding-top: 0; }
+    .ex-addr-top .ex-art { inset: -16px -20px -16px 28%; height: auto; }
+    .ex-addr-top .ex-art img { opacity: 0.95;
+      -webkit-mask-image: linear-gradient(to left, black 55%, transparent), linear-gradient(to bottom, transparent, black 14%, black 86%, transparent);
+      mask-image: linear-gradient(to left, black 55%, transparent), linear-gradient(to bottom, transparent, black 14%, black 86%, transparent); }
+    /* Here the banner lies on the panel itself, out to its top and right
+       edges (the page can't draw past its own box): the one in the page
+       is for small windows. */
+    body:not(.phone) .ex-addr-top .ex-art { display: none; }
+    body:not(.phone) .ex-banner:not([hidden]) { display: block; }
+    body:not(.phone) .ex-banner { position: absolute; z-index: -1; top: -19px; left: 50%; transform: translateX(-50%);
+      width: calc(min(calc(var(--panel, 640px) + 40px), 100vw - 24px) - 2px); height: var(--exb-h, 300px);
+      border-radius: 35px 35px 0 0; overflow: hidden; pointer-events: none; }
+    body:not(.phone) .ex-banner img { position: absolute; top: 0; right: 0; bottom: 0; width: 74%; height: 100%; object-fit: cover; opacity: 0.95;
+      -webkit-mask-image: linear-gradient(to left, black 50%, transparent), linear-gradient(to bottom, black 55%, transparent);
+      mask-image: linear-gradient(to left, black 50%, transparent), linear-gradient(to bottom, black 55%, transparent);
+      -webkit-mask-composite: source-in; mask-composite: intersect; }
+    /* The figures sit over the banner, frosted so it shows through. */
+    .ex-addr-top.banner .ex-stats { background: var(--glass); -webkit-backdrop-filter: blur(16px) saturate(1.2); backdrop-filter: blur(16px) saturate(1.2); }
     .ex-addr-top .ex-stats { grid-template-columns: minmax(0, 1fr); }
     .ex-addr-top .ex-stats > div { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; padding: 14px 18px; text-align: left; }
     .ex-addr-top .ex-stats > div + div { border-left: 0; border-top: 1px solid var(--line); }
@@ -2857,6 +2873,9 @@
   </header>
 
   <main>
+    <!-- Big windows: a verified wallet's banner in the explorer, across the
+         panel's top right corner, out to its edges. -->
+    <div class="ex-banner" id="ex-banner" hidden></div>
     <!-- Shown while a newly opened wallet's balance and activity load. In
          big windows it fills just the wallet's container, not the photo. -->
     <div class="loading" id="loading"><span class="mark brand"></span></div>
@@ -4370,6 +4389,8 @@
     else if (id === "chat") $("chat").classList.remove("none");
     for (const p of document.querySelectorAll(".problem")) p.hidden = true;
     for (const m of document.querySelectorAll(".ch-menu")) m.hidden = true;
+    // The explorer's banner lies on the panel: only while a wallet's page shows.
+    if (id === "explorer" && typeof exBannerFit === "function") exBannerFit(); else if ($("ex-banner")) $("ex-banner").hidden = true;
     $("nt-panel").hidden = true;
   }
   // iPhones: swipe in from the left edge to go back, as in other iPhone
@@ -11103,7 +11124,22 @@
       face: plain ? `<span class="face ex-anon">${EX_WALLET}</span>` : face(address, name) };
   }
   async function exGet(path) { return invoke("explorer", { path }); }
+  // The big window's banner: shown with a verified wallet's page, as tall as
+  // its top part (name and figures) plus the panel's edge above.
+  function exBannerFit() {
+    const b = $("ex-banner"), top = document.querySelector("#explorer .ex-addr-top.banner");
+    const on = !phone && wide.matches && !$("explorer").hidden && top && ex.at && ex.at.kind === "address";
+    b.hidden = !on;
+    if (!on) return;
+    const pic = top.querySelector(".ex-art img");
+    if (!pic) { b.hidden = true; return; }
+    if (!b.firstElementChild || b.firstElementChild.src !== pic.src) b.replaceChildren(pic.cloneNode());
+    const main = b.parentElement.getBoundingClientRect();
+    b.style.setProperty("--exb-h", Math.round(top.getBoundingClientRect().bottom - main.top + 19 + 28) + "px");
+  }
+  window.addEventListener("resize", () => { if (!$("ex-banner").hidden || document.querySelector("#explorer .ex-addr-top.banner")) exBannerFit(); });
   function exShow(view, push = true) {
+    $("ex-banner").hidden = true; $("ex-banner").replaceChildren();
     const pane = $("ex-pane");
     if (pane && ex.at && ex.at.kind === "home") ex.paneTop[ex.tabs.home] = pane.scrollTop;
     if (!push && !ex.at) ex.paneTop = {};
@@ -11362,7 +11398,7 @@
     const banner = prof && prof.banner_url ? prof.banner_url.split("/").pop() : "";
     if (banner) await picReady(banner);
     if (ex.at.kind !== "address" || ex.at.address !== address) return;
-    $("ex-body").innerHTML = `<div class="ex-addr-top"><div class="ex-hero${banner ? " banner" : ""}">${banner ? `<div class="ex-art">${picImg(banner)}</div>` : ""}${who.face}<div class="ex-hero-info"><div class="ex-name">${who.name ? who.html : "Address"}</div>
+    $("ex-body").innerHTML = `<div class="ex-addr-top${banner ? " banner" : ""}">${banner ? `<div class="ex-art">${picImg(banner)}</div>` : ""}<div class="ex-hero">${who.face}<div class="ex-hero-info"><div class="ex-name">${who.name ? who.html : "Address"}</div>
         <button class="ct-addr" data-ex-copy="${address}" title="Copy the address"><span>${short(address)}</span><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button>
         ${mine ? "" : `<button class="pill pearl" data-ex-send="${address}">Send ORN</button>`}</div></div>
       <div class="list ex-stats"><div><b title="${exOrn(d.balance, 9)} ORN">${exOrn(d.balance, 2)}</b><span>ORN held</span></div><div><b>${exOrn(d.staked, 2)}</b><span>${d.returning && d.returning !== "0" ? `staked · ${exOrn(d.returning, 4)} returning` : "staked"}</span></div><div><b>${(d.payments_made || 0).toLocaleString()}</b><span>payments sent</span></div></div></div>
@@ -11371,6 +11407,7 @@
         ${acts.length ? `<div class="ex-daybar" id="ex-daybar">${acts[0].time ? dayName(acts[0].time) : "This hour"}</div>` : ""}
         <div class="ex-pane" id="ex-pane">${acts.length ? exActDays(acts) : `<div class="list"><div class="empty">${d.since != null ? "Nothing has happened at this address yet." : "No activity is recorded for this address."}</div></div>`}</div>
       </div>`;
+    exBannerFit();
   }
   // A wallet's activity under day headings, as on Home: Today, Yesterday,
   // then the date; each row shows its time.
