@@ -1500,12 +1500,19 @@
   .so-ico.youtube { background: #ff0000; }
   .st-cat + .st-cat::before { left: 64px; }
   .st-pane-head { display: none; }
+  .st-page[data-page="link"] > button { display: block; width: 100%; min-width: 0; }
+  .st-page[data-page="link"] > button + button { margin-top: 10px; }
   /* Big windows: as on a Mac's System Settings, the sections stay listed
      on the left and the one chosen opens on the right. */
   @media (min-width: 860px) {
     body:not(.phone) #settings { --col: 1040px; }
-    body:not(.phone) .st-split { display: grid; grid-template-columns: 270px minmax(0, 1fr); gap: 32px; align-items: start; }
-    body:not(.phone) #st-menu { position: sticky; top: 0; display: block !important; padding: 6px; }
+    body:not(.phone) #settings { overflow: hidden; }
+    body:not(.phone) #settings > .st-split { flex: 1 1 0; min-height: 0; display: grid; grid-template-columns: 270px minmax(0, 1fr); grid-template-rows: minmax(0, 1fr); gap: 32px; }
+    body:not(.phone) #st-menu { align-self: start; max-height: 100%; overflow-y: auto; display: block !important; padding: 6px; }
+    body:not(.phone) .st-pane { min-height: 0; overflow-y: auto; overscroll-behavior: contain; margin: 0 -8px; padding: 0 8px 16px; }
+    body:not(.phone) .st-page[data-page="link"] { max-width: 520px; }
+    /* Beside the list, the first step needs no Cancel: another section is a click away. */
+    body:not(.phone) #pl-step-code:not([hidden]) ~ #pl-cancel { display: none; }
     body:not(.phone) #st-menu .st-cat { min-height: 46px; padding: 7px 10px; gap: 12px; border-radius: 12px; }
     body:not(.phone) #st-menu .st-cat::before { display: none; }
     body:not(.phone) #st-menu .st-cat + .st-cat { margin-top: 2px; }
@@ -2734,7 +2741,7 @@
         <div class="account"><button class="pill pearl wl-add" id="st-build" hidden><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="M12 5v14"/></svg>Build a theme</button></div></div>
       <div class="st-split">
       <div class="set-group" id="st-menu" data-gap="lg">
-        <button class="set-row st-cat" id="st-link"><span class="st-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v7a2 2 0 0 0 2 2h8"/><path d="M10 19v-3.96 3.15"/><path d="M7 19h5"/><rect width="6" height="10" x="16" y="12" rx="2"/></svg></span><span class="set-txt"><b>Link a new device</b><small>Send your wallets to your other phone or computer</small></span><svg class="chev" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg></button>
+        <button class="set-row st-cat" data-page="link" id="st-link"><span class="st-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v7a2 2 0 0 0 2 2h8"/><path d="M10 19v-3.96 3.15"/><path d="M7 19h5"/><rect width="6" height="10" x="16" y="12" rx="2"/></svg></span><span class="set-txt"><b>Link a new device</b><small>Send your wallets to your other phone or computer</small></span><svg class="chev" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg></button>
         <button class="set-row st-cat" data-page="appearance" id="st-cat-appearance"><span class="st-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22a1 1 0 0 1 0-20 10 9 0 0 1 10 9 5 5 0 0 1-5 5h-2.25a1.75 1.75 0 0 0-1.4 2.8l.3.4a1.75 1.75 0 0 1-1.4 2.8z"/><circle cx="13.5" cy="6.5" r=".5" fill="currentColor"/><circle cx="17.5" cy="10.5" r=".5" fill="currentColor"/><circle cx="6.5" cy="12.5" r=".5" fill="currentColor"/><circle cx="8.5" cy="7.5" r=".5" fill="currentColor"/></svg></span><span class="set-txt"><b>Appearance</b></span><svg class="chev" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg></button>
         <button class="set-row st-cat" data-page="privacy" id="st-cat-privacy"><span class="st-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></span><span class="set-txt"><b>Privacy and security</b></span><svg class="chev" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg></button>
         <button class="set-row st-cat" data-page="notify" id="st-cat-notify"><span class="st-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.268 21a2 2 0 0 0 3.464 0"/><path d="M3.262 15.326A1 1 0 0 0 4 17h16a1 1 0 0 0 .74-1.673C19.41 13.956 18 12.499 18 8A6 6 0 0 0 6 8c0 4.499-1.411 5.956-2.738 7.326"/></svg></span><span class="set-txt"><b>Notifications</b></span><svg class="chev" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg></button>
@@ -2743,8 +2750,33 @@
         <button class="set-row st-cat" data-page="guide" id="st-cat-guide"><span class="st-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 7v14"/><path d="M3 18a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h5a4 4 0 0 1 4 4 4 4 0 0 1 4-4h5a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1h-6a3 3 0 0 0-3 3 3 3 0 0 0-3-3z"/></svg></span><span class="set-txt"><b>User Guide</b></span><svg class="chev" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg></button>
         <button class="set-row st-cat" data-page="about" id="st-cat-about"><span class="st-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg></span><span class="set-txt"><b>About</b></span><svg class="chev" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg></button>
       </div>
-      <div class="st-pane">
+      <div class="st-pane" id="st-pane">
       <div class="st-pane-head"><button class="back" id="st-pane-back" aria-label="Back" hidden><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg></button><h3 class="st-pane-title" id="st-pane-title"></h3></div>
+      <div class="st-page" data-page="link" hidden>
+      <div id="pl-step-code">
+        <p class="lede">On your new device, open Orien Wallet and choose <b>Use my other device</b>. Then scan or type the code it shows.</p>
+        <button class="secondary phone-only-flex" id="pl-scan" data-gap="lg">Scan the code</button>
+        <div class="field" data-gap="lg">
+          <label for="pl-code">Code</label>
+          <div class="box plain"><input id="pl-code" placeholder="7-orbit-lantern" autocomplete="off" autocapitalize="none" spellcheck="false"></div>
+        </div>
+      </div>
+      <div class="pair-card" id="pl-step-match" data-gap="lg" hidden>
+        <div class="pair-emoji" id="pl-emoji"></div>
+        <div class="wc-title">Does your new device show these?</div>
+        <p class="pair-sub">Only send if you see the same three emoji, in the same order.</p>
+      </div>
+      <div id="pl-pws" hidden></div>
+      <div class="pair-card" id="pl-step-done" data-gap="lg" hidden>
+        <div class="posted-mark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></div>
+        <div class="wc-title" id="pl-done-title"></div>
+        <p class="pair-sub">With their names and icons. Your new device asks there whether to add a password.</p>
+      </div>
+      <div class="problem" id="pl-problem" hidden></div>
+      <button class="primary pearl" id="pl-go" data-gap="lg">Continue</button>
+      <button class="primary pearl" id="pl-send" data-gap="lg" hidden>They match, send</button>
+      <button class="secondary" id="pl-cancel" data-gap="sm">Cancel</button>
+      </div>
       <div class="st-page" data-page="appearance" hidden>
       <p class="hint st-hint">Your theme follows you to your other devices.</p>
       <div class="theme-grid" id="theme-grid"></div>
@@ -3481,33 +3513,6 @@
     </section>
 
     <!-- "Link a new device": on the device that has the wallets. -->
-    <section class="screen" id="pair-link" hidden>
-      <div class="topline"><button class="back" id="pl-back" aria-label="Back"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg></button><h2>Link a new device</h2></div>
-      <div id="pl-step-code">
-        <p class="lede">On your new device, open Orien Wallet and choose <b>Use my other device</b>. Then scan or type the code it shows.</p>
-        <button class="secondary phone-only-flex" id="pl-scan" data-gap="lg">Scan the code</button>
-        <div class="field" data-gap="lg">
-          <label for="pl-code">Code</label>
-          <div class="box plain"><input id="pl-code" placeholder="7-orbit-lantern" autocomplete="off" autocapitalize="none" spellcheck="false"></div>
-        </div>
-      </div>
-      <div class="pair-card" id="pl-step-match" data-gap="lg" hidden>
-        <div class="pair-emoji" id="pl-emoji"></div>
-        <div class="wc-title">Does your new device show these?</div>
-        <p class="pair-sub">Only send if you see the same three emoji, in the same order.</p>
-      </div>
-      <div id="pl-pws" hidden></div>
-      <div class="pair-card" id="pl-step-done" data-gap="lg" hidden>
-        <div class="posted-mark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></div>
-        <div class="wc-title" id="pl-done-title"></div>
-        <p class="pair-sub">With their names and icons. Your new device asks there whether to add a password.</p>
-      </div>
-      <div class="push"></div>
-      <div class="problem" id="pl-problem" hidden></div>
-      <button class="primary pearl" id="pl-go" data-gap="lg">Continue</button>
-      <button class="primary pearl" id="pl-send" data-gap="lg" hidden>They match, send</button>
-      <button class="secondary" id="pl-cancel" data-gap="sm">Cancel</button>
-    </section>
 
 
     <!-- A wallet's recovery phrase, shown to its owner -->
@@ -5363,7 +5368,7 @@
     show("settings"); settingsPage("appearance");
   };
   // The categories, each with a hint of what's set; a tap opens its page.
-  const settingsTitles = { appearance: "Appearance", privacy: "Privacy and security", notify: "Notifications", computer: "This computer", extensions: "Browser Extensions", about: "About", social: "Social Links", guide: "User Guide", "guide-view": "User Guide" };
+  const settingsTitles = { link: "Link a new device", appearance: "Appearance", privacy: "Privacy and security", notify: "Notifications", computer: "This computer", extensions: "Browser Extensions", about: "About", social: "Social Links", guide: "User Guide", "guide-view": "User Guide" };
   // Pages inside another page: Back returns there.
   const settingsParent = { social: "about", "guide-view": "guide" };
   let settingsAt = null;
@@ -5372,6 +5377,8 @@
   const stWide = () => !phone && settingsWide.matches;
   function settingsPage(page) {
     if (!page && stWide()) page = "appearance";
+    // Leaving Link a new device ends a link under way.
+    if (settingsAt === "link" && page !== "link" && pairing) pairEnd();
     settingsAt = page;
     $("st-menu").hidden = !!page && !stWide();
     for (const p of document.querySelectorAll(".st-page")) p.hidden = p.dataset.page !== page;
@@ -5382,10 +5389,15 @@
     for (const row of $("st-menu").querySelectorAll(".st-cat[data-page]")) row.classList.toggle("on", row.dataset.page === top);
     $("st-build").hidden = page !== "appearance";
     $("settings").scrollTop = 0;
+    $("st-pane").scrollTop = 0;
   }
   $("st-pane-back").onclick = () => settingsPage(settingsParent[settingsAt] || null);
   settingsWide.addEventListener("change", () => { if (!$("settings").hidden) settingsPage(settingsAt); });
-  $("st-menu").onclick = (e) => { const row = e.target.closest(".st-cat"); if (row && row.dataset.page) settingsPage(row.dataset.page); };
+  $("st-menu").onclick = (e) => {
+    const row = e.target.closest(".st-cat");
+    if (!row || !row.dataset.page) return;
+    if (row.dataset.page === "link") openPairLink("settings"); else settingsPage(row.dataset.page);
+  };
   async function openSettings() {
     paintThemeGrid(); paintSettings(); settingsPage(null); show("settings");
     try {
@@ -5782,10 +5794,11 @@
     $("pl-go").hidden = false;
     $("pl-cancel").textContent = "Cancel";
     $("pl-code").value = "";
-    show("pair-link");
+    if ($("settings").hidden) { paintThemeGrid(); paintSettings(); show("settings"); }
+    settingsPage("link");
     if (!phone) $("pl-code").focus();
   }
-  $("st-link").onclick = () => openPairLink("settings");
+
   async function pairAccept(code) {
     const token = pairing && pairing.token;
     if (!token || !code.trim()) return;
@@ -5893,12 +5906,12 @@
       } else problem("pl-problem", e);
     } finally { button.disabled = false; if (!button.hidden) button.textContent = label; }
   };
-  $("pl-back").onclick = async () => { await pairEnd(); show(linkFrom); };
-  // Cancel (or "They don't match") goes back; Done, once sent, goes home.
+  // Cancel (or "They don't match") starts over beside the list, or goes
+  // back to the list; Done, once sent, goes home.
   $("pl-cancel").onclick = async () => {
     const sent = !$("pl-step-done").hidden;
     await pairEnd();
-    if (sent) home(); else show(linkFrom);
+    if (sent) home(); else if (stWide()) openPairLink("settings"); else settingsPage(null);
   };
 
   // "Use my other device", on the new device: a code to show, the emoji
@@ -11192,7 +11205,7 @@
   (() => {
     const hint = document.getElementById("more-below");
     let target = null;
-    const scrollers = () => [...document.querySelectorAll(".screen, #mine, #board-signin, #board-post, #board-take, #swaps, #swap-sell, #swap-buy, #swap-detail, .scroll, #recent")].filter((el) => {
+    const scrollers = () => [...document.querySelectorAll(".screen, .st-pane, #mine, #board-signin, #board-post, #board-take, #swaps, #swap-sell, #swap-buy, #swap-detail, .scroll, #recent")].filter((el) => {
       if (el.id === "ch-log" || el.offsetParent === null) return false;
       const y = getComputedStyle(el).overflowY;
       return (y === "auto" || y === "scroll") && el.scrollHeight > el.clientHeight + 24 && el.clientHeight > 120;
