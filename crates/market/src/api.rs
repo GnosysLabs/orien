@@ -456,6 +456,7 @@ pub fn router(app: Arc<App>) -> Router {
         .merge(crate::oidc::routes())
         .merge(crate::community::routes())
         .merge(crate::notices::routes())
+        .merge(crate::room::routes())
         .route("/api/explorer/overview", get(crate::explorer::overview))
         .route("/api/explorer/checkpoints", get(crate::explorer::checkpoints))
         .route("/api/explorer/checkpoints/{epoch}", get(crate::explorer::checkpoint))
@@ -817,7 +818,8 @@ async fn report(State(app): State<Arc<App>>, headers: HeaderMap, Json(request): 
     app.store.lock().unwrap().report(reporter, &request.kind, request.id, &request.reason).map_err(refused)?;
     let reason: String = request.reason.trim().chars().take(300).collect();
     let why = if reason.is_empty() { String::new() } else { format!(": “{reason}”") };
-    app.alerts().event(format!("🚩 Someone reported a {} (#{}){why}. It's on the dashboard under Reports.", request.kind, request.id));
+    let what = if request.kind == "room" { "group chat message" } else { request.kind.as_str() };
+    app.alerts().event(format!("🚩 Someone reported a {what} (#{}){why}. It's on the dashboard under Reports.", request.id));
     Ok(Json(json!({})).into_response())
 }
 

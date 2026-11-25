@@ -1440,14 +1440,14 @@ pub struct NewPost {
 #[derive(Deserialize)]
 pub struct Gif {
     id: Value,
-    url: String,
-    preview: String,
-    width: u32,
-    height: u32,
+    pub(crate) url: String,
+    pub(crate) preview: String,
+    pub(crate) width: u32,
+    pub(crate) height: u32,
 }
 
 impl Gif {
-    fn id_text(&self) -> String {
+    pub(crate) fn id_text(&self) -> String {
         match &self.id {
             Value::String(text) => text.clone(),
             other => other.to_string(),
@@ -1455,7 +1455,7 @@ impl Gif {
     }
 
     /// Only KLIPY's own addresses, as it gave them, and a sensible size.
-    fn checked(&self) -> Result<()> {
+    pub(crate) fn checked(&self) -> Result<()> {
         let klipy = |url: &str| {
             url.len() <= 500
                 && url.strip_prefix("https://").and_then(|rest| rest.split_once('/')).is_some_and(|(host, _)| {

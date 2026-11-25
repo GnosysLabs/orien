@@ -19,6 +19,7 @@ pub mod pair;
 pub mod prices;
 pub mod proofs;
 pub mod push;
+pub mod room;
 pub mod screen;
 pub mod store;
 pub mod swaps;
