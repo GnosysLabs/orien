@@ -441,6 +441,14 @@
      the wallet running while a swap needs it. */
   body.phone #go-mine, body.phone #go-swap, body.phone #swap-alert, body.phone #choose, body.phone .update { display: none !important; }
   body.phone .actions.five { grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 8px; }
+  /* iPhones: the explorer's figures compact, three to a row, so its card has room. */
+  body.phone .ex-facts { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+  body.phone .ex-fact { display: flex; flex-direction: column; justify-content: space-between; gap: 4px; padding: 10px 10px 11px; border-radius: 15px; }
+  body.phone .ex-fact .l { font-size: 11px; line-height: 1.3; }
+  body.phone .ex-fact .v { margin-top: 0; font-size: 15px; letter-spacing: -0.01em; }
+  body.phone .ex-fact .n { display: none; }
+  body.phone #explorer.ex-one .ex-panel { margin-top: 12px; border-radius: 18px 18px 39px 39px; }
+  body.phone #explorer.ex-one .ex-pane { padding-bottom: max(12px, calc(env(safe-area-inset-bottom) - 12px)); }
   /* iPhones: Send, Receive, Community, Explorer and Messages are round
      buttons, their glyphs alone, with no box or word around them. The
      explorer moves down here from the row at the top. */
@@ -2402,6 +2410,17 @@
   .ex-fact .v { margin-top: 6px; font-size: 21px; font-weight: 600; font-variant-numeric: tabular-nums; color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .ex-fact .n { margin-top: 4px; font-size: 12px; color: var(--faint); line-height: 1.4; }
   .ex-hint { margin: 10px 4px 0; font-size: 12.5px; line-height: 1.5; color: var(--faint); }
+  /* The overview on one screen, like Home: the figures, then one card whose
+     lists (checkpoints, top wallets, validators) scroll inside it. */
+  #explorer.ex-one #ex-body { flex: 1 1 0; min-height: 0; display: flex; flex-direction: column; }
+  #explorer.ex-one #ex-body > * { flex-shrink: 0; }
+  #explorer.ex-one #ex-body > .ex-panel { flex: 1 1 0; min-height: 280px; }
+  .ex-panel { display: flex; flex-direction: column; margin-top: 16px; border: 1px solid var(--line); border-radius: 18px; background: var(--surface); overflow: hidden; }
+  .tabs.ex-tabs { grid-template-columns: repeat(3, minmax(0, 1fr)); flex: none; margin: 8px 8px 0; }
+  .ex-pane { flex: 1 1 0; min-height: 0; overflow-y: auto; overscroll-behavior: contain; padding: 6px 0 8px; }
+  .ex-pane .list { border: 0; border-radius: 0; background: none; box-shadow: none; }
+  .ex-pane-note { padding: 6px 18px 2px; font-size: 12.5px; color: var(--dim); }
+  .ex-more { display: flex; justify-content: center; padding: 10px 0 6px; }
   .ex-row { width: 100%; border: 0; background: none; color: inherit; font: inherit; text-align: left; cursor: pointer; }
   @media (hover: hover) { .ex-row:hover { background: rgba(var(--tint), 0.03); } }
   .ex-rank { flex: none; width: 22px; text-align: right; font-size: 12.5px; color: var(--faint); font-variant-numeric: tabular-nums; }
@@ -2443,6 +2462,10 @@
     #explorer { --col: 1040px; }
     .ex-facts { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
     .ex-facts.five { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+    /* The overview's six figures in one row, so its card has the height. */
+    body:not(.phone) #explorer.ex-one .ex-facts { grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 10px; }
+    body:not(.phone) #explorer.ex-one .ex-fact { padding: 12px 14px 13px; }
+    body:not(.phone) #explorer.ex-one .ex-fact .v { font-size: 19px; }
     body:not(.phone) .ex-search.field { max-width: 480px; }
     .ex-split { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 0 24px; align-items: start; }
     /* An address: who it is on the left, its figures stacked on the right. */
@@ -10783,7 +10806,7 @@
   // ---- Explorer: the network, live, as on explorer.orien.network ----
   // One screen moving between the overview, a checkpoint, an address and
   // the top wallets; Back goes to the view before, then home.
-  const ex = { stack: [], at: null, timer: 0, paged: null };
+  const ex = { stack: [], at: null, timer: 0, paged: null, tab: "cps", paneTop: {} };
   const EX_UNITS = 1000000000n;
   // Units as ORN, grouped, with at most `digits` decimals.
   function exOrn(units, digits = 2) {
@@ -10826,6 +10849,9 @@
   }
   async function exGet(path) { return invoke("explorer", { path }); }
   function exShow(view, push = true) {
+    const pane = $("ex-pane");
+    if (pane && ex.at && ex.at.kind === "home") ex.paneTop[ex.tab] = pane.scrollTop;
+    if (!push && !ex.at) ex.paneTop = {};
     if (push && ex.at) ex.stack.push(ex.at);
     ex.at = view;
     clearInterval(ex.timer);
@@ -10833,6 +10859,8 @@
     $("explorer").scrollTop = 0;
     $("ex-title").textContent = view.kind === "home" ? "Explorer" : view.kind === "top" ? "Top wallets" : view.kind === "checkpoint" ? `Checkpoint ${view.epoch}` : "Address";
     $("ex-search").hidden = view.kind !== "home";
+    // The overview fits one screen, its lists scrolling in a card of their own.
+    $("explorer").classList.toggle("ex-one", view.kind === "home");
     $("ex-body").innerHTML = '<div class="empty">Loading…</div>';
     if (view.kind === "home") { exHome(); ex.timer = setInterval(() => { if (!$("explorer").hidden && ex.at === view) exHome(true); }, 30000); }
     else if (view.kind === "checkpoint") exCheckpoint(view.epoch);
@@ -10932,6 +10960,8 @@
     exShowNames(rows, rows.length ? null : "Nothing found. Search an address (64 letters and digits, 0-9 and a-f), a checkpoint number, or the name of someone on the Market.");
   };
   $("ex-body").onclick = (e) => {
+    const tab = e.target.closest("[data-ex-tab]");
+    if (tab) { if (tab.dataset.exTab !== ex.tab) { $("ex-pane").scrollTop && (ex.paneTop[ex.tab] = $("ex-pane").scrollTop); feel("selection"); exTab(tab.dataset.exTab); } return; }
     const go = e.target.closest("[data-ex-cp],[data-ex-addr],[data-ex-top],[data-ex-page],[data-ex-copy],[data-ex-send]");
     if (!go) return;
     if (go.dataset.exCopy !== undefined) {
@@ -10963,9 +10993,9 @@
     const next = left <= 0 ? "any moment" : left >= 60 ? `in ${Math.floor(left / 60)} min` : `in ${Math.ceil(left)} s`;
     const up = o.validators.filter((v) => v.up).length;
     const sup = o.supply || {};
-    // Big windows: the latest 15, so the list ends near the column beside
-    // it. Older ones are a search away, by number.
-    const cps = !phone && matchMedia("(min-width: 860px)").matches ? o.checkpoints.slice(0, 15) : o.checkpoints;
+    const cps = o.checkpoints;
+    // A refresh keeps the card on its list and where it was scrolled to.
+    const keep = $("ex-pane") ? $("ex-pane").scrollTop : null;
     $("ex-body").innerHTML = `<div class="ex-facts">
         ${exFact("ORN released", sup.released ? exOrn(sup.released, 0) : "—", sup.cap ? `Of ${exOrn(sup.cap, 0)} there will ever be` : "")}
         ${exFact("New ORN this hour", sup.per_hour ? exOrn(sup.per_hour, 0) : "—", "Shared among miners")}
@@ -10974,17 +11004,31 @@
         ${exFact("Network hashrate", o.hashrate ? exRate(o.hashrate.per_second) : "—", o.hashrate ? `Estimated, over the last ${o.hashrate.hours === 1 ? "hour" : `${o.hashrate.hours} hours`}` : "")}
         ${exFact("Wallets holding ORN", sup.holding != null ? sup.holding.toLocaleString() : "—", sup.holding_one != null ? `${sup.holding_one.toLocaleString()} hold at least 1 ORN` : "")}
       </div>
-      <div class="ex-split"><div>
-      ${exHead("Validators", `<span class="sub">${up} of ${o.validators.length} running</span>`)}
-      <div class="list">${o.validators.map((v) => `<div class="tx"><span class="ex-dot${v.up ? " up" : ""}"></span>
-        <div class="tx-main"><div class="title">Validator ${v.seat + 1}</div><div class="sub">${v.account ? `Staked by ${esc(exWho(v.account).name || short(v.account))} · ${exOrn(v.stake, 0)} ORN` : "Launch validator"} · agreed on ${v.agreed} of the last ${v.of}</div></div>
-        <div class="tx-side"><div class="amt">${!v.up ? "Not answering" : v.epoch < o.epoch ? "Catching up" : "Running"}</div><div class="sub">${v.up ? `Checkpoint ${v.epoch}` : ""}</div></div></div>`).join("")}</div>
-      ${exHead("Top wallets", `<button class="pill" data-ex-top>See the top 100</button>`)}
-      <div class="list">${holders.map(exHolderRow).join("") || '<div class="empty">No wallets yet.</div>'}</div>
-      </div><div>
-      ${exHead("Latest checkpoints", '<span class="sub">One every hour</span>')}
-      <div class="list" id="ex-cps">${cps.map(exCpRow).join("")}</div>
-      </div></div>`;
+      <div class="ex-panel">
+        <div class="tabs ex-tabs" role="tablist">
+          <button class="tab" data-ex-tab="cps" role="tab">Checkpoints</button>
+          <button class="tab" data-ex-tab="top" role="tab">Top wallets</button>
+          <button class="tab" data-ex-tab="vals" role="tab">Validators</button>
+        </div>
+        <div class="ex-pane" id="ex-pane">
+          <div class="list" data-ex-pane="cps" id="ex-cps">${cps.map(exCpRow).join("")}</div>
+          <div data-ex-pane="top"><div class="list">${holders.map(exHolderRow).join("") || '<div class="empty">No wallets yet.</div>'}</div>
+            <div class="ex-more"><button class="pill" data-ex-top>See the top 100</button></div></div>
+          <div data-ex-pane="vals"><div class="ex-pane-note">${up} of ${o.validators.length} running</div><div class="list">${o.validators.map((v) => `<div class="tx"><span class="ex-dot${v.up ? " up" : ""}"></span>
+            <div class="tx-main"><div class="title">Validator ${v.seat + 1}</div><div class="sub">${v.account ? `Staked by ${esc(exWho(v.account).name || short(v.account))} · ${exOrn(v.stake, 0)} ORN` : "Launch validator"} · agreed on ${v.agreed} of the last ${v.of}</div></div>
+            <div class="tx-side"><div class="amt">${!v.up ? "Not answering" : v.epoch < o.epoch ? "Catching up" : "Running"}</div><div class="sub">${v.up ? `Checkpoint ${v.epoch}` : ""}</div></div></div>`).join("")}</div></div>
+        </div>
+      </div>`;
+    exTab(ex.tab, keep);
+  }
+  // The overview's card: one list at a time, each keeping where it was scrolled to.
+  function exTab(tab, top) {
+    const pane = $("ex-pane");
+    if (!pane) return;
+    ex.tab = tab;
+    for (const b of document.querySelectorAll("[data-ex-tab]")) b.classList.toggle("on", b.dataset.exTab === tab);
+    for (const p of pane.querySelectorAll("[data-ex-pane]")) p.hidden = p.dataset.exPane !== tab;
+    pane.scrollTop = top != null ? top : ex.paneTop[tab] || 0;
   }
   function exChange(harder) {
     const ratio = 1 + harder, value = Math.round(Math.abs(harder) * 1000) / 10;
@@ -11275,7 +11319,7 @@
   (() => {
     const hint = document.getElementById("more-below");
     let target = null;
-    const scrollers = () => [...document.querySelectorAll(".screen, .st-pane, #mine, #board-signin, #board-post, #board-take, #swaps, #swap-sell, #swap-buy, #swap-detail, .scroll, #recent")].filter((el) => {
+    const scrollers = () => [...document.querySelectorAll(".screen, .st-pane, .ex-pane, #mine, #board-signin, #board-post, #board-take, #swaps, #swap-sell, #swap-buy, #swap-detail, .scroll, #recent")].filter((el) => {
       if (el.id === "ch-log" || el.offsetParent === null) return false;
       const y = getComputedStyle(el).overflowY;
       return (y === "auto" || y === "scroll") && el.scrollHeight > el.clientHeight + 24 && el.clientHeight > 120;
