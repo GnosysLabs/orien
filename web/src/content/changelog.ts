@@ -36,6 +36,17 @@ export const CHANGELOG: Entry[] = [
   {
     date: '2026-11-25',
     products: ['wallet'],
+    version: '1.9.15',
+    title: 'A quick start, whatever one validator is doing',
+    changes: [
+      'The wallet fills in at once when it opens, even while a validator isn\'t answering: one that keeps hanging up is set aside for a while instead of being asked again and again.',
+      'The dot at the top says Connected whenever the validators that answer can make payments final, and only warns when they can\'t. How many are running is still on the Network card and in the explorer.',
+      'On iPhones, tapping that dot shows its words in a small bubble below it.',
+    ],
+  },
+  {
+    date: '2026-11-25',
+    products: ['wallet'],
     version: '1.9.14',
     title: 'Banners on every verified wallet',
     changes: [
