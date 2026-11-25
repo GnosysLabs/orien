@@ -4377,7 +4377,7 @@
     const inContacts = document.body.classList.contains("pop") && ["contacts", "contact", "member"].some((x) => !$(x).hidden);
     const pop = !phone && wide.matches && (SWAP_POPS.includes(id) || id === "send" || id === "receive" || id === "contacts" || ((id === "contact" || id === "member") && inContacts));
     // Send opened from someone's profile floats over their profile.
-    const under = id === "send" && sendFrom === "seller" ? "seller" : SWAP_POPS.includes(id) ? "swaps" : "home";
+    const under = id === "send" && (sendFrom === "seller" || sendFrom === "explorer") ? sendFrom : SWAP_POPS.includes(id) ? "swaps" : "home";
     for (const s of document.querySelectorAll(".screen")) s.hidden = !(s.id === id || (both && (s.id === "inbox" || s.id === "chat")) || (pop && s.id === under));
     document.body.classList.toggle("split", both);
     document.body.classList.toggle("pop", pop);
@@ -4392,7 +4392,7 @@
     for (const p of document.querySelectorAll(".problem")) p.hidden = true;
     for (const m of document.querySelectorAll(".ch-menu")) m.hidden = true;
     // The explorer's banner lies on the panel: only while a wallet's page shows.
-    if (id === "explorer" && typeof exBannerFit === "function") exBannerFit(); else if ($("ex-banner")) $("ex-banner").hidden = true;
+    if (id === "explorer" || (pop && under === "explorer")) exBannerFit(); else if ($("ex-banner")) $("ex-banner").hidden = true;
     $("nt-panel").hidden = true;
   }
   // iPhones: swipe in from the left edge to go back, as in other iPhone
@@ -6244,7 +6244,7 @@
   // The pop-up closes by a click beside it, or Escape.
   // Send opened from a profile goes back to it; anything else, home.
   var sendFrom = "home";
-  const closePop = () => { if (!$("send").hidden && sendFrom === "seller") { sendFrom = "home"; show("seller"); } else if (SWAP_POPS.some((id) => !$(id).hidden)) show("swaps"); else home(); };
+  const closePop = () => { if (!$("send").hidden && (sendFrom === "seller" || sendFrom === "explorer")) { const back = sendFrom; sendFrom = "home"; show(back); } else if (SWAP_POPS.some((id) => !$(id).hidden)) show("swaps"); else home(); };
   // Smaller windows, where Send is a page of its own: its Back does the same.
   document.querySelector("#send [data-back]").onclick = closePop;
   $("pop-shade").onclick = closePop;
@@ -6255,7 +6255,7 @@
   // The window narrowing or widening with one open: a page or a pop-up again.
   wide.addEventListener("change", () => { const open = ["send", "receive", "contacts"].find((x) => !$(x).hidden); if (open) show(open); });
   $("go-send").onclick = (from) => {
-    sendFrom = from === "seller" ? "seller" : "home";
+    sendFrom = from === "seller" || from === "explorer" ? from : "home";
     if (update && update.required) {
       problem("home-problem", "This version of Orien Wallet no longer works with the network. Press Update at the top to keep sending.");
       return;
@@ -11266,7 +11266,7 @@
     } else if (go.dataset.exProfile !== undefined) {
       market.sellerFrom = "explorer"; openSeller(Number(go.dataset.exProfile));
     } else if (go.dataset.exSend !== undefined) {
-      $("go-send").onclick(); $("to").value = go.dataset.exSend; validate(); $("amount").focus();
+      $("go-send").onclick("explorer"); $("to").value = go.dataset.exSend; validate(); $("amount").focus();
     } else if (go.dataset.exTop !== undefined) exShow({ kind: "top" });
     // Previous and next take this checkpoint's place: Back still goes
     // where you were before the first one.
