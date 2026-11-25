@@ -1694,6 +1694,29 @@
   #tip-text { margin: 12px auto 0; max-width: 300px; color: var(--dim); font-size: 13px; line-height: 1.45; }
   #tip-card .problem { margin-top: 12px; text-align: left; }
   #tip-buttons { display: grid; gap: 10px; margin-top: 20px; }
+  /* Verifying a wallet from Home: a slim card, then a confirm over the app. */
+  .vw-card { display: flex; align-items: center; gap: 12px; margin: 18px 0 4px; padding: 12px 12px 12px 14px; border: 1px solid var(--line); border-radius: 18px; background: var(--surface); }
+  .vw-badge { flex: none; width: 34px; height: 34px; border-radius: 50%; display: grid; place-items: center; color: var(--pearl-ink);
+    background: var(--pearl); background-size: 300% 100%; animation: drift 24s linear infinite; }
+  .vw-badge svg { width: 18px; height: 18px; }
+  .vw-text { flex: 1; min-width: 0; font-size: 13px; line-height: 1.35; }
+  .vw-text b { display: block; font-weight: 600; color: var(--ink); }
+  .vw-text span { color: var(--dim); }
+  .vw-card .pill { flex: none; }
+  #vw-veil { position: fixed; inset: 0; z-index: 61; display: grid; place-items: center; padding: 24px;
+    background: var(--veil); -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px); opacity: 0; transition: opacity 0.2s ease; }
+  #vw-veil.on { opacity: 1; }
+  #vw-sheet { width: min(360px, 100%); padding: 28px 24px 22px; border-radius: 24px; text-align: center;
+    background: var(--surface); border: 1px solid var(--line); box-shadow: 0 24px 60px rgba(0, 0, 0, 0.45); transform: scale(0.96); transition: transform 0.2s ease; }
+  #vw-veil.on #vw-sheet { transform: scale(1); }
+  #vw-icon { width: 56px; height: 56px; margin: 0 auto 16px; border-radius: 50%; display: grid; place-items: center;
+    color: var(--pearl-ink); background: var(--pearl); background-size: 300% 100%; animation: drift 24s linear infinite; }
+  #vw-icon svg { width: 26px; height: 26px; }
+  #vw-title { font-size: 18px; font-weight: 600; letter-spacing: -0.01em; overflow-wrap: anywhere; }
+  #vw-say { margin: 12px auto 0; max-width: 300px; min-height: 19px; color: var(--dim); font-size: 13px; line-height: 1.45; }
+  #vw-pw-box { margin-top: 14px; text-align: left; }
+  #vw-sheet .problem { margin-top: 12px; text-align: left; }
+  #vw-buttons { display: grid; gap: 10px; margin-top: 20px; }
   /* Tips on a post: how many and how much, no names. */
   .cm-tips { margin-left: auto; display: inline-flex; align-items: center; gap: 7px; height: 30px; padding: 0 12px 0 4px; border-radius: 999px;
     border: 1px solid rgba(var(--tint), 0.1); background: rgba(var(--tint), 0.04); font-size: 13px; white-space: nowrap; }
@@ -2660,6 +2683,8 @@
         </button>
       </div>
 
+      <!-- Verifying the open wallet: one tap from Home, while it isn't yet. -->
+      <div class="vw-card" id="vw-card" hidden><span class="vw-badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/><path d="m9 12 2 2 4-4"/></svg></span><div class="vw-text" id="vw-text"></div><button class="pill pearl" id="vw-go">Verify</button></div>
       <div class="section-head">
         <h3>Activity</h3>
         <button class="link" id="view-all" hidden>View all</button>
@@ -3588,6 +3613,14 @@
   <div class="problem" id="tip-problem" hidden></div>
   <div id="tip-buttons"><button class="primary pearl" id="tip-yes">Tip</button><button class="secondary" id="tip-no">Cancel</button></div>
 </div></div>
+<div id="vw-veil" hidden><div id="vw-sheet" role="dialog" aria-modal="true" aria-labelledby="vw-title">
+  <div id="vw-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/><path d="m9 12 2 2 4-4"/></svg></div>
+  <div id="vw-title"></div>
+  <p id="vw-say"></p>
+  <div class="field" id="vw-pw-box" hidden><div class="box plain"><input id="vw-pw" type="password" autocomplete="current-password" placeholder="Wallet password"></div></div>
+  <div class="problem" id="vw-problem" hidden></div>
+  <div id="vw-buttons"><button class="primary pearl" id="vw-yes">Verify</button><button class="secondary" id="vw-no">Cancel</button></div>
+</div></div>
 <div id="upd-veil" hidden><div id="upd-card" role="dialog" aria-modal="true" aria-labelledby="upd-title">
   <div id="upd-icon"></div>
   <div id="upd-title"></div>
@@ -4026,7 +4059,7 @@
     // Never longer than a few seconds, even with the network slow.
     if (waiting) { covered(true); setTimeout(() => covered(false), 8000); }
     show("home"); fitBalance(); loadWallets(); renderSwapAlert();
-    invoke("board_me").then((me) => { board.me = me; renderBoardBar(); }).catch(() => {});
+    invoke("board_me").then((me) => { board.me = me; renderBoardBar(); paintVerifyCard(); }).catch(() => {});
     invoke("notifications_ask").catch(() => {});
     // An update stopped mining that was running: start it again, once.
     if (!mineResumeAsked) {
@@ -8334,7 +8367,7 @@
   // loading would only repaint it.
   moreOnScroll("community", () => cm.more && !cm.pinned, () => cmLoad(true));
   async function cmJoin() {
-    if (cm.you) { await loadBoard(); openProfile(); return; }
+    if (cm.you) { quickVerify(); return; }
     signinReturn = "community"; resetSignin(); show("board-signin");
   }
   for (const go of ["cm-join-go", "cm-reply-join-go"]) $(go).onclick = cmJoin;
@@ -9267,7 +9300,7 @@
   }
   $("ch-blocked").addEventListener("click", (e) => {
     if (e.target.closest("#rm-signin")) { signinReturn = "messages"; resetSignin(); show("board-signin"); }
-    else if (e.target.closest("#rm-verify")) { leaveRoom(); chat.id = null; loadBoard().then(openProfile); }
+    else if (e.target.closest("#rm-verify")) quickVerify();
   });
   const roomPics = (m) => (m.pictures || []).map((p) => typeof p === "string" ? { name: p } : p);
   async function roomLoad() {
@@ -9841,6 +9874,89 @@
     }
   };
   $("vf-pw").onkeydown = (e) => { if (e.key === "Enter") $("vf-go").click(); };
+
+  // ---- Verifying the open wallet in one tap, from Home or wherever a
+  // verified wallet is asked for. It still says plainly what it does
+  // before sending: the wallet becomes publicly yours, for a tiny payment.
+  const vw = { proof: null, waiting: null };
+  const vwName = () => ((walletList.find((w) => w.address === (view && view.address)) || {}).name) || "this wallet";
+  async function paintVerifyCard() {
+    const card = $("vw-card");
+    if (!board.me || !view || !view.address) { card.hidden = true; return; }
+    let states = [];
+    try { states = (await invoke("board_wallet_states")) || []; } catch { card.hidden = true; return; }
+    const st = states.find((p) => (p.address || "").toLowerCase() === view.address);
+    if (st && st.verified) { card.hidden = true; if (vw.waiting === view.address) vw.waiting = null; return; }
+    const waiting = vw.waiting === view.address || !!st;
+    $("vw-text").innerHTML = waiting ? `<b>Verifying ${esc(vwName())}</b><span>Usually within a minute.</span>`
+      : `<b>Verify ${esc(vwName())}</b><span>To chat, post and sell on Orien Network.</span>`;
+    $("vw-go").hidden = waiting;
+    card.hidden = false;
+  }
+  function vwClose() { const v = $("vw-veil"); v.classList.remove("on"); setTimeout(() => { v.hidden = true; }, 200); $("vw-pw").value = ""; }
+  async function quickVerify() {
+    if (!view || !view.address) return;
+    if (!board.me) return;
+    const typed = !!(view.locked && !view.biometric);
+    $("vw-problem").hidden = true;
+    $("vw-title").textContent = `Verify ${vwName()}`;
+    $("vw-say").textContent = "Getting it ready…";
+    $("vw-pw-box").hidden = !typed;
+    $("vw-yes").disabled = true;
+    $("vw-yes").textContent = "Verify";
+    const veil = $("vw-veil");
+    if (veil.hidden) { veil.hidden = false; requestAnimationFrame(() => veil.classList.add("on")); }
+    try { vw.proof = await invoke("board_verify", { address: view.address }); }
+    catch (e) { $("vw-say").textContent = ""; problem("vw-problem", e); return; }
+    $("vw-say").textContent = `This ties ${vwName()} to your name publicly: everyone will see it's yours, including its balance. It sends ${vw.proof.orn} ORN to Orien Network, less than 0.001 ORN with the fee.`;
+    $("vw-yes").textContent = view.biometric && !typed ? `Verify with ${bio}` : `Send ${vw.proof.orn} ORN and verify`;
+    $("vw-yes").disabled = false;
+    if (typed) $("vw-pw").focus();
+  }
+  $("vw-go").onclick = quickVerify;
+  $("vw-no").onclick = vwClose;
+  $("vw-veil").addEventListener("click", (e) => { if (e.target.id === "vw-veil") vwClose(); });
+  document.addEventListener("keydown", (e) => { if (e.key === "Escape" && !$("vw-veil").hidden) vwClose(); });
+  $("vw-pw").onkeydown = (e) => { if (e.key === "Enter") $("vw-yes").click(); };
+  $("vw-yes").onclick = async () => {
+    const proof = vw.proof;
+    if (!proof || !view || (proof.address || "").toLowerCase() !== view.address) { vwClose(); return; }
+    const address = view.address, label = $("vw-yes").textContent;
+    $("vw-yes").disabled = true;
+    $("vw-problem").hidden = true;
+    try {
+      $("vw-yes").innerHTML = '<span class="spinner"></span>Sending';
+      const password = $("vw-pw-box").hidden ? null : $("vw-pw").value;
+      if (!password && view.locked && view.biometric) await invoke("biometric_unlock");
+      const sent = await invoke("send_payment", { to: proof.to, amount: proof.orn, password });
+      if (sent && sent.earlier) {
+        $("vw-yes").textContent = label; $("vw-yes").disabled = false;
+        $("vw-say").textContent = "An earlier payment from this wallet had to finish first, so nothing was sent for verifying yet. Tap again to send it.";
+        return;
+      }
+      vw.proof = null; vw.waiting = address;
+      vwClose();
+      feel("success");
+      refresh();
+      paintVerifyCard();
+    } catch (e) { $("vw-yes").textContent = label; $("vw-yes").disabled = false; problem("vw-problem", e); return; }
+    // The network sees the payment a few seconds after it's final.
+    for (let i = 0; i < 36; i++) {
+      await new Promise((r) => setTimeout(r, 5000));
+      let done = false;
+      try { done = ((await invoke("board_wallet_states")) || []).some((p) => (p.address || "").toLowerCase() === address && p.verified); } catch {}
+      if (!done) continue;
+      vw.waiting = null;
+      try { board.me = await invoke("board_me"); } catch {}
+      renderBoardBar();
+      paintVerifyCard();
+      if (cm.you) { cm.you.verified = true; cmPaintYou(); }
+      if (room.you) { room.you.verified = true; roomGate(); }
+      if (!$("profile").hidden) renderVerify();
+      feel("success");
+      return;
+    }
+  };
   // Your picture: a menu to see your profile as others do, edit it, or
   // sign out.
   $("board-who").onclick = () => toggleMenu("me-menu", "board-who");
@@ -10524,7 +10640,7 @@
     // Offers still open on the board can wait for a buyer for days: only
     // ones someone has taken count.
     return swapList.some((s) => !s.finished) || board.waiting.some((x) => x.offer.state !== "open") || !!board.taking || !!mineBench
-      || !$("si-veil").hidden || !$("upd-veil").hidden || !$("tip-veil").hidden || !$("rp-veil").hidden || !$("gif-veil").hidden || draft.photos.length > 0 || !!draft.gif || !!draft.poll || rdraftUsed() || typedSomewhere();
+      || !$("si-veil").hidden || !$("upd-veil").hidden || !$("tip-veil").hidden || !$("vw-veil").hidden || !$("rp-veil").hidden || !$("gif-veil").hidden || draft.photos.length > 0 || !!draft.gif || !!draft.poll || rdraftUsed() || typedSomewhere();
   }
   async function updateByItself() {
     if (phone || !autoUpdate || !update || autoInstalling) return;
