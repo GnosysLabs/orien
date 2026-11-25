@@ -306,7 +306,7 @@
        The built-in themes' photos are faded already. */
     html[data-base] body:not(.phone)::after { content: ""; position: fixed; inset: 0; z-index: -1; pointer-events: none;
       background: linear-gradient(to bottom, var(--top-fade, rgba(0, 0, 0, 0.6)), transparent 150px),
-        radial-gradient(ellipse 120% 100% at 50% 45%, transparent 55%, var(--vignette, rgba(0, 0, 0, 0.5)) 100%); }
+        radial-gradient(ellipse at 50% 45%, transparent 38%, rgba(0, 0, 0, 0.62) 100%); }
     /* So a light built theme's wordmark, dark everywhere else, is light
        above the picture, over the dark fade. */
     html[data-base="light"] body:not(.phone) .wm-wrap .brand { background-image: var(--brand-top); }
