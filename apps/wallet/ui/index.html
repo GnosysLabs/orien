@@ -648,7 +648,27 @@
   #go-mine.on { border-color: #a6e3c655; }
   @keyframes mining { 0%, 100% { opacity: 1; } 50% { opacity: 0.35; } }
   #mine { overflow-y: auto; margin: -8px -8px 0; padding: 8px 8px 16px; }
-  #mine > * { flex-shrink: 0; }
+  #mine > *, #mine .mn-col > * { flex-shrink: 0; }
+  /* One column until a big window; then the status and network on the
+     left, the processor and speed-ups on the right. */
+  .mn-cols, .mn-col { display: contents; }
+  #mine .mn-side > * { order: 1; }
+  #mine :is(#mine-problem, #mn-go) { order: 2; }
+  #mine > .fineprint { order: 3; }
+  .mn-net { display: none; }
+  @media (min-width: 980px) {
+    body:not(.phone) #mine { --col: 1040px; }
+    body:not(.phone) #mine .mn-cols { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 20px; align-items: start; }
+    body:not(.phone) #mine .mn-col { display: flex; flex-direction: column; min-width: 0; }
+    body:not(.phone) #mine .mn-col > :first-child { margin-top: 0; }
+    body:not(.phone) #mine > .fineprint { margin-top: 18px; }
+    body:not(.phone) #mine .mn-col #mn-go { width: 100%; max-width: none; }
+    body:not(.phone) #mine .mn-side { padding: 16px 18px 18px; border: 1px solid var(--line); border-radius: 18px; background: var(--surface); }
+    body:not(.phone) #mine .mn-side .bench { margin-left: -18px; margin-right: -18px; padding-left: 18px; padding-right: 18px; border-left: 0; border-right: 0; border-radius: 0; background: none; border-bottom: 0; }
+    body:not(.phone) #mine .mn-net { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; padding: 14px 18px; border: 1px solid var(--line); border-radius: 18px; background: var(--surface); }
+    .mn-net span { display: block; font-size: 11.5px; color: var(--faint); }
+    .mn-net b { display: block; margin-top: 3px; font-size: 16px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  }
   .mine-status { display: flex; align-items: center; gap: 20px; padding: 16px 18px; border: 1px solid var(--line); border-radius: 18px; background: var(--surface); }
   .mine-status .speed { font-size: 20px; font-weight: 500; }
   .mine-status .sub { margin-top: 4px; font-size: 12.5px; color: var(--dim); }
@@ -3240,6 +3260,7 @@
     <section class="screen" id="mine" hidden>
       <div class="topline"><button class="back" data-back aria-label="Back"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg></button><h2>Mine ORN</h2></div>
       <p class="lede">Earn a share of each hour's new ORN while this app is open.</p>
+      <div class="mn-cols"><div class="mn-col">
       <div class="mine-status">
         <div class="ms-left">
           <div class="speed" id="mn-speed">Stopped</div>
@@ -3248,6 +3269,11 @@
         </div>
         <div class="ms-rate" id="mn-rate" hidden><b id="mn-rate-big"></b><span id="mn-rate-small"></span><span>estimated</span></div>
       </div>
+      <!-- Big windows: where this computer stands in the whole network. -->
+      <div class="mn-net" data-gap="lg"><div><span>Network</span><b id="mn-net-rate">—</b></div><div><span>Your share</span><b id="mn-net-share">—</b></div><div><span>Next checkpoint</span><b id="mn-net-next">—</b></div></div>
+      <div class="problem" id="mine-problem" hidden></div>
+      <button class="primary pearl" id="mn-go" data-gap="lg">Start mining</button>
+      </div><div class="mn-col mn-side">
       <div class="field" data-gap="lg">
         <label for="mn-cpu">Processor <span id="mn-cpu-text"></span></label>
         <input type="range" id="mn-cpu" min="1" max="10" step="1" value="5">
@@ -3261,8 +3287,7 @@
         <div class="bt"><b id="mn-large-title">Make mining faster</b><span id="mn-large-text"></span></div>
         <button class="secondary" id="mn-large-go">Set up</button>
       </div>
-      <div class="problem" id="mine-problem" hidden></div>
-      <button class="primary pearl" id="mn-go" data-gap="lg">Start mining</button>
+      </div></div>
       <p class="fineprint" id="mn-light" hidden>Light mode: under 2 GB of free memory, so it mines more slowly.</p>
       <p class="fineprint" id="mn-large-on" hidden>Mining in large pages of memory, for extra speed.</p>
       <p class="fineprint"><span id="mn-odds"></span>Needs about 2 GB of memory. Rewards depend on how much everyone else mines.</p>
@@ -4497,7 +4522,7 @@
     $("mn-rate").title = big ? "At this speed and today's difficulty" : "";
     $("mn-shares").textContent = s.running && s.epoch !== null
       ? `This hour: ${s.found.toLocaleString()} shares found, ${s.taken.toLocaleString()} counted` : "";
-    $("mn-reward").textContent = m.last_reward ? `+${m.last_reward.amount} ORN` : "none yet";
+    $("mn-reward").textContent = m.last_reward ? `+${Number(String(m.last_reward.amount).replace(/,/g, "")).toLocaleString([], { maximumFractionDigits: 2 })} ORN` : "none yet";
     $("mn-odds").textContent = s.one_in ? `About one try in ${s.one_in.toLocaleString()} makes a share. ` : "";
     // While it gets ready (about a minute) it can't be stopped yet: the
     // button says so and waits, then becomes Stop mining.
@@ -4517,7 +4542,21 @@
     $("hs-mine-go").textContent = readying ? "Getting ready…" : s.running ? "Stop mining" : "Start mining";
     $("hs-mine-go").className = s.running ? "pill" : "pill pearl";
     $("hs-mine-go").disabled = readying;
+    mnNet(s);
     return s;
+  }
+  // The network's figures for the big Mine screen: the explorer's overview,
+  // fetched once a minute, with this computer's share worked out from it.
+  let mnOver = null, mnOverAt = 0;
+  async function mnNet(s) {
+    if (phone || !wide.matches || $("mine").hidden) return;
+    if (Date.now() - mnOverAt > 60000) { mnOverAt = Date.now(); try { mnOver = await invoke("explorer", { path: "/overview" }); } catch { mnOverAt = 0; } }
+    const o = mnOver, net = o && o.hashrate ? o.hashrate.per_second : 0;
+    $("mn-net-rate").textContent = net ? exRate(net) : "—";
+    const share = s && s.running && s.tries_per_second && net ? (s.tries_per_second / net) * 100 : null;
+    $("mn-net-share").textContent = share === null ? "—" : share >= 10 ? `${share.toFixed(0)}%` : share >= 1 ? `${share.toFixed(1)}%` : `${share.toFixed(2)}%`;
+    const left = o ? o.epoch_started + o.epoch_seconds - Date.now() / 1000 : null;
+    $("mn-net-next").textContent = left === null ? "—" : left <= 0 ? "any moment" : left >= 60 ? `in ${Math.floor(left / 60)} min` : `in ${Math.ceil(left)} s`;
   }
   $("go-mine").onclick = async () => {
     show("mine");
