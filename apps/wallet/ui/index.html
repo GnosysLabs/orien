@@ -2077,7 +2077,10 @@
   .field .box.ex-find { gap: 10px; padding: 0 14px; color: var(--faint); }
   .ex-find svg { flex: none; }
   .ex-find input { flex: 1; min-width: 0; }
-  .ex-found { margin: -6px 0 18px; }
+  /* Names found float over the page, as a drop-down, never pushing it down. */
+  .ex-search { position: relative; }
+  .ex-found { position: absolute; z-index: 20; left: 0; right: 0; top: calc(100% + 8px); margin: 0; max-height: min(60vh, 420px); overflow-y: auto;
+    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.55), 0 2px 8px rgba(0, 0, 0, 0.25); }
   .ex-found .note { padding: 14px 16px; color: var(--dim); font-size: 13px; line-height: 1.45; }
   .ex-facts { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
   .ex-fact { padding: 14px 16px 15px; border-radius: 18px; background: var(--surface); border: 1px solid var(--line); min-width: 0; }
@@ -9681,6 +9684,10 @@
       if (rows && exNameQuery() === q) exShowNames(rows, rows.length ? null : `Nobody on the Market is called “${q}”.`);
     }, 250);
   };
+  // Closed by a click elsewhere or Escape; open again on returning to the box.
+  document.addEventListener("mousedown", (e) => { if (!$("ex-search").contains(e.target)) $("ex-found").hidden = true; });
+  $("ex-q").addEventListener("keydown", (e) => { if (e.key === "Escape") $("ex-found").hidden = true; });
+  $("ex-q").addEventListener("focus", () => { if ($("ex-found").innerHTML) $("ex-found").hidden = false; });
   $("ex-found").onclick = (e) => {
     const go = e.target.closest("[data-ex-addr]");
     if (!go) return;
