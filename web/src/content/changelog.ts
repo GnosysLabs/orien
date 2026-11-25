@@ -28,6 +28,15 @@ export const CHANGELOG: Entry[] = [
   {
     date: '2026-11-24',
     products: ['wallet'],
+    version: '1.9.10',
+    title: 'Your own wide size, remembered',
+    changes: [
+      'The button beside your picture brings the window back to the width you had it wide, not a fixed size.',
+    ],
+  },
+  {
+    date: '2026-11-24',
+    products: ['wallet'],
     version: '1.9.9',
     title: 'A wider Home',
     changes: [

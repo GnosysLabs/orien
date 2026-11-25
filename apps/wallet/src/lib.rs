@@ -1406,12 +1406,12 @@ async fn contacts_sync(app: AppHandle) -> Result<bool, String> {
     .map_err(|error| error.to_string())?
 }
 
-/// The window between its two sizes, from the button on Home: wide (1200,
-/// or as wide as the screen allows) or its smallest (719), keeping its
-/// height, and kept on the screen. Not async, so it runs where the window
-/// lives (the main thread), never beside it.
+/// The window between its two sizes, from the button on Home: wide (the
+/// width it last had wide, else 1200, and never past the screen) or its
+/// smallest (719), keeping its height, and kept on the screen. Not async, so
+/// it runs where the window lives (the main thread), never beside it.
 #[tauri::command]
-fn window_wide(app: AppHandle, wide: bool) -> Result<(), String> {
+fn window_wide(app: AppHandle, wide: bool, width: Option<f64>) -> Result<(), String> {
     #[cfg(desktop)]
     {
         let window = app.get_webview_window("main").ok_or("no window")?;
@@ -1421,7 +1421,7 @@ fn window_wide(app: AppHandle, wide: bool) -> Result<(), String> {
         let scale = window.scale_factor().map_err(|e| e.to_string())?;
         let height = window.inner_size().map_err(|e| e.to_string())?.height as f64 / scale;
         let monitor = window.current_monitor().ok().flatten();
-        let mut width: f64 = if wide { 1200.0 } else { 719.0 };
+        let mut width: f64 = if wide { width.filter(|w| *w >= 860.0).unwrap_or(1200.0) } else { 719.0 };
         if let (true, Some(m)) = (wide, &monitor) {
             let room = m.size().width as f64 / m.scale_factor() - 40.0;
             width = width.min(room).max(719.0);
@@ -1437,7 +1437,7 @@ fn window_wide(app: AppHandle, wide: bool) -> Result<(), String> {
         }
     }
     #[cfg(not(desktop))]
-    let _ = (app, wide);
+    let _ = (app, wide, width);
     Ok(())
 }
 

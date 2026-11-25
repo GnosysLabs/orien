@@ -10257,8 +10257,19 @@
     const say = isWide ? "Make the window small" : "Make the window wide";
     b.title = say; b.setAttribute("aria-label", say);
   }
-  $("go-size").onclick = () => { if (!phone) invoke("window_wide", { wide: window.innerWidth < 860 }).catch(() => {}); };
-  window.addEventListener("resize", paintSize);
+  // Wide is the width you last had it wide (kept whenever the window is
+  // wide), so shrinking and growing again comes back to your own size.
+  const keepWide = () => { if (window.innerWidth >= 860) localStorage.setItem("wide-width", String(window.innerWidth)); };
+  $("go-size").onclick = () => {
+    if (phone) return;
+    const goWide = window.innerWidth < 860;
+    if (!goWide) keepWide();
+    const width = Number(localStorage.getItem("wide-width")) || null;
+    invoke("window_wide", { wide: goWide, width: goWide ? width : null }).catch(() => {});
+  };
+  let keepTimer = 0;
+  window.addEventListener("resize", () => { paintSize(); clearTimeout(keepTimer); keepTimer = setTimeout(keepWide, 500); });
+  keepWide();
   paintSize();
   // ---- Verifying the open wallet in one tap, from Home or wherever a
   // verified wallet is asked for. It still says plainly what it does
