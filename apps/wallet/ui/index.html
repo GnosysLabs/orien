@@ -2079,6 +2079,7 @@
   .ex-find input { flex: 1; min-width: 0; }
   /* Names found float over the page, as a drop-down, never pushing it down. */
   .ex-search { position: relative; }
+  .ex-found .ex-making { cursor: default; }
   .ex-found { position: absolute; z-index: 20; left: 0; right: 0; top: calc(100% + 8px); margin: 0; max-height: min(60vh, 420px); overflow-y: auto;
     box-shadow: 0 24px 60px rgba(0, 0, 0, 0.55), 0 2px 8px rgba(0, 0, 0, 0.25); }
   .ex-found .note { padding: 14px 16px; color: var(--dim); font-size: 13px; line-height: 1.45; }
@@ -2093,7 +2094,7 @@
   .ex-rank { flex: none; width: 22px; text-align: right; font-size: 12.5px; color: var(--faint); font-variant-numeric: tabular-nums; }
   .ex-dot { flex: none; width: 9px; height: 9px; margin: 0 4px; border-radius: 50%; background: var(--bad); }
   .ex-dot.up { background: var(--good); }
-  .ex-num { min-width: 32px; height: 32px; padding: 0 10px; box-sizing: border-box; flex: none; border-radius: 10px; display: grid; place-items: center; font-size: 11px; font-weight: 700;
+  .ex-num { min-width: 52px; height: 32px; padding: 0 10px; box-sizing: border-box; flex: none; border-radius: 10px; display: grid; place-items: center; font-size: 11px; font-weight: 700;
     background: rgba(var(--tint), 0.05); color: var(--dim); font-variant-numeric: tabular-nums; }
   /* Room under it for the back-to-top arrow, so they never overlap. */
   .ex-pages { display: flex; justify-content: center; align-items: center; gap: 6px; margin: 14px 0 58px; flex-wrap: wrap; }
@@ -9665,19 +9666,46 @@
     exNames = { q, rows };
     return rows;
   }
-  function exShowNames(rows, note) {
+  function exShowNames(rows, note, before = "") {
     const box = $("ex-found");
-    box.innerHTML = (rows || []).map((r) => `<button class="tx" type="button" data-ex-addr="${r.address}">${face(r.address, r.label)}
+    box.innerHTML = before + (rows || []).map((r) => `<button class="tx" type="button" data-ex-addr="${r.address}">${face(r.address, r.label)}
       <div class="tx-main"><div class="title">${esc(r.label)}${officialTag(r.address)}</div><div class="sub mono">${short(r.address)}</div></div>${CHEV}</button>`).join("")
       + (note ? `<div class="note">${esc(note)}</div>` : "");
     box.hidden = !box.innerHTML;
   }
   const exNameQuery = () => $("ex-q").value.trim().toLowerCase().replace(/^@/, "");
   const exIsTarget = (q) => /^\d{1,9}$/.test(q) || /^[0-9a-f]{64}$/.test(q);
+  // Checkpoints, as soon as a number is typed, as on the website: the one
+  // typed and the latest few starting with those digits.
+  const exCps = new Map();
+  async function exCheckpointsFor(digits) {
+    if (!ex.over || Date.now() - ex.over.at > 60000) {
+      try { ex.over = { at: Date.now(), o: await exGet("/overview") }; } catch { return null; }
+    }
+    const o = ex.over.o, making = o.epoch, latest = making - 1, typed = Number(digits);
+    if (typed > making) return { html: "", note: `Checkpoint ${typed} hasn't been made yet. The latest is ${latest}.` };
+    const numbers = typed <= latest ? [typed] : [];
+    for (let n = latest; n >= 0 && numbers.length < 5; n--) if (n !== typed && String(n).startsWith(digits)) numbers.push(n);
+    await Promise.all(numbers.filter((n) => !exCps.has(n)).map((n) => exGet(`/checkpoints/${n}`).then((d) => exCps.set(n, d.checkpoint)).catch(() => {})));
+    const row = (n, sub) => `<button class="tx" type="button" data-ex-cp="${n}"><span class="ex-num">#${n}</span>
+      <div class="tx-main"><div class="title">Checkpoint ${n}</div><div class="sub">${sub}</div></div>${CHEV}</button>`;
+    let html = numbers.map((n) => { const c = exCps.get(n);
+      return row(n, c ? `${exAgo(c.time)} · ${c.payments.toLocaleString()} ${c.payments === 1 ? "payment" : "payments"} · agreed by ${c.agreed.length} of ${c.of}` : "Made"); }).join("");
+    if (typed === making) html = `<div class="tx ex-making"><span class="ex-num">#${making}</span><div class="tx-main"><div class="title">Checkpoint ${making}</div>
+      <div class="sub">Being made now, ready in about ${Math.max(1, Math.round((o.epoch_started + o.epoch_seconds - Date.now() / 1000) / 60))} min</div></div></div>` + html;
+    return { html, note: null };
+  }
   $("ex-q").oninput = () => {
     clearTimeout(exNameTimer);
     $("ex-problem").hidden = true;
     const q = exNameQuery();
+    if (/^\d{1,9}$/.test(q)) {
+      exNameTimer = setTimeout(async () => {
+        const got = await exCheckpointsFor(q);
+        if (got && exNameQuery() === q) exShowNames(null, got.note, got.html);
+      }, 150);
+      return;
+    }
     if (q.length < 2 || exIsTarget(q)) { exShowNames(null); return; }
     exNameTimer = setTimeout(async () => {
       const rows = await exFindNames(q);
@@ -9689,10 +9717,10 @@
   $("ex-q").addEventListener("keydown", (e) => { if (e.key === "Escape") $("ex-found").hidden = true; });
   $("ex-q").addEventListener("focus", () => { if ($("ex-found").innerHTML) $("ex-found").hidden = false; });
   $("ex-found").onclick = (e) => {
-    const go = e.target.closest("[data-ex-addr]");
+    const go = e.target.closest("[data-ex-addr],[data-ex-cp]");
     if (!go) return;
     $("ex-q").value = ""; exShowNames(null);
-    exShow({ kind: "address", address: go.dataset.exAddr });
+    exShow(go.dataset.exCp !== undefined ? { kind: "checkpoint", epoch: Number(go.dataset.exCp) } : { kind: "address", address: go.dataset.exAddr });
   };
   $("ex-search").onsubmit = async (e) => {
     e.preventDefault();
@@ -9733,6 +9761,7 @@
   async function exHome(quiet) {
     let o, top;
     try { [o, top] = await Promise.all([exGet("/overview"), exGet("/top")]); } catch (e) { if (!quiet) exFail(e); return; }
+    ex.over = { at: Date.now(), o };
     if (ex.at.kind !== "home") return;
     const holders = (top.holders || []).slice(0, 10);
     if (await loadProfiles(holders.map((h) => h.address)) && ex.at.kind !== "home") return;
