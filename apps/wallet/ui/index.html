@@ -10995,7 +10995,9 @@
     } else if (go.dataset.exSend !== undefined) {
       $("go-send").onclick(); $("to").value = go.dataset.exSend; validate(); $("amount").focus();
     } else if (go.dataset.exTop !== undefined) exShow({ kind: "top" });
-    else if (go.dataset.exCp !== undefined) exShow({ kind: "checkpoint", epoch: Number(go.dataset.exCp) });
+    // Previous and next take this checkpoint's place: Back still goes
+    // where you were before the first one.
+    else if (go.dataset.exCp !== undefined) exShow({ kind: "checkpoint", epoch: Number(go.dataset.exCp) }, go.dataset.exStep === undefined);
     else exShow({ kind: "address", address: go.dataset.exAddr });
   };
   const exCpRow = (c) => `<button class="tx ex-row" data-ex-cp="${c.epoch}"><span class="ex-num">#${c.epoch}</span>
@@ -11078,7 +11080,7 @@
         ${exFact("Agreed by", `${c.agreed.length} of ${c.of}`, "Validators")}
         ${exFact("Made", exAgo(c.time), exWhen(c.time))}
       </div>
-      <div class="ex-steps">${epoch > 0 ? `<button class="pill" data-ex-cp="${epoch - 1}">← Checkpoint ${epoch - 1}</button>` : "<span></span>"}${d.latest != null && epoch < d.latest ? `<button class="pill" data-ex-cp="${epoch + 1}">Checkpoint ${epoch + 1} →</button>` : ""}</div>
+      <div class="ex-steps">${epoch > 0 ? `<button class="pill" data-ex-cp="${epoch - 1}" data-ex-step>← Checkpoint ${epoch - 1}</button>` : "<span></span>"}${d.latest != null && epoch < d.latest ? `<button class="pill" data-ex-cp="${epoch + 1}" data-ex-step>Checkpoint ${epoch + 1} →</button>` : ""}</div>
       <div class="ex-panel">
         <div class="tabs ex-tabs" role="tablist">
           <button class="tab" data-ex-tab="rewards" role="tab">Rewards</button>
