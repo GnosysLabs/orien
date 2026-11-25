@@ -301,6 +301,13 @@
     /* A theme you built, dark or light: your picture as it is, never faded
        over the ground. */
     html[data-base] body:not(.phone)::before { opacity: 1; }
+    /* Over the picture: a vignette darkening its edges, and a fade at the
+       top so the ORIEN wordmark always reads. Light themes, whose wordmark
+       is dark, fade to white at the top and darken their edges less. */
+    body:not(.phone)::after { content: ""; position: fixed; inset: 0; z-index: -1; pointer-events: none;
+      background: linear-gradient(to bottom, var(--top-fade, rgba(0, 0, 0, 0.6)), transparent 150px),
+        radial-gradient(ellipse 120% 100% at 50% 45%, transparent 55%, var(--vignette, rgba(0, 0, 0, 0.5)) 100%); }
+    :is([data-theme="daylight"], [data-base="light"]) body:not(.phone)::after { --top-fade: rgba(255, 255, 255, 0.7); --vignette: rgba(0, 0, 0, 0.22); }
     /* Each screen sits in a container that looks just like the app in a
        normal window: the theme's own ground and solid panels, with rounded
        corners and a soft shadow. The photo shows only around it, like a
@@ -4450,6 +4457,9 @@
     let face = rgb(colors[0]);
     while (looks(hexOf(face)) < 0.22) face = face.map((v) => v + (255 - v) * 0.08);
     const deep = (f) => hexOf(face.map((v) => v * (1 - f)));
+    // On white the wordmark and words in the sheen's colours go deep enough
+    // to read, however light the colour (a gold or a yellow most of all).
+    const ink = (l) => { const sat = clamp(a.s, 50, 92); while (looks(hsl(a.h, sat, l)) > 0.16 && l > 18) l -= 2; return hsl(a.h, sat, l); };
     if (base === "light") {
       return `${BASES.light}
         --pearl-ink: ${hsl(a.h, Math.min(a.s, 30), 16)}; --on-pearl-dim: ${hsl(a.h, Math.min(a.s, 15), 30)};
@@ -4457,7 +4467,7 @@
         --bubble-mine: ${hsl(a.h, clamp(a.s, 50, 90), 92)}; --chip-icon: ${hsl(a.h, clamp(a.s, 45, 85), 45)};
         --glow: radial-gradient(110% 55% at 50% -12%, rgba(${rgbOf(shade(65))}, 0.18), transparent 62%);
         --pearl: linear-gradient(115deg, ${stops([shade(87), shade(78, 0.42), shade(89), shade(74, 0.38), shade(90), shade(76, 0.4), shade(84), shade(87)])});
-        --brand: linear-gradient(115deg, ${stops([shade(44), shade(50), shade(38), shade(48), shade(44)])});`;
+        --brand: linear-gradient(115deg, ${stops([ink(44), ink(50), ink(38), ink(48), ink(44)])});`;
     }
     return `${BASES.dark}
       --pearl-ink: #000000; --on-pearl-dim: #000000;
