@@ -4025,6 +4025,8 @@
     try {
       view = await invoke("overview_now");
       paintBalance();
+      // Enough ORN to verify just arrived (or went): the Home card follows.
+      if (lastBalance !== view.balance && board.me && typeof paintVerifyCard === "function") paintVerifyCard();
       lastBalance = view.balance;
       lockWithBiometrics();
       invoke("mine_status").then((m) => mineButton(m.status.running)).catch(() => {});
@@ -9888,6 +9890,11 @@
     const st = states.find((p) => (p.address || "").toLowerCase() === view.address);
     if (st && st.verified) { card.hidden = true; if (vw.waiting === view.address) vw.waiting = null; return; }
     const waiting = vw.waiting === view.address || !!st;
+    // Only until the account has a verified wallet (more can be added from
+    // the profile), and only when this one holds enough to pay for it.
+    const anyVerified = states.some((p) => p.verified);
+    const enough = Number(String(view.most || "0").replace(/,/g, "")) >= 0.001;
+    if (!waiting && (anyVerified || !enough)) { card.hidden = true; return; }
     $("vw-text").innerHTML = waiting ? `<b>Verifying ${esc(vwName())}</b><span>Usually within a minute.</span>`
       : `<b>Verify ${esc(vwName())}</b><span>To chat, post and sell on Orien Network.</span>`;
     $("vw-go").hidden = waiting;
