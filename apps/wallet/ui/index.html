@@ -11166,6 +11166,17 @@
     if (gone < 86400) return `${Math.floor(gone / 3600)} h ago`;
     return exWhen(t);
   }
+  // A fact's value too long for its card (a narrow card in a small window,
+  // "RandomX" say) steps down in size until it fits, rather than being cut.
+  function exFitFacts() {
+    for (const v of document.querySelectorAll("#ex-body .ex-fact .v")) {
+      v.style.removeProperty("font-size");
+      let size = parseFloat(getComputedStyle(v).fontSize);
+      while (v.scrollWidth > v.clientWidth + 1 && size > 12) { size -= 1; v.style.setProperty("font-size", size + "px"); }
+    }
+  }
+  new MutationObserver(() => requestAnimationFrame(exFitFacts)).observe($("ex-body"), { childList: true });
+  window.addEventListener("resize", () => { if (!$("explorer").hidden) exFitFacts(); });
   const exFact = (label, value, note) => `<div class="ex-fact"><div class="l">${label}</div><div class="v">${value}</div>${note ? `<div class="n">${note}</div>` : ""}</div>`;
   const exHead = (title, aside) => `<div class="section-head"><h3>${title}</h3>${aside || ""}</div>`;
   const EX_WALLET = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 7V4a1 1 0 0 0-1-1H5a2 2 0 0 0 0 4h15a1 1 0 0 1 1 1v4h-3a2 2 0 0 0 0 4h3a1 1 0 0 0 1-1v-2a1 1 0 0 0-1-1"/><path d="M3 5v14a2 2 0 0 0 2 2h15a1 1 0 0 0 1-1v-4"/></svg>';
