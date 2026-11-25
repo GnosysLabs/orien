@@ -9654,7 +9654,10 @@
     const next = left <= 0 ? "any moment" : left >= 60 ? `in ${Math.floor(left / 60)} min` : `in ${Math.ceil(left)} s`;
     const up = o.validators.filter((v) => v.up).length;
     const sup = o.supply || {};
-    ex.more = o.checkpoints.length ? o.checkpoints[o.checkpoints.length - 1].epoch : null;
+    // Big windows: the latest 15, so the list ends near the column beside
+    // it; Show more brings older ones.
+    const cps = !phone && matchMedia("(min-width: 980px)").matches ? o.checkpoints.slice(0, 15) : o.checkpoints;
+    ex.more = cps.length ? cps[cps.length - 1].epoch : null;
     $("ex-body").innerHTML = `<div class="ex-facts">
         ${exFact("ORN released", sup.released ? exOrn(sup.released, 0) : "—", sup.cap ? `Of ${exOrn(sup.cap, 0)} there will ever be` : "")}
         ${exFact("New ORN this hour", sup.per_hour ? exOrn(sup.per_hour, 0) : "—", "Shared among miners")}
@@ -9672,7 +9675,7 @@
       <div class="list">${holders.map(exHolderRow).join("") || '<div class="empty">No wallets yet.</div>'}</div>
       </div><div>
       ${exHead("Latest checkpoints", '<span class="sub">One every hour</span>')}
-      <div class="list" id="ex-cps">${o.checkpoints.map(exCpRow).join("")}</div>
+      <div class="list" id="ex-cps">${cps.map(exCpRow).join("")}</div>
       ${ex.more > 0 ? '<button class="pill ex-more" data-ex-more>Show more</button>' : ""}
       </div></div>`;
   }
@@ -9954,8 +9957,8 @@
     let up = false;
     const check = () => {
       const typing = document.body.classList.contains("kb-up") || (typeof prefs !== "undefined" && prefs.noarrow);
-      // The feed and profiles: once a screen down, the button takes you back to the top.
-      const feed = typing ? null : ["community", "seller"].map((id) => document.getElementById(id)).find((el) => el && !el.hidden && el.scrollTop > el.clientHeight);
+      // The feed, profiles and the explorer: once a screen down, the button takes you back to the top.
+      const feed = typing ? null : ["community", "seller", "explorer"].map((id) => document.getElementById(id)).find((el) => el && !el.hidden && el.scrollTop > el.clientHeight);
       const found = feed || (typing ? null : scrollers().filter((el) => el.scrollTop + el.clientHeight < el.scrollHeight - 24)
         .sort((a, b) => b.clientHeight - a.clientHeight)[0] || null);
       if (up !== !!feed) {
