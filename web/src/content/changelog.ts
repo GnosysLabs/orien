@@ -28,6 +28,19 @@ export const CHANGELOG: Entry[] = [
   {
     date: '2026-11-25',
     products: ['wallet'],
+    version: '1.9.12',
+    title: 'Round buttons, and every page on one screen',
+    changes: [
+      'Home\'s buttons are round, with Contacts, Settings and (in smaller windows) the explorer among them.',
+      'The explorer, a checkpoint, a wallet\'s page and the swaps page each fit one screen: the figures on top, the lists in cards that scroll on their own, each with its own arrow. A wallet\'s activity is grouped by day, as on Home.',
+      'From a checkpoint, Back goes straight to where you came from, not through every checkpoint you stepped through.',
+      'The group chat has no separate button: something new there puts the dot on Messages, and a bell at the top of the chat mutes it.',
+      'The gap under each screen is the same as beside it.',
+    ],
+  },
+  {
+    date: '2026-11-25',
+    products: ['wallet'],
     version: '1.9.11',
     title: 'Settings side by side, and a wider Wallets page',
     changes: [
