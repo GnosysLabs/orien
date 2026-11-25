@@ -147,6 +147,21 @@ export default function ValidatorsPage() {
               <Code>HOST</Code> is the validator’s public internet address or a domain name pointing to it. It must say
               the validator answers before you stake.
             </p>
+            <div className="space-y-2 rounded-xl border border-line bg-bg/60 px-4 py-3 text-sm">
+              <p className="font-semibold text-ink">If it doesn’t answer</p>
+              <ul className="list-disc space-y-1.5 pl-5">
+                <li>
+                  <strong>Timed out, or connection refused:</strong> the port isn’t open yet. Check the firewall, the
+                  router’s port forwarding, and that the validator is running.
+                </li>
+                <li>
+                  <strong>Connection reset, or connection closed:</strong> the port is reachable, but something cuts the
+                  connection. Look for a firewall, proxy or security service in front of the validator that turns
+                  connections away, and make sure orien is up to date with <Code>orien update</Code>. Then ping again
+                  from another network.
+                </li>
+              </ul>
+            </div>
           </Step>
 
           <Step n={6} title="Stake">
