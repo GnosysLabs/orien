@@ -44,6 +44,19 @@ export const CHANGELOG: Entry[] = [
   {
     date: '2026-11-25',
     products: ['wallet'],
+    version: '1.9.16',
+    title: 'A green glow while you mine',
+    changes: [
+      'While mining, the Mine button (and the mining card in a big window) wears a soft green glow that breathes, from the moment mining starts.',
+      'Themes and settings changed on another device show up while the app stays open, not only after a restart.',
+      'A new checkpoint shows on Home within seconds of being made, and a staked validator in the explorer opens the wallet that staked it.',
+      'Your swap offers stay on the board while your wallet is open, even when the network is slow.',
+      'Home\'s round buttons no longer sit in faint boxes on light themes, and long figures in the explorer shrink to fit their card.',
+    ],
+  },
+  {
+    date: '2026-11-25',
+    products: ['wallet'],
     version: '1.9.15',
     title: 'A quick start, whatever one validator is doing',
     changes: [

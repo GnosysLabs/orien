@@ -1,6 +1,6 @@
 [package]
 name = "orien-wallet"
-version = "1.9.15"
+version = "1.9.16"
 edition = "2024"
 license = "MIT OR Apache-2.0"
 description = "The Orien wallet, as a desktop app"
