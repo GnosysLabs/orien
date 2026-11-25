@@ -10,7 +10,7 @@
         "resizable": true,
         "theme": "Dark",
         "minWidth": 719,
-        "minHeight": 610,
+        "minHeight": 720,
         "decorations": false,
         "shadow": true
       }

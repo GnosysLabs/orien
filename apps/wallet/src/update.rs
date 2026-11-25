@@ -174,6 +174,8 @@ pub async fn install_update(app: AppHandle, quiet: Option<bool>) -> Result<(), S
     }
     #[cfg(target_os = "macos")]
     reopen_on_the_mac(&app, quiet);
+    #[cfg(target_os = "linux")]
+    reopen_on_linux(&app);
     app.restart()
 }
 
@@ -213,6 +215,33 @@ fn reopen_on_the_mac(app: &AppHandle, quiet: bool) {
         .arg("-c")
         .arg(script)
         .arg(bundle)
+        .stdin(std::process::Stdio::null())
+        .stdout(std::process::Stdio::null())
+        .stderr(std::process::Stdio::null())
+        .process_group(0)
+        .spawn();
+    if started.is_ok() {
+        std::process::exit(0);
+    }
+}
+
+/// Reopens the app on Linux once this copy has closed. Tauri's own restart
+/// starts the new copy while this one still runs, so it finds this one,
+/// hands over and quits, and when this one then ends nothing is left open.
+/// An AppImage runs from a folder that goes away when it closes, so the
+/// new copy is started from the AppImage file itself.
+#[cfg(target_os = "linux")]
+fn reopen_on_linux(app: &AppHandle) {
+    let program = std::env::var_os("APPIMAGE")
+        .map(std::path::PathBuf::from)
+        .or_else(|| tauri::process::current_binary(&tauri::Manager::env(app)).ok());
+    let Some(program) = program else { return };
+    let script = format!("while kill -0 {} 2>/dev/null; do sleep 0.2; done; exec \"$0\"", std::process::id());
+    use std::os::unix::process::CommandExt;
+    let started = std::process::Command::new("/bin/sh")
+        .arg("-c")
+        .arg(script)
+        .arg(program)
         .stdin(std::process::Stdio::null())
         .stdout(std::process::Stdio::null())
         .stderr(std::process::Stdio::null())
