@@ -2151,6 +2151,9 @@
     @media (hover: hover) { body.pop:not(.phone) #contacts .ct-list > .tx:hover { background: color-mix(in srgb, var(--ink) 8%, var(--surface)); } }
     body.pop:not(.phone) #send #confirm { margin-top: 22px; }
     body.pop:not(.phone) #receive .receive-actions { margin-top: 18px; }
+    /* In the pop-up, the card is the frame: no box inside it, no rule above the note. */
+    body.pop:not(.phone) #receive .receive-card { border: 0; background: none; box-shadow: none; padding: 4px 0 0; }
+    body.pop:not(.phone) #receive .receive-card .fineprint { border-top: 0; padding-top: 0; margin-top: 12px; }
   }
   @keyframes pop-fade { from { opacity: 0; } to { opacity: 1; } }
   @keyframes pop-in { from { opacity: 0; transform: translateY(8px) scale(.97); } to { opacity: 1; transform: none; } }
