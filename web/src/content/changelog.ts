@@ -28,6 +28,21 @@ export const CHANGELOG: Entry[] = [
   {
     date: '2026-11-25',
     products: ['wallet'],
+    version: '1.9.13',
+    title: 'A cleaner start, and a quicker way Home',
+    changes: [
+      'The app opens in one go, already in your theme, with nothing flashing past first.',
+      'Click the ORIEN name at the top to go straight to Home from anywhere.',
+      'Replies can be tipped, and hovering over a reaction (or pressing and holding on an iPhone) shows who reacted.',
+      'Posting or taking a swap offer, all your activity, and Send from a wallet\'s page open as cards over the page you were on. Once a seller accepts your offer, the pay screen opens wherever you are.',
+      'A verified wallet\'s page in the explorer shows its owner\'s banner, with round buttons to view their profile or send them ORN, and a day bar above its activity.',
+      'In a big window, a checkpoint shows its validators and fingerprints side by side, and Messages, the faintest grey text and the group chat\'s Reply are easier to read and use.',
+      'On computers, a new setting keeps the computer awake while the wallet runs, so swap offers stay open and mining carries on.',
+    ],
+  },
+  {
+    date: '2026-11-25',
+    products: ['wallet'],
     version: '1.9.12',
     title: 'Round buttons, and every page on one screen',
     changes: [
