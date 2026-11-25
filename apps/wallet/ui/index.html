@@ -1150,11 +1150,16 @@
   .ch-blocked .pill { margin-top: 8px; }
   .rm-badge { flex: none; padding: 1px 7px; border-radius: 999px; background: #ff453a26; color: #ff7b72; font-size: 10.5px; font-weight: 600; }
   .rm-badge.mod { background: rgba(var(--tint), 0.08); color: var(--dim); }
-  .rm-bans { flex-shrink: 0; max-height: 40%; overflow-y: auto; margin: 10px 0 0; padding: 6px; border: 1px solid var(--line); border-radius: 16px; background: var(--surface); }
-  .rm-bans .ib-row { border: 0; border-radius: 12px; cursor: default; grid-template-columns: auto minmax(0, 1fr) auto; padding: 8px 10px; }
-  .rm-bans .ib-row .avatar { width: 32px; height: 32px; font-size: 13px; }
-  .rm-bans .empty { padding: 14px; text-align: center; }
-  .rm-bans-head { padding: 8px 10px 4px; font-size: 12px; color: var(--dim); }
+  /* The banned list drops from its button, as the notifications do: it
+     floats over the chat, and a click anywhere else closes it. */
+  .rm-bans { position: fixed; z-index: 55; width: 360px; max-width: calc(100vw - 24px); display: flex; flex-direction: column;
+    max-height: min(60vh, 460px); overflow: hidden; border-radius: 20px; background: var(--surface); border: 1px solid var(--line);
+    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.55), 0 2px 8px rgba(0, 0, 0, 0.25); transform-origin: top right; animation: menu-in 0.18s cubic-bezier(.2, .9, .3, 1.2); }
+  .rm-bans-head { flex: none; padding: 16px 20px; font-size: 16px; font-weight: 700; color: var(--ink); border-bottom: 1px solid var(--line); }
+  .rm-bans-body { flex: 1 1 auto; min-height: 0; overflow-y: auto; padding: 6px; overscroll-behavior: contain; }
+  .rm-bans .ib-row { border: 0; border-radius: 14px; cursor: default; grid-template-columns: auto minmax(0, 1fr) auto; padding: 10px 12px; }
+  .rm-bans .ib-row .avatar { width: 36px; height: 36px; font-size: 14px; }
+  .rm-bans .empty { padding: 30px 20px; text-align: center; }
   .ib-signin { display: flex; flex-direction: column; align-items: center; gap: 10px; margin-top: 18px; padding: 0 16px; color: var(--dim); font-size: 13px; text-align: center; }
   .ch-compose textarea { flex: 1; min-height: 22px; max-height: 120px; padding: 6px 0; border: 0; background: none; color: var(--ink); font: inherit; font-size: 13.5px; letter-spacing: normal; resize: none; outline: none; }
   .ch-send { flex: none; width: 34px; height: 34px; border: 0; border-radius: 50%; display: grid; place-items: center; color: var(--pearl-ink); cursor: pointer; }
@@ -9454,12 +9459,22 @@
     const box = $("rm-bans");
     let list = [];
     try { list = (await mk("GET", "/room/bans")).bans || []; } catch (e) { problem("ch-problem", mkProblem(e)); return; }
-    box.innerHTML = '<div class="rm-bans-head">Banned from the group chat</div>' + (list.length ? list.map((b) => `<div class="ib-row">${mkAvatar(b.name, b.picture)}
+    box.innerHTML = '<div class="rm-bans-head">Banned from the group chat</div><div class="rm-bans-body">' + (list.length ? list.map((b) => `<div class="ib-row">${mkAvatar(b.name, b.picture)}
       <div class="mw0"><div class="nm"><b>${esc(b.name || "Someone")}</b></div><div class="last">Banned ${esc(ago(b.banned_at))}${b.by ? ` by ${esc(b.by)}` : ""}</div></div>
-      <button class="pill" data-rm-unban="${b.account}">Unban</button></div>`).join("") : '<div class="empty">Nobody is banned.</div>');
-    box.hidden = false;
+      <button class="pill" data-rm-unban="${b.account}">Unban</button></div>`).join("") : '<div class="empty">Nobody is banned.</div>') + "</div>";
+    if (box.hidden) {
+      // Under its button, its right edge lined up with the button's.
+      const r = $("rm-bans-go").getBoundingClientRect(), w = Math.min(360, window.innerWidth - 24);
+      box.style.setProperty("top", `${Math.round(r.bottom + 10)}px`);
+      box.style.setProperty("left", `${Math.round(Math.max(12, Math.min(r.right - w, window.innerWidth - 12 - w)))}px`);
+      box.hidden = false;
+    }
   }
   $("rm-bans-go").onclick = () => { if ($("rm-bans").hidden) roomBans(); else $("rm-bans").hidden = true; };
+  document.addEventListener("pointerdown", (e) => {
+    if (!$("rm-bans").hidden && !e.target.closest("#rm-bans, #rm-bans-go")) $("rm-bans").hidden = true;
+  }, true);
+  document.addEventListener("keydown", (e) => { if (e.key === "Escape") $("rm-bans").hidden = true; });
   $("rm-bans").onclick = (e) => { if (e.target.closest("[data-rm-unban]")) roomClick(e); };
   $("rm-reply-x").onclick = () => { room.reply = null; $("rm-reply").hidden = true; };
   function roomAttachPaint() {
