@@ -2261,11 +2261,21 @@
     body:not(.phone) #home .home-side { display: flex; flex-direction: column; gap: 14px; flex: 0 0 340px; min-height: 0; }
   }
   .hs-card { display: flex; flex-direction: column; padding: 14px 16px 16px; border: 1px solid var(--line); border-radius: 18px; background: var(--surface); }
-  .hs-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; width: 100%; padding: 0; border: 0; background: none; color: var(--ink); font: inherit; text-align: left; }
-  .hs-head b { font-size: 14px; font-weight: 600; }
-  .hs-state { font-size: 12px; color: var(--dim); }
+  /* Each card opens with its sign in a pearl circle, its name and a line
+     under it, and an arrow to its own screen. */
+  .hs-head { display: flex; align-items: center; gap: 12px; width: calc(100% + 16px); margin: -6px -8px 0; padding: 6px 8px; border: 0; border-radius: 14px;
+    background: none; color: var(--ink); font: inherit; text-align: left; }
+  .hs-ico { flex: none; width: 36px; height: 36px; border-radius: 50%; display: grid; place-items: center; color: var(--pearl-ink);
+    background: var(--pearl); background-size: 300% 100%; animation: drift 24s linear infinite; }
+  .hs-ico svg { width: 18px; height: 18px; }
+  .hs-chat .hs-ico svg { width: 21px; height: 21px; }
+  .hs-title { flex: 1; min-width: 0; }
+  .hs-title b { display: block; font-size: 14px; font-weight: 600; }
+  .hs-title small { display: block; margin-top: 1px; font-size: 12px; color: var(--dim); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .hs-state.on { color: var(--good); }
-  .hs-figs { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; margin-top: 12px; }
+  .hs-arrow { flex: none; width: 28px; height: 28px; border-radius: 50%; display: grid; place-items: center; color: var(--faint); transition: background .15s, color .15s; }
+  @media (hover: hover) { .hs-open:hover { background: rgba(var(--tint), 0.04); } .hs-open:hover .hs-arrow { color: var(--ink); background: rgba(var(--tint), 0.06); } }
+  .hs-figs { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--line); }
   .hs-figs span { display: block; font-size: 11px; color: var(--faint); }
   .hs-figs b { display: block; margin-top: 2px; font-size: 14px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .hs-acts { display: flex; gap: 8px; margin-top: 14px; }
@@ -2274,15 +2284,16 @@
      as many of the latest messages as fit, newest at the bottom. */
   .hs-chat { flex: 1 1 auto; min-height: 0; }
   .hs-open { cursor: pointer; }
-  .hs-go { font-size: 12px; color: var(--dim); }
-  @media (hover: hover) { .hs-open:hover .hs-go { color: var(--ink); } }
-  .hs-msgs { display: flex; flex-direction: column; justify-content: flex-end; gap: 10px; margin-top: 12px; flex: 1 1 0; min-height: 150px; overflow: hidden; cursor: pointer; }
+  .hs-rule { flex: none; height: 1px; margin-top: 14px; background: var(--line); }
+  .hs-msgs { display: flex; flex-direction: column; gap: 12px; padding-top: 14px;
+    -webkit-mask: linear-gradient(transparent, #000 22px); mask: linear-gradient(transparent, #000 22px); flex: 1 1 0; min-height: 150px; overflow-y: auto; overscroll-behavior: contain; cursor: pointer; }
+  .hs-msgs::-webkit-scrollbar { width: 0; }
   .hs-msgs > :first-child { margin-top: auto; }
   .hs-msg { display: grid; grid-template-columns: 28px minmax(0, 1fr); gap: 10px; align-items: start; }
   .hs-msg .avatar { position: relative; overflow: hidden; width: 28px; height: 28px; font-size: 11px; background: var(--surface-hover); color: var(--ink); }
   .hs-msg .avatar img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
   .hs-msg b { display: block; font-size: 12.5px; font-weight: 600; }
-  .hs-msg p { margin: 1px 0 0; font-size: 13px; line-height: 1.4; color: var(--dim); overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow-wrap: anywhere; }
+  .hs-msg p { margin: 1px 0 0; font-size: 13px; line-height: 1.4; color: var(--dim); white-space: pre-wrap; overflow-wrap: anywhere; }
   .hs-empty { font-size: 13px; color: var(--faint); }
   .hs-say { display: flex; align-items: center; gap: 8px; margin-top: 14px; padding: 4px 4px 4px 14px; border: 1px solid var(--line); border-radius: 22px; background: var(--field); }
   .hs-say:focus-within { border-color: var(--focus); }
@@ -2737,12 +2748,13 @@
       <!-- Big windows: mining and the group chat beside the wallet. -->
       <aside class="home-side" id="home-side">
         <div class="hs-card" id="hs-mine">
-          <div class="hs-head"><b>Mining</b><span class="hs-state" id="hs-mine-state">Stopped</span></div>
+          <button class="hs-head hs-open" id="hs-mine-more" title="Open Mine"><span class="hs-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m14 13-8.381 8.38a1 1 0 0 1-3.001-3L11 9.999"/><path d="M15.973 4.027A13 13 0 0 0 5.902 2.373c-1.398.342-1.092 2.158.277 2.601a19.9 19.9 0 0 1 5.822 3.024"/><path d="M16.001 11.999a19.9 19.9 0 0 1 3.024 5.824c.444 1.369 2.26 1.676 2.603.278A13 13 0 0 0 20 8.069"/><path d="M18.352 3.352a1.205 1.205 0 0 0-1.704 0l-5.296 5.296a1.205 1.205 0 0 0 0 1.704l2.296 2.296a1.205 1.205 0 0 0 1.704 0l5.296-5.296a1.205 1.205 0 0 0 0-1.704z"/></svg></span><span class="hs-title"><b>Mining</b><small class="hs-state" id="hs-mine-state">Stopped</small></span><span class="hs-arrow" aria-hidden="true"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg></span></button>
           <div class="hs-figs"><div><span>Speed</span><b id="hs-speed">—</b></div><div><span id="hs-rate-label">Shares</span><b id="hs-rate">—</b></div><div><span>Last reward</span><b id="hs-reward">—</b></div></div>
-          <div class="hs-acts"><button class="pill pearl" id="hs-mine-go">Start mining</button><button class="pill" id="hs-mine-more">Details</button></div>
+          <div class="hs-acts"><button class="pill pearl" id="hs-mine-go">Start mining</button></div>
         </div>
         <div class="hs-card hs-chat" id="hs-chat">
-          <button class="hs-head hs-open" id="hs-chat-open"><b>Orien group chat</b><span class="hs-go">Open</span></button>
+          <button class="hs-head hs-open" id="hs-chat-open" title="Open the group chat"><span class="hs-ico"><svg viewBox="0 0 512 512" fill="currentColor"><rect x="239" y="74" width="36" height="66" rx="18"/><rect x="239" y="74" width="36" height="66" rx="18" transform="rotate(-44 256 298)"/><rect x="239" y="74" width="36" height="66" rx="18" transform="rotate(44 256 298)"/><path d="M138 298 A118 118 0 0 1 374 298 Z"/><rect x="76" y="338" width="360" height="40" rx="20"/><rect x="156" y="406" width="200" height="36" rx="18"/></svg></span><span class="hs-title"><b>Orien</b><small>Group chat · everyone on Orien Network</small></span><span class="hs-arrow" aria-hidden="true"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg></span></button>
+          <div class="hs-rule"></div>
           <div class="hs-msgs" id="hs-msgs"><div class="hs-empty">Loading…</div></div>
           <form class="hs-say" id="hs-say" autocomplete="off" hidden><input id="hs-text" maxlength="500" placeholder="Message everyone" enterkeyhint="send"><button class="ch-send pearl" id="hs-send" aria-label="Send"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 7-7 7 7"/><path d="M12 19V5"/></svg></button></form>
         </div>
@@ -4472,7 +4484,7 @@
     $("mn-go").disabled = readying;
     if (s.problem && !s.running) problem("mine-problem", s.problem); else $("mine-problem").hidden = true;
     // Home's mining card, in big windows: the same figures, briefly.
-    $("hs-mine-state").textContent = readying ? "Getting ready" : s.running ? "Mining" : "Stopped";
+    $("hs-mine-state").textContent = readying ? "Getting ready…" : s.running ? `Running · into ${m.wallet || "this wallet"}` : "Stopped";
     $("hs-mine-state").classList.toggle("on", !!s.running && !readying);
     $("hs-speed").textContent = s.running && s.tries_per_second ? `${speed(s.tries_per_second)}/s` : "—";
     $("hs-rate-label").textContent = small === "for each share" ? "Each share" : "Shares an hour";
@@ -9961,18 +9973,11 @@
     const list = (a.messages || []).slice(-20);
     const html = list.length ? list.map((m) => `<div class="hs-msg">${mkAvatar((m.author || {}).name, (m.author || {}).picture)}<div class="mw0"><b>${esc((m.author || {}).name || "Someone")}</b><p>${esc(roomText(m))}</p></div></div>`).join("")
       : '<div class="hs-empty">No messages yet. Say hello to everyone.</div>';
-    paintKeeping($("hs-msgs"), html);
-    hsFit();
+    // Scrolls like a chat: held at the newest, unless you've scrolled up to read.
+    const box = $("hs-msgs"), atEnd = box.scrollHeight - box.scrollTop - box.clientHeight < 40;
+    paintKeeping(box, html);
+    if (atEnd) box.scrollTop = box.scrollHeight;
   }
-  // Only whole messages: one cut off at the top is hidden, never shown in half.
-  function hsFit() {
-    const box = $("hs-msgs"), top = box.getBoundingClientRect().top;
-    for (const el of box.children) {
-      el.style.removeProperty("visibility");
-      if (el.getBoundingClientRect().top < top - 0.5) el.style.setProperty("visibility", "hidden");
-    }
-  }
-  window.addEventListener("resize", () => { if (homeWide()) hsFit(); });
   $("hs-chat-open").onclick = () => { openRoom("inbox"); loadInbox(); };
   $("hs-msgs").onclick = () => $("hs-chat-open").onclick();
   $("hs-say").onsubmit = async (e) => {
