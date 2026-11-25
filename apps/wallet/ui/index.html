@@ -2442,7 +2442,7 @@
   .ex-pane { flex: 1 1 0; min-height: 0; overflow-y: auto; overscroll-behavior: contain; padding: 0 0 8px; }
   .ex-pane .list { border: 0; border-radius: 0; background: none; box-shadow: none; }
   .ex-pane .day { position: sticky; top: 0; z-index: 1; margin: 0; padding: 12px 18px 6px; background: var(--surface); }
-  .ex-pane .day:not(:first-child) { border-top: 1px solid var(--line); }
+  .ex-pane .ex-day + .ex-day .day { border-top: 1px solid var(--line); }
   .ex-pane-note { padding: 12px 18px 2px; font-size: 12.5px; color: var(--dim); }
   .ex-more { display: flex; justify-content: center; padding: 10px 0 6px; }
   .ex-panel-head { flex: none; display: flex; align-items: baseline; justify-content: space-between; gap: 12px; padding: 14px 18px 8px; border-bottom: 1px solid var(--line); }
@@ -2568,7 +2568,7 @@
      scrolls, so no inset rounding on top. */
   html body #all-activity { -webkit-mask: none; mask: none; }
   #all-activity .day { position: sticky; top: 0; z-index: 1; margin: 0; padding: 12px 14px 6px; background: var(--surface); }
-  #all-activity .day:not(:first-child) { border-top: 1px solid var(--line); }
+  #all-activity .act-day + .act-day .day { border-top: 1px solid var(--line); }
   #all-activity .list { border: 0; border-radius: 0; background: none; overflow: visible; }
   .scroll { flex: 1; min-height: 0; overflow-y: auto; margin: 0 -8px; padding: 0 8px 16px; }
   .scroll::-webkit-scrollbar { width: 0; }
@@ -6602,7 +6602,7 @@
   paintActTabs();
   function renderAll() {
     let html = "", day = null, group = [];
-    const flush = () => { if (group.length) html += `<div class="day">${day}</div><div class="list">${group.join("")}</div>`; group = []; };
+    const flush = () => { if (group.length) html += `<section class="act-day"><div class="day">${day}</div><div class="list">${group.join("")}</div></section>`; group = []; };
     for (const e of entries.filter(shown)) {
       const d = dayName(e.time);
       if (d !== day) { flush(); day = d; }
@@ -11138,7 +11138,9 @@
   // then the date; each row shows its time.
   function exActDays(acts) {
     let html = "", day = null, group = [];
-    const flush = () => { if (group.length) html += `<div class="day">${day}</div><div class="list">${group.join("")}</div>`; group = []; };
+    // Each day in its own group, so its heading is pushed away by the next
+    // one instead of staying stuck beneath it.
+    const flush = () => { if (group.length) html += `<section class="ex-day"><div class="day">${day}</div><div class="list">${group.join("")}</div></section>`; group = []; };
     for (const a of acts) {
       const d = a.time ? dayName(a.time) : "This hour";
       if (d !== day) { flush(); day = d; }
