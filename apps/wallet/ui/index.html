@@ -409,6 +409,11 @@
   /* The network's heartbeat, just after the wordmark (which stays centred):
      a dot that breathes while all is well; words only when it isn't. */
   .wm-wrap { position: relative; display: inline-flex; align-items: center; }
+  /* The name at the top is a way Home from anywhere: it says so on a hover. */
+  #wm-home { cursor: pointer; border-radius: 10px; transition: filter .15s, opacity .15s; -webkit-app-region: no-drag; }
+  @media (hover: hover) { #wm-home:hover { filter: brightness(1.25) drop-shadow(0 0 10px rgba(var(--tint), 0.25)); } }
+  #wm-home:active { opacity: 0.75; }
+  #wm-home:focus:not(:focus-visible) { outline: none; }
   .status {
     position: absolute; left: calc(100% + 6px); top: 50%; transform: translateY(-50%);
     display: flex; align-items: center; gap: 7px; padding: 6px; border: 0; background: none; white-space: nowrap;
@@ -2867,7 +2872,7 @@
          top corners, beside the wordmark, so the bar below has room. -->
     <button class="pill icon hd-btn hd-left" id="hd-settings" aria-label="Settings"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></button>
     <button class="pill icon hd-btn hd-right" id="hd-notices" aria-label="Notifications" hidden><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10.268 21a2 2 0 0 0 3.464 0"/><path d="M3.262 15.326A1 1 0 0 0 4 17h16a1 1 0 0 0 .74-1.673C19.41 13.956 18 12.499 18 8A6 6 0 0 0 6 8c0 4.499-1.411 5.956-2.738 7.326"/></svg><span class="dot" id="hd-notices-dot" hidden></span></button>
-    <div class="wm-wrap"><h1 class="wordmark"><span class="mark brand"></span><span class="word brand">ORIEN</span></h1>
+    <div class="wm-wrap"><h1 class="wordmark" id="wm-home" role="button" tabindex="0" title="Home" aria-label="Home"><span class="mark brand"></span><span class="word brand">ORIEN</span></h1>
       <button class="status" id="status" hidden><i></i><span id="status-text"></span></button></div>
     <button class="update pearl" id="update" hidden></button>
     <div class="win-controls">
@@ -5710,6 +5715,10 @@
       `Show the QR code to the person paying you, or ${tap} <b>Share address</b> or <b>Copy address</b> and send it to them.`,
       "Their payment shows in your Activity within seconds.",
     ]);
+    add("Getting started", "home", "Get back to Home", [
+      `${Tap} <b>Back</b> at the top left to go back one step.`,
+      `${Tap} the <b>ORIEN</b> name at the top of the ${phone ? "screen" : "window"} to go straight to Home from anywhere.`,
+    ]);
     add("Getting started", "wallets", "Add another wallet", [
       `On Home, ${tap} the wallet’s name at the top, then <b>Add a wallet</b>.`,
       `${Tap} <b>Make a new wallet</b>, give it a name and an icon, then ${tap} <b>Make the wallet</b>.`,
@@ -5972,6 +5981,11 @@
     finally { unlocking = false; }
   }
   $("lock-go").onclick = lockApp;
+  // The ORIEN name at the top: straight to Home from anywhere in the app,
+  // once there's a wallet to show (not while making or restoring the first).
+  const goHome = () => { if (walletList.length && ($("home").hidden || document.body.classList.contains("pop"))) { feel("selection"); home(); } };
+  $("wm-home").onclick = goHome;
+  $("wm-home").onkeydown = (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); goHome(); } };
   loadPrefs();
   document.addEventListener("visibilitychange", () => {
     if (!lockOn()) return;
