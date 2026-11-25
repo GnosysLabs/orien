@@ -225,6 +225,15 @@
         radial-gradient(circle at 0 0, #000 calc(var(--rb) - 0.5px), transparent var(--rb)) calc(50% + (var(--cw) - var(--rb)) / 2) 100% / var(--rb) var(--rb) no-repeat;
       border-radius: 0; }
   }
+  /* Between the smallest window and the wide layouts: just as at the
+     smallest size, no picture and no container; the content keeps that
+     width (663px) and the space either side grows. */
+  @media (min-width: 720px) and (max-width: 859px) {
+    html body:not(.phone) :is(.screen, #mine, #board-signin, #board-post, #board-take, #swaps, #swap-sell, #swap-buy, #swap-detail) {
+      --cw: min(663px, 100vw - 56px); --ct: var(--cw);
+      padding-left: calc((100% + 36px - min(663px, 100vw - 56px)) / 2);
+      padding-right: calc((100% + 36px - min(663px, 100vw - 56px)) / 2); }
+  }
   /* Small windows (not the phone) too: where content scrolls under the top
      and bottom edges it rounds off at its own edges, 18px in from the
      screen's sides, with the same 16px corners as everywhere else. */
@@ -283,9 +292,8 @@
       var(--m) 50% 100% / calc(100% - 36px - 2 * var(--rb)) var(--rb) no-repeat,
       var(--bl) left 18px bottom 0 / var(--rb) var(--rb) no-repeat, var(--br) right 18px bottom 0 / var(--rb) var(--rb) no-repeat;
     -webkit-mask: var(--M); mask: var(--M); }
-  /* Big windows: each theme's photograph behind the app, quiet, as soon as
-     the window is wider than the container; the screens keep the
-     container's width until 860px, where the wide ones expand. */
+  /* Big windows: each theme's photograph behind the app, and the screens
+     in a container, from 860px, where the wide layouts begin. */
   :root, [data-theme="pearl"] { --scene: url(scenes/pearl.webp); }
   [data-theme="daylight"] { --scene: url(scenes/daylight.webp); }
   [data-theme="midnight"] { --scene: url(scenes/midnight.webp); }
@@ -295,7 +303,7 @@
   [data-theme="ruby"] { --scene: url(scenes/ruby.webp); }
   [data-theme="ember"] { --scene: url(scenes/ember.webp); }
   [data-theme="obsidian"] { --scene: url(scenes/obsidian.webp); }
-  @media (min-width: 720px) {
+  @media (min-width: 860px) {
     body:not(.phone)::before { content: ""; position: fixed; inset: 0; z-index: -1; pointer-events: none;
       background: var(--scene, none) center / cover no-repeat; opacity: 0.55; }
     /* A theme you built, dark or light: your picture as it is, never faded
