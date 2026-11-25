@@ -36,6 +36,15 @@ export const CHANGELOG: Entry[] = [
   {
     date: '2026-11-25',
     products: ['wallet'],
+    version: '1.9.14',
+    title: 'Banners on every verified wallet',
+    changes: [
+      'A verified wallet\'s page in the explorer always shows its owner\'s banner, your own wallets included. It could go missing after a profile had been opened.',
+    ],
+  },
+  {
+    date: '2026-11-25',
+    products: ['wallet'],
     version: '1.9.13',
     title: 'A cleaner start, and a quicker way Home',
     changes: [
