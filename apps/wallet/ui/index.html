@@ -4,8 +4,26 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 <title>Orien Wallet</title>
+<script>
+  // The theme last used, before anything is drawn: no flash of the default
+  // one at launch. A theme you built needs the rest of the app to paint its
+  // colours, so the page waits unseen until it has (never more than 1.5 s).
+  try {
+    var t = localStorage.getItem("theme");
+    if (t) {
+      document.documentElement.dataset.theme = t;
+      if (t.indexOf("c-") === 0) {
+        var own = (JSON.parse(localStorage.getItem("custom-themes") || "[]") || []).filter(function (x) { return x && x.id === t; })[0];
+        if (own) document.documentElement.dataset.base = own.base === "light" ? "light" : "dark";
+        document.documentElement.classList.add("theming");
+        setTimeout(function () { document.documentElement.classList.remove("theming"); }, 1500);
+      }
+    }
+  } catch (e) {}
+</script>
 <script type="module" src="vendor/robot.js"></script>
 <style>
+  html.theming body { visibility: hidden; }
   /* The wordmark's typeface, bundled so the app never fetches fonts. */
   @font-face {
     font-family: "Jost";
@@ -5078,9 +5096,13 @@
     const now = document.documentElement.dataset.theme || "pearl";
     for (const card of document.querySelectorAll(".theme-card")) card.classList.toggle("on", card.dataset.pick === now);
   }
+  // The first time it runs it always paints: the page may already carry the
+  // theme's name (set before anything drew), but not yet its colours.
+  let themePainted = false;
   function applyTheme(name, animate) {
     name = knownTheme(name);
-    if ((document.documentElement.dataset.theme || "pearl") === name) return;
+    if (themePainted && (document.documentElement.dataset.theme || "pearl") === name) return;
+    themePainted = true;
     const set = () => { document.documentElement.dataset.theme = name; paintOwnTheme(); paintThemeGrid(); };
     try { localStorage.setItem("theme", name); } catch {}
     // The fade between themes: not on Linux, where WebKit can crash doing it.
@@ -5164,6 +5186,8 @@
   }
   // As this device last had it, at once; then as chosen on any device.
   try { applyTheme(localStorage.getItem("theme") || "pearl", false); } catch { paintBackdrop(); }
+  // Painted: the page can be seen.
+  requestAnimationFrame(() => document.documentElement.classList.remove("theming"));
 
   // The builder.
   const TB_DEFAULT = ["#f0b341"];
