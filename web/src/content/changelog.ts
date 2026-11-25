@@ -29,8 +29,9 @@ export const CHANGELOG: Entry[] = [
     date: '2026-11-24',
     products: ['wallet'],
     version: '1.9.10',
-    title: 'Your own wide size, remembered',
+    title: 'A clearer theme builder, and your wide size remembered',
     changes: [
+      'Building a theme: the preview stays beside your choices at every window size, with ready accent colours to tap or any colour you like, a picture picker that shows your picture, and a line saying what is still needed to save.',
       'The button beside your picture brings the window back to the width you had it wide, not a fixed size.',
     ],
   },

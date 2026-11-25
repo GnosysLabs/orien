@@ -1388,40 +1388,54 @@
   .tc-del + .tc-check { margin-left: 6px; }
   .tc-del.armed { background: #e5484d; color: #fff; }
   @media (hover: hover) { .tc-del:not(.tc-edit):hover { background: #e5484d; color: #fff; } .tc-edit:hover { background: rgba(var(--tint), 0.13); color: var(--ink); } }
-  /* The builder: the theme as it will look, over its picture. */
-  .tb-stage { position: relative; display: grid; place-items: center; aspect-ratio: 16 / 9; margin: 4px 0 22px; border-radius: 22px; overflow: hidden;
-    border: 1px solid var(--line); background: var(--ground-deep) center / cover no-repeat; }
+  /* The builder: the theme as it will look, over its picture, with the
+     choices beside it at every window size. */
+  #theme-build { --col: 1040px; }
+  .tb-layout { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); gap: 28px; align-items: start; }
+  .tb-stage { position: sticky; top: 56px; display: grid; place-items: center; aspect-ratio: 4 / 3; margin: 4px 0 0; border-radius: 22px; overflow: hidden;
+    border: 1px solid var(--line); background: var(--ground-deep) center / cover no-repeat; cursor: pointer; }
   .tb-stage.has-pic::before { content: ""; position: absolute; inset: 0; background: rgba(0, 0, 0, 0.12); }
-  .tb-mini { position: relative; width: min(42%, 190px); aspect-ratio: 4 / 5; padding: 12px 10px; border-radius: 18px; overflow: hidden;
+  .tb-stage-hint { position: absolute; left: 50%; bottom: 16px; transform: translateX(-50%); padding: 7px 14px; border-radius: 999px; white-space: nowrap;
+    background: rgba(255, 255, 255, 0.1); color: rgba(255, 255, 255, 0.8); font-size: 12.5px; pointer-events: none; }
+  .tb-stage.has-pic .tb-stage-hint { display: none; }
+  .tb-mini { position: relative; width: min(46%, 200px); aspect-ratio: 4 / 5; padding: 12px 10px; border-radius: 18px; overflow: hidden;
     background: var(--glow), var(--ground-deep); border: 1px solid var(--line); box-shadow: 0 18px 44px rgba(0, 0, 0, 0.5);
     display: flex; flex-direction: column; gap: 8px; }
-  .tb-colors { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
-  .tb-swatch { position: relative; width: 52px; height: 52px; border-radius: 50%; border: 1px solid var(--line); padding: 0; cursor: pointer;
-    border: 2px solid rgba(var(--tint), 0.16); box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3); }
+  .tb-form > .field:first-child { margin-top: 4px; }
+  .tb-row { display: flex; gap: 10px; align-items: stretch; }
+  .tb-row .box { flex: 1; min-width: 0; }
+  .tabs.tb-base { flex: none; margin: 0; }
+  .tb-colors { display: grid; grid-template-columns: repeat(5, 38px); justify-content: space-between; row-gap: 12px; max-width: 290px; }
+  .tb-swatch { position: relative; width: 38px; height: 38px; border-radius: 50%; padding: 0; cursor: pointer;
+    border: 0; box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.18); transition: transform 0.12s ease; }
+  .tb-swatch.on { box-shadow: 0 0 0 2px var(--ground), 0 0 0 4px var(--ink); }
+  .tb-swatch.own { background: conic-gradient(#ff5a5a, #ffc94d, #5bd17a, #4cc3ff, #8b7bff, #ff5ac8, #ff5a5a); }
+  .tb-swatch.own::after { content: "+"; position: absolute; inset: 9px; display: grid; place-items: center; border-radius: 50%;
+    background: var(--ground); color: var(--ink); font: 600 15px/1 -apple-system, system-ui, sans-serif; }
+  .tb-swatch.own.on::after { content: ""; inset: 7px; background: var(--own, transparent); }
   .tb-swatch input { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; border: 0; padding: 0; }
-  .tb-swatch .tb-x { position: absolute; top: -4px; right: -4px; width: 22px; height: 22px; padding: 0; border: 0; border-radius: 50%;
-    display: grid; place-items: center; background: var(--surface-hover); color: var(--ink); box-shadow: 0 0 0 2px var(--ground); cursor: pointer; }
-  .tb-swatch .tb-x svg { width: 11px; height: 11px; }
-  .tb-hex { font: 13px ui-monospace, SFMono-Regular, Menlo, monospace; color: var(--dim); letter-spacing: 0.04em; }
-  .tb-add { width: 52px; height: 52px; border-radius: 50%; border: 1.5px dashed var(--faint); background: none; color: var(--dim);
-    display: grid; place-items: center; cursor: pointer; padding: 0; }
-  .tb-add svg { width: 18px; height: 18px; }
-  .tb-pic { display: flex; align-items: center; gap: 12px; min-width: 0; }
-  .tb-pic .pill { flex: none; }
-  .tb-pic-name { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 13px; color: var(--dim); }
-  #theme-build #tb-save { margin-top: 26px; }
-  .tabs.tb-base { margin-bottom: 0; }
+  @media (hover: hover) { .tb-swatch:hover { transform: scale(1.08); } }
+  .tb-pic { display: flex; align-items: center; gap: 14px; width: 100%; padding: 10px; border: 1.5px dashed var(--line); border-radius: var(--radius);
+    background: none; color: var(--ink); font: inherit; text-align: left; cursor: pointer; }
+  .tb-pic.has { border-style: solid; }
+  @media (hover: hover) { .tb-pic:hover { background: rgba(var(--tint), 0.05); border-color: var(--faint); } }
+  .tb-thumb { flex: none; display: grid; place-items: center; width: 64px; height: 40px; border-radius: 9px; color: var(--dim);
+    background: rgba(var(--tint), 0.07) center / cover no-repeat; }
+  .tb-pic.has .tb-thumb svg { display: none; }
+  .tb-pic-text { display: grid; gap: 2px; min-width: 0; }
+  .tb-pic-text b { font-weight: 600; font-size: 14px; }
+  #tb-pic-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 12.5px; color: var(--dim); }
+  body:not(.phone) #theme-build #tb-save { display: block; width: 100%; min-width: 0; margin: 26px 0 0; }
+  .tb-need { margin-top: 10px; min-height: 18px; text-align: center; font-size: 12.5px; color: var(--dim); }
+  /* Smaller windows: the preview a little smaller, the same side by side. */
+  @media (max-width: 859px) {
+    .tb-layout { gap: 22px; }
+    .tb-stage { aspect-ratio: 4 / 5; }
+    .tb-mini { width: min(64%, 200px); }
+  }
   /* iPhones wear the themes built on a computer, but build, change and
      delete none: the builder is for big windows, where the picture shows. */
   body.phone #st-build, body.phone .tc-del { display: none !important; }
-  /* Big windows: the preview large on the left, the choices beside it. */
-  @media (min-width: 860px) {
-    #theme-build { --col: 1040px; }
-    .tb-layout { display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr); gap: 32px; align-items: start; }
-    .tb-stage { position: sticky; top: 56px; margin: 4px 0 0; }
-    .tb-form > .field:first-child { margin-top: 4px; }
-    body:not(.phone) #theme-build #tb-save { width: 100%; min-width: 0; }
-  }
   .theme-card { display: grid; gap: 9px; padding: 0; border: 0; background: none; color: var(--ink); font: inherit; text-align: left; cursor: pointer; }
   .theme-card .tc-mini { position: relative; aspect-ratio: 4 / 5; padding: 12px 10px; border-radius: 18px; overflow: hidden;
     background: var(--glow), var(--ground-deep); border: 1px solid var(--line); box-shadow: 0 10px 28px rgba(0, 0, 0, 0.35);
@@ -2766,29 +2780,29 @@
           <div class="tc-tiles"><span></span><span></span><span></span><span></span></div>
           <div class="tc-list"><i></i><i></i><i></i></div>
         </div>
+        <span class="tb-stage-hint">Click to add a picture</span>
       </div>
       <div class="tb-form">
       <div class="field">
         <label for="tb-name">Name</label>
-        <div class="box plain"><input id="tb-name" maxlength="24" placeholder="My theme" autocomplete="off" spellcheck="false"></div>
-      </div>
-      <div class="field">
-        <label>Base</label>
-        <div class="tabs tb-base" id="tb-base" role="tablist"><button class="tab on" data-base-pick="dark" role="tab">Dark</button><button class="tab" data-base-pick="light" role="tab">Light</button></div>
+        <div class="tb-row">
+          <div class="box plain"><input id="tb-name" maxlength="24" placeholder="My theme" autocomplete="off" spellcheck="false"></div>
+          <div class="tabs tb-base" id="tb-base" role="tablist" aria-label="Base"><button class="tab on" data-base-pick="dark" role="tab">Dark</button><button class="tab" data-base-pick="light" role="tab">Light</button></div>
+        </div>
       </div>
       <div class="field">
         <label>Accent colour</label>
         <div class="tb-colors" id="tb-colors"></div>
-        <div class="hint">It colours the buttons, the balance card, the glow and the highlights, the way each built-in theme has its own.</div>
+        <div class="hint">It colours the buttons, the balance card, the glow and the highlights.</div>
       </div>
       <div class="field">
         <label>Background picture</label>
-        <div class="tb-pic"><button class="pill" id="tb-pick">Choose a picture</button><span class="tb-pic-name" id="tb-pic-name"></span></div>
-        <div class="hint">At least 1920 × 1080. It shows behind the app in big windows.</div>
+        <button class="tb-pic" id="tb-pick"><span class="tb-thumb" id="tb-thumb"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="3"/><circle cx="9" cy="10" r="2"/><path d="m21 16-5-5-9 9"/></svg></span><span class="tb-pic-text"><b id="tb-pic-title">Choose a picture</b><span id="tb-pic-name">At least 1920 × 1080</span></span></button>
         <input type="file" id="tb-file" accept="image/jpeg,image/png,image/webp" hidden>
       </div>
       <div class="problem" id="tb-problem" hidden></div>
       <button class="primary pearl" id="tb-save" disabled>Save theme</button>
+      <div class="tb-need" id="tb-need"></div>
       </div>
       </div>
     </section>
@@ -5191,10 +5205,15 @@
 
   // The builder.
   const TB_DEFAULT = ["#f0b341"];
+  // Ready accent colours, and a last swatch for any colour you like.
+  const TB_READY = ["#f0b341", "#ff7a45", "#f0567a", "#c86bff", "#7b7bff", "#4c9dff", "#2ec4b6", "#5bd17a", "#e8e4dc"];
   function tbPaint() {
-    const box = $("tb-colors");
-    box.innerHTML = `<label class="tb-swatch" title="Change the colour"><input type="color" value="${tb.colors[0]}" data-tb-color="0" aria-label="Accent colour"></label><span class="tb-hex">${tb.colors[0].toUpperCase()}</span>`;
-    box.querySelectorAll(".tb-swatch").forEach((sw, i) => { sw.style.background = tb.colors[i]; });
+    const box = $("tb-colors"), now = (tb.colors[0] || TB_DEFAULT[0]).toLowerCase();
+    const ready = TB_READY.includes(now);
+    box.innerHTML = TB_READY.map((c) => `<button class="tb-swatch${c === now ? " on" : ""}" data-tb-ready="${c}" aria-label="${c}" title="${c.toUpperCase()}"></button>`).join("")
+      + `<label class="tb-swatch own${ready ? "" : " on"}" title="${ready ? "Any colour you like" : now.toUpperCase()}"><input type="color" value="${now}" aria-label="Any colour you like"></label>`;
+    box.querySelectorAll("[data-tb-ready]").forEach((b) => { b.style.background = b.dataset.tbReady; });
+    box.querySelector(".own").style.setProperty("--own", now);
     tbLook();
   }
   function tbLook() {
@@ -5203,15 +5222,27 @@
     for (const b of document.querySelectorAll("[data-base-pick]")) b.classList.toggle("on", b.dataset.basePick === tb.base);
     stage.style.backgroundImage = tb.scene ? `url("${tb.scene}")` : "";
     stage.classList.toggle("has-pic", !!tb.scene);
-    $("tb-save").disabled = !($("tb-name").value.trim() && tb.colors.length && tb.scene);
+    $("tb-pick").classList.toggle("has", !!tb.scene);
+    $("tb-thumb").style.backgroundImage = tb.scene ? `url("${tb.scene}")` : "";
+    $("tb-pic-title").textContent = tb.scene ? "Change picture" : "Choose a picture";
+    const named = !!$("tb-name").value.trim();
+    $("tb-save").disabled = !(named && tb.colors.length && tb.scene);
+    $("tb-need").textContent = named && tb.scene ? "" : !named && !tb.scene ? "Name your theme and choose a picture to save it." : named ? "Choose a picture to save it." : "Name your theme to save it.";
   }
+  $("tb-colors").addEventListener("click", (e) => {
+    const b = e.target.closest("[data-tb-ready]");
+    if (!b) return;
+    feel("selection");
+    tb.colors = [b.dataset.tbReady];
+    tbPaint();
+  });
   $("tb-colors").addEventListener("input", (e) => {
-    const i = e.target.dataset && e.target.dataset.tbColor;
-    if (i === undefined) return;
-    tb.colors[Number(i)] = e.target.value;
-    e.target.parentElement.style.background = e.target.value;
-    const hex = $("tb-colors").querySelector(".tb-hex");
-    if (hex) hex.textContent = e.target.value.toUpperCase();
+    if (e.target.type !== "color") return;
+    tb.colors = [e.target.value];
+    const own = e.target.parentElement;
+    $("tb-colors").querySelectorAll(".tb-swatch").forEach((x) => x.classList.toggle("on", x === own));
+    own.style.setProperty("--own", e.target.value);
+    own.title = e.target.value.toUpperCase();
     tbLook();
   });
   $("tb-name").addEventListener("input", tbLook);
@@ -5230,9 +5261,8 @@
     tb.base = t && t.base === "light" ? "light" : "dark";
     tb.scene = t ? scenes.get(t.id) || null : null;
     $("tb-name").value = t ? t.name : "";
-    $("tb-pic-name").textContent = "";
+    $("tb-pic-name").textContent = tb.scene ? "Your picture" : "At least 1920 × 1080";
     $("tb-problem").hidden = true;
-    $("tb-pick").textContent = tb.scene ? "Change picture" : "Choose a picture";
     $("tb-title").textContent = t ? "Edit theme" : "Build a theme";
     $("tb-save").textContent = t ? "Save changes" : "Save theme";
     tbPaint();
@@ -5241,6 +5271,7 @@
   $("st-build").onclick = () => openThemeBuilder();
   $("tb-back").onclick = () => { tb.colors = []; tb.scene = null; tb.editing = null; show("settings"); settingsPage("appearance"); };
   $("tb-pick").onclick = () => $("tb-file").click();
+  $("tb-stage").onclick = () => $("tb-file").click();
   $("tb-file").onchange = async () => {
     const file = $("tb-file").files[0];
     $("tb-file").value = "";
@@ -5253,7 +5284,6 @@
       if (w < 1920 || h < 1080) { problem("tb-problem", `That picture is ${w} × ${h}. It needs to be at least 1920 × 1080.`); return; }
       tb.scene = fitPicture(img);
       $("tb-pic-name").textContent = file.name;
-      $("tb-pick").textContent = "Change picture";
       tbLook();
     } catch (err) { problem("tb-problem", err); }
   };
