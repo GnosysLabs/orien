@@ -2099,6 +2099,23 @@
   .receive-actions { display: grid; gap: 10px; margin-top: 16px; }
   .receive-actions.two { grid-template-columns: 1fr 1fr; }
   #receive .receive-card { padding: 20px 20px 16px; }
+  /* Big windows: Send and Receive as a card over a dimmed Home. */
+  #pop-shade { display: none; }
+  @media (min-width: 980px) {
+    body.pop:not(.phone) main { isolation: auto; }
+    body.pop:not(.phone) #pop-shade { display: block; position: fixed; inset: 0; z-index: 50;
+      background: var(--veil); -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px); animation: pop-fade .18s ease; }
+    html body.pop:not(.phone) :is(#send, #receive) { position: fixed; z-index: 51; left: 50%; top: 50%; transform: translate(-50%, -50%);
+      width: min(480px, calc(100vw - 48px)); height: auto; max-height: calc(100vh - 96px); overflow-y: auto; margin: 0;
+      padding: 18px 24px 24px; -webkit-mask: none; mask: none; border-radius: 24px; background: var(--surface); border: 1px solid var(--line);
+      box-shadow: 0 24px 60px rgba(0, 0, 0, 0.5), 0 2px 8px rgba(0, 0, 0, 0.25); animation: pop-in .2s cubic-bezier(.2, .9, .3, 1.2); }
+    body.pop:not(.phone) :is(#send, #receive) .topline { position: static; }
+    body.pop:not(.phone) :is(#send, #receive) .push { display: none; }
+    body.pop:not(.phone) #send #confirm { margin-top: 22px; }
+    body.pop:not(.phone) #receive .receive-actions { margin-top: 18px; }
+  }
+  @keyframes pop-fade { from { opacity: 0; } to { opacity: 1; } }
+  @keyframes pop-in { from { opacity: 0; transform: translate(-50%, -48%) scale(.97); } to { opacity: 1; transform: translate(-50%, -50%) scale(1); } }
   #receive .address-block { margin-top: 8px; font-size: 13px; line-height: 1.7; }
   #receive .receive-card .fineprint { margin-top: 14px; padding-top: 12px; }
   .receive-qr svg { width: 100%; height: 100%; display: block; }
@@ -3633,6 +3650,7 @@
     </section>
   </main>
 
+<div id="pop-shade"></div>
 <div id="lock-veil" hidden><div class="lv-in"><div class="mark brand"></div><button class="primary pearl" id="lock-go">Unlock</button></div></div>
 <div id="si-veil" hidden><div id="si-card" role="dialog" aria-modal="true" aria-labelledby="si-title">
   <div id="si-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m10 17 5-5-5-5"/><path d="M15 12H3"/><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/></svg></div>
@@ -3955,8 +3973,11 @@
   matchMedia("(min-width: 980px)").addEventListener("change", fitPanel);
   function show(id) {
     const both = !phone && wide.matches && (id === "inbox" || (id === "chat" && chat.from === "inbox" && chat.id));
-    for (const s of document.querySelectorAll(".screen")) s.hidden = !(s.id === id || (both && (s.id === "inbox" || s.id === "chat")));
+    // Big windows: Send and Receive float over Home rather than replace it.
+    const pop = !phone && wide.matches && (id === "send" || id === "receive");
+    for (const s of document.querySelectorAll(".screen")) s.hidden = !(s.id === id || (both && (s.id === "inbox" || s.id === "chat")) || (pop && s.id === "home"));
     document.body.classList.toggle("split", both);
+    document.body.classList.toggle("pop", pop);
     fitPanel();
     if (id === "community" && typeof cmFitRail === "function") cmFitRail();
     // A big window shows recent swaps beside the offers: fetched as it opens.
@@ -5650,6 +5671,13 @@
 
   // ---- Navigation ----
   for (const b of document.querySelectorAll("[data-back]")) b.onclick = home;
+  // The pop-up closes by a click beside it, or Escape.
+  $("pop-shade").onclick = () => home();
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape" && document.body.classList.contains("pop") && !document.querySelector('[id$="-veil"]:not([hidden])')) home();
+  });
+  // The window narrowing or widening with one open: a page or a pop-up again.
+  wide.addEventListener("change", () => { const open = !$("send").hidden ? "send" : !$("receive").hidden ? "receive" : null; if (open) show(open); });
   $("go-send").onclick = () => {
     if (update && update.required) {
       problem("home-problem", "This version of Orien Wallet no longer works with the network. Press Update at the top to keep sending.");
