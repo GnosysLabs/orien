@@ -31,7 +31,7 @@ export const CHANGELOG: Entry[] = [
     version: '1.9.9',
     title: 'A wider Home',
     changes: [
-      'In a big window, Home shows mining and the network beside your wallet: start or stop mining and see your speed, and the next checkpoint, the miners in the last hour and the latest checkpoints at a glance.',
+      'In a big window, Home shows mining and the network beside your wallet: start or stop mining and see your speed, and the next checkpoint, the validators running and the latest checkpoints at a glance.',
       'Send, Receive and Contacts open as a card over Home in a big window, so you never lose your place; the Mine screen spreads out, with the whole network’s hashrate, your share of it, the next checkpoint, and a chart of your speed over the last half hour.',
       'The explorer’s button on Home is now a telescope: Orien is made of checkpoints, not blocks.',
     ],
