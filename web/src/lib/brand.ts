@@ -56,7 +56,7 @@ export const WALLET_SIGN_IN_DOCS = true
 /** A notice at the top of the sign-in docs and their demo while the browser
  * extension that can do it waits for store approval. Empty: no notice. The
  * demo (public/developers/sign-in/demo/index.html) has the same text. */
-export const WALLET_SIGN_IN_NOTICE = 'Pending extension version 1.0.4'
+export const WALLET_SIGN_IN_NOTICE = ''
 
 /** Whether the community page is open and linked. Until then it says it opens soon. */
 export const COMMUNITY_LIVE = true
