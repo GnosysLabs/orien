@@ -516,6 +516,7 @@ pub async fn run(
     shipped: Option<String>,
     holders: Option<Holders>,
     checkpoints: bool,
+    announce: bool,
 ) -> Result<()> {
     let holders = holders.map(Arc::new);
     if let Some(shipped) = shipped {
@@ -540,7 +541,9 @@ pub async fn run(
         if checkpoints {
             tokio::spawn(crate::checkpoints::watch(client.http.clone(), file.with_file_name("checkpoints.json")));
         }
-        tokio::spawn(crate::news::watch(client.http.clone(), expert, url, file));
+        if announce {
+            tokio::spawn(crate::news::watch(client.http.clone(), expert, url, file));
+        }
     }
     client.start().await?;
     Ok(())
