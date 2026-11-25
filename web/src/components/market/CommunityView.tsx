@@ -34,10 +34,11 @@ import { Linked } from './Linked'
 import { YouTube, youtubeId } from './YouTube'
 import { openSignIn } from './SignInDialog'
 import { EYEBROWS, NetworkAvatar } from './network'
+import { ReactionChip, type ReactionCount } from './ReactionChip'
 
 type Person = { name: string; picture: string | null; banner?: string | null; tip_to?: string | null }
 type Face = { account?: number; address?: string; name?: string; picture?: string | null; paid?: string }
-type Reaction = { emoji: string; count: number; me: boolean }
+type Reaction = ReactionCount
 export type Picture = { name: string; width: number; height: number }
 type LinkPreview = { url: string; site: string; title: string; description: string; image: Picture | null }
 type PollState = {
@@ -339,7 +340,7 @@ function Happening({ post }: { post: Post }) {
           <p className="mt-1.5 text-ink">
             {Number(post.data.share).toLocaleString('en', { maximumFractionDigits: 2 })}% of all the ORN there will ever be.
           </p>
-          <p className="mt-1 text-sm text-muted">Every ORN comes from mining, a little more every hour.</p>
+          <p className="mt-1 text-sm text-muted">Every ORN comes from mining, released hour by hour, a little less each hour.</p>
         </div>
       )
     case 'validator':
@@ -865,18 +866,7 @@ function ReactionBar({ post, signedIn, onChange, small = false }: { post: Post; 
   return (
     <div className="flex flex-wrap items-center gap-1.5">
       {post.reactions.map((r) => (
-        <button
-          key={r.emoji}
-          type="button"
-          onClick={() => void toggle(r.emoji)}
-          aria-pressed={r.me}
-          className={`flex h-7 items-center gap-1 rounded-full border px-2 text-sm transition ${
-            r.me ? 'border-pearl/70 bg-raised text-ink' : 'border-line text-muted hover:border-pearl/60 hover:text-ink'
-          }`}
-        >
-          <span aria-hidden>{r.emoji}</span>
-          <span className="num text-xs font-semibold">{r.count}</span>
-        </button>
+        <ReactionChip key={r.emoji} r={r} onClick={() => void toggle(r.emoji)} />
       ))}
       <div ref={box} className="relative">
         <button

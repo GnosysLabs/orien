@@ -523,11 +523,16 @@ impl Store {
             };
             let mut counts =
                 self.db.prepare_cached("SELECT emoji, COUNT(*), MAX(account = ?2) FROM room_reactions WHERE message = ?1 GROUP BY emoji")?;
-            let reactions: Vec<Value> = counts
+            let mut reactions: Vec<Value> = counts
                 .query_map(params![id, viewer], |row| {
                     Ok(json!({ "emoji": row.get::<_, String>(0)?, "count": row.get::<_, i64>(1)?, "me": row.get::<_, bool>(2)? }))
                 })?
                 .collect::<rusqlite::Result<_>>()?;
+            let mut names = self.reactor_names(true, id)?;
+            for reaction in &mut reactions {
+                let emoji = reaction["emoji"].as_str().unwrap_or_default().to_string();
+                reaction["names"] = json!(names.remove(&emoji).unwrap_or_default());
+            }
             let mut who = json!({ "id": author, "name": name, "picture": picture, "verified": verified });
             // Only moderators see who is banned.
             if moderator && banned {
@@ -853,7 +858,7 @@ mod tests {
         let changed = poll["changed"].as_array().unwrap();
         assert_eq!(changed.len(), 2, "{changed:#?}");
         assert_eq!(changed[0], serde_json::json!({ "id": ids[4], "removed": true }));
-        assert_eq!(changed[1]["reactions"], serde_json::json!([{ "emoji": "🔥", "count": 1, "me": false }]));
+        assert_eq!(changed[1]["reactions"], serde_json::json!([{ "emoji": "🔥", "count": 1, "me": false, "names": ["Sam"] }]));
         let again = store.room_page(Some(maya), &ask(Some(new), None, None, Some(poll["version"].as_i64().unwrap()))).unwrap();
         assert!(again["messages"].as_array().unwrap().is_empty() && again["changed"].as_array().unwrap().is_empty());
         // Reacting twice takes it back.
@@ -921,5 +926,21 @@ mod tests {
             store.room_send(maya, &format!("{i}"), &[], None, None).unwrap();
         }
         assert!(store.room_send(maya, "one more", &[], None, None).unwrap_err().to_string().contains("a minute"));
+    }
+
+    #[test]
+    fn reactions_name_who_left_them_first_to_react_first() {
+        let (store, maya, sam, _ana) = people();
+        let id = store.room_send(maya, "gm", &[], None, None).unwrap();
+        store.room_react(sam, id, "🔥").unwrap();
+        store.room_react(maya, id, "🔥").unwrap();
+        let page = store.room_page(Some(maya), &RoomAsk::default()).unwrap();
+        let fire = &page["messages"][0]["reactions"][0];
+        assert_eq!(fire["count"], 2);
+        assert_eq!(fire["names"], serde_json::json!(["Sam", "Maya"]));
+        let post = store.add_post(maya, "First block mined", None).unwrap();
+        store.react(sam, post, "⛏️").unwrap();
+        let names = store.reactor_names(false, post).unwrap();
+        assert_eq!(names["⛏️"], vec!["Sam".to_string()]);
     }
 }

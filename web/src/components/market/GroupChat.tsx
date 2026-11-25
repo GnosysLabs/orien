@@ -11,6 +11,7 @@ import { GifPicker, Photos, useDismiss, type Gif, type Picture } from './Communi
 import { ReportButton } from './ReportButton'
 import { openSignIn } from './SignInDialog'
 import { Notice } from './Shell'
+import { ReactionChip, type ReactionCount } from './ReactionChip'
 
 /** The group chat: one room for everyone on Orien Network, pinned first in
  * Messages, as in Orien Wallet. Anyone reads it; sending, replying and
@@ -25,7 +26,7 @@ type RoomMessage = {
   pictures: Picture[]
   gif: Gif | null
   reply_to: { id: number; author_name: string; body: string } | null
-  reactions: { emoji: string; count: number; me: boolean }[]
+  reactions: ReactionCount[]
   created: number
   mine: boolean
 }
@@ -447,18 +448,7 @@ function Row({
         {m.reactions.length > 0 && (
           <div className="mt-1.5 flex flex-wrap gap-1.5">
             {m.reactions.map((r) => (
-              <button
-                key={r.emoji}
-                type="button"
-                onClick={() => react(r.emoji)}
-                aria-pressed={r.me}
-                className={`flex h-[26px] items-center gap-1 rounded-full border px-2 text-[13px] transition ${
-                  r.me ? 'border-pearl/70 bg-raised text-ink' : 'border-line text-muted hover:border-pearl/60 hover:text-ink'
-                }`}
-              >
-                <span aria-hidden>{r.emoji}</span>
-                <span className="num text-xs font-semibold">{r.count}</span>
-              </button>
+              <ReactionChip key={r.emoji} r={r} onClick={() => react(r.emoji)} small below />
             ))}
           </div>
         )}
