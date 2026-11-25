@@ -1,9 +1,8 @@
 'use client'
 
 import Link from 'next/link'
-import { useRouter, useSearchParams } from 'next/navigation'
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
-import { ArrowLeft, Ban, CheckCircle2, MessageCircle, MoreHorizontal, Send, Trash2, Wallet } from 'lucide-react'
+import { ArrowLeft, Ban, CheckCircle2, MessageCircle, MoreHorizontal, Send, Trash2, Wallet, X } from 'lucide-react'
 import { CopyText } from '@/components/CopyText'
 import {
   ago,
@@ -21,16 +20,18 @@ import {
 import { Avatar } from './Avatar'
 import { RoomRow, RoomThread } from './GroupChat'
 import { openSignIn } from './SignInDialog'
+import { openMessages, useGoMessages, useMessagesWhere } from './MessagesDialog'
 import { Notice, SIGNED_IN_OR_OUT } from './Shell'
 import { AutoTextarea } from '@/components/AutoTextarea'
 
 /** Conversations on the left and the open one on the right; one at a time on a phone. */
 export function Messages() {
-  const params = useSearchParams()
+  const where = useMessagesWhere()
+  const params = where?.params ?? new URLSearchParams()
+  const go = useGoMessages()
   const open = params.get('c')
   // ?to=NAME, from a profile's Message button: their conversation, or a new one.
   const to = open ? null : params.get('to')
-  const router = useRouter()
   const [conversations, setConversations] = useState<Conversation[] | null>(null)
   const [signedOut, setSignedOut] = useState(false)
   const [trouble, setTrouble] = useState('')
@@ -59,21 +60,32 @@ export function Messages() {
   // Someone you already talk to: their conversation opens instead.
   useEffect(() => {
     const existing = existingWith(conversations, to)
-    if (existing) router.replace(`/messages/?c=${existing.id}`)
-  }, [conversations, to, router])
+    if (existing) go(`?c=${existing.id}`)
+  }, [conversations, to, go])
 
-  if (trouble) return <Notice tone="bad">{trouble}</Notice>
+  if (trouble) return <div className="p-6"><Notice tone="bad">{trouble}</Notice></div>
   // Signed out, the group chat still reads: it's open to everyone.
-  if (!conversations && !signedOut) return <p className="text-muted">Loading…</p>
-  if (existingWith(conversations, to)) return <p className="text-muted">Loading…</p>
+  if (!conversations && !signedOut) return <p className="p-6 text-muted">Loading…</p>
+  if (existingWith(conversations, to)) return <p className="p-6 text-muted">Loading…</p>
   const room = open === 'room'
   const right = signedOut ? (room ? open : null) : (open ?? to)
 
   return (
-    <div className="space-y-3">
-      <div className="grid h-[calc(100dvh-15.5rem)] min-h-[480px] lg:h-[calc(100dvh-12rem)] overflow-hidden rounded-2xl border border-line bg-surface lg:grid-cols-[320px_minmax(0,1fr)]">
+      <div className="grid min-h-0 flex-1 lg:grid-cols-[320px_minmax(0,1fr)]">
         <aside className={`min-h-0 flex-col border-line lg:flex lg:border-r ${right ? 'hidden' : 'flex'}`}>
-          <h1 className="border-b border-line px-5 py-4 text-lg font-bold tracking-tight text-ink">Messages</h1>
+          <div className="flex items-center justify-between gap-3 border-b border-line py-3 pl-5 pr-3">
+            <h1 className="text-lg font-bold tracking-tight text-ink">Messages</h1>
+            {where && (
+              <button
+                type="button"
+                onClick={where.close}
+                aria-label="Close"
+                className="flex h-9 w-9 items-center justify-center rounded-full text-muted transition hover:bg-raised hover:text-ink"
+              >
+                <X className="h-4 w-4" aria-hidden />
+              </button>
+            )}
+          </div>
           <ul className="min-h-0 flex-1 overflow-y-auto">
             <li>
               <RoomRow active={room} onOpen={() => undefined} />
@@ -116,6 +128,10 @@ export function Messages() {
               ))
             )}
           </ul>
+          <p className="border-t border-line px-5 py-3 text-[11px] leading-relaxed text-muted">
+            Messages are kept by Orien Network so both of you can read them, and can be read by its operator, as on
+            most websites. Never share your recovery phrase with anyone.
+          </p>
         </aside>
         <section className={`min-h-0 flex-col lg:flex ${right ? 'flex' : 'hidden'}`}>
           {room ? (
@@ -132,11 +148,6 @@ export function Messages() {
           )}
         </section>
       </div>
-      <p className="px-1 text-xs leading-relaxed text-muted">
-        Messages are kept by Orien Network so both of you can read them, and can be read by its operator, as on
-        most websites. Never share your recovery phrase with anyone.
-      </p>
-    </div>
   )
 }
 
@@ -205,7 +216,7 @@ function ThreadMenu({ blocked, onBlock, onDelete }: { blocked: boolean; onBlock:
 }
 
 function Thread({ id, onChange }: { id: string; onChange: () => void }) {
-  const router = useRouter()
+  const go = useGoMessages()
   const [found, setFound] = useState<Found | null>(threads.get(id) ?? null)
   const [trouble, setTrouble] = useState('')
   const [draft, setDraft] = useState('')
@@ -288,7 +299,7 @@ function Thread({ id, onChange }: { id: string; onChange: () => void }) {
     try {
       await ask(`/conversations/${c.id}/delete`, 'POST')
       onChange()
-      router.push('/messages/')
+      go('')
     } catch (error) {
       setTrouble(sentence((error as Error).message))
     }
@@ -427,7 +438,7 @@ function Thread({ id, onChange }: { id: string; onChange: () => void }) {
 
 /** The first message to someone, opened from their profile. */
 function NewThread({ name, onSent }: { name: string; onSent: () => void }) {
-  const router = useRouter()
+  const go = useGoMessages()
   const [person, setPerson] = useState<{ name: string; picture: string | null } | null>(null)
   const [draft, setDraft] = useState('')
   const [sending, setSending] = useState(false)
@@ -450,7 +461,7 @@ function NewThread({ name, onSent }: { name: string; onSent: () => void }) {
     try {
       const sent = await ask<{ conversation: number }>(`/users/${encodeURIComponent(person.name)}/messages`, 'POST', { body: draft })
       onSent()
-      router.replace(`/messages/?c=${sent.conversation}`)
+      go(`?c=${sent.conversation}`)
     } catch (error) {
       setTrouble(sentence((error as Error).message))
       setSending(false)
@@ -564,7 +575,6 @@ function RequestCard({
 
 /** On a listing: the first message to its seller. */
 export function MessageSeller({ listing, seller, signedIn }: { listing: number; seller: string; signedIn: boolean }) {
-  const router = useRouter()
   const [draft, setDraft] = useState('')
   const [sending, setSending] = useState(false)
   const [trouble, setTrouble] = useState('')
@@ -586,7 +596,9 @@ export function MessageSeller({ listing, seller, signedIn }: { listing: number; 
     setTrouble('')
     try {
       const sent = await ask<{ conversation: number }>(`/listings/${listing}/messages`, 'POST', { body: draft })
-      router.push(`/messages/?c=${sent.conversation}`)
+      setDraft('')
+      setSending(false)
+      openMessages(`?c=${sent.conversation}`)
     } catch (error) {
       setTrouble(sentence((error as Error).message))
       setSending(false)

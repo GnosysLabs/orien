@@ -71,6 +71,11 @@ enum Command {
         /// remembering there what it has announced.
         #[arg(long)]
         state: Option<PathBuf>,
+        /// Announce each new changelog entry in #announcements. Off: the
+        /// founder retired those posts on 2026-11-24; the website's changelog
+        /// covers them.
+        #[arg(long, requires = "state")]
+        announce: bool,
         /// The changelog page to watch.
         #[arg(long, default_value = news::CHANGELOG)]
         changelog: String,
@@ -218,6 +223,7 @@ async fn main() -> Result<()> {
             web_per_visitor,
             web_per_day,
             checkpoints,
+            announce,
         } => {
             let holders = match (&genesis, &state) {
                 (Some(genesis), Some(folder)) => Some(holders::Holders::open(genesis, &verify_address, folder.join("holders.json"))?),
@@ -243,7 +249,7 @@ async fn main() -> Result<()> {
                     }
                 });
             }
-            bot::run(token, expert, per_person, per_hour, news, shipped, holders, checkpoints).await
+            bot::run(token, expert, per_person, per_hour, news, shipped, holders, checkpoints, announce).await
         }
         Command::Web { brain, listen } => {
             let expert = std::sync::Arc::new(expert(&brain)?);

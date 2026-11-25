@@ -31,7 +31,6 @@ Orien (ORN) is a cryptocurrency built for the quantum age. Payments are final in
 Explainers, mining guides and wallet walkthroughs: https://www.youtube.com/@OrienNetwork
 
 ## Where to go
-- {#announcements}: new releases and network news
 - {#greetings}: a hello for everyone who joins
 - {#general}: say hi
 - {#x-posts}: our posts on X, as they go out
@@ -72,9 +71,8 @@ pub fn fit_hello(hello: &str) -> bool {
 
 /// Each channel's about line, shown at the top of the channel. Set once
 /// with `orien-discord topics`, never on its own.
-pub const TOPICS: [(&str, &str); 13] = [
+pub const TOPICS: [(&str, &str); 12] = [
     ("welcome", "Start here: what Orien is, how to begin, and the rules."),
-    ("announcements", "New releases and network news from the team."),
     ("general", "Say hi and talk about anything Orien."),
     ("mining", "Mining setups, your share of the hourly ORN, and \"is my miner working?\""),
     (
@@ -92,8 +90,7 @@ pub const TOPICS: [(&str, &str); 13] = [
 ];
 
 /// Each channel's introduction: the first message in it, saying what the
-/// channel is for. #welcome has the welcome message instead, #announcements
-/// is kept to announcements alone, and #general
+/// channel is for. #welcome has the welcome message instead, and #general
 /// and #help need none. Posted by hand with `orien-discord intros`; a
 /// changed text here replaces the message already there.
 pub const INTROS: [(&str, &str); 9] = [
