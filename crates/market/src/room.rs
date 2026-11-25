@@ -128,6 +128,16 @@ impl Store {
         Ok(self.db.query_row("SELECT COALESCE(MAX(version), 0) FROM room_messages", [], |row| row.get(0))?)
     }
 
+    /// Everything `author` wrote changed (banned, lifted, made moderator),
+    /// so apps asking what changed redraw their name.
+    fn bump_room_author(&self, author: i64) -> Result<()> {
+        self.db.execute(
+            "UPDATE room_messages SET version = (SELECT COALESCE(MAX(version), 0) + 1 FROM room_messages) WHERE author = ?1 AND removed = 0",
+            [author],
+        )?;
+        Ok(())
+    }
+
     fn bump_room_message(&self, id: i64) -> Result<()> {
         self.db.execute(
             "UPDATE room_messages SET version = (SELECT COALESCE(MAX(version), 0) + 1 FROM room_messages) WHERE id = ?1",
@@ -149,7 +159,7 @@ impl Store {
         } else {
             self.db.execute("DELETE FROM room_moderators WHERE account = ?1", [account])?;
         }
-        Ok(())
+        self.bump_room_author(account)
     }
 
     pub fn room_banned(&self, account: i64) -> Result<bool> {
@@ -186,6 +196,7 @@ impl Store {
             "INSERT OR REPLACE INTO room_bans (account, by, reason, at) VALUES (?1, ?2, ?3, ?4)",
             params![account, moderator, reason, now() as i64],
         )?;
+        self.bump_room_author(account)?;
         self.room_note(moderator, "ban", Some(account), None, &reason)
     }
 
@@ -198,6 +209,7 @@ impl Store {
         }
         let lifted = self.db.execute("DELETE FROM room_bans WHERE account = ?1", [account])? == 1;
         if lifted {
+            self.bump_room_author(account)?;
             self.room_note(moderator, "lift", Some(account), None, "")?;
         }
         Ok(lifted)
@@ -886,7 +898,11 @@ mod tests {
         let page = store.room_page(None, &RoomAsk::default()).unwrap();
         assert_eq!(page["messages"][0]["author"]["moderator"], true, "everyone sees the tag");
         assert!(store.room_ban(Some(maya), maya, "").is_err(), "not yourself");
+        let before = store.room_page(Some(maya), &RoomAsk::default()).unwrap()["version"].as_i64().unwrap();
+        let shown = store.room_send(sam, "still here", &[], None, None).unwrap();
         store.room_ban(Some(maya), sam, "spam").unwrap();
+        let poll = store.room_page(Some(maya), &ask(Some(shown), None, None, Some(before))).unwrap();
+        assert!(poll["changed"].as_array().unwrap().iter().any(|m| m["id"] == shown && m["author"]["banned"] == true), "{poll:#?}");
         assert_eq!(store.room_send(sam, "hi", &[], None, None).unwrap_err().to_string(), "you can't send in the group chat right now");
         assert!(store.room_ban(None, maya, "").is_err(), "a moderator can't be banned");
         let bans = store.room_bans().unwrap();

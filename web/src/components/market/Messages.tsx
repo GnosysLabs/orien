@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { ArrowLeft, Ban, CheckCircle2, MessageCircle, MoreHorizontal, Send, Trash2, Wallet } from 'lucide-react'
 import { CopyText } from '@/components/CopyText'
 import {
@@ -19,6 +19,8 @@ import {
   profileHref,
 } from '@/lib/market'
 import { Avatar } from './Avatar'
+import { RoomRow, RoomThread } from './GroupChat'
+import { openSignIn } from './SignInDialog'
 import { Notice, SIGNED_IN_OR_OUT } from './Shell'
 import { AutoTextarea } from '@/components/AutoTextarea'
 
@@ -36,7 +38,11 @@ export function Messages() {
   const loadList = useCallback(
     () =>
       ask<{ conversations: Conversation[] }>('/conversations')
-        .then((found) => setConversations(found.conversations))
+        .then((found) => {
+          setConversations(found.conversations)
+          // The newest few read ahead, so the first click is instant too.
+          found.conversations.slice(0, 12).forEach((c) => prefetch(String(c.id)))
+        })
         .catch((error) => {
           if (error instanceof MarketError && error.status === 401) setSignedOut(true)
           else setTrouble(sentence((error as Error).message))
@@ -56,36 +62,41 @@ export function Messages() {
     if (existing) router.replace(`/messages/?c=${existing.id}`)
   }, [conversations, to, router])
 
-  if (signedOut) {
-    return (
-      <Notice>
-        <Link href="/account/" className="font-semibold text-ink underline underline-offset-4">
-          Sign in
-        </Link>{' '}
-        to see your messages.
-      </Notice>
-    )
-  }
   if (trouble) return <Notice tone="bad">{trouble}</Notice>
-  if (!conversations) return <p className="text-muted">Loading…</p>
+  // Signed out, the group chat still reads: it's open to everyone.
+  if (!conversations && !signedOut) return <p className="text-muted">Loading…</p>
   if (existingWith(conversations, to)) return <p className="text-muted">Loading…</p>
-  const right = open ?? to
+  const room = open === 'room'
+  const right = signedOut ? (room ? open : null) : (open ?? to)
 
   return (
     <div className="space-y-3">
       <div className="grid h-[calc(100dvh-15.5rem)] min-h-[480px] lg:h-[calc(100dvh-12rem)] overflow-hidden rounded-2xl border border-line bg-surface lg:grid-cols-[320px_minmax(0,1fr)]">
         <aside className={`min-h-0 flex-col border-line lg:flex lg:border-r ${right ? 'hidden' : 'flex'}`}>
           <h1 className="border-b border-line px-5 py-4 text-lg font-bold tracking-tight text-ink">Messages</h1>
-          {conversations.length === 0 ? (
-            <p className="p-5 text-sm leading-relaxed text-muted">
-              No messages yet. To write to someone, open their profile and press Message.
-            </p>
-          ) : (
-            <ul className="min-h-0 flex-1 overflow-y-auto">
-              {conversations.map((c) => (
+          <ul className="min-h-0 flex-1 overflow-y-auto">
+            <li>
+              <RoomRow active={room} onOpen={() => undefined} />
+            </li>
+            {signedOut ? (
+              <li className="flex flex-col items-start gap-3 p-5 text-sm leading-relaxed text-muted">
+                <p>Sign in to see your own messages.</p>
+                <button type="button" onClick={openSignIn} className="pearl-fill h-10 rounded-full px-5 text-sm font-bold">
+                  Sign in
+                </button>
+              </li>
+            ) : conversations?.length === 0 ? (
+              <li className="p-5 text-sm leading-relaxed text-muted">
+                No messages of your own yet. To write to someone, open their profile and press Message.
+              </li>
+            ) : (
+              conversations?.map((c) => (
                 <li key={c.id}>
                   <Link
                     href={`/messages/?c=${c.id}`}
+                    scroll={false}
+                    onMouseEnter={() => prefetch(String(c.id))}
+                    onFocus={() => prefetch(String(c.id))}
                     className={`flex items-center gap-3 border-b border-line/60 px-4 py-3.5 transition ${
                       String(c.id) === open ? 'bg-raised' : 'hover:bg-raised/50'
                     }`}
@@ -102,14 +113,16 @@ export function Messages() {
                     {c.unread && <span className="h-2.5 w-2.5 shrink-0 rounded-full bg-pearl" aria-label="Unread" />}
                   </Link>
                 </li>
-              ))}
-            </ul>
-          )}
+              ))
+            )}
+          </ul>
         </aside>
         <section className={`min-h-0 flex-col lg:flex ${right ? 'flex' : 'hidden'}`}>
-          {open ? (
+          {room ? (
+            <RoomThread />
+          ) : !signedOut && open ? (
             <Thread key={open} id={open} onChange={loadList} />
-          ) : to ? (
+          ) : !signedOut && to ? (
             <NewThread key={to} name={to} onSent={loadList} />
           ) : (
             <div className="flex flex-1 flex-col items-center justify-center gap-3 p-8 text-center text-muted">
@@ -134,6 +147,19 @@ function existingWith(conversations: Conversation[] | null, name: string | null)
 }
 
 type Found = { conversation: Conversation; messages: Message[]; me: number }
+
+/** Conversations already read on this page, so switching between them
+ * shows the one picked at once (and catches up behind it), instead of
+ * blanking to "Loading…". */
+const threads = new Map<string, Found>()
+
+/** Reads a conversation ahead, when the pointer comes near it. */
+function prefetch(id: string) {
+  if (threads.has(id)) return
+  ask<Found>(`/conversations/${encodeURIComponent(id)}`)
+    .then((found) => threads.set(id, found))
+    .catch(() => undefined)
+}
 
 /** The chat's ⋯ menu: block, and delete the conversation for yourself. */
 function ThreadMenu({ blocked, onBlock, onDelete }: { blocked: boolean; onBlock: () => void; onDelete: () => void }) {
@@ -180,7 +206,7 @@ function ThreadMenu({ blocked, onBlock, onDelete }: { blocked: boolean; onBlock:
 
 function Thread({ id, onChange }: { id: string; onChange: () => void }) {
   const router = useRouter()
-  const [found, setFound] = useState<Found | null>(null)
+  const [found, setFound] = useState<Found | null>(threads.get(id) ?? null)
   const [trouble, setTrouble] = useState('')
   const [draft, setDraft] = useState('')
   const [sending, setSending] = useState(false)
@@ -191,6 +217,7 @@ function Thread({ id, onChange }: { id: string; onChange: () => void }) {
     () =>
       ask<Found>(`/conversations/${encodeURIComponent(id)}`)
         .then((next) => {
+          threads.set(id, next)
           setFound((before) => {
             if (!before || before.messages.length !== next.messages.length) {
               setTimeout(() => scroller.current?.scrollTo({ top: scroller.current.scrollHeight }), 0)
@@ -210,6 +237,11 @@ function Thread({ id, onChange }: { id: string; onChange: () => void }) {
     const timer = setInterval(load, 4000)
     return () => clearInterval(timer)
   }, [load])
+
+  // Opened from what was already read: straight to the newest message.
+  useLayoutEffect(() => {
+    if (scroller.current) scroller.current.scrollTop = scroller.current.scrollHeight
+  }, [])
 
   if (trouble && !found) return <div className="p-6"><Notice tone="bad">{trouble}</Notice></div>
   if (!found) return <p className="p-6 text-muted">Loading…</p>
@@ -268,7 +300,7 @@ function Thread({ id, onChange }: { id: string; onChange: () => void }) {
   return (
     <>
       <header className="flex flex-wrap items-center gap-3 border-b border-line px-4 py-3">
-        <Link href="/messages/" className="text-muted hover:text-ink lg:hidden" aria-label="All messages">
+        <Link href="/messages/" scroll={false} className="text-muted hover:text-ink lg:hidden" aria-label="All messages">
           <ArrowLeft className="h-5 w-5" />
         </Link>
         <Link href={profileHref(c.with_name)} className="flex min-w-0 items-center gap-3">
@@ -428,7 +460,7 @@ function NewThread({ name, onSent }: { name: string; onSent: () => void }) {
   return (
     <>
       <header className="flex items-center gap-3 border-b border-line px-4 py-3">
-        <Link href="/messages/" className="text-muted hover:text-ink lg:hidden" aria-label="All messages">
+        <Link href="/messages/" scroll={false} className="text-muted hover:text-ink lg:hidden" aria-label="All messages">
           <ArrowLeft className="h-5 w-5" />
         </Link>
         <Link href={profileHref(person.name)} className="flex min-w-0 items-center gap-3">

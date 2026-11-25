@@ -15,7 +15,7 @@ export function ReportButton({
   signedIn,
   icon = false,
 }: {
-  kind: 'listing' | 'account' | 'post'
+  kind: 'listing' | 'account' | 'post' | 'room'
   id: number
   what: string
   signedIn: boolean
@@ -66,7 +66,7 @@ function ReportForm({
   signedIn,
   onCancel,
 }: {
-  kind: 'listing' | 'account' | 'post'
+  kind: 'listing' | 'account' | 'post' | 'room'
   id: number
   what: string
   signedIn: boolean

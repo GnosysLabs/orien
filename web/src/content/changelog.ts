@@ -27,6 +27,16 @@ export const PRODUCTS: Record<Product, string> = {
 export const CHANGELOG: Entry[] = [
   {
     date: '2026-11-24',
+    products: ['marketplace'],
+    title: 'The Orien group chat, on the website',
+    changes: [
+      'Messages has the Orien group chat pinned at the top: one room for everyone on Orien Network. Anyone can read along, no sign-in needed; with a verified wallet you can write, reply, react, and send photos and GIFs.',
+      'Every message is checked like a post, can be reported, and people you blocked stay out of sight.',
+      'Switching between conversations is instant now, without a moment of loading each time.',
+    ],
+  },
+  {
+    date: '2026-11-24',
     products: ['wallet'],
     version: '1.9.7',
     title: 'Your theme pictures follow you',

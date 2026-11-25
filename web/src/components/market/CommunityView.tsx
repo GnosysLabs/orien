@@ -38,7 +38,7 @@ import { EYEBROWS, NetworkAvatar } from './network'
 type Person = { name: string; picture: string | null; banner?: string | null; tip_to?: string | null }
 type Face = { account?: number; address?: string; name?: string; picture?: string | null; paid?: string }
 type Reaction = { emoji: string; count: number; me: boolean }
-type Picture = { name: string; width: number; height: number }
+export type Picture = { name: string; width: number; height: number }
 type LinkPreview = { url: string; site: string; title: string; description: string; image: Picture | null }
 type PollState = {
   options: { text: string; votes: number | null }[]
@@ -139,7 +139,7 @@ function Name({ person, className = '' }: { person: { name: string }; className?
 }
 
 /** Closes when clicked outside or Escape is pressed. */
-function useDismiss(open: boolean, close: () => void) {
+export function useDismiss(open: boolean, close: () => void) {
   const box = useRef<HTMLDivElement>(null)
   useEffect(() => {
     if (!open) return
@@ -363,13 +363,13 @@ function Happening({ post }: { post: Post }) {
 
 
 /** A GIF as KLIPY gave it: shown straight from KLIPY, never copied. */
-type Gif = { id: string; url: string; preview: string; width: number; height: number }
+export type Gif = { id: string; url: string; preview: string; width: number; height: number }
 type KlipyFile = { url: string; width: number; height: number }
 type KlipyItem = { id: number | string; title?: string; file: Record<string, Record<string, KlipyFile>> }
 
 /** KLIPY's search, from this browser as KLIPY asks: trending until
  * something is typed, results in the order KLIPY gives them. */
-function GifPicker({ onPick, onClose }: { onPick: (gif: Gif) => void; onClose: () => void }) {
+export function GifPicker({ onPick, onClose }: { onPick: (gif: Gif) => void; onClose: () => void }) {
   const [access, setAccess] = useState<{ key: string; customer_id: string; placeholder: string } | null>(null)
   const [q, setQ] = useState('')
   const [items, setItems] = useState<KlipyItem[] | null>(null)
@@ -756,7 +756,7 @@ function LinkCard({ link }: { link: LinkPreview }) {
 
 /** A post's photos, as on X: one whole, two side by side, three with the
  * first tall, four in a square. Each opens full size. */
-function Photos({ pictures, small = false }: { pictures: Picture[]; small?: boolean }) {
+export function Photos({ pictures, small = false }: { pictures: Picture[]; small?: boolean }) {
   const one = pictures.length === 1
   return (
     <div
