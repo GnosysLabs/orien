@@ -441,6 +441,12 @@
      the wallet running while a swap needs it. */
   body.phone #go-mine, body.phone #go-swap, body.phone #swap-alert, body.phone #choose, body.phone .update { display: none !important; }
   body.phone .actions.five { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
+  /* iPhones: Send, Receive, Community and Messages are big round buttons,
+     their glyphs alone, with no box or word around them. */
+  body.phone .actions.five .tile { position: relative; height: auto; padding: 0; border: 0; background: none; font-size: 0; }
+  body.phone .actions.five .tile .icon { width: 66px; height: 66px; box-shadow: 0 6px 18px rgba(0, 0, 0, 0.28); }
+  body.phone .actions.five .tile .icon svg { width: 26px; height: 26px; }
+  body.phone .actions.five .tile .dot { top: 2px; right: calc(50% - 31px); width: 12px; height: 12px; }
   /* Get ORN is the iPhone's; computers have Mine and Swap. */
   #go-get { display: none; }
   /* 16 points or more, or the iPhone zooms the page in on every tap into a box. */
@@ -2940,27 +2946,27 @@
       </div>
 
       <div class="actions five">
-        <button class="tile" id="go-send">
+        <button class="tile" id="go-send" aria-label="Send">
           <span class="icon pearl"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 7h10v10"/><path d="M7 17 17 7"/></svg></span>
           Send
         </button>
-        <button class="tile" id="go-receive">
+        <button class="tile" id="go-receive" aria-label="Receive">
           <span class="icon pearl"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 7 7 17"/><path d="M17 17H7V7"/></svg></span>
           Receive
         </button>
-        <button class="tile" id="go-swap">
+        <button class="tile" id="go-swap" aria-label="Swap">
           <span class="icon pearl"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3 4 7l4 4"/><path d="M4 7h16"/><path d="m16 21 4-4-4-4"/><path d="M20 17H4"/></svg></span>
           Swap
         </button>
-        <button class="tile" id="go-market">
+        <button class="tile" id="go-market" aria-label="Community">
           <span class="icon pearl"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/><path d="M2 12h20"/></svg></span>
           Community
         </button>
-        <button class="tile" id="go-get">
+        <button class="tile" id="go-get" aria-label="Get ORN">
           <span class="icon pearl"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="M12 5v14"/></svg></span>
           Get ORN
         </button>
-        <button class="tile" id="go-messages">
+        <button class="tile" id="go-messages" aria-label="Messages">
           <span class="icon pearl"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2.992 16.342a2 2 0 0 1 .094 1.167l-1.065 3.29a1 1 0 0 0 1.236 1.168l3.413-.998a2 2 0 0 1 1.099.092 10 10 0 1 0-4.777-4.719"/></svg><span class="dot" id="market-unread" hidden></span></span>
           Messages
         </button>
