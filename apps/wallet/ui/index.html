@@ -5562,7 +5562,13 @@
   const GUIDES = (() => {
     const Tap = phone ? "Tap" : "Click", tap = phone ? "tap" : "click";
     const bio = phone ? "Face ID" : "Touch ID";
-    const gear = phone ? "the gear at the top left" : "the gear at the top left of Home";
+    // Home's buttons are round, with no words: each named by what's on it.
+    const round = (name, looks) => `<b>${name}</b>, the round button with ${looks}`;
+    const SEND = round("Send", "an arrow pointing up"), RECEIVE = round("Receive", "an arrow pointing down");
+    const COMMUNITY = round("Community", "a globe"), MESSAGES = round("Messages", "a speech bubble");
+    const SWAP = round("Swap", "two arrows"), EXPLORER = round("Explorer", "a telescope");
+    const CONTACTS = phone ? "<b>Contacts</b>, the button with two people at the top" : round("Contacts", "two people");
+    const gear = phone ? "the gear at the top left" : "<b>Settings</b>, the round button with a gear on Home";
     const confirm = apple ? `Confirm with ${bio}, or type the wallet’s password if it has one.` : "Type the wallet’s password if it has one.";
     const g = [];
     const add = (group, id, title, steps, note) => g.push({ group, id, title, steps, note });
@@ -5574,14 +5580,14 @@
       `${Tap} <b>Tap to reveal</b> and write the 24 words on paper, in order. Keep them somewhere safe and private.`,
     ], "Anyone with these words can spend this wallet’s ORN. Orien never asks for them.");
     add("Getting started", "send", "Send ORN", [
-      `On Home, ${tap} <b>Send</b>.`,
+      `On Home, ${tap} ${SEND}.`,
       `Under <b>To</b>, type a name or address, pick someone under <b>Recents</b>, or ${tap} <b>Paste</b>${phone ? ", or scan their Receive QR code" : ""}.`,
       `Type the amount, or ${tap} <b>Max</b> to send all you can after the fee.`,
       `Check the total, then ${tap} <b>Send</b>.${apple ? ` ${bio} confirms it.` : ""}`,
       "It arrives in seconds. Save a new address as a contact from the last screen if you like.",
     ]);
     add("Getting started", "receive", "Receive ORN", [
-      `On Home, ${tap} <b>Receive</b>.`,
+      `On Home, ${tap} ${RECEIVE}.`,
       `Show the QR code to the person paying you, or ${tap} <b>Share address</b> or <b>Copy address</b> and send it to them.`,
       "Their payment shows in your Activity within seconds.",
     ]);
@@ -5598,13 +5604,13 @@
     ]);
     add("Your devices", "link", "Use your wallets on another device", [
       `On the new device, ${tap} <b>Use my other device</b> (or <b>Add a wallet</b>, then <b>From my other device</b>). It shows a QR code and a code.`,
-      `On the device that has your wallets, open Settings with ${gear}, then ${tap} <b>Link a new device</b>.`,
+      `On the device that has your wallets, open ${gear}, then ${tap} <b>Link a new device</b>.`,
       "On an iPhone, scan the new device’s QR code. On a computer, type its code and click <b>Continue</b>.",
       `Check both devices show the same three pictures, then ${tap} <b>They match, send my wallets</b>.`,
       "Your wallets arrive on the new device by themselves.",
     ], "Your wallets travel encrypted, straight between your two devices.");
     add("Your devices", "sync", "Keep contacts the same everywhere", [
-      `On Home, ${tap} <b>Contacts</b>.`,
+      `On Home, ${tap} ${CONTACTS}.`,
       `If you see <b>Turn on syncing</b>, ${tap} it. ${confirm}`,
       "Do this once on each device. After that, contacts and wallet icons stay the same on all of them.",
     ]);
@@ -5615,10 +5621,9 @@
       `New here? Choose a username, then ${tap} <b>Make my account</b>.`,
     ], "Your account is for the Community, the Market and swaps. Your wallets stay in this app.");
     add("Orien Network", "verify", "Verify a wallet", [
-      "Open the wallet you want to verify.",
-      `${Tap} your picture at the top right, then <b>Edit Profile</b>.`,
-      `Under <b>Your wallets</b>, ${tap} <b>Verify</b>.`,
-      `${Tap} <b>Send and verify</b>. It sends less than 0.001 ORN from that wallet, fee included.`,
+      "Sign in, and open the wallet you want to verify.",
+      `On Home, ${tap} <b>Verify</b> on the <b>Verify</b> card under your balance. (Or ${tap} your picture at the top right, then <b>Edit Profile</b>, then <b>Verify</b> beside the wallet.)`,
+      `${Tap} <b>Verify</b> to confirm. It sends less than 0.001 ORN from that wallet, fee included.`,
       "Within a minute it shows <b>Verified</b>.",
     ], "Verifying shows everyone the wallet is yours, including its balance. It lets you post, sell, swap and receive tips.");
     add("Orien Network", "verify-more", "Verify more wallets, and choose where you’re paid", [
@@ -5629,26 +5634,38 @@
       `To take a wallet off your profile, ${tap} <b>⋯</b> beside it, then <b>Remove from your profile</b>.`,
     ]);
     add("Orien Network", "tip", "Tip someone", [
-      `On Home, ${tap} <b>Community</b>.`,
+      `On Home, ${tap} ${COMMUNITY}.`,
       `Under a post you like, ${tap} <b>Tip</b>.`,
       `Pick 1, 5 or 10 ORN, or type another amount, then ${tap} <b>Tip</b>.${apple ? ` ${bio} confirms it.` : ""}`,
       "The post shows its tips, without names. The author is told it was you.",
     ], "Tips are payments and can’t be undone.");
+    add("Orien Network", "chat", "Chat with everyone", [
+      `On Home, ${tap} ${MESSAGES}. <b>Orien</b>, the group chat, is pinned at the top.`,
+      "Anyone can read along. To write, reply or react, sign in and verify a wallet.",
+      `${phone ? "Tap a message" : "Point at a message"} to reply, react or report it.`,
+      `New messages put a dot on Messages. To turn that off, ${tap} the bell at the top of the chat.`,
+    ], "Everything in the group chat is public. Be kind.");
+    add("Orien Network", "explorer", "Look up the network", [
+      phone ? `On Home, ${tap} ${EXPLORER}.` : `On Home, click ${EXPLORER}. In a big window, click the <b>Network</b> card beside your wallet instead.`,
+      "The figures at the top show the network right now: ORN released, the next checkpoint, miners and hashrate.",
+      `Below them, ${tap} <b>Checkpoints</b>, <b>Top wallets</b> or <b>Validators</b>, and ${tap} any row to open it.`,
+      "To find something, type an address, a name or a checkpoint number in the search box.",
+    ]);
     if (phone) {
       add("Getting ORN", "get", "Get ORN on iPhone", [
-        "Be paid: share your address from <b>Receive</b>.",
+        `Be paid: share your address from ${RECEIVE}.`,
         "Swap SOL or Bitcoin for ORN in Orien Wallet on a computer, with this same wallet linked to it.",
         "Mine on a computer: install Orien Wallet there, link this wallet, and press <b>Mine</b>.",
       ]);
     } else {
       add("Getting ORN", "mine", "Mine ORN", [
-        "On Home, click <b>Mine</b>.",
+        `On Home, click ${round("Mine", "a pickaxe")}. In a big window, click the <b>Mining</b> card beside your wallet instead.`,
         "Set the <b>Processor</b> slider, or click <b>Benchmark</b> to find your computer’s sweet spot.",
         "Click <b>Start mining</b>. Each hour you earn a share of the new ORN.",
-        "To mine with the window closed, turn on <b>Keep running when closed</b> in Settings, <b>This computer</b>.",
+        "To mine with the window closed, turn on <b>Keep running when closed</b> in Settings, <b>This computer</b>. To stop the computer sleeping, turn on <b>Keep this computer awake</b> there too.",
       ], "If the app updates while mining, mining starts again by itself.");
       add("Getting ORN", "buy", "Buy ORN with SOL or Bitcoin", [
-        "On Home, click <b>Swap</b>.",
+        `On Home, click ${SWAP}.`,
         "Under <b>Open offers</b>, click <b>Take</b> on one you like.",
         "Type the SOL or Bitcoin address you’ll pay from, then click <b>Take the offer</b>.",
         "When the seller answers, pay the exact amount shown from your SOL or Bitcoin wallet.",
@@ -5656,18 +5673,18 @@
       ]);
       add("Getting ORN", "sell", "Sell ORN", [
         "Sign in and verify this wallet first.",
-        "On Home, click <b>Swap</b>, then <b>Post an offer</b>.",
+        `On Home, click ${SWAP}, then <b>Post an offer</b>.`,
         "Choose SOL or Bitcoin, then type how many ORN to sell, how much you want for them, and the address you’ll be paid at.",
-        "Click <b>Post the offer</b>, and keep Orien Wallet running until it’s taken.",
+        "Click <b>Post the offer</b>, and keep Orien Wallet running until it’s taken. <b>Keep this computer awake</b> in Settings, <b>This computer</b>, keeps it open while you’re away.",
       ]);
     }
     if (apple) add("Security and more", "lock", `Lock with ${bio}`, [
-      `Open Settings with ${gear}, then <b>Privacy and security</b>.`,
+      `Open ${gear}, then <b>Privacy and security</b>.`,
       `Turn on <b>Lock with ${bio}</b>.`,
       phone ? "Orien Wallet locks whenever you leave it." : "Orien Wallet locks after a minute away.",
     ]);
     if (!phone) add("Security and more", "extension", "Use Orien Wallet in your browser", [
-      `Open Settings with ${gear}, then <b>Browser Extensions</b>.`,
+      `Open ${gear}, then <b>Browser Extensions</b>.`,
       "Click your browser and add Orien Wallet there.",
       "Send ORN and see your balance from the browser’s toolbar, and sign in to websites with your wallet. Your keys stay in this app.",
     ]);
