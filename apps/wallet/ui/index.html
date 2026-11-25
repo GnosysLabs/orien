@@ -9880,7 +9880,7 @@
   // ---- Verifying the open wallet in one tap, from Home or wherever a
   // verified wallet is asked for. It still says plainly what it does
   // before sending: the wallet becomes publicly yours, for a tiny payment.
-  const vw = { proof: null, waiting: null };
+  const vw = { proof: null, waiting: null, short: false };
   const vwName = () => ((walletList.find((w) => w.address === (view && view.address)) || {}).name) || "this wallet";
   async function paintVerifyCard() {
     const card = $("vw-card");
@@ -9912,15 +9912,31 @@
     $("vw-say").textContent = "Getting it ready…";
     $("vw-pw-box").hidden = !typed;
     $("vw-yes").disabled = true;
+    $("vw-yes").hidden = false;
     $("vw-yes").textContent = "Verify";
+    $("vw-no").textContent = "Cancel";
+    vw.short = false;
     const veil = $("vw-veil");
     if (veil.hidden) { veil.hidden = false; requestAnimationFrame(() => veil.classList.add("on")); }
+    // Too little ORN to pay for it: said first, with where to get some,
+    // rather than a failed send.
+    if (Number(String(view.most || "0").replace(/,/g, "")) < 0.001) { vwShort(); return; }
     try { vw.proof = await invoke("board_verify", { address: view.address }); }
     catch (e) { $("vw-say").textContent = ""; problem("vw-problem", e); return; }
     $("vw-say").textContent = `This ties ${vwName()} to your name publicly: everyone will see it's yours, including its balance. It sends ${vw.proof.orn} ORN to Orien Network, less than 0.001 ORN with the fee.`;
     $("vw-yes").textContent = view.biometric && !typed ? `Verify with ${bio}` : `Send ${vw.proof.orn} ORN and verify`;
     $("vw-yes").disabled = false;
     if (typed) $("vw-pw").focus();
+  }
+  function vwShort() {
+    vw.short = true; vw.proof = null;
+    $("vw-pw-box").hidden = true;
+    $("vw-say").textContent = `Verifying sends less than 0.001 ORN from ${vwName()}, and it doesn't hold that yet. `
+      + (phone ? "Mine for an hour in Orien Wallet on a computer, or buy a little at orien.network." : "Mine for an hour from the Mine screen, or buy a little on Swap.");
+    $("vw-yes").hidden = phone;
+    $("vw-yes").disabled = false;
+    $("vw-yes").textContent = "Open Mine";
+    $("vw-no").textContent = phone ? "Close" : "Not now";
   }
   $("vw-go").onclick = quickVerify;
   $("vw-x").onclick = () => { if (board.me) localStorage.setItem(`verify-card-closed:${board.me.id}`, "1"); $("vw-card").hidden = true; };
@@ -9929,6 +9945,7 @@
   document.addEventListener("keydown", (e) => { if (e.key === "Escape" && !$("vw-veil").hidden) vwClose(); });
   $("vw-pw").onkeydown = (e) => { if (e.key === "Enter") $("vw-yes").click(); };
   $("vw-yes").onclick = async () => {
+    if (vw.short) { vwClose(); $("go-mine").onclick(); return; }
     const proof = vw.proof;
     if (!proof || !view || (proof.address || "").toLowerCase() !== view.address) { vwClose(); return; }
     const address = view.address, label = $("vw-yes").textContent;
@@ -9950,7 +9967,10 @@
       feel("success");
       refresh();
       paintVerifyCard();
-    } catch (e) { $("vw-yes").textContent = label; $("vw-yes").disabled = false; problem("vw-problem", e); return; }
+    } catch (e) {
+      if (/not enough|insufficient|too little|balance/i.test(String(e))) { vwShort(); return; }
+      $("vw-yes").textContent = label; $("vw-yes").disabled = false; problem("vw-problem", e); return;
+    }
     // The network sees the payment a few seconds after it's final.
     for (let i = 0; i < 36; i++) {
       await new Promise((r) => setTimeout(r, 5000));
