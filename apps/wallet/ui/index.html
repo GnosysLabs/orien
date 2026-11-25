@@ -659,12 +659,11 @@
   .ms-rate span { display: block; margin-top: 3px; font-size: 12.5px; color: var(--dim); }
   .ms-rate span + span { margin-top: 1px; }
   .wallet-chip { display: inline-flex; align-items: center; gap: 6px; margin: 0 0 12px 2px; padding: 5px 10px;
-    border: 1px solid var(--line); border-radius: 999px; background: transparent; cursor: pointer; font-size: 12.5px; color: var(--dim); }
-  @media (hover: hover) { .wallet-chip:hover { color: var(--ink); background: rgba(var(--tint), 0.031); } }
-  /* Light themes: the same white as the buttons beside it, so it reads as
-     one to press rather than a label. */
-  :is([data-theme="daylight"], [data-base="light"]) .wallet-chip { background: var(--surface); color: var(--ink); }
-  @media (hover: hover) { :is([data-theme="daylight"], [data-base="light"]) .wallet-chip:hover { background: var(--surface-hover); } }
+    border: 1px solid var(--line); border-radius: 999px; background: var(--surface); cursor: pointer; font-size: 12.5px; color: var(--dim); }
+  /* Every theme: the same background as the buttons beside it, so it reads
+     as one to press rather than a label. */
+  @media (hover: hover) { .wallet-chip:hover { color: var(--ink); background: var(--surface-hover); } }
+  :is([data-theme="daylight"], [data-base="light"]) .wallet-chip { color: var(--ink); }
   /* A wallet: name and address on the left, its balance on the right
      (amount over unit, mirroring the two lines opposite), and quiet edit
      tools at the far end, past a hairline. All on one centred line. */
