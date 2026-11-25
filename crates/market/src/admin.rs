@@ -67,6 +67,7 @@ pub fn admin_router(app: Arc<App>, admins: Admins, site: Option<&std::path::Path
         .route("/api/admin/accounts/{id}/suspend", post(suspend))
         .route("/api/admin/accounts/{id}/unsuspend", post(unsuspend))
         .route("/api/admin/posts/{id}/remove", post(remove_post))
+        .route("/api/admin/room/{id}/remove", post(remove_room_message))
         .route("/api/admin/sites", get(sites))
         .route("/api/admin/sites/{id}/off", post(site_off))
         .route("/api/admin/sites/{id}/on", post(site_on))
@@ -296,6 +297,7 @@ impl Store {
             "account" => "SELECT id FROM accounts WHERE id = ?1",
             "message" => "SELECT sender FROM messages WHERE id = ?1",
             "post" => "SELECT author FROM posts WHERE id = ?1",
+            "room" => "SELECT author FROM room_messages WHERE id = ?1",
             _ => return Ok(None),
         };
         Ok(self.db.query_row(sql, params![target], |row| row.get(0)).optional()?)
@@ -404,6 +406,7 @@ async fn reports(State(admin): State<Admin>, headers: HeaderMap) -> Answer {
             let removed = match report.kind.as_str() {
                 "listing" => store.is_removed(report.target).unwrap_or(false),
                 "post" => store.post_removed(report.target).unwrap_or(false),
+                "room" => store.room_removed(report.target).unwrap_or(false),
                 _ => false,
             };
             json!({ "report": report, "owner": owner, "removed": removed })
@@ -512,5 +515,11 @@ async fn site_on(State(admin): State<Admin>, headers: HeaderMap, Path(id): Path<
 async fn remove_post(State(admin): State<Admin>, headers: HeaderMap, Path(id): Path<i64>) -> Answer {
     admin.admins.check(&headers)?;
     admin.app.store().remove_post(id)?.then_some(()).ok_or(Failure::NotFound)?;
+    Ok(Json(json!({ "ok": true })).into_response())
+}
+
+async fn remove_room_message(State(admin): State<Admin>, headers: HeaderMap, Path(id): Path<i64>) -> Answer {
+    admin.admins.check(&headers)?;
+    admin.app.store().room_remove(id)?.then_some(()).ok_or(Failure::NotFound)?;
     Ok(Json(json!({ "ok": true })).into_response())
 }

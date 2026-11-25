@@ -290,6 +290,13 @@ impl Store {
     /// The bell's lines, newest first: one line per post and kind, with
     /// everyone who did it; and one per unread conversation.
     pub fn notices(&self, account: i64) -> Result<Vec<Value>> {
+        self.notices_with(account, false)
+    }
+
+    /// The bell's lines, and with `room` answers to the person's group chat
+    /// messages too (kind "room_reply"): only apps that have the group chat
+    /// ask for them.
+    pub fn notices_with(&self, account: i64, room: bool) -> Result<Vec<Value>> {
         let (upto, at) = self.seen(account)?.unwrap_or((0, 0));
         let mut query = self.db.prepare(
             "SELECT n.id, n.kind, n.post, n.emoji, n.created, a.name, a.picture,
@@ -390,6 +397,9 @@ impl Store {
             }
         }
 
+        if room {
+            lines.extend(self.room_notices(account, now().saturating_sub(KEEP), at)?);
+        }
         for conversation in self.conversations(account)?.into_iter().filter(|c| c.unread) {
             let Some(last) = conversation.last else { continue };
             let text = match (last.kind.as_str(), last.amount) {
@@ -433,9 +443,17 @@ pub fn routes() -> Router<Arc<App>> {
         .route("/api/market/notices/seen", post(see))
 }
 
-async fn list(State(app): State<Arc<App>>, headers: HeaderMap) -> Result<Response, Failure> {
+#[derive(serde::Deserialize)]
+struct Ask {
+    /// "1" from apps with the group chat: its answers ring the bell too.
+    #[serde(default)]
+    room: String,
+}
+
+async fn list(State(app): State<Arc<App>>, headers: HeaderMap, axum::extract::Query(ask): axum::extract::Query<Ask>) -> Result<Response, Failure> {
     let account = app.signed_in(&headers)?;
-    let lines = app.store().notices(account)?;
+    let room = matches!(ask.room.as_str(), "1" | "true");
+    let lines = app.store().notices_with(account, room)?;
     Ok(Json(json!({ "notices": lines })).into_response())
 }
 

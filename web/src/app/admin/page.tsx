@@ -483,7 +483,7 @@ function Reports({ reports, onChange }: { reports: Report[] | null; onChange: ()
             <li key={r.id} className="space-y-2 rounded-xl border border-line bg-surface p-4">
               <div className="flex flex-wrap items-baseline justify-between gap-2">
                 <p className="text-sm text-muted">
-                  <span className="font-semibold text-ink">{r.kind === 'listing' ? 'Listing' : r.kind === 'account' ? 'Profile' : r.kind === 'post' ? 'Community post' : 'Message'}</span>{' '}
+                  <span className="font-semibold text-ink">{r.kind === 'listing' ? 'Listing' : r.kind === 'account' ? 'Profile' : r.kind === 'post' ? 'Community post' : r.kind === 'room' ? 'Group chat message' : 'Message'}</span>{' '}
                   reported by {r.reporter_name ?? 'a deleted account'} · {ago(r.created)}
                 </p>
                 <span className="num text-xs text-muted">report {r.id}</span>
@@ -506,7 +506,7 @@ function Reports({ reports, onChange }: { reports: Report[] | null; onChange: ()
               </p>
               {owner && (
                 <p className="text-sm text-muted">
-                  {r.kind === 'message' ? 'Sent by' : r.kind === 'listing' || r.kind === 'post' ? 'Posted by' : 'Account'}{' '}
+                  {r.kind === 'message' || r.kind === 'room' ? 'Sent by' : r.kind === 'listing' || r.kind === 'post' ? 'Posted by' : 'Account'}{' '}
                   <Link href={`/marketplace/profile/?id=${owner.id}`} className="font-semibold text-ink hover:text-pearl">
                     {owner.name}
                   </Link>{' '}
@@ -520,6 +520,9 @@ function Reports({ reports, onChange }: { reports: Report[] | null; onChange: ()
                 )}
                 {r.kind === 'post' && !removed && (
                   <Action label="Take the post down" path={`/posts/${r.target}/remove`} onDone={onChange} danger />
+                )}
+                {r.kind === 'room' && !removed && (
+                  <Action label="Take the message down" path={`/room/${r.target}/remove`} onDone={onChange} danger />
                 )}
                 {owner && !owner.suspended && (
                   <Action
