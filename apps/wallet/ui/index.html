@@ -4162,12 +4162,14 @@
   }
   matchMedia("(min-width: 860px)").addEventListener("change", fitPanel);
   function show(id) {
-    const both = !phone && wide.matches && (id === "inbox" || (id === "chat" && chat.from === "inbox" && chat.id));
+    const both = !phone && wide.matches && (id === "inbox" || (id === "chat" && chat.from === "inbox" && (chat.id || chat.direct)));
     // Big windows: Send and Receive float over Home rather than replace it.
     // So does Contacts, with the contact or member opened from it.
     const inContacts = document.body.classList.contains("pop") && ["contacts", "contact", "member"].some((x) => !$(x).hidden);
     const pop = !phone && wide.matches && (id === "send" || id === "receive" || id === "contacts" || ((id === "contact" || id === "member") && inContacts));
-    for (const s of document.querySelectorAll(".screen")) s.hidden = !(s.id === id || (both && (s.id === "inbox" || s.id === "chat")) || (pop && s.id === "home"));
+    // Send opened from someone's profile floats over their profile.
+    const under = id === "send" && sendFrom === "seller" ? "seller" : "home";
+    for (const s of document.querySelectorAll(".screen")) s.hidden = !(s.id === id || (both && (s.id === "inbox" || s.id === "chat")) || (pop && s.id === under));
     document.body.classList.toggle("split", both);
     document.body.classList.toggle("pop", pop);
     fitPanel();
@@ -4176,7 +4178,7 @@
     if (id === "swaps" && !phone && matchMedia("(min-width: 860px)").matches && typeof loadHistory === "function") loadHistory(false);
     document.body.classList.toggle("at-home", id === "home");
     if (id === "seller" && typeof slFitEdges === "function") slFitEdges();
-    if (both) { $("chat").classList.toggle("none", !chat.id); paintInbox(); }
+    if (both) { $("chat").classList.toggle("none", !(chat.id || chat.direct)); paintInbox(); }
     else if (id === "chat") $("chat").classList.remove("none");
     for (const p of document.querySelectorAll(".problem")) p.hidden = true;
     for (const m of document.querySelectorAll(".ch-menu")) m.hidden = true;
@@ -5999,14 +6001,20 @@
   // ---- Navigation ----
   for (const b of document.querySelectorAll("[data-back]")) b.onclick = home;
   // The pop-up closes by a click beside it, or Escape.
-  $("pop-shade").onclick = () => home();
-  for (const b of document.querySelectorAll("[data-pop-close]")) b.onclick = () => home();
+  // Send opened from a profile goes back to it; anything else, home.
+  var sendFrom = "home";
+  const closePop = () => { if (!$("send").hidden && sendFrom === "seller") { sendFrom = "home"; show("seller"); } else home(); };
+  // Smaller windows, where Send is a page of its own: its Back does the same.
+  document.querySelector("#send [data-back]").onclick = closePop;
+  $("pop-shade").onclick = closePop;
+  for (const b of document.querySelectorAll("[data-pop-close]")) b.onclick = closePop;
   document.addEventListener("keydown", (e) => {
-    if (e.key === "Escape" && document.body.classList.contains("pop") && !document.querySelector('[id$="-veil"]:not([hidden])')) home();
+    if (e.key === "Escape" && document.body.classList.contains("pop") && !document.querySelector('[id$="-veil"]:not([hidden])')) closePop();
   });
   // The window narrowing or widening with one open: a page or a pop-up again.
   wide.addEventListener("change", () => { const open = ["send", "receive", "contacts"].find((x) => !$(x).hidden); if (open) show(open); });
-  $("go-send").onclick = () => {
+  $("go-send").onclick = (from) => {
+    sendFrom = from === "seller" ? "seller" : "home";
     if (update && update.required) {
       problem("home-problem", "This version of Orien Wallet no longer works with the network. Press Update at the top to keep sending.");
       return;
@@ -8973,7 +8981,7 @@
   $("sl-send").onclick = () => {
     if (!sl.sendTo) return;
     const address = sl.sendTo;
-    $("go-send").onclick();
+    $("go-send").onclick("seller");
     $("to").value = address; validate(); $("amount").focus();
   };
   $("sl-add").onclick = async () => {
@@ -9345,7 +9353,7 @@
   // Messages stands on its own: its own button on the home screen.
   // Open to everyone: the group chat reads without signing in.
   $("go-messages").onclick = () => openInbox();
-  $("ib-back").onclick = () => { chat.id = null; home(); };
+  $("ib-back").onclick = () => { chat.id = null; chat.direct = null; home(); };
   // Writing to anyone by their Orien Network name: the conversation the two
   // already have, or a new one that starts with the first message.
   let messageAfterSignin = null;
@@ -9370,11 +9378,12 @@
   $("sl-message").onclick = () => {
     // Opened from their chat: back to it.
     if (market.sellerFrom === "chat" && chat.conv && chat.conv.with === sl.id && !chat.conv.listing) { show("chat"); return; }
-    messagePerson({ id: sl.id, name: sl.name, picture: sl.picture }, "profile");
+    // Big windows: in Messages, beside the other conversations.
+    messagePerson({ id: sl.id, name: sl.name, picture: sl.picture }, !phone && wide.matches ? "inbox" : "profile");
   };
   $("ct-message").onclick = () => {
     const p = editing && profileOf(editing);
-    if (p && p.name) messagePerson({ name: p.name, picture: p.picture }, "contact");
+    if (p && p.name) messagePerson({ name: p.name, picture: p.picture }, !phone && wide.matches ? "inbox" : "contact");
   };
   $("ib-list").onclick = (e) => {
     if (e.target.closest("#ib-signin")) { signinReturn = "messages"; resetSignin(); show("board-signin"); return; }
