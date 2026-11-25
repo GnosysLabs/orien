@@ -10740,7 +10740,10 @@
   let hsOver = null, hsOverAt = 0, hsMinersBusy = false;
   const hsMiners = new Map();
   async function hsNetwork() {
-    if (Date.now() - hsOverAt > 60000) {
+    // Once a minute; every few seconds once a checkpoint is due, so a new one
+    // shows the moment it's made.
+    const due = hsOver && hsOver.epoch_started + hsOver.epoch_seconds <= Date.now() / 1000;
+    if (Date.now() - hsOverAt > (due ? 4000 : 60000)) {
       hsOverAt = Date.now();
       try { hsOver = await invoke("explorer", { path: "/overview" }); } catch { hsOverAt = 0; }
     }
@@ -11205,7 +11208,14 @@
     return { name, html: name ? `${esc(name)}${officialTag(address)}` : `<span class="mono">${short(address)}</span>`,
       face: plain ? `<span class="face ex-anon">${EX_WALLET}</span>` : face(address, name) };
   }
-  async function exGet(path) { return invoke("explorer", { path }); }
+  // What the explorer learns, Home's Network card knows at once: its overview,
+  // or a checkpoint newer than any the card has.
+  async function exGet(path) {
+    const d = await invoke("explorer", { path });
+    if (path === "/overview" && d) { hsOver = d; hsOverAt = Date.now(); }
+    else if (d && d.checkpoint && hsOver && d.checkpoint.epoch > (((hsOver.checkpoints || [])[0] || {}).epoch ?? -1)) hsOverAt = 0;
+    return d;
+  }
   // The big window's banner: shown with a verified wallet's page, as tall as
   // its top part (name and figures) plus the panel's edge above.
   function exBannerFit() {
