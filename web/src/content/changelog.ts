@@ -27,6 +27,14 @@ export const PRODUCTS: Record<Product, string> = {
 export const CHANGELOG: Entry[] = [
   {
     date: '2026-11-25',
+    products: ['network'],
+    title: 'Validator names on the map stay apart',
+    changes: [
+      'On the network map, two validators close together show their names on opposite sides of their dots, so the names never overlap. Each place is shown by its own town name.',
+    ],
+  },
+  {
+    date: '2026-11-25',
     products: ['validators'],
     title: 'A guide to running a validator',
     changes: [
