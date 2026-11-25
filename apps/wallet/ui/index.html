@@ -753,6 +753,12 @@
   .mk-search input { flex: 1; min-width: 0; border: 0; background: none; color: var(--ink); font: inherit; height: 44px; outline: none; }
   .mk-cats { display: flex; flex-wrap: wrap; gap: 6px; margin: 14px 0 16px; }
   .mk-cats button { flex: none; }
+  /* Big windows: the search keeps a sensible width, the kinds beside it. */
+  @media (min-width: 980px) {
+    body:not(.phone) .mk-bar { display: flex; align-items: center; gap: 16px; margin: 0 0 18px; }
+    body:not(.phone) .mk-bar .mk-search { flex: 0 0 340px; }
+    body:not(.phone) .mk-bar .mk-cats { margin: 0; }
+  }
   .mk-cats button { height: 30px; padding: 0 12px; border: 1px solid var(--line); border-radius: 15px; background: transparent;
     color: var(--dim); font-size: 12.5px; font-weight: 500; cursor: pointer; transition: background .15s, color .15s; }
   @media (hover: hover) { .mk-cats button:hover { background: var(--surface); color: var(--ink); } }
@@ -2120,6 +2126,7 @@
     #explorer { --col: 1040px; }
     .ex-facts { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
     .ex-facts.five { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+    body:not(.phone) .ex-search.field { max-width: 480px; }
     .ex-split { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 0 24px; align-items: start; }
     /* An address: who it is on the left, its figures stacked on the right. */
     .ex-addr-top { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 360px); gap: 24px; align-items: center; }
@@ -2666,8 +2673,8 @@
         <div class="account mk-tools"><button class="pill pearl" id="mk-sell">Sell</button></div></div>
       <div class="tabs cm-tabs" role="tablist"><button class="tab" data-cm-tab="community" role="tab">Feed</button><button class="tab on" data-cm-tab="market" role="tab">Market</button><button class="tab cm-miners-tab" data-cm-tab="miners" role="tab">Top miners</button></div>
       <p class="lede">Work and things offered for ORN. You pay the seller straight from your wallet: the Market never holds anyone's coins.</p>
-      <div class="box plain mk-search"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m21 21-4.34-4.34"/><circle cx="11" cy="11" r="8"/></svg><input id="mk-q" placeholder="Search listings" autocomplete="off" spellcheck="false"></div>
-      <div class="mk-cats" id="mk-cats"></div>
+      <div class="mk-bar"><div class="box plain mk-search"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m21 21-4.34-4.34"/><circle cx="11" cy="11" r="8"/></svg><input id="mk-q" placeholder="Search listings" autocomplete="off" spellcheck="false"></div>
+      <div class="mk-cats" id="mk-cats"></div></div>
       <div class="mk-grid" id="mk-grid"></div>
       <div class="problem" id="mk-problem" hidden></div>
       <button class="pill mk-more" id="mk-more" hidden>Show more</button>
