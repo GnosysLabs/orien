@@ -1609,7 +1609,7 @@
   /* Big windows: the page never scrolls; both columns reach down to the same
      margin above the window's foot, and their lists scroll inside them. */
   @media (min-width: 860px) {
-    body:not(.phone) #swaps { display: flex; flex-direction: column; overflow: hidden; padding-bottom: 24px; }
+    body:not(.phone) #swaps { display: flex; flex-direction: column; overflow: hidden; padding-bottom: 0; }
     body:not(.phone) #swaps > .ex-grid { flex: 1; min-height: 0; align-items: stretch; }
     body:not(.phone) #swaps .ex-col { min-height: 0; }
     body:not(.phone) #swaps #ex-pane-deck, body:not(.phone) #swaps #tab-offers { flex: 1; min-height: 0; }
