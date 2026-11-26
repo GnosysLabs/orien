@@ -4377,12 +4377,13 @@
     };
   }
   // Settings, contacts and themes chosen on your other devices, fetched
-  // again while the app stays open: every two minutes, and as soon as it
-  // comes back to the front (an iPhone app sits open for days). Never more
-  // than twice a minute.
+  // again while the app stays open: every 30 seconds, and as soon as it comes
+  // back to the front or its window gets focus (an iPhone app sits open for
+  // days; a computer's window is clicked back into). Never more than once in
+  // ten seconds.
   let syncedAt = Date.now();
   async function resync() {
-    if (Date.now() - syncedAt < 30000 || document.hidden) return;
+    if (Date.now() - syncedAt < 10000 || document.hidden) return;
     syncedAt = Date.now();
     try { await invoke("contacts_sync"); } catch { return; }
     await loadBook();
@@ -4390,7 +4391,8 @@
     loadPrefs();
   }
   document.addEventListener("visibilitychange", () => { if (!document.hidden) resync(); });
-  setInterval(resync, 120000);
+  window.addEventListener("focus", resync);
+  setInterval(resync, 30000);
   async function syncBook() {
     try { await invoke("contacts_sync"); } catch { return; }
     await loadBook();
