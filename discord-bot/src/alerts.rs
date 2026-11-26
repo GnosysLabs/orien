@@ -1,8 +1,9 @@
 //! Network alerts for the founder: a private #network-alerts channel that
 //! only the server's owner and the bot can see, and an inbox on this
 //! computer where the project's own services (the Market server first) hand
-//! the bot a problem to post there. The inbox listens on 127.0.0.1 only and
-//! nginx never passes anything to it.
+//! the bot a problem to post there. Problem reports from Orien Wallet go
+//! the same way to a second private channel, #app-reports. The inbox
+//! listens on 127.0.0.1 only and nginx never passes anything to it.
 
 use std::sync::Arc;
 
@@ -26,25 +27,37 @@ pub const CHANNEL: &str = "network-alerts";
 /// What the channel says it is for.
 const TOPIC: &str = "Problems with the Orien network and its services, posted by the bot. Only the server's owner can see this channel.";
 
+/// The channel for problem reports from Orien Wallet, and what it is for.
+pub const REPORTS: &str = "app-reports";
+const REPORTS_TOPIC: &str =
+    "Problem reports people send from Orien Wallet, posted by the bot. Only the server's owner can see this channel.";
+
 /// The longest alert posted; longer ones are cut.
 const MOST: usize = 1800;
 
 struct Inbox {
     http: Arc<Http>,
-    /// The channel, once found or made.
+    /// The alerts channel, once found or made.
     channel: Mutex<Option<ChannelId>>,
+    /// The problem reports channel, once found or made.
+    reports: Mutex<Option<ChannelId>>,
 }
 
-/// The private channel: found by name, or made once with only the owner and
+/// The private alerts channel.
+pub async fn channel(http: &Http) -> Result<ChannelId> {
+    private_channel(http, CHANNEL, TOPIC).await
+}
+
+/// A private channel: found by name, or made once with only the owner and
 /// the bot able to see it. Says which permission is missing when Discord
 /// refuses.
-pub async fn channel(http: &Http) -> Result<ChannelId> {
+async fn private_channel(http: &Http, name: &str, topic: &str) -> Result<ChannelId> {
     let guilds = http.get_guilds(None, None).await?;
     let [guild] = guilds.as_slice() else {
         bail!("the bot is in {} servers; it should be in exactly one", guilds.len());
     };
     let channels = guild.id.channels(http).await?;
-    if let Some(found) = channels.values().find(|c| c.kind == ChannelType::Text && crate::bot::plain(&c.name) == CHANNEL) {
+    if let Some(found) = channels.values().find(|c| c.kind == ChannelType::Text && crate::bot::plain(&c.name) == name) {
         return Ok(found.id);
     }
     let owner = http.get_guild(guild.id).await?.owner_id;
@@ -62,17 +75,17 @@ pub async fn channel(http: &Http) -> Result<ChannelId> {
     ];
     let made = guild
         .id
-        .create_channel(http, CreateChannel::new(CHANNEL).kind(ChannelType::Text).topic(TOPIC).permissions(overwrites))
+        .create_channel(http, CreateChannel::new(name).kind(ChannelType::Text).topic(topic).permissions(overwrites))
         .await;
     match made {
         Ok(channel) => {
-            eprintln!("alerts: made the private #{CHANNEL}");
+            eprintln!("alerts: made the private #{name}");
             Ok(channel.id)
         }
         Err(error) if format!("{error}").contains("Missing Permissions") || format!("{error}").contains("Missing Access") => bail!(
-            "Discord refused to make #{CHANNEL}: in Server Settings → Roles, give the bot's role \"Manage Channels\" and \"Manage Roles\", then restart the bot ({error})"
+            "Discord refused to make #{name}: in Server Settings → Roles, give the bot's role \"Manage Channels\" and \"Manage Roles\", then restart the bot ({error})"
         ),
-        Err(error) => Err(error).context(format!("cannot make #{CHANNEL}")),
+        Err(error) => Err(error).context(format!("cannot make #{name}")),
     }
 }
 
@@ -114,6 +127,39 @@ async fn alert(State(inbox): State<Arc<Inbox>>, Json(alert): Json<Alert>) -> Res
     }
 }
 
+/// A problem report from Orien Wallet, for #app-reports. Its words are
+/// never written to the log.
+async fn report(State(inbox): State<Arc<Inbox>>, Json(alert): Json<Alert>) -> Response {
+    let text: String = alert.text.trim().chars().take(MOST).collect();
+    if text.is_empty() {
+        return (StatusCode::BAD_REQUEST, "a report needs words").into_response();
+    }
+    let mut known = inbox.reports.lock().await;
+    let channel = match *known {
+        Some(channel) => channel,
+        None => match private_channel(&inbox.http, REPORTS, REPORTS_TOPIC).await {
+            Ok(channel) => *known.insert(channel),
+            Err(error) => {
+                eprintln!("reports: {error:#}");
+                return (StatusCode::BAD_GATEWAY, format!("{error:#}")).into_response();
+            }
+        },
+    };
+    drop(known);
+    let message = CreateMessage::new().content(&text).allowed_mentions(CreateAllowedMentions::new()).flags(MessageFlags::SUPPRESS_EMBEDS);
+    match channel.send_message(&inbox.http, message).await {
+        Ok(_) => {
+            eprintln!("reports: posted one");
+            StatusCode::NO_CONTENT.into_response()
+        }
+        Err(error) => {
+            *inbox.reports.lock().await = None;
+            eprintln!("reports: could not post: {error}");
+            (StatusCode::BAD_GATEWAY, format!("could not post: {error}")).into_response()
+        }
+    }
+}
+
 /// Makes sure the channel is there, then takes alerts on `listen` until the
 /// bot stops.
 pub async fn serve(http: Arc<Http>, listen: String) -> Result<()> {
@@ -124,8 +170,8 @@ pub async fn serve(http: Arc<Http>, listen: String) -> Result<()> {
             None
         }
     };
-    let inbox = Arc::new(Inbox { http, channel: Mutex::new(first) });
-    let app = axum::Router::new().route("/alert", post(alert)).with_state(inbox);
+    let inbox = Arc::new(Inbox { http, channel: Mutex::new(first), reports: Mutex::new(None) });
+    let app = axum::Router::new().route("/alert", post(alert)).route("/report", post(report)).with_state(inbox);
     let listener = tokio::net::TcpListener::bind(&listen).await?;
     eprintln!("alerts: listening on {listen} for #{CHANNEL}");
     axum::serve(listener, app).await?;

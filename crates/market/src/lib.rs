@@ -3,6 +3,7 @@
 //! buyers pay sellers from their own wallets.
 
 pub mod account_wallets;
+pub mod app_reports;
 pub mod alerts;
 pub mod admin;
 pub mod api;

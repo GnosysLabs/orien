@@ -72,6 +72,8 @@ pub fn admin_router(app: Arc<App>, admins: Admins, site: Option<&std::path::Path
         .route("/api/admin/room/{id}/remove", post(remove_room_message))
         .route("/api/admin/room", get(room))
         .route("/api/admin/room/bans/{account}/lift", post(room_lift))
+        .route("/api/admin/app-reports", get(app_reports))
+        .route("/api/admin/app-reports/{id}/done", post(app_report_done))
         .route("/api/admin/sites", get(sites))
         .route("/api/admin/sites/{id}/off", post(site_off))
         .route("/api/admin/sites/{id}/on", post(site_on))
@@ -471,6 +473,20 @@ async fn suspend(State(admin): State<Admin>, headers: HeaderMap, Path(id): Path<
 async fn unsuspend(State(admin): State<Admin>, headers: HeaderMap, Path(id): Path<i64>) -> Answer {
     admin.admins.check(&headers)?;
     admin.app.store().unsuspend(id).map_err(refused)?;
+    Ok(Json(json!({ "ok": true })).into_response())
+}
+
+/// Problem reports from Orien Wallet: those waiting, then the last done.
+async fn app_reports(State(admin): State<Admin>, headers: HeaderMap) -> Answer {
+    admin.admins.check(&headers)?;
+    let reports = admin.app.store().app_reports()?;
+    Ok(Json(json!({ "reports": reports })).into_response())
+}
+
+async fn app_report_done(State(admin): State<Admin>, headers: HeaderMap, Path(id): Path<i64>) -> Answer {
+    admin.admins.check(&headers)?;
+    let now = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).map_or(0, |d| d.as_secs());
+    admin.app.store().app_report_done(id, now).map_err(refused)?;
     Ok(Json(json!({ "ok": true })).into_response())
 }
 
