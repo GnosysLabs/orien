@@ -17,7 +17,7 @@
   const ATTRS = ["placeholder", "aria-label", "title"];
   const CHECK_SVG = '<svg class="lang-check" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>';
 
-  const cache = { en: { strings: {}, patterns: [] } };
+  const cache = { en: { strings: {}, patterns: [], guides: {} } };
   const origText = new WeakMap();
   const lastText = new WeakMap();
   const origAttr = new WeakMap();
@@ -150,13 +150,14 @@
     const raw = await res.json();
     const strings = {};
     for (const [k, v] of Object.entries(raw)) {
-      if (k === "_patterns" || k === "_meta" || typeof v !== "string") continue;
+      if (k === "_patterns" || k === "_meta" || k === "_guides" || typeof v !== "string") continue;
       strings[normKey(k)] = v;
     }
     const patterns = Array.isArray(raw._patterns)
       ? raw._patterns.map(([src, tpl]) => [new RegExp(src), tpl])
       : [];
-    cache[code] = { strings, patterns };
+    const guides = raw._guides && typeof raw._guides === "object" ? raw._guides : {};
+    cache[code] = { strings, patterns, guides };
     return cache[code];
   }
 
@@ -188,6 +189,7 @@
         }
       }
       paintLangList();
+      if (window.__orienRepaintGuide) window.__orienRepaintGuide();
       walk(document.body);
     } catch (e) {
       console.error("Could not load language pack:", code, e);
@@ -196,6 +198,7 @@
 
   window.__orienSetLang = setLang;
   window.__orienLangs = LANGS;
+  window.__orienGuide = (id) => (currentPack && currentPack.guides && currentPack.guides[id]) || null;
   window.t = (s) => translateCore(String(s));
 
   function boot() {

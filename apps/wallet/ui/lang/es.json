@@ -1871,5 +1871,242 @@
       "^says they paid ([0-9.,]+) ORN$",
       "dice que pagó {0} ORN"
     ]
-  ]
+  ],
+  "_guides": {
+    "backup": {
+      "title": "Respalda tu frase de recuperación",
+      "steps": [
+        "En Inicio, haz clic en el nombre de la billetera arriba para abrir <b>Billeteras</b>.",
+        "Haz clic en el engranaje de la tarjeta de la billetera.",
+        "Haz clic en <b>Frase de recuperación</b> y luego en <b>Entiendo, mostrarlas</b>.",
+        "Confirma con Touch ID o escribe la contraseña de la billetera si tiene una.",
+        "Haz clic en <b>Toca para revelar</b> y anota las 24 palabras en papel, en orden. Guárdalas en un lugar seguro y privado."
+      ],
+      "note": "Cualquiera con estas palabras puede gastar los ORN de esta billetera. Orien nunca te las pide."
+    },
+    "send": {
+      "title": "Enviar ORN",
+      "steps": [
+        "En Inicio, haz clic en <b>Enviar</b>, el botón redondo con una flecha apuntando hacia arriba.",
+        "En <b>Para</b>, escribe un nombre o dirección, elige a alguien en <b>Recientes</b> o haz clic en <b>Pegar</b>.",
+        "Escribe la cantidad o haz clic en <b>Máx</b> para enviar todo lo posible después de la comisión.",
+        "Revisa el total y haz clic en <b>Enviar</b>.",
+        "Llega en segundos. Si quieres, guarda una dirección nueva como contacto desde la última pantalla."
+      ]
+    },
+    "receive": {
+      "title": "Recibir ORN",
+      "steps": [
+        "En Inicio, haz clic en <b>Recibir</b>, el botón redondo con una flecha apuntando hacia abajo.",
+        "Muestra el código QR a quien te va a pagar, o haz clic en <b>Compartir dirección</b> o <b>Copiar dirección</b> y envíasela.",
+        "Su pago aparece en tu Actividad en cuestión de segundos."
+      ]
+    },
+    "home": {
+      "title": "Volver al Inicio",
+      "steps": [
+        "Haz clic en <b>Atrás</b> arriba a la izquierda para retroceder un paso.",
+        "Haz clic en el nombre <b>ORIEN</b> en la parte superior de la ventana para volver directamente a Inicio desde cualquier pantalla."
+      ]
+    },
+    "wallets": {
+      "title": "Añadir otra billetera",
+      "steps": [
+        "En Inicio, haz clic en el nombre de la billetera arriba y luego en <b>Añadir billetera</b>.",
+        "Haz clic en <b>Crear nueva billetera</b>, ponle un nombre y un ícono, y luego haz clic en <b>Crear billetera</b>.",
+        "Respalda su frase de recuperación: cada billetera tiene la suya.",
+        "Para cambiar de billetera, haz clic en el nombre de la billetera en Inicio y elige una."
+      ]
+    },
+    "restore": {
+      "title": "Restaura una billetera desde sus palabras",
+      "steps": [
+        "En Inicio, haz clic en el nombre de la billetera arriba, luego en <b>Añadir billetera</b> y después en <b>Restaurar con frase de recuperación</b>. En una instalación nueva, haz clic en <b>Usar mi frase de recuperación</b>.",
+        "Escribe las 24 palabras y haz clic en <b>Continuar</b>.",
+        "Ponle un nombre y un ícono, y luego haz clic en <b>Restaurar billetera</b>."
+      ]
+    },
+    "link": {
+      "title": "Usa tus billeteras en otro dispositivo",
+      "steps": [
+        "En el nuevo dispositivo, haz clic en <b>Usar mi otro dispositivo</b> (o en <b>Añadir billetera</b> y luego en <b>Desde mi otro dispositivo</b>). Mostrará un código QR y un código.",
+        "En el dispositivo donde tienes tus billeteras, abre <b>Ajustes</b>, el botón redondo con un engranaje en Inicio, y luego haz clic en <b>Vincular nuevo dispositivo</b>.",
+        "En un iPhone, escanea el código QR del nuevo dispositivo. En una computadora, escribe su código y haz clic en <b>Continuar</b>.",
+        "Comprueba que ambos dispositivos muestren las mismas tres imágenes y haz clic en <b>Coinciden, enviar mis billeteras</b>.",
+        "Tus billeteras llegan solas al nuevo dispositivo."
+      ],
+      "note": "Tus billeteras viajan cifradas, directamente entre tus dos dispositivos."
+    },
+    "sync": {
+      "title": "Mantén los contactos iguales en todos tus dispositivos",
+      "steps": [
+        "En Inicio, haz clic en <b>Contactos</b>, el botón redondo con dos personas.",
+        "Si ves <b>Activar sincronización</b>, haz clic allí. Confirma con Touch ID o escribe la contraseña de la billetera si tiene una.",
+        "Haz esto una vez en cada dispositivo. Después, los contactos y los íconos de billetera se mantendrán iguales en todos."
+      ]
+    },
+    "signin": {
+      "title": "Iniciar sesión en Orien Network",
+      "steps": [
+        "En Inicio, haz clic en <b>Iniciar sesión</b> arriba a la derecha.",
+        "Escribe tu correo y haz clic en <b>Enviarme un código</b>.",
+        "Escribe el código de 6 dígitos del correo y haz clic en <b>Continuar</b>.",
+        "¿Nuevo por aquí? Elige un nombre de usuario y haz clic en <b>Crear mi cuenta</b>."
+      ],
+      "note": "Tu cuenta es para la Comunidad, el Mercado y los intercambios. Tus billeteras permanecen en esta app."
+    },
+    "verify": {
+      "title": "Verificar una billetera",
+      "steps": [
+        "Inicia sesión y abre la billetera que quieres verificar.",
+        "En Inicio, haz clic en <b>Verificar</b> en la tarjeta <b>Verificar</b> debajo de tu saldo. (O haz clic en tu foto arriba a la derecha, luego en <b>Editar perfil</b> y después en <b>Verificar</b> junto a la billetera.)",
+        "Haz clic en <b>Verificar</b> para confirmar. Envía menos de 0.001 ORN desde esa billetera, comisión incluida.",
+        "En menos de un minuto muestra <b>Verificada</b>."
+      ],
+      "note": "Verificar muestra a todos que la billetera es tuya, incluido su saldo. Te permite publicar, vender, intercambiar y recibir propinas."
+    },
+    "verify-more": {
+      "title": "Verifica más billeteras y elige dónde recibir pagos",
+      "steps": [
+        "Cambia a otra billetera: haz clic en el nombre de la billetera en Inicio y selecciónala.",
+        "Haz clic en tu foto, luego en <b>Editar perfil</b> y después en <b>Verificar</b> junto a esa billetera.",
+        "Repite esto para cada billetera que quieras en tu perfil.",
+        "La billetera en la que pagan compradores y quienes dan propinas muestra <b>Pagos aquí</b>. Para cambiarla, haz clic en <b>Recibir pagos aquí</b> en otra billetera verificada.",
+        "Para quitar una billetera de tu perfil, haz clic en <b>⋯</b> junto a ella y luego en <b>Quitar de tu perfil</b>."
+      ]
+    },
+    "tip": {
+      "title": "Dar propina a alguien",
+      "steps": [
+        "En Inicio, haz clic en <b>Comunidad</b>, el botón redondo con un globo.",
+        "Debajo de una publicación que te guste, haz clic en <b>Propina</b>.",
+        "Elige 1, 5 o 10 ORN, o escribe otra cantidad, y luego haz clic en <b>Propina</b>.",
+        "La publicación muestra sus propinas sin nombres. Al autor se le avisa que fuiste tú."
+      ],
+      "note": "Las propinas son pagos y no se pueden deshacer."
+    },
+    "chat": {
+      "title": "Chatea con todos",
+      "steps": [
+        "En Inicio, haz clic en <b>Mensajes</b>, el botón redondo con un globo de diálogo. El <b>Chat grupal de Orien</b> está fijado arriba.",
+        "Cualquiera puede leer. Para escribir, responder o reaccionar, inicia sesión y verifica una billetera.",
+        "Señala un mensaje para responder, reaccionar o reportarlo.",
+        "Los mensajes nuevos muestran un punto en Mensajes. Para desactivarlo, haz clic en la campana arriba del chat."
+      ],
+      "note": "Todo en el chat grupal es público. Sé amable."
+    },
+    "ai": {
+      "title": "Preguntar a Soporte IA de Orien",
+      "steps": [
+        "En Inicio, haz clic en <b>Mensajes</b>, el botón redondo con un globo de diálogo. <b>Soporte IA de Orien</b> está fijado debajo del chat grupal. En una ventana grande, el salvavidas junto a la campana también lo abre.",
+        "Necesitas iniciar sesión en Orien Network. No hace falta verificar una billetera.",
+        "Pregunta lo que quieras sobre la billetera, la minería, los intercambios o la red, con tus propias palabras.",
+        "Haz clic en <b>Empezar de nuevo</b> arriba del chat para limpiarlo."
+      ],
+      "note": "Las respuestas provienen de una IA y pueden ser incorrectas. Nunca necesita tus palabras de recuperación, contraseñas ni claves: nunca las compartas con nadie."
+    },
+    "explorer": {
+      "title": "Explorar la red",
+      "steps": [
+        "En Inicio, haz clic en <b>Explorador</b>, el botón redondo con un telescopio. En una ventana grande, haz clic en la tarjeta <b>Red</b> junto a tu billetera.",
+        "Los datos de arriba muestran la red en este momento: ORN emitidos, el próximo punto de control, mineros y tasa de hash.",
+        "Debajo, haz clic en <b>Puntos de control</b>, <b>Principales billeteras</b> o <b>Validadores</b>, y haz clic en cualquier fila para abrirla.",
+        "Para buscar algo, escribe una dirección, un nombre o un número de punto de control en el cuadro de búsqueda."
+      ]
+    },
+    "get": {
+      "title": "Obtener ORN en iPhone",
+      "steps": [
+        "Recibe pagos: comparte tu dirección desde <b>Recibir</b>, el botón redondo con una flecha apuntando hacia abajo.",
+        "Intercambia SOL o Bitcoin por ORN en Orien Wallet desde una computadora, con esta misma billetera vinculada.",
+        "Mina en una computadora: instala Orien Wallet allí, vincula esta billetera y pulsa <b>Minar</b>."
+      ]
+    },
+    "mine": {
+      "title": "Minar ORN",
+      "steps": [
+        "En Inicio, haz clic en <b>Minar</b>, el botón redondo con un pico. En una ventana grande, haz clic en la tarjeta <b>Minando</b> junto a tu billetera.",
+        "Ajusta el control deslizante de <b>Procesador</b> o haz clic en <b>Prueba de rendimiento</b> para encontrar el punto óptimo de tu computadora.",
+        "Haz clic en <b>Iniciar minería</b>. Cada hora ganas una parte de los nuevos ORN.",
+        "Para minar con la ventana cerrada, activa <b>Seguir ejecutando al cerrar</b> en Ajustes, <b>Esta computadora</b>. Para evitar que la computadora entre en reposo, activa también <b>Mantener esta computadora despierta</b> allí."
+      ],
+      "note": "Si la app se actualiza mientras mina, la minería se reinicia sola."
+    },
+    "buy": {
+      "title": "Compra ORN con SOL o Bitcoin",
+      "steps": [
+        "En Inicio, haz clic en <b>Intercambiar</b>, el botón redondo con dos flechas.",
+        "En <b>Ofertas abiertas</b>, haz clic en <b>Tomar</b> en una que te guste.",
+        "Escribe la dirección SOL o Bitcoin desde la que pagarás y haz clic en <b>Tomar la oferta</b>.",
+        "Cuando el vendedor responda, paga la cantidad exacta mostrada desde tu billetera SOL o Bitcoin.",
+        "Los ORN llegan solos a esta billetera."
+      ]
+    },
+    "sell": {
+      "title": "Vender ORN",
+      "steps": [
+        "Inicia sesión y verifica esta billetera primero.",
+        "En Inicio, haz clic en <b>Intercambiar</b>, el botón redondo con dos flechas, y luego en <b>Publicar una oferta</b>.",
+        "Elige SOL o Bitcoin, luego escribe cuántos ORN quieres vender, cuánto pides por ellos y la dirección donde recibirás el pago.",
+        "Haz clic en <b>Publicar oferta</b> y mantén Orien Wallet abierto hasta que alguien la tome. <b>Mantener esta computadora despierta</b> en Ajustes, <b>Esta computadora</b>, la mantiene abierta mientras no estás."
+      ]
+    },
+    "lock": {
+      "title": "Bloquear con Touch ID",
+      "steps": [
+        "Abre <b>Ajustes</b>, el botón redondo con un engranaje en Inicio, y luego <b>Privacidad y seguridad</b>.",
+        "Activa <b>Bloquear con Touch ID</b>.",
+        "Orien Wallet se bloquea tras un minuto de inactividad."
+      ]
+    },
+    "extension": {
+      "title": "Usa Orien Wallet en tu navegador",
+      "steps": [
+        "Abre <b>Ajustes</b>, el botón redondo con un engranaje en Inicio, y luego <b>Extensiones del navegador</b>.",
+        "Haz clic en tu navegador y añade Orien Wallet allí.",
+        "Envía ORN y consulta tu saldo desde la barra de herramientas del navegador, e inicia sesión en sitios web con tu billetera. Tus claves permanecen en esta app."
+      ]
+    },
+    "theme-build": {
+      "title": "Crea tu propio tema",
+      "steps": [
+        "Abre <b>Ajustes</b>, el botón redondo con un engranaje en Inicio, luego <b>Apariencia</b> y haz clic en <b>Crear un tema</b>.",
+        "Ponle un <b>Nombre</b> y elige <b>Oscuro</b> o <b>Claro</b> en <b>Base</b>.",
+        "Elige un <b>Color de acento</b> o haz clic en el círculo arcoíris para escoger el tuyo.",
+        "En <b>Imagen de fondo</b>, haz clic en <b>Elegir imagen</b>. Una imagen grande se ve mejor, de al menos 1920 × 1080.",
+        "Observa la vista previa mientras ajustas y luego haz clic en <b>Guardar tema</b>. Se aplica de inmediato."
+      ],
+      "note": "Tus temas te siguen a tus otras computadoras y tu iPhone usa sus colores. Para cambiar uno después, haz clic en el engranaje de su tarjeta en Apariencia; la papelera lo elimina."
+    },
+    "theme-store": {
+      "title": "Encuentra temas en la Tienda de temas",
+      "steps": [
+        "Abre <b>Ajustes</b>, el botón redondo con un engranaje en Inicio, luego <b>Apariencia</b> y haz clic en <b>Tienda de temas</b> arriba.",
+        "En <b>Todos</b>, elige <b>Populares</b> o <b>Más nuevos</b> para temas creados por la comunidad, u <b>Oficiales</b> para los propios de Orien. Cada tarjeta muestra el tema en una pequeña vista de la app.",
+        "Haz clic en <b>Probar</b> para ver toda la app con él. Haz clic en <b>Deshacer</b> para volver; salir de la tienda también te regresa.",
+        "Haz clic en <b>Usar</b> para quedártelo. Se suma a tus temas en Apariencia y se aplica de inmediato.",
+        "¿Te gusta? El botón de monedas envía una propina en ORN a su creador. La bandera reporta un tema que incumple las normas."
+      ],
+      "note": "Un tema que usas es tu propia copia: su creador no puede cambiarlo y puedes editarlo o eliminarlo como uno que creaste tú."
+    },
+    "theme-share": {
+      "title": "Comparte un tema en la Tienda de temas",
+      "steps": [
+        "Necesitas iniciar sesión en Orien Network con una billetera verificada.",
+        "Abre <b>Ajustes</b>, el botón redondo con un engranaje en Inicio, y luego <b>Apariencia</b>.",
+        "En uno de tus propios temas, haz clic en el botón compartir (el cuadro con una flecha) y luego en <b>Compartir tema</b>.",
+        "Se revisa y luego aparece en la tienda con tu nombre, donde cualquiera puede probarlo, usarlo y darte propinas.",
+        "Para retirarlo, abre la Tienda de temas, ve a <b>Tuyos</b> y haz clic dos veces en <b>Quitar de la tienda</b>."
+      ],
+      "note": "Editar tu tema después no cambia el que ya compartiste. Compártelo de nuevo como un tema nuevo si prefieres la nueva versión."
+    },
+    "activity": {
+      "title": "Actividad y notificaciones",
+      "steps": [
+        "En Inicio, haz clic en <b>Ver todo</b> junto a Actividad.",
+        "<b>Pagos</b> muestra lo que enviaste y recibiste; <b>Recompensas</b> muestra recompensas de minería y comisiones de validadores.",
+        "Elige sobre qué quieres recibir avisos en Ajustes, <b>Notificaciones</b>."
+      ]
+    }
+  }
 }

@@ -1871,5 +1871,242 @@
       "^says they paid ([0-9.,]+) ORN$",
       "disse que pagou {0} ORN"
     ]
-  ]
+  ],
+  "_guides": {
+    "backup": {
+      "title": "Faça backup da sua frase de recuperação",
+      "steps": [
+        "No Início, clique no nome da carteira no topo para abrir <b>Carteiras</b>.",
+        "Clique na engrenagem no cartão da carteira.",
+        "Clique em <b>Frase de recuperação</b> e depois em <b>Entendi, mostrar</b>.",
+        "Confirme com Touch ID ou digite a senha da carteira, se ela tiver uma.",
+        "Clique em <b>Toque para revelar</b> e anote as 24 palavras no papel, em ordem. Guarde-as em um local seguro e privado."
+      ],
+      "note": "Qualquer pessoa com essas palavras pode gastar os ORN desta carteira. A Orien nunca pede por elas."
+    },
+    "send": {
+      "title": "Enviar ORN",
+      "steps": [
+        "No Início, clique em <b>Enviar</b>, o botão redondo com uma seta apontando para cima.",
+        "Em <b>Para</b>, digite um nome ou endereço, escolha alguém em <b>Recentes</b> ou clique em <b>Colar</b>.",
+        "Digite o valor ou clique em <b>Máx</b> para enviar tudo o que puder após a taxa.",
+        "Confira o total e clique em <b>Enviar</b>.",
+        "Chega em segundos. Se quiser, salve um novo endereço como contato na última tela."
+      ]
+    },
+    "receive": {
+      "title": "Receber ORN",
+      "steps": [
+        "No Início, clique em <b>Receber</b>, o botão redondo com uma seta apontando para baixo.",
+        "Mostre o QR code para quem vai pagar você, ou clique em <b>Compartilhar endereço</b> ou <b>Copiar endereço</b> e envie para a pessoa.",
+        "O pagamento aparece na sua Atividade em segundos."
+      ]
+    },
+    "home": {
+      "title": "Voltar para o Início",
+      "steps": [
+        "Clique em <b>Voltar</b> no canto superior esquerdo para voltar uma etapa.",
+        "Clique no nome <b>ORIEN</b> no topo da janela para ir direto para o Início de qualquer lugar."
+      ]
+    },
+    "wallets": {
+      "title": "Adicionar outra carteira",
+      "steps": [
+        "No Início, clique no nome da carteira no topo e depois em <b>Adicionar carteira</b>.",
+        "Clique em <b>Criar nova carteira</b>, escolha um nome e um ícone e clique em <b>Criar carteira</b>.",
+        "Faça backup da frase de recuperação dela: cada carteira tem a sua.",
+        "Para trocar de carteira, clique no nome da carteira no Início e escolha outra."
+      ]
+    },
+    "restore": {
+      "title": "Restaurar uma carteira pelas palavras",
+      "steps": [
+        "No Início, clique no nome da carteira no topo, depois em <b>Adicionar carteira</b> e em <b>Restaurar com frase de recuperação</b>. Em uma instalação nova, clique em <b>Usar minha frase de recuperação</b>.",
+        "Digite as 24 palavras e clique em <b>Continuar</b>.",
+        "Escolha um nome e um ícone e clique em <b>Restaurar carteira</b>."
+      ]
+    },
+    "link": {
+      "title": "Use suas carteiras em outro dispositivo",
+      "steps": [
+        "No novo dispositivo, clique em <b>Usar meu outro dispositivo</b> (ou em <b>Adicionar carteira</b> e depois em <b>Do meu outro dispositivo</b>). Ele exibirá um QR code e um código.",
+        "No dispositivo que tem suas carteiras, abra <b>Configurações</b>, o botão redondo com uma engrenagem no Início, e clique em <b>Vincular novo dispositivo</b>.",
+        "No iPhone, escaneie o QR code do novo dispositivo. No computador, digite o código e clique em <b>Continuar</b>.",
+        "Confira se os dois dispositivos mostram as mesmas três figuras e clique em <b>Coincidem, enviar minhas carteiras</b>.",
+        "Suas carteiras chegam ao novo dispositivo sozinhas."
+      ],
+      "note": "Suas carteiras viajam criptografadas, direto entre seus dois dispositivos."
+    },
+    "sync": {
+      "title": "Mantenha seus contatos iguais em todo lugar",
+      "steps": [
+        "No Início, clique em <b>Contatos</b>, o botão redondo com duas pessoas.",
+        "Se aparecer <b>Ativar sincronização</b>, clique nele. Confirme com Touch ID ou digite a senha da carteira, se ela tiver uma.",
+        "Faça isso uma vez em cada dispositivo. Depois disso, contatos e ícones de carteira ficam iguais em todos eles."
+      ]
+    },
+    "signin": {
+      "title": "Entrar na Orien Network",
+      "steps": [
+        "No Início, clique em <b>Entrar</b> no canto superior direito.",
+        "Digite seu e-mail e clique em <b>Enviar código</b>.",
+        "Digite o código de 6 dígitos do e-mail e clique em <b>Continuar</b>.",
+        "Novo por aqui? Escolha um nome de usuário e clique em <b>Criar minha conta</b>."
+      ],
+      "note": "Sua conta é para a Comunidade, o Mercado e trocas. Suas carteiras ficam neste app."
+    },
+    "verify": {
+      "title": "Verificar uma carteira",
+      "steps": [
+        "Entre na sua conta e abra a carteira que você deseja verificar.",
+        "No Início, clique em <b>Verificar</b> no cartão <b>Verificar</b> abaixo do seu saldo. (Ou clique na sua foto no canto superior direito, depois em <b>Editar perfil</b> e em <b>Verificar</b> ao lado da carteira.)",
+        "Clique em <b>Verificar</b> para confirmar. Isso envia menos de 0,001 ORN dessa carteira, taxa incluída.",
+        "Em cerca de um minuto aparece <b>Verificada</b>."
+      ],
+      "note": "Verificar mostra a todos que a carteira é sua, incluindo o saldo. Isso permite publicar, vender, trocar e receber gorjetas."
+    },
+    "verify-more": {
+      "title": "Verifique mais carteiras e escolha onde receber",
+      "steps": [
+        "Troque para outra carteira: clique no nome da carteira no Início e selecione-a.",
+        "Clique na sua foto, depois em <b>Editar perfil</b> e em <b>Verificar</b> ao lado dessa carteira.",
+        "Repita para cada carteira que deseja no seu perfil.",
+        "A carteira onde compradores e quem envia gorjetas pagam mostra <b>Recebe aqui</b>. Para mudar, clique em <b>Receber aqui</b> em outra carteira verificada.",
+        "Para tirar uma carteira do seu perfil, clique em <b>⋯</b> ao lado dela e depois em <b>Remover do seu perfil</b>."
+      ]
+    },
+    "tip": {
+      "title": "Enviar gorjeta",
+      "steps": [
+        "No Início, clique em <b>Comunidade</b>, o botão redondo com um globo.",
+        "Abaixo de um post que você curtiu, clique em <b>Gorjeta</b>.",
+        "Escolha 1, 5 ou 10 ORN, ou digite outro valor, e clique em <b>Gorjeta</b>.",
+        "O post mostra as gorjetas sem nomes. O autor é avisado de que foi você."
+      ],
+      "note": "Gorjetas são pagamentos e não podem ser desfeitas."
+    },
+    "chat": {
+      "title": "Conversar com todos",
+      "steps": [
+        "No Início, clique em <b>Mensagens</b>, o botão redondo com um balão de fala. O <b>Bate-papo em grupo da Orien</b> fica fixado no topo.",
+        "Qualquer pessoa pode acompanhar. Para escrever, responder ou reagir, entre e verifique uma carteira.",
+        "Passe o cursor sobre uma mensagem para responder, reagir ou denunciar.",
+        "Novas mensagens colocam um ponto em Mensagens. Para desativar isso, clique no sino no topo do bate-papo."
+      ],
+      "note": "Tudo no bate-papo em grupo é público. Seja gentil."
+    },
+    "ai": {
+      "title": "Perguntar ao Suporte IA da Orien",
+      "steps": [
+        "No Início, clique em <b>Mensagens</b>, o botão redondo com um balão de fala. O <b>Suporte IA da Orien</b> fica fixado abaixo do bate-papo em grupo. Em uma janela grande, a boia ao lado do sino também abre o suporte.",
+        "Você precisa estar conectado à Orien Network. Não é preciso verificar uma carteira.",
+        "Pergunte qualquer coisa sobre a carteira, mineração, trocas ou a rede, com suas próprias palavras.",
+        "Clique em <b>Recomeçar</b> no topo da conversa para limpá-la."
+      ],
+      "note": "As respostas vêm de uma IA e podem estar erradas. Ela nunca precisa das suas palavras de recuperação, senhas ou chaves: nunca compartilhe isso com ninguém."
+    },
+    "explorer": {
+      "title": "Consultar a rede",
+      "steps": [
+        "No Início, clique em <b>Explorador</b>, o botão redondo com um telescópio. Em uma janela grande, clique no cartão <b>Rede</b> ao lado da sua carteira.",
+        "Os números no topo mostram a rede agora: ORN emitidos, próximo checkpoint, mineradores e hashrate.",
+        "Abaixo deles, clique em <b>Checkpoints</b>, <b>Maiores carteiras</b> ou <b>Validadores</b>, e clique em qualquer linha para abrir.",
+        "Para encontrar algo, digite um endereço, um nome ou um número de checkpoint na caixa de busca."
+      ]
+    },
+    "get": {
+      "title": "Obter ORN no iPhone",
+      "steps": [
+        "Receba pagamentos: compartilhe seu endereço em <b>Receber</b>, o botão redondo com uma seta apontando para baixo.",
+        "Troque SOL ou Bitcoin por ORN no Orien Wallet em um computador, com esta mesma carteira vinculada a ele.",
+        "Minere em um computador: instale o Orien Wallet lá, vincule esta carteira e clique em <b>Minerar</b>."
+      ]
+    },
+    "mine": {
+      "title": "Minerar ORN",
+      "steps": [
+        "No Início, clique em <b>Minerar</b>, o botão redondo com uma picareta. Em uma janela grande, clique no cartão <b>Minerando</b> ao lado da sua carteira.",
+        "Ajuste o controle de <b>Processador</b> ou clique em <b>Teste de desempenho</b> para encontrar o equilíbrio ideal do seu computador.",
+        "Clique em <b>Iniciar mineração</b>. A cada hora você ganha uma parte dos novos ORN.",
+        "Para minerar com a janela fechada, ative <b>Continuar rodando ao fechar</b> em Configurações, <b>Este computador</b>. Para evitar que o computador entre em repouso, ative <b>Manter computador acordado</b> lá também."
+      ],
+      "note": "Se o app atualizar durante a mineração, ela reinicia sozinha."
+    },
+    "buy": {
+      "title": "Comprar ORN com SOL ou Bitcoin",
+      "steps": [
+        "No Início, clique em <b>Trocar</b>, o botão redondo com duas setas.",
+        "Em <b>Ofertas abertas</b>, clique em <b>Aceitar</b> na que você gostar.",
+        "Digite o endereço SOL ou Bitcoin de onde você vai pagar e clique em <b>Aceitar oferta</b>.",
+        "Quando o vendedor responder, pague o valor exato exibido usando sua carteira SOL ou Bitcoin.",
+        "Os ORN chegam a esta carteira sozinhos."
+      ]
+    },
+    "sell": {
+      "title": "Vender ORN",
+      "steps": [
+        "Entre e verifique esta carteira primeiro.",
+        "No Início, clique em <b>Trocar</b>, o botão redondo com duas setas, e depois em <b>Publicar oferta</b>.",
+        "Escolha SOL ou Bitcoin, depois digite quantos ORN vender, quanto quer por eles e o endereço em que vai receber.",
+        "Clique em <b>Publicar oferta</b> e mantenha o Orien Wallet aberto até que ela seja aceita. A opção <b>Manter computador acordado</b> em Configurações, <b>Este computador</b>, mantém a oferta aberta enquanto você estiver fora."
+      ]
+    },
+    "lock": {
+      "title": "Bloquear com Touch ID",
+      "steps": [
+        "Abra <b>Configurações</b>, o botão redondo com uma engrenagem no Início, e depois <b>Privacidade e segurança</b>.",
+        "Ative <b>Bloquear com Touch ID</b>.",
+        "O Orien Wallet bloqueia após um minuto fora."
+      ]
+    },
+    "extension": {
+      "title": "Use o Orien Wallet no seu navegador",
+      "steps": [
+        "Abra <b>Configurações</b>, o botão redondo com uma engrenagem no Início, e depois <b>Extensões do navegador</b>.",
+        "Clique no seu navegador e adicione o Orien Wallet por lá.",
+        "Envie ORN e veja seu saldo pela barra do navegador, e entre em sites com sua carteira. Suas chaves ficam neste app."
+      ]
+    },
+    "theme-build": {
+      "title": "Crie seu próprio tema",
+      "steps": [
+        "Abra <b>Configurações</b>, o botão redondo com uma engrenagem no Início, depois <b>Aparência</b> e clique em <b>Criar um tema</b>.",
+        "Dê um <b>Nome</b> e escolha <b>Escuro</b> ou <b>Claro</b> em <b>Base</b>.",
+        "Escolha uma <b>Cor de destaque</b> ou clique no círculo colorido para escolher a sua.",
+        "Em <b>Imagem de fundo</b>, clique em <b>Escolher imagem</b>. Uma imagem grande fica melhor, com pelo menos 1920 × 1080.",
+        "Acompanhe a prévia conforme edita e depois clique em <b>Salvar tema</b>. Ele já fica aplicado na hora."
+      ],
+      "note": "Seus temas acompanham você nos seus outros computadores, e seu iPhone usa as cores deles. Para alterar um depois, clique na engrenagem no cartão dele em Aparência; a lixeira exclui o tema."
+    },
+    "theme-store": {
+      "title": "Encontre temas na Loja de Temas",
+      "steps": [
+        "Abra <b>Configurações</b>, o botão redondo com uma engrenagem no Início, depois <b>Aparência</b> e clique em <b>Loja de Temas</b> no topo.",
+        "Em <b>Todos</b>, escolha <b>Populares</b> ou <b>Mais novos</b> para temas feitos pela comunidade, ou <b>Oficiais</b> para os da própria Orien. Cada cartão mostra o tema em uma miniatura do app.",
+        "Clique em <b>Experimentar</b> para ver o app inteiro nele. Clique em <b>Desfazer</b> para voltar; sair da loja também volta.",
+        "Clique em <b>Usar</b> para mantê-lo. Ele entra nos seus temas em Aparência e já fica aplicado.",
+        "Gostou? O botão de moedas envia uma gorjeta em ORN ao criador. A bandeira denuncia um tema que viola as regras."
+      ],
+      "note": "Um tema que você usa é a sua própria cópia: o criador não pode alterá-lo, e você pode editá-lo ou excluí-lo como um tema que criou."
+    },
+    "theme-share": {
+      "title": "Compartilhar um tema na Loja de Temas",
+      "steps": [
+        "Você precisa estar conectado à Orien Network com uma carteira verificada.",
+        "Abra <b>Configurações</b>, o botão redondo com uma engrenagem no Início, e depois <b>Aparência</b>.",
+        "Em um dos seus temas, clique no botão de compartilhar (a caixa com uma seta) e depois em <b>Compartilhar tema</b>.",
+        "Ele é verificado e depois aparece na loja com seu nome, onde qualquer pessoa pode experimentar, usar e enviar gorjetas para você.",
+        "Para tirá-lo do ar, abra a Loja de Temas, depois <b>Seus</b>, e clique em <b>Remover da loja</b> duas vezes."
+      ],
+      "note": "Editar seu tema depois não altera o tema compartilhado. Compartilhe novamente como um novo tema se gostar mais da nova versão."
+    },
+    "activity": {
+      "title": "Atividade e notificações",
+      "steps": [
+        "No Início, clique em <b>Ver tudo</b> ao lado de Atividade.",
+        "<b>Pagamentos</b> mostra o que você enviou e recebeu; <b>Recompensas</b> mostra recompensas de mineração e taxas de validador.",
+        "Escolha sobre o que deseja ser avisado em Configurações, <b>Notificações</b>."
+      ]
+    }
+  }
 }

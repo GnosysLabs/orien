@@ -6924,15 +6924,33 @@
     $("guide-list").innerHTML = html + (group ? "</div>" : "");
   }
   const CHEV_SVG = '<svg class="chev" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>';
+  let openGuideId = null;
+  function renderGuide(guide) {
+    if (!guide) return;
+    openGuideId = guide.id;
+    const tr = window.__orienGuide && window.__orienGuide(guide.id);
+    const steps = (tr && Array.isArray(tr.steps) && tr.steps.length) ? tr.steps : guide.steps;
+    const note = tr && "note" in tr ? tr.note : guide.note;
+    const title = (tr && tr.title) || guide.title;
+    $("guide-steps").toggleAttribute("data-no-i18n", !!tr);
+    $("guide-note").toggleAttribute("data-no-i18n", !!tr);
+    $("guide-steps").innerHTML = steps.map((step) => `<li>${step}</li>`).join("");
+    $("guide-note").innerHTML = note || "";
+    $("guide-note").hidden = !note;
+    $(stWide() ? "st-pane-title" : "st-title").textContent = title;
+  }
+  window.__orienRepaintGuide = () => {
+    if (openGuideId && settingsAt === "guide-view") {
+      const g = GUIDES.find((x) => x.id === openGuideId);
+      if (g) renderGuide(g);
+    }
+  };
   $("guide-list").onclick = (e) => {
     const row = e.target.closest("[data-guide]");
     const guide = row && GUIDES.find((x) => x.id === row.dataset.guide);
     if (!guide) return;
-    $("guide-steps").innerHTML = guide.steps.map((step) => `<li>${step}</li>`).join("");
-    $("guide-note").innerHTML = guide.note || "";
-    $("guide-note").hidden = !guide.note;
     settingsPage("guide-view");
-    $(stWide() ? "st-pane-title" : "st-title").textContent = guide.title;
+    renderGuide(guide);
   };
   paintGuides();
   window.__TAURI__.event.listen("open-settings", openSettings).catch(() => {});

@@ -1871,5 +1871,242 @@
       "^says they paid ([0-9.,]+) ORN$",
       "indique avoir payé {0} ORN"
     ]
-  ]
+  ],
+  "_guides": {
+    "backup": {
+      "title": "Sauvegarder votre phrase de récupération",
+      "steps": [
+        "Sur l'Accueil, cliquez sur le nom du portefeuille en haut pour ouvrir <b>Portefeuilles</b>.",
+        "Cliquez sur l'engrenage sur la carte du portefeuille.",
+        "Cliquez sur <b>Phrase de récupération</b>, puis sur <b>Je comprends, afficher</b>.",
+        "Confirmez avec Touch ID ou saisissez le mot de passe du portefeuille s'il en a un.",
+        "Cliquez sur <b>Appuyez pour révéler</b> et notez les 24 mots sur papier, dans l'ordre. Conservez-les dans un endroit sûr et privé."
+      ],
+      "note": "Toute personne disposant de ces mots peut dépenser les ORN de ce portefeuille. Orien ne les demande jamais."
+    },
+    "send": {
+      "title": "Envoyer des ORN",
+      "steps": [
+        "Sur l'Accueil, cliquez sur <b>Envoyer</b>, le bouton rond avec une flèche pointant vers le haut.",
+        "Sous <b>À</b>, saisissez un nom ou une adresse, choisissez quelqu'un dans <b>Récents</b> ou cliquez sur <b>Coller</b>.",
+        "Saisissez le montant ou cliquez sur <b>Max</b> pour envoyer tout ce que vous pouvez après déduction des frais.",
+        "Vérifiez le total, puis cliquez sur <b>Envoyer</b>.",
+        "Le paiement arrive en quelques secondes. Vous pouvez enregistrer une nouvelle adresse comme contact depuis le dernier écran si vous le souhaitez."
+      ]
+    },
+    "receive": {
+      "title": "Recevoir des ORN",
+      "steps": [
+        "Sur l'Accueil, cliquez sur <b>Recevoir</b>, le bouton rond avec une flèche pointant vers le bas.",
+        "Montrez le QR code à la personne qui vous paie, ou cliquez sur <b>Partager l'adresse</b> ou <b>Copier l'adresse</b> pour la lui envoyer.",
+        "Son paiement apparaît dans votre Activité en quelques secondes."
+      ]
+    },
+    "home": {
+      "title": "Revenir à l'Accueil",
+      "steps": [
+        "Cliquez sur <b>Retour</b> en haut à gauche pour revenir d'une étape en arrière.",
+        "Cliquez sur le nom <b>ORIEN</b> en haut de la fenêtre pour revenir directement à l'Accueil depuis n'importe où."
+      ]
+    },
+    "wallets": {
+      "title": "Ajouter un autre portefeuille",
+      "steps": [
+        "Sur l'Accueil, cliquez sur le nom du portefeuille en haut, puis sur <b>Ajouter un portefeuille</b>.",
+        "Cliquez sur <b>Créer un portefeuille</b>, donnez-lui un nom et une icône, puis cliquez sur <b>Créer le portefeuille</b>.",
+        "Sauvegardez sa phrase de récupération : chaque portefeuille a la sienne.",
+        "Pour changer de portefeuille, cliquez sur le nom du portefeuille sur l'Accueil et choisissez-en un autre."
+      ]
+    },
+    "restore": {
+      "title": "Restaurer un portefeuille à partir de ses mots",
+      "steps": [
+        "Sur l'Accueil, cliquez sur le nom du portefeuille en haut, puis sur <b>Ajouter un portefeuille</b>, puis sur <b>Restaurer avec la phrase de récupération</b>. Lors d'une nouvelle installation, cliquez sur <b>Utiliser ma phrase de récupération</b>.",
+        "Saisissez les 24 mots, puis cliquez sur <b>Continuer</b>.",
+        "Donnez-lui un nom et une icône, puis cliquez sur <b>Restaurer le portefeuille</b>."
+      ]
+    },
+    "link": {
+      "title": "Utiliser vos portefeuilles sur un autre appareil",
+      "steps": [
+        "Sur le nouvel appareil, cliquez sur <b>Utiliser mon autre appareil</b> (ou sur <b>Ajouter un portefeuille</b>, puis <b>Depuis mon autre appareil</b>). Un QR code et un code s'affichent.",
+        "Sur l'appareil contenant vos portefeuilles, ouvrez <b>Paramètres</b>, le bouton rond avec un engrenage sur l'Accueil, puis cliquez sur <b>Associer un nouvel appareil</b>.",
+        "Sur un iPhone, scannez le QR code du nouvel appareil. Sur un ordinateur, saisissez son code et cliquez sur <b>Continuer</b>.",
+        "Vérifiez que les deux appareils affichent les trois mêmes images, puis cliquez sur <b>Ils correspondent, envoyer mes portefeuilles</b>.",
+        "Vos portefeuilles arrivent tout seuls sur le nouvel appareil."
+      ],
+      "note": "Vos portefeuilles voyagent chiffrés, directement entre vos deux appareils."
+    },
+    "sync": {
+      "title": "Garder les mêmes contacts partout",
+      "steps": [
+        "Sur l'Accueil, cliquez sur <b>Contacts</b>, le bouton rond avec deux personnages.",
+        "Si vous voyez <b>Activer la synchronisation</b>, cliquez dessus. Confirmez avec Touch ID ou saisissez le mot de passe du portefeuille s'il en a un.",
+        "Faites ceci une fois sur chaque appareil. Ensuite, vos contacts et les icônes de portefeuille restent identiques sur tous."
+      ]
+    },
+    "signin": {
+      "title": "Se connecter à Orien Network",
+      "steps": [
+        "Sur l'Accueil, cliquez sur <b>Se connecter</b> en haut à droite.",
+        "Saisissez votre e-mail et cliquez sur <b>M'envoyer un code</b>.",
+        "Saisissez le code à 6 chiffres reçu par e-mail et cliquez sur <b>Continuer</b>.",
+        "Nouveau ici ? Choisissez un nom d'utilisateur, puis cliquez sur <b>Créer mon compte</b>."
+      ],
+      "note": "Votre compte sert pour la Communauté, le Marché et les échanges. Vos portefeuilles restent dans cette application."
+    },
+    "verify": {
+      "title": "Vérifier un portefeuille",
+      "steps": [
+        "Connectez-vous et ouvrez le portefeuille que vous souhaitez vérifier.",
+        "Sur l'Accueil, cliquez sur <b>Vérifier</b> sur la carte <b>Vérifier</b> sous votre solde. (Ou cliquez sur votre photo en haut à droite, puis sur <b>Modifier le profil</b>, puis sur <b>Vérifier</b> à côté du portefeuille.)",
+        "Cliquez sur <b>Vérifier</b> pour confirmer. Cela envoie moins de 0,001 ORN depuis ce portefeuille, frais inclus.",
+        "En moins d'une minute, il affiche <b>Vérifié</b>."
+      ],
+      "note": "La vérification montre à tout le monde que le portefeuille vous appartient, y compris son solde. Elle vous permet de publier, vendre, échanger et recevoir des pourboires."
+    },
+    "verify-more": {
+      "title": "Vérifier d'autres portefeuilles et choisir où vous êtes payé",
+      "steps": [
+        "Passez à un autre portefeuille : cliquez sur le nom du portefeuille sur l'Accueil et sélectionnez-le.",
+        "Cliquez sur votre photo, puis sur <b>Modifier le profil</b>, puis sur <b>Vérifier</b> à côté de ce portefeuille.",
+        "Répétez l'opération pour chaque portefeuille que vous souhaitez afficher sur votre profil.",
+        "Le portefeuille sur lequel les acheteurs et les personnes qui vous envoient un pourboire vous paient indique <b>Payé ici</b>. Pour le changer, cliquez sur <b>Être payé ici</b> sur un autre portefeuille vérifié.",
+        "Pour retirer un portefeuille de votre profil, cliquez sur <b>⋯</b> à côté, puis sur <b>Retirer de votre profil</b>."
+      ]
+    },
+    "tip": {
+      "title": "Envoyer un pourboire",
+      "steps": [
+        "Sur l'Accueil, cliquez sur <b>Communauté</b>, le bouton rond avec un globe.",
+        "Sous une publication qui vous plaît, cliquez sur <b>Pourboire</b>.",
+        "Choisissez 1, 5 ou 10 ORN, ou saisissez un autre montant, puis cliquez sur <b>Pourboire</b>.",
+        "La publication affiche ses pourboires, sans les noms. L'auteur est informé que c'est vous."
+      ],
+      "note": "Les pourboires sont des paiements et ne peuvent pas être annulés."
+    },
+    "chat": {
+      "title": "Discuter avec tout le monde",
+      "steps": [
+        "Sur l'Accueil, cliquez sur <b>Messages</b>, le bouton rond avec une bulle de dialogue. <b>Chat de groupe Orien</b> est épinglé en haut.",
+        "Tout le monde peut lire. Pour écrire, répondre ou réagir, connectez-vous et vérifiez un portefeuille.",
+        "Pointez vers un message pour y répondre, réagir ou le signaler.",
+        "Les nouveaux messages affichent un point sur Messages. Pour désactiver cela, cliquez sur la cloche en haut du chat."
+      ],
+      "note": "Tout dans le chat de groupe est public. Soyez bienveillant."
+    },
+    "ai": {
+      "title": "Demander au support IA Orien",
+      "steps": [
+        "Sur l'Accueil, cliquez sur <b>Messages</b>, le bouton rond avec une bulle de dialogue. <b>Support IA Orien</b> est épinglé sous le chat de groupe. Dans une grande fenêtre, la bouée de sauvetage à côté de la cloche l'ouvre aussi.",
+        "Vous devez être connecté à Orien Network. La vérification d'un portefeuille n'est pas nécessaire.",
+        "Posez n'importe quelle question sur le portefeuille, le minage, les échanges ou le réseau, avec vos propres mots.",
+        "Cliquez sur <b>Recommencer</b> en haut du chat pour l'effacer."
+      ],
+      "note": "Les réponses proviennent d'une IA et peuvent être inexactes. Elle n'a jamais besoin de vos mots de récupération, mots de passe ou clés : ne les partagez jamais avec personne."
+    },
+    "explorer": {
+      "title": "Consulter le réseau",
+      "steps": [
+        "Sur l'Accueil, cliquez sur <b>Explorateur</b>, le bouton rond avec un télescope. Dans une grande fenêtre, cliquez plutôt sur la carte <b>Réseau</b> à côté de votre portefeuille.",
+        "Les chiffres en haut montrent le réseau en ce moment : ORN émis, prochain point de contrôle, mineurs et hashrate.",
+        "En dessous, cliquez sur <b>Points de contrôle</b>, <b>Meilleurs portefeuilles</b> ou <b>Validateurs</b>, puis cliquez sur n'importe quelle ligne pour l'ouvrir.",
+        "Pour trouver quelque chose, saisissez une adresse, un nom ou un numéro de point de contrôle dans la barre de recherche."
+      ]
+    },
+    "get": {
+      "title": "Obtenir des ORN sur iPhone",
+      "steps": [
+        "Recevez un paiement : partagez votre adresse depuis <b>Recevoir</b>, le bouton rond avec une flèche pointant vers le bas.",
+        "Échangez des SOL ou des Bitcoin contre des ORN dans Orien Wallet sur un ordinateur auquel ce même portefeuille est associé.",
+        "Minez sur un ordinateur : installez Orien Wallet dessus, associez ce portefeuille et appuyez sur <b>Miner</b>."
+      ]
+    },
+    "mine": {
+      "title": "Miner des ORN",
+      "steps": [
+        "Sur l'Accueil, cliquez sur <b>Miner</b>, le bouton rond avec une pioche. Dans une grande fenêtre, cliquez plutôt sur la carte <b>Minage</b> à côté de votre portefeuille.",
+        "Réglez le curseur <b>Processeur</b> ou cliquez sur <b>Test de performance</b> pour trouver le réglage idéal de votre ordinateur.",
+        "Cliquez sur <b>Démarrer le minage</b>. Chaque heure, vous gagnez une part des nouveaux ORN.",
+        "Pour miner lorsque la fenêtre est fermée, activez <b>Rester actif en arrière-plan</b> dans Paramètres, <b>Cet ordinateur</b>. Pour empêcher l'ordinateur de se mettre en veille, activez aussi <b>Empêcher la mise en veille</b> au même endroit."
+      ],
+      "note": "Si l'application se met à jour pendant le minage, le minage redémarre automatiquement."
+    },
+    "buy": {
+      "title": "Acheter des ORN avec SOL ou Bitcoin",
+      "steps": [
+        "Sur l'Accueil, cliquez sur <b>Échanger</b>, le bouton rond avec deux flèches.",
+        "Sous <b>Offres ouvertes</b>, cliquez sur <b>Prendre</b> sur celle qui vous plaît.",
+        "Saisissez l'adresse SOL ou Bitcoin depuis laquelle vous paierez, puis cliquez sur <b>Prendre l'offre</b>.",
+        "Lorsque le vendeur répond, payez le montant exact affiché depuis votre portefeuille SOL ou Bitcoin.",
+        "Les ORN arrivent tout seuls dans ce portefeuille."
+      ]
+    },
+    "sell": {
+      "title": "Vendre des ORN",
+      "steps": [
+        "Connectez-vous et vérifiez d'abord ce portefeuille.",
+        "Sur l'Accueil, cliquez sur <b>Échanger</b>, le bouton rond avec deux flèches, puis sur <b>Publier une offre</b>.",
+        "Choisissez SOL ou Bitcoin, puis indiquez combien d'ORN vendre, le montant souhaité et l'adresse à laquelle vous serez payé.",
+        "Cliquez sur <b>Publier l'offre</b> et gardez Orien Wallet ouvert jusqu'à ce qu'elle soit prise. <b>Empêcher la mise en veille</b> dans Paramètres, <b>Cet ordinateur</b>, le maintient actif pendant votre absence."
+      ]
+    },
+    "lock": {
+      "title": "Verrouiller avec Touch ID",
+      "steps": [
+        "Ouvrez <b>Paramètres</b>, le bouton rond avec un engrenage sur l'Accueil, puis <b>Confidentialité et sécurité</b>.",
+        "Activez <b>Verrouiller avec Touch ID</b>.",
+        "Orien Wallet se verrouille après une minute d'inactivité."
+      ]
+    },
+    "extension": {
+      "title": "Utiliser Orien Wallet dans votre navigateur",
+      "steps": [
+        "Ouvrez <b>Paramètres</b>, le bouton rond avec un engrenage sur l'Accueil, puis <b>Extensions de navigateur</b>.",
+        "Cliquez sur votre navigateur et ajoutez-y Orien Wallet.",
+        "Envoyez des ORN et consultez votre solde depuis la barre d'outils du navigateur, et connectez-vous aux sites web avec votre portefeuille. Vos clés restent dans cette application."
+      ]
+    },
+    "theme-build": {
+      "title": "Créer votre propre thème",
+      "steps": [
+        "Ouvrez <b>Paramètres</b>, le bouton rond avec un engrenage sur l'Accueil, puis <b>Apparence</b>, et cliquez sur <b>Créer un thème</b>.",
+        "Donnez-lui un <b>Nom</b> et choisissez <b>Sombre</b> ou <b>Clair</b> sous <b>Base</b>.",
+        "Choisissez une <b>Couleur d'accent</b> ou cliquez sur le cercle arc-en-ciel pour choisir la vôtre.",
+        "Sous <b>Image de fond</b>, cliquez sur <b>Choisir une image</b>. Une grande image offre le meilleur rendu, au moins 1920 × 1080.",
+        "Observez l'aperçu au fur et à mesure, puis cliquez sur <b>Enregistrer le thème</b>. Il est appliqué immédiatement."
+      ],
+      "note": "Vos thèmes vous suivent sur vos autres ordinateurs, et votre iPhone adopte leurs couleurs. Pour en modifier un plus tard, cliquez sur l'engrenage de sa carte dans Apparence ; la corbeille le supprime."
+    },
+    "theme-store": {
+      "title": "Trouver des thèmes dans la Boutique de thèmes",
+      "steps": [
+        "Ouvrez <b>Paramètres</b>, le bouton rond avec un engrenage sur l'Accueil, puis <b>Apparence</b>, et cliquez sur <b>Boutique de thèmes</b> en haut.",
+        "Sous <b>Tous</b>, choisissez <b>Populaires</b> ou <b>Récents</b> pour les thèmes créés par la communauté, ou <b>Officiels</b> pour ceux d'Orien. Chaque carte montre le thème sur une miniature de l'application.",
+        "Cliquez sur <b>Essayer</b> pour voir toute l'application avec ce thème. Cliquez sur <b>Annuler</b> pour revenir en arrière ; quitter la boutique revient aussi en arrière.",
+        "Cliquez sur <b>Utiliser</b> pour le conserver. Il rejoint vos thèmes dans Apparence et s'applique immédiatement.",
+        "Vous l'aimez ? Le bouton pièces envoie un pourboire en ORN à son créateur. Le drapeau signale un thème qui enfreint les règles."
+      ],
+      "note": "Un thème que vous utilisez est votre propre copie : son créateur ne peut pas le modifier, et vous pouvez l'éditer ou le supprimer comme un thème que vous avez créé."
+    },
+    "theme-share": {
+      "title": "Partager un thème dans la Boutique de thèmes",
+      "steps": [
+        "Vous devez être connecté à Orien Network avec un portefeuille vérifié.",
+        "Ouvrez <b>Paramètres</b>, le bouton rond avec un engrenage sur l'Accueil, puis <b>Apparence</b>.",
+        "Sur l'un de vos propres thèmes, cliquez sur le bouton de partage (le carré avec une flèche), puis sur <b>Partager le thème</b>.",
+        "Il est vérifié, puis apparaît dans la boutique avec votre nom, où tout le monde peut l'essayer, l'utiliser et vous envoyer un pourboire.",
+        "Pour le retirer, ouvrez la Boutique de thèmes, puis <b>Les vôtres</b>, et cliquez deux fois sur <b>Retirer de la boutique</b>."
+      ],
+      "note": "Modifier votre thème par la suite ne change pas celui partagé. Partagez-le de nouveau en tant que nouveau thème si vous préférez la nouvelle version."
+    },
+    "activity": {
+      "title": "Activité et notifications",
+      "steps": [
+        "Sur l'Accueil, cliquez sur <b>Tout voir</b> à côté d'Activité.",
+        "<b>Paiements</b> affiche ce que vous avez envoyé et reçu ; <b>Récompenses</b> affiche les récompenses de minage et les frais de validateur.",
+        "Choisissez ce dont vous souhaitez être averti dans Paramètres, <b>Notifications</b>."
+      ]
+    }
+  }
 }

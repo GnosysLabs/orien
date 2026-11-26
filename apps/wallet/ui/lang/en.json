@@ -1118,5 +1118,242 @@
   "posted about you:": "posted about you:",
   "replied to your post": "replied to your post",
   "replied to your reply": "replied to your reply",
-  "replied to the network's post about you": "replied to the network's post about you"
+  "replied to the network's post about you": "replied to the network's post about you",
+  "_guides": {
+    "backup": {
+      "title": "Back up your recovery phrase",
+      "steps": [
+        "On Home, click the wallet's name at the top to open <b>Wallets</b>.",
+        "Click the gear on the wallet's card.",
+        "Click <b>Recovery phrase</b>, then <b>I understand, show them</b>.",
+        "Confirm with Touch ID, or type the wallet's password if it has one.",
+        "Click <b>Tap to reveal</b> and write the 24 words on paper, in order. Keep them somewhere safe and private."
+      ],
+      "note": "Anyone with these words can spend this wallet's ORN. Orien never asks for them."
+    },
+    "send": {
+      "title": "Send ORN",
+      "steps": [
+        "On Home, click <b>Send</b>, the round button with an arrow pointing up.",
+        "Under <b>To</b>, type a name or address, pick someone under <b>Recents</b>, or click <b>Paste</b>.",
+        "Type the amount, or click <b>Max</b> to send all you can after the fee.",
+        "Check the total, then click <b>Send</b>.",
+        "It arrives in seconds. Save a new address as a contact from the last screen if you like."
+      ]
+    },
+    "receive": {
+      "title": "Receive ORN",
+      "steps": [
+        "On Home, click <b>Receive</b>, the round button with an arrow pointing down.",
+        "Show the QR code to the person paying you, or click <b>Share address</b> or <b>Copy address</b> and send it to them.",
+        "Their payment shows in your Activity within seconds."
+      ]
+    },
+    "home": {
+      "title": "Get back to Home",
+      "steps": [
+        "Click <b>Back</b> at the top left to go back one step.",
+        "Click the <b>ORIEN</b> name at the top of the window to go straight to Home from anywhere."
+      ]
+    },
+    "wallets": {
+      "title": "Add another wallet",
+      "steps": [
+        "On Home, click the wallet's name at the top, then <b>Add a wallet</b>.",
+        "Click <b>Make a new wallet</b>, give it a name and an icon, then click <b>Make the wallet</b>.",
+        "Back up its recovery phrase: each wallet has its own.",
+        "To switch wallets, click the wallet's name on Home and pick one."
+      ]
+    },
+    "restore": {
+      "title": "Restore a wallet from its words",
+      "steps": [
+        "On Home, click the wallet's name at the top, then <b>Add a wallet</b>, then <b>Restore with recovery phrase</b>. On a new install, click <b>Use my recovery phrase</b>.",
+        "Type the 24 words, then click <b>Continue</b>.",
+        "Give it a name and an icon, then click <b>Restore wallet</b>."
+      ]
+    },
+    "link": {
+      "title": "Use your wallets on another device",
+      "steps": [
+        "On the new device, click <b>Use my other device</b> (or <b>Add a wallet</b>, then <b>From my other device</b>). It shows a QR code and a code.",
+        "On the device that has your wallets, open <b>Settings</b>, the round button with a gear on Home, then click <b>Link a new device</b>.",
+        "On an iPhone, scan the new device's QR code. On a computer, type its code and click <b>Continue</b>.",
+        "Check both devices show the same three pictures, then click <b>They match, send my wallets</b>.",
+        "Your wallets arrive on the new device by themselves."
+      ],
+      "note": "Your wallets travel encrypted, straight between your two devices."
+    },
+    "sync": {
+      "title": "Keep contacts the same everywhere",
+      "steps": [
+        "On Home, click <b>Contacts</b>, the round button with two people.",
+        "If you see <b>Turn on syncing</b>, click it. Confirm with Touch ID, or type the wallet's password if it has one.",
+        "Do this once on each device. After that, contacts and wallet icons stay the same on all of them."
+      ]
+    },
+    "signin": {
+      "title": "Sign in to Orien Network",
+      "steps": [
+        "On Home, click <b>Sign in</b> at the top right.",
+        "Type your email and click <b>Send me a code</b>.",
+        "Type the 6-digit code from the email and click <b>Continue</b>.",
+        "New here? Choose a username, then click <b>Make my account</b>."
+      ],
+      "note": "Your account is for the Community, the Market and swaps. Your wallets stay in this app."
+    },
+    "verify": {
+      "title": "Verify a wallet",
+      "steps": [
+        "Sign in, and open the wallet you want to verify.",
+        "On Home, click <b>Verify</b> on the <b>Verify</b> card under your balance. (Or click your picture at the top right, then <b>Edit Profile</b>, then <b>Verify</b> beside the wallet.)",
+        "Click <b>Verify</b> to confirm. It sends less than 0.001 ORN from that wallet, fee included.",
+        "Within a minute it shows <b>Verified</b>."
+      ],
+      "note": "Verifying shows everyone the wallet is yours, including its balance. It lets you post, sell, swap and receive tips."
+    },
+    "verify-more": {
+      "title": "Verify more wallets, and choose where you're paid",
+      "steps": [
+        "Switch to another wallet: click the wallet's name on Home and pick it.",
+        "Click your picture, then <b>Edit Profile</b>, then <b>Verify</b> beside that wallet.",
+        "Repeat for each wallet you want on your profile.",
+        "The wallet buyers and tippers pay says <b>Paid here</b>. To change it, click <b>Get paid here</b> on another verified wallet.",
+        "To take a wallet off your profile, click <b>⋯</b> beside it, then <b>Remove from your profile</b>."
+      ]
+    },
+    "tip": {
+      "title": "Tip someone",
+      "steps": [
+        "On Home, click <b>Community</b>, the round button with a globe.",
+        "Under a post you like, click <b>Tip</b>.",
+        "Pick 1, 5 or 10 ORN, or type another amount, then click <b>Tip</b>.",
+        "The post shows its tips, without names. The author is told it was you."
+      ],
+      "note": "Tips are payments and can't be undone."
+    },
+    "chat": {
+      "title": "Chat with everyone",
+      "steps": [
+        "On Home, click <b>Messages</b>, the round button with a speech bubble. <b>Orien Group Chat</b> is pinned at the top.",
+        "Anyone can read along. To write, reply or react, sign in and verify a wallet.",
+        "Point at a message to reply, react or report it.",
+        "New messages put a dot on Messages. To turn that off, click the bell at the top of the chat."
+      ],
+      "note": "Everything in the group chat is public. Be kind."
+    },
+    "ai": {
+      "title": "Ask Orien AI Support",
+      "steps": [
+        "On Home, click <b>Messages</b>, the round button with a speech bubble. <b>Orien AI Support</b> is pinned under the group chat. In a big window, the life buoy beside the bell opens it too.",
+        "You need to be signed in to Orien Network. Verifying a wallet isn't needed.",
+        "Ask anything about the wallet, mining, swaps or the network, in your own words.",
+        "Click <b>Start over</b> at the top of the chat to clear it."
+      ],
+      "note": "Answers come from an AI and can be wrong. It never needs your recovery words, passwords or keys: never share them with anyone."
+    },
+    "explorer": {
+      "title": "Look up the network",
+      "steps": [
+        "On Home, click <b>Explorer</b>, the round button with a telescope. In a big window, click the <b>Network</b> card beside your wallet instead.",
+        "The figures at the top show the network right now: ORN released, the next checkpoint, miners and hashrate.",
+        "Below them, click <b>Checkpoints</b>, <b>Top wallets</b> or <b>Validators</b>, and click any row to open it.",
+        "To find something, type an address, a name or a checkpoint number in the search box."
+      ]
+    },
+    "get": {
+      "title": "Get ORN on iPhone",
+      "steps": [
+        "Be paid: share your address from <b>Receive</b>, the round button with an arrow pointing down.",
+        "Swap SOL or Bitcoin for ORN in Orien Wallet on a computer, with this same wallet linked to it.",
+        "Mine on a computer: install Orien Wallet there, link this wallet, and press <b>Mine</b>."
+      ]
+    },
+    "mine": {
+      "title": "Mine ORN",
+      "steps": [
+        "On Home, click <b>Mine</b>, the round button with a pickaxe. In a big window, click the <b>Mining</b> card beside your wallet instead.",
+        "Set the <b>Processor</b> slider, or click <b>Benchmark</b> to find your computer's sweet spot.",
+        "Click <b>Start mining</b>. Each hour you earn a share of the new ORN.",
+        "To mine with the window closed, turn on <b>Keep running when closed</b> in Settings, <b>This computer</b>. To stop the computer sleeping, turn on <b>Keep this computer awake</b> there too."
+      ],
+      "note": "If the app updates while mining, mining starts again by itself."
+    },
+    "buy": {
+      "title": "Buy ORN with SOL or Bitcoin",
+      "steps": [
+        "On Home, click <b>Swap</b>, the round button with two arrows.",
+        "Under <b>Open offers</b>, click <b>Take</b> on one you like.",
+        "Type the SOL or Bitcoin address you'll pay from, then click <b>Take the offer</b>.",
+        "When the seller answers, pay the exact amount shown from your SOL or Bitcoin wallet.",
+        "The ORN arrive in this wallet by themselves."
+      ]
+    },
+    "sell": {
+      "title": "Sell ORN",
+      "steps": [
+        "Sign in and verify this wallet first.",
+        "On Home, click <b>Swap</b>, the round button with two arrows, then <b>Post an offer</b>.",
+        "Choose SOL or Bitcoin, then type how many ORN to sell, how much you want for them, and the address you'll be paid at.",
+        "Click <b>Post the offer</b>, and keep Orien Wallet running until it's taken. <b>Keep this computer awake</b> in Settings, <b>This computer</b>, keeps it open while you're away."
+      ]
+    },
+    "lock": {
+      "title": "Lock with Touch ID",
+      "steps": [
+        "Open <b>Settings</b>, the round button with a gear on Home, then <b>Privacy and security</b>.",
+        "Turn on <b>Lock with Touch ID</b>.",
+        "Orien Wallet locks after a minute away."
+      ]
+    },
+    "extension": {
+      "title": "Use Orien Wallet in your browser",
+      "steps": [
+        "Open <b>Settings</b>, the round button with a gear on Home, then <b>Browser Extensions</b>.",
+        "Click your browser and add Orien Wallet there.",
+        "Send ORN and see your balance from the browser's toolbar, and sign in to websites with your wallet. Your keys stay in this app."
+      ]
+    },
+    "theme-build": {
+      "title": "Build your own theme",
+      "steps": [
+        "Open <b>Settings</b>, the round button with a gear on Home, then <b>Appearance</b>, and click <b>Build a theme</b>.",
+        "Give it a <b>Name</b>, and choose <b>Dark</b> or <b>Light</b> under <b>Base</b>.",
+        "Pick an <b>Accent colour</b>, or click the rainbow circle to choose your own.",
+        "Under <b>Background picture</b>, click <b>Choose a picture</b>. A large one looks best, at least 1920 × 1080.",
+        "Watch the preview as you go, then click <b>Save theme</b>. It's worn at once."
+      ],
+      "note": "Your themes follow you to your other computers, and your iPhone wears their colours. To change one later, click the gear on its card in Appearance; the bin deletes it."
+    },
+    "theme-store": {
+      "title": "Find themes in the Theme Store",
+      "steps": [
+        "Open <b>Settings</b>, the round button with a gear on Home, then <b>Appearance</b>, and click <b>Theme Store</b> at the top.",
+        "Under <b>All</b>, pick <b>Popular</b> or <b>Newest</b> for themes people made, or <b>Official</b> for Orien's own. Each card shows the theme on a small copy of the app.",
+        "Click <b>Try</b> to see the whole app in it. Click <b>Undo</b> to go back; leaving the store goes back too.",
+        "Click <b>Use</b> to keep it. It joins your themes in Appearance and is worn at once.",
+        "Like it? The coins button tips its maker some ORN. The flag reports a theme that breaks the rules."
+      ],
+      "note": "A theme you use is your own copy: the maker can't change it, and you can edit or delete it like one you built."
+    },
+    "theme-share": {
+      "title": "Share a theme in the Theme Store",
+      "steps": [
+        "You need to be signed in to Orien Network with a verified wallet.",
+        "Open <b>Settings</b>, the round button with a gear on Home, then <b>Appearance</b>.",
+        "On one of your own themes, click the share button (the box with an arrow), then <b>Share theme</b>.",
+        "It's checked, then shows in the store with your name, where anyone can try it, use it and tip you.",
+        "To take it down, open the Theme Store, then <b>Yours</b>, and click <b>Remove from store</b> twice."
+      ],
+      "note": "Editing your theme later doesn't change the shared one. Share it again as a new theme if you like the new version better."
+    },
+    "activity": {
+      "title": "Activity and notifications",
+      "steps": [
+        "On Home, click <b>View all</b> beside Activity.",
+        "<b>Payments</b> shows what you sent and received; <b>Rewards</b> shows mining rewards and validator fees.",
+        "Choose what you're told about in Settings, <b>Notifications</b>."
+      ]
+    }
+  }
 }

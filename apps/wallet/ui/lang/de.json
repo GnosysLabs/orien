@@ -1871,5 +1871,242 @@
       "^says they paid ([0-9.,]+) ORN$",
       "meldet die Zahlung von {0} ORN"
     ]
-  ]
+  ],
+  "_guides": {
+    "backup": {
+      "title": "Wiederherstellungsphrase sichern",
+      "steps": [
+        "Klicke auf Start oben auf den Namen deiner Wallet, um <b>Wallets</b> zu öffnen.",
+        "Klicke auf das Zahnrad auf der Karte deiner Wallet.",
+        "Klicke auf <b>Wiederherstellungsphrase</b> und dann auf <b>Verstanden, anzeigen</b>.",
+        "Bestätige mit Touch ID oder gib das Passwort der Wallet ein, falls sie eines hat.",
+        "Klicke auf <b>Tippen zum Anzeigen</b> und schreibe die 24 Wörter in der richtigen Reihenfolge auf Papier. Bewahre sie an einem sicheren, privaten Ort auf."
+      ],
+      "note": "Jeder mit diesen Wörtern kann die ORN dieser Wallet ausgeben. Orien fragt niemals danach."
+    },
+    "send": {
+      "title": "ORN senden",
+      "steps": [
+        "Klicke auf Start auf <b>Senden</b>, den runden Button mit dem Pfeil nach oben.",
+        "Gib unter <b>An</b> einen Namen oder eine Adresse ein, wähle jemanden unter <b>Zuletzt</b> aus oder klicke auf <b>Einfügen</b>.",
+        "Gib den Betrag ein oder klicke auf <b>Max</b>, um den gesamten verfügbaren Betrag nach Abzug der Gebühr zu senden.",
+        "Prüfe den Gesamtbetrag und klicke dann auf <b>Senden</b>.",
+        "Die Zahlung trifft in Sekunden ein. Auf dem letzten Bildschirm kannst du eine neue Adresse auf Wunsch als Kontakt speichern."
+      ]
+    },
+    "receive": {
+      "title": "ORN empfangen",
+      "steps": [
+        "Klicke auf Start auf <b>Empfangen</b>, den runden Button mit dem Pfeil nach unten.",
+        "Zeige der Person, die dich bezahlt, den QR-Code oder klicke auf <b>Adresse teilen</b> oder <b>Adresse kopieren</b> und sende sie ihr.",
+        "Die Zahlung erscheint innerhalb von Sekunden in deiner Aktivität."
+      ]
+    },
+    "home": {
+      "title": "Zurück zum Start",
+      "steps": [
+        "Klicke oben links auf <b>Zurück</b>, um einen Schritt zurückzugehen.",
+        "Klicke oben im Fenster auf <b>ORIEN</b>, um von überall direkt zum Start zu gelangen."
+      ]
+    },
+    "wallets": {
+      "title": "Weitere Wallet hinzufügen",
+      "steps": [
+        "Klicke auf Start oben auf den Namen deiner Wallet und dann auf <b>Wallet hinzufügen</b>.",
+        "Klicke auf <b>Neue Wallet erstellen</b>, gib ihr einen Namen sowie ein Symbol und klicke dann auf <b>Wallet erstellen</b>.",
+        "Sichere ihre Wiederherstellungsphrase: Jede Wallet hat ihre eigene.",
+        "Um die Wallet zu wechseln, klicke auf Start auf den Namen der Wallet und wähle eine andere aus."
+      ]
+    },
+    "restore": {
+      "title": "Wallet aus ihren Wörtern wiederherstellen",
+      "steps": [
+        "Klicke auf Start oben auf den Namen deiner Wallet, dann auf <b>Wallet hinzufügen</b> und auf <b>Mit Wiederherstellungsphrase wiederherstellen</b>. Bei einer Neuinstallation klicke auf <b>Wiederherstellungsphrase verwenden</b>.",
+        "Gib die 24 Wörter ein und klicke dann auf <b>Weiter</b>.",
+        "Gib ihr einen Namen sowie ein Symbol und klicke dann auf <b>Wallet wiederherstellen</b>."
+      ]
+    },
+    "link": {
+      "title": "Deine Wallets auf einem anderen Gerät verwenden",
+      "steps": [
+        "Klicke auf dem neuen Gerät auf <b>Anderes Gerät verwenden</b> (oder auf <b>Wallet hinzufügen</b> und dann auf <b>Von meinem anderen Gerät</b>). Dort erscheinen ein QR-Code und ein Code.",
+        "Öffne auf dem Gerät mit deinen Wallets die <b>Einstellungen</b>, den runden Button mit dem Zahnrad auf Start, und klicke dann auf <b>Neues Gerät verknüpfen</b>.",
+        "Scanne auf einem iPhone den QR-Code des neuen Geräts. Auf einem Computer gib den Code ein und klicke auf <b>Weiter</b>.",
+        "Prüfe, ob beide Geräte dieselben drei Bilder anzeigen, und klicke dann auf <b>Stimmen überein, meine Wallets senden</b>.",
+        "Deine Wallets treffen automatisch auf dem neuen Gerät ein."
+      ],
+      "note": "Deine Wallets werden verschlüsselt direkt zwischen deinen beiden Geräten übertragen."
+    },
+    "sync": {
+      "title": "Kontakte überall synchron halten",
+      "steps": [
+        "Klicke auf Start auf <b>Kontakte</b>, den runden Button mit zwei Personen.",
+        "Wenn du <b>Synchronisierung aktivieren</b> siehst, klicke darauf. Bestätige mit Touch ID oder gib das Passwort der Wallet ein, falls sie eines hat.",
+        "Mach das einmal auf jedem Gerät. Danach bleiben Kontakte und Wallet-Symbole auf allen Geräten synchron."
+      ]
+    },
+    "signin": {
+      "title": "Bei Orien Network anmelden",
+      "steps": [
+        "Klicke auf Start oben rechts auf <b>Anmelden</b>.",
+        "Gib deine E-Mail ein und klicke auf <b>Code senden</b>.",
+        "Gib den 6-stelligen Code aus der E-Mail ein und klicke auf <b>Weiter</b>.",
+        "Neu hier? Wähle einen Benutzernamen und klicke dann auf <b>Mein Konto erstellen</b>."
+      ],
+      "note": "Dein Konto ist für die Community, den Markt und Swaps. Deine Wallets bleiben in dieser App."
+    },
+    "verify": {
+      "title": "Wallet verifizieren",
+      "steps": [
+        "Melde dich an und öffne die Wallet, die du verifizieren möchtest.",
+        "Klicke auf Start auf der Karte <b>Verifizieren</b> unter deinem Guthaben auf <b>Verifizieren</b>. (Oder klicke oben rechts auf dein Bild, dann auf <b>Profil bearbeiten</b> und anschließend neben der Wallet auf <b>Verifizieren</b>.)",
+        "Klicke zum Bestätigen auf <b>Verifizieren</b>. Dabei werden weniger als 0,001 ORN inklusive Gebühr von dieser Wallet gesendet.",
+        "Innerhalb einer Minute erscheint <b>Verifiziert</b>."
+      ],
+      "note": "Die Verifizierung zeigt allen, dass die Wallet dir gehört, inklusive Guthaben. Damit kannst du posten, verkaufen, tauschen und Trinkgelder erhalten."
+    },
+    "verify-more": {
+      "title": "Weitere Wallets verifizieren und Auszahlungs-Wallet wählen",
+      "steps": [
+        "Wechsle zu einer anderen Wallet: Klicke auf Start auf den Namen deiner Wallet und wähle sie aus.",
+        "Klicke auf dein Bild, dann auf <b>Profil bearbeiten</b> und anschließend neben dieser Wallet auf <b>Verifizieren</b>.",
+        "Wiederhole dies für jede Wallet, die auf deinem Profil erscheinen soll.",
+        "Die Wallet, an die Käufer und Trinkgeldgeber zahlen, trägt den Hinweis <b>Hier bezahlt</b>. Um das zu ändern, klicke bei einer anderen verifizierten Wallet auf <b>Hier bezahlt werden</b>.",
+        "Um eine Wallet von deinem Profil zu entfernen, klicke daneben auf <b>⋯</b> und dann auf <b>Aus deinem Profil entfernen</b>."
+      ]
+    },
+    "tip": {
+      "title": "Jemandem Trinkgeld geben",
+      "steps": [
+        "Klicke auf Start auf <b>Community</b>, den runden Button mit dem Globus.",
+        "Klicke unter einem Beitrag, der dir gefällt, auf <b>Trinkgeld</b>.",
+        "Wähle 1, 5 oder 10 ORN oder gib einen anderen Betrag ein und klicke dann auf <b>Trinkgeld</b>.",
+        "Der Beitrag zeigt seine Trinkgelder ohne Namen. Der Autor erfährt, dass es von dir kam."
+      ],
+      "note": "Trinkgelder sind Zahlungen und können nicht rückgängig gemacht werden."
+    },
+    "chat": {
+      "title": "Mit allen chatten",
+      "steps": [
+        "Klicke auf Start auf <b>Nachrichten</b>, den runden Button mit der Sprechblase. <b>Orien-Gruppenchat</b> ist ganz oben angepinnt.",
+        "Jeder kann mitlesen. Zum Schreiben, Antworten oder Reagieren melde dich an und verifiziere eine Wallet.",
+        "Zeige auf eine Nachricht, um darauf zu antworten, zu reagieren oder sie zu melden.",
+        "Bei neuen Nachrichten erscheint ein Punkt an Nachrichten. Um das auszuschalten, klicke oben im Chat auf die Glocke."
+      ],
+      "note": "Alles im Gruppenchat ist öffentlich. Sei freundlich."
+    },
+    "ai": {
+      "title": "Orien KI-Support fragen",
+      "steps": [
+        "Klicke auf Start auf <b>Nachrichten</b>, den runden Button mit der Sprechblase. <b>Orien KI-Support</b> ist unter dem Gruppenchat angepinnt. In einem großen Fenster öffnet ihn auch der Rettungsring neben der Glocke.",
+        "Du musst bei Orien Network angemeldet sein. Eine Wallet-Verifizierung ist nicht erforderlich.",
+        "Frag alles rund um Wallet, Mining, Swaps oder das Netzwerk, in deinen eigenen Worten.",
+        "Klicke oben im Chat auf <b>Neu starten</b>, um ihn zu leeren."
+      ],
+      "note": "Antworten stammen von einer KI und können falsch sein. Sie braucht niemals deine Wiederherstellungswörter, Passwörter oder Schlüssel: Teile sie mit niemandem."
+    },
+    "explorer": {
+      "title": "Netzwerk durchsuchen",
+      "steps": [
+        "Klicke auf Start auf <b>Explorer</b>, den runden Button mit dem Teleskop. In einem großen Fenster kannst du stattdessen auf die Karte <b>Netzwerk</b> neben deiner Wallet klicken.",
+        "Die Zahlen oben zeigen das aktuelle Netzwerk: ausgegebene ORN, nächster Checkpoint, Miner und Hashrate.",
+        "Klicke darunter auf <b>Checkpoints</b>, <b>Top-Wallets</b> oder <b>Validatoren</b> und wähle eine beliebige Zeile aus, um sie zu öffnen.",
+        "Um etwas zu finden, gib eine Adresse, einen Namen oder eine Checkpoint-Nummer in das Suchfeld ein."
+      ]
+    },
+    "get": {
+      "title": "ORN auf dem iPhone erhalten",
+      "steps": [
+        "Lass dich bezahlen: Teile deine Adresse über <b>Empfangen</b>, den runden Button mit dem Pfeil nach unten.",
+        "Tausche SOL oder Bitcoin in Orien Wallet auf einem Computer gegen ORN, mit derselben verknüpften Wallet.",
+        "Mine auf einem Computer: Installiere dort Orien Wallet, verknüpfe diese Wallet und klicke auf <b>Minen</b>."
+      ]
+    },
+    "mine": {
+      "title": "ORN minen",
+      "steps": [
+        "Klicke auf Start auf <b>Minen</b>, den runden Button mit der Spitzhacke. In einem großen Fenster kannst du stattdessen auf die Karte <b>Mining</b> neben deiner Wallet klicken.",
+        "Stelle den Schieberegler <b>Prozessor</b> ein oder klicke auf <b>Benchmark</b>, um das Optimum für deinen Computer zu finden.",
+        "Klicke auf <b>Mining starten</b>. Jede Stunde verdienst du einen Anteil an den neuen ORN.",
+        "Um bei geschlossenem Fenster weiterzuminen, aktiviere in den Einstellungen unter <b>Dieser Computer</b> die Option <b>Im Hintergrund weiterlaufen</b>. Damit der Computer nicht in den Ruhezustand geht, aktiviere dort auch <b>Computer wach halten</b>."
+      ],
+      "note": "Wenn sich die App während des Minings aktualisiert, startet das Mining automatisch wieder."
+    },
+    "buy": {
+      "title": "ORN mit SOL oder Bitcoin kaufen",
+      "steps": [
+        "Klicke auf Start auf <b>Tauschen</b>, den runden Button mit zwei Pfeilen.",
+        "Klicke unter <b>Offene Angebote</b> bei einem Angebot, das dir gefällt, auf <b>Annehmen</b>.",
+        "Gib die SOL- oder Bitcoin-Adresse ein, von der du zahlst, und klicke dann auf <b>Angebot annehmen</b>.",
+        "Wenn der Verkäufer antwortet, zahle den exakt angezeigten Betrag aus deiner SOL- oder Bitcoin-Wallet.",
+        "Die ORN treffen automatisch in dieser Wallet ein."
+      ]
+    },
+    "sell": {
+      "title": "ORN verkaufen",
+      "steps": [
+        "Melde dich zuerst an und verifiziere diese Wallet.",
+        "Klicke auf Start auf <b>Tauschen</b>, den runden Button mit zwei Pfeilen, und dann auf <b>Angebot erstellen</b>.",
+        "Wähle SOL oder Bitcoin, gib dann an, wie viele ORN du verkaufen möchtest, wie viel du dafür willst und an welche Adresse gezahlt werden soll.",
+        "Klicke auf <b>Angebot veröffentlichen</b> und lass Orien Wallet laufen, bis es angenommen wird. Mit <b>Computer wach halten</b> in den Einstellungen unter <b>Dieser Computer</b> bleibt es aktiv, während du weg bist."
+      ]
+    },
+    "lock": {
+      "title": "Mit Touch ID sperren",
+      "steps": [
+        "Öffne <b>Einstellungen</b>, den runden Button mit dem Zahnrad auf Start, und dann <b>Datenschutz und Sicherheit</b>.",
+        "Aktiviere <b>Mit Touch ID sperren</b>.",
+        "Orien Wallet sperrt sich nach einer Minute Abwesenheit."
+      ]
+    },
+    "extension": {
+      "title": "Orien Wallet im Browser verwenden",
+      "steps": [
+        "Öffne <b>Einstellungen</b>, den runden Button mit dem Zahnrad auf Start, und dann <b>Browser-Erweiterungen</b>.",
+        "Klicke auf deinen Browser und füge dort Orien Wallet hinzu.",
+        "Sende ORN und sieh dein Guthaben in der Browser-Symbolleiste, und melde dich mit deiner Wallet auf Websites an. Deine Schlüssel bleiben in dieser App."
+      ]
+    },
+    "theme-build": {
+      "title": "Eigenes Theme erstellen",
+      "steps": [
+        "Öffne <b>Einstellungen</b>, den runden Button mit dem Zahnrad auf Start, dann <b>Darstellung</b> und klicke auf <b>Theme erstellen</b>.",
+        "Gib unter <b>Name</b> einen Namen ein und wähle unter <b>Basis</b> entweder <b>Dunkel</b> oder <b>Hell</b>.",
+        "Wähle eine <b>Akzentfarbe</b> oder klicke auf den Regenbogenkreis, um eine eigene Farbe auszusuchen.",
+        "Klicke unter <b>Hintergrundbild</b> auf <b>Bild auswählen</b>. Ein großes Bild sieht am besten aus, mindestens 1920 × 1080.",
+        "Sieh dir währenddessen die Vorschau an und klicke dann auf <b>Theme speichern</b>. Es wird sofort angewendet."
+      ],
+      "note": "Deine Themes werden mit deinen anderen Computern synchronisiert und dein iPhone übernimmt ihre Farben. Um ein Theme später zu ändern, klicke unter Darstellung auf das Zahnrad auf seiner Karte; der Papierkorb löscht es."
+    },
+    "theme-store": {
+      "title": "Themes im Theme-Store entdecken",
+      "steps": [
+        "Öffne <b>Einstellungen</b>, den runden Button mit dem Zahnrad auf Start, dann <b>Darstellung</b> und klicke oben auf <b>Theme-Store</b>.",
+        "Wähle unter <b>Alle</b> entweder <b>Beliebt</b> oder <b>Neueste</b> für Themes aus der Community, oder <b>Offiziell</b> für die offiziellen Themes von Orien. Jede Karte zeigt das Theme auf einer kleinen Vorschau der App.",
+        "Klicke auf <b>Ausprobieren</b>, um die gesamte App darin zu sehen. Klicke auf <b>Rückgängig</b>, um zurückzukehren; auch beim Verlassen des Stores wird es zurückgesetzt.",
+        "Klicke auf <b>Verwenden</b>, um es zu behalten. Es wird zu deinen Themes unter Darstellung hinzugefügt und sofort angewendet.",
+        "Gefällt es dir? Mit dem Münzen-Button gibst du dem Ersteller etwas ORN als Trinkgeld. Die Flagge meldet ein Theme, das gegen die Regeln verstößt."
+      ],
+      "note": "Ein Theme, das du nutzt, ist deine eigene Kopie: Der Ersteller kann es nicht ändern, und du kannst es wie ein selbst erstelltes bearbeiten oder löschen."
+    },
+    "theme-share": {
+      "title": "Ein Theme im Theme-Store teilen",
+      "steps": [
+        "Du musst mit einer verifizierten Wallet bei Orien Network angemeldet sein.",
+        "Öffne <b>Einstellungen</b>, den runden Button mit dem Zahnrad auf Start, und dann <b>Darstellung</b>.",
+        "Klicke bei einem deiner eigenen Themes auf den Teilen-Button (das Kästchen mit Pfeil) und dann auf <b>Theme teilen</b>.",
+        "Es wird geprüft und erscheint dann mit deinem Namen im Store, wo jeder es ausprobieren, nutzen und dir Trinkgeld geben kann.",
+        "Um es wieder zu entfernen, öffne den Theme-Store, dann <b>Deine</b> und klicke zweimal auf <b>Aus dem Store entfernen</b>."
+      ],
+      "note": "Wenn du dein Theme später bearbeitest, ändert sich das geteilte Theme nicht. Teile es erneut als neues Theme, wenn dir die neue Version besser gefällt."
+    },
+    "activity": {
+      "title": "Aktivität und Benachrichtigungen",
+      "steps": [
+        "Klicke auf Start neben Aktivität auf <b>Alle anzeigen</b>.",
+        "<b>Zahlungen</b> zeigt, was du gesendet und erhalten hast; <b>Belohnungen</b> zeigt Mining-Belohnungen und Validator-Gebühren.",
+        "Wähle in den Einstellungen unter <b>Benachrichtigungen</b> aus, worüber du informiert wirst."
+      ]
+    }
+  }
 }
