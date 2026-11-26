@@ -1975,6 +1975,9 @@
   .tc-stage.built::after, .ts-stage::after { content: ""; position: absolute; inset: 0; pointer-events: none;
     background: linear-gradient(to bottom, rgba(0, 0, 0, 0.6), transparent 17%), radial-gradient(ellipse at 50% 45%, transparent 38%, rgba(0, 0, 0, 0.62) 100%); }
   .tc-stage > *, .ts-stage > * { position: relative; z-index: 1; }
+  .ts-stage.builtin { background: var(--ground); }
+  .ts-stage.builtin::before { background: var(--scene, none) center / cover no-repeat; opacity: 0.55; }
+  .ts-stage.builtin::after { display: none; }
   .ts-stage { background: var(--ground-deep); }
   @media (min-width: 860px) {
     body:not(.phone) .theme-card .tc-mini { display: none; }
@@ -5477,6 +5480,18 @@
   // has is made from the colours, kept dark and readable whatever they are.
   const customThemes = () => { try { return JSON.parse(localStorage.getItem("custom-themes") || "[]"); } catch { return []; } };
   const isCustomTheme = (name) => /^c-/.test(name || "");
+  // Pearl, Daylight and Obsidian are built into every picker; Orien's other
+  // themes come from the Theme Store, and stay once you get them (on all your
+  // devices). One you were already wearing counts as got.
+  const KEEP_THEMES = ["pearl", "daylight", "obsidian"];
+  const gotThemes = () => { try { return JSON.parse(localStorage.getItem("got-themes") || "[]"); } catch { return []; } };
+  function gotTheme(id) {
+    if (KEEP_THEMES.includes(id) || isCustomTheme(id) || !THEMES.some(([t]) => t === id) || gotThemes().includes(id)) return;
+    const list = gotThemes().concat([id]);
+    localStorage.setItem("got-themes", JSON.stringify(list));
+    invoke("set_app_pref", { name: "builtins", value: JSON.stringify(list) }).catch(() => {});
+  }
+  const pickerThemes = () => THEMES.filter(([id]) => KEEP_THEMES.includes(id) || gotThemes().includes(id) || id === document.documentElement.dataset.theme);
   const knownTheme = (name) => THEMES.some(([id]) => id === name) || customThemes().some((t) => t.id === name) ? name : "pearl";
   function hexHsl(hex) {
     const n = parseInt(hex.slice(1), 16), r = (n >> 16 & 255) / 255, g = (n >> 8 & 255) / 255, b = (n & 255) / 255;
@@ -5688,6 +5703,7 @@
     name = knownTheme(name);
     if (themePainted && (document.documentElement.dataset.theme || "pearl") === name) return;
     themePainted = true;
+    gotTheme(name);
     const set = () => { document.documentElement.dataset.theme = name; paintOwnTheme(); paintThemeGrid(); };
     try { localStorage.setItem("theme", name); } catch {}
     // The fade between themes: not on Linux, where WebKit can crash doing it.
@@ -5706,7 +5722,7 @@
   const tb = { colors: [], scene: null, editing: null, base: "dark" };
   function paintThemeCards() {
     // Your own themes first, then the built-in ones.
-    const all = customThemes().map((t) => [t.id, t.name, true, !!(t.store || t.from)]).concat(THEMES.map(([id, name]) => [id, name, false, false]));
+    const all = customThemes().map((t) => [t.id, t.name, true, !!(t.store || t.from)]).concat(pickerThemes().map(([id, name]) => [id, name, false, false]));
     $("theme-grid").innerHTML = all.map(([id, name, own, shared]) => `<button class="theme-card" data-pick="${id}">
       <div class="tc-mini" data-theme="${id}">
         <div class="tc-bar"><span class="tc-word"></span><span class="tc-dot"></span></div>
@@ -5777,16 +5793,17 @@
   const tsPic = (name) => /^https:\/\//.test(String(name)) ? String(name) : `${boardBase}/api/market/images/${encodeURIComponent(name)}`;
   const tsImage = (name) => String(name || "").split("/").pop();
   const tsColors = (t) => (Array.isArray(t.colors) ? t.colors : []).filter((c) => /^#[0-9a-f]{6}$/i.test(c)).slice(0, 3);
-  const tsOwned = (t) => customThemes().find((x) => x.from === t.id || x.store === t.id);
+  const tsBuiltin = (t) => (t.builtin && THEMES.some(([id]) => id === t.builtin)) ? t.builtin : null;
+  const tsOwned = (t) => tsBuiltin(t) ? ((KEEP_THEMES.includes(t.builtin) || gotThemes().includes(t.builtin)) ? { id: t.builtin } : null) : customThemes().find((x) => x.from === t.id || x.store === t.id);
   const tsFind = (id) => ts.themes.find((t) => String(t.id) === String(id));
   function tsCard(t) {
     const a = t.author || {}, have = tsOwned(t);
     const tips = t.tips && t.tips.count ? `<span title="Tips">${COINS_ICON}${t.tips.count}</span>` : "";
-    const side = t.mine
+    const side = tsBuiltin(t) ? "" : t.mine
       ? `<button class="pill ts-down${ts.downArmed === String(t.id) ? " armed" : ""}" data-ts-down="${t.id}" title="Take it out of the Theme Store (your copy stays)">${ts.downArmed === String(t.id) ? "Click again to remove" : "Remove from store"}</button>`
       : `${a.tip_to ? `<button class="pill icon" data-ts-tip="${t.id}" title="Tip ${esc(a.name || "")}" aria-label="Tip ${esc(a.name || "")}">${COINS_ICON}</button>` : ""}<button class="pill icon" data-ts-report="${t.id}" title="Report" aria-label="Report">${TS_FLAG}</button>`;
     return `<div class="ts-card" data-ts="${t.id}">
-      <button class="ts-stage" data-ts-try="${t.id}" aria-label="Try ${esc(t.name)}">${TS_MINI}</button>
+      <button class="ts-stage${tsBuiltin(t) ? " builtin" : ""}"${tsBuiltin(t) ? ` data-theme="${tsBuiltin(t)}"` : ""} data-ts-try="${t.id}" aria-label="Try ${esc(t.name)}">${TS_MINI}</button>
       <div class="ts-info"><div class="ts-meta"><div class="ts-name">${esc(t.name)}</div><div class="ts-by">by <b>${esc(a.name || "someone")}</b></div></div>
       <div class="ts-stats"><span title="Downloads">${DOWN_ICON}${Number(t.downloads) || 0}</span>${tips}</div></div>
       <div class="ts-acts">${ts.trying && String(ts.trying.id) === String(t.id) ? `<button class="pill ts-undo" data-ts-undo="${t.id}">Undo</button>` : `<button class="pill" data-ts-try="${t.id}">Try</button>`}<button class="pill pearl ts-get" data-ts-get="${t.id}">${have ? "Use" : "Get"}</button>${side}</div>
@@ -5798,6 +5815,7 @@
     for (const t of ts.themes) {
       const card = grid.querySelector(`[data-ts="${t.id}"]`);
       if (!card) continue;
+      if (tsBuiltin(t)) continue;
       if (t.thumb) card.querySelector(".ts-stage").style.setProperty("--pic", `url("${tsPic(t.thumb)}")`);
       setThemeVars(card.querySelector(".ts-wide"), tsColors(t), null, t.base);
     }
@@ -5887,6 +5905,14 @@
     if (!was) ts.before = document.documentElement.dataset.theme || "pearl";
     ts.trying = t;
     const html = document.documentElement;
+    if (tsBuiltin(t)) {
+      html.dataset.theme = tsBuiltin(t);
+      paintOwnTheme();
+      paintBackdrop();
+      tsMark(was); tsMark(t);
+      feel("selection");
+      return;
+    }
     const wear = (pic) => {
       html.dataset.theme = "store-try";
       setThemeVars(html, tsColors(t), pic, t.base);
@@ -5923,6 +5949,17 @@
       return;
     }
     $("ts-problem").hidden = true;
+    if (tsBuiltin(t)) {
+      ts.trying = null; ts.before = null; tsTurn++;
+      gotTheme(t.builtin);
+      applyTheme(t.builtin, true);
+      invoke("set_app_theme", { theme: t.builtin }).catch(() => {});
+      paintThemeCards();
+      feel("success");
+      cmCall("POST", `/themes/${t.id}/download`).then((d) => { if (d && typeof d.downloads === "number") { t.downloads = d.downloads; tsMark(t); } }).catch(() => {});
+      tsMark(tried); tsMark(t);
+      return;
+    }
     if (customThemes().length >= 24) { problem("ts-problem", "You have 24 themes, as many as there's room for. Delete one in Appearance first."); return; }
     if (button) { button.disabled = true; button.innerHTML = '<span class="spinner"></span>Getting'; }
     try {
@@ -6552,6 +6589,13 @@
     // the first time, the one in use here is shared rather than replaced.
     const sharedBefore = all.themes !== undefined, here = document.documentElement.dataset.theme;
     takeThemes(all.themes);
+    // Orien's themes you got on any of your devices.
+    try {
+      const theirs = all.builtins ? JSON.parse(all.builtins) : [], mine = gotThemes();
+      const both = [...new Set(mine.concat(Array.isArray(theirs) ? theirs : []))].filter((id) => THEMES.some(([t]) => t === id));
+      if (both.length !== mine.length) { localStorage.setItem("got-themes", JSON.stringify(both)); paintThemeCards(); }
+      if (both.length !== (Array.isArray(theirs) ? theirs.length : 0)) invoke("set_app_pref", { name: "builtins", value: JSON.stringify(both) }).catch(() => {});
+    } catch {}
     if (!sharedBefore && isCustomTheme(here)) invoke("set_app_theme", { theme: here }).catch(() => {});
     else if (all.theme) applyTheme(all.theme, true);
     try { mutedKinds = (await invoke("notifications_muted")) || []; } catch {}
