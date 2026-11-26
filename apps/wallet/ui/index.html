@@ -1136,9 +1136,10 @@
          and the bubbles stand out as they do elsewhere. */
       background: var(--glow), var(--ground-deep); background-attachment: fixed; }
     html body.split #inbox { width: 336px; border-radius: 36px 0 0 36px; border-right: 0; }
-    /* The conversation takes the room left, up to 760px: at 860px wide the
-       two fill the window as the Community does, 12px from each side. */
-    html body.split #chat { width: min(760px, 100vw - 24px - 337px); border-radius: 0 36px 36px 0; }
+    /* The conversation takes the room left: the two together exactly as wide
+       as every other page's panel (1040 + 40), and 12px from each side of a
+       narrower window, as the others are. */
+    html body.split #chat { width: min(744px, 100vw - 24px - 336px); border-radius: 0 36px 36px 0; }
     html body.split #inbox::after { content: none; }
     /* The dividing line between the two halves is the chat's own left
        border: a real edge, so nothing lit inside either half covers it. */
