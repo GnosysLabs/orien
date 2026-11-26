@@ -52,6 +52,15 @@ export const CHANGELOG: Entry[] = [
   {
     date: '2026-11-26',
     products: ['wallet'],
+    version: '1.9.22',
+    title: 'Help and the Theme Store in every window',
+    changes: [
+      'The Help button (AI Support, the User Guide and Report a Problem) and the Theme Store button sit beside the bell in small windows too, not only big ones.',
+    ],
+  },
+  {
+    date: '2026-11-26',
+    products: ['wallet'],
     version: '1.9.21',
     title: 'Themes you use stay put',
     changes: [
