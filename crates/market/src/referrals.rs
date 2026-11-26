@@ -72,6 +72,29 @@ pub(crate) struct Payout {
     pub suspended: bool,
 }
 
+pub(crate) struct ReferralAlert {
+    claim: i64,
+    qualified: bool,
+    inviter: String,
+    invitee: String,
+}
+
+impl ReferralAlert {
+    pub(crate) fn nonce(&self) -> String {
+        format!("ref-{}-{}", self.claim, u8::from(self.qualified))
+    }
+
+    pub(crate) fn message(&self) -> String {
+        let Self { claim, inviter, invitee, qualified } = self;
+        if *qualified {
+            let reward = orn(REWARD);
+            format!("💰 **Referral #{claim} is ready for payout**\nNew member `{invitee}` and inviter `{inviter}` are each due **{reward} ORN**. Open Admin → Referrals for their verified wallet addresses.")
+        } else {
+            format!("🎟️ **Referral #{claim} started**\n`{invitee}` entered `{inviter}`’s invite code.")
+        }
+    }
+}
+
 impl Store {
     pub(crate) fn create_referral_tables(&self) -> Result<()> {
         self.db.execute_batch(
@@ -104,6 +127,11 @@ impl Store {
                 closed INTEGER NOT NULL DEFAULT 0
              );
              CREATE INDEX IF NOT EXISTS referral_claims_inviter ON referral_claims (inviter, earned_epoch);
+             CREATE TABLE IF NOT EXISTS referral_alerts (
+                claim INTEGER NOT NULL REFERENCES referral_claims(id),
+                qualified INTEGER NOT NULL,
+                PRIMARY KEY (claim, qualified)
+             );
              CREATE TABLE IF NOT EXISTS referral_hours (
                 claim INTEGER NOT NULL REFERENCES referral_claims(id),
                 epoch INTEGER NOT NULL,
@@ -303,6 +331,10 @@ impl Store {
             "INSERT INTO referral_claims (invitee, inviter, claimed) VALUES (?1, ?2, ?3)",
             params![account, inviter, now()],
         )?;
+        tx.execute(
+            "INSERT INTO referral_alerts (claim, qualified) VALUES (?1, 0)",
+            [tx.last_insert_rowid()],
+        )?;
         tx.commit()?;
         Ok(())
     }
@@ -379,10 +411,33 @@ impl Store {
                     "UPDATE referral_claims SET earned_epoch = ?2, invitee_wallet = ?3, inviter_wallet = ?4 WHERE id = ?1",
                     params![id, mined.upto.saturating_add(1), wallet, inviter_wallet],
                 )?;
+                tx.execute(
+                    "INSERT INTO referral_alerts (claim, qualified) VALUES (?1, 1)",
+                    [id],
+                )?;
                 campaign.remaining -= PAIR_REWARD;
             }
         }
         tx.commit()?;
+        Ok(())
+    }
+
+    pub(crate) fn next_referral_alert(&self) -> Result<Option<ReferralAlert>> {
+        Ok(self.db.query_row(
+            "SELECT q.claim, q.qualified, COALESCE(i.name, 'Closed account'), COALESCE(n.name, 'Closed account')
+             FROM referral_alerts q JOIN referral_claims c ON c.id = q.claim
+             LEFT JOIN accounts i ON i.handle = c.inviter LEFT JOIN accounts n ON n.handle = c.invitee
+             ORDER BY q.rowid LIMIT 1",
+            [],
+            |r| Ok(ReferralAlert { claim: r.get(0)?, qualified: r.get(1)?, inviter: r.get(2)?, invitee: r.get(3)? }),
+        ).optional()?)
+    }
+
+    pub(crate) fn referral_alert_sent(&self, alert: &ReferralAlert) -> Result<()> {
+        self.db.execute(
+            "DELETE FROM referral_alerts WHERE claim = ?1 AND qualified = ?2",
+            params![alert.claim, alert.qualified],
+        )?;
         Ok(())
     }
 
@@ -555,6 +610,7 @@ mod tests {
     fn referral_rewards_need_ten_distinct_checkpoints_and_pay_each_side_once() {
         let (store, inviter, invitee, code) = campaign();
         assert!(store.claim_referral(inviter, &code).is_err());
+        assert!(store.next_referral_alert().unwrap().is_none());
         store.claim_referral(invitee, &code.to_lowercase()).unwrap();
         store.claim_referral(invitee, &code).unwrap();
         store.track_referral_mining(&checkpoints(10)).unwrap();
@@ -583,6 +639,17 @@ mod tests {
             store.referral_campaign().unwrap().unwrap().remaining,
             BUDGET - 2 * REWARD
         );
+        let started = store.next_referral_alert().unwrap().unwrap();
+        assert!(!started.qualified);
+        assert_eq!((started.invitee.as_str(), started.inviter.as_str()), ("Invitee", "Inviter"));
+        assert_eq!(store.next_referral_alert().unwrap().unwrap().nonce(), started.nonce());
+        store.referral_alert_sent(&started).unwrap();
+        let due = store.next_referral_alert().unwrap().unwrap();
+        assert!(due.qualified && due.claim == started.claim);
+        assert_ne!(due.nonce(), started.nonce());
+        assert!(due.message().contains("7 ORN"));
+        store.referral_alert_sent(&due).unwrap();
+        assert!(store.next_referral_alert().unwrap().is_none());
         let payouts = store.referral_payouts().unwrap();
         assert_eq!(payouts.len(), 2);
         assert_eq!(

@@ -137,6 +137,19 @@ impl Alerts {
 /// Looks every five minutes at what can go wrong, and says so.
 /// `openrouter_key` is for reading the credit left.
 pub fn watch(app: Arc<crate::api::App>, openrouter_key: Option<String>) {
+    if let Some(url) = app.alerts().url.clone() {
+        let app = app.clone();
+        std::thread::spawn(move || loop {
+            match deliver_referral_alert(&app, &url) {
+                Ok(true) => continue,
+                Ok(false) => std::thread::sleep(Duration::from_secs(5)),
+                Err(error) => {
+                    eprintln!("could not deliver referral alert, retrying: {error:#}");
+                    std::thread::sleep(Duration::from_secs(30));
+                }
+            }
+        });
+    }
     tokio::spawn(async move {
         let mut every = tokio::time::interval(Duration::from_secs(300));
         let mut misses: HashMap<String, u32> = HashMap::new();
@@ -162,6 +175,21 @@ pub fn watch(app: Arc<crate::api::App>, openrouter_key: Option<String>) {
             .unwrap_or_default();
         }
     });
+}
+
+/// The queue is written in the referral transaction. Release the database lock
+/// before contacting Discord, and acknowledge only after the bot confirms delivery.
+fn deliver_referral_alert(app: &crate::api::App, url: &str) -> anyhow::Result<bool> {
+    let pending = app.store().next_referral_alert()?;
+    let Some(alert) = pending else { return Ok(false) };
+    let response = ureq::post(url)
+        .config()
+        .timeout_global(Some(Duration::from_secs(20)))
+        .build()
+        .send_json(serde_json::json!({ "text": alert.message(), "nonce": alert.nonce() }))?;
+    anyhow::ensure!(response.status().is_success(), "bot returned {}", response.status());
+    app.store().referral_alert_sent(&alert)?;
+    Ok(true)
 }
 
 /// Counts a bad look at `kind`, or clears it; gives whether it has now been

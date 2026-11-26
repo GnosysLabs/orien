@@ -16,7 +16,7 @@ use axum::response::{IntoResponse, Response};
 use axum::routing::post;
 use serde::Deserialize;
 use serenity::all::{
-    ChannelId, ChannelType, CreateAllowedMentions, CreateChannel, CreateMessage, MessageFlags, PermissionOverwrite,
+    ChannelId, ChannelType, CreateAllowedMentions, CreateChannel, CreateMessage, MessageFlags, Nonce, PermissionOverwrite,
     PermissionOverwriteType, Permissions, RoleId,
 };
 use serenity::http::Http;
@@ -129,6 +129,7 @@ async fn private_channel(http: &Http, name: &str, topic: &str, state: Option<&Pa
 #[derive(Deserialize)]
 struct Alert {
     text: String,
+    nonce: Option<String>,
 }
 
 async fn alert(State(inbox): State<Arc<Inbox>>, Json(alert): Json<Alert>) -> Response {
@@ -149,7 +150,10 @@ async fn alert(State(inbox): State<Arc<Inbox>>, Json(alert): Json<Alert>) -> Res
     };
     drop(known);
     // Nothing in an alert can ping anyone, and links show no card.
-    let message = CreateMessage::new().content(&text).allowed_mentions(CreateAllowedMentions::new()).flags(MessageFlags::SUPPRESS_EMBEDS);
+    let mut message = CreateMessage::new().content(&text).allowed_mentions(CreateAllowedMentions::new()).flags(MessageFlags::SUPPRESS_EMBEDS);
+    if let Some(nonce) = alert.nonce {
+        message = message.nonce(Nonce::String(nonce)).enforce_nonce(true);
+    }
     match channel.send_message(&inbox.http, message).await {
         Ok(_) => {
             eprintln!("alerts: posted: {}", text.lines().next().unwrap_or(""));
