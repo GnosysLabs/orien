@@ -5843,7 +5843,7 @@
     tsMark(was); tsMark(t);
     feel("selection");
     let pic = null;
-    try { pic = await invoke("market_image", { name: tsImage(t.picture) }); } catch {}
+    try { pic = await invoke("theme_store_picture", { name: tsImage(t.picture) }); } catch {}
     if (pic && turn === tsTurn && ts.trying === t) wear(pic);
   }
   function tsUndo() {
@@ -5870,7 +5870,7 @@
     if (customThemes().length >= 24) { problem("ts-problem", "You have 24 themes, as many as there's room for. Delete one in Appearance first."); return; }
     if (button) { button.disabled = true; button.innerHTML = '<span class="spinner"></span>Getting'; }
     try {
-      const pic = await invoke("market_image", { name: tsImage(t.picture) });
+      const pic = await invoke("theme_store_picture", { name: tsImage(t.picture) });
       if (!pic) throw "That theme's picture couldn't be downloaded. Try again in a moment.";
       const id = "c-" + Date.now().toString(36);
       await sceneAsk("readwrite", (st) => st.put(pic, id));
