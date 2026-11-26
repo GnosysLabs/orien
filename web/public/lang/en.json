@@ -6,6 +6,30 @@
   },
   "_patterns": [
     [
+      "^Use a dedicated wallet with at least ([0-9.,]+) ORN\\. That covers rewards for 100 referrals and the payment fees\\.$",
+      "Use a dedicated wallet with at least $1 ORN. That covers rewards for 100 referrals and the payment fees."
+    ],
+    [
+      "^Referral (\\d+)$",
+      "Referral $1"
+    ],
+    [
+      "^Paid · payment #(\\d+)$",
+      "Paid · payment #$1"
+    ],
+    [
+      "^the campaign wallet needs ([0-9.,]+) ORN to cover rewards and fees$",
+      "the campaign wallet needs $1 ORN to cover rewards and fees"
+    ],
+    [
+      "^([^\\s]+) may not use the dashboard$",
+      "$1 may not use the dashboard"
+    ],
+    [
+      "^The dashboard did not answer \\((\\d+)\\)\\.$",
+      "The dashboard did not answer ($1)."
+    ],
+    [
       "^([0-9.,]+) ORN on its way back$",
       "$1 ORN on its way back"
     ],
@@ -4107,5 +4131,48 @@
   "· closed": "· closed",
   "− 1) / 400,000⌋: about one share for every 400,000 RandomX hashes. The target moves by at most a factor of four per epoch, which limits how far a sudden burst of work can push it.": "− 1) / 400,000⌋: about one share for every 400,000 RandomX hashes. The target moves by at most a factor of four per epoch, which limits how far a sudden burst of work can push it.",
   "− 1: about one share for every 16.8 million BLAKE3 hashes. At epoch": "− 1: about one share for every 16.8 million BLAKE3 hashes. At epoch",
-  "−1/HALF_LIFE": "−1/HALF_LIFE"
+  "−1/HALF_LIFE": "−1/HALF_LIFE",
+  "Referrals": "Referrals",
+  "Referral code": "Referral code",
+  "Loading referrals…": "Loading referrals…",
+  "Orien Referrals": "Orien Referrals",
+  "Referral rewards are paid from this address.": "Referral rewards are paid from this address.",
+  "You’ve been invited to Orien": "You’ve been invited to Orien",
+  "Download Orien Wallet and create an Orien Network account.": "Download Orien Wallet and create an Orien Network account.",
+  "Open Settings → Referrals → Enter code and apply this code within 12 hours of signing up.": "Open Settings → Referrals → Enter code and apply this code within 12 hours of signing up.",
+  "You and your inviter each earn 7 ORN after your verified wallet earns mining rewards in 10 hourly checkpoints.": "You and your inviter each earn 7 ORN after your verified wallet earns mining rewards in 10 hourly checkpoints.",
+  "Wallet verification uses less than 0.001 ORN from your wallet.": "Wallet verification uses less than 0.001 ORN from your wallet.",
+  "Back to Admin": "Back to Admin",
+  "Reward budget": "Reward budget",
+  "Available for new rewards": "Available for new rewards",
+  "Awaiting payment": "Awaiting payment",
+  "Campaign funding wallet": "Campaign funding wallet",
+  "Open the campaign": "Open the campaign",
+  "Funding wallet address": "Funding wallet address",
+  "Checking wallet…": "Checking wallet…",
+  "Open campaign": "Open campaign",
+  "Open the referral program using this funding wallet?": "Open the referral program using this funding wallet?",
+  "Referral payouts": "Referral payouts",
+  "Send each reward from the campaign wallet. Use Check payment after the network finalizes it.": "Send each reward from the campaign wallet. Use Check payment after the network finalizes it.",
+  "No referrals have qualified yet.": "No referrals have qualified yet.",
+  "Closed account": "Closed account",
+  "Inviter": "Inviter",
+  "New member": "New member",
+  "Check payment": "Check payment",
+  "This member’s account is suspended.": "This member’s account is suspended.",
+  "Recipient’s verified wallet": "Recipient’s verified wallet",
+  "the referral campaign has already started": "the referral campaign has already started",
+  "no new finalized reward payment from the campaign wallet was found": "no new finalized reward payment from the campaign wallet was found",
+  "something went wrong on the server": "something went wrong on the server",
+  "not found": "not found",
+  "the dashboard opens only through Tailscale": "the dashboard opens only through Tailscale",
+  "this account is suspended": "this account is suspended",
+  "Failed to fetch": "Failed to fetch",
+  "Load failed": "Load failed",
+  "NetworkError when attempting to fetch resource.": "NetworkError when attempting to fetch resource.",
+  "an Orien address is 64 letters and digits, 0-9 and a-f": "an Orien address is 64 letters and digits, 0-9 and a-f",
+  "the Orien network is not answering right now; try again in a minute": "the Orien network is not answering right now; try again in a minute",
+  "Invite a friend to mine and earn 7 ORN each": "Invite a friend to mine and earn 7 ORN each",
+  "Open Referrals to share your invite link or code. Friends can enter it within 12 hours of creating their Orien Network account.": "Open Referrals to share your invite link or code. Friends can enter it within 12 hours of creating their Orien Network account.",
+  "When a friend earns mining rewards in 10 separate hourly checkpoints with their verified wallet, you both qualify for 7 ORN. Track progress and payouts in the wallet.": "When a friend earns mining rewards in 10 separate hourly checkpoints with their verified wallet, you both qualify for 7 ORN. Track progress and payouts in the wallet."
 }

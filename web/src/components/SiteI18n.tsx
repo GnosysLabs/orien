@@ -211,6 +211,10 @@ function lookup(raw: string): string | null {
   return lead + prefix + translated + trail
 }
 
+export function siteText(text: string): string {
+  return lookup(text) ?? text
+}
+
 function shouldSkipElement(el: Element | null): boolean {
   if (!el) return true
   if (SKIP_TAGS.has(el.tagName)) return true

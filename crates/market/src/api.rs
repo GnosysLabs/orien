@@ -447,6 +447,7 @@ pub fn router(app: Arc<App>) -> Router {
         )
         .route("/api/market/me/wallet", get(wallet).post(link_wallet))
         .route("/api/market/me/wallet/verify", post(verify_wallet))
+        .route("/api/market/me/referrals", get(crate::referrals::status).post(crate::referrals::claim))
         .route("/api/market/me/wallet/remove", post(remove_verified_wallet))
         .route("/api/market/wallets/lookup", post(lookup_wallets).options(open_preflight))
         .route("/api/market/wallets/{address}", get(wallet_profile).options(open_preflight))
@@ -1726,7 +1727,7 @@ struct WalletLink {
 }
 
 /// Asks the network something, off the async threads.
-async fn network<T: Send + 'static>(
+pub(crate) async fn network<T: Send + 'static>(
     app: &App,
     ask: impl FnOnce(&dyn Payments) -> anyhow::Result<T> + Send + 'static,
 ) -> Result<T, Failure> {

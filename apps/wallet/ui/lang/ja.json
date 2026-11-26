@@ -1124,6 +1124,18 @@
   "replied to the network's post about you": "あなたに関するネットワーク投稿に返信しました",
   "_patterns": [
     [
+      "^(\\d+) / (\\d+) mining hours$",
+      "マイニング時間：{0} / {1} 時間"
+    ],
+    [
+      "^Code accepted\\. Mine with wallet ([0-9a-fA-F…]+) to make progress\\.$",
+      "コードを受け付けました。ウォレット {0} でマイニングを進めてください。"
+    ],
+    [
+      "^Code accepted\\. Mine with wallet ([0-9a-fA-F…]+) in Orien Wallet on a computer\\.$",
+      "コードを受け付けました。パソコンのOrien Walletでウォレット {0} を使ってマイニングしてください。"
+    ],
+    [
       "^Sell ([0-9.,]+) ORN for ([0-9.,]+) SOL(.*)$",
       "{0} ORN を {1} SOL で売却{2}"
     ],
@@ -2108,5 +2120,66 @@
         "通知を受け取る項目は、設定の<b>通知</b>から選べます。"
       ]
     }
-  }
+  },
+  "Referrals": "友達紹介",
+  "Invite users": "友達を招待",
+  "Enter code": "コードを入力",
+  "Invite a friend to mine - you'll both get 7 free ORN": "友達をマイニングに招待して、二人で7 ORNずつもらおう",
+  "Verify a wallet to get your invite code.": "ウォレットを認証すると招待コードを取得できます。",
+  "Verify wallet": "ウォレットを認証",
+  "Your invite code": "あなたの招待コード",
+  "Copy invite code": "招待コードをコピー",
+  "Copy invite link": "招待リンクをコピー",
+  "Qualified": "条件達成",
+  "In progress": "進行中",
+  "ORN paid": "支払済みのORN",
+  "Share your invite link or code with a friend.": "招待リンクまたはコードを友達に共有してください。",
+  "Have your friend download Orien and apply your code within 12 hours of creating their account.": "友達にOrienをダウンロードしてもらい、アカウント作成から12時間以内にコードを適用してもらってください。",
+  "Your friend just needs to verify their wallet and earn mining rewards with it in 10 separate hours.": "友達はウォレットを認証し、そのウォレットで異なる10の時間帯にマイニング報酬を獲得するだけです。",
+  "You each earn 7 ORN. You can invite up to 5 friends (Referrals may refresh in the future)": "二人に7 ORNずつ付与されます。招待できるのは5人までです（今後、招待枠がリセットされる場合があります）。",
+  "Your referral window has closed": "紹介コードの入力期限が過ぎました",
+  "You can only enter a friend’s code during the first 12 hours after you create your Orien Network account. That time has passed for this account.": "友達のコードを入力できるのは、Orien Networkのアカウント作成から12時間以内です。このアカウントの入力期限は過ぎています。",
+  "Use a friend’s code": "友達のコードを使う",
+  "Referral code": "紹介コード",
+  "12-character code": "12文字のコード",
+  "Apply code": "コードを適用",
+  "Open Mining": "マイニングを開く",
+  "Sign in to your Orien Network account.": "Orien Networkのアカウントにサインインしてください。",
+  "Enter your friend’s code within 12 hours of creating your account.": "アカウント作成から12時間以内に友達のコードを入力してください。",
+  "Verify the wallet you’ll use for mining.": "マイニングに使うウォレットを認証してください。",
+  "Earn mining rewards in 10 hourly checkpoints with that wallet.": "そのウォレットで、1時間ごとのチェックポイント10回分のマイニング報酬を獲得してください。",
+  "You and the friend who invited you each earn 7 ORN.": "あなたと招待した友達に7 ORNずつ付与されます。",
+  "Your referral progress": "紹介の進捗",
+  "Sign in to use referrals.": "友達紹介を利用するにはサインインしてください。",
+  "Loading referrals…": "紹介情報を読み込み中…",
+  "The referral program hasn’t opened yet.": "紹介プログラムはまだ開始していません。",
+  "All rewards for this program have been reserved.": "このプログラムの報酬はすべて確保済みです。",
+  "You’ve reached your five-referral limit.": "紹介人数の上限（5人）に達しました。",
+  "Your 7 ORN reward has been paid.": "7 ORNの報酬が支払われました。",
+  "You’ve qualified. Your 7 ORN reward is awaiting payout.": "条件を達成しました。7 ORNの報酬は支払い待ちです。",
+  "This referral closed before a reward was reserved.": "報酬が確保される前にこの紹介は終了しました。",
+  "Code accepted. Verify a wallet to start counting your mining hours.": "コードを受け付けました。ウォレットを認証するとマイニング時間の集計が始まります。",
+  "Mining requirement met. Reward reservation is pending.": "マイニング条件を達成しました。報酬枠の確保を待っています。",
+  "Code accepted. Mine with your verified wallet to make progress.": "コードを受け付けました。認証済みのウォレットでマイニングを進めてください。",
+  "Code accepted. Mine with your verified wallet in Orien Wallet on a computer.": "コードを受け付けました。パソコンのOrien Walletで認証済みのウォレットを使ってマイニングしてください。",
+  "Code copied": "コードをコピーしました",
+  "Link copied": "リンクをコピーしました",
+  "Couldn’t copy. Try again.": "コピーできませんでした。もう一度お試しください。",
+  "Completed": "完了",
+  "Orien Referrals": "Orien 友達紹介",
+  "Orien Network couldn't do that just now. Try again in a moment.": "Orien Network はリクエストを処理できませんでした。しばらくしてからもう一度お試しください。",
+  "The swap board sent an answer this app can't read.": "交換市場からの応答をアプリで読み取れませんでした。",
+  "Orien Network can't be reached. Check your internet connection.": "現在 orien.network に接続できません。インターネット接続を確認してもう一度お試しください。",
+  "Enter the 12-character invite code.": "12文字の招待コードを入力してください。",
+  "Your account already has a referral code.": "このアカウントにはすでに紹介コードが登録されています。",
+  "You can enter a code within 12 hours of creating your account.": "コードはアカウント作成から12時間以内に入力してください。",
+  "Referrals are closed.": "紹介の受付は終了しました。",
+  "That referral code was not found.": "紹介コードが見つかりませんでした。",
+  "You can't use your own referral code.": "自分の紹介コードは使えません。",
+  "That referral code is no longer available.": "この紹介コードはもう利用できません。",
+  "That inviter has reached their limit.": "招待した人は紹介人数の上限に達しています。",
+  "Something went wrong on the server.": "サーバーでエラーが発生しました。",
+  "Not found.": "見つかりませんでした。",
+  "This account is suspended.": "このアカウントは利用停止中です。",
+  "Sign in first.": "先に Orien Network にサインインしてください。"
 }

@@ -73,6 +73,8 @@ pub fn admin_router(app: Arc<App>, admins: Admins, site: Option<&std::path::Path
         .route("/api/admin/room", get(room))
         .route("/api/admin/room/bans/{account}/lift", post(room_lift))
         .route("/api/admin/themes", get(themes))
+        .route("/api/admin/referrals", get(referrals).post(start_referrals))
+        .route("/api/admin/referrals/{id}/{recipient}/confirm", post(confirm_referral_payment))
         .route("/api/admin/themes/{id}/remove", post(remove_theme))
         .route("/api/admin/app-reports", get(app_reports))
         .route("/api/admin/app-reports/{id}/done", post(app_report_done))
@@ -485,6 +487,54 @@ async fn themes(State(admin): State<Admin>, headers: HeaderMap) -> Answer {
     admin.admins.check(&headers)?;
     let themes = admin.app.store().admin_themes()?;
     Ok(Json(json!({ "themes": themes })).into_response())
+}
+
+async fn referrals(State(admin): State<Admin>, headers: HeaderMap) -> Answer {
+    admin.admins.check(&headers)?;
+    let store = admin.app.store();
+    Ok(Json(json!({
+        "campaign": store.referral_campaign()?,
+        "payouts": store.referral_payouts()?,
+        "required_funding": crate::referrals::funding_required(admin.app.payments().as_ref()),
+        "reward": crate::referrals::REWARD,
+    })).into_response())
+}
+
+#[derive(Deserialize)]
+struct ReferralWallet {
+    address: String,
+}
+
+async fn start_referrals(State(admin): State<Admin>, headers: HeaderMap, Json(body): Json<ReferralWallet>) -> Answer {
+    let login = admin.admins.check(&headers)?;
+    let address = crate::referrals::address_id(&body.address).map_err(refused)?;
+    let required = crate::referrals::funding_required(admin.app.payments().as_ref());
+    let balance = crate::api::network(&admin.app, move |p| p.spendable(&address)).await?;
+    if balance < required {
+        let required = crate::store::orn(required);
+        return Err(Failure::Refused(format!("the campaign wallet needs {required} ORN to cover rewards and fees")));
+    }
+    admin.app.store().start_referrals(&body.address).map_err(refused)?;
+    println!("{login} opened the referral campaign");
+    Ok(Json(json!({ "ok": true })).into_response())
+}
+
+async fn confirm_referral_payment(State(admin): State<Admin>, headers: HeaderMap, Path((id, recipient)): Path<(i64, String)>) -> Answer {
+    let login = admin.admins.check(&headers)?;
+    let (payout, campaign) = {
+        let store = admin.app.store();
+        let campaign = store.referral_campaign()?.ok_or(Failure::NotFound)?;
+        let payout = store.referral_payouts()?.into_iter().find(|p| p.id == id && p.recipient == recipient).ok_or(Failure::NotFound)?;
+        (payout, campaign)
+    };
+    if payout.sequence.is_none() {
+        let from = crate::referrals::address_id(&campaign.wallet)?;
+        let to = crate::referrals::address_id(&payout.address)?;
+        let sequences = crate::api::network(&admin.app, move |p| crate::referrals::paid_sequences(p, from, to, payout.epoch)).await?;
+        admin.app.store().record_referral_payment(id, &recipient, &sequences).map_err(refused)?;
+        println!("{login} confirmed referral {id} payment to its {recipient}");
+    }
+    Ok(Json(json!({ "ok": true })).into_response())
 }
 
 /// Takes a theme down for everyone, and its pictures with it.

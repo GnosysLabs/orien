@@ -74,10 +74,23 @@ pub fn available() -> bool {
 
 /// Whether this wallet's password is kept behind Touch ID or Face ID.
 pub fn enabled(wallet: &Path) -> bool {
-    #[cfg(target_os = "ios")]
-    moved(wallet);
-    #[cfg(any(target_os = "macos", target_os = "ios"))]
+    #[cfg(target_os = "macos")]
     {
+        // The overview refreshes in the background. Checking whether Touch ID
+        // is configured only needs the item's attributes.
+        use security_framework::item::{ItemClass, ItemSearchOptions};
+        ItemSearchOptions::new()
+            .class(ItemClass::generic_password())
+            .service(SERVICE)
+            .account(&name(wallet))
+            .load_attributes(true)
+            .skip_authenticated_items(true)
+            .search()
+            .is_ok_and(|items| !items.is_empty())
+    }
+    #[cfg(target_os = "ios")]
+    {
+        moved(wallet);
         security_framework::passwords::get_generic_password(SERVICE, &name(wallet)).is_ok()
     }
     #[cfg(not(any(target_os = "macos", target_os = "ios")))]

@@ -1124,6 +1124,18 @@
   "✓ Valid address": "✓ मान्य पता",
   "_patterns": [
     [
+      "^(\\d+) / (\\d+) mining hours$",
+      "माइनिंग के {0} / {1} घंटे"
+    ],
+    [
+      "^Code accepted\\. Mine with wallet ([0-9a-fA-F…]+) to make progress\\.$",
+      "कोड स्वीकार हो गया। आगे बढ़ने के लिए वॉलेट {0} से माइनिंग करें।"
+    ],
+    [
+      "^Code accepted\\. Mine with wallet ([0-9a-fA-F…]+) in Orien Wallet on a computer\\.$",
+      "कोड स्वीकार हो गया। कंप्यूटर पर Orien Wallet में वॉलेट {0} से माइनिंग करें।"
+    ],
+    [
       "^Sell ([0-9.,]+) ORN for ([0-9.,]+) SOL(.*)$",
       "{1} SOL के बदले {0} ORN बेचें{2}"
     ],
@@ -2108,5 +2120,66 @@
         "सेटिंग्स के <b>सूचनाएं</b> में चुनें कि आपको किन चीज़ों के बारे में सूचित किया जाए।"
       ]
     }
-  }
+  },
+  "Referrals": "रेफ़रल",
+  "Invite users": "उपयोगकर्ताओं को आमंत्रित करें",
+  "Enter code": "कोड दर्ज करें",
+  "Invite a friend to mine - you'll both get 7 free ORN": "किसी दोस्त को माइनिंग के लिए बुलाएँ और आप दोनों को 7-7 ORN मुफ़्त मिलेंगे",
+  "Verify a wallet to get your invite code.": "अपना आमंत्रण कोड पाने के लिए वॉलेट सत्यापित करें।",
+  "Verify wallet": "वॉलेट सत्यापित करें",
+  "Your invite code": "आपका आमंत्रण कोड",
+  "Copy invite code": "आमंत्रण कोड कॉपी करें",
+  "Copy invite link": "आमंत्रण लिंक कॉपी करें",
+  "Qualified": "पात्र रेफ़रल",
+  "In progress": "जारी रेफ़रल",
+  "ORN paid": "भुगतान किए गए ORN",
+  "Share your invite link or code with a friend.": "अपने दोस्त को आमंत्रण लिंक या कोड भेजें।",
+  "Have your friend download Orien and apply your code within 12 hours of creating their account.": "अपने दोस्त से कहें कि वह Orien डाउनलोड करे और खाता बनाने के 12 घंटे के भीतर आपका कोड दर्ज करे।",
+  "Your friend just needs to verify their wallet and earn mining rewards with it in 10 separate hours.": "आपके दोस्त को बस अपना वॉलेट सत्यापित करके उससे 10 अलग-अलग घंटों में माइनिंग पुरस्कार अर्जित करने हैं।",
+  "You each earn 7 ORN. You can invite up to 5 friends (Referrals may refresh in the future)": "आप दोनों को 7-7 ORN मिलेंगे। आप अधिकतम 5 दोस्तों को आमंत्रित कर सकते हैं (भविष्य में आपको फिर से आमंत्रण मिल सकते हैं)।",
+  "Your referral window has closed": "कोड दर्ज करने का समय समाप्त हो गया है",
+  "You can only enter a friend’s code during the first 12 hours after you create your Orien Network account. That time has passed for this account.": "आप अपना Orien Network खाता बनाने के बाद पहले 12 घंटों के भीतर ही किसी दोस्त का कोड दर्ज कर सकते हैं। इस खाते के लिए वह समय बीत चुका है।",
+  "Use a friend’s code": "दोस्त का कोड इस्तेमाल करें",
+  "Referral code": "रेफ़रल कोड",
+  "12-character code": "12 अक्षरों या अंकों का कोड",
+  "Apply code": "कोड लागू करें",
+  "Open Mining": "माइनिंग खोलें",
+  "Sign in to your Orien Network account.": "अपने Orien Network खाते में साइन इन करें।",
+  "Enter your friend’s code within 12 hours of creating your account.": "खाता बनाने के 12 घंटे के भीतर अपने दोस्त का कोड दर्ज करें।",
+  "Verify the wallet you’ll use for mining.": "उस वॉलेट को सत्यापित करें जिससे आप माइनिंग करेंगे।",
+  "Earn mining rewards in 10 hourly checkpoints with that wallet.": "उस वॉलेट से 10 अलग-अलग एक घंटे की अवधियों में माइनिंग पुरस्कार अर्जित करें।",
+  "You and the friend who invited you each earn 7 ORN.": "आपको और आपको आमंत्रित करने वाले दोस्त को 7-7 ORN मिलेंगे।",
+  "Your referral progress": "आपके रेफ़रल की प्रगति",
+  "Sign in to use referrals.": "रेफ़रल का उपयोग करने के लिए साइन इन करें।",
+  "Loading referrals…": "रेफ़रल लोड हो रहे हैं…",
+  "The referral program hasn’t opened yet.": "रेफ़रल कार्यक्रम अभी शुरू नहीं हुआ है।",
+  "All rewards for this program have been reserved.": "इस कार्यक्रम के सभी पुरस्कार आरक्षित हो चुके हैं।",
+  "You’ve reached your five-referral limit.": "आप पाँच रेफ़रल की सीमा तक पहुँच गए हैं।",
+  "Your 7 ORN reward has been paid.": "आपके 7 ORN के पुरस्कार का भुगतान हो गया है।",
+  "You’ve qualified. Your 7 ORN reward is awaiting payout.": "आप पात्र हो गए हैं। आपके 7 ORN के पुरस्कार का भुगतान होना बाकी है।",
+  "This referral closed before a reward was reserved.": "पुरस्कार आरक्षित होने से पहले यह रेफ़रल बंद हो गया।",
+  "Code accepted. Verify a wallet to start counting your mining hours.": "कोड स्वीकार हो गया। माइनिंग के घंटे गिने जाने के लिए वॉलेट सत्यापित करें।",
+  "Mining requirement met. Reward reservation is pending.": "माइनिंग की शर्त पूरी हो गई है। पुरस्कार आरक्षित होना बाकी है।",
+  "Code accepted. Mine with your verified wallet to make progress.": "कोड स्वीकार हो गया। आगे बढ़ने के लिए अपने सत्यापित वॉलेट से माइनिंग करें।",
+  "Code accepted. Mine with your verified wallet in Orien Wallet on a computer.": "कोड स्वीकार हो गया। कंप्यूटर पर Orien Wallet में अपने सत्यापित वॉलेट से माइनिंग करें।",
+  "Code copied": "कोड कॉपी हो गया",
+  "Link copied": "लिंक कॉपी हो गया",
+  "Couldn’t copy. Try again.": "कॉपी नहीं हुआ। फिर कोशिश करें।",
+  "Completed": "पूरा हुआ",
+  "Orien Referrals": "Orien रेफ़रल",
+  "Orien Network couldn't do that just now. Try again in a moment.": "Orien Network अभी अनुरोध पूरा नहीं कर सका। थोड़ी देर बाद फिर कोशिश करें।",
+  "The swap board sent an answer this app can't read.": "ऐप स्वैप बाज़ार का जवाब नहीं पढ़ सका।",
+  "Orien Network can't be reached. Check your internet connection.": "अभी orien.network तक पहुँचा नहीं जा सका। अपना कनेक्शन जाँचें और फिर से प्रयास करें।",
+  "Enter the 12-character invite code.": "12 अक्षरों या अंकों वाला आमंत्रण कोड दर्ज करें।",
+  "Your account already has a referral code.": "आपके खाते में पहले से रेफ़रल कोड जुड़ा है।",
+  "You can enter a code within 12 hours of creating your account.": "आप खाता बनाने के 12 घंटे के भीतर कोड दर्ज कर सकते हैं।",
+  "Referrals are closed.": "रेफ़रल कार्यक्रम बंद है।",
+  "That referral code was not found.": "यह रेफ़रल कोड नहीं मिला।",
+  "You can't use your own referral code.": "आप अपना रेफ़रल कोड इस्तेमाल नहीं कर सकते।",
+  "That referral code is no longer available.": "यह रेफ़रल कोड अब उपलब्ध नहीं है।",
+  "That inviter has reached their limit.": "आमंत्रित करने वाला व्यक्ति अपनी सीमा तक पहुँच चुका है।",
+  "Something went wrong on the server.": "सर्वर पर गड़बड़ी हुई।",
+  "Not found.": "नहीं मिला।",
+  "This account is suspended.": "यह खाता निलंबित है।",
+  "Sign in first.": "पहले Orien Network में साइन इन करें।"
 }

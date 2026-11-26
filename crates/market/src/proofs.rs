@@ -252,15 +252,21 @@ impl Store {
     /// Marks a wallet verified. An account with no wallet to be paid at
     /// yet is paid at this one from now on, so it can sell straight away.
     pub fn mark_proven(&self, account: i64, address: &str) -> Result<()> {
-        self.db.execute(
+        let tx = self.db.unchecked_transaction()?;
+        let at = now();
+        let changed = tx.execute(
             "UPDATE verified_wallets SET proven = ?3 WHERE account = ?1 AND address = ?2",
-            params![account, address, now() as i64],
+            params![account, address, at],
         )?;
+        if changed != 0 {
+            self.note_referral_wallet(account, address, at)?;
+        }
         let unpaid: bool =
             self.db.query_row("SELECT payout IS NULL FROM accounts WHERE id = ?1", [account], |row| row.get(0)).optional()?.unwrap_or(false);
         if unpaid {
             self.set_wallet(account, address)?;
         }
+        tx.commit()?;
         Ok(())
     }
 

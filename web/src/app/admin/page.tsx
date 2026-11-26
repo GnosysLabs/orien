@@ -1,9 +1,10 @@
 'use client'
 
 import Link from 'next/link'
-import { useCallback, useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { ago, formatOrn, pictureUrl } from '@/lib/market'
 import { Avatar } from '@/components/market/Avatar'
+import { Action, call, count, usePoll } from './admin-client'
 
 // The founder's dashboard. It only opens through `tailscale serve` on the
 // server, which says who is signed in to Tailscale; the public site refuses
@@ -128,41 +129,6 @@ type Report = {
   removed: boolean
 }
 
-async function call<T>(path: string, method = 'GET', body?: unknown): Promise<T> {
-  const response = await fetch(`/api/admin${path}`, {
-    method,
-    cache: 'no-store',
-    headers: body === undefined ? {} : { 'Content-Type': 'application/json' },
-    body: body === undefined ? undefined : JSON.stringify(body),
-  })
-  const data = await response.json().catch(() => ({}))
-  if (!response.ok) throw new Error(data.error ?? `The dashboard did not answer (${response.status}).`)
-  return data as T
-}
-
-/** Fetches now and every `every` ms while the tab is visible; `reload` fetches again at once. */
-function usePoll<T>(path: string, every: number) {
-  const [data, setData] = useState<T | null>(null)
-  const [error, setError] = useState('')
-  const load = useCallback(
-    () =>
-      call<T>(path)
-        .then((found) => {
-          setData(found)
-          setError('')
-        })
-        .catch((e: Error) => setError(e.message)),
-    [path],
-  )
-  useEffect(() => {
-    void load()
-    const timer = setInterval(() => document.visibilityState === 'visible' && void load(), every)
-    return () => clearInterval(timer)
-  }, [load, every])
-  return { data, error, reload: load }
-}
-
-const count = (n: number) => n.toLocaleString('en')
 const short = (address: string) => `${address.slice(0, 6)}…${address.slice(-6)}`
 const bytes = (n: number) => (n >= 1e12 ? `${(n / 1e12).toFixed(1)} TB` : `${Math.round(n / 1e9)} GB`)
 
@@ -193,14 +159,28 @@ export default function AdminPage() {
             Signed in through Tailscale as {data.login} · updated {ago(data.generated)} · refreshes every 30s
           </p>
         </div>
-        <a
-          href="https://explorer.orien.network/"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="flex h-10 items-center rounded-xl border border-line bg-surface px-4 text-sm font-semibold text-ink transition hover:border-pearl"
-        >
-          Open the explorer
-        </a>
+        <div className="flex flex-wrap gap-2">
+          <Link
+            href="/admin/referrals/"
+            className="flex h-10 items-center rounded-xl border border-line bg-surface px-4 text-sm font-semibold text-ink transition hover:border-pearl"
+          >
+            Referrals
+          </Link>
+          <Link
+            href="/admin/themes/"
+            className="flex h-10 items-center rounded-xl border border-line bg-surface px-4 text-sm font-semibold text-ink transition hover:border-pearl"
+          >
+            Theme Store
+          </Link>
+          <a
+            href="https://explorer.orien.network/"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex h-10 items-center rounded-xl border border-line bg-surface px-4 text-sm font-semibold text-ink transition hover:border-pearl"
+          >
+            Open the explorer
+          </a>
+        </div>
       </header>
       {overview.error && <p className="rounded-xl border border-stop/40 bg-stop/10 px-4 py-2 text-sm text-ink">{overview.error}</p>}
       {data.email && <EmailWarning email={data.email} />}
@@ -208,7 +188,6 @@ export default function AdminPage() {
       <Reports reports={reports.data?.reports ?? null} onChange={reload} />
 
       <AppReports />
-      <Themes />
       <GroupChat />
 
       <h2 className="-mb-2 text-sm font-bold text-muted">Market and swaps</h2>
@@ -579,85 +558,6 @@ function Reports({ reports, onChange }: { reports: Report[] | null; onChange: ()
   )
 }
 
-type StoreTheme = {
-  id: number
-  name: string
-  base: string
-  colors: string[]
-  picture: string | null
-  thumb: string | null
-  created: number
-  author: { id: number | null; name: string; official?: boolean }
-  builtin?: string
-  downloads: number
-  tips: { count: number; orn: number }
-}
-
-/** The theme store: every shared theme, newest first, each with Remove. */
-function Themes() {
-  const found = usePoll<{ themes: StoreTheme[] }>('/themes', 30_000)
-  const reload = () => void found.reload()
-  if (!found.data) return null
-  const themes = found.data.themes
-  return (
-    <section className="rounded-2xl border border-line bg-surface p-4">
-      <h2 className="mb-3 text-sm font-bold text-ink">Theme store: {themes.length} {themes.length === 1 ? 'theme' : 'themes'}</h2>
-      {themes.length === 0 ? (
-        <p className="text-sm text-muted">No themes shared yet. Each new one also shows in #new-themes on Discord.</p>
-      ) : (
-        <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {themes.map((t) => (
-            <li key={t.id} className="overflow-hidden rounded-xl border border-line bg-bg">
-              {t.picture && t.thumb ? (
-                <a href={pictureUrl(t.picture)} target="_blank" rel="noopener noreferrer" className="block">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={pictureUrl(t.thumb)} alt={t.name} className="aspect-video w-full object-cover" />
-                </a>
-              ) : (
-                <div className="flex aspect-video w-full items-center justify-center bg-raised text-xs text-muted">
-                  Orien’s own theme: its picture is in the app
-                </div>
-              )}
-              <div className="space-y-3 p-3">
-                <div className="flex items-center justify-between gap-2">
-                  <p className="min-w-0 truncate font-semibold text-ink">{t.name}</p>
-                  <span className="flex shrink-0 gap-1">
-                    {t.colors.map((c) => (
-                      <svg key={c} viewBox="0 0 16 16" className="h-4 w-4" aria-label={c}>
-                        <circle cx="8" cy="8" r="7" fill={c} stroke="rgba(255,255,255,0.25)" />
-                      </svg>
-                    ))}
-                  </span>
-                </div>
-                <p className="text-xs text-muted">
-                  {t.base} · by{' '}
-                  {t.author.id === null ? (
-                    <span className="font-semibold text-ink">{t.author.name}</span>
-                  ) : (
-                    <Link href={`/marketplace/profile/?id=${t.author.id}`} className="font-semibold text-ink hover:text-pearl">
-                      {t.author.name}
-                    </Link>
-                  )}{' '}
-                  · {ago(t.created)} · {count(t.downloads)} downloads{t.builtin ? '' : ` · ${count(t.tips.count)} tips`}
-                </p>
-                {!t.builtin && (
-                  <Action
-                    label="Remove"
-                    sure={`Take down ${t.name} by ${t.author.name}? It leaves the theme store for everyone.`}
-                    path={`/themes/${t.id}/remove`}
-                    onDone={reload}
-                    danger
-                  />
-                )}
-              </div>
-            </li>
-          ))}
-        </ul>
-      )}
-    </section>
-  )
-}
-
 type AppReport = {
   id: number
   account: number | null
@@ -810,55 +710,6 @@ function GroupChat() {
         )}
       </Card>
     </section>
-  )
-}
-
-/** A button that posts to the dashboard, first asking for a reason when `ask` is given. */
-function Action({
-  label,
-  ask,
-  sure,
-  path,
-  onDone,
-  danger,
-}: {
-  label: string
-  ask?: string
-  /** A yes/no question first, when no reason is needed. */
-  sure?: string
-  path: string
-  onDone: () => void
-  danger?: boolean
-}) {
-  const [busy, setBusy] = useState(false)
-  const run = async () => {
-    if (sure && !window.confirm(sure)) return
-    let reason = ''
-    if (ask) {
-      const typed = window.prompt(ask)
-      if (typed === null) return
-      reason = typed
-    }
-    setBusy(true)
-    try {
-      await call(path, 'POST', { reason })
-      onDone()
-    } catch (e) {
-      window.alert((e as Error).message)
-    }
-    setBusy(false)
-  }
-  return (
-    <button
-      type="button"
-      onClick={run}
-      disabled={busy}
-      className={`h-8 whitespace-nowrap rounded-lg border px-3 text-xs font-semibold transition disabled:opacity-50 ${
-        danger ? 'border-stop/40 text-stop hover:bg-stop/10' : 'border-line text-ink hover:bg-raised'
-      }`}
-    >
-      {busy ? 'One moment…' : label}
-    </button>
   )
 }
 

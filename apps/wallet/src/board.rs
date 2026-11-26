@@ -147,6 +147,9 @@ fn call(dir: &Path, method: &str, path: &str, body: Option<Value>) -> Result<Val
     };
     let response = match answer {
         Ok(response) => response,
+        Err(ureq::Error::Status(404, _)) if path == "/me/referrals" && method == "GET" => {
+            return Ok(json!({ "active": false, "open": false }));
+        }
         Err(ureq::Error::Status(401, _)) => {
             if saved.cookie.take().is_some() {
                 let _ = save(dir, &saved);
@@ -618,6 +621,12 @@ pub fn listings(dir: &Path, category: &str, text: &str, offset: u32) -> Result<V
 /// A signed-in Market call for the Market screens: listings, messages and
 /// reports only, so the page can't reach anything else with the cookie.
 pub fn market_call(dir: &Path, method: &str, path: &str, body: Option<Value>) -> Result<Value, String> {
+    if path == "/me/referrals" && matches!(method, "GET" | "POST") {
+        if load(dir).cookie.is_none() {
+            return Err(Failed::SignIn.into());
+        }
+        return call(dir, method, path, body).map_err(String::from);
+    }
     let allowed = ["/listings", "/conversations", "/reports", "/app-reports", "/support", "/accounts", "/community", "/users", "/notices", "/me/blocked", "/swaps/history", "/room"].iter().any(|p| path == *p || path.starts_with(&format!("{p}/")) || path.starts_with(&format!("{p}?")));
     if !allowed || path.contains("..") || !["GET", "POST", "PUT", "DELETE"].contains(&method) {
         return Err("not a Market call".into());

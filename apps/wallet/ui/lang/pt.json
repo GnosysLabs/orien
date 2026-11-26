@@ -1124,6 +1124,18 @@
   "replied to the network's post about you": "respondeu à publicação da rede sobre você",
   "_patterns": [
     [
+      "^(\\d+) / (\\d+) mining hours$",
+      "{0} de {1} horas de mineração"
+    ],
+    [
+      "^Code accepted\\. Mine with wallet ([0-9a-fA-F…]+) to make progress\\.$",
+      "Código aceito. Minere com a carteira {0} para avançar."
+    ],
+    [
+      "^Code accepted\\. Mine with wallet ([0-9a-fA-F…]+) in Orien Wallet on a computer\\.$",
+      "Código aceito. Minere com a carteira {0} no Orien Wallet em um computador."
+    ],
+    [
       "^Sell ([0-9.,]+) ORN for ([0-9.,]+) SOL(.*)$",
       "Vender {0} ORN por {1} SOL{2}"
     ],
@@ -2108,5 +2120,66 @@
         "Escolha sobre o que deseja ser avisado em Configurações, <b>Notificações</b>."
       ]
     }
-  }
+  },
+  "Referrals": "Indicações",
+  "Invite users": "Convidar usuários",
+  "Enter code": "Inserir código",
+  "Invite a friend to mine - you'll both get 7 free ORN": "Convide um amigo para minerar e ganhem 7 ORN grátis cada um.",
+  "Verify a wallet to get your invite code.": "Verifique uma carteira para receber seu código de convite.",
+  "Verify wallet": "Verificar carteira",
+  "Your invite code": "Seu código de convite",
+  "Copy invite code": "Copiar código de convite",
+  "Copy invite link": "Copiar link de convite",
+  "Qualified": "Qualificadas",
+  "In progress": "Em andamento",
+  "ORN paid": "ORN pagos",
+  "Share your invite link or code with a friend.": "Compartilhe seu link ou código de convite com um amigo.",
+  "Have your friend download Orien and apply your code within 12 hours of creating their account.": "Peça ao seu amigo que baixe o Orien e use seu código em até 12 horas após criar a conta.",
+  "Your friend just needs to verify their wallet and earn mining rewards with it in 10 separate hours.": "Seu amigo só precisa verificar a carteira e ganhar recompensas de mineração com ela em 10 horas distintas.",
+  "You each earn 7 ORN. You can invite up to 5 friends (Referrals may refresh in the future)": "Cada um ganha 7 ORN. Você pode convidar até 5 amigos (esse limite poderá ser renovado no futuro).",
+  "Your referral window has closed": "O prazo para inserir um código terminou",
+  "You can only enter a friend’s code during the first 12 hours after you create your Orien Network account. That time has passed for this account.": "Você só pode inserir o código de um amigo nas primeiras 12 horas após criar sua conta na Orien Network. Esse prazo já terminou para esta conta.",
+  "Use a friend’s code": "Usar o código de um amigo",
+  "Referral code": "Código de indicação",
+  "12-character code": "Código de 12 caracteres",
+  "Apply code": "Aplicar código",
+  "Open Mining": "Abrir mineração",
+  "Sign in to your Orien Network account.": "Entre na sua conta da Orien Network.",
+  "Enter your friend’s code within 12 hours of creating your account.": "Insira o código do seu amigo em até 12 horas após criar sua conta.",
+  "Verify the wallet you’ll use for mining.": "Verifique a carteira que você usará para minerar.",
+  "Earn mining rewards in 10 hourly checkpoints with that wallet.": "Ganhe recompensas de mineração com essa carteira em 10 pontos de controle horários.",
+  "You and the friend who invited you each earn 7 ORN.": "Você e a pessoa que fez o convite ganham 7 ORN cada.",
+  "Your referral progress": "Progresso da sua indicação",
+  "Sign in to use referrals.": "Entre para usar as indicações.",
+  "Loading referrals…": "Carregando indicações…",
+  "The referral program hasn’t opened yet.": "O programa de indicações ainda não começou.",
+  "All rewards for this program have been reserved.": "Todas as recompensas deste programa já foram reservadas.",
+  "You’ve reached your five-referral limit.": "Você atingiu o limite de cinco indicações.",
+  "Your 7 ORN reward has been paid.": "Sua recompensa de 7 ORN foi paga.",
+  "You’ve qualified. Your 7 ORN reward is awaiting payout.": "Você cumpriu os requisitos. Sua recompensa de 7 ORN aguarda pagamento.",
+  "This referral closed before a reward was reserved.": "Esta indicação foi encerrada antes da reserva de uma recompensa.",
+  "Code accepted. Verify a wallet to start counting your mining hours.": "Código aceito. Verifique uma carteira para começar a contar suas horas de mineração.",
+  "Mining requirement met. Reward reservation is pending.": "Requisito de mineração cumprido. A reserva da recompensa está pendente.",
+  "Code accepted. Mine with your verified wallet to make progress.": "Código aceito. Minere com sua carteira verificada para avançar.",
+  "Code accepted. Mine with your verified wallet in Orien Wallet on a computer.": "Código aceito. Minere com sua carteira verificada no Orien Wallet em um computador.",
+  "Code copied": "Código copiado",
+  "Link copied": "Link copiado",
+  "Couldn’t copy. Try again.": "Não foi possível copiar. Tente novamente.",
+  "Completed": "Concluído",
+  "Orien Referrals": "Indicações Orien",
+  "Orien Network couldn't do that just now. Try again in a moment.": "A Orien Network não conseguiu concluir a solicitação. Tente novamente em instantes.",
+  "The swap board sent an answer this app can't read.": "O aplicativo não conseguiu ler a resposta do mercado de trocas.",
+  "Orien Network can't be reached. Check your internet connection.": "Não foi possível acessar orien.network agora. Verifique sua conexão e tente novamente.",
+  "Enter the 12-character invite code.": "Insira o código de convite de 12 caracteres.",
+  "Your account already has a referral code.": "Sua conta já tem um código de indicação.",
+  "You can enter a code within 12 hours of creating your account.": "Você pode inserir um código em até 12 horas após criar sua conta.",
+  "Referrals are closed.": "As indicações estão encerradas.",
+  "That referral code was not found.": "Código de indicação não encontrado.",
+  "You can't use your own referral code.": "Você não pode usar seu próprio código de indicação.",
+  "That referral code is no longer available.": "Esse código de indicação não está mais disponível.",
+  "That inviter has reached their limit.": "Quem fez o convite já atingiu o limite.",
+  "Something went wrong on the server.": "Ocorreu um erro no servidor.",
+  "Not found.": "Não encontrado.",
+  "This account is suspended.": "Esta conta está suspensa.",
+  "Sign in first.": "Entre na Orien Network primeiro."
 }

@@ -21,7 +21,7 @@
   const KNOWN = new Set(LANGS.map((l) => l.code));
   const SKIP_TAGS = new Set(["SCRIPT", "STYLE", "NOSCRIPT", "SVG", "CODE", "PRE", "TEXTAREA", "INPUT"]);
   const SKIP_SEL = "[data-no-i18n], .codebox, #sd-pay-to, #phrase-grid, #rv-words, #cm-feed .cm-text, #cm-thread .cm-text, .dm-body, .gc-body, .mk-desc, .mk-title, .addr, .hash";
-  const ATTRS = ["placeholder", "aria-label", "title"];
+  const ATTRS = ["placeholder", "aria-label", "title", "data-complete-label"];
   const CHECK_SVG = '<svg class="lang-check" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>';
 
   const cache = { en: { strings: {}, patterns: [], guides: {} } };

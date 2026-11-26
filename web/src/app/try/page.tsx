@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { ArrowRight, ChevronDown, Terminal } from 'lucide-react'
 import { CopyText } from '@/components/CopyText'
 import { WalletDownload } from '@/components/WalletDownload'
+import { ReferralInvite } from '@/components/ReferralInvite'
 import { SOURCE_CODE } from '@/lib/brand'
 import { pageMeta } from '@/lib/seo'
 import { SiteVideo } from '@/components/SiteVideo'
@@ -82,6 +83,7 @@ export default function GetStartedPage() {
         </p>
       </header>
 
+      <ReferralInvite />
       <WalletDownload />
       <p className="mt-4 text-center text-sm text-muted">
         <a href="/wallet/SHA256SUMS" className="underline decoration-line underline-offset-4 hover:text-ink">

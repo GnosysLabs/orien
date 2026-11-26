@@ -1124,6 +1124,18 @@
   "replied to the network's post about you": "回覆了關於你的網路動態",
   "_patterns": [
     [
+      "^(\\d+) / (\\d+) mining hours$",
+      "挖礦時數：{0} / {1} 小時"
+    ],
+    [
+      "^Code accepted\\. Mine with wallet ([0-9a-fA-F…]+) to make progress\\.$",
+      "邀請碼已接受。請使用錢包 {0} 挖礦以累計進度。"
+    ],
+    [
+      "^Code accepted\\. Mine with wallet ([0-9a-fA-F…]+) in Orien Wallet on a computer\\.$",
+      "邀請碼已接受。請在電腦上開啟 Orien Wallet，使用錢包 {0} 挖礦。"
+    ],
+    [
       "^Sell ([0-9.,]+) ORN for ([0-9.,]+) SOL(.*)$",
       "賣出 {0} ORN 換取 {1} SOL{2}"
     ],
@@ -2108,5 +2120,66 @@
         "可在設定中的<b>通知</b>裡選擇要接收的提醒類型。"
       ]
     }
-  }
+  },
+  "Referrals": "推薦獎勵",
+  "Invite users": "邀請好友",
+  "Enter code": "輸入邀請碼",
+  "Invite a friend to mine - you'll both get 7 free ORN": "邀請好友挖礦，雙方各得 7 ORN 免費獎勵",
+  "Verify a wallet to get your invite code.": "驗證錢包即可取得邀請碼。",
+  "Verify wallet": "驗證錢包",
+  "Your invite code": "你的邀請碼",
+  "Copy invite code": "複製邀請碼",
+  "Copy invite link": "複製邀請連結",
+  "Qualified": "已達標",
+  "In progress": "進行中",
+  "ORN paid": "已支付的 ORN",
+  "Share your invite link or code with a friend.": "將邀請連結或邀請碼分享給好友。",
+  "Have your friend download Orien and apply your code within 12 hours of creating their account.": "請好友下載 Orien，並在建立帳戶後的 12 小時內使用你的邀請碼。",
+  "Your friend just needs to verify their wallet and earn mining rewards with it in 10 separate hours.": "好友只要驗證錢包，並在 10 個不同的小時內用該錢包獲得挖礦獎勵。",
+  "You each earn 7 ORN. You can invite up to 5 friends (Referrals may refresh in the future)": "雙方各得 7 ORN。你最多可邀請 5 位好友（邀請名額未來可能會重設）。",
+  "Your referral window has closed": "輸入邀請碼的期限已過",
+  "You can only enter a friend’s code during the first 12 hours after you create your Orien Network account. That time has passed for this account.": "只能在建立 Orien Network 帳戶後的前 12 小時內輸入好友的邀請碼。此帳戶已超過期限。",
+  "Use a friend’s code": "使用好友的邀請碼",
+  "Referral code": "邀請碼",
+  "12-character code": "12 碼邀請碼",
+  "Apply code": "套用邀請碼",
+  "Open Mining": "開啟挖礦頁面",
+  "Sign in to your Orien Network account.": "登入你的 Orien Network 帳戶。",
+  "Enter your friend’s code within 12 hours of creating your account.": "在建立帳戶後的 12 小時內輸入好友的邀請碼。",
+  "Verify the wallet you’ll use for mining.": "驗證你將用於挖礦的錢包。",
+  "Earn mining rewards in 10 hourly checkpoints with that wallet.": "使用該錢包在 10 個不同的整點檢查點獲得挖礦獎勵。",
+  "You and the friend who invited you each earn 7 ORN.": "你和邀請你的好友各得 7 ORN。",
+  "Your referral progress": "你的推薦獎勵進度",
+  "Sign in to use referrals.": "請登入以使用推薦功能。",
+  "Loading referrals…": "正在載入推薦資料…",
+  "The referral program hasn’t opened yet.": "推薦獎勵活動尚未開始。",
+  "All rewards for this program have been reserved.": "本活動的獎勵已全數保留。",
+  "You’ve reached your five-referral limit.": "你已達到 5 個推薦名額的上限。",
+  "Your 7 ORN reward has been paid.": "你的 7 ORN 獎勵已發放。",
+  "You’ve qualified. Your 7 ORN reward is awaiting payout.": "你已達標，7 ORN 獎勵等待發放中。",
+  "This referral closed before a reward was reserved.": "這筆推薦在獎勵保留前已結束。",
+  "Code accepted. Verify a wallet to start counting your mining hours.": "邀請碼已接受。請驗證錢包以開始累計挖礦時數。",
+  "Mining requirement met. Reward reservation is pending.": "已符合挖礦條件，等待保留獎勵中。",
+  "Code accepted. Mine with your verified wallet to make progress.": "邀請碼已接受。請使用已驗證的錢包挖礦以累計進度。",
+  "Code accepted. Mine with your verified wallet in Orien Wallet on a computer.": "邀請碼已接受。請在電腦上開啟 Orien Wallet，使用已驗證的錢包挖礦。",
+  "Code copied": "已複製邀請碼",
+  "Link copied": "已複製連結",
+  "Couldn’t copy. Try again.": "無法複製，請再試一次。",
+  "Completed": "已完成",
+  "Orien Referrals": "Orien 推薦獎勵",
+  "Orien Network couldn't do that just now. Try again in a moment.": "Orien Network 暫時無法完成要求。請稍後再試。",
+  "The swap board sent an answer this app can't read.": "應用程式無法讀取交易市場的回應。",
+  "Orien Network can't be reached. Check your internet connection.": "目前無法連接到 orien.network，請檢查網路連接後重試。",
+  "Enter the 12-character invite code.": "請輸入 12 碼邀請碼。",
+  "Your account already has a referral code.": "你的帳戶已使用過邀請碼。",
+  "You can enter a code within 12 hours of creating your account.": "請在建立帳戶後的 12 小時內輸入邀請碼。",
+  "Referrals are closed.": "推薦活動已結束。",
+  "That referral code was not found.": "找不到這組邀請碼。",
+  "You can't use your own referral code.": "不能使用自己的邀請碼。",
+  "That referral code is no longer available.": "此邀請碼已無法使用。",
+  "That inviter has reached their limit.": "邀請人已達推薦上限。",
+  "Something went wrong on the server.": "伺服器發生錯誤。",
+  "Not found.": "找不到項目。",
+  "This account is suspended.": "此帳戶已遭停用。",
+  "Sign in first.": "請先登入 Orien Network。"
 }

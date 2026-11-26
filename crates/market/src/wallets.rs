@@ -54,6 +54,10 @@ pub trait Payments: Send + Sync {
     fn has_held(&self, account: &AccountId) -> Result<bool>;
     /// The ORN `account` can spend now, in the smallest units.
     fn spendable(&self, account: &AccountId) -> Result<u64>;
+    /// Fee for a regular payment of this amount.
+    fn payment_fee(&self, amount: u64) -> u64 {
+        orien_ledger::Fees::default().on(&orien_ledger::Kind::Payment, amount)
+    }
     /// How the network is doing, for the founder's dashboard.
     fn status(&self) -> Result<NetworkStatus>;
     /// Where the ORN are, from the latest checkpoint.
@@ -171,6 +175,10 @@ impl Network {
 }
 
 impl Payments for Network {
+    fn payment_fee(&self, amount: u64) -> u64 {
+        self.fees.on(&orien_ledger::Kind::Payment, amount)
+    }
+
     fn epoch(&self) -> Result<u64> {
         let epochs: Vec<u64> = self.client.info().into_iter().filter_map(|info| info.ok().map(|i| i.epoch)).collect();
         epochs.into_iter().max().context("no validator answers")

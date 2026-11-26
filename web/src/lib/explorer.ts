@@ -96,17 +96,25 @@ export type Rewards = {
   stakers: { address: string; amount: string }[]
 }
 
-export type WalletProfile = { id: number; name: string; picture: string | null; wallet_name?: string | null; official?: boolean }
+export type WalletProfile = { id: number; name: string; picture: string | null; wallet_name?: string | null; official?: boolean; official_note?: string }
 
-/** Orien's own wallets, named here by address so no profile can pass for
- * them: the Market's, where wallet verifications are paid. */
-export const OFFICIAL: Record<string, string> = {
-  '74fa1ab82c45ebeed539b03146243ddfc6f0ccb5163f45ea87d21692ba774b7a': 'Orien Verify',
+/** Orien's own wallets, recognized by their exact addresses. */
+const OFFICIAL: Record<string, { name: string; official_note: string }> = {
+  '74fa1ab82c45ebeed539b03146243ddfc6f0ccb5163f45ea87d21692ba774b7a': {
+    name: 'Orien Verify',
+    official_note: 'Wallet verification sends a small payment to this address.',
+  },
+  'a597e2f8dd3e4502ef6c8f7dc6a19e0387598ca33f124d59828a9694f56b7684': {
+    name: 'Orien Referrals',
+    official_note: 'Referral rewards are paid from this address.',
+  },
 }
 
 /** Orien's own name for an address, if it's one of its wallets. */
-const officialProfile = (address: string): WalletProfile | null =>
-  OFFICIAL[address] ? { id: 0, name: OFFICIAL[address], picture: null, official: true } : null
+export function officialProfile(address: string): WalletProfile | null {
+  const key = address.toLowerCase()
+  return Object.hasOwn(OFFICIAL, key) ? { id: 0, ...OFFICIAL[key], picture: null, official: true } : null
+}
 
 /** "Chris – Savings", or "Chris": as Orien Wallet names people it pays. */
 export const label = (profile: { name: string; wallet_name?: string | null }) =>
