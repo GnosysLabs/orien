@@ -5815,12 +5815,22 @@
   }
   // Cards are kept and moved, never rebuilt, so their pictures never reload:
   // a theme already on screen keeps its card when the list changes.
+  // Each card's picture is fetched once and kept in memory as it is, so
+  // drawing the store again never fetches or blanks it.
+  const tsThumbs = new Map();
+  function tsThumb(name) {
+    if (!tsThumbs.has(name)) tsThumbs.set(name, invoke("theme_store_picture", { name: tsImage(name) }).catch(() => null));
+    return tsThumbs.get(name);
+  }
   function tsBuild(t) {
     const holder = document.createElement("div");
     holder.innerHTML = tsCard(t);
     const card = holder.firstElementChild;
     if (!tsBuiltin(t)) {
-      if (t.thumb) card.querySelector(".ts-stage").style.setProperty("--pic", `url("${tsPic(t.thumb)}")`);
+      if (t.thumb) {
+        const stage = card.querySelector(".ts-stage");
+        tsThumb(t.thumb).then((pic) => stage.style.setProperty("--pic", `url("${pic || tsPic(t.thumb)}")`));
+      }
       setThemeVars(card.querySelector(".ts-wide"), tsColors(t), null, t.base);
     }
     return card;
@@ -5954,7 +5964,9 @@
     };
     // At once with the card's own small picture, then the full one once it's
     // here, unless something else was tried or undone meanwhile.
-    wear(t.thumb ? tsPic(t.thumb) : null);
+    const small = t.thumb ? (await tsThumb(t.thumb)) || tsPic(t.thumb) : null;
+    if (turn !== tsTurn || ts.trying !== t) return;
+    wear(small);
     tsMarkAll();
     feel("selection");
     let pic = null;
