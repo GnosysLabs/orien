@@ -3534,8 +3534,9 @@
         <div class="problem" id="ref-problem" hidden></div>
       </div>
       <div class="st-page" data-page="computer" hidden>
-
-                <div class="set-group">
+        <p class="hint st-hint" id="st-computer-loading" role="status">Loading…</p>
+        <button type="button" class="pill" id="st-computer-retry" hidden>Try again</button>
+        <div class="set-group" id="st-computer-options" hidden>
         <label class="set-row"><span class="set-txt"><b>Open at login</b><small>Start Orien Wallet when you log in</small></span><input type="checkbox" class="switch" id="st-login"></label>
         <label class="set-row"><span class="set-txt"><b>Keep running when closed</b><small>Swaps and payments carry on from the menu bar</small></span><input type="checkbox" class="switch" id="st-running"></label>
         <label class="set-row"><span class="set-txt"><b>Update automatically</b><small>New versions install while you're away from the app</small></span><input type="checkbox" class="switch" id="st-autoupdate"></label>
@@ -6780,6 +6781,7 @@
     if (asked && asked !== "report" && settingsTitles[asked]) bugStep("settings", `Settings › ${settingsTitles[asked]}`);
     if (page === "report" && !$("bug-sent").hidden) bugPaintSent();
     settingsAt = page;
+    if (page === "computer") loadComputerSettings();
     if (page === "referrals") {
       referral.value = null;
       referral.phase = "loading";
@@ -6863,16 +6865,30 @@
     if (!row || !row.dataset.page) return;
     if (row.dataset.page === "link") openPairLink("settings"); else settingsPage(row.dataset.page);
   };
-  async function openSettings() {
+  function openSettings() {
     paintThemeGrid(); paintSettings(); settingsPage(null); show("settings");
-    try {
-      const computer = await invoke("computer_settings");
-      if (computer) {
-        $("st-login").checked = computer[0]; $("st-running").checked = computer[1]; $("st-autoupdate").checked = autoUpdate = computer[2] !== false;
-        $("st-awake").checked = !!computer[3];
-      }
-    } catch {}
   }
+  let computerRequest = 0;
+  async function loadComputerSettings() {
+    const request = ++computerRequest;
+    $("st-computer-options").hidden = true;
+    $("st-computer-retry").hidden = true;
+    $("st-computer-loading").hidden = false;
+    try {
+      const [login, running, updates, awake] = await invoke("computer_settings");
+      if (request !== computerRequest || settingsAt !== "computer") return;
+      $("st-login").checked = login;
+      $("st-running").checked = running;
+      $("st-autoupdate").checked = autoUpdate = updates !== false;
+      $("st-awake").checked = !!awake;
+      $("st-computer-options").hidden = false;
+    } catch {
+      if (request === computerRequest) $("st-computer-retry").hidden = false;
+    } finally {
+      if (request === computerRequest) $("st-computer-loading").hidden = true;
+    }
+  }
+  $("st-computer-retry").onclick = loadComputerSettings;
   $("go-settings").onclick = $("go-settings-tile").onclick = openSettings;
   $("st-back").onclick = () => {
     if (settingsParent[settingsAt]) settingsPage(settingsParent[settingsAt]);
