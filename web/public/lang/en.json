@@ -4171,5 +4171,8 @@
   "Load failed": "Load failed",
   "NetworkError when attempting to fetch resource.": "NetworkError when attempting to fetch resource.",
   "an Orien address is 64 letters and digits, 0-9 and a-f": "an Orien address is 64 letters and digits, 0-9 and a-f",
-  "the Orien network is not answering right now; try again in a minute": "the Orien network is not answering right now; try again in a minute"
+  "the Orien network is not answering right now; try again in a minute": "the Orien network is not answering right now; try again in a minute",
+  "Invite a friend to mine and earn 7 ORN each": "Invite a friend to mine and earn 7 ORN each",
+  "Open Referrals to share your invite link or code. Friends can enter it within 12 hours of creating their Orien Network account.": "Open Referrals to share your invite link or code. Friends can enter it within 12 hours of creating their Orien Network account.",
+  "When a friend earns mining rewards in 10 separate hourly checkpoints with their verified wallet, you both qualify for 7 ORN. Track progress and payouts in the wallet.": "When a friend earns mining rewards in 10 separate hourly checkpoints with their verified wallet, you both qualify for 7 ORN. Track progress and payouts in the wallet."
 }
