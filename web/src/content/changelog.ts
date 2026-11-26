@@ -52,6 +52,15 @@ export const CHANGELOG: Entry[] = [
   {
     date: '2026-11-26',
     products: ['wallet'],
+    version: '1.9.21',
+    title: 'A Help button that settles',
+    changes: [
+      'In a big window, the Help button beside the bell is only highlighted while its menu is open. It stayed lit when the menu closed by scrolling, Escape or a change of page.',
+    ],
+  },
+  {
+    date: '2026-11-26',
+    products: ['wallet'],
     version: '1.9.20',
     title: 'The Theme Store and Orien AI Support',
     changes: [
