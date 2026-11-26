@@ -1941,6 +1941,32 @@
   .ts-stage { position: relative; aspect-ratio: 4 / 3; padding: 0; border-radius: 18px; overflow: hidden; border: 1px solid var(--line); cursor: pointer;
     background: var(--pic, none) center / cover no-repeat, var(--ground-deep); display: grid; place-items: center; transition: transform 0.2s ease; }
   @media (hover: hover) { .ts-stage:hover { transform: translateY(-2px); } }
+  /* Theme previews: small windows show Home as it is there (no picture);
+     big windows show it as it is there, over the theme's picture, with the
+     same softening, vignette and top fade the app puts on it. */
+  .tc-stage { display: none; position: relative; aspect-ratio: 4 / 3; border-radius: 18px; overflow: hidden; border: 1px solid var(--line);
+    background: var(--ground); place-items: center; box-shadow: 0 10px 28px rgba(0, 0, 0, 0.35); transition: transform 0.2s ease, box-shadow 0.2s ease; }
+  .tc-stage::before, .ts-stage::before { content: ""; position: absolute; inset: 0; background: var(--scene, var(--pic, none)) center / cover no-repeat; opacity: 0.55; }
+  .ts-stage::before { background: var(--pic, none) center / cover no-repeat; opacity: 1; }
+  .tc-stage.built::before { opacity: 1; }
+  .tc-stage.built::after, .ts-stage::after { content: ""; position: absolute; inset: 0; pointer-events: none;
+    background: linear-gradient(to bottom, rgba(0, 0, 0, 0.6), transparent 17%), radial-gradient(ellipse at 50% 45%, transparent 38%, rgba(0, 0, 0, 0.62) 100%); }
+  .tc-stage > *, .ts-stage > * { position: relative; z-index: 1; }
+  .ts-stage { background: var(--ground-deep); }
+  .ts-stage .tc-mini { width: 40%; padding: 8px 7px; gap: 5px; border-radius: 12px; box-shadow: 0 14px 34px rgba(0, 0, 0, 0.5); pointer-events: none;
+    background: var(--glow), var(--ground-deep); border: 1px solid var(--line); }
+  .ts-stage .tc-mini .tc-card { border-radius: 8px; padding: 6px; gap: 3px; }
+  .ts-stage .tc-mini .tc-word { height: 5px; } .ts-stage .tc-mini .tc-dot { width: 8px; height: 8px; }
+  .ts-stage .tc-mini .tc-list { border-radius: 7px; padding: 5px; gap: 4px; }
+  .ts-stage .ts-wide { display: none; }
+  @media (min-width: 860px) {
+    body:not(.phone) .theme-card .tc-mini { display: none; }
+    body:not(.phone) .tc-stage { display: grid; }
+    body:not(.phone) .ts-stage .tc-mini { display: none; }
+    body:not(.phone) .ts-stage .ts-wide { display: flex; }
+    @media (hover: hover) { body:not(.phone) .theme-card:hover .tc-stage { transform: translateY(-2px); box-shadow: 0 14px 34px rgba(0, 0, 0, 0.45); } }
+    body:not(.phone) .theme-card.on .tc-stage { outline: 2px solid var(--select); outline-offset: 3px; }
+  }
   .ts-wide { width: 66%; aspect-ratio: 4 / 3; padding: 6px; display: flex; flex-direction: column; gap: 5px; border-radius: 10px; pointer-events: none;
     background: var(--glow), var(--ground-deep); border: 1px solid var(--line); box-shadow: 0 14px 34px rgba(0, 0, 0, 0.5); }
   .tw-top { display: flex; align-items: center; gap: 3px; height: 6px; }
@@ -5653,6 +5679,7 @@
   // A small copy of Home as big windows show it: balance, the round buttons
   // and Activity on the left; Mining and Network on the right.
   const TS_MINI = '<div class="ts-wide"><div class="tw-top"><span class="tw-pill"></span><span class="tw-dot"></span><span class="tw-sp"></span><span class="tw-dot"></span></div><div class="tw-body"><div class="tw-main"><div class="tc-card"><i></i><i></i><i></i></div><div class="tc-tiles seven"><span></span><span></span><span></span><span></span><span></span><span></span><span></span></div><div class="tw-strip"></div><div class="tw-list"><i></i><i></i><i></i></div></div><div class="tw-side"><div class="tw-box"><b></b><i></i><i></i><em></em></div><div class="tw-box"><b></b><i></i><i></i><i></i></div></div></div></div>';
+  const TC_MINI = '<div class="tc-mini"><div class="tc-bar"><span class="tc-word"></span><span class="tc-dot"></span></div><div class="tc-card"><i></i><i></i><i></i></div><div class="tc-tiles"><span></span><span></span><span></span><span></span><span></span></div><div class="tc-list"><i></i><i></i><i></i></div></div>';
   // The builder's work in progress.
   const tb = { colors: [], scene: null, editing: null, base: "dark" };
   function paintThemeCards() {
@@ -5665,11 +5692,15 @@
         <div class="tc-tiles"><span></span><span></span><span></span><span></span><span></span></div>
         <div class="tc-list"><i></i><i></i><i></i></div>
       </div>
+      <div class="tc-stage${own ? " built" : ""}"${own ? "" : ` data-theme="${id}"`}>${TS_MINI}</div>
       <div class="tc-name"><span class="tc-label">${esc(name)}</span>${own && !shared ? `<span class="tc-del tc-share" data-share="${id}" role="button" aria-label="Share ${esc(name)} in the Theme Store" title="Share in the Theme Store">${SHARE_ICON}</span>` : ""}${own ? `<span class="tc-del tc-edit" data-edit="${id}" role="button" aria-label="Edit ${esc(name)}" title="Edit">${COG}</span><span class="tc-del" data-del="${id}" role="button" aria-label="Delete ${esc(name)}" title="Delete">${TRASH}</span>` : ""}<span class="tc-check"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></span></div>
     </button>`).join("");
     for (const t of customThemes()) {
       const mini = $("theme-grid").querySelector(`[data-pick="${t.id}"] .tc-mini`);
       if (mini) setThemeVars(mini, t.colors, null, t.base);
+      // Big windows: the theme's picture behind a small copy of Home.
+      const stage = $("theme-grid").querySelector(`[data-pick="${t.id}"] .tc-stage`);
+      if (stage) { setThemeVars(stage, t.colors, scenes.get(t.id) || null, t.base); if (!scenes.get(t.id)) stage.style.setProperty("--scene", "none"); }
     }
     paintThemeGrid();
   }
@@ -5733,7 +5764,7 @@
       ? `<button class="pill ts-down${ts.downArmed === String(t.id) ? " armed" : ""}" data-ts-down="${t.id}" title="Take it out of the Theme Store (your copy stays)">${ts.downArmed === String(t.id) ? "Click again to remove" : "Remove from store"}</button>`
       : `${a.tip_to ? `<button class="pill icon" data-ts-tip="${t.id}" title="Tip ${esc(a.name || "")}" aria-label="Tip ${esc(a.name || "")}">${COINS_ICON}</button>` : ""}<button class="pill icon" data-ts-report="${t.id}" title="Report" aria-label="Report">${TS_FLAG}</button>`;
     return `<div class="ts-card" data-ts="${t.id}">
-      <button class="ts-stage" data-ts-try="${t.id}" aria-label="Try ${esc(t.name)}">${TS_MINI}</button>
+      <button class="ts-stage" data-ts-try="${t.id}" aria-label="Try ${esc(t.name)}">${TS_MINI}${TC_MINI}</button>
       <div class="ts-info"><div class="ts-meta"><div class="ts-name">${esc(t.name)}</div><div class="ts-by">by <b>${esc(a.name || "someone")}</b></div></div>
       <div class="ts-stats"><span title="Downloads">${DOWN_ICON}${Number(t.downloads) || 0}</span>${tips}</div></div>
       <div class="ts-acts">${ts.trying && String(ts.trying.id) === String(t.id) ? `<button class="pill ts-undo" data-ts-undo="${t.id}">Undo</button>` : `<button class="pill" data-ts-try="${t.id}">Try</button>`}<button class="pill pearl ts-get" data-ts-get="${t.id}">${have ? "Use" : "Get"}</button>${side}</div>
@@ -5746,7 +5777,7 @@
       const card = grid.querySelector(`[data-ts="${t.id}"]`);
       if (!card) continue;
       if (t.thumb) card.querySelector(".ts-stage").style.setProperty("--pic", `url("${tsPic(t.thumb)}")`);
-      setThemeVars(card.querySelector(".ts-wide"), tsColors(t), null, t.base);
+      for (const m of card.querySelectorAll(".ts-wide, .tc-mini")) setThemeVars(m, tsColors(t), null, t.base);
     }
     $("ts-more").hidden = !ts.more;
     const empty = !ts.themes.length && !ts.busy;
