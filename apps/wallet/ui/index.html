@@ -1887,6 +1887,15 @@
   #ref-input { text-transform: uppercase; }
   .ref-progress { display: grid; gap: 5px; }
   .ref-progress progress { width: 100%; height: 8px; accent-color: var(--pearl); }
+  #ref-code:has(#ref-expired:not([hidden])) {
+    padding: clamp(18px, 3vw, 28px);
+    background: linear-gradient(115deg, color-mix(in srgb, var(--accent) 7%, transparent), transparent 70%), var(--surface);
+  }
+  #ref-expired { display: flex; align-items: flex-start; gap: 16px; }
+  .ref-clock { flex: none; display: grid; place-items: center; width: 42px; height: 42px; border-radius: 14px;
+    color: var(--ink); border: 1px solid var(--line); background: color-mix(in srgb, var(--accent) 12%, var(--surface)); }
+  #ref-expired h3 { font-size: 17px; line-height: 1.35; letter-spacing: -.015em; }
+  #ref-expired p { margin-top: 5px; max-width: 52ch; font-size: 14px; line-height: 1.55; }
   /* Smaller windows: one column, the list, then the section chosen. */
   .st-side, .st-pane { display: contents; }
   .st-side > *, .st-pane > * { flex-shrink: 0; }
@@ -3463,7 +3472,14 @@
           </ol>
         </div>
         <div class="ref-panel" id="ref-code" role="tabpanel" aria-labelledby="ref-tab-code" hidden>
-          <h3>Use a friend’s code</h3>
+          <div id="ref-expired" role="status" hidden>
+            <span class="ref-clock" aria-hidden="true"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.5"/><path d="M12 7v5l3.5 2"/></svg></span>
+            <div>
+              <h3>Your referral window has closed</h3>
+              <p>You can only enter a friend’s code during the first 12 hours after you create your Orien Network account. That time has passed for this account.</p>
+            </div>
+          </div>
+          <h3 id="ref-code-heading">Use a friend’s code</h3>
           <form id="ref-form" hidden>
             <label for="ref-input">Referral code</label>
             <div class="ref-actions">
@@ -3478,7 +3494,7 @@
           <p id="ref-claim-info" role="status"></p>
           <button type="button" class="pill pearl" id="ref-claim-verify" hidden>Verify wallet</button>
           <button type="button" class="pill pearl" id="ref-mine" hidden>Open Mining</button>
-          <ol class="guide-steps" role="list">
+          <ol class="guide-steps" id="ref-code-steps" role="list">
             <li>Sign in to your Orien Network account.</li>
             <li>Enter your friend’s code within 12 hours of creating your account.</li>
             <li>Verify the wallet you’ll use for mining.</li>
@@ -11322,6 +11338,10 @@
     $("ref-own-code").textContent = data?.code || "";
     const verifyFirst = data?.open && !data.can_invite && data.completed < data.invite_limit;
     $("ref-invite-verify").hidden = !verifyFirst;
+    const expired = data?.open === true && !claim && data.can_claim === false;
+    $("ref-expired").hidden = !expired;
+    $("ref-code-heading").hidden = expired;
+    $("ref-code-steps").hidden = expired;
     $("ref-form").hidden = !data?.can_claim;
     $("ref-apply").disabled = referral.saving || !/^[A-F0-9]{12}$/.test(refCode());
     $("ref-progress").hidden = !claim || claim.status === "closed";
@@ -11343,7 +11363,7 @@
       : claim?.status === "pending" ? (!claim.verified ? "Code accepted. Verify a wallet to start counting your mining hours."
         : claim.hours >= data.hours_required ? "Mining requirement met. Reward reservation is pending."
         : "Code accepted. Mine with " + miningWallet + (phone ? " in Orien Wallet on a computer." : " to make progress."))
-      : status || (data && !data.can_claim ? "Codes can be entered within 12 hours of creating an account." : "");
+      : status;
   }
   async function refRefresh() {
     if (!refOpen() || referral.saving) return;
