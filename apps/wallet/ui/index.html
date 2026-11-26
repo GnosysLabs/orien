@@ -1935,7 +1935,7 @@
   .ts-entry .chev { flex: none; color: var(--dim); }
   body.phone .ts-entry, body.phone .tc-share { display: none !important; }
   .ts-tabs { grid-template-columns: repeat(3, minmax(0, 1fr)); margin: 0 0 20px; }
-  @media (min-width: 860px) { body:not(.phone) #theme-store { --col: 1040px; } body:not(.phone) .ts-tabs { max-width: 420px; } body:not(.phone) .ts-grid { grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 32px 24px; } }
+  @media (min-width: 860px) { body:not(.phone) #theme-store { --col: 1040px; } body:not(.phone) .ts-tabs { width: min(420px, 100%); margin-left: auto; margin-right: auto; } body:not(.phone) .ts-grid { grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 32px 24px; } }
   .ts-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 28px 20px; }
   .ts-card { display: grid; gap: 12px; align-content: start; min-width: 0; }
   .ts-stage { position: relative; aspect-ratio: 4 / 3; padding: 0; border-radius: 18px; overflow: hidden; border: 1px solid var(--line); cursor: pointer;
@@ -1961,7 +1961,8 @@
   .ts-acts .pill.icon { width: 34px; padding: 0; justify-content: center; color: var(--dim); }
   .ts-acts .pill.icon svg { width: 16px; height: 16px; flex: none; }
   @media (hover: hover) { .ts-acts .pill.icon:hover { color: var(--ink); } }
-  .ts-acts .pill.armed { width: auto; padding: 0 12px; gap: 6px; color: var(--bad, #ff6b6b); }
+  .ts-acts .ts-down { padding: 0 14px; color: var(--dim); white-space: nowrap; }
+  .ts-acts .ts-down.armed { color: #ff6b6b; border-color: rgba(229, 72, 77, 0.5); }
   .ts-empty { padding: 48px 16px; text-align: center; color: var(--dim); font-size: 14px; line-height: 1.5; }
   .ts-empty .pill { margin-top: 16px; }
   #ts-more { display: flex; margin: 26px auto 0; }
@@ -5717,7 +5718,7 @@
     const a = t.author || {}, have = tsOwned(t);
     const tips = t.tips && t.tips.count ? `<span title="Tips">${COINS_ICON}${t.tips.count}</span>` : "";
     const side = t.mine
-      ? `<button class="pill icon${ts.downArmed === String(t.id) ? " armed" : ""}" data-ts-down="${t.id}" title="Take it down" aria-label="Take it down">${TRASH}${ts.downArmed === String(t.id) ? "Take down" : ""}</button>`
+      ? `<button class="pill ts-down${ts.downArmed === String(t.id) ? " armed" : ""}" data-ts-down="${t.id}" title="Take it out of the Theme Store (your copy stays)">${ts.downArmed === String(t.id) ? "Click again to remove" : "Remove from store"}</button>`
       : `${a.tip_to ? `<button class="pill icon" data-ts-tip="${t.id}" title="Tip ${esc(a.name || "")}" aria-label="Tip ${esc(a.name || "")}">${COINS_ICON}</button>` : ""}<button class="pill icon" data-ts-report="${t.id}" title="Report" aria-label="Report">${TS_FLAG}</button>`;
     return `<div class="ts-card" data-ts="${t.id}">
       <button class="ts-stage" data-ts-try="${t.id}" aria-label="Try ${esc(t.name)}">${TS_MINI}</button>
