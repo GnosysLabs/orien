@@ -1966,12 +1966,6 @@
   .ts-empty { padding: 48px 16px; text-align: center; color: var(--dim); font-size: 14px; line-height: 1.5; }
   .ts-empty .pill { margin-top: 16px; }
   #ts-more { display: flex; margin: 26px auto 0; }
-  .ts-trybar { position: fixed; left: 50%; bottom: 22px; z-index: 70; transform: translateX(-50%); display: flex; align-items: center; gap: 10px;
-    padding: 8px 8px 8px 18px; border-radius: 999px; background: var(--surface); border: 1px solid var(--line); box-shadow: 0 16px 44px rgba(0, 0, 0, 0.45);
-    -webkit-backdrop-filter: blur(18px); backdrop-filter: blur(18px); font-size: 13.5px; white-space: nowrap; }
-  .ts-trybar .pill { height: 34px; }
-  #ts-try-name { margin-right: 6px; }
-  body.ts-trying #more-below { display: none !important; }
   #tss-veil { position: fixed; inset: 0; z-index: 61; display: grid; place-items: center; padding: 24px;
     background: var(--veil); -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px); opacity: 0; transition: opacity 0.2s ease; }
   #tss-veil.on { opacity: 1; }
@@ -3191,7 +3185,6 @@
       <div class="ts-empty" id="ts-empty" hidden></div>
       <button class="pill mk-more" id="ts-more" hidden>Show more</button>
     </section>
-    <div class="ts-trybar" id="ts-trybar" hidden><span id="ts-try-name"></span><button class="pill" id="ts-try-undo">Undo</button><button class="pill pearl" id="ts-try-get">Get it</button></div>
     <!-- Build a theme: two or three colours and a picture, kept on this device. -->
     <section class="screen" id="theme-build" hidden>
       <div class="topline"><button class="back" id="tb-back" aria-label="Back"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg></button><h2 id="tb-title">Build a theme</h2></div>
@@ -4293,6 +4286,8 @@
   // like an address or an amount of ORN is left out.
   const BUG_SCREENS = { home: "Home", get: "Get ORN", activity: "Activity", explorer: "Explorer", contacts: "Contacts", contact: "Contact", member: "Contact", community: "Community", "cm-thread": "Post", market: "Market", listing: "Listing", sell: "Sell", notices: "Notifications", inbox: "Messages", chat: "Chat", seller: "Profile", profile: "Your profile", blocks: "Blocked", send: "Send", receive: "Receive", mine: "Mining", wallets: "Wallets", "wallet-add-choose": "Add a wallet", "wallet-add": "Add a wallet", "pair-invite": "Link a device", reveal: "Recovery words", "wallet-rename": "Rename wallet", "wallet-forget": "Remove wallet", swaps: "Swaps", "board-signin": "Sign in", "board-post": "Post an offer", "swap-waiting": "Swap", "swap-posted": "Swap", "board-take": "Take an offer", "swap-detail": "Swap", settings: "Settings", "theme-build": "Build a theme", "theme-store": "Theme Store", phrase: "Recovery words", password: "Password", restore: "Restore" };
   const bugTrail = [], bugErrors = [];
+  // Set by the Theme Store: leaving it takes off a theme being tried.
+  let leaveStore = null;
   function bugStep(id) {
     const screen = BUG_SCREENS[id] || id;
     if (bugTrail.length && bugTrail[bugTrail.length - 1].screen === screen) return;
@@ -4564,6 +4559,7 @@
   const shownOnce = new Promise((done) => { markShown = done; });
   function show(id) {
     bugStep(id);
+    if (leaveStore && id !== "theme-store") leaveStore();
     if (markShown) { markShown(); markShown = null; }
     const signinPop = !phone && wide.matches && id === "board-signin";
     if (!ADD_FLOW.includes(id)) addFlow = false;
@@ -5724,7 +5720,7 @@
       <button class="ts-stage" data-ts-try="${t.id}" aria-label="Try ${esc(t.name)}">${TS_MINI}</button>
       <div class="ts-info"><div class="ts-meta"><div class="ts-name">${esc(t.name)}</div><div class="ts-by">by <b>${esc(a.name || "someone")}</b></div></div>
       <div class="ts-stats"><span title="Downloads">${DOWN_ICON}${Number(t.downloads) || 0}</span>${tips}</div></div>
-      <div class="ts-acts"><button class="pill" data-ts-try="${t.id}">Try</button><button class="pill pearl ts-get" data-ts-get="${t.id}">${have ? "Use" : "Get"}</button>${side}</div>
+      <div class="ts-acts">${ts.trying && String(ts.trying.id) === String(t.id) ? `<button class="pill ts-undo" data-ts-undo="${t.id}">Undo</button>` : `<button class="pill" data-ts-try="${t.id}">Try</button>`}<button class="pill pearl ts-get" data-ts-get="${t.id}">${have ? "Use" : "Get"}</button>${side}</div>
     </div>`;
   }
   function tsPaint() {
@@ -5775,6 +5771,7 @@
   // Trying a theme: the whole app wears it for a moment, with Get it and
   // Undo at the foot. Nothing is kept until Get it.
   async function tsTry(t) {
+    if (ts.trying && String(ts.trying.id) === String(t.id)) { tsUndo(); return; }
     let pic = null;
     try { pic = await invoke("market_image", { name: tsImage(t.picture) }); } catch {}
     if (!ts.trying) ts.before = document.documentElement.dataset.theme || "pearl";
@@ -5784,27 +5781,25 @@
     setThemeVars(html, tsColors(t), pic || (t.thumb ? tsPic(t.thumb) : null), t.base);
     html.dataset.base = t.base === "light" ? "light" : "dark";
     paintBackdrop();
-    $("ts-try-name").textContent = `Trying “${t.name}”`;
-    $("ts-trybar").hidden = false;
-    document.body.classList.add("ts-trying");
+    tsPaint();
     feel("selection");
   }
   function tsUndo() {
     if (!ts.trying) return;
     ts.trying = null;
-    $("ts-trybar").hidden = true; document.body.classList.remove("ts-trying");
+    
     const back = ts.before || "pearl";
     ts.before = null;
     applyTheme(back, false);
+    if (!$("theme-store").hidden) tsPaint();
   }
-  $("ts-try-undo").onclick = tsUndo;
-  $("ts-try-get").onclick = () => { if (ts.trying) tsGet(ts.trying, null); };
+  leaveStore = tsUndo;
   // Getting a theme: a copy of it among your own, worn at once, and sent to
   // your other computers like one you built.
   async function tsGet(t, button) {
     const have = tsOwned(t);
     if (have) {
-      ts.trying = null; ts.before = null; $("ts-trybar").hidden = true; document.body.classList.remove("ts-trying");
+      ts.trying = null; ts.before = null; 
       applyTheme(have.id, true);
       invoke("set_app_theme", { theme: have.id }).catch(() => {});
       return;
@@ -5824,7 +5819,7 @@
       scenes.set(id, pic);
       setSceneVersion(id, pv);
       shareScenes().then(shareThemes, shareThemes);
-      ts.trying = null; ts.before = null; $("ts-trybar").hidden = true; document.body.classList.remove("ts-trying");
+      ts.trying = null; ts.before = null; 
       applyTheme(id, true);
       invoke("set_app_theme", { theme: id }).catch(() => {});
       paintThemeCards();
@@ -5835,6 +5830,7 @@
   }
   $("ts-grid").onclick = async (e) => {
     const go = (name) => { const el = e.target.closest(`[data-ts-${name}]`); return el ? [el, tsFind(el.getAttribute(`data-ts-${name}`))] : [null, null]; };
+    if (e.target.closest("[data-ts-undo]")) { tsUndo(); return; }
     let [el, t] = go("get");
     if (t) return tsGet(t, el);
     [el, t] = go("try");
