@@ -13143,7 +13143,9 @@
     const button = $("update");
     // Updating by itself (below): no button, unless this copy is too old to
     // keep working, or the person turned that off.
-    button.hidden = !update || (autoUpdate && !update.required);
+    // Always offered: waiting for the app to update by itself (after ten
+    // minutes away) looked like the update was stuck.
+    button.hidden = !update;
     if (!update) return;
     button.classList.toggle("required", update.required);
     button.textContent = update.required ? "Update needed" : "Update to Latest";
