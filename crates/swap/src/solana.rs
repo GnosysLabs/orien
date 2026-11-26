@@ -45,6 +45,11 @@ pub fn text(bytes: &[u8]) -> String {
     bs58::encode(bytes).into_string()
 }
 
+/// Whether an address can have a regular Ed25519 wallet signing key.
+pub fn is_wallet_key(key: &Pubkey) -> bool {
+    ed25519_dalek::VerifyingKey::from_bytes(key).is_ok_and(|key| !key.is_weak())
+}
+
 /// A Solana key pair.
 pub struct Keypair(SigningKey);
 
@@ -174,6 +179,11 @@ pub enum Landed {
     Finalized,
 }
 
+pub struct TransactionStatus {
+    pub level: Landed,
+    pub error: Option<Value>,
+}
+
 /// Solana, through several services, and where orien-lock is on it.
 pub struct Solana {
     rpcs: Vec<Rpc>,
@@ -246,6 +256,26 @@ impl Solana {
         Ok(balances.into_iter().min().expect("at least one"))
     }
 
+    /// The total owned across token accounts for a mint, in its smallest units.
+    pub fn token_balance(&self, owner: &Pubkey, mint: &Pubkey) -> Result<u64> {
+        let balances = self.most(|rpc| {
+            let found = rpc.call(
+                "getTokenAccountsByOwner",
+                json!([text(owner), { "mint": text(mint) }, { "commitment": "confirmed", "encoding": "jsonParsed" }]),
+                Some(FRESH),
+            )?;
+            let accounts = found["value"].as_array().ok_or_else(|| anyhow!("{} gave no token accounts", rpc.base))?;
+            accounts.iter().try_fold(0_u64, |total, account| {
+                let amount = account.pointer("/account/data/parsed/info/tokenAmount/amount")
+                    .and_then(Value::as_str)
+                    .and_then(|amount| amount.parse::<u64>().ok())
+                    .ok_or_else(|| anyhow!("{} gave an invalid token balance", rpc.base))?;
+                total.checked_add(amount).ok_or_else(|| anyhow!("token balance is too large"))
+            })
+        })?;
+        Ok(balances.into_iter().min().expect("at least one"))
+    }
+
     /// An account, finalized, if most services agree on it exactly; none if
     /// any of them has none.
     pub fn account(&self, who: &Pubkey) -> Result<Option<Account>> {
@@ -314,6 +344,47 @@ impl Solana {
         Ok(hashes[0])
     }
 
+    /// A recent blockhash and the height after which it can no longer land.
+    pub fn blockhash_lifetime(&self) -> Result<(Pubkey, u64)> {
+        let values = self.answers(|rpc| {
+            let found = rpc.call("getLatestBlockhash", json!([{ "commitment": "confirmed" }]), None)?;
+            let value = &found["value"];
+            let hash = address(value["blockhash"].as_str().ok_or_else(|| anyhow!("Solana gave no blockhash"))?)?;
+            let last = value["lastValidBlockHeight"].as_u64().ok_or_else(|| anyhow!("Solana gave no transaction expiry"))?;
+            Ok((hash, last))
+        })?;
+        Ok(values[0])
+    }
+
+    pub fn finalized_block_height(&self) -> Result<u64> {
+        let heights = self.most(|rpc| {
+            rpc.call("getBlockHeight", json!([{ "commitment": "finalized" }]), None)?
+                .as_u64()
+                .ok_or_else(|| anyhow!("Solana gave no block height"))
+        })?;
+        Ok(heights.into_iter().min().expect("at least one"))
+    }
+
+    pub fn blockhash_valid(&self, blockhash: &Pubkey) -> Result<bool> {
+        let answers = self.most(|rpc| {
+            let found = rpc.call("isBlockhashValid", json!([text(blockhash), { "commitment": "confirmed" }]), None)?;
+            found["value"].as_bool().ok_or_else(|| anyhow!("Solana did not check the blockhash"))
+        })?;
+        Ok(answers.into_iter().all(|valid| valid))
+    }
+
+    /// Quotes the fee for the same message the wallet will sign.
+    pub fn fee_for_message(&self, payer: &Pubkey, instructions: &[Instruction], blockhash: Pubkey) -> Result<u64> {
+        use base64::Engine;
+        let (message, _) = legacy_message(payer, instructions, blockhash);
+        let wire = base64::engine::general_purpose::STANDARD.encode(message);
+        let fees = self.most(|rpc| {
+            let found = rpc.call("getFeeForMessage", json!([wire, { "commitment": "confirmed" }]), None)?;
+            found["value"].as_u64().ok_or_else(|| anyhow!("Solana could not quote the fee. Review the transfer again."))
+        })?;
+        Ok(fees.into_iter().max().expect("at least one"))
+    }
+
     /// Sends a signed transaction through every service; its signature, if
     /// any of them took it.
     pub fn send(&self, transaction: &[u8]) -> Result<String> {
@@ -330,23 +401,31 @@ impl Solana {
 
     /// How far a sent transaction has landed; an error if it failed.
     pub fn landed(&self, signature: &str) -> Result<Option<Landed>> {
+        let Some(status) = self.transaction_status(signature)? else { return Ok(None) };
+        if let Some(error) = status.error {
+            bail!("Solana refused the transaction: {error}");
+        }
+        Ok(Some(status.level))
+    }
+
+    pub fn transaction_status(&self, signature: &str) -> Result<Option<TransactionStatus>> {
         let statuses = self.answers(|rpc| {
             let found = rpc.call("getSignatureStatuses", json!([[signature], { "searchTransactionHistory": true }]), None)?;
             Ok(found["value"][0].clone())
         })?;
         let mut best = None;
         for status in statuses.iter().filter(|s| !s.is_null()) {
-            if !status["err"].is_null() {
-                bail!("Solana refused the transaction: {}", status["err"]);
-            }
             let level = match status["confirmationStatus"].as_str() {
                 Some("finalized") => Landed::Finalized,
                 Some("confirmed") => Landed::Confirmed,
                 _ => Landed::Processed,
             };
+            if !status["err"].is_null() {
+                return Ok(Some(TransactionStatus { level, error: Some(status["err"].clone()) }));
+            }
             best = best.max(Some(level));
         }
-        Ok(best)
+        Ok(best.map(|level| TransactionStatus { level, error: None }))
     }
 
     /// The secret that claimed the lock at `lock`, read from the claim
@@ -410,11 +489,9 @@ fn compact(mut n: usize, out: &mut Vec<u8>) {
     }
 }
 
-/// A signed legacy transaction, ready to send. `payer` pays the fee and
-/// signs first; `others` are the other signers the instructions need.
-pub fn transaction(payer: &Keypair, others: &[&Keypair], instructions: &[Instruction], blockhash: [u8; 32]) -> Result<Vec<u8>> {
+fn legacy_message(payer: &Pubkey, instructions: &[Instruction], blockhash: Pubkey) -> (Vec<u8>, Vec<Pubkey>) {
     // Every account once, with the strongest rights any use gives it.
-    let mut keys: Vec<(Pubkey, bool, bool)> = vec![(payer.pubkey(), true, true)];
+    let mut keys: Vec<(Pubkey, bool, bool)> = vec![(*payer, true, true)];
     let mut note = |key: Pubkey, signer: bool, writable: bool| match keys.iter_mut().find(|(k, _, _)| *k == key) {
         Some(entry) => {
             entry.1 |= signer;
@@ -436,11 +513,7 @@ pub fn transaction(payer: &Keypair, others: &[&Keypair], instructions: &[Instruc
         (false, true) => 2,
         (false, false) => 3,
     };
-    let payer_key = payer.pubkey();
     keys[1..].sort_by_key(rank);
-    if keys.iter().any(|(k, s, _)| *s && *k != payer_key && !others.iter().any(|o| o.pubkey() == *k)) {
-        bail!("a signer is missing");
-    }
     let signers: Vec<Pubkey> = keys.iter().filter(|k| k.1).map(|k| k.0).collect();
     let readonly_signed = keys.iter().filter(|k| k.1 && !k.2).count();
     let readonly_unsigned = keys.iter().filter(|k| !k.1 && !k.2).count();
@@ -462,11 +535,18 @@ pub fn transaction(payer: &Keypair, others: &[&Keypair], instructions: &[Instruc
         compact(ix.data.len(), &mut message);
         message.extend_from_slice(&ix.data);
     }
+    (message, signers)
+}
 
+/// A signed legacy transaction, ready to send. `payer` pays the fee and
+/// signs first; `others` are the other signers the instructions need.
+pub fn transaction(payer: &Keypair, others: &[&Keypair], instructions: &[Instruction], blockhash: Pubkey) -> Result<Vec<u8>> {
+    let payer_key = payer.pubkey();
+    let (message, signers) = legacy_message(&payer_key, instructions, blockhash);
     let mut out = Vec::new();
     compact(signers.len(), &mut out);
     for key in &signers {
-        let signer = if *key == payer_key { payer } else { others.iter().find(|o| o.pubkey() == *key).expect("checked above") };
+        let signer = if *key == payer_key { payer } else { others.iter().find(|o| o.pubkey() == *key).ok_or_else(|| anyhow!("a signer is missing"))? };
         out.extend_from_slice(&signer.sign(&message));
     }
     out.extend_from_slice(&message);

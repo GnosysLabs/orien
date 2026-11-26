@@ -264,6 +264,12 @@ impl Wallet {
         blake3::derive_key("orien wallet solana 2026-11-16 ed25519", &self.seed)
     }
 
+    /// Separate key for the Solana devnet assets preview. Restoring this
+    /// Orien account restores its preview address as well.
+    pub fn solana_devnet_secret(&self) -> [u8; 32] {
+        blake3::derive_key("orien wallet solana devnet assets v1 ed25519", &self.seed)
+    }
+
     /// A new wallet: a fresh recovery phrase, and its account 1.
     pub fn create(path: &Path) -> Result<Wallet> {
         Wallet::from_master(path, random_seed(), 1)

@@ -616,6 +616,54 @@
   .card .balance { font-size: 42px; font-weight: 300; line-height: 1.1; letter-spacing: -0.01em; }
   .card .unit { font-size: 14px; opacity: 0.6; }
 
+  .asset-picker { display: flex; gap: 7px; margin: 0 0 12px; }
+  .asset-picker .pill { gap: 6px; min-width: 72px; padding: 0 11px; }
+  .asset-picker .chain-mark { flex: none; width: 20px; height: 20px; object-fit: contain; }
+  .asset-picker .chain-mark.mark { background: currentColor; }
+  .asset-picker img.chain-mark { width: 17px; height: 17px; }
+  .asset-picker .pill[aria-pressed="true"] { background: var(--pearl); color: var(--pearl-ink); border-color: transparent; }
+  .asset-picker .pill[aria-pressed="true"] img.chain-mark { filter: drop-shadow(0 1px 1px #21173770); }
+  .card .asset-menu-toggle { display: inline-flex; align-items: center; gap: 5px; padding: 3px 8px; border: 0; border-radius: 8px;
+    color: var(--pearl-ink); background: color-mix(in srgb, var(--pearl-ink) 12%, transparent); line-height: 1.3; opacity: 1; cursor: pointer; white-space: nowrap; }
+  .asset-menu-toggle svg { flex: none; }
+  .asset-menu-toggle[aria-expanded="true"] svg { transform: rotate(180deg); }
+  body.phone .asset-menu-toggle { min-height: 38px; align-self: center; }
+  @media (hover: hover) { .card .asset-menu-toggle:hover { background: color-mix(in srgb, var(--pearl-ink) 18%, transparent); } }
+  .asset-tokens { position: absolute; z-index: 4; top: calc(100% - 10px); left: 16px; width: min(340px, calc(100% - 32px));
+    padding: 7px; color: var(--ink); background: var(--surface); border: 1px solid var(--line); border-radius: 16px;
+    box-shadow: 0 10px 26px rgba(0, 0, 0, .24); }
+  .asset-token-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 2px 4px 6px 9px; }
+  .asset-token-head h3 { margin: 0; font-size: 15px; font-weight: 600; }
+  #asset-devnet-refresh { color: var(--dim); }
+  #asset-devnet-refresh:disabled { opacity: .55; cursor: default; }
+  #asset-devnet-refresh[aria-busy="true"] svg { animation: spin .85s linear infinite; }
+  @media (prefers-reduced-motion: reduce) { #asset-devnet-refresh[aria-busy="true"] svg { animation: none; } }
+  .asset-token-list { display: grid; gap: 5px; max-height: 240px; overflow: auto; overscroll-behavior: contain; }
+  .asset-tokens .set-row { gap: 10px; min-height: 52px; padding: 8px; border-radius: 10px; }
+  .asset-tokens .set-row + .set-row::before { display: none; }
+  .asset-tokens .set-row[aria-pressed="true"] { background: var(--surface-hover); }
+  .asset-token-icon { flex: none; width: 28px; height: 28px; border-radius: 50%; object-fit: contain; }
+  .asset-token-balance { font-size: 14px; font-weight: 600; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; text-align: right; }
+  .asset-token-selected { flex: none; color: var(--accent); visibility: hidden; }
+  .asset-tokens .set-row[aria-pressed="true"] .asset-token-selected { visibility: visible; }
+  #asset-devnet-tools { margin-top: 16px; }
+  #asset-devnet-status { margin: 9px 4px 0; color: var(--dim); font-size: 12.5px; }
+  #asset-devnet-unlock { display: grid; gap: 10px; margin-top: 10px; padding: 12px 14px; }
+  #asset-devnet-unlock .field { margin: 0; }
+  #asset-devnet-unlock .pill { justify-self: start; }
+  #home.asset-devnet :is(#vw-card, #recent, #view-all) { display: none; }
+  #go-send:disabled { cursor: default; }
+  #go-send:disabled .icon { opacity: .45; transform: none; filter: none; }
+  .sol-send-network { display: flex; align-items: center; gap: 6px; align-self: flex-start; margin: 1px 0 4px;
+    padding: 5px 9px; border: 1px solid var(--line); border-radius: 16px; color: var(--dim); font-size: 12px; }
+  .sol-send-network img { width: 14px; height: 14px; object-fit: contain; }
+  #solana-send .summary .row { gap: 12px; }
+  #solana-send .summary .row > :first-child { flex: none; }
+  #solana-send .summary .mono { min-width: 0; overflow-wrap: anywhere; text-align: right; }
+  #solana-send .sol-send-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 16px; }
+  #solana-send .sol-send-actions :is(.primary, .secondary) { flex: 1; min-width: min(100%, 140px); padding: 0 12px; }
+  #sol-send-status { font-size: 16px; font-weight: 600; margin: 12px 0 4px; }
+
   .actions { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 16px; }
   .actions.three { grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
   .actions.four { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
@@ -2713,6 +2761,9 @@
     display: grid; place-items: center; color: var(--pearl-ink);
   }
   .receive-qr { width: 196px; height: 196px; margin: 0 auto 18px; padding: 4px; border-radius: 16px; background: #fff; }
+  .receive-network { width: fit-content; display: flex; align-items: center; gap: 7px; margin: 0 auto 14px; padding: 5px 10px;
+    color: var(--dim); font-size: 12px; font-weight: 600; border: 1px solid var(--line); border-radius: 18px; }
+  .receive-network img { width: 14px; height: 14px; object-fit: contain; }
   .receive-actions { display: grid; gap: 10px; margin-top: 16px; }
   .receive-actions.two { grid-template-columns: 1fr 1fr; }
   #receive .receive-card { padding: 20px 20px 16px; }
@@ -2722,11 +2773,11 @@
     body.pop:not(.phone) main { isolation: auto; }
     body.pop:not(.phone) #pop-shade { display: block; position: fixed; inset: 0; z-index: 50;
       background: var(--veil); -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px); animation: pop-fade .18s ease; }
-    html body.pop:not(.phone) :is(#send, #receive, #contacts, #contact, #member, #board-post, #board-take, #swap-waiting, #swap-posted, #activity, #board-signin, #wallet-add-choose, #wallet-add, #restore, #phrase, #password, #pair-invite) { position: fixed; z-index: 51; inset: 0; margin: auto;
+    html body.pop:not(.phone) :is(#send, #solana-send, #receive, #contacts, #contact, #member, #board-post, #board-take, #swap-waiting, #swap-posted, #activity, #board-signin, #wallet-add-choose, #wallet-add, #restore, #phrase, #password, #pair-invite) { position: fixed; z-index: 51; inset: 0; margin: auto;
       width: min(480px, calc(100vw - 48px)); height: fit-content; max-height: calc(100vh - 96px); overflow-y: auto;
       padding: 18px 24px 24px; -webkit-mask: none; mask: none; border-radius: 24px; background: var(--surface); border: 1px solid var(--line);
       box-shadow: 0 24px 60px rgba(0, 0, 0, 0.5), 0 2px 8px rgba(0, 0, 0, 0.25); animation: pop-in .2s cubic-bezier(.2, .9, .3, 1.2); }
-    body.pop:not(.phone) :is(#send, #receive, #contacts, #contact, #member, #board-post, #board-take, #swap-waiting, #swap-posted, #activity, #board-signin, #wallet-add-choose, #wallet-add, #restore, #phrase, #password, #pair-invite) .topline { position: static; }
+    body.pop:not(.phone) :is(#send, #solana-send, #receive, #contacts, #contact, #member, #board-post, #board-take, #swap-waiting, #swap-posted, #activity, #board-signin, #wallet-add-choose, #wallet-add, #restore, #phrase, #password, #pair-invite) .topline { position: static; }
     html body.pop:not(.phone) :is(#contacts, #contact, #member) { width: min(600px, calc(100vw - 48px)); }
     /* The offer forms carry more words: a little wider, so they wrap less. */
     html body.pop:not(.phone) :is(#board-post, #board-take, #wallet-add-choose, #wallet-add, #restore, #phrase, #password, #pair-invite) { width: min(560px, calc(100vw - 48px)); }
@@ -2735,8 +2786,8 @@
     html body.pop:not(.phone) #activity { width: min(600px, calc(100vw - 48px)); height: min(720px, calc(100vh - 96px)); overflow: hidden; display: flex; flex-direction: column; }
     body.pop:not(.phone) #activity #all-activity { flex: 1 1 auto; min-height: 0; overflow-y: auto; margin: 0; }
     body.pop:not(.phone) #contacts #contact-list { flex: none; overflow: visible; margin: 0; padding: 0; -webkit-mask: none; mask: none; }
-    html body.pop:not(.phone) :is(#send, #receive, #contacts, #contact, #member, #board-post, #board-take, #swap-waiting, #swap-posted, #activity, #board-signin, #wallet-add-choose, #wallet-add, #restore, #phrase, #password, #pair-invite):not(#x) { padding-bottom: 24px; }
-    body.pop:not(.phone) :is(#send, #receive, #contacts, #contact, #member, #board-post, #board-take, #swap-waiting, #swap-posted, #activity, #board-signin, #wallet-add-choose, #wallet-add, #restore, #phrase, #password, #pair-invite) .push { display: none; }
+    html body.pop:not(.phone) :is(#send, #solana-send, #receive, #contacts, #contact, #member, #board-post, #board-take, #swap-waiting, #swap-posted, #activity, #board-signin, #wallet-add-choose, #wallet-add, #restore, #phrase, #password, #pair-invite):not(#x) { padding-bottom: 24px; }
+    body.pop:not(.phone) :is(#send, #solana-send, #receive, #contacts, #contact, #member, #board-post, #board-take, #swap-waiting, #swap-posted, #activity, #board-signin, #wallet-add-choose, #wallet-add, #restore, #phrase, #password, #pair-invite) .push { display: none; }
     /* Solid, a step lighter than the card: a see-through fill over the
        blurred Home drew a ghost beside each contact. */
     body.pop:not(.phone) #contacts .ct-list > .tx { background: color-mix(in srgb, var(--ink) 4%, var(--surface)); }
@@ -2758,8 +2809,8 @@
     body.pop:not(.phone) .account .pop-x { margin-left: 0; }
     body.pop:not(.phone) #contact .tl-bin:not([hidden]) + .pop-x { margin-left: 10px; }
     @media (hover: hover) { body.pop:not(.phone) .pop-x:hover { background: rgba(var(--tint), 0.1); color: var(--ink); } }
-    body.pop:not(.phone) :is(#send, #receive, #contacts, #board-post, #board-take, #swap-waiting, #swap-posted, #activity, #board-signin, #wallet-add-choose) .topline .back { display: none; }
-    body.pop:not(.phone) :is(#send, #receive, #contacts, #board-post, #board-take, #swap-waiting, #swap-posted, #activity, #board-signin, #wallet-add-choose) .topline h2 { margin-left: 4px; }
+    body.pop:not(.phone) :is(#send, #solana-send, #receive, #contacts, #board-post, #board-take, #swap-waiting, #swap-posted, #activity, #board-signin, #wallet-add-choose) .topline .back { display: none; }
+    body.pop:not(.phone) :is(#send, #solana-send, #receive, #contacts, #board-post, #board-take, #swap-waiting, #swap-posted, #activity, #board-signin, #wallet-add-choose) .topline h2 { margin-left: 4px; }
     body.pop:not(.phone) #receive .receive-actions.two { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
     body.pop:not(.phone) #receive .receive-actions :is(.primary, .secondary) { width: 100%; min-width: 0; padding-left: 12px; padding-right: 12px; }
   }
@@ -3005,7 +3056,7 @@
   .home-side { display: none; }
   @media (min-width: 860px) {
     body:not(.phone) #home { --col: 1040px; }
-    body:not(.phone) #home .home-body { display: flex; gap: 20px; flex: 0 1 auto; min-height: 0; }
+    body:not(.phone) #home .home-body { display: flex; gap: 20px; flex: 1 1 0; min-height: 0; }
     body:not(.phone) #home .home-main { display: flex; flex-direction: column; flex: 1 1 auto; min-width: 0; min-height: 0; }
     body:not(.phone) #home .home-side { display: flex; flex-direction: column; gap: 14px; flex: 0 0 340px; min-height: 0; }
     /* Mining and the group chat are in the column beside: their buttons go,
@@ -3032,8 +3083,8 @@
   .hs-figs b { display: block; margin-top: 2px; font-size: 14px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .hs-acts { display: flex; gap: 8px; margin-top: 14px; }
   .hs-acts .pill { flex: 1; }
-  /* The network card runs down as far as the wallet column beside it, its
-     latest checkpoints filling what's left. */
+  /* The network card fills the remaining window height, including when
+     the wallet column has no activity. */
   .hs-net { flex: 1 1 auto; min-height: 0; }
   .hs-figs2 { grid-template-columns: repeat(2, minmax(0, 1fr)); row-gap: 12px; }
   /* The list reaches 8px past the card's text on each side, so a row's
@@ -3524,10 +3575,43 @@
         <div class="sa-main"><div class="sa-title" id="sa-title"></div><div class="sa-sub" id="sa-sub"></div></div>
         <span class="sa-go" id="sa-go"></span>
       </button>
+      <div class="asset-picker" role="group" aria-label="Wallet networks">
+        <button class="pill" type="button" data-wallet-asset="ORN" aria-pressed="true"><span class="chain-mark mark" aria-hidden="true"></span>ORN</button>
+        <button class="pill" type="button" data-wallet-asset="SOL" aria-pressed="false"><img class="chain-mark" src="chains/solana.png" alt="">SOL</button>
+      </div>
       <div class="card pearl">
-        <div class="label">Balance</div>
+        <div class="label" id="asset-network-label">Balance</div>
         <button class="bal-eye" id="bal-eye" aria-label="Hide balance" title="Hide balance"></button>
-        <div class="amount"><span class="balance" id="balance">—</span><span class="unit">ORN</span></div>
+        <div class="amount">
+          <span class="balance" id="balance">—</span>
+          <span class="unit" id="asset-unit">ORN</span>
+          <button class="unit asset-menu-toggle" id="asset-menu-toggle" type="button" aria-expanded="false" aria-controls="asset-token-menu" hidden>
+            <span id="asset-menu-unit">SOL</span>
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
+          </button>
+        </div>
+        <section class="asset-tokens" id="asset-token-menu" aria-labelledby="asset-token-heading" hidden>
+          <div class="asset-token-head">
+            <h3 id="asset-token-heading">Solana assets</h3>
+            <button class="pill icon" id="asset-devnet-refresh" type="button" aria-label="Refresh Solana balances" title="Refresh Solana balances">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 7v5h-5M4 17v-5h5"/><path d="M6.1 7.2a7 7 0 0 1 11.5-1.4L20 9M4 15l2.4 3.2a7 7 0 0 0 11.5-1.4"/></svg>
+            </button>
+          </div>
+          <div class="asset-token-list">
+            <button class="set-row" data-solana-asset="SOL" type="button" aria-pressed="true">
+              <img class="asset-token-icon" src="chains/solana.png" alt="">
+              <span class="set-txt"><b>Solana</b><small>SOL</small></span>
+              <span class="asset-token-balance" id="asset-sol-balance">—</span>
+              <svg class="asset-token-selected" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12 4 4L19 6"/></svg>
+            </button>
+            <button class="set-row" data-solana-asset="USDC" type="button" aria-pressed="false">
+              <img class="asset-token-icon" src="chains/usdc.png" alt="">
+              <span class="set-txt"><b>USD Coin</b><small>USDC</small></span>
+              <span class="asset-token-balance" id="asset-usdc-balance">—</span>
+              <svg class="asset-token-selected" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12 4 4L19 6"/></svg>
+            </button>
+          </div>
+        </section>
       </div>
 
       <div class="actions five">
@@ -3573,6 +3657,17 @@
         </button>
       </div>
 
+      <div id="asset-devnet-tools" hidden>
+        <p id="asset-devnet-status" role="status" hidden></p>
+        <form class="list" id="asset-devnet-unlock" hidden>
+          <div class="field" id="asset-devnet-password-field">
+            <label for="asset-devnet-password">Wallet password</label>
+            <div class="box plain"><input id="asset-devnet-password" type="password" autocomplete="current-password"></div>
+          </div>
+          <button class="pill" id="asset-devnet-unlock-go" type="submit">Unlock Solana</button>
+        </form>
+      </div>
+
       <!-- Verifying the open wallet: one tap from Home, while it isn't yet. -->
       <div class="vw-card" id="vw-card" hidden><span class="vw-badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/><path d="m9 12 2 2 4-4"/></svg></span><div class="vw-text" id="vw-text"></div><button class="pill pearl" id="vw-go">Verify</button><button class="ch-ask-x vw-x" id="vw-x" aria-label="Don't show this again" title="Don't show this again"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></button></div>
       <div class="section-head">
@@ -3580,6 +3675,7 @@
         <button class="link" id="view-all" hidden>View all</button>
       </div>
       <div class="list" id="recent"><div class="empty">No payments yet</div></div>
+      <div class="list" id="solana-recent" hidden><div class="empty">Solana transaction history is coming.</div></div>
 
       <div class="problem" id="home-problem" hidden></div>
       </div>
@@ -4046,6 +4142,58 @@
       <div class="push"></div>
       <div class="problem" id="send-problem" hidden></div>
       <button class="primary pearl" id="confirm" disabled>Send</button>
+    </section>
+
+    <section class="screen" id="solana-send" hidden>
+      <div class="topline">
+        <button class="back" data-back aria-label="Back"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg></button>
+        <h2>Send SOL</h2>
+        <button class="pop-x" data-pop-close aria-label="Close" title="Close"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></button>
+      </div>
+      <div class="sol-send-network"><img src="chains/solana.png" alt="">Solana Devnet · Test SOL</div>
+
+      <form id="sol-send-form">
+        <div class="field">
+          <label for="sol-send-to">Recipient</label>
+          <div class="box plain"><input id="sol-send-to" placeholder="Solana wallet address" maxlength="44" spellcheck="false" autocomplete="off" required></div>
+        </div>
+        <div class="field">
+          <div class="label-row"><label for="sol-send-amount">Amount</label><span id="sol-send-available"></span></div>
+          <div class="box amount-box"><input id="sol-send-amount" placeholder="0" inputmode="decimal" autocomplete="off" required><span class="amount-unit">SOL</span></div>
+        </div>
+        <div class="sol-send-actions"><button class="primary pearl" id="sol-send-quote" type="submit">Review transfer</button></div>
+      </form>
+
+      <form id="sol-send-review" hidden>
+        <div class="summary">
+          <div class="row"><span>To</span><span class="mono" id="sol-review-to"></span></div>
+          <div class="row"><span>Amount</span><span id="sol-review-amount"></span></div>
+          <div class="row"><span>Network fee</span><span id="sol-review-fee"></span></div>
+          <div class="row"><span>Total</span><span id="sol-review-total"></span></div>
+        </div>
+        <div class="field" id="sol-send-pw-field" hidden>
+          <label for="sol-send-pw">Wallet password</label>
+          <div class="box plain"><input id="sol-send-pw" type="password" autocomplete="current-password"></div>
+        </div>
+        <div class="sol-send-actions">
+          <button class="secondary" id="sol-send-edit" type="button">Edit</button>
+          <button class="primary pearl" id="sol-send-confirm" type="submit">Approve and send</button>
+        </div>
+      </form>
+
+      <div id="sol-send-receipt" hidden>
+        <h3 id="sol-send-status" aria-live="polite"></h3>
+        <p class="fineprint" id="sol-send-status-note" hidden></p>
+        <div class="summary">
+          <div class="row"><span>Amount</span><span id="sol-receipt-amount"></span></div>
+          <div class="row"><span>To</span><span class="mono" id="sol-receipt-to"></span></div>
+        </div>
+        <div class="sol-send-actions">
+          <button class="secondary" id="sol-send-explorer" type="button">View in Explorer</button>
+          <button class="primary pearl" id="sol-send-done" type="button">Done</button>
+        </div>
+      </div>
+      <div class="problem" id="sol-send-problem" role="alert" hidden></div>
     </section>
 
     <!-- Send: done -->
@@ -4562,21 +4710,23 @@
     <section class="screen" id="receive" hidden>
       <div class="topline">
         <button class="back" data-back aria-label="Back"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg></button>
-        <h2>Receive</h2>
+        <h2 id="receive-title">Receive</h2>
         <button class="pop-x" data-pop-close aria-label="Close" title="Close"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></button>
       </div>
       <div class="push"></div>
       <div class="receive-card">
+        <div class="receive-network" id="receive-network" hidden><img src="chains/solana.png" alt="">Solana devnet</div>
         <div class="receive-qr" id="receive-qr" hidden></div>
-        <div class="label">Your address</div>
+        <div class="label" id="receive-address-label">Your address</div>
         <div class="address-block" id="address-block"></div>
-        <p class="fineprint">Safe to share: an address can only receive ORN.</p>
+        <p class="fineprint" id="receive-note">Safe to share: an address can only receive ORN.</p>
       </div>
       <div class="push"></div>
       <div class="receive-actions" id="receive-actions">
         <button class="primary pearl" id="share" hidden>Share address</button>
         <button class="primary pearl" id="copy">Copy address</button>
       </div>
+      <div class="problem" id="receive-problem" hidden></div>
     </section>
   </main>
 
@@ -4702,7 +4852,7 @@
   // For Report a Problem: the last few screens and the errors shown, kept
   // only in memory. Screen names and error words only: anything that looks
   // like an address or an amount of ORN is left out.
-  const BUG_SCREENS = { home: "Home", get: "Get ORN", activity: "Activity", explorer: "Explorer", contacts: "Contacts", contact: "Contact", member: "Contact", community: "Community", "cm-thread": "Post", market: "Market", listing: "Listing", sell: "Sell", notices: "Notifications", inbox: "Messages", chat: "Chat", seller: "Profile", profile: "Your profile", blocks: "Blocked", send: "Send", receive: "Receive", mine: "Mining", wallets: "Wallets", "wallet-add-choose": "Add a wallet", "wallet-add": "Add a wallet", "pair-invite": "Link a device", reveal: "Recovery words", "wallet-rename": "Rename wallet", "wallet-forget": "Remove wallet", swaps: "Swaps", "board-signin": "Sign in", "board-post": "Post an offer", "swap-waiting": "Swap", "swap-posted": "Swap", "board-take": "Take an offer", "swap-detail": "Swap", settings: "Settings", "theme-build": "Build a theme", "theme-store": "Theme Store", phrase: "Recovery words", password: "Password", restore: "Restore" };
+  const BUG_SCREENS = { home: "Home", get: "Get ORN", activity: "Activity", explorer: "Explorer", contacts: "Contacts", contact: "Contact", member: "Contact", community: "Community", "cm-thread": "Post", market: "Market", listing: "Listing", sell: "Sell", notices: "Notifications", inbox: "Messages", chat: "Chat", seller: "Profile", profile: "Your profile", blocks: "Blocked", send: "Send", "solana-send": "Send SOL", receive: "Receive", mine: "Mining", wallets: "Wallets", "wallet-add-choose": "Add a wallet", "wallet-add": "Add a wallet", "pair-invite": "Link a device", reveal: "Recovery words", "wallet-rename": "Rename wallet", "wallet-forget": "Remove wallet", swaps: "Swaps", "board-signin": "Sign in", "board-post": "Post an offer", "swap-waiting": "Swap", "swap-posted": "Swap", "board-take": "Take an offer", "swap-detail": "Swap", settings: "Settings", "theme-build": "Build a theme", "theme-store": "Theme Store", phrase: "Recovery words", password: "Password", restore: "Restore" };
   const bugTrail = [], bugErrors = [];
   // Set by the Theme Store: leaving it takes off a theme being tried.
   let leaveStore = null;
@@ -4977,6 +5127,7 @@
   const shownOnce = new Promise((done) => { markShown = done; });
   function show(id) {
     bugStep(id);
+    if (id !== "home") setAssetMenu(false);
     if (leaveStore && id !== "theme-store") leaveStore();
     if (markShown) { markShown(); markShown = null; }
     const signinPop = !phone && wide.matches && id === "board-signin";
@@ -4987,7 +5138,7 @@
     // Big windows: Send and Receive float over Home rather than replace it.
     // So does Contacts, with the contact or member opened from it.
     const inContacts = document.body.classList.contains("pop") && ["contacts", "contact", "member"].some((x) => !$(x).hidden);
-    const pop = signinPop || addPop || !phone && wide.matches && (SWAP_POPS.includes(id) || id === "send" || id === "activity" || id === "receive" || id === "contacts" || ((id === "contact" || id === "member") && inContacts));
+    const pop = signinPop || addPop || !phone && wide.matches && (SWAP_POPS.includes(id) || id === "send" || id === "solana-send" || id === "activity" || id === "receive" || id === "contacts" || ((id === "contact" || id === "member") && inContacts));
     // Send opened from someone's profile floats over their profile.
     const under = addPop ? "wallets" : signinPop ? lastBase : id === "send" && (sendFrom === "seller" || sendFrom === "explorer") ? sendFrom : SWAP_POPS.includes(id) ? "swaps" : "home";
     for (const s of document.querySelectorAll(".screen")) s.hidden = !(s.id === id || ((both || underSplit) && (s.id === "inbox" || s.id === "chat")) || (pop && s.id === under));
@@ -5105,12 +5256,123 @@
   };
 
   let lastBalance = null;
+  let walletAsset = "ORN";
+  const DEVNET_REFRESH_MS = 30_000;
+  const newDevnetAssets = () => ({ lastCheck: 0, pending: false, locked: false, address: null, balances: null, stale: false, error: "", receive: null });
+  let devnetAssets = newDevnetAssets();
+  const assetButtons = document.querySelectorAll("[data-wallet-asset]");
+  const solanaAssetButtons = document.querySelectorAll("[data-solana-asset]");
+  function setAssetMenu(open, refocus = false) {
+    const toggle = $("asset-menu-toggle");
+    $("asset-token-menu").hidden = !open;
+    toggle.setAttribute("aria-expanded", String(open));
+    if (refocus) toggle.focus({ preventScroll: true });
+  }
+  function paintWalletAsset() {
+    const preview = walletAsset !== "ORN";
+    $("home").classList.toggle("asset-devnet", preview);
+    $("solana-recent").hidden = !preview;
+    $("asset-network-label").textContent = preview ? "Solana devnet" : "Balance";
+    $("asset-unit").hidden = preview;
+    $("asset-menu-toggle").hidden = !preview;
+    $("asset-menu-toggle").setAttribute("aria-label", `Choose Solana asset, ${walletAsset} selected`);
+    $("asset-menu-unit").textContent = walletAsset;
+    $("go-send").disabled = preview && (walletAsset !== "SOL" || !devnetAssets.address);
+    $("go-send").title = walletAsset === "USDC" ? "USDC sending is coming" : walletAsset === "SOL" ? "Send SOL on Devnet" : "Send";
+    $("go-receive").title = preview ? "Receive on Solana devnet" : "Receive";
+    for (const button of assetButtons) button.setAttribute("aria-pressed", String(button.dataset.walletAsset === (preview ? "SOL" : "ORN")));
+    for (const button of solanaAssetButtons) button.setAttribute("aria-pressed", String(button.dataset.solanaAsset === walletAsset));
+    $("asset-devnet-unlock").hidden = !devnetAssets.locked || devnetAssets.pending;
+    $("asset-devnet-password-field").hidden = !!view?.biometric;
+    $("asset-devnet-refresh").disabled = !view || devnetAssets.locked || devnetAssets.pending;
+    $("asset-devnet-refresh").setAttribute("aria-busy", String(devnetAssets.pending));
+    let status = "";
+    if (devnetAssets.pending && !devnetAssets.balances) status = "Loading balances…";
+    else if (!view) status = "Waiting for this wallet…";
+    else if (devnetAssets.error) status = devnetAssets.error;
+    else if (devnetAssets.locked) status = "Unlock once to remember this wallet’s public Solana test address.";
+    else if (devnetAssets.stale) status = "Some Solana balances could not refresh.";
+    $("asset-devnet-status").textContent = status;
+    $("asset-devnet-status").hidden = !status;
+    $("asset-devnet-tools").hidden = !preview || (!status && $("asset-devnet-unlock").hidden);
+    if (!preview) setAssetMenu(false);
+    paintBalance();
+  }
+
+  async function loadDevnetAssets(unlock = false) {
+    if (!view || devnetAssets.pending || (devnetAssets.locked && !unlock)) return;
+    const wallet = view;
+    const state = devnetAssets;
+    const password = unlock ? $("asset-devnet-password").value : "";
+    $("asset-devnet-password").value = "";
+    state.pending = true;
+    state.lastCheck = Date.now();
+    state.error = "";
+    paintWalletAsset();
+    try {
+      if (!state.address) {
+        if (unlock && wallet.biometric) await invoke("biometric_unlock");
+        state.address = await invoke("solana_devnet_address", { walletAddress: wallet.address, password: password || null });
+      }
+      if (state !== devnetAssets || view?.address !== wallet.address) return;
+      state.locked = false;
+      const receive = state.receive;
+      state.receive = null;
+      if (receive === walletAsset && !$("home").hidden) openAssetReceive(receive, state.address);
+      const balances = await invoke("solana_devnet_balances", { address: state.address });
+      state.stale = balances.sol == null || balances.usdc == null;
+      state.balances = {
+        sol: balances.sol ?? state.balances?.sol ?? null,
+        usdc: balances.usdc ?? state.balances?.usdc ?? null,
+      };
+    } catch (err) {
+      const error = String(err);
+      if (error === "password: needed") state.locked = true;
+      else state.error = error === "password: wrong" ? "That is not this wallet’s password." : error;
+    } finally {
+      state.pending = false;
+      if (state === devnetAssets && view?.address === wallet.address) paintWalletAsset();
+    }
+  }
+
+  function refreshVisibleDevnet() {
+    if (walletAsset !== "ORN" && !$("home").hidden && !document.hidden && Date.now() - devnetAssets.lastCheck >= DEVNET_REFRESH_MS) {
+      void loadDevnetAssets();
+    }
+  }
+  for (const button of assetButtons) button.onclick = () => {
+    walletAsset = button.dataset.walletAsset;
+    devnetAssets.receive = null;
+    setAssetMenu(false);
+    paintWalletAsset();
+    refreshVisibleDevnet();
+  };
+  for (const button of solanaAssetButtons) button.onclick = () => {
+    walletAsset = button.dataset.solanaAsset;
+    devnetAssets.receive = null;
+    setAssetMenu(false, true);
+    paintWalletAsset();
+  };
+  $("asset-menu-toggle").onclick = () => setAssetMenu($("asset-token-menu").hidden);
+  document.addEventListener("pointerdown", (event) => {
+    if (!$("asset-token-menu").hidden && !event.target.closest("#asset-token-menu, #asset-menu-toggle")) setAssetMenu(false);
+  });
+  document.addEventListener("keydown", (event) => {
+    if (event.key === "Escape" && !$("asset-token-menu").hidden) setAssetMenu(false, true);
+  });
+  $("asset-devnet-unlock").onsubmit = (event) => {
+    event.preventDefault();
+    void loadDevnetAssets(true);
+  };
+  $("asset-devnet-refresh").onclick = () => loadDevnetAssets();
+  setInterval(refreshVisibleDevnet, DEVNET_REFRESH_MS);
+
   function fitBalance() {
     const card = document.querySelector("#home .card"), row = card && card.querySelector(".amount");
     if (!row || !card.clientWidth) return;
     const style = getComputedStyle(card);
     const inner = card.clientWidth - parseFloat(style.paddingLeft) - parseFloat(style.paddingRight);
-    const balance = $("balance"), unit = row.querySelector(".unit");
+    const balance = $("balance"), unit = row.querySelector(".unit:not([hidden])");
     // Waiting for a balance: a quiet dash at an ordinary size, not one
     // blown up to fill the card.
     if (balance.textContent === "—") {
@@ -5119,7 +5381,7 @@
       return;
     }
     const gap = parseFloat(getComputedStyle(row).columnGap) || 0;
-    // The number and "ORN" scale together; the gap between them does not.
+    // The number and asset symbol scale together; the gap does not.
     const width = (size) => {
       balance.style.fontSize = size + "px";
       unit.style.fontSize = Math.max(12, size / 3) + "px";
@@ -5135,6 +5397,7 @@
     try {
       view = await invoke("overview_now");
       paintBalance();
+      refreshVisibleDevnet();
       // Enough ORN to verify just arrived (or went): the Home card follows.
       if (lastBalance !== view.balance && board.me && typeof paintVerifyCard === "function") paintVerifyCard();
       lastBalance = view.balance;
@@ -5283,7 +5546,10 @@
     lastBalance = null;
     shownOffers = "";
     board.waiting = [];
-    $("balance").textContent = "—";
+    walletAsset = "ORN";
+    devnetAssets = newDevnetAssets();
+    $("asset-devnet-password").value = "";
+    paintWalletAsset();
     $("recent").innerHTML = "";
     opening = true;
     loadWallets();
@@ -6974,21 +7240,21 @@
     const first = frac.search(/[1-9]/);
     return first < 0 ? `${whole}.00` : `${whole}.${frac.slice(0, Math.max(2, first + 2))}`;
   };
+  function displayBalance(amount) {
+    if (amount == null) return "—";
+    if (prefs.hide) return "••••••";
+    return balancePeek ? amount : shortBalance(amount);
+  }
   function paintBalance() {
-    const b = view ? view.balance : null;
-    let text = b === null || b === undefined ? "—" : b;
-    // Hidden: dots until tapped. Shorter: two decimals until tapped. Both:
-    // dots, then the shorter balance.
-    if (text !== "—") {
-      if (prefs.hide) text = "••••••";
-      else if (!balancePeek) text = shortBalance(text);
-    }
+    const b = walletAsset === "ORN" ? view?.balance : devnetAssets.balances?.[walletAsset.toLowerCase()];
     document.documentElement.classList.toggle("hide-bal", prefs.hide);
     const eyeBtn = $("bal-eye");
     eyeBtn.innerHTML = prefs.hide ? EYE_OFF : EYE_ON;
     eyeBtn.title = prefs.hide ? "Show balance" : "Hide balance";
     eyeBtn.setAttribute("aria-label", eyeBtn.title);
-    $("balance").textContent = text;
+    $("balance").textContent = displayBalance(b);
+    $("asset-sol-balance").textContent = displayBalance(devnetAssets.balances?.sol);
+    $("asset-usdc-balance").textContent = displayBalance(devnetAssets.balances?.usdc);
     $("balance").title = prefs.hide ? "" : balancePeek ? "Tap for the shorter balance" : "Tap to see every decimal";
     fitBalance();
   }
@@ -7000,8 +7266,8 @@
     setPref("hide", !prefs.hide);
     feel("selection");
   });
-  document.querySelector("#home .card").addEventListener("click", () => {
-    if (prefs.hide) return;
+  document.querySelector("#home .card").addEventListener("click", (event) => {
+    if (prefs.hide || event.target.closest("#asset-token-menu, #asset-menu-toggle")) return;
     balancePeek = balancePeek ? 0 : 1;
     try { localStorage.setItem("balance-full", balancePeek ? "on" : "off"); } catch {}
     feel("selection");
@@ -7398,8 +7664,12 @@
     if (e.key === "Escape" && document.body.classList.contains("pop") && !document.querySelector('[id$="-veil"]:not([hidden])')) closePop();
   });
   // The window narrowing or widening with one open: a page or a pop-up again.
-  wide.addEventListener("change", () => { const open = ["send", "receive", "contacts", "activity"].find((x) => !$(x).hidden); if (open) show(open); });
+  wide.addEventListener("change", () => { const open = ["send", "solana-send", "receive", "contacts", "activity"].find((x) => !$(x).hidden); if (open) show(open); });
   $("go-send").onclick = (from) => {
+    if (from?.currentTarget === $("go-send") && walletAsset !== "ORN") {
+      if (walletAsset === "SOL" && devnetAssets.address && view) openDevnetSend();
+      return;
+    }
     sendFrom = from === "seller" || from === "explorer" ? from : "home";
     if (update && update.required) {
       problem("home-problem", "This version of Orien Wallet no longer works with the network. Press Update at the top to keep sending.");
@@ -7413,21 +7683,198 @@
     loadBlocked();
     loadMembers().then(() => Promise.all(members.map((m) => fetchMember(m.id))));
   };
-  $("go-receive").onclick = () => {
-    if (!view) return;
-    if ($("receive-qr").dataset.for !== view.address) {
-      const address = view.address;
-      $("receive-qr").dataset.for = address;
-      invoke("address_qr", { text: address }).then((svg) => {
-        if (!svg || $("receive-qr").dataset.for !== address) return;
-        $("receive-qr").innerHTML = svg;
-        $("receive-qr").hidden = false;
-        if (navigator.share) prepareSharePicture(address);
-      }).catch(() => {});
+
+  // ---- Native SOL send on Devnet ----
+  let devnetSend = null;
+  const devnetSendActive = (state) => state === devnetSend && view?.address === state.owner && !$("solana-send").hidden;
+  const devnetSendPending = (receipt) => receipt && ["pending", "confirmed"].includes(receipt.state);
+  const devnetSendLabels = {
+    pending: "Awaiting confirmation",
+    confirmed: "Confirmed",
+    finalized: "SOL sent",
+    failed: "Transfer failed",
+    expired: "Transfer expired",
+  };
+  function paintDevnetSend(state) {
+    const { quote, receipt, busy, needsPassword } = state;
+    $("sol-send-form").hidden = !!(quote || receipt);
+    $("sol-send-review").hidden = !quote || !!receipt;
+    $("sol-send-receipt").hidden = !receipt;
+    const available = devnetAssets.balances?.sol;
+    $("sol-send-available").textContent = available != null && !prefs.hide ? `${available} SOL available` : "";
+    $("sol-send-to").disabled = $("sol-send-amount").disabled = $("sol-send-quote").disabled = busy;
+    $("sol-send-quote").textContent = busy ? "Checking…" : "Review transfer";
+    $("sol-send-edit").disabled = $("sol-send-confirm").disabled = busy;
+    $("sol-send-confirm").textContent = busy ? "Sending…" : view?.biometric ? `Send with ${bio}` : "Approve and send";
+    $("sol-send-pw-field").hidden = !needsPassword;
+    if (quote) {
+      $("sol-review-to").textContent = quote.recipient;
+      $("sol-review-amount").textContent = `${quote.amount} SOL`;
+      $("sol-review-fee").textContent = `${quote.fee} SOL`;
+      $("sol-review-total").textContent = `${quote.total} SOL`;
     }
-    $("address-block").innerHTML = view.address.match(phone ? /.{16}/g : /.{32}/g).map((g) => `<span>${g.match(/.{4}/g).join(" ")}</span>`).join("");
+    if (receipt) {
+      $("sol-send-status").textContent = devnetSendLabels[receipt.state];
+      $("sol-receipt-amount").textContent = `${receipt.amount} SOL`;
+      $("sol-receipt-to").textContent = receipt.recipient;
+      const note = receipt.state === "expired" ? "This transfer can no longer land. You can start a new transfer."
+        : receipt.state === "pending" && !receipt.acknowledged ? "Solana hasn’t acknowledged the submission. This screen will keep checking." : "";
+      $("sol-send-status-note").textContent = note;
+      $("sol-send-status-note").hidden = !note;
+    }
+  }
+
+  async function syncDevnetSend(state, opening = false) {
+    if (!devnetSendActive(state)) return;
+    try {
+      const was = state.receipt?.state;
+      const receipt = await invoke("solana_devnet_receipt", { walletAddress: state.owner });
+      if (!devnetSendActive(state)) return;
+      if (!opening || devnetSendPending(receipt)) state.receipt = receipt;
+      if (receipt?.state !== was && ["confirmed", "finalized"].includes(receipt?.state)) void loadDevnetAssets();
+    } catch (error) {
+      if (opening && devnetSendActive(state)) problem("sol-send-problem", String(error));
+    } finally {
+      if (devnetSendActive(state)) {
+        if (opening) state.busy = false;
+        paintDevnetSend(state);
+        if (devnetSendPending(state.receipt)) setTimeout(() => { void syncDevnetSend(state); }, 3500);
+      }
+    }
+  }
+
+  function openDevnetSend() {
+    if (devnetSend?.owner === view.address && devnetSend.submitting) {
+      show("solana-send");
+      paintDevnetSend(devnetSend);
+      return;
+    }
+    devnetSend = { owner: view.address, quote: null, receipt: null, busy: true, submitting: false, needsPassword: false };
+    $("sol-send-form").reset();
+    $("sol-send-review").reset();
+    show("solana-send");
+    paintDevnetSend(devnetSend);
+    void syncDevnetSend(devnetSend, true);
+  }
+
+  $("sol-send-form").onsubmit = async (event) => {
+    event.preventDefault();
+    const state = devnetSend;
+    if (!state || state.busy || !devnetSendActive(state)) return;
+    $("sol-send-problem").hidden = true;
+    state.busy = true;
+    paintDevnetSend(state);
+    try {
+      state.quote = await invoke("solana_devnet_quote", {
+        walletAddress: state.owner, to: $("sol-send-to").value.trim(), amount: $("sol-send-amount").value,
+      });
+      state.needsPassword = !!view?.locked && !view?.biometric;
+    } catch (error) {
+      if (devnetSendActive(state)) problem("sol-send-problem", String(error));
+    } finally {
+      state.busy = false;
+      if (devnetSendActive(state)) {
+        paintDevnetSend(state);
+        if (state.quote) (state.needsPassword ? $("sol-send-pw") : $("sol-send-confirm")).focus();
+      }
+    }
+  };
+
+  $("sol-send-edit").onclick = () => {
+    devnetSend.quote = null;
+    $("sol-send-pw").value = "";
+    $("sol-send-problem").hidden = true;
+    paintDevnetSend(devnetSend);
+    $("sol-send-to").focus();
+  };
+
+  $("sol-send-review").onsubmit = async (event) => {
+    event.preventDefault();
+    const state = devnetSend;
+    if (!state?.quote || state.busy || !devnetSendActive(state)) return;
+    $("sol-send-problem").hidden = true;
+    const password = $("sol-send-pw").value;
+    $("sol-send-pw").value = "";
+    state.busy = state.submitting = true;
+    paintDevnetSend(state);
+    try {
+      if (view.biometric) await invoke("biometric_unlock");
+      if (!devnetSendActive(state)) return;
+      state.receipt = await invoke("solana_devnet_send", { walletAddress: state.owner, quoteId: state.quote.id, password: password || null });
+      state.quote = null;
+    } catch (error) {
+      const message = String(error);
+      if (message === "review: again") state.quote = null;
+      if (message === "password: needed" || message === "password: wrong") state.needsPassword = true;
+      if (devnetSendActive(state)) {
+        problem("sol-send-problem", message === "review: again" ? "This review expired. Review the transfer again."
+          : message === "password: wrong" ? "That is not this wallet’s password."
+          : message === "password: needed" ? "Enter your wallet password to send." : message);
+      }
+    } finally {
+      state.busy = state.submitting = false;
+      if (devnetSendActive(state)) {
+        paintDevnetSend(state);
+        if (state.receipt) void syncDevnetSend(state);
+      }
+    }
+  };
+
+  $("sol-send-explorer").onclick = () => {
+    const signature = devnetSend?.receipt?.signature;
+    if (signature) invoke("open_post_link", { url: `https://explorer.solana.com/tx/${encodeURIComponent(signature)}?cluster=devnet` }).catch(() => {});
+  };
+  $("sol-send-done").onclick = home;
+
+  let receiveTarget = null;
+  function openAssetReceive(asset, address) {
+    const devnet = asset !== "ORN";
+    receiveTarget = { address, devnet, wallet: view.address };
+    $("receive-title").textContent = devnet ? `Receive ${asset}` : "Receive";
+    $("receive-network").hidden = !devnet;
+    $("receive-address-label").textContent = devnet ? "Solana address" : "Your address";
+    $("receive-note").textContent = devnet ? "Set the sending wallet to Devnet before transferring." : "Safe to share: an address can only receive ORN.";
+    const canShare = !devnet && !!navigator.share;
+    $("share").hidden = !canShare;
+    $("copy").className = canShare ? "secondary" : "primary pearl";
+    $("receive-actions").classList.toggle("two", canShare);
+    if (canShare) prepareSharePicture(address);
+
+    const qr = $("receive-qr");
+    const command = devnet ? "qr_code" : "address_qr";
+    const qrKey = `${command}:${address}`;
+    if (qr.dataset.for !== qrKey) {
+      qr.hidden = true;
+      qr.replaceChildren();
+      qr.dataset.for = qrKey;
+      invoke(command, { text: address }).then((svg) => {
+        if (qr.dataset.for !== qrKey) return;
+        if (!svg) { delete qr.dataset.for; return; }
+        qr.innerHTML = svg;
+        qr.hidden = false;
+      }).catch(() => { if (qr.dataset.for === qrKey) delete qr.dataset.for; });
+    }
+    const lines = (address.match(phone ? /.{1,16}/g : /.{1,32}/g) || []).map((line) => {
+      const span = document.createElement("span");
+      span.textContent = line.match(/.{1,4}/g).join(" ");
+      return span;
+    });
+    $("address-block").replaceChildren(...lines);
     $("copy").textContent = "Copy address";
     show("receive");
+  }
+  $("go-receive").onclick = () => {
+    if (!view) return;
+    if (walletAsset === "ORN") { openAssetReceive(walletAsset, view.address); return; }
+    if (devnetAssets.address) { openAssetReceive(walletAsset, devnetAssets.address); return; }
+    devnetAssets.receive = walletAsset;
+    if (devnetAssets.locked) {
+      const unlock = view.biometric ? $("asset-devnet-unlock-go") : $("asset-devnet-password");
+      unlock.focus();
+    } else {
+      void loadDevnetAssets();
+      $("asset-devnet-status").scrollIntoView({ block: "nearest" });
+    }
   };
 
   // ---- Send: enter ----
@@ -7724,11 +8171,6 @@
   // Share the address the system's way (the share sheet on iPhones and
   // Macs, Windows' share panel): Messages, Mail, AirDrop and the rest.
   // Copying stays, a step quieter. Linux has no share panel: copy only.
-  if (navigator.share) {
-    $("share").hidden = false;
-    $("copy").className = "secondary";
-    $("receive-actions").classList.add("two");
-  }
   // The QR goes along as a picture, with the address under it, wherever
   // the system can share pictures; otherwise just the address.
   async function addressPicture(address) {
@@ -7767,7 +8209,8 @@
     addressPicture(address).then((file) => { if (sharePicture.address === address) sharePicture.file = file; }).catch(() => {});
   }
   $("share").onclick = async () => {
-    const address = view.address;
+    if (!receiveTarget || receiveTarget.devnet || receiveTarget.wallet !== view?.address) return;
+    const address = receiveTarget.address;
     const file = sharePicture.address === address ? sharePicture.file : null;
     // iPhones: the app's own share sheet, from the bottom (the page's one
     // opens as a small panel cut off at the screen's edge).
@@ -7788,10 +8231,15 @@
     } catch {}
   };
   $("copy").onclick = async () => {
-    await navigator.clipboard.writeText(view.address);
+    const target = receiveTarget;
+    if (!target || target.wallet !== view?.address) return;
+    try { await navigator.clipboard.writeText(target.address); }
+    catch { problem("receive-problem", "Could not copy the address."); return; }
+    if (receiveTarget !== target) return;
+    $("receive-problem").hidden = true;
     $("copy").textContent = "Copied";
     feel("success");
-    setTimeout(() => { $("copy").textContent = "Copy address"; }, 1600);
+    setTimeout(() => { if (receiveTarget === target) $("copy").textContent = "Copy address"; }, 1600);
   };
 
   // ---- Activity ----
@@ -12635,7 +13083,7 @@
       if (row.getBoundingClientRect().bottom > bottom + 0.5) row.style.setProperty("visibility", "hidden");
     }
   }
-  window.addEventListener("resize", () => { if (homeWide()) hsFitCps(); });
+  new ResizeObserver(() => { if (homeWide()) hsFitCps(); }).observe($("hs-cps"));
   $("hs-net-open").onclick = () => openExplorer();
   $("hs-cps").onclick = (e) => { const b = e.target.closest("[data-hs-cp]"); if (b) openExplorer({ kind: "checkpoint", epoch: Number(b.dataset.hsCp) }); };
   wide.addEventListener("change", homeSide);
