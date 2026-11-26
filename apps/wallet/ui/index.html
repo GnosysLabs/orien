@@ -1882,7 +1882,7 @@
   .ref-stats b { font-size: 18px; font-variant-numeric: tabular-nums; }
   .ref-stats span { font-size: 12px; }
   .ref-code-label { font-size: 12px; color: var(--dim); }
-  #ref-sharing { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px 18px; padding: 14px 16px; border: 1px solid var(--line); border-radius: 14px; background: var(--field); }
+  .ref-invite-row { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px 18px; padding: 14px 16px; border: 1px solid var(--line); border-radius: 14px; background: var(--field); }
   .ref-sharing-code { display: grid; justify-items: start; }
   #ref-copy-code { display: inline-flex; align-items: center; gap: 10px; min-height: 38px; margin-left: -4px; padding: 0 4px; border: 0; border-radius: 6px; background: transparent; color: var(--ink); cursor: pointer; }
   #ref-own-code { font: 600 18px/1.2 ui-monospace, monospace; letter-spacing: .06em; }
@@ -3468,7 +3468,11 @@
         </div>
         <div class="ref-panel" id="ref-invite" role="tabpanel" aria-labelledby="ref-tab-invite">
           <h3>Invite a friend to mine - you'll both get 7 free ORN</h3>
-          <div id="ref-sharing" hidden>
+          <div id="ref-invite-verification" class="ref-invite-row" hidden>
+            <p>Verify a wallet to get your invite code.</p>
+            <button type="button" class="pill pearl" id="ref-invite-verify">Verify wallet</button>
+          </div>
+          <div id="ref-sharing" class="ref-invite-row" hidden>
             <div class="ref-sharing-code">
               <span class="ref-code-label" id="ref-code-label" role="status">Your invite code</span>
               <button type="button" id="ref-copy-code" aria-label="Copy invite code" aria-describedby="ref-own-code" title="Copy invite code">
@@ -3485,7 +3489,6 @@
             <div><b id="ref-paid"></b><span>ORN paid</span></div>
           </div>
           <p id="ref-invite-info" role="status"></p>
-          <button type="button" class="pill pearl" id="ref-invite-verify" hidden>Verify wallet</button>
           <ol class="guide-steps" id="ref-invite-steps" role="list">
             <li>Share your invite link or code with a friend.</li>
             <li>Have your friend download Orien and apply your code within 12 hours of creating their account.</li>
@@ -11365,7 +11368,7 @@
     $("ref-sharing").hidden = !data?.code;
     $("ref-own-code").textContent = data?.code || "";
     const verifyFirst = data?.open && !data.can_invite && data.completed < data.invite_limit;
-    $("ref-invite-verify").hidden = !verifyFirst;
+    $("ref-invite-verification").hidden = !verifyFirst;
     const expired = data?.open === true && !claim && data.can_claim === false;
     $("ref-expired").hidden = !expired;
     $("ref-code-heading").hidden = expired;
@@ -11392,8 +11395,7 @@
     const status = !data
       ? (signedOut ? "Sign in to use referrals." : referral.phase === "loading" ? "Loading referrals…" : "")
       : (!data.active ? "The referral program hasn’t opened yet." : !data.open ? "All rewards for this program have been reserved." : "");
-    $("ref-invite-info").textContent = status || (verifyFirst ? "Verify a wallet to get your invite code."
-      : data && data.completed >= data.invite_limit ? "You’ve reached your five-referral limit." : "");
+    $("ref-invite-info").textContent = status || (data && data.completed >= data.invite_limit ? "You’ve reached your five-referral limit." : "");
     const miningWallet = claim?.mining_wallet && view?.address !== claim.mining_wallet
       ? "wallet " + short(claim.mining_wallet) : "your verified wallet";
     $("ref-claim-info").textContent = claim?.status === "paid" ? "Your 7 ORN reward has been paid."
