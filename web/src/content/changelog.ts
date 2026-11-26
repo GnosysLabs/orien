@@ -28,6 +28,16 @@ export const CHANGELOG: Entry[] = [
   {
     date: '2026-11-26',
     products: ['wallet'],
+    version: '1.9.30',
+    title: 'Invite a friend to mine and earn 7 ORN each',
+    changes: [
+      'Open Referrals to share your invite link or code. Friends can enter it within 12 hours of creating their Orien Network account.',
+      'When a friend earns mining rewards in 10 separate hourly checkpoints with their verified wallet, you both qualify for 7 ORN. Track progress and payouts in the wallet.',
+    ],
+  },
+  {
+    date: '2026-11-26',
+    products: ['wallet'],
     version: '1.9.29',
     title: 'A full-height Network panel and clearer message badges',
     changes: [
