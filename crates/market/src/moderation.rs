@@ -84,7 +84,7 @@ impl Store {
                 .is_some(),
             "theme" => self
                 .db
-                .query_row("SELECT 1 FROM themes WHERE id = ?1 AND removed = 0", [target], |_| Ok(()))
+                .query_row("SELECT 1 FROM themes WHERE id = ?1 AND removed = 0 AND builtin IS NULL", [target], |_| Ok(()))
                 .optional()?
                 .is_some(),
             _ => bail!("a report is about a listing, an account, a message, a post, a group chat message or a theme"),

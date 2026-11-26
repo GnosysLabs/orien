@@ -584,10 +584,11 @@ type StoreTheme = {
   name: string
   base: string
   colors: string[]
-  picture: string
-  thumb: string
+  picture: string | null
+  thumb: string | null
   created: number
-  author: { id: number; name: string }
+  author: { id: number | null; name: string; official?: boolean }
+  builtin?: string
   downloads: number
   tips: { count: number; orn: number }
 }
@@ -607,10 +608,16 @@ function Themes() {
         <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {themes.map((t) => (
             <li key={t.id} className="overflow-hidden rounded-xl border border-line bg-bg">
-              <a href={pictureUrl(t.picture)} target="_blank" rel="noopener noreferrer" className="block">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={pictureUrl(t.thumb)} alt={t.name} className="aspect-video w-full object-cover" />
-              </a>
+              {t.picture && t.thumb ? (
+                <a href={pictureUrl(t.picture)} target="_blank" rel="noopener noreferrer" className="block">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={pictureUrl(t.thumb)} alt={t.name} className="aspect-video w-full object-cover" />
+                </a>
+              ) : (
+                <div className="flex aspect-video w-full items-center justify-center bg-raised text-xs text-muted">
+                  Orien’s own theme: its picture is in the app
+                </div>
+              )}
               <div className="space-y-3 p-3">
                 <div className="flex items-center justify-between gap-2">
                   <p className="min-w-0 truncate font-semibold text-ink">{t.name}</p>
@@ -624,18 +631,24 @@ function Themes() {
                 </div>
                 <p className="text-xs text-muted">
                   {t.base} · by{' '}
-                  <Link href={`/marketplace/profile/?id=${t.author.id}`} className="font-semibold text-ink hover:text-pearl">
-                    {t.author.name}
-                  </Link>{' '}
-                  · {ago(t.created)} · {count(t.downloads)} downloads · {count(t.tips.count)} tips
+                  {t.author.id === null ? (
+                    <span className="font-semibold text-ink">{t.author.name}</span>
+                  ) : (
+                    <Link href={`/marketplace/profile/?id=${t.author.id}`} className="font-semibold text-ink hover:text-pearl">
+                      {t.author.name}
+                    </Link>
+                  )}{' '}
+                  · {ago(t.created)} · {count(t.downloads)} downloads{t.builtin ? '' : ` · ${count(t.tips.count)} tips`}
                 </p>
-                <Action
-                  label="Remove"
-                  sure={`Take down ${t.name} by ${t.author.name}? It leaves the theme store for everyone.`}
-                  path={`/themes/${t.id}/remove`}
-                  onDone={reload}
-                  danger
-                />
+                {!t.builtin && (
+                  <Action
+                    label="Remove"
+                    sure={`Take down ${t.name} by ${t.author.name}? It leaves the theme store for everyone.`}
+                    path={`/themes/${t.id}/remove`}
+                    onDone={reload}
+                    danger
+                  />
+                )}
               </div>
             </li>
           ))}

@@ -115,6 +115,36 @@ async fn ask(State(web): State<Arc<Web>>, headers: HeaderMap, body: axum::body::
         .unwrap_or_else(|_| refuse(StatusCode::INTERNAL_SERVER_ERROR, "Something went wrong."))
 }
 
+/// Orien AI Support, for the Market server only: a person's chat from Orien
+/// Wallet, answered whole. nginx never passes anything here (only /api/ask),
+/// and the Market server keeps the limits and the conversation. Nothing of
+/// the chat is written to the log.
+async fn support(State(web): State<Arc<Web>>, body: axum::body::Bytes) -> Response {
+    let Ok(Ask { messages }) = serde_json::from_slice::<Ask>(&body) else {
+        return refuse(StatusCode::BAD_REQUEST, "Bad request.");
+    };
+    let turns: Vec<Turn> = messages
+        .into_iter()
+        .filter(|turn| turn.role == "user" || turn.role == "assistant")
+        .map(|turn| Turn { role: turn.role, content: turn.content.chars().take(MAX_CHARS).collect() })
+        .collect();
+    let turns: Vec<Turn> = turns[turns.len().saturating_sub(MAX_TURNS)..].to_vec();
+    if turns.last().is_none_or(|last| last.role != "user" || last.content.trim().is_empty()) {
+        return refuse(StatusCode::BAD_REQUEST, "Ask a question to get started.");
+    }
+    let started = Instant::now();
+    match web.expert.support_answer(&turns).await {
+        Ok(answer) => {
+            eprintln!("support: answered in {:.1}s", started.elapsed().as_secs_f32());
+            Json(serde_json::json!({ "answer": answer })).into_response()
+        }
+        Err(error) => {
+            eprintln!("support: could not answer: {error:#}");
+            refuse(StatusCode::BAD_GATEWAY, "Sorry, I couldn't answer just now. Please try again in a moment.")
+        }
+    }
+}
+
 use tokio_stream::StreamExt as _;
 
 /// Answers the website's chat at `listen` for as long as the bot runs.
@@ -123,7 +153,7 @@ pub async fn serve(expert: Arc<Expert>, listen: String, per_visitor: usize, per_
         expert,
         limits: Mutex::new(Limits { per_visitor, per_day, everyone: VecDeque::new(), visitors: HashMap::new() }),
     });
-    let app = axum::Router::new().route("/api/ask", post(ask)).with_state(web);
+    let app = axum::Router::new().route("/api/ask", post(ask)).route("/support", post(support)).with_state(web);
     let listener = tokio::net::TcpListener::bind(&listen).await?;
     eprintln!("website chat listening on {listen}");
     axum::serve(listener, app).await?;
