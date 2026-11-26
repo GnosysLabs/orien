@@ -2015,7 +2015,9 @@
   .ts-stats svg { width: 13px; height: 13px; }
   .ts-acts { display: flex; align-items: center; gap: 8px; padding: 0 2px; }
   .ts-acts .pill { height: 34px; }
-  .ts-acts .ts-get { flex: 1; justify-content: center; }
+  .ts-acts .ts-get { flex: none; justify-content: center; min-width: 76px; padding: 0 20px; }
+  .ts-acts .ts-get.ts-on { color: var(--dim); cursor: default; }
+  .ts-side { margin-left: auto; display: flex; align-items: center; gap: 8px; }
   .ts-acts .pill.icon { width: 34px; padding: 0; justify-content: center; color: var(--dim); }
   .ts-acts .pill.icon svg { width: 16px; height: 16px; flex: none; }
   @media (hover: hover) { .ts-acts .pill.icon:hover { color: var(--ink); } }
@@ -5798,6 +5800,8 @@
   const tsFind = (id) => ts.themes.find((t) => String(t.id) === String(id));
   function tsCard(t) {
     const a = t.author || {}, have = tsOwned(t);
+    // One word for taking a theme and wearing it: Use. The one you wear says so.
+    const worn = !!(have && !ts.trying && (localStorage.getItem("theme") || document.documentElement.dataset.theme) === have.id);
     const tips = t.tips && t.tips.count ? `<span title="Tips">${COINS_ICON}${t.tips.count}</span>` : "";
     const side = tsBuiltin(t) ? "" : t.mine
       ? `<button class="pill ts-down${ts.downArmed === String(t.id) ? " armed" : ""}" data-ts-down="${t.id}" title="Take it out of the Theme Store (your copy stays)">${ts.downArmed === String(t.id) ? "Click again to remove" : "Remove from store"}</button>`
@@ -5806,7 +5810,7 @@
       <button class="ts-stage${tsBuiltin(t) ? " builtin" : ""}"${tsBuiltin(t) ? ` data-theme="${tsBuiltin(t)}"` : ""} data-ts-try="${t.id}" aria-label="Try ${esc(t.name)}">${TS_MINI}</button>
       <div class="ts-info"><div class="ts-meta"><div class="ts-name">${esc(t.name)}</div><div class="ts-by">by <b>${esc(a.name || "someone")}</b></div></div>
       <div class="ts-stats"><span title="Downloads">${DOWN_ICON}${Number(t.downloads) || 0}</span>${tips}</div></div>
-      <div class="ts-acts">${ts.trying && String(ts.trying.id) === String(t.id) ? `<button class="pill ts-undo" data-ts-undo="${t.id}">Undo</button>` : `<button class="pill" data-ts-try="${t.id}">Try</button>`}<button class="pill pearl ts-get" data-ts-get="${t.id}">${have ? "Use" : "Get"}</button>${side}</div>
+      <div class="ts-acts">${ts.trying && String(ts.trying.id) === String(t.id) ? `<button class="pill ts-undo" data-ts-undo="${t.id}">Undo</button>` : `<button class="pill" data-ts-try="${t.id}">Try</button>`}<button class="pill ${worn ? "ts-on" : "pearl"} ts-get" data-ts-get="${t.id}">${worn ? "In use" : "Use"}</button><span class="ts-side">${side}</span></div>
     </div>`;
   }
   function tsPaint() {
@@ -5835,6 +5839,8 @@
       const sort = ts.sort === "mine" ? "new&mine=1" : ts.order;
       const page = await cmCall("GET", `/themes?sort=${sort}${more && ts.next ? `&before=${encodeURIComponent(ts.next)}` : ""}`);
       const list = (page && page.themes) || [];
+      // Orien's own themes come after the ones people made.
+      list.sort((x, y) => (tsBuiltin(x) ? 1 : 0) - (tsBuiltin(y) ? 1 : 0));
       ts.themes = more ? ts.themes.concat(list) : list;
       ts.more = !!(page && page.more); ts.next = (page && page.next) || null;
     } catch (e) { problem("ts-problem", ts.sort === "mine" && String(e).startsWith("signin:") ? "Sign in to Orien Network to see the themes you shared." : mkProblem(e)); }
@@ -5898,6 +5904,7 @@
       if (now && next) now.replaceWith(next);
     }
   }
+  const tsMarkAll = () => { for (const t of ts.themes) tsMark(t); };
   let tsTurn = 0;
   async function tsTry(t) {
     if (ts.trying && String(ts.trying.id) === String(t.id)) { tsUndo(); return; }
@@ -5909,7 +5916,7 @@
       html.dataset.theme = tsBuiltin(t);
       paintOwnTheme();
       paintBackdrop();
-      tsMark(was); tsMark(t);
+      tsMarkAll();
       feel("selection");
       return;
     }
@@ -5922,7 +5929,7 @@
     // At once with the card's own small picture, then the full one once it's
     // here, unless something else was tried or undone meanwhile.
     wear(t.thumb ? tsPic(t.thumb) : null);
-    tsMark(was); tsMark(t);
+    tsMarkAll();
     feel("selection");
     let pic = null;
     try { pic = await invoke("theme_store_picture", { name: tsImage(t.picture) }); } catch {}
@@ -5935,7 +5942,7 @@
     const back = ts.before || "pearl";
     ts.before = null;
     applyTheme(back, false);
-    tsMark(was);
+    tsMarkAll();
   }
   leaveStore = tsUndo;
   // Getting a theme: a copy of it among your own, worn at once, and sent to
@@ -5946,6 +5953,7 @@
       ts.trying = null; ts.before = null; tsTurn++; tsMark(tried);
       applyTheme(have.id, true);
       invoke("set_app_theme", { theme: have.id }).catch(() => {});
+      tsMarkAll();
       return;
     }
     $("ts-problem").hidden = true;
@@ -5957,7 +5965,7 @@
       paintThemeCards();
       feel("success");
       cmCall("POST", `/themes/${t.id}/download`).then((d) => { if (d && typeof d.downloads === "number") { t.downloads = d.downloads; tsMark(t); } }).catch(() => {});
-      tsMark(tried); tsMark(t);
+      tsMarkAll();
       return;
     }
     if (customThemes().length >= 24) { problem("ts-problem", "You have 24 themes, as many as there's room for. Delete one in Appearance first."); return; }
@@ -5981,7 +5989,7 @@
       feel("success");
       cmCall("POST", `/themes/${t.id}/download`).then((d) => { if (d && typeof d.downloads === "number") { t.downloads = d.downloads; tsMark(t); } }).catch(() => {});
     } catch (e) { problem("ts-problem", String(e).replace(/^Error: /, "")); }
-    tsMark(tried); tsMark(t);
+    tsMarkAll();
   }
   $("ts-grid").onclick = async (e) => {
     const go = (name) => { const el = e.target.closest(`[data-ts-${name}]`); return el ? [el, tsFind(el.getAttribute(`data-ts-${name}`))] : [null, null]; };
@@ -6471,14 +6479,14 @@
         `Open ${gear}, then <b>Appearance</b>, and click <b>Theme Store</b> at the top.`,
         "Every theme is under <b>All</b>: sort it by <b>Popular</b> or <b>Newest</b>. Each card shows the theme on a small copy of the app.",
         "Click <b>Try</b> to see the whole app in it. Click <b>Undo</b> to go back; leaving the store goes back too.",
-        "Click <b>Get</b> to keep it. It joins your themes in Appearance and is worn at once.",
+        "Click <b>Use</b> to keep it. It joins your themes in Appearance and is worn at once.",
         "Like it? The coins button tips its maker some ORN. The flag reports a theme that breaks the rules.",
-      ], "A theme you get is your own copy: the maker can’t change it, and you can edit or delete it like one you built.");
+      ], "A theme you use is your own copy: the maker can’t change it, and you can edit or delete it like one you built.");
       add("Themes", "theme-share", "Share a theme in the Theme Store", [
         "You need to be signed in to Orien Network with a verified wallet.",
         `Open ${gear}, then <b>Appearance</b>.`,
         "On one of your own themes, click the share button (the box with an arrow), then <b>Share theme</b>.",
-        "It’s checked, then shows in the store with your name, where anyone can try it, get it and tip you.",
+        "It’s checked, then shows in the store with your name, where anyone can try it, use it and tip you.",
         "To take it down, open the Theme Store, then <b>Yours</b>, and click <b>Remove from store</b> twice.",
       ], "Editing your theme later doesn’t change the shared one. Share it again as a new theme if you like the new version better.");
     }
