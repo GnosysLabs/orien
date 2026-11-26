@@ -4354,8 +4354,8 @@
   const bugTrail = [], bugErrors = [];
   // Set by the Theme Store: leaving it takes off a theme being tried.
   let leaveStore = null;
-  function bugStep(id) {
-    const screen = BUG_SCREENS[id] || id;
+  function bugStep(id, label) {
+    const screen = label || BUG_SCREENS[id] || id;
     if (bugTrail.length && bugTrail[bugTrail.length - 1].screen === screen) return;
     bugTrail.push({ screen, at: Math.floor(Date.now() / 1000) });
     if (bugTrail.length > 10) bugTrail.shift();
@@ -6222,10 +6222,13 @@
   const settingsWide = matchMedia("(min-width: 860px)");
   const stWide = () => !phone && settingsWide.matches;
   function settingsPage(page) {
+    const asked = page;
     if (!page && stWide()) page = "appearance";
     // Leaving Link a new device ends a link under way.
     if (settingsAt === "link" && page !== "link" && pairing) pairEnd();
     if (page === "report" && settingsAt !== "report" && !$("bug-done").hidden) bugReset();
+    if (asked && asked !== "report" && settingsTitles[asked]) bugStep("settings", `Settings › ${settingsTitles[asked]}`);
+    if (page === "report" && !$("bug-sent").hidden) bugPaintSent();
     settingsAt = page;
     $("st-menu").hidden = !!page && !stWide();
     for (const p of document.querySelectorAll(".st-page")) p.hidden = p.dataset.page !== page;
