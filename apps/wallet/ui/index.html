@@ -11181,7 +11181,9 @@
     const link = e.target.closest("[data-ai-link]");
     if (link) { e.preventDefault(); invoke("open_post_link", { url: link.dataset.aiLink }).catch(() => {}); return; }
     if (!e.target.closest("#ai-reset")) return;
-    if (!ai.resetArmed) { ai.resetArmed = true; aiPaint(); setTimeout(() => { if (ai.resetArmed) { ai.resetArmed = false; aiPaint(); } }, 3500); return; }
+    // Arming changes only the button: the chat stays where it is.
+    const mark = (on) => { const b = $("ai-reset"); if (!b) return; b.classList.toggle("armed", on); b.textContent = on ? "Click again to start over" : "Start over"; };
+    if (!ai.resetArmed) { ai.resetArmed = true; mark(true); setTimeout(() => { if (ai.resetArmed) { ai.resetArmed = false; mark(false); } }, 3500); return; }
     ai.resetArmed = false;
     try { await mk("DELETE", "/support/messages"); ai.msgs = []; feel("success"); }
     catch (err) { problem("ch-problem", mkProblem(err)); }
