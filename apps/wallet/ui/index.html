@@ -1863,8 +1863,6 @@
   .ref-tabs { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; padding: 4px; border: 1px solid var(--line); border-radius: 14px; background: var(--surface); }
   .ref-tabs button { min-height: 38px; border: 0; border-radius: 10px; background: transparent; color: var(--dim); font: inherit; font-weight: 600; cursor: pointer; }
   .ref-tabs button[aria-selected="true"] { background: rgba(var(--tint), .12); color: var(--ink); }
-  .ref-budget { margin: 14px 2px 0; color: var(--dim); font-size: 13px; }
-  .ref-budget b { color: var(--ink); font-variant-numeric: tabular-nums; }
   .ref-panel { display: grid; gap: 12px; margin-top: 14px; padding: 18px; border: 1px solid var(--line); border-radius: 18px; background: var(--surface); }
   .ref-panel h3, .ref-panel p { margin: 0; }
   .ref-panel p, .ref-panel label { color: var(--dim); font-size: 13px; line-height: 1.5; }
@@ -1874,9 +1872,16 @@
   .ref-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
   .ref-stats > div { display: grid; gap: 3px; padding: 10px; border-radius: 10px; background: rgba(var(--tint), .065); }
   .ref-stats b { font-size: 18px; font-variant-numeric: tabular-nums; }
-  .ref-stats span, .ref-sharing-code span { font-size: 12px; color: var(--dim); }
-  .ref-sharing-code { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 6px; padding: 10px 12px; border: 1px solid var(--line); border-radius: 10px; }
-  .ref-sharing-code strong { font-family: var(--mono, monospace); letter-spacing: .08em; }
+  .ref-stats span, .ref-code-label { font-size: 12px; color: var(--dim); }
+  #ref-sharing { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px 18px; padding: 14px 16px; border: 1px solid var(--line); border-radius: 14px; background: var(--field); }
+  .ref-sharing-code { display: grid; justify-items: start; }
+  #ref-copy-code { display: inline-flex; align-items: center; gap: 10px; min-height: 38px; margin-left: -4px; padding: 0 4px; border: 0; border-radius: 6px; background: transparent; color: var(--ink); cursor: pointer; }
+  #ref-own-code { font: 600 18px/1.2 ui-monospace, monospace; letter-spacing: .06em; }
+  #ref-copy-code svg { width: 16px; height: 16px; color: var(--dim); }
+  #ref-copy-code:hover svg, #ref-copy-code:focus-visible svg { color: var(--ink); }
+  #ref-copy-code .ref-check, #ref-copy-code[data-copied] .ref-copy-icon { display: none; }
+  #ref-copy-code[data-copied] .ref-check { display: block; color: var(--good); }
+  #ref-copy-link { min-height: 38px; }
   .ref-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 8px; }
   .ref-actions .box { flex: 1 1 170px; margin: 0; }
   #ref-input { text-transform: uppercase; }
@@ -3430,28 +3435,36 @@
           <button type="button" id="ref-tab-invite" role="tab" aria-selected="true" aria-controls="ref-invite">Invite users</button>
           <button type="button" id="ref-tab-code" role="tab" aria-selected="false" aria-controls="ref-code" tabindex="-1">Enter code</button>
         </div>
-        <p class="ref-budget" id="ref-budget" hidden><b id="ref-left"></b> <span>left in the referral program</span></p>
         <div class="ref-panel" id="ref-invite" role="tabpanel" aria-labelledby="ref-tab-invite">
           <h3>Invite someone to mine</h3>
-          <p>Earn 7 ORN each when a friend verifies a wallet and earns mining rewards in 10 hourly checkpoints. You can earn up to 35 ORN.</p>
+          <div id="ref-sharing" hidden>
+            <div class="ref-sharing-code">
+              <span class="ref-code-label" id="ref-code-label" role="status">Your invite code</span>
+              <button type="button" id="ref-copy-code" aria-label="Copy invite code" aria-describedby="ref-own-code" title="Copy invite code">
+                <strong id="ref-own-code" data-no-i18n></strong>
+                <svg class="ref-copy-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="8" y="8" width="12" height="13" rx="3"/><path d="M15 8V6a3 3 0 0 0-3-3H6a3 3 0 0 0-3 3v7a3 3 0 0 0 3 3h2"/></svg>
+                <svg class="ref-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12 4 4L19 6"/></svg>
+              </button>
+            </div>
+            <button type="button" class="pill pearl" id="ref-copy-link" aria-live="polite">Copy invite link</button>
+          </div>
           <div class="ref-stats" id="ref-stats" hidden>
             <div><b id="ref-completed"></b><span>Qualified</span></div>
             <div><b id="ref-pending"></b><span>In progress</span></div>
             <div><b id="ref-paid"></b><span>ORN paid</span></div>
           </div>
-          <div id="ref-sharing" hidden>
-            <div class="ref-sharing-code"><span>Your invite code</span><strong id="ref-own-code" data-no-i18n></strong></div>
-            <div class="ref-actions">
-              <button type="button" class="pill pearl" id="ref-copy-link">Copy invite link</button>
-              <button type="button" class="pill" id="ref-copy-code">Copy code</button>
-            </div>
-          </div>
           <p id="ref-invite-info" role="status"></p>
           <button type="button" class="pill pearl" id="ref-invite-verify" hidden>Verify wallet</button>
+          <ol class="guide-steps" role="list">
+            <li>Sign in to Orien Network and verify your wallet.</li>
+            <li>Share your invite link or code with a friend.</li>
+            <li>Have your friend download Orien and apply your code within 12 hours of creating their account.</li>
+            <li>Your friend just needs to verify their wallet and earn mining rewards with it in 10 separate hours.</li>
+            <li>You each earn 7 ORN. You can earn up to 35 ORN from referrals.</li>
+          </ol>
         </div>
         <div class="ref-panel" id="ref-code" role="tabpanel" aria-labelledby="ref-tab-code" hidden>
           <h3>Use a friend’s code</h3>
-          <p>Enter a code within seven days of creating your Orien Network account. You and your friend each earn 7 ORN after your verified wallet earns mining rewards in 10 hourly checkpoints.</p>
           <form id="ref-form" hidden>
             <label for="ref-input">Referral code</label>
             <div class="ref-actions">
@@ -3466,6 +3479,13 @@
           <p id="ref-claim-info" role="status"></p>
           <button type="button" class="pill pearl" id="ref-claim-verify" hidden>Verify wallet</button>
           <button type="button" class="pill pearl" id="ref-mine" hidden>Open Mining</button>
+          <ol class="guide-steps" role="list">
+            <li>Sign in to your Orien Network account.</li>
+            <li>Enter your friend’s code within 12 hours of creating your account.</li>
+            <li>Verify the wallet you’ll use for mining.</li>
+            <li>Earn mining rewards in 10 hourly checkpoints with that wallet.</li>
+            <li>You and the friend who invited you each earn 7 ORN.</li>
+          </ol>
         </div>
         <button type="button" class="pill pearl" id="ref-signin" hidden>Sign in to Orien Network</button>
         <div class="problem" id="ref-problem" hidden></div>
@@ -11295,8 +11315,6 @@
     const claim = data?.claim;
     const signedOut = referral.phase === "signin";
     $("ref-signin").hidden = !signedOut;
-    $("ref-budget").hidden = !data?.active;
-    $("ref-left").textContent = data ? data.remaining + " ORN" : "";
     $("ref-stats").hidden = !data?.active;
     $("ref-completed").textContent = data ? data.completed + " / " + data.invite_limit : "";
     $("ref-pending").textContent = data && data.open ? data.invited - data.completed : "0";
@@ -11326,7 +11344,7 @@
       : claim?.status === "pending" ? (!claim.verified ? "Code accepted. Verify a wallet to start counting your mining hours."
         : claim.hours >= data.hours_required ? "Mining requirement met. Reward reservation is pending."
         : "Code accepted. Mine with " + miningWallet + (phone ? " in Orien Wallet on a computer." : " to make progress."))
-      : status || (data && !data.can_claim ? "Codes can be entered within seven days of creating an account." : "");
+      : status || (data && !data.can_claim ? "Codes can be entered within 12 hours of creating an account." : "");
   }
   async function refRefresh() {
     if (!refOpen() || referral.saving) return;
@@ -11389,10 +11407,27 @@
       refPaint();
     }
   };
-  for (const [id, field] of [["ref-copy-link", "link"], ["ref-copy-code", "code"]]) {
-    $(id).onclick = () => {
+  for (const [button, field, label] of [
+    [$("ref-copy-code"), "code", $("ref-code-label")],
+    [$("ref-copy-link"), "link", $("ref-copy-link")],
+  ]) {
+    let restore;
+    button.onclick = async () => {
       const text = referral.value?.[field];
-      if (text) copyFrom($(id), text).catch(() => problem("ref-problem", "Couldn’t copy. Try again."));
+      if (!text) return;
+      try {
+        await navigator.clipboard.writeText(text);
+        clearTimeout(restore);
+        button.dataset.copied = "";
+        label.textContent = field === "code" ? "Code copied" : "Link copied";
+        feel("success");
+        restore = setTimeout(() => {
+          delete button.dataset.copied;
+          label.textContent = field === "code" ? "Your invite code" : "Copy invite link";
+        }, 1400);
+      } catch {
+        problem("ref-problem", "Couldn’t copy. Try again.");
+      }
     };
   }
   $("ref-invite-verify").onclick = $("ref-claim-verify").onclick = async () => {

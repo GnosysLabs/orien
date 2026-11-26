@@ -20,7 +20,7 @@ pub const BUDGET: u64 = 1_400 * UNIT;
 const PAIR_REWARD: u64 = REWARD * 2;
 const HOURS: u64 = 10;
 const INVITER_LIMIT: u64 = 5;
-const CLAIM_WINDOW: u64 = 7 * 24 * 3600;
+const CLAIM_WINDOW: u64 = 12 * 3600;
 
 #[derive(Clone, Serialize)]
 pub(crate) struct Campaign {
@@ -276,7 +276,7 @@ impl Store {
         }
         ensure!(
             now().saturating_sub(created) <= CLAIM_WINDOW,
-            "you can enter a code within seven days of creating your account"
+            "you can enter a code within 12 hours of creating your account"
         );
         let campaign = self
             .referral_campaign()?
@@ -612,6 +612,22 @@ mod tests {
             .verified_wallet_for_tests(repeat, INVITEE_WALLET)
             .unwrap();
         assert!(!store.referral_status(repeat, "").unwrap().can_invite);
+    }
+
+    #[test]
+    fn referral_code_entry_expires_twelve_hours_after_signup() {
+        let (store, _, invitee, code) = campaign();
+        let late = store.create_account("Late", "late").unwrap().id;
+        for (account, age) in [(invitee, 12 * 3600 - 60), (late, 12 * 3600 + 1)] {
+            store.db.execute(
+                "UPDATE accounts SET created = ?1 WHERE id = ?2",
+                params![now() - age, account],
+            ).unwrap();
+        }
+        assert!(store.referral_status(invitee, "").unwrap().can_claim);
+        store.claim_referral(invitee, &code).unwrap();
+        assert!(!store.referral_status(late, "").unwrap().can_claim);
+        assert!(store.claim_referral(late, &code).unwrap_err().to_string().contains("12 hours"));
     }
 
     #[test]

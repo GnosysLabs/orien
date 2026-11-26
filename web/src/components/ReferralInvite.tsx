@@ -18,7 +18,7 @@ export function ReferralInvite() {
       <h2 className="text-xl font-bold tracking-tight text-ink">You’ve been invited to Orien</h2>
       <p className="text-sm leading-relaxed text-muted">
         Download Orien Wallet and create an Orien Network account. Open <strong>Settings → Referrals → Enter code</strong>{' '}
-        and apply this code within seven days of signing up.
+        and apply this code within 12 hours of signing up.
       </p>
       <p className="text-sm leading-relaxed text-muted">
         You and your inviter each earn 7 ORN after your verified wallet earns mining rewards in 10 hourly checkpoints.
