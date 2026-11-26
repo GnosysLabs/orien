@@ -3264,7 +3264,7 @@
             <div class="cm-attach" id="cm-attach" hidden></div>
             <div class="cm-send"><div class="cm-tools"><button class="cm-tool" id="cm-add-photo" aria-label="Add photos" title="Photos"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg></button><button class="cm-tool" id="cm-add-gif" aria-label="Add a GIF" title="GIF"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 7.5H6.25A3.25 3.25 0 0 0 3 10.75v2.5a3.25 3.25 0 0 0 3.25 3.25H9V12H7"/><path d="M12.5 7.5v9"/><path d="M20.75 7.5h-4v9"/><path d="M16.75 12h3.25"/></svg></button><button class="cm-tool" id="cm-add-poll" aria-label="Add a poll" title="Poll"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v16a2 2 0 0 0 2 2h16"/><path d="M7 16h8"/><path d="M7 11h12"/><path d="M7 6h3"/></svg></button></div><span class="cm-left" id="cm-left"></span><button class="pill pearl" id="cm-post" disabled>Post</button></div></div>
         </div>
-        <div class="cm-join" id="cm-join" hidden><span id="cm-join-text"></span><button class="pill" id="cm-join-go"></button></div>
+        <div class="cm-join" id="cm-join" hidden><span id="cm-join-text"></span><button class="pill pearl" id="cm-join-go"></button></div>
         <div class="problem" id="cm-problem" hidden></div>
         <div class="cm-feed" id="cm-feed"></div>
         <button class="pill mk-more" id="cm-more" hidden>Show more</button>
@@ -3289,7 +3289,7 @@
         <div class="cm-write"><textarea id="cm-reply" rows="1" maxlength="500" placeholder="Post your reply"></textarea>
           <div class="cm-send"><button class="pill pearl" id="cm-reply-go" disabled>Reply</button></div></div>
       </div>
-      <div class="cm-join" id="cm-reply-join" hidden><span id="cm-reply-join-text"></span><button class="pill" id="cm-reply-join-go"></button></div>
+      <div class="cm-join" id="cm-reply-join" hidden><span id="cm-reply-join-text"></span><button class="pill pearl" id="cm-reply-join-go"></button></div>
       <div class="problem" id="cm-thread-problem" hidden></div>
     </section>
 
@@ -8366,7 +8366,7 @@
     };
     const box = (key, placeholder, small) => you && you.verified
       ? `<div class="cm-inline-write${small ? " sub" : ""}">${cmFace(you)}<div class="cm-write"><textarea data-reply-box="${key}" rows="1" maxlength="500" placeholder="${esc(placeholder)}"></textarea><div class="cm-attach" data-rattach="${key}"${rdraftHtml(key) ? "" : " hidden"}>${rdraftHtml(key)}</div><div class="cm-send"><div class="cm-tools"><button class="cm-tool" data-rphoto="${key}" aria-label="Add photos" title="Photos"${rdraftOf(key).gif || rdraftOf(key).photos.length >= 4 ? " disabled" : ""}><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg></button><button class="cm-tool" data-rgif="${key}" aria-label="Add a GIF" title="GIF"${rdraftOf(key).gif || rdraftOf(key).photos.length ? " disabled" : ""}><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 7.5H6.25A3.25 3.25 0 0 0 3 10.75v2.5a3.25 3.25 0 0 0 3.25 3.25H9V12H7"/><path d="M12.5 7.5v9"/><path d="M20.75 7.5h-4v9"/><path d="M16.75 12h3.25"/></svg></button></div>${small ? `<button class="pill" data-answer-cancel="${post.id}">Cancel</button>` : ""}<button class="pill pearl" data-reply-send="${key}"${rdraftReady(key) ? "" : " disabled"}>Reply</button></div></div></div>`
-      : `<div class="cm-inline-join"><button class="pill" data-join>${you ? "Verify a wallet" : "Sign in"}</button><span>to reply.</span></div>`;
+      : `<div class="cm-inline-join"><button class="pill pearl" data-join>${you ? "Verify a wallet" : "Sign in"}</button><span>to reply.</span></div>`;
     const open0 = !!(writing && top.some((r) => r.id === writing.id) && you && you.verified);
     const list = top.map((r) => {
       const kids = under(r.id);
@@ -8462,7 +8462,7 @@
       : `<div class="cm-me-row" data-user="${esc(you.name)}">${cmPerson(you.name, you.picture)}<div class="mw0"><div class="cm-name">${esc(you.name)}</div><div class="cm-when">${you.verified ? "Verified wallet" : "No verified wallet yet"}</div></div></div>`
         + (you.stats ? `<div class="cm-stats"><div><b>#${you.stats.rank}</b><span>rank</span></div><div><b>${cmOrn(you.stats.mined)}</b><span>ORN mined</span></div><div><b>${you.stats.streak}h</b><span>in a row</span></div></div>`
           : `<p>${you.verified ? "Mine with a verified wallet and your figures show here after the next checkpoint." : "Verify a wallet to post and see your mining here."}</p>`)
-        + (you.verified ? "" : '<button class="pill" data-rail-go="verify">Verify a wallet</button>');
+        + (you.verified ? "" : '<button class="pill pearl" data-rail-go="verify">Verify a wallet</button>');
     const miners = (cm.board && cm.board.miners) || [];
     const rows = cm.allMiners ? miners : miners.slice(0, 8);
     $("cm-board").innerHTML = '<h3><span class="pearl-text">🏆</span> Top miners</h3>'
