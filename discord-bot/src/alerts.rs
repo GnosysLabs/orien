@@ -28,6 +28,11 @@ pub const CHANNEL: &str = "network-alerts";
 /// What the channel says it is for.
 const TOPIC: &str = "Problems with the Orien network and its services, posted by the bot. Only the server's owner can see this channel.";
 
+/// The channel for newly shared themes from the theme store, and what it is for.
+pub const THEMES: &str = "new-themes";
+const THEMES_TOPIC: &str =
+    "Themes people share in Orien Wallet's theme store, posted by the bot as they come. Only the server's owner can see this channel.";
+
 /// The channel for problem reports from Orien Wallet, and what it is for.
 pub const REPORTS: &str = "app-reports";
 const REPORTS_TOPIC: &str =
@@ -45,6 +50,8 @@ struct Inbox {
     channel: Mutex<Option<ChannelId>>,
     /// The problem reports channel, once found or made.
     reports: Mutex<Option<ChannelId>>,
+    /// The new themes channel, once found or made.
+    themes: Mutex<Option<ChannelId>>,
 }
 
 /// The private alerts channel.
@@ -160,31 +167,45 @@ async fn alert(State(inbox): State<Arc<Inbox>>, Json(alert): Json<Alert>) -> Res
 /// A problem report from Orien Wallet, for #app-reports. Its words are
 /// never written to the log.
 async fn report(State(inbox): State<Arc<Inbox>>, Json(alert): Json<Alert>) -> Response {
-    let text: String = alert.text.trim().chars().take(MOST).collect();
+    post_in(&inbox, &inbox.reports, REPORTS, REPORTS_TOPIC, alert.text, false).await
+}
+
+/// A newly shared theme, for #new-themes. Its picture's link shows a preview.
+async fn theme(State(inbox): State<Arc<Inbox>>, Json(alert): Json<Alert>) -> Response {
+    post_in(&inbox, &inbox.themes, THEMES, THEMES_TOPIC, alert.text, true).await
+}
+
+/// Posts `text` in a private channel, found or made on first use. Nothing in
+/// it can ping anyone; links show a card only with `cards`.
+async fn post_in(inbox: &Inbox, slot: &Mutex<Option<ChannelId>>, name: &str, topic: &str, text: String, cards: bool) -> Response {
+    let text: String = text.trim().chars().take(MOST).collect();
     if text.is_empty() {
-        return (StatusCode::BAD_REQUEST, "a report needs words").into_response();
+        return (StatusCode::BAD_REQUEST, "nothing to post").into_response();
     }
-    let mut known = inbox.reports.lock().await;
+    let mut known = slot.lock().await;
     let channel = match *known {
         Some(channel) => channel,
-        None => match private_channel(&inbox.http, REPORTS, REPORTS_TOPIC, inbox.state.as_deref()).await {
+        None => match private_channel(&inbox.http, name, topic, inbox.state.as_deref()).await {
             Ok(channel) => *known.insert(channel),
             Err(error) => {
-                eprintln!("reports: {error:#}");
+                eprintln!("#{name}: {error:#}");
                 return (StatusCode::BAD_GATEWAY, format!("{error:#}")).into_response();
             }
         },
     };
     drop(known);
-    let message = CreateMessage::new().content(&text).allowed_mentions(CreateAllowedMentions::new()).flags(MessageFlags::SUPPRESS_EMBEDS);
+    let mut message = CreateMessage::new().content(&text).allowed_mentions(CreateAllowedMentions::new());
+    if !cards {
+        message = message.flags(MessageFlags::SUPPRESS_EMBEDS);
+    }
     match channel.send_message(&inbox.http, message).await {
         Ok(_) => {
-            eprintln!("reports: posted one");
+            eprintln!("#{name}: posted one");
             StatusCode::NO_CONTENT.into_response()
         }
         Err(error) => {
-            *inbox.reports.lock().await = None;
-            eprintln!("reports: could not post: {error}");
+            *slot.lock().await = None;
+            eprintln!("#{name}: could not post: {error}");
             (StatusCode::BAD_GATEWAY, format!("could not post: {error}")).into_response()
         }
     }
@@ -200,8 +221,12 @@ pub async fn serve(http: Arc<Http>, listen: String, state: Option<PathBuf>) -> R
             None
         }
     };
-    let inbox = Arc::new(Inbox { http, state, channel: Mutex::new(first), reports: Mutex::new(None) });
-    let app = axum::Router::new().route("/alert", post(alert)).route("/report", post(report)).with_state(inbox);
+    let inbox = Arc::new(Inbox { http, state, channel: Mutex::new(first), reports: Mutex::new(None), themes: Mutex::new(None) });
+    let app = axum::Router::new()
+        .route("/alert", post(alert))
+        .route("/report", post(report))
+        .route("/theme", post(theme))
+        .with_state(inbox);
     let listener = tokio::net::TcpListener::bind(&listen).await?;
     eprintln!("alerts: listening on {listen} for #{CHANNEL}");
     axum::serve(listener, app).await?;

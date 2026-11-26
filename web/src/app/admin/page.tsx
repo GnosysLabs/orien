@@ -208,6 +208,7 @@ export default function AdminPage() {
       <Reports reports={reports.data?.reports ?? null} onChange={reload} />
 
       <AppReports />
+      <Themes />
       <GroupChat />
 
       <h2 className="-mb-2 text-sm font-bold text-muted">Market and swaps</h2>
@@ -487,7 +488,7 @@ function Reports({ reports, onChange }: { reports: Report[] | null; onChange: ()
             <li key={r.id} className="space-y-2 rounded-xl border border-line bg-surface p-4">
               <div className="flex flex-wrap items-baseline justify-between gap-2">
                 <p className="text-sm text-muted">
-                  <span className="font-semibold text-ink">{r.kind === 'listing' ? 'Listing' : r.kind === 'account' ? 'Profile' : r.kind === 'post' ? 'Community post' : r.kind === 'room' ? 'Group chat message' : 'Message'}</span>{' '}
+                  <span className="font-semibold text-ink">{r.kind === 'listing' ? 'Listing' : r.kind === 'account' ? 'Profile' : r.kind === 'post' ? 'Community post' : r.kind === 'room' ? 'Group chat message' : r.kind === 'theme' ? 'Theme' : 'Message'}</span>{' '}
                   reported by {r.reporter_name ?? 'a deleted account'} · {ago(r.created)}
                 </p>
                 <span className="num text-xs text-muted">report {r.id}</span>
@@ -510,7 +511,7 @@ function Reports({ reports, onChange }: { reports: Report[] | null; onChange: ()
               </p>
               {owner && (
                 <p className="text-sm text-muted">
-                  {r.kind === 'message' || r.kind === 'room' ? 'Sent by' : r.kind === 'listing' || r.kind === 'post' ? 'Posted by' : 'Account'}{' '}
+                  {r.kind === 'message' || r.kind === 'room' ? 'Sent by' : r.kind === 'listing' || r.kind === 'post' ? 'Posted by' : r.kind === 'theme' ? 'Made by' : 'Account'}{' '}
                   <Link href={`/marketplace/profile/?id=${owner.id}`} className="font-semibold text-ink hover:text-pearl">
                     {owner.name}
                   </Link>{' '}
@@ -556,6 +557,9 @@ function Reports({ reports, onChange }: { reports: Report[] | null; onChange: ()
                 {r.kind === 'room' && !removed && (
                   <Action label="Take the message down" path={`/room/${r.target}/remove`} onDone={onChange} danger />
                 )}
+                {r.kind === 'theme' && !removed && (
+                  <Action label="Take the theme down" path={`/themes/${r.target}/remove`} onDone={onChange} danger />
+                )}
                 {owner && !owner.suspended && (
                   <Action
                     label={`Suspend ${owner.name}`}
@@ -566,6 +570,72 @@ function Reports({ reports, onChange }: { reports: Report[] | null; onChange: ()
                   />
                 )}
                 <Action label="Dealt with, nothing to do" path={`/reports/${r.id}/handled`} onDone={onChange} />
+              </div>
+            </li>
+          ))}
+        </ul>
+      )}
+    </section>
+  )
+}
+
+type StoreTheme = {
+  id: number
+  name: string
+  base: string
+  colors: string[]
+  picture: string
+  thumb: string
+  created: number
+  author: { id: number; name: string }
+  downloads: number
+  tips: { count: number; orn: number }
+}
+
+/** The theme store: every shared theme, newest first, each with Remove. */
+function Themes() {
+  const found = usePoll<{ themes: StoreTheme[] }>('/themes', 30_000)
+  const reload = () => void found.reload()
+  if (!found.data) return null
+  const themes = found.data.themes
+  return (
+    <section className="rounded-2xl border border-line bg-surface p-4">
+      <h2 className="mb-3 text-sm font-bold text-ink">Theme store: {themes.length} {themes.length === 1 ? 'theme' : 'themes'}</h2>
+      {themes.length === 0 ? (
+        <p className="text-sm text-muted">No themes shared yet. Each new one also shows in #new-themes on Discord.</p>
+      ) : (
+        <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {themes.map((t) => (
+            <li key={t.id} className="overflow-hidden rounded-xl border border-line bg-bg">
+              <a href={pictureUrl(t.picture)} target="_blank" rel="noopener noreferrer" className="block">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={pictureUrl(t.thumb)} alt={t.name} className="aspect-video w-full object-cover" />
+              </a>
+              <div className="space-y-3 p-3">
+                <div className="flex items-center justify-between gap-2">
+                  <p className="min-w-0 truncate font-semibold text-ink">{t.name}</p>
+                  <span className="flex shrink-0 gap-1">
+                    {t.colors.map((c) => (
+                      <svg key={c} viewBox="0 0 16 16" className="h-4 w-4" aria-label={c}>
+                        <circle cx="8" cy="8" r="7" fill={c} stroke="rgba(255,255,255,0.25)" />
+                      </svg>
+                    ))}
+                  </span>
+                </div>
+                <p className="text-xs text-muted">
+                  {t.base} · by{' '}
+                  <Link href={`/marketplace/profile/?id=${t.author.id}`} className="font-semibold text-ink hover:text-pearl">
+                    {t.author.name}
+                  </Link>{' '}
+                  · {ago(t.created)} · {count(t.downloads)} downloads · {count(t.tips.count)} tips
+                </p>
+                <Action
+                  label="Remove"
+                  sure={`Take down ${t.name} by ${t.author.name}? It leaves the theme store for everyone.`}
+                  path={`/themes/${t.id}/remove`}
+                  onDone={reload}
+                  danger
+                />
               </div>
             </li>
           ))}

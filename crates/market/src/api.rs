@@ -222,6 +222,11 @@ impl App {
         &self.origin
     }
 
+    /// A path on this site as a whole address, such as for pictures.
+    pub(crate) fn absolute(&self, path: &str) -> String {
+        format!("{}{path}", self.origin.trim_end_matches('/'))
+    }
+
     pub(crate) fn store(&self) -> std::sync::MutexGuard<'_, Store> {
         self.store.lock().unwrap()
     }
@@ -462,6 +467,7 @@ pub fn router(app: Arc<App>) -> Router {
         .merge(crate::notices::routes())
         .merge(crate::room::routes())
         .merge(crate::app_reports::routes())
+        .merge(crate::themes::routes())
         .route("/api/explorer/overview", get(crate::explorer::overview))
         .route("/api/explorer/checkpoints", get(crate::explorer::checkpoints))
         .route("/api/explorer/checkpoints/{epoch}", get(crate::explorer::checkpoint))
