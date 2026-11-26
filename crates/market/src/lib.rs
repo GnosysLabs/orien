@@ -24,6 +24,7 @@ pub mod room;
 pub mod screen;
 pub mod store;
 pub mod swaps;
+pub mod themes;
 pub mod tokenomics;
 pub mod traffic;
 pub mod vaults;

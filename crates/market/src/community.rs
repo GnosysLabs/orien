@@ -1650,6 +1650,13 @@ pub struct Tip {
     seq: u64,
 }
 
+impl Tip {
+    /// The sending wallet and the payment's order number.
+    pub(crate) fn parts(&self) -> (String, u64) {
+        (self.from.clone(), self.seq)
+    }
+}
+
 /// A tip someone paid a post's author from their wallet: counted once the
 /// network shows the payment settled to one of the author's verified
 /// wallets. Answers the post's totals.

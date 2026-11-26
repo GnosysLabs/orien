@@ -72,6 +72,8 @@ pub fn admin_router(app: Arc<App>, admins: Admins, site: Option<&std::path::Path
         .route("/api/admin/room/{id}/remove", post(remove_room_message))
         .route("/api/admin/room", get(room))
         .route("/api/admin/room/bans/{account}/lift", post(room_lift))
+        .route("/api/admin/themes", get(themes))
+        .route("/api/admin/themes/{id}/remove", post(remove_theme))
         .route("/api/admin/app-reports", get(app_reports))
         .route("/api/admin/app-reports/{id}/done", post(app_report_done))
         .route("/api/admin/sites", get(sites))
@@ -307,6 +309,7 @@ impl Store {
             "message" => "SELECT sender FROM messages WHERE id = ?1",
             "post" => "SELECT author FROM posts WHERE id = ?1",
             "room" => "SELECT author FROM room_messages WHERE id = ?1",
+            "theme" => "SELECT author FROM themes WHERE id = ?1",
             _ => return Ok(None),
         };
         Ok(self.db.query_row(sql, params![target], |row| row.get(0)).optional()?)
@@ -416,6 +419,7 @@ async fn reports(State(admin): State<Admin>, headers: HeaderMap) -> Answer {
                 "listing" => store.is_removed(report.target).unwrap_or(false),
                 "post" => store.post_removed(report.target).unwrap_or(false),
                 "room" => store.room_removed(report.target).unwrap_or(false),
+                "theme" => store.theme_removed(report.target).unwrap_or(false),
                 _ => false,
             };
             json!({ "report": report, "owner": owner, "removed": removed })
@@ -473,6 +477,23 @@ async fn suspend(State(admin): State<Admin>, headers: HeaderMap, Path(id): Path<
 async fn unsuspend(State(admin): State<Admin>, headers: HeaderMap, Path(id): Path<i64>) -> Answer {
     admin.admins.check(&headers)?;
     admin.app.store().unsuspend(id).map_err(refused)?;
+    Ok(Json(json!({ "ok": true })).into_response())
+}
+
+/// The theme store's themes, newest first, with their pictures' addresses.
+async fn themes(State(admin): State<Admin>, headers: HeaderMap) -> Answer {
+    admin.admins.check(&headers)?;
+    let themes = admin.app.store().admin_themes()?;
+    Ok(Json(json!({ "themes": themes })).into_response())
+}
+
+/// Takes a theme down for everyone, and its pictures with it.
+async fn remove_theme(State(admin): State<Admin>, headers: HeaderMap, Path(id): Path<i64>) -> Answer {
+    let login = admin.admins.check(&headers)?;
+    let (picture, thumb) = admin.app.store().remove_theme(id, None).map_err(refused)?;
+    admin.app.images.remove(&picture);
+    admin.app.images.remove(&thumb);
+    println!("{login} took down theme {id}");
     Ok(Json(json!({ "ok": true })).into_response())
 }
 

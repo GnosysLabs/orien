@@ -13,7 +13,7 @@ pub const MAX_UPLOAD: usize = 8 << 20;
 /// A profile picture's width and height, in pixels.
 pub const PICTURE: u32 = 400;
 
-fn decode(bytes: &[u8]) -> Result<DynamicImage> {
+pub(crate) fn decode(bytes: &[u8]) -> Result<DynamicImage> {
     if bytes.len() > MAX_UPLOAD {
         bail!("that picture is too big; pick one under 8 MB");
     }
@@ -27,7 +27,7 @@ fn decode(bytes: &[u8]) -> Result<DynamicImage> {
     reader.decode().map_err(|_| anyhow::anyhow!("that is not a picture this site can read; use a JPEG, PNG, WebP or GIF"))
 }
 
-fn jpeg(image: &DynamicImage) -> Vec<u8> {
+pub(crate) fn jpeg(image: &DynamicImage) -> Vec<u8> {
     let mut out = Vec::new();
     JpegEncoder::new_with_quality(&mut out, 85).encode_image(&image.to_rgb8()).expect("encoding to memory");
     out

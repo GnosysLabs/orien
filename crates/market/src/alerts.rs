@@ -79,7 +79,18 @@ impl Alerts {
     /// #app-reports channel. Its words are never written to the log.
     pub fn app_report(&self, id: i64, text: String) {
         eprintln!("problem report {id} from Orien Wallet");
-        let Some(url) = self.url.as_ref().map(|url| url.trim_end_matches("/alert").to_string() + "/report") else { return };
+        self.post_to("report", format!("problem report {id}"), text);
+    }
+
+    /// A newly shared theme, for the bot's private #new-themes channel.
+    pub fn theme(&self, text: String) {
+        self.post_to("theme", "a new theme".into(), text);
+    }
+
+    /// Hands `text` to the bot's inbox at `/path`, in the background.
+    fn post_to(&self, path: &str, what: String, text: String) {
+        let id = what;
+        let Some(url) = self.url.as_ref().map(|url| format!("{}/{path}", url.trim_end_matches("/alert"))) else { return };
         std::thread::spawn(move || {
             let sent = ureq::post(&url)
                 .config()
@@ -89,8 +100,8 @@ impl Alerts {
                 .send_json(serde_json::json!({ "text": text }));
             match sent {
                 Ok(response) if response.status().is_success() => {}
-                Ok(response) => eprintln!("the bot did not post problem report {id} ({})", response.status()),
-                Err(error) => eprintln!("cannot reach the bot for problem report {id}: {error}"),
+                Ok(response) => eprintln!("the bot did not post {id} ({})", response.status()),
+                Err(error) => eprintln!("cannot reach the bot for {id}: {error}"),
             }
         });
     }
