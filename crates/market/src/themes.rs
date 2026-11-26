@@ -352,6 +352,26 @@ impl Store {
         Ok(rows.collect::<rusqlite::Result<_>>()?)
     }
 
+    /// A page of the newest themes people made (never Orien's own, which
+    /// have their own list), with the cursor for the next: the last id seen.
+    fn newest_themes(&self, viewer: Option<i64>, before: &str, whose: &str) -> Result<(Vec<Value>, Option<String>)> {
+        let before = before.parse::<i64>().unwrap_or(i64::MAX);
+        let filter = format!("t.builtin IS NULL AND t.id < {before}{whose}");
+        let themes = self.themes_where(viewer, &filter, "t.id DESC", PAGE + 1, 0)?;
+        let next = themes.get(PAGE as usize - 1).and_then(|t| t["id"].as_i64()).map(|id| id.to_string());
+        Ok((themes, next))
+    }
+
+    /// A page of themes by popularity: people's, or with `official` Orien's
+    /// own. Popular moves as people download, so the cursor is a place in
+    /// the list.
+    fn popular_themes(&self, viewer: Option<i64>, before: &str, official: bool) -> Result<(Vec<Value>, Option<String>)> {
+        let offset = before.parse::<i64>().unwrap_or(0).max(0);
+        let filter = if official { "t.builtin IS NOT NULL" } else { "t.builtin IS NULL" };
+        let themes = self.themes_where(viewer, filter, "score DESC, t.id DESC", PAGE + 1, offset)?;
+        Ok((themes, Some((offset + PAGE).to_string())))
+    }
+
     fn theme(&self, viewer: Option<i64>, id: i64) -> Result<Option<Value>> {
         Ok(self.themes_where(viewer, &format!("t.id = {id}"), "t.id", 1, 0)?.into_iter().next())
     }
@@ -371,6 +391,9 @@ struct Browse {
     /// "1": only the signed-in person's own themes.
     #[serde(default)]
     mine: Option<String>,
+    /// "1": only Orien's own themes, most popular first.
+    #[serde(default)]
+    official: Option<String>,
 }
 
 /// GET /community/themes: popular or new, a page at a time.
@@ -382,17 +405,17 @@ async fn list(State(app): State<Arc<App>>, headers: HeaderMap, Query(asked): Que
         (true, Some(me)) => format!(" AND t.author = {me}"),
         _ => String::new(),
     };
+    // Orien's own themes have their own list, by popularity; Popular and
+    // Newest are only the themes people made.
+    let official = asked.official.as_deref().is_some_and(|o| o == "1" || o == "true");
+    let before = asked.before.as_deref().unwrap_or("");
     let store = app.store();
-    let (themes, next) = if asked.sort == "new" || mine {
-        let before = asked.before.as_deref().and_then(|b| b.parse::<i64>().ok()).unwrap_or(i64::MAX);
-        let themes = store.themes_where(viewer, &format!("t.id < {before}{whose}"), "t.id DESC", PAGE + 1, 0)?;
-        let next = themes.get(PAGE as usize - 1).and_then(|t| t["id"].as_i64()).map(|id| id.to_string());
-        (themes, next)
+    let (themes, next) = if official && !mine {
+        store.popular_themes(viewer, before, true)?
+    } else if asked.sort == "new" || mine {
+        store.newest_themes(viewer, before, &whose)?
     } else {
-        // Popular moves as people download, so its cursor is a place in the list.
-        let offset = asked.before.as_deref().and_then(|b| b.parse::<i64>().ok()).unwrap_or(0).max(0);
-        let themes = store.themes_where(viewer, "1", "score DESC, t.id DESC", PAGE + 1, offset)?;
-        (themes, Some((offset + PAGE).to_string()))
+        store.popular_themes(viewer, before, false)?
     };
     drop(store);
     let more = themes.len() as i64 > PAGE;
@@ -655,5 +678,33 @@ mod tests {
         assert_eq!((nebula["name"].as_str(), nebula["downloads"].as_i64()), (Some("Nebula"), Some(1)));
         assert_eq!(nebula["author"]["name"], "Maya");
         assert_eq!(store.themes_where(None, "t.builtin IS NOT NULL", "t.id", 50, 0).unwrap().len(), 6);
+    }
+
+    #[test]
+    fn orien_s_own_themes_have_their_own_list_and_stay_out_of_the_others() {
+        let (store, maya, _sam) = maker();
+        let draft = checked("Mine", "dark", &["#112233".to_string()]).unwrap();
+        for _ in 0..30 {
+            store.add_theme(maya, &draft, "p.jpg", "t.jpg").unwrap();
+        }
+        let mut seen = Vec::new();
+        let mut before = String::new();
+        loop {
+            let (page, next) = store.newest_themes(None, &before, "").unwrap();
+            let more = page.len() as i64 > PAGE;
+            seen.extend(page.into_iter().take(PAGE as usize).map(|t| (t["id"].as_i64().unwrap(), t.get("builtin").is_some())));
+            if !more {
+                break;
+            }
+            before = next.unwrap();
+        }
+        assert_eq!(seen.len(), 30, "people's themes, each once");
+        assert!(seen.iter().all(|(_, official)| !official));
+        assert!(seen.windows(2).all(|w| w[0].0 > w[1].0), "newest first");
+        let (popular, _) = store.popular_themes(None, "", false).unwrap();
+        assert!(popular.iter().all(|t| t.get("builtin").is_none()));
+        let (official, _) = store.popular_themes(None, "", true).unwrap();
+        assert_eq!(official.len(), 6);
+        assert!(official.iter().all(|t| t.get("builtin").is_some()));
     }
 }
