@@ -5,6 +5,7 @@
 //! the same way to a second private channel, #app-reports. The inbox
 //! listens on 127.0.0.1 only and nginx never passes anything to it.
 
+use std::path::{Path, PathBuf};
 use std::sync::Arc;
 
 use anyhow::{Context, Result, bail};
@@ -37,6 +38,9 @@ const MOST: usize = 1800;
 
 struct Inbox {
     http: Arc<Http>,
+    /// The bot's state folder, where each channel's id is kept so a
+    /// renamed channel is still found.
+    state: Option<PathBuf>,
     /// The alerts channel, once found or made.
     channel: Mutex<Option<ChannelId>>,
     /// The problem reports channel, once found or made.
@@ -44,21 +48,47 @@ struct Inbox {
 }
 
 /// The private alerts channel.
-pub async fn channel(http: &Http) -> Result<ChannelId> {
-    private_channel(http, CHANNEL, TOPIC).await
+pub async fn channel(http: &Http, state: Option<&Path>) -> Result<ChannelId> {
+    private_channel(http, CHANNEL, TOPIC, state).await
 }
 
-/// A private channel: found by name, or made once with only the owner and
-/// the bot able to see it. Says which permission is missing when Discord
-/// refuses.
-async fn private_channel(http: &Http, name: &str, topic: &str) -> Result<ChannelId> {
+/// Where a private channel's id is kept, in the bot's state folder.
+fn kept_id(state: Option<&Path>, name: &str) -> Option<PathBuf> {
+    state.map(|dir| dir.join(format!("channel-{name}")))
+}
+
+/// A private channel: the one whose id was kept, so renaming it in Discord
+/// changes nothing; else found by name (emoji and symbols aside) or by its
+/// topic; else made once with only the owner and the bot able to see it.
+/// Its id is kept for next time. Says which permission is missing when
+/// Discord refuses.
+async fn private_channel(http: &Http, name: &str, topic: &str, state: Option<&Path>) -> Result<ChannelId> {
     let guilds = http.get_guilds(None, None).await?;
     let [guild] = guilds.as_slice() else {
         bail!("the bot is in {} servers; it should be in exactly one", guilds.len());
     };
     let channels = guild.id.channels(http).await?;
-    if let Some(found) = channels.values().find(|c| c.kind == ChannelType::Text && crate::bot::plain(&c.name) == name) {
-        return Ok(found.id);
+    let file = kept_id(state, name);
+    let keep = |id: ChannelId| {
+        if let Some(file) = &file
+            && let Err(error) = std::fs::write(file, id.get().to_string())
+        {
+            eprintln!("alerts: cannot keep #{name}'s id: {error}");
+        }
+        id
+    };
+    let kept = file.as_ref().and_then(|f| std::fs::read_to_string(f).ok()).and_then(|t| t.trim().parse::<u64>().ok());
+    if let Some(id) = kept.map(ChannelId::new)
+        && channels.contains_key(&id)
+    {
+        return Ok(id);
+    }
+    let text = |c: &&serenity::all::GuildChannel| c.kind == ChannelType::Text;
+    if let Some(found) = channels.values().filter(text).find(|c| crate::bot::plain(&c.name) == name) {
+        return Ok(keep(found.id));
+    }
+    if let Some(found) = channels.values().filter(text).find(|c| c.topic.as_deref() == Some(topic)) {
+        return Ok(keep(found.id));
     }
     let owner = http.get_guild(guild.id).await?.owner_id;
     let me = http.get_current_user().await?.id;
@@ -80,7 +110,7 @@ async fn private_channel(http: &Http, name: &str, topic: &str) -> Result<Channel
     match made {
         Ok(channel) => {
             eprintln!("alerts: made the private #{name}");
-            Ok(channel.id)
+            Ok(keep(channel.id))
         }
         Err(error) if format!("{error}").contains("Missing Permissions") || format!("{error}").contains("Missing Access") => bail!(
             "Discord refused to make #{name}: in Server Settings → Roles, give the bot's role \"Manage Channels\" and \"Manage Roles\", then restart the bot ({error})"
@@ -102,7 +132,7 @@ async fn alert(State(inbox): State<Arc<Inbox>>, Json(alert): Json<Alert>) -> Res
     let mut known = inbox.channel.lock().await;
     let channel = match *known {
         Some(channel) => channel,
-        None => match channel(&inbox.http).await {
+        None => match channel(&inbox.http, inbox.state.as_deref()).await {
             Ok(channel) => *known.insert(channel),
             Err(error) => {
                 eprintln!("alerts: {error:#}");
@@ -137,7 +167,7 @@ async fn report(State(inbox): State<Arc<Inbox>>, Json(alert): Json<Alert>) -> Re
     let mut known = inbox.reports.lock().await;
     let channel = match *known {
         Some(channel) => channel,
-        None => match private_channel(&inbox.http, REPORTS, REPORTS_TOPIC).await {
+        None => match private_channel(&inbox.http, REPORTS, REPORTS_TOPIC, inbox.state.as_deref()).await {
             Ok(channel) => *known.insert(channel),
             Err(error) => {
                 eprintln!("reports: {error:#}");
@@ -162,15 +192,15 @@ async fn report(State(inbox): State<Arc<Inbox>>, Json(alert): Json<Alert>) -> Re
 
 /// Makes sure the channel is there, then takes alerts on `listen` until the
 /// bot stops.
-pub async fn serve(http: Arc<Http>, listen: String) -> Result<()> {
-    let first = match channel(&http).await {
+pub async fn serve(http: Arc<Http>, listen: String, state: Option<PathBuf>) -> Result<()> {
+    let first = match channel(&http, state.as_deref()).await {
         Ok(channel) => Some(channel),
         Err(error) => {
             eprintln!("alerts: {error:#}");
             None
         }
     };
-    let inbox = Arc::new(Inbox { http, channel: Mutex::new(first), reports: Mutex::new(None) });
+    let inbox = Arc::new(Inbox { http, state, channel: Mutex::new(first), reports: Mutex::new(None) });
     let app = axum::Router::new().route("/alert", post(alert)).route("/report", post(report)).with_state(inbox);
     let listener = tokio::net::TcpListener::bind(&listen).await?;
     eprintln!("alerts: listening on {listen} for #{CHANNEL}");

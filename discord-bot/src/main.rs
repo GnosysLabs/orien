@@ -229,7 +229,7 @@ async fn main() -> Result<()> {
                 (Some(genesis), Some(folder)) => Some(holders::Holders::open(genesis, &verify_address, folder.join("holders.json"))?),
                 _ => None,
             };
-            let news = state.map(|folder| (changelog, folder.join("announced.json")));
+            let news = state.clone().map(|folder| (changelog, folder.join("announced.json")));
             let shipped = if offline { None } else { Some(std::fs::read_to_string(&brain.knowledge)?) };
             let expert = std::sync::Arc::new(expert(&brain)?);
             if let Some(listen) = web_listen {
@@ -243,8 +243,9 @@ async fn main() -> Result<()> {
             let token = secret(&token)?;
             if let Some(listen) = alerts_listen {
                 let http = std::sync::Arc::new(serenity::http::Http::new(&token));
+                let remember = state.clone();
                 tokio::spawn(async move {
-                    if let Err(error) = alerts::serve(http, listen).await {
+                    if let Err(error) = alerts::serve(http, listen, remember).await {
                         eprintln!("alerts stopped: {error:#}");
                     }
                 });
