@@ -12306,7 +12306,7 @@
             <button class="ex-hash ex-row" data-ex-copy="${c.digest}" title="Copy"><div class="l">This checkpoint's fingerprint</div><div class="h">${c.digest}</div></button>
             ${epoch !== 0 && d.previous ? `<button class="ex-hash ex-row" data-ex-copy="${d.previous}" title="Copy"><div class="l">The checkpoint before it</div><div class="h">${d.previous}</div></button>` : ""}`;
     $("ex-body").innerHTML = `<div class="ex-facts five">
-        ${exFact("Miners paid", miners.length.toLocaleString(), `${exOrn(c.released, 2)} new ORN`)}
+        ${exFact("Miners paid", r.known === false ? "Not recorded" : miners.length.toLocaleString(), `${exOrn(c.released, 2)} new ORN`)}
         ${exFact("Payments", c.payments.toLocaleString(), "Made final")}
         ${exFact("Mining", math, r.harder != null ? `Next hour ${exChange(r.harder).toLowerCase()}` : "")}
         ${exFact("Agreed by", `${c.agreed.length} of ${c.of}`, "Validators")}
