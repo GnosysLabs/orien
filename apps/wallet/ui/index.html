@@ -3005,7 +3005,7 @@
   .home-side { display: none; }
   @media (min-width: 860px) {
     body:not(.phone) #home { --col: 1040px; }
-    body:not(.phone) #home .home-body { display: flex; gap: 20px; flex: 0 1 auto; min-height: 0; }
+    body:not(.phone) #home .home-body { display: flex; gap: 20px; flex: 1 1 0; min-height: 0; }
     body:not(.phone) #home .home-main { display: flex; flex-direction: column; flex: 1 1 auto; min-width: 0; min-height: 0; }
     body:not(.phone) #home .home-side { display: flex; flex-direction: column; gap: 14px; flex: 0 0 340px; min-height: 0; }
     /* Mining and the group chat are in the column beside: their buttons go,
@@ -3032,8 +3032,8 @@
   .hs-figs b { display: block; margin-top: 2px; font-size: 14px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .hs-acts { display: flex; gap: 8px; margin-top: 14px; }
   .hs-acts .pill { flex: 1; }
-  /* The network card runs down as far as the wallet column beside it, its
-     latest checkpoints filling what's left. */
+  /* The network card fills the remaining window height, including when
+     the wallet column has no activity. */
   .hs-net { flex: 1 1 auto; min-height: 0; }
   .hs-figs2 { grid-template-columns: repeat(2, minmax(0, 1fr)); row-gap: 12px; }
   /* The list reaches 8px past the card's text on each side, so a row's
@@ -11208,17 +11208,17 @@
     if (apple) invoke("dock_badge", { count: n }).catch(() => {});
     else invoke("plugin:window|set_badge_count", { label: "main", value: n || null }).catch(() => {});
   }
+  const nt = { lines: [], account: null, unread: false, refresh: 0 };
   function paintUnread() {
     setBadge();
     const n = (board.me && board.me.unread) || 0;
     // Messages' dot: a conversation with something new, or the group chat.
     $("market-unread").hidden = !(n || roomNew);
-    // The bell: only for an Orien Network account, with a dot for anything new.
+    // Direct messages already have a dot on Messages.
     $("go-notices").hidden = $("hd-notices").hidden = !board.me;
-    $("notices-dot").hidden = $("hd-notices-dot").hidden = !(board.me && board.me.notices);
+    $("notices-dot").hidden = $("hd-notices-dot").hidden = !(board.me && nt.account === board.me.id && nt.unread);
   }
   // ---- Notifications: the website's bell, in the app ----
-  const nt = { lines: [] };
   const ntNames = (people, others) => {
     const list = (people || []).map((p) => `<b>${esc(p.name)}</b>`);
     if (others > 0) list.push(`${others} other${others === 1 ? "" : "s"}`);
@@ -11267,6 +11267,7 @@
   if (phone) { $("nt-list").classList.add("scroll"); $("notices").append($("nt-list"), $("nt-problem")); }
   async function openNotices(button) {
     const m = $("nt-panel");
+    const account = board.me?.id;
     $("nt-problem").hidden = true;
     if (phone) show("notices");
     else {
@@ -11281,7 +11282,12 @@
     catch (e) { problem("nt-problem", mkProblem(e)); }
     paintNotices();
     // Seen: the dot goes, here and on the website.
-    if (nt.lines.some((l) => l.unseen)) mk("POST", "/notices/seen", {}).then(() => { if (board.me) { board.me.notices = 0; paintUnread(); } }).catch(() => {});
+    if (nt.lines.some((l) => l.unseen)) mk("POST", "/notices/seen", {}).then(() => {
+      if (board.me?.id !== account) return;
+      nt.refresh++;
+      nt.unread = false;
+      paintUnread();
+    }).catch(() => {});
   }
   $("go-notices").onclick = () => openNotices($("go-notices"));
   $("hd-notices").onclick = () => openNotices($("hd-notices"));
@@ -11330,9 +11336,16 @@
   // A notification on computers for each new line (messages have their own),
   // as for ORN arriving. What's been told is kept, so nothing is told twice.
   async function noticeNews() {
-    if (phone || !board.me) return;
+    if (!board.me) return;
+    const account = board.me.id;
+    const refresh = ++nt.refresh;
     let lines;
     try { lines = (await mk("GET", "/notices?room=1")).notices || []; } catch { return; }
+    if (board.me?.id !== account || refresh !== nt.refresh) return;
+    nt.account = account;
+    nt.unread = lines.some((l) => l.unseen && l.kind !== "message");
+    paintUnread();
+    if (phone) return;
     let heard = null;
     try { heard = JSON.parse(localStorage.getItem("notices-heard") || "null"); } catch {}
     const first = heard === null;
@@ -12262,7 +12275,7 @@
   // Live: an open chat every 4 seconds, the list every 10, the unread dot every 30.
   setInterval(() => { if (!$("chat").hidden && chat.id && !chat.ai) chat.room ? roomPoll() : refreshChat(); }, 4000);
   setInterval(() => { if (!$("inbox").hidden) loadInbox(); }, 10000);
-  setInterval(() => { if (board.me) invoke("board_me").then((me) => { board.me = me; paintUnread(); if (me && me.unread) marketNews(); if (me && me.notices) noticeNews(); }).catch(() => {}); }, 20000);
+  setInterval(() => { if (board.me) invoke("board_me").then((me) => { board.me = me; paintUnread(); if (me && me.unread) marketNews(); noticeNews(); }).catch(() => {}); }, 20000);
   // A notification for each new Market message, on computers, as for ORN
   // arriving. What's been told is kept, so nothing is told twice; the first
   // look only learns what's there. Not for the chat that's open on screen.
@@ -12635,7 +12648,7 @@
       if (row.getBoundingClientRect().bottom > bottom + 0.5) row.style.setProperty("visibility", "hidden");
     }
   }
-  window.addEventListener("resize", () => { if (homeWide()) hsFitCps(); });
+  new ResizeObserver(() => { if (homeWide()) hsFitCps(); }).observe($("hs-cps"));
   $("hs-net-open").onclick = () => openExplorer();
   $("hs-cps").onclick = (e) => { const b = e.target.closest("[data-hs-cp]"); if (b) openExplorer({ kind: "checkpoint", epoch: Number(b.dataset.hsCp) }); };
   wide.addEventListener("change", homeSide);

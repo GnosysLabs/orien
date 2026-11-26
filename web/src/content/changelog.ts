@@ -26,6 +26,17 @@ export const PRODUCTS: Record<Product, string> = {
 
 export const CHANGELOG: Entry[] = [
   {
+    date: '2026-11-26',
+    products: ['wallet'],
+    version: '1.9.29',
+    title: 'A full-height Network panel and clearer message badges',
+    changes: [
+      'The Network panel fills the desktop wallet even when Activity is empty.',
+      'New direct messages light up the Messages button. The bell still alerts you to other notifications.',
+      'See all swaps in the Community feed opens the desktop Exchange with the correct layout.',
+    ],
+  },
+  {
     date: '2026-11-25',
     products: ['network'],
     title: 'Validator names on the map stay apart',
