@@ -1118,6 +1118,10 @@
   "your wallet locks your ORN for the buyer within seconds. Their wallet then sends the Bitcoin, and once it confirms, your wallet collects it and delivers their ORN automatically.": "지갑이 몇 초 안에 구매자를 위해 ORN을 잠급니다. 구매자 지갑이 Bitcoin을 보내고 확인이 끝나면 지갑이 이를 수령한 뒤 ORN을 자동으로 전송합니다.",
   "your wallet password": "지갑 비밀번호",
   "✓ Valid address": "✓ 유효한 주소",
+  "posted about you:": "회원님에 대한 글을 올렸습니다:",
+  "replied to your post": "내 게시물에 답글을 남겼습니다",
+  "replied to your reply": "내 답글에 답글을 남겼습니다",
+  "replied to the network's post about you": "회원님에 대한 네트워크 게시물에 답글을 남겼습니다",
   "_patterns": [
     [
       "^Sell ([0-9.,]+) ORN for ([0-9.,]+) SOL(.*)$",
@@ -1842,6 +1846,30 @@
     [
       "^The record before was ([0-9,]+)\\. Checkpoint (\\d+)\\.$",
       "이전 기록은 {0}이었습니다. 체크포인트 {1}."
+    ],
+    [
+      "^reacted (.+) to your post$",
+      "내 게시물에 {0} 반응을 남겼습니다"
+    ],
+    [
+      "^reacted (.+) to your reply$",
+      "내 답글에 {0} 반응을 남겼습니다"
+    ],
+    [
+      "^reacted (.+) to the network's post about you$",
+      "회원님에 대한 네트워크 게시물에 {0} 반응을 남겼습니다"
+    ],
+    [
+      "^wrote to you about (.+)$",
+      "{0}에 대해 메시지를 보냈습니다"
+    ],
+    [
+      "^asks you to pay ([0-9.,]+) ORN$",
+      "{0} ORN 결제를 요청했습니다"
+    ],
+    [
+      "^says they paid ([0-9.,]+) ORN$",
+      "{0} ORN을 결제했다고 알렸습니다"
     ]
   ]
 }

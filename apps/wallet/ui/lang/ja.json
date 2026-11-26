@@ -1118,6 +1118,10 @@
   "your wallet locks your ORN for the buyer within seconds. Their wallet then sends the Bitcoin, and once it confirms, your wallet collects it and delivers their ORN automatically.": "ウォレットが数秒以内に買い手のため ORN をロックします。相手のウォレットが Bitcoin を送金し、承認されるとあなたのウォレットが自動で受け取り、ORN を届けます。",
   "your wallet password": "ウォレットパスワード",
   "✓ Valid address": "✓ 有効なアドレス",
+  "posted about you:": "あなたについて投稿しました:",
+  "replied to your post": "あなたの投稿に返信しました",
+  "replied to your reply": "あなたの返信に返信しました",
+  "replied to the network's post about you": "あなたに関するネットワーク投稿に返信しました",
   "_patterns": [
     [
       "^Sell ([0-9.,]+) ORN for ([0-9.,]+) SOL(.*)$",
@@ -1842,6 +1846,30 @@
     [
       "^The record before was ([0-9,]+)\\. Checkpoint (\\d+)\\.$",
       "これまでの記録は {0} でした（チェックポイント {1}）。"
+    ],
+    [
+      "^reacted (.+) to your post$",
+      "あなたの投稿に {0} でリアクションしました"
+    ],
+    [
+      "^reacted (.+) to your reply$",
+      "あなたの返信に {0} でリアクションしました"
+    ],
+    [
+      "^reacted (.+) to the network's post about you$",
+      "あなたに関するネットワーク投稿に {0} でリアクションしました"
+    ],
+    [
+      "^wrote to you about (.+)$",
+      "{0} についてメッセージを送りました"
+    ],
+    [
+      "^asks you to pay ([0-9.,]+) ORN$",
+      "{0} ORN の支払いをリクエストしました"
+    ],
+    [
+      "^says they paid ([0-9.,]+) ORN$",
+      "{0} ORN を支払ったと報告しました"
     ]
   ]
 }

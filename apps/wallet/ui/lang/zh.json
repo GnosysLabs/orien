@@ -1118,6 +1118,10 @@
   "✓ Complete": "✓ 已完成",
   "✓ Live on the order book (safe to leave)": "✓ 已上线订单簿（可安全离开）",
   "✓ Valid address": "✓ 地址有效",
+  "posted about you:": "发布了关于你的动态：",
+  "replied to your post": "回复了你的帖子",
+  "replied to your reply": "回复了你的回复",
+  "replied to the network's post about you": "回复了关于你的网络动态",
   "_patterns": [
     [
       "^Sell ([0-9.,]+) ORN for ([0-9.,]+) SOL(.*)$",
@@ -1842,6 +1846,30 @@
     [
       "^The record before was ([0-9,]+)\\. Checkpoint (\\d+)\\.$",
       "此前的纪录为 {0}（检查点 {1}）。"
+    ],
+    [
+      "^reacted (.+) to your post$",
+      "对你的帖子回应了 {0}"
+    ],
+    [
+      "^reacted (.+) to your reply$",
+      "对你的回复回应了 {0}"
+    ],
+    [
+      "^reacted (.+) to the network's post about you$",
+      "对关于你的网络动态回应了 {0}"
+    ],
+    [
+      "^wrote to you about (.+)$",
+      "就 {0} 给你发了消息"
+    ],
+    [
+      "^asks you to pay ([0-9.,]+) ORN$",
+      "请求你支付 {0} ORN"
+    ],
+    [
+      "^says they paid ([0-9.,]+) ORN$",
+      "表示已支付 {0} ORN"
     ]
   ]
 }

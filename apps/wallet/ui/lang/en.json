@@ -1114,5 +1114,9 @@
   "your wallet locks your ORN for the buyer within seconds. Their wallet then prompts them to send the SOL, and your wallet collects it and delivers their ORN automatically, usually within a minute.": "your wallet locks your ORN for the buyer within seconds. Their wallet then prompts them to send the SOL, and your wallet collects it and delivers their ORN automatically, usually within a minute.",
   "your wallet locks your ORN for the buyer within seconds. Their wallet then sends the Bitcoin, and once it confirms, your wallet collects it and delivers their ORN automatically.": "your wallet locks your ORN for the buyer within seconds. Their wallet then sends the Bitcoin, and once it confirms, your wallet collects it and delivers their ORN automatically.",
   "your wallet password": "your wallet password",
-  "✓ Valid address": "✓ Valid address"
+  "✓ Valid address": "✓ Valid address",
+  "posted about you:": "posted about you:",
+  "replied to your post": "replied to your post",
+  "replied to your reply": "replied to your reply",
+  "replied to the network's post about you": "replied to the network's post about you"
 }

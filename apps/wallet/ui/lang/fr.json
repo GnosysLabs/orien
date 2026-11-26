@@ -1118,6 +1118,10 @@
   "your wallet locks your ORN for the buyer within seconds. Their wallet then sends the Bitcoin, and once it confirms, your wallet collects it and delivers their ORN automatically.": "votre portefeuille verrouille vos ORN pour l'acheteur en quelques secondes. Son portefeuille envoie alors les Bitcoin et, dès confirmation, votre portefeuille les récupère et lui livre ses ORN automatiquement.",
   "your wallet password": "le mot de passe de votre portefeuille",
   "✓ Valid address": "✓ Adresse valide",
+  "posted about you:": "a publié à votre sujet :",
+  "replied to your post": "a répondu à votre publication",
+  "replied to your reply": "a répondu à votre réponse",
+  "replied to the network's post about you": "a répondu à la publication du réseau à votre sujet",
   "_patterns": [
     [
       "^Sell ([0-9.,]+) ORN for ([0-9.,]+) SOL(.*)$",
@@ -1842,6 +1846,30 @@
     [
       "^The record before was ([0-9,]+)\\. Checkpoint (\\d+)\\.$",
       "Le record précédent était de {0}. Point de contrôle {1}."
+    ],
+    [
+      "^reacted (.+) to your post$",
+      "a réagi {0} à votre publication"
+    ],
+    [
+      "^reacted (.+) to your reply$",
+      "a réagi {0} à votre réponse"
+    ],
+    [
+      "^reacted (.+) to the network's post about you$",
+      "a réagi {0} à la publication du réseau à votre sujet"
+    ],
+    [
+      "^wrote to you about (.+)$",
+      "vous a écrit au sujet de {0}"
+    ],
+    [
+      "^asks you to pay ([0-9.,]+) ORN$",
+      "vous demande de payer {0} ORN"
+    ],
+    [
+      "^says they paid ([0-9.,]+) ORN$",
+      "indique avoir payé {0} ORN"
     ]
   ]
 }

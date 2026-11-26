@@ -1118,6 +1118,10 @@
   "✓ Complete": "✓ Completado",
   "✓ Live on the order book (safe to leave)": "✓ Activa en el libro de órdenes (puedes salir)",
   "✓ Valid address": "✓ Dirección válida",
+  "posted about you:": "publicó sobre ti:",
+  "replied to your post": "respondió a tu publicación",
+  "replied to your reply": "respondió a tu respuesta",
+  "replied to the network's post about you": "respondió a la publicación de la red sobre ti",
   "_patterns": [
     [
       "^Sell ([0-9.,]+) ORN for ([0-9.,]+) SOL(.*)$",
@@ -1842,6 +1846,30 @@
     [
       "^The record before was ([0-9,]+)\\. Checkpoint (\\d+)\\.$",
       "El récord anterior era {0}. Punto de control {1}."
+    ],
+    [
+      "^reacted (.+) to your post$",
+      "reaccionó {0} a tu publicación"
+    ],
+    [
+      "^reacted (.+) to your reply$",
+      "reaccionó {0} a tu respuesta"
+    ],
+    [
+      "^reacted (.+) to the network's post about you$",
+      "reaccionó {0} a la publicación de la red sobre ti"
+    ],
+    [
+      "^wrote to you about (.+)$",
+      "te escribió sobre {0}"
+    ],
+    [
+      "^asks you to pay ([0-9.,]+) ORN$",
+      "te pide pagar {0} ORN"
+    ],
+    [
+      "^says they paid ([0-9.,]+) ORN$",
+      "dice que pagó {0} ORN"
     ]
   ]
 }

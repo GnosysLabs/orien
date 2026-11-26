@@ -1118,6 +1118,10 @@
   "your wallet locks your ORN for the buyer within seconds. Their wallet then sends the Bitcoin, and once it confirms, your wallet collects it and delivers their ORN automatically.": "sperrt deine Wallet deine ORN innerhalb von Sekunden für den Käufer. Seine Wallet sendet dann die Bitcoin, und sobald sie bestätigt sind, zieht deine Wallet sie ein und liefert seine ORN automatisch.",
   "your wallet password": "dein Wallet-Passwort",
   "✓ Valid address": "✓ Gültige Adresse",
+  "posted about you:": "hat über dich gepostet:",
+  "replied to your post": "hat auf deinen Beitrag geantwortet",
+  "replied to your reply": "hat auf deine Antwort geantwortet",
+  "replied to the network's post about you": "hat auf den Netzwerk-Beitrag über dich geantwortet",
   "_patterns": [
     [
       "^Sell ([0-9.,]+) ORN for ([0-9.,]+) SOL(.*)$",
@@ -1842,6 +1846,30 @@
     [
       "^The record before was ([0-9,]+)\\. Checkpoint (\\d+)\\.$",
       "Der bisherige Rekord lag bei {0}. Checkpoint {1}."
+    ],
+    [
+      "^reacted (.+) to your post$",
+      "hat mit {0} auf deinen Beitrag reagiert"
+    ],
+    [
+      "^reacted (.+) to your reply$",
+      "hat mit {0} auf deine Antwort reagiert"
+    ],
+    [
+      "^reacted (.+) to the network's post about you$",
+      "hat mit {0} auf den Netzwerk-Beitrag über dich reagiert"
+    ],
+    [
+      "^wrote to you about (.+)$",
+      "hat dir zu {0} geschrieben"
+    ],
+    [
+      "^asks you to pay ([0-9.,]+) ORN$",
+      "bittet dich um {0} ORN"
+    ],
+    [
+      "^says they paid ([0-9.,]+) ORN$",
+      "meldet die Zahlung von {0} ORN"
     ]
   ]
 }
