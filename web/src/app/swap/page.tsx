@@ -6,7 +6,7 @@ import { pageMeta } from '@/lib/seo'
 export const metadata: Metadata = pageMeta({
   title: 'Buy and sell ORN with SOL',
   description:
-    'Buy ORN with SOL, or sell ORN for SOL, directly with another person through a trustless atomic swap that takes about a minute: either both sides get paid, or both get their coins back. Bitcoin works too. No exchange, no account holding your coins.',
+    'Live ORN / SOL order book and price chart. Buy ORN with SOL, or sell ORN for SOL, directly with another person through a trustless swap in Orien Wallet that takes about a minute.',
   path: '/swap/',
 })
 

@@ -547,6 +547,54 @@ async fn swap_offers_go_on_the_board_and_are_taken_through_requests() {
     assert_eq!(status, StatusCode::BAD_REQUEST);
     let (status, _) = market.ask("POST", &format!("/api/market/swaps/{id}/close"), Some(&maya), None).await;
     assert_eq!(status, StatusCode::BAD_REQUEST, "a held offer cannot be withdrawn");
+
+    // Buy offers: Sam posts a buy offer with no verified wallet required.
+    let (status, body) = market
+        .ask(
+            "POST",
+            "/api/market/swaps",
+            Some(&sam),
+            Some(json!({ "side": "buy", "coin": "sol", "orn": 100_000_000_000u64, "lamports": 50_000_000u64, "address": "ab".repeat(32) })),
+        )
+        .await;
+    assert_eq!(status, StatusCode::CREATED, "{body}");
+    let buy_id = body["offer"]["id"].as_i64().unwrap();
+    assert_eq!(body["offer"]["side"], "buy");
+    // Hidden from old clients that omit sides=, shown when sides=sell,buy is asked.
+    let (_, old_board) = market.ask("GET", "/api/market/swaps?coins=sol,btc", None, None).await;
+    assert!(old_board["offers"].as_array().unwrap().iter().all(|o| o["id"] != buy_id));
+    let (_, full_board) = market.ask("GET", "/api/market/swaps?coins=sol,btc&sides=sell,buy", None, None).await;
+    assert!(full_board["offers"].as_array().unwrap().iter().any(|o| o["id"] == buy_id && o["side"] == "buy"));
+    // Sam's wallet must be open, and taker needs swap_version >= 4.
+    let sol_payout = "11111111111111111111111111111111";
+    let (status, _) = market
+        .ask(
+            "POST",
+            &format!("/api/market/swaps/{buy_id}/take"),
+            Some(&maya),
+            Some(json!({ "swap_version": 3, "payout": sol_payout, "wallet": wallet })),
+        )
+        .await;
+    assert_eq!(status, StatusCode::BAD_REQUEST, "needs swap_version 4");
+    let (status, _) = market
+        .ask(
+            "POST",
+            &format!("/api/market/swaps/{buy_id}/take"),
+            Some(&maya),
+            Some(json!({ "swap_version": 4, "payout": sol_payout, "wallet": wallet })),
+        )
+        .await;
+    assert_eq!(status, StatusCode::BAD_REQUEST, "buyer offline");
+    market.ask("GET", "/api/market/swaps/mine", Some(&sam), None).await;
+    let (status, body) = market
+        .ask(
+            "POST",
+            &format!("/api/market/swaps/{buy_id}/take"),
+            Some(&maya),
+            Some(json!({ "swap_version": 4, "payout": sol_payout, "wallet": wallet })),
+        )
+        .await;
+    assert_eq!((status, body["swap"]["selling"].as_bool(), body["swap"]["offer"]["state"].as_str()), (StatusCode::OK, Some(true), Some("held")), "{body}");
 }
 
 #[tokio::test]

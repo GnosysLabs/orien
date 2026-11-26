@@ -77,9 +77,11 @@ export type SwapOffer = {
   lamports: number
   state: string
   created: number
-  /** Whether the seller's Orien Wallet is open: only then can the offer be
+  /** Whether the maker's Orien Wallet is open: only then can the offer be
    * taken. Missing on older servers: counted as open. */
   seller_online?: boolean
+  /** "sell" (offering ORN for SOL/BTC) or "buy" (offering SOL/BTC for ORN). */
+  side?: 'sell' | 'buy'
 }
 
 /** Lamports as SOL, at most four decimals: 250000000 → "0.25". */

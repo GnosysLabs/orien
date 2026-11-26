@@ -181,11 +181,10 @@ fn capital(text: &str) -> String {
     out
 }
 
-/// The open offers, cheapest first, and Bitcoin's dollar price.
+/// The open SOL offers (sell and buy), and SOL's dollar price.
 pub fn offers(dir: &Path) -> Result<Value, String> {
-    // SOL offers first, then Bitcoin ones.
-    let mut answer = call(dir, "GET", "/swaps?coins=sol,btc", None)?;
-    // Where sellers' pictures come from.
+    let mut answer = call(dir, "GET", "/swaps?coins=sol&sides=sell,buy", None)?;
+    // Where traders' pictures come from.
     answer["base"] = json!(base());
     Ok(answer)
 }
@@ -372,9 +371,8 @@ pub fn take(dir: &Path, wallet: &Path, offer: i64, address: &str, refund: &str) 
 
 pub fn take_on(dir: &Path, wallet: &Path, network: orien_swap::bitcoin::Network, offer: i64, address: &str, refund: &str) -> Result<(), String> {
     let refund = bitcoin_address(refund, network)?;
-    // Version 3: the shorter locks, and SOL swaps. The board turns away
-    // takes from wallets that would refuse them.
-    call(dir, "POST", &format!("/swaps/{offer}/take"), Some(json!({ "address": address, "swap_version": 3 })))?;
+    // Version 4: shorter locks, SOL swaps, and buy offers.
+    call(dir, "POST", &format!("/swaps/{offer}/take"), Some(json!({ "address": address, "swap_version": 4 })))?;
     let mut saved = load(dir);
     saved.links.retain(|link| link.offer != offer);
     saved.links.push(Link { offer, selling: false, bitcoin: refund, coin: btc(), swap: None, finished: false, wallet: Some(wallet.to_path_buf()) });
@@ -401,19 +399,80 @@ pub fn post_sol(dir: &Path, wallet: &Path, orn: u64, lamports: u64, payout: &str
 /// `refund`, their own SOL wallet, and anything left over or refunded goes
 /// back there; it must already hold SOL.
 pub fn take_sol(dir: &Path, wallet: &Path, offer: i64, address: &str, refund: &str) -> Result<(), String> {
+    let refund = check_sol_refund(refund)?;
+    call(dir, "POST", &format!("/swaps/{offer}/take"), Some(json!({ "address": address, "swap_version": 4 })))?;
+    let mut saved = load(dir);
+    saved.links.retain(|link| link.offer != offer);
+    saved.links.push(Link { offer, selling: false, bitcoin: refund, coin: "sol".into(), swap: None, finished: false, wallet: Some(wallet.to_path_buf()) });
+    save(dir, &saved)
+}
+
+fn check_sol_refund(refund: &str) -> Result<String, String> {
     let refund = refund.trim();
     let key = orien_swap::solana::address(refund).map_err(|_| "That is not a SOL address.".to_string())?;
     let solana = crate::solswaps::solana(crate::solswaps::cluster());
     match orien_swap::sol::payable(&solana, &key).map_err(|error| error.to_string())? {
-        None => return Err(crate::solswaps::NOT_A_WALLET.into()),
-        Some(0) => return Err("That SOL address has never held SOL. Give the address of the SOL wallet you'll pay from.".into()),
-        Some(_) => {}
+        None => Err(crate::solswaps::NOT_A_WALLET.into()),
+        Some(0) => Err("That SOL address has never held SOL. Give the address of the SOL wallet you'll pay from.".into()),
+        Some(_) => Ok(refund.into()),
     }
-    call(dir, "POST", &format!("/swaps/{offer}/take"), Some(json!({ "address": address, "swap_version": 3 })))?;
+}
+
+/// Posts a buy offer for `orn` units paying `lamports` SOL; `refund` is the
+/// buyer's own SOL wallet where leftovers or refunds return.
+pub fn post_buy_sol(dir: &Path, wallet: &Path, orn: u64, lamports: u64, refund: &str, password: Option<&str>) -> Result<(), String> {
+    let refund = check_sol_refund(refund)?;
+    let address = orien_net::keys::Wallet::peek(wallet).map_err(|error| error.to_string())?.0.to_string();
+    let posted = call(dir, "POST", "/swaps", Some(json!({ "side": "buy", "coin": "sol", "orn": orn, "lamports": lamports, "address": address })))?;
+    let offer = posted["offer"]["id"].as_i64().ok_or("The swap board did not say which offer it posted.")?;
+    let mut saved = load(dir);
+    saved.links.push(Link { offer, selling: false, bitcoin: refund, coin: "sol".into(), swap: None, finished: false, wallet: Some(wallet.to_path_buf()) });
+    save(dir, &saved)?;
+    crate::approval::approve(dir, offer, orn, wallet, password);
+    Ok(())
+}
+
+/// Posts a buy offer for `orn` units paying `sats` Bitcoin; `refund` is the
+/// buyer's own Bitcoin address.
+pub fn post_buy(dir: &Path, wallet: &Path, orn: u64, sats: u64, refund: &str, password: Option<&str>) -> Result<(), String> {
+    let refund = bitcoin_address(refund, swaps::bitcoin().0)?;
+    let address = orien_net::keys::Wallet::peek(wallet).map_err(|error| error.to_string())?.0.to_string();
+    let posted = call(dir, "POST", "/swaps", Some(json!({ "side": "buy", "coin": "btc", "orn": orn, "sats": sats, "address": address })))?;
+    let offer = posted["offer"]["id"].as_i64().ok_or("The swap board did not say which offer it posted.")?;
+    let mut saved = load(dir);
+    saved.links.push(Link { offer, selling: false, bitcoin: refund, coin: btc(), swap: None, finished: false, wallet: Some(wallet.to_path_buf()) });
+    save(dir, &saved)?;
+    crate::approval::approve(dir, offer, orn, wallet, password);
+    Ok(())
+}
+
+/// Takes a SOL buy offer: this wallet locks `orn` ORN for the buyer and is
+/// paid SOL at `payout`.
+pub fn take_buy_sol(dir: &Path, wallet: &Path, offer: i64, orn: u64, payout: &str, password: Option<&str>) -> Result<(), String> {
+    let payout = payout.trim();
+    crate::solswaps::payout_problem(payout).map_or(Ok(()), Err)?;
+    let address = orien_net::keys::Wallet::peek(wallet).map_err(|error| error.to_string())?.0.to_string();
+    call(dir, "POST", &format!("/swaps/{offer}/take"), Some(json!({ "payout": payout, "wallet": address, "swap_version": 4 })))?;
     let mut saved = load(dir);
     saved.links.retain(|link| link.offer != offer);
-    saved.links.push(Link { offer, selling: false, bitcoin: refund.into(), coin: "sol".into(), swap: None, finished: false, wallet: Some(wallet.to_path_buf()) });
-    save(dir, &saved)
+    saved.links.push(Link { offer, selling: true, bitcoin: payout.into(), coin: "sol".into(), swap: None, finished: false, wallet: Some(wallet.to_path_buf()) });
+    save(dir, &saved)?;
+    crate::approval::approve(dir, offer, orn, wallet, password);
+    Ok(())
+}
+
+/// Takes a Bitcoin buy offer: this wallet locks `orn` ORN for the buyer and is
+/// paid Bitcoin at `payout`.
+pub fn take_buy(dir: &Path, wallet: &Path, offer: i64, orn: u64, payout: &str, password: Option<&str>) -> Result<(), String> {
+    let payout = bitcoin_address(payout, swaps::bitcoin().0)?;
+    let address = orien_net::keys::Wallet::peek(wallet).map_err(|error| error.to_string())?.0.to_string();
+    call(dir, "POST", &format!("/swaps/{offer}/take"), Some(json!({ "payout": payout, "wallet": address, "swap_version": 4 })))?;
+    let mut saved = load(dir);
+    saved.links.retain(|link| link.offer != offer);
+    saved.links.push(Link { offer, selling: true, bitcoin: payout, coin: btc(), swap: None, finished: false, wallet: Some(wallet.to_path_buf()) });
+    save(dir, &saved)?;
+    crate::approval::approve(dir, offer, orn, wallet, password);
+    Ok(())
 }
 
 /// What proving the payout wallet takes: send `orn` ORN from `address` to

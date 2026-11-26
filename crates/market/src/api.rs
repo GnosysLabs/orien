@@ -852,6 +852,9 @@ async fn report(State(app): State<Arc<App>>, headers: HeaderMap, Json(request): 
 #[derive(Deserialize)]
 struct NewSwap {
     orn: u64,
+    /// "sell" (default) or "buy".
+    #[serde(default)]
+    side: Option<String>,
     /// "sol" or "btc" (the default, for wallets from before SOL swaps).
     #[serde(default)]
     coin: Option<String>,
@@ -861,12 +864,15 @@ struct NewSwap {
     /// The price of a SOL offer.
     #[serde(default)]
     lamports: u64,
-    /// The Bitcoin address to be paid at, and the wallet the ORN come from,
-    /// so any of the seller's wallets can run the swap.
+    /// For sell offers: the SOL or Bitcoin address to be paid at, and the
+    /// wallet the ORN come from, so any of the seller's wallets can run the swap.
     #[serde(default)]
     payout: Option<String>,
     #[serde(default)]
     wallet: Option<String>,
+    /// For buy offers: the buyer's Orien address to receive the ORN at.
+    #[serde(default)]
+    address: Option<String>,
 }
 
 #[derive(Deserialize)]
@@ -897,6 +903,11 @@ struct Board {
     /// left out, so wallets from before SOL swaps never see SOL offers.
     #[serde(default)]
     coins: Option<String>,
+    /// Which sides' offers, comma-separated: "sell,buy". Sell only when left
+    /// out, so wallets from before buy offers never mistake a buy offer for a
+    /// sell offer.
+    #[serde(default)]
+    sides: Option<String>,
 }
 
 /// What each of these wallets can spend. A wallet asked about in the last
@@ -984,13 +995,18 @@ fn short_of(spendable: &HashMap<String, u64>, wallet: &Option<String>, orn: u64)
 async fn open_swaps(State(app): State<Arc<App>>, Query(board): Query<Board>) -> Answer {
     let wanted = board.coins.unwrap_or_else(|| "btc".into());
     let coins: Vec<&str> = wanted.split(',').map(str::trim).filter(|c| matches!(*c, "sol" | "btc")).collect();
+    let wanted_sides = board.sides.unwrap_or_else(|| "sell".into());
+    let sides: Vec<&str> = wanted_sides.split(',').map(str::trim).filter(|s| matches!(*s, "sell" | "buy")).collect();
     let (offers, wallets) = {
         let store = app.store.lock().unwrap();
-        let offers = store.open_swaps_in(&coins)?;
-        let wallets: Vec<Option<String>> = offers.iter().map(|o| store.offer_wallet(o.id)).collect::<anyhow::Result<_>>()?;
+        let offers = store.open_swaps_in_sides(&coins, &sides)?;
+        let wallets: Vec<Option<String>> = offers
+            .iter()
+            .map(|o| if o.side == "sell" { store.offer_wallet(o.id) } else { Ok(None) })
+            .collect::<anyhow::Result<_>>()?;
         (offers, wallets)
     };
-    // Offers whose seller's wallet no longer holds the ORN would only hold
+    // Sell offers whose seller's wallet no longer holds the ORN would only hold
     // a buyer up: they leave the board until it does again.
     let mut asked: Vec<String> = wallets.iter().flatten().cloned().collect();
     asked.sort();
@@ -1017,13 +1033,28 @@ async fn open_swaps(State(app): State<Arc<App>>, Query(board): Query<Board>) -> 
 }
 
 async fn post_swap(State(app): State<Arc<App>>, headers: HeaderMap, Json(request): Json<NewSwap>) -> Answer {
-    let seller = app.signed_in(&headers)?;
-    // New offers come from one of the seller's verified wallets, so buyers
+    let account = app.signed_in(&headers)?;
+    let side = request.side.as_deref().unwrap_or("sell");
+    let coin = request.coin.as_deref().unwrap_or("btc");
+    let price = if coin == "sol" { request.lamports } else { request.sats };
+    if side == "buy" {
+        let address = request
+            .address
+            .as_deref()
+            .or(request.wallet.as_deref())
+            .ok_or_else(|| Failure::Refused("give the Orien address where the ORN should go".into()))?;
+        let offer = app.store.lock().unwrap().post_buy_offer(account, coin, request.orn, price, address).map_err(refused)?;
+        return Ok((StatusCode::CREATED, Json(json!({ "offer": offer }))).into_response());
+    }
+    if side != "sell" {
+        return Err(Failure::Refused("side must be sell or buy".into()));
+    }
+    // New sell offers come from one of the seller's verified wallets, so buyers
     // know who they deal with. Offers already up stay as they are.
     let verified = match request.wallet.as_deref() {
         Some(wallet) => {
             let wallet = store::orien_address(wallet).unwrap_or_default();
-            app.store.lock().unwrap().is_verified_wallet(seller, &wallet)?
+            app.store.lock().unwrap().is_verified_wallet(account, &wallet)?
         }
         None => false,
     };
@@ -1034,14 +1065,7 @@ async fn post_swap(State(app): State<Arc<App>>, headers: HeaderMap, Json(request
         .store
         .lock()
         .unwrap()
-        .post_offer(
-            seller,
-            request.coin.as_deref().unwrap_or("btc"),
-            request.orn,
-            if request.coin.as_deref() == Some("sol") { request.lamports } else { request.sats },
-            request.payout.as_deref(),
-            request.wallet.as_deref(),
-        )
+        .post_offer(account, coin, request.orn, price, request.payout.as_deref(), request.wallet.as_deref())
         .map_err(refused)?;
     Ok((StatusCode::CREATED, Json(json!({ "offer": offer }))).into_response())
 }
@@ -1068,34 +1092,83 @@ async fn my_swaps(State(app): State<Arc<App>>, headers: HeaderMap) -> Answer {
 
 #[derive(Deserialize, Default)]
 struct Take {
-    /// The Orien address to lock the ORN for: the buyer's wallet sends its
-    /// own. Without it, the account's verified wallet, if it has one.
+    /// For sell offers: the Orien address to lock the ORN for. Without it,
+    /// the account's verified wallet, if it has one.
     #[serde(default)]
     address: Option<String>,
-    /// The swap rules the buyer's wallet follows: 2 from Orien Wallet 1.8.0,
-    /// whose locks are shorter; older wallets send nothing.
+    /// For buy offers: the seller's SOL or Bitcoin payout address.
+    #[serde(default)]
+    payout: Option<String>,
+    /// For buy offers: the seller's Orien wallet address holding the ORN.
+    #[serde(default)]
+    wallet: Option<String>,
+    /// The swap rules the taker's wallet follows: 2 from Orien Wallet 1.8.0,
+    /// 3 for SOL swaps, 4 for buy offers.
     #[serde(default)]
     swap_version: u32,
 }
 
 async fn take_swap(State(app): State<Arc<App>>, headers: HeaderMap, Path(id): Path<i64>, body: Option<Json<Take>>) -> Answer {
-    let buyer = app.signed_in(&headers)?;
+    let account = app.signed_in(&headers)?;
     let request = body.map(|Json(b)| b).unwrap_or_default();
     // A wallet on older swap rules would refuse a newer seller's shorter
     // lock only after the ORN were locked: turn it away before anything is.
     if request.swap_version < app.min_swap_version {
         return Err(Failure::Refused("update Orien Wallet to take this offer".into()));
     }
-    // SOL swaps need a wallet that knows them: swap rules 3 on.
-    let coin = app.store.lock().unwrap().swap_offer(id)?.map(|o| o.coin).unwrap_or_default();
+    let (offer, wallet) = {
+        let store = app.store.lock().unwrap();
+        (store.swap_offer(id)?, store.offer_wallet(id)?)
+    };
+    let coin = offer.as_ref().map(|o| o.coin.as_str()).unwrap_or_default();
     if coin == "sol" && request.swap_version < 3 {
         return Err(Failure::Refused("update Orien Wallet to take SOL offers".into()));
     }
-    let (orn, wallet, online) = {
-        let store = app.store.lock().unwrap();
-        let offer = store.swap_offer(id)?;
-        (offer.as_ref().map_or(0, |o| o.orn), store.offer_wallet(id)?, offer.is_none_or(|o| o.seller_online))
-    };
+    if offer.as_ref().is_some_and(|o| o.side == "buy") {
+        if request.swap_version < 4 {
+            return Err(Failure::Refused("update Orien Wallet to sell into buy offers".into()));
+        }
+        let offer = offer.unwrap();
+        if !offer.seller_online {
+            return Err(Failure::Refused("The buyer's Orien Wallet isn't open right now, so this swap can't start. Try again later.".into()));
+        }
+        let payout = request.payout.as_deref().ok_or_else(|| Failure::Refused("say the address you're paid at".into()))?;
+        let seller_wallet = request
+            .wallet
+            .as_deref()
+            .or(request.address.as_deref())
+            .ok_or_else(|| Failure::Refused("give the Orien wallet you're selling from".into()))?;
+        let seller_wallet = store::orien_address(seller_wallet).map_err(refused)?;
+        let spendable = spendable_of(&app, vec![seller_wallet.clone()], true).await;
+        if short_of(&spendable, &Some(seller_wallet.clone()), offer.orn) {
+            return Err(Failure::Refused("Your wallet doesn't hold enough ORN for this swap.".into()));
+        }
+        let (swap, buyer_email, taker_name) = {
+            let store = app.store.lock().unwrap();
+            let swap = store.take_buy_swap(account, id, payout, &seller_wallet).map_err(refused)?;
+            let email = store.email_of(swap.offer.seller)?;
+            let taker_name = store.account(account)?.map(|a| a.name).unwrap_or_default();
+            (swap, email, taker_name)
+        };
+        app.tell(crate::push::Event {
+            account: swap.offer.seller,
+            address: swap.taker_wallet.clone(),
+            body: format!("{taker_name} accepted your buy offer of {} ORN", crate::store::orn(swap.offer.orn)),
+            kind: "swap",
+            open: json!({ "swap": id }),
+        });
+        if let Some(to) = buyer_email {
+            let (mailer, origin) = (app.mailer.clone(), app.origin.clone());
+            tokio::task::spawn_blocking(move || {
+                if let Err(error) = mailer.send_swap_taken(&to, &taker_name, &origin) {
+                    eprintln!("cannot email a swap notice: {error:#}");
+                }
+            });
+        }
+        return Ok(Json(json!({ "swap": swap })).into_response());
+    }
+    let orn = offer.as_ref().map_or(0, |o| o.orn);
+    let online = offer.is_none_or(|o| o.seller_online);
     // Only the seller's wallet can lock the ORN: without it open, the buyer
     // would wait for nothing.
     if !online {
@@ -1111,13 +1184,13 @@ async fn take_swap(State(app): State<Arc<App>>, headers: HeaderMap, Path(id): Pa
         let store = app.store.lock().unwrap();
         let address = match request.address {
             Some(address) => address,
-            None => store.account(buyer)?.and_then(|a| a.wallet).ok_or_else(|| {
+            None => store.account(account)?.and_then(|a| a.wallet).ok_or_else(|| {
                 Failure::Refused("take this offer in Orien Wallet, which sends where the ORN should go".into())
             })?,
         };
-        let swap = store.take_swap(buyer, id, &address).map_err(refused)?;
+        let swap = store.take_swap(account, id, &address).map_err(refused)?;
         let email = store.email_of(swap.offer.seller)?;
-        let taker = store.account(buyer)?.map(|a| a.name).unwrap_or_default();
+        let taker = store.account(account)?.map(|a| a.name).unwrap_or_default();
         (swap, email, taker)
     };
     app.tell(crate::push::Event {
@@ -1146,14 +1219,23 @@ struct Close {
 }
 
 async fn close_swap(State(app): State<Arc<App>>, headers: HeaderMap, Path(id): Path<i64>, body: Option<Json<Close>>) -> Answer {
-    let seller = app.signed_in(&headers)?;
+    let account = app.signed_in(&headers)?;
     let short = body.is_some_and(|Json(b)| b.short);
-    let buyer = app.store.lock().unwrap().close_swap_short(seller, id, short).map_err(refused)?;
+    let (side, buyer) = {
+        let store = app.store.lock().unwrap();
+        let side = store.swap_offer(id)?.map(|o| o.side).unwrap_or_else(|| "sell".into());
+        let buyer = store.close_swap_short(account, id, short).map_err(refused)?;
+        (side, buyer)
+    };
     if let Some(buyer) = buyer {
         app.tell(crate::push::Event {
             account: buyer,
             address: None,
-            body: "The seller withdrew this offer before anything was locked. Nothing was paid.".into(),
+            body: if side == "buy" {
+                "The seller couldn't lock the ORN, so your buy offer is back on the board. Nothing was paid.".into()
+            } else {
+                "The seller withdrew this offer before anything was locked. Nothing was paid.".into()
+            },
             kind: "swap",
             open: json!({ "swap": id }),
         });
@@ -1163,25 +1245,30 @@ async fn close_swap(State(app): State<Arc<App>>, headers: HeaderMap, Path(id): P
 
 async fn swap_offer_code(State(app): State<Arc<App>>, headers: HeaderMap, Path(id): Path<i64>, Json(request): Json<OfferCode>) -> Answer {
     let seller = app.signed_in(&headers)?;
-    let (swap, buyer_email) = {
+    let (swap, orn_buyer, orn_seller_name, buyer_email) = {
         let store = app.store.lock().unwrap();
         let swap = store.post_offer_code_from(seller, id, &request.code, request.device.as_deref()).map_err(refused)?;
-        let email = match swap.taker {
-            Some(taker) => store.email_of(taker)?,
+        let (buyer_id, seller_name) = if swap.offer.side == "buy" {
+            (Some(swap.offer.seller), swap.taker_name.clone().unwrap_or_else(|| "The seller".into()))
+        } else {
+            (swap.taker, swap.offer.seller_name.clone())
+        };
+        let email = match buyer_id {
+            Some(buyer) => store.email_of(buyer)?,
             None => None,
         };
-        (swap, email)
+        (swap, buyer_id, seller_name, email)
     };
     let price = if swap.offer.coin == "sol" {
         format!("{} SOL", trimmed(swap.offer.lamports, 9))
     } else {
         format!("{} BTC", bitcoin_amount(swap.offer.sats))
     };
-    if let Some(taker) = swap.taker {
+    if let Some(buyer_id) = orn_buyer {
         app.tell(crate::push::Event {
-            account: taker,
+            account: buyer_id,
             address: swap.taker_wallet.clone(),
-            body: format!("{} accepted your swap: pay {price} now", swap.offer.seller_name),
+            body: format!("{orn_seller_name} accepted your swap: pay {price} now"),
             kind: "swap",
             open: json!({ "swap": id }),
         });
@@ -1189,14 +1276,13 @@ async fn swap_offer_code(State(app): State<Arc<App>>, headers: HeaderMap, Path(i
     // The buyer's turn: tell them, so it can't be missed.
     if let Some(to) = buyer_email {
         let (mailer, origin) = (app.mailer.clone(), app.origin.clone());
-        let seller_name = swap.offer.seller_name.clone();
         let btc = if swap.offer.coin == "sol" {
             format!("{} SOL", trimmed(swap.offer.lamports, 9))
         } else {
             format!("{} BTC", bitcoin_amount(swap.offer.sats))
         };
         tokio::task::spawn_blocking(move || {
-            if let Err(error) = mailer.send_swap_accepted(&to, &seller_name, &btc, &origin) {
+            if let Err(error) = mailer.send_swap_accepted(&to, &orn_seller_name, &btc, &origin) {
                 eprintln!("cannot email a swap notice: {error:#}");
             }
         });
@@ -1274,19 +1360,34 @@ async fn finish_swap(State(app): State<Arc<App>>, headers: HeaderMap, Path(id): 
     // The first wallet to finish tells both people's phones, once.
     if let Some(swap) = first_done {
         let orn = crate::store::orn(swap.offer.orn);
-        if let Some(taker) = swap.taker {
+        let (orn_buyer, orn_buyer_name, orn_seller, orn_seller_name) = if swap.offer.side == "buy" {
+            (
+                Some(swap.offer.seller),
+                swap.offer.seller_name.clone(),
+                swap.taker.unwrap_or(swap.offer.seller),
+                swap.taker_name.clone().unwrap_or_else(|| "the seller".into()),
+            )
+        } else {
+            (
+                swap.taker,
+                swap.taker_name.clone().unwrap_or_else(|| "the buyer".into()),
+                swap.offer.seller,
+                swap.offer.seller_name.clone(),
+            )
+        };
+        if let Some(buyer_id) = orn_buyer {
             app.tell(crate::push::Event {
-                account: taker,
+                account: buyer_id,
                 address: swap.taker_wallet.clone(),
-                body: format!("Swap done: your {orn} ORN from {} are yours", swap.offer.seller_name),
+                body: format!("Swap done: your {orn} ORN from {orn_seller_name} are yours"),
                 kind: "swap",
                 open: json!({ "swap": id }),
             });
         }
         app.tell(crate::push::Event {
-            account: swap.offer.seller,
+            account: orn_seller,
             address: swap.wallet.clone(),
-            body: format!("Swap done: {} bought your {orn} ORN", swap.taker_name.clone().unwrap_or_else(|| "the buyer".into())),
+            body: format!("Swap done: {orn_buyer_name} bought your {orn} ORN"),
             kind: "swap",
             open: json!({ "swap": id }),
         });

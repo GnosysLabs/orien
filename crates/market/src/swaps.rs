@@ -52,9 +52,11 @@ pub struct SwapOffer {
     /// open, held, swapping, done, cancelled or closed.
     pub state: String,
     pub created: u64,
-    /// Whether the seller's Orien Wallet is open now (asked about its swaps
+    /// Whether the maker's Orien Wallet is open now (asked about its swaps
     /// in the last two minutes): only then can a taken offer start.
     pub seller_online: bool,
+    /// "sell" (offering ORN for SOL/BTC) or "buy" (offering SOL/BTC for ORN).
+    pub side: String,
 }
 
 /// An offer as one of its two sides sees it, with what their wallet needs.
@@ -88,7 +90,8 @@ const OFFER: &str = "SELECT o.id, o.seller, a.name, a.picture,
         (SELECT COUNT(*) FROM swap_offers d WHERE d.state = 'done' AND (d.seller = o.seller OR d.taker = o.seller)),
         o.orn, o.sats, o.state, o.created, o.coin,
         EXISTS (SELECT 1 FROM app_seen s WHERE s.account = o.seller
-                AND s.at > CAST(strftime('%s', 'now') AS INTEGER) - 120)
+                AND s.at > CAST(strftime('%s', 'now') AS INTEGER) - 120),
+        o.side
      FROM swap_offers o JOIN accounts a ON a.id = o.seller";
 
 fn offer_row(row: &rusqlite::Row) -> rusqlite::Result<SwapOffer> {
@@ -106,6 +109,7 @@ fn offer_row(row: &rusqlite::Row) -> rusqlite::Result<SwapOffer> {
         state: row.get(7)?,
         created: row.get(8)?,
         seller_online: row.get(10)?,
+        side: row.get(11)?,
     })
 }
 
@@ -162,6 +166,11 @@ impl Store {
                  ALTER TABLE swap_offers ADD COLUMN usd REAL;
                  UPDATE swap_offers SET finished = updated WHERE state = 'done';",
             )?;
+        }
+        // Added for buy offers: "sell" (default) or "buy".
+        let has_side = self.db.prepare("SELECT 1 FROM pragma_table_info('swap_offers') WHERE name = 'side'")?.exists([])?;
+        if !has_side {
+            self.db.execute("ALTER TABLE swap_offers ADD COLUMN side TEXT NOT NULL DEFAULT 'sell'", [])?;
         }
         Ok(())
     }
@@ -268,39 +277,66 @@ impl Store {
         for id in lonely {
             self.settle_swap(id, true)?;
         }
-        // A taken offer whose seller's wallet has gone quiet before locking:
-        // the buyer waits five minutes, not thirty. Not the buyer's doing.
+        // A taken offer whose ORN seller's wallet has gone quiet before locking:
+        // the other side waits five minutes, not thirty.
         self.db.execute(
             "UPDATE swap_offers SET due = ?1
              WHERE state = 'held' AND offer_code IS NULL AND due > ?1 AND due - ?2 <= ?1 - ?3
-               AND NOT EXISTS (SELECT 1 FROM app_seen s WHERE s.account = swap_offers.seller AND s.at > ?1 - ?4)",
+               AND NOT EXISTS (
+                   SELECT 1 FROM app_seen s
+                   WHERE s.account = CASE WHEN swap_offers.side = 'buy' THEN swap_offers.taker ELSE swap_offers.seller END
+                     AND s.at > ?1 - ?4
+               )",
             params![at.saturating_sub(1), HOLD_SECONDS, QUIET_SECONDS, ONLINE_SECONDS],
         )?;
-        let lapsed: Vec<(i64, i64)> = {
-            let mut statement = self
-                .db
-                .prepare("SELECT id, taker FROM swap_offers WHERE state IN ('held', 'swapping') AND due < ?1 AND taker IS NOT NULL")?;
-            statement.query_map([at], |row| Ok((row.get(0)?, row.get(1)?)))?.collect::<rusqlite::Result<_>>()?
+        let lapsed: Vec<(i64, i64, i64, String)> = {
+            let mut statement = self.db.prepare(
+                "SELECT id, seller, taker, side FROM swap_offers WHERE state IN ('held', 'swapping') AND due < ?1 AND taker IS NOT NULL",
+            )?;
+            statement
+                .query_map([at], |row| Ok((row.get(0)?, row.get(1)?, row.get(2)?, row.get(3)?)))?
+                .collect::<rusqlite::Result<_>>()?
         };
-        for (id, taker) in lapsed {
+        for (id, maker, taker, side) in lapsed {
             // Once the buyer has paid and replied, nothing lapses: the swap
             // finishes in the wallets, and either side marks it.
             let replied: bool = self.db.query_row("SELECT reply_code IS NOT NULL FROM swap_offers WHERE id = ?1", [id], |r| r.get(0))?;
             if replied {
                 continue;
             }
-            // Whose step was it? Before the offer code, the seller's wallet
-            // was to lock the ORN: the buyer did nothing wrong.
+            // Whose step was it? Before the offer code, the ORN seller's wallet
+            // was to lock the ORN.
             let buyers_turn: bool =
                 self.db.query_row("SELECT offer_code IS NOT NULL FROM swap_offers WHERE id = ?1", [id], |r| r.get(0))?;
-            self.db.execute(
-                "UPDATE swap_offers SET state = 'open', taker = NULL, taker_address = NULL, offer_code = NULL, due = NULL,
-                     runner = NULL, runner_at = NULL, updated = ?2
-                 WHERE id = ?1",
-                params![id, at],
-            )?;
-            if buyers_turn {
-                self.db.execute("INSERT INTO swap_lapses (account, at) VALUES (?1, ?2)", params![taker, at])?;
+            if side == "buy" {
+                if buyers_turn {
+                    // The buyer who posted this buy offer never paid after a seller
+                    // locked ORN for them: close the buy offer and count the lapse.
+                    self.db.execute(
+                        "UPDATE swap_offers SET state = 'closed', due = NULL, updated = ?2 WHERE id = ?1",
+                        params![id, at],
+                    )?;
+                    self.db.execute("INSERT INTO swap_lapses (account, at) VALUES (?1, ?2)", params![maker, at])?;
+                } else {
+                    // The seller who took the buy offer didn't lock ORN in time:
+                    // reopen the buy offer, keeping the buyer's Orien address.
+                    self.db.execute(
+                        "UPDATE swap_offers SET state = 'open', taker = NULL, payout = NULL, wallet = NULL, offer_code = NULL, due = NULL,
+                             runner = NULL, runner_at = NULL, updated = ?2
+                         WHERE id = ?1",
+                        params![id, at],
+                    )?;
+                }
+            } else {
+                self.db.execute(
+                    "UPDATE swap_offers SET state = 'open', taker = NULL, taker_address = NULL, offer_code = NULL, due = NULL,
+                         runner = NULL, runner_at = NULL, updated = ?2
+                     WHERE id = ?1",
+                    params![id, at],
+                )?;
+                if buyers_turn {
+                    self.db.execute("INSERT INTO swap_lapses (account, at) VALUES (?1, ?2)", params![taker, at])?;
+                }
             }
         }
         Ok(())
@@ -364,6 +400,57 @@ impl Store {
         Ok(self.swap_offer(self.db.last_insert_rowid())?.expect("just written"))
     }
 
+    /// A buy offer: `buyer` wants `orn` ORN and will pay `price` of `coin`
+    /// ("sol", in lamports, or "btc", in satoshis), with the ORN locked for
+    /// `address`. No verified wallet is needed: someone with no ORN yet can
+    /// post a buy offer to get their first.
+    pub fn post_buy_offer(&self, buyer: i64, coin: &str, orn: u64, price: u64, address: &str) -> Result<SwapOffer> {
+        self.lapse_swaps()?;
+        match coin {
+            "btc" => {
+                if price < MIN_SATS {
+                    bail!(
+                        "a swap is at least {MIN_SATS} satoshis ({} BTC), so that any Bitcoin wallet can send it and its fees leave enough",
+                        format!("{:.8}", MIN_SATS as f64 / 1e8).trim_end_matches('0')
+                    );
+                }
+            }
+            "sol" => {
+                if price < MIN_LAMPORTS {
+                    bail!("a SOL swap is at least {} SOL", MIN_LAMPORTS as f64 / 1e9);
+                }
+            }
+            _ => bail!("swaps are for SOL or Bitcoin"),
+        }
+        let address = crate::store::orien_address(address)?;
+        if orn == 0 {
+            bail!("offer more than nothing");
+        }
+        let lapses: i64 = self.db.query_row(
+            "SELECT COUNT(*) FROM swap_lapses WHERE account = ?1 AND at > ?2",
+            params![buyer, now().saturating_sub(WEEK)],
+            |r| r.get(0),
+        )?;
+        if lapses >= LAPSES_ALLOWED {
+            bail!("swaps you took lapsed {lapses} times this week, so you can post buy offers again in a few days");
+        }
+        let open: i64 = self.db.query_row(
+            "SELECT COUNT(*) FROM swap_offers WHERE seller = ?1 AND state IN ('open', 'held', 'swapping')",
+            [buyer],
+            |r| r.get(0),
+        )?;
+        if open >= MAX_OFFERS {
+            bail!("you can have {MAX_OFFERS} swap offers on the board at once");
+        }
+        let at = now();
+        self.db.execute(
+            "INSERT INTO swap_offers (seller, orn, sats, state, created, updated, taker_address, coin, side)
+             VALUES (?1, ?2, ?3, 'open', ?4, ?4, ?5, ?6, 'buy')",
+            params![buyer, orn as i64, price as i64, at, address, coin],
+        )?;
+        Ok(self.swap_offer(self.db.last_insert_rowid())?.expect("just written"))
+    }
+
     pub fn swap_offer(&self, id: i64) -> Result<Option<SwapOffer>> {
         let sql = format!("{OFFER} WHERE o.id = ?1");
         Ok(self.db.query_row(&sql, [id], offer_row).optional()?)
@@ -374,26 +461,40 @@ impl Store {
         Ok(self.db.query_row("SELECT wallet FROM swap_offers WHERE id = ?1", [id], |r| r.get(0)).optional()?.flatten())
     }
 
-    /// Open offers, cheapest Bitcoin per ORN first.
+    /// Open sell offers, cheapest Bitcoin per ORN first.
     pub fn open_swaps(&self) -> Result<Vec<SwapOffer>> {
         self.open_swaps_in(&["btc"])
     }
 
-    /// Open offers in these coins: SOL first, then each coin's cheapest per
-    /// ORN first.
+    /// Open sell offers in these coins: SOL first, then each coin's cheapest
+    /// per ORN first.
     pub fn open_swaps_in(&self, coins: &[&str]) -> Result<Vec<SwapOffer>> {
+        self.open_swaps_in_sides(coins, &["sell"])
+    }
+
+    /// Open offers in these coins and sides ("sell", "buy"). Sell offers are
+    /// cheapest per ORN first; buy offers are highest per ORN first.
+    pub fn open_swaps_in_sides(&self, coins: &[&str], sides: &[&str]) -> Result<Vec<SwapOffer>> {
         self.lapse_swaps()?;
         let sql = format!(
-            "{OFFER} WHERE o.state = 'open' ORDER BY o.coin = 'btc', CAST(o.sats AS REAL) / o.orn, o.created LIMIT 400"
+            "{OFFER} WHERE o.state = 'open'
+             ORDER BY o.side = 'buy', o.coin = 'btc',
+                      CASE WHEN o.side = 'buy' THEN -(CAST(o.sats AS REAL) / o.orn) ELSE CAST(o.sats AS REAL) / o.orn END,
+                      o.created
+             LIMIT 400"
         );
         let mut statement = self.db.prepare(&sql)?;
         let offers: Vec<SwapOffer> = statement.query_map([], offer_row)?.collect::<rusqlite::Result<_>>()?;
-        Ok(offers.into_iter().filter(|o| coins.contains(&o.coin.as_str())).take(200).collect())
+        Ok(offers
+            .into_iter()
+            .filter(|o| coins.contains(&o.coin.as_str()) && sides.contains(&o.side.as_str()))
+            .take(200)
+            .collect())
     }
 
-    /// Takes an offer off the board. The offer is held for `buyer` while the
-    /// seller's wallet locks the ORN for `address`: the buyer's wallet sends
-    /// its own. No verified wallet and no ORN are needed, so someone with
+    /// Takes a sell offer off the board. The offer is held for `buyer` while
+    /// the seller's wallet locks the ORN for `address`: the buyer's wallet
+    /// sends its own. No verified wallet and no ORN are needed, so someone with
     /// none can buy their first. A wrong address only hurts its giver, whose
     /// wallet would never see ORN locked for it, and so never pay.
     pub fn take_swap(&self, buyer: i64, id: i64, address: &str) -> Result<MySwap> {
@@ -416,13 +517,16 @@ impl Store {
             bail!("finish the swap you have under way before taking another");
         }
         let Some(offer) = self.swap_offer(id)? else { bail!("there is no such offer") };
+        if offer.side != "sell" {
+            bail!("this is a buy offer, not a sell offer");
+        }
         if offer.seller == buyer {
             bail!("this is your own offer");
         }
         let at = now();
         let taken = self.db.execute(
             "UPDATE swap_offers SET state = 'held', taker = ?2, taker_address = ?5, due = ?3, updated = ?4
-             WHERE id = ?1 AND state = 'open'",
+             WHERE id = ?1 AND state = 'open' AND side = 'sell'",
             params![id, buyer, at + HOLD_SECONDS, at, address],
         )?;
         if taken == 0 {
@@ -431,34 +535,88 @@ impl Store {
         self.my_swap(id, buyer)
     }
 
-    /// The seller withdraws an offer nobody holds.
+    /// Takes a buy offer off the board: `seller` agrees to sell ORN from
+    /// `wallet` and be paid in SOL or Bitcoin at `payout`. The seller's wallet
+    /// locks the ORN for the buyer's address, then the buyer pays.
+    pub fn take_buy_swap(&self, seller: i64, id: i64, payout: &str, wallet: &str) -> Result<MySwap> {
+        self.lapse_swaps()?;
+        let wallet = crate::store::orien_address(wallet)?;
+        let busy: i64 = self.db.query_row(
+            "SELECT COUNT(*) FROM swap_offers WHERE taker = ?1 AND state IN ('held', 'swapping')",
+            [seller],
+            |r| r.get(0),
+        )?;
+        if busy > 0 {
+            bail!("finish the swap you have under way before taking another");
+        }
+        let Some(offer) = self.swap_offer(id)? else { bail!("there is no such offer") };
+        if offer.side != "buy" {
+            bail!("this is a sell offer, not a buy offer");
+        }
+        if offer.seller == seller {
+            bail!("this is your own offer");
+        }
+        let payout = match offer.coin.as_str() {
+            "btc" => bitcoin_address(payout)?,
+            "sol" => {
+                let p = payout.trim();
+                orien_swap::solana::address(p).map_err(|_| anyhow::anyhow!("that is not a Solana address"))?;
+                p.to_string()
+            }
+            _ => bail!("swaps are for SOL or Bitcoin"),
+        };
+        let at = now();
+        let taken = self.db.execute(
+            "UPDATE swap_offers SET state = 'held', taker = ?2, payout = ?5, wallet = ?6, due = ?3, updated = ?4
+             WHERE id = ?1 AND state = 'open' AND side = 'buy'",
+            params![id, seller, at + HOLD_SECONDS, at, payout, wallet],
+        )?;
+        if taken == 0 {
+            bail!("someone else took this offer a moment ago");
+        }
+        self.my_swap(id, seller)
+    }
+
+    /// The maker withdraws an offer nobody holds.
     pub fn close_swap(&self, seller: i64, id: i64) -> Result<()> {
         self.close_swap_short(seller, id, false).map(|_| ())
     }
 
-    /// `close_swap`; with `short`, also an offer someone took that the
-    /// seller's wallet could not lock, being short of ORN: nothing was
-    /// locked yet, so the buyer lost nothing and isn't counted. Returns that
-    /// buyer, to be told.
-    pub fn close_swap_short(&self, seller: i64, id: i64, short: bool) -> Result<Option<i64>> {
-        let taker: Option<i64> = self
+    /// `close_swap`; with `short`, also an offer someone took that the ORN
+    /// seller's wallet could not lock, being short of ORN: nothing was locked
+    /// yet, so the buyer lost nothing and isn't counted. For a buy offer, it
+    /// goes back on the board instead of closing. Returns that buyer, to be
+    /// told.
+    pub fn close_swap_short(&self, account: i64, id: i64, short: bool) -> Result<Option<i64>> {
+        let row: Option<(String, i64, Option<i64>, String, Option<String>)> = self
             .db
             .query_row(
-                "SELECT taker FROM swap_offers WHERE id = ?1 AND seller = ?2 AND state = 'held' AND offer_code IS NULL",
-                params![id, seller],
-                |r| r.get(0),
+                "SELECT side, seller, taker, state, offer_code FROM swap_offers WHERE id = ?1",
+                [id],
+                |r| Ok((r.get(0)?, r.get(1)?, r.get(2)?, r.get(3)?, r.get(4)?)),
             )
-            .optional()?
-            .flatten();
-        let closed = self.db.execute(
-            "UPDATE swap_offers SET state = 'closed', updated = ?3
-             WHERE id = ?1 AND seller = ?2 AND (state = 'open' OR (?4 AND state = 'held' AND offer_code IS NULL))",
-            params![id, seller, now(), short],
-        )?;
-        if closed == 0 {
+            .optional()?;
+        let Some((side, maker, taker, state, offer_code)) = row else {
             bail!("only an offer of yours that nobody has taken can be withdrawn");
+        };
+        if state == "open" && maker == account {
+            self.db.execute("UPDATE swap_offers SET state = 'closed', updated = ?2 WHERE id = ?1", params![id, now()])?;
+            return Ok(None);
         }
-        Ok(if short { taker } else { None })
+        if short && state == "held" && offer_code.is_none() {
+            if side == "sell" && maker == account {
+                self.db.execute("UPDATE swap_offers SET state = 'closed', updated = ?2 WHERE id = ?1", params![id, now()])?;
+                return Ok(taker);
+            }
+            if side == "buy" && taker == Some(account) {
+                self.db.execute(
+                    "UPDATE swap_offers SET state = 'open', taker = NULL, payout = NULL, wallet = NULL, due = NULL, runner = NULL, runner_at = NULL, updated = ?2 WHERE id = ?1",
+                    params![id, now()],
+                )?;
+                return Ok(Some(maker));
+            }
+        }
+        bail!("only an offer of yours that nobody has taken can be withdrawn");
     }
 
     /// For tests: a swap between two accounts, finished as done just now.
@@ -603,7 +761,8 @@ impl Store {
             params![id, account, done, now()],
         )?;
         self.settle_swap(id, false)?;
-        Ok(if done && !done_before { Some(self.my_swap(id, swap.offer.seller)?) } else { None })
+        let orn_seller = if swap.offer.side == "buy" { swap.taker.unwrap_or(swap.offer.seller) } else { swap.offer.seller };
+        Ok(if done && !done_before { Some(self.my_swap(id, orn_seller)?) } else { None })
     }
 
     /// Finishes a swap both sides have reported on, or, with `waited`, one
@@ -645,11 +804,12 @@ impl Store {
             Some(t) => self.account(t)?,
             None => None,
         };
-        // Only the seller's own wallets need these.
-        let selling = account == seller;
+        let offer = self.swap_offer(id)?.expect("just read");
+        // Only the ORN seller's own wallets need payout, wallet and runner.
+        let selling = if offer.side == "buy" { Some(account) == taker } else { account == seller };
         let (payout, wallet, runner) = if selling { (payout, wallet, runner) } else { (None, None, None) };
         Ok(MySwap {
-            offer: self.swap_offer(id)?.expect("just read"),
+            offer,
             selling,
             payout,
             wallet,
@@ -888,5 +1048,63 @@ mod tests {
         store.close_swap(maya, mine.id).unwrap();
         let left = store.open_swaps().unwrap().into_iter().filter(|o| o.seller == maya).count() as i64;
         assert_eq!(left, MAX_OFFERS - 1);
+    }
+
+    #[test]
+    fn buy_offers_go_from_bid_to_done_and_handle_lapses_and_short() {
+        let (store, maya, sam) = board();
+        // Sam wants to buy 500 ORN for 0.01 BTC (highest bid first).
+        let low = store.post_buy_offer(sam, "btc", 500_000_000_000, 500_000, SAM_WALLET).unwrap();
+        let high = store.post_buy_offer(sam, "btc", 500_000_000_000, 1_000_000, SAM_WALLET).unwrap();
+        assert_eq!(high.side, "buy");
+        // Default open_swaps_in only returns sell offers (backwards compatible).
+        assert!(store.open_swaps_in(&["btc"]).unwrap().is_empty());
+        let buys = store.open_swaps_in_sides(&["btc"], &["buy"]).unwrap();
+        assert_eq!(buys.iter().map(|o| o.id).collect::<Vec<_>>(), vec![high.id, low.id], "highest bid first");
+
+        // Sam can't take his own buy offer; Maya takes the high bid.
+        let payout = "bc1qar0srrr7xfkvy5l643lydnw9re59gtzzwf5mdq";
+        assert!(store.take_buy_swap(sam, high.id, payout, MAYA_WALLET).is_err());
+        let held = store.take_buy_swap(maya, high.id, payout, MAYA_WALLET).unwrap();
+        assert_eq!((held.offer.state.as_str(), held.selling), ("held", true));
+        assert_eq!(held.taker_wallet.as_deref(), Some(SAM_WALLET));
+        assert_eq!(held.payout.as_deref(), Some(payout));
+        assert_eq!(held.wallet.as_deref(), Some(MAYA_WALLET));
+
+        // If Maya's wallet is short of ORN before locking, the buy offer reopens.
+        let notify = store.close_swap_short(maya, high.id, true).unwrap();
+        assert_eq!(notify, Some(sam));
+        let reopened = store.swap_offer(high.id).unwrap().unwrap();
+        assert_eq!(reopened.state, "open");
+        assert_eq!(store.my_swap(high.id, sam).unwrap().taker_wallet.as_deref(), Some(SAM_WALLET));
+
+        // Maya takes again, locks ORN, posts offer code; Sam replies; both finish.
+        store.take_buy_swap(maya, high.id, payout, MAYA_WALLET).unwrap();
+        assert!(store.run_swap(maya, high.id, "mac").unwrap());
+        assert!(store.run_swap(sam, high.id, "phone").is_err(), "only the ORN seller runs it");
+        let (code, hash) = offer_code(500_000_000_000, 1_000_000, SAM_WALLET);
+        let swapping = store.post_offer_code_from(maya, high.id, &code, Some("mac")).unwrap();
+        assert_eq!(swapping.offer.state, "swapping");
+        let reply = Reply { hash, key: "02".to_string() + &"22".repeat(32), height: 900_000 }.code();
+        store.post_reply_code(sam, high.id, &reply).unwrap();
+        store.finish_swap(sam, high.id, true).unwrap();
+        store.finish_swap(maya, high.id, true).unwrap();
+        assert_eq!(store.swap_offer(high.id).unwrap().unwrap().state, "done");
+
+        // On low bid: if seller doesn't lock in time, buy offer reopens and buyer isn't blamed.
+        store.take_buy_swap(maya, low.id, payout, MAYA_WALLET).unwrap();
+        store.db.execute("UPDATE swap_offers SET due = 1 WHERE id = ?1", [low.id]).unwrap();
+        store.lapse_swaps().unwrap();
+        assert_eq!(store.swap_offer(low.id).unwrap().unwrap().state, "open");
+        assert_eq!(store.lapses_for_tests(), 0);
+
+        // If seller locks ORN and buyer never pays, buy offer closes and buyer is counted.
+        store.take_buy_swap(maya, low.id, payout, MAYA_WALLET).unwrap();
+        let (code2, _) = offer_code(500_000_000_000, 500_000, SAM_WALLET);
+        store.post_offer_code(maya, low.id, &code2).unwrap();
+        store.db.execute("UPDATE swap_offers SET due = 1 WHERE id = ?1", [low.id]).unwrap();
+        store.lapse_swaps().unwrap();
+        assert_eq!(store.swap_offer(low.id).unwrap().unwrap().state, "closed");
+        assert_eq!(store.lapses_for_tests(), 1);
     }
 }
