@@ -8458,7 +8458,7 @@
   function cmPaintRail() {
     const you = cm.you;
     $("cm-you").innerHTML = !you
-      ? '<b>New here?</b><p>Sign in to Orien Network to post and react.</p><button class="pill" data-rail-go="signin">Sign in</button>'
+      ? '<b>New here?</b><p>Sign in to Orien Network to post and react.</p><button class="pill pearl" data-rail-go="signin">Sign in</button>'
       : `<div class="cm-me-row" data-user="${esc(you.name)}">${cmPerson(you.name, you.picture)}<div class="mw0"><div class="cm-name">${esc(you.name)}</div><div class="cm-when">${you.verified ? "Verified wallet" : "No verified wallet yet"}</div></div></div>`
         + (you.stats ? `<div class="cm-stats"><div><b>#${you.stats.rank}</b><span>rank</span></div><div><b>${cmOrn(you.stats.mined)}</b><span>ORN mined</span></div><div><b>${you.stats.streak}h</b><span>in a row</span></div></div>`
           : `<p>${you.verified ? "Mine with a verified wallet and your figures show here after the next checkpoint." : "Verify a wallet to post and see your mining here."}</p>`)
