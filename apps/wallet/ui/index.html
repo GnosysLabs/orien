@@ -1563,9 +1563,10 @@
   .tc-card i { display: block; height: 5px; border-radius: 3px; background: var(--pearl-ink); opacity: 0.55; }
   .tc-card i:first-child { width: 30%; opacity: 0.3; }
   .tc-card i:last-child { width: 72%; height: 8px; }
-  .tc-tiles { display: grid; grid-template-columns: repeat(4, 1fr); gap: 5px; }
-  .tc-tiles span { aspect-ratio: 1; border-radius: 7px; background: var(--surface); border: 1px solid var(--line); display: grid; place-items: center; }
-  .tc-tiles span::after { content: ""; width: 38%; aspect-ratio: 1; border-radius: 50%; background: var(--pearl); background-size: 300% 100%; }
+  /* As on Home: round buttons, no boxes around them. */
+  .tc-tiles { display: grid; grid-template-columns: repeat(5, 1fr); gap: 2px; padding: 3px 4px; }
+  .tc-tiles span { aspect-ratio: 1; display: grid; place-items: center; }
+  .tc-tiles span::after { content: ""; width: 72%; aspect-ratio: 1; border-radius: 50%; background: var(--pearl); background-size: 300% 100%; box-shadow: 0 3px 8px rgba(0, 0, 0, 0.26); }
   .tc-list { flex: 1; border-radius: 10px; background: var(--surface); border: 1px solid var(--line); padding: 8px; display: grid; gap: 6px; align-content: start; }
   .tc-list i { display: block; height: 5px; border-radius: 3px; background: var(--faint); opacity: 0.6; }
   .tc-list i:nth-child(2) { width: 70%; } .tc-list i:nth-child(3) { width: 85%; }
@@ -3130,7 +3131,7 @@
         <div class="tc-mini tb-mini">
           <div class="tc-bar"><span class="tc-word"></span><span class="tc-dot"></span></div>
           <div class="tc-card"><i></i><i></i><i></i></div>
-          <div class="tc-tiles"><span></span><span></span><span></span><span></span></div>
+          <div class="tc-tiles"><span></span><span></span><span></span><span></span><span></span></div>
           <div class="tc-list"><i></i><i></i><i></i></div>
         </div>
         <span class="tb-stage-hint">Click to add a picture</span>
@@ -5569,7 +5570,7 @@
       <div class="tc-mini" data-theme="${id}">
         <div class="tc-bar"><span class="tc-word"></span><span class="tc-dot"></span></div>
         <div class="tc-card"><i></i><i></i><i></i></div>
-        <div class="tc-tiles"><span></span><span></span><span></span><span></span></div>
+        <div class="tc-tiles"><span></span><span></span><span></span><span></span><span></span></div>
         <div class="tc-list"><i></i><i></i><i></i></div>
       </div>
       <div class="tc-name"><span class="tc-label">${esc(name)}</span>${own ? `<span class="tc-del tc-edit" data-edit="${id}" role="button" aria-label="Edit ${esc(name)}" title="Edit">${COG}</span><span class="tc-del" data-del="${id}" role="button" aria-label="Delete ${esc(name)}" title="Delete">${TRASH}</span>` : ""}<span class="tc-check"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></span></div>
