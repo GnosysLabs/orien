@@ -5575,6 +5575,8 @@
       try { const pic = await sceneAsk("readonly", (st) => st.get(t.id)); if (pic) scenes.set(t.id, pic); } catch {}
     }
     paintOwnTheme();
+    // The cards were drawn before the pictures were read: again, with them.
+    paintThemeCards();
     shareScenes();
     fetchScenes();
   }
