@@ -51,6 +51,18 @@ export const CHANGELOG: Entry[] = [
   },
   {
     date: '2026-11-26',
+    products: ['wallet', 'network'],
+    version: '1.9.24',
+    title: 'The Exchange and funded SOL buy orders',
+    changes: [
+      'The Exchange replaces the old swap board with a live order book of open sell and buy offers, recent trades, and a price strip at the top.',
+      'Funded SOL buy orders: send SOL into an on-chain order once and your buy order stays open even while Orien Wallet is closed. When a seller takes it, the swap settles in about a minute, and your ORN is ready to claim next time you open the app.',
+      'Cancel an open buy order in one click from Your orders & swaps to return your SOL right away.',
+      'Prices across the Exchange, Your orders & swaps, and every swap page show in any of 19 currencies.',
+    ],
+  },
+  {
+    date: '2026-11-26',
     products: ['wallet'],
     version: '1.9.23',
     title: 'Updates that always go through',
