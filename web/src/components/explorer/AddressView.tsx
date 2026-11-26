@@ -15,6 +15,7 @@ import {
   explore,
   label,
   namesFor,
+  officialProfile,
   opened,
   orn,
   short,
@@ -34,7 +35,7 @@ const KINDS: Record<Entry['kind'], { label: string; to?: string; icon: typeof Pi
 }
 
 function Who({ address, names }: { address: string; names: Record<string, WalletProfile> }) {
-  const profile = address ? names[address] : undefined
+  const profile = address ? officialProfile(address) ?? names[address] : undefined
   return (
     <a href={addressHref(address)} className="num text-ink underline decoration-line underline-offset-4 hover:decoration-pearl">
       {profile ? label(profile) : short(address)}
@@ -87,7 +88,7 @@ export function AddressView() {
                 {profile.name}
                 <OfficialTag />
               </span>
-              <span className="block text-sm text-muted">Orien’s own wallet: verifying a wallet sends a tiny payment here</span>
+              <span className="block text-sm text-muted">{profile.official_note}</span>
             </span>
           </div>
         ) : (

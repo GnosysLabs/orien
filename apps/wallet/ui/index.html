@@ -4925,9 +4925,11 @@
   // of `name`.
   // Orien's own wallets, recognised by the app itself rather than by a
   // profile anyone could copy: the name, the coin as their picture, and an
-  // Official mark. Verifying a wallet (here or for the Discord role) pays
-  // the Market's wallet.
-  const OFFICIAL = { "74fa1ab82c45ebeed539b03146243ddfc6f0ccb5163f45ea87d21692ba774b7a": "Orien Verify" };
+  // Official mark.
+  const OFFICIAL = {
+    "74fa1ab82c45ebeed539b03146243ddfc6f0ccb5163f45ea87d21692ba774b7a": "Orien Verify",
+    "a597e2f8dd3e4502ef6c8f7dc6a19e0387598ca33f124d59828a9694f56b7684": "Orien Referrals",
+  };
   const official = (address) => (address && OFFICIAL[address.toLowerCase()]) || null;
   const officialTag = (address) => official(address)
     ? '<span class="off-tag"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>Official</span>' : "";
