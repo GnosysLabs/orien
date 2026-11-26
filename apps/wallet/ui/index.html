@@ -1884,11 +1884,19 @@
   #ref-copy-code .ref-check, #ref-copy-code[data-copied] .ref-copy-icon { display: none; }
   #ref-copy-code[data-copied] .ref-check { display: block; color: var(--good); }
   #ref-copy-link { min-height: 38px; }
-  .ref-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 8px; }
-  .ref-actions .box { flex: 1 1 170px; margin: 0; }
-  #ref-input { text-transform: uppercase; }
-  .ref-progress { display: grid; gap: 5px; }
-  .ref-progress progress { width: 100%; height: 8px; accent-color: var(--pearl); }
+  .ref-actions { display: flex; align-items: center; gap: 6px; max-width: 22rem; margin-top: 6px; padding: 4px; border: 1px solid var(--line); border-radius: 14px; background: var(--field); }
+  .ref-actions:focus-within { border-color: var(--focus); }
+  #ref-input { flex: 1; min-width: 0; padding: 8px; border: 0; outline: 0; background: transparent; color: var(--ink); font: 600 15px/1.4 ui-monospace, monospace; letter-spacing: .05em; text-transform: uppercase; }
+  #ref-input::placeholder { color: var(--faint); font: 400 14px/1.4 -apple-system, system-ui, sans-serif; letter-spacing: 0; text-transform: none; }
+  #ref-apply, #ref-mine { flex: none; min-height: 36px; }
+  #ref-apply:disabled { opacity: .55; cursor: default; }
+  .ref-progress { display: flex; align-items: center; gap: 14px; }
+  .ref-progress-track { flex: 1; min-width: 0; display: grid; gap: 6px; }
+  #ref-meter { display: block; appearance: none; -webkit-appearance: none; width: 100%; height: 8px; border: 0; overflow: hidden; border-radius: 99px; background: var(--line); }
+  #ref-meter::-webkit-progress-bar { border-radius: inherit; background: var(--line); }
+  #ref-meter::-webkit-progress-value { border-radius: 99px; background: var(--pearl); background-size: 300% 100%; }
+  #ref-meter::-moz-progress-bar { border-radius: 99px; background: var(--pearl); background-size: 300% 100%; }
+  .ref-panel .guide-steps li[data-complete]::before { content: "✓"; content: "✓" / "Completed"; font-size: 15px; }
   #ref-code:has(#ref-expired:not([hidden])) {
     padding: clamp(18px, 3vw, 28px);
     background: linear-gradient(115deg, color-mix(in srgb, var(--accent) 7%, transparent), transparent 70%), var(--surface);
@@ -3447,7 +3455,7 @@
           <button type="button" id="ref-tab-code" role="tab" aria-selected="false" aria-controls="ref-code" tabindex="-1">Enter code</button>
         </div>
         <div class="ref-panel" id="ref-invite" role="tabpanel" aria-labelledby="ref-tab-invite">
-          <h3>Invite someone to mine</h3>
+          <h3>Refer a friend to mine - you'll both get 7 free ORN</h3>
           <div id="ref-sharing" hidden>
             <div class="ref-sharing-code">
               <span class="ref-code-label" id="ref-code-label" role="status">Your invite code</span>
@@ -3466,7 +3474,7 @@
           </div>
           <p id="ref-invite-info" role="status"></p>
           <button type="button" class="pill pearl" id="ref-invite-verify" hidden>Verify wallet</button>
-          <ol class="guide-steps" role="list">
+          <ol class="guide-steps" id="ref-invite-steps" role="list">
             <li>Share your invite link or code with a friend.</li>
             <li>Have your friend download Orien and apply your code within 12 hours of creating their account.</li>
             <li>Your friend just needs to verify their wallet and earn mining rewards with it in 10 separate hours.</li>
@@ -3485,17 +3493,19 @@
           <form id="ref-form" hidden>
             <label for="ref-input">Referral code</label>
             <div class="ref-actions">
-              <div class="box plain"><input id="ref-input" type="text" maxlength="12" spellcheck="false" autocomplete="off" autocapitalize="characters" required></div>
+              <input id="ref-input" type="text" placeholder="12-character code" maxlength="12" spellcheck="false" autocomplete="off" autocapitalize="characters" required>
               <button type="submit" class="pill pearl" id="ref-apply">Apply code</button>
             </div>
           </form>
           <div class="ref-progress" id="ref-progress" hidden>
-            <label id="ref-hours" for="ref-meter"></label>
-            <progress id="ref-meter" max="10" value="0"></progress>
+            <div class="ref-progress-track">
+              <label id="ref-hours" for="ref-meter"></label>
+              <progress id="ref-meter" max="10" value="0"></progress>
+            </div>
+            <button type="button" class="pill pearl" id="ref-mine" hidden>Open Mining</button>
           </div>
           <p id="ref-claim-info" role="status"></p>
           <button type="button" class="pill pearl" id="ref-claim-verify" hidden>Verify wallet</button>
-          <button type="button" class="pill pearl" id="ref-mine" hidden>Open Mining</button>
           <ol class="guide-steps" id="ref-code-steps" role="list">
             <li>Sign in to your Orien Network account.</li>
             <li>Enter your friend’s code within 12 hours of creating your account.</li>
@@ -11343,7 +11353,18 @@
     const expired = data?.open === true && !claim && data.can_claim === false;
     $("ref-expired").hidden = !expired;
     $("ref-code-heading").hidden = expired;
+    $("ref-code-heading").textContent = claim ? "Your referral progress" : "Use a friend’s code";
     $("ref-code-steps").hidden = expired;
+    const qualified = claim?.status === "qualified" || claim?.status === "paid";
+    const inviteUsed = data?.invited > 0;
+    const inviteSteps = [inviteUsed, inviteUsed, data?.completed > 0, data?.paid > 0];
+    const codeSteps = [
+      !!data, !!claim, claim?.verified || data?.can_invite || qualified,
+      qualified || (claim && claim.hours >= data.hours_required), claim?.status === "paid",
+    ];
+    for (const [list, steps] of [["ref-invite-steps", inviteSteps], ["ref-code-steps", codeSteps]]) {
+      steps.forEach((done, i) => $(list).children[i].toggleAttribute("data-complete", !!done));
+    }
     $("ref-form").hidden = !data?.can_claim;
     $("ref-apply").disabled = referral.saving || !/^[A-F0-9]{12}$/.test(refCode());
     $("ref-progress").hidden = !claim || claim.status === "closed";
