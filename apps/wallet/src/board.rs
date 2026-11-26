@@ -542,7 +542,7 @@ pub fn listings(dir: &Path, category: &str, text: &str, offset: u32) -> Result<V
 /// A signed-in Market call for the Market screens: listings, messages and
 /// reports only, so the page can't reach anything else with the cookie.
 pub fn market_call(dir: &Path, method: &str, path: &str, body: Option<Value>) -> Result<Value, String> {
-    let allowed = ["/listings", "/conversations", "/reports", "/accounts", "/community", "/users", "/notices", "/me/blocked", "/swaps/history", "/room"].iter().any(|p| path == *p || path.starts_with(&format!("{p}/")) || path.starts_with(&format!("{p}?")));
+    let allowed = ["/listings", "/conversations", "/reports", "/app-reports", "/accounts", "/community", "/users", "/notices", "/me/blocked", "/swaps/history", "/room"].iter().any(|p| path == *p || path.starts_with(&format!("{p}/")) || path.starts_with(&format!("{p}?")));
     if !allowed || path.contains("..") || !["GET", "POST", "PUT", "DELETE"].contains(&method) {
         return Err("not a Market call".into());
     }

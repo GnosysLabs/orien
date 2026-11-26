@@ -125,8 +125,9 @@ pub fn ready(app: &AppHandle) {
 pub fn setup(app: &AppHandle) -> tauri::Result<()> {
     let open = MenuItem::with_id(app, "open", "Open Orien Wallet", true, None::<&str>)?;
     let updates = MenuItem::with_id(app, "check-updates", "Check for Updates…", true, None::<&str>)?;
+    let report = MenuItem::with_id(app, "report", "Report a Problem…", true, None::<&str>)?;
     let quit = MenuItem::with_id(app, "quit", "Quit Orien Wallet", true, None::<&str>)?;
-    let menu = Menu::with_items(app, &[&open, &updates, &quit])?;
+    let menu = Menu::with_items(app, &[&open, &updates, &report, &quit])?;
     // The Mac's menu bar wants a one-colour picture it tints itself.
     #[cfg(target_os = "macos")]
     let icon = Image::from_bytes(include_bytes!("../icons/tray-mac.png"))?;
@@ -166,6 +167,16 @@ pub fn setup(app: &AppHandle) -> tauri::Result<()> {
             let settings = MenuItem::with_id(app, "settings", "Settings…", true, Some("CmdOrCtrl+,"))?;
             first.insert(&settings, 2)?;
         }
+        // Help → Report a Problem…, where a Mac's people look for it.
+        let report = MenuItem::with_id(app, "report", "Report a Problem…", true, None::<&str>)?;
+        let help = bar.items()?.into_iter().find_map(|item| match item {
+            tauri::menu::MenuItemKind::Submenu(menu) if menu.text().map(|t| t == "Help").unwrap_or(false) => Some(menu),
+            _ => None,
+        });
+        match help {
+            Some(help) => help.append(&report)?,
+            None => bar.append(&tauri::menu::Submenu::with_items(app, "Help", true, &[&report])?)?,
+        }
         app.set_menu(bar)?;
     }
     // Every menu's clicks reach here, the tray's included: answered once.
@@ -176,6 +187,11 @@ pub fn setup(app: &AppHandle) -> tauri::Result<()> {
                 use tauri::Emitter;
                 show(app);
                 let _ = app.emit("open-settings", ());
+            }
+            "report" => {
+                use tauri::Emitter;
+                show(app);
+                let _ = app.emit("open-report", ());
             }
             _ => {}
         }
