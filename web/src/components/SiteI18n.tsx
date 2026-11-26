@@ -150,13 +150,17 @@ const SKIP_CLOSEST = '[data-no-i18n], code, pre, script, style, svg, .font-mono'
 const ATTRS = ['placeholder', 'title', 'aria-label'] as const
 
 const origText = new WeakMap<Text, string>()
+const lastAppliedText = new WeakMap<Text, string>()
 const origAttr = new WeakMap<Element, Record<string, string>>()
+const lastAppliedAttr = new WeakMap<Element, Record<string, string>>()
 const packCache: Record<string, Pack> = {}
 
 let currentLang = 'en'
 let currentExact: Record<string, string> = {}
 let currentPatterns: { re: RegExp; rep: string }[] = []
 let origTitle: string | null = null
+let lastAppliedTitle: string | null = null
+let switchSeq = 0
 let applying = false
 let queued = false
 let observer: MutationObserver | null = null
@@ -223,10 +227,11 @@ function translateTextNode(node: Text) {
   if (!origText.has(node)) {
     origText.set(node, cur)
   } else {
-    // If React updated the underlying text to a new English string, update our saved original.
+    // Only update saved original if React genuinely changed this node to a new string
+    // (not if it still holds the last translation we wrote for a previous language).
     const saved = origText.get(node)!
-    const prevTranslated = lookup(saved)
-    if (cur !== saved && cur !== prevTranslated) {
+    const applied = lastAppliedText.get(node)
+    if (cur !== saved && cur !== applied) {
       origText.set(node, cur)
     }
   }
@@ -234,12 +239,15 @@ function translateTextNode(node: Text) {
   const base = origText.get(node)!
   if (currentLang === 'en') {
     if (node.nodeValue !== base) node.nodeValue = base
+    lastAppliedText.set(node, base)
     return
   }
   const next = lookup(base)
-  if (next !== null && node.nodeValue !== next) {
-    node.nodeValue = next
+  const target = next !== null ? next : base
+  if (node.nodeValue !== target) {
+    node.nodeValue = target
   }
+  lastAppliedText.set(node, target)
 }
 
 function translateAttrs(el: Element) {
@@ -253,21 +261,29 @@ function translateAttrs(el: Element) {
       map = {}
       origAttr.set(el, map)
     }
+    let appliedMap = lastAppliedAttr.get(el)
+    if (!appliedMap) {
+      appliedMap = {}
+      lastAppliedAttr.set(el, appliedMap)
+    }
     if (!(attr in map)) {
       map[attr] = val
     } else {
       const saved = map[attr]
-      const prevTranslated = lookup(saved)
-      if (val !== saved && val !== prevTranslated) {
+      const applied = appliedMap[attr]
+      if (val !== saved && val !== applied) {
         map[attr] = val
       }
     }
     const base = map[attr]
     if (currentLang === 'en') {
       if (val !== base) el.setAttribute(attr, base)
+      appliedMap[attr] = base
     } else {
       const next = lookup(base)
-      if (next !== null && val !== next) el.setAttribute(attr, next)
+      const target = next !== null ? next : base
+      if (val !== target) el.setAttribute(attr, target)
+      appliedMap[attr] = target
     }
   }
 }
@@ -299,17 +315,19 @@ function applyAll() {
   try {
     if (origTitle === null) {
       origTitle = document.title
-    } else if (currentLang !== 'en') {
-      const prev = lookup(origTitle)
-      if (document.title !== origTitle && document.title !== prev) {
-        origTitle = document.title
-      }
+    } else if (document.title !== origTitle && document.title !== lastAppliedTitle) {
+      origTitle = document.title
     }
     if (currentLang === 'en') {
-      if (origTitle !== null && document.title !== origTitle) document.title = origTitle
+      if (origTitle !== null) {
+        if (document.title !== origTitle) document.title = origTitle
+        lastAppliedTitle = origTitle
+      }
     } else if (origTitle !== null) {
       const nextTitle = lookup(origTitle)
-      if (nextTitle !== null && document.title !== nextTitle) document.title = nextTitle
+      const targetTitle = nextTitle !== null ? nextTitle : origTitle
+      if (document.title !== targetTitle) document.title = targetTitle
+      lastAppliedTitle = targetTitle
     }
     walkTree(document.body)
   } finally {
@@ -342,6 +360,7 @@ async function loadPack(code: string): Promise<Pack | null> {
 export async function setSiteLang(code: string, userPicked = true) {
   const next = VALID_CODES.has(code) ? code : 'en'
   if (userPicked) saveLang(next)
+  const seq = ++switchSeq
 
   if (next === 'en') {
     currentLang = 'en'
@@ -355,7 +374,7 @@ export async function setSiteLang(code: string, userPicked = true) {
   }
 
   const pack = await loadPack(next)
-  if (!pack) return
+  if (!pack || seq !== switchSeq) return
   const compiled = compilePack(pack)
   currentLang = next
   currentExact = compiled.exact
