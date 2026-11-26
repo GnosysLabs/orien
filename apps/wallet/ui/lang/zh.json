@@ -2181,5 +2181,13 @@
   "Something went wrong on the server.": "服务器出错了。",
   "Not found.": "未找到。",
   "This account is suspended.": "此账户已被停用。",
-  "Sign in first.": "请先登录 Orien Network。"
+  "Sign in first.": "请先登录 Orien Network。",
+  "View in explorer": "在浏览器中查看",
+  "Failed transaction": "交易失败",
+  "Solana transaction": "Solana 交易",
+  "Finalized": "已最终确认",
+  "Some activity could not be refreshed.": "部分活动未能刷新。",
+  "Couldn’t load Solana activity.": "无法加载 Solana 活动。",
+  "Unlock Solana to view activity.": "解锁 Solana 以查看活动。",
+  "No Solana transactions yet": "暂无 Solana 交易"
 }

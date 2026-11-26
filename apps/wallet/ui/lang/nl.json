@@ -2181,5 +2181,13 @@
   "Something went wrong on the server.": "Er is iets misgegaan op de server.",
   "Not found.": "Niet gevonden.",
   "This account is suspended.": "Dit account is geschorst.",
-  "Sign in first.": "Log eerst in bij Orien Network."
+  "Sign in first.": "Log eerst in bij Orien Network.",
+  "View in explorer": "Bekijken in de explorer",
+  "Failed transaction": "Transactie mislukt",
+  "Solana transaction": "Solana-transactie",
+  "Finalized": "Definitief bevestigd",
+  "Some activity could not be refreshed.": "Een deel van de activiteit kon niet worden vernieuwd.",
+  "Couldn’t load Solana activity.": "De Solana-activiteit kon niet worden geladen.",
+  "Unlock Solana to view activity.": "Ontgrendel Solana om de activiteit te bekijken.",
+  "No Solana transactions yet": "Nog geen Solana-transacties"
 }

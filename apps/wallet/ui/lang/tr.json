@@ -2181,5 +2181,13 @@
   "Something went wrong on the server.": "Sunucuda bir hata oluştu.",
   "Not found.": "Bulunamadı.",
   "This account is suspended.": "Bu hesap askıya alınmış.",
-  "Sign in first.": "Önce Orien Network'e giriş yapın."
+  "Sign in first.": "Önce Orien Network'e giriş yapın.",
+  "View in explorer": "Gezginde görüntüle",
+  "Failed transaction": "İşlem başarısız",
+  "Solana transaction": "Solana işlemi",
+  "Finalized": "Kesinleşti",
+  "Some activity could not be refreshed.": "Bazı işlemler yenilenemedi.",
+  "Couldn’t load Solana activity.": "Solana etkinliği yüklenemedi.",
+  "Unlock Solana to view activity.": "Etkinliği görmek için Solana kilidini aç.",
+  "No Solana transactions yet": "Henüz Solana işlemi yok"
 }

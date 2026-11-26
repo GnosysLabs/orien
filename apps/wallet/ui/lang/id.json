@@ -2181,5 +2181,13 @@
   "Something went wrong on the server.": "Terjadi kesalahan pada server.",
   "Not found.": "Tidak ditemukan.",
   "This account is suspended.": "Akun ini ditangguhkan.",
-  "Sign in first.": "Masuk ke Orien Network terlebih dahulu."
+  "Sign in first.": "Masuk ke Orien Network terlebih dahulu.",
+  "View in explorer": "Lihat di penjelajah",
+  "Failed transaction": "Transaksi gagal",
+  "Solana transaction": "Transaksi Solana",
+  "Finalized": "Final",
+  "Some activity could not be refreshed.": "Sebagian aktivitas tidak dapat diperbarui.",
+  "Couldn’t load Solana activity.": "Aktivitas Solana tidak dapat dimuat.",
+  "Unlock Solana to view activity.": "Buka kunci Solana untuk melihat aktivitas.",
+  "No Solana transactions yet": "Belum ada transaksi Solana"
 }

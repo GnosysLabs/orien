@@ -283,9 +283,9 @@
     --rt: 20px; --rb: 20px; --it: 8px; --ib: 8px; --m: linear-gradient(#000, #000); }
   /* Lists that are boxes themselves: rounded at their own edges, with
      their own corners. */
-  body.phone :is(#recent, #all-activity, #nt-list, #ib-list) { --rt: 18px; --rb: 39px; --it: 0px; --ib: 0px; --m: linear-gradient(#000, #000); }
+  body.phone :is(#recent, #solana-recent, #all-activity, #nt-list, #ib-list) { --rt: 18px; --rb: 39px; --it: 0px; --ib: 0px; --m: linear-gradient(#000, #000); }
   body.phone :is(#nt-list, #ib-list) { --rb: 18px; }
-  body.phone :is(.screen, #mine, #board-signin, #board-post, #board-take, #swaps, #swap-sell, #swap-buy, #swap-detail, .scroll, #recent, #all-activity) {
+  body.phone :is(.screen, #mine, #board-signin, #board-post, #board-take, #swaps, #swap-sell, #swap-buy, #swap-detail, .scroll, #recent, #solana-recent, #all-activity) {
     --tl: radial-gradient(circle at 100% 100%, #000 calc(var(--rt) - 0.5px), transparent var(--rt));
     --tr: radial-gradient(circle at 0 100%, #000 calc(var(--rt) - 0.5px), transparent var(--rt));
     --bl: radial-gradient(circle at 100% 0, #000 calc(var(--rb) - 0.5px), transparent var(--rb));
@@ -600,8 +600,8 @@
     box-shadow: 0 18px 50px #00000059, inset 0 1px 0 #ffffffb0;
   }
   /* Balance hidden: the whole activity is blurred too. */
-  html.hide-bal #recent .tx, html.hide-bal #all-activity .tx { filter: blur(7px); -webkit-user-select: none; user-select: none; }
-  #recent .tx, #all-activity .tx { transition: filter 0.2s ease; }
+  html.hide-bal :is(#recent, #solana-recent, #all-activity) .tx { filter: blur(7px); -webkit-user-select: none; user-select: none; }
+  :is(#recent, #solana-recent, #all-activity) .tx { transition: filter 0.2s ease; }
   /* Showing or hiding the balance: an eye on the card. */
   .card { position: relative; }
   .bal-eye { position: absolute; top: 14px; right: 14px; width: 34px; height: 34px; padding: 0; border: 0; border-radius: 50%;
@@ -2945,6 +2945,10 @@
     flex: none; width: 32px; height: 32px; border-radius: 50%; display: grid; place-items: center;
     background: rgba(var(--tint), 0.05); color: var(--dim);
   }
+  #solana-recent .tx { width: 100%; background: transparent; border: 0; border-radius: 0; color: inherit; font: inherit; text-align: left; cursor: pointer; }
+  #solana-recent .tx + .tx { border-top: 1px solid var(--line); }
+  #solana-recent .tx:hover { background: var(--surface-hover); }
+  #solana-recent .tx-main > span, #solana-recent .tx-side > span { display: block; }
   .tx-icon.received { color: var(--good); background: #a6e3c614; }
   .tx-main { flex: 1; min-width: 0; }
   .tx-main .title { font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -3155,8 +3159,8 @@
   .hs-open { cursor: pointer; }
   .hs-rule { flex: none; height: 1px; margin-top: 14px; background: var(--line); }
   .hs-empty { font-size: 13px; color: var(--faint); }
-  #home #recent { flex: 0 1 auto; min-height: 0; overflow-y: auto; overscroll-behavior: contain; }
-  #home #recent::-webkit-scrollbar { width: 0; }
+  #home :is(#recent, #solana-recent) { flex: 0 1 auto; min-height: 0; overflow-y: auto; overscroll-behavior: contain; }
+  #home :is(#recent, #solana-recent)::-webkit-scrollbar { width: 0; }
   /* All activity: one rounded box that scrolls, each day headed inside it. */
   #all-activity { flex: 0 1 auto; margin: 0; padding: 0 0 6px; border-radius: 18px; background: var(--surface);
     border: 1px solid var(--line); overscroll-behavior: contain; }
@@ -3342,7 +3346,7 @@
   body.phone .account .avatar, body.phone .me-face .avatar { width: 44px; height: 44px; font-size: 16px; }
   body.phone .back { width: 44px; height: 44px; }
   body.phone .mk-cats button { height: 36px; padding: 0 14px; font-size: 13.5px; }
-  body.phone #home #recent { flex: 1 1 0; -webkit-overflow-scrolling: touch; border-radius: 18px 18px 39px 39px; padding-bottom: max(12px, calc(env(safe-area-inset-bottom) - 12px)); }
+  body.phone #home :is(#recent, #solana-recent) { flex: 1 1 0; -webkit-overflow-scrolling: touch; border-radius: 18px 18px 39px 39px; padding-bottom: max(12px, calc(env(safe-area-inset-bottom) - 12px)); }
   body.phone #all-activity { flex: 1 1 0; border-radius: 18px 18px 39px 39px; padding-bottom: max(12px, calc(env(safe-area-inset-bottom) - 12px)); }
   /* Notifications and Messages: the list is as tall as what's in it, and
      scrolls within itself once it reaches the foot of the screen. */
@@ -3808,9 +3812,10 @@
       <div class="section-head">
         <h3>Activity</h3>
         <button class="link" id="view-all" hidden>View all</button>
+        <button class="link" id="solana-all" hidden>View in explorer</button>
       </div>
       <div class="list" id="recent"><div class="empty">No payments yet</div></div>
-      <div class="list" id="solana-recent" hidden><div class="empty">Solana transaction history is coming.</div></div>
+      <div class="list" id="solana-recent" hidden></div>
 
       <div class="problem" id="home-problem" hidden></div>
       </div>
@@ -5395,7 +5400,7 @@
   let lastBalance = null;
   let walletAsset = "ORN";
   const DEVNET_REFRESH_MS = 30_000;
-  const newDevnetAssets = () => ({ lastCheck: 0, pending: false, locked: false, address: null, balances: null, stale: false, error: "", receive: null });
+  const newDevnetAssets = () => ({ lastCheck: 0, pending: false, locked: false, address: null, balances: null, history: null, historyBusy: false, historyError: false, stale: false, error: "", receive: null });
   let devnetAssets = newDevnetAssets();
   const assetButtons = document.querySelectorAll("[data-wallet-asset]");
   const solanaAssetButtons = document.querySelectorAll("[data-solana-asset]");
@@ -5409,6 +5414,8 @@
     const preview = walletAsset !== "ORN";
     $("home").classList.toggle("asset-devnet", preview);
     $("solana-recent").hidden = !preview;
+    $("solana-all").hidden = !preview || !devnetAssets.address;
+    if (preview) paintDevnetHistory();
     $("asset-network-label").textContent = preview ? "Solana devnet" : "Balance";
     $("asset-unit").hidden = preview;
     $("asset-menu-toggle").hidden = !preview;
@@ -5436,6 +5443,69 @@
     paintBalance();
   }
 
+  let lastHistoryHTML = "";
+  function paintDevnetHistory() {
+    const state = devnetAssets;
+    const history = state.history;
+    const rows = (history?.rows || []).map((entry) => {
+      const direction = entry.sent ? "sent" : "received";
+      const title = entry.failed ? "Failed transaction" : entry.amount ? (entry.sent ? "Sent" : "Received") : "Solana transaction";
+      const subtitle = entry.peer || entry.signature;
+      const icon = entry.amount ? ICON[direction] : '<img src="chains/solana.png" width="16" height="16" alt="">';
+      const amount = entry.amount ? `<span class="amt ${direction}">${entry.sent ? "−" : "+"}${esc(entry.amount)} ${esc(entry.asset)}</span>`
+        : entry.failed ? "" : entry.finalized ? "Finalized" : "Confirmed";
+      return `<button type="button" class="tx" data-sol-tx="${esc(entry.signature)}">
+        <span class="tx-icon ${entry.amount ? direction : ""}">${icon}</span>
+        <span class="tx-main"><span class="title">${title}</span><span class="sub" data-no-i18n>${esc(short(subtitle))}</span></span>
+        <span class="tx-side">${amount}<span class="sub">${entry.time ? esc(relative(entry)) : ""}</span></span>
+      </button>`;
+    }).join("");
+    const unavailable = state.historyError || history?.incomplete;
+    let note = "";
+    if (unavailable) note = rows ? "Some activity could not be refreshed." : "Couldn’t load Solana activity.";
+    else if (!history) note = state.locked ? "Unlock Solana to view activity." : state.error ? "Couldn’t load Solana activity." : "Loading…";
+    else if (!rows) note = "No Solana transactions yet";
+    const retry = unavailable && !state.historyBusy ? '<button type="button" class="link" data-sol-retry>Try again</button>' : "";
+    const html = rows + (note ? `<div class="empty"><span>${note}</span> ${retry}</div>` : "");
+    if (html !== lastHistoryHTML) {
+      $("solana-recent").innerHTML = html;
+      lastHistoryHTML = html;
+    }
+  }
+
+  async function loadDevnetHistory(state) {
+    if (!state.address || state.historyBusy) return;
+    state.historyBusy = true;
+    try {
+      const result = await invoke("solana_devnet_history", { address: state.address });
+      if (result.incomplete && state.history) {
+        // Keep known transfer details if the RPC only returned signatures this time.
+        const previous = new Map(state.history.rows.map((row) => [row.signature, row]));
+        for (const row of result.rows) {
+          const old = previous.get(row.signature);
+          if (!row.asset && !row.failed && old?.asset) Object.assign(row, { asset: old.asset, amount: old.amount, peer: old.peer, sent: old.sent });
+        }
+        if (!result.rows.length) result.rows = state.history.rows;
+      }
+      state.history = result;
+      state.historyError = false;
+    } catch {
+      state.historyError = true;
+    } finally {
+      state.historyBusy = false;
+      if (state === devnetAssets && walletAsset !== "ORN") paintDevnetHistory();
+    }
+  }
+
+  function openSolanaExplorer(kind, value) {
+    if (value) invoke("open_post_link", { url: `https://explorer.solana.com/${kind}/${encodeURIComponent(value)}?cluster=devnet` }).catch(() => {});
+  }
+  $("solana-recent").onclick = (event) => {
+    if (event.target.closest("[data-sol-retry]")) void loadDevnetHistory(devnetAssets);
+    else openSolanaExplorer("tx", event.target.closest("[data-sol-tx]")?.dataset.solTx);
+  };
+  $("solana-all").onclick = () => openSolanaExplorer("address", devnetAssets.address);
+
   async function loadDevnetAssets(unlock = false) {
     if (!view || devnetAssets.pending || (devnetAssets.locked && !unlock)) return;
     const wallet = view;
@@ -5453,6 +5523,7 @@
       }
       if (state !== devnetAssets || view?.address !== wallet.address) return;
       state.locked = false;
+      void loadDevnetHistory(state);
       const receive = state.receive;
       state.receive = null;
       if (receive === walletAsset && !$("home").hidden) openAssetReceive(receive, state.address);
@@ -7984,7 +8055,7 @@
 
   $("sol-send-explorer").onclick = () => {
     const signature = devnetSend?.receipt?.signature;
-    if (signature) invoke("open_post_link", { url: `https://explorer.solana.com/tx/${encodeURIComponent(signature)}?cluster=devnet` }).catch(() => {});
+    openSolanaExplorer("tx", signature);
   };
   $("sol-send-done").onclick = home;
 
@@ -14431,7 +14502,7 @@
     };
     // With a card open over the app, only what's in the card counts.
     const popped = () => document.body.classList.contains("pop") ? [...document.querySelectorAll("main > .screen:not([hidden])")].filter((s) => getComputedStyle(s).position === "fixed") : null;
-    const scrollers = () => [...document.querySelectorAll(".screen, .st-pane, .ex-pane, #mine, #board-signin, #board-post, #board-take, #swaps, #swap-sell, #swap-buy, #swap-detail, .scroll, #recent, #board-offers, #hist-list, .ex-card-body")].filter((el) => {
+    const scrollers = () => [...document.querySelectorAll(".screen, .st-pane, .ex-pane, #mine, #board-signin, #board-post, #board-take, #swaps, #swap-sell, #swap-buy, #swap-detail, .scroll, #recent, #solana-recent, #board-offers, #hist-list, .ex-card-body")].filter((el) => {
       // Hidden ones out (a card over the app has no offsetParent, being fixed).
       if (el.id === "ch-log" || !el.getClientRects().length) return false;
       const cards = popped();

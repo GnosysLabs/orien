@@ -2181,5 +2181,13 @@
   "Something went wrong on the server.": "サーバーでエラーが発生しました。",
   "Not found.": "見つかりませんでした。",
   "This account is suspended.": "このアカウントは利用停止中です。",
-  "Sign in first.": "先に Orien Network にサインインしてください。"
+  "Sign in first.": "先に Orien Network にサインインしてください。",
+  "View in explorer": "エクスプローラーで見る",
+  "Failed transaction": "失敗した取引",
+  "Solana transaction": "Solana の取引",
+  "Finalized": "確定済み",
+  "Some activity could not be refreshed.": "一部の履歴を更新できませんでした。",
+  "Couldn’t load Solana activity.": "Solana の履歴を読み込めませんでした。",
+  "Unlock Solana to view activity.": "Solana のロックを解除して履歴を表示してください。",
+  "No Solana transactions yet": "Solana の取引はまだありません"
 }

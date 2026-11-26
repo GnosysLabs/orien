@@ -2181,5 +2181,13 @@
   "Something went wrong on the server.": "Đã xảy ra lỗi máy chủ.",
   "Not found.": "Không tìm thấy.",
   "This account is suspended.": "Tài khoản này đã bị đình chỉ.",
-  "Sign in first.": "Hãy đăng nhập vào Orien Network trước."
+  "Sign in first.": "Hãy đăng nhập vào Orien Network trước.",
+  "View in explorer": "Xem trên trình khám phá",
+  "Failed transaction": "Giao dịch thất bại",
+  "Solana transaction": "Giao dịch Solana",
+  "Finalized": "Đã xác nhận hoàn tất",
+  "Some activity could not be refreshed.": "Không thể làm mới một số hoạt động.",
+  "Couldn’t load Solana activity.": "Không thể tải hoạt động Solana.",
+  "Unlock Solana to view activity.": "Mở khóa Solana để xem hoạt động.",
+  "No Solana transactions yet": "Chưa có giao dịch Solana"
 }

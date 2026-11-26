@@ -1430,5 +1430,13 @@
   "Something went wrong on the server.": "Something went wrong on the server.",
   "Not found.": "Not found.",
   "This account is suspended.": "This account is suspended.",
-  "Sign in first.": "Sign in first."
+  "Sign in first.": "Sign in first.",
+  "View in explorer": "View in explorer",
+  "Failed transaction": "Failed transaction",
+  "Solana transaction": "Solana transaction",
+  "Finalized": "Finalized",
+  "Some activity could not be refreshed.": "Some activity could not be refreshed.",
+  "Couldn’t load Solana activity.": "Couldn’t load Solana activity.",
+  "Unlock Solana to view activity.": "Unlock Solana to view activity.",
+  "No Solana transactions yet": "No Solana transactions yet"
 }

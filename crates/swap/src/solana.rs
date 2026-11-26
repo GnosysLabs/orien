@@ -10,6 +10,8 @@
 //! wallet (and the iPhone app) need none of Solana's own large libraries.
 //! The format is small and fixed; a live test on devnet checks it.
 
+pub mod history;
+
 use crate::chain::{MAX_REST, REST, remember, remembered, rest, resting};
 use anyhow::{Context, Result, anyhow, bail};
 use ed25519_dalek::{Signer, SigningKey};

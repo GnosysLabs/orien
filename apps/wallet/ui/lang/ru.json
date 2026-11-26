@@ -2181,5 +2181,13 @@
   "Something went wrong on the server.": "На сервере произошла ошибка.",
   "Not found.": "Не найдено.",
   "This account is suspended.": "Этот аккаунт приостановлен.",
-  "Sign in first.": "Сначала войдите в Orien Network."
+  "Sign in first.": "Сначала войдите в Orien Network.",
+  "View in explorer": "Открыть в обозревателе",
+  "Failed transaction": "Ошибка транзакции",
+  "Solana transaction": "Транзакция Solana",
+  "Finalized": "Окончательно подтверждена",
+  "Some activity could not be refreshed.": "Не удалось обновить часть истории.",
+  "Couldn’t load Solana activity.": "Не удалось загрузить историю Solana.",
+  "Unlock Solana to view activity.": "Разблокируйте Solana, чтобы посмотреть историю.",
+  "No Solana transactions yet": "Транзакций Solana пока нет"
 }

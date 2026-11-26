@@ -2181,5 +2181,13 @@
   "Something went wrong on the server.": "सर्वर पर गड़बड़ी हुई।",
   "Not found.": "नहीं मिला।",
   "This account is suspended.": "यह खाता निलंबित है।",
-  "Sign in first.": "पहले Orien Network में साइन इन करें।"
+  "Sign in first.": "पहले Orien Network में साइन इन करें।",
+  "View in explorer": "एक्सप्लोरर में देखें",
+  "Failed transaction": "विफल लेनदेन",
+  "Solana transaction": "Solana लेनदेन",
+  "Finalized": "अंतिम पुष्टि हो गई",
+  "Some activity could not be refreshed.": "कुछ गतिविधियाँ रीफ़्रेश नहीं हो सकीं।",
+  "Couldn’t load Solana activity.": "Solana गतिविधि लोड नहीं हो सकी।",
+  "Unlock Solana to view activity.": "गतिविधि देखने के लिए Solana अनलॉक करें।",
+  "No Solana transactions yet": "अभी कोई Solana लेनदेन नहीं है"
 }

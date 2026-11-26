@@ -2181,5 +2181,13 @@
   "Something went wrong on the server.": "Ocorreu um erro no servidor.",
   "Not found.": "Não encontrado.",
   "This account is suspended.": "Esta conta está suspensa.",
-  "Sign in first.": "Entre na Orien Network primeiro."
+  "Sign in first.": "Entre na Orien Network primeiro.",
+  "View in explorer": "Ver no explorador",
+  "Failed transaction": "Falha na transação",
+  "Solana transaction": "Transação Solana",
+  "Finalized": "Finalizada",
+  "Some activity could not be refreshed.": "Parte da atividade não pôde ser atualizada.",
+  "Couldn’t load Solana activity.": "Não foi possível carregar a atividade da Solana.",
+  "Unlock Solana to view activity.": "Desbloqueie a Solana para ver a atividade.",
+  "No Solana transactions yet": "Ainda não há transações na Solana"
 }

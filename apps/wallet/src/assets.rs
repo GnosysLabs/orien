@@ -65,6 +65,44 @@ pub async fn solana_devnet_balances(address: String) -> Result<DevnetBalances, S
     .map_err(|error| error.to_string())
 }
 
+#[derive(Serialize)]
+pub struct ActivityRow {
+    signature: String,
+    time: Option<u64>,
+    failed: bool,
+    finalized: bool,
+    amount: Option<String>,
+    asset: Option<&'static str>,
+    peer: Option<String>,
+    sent: bool,
+}
+
+#[derive(Serialize)]
+pub struct DevnetHistory {
+    rows: Vec<ActivityRow>,
+    incomplete: bool,
+}
+
+#[tauri::command]
+pub async fn solana_devnet_history(address: String) -> Result<DevnetHistory, String> {
+    use solana::history::Movement;
+    let owner = solana::address(&address).map_err(|error| error.to_string())?;
+    tauri::async_runtime::spawn_blocking(move || {
+        let mint = solana::address(DEVNET_USDC).expect("valid devnet USDC mint");
+        let history = Solana::devnet().recent_history(&owner, &mint).map_err(|error| error.to_string())?;
+        let rows = history.entries.into_iter().map(|entry| {
+            let (units, asset, peer) = match entry.movement {
+                Some(Movement::Sol { units, peer }) => (units, Some("SOL"), Some(peer)),
+                Some(Movement::Token { units }) => (units * 1000, Some("USDC"), None),
+                None => (0, None, None),
+            };
+            ActivityRow { signature: entry.signature, time: entry.time, failed: entry.failed, finalized: entry.finalized,
+                amount: asset.map(|_| crate::money::show(units.abs())), asset, peer, sent: units < 0 }
+        }).collect();
+        Ok(DevnetHistory { rows, incomplete: history.incomplete })
+    }).await.map_err(|error| error.to_string())?
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
