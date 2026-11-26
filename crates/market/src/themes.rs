@@ -37,6 +37,12 @@ const THUMB_WIDTH: u32 = 600;
 /// What counts as lately for "popular": four weeks.
 const LATELY: u64 = 28 * 86_400;
 
+/// Orien's own themes in the store, published under "Orien": the app keeps
+/// their look and pictures, and the store lists them for downloading. Their
+/// ids in the app, and their names.
+const OFFICIAL: [(&str, &str); 6] =
+    [("midnight", "Midnight"), ("aurora", "Aurora"), ("amethyst", "Amethyst"), ("rose", "Rosé"), ("ruby", "Ruby"), ("ember", "Ember")];
+
 fn now() -> u64 {
     std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).map_or(0, |d| d.as_secs())
 }
@@ -108,14 +114,17 @@ impl Store {
         self.db.execute_batch(
             "CREATE TABLE IF NOT EXISTS themes (
                  id INTEGER PRIMARY KEY,
-                 author INTEGER NOT NULL REFERENCES accounts(id) ON DELETE CASCADE,
+                 -- NULL for Orien's own themes, which have `builtin`.
+                 author INTEGER REFERENCES accounts(id) ON DELETE CASCADE,
                  name TEXT NOT NULL,
                  base TEXT NOT NULL,
                  colors TEXT NOT NULL,
-                 picture TEXT NOT NULL,
-                 thumb TEXT NOT NULL,
+                 picture TEXT,
+                 thumb TEXT,
                  created INTEGER NOT NULL,
-                 removed INTEGER NOT NULL DEFAULT 0
+                 removed INTEGER NOT NULL DEFAULT 0,
+                 -- Orien's own theme: its id in the app.
+                 builtin TEXT UNIQUE
              );
              CREATE INDEX IF NOT EXISTS themes_by_author ON themes(author, created);
              -- Who downloaded each theme: an account, or a hash of an
@@ -136,6 +145,53 @@ impl Store {
                  PRIMARY KEY (sender, seq)
              );
              CREATE INDEX IF NOT EXISTS theme_tips_by_theme ON theme_tips(theme);",
+        )?;
+        self.allow_official_themes()?;
+        let at = now() as i64;
+        for (builtin, name) in OFFICIAL {
+            self.db.execute(
+                "INSERT OR IGNORE INTO themes (author, name, base, colors, picture, thumb, created, builtin)
+                 VALUES (NULL, ?1, 'dark', '[]', NULL, NULL, ?2, ?3)",
+                params![name, at, builtin],
+            )?;
+        }
+        Ok(())
+    }
+
+    /// Stores from before Orien's own themes: a theme had to have an author
+    /// and pictures. SQLite cannot drop NOT NULL, so the table is rebuilt
+    /// once, keeping every id, with foreign keys off so downloads and tips stay.
+    fn allow_official_themes(&self) -> Result<()> {
+        let has_builtin: bool = self.db.query_row(
+            "SELECT COUNT(*) > 0 FROM pragma_table_info('themes') WHERE name = 'builtin'",
+            [],
+            |row| row.get(0),
+        )?;
+        if has_builtin {
+            return Ok(());
+        }
+        self.db.execute_batch(
+            "PRAGMA foreign_keys = OFF;
+             BEGIN;
+             CREATE TABLE themes_new (
+                 id INTEGER PRIMARY KEY,
+                 author INTEGER REFERENCES accounts(id) ON DELETE CASCADE,
+                 name TEXT NOT NULL,
+                 base TEXT NOT NULL,
+                 colors TEXT NOT NULL,
+                 picture TEXT,
+                 thumb TEXT,
+                 created INTEGER NOT NULL,
+                 removed INTEGER NOT NULL DEFAULT 0,
+                 builtin TEXT UNIQUE
+             );
+             INSERT INTO themes_new (id, author, name, base, colors, picture, thumb, created, removed)
+                 SELECT id, author, name, base, colors, picture, thumb, created, removed FROM themes;
+             DROP TABLE themes;
+             ALTER TABLE themes_new RENAME TO themes;
+             CREATE INDEX IF NOT EXISTS themes_by_author ON themes(author, created);
+             COMMIT;
+             PRAGMA foreign_keys = ON;",
         )?;
         Ok(())
     }
@@ -172,13 +228,15 @@ impl Store {
     /// Takes a theme down, by its author or the founder. Gives its picture
     /// files, which can go.
     pub fn remove_theme(&self, id: i64, author: Option<i64>) -> Result<(String, String)> {
-        let found: Option<(i64, String, String)> = self
+        let found: Option<(Option<i64>, Option<String>, Option<String>)> = self
             .db
             .query_row("SELECT author, picture, thumb FROM themes WHERE id = ?1 AND removed = 0", [id], |r| {
                 Ok((r.get(0)?, r.get(1)?, r.get(2)?))
             })
             .optional()?;
         let Some((owner, picture, thumb)) = found else { bail!("there is no such theme") };
+        let Some(owner) = owner else { bail!("Orien's own themes stay in the store") };
+        let (Some(picture), Some(thumb)) = (picture, thumb) else { bail!("there is no such theme") };
         if author.is_some_and(|a| a != owner) {
             bail!("that theme isn't yours");
         }
@@ -204,9 +262,9 @@ impl Store {
 
     /// Who a tip on a theme goes to: its author and their verified wallets.
     fn theme_tip_target(&self, id: i64) -> Result<(i64, Vec<String>)> {
-        let author: Option<i64> =
+        let author: Option<Option<i64>> =
             self.db.query_row("SELECT author FROM themes WHERE id = ?1 AND removed = 0", [id], |r| r.get(0)).optional()?;
-        let Some(author) = author else { bail!("there is no such theme") };
+        let Some(author) = author.flatten() else { bail!("there is no such theme to tip") };
         let wallets = self.verified_wallets(author)?.into_iter().map(|w| w.address).collect();
         Ok((author, wallets))
     }
@@ -236,7 +294,7 @@ impl Store {
         let lately = now().saturating_sub(LATELY) as i64;
         let mut query = self.db.prepare(&format!(
             "SELECT t.id, t.name, t.base, t.colors, t.picture, t.thumb, t.created, t.author = ?1,
-                    a.id, a.name, a.picture,
+                    a.id, a.name, a.picture, t.builtin,
                     EXISTS (SELECT 1 FROM verified_wallets v WHERE v.account = a.id AND v.proven IS NOT NULL),
                     -- Where a tip goes, as for posts: the Market wallet if
                     -- verified, otherwise the first verified wallet.
@@ -254,34 +312,42 @@ impl Store {
                       + 2 * (SELECT COUNT(*) FROM theme_downloads d WHERE d.theme = t.id AND d.at > ?2)
                       + 3 * (SELECT COUNT(*) FROM theme_tips p WHERE p.theme = t.id)
                       + 6 * (SELECT COUNT(*) FROM theme_tips p WHERE p.theme = t.id AND p.at > ?2) AS score
-             FROM themes t JOIN accounts a ON a.id = t.author
+             FROM themes t LEFT JOIN accounts a ON a.id = t.author
              WHERE t.removed = 0 AND ({filter})
-               AND t.author NOT IN (SELECT account FROM suspended)
-               AND t.author NOT IN (SELECT blocker FROM blocks WHERE blocked = ?1 UNION SELECT blocked FROM blocks WHERE blocker = ?1)
+               AND (t.author IS NULL OR t.author NOT IN (SELECT account FROM suspended))
+               AND (t.author IS NULL OR t.author NOT IN (SELECT blocker FROM blocks WHERE blocked = ?1 UNION SELECT blocked FROM blocks WHERE blocker = ?1))
              ORDER BY {order} LIMIT {limit} OFFSET {offset}"
         ))?;
         let rows = query.query_map(params![viewer.unwrap_or(-1), lately], |row| {
-            let picture: String = row.get(4)?;
-            let thumb: String = row.get(5)?;
-            Ok(json!({
+            let builtin: Option<String> = row.get(11)?;
+            // Orien's own themes: published under Orien, with no tips.
+            let author = match &builtin {
+                Some(_) => json!({ "id": null, "name": "Orien", "picture": null, "verified": true, "official": true }),
+                None => json!({
+                    "id": row.get::<_, i64>(8)?,
+                    "name": row.get::<_, String>(9)?,
+                    "picture": row.get::<_, Option<String>>(10)?,
+                    "verified": row.get::<_, bool>(12)?,
+                    "tip_to": row.get::<_, Option<String>>(13)?,
+                }),
+            };
+            let mut theme = json!({
                 "id": row.get::<_, i64>(0)?,
                 "name": row.get::<_, String>(1)?,
                 "base": row.get::<_, String>(2)?,
                 "colors": serde_json::from_str::<Value>(&row.get::<_, String>(3)?).unwrap_or(json!([])),
-                "picture": picture,
-                "thumb": thumb,
+                "picture": row.get::<_, Option<String>>(4)?,
+                "thumb": row.get::<_, Option<String>>(5)?,
                 "created": row.get::<_, i64>(6)?,
                 "mine": row.get::<_, Option<bool>>(7)?.unwrap_or(false),
-                "author": {
-                    "id": row.get::<_, i64>(8)?,
-                    "name": row.get::<_, String>(9)?,
-                    "picture": row.get::<_, Option<String>>(10)?,
-                    "verified": row.get::<_, bool>(11)?,
-                    "tip_to": row.get::<_, Option<String>>(12)?,
-                },
-                "downloads": row.get::<_, i64>(13)?,
-                "tips": { "count": row.get::<_, i64>(14)?, "orn": row.get::<_, i64>(15)? },
-            }))
+                "author": author,
+                "downloads": row.get::<_, i64>(14)?,
+                "tips": { "count": row.get::<_, i64>(15)?, "orn": row.get::<_, i64>(16)? },
+            });
+            if let Some(builtin) = builtin {
+                theme["builtin"] = json!(builtin);
+            }
+            Ok(theme)
         })?;
         Ok(rows.collect::<rusqlite::Result<_>>()?)
     }
@@ -545,5 +611,49 @@ mod tests {
         assert!(!store.add_theme_tip(id, sam, "ab", 3, 1_000_000_000).unwrap());
         assert!(store.any_tip_known("ab", 3).unwrap());
         assert_eq!(store.theme_tips(id).unwrap(), (1, 1_000_000_000));
+    }
+
+    #[test]
+    fn orien_s_own_themes_are_listed_downloaded_and_never_taken_down_or_tipped() {
+        let (store, maya, sam) = maker();
+        let all = store.themes_where(Some(sam), "1", "t.id", 50, 0).unwrap();
+        let official: Vec<&Value> = all.iter().filter(|t| t.get("builtin").is_some()).collect();
+        assert_eq!(official.len(), 6);
+        let rose = official.iter().find(|t| t["builtin"] == "rose").unwrap();
+        assert_eq!(rose["name"], "Rosé");
+        assert_eq!(rose["author"], json!({ "id": null, "name": "Orien", "picture": null, "verified": true, "official": true }));
+        assert_eq!((rose["picture"].is_null(), rose["thumb"].is_null(), rose["mine"].as_bool()), (true, true, Some(false)));
+        let id = rose["id"].as_i64().unwrap();
+        assert_eq!(store.download_theme(id, "a:2").unwrap(), 1);
+        assert!(store.remove_theme(id, None).is_err(), "not even from the dashboard");
+        assert!(store.remove_theme(id, Some(maya)).is_err());
+        assert!(store.theme_tip_target(id).is_err());
+        assert!(store.report(sam, "theme", id, "no").is_err());
+        // Never in anyone's own list.
+        assert!(store.themes_where(Some(maya), &format!("t.author = {maya}"), "t.id", 50, 0).unwrap().is_empty());
+        // Opening the store again adds nothing twice.
+        store.create_theme_tables().unwrap();
+        assert_eq!(store.themes_where(None, "t.builtin IS NOT NULL", "t.id", 50, 0).unwrap().len(), 6);
+    }
+
+    #[test]
+    fn a_store_from_before_keeps_its_themes_ids_and_downloads() {
+        let (store, maya, _sam) = maker();
+        store
+            .db
+            .execute_batch(
+                "PRAGMA foreign_keys = OFF; DROP TABLE themes; PRAGMA foreign_keys = ON;
+                 CREATE TABLE themes (id INTEGER PRIMARY KEY, author INTEGER NOT NULL REFERENCES accounts(id) ON DELETE CASCADE,
+                     name TEXT NOT NULL, base TEXT NOT NULL, colors TEXT NOT NULL, picture TEXT NOT NULL, thumb TEXT NOT NULL,
+                     created INTEGER NOT NULL, removed INTEGER NOT NULL DEFAULT 0);",
+            )
+            .unwrap();
+        store.db.execute("INSERT INTO themes VALUES (4, ?1, 'Nebula', 'dark', '[\"#112233\"]', 'p.jpg', 't.jpg', 1, 0)", [maya]).unwrap();
+        store.db.execute("INSERT INTO theme_downloads VALUES (4, 'a:9', 1)", []).unwrap();
+        store.create_theme_tables().unwrap();
+        let nebula = store.theme(None, 4).unwrap().unwrap();
+        assert_eq!((nebula["name"].as_str(), nebula["downloads"].as_i64()), (Some("Nebula"), Some(1)));
+        assert_eq!(nebula["author"]["name"], "Maya");
+        assert_eq!(store.themes_where(None, "t.builtin IS NOT NULL", "t.id", 50, 0).unwrap().len(), 6);
     }
 }
