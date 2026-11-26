@@ -9157,7 +9157,7 @@
   function tipFor(p) {
     tip.post = p; tip.amount = 5; tip.busy = false;
     $("tip-icon").innerHTML = COINS_ICON;
-    $("tip-title").textContent = `Tip ${p.author.name || ""}`;
+    $("tip-title").textContent = p.kind === "theme" ? `Tip ${p.author.name || ""} for ${p.name || "this theme"}` : `Tip ${p.author.name || ""}`;
     $("tip-own").value = ""; $("tip-pw").value = "";
     $("tip-problem").hidden = true;
     $("tip-no").disabled = false;
