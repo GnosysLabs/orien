@@ -1,0 +1,1847 @@
+{
+  "_meta": {
+    "code": "ja",
+    "native": "日本語",
+    "english": "Japanese"
+  },
+  "(optional, for a reply)": "（任意・返信用）",
+  ". Fees: the usual Orien fee to lock the ORN (0.1%, at most 1 ORN), and Bitcoin's network fee for taking the Bitcoin, out of what you receive. If a buyer never pays, your ORN come back on their own within 12 hours.": "。手数料：ORN をロックするための通常の Orien 手数料（0.1%、最大 1 ORN）と、Bitcoin を受け取る際の Bitcoin ネットワーク手数料が受取額から差し引かれます。買い手が支払わない場合、ORN は12時間以内に自動で戻ります。",
+  ". Then": "。次に",
+  ". Then scan this code, or type it.": "。次にこのコードをスキャンするか、入力してください。",
+  "0 open": "0 件公開中",
+  "3 to 20 letters, numbers or _": "3〜20文字の英数字または _",
+  "A few words for people you swap with": "スワップ相手への一言",
+  "A fresh one, with its own recovery phrase": "新しいリカバリーフレーズで新規作成します",
+  "A password protects the wallet on this computer. Without it, anyone who gets this computer's files can spend from it. You will type it each time you send.": "パスワードはこのコンピューター上のウォレットを保護します。設定しない場合、このコンピューターのファイルを入手した誰でも送金できてしまいます。送金のたびに入力します。",
+  "A scam, something illegal, pretending to be someone…": "詐欺、違法行為、なりすましなど…",
+  "A seller filled your order. Delivering your ORN automatically, usually within a minute.": "売り手があなたの注文を約定しました。ORN を自動で届けています（通常1分以内）。",
+  "A small arrow on screens with more below": "下に続きがある画面に小さな矢印を表示します",
+  "AI Support": "AI サポート",
+  "About": "このアプリについて",
+  "About the same": "ほぼ同じ",
+  "About this": "詳細",
+  "About you": "自己紹介",
+  "Accent colour": "アクセントカラー",
+  "Accepted": "承諾済み",
+  "Accepted: your ORN are locked for the buyer. Waiting for them to pay.": "承諾済み：あなたの ORN は買い手のためにロックされました。支払いを待っています。",
+  "Activity": "アクティビティ",
+  "Add a GIF": "GIF を追加",
+  "Add a contact": "連絡先を追加",
+  "Add a password": "パスワードを追加",
+  "Add a poll": "投票を追加",
+  "Add a wallet": "ウォレットを追加",
+  "Add photos": "写真を追加",
+  "Add pictures": "画像を追加",
+  "Add to contacts": "連絡先に追加",
+  "Address": "アドレス",
+  "Again": "再入力",
+  "Agreed": "合意済み",
+  "Agreed by": "合意数",
+  "All": "すべて",
+  "All your wallets": "すべてのウォレット",
+  "Amount": "数量",
+  "Amount (ORN)": "数量 (ORN)",
+  "An address, a name or a checkpoint number": "アドレス、名前、またはチェックポイント番号",
+  "Another amount": "その他の数量",
+  "Any moment": "まもなく",
+  "Anyone can see it, use it and tip you for it. Your Orien Network name is shown with it. You can take it down at any time.": "誰でも閲覧・使用・チップの送信ができます。あなたの Orien Network 名が一緒に表示されます。いつでも取り下げられます。",
+  "Anyone can take it now. When they do, your wallet runs the swap by itself.": "誰でもこの注文を受けられる状態です。誰かが受けると、ウォレットが自動でスワップを実行します。",
+  "Anyone who opens the file can spend your ORN. Keep it somewhere only you can reach.": "このファイルを開いた人は誰でもあなたの ORN を送金できます。自分だけがアクセスできる安全な場所に保管してください。",
+  "Anyone who sees your 24 words can take everything in this wallet. Orien will never ask you for them, and no one helping you ever needs them.": "この24単語を見た人は誰でもウォレット内の資産をすべて奪えます。Orien がこれらを尋ねることは決してなく、サポート担当者にも必要ありません。",
+  "Appearance": "外観",
+  "Approve": "承認",
+  "Approve this order": "この注文を承認",
+  "Approve to finish your swap": "承認してスワップを完了",
+  "Ask each time Orien Wallet opens": "Orien Wallet を開くたびに確認する",
+  "Ask for payment": "送金をリクエスト",
+  "Asks · selling ORN": "売り注文 · ORN 売却",
+  "At least 8 characters": "8文字以上",
+  "Automatic · about a minute": "自動 · 約1分",
+  "Automatic · keep this page open": "自動 · このページを開いたままにしてください",
+  "Automatic · keep this page open (~15 seconds)": "自動 · このページを開いたままにしてください（約15秒）",
+  "Automatic · keep this page open (~20 seconds)": "自動 · このページを開いたままにしてください（約20秒）",
+  "Automatic · usually 30 to 60 minutes": "自動 · 通常30〜60分",
+  "Automatic · usually a minute": "自動 · 通常1分",
+  "Back": "戻る",
+  "Back to Exchange": "取引所に戻る",
+  "Background picture": "背景画像",
+  "Balance": "残高",
+  "Balance after": "送金後の残高",
+  "Banned": "利用停止",
+  "Base": "ベース",
+  "Be paid in ORN.": "ORN で支払いを受け取る。",
+  "Benchmark": "ベンチマーク",
+  "Bids · buying ORN": "買い注文 · ORN 購入",
+  "Bitcoin": "Bitcoin",
+  "Block": "ブロック",
+  "Blocked accounts": "ブロック済みアカウント",
+  "Book & Trade": "板・取引",
+  "Bring your wallets here from your phone or computer": "スマホやパソコンからウォレットを移行します",
+  "Browser Extensions": "ブラウザ拡張機能",
+  "Build a theme": "テーマを作成",
+  "Built-in safety:": "組み込みの安全機能：",
+  "Buy": "買う",
+  "Buy ORN": "ORN を買う",
+  "Buy from": "最安売り",
+  "Buyer": "買い手",
+  "Buyer pays": "買い手の支払い",
+  "Buyer's SOL reserved. Locking your ORN now. Keep this page open for a few more seconds.": "買い手の SOL を確保しました。あなたの ORN をロックしています。あと数秒このページを開いたままにしてください。",
+  "Buying ORN": "ORN を購入中",
+  "By continuing you agree to the": "続行することで次に同意したものとみなされます：",
+  "Cancel": "キャンセル",
+  "Cancel below before sending. Nothing has left your wallet.": "送金前であれば下からキャンセルできます。ウォレットからはまだ何も送られていません。",
+  "Cancel buy order": "買い注文をキャンセル",
+  "Cancel buy order & return SOL": "注文をキャンセルして SOL を返金",
+  "Cancelling your buy order on Solana and returning your SOL to your wallet. Keep this page open for about 15 seconds.": "Solana 上の買い注文をキャンセルし、SOL をウォレットへ返金しています。約15秒間このページを開いたままにしてください。",
+  "Cancelling · returning SOL": "キャンセル中 · SOL を返金中",
+  "Catching up": "同期中",
+  "Category": "カテゴリー",
+  "Change banner": "バナーを変更",
+  "Change picture": "アイコンを変更",
+  "Changed your mind?": "気が変わりましたか？",
+  "Chart currency": "チャートの通貨",
+  "Check for Updates": "アップデートを確認",
+  "Check your other device shows these": "もう一方のデバイスにこれらが表示されているか確認してください",
+  "Checking the ORN the seller locked for you": "売り手があなたのためにロックした ORN を確認しています",
+  "Checkpoints": "チェックポイント",
+  "Choose a GIF": "GIF を選択",
+  "Choose a picture": "画像を選択",
+  "Click Buy or Sell to trade directly": "買い・売りをクリックして直接取引できます",
+  "Click to add a picture": "クリックして画像を追加",
+  "Close": "閉じる",
+  "Code": "コード",
+  "Code from the email": "メールの認証コード",
+  "Community": "コミュニティ",
+  "Completed ORN / SOL swap prices over time": "完了した ORN / SOL スワップ価格の推移",
+  "Completed swap prices over time": "完了したスワップ価格の推移",
+  "Confirming": "確認中",
+  "Connected": "接続済み",
+  "Contact": "連絡先",
+  "Contacts": "連絡先",
+  "Continue": "続行",
+  "Continuing": "続行中",
+  "Cooler, fewer shares": "低発熱・シェア少なめ",
+  "Copied": "コピーしました",
+  "Copy address": "アドレスをコピー",
+  "Copy amount": "数量をコピー",
+  "Copy code": "コードをコピー",
+  "Copy the address": "アドレスをコピー",
+  "Cores in use": "使用コア数",
+  "Create a wallet": "ウォレットを作成",
+  "Create a wallet to hold ORN, or restore the one you already have.": "ORN を保管するウォレットを作成するか、既存のウォレットを復元してください。",
+  "Currency": "通貨",
+  "Dark": "ダーク",
+  "Delete contact": "連絡先を削除",
+  "Delete conversation": "会話を削除",
+  "Delete for good": "完全に削除",
+  "Delete my account": "アカウントを削除",
+  "Delete?": "削除しますか？",
+  "Describe it": "説明を入力",
+  "Didn't answer": "未応答",
+  "Does your new device show these?": "新しいデバイスにこれらが表示されていますか？",
+  "Don't show this again": "次回から表示しない",
+  "Done": "完了",
+  "Done: the ORN are in your wallet, and anything left over went back to your SOL wallet.": "完了：ORN がウォレットに届き、余剰分は SOL ウォレットに返金されました。",
+  "Done: your SOL went back to your SOL wallet.": "完了：SOL が SOL ウォレットに返金されました。",
+  "Each share": "各シェア",
+  "Each wallet has its own address, recovery phrase and activity. Tap one to open it.": "各ウォレットには固有のアドレス、リカバリーフレーズ、アクティビティがあります。タップして開きます。",
+  "Earn a share of each hour's new ORN while this app is open.": "アプリを開いている間、毎時の新規 ORN 報酬を獲得できます。",
+  "Edit": "編集",
+  "Edit Profile": "プロフィールを編集",
+  "Email": "メールアドレス",
+  "English": "英語",
+  "Enter ORN and SOL": "ORN と SOL を入力",
+  "Every miner on Orien together, estimated": "Orien 上の全マイナーの合計（推定）",
+  "Everyone": "全員",
+  "Exchange": "取引所",
+  "Explorer": "エクスプローラー",
+  "Feed": "フィード",
+  "Filled · settling (~1 min)": "約定済み · 決済中（約1分）",
+  "Final within a minute": "1分以内に確定",
+  "Find members": "メンバーを検索",
+  "Find your sweet spot": "最適な設定を探す",
+  "Fingerprints": "フィンガープリント",
+  "Finish": "完了する",
+  "Finished": "完了済み",
+  "Follow Orien's posts": "Orien の投稿をフォロー",
+  "From any Bitcoin wallet: scan the code, or copy the address and amount. This app sees the payment by itself; there is nothing else to send.": "任意の Bitcoin ウォレットから、コードをスキャンするかアドレスと数量をコピーして送金してください。このアプリが自動で入金を検知するため、他に送るものはありません。",
+  "From my other device": "他のデバイスから移行",
+  "From your SOL wallet, such as Phantom: scan the code, or copy the address and amount. Send it all in one go. This app sees it by itself; there is nothing else to send.": "Phantom などの SOL ウォレットから、コードをスキャンするかアドレスと数量をコピーして一括で送金してください。このアプリが自動で検知するため、他に送るものはありません。",
+  "Get ORN": "ORN を入手",
+  "Getting ready…": "準備中…",
+  "Give someone your address and they can send you ORN from their wallet. Payments arrive in seconds.": "相手にアドレスを伝えると、相手のウォレットから ORN を送金してもらえます。送金は数秒で届きます。",
+  "Help": "ヘルプ",
+  "Hide balance": "残高を隠す",
+  "Home": "ホーム",
+  "How is it priced?": "価格設定",
+  "I have backed up my recovery phrase": "リカバリーフレーズをバックアップしました",
+  "I understand, show them": "理解しました・表示する",
+  "Icon": "アイコン",
+  "If the buyer doesn't pay,": "買い手が支払わない場合、",
+  "If they match, tap": "一致している場合は、次をタップしてください：",
+  "If you change your mind,": "気が変わった場合は、",
+  "If you forget it, your recovery phrase still restores the wallet.": "パスワードを忘れても、リカバリーフレーズがあればウォレットを復元できます。",
+  "Install Orien Wallet on your Mac, Windows or Linux computer, open this same wallet there with its recovery phrase, and press Mine. Your computer earns a share of each hour's new ORN.": "Mac、Windows、または Linux パソコンに Orien Wallet をインストールし、リカバリーフレーズでこのウォレットを開いて「マイニング」を押してください。パソコンが毎時の新規 ORN の配分を獲得します。",
+  "It colours the buttons, the balance card, the glow and the highlights.": "ボタン、残高カード、グロー、ハイライトの色に反映されます。",
+  "It's how you add this wallet back, here or anywhere else.": "ここや他のデバイスでこのウォレットを再追加する際に使います。",
+  "Its file stays on this computer,": "ファイルはこのコンピューターに残り、",
+  "Just now": "たった今",
+  "Keep Orien Wallet running": "Orien Wallet を起動したままにしてください",
+  "Keep its 24-word recovery phrase.": "24単語のリカバリーフレーズを保管してください。",
+  "Keep running when closed": "閉じてもバックグラウンドで実行",
+  "Keep these words secret": "これらの単語は秘密にしてください",
+  "Keep this computer awake": "スリープを防ぐ",
+  "Language": "言語",
+  "Large pages": "ラージページ",
+  "Last 30 minutes": "過去30分間",
+  "Last reward": "直近の報酬",
+  "Last trade": "直近の取引",
+  "Launch validator": "初期バリデータ",
+  "Light": "ライト",
+  "Light mode: under 2 GB of free memory, so it mines more slowly.": "ライトモード：空きメモリが 2 GB 未満のため、マイニング速度が低下しています。",
+  "Link a new device": "新しいデバイスを連携",
+  "Live on book": "オーダーブック掲載中",
+  "Live on order book · settles automatically": "オーダーブック掲載中 · 自動決済",
+  "Loading chart…": "チャートを読み込み中…",
+  "Loading order book…": "オーダーブックを読み込み中…",
+  "Loading…": "読み込み中…",
+  "Lock ORN": "ORN をロック",
+  "Lock with Touch ID": "Touch ID でロック",
+  "Locked on Solana. Adding your buy order to the order book now. Keep this page open for a few more seconds.": "Solana 上でロックされました。買い注文をオーダーブックに追加しています。あと数秒このページを開いたままにしてください。",
+  "Locked payment": "ロック済み送金",
+  "Locked payment received": "ロック済み送金を受取",
+  "Locked payment returned": "ロック済み送金が返金されました",
+  "Locking your ORN": "ORN をロック中",
+  "Locking your ORN for the buyer.": "買い手のためにあなたの ORN をロックしています。",
+  "Locking your ORN for them": "相手のために ORN をロック中",
+  "Logo design": "ロゴデザイン",
+  "Make a new wallet": "新しいウォレットを作成",
+  "Make mining faster": "マイニングを高速化",
+  "Make the wallet": "ウォレットを作成",
+  "Make the window wide": "ウィンドウを広げる",
+  "Manage blocks": "ブロック管理",
+  "Market": "マーケット",
+  "Market Listings": "マーケット出品",
+  "Max": "最大",
+  "Maximize": "最大化",
+  "Memory": "メモリ",
+  "Message": "メッセージ",
+  "Message the seller": "出品者にメッセージ",
+  "Messages": "メッセージ",
+  "Messages about your Market listings always come through whatever you pick, so buyers can ask about what you're selling. Blocking still works on top of this.": "マーケットの出品に関するメッセージは、どの設定を選んでも常に届きます（購入希望者が質問できるようにするため）。ブロック機能はこの設定より優先されます。",
+  "Mine": "マイニング",
+  "Mine ORN": "ORN をマイニング",
+  "Mine it on a computer.": "パソコンでマイニングする。",
+  "Miners last hour": "直近1時間のマイナー",
+  "Miners paid": "配布マイナー数",
+  "Minimize": "最小化",
+  "Mining": "マイニング中",
+  "Mining for": "マイニング時間",
+  "Mining in large pages of memory, for extra speed.": "ラージページメモリを使用して高速にマイニングしています。",
+  "Mining reward": "マイニング報酬",
+  "Mining rewards": "マイニング報酬",
+  "More": "その他",
+  "More heat, no more ORN": "発熱増・ORN 増加なし",
+  "My theme": "マイテーマ",
+  "Name": "名前",
+  "Name or address": "名前またはアドレス",
+  "Needs about 2 GB of memory. Rewards depend on how much everyone else mines.": "約 2 GB のメモリが必要です。報酬は他の参加者のマイニング量に応じて変動します。",
+  "Network": "ネットワーク",
+  "Network hashrate": "ネットワークハッシュレート",
+  "New ORN this hour": "この1時間の新規 ORN",
+  "New account: pick a username": "新規アカウント：ユーザー名を選択",
+  "New contact": "新しい連絡先",
+  "New messages and payment requests": "新しいメッセージと送金リクエスト",
+  "New versions install while you're away from the app": "アプリを離れている間に最新版をインストールします",
+  "Newest": "新着",
+  "Next checkpoint": "次のチェックポイント",
+  "No ORN moves.": "ORN は移動しません。",
+  "No activity is recorded for this address.": "このアドレスのアクティビティ記録はありません。",
+  "No contacts yet. Add someone you pay often, or add an Orien Network member from their profile.": "連絡先はまだありません。よく送金する相手や、Orien Network メンバーをプロフィールから追加してください。",
+  "No one": "受け取らない",
+  "No open buy offers right now": "現在、公開中の買い注文はありません",
+  "No open sell offers right now": "現在、公開中の売り注文はありません",
+  "No payments yet": "まだ送金履歴がありません",
+  "No swaps yet": "スワップはまだありません",
+  "No trades yet": "取引はまだありません",
+  "No verified wallets yet": "認証済みウォレットはまだありません",
+  "No wallets yet.": "ウォレットはまだありません。",
+  "Normal": "通常",
+  "Not answering": "応答なし",
+  "Not available": "利用不可",
+  "Not in the network's history": "ネットワーク履歴にありません",
+  "Not now": "あとで",
+  "Not recorded": "記録なし",
+  "Nothing found. Search an address (64 letters and digits, 0-9 and a-f), a checkpoint number, or the name of someone on the Market.": "見つかりませんでした。アドレス（0-9 と a-f の64文字）、チェックポイント番号、またはマーケット上のユーザー名で検索してください。",
+  "Nothing has happened at this address yet.": "このアドレスの取引はまだありません。",
+  "Nothing leaves your SOL wallet until a seller locks the ORN and you pay the QR code. Keep Orien Wallet running so sellers can match your order.": "売り手が ORN をロックしてあなたが QR コードで支払うまで、SOL ウォレットから資産は引き落とされません。売り手が注文を約定できるよう、Orien Wallet を起動したままにしてください。",
+  "Notifications": "通知",
+  "ORN / SOL price chart": "ORN / SOL 価格チャート",
+  "ORN locked · SOL arriving (~1 min)": "ORN ロック済み · SOL 到着待ち（約1分）",
+  "ORN price": "ORN 価格",
+  "ORN received": "ORN 受取",
+  "ORN released": "発行済み ORN",
+  "ORN to sell": "売却する ORN",
+  "Offer posted": "注文を掲載しました",
+  "Offer taken": "注文が受けられました",
+  "Offer your ORN for SOL. When someone takes it, this app locks the ORN for them and runs the swap, as long as it's open.": "ORN を SOL と交換する注文を出品します。誰かが受けると、このアプリが開いている限り自動で ORN をロックしてスワップを実行します。",
+  "Official": "公式",
+  "Official Website": "公式サイト",
+  "Offline": "オフライン",
+  "On offer": "出品総数",
+  "On the Market": "マーケット出品中",
+  "On the swap board, waiting for someone to buy": "掲載中、買い手を待っています",
+  "On the swap board, waiting for someone to sell": "掲載中、売り手を待っています",
+  "On your new device, open Orien Wallet and choose": "新しいデバイスで Orien Wallet を開き、次を選択してください：",
+  "On your other device, open Orien Wallet, go to": "もう一方のデバイスで Orien Wallet を開き、次へ進んでください：",
+  "One account for all of Orien Network. Enter your email and type the 6-digit code we send; new here, you'll pick a username too. Signed up on orien.network already? Use the same email.": "Orien Network 全体で使える1つのアカウントです。メールアドレスを入力し、届く6桁のコードを入力してください（初めての方はユーザー名も選びます）。すでに orien.network で登録済みの場合は同じメールアドレスを使用してください。",
+  "Only send if you see the same three emoji, in the same order.": "同じ3つの絵文字が同じ順番で表示されている場合のみ送信してください。",
+  "Open": "公開中",
+  "Open Mine": "マイニングを開く",
+  "Open Orien Wallet on the device you posted or took this offer from to finish the swap": "スワップを完了するには、この注文を出品または受注したデバイスで Orien Wallet を開いてください",
+  "Open at login": "ログイン時に起動",
+  "Open the explorer": "エクスプローラーを開く",
+  "Opens Firefox's add-on store: click Add to Firefox": "Firefox のアドオンストアが開きます：「Firefox へ追加」をクリックしてください",
+  "Opens Safari's settings: tick Orien Wallet to turn it on": "Safari の設定が開きます：Orien Wallet にチェックを入れて有効にしてください",
+  "Opens the Chrome Web Store: allow other stores, then add it": "Chrome ウェブストアが開きます：他のストアからの拡張機能を許可してから追加してください",
+  "Opens the Chrome Web Store: click Add to Brave": "Chrome ウェブストアが開きます：「Brave に追加」をクリックしてください",
+  "Opens the Chrome Web Store: click Add to Chrome": "Chrome ウェブストアが開きます：「Chrome に追加」をクリックしてください",
+  "Order book": "オーダーブック",
+  "Orien Wallet for computers is at": "パソコン版 Orien Wallet はこちら：",
+  "Orien Wallet is locking your SOL on Solana and registering your order on the book. Step 2 will show a checkmark as soon as you can leave.": "Orien Wallet が Solana 上で SOL をロックし、オーダーブックに注文を登録しています。ステップ2にチェックマークが表示されたらページを離れて大丈夫です。",
+  "Orien right now": "現在の Orien",
+  "Other": "その他",
+  "Paid": "支払い済み",
+  "Paid · Bitcoin is confirming": "支払い済み · Bitcoin で確認中",
+  "Paid · SOL on its way to you": "支払い済み · SOL を送金中",
+  "Password": "パスワード",
+  "Paste": "貼り付け",
+  "Pay": "支払う",
+  "Pay exactly": "正確な送金額",
+  "Payment": "送金",
+  "Payment received. Locking it for the swap.": "入金を確認しました。スワップ用にロックしています。",
+  "Payment received. Locking your SOL on Solana now. Keep this page open for about 20 seconds.": "入金を確認しました。Solana 上で SOL をロックしています。約20秒間このページを開いたままにしてください。",
+  "Payments": "送金",
+  "Pending in your Bitcoin wallet until Bitcoin confirms it, usually within the hour": "Bitcoin ネットワークで確認されるまで Bitcoin ウォレットで保留中になります（通常1時間以内）",
+  "People": "ユーザー",
+  "People you block can't message you, and you don't see each other's profiles, posts or listings. Unblock someone to see them again.": "ブロックした相手はあなたにメッセージを送れなくなり、お互いのプロフィール・投稿・出品も非表示になります。ブロックを解除すると再び表示されます。",
+  "People you've talked with": "やり取りした相手のみ",
+  "Photos": "写真",
+  "Pick a conversation to read it.": "会話を選択して表示してください。",
+  "Pictures": "画像",
+  "Place Buy Order": "買い注文を出す",
+  "Place Sell Order": "売り注文を出す",
+  "Place order": "注文を出す",
+  "Point the camera at the QR code": "カメラを QR コードに向けてください",
+  "Poll": "投票",
+  "Popular": "人気",
+  "Post": "投稿",
+  "Post an offer": "注文を掲載",
+  "Post order": "注文を掲載",
+  "Post the offer": "注文を掲載",
+  "Post to the live ORN / SOL order book": "ライブ ORN / SOL オーダーブックに掲載",
+  "Post your listing": "出品を公開",
+  "Post your reply": "返信を投稿",
+  "Powered by KLIPY": "Powered by KLIPY",
+  "Price in ORN": "ORN 価格",
+  "Price per ORN": "1 ORN あたりの価格",
+  "Privacy Policy": "プライバシーポリシー",
+  "Privacy and security": "プライバシーとセキュリティ",
+  "Privacy policy": "プライバシーポリシー",
+  "Processor": "プロセッサ",
+  "Profile": "プロフィール",
+  "Progress": "進行状況",
+  "Ranked by ORN held": "ORN 保有量順",
+  "Receive": "受取",
+  "Received": "受取",
+  "Recent trades": "最近の取引",
+  "Recents": "最近",
+  "Recovery phrase": "リカバリーフレーズ",
+  "Remove from contacts": "連絡先から削除",
+  "Remove from the list": "リストから削除",
+  "Remove from this app": "このアプリから削除",
+  "Remove from your profile": "プロフィールから削除",
+  "Replies, reactions and the network's posts about you": "返信、リアクション、あなたに関するネットワークの投稿",
+  "Reply": "返信",
+  "Report": "報告",
+  "Report a Problem": "問題を報告",
+  "Report post": "投稿を報告",
+  "Report something else": "別の問題を報告",
+  "Report this listing": "この出品を報告",
+  "Report this post": "この投稿を報告",
+  "Reserve SOL": "SOL を確保",
+  "Reserving buyer's SOL": "買い手の SOL を確保中",
+  "Reserving the buyer's locked SOL on Solana before locking your ORN. Keep this page open for about 15 seconds.": "あなたの ORN をロックする前に、Solana 上の買い手のロック済み SOL を確保しています。約15秒間このページを開いたままにしてください。",
+  "Restore": "復元",
+  "Restore wallet": "ウォレットを復元",
+  "Restore with recovery phrase": "リカバリーフレーズで復元",
+  "Rewards": "報酬",
+  "Robot avatars:": "ロボットアバター：",
+  "Running": "稼働中",
+  "SOL to receive": "受け取る SOL",
+  "Safe to leave or close Orien Wallet.": "ページを離れても、Orien Wallet を閉じても大丈夫です。",
+  "Safe to leave this page or close Orien Wallet": "このページを離れても、Orien Wallet を閉じても大丈夫です",
+  "Safe to leave · arrives in about a minute": "ページを離れても大丈夫です · 約1分で到着",
+  "Safe to share: an address can only receive ORN.": "安全に共有できます：アドレスは ORN の受取専用です。",
+  "Save": "保存",
+  "Save as a text file": "テキストファイルとして保存",
+  "Save as contact": "連絡先に保存",
+  "Save theme": "テーマを保存",
+  "Scan a QR code": "QR コードをスキャン",
+  "Scan the code": "コードをスキャン",
+  "Search KLIPY": "KLIPY を検索",
+  "Search listings": "出品を検索",
+  "See the top 100": "上位100件を見る",
+  "Sell": "売る",
+  "Sell ORN": "ORN を売る",
+  "Sell from": "最高買い",
+  "Sell into this offer": "この買い注文に売却",
+  "Sell offers come from verified wallets, so buyers can see who they're swapping with. Verifying ties this wallet to your Orien Network name and sends less than 0.001 ORN from it, once.": "売り注文は認証済みウォレットから出品されるため、買い手は取引相手を確認できます。認証するとこのウォレットがあなたの Orien Network 名に紐づき、初回のみ 0.001 ORN 未満が送金されます。",
+  "Sell orders come from verified wallets so buyers know who they're trading with (sends < 0.001 ORN once).": "売り注文は認証済みウォレットからのみ出品できるため、買い手は取引相手を確認できます（初回のみ 0.001 ORN 未満を送金）。",
+  "Sell something": "出品する",
+  "Seller": "売り手",
+  "Selling ORN": "ORN を売却中",
+  "Send": "送金",
+  "Send & Receive": "送金・受取",
+  "Send ORN": "ORN を送金",
+  "Send ORN, see your balance, and sign in to orien.network with one click, right from your browser. Your keys never leave Orien Wallet.": "ブラウザからワンクリックで ORN の送金、残高確認、orien.network へのサインインができます。秘密鍵が Orien Wallet の外に出ることはありません。",
+  "Send SOL": "SOL を送金",
+  "Send SOL once into a Solana order. It stays live on the order book even while Orien Wallet is closed, settles in about a minute when taken, and cancels in one click.": "SOL を一度 Solana 注文へ送金するだけです。Orien Wallet を閉じていてもオーダーブックに掲載され続け、約定時は約1分で決済され、ワンクリックでキャンセルできます。",
+  "Send and verify": "送信して認証",
+  "Send me a code": "コードを送信",
+  "Send report": "報告を送信",
+  "Send to this contact": "この連絡先に送金",
+  "Send your wallets to your other phone or computer": "別のスマホやパソコンにウォレットを送ります",
+  "Sent": "送金",
+  "Sent a GIF": "GIF を送信しました",
+  "Sent a picture": "画像を送信しました",
+  "Sent from another app": "他のアプリから送金",
+  "Set password": "パスワードを設定",
+  "Set up": "設定する",
+  "Set up mining": "マイニングを設定",
+  "Settings": "設定",
+  "Settling": "決済中",
+  "Share address": "アドレスを共有",
+  "Share theme": "テーマを共有",
+  "Shared among miners": "マイナー間で配分",
+  "Shares": "シェア",
+  "Shares an hour": "1時間あたりのシェア",
+  "Shares this hour": "この1時間のシェア",
+  "Show more": "もっと見る",
+  "Show scroll arrow": "スクロール矢印を表示",
+  "Show your accounts on your profile, if you like. Everyone can see them.": "希望すればプロフィールにアカウントを表示できます。全員に公開されます。",
+  "Sign Out": "サインアウト",
+  "Sign in": "サインイン",
+  "Sign in to Orien Network": "Orien Network にサインイン",
+  "Sign in to message the seller": "サインインして出品者に連絡",
+  "Size (ORN)": "数量 (ORN)",
+  "Smallest swap: 0.00015 BTC, more when Bitcoin is busy": "最小スワップ額：0.00015 BTC（Bitcoin ネットワーク混雑時は増加します）",
+  "Smallest swap: 0.01 SOL. Fees: the usual Orien fee to lock the ORN (0.1%, at most 1 ORN); the buyer covers Solana's small fees. A swap takes about a minute. If a buyer never pays, your ORN come back on their own within a few hours.": "最小スワップ額：0.01 SOL。手数料：ORN をロックするための通常の Orien 手数料（0.1%、最大 1 ORN）。Solana の少額手数料は買い手が負担します。スワップは約1分で完了します。買い手が支払わない場合、ORN は数時間以内に自動で戻ります。",
+  "So swap offers stay open, and payments and mining carry on. The screen can still turn off.": "スワップ注文の公開や送金・マイニングが継続されるようにします。画面自体はオフにできます。",
+  "Social Links": "公式SNS",
+  "Socials": "SNS リンク",
+  "Sort by": "並び替え",
+  "Speed": "速度",
+  "Stake returned": "ステークが返還されました",
+  "Start Orien Wallet when you log in": "ログイン時に Orien Wallet を自動で開きます",
+  "Start mining": "マイニング開始",
+  "Start mining to see your speed here.": "マイニングを開始すると速度が表示されます。",
+  "Stay on this page for a moment:": "このまま少しお待ちください：",
+  "Stop mining": "マイニング停止",
+  "Stop replying": "返信をキャンセル",
+  "Stopped": "停止中",
+  "Swap": "スワップ",
+  "Swap ORN and SOL directly with other people. About a minute, no fee.": "他のユーザーと ORN と SOL を直接スワップ。約1分、手数料無料。",
+  "Swap SOL or Bitcoin for ORN with other people, directly between your wallets, on the Swap screen. With SOL it takes a few minutes, and you pay from the SOL wallet you already have, such as Phantom.": "スワップ画面で他のユーザーとウォレット同士で直接 SOL や Bitcoin を ORN に交換できます。SOL なら数分で完了し、Phantom など既存の SOL ウォレットから支払えます。",
+  "Swap for it.": "スワップで入手する。",
+  "Swap updates": "スワップ更新",
+  "Swaps": "スワップ",
+  "Swaps and payments carry on from the menu bar": "メニューバーからスワップと送金を継続します",
+  "Swaps and payments carry on from the system tray": "システムトレイからスワップと送金を継続します",
+  "Take the offer": "注文を受ける",
+  "Take this offer": "この注文を受ける",
+  "Taking your Bitcoin back": "Bitcoin を返金しています",
+  "Tap to reveal": "タップして表示",
+  "Tell Orien Network what's wrong with it: a scam, spam, abuse, or something illegal. Every report is reviewed.": "詐欺、スパム、迷惑行為、違法行為など、問題の内容を Orien Network にお知らせください。すべての報告を確認します。",
+  "Tell us what happened": "起きたことを入力してください",
+  "Tell us what went wrong. Every report is read.": "不具合の内容をお知らせください。すべて確認します。",
+  "Terms of Service": "利用規約",
+  "Terms of service": "利用規約",
+  "Thanks, it's sent": "送信しました",
+  "That is not this wallet's password.": "このウォレットのパスワードが正しくありません。",
+  "The buyer": "買い手",
+  "The buyer is paying. This app takes the SOL as soon as it's locked, usually within a minute.": "買い手が支払っています。SOL がロックされ次第、このアプリが自動で受け取ります（通常1分以内）。",
+  "The buyer · within a few hours": "買い手 · 数時間以内",
+  "The buyer's ORN delivered": "買い手への ORN 送付完了",
+  "The chart begins as soon as the first ORN / SOL swap completes.": "最初の ORN / SOL スワップが完了するとチャートが表示されます。",
+  "The extra over the price": "価格に対する上乗せ分",
+  "The latest 500": "最新500件",
+  "The seller didn't take the SOL in time. Sending it back to your SOL wallet.": "売り手が期限内に SOL を受け取りませんでした。SOL ウォレットへ返金しています。",
+  "The seller took the SOL. Claiming your ORN.": "売り手が SOL を受け取りました。ORN を受け取っています。",
+  "The seller · done": "売り手 · 完了",
+  "The seller's wallet delivers your ORN once they take the SOL.": "売り手が SOL を受け取ると、売り手のウォレットから ORN が届きます。",
+  "The website learns this wallet's address.": "このウェブサイトにウォレットのアドレスが共有されます。",
+  "Their 64-character address": "相手の64文字アドレス",
+  "Their Orien Wallet makes it once it has checked your offer. It tells this app where they'll pay the Bitcoin.": "相手の Orien Wallet があなたの注文を確認すると生成されます。Bitcoin の支払い先をこのアプリに伝えるためのものです。",
+  "Theme Store": "テーマストア",
+  "Themes made by the Orien community": "Orien コミュニティ作成のテーマ",
+  "Then paste the buyer's reply code": "次に買い手の返信コードを貼り付けてください",
+  "They match": "一致する",
+  "They match, send": "一致しました・送信",
+  "This app · under a minute": "このアプリ · 1分未満",
+  "This computer": "このコンピューター",
+  "This hour": "この1時間",
+  "This wallet's password": "このウォレットのパスワード",
+  "Tip": "チップ",
+  "To": "宛先",
+  "Today": "今日",
+  "Top miners": "トップマイナー",
+  "Top wallets": "上位ウォレット",
+  "Total": "合計",
+  "Total (SOL)": "合計 (SOL)",
+  "Trade": "取引",
+  "Trades": "取引履歴",
+  "Turn on syncing": "同期をオンにする",
+  "Turn on syncing, so your contacts and wallet icons match on all your devices. It needs this wallet unlocked once.": "同期をオンにすると、連絡先やウォレットアイコンがすべてのデバイスで揃います。初回のみこのウォレットのロック解除が必要です。",
+  "Type the 24 words of a wallet you have": "お持ちのウォレットの24単語を入力します",
+  "Type your wallet password below, so this app can claim your ORN": "ORN を受け取るため、下にウォレットパスワードを入力してください",
+  "Type your wallet password below, so this app can finish the swap": "スワップを完了するため、下にウォレットパスワードを入力してください",
+  "Unlock": "ロック解除",
+  "Up to four. The first is the one shown on your listing's card.": "最大4枚まで。1枚目が一覧カードに表示されます。",
+  "Update automatically": "自動アップデート",
+  "Update to Latest": "最新版に更新",
+  "Updates as they happen, and chat with the community": "最新アップデートやコミュニティとのチャット",
+  "Use my other device": "他のデバイスを使う",
+  "Use my recovery phrase": "リカバリーフレーズを使う",
+  "Use the reply": "返信を使う",
+  "User Guide": "ユーザーガイド",
+  "Username": "ユーザー名",
+  "Validator fees": "バリデータ手数料",
+  "Validators": "バリデータ",
+  "Verify": "認証",
+  "Verify a wallet and people who pay it see your name with it.": "ウォレットを認証すると、送金する相手にあなたの名前が一緒に表示されます。",
+  "Verify this wallet": "このウォレットを認証",
+  "Verify this wallet to offer swaps": "スワップを出品するにはウォレット認証が必要です",
+  "Verify this wallet to place sell orders": "売り注文を出すにはウォレット認証が必要です",
+  "Version": "バージョン",
+  "Videos about Orien": "Orien の紹介動画",
+  "View": "表示",
+  "View Profile": "プロフィールを見る",
+  "View all": "すべて表示",
+  "Waiting for your other device": "他のデバイスを待機中",
+  "Waiting for your wallets": "ウォレットを待機中",
+  "Wallet": "ウォレット",
+  "Wallet password": "ウォレットパスワード",
+  "Wallet password, so this app can sign the next step": "次のステップに署名するためのウォレットパスワード",
+  "Wallet password, to approve this sale": "この売却を承認するためのウォレットパスワード",
+  "Wallet password, to approve this swap": "このスワップを承認するためのウォレットパスワード",
+  "Wallet settings": "ウォレット設定",
+  "Wallets": "ウォレット",
+  "Wallets holding ORN": "ORN 保有ウォレット",
+  "We'll look into it.": "確認いたします。",
+  "Welcome to Orien Wallet": "Orien Wallet へようこそ",
+  "What are you offering?": "何を出品しますか？",
+  "What happens:": "実行される内容：",
+  "What is wrong with this post?": "この投稿のどこに問題がありますか？",
+  "What the buyer gets, how long it takes, anything they should know.": "購入者が受け取れる内容、納期、事前に知っておくべきことなど。",
+  "What we'll send": "送信される情報",
+  "What went wrong?": "何が起きましたか？",
+  "What's happening?": "いまどうしてる？",
+  "When an offer is taken and as swaps finish": "注文が成立したときや完了したとき",
+  "When someone sends you ORN": "誰かから ORN を受け取ったとき",
+  "Where did it happen?": "どこで発生しましたか？",
+  "Where the SOL should go, such as your Phantom wallet": "Phantom ウォレットなど、SOL の受取先",
+  "Where was it?": "発生した画面",
+  "Where your Bitcoin comes back if the swap stops": "スワップが中断された場合の Bitcoin 返金先",
+  "Where your SOL should go, such as your Phantom wallet": "Phantom ウォレットなど、あなたの SOL の受取先",
+  "While it's open, Orien Wallet does each of its steps for you as soon as it can.": "アプリを開いている間、Orien Wallet が各ステップを自動で進めます。",
+  "Who can message you": "メッセージを受信する相手",
+  "Who is this?": "名前",
+  "With their names and icons. Your new device asks there whether to add a password.": "名前とアイコンも一緒に移行されます。新しいデバイスでパスワードを設定するか選べます。",
+  "Withdraw": "取り消す",
+  "Work and things offered for ORN. You pay the seller straight from your wallet: the Market never holds anyone's coins.": "ORN で取引される仕事や商品。ウォレットから出品者へ直接支払うため、マーケットが誰かのコインを預かることはありません。",
+  "Working, keep this page open": "処理中、このページを開いたままにしてください",
+  "Write them down in order, on paper, and keep it somewhere safe.": "順番どおりに紙に書き留め、安全な場所に保管してください。",
+  "Write these 24 words on paper, in order, and keep them somewhere safe. They are the only way back into this wallet if this device is lost. Anyone who sees them can spend your ORN.": "この24単語を順番どおりに紙に書き留め、安全な場所に保管してください。このデバイスを紛失した場合にウォレットへ戻る唯一の方法です。これらを見た人は誰でもあなたの ORN を送金できます。",
+  "Yesterday": "昨日",
+  "You": "あなた",
+  "You approve the sale once, now. When someone takes your offer, your wallet accepts it within seconds, even with the window closed. Keep Orien Wallet running.": "ここで一度売却を承認します。誰かが注文を受けると、ウィンドウを閉じていても数秒以内にウォレットが自動で承諾します。Orien Wallet を起動したままにしてください。",
+  "You get": "受取数量",
+  "You need": "必要なもの",
+  "You pay": "支払数量",
+  "You sell": "売却数量",
+  "You · now": "あなた · 今すぐ",
+  "You · stay on this page until Step 2 finishes": "あなた · ステップ2が終わるまでこのページに留まってください",
+  "You · within a few hours": "あなた · 数時間以内",
+  "Your 24 words, separated by spaces": "24単語をスペース区切りで入力",
+  "Your Bitcoin address": "あなたの Bitcoin アドレス",
+  "Your Discord username": "あなたの Discord ユーザー名",
+  "Your ORN stay safe:": "ORN は安全に保護されます：",
+  "Your Phantom / SOL wallet (for refunds & leftovers)": "あなたの Phantom / SOL ウォレット（返金・余剰分受取用）",
+  "Your SOL address": "あなたの SOL アドレス",
+  "Your SOL is locked for the seller. Their wallet takes it and your ORN arrive, usually within a minute.": "あなたの SOL は売り手のためにロックされました。売り手のウォレットが受け取ると、通常1分以内に ORN が届きます。",
+  "Your SOL stays locked safely on Solana until a seller fills it, you cancel in one click, or it expires after 7 days and refunds automatically.": "売り手が約定するか、あなたがワンクリックでキャンセルするか、7日後に期限切れとなり自動返金されるまで、SOL は Solana 上で安全にロックされます。",
+  "Your SOL wallet address": "あなたの SOL ウォレットアドレス",
+  "Your Telegram username": "あなたの Telegram ユーザー名",
+  "Your X username": "あなたの X ユーザー名",
+  "Your address": "あなたのアドレス",
+  "Your buy order is live on the order book. You are all set to leave this page or close Orien Wallet. Any extra SOL has been sent back to your wallet, and when a seller takes your order your ORN will arrive automatically.": "買い注文がオーダーブックに掲載されました。このページを離れても、Orien Wallet を閉じても大丈夫です。余剰分の SOL はウォレットに返金されており、売り手が注文を受けると ORN が自動で届きます。",
+  "Your email": "メールアドレス",
+  "Your language follows you to your other devices.": "言語設定は他のデバイスにも同期されます。",
+  "Your listings": "自分の出品",
+  "Your offer is live": "注文が公開されました",
+  "Your orders & swaps": "自分の注文・スワップ",
+  "Your profile": "あなたのプロフィール",
+  "Your recovery phrase": "リカバリーフレーズ",
+  "Your share": "あなたの割合",
+  "Your share of each hour's new ORN": "1時間ごとの新規 ORN の配分",
+  "Your share of the hour's fees": "この1時間の手数料の配分",
+  "Your share of the hour's new ORN": "この1時間の新規 ORN の配分",
+  "Your speed": "あなたの速度",
+  "Your swaps": "自分のスワップ",
+  "Your theme follows you to your other devices.": "テーマは他のデバイスにも同期されます。",
+  "Your turn: confirm with your wallet password so this app can finish it": "あなたの番です：完了するためウォレットパスワードで確認してください",
+  "Your username, as others see it": "他のユーザーに表示されるユーザー名",
+  "Your wallet locks the ORN automatically when someone buys your offer. Keep Orien Wallet running in the menu bar or tray.": "誰かがあなたの注文を買うと、ウォレットが自動で ORN をロックします。メニューバーまたはトレイで Orien Wallet を起動したままにしてください。",
+  "Your wallets": "自分のウォレット",
+  "Yours": "自分のもの",
+  "and": "および",
+  "and choose": "を開き、次を選択してください：",
+  "and its ORN stay in it. This only takes it off the list.": "その中の ORN もそのまま残ります。一覧から外れるだけです。",
+  "any moment": "まもなく",
+  "by Pablo Stanley, drawn with": "Pablo Stanley 作、制作ツール：",
+  "covers Solana's small fees; nearly all of it comes back to your SOL wallet when the swap ends.": "Solana の少額手数料に充てられます。スワップ終了時にほぼ全額が SOL ウォレットに戻ります。",
+  "covers Solana's small rent and fees; nearly all of it returns to your SOL wallet automatically.": "Solana の少額レントと手数料に充てられます。ほぼ全額が自動で SOL ウォレットに戻ります。",
+  "estimated": "推定",
+  "just don't send: nothing has left your wallets.": "送金しなければ大丈夫です。ウォレットからは何も送られていません。",
+  "new ORN": "新規 ORN",
+  "none yet": "まだありません",
+  "per ORN": "/ ORN",
+  "the ORN in this wallet, plus the usual Orien fee (0.1%, at most 1 ORN). You don't need any SOL.": "このウォレットの ORN と、通常の Orien 手数料（0.1%、最大 1 ORN）。SOL は不要です。",
+  "the buyer's SOL is already locked on Solana. Your wallet reserves it, locks your ORN, and both sides settle automatically in about a minute without waiting on the buyer.": "買い手の SOL はすでに Solana 上でロックされています。ウォレットがそれを確保してあなたの ORN をロックすると、買い手を待たずに約1分で双方が自動決済されます。",
+  "the code it shows.": "表示されたコードを。",
+  "there. Your wallets arrive here by themselves.": "。ウォレットが自動でここに届きます。",
+  "this app verifies the buyer's SOL is reserved for your address on Solana before locking your ORN, then both sides settle in about a minute.": "このアプリはあなたの ORN をロックする前に、買い手の SOL が Solana 上であなたのアドレス宛に確保されていることを確認し、その後約1分で双方が決済されます。",
+  "to this Bitcoin address": "この Bitcoin アドレスへ",
+  "to this SOL address": "この SOL アドレスへ",
+  "type": "次を入力：",
+  "your ORN come back to you on their own within a few hours. You don't need to do anything.": "ORN は数時間以内に自動で戻ってきます。何もする必要はありません。",
+  "your wallet never locks your ORN until the buyer's SOL is reserved for your address on Solana.": "買い手の SOL が Solana 上であなたのアドレス宛に確保されるまで、ウォレットがあなたの ORN をロックすることはありません。",
+  "✓ Complete": "✓ 完了",
+  "✓ Live on the order book (safe to leave)": "✓ オーダーブックに掲載済み（ページを閉じても大丈夫です）",
+  "Update needed": "更新が必要です",
+  "More below": "下に続きがあります",
+  "Back to top": "先頭へ戻る",
+  "+ Add a choice": "+ 選択肢を追加",
+  "1 day": "1日",
+  "12 hours after they were locked": "ロックされてから12時間後",
+  "3 days": "3日",
+  "30 min ago": "30分前",
+  "7 days": "7日",
+  "A locked payment nobody claimed": "誰も受け取らなかったロック済み送金",
+  "A new miner joined": "新しいマイナーが参加しました",
+  "A theme you use is your own copy: the maker can't change it, and you can edit or delete it like one you built.": "使用するテーマはあなた自身のコピーになります。作成者が変更することはできず、自作のテーマと同様に編集・削除できます。",
+  "AI answers can be wrong": "AI の回答は誤っている場合があります",
+  "Activity and notifications": "アクティビティと通知",
+  "Add another wallet": "別のウォレットを追加",
+  "Among members with a verified wallet, by ORN mined.": "認証済みウォレットを持つメンバーの ORN マイニング量順。",
+  "An earlier payment from this wallet had to finish first, so nothing was sent for verifying yet. Tap again to send it.": "このウォレットの前の送金が先に完了する必要があったため、認証用の送金はまだ行われていません。もう一度タップして送信してください。",
+  "An earlier payment from this wallet had to finish first, so this one wasn't sent yet. Tap Pay again.": "このウォレットの前の送金が先に完了する必要があったため、この送金はまだ送信されていません。もう一度「支払う」をタップしてください。",
+  "An earlier payment from this wallet had to finish first, so this tip wasn't sent yet. Tap Tip again.": "このウォレットの前の送金が先に完了する必要があったため、このチップはまだ送信されていません。もう一度「チップ」をタップしてください。",
+  "Answers come from an AI and can be wrong. It never needs your recovery words, passwords or keys: never share them with anyone.": "回答は AI によるもので、誤っている場合があります。リカバリーワード、パスワード、秘密鍵が必要になることは決してありません。誰にも共有しないでください。",
+  "Any colour you like": "お好みの色",
+  "Anyone can read along. To write, reply or react, sign in and verify a wallet.": "誰でも閲覧できます。投稿、返信、リアクションをするには、サインインしてウォレットを認証してください。",
+  "Anyone can sell into it now. When they do, their wallet locks the ORN and this app opens the pay screen.": "誰でもこの注文に売却できる状態です。誰かが売却すると、相手のウォレットが ORN をロックし、このアプリで支払い画面が開きます。",
+  "Anyone with these words can spend this wallet's ORN. Orien never asks for them.": "これらの単語を知っている人は誰でもこのウォレットの ORN を送金できます。Orien がこれらを尋ねることはありません。",
+  "Anything left over, or a refund, comes back here": "余剰分や返金はここに戻ります",
+  "Approve in Orien Wallet to finish your swap.": "Orien Wallet で承認してスワップを完了してください。",
+  "Ask Orien AI Support": "Orien AI サポートに質問する",
+  "Ask a question": "質問する",
+  "Ask anything about the wallet, mining, swaps or the network, in your own words.": "ウォレット、マイニング、スワップ、ネットワークについて、自由に質問してください。",
+  "At this speed and today's difficulty": "この速度と現在の難易度での推定",
+  "Australian dollar": "オーストラリアドル",
+  "Automatic · a few minutes": "自動 · 数分",
+  "Automatic · usually within minutes": "自動 · 通常数分以内",
+  "Available": "利用可能",
+  "Back from staking": "ステーキングから返還",
+  "Back up its recovery phrase: each wallet has its own.": "リカバリーフレーズをバックアップしてください。ウォレットごとに固有のフレーズがあります。",
+  "Back up your recovery phrase": "リカバリーフレーズをバックアップ",
+  "Ban": "利用停止にする",
+  "Banned from the group chat": "グループチャットから利用停止中",
+  "Benchmark again": "もう一度ベンチマーク",
+  "Benchmarking…": "ベンチマーク中…",
+  "Bitcoin to pay": "支払う Bitcoin",
+  "Bitcoin to receive": "受け取る Bitcoin",
+  "Blocked": "ブロック済み",
+  "Brazilian real": "ブラジルレアル",
+  "British pound": "英ポンド",
+  "Build your own theme": "オリジナルテーマを作成",
+  "Buy ORN with SOL or Bitcoin": "SOL または Bitcoin で ORN を買う",
+  "Buy amount (ORN)": "購入数量 (ORN)",
+  "Buyers on the Market pay the wallet marked Paid here. Verify more to choose between them.": "マーケットの購入者は「受取先」に設定されたウォレットへ支払います。複数認証すると切り替えられます。",
+  "By any message app or email. It tells the buyer's Orien Wallet what you locked for them, and holds nothing secret.": "任意のメッセージアプリやメールで送ってください。買い手の Orien Wallet にロックした内容を伝えるもので、秘密情報は含まれません。",
+  "By any message app or email. It tells the seller's Orien Wallet where you're paying the Bitcoin, and holds nothing secret.": "任意のメッセージアプリやメールで送ってください。売り手の Orien Wallet に Bitcoin の支払い元を伝えるもので、秘密情報は含まれません。",
+  "Canadian dollar": "カナダドル",
+  "Chat": "チャット",
+  "Chat with everyone": "みんなとチャット",
+  "Check this one and send it again.": "内容を確認してもう一度送信してください。",
+  "Checking": "確認中",
+  "Checking for updates": "アップデートを確認中",
+  "Checkpoint": "チェックポイント",
+  "Chinese yuan": "中国人民元",
+  "Choose SOL or Bitcoin, then type how many ORN to sell, how much you want for them, and the address you'll be paid at.": "SOL または Bitcoin を選び、売却する ORN の数量、希望額、受取用アドレスを入力してください。",
+  "Clear": "クリア",
+  "Click": "クリック：",
+  "Click again to start over": "もう一度クリックしてやり直す",
+  "Click your browser and add Orien Wallet there.": "お使いのブラウザをクリックして Orien Wallet を追加してください。",
+  "Closed": "終了",
+  "Confirm below": "下で確認してください",
+  "Confirmed": "確認済み",
+  "Connected to the network": "ネットワークに接続済み",
+  "Connecting": "接続中",
+  "Copy": "コピー",
+  "Couldn't check": "確認できませんでした",
+  "Cover": "表紙",
+  "Delete this conversation? Tap again": "この会話を削除しますか？もう一度タップ",
+  "Delete this post?": "この投稿を削除しますか？",
+  "Do this once on each device. After that, contacts and wallet icons stay the same on all of them.": "各デバイスで1回だけ設定してください。その後は連絡先とウォレットアイコンがすべて同期されます。",
+  "Don't have any ORN yet? Mine for an hour from the Mine screen, or buy a little on Swap.": "まだ ORN をお持ちでないですか？マイニング画面で1時間マイニングするか、スワップで少量購入できます。",
+  "Don't have any ORN yet? Mine for an hour in Orien Wallet on a computer, or buy a little at orien.network.": "まだ ORN をお持ちでないですか？パソコン版 Orien Wallet で1時間マイニングするか、orien.network で少量購入できます。",
+  "Downloads": "ダウンロード数",
+  "Edit listing": "出品を編集",
+  "Edit theme": "テーマを編集",
+  "Editing your theme later doesn't change the shared one. Share it again as a new theme if you like the new version better.": "あとからテーマを編集しても、共有済みのテーマには反映されません。新しいバージョンを公開したい場合は、新しいテーマとして再度共有してください。",
+  "Euro": "ユーロ",
+  "Everyone on Orien Network": "Orien Network の全員",
+  "Everything in the group chat is public. Be kind.": "グループチャットの内容はすべて公開されます。思いやりを持って会話しましょう。",
+  "Expired": "期限切れ",
+  "Failed": "失敗",
+  "Fee": "手数料",
+  "Final results": "最終結果",
+  "Find themes in the Theme Store": "テーマストアでテーマを探す",
+  "First ORN": "初 ORN",
+  "From": "差出人",
+  "Fund your buy order with a quick SOL QR payment. Once funded, it stays live even with Orien Wallet closed, and you can cancel anytime in one click.": "SOL の QR 決済ですぐに買い注文へ入金できます。入金後は Orien Wallet を閉じていても公開され続け、いつでもワンクリックでキャンセルできます。",
+  "Get ORN on iPhone": "iPhone で ORN を入手",
+  "Get back to Home": "ホームに戻る",
+  "Get paid here": "ここで受け取る",
+  "Getting": "取得中",
+  "Getting ORN": "ORN を入手する",
+  "Getting it ready…": "準備中…",
+  "Getting ready (about a minute)": "準備中（約1分）",
+  "Getting started": "はじめに",
+  "Give it a": "次を設定：",
+  "Give the wallet a name, like Mining.": "「マイニング用」など、ウォレットに名前を付けてください。",
+  "Hong Kong dollar": "香港ドル",
+  "If the app updates while mining, mining starts again by itself.": "マイニング中にアプリがアップデートされた場合、マイニングは自動で再開されます。",
+  "If the buyer never pays,": "買い手が支払わない場合、",
+  "If the buyer pays but this app stays closed for more than about 4 hours, they take their Bitcoin back and your ORN still come back to you. Nobody loses coins.": "買い手が支払ったあと、このアプリが約4時間以上閉じたままになると、買い手は Bitcoin を取り戻し、あなたの ORN もあなたに戻ります。誰もコインを失いません。",
+  "If the seller never takes your Bitcoin,": "売り手が Bitcoin を受け取らない場合、",
+  "If the seller never takes your SOL,": "売り手が SOL を受け取らない場合、",
+  "In use": "使用中",
+  "Indian rupee": "インドルピー",
+  "Indonesian rupiah": "インドネシアルピア",
+  "It arrives in seconds. Save a new address as a contact from the last screen if you like.": "数秒で届きます。必要であれば最後の画面から新しいアドレスを連絡先に保存できます。",
+  "It installs in a moment, and the app reopens by itself.": "まもなくインストールされ、アプリが自動で再起動します。",
+  "It's checked, then shows in the store with your name, where anyone can try it, use it and tip you.": "確認後、あなたの名前付きでストアに表示され、誰でも試用・利用・チップの送信ができるようになります。",
+  "Japanese yen": "日本円",
+  "Keep Orien Wallet running while your buy offer is live. When someone accepts, you'll get a notification and the pay screen opens so you can send the payment.": "買い注文の公開中は Orien Wallet を起動したままにしてください。誰かが承諾すると通知が届き、支払い画面が開きます。",
+  "Keep contacts the same everywhere": "すべてのデバイスで連絡先を同期",
+  "Large pages are set up, but mining is in ordinary memory this hour. If a restart doesn't switch it, restarting the computer frees the memory up.": "ラージページは設定済みですが、この1時間は通常メモリでマイニングしています。マイニングの再起動で切り替わらない場合は、コンピューターを再起動するとメモリが解放されます。",
+  "Later": "あとで",
+  "Lets mining use large pages of memory, usually 10 to 30% faster. Windows asks for an administrator's approval once, then you sign out and back in.": "マイニングでラージページメモリを使用できるようにし、通常10〜30%高速化します。Windows で一度だけ管理者権限の承認が求められ、その後サインアウトして再サインインします。",
+  "Like it? The coins button tips its maker some ORN. The flag reports a theme that breaks the rules.": "気に入りましたか？コインボタンで作成者に ORN のチップを送れます。旗ボタンでルール違反のテーマを報告できます。",
+  "Link a device": "デバイスを連携",
+  "Listing": "出品",
+  "Loading": "読み込み中",
+  "Locked payment from": "ロック済み送金元",
+  "Locking ORN": "ORN をロック中",
+  "Look up the network": "ネットワークを検索",
+  "Made": "作成時刻",
+  "Made final": "確定済み",
+  "Make cover": "表紙にする",
+  "Make my account": "アカウントを作成",
+  "Make the window small": "ウィンドウを小さくする",
+  "Marked as paid": "支払い済みに設定",
+  "Message everyone": "全員にメッセージ",
+  "Mexican peso": "メキシコペソ",
+  "Milestone": "マイルストーン",
+  "Mine for an hour from the Mine screen, or buy a little on Swap.": "マイニング画面で1時間マイニングするか、スワップで少量購入してください。",
+  "Mine for an hour in Orien Wallet on a computer, or buy a little at orien.network.": "パソコン版 Orien Wallet で1時間マイニングするか、orien.network で少量購入してください。",
+  "Mine on a computer: install Orien Wallet there, link this wallet, and press": "パソコンでマイニング：Orien Wallet をインストールしてこのウォレットを連携し、次を押してください：",
+  "Mine with a verified wallet and your figures show here after the next checkpoint.": "認証済みウォレットでマイニングすると、次のチェックポイント以降に実績がここに表示されます。",
+  "Miners who have verified a wallet on their Orien Network account, by ORN mined. Verify your wallet on your account to be on the list.": "Orien Network アカウントでウォレットを認証したマイナーの ORN マイニング量ランキングです。掲載されるにはアカウントでウォレットを認証してください。",
+  "Minimum order is 0.01 SOL": "最小注文額は 0.01 SOL です",
+  "Moderator": "モデレーター",
+  "Mute the group chat": "グループチャットをミュート",
+  "Muted": "ミュート中",
+  "My Orien (ORN) address": "自分の Orien (ORN) アドレス",
+  "New here?": "初めての方はこちら",
+  "New record": "新記録",
+  "New validator": "新規バリデータ",
+  "Nigerian naira": "ナイジェリアナイラ",
+  "No GIFs found.": "GIF が見つかりません。",
+  "No GIFs right now.": "現在利用できる GIF はありません。",
+  "No description.": "説明はありません。",
+  "No messages yet. Say hello to everyone.": "まだメッセージがありません。みんなに挨拶してみましょう。",
+  "No questions left today. Come back tomorrow.": "本日の質問回数の上限に達しました。明日またお試しください。",
+  "No results": "結果がありません",
+  "No rewards yet": "報酬はまだありません",
+  "No swaps completed yet. The next swap sets the price.": "完了したスワップはまだありません。次のスワップが価格の基準になります。",
+  "No verified wallet yet": "認証済みウォレットはまだありません",
+  "Nobody by that name.": "その名前のユーザーは見つかりません。",
+  "Nobody is banned.": "利用停止中のユーザーはいません。",
+  "Nobody with a verified wallet has been paid for mining yet.": "認証済みウォレットでマイニング報酬を受け取った人はまだいません。",
+  "None": "なし",
+  "Not an Orien address": "Orien アドレスではありません",
+  "Not verified yet": "未認証",
+  "Nothing from the network about them yet.": "このユーザーに関するネットワークからの記録はまだありません。",
+  "Nothing here yet. Be the first to sell something.": "まだ出品がありません。最初の出品をしてみましょう。",
+  "Nothing in the community yet.": "コミュニティの投稿はまだありません。",
+  "Nothing matches that yet.": "一致するものがまだありません。",
+  "Nothing yet. Replies, reactions and messages show up here.": "まだありません。返信、リアクション、メッセージがここに表示されます。",
+  "ORN held": "保有 ORN",
+  "ORN mined": "マイニング済み ORN",
+  "ORN to buy": "購入する ORN",
+  "On a streak": "連続達成中",
+  "On an iPhone, scan the new device's QR code. On a computer, type its code and click": "iPhone では新しいデバイスの QR コードをスキャンしてください。パソコンではコードを入力して次をクリックしてください：",
+  "On one of your own themes, click the share button (the box with an arrow), then": "自作テーマの共有ボタン（矢印付きのボックス）をクリックしてから、次を選んでください：",
+  "Only letters, numbers and _": "英数字と _ のみ使用できます",
+  "Open it to verify": "開いて認証する",
+  "Open offers": "公開中の注文",
+  "Orien AI Support": "Orien AI サポート",
+  "Orien Group Chat": "Orien グループチャット",
+  "Orien Wallet locks after a minute away.": "Orien Wallet は1分間操作しないとロックされます。",
+  "Orien Wallet locks whenever you leave it.": "Orien Wallet はアプリを離れるたびにロックされます。",
+  "Paid here": "受取先",
+  "Pay now": "今すぐ支払う",
+  "Pay total (SOL)": "支払合計 (SOL)",
+  "Paying": "支払い中",
+  "Payment request": "送金リクエスト",
+  "Pending": "保留中",
+  "Philippine peso": "フィリピンペソ",
+  "Pick a category.": "カテゴリーを選択してください。",
+  "Pick an": "次を選択：",
+  "Point at a message": "メッセージにカーソルを合わせる",
+  "Point the camera at the code on your other device": "もう一方のデバイスのコードにカメラを向けてください",
+  "Point the camera at their Receive QR code": "相手の受取用 QR コードにカメラを向けてください",
+  "Poll length": "投票期間",
+  "Post buy offer": "買い注文を掲載",
+  "Post sell offer": "売り注文を掲載",
+  "Posting": "投稿中",
+  "Posts": "投稿",
+  "Price / ORN": "価格 / ORN",
+  "React": "リアクション",
+  "Receive ORN": "ORN を受け取る",
+  "Receive total (SOL)": "受取合計 (SOL)",
+  "Recent errors": "最近のエラー",
+  "Recent screens": "最近開いた画面",
+  "Recovery words": "リカバリーワード",
+  "Refunded": "返金済み",
+  "Remove": "削除",
+  "Remove GIF": "GIF を削除",
+  "Remove from store": "ストアから削除",
+  "Remove poll": "投票を削除",
+  "Remove wallet": "ウォレットを削除",
+  "Rename wallet": "ウォレット名を変更",
+  "Reopen": "再開する",
+  "Repeat for each wallet you want on your profile.": "プロフィールに表示したいウォレットごとに繰り返してください。",
+  "Report this theme": "このテーマを報告",
+  "Request": "リクエスト",
+  "Restart mining": "マイニングを再起動",
+  "Restart mining to go faster": "マイニングを再起動して高速化",
+  "Restore a wallet from its words": "単語からウォレットを復元",
+  "Restoring": "復元中",
+  "SOL to pay": "支払う SOL",
+  "Save changes": "変更を保存",
+  "Saved": "保存済み",
+  "Saved address": "保存済みアドレス",
+  "Saved. Anyone who opens the file can spend your ORN: keep it somewhere only you can reach.": "保存しました。このファイルを開いた人は誰でもあなたの ORN を送金できます。自分だけがアクセスできる場所に保管してください。",
+  "Saving": "保存中",
+  "Saving…": "保存中…",
+  "Say hello to everyone.": "みんなに挨拶しましょう。",
+  "Say what you're offering.": "出品内容を入力してください。",
+  "Searching…": "検索中…",
+  "Security and more": "セキュリティとその他",
+  "Sell amount (ORN)": "売却数量 (ORN)",
+  "Seller accepts": "売り手が承諾",
+  "Send ORN and see your balance from the browser's toolbar, and sign in to websites with your wallet. Your keys stay in this app.": "ブラウザのツールバーから ORN の送金や残高確認ができ、ウォレットでウェブサイトにサインインできます。秘密鍵はこのアプリ内に留まります。",
+  "Send the buyer this offer code": "この注文コードを買い手に送ってください",
+  "Send the seller this reply code": "この返信コードを売り手に送ってください",
+  "Sending": "送信中",
+  "Sending…": "送信中…",
+  "Sent. Verifying, usually within a minute.": "送信しました。認証中です（通常1分以内）。",
+  "Set the": "次を設定：",
+  "Sets aside about 2.4 GB of memory for mining in large pages, usually 10 to 30% faster. Linux asks for your password once.": "ラージページでのマイニング用に約 2.4 GB のメモリを確保し、通常10〜30%高速化します。Linux で一度だけパスワードが求められます。",
+  "Share a theme in the Theme Store": "テーマストアでテーマを共有",
+  "Share in the Theme Store": "テーマストアに共有",
+  "Shared": "共有済み",
+  "Sharing": "共有中",
+  "Show balance": "残高を表示",
+  "Show less": "折りたたむ",
+  "Sign in and verify this wallet first.": "先にサインインしてこのウォレットを認証してください。",
+  "Sign in to Orien Network first.": "先に Orien Network にサインインしてください。",
+  "Sign in to Orien Network to ask a question. Verifying a wallet isn't needed.": "質問するには Orien Network にサインインしてください。ウォレット認証は不要です。",
+  "Sign in to Orien Network to chat, reply or react.": "チャット、返信、リアクションをするには Orien Network にサインインしてください。",
+  "Sign in to Orien Network to chat.": "チャットするには Orien Network にサインインしてください。",
+  "Sign in to Orien Network to post and react.": "投稿やリアクションをするには Orien Network にサインインしてください。",
+  "Sign in to Orien Network to post, reply and react.": "投稿、返信、リアクションをするには Orien Network にサインインしてください。",
+  "Sign in to Orien Network to react.": "リアクションするには Orien Network にサインインしてください。",
+  "Sign in to Orien Network to reply.": "返信するには Orien Network にサインインしてください。",
+  "Sign in to Orien Network to report a message.": "メッセージを報告するには Orien Network にサインインしてください。",
+  "Sign in to Orien Network to report a theme.": "テーマを報告するには Orien Network にサインインしてください。",
+  "Sign in to Orien Network to see the themes you shared.": "共有したテーマを見るには Orien Network にサインインしてください。",
+  "Sign in to Orien Network to see your own messages and to chat.": "自分のメッセージの表示やチャットには Orien Network にサインインしてください。",
+  "Sign in to Orien Network to tip.": "チップを送るには Orien Network にサインインしてください。",
+  "Sign in to Orien Network with a verified wallet to share themes.": "テーマを共有するには、認証済みウォレットで Orien Network にサインインしてください。",
+  "Sign in to trade": "サインインして取引",
+  "Sign in, and open the wallet you want to verify.": "サインインし、認証したいウォレットを開いてください。",
+  "Sign out of Windows and back in, then open Orien Wallet. Mining runs faster from then on.": "Windows からサインアウトして再サインインし、Orien Wallet を開いてください。それ以降マイニングが高速になります。",
+  "Sign out to finish": "サインアウトして完了",
+  "Signing in": "サインイン中",
+  "Singapore dollar": "シンガポールドル",
+  "Smallest swap: 0.01 SOL. Nothing leaves your SOL wallet until a seller locks the ORN and you pay the QR code. You'll also need about 0.005 SOL for Solana's small fees, nearly all of which comes back.": "最小スワップ額：0.01 SOL。売り手が ORN をロックしてあなたが QR コードで支払うまで、SOL ウォレットから資産は引き落とされません。Solana の少額手数料として約 0.005 SOL も必要ですが、ほぼ全額が戻ってきます。",
+  "Someone": "誰か",
+  "South African rand": "南アフリカランド",
+  "South Korean won": "韓国ウォン",
+  "Start over": "やり直す",
+  "Starting…": "開始中…",
+  "State after it: every account's balance, as one fingerprint": "処理後の状態：全アカウントの残高をまとめた1つのフィンガープリント",
+  "Swap SOL or Bitcoin for ORN in Orien Wallet on a computer, with this same wallet linked to it.": "同じウォレットを連携したパソコン版 Orien Wallet で、SOL または Bitcoin を ORN にスワップできます。",
+  "Swaps need the newest Orien Wallet. Update first: it takes a moment, and the app reopens by itself.": "スワップには最新の Orien Wallet が必要です。先にアップデートしてください。まもなく完了し、アプリが自動で再起動します。",
+  "Swiss franc": "スイスフラン",
+  "Take": "受ける",
+  "Take an offer": "注文を受ける",
+  "Taken": "受注済み",
+  "Tap": "タップ：",
+  "Tap a message": "メッセージをタップ",
+  "Thanks. It will be reviewed.": "ありがとうございます。内容を確認いたします。",
+  "Thanks. We will look at it.": "ありがとうございます。確認いたします。",
+  "That QR code isn't from Orien Wallet's Use my other device.": "その QR コードは Orien Wallet の「他のデバイスを使う」のものではありません。",
+  "That account can't be found.": "そのアカウントは見つかりません。",
+  "That doesn't look like a SOL address.": "SOL アドレスの形式ではないようです。",
+  "That email doesn't look right. Check it, or leave it empty.": "メールアドレスの形式が正しくないようです。確認するか、空欄にしてください。",
+  "That file isn't a picture this app can open.": "このアプリで開ける画像ファイルではありません。",
+  "That is this wallet's own address": "このウォレット自身のアドレスです",
+  "That isn't a Bitcoin address.": "Bitcoin アドレスではありません。",
+  "That isn't a SOL address.": "SOL アドレスではありません。",
+  "That password isn't right. Check it and try again.": "パスワードが正しくありません。確認してもう一度お試しください。",
+  "That post has been removed.": "その投稿は削除されました。",
+  "That theme's picture couldn't be downloaded. Try again in a moment.": "そのテーマの画像をダウンロードできませんでした。しばらくしてからもう一度お試しください。",
+  "That's a Bitcoin address. Swaps use SOL.": "Bitcoin アドレスです。スワップでは SOL を使用します。",
+  "That's a SOL address. To use SOL, choose SOL above.": "SOL アドレスです。SOL を使うには上で SOL を選んでください。",
+  "That's a long one. Keep a question under 1,000 characters.": "質問が長すぎます。1,000文字以内で入力してください。",
+  "That's not this wallet's password.": "このウォレットのパスワードではありません。",
+  "The ORN arrive in this wallet by themselves.": "ORN はこのウォレットに自動で届きます。",
+  "The buyer · usually 30 to 60 minutes after they pay": "買い手 · 支払い後通常30〜60分",
+  "The checkpoint before it": "1つ前のチェックポイント",
+  "The figures at the top show the network right now: ORN released, the next checkpoint, miners and hashrate.": "上部の数値は現在のネットワーク状況（発行済み ORN、次のチェックポイント、マイナー数、ハッシュレート）を示しています。",
+  "The pay screen opens by itself as soon as they accept.": "相手が承諾すると、支払い画面が自動で開きます。",
+  "The picture couldn't be saved on this device. Try a smaller one.": "このデバイスに画像を保存できませんでした。より小さい画像をお試しください。",
+  "The post shows its tips, without names. The author is told it was you.": "投稿には名前なしでチップ額が表示されます。投稿者にはあなたからであることが通知されます。",
+  "The seller · usually 30 to 60 minutes after you pay": "売り手 · 支払い後通常30〜60分",
+  "The seller's wallet takes the Bitcoin once Bitcoin has confirmed your payment three times": "Bitcoin ネットワークで支払いが3回承認されると、売り手のウォレットが Bitcoin を受け取ります",
+  "The swap board passes your offer to the buyer's wallet, and their reply back": "スワップボードがあなたの注文を買い手のウォレットへ渡し、返信を受け取ります",
+  "The swap details open by itself as soon as your ORN are locked.": "ORN がロックされると、スワップの詳細画面が自動で開きます。",
+  "The update didn't install": "アップデートをインストールできませんでした",
+  "The validators didn't answer about this hour's rewards just now. Try again in a moment.": "バリデータからこの1時間の報酬に関する応答がありませんでした。しばらくしてからもう一度お試しください。",
+  "Their payment shows in your Activity within seconds.": "相手の送金は数秒以内にアクティビティに表示されます。",
+  "Their wallet accepts by itself, usually within a few seconds.": "相手のウォレットが自動で承諾します（通常数秒以内）。",
+  "Their wallet accepts by itself, within 30 minutes.": "相手のウォレットが30分以内に自動で承諾します。",
+  "Theme": "テーマ",
+  "Themes": "テーマ",
+  "They don't match": "一致しない",
+  "They match, send my wallet": "一致しました・ウォレットを送信",
+  "They match, send my wallets": "一致しました・ウォレットを送信",
+  "This app takes the Bitcoin to your Bitcoin address, then delivers the buyer's ORN to them": "このアプリがあなたの Bitcoin アドレスへ Bitcoin を受け取り、買い手に ORN を届けます",
+  "This app · about 30 minutes for Bitcoin to settle": "このアプリ · Bitcoin の決済に約30分",
+  "This checkpoint's fingerprint": "このチェックポイントのフィンガープリント",
+  "This is your listing.": "これはあなたの出品です。",
+  "This person": "このユーザー",
+  "This profile isn't available.": "このプロフィールは利用できません。",
+  "This theme's picture isn't on this computer yet. Try again in a moment.": "このテーマの画像がまだこのコンピューターにありません。しばらくしてからもう一度お試しください。",
+  "This version of Orien Wallet no longer works with the network. Press Update at the top to keep sending.": "このバージョンの Orien Wallet はネットワークに対応していません。送金を続けるには上部の「更新」を押してください。",
+  "This wallet": "このウォレット",
+  "This wallet has a password. Type it to send.": "このウォレットにはパスワードが設定されています。送金するには入力してください。",
+  "This wallet proved it belongs to this profile": "このウォレットはこのプロフィールの所有物であることが証明済みです",
+  "Time": "日時",
+  "Tip someone": "チップを送る",
+  "Tips": "チップ",
+  "Tips are payments and can't be undone.": "チップは送金のため取り消せません。",
+  "Too late to pay safely: a payment now would come back to you once the lock ends, about 2 hours from now": "安全に支払うには期限が迫りすぎています。今支払っても約2時間後にロックが終了すると返金されます",
+  "Top miner of the day": "本日のトップマイナー",
+  "Try": "試す",
+  "Try again": "再試行",
+  "Turkish lira": "トルコリラ",
+  "Type the SOL or Bitcoin address you'll pay from, then click": "支払い元の SOL または Bitcoin アドレスを入力し、次をクリックしてください：",
+  "Type the password to send this wallet too.": "このウォレットも送信するにはパスワードを入力してください。",
+  "Type the wallet's password if it has one.": "パスワードが設定されている場合は入力してください。",
+  "Type this wallet's password to approve this order.": "この注文を承認するには、このウォレットのパスワードを入力してください。",
+  "Type this wallet's password to approve this swap.": "このスワップを承認するには、このウォレットのパスワードを入力してください。",
+  "Type this wallet's password to see its words.": "単語を表示するには、このウォレットのパスワードを入力してください。",
+  "Type this wallet's password to sign in.": "サインインするには、このウォレットのパスワードを入力してください。",
+  "Type your wallet password": "ウォレットパスワードを入力",
+  "Type your wallet password to approve this swap.": "このスワップを承認するにはウォレットパスワードを入力してください。",
+  "US dollar": "米ドル",
+  "Unban": "利用停止を解除",
+  "Under": "次の項目から：",
+  "Undo": "元に戻す",
+  "Unmute the group chat": "グループチャットのミュートを解除",
+  "Unstaked": "アンステーク済み",
+  "Update failed": "アップデートに失敗しました",
+  "Update failed, try again": "アップデートに失敗しました・再試行",
+  "Update now": "今すぐ更新",
+  "Updating": "更新中",
+  "Use": "使う",
+  "Use Orien Wallet in your browser": "ブラウザで Orien Wallet を使う",
+  "Use your wallets on another device": "別のデバイスでウォレットを使う",
+  "Verified": "認証済み",
+  "Verified wallet": "認証済みウォレット",
+  "Verify a wallet": "ウォレットを認証",
+  "Verify a wallet to post and see your mining here.": "ウォレットを認証すると投稿でき、マイニング実績もここに表示されます。",
+  "Verify more wallets, and choose where you're paid": "複数のウォレットを認証して受取先を選べます",
+  "Verify one of your wallets on your Orien Network profile to post, reply and react.": "投稿、返信、リアクションをするには、Orien Network プロフィールでいずれかのウォレットを認証してください。",
+  "Verify one of your wallets to chat, reply or react.": "チャット、返信、リアクションをするには、いずれかのウォレットを認証してください。",
+  "Verify one of your wallets to chat. Anyone can read along.": "チャットするにはいずれかのウォレットを認証してください。閲覧は誰でもできます。",
+  "Verify one of your wallets to react.": "リアクションするにはいずれかのウォレットを認証してください。",
+  "Verify one of your wallets to reply.": "返信するにはいずれかのウォレットを認証してください。",
+  "Verifying shows everyone the wallet is yours, including its balance. It lets you post, sell, swap and receive tips.": "認証すると、残高を含めそのウォレットがあなたの所有物であることが全員に公開されます。これにより投稿、出品、スワップ、チップの受取が可能になります。",
+  "Verifying…": "認証中…",
+  "Verifying… usually within a minute": "認証中…通常1分以内",
+  "View profile": "プロフィールを見る",
+  "Waiting": "待機中",
+  "Waiting for mining to get going.": "マイニングの開始を待っています。",
+  "Waiting for validators": "バリデータを待機中",
+  "Watch the preview as you go, then click": "プレビューを確認しながら調整し、終わったら次をクリックしてください：",
+  "We'll look into it, and write to you if we need to know more.": "内容を確認いたします。追加情報が必要な場合はご連絡します。",
+  "Welcome": "ようこそ",
+  "What is wrong with this theme?": "このテーマのどこに問題がありますか？",
+  "When the seller answers, pay the exact amount shown from your SOL or Bitcoin wallet.": "売り手から応答があったら、SOL または Bitcoin ウォレットから表示された正確な金額を支払ってください。",
+  "Where the Bitcoin should go": "Bitcoin の受取先",
+  "Where your SOL should go (e.g. Phantom)": "SOL の受取先（例：Phantom）",
+  "Within a minute it shows": "1分以内に次が表示されます：",
+  "Write the amount in ORN, like 200 or 12.5.": "200 や 12.5 のように ORN の数量を入力してください。",
+  "Write the price in ORN, like 200 or 12.5.": "200 や 12.5 のように ORN の価格を入力してください。",
+  "You and the buyer · up to you": "あなたと買い手 · お二人のタイミング",
+  "You buy": "購入数量",
+  "You can't send in the group chat right now. You can still read along.": "現在グループチャットに送信できません。閲覧は引き続き可能です。",
+  "You have 24 themes, as many as there's room for. Delete one in Appearance first.": "テーマは上限の24件に達しています。先に「外観」から1つ削除してください。",
+  "You haven't blocked anyone.": "ブロックしているユーザーはいません。",
+  "You need to be signed in to Orien Network with a verified wallet.": "認証済みウォレットで Orien Network にサインインする必要があります。",
+  "You need to be signed in to Orien Network. Verifying a wallet isn't needed.": "Orien Network にサインインする必要があります。ウォレット認証は不要です。",
+  "You send the buyer the offer code, and paste in the reply code they send back": "買い手に注文コードを送り、返ってきた返信コードを貼り付けます",
+  "You · pay within a few hours": "あなた · 数時間以内にお支払いください",
+  "You · pay within the next few hours": "あなた · 数時間以内にお支払いください",
+  "You're up to date": "最新バージョンです",
+  "Your Phantom / SOL wallet address": "あなたの Phantom / SOL ウォレットアドレス",
+  "Your SOL address (the wallet you'll pay from)": "あなたの SOL アドレス（支払い元のウォレット）",
+  "Your SOL payout address": "SOL 受取用アドレス",
+  "Your SOL wallet (for refunds & leftovers)": "あなたの SOL ウォレット（返金・余剰分受取用）",
+  "Your SOL went back to your SOL wallet.": "SOL が SOL ウォレットに返金されました。",
+  "Your account is for the Community, the Market and swaps. Your wallets stay in this app.": "アカウントはコミュニティ、マーケット、スワップで使用します。ウォレットはこのアプリ内に留まります。",
+  "Your buy order is live on the book. When someone sells into it, this app opens the pay screen.": "買い注文がオーダーブックに掲載されました。誰かが売却すると、このアプリで支払い画面が開きます。",
+  "Your devices": "自分のデバイス",
+  "Your picture": "アイコン画像",
+  "Your sell order is live on the book. When someone buys it, your wallet runs the swap by itself.": "売り注文がオーダーブックに掲載されました。誰かが購入すると、ウォレットが自動でスワップを実行します。",
+  "Your username": "ユーザー名",
+  "Your wallet": "自分のウォレット",
+  "Your wallet is locking the ORN now. Keep Orien Wallet running while the buyer pays.": "ウォレットが ORN をロックしています。買い手が支払う間、Orien Wallet を起動したままにしてください。",
+  "Your wallet is on its way": "ウォレットを送信しています",
+  "Your wallets arrive on the new device by themselves.": "ウォレットが新しいデバイスに自動で届きます。",
+  "Your wallets travel encrypted, straight between your two devices.": "ウォレットは暗号化され、2台のデバイス間で直接送信されます。",
+  "a buyer": "買い手",
+  "a globe": "地球儀",
+  "a minute": "1分",
+  "a pickaxe": "つるはし",
+  "a speech bubble": "吹き出し",
+  "a telescope": "望遠鏡",
+  "about 6 hours after your reply": "返信から約6時間後",
+  "also replied to a post you replied to": "あなたが返信した投稿にも返信しました",
+  "an arrow pointing down": "下向き矢印",
+  "an arrow pointing up": "上向き矢印",
+  "claim your ORN": "ORN を受け取る",
+  "finish the swap": "スワップを完了する",
+  "for Orien's own. Each card shows the theme on a small copy of the app.": "は Orien 公式テーマです。各カードにアプリの小さなプレビューが表示されます。",
+  "for each share": "シェアあたり",
+  "for themes people made, or": "はコミュニティ作成のテーマ、",
+  "in Settings,": "を設定画面で開き、",
+  "in a row": "連続",
+  "is buying from you": "があなたから購入しています",
+  "it goes back to the SOL address below within about an hour.": "約1時間以内に下の SOL アドレスへ返金されます。",
+  "just now": "たった今",
+  "mined their first ORN.": "が初めての ORN をマイニングしました。",
+  "on one you like.": "を気に入ったテーマで選んでください。",
+  "on their own": "自動で",
+  "orien.network can't be reached right now. Check your connection and try again.": "現在 orien.network に接続できません。インターネット接続を確認してもう一度お試しください。",
+  "passed it mining.": "をマイニングで達成しました。",
+  "payments sent": "件の送金を送信",
+  "rank": "順位",
+  "replied to you in the Orien group chat": "が Orien グループチャットであなたに返信しました",
+  "scan or type": "スキャンまたは入力：",
+  "shares an hour": "シェア / 時間",
+  "shows mining rewards and validator fees.": "にマイニング報酬とバリデータ手数料が表示されます。",
+  "slider, or click": "スライダーを動かすか、次をクリックしてください：",
+  "staked": "ステーク中",
+  "the Bitcoin in any Bitcoin wallet, plus its sending fee. The usual Orien fee (0.1%, at most 1 ORN) comes out of the ORN you receive.": "任意の Bitcoin ウォレットの Bitcoin とその送金手数料。通常の Orien 手数料（0.1%、最大 1 ORN）は受け取る ORN から差し引かれます。",
+  "the ORN in this wallet, plus the usual Orien fee (0.1%, at most 1 ORN). Bitcoin's network fee comes out of what you receive.": "このウォレットの ORN と通常の Orien 手数料（0.1%、最大 1 ORN）。Bitcoin のネットワーク手数料は受取額から差し引かれます。",
+  "the ORN in this wallet, plus the usual Orien fee (0.1%, at most 1 ORN). The buyer covers Solana's small fees.": "このウォレットの ORN と通常の Orien 手数料（0.1%、最大 1 ORN）。Solana の少額手数料は買い手が負担します。",
+  "the SOL in your own SOL wallet, plus about 0.005 SOL for Solana's small fees, nearly all of which comes back. The usual Orien fee (0.1%, at most 1 ORN) comes out of the ORN you receive.": "ご自身の SOL ウォレットの SOL と、Solana の少額手数料用の約 0.005 SOL（ほぼ全額が戻ります）。通常の Orien 手数料（0.1%、最大 1 ORN）は受け取る ORN から差し引かれます。",
+  "the buy offer is yours": "あなたの買い注文です",
+  "the buyer": "買い手",
+  "the gear at the top left": "左上の歯車アイコン",
+  "the menu bar": "メニューバー",
+  "the network's post about you": "あなたに関するネットワークの投稿",
+  "the offer is yours": "あなたの注文です",
+  "the seller": "売り手",
+  "the seller's lock ends": "売り手のロックが終了します",
+  "the seller's wallet accepts within seconds and locks the ORN for you. This app then shows the exact SOL to send from your SOL wallet, such as Phantom, with a QR code. The swap finishes by itself, usually within a minute.": "売り手のウォレットが数秒以内に承諾し、あなたのために ORN をロックします。その後、Phantom などの SOL ウォレットから送金する正確な SOL 額と QR コードが表示されます。スワップは自動で完了します（通常1分以内）。",
+  "the system tray": "システムトレイ",
+  "there too.": "もそこに表示されます。",
+  "this app takes it back to the address below after about 6 hours.": "約6時間後にこのアプリが下のアドレスへ自動で返金します。",
+  "this wallet": "このウォレット",
+  "to find your computer's sweet spot.": "を押してコンピューターに最適な設定を見つけてください。",
+  "to keep it. It joins your themes in Appearance and is worn at once.": "を押して保存すると、「外観」のテーマ一覧に追加され、すぐに適用されます。",
+  "to see the whole app in it. Click": "を押すとアプリ全体でプレビューできます。次に次をクリックしてください：",
+  "took your offer": "があなたの注文を受けました",
+  "top miner": "トップマイナー",
+  "two arrows": "2本の矢印",
+  "two people": "2人の人物",
+  "under a second": "1秒未満",
+  "wrote to you": "からメッセージが届きました",
+  "your ORN come back to your wallet on their own within 12 hours.": "ORN は12時間以内に自動でウォレットに戻ります。",
+  "your ORN come back to your wallet on their own within a few hours.": "ORN は数時間以内に自動でウォレットに戻ります。",
+  "your password": "パスワード",
+  "your post": "あなたの投稿",
+  "your reply": "あなたの返信",
+  "your wallet locks the ORN on the network": "ウォレットがネットワーク上で ORN をロックします",
+  "your wallet locks your ORN for the buyer within seconds. Their wallet then prompts them to send the SOL, and your wallet collects it and delivers their ORN automatically, usually within a minute.": "ウォレットが数秒以内に買い手のため ORN をロックします。相手のウォレットに SOL 送金の案内が表示され、ウォレットが自動で SOL を受け取り ORN を届けます（通常1分以内）。",
+  "your wallet locks your ORN for the buyer within seconds. Their wallet then sends the Bitcoin, and once it confirms, your wallet collects it and delivers their ORN automatically.": "ウォレットが数秒以内に買い手のため ORN をロックします。相手のウォレットが Bitcoin を送金し、承認されるとあなたのウォレットが自動で受け取り、ORN を届けます。",
+  "your wallet password": "ウォレットパスワード",
+  "✓ Valid address": "✓ 有効なアドレス",
+  "_patterns": [
+    [
+      "^Sell ([0-9.,]+) ORN for ([0-9.,]+) SOL(.*)$",
+      "{0} ORN を {1} SOL で売却{2}"
+    ],
+    [
+      "^Buy ([0-9.,]+) ORN for ([0-9.,]+) SOL(.*)$",
+      "{0} ORN を {1} SOL で購入{2}"
+    ],
+    [
+      "^Sell ([0-9.,]+) ORN for ([0-9.,]+) BTC(.*)$",
+      "{0} ORN を {1} BTC で売却{2}"
+    ],
+    [
+      "^Buy ([0-9.,]+) ORN for ([0-9.,]+) BTC(.*)$",
+      "{0} ORN を {1} BTC で購入{2}"
+    ],
+    [
+      "^(\\d+) open$",
+      "{0} 件公開中"
+    ],
+    [
+      "^Price \\(([A-Z]+)\\)$",
+      "価格 ({0})"
+    ],
+    [
+      "^Total \\(([A-Z]+)\\)$",
+      "合計 ({0})"
+    ],
+    [
+      "^Last swap · (.+)$",
+      "直近のスワップ · {0}"
+    ],
+    [
+      "^Lock with (.+)$",
+      "{0} でロック"
+    ],
+    [
+      "^Received so far: ([0-9.,]+) of ([0-9.,]+) SOL$",
+      "現在受取済み: {0} / {1} SOL"
+    ],
+    [
+      "^Done: ([0-9.,]+) ORN are in your wallet\\.$",
+      "完了: {0} ORN がウォレットに届きました。"
+    ],
+    [
+      "^Done: ([0-9.,]+) SOL is in your SOL wallet\\.$",
+      "完了: {0} SOL が SOL ウォレットに届きました。"
+    ],
+    [
+      "^Paid: ([0-9.,]+) SOL is on its way to your SOL address\\.$",
+      "支払い済み：{0} SOL があなたの SOL アドレスへ向かっています。"
+    ],
+    [
+      "^Send exactly ([0-9.,]+) SOL from your SOL wallet to fund this buy order\\. Once funded, it stays live on the order book even when Orien Wallet is closed\\.$",
+      "この買い注文に資金を入れるため、SOL ウォレットから正確に {0} SOL を送金してください。入金後は Orien Wallet を閉じていてもオーダーブックに掲載され続けます。"
+    ],
+    [
+      "^The seller accepted\\. Send exactly ([0-9.,]+) SOL from your SOL wallet to the address below\\. This app sees it by itself\\.$",
+      "売り手が承諾しました。SOL ウォレットから下のアドレスへ正確に {0} SOL を送金してください。このアプリが自動で検知します。"
+    ],
+    [
+      "^Your ORN are locked\\. You can leave this page; ([0-9.,]+) SOL arrives in your SOL wallet in about a minute\\.$",
+      "ORN はロックされました。このページを閉じても大丈夫です。約1分で {0} SOL が届きます。"
+    ],
+    [
+      "^Send ([0-9.,]+) SOL from your SOL wallet$",
+      "SOL ウォレットから {0} SOL を送金"
+    ],
+    [
+      "^Locking your ([0-9.,]+ (?:SOL|BTC)) on Solana and adding your order to the book$",
+      "Solana 上で {0} をロックし、オーダーブックに注文を追加中"
+    ],
+    [
+      "^Waiting on the order book for a seller to fill ([0-9.,]+ ORN)$",
+      "オーダーブック上で売り手が {0} を約定するのを待機中"
+    ],
+    [
+      "^([0-9.,]+ ORN) delivered to your wallet$",
+      "{0} がウォレットに届きました"
+    ],
+    [
+      "^Locking the buyer's ([0-9.,]+ SOL) on Solana for your address$",
+      "あなたのアドレス向けに Solana 上で買い手の {0} をロック中"
+    ],
+    [
+      "^Locking your ([0-9.,]+ ORN) on Orien$",
+      "Orien 上であなたの {0} をロック中"
+    ],
+    [
+      "^Sending ([0-9.,]+ SOL) to your SOL wallet$",
+      "{0} を SOL ウォレットへ送金中"
+    ],
+    [
+      "^([0-9.,]+ SOL) in your SOL wallet$",
+      "{0} が SOL ウォレットに入金されました"
+    ],
+    [
+      "^([0-9.,]+ ORN) in your wallet$",
+      "{0} がウォレットに入金されました"
+    ],
+    [
+      "^Your ([0-9.,]+ ORN) are locked for the buyer$",
+      "あなたの {0} は買い手のためにロックされました"
+    ],
+    [
+      "^The buyer pays ([0-9.,]+ (?:SOL|BTC))$",
+      "買い手が {0} を支払います"
+    ],
+    [
+      "^The seller locked ([0-9.,]+ ORN) for you$",
+      "売り手があなたのために {0} をロックしました"
+    ],
+    [
+      "^([0-9.,]+ (?:SOL|BTC)) on its way to your SOL address$",
+      "{0} があなたの SOL アドレスへ向かっています"
+    ],
+    [
+      "^Your SOL is locked for the seller, then your ([0-9.,]+ ORN) arrive$",
+      "SOL が売り手のためにロックされ、その後 {0} が届きます"
+    ],
+    [
+      "^Your turn: send ([0-9.,]+ (?:SOL|BTC)) to fund$",
+      "あなたの番です：{0} を送金して入金してください"
+    ],
+    [
+      "^Your turn: pay ([0-9.,]+ (?:SOL|BTC)) now$",
+      "あなたの番です：今すぐ {0} を支払ってください"
+    ],
+    [
+      "^Your turn: approve with (.+) to finish$",
+      "あなたの番です：{0} で承認して完了してください"
+    ],
+    [
+      "^Step (\\d+) of (\\d+) · (.+)$",
+      "ステップ {0} / {1} · {2}"
+    ],
+    [
+      "^Stopped: (.+)\\.$",
+      "停止：{0}。"
+    ],
+    [
+      "^Fund your buy order: send ([0-9.,]+ SOL)$",
+      "買い注文に入金：{0} を送金"
+    ],
+    [
+      "^Locks your SOL on Solana to buy ([0-9.,]+) ORN$",
+      "{0} ORN を購入するため Solana 上で SOL をロックします"
+    ],
+    [
+      "^Swap in progress: (?:buying|selling) ([0-9.,]+) ORN$",
+      "スワップ進行中：{0} ORN を取引中"
+    ],
+    [
+      "^Approve to get your ([0-9.,]+) ORN$",
+      "承認して {0} ORN を受け取る"
+    ],
+    [
+      "^Confirm with (.+) below, so this app can finish the swap$",
+      "スワップを完了するため、下で {0} を使って確認してください"
+    ],
+    [
+      "^Confirm with (.+) below, so this app can claim your ORN$",
+      "ORN を受け取るため、下で {0} を使って確認してください"
+    ],
+    [
+      "^In (\\d+) min$",
+      "あと {0} 分"
+    ],
+    [
+      "^in (\\d+) min$",
+      "あと {0} 分"
+    ],
+    [
+      "^In (\\d+) s$",
+      "あと {0} 秒"
+    ],
+    [
+      "^in (\\d+) s$",
+      "あと {0} 秒"
+    ],
+    [
+      "^(\\d+) of (\\d+) running$",
+      "{0} / {1} 稼働中"
+    ],
+    [
+      "^([0-9,]+) miners? paid$",
+      "{0} 人のマイナーに配布"
+    ],
+    [
+      "^Checkpoint (\\d+)$",
+      "チェックポイント {0}"
+    ],
+    [
+      "^Running · into (.+)$",
+      "稼働中 · {0} へ受取"
+    ],
+    [
+      "^([0-9,]+) found$",
+      "{0} 件発見"
+    ],
+    [
+      "^Locked payment from (.+)$",
+      "{0} からのロック済み送金"
+    ],
+    [
+      "^Locked payment to (.+)$",
+      "{0} へのロック済み送金"
+    ],
+    [
+      "^From (.+)$",
+      "{0} から"
+    ],
+    [
+      "^To (.+)$",
+      "{0} へ"
+    ],
+    [
+      "^(\\d+) min ago · (\\d+) payments? · agreed by (\\d+) of (\\d+)$",
+      "{0} 分前 · {1} 件の送金 · {2}/{3} 合意"
+    ],
+    [
+      "^(\\d+) h ago · (\\d+) payments? · agreed by (\\d+) of (\\d+)$",
+      "{0} 時間前 · {1} 件の送金 · {2}/{3} 合意"
+    ],
+    [
+      "^(\\d+) d ago · (\\d+) payments? · agreed by (\\d+) of (\\d+)$",
+      "{0} 日前 · {1} 件の送金 · {2}/{3} 合意"
+    ],
+    [
+      "^(\\d+) min ago · agreed by (\\d+) of (\\d+)$",
+      "{0} 分前 · {1}/{2} 合意"
+    ],
+    [
+      "^(\\d+) h ago · agreed by (\\d+) of (\\d+)$",
+      "{0} 時間前 · {1}/{2} 合意"
+    ],
+    [
+      "^(\\d+) d ago · agreed by (\\d+) of (\\d+)$",
+      "{0} 日前 · {1}/{2} 合意"
+    ],
+    [
+      "^just now · (\\d+) payments? · agreed by (\\d+) of (\\d+)$",
+      "たった今 · {0} 件の送金 · {1}/{2} 合意"
+    ],
+    [
+      "^just now · agreed by (\\d+) of (\\d+)$",
+      "たった今 · {0}/{1} 合意"
+    ],
+    [
+      "^([0-9,]+) payments?$",
+      "{0} 件の送金"
+    ],
+    [
+      "^Of ([0-9,]+) there will ever be$",
+      "総発行上限 {0}"
+    ],
+    [
+      "^([0-9,]+) in the last (\\d+) hours$",
+      "過去 {1} 時間で {0} 人"
+    ],
+    [
+      "^Estimated, over the last (\\d+) hours$",
+      "過去 {0} 時間の推定値"
+    ],
+    [
+      "^Estimated, over the last hour$",
+      "過去1時間の推定値"
+    ],
+    [
+      "^([0-9,]+) hold at least 1 ORN$",
+      "{0} 件が 1 ORN 以上保有"
+    ],
+    [
+      "^Validator (\\d+)$",
+      "バリデータ {0}"
+    ],
+    [
+      "^([0-9.]+)% of ORN in wallets$",
+      "保有 ORN の {0}%"
+    ],
+    [
+      "^([0-9.]+)% of the work$",
+      "全作業量の {0}%"
+    ],
+    [
+      "^([0-9,]+) wallets hold ORN$",
+      "{0} ウォレットが ORN を保有"
+    ],
+    [
+      "^([0-9,]+) wallets? paid$",
+      "{0} ウォレットに配布"
+    ],
+    [
+      "^Staked by (.+) · ([0-9,]+) ORN · agreed on (\\d+) of the last (\\d+)$",
+      "{0} がステーク · {1} ORN · 直近 {3} 回中 {2} 回合意"
+    ],
+    [
+      "^Launch validator · agreed on (\\d+) of the last (\\d+)$",
+      "初期バリデータ · 直近 {1} 回中 {0} 回合意"
+    ],
+    [
+      "^Staked by (.+)$",
+      "{0} がステーク"
+    ],
+    [
+      "^(\\d+) verified wallets?$",
+      "認証済みウォレット {0} 件"
+    ],
+    [
+      "^(\\d+) more offers? paused while .*$",
+      "他 {0} 件の注文が一時停止中"
+    ],
+    [
+      "^Continue with (.+)$",
+      "{0} で続行"
+    ],
+    [
+      "^Sell with (.+)$",
+      "{0} で売却"
+    ],
+    [
+      "^Take with (.+)$",
+      "{0} で受ける"
+    ],
+    [
+      "^Sweet spot: (\\d+) of (\\d+) cores$",
+      "最適な設定：{1} コア中 {0} コア"
+    ],
+    [
+      "^About ([0-9,]+) tries a second\\. Past it, the processor runs hotter for no more ORN\\.$",
+      "毎秒約 {0} 回試行。これ以上上げてもプロセッサが発熱するだけで ORN は増えません。"
+    ],
+    [
+      "^Trying (\\d+) of (\\d+) cores \\((\\d+) of (\\d+)\\)\\. Shares found still count\\.$",
+      "{1} コア中 {0} コアをテスト中（{2} / {3}）。見つかったシェアもカウントされます。"
+    ],
+    [
+      "^This hour: ([0-9,]+) shares found, ([0-9,]+) counted$",
+      "この1時間：{0} 件のシェアを発見、{1} 件カウント"
+    ],
+    [
+      "^About one try in ([0-9,]+) makes a share\\.$",
+      "約 {0} 回の試行に1回シェアが見つかります。"
+    ],
+    [
+      "^([0-9.,]+(?: [KMG])?) tries a second$",
+      "毎秒 {0} 回試行"
+    ],
+    [
+      "^(\\d+) of (\\d+) cores$",
+      "{1} コア中 {0} コア"
+    ],
+    [
+      "^(\\d+) of (\\d+)$",
+      "{0} / {1}"
+    ],
+    [
+      "^(\\d+) of 24 words$",
+      "24単語中 {0} 単語"
+    ],
+    [
+      "^staked · ([0-9.,]+) returning$",
+      "ステーク中 · {0} 返還予定"
+    ],
+    [
+      "^Received from (.+)$",
+      "{0} から受取"
+    ],
+    [
+      "^Sent to (.+)$",
+      "{0} へ送金"
+    ],
+    [
+      "^Locked payment received from (.+)$",
+      "{0} からロック済み送金を受取"
+    ],
+    [
+      "^(.+) · checkpoint (\\d+)$",
+      "{0} · チェックポイント {1}"
+    ],
+    [
+      "^checkpoint (\\d+)$",
+      "チェックポイント {0}"
+    ],
+    [
+      "^← Checkpoint (\\d+)$",
+      "← チェックポイント {0}"
+    ],
+    [
+      "^Checkpoint (\\d+) →$",
+      "チェックポイント {0} →"
+    ],
+    [
+      "^Checkpoint (\\d+) hasn't been made yet\\.$",
+      "チェックポイント {0} はまだ作成されていません。"
+    ],
+    [
+      "^Checkpoint (\\d+) hasn't been made yet\\. The latest is (\\d+)\\.$",
+      "チェックポイント {0} はまだ作成されていません。最新は {1} です。"
+    ],
+    [
+      "^Being made now, ready in about (\\d+) min$",
+      "現在作成中、約 {0} 分で完了"
+    ],
+    [
+      "^Next hour (.+)$",
+      "次の1時間 {0}"
+    ],
+    [
+      "^([0-9.]+)× easier$",
+      "{0}倍 易化"
+    ],
+    [
+      "^([0-9.]+)× harder$",
+      "{0}倍 難化"
+    ],
+    [
+      "^([0-9.,]+) new ORN$",
+      "{0} 新規 ORN"
+    ],
+    [
+      "^([0-9.,]+) available$",
+      "{0} 利用可能"
+    ],
+    [
+      "^Avail: ([0-9.,]+)$",
+      "利用可能：{0}"
+    ],
+    [
+      "^Fee ([0-9.,]+) ORN · ([0-9.,]+) ORN in all$",
+      "手数料 {0} ORN · 合計 {1} ORN"
+    ],
+    [
+      "^incl\\. ([0-9.,]+) fee$",
+      "手数料 {0} 込み"
+    ],
+    [
+      "^([0-9.,]+) ORN sent$",
+      "{0} ORN を送金しました"
+    ],
+    [
+      "^(\\d+) more characters?$",
+      "あと {0} 文字"
+    ],
+    [
+      "^(\\d+) min ago$",
+      "{0} 分前"
+    ],
+    [
+      "^(\\d+) h ago$",
+      "{0} 時間前"
+    ],
+    [
+      "^(\\d+) d ago$",
+      "{0} 日前"
+    ],
+    [
+      "^(\\d+) h (\\d+) min$",
+      "{0} 時間 {1} 分"
+    ],
+    [
+      "^(\\d+) min$",
+      "{0} 分"
+    ],
+    [
+      "^(\\d+) minutes?$",
+      "{0} 分"
+    ],
+    [
+      "^(\\d+) hours?$",
+      "{0} 時間"
+    ],
+    [
+      "^(\\d+) days?$",
+      "{0} 日"
+    ],
+    [
+      "^(\\d+) days? left$",
+      "残り {0} 日"
+    ],
+    [
+      "^(\\d+) hours? left$",
+      "残り {0} 時間"
+    ],
+    [
+      "^(\\d+) minutes? left$",
+      "残り {0} 分"
+    ],
+    [
+      "^(\\d+) more$",
+      "他 {0} 件"
+    ],
+    [
+      "^(\\d+) others?$",
+      "他 {0} 人"
+    ],
+    [
+      "^(.+) and (\\d+) others?$",
+      "{0} と他 {1} 人"
+    ],
+    [
+      "^(.+), (\\d+) swaps? done$",
+      "{0}、スワップ完了 {1} 件"
+    ],
+    [
+      "^([0-9.,]+) SOL per ORN$",
+      "1 ORN あたり {0} SOL"
+    ],
+    [
+      "^([0-9,]+) satoshis per ORN$",
+      "1 ORN あたり {0} satoshi"
+    ],
+    [
+      "^Member since (.+)$",
+      "{0} から参加"
+    ],
+    [
+      "^Blocked (.+)$",
+      "{0} をブロックしました"
+    ],
+    [
+      "^Block (.+)$",
+      "{0} をブロック"
+    ],
+    [
+      "^Unblock (.+)$",
+      "{0} のブロックを解除"
+    ],
+    [
+      "^Reply to (.+)$",
+      "{0} に返信"
+    ],
+    [
+      "^Write to (.+)$",
+      "{0} にメッセージを送る"
+    ],
+    [
+      "^Ask (.+) to pay$",
+      "{0} に送金をリクエスト"
+    ],
+    [
+      "^Tip ([0-9.,]+) ORN$",
+      "{0} ORN のチップを送る"
+    ],
+    [
+      "^Tip (.+) for (.+)$",
+      "{1} について {0} にチップを送る"
+    ],
+    [
+      "^Tip with (.+)$",
+      "{0} でチップを送る"
+    ],
+    [
+      "^Tip (.+)$",
+      "{0} にチップを送る"
+    ],
+    [
+      "^Send with (.+)$",
+      "{0} で送金"
+    ],
+    [
+      "^Pay with (.+)$",
+      "{0} で支払う"
+    ],
+    [
+      "^Post with (.+)$",
+      "{0} で投稿"
+    ],
+    [
+      "^Verify with (.+)$",
+      "{0} で認証"
+    ],
+    [
+      "^Turn on with (.+)$",
+      "{0} でオンにする"
+    ],
+    [
+      "^Buy ORN with (.+)$",
+      "{0} で ORN を買う"
+    ],
+    [
+      "^Sell ORN with (.+)$",
+      "{0} で ORN を売る"
+    ],
+    [
+      "^Use (.+) instead of the password from now on$",
+      "今後はパスワードの代わりに {0} を使う"
+    ],
+    [
+      "^Use (.+) instead$",
+      "代わりに {0} を使う"
+    ],
+    [
+      "^Use (.+)$",
+      "{0} を使う"
+    ],
+    [
+      "^Confirm with (.+)$",
+      "{0} で確認"
+    ],
+    [
+      "^Verify (.+)$",
+      "{0} を認証"
+    ],
+    [
+      "^Verifying (.+)$",
+      "{0} を認証中"
+    ],
+    [
+      "^Send ([0-9.,]+) ORN and verify$",
+      "{0} ORN を送金して認証"
+    ],
+    [
+      "^Orien Wallet ([0-9.]+) is the newest version\\.$",
+      "Orien Wallet {0} が最新バージョンです。"
+    ],
+    [
+      "^Orien Wallet ([0-9.]+) is ready$",
+      "Orien Wallet {0} の準備ができました"
+    ],
+    [
+      "^Orien Wallet ([0-9.]+) is out(.*)$",
+      "Orien Wallet {0} が公開されました{1}"
+    ],
+    [
+      "^Waiting for (.+) to pay\\.$",
+      "{0} の支払いを待っています。"
+    ],
+    [
+      "^Waiting for (.+)$",
+      "{0} を待機中"
+    ],
+    [
+      "^Locking ORN for (.+)$",
+      "{0} のために ORN をロック中"
+    ],
+    [
+      "^Selling to (.+)$",
+      "{0} へ売却中"
+    ],
+    [
+      "^Taken by (.+)$",
+      "{0} が受注"
+    ],
+    [
+      "^You get ([0-9.,]+) ORN$",
+      "{0} ORN を受け取ります"
+    ],
+    [
+      "^You mined ([0-9.,]+) ORN$",
+      "{0} ORN をマイニングしました"
+    ],
+    [
+      "^You received ([0-9.,]+) ORN$",
+      "{0} ORN を受け取りました"
+    ],
+    [
+      "^You paid ([0-9.,]+) ORN\\.$",
+      "{0} ORN を支払いました。"
+    ],
+    [
+      "^Buy orders are limited to ([0-9.,]+) SOL per order$",
+      "買い注文は1件あたり最大 {0} SOL までです"
+    ],
+    [
+      "^The smallest swap is ([0-9.,]+) (SOL|BTC)$",
+      "最小スワップ額は {0} {1} です"
+    ],
+    [
+      "^At least ([0-9.,]+) (SOL|BTC)$",
+      "最小 {0} {1}"
+    ],
+    [
+      "^Pay by (.+), in (.+)$",
+      "{0} までに支払い（あと {1}）"
+    ],
+    [
+      "^around (.+), in about (\\d+) hours?$",
+      "{0} 頃（約 {1} 時間後）"
+    ],
+    [
+      "^around (.+)$",
+      "{0} 頃"
+    ],
+    [
+      "^Sign in to (.+)\\?$",
+      "{0} にサインインしますか？"
+    ],
+    [
+      "^Already saved as (.+)$",
+      "すでに {0} として保存済みです"
+    ],
+    [
+      "^✓ Your wallet (.+)$",
+      "✓ あなたのウォレット {0}"
+    ],
+    [
+      "^(.+): your profile$",
+      "{0}：あなたのプロフィール"
+    ],
+    [
+      "^(.+) \\(yours\\)$",
+      "{0}（あなたのもの）"
+    ],
+    [
+      "^(.+) hasn't posted yet\\.$",
+      "{0} はまだ投稿していません。"
+    ],
+    [
+      "^About (.+)$",
+      "{0} について"
+    ],
+    [
+      "^(.+)'s password$",
+      "{0} のパスワード"
+    ],
+    [
+      "^Remove (.+)\\? Tap again$",
+      "{0} を削除しますか？もう一度タップ"
+    ],
+    [
+      "^The record before was ([0-9,]+)\\. Checkpoint (\\d+)\\.$",
+      "これまでの記録は {0} でした（チェックポイント {1}）。"
+    ]
+  ]
+}

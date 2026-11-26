@@ -1,0 +1,1847 @@
+{
+  "_meta": {
+    "code": "fr",
+    "native": "Français",
+    "english": "French"
+  },
+  "(optional, for a reply)": "(facultatif, pour une réponse)",
+  ". Fees: the usual Orien fee to lock the ORN (0.1%, at most 1 ORN), and Bitcoin's network fee for taking the Bitcoin, out of what you receive. If a buyer never pays, your ORN come back on their own within 12 hours.": ". Frais : les frais Orien habituels pour verrouiller les ORN (0,1 %, au maximum 1 ORN) et les frais du réseau Bitcoin pour récupérer les Bitcoin, déduits de ce que vous recevez. Si un acheteur ne paie jamais, vos ORN vous reviennent automatiquement sous 12 heures.",
+  ". Then": ". Ensuite",
+  ". Then scan this code, or type it.": ". Ensuite, scannez ce code ou saisissez-le.",
+  "0 open": "0 ouvert",
+  "3 to 20 letters, numbers or _": "3 à 20 lettres, chiffres ou _",
+  "A few words for people you swap with": "Quelques mots pour les personnes avec qui vous échangez",
+  "A fresh one, with its own recovery phrase": "Un nouveau portefeuille avec sa propre phrase de récupération",
+  "A password protects the wallet on this computer. Without it, anyone who gets this computer's files can spend from it. You will type it each time you send.": "Un mot de passe protège le portefeuille sur cet ordinateur. Sans lui, toute personne ayant accès aux fichiers de cet ordinateur peut dépenser vos fonds. Vous le saisirez à chaque envoi.",
+  "A scam, something illegal, pretending to be someone…": "Une arnaque, quelque chose d'illégal, une usurpation d'identité…",
+  "A seller filled your order. Delivering your ORN automatically, usually within a minute.": "Un vendeur a rempli votre ordre. Livraison automatique de vos ORN, généralement en moins d'une minute.",
+  "A small arrow on screens with more below": "Une petite flèche sur les écrans ayant du contenu en bas",
+  "AI Support": "Support IA",
+  "About": "À propos",
+  "About the same": "À peu près pareil",
+  "About this": "À propos",
+  "About you": "À propos de vous",
+  "Accent colour": "Couleur d'accent",
+  "Accepted": "Accepté",
+  "Accepted: your ORN are locked for the buyer. Waiting for them to pay.": "Accepté : vos ORN sont verrouillés pour l'acheteur. En attente de son paiement.",
+  "Activity": "Activité",
+  "Add a GIF": "Ajouter un GIF",
+  "Add a contact": "Ajouter un contact",
+  "Add a password": "Ajouter un mot de passe",
+  "Add a poll": "Ajouter un sondage",
+  "Add a wallet": "Ajouter un portefeuille",
+  "Add photos": "Ajouter des photos",
+  "Add pictures": "Ajouter des photos",
+  "Add to contacts": "Ajouter aux contacts",
+  "Address": "Adresse",
+  "Again": "Confirmer",
+  "Agreed": "Validé",
+  "Agreed by": "Validé par",
+  "All": "Tous",
+  "All your wallets": "Tous vos portefeuilles",
+  "Amount": "Montant",
+  "Amount (ORN)": "Montant (ORN)",
+  "An address, a name or a checkpoint number": "Une adresse, un nom ou un numéro de point de contrôle",
+  "Another amount": "Autre montant",
+  "Any moment": "D'un instant à l'autre",
+  "Anyone can see it, use it and tip you for it. Your Orien Network name is shown with it. You can take it down at any time.": "Tout le monde peut le voir, l'utiliser et vous envoyer un pourboire. Votre nom Orien Network est affiché avec. Vous pouvez le retirer à tout moment.",
+  "Anyone can take it now. When they do, your wallet runs the swap by itself.": "N'importe qui peut la prendre maintenant. Dès que c'est fait, votre portefeuille exécute l'échange tout seul.",
+  "Anyone who opens the file can spend your ORN. Keep it somewhere only you can reach.": "Toute personne ouvrant ce fichier peut dépenser vos ORN. Conservez-le dans un endroit auquel vous seul avez accès.",
+  "Anyone who sees your 24 words can take everything in this wallet. Orien will never ask you for them, and no one helping you ever needs them.": "Toute personne voyant vos 24 mots peut prendre tout ce que contient ce portefeuille. Orien ne vous les demandera jamais, et personne vous aidant n'en a jamais besoin.",
+  "Appearance": "Apparence",
+  "Approve": "Approuver",
+  "Approve this order": "Approuver cet ordre",
+  "Approve to finish your swap": "Approuver pour terminer votre échange",
+  "Ask each time Orien Wallet opens": "Demander à chaque ouverture d'Orien Wallet",
+  "Ask for payment": "Demander un paiement",
+  "Asks · selling ORN": "Ventes · vendre des ORN",
+  "At least 8 characters": "Au moins 8 caractères",
+  "Automatic · about a minute": "Automatique · environ une minute",
+  "Automatic · keep this page open": "Automatique · gardez cette page ouverte",
+  "Automatic · keep this page open (~15 seconds)": "Automatique · gardez cette page ouverte (~15 secondes)",
+  "Automatic · keep this page open (~20 seconds)": "Automatique · gardez cette page ouverte (~20 secondes)",
+  "Automatic · usually 30 to 60 minutes": "Automatique · généralement 30 à 60 minutes",
+  "Automatic · usually a minute": "Automatique · généralement une minute",
+  "Back": "Retour",
+  "Back to Exchange": "Retour à l'Échange",
+  "Background picture": "Image de fond",
+  "Balance": "Solde",
+  "Balance after": "Solde après",
+  "Banned": "Banni",
+  "Base": "Base",
+  "Be paid in ORN.": "Être payé en ORN.",
+  "Benchmark": "Test de performance",
+  "Bids · buying ORN": "Achats · acheter des ORN",
+  "Bitcoin": "Bitcoin",
+  "Block": "Bloquer",
+  "Blocked accounts": "Comptes bloqués",
+  "Book & Trade": "Carnet et échange",
+  "Bring your wallets here from your phone or computer": "Importez vos portefeuilles depuis votre téléphone ou ordinateur",
+  "Browser Extensions": "Extensions de navigateur",
+  "Build a theme": "Créer un thème",
+  "Built-in safety:": "Sécurité intégrée :",
+  "Buy": "Acheter",
+  "Buy ORN": "Acheter des ORN",
+  "Buy from": "Acheter dès",
+  "Buyer": "Acheteur",
+  "Buyer pays": "L'acheteur paie",
+  "Buyer's SOL reserved. Locking your ORN now. Keep this page open for a few more seconds.": "SOL de l'acheteur réservés. Verrouillage de vos ORN en cours. Gardez cette page ouverte quelques secondes de plus.",
+  "Buying ORN": "Achat d'ORN",
+  "By continuing you agree to the": "En continuant, vous acceptez les",
+  "Cancel": "Annuler",
+  "Cancel below before sending. Nothing has left your wallet.": "Annulez ci-dessous avant d'envoyer. Rien n'a quitté votre portefeuille.",
+  "Cancel buy order": "Annuler l'ordre d'achat",
+  "Cancel buy order & return SOL": "Annuler l'ordre et récupérer les SOL",
+  "Cancelling your buy order on Solana and returning your SOL to your wallet. Keep this page open for about 15 seconds.": "Annulation de votre ordre d'achat sur Solana et retour de vos SOL dans votre portefeuille. Gardez cette page ouverte environ 15 secondes.",
+  "Cancelling · returning SOL": "Annulation · retour des SOL",
+  "Catching up": "Synchronisation",
+  "Category": "Catégorie",
+  "Change banner": "Changer la bannière",
+  "Change picture": "Changer la photo",
+  "Changed your mind?": "Vous avez changé d'avis ?",
+  "Chart currency": "Devise du graphique",
+  "Check for Updates": "Rechercher des mises à jour",
+  "Check your other device shows these": "Vérifiez que votre autre appareil affiche ceci",
+  "Checking the ORN the seller locked for you": "Vérification des ORN verrouillés par le vendeur pour vous",
+  "Checkpoints": "Points de contrôle",
+  "Choose a GIF": "Choisir un GIF",
+  "Choose a picture": "Choisir une image",
+  "Click Buy or Sell to trade directly": "Cliquez sur Acheter ou Vendre pour échanger directement",
+  "Click to add a picture": "Cliquez pour ajouter une image",
+  "Close": "Fermer",
+  "Code": "Code",
+  "Code from the email": "Code reçu par e-mail",
+  "Community": "Communauté",
+  "Completed ORN / SOL swap prices over time": "Prix des échanges ORN / SOL terminés au fil du temps",
+  "Completed swap prices over time": "Prix des échanges terminés au fil du temps",
+  "Confirming": "Confirmation",
+  "Connected": "Connecté",
+  "Contact": "Contact",
+  "Contacts": "Contacts",
+  "Continue": "Continuer",
+  "Continuing": "En cours",
+  "Cooler, fewer shares": "Plus frais, moins de parts",
+  "Copied": "Copié",
+  "Copy address": "Copier l'adresse",
+  "Copy amount": "Copier le montant",
+  "Copy code": "Copier le code",
+  "Copy the address": "Copier l'adresse",
+  "Cores in use": "Cœurs utilisés",
+  "Create a wallet": "Créer un portefeuille",
+  "Create a wallet to hold ORN, or restore the one you already have.": "Créez un portefeuille pour conserver des ORN, ou restaurez celui que vous avez déjà.",
+  "Currency": "Devise",
+  "Dark": "Sombre",
+  "Delete contact": "Supprimer le contact",
+  "Delete conversation": "Supprimer la conversation",
+  "Delete for good": "Supprimer définitivement",
+  "Delete my account": "Supprimer mon compte",
+  "Delete?": "Supprimer ?",
+  "Describe it": "Décrivez-le",
+  "Didn't answer": "Sans réponse",
+  "Does your new device show these?": "Votre nouvel appareil affiche-t-il ceci ?",
+  "Don't show this again": "Ne plus afficher",
+  "Done": "Terminé",
+  "Done: the ORN are in your wallet, and anything left over went back to your SOL wallet.": "Terminé : les ORN sont dans votre portefeuille, et tout excédent a été renvoyé dans votre portefeuille SOL.",
+  "Done: your SOL went back to your SOL wallet.": "Terminé : vos SOL ont été renvoyés dans votre portefeuille SOL.",
+  "Each share": "Chaque part",
+  "Each wallet has its own address, recovery phrase and activity. Tap one to open it.": "Chaque portefeuille a sa propre adresse, sa phrase de récupération et son activité. Appuyez sur l'un d'eux pour l'ouvrir.",
+  "Earn a share of each hour's new ORN while this app is open.": "Gagnez une part des nouveaux ORN chaque heure tant que l'application est ouverte.",
+  "Edit": "Modifier",
+  "Edit Profile": "Modifier le profil",
+  "Email": "E-mail",
+  "English": "Anglais",
+  "Enter ORN and SOL": "Saisissez ORN et SOL",
+  "Every miner on Orien together, estimated": "Tous les mineurs sur Orien réunis, estimé",
+  "Everyone": "Tout le monde",
+  "Exchange": "Échange",
+  "Explorer": "Explorateur",
+  "Feed": "Fil",
+  "Filled · settling (~1 min)": "Rempli · règlement (~1 min)",
+  "Final within a minute": "Définitif en moins d'une minute",
+  "Find members": "Rechercher des membres",
+  "Find your sweet spot": "Trouvez votre réglage idéal",
+  "Fingerprints": "Empreintes",
+  "Finish": "Terminer",
+  "Finished": "Terminés",
+  "Follow Orien's posts": "Suivre les publications d'Orien",
+  "From any Bitcoin wallet: scan the code, or copy the address and amount. This app sees the payment by itself; there is nothing else to send.": "Depuis n'importe quel portefeuille Bitcoin : scannez le code ou copiez l'adresse et le montant. Cette application détecte le paiement automatiquement ; vous n'avez rien d'autre à envoyer.",
+  "From my other device": "Depuis mon autre appareil",
+  "From your SOL wallet, such as Phantom: scan the code, or copy the address and amount. Send it all in one go. This app sees it by itself; there is nothing else to send.": "Depuis votre portefeuille SOL, tel que Phantom : scannez le code ou copiez l'adresse et le montant. Envoyez le tout en une seule fois. Cette application le détecte automatiquement ; vous n'avez rien d'autre à envoyer.",
+  "Get ORN": "Obtenir des ORN",
+  "Getting ready…": "Préparation…",
+  "Give someone your address and they can send you ORN from their wallet. Payments arrive in seconds.": "Donnez votre adresse à quelqu'un pour qu'il puisse vous envoyer des ORN depuis son portefeuille. Les paiements arrivent en quelques secondes.",
+  "Help": "Aide",
+  "Hide balance": "Masquer le solde",
+  "Home": "Accueil",
+  "How is it priced?": "Quel est le prix ?",
+  "I have backed up my recovery phrase": "J'ai sauvegardé ma phrase de récupération",
+  "I understand, show them": "Je comprends, afficher",
+  "Icon": "Icône",
+  "If the buyer doesn't pay,": "Si l'acheteur ne paie pas,",
+  "If they match, tap": "S'ils correspondent, appuyez sur",
+  "If you change your mind,": "Si vous changez d'avis,",
+  "If you forget it, your recovery phrase still restores the wallet.": "Si vous l'oubliez, votre phrase de récupération permet toujours de restaurer le portefeuille.",
+  "Install Orien Wallet on your Mac, Windows or Linux computer, open this same wallet there with its recovery phrase, and press Mine. Your computer earns a share of each hour's new ORN.": "Installez Orien Wallet sur votre ordinateur Mac, Windows ou Linux, ouvrez ce même portefeuille avec sa phrase de récupération, puis appuyez sur Miner. Votre ordinateur gagne une part des nouveaux ORN chaque heure.",
+  "It colours the buttons, the balance card, the glow and the highlights.": "Elle colore les boutons, la carte de solde, l'éclat et les mises en valeur.",
+  "It's how you add this wallet back, here or anywhere else.": "C'est ainsi que vous pourrez rajouter ce portefeuille, ici ou ailleurs.",
+  "Its file stays on this computer,": "Son fichier reste sur cet ordinateur,",
+  "Just now": "À l'instant",
+  "Keep Orien Wallet running": "Gardez Orien Wallet ouvert",
+  "Keep its 24-word recovery phrase.": "Conservez sa phrase de récupération de 24 mots.",
+  "Keep running when closed": "Rester actif en arrière-plan",
+  "Keep these words secret": "Gardez ces mots secrets",
+  "Keep this computer awake": "Empêcher la mise en veille",
+  "Language": "Langue",
+  "Large pages": "Grandes pages",
+  "Last 30 minutes": "30 dernières minutes",
+  "Last reward": "Dernière récompense",
+  "Last trade": "Dernier échange",
+  "Launch validator": "Validateur initial",
+  "Light": "Clair",
+  "Light mode: under 2 GB of free memory, so it mines more slowly.": "Mode léger : moins de 2 Go de mémoire libre, le minage est donc plus lent.",
+  "Link a new device": "Associer un nouvel appareil",
+  "Live on book": "Actif dans le carnet",
+  "Live on order book · settles automatically": "Actif sur le carnet d'ordres · règlement automatique",
+  "Loading chart…": "Chargement du graphique…",
+  "Loading order book…": "Chargement du carnet d'ordres…",
+  "Loading…": "Chargement…",
+  "Lock ORN": "Verrouiller les ORN",
+  "Lock with Touch ID": "Verrouiller avec Touch ID",
+  "Locked on Solana. Adding your buy order to the order book now. Keep this page open for a few more seconds.": "Verrouillé sur Solana. Ajout de votre ordre d'achat au carnet d'ordres en cours. Gardez cette page ouverte quelques secondes de plus.",
+  "Locked payment": "Paiement verrouillé",
+  "Locked payment received": "Paiement verrouillé reçu",
+  "Locked payment returned": "Paiement verrouillé remboursé",
+  "Locking your ORN": "Verrouillage de vos ORN",
+  "Locking your ORN for the buyer.": "Verrouillage de vos ORN pour l'acheteur.",
+  "Locking your ORN for them": "Verrouillage de vos ORN pour eux",
+  "Logo design": "Création de logo",
+  "Make a new wallet": "Créer un portefeuille",
+  "Make mining faster": "Accélérer le minage",
+  "Make the wallet": "Créer le portefeuille",
+  "Make the window wide": "Agrandir la fenêtre",
+  "Manage blocks": "Gérer les blocages",
+  "Market": "Marché",
+  "Market Listings": "Annonces du Marché",
+  "Max": "Max",
+  "Maximize": "Agrandir",
+  "Memory": "Mémoire",
+  "Message": "Message",
+  "Message the seller": "Contacter le vendeur",
+  "Messages": "Messages",
+  "Messages about your Market listings always come through whatever you pick, so buyers can ask about what you're selling. Blocking still works on top of this.": "Les messages concernant vos annonces sur le Marché arrivent toujours quel que soit votre choix, afin que les acheteurs puissent vous poser des questions sur ce que vous vendez. Le blocage reste actif en plus de cela.",
+  "Mine": "Miner",
+  "Mine ORN": "Miner des ORN",
+  "Mine it on a computer.": "Minez-en sur un ordinateur.",
+  "Miners last hour": "Mineurs dernière heure",
+  "Miners paid": "Mineurs payés",
+  "Minimize": "Réduire",
+  "Mining": "Minage",
+  "Mining for": "Minage depuis",
+  "Mining in large pages of memory, for extra speed.": "Minage en grandes pages mémoire, pour plus de vitesse.",
+  "Mining reward": "Récompense de minage",
+  "Mining rewards": "Récompenses de minage",
+  "More": "Plus",
+  "More heat, no more ORN": "Plus de chaleur, pas plus d'ORN",
+  "My theme": "Mon thème",
+  "Name": "Nom",
+  "Name or address": "Nom ou adresse",
+  "Needs about 2 GB of memory. Rewards depend on how much everyone else mines.": "Nécessite environ 2 Go de mémoire. Les récompenses dépendent de ce que minent tous les autres participants.",
+  "Network": "Réseau",
+  "Network hashrate": "Hashrate du réseau",
+  "New ORN this hour": "Nouveaux ORN cette heure",
+  "New account: pick a username": "Nouveau compte : choisissez un nom d'utilisateur",
+  "New contact": "Nouveau contact",
+  "New messages and payment requests": "Nouveaux messages et demandes de paiement",
+  "New versions install while you're away from the app": "Les nouvelles versions s'installent quand vous n'utilisez pas l'application",
+  "Newest": "Récents",
+  "Next checkpoint": "Prochain point de contrôle",
+  "No ORN moves.": "Aucun ORN ne bouge.",
+  "No activity is recorded for this address.": "Aucune activité enregistrée pour cette adresse.",
+  "No contacts yet. Add someone you pay often, or add an Orien Network member from their profile.": "Aucun contact pour le moment. Ajoutez une personne que vous payez souvent ou un membre Orien Network depuis son profil.",
+  "No one": "Personne",
+  "No open buy offers right now": "Aucune offre d'achat ouverte pour le moment",
+  "No open sell offers right now": "Aucune offre de vente ouverte pour le moment",
+  "No payments yet": "Aucun paiement pour le moment",
+  "No swaps yet": "Aucun échange pour le moment",
+  "No trades yet": "Aucun échange pour le moment",
+  "No verified wallets yet": "Aucun portefeuille vérifié pour le moment",
+  "No wallets yet.": "Aucun portefeuille pour le moment.",
+  "Normal": "Normal",
+  "Not answering": "Sans réponse",
+  "Not available": "Non disponible",
+  "Not in the network's history": "Absent de l'historique du réseau",
+  "Not now": "Pas maintenant",
+  "Not recorded": "Non enregistré",
+  "Nothing found. Search an address (64 letters and digits, 0-9 and a-f), a checkpoint number, or the name of someone on the Market.": "Aucun résultat. Recherchez une adresse (64 lettres et chiffres, 0-9 et a-f), un numéro de point de contrôle ou le nom d'une personne sur le Marché.",
+  "Nothing has happened at this address yet.": "Rien ne s'est encore produit à cette adresse.",
+  "Nothing leaves your SOL wallet until a seller locks the ORN and you pay the QR code. Keep Orien Wallet running so sellers can match your order.": "Rien ne quitte votre portefeuille SOL tant qu'un vendeur ne verrouille pas les ORN et que vous ne payez pas le QR code. Gardez Orien Wallet ouvert pour que les vendeurs puissent répondre à votre ordre.",
+  "Notifications": "Notifications",
+  "ORN / SOL price chart": "Graphique du prix ORN / SOL",
+  "ORN locked · SOL arriving (~1 min)": "ORN verrouillés · SOL en route (~1 min)",
+  "ORN price": "Prix de l'ORN",
+  "ORN received": "ORN reçus",
+  "ORN released": "ORN émis",
+  "ORN to sell": "ORN à vendre",
+  "Offer posted": "Offre publiée",
+  "Offer taken": "Offre prise",
+  "Offer your ORN for SOL. When someone takes it, this app locks the ORN for them and runs the swap, as long as it's open.": "Proposez vos ORN contre des SOL. Quand quelqu'un accepte votre offre, cette application verrouille les ORN et effectue l'échange automatiquement tant qu'elle est ouverte.",
+  "Official": "Officiels",
+  "Official Website": "Site officiel",
+  "Offline": "Hors ligne",
+  "On offer": "En offre",
+  "On the Market": "Sur le Marché",
+  "On the swap board, waiting for someone to buy": "Dans le carnet d'ordres, en attente d'un acheteur",
+  "On the swap board, waiting for someone to sell": "Dans le carnet d'ordres, en attente d'un vendeur",
+  "On your new device, open Orien Wallet and choose": "Sur votre nouvel appareil, ouvrez Orien Wallet et choisissez",
+  "On your other device, open Orien Wallet, go to": "Sur votre autre appareil, ouvrez Orien Wallet, allez dans",
+  "One account for all of Orien Network. Enter your email and type the 6-digit code we send; new here, you'll pick a username too. Signed up on orien.network already? Use the same email.": "Un seul compte pour tout Orien Network. Saisissez votre e-mail et entrez le code à 6 chiffres que nous vous envoyons ; si vous êtes nouveau, vous choisirez aussi un nom d'utilisateur. Déjà inscrit sur orien.network ? Utilisez le même e-mail.",
+  "Only send if you see the same three emoji, in the same order.": "N'envoyez que si vous voyez les trois mêmes emojis, dans le même ordre.",
+  "Open": "Ouverts",
+  "Open Mine": "Ouvrir Minage",
+  "Open Orien Wallet on the device you posted or took this offer from to finish the swap": "Ouvrez Orien Wallet sur l'appareil depuis lequel vous avez publié ou pris cette offre pour terminer l'échange",
+  "Open at login": "Ouvrir à la connexion",
+  "Open the explorer": "Ouvrir l'explorateur",
+  "Opens Firefox's add-on store: click Add to Firefox": "Ouvre la boutique d'extensions de Firefox : cliquez sur Ajouter à Firefox",
+  "Opens Safari's settings: tick Orien Wallet to turn it on": "Ouvre les réglages de Safari : cochez Orien Wallet pour l'activer",
+  "Opens the Chrome Web Store: allow other stores, then add it": "Ouvre le Chrome Web Store : autorisez les autres boutiques, puis ajoutez-la",
+  "Opens the Chrome Web Store: click Add to Brave": "Ouvre le Chrome Web Store : cliquez sur Ajouter à Brave",
+  "Opens the Chrome Web Store: click Add to Chrome": "Ouvre le Chrome Web Store : cliquez sur Ajouter à Chrome",
+  "Order book": "Carnet d'ordres",
+  "Orien Wallet for computers is at": "Orien Wallet pour ordinateur est disponible sur",
+  "Orien Wallet is locking your SOL on Solana and registering your order on the book. Step 2 will show a checkmark as soon as you can leave.": "Orien Wallet verrouille vos SOL sur Solana et inscrit votre ordre dans le carnet. L'étape 2 affichera une coche dès que vous pourrez quitter.",
+  "Orien right now": "Orien en ce moment",
+  "Other": "Autre",
+  "Paid": "Payé",
+  "Paid · Bitcoin is confirming": "Payé · Bitcoin est en cours de confirmation",
+  "Paid · SOL on its way to you": "Payé · SOL en route vers vous",
+  "Password": "Mot de passe",
+  "Paste": "Coller",
+  "Pay": "Payer",
+  "Pay exactly": "Payez exactement",
+  "Payment": "Paiement",
+  "Payment received. Locking it for the swap.": "Paiement reçu. Verrouillage en cours pour l'échange.",
+  "Payment received. Locking your SOL on Solana now. Keep this page open for about 20 seconds.": "Paiement reçu. Verrouillage de vos SOL sur Solana en cours. Gardez cette page ouverte environ 20 secondes.",
+  "Payments": "Paiements",
+  "Pending in your Bitcoin wallet until Bitcoin confirms it, usually within the hour": "En attente dans votre portefeuille Bitcoin jusqu'à confirmation par Bitcoin, généralement dans l'heure",
+  "People": "Membres",
+  "People you block can't message you, and you don't see each other's profiles, posts or listings. Unblock someone to see them again.": "Les personnes que vous bloquez ne peuvent pas vous envoyer de messages, et vous ne voyez plus vos profils, publications ou annonces respectifs. Débloquez une personne pour la revoir.",
+  "People you've talked with": "Personnes avec qui vous avez discuté",
+  "Photos": "Photos",
+  "Pick a conversation to read it.": "Choisissez une conversation pour la lire.",
+  "Pictures": "Photos",
+  "Place Buy Order": "Placer un ordre d'achat",
+  "Place Sell Order": "Placer un ordre de vente",
+  "Place order": "Passer un ordre",
+  "Point the camera at the QR code": "Pointez la caméra vers le QR code",
+  "Poll": "Sondage",
+  "Popular": "Populaires",
+  "Post": "Publier",
+  "Post an offer": "Publier une offre",
+  "Post order": "Publier l'ordre",
+  "Post the offer": "Publier l'offre",
+  "Post to the live ORN / SOL order book": "Publier dans le carnet d'ordres ORN / SOL",
+  "Post your listing": "Publier l'annonce",
+  "Post your reply": "Publier votre réponse",
+  "Powered by KLIPY": "Propulsé par KLIPY",
+  "Price in ORN": "Prix en ORN",
+  "Price per ORN": "Prix par ORN",
+  "Privacy Policy": "Politique de confidentialité",
+  "Privacy and security": "Confidentialité et sécurité",
+  "Privacy policy": "Politique de confidentialité",
+  "Processor": "Processeur",
+  "Profile": "Profil",
+  "Progress": "Progression",
+  "Ranked by ORN held": "Classés par ORN détenus",
+  "Receive": "Recevoir",
+  "Received": "Reçu",
+  "Recent trades": "Échanges récents",
+  "Recents": "Récents",
+  "Recovery phrase": "Phrase de récupération",
+  "Remove from contacts": "Retirer des contacts",
+  "Remove from the list": "Retirer de la liste",
+  "Remove from this app": "Retirer de cette application",
+  "Remove from your profile": "Retirer de votre profil",
+  "Replies, reactions and the network's posts about you": "Réponses, réactions et publications du réseau à votre sujet",
+  "Reply": "Répondre",
+  "Report": "Signaler",
+  "Report a Problem": "Signaler un problème",
+  "Report post": "Signaler le post",
+  "Report something else": "Signaler autre chose",
+  "Report this listing": "Signaler cette annonce",
+  "Report this post": "Signaler ce post",
+  "Reserve SOL": "Réserver les SOL",
+  "Reserving buyer's SOL": "Réservation des SOL de l'acheteur",
+  "Reserving the buyer's locked SOL on Solana before locking your ORN. Keep this page open for about 15 seconds.": "Réservation des SOL verrouillés de l'acheteur sur Solana avant de verrouiller vos ORN. Gardez cette page ouverte environ 15 secondes.",
+  "Restore": "Restaurer",
+  "Restore wallet": "Restaurer le portefeuille",
+  "Restore with recovery phrase": "Restaurer avec la phrase de récupération",
+  "Rewards": "Récompenses",
+  "Robot avatars:": "Avatars robots :",
+  "Running": "Actif",
+  "SOL to receive": "SOL à recevoir",
+  "Safe to leave or close Orien Wallet.": "Vous pouvez quitter ou fermer Orien Wallet en toute sécurité.",
+  "Safe to leave this page or close Orien Wallet": "Vous pouvez quitter cette page ou fermer Orien Wallet en toute sécurité",
+  "Safe to leave · arrives in about a minute": "Vous pouvez quitter · arrive dans environ une minute",
+  "Safe to share: an address can only receive ORN.": "Sûr à partager : une adresse ne peut que recevoir des ORN.",
+  "Save": "Enregistrer",
+  "Save as a text file": "Enregistrer en fichier texte",
+  "Save as contact": "Enregistrer en contact",
+  "Save theme": "Enregistrer le thème",
+  "Scan a QR code": "Scanner un QR code",
+  "Scan the code": "Scanner le code",
+  "Search KLIPY": "Rechercher sur KLIPY",
+  "Search listings": "Rechercher des annonces",
+  "See the top 100": "Voir le top 100",
+  "Sell": "Vendre",
+  "Sell ORN": "Vendre des ORN",
+  "Sell from": "Vendre dès",
+  "Sell into this offer": "Vendre sur cette offre",
+  "Sell offers come from verified wallets, so buyers can see who they're swapping with. Verifying ties this wallet to your Orien Network name and sends less than 0.001 ORN from it, once.": "Les offres de vente proviennent de portefeuilles vérifiés afin que les acheteurs sachent avec qui ils échangent. La vérification relie ce portefeuille à votre nom Orien Network et envoie moins de 0,001 ORN une seule fois.",
+  "Sell orders come from verified wallets so buyers know who they're trading with (sends < 0.001 ORN once).": "Les ordres de vente proviennent de portefeuilles vérifiés afin que les acheteurs sachent avec qui ils échangent (envoie < 0,001 ORN une fois).",
+  "Sell something": "Vendre un article",
+  "Seller": "Vendeur",
+  "Selling ORN": "Vente d'ORN",
+  "Send": "Envoyer",
+  "Send & Receive": "Envoyer et recevoir",
+  "Send ORN": "Envoyer des ORN",
+  "Send ORN, see your balance, and sign in to orien.network with one click, right from your browser. Your keys never leave Orien Wallet.": "Envoyez des ORN, consultez votre solde et connectez-vous à orien.network en un clic depuis votre navigateur. Vos clés ne quittent jamais Orien Wallet.",
+  "Send SOL": "Envoyer des SOL",
+  "Send SOL once into a Solana order. It stays live on the order book even while Orien Wallet is closed, settles in about a minute when taken, and cancels in one click.": "Envoyez vos SOL une seule fois dans un ordre Solana. Il reste actif dans le carnet d'ordres même quand Orien Wallet est fermé, se règle en une minute environ lorsqu'il est pris et s'annule en un clic.",
+  "Send and verify": "Envoyer et vérifier",
+  "Send me a code": "M'envoyer un code",
+  "Send report": "Envoyer le signalement",
+  "Send to this contact": "Envoyer à ce contact",
+  "Send your wallets to your other phone or computer": "Envoyez vos portefeuilles vers votre autre téléphone ou ordinateur",
+  "Sent": "Envoyé",
+  "Sent a GIF": "A envoyé un GIF",
+  "Sent a picture": "A envoyé une image",
+  "Sent from another app": "Envoyé depuis une autre application",
+  "Set password": "Définir le mot de passe",
+  "Set up": "Configurer",
+  "Set up mining": "Configurer le minage",
+  "Settings": "Paramètres",
+  "Settling": "Règlement",
+  "Share address": "Partager l'adresse",
+  "Share theme": "Partager le thème",
+  "Shared among miners": "Partagé entre les mineurs",
+  "Shares": "Parts",
+  "Shares an hour": "Parts par heure",
+  "Shares this hour": "Parts cette heure",
+  "Show more": "Afficher plus",
+  "Show scroll arrow": "Afficher la flèche de défilement",
+  "Show your accounts on your profile, if you like. Everyone can see them.": "Affichez vos comptes sur votre profil si vous le souhaitez. Tout le monde peut les voir.",
+  "Sign Out": "Se déconnecter",
+  "Sign in": "Se connecter",
+  "Sign in to Orien Network": "Se connecter à Orien Network",
+  "Sign in to message the seller": "Connectez-vous pour contacter le vendeur",
+  "Size (ORN)": "Taille (ORN)",
+  "Smallest swap: 0.00015 BTC, more when Bitcoin is busy": "Échange minimal : 0,00015 BTC, davantage lorsque Bitcoin est chargé",
+  "Smallest swap: 0.01 SOL. Fees: the usual Orien fee to lock the ORN (0.1%, at most 1 ORN); the buyer covers Solana's small fees. A swap takes about a minute. If a buyer never pays, your ORN come back on their own within a few hours.": "Échange minimal : 0,01 SOL. Frais : les frais Orien habituels pour verrouiller les ORN (0,1 %, au maximum 1 ORN) ; l'acheteur couvre les petits frais de Solana. Un échange prend environ une minute. Si un acheteur ne paie jamais, vos ORN vous reviennent automatiquement en quelques heures.",
+  "So swap offers stay open, and payments and mining carry on. The screen can still turn off.": "Pour que les offres d'échange restent ouvertes et que les paiements et le minage continuent. L'écran peut toujours s'éteindre.",
+  "Social Links": "Réseaux sociaux",
+  "Socials": "Réseaux sociaux",
+  "Sort by": "Trier par",
+  "Speed": "Vitesse",
+  "Stake returned": "Mise restituée",
+  "Start Orien Wallet when you log in": "Lancer Orien Wallet au démarrage de la session",
+  "Start mining": "Démarrer le minage",
+  "Start mining to see your speed here.": "Démarrez le minage pour voir votre vitesse ici.",
+  "Stay on this page for a moment:": "Restez sur cette page un instant :",
+  "Stop mining": "Arrêter le minage",
+  "Stop replying": "Annuler la réponse",
+  "Stopped": "Arrêté",
+  "Swap": "Échanger",
+  "Swap ORN and SOL directly with other people. About a minute, no fee.": "Échangez des ORN et des SOL directement avec d'autres personnes. Environ une minute, sans frais.",
+  "Swap SOL or Bitcoin for ORN with other people, directly between your wallets, on the Swap screen. With SOL it takes a few minutes, and you pay from the SOL wallet you already have, such as Phantom.": "Échangez des SOL ou des Bitcoin contre des ORN avec d'autres personnes, directement entre vos portefeuilles, sur l'écran Échanger. Avec SOL, cela prend quelques minutes et vous payez depuis le portefeuille SOL que vous avez déjà, tel que Phantom.",
+  "Swap for it.": "Échangez pour en obtenir.",
+  "Swap updates": "Mises à jour d'échange",
+  "Swaps": "Échanges",
+  "Swaps and payments carry on from the menu bar": "Les échanges et paiements continuent depuis la barre des menus",
+  "Swaps and payments carry on from the system tray": "Les échanges et paiements continuent depuis la zone de notification",
+  "Take the offer": "Prendre l'offre",
+  "Take this offer": "Prendre cette offre",
+  "Taking your Bitcoin back": "Récupération de vos Bitcoin",
+  "Tap to reveal": "Appuyez pour révéler",
+  "Tell Orien Network what's wrong with it: a scam, spam, abuse, or something illegal. Every report is reviewed.": "Expliquez à Orien Network ce qui pose problème : arnaque, spam, abus ou contenu illégal. Chaque signalement est examiné.",
+  "Tell us what happened": "Dites-nous ce qui s'est passé",
+  "Tell us what went wrong. Every report is read.": "Dites-nous ce qui n'a pas fonctionné. Chaque signalement est lu.",
+  "Terms of Service": "Conditions d'utilisation",
+  "Terms of service": "Conditions d'utilisation",
+  "Thanks, it's sent": "Merci, c'est envoyé",
+  "That is not this wallet's password.": "Ce n'est pas le mot de passe de ce portefeuille.",
+  "The buyer": "L'acheteur",
+  "The buyer is paying. This app takes the SOL as soon as it's locked, usually within a minute.": "L'acheteur est en train de payer. Cette application récupère les SOL dès qu'ils sont verrouillés, généralement en moins d'une minute.",
+  "The buyer · within a few hours": "L'acheteur · en quelques heures",
+  "The buyer's ORN delivered": "ORN de l'acheteur livrés",
+  "The chart begins as soon as the first ORN / SOL swap completes.": "Le graphique commence dès que le premier échange ORN / SOL est terminé.",
+  "The extra over the price": "Le supplément au-dessus du prix",
+  "The latest 500": "Les 500 derniers",
+  "The seller didn't take the SOL in time. Sending it back to your SOL wallet.": "Le vendeur n'a pas pris les SOL à temps. Renvoi vers votre portefeuille SOL.",
+  "The seller took the SOL. Claiming your ORN.": "Le vendeur a pris les SOL. Récupération de vos ORN.",
+  "The seller · done": "Le vendeur · terminé",
+  "The seller's wallet delivers your ORN once they take the SOL.": "Le portefeuille du vendeur livre vos ORN dès qu'il récupère les SOL.",
+  "The website learns this wallet's address.": "Le site web reçoit l'adresse de ce portefeuille.",
+  "Their 64-character address": "Son adresse de 64 caractères",
+  "Their Orien Wallet makes it once it has checked your offer. It tells this app where they'll pay the Bitcoin.": "Son Orien Wallet le crée après avoir vérifié votre offre. Il indique à cette application où les Bitcoin seront payés.",
+  "Theme Store": "Boutique de thèmes",
+  "Themes made by the Orien community": "Thèmes créés par la communauté Orien",
+  "Then paste the buyer's reply code": "Puis collez le code de réponse de l'acheteur",
+  "They match": "Ils correspondent",
+  "They match, send": "Ils correspondent, envoyer",
+  "This app · under a minute": "Cette application · moins d'une minute",
+  "This computer": "Cet ordinateur",
+  "This hour": "Cette heure",
+  "This wallet's password": "Mot de passe de ce portefeuille",
+  "Tip": "Pourboire",
+  "To": "À",
+  "Today": "Aujourd'hui",
+  "Top miners": "Meilleurs mineurs",
+  "Top wallets": "Meilleurs portefeuilles",
+  "Total": "Total",
+  "Total (SOL)": "Total (SOL)",
+  "Trade": "Échanger",
+  "Trades": "Échanges",
+  "Turn on syncing": "Activer la synchronisation",
+  "Turn on syncing, so your contacts and wallet icons match on all your devices. It needs this wallet unlocked once.": "Activez la synchronisation pour que vos contacts et icônes de portefeuille soient identiques sur tous vos appareils. Ce portefeuille doit être déverrouillé une fois.",
+  "Type the 24 words of a wallet you have": "Saisissez les 24 mots d'un portefeuille existant",
+  "Type your wallet password below, so this app can claim your ORN": "Saisissez le mot de passe de votre portefeuille ci-dessous pour que cette application puisse récupérer vos ORN",
+  "Type your wallet password below, so this app can finish the swap": "Saisissez le mot de passe de votre portefeuille ci-dessous pour que cette application puisse terminer l'échange",
+  "Unlock": "Déverrouiller",
+  "Up to four. The first is the one shown on your listing's card.": "Jusqu'à quatre. La première s'affiche sur la carte de votre annonce.",
+  "Update automatically": "Mettre à jour automatiquement",
+  "Update to Latest": "Mettre à jour",
+  "Updates as they happen, and chat with the community": "Actualités en direct et discussions avec la communauté",
+  "Use my other device": "Utiliser mon autre appareil",
+  "Use my recovery phrase": "Utiliser ma phrase de récupération",
+  "Use the reply": "Utiliser la réponse",
+  "User Guide": "Guide d'utilisation",
+  "Username": "Nom d'utilisateur",
+  "Validator fees": "Frais de validateur",
+  "Validators": "Validateurs",
+  "Verify": "Vérifier",
+  "Verify a wallet and people who pay it see your name with it.": "Vérifiez un portefeuille pour que les personnes qui le paient voient votre nom associé.",
+  "Verify this wallet": "Vérifier ce portefeuille",
+  "Verify this wallet to offer swaps": "Vérifiez ce portefeuille pour proposer des échanges",
+  "Verify this wallet to place sell orders": "Vérifiez ce portefeuille pour placer des ordres de vente",
+  "Version": "Version",
+  "Videos about Orien": "Vidéos à propos d'Orien",
+  "View": "Voir",
+  "View Profile": "Voir le profil",
+  "View all": "Tout voir",
+  "Waiting for your other device": "En attente de votre autre appareil",
+  "Waiting for your wallets": "En attente de vos portefeuilles",
+  "Wallet": "Portefeuille",
+  "Wallet password": "Mot de passe du portefeuille",
+  "Wallet password, so this app can sign the next step": "Mot de passe du portefeuille pour signer l'étape suivante",
+  "Wallet password, to approve this sale": "Mot de passe du portefeuille pour approuver cette vente",
+  "Wallet password, to approve this swap": "Mot de passe du portefeuille pour approuver cet échange",
+  "Wallet settings": "Paramètres du portefeuille",
+  "Wallets": "Portefeuilles",
+  "Wallets holding ORN": "Portefeuilles avec ORN",
+  "We'll look into it.": "Nous allons examiner cela.",
+  "Welcome to Orien Wallet": "Bienvenue dans Orien Wallet",
+  "What are you offering?": "Que proposez-vous ?",
+  "What happens:": "Ce qui se passe :",
+  "What is wrong with this post?": "Quel est le problème avec cette publication ?",
+  "What the buyer gets, how long it takes, anything they should know.": "Ce que l'acheteur reçoit, le délai, tout ce qu'il doit savoir.",
+  "What we'll send": "Ce que nous enverrons",
+  "What went wrong?": "Que s'est-il passé ?",
+  "What's happening?": "Quoi de neuf ?",
+  "When an offer is taken and as swaps finish": "Quand une offre est prise et à la fin de l'échange",
+  "When someone sends you ORN": "Quand quelqu'un vous envoie des ORN",
+  "Where did it happen?": "Où est-ce arrivé ?",
+  "Where the SOL should go, such as your Phantom wallet": "Où les SOL doivent être envoyés, par exemple votre portefeuille Phantom",
+  "Where was it?": "Où était-ce ?",
+  "Where your Bitcoin comes back if the swap stops": "Où vos Bitcoin reviennent si l'échange s'arrête",
+  "Where your SOL should go, such as your Phantom wallet": "Où vos SOL doivent être envoyés, par exemple votre portefeuille Phantom",
+  "While it's open, Orien Wallet does each of its steps for you as soon as it can.": "Tant qu'elle est ouverte, Orien Wallet effectue chaque étape automatiquement.",
+  "Who can message you": "Qui peut vous écrire",
+  "Who is this?": "Qui est-ce ?",
+  "With their names and icons. Your new device asks there whether to add a password.": "Avec leurs noms et icônes. Votre nouvel appareil vous demandera ensuite si vous souhaitez ajouter un mot de passe.",
+  "Withdraw": "Retirer",
+  "Work and things offered for ORN. You pay the seller straight from your wallet: the Market never holds anyone's coins.": "Services et objets proposés contre des ORN. Vous payez le vendeur directement depuis votre portefeuille : le Marché ne détient jamais les fonds de personne.",
+  "Working, keep this page open": "En cours, gardez cette page ouverte",
+  "Write them down in order, on paper, and keep it somewhere safe.": "Notez-les dans l'ordre, sur papier, et conservez-les en lieu sûr.",
+  "Write these 24 words on paper, in order, and keep them somewhere safe. They are the only way back into this wallet if this device is lost. Anyone who sees them can spend your ORN.": "Notez ces 24 mots sur papier, dans l'ordre, et conservez-les en lieu sûr. Ils sont le seul moyen de récupérer ce portefeuille en cas de perte de cet appareil. Toute personne qui les voit peut dépenser vos ORN.",
+  "Yesterday": "Hier",
+  "You": "Vous",
+  "You approve the sale once, now. When someone takes your offer, your wallet accepts it within seconds, even with the window closed. Keep Orien Wallet running.": "Vous approuvez la vente une seule fois, maintenant. Quand quelqu'un prend votre offre, votre portefeuille l'accepte en quelques secondes, même fenêtre fermée. Gardez Orien Wallet ouvert.",
+  "You get": "Vous recevez",
+  "You need": "Il vous faut",
+  "You pay": "Vous payez",
+  "You sell": "Vous vendez",
+  "You · now": "Vous · maintenant",
+  "You · stay on this page until Step 2 finishes": "Vous · restez sur cette page jusqu'à la fin de l'étape 2",
+  "You · within a few hours": "Vous · en quelques heures",
+  "Your 24 words, separated by spaces": "Vos 24 mots, séparés par des espaces",
+  "Your Bitcoin address": "Votre adresse Bitcoin",
+  "Your Discord username": "Votre nom d'utilisateur Discord",
+  "Your ORN stay safe:": "Vos ORN restent en sécurité :",
+  "Your Phantom / SOL wallet (for refunds & leftovers)": "Votre portefeuille Phantom / SOL (pour les remboursements et excédents)",
+  "Your SOL address": "Votre adresse SOL",
+  "Your SOL is locked for the seller. Their wallet takes it and your ORN arrive, usually within a minute.": "Vos SOL sont verrouillés pour le vendeur. Son portefeuille les récupère et vos ORN arrivent, généralement en moins d'une minute.",
+  "Your SOL stays locked safely on Solana until a seller fills it, you cancel in one click, or it expires after 7 days and refunds automatically.": "Vos SOL restent verrouillés en sécurité sur Solana jusqu'à ce qu'un vendeur remplisse l'ordre, que vous annuliez en un clic ou qu'il expire après 7 jours avec remboursement automatique.",
+  "Your SOL wallet address": "Votre adresse de portefeuille SOL",
+  "Your Telegram username": "Votre nom d'utilisateur Telegram",
+  "Your X username": "Votre nom d'utilisateur X",
+  "Your address": "Votre adresse",
+  "Your buy order is live on the order book. You are all set to leave this page or close Orien Wallet. Any extra SOL has been sent back to your wallet, and when a seller takes your order your ORN will arrive automatically.": "Votre ordre d'achat est actif sur le carnet d'ordres. Vous pouvez quitter cette page ou fermer Orien Wallet. Tout excédent de SOL a été renvoyé dans votre portefeuille, et lorsqu'un vendeur prendra votre ordre, vos ORN arriveront automatiquement.",
+  "Your email": "Votre e-mail",
+  "Your language follows you to your other devices.": "Votre langue vous suit sur vos autres appareils.",
+  "Your listings": "Vos annonces",
+  "Your offer is live": "Votre offre est en ligne",
+  "Your orders & swaps": "Vos ordres et échanges",
+  "Your profile": "Votre profil",
+  "Your recovery phrase": "Votre phrase de récupération",
+  "Your share": "Votre part",
+  "Your share of each hour's new ORN": "Votre part des nouveaux ORN chaque heure",
+  "Your share of the hour's fees": "Votre part des frais de cette heure",
+  "Your share of the hour's new ORN": "Votre part des nouveaux ORN de cette heure",
+  "Your speed": "Votre vitesse",
+  "Your swaps": "Vos échanges",
+  "Your theme follows you to your other devices.": "Votre thème vous suit sur vos autres appareils.",
+  "Your turn: confirm with your wallet password so this app can finish it": "À votre tour : confirmez avec le mot de passe de votre portefeuille pour que cette application puisse terminer",
+  "Your username, as others see it": "Votre nom d'utilisateur, tel que les autres le voient",
+  "Your wallet locks the ORN automatically when someone buys your offer. Keep Orien Wallet running in the menu bar or tray.": "Votre portefeuille verrouille automatiquement les ORN lorsque quelqu'un achète votre offre. Gardez Orien Wallet actif dans la barre des menus ou la zone de notification.",
+  "Your wallets": "Vos portefeuilles",
+  "Yours": "Les vôtres",
+  "and": "et",
+  "and choose": "et choisissez",
+  "and its ORN stay in it. This only takes it off the list.": "et ses ORN y restent. Cela le retire uniquement de la liste.",
+  "any moment": "d'un instant à l'autre",
+  "by Pablo Stanley, drawn with": "par Pablo Stanley, dessinés avec",
+  "covers Solana's small fees; nearly all of it comes back to your SOL wallet when the swap ends.": "couvre les petits frais de Solana ; la quasi-totalité revient dans votre portefeuille SOL à la fin de l'échange.",
+  "covers Solana's small rent and fees; nearly all of it returns to your SOL wallet automatically.": "couvre les petits frais et le loyer Solana ; la quasi-totalité revient automatiquement dans votre portefeuille SOL.",
+  "estimated": "estimé",
+  "just don't send: nothing has left your wallets.": "n'envoyez simplement rien : rien n'a quitté vos portefeuilles.",
+  "new ORN": "nouveaux ORN",
+  "none yet": "aucun",
+  "per ORN": "par ORN",
+  "the ORN in this wallet, plus the usual Orien fee (0.1%, at most 1 ORN). You don't need any SOL.": "les ORN dans ce portefeuille, plus les frais Orien habituels (0,1 %, au maximum 1 ORN). Vous n'avez pas besoin de SOL.",
+  "the buyer's SOL is already locked on Solana. Your wallet reserves it, locks your ORN, and both sides settle automatically in about a minute without waiting on the buyer.": "les SOL de l'acheteur sont déjà verrouillés sur Solana. Votre portefeuille les réserve, verrouille vos ORN et les deux côtés se règlent automatiquement en une minute environ sans attendre l'acheteur.",
+  "the code it shows.": "le code qu'il affiche.",
+  "there. Your wallets arrive here by themselves.": "là-bas. Vos portefeuilles arrivent ici tout seuls.",
+  "this app verifies the buyer's SOL is reserved for your address on Solana before locking your ORN, then both sides settle in about a minute.": "cette application vérifie que les SOL de l'acheteur sont réservés pour votre adresse sur Solana avant de verrouiller vos ORN, puis les deux côtés se règlent en une minute environ.",
+  "to this Bitcoin address": "à cette adresse Bitcoin",
+  "to this SOL address": "à cette adresse SOL",
+  "type": "saisissez",
+  "your ORN come back to you on their own within a few hours. You don't need to do anything.": "vos ORN vous reviennent automatiquement en quelques heures. Vous n'avez rien à faire.",
+  "your wallet never locks your ORN until the buyer's SOL is reserved for your address on Solana.": "votre portefeuille ne verrouille jamais vos ORN tant que les SOL de l'acheteur ne sont pas réservés pour votre adresse sur Solana.",
+  "✓ Complete": "✓ Terminé",
+  "✓ Live on the order book (safe to leave)": "✓ Actif sur le carnet d'ordres (vous pouvez quitter)",
+  "Update needed": "Mise à jour requise",
+  "More below": "Plus bas",
+  "Back to top": "Haut de page",
+  "+ Add a choice": "+ Ajouter un choix",
+  "1 day": "1 jour",
+  "12 hours after they were locked": "12 heures après leur verrouillage",
+  "3 days": "3 jours",
+  "30 min ago": "Il y a 30 min",
+  "7 days": "7 jours",
+  "A locked payment nobody claimed": "Un paiement verrouillé que personne n'a réclamé",
+  "A new miner joined": "Un nouveau mineur a rejoint",
+  "A theme you use is your own copy: the maker can't change it, and you can edit or delete it like one you built.": "Un thème que vous utilisez est votre propre copie : son créateur ne peut pas le modifier, et vous pouvez l'éditer ou le supprimer comme un thème que vous avez créé.",
+  "AI answers can be wrong": "Les réponses de l'IA peuvent être inexactes",
+  "Activity and notifications": "Activité et notifications",
+  "Add another wallet": "Ajouter un autre portefeuille",
+  "Among members with a verified wallet, by ORN mined.": "Parmi les membres disposant d'un portefeuille vérifié, par ORN minés.",
+  "An earlier payment from this wallet had to finish first, so nothing was sent for verifying yet. Tap again to send it.": "Un paiement précédent de ce portefeuille devait d'abord se terminer, rien n'a donc encore été envoyé pour la vérification. Appuyez de nouveau pour l'envoyer.",
+  "An earlier payment from this wallet had to finish first, so this one wasn't sent yet. Tap Pay again.": "Un paiement précédent de ce portefeuille devait d'abord se terminer, celui-ci n'a donc pas encore été envoyé. Appuyez de nouveau sur Payer.",
+  "An earlier payment from this wallet had to finish first, so this tip wasn't sent yet. Tap Tip again.": "Un paiement précédent de ce portefeuille devait d'abord se terminer, ce pourboire n'a donc pas encore été envoyé. Appuyez de nouveau sur Pourboire.",
+  "Answers come from an AI and can be wrong. It never needs your recovery words, passwords or keys: never share them with anyone.": "Les réponses proviennent d'une IA et peuvent être inexactes. Elle n'a jamais besoin de vos mots de récupération, mots de passe ou clés : ne les partagez jamais avec personne.",
+  "Any colour you like": "La couleur de votre choix",
+  "Anyone can read along. To write, reply or react, sign in and verify a wallet.": "Tout le monde peut lire. Pour écrire, répondre ou réagir, connectez-vous et vérifiez un portefeuille.",
+  "Anyone can sell into it now. When they do, their wallet locks the ORN and this app opens the pay screen.": "N'importe qui peut vendre sur cette offre maintenant. Dès que c'est fait, son portefeuille verrouille les ORN et cette application ouvre l'écran de paiement.",
+  "Anyone with these words can spend this wallet's ORN. Orien never asks for them.": "Toute personne disposant de ces mots peut dépenser les ORN de ce portefeuille. Orien ne les demande jamais.",
+  "Anything left over, or a refund, comes back here": "Tout excédent ou remboursement revient ici",
+  "Approve in Orien Wallet to finish your swap.": "Approuvez dans Orien Wallet pour terminer votre échange.",
+  "Ask Orien AI Support": "Demander au support IA Orien",
+  "Ask a question": "Poser une question",
+  "Ask anything about the wallet, mining, swaps or the network, in your own words.": "Posez n'importe quelle question sur le portefeuille, le minage, les échanges ou le réseau, avec vos propres mots.",
+  "At this speed and today's difficulty": "À cette vitesse et avec la difficulté du jour",
+  "Australian dollar": "Dollar australien",
+  "Automatic · a few minutes": "Automatique · quelques minutes",
+  "Automatic · usually within minutes": "Automatique · généralement en quelques minutes",
+  "Available": "Disponible",
+  "Back from staking": "Mise récupérée",
+  "Back up its recovery phrase: each wallet has its own.": "Sauvegardez sa phrase de récupération : chaque portefeuille a la sienne.",
+  "Back up your recovery phrase": "Sauvegardez votre phrase de récupération",
+  "Ban": "Bannir",
+  "Banned from the group chat": "Banni du chat de groupe",
+  "Benchmark again": "Relancer le test",
+  "Benchmarking…": "Test en cours…",
+  "Bitcoin to pay": "Bitcoin à payer",
+  "Bitcoin to receive": "Bitcoin à recevoir",
+  "Blocked": "Bloqué",
+  "Brazilian real": "Réal brésilien",
+  "British pound": "Livre sterling",
+  "Build your own theme": "Créez votre propre thème",
+  "Buy ORN with SOL or Bitcoin": "Acheter des ORN avec SOL ou Bitcoin",
+  "Buy amount (ORN)": "Montant à acheter (ORN)",
+  "Buyers on the Market pay the wallet marked Paid here. Verify more to choose between them.": "Les acheteurs sur le Marché paient le portefeuille marqué Payé ici. Vérifiez-en d'autres pour choisir parmi eux.",
+  "By any message app or email. It tells the buyer's Orien Wallet what you locked for them, and holds nothing secret.": "Par n'importe quelle messagerie ou par e-mail. Cela indique à l'Orien Wallet de l'acheteur ce que vous avez verrouillé pour lui, et ne contient rien de secret.",
+  "By any message app or email. It tells the seller's Orien Wallet where you're paying the Bitcoin, and holds nothing secret.": "Par n'importe quelle messagerie ou par e-mail. Cela indique à l'Orien Wallet du vendeur où vous payez les Bitcoin, et ne contient rien de secret.",
+  "Canadian dollar": "Dollar canadien",
+  "Chat": "Chat",
+  "Chat with everyone": "Discuter avec tout le monde",
+  "Check this one and send it again.": "Vérifiez celui-ci et renvoyez-le.",
+  "Checking": "Vérification",
+  "Checking for updates": "Recherche de mises à jour",
+  "Checkpoint": "Point de contrôle",
+  "Chinese yuan": "Yuan chinois",
+  "Choose SOL or Bitcoin, then type how many ORN to sell, how much you want for them, and the address you'll be paid at.": "Choisissez SOL ou Bitcoin, puis indiquez combien d'ORN vendre, le montant souhaité et l'adresse à laquelle vous serez payé.",
+  "Clear": "Effacer",
+  "Click": "Cliquez sur",
+  "Click again to start over": "Cliquez de nouveau pour recommencer",
+  "Click your browser and add Orien Wallet there.": "Cliquez sur votre navigateur et ajoutez-y Orien Wallet.",
+  "Closed": "Fermé",
+  "Confirm below": "Confirmer ci-dessous",
+  "Confirmed": "Confirmé",
+  "Connected to the network": "Connecté au réseau",
+  "Connecting": "Connexion",
+  "Copy": "Copier",
+  "Couldn't check": "Vérification impossible",
+  "Cover": "Couverture",
+  "Delete this conversation? Tap again": "Supprimer cette conversation ? Appuyez de nouveau",
+  "Delete this post?": "Supprimer cette publication ?",
+  "Do this once on each device. After that, contacts and wallet icons stay the same on all of them.": "Faites ceci une fois sur chaque appareil. Ensuite, les contacts et les icônes de portefeuille restent identiques sur tous.",
+  "Don't have any ORN yet? Mine for an hour from the Mine screen, or buy a little on Swap.": "Vous n'avez pas encore d'ORN ? Minez pendant une heure depuis l'écran Miner, ou achetez-en un peu dans Échanger.",
+  "Don't have any ORN yet? Mine for an hour in Orien Wallet on a computer, or buy a little at orien.network.": "Vous n'avez pas encore d'ORN ? Minez pendant une heure dans Orien Wallet sur un ordinateur, ou achetez-en un peu sur orien.network.",
+  "Downloads": "Téléchargements",
+  "Edit listing": "Modifier l'annonce",
+  "Edit theme": "Modifier le thème",
+  "Editing your theme later doesn't change the shared one. Share it again as a new theme if you like the new version better.": "Modifier votre thème par la suite ne change pas celui partagé. Partagez-le de nouveau en tant que nouveau thème si vous préférez la nouvelle version.",
+  "Euro": "Euro",
+  "Everyone on Orien Network": "Tout le monde sur Orien Network",
+  "Everything in the group chat is public. Be kind.": "Tout dans le chat de groupe est public. Soyez bienveillant.",
+  "Expired": "Expiré",
+  "Failed": "Échoué",
+  "Fee": "Frais",
+  "Final results": "Résultats finaux",
+  "Find themes in the Theme Store": "Trouver des thèmes dans la Boutique de thèmes",
+  "First ORN": "Premier ORN",
+  "From": "De",
+  "Fund your buy order with a quick SOL QR payment. Once funded, it stays live even with Orien Wallet closed, and you can cancel anytime in one click.": "Financez votre ordre d'achat avec un paiement SOL rapide par QR code. Une fois financé, il reste actif même avec Orien Wallet fermé, et vous pouvez annuler à tout moment en un clic.",
+  "Get ORN on iPhone": "Obtenir des ORN sur iPhone",
+  "Get back to Home": "Revenir à l'Accueil",
+  "Get paid here": "Être payé ici",
+  "Getting": "Réception",
+  "Getting ORN": "Obtenir des ORN",
+  "Getting it ready…": "Préparation en cours…",
+  "Getting ready (about a minute)": "Préparation (environ une minute)",
+  "Getting started": "Pour commencer",
+  "Give it a": "Donnez-lui un",
+  "Give the wallet a name, like Mining.": "Donnez un nom au portefeuille, comme Minage.",
+  "Hong Kong dollar": "Dollar de Hong Kong",
+  "If the app updates while mining, mining starts again by itself.": "Si l'application se met à jour pendant le minage, le minage redémarre automatiquement.",
+  "If the buyer never pays,": "Si l'acheteur ne paie jamais,",
+  "If the buyer pays but this app stays closed for more than about 4 hours, they take their Bitcoin back and your ORN still come back to you. Nobody loses coins.": "Si l'acheteur paie mais que cette application reste fermée pendant plus d'environ 4 heures, il récupère ses Bitcoin et vos ORN vous reviennent tout de même. Personne ne perd de fonds.",
+  "If the seller never takes your Bitcoin,": "Si le vendeur ne récupère jamais vos Bitcoin,",
+  "If the seller never takes your SOL,": "Si le vendeur ne récupère jamais vos SOL,",
+  "In use": "Utilisé",
+  "Indian rupee": "Roupie indienne",
+  "Indonesian rupiah": "Roupie indonésienne",
+  "It arrives in seconds. Save a new address as a contact from the last screen if you like.": "Cela arrive en quelques secondes. Enregistrez une nouvelle adresse comme contact depuis le dernier écran si vous le souhaitez.",
+  "It installs in a moment, and the app reopens by itself.": "L'installation prend un instant et l'application se rouvre toute seule.",
+  "It's checked, then shows in the store with your name, where anyone can try it, use it and tip you.": "Il est vérifié, puis apparaît dans la boutique avec votre nom, où tout le monde peut l'essayer, l'utiliser et vous envoyer un pourboire.",
+  "Japanese yen": "Yen japonais",
+  "Keep Orien Wallet running while your buy offer is live. When someone accepts, you'll get a notification and the pay screen opens so you can send the payment.": "Gardez Orien Wallet ouvert tant que votre offre d'achat est active. Quand quelqu'un l'accepte, vous recevez une notification et l'écran de paiement s'ouvre pour envoyer le paiement.",
+  "Keep contacts the same everywhere": "Garder les mêmes contacts partout",
+  "Large pages are set up, but mining is in ordinary memory this hour. If a restart doesn't switch it, restarting the computer frees the memory up.": "Les grandes pages sont configurées, mais le minage utilise la mémoire ordinaire cette heure-ci. Si un redémarrage ne suffit pas, redémarrer l'ordinateur libère la mémoire.",
+  "Later": "Plus tard",
+  "Lets mining use large pages of memory, usually 10 to 30% faster. Windows asks for an administrator's approval once, then you sign out and back in.": "Permet au minage d'utiliser les grandes pages mémoire, généralement 10 à 30 % plus rapide. Windows demande une autorisation administrateur une fois, puis déconnectez-vous et reconnectez-vous.",
+  "Like it? The coins button tips its maker some ORN. The flag reports a theme that breaks the rules.": "Vous l'aimez ? Le bouton pièces envoie un pourboire en ORN à son créateur. Le drapeau signale un thème qui enfreint les règles.",
+  "Link a device": "Associer un appareil",
+  "Listing": "Annonce",
+  "Loading": "Chargement",
+  "Locked payment from": "Paiement verrouillé de",
+  "Locking ORN": "Verrouillage des ORN",
+  "Look up the network": "Consulter le réseau",
+  "Made": "Créé",
+  "Made final": "Finalisé",
+  "Make cover": "Mettre en couverture",
+  "Make my account": "Créer mon compte",
+  "Make the window small": "Réduire la fenêtre",
+  "Marked as paid": "Marqué comme payé",
+  "Message everyone": "Écrire à tout le monde",
+  "Mexican peso": "Peso mexicain",
+  "Milestone": "Étape clé",
+  "Mine for an hour from the Mine screen, or buy a little on Swap.": "Minez pendant une heure depuis l'écran Miner, ou achetez-en un peu dans Échanger.",
+  "Mine for an hour in Orien Wallet on a computer, or buy a little at orien.network.": "Minez pendant une heure dans Orien Wallet sur un ordinateur, ou achetez-en un peu sur orien.network.",
+  "Mine on a computer: install Orien Wallet there, link this wallet, and press": "Minez sur un ordinateur : installez Orien Wallet, associez ce portefeuille et appuyez sur",
+  "Mine with a verified wallet and your figures show here after the next checkpoint.": "Minez avec un portefeuille vérifié et vos chiffres apparaîtront ici après le prochain point de contrôle.",
+  "Miners who have verified a wallet on their Orien Network account, by ORN mined. Verify your wallet on your account to be on the list.": "Mineurs ayant vérifié un portefeuille sur leur compte Orien Network, par ORN minés. Vérifiez votre portefeuille sur votre compte pour figurer dans la liste.",
+  "Minimum order is 0.01 SOL": "L'ordre minimal est de 0,01 SOL",
+  "Moderator": "Modérateur",
+  "Mute the group chat": "Mettre le chat de groupe en sourdine",
+  "Muted": "En sourdine",
+  "My Orien (ORN) address": "Mon adresse Orien (ORN)",
+  "New here?": "Nouveau ici ?",
+  "New record": "Nouveau record",
+  "New validator": "Nouveau validateur",
+  "Nigerian naira": "Naira nigérian",
+  "No GIFs found.": "Aucun GIF trouvé.",
+  "No GIFs right now.": "Aucun GIF pour le moment.",
+  "No description.": "Aucune description.",
+  "No messages yet. Say hello to everyone.": "Aucun message pour le moment. Dites bonjour à tout le monde.",
+  "No questions left today. Come back tomorrow.": "Plus aucune question restante aujourd'hui. Revenez demain.",
+  "No results": "Aucun résultat",
+  "No rewards yet": "Aucune récompense pour le moment",
+  "No swaps completed yet. The next swap sets the price.": "Aucun échange terminé pour le moment. Le prochain échange fixera le prix.",
+  "No verified wallet yet": "Aucun portefeuille vérifié pour le moment",
+  "Nobody by that name.": "Personne ne porte ce nom.",
+  "Nobody is banned.": "Personne n'est banni.",
+  "Nobody with a verified wallet has been paid for mining yet.": "Personne disposant d'un portefeuille vérifié n'a encore été payé pour le minage.",
+  "None": "Aucun",
+  "Not an Orien address": "Ce n'est pas une adresse Orien",
+  "Not verified yet": "Pas encore vérifié",
+  "Nothing from the network about them yet.": "Rien du réseau à leur sujet pour le moment.",
+  "Nothing here yet. Be the first to sell something.": "Rien ici pour le moment. Soyez le premier à vendre quelque chose.",
+  "Nothing in the community yet.": "Rien dans la communauté pour le moment.",
+  "Nothing matches that yet.": "Rien ne correspond encore à cela.",
+  "Nothing yet. Replies, reactions and messages show up here.": "Rien pour le moment. Les réponses, réactions et messages apparaissent ici.",
+  "ORN held": "ORN détenus",
+  "ORN mined": "ORN minés",
+  "ORN to buy": "ORN à acheter",
+  "On a streak": "En série",
+  "On an iPhone, scan the new device's QR code. On a computer, type its code and click": "Sur un iPhone, scannez le QR code du nouvel appareil. Sur un ordinateur, saisissez son code et cliquez sur",
+  "On one of your own themes, click the share button (the box with an arrow), then": "Sur l'un de vos propres thèmes, cliquez sur le bouton de partage (le carré avec une flèche), puis",
+  "Only letters, numbers and _": "Uniquement des lettres, chiffres et _",
+  "Open it to verify": "Ouvrez-le pour vérifier",
+  "Open offers": "Offres ouvertes",
+  "Orien AI Support": "Support IA Orien",
+  "Orien Group Chat": "Chat de groupe Orien",
+  "Orien Wallet locks after a minute away.": "Orien Wallet se verrouille après une minute d'inactivité.",
+  "Orien Wallet locks whenever you leave it.": "Orien Wallet se verrouille dès que vous le quittez.",
+  "Paid here": "Payé ici",
+  "Pay now": "Payer maintenant",
+  "Pay total (SOL)": "Total à payer (SOL)",
+  "Paying": "Paiement",
+  "Payment request": "Demande de paiement",
+  "Pending": "En attente",
+  "Philippine peso": "Peso philippin",
+  "Pick a category.": "Choisissez une catégorie.",
+  "Pick an": "Choisissez une",
+  "Point at a message": "Pointez vers un message",
+  "Point the camera at the code on your other device": "Pointez la caméra vers le code sur votre autre appareil",
+  "Point the camera at their Receive QR code": "Pointez la caméra vers leur QR code Recevoir",
+  "Poll length": "Durée du sondage",
+  "Post buy offer": "Publier une offre d'achat",
+  "Post sell offer": "Publier une offre de vente",
+  "Posting": "Publication",
+  "Posts": "Publications",
+  "Price / ORN": "Prix / ORN",
+  "React": "Réagir",
+  "Receive ORN": "Recevoir des ORN",
+  "Receive total (SOL)": "Total à recevoir (SOL)",
+  "Recent errors": "Erreurs récentes",
+  "Recent screens": "Écrans récents",
+  "Recovery words": "Mots de récupération",
+  "Refunded": "Remboursé",
+  "Remove": "Retirer",
+  "Remove GIF": "Retirer le GIF",
+  "Remove from store": "Retirer de la boutique",
+  "Remove poll": "Retirer le sondage",
+  "Remove wallet": "Retirer le portefeuille",
+  "Rename wallet": "Renommer le portefeuille",
+  "Reopen": "Rouvrir",
+  "Repeat for each wallet you want on your profile.": "Répétez pour chaque portefeuille que vous souhaitez afficher sur votre profil.",
+  "Report this theme": "Signaler ce thème",
+  "Request": "Demander",
+  "Restart mining": "Redémarrer le minage",
+  "Restart mining to go faster": "Redémarrer le minage pour aller plus vite",
+  "Restore a wallet from its words": "Restaurer un portefeuille à partir de ses mots",
+  "Restoring": "Restauration",
+  "SOL to pay": "SOL à payer",
+  "Save changes": "Enregistrer les modifications",
+  "Saved": "Enregistré",
+  "Saved address": "Adresse enregistrée",
+  "Saved. Anyone who opens the file can spend your ORN: keep it somewhere only you can reach.": "Enregistré. Toute personne ouvrant ce fichier peut dépenser vos ORN : conservez-le dans un endroit auquel vous seul avez accès.",
+  "Saving": "Enregistrement",
+  "Saving…": "Enregistrement…",
+  "Say hello to everyone.": "Dites bonjour à tout le monde.",
+  "Say what you're offering.": "Décrivez ce que vous proposez.",
+  "Searching…": "Recherche…",
+  "Security and more": "Sécurité et plus",
+  "Sell amount (ORN)": "Montant à vendre (ORN)",
+  "Seller accepts": "Le vendeur accepte",
+  "Send ORN and see your balance from the browser's toolbar, and sign in to websites with your wallet. Your keys stay in this app.": "Envoyez des ORN et consultez votre solde depuis la barre d'outils du navigateur, et connectez-vous aux sites web avec votre portefeuille. Vos clés restent dans cette application.",
+  "Send the buyer this offer code": "Envoyez ce code d'offre à l'acheteur",
+  "Send the seller this reply code": "Envoyez ce code de réponse au vendeur",
+  "Sending": "Envoi",
+  "Sending…": "Envoi…",
+  "Sent. Verifying, usually within a minute.": "Envoyé. Vérification en cours, généralement en moins d'une minute.",
+  "Set the": "Définissez la",
+  "Sets aside about 2.4 GB of memory for mining in large pages, usually 10 to 30% faster. Linux asks for your password once.": "Réserve environ 2,4 Go de mémoire pour le minage en grandes pages, généralement 10 à 30 % plus rapide. Linux demande votre mot de passe une fois.",
+  "Share a theme in the Theme Store": "Partager un thème dans la Boutique de thèmes",
+  "Share in the Theme Store": "Partager dans la Boutique de thèmes",
+  "Shared": "Partagés",
+  "Sharing": "Partage",
+  "Show balance": "Afficher le solde",
+  "Show less": "Afficher moins",
+  "Sign in and verify this wallet first.": "Connectez-vous et vérifiez d'abord ce portefeuille.",
+  "Sign in to Orien Network first.": "Connectez-vous d'abord à Orien Network.",
+  "Sign in to Orien Network to ask a question. Verifying a wallet isn't needed.": "Connectez-vous à Orien Network pour poser une question. La vérification d'un portefeuille n'est pas nécessaire.",
+  "Sign in to Orien Network to chat, reply or react.": "Connectez-vous à Orien Network pour discuter, répondre ou réagir.",
+  "Sign in to Orien Network to chat.": "Connectez-vous à Orien Network pour discuter.",
+  "Sign in to Orien Network to post and react.": "Connectez-vous à Orien Network pour publier et réagir.",
+  "Sign in to Orien Network to post, reply and react.": "Connectez-vous à Orien Network pour publier, répondre et réagir.",
+  "Sign in to Orien Network to react.": "Connectez-vous à Orien Network pour réagir.",
+  "Sign in to Orien Network to reply.": "Connectez-vous à Orien Network pour répondre.",
+  "Sign in to Orien Network to report a message.": "Connectez-vous à Orien Network pour signaler un message.",
+  "Sign in to Orien Network to report a theme.": "Connectez-vous à Orien Network pour signaler un thème.",
+  "Sign in to Orien Network to see the themes you shared.": "Connectez-vous à Orien Network pour voir les thèmes que vous avez partagés.",
+  "Sign in to Orien Network to see your own messages and to chat.": "Connectez-vous à Orien Network pour voir vos propres messages et discuter.",
+  "Sign in to Orien Network to tip.": "Connectez-vous à Orien Network pour envoyer un pourboire.",
+  "Sign in to Orien Network with a verified wallet to share themes.": "Connectez-vous à Orien Network avec un portefeuille vérifié pour partager des thèmes.",
+  "Sign in to trade": "Connectez-vous pour échanger",
+  "Sign in, and open the wallet you want to verify.": "Connectez-vous et ouvrez le portefeuille que vous souhaitez vérifier.",
+  "Sign out of Windows and back in, then open Orien Wallet. Mining runs faster from then on.": "Déconnectez-vous de Windows puis reconnectez-vous, et ouvrez Orien Wallet. Le minage sera alors plus rapide.",
+  "Sign out to finish": "Déconnectez-vous pour terminer",
+  "Signing in": "Connexion",
+  "Singapore dollar": "Dollar de Singapour",
+  "Smallest swap: 0.01 SOL. Nothing leaves your SOL wallet until a seller locks the ORN and you pay the QR code. You'll also need about 0.005 SOL for Solana's small fees, nearly all of which comes back.": "Échange minimal : 0,01 SOL. Rien ne quitte votre portefeuille SOL tant qu'un vendeur ne verrouille pas les ORN et que vous ne payez pas le QR code. Il vous faudra aussi environ 0,005 SOL pour les petits frais de Solana, dont la quasi-totalité vous revient.",
+  "Someone": "Quelqu'un",
+  "South African rand": "Rand sud-africain",
+  "South Korean won": "Won sud-coréen",
+  "Start over": "Recommencer",
+  "Starting…": "Démarrage…",
+  "State after it: every account's balance, as one fingerprint": "État après celui-ci : le solde de chaque compte en une seule empreinte",
+  "Swap SOL or Bitcoin for ORN in Orien Wallet on a computer, with this same wallet linked to it.": "Échangez des SOL ou des Bitcoin contre des ORN dans Orien Wallet sur un ordinateur auquel ce même portefeuille est associé.",
+  "Swaps need the newest Orien Wallet. Update first: it takes a moment, and the app reopens by itself.": "Les échanges nécessitent la dernière version d'Orien Wallet. Mettez d'abord à jour : cela prend un instant et l'application se rouvre toute seule.",
+  "Swiss franc": "Franc suisse",
+  "Take": "Prendre",
+  "Take an offer": "Prendre une offre",
+  "Taken": "Prise",
+  "Tap": "Appuyez sur",
+  "Tap a message": "Appuyez sur un message",
+  "Thanks. It will be reviewed.": "Merci. Cela sera examiné.",
+  "Thanks. We will look at it.": "Merci. Nous allons y jeter un œil.",
+  "That QR code isn't from Orien Wallet's Use my other device.": "Ce QR code ne provient pas de la fonction Utiliser mon autre appareil d'Orien Wallet.",
+  "That account can't be found.": "Ce compte est introuvable.",
+  "That doesn't look like a SOL address.": "Cela ne ressemble pas à une adresse SOL.",
+  "That email doesn't look right. Check it, or leave it empty.": "Cet e-mail ne semble pas valide. Vérifiez-le ou laissez le champ vide.",
+  "That file isn't a picture this app can open.": "Ce fichier n'est pas une image que cette application peut ouvrir.",
+  "That is this wallet's own address": "C'est l'adresse de ce portefeuille lui-même",
+  "That isn't a Bitcoin address.": "Ce n'est pas une adresse Bitcoin.",
+  "That isn't a SOL address.": "Ce n'est pas une adresse SOL.",
+  "That password isn't right. Check it and try again.": "Ce mot de passe est incorrect. Vérifiez-le et réessayez.",
+  "That post has been removed.": "Cette publication a été supprimée.",
+  "That theme's picture couldn't be downloaded. Try again in a moment.": "L'image de ce thème n'a pas pu être téléchargée. Réessayez dans un instant.",
+  "That's a Bitcoin address. Swaps use SOL.": "C'est une adresse Bitcoin. Les échanges utilisent SOL.",
+  "That's a SOL address. To use SOL, choose SOL above.": "C'est une adresse SOL. Pour utiliser SOL, choisissez SOL ci-dessus.",
+  "That's a long one. Keep a question under 1,000 characters.": "C'est un peu long. Limitez votre question à 1 000 caractères.",
+  "That's not this wallet's password.": "Ce n'est pas le mot de passe de ce portefeuille.",
+  "The ORN arrive in this wallet by themselves.": "Les ORN arrivent tout seuls dans ce portefeuille.",
+  "The buyer · usually 30 to 60 minutes after they pay": "L'acheteur · généralement 30 à 60 minutes après son paiement",
+  "The checkpoint before it": "Le point de contrôle précédent",
+  "The figures at the top show the network right now: ORN released, the next checkpoint, miners and hashrate.": "Les chiffres en haut montrent le réseau en ce moment : ORN émis, prochain point de contrôle, mineurs et hashrate.",
+  "The pay screen opens by itself as soon as they accept.": "L'écran de paiement s'ouvre automatiquement dès qu'il accepte.",
+  "The picture couldn't be saved on this device. Try a smaller one.": "L'image n'a pas pu être enregistrée sur cet appareil. Essayez une image plus petite.",
+  "The post shows its tips, without names. The author is told it was you.": "La publication affiche ses pourboires, sans les noms. L'auteur est informé que c'est vous.",
+  "The seller · usually 30 to 60 minutes after you pay": "Le vendeur · généralement 30 à 60 minutes après votre paiement",
+  "The seller's wallet takes the Bitcoin once Bitcoin has confirmed your payment three times": "Le portefeuille du vendeur récupère les Bitcoin dès que Bitcoin a confirmé votre paiement trois fois",
+  "The swap board passes your offer to the buyer's wallet, and their reply back": "Le carnet d'ordres transmet votre offre au portefeuille de l'acheteur, puis vous renvoie sa réponse",
+  "The swap details open by itself as soon as your ORN are locked.": "Les détails de l'échange s'ouvrent automatiquement dès que vos ORN sont verrouillés.",
+  "The update didn't install": "La mise à jour ne s'est pas installée",
+  "The validators didn't answer about this hour's rewards just now. Try again in a moment.": "Les validateurs n'ont pas répondu au sujet des récompenses de cette heure. Réessayez dans un instant.",
+  "Their payment shows in your Activity within seconds.": "Son paiement apparaît dans votre Activité en quelques secondes.",
+  "Their wallet accepts by itself, usually within a few seconds.": "Son portefeuille accepte automatiquement, généralement en quelques secondes.",
+  "Their wallet accepts by itself, within 30 minutes.": "Son portefeuille accepte automatiquement, en moins de 30 minutes.",
+  "Theme": "Thème",
+  "Themes": "Thèmes",
+  "They don't match": "Ils ne correspondent pas",
+  "They match, send my wallet": "Ils correspondent, envoyer mon portefeuille",
+  "They match, send my wallets": "Ils correspondent, envoyer mes portefeuilles",
+  "This app takes the Bitcoin to your Bitcoin address, then delivers the buyer's ORN to them": "Cette application récupère les Bitcoin vers votre adresse Bitcoin, puis livre les ORN à l'acheteur",
+  "This app · about 30 minutes for Bitcoin to settle": "Cette application · environ 30 minutes pour la confirmation Bitcoin",
+  "This checkpoint's fingerprint": "L'empreinte de ce point de contrôle",
+  "This is your listing.": "C'est votre annonce.",
+  "This person": "Cette personne",
+  "This profile isn't available.": "Ce profil n'est pas disponible.",
+  "This theme's picture isn't on this computer yet. Try again in a moment.": "L'image de ce thème n'est pas encore sur cet ordinateur. Réessayez dans un instant.",
+  "This version of Orien Wallet no longer works with the network. Press Update at the top to keep sending.": "Cette version d'Orien Wallet ne fonctionne plus avec le réseau. Appuyez sur Mettre à jour en haut pour continuer à envoyer.",
+  "This wallet": "Ce portefeuille",
+  "This wallet has a password. Type it to send.": "Ce portefeuille a un mot de passe. Saisissez-le pour envoyer.",
+  "This wallet proved it belongs to this profile": "Ce portefeuille a prouvé qu'il appartient à ce profil",
+  "Time": "Heure",
+  "Tip someone": "Envoyer un pourboire",
+  "Tips": "Pourboires",
+  "Tips are payments and can't be undone.": "Les pourboires sont des paiements et ne peuvent pas être annulés.",
+  "Too late to pay safely: a payment now would come back to you once the lock ends, about 2 hours from now": "Trop tard pour payer en toute sécurité : un paiement maintenant vous reviendrait à la fin du verrouillage, dans environ 2 heures",
+  "Top miner of the day": "Meilleur mineur du jour",
+  "Try": "Essayer",
+  "Try again": "Réessayer",
+  "Turkish lira": "Livre turque",
+  "Type the SOL or Bitcoin address you'll pay from, then click": "Saisissez l'adresse SOL ou Bitcoin depuis laquelle vous paierez, puis cliquez sur",
+  "Type the password to send this wallet too.": "Saisissez le mot de passe pour envoyer ce portefeuille aussi.",
+  "Type the wallet's password if it has one.": "Saisissez le mot de passe du portefeuille s'il en a un.",
+  "Type this wallet's password to approve this order.": "Saisissez le mot de passe de ce portefeuille pour approuver cet ordre.",
+  "Type this wallet's password to approve this swap.": "Saisissez le mot de passe de ce portefeuille pour approuver cet échange.",
+  "Type this wallet's password to see its words.": "Saisissez le mot de passe de ce portefeuille pour voir ses mots.",
+  "Type this wallet's password to sign in.": "Saisissez le mot de passe de ce portefeuille pour vous connecter.",
+  "Type your wallet password": "Saisissez le mot de passe de votre portefeuille",
+  "Type your wallet password to approve this swap.": "Saisissez le mot de passe de votre portefeuille pour approuver cet échange.",
+  "US dollar": "Dollar américain",
+  "Unban": "Débannir",
+  "Under": "Sous",
+  "Undo": "Annuler",
+  "Unmute the group chat": "Réactiver le son du chat de groupe",
+  "Unstaked": "Retiré du staking",
+  "Update failed": "Échec de la mise à jour",
+  "Update failed, try again": "Échec de la mise à jour, réessayez",
+  "Update now": "Mettre à jour maintenant",
+  "Updating": "Mise à jour",
+  "Use": "Utiliser",
+  "Use Orien Wallet in your browser": "Utiliser Orien Wallet dans votre navigateur",
+  "Use your wallets on another device": "Utiliser vos portefeuilles sur un autre appareil",
+  "Verified": "Vérifié",
+  "Verified wallet": "Portefeuille vérifié",
+  "Verify a wallet": "Vérifier un portefeuille",
+  "Verify a wallet to post and see your mining here.": "Vérifiez un portefeuille pour publier et voir votre minage ici.",
+  "Verify more wallets, and choose where you're paid": "Vérifiez d'autres portefeuilles et choisissez où vous êtes payé",
+  "Verify one of your wallets on your Orien Network profile to post, reply and react.": "Vérifiez l'un de vos portefeuilles sur votre profil Orien Network pour publier, répondre et réagir.",
+  "Verify one of your wallets to chat, reply or react.": "Vérifiez l'un de vos portefeuilles pour discuter, répondre ou réagir.",
+  "Verify one of your wallets to chat. Anyone can read along.": "Vérifiez l'un de vos portefeuilles pour discuter. Tout le monde peut lire.",
+  "Verify one of your wallets to react.": "Vérifiez l'un de vos portefeuilles pour réagir.",
+  "Verify one of your wallets to reply.": "Vérifiez l'un de vos portefeuilles pour répondre.",
+  "Verifying shows everyone the wallet is yours, including its balance. It lets you post, sell, swap and receive tips.": "La vérification montre à tout le monde que le portefeuille vous appartient, y compris son solde. Elle vous permet de publier, vendre, échanger et recevoir des pourboires.",
+  "Verifying…": "Vérification…",
+  "Verifying… usually within a minute": "Vérification… généralement en moins d'une minute",
+  "View profile": "Voir le profil",
+  "Waiting": "En attente",
+  "Waiting for mining to get going.": "En attente du démarrage du minage.",
+  "Waiting for validators": "En attente des validateurs",
+  "Watch the preview as you go, then click": "Observez l'aperçu au fur et à mesure, puis cliquez sur",
+  "We'll look into it, and write to you if we need to know more.": "Nous allons examiner cela et vous écrire si nous avons besoin d'en savoir plus.",
+  "Welcome": "Bienvenue",
+  "What is wrong with this theme?": "Quel est le problème avec ce thème ?",
+  "When the seller answers, pay the exact amount shown from your SOL or Bitcoin wallet.": "Lorsque le vendeur répond, payez le montant exact affiché depuis votre portefeuille SOL ou Bitcoin.",
+  "Where the Bitcoin should go": "Où les Bitcoin doivent être envoyés",
+  "Where your SOL should go (e.g. Phantom)": "Où vos SOL doivent être envoyés (par ex. Phantom)",
+  "Within a minute it shows": "En moins d'une minute, il affiche",
+  "Write the amount in ORN, like 200 or 12.5.": "Saisissez le montant en ORN, comme 200 ou 12.5.",
+  "Write the price in ORN, like 200 or 12.5.": "Saisissez le prix en ORN, comme 200 ou 12.5.",
+  "You and the buyer · up to you": "Vous et l'acheteur · à votre convenance",
+  "You buy": "Vous achetez",
+  "You can't send in the group chat right now. You can still read along.": "Vous ne pouvez pas envoyer de messages dans le chat de groupe pour le moment. Vous pouvez toujours lire.",
+  "You have 24 themes, as many as there's room for. Delete one in Appearance first.": "Vous avez 24 thèmes, soit la limite maximale. Supprimez-en d'abord un dans Apparence.",
+  "You haven't blocked anyone.": "Vous n'avez bloqué personne.",
+  "You need to be signed in to Orien Network with a verified wallet.": "Vous devez être connecté à Orien Network avec un portefeuille vérifié.",
+  "You need to be signed in to Orien Network. Verifying a wallet isn't needed.": "Vous devez être connecté à Orien Network. La vérification d'un portefeuille n'est pas nécessaire.",
+  "You send the buyer the offer code, and paste in the reply code they send back": "Vous envoyez le code d'offre à l'acheteur et collez le code de réponse qu'il vous renvoie",
+  "You · pay within a few hours": "Vous · payez en quelques heures",
+  "You · pay within the next few hours": "Vous · payez dans les prochaines heures",
+  "You're up to date": "Vous êtes à jour",
+  "Your Phantom / SOL wallet address": "Adresse de votre portefeuille Phantom / SOL",
+  "Your SOL address (the wallet you'll pay from)": "Votre adresse SOL (le portefeuille depuis lequel vous paierez)",
+  "Your SOL payout address": "Votre adresse de réception SOL",
+  "Your SOL wallet (for refunds & leftovers)": "Votre portefeuille SOL (pour les remboursements et excédents)",
+  "Your SOL went back to your SOL wallet.": "Vos SOL ont été renvoyés dans votre portefeuille SOL.",
+  "Your account is for the Community, the Market and swaps. Your wallets stay in this app.": "Votre compte sert pour la Communauté, le Marché et les échanges. Vos portefeuilles restent dans cette application.",
+  "Your buy order is live on the book. When someone sells into it, this app opens the pay screen.": "Votre ordre d'achat est actif dans le carnet. Quand quelqu'un vend dessus, cette application ouvre l'écran de paiement.",
+  "Your devices": "Vos appareils",
+  "Your picture": "Votre photo",
+  "Your sell order is live on the book. When someone buys it, your wallet runs the swap by itself.": "Votre ordre de vente est actif dans le carnet. Quand quelqu'un l'achète, votre portefeuille exécute l'échange tout seul.",
+  "Your username": "Votre nom d'utilisateur",
+  "Your wallet": "Votre portefeuille",
+  "Your wallet is locking the ORN now. Keep Orien Wallet running while the buyer pays.": "Votre portefeuille verrouille les ORN maintenant. Gardez Orien Wallet ouvert pendant que l'acheteur paie.",
+  "Your wallet is on its way": "Votre portefeuille est en route",
+  "Your wallets arrive on the new device by themselves.": "Vos portefeuilles arrivent tout seuls sur le nouvel appareil.",
+  "Your wallets travel encrypted, straight between your two devices.": "Vos portefeuilles voyagent chiffrés, directement entre vos deux appareils.",
+  "a buyer": "un acheteur",
+  "a globe": "un globe",
+  "a minute": "une minute",
+  "a pickaxe": "une pioche",
+  "a speech bubble": "une bulle de dialogue",
+  "a telescope": "un télescope",
+  "about 6 hours after your reply": "environ 6 heures après votre réponse",
+  "also replied to a post you replied to": "a aussi répondu à une publication à laquelle vous avez répondu",
+  "an arrow pointing down": "une flèche pointant vers le bas",
+  "an arrow pointing up": "une flèche pointant vers le haut",
+  "claim your ORN": "récupérer vos ORN",
+  "finish the swap": "terminer l'échange",
+  "for Orien's own. Each card shows the theme on a small copy of the app.": "pour ceux d'Orien. Chaque carte montre le thème sur une miniature de l'application.",
+  "for each share": "pour chaque part",
+  "for themes people made, or": "pour les thèmes créés par la communauté, ou",
+  "in Settings,": "dans Paramètres,",
+  "in a row": "d'affilée",
+  "is buying from you": "achète chez vous",
+  "it goes back to the SOL address below within about an hour.": "il revient à l'adresse SOL ci-dessous en une heure environ.",
+  "just now": "à l'instant",
+  "mined their first ORN.": "a miné son premier ORN.",
+  "on one you like.": "sur celui qui vous plaît.",
+  "on their own": "automatiquement",
+  "orien.network can't be reached right now. Check your connection and try again.": "orien.network est inaccessible pour le moment. Vérifiez votre connexion et réessayez.",
+  "passed it mining.": "l'a dépassé en minant.",
+  "payments sent": "paiements envoyés",
+  "rank": "rang",
+  "replied to you in the Orien group chat": "vous a répondu dans le chat de groupe Orien",
+  "scan or type": "scannez ou saisissez",
+  "shares an hour": "parts par heure",
+  "shows mining rewards and validator fees.": "affiche les récompenses de minage et les frais de validateur.",
+  "slider, or click": "curseur, ou cliquez sur",
+  "staked": "misé",
+  "the Bitcoin in any Bitcoin wallet, plus its sending fee. The usual Orien fee (0.1%, at most 1 ORN) comes out of the ORN you receive.": "les Bitcoin dans n'importe quel portefeuille Bitcoin, plus ses frais d'envoi. Les frais Orien habituels (0,1 %, au maximum 1 ORN) sont déduits des ORN que vous recevez.",
+  "the ORN in this wallet, plus the usual Orien fee (0.1%, at most 1 ORN). Bitcoin's network fee comes out of what you receive.": "les ORN dans ce portefeuille, plus les frais Orien habituels (0,1 %, au maximum 1 ORN). Les frais du réseau Bitcoin sont déduits de ce que vous recevez.",
+  "the ORN in this wallet, plus the usual Orien fee (0.1%, at most 1 ORN). The buyer covers Solana's small fees.": "les ORN dans ce portefeuille, plus les frais Orien habituels (0,1 %, au maximum 1 ORN). L'acheteur couvre les petits frais de Solana.",
+  "the SOL in your own SOL wallet, plus about 0.005 SOL for Solana's small fees, nearly all of which comes back. The usual Orien fee (0.1%, at most 1 ORN) comes out of the ORN you receive.": "les SOL dans votre portefeuille SOL, plus environ 0,005 SOL pour les petits frais de Solana, dont la quasi-totalité vous revient. Les frais Orien habituels (0,1 %, au maximum 1 ORN) sont déduits des ORN que vous recevez.",
+  "the buy offer is yours": "l'offre d'achat est à vous",
+  "the buyer": "l'acheteur",
+  "the gear at the top left": "l'engrenage en haut à gauche",
+  "the menu bar": "la barre des menus",
+  "the network's post about you": "la publication du réseau à votre sujet",
+  "the offer is yours": "l'offre est à vous",
+  "the seller": "le vendeur",
+  "the seller's lock ends": "le verrouillage du vendeur prend fin",
+  "the seller's wallet accepts within seconds and locks the ORN for you. This app then shows the exact SOL to send from your SOL wallet, such as Phantom, with a QR code. The swap finishes by itself, usually within a minute.": "le portefeuille du vendeur accepte en quelques secondes et verrouille les ORN pour vous. Cette application affiche ensuite le montant exact de SOL à envoyer depuis votre portefeuille SOL, tel que Phantom, avec un QR code. L'échange se termine automatiquement, généralement en moins d'une minute.",
+  "the system tray": "la zone de notification",
+  "there too.": "là-bas aussi.",
+  "this app takes it back to the address below after about 6 hours.": "cette application le renvoie à l'adresse ci-dessous après environ 6 heures.",
+  "this wallet": "ce portefeuille",
+  "to find your computer's sweet spot.": "pour trouver le réglage idéal de votre ordinateur.",
+  "to keep it. It joins your themes in Appearance and is worn at once.": "pour le garder. Il rejoint vos thèmes dans Apparence et est appliqué immédiatement.",
+  "to see the whole app in it. Click": "pour voir toute l'application avec. Cliquez sur",
+  "took your offer": "a pris votre offre",
+  "top miner": "meilleur mineur",
+  "two arrows": "deux flèches",
+  "two people": "deux personnes",
+  "under a second": "moins d'une seconde",
+  "wrote to you": "vous a écrit",
+  "your ORN come back to your wallet on their own within 12 hours.": "vos ORN reviennent automatiquement dans votre portefeuille sous 12 heures.",
+  "your ORN come back to your wallet on their own within a few hours.": "vos ORN reviennent automatiquement dans votre portefeuille en quelques heures.",
+  "your password": "votre mot de passe",
+  "your post": "votre publication",
+  "your reply": "votre réponse",
+  "your wallet locks the ORN on the network": "votre portefeuille verrouille les ORN sur le réseau",
+  "your wallet locks your ORN for the buyer within seconds. Their wallet then prompts them to send the SOL, and your wallet collects it and delivers their ORN automatically, usually within a minute.": "votre portefeuille verrouille vos ORN pour l'acheteur en quelques secondes. Son portefeuille lui demande alors d'envoyer les SOL, puis votre portefeuille les récupère et lui livre ses ORN automatiquement, généralement en moins d'une minute.",
+  "your wallet locks your ORN for the buyer within seconds. Their wallet then sends the Bitcoin, and once it confirms, your wallet collects it and delivers their ORN automatically.": "votre portefeuille verrouille vos ORN pour l'acheteur en quelques secondes. Son portefeuille envoie alors les Bitcoin et, dès confirmation, votre portefeuille les récupère et lui livre ses ORN automatiquement.",
+  "your wallet password": "le mot de passe de votre portefeuille",
+  "✓ Valid address": "✓ Adresse valide",
+  "_patterns": [
+    [
+      "^Sell ([0-9.,]+) ORN for ([0-9.,]+) SOL(.*)$",
+      "Vendre {0} ORN pour {1} SOL{2}"
+    ],
+    [
+      "^Buy ([0-9.,]+) ORN for ([0-9.,]+) SOL(.*)$",
+      "Acheter {0} ORN pour {1} SOL{2}"
+    ],
+    [
+      "^Sell ([0-9.,]+) ORN for ([0-9.,]+) BTC(.*)$",
+      "Vendre {0} ORN pour {1} BTC{2}"
+    ],
+    [
+      "^Buy ([0-9.,]+) ORN for ([0-9.,]+) BTC(.*)$",
+      "Acheter {0} ORN pour {1} BTC{2}"
+    ],
+    [
+      "^(\\d+) open$",
+      "{0} ouverts"
+    ],
+    [
+      "^Price \\(([A-Z]+)\\)$",
+      "Prix ({0})"
+    ],
+    [
+      "^Total \\(([A-Z]+)\\)$",
+      "Total ({0})"
+    ],
+    [
+      "^Last swap · (.+)$",
+      "Dernier échange · {0}"
+    ],
+    [
+      "^Lock with (.+)$",
+      "Verrouiller avec {0}"
+    ],
+    [
+      "^Received so far: ([0-9.,]+) of ([0-9.,]+) SOL$",
+      "Reçu jusqu'ici : {0} sur {1} SOL"
+    ],
+    [
+      "^Done: ([0-9.,]+) ORN are in your wallet\\.$",
+      "Terminé : {0} ORN sont dans votre portefeuille."
+    ],
+    [
+      "^Done: ([0-9.,]+) SOL is in your SOL wallet\\.$",
+      "Terminé : {0} SOL sont dans votre portefeuille SOL."
+    ],
+    [
+      "^Paid: ([0-9.,]+) SOL is on its way to your SOL address\\.$",
+      "Payé : {0} SOL sont en route vers votre adresse SOL."
+    ],
+    [
+      "^Send exactly ([0-9.,]+) SOL from your SOL wallet to fund this buy order\\. Once funded, it stays live on the order book even when Orien Wallet is closed\\.$",
+      "Envoyez exactement {0} SOL depuis votre portefeuille SOL pour financer cet ordre d'achat. Une fois financé, il reste actif dans le carnet d'ordres même quand Orien Wallet est fermé."
+    ],
+    [
+      "^The seller accepted\\. Send exactly ([0-9.,]+) SOL from your SOL wallet to the address below\\. This app sees it by itself\\.$",
+      "Le vendeur a accepté. Envoyez exactement {0} SOL depuis votre portefeuille SOL à l'adresse ci-dessous. Cette application le détecte automatiquement."
+    ],
+    [
+      "^Your ORN are locked\\. You can leave this page; ([0-9.,]+) SOL arrives in your SOL wallet in about a minute\\.$",
+      "Vos ORN sont verrouillés. Vous pouvez quitter cette page ; {0} SOL arriveront dans votre portefeuille SOL dans environ une minute."
+    ],
+    [
+      "^Send ([0-9.,]+) SOL from your SOL wallet$",
+      "Envoyez {0} SOL depuis votre portefeuille SOL"
+    ],
+    [
+      "^Locking your ([0-9.,]+ (?:SOL|BTC)) on Solana and adding your order to the book$",
+      "Verrouillage de vos {0} sur Solana et ajout de votre ordre au carnet"
+    ],
+    [
+      "^Waiting on the order book for a seller to fill ([0-9.,]+ ORN)$",
+      "En attente dans le carnet d'ordres qu'un vendeur remplisse {0}"
+    ],
+    [
+      "^([0-9.,]+ ORN) delivered to your wallet$",
+      "{0} livrés dans votre portefeuille"
+    ],
+    [
+      "^Locking the buyer's ([0-9.,]+ SOL) on Solana for your address$",
+      "Verrouillage des {0} de l'acheteur sur Solana pour votre adresse"
+    ],
+    [
+      "^Locking your ([0-9.,]+ ORN) on Orien$",
+      "Verrouillage de vos {0} sur Orien"
+    ],
+    [
+      "^Sending ([0-9.,]+ SOL) to your SOL wallet$",
+      "Envoi de {0} vers votre portefeuille SOL"
+    ],
+    [
+      "^([0-9.,]+ SOL) in your SOL wallet$",
+      "{0} dans votre portefeuille SOL"
+    ],
+    [
+      "^([0-9.,]+ ORN) in your wallet$",
+      "{0} dans votre portefeuille"
+    ],
+    [
+      "^Your ([0-9.,]+ ORN) are locked for the buyer$",
+      "Vos {0} sont verrouillés pour l'acheteur"
+    ],
+    [
+      "^The buyer pays ([0-9.,]+ (?:SOL|BTC))$",
+      "L'acheteur paie {0}"
+    ],
+    [
+      "^The seller locked ([0-9.,]+ ORN) for you$",
+      "Le vendeur a verrouillé {0} pour vous"
+    ],
+    [
+      "^([0-9.,]+ (?:SOL|BTC)) on its way to your SOL address$",
+      "{0} en route vers votre adresse SOL"
+    ],
+    [
+      "^Your SOL is locked for the seller, then your ([0-9.,]+ ORN) arrive$",
+      "Vos SOL sont verrouillés pour le vendeur, puis vos {0} arrivent"
+    ],
+    [
+      "^Your turn: send ([0-9.,]+ (?:SOL|BTC)) to fund$",
+      "À votre tour : envoyez {0} pour financer"
+    ],
+    [
+      "^Your turn: pay ([0-9.,]+ (?:SOL|BTC)) now$",
+      "À votre tour : payez {0} maintenant"
+    ],
+    [
+      "^Your turn: approve with (.+) to finish$",
+      "À votre tour : approuvez avec {0} pour terminer"
+    ],
+    [
+      "^Step (\\d+) of (\\d+) · (.+)$",
+      "Étape {0} sur {1} · {2}"
+    ],
+    [
+      "^Stopped: (.+)\\.$",
+      "Arrêté : {0}."
+    ],
+    [
+      "^Fund your buy order: send ([0-9.,]+ SOL)$",
+      "Financez votre ordre d'achat : envoyez {0}"
+    ],
+    [
+      "^Locks your SOL on Solana to buy ([0-9.,]+) ORN$",
+      "Verrouille vos SOL sur Solana pour acheter {0} ORN"
+    ],
+    [
+      "^Swap in progress: (?:buying|selling) ([0-9.,]+) ORN$",
+      "Échange en cours : {0} ORN"
+    ],
+    [
+      "^Approve to get your ([0-9.,]+) ORN$",
+      "Approuvez pour recevoir vos {0} ORN"
+    ],
+    [
+      "^Confirm with (.+) below, so this app can finish the swap$",
+      "Confirmez avec {0} ci-dessous pour que cette application puisse terminer l'échange"
+    ],
+    [
+      "^Confirm with (.+) below, so this app can claim your ORN$",
+      "Confirmez avec {0} ci-dessous pour que cette application puisse récupérer vos ORN"
+    ],
+    [
+      "^In (\\d+) min$",
+      "Dans {0} min"
+    ],
+    [
+      "^in (\\d+) min$",
+      "dans {0} min"
+    ],
+    [
+      "^In (\\d+) s$",
+      "Dans {0} s"
+    ],
+    [
+      "^in (\\d+) s$",
+      "dans {0} s"
+    ],
+    [
+      "^(\\d+) of (\\d+) running$",
+      "{0} sur {1} actifs"
+    ],
+    [
+      "^([0-9,]+) miners? paid$",
+      "{0} mineurs payés"
+    ],
+    [
+      "^Checkpoint (\\d+)$",
+      "Point de contrôle {0}"
+    ],
+    [
+      "^Running · into (.+)$",
+      "Actif · vers {0}"
+    ],
+    [
+      "^([0-9,]+) found$",
+      "{0} trouvés"
+    ],
+    [
+      "^Locked payment from (.+)$",
+      "Paiement verrouillé de {0}"
+    ],
+    [
+      "^Locked payment to (.+)$",
+      "Paiement verrouillé vers {0}"
+    ],
+    [
+      "^From (.+)$",
+      "De {0}"
+    ],
+    [
+      "^To (.+)$",
+      "Vers {0}"
+    ],
+    [
+      "^(\\d+) min ago · (\\d+) payments? · agreed by (\\d+) of (\\d+)$",
+      "Il y a {0} min · {1} paiements · validé par {2} sur {3}"
+    ],
+    [
+      "^(\\d+) h ago · (\\d+) payments? · agreed by (\\d+) of (\\d+)$",
+      "Il y a {0} h · {1} paiements · validé par {2} sur {3}"
+    ],
+    [
+      "^(\\d+) d ago · (\\d+) payments? · agreed by (\\d+) of (\\d+)$",
+      "Il y a {0} j · {1} paiements · validé par {2} sur {3}"
+    ],
+    [
+      "^(\\d+) min ago · agreed by (\\d+) of (\\d+)$",
+      "Il y a {0} min · validé par {1} sur {2}"
+    ],
+    [
+      "^(\\d+) h ago · agreed by (\\d+) of (\\d+)$",
+      "Il y a {0} h · validé par {1} sur {2}"
+    ],
+    [
+      "^(\\d+) d ago · agreed by (\\d+) of (\\d+)$",
+      "Il y a {0} j · validé par {1} sur {2}"
+    ],
+    [
+      "^just now · (\\d+) payments? · agreed by (\\d+) of (\\d+)$",
+      "à l'instant · {0} paiements · validé par {1} sur {2}"
+    ],
+    [
+      "^just now · agreed by (\\d+) of (\\d+)$",
+      "à l'instant · validé par {0} sur {1}"
+    ],
+    [
+      "^([0-9,]+) payments?$",
+      "{0} paiements"
+    ],
+    [
+      "^Of ([0-9,]+) there will ever be$",
+      "Sur {0} au total"
+    ],
+    [
+      "^([0-9,]+) in the last (\\d+) hours$",
+      "{0} au cours des {1} dernières heures"
+    ],
+    [
+      "^Estimated, over the last (\\d+) hours$",
+      "Estimé sur les {0} dernières heures"
+    ],
+    [
+      "^Estimated, over the last hour$",
+      "Estimé sur la dernière heure"
+    ],
+    [
+      "^([0-9,]+) hold at least 1 ORN$",
+      "{0} détiennent au moins 1 ORN"
+    ],
+    [
+      "^Validator (\\d+)$",
+      "Validateur {0}"
+    ],
+    [
+      "^([0-9.]+)% of ORN in wallets$",
+      "{0}% des ORN en portefeuilles"
+    ],
+    [
+      "^([0-9.]+)% of the work$",
+      "{0}% du travail"
+    ],
+    [
+      "^([0-9,]+) wallets hold ORN$",
+      "{0} portefeuilles détiennent des ORN"
+    ],
+    [
+      "^([0-9,]+) wallets? paid$",
+      "{0} portefeuilles payés"
+    ],
+    [
+      "^Staked by (.+) · ([0-9,]+) ORN · agreed on (\\d+) of the last (\\d+)$",
+      "Misé par {0} · {1} ORN · validé {2} sur les {3} derniers"
+    ],
+    [
+      "^Launch validator · agreed on (\\d+) of the last (\\d+)$",
+      "Validateur initial · validé {0} sur les {1} derniers"
+    ],
+    [
+      "^Staked by (.+)$",
+      "Misé par {0}"
+    ],
+    [
+      "^(\\d+) verified wallets?$",
+      "{0} portefeuilles vérifiés"
+    ],
+    [
+      "^(\\d+) more offers? paused while .*$",
+      "{0} autres offres en pause pendant ce temps"
+    ],
+    [
+      "^Continue with (.+)$",
+      "Continuer avec {0}"
+    ],
+    [
+      "^Sell with (.+)$",
+      "Vendre avec {0}"
+    ],
+    [
+      "^Take with (.+)$",
+      "Prendre avec {0}"
+    ],
+    [
+      "^Sweet spot: (\\d+) of (\\d+) cores$",
+      "Réglage idéal : {0} sur {1} cœurs"
+    ],
+    [
+      "^About ([0-9,]+) tries a second\\. Past it, the processor runs hotter for no more ORN\\.$",
+      "Environ {0} essais par seconde. Au-delà, le processeur chauffe davantage sans gagner plus d'ORN."
+    ],
+    [
+      "^Trying (\\d+) of (\\d+) cores \\((\\d+) of (\\d+)\\)\\. Shares found still count\\.$",
+      "Essai de {0} sur {1} cœurs ({2} sur {3}). Les parts trouvées comptent toujours."
+    ],
+    [
+      "^This hour: ([0-9,]+) shares found, ([0-9,]+) counted$",
+      "Cette heure : {0} parts trouvées, {1} comptabilisées"
+    ],
+    [
+      "^About one try in ([0-9,]+) makes a share\\.$",
+      "Environ un essai sur {0} produit une part."
+    ],
+    [
+      "^([0-9.,]+(?: [KMG])?) tries a second$",
+      "{0} essais par seconde"
+    ],
+    [
+      "^(\\d+) of (\\d+) cores$",
+      "{0} sur {1} cœurs"
+    ],
+    [
+      "^(\\d+) of (\\d+)$",
+      "{0} sur {1}"
+    ],
+    [
+      "^(\\d+) of 24 words$",
+      "{0} sur 24 mots"
+    ],
+    [
+      "^staked · ([0-9.,]+) returning$",
+      "misé · {0} en retour"
+    ],
+    [
+      "^Received from (.+)$",
+      "Reçu de {0}"
+    ],
+    [
+      "^Sent to (.+)$",
+      "Envoyé à {0}"
+    ],
+    [
+      "^Locked payment received from (.+)$",
+      "Paiement verrouillé reçu de {0}"
+    ],
+    [
+      "^(.+) · checkpoint (\\d+)$",
+      "{0} · point de contrôle {1}"
+    ],
+    [
+      "^checkpoint (\\d+)$",
+      "point de contrôle {0}"
+    ],
+    [
+      "^← Checkpoint (\\d+)$",
+      "← Point de contrôle {0}"
+    ],
+    [
+      "^Checkpoint (\\d+) →$",
+      "Point de contrôle {0} →"
+    ],
+    [
+      "^Checkpoint (\\d+) hasn't been made yet\\.$",
+      "Le point de contrôle {0} n'a pas encore été créé."
+    ],
+    [
+      "^Checkpoint (\\d+) hasn't been made yet\\. The latest is (\\d+)\\.$",
+      "Le point de contrôle {0} n'a pas encore été créé. Le dernier est le {1}."
+    ],
+    [
+      "^Being made now, ready in about (\\d+) min$",
+      "Création en cours, prêt dans environ {0} min"
+    ],
+    [
+      "^Next hour (.+)$",
+      "Heure suivante {0}"
+    ],
+    [
+      "^([0-9.]+)× easier$",
+      "{0}× plus facile"
+    ],
+    [
+      "^([0-9.]+)× harder$",
+      "{0}× plus difficile"
+    ],
+    [
+      "^([0-9.,]+) new ORN$",
+      "{0} nouveaux ORN"
+    ],
+    [
+      "^([0-9.,]+) available$",
+      "{0} disponibles"
+    ],
+    [
+      "^Avail: ([0-9.,]+)$",
+      "Dispo : {0}"
+    ],
+    [
+      "^Fee ([0-9.,]+) ORN · ([0-9.,]+) ORN in all$",
+      "Frais {0} ORN · {1} ORN au total"
+    ],
+    [
+      "^incl\\. ([0-9.,]+) fee$",
+      "dont {0} de frais"
+    ],
+    [
+      "^([0-9.,]+) ORN sent$",
+      "{0} ORN envoyés"
+    ],
+    [
+      "^(\\d+) more characters?$",
+      "{0} caractères de plus"
+    ],
+    [
+      "^(\\d+) min ago$",
+      "Il y a {0} min"
+    ],
+    [
+      "^(\\d+) h ago$",
+      "Il y a {0} h"
+    ],
+    [
+      "^(\\d+) d ago$",
+      "Il y a {0} j"
+    ],
+    [
+      "^(\\d+) h (\\d+) min$",
+      "{0} h {1} min"
+    ],
+    [
+      "^(\\d+) min$",
+      "{0} min"
+    ],
+    [
+      "^(\\d+) minutes?$",
+      "{0} minutes"
+    ],
+    [
+      "^(\\d+) hours?$",
+      "{0} heures"
+    ],
+    [
+      "^(\\d+) days?$",
+      "{0} jours"
+    ],
+    [
+      "^(\\d+) days? left$",
+      "{0} jours restants"
+    ],
+    [
+      "^(\\d+) hours? left$",
+      "{0} heures restantes"
+    ],
+    [
+      "^(\\d+) minutes? left$",
+      "{0} minutes restantes"
+    ],
+    [
+      "^(\\d+) more$",
+      "{0} de plus"
+    ],
+    [
+      "^(\\d+) others?$",
+      "{0} autres"
+    ],
+    [
+      "^(.+) and (\\d+) others?$",
+      "{0} et {1} autres"
+    ],
+    [
+      "^(.+), (\\d+) swaps? done$",
+      "{0}, {1} échanges effectués"
+    ],
+    [
+      "^([0-9.,]+) SOL per ORN$",
+      "{0} SOL par ORN"
+    ],
+    [
+      "^([0-9,]+) satoshis per ORN$",
+      "{0} satoshis par ORN"
+    ],
+    [
+      "^Member since (.+)$",
+      "Membre depuis {0}"
+    ],
+    [
+      "^Blocked (.+)$",
+      "{0} bloqué"
+    ],
+    [
+      "^Block (.+)$",
+      "Bloquer {0}"
+    ],
+    [
+      "^Unblock (.+)$",
+      "Débloquer {0}"
+    ],
+    [
+      "^Reply to (.+)$",
+      "Répondre à {0}"
+    ],
+    [
+      "^Write to (.+)$",
+      "Écrire à {0}"
+    ],
+    [
+      "^Ask (.+) to pay$",
+      "Demander à {0} de payer"
+    ],
+    [
+      "^Tip ([0-9.,]+) ORN$",
+      "Envoyer {0} ORN de pourboire"
+    ],
+    [
+      "^Tip (.+) for (.+)$",
+      "Envoyer un pourboire à {0} pour {1}"
+    ],
+    [
+      "^Tip (.+)$",
+      "Envoyer un pourboire à {0}"
+    ],
+    [
+      "^Tip with (.+)$",
+      "Envoyer un pourboire avec {0}"
+    ],
+    [
+      "^Send with (.+)$",
+      "Envoyer avec {0}"
+    ],
+    [
+      "^Pay with (.+)$",
+      "Payer avec {0}"
+    ],
+    [
+      "^Post with (.+)$",
+      "Publier avec {0}"
+    ],
+    [
+      "^Verify with (.+)$",
+      "Vérifier avec {0}"
+    ],
+    [
+      "^Turn on with (.+)$",
+      "Activer avec {0}"
+    ],
+    [
+      "^Buy ORN with (.+)$",
+      "Acheter des ORN avec {0}"
+    ],
+    [
+      "^Sell ORN with (.+)$",
+      "Vendre des ORN avec {0}"
+    ],
+    [
+      "^Use (.+) instead$",
+      "Utiliser {0} à la place"
+    ],
+    [
+      "^Use (.+) instead of the password from now on$",
+      "Utiliser {0} à la place du mot de passe dorénavant"
+    ],
+    [
+      "^Use (.+)$",
+      "Utiliser {0}"
+    ],
+    [
+      "^Confirm with (.+)$",
+      "Confirmer avec {0}"
+    ],
+    [
+      "^Verify (.+)$",
+      "Vérifier {0}"
+    ],
+    [
+      "^Verifying (.+)$",
+      "Vérification de {0}"
+    ],
+    [
+      "^Send ([0-9.,]+) ORN and verify$",
+      "Envoyer {0} ORN et vérifier"
+    ],
+    [
+      "^Orien Wallet ([0-9.]+) is the newest version\\.$",
+      "Orien Wallet {0} est la dernière version."
+    ],
+    [
+      "^Orien Wallet ([0-9.]+) is ready$",
+      "Orien Wallet {0} est prêt"
+    ],
+    [
+      "^Orien Wallet ([0-9.]+) is out(.*)$",
+      "Orien Wallet {0} est disponible{1}"
+    ],
+    [
+      "^Waiting for (.+) to pay\\.$",
+      "En attente du paiement de {0}."
+    ],
+    [
+      "^Waiting for (.+)$",
+      "En attente de {0}"
+    ],
+    [
+      "^Locking ORN for (.+)$",
+      "Verrouillage des ORN pour {0}"
+    ],
+    [
+      "^Selling to (.+)$",
+      "Vente à {0}"
+    ],
+    [
+      "^Taken by (.+)$",
+      "Prise par {0}"
+    ],
+    [
+      "^You get ([0-9.,]+) ORN$",
+      "Vous recevez {0} ORN"
+    ],
+    [
+      "^You mined ([0-9.,]+) ORN$",
+      "Vous avez miné {0} ORN"
+    ],
+    [
+      "^You received ([0-9.,]+) ORN$",
+      "Vous avez reçu {0} ORN"
+    ],
+    [
+      "^You paid ([0-9.,]+) ORN\\.$",
+      "Vous avez payé {0} ORN."
+    ],
+    [
+      "^Buy orders are limited to ([0-9.,]+) SOL per order$",
+      "Les ordres d'achat sont limités à {0} SOL par ordre"
+    ],
+    [
+      "^The smallest swap is ([0-9.,]+) (SOL|BTC)$",
+      "L'échange minimal est de {0} {1}"
+    ],
+    [
+      "^At least ([0-9.,]+) (SOL|BTC)$",
+      "Au moins {0} {1}"
+    ],
+    [
+      "^Pay by (.+), in (.+)$",
+      "Payez avant {0}, dans {1}"
+    ],
+    [
+      "^around (.+), in about (\\d+) hours?$",
+      "vers {0}, dans environ {1} heures"
+    ],
+    [
+      "^around (.+)$",
+      "vers {0}"
+    ],
+    [
+      "^Sign in to (.+)\\?$",
+      "Se connecter à {0} ?"
+    ],
+    [
+      "^Already saved as (.+)$",
+      "Déjà enregistré sous {0}"
+    ],
+    [
+      "^✓ Your wallet (.+)$",
+      "✓ Votre portefeuille {0}"
+    ],
+    [
+      "^(.+): your profile$",
+      "{0} : votre profil"
+    ],
+    [
+      "^(.+) \\(yours\\)$",
+      "{0} (le vôtre)"
+    ],
+    [
+      "^(.+) hasn't posted yet\\.$",
+      "{0} n'a pas encore publié."
+    ],
+    [
+      "^About (.+)$",
+      "À propos de {0}"
+    ],
+    [
+      "^(.+)'s password$",
+      "Mot de passe de {0}"
+    ],
+    [
+      "^Remove (.+)\\? Tap again$",
+      "Retirer {0} ? Appuyez de nouveau"
+    ],
+    [
+      "^The record before was ([0-9,]+)\\. Checkpoint (\\d+)\\.$",
+      "Le record précédent était de {0}. Point de contrôle {1}."
+    ]
+  ]
+}

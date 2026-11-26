@@ -52,6 +52,17 @@ export const CHANGELOG: Entry[] = [
   {
     date: '2026-11-26',
     products: ['wallet'],
+    version: '1.9.27',
+    title: 'Language packs in 8 languages',
+    changes: [
+      'Choose your language in Settings, Language: English, Spanish, Chinese, Japanese, Korean, Portuguese, French, and German. Your choice switches the whole app immediately and follows you to your other devices.',
+      'In the Exchange order book, the lowest-priced sell orders sit at the top of the sell list.',
+      'Fixed the Explorer checkpoint row layout so payment counts and times show cleanly beside each checkpoint.',
+    ],
+  },
+  {
+    date: '2026-11-26',
+    products: ['wallet'],
     version: '1.9.26',
     title: 'Cleaner names and spinner on Exchange swaps',
     changes: [
