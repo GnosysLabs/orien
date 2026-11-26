@@ -1,0 +1,2112 @@
+{
+  "_meta": {
+    "code": "tr",
+    "native": "Türkçe",
+    "english": "Turkish"
+  },
+  "(optional, for a reply)": "(isteğe bağlı, yanıt için)",
+  "+ Add a choice": "+ Seçenek ekle",
+  ". Fees: the usual Orien fee to lock the ORN (0.1%, at most 1 ORN), and Bitcoin's network fee for taking the Bitcoin, out of what you receive. If a buyer never pays, your ORN come back on their own within 12 hours.": ". Ücretler: ORN kilitlemek için standart Orien ücreti (%0,1, en fazla 1 ORN) ve Bitcoin alımı için Bitcoin ağ ücreti (alacağınız tutardan düşülür). Alıcı hiç ödeme yapmazsa ORN'leriniz 12 saat içinde kendiliğinden geri döner.",
+  ". Then": ". Ardından",
+  ". Then scan this code, or type it.": ". Ardından bu kodu tarayın veya yazın.",
+  "0 open": "0 açık",
+  "1 day": "1 gün",
+  "12 hours after they were locked": "Kilitlendikten 12 saat sonra",
+  "3 days": "3 gün",
+  "3 to 20 letters, numbers or _": "3 ila 20 harf, rakam veya _",
+  "30 min ago": "30 dk önce",
+  "7 days": "7 gün",
+  "A few words for people you swap with": "Takas yaptığınız kişiler için birkaç kelime",
+  "A fresh one, with its own recovery phrase": "Kendi kurtarma ifadesine sahip yepyeni bir cüzdan",
+  "A locked payment nobody claimed": "Kimsenin talep etmediği kilitli ödeme",
+  "A new miner joined": "Yeni bir madenci katıldı",
+  "A password protects the wallet on this computer. Without it, anyone who gets this computer's files can spend from it. You will type it each time you send.": "Parola, bu bilgisayardaki cüzdanı korur. Parola olmadan, bu bilgisayarın dosyalarına ulaşan herkes cüzdanınızdan harcama yapabilir. Her gönderimde bu parolayı yazmanız gerekir.",
+  "A scam, something illegal, pretending to be someone…": "Dolandırıcılık, yasa dışı bir içerik, başkasını taklit etme…",
+  "A seller filled your order. Delivering your ORN automatically, usually within a minute.": "Bir satıcı emrinizi karşıladı. ORN'leriniz genellikle bir dakika içinde otomatik olarak teslim edilir.",
+  "A small arrow on screens with more below": "Aşağıda daha fazla içerik olan ekranlarda küçük bir ok",
+  "A theme you use is your own copy: the maker can't change it, and you can edit or delete it like one you built.": "Kullandığınız tema sizin kendi kopyanızdır: yapımcısı bunu değiştiremez ve kendi oluşturduğunuz bir tema gibi düzenleyebilir veya silebilirsiniz.",
+  "AI Support": "Yapay Zeka Desteği",
+  "AI answers can be wrong": "Yapay zeka yanıtları hatalı olabilir",
+  "About": "Hakkında",
+  "About the same": "Hemen hemen aynı",
+  "About this": "Bunun hakkında",
+  "About you": "Hakkınızda",
+  "Accent colour": "Vurgu rengi",
+  "Accepted": "Kabul edildi",
+  "Accepted: your ORN are locked for the buyer. Waiting for them to pay.": "Kabul edildi: ORN'leriniz alıcı için kilitlendi. Ödeme yapması bekleniyor.",
+  "Activity": "Etkinlik",
+  "Activity and notifications": "Etkinlik ve bildirimler",
+  "Add a GIF": "GIF ekle",
+  "Add a contact": "Kişi ekle",
+  "Add a password": "Parola ekle",
+  "Add a poll": "Anket ekle",
+  "Add a wallet": "Cüzdan ekle",
+  "Add another wallet": "Başka bir cüzdan ekle",
+  "Add photos": "Fotoğraf ekle",
+  "Add pictures": "Resim ekle",
+  "Add to contacts": "Kişilere ekle",
+  "Address": "Adres",
+  "Again": "Tekrar",
+  "Agreed": "Onaylandı",
+  "Agreed by": "Onaylayan",
+  "All": "Tümü",
+  "All your wallets": "Tüm cüzdanlarınız",
+  "Among members with a verified wallet, by ORN mined.": "Doğrulanmış cüzdanı olan üyeler arasında, kazılan ORN miktarına göre.",
+  "Amount": "Tutar",
+  "Amount (ORN)": "Tutar (ORN)",
+  "An address, a name or a checkpoint number": "Bir adres, ad veya kontrol noktası numarası",
+  "An earlier payment from this wallet had to finish first, so nothing was sent for verifying yet. Tap again to send it.": "Bu cüzdandan önceki bir ödemenin önce tamamlanması gerekti, bu yüzden doğrulama için henüz bir şey gönderilmedi. Göndermek için tekrar dokunun.",
+  "An earlier payment from this wallet had to finish first, so this one wasn't sent yet. Tap Pay again.": "Bu cüzdandan önceki bir ödemenin önce tamamlanması gerekti, bu yüzden bu ödeme henüz gönderilmedi. Tekrar Öde'ye dokunun.",
+  "An earlier payment from this wallet had to finish first, so this tip wasn't sent yet. Tap Tip again.": "Bu cüzdandan önceki bir ödemenin önce tamamlanması gerekti, bu yüzden bu bahşiş henüz gönderilmedi. Tekrar Bahşiş'e dokunun.",
+  "Another amount": "Başka bir tutar",
+  "Answers come from an AI and can be wrong. It never needs your recovery words, passwords or keys: never share them with anyone.": "Yanıtlar bir yapay zeka tarafından üretilir ve hatalı olabilir. Kurtarma kelimelerinize, parolalarınıza veya anahtarlarınıza asla ihtiyaç duymaz: bunları kimseyle paylaşmayın.",
+  "Any colour you like": "İstediğiniz herhangi bir renk",
+  "Any moment": "Her an",
+  "Anyone can read along. To write, reply or react, sign in and verify a wallet.": "Herkes okuyabilir. Yazmak, yanıtlamak veya tepki vermek için giriş yapın ve bir cüzdan doğrulayın.",
+  "Anyone can see it, use it and tip you for it. Your Orien Network name is shown with it. You can take it down at any time.": "Herkes görebilir, kullanabilir ve bunun için size bahşiş gönderebilir. Orien Network adınız yanında gösterilir. İstediğiniz zaman kaldırabilirsiniz.",
+  "Anyone can sell into it now. When they do, their wallet locks the ORN and this app opens the pay screen.": "Artık herkes bu emre satış yapabilir. Biri satış yaptığında cüzdanı ORN'leri kilitler ve bu uygulama ödeme ekranını açar.",
+  "Anyone can take it now. When they do, your wallet runs the swap by itself.": "Artık herkes bunu kabul edebilir. Biri kabul ettiğinde cüzdanınız takası kendiliğinden gerçekleştirir.",
+  "Anyone who opens the file can spend your ORN. Keep it somewhere only you can reach.": "Bu dosyayı açan herkes ORN'lerinizi harcayabilir. Sadece sizin ulaşabileceğiniz bir yerde saklayın.",
+  "Anyone who sees your 24 words can take everything in this wallet. Orien will never ask you for them, and no one helping you ever needs them.": "24 kelimenizi gören herkes bu cüzdandaki her şeyi alabilir. Orien bunları sizden asla istemez ve size yardım eden hiç kimsenin bunlara ihtiyacı yoktur.",
+  "Anyone with these words can spend this wallet's ORN. Orien never asks for them.": "Bu kelimelere sahip olan herkes bu cüzdandaki ORN'leri harcayabilir. Orien bunları asla istemez.",
+  "Anything left over, or a refund, comes back here": "Artan tutar veya iade buraya geri döner",
+  "Appearance": "Görünüm",
+  "Approve": "Onayla",
+  "Approve in Orien Wallet to finish your swap.": "Takasınızı tamamlamak için Orien Wallet içinde onaylayın.",
+  "Approve this order": "Bu emri onayla",
+  "Approve to finish your swap": "Takasınızı tamamlamak için onaylayın",
+  "Ask Orien AI Support": "Orien Yapay Zeka Desteği'ne Sor",
+  "Ask a question": "Bir soru sor",
+  "Ask anything about the wallet, mining, swaps or the network, in your own words.": "Cüzdan, madencilik, takaslar veya ağ hakkında istediğiniz her şeyi kendi kelimelerinizle sorun.",
+  "Ask each time Orien Wallet opens": "Orien Wallet her açıldığında sor",
+  "Ask for payment": "Ödeme iste",
+  "Asks · selling ORN": "Satışlar · ORN satışı",
+  "At least 8 characters": "En az 8 karakter",
+  "At this speed and today's difficulty": "Bu hızda ve bugünkü zorlukta",
+  "Australian dollar": "Avustralya doları",
+  "Automatic · a few minutes": "Otomatik · birkaç dakika",
+  "Automatic · about a minute": "Otomatik · yaklaşık bir dakika",
+  "Automatic · keep this page open": "Otomatik · bu sayfayı açık tutun",
+  "Automatic · keep this page open (~15 seconds)": "Otomatik · bu sayfayı açık tutun (~15 saniye)",
+  "Automatic · keep this page open (~20 seconds)": "Otomatik · bu sayfayı açık tutun (~20 saniye)",
+  "Automatic · usually 30 to 60 minutes": "Otomatik · genellikle 30 ila 60 dakika",
+  "Automatic · usually a minute": "Otomatik · genellikle bir dakika",
+  "Automatic · usually within minutes": "Otomatik · genellikle birkaç dakika içinde",
+  "Available": "Kullanılabilir",
+  "Back": "Geri",
+  "Back from staking": "Staking'den döndü",
+  "Back to Exchange": "Borsaya Dön",
+  "Back to top": "Başa dön",
+  "Back up its recovery phrase: each wallet has its own.": "Kurtarma ifadesini yedekleyin: her cüzdanın kendine ait bir ifadesi vardır.",
+  "Back up your recovery phrase": "Kurtarma ifadenizi yedekleyin",
+  "Background picture": "Arka plan resmi",
+  "Balance": "Bakiye",
+  "Balance after": "Kalan bakiye",
+  "Ban": "Yasakla",
+  "Banned": "Yasaklandı",
+  "Banned from the group chat": "Grup sohbetinden yasaklandı",
+  "Base": "Taban",
+  "Be paid in ORN.": "ORN ile ödeme alın.",
+  "Benchmark": "Performans testi",
+  "Benchmark again": "Testi tekrarla",
+  "Benchmarking…": "Performans ölçülüyor…",
+  "Bids · buying ORN": "Alışlar · ORN alışı",
+  "Bitcoin": "Bitcoin",
+  "Bitcoin to pay": "Ödenecek Bitcoin",
+  "Bitcoin to receive": "Alınacak Bitcoin",
+  "Block": "Engelle",
+  "Blocked": "Engellendi",
+  "Blocked accounts": "Engellenen hesaplar",
+  "Book & Trade": "Defter ve İşlem",
+  "Brazilian real": "Brezilya reali",
+  "Bring your wallets here from your phone or computer": "Cüzdanlarınızı telefonunuzdan veya bilgisayarınızdan buraya getirin",
+  "British pound": "İngiliz sterlini",
+  "Browser Extensions": "Tarayıcı Uzantıları",
+  "Build a theme": "Tema oluştur",
+  "Build your own theme": "Kendi temanızı oluşturun",
+  "Built-in safety:": "Yerleşik güvenlik:",
+  "Buy": "Satın al",
+  "Buy ORN": "ORN Satın Al",
+  "Buy ORN with SOL or Bitcoin": "SOL veya Bitcoin ile ORN satın al",
+  "Buy amount (ORN)": "Alış tutarı (ORN)",
+  "Buy from": "Satın alınacak kişi",
+  "Buyer": "Alıcı",
+  "Buyer pays": "Alıcı öder",
+  "Buyer's SOL reserved. Locking your ORN now. Keep this page open for a few more seconds.": "Alıcının SOL'u ayrıldı. ORN'leriniz şimdi kilitleniyor. Bu sayfayı birkaç saniye daha açık tutun.",
+  "Buyers on the Market pay the wallet marked Paid here. Verify more to choose between them.": "Pazardaki alıcılar burada Ödeme buraya olarak işaretlenen cüzdana ödeme yapar. Aralarından seçim yapmak için daha fazla cüzdan doğrulayın.",
+  "Buying ORN": "ORN satın alınıyor",
+  "By any message app or email. It tells the buyer's Orien Wallet what you locked for them, and holds nothing secret.": "Herhangi bir mesajlaşma uygulaması veya e-posta ile. Alıcının Orien Wallet uygulamasına onun için ne kilitlediğinizi bildirir ve gizli bir bilgi içermez.",
+  "By any message app or email. It tells the seller's Orien Wallet where you're paying the Bitcoin, and holds nothing secret.": "Herhangi bir mesajlaşma uygulaması veya e-posta ile. Satıcının Orien Wallet uygulamasına Bitcoin'i nereye ödediğinizi bildirir ve gizli bir bilgi içermez.",
+  "By continuing you agree to the": "Devam ederek şunları kabul etmiş olursunuz:",
+  "Canadian dollar": "Kanada doları",
+  "Cancel": "İptal",
+  "Cancel below before sending. Nothing has left your wallet.": "Göndermeden önce aşağıdan iptal edin. Cüzdanınızdan hiçbir şey çıkmadı.",
+  "Cancel buy order": "Alış emrini iptal et",
+  "Cancel buy order & return SOL": "Alış emrini iptal et ve SOL'u iade et",
+  "Cancelling your buy order on Solana and returning your SOL to your wallet. Keep this page open for about 15 seconds.": "Solana üzerindeki alış emriniz iptal ediliyor ve SOL'unuz cüzdanınıza iade ediliyor. Bu sayfayı yaklaşık 15 saniye açık tutun.",
+  "Cancelling · returning SOL": "İptal ediliyor · SOL iade ediliyor",
+  "Catching up": "Eşitleniyor",
+  "Category": "Kategori",
+  "Change banner": "Kapağı değiştir",
+  "Change picture": "Resmi değiştir",
+  "Changed your mind?": "Fikrinizi mi değiştirdiniz?",
+  "Chart currency": "Grafik para birimi",
+  "Chat": "Sohbet",
+  "Chat with everyone": "Herkesle sohbet et",
+  "Check for Updates": "Güncellemeleri Kontrol Et",
+  "Check this one and send it again.": "Bunu kontrol edip tekrar gönderin.",
+  "Check your other device shows these": "Diğer cihazınızda bunların göründüğünü doğrulayın",
+  "Checking": "Kontrol ediliyor",
+  "Checking for updates": "Güncellemeler kontrol ediliyor",
+  "Checking the ORN the seller locked for you": "Satıcının sizin için kilitlediği ORN kontrol ediliyor",
+  "Checkpoint": "Kontrol noktası",
+  "Checkpoints": "Kontrol noktaları",
+  "Chinese yuan": "Çin yuanı",
+  "Choose SOL or Bitcoin, then type how many ORN to sell, how much you want for them, and the address you'll be paid at.": "SOL veya Bitcoin seçin, ardından kaç ORN satacağınızı, karşılığında ne kadar istediğinizi ve ödeme alacağınız adresi yazın.",
+  "Choose a GIF": "GIF seç",
+  "Choose a picture": "Resim seç",
+  "Clear": "Temizle",
+  "Click": "Tıklayın:",
+  "Click Buy or Sell to trade directly": "Doğrudan işlem yapmak için Satın al veya Sat'a tıklayın",
+  "Click again to start over": "Baştan başlamak için tekrar tıklayın",
+  "Click to add a picture": "Resim eklemek için tıklayın",
+  "Click your browser and add Orien Wallet there.": "Tarayıcınıza tıklayın ve Orien Wallet'ı oraya ekleyin.",
+  "Close": "Kapat",
+  "Closed": "Kapalı",
+  "Code": "Kod",
+  "Code from the email": "E-postadaki kod",
+  "Community": "Topluluk",
+  "Completed ORN / SOL swap prices over time": "Zaman içinde tamamlanan ORN / SOL takas fiyatları",
+  "Completed swap prices over time": "Zaman içinde tamamlanan takas fiyatları",
+  "Confirm below": "Aşağıdan onaylayın",
+  "Confirmed": "Onaylandı",
+  "Confirming": "Onaylanıyor",
+  "Connected": "Bağlandı",
+  "Connected to the network": "Ağa bağlandı",
+  "Connecting": "Bağlanıyor",
+  "Contact": "Kişi",
+  "Contacts": "Kişiler",
+  "Continue": "Devam et",
+  "Continuing": "Devam ediliyor",
+  "Cooler, fewer shares": "Daha serin, daha az pay",
+  "Copied": "Kopyalandı",
+  "Copy": "Kopyala",
+  "Copy address": "Adresi kopyala",
+  "Copy amount": "Tutarı kopyala",
+  "Copy code": "Kodu kopyala",
+  "Copy the address": "Adresi kopyalayın",
+  "Cores in use": "Kullanılan çekirdekler",
+  "Couldn't check": "Kontrol edilemedi",
+  "Cover": "Kapak",
+  "Create a wallet": "Cüzdan oluştur",
+  "Create a wallet to hold ORN, or restore the one you already have.": "ORN tutmak için bir cüzdan oluşturun veya mevcut cüzdanınızı geri yükleyin.",
+  "Currency": "Para birimi",
+  "Dark": "Koyu",
+  "Delete contact": "Kişiyi sil",
+  "Delete conversation": "Sohbeti sil",
+  "Delete for good": "Kalıcı olarak sil",
+  "Delete my account": "Hesabımı sil",
+  "Delete this conversation? Tap again": "Bu sohbet silinsin mi? Tekrar dokunun",
+  "Delete this post?": "Bu gönderi silinsin mi?",
+  "Delete?": "Silinsin mi?",
+  "Describe it": "Açıklayın",
+  "Didn't answer": "Yanıt vermedi",
+  "Do this once on each device. After that, contacts and wallet icons stay the same on all of them.": "Bunu her cihazda bir kez yapın. Bundan sonra kişiler ve cüzdan simgeleri tüm cihazlarda aynı kalır.",
+  "Does your new device show these?": "Yeni cihazınızda bunlar görünüyor mu?",
+  "Don't have any ORN yet? Mine for an hour from the Mine screen, or buy a little on Swap.": "Henüz hiç ORN'niz yok mu? Kaz ekranından bir saat madencilik yapın veya Takas'tan biraz satın alın.",
+  "Don't have any ORN yet? Mine for an hour in Orien Wallet on a computer, or buy a little at orien.network.": "Henüz hiç ORN'niz yok mu? Bir bilgisayarda Orien Wallet ile bir saat madencilik yapın veya orien.network adresinden biraz satın alın.",
+  "Don't show this again": "Bunu bir daha gösterme",
+  "Done": "Tamamlandı",
+  "Done: the ORN are in your wallet, and anything left over went back to your SOL wallet.": "Tamamlandı: ORN'ler cüzdanınızda ve artan tutar SOL cüzdanınıza geri döndü.",
+  "Done: your SOL went back to your SOL wallet.": "Tamamlandı: SOL'unuz SOL cüzdanınıza geri döndü.",
+  "Downloads": "İndirmeler",
+  "Each share": "Her pay",
+  "Each wallet has its own address, recovery phrase and activity. Tap one to open it.": "Her cüzdanın kendi adresi, kurtarma ifadesi ve etkinliği vardır. Açmak için birine dokunun.",
+  "Earn a share of each hour's new ORN while this app is open.": "Bu uygulama açıkken her saatin yeni ORN'lerinden pay kazanın.",
+  "Edit": "Düzenle",
+  "Edit Profile": "Profili Düzenle",
+  "Edit listing": "İlanı düzenle",
+  "Edit theme": "Temayı düzenle",
+  "Editing your theme later doesn't change the shared one. Share it again as a new theme if you like the new version better.": "Temanızı daha sonra düzenlemeniz paylaşılan sürümü değiştirmez. Yeni sürümü daha çok beğendiyseniz yeni bir tema olarak tekrar paylaşın.",
+  "Email": "E-posta",
+  "English": "İngilizce",
+  "Enter ORN and SOL": "ORN ve SOL girin",
+  "Euro": "Euro",
+  "Every miner on Orien together, estimated": "Orien üzerindeki tüm madencilerin toplamı, tahmini",
+  "Everyone": "Herkes",
+  "Everyone on Orien Network": "Orien Network üzerindeki herkes",
+  "Everything in the group chat is public. Be kind.": "Grup sohbetindeki her şey herkese açıktır. Nazik olun.",
+  "Exchange": "Borsa",
+  "Expired": "Süresi doldu",
+  "Explorer": "Gezgin",
+  "Failed": "Başarısız",
+  "Fee": "Ücret",
+  "Feed": "Akış",
+  "Filled · settling (~1 min)": "Karşılandı · sonuçlanıyor (~1 dk)",
+  "Final results": "Kesin sonuçlar",
+  "Final within a minute": "Bir dakika içinde kesinleşir",
+  "Find members": "Üye bul",
+  "Find themes in the Theme Store": "Tema Mağazası'nda tema bul",
+  "Find your sweet spot": "En ideal ayarı bul",
+  "Fingerprints": "Parmak izleri",
+  "Finish": "Bitir",
+  "Finished": "Tamamlandı",
+  "First ORN": "İlk ORN",
+  "Follow Orien's posts": "Orien gönderilerini takip et",
+  "From": "Kimden",
+  "From any Bitcoin wallet: scan the code, or copy the address and amount. This app sees the payment by itself; there is nothing else to send.": "Herhangi bir Bitcoin cüzdanından: kodu tarayın veya adresi ve tutarı kopyalayın. Bu uygulama ödemeyi kendiliğinden görür; göndermeniz gereken başka bir şey yoktur.",
+  "From my other device": "Diğer cihazımdan",
+  "From your SOL wallet, such as Phantom: scan the code, or copy the address and amount. Send it all in one go. This app sees it by itself; there is nothing else to send.": "Phantom gibi SOL cüzdanınızdan: kodu tarayın veya adresi ve tutarı kopyalayın. Hepsini tek seferde gönderin. Bu uygulama ödemeyi kendiliğinden görür; göndermeniz gereken başka bir şey yoktur.",
+  "Fund your buy order with a quick SOL QR payment. Once funded, it stays live even with Orien Wallet closed, and you can cancel anytime in one click.": "Alış emrinizi hızlı bir SOL QR ödemesiyle fonlayın. Fonlandıktan sonra Orien Wallet kapalı olsa bile yayında kalır ve istediğiniz zaman tek tıkla iptal edebilirsiniz.",
+  "Get ORN": "ORN Edin",
+  "Get ORN on iPhone": "iPhone'da ORN Edin",
+  "Get back to Home": "Ana Sayfa'ya dön",
+  "Get paid here": "Ödemeyi buraya al",
+  "Getting": "Alınıyor",
+  "Getting ORN": "ORN alınıyor",
+  "Getting it ready…": "Hazırlanıyor…",
+  "Getting ready (about a minute)": "Hazırlanıyor (yaklaşık bir dakika)",
+  "Getting ready…": "Hazırlanıyor…",
+  "Getting started": "Başlarken",
+  "Give it a": "Bir ad verin:",
+  "Give someone your address and they can send you ORN from their wallet. Payments arrive in seconds.": "Birine adresinizi verin, cüzdanından size ORN gönderebilsin. Ödemeler saniyeler içinde ulaşır.",
+  "Give the wallet a name, like Mining.": "Cüzdana Madencilik gibi bir ad verin.",
+  "Help": "Yardım",
+  "Hide balance": "Bakiyeyi gizle",
+  "Home": "Ana Sayfa",
+  "Hong Kong dollar": "Hong Kong doları",
+  "How is it priced?": "Fiyatı nasıl belirleniyor?",
+  "I have backed up my recovery phrase": "Kurtarma ifademi yedekledim",
+  "I understand, show them": "Anladım, göster",
+  "Icon": "Simge",
+  "If the app updates while mining, mining starts again by itself.": "Uygulama madencilik sırasında güncellenirse madencilik kendiliğinden yeniden başlar.",
+  "If the buyer doesn't pay,": "Alıcı ödeme yapmazsa,",
+  "If the buyer never pays,": "Alıcı hiç ödeme yapmazsa,",
+  "If the buyer pays but this app stays closed for more than about 4 hours, they take their Bitcoin back and your ORN still come back to you. Nobody loses coins.": "Alıcı ödeme yapar ancak bu uygulama yaklaşık 4 saatten uzun süre kapalı kalırsa, alıcı Bitcoin'ini geri alır ve ORN'leriniz yine size döner. Kimse coin kaybetmez.",
+  "If the seller never takes your Bitcoin,": "Satıcı Bitcoin'inizi hiç almazsa,",
+  "If the seller never takes your SOL,": "Satıcı SOL'unuzu hiç almazsa,",
+  "If they match, tap": "Eşleşiyorsa dokunun:",
+  "If you change your mind,": "Fikrinizi değiştirirseniz,",
+  "If you forget it, your recovery phrase still restores the wallet.": "Unutursanız kurtarma ifadeniz cüzdanı yine de geri yükler.",
+  "In use": "Kullanımda",
+  "Indian rupee": "Hindistan rupisi",
+  "Indonesian rupiah": "Endonezya rupisi",
+  "Install Orien Wallet on your Mac, Windows or Linux computer, open this same wallet there with its recovery phrase, and press Mine. Your computer earns a share of each hour's new ORN.": "Orien Wallet'ı Mac, Windows veya Linux bilgisayarınıza yükleyin, bu aynı cüzdanı kurtarma ifadesiyle orada açın ve Kaz'a basın. Bilgisayarınız her saatin yeni ORN'lerinden pay kazanır.",
+  "It arrives in seconds. Save a new address as a contact from the last screen if you like.": "Saniyeler içinde ulaşır. İsterseniz son ekrandan yeni bir adresi kişi olarak kaydedebilirsiniz.",
+  "It colours the buttons, the balance card, the glow and the highlights.": "Düğmeleri, bakiye kartını, parıltıyı ve vurguları renklendirir.",
+  "It installs in a moment, and the app reopens by itself.": "Birazdan kurulur ve uygulama kendiliğinden yeniden açılır.",
+  "It's checked, then shows in the store with your name, where anyone can try it, use it and tip you.": "Kontrol edildikten sonra adınızla birlikte mağazada görünür; herkes deneyebilir, kullanabilir ve size bahşiş gönderebilir.",
+  "It's how you add this wallet back, here or anywhere else.": "Bu cüzdanı buraya veya başka herhangi bir yere tekrar eklemenin yolu budur.",
+  "Its file stays on this computer,": "Dosyası bu bilgisayarda kalır,",
+  "Japanese yen": "Japon yeni",
+  "Just now": "Az önce",
+  "Keep Orien Wallet running": "Orien Wallet'ı açık tutun",
+  "Keep Orien Wallet running while your buy offer is live. When someone accepts, you'll get a notification and the pay screen opens so you can send the payment.": "Alış teklifiniz yayındayken Orien Wallet'ı açık tutun. Biri kabul ettiğinde bildirim alırsınız ve ödemeyi gönderebilmeniz için ödeme ekranı açılır.",
+  "Keep contacts the same everywhere": "Kişileri her yerde aynı tut",
+  "Keep its 24-word recovery phrase.": "24 kelimelik kurtarma ifadesini saklayın.",
+  "Keep running when closed": "Kapatıldığında çalışmaya devam et",
+  "Keep these words secret": "Bu kelimeleri gizli tutun",
+  "Keep this computer awake": "Bu bilgisayarı uyanık tut",
+  "Language": "Dil",
+  "Large pages": "Büyük sayfalar",
+  "Large pages are set up, but mining is in ordinary memory this hour. If a restart doesn't switch it, restarting the computer frees the memory up.": "Büyük sayfalar ayarlandı ancak madencilik bu saat standart bellekte çalışıyor. Yeniden başlatma bunu değiştirmezse bilgisayarı yeniden başlatmak belleği boşaltır.",
+  "Last 30 minutes": "Son 30 dakika",
+  "Last reward": "Son ödül",
+  "Last trade": "Son işlem",
+  "Later": "Daha sonra",
+  "Launch validator": "Başlangıç doğrulayıcısı",
+  "Lets mining use large pages of memory, usually 10 to 30% faster. Windows asks for an administrator's approval once, then you sign out and back in.": "Madenciliğin büyük bellek sayfaları kullanmasını sağlar, genellikle %10 ila %30 daha hızlıdır. Windows bir kez yönetici onayı ister, ardından oturumu kapatıp tekrar açarsınız.",
+  "Light": "Açık",
+  "Light mode: under 2 GB of free memory, so it mines more slowly.": "Hafif mod: 2 GB'tan az boş bellek var, bu yüzden daha yavaş madencilik yapıyor.",
+  "Like it? The coins button tips its maker some ORN. The flag reports a theme that breaks the rules.": "Beğendiniz mi? Madeni para düğmesi yapımcısına biraz ORN bahşiş gönderir. Bayrak simgesi kuralları ihlal eden bir temayı bildirir.",
+  "Link a device": "Cihaz bağla",
+  "Link a new device": "Yeni cihaz bağla",
+  "Listing": "İlan",
+  "Live on book": "Defterde yayında",
+  "Live on order book · settles automatically": "Emir defterinde yayında · otomatik sonuçlanır",
+  "Loading": "Yükleniyor",
+  "Loading chart…": "Grafik yükleniyor…",
+  "Loading order book…": "Emir defteri yükleniyor…",
+  "Loading…": "Yükleniyor…",
+  "Lock ORN": "ORN Kilitle",
+  "Lock with Touch ID": "Touch ID ile kilitle",
+  "Locked on Solana. Adding your buy order to the order book now. Keep this page open for a few more seconds.": "Solana üzerinde kilitlendi. Alış emriniz şimdi emir defterine ekleniyor. Bu sayfayı birkaç saniye daha açık tutun.",
+  "Locked payment": "Kilitli ödeme",
+  "Locked payment from": "Kilitli ödeme gönderen:",
+  "Locked payment received": "Kilitli ödeme alındı",
+  "Locked payment returned": "Kilitli ödeme iade edildi",
+  "Locking ORN": "ORN kilitleniyor",
+  "Locking your ORN": "ORN'leriniz kilitleniyor",
+  "Locking your ORN for the buyer.": "ORN'leriniz alıcı için kilitleniyor.",
+  "Locking your ORN for them": "ORN'leriniz onun için kilitleniyor",
+  "Logo design": "Logo tasarımı",
+  "Look up the network": "Ağı incele",
+  "Made": "Oluşturuldu",
+  "Made final": "Kesinleşti",
+  "Make a new wallet": "Yeni cüzdan oluştur",
+  "Make cover": "Kapak yap",
+  "Make mining faster": "Madenciliği hızlandır",
+  "Make my account": "Hesabımı oluştur",
+  "Make the wallet": "Cüzdanı oluştur",
+  "Make the window small": "Pencereyi küçült",
+  "Make the window wide": "Pencereyi genişlet",
+  "Manage blocks": "Engelleri yönet",
+  "Marked as paid": "Ödendi olarak işaretlendi",
+  "Market": "Pazar",
+  "Market Listings": "Pazar İlanları",
+  "Max": "Maks",
+  "Maximize": "Ekranı kapla",
+  "Memory": "Bellek",
+  "Message": "Mesaj",
+  "Message everyone": "Herkese mesaj yaz",
+  "Message the seller": "Satıcıya mesaj gönder",
+  "Messages": "Mesajlar",
+  "Messages about your Market listings always come through whatever you pick, so buyers can ask about what you're selling. Blocking still works on top of this.": "Pazar ilanlarınızla ilgili mesajlar ne seçerseniz seçin her zaman ulaşır; böylece alıcılar sattığınız şey hakkında soru sorabilir. Engelleme buna ek olarak çalışmaya devam eder.",
+  "Mexican peso": "Meksika pesosu",
+  "Milestone": "Dönüm noktası",
+  "Mine": "Kaz",
+  "Mine ORN": "ORN Kaz",
+  "Mine for an hour from the Mine screen, or buy a little on Swap.": "Kaz ekranından bir saat madencilik yapın veya Takas'tan biraz satın alın.",
+  "Mine for an hour in Orien Wallet on a computer, or buy a little at orien.network.": "Bir bilgisayarda Orien Wallet ile bir saat madencilik yapın veya orien.network adresinden biraz satın alın.",
+  "Mine it on a computer.": "Bir bilgisayarda kazın.",
+  "Mine on a computer: install Orien Wallet there, link this wallet, and press": "Bir bilgisayarda kazın: Orien Wallet'ı oraya yükleyin, bu cüzdanı bağlayın ve basın:",
+  "Mine with a verified wallet and your figures show here after the next checkpoint.": "Doğrulanmış bir cüzdanla madencilik yapın; verileriniz bir sonraki kontrol noktasından sonra burada görünür.",
+  "Miners last hour": "Son saatteki madenciler",
+  "Miners paid": "Ödeme alan madenciler",
+  "Miners who have verified a wallet on their Orien Network account, by ORN mined. Verify your wallet on your account to be on the list.": "Orien Network hesabında cüzdan doğrulamış madenciler, kazılan ORN miktarına göre. Listede yer almak için hesabınızda cüzdanınızı doğrulayın.",
+  "Minimize": "Simge durumuna küçült",
+  "Minimum order is 0.01 SOL": "En düşük emir 0.01 SOL'dur",
+  "Mining": "Madencilik",
+  "Mining for": "Kazım yapılan cüzdan:",
+  "Mining in large pages of memory, for extra speed.": "Ekstra hız için büyük bellek sayfalarında madencilik yapılıyor.",
+  "Mining reward": "Madencilik ödülü",
+  "Mining rewards": "Madencilik ödülleri",
+  "Moderator": "Moderatör",
+  "More": "Daha fazla",
+  "More below": "Aşağıda daha fazlası var",
+  "More heat, no more ORN": "Daha fazla ısı, daha fazla ORN değil",
+  "Mute the group chat": "Grup sohbetini sessize al",
+  "Muted": "Sessize alındı",
+  "My Orien (ORN) address": "Orien (ORN) adresim",
+  "My theme": "Temam",
+  "Name": "Ad",
+  "Name or address": "Ad veya adres",
+  "Needs about 2 GB of memory. Rewards depend on how much everyone else mines.": "Yaklaşık 2 GB bellek gerekir. Ödüller, diğer herkesin ne kadar madencilik yaptığına bağlıdır.",
+  "Network": "Ağ",
+  "Network hashrate": "Ağ hash oranı",
+  "New ORN this hour": "Bu saatteki yeni ORN",
+  "New account: pick a username": "Yeni hesap: bir kullanıcı adı seçin",
+  "New contact": "Yeni kişi",
+  "New here?": "Burada yeni misiniz?",
+  "New messages and payment requests": "Yeni mesajlar ve ödeme istekleri",
+  "New record": "Yeni rekor",
+  "New validator": "Yeni doğrulayıcı",
+  "New versions install while you're away from the app": "Yeni sürümler siz uygulamada değilken kurulur",
+  "Newest": "En yeni",
+  "Next checkpoint": "Sonraki kontrol noktası",
+  "Nigerian naira": "Nijerya nairası",
+  "No GIFs found.": "GIF bulunamadı.",
+  "No GIFs right now.": "Şu anda GIF yok.",
+  "No ORN moves.": "ORN hareketi olmaz.",
+  "No activity is recorded for this address.": "Bu adres için kayıtlı bir etkinlik yok.",
+  "No contacts yet. Add someone you pay often, or add an Orien Network member from their profile.": "Henüz kişi yok. Sık ödeme yaptığınız birini ekleyin veya bir Orien Network üyesini profilinden ekleyin.",
+  "No description.": "Açıklama yok.",
+  "No messages yet. Say hello to everyone.": "Henüz mesaj yok. Herkese merhaba deyin.",
+  "No one": "Hiç kimse",
+  "No open buy offers right now": "Şu anda açık alış teklifi yok",
+  "No open sell offers right now": "Şu anda açık satış teklifi yok",
+  "No payments yet": "Henüz ödeme yok",
+  "No questions left today. Come back tomorrow.": "Bugün soru hakkınız kalmadı. Yarın tekrar gelin.",
+  "No results": "Sonuç yok",
+  "No rewards yet": "Henüz ödül yok",
+  "No swaps completed yet. The next swap sets the price.": "Henüz tamamlanan takas yok. Bir sonraki takas fiyatı belirler.",
+  "No swaps yet": "Henüz takas yok",
+  "No trades yet": "Henüz işlem yok",
+  "No verified wallet yet": "Henüz doğrulanmış cüzdan yok",
+  "No verified wallets yet": "Henüz doğrulanmış cüzdan yok",
+  "No wallets yet.": "Henüz cüzdan yok.",
+  "Nobody by that name.": "Bu adda kimse yok.",
+  "Nobody is banned.": "Yasaklanan kimse yok.",
+  "Nobody with a verified wallet has been paid for mining yet.": "Doğrulanmış cüzdanı olan kimseye henüz madencilik ödemesi yapılmadı.",
+  "None": "Yok",
+  "Normal": "Normal",
+  "Not an Orien address": "Orien adresi değil",
+  "Not answering": "Yanıt vermiyor",
+  "Not available": "Kullanılamıyor",
+  "Not in the network's history": "Ağ geçmişinde yok",
+  "Not now": "Şimdi değil",
+  "Not recorded": "Kayıtlı değil",
+  "Not verified yet": "Henüz doğrulanmadı",
+  "Nothing found. Search an address (64 letters and digits, 0-9 and a-f), a checkpoint number, or the name of someone on the Market.": "Hiçbir şey bulunamadı. Bir adres (64 harf ve rakam, 0-9 ve a-f), bir kontrol noktası numarası veya Pazardaki birinin adını arayın.",
+  "Nothing from the network about them yet.": "Ağdan onlar hakkında henüz bir şey yok.",
+  "Nothing has happened at this address yet.": "Bu adreste henüz hiçbir işlem yapılmadı.",
+  "Nothing here yet. Be the first to sell something.": "Burada henüz hiçbir şey yok. İlk satışı yapan siz olun.",
+  "Nothing in the community yet.": "Toplulukta henüz hiçbir şey yok.",
+  "Nothing leaves your SOL wallet until a seller locks the ORN and you pay the QR code. Keep Orien Wallet running so sellers can match your order.": "Bir satıcı ORN'leri kilitleyip siz QR kodunu ödeyene kadar SOL cüzdanınızdan hiçbir şey çıkmaz. Satıcıların emrinizle eşleşebilmesi için Orien Wallet'ı açık tutun.",
+  "Nothing matches that yet.": "Bununla eşleşen bir şey henüz yok.",
+  "Nothing yet. Replies, reactions and messages show up here.": "Henüz bir şey yok. Yanıtlar, tepkiler ve mesajlar burada görünür.",
+  "Notifications": "Bildirimler",
+  "ORN / SOL price chart": "ORN / SOL fiyat grafiği",
+  "ORN held": "Tutulan ORN",
+  "ORN locked · SOL arriving (~1 min)": "ORN kilitlendi · SOL geliyor (~1 dk)",
+  "ORN mined": "Kazılan ORN",
+  "ORN price": "ORN fiyatı",
+  "ORN received": "Alınan ORN",
+  "ORN released": "Dolaşımdaki ORN",
+  "ORN to buy": "Alınacak ORN",
+  "ORN to sell": "Satılacak ORN",
+  "Offer posted": "Teklif yayınlandı",
+  "Offer taken": "Teklif kabul edildi",
+  "Offer your ORN for SOL. When someone takes it, this app locks the ORN for them and runs the swap, as long as it's open.": "ORN'lerinizi SOL karşılığında teklif edin. Biri kabul ettiğinde, uygulama açık olduğu sürece ORN'leri onun için kilitler ve takası gerçekleştirir.",
+  "Official": "Resmi",
+  "Official Website": "Resmi Web Sitesi",
+  "Offline": "Çevrimdışı",
+  "On a streak": "Seride",
+  "On an iPhone, scan the new device's QR code. On a computer, type its code and click": "iPhone'da yeni cihazın QR kodunu tarayın. Bilgisayarda kodunu yazın ve tıklayın:",
+  "On offer": "Teklifte",
+  "On one of your own themes, click the share button (the box with an arrow), then": "Kendi temalarınızdan birinde paylaş düğmesine (oklu kutu) tıklayın, ardından",
+  "On the Market": "Pazarda",
+  "On the swap board, waiting for someone to buy": "Takas panosunda, birinin satın alması bekleniyor",
+  "On the swap board, waiting for someone to sell": "Takas panosunda, birinin satması bekleniyor",
+  "On your new device, open Orien Wallet and choose": "Yeni cihazınızda Orien Wallet'ı açın ve seçin:",
+  "On your other device, open Orien Wallet, go to": "Diğer cihazınızda Orien Wallet'ı açın, şuraya gidin:",
+  "One account for all of Orien Network. Enter your email and type the 6-digit code we send; new here, you'll pick a username too. Signed up on orien.network already? Use the same email.": "Tüm Orien Network için tek hesap. E-postanızı girin ve gönderdiğimiz 6 haneli kodu yazın; yeniyseniz bir kullanıcı adı da seçeceksiniz. orien.network'e zaten kaydoldunuz mu? Aynı e-postayı kullanın.",
+  "Only letters, numbers and _": "Yalnızca harfler, rakamlar ve _",
+  "Only send if you see the same three emoji, in the same order.": "Yalnızca aynı üç emojiyi aynı sırada görüyorsanız gönderin.",
+  "Open": "Açık",
+  "Open Mine": "Kaz'ı Aç",
+  "Open Orien Wallet on the device you posted or took this offer from to finish the swap": "Takası tamamlamak için bu teklifi yayınladığınız veya kabul ettiğiniz cihazda Orien Wallet'ı açın",
+  "Open at login": "Oturum açıldığında başlat",
+  "Open it to verify": "Doğrulamak için açın",
+  "Open offers": "Açık teklifler",
+  "Open the explorer": "Gezgini aç",
+  "Opens Firefox's add-on store: click Add to Firefox": "Firefox eklenti mağazasını açar: Firefox'a Ekle'ye tıklayın",
+  "Opens Safari's settings: tick Orien Wallet to turn it on": "Safari ayarlarını açar: açmak için Orien Wallet'ı işaretleyin",
+  "Opens the Chrome Web Store: allow other stores, then add it": "Chrome Web Mağazası'nı açar: diğer mağazalara izin verin, ardından ekleyin",
+  "Opens the Chrome Web Store: click Add to Brave": "Chrome Web Mağazası'nı açar: Brave'e Ekle'ye tıklayın",
+  "Opens the Chrome Web Store: click Add to Chrome": "Chrome Web Mağazası'nı açar: Chrome'a Ekle'ye tıklayın",
+  "Order book": "Emir defteri",
+  "Orien AI Support": "Orien Yapay Zeka Desteği",
+  "Orien Group Chat": "Orien Grup Sohbeti",
+  "Orien Wallet for computers is at": "Bilgisayarlar için Orien Wallet adresi:",
+  "Orien Wallet is locking your SOL on Solana and registering your order on the book. Step 2 will show a checkmark as soon as you can leave.": "Orien Wallet, SOL'unuzu Solana üzerinde kilitliyor ve emrinizi deftere kaydediyor. Çıkabileceğiniz anda 2. adımda onay işareti görünecektir.",
+  "Orien Wallet locks after a minute away.": "Orien Wallet bir dakika ayrıldıktan sonra kilitlenir.",
+  "Orien Wallet locks whenever you leave it.": "Orien Wallet ayrıldığınız anda kilitlenir.",
+  "Orien right now": "Şu an Orien",
+  "Other": "Diğer",
+  "Paid": "Ödendi",
+  "Paid here": "Ödeme buraya",
+  "Paid · Bitcoin is confirming": "Ödendi · Bitcoin onaylanıyor",
+  "Paid · SOL on its way to you": "Ödendi · SOL size doğru yolda",
+  "Password": "Parola",
+  "Paste": "Yapıştır",
+  "Pay": "Öde",
+  "Pay exactly": "Tam olarak ödeyin:",
+  "Pay now": "Şimdi öde",
+  "Pay total (SOL)": "Ödenecek toplam (SOL)",
+  "Paying": "Ödeniyor",
+  "Payment": "Ödeme",
+  "Payment received. Locking it for the swap.": "Ödeme alındı. Takas için kilitleniyor.",
+  "Payment received. Locking your SOL on Solana now. Keep this page open for about 20 seconds.": "Ödeme alındı. SOL'unuz şimdi Solana üzerinde kilitleniyor. Bu sayfayı yaklaşık 20 saniye açık tutun.",
+  "Payment request": "Ödeme isteği",
+  "Payments": "Ödemeler",
+  "Pending": "Beklemede",
+  "Pending in your Bitcoin wallet until Bitcoin confirms it, usually within the hour": "Bitcoin onaylayana kadar Bitcoin cüzdanınızda beklemede kalır, genellikle bir saat içinde",
+  "People": "Kişiler",
+  "People you block can't message you, and you don't see each other's profiles, posts or listings. Unblock someone to see them again.": "Engellediğiniz kişiler size mesaj gönderemez ve birbirinizin profilini, gönderilerini veya ilanlarını göremezsiniz. Birini tekrar görmek için engelini kaldırın.",
+  "People you've talked with": "Konuştuğunuz kişiler",
+  "Philippine peso": "Filipin pesosu",
+  "Photos": "Fotoğraflar",
+  "Pick a category.": "Bir kategori seçin.",
+  "Pick a conversation to read it.": "Okumak için bir sohbet seçin.",
+  "Pick an": "Bir tane seçin:",
+  "Pictures": "Resimler",
+  "Place Buy Order": "Alış Emri Ver",
+  "Place Sell Order": "Satış Emri Ver",
+  "Place order": "Emir ver",
+  "Point at a message": "Bir mesajın üzerine gelin",
+  "Point the camera at the QR code": "Kamerayı QR koduna doğrultun",
+  "Point the camera at the code on your other device": "Kamerayı diğer cihazınızdaki koda doğrultun",
+  "Point the camera at their Receive QR code": "Kamerayı onların Al QR koduna doğrultun",
+  "Poll": "Anket",
+  "Poll length": "Anket süresi",
+  "Popular": "Popüler",
+  "Post": "Paylaş",
+  "Post an offer": "Teklif yayınla",
+  "Post buy offer": "Alış teklifi yayınla",
+  "Post order": "Emri yayınla",
+  "Post sell offer": "Satış teklifi yayınla",
+  "Post the offer": "Teklifi yayınla",
+  "Post to the live ORN / SOL order book": "Canlı ORN / SOL emir defterinde yayınla",
+  "Post your listing": "İlanınızı yayınlayın",
+  "Post your reply": "Yanıtınızı paylaşın",
+  "Posting": "Paylaşılıyor",
+  "Posts": "Gönderiler",
+  "Powered by KLIPY": "KLIPY tarafından desteklenmektedir",
+  "Price / ORN": "Fiyat / ORN",
+  "Price in ORN": "ORN cinsinden fiyat",
+  "Price per ORN": "ORN başına fiyat",
+  "Privacy Policy": "Gizlilik Politikası",
+  "Privacy and security": "Gizlilik ve güvenlik",
+  "Privacy policy": "Gizlilik politikası",
+  "Processor": "İşlemci",
+  "Profile": "Profil",
+  "Progress": "İlerleme",
+  "Ranked by ORN held": "Tutulan ORN miktarına göre sıralı",
+  "React": "Tepki ver",
+  "Receive": "Al",
+  "Receive ORN": "ORN Al",
+  "Receive total (SOL)": "Alınacak toplam (SOL)",
+  "Received": "Alındı",
+  "Recent errors": "Son hatalar",
+  "Recent screens": "Son ekranlar",
+  "Recent trades": "Son işlemler",
+  "Recents": "Son Kullanılanlar",
+  "Recovery phrase": "Kurtarma ifadesi",
+  "Recovery words": "Kurtarma kelimeleri",
+  "Refunded": "İade edildi",
+  "Remove": "Kaldır",
+  "Remove GIF": "GIF'i kaldır",
+  "Remove from contacts": "Kişilerden kaldır",
+  "Remove from store": "Mağazadan kaldır",
+  "Remove from the list": "Listeden kaldır",
+  "Remove from this app": "Bu uygulamadan kaldır",
+  "Remove from your profile": "Profilinden kaldır",
+  "Remove poll": "Anketi kaldır",
+  "Remove wallet": "Cüzdanı kaldır",
+  "Rename wallet": "Cüzdanı yeniden adlandır",
+  "Reopen": "Yeniden aç",
+  "Repeat for each wallet you want on your profile.": "Profilinizde olmasını istediğiniz her cüzdan için tekrarlayın.",
+  "Replies, reactions and the network's posts about you": "Yanıtlar, tepkiler ve ağın sizinle ilgili gönderileri",
+  "Reply": "Yanıtla",
+  "Report": "Bildir",
+  "Report a Problem": "Sorun Bildir",
+  "Report post": "Gönderiyi bildir",
+  "Report something else": "Başka bir şey bildir",
+  "Report this listing": "Bu ilanı bildir",
+  "Report this post": "Bu gönderiyi bildir",
+  "Report this theme": "Bu temayı bildir",
+  "Request": "İste",
+  "Reserve SOL": "SOL Ayır",
+  "Reserving buyer's SOL": "Alıcının SOL'u ayrılıyor",
+  "Reserving the buyer's locked SOL on Solana before locking your ORN. Keep this page open for about 15 seconds.": "ORN'lerinizi kilitlemeden önce alıcının Solana üzerinde kilitli SOL'u ayrılıyor. Bu sayfayı yaklaşık 15 saniye açık tutun.",
+  "Restart mining": "Madenciliği yeniden başlat",
+  "Restart mining to go faster": "Daha hızlı kazmak için madenciliği yeniden başlatın",
+  "Restore": "Geri yükle",
+  "Restore a wallet from its words": "Kelimelerinden bir cüzdanı geri yükle",
+  "Restore wallet": "Cüzdanı geri yükle",
+  "Restore with recovery phrase": "Kurtarma ifadesiyle geri yükle",
+  "Restoring": "Geri yükleniyor",
+  "Rewards": "Ödüller",
+  "Robot avatars:": "Robot avatarları:",
+  "Running": "Çalışıyor",
+  "SOL to pay": "Ödenecek SOL",
+  "SOL to receive": "Alınacak SOL",
+  "Safe to leave or close Orien Wallet.": "Orien Wallet'tan çıkmak veya uygulamayı kapatmak güvenlidir.",
+  "Safe to leave this page or close Orien Wallet": "Bu sayfadan çıkmak veya Orien Wallet'ı kapatmak güvenlidir",
+  "Safe to leave · arrives in about a minute": "Çıkabilirsiniz · yaklaşık bir dakika içinde ulaşır",
+  "Safe to share: an address can only receive ORN.": "Paylaşmak güvenlidir: bir adres yalnızca ORN alabilir.",
+  "Save": "Kaydet",
+  "Save as a text file": "Metin dosyası olarak kaydet",
+  "Save as contact": "Kişi olarak kaydet",
+  "Save changes": "Değişiklikleri kaydet",
+  "Save theme": "Temayı kaydet",
+  "Saved": "Kaydedildi",
+  "Saved address": "Kayıtlı adres",
+  "Saved. Anyone who opens the file can spend your ORN: keep it somewhere only you can reach.": "Kaydedildi. Dosyayı açan herkes ORN'lerinizi harcayabilir: yalnızca sizin ulaşabileceğiniz bir yerde saklayın.",
+  "Saving": "Kaydediliyor",
+  "Saving…": "Kaydediliyor…",
+  "Say hello to everyone.": "Herkese merhaba deyin.",
+  "Say what you're offering.": "Ne teklif ettiğinizi yazın.",
+  "Scan a QR code": "QR kodu tara",
+  "Scan the code": "Kodu tara",
+  "Search KLIPY": "KLIPY'de ara",
+  "Search listings": "İlanlarda ara",
+  "Searching…": "Aranıyor…",
+  "Security and more": "Güvenlik ve daha fazlası",
+  "See the top 100": "İlk 100'ü gör",
+  "Sell": "Sat",
+  "Sell ORN": "ORN Sat",
+  "Sell amount (ORN)": "Satış tutarı (ORN)",
+  "Sell from": "Satış yapılacak cüzdan",
+  "Sell into this offer": "Bu teklife sat",
+  "Sell offers come from verified wallets, so buyers can see who they're swapping with. Verifying ties this wallet to your Orien Network name and sends less than 0.001 ORN from it, once.": "Satış teklifleri doğrulanmış cüzdanlardan gelir, böylece alıcılar kiminle takas yaptıklarını görebilir. Doğrulama bu cüzdanı Orien Network adınıza bağlar ve bir kez 0.001 ORN'den az bir tutar gönderir.",
+  "Sell orders come from verified wallets so buyers know who they're trading with (sends < 0.001 ORN once).": "Satış emirleri doğrulanmış cüzdanlardan gelir, böylece alıcılar kiminle işlem yaptıklarını bilir (bir kez < 0.001 ORN gönderir).",
+  "Sell something": "Bir şey sat",
+  "Seller": "Satıcı",
+  "Seller accepts": "Satıcı kabul eder",
+  "Selling ORN": "ORN satılıyor",
+  "Send": "Gönder",
+  "Send & Receive": "Gönder ve Al",
+  "Send ORN": "ORN Gönder",
+  "Send ORN and see your balance from the browser's toolbar, and sign in to websites with your wallet. Your keys stay in this app.": "Tarayıcınızın araç çubuğundan ORN gönderin, bakiyenizi görün ve cüzdanınızla web sitelerine giriş yapın. Anahtarlarınız bu uygulamada kalır.",
+  "Send ORN, see your balance, and sign in to orien.network with one click, right from your browser. Your keys never leave Orien Wallet.": "Doğrudan tarayıcınızdan ORN gönderin, bakiyenizi görün ve tek tıkla orien.network'e giriş yapın. Anahtarlarınız Orien Wallet'tan asla çıkmaz.",
+  "Send SOL": "SOL Gönder",
+  "Send SOL once into a Solana order. It stays live on the order book even while Orien Wallet is closed, settles in about a minute when taken, and cancels in one click.": "Bir Solana emrine bir kez SOL gönderin. Orien Wallet kapalıyken bile emir defterinde yayında kalır, karşılandığında yaklaşık bir dakikada sonuçlanır ve tek tıkla iptal edilir.",
+  "Send and verify": "Gönder ve doğrula",
+  "Send me a code": "Bana kod gönder",
+  "Send report": "Raporu gönder",
+  "Send the buyer this offer code": "Alıcıya bu teklif kodunu gönderin",
+  "Send the seller this reply code": "Satıcıya bu yanıt kodunu gönderin",
+  "Send to this contact": "Bu kişiye gönder",
+  "Send your wallets to your other phone or computer": "Cüzdanlarınızı diğer telefonunuza veya bilgisayarınıza gönderin",
+  "Sending": "Gönderiliyor",
+  "Sending…": "Gönderiliyor…",
+  "Sent": "Gönderildi",
+  "Sent a GIF": "Bir GIF gönderdi",
+  "Sent a picture": "Bir resim gönderdi",
+  "Sent from another app": "Başka bir uygulamadan gönderildi",
+  "Sent. Verifying, usually within a minute.": "Gönderildi. Doğrulanıyor, genellikle bir dakika içinde.",
+  "Set password": "Parola belirle",
+  "Set the": "Şunu ayarlayın:",
+  "Set up": "Kur",
+  "Set up mining": "Madenciliği kur",
+  "Sets aside about 2.4 GB of memory for mining in large pages, usually 10 to 30% faster. Linux asks for your password once.": "Büyük sayfalarda madencilik için yaklaşık 2.4 GB bellek ayırır, genellikle %10 ila %30 daha hızlıdır. Linux bir kez parolanızı ister.",
+  "Settings": "Ayarlar",
+  "Settling": "Sonuçlanıyor",
+  "Share a theme in the Theme Store": "Tema Mağazası'nda tema paylaş",
+  "Share address": "Adresi paylaş",
+  "Share in the Theme Store": "Tema Mağazası'nda paylaş",
+  "Share theme": "Temayı paylaş",
+  "Shared": "Paylaşıldı",
+  "Shared among miners": "Madenciler arasında paylaşıldı",
+  "Shares": "Paylar",
+  "Shares an hour": "Saatlik pay",
+  "Shares this hour": "Bu saatteki paylar",
+  "Sharing": "Paylaşılıyor",
+  "Show balance": "Bakiyeyi göster",
+  "Show less": "Daha az göster",
+  "Show more": "Daha fazla göster",
+  "Show scroll arrow": "Kaydırma okunu göster",
+  "Show your accounts on your profile, if you like. Everyone can see them.": "İsterseniz hesaplarınızı profilinizde gösterin. Herkes görebilir.",
+  "Sign Out": "Çıkış yap",
+  "Sign in": "Giriş yap",
+  "Sign in and verify this wallet first.": "Önce giriş yapın ve bu cüzdanı doğrulayın.",
+  "Sign in to Orien Network": "Orien Network'e giriş yap",
+  "Sign in to Orien Network first.": "Önce Orien Network'e giriş yapın.",
+  "Sign in to Orien Network to ask a question. Verifying a wallet isn't needed.": "Soru sormak için Orien Network'e giriş yapın. Cüzdan doğrulamanız gerekmez.",
+  "Sign in to Orien Network to chat, reply or react.": "Sohbet etmek, yanıtlamak veya tepki vermek için Orien Network'e giriş yapın.",
+  "Sign in to Orien Network to chat.": "Sohbet etmek için Orien Network'e giriş yapın.",
+  "Sign in to Orien Network to post and react.": "Paylaşım yapmak ve tepki vermek için Orien Network'e giriş yapın.",
+  "Sign in to Orien Network to post, reply and react.": "Paylaşım yapmak, yanıtlamak ve tepki vermek için Orien Network'e giriş yapın.",
+  "Sign in to Orien Network to react.": "Tepki vermek için Orien Network'e giriş yapın.",
+  "Sign in to Orien Network to reply.": "Yanıtlamak için Orien Network'e giriş yapın.",
+  "Sign in to Orien Network to report a message.": "Bir mesajı bildirmek için Orien Network'e giriş yapın.",
+  "Sign in to Orien Network to report a theme.": "Bir temayı bildirmek için Orien Network'e giriş yapın.",
+  "Sign in to Orien Network to see the themes you shared.": "Paylaştığınız temaları görmek için Orien Network'e giriş yapın.",
+  "Sign in to Orien Network to see your own messages and to chat.": "Kendi mesajlarınızı görmek ve sohbet etmek için Orien Network'e giriş yapın.",
+  "Sign in to Orien Network to tip.": "Bahşiş göndermek için Orien Network'e giriş yapın.",
+  "Sign in to Orien Network with a verified wallet to share themes.": "Tema paylaşmak için doğrulanmış bir cüzdanla Orien Network'e giriş yapın.",
+  "Sign in to message the seller": "Satıcıya mesaj göndermek için giriş yapın",
+  "Sign in to trade": "İşlem yapmak için giriş yapın",
+  "Sign in, and open the wallet you want to verify.": "Giriş yapın ve doğrulamak istediğiniz cüzdanı açın.",
+  "Sign out of Windows and back in, then open Orien Wallet. Mining runs faster from then on.": "Windows oturumunu kapatıp tekrar açın, ardından Orien Wallet'ı başlatın. Madencilik bundan sonra daha hızlı çalışır.",
+  "Sign out to finish": "Tamamlamak için oturumu kapatın",
+  "Signing in": "Giriş yapılıyor",
+  "Singapore dollar": "Singapur doları",
+  "Size (ORN)": "Miktar (ORN)",
+  "Smallest swap: 0.00015 BTC, more when Bitcoin is busy": "En küçük takas: 0.00015 BTC, Bitcoin yoğunken daha fazla",
+  "Smallest swap: 0.01 SOL. Fees: the usual Orien fee to lock the ORN (0.1%, at most 1 ORN); the buyer covers Solana's small fees. A swap takes about a minute. If a buyer never pays, your ORN come back on their own within a few hours.": "En küçük takas: 0.01 SOL. Ücretler: ORN kilitlemek için standart Orien ücreti (%0,1, en fazla 1 ORN); Solana'nın küçük ücretlerini alıcı karşılar. Bir takas yaklaşık bir dakika sürer. Alıcı hiç ödeme yapmazsa ORN'leriniz birkaç saat içinde kendiliğinden geri döner.",
+  "Smallest swap: 0.01 SOL. Nothing leaves your SOL wallet until a seller locks the ORN and you pay the QR code. You'll also need about 0.005 SOL for Solana's small fees, nearly all of which comes back.": "En küçük takas: 0.01 SOL. Bir satıcı ORN'leri kilitleyip siz QR kodunu ödeyene kadar SOL cüzdanınızdan hiçbir şey çıkmaz. Solana'nın küçük ücretleri için de yaklaşık 0.005 SOL gerekir, bunun neredeyse tamamı geri döner.",
+  "So swap offers stay open, and payments and mining carry on. The screen can still turn off.": "Böylece takas teklifleri açık kalır, ödemeler ve madencilik devam eder. Ekran yine de kapanabilir.",
+  "Social Links": "Sosyal Bağlantılar",
+  "Socials": "Sosyal Hesaplar",
+  "Someone": "Biri",
+  "Sort by": "Sırala",
+  "South African rand": "Güney Afrika randı",
+  "South Korean won": "Güney Kore wonu",
+  "Speed": "Hız",
+  "Stake returned": "Stake iade edildi",
+  "Start Orien Wallet when you log in": "Oturum açtığınızda Orien Wallet'ı başlat",
+  "Start mining": "Madenciliği başlat",
+  "Start mining to see your speed here.": "Hızınızı burada görmek için madenciliği başlatın.",
+  "Start over": "Baştan başla",
+  "Starting…": "Başlatılıyor…",
+  "State after it: every account's balance, as one fingerprint": "Sonrasındaki durum: tek bir parmak izi olarak her hesabın bakiyesi",
+  "Stay on this page for a moment:": "Bir an bu sayfada kalın:",
+  "Stop mining": "Madenciliği durdur",
+  "Stop replying": "Yanıtlamayı bırak",
+  "Stopped": "Durduruldu",
+  "Swap": "Takas",
+  "Swap ORN and SOL directly with other people. About a minute, no fee.": "Diğer kişilerle doğrudan ORN ve SOL takas edin. Yaklaşık bir dakika, ücretsiz.",
+  "Swap SOL or Bitcoin for ORN in Orien Wallet on a computer, with this same wallet linked to it.": "Bu aynı cüzdanın bağlı olduğu bir bilgisayarda Orien Wallet üzerinden SOL veya Bitcoin'i ORN ile takas edin.",
+  "Swap SOL or Bitcoin for ORN with other people, directly between your wallets, on the Swap screen. With SOL it takes a few minutes, and you pay from the SOL wallet you already have, such as Phantom.": "Takas ekranından diğer kişilerle doğrudan cüzdanlarınız arasında SOL veya Bitcoin'i ORN ile takas edin. SOL ile birkaç dakika sürer ve Phantom gibi mevcut SOL cüzdanınızdan ödeme yaparsınız.",
+  "Swap for it.": "Takas ederek edinin.",
+  "Swap updates": "Takas güncellemeleri",
+  "Swaps": "Takaslar",
+  "Swaps and payments carry on from the menu bar": "Takaslar ve ödemeler menü çubuğundan devam eder",
+  "Swaps and payments carry on from the system tray": "Takaslar ve ödemeler sistem tepsisinden devam eder",
+  "Swaps need the newest Orien Wallet. Update first: it takes a moment, and the app reopens by itself.": "Takaslar için en yeni Orien Wallet gerekir. Önce güncelleyin: kısa sürer ve uygulama kendiliğinden yeniden açılır.",
+  "Swiss franc": "İsviçre frangı",
+  "Take": "Kabul et",
+  "Take an offer": "Bir teklifi kabul et",
+  "Take the offer": "Teklifi kabul et",
+  "Take this offer": "Bu teklifi kabul et",
+  "Taken": "Kabul edildi",
+  "Taking your Bitcoin back": "Bitcoin'iniz geri alınıyor",
+  "Tap": "Dokunun:",
+  "Tap a message": "Bir mesaja dokunun",
+  "Tap to reveal": "Görmek için dokun",
+  "Tell Orien Network what's wrong with it: a scam, spam, abuse, or something illegal. Every report is reviewed.": "Orien Network'e sorunun ne olduğunu bildirin: dolandırıcılık, spam, taciz veya yasa dışı bir içerik. Her bildirim incelenir.",
+  "Tell us what happened": "Ne olduğunu bize anlatın",
+  "Tell us what went wrong. Every report is read.": "Neyin ters gittiğini bize anlatın. Her rapor okunur.",
+  "Terms of Service": "Hizmet Şartları",
+  "Terms of service": "Hizmet şartları",
+  "Thanks, it's sent": "Teşekkürler, gönderildi",
+  "Thanks. It will be reviewed.": "Teşekkürler. İncelenecektir.",
+  "Thanks. We will look at it.": "Teşekkürler. İnceleyeceğiz.",
+  "That QR code isn't from Orien Wallet's Use my other device.": "Bu QR kodu Orien Wallet'ın Diğer cihazımı kullan özelliğinden değil.",
+  "That account can't be found.": "Bu hesap bulunamadı.",
+  "That doesn't look like a SOL address.": "Bu bir SOL adresine benzemiyor.",
+  "That email doesn't look right. Check it, or leave it empty.": "Bu e-posta doğru görünmüyor. Kontrol edin veya boş bırakın.",
+  "That file isn't a picture this app can open.": "Bu dosya, bu uygulamanın açabileceği bir resim değil.",
+  "That is not this wallet's password.": "Bu, bu cüzdanın parolası değil.",
+  "That is this wallet's own address": "Bu, bu cüzdanın kendi adresi",
+  "That isn't a Bitcoin address.": "Bu bir Bitcoin adresi değil.",
+  "That isn't a SOL address.": "Bu bir SOL adresi değil.",
+  "That password isn't right. Check it and try again.": "Bu parola doğru değil. Kontrol edip tekrar deneyin.",
+  "That post has been removed.": "Bu gönderi kaldırıldı.",
+  "That theme's picture couldn't be downloaded. Try again in a moment.": "Bu temanın resmi indirilemedi. Biraz sonra tekrar deneyin.",
+  "That's a Bitcoin address. Swaps use SOL.": "Bu bir Bitcoin adresi. Takaslarda SOL kullanılır.",
+  "That's a SOL address. To use SOL, choose SOL above.": "Bu bir SOL adresi. SOL kullanmak için yukarıdan SOL seçin.",
+  "That's a long one. Keep a question under 1,000 characters.": "Bu biraz uzun oldu. Sorunuzu 1.000 karakterin altında tutun.",
+  "That's not this wallet's password.": "Bu, bu cüzdanın parolası değil.",
+  "The ORN arrive in this wallet by themselves.": "ORN'ler bu cüzdana kendiliğinden ulaşır.",
+  "The buyer": "Alıcı",
+  "The buyer is paying. This app takes the SOL as soon as it's locked, usually within a minute.": "Alıcı ödeme yapıyor. Bu uygulama SOL kilitlenir kilitlenmez alır, genellikle bir dakika içinde.",
+  "The buyer · usually 30 to 60 minutes after they pay": "Alıcı · genellikle ödeme yaptıktan 30 ila 60 dakika sonra",
+  "The buyer · within a few hours": "Alıcı · birkaç saat içinde",
+  "The buyer's ORN delivered": "Alıcının ORN'leri teslim edildi",
+  "The chart begins as soon as the first ORN / SOL swap completes.": "Grafik, ilk ORN / SOL takası tamamlanır tamamlanmaz başlar.",
+  "The checkpoint before it": "Ondan önceki kontrol noktası",
+  "The extra over the price": "Fiyatın üzerindeki ek tutar",
+  "The figures at the top show the network right now: ORN released, the next checkpoint, miners and hashrate.": "Üstteki sayılar şu anki ağı gösterir: dolaşımdaki ORN, sonraki kontrol noktası, madenciler ve hash oranı.",
+  "The latest 500": "Son 500",
+  "The pay screen opens by itself as soon as they accept.": "Kabul ettikleri anda ödeme ekranı kendiliğinden açılır.",
+  "The picture couldn't be saved on this device. Try a smaller one.": "Resim bu cihaza kaydedilemedi. Daha küçük bir resim deneyin.",
+  "The post shows its tips, without names. The author is told it was you.": "Gönderide bahşişler isim olmadan gösterilir. Yazara bahşişi sizin gönderdiğiniz bildirilir.",
+  "The seller didn't take the SOL in time. Sending it back to your SOL wallet.": "Satıcı SOL'u zamanında almadı. SOL cüzdanınıza geri gönderiliyor.",
+  "The seller took the SOL. Claiming your ORN.": "Satıcı SOL'u aldı. ORN'leriniz talep ediliyor.",
+  "The seller · done": "Satıcı · tamamlandı",
+  "The seller · usually 30 to 60 minutes after you pay": "Satıcı · genellikle siz ödedikten 30 ila 60 dakika sonra",
+  "The seller's wallet delivers your ORN once they take the SOL.": "Satıcı SOL'u aldığında satıcının cüzdanı ORN'lerinizi teslim eder.",
+  "The seller's wallet takes the Bitcoin once Bitcoin has confirmed your payment three times": "Bitcoin ödemenizi üç kez onayladığında satıcının cüzdanı Bitcoin'i alır",
+  "The swap board passes your offer to the buyer's wallet, and their reply back": "Takas panosu teklifinizi alıcının cüzdanına, yanıtını da size iletir",
+  "The swap details open by itself as soon as your ORN are locked.": "ORN'leriniz kilitlenir kilitlenmez takas ayrıntıları kendiliğinden açılır.",
+  "The update didn't install": "Güncelleme kurulamadı",
+  "The validators didn't answer about this hour's rewards just now. Try again in a moment.": "Doğrulayıcılar bu saatin ödülleri hakkında şu an yanıt vermedi. Biraz sonra tekrar deneyin.",
+  "The website learns this wallet's address.": "Web sitesi bu cüzdanın adresini öğrenir.",
+  "Their 64-character address": "64 karakterlik adresi",
+  "Their Orien Wallet makes it once it has checked your offer. It tells this app where they'll pay the Bitcoin.": "Alıcının Orien Wallet uygulaması teklifinizi kontrol ettikten sonra bunu oluşturur. Bu uygulamaya Bitcoin'i nereye ödeyeceğini bildirir.",
+  "Their payment shows in your Activity within seconds.": "Ödemeleri saniyeler içinde Etkinlik bölümünde görünür.",
+  "Their wallet accepts by itself, usually within a few seconds.": "Cüzdanları genellikle birkaç saniye içinde kendiliğinden kabul eder.",
+  "Their wallet accepts by itself, within 30 minutes.": "Cüzdanları 30 dakika içinde kendiliğinden kabul eder.",
+  "Theme": "Tema",
+  "Theme Store": "Tema Mağazası",
+  "Themes": "Temalar",
+  "Themes made by the Orien community": "Orien topluluğu tarafından yapılan temalar",
+  "Then paste the buyer's reply code": "Ardından alıcının yanıt kodunu yapıştırın",
+  "They don't match": "Eşleşmiyor",
+  "They match": "Eşleşiyor",
+  "They match, send": "Eşleşiyor, gönder",
+  "They match, send my wallet": "Eşleşiyor, cüzdanımı gönder",
+  "They match, send my wallets": "Eşleşiyor, cüzdanlarımı gönder",
+  "This app takes the Bitcoin to your Bitcoin address, then delivers the buyer's ORN to them": "Bu uygulama Bitcoin'i Bitcoin adresinize alır, ardından alıcının ORN'lerini ona teslim eder",
+  "This app · about 30 minutes for Bitcoin to settle": "Bu uygulama · Bitcoin'in kesinleşmesi için yaklaşık 30 dakika",
+  "This app · under a minute": "Bu uygulama · bir dakikadan kısa",
+  "This checkpoint's fingerprint": "Bu kontrol noktasının parmak izi",
+  "This computer": "Bu bilgisayar",
+  "This hour": "Bu saat",
+  "This is your listing.": "Bu sizin ilanınız.",
+  "This person": "Bu kişi",
+  "This profile isn't available.": "Bu profil kullanılamıyor.",
+  "This theme's picture isn't on this computer yet. Try again in a moment.": "Bu temanın resmi henüz bu bilgisayarda değil. Biraz sonra tekrar deneyin.",
+  "This version of Orien Wallet no longer works with the network. Press Update at the top to keep sending.": "Orien Wallet'ın bu sürümü artık ağla çalışmıyor. Göndermeye devam etmek için üstteki Güncelle'ye basın.",
+  "This wallet": "Bu cüzdan",
+  "This wallet has a password. Type it to send.": "Bu cüzdanın bir parolası var. Göndermek için parolayı yazın.",
+  "This wallet proved it belongs to this profile": "Bu cüzdan bu profile ait olduğunu kanıtladı",
+  "This wallet's password": "Bu cüzdanın parolası",
+  "Time": "Zaman",
+  "Tip": "Bahşiş",
+  "Tip someone": "Birine bahşiş gönder",
+  "Tips": "Bahşişler",
+  "Tips are payments and can't be undone.": "Bahşişler ödemedir ve geri alınamaz.",
+  "To": "Kime",
+  "Today": "Bugün",
+  "Too late to pay safely: a payment now would come back to you once the lock ends, about 2 hours from now": "Güvenle ödemek için çok geç: şimdi yapılacak bir ödeme kilit yaklaşık 2 saat sonra sona erdiğinde size geri döner",
+  "Top miner of the day": "Günün en iyi madencisi",
+  "Top miners": "En iyi madenciler",
+  "Top wallets": "En büyük cüzdanlar",
+  "Total": "Toplam",
+  "Total (SOL)": "Toplam (SOL)",
+  "Trade": "İşlem",
+  "Trades": "İşlemler",
+  "Try": "Dene",
+  "Try again": "Tekrar dene",
+  "Turkish lira": "Türk lirası",
+  "Turn on syncing": "Eşitlemeyi aç",
+  "Turn on syncing, so your contacts and wallet icons match on all your devices. It needs this wallet unlocked once.": "Kişilerinizin ve cüzdan simgelerinizin tüm cihazlarınızda aynı olması için eşitlemeyi açın. Bunun için bu cüzdanın bir kez kilidinin açılması gerekir.",
+  "Type the 24 words of a wallet you have": "Sahip olduğunuz bir cüzdanın 24 kelimesini yazın",
+  "Type the SOL or Bitcoin address you'll pay from, then click": "Ödeme yapacağınız SOL veya Bitcoin adresini yazın, ardından tıklayın:",
+  "Type the password to send this wallet too.": "Bu cüzdanı da göndermek için parolayı yazın.",
+  "Type the wallet's password if it has one.": "Varsa cüzdanın parolasını yazın.",
+  "Type this wallet's password to approve this order.": "Bu emri onaylamak için bu cüzdanın parolasını yazın.",
+  "Type this wallet's password to approve this swap.": "Bu takası onaylamak için bu cüzdanın parolasını yazın.",
+  "Type this wallet's password to see its words.": "Kelimelerini görmek için bu cüzdanın parolasını yazın.",
+  "Type this wallet's password to sign in.": "Giriş yapmak için bu cüzdanın parolasını yazın.",
+  "Type your wallet password": "Cüzdan parolanızı yazın",
+  "Type your wallet password below, so this app can claim your ORN": "Bu uygulamanın ORN'lerinizi talep edebilmesi için aşağıya cüzdan parolanızı yazın",
+  "Type your wallet password below, so this app can finish the swap": "Bu uygulamanın takası tamamlayabilmesi için aşağıya cüzdan parolanızı yazın",
+  "Type your wallet password to approve this swap.": "Bu takası onaylamak için cüzdan parolanızı yazın.",
+  "US dollar": "ABD doları",
+  "Unban": "Yasağı kaldır",
+  "Under": "Şunun altında:",
+  "Undo": "Geri al",
+  "Unlock": "Kilidi aç",
+  "Unmute the group chat": "Grup sohbetinin sesini aç",
+  "Unstaked": "Stake çözüldü",
+  "Up to four. The first is the one shown on your listing's card.": "En fazla dört adet. İlki ilan kartınızda gösterilir.",
+  "Update automatically": "Otomatik güncelle",
+  "Update failed": "Güncelleme başarısız",
+  "Update failed, try again": "Güncelleme başarısız, tekrar deneyin",
+  "Update needed": "Güncelleme gerekli",
+  "Update now": "Şimdi güncelle",
+  "Update to Latest": "En Son Sürüme Güncelle",
+  "Updates as they happen, and chat with the community": "Anlık güncellemeler ve toplulukla sohbet",
+  "Updating": "Güncelleniyor",
+  "Use": "Kullan",
+  "Use Orien Wallet in your browser": "Orien Wallet'ı tarayıcınızda kullanın",
+  "Use my other device": "Diğer cihazımı kullan",
+  "Use my recovery phrase": "Kurtarma ifademi kullan",
+  "Use the reply": "Yanıtı kullan",
+  "Use your wallets on another device": "Cüzdanlarınızı başka bir cihazda kullanın",
+  "User Guide": "Kullanıcı Kılavuzu",
+  "Username": "Kullanıcı adı",
+  "Validator fees": "Doğrulayıcı ücretleri",
+  "Validators": "Doğrulayıcılar",
+  "Verified": "Doğrulandı",
+  "Verified wallet": "Doğrulanmış cüzdan",
+  "Verify": "Doğrula",
+  "Verify a wallet": "Bir cüzdan doğrula",
+  "Verify a wallet and people who pay it see your name with it.": "Bir cüzdan doğrulayın; ona ödeme yapan kişiler yanında adınızı görsün.",
+  "Verify a wallet to post and see your mining here.": "Paylaşım yapmak ve madenciliğinizi burada görmek için bir cüzdan doğrulayın.",
+  "Verify more wallets, and choose where you're paid": "Daha fazla cüzdan doğrulayın ve ödemelerin nereye yapılacağını seçin",
+  "Verify one of your wallets on your Orien Network profile to post, reply and react.": "Paylaşım yapmak, yanıtlamak ve tepki vermek için Orien Network profilinizde cüzdanlarınızdan birini doğrulayın.",
+  "Verify one of your wallets to chat, reply or react.": "Sohbet etmek, yanıtlamak veya tepki vermek için cüzdanlarınızdan birini doğrulayın.",
+  "Verify one of your wallets to chat. Anyone can read along.": "Sohbet etmek için cüzdanlarınızdan birini doğrulayın. Herkes okuyabilir.",
+  "Verify one of your wallets to react.": "Tepki vermek için cüzdanlarınızdan birini doğrulayın.",
+  "Verify one of your wallets to reply.": "Yanıtlamak için cüzdanlarınızdan birini doğrulayın.",
+  "Verify this wallet": "Bu cüzdanı doğrula",
+  "Verify this wallet to offer swaps": "Takas teklifi vermek için bu cüzdanı doğrulayın",
+  "Verify this wallet to place sell orders": "Satış emri vermek için bu cüzdanı doğrulayın",
+  "Verifying shows everyone the wallet is yours, including its balance. It lets you post, sell, swap and receive tips.": "Doğrulama, bakiyesi dahil bu cüzdanın size ait olduğunu herkese gösterir. Paylaşım yapmanıza, satış yapmanıza, takas etmenize ve bahşiş almanıza olanak tanır.",
+  "Verifying…": "Doğrulanıyor…",
+  "Verifying… usually within a minute": "Doğrulanıyor… genellikle bir dakika içinde",
+  "Version": "Sürüm",
+  "Videos about Orien": "Orien hakkında videolar",
+  "View": "Görüntüle",
+  "View Profile": "Profili Görüntüle",
+  "View all": "Tümünü gör",
+  "View profile": "Profili görüntüle",
+  "Waiting": "Bekleniyor",
+  "Waiting for mining to get going.": "Madenciliğin başlaması bekleniyor.",
+  "Waiting for validators": "Doğrulayıcılar bekleniyor",
+  "Waiting for your other device": "Diğer cihazınız bekleniyor",
+  "Waiting for your wallets": "Cüzdanlarınız bekleniyor",
+  "Wallet": "Cüzdan",
+  "Wallet password": "Cüzdan parolası",
+  "Wallet password, so this app can sign the next step": "Bu uygulamanın sonraki adımı imzalayabilmesi için cüzdan parolası",
+  "Wallet password, to approve this sale": "Bu satışı onaylamak için cüzdan parolası",
+  "Wallet password, to approve this swap": "Bu takası onaylamak için cüzdan parolası",
+  "Wallet settings": "Cüzdan ayarları",
+  "Wallets": "Cüzdanlar",
+  "Wallets holding ORN": "ORN tutan cüzdanlar",
+  "Watch the preview as you go, then click": "İlerlerken önizlemeyi izleyin, ardından tıklayın:",
+  "We'll look into it, and write to you if we need to know more.": "İnceleyeceğiz ve daha fazla bilgiye ihtiyacımız olursa size yazacağız.",
+  "We'll look into it.": "İnceleyeceğiz.",
+  "Welcome": "Hoş geldiniz",
+  "Welcome to Orien Wallet": "Orien Wallet'a Hoş Geldiniz",
+  "What are you offering?": "Ne teklif ediyorsunuz?",
+  "What happens:": "Ne olur:",
+  "What is wrong with this post?": "Bu gönderideki sorun nedir?",
+  "What is wrong with this theme?": "Bu temadaki sorun nedir?",
+  "What the buyer gets, how long it takes, anything they should know.": "Alıcının ne alacağı, ne kadar süreceği ve bilmesi gereken diğer şeyler.",
+  "What we'll send": "Göndereceğimiz bilgiler",
+  "What went wrong?": "Ne ters gitti?",
+  "What's happening?": "Neler oluyor?",
+  "When an offer is taken and as swaps finish": "Bir teklif kabul edildiğinde ve takaslar tamamlandığında",
+  "When someone sends you ORN": "Biri size ORN gönderdiğinde",
+  "When the seller answers, pay the exact amount shown from your SOL or Bitcoin wallet.": "Satıcı yanıt verdiğinde, SOL veya Bitcoin cüzdanınızdan gösterilen tam tutarı ödeyin.",
+  "Where did it happen?": "Nerede oldu?",
+  "Where the Bitcoin should go": "Bitcoin'in gideceği adres",
+  "Where the SOL should go, such as your Phantom wallet": "SOL'un gideceği adres, örneğin Phantom cüzdanınız",
+  "Where was it?": "Neredeydi?",
+  "Where your Bitcoin comes back if the swap stops": "Takas durursa Bitcoin'inizin geri döneceği adres",
+  "Where your SOL should go (e.g. Phantom)": "SOL'unuzun gideceği adres (ör. Phantom)",
+  "Where your SOL should go, such as your Phantom wallet": "SOL'unuzun gideceği adres, örneğin Phantom cüzdanınız",
+  "While it's open, Orien Wallet does each of its steps for you as soon as it can.": "Açık olduğu sürece Orien Wallet her adımı sizin için mümkün olan en kısa sürede yapar.",
+  "Who can message you": "Size kimler mesaj gönderebilir",
+  "Who is this?": "Bu kim?",
+  "With their names and icons. Your new device asks there whether to add a password.": "Adları ve simgeleriyle birlikte. Yeni cihazınız orada parola eklemek isteyip istemediğinizi sorar.",
+  "Withdraw": "Çek",
+  "Within a minute it shows": "Bir dakika içinde şu görünür:",
+  "Work and things offered for ORN. You pay the seller straight from your wallet: the Market never holds anyone's coins.": "ORN karşılığında sunulan işler ve ürünler. Satıcıya doğrudan cüzdanınızdan ödeme yaparsınız: Pazar asla kimsenin coinlerini tutmaz.",
+  "Working, keep this page open": "İşleniyor, bu sayfayı açık tutun",
+  "Write the amount in ORN, like 200 or 12.5.": "Tutarı 200 veya 12.5 gibi ORN cinsinden yazın.",
+  "Write the price in ORN, like 200 or 12.5.": "Fiyatı 200 veya 12.5 gibi ORN cinsinden yazın.",
+  "Write them down in order, on paper, and keep it somewhere safe.": "Bunları sırasıyla bir kağıda yazın ve güvenli bir yerde saklayın.",
+  "Write these 24 words on paper, in order, and keep them somewhere safe. They are the only way back into this wallet if this device is lost. Anyone who sees them can spend your ORN.": "Bu 24 kelimeyi sırasıyla bir kağıda yazın ve güvenli bir yerde saklayın. Bu cihaz kaybolursa bu cüzdana geri dönmenin tek yolu budur. Bunları gören herkes ORN'lerinizi harcayabilir.",
+  "Yesterday": "Dün",
+  "You": "Siz",
+  "You and the buyer · up to you": "Siz ve alıcı · size bağlı",
+  "You approve the sale once, now. When someone takes your offer, your wallet accepts it within seconds, even with the window closed. Keep Orien Wallet running.": "Satışı şimdi bir kez onaylarsınız. Biri teklifinizi kabul ettiğinde, pencere kapalı olsa bile cüzdanınız saniyeler içinde kabul eder. Orien Wallet'ı açık tutun.",
+  "You buy": "Alacağınız",
+  "You can't send in the group chat right now. You can still read along.": "Şu anda grup sohbetinde mesaj gönderemezsiniz. Yine de okuyabilirsiniz.",
+  "You get": "Alacağınız",
+  "You have 24 themes, as many as there's room for. Delete one in Appearance first.": "24 temanız var, yer bu kadar. Önce Görünüm bölümünden birini silin.",
+  "You haven't blocked anyone.": "Henüz kimseyi engellemediniz.",
+  "You need": "Gerekli olan:",
+  "You need to be signed in to Orien Network with a verified wallet.": "Doğrulanmış bir cüzdanla Orien Network'e giriş yapmış olmanız gerekir.",
+  "You need to be signed in to Orien Network. Verifying a wallet isn't needed.": "Orien Network'e giriş yapmış olmanız gerekir. Cüzdan doğrulamanız gerekmez.",
+  "You pay": "Ödeyeceğiniz",
+  "You sell": "Satacağınız",
+  "You send the buyer the offer code, and paste in the reply code they send back": "Alıcıya teklif kodunu gönderir, onun geri gönderdiği yanıt kodunu yapıştırırsınız",
+  "You · now": "Siz · şimdi",
+  "You · pay within a few hours": "Siz · birkaç saat içinde ödeyin",
+  "You · pay within the next few hours": "Siz · önümüzdeki birkaç saat içinde ödeyin",
+  "You · stay on this page until Step 2 finishes": "Siz · 2. adım bitene kadar bu sayfada kalın",
+  "You · within a few hours": "Siz · birkaç saat içinde",
+  "You're up to date": "Güncelsiniz",
+  "Your 24 words, separated by spaces": "Boşluklarla ayrılmış 24 kelimeniz",
+  "Your Bitcoin address": "Bitcoin adresiniz",
+  "Your Discord username": "Discord kullanıcı adınız",
+  "Your ORN stay safe:": "ORN'leriniz güvende kalır:",
+  "Your Phantom / SOL wallet (for refunds & leftovers)": "Phantom / SOL cüzdanınız (iadeler ve artanlar için)",
+  "Your Phantom / SOL wallet address": "Phantom / SOL cüzdan adresiniz",
+  "Your SOL address": "SOL adresiniz",
+  "Your SOL address (the wallet you'll pay from)": "SOL adresiniz (ödeme yapacağınız cüzdan)",
+  "Your SOL is locked for the seller. Their wallet takes it and your ORN arrive, usually within a minute.": "SOL'unuz satıcı için kilitlendi. Cüzdanı bunu alır ve ORN'leriniz genellikle bir dakika içinde ulaşır.",
+  "Your SOL payout address": "SOL ödeme adresiniz",
+  "Your SOL stays locked safely on Solana until a seller fills it, you cancel in one click, or it expires after 7 days and refunds automatically.": "SOL'unuz bir satıcı emri karşılayana, tek tıkla iptal edene veya 7 gün sonra süresi dolup otomatik iade edilene kadar Solana üzerinde güvenle kilitli kalır.",
+  "Your SOL wallet (for refunds & leftovers)": "SOL cüzdanınız (iadeler ve artanlar için)",
+  "Your SOL wallet address": "SOL cüzdan adresiniz",
+  "Your SOL went back to your SOL wallet.": "SOL'unuz SOL cüzdanınıza geri döndü.",
+  "Your Telegram username": "Telegram kullanıcı adınız",
+  "Your X username": "X kullanıcı adınız",
+  "Your account is for the Community, the Market and swaps. Your wallets stay in this app.": "Hesabınız Topluluk, Pazar ve takaslar içindir. Cüzdanlarınız bu uygulamada kalır.",
+  "Your address": "Adresiniz",
+  "Your buy order is live on the book. When someone sells into it, this app opens the pay screen.": "Alış emriniz defterde yayında. Biri bu emre satış yaptığında bu uygulama ödeme ekranını açar.",
+  "Your buy order is live on the order book. You are all set to leave this page or close Orien Wallet. Any extra SOL has been sent back to your wallet, and when a seller takes your order your ORN will arrive automatically.": "Alış emriniz emir defterinde yayında. Artık bu sayfadan çıkabilir veya Orien Wallet'ı kapatabilirsiniz. Fazla SOL cüzdanınıza geri gönderildi ve bir satıcı emrinizi aldığında ORN'leriniz otomatik olarak ulaşacaktır.",
+  "Your devices": "Cihazlarınız",
+  "Your email": "E-postanız",
+  "Your language follows you to your other devices.": "Dil tercihiniz diğer cihazlarınızda da geçerli olur.",
+  "Your listings": "İlanlarınız",
+  "Your offer is live": "Teklifiniz yayında",
+  "Your orders & swaps": "Emirleriniz ve takaslarınız",
+  "Your picture": "Resminiz",
+  "Your profile": "Profiliniz",
+  "Your recovery phrase": "Kurtarma ifadeniz",
+  "Your sell order is live on the book. When someone buys it, your wallet runs the swap by itself.": "Satış emriniz defterde yayında. Biri satın aldığında cüzdanınız takası kendiliğinden gerçekleştirir.",
+  "Your share": "Payınız",
+  "Your share of each hour's new ORN": "Her saatin yeni ORN'lerinden payınız",
+  "Your share of the hour's fees": "Saatin ücretlerinden payınız",
+  "Your share of the hour's new ORN": "Saatin yeni ORN'lerinden payınız",
+  "Your speed": "Hızınız",
+  "Your swaps": "Takaslarınız",
+  "Your theme follows you to your other devices.": "Temanız diğer cihazlarınızda da geçerli olur.",
+  "Your turn: confirm with your wallet password so this app can finish it": "Sıra sizde: bu uygulamanın tamamlayabilmesi için cüzdan parolanızla onaylayın",
+  "Your username": "Kullanıcı adınız",
+  "Your username, as others see it": "Diğerlerinin gördüğü kullanıcı adınız",
+  "Your wallet": "Cüzdanınız",
+  "Your wallet is locking the ORN now. Keep Orien Wallet running while the buyer pays.": "Cüzdanınız şimdi ORN'leri kilitliyor. Alıcı ödeme yaparken Orien Wallet'ı açık tutun.",
+  "Your wallet is on its way": "Cüzdanınız yolda",
+  "Your wallet locks the ORN automatically when someone buys your offer. Keep Orien Wallet running in the menu bar or tray.": "Biri teklifinizi satın aldığında cüzdanınız ORN'leri otomatik olarak kilitler. Orien Wallet'ı menü çubuğunda veya sistem tepsisinde açık tutun.",
+  "Your wallets": "Cüzdanlarınız",
+  "Your wallets arrive on the new device by themselves.": "Cüzdanlarınız yeni cihaza kendiliğinden ulaşır.",
+  "Your wallets travel encrypted, straight between your two devices.": "Cüzdanlarınız iki cihazınız arasında doğrudan ve şifreli olarak aktarılır.",
+  "Yours": "Seninkiler",
+  "a buyer": "bir alıcı",
+  "a globe": "bir dünya",
+  "a minute": "bir dakika",
+  "a pickaxe": "bir kazma",
+  "a speech bubble": "bir konuşma balonu",
+  "a telescope": "bir teleskop",
+  "about 6 hours after your reply": "yanıtınızdan yaklaşık 6 saat sonra",
+  "also replied to a post you replied to": "yanıtladığınız bir gönderiye de yanıt verdi",
+  "an arrow pointing down": "aşağı bakan bir ok",
+  "an arrow pointing up": "yukarı bakan bir ok",
+  "and": "ve",
+  "and choose": "ve seçin:",
+  "and its ORN stay in it. This only takes it off the list.": "ve içindeki ORN'ler orada kalır. Bu işlem yalnızca listeden kaldırır.",
+  "any moment": "her an",
+  "by Pablo Stanley, drawn with": "Pablo Stanley tarafından, şununla çizildi:",
+  "claim your ORN": "ORN'lerinizi talep et",
+  "covers Solana's small fees; nearly all of it comes back to your SOL wallet when the swap ends.": "Solana'nın küçük ücretlerini karşılar; takas bittiğinde neredeyse tamamı SOL cüzdanınıza geri döner.",
+  "covers Solana's small rent and fees; nearly all of it returns to your SOL wallet automatically.": "Solana'nın küçük kira ve işlem ücretlerini karşılar; neredeyse tamamı SOL cüzdanınıza otomatik olarak geri döner.",
+  "estimated": "tahmini",
+  "finish the swap": "takası tamamla",
+  "for Orien's own. Each card shows the theme on a small copy of the app.": "seçeneğini seçin. Her kart, temayı uygulamanın küçük bir kopyası üzerinde gösterir.",
+  "for each share": "her pay için",
+  "for themes people made, or": "seçeneğini seçin veya Orien'in kendi temaları için",
+  "in Settings,": "Ayarlar bölümünde,",
+  "in a row": "üst üste",
+  "is buying from you": "sizden satın alıyor",
+  "it goes back to the SOL address below within about an hour.": "yaklaşık bir saat içinde aşağıdaki SOL adresine geri döner.",
+  "just don't send: nothing has left your wallets.": "sadece göndermeyin: cüzdanlarınızdan hiçbir şey çıkmadı.",
+  "just now": "az önce",
+  "mined their first ORN.": "ilk ORN'sini kazdı.",
+  "new ORN": "yeni ORN",
+  "none yet": "henüz yok",
+  "on one you like.": "düğmesine tıklayın.",
+  "on their own": "kendiliğinden",
+  "orien.network can't be reached right now. Check your connection and try again.": "Şu anda orien.network adresine ulaşılamıyor. Bağlantınızı kontrol edip tekrar deneyin.",
+  "passed it mining.": "madencilikte bunu geçti.",
+  "payments sent": "gönderilen ödemeler",
+  "per ORN": "ORN başına",
+  "posted about you:": "hakkınızda paylaştı:",
+  "rank": "sıra",
+  "replied to the network's post about you": "ağın hakkınızdaki gönderisine yanıt verdi",
+  "replied to you in the Orien group chat": "Orien grup sohbetinde size yanıt verdi",
+  "replied to your post": "gönderinize yanıt verdi",
+  "replied to your reply": "yanıtınıza yanıt verdi",
+  "scan or type": "tarayın veya yazın",
+  "shares an hour": "saatlik pay",
+  "shows mining rewards and validator fees.": "madencilik ödüllerini ve doğrulayıcı ücretlerini gösterir.",
+  "slider, or click": "kaydırıcısını ayarlayın veya şuna tıklayın:",
+  "staked": "stake edildi",
+  "the Bitcoin in any Bitcoin wallet, plus its sending fee. The usual Orien fee (0.1%, at most 1 ORN) comes out of the ORN you receive.": "herhangi bir Bitcoin cüzdanındaki Bitcoin artı gönderim ücreti. Standart Orien ücreti (%0,1, en fazla 1 ORN) alacağınız ORN'den düşülür.",
+  "the ORN in this wallet, plus the usual Orien fee (0.1%, at most 1 ORN). Bitcoin's network fee comes out of what you receive.": "bu cüzdandaki ORN artı standart Orien ücreti (%0,1, en fazla 1 ORN). Bitcoin ağ ücreti alacağınız tutardan düşülür.",
+  "the ORN in this wallet, plus the usual Orien fee (0.1%, at most 1 ORN). The buyer covers Solana's small fees.": "bu cüzdandaki ORN artı standart Orien ücreti (%0,1, en fazla 1 ORN). Solana'nın küçük ücretlerini alıcı karşılar.",
+  "the ORN in this wallet, plus the usual Orien fee (0.1%, at most 1 ORN). You don't need any SOL.": "bu cüzdandaki ORN artı standart Orien ücreti (%0,1, en fazla 1 ORN). Hiç SOL'a ihtiyacınız yoktur.",
+  "the SOL in your own SOL wallet, plus about 0.005 SOL for Solana's small fees, nearly all of which comes back. The usual Orien fee (0.1%, at most 1 ORN) comes out of the ORN you receive.": "kendi SOL cüzdanınızdaki SOL artı Solana'nın küçük ücretleri için neredeyse tamamı geri dönen yaklaşık 0.005 SOL. Standart Orien ücreti (%0,1, en fazla 1 ORN) alacağınız ORN'den düşülür.",
+  "the buy offer is yours": "alış teklifi sizin",
+  "the buyer": "alıcı",
+  "the buyer's SOL is already locked on Solana. Your wallet reserves it, locks your ORN, and both sides settle automatically in about a minute without waiting on the buyer.": "alıcının SOL'u zaten Solana üzerinde kilitli. Cüzdanınız bunu ayırır, ORN'lerinizi kilitler ve her iki taraf alıcıyı beklemeden yaklaşık bir dakikada otomatik olarak sonuçlanır.",
+  "the code it shows.": "gösterdiği kodu.",
+  "the gear at the top left": "sol üstteki dişli simgesi",
+  "the menu bar": "menü çubuğu",
+  "the network's post about you": "ağın hakkınızdaki gönderisi",
+  "the offer is yours": "teklif sizin",
+  "the seller": "satıcı",
+  "the seller's lock ends": "satıcının kilidi sona erer",
+  "the seller's wallet accepts within seconds and locks the ORN for you. This app then shows the exact SOL to send from your SOL wallet, such as Phantom, with a QR code. The swap finishes by itself, usually within a minute.": "satıcının cüzdanı saniyeler içinde kabul eder ve ORN'leri sizin için kilitler. Ardından bu uygulama, Phantom gibi SOL cüzdanınızdan göndermeniz gereken tam SOL tutarını bir QR koduyla gösterir. Takas genellikle bir dakika içinde kendiliğinden tamamlanır.",
+  "the system tray": "sistem tepsisi",
+  "there too.": "seçeneğini de açın.",
+  "there. Your wallets arrive here by themselves.": "seçeneğini seçin. Cüzdanlarınız buraya kendiliğinden ulaşır.",
+  "this app takes it back to the address below after about 6 hours.": "bu uygulama yaklaşık 6 saat sonra bunu aşağıdaki adrese geri alır.",
+  "this app verifies the buyer's SOL is reserved for your address on Solana before locking your ORN, then both sides settle in about a minute.": "bu uygulama ORN'lerinizi kilitlemeden önce alıcının SOL'unun Solana üzerinde adresiniz için ayrıldığını doğrular, ardından her iki taraf yaklaşık bir dakikada sonuçlanır.",
+  "this wallet": "bu cüzdan",
+  "to find your computer's sweet spot.": "bilgisayarınızın en ideal ayarını bulmak için.",
+  "to keep it. It joins your themes in Appearance and is worn at once.": "seçeneğine tıklayın. Görünüm bölümündeki temalarınıza eklenir ve hemen uygulanır.",
+  "to see the whole app in it. Click": "seçeneğine tıklayarak tüm uygulamayı bu temayla görün. Geri dönmek için şuna tıklayın:",
+  "to this Bitcoin address": "bu Bitcoin adresine",
+  "to this SOL address": "bu SOL adresine",
+  "took your offer": "teklifinizi kabul etti",
+  "top miner": "en iyi madenci",
+  "two arrows": "iki ok",
+  "two people": "iki kişi",
+  "type": "yazın",
+  "under a second": "bir saniyeden az",
+  "wrote to you": "size yazdı",
+  "your ORN come back to you on their own within a few hours. You don't need to do anything.": "ORN'leriniz birkaç saat içinde kendiliğinden size geri döner. Hiçbir şey yapmanıza gerek yoktur.",
+  "your ORN come back to your wallet on their own within 12 hours.": "ORN'leriniz 12 saat içinde kendiliğinden cüzdanınıza geri döner.",
+  "your ORN come back to your wallet on their own within a few hours.": "ORN'leriniz birkaç saat içinde kendiliğinden cüzdanınıza geri döner.",
+  "your password": "parolanız",
+  "your post": "gönderiniz",
+  "your reply": "yanıtınız",
+  "your wallet locks the ORN on the network": "cüzdanınız ORN'leri ağda kilitler",
+  "your wallet locks your ORN for the buyer within seconds. Their wallet then prompts them to send the SOL, and your wallet collects it and delivers their ORN automatically, usually within a minute.": "cüzdanınız saniyeler içinde ORN'lerinizi alıcı için kilitler. Ardından alıcının cüzdanı ona SOL göndermesini bildirir; cüzdanınız bunu alır ve alıcının ORN'lerini genellikle bir dakika içinde otomatik olarak teslim eder.",
+  "your wallet locks your ORN for the buyer within seconds. Their wallet then sends the Bitcoin, and once it confirms, your wallet collects it and delivers their ORN automatically.": "cüzdanınız saniyeler içinde ORN'lerinizi alıcı için kilitler. Ardından alıcının cüzdanı Bitcoin'i gönderir ve onaylandığında cüzdanınız bunu alır ve alıcının ORN'lerini otomatik olarak teslim eder.",
+  "your wallet never locks your ORN until the buyer's SOL is reserved for your address on Solana.": "alıcının SOL'u Solana üzerinde adresiniz için ayrılmadan cüzdanınız ORN'lerinizi asla kilitlemez.",
+  "your wallet password": "cüzdan parolanız",
+  "✓ Complete": "✓ Tamamlandı",
+  "✓ Live on the order book (safe to leave)": "✓ Emir defterinde yayında (çıkabilirsiniz)",
+  "✓ Valid address": "✓ Geçerli adres",
+  "_patterns": [
+    [
+      "^Sell ([0-9.,]+) ORN for ([0-9.,]+) SOL(.*)$",
+      "{1} SOL karşılığında {0} ORN sat{2}"
+    ],
+    [
+      "^Buy ([0-9.,]+) ORN for ([0-9.,]+) SOL(.*)$",
+      "{1} SOL karşılığında {0} ORN satın al{2}"
+    ],
+    [
+      "^Sell ([0-9.,]+) ORN for ([0-9.,]+) BTC(.*)$",
+      "{1} BTC karşılığında {0} ORN sat{2}"
+    ],
+    [
+      "^Buy ([0-9.,]+) ORN for ([0-9.,]+) BTC(.*)$",
+      "{1} BTC karşılığında {0} ORN satın al{2}"
+    ],
+    [
+      "^(\\d+) open$",
+      "{0} açık"
+    ],
+    [
+      "^Price \\(([A-Z]+)\\)$",
+      "Fiyat ({0})"
+    ],
+    [
+      "^Total \\(([A-Z]+)\\)$",
+      "Toplam ({0})"
+    ],
+    [
+      "^Last swap · (.+)$",
+      "Son takas · {0}"
+    ],
+    [
+      "^Lock with (.+)$",
+      "{0} ile kilitle"
+    ],
+    [
+      "^Received so far: ([0-9.,]+) of ([0-9.,]+) SOL$",
+      "Şimdiye kadar alınan: {0} / {1} SOL"
+    ],
+    [
+      "^Done: ([0-9.,]+) ORN are in your wallet\\.$",
+      "Tamamlandı: {0} ORN cüzdanınızda."
+    ],
+    [
+      "^Done: ([0-9.,]+) SOL is in your SOL wallet\\.$",
+      "Tamamlandı: {0} SOL, SOL cüzdanınızda."
+    ],
+    [
+      "^Paid: ([0-9.,]+) SOL is on its way to your SOL address\\.$",
+      "Ödendi: {0} SOL, SOL adresinize doğru yolda."
+    ],
+    [
+      "^Send exactly ([0-9.,]+) SOL from your SOL wallet to fund this buy order\\. Once funded, it stays live on the order book even when Orien Wallet is closed\\.$",
+      "Bu alış emrini fonlamak için SOL cüzdanınızdan tam olarak {0} SOL gönderin. Fonlandıktan sonra Orien Wallet kapalıyken bile emir defterinde yayında kalır."
+    ],
+    [
+      "^The seller accepted\\. Send exactly ([0-9.,]+) SOL from your SOL wallet to the address below\\. This app sees it by itself\\.$",
+      "Satıcı kabul etti. SOL cüzdanınızdan aşağıdaki adrese tam olarak {0} SOL gönderin. Bu uygulama ödemeyi kendiliğinden görür."
+    ],
+    [
+      "^Your ORN are locked\\. You can leave this page; ([0-9.,]+) SOL arrives in your SOL wallet in about a minute\\.$",
+      "ORN'leriniz kilitlendi. Bu sayfadan çıkabilirsiniz; {0} SOL yaklaşık bir dakika içinde SOL cüzdanınıza ulaşır."
+    ],
+    [
+      "^Send ([0-9.,]+) SOL from your SOL wallet$",
+      "SOL cüzdanınızdan {0} SOL gönderin"
+    ],
+    [
+      "^Locking your ([0-9.,]+ (?:SOL|BTC)) on Solana and adding your order to the book$",
+      "{0} tutarınız Solana üzerinde kilitleniyor ve emriniz deftere ekleniyor"
+    ],
+    [
+      "^Waiting on the order book for a seller to fill ([0-9.,]+ ORN)$",
+      "Bir satıcının {0} emrini karşılaması emir defterinde bekleniyor"
+    ],
+    [
+      "^([0-9.,]+ ORN) delivered to your wallet$",
+      "{0} cüzdanınıza teslim edildi"
+    ],
+    [
+      "^Locking the buyer's ([0-9.,]+ SOL) on Solana for your address$",
+      "Alıcının {0} tutarı adresiniz için Solana üzerinde kilitleniyor"
+    ],
+    [
+      "^Locking your ([0-9.,]+ ORN) on Orien$",
+      "{0} tutarınız Orien üzerinde kilitleniyor"
+    ],
+    [
+      "^Sending ([0-9.,]+ SOL) to your SOL wallet$",
+      "{0} SOL cüzdanınıza gönderiliyor"
+    ],
+    [
+      "^([0-9.,]+ SOL) in your SOL wallet$",
+      "{0} SOL cüzdanınızda"
+    ],
+    [
+      "^([0-9.,]+ ORN) in your wallet$",
+      "{0} cüzdanınızda"
+    ],
+    [
+      "^Your ([0-9.,]+ ORN) are locked for the buyer$",
+      "{0} tutarınız alıcı için kilitlendi"
+    ],
+    [
+      "^The buyer pays ([0-9.,]+ (?:SOL|BTC))$",
+      "Alıcı {0} öder"
+    ],
+    [
+      "^The seller locked ([0-9.,]+ ORN) for you$",
+      "Satıcı sizin için {0} kilitledi"
+    ],
+    [
+      "^([0-9.,]+ (?:SOL|BTC)) on its way to your SOL address$",
+      "{0} SOL adresinize doğru yolda"
+    ],
+    [
+      "^Your SOL is locked for the seller, then your ([0-9.,]+ ORN) arrive$",
+      "SOL'unuz satıcı için kilitlenir, ardından {0} tutarınız ulaşır"
+    ],
+    [
+      "^Your turn: send ([0-9.,]+ (?:SOL|BTC)) to fund$",
+      "Sıra sizde: fonlamak için {0} gönderin"
+    ],
+    [
+      "^Your turn: pay ([0-9.,]+ (?:SOL|BTC)) now$",
+      "Sıra sizde: şimdi {0} ödeyin"
+    ],
+    [
+      "^Your turn: approve with (.+) to finish$",
+      "Sıra sizde: tamamlamak için {0} ile onaylayın"
+    ],
+    [
+      "^Step (\\d+) of (\\d+) · (.+)$",
+      "Adım {0} / {1} · {2}"
+    ],
+    [
+      "^Stopped: (.+)\\.$",
+      "Durduruldu: {0}."
+    ],
+    [
+      "^Fund your buy order: send ([0-9.,]+ SOL)$",
+      "Alış emrinizi fonlayın: {0} gönderin"
+    ],
+    [
+      "^Locks your SOL on Solana to buy ([0-9.,]+) ORN$",
+      "{0} ORN satın almak için SOL'unuzu Solana üzerinde kilitler"
+    ],
+    [
+      "^Swap in progress: (?:buying|selling) ([0-9.,]+) ORN$",
+      "Takas sürüyor: {0} ORN"
+    ],
+    [
+      "^Approve to get your ([0-9.,]+) ORN$",
+      "{0} ORN'nizi almak için onaylayın"
+    ],
+    [
+      "^Confirm with (.+) below, so this app can finish the swap$",
+      "Bu uygulamanın takası tamamlayabilmesi için aşağıdan {0} ile onaylayın"
+    ],
+    [
+      "^Confirm with (.+) below, so this app can claim your ORN$",
+      "Bu uygulamanın ORN'lerinizi talep edebilmesi için aşağıdan {0} ile onaylayın"
+    ],
+    [
+      "^In (\\d+) min$",
+      "{0} dk içinde"
+    ],
+    [
+      "^in (\\d+) min$",
+      "{0} dk içinde"
+    ],
+    [
+      "^In (\\d+) s$",
+      "{0} sn içinde"
+    ],
+    [
+      "^in (\\d+) s$",
+      "{0} sn içinde"
+    ],
+    [
+      "^(\\d+) of (\\d+) running$",
+      "{1} içinden {0} çalışıyor"
+    ],
+    [
+      "^([0-9,]+) miners? paid$",
+      "{0} madenci ödeme aldı"
+    ],
+    [
+      "^Checkpoint (\\d+)$",
+      "Kontrol noktası {0}"
+    ],
+    [
+      "^Running · into (.+)$",
+      "Çalışıyor · hedef: {0}"
+    ],
+    [
+      "^([0-9,]+) found$",
+      "{0} bulundu"
+    ],
+    [
+      "^Locked payment from (.+)$",
+      "{0} tarafından kilitli ödeme"
+    ],
+    [
+      "^Locked payment to (.+)$",
+      "{0} alıcısına kilitli ödeme"
+    ],
+    [
+      "^From (.+)$",
+      "Gönderen: {0}"
+    ],
+    [
+      "^To (.+)$",
+      "Alıcı: {0}"
+    ],
+    [
+      "^(\\d+) min ago · (\\d+) payments? · agreed by (\\d+) of (\\d+)$",
+      "{0} dk önce · {1} ödeme · {3} doğrulayıcıdan {2} onayladı"
+    ],
+    [
+      "^(\\d+) h ago · (\\d+) payments? · agreed by (\\d+) of (\\d+)$",
+      "{0} sa önce · {1} ödeme · {3} doğrulayıcıdan {2} onayladı"
+    ],
+    [
+      "^(\\d+) d ago · (\\d+) payments? · agreed by (\\d+) of (\\d+)$",
+      "{0} g önce · {1} ödeme · {3} doğrulayıcıdan {2} onayladı"
+    ],
+    [
+      "^(\\d+) min ago · agreed by (\\d+) of (\\d+)$",
+      "{0} dk önce · {2} doğrulayıcıdan {1} onayladı"
+    ],
+    [
+      "^(\\d+) h ago · agreed by (\\d+) of (\\d+)$",
+      "{0} sa önce · {2} doğrulayıcıdan {1} onayladı"
+    ],
+    [
+      "^(\\d+) d ago · agreed by (\\d+) of (\\d+)$",
+      "{0} g önce · {2} doğrulayıcıdan {1} onayladı"
+    ],
+    [
+      "^just now · (\\d+) payments? · agreed by (\\d+) of (\\d+)$",
+      "az önce · {0} ödeme · {2} doğrulayıcıdan {1} onayladı"
+    ],
+    [
+      "^just now · agreed by (\\d+) of (\\d+)$",
+      "az önce · {1} doğrulayıcıdan {0} onayladı"
+    ],
+    [
+      "^([0-9,]+) payments?$",
+      "{0} ödeme"
+    ],
+    [
+      "^Of ([0-9,]+) there will ever be$",
+      "Toplam {0} arzdan"
+    ],
+    [
+      "^([0-9,]+) in the last (\\d+) hours$",
+      "Son {1} saatte {0}"
+    ],
+    [
+      "^Estimated, over the last (\\d+) hours$",
+      "Tahmini, son {0} saat boyunca"
+    ],
+    [
+      "^Estimated, over the last hour$",
+      "Tahmini, son bir saat boyunca"
+    ],
+    [
+      "^([0-9,]+) hold at least 1 ORN$",
+      "{0} cüzdan en az 1 ORN tutuyor"
+    ],
+    [
+      "^Validator (\\d+)$",
+      "Doğrulayıcı {0}"
+    ],
+    [
+      "^([0-9.]+)% of ORN in wallets$",
+      "Cüzdanlardaki ORN'nin %{0}'i"
+    ],
+    [
+      "^([0-9.]+)% of the work$",
+      "İşin %{0}'i"
+    ],
+    [
+      "^([0-9,]+) wallets hold ORN$",
+      "{0} cüzdan ORN tutuyor"
+    ],
+    [
+      "^([0-9,]+) wallets? paid$",
+      "{0} cüzdan ödeme aldı"
+    ],
+    [
+      "^Staked by (.+) · ([0-9,]+) ORN · agreed on (\\d+) of the last (\\d+)$",
+      "Stake eden: {0} · {1} ORN · son {3} kontrol noktasından {2} onaylandı"
+    ],
+    [
+      "^Launch validator · agreed on (\\d+) of the last (\\d+)$",
+      "Başlangıç doğrulayıcısı · son {1} kontrol noktasından {0} onaylandı"
+    ],
+    [
+      "^Staked by (.+)$",
+      "Stake eden: {0}"
+    ],
+    [
+      "^(\\d+) verified wallets?$",
+      "{0} doğrulanmış cüzdan"
+    ],
+    [
+      "^(\\d+) more offers? paused while .*$",
+      "Başka bir işlem sürerken {0} teklif daha duraklatıldı"
+    ],
+    [
+      "^Continue with (.+)$",
+      "{0} ile devam et"
+    ],
+    [
+      "^Sell with (.+)$",
+      "{0} ile sat"
+    ],
+    [
+      "^Take with (.+)$",
+      "{0} ile kabul et"
+    ],
+    [
+      "^Sweet spot: (\\d+) of (\\d+) cores$",
+      "İdeal ayar: {1} çekirdekten {0}"
+    ],
+    [
+      "^About ([0-9,]+) tries a second\\. Past it, the processor runs hotter for no more ORN\\.$",
+      "Saniyede yaklaşık {0} deneme. Bunun ötesinde işlemci daha fazla ORN üretmeden daha çok ısınır."
+    ],
+    [
+      "^Trying (\\d+) of (\\d+) cores \\((\\d+) of (\\d+)\\)\\. Shares found still count\\.$",
+      "{1} çekirdekten {0} deneniyor ({2} / {3}). Bulunan paylar yine de sayılır."
+    ],
+    [
+      "^This hour: ([0-9,]+) shares found, ([0-9,]+) counted$",
+      "Bu saat: {0} pay bulundu, {1} sayıldı"
+    ],
+    [
+      "^About one try in ([0-9,]+) makes a share\\.$",
+      "Yaklaşık {0} denemede bir pay bulunur."
+    ],
+    [
+      "^([0-9.,]+(?: [KMG])?) tries a second$",
+      "Saniyede {0} deneme"
+    ],
+    [
+      "^(\\d+) of (\\d+) cores$",
+      "{1} çekirdekten {0}"
+    ],
+    [
+      "^(\\d+) of (\\d+)$",
+      "{0} / {1}"
+    ],
+    [
+      "^(\\d+) of 24 words$",
+      "24 kelimeden {0}"
+    ],
+    [
+      "^staked · ([0-9.,]+) returning$",
+      "stake edildi · {0} dönüyor"
+    ],
+    [
+      "^Received from (.+)$",
+      "{0} tarafından alındı"
+    ],
+    [
+      "^Sent to (.+)$",
+      "{0} alıcısına gönderildi"
+    ],
+    [
+      "^Locked payment received from (.+)$",
+      "{0} tarafından kilitli ödeme alındı"
+    ],
+    [
+      "^(.+) · checkpoint (\\d+)$",
+      "{0} · kontrol noktası {1}"
+    ],
+    [
+      "^checkpoint (\\d+)$",
+      "kontrol noktası {0}"
+    ],
+    [
+      "^← Checkpoint (\\d+)$",
+      "← Kontrol noktası {0}"
+    ],
+    [
+      "^Checkpoint (\\d+) →$",
+      "Kontrol noktası {0} →"
+    ],
+    [
+      "^Checkpoint (\\d+) hasn't been made yet\\.$",
+      "Kontrol noktası {0} henüz oluşturulmadı."
+    ],
+    [
+      "^Checkpoint (\\d+) hasn't been made yet\\. The latest is (\\d+)\\.$",
+      "Kontrol noktası {0} henüz oluşturulmadı. En son kontrol noktası {1}."
+    ],
+    [
+      "^Being made now, ready in about (\\d+) min$",
+      "Şimdi oluşturuluyor, yaklaşık {0} dk içinde hazır"
+    ],
+    [
+      "^Next hour (.+)$",
+      "Sonraki saat {0}"
+    ],
+    [
+      "^([0-9.]+)× easier$",
+      "{0}× daha kolay"
+    ],
+    [
+      "^([0-9.]+)× harder$",
+      "{0}× daha zor"
+    ],
+    [
+      "^([0-9.,]+) new ORN$",
+      "{0} yeni ORN"
+    ],
+    [
+      "^([0-9.,]+) available$",
+      "{0} kullanılabilir"
+    ],
+    [
+      "^Avail: ([0-9.,]+)$",
+      "Mevcut: {0}"
+    ],
+    [
+      "^Fee ([0-9.,]+) ORN · ([0-9.,]+) ORN in all$",
+      "Ücret {0} ORN · toplam {1} ORN"
+    ],
+    [
+      "^incl\\. ([0-9.,]+) fee$",
+      "{0} ücret dahil"
+    ],
+    [
+      "^([0-9.,]+) ORN sent$",
+      "{0} ORN gönderildi"
+    ],
+    [
+      "^(\\d+) more characters?$",
+      "{0} karakter daha"
+    ],
+    [
+      "^(\\d+) min ago$",
+      "{0} dk önce"
+    ],
+    [
+      "^(\\d+) h ago$",
+      "{0} sa önce"
+    ],
+    [
+      "^(\\d+) d ago$",
+      "{0} g önce"
+    ],
+    [
+      "^(\\d+) h (\\d+) min$",
+      "{0} sa {1} dk"
+    ],
+    [
+      "^(\\d+) min$",
+      "{0} dk"
+    ],
+    [
+      "^(\\d+) minutes?$",
+      "{0} dakika"
+    ],
+    [
+      "^(\\d+) hours?$",
+      "{0} saat"
+    ],
+    [
+      "^(\\d+) days?$",
+      "{0} gün"
+    ],
+    [
+      "^(\\d+) days? left$",
+      "{0} gün kaldı"
+    ],
+    [
+      "^(\\d+) hours? left$",
+      "{0} saat kaldı"
+    ],
+    [
+      "^(\\d+) minutes? left$",
+      "{0} dakika kaldı"
+    ],
+    [
+      "^(\\d+) more$",
+      "{0} daha"
+    ],
+    [
+      "^(\\d+) others?$",
+      "{0} diğer kişi"
+    ],
+    [
+      "^(.+) and (\\d+) others?$",
+      "{0} ve {1} diğer kişi"
+    ],
+    [
+      "^(.+), (\\d+) swaps? done$",
+      "{0}, {1} takas tamamlandı"
+    ],
+    [
+      "^([0-9.,]+) SOL per ORN$",
+      "ORN başına {0} SOL"
+    ],
+    [
+      "^([0-9,]+) satoshis per ORN$",
+      "ORN başına {0} satoshi"
+    ],
+    [
+      "^Member since (.+)$",
+      "Üyelik: {0}"
+    ],
+    [
+      "^Blocked (.+)$",
+      "{0} engellendi"
+    ],
+    [
+      "^Block (.+)$",
+      "{0} kullanıcısını engelle"
+    ],
+    [
+      "^Unblock (.+)$",
+      "{0} engelini kaldır"
+    ],
+    [
+      "^Reply to (.+)$",
+      "{0} kullanıcısına yanıt ver"
+    ],
+    [
+      "^Write to (.+)$",
+      "{0} kullanıcısına yaz"
+    ],
+    [
+      "^Ask (.+) to pay$",
+      "{0} kullanıcısından ödeme iste"
+    ],
+    [
+      "^Tip ([0-9.,]+) ORN$",
+      "{0} ORN bahşiş gönder"
+    ],
+    [
+      "^Tip (.+) for (.+)$",
+      "{1} için {0} kullanıcısına bahşiş gönder"
+    ],
+    [
+      "^Tip (.+)$",
+      "{0} kullanıcısına bahşiş gönder"
+    ],
+    [
+      "^Tip with (.+)$",
+      "{0} ile bahşiş gönder"
+    ],
+    [
+      "^Send with (.+)$",
+      "{0} ile gönder"
+    ],
+    [
+      "^Pay with (.+)$",
+      "{0} ile öde"
+    ],
+    [
+      "^Post with (.+)$",
+      "{0} ile paylaş"
+    ],
+    [
+      "^Verify with (.+)$",
+      "{0} ile doğrula"
+    ],
+    [
+      "^Turn on with (.+)$",
+      "{0} ile aç"
+    ],
+    [
+      "^Buy ORN with (.+)$",
+      "{0} ile ORN satın al"
+    ],
+    [
+      "^Sell ORN with (.+)$",
+      "{0} ile ORN sat"
+    ],
+    [
+      "^Use (.+) instead$",
+      "Bunun yerine {0} kullan"
+    ],
+    [
+      "^Use (.+) instead of the password from now on$",
+      "Bundan sonra parola yerine {0} kullan"
+    ],
+    [
+      "^Use (.+)$",
+      "{0} kullan"
+    ],
+    [
+      "^Confirm with (.+)$",
+      "{0} ile onayla"
+    ],
+    [
+      "^Verify (.+)$",
+      "{0} doğrula"
+    ],
+    [
+      "^Verifying (.+)$",
+      "{0} doğrulanıyor"
+    ],
+    [
+      "^Send ([0-9.,]+) ORN and verify$",
+      "{0} ORN gönder ve doğrula"
+    ],
+    [
+      "^Orien Wallet ([0-9.]+) is the newest version\\.$",
+      "Orien Wallet {0} en güncel sürümdür."
+    ],
+    [
+      "^Orien Wallet ([0-9.]+) is ready$",
+      "Orien Wallet {0} hazır"
+    ],
+    [
+      "^Orien Wallet ([0-9.]+) is out(.*)$",
+      "Orien Wallet {0} yayınlandı{1}"
+    ],
+    [
+      "^Waiting for (.+) to pay\\.$",
+      "{0} kullanıcısının ödeme yapması bekleniyor."
+    ],
+    [
+      "^Waiting for (.+)$",
+      "{0} bekleniyor"
+    ],
+    [
+      "^Locking ORN for (.+)$",
+      "{0} için ORN kilitleniyor"
+    ],
+    [
+      "^Selling to (.+)$",
+      "{0} kullanıcısına satılıyor"
+    ],
+    [
+      "^Taken by (.+)$",
+      "{0} tarafından kabul edildi"
+    ],
+    [
+      "^You get ([0-9.,]+) ORN$",
+      "{0} ORN alırsınız"
+    ],
+    [
+      "^You mined ([0-9.,]+) ORN$",
+      "{0} ORN kazdınız"
+    ],
+    [
+      "^You received ([0-9.,]+) ORN$",
+      "{0} ORN aldınız"
+    ],
+    [
+      "^You paid ([0-9.,]+) ORN\\.$",
+      "{0} ORN ödediniz."
+    ],
+    [
+      "^Buy orders are limited to ([0-9.,]+) SOL per order$",
+      "Alış emirleri emir başına {0} SOL ile sınırlıdır"
+    ],
+    [
+      "^The smallest swap is ([0-9.,]+) (SOL|BTC)$",
+      "En küçük takas {0} {1}"
+    ],
+    [
+      "^At least ([0-9.,]+) (SOL|BTC)$",
+      "En az {0} {1}"
+    ],
+    [
+      "^Pay by (.+), in (.+)$",
+      "{0} tarihine kadar ödeyin, {1} içinde"
+    ],
+    [
+      "^around (.+), in about (\\d+) hours?$",
+      "{0} civarında, yaklaşık {1} saat içinde"
+    ],
+    [
+      "^around (.+)$",
+      "{0} civarında"
+    ],
+    [
+      "^Sign in to (.+)\\?$",
+      "{0} sitesine giriş yapılsın mı?"
+    ],
+    [
+      "^Already saved as (.+)$",
+      "Zaten {0} olarak kayıtlı"
+    ],
+    [
+      "^✓ Your wallet (.+)$",
+      "✓ Cüzdanınız {0}"
+    ],
+    [
+      "^(.+): your profile$",
+      "{0}: profiliniz"
+    ],
+    [
+      "^(.+) \\(yours\\)$",
+      "{0} (sizin)"
+    ],
+    [
+      "^(.+) hasn't posted yet\\.$",
+      "{0} henüz bir paylaşım yapmadı."
+    ],
+    [
+      "^About (.+)$",
+      "{0} hakkında"
+    ],
+    [
+      "^(.+)'s password$",
+      "{0} parolası"
+    ],
+    [
+      "^Remove (.+)\\? Tap again$",
+      "{0} kaldırılsın mı? Tekrar dokunun"
+    ],
+    [
+      "^The record before was ([0-9,]+)\\. Checkpoint (\\d+)\\.$",
+      "Önceki rekor {0} idi. Kontrol noktası {1}."
+    ],
+    [
+      "^reacted (.+) to your post$",
+      "gönderinize {0} tepkisi verdi"
+    ],
+    [
+      "^reacted (.+) to your reply$",
+      "yanıtınıza {0} tepkisi verdi"
+    ],
+    [
+      "^reacted (.+) to the network's post about you$",
+      "ağın hakkınızdaki gönderisine {0} tepkisi verdi"
+    ],
+    [
+      "^wrote to you about (.+)$",
+      "{0} hakkında size yazdı"
+    ],
+    [
+      "^asks you to pay ([0-9.,]+) ORN$",
+      "sizden {0} ORN ödemenizi istiyor"
+    ],
+    [
+      "^says they paid ([0-9.,]+) ORN$",
+      "{0} ORN ödediğini söylüyor"
+    ]
+  ],
+  "_guides": {
+    "backup": {
+      "title": "Kurtarma ifadenizi yedekleyin",
+      "steps": [
+        "Ana Sayfa'da <b>Cüzdanlar</b> bölümünü açmak için üstteki cüzdan adına tıklayın.",
+        "Cüzdan kartındaki dişli simgesine tıklayın.",
+        "<b>Kurtarma ifadesi</b>, ardından <b>Anladım, göster</b> seçeneğine tıklayın.",
+        "Touch ID ile onaylayın veya varsa cüzdanın parolasını yazın.",
+        "<b>Görmek için dokun</b> seçeneğine tıklayın ve 24 kelimeyi sırasıyla bir kağıda yazın. Güvenli ve gizli bir yerde saklayın."
+      ],
+      "note": "Bu kelimelere sahip olan herkes bu cüzdandaki ORN'leri harcayabilir. Orien bunları asla istemez."
+    },
+    "send": {
+      "title": "ORN Gönder",
+      "steps": [
+        "Ana Sayfa'da yukarı bakan ok simgeli yuvarlak düğme olan <b>Gönder</b>'e tıklayın.",
+        "<b>Kime</b> altında bir ad veya adres yazın, <b>Son Kullanılanlar</b> altından birini seçin veya <b>Yapıştır</b>'a tıklayın.",
+        "Tutarı yazın veya ücret düşüldükten sonra gönderebileceğiniz tüm tutar için <b>Maks</b>'a tıklayın.",
+        "Toplamı kontrol edin, ardından <b>Gönder</b>'e tıklayın.",
+        "Saniyeler içinde ulaşır. İsterseniz son ekrandan yeni bir adresi kişi olarak kaydedebilirsiniz."
+      ]
+    },
+    "receive": {
+      "title": "ORN Al",
+      "steps": [
+        "Ana Sayfa'da aşağı bakan ok simgeli yuvarlak düğme olan <b>Al</b>'a tıklayın.",
+        "Size ödeme yapacak kişiye QR kodunu gösterin veya <b>Adresi paylaş</b> ya da <b>Adresi kopyala</b> seçeneğine tıklayıp ona gönderin.",
+        "Ödemeleri saniyeler içinde Etkinlik bölümünde görünür."
+      ]
+    },
+    "home": {
+      "title": "Ana Sayfa'ya dön",
+      "steps": [
+        "Bir adım geri gitmek için sol üstteki <b>Geri</b>'ye tıklayın.",
+        "Herhangi bir yerden doğrudan Ana Sayfa'ya gitmek için pencerenin üstündeki <b>ORIEN</b> adına tıklayın."
+      ]
+    },
+    "wallets": {
+      "title": "Başka bir cüzdan ekle",
+      "steps": [
+        "Ana Sayfa'da üstteki cüzdan adına, ardından <b>Cüzdan ekle</b> seçeneğine tıklayın.",
+        "<b>Yeni cüzdan oluştur</b>'a tıklayın, bir ad ve simge belirleyin, ardından <b>Cüzdanı oluştur</b>'a tıklayın.",
+        "Kurtarma ifadesini yedekleyin: her cüzdanın kendine ait bir ifadesi vardır.",
+        "Cüzdanlar arasında geçiş yapmak için Ana Sayfa'da cüzdan adına tıklayın ve birini seçin."
+      ]
+    },
+    "restore": {
+      "title": "Kelimelerinden bir cüzdanı geri yükle",
+      "steps": [
+        "Ana Sayfa'da üstteki cüzdan adına, ardından <b>Cüzdan ekle</b> ve <b>Kurtarma ifadesiyle geri yükle</b> seçeneğine tıklayın. Yeni bir kurulumda <b>Kurtarma ifademi kullan</b>'a tıklayın.",
+        "24 kelimeyi yazın, ardından <b>Devam et</b>'e tıklayın.",
+        "Bir ad ve simge belirleyin, ardından <b>Cüzdanı geri yükle</b>'ye tıklayın."
+      ]
+    },
+    "link": {
+      "title": "Cüzdanlarınızı başka bir cihazda kullanın",
+      "steps": [
+        "Yeni cihazda <b>Diğer cihazımı kullan</b> seçeneğine (veya <b>Cüzdan ekle</b>, ardından <b>Diğer cihazımdan</b> seçeneğine) tıklayın. Bir QR kodu ve bir kod gösterilir.",
+        "Cüzdanlarınızın bulunduğu cihazda Ana Sayfa'daki dişli simgeli yuvarlak düğme olan <b>Ayarlar</b>'ı açın, ardından <b>Yeni cihaz bağla</b>'ya tıklayın.",
+        "iPhone'da yeni cihazın QR kodunu tarayın. Bilgisayarda kodunu yazın ve <b>Devam et</b>'e tıklayın.",
+        "Her iki cihazın da aynı üç resmi gösterdiğini kontrol edin, ardından <b>Eşleşiyor, cüzdanlarımı gönder</b>'e tıklayın.",
+        "Cüzdanlarınız yeni cihaza kendiliğinden ulaşır."
+      ],
+      "note": "Cüzdanlarınız iki cihazınız arasında doğrudan ve şifreli olarak aktarılır."
+    },
+    "sync": {
+      "title": "Kişileri her yerde aynı tut",
+      "steps": [
+        "Ana Sayfa'da iki kişi simgeli yuvarlak düğme olan <b>Kişiler</b>'e tıklayın.",
+        "<b>Eşitlemeyi aç</b> seçeneğini görüyorsanız tıklayın. Touch ID ile onaylayın veya varsa cüzdanın parolasını yazın.",
+        "Bunu her cihazda bir kez yapın. Bundan sonra kişiler ve cüzdan simgeleri tüm cihazlarda aynı kalır."
+      ]
+    },
+    "signin": {
+      "title": "Orien Network'e giriş yap",
+      "steps": [
+        "Ana Sayfa'da sağ üstteki <b>Giriş yap</b>'a tıklayın.",
+        "E-postanızı yazın ve <b>Bana kod gönder</b>'e tıklayın.",
+        "E-postadaki 6 haneli kodu yazın ve <b>Devam et</b>'e tıklayın.",
+        "Burada yeni misiniz? Bir kullanıcı adı seçin, ardından <b>Hesabımı oluştur</b>'a tıklayın."
+      ],
+      "note": "Hesabınız Topluluk, Pazar ve takaslar içindir. Cüzdanlarınız bu uygulamada kalır."
+    },
+    "verify": {
+      "title": "Bir cüzdan doğrula",
+      "steps": [
+        "Giriş yapın ve doğrulamak istediğiniz cüzdanı açın.",
+        "Ana Sayfa'da bakiyenizin altındaki <b>Doğrula</b> kartında <b>Doğrula</b>'ya tıklayın. (Veya sağ üstteki resminize, ardından <b>Profili Düzenle</b>'ye ve cüzdanın yanındaki <b>Doğrula</b>'ya tıklayın.)",
+        "Onaylamak için <b>Doğrula</b>'ya tıklayın. Bu cüzdandan ücret dahil 0.001 ORN'den az bir tutar gönderilir.",
+        "Bir dakika içinde <b>Doğrulandı</b> görünür."
+      ],
+      "note": "Doğrulama, bakiyesi dahil bu cüzdanın size ait olduğunu herkese gösterir. Paylaşım yapmanıza, satış yapmanıza, takas etmenize ve bahşiş almanıza olanak tanır."
+    },
+    "verify-more": {
+      "title": "Daha fazla cüzdan doğrulayın ve ödemelerin nereye yapılacağını seçin",
+      "steps": [
+        "Başka bir cüzdana geçin: Ana Sayfa'da cüzdan adına tıklayın ve seçin.",
+        "Resminize, ardından <b>Profili Düzenle</b>'ye ve o cüzdanın yanındaki <b>Doğrula</b>'ya tıklayın.",
+        "Profilinizde olmasını istediğiniz her cüzdan için tekrarlayın.",
+        "Alıcıların ve bahşiş gönderenlerin ödeme yaptığı cüzdanda <b>Ödeme buraya</b> yazar. Değiştirmek için başka bir doğrulanmış cüzdanda <b>Ödemeyi buraya al</b>'a tıklayın.",
+        "Bir cüzdanı profilinizden kaldırmak için yanındaki <b>⋯</b> simgesine, ardından <b>Profilinden kaldır</b>'a tıklayın."
+      ]
+    },
+    "tip": {
+      "title": "Birine bahşiş gönder",
+      "steps": [
+        "Ana Sayfa'da dünya simgeli yuvarlak düğme olan <b>Topluluk</b>'a tıklayın.",
+        "Beğendiğiniz bir gönderinin altında <b>Bahşiş</b>'e tıklayın.",
+        "1, 5 veya 10 ORN seçin ya da başka bir tutar yazın, ardından <b>Bahşiş</b>'e tıklayın.",
+        "Gönderide bahşişler isim olmadan gösterilir. Yazara bahşişi sizin gönderdiğiniz bildirilir."
+      ],
+      "note": "Bahşişler ödemedir ve geri alınamaz."
+    },
+    "chat": {
+      "title": "Herkesle sohbet et",
+      "steps": [
+        "Ana Sayfa'da konuşma balonu simgeli yuvarlak düğme olan <b>Mesajlar</b>'a tıklayın. <b>Orien Grup Sohbeti</b> en üstte sabitlenmiştir.",
+        "Herkes okuyabilir. Yazmak, yanıtlamak veya tepki vermek için giriş yapın ve bir cüzdan doğrulayın.",
+        "Yanıtlamak, tepki vermek veya bildirmek için bir mesajın üzerine gelin.",
+        "Yeni mesajlar Mesajlar üzerinde bir nokta gösterir. Bunu kapatmak için sohbetin üstündeki zil simgesine tıklayın."
+      ],
+      "note": "Grup sohbetindeki her şey herkese açıktır. Nazik olun."
+    },
+    "ai": {
+      "title": "Orien Yapay Zeka Desteği'ne Sor",
+      "steps": [
+        "Ana Sayfa'da konuşma balonu simgeli yuvarlak düğme olan <b>Mesajlar</b>'a tıklayın. <b>Orien Yapay Zeka Desteği</b> grup sohbetinin altında sabitlenmiştir. Büyük pencerede zilin yanındaki can simidi de bunu açar.",
+        "Orien Network'e giriş yapmış olmanız gerekir. Cüzdan doğrulamanız gerekmez.",
+        "Cüzdan, madencilik, takaslar veya ağ hakkında istediğiniz her şeyi kendi kelimelerinizle sorun.",
+        "Sohbeti temizlemek için sohbetin üstündeki <b>Baştan başla</b>'ya tıklayın."
+      ],
+      "note": "Yanıtlar bir yapay zeka tarafından üretilir ve hatalı olabilir. Kurtarma kelimelerinize, parolalarınıza veya anahtarlarınıza asla ihtiyaç duymaz: bunları kimseyle paylaşmayın."
+    },
+    "explorer": {
+      "title": "Ağı incele",
+      "steps": [
+        "Ana Sayfa'da teleskop simgeli yuvarlak düğme olan <b>Gezgin</b>'e tıklayın. Büyük pencerede bunun yerine cüzdanınızın yanındaki <b>Ağ</b> kartına tıklayın.",
+        "Üstteki sayılar şu anki ağı gösterir: dolaşımdaki ORN, sonraki kontrol noktası, madenciler ve hash oranı.",
+        "Bunların altında <b>Kontrol noktaları</b>, <b>En büyük cüzdanlar</b> veya <b>Doğrulayıcılar</b> seçeneğine tıklayın ve açmak için herhangi bir satıra tıklayın.",
+        "Bir şey bulmak için arama kutusuna bir adres, ad veya kontrol noktası numarası yazın."
+      ]
+    },
+    "get": {
+      "title": "iPhone'da ORN Edin",
+      "steps": [
+        "Ödeme alın: aşağı bakan ok simgeli yuvarlak düğme olan <b>Al</b> bölümünden adresinizi paylaşın.",
+        "Bu aynı cüzdanın bağlı olduğu bir bilgisayarda Orien Wallet üzerinden SOL veya Bitcoin'i ORN ile takas edin.",
+        "Bir bilgisayarda kazın: Orien Wallet'ı oraya yükleyin, bu cüzdanı bağlayın ve <b>Kaz</b>'a basın."
+      ]
+    },
+    "mine": {
+      "title": "ORN Kaz",
+      "steps": [
+        "Ana Sayfa'da kazma simgeli yuvarlak düğme olan <b>Kaz</b>'a tıklayın. Büyük pencerede bunun yerine cüzdanınızın yanındaki <b>Madencilik</b> kartına tıklayın.",
+        "<b>İşlemci</b> kaydırıcısını ayarlayın veya bilgisayarınızın en ideal ayarını bulmak için <b>Performans testi</b>'ne tıklayın.",
+        "<b>Madenciliği başlat</b>'a tıklayın. Her saat yeni ORN'lerden pay kazanırsınız.",
+        "Pencere kapalıyken madencilik yapmak için Ayarlar, <b>Bu bilgisayar</b> altında <b>Kapatıldığında çalışmaya devam et</b> seçeneğini açın. Bilgisayarın uyku moduna geçmesini önlemek için orada <b>Bu bilgisayarı uyanık tut</b> seçeneğini de açın."
+      ],
+      "note": "Uygulama madencilik sırasında güncellenirse madencilik kendiliğinden yeniden başlar."
+    },
+    "buy": {
+      "title": "SOL veya Bitcoin ile ORN satın al",
+      "steps": [
+        "Ana Sayfa'da iki ok simgeli yuvarlak düğme olan <b>Takas</b>'a tıklayın.",
+        "<b>Açık teklifler</b> altında beğendiğiniz birinde <b>Kabul et</b>'e tıklayın.",
+        "Ödeme yapacağınız SOL veya Bitcoin adresini yazın, ardından <b>Teklifi kabul et</b>'e tıklayın.",
+        "Satıcı yanıt verdiğinde, SOL veya Bitcoin cüzdanınızdan gösterilen tam tutarı ödeyin.",
+        "ORN'ler bu cüzdana kendiliğinden ulaşır."
+      ]
+    },
+    "sell": {
+      "title": "ORN Sat",
+      "steps": [
+        "Önce giriş yapın ve bu cüzdanı doğrulayın.",
+        "Ana Sayfa'da iki ok simgeli yuvarlak düğme olan <b>Takas</b>'a, ardından <b>Teklif yayınla</b>'ya tıklayın.",
+        "SOL veya Bitcoin seçin, ardından kaç ORN satacağınızı, karşılığında ne kadar istediğinizi ve ödeme alacağınız adresi yazın.",
+        "<b>Teklifi yayınla</b>'ya tıklayın ve kabul edilene kadar Orien Wallet'ı açık tutun. Ayarlar, <b>Bu bilgisayar</b> altındaki <b>Bu bilgisayarı uyanık tut</b> seçeneği siz uzaktayken açık kalmasını sağlar."
+      ]
+    },
+    "lock": {
+      "title": "Touch ID ile kilitle",
+      "steps": [
+        "Ana Sayfa'daki dişli simgeli yuvarlak düğme olan <b>Ayarlar</b>'ı, ardından <b>Gizlilik ve güvenlik</b>'i açın.",
+        "<b>Touch ID ile kilitle</b> seçeneğini açın.",
+        "Orien Wallet bir dakika ayrıldıktan sonra kilitlenir."
+      ]
+    },
+    "extension": {
+      "title": "Orien Wallet'ı tarayıcınızda kullanın",
+      "steps": [
+        "Ana Sayfa'daki dişli simgeli yuvarlak düğme olan <b>Ayarlar</b>'ı, ardından <b>Tarayıcı Uzantıları</b>'nı açın.",
+        "Tarayıcınıza tıklayın ve Orien Wallet'ı oraya ekleyin.",
+        "Tarayıcınızın araç çubuğundan ORN gönderin, bakiyenizi görün ve cüzdanınızla web sitelerine giriş yapın. Anahtarlarınız bu uygulamada kalır."
+      ]
+    },
+    "theme-build": {
+      "title": "Kendi temanızı oluşturun",
+      "steps": [
+        "Ana Sayfa'daki dişli simgeli yuvarlak düğme olan <b>Ayarlar</b>'ı, ardından <b>Görünüm</b>'ü açın ve <b>Tema oluştur</b>'a tıklayın.",
+        "Bir <b>Ad</b> verin ve <b>Taban</b> altında <b>Koyu</b> veya <b>Açık</b> seçin.",
+        "Bir <b>Vurgu rengi</b> seçin veya kendi renginizi seçmek için gökkuşağı dairesine tıklayın.",
+        "<b>Arka plan resmi</b> altında <b>Resim seç</b>'e tıklayın. En az 1920 × 1080 boyutunda büyük bir resim en iyi görünümü verir.",
+        "İlerlerken önizlemeyi izleyin, ardından <b>Temayı kaydet</b>'e tıklayın. Hemen uygulanır."
+      ],
+      "note": "Temalarınız diğer bilgisayarlarınızda da geçerli olur ve iPhone'unuz bunların renklerini kullanır. Daha sonra değiştirmek için Görünüm'de kartındaki dişli simgesine tıklayın; çöp kutusu simgesi temayı siler."
+    },
+    "theme-store": {
+      "title": "Tema Mağazası'nda tema bul",
+      "steps": [
+        "Ana Sayfa'daki dişli simgeli yuvarlak düğme olan <b>Ayarlar</b>'ı, ardından <b>Görünüm</b>'ü açın ve üstteki <b>Tema Mağazası</b>'na tıklayın.",
+        "<b>Tümü</b> altında kişilerin yaptığı temalar için <b>Popüler</b> veya <b>En yeni</b>, Orien'in kendi temaları için <b>Resmi</b> seçeneğini seçin. Her kart, temayı uygulamanın küçük bir kopyası üzerinde gösterir.",
+        "Tüm uygulamayı bu temayla görmek için <b>Dene</b>'ye tıklayın. Geri dönmek için <b>Geri al</b>'a tıklayın; mağazadan çıkmak da geri döndürür.",
+        "Saklamak için <b>Kullan</b>'a tıklayın. Görünüm bölümündeki temalarınıza eklenir ve hemen uygulanır.",
+        "Beğendiniz mi? Madeni para düğmesi yapımcısına biraz ORN bahşiş gönderir. Bayrak simgesi kuralları ihlal eden bir temayı bildirir."
+      ],
+      "note": "Kullandığınız tema sizin kendi kopyanızdır: yapımcısı bunu değiştiremez ve kendi oluşturduğunuz bir tema gibi düzenleyebilir veya silebilirsiniz."
+    },
+    "theme-share": {
+      "title": "Tema Mağazası'nda tema paylaş",
+      "steps": [
+        "Doğrulanmış bir cüzdanla Orien Network'e giriş yapmış olmanız gerekir.",
+        "Ana Sayfa'daki dişli simgeli yuvarlak düğme olan <b>Ayarlar</b>'ı, ardından <b>Görünüm</b>'ü açın.",
+        "Kendi temalarınızdan birinde paylaş düğmesine (oklu kutu), ardından <b>Temayı paylaş</b>'a tıklayın.",
+        "Kontrol edildikten sonra adınızla birlikte mağazada görünür; herkes deneyebilir, kullanabilir ve size bahşiş gönderebilir.",
+        "Kaldırmak için Tema Mağazası'nı, ardından <b>Seninkiler</b>'i açın ve <b>Mağazadan kaldır</b>'a iki kez tıklayın."
+      ],
+      "note": "Temanızı daha sonra düzenlemeniz paylaşılan sürümü değiştirmez. Yeni sürümü daha çok beğendiyseniz yeni bir tema olarak tekrar paylaşın."
+    },
+    "activity": {
+      "title": "Etkinlik ve bildirimler",
+      "steps": [
+        "Ana Sayfa'da Etkinlik yanındaki <b>Tümünü gör</b>'e tıklayın.",
+        "<b>Ödemeler</b> gönderdiğiniz ve aldığınız ödemeleri; <b>Ödüller</b> madencilik ödüllerini ve doğrulayıcı ücretlerini gösterir.",
+        "Ayarlar, <b>Bildirimler</b> bölümünden hangi konularda bildirim alacağınızı seçin."
+      ]
+    }
+  }
+}

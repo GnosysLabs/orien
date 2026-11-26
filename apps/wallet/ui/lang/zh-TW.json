@@ -1,0 +1,2112 @@
+{
+  "_meta": {
+    "code": "zh-TW",
+    "native": "繁體中文",
+    "english": "Chinese (Traditional)"
+  },
+  "(optional, for a reply)": "（可選，用於回覆）",
+  "+ Add a choice": "+ 新增選項",
+  ". Fees: the usual Orien fee to lock the ORN (0.1%, at most 1 ORN), and Bitcoin's network fee for taking the Bitcoin, out of what you receive. If a buyer never pays, your ORN come back on their own within 12 hours.": "。手續費：鎖定 ORN 的一般 Orien 手續費（0.1%，最高 1 ORN），以及領取 Bitcoin 時的 Bitcoin 網路手續費（從你收到的金額中扣除）。如果買家一直未付款，你的 ORN 會在 12 小時內自動退回。",
+  ". Then": "。然後",
+  ". Then scan this code, or type it.": "。然後掃描此QR Code或輸入配對碼。",
+  "0 open": "0 個掛單",
+  "1 day": "1 天",
+  "12 hours after they were locked": "鎖定後 12 小時",
+  "3 days": "3 天",
+  "3 to 20 letters, numbers or _": "3 至 20 個字母、數字或底線 _",
+  "30 min ago": "30 分鐘前",
+  "7 days": "7 天",
+  "A few words for people you swap with": "給兌換對象的簡短介紹",
+  "A fresh one, with its own recovery phrase": "建立一個帶有全新助記詞的錢包",
+  "A locked payment nobody claimed": "無人領取的鎖定轉帳",
+  "A new miner joined": "有新礦工加入",
+  "A password protects the wallet on this computer. Without it, anyone who gets this computer's files can spend from it. You will type it each time you send.": "密碼用於保護此電腦上的錢包。若不設定密碼，任何獲取此電腦檔案的人都可以轉走資產。每次發送時都需要輸入密碼。",
+  "A scam, something illegal, pretending to be someone…": "詐騙、違法內容、冒充他人…",
+  "A seller filled your order. Delivering your ORN automatically, usually within a minute.": "賣家已成交你的訂單。正在自動交付你的 ORN，通常在 1 分鐘內完成。",
+  "A small arrow on screens with more below": "在下方有更多內容的頁面顯示小箭頭",
+  "A theme you use is your own copy: the maker can't change it, and you can edit or delete it like one you built.": "你使用的主題會儲存為你自己的副本：作者無法修改它，你可以像對待自己製作的主題一樣編輯或刪除它。",
+  "AI Support": "AI 客服",
+  "AI answers can be wrong": "AI 的回答可能有誤",
+  "About": "關於",
+  "About the same": "基本持平",
+  "About this": "關於此商品",
+  "About you": "個人簡介",
+  "Accent colour": "強調色",
+  "Accepted": "已接受",
+  "Accepted: your ORN are locked for the buyer. Waiting for them to pay.": "已接受：你的 ORN 已為買家鎖定，等待對方付款。",
+  "Activity": "動態",
+  "Activity and notifications": "動態與通知",
+  "Add a GIF": "新增 GIF",
+  "Add a contact": "新增聯絡人",
+  "Add a password": "新增密碼",
+  "Add a poll": "新增投票",
+  "Add a wallet": "新增錢包",
+  "Add another wallet": "新增另一個錢包",
+  "Add photos": "新增圖片",
+  "Add pictures": "新增圖片",
+  "Add to contacts": "新增至聯絡人",
+  "Address": "地址",
+  "Again": "再次輸入",
+  "Agreed": "已達成共識",
+  "Agreed by": "共識節點",
+  "All": "全部",
+  "All your wallets": "所有錢包",
+  "Among members with a verified wallet, by ORN mined.": "按已驗證錢包成員挖出的 ORN 數量排名。",
+  "Amount": "金額",
+  "Amount (ORN)": "數量 (ORN)",
+  "An address, a name or a checkpoint number": "輸入地址、使用者名稱或檢查點編號",
+  "An earlier payment from this wallet had to finish first, so nothing was sent for verifying yet. Tap again to send it.": "此錢包之前的一筆轉帳需要先完成，因此驗證交易尚未發出。請再次點擊發送。",
+  "An earlier payment from this wallet had to finish first, so this one wasn't sent yet. Tap Pay again.": "此錢包之前的一筆轉帳需要先完成，因此這筆付款尚未發出。請再次點擊付款。",
+  "An earlier payment from this wallet had to finish first, so this tip wasn't sent yet. Tap Tip again.": "此錢包之前的一筆轉帳需要先完成，因此這筆打賞尚未發出。請再次點擊打賞。",
+  "Another amount": "其他金額",
+  "Answers come from an AI and can be wrong. It never needs your recovery words, passwords or keys: never share them with anyone.": "回答由 AI 生成，可能存在錯誤。它絕不需要你的助記詞、密碼或私鑰，請勿向任何人透露這些資訊。",
+  "Any colour you like": "任選你喜歡的顏色",
+  "Any moment": "即將到達",
+  "Anyone can read along. To write, reply or react, sign in and verify a wallet.": "所有人都可以瀏覽內容。如需發文、回覆或互動，請登入並驗證一個錢包。",
+  "Anyone can see it, use it and tip you for it. Your Orien Network name is shown with it. You can take it down at any time.": "所有人都可以查看、使用並為此向你打賞。你的 Orien Network 使用者名稱會一並顯示，你隨時可以將其下架。",
+  "Anyone can sell into it now. When they do, their wallet locks the ORN and this app opens the pay screen.": "現在任何人都可以向此買單出售。當有人出售時，對方錢包會鎖定 ORN，本應用程式會自動開啟支付頁面。",
+  "Anyone can take it now. When they do, your wallet runs the swap by itself.": "現在任何人都可以接單。一旦有人接單，你的錢包會自動執行兌換。",
+  "Anyone who opens the file can spend your ORN. Keep it somewhere only you can reach.": "任何開啟此檔案的人都可以花掉你的 ORN。請將其存放在只有你能訪問的安全位置。",
+  "Anyone who sees your 24 words can take everything in this wallet. Orien will never ask you for them, and no one helping you ever needs them.": "任何看到你 24 個助記詞的人都可以取走此錢包中的全部資產。Orien 絕不會向你索要助記詞，任何協助你的人也絕不需要它們。",
+  "Anyone with these words can spend this wallet's ORN. Orien never asks for them.": "任何擁有這些助記詞的人都可以花掉此錢包裡的 ORN。Orien 絕不會向你索要它們。",
+  "Anything left over, or a refund, comes back here": "多餘金額或退款將退回到這裡",
+  "Appearance": "外觀",
+  "Approve": "確認",
+  "Approve in Orien Wallet to finish your swap.": "請在 Orien Wallet 中確認以完成兌換。",
+  "Approve this order": "確認此訂單",
+  "Approve to finish your swap": "確認以完成兌換",
+  "Ask Orien AI Support": "諮詢 Orien AI 客服",
+  "Ask a question": "提出問題",
+  "Ask anything about the wallet, mining, swaps or the network, in your own words.": "用你自己的話提問，任何關於錢包、挖礦、兌換或網路的問題都可以。",
+  "Ask each time Orien Wallet opens": "每次開啟 Orien Wallet 時詢問",
+  "Ask for payment": "請求收款",
+  "Asks · selling ORN": "賣單 · 賣出 ORN",
+  "At least 8 characters": "至少 8 個字元",
+  "At this speed and today's difficulty": "按當前算力和今日難度計算",
+  "Australian dollar": "澳幣",
+  "Automatic · a few minutes": "自動 · 幾分鐘",
+  "Automatic · about a minute": "自動 · 約 1 分鐘",
+  "Automatic · keep this page open": "自動 · 請保持此頁面開啟",
+  "Automatic · keep this page open (~15 seconds)": "自動 · 請保持此頁面開啟（約 15 秒）",
+  "Automatic · keep this page open (~20 seconds)": "自動 · 請保持此頁面開啟（約 20 秒）",
+  "Automatic · usually 30 to 60 minutes": "自動 · 通常 30 至 60 分鐘",
+  "Automatic · usually a minute": "自動 · 通常約 1 分鐘",
+  "Automatic · usually within minutes": "自動 · 通常幾分鐘內",
+  "Available": "可用",
+  "Back": "返回",
+  "Back from staking": "質押已退回",
+  "Back to Exchange": "返回交易所",
+  "Back to top": "返回頂部",
+  "Back up its recovery phrase: each wallet has its own.": "請備份它的助記詞：每個錢包都有獨立的助記詞。",
+  "Back up your recovery phrase": "備份你的助記詞",
+  "Background picture": "背景圖片",
+  "Balance": "餘額",
+  "Balance after": "交易後餘額",
+  "Ban": "停權",
+  "Banned": "已停權",
+  "Banned from the group chat": "已被移出群組聊天並禁止發言",
+  "Base": "基礎風格",
+  "Be paid in ORN.": "使用 ORN 收款。",
+  "Benchmark": "效能測試",
+  "Benchmark again": "重新測試",
+  "Benchmarking…": "正在測試效能…",
+  "Bids · buying ORN": "買單 · 買入 ORN",
+  "Bitcoin": "Bitcoin",
+  "Bitcoin to pay": "需支付的 Bitcoin",
+  "Bitcoin to receive": "將收到的 Bitcoin",
+  "Block": "封鎖",
+  "Blocked": "已封鎖",
+  "Blocked accounts": "已封鎖帳號",
+  "Book & Trade": "訂單簿與交易",
+  "Brazilian real": "巴西雷亞爾",
+  "Bring your wallets here from your phone or computer": "從你的手機或電腦同步錢包到這裡",
+  "British pound": "英鎊",
+  "Browser Extensions": "瀏覽器擴充功能",
+  "Build a theme": "製作主題",
+  "Build your own theme": "製作你自己的主題",
+  "Built-in safety:": "內置安全保障：",
+  "Buy": "買入",
+  "Buy ORN": "買入 ORN",
+  "Buy ORN with SOL or Bitcoin": "使用 SOL 或 Bitcoin 買入 ORN",
+  "Buy amount (ORN)": "買入數量 (ORN)",
+  "Buy from": "最低賣價",
+  "Buyer": "買家",
+  "Buyer pays": "買家支付",
+  "Buyer's SOL reserved. Locking your ORN now. Keep this page open for a few more seconds.": "買家的 SOL 已預留，正在鎖定你的 ORN。請保持此頁面開啟幾秒鐘。",
+  "Buyers on the Market pay the wallet marked Paid here. Verify more to choose between them.": "市場上的買家會向標記為「在此收款」的錢包付款。驗證更多錢包即可在其中切換。",
+  "Buying ORN": "正在買入 ORN",
+  "By any message app or email. It tells the buyer's Orien Wallet what you locked for them, and holds nothing secret.": "可透過任意通訊軟體或郵件發送。它用於告知買家的 Orien Wallet 你為其鎖定的內容，不包含任何私密資訊。",
+  "By any message app or email. It tells the seller's Orien Wallet where you're paying the Bitcoin, and holds nothing secret.": "可透過任意通訊軟體或郵件發送。它用於告知賣家的 Orien Wallet 你將向何處支付 Bitcoin，不包含任何私密資訊。",
+  "By continuing you agree to the": "繼續即表示你同意",
+  "Canadian dollar": "加幣",
+  "Cancel": "取消",
+  "Cancel below before sending. Nothing has left your wallet.": "在發送前可在下方取消，你的錢包尚未有任何資金轉出。",
+  "Cancel buy order": "取消買單",
+  "Cancel buy order & return SOL": "取消買單並退回 SOL",
+  "Cancelling your buy order on Solana and returning your SOL to your wallet. Keep this page open for about 15 seconds.": "正在 Solana 上取消你的買單並將 SOL 退回你的錢包。請保持此頁面開啟約 15 秒。",
+  "Cancelling · returning SOL": "正在取消 · 退回 SOL",
+  "Catching up": "同步中",
+  "Category": "分類",
+  "Change banner": "更換橫幅",
+  "Change picture": "更換頭像",
+  "Changed your mind?": "改變主意了？",
+  "Chart currency": "圖表計價貨幣",
+  "Chat": "聊天",
+  "Chat with everyone": "和大家聊天",
+  "Check for Updates": "檢查更新",
+  "Check this one and send it again.": "請檢查此項並重新發送。",
+  "Check your other device shows these": "確認你的另一台裝置顯示以下內容",
+  "Checking": "檢查中",
+  "Checking for updates": "正在檢查更新",
+  "Checking the ORN the seller locked for you": "正在檢查賣家為你鎖定的 ORN",
+  "Checkpoint": "檢查點",
+  "Checkpoints": "檢查點",
+  "Chinese yuan": "人民幣",
+  "Choose SOL or Bitcoin, then type how many ORN to sell, how much you want for them, and the address you'll be paid at.": "選擇 SOL 或 Bitcoin，然後輸入要賣出的 ORN 數量、期望收到的金額以及收款地址。",
+  "Choose a GIF": "選擇 GIF",
+  "Choose a picture": "選擇圖片",
+  "Clear": "清除",
+  "Click": "點擊",
+  "Click Buy or Sell to trade directly": "點擊買入或賣出即可直接交易",
+  "Click again to start over": "再次點擊以重新開始",
+  "Click to add a picture": "點擊新增圖片",
+  "Click your browser and add Orien Wallet there.": "點擊你的瀏覽器並在其中新增 Orien Wallet。",
+  "Close": "關閉",
+  "Closed": "已關閉",
+  "Code": "配對碼",
+  "Code from the email": "郵件中的驗證碼",
+  "Community": "社群",
+  "Completed ORN / SOL swap prices over time": "已完成的 ORN / SOL 兌換價格走勢",
+  "Completed swap prices over time": "已完成兌換的歷史價格走勢",
+  "Confirm below": "在下方確認",
+  "Confirmed": "已確認",
+  "Confirming": "確認中",
+  "Connected": "已連接",
+  "Connected to the network": "已連接到網路",
+  "Connecting": "連接中",
+  "Contact": "聯絡人",
+  "Contacts": "聯絡人",
+  "Continue": "繼續",
+  "Continuing": "正在繼續",
+  "Cooler, fewer shares": "更涼爽，份額更少",
+  "Copied": "已複製",
+  "Copy": "複製",
+  "Copy address": "複製地址",
+  "Copy amount": "複製金額",
+  "Copy code": "複製配對碼",
+  "Copy the address": "複製地址",
+  "Cores in use": "使用核心數",
+  "Couldn't check": "無法檢查",
+  "Cover": "封面",
+  "Create a wallet": "建立錢包",
+  "Create a wallet to hold ORN, or restore the one you already have.": "建立一個錢包來存放 ORN，或還原已有錢包。",
+  "Currency": "貨幣",
+  "Dark": "深色",
+  "Delete contact": "刪除聯絡人",
+  "Delete conversation": "刪除對話",
+  "Delete for good": "永久刪除",
+  "Delete my account": "刪除我的帳號",
+  "Delete this conversation? Tap again": "確定刪除此對話？請再次點擊",
+  "Delete this post?": "確定刪除此貼文？",
+  "Delete?": "確認刪除？",
+  "Describe it": "詳細描述",
+  "Didn't answer": "未響應",
+  "Do this once on each device. After that, contacts and wallet icons stay the same on all of them.": "在每台裝置上執行一次此操作後，聯絡人和錢包圖示就會在所有裝置上保持同步。",
+  "Does your new device show these?": "你的新裝置是否顯示這些內容？",
+  "Don't have any ORN yet? Mine for an hour from the Mine screen, or buy a little on Swap.": "還沒有 ORN？可以在挖礦頁面挖一小時，或在兌換頁面買入一點。",
+  "Don't have any ORN yet? Mine for an hour in Orien Wallet on a computer, or buy a little at orien.network.": "還沒有 ORN？可以在電腦版 Orien Wallet 中挖一小時，或在 orien.network 買入一點。",
+  "Don't show this again": "不再顯示",
+  "Done": "完成",
+  "Done: the ORN are in your wallet, and anything left over went back to your SOL wallet.": "完成：ORN 已存入你的錢包，多餘部分已退回你的 SOL 錢包。",
+  "Done: your SOL went back to your SOL wallet.": "完成：你的 SOL 已退回你的 SOL 錢包。",
+  "Downloads": "下載量",
+  "Each share": "每個份額",
+  "Each wallet has its own address, recovery phrase and activity. Tap one to open it.": "每個錢包都有獨立的地址、助記詞和交易記錄。點擊任意錢包即可開啟。",
+  "Earn a share of each hour's new ORN while this app is open.": "保持應用程式開啟即可每小時賺取新增 ORN 份額。",
+  "Edit": "編輯",
+  "Edit Profile": "編輯資料",
+  "Edit listing": "編輯商品",
+  "Edit theme": "編輯主題",
+  "Editing your theme later doesn't change the shared one. Share it again as a new theme if you like the new version better.": "之後編輯你的主題不會變更已分享的版本。如果你更喜歡新版本，可以作為新主題重新分享。",
+  "Email": "電子郵件",
+  "English": "英文",
+  "Enter ORN and SOL": "輸入 ORN 和 SOL 數量",
+  "Euro": "歐元",
+  "Every miner on Orien together, estimated": "Orien 全網礦工總算力估算值",
+  "Everyone": "所有人",
+  "Everyone on Orien Network": "Orien Network 上的所有人",
+  "Everything in the group chat is public. Be kind.": "群組聊天中的所有內容都是公開的，請友善交流。",
+  "Exchange": "交易所",
+  "Expired": "已過期",
+  "Explorer": "瀏覽器",
+  "Failed": "失敗",
+  "Fee": "手續費",
+  "Feed": "動態",
+  "Filled · settling (~1 min)": "已成交 · 結算中（約 1 分鐘）",
+  "Final results": "最終結果",
+  "Final within a minute": "約 1 分鐘內最終確認",
+  "Find members": "查找成員",
+  "Find themes in the Theme Store": "在主題商店中探索主題",
+  "Find your sweet spot": "尋找最佳設定",
+  "Fingerprints": "雜湊指紋",
+  "Finish": "完成",
+  "Finished": "已完成",
+  "First ORN": "首個 ORN",
+  "Follow Orien's posts": "關注 Orien 動態",
+  "From": "來自",
+  "From any Bitcoin wallet: scan the code, or copy the address and amount. This app sees the payment by itself; there is nothing else to send.": "從任意 Bitcoin 錢包：掃描QR Code，或複製地址和金額。本應用程式會自動檢測到帳，無需額外操作。",
+  "From my other device": "從我的其他裝置匯入",
+  "From your SOL wallet, such as Phantom: scan the code, or copy the address and amount. Send it all in one go. This app sees it by itself; there is nothing else to send.": "從你的 SOL 錢包（例如 Phantom）：掃描QR Code，或複製地址和金額，一次性足額發送。本應用程式會自動檢測到帳，無需額外操作。",
+  "Fund your buy order with a quick SOL QR payment. Once funded, it stays live even with Orien Wallet closed, and you can cancel anytime in one click.": "透過 SOL 掃描 QR Code 快速為買單注資。注資後，即使關閉 Orien Wallet 買單也會持續生效，你隨時可以一鍵取消。",
+  "Get ORN": "獲取 ORN",
+  "Get ORN on iPhone": "在 iPhone 上獲取 ORN",
+  "Get back to Home": "返回首頁",
+  "Get paid here": "在此收款",
+  "Getting": "正在獲取",
+  "Getting ORN": "獲取 ORN",
+  "Getting it ready…": "正在準備…",
+  "Getting ready (about a minute)": "正在準備（約 1 分鐘）",
+  "Getting ready…": "正在準備…",
+  "Getting started": "快速上手",
+  "Give it a": "為其設定",
+  "Give someone your address and they can send you ORN from their wallet. Payments arrive in seconds.": "把你的地址發給對方，對方即可從錢包向你發送 ORN，幾秒鐘內即可到帳。",
+  "Give the wallet a name, like Mining.": "給錢包起個名字，例如「挖礦」。",
+  "Help": "幫助",
+  "Hide balance": "隱藏餘額",
+  "Home": "首頁",
+  "Hong Kong dollar": "港幣",
+  "How is it priced?": "如何定價？",
+  "I have backed up my recovery phrase": "我已備份助記詞",
+  "I understand, show them": "我已知曉，顯示助記詞",
+  "Icon": "圖示",
+  "If the app updates while mining, mining starts again by itself.": "如果應用程式在挖礦時更新，更新後會自動恢復挖礦。",
+  "If the buyer doesn't pay,": "如果買家未付款，",
+  "If the buyer never pays,": "如果買家一直未付款，",
+  "If the buyer pays but this app stays closed for more than about 4 hours, they take their Bitcoin back and your ORN still come back to you. Nobody loses coins.": "如果買家付款後本應用程式關閉超過約 4 小時，對方會取回 Bitcoin，你的 ORN 也會自動退回給你，雙方都不會損失資產。",
+  "If the seller never takes your Bitcoin,": "如果賣家一直未領取你的 Bitcoin，",
+  "If the seller never takes your SOL,": "如果賣家一直未領取你的 SOL，",
+  "If they match, tap": "如果一致，請點擊",
+  "If you change your mind,": "如果你改變主意，",
+  "If you forget it, your recovery phrase still restores the wallet.": "如果忘記密碼，你仍可透過助記詞還原錢包。",
+  "In use": "使用中",
+  "Indian rupee": "印度盧比",
+  "Indonesian rupiah": "印尼盾",
+  "Install Orien Wallet on your Mac, Windows or Linux computer, open this same wallet there with its recovery phrase, and press Mine. Your computer earns a share of each hour's new ORN.": "在你的 Mac、Windows 或 Linux 電腦上安裝 Orien Wallet，使用助記詞匯入同一錢包並點擊挖礦。你的電腦將每小時賺取新增 ORN 份額。",
+  "It arrives in seconds. Save a new address as a contact from the last screen if you like.": "幾秒鐘即可到帳。如有需要，你可以在最後一步將新地址儲存為聯絡人。",
+  "It colours the buttons, the balance card, the glow and the highlights.": "用於設定按鈕、餘額卡片、光暈和醒目區域的顏色。",
+  "It installs in a moment, and the app reopens by itself.": "片刻即可安裝完成，應用程式會自動重新開啟。",
+  "It's checked, then shows in the store with your name, where anyone can try it, use it and tip you.": "審核通過後會附帶你的使用者名稱展示在商店中，任何人都可以試用、使用並向你打賞。",
+  "It's how you add this wallet back, here or anywhere else.": "這是你在本裝置或其他裝置上重新新增此錢包的憑證。",
+  "Its file stays on this computer,": "它的檔案仍保留在這台電腦上，",
+  "Japanese yen": "日圓",
+  "Just now": "剛剛",
+  "Keep Orien Wallet running": "保持 Orien Wallet 運行",
+  "Keep Orien Wallet running while your buy offer is live. When someone accepts, you'll get a notification and the pay screen opens so you can send the payment.": "買單線上期間請保持 Orien Wallet 運行。有人接單時你會收到通知，並自動開啟支付頁面以便你付款。",
+  "Keep contacts the same everywhere": "在所有裝置上同步聯絡人",
+  "Keep its 24-word recovery phrase.": "請保管好它的 24 個助記詞。",
+  "Keep running when closed": "關閉視窗後保持運行",
+  "Keep these words secret": "請妥善保管這些助記詞",
+  "Keep this computer awake": "防止電腦進入睡眠",
+  "Language": "語言",
+  "Large pages": "大頁面記憶體",
+  "Large pages are set up, but mining is in ordinary memory this hour. If a restart doesn't switch it, restarting the computer frees the memory up.": "大頁面記憶體已設定，但本小時挖礦仍在使用普通記憶體。如果重啟挖礦後仍未切換，重啟電腦即可釋放連續記憶體。",
+  "Last 30 minutes": "最近 30 分鐘",
+  "Last reward": "最近獎勵",
+  "Last trade": "最新成交",
+  "Later": "稍後",
+  "Launch validator": "創世驗證節點",
+  "Lets mining use large pages of memory, usually 10 to 30% faster. Windows asks for an administrator's approval once, then you sign out and back in.": "允許挖礦使用大頁面記憶體，通常可提速 10% 至 30%。Windows 會請求一次系統管理員權限，隨後登出並重新登入即可生效。",
+  "Light": "淺色",
+  "Light mode: under 2 GB of free memory, so it mines more slowly.": "輕量模式：可用記憶體不足 2 GB，挖礦速度會較慢。",
+  "Like it? The coins button tips its maker some ORN. The flag reports a theme that breaks the rules.": "喜歡這個主題？點擊硬幣按鈕可向作者打賞 ORN，點擊旗幟按鈕可檢舉違規主題。",
+  "Link a device": "連結裝置",
+  "Link a new device": "連結新裝置",
+  "Listing": "商品",
+  "Live on book": "已在訂單簿生效",
+  "Live on order book · settles automatically": "已在訂單簿生效 · 自動結算",
+  "Loading": "載入中",
+  "Loading chart…": "正在載入圖表…",
+  "Loading order book…": "正在載入訂單簿…",
+  "Loading…": "載入中…",
+  "Lock ORN": "鎖定 ORN",
+  "Lock with Touch ID": "使用 Touch ID 鎖定",
+  "Locked on Solana. Adding your buy order to the order book now. Keep this page open for a few more seconds.": "已在 Solana 上鎖定，正在將你的買單新增到訂單簿。請保持此頁面開啟幾秒鐘。",
+  "Locked payment": "鎖定轉帳",
+  "Locked payment from": "鎖定轉帳來自",
+  "Locked payment received": "收到鎖定轉帳",
+  "Locked payment returned": "鎖定轉帳已退回",
+  "Locking ORN": "正在鎖定 ORN",
+  "Locking your ORN": "正在鎖定你的 ORN",
+  "Locking your ORN for the buyer.": "正在為買家鎖定你的 ORN。",
+  "Locking your ORN for them": "正在為對方鎖定你的 ORN",
+  "Logo design": "Logo 設計",
+  "Look up the network": "查詢網路數據",
+  "Made": "已生成",
+  "Made final": "已最終確認",
+  "Make a new wallet": "建立新錢包",
+  "Make cover": "設為封面",
+  "Make mining faster": "提升挖礦速度",
+  "Make my account": "建立我的帳號",
+  "Make the wallet": "建立錢包",
+  "Make the window small": "切換為精簡視窗",
+  "Make the window wide": "展開寬螢幕視窗",
+  "Manage blocks": "管理封鎖名單",
+  "Marked as paid": "已標記為已付款",
+  "Market": "市場",
+  "Market Listings": "市場商品",
+  "Max": "最大",
+  "Maximize": "最大化",
+  "Memory": "記憶體",
+  "Message": "傳訊息",
+  "Message everyone": "向所有人傳訊息",
+  "Message the seller": "聯絡賣家",
+  "Messages": "訊息",
+  "Messages about your Market listings always come through whatever you pick, so buyers can ask about what you're selling. Blocking still works on top of this.": "無論你選擇哪一項，關於你市場商品的訊息始終可以送達，方便買家諮詢。封鎖功能對此仍然有效。",
+  "Mexican peso": "墨西哥披索",
+  "Milestone": "里程碑",
+  "Mine": "挖礦",
+  "Mine ORN": "挖掘 ORN",
+  "Mine for an hour from the Mine screen, or buy a little on Swap.": "在挖礦頁面挖一小時，或在兌換頁面買入一點。",
+  "Mine for an hour in Orien Wallet on a computer, or buy a little at orien.network.": "在電腦版 Orien Wallet 中挖一小時，或在 orien.network 買入一點。",
+  "Mine it on a computer.": "在電腦上挖礦獲取。",
+  "Mine on a computer: install Orien Wallet there, link this wallet, and press": "在電腦上挖礦：在電腦安裝 Orien Wallet，連結此錢包，然後點擊",
+  "Mine with a verified wallet and your figures show here after the next checkpoint.": "使用已驗證錢包挖礦，你的數據將在下一個檢查點後顯示在這裡。",
+  "Miners last hour": "上小時礦工數",
+  "Miners paid": "獲獎勵礦工",
+  "Miners who have verified a wallet on their Orien Network account, by ORN mined. Verify your wallet on your account to be on the list.": "按挖出的 ORN 數量排列在 Orien Network 帳號上驗證過錢包的礦工。在帳號中驗證你的錢包即可上榜。",
+  "Minimize": "最小化",
+  "Minimum order is 0.01 SOL": "最小訂單金額為 0.01 SOL",
+  "Mining": "挖礦",
+  "Mining for": "已挖礦時長",
+  "Mining in large pages of memory, for extra speed.": "正在使用大頁面記憶體挖礦，以獲得更快速度。",
+  "Mining reward": "挖礦獎勵",
+  "Mining rewards": "挖礦獎勵",
+  "Moderator": "版主",
+  "More": "更多",
+  "More below": "向下滾動",
+  "More heat, no more ORN": "發熱更高，不會增加 ORN",
+  "Mute the group chat": "靜音群組聊天",
+  "Muted": "已靜音",
+  "My Orien (ORN) address": "我的 Orien (ORN) 地址",
+  "My theme": "我的主題",
+  "Name": "名稱",
+  "Name or address": "名稱或地址",
+  "Needs about 2 GB of memory. Rewards depend on how much everyone else mines.": "大約需要 2 GB 記憶體。收益取決於全網其他礦工的算力情況。",
+  "Network": "網路",
+  "Network hashrate": "全網算力",
+  "New ORN this hour": "本小時新增 ORN",
+  "New account: pick a username": "新帳號：選擇一個使用者名稱",
+  "New contact": "新增聯絡人",
+  "New here?": "初次使用？",
+  "New messages and payment requests": "新訊息和收款請求",
+  "New record": "新紀錄",
+  "New validator": "新驗證節點",
+  "New versions install while you're away from the app": "離開應用程式時自動安裝新版本",
+  "Newest": "最新",
+  "Next checkpoint": "下一個檢查點",
+  "Nigerian naira": "奈及利亞奈拉",
+  "No GIFs found.": "未找到相關 GIF。",
+  "No GIFs right now.": "當前暫無 GIF。",
+  "No ORN moves.": "不會有任何 ORN 轉移。",
+  "No activity is recorded for this address.": "該地址暫無活動記錄。",
+  "No contacts yet. Add someone you pay often, or add an Orien Network member from their profile.": "暫無聯絡人。新增你常轉帳的對象，或從 Orien Network 成員的個人資料中新增。",
+  "No description.": "暫無描述。",
+  "No messages yet. Say hello to everyone.": "還沒有訊息，向大家打個招呼吧。",
+  "No one": "不允許任何人",
+  "No open buy offers right now": "當前沒有開放的買單",
+  "No open sell offers right now": "當前沒有開放的賣單",
+  "No payments yet": "暫無交易記錄",
+  "No questions left today. Come back tomorrow.": "今天的提問次數已用完，請明天再來。",
+  "No results": "無結果",
+  "No rewards yet": "暫無獎勵",
+  "No swaps completed yet. The next swap sets the price.": "尚無已完成的兌換，下一筆兌換將確定價格。",
+  "No swaps yet": "暫無兌換記錄",
+  "No trades yet": "暫無成交",
+  "No verified wallet yet": "尚無已驗證錢包",
+  "No verified wallets yet": "暫無已驗證錢包",
+  "No wallets yet.": "暫無錢包。",
+  "Nobody by that name.": "未找到該用戶。",
+  "Nobody is banned.": "當前沒有被停權的用戶。",
+  "Nobody with a verified wallet has been paid for mining yet.": "尚無已驗證錢包的用戶獲得過挖礦獎勵。",
+  "None": "無",
+  "Normal": "正常",
+  "Not an Orien address": "不是有效的 Orien 地址",
+  "Not answering": "無響應",
+  "Not available": "不可用",
+  "Not in the network's history": "不在網路記錄中",
+  "Not now": "暫不",
+  "Not recorded": "未記錄",
+  "Not verified yet": "尚未驗證",
+  "Nothing found. Search an address (64 letters and digits, 0-9 and a-f), a checkpoint number, or the name of someone on the Market.": "未找到結果。請搜尋地址（64 位字母和數字，0-9 及 a-f）、檢查點編號或市場上的使用者名稱。",
+  "Nothing from the network about them yet.": "網路中尚無關於他們的動態。",
+  "Nothing has happened at this address yet.": "該地址暫無任何記錄。",
+  "Nothing here yet. Be the first to sell something.": "這裡還沒有內容，成為第一個發布商品的人吧。",
+  "Nothing in the community yet.": "社群裡還沒有內容。",
+  "Nothing leaves your SOL wallet until a seller locks the ORN and you pay the QR code. Keep Orien Wallet running so sellers can match your order.": "在賣家鎖定 ORN 且你掃碼付款之前，你的 SOL 錢包不會有任何資金轉出。請保持 Orien Wallet 運行，以便賣家匹配你的訂單。",
+  "Nothing matches that yet.": "暫無匹配內容。",
+  "Nothing yet. Replies, reactions and messages show up here.": "暫無內容。回覆、互動和訊息會顯示在這裡。",
+  "Notifications": "通知",
+  "ORN / SOL price chart": "ORN / SOL 價格圖表",
+  "ORN held": "持有 ORN",
+  "ORN locked · SOL arriving (~1 min)": "ORN 已鎖定 · SOL 即將到帳（約 1 分鐘）",
+  "ORN mined": "挖出 ORN",
+  "ORN price": "ORN 價格",
+  "ORN received": "收到 ORN",
+  "ORN released": "已發行 ORN",
+  "ORN to buy": "買入的 ORN",
+  "ORN to sell": "出售的 ORN",
+  "Offer posted": "報價已發布",
+  "Offer taken": "報價已被接受",
+  "Offer your ORN for SOL. When someone takes it, this app locks the ORN for them and runs the swap, as long as it's open.": "掛出你的 ORN 換取 SOL。只要本應用程式保持開啟，有人接單後就會自動為其鎖定 ORN 並執行兌換。",
+  "Official": "官方",
+  "Official Website": "官方網站",
+  "Offline": "離線",
+  "On a streak": "連續上榜",
+  "On an iPhone, scan the new device's QR code. On a computer, type its code and click": "在 iPhone 上掃描新裝置的QR Code；在電腦上輸入配對碼並點擊",
+  "On offer": "掛單總量",
+  "On one of your own themes, click the share button (the box with an arrow), then": "在你自己的主題上點擊分享按鈕（帶箭頭的方框），然後點擊",
+  "On the Market": "市場在售",
+  "On the swap board, waiting for someone to buy": "已掛單，等待買家接單",
+  "On the swap board, waiting for someone to sell": "已掛單，等待賣家接單",
+  "On your new device, open Orien Wallet and choose": "在你的新裝置上，開啟 Orien Wallet 並選擇",
+  "On your other device, open Orien Wallet, go to": "在你的另一台裝置上，開啟 Orien Wallet，前往",
+  "One account for all of Orien Network. Enter your email and type the 6-digit code we send; new here, you'll pick a username too. Signed up on orien.network already? Use the same email.": "一個帳號暢享全部 Orien Network 服務。輸入電子郵件並填寫我們發送的 6 位驗證碼；新用戶還需設定使用者名稱。已在 orien.network 注冊過？請使用同一電子郵件。",
+  "Only letters, numbers and _": "僅限字母、數字和底線 _",
+  "Only send if you see the same three emoji, in the same order.": "僅當你看到相同的三個表情且順序一致時才可發送。",
+  "Open": "進行中",
+  "Open Mine": "開啟挖礦",
+  "Open Orien Wallet on the device you posted or took this offer from to finish the swap": "請在你發布或接受此報價的裝置上開啟 Orien Wallet 以完成兌換",
+  "Open at login": "登入時自動開啟",
+  "Open it to verify": "開啟以驗證",
+  "Open offers": "開放報價",
+  "Open the explorer": "開啟瀏覽器",
+  "Opens Firefox's add-on store: click Add to Firefox": "開啟 Firefox 附加元件商店：點擊「加到 Firefox」",
+  "Opens Safari's settings: tick Orien Wallet to turn it on": "開啟 Safari 設定：勾選 Orien Wallet 以啟用",
+  "Opens the Chrome Web Store: allow other stores, then add it": "開啟 Chrome 線上應用程式商店：允許來自其他商店的擴充功能後新增",
+  "Opens the Chrome Web Store: click Add to Brave": "開啟 Chrome 線上應用程式商店：點擊「加到 Brave」",
+  "Opens the Chrome Web Store: click Add to Chrome": "開啟 Chrome 線上應用程式商店：點擊「加到 Chrome」",
+  "Order book": "訂單簿",
+  "Orien AI Support": "Orien AI 客服",
+  "Orien Group Chat": "Orien 群組聊天",
+  "Orien Wallet for computers is at": "電腦版 Orien Wallet 下載地址：",
+  "Orien Wallet is locking your SOL on Solana and registering your order on the book. Step 2 will show a checkmark as soon as you can leave.": "Orien Wallet 正在 Solana 上鎖定你的 SOL 並將訂單登記到訂單簿。第 2 步出現勾選標記後即可離開。",
+  "Orien Wallet locks after a minute away.": "離開 1 分鐘後 Orien Wallet 會自動鎖定。",
+  "Orien Wallet locks whenever you leave it.": "每次離開 Orien Wallet 時都會自動鎖定。",
+  "Orien right now": "Orien 即時網路",
+  "Other": "其他",
+  "Paid": "已付款",
+  "Paid here": "在此收款",
+  "Paid · Bitcoin is confirming": "已支付 · Bitcoin 網路確認中",
+  "Paid · SOL on its way to you": "已支付 · SOL 正在發往你的錢包",
+  "Password": "密碼",
+  "Paste": "貼上",
+  "Pay": "付款",
+  "Pay exactly": "請準確支付",
+  "Pay now": "立即付款",
+  "Pay total (SOL)": "支付總額 (SOL)",
+  "Paying": "付款中",
+  "Payment": "轉帳",
+  "Payment received. Locking it for the swap.": "已收到付款，正在為此次兌換鎖定資金。",
+  "Payment received. Locking your SOL on Solana now. Keep this page open for about 20 seconds.": "已收到付款，正在 Solana 上鎖定你的 SOL。請保持此頁面開啟約 20 秒。",
+  "Payment request": "收款請求",
+  "Payments": "轉帳",
+  "Pending": "處理中",
+  "Pending in your Bitcoin wallet until Bitcoin confirms it, usually within the hour": "在 Bitcoin 網路確認前會在你的 Bitcoin 錢包中顯示為待確認，通常在 1 小時內完成",
+  "People": "用戶",
+  "People you block can't message you, and you don't see each other's profiles, posts or listings. Unblock someone to see them again.": "被你封鎖的人無法給你傳訊息，雙方也看不到彼此的資料、貼文或商品。解除封鎖後即可恢復查看。",
+  "People you've talked with": "聊過天的人",
+  "Philippine peso": "菲律賓披索",
+  "Photos": "圖片",
+  "Pick a category.": "請選擇一個分類。",
+  "Pick a conversation to read it.": "選擇一個對話查看內容。",
+  "Pick an": "選擇一個",
+  "Pictures": "圖片",
+  "Place Buy Order": "提交買單",
+  "Place Sell Order": "提交賣單",
+  "Place order": "下單",
+  "Point at a message": "將滑鼠游標停在訊息上",
+  "Point the camera at the QR code": "將相機對準 QR Code",
+  "Point the camera at the code on your other device": "將相機對準另一台裝置上的 QR Code",
+  "Point the camera at their Receive QR code": "將相機對準對方的收款 QR Code",
+  "Poll": "投票",
+  "Poll length": "投票時長",
+  "Popular": "熱門",
+  "Post": "發布",
+  "Post an offer": "發布報價",
+  "Post buy offer": "發布買單",
+  "Post order": "發布訂單",
+  "Post sell offer": "發布賣單",
+  "Post the offer": "發布報價",
+  "Post to the live ORN / SOL order book": "發布到即時 ORN / SOL 訂單簿",
+  "Post your listing": "發布商品",
+  "Post your reply": "發布回覆",
+  "Posting": "發布中",
+  "Posts": "貼文",
+  "Powered by KLIPY": "由 KLIPY 提供支援",
+  "Price / ORN": "單價 / ORN",
+  "Price in ORN": "ORN 價格",
+  "Price per ORN": "單價 (每 ORN)",
+  "Privacy Policy": "隱私權政策",
+  "Privacy and security": "隱私與安全",
+  "Privacy policy": "隱私權政策",
+  "Processor": "處理器",
+  "Profile": "個人資料",
+  "Progress": "進度",
+  "Ranked by ORN held": "按 ORN 持倉排序",
+  "React": "心情回應",
+  "Receive": "接收",
+  "Receive ORN": "接收 ORN",
+  "Receive total (SOL)": "收到總額 (SOL)",
+  "Received": "已收款",
+  "Recent errors": "近期錯誤",
+  "Recent screens": "最近訪問的頁面",
+  "Recent trades": "最近成交",
+  "Recents": "最近",
+  "Recovery phrase": "助記詞",
+  "Recovery words": "助記詞",
+  "Refunded": "已退款",
+  "Remove": "移除",
+  "Remove GIF": "移除 GIF",
+  "Remove from contacts": "從聯絡人移除",
+  "Remove from store": "從商店下架",
+  "Remove from the list": "從列表中移除",
+  "Remove from this app": "從此應用程式移除",
+  "Remove from your profile": "從個人資料移除",
+  "Remove poll": "移除投票",
+  "Remove wallet": "移除錢包",
+  "Rename wallet": "重新命名錢包",
+  "Reopen": "重新開啟",
+  "Repeat for each wallet you want on your profile.": "對每個想展示在個人資料中的錢包重複此操作。",
+  "Replies, reactions and the network's posts about you": "回覆、互動以及網路中與你相關的動態",
+  "Reply": "回覆",
+  "Report": "檢舉",
+  "Report a Problem": "回報問題",
+  "Report post": "檢舉貼文",
+  "Report something else": "回報其他問題",
+  "Report this listing": "檢舉此商品",
+  "Report this post": "檢舉此貼文",
+  "Report this theme": "檢舉此主題",
+  "Request": "請求",
+  "Reserve SOL": "預留 SOL",
+  "Reserving buyer's SOL": "正在預留買家的 SOL",
+  "Reserving the buyer's locked SOL on Solana before locking your ORN. Keep this page open for about 15 seconds.": "正在鎖定你的 ORN 之前於 Solana 上預留買家已鎖定的 SOL。請保持此頁面開啟約 15 秒。",
+  "Restart mining": "重啟挖礦",
+  "Restart mining to go faster": "重啟挖礦以獲得更快速度",
+  "Restore": "還原",
+  "Restore a wallet from its words": "透過助記詞還原錢包",
+  "Restore wallet": "還原錢包",
+  "Restore with recovery phrase": "透過助記詞還原",
+  "Restoring": "正在還原",
+  "Rewards": "獎勵",
+  "Robot avatars:": "機器人頭像：",
+  "Running": "運行中",
+  "SOL to pay": "需支付的 SOL",
+  "SOL to receive": "收到的 SOL",
+  "Safe to leave or close Orien Wallet.": "現在可以安全離開或關閉 Orien Wallet。",
+  "Safe to leave this page or close Orien Wallet": "可安全離開此頁面或關閉 Orien Wallet",
+  "Safe to leave · arrives in about a minute": "可安全離開 · 約 1 分鐘內到帳",
+  "Safe to share: an address can only receive ORN.": "可安全分享：地址僅用於接收 ORN。",
+  "Save": "儲存",
+  "Save as a text file": "儲存為純文字檔",
+  "Save as contact": "儲存為聯絡人",
+  "Save changes": "儲存變更",
+  "Save theme": "儲存主題",
+  "Saved": "已儲存",
+  "Saved address": "已儲存的地址",
+  "Saved. Anyone who opens the file can spend your ORN: keep it somewhere only you can reach.": "已儲存。任何開啟此檔案的人都可以花掉你的 ORN，請將其存放在只有你能訪問的地方。",
+  "Saving": "儲存中",
+  "Saving…": "正在儲存…",
+  "Say hello to everyone.": "向大家打個招呼吧。",
+  "Say what you're offering.": "說明你要出售的內容。",
+  "Scan a QR code": "掃描 QR Code",
+  "Scan the code": "掃描 QR Code",
+  "Search KLIPY": "搜尋 KLIPY",
+  "Search listings": "搜尋商品",
+  "Searching…": "正在搜尋…",
+  "Security and more": "安全與更多",
+  "See the top 100": "查看前 100 名",
+  "Sell": "賣出",
+  "Sell ORN": "賣出 ORN",
+  "Sell amount (ORN)": "賣出數量 (ORN)",
+  "Sell from": "最高買價",
+  "Sell into this offer": "向此買單出售",
+  "Sell offers come from verified wallets, so buyers can see who they're swapping with. Verifying ties this wallet to your Orien Network name and sends less than 0.001 ORN from it, once.": "賣單均來自已驗證錢包，以便買家確認交易對象。驗證會將此錢包與你的 Orien Network 使用者名稱綁定，並僅需發送不到 0.001 ORN 一次。",
+  "Sell orders come from verified wallets so buyers know who they're trading with (sends < 0.001 ORN once).": "賣單來自已驗證錢包，以便買家了解交易對象（僅需一次性發送少於 0.001 ORN）。",
+  "Sell something": "發布商品",
+  "Seller": "賣家",
+  "Seller accepts": "賣家接受",
+  "Selling ORN": "正在賣出 ORN",
+  "Send": "發送",
+  "Send & Receive": "發送與接收",
+  "Send ORN": "發送 ORN",
+  "Send ORN and see your balance from the browser's toolbar, and sign in to websites with your wallet. Your keys stay in this app.": "直接在瀏覽器工具欄發送 ORN、查看餘額，並用錢包登入網站。你的私鑰始終儲存在本應用程式中。",
+  "Send ORN, see your balance, and sign in to orien.network with one click, right from your browser. Your keys never leave Orien Wallet.": "直接在瀏覽器中發送 ORN、查看餘額並一鍵登入 orien.network。你的私鑰絕不會離開 Orien Wallet。",
+  "Send SOL": "發送 SOL",
+  "Send SOL once into a Solana order. It stays live on the order book even while Orien Wallet is closed, settles in about a minute when taken, and cancels in one click.": "向 Solana 訂單一次性發送 SOL。即使關閉 Orien Wallet 訂單也會持續在訂單簿上生效，接單後約 1 分鐘結算，且支援一鍵取消。",
+  "Send and verify": "發送並驗證",
+  "Send me a code": "發送驗證碼",
+  "Send report": "送出回報",
+  "Send the buyer this offer code": "將此報價碼發送給買家",
+  "Send the seller this reply code": "將此回覆碼發送給賣家",
+  "Send to this contact": "發送給此聯絡人",
+  "Send your wallets to your other phone or computer": "將你的錢包發送到另一台手機或電腦",
+  "Sending": "發送中",
+  "Sending…": "正在發送…",
+  "Sent": "已發送",
+  "Sent a GIF": "發送了一個 GIF",
+  "Sent a picture": "發送了一張圖片",
+  "Sent from another app": "從其他應用程式發送",
+  "Sent. Verifying, usually within a minute.": "已發送，正在驗證，通常在 1 分鐘內完成。",
+  "Set password": "設定密碼",
+  "Set the": "設定",
+  "Set up": "前往設定",
+  "Set up mining": "設定挖礦",
+  "Sets aside about 2.4 GB of memory for mining in large pages, usually 10 to 30% faster. Linux asks for your password once.": "為大頁面記憶體挖礦預留約 2.4 GB 記憶體，通常可提速 10% 至 30%。Linux 會請求輸入一次密碼。",
+  "Settings": "設定",
+  "Settling": "結算中",
+  "Share a theme in the Theme Store": "在主題商店分享主題",
+  "Share address": "分享地址",
+  "Share in the Theme Store": "分享到主題商店",
+  "Share theme": "分享主題",
+  "Shared": "已分享",
+  "Shared among miners": "由礦工按算力分配",
+  "Shares": "份額",
+  "Shares an hour": "每小時份額",
+  "Shares this hour": "本小時份額",
+  "Sharing": "分享中",
+  "Show balance": "顯示餘額",
+  "Show less": "收合",
+  "Show more": "顯示更多",
+  "Show scroll arrow": "顯示滾動箭頭",
+  "Show your accounts on your profile, if you like. Everyone can see them.": "如有需要，可在個人資料中展示你的帳號，所有人均可見。",
+  "Sign Out": "登出",
+  "Sign in": "登入",
+  "Sign in and verify this wallet first.": "請先登入並驗證此錢包。",
+  "Sign in to Orien Network": "登入 Orien Network",
+  "Sign in to Orien Network first.": "請先登入 Orien Network。",
+  "Sign in to Orien Network to ask a question. Verifying a wallet isn't needed.": "登入 Orien Network 即可提問，無需驗證錢包。",
+  "Sign in to Orien Network to chat, reply or react.": "登入 Orien Network 即可聊天、回覆或互動。",
+  "Sign in to Orien Network to chat.": "登入 Orien Network 即可聊天。",
+  "Sign in to Orien Network to post and react.": "登入 Orien Network 即可發文和互動。",
+  "Sign in to Orien Network to post, reply and react.": "登入 Orien Network 即可發文、回覆和互動。",
+  "Sign in to Orien Network to react.": "登入 Orien Network 即可互動。",
+  "Sign in to Orien Network to reply.": "登入 Orien Network 即可回覆。",
+  "Sign in to Orien Network to report a message.": "登入 Orien Network 即可檢舉訊息。",
+  "Sign in to Orien Network to report a theme.": "登入 Orien Network 即可檢舉主題。",
+  "Sign in to Orien Network to see the themes you shared.": "登入 Orien Network 以查看你分享的主題。",
+  "Sign in to Orien Network to see your own messages and to chat.": "登入 Orien Network 以查看自己的訊息並參與聊天。",
+  "Sign in to Orien Network to tip.": "登入 Orien Network 即可打賞。",
+  "Sign in to Orien Network with a verified wallet to share themes.": "請使用已驗證錢包登入 Orien Network 以分享主題。",
+  "Sign in to message the seller": "登入後聯絡賣家",
+  "Sign in to trade": "登入後交易",
+  "Sign in, and open the wallet you want to verify.": "登入並開啟你要驗證的錢包。",
+  "Sign out of Windows and back in, then open Orien Wallet. Mining runs faster from then on.": "登出 Windows 並重新登入，然後開啟 Orien Wallet，之後挖礦速度就會提升。",
+  "Sign out to finish": "登出以完成設定",
+  "Signing in": "正在登入",
+  "Singapore dollar": "新加坡幣",
+  "Size (ORN)": "數量 (ORN)",
+  "Smallest swap: 0.00015 BTC, more when Bitcoin is busy": "最小兌換額：0.00015 BTC，Bitcoin 網路繁忙時會更高",
+  "Smallest swap: 0.01 SOL. Fees: the usual Orien fee to lock the ORN (0.1%, at most 1 ORN); the buyer covers Solana's small fees. A swap takes about a minute. If a buyer never pays, your ORN come back on their own within a few hours.": "最小兌換額：0.01 SOL。手續費：鎖定 ORN 的一般 Orien 手續費（0.1%，最高 1 ORN）；買家承擔 Solana 的少量手續費。兌換約需 1 分鐘。若買家未付款，你的 ORN 會在幾小時內自動退回。",
+  "Smallest swap: 0.01 SOL. Nothing leaves your SOL wallet until a seller locks the ORN and you pay the QR code. You'll also need about 0.005 SOL for Solana's small fees, nearly all of which comes back.": "最小兌換額：0.01 SOL。在賣家鎖定 ORN 且你掃碼付款前，你的 SOL 錢包不會有任何資金轉出。你還需要約 0.005 SOL 用於支付 Solana 的少量手續費，其中幾乎全部會退回。",
+  "So swap offers stay open, and payments and mining carry on. The screen can still turn off.": "確保兌換報價保持線上，且轉帳和挖礦持續運行。螢幕仍可正常關閉。",
+  "Social Links": "社群連結",
+  "Socials": "社交帳號",
+  "Someone": "有人",
+  "Sort by": "排序方式",
+  "South African rand": "南非幣",
+  "South Korean won": "韓元",
+  "Speed": "算力",
+  "Stake returned": "質押已退回",
+  "Start Orien Wallet when you log in": "登入系統時自動啟動 Orien Wallet",
+  "Start mining": "開始挖礦",
+  "Start mining to see your speed here.": "開始挖礦後在此查看算力。",
+  "Start over": "重新開始",
+  "Starting…": "正在啟動…",
+  "State after it: every account's balance, as one fingerprint": "該檢查點後的狀態：所有帳戶餘額彙整而成的單一指紋",
+  "Stay on this page for a moment:": "請稍留此頁面片刻：",
+  "Stop mining": "停止挖礦",
+  "Stop replying": "停止回覆",
+  "Stopped": "已停止",
+  "Swap": "兌換",
+  "Swap ORN and SOL directly with other people. About a minute, no fee.": "與他人直接點對點兌換 ORN 和 SOL，約需 1 分鐘，零手續費。",
+  "Swap SOL or Bitcoin for ORN in Orien Wallet on a computer, with this same wallet linked to it.": "在電腦版 Orien Wallet 中連結此錢包，即可用 SOL 或 Bitcoin 兌換 ORN。",
+  "Swap SOL or Bitcoin for ORN with other people, directly between your wallets, on the Swap screen. With SOL it takes a few minutes, and you pay from the SOL wallet you already have, such as Phantom.": "在兌換頁面與他人直接錢包對錢包用 SOL 或 Bitcoin 兌換 ORN。使用 SOL 只需幾分鐘，直接從你已有的 SOL 錢包（例如 Phantom）支付即可。",
+  "Swap for it.": "透過兌換獲取。",
+  "Swap updates": "兌換進度",
+  "Swaps": "兌換",
+  "Swaps and payments carry on from the menu bar": "關閉視窗後兌換和轉帳會在選單列繼續運行",
+  "Swaps and payments carry on from the system tray": "關閉視窗後兌換和轉帳會在系統匣繼續運行",
+  "Swaps need the newest Orien Wallet. Update first: it takes a moment, and the app reopens by itself.": "兌換功能需要最新版 Orien Wallet。請先更新：片刻即可完成，應用程式會自動重新開啟。",
+  "Swiss franc": "瑞士法郎",
+  "Take": "接單",
+  "Take an offer": "接受報價",
+  "Take the offer": "接受報價",
+  "Take this offer": "接受此訂單",
+  "Taken": "已被接單",
+  "Taking your Bitcoin back": "正在取回你的 Bitcoin",
+  "Tap": "點擊",
+  "Tap a message": "點擊訊息",
+  "Tap to reveal": "點擊顯示",
+  "Tell Orien Network what's wrong with it: a scam, spam, abuse, or something illegal. Every report is reviewed.": "告訴 Orien Network 具體問題：詐騙、垃圾訊息、濫用或違法內容。每條檢舉都會被審核。",
+  "Tell us what happened": "告訴我們發生了什麼",
+  "Tell us what went wrong. Every report is read.": "告訴我們出了什麼問題，每則回報我們都會閱讀。",
+  "Terms of Service": "服務條款",
+  "Terms of service": "服務條款",
+  "Thanks, it's sent": "感謝，已發送",
+  "Thanks. It will be reviewed.": "感謝回報，我們會盡快審核。",
+  "Thanks. We will look at it.": "感謝回報，我們會盡快查看。",
+  "That QR code isn't from Orien Wallet's Use my other device.": "此QR Code並非來自 Orien Wallet 的「使用我的其他裝置」。",
+  "That account can't be found.": "找不到該帳號。",
+  "That doesn't look like a SOL address.": "這看起來不是有效的 SOL 地址。",
+  "That email doesn't look right. Check it, or leave it empty.": "該電子郵件格式似乎不正確。請檢查後重試，或留空。",
+  "That file isn't a picture this app can open.": "此檔案不是本應用程式支援開啟的圖片格式。",
+  "That is not this wallet's password.": "這不是此錢包的密碼。",
+  "That is this wallet's own address": "這是當前錢包自己的地址",
+  "That isn't a Bitcoin address.": "這不是有效的 Bitcoin 地址。",
+  "That isn't a SOL address.": "這不是有效的 SOL 地址。",
+  "That password isn't right. Check it and try again.": "密碼不正確，請檢查後重試。",
+  "That post has been removed.": "該貼文已被移除。",
+  "That theme's picture couldn't be downloaded. Try again in a moment.": "無法下載該主題的圖片，請稍後重試。",
+  "That's a Bitcoin address. Swaps use SOL.": "這是 Bitcoin 地址，此兌換需要使用 SOL。",
+  "That's a SOL address. To use SOL, choose SOL above.": "這是 SOL 地址。如需使用 SOL，請在上方選擇 SOL。",
+  "That's a long one. Keep a question under 1,000 characters.": "問題太長了，請控制在 1,000 個字元以內。",
+  "That's not this wallet's password.": "這不是此錢包的密碼。",
+  "The ORN arrive in this wallet by themselves.": "ORN 會自動到帳此錢包。",
+  "The buyer": "買家",
+  "The buyer is paying. This app takes the SOL as soon as it's locked, usually within a minute.": "買家正在付款。SOL 一旦鎖定，本應用程式會立即接收，通常在 1 分鐘內完成。",
+  "The buyer · usually 30 to 60 minutes after they pay": "買家 · 通常在付款後 30 至 60 分鐘",
+  "The buyer · within a few hours": "買家 · 幾小時內",
+  "The buyer's ORN delivered": "買家的 ORN 已送達",
+  "The chart begins as soon as the first ORN / SOL swap completes.": "首筆 ORN / SOL 兌換完成後將立即顯示圖表。",
+  "The checkpoint before it": "上一個檢查點",
+  "The extra over the price": "超出價格的額外金額",
+  "The figures at the top show the network right now: ORN released, the next checkpoint, miners and hashrate.": "頂部數字顯示當前網路即時狀態：已發行 ORN、下一個檢查點、礦工數和算力。",
+  "The latest 500": "最近 500 條",
+  "The pay screen opens by itself as soon as they accept.": "對方接單後，支付頁面會自動開啟。",
+  "The picture couldn't be saved on this device. Try a smaller one.": "無法將此圖片儲存到裝置，請換一張更小的圖片重試。",
+  "The post shows its tips, without names. The author is told it was you.": "貼文上只會顯示打賞金額，不會公開你的名字，但作者會收到你的打賞通知。",
+  "The seller didn't take the SOL in time. Sending it back to your SOL wallet.": "賣家未在規定時間內領取 SOL，正在退回你的 SOL 錢包。",
+  "The seller took the SOL. Claiming your ORN.": "賣家已領取 SOL，正在為你領取 ORN。",
+  "The seller · done": "賣家 · 已完成",
+  "The seller · usually 30 to 60 minutes after you pay": "賣家 · 通常在你付款後 30 至 60 分鐘",
+  "The seller's wallet delivers your ORN once they take the SOL.": "賣家領取 SOL 後，其錢包會自動交付你的 ORN。",
+  "The seller's wallet takes the Bitcoin once Bitcoin has confirmed your payment three times": "當 Bitcoin 網路對你的付款完成三次確認後，賣家錢包會領取這筆 Bitcoin",
+  "The swap board passes your offer to the buyer's wallet, and their reply back": "兌換板會將你的報價傳遞給買家的錢包，並將對方的回覆傳回",
+  "The swap details open by itself as soon as your ORN are locked.": "你的 ORN 鎖定後，兌換詳情頁面會自動開啟。",
+  "The update didn't install": "更新未能安裝",
+  "The validators didn't answer about this hour's rewards just now. Try again in a moment.": "驗證節點剛才未能返回本小時的獎勵資訊，請稍後再試。",
+  "The website learns this wallet's address.": "該網站將獲取此錢包的地址。",
+  "Their 64-character address": "對方的 64 位地址",
+  "Their Orien Wallet makes it once it has checked your offer. It tells this app where they'll pay the Bitcoin.": "對方的 Orien Wallet 在核驗你的報價後會生成此回覆碼，告知本應用程式對方將向何處支付 Bitcoin。",
+  "Their payment shows in your Activity within seconds.": "對方的付款會在幾秒鐘內顯示在你的動態中。",
+  "Their wallet accepts by itself, usually within a few seconds.": "對方錢包會自動接單，通常只需幾秒鐘。",
+  "Their wallet accepts by itself, within 30 minutes.": "對方錢包會在 30 分鐘內自動接單。",
+  "Theme": "主題",
+  "Theme Store": "主題商店",
+  "Themes": "主題",
+  "Themes made by the Orien community": "由 Orien 社群創作的主題",
+  "Then paste the buyer's reply code": "然後貼上買家的回覆碼",
+  "They don't match": "不一致",
+  "They match": "一致",
+  "They match, send": "一致，立即發送",
+  "They match, send my wallet": "一致，發送我的錢包",
+  "They match, send my wallets": "一致，發送我的錢包",
+  "This app takes the Bitcoin to your Bitcoin address, then delivers the buyer's ORN to them": "本應用程式會將 Bitcoin 領取到你的 Bitcoin 地址，然後把 ORN 交付給買家",
+  "This app · about 30 minutes for Bitcoin to settle": "本應用程式 · Bitcoin 結算約需 30 分鐘",
+  "This app · under a minute": "本應用程式 · 不到 1 分鐘",
+  "This checkpoint's fingerprint": "此檢查點的指紋",
+  "This computer": "此電腦",
+  "This hour": "本小時",
+  "This is your listing.": "這是你發布的商品。",
+  "This person": "此用戶",
+  "This profile isn't available.": "該個人資料不可用。",
+  "This theme's picture isn't on this computer yet. Try again in a moment.": "該主題的圖片尚未同步到此電腦，請稍後再試。",
+  "This version of Orien Wallet no longer works with the network. Press Update at the top to keep sending.": "當前版本的 Orien Wallet 已不再相容網路。請點擊頂部的更新按鈕以繼續發送。",
+  "This wallet": "此錢包",
+  "This wallet has a password. Type it to send.": "此錢包設有密碼，請輸入密碼以發送。",
+  "This wallet proved it belongs to this profile": "此錢包已驗證歸屬於此個人資料",
+  "This wallet's password": "此錢包的密碼",
+  "Time": "時間",
+  "Tip": "打賞",
+  "Tip someone": "打賞他人",
+  "Tips": "打賞",
+  "Tips are payments and can't be undone.": "打賞屬於實際轉帳，發出後無法撤銷。",
+  "To": "接收方",
+  "Today": "今天",
+  "Too late to pay safely: a payment now would come back to you once the lock ends, about 2 hours from now": "現在付款已來不及安全完成：此時支付的款項會在鎖定期結束（約 2 小時後）退回給你",
+  "Top miner of the day": "今日最佳礦工",
+  "Top miners": "礦工排行",
+  "Top wallets": "富豪榜",
+  "Total": "總計",
+  "Total (SOL)": "總計 (SOL)",
+  "Trade": "交易",
+  "Trades": "成交記錄",
+  "Try": "試用",
+  "Try again": "重試",
+  "Turkish lira": "土耳其裡拉",
+  "Turn on syncing": "開啟同步",
+  "Turn on syncing, so your contacts and wallet icons match on all your devices. It needs this wallet unlocked once.": "開啟同步後，你的聯絡人和錢包圖示會在所有裝置上保持一致。需要解鎖一次此錢包。",
+  "Type the 24 words of a wallet you have": "輸入已有錢包的 24 個助記詞",
+  "Type the SOL or Bitcoin address you'll pay from, then click": "輸入你用來付款的 SOL 或 Bitcoin 地址，然後點擊",
+  "Type the password to send this wallet too.": "輸入密碼以一並發送此錢包。",
+  "Type the wallet's password if it has one.": "如果錢包設有密碼，請輸入密碼。",
+  "Type this wallet's password to approve this order.": "輸入此錢包的密碼以確認此訂單。",
+  "Type this wallet's password to approve this swap.": "輸入此錢包的密碼以確認此兌換。",
+  "Type this wallet's password to see its words.": "輸入此錢包的密碼以查看助記詞。",
+  "Type this wallet's password to sign in.": "輸入此錢包的密碼以登入。",
+  "Type your wallet password": "輸入你的錢包密碼",
+  "Type your wallet password below, so this app can claim your ORN": "請在下方輸入錢包密碼，以便本應用程式領取你的 ORN",
+  "Type your wallet password below, so this app can finish the swap": "請在下方輸入錢包密碼，以便本應用程式完成兌換",
+  "Type your wallet password to approve this swap.": "輸入你的錢包密碼以確認此兌換。",
+  "US dollar": "美元",
+  "Unban": "解除停權",
+  "Under": "在",
+  "Undo": "復原",
+  "Unlock": "解鎖",
+  "Unmute the group chat": "取消群組聊天靜音",
+  "Unstaked": "已取消質押",
+  "Up to four. The first is the one shown on your listing's card.": "最多四張。第一張將顯示在你的商品卡片上。",
+  "Update automatically": "自動更新",
+  "Update failed": "更新失敗",
+  "Update failed, try again": "更新失敗，請重試",
+  "Update needed": "需要更新",
+  "Update now": "立即更新",
+  "Update to Latest": "更新到最新版",
+  "Updates as they happen, and chat with the community": "獲取即時動態並與社群交流",
+  "Updating": "正在更新",
+  "Use": "使用",
+  "Use Orien Wallet in your browser": "在瀏覽器中使用 Orien Wallet",
+  "Use my other device": "使用我的其他裝置",
+  "Use my recovery phrase": "使用我的助記詞",
+  "Use the reply": "使用回覆碼",
+  "Use your wallets on another device": "在另一台裝置上使用你的錢包",
+  "User Guide": "使用指南",
+  "Username": "使用者名稱",
+  "Validator fees": "驗證節點手續費",
+  "Validators": "驗證節點",
+  "Verified": "已驗證",
+  "Verified wallet": "已驗證錢包",
+  "Verify": "驗證",
+  "Verify a wallet": "驗證錢包",
+  "Verify a wallet and people who pay it see your name with it.": "驗證錢包後，向你付款的人將能看到與地址對應的使用者名稱。",
+  "Verify a wallet to post and see your mining here.": "驗證錢包後即可發文並在此查看你的挖礦數據。",
+  "Verify more wallets, and choose where you're paid": "驗證更多錢包，並選擇收款錢包",
+  "Verify one of your wallets on your Orien Network profile to post, reply and react.": "在你的 Orien Network 個人資料中驗證一個錢包，即可發文、回覆和互動。",
+  "Verify one of your wallets to chat, reply or react.": "驗證你的任一錢包即可聊天、回覆或互動。",
+  "Verify one of your wallets to chat. Anyone can read along.": "驗證你的任一錢包即可發言，所有人都可以瀏覽聊天內容。",
+  "Verify one of your wallets to react.": "驗證你的任一錢包即可互動。",
+  "Verify one of your wallets to reply.": "驗證你的任一錢包即可回覆。",
+  "Verify this wallet": "驗證此錢包",
+  "Verify this wallet to offer swaps": "驗證此錢包以發布兌換",
+  "Verify this wallet to place sell orders": "驗證此錢包以發布賣單",
+  "Verifying shows everyone the wallet is yours, including its balance. It lets you post, sell, swap and receive tips.": "驗證後會向所有人展示此錢包歸你所有（包括餘額），同時解鎖發文、出售商品、兌換和接收打賞功能。",
+  "Verifying…": "正在驗證…",
+  "Verifying… usually within a minute": "正在驗證…通常在 1 分鐘內完成",
+  "Version": "版本",
+  "Videos about Orien": "關於 Orien 的影片",
+  "View": "查看",
+  "View Profile": "查看資料",
+  "View all": "查看全部",
+  "View profile": "查看資料",
+  "Waiting": "等待中",
+  "Waiting for mining to get going.": "正在等待挖礦啟動。",
+  "Waiting for validators": "正在等待驗證節點",
+  "Waiting for your other device": "等待你的另一台裝置",
+  "Waiting for your wallets": "正在等待你的錢包",
+  "Wallet": "錢包",
+  "Wallet password": "錢包密碼",
+  "Wallet password, so this app can sign the next step": "輸入錢包密碼以簽署下一步",
+  "Wallet password, to approve this sale": "輸入錢包密碼以核准此次出售",
+  "Wallet password, to approve this swap": "輸入錢包密碼以核准此次兌換",
+  "Wallet settings": "錢包設定",
+  "Wallets": "錢包",
+  "Wallets holding ORN": "持有 ORN 的錢包數",
+  "Watch the preview as you go, then click": "邊調整邊查看預覽效果，完成後點擊",
+  "We'll look into it, and write to you if we need to know more.": "我們會跟進處理，如需了解更多資訊會與你聯繫。",
+  "We'll look into it.": "我們會盡快查看。",
+  "Welcome": "歡迎",
+  "Welcome to Orien Wallet": "歡迎使用 Orien Wallet",
+  "What are you offering?": "你要出售什麼？",
+  "What happens:": "接下來會發生：",
+  "What is wrong with this post?": "這條貼文有什麼問題？",
+  "What is wrong with this theme?": "這個主題有什麼問題？",
+  "What the buyer gets, how long it takes, anything they should know.": "買家將獲得什麼、需要多長時間以及其他注意事項。",
+  "What we'll send": "將發送的內容",
+  "What went wrong?": "出現了什麼問題？",
+  "What's happening?": "有什麼新鮮事？",
+  "When an offer is taken and as swaps finish": "當訂單被接受或兌換完成時",
+  "When someone sends you ORN": "當有人向你發送 ORN 時",
+  "When the seller answers, pay the exact amount shown from your SOL or Bitcoin wallet.": "賣家響應後，請從你的 SOL 或 Bitcoin 錢包支付頁面顯示的準確金額。",
+  "Where did it happen?": "發生在哪裡？",
+  "Where the Bitcoin should go": "Bitcoin 的接收地址",
+  "Where the SOL should go, such as your Phantom wallet": "SOL 的接收地址，例如你的 Phantom 錢包",
+  "Where was it?": "發生在哪裡？",
+  "Where your Bitcoin comes back if the swap stops": "如果兌換中止，Bitcoin 的退回地址",
+  "Where your SOL should go (e.g. Phantom)": "你的 SOL 接收地址（例如 Phantom）",
+  "Where your SOL should go, such as your Phantom wallet": "你的 SOL 接收地址，例如你的 Phantom 錢包",
+  "While it's open, Orien Wallet does each of its steps for you as soon as it can.": "保持應用程式開啟時，Orien Wallet 會自動為你完成每一步。",
+  "Who can message you": "誰可以給你傳訊息",
+  "Who is this?": "這是誰？",
+  "With their names and icons. Your new device asks there whether to add a password.": "包含名稱和圖示。你的新裝置會在那裡詢問是否新增密碼。",
+  "Withdraw": "撤單",
+  "Within a minute it shows": "1 分鐘內即可顯示",
+  "Work and things offered for ORN. You pay the seller straight from your wallet: the Market never holds anyone's coins.": "使用 ORN 交易的服務與物品。你直接從錢包向賣家付款，市場絕不託管任何人的資金。",
+  "Working, keep this page open": "正在處理，請保持此頁面開啟",
+  "Write the amount in ORN, like 200 or 12.5.": "輸入 ORN 數量，例如 200 或 12.5。",
+  "Write the price in ORN, like 200 or 12.5.": "輸入 ORN 價格，例如 200 或 12.5。",
+  "Write them down in order, on paper, and keep it somewhere safe.": "請按順序抄寫在紙上，並妥善保管在安全的地方。",
+  "Write these 24 words on paper, in order, and keep them somewhere safe. They are the only way back into this wallet if this device is lost. Anyone who sees them can spend your ORN.": "請按順序將這 24 個助記詞抄寫在紙上並妥善保管。如果裝置丟失，這是找回此錢包的唯一方式。任何看到這些詞的人都可以轉走你的 ORN。",
+  "Yesterday": "昨天",
+  "You": "你",
+  "You and the buyer · up to you": "你和買家 · 由雙方決定",
+  "You approve the sale once, now. When someone takes your offer, your wallet accepts it within seconds, even with the window closed. Keep Orien Wallet running.": "你現在只需核准一次。當有人接受你的報價時，即使視窗已關閉，你的錢包也會在幾秒內自動受理。請保持 Orien Wallet 運行。",
+  "You buy": "你買入",
+  "You can't send in the group chat right now. You can still read along.": "你目前無法在群組聊天中發言，但仍可繼續瀏覽內容。",
+  "You get": "你獲得",
+  "You have 24 themes, as many as there's room for. Delete one in Appearance first.": "你已有 24 個主題，達到數量上限。請先在外觀中刪除一個。",
+  "You haven't blocked anyone.": "你還沒有封鎖任何人。",
+  "You need": "你需要",
+  "You need to be signed in to Orien Network with a verified wallet.": "你需要使用已驗證錢包登入 Orien Network。",
+  "You need to be signed in to Orien Network. Verifying a wallet isn't needed.": "你需要登入 Orien Network，無需驗證錢包。",
+  "You pay": "你支付",
+  "You sell": "你出售",
+  "You send the buyer the offer code, and paste in the reply code they send back": "你將報價碼發給買家，然後貼上對方發回的回覆碼",
+  "You · now": "你 · 現在",
+  "You · pay within a few hours": "你 · 幾小時內付款",
+  "You · pay within the next few hours": "你 · 接下來幾小時內付款",
+  "You · stay on this page until Step 2 finishes": "你 · 請停留在此頁面直到第 2 步完成",
+  "You · within a few hours": "你 · 幾小時內",
+  "You're up to date": "已是最新版本",
+  "Your 24 words, separated by spaces": "輸入你的 24 個助記詞，以空格分隔",
+  "Your Bitcoin address": "你的 Bitcoin 地址",
+  "Your Discord username": "你的 Discord 使用者名稱",
+  "Your ORN stay safe:": "你的 ORN 安全無憂：",
+  "Your Phantom / SOL wallet (for refunds & leftovers)": "你的 Phantom / SOL 錢包（用於退款與找零）",
+  "Your Phantom / SOL wallet address": "你的 Phantom / SOL 錢包地址",
+  "Your SOL address": "你的 SOL 地址",
+  "Your SOL address (the wallet you'll pay from)": "你的 SOL 地址（用於付款的錢包）",
+  "Your SOL is locked for the seller. Their wallet takes it and your ORN arrive, usually within a minute.": "你的 SOL 已為賣家鎖定。對方錢包接收後，你的 ORN 就會到帳，通常在 1 分鐘內完成。",
+  "Your SOL payout address": "你的 SOL 收款地址",
+  "Your SOL stays locked safely on Solana until a seller fills it, you cancel in one click, or it expires after 7 days and refunds automatically.": "你的 SOL 會安全鎖定在 Solana 上，直到有賣家成交、你一鍵取消，或在 7 天過期後自動退回。",
+  "Your SOL wallet (for refunds & leftovers)": "你的 SOL 錢包（用於退款與找零）",
+  "Your SOL wallet address": "你的 SOL 錢包地址",
+  "Your SOL went back to your SOL wallet.": "你的 SOL 已退回你的 SOL 錢包。",
+  "Your Telegram username": "你的 Telegram 使用者名稱",
+  "Your X username": "你的 X 使用者名稱",
+  "Your account is for the Community, the Market and swaps. Your wallets stay in this app.": "你的帳號用於社群、市場和兌換，你的錢包始終儲存在本應用程式中。",
+  "Your address": "你的地址",
+  "Your buy order is live on the book. When someone sells into it, this app opens the pay screen.": "你的買單已在訂單簿上線。有人出售時，本應用程式會自動開啟支付頁面。",
+  "Your buy order is live on the order book. You are all set to leave this page or close Orien Wallet. Any extra SOL has been sent back to your wallet, and when a seller takes your order your ORN will arrive automatically.": "你的買單已在訂單簿上線。現在可以安全離開此頁面或關閉 Orien Wallet。多餘的 SOL 已退回你的錢包，賣家接單後你的 ORN 將自動到帳。",
+  "Your devices": "你的裝置",
+  "Your email": "你的電子郵件",
+  "Your language follows you to your other devices.": "你的語言設定會同步到你的其他裝置。",
+  "Your listings": "你的商品",
+  "Your offer is live": "你的報價已上線",
+  "Your orders & swaps": "你的訂單與兌換",
+  "Your picture": "你的頭像",
+  "Your profile": "你的資料",
+  "Your recovery phrase": "你的助記詞",
+  "Your sell order is live on the book. When someone buys it, your wallet runs the swap by itself.": "你的賣單已在訂單簿上線。有人購買時，你的錢包會自動執行兌換。",
+  "Your share": "你的占比",
+  "Your share of each hour's new ORN": "你每小時獲得的新增 ORN 份額",
+  "Your share of the hour's fees": "你本小時獲得的手續費份額",
+  "Your share of the hour's new ORN": "你本小時獲得的新增 ORN 份額",
+  "Your speed": "你的算力",
+  "Your swaps": "你的兌換",
+  "Your theme follows you to your other devices.": "你的主題會同步到你的其他裝置。",
+  "Your turn: confirm with your wallet password so this app can finish it": "輪到你了：請用錢包密碼確認，以便本應用程式完成操作",
+  "Your username": "你的使用者名稱",
+  "Your username, as others see it": "其他人看到的你的使用者名稱",
+  "Your wallet": "你的錢包",
+  "Your wallet is locking the ORN now. Keep Orien Wallet running while the buyer pays.": "你的錢包正在鎖定 ORN。買家付款期間請保持 Orien Wallet 運行。",
+  "Your wallet is on its way": "你的錢包正在發送中",
+  "Your wallet locks the ORN automatically when someone buys your offer. Keep Orien Wallet running in the menu bar or tray.": "有人購買你的報價時，錢包會自動鎖定 ORN。請保持 Orien Wallet 在選單列或系統匣運行。",
+  "Your wallets": "你的錢包",
+  "Your wallets arrive on the new device by themselves.": "你的錢包會自動同步到新裝置。",
+  "Your wallets travel encrypted, straight between your two devices.": "你的錢包會經過加密，直接在你的兩台裝置之間傳輸。",
+  "Yours": "我的",
+  "a buyer": "一位買家",
+  "a globe": "地球圖示",
+  "a minute": "1 分鐘",
+  "a pickaxe": "礦鎬圖示",
+  "a speech bubble": "對話氣泡圖示",
+  "a telescope": "望遠鏡圖示",
+  "about 6 hours after your reply": "在你回覆後約 6 小時",
+  "also replied to a post you replied to": "也回覆了你回覆過的貼文",
+  "an arrow pointing down": "向下箭頭",
+  "an arrow pointing up": "向上箭頭",
+  "and": "和",
+  "and choose": "並選擇",
+  "and its ORN stay in it. This only takes it off the list.": "其中的 ORN 也會保留。此操作僅將其從列表中移除。",
+  "any moment": "即將到達",
+  "by Pablo Stanley, drawn with": "作者 Pablo Stanley，繪製工具",
+  "claim your ORN": "領取你的 ORN",
+  "covers Solana's small fees; nearly all of it comes back to your SOL wallet when the swap ends.": "用於支付 Solana 的少量手續費；兌換結束後幾乎全部會退回你的 SOL 錢包。",
+  "covers Solana's small rent and fees; nearly all of it returns to your SOL wallet automatically.": "用於支付 Solana 的少量租金和手續費；幾乎全部會自動退回你的 SOL 錢包。",
+  "estimated": "預估",
+  "finish the swap": "完成兌換",
+  "for Orien's own. Each card shows the theme on a small copy of the app.": "查看 Orien 官方主題。每張卡片都會在縮圖介面中預覽主題效果。",
+  "for each share": "每個份額",
+  "for themes people made, or": "瀏覽社群創作的主題，或",
+  "in Settings,": "在設定中，",
+  "in a row": "連續",
+  "is buying from you": "正在向你購買",
+  "it goes back to the SOL address below within about an hour.": "它會在約 1 小時內退回到下方的 SOL 地址。",
+  "just don't send: nothing has left your wallets.": "不發送即可：你的錢包不會有任何資金轉出。",
+  "just now": "剛剛",
+  "mined their first ORN.": "挖出了他們的首個 ORN。",
+  "new ORN": "新增 ORN",
+  "none yet": "暫無",
+  "on one you like.": "點擊喜歡的主題。",
+  "on their own": "自動",
+  "orien.network can't be reached right now. Check your connection and try again.": "目前無法連接到 orien.network，請檢查網路連接後重試。",
+  "passed it mining.": "透過挖礦達成了這一里程碑。",
+  "payments sent": "已發送轉帳",
+  "per ORN": "每 ORN",
+  "rank": "排名",
+  "replied to you in the Orien group chat": "在 Orien 群組聊天中回覆了你",
+  "scan or type": "掃描或輸入",
+  "shares an hour": "每小時份額",
+  "shows mining rewards and validator fees.": "顯示挖礦獎勵和驗證節點手續費。",
+  "slider, or click": "滑桿，或點擊",
+  "staked": "已質押",
+  "the Bitcoin in any Bitcoin wallet, plus its sending fee. The usual Orien fee (0.1%, at most 1 ORN) comes out of the ORN you receive.": "任意 Bitcoin 錢包中的 Bitcoin 及發送手續費。一般 Orien 手續費（0.1%，最高 1 ORN）將從你收到的 ORN 中扣除。",
+  "the ORN in this wallet, plus the usual Orien fee (0.1%, at most 1 ORN). Bitcoin's network fee comes out of what you receive.": "此錢包中的 ORN，加上一般 Orien 手續費（0.1%，最高 1 ORN）。Bitcoin 網路手續費將從你收到的金額中扣除。",
+  "the ORN in this wallet, plus the usual Orien fee (0.1%, at most 1 ORN). The buyer covers Solana's small fees.": "此錢包中的 ORN，加上一般 Orien 手續費（0.1%，最高 1 ORN）。買家承擔 Solana 的少量手續費。",
+  "the ORN in this wallet, plus the usual Orien fee (0.1%, at most 1 ORN). You don't need any SOL.": "此錢包中的 ORN，加上一般 Orien 手續費（0.1%，最高 1 ORN）。無需持有任何 SOL。",
+  "the SOL in your own SOL wallet, plus about 0.005 SOL for Solana's small fees, nearly all of which comes back. The usual Orien fee (0.1%, at most 1 ORN) comes out of the ORN you receive.": "你自己的 SOL 錢包中的 SOL，外加約 0.005 SOL 用於支付 Solana 的少量手續費（其中幾乎全部會退回）。一般 Orien 手續費（0.1%，最高 1 ORN）將從你收到的 ORN 中扣除。",
+  "the buy offer is yours": "此買單歸你所有",
+  "the buyer": "買家",
+  "the buyer's SOL is already locked on Solana. Your wallet reserves it, locks your ORN, and both sides settle automatically in about a minute without waiting on the buyer.": "買家的 SOL 已鎖定在 Solana 上。你的錢包會預留該筆資金並鎖定你的 ORN，雙方將在約 1 分鐘內自動完成結算，無需等待買家。",
+  "the code it shows.": "顯示的配對碼。",
+  "the gear at the top left": "左上角的齒輪圖示",
+  "the menu bar": "選單列",
+  "the network's post about you": "網路中關於你的動態",
+  "the offer is yours": "此報價歸你所有",
+  "the seller": "賣家",
+  "the seller's lock ends": "賣家的鎖定期結束",
+  "the seller's wallet accepts within seconds and locks the ORN for you. This app then shows the exact SOL to send from your SOL wallet, such as Phantom, with a QR code. The swap finishes by itself, usually within a minute.": "賣家錢包會在幾秒內接單並為你鎖定 ORN。隨後本應用程式會顯示需要從你的 SOL 錢包（例如 Phantom）發送的準確 SOL 金額和QR Code。兌換會自動完成，通常在 1 分鐘內。",
+  "the system tray": "系統匣",
+  "there too.": "那裡也可以。",
+  "there. Your wallets arrive here by themselves.": "，你的錢包會自動同步到這裡。",
+  "this app takes it back to the address below after about 6 hours.": "本應用程式會在約 6 小時後將其退回到下方地址。",
+  "this app verifies the buyer's SOL is reserved for your address on Solana before locking your ORN, then both sides settle in about a minute.": "本應用程式會先驗證買家的 SOL 已在 Solana 上為你的地址預留，然後再鎖定你的 ORN，隨後雙方在約 1 分鐘內完成結算。",
+  "this wallet": "此錢包",
+  "to find your computer's sweet spot.": "以找到你電腦的最佳設定。",
+  "to keep it. It joins your themes in Appearance and is worn at once.": "以儲存它。它會加入外觀中的主題列表並立即應用程式。",
+  "to see the whole app in it. Click": "以預覽整個應用程式的主題效果。點擊",
+  "to this Bitcoin address": "到此 Bitcoin 地址",
+  "to this SOL address": "到此 SOL 地址",
+  "took your offer": "接受了你的報價",
+  "top miner": "榜首礦工",
+  "two arrows": "雙向箭頭圖示",
+  "two people": "雙人圖示",
+  "type": "輸入",
+  "under a second": "不到 1 秒",
+  "wrote to you": "給你發了訊息",
+  "your ORN come back to you on their own within a few hours. You don't need to do anything.": "你的 ORN 會在幾小時內自動退回，無需任何操作。",
+  "your ORN come back to your wallet on their own within 12 hours.": "你的 ORN 會在 12 小時內自動退回你的錢包。",
+  "your ORN come back to your wallet on their own within a few hours.": "你的 ORN 會在幾小時內自動退回你的錢包。",
+  "your password": "你的密碼",
+  "your post": "你的貼文",
+  "your reply": "你的回覆",
+  "your wallet locks the ORN on the network": "你的錢包會在網路上鎖定 ORN",
+  "your wallet locks your ORN for the buyer within seconds. Their wallet then prompts them to send the SOL, and your wallet collects it and delivers their ORN automatically, usually within a minute.": "你的錢包會在幾秒內為買家鎖定 ORN。隨後對方錢包會提示其發送 SOL，你的錢包會自動接收 SOL 並交付 ORN，通常在 1 分鐘內完成。",
+  "your wallet locks your ORN for the buyer within seconds. Their wallet then sends the Bitcoin, and once it confirms, your wallet collects it and delivers their ORN automatically.": "你的錢包會在幾秒內為買家鎖定 ORN。隨後對方錢包會發送 Bitcoin，確認後你的錢包會自動接收並交付 ORN。",
+  "your wallet never locks your ORN until the buyer's SOL is reserved for your address on Solana.": "在買家的 SOL 於 Solana 上為你的地址預留之前，你的錢包絕不會鎖定你的 ORN。",
+  "your wallet password": "你的錢包密碼",
+  "✓ Complete": "✓ 已完成",
+  "✓ Live on the order book (safe to leave)": "✓ 已上線訂單簿（可安全離開）",
+  "✓ Valid address": "✓ 地址有效",
+  "posted about you:": "發布了關於你的動態：",
+  "replied to your post": "回覆了你的貼文",
+  "replied to your reply": "回覆了你的回覆",
+  "replied to the network's post about you": "回覆了關於你的網路動態",
+  "_patterns": [
+    [
+      "^Sell ([0-9.,]+) ORN for ([0-9.,]+) SOL(.*)$",
+      "賣出 {0} ORN 換取 {1} SOL{2}"
+    ],
+    [
+      "^Buy ([0-9.,]+) ORN for ([0-9.,]+) SOL(.*)$",
+      "買入 {0} ORN 支付 {1} SOL{2}"
+    ],
+    [
+      "^Sell ([0-9.,]+) ORN for ([0-9.,]+) BTC(.*)$",
+      "賣出 {0} ORN 換取 {1} BTC{2}"
+    ],
+    [
+      "^Buy ([0-9.,]+) ORN for ([0-9.,]+) BTC(.*)$",
+      "買入 {0} ORN 支付 {1} BTC{2}"
+    ],
+    [
+      "^(\\d+) open$",
+      "{0} 個掛單"
+    ],
+    [
+      "^Price \\(([A-Z]+)\\)$",
+      "價格 ({0})"
+    ],
+    [
+      "^Total \\(([A-Z]+)\\)$",
+      "總計 ({0})"
+    ],
+    [
+      "^Last swap · (.+)$",
+      "最新成交 · {0}"
+    ],
+    [
+      "^Lock with (.+)$",
+      "使用 {0} 鎖定"
+    ],
+    [
+      "^Received so far: ([0-9.,]+) of ([0-9.,]+) SOL$",
+      "已收到：{0} / {1} SOL"
+    ],
+    [
+      "^Done: ([0-9.,]+) ORN are in your wallet\\.$",
+      "完成：{0} ORN 已存入你的錢包。"
+    ],
+    [
+      "^Done: ([0-9.,]+) SOL is in your SOL wallet\\.$",
+      "完成：{0} SOL 已存入你的 SOL 錢包。"
+    ],
+    [
+      "^Paid: ([0-9.,]+) SOL is on its way to your SOL address\\.$",
+      "已支付：{0} SOL 正在發往你的 SOL 地址。"
+    ],
+    [
+      "^Send exactly ([0-9.,]+) SOL from your SOL wallet to fund this buy order\\. Once funded, it stays live on the order book even when Orien Wallet is closed\\.$",
+      "請從你的 SOL 錢包準確發送 {0} SOL 為此買單注資。注資後，即使關閉 Orien Wallet，該買單也會持續在訂單簿上生效。"
+    ],
+    [
+      "^The seller accepted\\. Send exactly ([0-9.,]+) SOL from your SOL wallet to the address below\\. This app sees it by itself\\.$",
+      "賣家已接受訂單。請從你的 SOL 錢包準確發送 {0} SOL 到下方地址，本應用程式會自動檢測到帳。"
+    ],
+    [
+      "^Your ORN are locked\\. You can leave this page; ([0-9.,]+) SOL arrives in your SOL wallet in about a minute\\.$",
+      "你的 ORN 已鎖定。你可以離開此頁面，{0} SOL 將在約 1 分鐘內到達你的 SOL 錢包。"
+    ],
+    [
+      "^Send ([0-9.,]+) SOL from your SOL wallet$",
+      "從你的 SOL 錢包發送 {0} SOL"
+    ],
+    [
+      "^Locking your ([0-9.,]+ (?:SOL|BTC)) on Solana and adding your order to the book$",
+      "正在 Solana 上鎖定你的 {0} 並將訂單新增到訂單簿"
+    ],
+    [
+      "^Waiting on the order book for a seller to fill ([0-9.,]+ ORN)$",
+      "已在訂單簿掛單，等待賣家成交 {0}"
+    ],
+    [
+      "^([0-9.,]+ ORN) delivered to your wallet$",
+      "{0} 已送達你的錢包"
+    ],
+    [
+      "^Locking the buyer's ([0-9.,]+ SOL) on Solana for your address$",
+      "正在 Solana 上為你的地址鎖定買家的 {0}"
+    ],
+    [
+      "^Locking your ([0-9.,]+ ORN) on Orien$",
+      "正在 Orien 上鎖定你的 {0}"
+    ],
+    [
+      "^Sending ([0-9.,]+ SOL) to your SOL wallet$",
+      "正在將 {0} 發送到你的 SOL 錢包"
+    ],
+    [
+      "^([0-9.,]+ SOL) in your SOL wallet$",
+      "{0} 已存入你的 SOL 錢包"
+    ],
+    [
+      "^([0-9.,]+ ORN) in your wallet$",
+      "{0} 已存入你的錢包"
+    ],
+    [
+      "^Your ([0-9.,]+ ORN) are locked for the buyer$",
+      "你的 {0} 已為買家鎖定"
+    ],
+    [
+      "^The buyer pays ([0-9.,]+ (?:SOL|BTC))$",
+      "買家支付 {0}"
+    ],
+    [
+      "^The seller locked ([0-9.,]+ ORN) for you$",
+      "賣家已為你鎖定 {0}"
+    ],
+    [
+      "^([0-9.,]+ (?:SOL|BTC)) on its way to your SOL address$",
+      "{0} 正在發往你的 SOL 地址"
+    ],
+    [
+      "^Your SOL is locked for the seller, then your ([0-9.,]+ ORN) arrive$",
+      "你的 SOL 已為賣家鎖定，隨後你的 {0} 將到帳"
+    ],
+    [
+      "^Your turn: send ([0-9.,]+ (?:SOL|BTC)) to fund$",
+      "輪到你了：發送 {0} 完成注資"
+    ],
+    [
+      "^Your turn: pay ([0-9.,]+ (?:SOL|BTC)) now$",
+      "輪到你了：請立即支付 {0}"
+    ],
+    [
+      "^Your turn: approve with (.+) to finish$",
+      "輪到你了：使用 {0} 確認以完成"
+    ],
+    [
+      "^Step (\\d+) of (\\d+) · (.+)$",
+      "第 {0}/{1} 步 · {2}"
+    ],
+    [
+      "^Stopped: (.+)\\.$",
+      "已停止：{0}。"
+    ],
+    [
+      "^Fund your buy order: send ([0-9.,]+ SOL)$",
+      "為買單注資：發送 {0}"
+    ],
+    [
+      "^Locks your SOL on Solana to buy ([0-9.,]+) ORN$",
+      "在 Solana 上鎖定你的 SOL 以買入 {0} ORN"
+    ],
+    [
+      "^Swap in progress: (?:buying|selling) ([0-9.,]+) ORN$",
+      "兌換進行中：交易 {0} ORN"
+    ],
+    [
+      "^Approve to get your ([0-9.,]+) ORN$",
+      "確認以領取你的 {0} ORN"
+    ],
+    [
+      "^Confirm with (.+) below, so this app can finish the swap$",
+      "請在下方使用 {0} 確認，以便本應用程式完成兌換"
+    ],
+    [
+      "^Confirm with (.+) below, so this app can claim your ORN$",
+      "請在下方使用 {0} 確認，以便本應用程式領取你的 ORN"
+    ],
+    [
+      "^In (\\d+) min$",
+      "{0} 分鐘後"
+    ],
+    [
+      "^in (\\d+) min$",
+      "{0} 分鐘後"
+    ],
+    [
+      "^In (\\d+) s$",
+      "{0} 秒後"
+    ],
+    [
+      "^in (\\d+) s$",
+      "{0} 秒後"
+    ],
+    [
+      "^(\\d+) of (\\d+) running$",
+      "{0} / {1} 運行中"
+    ],
+    [
+      "^([0-9,]+) miners? paid$",
+      "已向 {0} 位礦工發放"
+    ],
+    [
+      "^Checkpoint (\\d+)$",
+      "檢查點 {0}"
+    ],
+    [
+      "^Running · into (.+)$",
+      "運行中 · 存入 {0}"
+    ],
+    [
+      "^([0-9,]+) found$",
+      "已找到 {0} 個"
+    ],
+    [
+      "^Locked payment from (.+)$",
+      "來自 {0} 的鎖定轉帳"
+    ],
+    [
+      "^Locked payment to (.+)$",
+      "發往 {0} 的鎖定轉帳"
+    ],
+    [
+      "^From (.+)$",
+      "來自 {0}"
+    ],
+    [
+      "^To (.+)$",
+      "發往 {0}"
+    ],
+    [
+      "^(\\d+) min ago · (\\d+) payments? · agreed by (\\d+) of (\\d+)$",
+      "{0} 分鐘前 · {1} 筆轉帳 · {2}/{3} 節點達成共識"
+    ],
+    [
+      "^(\\d+) h ago · (\\d+) payments? · agreed by (\\d+) of (\\d+)$",
+      "{0} 小時前 · {1} 筆轉帳 · {2}/{3} 節點達成共識"
+    ],
+    [
+      "^(\\d+) d ago · (\\d+) payments? · agreed by (\\d+) of (\\d+)$",
+      "{0} 天前 · {1} 筆轉帳 · {2}/{3} 節點達成共識"
+    ],
+    [
+      "^(\\d+) min ago · agreed by (\\d+) of (\\d+)$",
+      "{0} 分鐘前 · {1}/{2} 節點達成共識"
+    ],
+    [
+      "^(\\d+) h ago · agreed by (\\d+) of (\\d+)$",
+      "{0} 小時前 · {1}/{2} 節點達成共識"
+    ],
+    [
+      "^(\\d+) d ago · agreed by (\\d+) of (\\d+)$",
+      "{0} 天前 · {1}/{2} 節點達成共識"
+    ],
+    [
+      "^just now · (\\d+) payments? · agreed by (\\d+) of (\\d+)$",
+      "剛剛 · {0} 筆轉帳 · {1}/{2} 節點達成共識"
+    ],
+    [
+      "^just now · agreed by (\\d+) of (\\d+)$",
+      "剛剛 · {0}/{1} 節點達成共識"
+    ],
+    [
+      "^([0-9,]+) payments?$",
+      "{0} 筆轉帳"
+    ],
+    [
+      "^Of ([0-9,]+) there will ever be$",
+      "總發行上限 {0}"
+    ],
+    [
+      "^([0-9,]+) in the last (\\d+) hours$",
+      "過去 {1} 小時共 {0} 位"
+    ],
+    [
+      "^Estimated, over the last (\\d+) hours$",
+      "估算值，基於過去 {0} 小時"
+    ],
+    [
+      "^Estimated, over the last hour$",
+      "估算值，基於過去 1 小時"
+    ],
+    [
+      "^([0-9,]+) hold at least 1 ORN$",
+      "{0} 個持有至少 1 ORN"
+    ],
+    [
+      "^Validator (\\d+)$",
+      "驗證節點 {0}"
+    ],
+    [
+      "^([0-9.]+)% of ORN in wallets$",
+      "占流通 ORN 的 {0}%"
+    ],
+    [
+      "^([0-9.]+)% of the work$",
+      "占總算力的 {0}%"
+    ],
+    [
+      "^([0-9,]+) wallets hold ORN$",
+      "{0} 個錢包持有 ORN"
+    ],
+    [
+      "^([0-9,]+) wallets? paid$",
+      "已向 {0} 個錢包發放"
+    ],
+    [
+      "^Staked by (.+) · ([0-9,]+) ORN · agreed on (\\d+) of the last (\\d+)$",
+      "質押者 {0} · {1} ORN · 最近 {3} 次達成 {2} 次共識"
+    ],
+    [
+      "^Launch validator · agreed on (\\d+) of the last (\\d+)$",
+      "創世驗證節點 · 最近 {1} 次達成 {0} 次共識"
+    ],
+    [
+      "^Staked by (.+)$",
+      "質押者 {0}"
+    ],
+    [
+      "^(\\d+) verified wallets?$",
+      "{0} 個已驗證錢包"
+    ],
+    [
+      "^(\\d+) more offers? paused while .*$",
+      "另有 {0} 個報價因當前兌換而暫停"
+    ],
+    [
+      "^Continue with (.+)$",
+      "使用 {0} 繼續"
+    ],
+    [
+      "^Sell with (.+)$",
+      "使用 {0} 賣出"
+    ],
+    [
+      "^Take with (.+)$",
+      "使用 {0} 接單"
+    ],
+    [
+      "^Sweet spot: (\\d+) of (\\d+) cores$",
+      "最佳設定：{0} / {1} 核心"
+    ],
+    [
+      "^About ([0-9,]+) tries a second\\. Past it, the processor runs hotter for no more ORN\\.$",
+      "每秒約 {0} 次嘗試。超過此值後處理器會更熱，但不會增加 ORN 收益。"
+    ],
+    [
+      "^Trying (\\d+) of (\\d+) cores \\((\\d+) of (\\d+)\\)\\. Shares found still count\\.$",
+      "正在測試 {0} / {1} 核心（第 {2} / {3} 項）。期間找到的份額仍然有效。"
+    ],
+    [
+      "^This hour: ([0-9,]+) shares found, ([0-9,]+) counted$",
+      "本小時：找到 {0} 個份額，計入 {1} 個"
+    ],
+    [
+      "^About one try in ([0-9,]+) makes a share\\.$",
+      "大約每 {0} 次嘗試可獲得 1 個份額。"
+    ],
+    [
+      "^([0-9.,]+(?: [KMG])?) tries a second$",
+      "每秒 {0} 次嘗試"
+    ],
+    [
+      "^(\\d+) of (\\d+) cores$",
+      "{0} / {1} 核心"
+    ],
+    [
+      "^(\\d+) of (\\d+)$",
+      "{0} / {1}"
+    ],
+    [
+      "^(\\d+) of 24 words$",
+      "{0} / 24 個助記詞"
+    ],
+    [
+      "^staked · ([0-9.,]+) returning$",
+      "已質押 · {0} 正在退回"
+    ],
+    [
+      "^Received from (.+)$",
+      "收款來自 {0}"
+    ],
+    [
+      "^Sent to (.+)$",
+      "發送至 {0}"
+    ],
+    [
+      "^Locked payment received from (.+)$",
+      "收到來自 {0} 的鎖定轉帳"
+    ],
+    [
+      "^(.+) · checkpoint (\\d+)$",
+      "{0} · 檢查點 {1}"
+    ],
+    [
+      "^checkpoint (\\d+)$",
+      "檢查點 {0}"
+    ],
+    [
+      "^← Checkpoint (\\d+)$",
+      "← 檢查點 {0}"
+    ],
+    [
+      "^Checkpoint (\\d+) →$",
+      "檢查點 {0} →"
+    ],
+    [
+      "^Checkpoint (\\d+) hasn't been made yet\\.$",
+      "檢查點 {0} 尚未生成。"
+    ],
+    [
+      "^Checkpoint (\\d+) hasn't been made yet\\. The latest is (\\d+)\\.$",
+      "檢查點 {0} 尚未生成，最新檢查點為 {1}。"
+    ],
+    [
+      "^Being made now, ready in about (\\d+) min$",
+      "正在生成中，預計約 {0} 分鐘後就緒"
+    ],
+    [
+      "^Next hour (.+)$",
+      "下一小時 {0}"
+    ],
+    [
+      "^([0-9.]+)× easier$",
+      "難度降低 {0}×"
+    ],
+    [
+      "^([0-9.]+)× harder$",
+      "難度提高 {0}×"
+    ],
+    [
+      "^([0-9.,]+) new ORN$",
+      "{0} 新增 ORN"
+    ],
+    [
+      "^([0-9.,]+) available$",
+      "可用 {0}"
+    ],
+    [
+      "^Avail: ([0-9.,]+)$",
+      "可用：{0}"
+    ],
+    [
+      "^Fee ([0-9.,]+) ORN · ([0-9.,]+) ORN in all$",
+      "手續費 {0} ORN · 共計 {1} ORN"
+    ],
+    [
+      "^incl\\. ([0-9.,]+) fee$",
+      "含 {0} 手續費"
+    ],
+    [
+      "^([0-9.,]+) ORN sent$",
+      "已發送 {0} ORN"
+    ],
+    [
+      "^(\\d+) more characters?$",
+      "還需 {0} 個字元"
+    ],
+    [
+      "^(\\d+) min ago$",
+      "{0} 分鐘前"
+    ],
+    [
+      "^(\\d+) h ago$",
+      "{0} 小時前"
+    ],
+    [
+      "^(\\d+) d ago$",
+      "{0} 天前"
+    ],
+    [
+      "^(\\d+) h (\\d+) min$",
+      "{0} 小時 {1} 分鐘"
+    ],
+    [
+      "^(\\d+) min$",
+      "{0} 分鐘"
+    ],
+    [
+      "^(\\d+) minutes?$",
+      "{0} 分鐘"
+    ],
+    [
+      "^(\\d+) hours?$",
+      "{0} 小時"
+    ],
+    [
+      "^(\\d+) days?$",
+      "{0} 天"
+    ],
+    [
+      "^(\\d+) days? left$",
+      "剩餘 {0} 天"
+    ],
+    [
+      "^(\\d+) hours? left$",
+      "剩餘 {0} 小時"
+    ],
+    [
+      "^(\\d+) minutes? left$",
+      "剩餘 {0} 分鐘"
+    ],
+    [
+      "^(\\d+) more$",
+      "還有 {0} 項"
+    ],
+    [
+      "^(\\d+) others?$",
+      "其他 {0} 人"
+    ],
+    [
+      "^(.+) and (\\d+) others?$",
+      "{0} 及其他 {1} 人"
+    ],
+    [
+      "^(.+), (\\d+) swaps? done$",
+      "{0}，已完成 {1} 次兌換"
+    ],
+    [
+      "^([0-9.,]+) SOL per ORN$",
+      "每 ORN {0} SOL"
+    ],
+    [
+      "^([0-9,]+) satoshis per ORN$",
+      "每 ORN {0} 聰"
+    ],
+    [
+      "^Member since (.+)$",
+      "加入於 {0}"
+    ],
+    [
+      "^Blocked (.+)$",
+      "已封鎖 {0}"
+    ],
+    [
+      "^Block (.+)$",
+      "封鎖 {0}"
+    ],
+    [
+      "^Unblock (.+)$",
+      "解除封鎖 {0}"
+    ],
+    [
+      "^Reply to (.+)$",
+      "回覆 {0}"
+    ],
+    [
+      "^Write to (.+)$",
+      "給 {0} 傳訊息"
+    ],
+    [
+      "^Ask (.+) to pay$",
+      "向 {0} 請求付款"
+    ],
+    [
+      "^Tip ([0-9.,]+) ORN$",
+      "打賞 {0} ORN"
+    ],
+    [
+      "^Tip (.+) for (.+)$",
+      "為 {1} 向 {0} 打賞"
+    ],
+    [
+      "^Tip (.+)$",
+      "打賞 {0}"
+    ],
+    [
+      "^Tip with (.+)$",
+      "使用 {0} 打賞"
+    ],
+    [
+      "^Send with (.+)$",
+      "使用 {0} 發送"
+    ],
+    [
+      "^Pay with (.+)$",
+      "使用 {0} 付款"
+    ],
+    [
+      "^Post with (.+)$",
+      "使用 {0} 發布"
+    ],
+    [
+      "^Verify with (.+)$",
+      "使用 {0} 驗證"
+    ],
+    [
+      "^Turn on with (.+)$",
+      "使用 {0} 開啟"
+    ],
+    [
+      "^Buy ORN with (.+)$",
+      "使用 {0} 買入 ORN"
+    ],
+    [
+      "^Sell ORN with (.+)$",
+      "使用 {0} 賣出 ORN"
+    ],
+    [
+      "^Use (.+) instead$",
+      "改用 {0}"
+    ],
+    [
+      "^Use (.+) instead of the password from now on$",
+      "今後改用 {0} 代替密碼"
+    ],
+    [
+      "^Use (.+)$",
+      "使用 {0}"
+    ],
+    [
+      "^Confirm with (.+)$",
+      "使用 {0} 確認"
+    ],
+    [
+      "^Verify (.+)$",
+      "驗證 {0}"
+    ],
+    [
+      "^Verifying (.+)$",
+      "正在驗證 {0}"
+    ],
+    [
+      "^Send ([0-9.,]+) ORN and verify$",
+      "發送 {0} ORN 並驗證"
+    ],
+    [
+      "^Orien Wallet ([0-9.]+) is the newest version\\.$",
+      "Orien Wallet {0} 已是最新版本。"
+    ],
+    [
+      "^Orien Wallet ([0-9.]+) is ready$",
+      "Orien Wallet {0} 已就緒"
+    ],
+    [
+      "^Orien Wallet ([0-9.]+) is out(.*)$",
+      "Orien Wallet {0} 已發布{1}"
+    ],
+    [
+      "^Waiting for (.+) to pay\\.$",
+      "正在等待 {0} 付款。"
+    ],
+    [
+      "^Waiting for (.+)$",
+      "正在等待 {0}"
+    ],
+    [
+      "^Locking ORN for (.+)$",
+      "正在為 {0} 鎖定 ORN"
+    ],
+    [
+      "^Selling to (.+)$",
+      "正在出售給 {0}"
+    ],
+    [
+      "^Taken by (.+)$",
+      "已被 {0} 接單"
+    ],
+    [
+      "^You get ([0-9.,]+) ORN$",
+      "你將獲得 {0} ORN"
+    ],
+    [
+      "^You mined ([0-9.,]+) ORN$",
+      "你挖出了 {0} ORN"
+    ],
+    [
+      "^You received ([0-9.,]+) ORN$",
+      "你收到了 {0} ORN"
+    ],
+    [
+      "^You paid ([0-9.,]+) ORN\\.$",
+      "你支付了 {0} ORN。"
+    ],
+    [
+      "^Buy orders are limited to ([0-9.,]+) SOL per order$",
+      "每筆買單上限為 {0} SOL"
+    ],
+    [
+      "^The smallest swap is ([0-9.,]+) (SOL|BTC)$",
+      "最小兌換額為 {0} {1}"
+    ],
+    [
+      "^At least ([0-9.,]+) (SOL|BTC)$",
+      "至少 {0} {1}"
+    ],
+    [
+      "^Pay by (.+), in (.+)$",
+      "請在 {0} 前付款（{1}內）"
+    ],
+    [
+      "^around (.+), in about (\\d+) hours?$",
+      "大約 {0}（約 {1} 小時後）"
+    ],
+    [
+      "^around (.+)$",
+      "大約 {0}"
+    ],
+    [
+      "^Sign in to (.+)\\?$",
+      "登入到 {0}？"
+    ],
+    [
+      "^Already saved as (.+)$",
+      "已儲存為 {0}"
+    ],
+    [
+      "^✓ Your wallet (.+)$",
+      "✓ 你的錢包 {0}"
+    ],
+    [
+      "^(.+): your profile$",
+      "{0}：你的個人資料"
+    ],
+    [
+      "^(.+) \\(yours\\)$",
+      "{0}（你的）"
+    ],
+    [
+      "^(.+) hasn't posted yet\\.$",
+      "{0} 尚未發布任何貼文。"
+    ],
+    [
+      "^About (.+)$",
+      "關於 {0}"
+    ],
+    [
+      "^(.+)'s password$",
+      "{0} 的密碼"
+    ],
+    [
+      "^Remove (.+)\\? Tap again$",
+      "確定移除 {0}？請再次點擊"
+    ],
+    [
+      "^The record before was ([0-9,]+)\\. Checkpoint (\\d+)\\.$",
+      "此前的紀錄為 {0}（檢查點 {1}）。"
+    ],
+    [
+      "^reacted (.+) to your post$",
+      "對你的貼文回應了 {0}"
+    ],
+    [
+      "^reacted (.+) to your reply$",
+      "對你的回覆回應了 {0}"
+    ],
+    [
+      "^reacted (.+) to the network's post about you$",
+      "對關於你的網路動態回應了 {0}"
+    ],
+    [
+      "^wrote to you about (.+)$",
+      "就 {0} 給你發了訊息"
+    ],
+    [
+      "^asks you to pay ([0-9.,]+) ORN$",
+      "請求你支付 {0} ORN"
+    ],
+    [
+      "^says they paid ([0-9.,]+) ORN$",
+      "表示已支付 {0} ORN"
+    ]
+  ],
+  "_guides": {
+    "backup": {
+      "title": "備份你的助記詞",
+      "steps": [
+        "在首頁頂部點擊錢包名稱，開啟<b>錢包</b>。",
+        "點擊該錢包卡片上的齒輪圖示。",
+        "點擊<b>助記詞</b>，然後點擊<b>我已知曉，顯示助記詞</b>。",
+        "使用 Touch ID 確認，如果錢包設有密碼則輸入密碼。",
+        "點擊<b>點擊顯示</b>，按順序將這 24 個單詞抄寫在紙上，並妥善儲存在安全、私密的地方。"
+      ],
+      "note": "任何擁有這些助記詞的人都可以花掉此錢包裡的 ORN。Orien 絕不會向你索要它們。"
+    },
+    "send": {
+      "title": "發送 ORN",
+      "steps": [
+        "在首頁點擊<b>發送</b>（帶向上箭頭的圓形按鈕）。",
+        "在<b>接收方</b>下方輸入名稱或地址，從<b>最近</b>中選擇聯絡人，或點擊<b>貼上</b>。",
+        "輸入金額，或點擊<b>最大</b>以發送扣除手續費後的全部可用餘額。",
+        "核對總計金額，然後點擊<b>發送</b>。",
+        "幾秒鐘即可到帳。如有需要，你可以在最後一步將新地址儲存為聯絡人。"
+      ]
+    },
+    "receive": {
+      "title": "接收 ORN",
+      "steps": [
+        "在首頁點擊<b>接收</b>（帶向下箭頭的圓形按鈕）。",
+        "向付款人出示QR Code，或點擊<b>分享地址</b>、<b>複製地址</b>並發送給對方。",
+        "對方的付款會在幾秒鐘內顯示在你的動態中。"
+      ]
+    },
+    "home": {
+      "title": "返回首頁",
+      "steps": [
+        "點擊左上角的<b>返回</b>可返回上一層頁面。",
+        "在任意頁面點擊視窗頂部的 <b>ORIEN</b> 名稱，即可直接回到首頁。"
+      ]
+    },
+    "wallets": {
+      "title": "新增另一個錢包",
+      "steps": [
+        "在首頁頂部點擊錢包名稱，然後點擊<b>新增錢包</b>。",
+        "點擊<b>建立新錢包</b>，為其設定名稱和圖示，然後點擊<b>建立錢包</b>。",
+        "請備份它的助記詞：每個錢包都有獨立的助記詞。",
+        "如需切換錢包，在首頁點擊錢包名稱並選擇要使用的錢包即可。"
+      ]
+    },
+    "restore": {
+      "title": "透過助記詞還原錢包",
+      "steps": [
+        "在首頁頂部點擊錢包名稱，點擊<b>新增錢包</b>，再點擊<b>透過助記詞還原</b>。如果是全新安裝，請點擊<b>使用我的助記詞</b>。",
+        "輸入 24 個助記詞，然後點擊<b>繼續</b>。",
+        "為其設定名稱和圖示，然後點擊<b>還原錢包</b>。"
+      ]
+    },
+    "link": {
+      "title": "在另一台裝置上使用你的錢包",
+      "steps": [
+        "在新裝置上點擊<b>使用我的其他裝置</b>（或先點擊<b>新增錢包</b>，再點擊<b>從我的其他裝置匯入</b>），頁面會顯示一個QR Code和配對碼。",
+        "在已有錢包的裝置上開啟<b>設定</b>（首頁上帶齒輪的圓形按鈕），然後點擊<b>連結新裝置</b>。",
+        "在 iPhone 上掃描新裝置的QR Code；在電腦上輸入配對碼並點擊<b>繼續</b>。",
+        "確認兩台裝置顯示相同的三個圖案，然後點擊<b>一致，發送我的錢包</b>。",
+        "你的錢包會自動同步到新裝置。"
+      ],
+      "note": "你的錢包會經過加密，直接在你的兩台裝置之間傳輸。"
+    },
+    "sync": {
+      "title": "在所有裝置上同步聯絡人",
+      "steps": [
+        "在首頁點擊<b>聯絡人</b>（帶雙人圖示的圓形按鈕）。",
+        "如果看到<b>開啟同步</b>，請點擊它，並使用 Touch ID 確認（如果錢包設有密碼則輸入密碼）。",
+        "在每台裝置上執行一次此操作後，聯絡人和錢包圖示就會在所有裝置上保持同步。"
+      ]
+    },
+    "signin": {
+      "title": "登入 Orien Network",
+      "steps": [
+        "在首頁右上角點擊<b>登入</b>。",
+        "輸入你的電子郵件並點擊<b>發送驗證碼</b>。",
+        "輸入郵件中的 6 位驗證碼並點擊<b>繼續</b>。",
+        "初次使用？選擇一個使用者名稱，然後點擊<b>建立我的帳號</b>。"
+      ],
+      "note": "你的帳號用於社群、市場和兌換，你的錢包始終儲存在本應用程式中。"
+    },
+    "verify": {
+      "title": "驗證錢包",
+      "steps": [
+        "登入並開啟你要驗證的錢包。",
+        "在首頁餘額下方的<b>驗證</b>卡片上點擊<b>驗證</b>。（或者點擊右上角頭像，選擇<b>編輯資料</b>，然後點擊該錢包旁的<b>驗證</b>。）",
+        "點擊<b>驗證</b>以確認。此操作會從該錢包發送不到 0.001 ORN（含手續費）。",
+        "1 分鐘內即可顯示<b>已驗證</b>。"
+      ],
+      "note": "驗證後會向所有人展示此錢包歸你所有（包括餘額），同時解鎖發文、出售商品、兌換和接收打賞功能。"
+    },
+    "verify-more": {
+      "title": "驗證更多錢包，並選擇收款錢包",
+      "steps": [
+        "切換到另一個錢包：在首頁點擊錢包名稱並選擇它。",
+        "點擊你的頭像，選擇<b>編輯資料</b>，然後點擊該錢包旁的<b>驗證</b>。",
+        "對每個想展示在個人資料中的錢包重複此操作。",
+        "買家和打賞者付款的錢包會顯示<b>在此收款</b>。如需變更，請在另一個已驗證錢包上點擊<b>在此收款</b>。",
+        "如需將某個錢包從個人資料中移除，請點擊它旁邊的 <b>⋯</b>，然後點擊<b>從個人資料移除</b>。"
+      ]
+    },
+    "tip": {
+      "title": "打賞他人",
+      "steps": [
+        "在首頁點擊<b>社群</b>（帶地球圖示的圓形按鈕）。",
+        "在你喜歡的貼文下方點擊<b>打賞</b>。",
+        "選擇 1、5 或 10 ORN，或輸入其他金額，然後點擊<b>打賞</b>。",
+        "貼文上只會顯示打賞金額，不會公開你的名字，但作者會收到你的打賞通知。"
+      ],
+      "note": "打賞屬於實際轉帳，發出後無法復原。"
+    },
+    "chat": {
+      "title": "和大家聊天",
+      "steps": [
+        "在首頁點擊<b>訊息</b>（帶對話氣泡圖示的圓形按鈕）。<b>Orien 群組聊天</b>置頂在最上方。",
+        "所有人都可以瀏覽內容。如需發言、回覆或心情回應，請登入並驗證一個錢包。",
+        "將滑鼠游標停在訊息上即可回覆、心情回應或檢舉。",
+        "有新訊息時，訊息圖示上會出現小紅點。如需關閉提醒，請點擊聊天頂部的鈴鐺圖示。"
+      ],
+      "note": "群組聊天中的所有內容都是公開的，請友善交流。"
+    },
+    "ai": {
+      "title": "諮詢 Orien AI 客服",
+      "steps": [
+        "在首頁點擊<b>訊息</b>（帶對話氣泡圖示的圓形按鈕）。<b>Orien AI 客服</b>置頂在群組聊天下方。在寬螢幕視窗中，點擊鈴鐺旁的救生圈圖示也可以開啟。",
+        "你需要登入 Orien Network，無需驗證錢包。",
+        "用你自己的話提問，任何關於錢包、挖礦、兌換或網路的問題都可以。",
+        "點擊聊天頂部的<b>重新開始</b>可清空對話。"
+      ],
+      "note": "回答由 AI 生成，可能存在錯誤。它絕不需要你的助記詞、密碼或私鑰，請勿向任何人透露這些資訊。"
+    },
+    "explorer": {
+      "title": "查詢網路數據",
+      "steps": [
+        "在首頁點擊<b>瀏覽器</b>（帶望遠鏡圖示的圓形按鈕）。在寬螢幕視窗中，也可以直接點擊錢包旁的<b>網路</b>卡片。",
+        "頂部數字顯示當前網路即時狀態：已發行 ORN、下一個檢查點、礦工數和算力。",
+        "在下方點擊<b>檢查點</b>、<b>富豪榜</b>或<b>驗證節點</b>，點擊任意一行即可查看詳情。",
+        "如需查找特定內容，請在搜尋框中輸入地址、使用者名稱或檢查點編號。"
+      ]
+    },
+    "get": {
+      "title": "在 iPhone 上獲取 ORN",
+      "steps": [
+        "接收他人付款：透過<b>接收</b>（帶向下箭頭的圓形按鈕）分享你的地址。",
+        "在電腦版 Orien Wallet 中連結此錢包，即可用 SOL 或 Bitcoin 兌換 ORN。",
+        "在電腦上挖礦：在電腦安裝 Orien Wallet，連結此錢包，然後點擊<b>挖礦</b>。"
+      ]
+    },
+    "mine": {
+      "title": "挖掘 ORN",
+      "steps": [
+        "在首頁點擊<b>挖礦</b>（帶礦鎬圖示的圓形按鈕）。在寬螢幕視窗中，也可以直接點擊錢包旁的<b>挖礦</b>卡片。",
+        "拖動<b>處理器</b>滑桿，或點擊<b>效能測試</b>以找到你電腦的最佳設定。",
+        "點擊<b>開始挖礦</b>，每小時即可賺取一份新增 ORN 獎勵。",
+        "如需在關閉視窗後繼續挖礦，請在設定中的<b>此電腦</b>開啟<b>關閉視窗後保持運行</b>。如需防止電腦睡眠，也可在同一位置開啟<b>防止電腦進入睡眠</b>。"
+      ],
+      "note": "如果應用程式在挖礦時更新，更新後會自動恢復挖礦。"
+    },
+    "buy": {
+      "title": "使用 SOL 或 Bitcoin 買入 ORN",
+      "steps": [
+        "在首頁點擊<b>兌換</b>（帶雙向箭頭圖示的圓形按鈕）。",
+        "在<b>開放報價</b>下方，對你滿意的報價點擊<b>接單</b>。",
+        "輸入你用來付款的 SOL 或 Bitcoin 地址，然後點擊<b>接受報價</b>。",
+        "賣家響應後，請從你的 SOL 或 Bitcoin 錢包支付頁面顯示的準確金額。",
+        "ORN 會自動到帳此錢包。"
+      ]
+    },
+    "sell": {
+      "title": "賣出 ORN",
+      "steps": [
+        "請先登入並驗證此錢包。",
+        "在首頁點擊<b>兌換</b>（帶雙向箭頭圖示的圓形按鈕），然後點擊<b>發布報價</b>。",
+        "選擇 SOL 或 Bitcoin，然後輸入要賣出的 ORN 數量、期望收到的金額以及收款地址。",
+        "點擊<b>發布報價</b>，並保持 Orien Wallet 運行直到有人接單。在設定中的<b>此電腦</b>開啟<b>防止電腦進入睡眠</b>，可在你離開時保持運行。"
+      ]
+    },
+    "lock": {
+      "title": "使用 Touch ID 鎖定",
+      "steps": [
+        "開啟<b>設定</b>（首頁上帶齒輪的圓形按鈕），然後進入<b>隱私與安全</b>。",
+        "開啟<b>使用 Touch ID 鎖定</b>。",
+        "離開 1 分鐘後 Orien Wallet 會自動鎖定。"
+      ]
+    },
+    "extension": {
+      "title": "在瀏覽器中使用 Orien Wallet",
+      "steps": [
+        "開啟<b>設定</b>（首頁上帶齒輪的圓形按鈕），然後進入<b>瀏覽器擴充功能</b>。",
+        "點擊你的瀏覽器並在其中新增 Orien Wallet。",
+        "直接在瀏覽器工具欄發送 ORN、查看餘額，並用錢包登入網站。你的私鑰始終儲存在本應用程式中。"
+      ]
+    },
+    "theme-build": {
+      "title": "製作你自己的主題",
+      "steps": [
+        "開啟<b>設定</b>（首頁上帶齒輪的圓形按鈕），進入<b>外觀</b>，然後點擊<b>製作主題</b>。",
+        "為其設定<b>名稱</b>，並在<b>基礎風格</b>下選擇<b>深色</b>或<b>淺色</b>。",
+        "選擇一個<b>強調色</b>，或點擊彩虹色環自定義顏色。",
+        "在<b>背景圖片</b>下方點擊<b>選擇圖片</b>。建議使用高解析度大圖（至少 1920 × 1080），顯示效果最佳。",
+        "邊調整邊查看預覽效果，完成後點擊<b>儲存主題</b>，主題會立即應用程式。"
+      ],
+      "note": "你的主題會同步到你的其他電腦，你的 iPhone 也會採用相同的配色。之後如需修改，可在「外觀」中點擊主題卡片上的齒輪圖示；點擊垃圾桶圖示即可刪除。"
+    },
+    "theme-store": {
+      "title": "在主題商店中探索主題",
+      "steps": [
+        "開啟<b>設定</b>（首頁上帶齒輪的圓形按鈕），進入<b>外觀</b>，然後點擊頂部的<b>主題商店</b>。",
+        "在<b>全部</b>下方，可選擇<b>熱門</b>或<b>最新</b>瀏覽社群創作的主題，或選擇<b>官方</b>查看 Orien 官方主題。每張卡片都會在縮圖介面中預覽主題效果。",
+        "點擊<b>試用</b>以預覽整個應用程式的主題效果。點擊<b>復原</b>可恢復原狀，離開商店也會自動恢復。",
+        "點擊<b>使用</b>以儲存它。它會加入外觀中的主題列表並立即應用程式。",
+        "喜歡這個主題？點擊硬幣按鈕可向作者打賞 ORN，點擊旗幟按鈕可檢舉違規主題。"
+      ],
+      "note": "你使用的主題會儲存為你自己的副本：作者無法修改它，你可以像對待自己製作的主題一樣編輯或刪除它。"
+    },
+    "theme-share": {
+      "title": "在主題商店分享主題",
+      "steps": [
+        "你需要使用已驗證錢包登入 Orien Network。",
+        "開啟<b>設定</b>（首頁上帶齒輪的圓形按鈕），然後進入<b>外觀</b>。",
+        "在你自己的主題上點擊分享按鈕（帶箭頭的方框），然後點擊<b>分享主題</b>。",
+        "審核通過後會附帶你的使用者名稱展示在商店中，任何人都可以試用、使用並向你打賞。",
+        "如需下架，請開啟主題商店，進入<b>我的</b>，然後連續點擊兩次<b>從商店下架</b>。"
+      ],
+      "note": "之後編輯你的主題不會變更已分享的版本。如果你更喜歡新版本，可以作為新主題重新分享。"
+    },
+    "activity": {
+      "title": "動態與通知",
+      "steps": [
+        "在首頁點擊動態旁的<b>查看全部</b>。",
+        "<b>轉帳</b>顯示你發送和接收的記錄；<b>獎勵</b>顯示挖礦獎勵和驗證節點手續費。",
+        "可在設定中的<b>通知</b>裡選擇要接收的提醒類型。"
+      ]
+    }
+  }
+}

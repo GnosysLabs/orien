@@ -1,0 +1,2112 @@
+{
+  "_meta": {
+    "code": "vi",
+    "native": "Tiếng Việt",
+    "english": "Vietnamese"
+  },
+  "(optional, for a reply)": "(không bắt buộc, để nhận phản hồi)",
+  "+ Add a choice": "+ Thêm lựa chọn",
+  ". Fees: the usual Orien fee to lock the ORN (0.1%, at most 1 ORN), and Bitcoin's network fee for taking the Bitcoin, out of what you receive. If a buyer never pays, your ORN come back on their own within 12 hours.": ". Phí: phí Orien thông thường để khóa ORN (0,1%, tối đa 1 ORN) và phí mạng Bitcoin khi nhận Bitcoin, được trừ từ số tiền bạn nhận. Nếu người mua không thanh toán, ORN của bạn sẽ tự động hoàn lại trong vòng 12 giờ.",
+  ". Then": ". Sau đó",
+  ". Then scan this code, or type it.": ". Sau đó quét mã này hoặc nhập thủ công.",
+  "0 open": "0 đang mở",
+  "1 day": "1 ngày",
+  "12 hours after they were locked": "12 giờ sau khi bị khóa",
+  "3 days": "3 ngày",
+  "3 to 20 letters, numbers or _": "3 đến 20 chữ cái, chữ số hoặc _",
+  "30 min ago": "30 phút trước",
+  "7 days": "7 ngày",
+  "A few words for people you swap with": "Đôi lời giới thiệu cho người hoán đổi cùng bạn",
+  "A fresh one, with its own recovery phrase": "Ví mới hoàn toàn, có cụm từ khôi phục riêng",
+  "A locked payment nobody claimed": "Khoản thanh toán bị khóa chưa có ai nhận",
+  "A new miner joined": "Có thợ đào mới tham gia",
+  "A password protects the wallet on this computer. Without it, anyone who gets this computer's files can spend from it. You will type it each time you send.": "Mật khẩu giúp bảo vệ ví trên máy tính này. Nếu không có mật khẩu, bất kỳ ai lấy được tệp trên máy tính này đều có thể chi tiêu từ ví. Bạn sẽ nhập mật khẩu mỗi khi gửi.",
+  "A scam, something illegal, pretending to be someone…": "Lừa đảo, nội dung bất hợp pháp, giả mạo người khác…",
+  "A seller filled your order. Delivering your ORN automatically, usually within a minute.": "Người bán đã khớp lệnh của bạn. Đang tự động chuyển ORN cho bạn, thường trong vòng một phút.",
+  "A small arrow on screens with more below": "Mũi tên nhỏ trên các màn hình còn nội dung bên dưới",
+  "A theme you use is your own copy: the maker can't change it, and you can edit or delete it like one you built.": "Chủ đề bạn sử dụng là bản sao của riêng bạn: tác giả không thể thay đổi nó, và bạn có thể chỉnh sửa hoặc xóa nó như chủ đề do chính mình tạo.",
+  "AI Support": "Hỗ trợ AI",
+  "AI answers can be wrong": "Câu trả lời của AI có thể sai",
+  "About": "Giới thiệu",
+  "About the same": "Gần như tương đương",
+  "About this": "Thông tin thêm",
+  "About you": "Giới thiệu về bạn",
+  "Accent colour": "Màu nhấn",
+  "Accepted": "Đã chấp nhận",
+  "Accepted: your ORN are locked for the buyer. Waiting for them to pay.": "Đã chấp nhận: ORN của bạn đã được khóa cho người mua. Đang chờ họ thanh toán.",
+  "Activity": "Hoạt động",
+  "Activity and notifications": "Hoạt động và thông báo",
+  "Add a GIF": "Thêm GIF",
+  "Add a contact": "Thêm liên hệ",
+  "Add a password": "Thêm mật khẩu",
+  "Add a poll": "Thêm bình chọn",
+  "Add a wallet": "Thêm ví",
+  "Add another wallet": "Thêm ví khác",
+  "Add photos": "Thêm ảnh",
+  "Add pictures": "Thêm hình ảnh",
+  "Add to contacts": "Thêm vào danh bạ",
+  "Address": "Địa chỉ",
+  "Again": "Nhập lại",
+  "Agreed": "Đã đồng thuận",
+  "Agreed by": "Được đồng thuận bởi",
+  "All": "Tất cả",
+  "All your wallets": "Tất cả các ví của bạn",
+  "Among members with a verified wallet, by ORN mined.": "Trong số các thành viên có ví đã xác minh, xếp theo lượng ORN đã đào.",
+  "Amount": "Số lượng",
+  "Amount (ORN)": "Số lượng (ORN)",
+  "An address, a name or a checkpoint number": "Địa chỉ, tên hoặc số điểm kiểm tra",
+  "An earlier payment from this wallet had to finish first, so nothing was sent for verifying yet. Tap again to send it.": "Một khoản thanh toán trước đó từ ví này cần hoàn tất trước, nên chưa có gì được gửi để xác minh. Nhấn lại để gửi.",
+  "An earlier payment from this wallet had to finish first, so this one wasn't sent yet. Tap Pay again.": "Một khoản thanh toán trước đó từ ví này cần hoàn tất trước, nên khoản này chưa được gửi. Nhấn Thanh toán lại.",
+  "An earlier payment from this wallet had to finish first, so this tip wasn't sent yet. Tap Tip again.": "Một khoản thanh toán trước đó từ ví này cần hoàn tất trước, nên khoản tip này chưa được gửi. Nhấn Tặng tip lại.",
+  "Another amount": "Số lượng khác",
+  "Answers come from an AI and can be wrong. It never needs your recovery words, passwords or keys: never share them with anyone.": "Câu trả lời do AI tạo ra và có thể sai. AI không bao giờ cần cụm từ khôi phục, mật khẩu hay khóa của bạn: tuyệt đối không chia sẻ với bất kỳ ai.",
+  "Any colour you like": "Bất kỳ màu nào bạn thích",
+  "Any moment": "Ngay lúc này",
+  "Anyone can read along. To write, reply or react, sign in and verify a wallet.": "Ai cũng có thể đọc. Để viết, trả lời hoặc thả cảm xúc, hãy đăng nhập và xác minh một ví.",
+  "Anyone can see it, use it and tip you for it. Your Orien Network name is shown with it. You can take it down at any time.": "Mọi người đều có thể xem, sử dụng và tặng tip cho bạn. Tên Orien Network của bạn sẽ hiển thị kèm theo. Bạn có thể gỡ xuống bất cứ lúc nào.",
+  "Anyone can sell into it now. When they do, their wallet locks the ORN and this app opens the pay screen.": "Giờ đây bất kỳ ai cũng có thể bán vào lệnh này. Khi họ làm vậy, ví của họ sẽ khóa ORN và ứng dụng này sẽ mở màn hình thanh toán.",
+  "Anyone can take it now. When they do, your wallet runs the swap by itself.": "Giờ đây bất kỳ ai cũng có thể nhận đề nghị này. Khi họ nhận, ví của bạn sẽ tự động thực hiện hoán đổi.",
+  "Anyone who opens the file can spend your ORN. Keep it somewhere only you can reach.": "Bất kỳ ai mở tệp này đều có thể chi tiêu ORN của bạn. Hãy lưu giữ ở nơi chỉ mình bạn truy cập được.",
+  "Anyone who sees your 24 words can take everything in this wallet. Orien will never ask you for them, and no one helping you ever needs them.": "Bất kỳ ai thấy 24 từ của bạn đều có thể lấy toàn bộ tài sản trong ví này. Orien sẽ không bao giờ hỏi chúng, và không ai hỗ trợ bạn cần đến chúng.",
+  "Anyone with these words can spend this wallet's ORN. Orien never asks for them.": "Bất kỳ ai có các từ này đều có thể chi tiêu ORN của ví này. Orien không bao giờ yêu cầu chúng.",
+  "Anything left over, or a refund, comes back here": "Bất kỳ khoản dư hoặc tiền hoàn lại nào sẽ được chuyển về đây",
+  "Appearance": "Giao diện",
+  "Approve": "Phê duyệt",
+  "Approve in Orien Wallet to finish your swap.": "Phê duyệt trong Orien Wallet để hoàn tất hoán đổi.",
+  "Approve this order": "Phê duyệt lệnh này",
+  "Approve to finish your swap": "Phê duyệt để hoàn tất hoán đổi",
+  "Ask Orien AI Support": "Hỏi Hỗ trợ AI của Orien",
+  "Ask a question": "Đặt câu hỏi",
+  "Ask anything about the wallet, mining, swaps or the network, in your own words.": "Hỏi bất cứ điều gì về ví, việc đào, hoán đổi hoặc mạng lưới theo cách diễn đạt của riêng bạn.",
+  "Ask each time Orien Wallet opens": "Hỏi mỗi khi mở Orien Wallet",
+  "Ask for payment": "Yêu cầu thanh toán",
+  "Asks · selling ORN": "Lệnh bán · bán ORN",
+  "At least 8 characters": "Ít nhất 8 ký tự",
+  "At this speed and today's difficulty": "Ở tốc độ này và độ khó hôm nay",
+  "Australian dollar": "Đô la Úc",
+  "Automatic · a few minutes": "Tự động · vài phút",
+  "Automatic · about a minute": "Tự động · khoảng một phút",
+  "Automatic · keep this page open": "Tự động · giữ trang này mở",
+  "Automatic · keep this page open (~15 seconds)": "Tự động · giữ trang này mở (~15 giây)",
+  "Automatic · keep this page open (~20 seconds)": "Tự động · giữ trang này mở (~20 giây)",
+  "Automatic · usually 30 to 60 minutes": "Tự động · thường từ 30 đến 60 phút",
+  "Automatic · usually a minute": "Tự động · thường trong một phút",
+  "Automatic · usually within minutes": "Tự động · thường trong vài phút",
+  "Available": "Khả dụng",
+  "Back": "Quay lại",
+  "Back from staking": "Trả về từ staking",
+  "Back to Exchange": "Quay lại Sàn giao dịch",
+  "Back to top": "Lên đầu trang",
+  "Back up its recovery phrase: each wallet has its own.": "Sao lưu cụm từ khôi phục của ví: mỗi ví có cụm từ riêng.",
+  "Back up your recovery phrase": "Sao lưu cụm từ khôi phục của bạn",
+  "Background picture": "Ảnh nền",
+  "Balance": "Số dư",
+  "Balance after": "Số dư sau giao dịch",
+  "Ban": "Cấm",
+  "Banned": "Đã bị cấm",
+  "Banned from the group chat": "Đã bị cấm khỏi nhóm trò chuyện",
+  "Base": "Nền",
+  "Be paid in ORN.": "Nhận thanh toán bằng ORN.",
+  "Benchmark": "Đo hiệu năng",
+  "Benchmark again": "Đo hiệu năng lại",
+  "Benchmarking…": "Đang đo hiệu năng…",
+  "Bids · buying ORN": "Lệnh mua · mua ORN",
+  "Bitcoin": "Bitcoin",
+  "Bitcoin to pay": "Bitcoin cần trả",
+  "Bitcoin to receive": "Bitcoin sẽ nhận",
+  "Block": "Chặn",
+  "Blocked": "Đã chặn",
+  "Blocked accounts": "Tài khoản đã chặn",
+  "Book & Trade": "Sổ lệnh & Giao dịch",
+  "Brazilian real": "Real Brazil",
+  "Bring your wallets here from your phone or computer": "Chuyển các ví của bạn sang đây từ điện thoại hoặc máy tính",
+  "British pound": "Bảng Anh",
+  "Browser Extensions": "Tiện ích mở rộng trình duyệt",
+  "Build a theme": "Tạo chủ đề",
+  "Build your own theme": "Tự tạo chủ đề của riêng bạn",
+  "Built-in safety:": "An toàn tích hợp:",
+  "Buy": "Mua",
+  "Buy ORN": "Mua ORN",
+  "Buy ORN with SOL or Bitcoin": "Mua ORN bằng SOL hoặc Bitcoin",
+  "Buy amount (ORN)": "Số lượng mua (ORN)",
+  "Buy from": "Mua từ",
+  "Buyer": "Người mua",
+  "Buyer pays": "Người mua trả",
+  "Buyer's SOL reserved. Locking your ORN now. Keep this page open for a few more seconds.": "Đã giữ trước SOL của người mua. Đang khóa ORN của bạn. Hãy giữ trang này mở thêm vài giây.",
+  "Buyers on the Market pay the wallet marked Paid here. Verify more to choose between them.": "Người mua trên Chợ sẽ thanh toán vào ví có nhãn Nhận tiền tại đây. Hãy xác minh thêm ví để lựa chọn.",
+  "Buying ORN": "Đang mua ORN",
+  "By any message app or email. It tells the buyer's Orien Wallet what you locked for them, and holds nothing secret.": "Qua bất kỳ ứng dụng nhắn tin hoặc email nào. Mã này cho Orien Wallet của người mua biết bạn đã khóa gì cho họ và không chứa thông tin bí mật nào.",
+  "By any message app or email. It tells the seller's Orien Wallet where you're paying the Bitcoin, and holds nothing secret.": "Qua bất kỳ ứng dụng nhắn tin hoặc email nào. Mã này cho Orien Wallet của người bán biết bạn sẽ thanh toán Bitcoin ở đâu và không chứa thông tin bí mật nào.",
+  "By continuing you agree to the": "Bằng việc tiếp tục, bạn đồng ý với",
+  "Canadian dollar": "Đô la Canada",
+  "Cancel": "Hủy",
+  "Cancel below before sending. Nothing has left your wallet.": "Hủy bên dưới trước khi gửi. Chưa có gì rời khỏi ví của bạn.",
+  "Cancel buy order": "Hủy lệnh mua",
+  "Cancel buy order & return SOL": "Hủy lệnh mua & hoàn lại SOL",
+  "Cancelling your buy order on Solana and returning your SOL to your wallet. Keep this page open for about 15 seconds.": "Đang hủy lệnh mua của bạn trên Solana và hoàn SOL về ví. Hãy giữ trang này mở khoảng 15 giây.",
+  "Cancelling · returning SOL": "Đang hủy · hoàn lại SOL",
+  "Catching up": "Đang đồng bộ",
+  "Category": "Danh mục",
+  "Change banner": "Đổi ảnh bìa",
+  "Change picture": "Đổi ảnh",
+  "Changed your mind?": "Bạn đổi ý?",
+  "Chart currency": "Đơn vị biểu đồ",
+  "Chat": "Trò chuyện",
+  "Chat with everyone": "Trò chuyện với mọi người",
+  "Check for Updates": "Kiểm tra bản cập nhật",
+  "Check this one and send it again.": "Kiểm tra lại khoản này và gửi lại.",
+  "Check your other device shows these": "Kiểm tra xem thiết bị kia có hiển thị các hình này không",
+  "Checking": "Đang kiểm tra",
+  "Checking for updates": "Đang kiểm tra bản cập nhật",
+  "Checking the ORN the seller locked for you": "Đang kiểm tra lượng ORN người bán đã khóa cho bạn",
+  "Checkpoint": "Điểm kiểm tra",
+  "Checkpoints": "Điểm kiểm tra",
+  "Chinese yuan": "Nhân dân tệ",
+  "Choose SOL or Bitcoin, then type how many ORN to sell, how much you want for them, and the address you'll be paid at.": "Chọn SOL hoặc Bitcoin, sau đó nhập số lượng ORN muốn bán, số tiền bạn muốn nhận và địa chỉ nhận thanh toán.",
+  "Choose a GIF": "Chọn ảnh GIF",
+  "Choose a picture": "Chọn ảnh",
+  "Clear": "Xóa",
+  "Click": "Nhấn",
+  "Click Buy or Sell to trade directly": "Nhấn Mua hoặc Bán để giao dịch trực tiếp",
+  "Click again to start over": "Nhấn lại để bắt đầu lại",
+  "Click to add a picture": "Nhấn để thêm ảnh",
+  "Click your browser and add Orien Wallet there.": "Nhấn vào trình duyệt của bạn và thêm Orien Wallet vào đó.",
+  "Close": "Đóng",
+  "Closed": "Đã đóng",
+  "Code": "Mã",
+  "Code from the email": "Mã từ email",
+  "Community": "Cộng đồng",
+  "Completed ORN / SOL swap prices over time": "Giá hoán đổi ORN / SOL đã hoàn tất theo thời gian",
+  "Completed swap prices over time": "Giá hoán đổi đã hoàn tất theo thời gian",
+  "Confirm below": "Xác nhận bên dưới",
+  "Confirmed": "Đã xác nhận",
+  "Confirming": "Đang xác nhận",
+  "Connected": "Đã kết nối",
+  "Connected to the network": "Đã kết nối với mạng lưới",
+  "Connecting": "Đang kết nối",
+  "Contact": "Liên hệ",
+  "Contacts": "Danh bạ",
+  "Continue": "Tiếp tục",
+  "Continuing": "Đang tiếp tục",
+  "Cooler, fewer shares": "Mát hơn, ít phần việc hơn",
+  "Copied": "Đã sao chép",
+  "Copy": "Sao chép",
+  "Copy address": "Sao chép địa chỉ",
+  "Copy amount": "Sao chép số lượng",
+  "Copy code": "Sao chép mã",
+  "Copy the address": "Sao chép địa chỉ",
+  "Cores in use": "Số nhân đang dùng",
+  "Couldn't check": "Không thể kiểm tra",
+  "Cover": "Ảnh bìa",
+  "Create a wallet": "Tạo ví",
+  "Create a wallet to hold ORN, or restore the one you already have.": "Tạo ví để lưu giữ ORN hoặc khôi phục ví bạn đã có.",
+  "Currency": "Tiền tệ",
+  "Dark": "Tối",
+  "Delete contact": "Xóa liên hệ",
+  "Delete conversation": "Xóa cuộc trò chuyện",
+  "Delete for good": "Xóa vĩnh viễn",
+  "Delete my account": "Xóa tài khoản của tôi",
+  "Delete this conversation? Tap again": "Xóa cuộc trò chuyện này? Nhấn lại",
+  "Delete this post?": "Xóa bài viết này?",
+  "Delete?": "Xóa?",
+  "Describe it": "Mô tả chi tiết",
+  "Didn't answer": "Không phản hồi",
+  "Do this once on each device. After that, contacts and wallet icons stay the same on all of them.": "Thực hiện việc này một lần trên mỗi thiết bị. Sau đó, danh bạ và biểu tượng ví sẽ đồng bộ trên tất cả các thiết bị.",
+  "Does your new device show these?": "Thiết bị mới của bạn có hiển thị các hình này không?",
+  "Don't have any ORN yet? Mine for an hour from the Mine screen, or buy a little on Swap.": "Chưa có ORN nào? Hãy đào một giờ từ màn hình Đào, hoặc mua một ít trên mục Hoán đổi.",
+  "Don't have any ORN yet? Mine for an hour in Orien Wallet on a computer, or buy a little at orien.network.": "Chưa có ORN nào? Hãy đào một giờ trong Orien Wallet trên máy tính, hoặc mua một ít tại orien.network.",
+  "Don't show this again": "Không hiển thị lại",
+  "Done": "Xong",
+  "Done: the ORN are in your wallet, and anything left over went back to your SOL wallet.": "Xong: ORN đã vào ví của bạn, và bất kỳ khoản dư nào đã được hoàn về ví SOL của bạn.",
+  "Done: your SOL went back to your SOL wallet.": "Xong: SOL của bạn đã được hoàn về ví SOL.",
+  "Downloads": "Tải xuống",
+  "Each share": "Mỗi phần việc",
+  "Each wallet has its own address, recovery phrase and activity. Tap one to open it.": "Mỗi ví có địa chỉ, cụm từ khôi phục và lịch sử hoạt động riêng. Nhấn vào một ví để mở.",
+  "Earn a share of each hour's new ORN while this app is open.": "Nhận một phần lượng ORN mới mỗi giờ khi ứng dụng này đang mở.",
+  "Edit": "Chỉnh sửa",
+  "Edit Profile": "Chỉnh sửa hồ sơ",
+  "Edit listing": "Chỉnh sửa tin đăng",
+  "Edit theme": "Chỉnh sửa chủ đề",
+  "Editing your theme later doesn't change the shared one. Share it again as a new theme if you like the new version better.": "Chỉnh sửa chủ đề sau này không làm thay đổi bản đã chia sẻ. Hãy chia sẻ lại như một chủ đề mới nếu bạn thích phiên bản mới hơn.",
+  "Email": "Email",
+  "English": "Tiếng Anh",
+  "Enter ORN and SOL": "Nhập ORN và SOL",
+  "Euro": "Euro",
+  "Every miner on Orien together, estimated": "Ước tính tổng tất cả thợ đào trên Orien",
+  "Everyone": "Mọi người",
+  "Everyone on Orien Network": "Mọi người trên Orien Network",
+  "Everything in the group chat is public. Be kind.": "Mọi thứ trong nhóm trò chuyện đều công khai. Hãy cư xử tử tế.",
+  "Exchange": "Sàn giao dịch",
+  "Expired": "Đã hết hạn",
+  "Explorer": "Trình khám phá",
+  "Failed": "Thất bại",
+  "Fee": "Phí",
+  "Feed": "Bảng tin",
+  "Filled · settling (~1 min)": "Đã khớp · đang tất toán (~1 phút)",
+  "Final results": "Kết quả cuối cùng",
+  "Final within a minute": "Hoàn tất trong vòng một phút",
+  "Find members": "Tìm thành viên",
+  "Find themes in the Theme Store": "Tìm chủ đề trong Cửa hàng chủ đề",
+  "Find your sweet spot": "Tìm mức tối ưu cho máy",
+  "Fingerprints": "Dấu vân tay dữ liệu",
+  "Finish": "Hoàn tất",
+  "Finished": "Đã hoàn tất",
+  "First ORN": "ORN đầu tiên",
+  "Follow Orien's posts": "Theo dõi bài đăng của Orien",
+  "From": "Từ",
+  "From any Bitcoin wallet: scan the code, or copy the address and amount. This app sees the payment by itself; there is nothing else to send.": "Từ bất kỳ ví Bitcoin nào: quét mã hoặc sao chép địa chỉ và số lượng. Ứng dụng này sẽ tự nhận diện giao dịch thanh toán; bạn không cần gửi thêm gì nữa.",
+  "From my other device": "Từ thiết bị khác của tôi",
+  "From your SOL wallet, such as Phantom: scan the code, or copy the address and amount. Send it all in one go. This app sees it by itself; there is nothing else to send.": "Từ ví SOL của bạn, chẳng hạn như Phantom: quét mã hoặc sao chép địa chỉ và số lượng. Gửi toàn bộ trong một lần. Ứng dụng này sẽ tự nhận diện; bạn không cần gửi thêm gì nữa.",
+  "Fund your buy order with a quick SOL QR payment. Once funded, it stays live even with Orien Wallet closed, and you can cancel anytime in one click.": "Nạp tiền cho lệnh mua bằng một giao dịch quét mã QR SOL nhanh chóng. Sau khi nạp, lệnh vẫn hoạt động ngay cả khi đóng Orien Wallet, và bạn có thể hủy bất cứ lúc nào chỉ với một cú nhấp.",
+  "Get ORN": "Nhận ORN",
+  "Get ORN on iPhone": "Nhận ORN trên iPhone",
+  "Get back to Home": "Quay về Trang chủ",
+  "Get paid here": "Nhận tiền ở đây",
+  "Getting": "Đang lấy",
+  "Getting ORN": "Đang nhận ORN",
+  "Getting it ready…": "Đang chuẩn bị…",
+  "Getting ready (about a minute)": "Đang chuẩn bị (khoảng một phút)",
+  "Getting ready…": "Đang chuẩn bị…",
+  "Getting started": "Bắt đầu",
+  "Give it a": "Đặt cho nó một",
+  "Give someone your address and they can send you ORN from their wallet. Payments arrive in seconds.": "Đưa địa chỉ của bạn cho người khác để họ gửi ORN từ ví của họ. Thanh toán đến chỉ trong vài giây.",
+  "Give the wallet a name, like Mining.": "Đặt tên cho ví, ví dụ như Đào ORN.",
+  "Help": "Trợ giúp",
+  "Hide balance": "Ẩn số dư",
+  "Home": "Trang chủ",
+  "Hong Kong dollar": "Đô la Hồng Kông",
+  "How is it priced?": "Định giá thế nào?",
+  "I have backed up my recovery phrase": "Tôi đã sao lưu cụm từ khôi phục của mình",
+  "I understand, show them": "Tôi hiểu, hãy hiển thị",
+  "Icon": "Biểu tượng",
+  "If the app updates while mining, mining starts again by itself.": "Nếu ứng dụng cập nhật trong lúc đang đào, quá trình đào sẽ tự khởi động lại.",
+  "If the buyer doesn't pay,": "Nếu người mua không thanh toán,",
+  "If the buyer never pays,": "Nếu người mua không bao giờ thanh toán,",
+  "If the buyer pays but this app stays closed for more than about 4 hours, they take their Bitcoin back and your ORN still come back to you. Nobody loses coins.": "Nếu người mua đã thanh toán nhưng ứng dụng này bị đóng quá khoảng 4 giờ, họ sẽ lấy lại Bitcoin của họ và ORN của bạn vẫn quay về ví bạn. Không ai bị mất coin.",
+  "If the seller never takes your Bitcoin,": "Nếu người bán không bao giờ nhận Bitcoin của bạn,",
+  "If the seller never takes your SOL,": "Nếu người bán không bao giờ nhận SOL của bạn,",
+  "If they match, tap": "Nếu chúng khớp nhau, nhấn",
+  "If you change your mind,": "Nếu bạn đổi ý,",
+  "If you forget it, your recovery phrase still restores the wallet.": "Nếu bạn quên mật khẩu, cụm từ khôi phục vẫn có thể khôi phục ví.",
+  "In use": "Đang dùng",
+  "Indian rupee": "Rupee Ấn Độ",
+  "Indonesian rupiah": "Rupiah Indonesia",
+  "Install Orien Wallet on your Mac, Windows or Linux computer, open this same wallet there with its recovery phrase, and press Mine. Your computer earns a share of each hour's new ORN.": "Cài đặt Orien Wallet trên máy tính Mac, Windows hoặc Linux, mở cùng ví này ở đó bằng cụm từ khôi phục, rồi nhấn Đào. Máy tính của bạn sẽ nhận được một phần lượng ORN mới mỗi giờ.",
+  "It arrives in seconds. Save a new address as a contact from the last screen if you like.": "Giao dịch đến chỉ trong vài giây. Bạn có thể lưu địa chỉ mới vào danh bạ ở màn hình cuối nếu muốn.",
+  "It colours the buttons, the balance card, the glow and the highlights.": "Màu này áp dụng cho các nút, thẻ số dư, hiệu ứng phát sáng và điểm nhấn.",
+  "It installs in a moment, and the app reopens by itself.": "Bản cập nhật sẽ cài đặt trong giây lát và ứng dụng sẽ tự mở lại.",
+  "It's checked, then shows in the store with your name, where anyone can try it, use it and tip you.": "Chủ đề sẽ được kiểm duyệt, sau đó hiển thị trên cửa hàng kèm tên của bạn để mọi người dùng thử, sử dụng và tặng tip cho bạn.",
+  "It's how you add this wallet back, here or anywhere else.": "Đây là cách bạn thêm lại ví này tại đây hoặc trên bất kỳ thiết bị nào khác.",
+  "Its file stays on this computer,": "Tệp của ví vẫn ở lại trên máy tính này,",
+  "Japanese yen": "Yên Nhật",
+  "Just now": "Vừa xong",
+  "Keep Orien Wallet running": "Giữ Orien Wallet luôn chạy",
+  "Keep Orien Wallet running while your buy offer is live. When someone accepts, you'll get a notification and the pay screen opens so you can send the payment.": "Giữ Orien Wallet luôn chạy trong khi đề nghị mua đang mở. Khi có người chấp nhận, bạn sẽ nhận thông báo và màn hình thanh toán sẽ mở ra để bạn gửi tiền.",
+  "Keep contacts the same everywhere": "Đồng bộ danh bạ trên mọi thiết bị",
+  "Keep its 24-word recovery phrase.": "Hãy giữ cụm từ khôi phục gồm 24 từ của ví.",
+  "Keep running when closed": "Tiếp tục chạy khi đóng cửa sổ",
+  "Keep these words secret": "Giữ bí mật các từ này",
+  "Keep this computer awake": "Giữ máy tính này luôn thức",
+  "Language": "Ngôn ngữ",
+  "Large pages": "Trang bộ nhớ lớn",
+  "Large pages are set up, but mining is in ordinary memory this hour. If a restart doesn't switch it, restarting the computer frees the memory up.": "Trang bộ nhớ lớn đã được thiết lập, nhưng giờ này đang đào bằng bộ nhớ thông thường. Nếu khởi động lại ứng dụng không chuyển sang được, hãy khởi động lại máy tính để giải phóng bộ nhớ.",
+  "Last 30 minutes": "30 phút qua",
+  "Last reward": "Phần thưởng gần nhất",
+  "Last trade": "Giao dịch gần nhất",
+  "Later": "Để sau",
+  "Launch validator": "Trình xác thực khởi tạo",
+  "Lets mining use large pages of memory, usually 10 to 30% faster. Windows asks for an administrator's approval once, then you sign out and back in.": "Cho phép việc đào dùng trang bộ nhớ lớn, thường nhanh hơn từ 10 đến 30%. Windows sẽ hỏi quyền quản trị viên một lần, sau đó bạn đăng xuất rồi đăng nhập lại.",
+  "Light": "Sáng",
+  "Light mode: under 2 GB of free memory, so it mines more slowly.": "Chế độ nhẹ: bộ nhớ trống dưới 2 GB nên tốc độ đào chậm hơn.",
+  "Like it? The coins button tips its maker some ORN. The flag reports a theme that breaks the rules.": "Thích chủ đề này? Nút đồng xu dùng để tặng tác giả một ít ORN. Nút lá cờ dùng để báo cáo chủ đề vi phạm quy định.",
+  "Link a device": "Liên kết thiết bị",
+  "Link a new device": "Liên kết thiết bị mới",
+  "Listing": "Tin đăng",
+  "Live on book": "Đang mở trên sổ lệnh",
+  "Live on order book · settles automatically": "Đang mở trên sổ lệnh · tự động tất toán",
+  "Loading": "Đang tải",
+  "Loading chart…": "Đang tải biểu đồ…",
+  "Loading order book…": "Đang tải sổ lệnh…",
+  "Loading…": "Đang tải…",
+  "Lock ORN": "Khóa ORN",
+  "Lock with Touch ID": "Khóa bằng Touch ID",
+  "Locked on Solana. Adding your buy order to the order book now. Keep this page open for a few more seconds.": "Đã khóa trên Solana. Đang đưa lệnh mua của bạn lên sổ lệnh. Hãy giữ trang này mở thêm vài giây.",
+  "Locked payment": "Thanh toán bị khóa",
+  "Locked payment from": "Thanh toán bị khóa từ",
+  "Locked payment received": "Đã nhận thanh toán bị khóa",
+  "Locked payment returned": "Đã hoàn trả thanh toán bị khóa",
+  "Locking ORN": "Đang khóa ORN",
+  "Locking your ORN": "Đang khóa ORN của bạn",
+  "Locking your ORN for the buyer.": "Đang khóa ORN của bạn cho người mua.",
+  "Locking your ORN for them": "Đang khóa ORN của bạn cho họ",
+  "Logo design": "Thiết kế logo",
+  "Look up the network": "Tra cứu mạng lưới",
+  "Made": "Đã tạo",
+  "Made final": "Đã hoàn tất",
+  "Make a new wallet": "Tạo ví mới",
+  "Make cover": "Đặt làm ảnh bìa",
+  "Make mining faster": "Tăng tốc độ đào",
+  "Make my account": "Tạo tài khoản của tôi",
+  "Make the wallet": "Tạo ví",
+  "Make the window small": "Thu nhỏ cửa sổ",
+  "Make the window wide": "Mở rộng cửa sổ",
+  "Manage blocks": "Quản lý danh sách chặn",
+  "Marked as paid": "Đã đánh dấu là đã thanh toán",
+  "Market": "Chợ",
+  "Market Listings": "Tin đăng trên Chợ",
+  "Max": "Tối đa",
+  "Maximize": "Phóng to",
+  "Memory": "Bộ nhớ",
+  "Message": "Nhắn tin",
+  "Message everyone": "Nhắn cho mọi người",
+  "Message the seller": "Nhắn cho người bán",
+  "Messages": "Tin nhắn",
+  "Messages about your Market listings always come through whatever you pick, so buyers can ask about what you're selling. Blocking still works on top of this.": "Tin nhắn về các tin đăng trên Chợ của bạn luôn được chuyển tới bất kể bạn chọn gì, để người mua có thể hỏi về món hàng. Tính năng chặn vẫn có hiệu lực trên tùy chọn này.",
+  "Mexican peso": "Peso Mexico",
+  "Milestone": "Cột mốc",
+  "Mine": "Đào",
+  "Mine ORN": "Đào ORN",
+  "Mine for an hour from the Mine screen, or buy a little on Swap.": "Đào một giờ từ màn hình Đào, hoặc mua một ít trên mục Hoán đổi.",
+  "Mine for an hour in Orien Wallet on a computer, or buy a little at orien.network.": "Đào một giờ trong Orien Wallet trên máy tính, hoặc mua một ít tại orien.network.",
+  "Mine it on a computer.": "Đào trên máy tính.",
+  "Mine on a computer: install Orien Wallet there, link this wallet, and press": "Đào trên máy tính: cài Orien Wallet ở đó, liên kết ví này rồi nhấn",
+  "Mine with a verified wallet and your figures show here after the next checkpoint.": "Đào bằng ví đã xác minh để số liệu của bạn hiển thị tại đây sau điểm kiểm tra tiếp theo.",
+  "Miners last hour": "Thợ đào giờ qua",
+  "Miners paid": "Thợ đào được trả thưởng",
+  "Miners who have verified a wallet on their Orien Network account, by ORN mined. Verify your wallet on your account to be on the list.": "Các thợ đào đã xác minh ví trên tài khoản Orien Network, xếp theo lượng ORN đã đào. Hãy xác minh ví trên tài khoản của bạn để có mặt trong danh sách.",
+  "Minimize": "Thu gọn",
+  "Minimum order is 0.01 SOL": "Lệnh tối thiểu là 0,01 SOL",
+  "Mining": "Khai thác",
+  "Mining for": "Đang đào cho",
+  "Mining in large pages of memory, for extra speed.": "Đang đào bằng trang bộ nhớ lớn để tăng tốc độ.",
+  "Mining reward": "Phần thưởng đào",
+  "Mining rewards": "Phần thưởng đào",
+  "Moderator": "Điều hành viên",
+  "More": "Thêm",
+  "More below": "Còn nữa bên dưới",
+  "More heat, no more ORN": "Nóng hơn, không thêm ORN",
+  "Mute the group chat": "Tắt tiếng nhóm trò chuyện",
+  "Muted": "Đã tắt tiếng",
+  "My Orien (ORN) address": "Địa chỉ Orien (ORN) của tôi",
+  "My theme": "Chủ đề của tôi",
+  "Name": "Tên",
+  "Name or address": "Tên hoặc địa chỉ",
+  "Needs about 2 GB of memory. Rewards depend on how much everyone else mines.": "Cần khoảng 2 GB bộ nhớ. Phần thưởng phụ thuộc vào mức độ đào của những người khác.",
+  "Network": "Mạng lưới",
+  "Network hashrate": "Tốc độ băm toàn mạng",
+  "New ORN this hour": "ORN mới giờ này",
+  "New account: pick a username": "Tài khoản mới: chọn tên người dùng",
+  "New contact": "Liên hệ mới",
+  "New here?": "Bạn mới đến?",
+  "New messages and payment requests": "Tin nhắn mới và yêu cầu thanh toán",
+  "New record": "Kỷ lục mới",
+  "New validator": "Trình xác thực mới",
+  "New versions install while you're away from the app": "Phiên bản mới sẽ tự cài đặt khi bạn không dùng ứng dụng",
+  "Newest": "Mới nhất",
+  "Next checkpoint": "Điểm kiểm tra tiếp theo",
+  "Nigerian naira": "Naira Nigeria",
+  "No GIFs found.": "Không tìm thấy ảnh GIF nào.",
+  "No GIFs right now.": "Hiện chưa có ảnh GIF nào.",
+  "No ORN moves.": "Không có ORN nào di chuyển.",
+  "No activity is recorded for this address.": "Không có hoạt động nào được ghi nhận cho địa chỉ này.",
+  "No contacts yet. Add someone you pay often, or add an Orien Network member from their profile.": "Chưa có liên hệ nào. Hãy thêm người bạn thường xuyên thanh toán hoặc thêm thành viên Orien Network từ hồ sơ của họ.",
+  "No description.": "Không có mô tả.",
+  "No messages yet. Say hello to everyone.": "Chưa có tin nhắn nào. Hãy gửi lời chào đến mọi người.",
+  "No one": "Không ai cả",
+  "No open buy offers right now": "Hiện không có đề nghị mua nào đang mở",
+  "No open sell offers right now": "Hiện không có đề nghị bán nào đang mở",
+  "No payments yet": "Chưa có thanh toán nào",
+  "No questions left today. Come back tomorrow.": "Hết lượt hỏi hôm nay. Hãy quay lại vào ngày mai.",
+  "No results": "Không có kết quả",
+  "No rewards yet": "Chưa có phần thưởng nào",
+  "No swaps completed yet. The next swap sets the price.": "Chưa có giao dịch hoán đổi nào hoàn tất. Giao dịch hoán đổi tiếp theo sẽ xác lập giá.",
+  "No swaps yet": "Chưa có hoán đổi nào",
+  "No trades yet": "Chưa có giao dịch nào",
+  "No verified wallet yet": "Chưa có ví nào được xác minh",
+  "No verified wallets yet": "Chưa có ví nào được xác minh",
+  "No wallets yet.": "Chưa có ví nào.",
+  "Nobody by that name.": "Không có ai tên như vậy.",
+  "Nobody is banned.": "Không có ai bị cấm.",
+  "Nobody with a verified wallet has been paid for mining yet.": "Chưa có ai sở hữu ví đã xác minh được trả thưởng đào.",
+  "None": "Không có",
+  "Normal": "Bình thường",
+  "Not an Orien address": "Không phải địa chỉ Orien",
+  "Not answering": "Không phản hồi",
+  "Not available": "Không khả dụng",
+  "Not in the network's history": "Không có trong lịch sử mạng lưới",
+  "Not now": "Không phải lúc này",
+  "Not recorded": "Chưa được ghi nhận",
+  "Not verified yet": "Chưa xác minh",
+  "Nothing found. Search an address (64 letters and digits, 0-9 and a-f), a checkpoint number, or the name of someone on the Market.": "Không tìm thấy gì. Hãy tìm theo địa chỉ (64 chữ cái và chữ số, 0-9 và a-f), số điểm kiểm tra hoặc tên một người trên Chợ.",
+  "Nothing from the network about them yet.": "Chưa có thông tin nào từ mạng lưới về họ.",
+  "Nothing has happened at this address yet.": "Chưa có hoạt động nào tại địa chỉ này.",
+  "Nothing here yet. Be the first to sell something.": "Chưa có gì ở đây. Hãy là người đầu tiên đăng bán.",
+  "Nothing in the community yet.": "Chưa có gì trong cộng đồng.",
+  "Nothing leaves your SOL wallet until a seller locks the ORN and you pay the QR code. Keep Orien Wallet running so sellers can match your order.": "Không có gì rời khỏi ví SOL của bạn cho đến khi người bán khóa ORN và bạn thanh toán qua mã QR. Hãy giữ Orien Wallet luôn chạy để người bán có thể khớp lệnh của bạn.",
+  "Nothing matches that yet.": "Chưa có kết quả nào khớp.",
+  "Nothing yet. Replies, reactions and messages show up here.": "Chưa có gì. Phản hồi, biểu cảm và tin nhắn sẽ hiện ở đây.",
+  "Notifications": "Thông báo",
+  "ORN / SOL price chart": "Biểu đồ giá ORN / SOL",
+  "ORN held": "ORN đang nắm giữ",
+  "ORN locked · SOL arriving (~1 min)": "ORN đã khóa · SOL đang đến (~1 phút)",
+  "ORN mined": "ORN đã đào",
+  "ORN price": "Giá ORN",
+  "ORN received": "ORN đã nhận",
+  "ORN released": "ORN đã phát hành",
+  "ORN to buy": "ORN cần mua",
+  "ORN to sell": "ORN cần bán",
+  "Offer posted": "Đã đăng đề nghị",
+  "Offer taken": "Đã nhận đề nghị",
+  "Offer your ORN for SOL. When someone takes it, this app locks the ORN for them and runs the swap, as long as it's open.": "Chào bán ORN của bạn lấy SOL. Khi có người nhận, ứng dụng này sẽ khóa ORN cho họ và thực hiện hoán đổi miễn là ứng dụng đang mở.",
+  "Official": "Chính thức",
+  "Official Website": "Trang web chính thức",
+  "Offline": "Ngoại tuyến",
+  "On a streak": "Đang giữ chuỗi",
+  "On an iPhone, scan the new device's QR code. On a computer, type its code and click": "Trên iPhone, quét mã QR của thiết bị mới. Trên máy tính, nhập mã của thiết bị đó và nhấn",
+  "On offer": "Đang chào bán",
+  "On one of your own themes, click the share button (the box with an arrow), then": "Trên một chủ đề của riêng bạn, nhấn nút chia sẻ (hình ô vuông có mũi tên), sau đó chọn",
+  "On the Market": "Trên Chợ",
+  "On the swap board, waiting for someone to buy": "Đang trên bảng hoán đổi, chờ người mua",
+  "On the swap board, waiting for someone to sell": "Đang trên bảng hoán đổi, chờ người bán",
+  "On your new device, open Orien Wallet and choose": "Trên thiết bị mới, mở Orien Wallet và chọn",
+  "On your other device, open Orien Wallet, go to": "Trên thiết bị kia, mở Orien Wallet, vào",
+  "One account for all of Orien Network. Enter your email and type the 6-digit code we send; new here, you'll pick a username too. Signed up on orien.network already? Use the same email.": "Một tài khoản cho toàn bộ Orien Network. Nhập email của bạn và điền mã 6 chữ số chúng tôi gửi; nếu bạn mới tham gia, bạn sẽ chọn thêm tên người dùng. Đã đăng ký trên orien.network rồi? Hãy dùng cùng email đó.",
+  "Only letters, numbers and _": "Chỉ gồm chữ cái, chữ số và _",
+  "Only send if you see the same three emoji, in the same order.": "Chỉ gửi nếu bạn thấy đúng ba biểu tượng cảm xúc giống nhau theo cùng thứ tự.",
+  "Open": "Mở",
+  "Open Mine": "Mở mục Đào",
+  "Open Orien Wallet on the device you posted or took this offer from to finish the swap": "Mở Orien Wallet trên thiết bị bạn đã đăng hoặc nhận đề nghị này để hoàn tất hoán đổi",
+  "Open at login": "Mở khi đăng nhập",
+  "Open it to verify": "Mở ví để xác minh",
+  "Open offers": "Đề nghị đang mở",
+  "Open the explorer": "Mở trình khám phá",
+  "Opens Firefox's add-on store: click Add to Firefox": "Mở cửa hàng tiện ích Firefox: nhấn Thêm vào Firefox",
+  "Opens Safari's settings: tick Orien Wallet to turn it on": "Mở cài đặt Safari: đánh dấu chọn Orien Wallet để bật",
+  "Opens the Chrome Web Store: allow other stores, then add it": "Mở Cửa hàng Chrome trực tuyến: cho phép các cửa hàng khác, rồi thêm vào",
+  "Opens the Chrome Web Store: click Add to Brave": "Mở Cửa hàng Chrome trực tuyến: nhấn Thêm vào Brave",
+  "Opens the Chrome Web Store: click Add to Chrome": "Mở Cửa hàng Chrome trực tuyến: nhấn Thêm vào Chrome",
+  "Order book": "Sổ lệnh",
+  "Orien AI Support": "Hỗ trợ AI Orien",
+  "Orien Group Chat": "Nhóm trò chuyện Orien",
+  "Orien Wallet for computers is at": "Orien Wallet cho máy tính có tại",
+  "Orien Wallet is locking your SOL on Solana and registering your order on the book. Step 2 will show a checkmark as soon as you can leave.": "Orien Wallet đang khóa SOL của bạn trên Solana và ghi nhận lệnh lên sổ lệnh. Bước 2 sẽ hiện dấu tích ngay khi bạn có thể rời đi.",
+  "Orien Wallet locks after a minute away.": "Orien Wallet sẽ tự khóa sau một phút không sử dụng.",
+  "Orien Wallet locks whenever you leave it.": "Orien Wallet sẽ khóa mỗi khi bạn rời khỏi ứng dụng.",
+  "Orien right now": "Orien ngay lúc này",
+  "Other": "Khác",
+  "Paid": "Đã thanh toán",
+  "Paid here": "Nhận tiền tại đây",
+  "Paid · Bitcoin is confirming": "Đã thanh toán · Bitcoin đang xác nhận",
+  "Paid · SOL on its way to you": "Đã thanh toán · SOL đang trên đường đến bạn",
+  "Password": "Mật khẩu",
+  "Paste": "Dán",
+  "Pay": "Thanh toán",
+  "Pay exactly": "Thanh toán chính xác",
+  "Pay now": "Thanh toán ngay",
+  "Pay total (SOL)": "Tổng thanh toán (SOL)",
+  "Paying": "Đang thanh toán",
+  "Payment": "Thanh toán",
+  "Payment received. Locking it for the swap.": "Đã nhận thanh toán. Đang khóa để thực hiện hoán đổi.",
+  "Payment received. Locking your SOL on Solana now. Keep this page open for about 20 seconds.": "Đã nhận thanh toán. Đang khóa SOL của bạn trên Solana. Hãy giữ trang này mở khoảng 20 giây.",
+  "Payment request": "Yêu cầu thanh toán",
+  "Payments": "Thanh toán",
+  "Pending": "Đang chờ",
+  "Pending in your Bitcoin wallet until Bitcoin confirms it, usually within the hour": "Đang chờ trong ví Bitcoin của bạn cho đến khi mạng Bitcoin xác nhận, thường trong vòng một giờ",
+  "People": "Mọi người",
+  "People you block can't message you, and you don't see each other's profiles, posts or listings. Unblock someone to see them again.": "Người bạn chặn không thể nhắn tin cho bạn, và hai bên sẽ không thấy hồ sơ, bài đăng hay tin rao của nhau. Bỏ chặn để xem lại họ.",
+  "People you've talked with": "Những người bạn đã trò chuyện",
+  "Philippine peso": "Peso Philippines",
+  "Photos": "Ảnh",
+  "Pick a category.": "Chọn một danh mục.",
+  "Pick a conversation to read it.": "Chọn một cuộc trò chuyện để đọc.",
+  "Pick an": "Chọn một",
+  "Pictures": "Hình ảnh",
+  "Place Buy Order": "Đặt lệnh mua",
+  "Place Sell Order": "Đặt lệnh bán",
+  "Place order": "Đặt lệnh",
+  "Point at a message": "Di chuột vào một tin nhắn",
+  "Point the camera at the QR code": "Hướng camera vào mã QR",
+  "Point the camera at the code on your other device": "Hướng camera vào mã trên thiết bị kia của bạn",
+  "Point the camera at their Receive QR code": "Hướng camera vào mã QR Nhận tiền của họ",
+  "Poll": "Bình chọn",
+  "Poll length": "Thời hạn bình chọn",
+  "Popular": "Phổ biến",
+  "Post": "Đăng",
+  "Post an offer": "Đăng đề nghị",
+  "Post buy offer": "Đăng đề nghị mua",
+  "Post order": "Đăng lệnh",
+  "Post sell offer": "Đăng đề nghị bán",
+  "Post the offer": "Đăng đề nghị",
+  "Post to the live ORN / SOL order book": "Đăng lên sổ lệnh ORN / SOL trực tiếp",
+  "Post your listing": "Đăng tin rao của bạn",
+  "Post your reply": "Gửi phản hồi của bạn",
+  "Posting": "Đang đăng",
+  "Posts": "Bài đăng",
+  "Powered by KLIPY": "Cung cấp bởi KLIPY",
+  "Price / ORN": "Giá / ORN",
+  "Price in ORN": "Giá bằng ORN",
+  "Price per ORN": "Giá mỗi ORN",
+  "Privacy Policy": "Chính sách quyền riêng tư",
+  "Privacy and security": "Quyền riêng tư và bảo mật",
+  "Privacy policy": "Chính sách quyền riêng tư",
+  "Processor": "Bộ xử lý",
+  "Profile": "Hồ sơ",
+  "Progress": "Tiến trình",
+  "Ranked by ORN held": "Xếp hạng theo lượng ORN nắm giữ",
+  "React": "Thả cảm xúc",
+  "Receive": "Nhận",
+  "Receive ORN": "Nhận ORN",
+  "Receive total (SOL)": "Tổng nhận (SOL)",
+  "Received": "Đã nhận",
+  "Recent errors": "Lỗi gần đây",
+  "Recent screens": "Màn hình gần đây",
+  "Recent trades": "Giao dịch gần đây",
+  "Recents": "Gần đây",
+  "Recovery phrase": "Cụm từ khôi phục",
+  "Recovery words": "Các từ khôi phục",
+  "Refunded": "Đã hoàn tiền",
+  "Remove": "Xóa",
+  "Remove GIF": "Xóa GIF",
+  "Remove from contacts": "Xóa khỏi danh bạ",
+  "Remove from store": "Gỡ khỏi cửa hàng",
+  "Remove from the list": "Xóa khỏi danh sách",
+  "Remove from this app": "Xóa khỏi ứng dụng này",
+  "Remove from your profile": "Gỡ khỏi hồ sơ của bạn",
+  "Remove poll": "Xóa bình chọn",
+  "Remove wallet": "Xóa ví",
+  "Rename wallet": "Đổi tên ví",
+  "Reopen": "Mở lại",
+  "Repeat for each wallet you want on your profile.": "Lặp lại với từng ví bạn muốn hiển thị trên hồ sơ.",
+  "Replies, reactions and the network's posts about you": "Phản hồi, biểu cảm và các bài đăng của mạng lưới về bạn",
+  "Reply": "Trả lời",
+  "Report": "Báo cáo",
+  "Report a Problem": "Báo cáo sự cố",
+  "Report post": "Báo cáo bài đăng",
+  "Report something else": "Báo cáo vấn đề khác",
+  "Report this listing": "Báo cáo tin đăng này",
+  "Report this post": "Báo cáo bài đăng này",
+  "Report this theme": "Báo cáo chủ đề này",
+  "Request": "Yêu cầu",
+  "Reserve SOL": "Giữ trước SOL",
+  "Reserving buyer's SOL": "Đang giữ trước SOL của người mua",
+  "Reserving the buyer's locked SOL on Solana before locking your ORN. Keep this page open for about 15 seconds.": "Đang giữ trước lượng SOL đã khóa của người mua trên Solana trước khi khóa ORN của bạn. Hãy giữ trang này mở khoảng 15 giây.",
+  "Restart mining": "Khởi động lại việc đào",
+  "Restart mining to go faster": "Khởi động lại việc đào để nhanh hơn",
+  "Restore": "Khôi phục",
+  "Restore a wallet from its words": "Khôi phục ví từ cụm từ khôi phục",
+  "Restore wallet": "Khôi phục ví",
+  "Restore with recovery phrase": "Khôi phục bằng cụm từ khôi phục",
+  "Restoring": "Đang khôi phục",
+  "Rewards": "Phần thưởng",
+  "Robot avatars:": "Ảnh đại diện robot:",
+  "Running": "Đang chạy",
+  "SOL to pay": "SOL cần trả",
+  "SOL to receive": "SOL sẽ nhận",
+  "Safe to leave or close Orien Wallet.": "Bạn có thể yên tâm rời đi hoặc đóng Orien Wallet.",
+  "Safe to leave this page or close Orien Wallet": "Bạn có thể yên tâm rời khỏi trang này hoặc đóng Orien Wallet",
+  "Safe to leave · arrives in about a minute": "Có thể rời đi · sẽ đến trong khoảng một phút",
+  "Safe to share: an address can only receive ORN.": "An toàn để chia sẻ: địa chỉ chỉ có thể nhận ORN.",
+  "Save": "Lưu",
+  "Save as a text file": "Lưu thành tệp văn bản",
+  "Save as contact": "Lưu vào danh bạ",
+  "Save changes": "Lưu thay đổi",
+  "Save theme": "Lưu chủ đề",
+  "Saved": "Đã lưu",
+  "Saved address": "Địa chỉ đã lưu",
+  "Saved. Anyone who opens the file can spend your ORN: keep it somewhere only you can reach.": "Đã lưu. Bất kỳ ai mở tệp này đều có thể chi tiêu ORN của bạn: hãy giữ ở nơi chỉ mình bạn truy cập được.",
+  "Saving": "Đang lưu",
+  "Saving…": "Đang lưu…",
+  "Say hello to everyone.": "Gửi lời chào đến mọi người.",
+  "Say what you're offering.": "Mô tả những gì bạn đang chào bán.",
+  "Scan a QR code": "Quét mã QR",
+  "Scan the code": "Quét mã",
+  "Search KLIPY": "Tìm trên KLIPY",
+  "Search listings": "Tìm kiếm tin đăng",
+  "Searching…": "Đang tìm kiếm…",
+  "Security and more": "Bảo mật và các mục khác",
+  "See the top 100": "Xem top 100",
+  "Sell": "Bán",
+  "Sell ORN": "Bán ORN",
+  "Sell amount (ORN)": "Số lượng bán (ORN)",
+  "Sell from": "Bán từ",
+  "Sell into this offer": "Bán vào đề nghị này",
+  "Sell offers come from verified wallets, so buyers can see who they're swapping with. Verifying ties this wallet to your Orien Network name and sends less than 0.001 ORN from it, once.": "Đề nghị bán đến từ các ví đã xác minh để người mua biết họ đang hoán đổi với ai. Việc xác minh gắn ví này với tên Orien Network của bạn và gửi ít hơn 0,001 ORN từ ví đó một lần duy nhất.",
+  "Sell orders come from verified wallets so buyers know who they're trading with (sends < 0.001 ORN once).": "Lệnh bán đến từ các ví đã xác minh để người mua biết họ đang giao dịch với ai (gửi < 0,001 ORN một lần).",
+  "Sell something": "Đăng bán",
+  "Seller": "Người bán",
+  "Seller accepts": "Người bán chấp nhận",
+  "Selling ORN": "Đang bán ORN",
+  "Send": "Gửi",
+  "Send & Receive": "Gửi & Nhận",
+  "Send ORN": "Gửi ORN",
+  "Send ORN and see your balance from the browser's toolbar, and sign in to websites with your wallet. Your keys stay in this app.": "Gửi ORN và xem số dư ngay từ thanh công cụ trình duyệt, đồng thời đăng nhập trang web bằng ví của bạn. Khóa của bạn vẫn nằm trong ứng dụng này.",
+  "Send ORN, see your balance, and sign in to orien.network with one click, right from your browser. Your keys never leave Orien Wallet.": "Gửi ORN, xem số dư và đăng nhập vào orien.network chỉ với một cú nhấp ngay từ trình duyệt. Khóa của bạn không bao giờ rời khỏi Orien Wallet.",
+  "Send SOL": "Gửi SOL",
+  "Send SOL once into a Solana order. It stays live on the order book even while Orien Wallet is closed, settles in about a minute when taken, and cancels in one click.": "Gửi SOL một lần vào lệnh trên Solana. Lệnh vẫn mở trên sổ lệnh ngay cả khi đóng Orien Wallet, tất toán trong khoảng một phút khi có người khớp và có thể hủy chỉ với một cú nhấp.",
+  "Send and verify": "Gửi và xác minh",
+  "Send me a code": "Gửi mã cho tôi",
+  "Send report": "Gửi báo cáo",
+  "Send the buyer this offer code": "Gửi cho người mua mã đề nghị này",
+  "Send the seller this reply code": "Gửi cho người bán mã phản hồi này",
+  "Send to this contact": "Gửi đến liên hệ này",
+  "Send your wallets to your other phone or computer": "Gửi các ví của bạn sang điện thoại hoặc máy tính khác",
+  "Sending": "Đang gửi",
+  "Sending…": "Đang gửi…",
+  "Sent": "Đã gửi",
+  "Sent a GIF": "Đã gửi một ảnh GIF",
+  "Sent a picture": "Đã gửi một hình ảnh",
+  "Sent from another app": "Gửi từ ứng dụng khác",
+  "Sent. Verifying, usually within a minute.": "Đã gửi. Đang xác minh, thường trong vòng một phút.",
+  "Set password": "Đặt mật khẩu",
+  "Set the": "Điều chỉnh thanh trượt",
+  "Set up": "Thiết lập",
+  "Set up mining": "Thiết lập đào",
+  "Sets aside about 2.4 GB of memory for mining in large pages, usually 10 to 30% faster. Linux asks for your password once.": "Dành riêng khoảng 2,4 GB bộ nhớ để đào bằng trang bộ nhớ lớn, thường nhanh hơn 10 đến 30%. Linux sẽ hỏi mật khẩu của bạn một lần.",
+  "Settings": "Cài đặt",
+  "Settling": "Đang tất toán",
+  "Share a theme in the Theme Store": "Chia sẻ chủ đề trên Cửa hàng chủ đề",
+  "Share address": "Chia sẻ địa chỉ",
+  "Share in the Theme Store": "Chia sẻ trên Cửa hàng chủ đề",
+  "Share theme": "Chia sẻ chủ đề",
+  "Shared": "Đã chia sẻ",
+  "Shared among miners": "Chia cho các thợ đào",
+  "Shares": "Phần việc",
+  "Shares an hour": "Phần việc mỗi giờ",
+  "Shares this hour": "Phần việc giờ này",
+  "Sharing": "Đang chia sẻ",
+  "Show balance": "Hiện số dư",
+  "Show less": "Thu gọn",
+  "Show more": "Xem thêm",
+  "Show scroll arrow": "Hiện mũi tên cuộn",
+  "Show your accounts on your profile, if you like. Everyone can see them.": "Hiển thị các tài khoản của bạn trên hồ sơ nếu muốn. Mọi người đều có thể nhìn thấy chúng.",
+  "Sign Out": "Đăng xuất",
+  "Sign in": "Đăng nhập",
+  "Sign in and verify this wallet first.": "Hãy đăng nhập và xác minh ví này trước.",
+  "Sign in to Orien Network": "Đăng nhập vào Orien Network",
+  "Sign in to Orien Network first.": "Hãy đăng nhập vào Orien Network trước.",
+  "Sign in to Orien Network to ask a question. Verifying a wallet isn't needed.": "Đăng nhập vào Orien Network để đặt câu hỏi. Không cần xác minh ví.",
+  "Sign in to Orien Network to chat, reply or react.": "Đăng nhập vào Orien Network để trò chuyện, trả lời hoặc thả cảm xúc.",
+  "Sign in to Orien Network to chat.": "Đăng nhập vào Orien Network để trò chuyện.",
+  "Sign in to Orien Network to post and react.": "Đăng nhập vào Orien Network để đăng bài và thả cảm xúc.",
+  "Sign in to Orien Network to post, reply and react.": "Đăng nhập vào Orien Network để đăng bài, trả lời và thả cảm xúc.",
+  "Sign in to Orien Network to react.": "Đăng nhập vào Orien Network để thả cảm xúc.",
+  "Sign in to Orien Network to reply.": "Đăng nhập vào Orien Network để trả lời.",
+  "Sign in to Orien Network to report a message.": "Đăng nhập vào Orien Network để báo cáo tin nhắn.",
+  "Sign in to Orien Network to report a theme.": "Đăng nhập vào Orien Network để báo cáo chủ đề.",
+  "Sign in to Orien Network to see the themes you shared.": "Đăng nhập vào Orien Network để xem các chủ đề bạn đã chia sẻ.",
+  "Sign in to Orien Network to see your own messages and to chat.": "Đăng nhập vào Orien Network để xem tin nhắn của bạn và trò chuyện.",
+  "Sign in to Orien Network to tip.": "Đăng nhập vào Orien Network để tặng tip.",
+  "Sign in to Orien Network with a verified wallet to share themes.": "Đăng nhập vào Orien Network bằng ví đã xác minh để chia sẻ chủ đề.",
+  "Sign in to message the seller": "Đăng nhập để nhắn cho người bán",
+  "Sign in to trade": "Đăng nhập để giao dịch",
+  "Sign in, and open the wallet you want to verify.": "Đăng nhập và mở ví bạn muốn xác minh.",
+  "Sign out of Windows and back in, then open Orien Wallet. Mining runs faster from then on.": "Đăng xuất khỏi Windows rồi đăng nhập lại, sau đó mở Orien Wallet. Việc đào sẽ chạy nhanh hơn từ đó.",
+  "Sign out to finish": "Đăng xuất để hoàn tất",
+  "Signing in": "Đang đăng nhập",
+  "Singapore dollar": "Đô la Singapore",
+  "Size (ORN)": "Khối lượng (ORN)",
+  "Smallest swap: 0.00015 BTC, more when Bitcoin is busy": "Hoán đổi tối thiểu: 0,00015 BTC, cao hơn khi mạng Bitcoin bận",
+  "Smallest swap: 0.01 SOL. Fees: the usual Orien fee to lock the ORN (0.1%, at most 1 ORN); the buyer covers Solana's small fees. A swap takes about a minute. If a buyer never pays, your ORN come back on their own within a few hours.": "Hoán đổi tối thiểu: 0,01 SOL. Phí: phí Orien thông thường để khóa ORN (0,1%, tối đa 1 ORN); người mua chịu các khoản phí nhỏ của Solana. Một giao dịch hoán đổi mất khoảng một phút. Nếu người mua không thanh toán, ORN của bạn sẽ tự động hoàn lại trong vài giờ.",
+  "Smallest swap: 0.01 SOL. Nothing leaves your SOL wallet until a seller locks the ORN and you pay the QR code. You'll also need about 0.005 SOL for Solana's small fees, nearly all of which comes back.": "Hoán đổi tối thiểu: 0,01 SOL. Không có gì rời khỏi ví SOL của bạn cho đến khi người bán khóa ORN và bạn thanh toán qua mã QR. Bạn cũng cần khoảng 0,005 SOL cho các khoản phí nhỏ của Solana, gần như toàn bộ sẽ được hoàn lại.",
+  "So swap offers stay open, and payments and mining carry on. The screen can still turn off.": "Để các đề nghị hoán đổi vẫn mở, đồng thời thanh toán và việc đào tiếp tục chạy. Màn hình vẫn có thể tắt.",
+  "Social Links": "Liên kết mạng xã hội",
+  "Socials": "Mạng xã hội",
+  "Someone": "Ai đó",
+  "Sort by": "Sắp xếp theo",
+  "South African rand": "Rand Nam Phi",
+  "South Korean won": "Won Hàn Quốc",
+  "Speed": "Tốc độ",
+  "Stake returned": "Đã hoàn trả stake",
+  "Start Orien Wallet when you log in": "Khởi chạy Orien Wallet khi bạn đăng nhập",
+  "Start mining": "Bắt đầu đào",
+  "Start mining to see your speed here.": "Bắt đầu đào để xem tốc độ của bạn tại đây.",
+  "Start over": "Bắt đầu lại",
+  "Starting…": "Đang bắt đầu…",
+  "State after it: every account's balance, as one fingerprint": "Trạng thái sau đó: số dư của mọi tài khoản dưới dạng một dấu vân tay dữ liệu",
+  "Stay on this page for a moment:": "Ở lại trang này một lát:",
+  "Stop mining": "Dừng đào",
+  "Stop replying": "Hủy trả lời",
+  "Stopped": "Đã dừng",
+  "Swap": "Hoán đổi",
+  "Swap ORN and SOL directly with other people. About a minute, no fee.": "Hoán đổi ORN và SOL trực tiếp với người khác. Khoảng một phút, không mất phí.",
+  "Swap SOL or Bitcoin for ORN in Orien Wallet on a computer, with this same wallet linked to it.": "Hoán đổi SOL hoặc Bitcoin lấy ORN trong Orien Wallet trên máy tính đã liên kết cùng ví này.",
+  "Swap SOL or Bitcoin for ORN with other people, directly between your wallets, on the Swap screen. With SOL it takes a few minutes, and you pay from the SOL wallet you already have, such as Phantom.": "Hoán đổi SOL hoặc Bitcoin lấy ORN với người khác, trực tiếp giữa các ví trên màn hình Hoán đổi. Với SOL chỉ mất vài phút, và bạn thanh toán từ ví SOL sẵn có như Phantom.",
+  "Swap for it.": "Hoán đổi để có.",
+  "Swap updates": "Cập nhật hoán đổi",
+  "Swaps": "Hoán đổi",
+  "Swaps and payments carry on from the menu bar": "Hoán đổi và thanh toán tiếp tục chạy từ thanh menu",
+  "Swaps and payments carry on from the system tray": "Hoán đổi và thanh toán tiếp tục chạy từ khay hệ thống",
+  "Swaps need the newest Orien Wallet. Update first: it takes a moment, and the app reopens by itself.": "Hoán đổi cần phiên bản Orien Wallet mới nhất. Hãy cập nhật trước: chỉ mất một lát và ứng dụng sẽ tự mở lại.",
+  "Swiss franc": "Franc Thụy Sĩ",
+  "Take": "Chấp nhận",
+  "Take an offer": "Chấp nhận đề nghị",
+  "Take the offer": "Chấp nhận đề nghị",
+  "Take this offer": "Chấp nhận đề nghị này",
+  "Taken": "Đã có người nhận",
+  "Taking your Bitcoin back": "Đang lấy lại Bitcoin của bạn",
+  "Tap": "Nhấn",
+  "Tap a message": "Nhấn vào một tin nhắn",
+  "Tap to reveal": "Nhấn để xem",
+  "Tell Orien Network what's wrong with it: a scam, spam, abuse, or something illegal. Every report is reviewed.": "Cho Orien Network biết vấn đề của nội dung này: lừa đảo, spam, lạm dụng hoặc bất hợp pháp. Mọi báo cáo đều được xem xét.",
+  "Tell us what happened": "Cho chúng tôi biết chuyện gì đã xảy ra",
+  "Tell us what went wrong. Every report is read.": "Cho chúng tôi biết sự cố bạn gặp phải. Mọi báo cáo đều được đọc.",
+  "Terms of Service": "Điều khoản dịch vụ",
+  "Terms of service": "Điều khoản dịch vụ",
+  "Thanks, it's sent": "Cảm ơn, đã gửi",
+  "Thanks. It will be reviewed.": "Cảm ơn. Nội dung sẽ được xem xét.",
+  "Thanks. We will look at it.": "Cảm ơn. Chúng tôi sẽ kiểm tra.",
+  "That QR code isn't from Orien Wallet's Use my other device.": "Mã QR đó không phải từ mục Dùng thiết bị khác của tôi trong Orien Wallet.",
+  "That account can't be found.": "Không tìm thấy tài khoản đó.",
+  "That doesn't look like a SOL address.": "Địa chỉ đó không giống địa chỉ SOL.",
+  "That email doesn't look right. Check it, or leave it empty.": "Email đó có vẻ không đúng. Hãy kiểm tra lại hoặc để trống.",
+  "That file isn't a picture this app can open.": "Tệp đó không phải là hình ảnh mà ứng dụng này có thể mở.",
+  "That is not this wallet's password.": "Đó không phải là mật khẩu của ví này.",
+  "That is this wallet's own address": "Đó là địa chỉ của chính ví này",
+  "That isn't a Bitcoin address.": "Đó không phải là địa chỉ Bitcoin.",
+  "That isn't a SOL address.": "Đó không phải là địa chỉ SOL.",
+  "That password isn't right. Check it and try again.": "Mật khẩu không đúng. Hãy kiểm tra và thử lại.",
+  "That post has been removed.": "Bài đăng đó đã bị xóa.",
+  "That theme's picture couldn't be downloaded. Try again in a moment.": "Không thể tải xuống ảnh của chủ đề đó. Vui lòng thử lại sau giây lát.",
+  "That's a Bitcoin address. Swaps use SOL.": "Đó là địa chỉ Bitcoin. Hoán đổi sử dụng SOL.",
+  "That's a SOL address. To use SOL, choose SOL above.": "Đó là địa chỉ SOL. Để dùng SOL, hãy chọn SOL ở phía trên.",
+  "That's a long one. Keep a question under 1,000 characters.": "Câu hỏi hơi dài. Vui lòng giữ câu hỏi dưới 1.000 ký tự.",
+  "That's not this wallet's password.": "Đó không phải mật khẩu của ví này.",
+  "The ORN arrive in this wallet by themselves.": "ORN sẽ tự động về ví này.",
+  "The buyer": "Người mua",
+  "The buyer is paying. This app takes the SOL as soon as it's locked, usually within a minute.": "Người mua đang thanh toán. Ứng dụng này sẽ nhận SOL ngay khi được khóa, thường trong vòng một phút.",
+  "The buyer · usually 30 to 60 minutes after they pay": "Người mua · thường 30 đến 60 phút sau khi họ thanh toán",
+  "The buyer · within a few hours": "Người mua · trong vài giờ",
+  "The buyer's ORN delivered": "Đã chuyển ORN cho người mua",
+  "The chart begins as soon as the first ORN / SOL swap completes.": "Biểu đồ sẽ bắt đầu ngay khi giao dịch hoán đổi ORN / SOL đầu tiên hoàn tất.",
+  "The checkpoint before it": "Điểm kiểm tra trước đó",
+  "The extra over the price": "Phần chênh lệch so với giá",
+  "The figures at the top show the network right now: ORN released, the next checkpoint, miners and hashrate.": "Các số liệu ở trên cùng hiển thị trạng thái mạng lưới hiện tại: ORN đã phát hành, điểm kiểm tra tiếp theo, thợ đào và tốc độ băm.",
+  "The latest 500": "500 mục mới nhất",
+  "The pay screen opens by itself as soon as they accept.": "Màn hình thanh toán sẽ tự mở ngay khi họ chấp nhận.",
+  "The picture couldn't be saved on this device. Try a smaller one.": "Không thể lưu ảnh trên thiết bị này. Hãy thử ảnh nhỏ hơn.",
+  "The post shows its tips, without names. The author is told it was you.": "Bài đăng chỉ hiện số tiền tip mà không hiện tên. Tác giả sẽ được thông báo rằng bạn là người tặng.",
+  "The seller didn't take the SOL in time. Sending it back to your SOL wallet.": "Người bán đã không nhận SOL kịp thời. Đang gửi trả về ví SOL của bạn.",
+  "The seller took the SOL. Claiming your ORN.": "Người bán đã nhận SOL. Đang nhận ORN của bạn.",
+  "The seller · done": "Người bán · xong",
+  "The seller · usually 30 to 60 minutes after you pay": "Người bán · thường 30 đến 60 phút sau khi bạn thanh toán",
+  "The seller's wallet delivers your ORN once they take the SOL.": "Ví của người bán sẽ chuyển ORN cho bạn ngay khi họ nhận SOL.",
+  "The seller's wallet takes the Bitcoin once Bitcoin has confirmed your payment three times": "Ví của người bán sẽ nhận Bitcoin sau khi mạng Bitcoin xác nhận giao dịch thanh toán của bạn ba lần",
+  "The swap board passes your offer to the buyer's wallet, and their reply back": "Bảng hoán đổi chuyển đề nghị của bạn đến ví người mua và chuyển phản hồi của họ lại cho bạn",
+  "The swap details open by itself as soon as your ORN are locked.": "Chi tiết hoán đổi sẽ tự mở ngay khi ORN của bạn được khóa.",
+  "The update didn't install": "Bản cập nhật chưa được cài đặt",
+  "The validators didn't answer about this hour's rewards just now. Try again in a moment.": "Các trình xác thực vừa không phản hồi về phần thưởng giờ này. Vui lòng thử lại sau giây lát.",
+  "The website learns this wallet's address.": "Trang web sẽ biết địa chỉ của ví này.",
+  "Their 64-character address": "Địa chỉ 64 ký tự của họ",
+  "Their Orien Wallet makes it once it has checked your offer. It tells this app where they'll pay the Bitcoin.": "Orien Wallet của họ sẽ tạo mã này sau khi kiểm tra đề nghị của bạn. Nó cho ứng dụng này biết họ sẽ thanh toán Bitcoin ở đâu.",
+  "Their payment shows in your Activity within seconds.": "Khoản thanh toán của họ sẽ hiển thị trong mục Hoạt động của bạn chỉ sau vài giây.",
+  "Their wallet accepts by itself, usually within a few seconds.": "Ví của họ sẽ tự động chấp nhận, thường trong vài giây.",
+  "Their wallet accepts by itself, within 30 minutes.": "Ví của họ sẽ tự động chấp nhận trong vòng 30 phút.",
+  "Theme": "Chủ đề",
+  "Theme Store": "Cửa hàng chủ đề",
+  "Themes": "Chủ đề",
+  "Themes made by the Orien community": "Các chủ đề do cộng đồng Orien tạo ra",
+  "Then paste the buyer's reply code": "Sau đó dán mã phản hồi của người mua",
+  "They don't match": "Không khớp",
+  "They match": "Khớp nhau",
+  "They match, send": "Khớp nhau, gửi đi",
+  "They match, send my wallet": "Khớp nhau, gửi ví của tôi",
+  "They match, send my wallets": "Khớp nhau, gửi các ví của tôi",
+  "This app takes the Bitcoin to your Bitcoin address, then delivers the buyer's ORN to them": "Ứng dụng này sẽ chuyển Bitcoin về địa chỉ Bitcoin của bạn, sau đó giao ORN cho người mua",
+  "This app · about 30 minutes for Bitcoin to settle": "Ứng dụng này · khoảng 30 phút để Bitcoin xác nhận",
+  "This app · under a minute": "Ứng dụng này · chưa đầy một phút",
+  "This checkpoint's fingerprint": "Dấu vân tay của điểm kiểm tra này",
+  "This computer": "Máy tính này",
+  "This hour": "Giờ này",
+  "This is your listing.": "Đây là tin đăng của bạn.",
+  "This person": "Người này",
+  "This profile isn't available.": "Hồ sơ này không khả dụng.",
+  "This theme's picture isn't on this computer yet. Try again in a moment.": "Ảnh của chủ đề này chưa có trên máy tính này. Vui lòng thử lại sau giây lát.",
+  "This version of Orien Wallet no longer works with the network. Press Update at the top to keep sending.": "Phiên bản Orien Wallet này không còn hoạt động với mạng lưới nữa. Nhấn Cập nhật ở phía trên để tiếp tục gửi.",
+  "This wallet": "Ví này",
+  "This wallet has a password. Type it to send.": "Ví này có mật khẩu. Hãy nhập mật khẩu để gửi.",
+  "This wallet proved it belongs to this profile": "Ví này đã chứng minh thuộc về hồ sơ này",
+  "This wallet's password": "Mật khẩu của ví này",
+  "Time": "Thời gian",
+  "Tip": "Tặng tip",
+  "Tip someone": "Tặng tip cho ai đó",
+  "Tips": "Tiền tip",
+  "Tips are payments and can't be undone.": "Tiền tip là giao dịch thanh toán và không thể hoàn tác.",
+  "To": "Đến",
+  "Today": "Hôm nay",
+  "Too late to pay safely: a payment now would come back to you once the lock ends, about 2 hours from now": "Đã quá muộn để thanh toán an toàn: khoản thanh toán lúc này sẽ quay lại với bạn sau khi hết thời gian khóa, khoảng 2 giờ nữa",
+  "Top miner of the day": "Thợ đào hàng đầu trong ngày",
+  "Top miners": "Thợ đào hàng đầu",
+  "Top wallets": "Ví hàng đầu",
+  "Total": "Tổng cộng",
+  "Total (SOL)": "Tổng (SOL)",
+  "Trade": "Giao dịch",
+  "Trades": "Giao dịch",
+  "Try": "Thử",
+  "Try again": "Thử lại",
+  "Turkish lira": "Lira Thổ Nhĩ Kỳ",
+  "Turn on syncing": "Bật đồng bộ hóa",
+  "Turn on syncing, so your contacts and wallet icons match on all your devices. It needs this wallet unlocked once.": "Bật đồng bộ hóa để danh bạ và biểu tượng ví giống nhau trên mọi thiết bị của bạn. Cần mở khóa ví này một lần.",
+  "Type the 24 words of a wallet you have": "Nhập 24 từ của ví bạn đang có",
+  "Type the SOL or Bitcoin address you'll pay from, then click": "Nhập địa chỉ SOL hoặc Bitcoin bạn sẽ dùng để thanh toán, sau đó nhấn",
+  "Type the password to send this wallet too.": "Nhập mật khẩu để gửi cả ví này.",
+  "Type the wallet's password if it has one.": "Nhập mật khẩu của ví nếu có.",
+  "Type this wallet's password to approve this order.": "Nhập mật khẩu ví này để phê duyệt lệnh này.",
+  "Type this wallet's password to approve this swap.": "Nhập mật khẩu ví này để phê duyệt hoán đổi này.",
+  "Type this wallet's password to see its words.": "Nhập mật khẩu ví này để xem các từ khôi phục.",
+  "Type this wallet's password to sign in.": "Nhập mật khẩu ví này để đăng nhập.",
+  "Type your wallet password": "Nhập mật khẩu ví của bạn",
+  "Type your wallet password below, so this app can claim your ORN": "Nhập mật khẩu ví bên dưới để ứng dụng này có thể nhận ORN của bạn",
+  "Type your wallet password below, so this app can finish the swap": "Nhập mật khẩu ví bên dưới để ứng dụng này có thể hoàn tất hoán đổi",
+  "Type your wallet password to approve this swap.": "Nhập mật khẩu ví của bạn để phê duyệt hoán đổi này.",
+  "US dollar": "Đô la Mỹ",
+  "Unban": "Bỏ cấm",
+  "Under": "Trong mục",
+  "Undo": "Hoàn tác",
+  "Unlock": "Mở khóa",
+  "Unmute the group chat": "Bật tiếng nhóm trò chuyện",
+  "Unstaked": "Đã hủy stake",
+  "Up to four. The first is the one shown on your listing's card.": "Tối đa bốn ảnh. Ảnh đầu tiên sẽ hiển thị trên thẻ tin đăng của bạn.",
+  "Update automatically": "Tự động cập nhật",
+  "Update failed": "Cập nhật thất bại",
+  "Update failed, try again": "Cập nhật thất bại, thử lại",
+  "Update needed": "Cần cập nhật",
+  "Update now": "Cập nhật ngay",
+  "Update to Latest": "Cập nhật lên bản mới nhất",
+  "Updates as they happen, and chat with the community": "Cập nhật tức thì và trò chuyện với cộng đồng",
+  "Updating": "Đang cập nhật",
+  "Use": "Dùng",
+  "Use Orien Wallet in your browser": "Dùng Orien Wallet trên trình duyệt của bạn",
+  "Use my other device": "Dùng thiết bị khác của tôi",
+  "Use my recovery phrase": "Dùng cụm từ khôi phục của tôi",
+  "Use the reply": "Dùng mã phản hồi",
+  "Use your wallets on another device": "Dùng các ví của bạn trên thiết bị khác",
+  "User Guide": "Hướng dẫn sử dụng",
+  "Username": "Tên người dùng",
+  "Validator fees": "Phí trình xác thực",
+  "Validators": "Trình xác thực",
+  "Verified": "Đã xác minh",
+  "Verified wallet": "Ví đã xác minh",
+  "Verify": "Xác minh",
+  "Verify a wallet": "Xác minh ví",
+  "Verify a wallet and people who pay it see your name with it.": "Xác minh ví để người thanh toán nhìn thấy tên của bạn kèm theo ví.",
+  "Verify a wallet to post and see your mining here.": "Xác minh một ví để đăng bài và xem hoạt động đào của bạn tại đây.",
+  "Verify more wallets, and choose where you're paid": "Xác minh thêm ví và chọn nơi nhận thanh toán",
+  "Verify one of your wallets on your Orien Network profile to post, reply and react.": "Xác minh một trong các ví trên hồ sơ Orien Network của bạn để đăng bài, trả lời và thả cảm xúc.",
+  "Verify one of your wallets to chat, reply or react.": "Xác minh một trong các ví của bạn để trò chuyện, trả lời hoặc thả cảm xúc.",
+  "Verify one of your wallets to chat. Anyone can read along.": "Xác minh một trong các ví của bạn để trò chuyện. Ai cũng có thể đọc.",
+  "Verify one of your wallets to react.": "Xác minh một trong các ví của bạn để thả cảm xúc.",
+  "Verify one of your wallets to reply.": "Xác minh một trong các ví của bạn để trả lời.",
+  "Verify this wallet": "Xác minh ví này",
+  "Verify this wallet to offer swaps": "Xác minh ví này để tạo đề nghị hoán đổi",
+  "Verify this wallet to place sell orders": "Xác minh ví này để đặt lệnh bán",
+  "Verifying shows everyone the wallet is yours, including its balance. It lets you post, sell, swap and receive tips.": "Việc xác minh cho mọi người thấy ví này là của bạn, bao gồm cả số dư. Nó cho phép bạn đăng bài, bán hàng, hoán đổi và nhận tiền tip.",
+  "Verifying…": "Đang xác minh…",
+  "Verifying… usually within a minute": "Đang xác minh… thường trong vòng một phút",
+  "Version": "Phiên bản",
+  "Videos about Orien": "Video về Orien",
+  "View": "Xem",
+  "View Profile": "Xem hồ sơ",
+  "View all": "Xem tất cả",
+  "View profile": "Xem hồ sơ",
+  "Waiting": "Đang chờ",
+  "Waiting for mining to get going.": "Đang chờ quá trình đào khởi chạy.",
+  "Waiting for validators": "Đang chờ các trình xác thực",
+  "Waiting for your other device": "Đang chờ thiết bị kia của bạn",
+  "Waiting for your wallets": "Đang chờ các ví của bạn",
+  "Wallet": "Ví",
+  "Wallet password": "Mật khẩu ví",
+  "Wallet password, so this app can sign the next step": "Mật khẩu ví để ứng dụng này có thể ký bước tiếp theo",
+  "Wallet password, to approve this sale": "Mật khẩu ví để phê duyệt giao dịch bán này",
+  "Wallet password, to approve this swap": "Mật khẩu ví để phê duyệt giao dịch hoán đổi này",
+  "Wallet settings": "Cài đặt ví",
+  "Wallets": "Các ví",
+  "Wallets holding ORN": "Các ví đang giữ ORN",
+  "Watch the preview as you go, then click": "Xem bản xem trước trong lúc chỉnh sửa, sau đó nhấn",
+  "We'll look into it, and write to you if we need to know more.": "Chúng tôi sẽ kiểm tra và liên hệ lại nếu cần thêm thông tin.",
+  "We'll look into it.": "Chúng tôi sẽ kiểm tra.",
+  "Welcome": "Chào mừng",
+  "Welcome to Orien Wallet": "Chào mừng đến với Orien Wallet",
+  "What are you offering?": "Bạn đang chào bán gì?",
+  "What happens:": "Điều gì sẽ xảy ra:",
+  "What is wrong with this post?": "Bài đăng này có vấn đề gì?",
+  "What is wrong with this theme?": "Chủ đề này có vấn đề gì?",
+  "What the buyer gets, how long it takes, anything they should know.": "Người mua sẽ nhận được gì, mất bao lâu và bất kỳ điều gì họ cần biết.",
+  "What we'll send": "Thông tin sẽ được gửi",
+  "What went wrong?": "Đã xảy ra sự cố gì?",
+  "What's happening?": "Có chuyện gì đang diễn ra?",
+  "When an offer is taken and as swaps finish": "Khi đề nghị được nhận và khi hoán đổi hoàn tất",
+  "When someone sends you ORN": "Khi có người gửi ORN cho bạn",
+  "When the seller answers, pay the exact amount shown from your SOL or Bitcoin wallet.": "Khi người bán phản hồi, hãy thanh toán chính xác số lượng hiển thị từ ví SOL hoặc Bitcoin của bạn.",
+  "Where did it happen?": "Sự cố xảy ra ở đâu?",
+  "Where the Bitcoin should go": "Nơi nhận Bitcoin",
+  "Where the SOL should go, such as your Phantom wallet": "Nơi nhận SOL, ví dụ như ví Phantom của bạn",
+  "Where was it?": "Ở mục nào?",
+  "Where your Bitcoin comes back if the swap stops": "Nơi hoàn lại Bitcoin nếu giao dịch hoán đổi dừng lại",
+  "Where your SOL should go (e.g. Phantom)": "Nơi nhận SOL của bạn (ví dụ: Phantom)",
+  "Where your SOL should go, such as your Phantom wallet": "Nơi nhận SOL của bạn, ví dụ như ví Phantom",
+  "While it's open, Orien Wallet does each of its steps for you as soon as it can.": "Khi đang mở, Orien Wallet sẽ tự thực hiện từng bước cho bạn sớm nhất có thể.",
+  "Who can message you": "Ai có thể nhắn tin cho bạn",
+  "Who is this?": "Đây là ai?",
+  "With their names and icons. Your new device asks there whether to add a password.": "Kèm theo tên và biểu tượng của chúng. Thiết bị mới sẽ hỏi bạn có muốn đặt mật khẩu hay không.",
+  "Withdraw": "Rút",
+  "Within a minute it shows": "Trong vòng một phút sẽ hiển thị",
+  "Work and things offered for ORN. You pay the seller straight from your wallet: the Market never holds anyone's coins.": "Công việc và hàng hóa được chào bán bằng ORN. Bạn thanh toán trực tiếp cho người bán từ ví của mình: Chợ không bao giờ giữ coin của ai.",
+  "Working, keep this page open": "Đang xử lý, hãy giữ trang này mở",
+  "Write the amount in ORN, like 200 or 12.5.": "Nhập số lượng bằng ORN, ví dụ 200 hoặc 12,5.",
+  "Write the price in ORN, like 200 or 12.5.": "Nhập giá bằng ORN, ví dụ 200 hoặc 12,5.",
+  "Write them down in order, on paper, and keep it somewhere safe.": "Viết chúng ra giấy theo đúng thứ tự và cất giữ ở nơi an toàn.",
+  "Write these 24 words on paper, in order, and keep them somewhere safe. They are the only way back into this wallet if this device is lost. Anyone who sees them can spend your ORN.": "Viết 24 từ này ra giấy theo đúng thứ tự và cất ở nơi an toàn. Đây là cách duy nhất để vào lại ví nếu bạn mất thiết bị này. Bất kỳ ai thấy chúng đều có thể chi tiêu ORN của bạn.",
+  "Yesterday": "Hôm qua",
+  "You": "Bạn",
+  "You and the buyer · up to you": "Bạn và người mua · tùy hai bên",
+  "You approve the sale once, now. When someone takes your offer, your wallet accepts it within seconds, even with the window closed. Keep Orien Wallet running.": "Bạn phê duyệt giao dịch bán một lần ngay bây giờ. Khi có người nhận đề nghị, ví của bạn sẽ chấp nhận trong vài giây ngay cả khi cửa sổ đang đóng. Hãy giữ Orien Wallet luôn chạy.",
+  "You buy": "Bạn mua",
+  "You can't send in the group chat right now. You can still read along.": "Hiện bạn không thể gửi tin trong nhóm trò chuyện. Bạn vẫn có thể đọc.",
+  "You get": "Bạn nhận",
+  "You have 24 themes, as many as there's room for. Delete one in Appearance first.": "Bạn đã có 24 chủ đề, đạt mức tối đa. Hãy xóa bớt một chủ đề trong mục Giao diện trước.",
+  "You haven't blocked anyone.": "Bạn chưa chặn ai.",
+  "You need": "Bạn cần",
+  "You need to be signed in to Orien Network with a verified wallet.": "Bạn cần đăng nhập vào Orien Network bằng một ví đã xác minh.",
+  "You need to be signed in to Orien Network. Verifying a wallet isn't needed.": "Bạn cần đăng nhập vào Orien Network. Không cần xác minh ví.",
+  "You pay": "Bạn trả",
+  "You sell": "Bạn bán",
+  "You send the buyer the offer code, and paste in the reply code they send back": "Bạn gửi mã đề nghị cho người mua và dán mã phản hồi họ gửi lại",
+  "You · now": "Bạn · ngay bây giờ",
+  "You · pay within a few hours": "Bạn · thanh toán trong vài giờ",
+  "You · pay within the next few hours": "Bạn · thanh toán trong vài giờ tới",
+  "You · stay on this page until Step 2 finishes": "Bạn · ở lại trang này cho đến khi Bước 2 hoàn tất",
+  "You · within a few hours": "Bạn · trong vài giờ",
+  "You're up to date": "Bạn đang dùng phiên bản mới nhất",
+  "Your 24 words, separated by spaces": "24 từ của bạn, cách nhau bằng dấu cách",
+  "Your Bitcoin address": "Địa chỉ Bitcoin của bạn",
+  "Your Discord username": "Tên người dùng Discord của bạn",
+  "Your ORN stay safe:": "ORN của bạn luôn an toàn:",
+  "Your Phantom / SOL wallet (for refunds & leftovers)": "Ví Phantom / SOL của bạn (để nhận hoàn tiền & tiền dư)",
+  "Your Phantom / SOL wallet address": "Địa chỉ ví Phantom / SOL của bạn",
+  "Your SOL address": "Địa chỉ SOL của bạn",
+  "Your SOL address (the wallet you'll pay from)": "Địa chỉ SOL của bạn (ví bạn sẽ dùng để thanh toán)",
+  "Your SOL is locked for the seller. Their wallet takes it and your ORN arrive, usually within a minute.": "SOL của bạn đã được khóa cho người bán. Ví của họ sẽ nhận SOL và ORN sẽ về ví bạn, thường trong vòng một phút.",
+  "Your SOL payout address": "Địa chỉ nhận SOL của bạn",
+  "Your SOL stays locked safely on Solana until a seller fills it, you cancel in one click, or it expires after 7 days and refunds automatically.": "SOL của bạn được khóa an toàn trên Solana cho đến khi người bán khớp lệnh, bạn hủy chỉ với một cú nhấp hoặc lệnh hết hạn sau 7 ngày và tự động hoàn tiền.",
+  "Your SOL wallet (for refunds & leftovers)": "Ví SOL của bạn (để nhận hoàn tiền & tiền dư)",
+  "Your SOL wallet address": "Địa chỉ ví SOL của bạn",
+  "Your SOL went back to your SOL wallet.": "SOL của bạn đã quay về ví SOL.",
+  "Your Telegram username": "Tên người dùng Telegram của bạn",
+  "Your X username": "Tên người dùng X của bạn",
+  "Your account is for the Community, the Market and swaps. Your wallets stay in this app.": "Tài khoản của bạn dùng cho Cộng đồng, Chợ và hoán đổi. Các ví của bạn vẫn nằm trong ứng dụng này.",
+  "Your address": "Địa chỉ của bạn",
+  "Your buy order is live on the book. When someone sells into it, this app opens the pay screen.": "Lệnh mua của bạn đã lên sổ lệnh. Khi có người bán vào lệnh này, ứng dụng sẽ mở màn hình thanh toán.",
+  "Your buy order is live on the order book. You are all set to leave this page or close Orien Wallet. Any extra SOL has been sent back to your wallet, and when a seller takes your order your ORN will arrive automatically.": "Lệnh mua của bạn đã mở trên sổ lệnh. Bạn có thể yên tâm rời khỏi trang này hoặc đóng Orien Wallet. Mọi khoản SOL dư đã được gửi lại ví của bạn, và khi có người bán khớp lệnh, ORN sẽ tự động về ví bạn.",
+  "Your devices": "Thiết bị của bạn",
+  "Your email": "Email của bạn",
+  "Your language follows you to your other devices.": "Ngôn ngữ của bạn sẽ đồng bộ sang các thiết bị khác.",
+  "Your listings": "Tin đăng của bạn",
+  "Your offer is live": "Đề nghị của bạn đã mở",
+  "Your orders & swaps": "Lệnh & giao dịch hoán đổi của bạn",
+  "Your picture": "Ảnh của bạn",
+  "Your profile": "Hồ sơ của bạn",
+  "Your recovery phrase": "Cụm từ khôi phục của bạn",
+  "Your sell order is live on the book. When someone buys it, your wallet runs the swap by itself.": "Lệnh bán của bạn đã lên sổ lệnh. Khi có người mua, ví của bạn sẽ tự thực hiện hoán đổi.",
+  "Your share": "Phần của bạn",
+  "Your share of each hour's new ORN": "Phần của bạn trong lượng ORN mới mỗi giờ",
+  "Your share of the hour's fees": "Phần của bạn trong phí của giờ này",
+  "Your share of the hour's new ORN": "Phần của bạn trong lượng ORN mới của giờ này",
+  "Your speed": "Tốc độ của bạn",
+  "Your swaps": "Hoán đổi của bạn",
+  "Your theme follows you to your other devices.": "Chủ đề của bạn sẽ đồng bộ sang các thiết bị khác.",
+  "Your turn: confirm with your wallet password so this app can finish it": "Đến lượt bạn: xác nhận bằng mật khẩu ví để ứng dụng này hoàn tất giao dịch",
+  "Your username": "Tên người dùng của bạn",
+  "Your username, as others see it": "Tên người dùng của bạn như người khác nhìn thấy",
+  "Your wallet": "Ví của bạn",
+  "Your wallet is locking the ORN now. Keep Orien Wallet running while the buyer pays.": "Ví của bạn đang khóa ORN. Hãy giữ Orien Wallet luôn chạy trong lúc người mua thanh toán.",
+  "Your wallet is on its way": "Ví của bạn đang được chuyển sang",
+  "Your wallet locks the ORN automatically when someone buys your offer. Keep Orien Wallet running in the menu bar or tray.": "Ví của bạn sẽ tự động khóa ORN khi có người mua đề nghị của bạn. Hãy giữ Orien Wallet chạy trên thanh menu hoặc khay hệ thống.",
+  "Your wallets": "Các ví của bạn",
+  "Your wallets arrive on the new device by themselves.": "Các ví của bạn sẽ tự động xuất hiện trên thiết bị mới.",
+  "Your wallets travel encrypted, straight between your two devices.": "Các ví của bạn được mã hóa và truyền trực tiếp giữa hai thiết bị.",
+  "Yours": "Của bạn",
+  "a buyer": "một người mua",
+  "a globe": "hình quả địa cầu",
+  "a minute": "một phút",
+  "a pickaxe": "hình chiếc cuốc",
+  "a speech bubble": "hình khung thoại",
+  "a telescope": "hình kính thiên văn",
+  "about 6 hours after your reply": "khoảng 6 giờ sau khi bạn phản hồi",
+  "also replied to a post you replied to": "cũng đã trả lời một bài đăng bạn đã trả lời",
+  "an arrow pointing down": "mũi tên chỉ xuống",
+  "an arrow pointing up": "mũi tên chỉ lên",
+  "and": "và",
+  "and choose": "và chọn",
+  "and its ORN stay in it. This only takes it off the list.": "và số ORN trong đó vẫn còn nguyên. Thao tác này chỉ xóa ví khỏi danh sách.",
+  "any moment": "bất cứ lúc nào",
+  "by Pablo Stanley, drawn with": "của Pablo Stanley, vẽ bằng",
+  "claim your ORN": "nhận ORN của bạn",
+  "covers Solana's small fees; nearly all of it comes back to your SOL wallet when the swap ends.": "chi trả các khoản phí nhỏ của Solana; gần như toàn bộ sẽ hoàn về ví SOL của bạn khi hoán đổi kết thúc.",
+  "covers Solana's small rent and fees; nearly all of it returns to your SOL wallet automatically.": "chi trả khoản phí thuê tài khoản và phí nhỏ của Solana; gần như toàn bộ sẽ tự động hoàn về ví SOL của bạn.",
+  "estimated": "ước tính",
+  "finish the swap": "hoàn tất hoán đổi",
+  "for Orien's own. Each card shows the theme on a small copy of the app.": "để xem các chủ đề của chính Orien. Mỗi thẻ hiển thị chủ đề trên một bản thu nhỏ của ứng dụng.",
+  "for each share": "cho mỗi phần việc",
+  "for themes people made, or": "để xem các chủ đề do mọi người tạo, hoặc",
+  "in Settings,": "trong Cài đặt,",
+  "in a row": "liên tiếp",
+  "is buying from you": "đang mua từ bạn",
+  "it goes back to the SOL address below within about an hour.": "số tiền đó sẽ quay về địa chỉ SOL bên dưới trong khoảng một giờ.",
+  "just don't send: nothing has left your wallets.": "chỉ cần không gửi: chưa có gì rời khỏi ví của bạn.",
+  "just now": "vừa xong",
+  "mined their first ORN.": "đã đào được ORN đầu tiên.",
+  "new ORN": "ORN mới",
+  "none yet": "chưa có",
+  "on one you like.": "vào đề nghị bạn thích.",
+  "on their own": "tự động",
+  "orien.network can't be reached right now. Check your connection and try again.": "Hiện không thể kết nối đến orien.network. Hãy kiểm tra kết nối mạng và thử lại.",
+  "passed it mining.": "đã vượt qua cột mốc này khi đào.",
+  "payments sent": "giao dịch đã gửi",
+  "per ORN": "mỗi ORN",
+  "posted about you:": "đã đăng về bạn:",
+  "rank": "hạng",
+  "replied to the network's post about you": "đã trả lời bài đăng của mạng lưới về bạn",
+  "replied to you in the Orien group chat": "đã trả lời bạn trong nhóm trò chuyện Orien",
+  "replied to your post": "đã trả lời bài đăng của bạn",
+  "replied to your reply": "đã trả lời phản hồi của bạn",
+  "scan or type": "quét hoặc nhập",
+  "shares an hour": "phần việc mỗi giờ",
+  "shows mining rewards and validator fees.": "hiển thị phần thưởng đào và phí trình xác thực.",
+  "slider, or click": "hoặc nhấn",
+  "staked": "đã stake",
+  "the Bitcoin in any Bitcoin wallet, plus its sending fee. The usual Orien fee (0.1%, at most 1 ORN) comes out of the ORN you receive.": "số Bitcoin trong bất kỳ ví Bitcoin nào, cộng thêm phí gửi. Phí Orien thông thường (0,1%, tối đa 1 ORN) sẽ được trừ từ lượng ORN bạn nhận.",
+  "the ORN in this wallet, plus the usual Orien fee (0.1%, at most 1 ORN). Bitcoin's network fee comes out of what you receive.": "số ORN trong ví này, cộng thêm phí Orien thông thường (0,1%, tối đa 1 ORN). Phí mạng Bitcoin sẽ được trừ từ số tiền bạn nhận.",
+  "the ORN in this wallet, plus the usual Orien fee (0.1%, at most 1 ORN). The buyer covers Solana's small fees.": "số ORN trong ví này, cộng thêm phí Orien thông thường (0,1%, tối đa 1 ORN). Người mua chịu các khoản phí nhỏ của Solana.",
+  "the ORN in this wallet, plus the usual Orien fee (0.1%, at most 1 ORN). You don't need any SOL.": "số ORN trong ví này, cộng thêm phí Orien thông thường (0,1%, tối đa 1 ORN). Bạn không cần có SOL.",
+  "the SOL in your own SOL wallet, plus about 0.005 SOL for Solana's small fees, nearly all of which comes back. The usual Orien fee (0.1%, at most 1 ORN) comes out of the ORN you receive.": "số SOL trong ví SOL của bạn, cộng thêm khoảng 0,005 SOL cho các khoản phí nhỏ của Solana, gần như toàn bộ sẽ được hoàn lại. Phí Orien thông thường (0,1%, tối đa 1 ORN) sẽ được trừ từ lượng ORN bạn nhận.",
+  "the buy offer is yours": "đề nghị mua này là của bạn",
+  "the buyer": "người mua",
+  "the buyer's SOL is already locked on Solana. Your wallet reserves it, locks your ORN, and both sides settle automatically in about a minute without waiting on the buyer.": "SOL của người mua đã được khóa sẵn trên Solana. Ví của bạn sẽ giữ trước số SOL đó, khóa ORN của bạn, và cả hai bên tự động tất toán trong khoảng một phút mà không cần chờ người mua.",
+  "the code it shows.": "mã hiển thị trên màn hình.",
+  "the gear at the top left": "biểu tượng bánh răng ở góc trên bên trái",
+  "the menu bar": "thanh menu",
+  "the network's post about you": "bài đăng của mạng lưới về bạn",
+  "the offer is yours": "đề nghị này là của bạn",
+  "the seller": "người bán",
+  "the seller's lock ends": "thời gian khóa của người bán kết thúc",
+  "the seller's wallet accepts within seconds and locks the ORN for you. This app then shows the exact SOL to send from your SOL wallet, such as Phantom, with a QR code. The swap finishes by itself, usually within a minute.": "ví của người bán sẽ chấp nhận trong vài giây và khóa ORN cho bạn. Ứng dụng này sau đó hiển thị chính xác lượng SOL cần gửi từ ví SOL của bạn (như Phantom) kèm mã QR. Giao dịch hoán đổi sẽ tự hoàn tất, thường trong vòng một phút.",
+  "the system tray": "khay hệ thống",
+  "there too.": "ở đó luôn.",
+  "there. Your wallets arrive here by themselves.": "ở đó. Các ví của bạn sẽ tự động xuất hiện tại đây.",
+  "this app takes it back to the address below after about 6 hours.": "ứng dụng này sẽ tự lấy lại về địa chỉ bên dưới sau khoảng 6 giờ.",
+  "this app verifies the buyer's SOL is reserved for your address on Solana before locking your ORN, then both sides settle in about a minute.": "ứng dụng này xác minh rằng SOL của người mua đã được giữ trước cho địa chỉ của bạn trên Solana trước khi khóa ORN, sau đó cả hai bên tất toán trong khoảng một phút.",
+  "this wallet": "ví này",
+  "to find your computer's sweet spot.": "để tìm mức tối ưu cho máy tính của bạn.",
+  "to keep it. It joins your themes in Appearance and is worn at once.": "để lưu lại. Chủ đề sẽ được thêm vào danh sách trong mục Giao diện và áp dụng ngay lập tức.",
+  "to see the whole app in it. Click": "để xem toàn bộ ứng dụng với chủ đề đó. Nhấn",
+  "to this Bitcoin address": "đến địa chỉ Bitcoin này",
+  "to this SOL address": "đến địa chỉ SOL này",
+  "took your offer": "đã nhận đề nghị của bạn",
+  "top miner": "thợ đào hàng đầu",
+  "two arrows": "hai mũi tên",
+  "two people": "hai người",
+  "type": "nhập",
+  "under a second": "chưa đầy một giây",
+  "wrote to you": "đã nhắn tin cho bạn",
+  "your ORN come back to you on their own within a few hours. You don't need to do anything.": "ORN của bạn sẽ tự động quay về ví trong vài giờ. Bạn không cần làm gì cả.",
+  "your ORN come back to your wallet on their own within 12 hours.": "ORN của bạn sẽ tự động quay về ví trong vòng 12 giờ.",
+  "your ORN come back to your wallet on their own within a few hours.": "ORN của bạn sẽ tự động quay về ví trong vài giờ.",
+  "your password": "mật khẩu của bạn",
+  "your post": "bài đăng của bạn",
+  "your reply": "phản hồi của bạn",
+  "your wallet locks the ORN on the network": "ví của bạn khóa ORN trên mạng lưới",
+  "your wallet locks your ORN for the buyer within seconds. Their wallet then prompts them to send the SOL, and your wallet collects it and delivers their ORN automatically, usually within a minute.": "ví của bạn khóa ORN cho người mua trong vài giây. Ví của họ sau đó sẽ nhắc họ gửi SOL, còn ví của bạn tự động nhận SOL và giao ORN cho họ, thường trong vòng một phút.",
+  "your wallet locks your ORN for the buyer within seconds. Their wallet then sends the Bitcoin, and once it confirms, your wallet collects it and delivers their ORN automatically.": "ví của bạn khóa ORN cho người mua trong vài giây. Ví của họ sau đó gửi Bitcoin, và khi giao dịch được xác nhận, ví của bạn tự động nhận Bitcoin và giao ORN cho họ.",
+  "your wallet never locks your ORN until the buyer's SOL is reserved for your address on Solana.": "ví của bạn không bao giờ khóa ORN cho đến khi SOL của người mua đã được giữ trước cho địa chỉ của bạn trên Solana.",
+  "your wallet password": "mật khẩu ví của bạn",
+  "✓ Complete": "✓ Hoàn tất",
+  "✓ Live on the order book (safe to leave)": "✓ Đang mở trên sổ lệnh (có thể rời đi)",
+  "✓ Valid address": "✓ Địa chỉ hợp lệ",
+  "_patterns": [
+    [
+      "^Sell ([0-9.,]+) ORN for ([0-9.,]+) SOL(.*)$",
+      "Bán {0} ORN lấy {1} SOL{2}"
+    ],
+    [
+      "^Buy ([0-9.,]+) ORN for ([0-9.,]+) SOL(.*)$",
+      "Mua {0} ORN bằng {1} SOL{2}"
+    ],
+    [
+      "^Sell ([0-9.,]+) ORN for ([0-9.,]+) BTC(.*)$",
+      "Bán {0} ORN lấy {1} BTC{2}"
+    ],
+    [
+      "^Buy ([0-9.,]+) ORN for ([0-9.,]+) BTC(.*)$",
+      "Mua {0} ORN bằng {1} BTC{2}"
+    ],
+    [
+      "^(\\d+) open$",
+      "{0} đang mở"
+    ],
+    [
+      "^Price \\(([A-Z]+)\\)$",
+      "Giá ({0})"
+    ],
+    [
+      "^Total \\(([A-Z]+)\\)$",
+      "Tổng ({0})"
+    ],
+    [
+      "^Last swap · (.+)$",
+      "Hoán đổi gần nhất · {0}"
+    ],
+    [
+      "^Lock with (.+)$",
+      "Khóa bằng {0}"
+    ],
+    [
+      "^Received so far: ([0-9.,]+) of ([0-9.,]+) SOL$",
+      "Đã nhận đến nay: {0} / {1} SOL"
+    ],
+    [
+      "^Done: ([0-9.,]+) ORN are in your wallet\\.$",
+      "Xong: {0} ORN đã vào ví của bạn."
+    ],
+    [
+      "^Done: ([0-9.,]+) SOL is in your SOL wallet\\.$",
+      "Xong: {0} SOL đã vào ví SOL của bạn."
+    ],
+    [
+      "^Paid: ([0-9.,]+) SOL is on its way to your SOL address\\.$",
+      "Đã thanh toán: {0} SOL đang trên đường đến địa chỉ SOL của bạn."
+    ],
+    [
+      "^Send exactly ([0-9.,]+) SOL from your SOL wallet to fund this buy order\\. Once funded, it stays live on the order book even when Orien Wallet is closed\\.$",
+      "Gửi chính xác {0} SOL từ ví SOL của bạn để nạp cho lệnh mua này. Sau khi nạp, lệnh vẫn mở trên sổ lệnh ngay cả khi đóng Orien Wallet."
+    ],
+    [
+      "^The seller accepted\\. Send exactly ([0-9.,]+) SOL from your SOL wallet to the address below\\. This app sees it by itself\\.$",
+      "Người bán đã chấp nhận. Gửi chính xác {0} SOL từ ví SOL của bạn đến địa chỉ bên dưới. Ứng dụng này sẽ tự nhận diện."
+    ],
+    [
+      "^Your ORN are locked\\. You can leave this page; ([0-9.,]+) SOL arrives in your SOL wallet in about a minute\\.$",
+      "ORN của bạn đã được khóa. Bạn có thể rời khỏi trang này; {0} SOL sẽ đến ví SOL của bạn trong khoảng một phút."
+    ],
+    [
+      "^Send ([0-9.,]+) SOL from your SOL wallet$",
+      "Gửi {0} SOL từ ví SOL của bạn"
+    ],
+    [
+      "^Locking your ([0-9.,]+ (?:SOL|BTC)) on Solana and adding your order to the book$",
+      "Đang khóa {0} của bạn trên Solana và đưa lệnh lên sổ lệnh"
+    ],
+    [
+      "^Waiting on the order book for a seller to fill ([0-9.,]+ ORN)$",
+      "Đang chờ trên sổ lệnh để người bán khớp {0}"
+    ],
+    [
+      "^([0-9.,]+ ORN) delivered to your wallet$",
+      "Đã chuyển {0} vào ví của bạn"
+    ],
+    [
+      "^Locking the buyer's ([0-9.,]+ SOL) on Solana for your address$",
+      "Đang khóa {0} của người mua trên Solana cho địa chỉ của bạn"
+    ],
+    [
+      "^Locking your ([0-9.,]+ ORN) on Orien$",
+      "Đang khóa {0} của bạn trên Orien"
+    ],
+    [
+      "^Sending ([0-9.,]+ SOL) to your SOL wallet$",
+      "Đang gửi {0} đến ví SOL của bạn"
+    ],
+    [
+      "^([0-9.,]+ SOL) in your SOL wallet$",
+      "{0} trong ví SOL của bạn"
+    ],
+    [
+      "^([0-9.,]+ ORN) in your wallet$",
+      "{0} trong ví của bạn"
+    ],
+    [
+      "^Your ([0-9.,]+ ORN) are locked for the buyer$",
+      "{0} của bạn đã được khóa cho người mua"
+    ],
+    [
+      "^The buyer pays ([0-9.,]+ (?:SOL|BTC))$",
+      "Người mua trả {0}"
+    ],
+    [
+      "^The seller locked ([0-9.,]+ ORN) for you$",
+      "Người bán đã khóa {0} cho bạn"
+    ],
+    [
+      "^([0-9.,]+ (?:SOL|BTC)) on its way to your SOL address$",
+      "{0} đang trên đường đến địa chỉ SOL của bạn"
+    ],
+    [
+      "^Your SOL is locked for the seller, then your ([0-9.,]+ ORN) arrive$",
+      "SOL của bạn đã được khóa cho người bán, sau đó {0} của bạn sẽ đến"
+    ],
+    [
+      "^Your turn: send ([0-9.,]+ (?:SOL|BTC)) to fund$",
+      "Đến lượt bạn: gửi {0} để nạp lệnh"
+    ],
+    [
+      "^Your turn: pay ([0-9.,]+ (?:SOL|BTC)) now$",
+      "Đến lượt bạn: thanh toán {0} ngay"
+    ],
+    [
+      "^Your turn: approve with (.+) to finish$",
+      "Đến lượt bạn: phê duyệt bằng {0} để hoàn tất"
+    ],
+    [
+      "^Step (\\d+) of (\\d+) · (.+)$",
+      "Bước {0} / {1} · {2}"
+    ],
+    [
+      "^Stopped: (.+)\\.$",
+      "Đã dừng: {0}."
+    ],
+    [
+      "^Fund your buy order: send ([0-9.,]+ SOL)$",
+      "Nạp cho lệnh mua: gửi {0}"
+    ],
+    [
+      "^Locks your SOL on Solana to buy ([0-9.,]+) ORN$",
+      "Khóa SOL của bạn trên Solana để mua {0} ORN"
+    ],
+    [
+      "^Swap in progress: (?:buying|selling) ([0-9.,]+) ORN$",
+      "Đang hoán đổi: {0} ORN"
+    ],
+    [
+      "^Approve to get your ([0-9.,]+) ORN$",
+      "Phê duyệt để nhận {0} ORN của bạn"
+    ],
+    [
+      "^Confirm with (.+) below, so this app can finish the swap$",
+      "Xác nhận bằng {0} bên dưới để ứng dụng này hoàn tất hoán đổi"
+    ],
+    [
+      "^Confirm with (.+) below, so this app can claim your ORN$",
+      "Xác nhận bằng {0} bên dưới để ứng dụng này nhận ORN của bạn"
+    ],
+    [
+      "^In (\\d+) min$",
+      "Trong {0} phút"
+    ],
+    [
+      "^in (\\d+) min$",
+      "trong {0} phút"
+    ],
+    [
+      "^In (\\d+) s$",
+      "Trong {0} giây"
+    ],
+    [
+      "^in (\\d+) s$",
+      "trong {0} giây"
+    ],
+    [
+      "^(\\d+) of (\\d+) running$",
+      "{0} / {1} đang chạy"
+    ],
+    [
+      "^([0-9,]+) miners? paid$",
+      "{0} thợ đào được trả thưởng"
+    ],
+    [
+      "^Checkpoint (\\d+)$",
+      "Điểm kiểm tra {0}"
+    ],
+    [
+      "^Running · into (.+)$",
+      "Đang chạy · vào {0}"
+    ],
+    [
+      "^([0-9,]+) found$",
+      "Tìm thấy {0}"
+    ],
+    [
+      "^Locked payment from (.+)$",
+      "Thanh toán bị khóa từ {0}"
+    ],
+    [
+      "^Locked payment to (.+)$",
+      "Thanh toán bị khóa đến {0}"
+    ],
+    [
+      "^From (.+)$",
+      "Từ {0}"
+    ],
+    [
+      "^To (.+)$",
+      "Đến {0}"
+    ],
+    [
+      "^(\\d+) min ago · (\\d+) payments? · agreed by (\\d+) of (\\d+)$",
+      "{0} phút trước · {1} giao dịch · đồng thuận bởi {2} / {3}"
+    ],
+    [
+      "^(\\d+) h ago · (\\d+) payments? · agreed by (\\d+) of (\\d+)$",
+      "{0} giờ trước · {1} giao dịch · đồng thuận bởi {2} / {3}"
+    ],
+    [
+      "^(\\d+) d ago · (\\d+) payments? · agreed by (\\d+) of (\\d+)$",
+      "{0} ngày trước · {1} giao dịch · đồng thuận bởi {2} / {3}"
+    ],
+    [
+      "^(\\d+) min ago · agreed by (\\d+) of (\\d+)$",
+      "{0} phút trước · đồng thuận bởi {1} / {2}"
+    ],
+    [
+      "^(\\d+) h ago · agreed by (\\d+) of (\\d+)$",
+      "{0} giờ trước · đồng thuận bởi {1} / {2}"
+    ],
+    [
+      "^(\\d+) d ago · agreed by (\\d+) of (\\d+)$",
+      "{0} ngày trước · đồng thuận bởi {1} / {2}"
+    ],
+    [
+      "^just now · (\\d+) payments? · agreed by (\\d+) of (\\d+)$",
+      "vừa xong · {0} giao dịch · đồng thuận bởi {1} / {2}"
+    ],
+    [
+      "^just now · agreed by (\\d+) of (\\d+)$",
+      "vừa xong · đồng thuận bởi {0} / {1}"
+    ],
+    [
+      "^([0-9,]+) payments?$",
+      "{0} giao dịch"
+    ],
+    [
+      "^Of ([0-9,]+) there will ever be$",
+      "Trên tổng tối đa {0}"
+    ],
+    [
+      "^([0-9,]+) in the last (\\d+) hours$",
+      "{0} trong {1} giờ qua"
+    ],
+    [
+      "^Estimated, over the last (\\d+) hours$",
+      "Ước tính trong {0} giờ qua"
+    ],
+    [
+      "^Estimated, over the last hour$",
+      "Ước tính trong giờ qua"
+    ],
+    [
+      "^([0-9,]+) hold at least 1 ORN$",
+      "{0} ví giữ ít nhất 1 ORN"
+    ],
+    [
+      "^Validator (\\d+)$",
+      "Trình xác thực {0}"
+    ],
+    [
+      "^([0-9.]+)% of ORN in wallets$",
+      "{0}% lượng ORN trong các ví"
+    ],
+    [
+      "^([0-9.]+)% of the work$",
+      "{0}% khối lượng công việc"
+    ],
+    [
+      "^([0-9,]+) wallets hold ORN$",
+      "{0} ví đang giữ ORN"
+    ],
+    [
+      "^([0-9,]+) wallets? paid$",
+      "{0} ví được trả thưởng"
+    ],
+    [
+      "^Staked by (.+) · ([0-9,]+) ORN · agreed on (\\d+) of the last (\\d+)$",
+      "Được stake bởi {0} · {1} ORN · đồng thuận {2} / {3} lần gần nhất"
+    ],
+    [
+      "^Launch validator · agreed on (\\d+) of the last (\\d+)$",
+      "Trình xác thực khởi tạo · đồng thuận {0} / {1} lần gần nhất"
+    ],
+    [
+      "^Staked by (.+)$",
+      "Được stake bởi {0}"
+    ],
+    [
+      "^(\\d+) verified wallets?$",
+      "{0} ví đã xác minh"
+    ],
+    [
+      "^(\\d+) more offers? paused while .*$",
+      "{0} đề nghị khác đang tạm dừng"
+    ],
+    [
+      "^Continue with (.+)$",
+      "Tiếp tục với {0}"
+    ],
+    [
+      "^Sell with (.+)$",
+      "Bán với {0}"
+    ],
+    [
+      "^Take with (.+)$",
+      "Chấp nhận với {0}"
+    ],
+    [
+      "^Sweet spot: (\\d+) of (\\d+) cores$",
+      "Mức tối ưu: {0} / {1} nhân"
+    ],
+    [
+      "^About ([0-9,]+) tries a second\\. Past it, the processor runs hotter for no more ORN\\.$",
+      "Khoảng {0} lần thử mỗi giây. Vượt mức này bộ xử lý sẽ nóng hơn mà không có thêm ORN."
+    ],
+    [
+      "^Trying (\\d+) of (\\d+) cores \\((\\d+) of (\\d+)\\)\\. Shares found still count\\.$",
+      "Đang thử {0} / {1} nhân ({2} / {3}). Các phần việc tìm thấy vẫn được tính."
+    ],
+    [
+      "^This hour: ([0-9,]+) shares found, ([0-9,]+) counted$",
+      "Giờ này: tìm thấy {0} phần việc, tính {1}"
+    ],
+    [
+      "^About one try in ([0-9,]+) makes a share\\.$",
+      "Khoảng 1 trong {0} lần thử tạo ra một phần việc."
+    ],
+    [
+      "^([0-9.,]+(?: [KMG])?) tries a second$",
+      "{0} lần thử mỗi giây"
+    ],
+    [
+      "^(\\d+) of (\\d+) cores$",
+      "{0} / {1} nhân"
+    ],
+    [
+      "^(\\d+) of (\\d+)$",
+      "{0} / {1}"
+    ],
+    [
+      "^(\\d+) of 24 words$",
+      "{0} / 24 từ"
+    ],
+    [
+      "^staked · ([0-9.,]+) returning$",
+      "đã stake · đang trả về {0}"
+    ],
+    [
+      "^Received from (.+)$",
+      "Nhận từ {0}"
+    ],
+    [
+      "^Sent to (.+)$",
+      "Gửi đến {0}"
+    ],
+    [
+      "^Locked payment received from (.+)$",
+      "Đã nhận thanh toán bị khóa từ {0}"
+    ],
+    [
+      "^(.+) · checkpoint (\\d+)$",
+      "{0} · điểm kiểm tra {1}"
+    ],
+    [
+      "^checkpoint (\\d+)$",
+      "điểm kiểm tra {0}"
+    ],
+    [
+      "^← Checkpoint (\\d+)$",
+      "← Điểm kiểm tra {0}"
+    ],
+    [
+      "^Checkpoint (\\d+) →$",
+      "Điểm kiểm tra {0} →"
+    ],
+    [
+      "^Checkpoint (\\d+) hasn't been made yet\\.$",
+      "Điểm kiểm tra {0} chưa được tạo."
+    ],
+    [
+      "^Checkpoint (\\d+) hasn't been made yet\\. The latest is (\\d+)\\.$",
+      "Điểm kiểm tra {0} chưa được tạo. Mới nhất là {1}."
+    ],
+    [
+      "^Being made now, ready in about (\\d+) min$",
+      "Đang được tạo, sẵn sàng trong khoảng {0} phút"
+    ],
+    [
+      "^Next hour (.+)$",
+      "Giờ tiếp theo {0}"
+    ],
+    [
+      "^([0-9.]+)× easier$",
+      "dễ hơn {0}×"
+    ],
+    [
+      "^([0-9.]+)× harder$",
+      "khó hơn {0}×"
+    ],
+    [
+      "^([0-9.,]+) new ORN$",
+      "{0} ORN mới"
+    ],
+    [
+      "^([0-9.,]+) available$",
+      "{0} khả dụng"
+    ],
+    [
+      "^Avail: ([0-9.,]+)$",
+      "Khả dụng: {0}"
+    ],
+    [
+      "^Fee ([0-9.,]+) ORN · ([0-9.,]+) ORN in all$",
+      "Phí {0} ORN · tổng cộng {1} ORN"
+    ],
+    [
+      "^incl\\. ([0-9.,]+) fee$",
+      "gồm phí {0}"
+    ],
+    [
+      "^([0-9.,]+) ORN sent$",
+      "Đã gửi {0} ORN"
+    ],
+    [
+      "^(\\d+) more characters?$",
+      "Cần thêm {0} ký tự"
+    ],
+    [
+      "^(\\d+) min ago$",
+      "{0} phút trước"
+    ],
+    [
+      "^(\\d+) h ago$",
+      "{0} giờ trước"
+    ],
+    [
+      "^(\\d+) d ago$",
+      "{0} ngày trước"
+    ],
+    [
+      "^(\\d+) h (\\d+) min$",
+      "{0} giờ {1} phút"
+    ],
+    [
+      "^(\\d+) min$",
+      "{0} phút"
+    ],
+    [
+      "^(\\d+) minutes?$",
+      "{0} phút"
+    ],
+    [
+      "^(\\d+) hours?$",
+      "{0} giờ"
+    ],
+    [
+      "^(\\d+) days?$",
+      "{0} ngày"
+    ],
+    [
+      "^(\\d+) days? left$",
+      "Còn {0} ngày"
+    ],
+    [
+      "^(\\d+) hours? left$",
+      "Còn {0} giờ"
+    ],
+    [
+      "^(\\d+) minutes? left$",
+      "Còn {0} phút"
+    ],
+    [
+      "^(\\d+) more$",
+      "Thêm {0}"
+    ],
+    [
+      "^(\\d+) others?$",
+      "{0} người khác"
+    ],
+    [
+      "^(.+) and (\\d+) others?$",
+      "{0} và {1} người khác"
+    ],
+    [
+      "^(.+), (\\d+) swaps? done$",
+      "{0}, đã xong {1} hoán đổi"
+    ],
+    [
+      "^([0-9.,]+) SOL per ORN$",
+      "{0} SOL mỗi ORN"
+    ],
+    [
+      "^([0-9,]+) satoshis per ORN$",
+      "{0} satoshi mỗi ORN"
+    ],
+    [
+      "^Member since (.+)$",
+      "Thành viên từ {0}"
+    ],
+    [
+      "^Blocked (.+)$",
+      "Đã chặn {0}"
+    ],
+    [
+      "^Block (.+)$",
+      "Chặn {0}"
+    ],
+    [
+      "^Unblock (.+)$",
+      "Bỏ chặn {0}"
+    ],
+    [
+      "^Reply to (.+)$",
+      "Trả lời {0}"
+    ],
+    [
+      "^Write to (.+)$",
+      "Nhắn cho {0}"
+    ],
+    [
+      "^Ask (.+) to pay$",
+      "Yêu cầu {0} thanh toán"
+    ],
+    [
+      "^Tip ([0-9.,]+) ORN$",
+      "Tặng tip {0} ORN"
+    ],
+    [
+      "^Tip (.+) for (.+)$",
+      "Tặng tip {0} cho {1}"
+    ],
+    [
+      "^Tip (.+)$",
+      "Tặng tip {0}"
+    ],
+    [
+      "^Tip with (.+)$",
+      "Tặng tip bằng {0}"
+    ],
+    [
+      "^Send with (.+)$",
+      "Gửi bằng {0}"
+    ],
+    [
+      "^Pay with (.+)$",
+      "Thanh toán bằng {0}"
+    ],
+    [
+      "^Post with (.+)$",
+      "Đăng bằng {0}"
+    ],
+    [
+      "^Verify with (.+)$",
+      "Xác minh bằng {0}"
+    ],
+    [
+      "^Turn on with (.+)$",
+      "Bật bằng {0}"
+    ],
+    [
+      "^Buy ORN with (.+)$",
+      "Mua ORN bằng {0}"
+    ],
+    [
+      "^Sell ORN with (.+)$",
+      "Bán ORN lấy {0}"
+    ],
+    [
+      "^Use (.+) instead$",
+      "Dùng {0} thay thế"
+    ],
+    [
+      "^Use (.+) instead of the password from now on$",
+      "Từ giờ dùng {0} thay cho mật khẩu"
+    ],
+    [
+      "^Use (.+)$",
+      "Dùng {0}"
+    ],
+    [
+      "^Confirm with (.+)$",
+      "Xác nhận bằng {0}"
+    ],
+    [
+      "^Verify (.+)$",
+      "Xác minh {0}"
+    ],
+    [
+      "^Verifying (.+)$",
+      "Đang xác minh {0}"
+    ],
+    [
+      "^Send ([0-9.,]+) ORN and verify$",
+      "Gửi {0} ORN và xác minh"
+    ],
+    [
+      "^Orien Wallet ([0-9.]+) is the newest version\\.$",
+      "Orien Wallet {0} là phiên bản mới nhất."
+    ],
+    [
+      "^Orien Wallet ([0-9.]+) is ready$",
+      "Orien Wallet {0} đã sẵn sàng"
+    ],
+    [
+      "^Orien Wallet ([0-9.]+) is out(.*)$",
+      "Orien Wallet {0} đã ra mắt{1}"
+    ],
+    [
+      "^Waiting for (.+) to pay\\.$",
+      "Đang chờ {0} thanh toán."
+    ],
+    [
+      "^Waiting for (.+)$",
+      "Đang chờ {0}"
+    ],
+    [
+      "^Locking ORN for (.+)$",
+      "Đang khóa ORN cho {0}"
+    ],
+    [
+      "^Selling to (.+)$",
+      "Đang bán cho {0}"
+    ],
+    [
+      "^Taken by (.+)$",
+      "Được nhận bởi {0}"
+    ],
+    [
+      "^You get ([0-9.,]+) ORN$",
+      "Bạn nhận {0} ORN"
+    ],
+    [
+      "^You mined ([0-9.,]+) ORN$",
+      "Bạn đã đào được {0} ORN"
+    ],
+    [
+      "^You received ([0-9.,]+) ORN$",
+      "Bạn đã nhận {0} ORN"
+    ],
+    [
+      "^You paid ([0-9.,]+) ORN\\.$",
+      "Bạn đã thanh toán {0} ORN."
+    ],
+    [
+      "^Buy orders are limited to ([0-9.,]+) SOL per order$",
+      "Lệnh mua giới hạn tối đa {0} SOL mỗi lệnh"
+    ],
+    [
+      "^The smallest swap is ([0-9.,]+) (SOL|BTC)$",
+      "Giao dịch hoán đổi nhỏ nhất là {0} {1}"
+    ],
+    [
+      "^At least ([0-9.,]+) (SOL|BTC)$",
+      "Ít nhất {0} {1}"
+    ],
+    [
+      "^Pay by (.+), in (.+)$",
+      "Thanh toán trước {0}, trong {1}"
+    ],
+    [
+      "^around (.+), in about (\\d+) hours?$",
+      "khoảng {0}, trong khoảng {1} giờ"
+    ],
+    [
+      "^around (.+)$",
+      "khoảng {0}"
+    ],
+    [
+      "^Sign in to (.+)\\?$",
+      "Đăng nhập vào {0}?"
+    ],
+    [
+      "^Already saved as (.+)$",
+      "Đã được lưu là {0}"
+    ],
+    [
+      "^✓ Your wallet (.+)$",
+      "✓ Ví của bạn {0}"
+    ],
+    [
+      "^(.+): your profile$",
+      "{0}: hồ sơ của bạn"
+    ],
+    [
+      "^(.+) \\(yours\\)$",
+      "{0} (của bạn)"
+    ],
+    [
+      "^(.+) hasn't posted yet\\.$",
+      "{0} chưa đăng bài nào."
+    ],
+    [
+      "^About (.+)$",
+      "Giới thiệu về {0}"
+    ],
+    [
+      "^(.+)'s password$",
+      "Mật khẩu của {0}"
+    ],
+    [
+      "^Remove (.+)\\? Tap again$",
+      "Xóa {0}? Nhấn lại"
+    ],
+    [
+      "^The record before was ([0-9,]+)\\. Checkpoint (\\d+)\\.$",
+      "Kỷ lục trước đó là {0}. Điểm kiểm tra {1}."
+    ],
+    [
+      "^reacted (.+) to your post$",
+      "đã thả {0} vào bài đăng của bạn"
+    ],
+    [
+      "^reacted (.+) to your reply$",
+      "đã thả {0} vào phản hồi của bạn"
+    ],
+    [
+      "^reacted (.+) to the network's post about you$",
+      "đã thả {0} vào bài đăng của mạng lưới về bạn"
+    ],
+    [
+      "^wrote to you about (.+)$",
+      "đã nhắn cho bạn về {0}"
+    ],
+    [
+      "^asks you to pay ([0-9.,]+) ORN$",
+      "yêu cầu bạn thanh toán {0} ORN"
+    ],
+    [
+      "^says they paid ([0-9.,]+) ORN$",
+      "cho biết họ đã thanh toán {0} ORN"
+    ]
+  ],
+  "_guides": {
+    "backup": {
+      "title": "Sao lưu cụm từ khôi phục của bạn",
+      "steps": [
+        "Ở Trang chủ, nhấn vào tên ví ở phía trên để mở <b>Các ví</b>.",
+        "Nhấn vào biểu tượng bánh răng trên thẻ ví.",
+        "Nhấn <b>Cụm từ khôi phục</b>, sau đó nhấn <b>Tôi hiểu, hãy hiển thị</b>.",
+        "Xác nhận bằng Touch ID, hoặc nhập mật khẩu của ví nếu có.",
+        "Nhấn <b>Nhấn để xem</b> và viết 24 từ ra giấy theo đúng thứ tự. Cất giữ chúng ở nơi an toàn và riêng tư."
+      ],
+      "note": "Bất kỳ ai có các từ này đều có thể chi tiêu ORN của ví này. Orien không bao giờ yêu cầu chúng."
+    },
+    "send": {
+      "title": "Gửi ORN",
+      "steps": [
+        "Ở Trang chủ, nhấn <b>Gửi</b>, nút tròn có mũi tên chỉ lên.",
+        "Trong mục <b>Đến</b>, nhập tên hoặc địa chỉ, chọn một người dưới mục <b>Gần đây</b>, hoặc nhấn <b>Dán</b>.",
+        "Nhập số lượng, hoặc nhấn <b>Tối đa</b> để gửi toàn bộ số dư có thể sau khi trừ phí.",
+        "Kiểm tra tổng cộng, sau đó nhấn <b>Gửi</b>.",
+        "Giao dịch đến chỉ trong vài giây. Bạn có thể lưu địa chỉ mới vào danh bạ ở màn hình cuối nếu muốn."
+      ]
+    },
+    "receive": {
+      "title": "Nhận ORN",
+      "steps": [
+        "Ở Trang chủ, nhấn <b>Nhận</b>, nút tròn có mũi tên chỉ xuống.",
+        "Đưa mã QR cho người thanh toán cho bạn, hoặc nhấn <b>Chia sẻ địa chỉ</b> hay <b>Sao chép địa chỉ</b> rồi gửi cho họ.",
+        "Khoản thanh toán của họ sẽ hiển thị trong mục Hoạt động của bạn chỉ sau vài giây."
+      ]
+    },
+    "home": {
+      "title": "Quay về Trang chủ",
+      "steps": [
+        "Nhấn <b>Quay lại</b> ở góc trên bên trái để lùi lại một bước.",
+        "Nhấn vào tên <b>ORIEN</b> ở phía trên cửa sổ để quay thẳng về Trang chủ từ bất kỳ đâu."
+      ]
+    },
+    "wallets": {
+      "title": "Thêm ví khác",
+      "steps": [
+        "Ở Trang chủ, nhấn vào tên ví ở phía trên, sau đó chọn <b>Thêm ví</b>.",
+        "Nhấn <b>Tạo ví mới</b>, đặt tên và chọn biểu tượng, sau đó nhấn <b>Tạo ví</b>.",
+        "Sao lưu cụm từ khôi phục của ví: mỗi ví có cụm từ riêng.",
+        "Để chuyển ví, nhấn vào tên ví ở Trang chủ và chọn một ví."
+      ]
+    },
+    "restore": {
+      "title": "Khôi phục ví từ cụm từ khôi phục",
+      "steps": [
+        "Ở Trang chủ, nhấn vào tên ví ở phía trên, sau đó chọn <b>Thêm ví</b>, rồi chọn <b>Khôi phục bằng cụm từ khôi phục</b>. Nếu mới cài đặt, nhấn <b>Dùng cụm từ khôi phục của tôi</b>.",
+        "Nhập 24 từ, sau đó nhấn <b>Tiếp tục</b>.",
+        "Đặt tên và chọn biểu tượng, sau đó nhấn <b>Khôi phục ví</b>."
+      ]
+    },
+    "link": {
+      "title": "Dùng các ví của bạn trên thiết bị khác",
+      "steps": [
+        "Trên thiết bị mới, nhấn <b>Dùng thiết bị khác của tôi</b> (hoặc <b>Thêm ví</b>, rồi chọn <b>Từ thiết bị khác của tôi</b>). Màn hình sẽ hiển thị một mã QR và một mã số.",
+        "Trên thiết bị đang có ví của bạn, mở <b>Cài đặt</b>, nút tròn hình bánh răng ở Trang chủ, sau đó nhấn <b>Liên kết thiết bị mới</b>.",
+        "Trên iPhone, quét mã QR của thiết bị mới. Trên máy tính, nhập mã của thiết bị đó và nhấn <b>Tiếp tục</b>.",
+        "Kiểm tra xem cả hai thiết bị có hiển thị cùng ba hình ảnh không, sau đó nhấn <b>Khớp nhau, gửi các ví của tôi</b>.",
+        "Các ví của bạn sẽ tự động xuất hiện trên thiết bị mới."
+      ],
+      "note": "Các ví của bạn được mã hóa và truyền trực tiếp giữa hai thiết bị."
+    },
+    "sync": {
+      "title": "Đồng bộ danh bạ trên mọi thiết bị",
+      "steps": [
+        "Ở Trang chủ, nhấn <b>Danh bạ</b>, nút tròn có hình hai người.",
+        "Nếu thấy <b>Bật đồng bộ hóa</b>, hãy nhấn vào đó. Xác nhận bằng Touch ID, hoặc nhập mật khẩu của ví nếu có.",
+        "Thực hiện việc này một lần trên mỗi thiết bị. Sau đó, danh bạ và biểu tượng ví sẽ đồng bộ trên tất cả các thiết bị."
+      ]
+    },
+    "signin": {
+      "title": "Đăng nhập vào Orien Network",
+      "steps": [
+        "Ở Trang chủ, nhấn <b>Đăng nhập</b> ở góc trên bên phải.",
+        "Nhập email của bạn và nhấn <b>Gửi mã cho tôi</b>.",
+        "Nhập mã 6 chữ số từ email và nhấn <b>Tiếp tục</b>.",
+        "Bạn mới đến? Chọn một tên người dùng, sau đó nhấn <b>Tạo tài khoản của tôi</b>."
+      ],
+      "note": "Tài khoản của bạn dùng cho Cộng đồng, Chợ và hoán đổi. Các ví của bạn vẫn nằm trong ứng dụng này."
+    },
+    "verify": {
+      "title": "Xác minh ví",
+      "steps": [
+        "Đăng nhập và mở ví bạn muốn xác minh.",
+        "Ở Trang chủ, nhấn <b>Xác minh</b> trên thẻ <b>Xác minh</b> ngay dưới số dư của bạn. (Hoặc nhấn vào ảnh đại diện ở góc trên bên phải, chọn <b>Chỉnh sửa hồ sơ</b>, rồi nhấn <b>Xác minh</b> bên cạnh ví.)",
+        "Nhấn <b>Xác minh</b> để xác nhận. Thao tác này gửi ít hơn 0,001 ORN từ ví đó, đã bao gồm phí.",
+        "Trong vòng một phút sẽ hiển thị <b>Đã xác minh</b>."
+      ],
+      "note": "Việc xác minh cho mọi người thấy ví này là của bạn, bao gồm cả số dư. Nó cho phép bạn đăng bài, bán hàng, hoán đổi và nhận tiền tip."
+    },
+    "verify-more": {
+      "title": "Xác minh thêm ví và chọn nơi nhận thanh toán",
+      "steps": [
+        "Chuyển sang ví khác: nhấn vào tên ví ở Trang chủ và chọn ví đó.",
+        "Nhấn vào ảnh đại diện của bạn, chọn <b>Chỉnh sửa hồ sơ</b>, rồi nhấn <b>Xác minh</b> bên cạnh ví đó.",
+        "Lặp lại với từng ví bạn muốn hiển thị trên hồ sơ.",
+        "Ví mà người mua và người tặng tip thanh toán sẽ hiển thị <b>Nhận tiền tại đây</b>. Để đổi, nhấn <b>Nhận tiền ở đây</b> trên một ví đã xác minh khác.",
+        "Để gỡ một ví khỏi hồ sơ, nhấn <b>⋯</b> bên cạnh ví đó, rồi chọn <b>Gỡ khỏi hồ sơ của bạn</b>."
+      ]
+    },
+    "tip": {
+      "title": "Tặng tip cho ai đó",
+      "steps": [
+        "Ở Trang chủ, nhấn <b>Cộng đồng</b>, nút tròn có hình quả địa cầu.",
+        "Bên dưới bài đăng bạn thích, nhấn <b>Tặng tip</b>.",
+        "Chọn 1, 5 hoặc 10 ORN, hoặc nhập số lượng khác, sau đó nhấn <b>Tặng tip</b>.",
+        "Bài đăng chỉ hiện số tiền tip mà không hiện tên. Tác giả sẽ được thông báo rằng bạn là người tặng."
+      ],
+      "note": "Tiền tip là giao dịch thanh toán và không thể hoàn tác."
+    },
+    "chat": {
+      "title": "Trò chuyện với mọi người",
+      "steps": [
+        "Ở Trang chủ, nhấn <b>Tin nhắn</b>, nút tròn có hình khung thoại. <b>Nhóm trò chuyện Orien</b> được ghim ở trên cùng.",
+        "Ai cũng có thể đọc. Để viết, trả lời hoặc thả cảm xúc, hãy đăng nhập và xác minh một ví.",
+        "Di chuột vào một tin nhắn để trả lời, thả cảm xúc hoặc báo cáo.",
+        "Tin nhắn mới sẽ hiện dấu chấm trên mục Tin nhắn. Để tắt đi, nhấn vào biểu tượng chiếc chuông ở phía trên khung trò chuyện."
+      ],
+      "note": "Mọi thứ trong nhóm trò chuyện đều công khai. Hãy cư xử tử tế."
+    },
+    "ai": {
+      "title": "Hỏi Hỗ trợ AI của Orien",
+      "steps": [
+        "Ở Trang chủ, nhấn <b>Tin nhắn</b>, nút tròn có hình khung thoại. <b>Hỗ trợ AI Orien</b> được ghim ngay dưới nhóm trò chuyện. Trong cửa sổ lớn, biểu tượng phao cứu sinh bên cạnh chiếc chuông cũng mở mục này.",
+        "Bạn cần đăng nhập vào Orien Network. Không cần xác minh ví.",
+        "Hỏi bất cứ điều gì về ví, việc đào, hoán đổi hoặc mạng lưới theo cách diễn đạt của riêng bạn.",
+        "Nhấn <b>Bắt đầu lại</b> ở phía trên khung trò chuyện để xóa nội dung."
+      ],
+      "note": "Câu trả lời do AI tạo ra và có thể sai. AI không bao giờ cần cụm từ khôi phục, mật khẩu hay khóa của bạn: tuyệt đối không chia sẻ với bất kỳ ai."
+    },
+    "explorer": {
+      "title": "Tra cứu mạng lưới",
+      "steps": [
+        "Ở Trang chủ, nhấn <b>Trình khám phá</b>, nút tròn có hình kính thiên văn. Trong cửa sổ lớn, bạn có thể nhấn vào thẻ <b>Mạng lưới</b> bên cạnh ví.",
+        "Các số liệu ở trên cùng hiển thị trạng thái mạng lưới hiện tại: ORN đã phát hành, điểm kiểm tra tiếp theo, thợ đào và tốc độ băm.",
+        "Bên dưới, nhấn <b>Điểm kiểm tra</b>, <b>Ví hàng đầu</b> hoặc <b>Trình xác thực</b>, và nhấn vào bất kỳ dòng nào để mở xem.",
+        "Để tìm kiếm, nhập địa chỉ, tên hoặc số điểm kiểm tra vào ô tìm kiếm."
+      ]
+    },
+    "get": {
+      "title": "Nhận ORN trên iPhone",
+      "steps": [
+        "Nhận thanh toán: chia sẻ địa chỉ của bạn từ mục <b>Nhận</b>, nút tròn có mũi tên chỉ xuống.",
+        "Hoán đổi SOL hoặc Bitcoin lấy ORN trong Orien Wallet trên máy tính đã liên kết cùng ví này.",
+        "Đào trên máy tính: cài Orien Wallet ở đó, liên kết ví này rồi nhấn <b>Đào</b>."
+      ]
+    },
+    "mine": {
+      "title": "Đào ORN",
+      "steps": [
+        "Ở Trang chủ, nhấn <b>Đào</b>, nút tròn có hình chiếc cuốc. Trong cửa sổ lớn, bạn có thể nhấn vào thẻ <b>Khai thác</b> bên cạnh ví.",
+        "Điều chỉnh thanh trượt <b>Bộ xử lý</b>, hoặc nhấn <b>Đo hiệu năng</b> để tìm mức tối ưu cho máy tính của bạn.",
+        "Nhấn <b>Bắt đầu đào</b>. Mỗi giờ bạn sẽ nhận được một phần lượng ORN mới.",
+        "Để đào khi đóng cửa sổ, bật <b>Tiếp tục chạy khi đóng cửa sổ</b> trong Cài đặt, mục <b>Máy tính này</b>. Để ngăn máy tính chuyển sang chế độ ngủ, bật luôn <b>Giữ máy tính này luôn thức</b> ở đó."
+      ],
+      "note": "Nếu ứng dụng cập nhật trong lúc đang đào, quá trình đào sẽ tự khởi động lại."
+    },
+    "buy": {
+      "title": "Mua ORN bằng SOL hoặc Bitcoin",
+      "steps": [
+        "Ở Trang chủ, nhấn <b>Hoán đổi</b>, nút tròn có hình hai mũi tên.",
+        "Trong mục <b>Đề nghị đang mở</b>, nhấn <b>Chấp nhận</b> vào đề nghị bạn thích.",
+        "Nhập địa chỉ SOL hoặc Bitcoin bạn sẽ dùng để thanh toán, sau đó nhấn <b>Chấp nhận đề nghị</b>.",
+        "Khi người bán phản hồi, hãy thanh toán chính xác số lượng hiển thị từ ví SOL hoặc Bitcoin của bạn.",
+        "ORN sẽ tự động về ví này."
+      ]
+    },
+    "sell": {
+      "title": "Bán ORN",
+      "steps": [
+        "Hãy đăng nhập và xác minh ví này trước.",
+        "Ở Trang chủ, nhấn <b>Hoán đổi</b>, nút tròn có hình hai mũi tên, sau đó nhấn <b>Đăng đề nghị</b>.",
+        "Chọn SOL hoặc Bitcoin, sau đó nhập số lượng ORN muốn bán, số tiền bạn muốn nhận và địa chỉ nhận thanh toán.",
+        "Nhấn <b>Đăng đề nghị</b> và giữ Orien Wallet luôn chạy cho đến khi có người nhận. Tùy chọn <b>Giữ máy tính này luôn thức</b> trong Cài đặt, mục <b>Máy tính này</b> sẽ giúp ứng dụng luôn mở khi bạn rời máy."
+      ]
+    },
+    "lock": {
+      "title": "Khóa bằng Touch ID",
+      "steps": [
+        "Mở <b>Cài đặt</b>, nút tròn hình bánh răng ở Trang chủ, sau đó chọn <b>Quyền riêng tư và bảo mật</b>.",
+        "Bật <b>Khóa bằng Touch ID</b>.",
+        "Orien Wallet sẽ tự khóa sau một phút không sử dụng."
+      ]
+    },
+    "extension": {
+      "title": "Dùng Orien Wallet trên trình duyệt của bạn",
+      "steps": [
+        "Mở <b>Cài đặt</b>, nút tròn hình bánh răng ở Trang chủ, sau đó chọn <b>Tiện ích mở rộng trình duyệt</b>.",
+        "Nhấn vào trình duyệt của bạn và thêm Orien Wallet vào đó.",
+        "Gửi ORN và xem số dư ngay từ thanh công cụ trình duyệt, đồng thời đăng nhập trang web bằng ví của bạn. Khóa của bạn vẫn nằm trong ứng dụng này."
+      ]
+    },
+    "theme-build": {
+      "title": "Tự tạo chủ đề của riêng bạn",
+      "steps": [
+        "Mở <b>Cài đặt</b>, nút tròn hình bánh răng ở Trang chủ, chọn <b>Giao diện</b> rồi nhấn <b>Tạo chủ đề</b>.",
+        "Đặt <b>Tên</b> cho chủ đề và chọn <b>Tối</b> hoặc <b>Sáng</b> trong mục <b>Nền</b>.",
+        "Chọn một <b>Màu nhấn</b>, hoặc nhấn vào vòng tròn cầu vồng để tự chọn màu.",
+        "Trong mục <b>Ảnh nền</b>, nhấn <b>Chọn ảnh</b>. Ảnh độ phân giải lớn sẽ đẹp nhất, tối thiểu 1920 × 1080.",
+        "Xem bản xem trước trong lúc chỉnh sửa, sau đó nhấn <b>Lưu chủ đề</b>. Chủ đề sẽ được áp dụng ngay lập tức."
+      ],
+      "note": "Chủ đề của bạn sẽ đồng bộ sang các máy tính khác và iPhone của bạn cũng sẽ dùng bảng màu đó. Để chỉnh sửa sau này, nhấn vào biểu tượng bánh răng trên thẻ chủ đề trong mục Giao diện; biểu tượng thùng rác dùng để xóa."
+    },
+    "theme-store": {
+      "title": "Tìm chủ đề trong Cửa hàng chủ đề",
+      "steps": [
+        "Mở <b>Cài đặt</b>, nút tròn hình bánh răng ở Trang chủ, chọn <b>Giao diện</b> rồi nhấn <b>Cửa hàng chủ đề</b> ở phía trên.",
+        "Trong mục <b>Tất cả</b>, chọn <b>Phổ biến</b> hoặc <b>Mới nhất</b> để xem các chủ đề do mọi người tạo, hoặc <b>Chính thức</b> để xem các chủ đề của chính Orien. Mỗi thẻ hiển thị chủ đề trên một bản thu nhỏ của ứng dụng.",
+        "Nhấn <b>Thử</b> để xem toàn bộ ứng dụng với chủ đề đó. Nhấn <b>Hoàn tác</b> để quay lại; rời khỏi cửa hàng cũng sẽ quay lại như cũ.",
+        "Nhấn <b>Dùng</b> để lưu lại. Chủ đề sẽ được thêm vào danh sách trong mục Giao diện và áp dụng ngay lập tức.",
+        "Thích chủ đề này? Nút đồng xu dùng để tặng tác giả một ít ORN. Nút lá cờ dùng để báo cáo chủ đề vi phạm quy định."
+      ],
+      "note": "Chủ đề bạn sử dụng là bản sao của riêng bạn: tác giả không thể thay đổi nó, và bạn có thể chỉnh sửa hoặc xóa nó như chủ đề do chính mình tạo."
+    },
+    "theme-share": {
+      "title": "Chia sẻ chủ đề trên Cửa hàng chủ đề",
+      "steps": [
+        "Bạn cần đăng nhập vào Orien Network bằng một ví đã xác minh.",
+        "Mở <b>Cài đặt</b>, nút tròn hình bánh răng ở Trang chủ, sau đó chọn <b>Giao diện</b>.",
+        "Trên một chủ đề của riêng bạn, nhấn nút chia sẻ (hình ô vuông có mũi tên), sau đó chọn <b>Chia sẻ chủ đề</b>.",
+        "Chủ đề sẽ được kiểm duyệt, sau đó hiển thị trên cửa hàng kèm tên của bạn để mọi người dùng thử, sử dụng và tặng tip cho bạn.",
+        "Để gỡ xuống, mở Cửa hàng chủ đề, chọn <b>Của bạn</b> rồi nhấn <b>Gỡ khỏi cửa hàng</b> hai lần."
+      ],
+      "note": "Chỉnh sửa chủ đề sau này không làm thay đổi bản đã chia sẻ. Hãy chia sẻ lại như một chủ đề mới nếu bạn thích phiên bản mới hơn."
+    },
+    "activity": {
+      "title": "Hoạt động và thông báo",
+      "steps": [
+        "Ở Trang chủ, nhấn <b>Xem tất cả</b> bên cạnh mục Hoạt động.",
+        "<b>Thanh toán</b> hiển thị những gì bạn đã gửi và nhận; <b>Phần thưởng</b> hiển thị phần thưởng đào và phí trình xác thực.",
+        "Chọn những thông báo bạn muốn nhận trong Cài đặt, mục <b>Thông báo</b>."
+      ]
+    }
+  }
+}

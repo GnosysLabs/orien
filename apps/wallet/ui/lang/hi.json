@@ -1,0 +1,2112 @@
+{
+  "_meta": {
+    "code": "hi",
+    "native": "हिन्दी",
+    "english": "Hindi"
+  },
+  "(optional, for a reply)": "(वैकल्पिक, उत्तर के लिए)",
+  "+ Add a choice": "+ एक विकल्प जोड़ें",
+  ". Fees: the usual Orien fee to lock the ORN (0.1%, at most 1 ORN), and Bitcoin's network fee for taking the Bitcoin, out of what you receive. If a buyer never pays, your ORN come back on their own within 12 hours.": ". शुल्क: ORN लॉक करने का सामान्य Orien शुल्क (0.1%, अधिकतम 1 ORN), और Bitcoin प्राप्त करने का Bitcoin नेटवर्क शुल्क, जो आपको मिलने वाली राशि से कटता है। यदि खरीदार कभी भुगतान नहीं करता है, तो आपके ORN 12 घंटों के भीतर अपने आप वापस आ जाते हैं।",
+  ". Then": ". फिर",
+  ". Then scan this code, or type it.": ". फिर इस कोड को स्कैन करें, या इसे टाइप करें।",
+  "0 open": "0 खुले",
+  "1 day": "1 दिन",
+  "12 hours after they were locked": "लॉक होने के 12 घंटे बाद",
+  "3 days": "3 दिन",
+  "3 to 20 letters, numbers or _": "3 से 20 अक्षर, अंक या _",
+  "30 min ago": "30 मिनट पहले",
+  "7 days": "7 दिन",
+  "A few words for people you swap with": "जिनके साथ आप स्वैप करते हैं, उनके लिए कुछ शब्द",
+  "A fresh one, with its own recovery phrase": "एक नया वॉलेट, अपने रिकवरी फ़्रेज़ के साथ",
+  "A locked payment nobody claimed": "एक लॉक किया गया भुगतान जिस पर किसी ने दावा नहीं किया",
+  "A new miner joined": "एक नया माइनर जुड़ा",
+  "A password protects the wallet on this computer. Without it, anyone who gets this computer's files can spend from it. You will type it each time you send.": "पासवर्ड इस कंप्यूटर पर वॉलेट की सुरक्षा करता है। इसके बिना, जिसे भी इस कंप्यूटर की फ़ाइलें मिलेंगी वह इससे खर्च कर सकता है। हर बार भेजते समय आपको इसे टाइप करना होगा।",
+  "A scam, something illegal, pretending to be someone…": "धोखाधड़ी, कुछ गैरकानूनी, किसी और का रूप धारण करना…",
+  "A seller filled your order. Delivering your ORN automatically, usually within a minute.": "एक विक्रेता ने आपका ऑर्डर पूरा कर दिया है। आपके ORN अपने आप भेजे जा रहे हैं, आमतौर पर एक मिनट के भीतर।",
+  "A small arrow on screens with more below": "जिन स्क्रीन पर नीचे और सामग्री है, उन पर एक छोटा तीर",
+  "A theme you use is your own copy: the maker can't change it, and you can edit or delete it like one you built.": "आप जो थीम उपयोग करते हैं वह आपकी अपनी कॉपी होती है: निर्माता इसे बदल नहीं सकता, और आप इसे अपनी बनाई हुई थीम की तरह संपादित या हटा सकते हैं।",
+  "AI Support": "AI सहायता",
+  "AI answers can be wrong": "AI के उत्तर गलत हो सकते हैं",
+  "About": "परिचय",
+  "About the same": "लगभग समान",
+  "About this": "इसके बारे में",
+  "About you": "आपके बारे में",
+  "Accent colour": "एक्सेंट रंग",
+  "Accepted": "स्वीकृत",
+  "Accepted: your ORN are locked for the buyer. Waiting for them to pay.": "स्वीकृत: आपके ORN खरीदार के लिए लॉक कर दिए गए हैं। उनके भुगतान की प्रतीक्षा है।",
+  "Activity": "गतिविधि",
+  "Activity and notifications": "गतिविधि और सूचनाएं",
+  "Add a GIF": "GIF जोड़ें",
+  "Add a contact": "संपर्क जोड़ें",
+  "Add a password": "पासवर्ड जोड़ें",
+  "Add a poll": "पोल जोड़ें",
+  "Add a wallet": "वॉलेट जोड़ें",
+  "Add another wallet": "एक और वॉलेट जोड़ें",
+  "Add photos": "फ़ोटो जोड़ें",
+  "Add pictures": "तस्वीरें जोड़ें",
+  "Add to contacts": "संपर्कों में जोड़ें",
+  "Address": "पता",
+  "Again": "फिर से",
+  "Agreed": "सहमत",
+  "Agreed by": "इनके द्वारा सहमत",
+  "All": "सभी",
+  "All your wallets": "आपके सभी वॉलेट्स",
+  "Among members with a verified wallet, by ORN mined.": "सत्यापित वॉलेट वाले सदस्यों के बीच, माइन किए गए ORN के अनुसार।",
+  "Amount": "राशि",
+  "Amount (ORN)": "राशि (ORN)",
+  "An address, a name or a checkpoint number": "कोई पता, नाम या चेकपॉइंट संख्या",
+  "An earlier payment from this wallet had to finish first, so nothing was sent for verifying yet. Tap again to send it.": "इस वॉलेट से पहले का एक भुगतान पहले पूरा होना था, इसलिए सत्यापन के लिए अभी कुछ नहीं भेजा गया। भेजने के लिए फिर से टैप करें।",
+  "An earlier payment from this wallet had to finish first, so this one wasn't sent yet. Tap Pay again.": "इस वॉलेट से पहले का एक भुगतान पहले पूरा होना था, इसलिए यह अभी नहीं भेजा गया। फिर से भुगतान करें पर टैप करें।",
+  "An earlier payment from this wallet had to finish first, so this tip wasn't sent yet. Tap Tip again.": "इस वॉलेट से पहले का एक भुगतान पहले पूरा होना था, इसलिए यह टिप अभी नहीं भेजी गई। फिर से टिप पर टैप करें।",
+  "Another amount": "अन्य राशि",
+  "Answers come from an AI and can be wrong. It never needs your recovery words, passwords or keys: never share them with anyone.": "उत्तर एक AI से आते हैं और गलत हो सकते हैं। इसे कभी भी आपके रिकवरी शब्दों, पासवर्ड या कुंजियों की आवश्यकता नहीं होती: इन्हें कभी किसी के साथ साझा न करें।",
+  "Any colour you like": "कोई भी रंग जो आपको पसंद हो",
+  "Any moment": "किसी भी पल",
+  "Anyone can read along. To write, reply or react, sign in and verify a wallet.": "कोई भी पढ़ सकता है। लिखने, उत्तर देने या प्रतिक्रिया देने के लिए, साइन इन करें और एक वॉलेट सत्यापित करें।",
+  "Anyone can see it, use it and tip you for it. Your Orien Network name is shown with it. You can take it down at any time.": "कोई भी इसे देख सकता है, उपयोग कर सकता है और इसके लिए आपको टिप दे सकता है। इसके साथ आपका Orien Network नाम दिखाया जाता है। आप इसे कभी भी हटा सकते हैं।",
+  "Anyone can sell into it now. When they do, their wallet locks the ORN and this app opens the pay screen.": "अब कोई भी इस पर बेच सकता है। जब वे ऐसा करते हैं, तो उनका वॉलेट ORN लॉक कर देता है और यह ऐप भुगतान स्क्रीन खोल देता है।",
+  "Anyone can take it now. When they do, your wallet runs the swap by itself.": "अब कोई भी इसे स्वीकार कर सकता है। जब वे ऐसा करते हैं, तो आपका वॉलेट अपने आप स्वैप पूरा कर देता है।",
+  "Anyone who opens the file can spend your ORN. Keep it somewhere only you can reach.": "जो भी इस फ़ाइल को खोलेगा वह आपके ORN खर्च कर सकता है। इसे ऐसी जगह रखें जहाँ केवल आपकी पहुँच हो।",
+  "Anyone who sees your 24 words can take everything in this wallet. Orien will never ask you for them, and no one helping you ever needs them.": "जो भी आपके 24 शब्द देख लेगा वह इस वॉलेट की हर चीज़ ले जा सकता है। Orien कभी भी आपसे ये नहीं मांगेगा, और आपकी मदद करने वाले किसी भी व्यक्ति को इनकी ज़रूरत नहीं होती।",
+  "Anyone with these words can spend this wallet's ORN. Orien never asks for them.": "इन शब्दों वाला कोई भी व्यक्ति इस वॉलेट के ORN खर्च कर सकता है। Orien इन्हें कभी नहीं मांगता।",
+  "Anything left over, or a refund, comes back here": "बचा हुआ कुछ भी, या रिफ़ंड, यहाँ वापस आता है",
+  "Appearance": "दिखावट",
+  "Approve": "स्वीकृत करें",
+  "Approve in Orien Wallet to finish your swap.": "अपना स्वैप पूरा करने के लिए Orien Wallet में स्वीकृत करें।",
+  "Approve this order": "इस ऑर्डर को स्वीकृत करें",
+  "Approve to finish your swap": "अपना स्वैप पूरा करने के लिए स्वीकृत करें",
+  "Ask Orien AI Support": "Orien AI सहायता से पूछें",
+  "Ask a question": "प्रश्न पूछें",
+  "Ask anything about the wallet, mining, swaps or the network, in your own words.": "वॉलेट, माइनिंग, स्वैप या नेटवर्क के बारे में अपने शब्दों में कुछ भी पूछें।",
+  "Ask each time Orien Wallet opens": "हर बार Orien Wallet खुलने पर पूछें",
+  "Ask for payment": "भुगतान का अनुरोध करें",
+  "Asks · selling ORN": "बिक्री ऑर्डर · ORN बेचना",
+  "At least 8 characters": "कम से कम 8 अक्षर",
+  "At this speed and today's difficulty": "इस गति और आज की कठिनाई पर",
+  "Australian dollar": "ऑस्ट्रेलियाई डॉलर",
+  "Automatic · a few minutes": "स्वचालित · कुछ मिनट",
+  "Automatic · about a minute": "स्वचालित · लगभग एक मिनट",
+  "Automatic · keep this page open": "स्वचालित · इस पृष्ठ को खुला रखें",
+  "Automatic · keep this page open (~15 seconds)": "स्वचालित · इस पृष्ठ को खुला रखें (~15 सेकंड)",
+  "Automatic · keep this page open (~20 seconds)": "स्वचालित · इस पृष्ठ को खुला रखें (~20 सेकंड)",
+  "Automatic · usually 30 to 60 minutes": "स्वचालित · आमतौर पर 30 से 60 मिनट",
+  "Automatic · usually a minute": "स्वचालित · आमतौर पर एक मिनट",
+  "Automatic · usually within minutes": "स्वचालित · आमतौर पर कुछ मिनटों में",
+  "Available": "उपलब्ध",
+  "Back": "वापस",
+  "Back from staking": "स्टेकिंग से वापस",
+  "Back to Exchange": "एक्सचेंज पर वापस",
+  "Back to top": "शीर्ष पर वापस",
+  "Back up its recovery phrase: each wallet has its own.": "इसके रिकवरी फ़्रेज़ का बैकअप लें: हर वॉलेट का अपना अलग होता है।",
+  "Back up your recovery phrase": "अपने रिकवरी फ़्रेज़ का बैकअप लें",
+  "Background picture": "बैकग्राउंड तस्वीर",
+  "Balance": "बैलेंस",
+  "Balance after": "बाद का बैलेंस",
+  "Ban": "प्रतिबंधित करें",
+  "Banned": "प्रतिबंधित",
+  "Banned from the group chat": "ग्रुप चैट से प्रतिबंधित",
+  "Base": "बेस",
+  "Be paid in ORN.": "ORN में भुगतान पाएं।",
+  "Benchmark": "बेंचमार्क",
+  "Benchmark again": "फिर से बेंचमार्क करें",
+  "Benchmarking…": "बेंचमार्क हो रहा है…",
+  "Bids · buying ORN": "खरीद ऑर्डर · ORN खरीदना",
+  "Bitcoin": "Bitcoin",
+  "Bitcoin to pay": "भुगतान के लिए Bitcoin",
+  "Bitcoin to receive": "प्राप्त होने वाला Bitcoin",
+  "Block": "ब्लॉक करें",
+  "Blocked": "ब्लॉक किया गया",
+  "Blocked accounts": "ब्लॉक किए गए खाते",
+  "Book & Trade": "ऑर्डर बुक और ट्रेड",
+  "Brazilian real": "ब्राज़ीलियाई रियाल",
+  "Bring your wallets here from your phone or computer": "अपने फ़ोन या कंप्यूटर से अपने वॉलेट्स यहाँ लाएं",
+  "British pound": "ब्रिटिश पाउंड",
+  "Browser Extensions": "ब्राउज़र एक्सटेंशन",
+  "Build a theme": "थीम बनाएं",
+  "Build your own theme": "अपनी खुद की थीम बनाएं",
+  "Built-in safety:": "अंतर्निहित सुरक्षा:",
+  "Buy": "खरीदें",
+  "Buy ORN": "ORN खरीदें",
+  "Buy ORN with SOL or Bitcoin": "SOL या Bitcoin से ORN खरीदें",
+  "Buy amount (ORN)": "खरीद राशि (ORN)",
+  "Buy from": "इनसे खरीदें",
+  "Buyer": "खरीदार",
+  "Buyer pays": "खरीदार भुगतान करता है",
+  "Buyer's SOL reserved. Locking your ORN now. Keep this page open for a few more seconds.": "खरीदार का SOL आरक्षित हो गया है। अब आपके ORN लॉक किए जा रहे हैं। कुछ और सेकंड के लिए इस पृष्ठ को खुला रखें।",
+  "Buyers on the Market pay the wallet marked Paid here. Verify more to choose between them.": "मार्केट पर खरीदार उस वॉलेट में भुगतान करते हैं जिस पर 'यहाँ भुगतान मिलता है' लिखा है। उनके बीच चुनने के लिए और वॉलेट सत्यापित करें।",
+  "Buying ORN": "ORN खरीदना",
+  "By any message app or email. It tells the buyer's Orien Wallet what you locked for them, and holds nothing secret.": "किसी भी मैसेज ऐप या ईमेल से। यह खरीदार के Orien Wallet को बताता है कि आपने उनके लिए क्या लॉक किया है, और इसमें कुछ भी गुप्त नहीं होता।",
+  "By any message app or email. It tells the seller's Orien Wallet where you're paying the Bitcoin, and holds nothing secret.": "किसी भी मैसेज ऐप या ईमेल से। यह विक्रेता के Orien Wallet को बताता है कि आप Bitcoin कहाँ भुगतान कर रहे हैं, और इसमें कुछ भी गुप्त नहीं होता।",
+  "By continuing you agree to the": "जारी रखकर आप इनसे सहमत होते हैं",
+  "Canadian dollar": "कैनेडियन डॉलर",
+  "Cancel": "रद्द करें",
+  "Cancel below before sending. Nothing has left your wallet.": "भेजने से पहले नीचे रद्द करें। आपके वॉलेट से कुछ भी नहीं गया है।",
+  "Cancel buy order": "खरीद ऑर्डर रद्द करें",
+  "Cancel buy order & return SOL": "खरीद ऑर्डर रद्द करें और SOL वापस लें",
+  "Cancelling your buy order on Solana and returning your SOL to your wallet. Keep this page open for about 15 seconds.": "Solana पर आपका खरीद ऑर्डर रद्द किया जा रहा है और आपका SOL आपके वॉलेट में वापस किया जा रहा है। लगभग 15 सेकंड के लिए इस पृष्ठ को खुला रखें।",
+  "Cancelling · returning SOL": "रद्द हो रहा है · SOL वापस आ रहा है",
+  "Catching up": "अपडेट हो रहा है",
+  "Category": "श्रेणी",
+  "Change banner": "बैनर बदलें",
+  "Change picture": "तस्वीर बदलें",
+  "Changed your mind?": "मन बदल गया?",
+  "Chart currency": "चार्ट मुद्रा",
+  "Chat": "चैट",
+  "Chat with everyone": "सभी के साथ चैट करें",
+  "Check for Updates": "अपडेट की जाँच करें",
+  "Check this one and send it again.": "इसे जाँचें और फिर से भेजें।",
+  "Check your other device shows these": "जाँचें कि आपका दूसरा डिवाइस ये दिखा रहा है",
+  "Checking": "जाँच हो रही है",
+  "Checking for updates": "अपडेट की जाँच हो रही है",
+  "Checking the ORN the seller locked for you": "विक्रेता द्वारा आपके लिए लॉक किए गए ORN की जाँच हो रही है",
+  "Checkpoint": "चेकपॉइंट",
+  "Checkpoints": "चेकपॉइंट्स",
+  "Chinese yuan": "चीनी युआन",
+  "Choose SOL or Bitcoin, then type how many ORN to sell, how much you want for them, and the address you'll be paid at.": "SOL या Bitcoin चुनें, फिर टाइप करें कि कितने ORN बेचने हैं, उनके बदले आपको कितना चाहिए, और वह पता जहाँ आपको भुगतान मिलेगा।",
+  "Choose a GIF": "GIF चुनें",
+  "Choose a picture": "तस्वीर चुनें",
+  "Clear": "साफ़ करें",
+  "Click": "क्लिक करें",
+  "Click Buy or Sell to trade directly": "सीधे ट्रेड करने के लिए खरीदें या बेचें पर क्लिक करें",
+  "Click again to start over": "फिर से शुरू करने के लिए दोबारा क्लिक करें",
+  "Click to add a picture": "तस्वीर जोड़ने के लिए क्लिक करें",
+  "Click your browser and add Orien Wallet there.": "अपने ब्राउज़र पर क्लिक करें और वहाँ Orien Wallet जोड़ें।",
+  "Close": "बंद करें",
+  "Closed": "बंद",
+  "Code": "कोड",
+  "Code from the email": "ईमेल से मिला कोड",
+  "Community": "समुदाय",
+  "Completed ORN / SOL swap prices over time": "समय के साथ पूरे हुए ORN / SOL स्वैप मूल्य",
+  "Completed swap prices over time": "समय के साथ पूरे हुए स्वैप मूल्य",
+  "Confirm below": "नीचे पुष्टि करें",
+  "Confirmed": "पुष्ट",
+  "Confirming": "पुष्टि हो रही है",
+  "Connected": "कनेक्टेड",
+  "Connected to the network": "नेटवर्क से कनेक्टेड",
+  "Connecting": "कनेक्ट हो रहा है",
+  "Contact": "संपर्क",
+  "Contacts": "संपर्क",
+  "Continue": "जारी रखें",
+  "Continuing": "जारी है",
+  "Cooler, fewer shares": "ठंडा, कम शेयर",
+  "Copied": "कॉपी हो गया",
+  "Copy": "कॉपी करें",
+  "Copy address": "पता कॉपी करें",
+  "Copy amount": "राशि कॉपी करें",
+  "Copy code": "कोड कॉपी करें",
+  "Copy the address": "पता कॉपी करें",
+  "Cores in use": "उपयोग में कोर",
+  "Couldn't check": "जाँच नहीं हो सकी",
+  "Cover": "कवर",
+  "Create a wallet": "वॉलेट बनाएं",
+  "Create a wallet to hold ORN, or restore the one you already have.": "ORN रखने के लिए एक वॉलेट बनाएं, या अपने मौजूदा वॉलेट को पुनर्स्थापित करें।",
+  "Currency": "मुद्रा",
+  "Dark": "डार्क",
+  "Delete contact": "संपर्क हटाएं",
+  "Delete conversation": "बातचीत हटाएं",
+  "Delete for good": "हमेशा के लिए हटाएं",
+  "Delete my account": "मेरा खाता हटाएं",
+  "Delete this conversation? Tap again": "क्या यह बातचीत हटाएं? फिर से टैप करें",
+  "Delete this post?": "क्या यह पोस्ट हटाएं?",
+  "Delete?": "हटाएं?",
+  "Describe it": "इसका वर्णन करें",
+  "Didn't answer": "उत्तर नहीं मिला",
+  "Do this once on each device. After that, contacts and wallet icons stay the same on all of them.": "प्रत्येक डिवाइस पर इसे एक बार करें। उसके बाद, संपर्क और वॉलेट आइकन उन सभी पर समान रहते हैं।",
+  "Does your new device show these?": "क्या आपका नया डिवाइस ये दिखा रहा है?",
+  "Don't have any ORN yet? Mine for an hour from the Mine screen, or buy a little on Swap.": "अभी तक कोई ORN नहीं है? माइन स्क्रीन से एक घंटे तक माइन करें, या स्वैप पर थोड़ा खरीदें।",
+  "Don't have any ORN yet? Mine for an hour in Orien Wallet on a computer, or buy a little at orien.network.": "अभी तक कोई ORN नहीं है? कंप्यूटर पर Orien Wallet में एक घंटे तक माइन करें, या orien.network पर थोड़ा खरीदें।",
+  "Don't show this again": "इसे फिर से न दिखाएं",
+  "Done": "हो गया",
+  "Done: the ORN are in your wallet, and anything left over went back to your SOL wallet.": "हो गया: ORN आपके वॉलेट में आ गए हैं, और बची हुई राशि आपके SOL वॉलेट में वापस चली गई है।",
+  "Done: your SOL went back to your SOL wallet.": "हो गया: आपका SOL आपके SOL वॉलेट में वापस चला गया है।",
+  "Downloads": "डाउनलोड",
+  "Each share": "प्रत्येक शेयर",
+  "Each wallet has its own address, recovery phrase and activity. Tap one to open it.": "प्रत्येक वॉलेट का अपना पता, रिकवरी फ़्रेज़ और गतिविधि होती है। खोलने के लिए किसी एक पर टैप करें।",
+  "Earn a share of each hour's new ORN while this app is open.": "यह ऐप खुला रहने के दौरान हर घंटे के नए ORN का हिस्सा कमाएं।",
+  "Edit": "संपादित करें",
+  "Edit Profile": "प्रोफ़ाइल संपादित करें",
+  "Edit listing": "लिस्टिंग संपादित करें",
+  "Edit theme": "थीम संपादित करें",
+  "Editing your theme later doesn't change the shared one. Share it again as a new theme if you like the new version better.": "बाद में अपनी थीम संपादित करने से साझा की गई थीम नहीं बदलती। यदि आपको नया संस्करण बेहतर लगे तो इसे नई थीम के रूप में फिर से साझा करें।",
+  "Email": "ईमेल",
+  "English": "English",
+  "Enter ORN and SOL": "ORN और SOL दर्ज करें",
+  "Euro": "यूरो",
+  "Every miner on Orien together, estimated": "Orien पर सभी माइनर एक साथ, अनुमानित",
+  "Everyone": "सभी",
+  "Everyone on Orien Network": "Orien Network पर सभी",
+  "Everything in the group chat is public. Be kind.": "ग्रुप चैट में सब कुछ सार्वजनिक है। विनम्र रहें।",
+  "Exchange": "एक्सचेंज",
+  "Expired": "समय समाप्त",
+  "Explorer": "एक्सप्लोरर",
+  "Failed": "विफल",
+  "Fee": "शुल्क",
+  "Feed": "फ़ीड",
+  "Filled · settling (~1 min)": "पूरा हुआ · निपटान हो रहा है (~1 मिनट)",
+  "Final results": "अंतिम परिणाम",
+  "Final within a minute": "एक मिनट के भीतर अंतिम",
+  "Find members": "सदस्य खोजें",
+  "Find themes in the Theme Store": "थीम स्टोर में थीम खोजें",
+  "Find your sweet spot": "अपना सर्वश्रेष्ठ स्तर खोजें",
+  "Fingerprints": "फ़िंगरप्रिंट",
+  "Finish": "समाप्त करें",
+  "Finished": "समाप्त",
+  "First ORN": "पहला ORN",
+  "Follow Orien's posts": "Orien की पोस्ट फ़ॉलो करें",
+  "From": "प्रेषक",
+  "From any Bitcoin wallet: scan the code, or copy the address and amount. This app sees the payment by itself; there is nothing else to send.": "किसी भी Bitcoin वॉलेट से: कोड स्कैन करें, या पता और राशि कॉपी करें। यह ऐप भुगतान को अपने आप देख लेता है; और कुछ भेजने की ज़रूरत नहीं है।",
+  "From my other device": "मेरे दूसरे डिवाइस से",
+  "From your SOL wallet, such as Phantom: scan the code, or copy the address and amount. Send it all in one go. This app sees it by itself; there is nothing else to send.": "अपने SOL वॉलेट, जैसे Phantom से: कोड स्कैन करें, या पता और राशि कॉपी करें। सब एक ही बार में भेजें। यह ऐप इसे अपने आप देख लेता है; और कुछ भेजने की ज़रूरत नहीं है।",
+  "Fund your buy order with a quick SOL QR payment. Once funded, it stays live even with Orien Wallet closed, and you can cancel anytime in one click.": "त्वरित SOL QR भुगतान से अपने खरीद ऑर्डर में राशि डालें। राशि डलने के बाद, यह Orien Wallet बंद होने पर भी लाइव रहता है, और आप इसे एक क्लिक में कभी भी रद्द कर सकते हैं।",
+  "Get ORN": "ORN प्राप्त करें",
+  "Get ORN on iPhone": "iPhone पर ORN प्राप्त करें",
+  "Get back to Home": "होम पर वापस जाएं",
+  "Get paid here": "यहाँ भुगतान प्राप्त करें",
+  "Getting": "प्राप्त हो रहा है",
+  "Getting ORN": "ORN प्राप्त करना",
+  "Getting it ready…": "इसे तैयार किया जा रहा है…",
+  "Getting ready (about a minute)": "तैयार हो रहा है (लगभग एक मिनट)",
+  "Getting ready…": "तैयार हो रहा है…",
+  "Getting started": "शुरुआत करें",
+  "Give it a": "इसे दें एक",
+  "Give someone your address and they can send you ORN from their wallet. Payments arrive in seconds.": "किसी को अपना पता दें और वे अपने वॉलेट से आपको ORN भेज सकते हैं। भुगतान सेकंडों में पहुँच जाते हैं।",
+  "Give the wallet a name, like Mining.": "वॉलेट को एक नाम दें, जैसे माइनिंग।",
+  "Help": "सहायता",
+  "Hide balance": "बैलेंस छिपाएं",
+  "Home": "होम",
+  "Hong Kong dollar": "हांगकांग डॉलर",
+  "How is it priced?": "इसकी कीमत कैसे तय होती है?",
+  "I have backed up my recovery phrase": "मैंने अपने रिकवरी फ़्रेज़ का बैकअप ले लिया है",
+  "I understand, show them": "मैं समझ गया, दिखाएं",
+  "Icon": "आइकन",
+  "If the app updates while mining, mining starts again by itself.": "यदि माइनिंग के दौरान ऐप अपडेट होता है, तो माइनिंग अपने आप फिर से शुरू हो जाती है।",
+  "If the buyer doesn't pay,": "यदि खरीदार भुगतान नहीं करता है,",
+  "If the buyer never pays,": "यदि खरीदार कभी भुगतान नहीं करता है,",
+  "If the buyer pays but this app stays closed for more than about 4 hours, they take their Bitcoin back and your ORN still come back to you. Nobody loses coins.": "यदि खरीदार भुगतान करता है लेकिन यह ऐप लगभग 4 घंटे से अधिक समय तक बंद रहता है, तो वे अपना Bitcoin वापस ले लेते हैं और आपके ORN फिर भी आपको वापस मिल जाते हैं। किसी के सिक्के नहीं खोते।",
+  "If the seller never takes your Bitcoin,": "यदि विक्रेता कभी आपका Bitcoin नहीं लेता है,",
+  "If the seller never takes your SOL,": "यदि विक्रेता कभी आपका SOL नहीं लेता है,",
+  "If they match, tap": "यदि वे मेल खाते हैं, तो टैप करें",
+  "If you change your mind,": "यदि आपका मन बदल जाए,",
+  "If you forget it, your recovery phrase still restores the wallet.": "यदि आप इसे भूल जाते हैं, तब भी आपका रिकवरी फ़्रेज़ वॉलेट को पुनर्स्थापित कर देता है।",
+  "In use": "उपयोग में",
+  "Indian rupee": "भारतीय रुपया",
+  "Indonesian rupiah": "इंडोनेशियाई रुपिया",
+  "Install Orien Wallet on your Mac, Windows or Linux computer, open this same wallet there with its recovery phrase, and press Mine. Your computer earns a share of each hour's new ORN.": "अपने Mac, Windows या Linux कंप्यूटर पर Orien Wallet इंस्टॉल करें, इसी वॉलेट को उसके रिकवरी फ़्रेज़ से वहाँ खोलें, और माइन करें दबाएं। आपका कंप्यूटर हर घंटे के नए ORN का हिस्सा कमाता है।",
+  "It arrives in seconds. Save a new address as a contact from the last screen if you like.": "यह सेकंडों में पहुँच जाता है। यदि आप चाहें तो अंतिम स्क्रीन से नए पते को संपर्क के रूप में सहेज सकते हैं।",
+  "It colours the buttons, the balance card, the glow and the highlights.": "यह बटन, बैलेंस कार्ड, चमक और हाइलाइट्स को रंग देता है।",
+  "It installs in a moment, and the app reopens by itself.": "यह एक पल में इंस्टॉल हो जाता है, और ऐप अपने आप फिर से खुल जाता है।",
+  "It's checked, then shows in the store with your name, where anyone can try it, use it and tip you.": "इसकी जाँच होती है, फिर यह आपके नाम के साथ स्टोर में दिखती है, जहाँ कोई भी इसे आज़मा सकता है, उपयोग कर सकता है और आपको टिप दे सकता है।",
+  "It's how you add this wallet back, here or anywhere else.": "इसी से आप इस वॉलेट को यहाँ या कहीं भी वापस जोड़ सकते हैं।",
+  "Its file stays on this computer,": "इसकी फ़ाइल इसी कंप्यूटर पर रहती है,",
+  "Japanese yen": "जापानी येन",
+  "Just now": "अभी-अभी",
+  "Keep Orien Wallet running": "Orien Wallet को चालू रखें",
+  "Keep Orien Wallet running while your buy offer is live. When someone accepts, you'll get a notification and the pay screen opens so you can send the payment.": "जब तक आपका खरीद ऑफ़र लाइव है, Orien Wallet को चालू रखें। जब कोई इसे स्वीकार करेगा, तो आपको सूचना मिलेगी और भुगतान स्क्रीन खुल जाएगी ताकि आप भुगतान भेज सकें।",
+  "Keep contacts the same everywhere": "संपर्कों को हर जगह समान रखें",
+  "Keep its 24-word recovery phrase.": "इसका 24-शब्दों वाला रिकवरी फ़्रेज़ संभाल कर रखें।",
+  "Keep running when closed": "बंद होने पर भी चालू रखें",
+  "Keep these words secret": "इन शब्दों को गुप्त रखें",
+  "Keep this computer awake": "इस कंप्यूटर को जागता रखें",
+  "Language": "भाषा",
+  "Large pages": "लार्ज पेजेज़",
+  "Large pages are set up, but mining is in ordinary memory this hour. If a restart doesn't switch it, restarting the computer frees the memory up.": "लार्ज पेजेज़ सेट अप हैं, लेकिन इस घंटे माइनिंग सामान्य मेमोरी में चल रही है। यदि रीस्टार्ट करने से यह नहीं बदलता, तो कंप्यूटर को रीस्टार्ट करने से मेमोरी खाली हो जाती है।",
+  "Last 30 minutes": "पिछले 30 मिनट",
+  "Last reward": "अंतिम पुरस्कार",
+  "Last trade": "अंतिम ट्रेड",
+  "Later": "बाद में",
+  "Launch validator": "लॉन्च वैलिडेटर",
+  "Lets mining use large pages of memory, usually 10 to 30% faster. Windows asks for an administrator's approval once, then you sign out and back in.": "माइनिंग को मेमोरी के लार्ज पेजेज़ उपयोग करने देता है, जो आमतौर पर 10 से 30% तेज़ होता है। Windows एक बार एडमिनिस्ट्रेटर की अनुमति मांगता है, फिर आप साइन आउट करके वापस साइन इन करते हैं।",
+  "Light": "लाइट",
+  "Light mode: under 2 GB of free memory, so it mines more slowly.": "लाइट मोड: 2 GB से कम खाली मेमोरी, इसलिए माइनिंग धीमी चलती है।",
+  "Like it? The coins button tips its maker some ORN. The flag reports a theme that breaks the rules.": "पसंद आया? सिक्कों वाला बटन इसके निर्माता को कुछ ORN टिप देता है। झंडा उस थीम की रिपोर्ट करता है जो नियमों का उल्लंघन करती है।",
+  "Link a device": "डिवाइस लिंक करें",
+  "Link a new device": "नया डिवाइस लिंक करें",
+  "Listing": "लिस्टिंग",
+  "Live on book": "ऑर्डर बुक पर लाइव",
+  "Live on order book · settles automatically": "ऑर्डर बुक पर लाइव · अपने आप निपटान होता है",
+  "Loading": "लोड हो रहा है",
+  "Loading chart…": "चार्ट लोड हो रहा है…",
+  "Loading order book…": "ऑर्डर बुक लोड हो रही है…",
+  "Loading…": "लोड हो रहा है…",
+  "Lock ORN": "ORN लॉक करें",
+  "Lock with Touch ID": "Touch ID से लॉक करें",
+  "Locked on Solana. Adding your buy order to the order book now. Keep this page open for a few more seconds.": "Solana पर लॉक हो गया। अब आपका खरीद ऑर्डर ऑर्डर बुक में जोड़ा जा रहा है। कुछ और सेकंड के लिए इस पृष्ठ को खुला रखें।",
+  "Locked payment": "लॉक किया गया भुगतान",
+  "Locked payment from": "लॉक किया गया भुगतान, प्रेषक",
+  "Locked payment received": "लॉक किया गया भुगतान प्राप्त हुआ",
+  "Locked payment returned": "लॉक किया गया भुगतान वापस आया",
+  "Locking ORN": "ORN लॉक हो रहे हैं",
+  "Locking your ORN": "आपके ORN लॉक हो रहे हैं",
+  "Locking your ORN for the buyer.": "खरीदार के लिए आपके ORN लॉक किए जा रहे हैं।",
+  "Locking your ORN for them": "उनके लिए आपके ORN लॉक किए जा रहे हैं",
+  "Logo design": "लोगो डिज़ाइन",
+  "Look up the network": "नेटवर्क देखें",
+  "Made": "बनाया गया",
+  "Made final": "अंतिम रूप दिया गया",
+  "Make a new wallet": "नया वॉलेट बनाएं",
+  "Make cover": "कवर बनाएं",
+  "Make mining faster": "माइनिंग को तेज़ बनाएं",
+  "Make my account": "मेरा खाता बनाएं",
+  "Make the wallet": "वॉलेट बनाएं",
+  "Make the window small": "विंडो छोटी करें",
+  "Make the window wide": "विंडो चौड़ी करें",
+  "Manage blocks": "ब्लॉक प्रबंधित करें",
+  "Marked as paid": "भुगतान किया गया चिह्नित",
+  "Market": "मार्केट",
+  "Market Listings": "मार्केट लिस्टिंग",
+  "Max": "अधिकतम",
+  "Maximize": "बड़ा करें",
+  "Memory": "मेमोरी",
+  "Message": "संदेश",
+  "Message everyone": "सभी को संदेश भेजें",
+  "Message the seller": "विक्रेता को संदेश भेजें",
+  "Messages": "संदेश",
+  "Messages about your Market listings always come through whatever you pick, so buyers can ask about what you're selling. Blocking still works on top of this.": "आप चाहे जो भी चुनें, आपकी मार्केट लिस्टिंग के बारे में संदेश हमेशा आते हैं, ताकि खरीदार आपकी बिक्री की चीज़ों के बारे में पूछ सकें। ब्लॉक करना इसके ऊपर भी काम करता है।",
+  "Mexican peso": "मैक्सिकन पेसो",
+  "Milestone": "मील का पत्थर",
+  "Mine": "माइन करें",
+  "Mine ORN": "ORN माइन करें",
+  "Mine for an hour from the Mine screen, or buy a little on Swap.": "माइन स्क्रीन से एक घंटे तक माइन करें, या स्वैप पर थोड़ा खरीदें।",
+  "Mine for an hour in Orien Wallet on a computer, or buy a little at orien.network.": "कंप्यूटर पर Orien Wallet में एक घंटे तक माइन करें, या orien.network पर थोड़ा खरीदें।",
+  "Mine it on a computer.": "इसे कंप्यूटर पर माइन करें।",
+  "Mine on a computer: install Orien Wallet there, link this wallet, and press": "कंप्यूटर पर माइन करें: वहाँ Orien Wallet इंस्टॉल करें, इस वॉलेट को लिंक करें, और दबाएं",
+  "Mine with a verified wallet and your figures show here after the next checkpoint.": "सत्यापित वॉलेट से माइन करें और अगले चेकपॉइंट के बाद आपके आँकड़े यहाँ दिखेंगे।",
+  "Miners last hour": "पिछले घंटे के माइनर",
+  "Miners paid": "भुगतान किए गए माइनर",
+  "Miners who have verified a wallet on their Orien Network account, by ORN mined. Verify your wallet on your account to be on the list.": "वे माइनर जिन्होंने अपने Orien Network खाते पर वॉलेट सत्यापित किया है, माइन किए गए ORN के अनुसार। सूची में आने के लिए अपने खाते पर अपना वॉलेट सत्यापित करें।",
+  "Minimize": "छोटा करें",
+  "Minimum order is 0.01 SOL": "न्यूनतम ऑर्डर 0.01 SOL है",
+  "Mining": "माइनिंग",
+  "Mining for": "इसके लिए माइनिंग",
+  "Mining in large pages of memory, for extra speed.": "अतिरिक्त गति के लिए मेमोरी के लार्ज पेजेज़ में माइनिंग हो रही है।",
+  "Mining reward": "माइनिंग पुरस्कार",
+  "Mining rewards": "माइनिंग पुरस्कार",
+  "Moderator": "मॉडरेटर",
+  "More": "अधिक",
+  "More below": "नीचे और है",
+  "More heat, no more ORN": "अधिक गर्मी, अधिक ORN नहीं",
+  "Mute the group chat": "ग्रुप चैट म्यूट करें",
+  "Muted": "म्यूट किया गया",
+  "My Orien (ORN) address": "मेरा Orien (ORN) पता",
+  "My theme": "मेरी थीम",
+  "Name": "नाम",
+  "Name or address": "नाम या पता",
+  "Needs about 2 GB of memory. Rewards depend on how much everyone else mines.": "लगभग 2 GB मेमोरी की आवश्यकता है। पुरस्कार इस पर निर्भर करते हैं कि बाकी सभी कितना माइन करते हैं।",
+  "Network": "नेटवर्क",
+  "Network hashrate": "नेटवर्क हैशरेट",
+  "New ORN this hour": "इस घंटे नए ORN",
+  "New account: pick a username": "नया खाता: उपयोगकर्ता नाम चुनें",
+  "New contact": "नया संपर्क",
+  "New here?": "यहाँ नए हैं?",
+  "New messages and payment requests": "नए संदेश और भुगतान अनुरोध",
+  "New record": "नया रिकॉर्ड",
+  "New validator": "नया वैलिडेटर",
+  "New versions install while you're away from the app": "जब आप ऐप से दूर होते हैं तो नए संस्करण इंस्टॉल हो जाते हैं",
+  "Newest": "नवीनतम",
+  "Next checkpoint": "अगला चेकपॉइंट",
+  "Nigerian naira": "नाइजीरियाई नायरा",
+  "No GIFs found.": "कोई GIF नहीं मिला।",
+  "No GIFs right now.": "अभी कोई GIF नहीं है।",
+  "No ORN moves.": "कोई ORN नहीं जाता।",
+  "No activity is recorded for this address.": "इस पते के लिए कोई गतिविधि दर्ज नहीं है।",
+  "No contacts yet. Add someone you pay often, or add an Orien Network member from their profile.": "अभी कोई संपर्क नहीं है। किसी ऐसे व्यक्ति को जोड़ें जिसे आप अक्सर भुगतान करते हैं, या किसी Orien Network सदस्य को उसकी प्रोफ़ाइल से जोड़ें।",
+  "No description.": "कोई विवरण नहीं।",
+  "No messages yet. Say hello to everyone.": "अभी कोई संदेश नहीं है। सभी को नमस्ते कहें।",
+  "No one": "कोई नहीं",
+  "No open buy offers right now": "अभी कोई खुला खरीद ऑफ़र नहीं है",
+  "No open sell offers right now": "अभी कोई खुला बिक्री ऑफ़र नहीं है",
+  "No payments yet": "अभी कोई भुगतान नहीं",
+  "No questions left today. Come back tomorrow.": "आज के लिए कोई प्रश्न शेष नहीं हैं। कल वापस आएं।",
+  "No results": "कोई परिणाम नहीं",
+  "No rewards yet": "अभी कोई पुरस्कार नहीं",
+  "No swaps completed yet. The next swap sets the price.": "अभी तक कोई स्वैप पूरा नहीं हुआ है। अगला स्वैप कीमत तय करेगा।",
+  "No swaps yet": "अभी कोई स्वैप नहीं",
+  "No trades yet": "अभी कोई ट्रेड नहीं",
+  "No verified wallet yet": "अभी कोई सत्यापित वॉलेट नहीं",
+  "No verified wallets yet": "अभी कोई सत्यापित वॉलेट नहीं",
+  "No wallets yet.": "अभी कोई वॉलेट नहीं है।",
+  "Nobody by that name.": "इस नाम का कोई नहीं है।",
+  "Nobody is banned.": "कोई प्रतिबंधित नहीं है।",
+  "Nobody with a verified wallet has been paid for mining yet.": "सत्यापित वॉलेट वाले किसी भी व्यक्ति को अभी तक माइनिंग के लिए भुगतान नहीं मिला है।",
+  "None": "कोई नहीं",
+  "Normal": "सामान्य",
+  "Not an Orien address": "यह Orien पता नहीं है",
+  "Not answering": "उत्तर नहीं दे रहा",
+  "Not available": "उपलब्ध नहीं",
+  "Not in the network's history": "नेटवर्क के इतिहास में नहीं है",
+  "Not now": "अभी नहीं",
+  "Not recorded": "दर्ज नहीं",
+  "Not verified yet": "अभी सत्यापित नहीं",
+  "Nothing found. Search an address (64 letters and digits, 0-9 and a-f), a checkpoint number, or the name of someone on the Market.": "कुछ नहीं मिला। कोई पता (64 अक्षर और अंक, 0-9 और a-f), चेकपॉइंट संख्या, या मार्केट पर किसी का नाम खोजें।",
+  "Nothing from the network about them yet.": "नेटवर्क से उनके बारे में अभी तक कुछ नहीं है।",
+  "Nothing has happened at this address yet.": "इस पते पर अभी तक कुछ नहीं हुआ है।",
+  "Nothing here yet. Be the first to sell something.": "यहाँ अभी कुछ नहीं है। कुछ बेचने वाले पहले व्यक्ति बनें।",
+  "Nothing in the community yet.": "समुदाय में अभी कुछ नहीं है।",
+  "Nothing leaves your SOL wallet until a seller locks the ORN and you pay the QR code. Keep Orien Wallet running so sellers can match your order.": "जब तक कोई विक्रेता ORN लॉक नहीं करता और आप QR कोड का भुगतान नहीं करते, आपके SOL वॉलेट से कुछ नहीं जाता। Orien Wallet को चालू रखें ताकि विक्रेता आपके ऑर्डर से मिलान कर सकें।",
+  "Nothing matches that yet.": "अभी उससे कुछ मेल नहीं खाता।",
+  "Nothing yet. Replies, reactions and messages show up here.": "अभी कुछ नहीं। उत्तर, प्रतिक्रियाएं और संदेश यहाँ दिखते हैं।",
+  "Notifications": "सूचनाएं",
+  "ORN / SOL price chart": "ORN / SOL मूल्य चार्ट",
+  "ORN held": "रखे गए ORN",
+  "ORN locked · SOL arriving (~1 min)": "ORN लॉक हो गए · SOL आ रहा है (~1 मिनट)",
+  "ORN mined": "माइन किए गए ORN",
+  "ORN price": "ORN मूल्य",
+  "ORN received": "प्राप्त ORN",
+  "ORN released": "जारी किए गए ORN",
+  "ORN to buy": "खरीदने के लिए ORN",
+  "ORN to sell": "बेचने के लिए ORN",
+  "Offer posted": "ऑफ़र पोस्ट हुआ",
+  "Offer taken": "ऑफ़र स्वीकार हुआ",
+  "Offer your ORN for SOL. When someone takes it, this app locks the ORN for them and runs the swap, as long as it's open.": "SOL के बदले अपने ORN का ऑफ़र दें। जब कोई इसे स्वीकार करता है, तो जब तक यह ऐप खुला रहता है, यह उनके लिए ORN लॉक करके स्वैप चला देता है।",
+  "Official": "आधिकारिक",
+  "Official Website": "आधिकारिक वेबसाइट",
+  "Offline": "ऑफ़लाइन",
+  "On a streak": "लगातार जारी",
+  "On an iPhone, scan the new device's QR code. On a computer, type its code and click": "iPhone पर, नए डिवाइस का QR कोड स्कैन करें। कंप्यूटर पर, इसका कोड टाइप करें और क्लिक करें",
+  "On offer": "ऑफ़र पर",
+  "On one of your own themes, click the share button (the box with an arrow), then": "अपनी किसी थीम पर, शेयर बटन (तीर वाला बॉक्स) पर क्लिक करें, फिर",
+  "On the Market": "मार्केट पर",
+  "On the swap board, waiting for someone to buy": "स्वैप बोर्ड पर, किसी के खरीदने की प्रतीक्षा में",
+  "On the swap board, waiting for someone to sell": "स्वैप बोर्ड पर, किसी के बेचने की प्रतीक्षा में",
+  "On your new device, open Orien Wallet and choose": "अपने नए डिवाइस पर, Orien Wallet खोलें और चुनें",
+  "On your other device, open Orien Wallet, go to": "अपने दूसरे डिवाइस पर, Orien Wallet खोलें, जाएं",
+  "One account for all of Orien Network. Enter your email and type the 6-digit code we send; new here, you'll pick a username too. Signed up on orien.network already? Use the same email.": "पूरे Orien Network के लिए एक खाता। अपना ईमेल दर्ज करें और हमारे द्वारा भेजा गया 6-अंकों का कोड टाइप करें; यदि नए हैं, तो आप एक उपयोगकर्ता नाम भी चुनेंगे। पहले से orien.network पर साइन अप किया है? वही ईमेल उपयोग करें।",
+  "Only letters, numbers and _": "केवल अक्षर, अंक और _",
+  "Only send if you see the same three emoji, in the same order.": "केवल तभी भेजें जब आपको वही तीन इमोजी, उसी क्रम में दिखाई दें।",
+  "Open": "खुला",
+  "Open Mine": "माइन खोलें",
+  "Open Orien Wallet on the device you posted or took this offer from to finish the swap": "स्वैप पूरा करने के लिए उस डिवाइस पर Orien Wallet खोलें जिससे आपने यह ऑफ़र पोस्ट या स्वीकार किया था",
+  "Open at login": "लॉगिन पर खोलें",
+  "Open it to verify": "सत्यापित करने के लिए इसे खोलें",
+  "Open offers": "खुले ऑफ़र",
+  "Open the explorer": "एक्सप्लोरर खोलें",
+  "Opens Firefox's add-on store: click Add to Firefox": "Firefox का ऐड-ऑन स्टोर खोलता है: Add to Firefox पर क्लिक करें",
+  "Opens Safari's settings: tick Orien Wallet to turn it on": "Safari की सेटिंग्स खोलता है: चालू करने के लिए Orien Wallet पर टिक करें",
+  "Opens the Chrome Web Store: allow other stores, then add it": "Chrome Web Store खोलता है: अन्य स्टोर की अनुमति दें, फिर इसे जोड़ें",
+  "Opens the Chrome Web Store: click Add to Brave": "Chrome Web Store खोलता है: Add to Brave पर क्लिक करें",
+  "Opens the Chrome Web Store: click Add to Chrome": "Chrome Web Store खोलता है: Add to Chrome पर क्लिक करें",
+  "Order book": "ऑर्डर बुक",
+  "Orien AI Support": "Orien AI सहायता",
+  "Orien Group Chat": "Orien ग्रुप चैट",
+  "Orien Wallet for computers is at": "कंप्यूटर के लिए Orien Wallet यहाँ उपलब्ध है",
+  "Orien Wallet is locking your SOL on Solana and registering your order on the book. Step 2 will show a checkmark as soon as you can leave.": "Orien Wallet आपके SOL को Solana पर लॉक कर रहा है और आपका ऑर्डर बुक में दर्ज कर रहा है। जैसे ही आप पृष्ठ छोड़ सकते हैं, चरण 2 पर सही का निशान दिखेगा।",
+  "Orien Wallet locks after a minute away.": "एक मिनट दूर रहने पर Orien Wallet लॉक हो जाता है।",
+  "Orien Wallet locks whenever you leave it.": "जब भी आप इसे छोड़ते हैं, Orien Wallet लॉक हो जाता है।",
+  "Orien right now": "Orien अभी",
+  "Other": "अन्य",
+  "Paid": "भुगतान किया गया",
+  "Paid here": "यहाँ भुगतान मिलता है",
+  "Paid · Bitcoin is confirming": "भुगतान हो गया · Bitcoin पुष्टि कर रहा है",
+  "Paid · SOL on its way to you": "भुगतान हो गया · SOL आपके पास आ रहा है",
+  "Password": "पासवर्ड",
+  "Paste": "पेस्ट करें",
+  "Pay": "भुगतान करें",
+  "Pay exactly": "ठीक इतनी राशि चुकाएं",
+  "Pay now": "अभी भुगतान करें",
+  "Pay total (SOL)": "कुल भुगतान (SOL)",
+  "Paying": "भुगतान हो रहा है",
+  "Payment": "भुगतान",
+  "Payment received. Locking it for the swap.": "भुगतान प्राप्त हुआ। स्वैप के लिए इसे लॉक किया जा रहा है।",
+  "Payment received. Locking your SOL on Solana now. Keep this page open for about 20 seconds.": "भुगतान प्राप्त हुआ। अब आपका SOL Solana पर लॉक किया जा रहा है। लगभग 20 सेकंड के लिए इस पृष्ठ को खुला रखें।",
+  "Payment request": "भुगतान अनुरोध",
+  "Payments": "भुगतान",
+  "Pending": "लंबित",
+  "Pending in your Bitcoin wallet until Bitcoin confirms it, usually within the hour": "जब तक Bitcoin इसकी पुष्टि नहीं करता, तब तक आपके Bitcoin वॉलेट में लंबित है, आमतौर पर एक घंटे के भीतर",
+  "People": "लोग",
+  "People you block can't message you, and you don't see each other's profiles, posts or listings. Unblock someone to see them again.": "जिन्हें आप ब्लॉक करते हैं वे आपको संदेश नहीं भेज सकते, और आप एक-दूसरे की प्रोफ़ाइल, पोस्ट या लिस्टिंग नहीं देख सकते। उन्हें फिर से देखने के लिए अनब्लॉक करें।",
+  "People you've talked with": "जिन लोगों से आपने बात की है",
+  "Philippine peso": "फ़िलीपीनी पेसो",
+  "Photos": "फ़ोटो",
+  "Pick a category.": "एक श्रेणी चुनें।",
+  "Pick a conversation to read it.": "पढ़ने के लिए कोई बातचीत चुनें।",
+  "Pick an": "चुनें एक",
+  "Pictures": "तस्वीरें",
+  "Place Buy Order": "खरीद ऑर्डर दें",
+  "Place Sell Order": "बिक्री ऑर्डर दें",
+  "Place order": "ऑर्डर दें",
+  "Point at a message": "किसी संदेश पर कर्सर ले जाएं",
+  "Point the camera at the QR code": "कैमरा QR कोड की ओर रखें",
+  "Point the camera at the code on your other device": "कैमरा अपने दूसरे डिवाइस के कोड की ओर रखें",
+  "Point the camera at their Receive QR code": "कैमरा उनके प्राप्त करें QR कोड की ओर रखें",
+  "Poll": "पोल",
+  "Poll length": "पोल की अवधि",
+  "Popular": "लोकप्रिय",
+  "Post": "पोस्ट करें",
+  "Post an offer": "ऑफ़र पोस्ट करें",
+  "Post buy offer": "खरीद ऑफ़र पोस्ट करें",
+  "Post order": "ऑर्डर पोस्ट करें",
+  "Post sell offer": "बिक्री ऑफ़र पोस्ट करें",
+  "Post the offer": "ऑफ़र पोस्ट करें",
+  "Post to the live ORN / SOL order book": "लाइव ORN / SOL ऑर्डर बुक में पोस्ट करें",
+  "Post your listing": "अपनी लिस्टिंग पोस्ट करें",
+  "Post your reply": "अपना उत्तर पोस्ट करें",
+  "Posting": "पोस्ट हो रहा है",
+  "Posts": "पोस्ट",
+  "Powered by KLIPY": "KLIPY द्वारा संचालित",
+  "Price / ORN": "मूल्य / ORN",
+  "Price in ORN": "ORN में मूल्य",
+  "Price per ORN": "प्रति ORN मूल्य",
+  "Privacy Policy": "गोपनीयता नीति",
+  "Privacy and security": "गोपनीयता और सुरक्षा",
+  "Privacy policy": "गोपनीयता नीति",
+  "Processor": "प्रोसेसर",
+  "Profile": "प्रोफ़ाइल",
+  "Progress": "प्रगति",
+  "Ranked by ORN held": "रखे गए ORN के अनुसार रैंक",
+  "React": "प्रतिक्रिया दें",
+  "Receive": "प्राप्त करें",
+  "Receive ORN": "ORN प्राप्त करें",
+  "Receive total (SOL)": "कुल प्राप्ति (SOL)",
+  "Received": "प्राप्त हुआ",
+  "Recent errors": "हाल की त्रुटियाँ",
+  "Recent screens": "हाल की स्क्रीन",
+  "Recent trades": "हाल के ट्रेड",
+  "Recents": "हाल के",
+  "Recovery phrase": "रिकवरी फ़्रेज़",
+  "Recovery words": "रिकवरी शब्द",
+  "Refunded": "रिफ़ंड किया गया",
+  "Remove": "हटाएं",
+  "Remove GIF": "GIF हटाएं",
+  "Remove from contacts": "संपर्कों से हटाएं",
+  "Remove from store": "स्टोर से हटाएं",
+  "Remove from the list": "सूची से हटाएं",
+  "Remove from this app": "इस ऐप से हटाएं",
+  "Remove from your profile": "अपनी प्रोफ़ाइल से हटाएं",
+  "Remove poll": "पोल हटाएं",
+  "Remove wallet": "वॉलेट हटाएं",
+  "Rename wallet": "वॉलेट का नाम बदलें",
+  "Reopen": "फिर से खोलें",
+  "Repeat for each wallet you want on your profile.": "अपनी प्रोफ़ाइल पर जो भी वॉलेट आप चाहते हैं, उसके लिए इसे दोहराएं।",
+  "Replies, reactions and the network's posts about you": "उत्तर, प्रतिक्रियाएं और आपके बारे में नेटवर्क की पोस्ट",
+  "Reply": "उत्तर दें",
+  "Report": "रिपोर्ट करें",
+  "Report a Problem": "समस्या की रिपोर्ट करें",
+  "Report post": "पोस्ट रिपोर्ट करें",
+  "Report something else": "कुछ और रिपोर्ट करें",
+  "Report this listing": "इस लिस्टिंग की रिपोर्ट करें",
+  "Report this post": "इस पोस्ट की रिपोर्ट करें",
+  "Report this theme": "इस थीम की रिपोर्ट करें",
+  "Request": "अनुरोध करें",
+  "Reserve SOL": "SOL आरक्षित करें",
+  "Reserving buyer's SOL": "खरीदार का SOL आरक्षित हो रहा है",
+  "Reserving the buyer's locked SOL on Solana before locking your ORN. Keep this page open for about 15 seconds.": "आपके ORN लॉक करने से पहले Solana पर खरीदार का लॉक किया गया SOL आरक्षित किया जा रहा है। लगभग 15 सेकंड के लिए इस पृष्ठ को खुला रखें।",
+  "Restart mining": "माइनिंग फिर से शुरू करें",
+  "Restart mining to go faster": "तेज़ चलने के लिए माइनिंग फिर से शुरू करें",
+  "Restore": "पुनर्स्थापित करें",
+  "Restore a wallet from its words": "शब्दों से वॉलेट पुनर्स्थापित करें",
+  "Restore wallet": "वॉलेट पुनर्स्थापित करें",
+  "Restore with recovery phrase": "रिकवरी फ़्रेज़ से पुनर्स्थापित करें",
+  "Restoring": "पुनर्स्थापित हो रहा है",
+  "Rewards": "पुरस्कार",
+  "Robot avatars:": "रोबोट अवतार:",
+  "Running": "चल रहा है",
+  "SOL to pay": "भुगतान के लिए SOL",
+  "SOL to receive": "प्राप्त होने वाला SOL",
+  "Safe to leave or close Orien Wallet.": "Orien Wallet को छोड़ना या बंद करना सुरक्षित है।",
+  "Safe to leave this page or close Orien Wallet": "इस पृष्ठ को छोड़ना या Orien Wallet बंद करना सुरक्षित है",
+  "Safe to leave · arrives in about a minute": "छोड़ना सुरक्षित है · लगभग एक मिनट में पहुँचता है",
+  "Safe to share: an address can only receive ORN.": "साझा करना सुरक्षित है: कोई पता केवल ORN प्राप्त कर सकता है।",
+  "Save": "सहेजें",
+  "Save as a text file": "टेक्स्ट फ़ाइल के रूप में सहेजें",
+  "Save as contact": "संपर्क के रूप में सहेजें",
+  "Save changes": "बदलाव सहेजें",
+  "Save theme": "थीम सहेजें",
+  "Saved": "सहेजा गया",
+  "Saved address": "सहेजा गया पता",
+  "Saved. Anyone who opens the file can spend your ORN: keep it somewhere only you can reach.": "सहेजा गया। जो भी इस फ़ाइल को खोलेगा वह आपके ORN खर्च कर सकता है: इसे ऐसी जगह रखें जहाँ केवल आपकी पहुँच हो।",
+  "Saving": "सहेजा जा रहा है",
+  "Saving…": "सहेजा जा रहा है…",
+  "Say hello to everyone.": "सभी को नमस्ते कहें।",
+  "Say what you're offering.": "बताएं कि आप क्या ऑफ़र कर रहे हैं।",
+  "Scan a QR code": "QR कोड स्कैन करें",
+  "Scan the code": "कोड स्कैन करें",
+  "Search KLIPY": "KLIPY खोजें",
+  "Search listings": "लिस्टिंग खोजें",
+  "Searching…": "खोजा जा रहा है…",
+  "Security and more": "सुरक्षा और अधिक",
+  "See the top 100": "शीर्ष 100 देखें",
+  "Sell": "बेचें",
+  "Sell ORN": "ORN बेचें",
+  "Sell amount (ORN)": "बिक्री राशि (ORN)",
+  "Sell from": "इससे बेचें",
+  "Sell into this offer": "इस ऑफ़र में बेचें",
+  "Sell offers come from verified wallets, so buyers can see who they're swapping with. Verifying ties this wallet to your Orien Network name and sends less than 0.001 ORN from it, once.": "बिक्री ऑफ़र सत्यापित वॉलेट्स से आते हैं, ताकि खरीदार देख सकें कि वे किसके साथ स्वैप कर रहे हैं। सत्यापन इस वॉलेट को आपके Orien Network नाम से जोड़ता है और इससे एक बार 0.001 ORN से कम भेजता है।",
+  "Sell orders come from verified wallets so buyers know who they're trading with (sends < 0.001 ORN once).": "बिक्री ऑर्डर सत्यापित वॉलेट्स से आते हैं ताकि खरीदारों को पता हो कि वे किसके साथ ट्रेड कर रहे हैं (एक बार < 0.001 ORN भेजता है)।",
+  "Sell something": "कुछ बेचें",
+  "Seller": "विक्रेता",
+  "Seller accepts": "विक्रेता स्वीकार करता है",
+  "Selling ORN": "ORN बेचना",
+  "Send": "भेजें",
+  "Send & Receive": "भेजें और प्राप्त करें",
+  "Send ORN": "ORN भेजें",
+  "Send ORN and see your balance from the browser's toolbar, and sign in to websites with your wallet. Your keys stay in this app.": "ब्राउज़र के टूलबार से ORN भेजें और अपना बैलेंस देखें, तथा अपने वॉलेट से वेबसाइटों में साइन इन करें। आपकी कुंजियाँ इसी ऐप में रहती हैं।",
+  "Send ORN, see your balance, and sign in to orien.network with one click, right from your browser. Your keys never leave Orien Wallet.": "सीधे अपने ब्राउज़र से एक क्लिक में ORN भेजें, अपना बैलेंस देखें, और orien.network में साइन इन करें। आपकी कुंजियाँ कभी Orien Wallet से बाहर नहीं जातीं।",
+  "Send SOL": "SOL भेजें",
+  "Send SOL once into a Solana order. It stays live on the order book even while Orien Wallet is closed, settles in about a minute when taken, and cancels in one click.": "Solana ऑर्डर में एक बार SOL भेजें। यह Orien Wallet बंद होने पर भी ऑर्डर बुक पर लाइव रहता है, स्वीकार होने पर लगभग एक मिनट में निपटान होता है, और एक क्लिक में रद्द हो जाता है।",
+  "Send and verify": "भेजें और सत्यापित करें",
+  "Send me a code": "मुझे कोड भेजें",
+  "Send report": "रिपोर्ट भेजें",
+  "Send the buyer this offer code": "खरीदार को यह ऑफ़र कोड भेजें",
+  "Send the seller this reply code": "विक्रेता को यह उत्तर कोड भेजें",
+  "Send to this contact": "इस संपर्क को भेजें",
+  "Send your wallets to your other phone or computer": "अपने वॉलेट्स को अपने दूसरे फ़ोन या कंप्यूटर पर भेजें",
+  "Sending": "भेजा जा रहा है",
+  "Sending…": "भेजा जा रहा है…",
+  "Sent": "भेजा गया",
+  "Sent a GIF": "एक GIF भेजा",
+  "Sent a picture": "एक तस्वीर भेजी",
+  "Sent from another app": "किसी अन्य ऐप से भेजा गया",
+  "Sent. Verifying, usually within a minute.": "भेज दिया गया। सत्यापन हो रहा है, आमतौर पर एक मिनट के भीतर।",
+  "Set password": "पासवर्ड सेट करें",
+  "Set the": "सेट करें",
+  "Set up": "सेट अप करें",
+  "Set up mining": "माइनिंग सेट अप करें",
+  "Sets aside about 2.4 GB of memory for mining in large pages, usually 10 to 30% faster. Linux asks for your password once.": "लार्ज पेजेज़ में माइनिंग के लिए लगभग 2.4 GB मेमोरी अलग रखता है, जो आमतौर पर 10 से 30% तेज़ होता है। Linux एक बार आपका पासवर्ड मांगता है।",
+  "Settings": "सेटिंग्स",
+  "Settling": "निपटान हो रहा है",
+  "Share a theme in the Theme Store": "थीम स्टोर में थीम साझा करें",
+  "Share address": "पता साझा करें",
+  "Share in the Theme Store": "थीम स्टोर में साझा करें",
+  "Share theme": "थीम साझा करें",
+  "Shared": "साझा किया गया",
+  "Shared among miners": "माइनरों के बीच साझा",
+  "Shares": "शेयर",
+  "Shares an hour": "प्रति घंटे शेयर",
+  "Shares this hour": "इस घंटे के शेयर",
+  "Sharing": "साझा हो रहा है",
+  "Show balance": "बैलेंस दिखाएं",
+  "Show less": "कम दिखाएं",
+  "Show more": "अधिक दिखाएं",
+  "Show scroll arrow": "स्क्रॉल तीर दिखाएं",
+  "Show your accounts on your profile, if you like. Everyone can see them.": "यदि आप चाहें तो अपनी प्रोफ़ाइल पर अपने खाते दिखाएं। हर कोई इन्हें देख सकता है।",
+  "Sign Out": "साइन आउट करें",
+  "Sign in": "साइन इन करें",
+  "Sign in and verify this wallet first.": "पहले साइन इन करें और इस वॉलेट को सत्यापित करें।",
+  "Sign in to Orien Network": "Orien Network में साइन इन करें",
+  "Sign in to Orien Network first.": "पहले Orien Network में साइन इन करें।",
+  "Sign in to Orien Network to ask a question. Verifying a wallet isn't needed.": "प्रश्न पूछने के लिए Orien Network में साइन इन करें। वॉलेट सत्यापित करने की आवश्यकता नहीं है।",
+  "Sign in to Orien Network to chat, reply or react.": "चैट करने, उत्तर देने या प्रतिक्रिया देने के लिए Orien Network में साइन इन करें।",
+  "Sign in to Orien Network to chat.": "चैट करने के लिए Orien Network में साइन इन करें।",
+  "Sign in to Orien Network to post and react.": "पोस्ट करने और प्रतिक्रिया देने के लिए Orien Network में साइन इन करें।",
+  "Sign in to Orien Network to post, reply and react.": "पोस्ट करने, उत्तर देने और प्रतिक्रिया देने के लिए Orien Network में साइन इन करें।",
+  "Sign in to Orien Network to react.": "प्रतिक्रिया देने के लिए Orien Network में साइन इन करें।",
+  "Sign in to Orien Network to reply.": "उत्तर देने के लिए Orien Network में साइन इन करें।",
+  "Sign in to Orien Network to report a message.": "संदेश की रिपोर्ट करने के लिए Orien Network में साइन इन करें।",
+  "Sign in to Orien Network to report a theme.": "थीम की रिपोर्ट करने के लिए Orien Network में साइन इन करें।",
+  "Sign in to Orien Network to see the themes you shared.": "आपने जो थीम साझा की हैं उन्हें देखने के लिए Orien Network में साइन इन करें।",
+  "Sign in to Orien Network to see your own messages and to chat.": "अपने संदेश देखने और चैट करने के लिए Orien Network में साइन इन करें।",
+  "Sign in to Orien Network to tip.": "टिप देने के लिए Orien Network में साइन इन करें।",
+  "Sign in to Orien Network with a verified wallet to share themes.": "थीम साझा करने के लिए सत्यापित वॉलेट के साथ Orien Network में साइन इन करें।",
+  "Sign in to message the seller": "विक्रेता को संदेश भेजने के लिए साइन इन करें",
+  "Sign in to trade": "ट्रेड करने के लिए साइन इन करें",
+  "Sign in, and open the wallet you want to verify.": "साइन इन करें, और वह वॉलेट खोलें जिसे आप सत्यापित करना चाहते हैं।",
+  "Sign out of Windows and back in, then open Orien Wallet. Mining runs faster from then on.": "Windows से साइन आउट करें और वापस साइन इन करें, फिर Orien Wallet खोलें। उसके बाद से माइनिंग तेज़ चलेगी।",
+  "Sign out to finish": "पूरा करने के लिए साइन आउट करें",
+  "Signing in": "साइन इन हो रहा है",
+  "Singapore dollar": "सिंगापुर डॉलर",
+  "Size (ORN)": "आकार (ORN)",
+  "Smallest swap: 0.00015 BTC, more when Bitcoin is busy": "सबसे छोटा स्वैप: 0.00015 BTC, जब Bitcoin व्यस्त हो तो अधिक",
+  "Smallest swap: 0.01 SOL. Fees: the usual Orien fee to lock the ORN (0.1%, at most 1 ORN); the buyer covers Solana's small fees. A swap takes about a minute. If a buyer never pays, your ORN come back on their own within a few hours.": "सबसे छोटा स्वैप: 0.01 SOL। शुल्क: ORN लॉक करने का सामान्य Orien शुल्क (0.1%, अधिकतम 1 ORN); Solana के छोटे शुल्क खरीदार देता है। स्वैप में लगभग एक मिनट लगता है। यदि खरीदार कभी भुगतान नहीं करता, तो आपके ORN कुछ घंटों के भीतर अपने आप वापस आ जाते हैं।",
+  "Smallest swap: 0.01 SOL. Nothing leaves your SOL wallet until a seller locks the ORN and you pay the QR code. You'll also need about 0.005 SOL for Solana's small fees, nearly all of which comes back.": "सबसे छोटा स्वैप: 0.01 SOL। जब तक कोई विक्रेता ORN लॉक नहीं करता और आप QR कोड का भुगतान नहीं करते, आपके SOL वॉलेट से कुछ नहीं जाता। आपको Solana के छोटे शुल्कों के लिए लगभग 0.005 SOL की भी आवश्यकता होगी, जिसमें से लगभग सारा वापस आ जाता है।",
+  "So swap offers stay open, and payments and mining carry on. The screen can still turn off.": "ताकि स्वैप ऑफ़र खुले रहें, और भुगतान व माइनिंग चलती रहे। स्क्रीन फिर भी बंद हो सकती है।",
+  "Social Links": "सोशल लिंक",
+  "Socials": "सोशल",
+  "Someone": "कोई व्यक्ति",
+  "Sort by": "क्रमबद्ध करें",
+  "South African rand": "दक्षिण अफ्रीकी रैंड",
+  "South Korean won": "दक्षिण कोरियाई वॉन",
+  "Speed": "गति",
+  "Stake returned": "स्टेक वापस मिला",
+  "Start Orien Wallet when you log in": "लॉगिन करने पर Orien Wallet शुरू करें",
+  "Start mining": "माइनिंग शुरू करें",
+  "Start mining to see your speed here.": "अपनी गति यहाँ देखने के लिए माइनिंग शुरू करें।",
+  "Start over": "फिर से शुरू करें",
+  "Starting…": "शुरू हो रहा है…",
+  "State after it: every account's balance, as one fingerprint": "इसके बाद की स्थिति: एक फ़िंगरप्रिंट के रूप में हर खाते का बैलेंस",
+  "Stay on this page for a moment:": "एक पल के लिए इस पृष्ठ पर बने रहें:",
+  "Stop mining": "माइनिंग रोकें",
+  "Stop replying": "उत्तर देना बंद करें",
+  "Stopped": "रोका गया",
+  "Swap": "स्वैप",
+  "Swap ORN and SOL directly with other people. About a minute, no fee.": "अन्य लोगों के साथ सीधे ORN और SOL स्वैप करें। लगभग एक मिनट, कोई शुल्क नहीं।",
+  "Swap SOL or Bitcoin for ORN in Orien Wallet on a computer, with this same wallet linked to it.": "कंप्यूटर पर Orien Wallet में इसी वॉलेट को लिंक करके ORN के लिए SOL या Bitcoin स्वैप करें।",
+  "Swap SOL or Bitcoin for ORN with other people, directly between your wallets, on the Swap screen. With SOL it takes a few minutes, and you pay from the SOL wallet you already have, such as Phantom.": "स्वैप स्क्रीन पर, सीधे अपने वॉलेट्स के बीच अन्य लोगों के साथ ORN के लिए SOL या Bitcoin स्वैप करें। SOL के साथ इसमें कुछ मिनट लगते हैं, और आप अपने मौजूदा SOL वॉलेट, जैसे Phantom, से भुगतान करते हैं।",
+  "Swap for it.": "इसके लिए स्वैप करें।",
+  "Swap updates": "स्वैप अपडेट",
+  "Swaps": "स्वैप",
+  "Swaps and payments carry on from the menu bar": "मेनू बार से स्वैप और भुगतान जारी रहते हैं",
+  "Swaps and payments carry on from the system tray": "सिस्टम ट्रे से स्वैप और भुगतान जारी रहते हैं",
+  "Swaps need the newest Orien Wallet. Update first: it takes a moment, and the app reopens by itself.": "स्वैप के लिए नवीनतम Orien Wallet की आवश्यकता है। पहले अपडेट करें: इसमें एक पल लगता है, और ऐप अपने आप फिर से खुल जाता है।",
+  "Swiss franc": "स्विस फ़्रैंक",
+  "Take": "स्वीकार करें",
+  "Take an offer": "ऑफ़र स्वीकार करें",
+  "Take the offer": "ऑफ़र स्वीकार करें",
+  "Take this offer": "यह ऑफ़र स्वीकार करें",
+  "Taken": "स्वीकृत",
+  "Taking your Bitcoin back": "आपका Bitcoin वापस लिया जा रहा है",
+  "Tap": "टैप करें",
+  "Tap a message": "संदेश पर टैप करें",
+  "Tap to reveal": "देखने के लिए टैप करें",
+  "Tell Orien Network what's wrong with it: a scam, spam, abuse, or something illegal. Every report is reviewed.": "Orien Network को बताएं कि इसमें क्या गलत है: धोखाधड़ी, स्पैम, दुर्व्यवहार, या कुछ गैरकानूनी। हर रिपोर्ट की समीक्षा की जाती है।",
+  "Tell us what happened": "हमें बताएं क्या हुआ",
+  "Tell us what went wrong. Every report is read.": "हमें बताएं क्या गलत हुआ। हर रिपोर्ट पढ़ी जाती है।",
+  "Terms of Service": "सेवा की शर्तें",
+  "Terms of service": "सेवा की शर्तें",
+  "Thanks, it's sent": "धन्यवाद, यह भेज दिया गया",
+  "Thanks. It will be reviewed.": "धन्यवाद। इसकी समीक्षा की जाएगी।",
+  "Thanks. We will look at it.": "धन्यवाद। हम इसे देखेंगे।",
+  "That QR code isn't from Orien Wallet's Use my other device.": "वह QR कोड Orien Wallet के 'मेरा दूसरा डिवाइस उपयोग करें' से नहीं है।",
+  "That account can't be found.": "वह खाता नहीं मिल सका।",
+  "That doesn't look like a SOL address.": "यह SOL पता जैसा नहीं लगता।",
+  "That email doesn't look right. Check it, or leave it empty.": "वह ईमेल सही नहीं लगता। इसे जाँचें, या खाली छोड़ दें।",
+  "That file isn't a picture this app can open.": "वह फ़ाइल ऐसी तस्वीर नहीं है जिसे यह ऐप खोल सके।",
+  "That is not this wallet's password.": "यह इस वॉलेट का पासवर्ड नहीं है।",
+  "That is this wallet's own address": "यह इस वॉलेट का अपना पता है",
+  "That isn't a Bitcoin address.": "यह Bitcoin पता नहीं है।",
+  "That isn't a SOL address.": "यह SOL पता नहीं है।",
+  "That password isn't right. Check it and try again.": "वह पासवर्ड सही नहीं है। इसे जाँचें और फिर से प्रयास करें।",
+  "That post has been removed.": "वह पोस्ट हटा दी गई है।",
+  "That theme's picture couldn't be downloaded. Try again in a moment.": "उस थीम की तस्वीर डाउनलोड नहीं हो सकी। एक पल में फिर से प्रयास करें।",
+  "That's a Bitcoin address. Swaps use SOL.": "वह Bitcoin पता है। स्वैप SOL का उपयोग करते हैं।",
+  "That's a SOL address. To use SOL, choose SOL above.": "वह SOL पता है। SOL उपयोग करने के लिए, ऊपर SOL चुनें।",
+  "That's a long one. Keep a question under 1,000 characters.": "यह बहुत लंबा है। प्रश्न को 1,000 अक्षरों से कम रखें।",
+  "That's not this wallet's password.": "यह इस वॉलेट का पासवर्ड नहीं है।",
+  "The ORN arrive in this wallet by themselves.": "ORN अपने आप इस वॉलेट में पहुँच जाते हैं।",
+  "The buyer": "खरीदार",
+  "The buyer is paying. This app takes the SOL as soon as it's locked, usually within a minute.": "खरीदार भुगतान कर रहा है। लॉक होते ही यह ऐप SOL ले लेता है, आमतौर पर एक मिनट के भीतर।",
+  "The buyer · usually 30 to 60 minutes after they pay": "खरीदार · उनके भुगतान के आमतौर पर 30 से 60 मिनट बाद",
+  "The buyer · within a few hours": "खरीदार · कुछ घंटों के भीतर",
+  "The buyer's ORN delivered": "खरीदार के ORN पहुँचा दिए गए",
+  "The chart begins as soon as the first ORN / SOL swap completes.": "पहला ORN / SOL स्वैप पूरा होते ही चार्ट शुरू हो जाता है।",
+  "The checkpoint before it": "इससे पहले का चेकपॉइंट",
+  "The extra over the price": "कीमत से अतिरिक्त राशि",
+  "The figures at the top show the network right now: ORN released, the next checkpoint, miners and hashrate.": "ऊपर के आँकड़े अभी का नेटवर्क दिखाते हैं: जारी किए गए ORN, अगला चेकपॉइंट, माइनर और हैशरेट।",
+  "The latest 500": "नवीनतम 500",
+  "The pay screen opens by itself as soon as they accept.": "उनके स्वीकार करते ही भुगतान स्क्रीन अपने आप खुल जाती है।",
+  "The picture couldn't be saved on this device. Try a smaller one.": "इस डिवाइस पर तस्वीर सहेजी नहीं जा सकी। कोई छोटी तस्वीर आज़माएं।",
+  "The post shows its tips, without names. The author is told it was you.": "पोस्ट बिना नाम के अपनी टिप्स दिखाती है। लेखक को बताया जाता है कि यह आपने दी थी।",
+  "The seller didn't take the SOL in time. Sending it back to your SOL wallet.": "विक्रेता ने समय पर SOL नहीं लिया। इसे आपके SOL वॉलेट में वापस भेजा जा रहा है।",
+  "The seller took the SOL. Claiming your ORN.": "विक्रेता ने SOL ले लिया। आपके ORN का दावा किया जा रहा है।",
+  "The seller · done": "विक्रेता · हो गया",
+  "The seller · usually 30 to 60 minutes after you pay": "विक्रेता · आपके भुगतान के आमतौर पर 30 से 60 मिनट बाद",
+  "The seller's wallet delivers your ORN once they take the SOL.": "SOL लेने के बाद विक्रेता का वॉलेट आपके ORN पहुँचा देता है।",
+  "The seller's wallet takes the Bitcoin once Bitcoin has confirmed your payment three times": "Bitcoin द्वारा आपके भुगतान की तीन बार पुष्टि करने के बाद विक्रेता का वॉलेट Bitcoin ले लेता है",
+  "The swap board passes your offer to the buyer's wallet, and their reply back": "स्वैप बोर्ड आपका ऑफ़र खरीदार के वॉलेट तक पहुँचाता है, और उनका उत्तर वापस लाता है",
+  "The swap details open by itself as soon as your ORN are locked.": "आपके ORN लॉक होते ही स्वैप विवरण अपने आप खुल जाते हैं।",
+  "The update didn't install": "अपडेट इंस्टॉल नहीं हुआ",
+  "The validators didn't answer about this hour's rewards just now. Try again in a moment.": "वैलिडेटर्स ने अभी इस घंटे के पुरस्कारों के बारे में उत्तर नहीं दिया। एक पल में फिर से प्रयास करें।",
+  "The website learns this wallet's address.": "वेबसाइट को इस वॉलेट का पता पता चलता है।",
+  "Their 64-character address": "उनका 64-अक्षर का पता",
+  "Their Orien Wallet makes it once it has checked your offer. It tells this app where they'll pay the Bitcoin.": "आपका ऑफ़र जाँचने के बाद उनका Orien Wallet इसे बनाता है। यह इस ऐप को बताता है कि वे Bitcoin कहाँ भुगतान करेंगे।",
+  "Their payment shows in your Activity within seconds.": "उनका भुगतान सेकंडों में आपकी गतिविधि में दिखाई देता है।",
+  "Their wallet accepts by itself, usually within a few seconds.": "उनका वॉलेट अपने आप स्वीकार कर लेता है, आमतौर पर कुछ सेकंड में।",
+  "Their wallet accepts by itself, within 30 minutes.": "उनका वॉलेट 30 मिनट के भीतर अपने आप स्वीकार कर लेता है।",
+  "Theme": "थीम",
+  "Theme Store": "थीम स्टोर",
+  "Themes": "थीम",
+  "Themes made by the Orien community": "Orien समुदाय द्वारा बनाई गई थीम",
+  "Then paste the buyer's reply code": "फिर खरीदार का उत्तर कोड पेस्ट करें",
+  "They don't match": "ये मेल नहीं खाते",
+  "They match": "ये मेल खाते हैं",
+  "They match, send": "ये मेल खाते हैं, भेजें",
+  "They match, send my wallet": "ये मेल खाते हैं, मेरा वॉलेट भेजें",
+  "They match, send my wallets": "ये मेल खाते हैं, मेरे वॉलेट्स भेजें",
+  "This app takes the Bitcoin to your Bitcoin address, then delivers the buyer's ORN to them": "यह ऐप Bitcoin को आपके Bitcoin पते पर ले जाता है, फिर खरीदार के ORN उन्हें पहुँचा देता है",
+  "This app · about 30 minutes for Bitcoin to settle": "यह ऐप · Bitcoin के निपटान में लगभग 30 मिनट",
+  "This app · under a minute": "यह ऐप · एक मिनट से कम",
+  "This checkpoint's fingerprint": "इस चेकपॉइंट का फ़िंगरप्रिंट",
+  "This computer": "यह कंप्यूटर",
+  "This hour": "इस घंटे",
+  "This is your listing.": "यह आपकी लिस्टिंग है।",
+  "This person": "यह व्यक्ति",
+  "This profile isn't available.": "यह प्रोफ़ाइल उपलब्ध नहीं है।",
+  "This theme's picture isn't on this computer yet. Try again in a moment.": "इस थीम की तस्वीर अभी इस कंप्यूटर पर नहीं है। एक पल में फिर से प्रयास करें।",
+  "This version of Orien Wallet no longer works with the network. Press Update at the top to keep sending.": "Orien Wallet का यह संस्करण अब नेटवर्क के साथ काम नहीं करता। भेजना जारी रखने के लिए ऊपर अपडेट दबाएं।",
+  "This wallet": "यह वॉलेट",
+  "This wallet has a password. Type it to send.": "इस वॉलेट में पासवर्ड है। भेजने के लिए इसे टाइप करें।",
+  "This wallet proved it belongs to this profile": "इस वॉलेट ने साबित किया कि यह इस प्रोफ़ाइल का है",
+  "This wallet's password": "इस वॉलेट का पासवर्ड",
+  "Time": "समय",
+  "Tip": "टिप",
+  "Tip someone": "किसी को टिप दें",
+  "Tips": "टिप्स",
+  "Tips are payments and can't be undone.": "टिप्स भुगतान होती हैं और इन्हें वापस नहीं लिया जा सकता।",
+  "To": "प्राप्तकर्ता",
+  "Today": "आज",
+  "Too late to pay safely: a payment now would come back to you once the lock ends, about 2 hours from now": "सुरक्षित भुगतान के लिए बहुत देर हो गई: अब किया गया भुगतान लॉक समाप्त होने पर, लगभग 2 घंटे बाद, आपके पास वापस आ जाएगा",
+  "Top miner of the day": "दिन का शीर्ष माइनर",
+  "Top miners": "शीर्ष माइनर",
+  "Top wallets": "शीर्ष वॉलेट्स",
+  "Total": "कुल",
+  "Total (SOL)": "कुल (SOL)",
+  "Trade": "ट्रेड",
+  "Trades": "ट्रेड",
+  "Try": "आज़माएं",
+  "Try again": "फिर से प्रयास करें",
+  "Turkish lira": "तुर्की लीरा",
+  "Turn on syncing": "सिंकिंग चालू करें",
+  "Turn on syncing, so your contacts and wallet icons match on all your devices. It needs this wallet unlocked once.": "सिंकिंग चालू करें, ताकि आपके संपर्क और वॉलेट आइकन आपके सभी डिवाइस पर मेल खाएं। इसके लिए इस वॉलेट को एक बार अनलॉक करना ज़रूरी है।",
+  "Type the 24 words of a wallet you have": "अपने किसी वॉलेट के 24 शब्द टाइप करें",
+  "Type the SOL or Bitcoin address you'll pay from, then click": "वह SOL या Bitcoin पता टाइप करें जिससे आप भुगतान करेंगे, फिर क्लिक करें",
+  "Type the password to send this wallet too.": "यह वॉलेट भी भेजने के लिए पासवर्ड टाइप करें।",
+  "Type the wallet's password if it has one.": "यदि वॉलेट में पासवर्ड है, तो उसे टाइप करें।",
+  "Type this wallet's password to approve this order.": "इस ऑर्डर को स्वीकृत करने के लिए इस वॉलेट का पासवर्ड टाइप करें।",
+  "Type this wallet's password to approve this swap.": "इस स्वैप को स्वीकृत करने के लिए इस वॉलेट का पासवर्ड टाइप करें।",
+  "Type this wallet's password to see its words.": "इसके शब्द देखने के लिए इस वॉलेट का पासवर्ड टाइप करें।",
+  "Type this wallet's password to sign in.": "साइन इन करने के लिए इस वॉलेट का पासवर्ड टाइप करें।",
+  "Type your wallet password": "अपना वॉलेट पासवर्ड टाइप करें",
+  "Type your wallet password below, so this app can claim your ORN": "नीचे अपना वॉलेट पासवर्ड टाइप करें, ताकि यह ऐप आपके ORN का दावा कर सके",
+  "Type your wallet password below, so this app can finish the swap": "नीचे अपना वॉलेट पासवर्ड टाइप करें, ताकि यह ऐप स्वैप पूरा कर सके",
+  "Type your wallet password to approve this swap.": "इस स्वैप को स्वीकृत करने के लिए अपना वॉलेट पासवर्ड टाइप करें।",
+  "US dollar": "अमेरिकी डॉलर",
+  "Unban": "प्रतिबंध हटाएं",
+  "Under": "के नीचे",
+  "Undo": "पूर्ववत करें",
+  "Unlock": "अनलॉक करें",
+  "Unmute the group chat": "ग्रुप चैट अनम्यूट करें",
+  "Unstaked": "अनस्टेक किया गया",
+  "Up to four. The first is the one shown on your listing's card.": "चार तक। पहली तस्वीर आपकी लिस्टिंग के कार्ड पर दिखाई जाती है।",
+  "Update automatically": "स्वचालित रूप से अपडेट करें",
+  "Update failed": "अपडेट विफल",
+  "Update failed, try again": "अपडेट विफल, फिर से प्रयास करें",
+  "Update needed": "अपडेट आवश्यक",
+  "Update now": "अभी अपडेट करें",
+  "Update to Latest": "नवीनतम पर अपडेट करें",
+  "Updates as they happen, and chat with the community": "तुरंत अपडेट पाएं, और समुदाय के साथ चैट करें",
+  "Updating": "अपडेट हो रहा है",
+  "Use": "उपयोग करें",
+  "Use Orien Wallet in your browser": "अपने ब्राउज़र में Orien Wallet उपयोग करें",
+  "Use my other device": "मेरा दूसरा डिवाइस उपयोग करें",
+  "Use my recovery phrase": "मेरा रिकवरी फ़्रेज़ उपयोग करें",
+  "Use the reply": "उत्तर का उपयोग करें",
+  "Use your wallets on another device": "दूसरे डिवाइस पर अपने वॉलेट्स उपयोग करें",
+  "User Guide": "उपयोगकर्ता मार्गदर्शिका",
+  "Username": "उपयोगकर्ता नाम",
+  "Validator fees": "वैलिडेटर शुल्क",
+  "Validators": "वैलिडेटर्स",
+  "Verified": "सत्यापित",
+  "Verified wallet": "सत्यापित वॉलेट",
+  "Verify": "सत्यापित करें",
+  "Verify a wallet": "वॉलेट सत्यापित करें",
+  "Verify a wallet and people who pay it see your name with it.": "वॉलेट सत्यापित करें और जो लोग इसमें भुगतान करेंगे उन्हें इसके साथ आपका नाम दिखेगा।",
+  "Verify a wallet to post and see your mining here.": "पोस्ट करने और यहाँ अपनी माइनिंग देखने के लिए एक वॉलेट सत्यापित करें।",
+  "Verify more wallets, and choose where you're paid": "और वॉलेट्स सत्यापित करें, और चुनें कि आपको भुगतान कहाँ मिले",
+  "Verify one of your wallets on your Orien Network profile to post, reply and react.": "पोस्ट करने, उत्तर देने और प्रतिक्रिया देने के लिए अपनी Orien Network प्रोफ़ाइल पर अपना एक वॉलेट सत्यापित करें।",
+  "Verify one of your wallets to chat, reply or react.": "चैट करने, उत्तर देने या प्रतिक्रिया देने के लिए अपना एक वॉलेट सत्यापित करें।",
+  "Verify one of your wallets to chat. Anyone can read along.": "चैट करने के लिए अपना एक वॉलेट सत्यापित करें। कोई भी पढ़ सकता है।",
+  "Verify one of your wallets to react.": "प्रतिक्रिया देने के लिए अपना एक वॉलेट सत्यापित करें।",
+  "Verify one of your wallets to reply.": "उत्तर देने के लिए अपना एक वॉलेट सत्यापित करें।",
+  "Verify this wallet": "इस वॉलेट को सत्यापित करें",
+  "Verify this wallet to offer swaps": "स्वैप ऑफ़र करने के लिए इस वॉलेट को सत्यापित करें",
+  "Verify this wallet to place sell orders": "बिक्री ऑर्डर देने के लिए इस वॉलेट को सत्यापित करें",
+  "Verifying shows everyone the wallet is yours, including its balance. It lets you post, sell, swap and receive tips.": "सत्यापन से सभी को दिखता है कि वॉलेट आपका है, जिसमें उसका बैलेंस भी शामिल है। इससे आप पोस्ट कर सकते हैं, बेच सकते हैं, स्वैप कर सकते हैं और टिप्स प्राप्त कर सकते हैं।",
+  "Verifying…": "सत्यापित हो रहा है…",
+  "Verifying… usually within a minute": "सत्यापित हो रहा है… आमतौर पर एक मिनट के भीतर",
+  "Version": "संस्करण",
+  "Videos about Orien": "Orien के बारे में वीडियो",
+  "View": "देखें",
+  "View Profile": "प्रोफ़ाइल देखें",
+  "View all": "सभी देखें",
+  "View profile": "प्रोफ़ाइल देखें",
+  "Waiting": "प्रतीक्षा में",
+  "Waiting for mining to get going.": "माइनिंग शुरू होने की प्रतीक्षा है।",
+  "Waiting for validators": "वैलिडेटर्स की प्रतीक्षा है",
+  "Waiting for your other device": "आपके दूसरे डिवाइस की प्रतीक्षा है",
+  "Waiting for your wallets": "आपके वॉलेट्स की प्रतीक्षा है",
+  "Wallet": "वॉलेट",
+  "Wallet password": "वॉलेट पासवर्ड",
+  "Wallet password, so this app can sign the next step": "वॉलेट पासवर्ड, ताकि यह ऐप अगले चरण पर हस्ताक्षर कर सके",
+  "Wallet password, to approve this sale": "वॉलेट पासवर्ड, इस बिक्री को स्वीकृत करने के लिए",
+  "Wallet password, to approve this swap": "वॉलेट पासवर्ड, इस स्वैप को स्वीकृत करने के लिए",
+  "Wallet settings": "वॉलेट सेटिंग्स",
+  "Wallets": "वॉलेट्स",
+  "Wallets holding ORN": "ORN रखने वाले वॉलेट्स",
+  "Watch the preview as you go, then click": "साथ-साथ पूर्वावलोकन देखें, फिर क्लिक करें",
+  "We'll look into it, and write to you if we need to know more.": "हम इसकी जाँच करेंगे, और यदि हमें अधिक जानकारी चाहिए तो आपको लिखेंगे।",
+  "We'll look into it.": "हम इसकी जाँच करेंगे।",
+  "Welcome": "स्वागत है",
+  "Welcome to Orien Wallet": "Orien Wallet में आपका स्वागत है",
+  "What are you offering?": "आप क्या ऑफ़र कर रहे हैं?",
+  "What happens:": "क्या होता है:",
+  "What is wrong with this post?": "इस पोस्ट में क्या गलत है?",
+  "What is wrong with this theme?": "इस थीम में क्या गलत है?",
+  "What the buyer gets, how long it takes, anything they should know.": "खरीदार को क्या मिलेगा, इसमें कितना समय लगता है, और कोई भी बात जो उन्हें जाननी चाहिए।",
+  "What we'll send": "हम क्या भेजेंगे",
+  "What went wrong?": "क्या गलत हुआ?",
+  "What's happening?": "क्या हो रहा है?",
+  "When an offer is taken and as swaps finish": "जब कोई ऑफ़र स्वीकार होता है और जब स्वैप पूरे होते हैं",
+  "When someone sends you ORN": "जब कोई आपको ORN भेजता है",
+  "When the seller answers, pay the exact amount shown from your SOL or Bitcoin wallet.": "जब विक्रेता उत्तर दे, तो अपने SOL या Bitcoin वॉलेट से दिखाई गई ठीक उतनी ही राशि चुकाएं।",
+  "Where did it happen?": "यह कहाँ हुआ?",
+  "Where the Bitcoin should go": "Bitcoin कहाँ जाना चाहिए",
+  "Where the SOL should go, such as your Phantom wallet": "SOL कहाँ जाना चाहिए, जैसे आपका Phantom वॉलेट",
+  "Where was it?": "यह कहाँ था?",
+  "Where your Bitcoin comes back if the swap stops": "यदि स्वैप रुक जाता है तो आपका Bitcoin कहाँ वापस आएगा",
+  "Where your SOL should go (e.g. Phantom)": "आपका SOL कहाँ जाना चाहिए (जैसे Phantom)",
+  "Where your SOL should go, such as your Phantom wallet": "आपका SOL कहाँ जाना चाहिए, जैसे आपका Phantom वॉलेट",
+  "While it's open, Orien Wallet does each of its steps for you as soon as it can.": "खुला रहने के दौरान, Orien Wallet आपके लिए हर चरण जितनी जल्दी हो सके पूरा करता है।",
+  "Who can message you": "आपको कौन संदेश भेज सकता है",
+  "Who is this?": "यह कौन है?",
+  "With their names and icons. Your new device asks there whether to add a password.": "उनके नाम और आइकन के साथ। आपका नया डिवाइस वहाँ पूछता है कि पासवर्ड जोड़ना है या नहीं।",
+  "Withdraw": "निकालें",
+  "Within a minute it shows": "एक मिनट के भीतर यह दिखाता है",
+  "Work and things offered for ORN. You pay the seller straight from your wallet: the Market never holds anyone's coins.": "ORN के बदले काम और वस्तुएं। आप सीधे अपने वॉलेट से विक्रेता को भुगतान करते हैं: मार्केट कभी किसी के सिक्के नहीं रखता।",
+  "Working, keep this page open": "कार्य चल रहा है, इस पृष्ठ को खुला रखें",
+  "Write the amount in ORN, like 200 or 12.5.": "राशि ORN में लिखें, जैसे 200 या 12.5।",
+  "Write the price in ORN, like 200 or 12.5.": "मूल्य ORN में लिखें, जैसे 200 या 12.5।",
+  "Write them down in order, on paper, and keep it somewhere safe.": "इन्हें क्रम से कागज़ पर लिख लें और किसी सुरक्षित जगह रखें।",
+  "Write these 24 words on paper, in order, and keep them somewhere safe. They are the only way back into this wallet if this device is lost. Anyone who sees them can spend your ORN.": "इन 24 शब्दों को क्रम से कागज़ पर लिखें और किसी सुरक्षित जगह रखें। यदि यह डिवाइस खो जाए, तो इस वॉलेट में वापस आने का यही एकमात्र तरीका है। जो भी इन्हें देखेगा वह आपके ORN खर्च कर सकता है।",
+  "Yesterday": "कल",
+  "You": "आप",
+  "You and the buyer · up to you": "आप और खरीदार · आप पर निर्भर",
+  "You approve the sale once, now. When someone takes your offer, your wallet accepts it within seconds, even with the window closed. Keep Orien Wallet running.": "आप अभी एक बार बिक्री स्वीकृत करते हैं। जब कोई आपका ऑफ़र स्वीकार करता है, तो विंडो बंद होने पर भी आपका वॉलेट कुछ सेकंड में इसे स्वीकार कर लेता है। Orien Wallet को चालू रखें।",
+  "You buy": "आप खरीदते हैं",
+  "You can't send in the group chat right now. You can still read along.": "आप अभी ग्रुप चैट में संदेश नहीं भेज सकते। आप फिर भी पढ़ सकते हैं।",
+  "You get": "आपको मिलता है",
+  "You have 24 themes, as many as there's room for. Delete one in Appearance first.": "आपके पास 24 थीम हैं, जितनी जगह उपलब्ध है। पहले दिखावट में जाकर एक थीम हटाएं।",
+  "You haven't blocked anyone.": "आपने किसी को ब्लॉक नहीं किया है।",
+  "You need": "आपको चाहिए",
+  "You need to be signed in to Orien Network with a verified wallet.": "आपको सत्यापित वॉलेट के साथ Orien Network में साइन इन होना होगा।",
+  "You need to be signed in to Orien Network. Verifying a wallet isn't needed.": "आपको Orien Network में साइन इन होना होगा। वॉलेट सत्यापित करने की आवश्यकता नहीं है।",
+  "You pay": "आप भुगतान करते हैं",
+  "You sell": "आप बेचते हैं",
+  "You send the buyer the offer code, and paste in the reply code they send back": "आप खरीदार को ऑफ़र कोड भेजते हैं, और वे जो उत्तर कोड वापस भेजते हैं उसे पेस्ट करते हैं",
+  "You · now": "आप · अभी",
+  "You · pay within a few hours": "आप · कुछ घंटों के भीतर भुगतान करें",
+  "You · pay within the next few hours": "आप · अगले कुछ घंटों के भीतर भुगतान करें",
+  "You · stay on this page until Step 2 finishes": "आप · चरण 2 पूरा होने तक इस पृष्ठ पर बने रहें",
+  "You · within a few hours": "आप · कुछ घंटों के भीतर",
+  "You're up to date": "आप अप टू डेट हैं",
+  "Your 24 words, separated by spaces": "आपके 24 शब्द, स्पेस से अलग किए गए",
+  "Your Bitcoin address": "आपका Bitcoin पता",
+  "Your Discord username": "आपका Discord उपयोगकर्ता नाम",
+  "Your ORN stay safe:": "आपके ORN सुरक्षित रहते हैं:",
+  "Your Phantom / SOL wallet (for refunds & leftovers)": "आपका Phantom / SOL वॉलेट (रिफ़ंड और बची हुई राशि के लिए)",
+  "Your Phantom / SOL wallet address": "आपका Phantom / SOL वॉलेट पता",
+  "Your SOL address": "आपका SOL पता",
+  "Your SOL address (the wallet you'll pay from)": "आपका SOL पता (वह वॉलेट जिससे आप भुगतान करेंगे)",
+  "Your SOL is locked for the seller. Their wallet takes it and your ORN arrive, usually within a minute.": "आपका SOL विक्रेता के लिए लॉक हो गया है। उनका वॉलेट इसे ले लेता है और आपके ORN पहुँच जाते हैं, आमतौर पर एक मिनट के भीतर।",
+  "Your SOL payout address": "आपका SOL भुगतान पता",
+  "Your SOL stays locked safely on Solana until a seller fills it, you cancel in one click, or it expires after 7 days and refunds automatically.": "आपका SOL Solana पर सुरक्षित रूप से लॉक रहता है जब तक कोई विक्रेता इसे पूरा न करे, आप एक क्लिक में रद्द न करें, या 7 दिनों बाद समय समाप्त होकर अपने आप रिफ़ंड न हो जाए।",
+  "Your SOL wallet (for refunds & leftovers)": "आपका SOL वॉलेट (रिफ़ंड और बची हुई राशि के लिए)",
+  "Your SOL wallet address": "आपका SOL वॉलेट पता",
+  "Your SOL went back to your SOL wallet.": "आपका SOL आपके SOL वॉलेट में वापस चला गया।",
+  "Your Telegram username": "आपका Telegram उपयोगकर्ता नाम",
+  "Your X username": "आपका X उपयोगकर्ता नाम",
+  "Your account is for the Community, the Market and swaps. Your wallets stay in this app.": "आपका खाता समुदाय, मार्केट और स्वैप के लिए है। आपके वॉलेट्स इसी ऐप में रहते हैं।",
+  "Your address": "आपका पता",
+  "Your buy order is live on the book. When someone sells into it, this app opens the pay screen.": "आपका खरीद ऑर्डर बुक पर लाइव है। जब कोई इस पर बेचेगा, तो यह ऐप भुगतान स्क्रीन खोल देगा।",
+  "Your buy order is live on the order book. You are all set to leave this page or close Orien Wallet. Any extra SOL has been sent back to your wallet, and when a seller takes your order your ORN will arrive automatically.": "आपका खरीद ऑर्डर ऑर्डर बुक पर लाइव है। अब आप इस पृष्ठ को छोड़ सकते हैं या Orien Wallet बंद कर सकते हैं। कोई भी अतिरिक्त SOL आपके वॉलेट में वापस भेज दिया गया है, और जब कोई विक्रेता आपका ऑर्डर स्वीकार करेगा तो आपके ORN अपने आप पहुँच जाएंगे।",
+  "Your devices": "आपके डिवाइस",
+  "Your email": "आपका ईमेल",
+  "Your language follows you to your other devices.": "आपकी भाषा आपके दूसरे डिवाइस पर भी साथ चलती है।",
+  "Your listings": "आपकी लिस्टिंग",
+  "Your offer is live": "आपका ऑफ़र लाइव है",
+  "Your orders & swaps": "आपके ऑर्डर और स्वैप",
+  "Your picture": "आपकी तस्वीर",
+  "Your profile": "आपकी प्रोफ़ाइल",
+  "Your recovery phrase": "आपका रिकवरी फ़्रेज़",
+  "Your sell order is live on the book. When someone buys it, your wallet runs the swap by itself.": "आपका बिक्री ऑर्डर बुक पर लाइव है। जब कोई इसे खरीदेगा, तो आपका वॉलेट अपने आप स्वैप चला देगा।",
+  "Your share": "आपका हिस्सा",
+  "Your share of each hour's new ORN": "हर घंटे के नए ORN में आपका हिस्सा",
+  "Your share of the hour's fees": "इस घंटे के शुल्क में आपका हिस्सा",
+  "Your share of the hour's new ORN": "इस घंटे के नए ORN में आपका हिस्सा",
+  "Your speed": "आपकी गति",
+  "Your swaps": "आपके स्वैप",
+  "Your theme follows you to your other devices.": "आपकी थीम आपके दूसरे डिवाइस पर भी साथ चलती है।",
+  "Your turn: confirm with your wallet password so this app can finish it": "आपकी बारी: अपने वॉलेट पासवर्ड से पुष्टि करें ताकि यह ऐप इसे पूरा कर सके",
+  "Your username": "आपका उपयोगकर्ता नाम",
+  "Your username, as others see it": "आपका उपयोगकर्ता नाम, जैसा दूसरों को दिखता है",
+  "Your wallet": "आपका वॉलेट",
+  "Your wallet is locking the ORN now. Keep Orien Wallet running while the buyer pays.": "आपका वॉलेट अभी ORN लॉक कर रहा है। जब तक खरीदार भुगतान करे, Orien Wallet को चालू रखें।",
+  "Your wallet is on its way": "आपका वॉलेट रास्ते में है",
+  "Your wallet locks the ORN automatically when someone buys your offer. Keep Orien Wallet running in the menu bar or tray.": "जब कोई आपका ऑफ़र खरीदता है तो आपका वॉलेट अपने आप ORN लॉक कर देता है। Orien Wallet को मेनू बार या ट्रे में चालू रखें।",
+  "Your wallets": "आपके वॉलेट्स",
+  "Your wallets arrive on the new device by themselves.": "आपके वॉलेट्स नए डिवाइस पर अपने आप पहुँच जाते हैं।",
+  "Your wallets travel encrypted, straight between your two devices.": "आपके वॉलेट्स एन्क्रिप्ट होकर सीधे आपके दोनों डिवाइस के बीच जाते हैं।",
+  "Yours": "आपकी",
+  "a buyer": "एक खरीदार",
+  "a globe": "एक ग्लोब",
+  "a minute": "एक मिनट",
+  "a pickaxe": "एक गैंती",
+  "a speech bubble": "एक स्पीच बबल",
+  "a telescope": "एक दूरबीन",
+  "about 6 hours after your reply": "आपके उत्तर के लगभग 6 घंटे बाद",
+  "also replied to a post you replied to": "ने भी उस पोस्ट पर उत्तर दिया जिस पर आपने उत्तर दिया था",
+  "an arrow pointing down": "नीचे की ओर इशारा करता तीर",
+  "an arrow pointing up": "ऊपर की ओर इशारा करता तीर",
+  "and": "और",
+  "and choose": "और चुनें",
+  "and its ORN stay in it. This only takes it off the list.": "और इसके ORN इसमें ही रहते हैं। यह इसे केवल सूची से हटाता है।",
+  "any moment": "किसी भी पल",
+  "by Pablo Stanley, drawn with": "Pablo Stanley द्वारा, इससे बनाया गया",
+  "claim your ORN": "अपने ORN का दावा करें",
+  "covers Solana's small fees; nearly all of it comes back to your SOL wallet when the swap ends.": "Solana के छोटे शुल्क कवर करता है; स्वैप समाप्त होने पर इसमें से लगभग सारा आपके SOL वॉलेट में वापस आ जाता है।",
+  "covers Solana's small rent and fees; nearly all of it returns to your SOL wallet automatically.": "Solana के छोटे रेंट और शुल्क कवर करता है; इसमें से लगभग सारा अपने आप आपके SOL वॉलेट में वापस आ जाता है।",
+  "estimated": "अनुमानित",
+  "finish the swap": "स्वैप पूरा करें",
+  "for Orien's own. Each card shows the theme on a small copy of the app.": "Orien की अपनी थीम के लिए। प्रत्येक कार्ड ऐप की एक छोटी झलक पर थीम दिखाता है।",
+  "for each share": "प्रत्येक शेयर के लिए",
+  "for themes people made, or": "लोगों द्वारा बनाई गई थीम के लिए, या",
+  "in Settings,": "सेटिंग्स में,",
+  "in a row": "लगातार",
+  "is buying from you": "आपसे खरीद रहा है",
+  "it goes back to the SOL address below within about an hour.": "यह लगभग एक घंटे के भीतर नीचे दिए गए SOL पते पर वापस चला जाता है।",
+  "just don't send: nothing has left your wallets.": "बस न भेजें: आपके वॉलेट्स से कुछ भी नहीं गया है।",
+  "just now": "अभी-अभी",
+  "mined their first ORN.": "ने अपना पहला ORN माइन किया।",
+  "new ORN": "नए ORN",
+  "none yet": "अभी कोई नहीं",
+  "on one you like.": "जो आपको पसंद आए उस पर।",
+  "on their own": "अपने आप",
+  "orien.network can't be reached right now. Check your connection and try again.": "अभी orien.network तक पहुँचा नहीं जा सका। अपना कनेक्शन जाँचें और फिर से प्रयास करें।",
+  "passed it mining.": "ने माइनिंग करके इसे पार किया।",
+  "payments sent": "भेजे गए भुगतान",
+  "per ORN": "प्रति ORN",
+  "posted about you:": "ने आपके बारे में पोस्ट किया:",
+  "rank": "रैंक",
+  "replied to the network's post about you": "ने आपके बारे में नेटवर्क की पोस्ट पर उत्तर दिया",
+  "replied to you in the Orien group chat": "ने Orien ग्रुप चैट में आपको उत्तर दिया",
+  "replied to your post": "ने आपकी पोस्ट पर उत्तर दिया",
+  "replied to your reply": "ने आपके उत्तर पर उत्तर दिया",
+  "scan or type": "स्कैन करें या टाइप करें",
+  "shares an hour": "प्रति घंटे शेयर",
+  "shows mining rewards and validator fees.": "माइनिंग पुरस्कार और वैलिडेटर शुल्क दिखाता है।",
+  "slider, or click": "स्लाइडर, या क्लिक करें",
+  "staked": "स्टेक किए गए",
+  "the Bitcoin in any Bitcoin wallet, plus its sending fee. The usual Orien fee (0.1%, at most 1 ORN) comes out of the ORN you receive.": "किसी भी Bitcoin वॉलेट में Bitcoin, साथ ही उसका भेजने का शुल्क। सामान्य Orien शुल्क (0.1%, अधिकतम 1 ORN) आपको मिलने वाले ORN से कटता है।",
+  "the ORN in this wallet, plus the usual Orien fee (0.1%, at most 1 ORN). Bitcoin's network fee comes out of what you receive.": "इस वॉलेट में ORN, साथ ही सामान्य Orien शुल्क (0.1%, अधिकतम 1 ORN)। Bitcoin का नेटवर्क शुल्क आपको मिलने वाली राशि से कटता है।",
+  "the ORN in this wallet, plus the usual Orien fee (0.1%, at most 1 ORN). The buyer covers Solana's small fees.": "इस वॉलेट में ORN, साथ ही सामान्य Orien शुल्क (0.1%, अधिकतम 1 ORN)। खरीदार Solana के छोटे शुल्क देता है।",
+  "the ORN in this wallet, plus the usual Orien fee (0.1%, at most 1 ORN). You don't need any SOL.": "इस वॉलेट में ORN, साथ ही सामान्य Orien शुल्क (0.1%, अधिकतम 1 ORN)। आपको किसी SOL की आवश्यकता नहीं है।",
+  "the SOL in your own SOL wallet, plus about 0.005 SOL for Solana's small fees, nearly all of which comes back. The usual Orien fee (0.1%, at most 1 ORN) comes out of the ORN you receive.": "आपके अपने SOL वॉलेट में SOL, साथ ही Solana के छोटे शुल्कों के लिए लगभग 0.005 SOL, जिसमें से लगभग सारा वापस आ जाता है। सामान्य Orien शुल्क (0.1%, अधिकतम 1 ORN) आपको मिलने वाले ORN से कटता है।",
+  "the buy offer is yours": "खरीद ऑफ़र आपका है",
+  "the buyer": "खरीदार",
+  "the buyer's SOL is already locked on Solana. Your wallet reserves it, locks your ORN, and both sides settle automatically in about a minute without waiting on the buyer.": "खरीदार का SOL पहले से Solana पर लॉक है। आपका वॉलेट इसे आरक्षित करता है, आपके ORN लॉक करता है, और खरीदार की प्रतीक्षा किए बिना लगभग एक मिनट में दोनों पक्षों का निपटान अपने आप हो जाता है।",
+  "the code it shows.": "जो कोड यह दिखाता है।",
+  "the gear at the top left": "ऊपर बाईं ओर गियर आइकन",
+  "the menu bar": "मेनू बार",
+  "the network's post about you": "आपके बारे में नेटवर्क की पोस्ट",
+  "the offer is yours": "ऑफ़र आपका है",
+  "the seller": "विक्रेता",
+  "the seller's lock ends": "विक्रेता का लॉक समाप्त होता है",
+  "the seller's wallet accepts within seconds and locks the ORN for you. This app then shows the exact SOL to send from your SOL wallet, such as Phantom, with a QR code. The swap finishes by itself, usually within a minute.": "विक्रेता का वॉलेट कुछ सेकंड में स्वीकार करता है और आपके लिए ORN लॉक कर देता है। फिर यह ऐप आपके SOL वॉलेट, जैसे Phantom, से भेजने के लिए ठीक SOL राशि QR कोड के साथ दिखाता है। स्वैप अपने आप पूरा हो जाता है, आमतौर पर एक मिनट के भीतर।",
+  "the system tray": "सिस्टम ट्रे",
+  "there too.": "वहाँ भी।",
+  "there. Your wallets arrive here by themselves.": "वहाँ। आपके वॉलेट्स यहाँ अपने आप पहुँच जाते हैं।",
+  "this app takes it back to the address below after about 6 hours.": "यह ऐप लगभग 6 घंटे बाद इसे नीचे दिए गए पते पर वापस ले आता है।",
+  "this app verifies the buyer's SOL is reserved for your address on Solana before locking your ORN, then both sides settle in about a minute.": "यह ऐप आपके ORN लॉक करने से पहले सत्यापित करता है कि Solana पर आपके पते के लिए खरीदार का SOL आरक्षित है, फिर लगभग एक मिनट में दोनों पक्षों का निपटान हो जाता है।",
+  "this wallet": "यह वॉलेट",
+  "to find your computer's sweet spot.": "अपने कंप्यूटर का सर्वश्रेष्ठ स्तर खोजने के लिए।",
+  "to keep it. It joins your themes in Appearance and is worn at once.": "इसे रखने के लिए। यह दिखावट में आपकी थीम में जुड़ जाती है और तुरंत लागू हो जाती है।",
+  "to see the whole app in it. Click": "इसमें पूरा ऐप देखने के लिए। क्लिक करें",
+  "to this Bitcoin address": "इस Bitcoin पते पर",
+  "to this SOL address": "इस SOL पते पर",
+  "took your offer": "ने आपका ऑफ़र स्वीकार किया",
+  "top miner": "शीर्ष माइनर",
+  "two arrows": "दो तीर",
+  "two people": "दो लोग",
+  "type": "टाइप करें",
+  "under a second": "एक सेकंड से कम",
+  "wrote to you": "ने आपको लिखा",
+  "your ORN come back to you on their own within a few hours. You don't need to do anything.": "आपके ORN कुछ घंटों के भीतर अपने आप आपके पास वापस आ जाते हैं। आपको कुछ करने की ज़रूरत नहीं है।",
+  "your ORN come back to your wallet on their own within 12 hours.": "आपके ORN 12 घंटों के भीतर अपने आप आपके वॉलेट में वापस आ जाते हैं।",
+  "your ORN come back to your wallet on their own within a few hours.": "आपके ORN कुछ घंटों के भीतर अपने आप आपके वॉलेट में वापस आ जाते हैं।",
+  "your password": "आपका पासवर्ड",
+  "your post": "आपकी पोस्ट",
+  "your reply": "आपका उत्तर",
+  "your wallet locks the ORN on the network": "आपका वॉलेट नेटवर्क पर ORN लॉक करता है",
+  "your wallet locks your ORN for the buyer within seconds. Their wallet then prompts them to send the SOL, and your wallet collects it and delivers their ORN automatically, usually within a minute.": "आपका वॉलेट कुछ सेकंड में खरीदार के लिए आपके ORN लॉक कर देता है। फिर उनका वॉलेट उन्हें SOL भेजने के लिए कहता है, और आपका वॉलेट उसे लेकर अपने आप उनके ORN पहुँचा देता है, आमतौर पर एक मिनट के भीतर।",
+  "your wallet locks your ORN for the buyer within seconds. Their wallet then sends the Bitcoin, and once it confirms, your wallet collects it and delivers their ORN automatically.": "आपका वॉलेट कुछ सेकंड में खरीदार के लिए आपके ORN लॉक कर देता है। फिर उनका वॉलेट Bitcoin भेजता है, और पुष्टि होने के बाद आपका वॉलेट उसे लेकर अपने आप उनके ORN पहुँचा देता है।",
+  "your wallet never locks your ORN until the buyer's SOL is reserved for your address on Solana.": "जब तक Solana पर आपके पते के लिए खरीदार का SOL आरक्षित नहीं हो जाता, आपका वॉलेट कभी आपके ORN लॉक नहीं करता।",
+  "your wallet password": "आपका वॉलेट पासवर्ड",
+  "✓ Complete": "✓ पूर्ण",
+  "✓ Live on the order book (safe to leave)": "✓ ऑर्डर बुक पर लाइव (छोड़ना सुरक्षित है)",
+  "✓ Valid address": "✓ मान्य पता",
+  "_patterns": [
+    [
+      "^Sell ([0-9.,]+) ORN for ([0-9.,]+) SOL(.*)$",
+      "{1} SOL के बदले {0} ORN बेचें{2}"
+    ],
+    [
+      "^Buy ([0-9.,]+) ORN for ([0-9.,]+) SOL(.*)$",
+      "{1} SOL के बदले {0} ORN खरीदें{2}"
+    ],
+    [
+      "^Sell ([0-9.,]+) ORN for ([0-9.,]+) BTC(.*)$",
+      "{1} BTC के बदले {0} ORN बेचें{2}"
+    ],
+    [
+      "^Buy ([0-9.,]+) ORN for ([0-9.,]+) BTC(.*)$",
+      "{1} BTC के बदले {0} ORN खरीदें{2}"
+    ],
+    [
+      "^(\\d+) open$",
+      "{0} खुले"
+    ],
+    [
+      "^Price \\(([A-Z]+)\\)$",
+      "मूल्य ({0})"
+    ],
+    [
+      "^Total \\(([A-Z]+)\\)$",
+      "कुल ({0})"
+    ],
+    [
+      "^Last swap · (.+)$",
+      "अंतिम स्वैप · {0}"
+    ],
+    [
+      "^Lock with (.+)$",
+      "{0} से लॉक करें"
+    ],
+    [
+      "^Received so far: ([0-9.,]+) of ([0-9.,]+) SOL$",
+      "अब तक प्राप्त: {1} में से {0} SOL"
+    ],
+    [
+      "^Done: ([0-9.,]+) ORN are in your wallet\\.$",
+      "हो गया: {0} ORN आपके वॉलेट में हैं।"
+    ],
+    [
+      "^Done: ([0-9.,]+) SOL is in your SOL wallet\\.$",
+      "हो गया: {0} SOL आपके SOL वॉलेट में है।"
+    ],
+    [
+      "^Paid: ([0-9.,]+) SOL is on its way to your SOL address\\.$",
+      "भुगतान हो गया: {0} SOL आपके SOL पते पर आ रहा है।"
+    ],
+    [
+      "^Send exactly ([0-9.,]+) SOL from your SOL wallet to fund this buy order\\. Once funded, it stays live on the order book even when Orien Wallet is closed\\.$",
+      "इस खरीद ऑर्डर में राशि डालने के लिए अपने SOL वॉलेट से ठीक {0} SOL भेजें। राशि डलने के बाद, Orien Wallet बंद होने पर भी यह ऑर्डर बुक पर लाइव रहता है।"
+    ],
+    [
+      "^The seller accepted\\. Send exactly ([0-9.,]+) SOL from your SOL wallet to the address below\\. This app sees it by itself\\.$",
+      "विक्रेता ने स्वीकार कर लिया। अपने SOL वॉलेट से नीचे दिए गए पते पर ठीक {0} SOL भेजें। यह ऐप इसे अपने आप देख लेता है।"
+    ],
+    [
+      "^Your ORN are locked\\. You can leave this page; ([0-9.,]+) SOL arrives in your SOL wallet in about a minute\\.$",
+      "आपके ORN लॉक हो गए हैं। आप यह पृष्ठ छोड़ सकते हैं; {0} SOL लगभग एक मिनट में आपके SOL वॉलेट में पहुँच जाएगा।"
+    ],
+    [
+      "^Send ([0-9.,]+) SOL from your SOL wallet$",
+      "अपने SOL वॉलेट से {0} SOL भेजें"
+    ],
+    [
+      "^Locking your ([0-9.,]+ (?:SOL|BTC)) on Solana and adding your order to the book$",
+      "Solana पर आपका {0} लॉक किया जा रहा है और आपका ऑर्डर बुक में जोड़ा जा रहा है"
+    ],
+    [
+      "^Waiting on the order book for a seller to fill ([0-9.,]+ ORN)$",
+      "{0} पूरा करने के लिए ऑर्डर बुक पर विक्रेता की प्रतीक्षा है"
+    ],
+    [
+      "^([0-9.,]+ ORN) delivered to your wallet$",
+      "{0} आपके वॉलेट में पहुँचा दिए गए"
+    ],
+    [
+      "^Locking the buyer's ([0-9.,]+ SOL) on Solana for your address$",
+      "आपके पते के लिए Solana पर खरीदार का {0} लॉक किया जा रहा है"
+    ],
+    [
+      "^Locking your ([0-9.,]+ ORN) on Orien$",
+      "Orien पर आपके {0} लॉक किए जा रहे हैं"
+    ],
+    [
+      "^Sending ([0-9.,]+ SOL) to your SOL wallet$",
+      "आपके SOL वॉलेट में {0} भेजा जा रहा है"
+    ],
+    [
+      "^([0-9.,]+ SOL) in your SOL wallet$",
+      "आपके SOL वॉलेट में {0}"
+    ],
+    [
+      "^([0-9.,]+ ORN) in your wallet$",
+      "आपके वॉलेट में {0}"
+    ],
+    [
+      "^Your ([0-9.,]+ ORN) are locked for the buyer$",
+      "आपके {0} खरीदार के लिए लॉक हैं"
+    ],
+    [
+      "^The buyer pays ([0-9.,]+ (?:SOL|BTC))$",
+      "खरीदार {0} का भुगतान करता है"
+    ],
+    [
+      "^The seller locked ([0-9.,]+ ORN) for you$",
+      "विक्रेता ने आपके लिए {0} लॉक किए"
+    ],
+    [
+      "^([0-9.,]+ (?:SOL|BTC)) on its way to your SOL address$",
+      "{0} आपके SOL पते पर आ रहा है"
+    ],
+    [
+      "^Your SOL is locked for the seller, then your ([0-9.,]+ ORN) arrive$",
+      "आपका SOL विक्रेता के लिए लॉक हो जाता है, फिर आपके {0} पहुँचते हैं"
+    ],
+    [
+      "^Your turn: send ([0-9.,]+ (?:SOL|BTC)) to fund$",
+      "आपकी बारी: फंड करने के लिए {0} भेजें"
+    ],
+    [
+      "^Your turn: pay ([0-9.,]+ (?:SOL|BTC)) now$",
+      "आपकी बारी: अभी {0} का भुगतान करें"
+    ],
+    [
+      "^Your turn: approve with (.+) to finish$",
+      "आपकी बारी: पूरा करने के लिए {0} से स्वीकृत करें"
+    ],
+    [
+      "^Step (\\d+) of (\\d+) · (.+)$",
+      "चरण {0} / {1} · {2}"
+    ],
+    [
+      "^Stopped: (.+)\\.$",
+      "रोका गया: {0}।"
+    ],
+    [
+      "^Fund your buy order: send ([0-9.,]+ SOL)$",
+      "अपने खरीद ऑर्डर में राशि डालें: {0} भेजें"
+    ],
+    [
+      "^Locks your SOL on Solana to buy ([0-9.,]+) ORN$",
+      "{0} ORN खरीदने के लिए आपका SOL Solana पर लॉक करता है"
+    ],
+    [
+      "^Swap in progress: (?:buying|selling) ([0-9.,]+) ORN$",
+      "स्वैप जारी है: {0} ORN"
+    ],
+    [
+      "^Approve to get your ([0-9.,]+) ORN$",
+      "अपने {0} ORN प्राप्त करने के लिए स्वीकृत करें"
+    ],
+    [
+      "^Confirm with (.+) below, so this app can finish the swap$",
+      "नीचे {0} से पुष्टि करें, ताकि यह ऐप स्वैप पूरा कर सके"
+    ],
+    [
+      "^Confirm with (.+) below, so this app can claim your ORN$",
+      "नीचे {0} से पुष्टि करें, ताकि यह ऐप आपके ORN का दावा कर सके"
+    ],
+    [
+      "^In (\\d+) min$",
+      "{0} मिनट में"
+    ],
+    [
+      "^in (\\d+) min$",
+      "{0} मिनट में"
+    ],
+    [
+      "^In (\\d+) s$",
+      "{0} सेकंड में"
+    ],
+    [
+      "^in (\\d+) s$",
+      "{0} सेकंड में"
+    ],
+    [
+      "^(\\d+) of (\\d+) running$",
+      "{1} में से {0} चल रहे हैं"
+    ],
+    [
+      "^([0-9,]+) miners? paid$",
+      "{0} माइनरों को भुगतान"
+    ],
+    [
+      "^Checkpoint (\\d+)$",
+      "चेकपॉइंट {0}"
+    ],
+    [
+      "^Running · into (.+)$",
+      "चल रहा है · {0} में"
+    ],
+    [
+      "^([0-9,]+) found$",
+      "{0} मिले"
+    ],
+    [
+      "^Locked payment from (.+)$",
+      "{0} से लॉक किया गया भुगतान"
+    ],
+    [
+      "^Locked payment to (.+)$",
+      "{0} को लॉक किया गया भुगतान"
+    ],
+    [
+      "^From (.+)$",
+      "{0} से"
+    ],
+    [
+      "^To (.+)$",
+      "{0} को"
+    ],
+    [
+      "^(\\d+) min ago · (\\d+) payments? · agreed by (\\d+) of (\\d+)$",
+      "{0} मिनट पहले · {1} भुगतान · {3} में से {2} सहमत"
+    ],
+    [
+      "^(\\d+) h ago · (\\d+) payments? · agreed by (\\d+) of (\\d+)$",
+      "{0} घंटे पहले · {1} भुगतान · {3} में से {2} सहमत"
+    ],
+    [
+      "^(\\d+) d ago · (\\d+) payments? · agreed by (\\d+) of (\\d+)$",
+      "{0} दिन पहले · {1} भुगतान · {3} में से {2} सहमत"
+    ],
+    [
+      "^(\\d+) min ago · agreed by (\\d+) of (\\d+)$",
+      "{0} मिनट पहले · {2} में से {1} सहमत"
+    ],
+    [
+      "^(\\d+) h ago · agreed by (\\d+) of (\\d+)$",
+      "{0} घंटे पहले · {2} में से {1} सहमत"
+    ],
+    [
+      "^(\\d+) d ago · agreed by (\\d+) of (\\d+)$",
+      "{0} दिन पहले · {2} में से {1} सहमत"
+    ],
+    [
+      "^just now · (\\d+) payments? · agreed by (\\d+) of (\\d+)$",
+      "अभी-अभी · {0} भुगतान · {2} में से {1} सहमत"
+    ],
+    [
+      "^just now · agreed by (\\d+) of (\\d+)$",
+      "अभी-अभी · {1} में से {0} सहमत"
+    ],
+    [
+      "^([0-9,]+) payments?$",
+      "{0} भुगतान"
+    ],
+    [
+      "^Of ([0-9,]+) there will ever be$",
+      "कुल {0} में से जो कभी होंगे"
+    ],
+    [
+      "^([0-9,]+) in the last (\\d+) hours$",
+      "पिछले {1} घंटों में {0}"
+    ],
+    [
+      "^Estimated, over the last (\\d+) hours$",
+      "अनुमानित, पिछले {0} घंटों में"
+    ],
+    [
+      "^Estimated, over the last hour$",
+      "अनुमानित, पिछले एक घंटे में"
+    ],
+    [
+      "^([0-9,]+) hold at least 1 ORN$",
+      "{0} के पास कम से कम 1 ORN है"
+    ],
+    [
+      "^Validator (\\d+)$",
+      "वैलिडेटर {0}"
+    ],
+    [
+      "^([0-9.]+)% of ORN in wallets$",
+      "वॉलेट्स में ORN का {0}%"
+    ],
+    [
+      "^([0-9.]+)% of the work$",
+      "कार्य का {0}%"
+    ],
+    [
+      "^([0-9,]+) wallets hold ORN$",
+      "{0} वॉलेट्स में ORN हैं"
+    ],
+    [
+      "^([0-9,]+) wallets? paid$",
+      "{0} वॉलेट्स को भुगतान"
+    ],
+    [
+      "^Staked by (.+) · ([0-9,]+) ORN · agreed on (\\d+) of the last (\\d+)$",
+      "{0} द्वारा स्टेक किया गया · {1} ORN · पिछले {3} में से {2} पर सहमत"
+    ],
+    [
+      "^Launch validator · agreed on (\\d+) of the last (\\d+)$",
+      "लॉन्च वैलिडेटर · पिछले {1} में से {0} पर सहमत"
+    ],
+    [
+      "^Staked by (.+)$",
+      "{0} द्वारा स्टेक किया गया"
+    ],
+    [
+      "^(\\d+) verified wallets?$",
+      "{0} सत्यापित वॉलेट्स"
+    ],
+    [
+      "^(\\d+) more offers? paused while .*$",
+      "{0} और ऑफ़र रोके गए हैं"
+    ],
+    [
+      "^Continue with (.+)$",
+      "{0} के साथ जारी रखें"
+    ],
+    [
+      "^Sell with (.+)$",
+      "{0} के साथ बेचें"
+    ],
+    [
+      "^Take with (.+)$",
+      "{0} के साथ स्वीकार करें"
+    ],
+    [
+      "^Sweet spot: (\\d+) of (\\d+) cores$",
+      "सर्वश्रेष्ठ स्तर: {1} में से {0} कोर"
+    ],
+    [
+      "^About ([0-9,]+) tries a second\\. Past it, the processor runs hotter for no more ORN\\.$",
+      "प्रति सेकंड लगभग {0} प्रयास। इससे अधिक पर, अतिरिक्त ORN के बिना प्रोसेसर अधिक गर्म होता है।"
+    ],
+    [
+      "^Trying (\\d+) of (\\d+) cores \\((\\d+) of (\\d+)\\)\\. Shares found still count\\.$",
+      "{1} में से {0} कोर आज़माए जा रहे हैं ({3} में से {2})। मिलने वाले शेयर फिर भी गिने जाते हैं।"
+    ],
+    [
+      "^This hour: ([0-9,]+) shares found, ([0-9,]+) counted$",
+      "इस घंटे: {0} शेयर मिले, {1} गिने गए"
+    ],
+    [
+      "^About one try in ([0-9,]+) makes a share\\.$",
+      "लगभग {0} में से एक प्रयास एक शेयर बनाता है।"
+    ],
+    [
+      "^([0-9.,]+(?: [KMG])?) tries a second$",
+      "{0} प्रयास प्रति सेकंड"
+    ],
+    [
+      "^(\\d+) of (\\d+) cores$",
+      "{1} में से {0} कोर"
+    ],
+    [
+      "^(\\d+) of (\\d+)$",
+      "{1} में से {0}"
+    ],
+    [
+      "^(\\d+) of 24 words$",
+      "24 में से {0} शब्द"
+    ],
+    [
+      "^staked · ([0-9.,]+) returning$",
+      "स्टेक किए गए · {0} वापस आ रहे हैं"
+    ],
+    [
+      "^Received from (.+)$",
+      "{0} से प्राप्त"
+    ],
+    [
+      "^Sent to (.+)$",
+      "{0} को भेजा गया"
+    ],
+    [
+      "^Locked payment received from (.+)$",
+      "{0} से लॉक किया गया भुगतान प्राप्त हुआ"
+    ],
+    [
+      "^(.+) · checkpoint (\\d+)$",
+      "{0} · चेकपॉइंट {1}"
+    ],
+    [
+      "^checkpoint (\\d+)$",
+      "चेकपॉइंट {0}"
+    ],
+    [
+      "^← Checkpoint (\\d+)$",
+      "← चेकपॉइंट {0}"
+    ],
+    [
+      "^Checkpoint (\\d+) →$",
+      "चेकपॉइंट {0} →"
+    ],
+    [
+      "^Checkpoint (\\d+) hasn't been made yet\\.$",
+      "चेकपॉइंट {0} अभी नहीं बना है।"
+    ],
+    [
+      "^Checkpoint (\\d+) hasn't been made yet\\. The latest is (\\d+)\\.$",
+      "चेकपॉइंट {0} अभी नहीं बना है। नवीनतम {1} है।"
+    ],
+    [
+      "^Being made now, ready in about (\\d+) min$",
+      "अभी बन रहा है, लगभग {0} मिनट में तैयार होगा"
+    ],
+    [
+      "^Next hour (.+)$",
+      "अगला घंटा {0}"
+    ],
+    [
+      "^([0-9.]+)× easier$",
+      "{0}× आसान"
+    ],
+    [
+      "^([0-9.]+)× harder$",
+      "{0}× कठिन"
+    ],
+    [
+      "^([0-9.,]+) new ORN$",
+      "{0} नए ORN"
+    ],
+    [
+      "^([0-9.,]+) available$",
+      "{0} उपलब्ध"
+    ],
+    [
+      "^Avail: ([0-9.,]+)$",
+      "उपलब्ध: {0}"
+    ],
+    [
+      "^Fee ([0-9.,]+) ORN · ([0-9.,]+) ORN in all$",
+      "शुल्क {0} ORN · कुल {1} ORN"
+    ],
+    [
+      "^incl\\. ([0-9.,]+) fee$",
+      "{0} शुल्क सहित"
+    ],
+    [
+      "^([0-9.,]+) ORN sent$",
+      "{0} ORN भेजे गए"
+    ],
+    [
+      "^(\\d+) more characters?$",
+      "{0} और अक्षर"
+    ],
+    [
+      "^(\\d+) min ago$",
+      "{0} मिनट पहले"
+    ],
+    [
+      "^(\\d+) h ago$",
+      "{0} घंटे पहले"
+    ],
+    [
+      "^(\\d+) d ago$",
+      "{0} दिन पहले"
+    ],
+    [
+      "^(\\d+) h (\\d+) min$",
+      "{0} घंटे {1} मिनट"
+    ],
+    [
+      "^(\\d+) min$",
+      "{0} मिनट"
+    ],
+    [
+      "^(\\d+) minutes?$",
+      "{0} मिनट"
+    ],
+    [
+      "^(\\d+) hours?$",
+      "{0} घंटे"
+    ],
+    [
+      "^(\\d+) days?$",
+      "{0} दिन"
+    ],
+    [
+      "^(\\d+) days? left$",
+      "{0} दिन शेष"
+    ],
+    [
+      "^(\\d+) hours? left$",
+      "{0} घंटे शेष"
+    ],
+    [
+      "^(\\d+) minutes? left$",
+      "{0} मिनट शेष"
+    ],
+    [
+      "^(\\d+) more$",
+      "{0} और"
+    ],
+    [
+      "^(\\d+) others?$",
+      "{0} अन्य"
+    ],
+    [
+      "^(.+) and (\\d+) others?$",
+      "{0} और {1} अन्य"
+    ],
+    [
+      "^(.+), (\\d+) swaps? done$",
+      "{0}, {1} स्वैप पूर्ण"
+    ],
+    [
+      "^([0-9.,]+) SOL per ORN$",
+      "{0} SOL प्रति ORN"
+    ],
+    [
+      "^([0-9,]+) satoshis per ORN$",
+      "{0} सतोशी प्रति ORN"
+    ],
+    [
+      "^Member since (.+)$",
+      "{0} से सदस्य"
+    ],
+    [
+      "^Blocked (.+)$",
+      "{0} को ब्लॉक किया गया"
+    ],
+    [
+      "^Block (.+)$",
+      "{0} को ब्लॉक करें"
+    ],
+    [
+      "^Unblock (.+)$",
+      "{0} को अनब्लॉक करें"
+    ],
+    [
+      "^Reply to (.+)$",
+      "{0} को उत्तर दें"
+    ],
+    [
+      "^Write to (.+)$",
+      "{0} को लिखें"
+    ],
+    [
+      "^Ask (.+) to pay$",
+      "{0} से भुगतान का अनुरोध करें"
+    ],
+    [
+      "^Tip ([0-9.,]+) ORN$",
+      "{0} ORN टिप दें"
+    ],
+    [
+      "^Tip (.+) for (.+)$",
+      "{1} के लिए {0} को टिप दें"
+    ],
+    [
+      "^Tip (.+)$",
+      "{0} को टिप दें"
+    ],
+    [
+      "^Tip with (.+)$",
+      "{0} से टिप दें"
+    ],
+    [
+      "^Send with (.+)$",
+      "{0} से भेजें"
+    ],
+    [
+      "^Pay with (.+)$",
+      "{0} से भुगतान करें"
+    ],
+    [
+      "^Post with (.+)$",
+      "{0} से पोस्ट करें"
+    ],
+    [
+      "^Verify with (.+)$",
+      "{0} से सत्यापित करें"
+    ],
+    [
+      "^Turn on with (.+)$",
+      "{0} से चालू करें"
+    ],
+    [
+      "^Buy ORN with (.+)$",
+      "{0} से ORN खरीदें"
+    ],
+    [
+      "^Sell ORN with (.+)$",
+      "{0} से ORN बेचें"
+    ],
+    [
+      "^Use (.+) instead$",
+      "इसके बजाय {0} उपयोग करें"
+    ],
+    [
+      "^Use (.+) instead of the password from now on$",
+      "अब से पासवर्ड के बजाय {0} उपयोग करें"
+    ],
+    [
+      "^Use (.+)$",
+      "{0} उपयोग करें"
+    ],
+    [
+      "^Confirm with (.+)$",
+      "{0} से पुष्टि करें"
+    ],
+    [
+      "^Verify (.+)$",
+      "{0} सत्यापित करें"
+    ],
+    [
+      "^Verifying (.+)$",
+      "{0} सत्यापित हो रहा है"
+    ],
+    [
+      "^Send ([0-9.,]+) ORN and verify$",
+      "{0} ORN भेजें और सत्यापित करें"
+    ],
+    [
+      "^Orien Wallet ([0-9.]+) is the newest version\\.$",
+      "Orien Wallet {0} नवीनतम संस्करण है।"
+    ],
+    [
+      "^Orien Wallet ([0-9.]+) is ready$",
+      "Orien Wallet {0} तैयार है"
+    ],
+    [
+      "^Orien Wallet ([0-9.]+) is out(.*)$",
+      "Orien Wallet {0} आ गया है{1}"
+    ],
+    [
+      "^Waiting for (.+) to pay\\.$",
+      "{0} के भुगतान की प्रतीक्षा है।"
+    ],
+    [
+      "^Waiting for (.+)$",
+      "{0} की प्रतीक्षा है"
+    ],
+    [
+      "^Locking ORN for (.+)$",
+      "{0} के लिए ORN लॉक हो रहे हैं"
+    ],
+    [
+      "^Selling to (.+)$",
+      "{0} को बेचा जा रहा है"
+    ],
+    [
+      "^Taken by (.+)$",
+      "{0} द्वारा स्वीकार किया गया"
+    ],
+    [
+      "^You get ([0-9.,]+) ORN$",
+      "आपको {0} ORN मिलते हैं"
+    ],
+    [
+      "^You mined ([0-9.,]+) ORN$",
+      "आपने {0} ORN माइन किए"
+    ],
+    [
+      "^You received ([0-9.,]+) ORN$",
+      "आपको {0} ORN प्राप्त हुए"
+    ],
+    [
+      "^You paid ([0-9.,]+) ORN\\.$",
+      "आपने {0} ORN का भुगतान किया।"
+    ],
+    [
+      "^Buy orders are limited to ([0-9.,]+) SOL per order$",
+      "खरीद ऑर्डर प्रति ऑर्डर {0} SOL तक सीमित हैं"
+    ],
+    [
+      "^The smallest swap is ([0-9.,]+) (SOL|BTC)$",
+      "सबसे छोटा स्वैप {0} {1} है"
+    ],
+    [
+      "^At least ([0-9.,]+) (SOL|BTC)$",
+      "कम से कम {0} {1}"
+    ],
+    [
+      "^Pay by (.+), in (.+)$",
+      "{0} तक भुगतान करें, {1} में"
+    ],
+    [
+      "^around (.+), in about (\\d+) hours?$",
+      "लगभग {0}, करीब {1} घंटों में"
+    ],
+    [
+      "^around (.+)$",
+      "लगभग {0}"
+    ],
+    [
+      "^Sign in to (.+)\\?$",
+      "क्या {0} में साइन इन करें?"
+    ],
+    [
+      "^Already saved as (.+)$",
+      "पहले से {0} के रूप में सहेजा गया"
+    ],
+    [
+      "^✓ Your wallet (.+)$",
+      "✓ आपका वॉलेट {0}"
+    ],
+    [
+      "^(.+): your profile$",
+      "{0}: आपकी प्रोफ़ाइल"
+    ],
+    [
+      "^(.+) \\(yours\\)$",
+      "{0} (आपका)"
+    ],
+    [
+      "^(.+) hasn't posted yet\\.$",
+      "{0} ने अभी तक कुछ पोस्ट नहीं किया है।"
+    ],
+    [
+      "^About (.+)$",
+      "{0} के बारे में"
+    ],
+    [
+      "^(.+)'s password$",
+      "{0} का पासवर्ड"
+    ],
+    [
+      "^Remove (.+)\\? Tap again$",
+      "क्या {0} को हटाएं? फिर से टैप करें"
+    ],
+    [
+      "^The record before was ([0-9,]+)\\. Checkpoint (\\d+)\\.$",
+      "पिछला रिकॉर्ड {0} था। चेकपॉइंट {1}।"
+    ],
+    [
+      "^reacted (.+) to your post$",
+      "ने आपकी पोस्ट पर {0} प्रतिक्रिया दी"
+    ],
+    [
+      "^reacted (.+) to your reply$",
+      "ने आपके उत्तर पर {0} प्रतिक्रिया दी"
+    ],
+    [
+      "^reacted (.+) to the network's post about you$",
+      "ने आपके बारे में नेटवर्क की पोस्ट पर {0} प्रतिक्रिया दी"
+    ],
+    [
+      "^wrote to you about (.+)$",
+      "ने आपको {0} के बारे में लिखा"
+    ],
+    [
+      "^asks you to pay ([0-9.,]+) ORN$",
+      "आपसे {0} ORN का भुगतान करने का अनुरोध करता है"
+    ],
+    [
+      "^says they paid ([0-9.,]+) ORN$",
+      "कहता है कि उन्होंने {0} ORN का भुगतान किया"
+    ]
+  ],
+  "_guides": {
+    "backup": {
+      "title": "अपने रिकवरी फ़्रेज़ का बैकअप लें",
+      "steps": [
+        "होम पर, <b>वॉलेट्स</b> खोलने के लिए ऊपर वॉलेट के नाम पर क्लिक करें।",
+        "वॉलेट के कार्ड पर गियर आइकन पर क्लिक करें।",
+        "<b>रिकवरी फ़्रेज़</b> पर क्लिक करें, फिर <b>मैं समझ गया, दिखाएं</b> पर क्लिक करें।",
+        "Touch ID से पुष्टि करें, या यदि वॉलेट में पासवर्ड है तो उसे टाइप करें।",
+        "<b>देखने के लिए टैप करें</b> पर क्लिक करें और 24 शब्दों को क्रम से कागज़ पर लिख लें। उन्हें किसी सुरक्षित और निजी स्थान पर रखें।"
+      ],
+      "note": "इन शब्दों वाला कोई भी व्यक्ति इस वॉलेट के ORN खर्च कर सकता है। Orien इन्हें कभी नहीं मांगता।"
+    },
+    "send": {
+      "title": "ORN भेजें",
+      "steps": [
+        "होम पर, <b>भेजें</b> पर क्लिक करें, जो ऊपर की ओर इशारा करते तीर वाला गोल बटन है।",
+        "<b>प्राप्तकर्ता</b> के नीचे कोई नाम या पता टाइप करें, <b>हाल के</b> में से किसी को चुनें, या <b>पेस्ट करें</b> पर क्लिक करें।",
+        "राशि टाइप करें, या शुल्क के बाद जितना संभव हो उतना सब भेजने के लिए <b>अधिकतम</b> पर क्लिक करें।",
+        "कुल राशि जाँचें, फिर <b>भेजें</b> पर क्लिक करें।",
+        "यह सेकंडों में पहुँच जाता है। यदि आप चाहें तो अंतिम स्क्रीन से नए पते को संपर्क के रूप में सहेज सकते हैं।"
+      ]
+    },
+    "receive": {
+      "title": "ORN प्राप्त करें",
+      "steps": [
+        "होम पर, <b>प्राप्त करें</b> पर क्लिक करें, जो नीचे की ओर इशारा करते तीर वाला गोल बटन है।",
+        "आपको भुगतान करने वाले व्यक्ति को QR कोड दिखाएं, या <b>पता साझा करें</b> या <b>पता कॉपी करें</b> पर क्लिक करके उन्हें भेजें।",
+        "उनका भुगतान सेकंडों में आपकी गतिविधि में दिखाई देता है।"
+      ]
+    },
+    "home": {
+      "title": "होम पर वापस जाएं",
+      "steps": [
+        "एक कदम पीछे जाने के लिए ऊपर बाईं ओर <b>वापस</b> पर क्लिक करें।",
+        "कहीं से भी सीधे होम पर जाने के लिए विंडो के शीर्ष पर <b>ORIEN</b> नाम पर क्लिक करें।"
+      ]
+    },
+    "wallets": {
+      "title": "एक और वॉलेट जोड़ें",
+      "steps": [
+        "होम पर, ऊपर वॉलेट के नाम पर क्लिक करें, फिर <b>वॉलेट जोड़ें</b> पर क्लिक करें।",
+        "<b>नया वॉलेट बनाएं</b> पर क्लिक करें, इसे एक नाम और आइकन दें, फिर <b>वॉलेट बनाएं</b> पर क्लिक करें।",
+        "इसके रिकवरी फ़्रेज़ का बैकअप लें: हर वॉलेट का अपना अलग होता है।",
+        "वॉलेट बदलने के लिए, होम पर वॉलेट के नाम पर क्लिक करें और कोई एक चुनें।"
+      ]
+    },
+    "restore": {
+      "title": "शब्दों से वॉलेट पुनर्स्थापित करें",
+      "steps": [
+        "होम पर, ऊपर वॉलेट के नाम पर क्लिक करें, फिर <b>वॉलेट जोड़ें</b>, फिर <b>रिकवरी फ़्रेज़ से पुनर्स्थापित करें</b> पर क्लिक करें। नए इंस्टॉल पर, <b>मेरा रिकवरी फ़्रेज़ उपयोग करें</b> पर क्लिक करें।",
+        "24 शब्द टाइप करें, फिर <b>जारी रखें</b> पर क्लिक करें।",
+        "इसे एक नाम और आइकन दें, फिर <b>वॉलेट पुनर्स्थापित करें</b> पर क्लिक करें।"
+      ]
+    },
+    "link": {
+      "title": "दूसरे डिवाइस पर अपने वॉलेट्स उपयोग करें",
+      "steps": [
+        "नए डिवाइस पर, <b>मेरा दूसरा डिवाइस उपयोग करें</b> (या <b>वॉलेट जोड़ें</b>, फिर <b>मेरे दूसरे डिवाइस से</b>) पर क्लिक करें। यह एक QR कोड और एक कोड दिखाता है।",
+        "जिस डिवाइस में आपके वॉलेट्स हैं, उस पर होम में गियर वाले गोल बटन <b>सेटिंग्स</b> को खोलें, फिर <b>नया डिवाइस लिंक करें</b> पर क्लिक करें।",
+        "iPhone पर, नए डिवाइस का QR कोड स्कैन करें। कंप्यूटर पर, इसका कोड टाइप करें और <b>जारी रखें</b> पर क्लिक करें।",
+        "जाँचें कि दोनों डिवाइस वही तीन तस्वीरें दिखा रहे हैं, फिर <b>ये मेल खाते हैं, मेरे वॉलेट्स भेजें</b> पर क्लिक करें।",
+        "आपके वॉलेट्स नए डिवाइस पर अपने आप पहुँच जाते हैं।"
+      ],
+      "note": "आपके वॉलेट्स एन्क्रिप्ट होकर सीधे आपके दोनों डिवाइस के बीच जाते हैं।"
+    },
+    "sync": {
+      "title": "संपर्कों को हर जगह समान रखें",
+      "steps": [
+        "होम पर, <b>संपर्क</b> पर क्लिक करें, जो दो लोगों वाला गोल बटन है।",
+        "यदि आपको <b>सिंकिंग चालू करें</b> दिखे, तो उस पर क्लिक करें। Touch ID से पुष्टि करें, या यदि वॉलेट में पासवर्ड है तो उसे टाइप करें।",
+        "प्रत्येक डिवाइस पर इसे एक बार करें। उसके बाद, संपर्क और वॉलेट आइकन उन सभी पर समान रहते हैं।"
+      ]
+    },
+    "signin": {
+      "title": "Orien Network में साइन इन करें",
+      "steps": [
+        "होम पर, ऊपर दाईं ओर <b>साइन इन करें</b> पर क्लिक करें।",
+        "अपना ईमेल टाइप करें और <b>मुझे कोड भेजें</b> पर क्लिक करें।",
+        "ईमेल से मिला 6-अंकों का कोड टाइप करें और <b>जारी रखें</b> पर क्लिक करें।",
+        "यहाँ नए हैं? एक उपयोगकर्ता नाम चुनें, फिर <b>मेरा खाता बनाएं</b> पर क्लिक करें।"
+      ],
+      "note": "आपका खाता समुदाय, मार्केट और स्वैप के लिए है। आपके वॉलेट्स इसी ऐप में रहते हैं।"
+    },
+    "verify": {
+      "title": "वॉलेट सत्यापित करें",
+      "steps": [
+        "साइन इन करें, और वह वॉलेट खोलें जिसे आप सत्यापित करना चाहते हैं।",
+        "होम पर, अपने बैलेंस के नीचे <b>सत्यापित करें</b> कार्ड पर <b>सत्यापित करें</b> क्लिक करें। (या ऊपर दाईं ओर अपनी तस्वीर पर क्लिक करें, फिर <b>प्रोफ़ाइल संपादित करें</b>, फिर वॉलेट के बगल में <b>सत्यापित करें</b> पर क्लिक करें।)",
+        "पुष्टि करने के लिए <b>सत्यापित करें</b> पर क्लिक करें। यह शुल्क सहित उस वॉलेट से 0.001 ORN से कम भेजता है।",
+        "एक मिनट के भीतर यह <b>सत्यापित</b> दिखाता है।"
+      ],
+      "note": "सत्यापन से सभी को दिखता है कि वॉलेट आपका है, जिसमें उसका बैलेंस भी शामिल है। इससे आप पोस्ट कर सकते हैं, बेच सकते हैं, स्वैप कर सकते हैं और टिप्स प्राप्त कर सकते हैं।"
+    },
+    "verify-more": {
+      "title": "और वॉलेट्स सत्यापित करें, और चुनें कि आपको भुगतान कहाँ मिले",
+      "steps": [
+        "दूसरे वॉलेट पर स्विच करें: होम पर वॉलेट के नाम पर क्लिक करें और उसे चुनें।",
+        "अपनी तस्वीर पर क्लिक करें, फिर <b>प्रोफ़ाइल संपादित करें</b>, फिर उस वॉलेट के बगल में <b>सत्यापित करें</b> पर क्लिक करें।",
+        "अपनी प्रोफ़ाइल पर जो भी वॉलेट आप चाहते हैं, उसके लिए इसे दोहराएं।",
+        "जिस वॉलेट में खरीदार और टिप देने वाले भुगतान करते हैं उस पर <b>यहाँ भुगतान मिलता है</b> लिखा होता है। इसे बदलने के लिए, किसी अन्य सत्यापित वॉलेट पर <b>यहाँ भुगतान प्राप्त करें</b> पर क्लिक करें।",
+        "अपनी प्रोफ़ाइल से कोई वॉलेट हटाने के लिए, उसके बगल में <b>⋯</b> पर क्लिक करें, फिर <b>अपनी प्रोफ़ाइल से हटाएं</b> पर क्लिक करें।"
+      ]
+    },
+    "tip": {
+      "title": "किसी को टिप दें",
+      "steps": [
+        "होम पर, <b>समुदाय</b> पर क्लिक करें, जो ग्लोब वाला गोल बटन है।",
+        "अपनी पसंद की किसी पोस्ट के नीचे, <b>टिप</b> पर क्लिक करें।",
+        "1, 5 या 10 ORN चुनें, या कोई अन्य राशि टाइप करें, फिर <b>टिप</b> पर क्लिक करें।",
+        "पोस्ट बिना नाम के अपनी टिप्स दिखाती है। लेखक को बताया जाता है कि यह आपने दी थी।"
+      ],
+      "note": "टिप्स भुगतान होती हैं और इन्हें वापस नहीं लिया जा सकता।"
+    },
+    "chat": {
+      "title": "सभी के साथ चैट करें",
+      "steps": [
+        "होम पर, <b>संदेश</b> पर क्लिक करें, जो स्पीच बबल वाला गोल बटन है। <b>Orien ग्रुप चैट</b> शीर्ष पर पिन किया गया है।",
+        "कोई भी पढ़ सकता है। लिखने, उत्तर देने या प्रतिक्रिया देने के लिए, साइन इन करें और एक वॉलेट सत्यापित करें।",
+        "उत्तर देने, प्रतिक्रिया देने या रिपोर्ट करने के लिए किसी संदेश पर कर्सर ले जाएं।",
+        "नए संदेश होने पर संदेश बटन पर एक बिंदु दिखता है। इसे बंद करने के लिए, चैट के शीर्ष पर घंटी आइकन पर क्लिक करें।"
+      ],
+      "note": "ग्रुप चैट में सब कुछ सार्वजनिक है। विनम्र रहें।"
+    },
+    "ai": {
+      "title": "Orien AI सहायता से पूछें",
+      "steps": [
+        "होम पर, <b>संदेश</b> पर क्लिक करें, जो स्पीच बबल वाला गोल बटन है। <b>Orien AI सहायता</b> ग्रुप चैट के नीचे पिन किया गया है। बड़ी विंडो में, घंटी के बगल वाला लाइफ बॉय आइकन भी इसे खोलता है।",
+        "आपको Orien Network में साइन इन होना होगा। वॉलेट सत्यापित करने की आवश्यकता नहीं है।",
+        "वॉलेट, माइनिंग, स्वैप या नेटवर्क के बारे में अपने शब्दों में कुछ भी पूछें।",
+        "चैट को साफ़ करने के लिए शीर्ष पर <b>फिर से शुरू करें</b> पर क्लिक करें।"
+      ],
+      "note": "उत्तर एक AI से आते हैं और गलत हो सकते हैं। इसे कभी भी आपके रिकवरी शब्दों, पासवर्ड या कुंजियों की आवश्यकता नहीं होती: इन्हें कभी किसी के साथ साझा न करें।"
+    },
+    "explorer": {
+      "title": "नेटवर्क देखें",
+      "steps": [
+        "होम पर, <b>एक्सप्लोरर</b> पर क्लिक करें, जो दूरबीन वाला गोल बटन है। बड़ी विंडो में, इसके बजाय अपने वॉलेट के बगल में <b>नेटवर्क</b> कार्ड पर क्लिक करें।",
+        "ऊपर के आँकड़े अभी का नेटवर्क दिखाते हैं: जारी किए गए ORN, अगला चेकपॉइंट, माइनर और हैशरेट।",
+        "उनके नीचे, <b>चेकपॉइंट्स</b>, <b>शीर्ष वॉलेट्स</b> या <b>वैलिडेटर्स</b> पर क्लिक करें, और खोलने के लिए किसी भी पंक्ति पर क्लिक करें।",
+        "कुछ खोजने के लिए, खोज बॉक्स में कोई पता, नाम या चेकपॉइंट संख्या टाइप करें।"
+      ]
+    },
+    "get": {
+      "title": "iPhone पर ORN प्राप्त करें",
+      "steps": [
+        "भुगतान पाएं: <b>प्राप्त करें</b> (नीचे की ओर इशारा करते तीर वाला गोल बटन) से अपना पता साझा करें।",
+        "कंप्यूटर पर Orien Wallet में इसी वॉलेट को लिंक करके ORN के लिए SOL या Bitcoin स्वैप करें।",
+        "कंप्यूटर पर माइन करें: वहाँ Orien Wallet इंस्टॉल करें, इस वॉलेट को लिंक करें, और <b>माइन करें</b> दबाएं।"
+      ]
+    },
+    "mine": {
+      "title": "ORN माइन करें",
+      "steps": [
+        "होम पर, <b>माइन करें</b> पर क्लिक करें, जो गैंती वाला गोल बटन है। बड़ी विंडो में, इसके बजाय अपने वॉलेट के बगल में <b>माइनिंग</b> कार्ड पर क्लिक करें।",
+        "<b>प्रोसेसर</b> स्लाइडर सेट करें, या अपने कंप्यूटर का सर्वश्रेष्ठ स्तर खोजने के लिए <b>बेंचमार्क</b> पर क्लिक करें।",
+        "<b>माइनिंग शुरू करें</b> पर क्लिक करें। हर घंटे आप नए ORN का हिस्सा कमाते हैं।",
+        "विंडो बंद होने पर माइन करने के लिए, सेटिंग्स के <b>यह कंप्यूटर</b> में <b>बंद होने पर भी चालू रखें</b> को चालू करें। कंप्यूटर को स्लीप होने से रोकने के लिए, वहीं <b>इस कंप्यूटर को जागता रखें</b> भी चालू करें।"
+      ],
+      "note": "यदि माइनिंग के दौरान ऐप अपडेट होता है, तो माइनिंग अपने आप फिर से शुरू हो जाती है।"
+    },
+    "buy": {
+      "title": "SOL या Bitcoin से ORN खरीदें",
+      "steps": [
+        "होम पर, <b>स्वैप</b> पर क्लिक करें, जो दो तीरों वाला गोल बटन है।",
+        "<b>खुले ऑफ़र</b> के नीचे, जो आपको पसंद आए उस पर <b>स्वीकार करें</b> पर क्लिक करें।",
+        "वह SOL या Bitcoin पता टाइप करें जिससे आप भुगतान करेंगे, फिर <b>ऑफ़र स्वीकार करें</b> पर क्लिक करें।",
+        "जब विक्रेता उत्तर दे, तो अपने SOL या Bitcoin वॉलेट से दिखाई गई ठीक उतनी ही राशि चुकाएं।",
+        "ORN अपने आप इस वॉलेट में पहुँच जाते हैं।"
+      ]
+    },
+    "sell": {
+      "title": "ORN बेचें",
+      "steps": [
+        "पहले साइन इन करें और इस वॉलेट को सत्यापित करें।",
+        "होम पर, <b>स्वैप</b> (दो तीरों वाला गोल बटन) पर क्लिक करें, फिर <b>ऑफ़र पोस्ट करें</b> पर क्लिक करें।",
+        "SOL या Bitcoin चुनें, फिर टाइप करें कि कितने ORN बेचने हैं, उनके बदले आपको कितना चाहिए, और वह पता जहाँ आपको भुगतान मिलेगा।",
+        "<b>ऑफ़र पोस्ट करें</b> पर क्लिक करें, और जब तक यह स्वीकार न हो जाए, Orien Wallet को चालू रखें। सेटिंग्स के <b>यह कंप्यूटर</b> में <b>इस कंप्यूटर को जागता रखें</b> आपके दूर रहने पर इसे खुला रखता है।"
+      ]
+    },
+    "lock": {
+      "title": "Touch ID से लॉक करें",
+      "steps": [
+        "होम पर गियर वाले गोल बटन <b>सेटिंग्स</b> को खोलें, फिर <b>गोपनीयता और सुरक्षा</b> खोलें।",
+        "<b>Touch ID से लॉक करें</b> चालू करें।",
+        "एक मिनट दूर रहने पर Orien Wallet लॉक हो जाता है।"
+      ]
+    },
+    "extension": {
+      "title": "अपने ब्राउज़र में Orien Wallet उपयोग करें",
+      "steps": [
+        "होम पर गियर वाले गोल बटन <b>सेटिंग्स</b> को खोलें, फिर <b>ब्राउज़र एक्सटेंशन</b> खोलें।",
+        "अपने ब्राउज़र पर क्लिक करें और वहाँ Orien Wallet जोड़ें।",
+        "ब्राउज़र के टूलबार से ORN भेजें और अपना बैलेंस देखें, तथा अपने वॉलेट से वेबसाइटों में साइन इन करें। आपकी कुंजियाँ इसी ऐप में रहती हैं।"
+      ]
+    },
+    "theme-build": {
+      "title": "अपनी खुद की थीम बनाएं",
+      "steps": [
+        "होम पर गियर वाले गोल बटन <b>सेटिंग्स</b> को खोलें, फिर <b>दिखावट</b>, और <b>थीम बनाएं</b> पर क्लिक करें।",
+        "इसे एक <b>नाम</b> दें, और <b>बेस</b> के नीचे <b>डार्क</b> या <b>लाइट</b> चुनें।",
+        "एक <b>एक्सेंट रंग</b> चुनें, या अपना खुद का रंग चुनने के लिए इंद्रधनुषी वृत्त पर क्लिक करें।",
+        "<b>बैकग्राउंड तस्वीर</b> के नीचे, <b>तस्वीर चुनें</b> पर क्लिक करें। बड़ी तस्वीर सबसे अच्छी दिखती है, कम से कम 1920 × 1080।",
+        "साथ-साथ पूर्वावलोकन देखें, फिर <b>थीम सहेजें</b> पर क्लिक करें। यह तुरंत लागू हो जाती है।"
+      ],
+      "note": "आपकी थीम आपके दूसरे कंप्यूटरों पर भी साथ चलती हैं, और आपका iPhone उनके रंग अपनाता है। बाद में किसी को बदलने के लिए, दिखावट में उसके कार्ड पर गियर पर क्लिक करें; डस्टबिन आइकन इसे हटाता है।"
+    },
+    "theme-store": {
+      "title": "थीम स्टोर में थीम खोजें",
+      "steps": [
+        "होम पर गियर वाले गोल बटन <b>सेटिंग्स</b> को खोलें, फिर <b>दिखावट</b>, और ऊपर <b>थीम स्टोर</b> पर क्लिक करें।",
+        "<b>सभी</b> के नीचे, लोगों द्वारा बनाई गई थीम के लिए <b>लोकप्रिय</b> या <b>नवीनतम</b> चुनें, या Orien की अपनी थीम के लिए <b>आधिकारिक</b> चुनें। प्रत्येक कार्ड ऐप की एक छोटी झलक पर थीम दिखाता है।",
+        "इसमें पूरा ऐप देखने के लिए <b>आज़माएं</b> पर क्लिक करें। वापस जाने के लिए <b>पूर्ववत करें</b> पर क्लिक करें; स्टोर छोड़ने से भी वापस आ जाते हैं।",
+        "इसे रखने के लिए <b>उपयोग करें</b> पर क्लिक करें। यह दिखावट में आपकी थीम में जुड़ जाती है और तुरंत लागू हो जाती है।",
+        "पसंद आया? सिक्कों वाला बटन इसके निर्माता को कुछ ORN टिप देता है। झंडा उस थीम की रिपोर्ट करता है जो नियमों का उल्लंघन करती है।"
+      ],
+      "note": "आप जो थीम उपयोग करते हैं वह आपकी अपनी कॉपी होती है: निर्माता इसे बदल नहीं सकता, और आप इसे अपनी बनाई हुई थीम की तरह संपादित या हटा सकते हैं।"
+    },
+    "theme-share": {
+      "title": "थीम स्टोर में थीम साझा करें",
+      "steps": [
+        "आपको सत्यापित वॉलेट के साथ Orien Network में साइन इन होना होगा।",
+        "होम पर गियर वाले गोल बटन <b>सेटिंग्स</b> को खोलें, फिर <b>दिखावट</b> खोलें।",
+        "अपनी किसी थीम पर, शेयर बटन (तीर वाला बॉक्स) पर क्लिक करें, फिर <b>थीम साझा करें</b> पर क्लिक करें।",
+        "इसकी जाँच होती है, फिर यह आपके नाम के साथ स्टोर में दिखती है, जहाँ कोई भी इसे आज़मा सकता है, उपयोग कर सकता है और आपको टिप दे सकता है।",
+        "इसे हटाने के लिए, थीम स्टोर खोलें, फिर <b>आपकी</b> पर जाएं, और दो बार <b>स्टोर से हटाएं</b> पर क्लिक करें।"
+      ],
+      "note": "बाद में अपनी थीम संपादित करने से साझा की गई थीम नहीं बदलती। यदि आपको नया संस्करण बेहतर लगे तो इसे नई थीम के रूप में फिर से साझा करें।"
+    },
+    "activity": {
+      "title": "गतिविधि और सूचनाएं",
+      "steps": [
+        "होम पर, गतिविधि के बगल में <b>सभी देखें</b> पर क्लिक करें।",
+        "<b>भुगतान</b> दिखाता है कि आपने क्या भेजा और प्राप्त किया; <b>पुरस्कार</b> माइनिंग पुरस्कार और वैलिडेटर शुल्क दिखाता है।",
+        "सेटिंग्स के <b>सूचनाएं</b> में चुनें कि आपको किन चीज़ों के बारे में सूचित किया जाए।"
+      ]
+    }
+  }
+}

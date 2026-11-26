@@ -1,0 +1,2112 @@
+{
+  "_meta": {
+    "code": "id",
+    "native": "Bahasa Indonesia",
+    "english": "Indonesian"
+  },
+  "(optional, for a reply)": "(opsional, untuk balasan)",
+  "+ Add a choice": "+ Tambah pilihan",
+  ". Fees: the usual Orien fee to lock the ORN (0.1%, at most 1 ORN), and Bitcoin's network fee for taking the Bitcoin, out of what you receive. If a buyer never pays, your ORN come back on their own within 12 hours.": ". Biaya: biaya standar Orien untuk mengunci ORN (0,1%, maksimal 1 ORN), serta biaya jaringan Bitcoin untuk mengambil Bitcoin, dipotong dari jumlah yang Anda terima. Jika pembeli tidak pernah membayar, ORN Anda akan kembali sendiri dalam 12 jam.",
+  ". Then": ". Lalu",
+  ". Then scan this code, or type it.": ". Lalu pindai kode ini, atau ketikkan.",
+  "0 open": "0 terbuka",
+  "1 day": "1 hari",
+  "12 hours after they were locked": "12 jam setelah dikunci",
+  "3 days": "3 hari",
+  "3 to 20 letters, numbers or _": "3 hingga 20 huruf, angka, atau _",
+  "30 min ago": "30 menit lalu",
+  "7 days": "7 hari",
+  "A few words for people you swap with": "Beberapa kata untuk orang yang bertukar dengan Anda",
+  "A fresh one, with its own recovery phrase": "Dompet baru, dengan frasa pemulihannya sendiri",
+  "A locked payment nobody claimed": "Pembayaran terkunci yang tidak diklaim siapa pun",
+  "A new miner joined": "Penambang baru bergabung",
+  "A password protects the wallet on this computer. Without it, anyone who gets this computer's files can spend from it. You will type it each time you send.": "Kata sandi melindungi dompet di komputer ini. Tanpanya, siapa pun yang mendapatkan file komputer ini dapat membelanjakannya. Anda akan mengetiknya setiap kali mengirim.",
+  "A scam, something illegal, pretending to be someone…": "Penipuan, sesuatu yang ilegal, berpura-pura menjadi orang lain…",
+  "A seller filled your order. Delivering your ORN automatically, usually within a minute.": "Penjual telah memenuhi pesanan Anda. Mengirimkan ORN Anda secara otomatis, biasanya dalam satu menit.",
+  "A small arrow on screens with more below": "Panah kecil di layar yang masih memiliki konten di bawah",
+  "A theme you use is your own copy: the maker can't change it, and you can edit or delete it like one you built.": "Tema yang Anda gunakan adalah salinan milik Anda sendiri: pembuatnya tidak dapat mengubahnya, dan Anda dapat mengedit atau menghapusnya seperti tema buatan Anda.",
+  "AI Support": "Dukungan AI",
+  "AI answers can be wrong": "Jawaban AI bisa saja salah",
+  "About": "Tentang",
+  "About the same": "Kurang lebih sama",
+  "About this": "Tentang ini",
+  "About you": "Tentang Anda",
+  "Accent colour": "Warna aksen",
+  "Accepted": "Diterima",
+  "Accepted: your ORN are locked for the buyer. Waiting for them to pay.": "Diterima: ORN Anda terkunci untuk pembeli. Menunggu mereka membayar.",
+  "Activity": "Aktivitas",
+  "Activity and notifications": "Aktivitas dan notifikasi",
+  "Add a GIF": "Tambah GIF",
+  "Add a contact": "Tambah kontak",
+  "Add a password": "Tambah kata sandi",
+  "Add a poll": "Tambah jajak pendapat",
+  "Add a wallet": "Tambah dompet",
+  "Add another wallet": "Tambah dompet lain",
+  "Add photos": "Tambah foto",
+  "Add pictures": "Tambah gambar",
+  "Add to contacts": "Tambah ke kontak",
+  "Address": "Alamat",
+  "Again": "Lagi",
+  "Agreed": "Disepakati",
+  "Agreed by": "Disepakati oleh",
+  "All": "Semua",
+  "All your wallets": "Semua dompet Anda",
+  "Among members with a verified wallet, by ORN mined.": "Di antara anggota dengan dompet terverifikasi, berdasarkan ORN yang ditambang.",
+  "Amount": "Jumlah",
+  "Amount (ORN)": "Jumlah (ORN)",
+  "An address, a name or a checkpoint number": "Alamat, nama, atau nomor checkpoint",
+  "An earlier payment from this wallet had to finish first, so nothing was sent for verifying yet. Tap again to send it.": "Pembayaran sebelumnya dari dompet ini harus selesai lebih dulu, jadi belum ada yang dikirim untuk verifikasi. Ketuk lagi untuk mengirimkannya.",
+  "An earlier payment from this wallet had to finish first, so this one wasn't sent yet. Tap Pay again.": "Pembayaran sebelumnya dari dompet ini harus selesai lebih dulu, jadi pembayaran ini belum terkirim. Ketuk Bayar lagi.",
+  "An earlier payment from this wallet had to finish first, so this tip wasn't sent yet. Tap Tip again.": "Pembayaran sebelumnya dari dompet ini harus selesai lebih dulu, jadi tip ini belum terkirim. Ketuk Beri tip lagi.",
+  "Another amount": "Jumlah lain",
+  "Answers come from an AI and can be wrong. It never needs your recovery words, passwords or keys: never share them with anyone.": "Jawaban berasal dari AI dan bisa saja salah. AI tidak pernah membutuhkan kata pemulihan, kata sandi, atau kunci Anda: jangan pernah membagikannya kepada siapa pun.",
+  "Any colour you like": "Warna apa pun yang Anda suka",
+  "Any moment": "Sebentar lagi",
+  "Anyone can read along. To write, reply or react, sign in and verify a wallet.": "Siapa saja dapat ikut membaca. Untuk menulis, membalas, atau memberi reaksi, masuk dan verifikasi dompet.",
+  "Anyone can see it, use it and tip you for it. Your Orien Network name is shown with it. You can take it down at any time.": "Siapa saja dapat melihatnya, menggunakannya, dan memberi tip kepada Anda. Nama Orien Network Anda ditampilkan bersamanya. Anda dapat menurunkannya kapan saja.",
+  "Anyone can sell into it now. When they do, their wallet locks the ORN and this app opens the pay screen.": "Siapa saja dapat menjual ke pesanan ini sekarang. Saat mereka melakukannya, dompet mereka mengunci ORN dan aplikasi ini membuka layar pembayaran.",
+  "Anyone can take it now. When they do, your wallet runs the swap by itself.": "Siapa saja dapat mengambilnya sekarang. Saat mereka melakukannya, dompet Anda menjalankan penukaran secara otomatis.",
+  "Anyone who opens the file can spend your ORN. Keep it somewhere only you can reach.": "Siapa pun yang membuka file ini dapat membelanjakan ORN Anda. Simpan di tempat yang hanya bisa Anda akses.",
+  "Anyone who sees your 24 words can take everything in this wallet. Orien will never ask you for them, and no one helping you ever needs them.": "Siapa pun yang melihat 24 kata Anda dapat mengambil seluruh isi dompet ini. Orien tidak akan pernah memintanya, dan tidak seorang pun yang membantu Anda membutuhkannya.",
+  "Anyone with these words can spend this wallet's ORN. Orien never asks for them.": "Siapa pun yang memiliki kata-kata ini dapat membelanjakan ORN di dompet ini. Orien tidak pernah memintanya.",
+  "Anything left over, or a refund, comes back here": "Sisa dana atau pengembalian dana akan kembali ke sini",
+  "Appearance": "Tampilan",
+  "Approve": "Setujui",
+  "Approve in Orien Wallet to finish your swap.": "Setujui di Orien Wallet untuk menyelesaikan penukaran Anda.",
+  "Approve this order": "Setujui pesanan ini",
+  "Approve to finish your swap": "Setujui untuk menyelesaikan penukaran Anda",
+  "Ask Orien AI Support": "Tanya Dukungan AI Orien",
+  "Ask a question": "Ajukan pertanyaan",
+  "Ask anything about the wallet, mining, swaps or the network, in your own words.": "Tanyakan apa saja tentang dompet, penambangan, penukaran, atau jaringan dengan kata-kata Anda sendiri.",
+  "Ask each time Orien Wallet opens": "Tanya setiap kali Orien Wallet dibuka",
+  "Ask for payment": "Minta pembayaran",
+  "Asks · selling ORN": "Penawaran jual · menjual ORN",
+  "At least 8 characters": "Minimal 8 karakter",
+  "At this speed and today's difficulty": "Pada kecepatan ini dan tingkat kesulitan hari ini",
+  "Australian dollar": "Dolar Australia",
+  "Automatic · a few minutes": "Otomatis · beberapa menit",
+  "Automatic · about a minute": "Otomatis · sekitar satu menit",
+  "Automatic · keep this page open": "Otomatis · biarkan halaman ini tetap terbuka",
+  "Automatic · keep this page open (~15 seconds)": "Otomatis · biarkan halaman ini tetap terbuka (~15 detik)",
+  "Automatic · keep this page open (~20 seconds)": "Otomatis · biarkan halaman ini tetap terbuka (~20 detik)",
+  "Automatic · usually 30 to 60 minutes": "Otomatis · biasanya 30 hingga 60 menit",
+  "Automatic · usually a minute": "Otomatis · biasanya satu menit",
+  "Automatic · usually within minutes": "Otomatis · biasanya dalam beberapa menit",
+  "Available": "Tersedia",
+  "Back": "Kembali",
+  "Back from staking": "Kembali dari staking",
+  "Back to Exchange": "Kembali ke Bursa",
+  "Back to top": "Kembali ke atas",
+  "Back up its recovery phrase: each wallet has its own.": "Cadangkan frasa pemulihannya: setiap dompet memiliki frasa masing-masing.",
+  "Back up your recovery phrase": "Cadangkan frasa pemulihan Anda",
+  "Background picture": "Gambar latar belakang",
+  "Balance": "Saldo",
+  "Balance after": "Saldo setelahnya",
+  "Ban": "Blokir permanen",
+  "Banned": "Diblokir permanen",
+  "Banned from the group chat": "Diblokir dari obrolan grup",
+  "Base": "Dasar",
+  "Be paid in ORN.": "Terima pembayaran dalam ORN.",
+  "Benchmark": "Benchmark",
+  "Benchmark again": "Benchmark lagi",
+  "Benchmarking…": "Menjalankan benchmark…",
+  "Bids · buying ORN": "Penawaran beli · membeli ORN",
+  "Bitcoin": "Bitcoin",
+  "Bitcoin to pay": "Bitcoin yang dibayar",
+  "Bitcoin to receive": "Bitcoin yang diterima",
+  "Block": "Blokir",
+  "Blocked": "Diblokir",
+  "Blocked accounts": "Akun yang diblokir",
+  "Book & Trade": "Buku & Transaksi",
+  "Brazilian real": "Real Brasil",
+  "Bring your wallets here from your phone or computer": "Bawa dompet Anda ke sini dari ponsel atau komputer Anda",
+  "British pound": "Pound Inggris",
+  "Browser Extensions": "Ekstensi Browser",
+  "Build a theme": "Buat tema",
+  "Build your own theme": "Buat tema Anda sendiri",
+  "Built-in safety:": "Keamanan bawaan:",
+  "Buy": "Beli",
+  "Buy ORN": "Beli ORN",
+  "Buy ORN with SOL or Bitcoin": "Beli ORN dengan SOL atau Bitcoin",
+  "Buy amount (ORN)": "Jumlah beli (ORN)",
+  "Buy from": "Beli dari",
+  "Buyer": "Pembeli",
+  "Buyer pays": "Pembeli membayar",
+  "Buyer's SOL reserved. Locking your ORN now. Keep this page open for a few more seconds.": "SOL pembeli telah dicadangkan. Mengunci ORN Anda sekarang. Biarkan halaman ini terbuka beberapa detik lagi.",
+  "Buyers on the Market pay the wallet marked Paid here. Verify more to choose between them.": "Pembeli di Pasar membayar ke dompet yang bertanda Dibayar di sini. Verifikasi dompet lain untuk memilih di antaranya.",
+  "Buying ORN": "Membeli ORN",
+  "By any message app or email. It tells the buyer's Orien Wallet what you locked for them, and holds nothing secret.": "Melalui aplikasi pesan atau email apa pun. Ini memberi tahu Orien Wallet pembeli apa yang Anda kunci untuk mereka, dan tidak berisi rahasia apa pun.",
+  "By any message app or email. It tells the seller's Orien Wallet where you're paying the Bitcoin, and holds nothing secret.": "Melalui aplikasi pesan atau email apa pun. Ini memberi tahu Orien Wallet penjual ke mana Anda membayar Bitcoin, dan tidak berisi rahasia apa pun.",
+  "By continuing you agree to the": "Dengan melanjutkan, Anda menyetujui",
+  "Canadian dollar": "Dolar Kanada",
+  "Cancel": "Batal",
+  "Cancel below before sending. Nothing has left your wallet.": "Batalkan di bawah sebelum mengirim. Belum ada yang keluar dari dompet Anda.",
+  "Cancel buy order": "Batalkan pesanan beli",
+  "Cancel buy order & return SOL": "Batalkan pesanan beli & kembalikan SOL",
+  "Cancelling your buy order on Solana and returning your SOL to your wallet. Keep this page open for about 15 seconds.": "Membatalkan pesanan beli Anda di Solana dan mengembalikan SOL ke dompet Anda. Biarkan halaman ini terbuka sekitar 15 detik.",
+  "Cancelling · returning SOL": "Membatalkan · mengembalikan SOL",
+  "Catching up": "Menyesuaikan",
+  "Category": "Kategori",
+  "Change banner": "Ubah spanduk",
+  "Change picture": "Ubah gambar",
+  "Changed your mind?": "Berubah pikiran?",
+  "Chart currency": "Mata uang grafik",
+  "Chat": "Obrolan",
+  "Chat with everyone": "Mengobrol dengan semua orang",
+  "Check for Updates": "Periksa Pembaruan",
+  "Check this one and send it again.": "Periksa yang ini dan kirim lagi.",
+  "Check your other device shows these": "Pastikan perangkat lain Anda menampilkan ini",
+  "Checking": "Memeriksa",
+  "Checking for updates": "Memeriksa pembaruan",
+  "Checking the ORN the seller locked for you": "Memeriksa ORN yang dikunci penjual untuk Anda",
+  "Checkpoint": "Checkpoint",
+  "Checkpoints": "Checkpoint",
+  "Chinese yuan": "Yuan Tiongkok",
+  "Choose SOL or Bitcoin, then type how many ORN to sell, how much you want for them, and the address you'll be paid at.": "Pilih SOL atau Bitcoin, lalu ketik berapa banyak ORN yang ingin dijual, harga yang Anda inginkan, dan alamat tempat Anda menerima pembayaran.",
+  "Choose a GIF": "Pilih GIF",
+  "Choose a picture": "Pilih gambar",
+  "Clear": "Bersihkan",
+  "Click": "Klik",
+  "Click Buy or Sell to trade directly": "Klik Beli atau Jual untuk bertransaksi langsung",
+  "Click again to start over": "Klik lagi untuk mulai ulang",
+  "Click to add a picture": "Klik untuk menambahkan gambar",
+  "Click your browser and add Orien Wallet there.": "Klik browser Anda dan tambahkan Orien Wallet di sana.",
+  "Close": "Tutup",
+  "Closed": "Ditutup",
+  "Code": "Kode",
+  "Code from the email": "Kode dari email",
+  "Community": "Komunitas",
+  "Completed ORN / SOL swap prices over time": "Riwayat harga penukaran ORN / SOL yang selesai",
+  "Completed swap prices over time": "Riwayat harga penukaran yang selesai",
+  "Confirm below": "Konfirmasi di bawah",
+  "Confirmed": "Terkonfirmasi",
+  "Confirming": "Mengonfirmasi",
+  "Connected": "Terhubung",
+  "Connected to the network": "Terhubung ke jaringan",
+  "Connecting": "Menghubungkan",
+  "Contact": "Kontak",
+  "Contacts": "Kontak",
+  "Continue": "Lanjutkan",
+  "Continuing": "Melanjutkan",
+  "Cooler, fewer shares": "Lebih dingin, lebih sedikit share",
+  "Copied": "Disalin",
+  "Copy": "Salin",
+  "Copy address": "Salin alamat",
+  "Copy amount": "Salin jumlah",
+  "Copy code": "Salin kode",
+  "Copy the address": "Salin alamatnya",
+  "Cores in use": "Inti yang digunakan",
+  "Couldn't check": "Tidak dapat memeriksa",
+  "Cover": "Sampul",
+  "Create a wallet": "Buat dompet",
+  "Create a wallet to hold ORN, or restore the one you already have.": "Buat dompet untuk menyimpan ORN, atau pulihkan dompet yang sudah Anda miliki.",
+  "Currency": "Mata uang",
+  "Dark": "Gelap",
+  "Delete contact": "Hapus kontak",
+  "Delete conversation": "Hapus percakapan",
+  "Delete for good": "Hapus selamanya",
+  "Delete my account": "Hapus akun saya",
+  "Delete this conversation? Tap again": "Hapus percakapan ini? Ketuk lagi",
+  "Delete this post?": "Hapus postingan ini?",
+  "Delete?": "Hapus?",
+  "Describe it": "Jelaskan",
+  "Didn't answer": "Tidak menjawab",
+  "Do this once on each device. After that, contacts and wallet icons stay the same on all of them.": "Lakukan ini sekali di setiap perangkat. Setelah itu, kontak dan ikon dompet akan tetap sama di semuanya.",
+  "Does your new device show these?": "Apakah perangkat baru Anda menampilkan ini?",
+  "Don't have any ORN yet? Mine for an hour from the Mine screen, or buy a little on Swap.": "Belum punya ORN? Tambang selama satu jam dari layar Tambang, atau beli sedikit di Tukar.",
+  "Don't have any ORN yet? Mine for an hour in Orien Wallet on a computer, or buy a little at orien.network.": "Belum punya ORN? Tambang selama satu jam di Orien Wallet pada komputer, atau beli sedikit di orien.network.",
+  "Don't show this again": "Jangan tampilkan lagi",
+  "Done": "Selesai",
+  "Done: the ORN are in your wallet, and anything left over went back to your SOL wallet.": "Selesai: ORN sudah masuk ke dompet Anda, dan sisanya telah dikembalikan ke dompet SOL Anda.",
+  "Done: your SOL went back to your SOL wallet.": "Selesai: SOL Anda telah kembali ke dompet SOL Anda.",
+  "Downloads": "Unduhan",
+  "Each share": "Setiap share",
+  "Each wallet has its own address, recovery phrase and activity. Tap one to open it.": "Setiap dompet memiliki alamat, frasa pemulihan, dan aktivitasnya sendiri. Ketuk satu untuk membukanya.",
+  "Earn a share of each hour's new ORN while this app is open.": "Dapatkan bagian dari ORN baru setiap jam saat aplikasi ini terbuka.",
+  "Edit": "Edit",
+  "Edit Profile": "Edit Profil",
+  "Edit listing": "Edit iklan",
+  "Edit theme": "Edit tema",
+  "Editing your theme later doesn't change the shared one. Share it again as a new theme if you like the new version better.": "Mengedit tema Anda nanti tidak mengubah tema yang sudah dibagikan. Bagikan lagi sebagai tema baru jika Anda lebih menyukai versi barunya.",
+  "Email": "Email",
+  "English": "Bahasa Inggris",
+  "Enter ORN and SOL": "Masukkan ORN dan SOL",
+  "Euro": "Euro",
+  "Every miner on Orien together, estimated": "Semua penambang di Orien digabungkan, perkiraan",
+  "Everyone": "Semua orang",
+  "Everyone on Orien Network": "Semua orang di Orien Network",
+  "Everything in the group chat is public. Be kind.": "Semua hal di obrolan grup bersifat publik. Bersikaplah ramah.",
+  "Exchange": "Bursa",
+  "Expired": "Kedaluwarsa",
+  "Explorer": "Penjelajah",
+  "Failed": "Gagal",
+  "Fee": "Biaya",
+  "Feed": "Umpan",
+  "Filled · settling (~1 min)": "Terpenuhi · menyelesaikan (~1 mnt)",
+  "Final results": "Hasil akhir",
+  "Final within a minute": "Final dalam satu menit",
+  "Find members": "Cari anggota",
+  "Find themes in the Theme Store": "Temukan tema di Toko Tema",
+  "Find your sweet spot": "Temukan titik optimal Anda",
+  "Fingerprints": "Sidik jari",
+  "Finish": "Selesai",
+  "Finished": "Selesai",
+  "First ORN": "ORN Pertama",
+  "Follow Orien's posts": "Ikuti postingan Orien",
+  "From": "Dari",
+  "From any Bitcoin wallet: scan the code, or copy the address and amount. This app sees the payment by itself; there is nothing else to send.": "Dari dompet Bitcoin mana pun: pindai kodenya, atau salin alamat dan jumlahnya. Aplikasi ini mendeteksi pembayarannya secara otomatis; tidak ada lagi yang perlu dikirim.",
+  "From my other device": "Dari perangkat lain saya",
+  "From your SOL wallet, such as Phantom: scan the code, or copy the address and amount. Send it all in one go. This app sees it by itself; there is nothing else to send.": "Dari dompet SOL Anda, seperti Phantom: pindai kodenya, atau salin alamat dan jumlahnya. Kirim semuanya sekaligus. Aplikasi ini mendeteksinya secara otomatis; tidak ada lagi yang perlu dikirim.",
+  "Fund your buy order with a quick SOL QR payment. Once funded, it stays live even with Orien Wallet closed, and you can cancel anytime in one click.": "Danai pesanan beli Anda dengan pembayaran QR SOL yang cepat. Setelah didanai, pesanan tetap aktif meskipun Orien Wallet ditutup, dan Anda dapat membatalkannya kapan saja dengan satu klik.",
+  "Get ORN": "Dapatkan ORN",
+  "Get ORN on iPhone": "Dapatkan ORN di iPhone",
+  "Get back to Home": "Kembali ke Beranda",
+  "Get paid here": "Terima pembayaran di sini",
+  "Getting": "Mendapatkan",
+  "Getting ORN": "Mendapatkan ORN",
+  "Getting it ready…": "Menyiapkannya…",
+  "Getting ready (about a minute)": "Menyiapkan (sekitar satu menit)",
+  "Getting ready…": "Menyiapkan…",
+  "Getting started": "Memulai",
+  "Give it a": "Beri",
+  "Give someone your address and they can send you ORN from their wallet. Payments arrive in seconds.": "Berikan alamat Anda kepada seseorang agar mereka dapat mengirimi Anda ORN dari dompet mereka. Pembayaran tiba dalam hitungan detik.",
+  "Give the wallet a name, like Mining.": "Beri nama dompet ini, misalnya Penambangan.",
+  "Help": "Bantuan",
+  "Hide balance": "Sembunyikan saldo",
+  "Home": "Beranda",
+  "Hong Kong dollar": "Dolar Hong Kong",
+  "How is it priced?": "Bagaimana harganya ditentukan?",
+  "I have backed up my recovery phrase": "Saya telah mencadangkan frasa pemulihan saya",
+  "I understand, show them": "Saya mengerti, tampilkan",
+  "Icon": "Ikon",
+  "If the app updates while mining, mining starts again by itself.": "Jika aplikasi diperbarui saat menambang, penambangan akan dimulai lagi secara otomatis.",
+  "If the buyer doesn't pay,": "Jika pembeli tidak membayar,",
+  "If the buyer never pays,": "Jika pembeli tidak pernah membayar,",
+  "If the buyer pays but this app stays closed for more than about 4 hours, they take their Bitcoin back and your ORN still come back to you. Nobody loses coins.": "Jika pembeli membayar tetapi aplikasi ini tetap tertutup lebih dari sekitar 4 jam, mereka mengambil kembali Bitcoin mereka dan ORN Anda tetap kembali kepada Anda. Tidak ada yang kehilangan koin.",
+  "If the seller never takes your Bitcoin,": "Jika penjual tidak pernah mengambil Bitcoin Anda,",
+  "If the seller never takes your SOL,": "Jika penjual tidak pernah mengambil SOL Anda,",
+  "If they match, tap": "Jika cocok, ketuk",
+  "If you change your mind,": "Jika Anda berubah pikiran,",
+  "If you forget it, your recovery phrase still restores the wallet.": "Jika Anda lupa, frasa pemulihan Anda tetap dapat memulihkan dompet.",
+  "In use": "Sedang digunakan",
+  "Indian rupee": "Rupee India",
+  "Indonesian rupiah": "Rupiah Indonesia",
+  "Install Orien Wallet on your Mac, Windows or Linux computer, open this same wallet there with its recovery phrase, and press Mine. Your computer earns a share of each hour's new ORN.": "Pasang Orien Wallet di komputer Mac, Windows, atau Linux Anda, buka dompet yang sama di sana dengan frasa pemulihannya, lalu tekan Tambang. Komputer Anda memperoleh bagian dari ORN baru setiap jam.",
+  "It arrives in seconds. Save a new address as a contact from the last screen if you like.": "Tiba dalam hitungan detik. Simpan alamat baru sebagai kontak dari layar terakhir jika Anda mau.",
+  "It colours the buttons, the balance card, the glow and the highlights.": "Ini mewarnai tombol, kartu saldo, cahaya, dan sorotan.",
+  "It installs in a moment, and the app reopens by itself.": "Pemasangan selesai dalam sekejap, dan aplikasi akan terbuka kembali dengan sendirinya.",
+  "It's checked, then shows in the store with your name, where anyone can try it, use it and tip you.": "Tema akan diperiksa, lalu tampil di toko dengan nama Anda, sehingga siapa saja dapat mencobanya, menggunakannya, dan memberi tip kepada Anda.",
+  "It's how you add this wallet back, here or anywhere else.": "Inilah cara Anda menambahkan kembali dompet ini, di sini atau di mana pun.",
+  "Its file stays on this computer,": "Filenya tetap tersimpan di komputer ini,",
+  "Japanese yen": "Yen Jepang",
+  "Just now": "Baru saja",
+  "Keep Orien Wallet running": "Biarkan Orien Wallet tetap berjalan",
+  "Keep Orien Wallet running while your buy offer is live. When someone accepts, you'll get a notification and the pay screen opens so you can send the payment.": "Biarkan Orien Wallet tetap berjalan selama penawaran beli Anda aktif. Saat seseorang menerimanya, Anda akan mendapat notifikasi dan layar pembayaran terbuka agar Anda dapat mengirim pembayaran.",
+  "Keep contacts the same everywhere": "Samakan kontak di semua perangkat",
+  "Keep its 24-word recovery phrase.": "Simpan frasa pemulihan 24 katanya.",
+  "Keep running when closed": "Tetap berjalan saat ditutup",
+  "Keep these words secret": "Jaga kerahasiaan kata-kata ini",
+  "Keep this computer awake": "Jaga komputer ini tetap menyala",
+  "Language": "Bahasa",
+  "Large pages": "Halaman memori besar",
+  "Large pages are set up, but mining is in ordinary memory this hour. If a restart doesn't switch it, restarting the computer frees the memory up.": "Halaman memori besar sudah diatur, tetapi penambangan menggunakan memori biasa pada jam ini. Jika memulai ulang aplikasi tidak mengalihkannya, mulai ulang komputer untuk membebaskan memori.",
+  "Last 30 minutes": "30 menit terakhir",
+  "Last reward": "Imbalan terakhir",
+  "Last trade": "Transaksi terakhir",
+  "Later": "Nanti",
+  "Launch validator": "Validator peluncuran",
+  "Lets mining use large pages of memory, usually 10 to 30% faster. Windows asks for an administrator's approval once, then you sign out and back in.": "Memungkinkan penambangan menggunakan halaman memori besar, biasanya 10 hingga 30% lebih cepat. Windows meminta persetujuan administrator sekali, lalu Anda keluar dan masuk kembali.",
+  "Light": "Terang",
+  "Light mode: under 2 GB of free memory, so it mines more slowly.": "Mode ringan: memori bebas di bawah 2 GB, sehingga menambang lebih lambat.",
+  "Like it? The coins button tips its maker some ORN. The flag reports a theme that breaks the rules.": "Suka? Tombol koin memberi tip beberapa ORN kepada pembuatnya. Tombol bendera melaporkan tema yang melanggar aturan.",
+  "Link a device": "Tautkan perangkat",
+  "Link a new device": "Tautkan perangkat baru",
+  "Listing": "Iklan",
+  "Live on book": "Aktif di buku",
+  "Live on order book · settles automatically": "Aktif di buku pesanan · selesai otomatis",
+  "Loading": "Memuat",
+  "Loading chart…": "Memuat grafik…",
+  "Loading order book…": "Memuat buku pesanan…",
+  "Loading…": "Memuat…",
+  "Lock ORN": "Kunci ORN",
+  "Lock with Touch ID": "Kunci dengan Touch ID",
+  "Locked on Solana. Adding your buy order to the order book now. Keep this page open for a few more seconds.": "Terkunci di Solana. Menambahkan pesanan beli Anda ke buku pesanan sekarang. Biarkan halaman ini terbuka beberapa detik lagi.",
+  "Locked payment": "Pembayaran terkunci",
+  "Locked payment from": "Pembayaran terkunci dari",
+  "Locked payment received": "Pembayaran terkunci diterima",
+  "Locked payment returned": "Pembayaran terkunci dikembalikan",
+  "Locking ORN": "Mengunci ORN",
+  "Locking your ORN": "Mengunci ORN Anda",
+  "Locking your ORN for the buyer.": "Mengunci ORN Anda untuk pembeli.",
+  "Locking your ORN for them": "Mengunci ORN Anda untuk mereka",
+  "Logo design": "Desain logo",
+  "Look up the network": "Jelajahi jaringan",
+  "Made": "Dibuat",
+  "Made final": "Difinalisasi",
+  "Make a new wallet": "Buat dompet baru",
+  "Make cover": "Jadikan sampul",
+  "Make mining faster": "Percepat penambangan",
+  "Make my account": "Buat akun saya",
+  "Make the wallet": "Buat dompet",
+  "Make the window small": "Perkecil jendela",
+  "Make the window wide": "Perlebar jendela",
+  "Manage blocks": "Kelola blokir",
+  "Marked as paid": "Ditandai sudah dibayar",
+  "Market": "Pasar",
+  "Market Listings": "Iklan Pasar",
+  "Max": "Maks",
+  "Maximize": "Maksimalkan",
+  "Memory": "Memori",
+  "Message": "Pesan",
+  "Message everyone": "Kirim pesan ke semua orang",
+  "Message the seller": "Kirim pesan ke penjual",
+  "Messages": "Pesan",
+  "Messages about your Market listings always come through whatever you pick, so buyers can ask about what you're selling. Blocking still works on top of this.": "Pesan tentang iklan Pasar Anda selalu masuk apa pun pilihan Anda, agar pembeli dapat bertanya tentang apa yang Anda jual. Pemblokiran tetap berlaku di atas ini.",
+  "Mexican peso": "Peso Meksiko",
+  "Milestone": "Pencapaian",
+  "Mine": "Tambang",
+  "Mine ORN": "Tambang ORN",
+  "Mine for an hour from the Mine screen, or buy a little on Swap.": "Tambang selama satu jam dari layar Tambang, atau beli sedikit di Tukar.",
+  "Mine for an hour in Orien Wallet on a computer, or buy a little at orien.network.": "Tambang selama satu jam di Orien Wallet pada komputer, atau beli sedikit di orien.network.",
+  "Mine it on a computer.": "Tambang di komputer.",
+  "Mine on a computer: install Orien Wallet there, link this wallet, and press": "Tambang di komputer: pasang Orien Wallet di sana, tautkan dompet ini, lalu tekan",
+  "Mine with a verified wallet and your figures show here after the next checkpoint.": "Tambang dengan dompet terverifikasi dan angka Anda akan tampil di sini setelah checkpoint berikutnya.",
+  "Miners last hour": "Penambang jam lalu",
+  "Miners paid": "Penambang dibayar",
+  "Miners who have verified a wallet on their Orien Network account, by ORN mined. Verify your wallet on your account to be on the list.": "Penambang yang telah memverifikasi dompet pada akun Orien Network mereka, berdasarkan ORN yang ditambang. Verifikasi dompet di akun Anda untuk masuk daftar.",
+  "Minimize": "Minimalkan",
+  "Minimum order is 0.01 SOL": "Pesanan minimum adalah 0,01 SOL",
+  "Mining": "Penambangan",
+  "Mining for": "Menambang untuk",
+  "Mining in large pages of memory, for extra speed.": "Menambang dengan halaman memori besar, untuk kecepatan ekstra.",
+  "Mining reward": "Imbalan penambangan",
+  "Mining rewards": "Imbalan penambangan",
+  "Moderator": "Moderator",
+  "More": "Lainnya",
+  "More below": "Lainnya di bawah",
+  "More heat, no more ORN": "Lebih panas, tidak menambah ORN",
+  "Mute the group chat": "Bisukan obrolan grup",
+  "Muted": "Dibisukan",
+  "My Orien (ORN) address": "Alamat Orien (ORN) saya",
+  "My theme": "Tema saya",
+  "Name": "Nama",
+  "Name or address": "Nama atau alamat",
+  "Needs about 2 GB of memory. Rewards depend on how much everyone else mines.": "Membutuhkan sekitar 2 GB memori. Imbalan bergantung pada seberapa banyak orang lain menambang.",
+  "Network": "Jaringan",
+  "Network hashrate": "Hashrate jaringan",
+  "New ORN this hour": "ORN baru jam ini",
+  "New account: pick a username": "Akun baru: pilih nama pengguna",
+  "New contact": "Kontak baru",
+  "New here?": "Baru di sini?",
+  "New messages and payment requests": "Pesan baru dan permintaan pembayaran",
+  "New record": "Rekor baru",
+  "New validator": "Validator baru",
+  "New versions install while you're away from the app": "Versi baru dipasang saat Anda tidak sedang menggunakan aplikasi",
+  "Newest": "Terbaru",
+  "Next checkpoint": "Checkpoint berikutnya",
+  "Nigerian naira": "Naira Nigeria",
+  "No GIFs found.": "Tidak ada GIF ditemukan.",
+  "No GIFs right now.": "Tidak ada GIF saat ini.",
+  "No ORN moves.": "Tidak ada ORN yang berpindah.",
+  "No activity is recorded for this address.": "Tidak ada aktivitas yang tercatat untuk alamat ini.",
+  "No contacts yet. Add someone you pay often, or add an Orien Network member from their profile.": "Belum ada kontak. Tambahkan orang yang sering Anda bayar, atau tambahkan anggota Orien Network dari profil mereka.",
+  "No description.": "Tidak ada deskripsi.",
+  "No messages yet. Say hello to everyone.": "Belum ada pesan. Sapa semua orang.",
+  "No one": "Tidak seorang pun",
+  "No open buy offers right now": "Tidak ada penawaran beli terbuka saat ini",
+  "No open sell offers right now": "Tidak ada penawaran jual terbuka saat ini",
+  "No payments yet": "Belum ada pembayaran",
+  "No questions left today. Come back tomorrow.": "Kuota pertanyaan hari ini habis. Kembali lagi besok.",
+  "No results": "Tidak ada hasil",
+  "No rewards yet": "Belum ada imbalan",
+  "No swaps completed yet. The next swap sets the price.": "Belum ada penukaran yang selesai. Penukaran berikutnya akan menentukan harga.",
+  "No swaps yet": "Belum ada penukaran",
+  "No trades yet": "Belum ada transaksi",
+  "No verified wallet yet": "Belum ada dompet terverifikasi",
+  "No verified wallets yet": "Belum ada dompet terverifikasi",
+  "No wallets yet.": "Belum ada dompet.",
+  "Nobody by that name.": "Tidak ada yang bernama itu.",
+  "Nobody is banned.": "Tidak ada yang diblokir permanen.",
+  "Nobody with a verified wallet has been paid for mining yet.": "Belum ada pemilik dompet terverifikasi yang dibayar untuk menambang.",
+  "None": "Tidak ada",
+  "Normal": "Normal",
+  "Not an Orien address": "Bukan alamat Orien",
+  "Not answering": "Tidak menjawab",
+  "Not available": "Tidak tersedia",
+  "Not in the network's history": "Tidak ada dalam riwayat jaringan",
+  "Not now": "Tidak sekarang",
+  "Not recorded": "Tidak tercatat",
+  "Not verified yet": "Belum terverifikasi",
+  "Nothing found. Search an address (64 letters and digits, 0-9 and a-f), a checkpoint number, or the name of someone on the Market.": "Tidak ada yang ditemukan. Cari alamat (64 huruf dan angka, 0-9 dan a-f), nomor checkpoint, atau nama seseorang di Pasar.",
+  "Nothing from the network about them yet.": "Belum ada informasi dari jaringan tentang mereka.",
+  "Nothing has happened at this address yet.": "Belum ada aktivitas pada alamat ini.",
+  "Nothing here yet. Be the first to sell something.": "Belum ada apa pun di sini. Jadilah yang pertama menjual sesuatu.",
+  "Nothing in the community yet.": "Belum ada apa pun di komunitas.",
+  "Nothing leaves your SOL wallet until a seller locks the ORN and you pay the QR code. Keep Orien Wallet running so sellers can match your order.": "Tidak ada yang keluar dari dompet SOL Anda sampai penjual mengunci ORN dan Anda membayar kode QR-nya. Biarkan Orien Wallet tetap berjalan agar penjual dapat mencocokkan pesanan Anda.",
+  "Nothing matches that yet.": "Belum ada yang cocok dengan itu.",
+  "Nothing yet. Replies, reactions and messages show up here.": "Belum ada apa pun. Balasan, reaksi, dan pesan akan muncul di sini.",
+  "Notifications": "Notifikasi",
+  "ORN / SOL price chart": "Grafik harga ORN / SOL",
+  "ORN held": "ORN yang dimiliki",
+  "ORN locked · SOL arriving (~1 min)": "ORN terkunci · SOL sedang tiba (~1 mnt)",
+  "ORN mined": "ORN ditambang",
+  "ORN price": "Harga ORN",
+  "ORN received": "ORN diterima",
+  "ORN released": "ORN dirilis",
+  "ORN to buy": "ORN yang dibeli",
+  "ORN to sell": "ORN yang dijual",
+  "Offer posted": "Penawaran dipasang",
+  "Offer taken": "Penawaran diambil",
+  "Offer your ORN for SOL. When someone takes it, this app locks the ORN for them and runs the swap, as long as it's open.": "Tawarkan ORN Anda untuk ditukar dengan SOL. Saat seseorang mengambilnya, aplikasi ini mengunci ORN untuk mereka dan menjalankan penukaran selama aplikasi terbuka.",
+  "Official": "Resmi",
+  "Official Website": "Situs Web Resmi",
+  "Offline": "Offline",
+  "On a streak": "Sedang beruntun",
+  "On an iPhone, scan the new device's QR code. On a computer, type its code and click": "Di iPhone, pindai kode QR perangkat baru. Di komputer, ketik kodenya lalu klik",
+  "On offer": "Ditawarkan",
+  "On one of your own themes, click the share button (the box with an arrow), then": "Pada salah satu tema milik Anda, klik tombol bagikan (kotak dengan panah), lalu",
+  "On the Market": "Di Pasar",
+  "On the swap board, waiting for someone to buy": "Di papan tukar, menunggu seseorang membeli",
+  "On the swap board, waiting for someone to sell": "Di papan tukar, menunggu seseorang menjual",
+  "On your new device, open Orien Wallet and choose": "Di perangkat baru Anda, buka Orien Wallet dan pilih",
+  "On your other device, open Orien Wallet, go to": "Di perangkat lain Anda, buka Orien Wallet, buka",
+  "One account for all of Orien Network. Enter your email and type the 6-digit code we send; new here, you'll pick a username too. Signed up on orien.network already? Use the same email.": "Satu akun untuk seluruh Orien Network. Masukkan email Anda dan ketik kode 6 digit yang kami kirim; jika baru di sini, Anda juga akan memilih nama pengguna. Sudah mendaftar di orien.network? Gunakan email yang sama.",
+  "Only letters, numbers and _": "Hanya huruf, angka, dan _",
+  "Only send if you see the same three emoji, in the same order.": "Hanya kirim jika Anda melihat tiga emoji yang sama dalam urutan yang sama.",
+  "Open": "Buka",
+  "Open Mine": "Buka Tambang",
+  "Open Orien Wallet on the device you posted or took this offer from to finish the swap": "Buka Orien Wallet di perangkat tempat Anda memasang atau mengambil penawaran ini untuk menyelesaikan penukaran",
+  "Open at login": "Buka saat masuk",
+  "Open it to verify": "Buka untuk memverifikasi",
+  "Open offers": "Penawaran terbuka",
+  "Open the explorer": "Buka penjelajah",
+  "Opens Firefox's add-on store: click Add to Firefox": "Membuka toko add-on Firefox: klik Add to Firefox",
+  "Opens Safari's settings: tick Orien Wallet to turn it on": "Membuka pengaturan Safari: centang Orien Wallet untuk mengaktifkannya",
+  "Opens the Chrome Web Store: allow other stores, then add it": "Membuka Chrome Web Store: izinkan toko lain, lalu tambahkan",
+  "Opens the Chrome Web Store: click Add to Brave": "Membuka Chrome Web Store: klik Add to Brave",
+  "Opens the Chrome Web Store: click Add to Chrome": "Membuka Chrome Web Store: klik Add to Chrome",
+  "Order book": "Buku pesanan",
+  "Orien AI Support": "Dukungan AI Orien",
+  "Orien Group Chat": "Obrolan Grup Orien",
+  "Orien Wallet for computers is at": "Orien Wallet untuk komputer tersedia di",
+  "Orien Wallet is locking your SOL on Solana and registering your order on the book. Step 2 will show a checkmark as soon as you can leave.": "Orien Wallet sedang mengunci SOL Anda di Solana dan mendaftarkan pesanan Anda di buku pesanan. Langkah 2 akan menampilkan tanda centang segera setelah Anda boleh meninggalkan halaman.",
+  "Orien Wallet locks after a minute away.": "Orien Wallet terkunci setelah satu menit ditinggalkan.",
+  "Orien Wallet locks whenever you leave it.": "Orien Wallet terkunci setiap kali Anda meninggalkannya.",
+  "Orien right now": "Orien saat ini",
+  "Other": "Lainnya",
+  "Paid": "Dibayar",
+  "Paid here": "Dibayar di sini",
+  "Paid · Bitcoin is confirming": "Dibayar · Bitcoin sedang mengonfirmasi",
+  "Paid · SOL on its way to you": "Dibayar · SOL sedang menuju ke Anda",
+  "Password": "Kata sandi",
+  "Paste": "Tempel",
+  "Pay": "Bayar",
+  "Pay exactly": "Bayar tepat",
+  "Pay now": "Bayar sekarang",
+  "Pay total (SOL)": "Total bayar (SOL)",
+  "Paying": "Membayar",
+  "Payment": "Pembayaran",
+  "Payment received. Locking it for the swap.": "Pembayaran diterima. Menguncinya untuk penukaran.",
+  "Payment received. Locking your SOL on Solana now. Keep this page open for about 20 seconds.": "Pembayaran diterima. Mengunci SOL Anda di Solana sekarang. Biarkan halaman ini terbuka sekitar 20 detik.",
+  "Payment request": "Permintaan pembayaran",
+  "Payments": "Pembayaran",
+  "Pending": "Tertunda",
+  "Pending in your Bitcoin wallet until Bitcoin confirms it, usually within the hour": "Tertunda di dompet Bitcoin Anda sampai Bitcoin mengonfirmasinya, biasanya dalam satu jam",
+  "People": "Orang",
+  "People you block can't message you, and you don't see each other's profiles, posts or listings. Unblock someone to see them again.": "Orang yang Anda blokir tidak dapat mengirim pesan kepada Anda, dan kalian tidak saling melihat profil, postingan, atau iklan. Buka blokir untuk melihat mereka lagi.",
+  "People you've talked with": "Orang yang pernah Anda ajak bicara",
+  "Philippine peso": "Peso Filipina",
+  "Photos": "Foto",
+  "Pick a category.": "Pilih kategori.",
+  "Pick a conversation to read it.": "Pilih percakapan untuk membacanya.",
+  "Pick an": "Pilih",
+  "Pictures": "Gambar",
+  "Place Buy Order": "Buat Pesanan Beli",
+  "Place Sell Order": "Buat Pesanan Jual",
+  "Place order": "Buat pesanan",
+  "Point at a message": "Arahkan ke pesan",
+  "Point the camera at the QR code": "Arahkan kamera ke kode QR",
+  "Point the camera at the code on your other device": "Arahkan kamera ke kode di perangkat lain Anda",
+  "Point the camera at their Receive QR code": "Arahkan kamera ke kode QR Terima mereka",
+  "Poll": "Jajak pendapat",
+  "Poll length": "Durasi jajak pendapat",
+  "Popular": "Populer",
+  "Post": "Kirim",
+  "Post an offer": "Pasang penawaran",
+  "Post buy offer": "Pasang penawaran beli",
+  "Post order": "Pasang pesanan",
+  "Post sell offer": "Pasang penawaran jual",
+  "Post the offer": "Pasang penawaran",
+  "Post to the live ORN / SOL order book": "Pasang ke buku pesanan ORN / SOL langsung",
+  "Post your listing": "Pasang iklan Anda",
+  "Post your reply": "Kirim balasan Anda",
+  "Posting": "Mengirim",
+  "Posts": "Postingan",
+  "Powered by KLIPY": "Didukung oleh KLIPY",
+  "Price / ORN": "Harga / ORN",
+  "Price in ORN": "Harga dalam ORN",
+  "Price per ORN": "Harga per ORN",
+  "Privacy Policy": "Kebijakan Privasi",
+  "Privacy and security": "Privasi dan keamanan",
+  "Privacy policy": "Kebijakan privasi",
+  "Processor": "Prosesor",
+  "Profile": "Profil",
+  "Progress": "Kemajuan",
+  "Ranked by ORN held": "Diurutkan berdasarkan ORN yang dimiliki",
+  "React": "Beri reaksi",
+  "Receive": "Terima",
+  "Receive ORN": "Terima ORN",
+  "Receive total (SOL)": "Total terima (SOL)",
+  "Received": "Diterima",
+  "Recent errors": "Kesalahan terbaru",
+  "Recent screens": "Layar terbaru",
+  "Recent trades": "Transaksi terbaru",
+  "Recents": "Terbaru",
+  "Recovery phrase": "Frasa pemulihan",
+  "Recovery words": "Kata pemulihan",
+  "Refunded": "Dikembalikan",
+  "Remove": "Hapus",
+  "Remove GIF": "Hapus GIF",
+  "Remove from contacts": "Hapus dari kontak",
+  "Remove from store": "Hapus dari toko",
+  "Remove from the list": "Hapus dari daftar",
+  "Remove from this app": "Hapus dari aplikasi ini",
+  "Remove from your profile": "Hapus dari profil Anda",
+  "Remove poll": "Hapus jajak pendapat",
+  "Remove wallet": "Hapus dompet",
+  "Rename wallet": "Ubah nama dompet",
+  "Reopen": "Buka kembali",
+  "Repeat for each wallet you want on your profile.": "Ulangi untuk setiap dompet yang ingin Anda tampilkan di profil.",
+  "Replies, reactions and the network's posts about you": "Balasan, reaksi, dan postingan jaringan tentang Anda",
+  "Reply": "Balas",
+  "Report": "Laporkan",
+  "Report a Problem": "Laporkan Masalah",
+  "Report post": "Laporkan postingan",
+  "Report something else": "Laporkan hal lain",
+  "Report this listing": "Laporkan iklan ini",
+  "Report this post": "Laporkan postingan ini",
+  "Report this theme": "Laporkan tema ini",
+  "Request": "Minta",
+  "Reserve SOL": "Cadangkan SOL",
+  "Reserving buyer's SOL": "Mencadangkan SOL pembeli",
+  "Reserving the buyer's locked SOL on Solana before locking your ORN. Keep this page open for about 15 seconds.": "Mencadangkan SOL pembeli yang terkunci di Solana sebelum mengunci ORN Anda. Biarkan halaman ini terbuka sekitar 15 detik.",
+  "Restart mining": "Mulai ulang penambangan",
+  "Restart mining to go faster": "Mulai ulang penambangan agar lebih cepat",
+  "Restore": "Pulihkan",
+  "Restore a wallet from its words": "Pulihkan dompet dari kata-katanya",
+  "Restore wallet": "Pulihkan dompet",
+  "Restore with recovery phrase": "Pulihkan dengan frasa pemulihan",
+  "Restoring": "Memulihkan",
+  "Rewards": "Imbalan",
+  "Robot avatars:": "Avatar robot:",
+  "Running": "Berjalan",
+  "SOL to pay": "SOL yang dibayar",
+  "SOL to receive": "SOL yang diterima",
+  "Safe to leave or close Orien Wallet.": "Aman untuk meninggalkan halaman atau menutup Orien Wallet.",
+  "Safe to leave this page or close Orien Wallet": "Aman untuk meninggalkan halaman ini atau menutup Orien Wallet",
+  "Safe to leave · arrives in about a minute": "Aman ditinggalkan · tiba dalam sekitar satu menit",
+  "Safe to share: an address can only receive ORN.": "Aman dibagikan: alamat hanya dapat menerima ORN.",
+  "Save": "Simpan",
+  "Save as a text file": "Simpan sebagai file teks",
+  "Save as contact": "Simpan sebagai kontak",
+  "Save changes": "Simpan perubahan",
+  "Save theme": "Simpan tema",
+  "Saved": "Tersimpan",
+  "Saved address": "Alamat tersimpan",
+  "Saved. Anyone who opens the file can spend your ORN: keep it somewhere only you can reach.": "Tersimpan. Siapa pun yang membuka file ini dapat membelanjakan ORN Anda: simpan di tempat yang hanya bisa Anda akses.",
+  "Saving": "Menyimpan",
+  "Saving…": "Menyimpan…",
+  "Say hello to everyone.": "Sapa semua orang.",
+  "Say what you're offering.": "Jelaskan apa yang Anda tawarkan.",
+  "Scan a QR code": "Pindai kode QR",
+  "Scan the code": "Pindai kodenya",
+  "Search KLIPY": "Cari KLIPY",
+  "Search listings": "Cari iklan",
+  "Searching…": "Mencari…",
+  "Security and more": "Keamanan dan lainnya",
+  "See the top 100": "Lihat 100 teratas",
+  "Sell": "Jual",
+  "Sell ORN": "Jual ORN",
+  "Sell amount (ORN)": "Jumlah jual (ORN)",
+  "Sell from": "Jual dari",
+  "Sell into this offer": "Jual ke penawaran ini",
+  "Sell offers come from verified wallets, so buyers can see who they're swapping with. Verifying ties this wallet to your Orien Network name and sends less than 0.001 ORN from it, once.": "Penawaran jual berasal dari dompet terverifikasi, sehingga pembeli dapat melihat dengan siapa mereka bertukar. Verifikasi menautkan dompet ini ke nama Orien Network Anda dan mengirim kurang dari 0,001 ORN darinya, sekali saja.",
+  "Sell orders come from verified wallets so buyers know who they're trading with (sends < 0.001 ORN once).": "Pesanan jual berasal dari dompet terverifikasi agar pembeli tahu dengan siapa mereka bertransaksi (mengirim < 0,001 ORN sekali saja).",
+  "Sell something": "Jual sesuatu",
+  "Seller": "Penjual",
+  "Seller accepts": "Penjual menerima",
+  "Selling ORN": "Menjual ORN",
+  "Send": "Kirim",
+  "Send & Receive": "Kirim & Terima",
+  "Send ORN": "Kirim ORN",
+  "Send ORN and see your balance from the browser's toolbar, and sign in to websites with your wallet. Your keys stay in this app.": "Kirim ORN dan lihat saldo Anda dari bilah alat browser, serta masuk ke situs web dengan dompet Anda. Kunci Anda tetap tersimpan di aplikasi ini.",
+  "Send ORN, see your balance, and sign in to orien.network with one click, right from your browser. Your keys never leave Orien Wallet.": "Kirim ORN, lihat saldo Anda, dan masuk ke orien.network dengan satu klik langsung dari browser Anda. Kunci Anda tidak pernah meninggalkan Orien Wallet.",
+  "Send SOL": "Kirim SOL",
+  "Send SOL once into a Solana order. It stays live on the order book even while Orien Wallet is closed, settles in about a minute when taken, and cancels in one click.": "Kirim SOL sekali ke pesanan Solana. Pesanan tetap aktif di buku pesanan meski Orien Wallet ditutup, selesai dalam sekitar satu menit saat diambil, dan dapat dibatalkan dengan satu klik.",
+  "Send and verify": "Kirim dan verifikasi",
+  "Send me a code": "Kirimkan saya kode",
+  "Send report": "Kirim laporan",
+  "Send the buyer this offer code": "Kirim kode penawaran ini kepada pembeli",
+  "Send the seller this reply code": "Kirim kode balasan ini kepada penjual",
+  "Send to this contact": "Kirim ke kontak ini",
+  "Send your wallets to your other phone or computer": "Kirim dompet Anda ke ponsel atau komputer lain Anda",
+  "Sending": "Mengirim",
+  "Sending…": "Mengirim…",
+  "Sent": "Terkirim",
+  "Sent a GIF": "Mengirim GIF",
+  "Sent a picture": "Mengirim gambar",
+  "Sent from another app": "Dikirim dari aplikasi lain",
+  "Sent. Verifying, usually within a minute.": "Terkirim. Memverifikasi, biasanya dalam satu menit.",
+  "Set password": "Atur kata sandi",
+  "Set the": "Atur",
+  "Set up": "Siapkan",
+  "Set up mining": "Siapkan penambangan",
+  "Sets aside about 2.4 GB of memory for mining in large pages, usually 10 to 30% faster. Linux asks for your password once.": "Menyisihkan sekitar 2,4 GB memori untuk menambang di halaman memori besar, biasanya 10 hingga 30% lebih cepat. Linux meminta kata sandi Anda sekali.",
+  "Settings": "Pengaturan",
+  "Settling": "Menyelesaikan",
+  "Share a theme in the Theme Store": "Bagikan tema di Toko Tema",
+  "Share address": "Bagikan alamat",
+  "Share in the Theme Store": "Bagikan di Toko Tema",
+  "Share theme": "Bagikan tema",
+  "Shared": "Dibagikan",
+  "Shared among miners": "Dibagikan di antara penambang",
+  "Shares": "Share",
+  "Shares an hour": "Share per jam",
+  "Shares this hour": "Share jam ini",
+  "Sharing": "Membagikan",
+  "Show balance": "Tampilkan saldo",
+  "Show less": "Tampilkan lebih sedikit",
+  "Show more": "Tampilkan lebih banyak",
+  "Show scroll arrow": "Tampilkan panah gulir",
+  "Show your accounts on your profile, if you like. Everyone can see them.": "Tampilkan akun Anda di profil jika Anda mau. Semua orang dapat melihatnya.",
+  "Sign Out": "Keluar",
+  "Sign in": "Masuk",
+  "Sign in and verify this wallet first.": "Masuk dan verifikasi dompet ini terlebih dahulu.",
+  "Sign in to Orien Network": "Masuk ke Orien Network",
+  "Sign in to Orien Network first.": "Masuk ke Orien Network terlebih dahulu.",
+  "Sign in to Orien Network to ask a question. Verifying a wallet isn't needed.": "Masuk ke Orien Network untuk mengajukan pertanyaan. Verifikasi dompet tidak diperlukan.",
+  "Sign in to Orien Network to chat, reply or react.": "Masuk ke Orien Network untuk mengobrol, membalas, atau memberi reaksi.",
+  "Sign in to Orien Network to chat.": "Masuk ke Orien Network untuk mengobrol.",
+  "Sign in to Orien Network to post and react.": "Masuk ke Orien Network untuk memposting dan memberi reaksi.",
+  "Sign in to Orien Network to post, reply and react.": "Masuk ke Orien Network untuk memposting, membalas, dan memberi reaksi.",
+  "Sign in to Orien Network to react.": "Masuk ke Orien Network untuk memberi reaksi.",
+  "Sign in to Orien Network to reply.": "Masuk ke Orien Network untuk membalas.",
+  "Sign in to Orien Network to report a message.": "Masuk ke Orien Network untuk melaporkan pesan.",
+  "Sign in to Orien Network to report a theme.": "Masuk ke Orien Network untuk melaporkan tema.",
+  "Sign in to Orien Network to see the themes you shared.": "Masuk ke Orien Network untuk melihat tema yang Anda bagikan.",
+  "Sign in to Orien Network to see your own messages and to chat.": "Masuk ke Orien Network untuk melihat pesan Anda dan mengobrol.",
+  "Sign in to Orien Network to tip.": "Masuk ke Orien Network untuk memberi tip.",
+  "Sign in to Orien Network with a verified wallet to share themes.": "Masuk ke Orien Network dengan dompet terverifikasi untuk membagikan tema.",
+  "Sign in to message the seller": "Masuk untuk mengirim pesan ke penjual",
+  "Sign in to trade": "Masuk untuk bertransaksi",
+  "Sign in, and open the wallet you want to verify.": "Masuk, lalu buka dompet yang ingin Anda verifikasi.",
+  "Sign out of Windows and back in, then open Orien Wallet. Mining runs faster from then on.": "Keluar dari Windows lalu masuk kembali, kemudian buka Orien Wallet. Penambangan akan berjalan lebih cepat sejak saat itu.",
+  "Sign out to finish": "Keluar untuk menyelesaikan",
+  "Signing in": "Sedang masuk",
+  "Singapore dollar": "Dolar Singapura",
+  "Size (ORN)": "Jumlah (ORN)",
+  "Smallest swap: 0.00015 BTC, more when Bitcoin is busy": "Penukaran terkecil: 0,00015 BTC, lebih besar saat Bitcoin sedang sibuk",
+  "Smallest swap: 0.01 SOL. Fees: the usual Orien fee to lock the ORN (0.1%, at most 1 ORN); the buyer covers Solana's small fees. A swap takes about a minute. If a buyer never pays, your ORN come back on their own within a few hours.": "Penukaran terkecil: 0,01 SOL. Biaya: biaya standar Orien untuk mengunci ORN (0,1%, maksimal 1 ORN); pembeli menanggung biaya kecil Solana. Penukaran memakan waktu sekitar satu menit. Jika pembeli tidak pernah membayar, ORN Anda kembali sendiri dalam beberapa jam.",
+  "Smallest swap: 0.01 SOL. Nothing leaves your SOL wallet until a seller locks the ORN and you pay the QR code. You'll also need about 0.005 SOL for Solana's small fees, nearly all of which comes back.": "Penukaran terkecil: 0,01 SOL. Tidak ada yang keluar dari dompet SOL Anda sampai penjual mengunci ORN dan Anda membayar kode QR-nya. Anda juga perlu sekitar 0,005 SOL untuk biaya kecil Solana, yang hampir semuanya akan kembali.",
+  "So swap offers stay open, and payments and mining carry on. The screen can still turn off.": "Agar penawaran tukar tetap terbuka, serta pembayaran dan penambangan tetap berjalan. Layar tetap bisa mati.",
+  "Social Links": "Tautan Sosial",
+  "Socials": "Media Sosial",
+  "Someone": "Seseorang",
+  "Sort by": "Urutkan",
+  "South African rand": "Rand Afrika Selatan",
+  "South Korean won": "Won Korea Selatan",
+  "Speed": "Kecepatan",
+  "Stake returned": "Stake dikembalikan",
+  "Start Orien Wallet when you log in": "Jalankan Orien Wallet saat Anda masuk",
+  "Start mining": "Mulai menambang",
+  "Start mining to see your speed here.": "Mulai menambang untuk melihat kecepatan Anda di sini.",
+  "Start over": "Mulai ulang",
+  "Starting…": "Memulai…",
+  "State after it: every account's balance, as one fingerprint": "Status setelahnya: saldo setiap akun, sebagai satu sidik jari",
+  "Stay on this page for a moment:": "Tetap di halaman ini sebentar:",
+  "Stop mining": "Berhenti menambang",
+  "Stop replying": "Berhenti membalas",
+  "Stopped": "Dihentikan",
+  "Swap": "Tukar",
+  "Swap ORN and SOL directly with other people. About a minute, no fee.": "Tukar ORN dan SOL langsung dengan orang lain. Sekitar satu menit, tanpa biaya.",
+  "Swap SOL or Bitcoin for ORN in Orien Wallet on a computer, with this same wallet linked to it.": "Tukar SOL atau Bitcoin ke ORN di Orien Wallet pada komputer, dengan dompet yang sama tertaut ke sana.",
+  "Swap SOL or Bitcoin for ORN with other people, directly between your wallets, on the Swap screen. With SOL it takes a few minutes, and you pay from the SOL wallet you already have, such as Phantom.": "Tukar SOL atau Bitcoin ke ORN dengan orang lain, langsung antar dompet Anda, di layar Tukar. Dengan SOL hanya perlu beberapa menit, dan Anda membayar dari dompet SOL yang sudah Anda miliki, seperti Phantom.",
+  "Swap for it.": "Tukar untuk mendapatkannya.",
+  "Swap updates": "Pembaruan penukaran",
+  "Swaps": "Penukaran",
+  "Swaps and payments carry on from the menu bar": "Penukaran dan pembayaran tetap berjalan dari bilah menu",
+  "Swaps and payments carry on from the system tray": "Penukaran dan pembayaran tetap berjalan dari baki sistem",
+  "Swaps need the newest Orien Wallet. Update first: it takes a moment, and the app reopens by itself.": "Penukaran memerlukan Orien Wallet terbaru. Perbarui dulu: hanya sebentar, dan aplikasi akan terbuka kembali dengan sendirinya.",
+  "Swiss franc": "Franc Swiss",
+  "Take": "Ambil",
+  "Take an offer": "Ambil penawaran",
+  "Take the offer": "Ambil penawaran",
+  "Take this offer": "Ambil penawaran ini",
+  "Taken": "Diambil",
+  "Taking your Bitcoin back": "Mengambil kembali Bitcoin Anda",
+  "Tap": "Ketuk",
+  "Tap a message": "Ketuk pesan",
+  "Tap to reveal": "Ketuk untuk menampilkan",
+  "Tell Orien Network what's wrong with it: a scam, spam, abuse, or something illegal. Every report is reviewed.": "Beri tahu Orien Network apa masalahnya: penipuan, spam, pelecehan, atau sesuatu yang ilegal. Setiap laporan akan ditinjau.",
+  "Tell us what happened": "Beri tahu kami apa yang terjadi",
+  "Tell us what went wrong. Every report is read.": "Beri tahu kami apa yang salah. Setiap laporan akan dibaca.",
+  "Terms of Service": "Ketentuan Layanan",
+  "Terms of service": "Ketentuan layanan",
+  "Thanks, it's sent": "Terima kasih, sudah terkirim",
+  "Thanks. It will be reviewed.": "Terima kasih. Laporan akan ditinjau.",
+  "Thanks. We will look at it.": "Terima kasih. Kami akan memeriksanya.",
+  "That QR code isn't from Orien Wallet's Use my other device.": "Kode QR itu bukan dari fitur Gunakan perangkat lain saya di Orien Wallet.",
+  "That account can't be found.": "Akun tersebut tidak dapat ditemukan.",
+  "That doesn't look like a SOL address.": "Itu tidak terlihat seperti alamat SOL.",
+  "That email doesn't look right. Check it, or leave it empty.": "Email itu terlihat tidak benar. Periksa kembali, atau kosongkan saja.",
+  "That file isn't a picture this app can open.": "File itu bukan gambar yang dapat dibuka aplikasi ini.",
+  "That is not this wallet's password.": "Itu bukan kata sandi dompet ini.",
+  "That is this wallet's own address": "Itu adalah alamat dompet ini sendiri",
+  "That isn't a Bitcoin address.": "Itu bukan alamat Bitcoin.",
+  "That isn't a SOL address.": "Itu bukan alamat SOL.",
+  "That password isn't right. Check it and try again.": "Kata sandi itu salah. Periksa kembali dan coba lagi.",
+  "That post has been removed.": "Postingan itu telah dihapus.",
+  "That theme's picture couldn't be downloaded. Try again in a moment.": "Gambar tema tersebut tidak dapat diunduh. Coba lagi sebentar lagi.",
+  "That's a Bitcoin address. Swaps use SOL.": "Itu alamat Bitcoin. Penukaran menggunakan SOL.",
+  "That's a SOL address. To use SOL, choose SOL above.": "Itu alamat SOL. Untuk menggunakan SOL, pilih SOL di atas.",
+  "That's a long one. Keep a question under 1,000 characters.": "Terlalu panjang. Buat pertanyaan di bawah 1.000 karakter.",
+  "That's not this wallet's password.": "Itu bukan kata sandi dompet ini.",
+  "The ORN arrive in this wallet by themselves.": "ORN akan tiba di dompet ini dengan sendirinya.",
+  "The buyer": "Pembeli",
+  "The buyer is paying. This app takes the SOL as soon as it's locked, usually within a minute.": "Pembeli sedang membayar. Aplikasi ini mengambil SOL segera setelah terkunci, biasanya dalam satu menit.",
+  "The buyer · usually 30 to 60 minutes after they pay": "Pembeli · biasanya 30 hingga 60 menit setelah mereka membayar",
+  "The buyer · within a few hours": "Pembeli · dalam beberapa jam",
+  "The buyer's ORN delivered": "ORN pembeli telah dikirimkan",
+  "The chart begins as soon as the first ORN / SOL swap completes.": "Grafik dimulai segera setelah penukaran ORN / SOL pertama selesai.",
+  "The checkpoint before it": "Checkpoint sebelumnya",
+  "The extra over the price": "Tambahan di atas harga",
+  "The figures at the top show the network right now: ORN released, the next checkpoint, miners and hashrate.": "Angka di bagian atas menampilkan kondisi jaringan saat ini: ORN dirilis, checkpoint berikutnya, penambang, dan hashrate.",
+  "The latest 500": "500 terbaru",
+  "The pay screen opens by itself as soon as they accept.": "Layar pembayaran terbuka otomatis segera setelah mereka menerima.",
+  "The picture couldn't be saved on this device. Try a smaller one.": "Gambar tidak dapat disimpan di perangkat ini. Coba gambar yang lebih kecil.",
+  "The post shows its tips, without names. The author is told it was you.": "Postingan menampilkan jumlah tip tanpa nama. Penulis akan diberi tahu bahwa itu dari Anda.",
+  "The seller didn't take the SOL in time. Sending it back to your SOL wallet.": "Penjual tidak mengambil SOL tepat waktu. Mengembalikannya ke dompet SOL Anda.",
+  "The seller took the SOL. Claiming your ORN.": "Penjual telah mengambil SOL. Mengklaim ORN Anda.",
+  "The seller · done": "Penjual · selesai",
+  "The seller · usually 30 to 60 minutes after you pay": "Penjual · biasanya 30 hingga 60 menit setelah Anda membayar",
+  "The seller's wallet delivers your ORN once they take the SOL.": "Dompet penjual mengirimkan ORN Anda setelah mereka mengambil SOL.",
+  "The seller's wallet takes the Bitcoin once Bitcoin has confirmed your payment three times": "Dompet penjual mengambil Bitcoin setelah Bitcoin mengonfirmasi pembayaran Anda tiga kali",
+  "The swap board passes your offer to the buyer's wallet, and their reply back": "Papan tukar meneruskan penawaran Anda ke dompet pembeli, dan mengembalikan balasan mereka",
+  "The swap details open by itself as soon as your ORN are locked.": "Detail penukaran terbuka otomatis segera setelah ORN Anda terkunci.",
+  "The update didn't install": "Pembaruan gagal dipasang",
+  "The validators didn't answer about this hour's rewards just now. Try again in a moment.": "Validator belum merespons soal imbalan jam ini. Coba lagi sebentar lagi.",
+  "The website learns this wallet's address.": "Situs web akan mengetahui alamat dompet ini.",
+  "Their 64-character address": "Alamat 64 karakter mereka",
+  "Their Orien Wallet makes it once it has checked your offer. It tells this app where they'll pay the Bitcoin.": "Orien Wallet mereka membuatnya setelah memeriksa penawaran Anda. Ini memberi tahu aplikasi ini ke mana mereka akan membayar Bitcoin.",
+  "Their payment shows in your Activity within seconds.": "Pembayaran mereka muncul di Aktivitas Anda dalam hitungan detik.",
+  "Their wallet accepts by itself, usually within a few seconds.": "Dompet mereka menerima secara otomatis, biasanya dalam beberapa detik.",
+  "Their wallet accepts by itself, within 30 minutes.": "Dompet mereka menerima secara otomatis dalam 30 menit.",
+  "Theme": "Tema",
+  "Theme Store": "Toko Tema",
+  "Themes": "Tema",
+  "Themes made by the Orien community": "Tema buatan komunitas Orien",
+  "Then paste the buyer's reply code": "Lalu tempel kode balasan pembeli",
+  "They don't match": "Tidak cocok",
+  "They match": "Cocok",
+  "They match, send": "Cocok, kirim",
+  "They match, send my wallet": "Cocok, kirim dompet saya",
+  "They match, send my wallets": "Cocok, kirim semua dompet saya",
+  "This app takes the Bitcoin to your Bitcoin address, then delivers the buyer's ORN to them": "Aplikasi ini mengambil Bitcoin ke alamat Bitcoin Anda, lalu mengirimkan ORN pembeli kepada mereka",
+  "This app · about 30 minutes for Bitcoin to settle": "Aplikasi ini · sekitar 30 menit hingga Bitcoin selesai",
+  "This app · under a minute": "Aplikasi ini · kurang dari satu menit",
+  "This checkpoint's fingerprint": "Sidik jari checkpoint ini",
+  "This computer": "Komputer ini",
+  "This hour": "Jam ini",
+  "This is your listing.": "Ini adalah iklan Anda.",
+  "This person": "Orang ini",
+  "This profile isn't available.": "Profil ini tidak tersedia.",
+  "This theme's picture isn't on this computer yet. Try again in a moment.": "Gambar tema ini belum ada di komputer ini. Coba lagi sebentar lagi.",
+  "This version of Orien Wallet no longer works with the network. Press Update at the top to keep sending.": "Versi Orien Wallet ini tidak lagi kompatibel dengan jaringan. Tekan Perbarui di bagian atas agar tetap bisa mengirim.",
+  "This wallet": "Dompet ini",
+  "This wallet has a password. Type it to send.": "Dompet ini memiliki kata sandi. Ketik untuk mengirim.",
+  "This wallet proved it belongs to this profile": "Dompet ini telah membuktikan kepemilikannya pada profil ini",
+  "This wallet's password": "Kata sandi dompet ini",
+  "Time": "Waktu",
+  "Tip": "Beri tip",
+  "Tip someone": "Beri tip ke seseorang",
+  "Tips": "Tip",
+  "Tips are payments and can't be undone.": "Tip adalah pembayaran dan tidak dapat dibatalkan.",
+  "To": "Ke",
+  "Today": "Hari ini",
+  "Too late to pay safely: a payment now would come back to you once the lock ends, about 2 hours from now": "Terlalu lambat untuk membayar dengan aman: pembayaran sekarang akan kembali kepada Anda setelah kunci berakhir, sekitar 2 jam dari sekarang",
+  "Top miner of the day": "Penambang teratas hari ini",
+  "Top miners": "Penambang teratas",
+  "Top wallets": "Dompet teratas",
+  "Total": "Total",
+  "Total (SOL)": "Total (SOL)",
+  "Trade": "Transaksi",
+  "Trades": "Transaksi",
+  "Try": "Coba",
+  "Try again": "Coba lagi",
+  "Turkish lira": "Lira Turki",
+  "Turn on syncing": "Aktifkan sinkronisasi",
+  "Turn on syncing, so your contacts and wallet icons match on all your devices. It needs this wallet unlocked once.": "Aktifkan sinkronisasi agar kontak dan ikon dompet Anda sama di semua perangkat. Dompet ini perlu dibuka kuncinya sekali.",
+  "Type the 24 words of a wallet you have": "Ketik 24 kata dari dompet yang Anda miliki",
+  "Type the SOL or Bitcoin address you'll pay from, then click": "Ketik alamat SOL atau Bitcoin yang akan Anda gunakan untuk membayar, lalu klik",
+  "Type the password to send this wallet too.": "Ketik kata sandi untuk mengirim dompet ini juga.",
+  "Type the wallet's password if it has one.": "Ketik kata sandi dompet jika ada.",
+  "Type this wallet's password to approve this order.": "Ketik kata sandi dompet ini untuk menyetujui pesanan ini.",
+  "Type this wallet's password to approve this swap.": "Ketik kata sandi dompet ini untuk menyetujui penukaran ini.",
+  "Type this wallet's password to see its words.": "Ketik kata sandi dompet ini untuk melihat kata-katanya.",
+  "Type this wallet's password to sign in.": "Ketik kata sandi dompet ini untuk masuk.",
+  "Type your wallet password": "Ketik kata sandi dompet Anda",
+  "Type your wallet password below, so this app can claim your ORN": "Ketik kata sandi dompet Anda di bawah agar aplikasi ini dapat mengklaim ORN Anda",
+  "Type your wallet password below, so this app can finish the swap": "Ketik kata sandi dompet Anda di bawah agar aplikasi ini dapat menyelesaikan penukaran",
+  "Type your wallet password to approve this swap.": "Ketik kata sandi dompet Anda untuk menyetujui penukaran ini.",
+  "US dollar": "Dolar AS",
+  "Unban": "Cabut blokir permanen",
+  "Under": "Di bawah",
+  "Undo": "Urungkan",
+  "Unlock": "Buka kunci",
+  "Unmute the group chat": "Bunyikan obrolan grup",
+  "Unstaked": "Stake dicabut",
+  "Up to four. The first is the one shown on your listing's card.": "Maksimal empat. Yang pertama akan ditampilkan pada kartu iklan Anda.",
+  "Update automatically": "Perbarui otomatis",
+  "Update failed": "Pembaruan gagal",
+  "Update failed, try again": "Pembaruan gagal, coba lagi",
+  "Update needed": "Pembaruan diperlukan",
+  "Update now": "Perbarui sekarang",
+  "Update to Latest": "Perbarui ke Versi Terbaru",
+  "Updates as they happen, and chat with the community": "Pembaruan secara langsung, dan obrolan bersama komunitas",
+  "Updating": "Memperbarui",
+  "Use": "Gunakan",
+  "Use Orien Wallet in your browser": "Gunakan Orien Wallet di browser Anda",
+  "Use my other device": "Gunakan perangkat lain saya",
+  "Use my recovery phrase": "Gunakan frasa pemulihan saya",
+  "Use the reply": "Gunakan balasan",
+  "Use your wallets on another device": "Gunakan dompet Anda di perangkat lain",
+  "User Guide": "Panduan Pengguna",
+  "Username": "Nama pengguna",
+  "Validator fees": "Biaya validator",
+  "Validators": "Validator",
+  "Verified": "Terverifikasi",
+  "Verified wallet": "Dompet terverifikasi",
+  "Verify": "Verifikasi",
+  "Verify a wallet": "Verifikasi dompet",
+  "Verify a wallet and people who pay it see your name with it.": "Verifikasi dompet agar orang yang membayarnya melihat nama Anda bersamanya.",
+  "Verify a wallet to post and see your mining here.": "Verifikasi dompet untuk memposting dan melihat penambangan Anda di sini.",
+  "Verify more wallets, and choose where you're paid": "Verifikasi dompet lain, dan pilih tempat menerima pembayaran",
+  "Verify one of your wallets on your Orien Network profile to post, reply and react.": "Verifikasi salah satu dompet Anda di profil Orien Network untuk memposting, membalas, dan memberi reaksi.",
+  "Verify one of your wallets to chat, reply or react.": "Verifikasi salah satu dompet Anda untuk mengobrol, membalas, atau memberi reaksi.",
+  "Verify one of your wallets to chat. Anyone can read along.": "Verifikasi salah satu dompet Anda untuk mengobrol. Siapa saja dapat ikut membaca.",
+  "Verify one of your wallets to react.": "Verifikasi salah satu dompet Anda untuk memberi reaksi.",
+  "Verify one of your wallets to reply.": "Verifikasi salah satu dompet Anda untuk membalas.",
+  "Verify this wallet": "Verifikasi dompet ini",
+  "Verify this wallet to offer swaps": "Verifikasi dompet ini untuk menawarkan penukaran",
+  "Verify this wallet to place sell orders": "Verifikasi dompet ini untuk membuat pesanan jual",
+  "Verifying shows everyone the wallet is yours, including its balance. It lets you post, sell, swap and receive tips.": "Verifikasi menunjukkan kepada semua orang bahwa dompet ini milik Anda, termasuk saldonya. Ini memungkinkan Anda memposting, menjual, menukar, dan menerima tip.",
+  "Verifying…": "Memverifikasi…",
+  "Verifying… usually within a minute": "Memverifikasi… biasanya dalam satu menit",
+  "Version": "Versi",
+  "Videos about Orien": "Video tentang Orien",
+  "View": "Lihat",
+  "View Profile": "Lihat Profil",
+  "View all": "Lihat semua",
+  "View profile": "Lihat profil",
+  "Waiting": "Menunggu",
+  "Waiting for mining to get going.": "Menunggu penambangan mulai berjalan.",
+  "Waiting for validators": "Menunggu validator",
+  "Waiting for your other device": "Menunggu perangkat lain Anda",
+  "Waiting for your wallets": "Menunggu dompet Anda",
+  "Wallet": "Dompet",
+  "Wallet password": "Kata sandi dompet",
+  "Wallet password, so this app can sign the next step": "Kata sandi dompet, agar aplikasi ini dapat menandatangani langkah berikutnya",
+  "Wallet password, to approve this sale": "Kata sandi dompet, untuk menyetujui penjualan ini",
+  "Wallet password, to approve this swap": "Kata sandi dompet, untuk menyetujui penukaran ini",
+  "Wallet settings": "Pengaturan dompet",
+  "Wallets": "Dompet",
+  "Wallets holding ORN": "Dompet pemilik ORN",
+  "Watch the preview as you go, then click": "Lihat pratinjaunya sambil mengatur, lalu klik",
+  "We'll look into it, and write to you if we need to know more.": "Kami akan memeriksanya, dan menghubungi Anda jika memerlukan informasi lebih lanjut.",
+  "We'll look into it.": "Kami akan memeriksanya.",
+  "Welcome": "Selamat datang",
+  "Welcome to Orien Wallet": "Selamat datang di Orien Wallet",
+  "What are you offering?": "Apa yang Anda tawarkan?",
+  "What happens:": "Yang terjadi:",
+  "What is wrong with this post?": "Apa masalah dengan postingan ini?",
+  "What is wrong with this theme?": "Apa masalah dengan tema ini?",
+  "What the buyer gets, how long it takes, anything they should know.": "Apa yang didapat pembeli, berapa lama waktunya, dan hal lain yang perlu mereka ketahui.",
+  "What we'll send": "Yang akan kami kirim",
+  "What went wrong?": "Apa yang salah?",
+  "What's happening?": "Apa yang sedang terjadi?",
+  "When an offer is taken and as swaps finish": "Saat penawaran diambil dan saat penukaran selesai",
+  "When someone sends you ORN": "Saat seseorang mengirimi Anda ORN",
+  "When the seller answers, pay the exact amount shown from your SOL or Bitcoin wallet.": "Saat penjual merespons, bayar jumlah tepat yang ditampilkan dari dompet SOL atau Bitcoin Anda.",
+  "Where did it happen?": "Di mana itu terjadi?",
+  "Where the Bitcoin should go": "Ke mana Bitcoin harus dikirim",
+  "Where the SOL should go, such as your Phantom wallet": "Ke mana SOL harus dikirim, seperti dompet Phantom Anda",
+  "Where was it?": "Di mana lokasinya?",
+  "Where your Bitcoin comes back if the swap stops": "Ke mana Bitcoin Anda kembali jika penukaran berhenti",
+  "Where your SOL should go (e.g. Phantom)": "Ke mana SOL Anda harus dikirim (mis. Phantom)",
+  "Where your SOL should go, such as your Phantom wallet": "Ke mana SOL Anda harus dikirim, seperti dompet Phantom Anda",
+  "While it's open, Orien Wallet does each of its steps for you as soon as it can.": "Selama terbuka, Orien Wallet menjalankan setiap langkahnya untuk Anda secepat mungkin.",
+  "Who can message you": "Siapa yang dapat mengirim pesan kepada Anda",
+  "Who is this?": "Siapa ini?",
+  "With their names and icons. Your new device asks there whether to add a password.": "Beserta nama dan ikonnya. Perangkat baru Anda akan menanyakan apakah ingin menambahkan kata sandi.",
+  "Withdraw": "Tarik",
+  "Within a minute it shows": "Dalam satu menit akan tampil",
+  "Work and things offered for ORN. You pay the seller straight from your wallet: the Market never holds anyone's coins.": "Jasa dan barang yang ditawarkan untuk ORN. Anda membayar penjual langsung dari dompet Anda: Pasar tidak pernah menahan koin siapa pun.",
+  "Working, keep this page open": "Sedang memproses, biarkan halaman ini terbuka",
+  "Write the amount in ORN, like 200 or 12.5.": "Tulis jumlah dalam ORN, seperti 200 atau 12.5.",
+  "Write the price in ORN, like 200 or 12.5.": "Tulis harga dalam ORN, seperti 200 atau 12.5.",
+  "Write them down in order, on paper, and keep it somewhere safe.": "Tulis secara berurutan di atas kertas, lalu simpan di tempat yang aman.",
+  "Write these 24 words on paper, in order, and keep them somewhere safe. They are the only way back into this wallet if this device is lost. Anyone who sees them can spend your ORN.": "Tulis 24 kata ini di atas kertas secara berurutan, lalu simpan di tempat yang aman. Ini satu-satunya cara masuk kembali ke dompet ini jika perangkat ini hilang. Siapa pun yang melihatnya dapat membelanjakan ORN Anda.",
+  "Yesterday": "Kemarin",
+  "You": "Anda",
+  "You and the buyer · up to you": "Anda dan pembeli · terserah Anda",
+  "You approve the sale once, now. When someone takes your offer, your wallet accepts it within seconds, even with the window closed. Keep Orien Wallet running.": "Anda menyetujui penjualan sekali, sekarang. Saat seseorang mengambil penawaran Anda, dompet Anda menerimanya dalam hitungan detik, meski jendela ditutup. Biarkan Orien Wallet tetap berjalan.",
+  "You buy": "Anda membeli",
+  "You can't send in the group chat right now. You can still read along.": "Anda tidak dapat mengirim pesan di obrolan grup saat ini. Anda masih bisa ikut membaca.",
+  "You get": "Anda menerima",
+  "You have 24 themes, as many as there's room for. Delete one in Appearance first.": "Anda memiliki 24 tema, batas maksimal yang tersedia. Hapus satu tema di Tampilan terlebih dahulu.",
+  "You haven't blocked anyone.": "Anda belum memblokir siapa pun.",
+  "You need": "Anda memerlukan",
+  "You need to be signed in to Orien Network with a verified wallet.": "Anda harus masuk ke Orien Network dengan dompet terverifikasi.",
+  "You need to be signed in to Orien Network. Verifying a wallet isn't needed.": "Anda harus masuk ke Orien Network. Verifikasi dompet tidak diperlukan.",
+  "You pay": "Anda membayar",
+  "You sell": "Anda menjual",
+  "You send the buyer the offer code, and paste in the reply code they send back": "Anda mengirim kode penawaran kepada pembeli, lalu menempelkan kode balasan yang mereka kirim kembali",
+  "You · now": "Anda · sekarang",
+  "You · pay within a few hours": "Anda · bayar dalam beberapa jam",
+  "You · pay within the next few hours": "Anda · bayar dalam beberapa jam ke depan",
+  "You · stay on this page until Step 2 finishes": "Anda · tetap di halaman ini sampai Langkah 2 selesai",
+  "You · within a few hours": "Anda · dalam beberapa jam",
+  "You're up to date": "Aplikasi Anda sudah terbaru",
+  "Your 24 words, separated by spaces": "24 kata Anda, dipisahkan dengan spasi",
+  "Your Bitcoin address": "Alamat Bitcoin Anda",
+  "Your Discord username": "Nama pengguna Discord Anda",
+  "Your ORN stay safe:": "ORN Anda tetap aman:",
+  "Your Phantom / SOL wallet (for refunds & leftovers)": "Dompet Phantom / SOL Anda (untuk pengembalian dana & sisa)",
+  "Your Phantom / SOL wallet address": "Alamat dompet Phantom / SOL Anda",
+  "Your SOL address": "Alamat SOL Anda",
+  "Your SOL address (the wallet you'll pay from)": "Alamat SOL Anda (dompet yang digunakan untuk membayar)",
+  "Your SOL is locked for the seller. Their wallet takes it and your ORN arrive, usually within a minute.": "SOL Anda terkunci untuk penjual. Dompet mereka mengambilnya dan ORN Anda tiba, biasanya dalam satu menit.",
+  "Your SOL payout address": "Alamat penerimaan SOL Anda",
+  "Your SOL stays locked safely on Solana until a seller fills it, you cancel in one click, or it expires after 7 days and refunds automatically.": "SOL Anda tetap terkunci aman di Solana sampai penjual memenuhinya, Anda membatalkannya dengan satu klik, atau kedaluwarsa setelah 7 hari dan kembali otomatis.",
+  "Your SOL wallet (for refunds & leftovers)": "Dompet SOL Anda (untuk pengembalian dana & sisa)",
+  "Your SOL wallet address": "Alamat dompet SOL Anda",
+  "Your SOL went back to your SOL wallet.": "SOL Anda telah kembali ke dompet SOL Anda.",
+  "Your Telegram username": "Nama pengguna Telegram Anda",
+  "Your X username": "Nama pengguna X Anda",
+  "Your account is for the Community, the Market and swaps. Your wallets stay in this app.": "Akun Anda untuk Komunitas, Pasar, dan penukaran. Dompet Anda tetap tersimpan di aplikasi ini.",
+  "Your address": "Alamat Anda",
+  "Your buy order is live on the book. When someone sells into it, this app opens the pay screen.": "Pesanan beli Anda aktif di buku pesanan. Saat seseorang menjual ke pesanan ini, aplikasi ini membuka layar pembayaran.",
+  "Your buy order is live on the order book. You are all set to leave this page or close Orien Wallet. Any extra SOL has been sent back to your wallet, and when a seller takes your order your ORN will arrive automatically.": "Pesanan beli Anda aktif di buku pesanan. Anda aman meninggalkan halaman ini atau menutup Orien Wallet. Kelebihan SOL telah dikirim kembali ke dompet Anda, dan saat penjual mengambil pesanan Anda, ORN Anda akan tiba secara otomatis.",
+  "Your devices": "Perangkat Anda",
+  "Your email": "Email Anda",
+  "Your language follows you to your other devices.": "Bahasa Anda akan mengikuti Anda ke perangkat lain.",
+  "Your listings": "Iklan Anda",
+  "Your offer is live": "Penawaran Anda aktif",
+  "Your orders & swaps": "Pesanan & penukaran Anda",
+  "Your picture": "Foto Anda",
+  "Your profile": "Profil Anda",
+  "Your recovery phrase": "Frasa pemulihan Anda",
+  "Your sell order is live on the book. When someone buys it, your wallet runs the swap by itself.": "Pesanan jual Anda aktif di buku pesanan. Saat seseorang membelinya, dompet Anda menjalankan penukaran secara otomatis.",
+  "Your share": "Bagian Anda",
+  "Your share of each hour's new ORN": "Bagian Anda dari ORN baru setiap jam",
+  "Your share of the hour's fees": "Bagian Anda dari biaya jam ini",
+  "Your share of the hour's new ORN": "Bagian Anda dari ORN baru jam ini",
+  "Your speed": "Kecepatan Anda",
+  "Your swaps": "Penukaran Anda",
+  "Your theme follows you to your other devices.": "Tema Anda akan mengikuti Anda ke perangkat lain.",
+  "Your turn: confirm with your wallet password so this app can finish it": "Giliran Anda: konfirmasi dengan kata sandi dompet agar aplikasi ini dapat menyelesaikannya",
+  "Your username": "Nama pengguna Anda",
+  "Your username, as others see it": "Nama pengguna Anda, seperti yang dilihat orang lain",
+  "Your wallet": "Dompet Anda",
+  "Your wallet is locking the ORN now. Keep Orien Wallet running while the buyer pays.": "Dompet Anda sedang mengunci ORN sekarang. Biarkan Orien Wallet tetap berjalan saat pembeli membayar.",
+  "Your wallet is on its way": "Dompet Anda sedang dikirim",
+  "Your wallet locks the ORN automatically when someone buys your offer. Keep Orien Wallet running in the menu bar or tray.": "Dompet Anda mengunci ORN secara otomatis saat seseorang membeli penawaran Anda. Biarkan Orien Wallet tetap berjalan di bilah menu atau baki sistem.",
+  "Your wallets": "Dompet Anda",
+  "Your wallets arrive on the new device by themselves.": "Dompet Anda akan tiba di perangkat baru dengan sendirinya.",
+  "Your wallets travel encrypted, straight between your two devices.": "Dompet Anda dikirim secara terenkripsi, langsung antar kedua perangkat Anda.",
+  "Yours": "Milik Anda",
+  "a buyer": "pembeli",
+  "a globe": "bola dunia",
+  "a minute": "satu menit",
+  "a pickaxe": "beliung",
+  "a speech bubble": "balon ucapan",
+  "a telescope": "teleskop",
+  "about 6 hours after your reply": "sekitar 6 jam setelah balasan Anda",
+  "also replied to a post you replied to": "juga membalas postingan yang Anda balas",
+  "an arrow pointing down": "panah mengarah ke bawah",
+  "an arrow pointing up": "panah mengarah ke atas",
+  "and": "dan",
+  "and choose": "dan pilih",
+  "and its ORN stay in it. This only takes it off the list.": "dan ORN di dalamnya tetap aman. Ini hanya menghapusnya dari daftar.",
+  "any moment": "sebentar lagi",
+  "by Pablo Stanley, drawn with": "oleh Pablo Stanley, digambar dengan",
+  "claim your ORN": "klaim ORN Anda",
+  "covers Solana's small fees; nearly all of it comes back to your SOL wallet when the swap ends.": "menutup biaya kecil Solana; hampir semuanya kembali ke dompet SOL Anda saat penukaran selesai.",
+  "covers Solana's small rent and fees; nearly all of it returns to your SOL wallet automatically.": "menutup biaya sewa dan biaya kecil Solana; hampir semuanya kembali ke dompet SOL Anda secara otomatis.",
+  "estimated": "perkiraan",
+  "finish the swap": "selesaikan penukaran",
+  "for Orien's own. Each card shows the theme on a small copy of the app.": "untuk tema buatan Orien sendiri. Setiap kartu menampilkan tema pada pratinjau kecil aplikasi.",
+  "for each share": "untuk setiap share",
+  "for themes people made, or": "untuk tema buatan orang lain, atau",
+  "in Settings,": "di Pengaturan,",
+  "in a row": "berturut-turut",
+  "is buying from you": "membeli dari Anda",
+  "it goes back to the SOL address below within about an hour.": "akan kembali ke alamat SOL di bawah dalam sekitar satu jam.",
+  "just don't send: nothing has left your wallets.": "jangan kirim saja: tidak ada yang keluar dari dompet Anda.",
+  "just now": "baru saja",
+  "mined their first ORN.": "menambang ORN pertama mereka.",
+  "new ORN": "ORN baru",
+  "none yet": "belum ada",
+  "on one you like.": "pada yang Anda suka.",
+  "on their own": "dengan sendirinya",
+  "orien.network can't be reached right now. Check your connection and try again.": "orien.network tidak dapat dijangkau saat ini. Periksa koneksi Anda dan coba lagi.",
+  "passed it mining.": "melampauinya saat menambang.",
+  "payments sent": "pembayaran terkirim",
+  "per ORN": "per ORN",
+  "posted about you:": "memposting tentang Anda:",
+  "rank": "peringkat",
+  "replied to the network's post about you": "membalas postingan jaringan tentang Anda",
+  "replied to you in the Orien group chat": "membalas Anda di obrolan grup Orien",
+  "replied to your post": "membalas postingan Anda",
+  "replied to your reply": "membalas balasan Anda",
+  "scan or type": "pindai atau ketik",
+  "shares an hour": "share per jam",
+  "shows mining rewards and validator fees.": "menampilkan imbalan penambangan dan biaya validator.",
+  "slider, or click": "penggeser, atau klik",
+  "staked": "di-stake",
+  "the Bitcoin in any Bitcoin wallet, plus its sending fee. The usual Orien fee (0.1%, at most 1 ORN) comes out of the ORN you receive.": "Bitcoin di dompet Bitcoin mana pun, ditambah biaya pengirimannya. Biaya standar Orien (0,1%, maksimal 1 ORN) dipotong dari ORN yang Anda terima.",
+  "the ORN in this wallet, plus the usual Orien fee (0.1%, at most 1 ORN). Bitcoin's network fee comes out of what you receive.": "ORN di dompet ini, ditambah biaya standar Orien (0,1%, maksimal 1 ORN). Biaya jaringan Bitcoin dipotong dari jumlah yang Anda terima.",
+  "the ORN in this wallet, plus the usual Orien fee (0.1%, at most 1 ORN). The buyer covers Solana's small fees.": "ORN di dompet ini, ditambah biaya standar Orien (0,1%, maksimal 1 ORN). Pembeli menanggung biaya kecil Solana.",
+  "the ORN in this wallet, plus the usual Orien fee (0.1%, at most 1 ORN). You don't need any SOL.": "ORN di dompet ini, ditambah biaya standar Orien (0,1%, maksimal 1 ORN). Anda tidak memerlukan SOL.",
+  "the SOL in your own SOL wallet, plus about 0.005 SOL for Solana's small fees, nearly all of which comes back. The usual Orien fee (0.1%, at most 1 ORN) comes out of the ORN you receive.": "SOL di dompet SOL Anda sendiri, ditambah sekitar 0,005 SOL untuk biaya kecil Solana, yang hampir semuanya akan kembali. Biaya standar Orien (0,1%, maksimal 1 ORN) dipotong dari ORN yang Anda terima.",
+  "the buy offer is yours": "penawaran beli ini milik Anda",
+  "the buyer": "pembeli",
+  "the buyer's SOL is already locked on Solana. Your wallet reserves it, locks your ORN, and both sides settle automatically in about a minute without waiting on the buyer.": "SOL pembeli sudah terkunci di Solana. Dompet Anda mencadangkannya, mengunci ORN Anda, dan kedua sisi selesai secara otomatis dalam sekitar satu menit tanpa menunggu pembeli.",
+  "the code it shows.": "kode yang ditampilkannya.",
+  "the gear at the top left": "ikon roda gigi di kiri atas",
+  "the menu bar": "bilah menu",
+  "the network's post about you": "postingan jaringan tentang Anda",
+  "the offer is yours": "penawaran ini milik Anda",
+  "the seller": "penjual",
+  "the seller's lock ends": "kunci penjual berakhir",
+  "the seller's wallet accepts within seconds and locks the ORN for you. This app then shows the exact SOL to send from your SOL wallet, such as Phantom, with a QR code. The swap finishes by itself, usually within a minute.": "dompet penjual menerima dalam hitungan detik dan mengunci ORN untuk Anda. Aplikasi ini kemudian menampilkan jumlah SOL tepat yang harus dikirim dari dompet SOL Anda, seperti Phantom, beserta kode QR. Penukaran selesai sendiri, biasanya dalam satu menit.",
+  "the system tray": "baki sistem",
+  "there too.": "di sana juga.",
+  "there. Your wallets arrive here by themselves.": "di sana. Dompet Anda akan tiba di sini dengan sendirinya.",
+  "this app takes it back to the address below after about 6 hours.": "aplikasi ini mengembalikannya ke alamat di bawah setelah sekitar 6 jam.",
+  "this app verifies the buyer's SOL is reserved for your address on Solana before locking your ORN, then both sides settle in about a minute.": "aplikasi ini memverifikasi SOL pembeli sudah dicadangkan untuk alamat Anda di Solana sebelum mengunci ORN Anda, lalu kedua sisi selesai dalam sekitar satu menit.",
+  "this wallet": "dompet ini",
+  "to find your computer's sweet spot.": "untuk menemukan titik optimal komputer Anda.",
+  "to keep it. It joins your themes in Appearance and is worn at once.": "untuk menyimpannya. Tema ini masuk ke daftar tema Anda di Tampilan dan langsung diterapkan.",
+  "to see the whole app in it. Click": "untuk melihat seluruh aplikasi menggunakannya. Klik",
+  "to this Bitcoin address": "ke alamat Bitcoin ini",
+  "to this SOL address": "ke alamat SOL ini",
+  "took your offer": "mengambil penawaran Anda",
+  "top miner": "penambang teratas",
+  "two arrows": "dua panah",
+  "two people": "dua orang",
+  "type": "ketik",
+  "under a second": "kurang dari sedetik",
+  "wrote to you": "mengirim pesan kepada Anda",
+  "your ORN come back to you on their own within a few hours. You don't need to do anything.": "ORN Anda akan kembali kepada Anda dengan sendirinya dalam beberapa jam. Anda tidak perlu melakukan apa pun.",
+  "your ORN come back to your wallet on their own within 12 hours.": "ORN Anda akan kembali ke dompet Anda dengan sendirinya dalam 12 jam.",
+  "your ORN come back to your wallet on their own within a few hours.": "ORN Anda akan kembali ke dompet Anda dengan sendirinya dalam beberapa jam.",
+  "your password": "kata sandi Anda",
+  "your post": "postingan Anda",
+  "your reply": "balasan Anda",
+  "your wallet locks the ORN on the network": "dompet Anda mengunci ORN di jaringan",
+  "your wallet locks your ORN for the buyer within seconds. Their wallet then prompts them to send the SOL, and your wallet collects it and delivers their ORN automatically, usually within a minute.": "dompet Anda mengunci ORN untuk pembeli dalam hitungan detik. Dompet mereka kemudian meminta mereka mengirim SOL, lalu dompet Anda mengambilnya dan mengirimkan ORN mereka secara otomatis, biasanya dalam satu menit.",
+  "your wallet locks your ORN for the buyer within seconds. Their wallet then sends the Bitcoin, and once it confirms, your wallet collects it and delivers their ORN automatically.": "dompet Anda mengunci ORN untuk pembeli dalam hitungan detik. Dompet mereka kemudian mengirim Bitcoin, dan setelah terkonfirmasi, dompet Anda mengambilnya dan mengirimkan ORN mereka secara otomatis.",
+  "your wallet never locks your ORN until the buyer's SOL is reserved for your address on Solana.": "dompet Anda tidak pernah mengunci ORN sampai SOL pembeli dicadangkan untuk alamat Anda di Solana.",
+  "your wallet password": "kata sandi dompet Anda",
+  "✓ Complete": "✓ Selesai",
+  "✓ Live on the order book (safe to leave)": "✓ Aktif di buku pesanan (aman ditinggalkan)",
+  "✓ Valid address": "✓ Alamat valid",
+  "_patterns": [
+    [
+      "^Sell ([0-9.,]+) ORN for ([0-9.,]+) SOL(.*)$",
+      "Jual {0} ORN untuk {1} SOL{2}"
+    ],
+    [
+      "^Buy ([0-9.,]+) ORN for ([0-9.,]+) SOL(.*)$",
+      "Beli {0} ORN untuk {1} SOL{2}"
+    ],
+    [
+      "^Sell ([0-9.,]+) ORN for ([0-9.,]+) BTC(.*)$",
+      "Jual {0} ORN untuk {1} BTC{2}"
+    ],
+    [
+      "^Buy ([0-9.,]+) ORN for ([0-9.,]+) BTC(.*)$",
+      "Beli {0} ORN untuk {1} BTC{2}"
+    ],
+    [
+      "^(\\d+) open$",
+      "{0} terbuka"
+    ],
+    [
+      "^Price \\(([A-Z]+)\\)$",
+      "Harga ({0})"
+    ],
+    [
+      "^Total \\(([A-Z]+)\\)$",
+      "Total ({0})"
+    ],
+    [
+      "^Last swap · (.+)$",
+      "Penukaran terakhir · {0}"
+    ],
+    [
+      "^Lock with (.+)$",
+      "Kunci dengan {0}"
+    ],
+    [
+      "^Received so far: ([0-9.,]+) of ([0-9.,]+) SOL$",
+      "Diterima sejauh ini: {0} dari {1} SOL"
+    ],
+    [
+      "^Done: ([0-9.,]+) ORN are in your wallet\\.$",
+      "Selesai: {0} ORN sudah masuk ke dompet Anda."
+    ],
+    [
+      "^Done: ([0-9.,]+) SOL is in your SOL wallet\\.$",
+      "Selesai: {0} SOL sudah masuk ke dompet SOL Anda."
+    ],
+    [
+      "^Paid: ([0-9.,]+) SOL is on its way to your SOL address\\.$",
+      "Dibayar: {0} SOL sedang menuju ke alamat SOL Anda."
+    ],
+    [
+      "^Send exactly ([0-9.,]+) SOL from your SOL wallet to fund this buy order\\. Once funded, it stays live on the order book even when Orien Wallet is closed\\.$",
+      "Kirim tepat {0} SOL dari dompet SOL Anda untuk mendanai pesanan beli ini. Setelah didanai, pesanan tetap aktif di buku pesanan meski Orien Wallet ditutup."
+    ],
+    [
+      "^The seller accepted\\. Send exactly ([0-9.,]+) SOL from your SOL wallet to the address below\\. This app sees it by itself\\.$",
+      "Penjual telah menerima. Kirim tepat {0} SOL dari dompet SOL Anda ke alamat di bawah. Aplikasi ini mendeteksinya secara otomatis."
+    ],
+    [
+      "^Your ORN are locked\\. You can leave this page; ([0-9.,]+) SOL arrives in your SOL wallet in about a minute\\.$",
+      "ORN Anda terkunci. Anda boleh meninggalkan halaman ini; {0} SOL akan tiba di dompet SOL Anda dalam sekitar satu menit."
+    ],
+    [
+      "^Send ([0-9.,]+) SOL from your SOL wallet$",
+      "Kirim {0} SOL dari dompet SOL Anda"
+    ],
+    [
+      "^Locking your ([0-9.,]+ (?:SOL|BTC)) on Solana and adding your order to the book$",
+      "Mengunci {0} Anda di Solana dan menambahkan pesanan Anda ke buku pesanan"
+    ],
+    [
+      "^Waiting on the order book for a seller to fill ([0-9.,]+ ORN)$",
+      "Menunggu penjual di buku pesanan untuk memenuhi {0}"
+    ],
+    [
+      "^([0-9.,]+ ORN) delivered to your wallet$",
+      "{0} dikirimkan ke dompet Anda"
+    ],
+    [
+      "^Locking the buyer's ([0-9.,]+ SOL) on Solana for your address$",
+      "Mengunci {0} pembeli di Solana untuk alamat Anda"
+    ],
+    [
+      "^Locking your ([0-9.,]+ ORN) on Orien$",
+      "Mengunci {0} Anda di Orien"
+    ],
+    [
+      "^Sending ([0-9.,]+ SOL) to your SOL wallet$",
+      "Mengirim {0} ke dompet SOL Anda"
+    ],
+    [
+      "^([0-9.,]+ SOL) in your SOL wallet$",
+      "{0} di dompet SOL Anda"
+    ],
+    [
+      "^([0-9.,]+ ORN) in your wallet$",
+      "{0} di dompet Anda"
+    ],
+    [
+      "^Your ([0-9.,]+ ORN) are locked for the buyer$",
+      "{0} Anda terkunci untuk pembeli"
+    ],
+    [
+      "^The buyer pays ([0-9.,]+ (?:SOL|BTC))$",
+      "Pembeli membayar {0}"
+    ],
+    [
+      "^The seller locked ([0-9.,]+ ORN) for you$",
+      "Penjual mengunci {0} untuk Anda"
+    ],
+    [
+      "^([0-9.,]+ (?:SOL|BTC)) on its way to your SOL address$",
+      "{0} sedang menuju ke alamat SOL Anda"
+    ],
+    [
+      "^Your SOL is locked for the seller, then your ([0-9.,]+ ORN) arrive$",
+      "SOL Anda terkunci untuk penjual, lalu {0} Anda tiba"
+    ],
+    [
+      "^Your turn: send ([0-9.,]+ (?:SOL|BTC)) to fund$",
+      "Giliran Anda: kirim {0} untuk mendanai"
+    ],
+    [
+      "^Your turn: pay ([0-9.,]+ (?:SOL|BTC)) now$",
+      "Giliran Anda: bayar {0} sekarang"
+    ],
+    [
+      "^Your turn: approve with (.+) to finish$",
+      "Giliran Anda: setujui dengan {0} untuk menyelesaikan"
+    ],
+    [
+      "^Step (\\d+) of (\\d+) · (.+)$",
+      "Langkah {0} dari {1} · {2}"
+    ],
+    [
+      "^Stopped: (.+)\\.$",
+      "Dihentikan: {0}."
+    ],
+    [
+      "^Fund your buy order: send ([0-9.,]+ SOL)$",
+      "Danai pesanan beli Anda: kirim {0}"
+    ],
+    [
+      "^Locks your SOL on Solana to buy ([0-9.,]+) ORN$",
+      "Mengunci SOL Anda di Solana untuk membeli {0} ORN"
+    ],
+    [
+      "^Swap in progress: (?:buying|selling) ([0-9.,]+) ORN$",
+      "Penukaran berlangsung: {0} ORN"
+    ],
+    [
+      "^Approve to get your ([0-9.,]+) ORN$",
+      "Setujui untuk mendapatkan {0} ORN Anda"
+    ],
+    [
+      "^Confirm with (.+) below, so this app can finish the swap$",
+      "Konfirmasi dengan {0} di bawah agar aplikasi ini dapat menyelesaikan penukaran"
+    ],
+    [
+      "^Confirm with (.+) below, so this app can claim your ORN$",
+      "Konfirmasi dengan {0} di bawah agar aplikasi ini dapat mengklaim ORN Anda"
+    ],
+    [
+      "^In (\\d+) min$",
+      "Dalam {0} mnt"
+    ],
+    [
+      "^in (\\d+) min$",
+      "dalam {0} mnt"
+    ],
+    [
+      "^In (\\d+) s$",
+      "Dalam {0} dtk"
+    ],
+    [
+      "^in (\\d+) s$",
+      "dalam {0} dtk"
+    ],
+    [
+      "^(\\d+) of (\\d+) running$",
+      "{0} dari {1} berjalan"
+    ],
+    [
+      "^([0-9,]+) miners? paid$",
+      "{0} penambang dibayar"
+    ],
+    [
+      "^Checkpoint (\\d+)$",
+      "Checkpoint {0}"
+    ],
+    [
+      "^Running · into (.+)$",
+      "Berjalan · ke {0}"
+    ],
+    [
+      "^([0-9,]+) found$",
+      "{0} ditemukan"
+    ],
+    [
+      "^Locked payment from (.+)$",
+      "Pembayaran terkunci dari {0}"
+    ],
+    [
+      "^Locked payment to (.+)$",
+      "Pembayaran terkunci ke {0}"
+    ],
+    [
+      "^From (.+)$",
+      "Dari {0}"
+    ],
+    [
+      "^To (.+)$",
+      "Ke {0}"
+    ],
+    [
+      "^(\\d+) min ago · (\\d+) payments? · agreed by (\\d+) of (\\d+)$",
+      "{0} mnt lalu · {1} pembayaran · disepakati {2} dari {3}"
+    ],
+    [
+      "^(\\d+) h ago · (\\d+) payments? · agreed by (\\d+) of (\\d+)$",
+      "{0} jam lalu · {1} pembayaran · disepakati {2} dari {3}"
+    ],
+    [
+      "^(\\d+) d ago · (\\d+) payments? · agreed by (\\d+) of (\\d+)$",
+      "{0} hari lalu · {1} pembayaran · disepakati {2} dari {3}"
+    ],
+    [
+      "^(\\d+) min ago · agreed by (\\d+) of (\\d+)$",
+      "{0} mnt lalu · disepakati {1} dari {2}"
+    ],
+    [
+      "^(\\d+) h ago · agreed by (\\d+) of (\\d+)$",
+      "{0} jam lalu · disepakati {1} dari {2}"
+    ],
+    [
+      "^(\\d+) d ago · agreed by (\\d+) of (\\d+)$",
+      "{0} hari lalu · disepakati {1} dari {2}"
+    ],
+    [
+      "^just now · (\\d+) payments? · agreed by (\\d+) of (\\d+)$",
+      "baru saja · {0} pembayaran · disepakati {1} dari {2}"
+    ],
+    [
+      "^just now · agreed by (\\d+) of (\\d+)$",
+      "baru saja · disepakati {0} dari {1}"
+    ],
+    [
+      "^([0-9,]+) payments?$",
+      "{0} pembayaran"
+    ],
+    [
+      "^Of ([0-9,]+) there will ever be$",
+      "Dari {0} yang akan pernah ada"
+    ],
+    [
+      "^([0-9,]+) in the last (\\d+) hours$",
+      "{0} dalam {1} jam terakhir"
+    ],
+    [
+      "^Estimated, over the last (\\d+) hours$",
+      "Perkiraan, selama {0} jam terakhir"
+    ],
+    [
+      "^Estimated, over the last hour$",
+      "Perkiraan, selama satu jam terakhir"
+    ],
+    [
+      "^([0-9,]+) hold at least 1 ORN$",
+      "{0} memiliki minimal 1 ORN"
+    ],
+    [
+      "^Validator (\\d+)$",
+      "Validator {0}"
+    ],
+    [
+      "^([0-9.]+)% of ORN in wallets$",
+      "{0}% dari ORN di dompet"
+    ],
+    [
+      "^([0-9.]+)% of the work$",
+      "{0}% dari pekerjaan"
+    ],
+    [
+      "^([0-9,]+) wallets hold ORN$",
+      "{0} dompet menyimpan ORN"
+    ],
+    [
+      "^([0-9,]+) wallets? paid$",
+      "{0} dompet dibayar"
+    ],
+    [
+      "^Staked by (.+) · ([0-9,]+) ORN · agreed on (\\d+) of the last (\\d+)$",
+      "Di-stake oleh {0} · {1} ORN · disepakati pada {2} dari {3} terakhir"
+    ],
+    [
+      "^Launch validator · agreed on (\\d+) of the last (\\d+)$",
+      "Validator peluncuran · disepakati pada {0} dari {1} terakhir"
+    ],
+    [
+      "^Staked by (.+)$",
+      "Di-stake oleh {0}"
+    ],
+    [
+      "^(\\d+) verified wallets?$",
+      "{0} dompet terverifikasi"
+    ],
+    [
+      "^(\\d+) more offers? paused while .*$",
+      "{0} penawaran lain dijeda sementara"
+    ],
+    [
+      "^Continue with (.+)$",
+      "Lanjutkan dengan {0}"
+    ],
+    [
+      "^Sell with (.+)$",
+      "Jual dengan {0}"
+    ],
+    [
+      "^Take with (.+)$",
+      "Ambil dengan {0}"
+    ],
+    [
+      "^Sweet spot: (\\d+) of (\\d+) cores$",
+      "Titik optimal: {0} dari {1} inti"
+    ],
+    [
+      "^About ([0-9,]+) tries a second\\. Past it, the processor runs hotter for no more ORN\\.$",
+      "Sekitar {0} percobaan per detik. Lebih dari itu, prosesor makin panas tanpa menambah ORN."
+    ],
+    [
+      "^Trying (\\d+) of (\\d+) cores \\((\\d+) of (\\d+)\\)\\. Shares found still count\\.$",
+      "Mencoba {0} dari {1} inti ({2} dari {3}). Share yang ditemukan tetap dihitung."
+    ],
+    [
+      "^This hour: ([0-9,]+) shares found, ([0-9,]+) counted$",
+      "Jam ini: {0} share ditemukan, {1} dihitung"
+    ],
+    [
+      "^About one try in ([0-9,]+) makes a share\\.$",
+      "Sekitar satu percobaan dari {0} menghasilkan satu share."
+    ],
+    [
+      "^([0-9.,]+(?: [KMG])?) tries a second$",
+      "{0} percobaan per detik"
+    ],
+    [
+      "^(\\d+) of (\\d+) cores$",
+      "{0} dari {1} inti"
+    ],
+    [
+      "^(\\d+) of (\\d+)$",
+      "{0} dari {1}"
+    ],
+    [
+      "^(\\d+) of 24 words$",
+      "{0} dari 24 kata"
+    ],
+    [
+      "^staked · ([0-9.,]+) returning$",
+      "di-stake · {0} kembali"
+    ],
+    [
+      "^Received from (.+)$",
+      "Diterima dari {0}"
+    ],
+    [
+      "^Sent to (.+)$",
+      "Dikirim ke {0}"
+    ],
+    [
+      "^Locked payment received from (.+)$",
+      "Pembayaran terkunci diterima dari {0}"
+    ],
+    [
+      "^(.+) · checkpoint (\\d+)$",
+      "{0} · checkpoint {1}"
+    ],
+    [
+      "^checkpoint (\\d+)$",
+      "checkpoint {0}"
+    ],
+    [
+      "^← Checkpoint (\\d+)$",
+      "← Checkpoint {0}"
+    ],
+    [
+      "^Checkpoint (\\d+) →$",
+      "Checkpoint {0} →"
+    ],
+    [
+      "^Checkpoint (\\d+) hasn't been made yet\\.$",
+      "Checkpoint {0} belum dibuat."
+    ],
+    [
+      "^Checkpoint (\\d+) hasn't been made yet\\. The latest is (\\d+)\\.$",
+      "Checkpoint {0} belum dibuat. Yang terbaru adalah {1}."
+    ],
+    [
+      "^Being made now, ready in about (\\d+) min$",
+      "Sedang dibuat sekarang, siap dalam sekitar {0} mnt"
+    ],
+    [
+      "^Next hour (.+)$",
+      "Jam berikutnya {0}"
+    ],
+    [
+      "^([0-9.]+)× easier$",
+      "{0}× lebih mudah"
+    ],
+    [
+      "^([0-9.]+)× harder$",
+      "{0}× lebih sulit"
+    ],
+    [
+      "^([0-9.,]+) new ORN$",
+      "{0} ORN baru"
+    ],
+    [
+      "^([0-9.,]+) available$",
+      "{0} tersedia"
+    ],
+    [
+      "^Avail: ([0-9.,]+)$",
+      "Tersedia: {0}"
+    ],
+    [
+      "^Fee ([0-9.,]+) ORN · ([0-9.,]+) ORN in all$",
+      "Biaya {0} ORN · total {1} ORN"
+    ],
+    [
+      "^incl\\. ([0-9.,]+) fee$",
+      "termasuk biaya {0}"
+    ],
+    [
+      "^([0-9.,]+) ORN sent$",
+      "{0} ORN terkirim"
+    ],
+    [
+      "^(\\d+) more characters?$",
+      "{0} karakter lagi"
+    ],
+    [
+      "^(\\d+) min ago$",
+      "{0} mnt lalu"
+    ],
+    [
+      "^(\\d+) h ago$",
+      "{0} jam lalu"
+    ],
+    [
+      "^(\\d+) d ago$",
+      "{0} hari lalu"
+    ],
+    [
+      "^(\\d+) h (\\d+) min$",
+      "{0} jam {1} mnt"
+    ],
+    [
+      "^(\\d+) min$",
+      "{0} mnt"
+    ],
+    [
+      "^(\\d+) minutes?$",
+      "{0} menit"
+    ],
+    [
+      "^(\\d+) hours?$",
+      "{0} jam"
+    ],
+    [
+      "^(\\d+) days?$",
+      "{0} hari"
+    ],
+    [
+      "^(\\d+) days? left$",
+      "{0} hari tersisa"
+    ],
+    [
+      "^(\\d+) hours? left$",
+      "{0} jam tersisa"
+    ],
+    [
+      "^(\\d+) minutes? left$",
+      "{0} menit tersisa"
+    ],
+    [
+      "^(\\d+) more$",
+      "{0} lainnya"
+    ],
+    [
+      "^(\\d+) others?$",
+      "{0} lainnya"
+    ],
+    [
+      "^(.+) and (\\d+) others?$",
+      "{0} dan {1} lainnya"
+    ],
+    [
+      "^(.+), (\\d+) swaps? done$",
+      "{0}, {1} penukaran selesai"
+    ],
+    [
+      "^([0-9.,]+) SOL per ORN$",
+      "{0} SOL per ORN"
+    ],
+    [
+      "^([0-9,]+) satoshis per ORN$",
+      "{0} satoshi per ORN"
+    ],
+    [
+      "^Member since (.+)$",
+      "Anggota sejak {0}"
+    ],
+    [
+      "^Blocked (.+)$",
+      "Memblokir {0}"
+    ],
+    [
+      "^Block (.+)$",
+      "Blokir {0}"
+    ],
+    [
+      "^Unblock (.+)$",
+      "Buka blokir {0}"
+    ],
+    [
+      "^Reply to (.+)$",
+      "Balas {0}"
+    ],
+    [
+      "^Write to (.+)$",
+      "Tulis ke {0}"
+    ],
+    [
+      "^Ask (.+) to pay$",
+      "Minta {0} membayar"
+    ],
+    [
+      "^Tip ([0-9.,]+) ORN$",
+      "Beri tip {0} ORN"
+    ],
+    [
+      "^Tip (.+) for (.+)$",
+      "Beri tip {0} untuk {1}"
+    ],
+    [
+      "^Tip (.+)$",
+      "Beri tip {0}"
+    ],
+    [
+      "^Tip with (.+)$",
+      "Beri tip dengan {0}"
+    ],
+    [
+      "^Send with (.+)$",
+      "Kirim dengan {0}"
+    ],
+    [
+      "^Pay with (.+)$",
+      "Bayar dengan {0}"
+    ],
+    [
+      "^Post with (.+)$",
+      "Kirim dengan {0}"
+    ],
+    [
+      "^Verify with (.+)$",
+      "Verifikasi dengan {0}"
+    ],
+    [
+      "^Turn on with (.+)$",
+      "Aktifkan dengan {0}"
+    ],
+    [
+      "^Buy ORN with (.+)$",
+      "Beli ORN dengan {0}"
+    ],
+    [
+      "^Sell ORN with (.+)$",
+      "Jual ORN dengan {0}"
+    ],
+    [
+      "^Use (.+) instead$",
+      "Gunakan {0} sebagai gantinya"
+    ],
+    [
+      "^Use (.+) instead of the password from now on$",
+      "Gunakan {0} sebagai pengganti kata sandi mulai sekarang"
+    ],
+    [
+      "^Use (.+)$",
+      "Gunakan {0}"
+    ],
+    [
+      "^Confirm with (.+)$",
+      "Konfirmasi dengan {0}"
+    ],
+    [
+      "^Verify (.+)$",
+      "Verifikasi {0}"
+    ],
+    [
+      "^Verifying (.+)$",
+      "Memverifikasi {0}"
+    ],
+    [
+      "^Send ([0-9.,]+) ORN and verify$",
+      "Kirim {0} ORN dan verifikasi"
+    ],
+    [
+      "^Orien Wallet ([0-9.]+) is the newest version\\.$",
+      "Orien Wallet {0} adalah versi terbaru."
+    ],
+    [
+      "^Orien Wallet ([0-9.]+) is ready$",
+      "Orien Wallet {0} siap dipasang"
+    ],
+    [
+      "^Orien Wallet ([0-9.]+) is out(.*)$",
+      "Orien Wallet {0} sudah tersedia{1}"
+    ],
+    [
+      "^Waiting for (.+) to pay\\.$",
+      "Menunggu {0} membayar."
+    ],
+    [
+      "^Waiting for (.+)$",
+      "Menunggu {0}"
+    ],
+    [
+      "^Locking ORN for (.+)$",
+      "Mengunci ORN untuk {0}"
+    ],
+    [
+      "^Selling to (.+)$",
+      "Menjual ke {0}"
+    ],
+    [
+      "^Taken by (.+)$",
+      "Diambil oleh {0}"
+    ],
+    [
+      "^You get ([0-9.,]+) ORN$",
+      "Anda menerima {0} ORN"
+    ],
+    [
+      "^You mined ([0-9.,]+) ORN$",
+      "Anda menambang {0} ORN"
+    ],
+    [
+      "^You received ([0-9.,]+) ORN$",
+      "Anda menerima {0} ORN"
+    ],
+    [
+      "^You paid ([0-9.,]+) ORN\\.$",
+      "Anda membayar {0} ORN."
+    ],
+    [
+      "^Buy orders are limited to ([0-9.,]+) SOL per order$",
+      "Pesanan beli dibatasi hingga {0} SOL per pesanan"
+    ],
+    [
+      "^The smallest swap is ([0-9.,]+) (SOL|BTC)$",
+      "Penukaran terkecil adalah {0} {1}"
+    ],
+    [
+      "^At least ([0-9.,]+) (SOL|BTC)$",
+      "Minimal {0} {1}"
+    ],
+    [
+      "^Pay by (.+), in (.+)$",
+      "Bayar sebelum {0}, dalam {1}"
+    ],
+    [
+      "^around (.+), in about (\\d+) hours?$",
+      "sekitar {0}, dalam sekitar {1} jam"
+    ],
+    [
+      "^around (.+)$",
+      "sekitar {0}"
+    ],
+    [
+      "^Sign in to (.+)\\?$",
+      "Masuk ke {0}?"
+    ],
+    [
+      "^Already saved as (.+)$",
+      "Sudah disimpan sebagai {0}"
+    ],
+    [
+      "^✓ Your wallet (.+)$",
+      "✓ Dompet Anda {0}"
+    ],
+    [
+      "^(.+): your profile$",
+      "{0}: profil Anda"
+    ],
+    [
+      "^(.+) \\(yours\\)$",
+      "{0} (milik Anda)"
+    ],
+    [
+      "^(.+) hasn't posted yet\\.$",
+      "{0} belum memposting."
+    ],
+    [
+      "^About (.+)$",
+      "Tentang {0}"
+    ],
+    [
+      "^(.+)'s password$",
+      "Kata sandi {0}"
+    ],
+    [
+      "^Remove (.+)\\? Tap again$",
+      "Hapus {0}? Ketuk lagi"
+    ],
+    [
+      "^The record before was ([0-9,]+)\\. Checkpoint (\\d+)\\.$",
+      "Rekor sebelumnya adalah {0}. Checkpoint {1}."
+    ],
+    [
+      "^reacted (.+) to your post$",
+      "memberi reaksi {0} pada postingan Anda"
+    ],
+    [
+      "^reacted (.+) to your reply$",
+      "memberi reaksi {0} pada balasan Anda"
+    ],
+    [
+      "^reacted (.+) to the network's post about you$",
+      "memberi reaksi {0} pada postingan jaringan tentang Anda"
+    ],
+    [
+      "^wrote to you about (.+)$",
+      "mengirim pesan kepada Anda tentang {0}"
+    ],
+    [
+      "^asks you to pay ([0-9.,]+) ORN$",
+      "meminta Anda membayar {0} ORN"
+    ],
+    [
+      "^says they paid ([0-9.,]+) ORN$",
+      "mengatakan telah membayar {0} ORN"
+    ]
+  ],
+  "_guides": {
+    "backup": {
+      "title": "Cadangkan frasa pemulihan Anda",
+      "steps": [
+        "Di Beranda, klik nama dompet di bagian atas untuk membuka <b>Dompet</b>.",
+        "Klik ikon roda gigi pada kartu dompet.",
+        "Klik <b>Frasa pemulihan</b>, lalu <b>Saya mengerti, tampilkan</b>.",
+        "Konfirmasi dengan Touch ID, atau ketik kata sandi dompet jika ada.",
+        "Klik <b>Ketuk untuk menampilkan</b> dan tulis 24 kata tersebut di atas kertas secara berurutan. Simpan di tempat yang aman dan pribadi."
+      ],
+      "note": "Siapa pun yang memiliki kata-kata ini dapat membelanjakan ORN di dompet ini. Orien tidak pernah memintanya."
+    },
+    "send": {
+      "title": "Kirim ORN",
+      "steps": [
+        "Di Beranda, klik <b>Kirim</b>, tombol bulat dengan panah mengarah ke atas.",
+        "Di bawah <b>Ke</b>, ketik nama atau alamat, pilih seseorang di bawah <b>Terbaru</b>, atau klik <b>Tempel</b>.",
+        "Ketik jumlahnya, atau klik <b>Maks</b> untuk mengirim semua yang tersedia setelah biaya.",
+        "Periksa totalnya, lalu klik <b>Kirim</b>.",
+        "Tiba dalam hitungan detik. Simpan alamat baru sebagai kontak dari layar terakhir jika Anda mau."
+      ]
+    },
+    "receive": {
+      "title": "Terima ORN",
+      "steps": [
+        "Di Beranda, klik <b>Terima</b>, tombol bulat dengan panah mengarah ke bawah.",
+        "Tunjukkan kode QR kepada orang yang membayar Anda, atau klik <b>Bagikan alamat</b> atau <b>Salin alamat</b> lalu kirimkan kepada mereka.",
+        "Pembayaran mereka muncul di Aktivitas Anda dalam hitungan detik."
+      ]
+    },
+    "home": {
+      "title": "Kembali ke Beranda",
+      "steps": [
+        "Klik <b>Kembali</b> di kiri atas untuk mundur satu langkah.",
+        "Klik nama <b>ORIEN</b> di bagian atas jendela untuk langsung kembali ke Beranda dari mana saja."
+      ]
+    },
+    "wallets": {
+      "title": "Tambah dompet lain",
+      "steps": [
+        "Di Beranda, klik nama dompet di bagian atas, lalu <b>Tambah dompet</b>.",
+        "Klik <b>Buat dompet baru</b>, beri nama dan ikon, lalu klik <b>Buat dompet</b>.",
+        "Cadangkan frasa pemulihannya: setiap dompet memiliki frasa masing-masing.",
+        "Untuk beralih dompet, klik nama dompet di Beranda lalu pilih salah satu."
+      ]
+    },
+    "restore": {
+      "title": "Pulihkan dompet dari kata-katanya",
+      "steps": [
+        "Di Beranda, klik nama dompet di bagian atas, lalu <b>Tambah dompet</b>, kemudian <b>Pulihkan dengan frasa pemulihan</b>. Pada pemasangan baru, klik <b>Gunakan frasa pemulihan saya</b>.",
+        "Ketik 24 kata tersebut, lalu klik <b>Lanjutkan</b>.",
+        "Beri nama dan ikon, lalu klik <b>Pulihkan dompet</b>."
+      ]
+    },
+    "link": {
+      "title": "Gunakan dompet Anda di perangkat lain",
+      "steps": [
+        "Di perangkat baru, klik <b>Gunakan perangkat lain saya</b> (atau <b>Tambah dompet</b>, lalu <b>Dari perangkat lain saya</b>). Layar akan menampilkan kode QR dan sebuah kode.",
+        "Di perangkat yang memiliki dompet Anda, buka <b>Pengaturan</b>, tombol bulat berikon roda gigi di Beranda, lalu klik <b>Tautkan perangkat baru</b>.",
+        "Di iPhone, pindai kode QR perangkat baru. Di komputer, ketik kodenya lalu klik <b>Lanjutkan</b>.",
+        "Pastikan kedua perangkat menampilkan tiga gambar yang sama, lalu klik <b>Cocok, kirim semua dompet saya</b>.",
+        "Dompet Anda akan tiba di perangkat baru dengan sendirinya."
+      ],
+      "note": "Dompet Anda dikirim secara terenkripsi, langsung antar kedua perangkat Anda."
+    },
+    "sync": {
+      "title": "Samakan kontak di semua perangkat",
+      "steps": [
+        "Di Beranda, klik <b>Kontak</b>, tombol bulat dengan ikon dua orang.",
+        "Jika Anda melihat <b>Aktifkan sinkronisasi</b>, klik tombol tersebut. Konfirmasi dengan Touch ID, atau ketik kata sandi dompet jika ada.",
+        "Lakukan ini sekali di setiap perangkat. Setelah itu, kontak dan ikon dompet akan tetap sama di semuanya."
+      ]
+    },
+    "signin": {
+      "title": "Masuk ke Orien Network",
+      "steps": [
+        "Di Beranda, klik <b>Masuk</b> di kanan atas.",
+        "Ketik email Anda dan klik <b>Kirimkan saya kode</b>.",
+        "Ketik kode 6 digit dari email lalu klik <b>Lanjutkan</b>.",
+        "Baru di sini? Pilih nama pengguna, lalu klik <b>Buat akun saya</b>."
+      ],
+      "note": "Akun Anda untuk Komunitas, Pasar, dan penukaran. Dompet Anda tetap tersimpan di aplikasi ini."
+    },
+    "verify": {
+      "title": "Verifikasi dompet",
+      "steps": [
+        "Masuk, lalu buka dompet yang ingin Anda verifikasi.",
+        "Di Beranda, klik <b>Verifikasi</b> pada kartu <b>Verifikasi</b> di bawah saldo Anda. (Atau klik foto Anda di kanan atas, lalu <b>Edit Profil</b>, kemudian <b>Verifikasi</b> di samping dompet.)",
+        "Klik <b>Verifikasi</b> untuk mengonfirmasi. Ini mengirim kurang dari 0,001 ORN dari dompet tersebut, termasuk biaya.",
+        "Dalam satu menit akan tampil <b>Terverifikasi</b>."
+      ],
+      "note": "Verifikasi menunjukkan kepada semua orang bahwa dompet ini milik Anda, termasuk saldonya. Ini memungkinkan Anda memposting, menjual, menukar, dan menerima tip."
+    },
+    "verify-more": {
+      "title": "Verifikasi dompet lain, dan pilih tempat menerima pembayaran",
+      "steps": [
+        "Beralih ke dompet lain: klik nama dompet di Beranda lalu pilih dompet tersebut.",
+        "Klik foto Anda, lalu <b>Edit Profil</b>, kemudian <b>Verifikasi</b> di samping dompet itu.",
+        "Ulangi untuk setiap dompet yang ingin Anda tampilkan di profil.",
+        "Dompet yang dibayar oleh pembeli dan pemberi tip bertanda <b>Dibayar di sini</b>. Untuk mengubahnya, klik <b>Terima pembayaran di sini</b> pada dompet terverifikasi lainnya.",
+        "Untuk menghapus dompet dari profil Anda, klik <b>⋯</b> di sampingnya, lalu <b>Hapus dari profil Anda</b>."
+      ]
+    },
+    "tip": {
+      "title": "Beri tip ke seseorang",
+      "steps": [
+        "Di Beranda, klik <b>Komunitas</b>, tombol bulat dengan ikon bola dunia.",
+        "Di bawah postingan yang Anda suka, klik <b>Beri tip</b>.",
+        "Pilih 1, 5, atau 10 ORN, atau ketik jumlah lain, lalu klik <b>Beri tip</b>.",
+        "Postingan menampilkan jumlah tip tanpa nama. Penulis akan diberi tahu bahwa itu dari Anda."
+      ],
+      "note": "Tip adalah pembayaran dan tidak dapat dibatalkan."
+    },
+    "chat": {
+      "title": "Mengobrol dengan semua orang",
+      "steps": [
+        "Di Beranda, klik <b>Pesan</b>, tombol bulat dengan balon ucapan. <b>Obrolan Grup Orien</b> disematkan di paling atas.",
+        "Siapa saja dapat ikut membaca. Untuk menulis, membalas, atau memberi reaksi, masuk dan verifikasi dompet.",
+        "Arahkan ke pesan untuk membalas, memberi reaksi, atau melaporkannya.",
+        "Pesan baru menampilkan titik pada Pesan. Untuk mematikannya, klik ikon lonceng di bagian atas obrolan."
+      ],
+      "note": "Semua hal di obrolan grup bersifat publik. Bersikaplah ramah."
+    },
+    "ai": {
+      "title": "Tanya Dukungan AI Orien",
+      "steps": [
+        "Di Beranda, klik <b>Pesan</b>, tombol bulat dengan balon ucapan. <b>Dukungan AI Orien</b> disematkan di bawah obrolan grup. Di jendela besar, ikon pelampung di samping lonceng juga membukanya.",
+        "Anda harus masuk ke Orien Network. Verifikasi dompet tidak diperlukan.",
+        "Tanyakan apa saja tentang dompet, penambangan, penukaran, atau jaringan dengan kata-kata Anda sendiri.",
+        "Klik <b>Mulai ulang</b> di bagian atas obrolan untuk membersihkannya."
+      ],
+      "note": "Jawaban berasal dari AI dan bisa saja salah. AI tidak pernah membutuhkan kata pemulihan, kata sandi, atau kunci Anda: jangan pernah membagikannya kepada siapa pun."
+    },
+    "explorer": {
+      "title": "Jelajahi jaringan",
+      "steps": [
+        "Di Beranda, klik <b>Penjelajah</b>, tombol bulat dengan ikon teleskop. Di jendela besar, klik kartu <b>Jaringan</b> di samping dompet Anda.",
+        "Angka di bagian atas menampilkan kondisi jaringan saat ini: ORN dirilis, checkpoint berikutnya, penambang, dan hashrate.",
+        "Di bawahnya, klik <b>Checkpoint</b>, <b>Dompet teratas</b>, atau <b>Validator</b>, lalu klik baris mana pun untuk membukanya.",
+        "Untuk mencari sesuatu, ketik alamat, nama, atau nomor checkpoint di kotak pencarian."
+      ]
+    },
+    "get": {
+      "title": "Dapatkan ORN di iPhone",
+      "steps": [
+        "Terima pembayaran: bagikan alamat Anda dari <b>Terima</b>, tombol bulat dengan panah mengarah ke bawah.",
+        "Tukar SOL atau Bitcoin ke ORN di Orien Wallet pada komputer, dengan dompet yang sama tertaut ke sana.",
+        "Tambang di komputer: pasang Orien Wallet di sana, tautkan dompet ini, lalu tekan <b>Tambang</b>."
+      ]
+    },
+    "mine": {
+      "title": "Tambang ORN",
+      "steps": [
+        "Di Beranda, klik <b>Tambang</b>, tombol bulat dengan ikon beliung. Di jendela besar, klik kartu <b>Penambangan</b> di samping dompet Anda.",
+        "Atur penggeser <b>Prosesor</b>, atau klik <b>Benchmark</b> untuk menemukan titik optimal komputer Anda.",
+        "Klik <b>Mulai menambang</b>. Setiap jam Anda memperoleh bagian dari ORN baru.",
+        "Untuk menambang saat jendela ditutup, aktifkan <b>Tetap berjalan saat ditutup</b> di Pengaturan, <b>Komputer ini</b>. Agar komputer tidak tidur, aktifkan juga <b>Jaga komputer ini tetap menyala</b> di sana."
+      ],
+      "note": "Jika aplikasi diperbarui saat menambang, penambangan akan dimulai lagi secara otomatis."
+    },
+    "buy": {
+      "title": "Beli ORN dengan SOL atau Bitcoin",
+      "steps": [
+        "Di Beranda, klik <b>Tukar</b>, tombol bulat dengan dua panah.",
+        "Di bawah <b>Penawaran terbuka</b>, klik <b>Ambil</b> pada yang Anda suka.",
+        "Ketik alamat SOL atau Bitcoin yang akan Anda gunakan untuk membayar, lalu klik <b>Ambil penawaran</b>.",
+        "Saat penjual merespons, bayar jumlah tepat yang ditampilkan dari dompet SOL atau Bitcoin Anda.",
+        "ORN akan tiba di dompet ini dengan sendirinya."
+      ]
+    },
+    "sell": {
+      "title": "Jual ORN",
+      "steps": [
+        "Masuk dan verifikasi dompet ini terlebih dahulu.",
+        "Di Beranda, klik <b>Tukar</b>, tombol bulat dengan dua panah, lalu <b>Pasang penawaran</b>.",
+        "Pilih SOL atau Bitcoin, lalu ketik berapa banyak ORN yang ingin dijual, harga yang Anda inginkan, dan alamat tempat Anda menerima pembayaran.",
+        "Klik <b>Pasang penawaran</b>, dan biarkan Orien Wallet tetap berjalan sampai diambil. <b>Jaga komputer ini tetap menyala</b> di Pengaturan, <b>Komputer ini</b>, membuatnya tetap terbuka saat Anda pergi."
+      ]
+    },
+    "lock": {
+      "title": "Kunci dengan Touch ID",
+      "steps": [
+        "Buka <b>Pengaturan</b>, tombol bulat berikon roda gigi di Beranda, lalu <b>Privasi dan keamanan</b>.",
+        "Aktifkan <b>Kunci dengan Touch ID</b>.",
+        "Orien Wallet terkunci setelah satu menit ditinggalkan."
+      ]
+    },
+    "extension": {
+      "title": "Gunakan Orien Wallet di browser Anda",
+      "steps": [
+        "Buka <b>Pengaturan</b>, tombol bulat berikon roda gigi di Beranda, lalu <b>Ekstensi Browser</b>.",
+        "Klik browser Anda dan tambahkan Orien Wallet di sana.",
+        "Kirim ORN dan lihat saldo Anda dari bilah alat browser, serta masuk ke situs web dengan dompet Anda. Kunci Anda tetap tersimpan di aplikasi ini."
+      ]
+    },
+    "theme-build": {
+      "title": "Buat tema Anda sendiri",
+      "steps": [
+        "Buka <b>Pengaturan</b>, tombol bulat berikon roda gigi di Beranda, lalu <b>Tampilan</b>, dan klik <b>Buat tema</b>.",
+        "Beri <b>Nama</b>, dan pilih <b>Gelap</b> atau <b>Terang</b> di bawah <b>Dasar</b>.",
+        "Pilih <b>Warna aksen</b>, atau klik lingkaran pelangi untuk memilih warna Anda sendiri.",
+        "Di bawah <b>Gambar latar belakang</b>, klik <b>Pilih gambar</b>. Gambar berukuran besar terlihat paling bagus, minimal 1920 × 1080.",
+        "Lihat pratinjaunya sambil mengatur, lalu klik <b>Simpan tema</b>. Tema langsung diterapkan."
+      ],
+      "note": "Tema Anda mengikuti Anda ke komputer lain, dan iPhone Anda menggunakan warnanya. Untuk mengubahnya nanti, klik ikon roda gigi pada kartunya di Tampilan; ikon tempat sampah untuk menghapusnya."
+    },
+    "theme-store": {
+      "title": "Temukan tema di Toko Tema",
+      "steps": [
+        "Buka <b>Pengaturan</b>, tombol bulat berikon roda gigi di Beranda, lalu <b>Tampilan</b>, dan klik <b>Toko Tema</b> di bagian atas.",
+        "Di bawah <b>Semua</b>, pilih <b>Populer</b> atau <b>Terbaru</b> untuk tema buatan orang lain, atau <b>Resmi</b> untuk tema buatan Orien sendiri. Setiap kartu menampilkan tema pada pratinjau kecil aplikasi.",
+        "Klik <b>Coba</b> untuk melihat seluruh aplikasi menggunakannya. Klik <b>Urungkan</b> untuk kembali; keluar dari toko juga mengembalikannya.",
+        "Klik <b>Gunakan</b> untuk menyimpannya. Tema ini masuk ke daftar tema Anda di Tampilan dan langsung diterapkan.",
+        "Suka? Tombol koin memberi tip beberapa ORN kepada pembuatnya. Tombol bendera melaporkan tema yang melanggar aturan."
+      ],
+      "note": "Tema yang Anda gunakan adalah salinan milik Anda sendiri: pembuatnya tidak dapat mengubahnya, dan Anda dapat mengedit atau menghapusnya seperti tema buatan Anda."
+    },
+    "theme-share": {
+      "title": "Bagikan tema di Toko Tema",
+      "steps": [
+        "Anda harus masuk ke Orien Network dengan dompet terverifikasi.",
+        "Buka <b>Pengaturan</b>, tombol bulat berikon roda gigi di Beranda, lalu <b>Tampilan</b>.",
+        "Pada salah satu tema milik Anda, klik tombol bagikan (kotak dengan panah), lalu <b>Bagikan tema</b>.",
+        "Tema akan diperiksa, lalu tampil di toko dengan nama Anda, sehingga siapa saja dapat mencobanya, menggunakannya, dan memberi tip kepada Anda.",
+        "Untuk menurunkannya, buka Toko Tema, lalu <b>Milik Anda</b>, dan klik <b>Hapus dari toko</b> dua kali."
+      ],
+      "note": "Mengedit tema Anda nanti tidak mengubah tema yang sudah dibagikan. Bagikan lagi sebagai tema baru jika Anda lebih menyukai versi barunya."
+    },
+    "activity": {
+      "title": "Aktivitas dan notifikasi",
+      "steps": [
+        "Di Beranda, klik <b>Lihat semua</b> di samping Aktivitas.",
+        "<b>Pembayaran</b> menampilkan apa yang Anda kirim dan terima; <b>Imbalan</b> menampilkan imbalan penambangan dan biaya validator.",
+        "Pilih hal yang ingin Anda terima kabarnya di Pengaturan, <b>Notifikasi</b>."
+      ]
+    }
+  }
+}

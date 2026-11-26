@@ -1,0 +1,2112 @@
+{
+  "_meta": {
+    "code": "nl",
+    "native": "Nederlands",
+    "english": "Dutch"
+  },
+  "(optional, for a reply)": "(optioneel, voor een reactie)",
+  "+ Add a choice": "+ Optie toevoegen",
+  ". Fees: the usual Orien fee to lock the ORN (0.1%, at most 1 ORN), and Bitcoin's network fee for taking the Bitcoin, out of what you receive. If a buyer never pays, your ORN come back on their own within 12 hours.": ". Kosten: de gebruikelijke Orien-kosten om de ORN te vergrendelen (0,1%, maximaal 1 ORN) en de Bitcoin-netwerkkosten voor het ontvangen van de Bitcoin, afgetrokken van wat je ontvangt. Als een koper nooit betaalt, komen je ORN binnen 12 uur vanzelf terug.",
+  ". Then": ". Daarna",
+  ". Then scan this code, or type it.": ". Scan daarna deze code, of typ deze in.",
+  "0 open": "0 open",
+  "1 day": "1 dag",
+  "12 hours after they were locked": "12 uur nadat ze zijn vergrendeld",
+  "3 days": "3 dagen",
+  "3 to 20 letters, numbers or _": "3 tot 20 letters, cijfers of _",
+  "30 min ago": "30 min geleden",
+  "7 days": "7 dagen",
+  "A few words for people you swap with": "Een paar woorden voor mensen met wie je ruilt",
+  "A fresh one, with its own recovery phrase": "Een nieuwe, met een eigen herstelzin",
+  "A locked payment nobody claimed": "Een vergrendelde betaling die niemand heeft opgeëist",
+  "A new miner joined": "Een nieuwe miner heeft zich aangesloten",
+  "A password protects the wallet on this computer. Without it, anyone who gets this computer's files can spend from it. You will type it each time you send.": "Een wachtwoord beschermt de wallet op deze computer. Zonder wachtwoord kan iedereen die toegang heeft tot de bestanden op deze computer eruit uitgeven. Je typt het elke keer dat je iets verstuurt.",
+  "A scam, something illegal, pretending to be someone…": "Oplichting, iets illegaals, zich voordoen als iemand anders…",
+  "A seller filled your order. Delivering your ORN automatically, usually within a minute.": "Een verkoper heeft je order vervuld. Je ORN worden automatisch geleverd, meestal binnen een minuut.",
+  "A small arrow on screens with more below": "Een klein pijltje op schermen met meer inhoud eronder",
+  "A theme you use is your own copy: the maker can't change it, and you can edit or delete it like one you built.": "Een thema dat je gebruikt is je eigen kopie: de maker kan het niet wijzigen en je kunt het bewerken of verwijderen zoals een thema dat je zelf hebt gemaakt.",
+  "AI Support": "AI-ondersteuning",
+  "AI answers can be wrong": "AI-antwoorden kunnen onjuist zijn",
+  "About": "Over",
+  "About the same": "Ongeveer hetzelfde",
+  "About this": "Hierover",
+  "About you": "Over jou",
+  "Accent colour": "Accentkleur",
+  "Accepted": "Geaccepteerd",
+  "Accepted: your ORN are locked for the buyer. Waiting for them to pay.": "Geaccepteerd: je ORN zijn vergrendeld voor de koper. Wachten op hun betaling.",
+  "Activity": "Activiteit",
+  "Activity and notifications": "Activiteit en meldingen",
+  "Add a GIF": "GIF toevoegen",
+  "Add a contact": "Contact toevoegen",
+  "Add a password": "Wachtwoord toevoegen",
+  "Add a poll": "Peiling toevoegen",
+  "Add a wallet": "Wallet toevoegen",
+  "Add another wallet": "Nog een wallet toevoegen",
+  "Add photos": "Foto's toevoegen",
+  "Add pictures": "Afbeeldingen toevoegen",
+  "Add to contacts": "Toevoegen aan contacten",
+  "Address": "Adres",
+  "Again": "Opnieuw",
+  "Agreed": "Akkoord",
+  "Agreed by": "Bevestigd door",
+  "All": "Alle",
+  "All your wallets": "Al je wallets",
+  "Among members with a verified wallet, by ORN mined.": "Onder leden met een geverifieerde wallet, op basis van geminede ORN.",
+  "Amount": "Bedrag",
+  "Amount (ORN)": "Bedrag (ORN)",
+  "An address, a name or a checkpoint number": "Een adres, een naam of een checkpointnummer",
+  "An earlier payment from this wallet had to finish first, so nothing was sent for verifying yet. Tap again to send it.": "Een eerdere betaling vanuit deze wallet moest eerst worden afgerond, dus er is nog niets verstuurd ter verificatie. Tik opnieuw om te versturen.",
+  "An earlier payment from this wallet had to finish first, so this one wasn't sent yet. Tap Pay again.": "Een eerdere betaling vanuit deze wallet moest eerst worden afgerond, dus deze is nog niet verstuurd. Tik opnieuw op Betalen.",
+  "An earlier payment from this wallet had to finish first, so this tip wasn't sent yet. Tap Tip again.": "Een eerdere betaling vanuit deze wallet moest eerst worden afgerond, dus deze fooi is nog niet verstuurd. Tik opnieuw op Fooi.",
+  "Another amount": "Ander bedrag",
+  "Answers come from an AI and can be wrong. It never needs your recovery words, passwords or keys: never share them with anyone.": "Antwoorden komen van een AI en kunnen onjuist zijn. Deze heeft nooit je herstelwoorden, wachtwoorden of sleutels nodig: deel ze nooit met iemand.",
+  "Any colour you like": "Elke kleur die je wilt",
+  "Any moment": "Elk moment",
+  "Anyone can read along. To write, reply or react, sign in and verify a wallet.": "Iedereen kan meelezen. Om te schrijven, te antwoorden of te reageren, log je in en verifieer je een wallet.",
+  "Anyone can see it, use it and tip you for it. Your Orien Network name is shown with it. You can take it down at any time.": "Iedereen kan het zien, gebruiken en je ervoor een fooi geven. Je Orien Network-naam wordt erbij getoond. Je kunt het op elk moment verwijderen.",
+  "Anyone can sell into it now. When they do, their wallet locks the ORN and this app opens the pay screen.": "Iedereen kan nu aan deze order verkopen. Zodra dat gebeurt, vergrendelt hun wallet de ORN en opent deze app het betaalscherm.",
+  "Anyone can take it now. When they do, your wallet runs the swap by itself.": "Iedereen kan deze nu accepteren. Zodra dat gebeurt, voert je wallet de ruil vanzelf uit.",
+  "Anyone who opens the file can spend your ORN. Keep it somewhere only you can reach.": "Iedereen die het bestand opent kan je ORN uitgeven. Bewaar het op een plek waar alleen jij bij kunt.",
+  "Anyone who sees your 24 words can take everything in this wallet. Orien will never ask you for them, and no one helping you ever needs them.": "Iedereen die je 24 woorden ziet kan alles uit deze wallet meenemen. Orien zal er nooit om vragen en niemand die je helpt heeft ze ooit nodig.",
+  "Anyone with these words can spend this wallet's ORN. Orien never asks for them.": "Iedereen met deze woorden kan de ORN van deze wallet uitgeven. Orien vraagt er nooit om.",
+  "Anything left over, or a refund, comes back here": "Alles wat overblijft of wordt terugbetaald, komt hier terug",
+  "Appearance": "Weergave",
+  "Approve": "Goedkeuren",
+  "Approve in Orien Wallet to finish your swap.": "Keur goed in Orien Wallet om je ruil af te ronden.",
+  "Approve this order": "Deze order goedkeuren",
+  "Approve to finish your swap": "Goedkeuren om je ruil af te ronden",
+  "Ask Orien AI Support": "Vraag Orien AI-ondersteuning",
+  "Ask a question": "Stel een vraag",
+  "Ask anything about the wallet, mining, swaps or the network, in your own words.": "Vraag alles over de wallet, minen, ruilen of het netwerk, in je eigen woorden.",
+  "Ask each time Orien Wallet opens": "Vragen elke keer dat Orien Wallet opent",
+  "Ask for payment": "Betaling vragen",
+  "Asks · selling ORN": "Laatorders · ORN verkopen",
+  "At least 8 characters": "Minstens 8 tekens",
+  "At this speed and today's difficulty": "Bij deze snelheid en de huidige moeilijkheidsgraad",
+  "Australian dollar": "Australische dollar",
+  "Automatic · a few minutes": "Automatisch · enkele minuten",
+  "Automatic · about a minute": "Automatisch · ongeveer een minuut",
+  "Automatic · keep this page open": "Automatisch · houd deze pagina open",
+  "Automatic · keep this page open (~15 seconds)": "Automatisch · houd deze pagina open (~15 seconden)",
+  "Automatic · keep this page open (~20 seconds)": "Automatisch · houd deze pagina open (~20 seconden)",
+  "Automatic · usually 30 to 60 minutes": "Automatisch · meestal 30 tot 60 minuten",
+  "Automatic · usually a minute": "Automatisch · meestal een minuut",
+  "Automatic · usually within minutes": "Automatisch · meestal binnen enkele minuten",
+  "Available": "Beschikbaar",
+  "Back": "Terug",
+  "Back from staking": "Terug uit staking",
+  "Back to Exchange": "Terug naar Beurs",
+  "Back to top": "Terug naar boven",
+  "Back up its recovery phrase: each wallet has its own.": "Maak een back-up van de herstelzin: elke wallet heeft een eigen zin.",
+  "Back up your recovery phrase": "Maak een back-up van je herstelzin",
+  "Background picture": "Achtergrondafbeelding",
+  "Balance": "Saldo",
+  "Balance after": "Saldo na",
+  "Ban": "Verbannen",
+  "Banned": "Verbannen",
+  "Banned from the group chat": "Verbannen uit de groepschat",
+  "Base": "Basis",
+  "Be paid in ORN.": "Word betaald in ORN.",
+  "Benchmark": "Benchmark",
+  "Benchmark again": "Opnieuw benchmarken",
+  "Benchmarking…": "Benchmarken…",
+  "Bids · buying ORN": "Biedingen · ORN kopen",
+  "Bitcoin": "Bitcoin",
+  "Bitcoin to pay": "Te betalen Bitcoin",
+  "Bitcoin to receive": "Te ontvangen Bitcoin",
+  "Block": "Blokkeren",
+  "Blocked": "Geblokkeerd",
+  "Blocked accounts": "Geblokkeerde accounts",
+  "Book & Trade": "Orderboek & Handelen",
+  "Brazilian real": "Braziliaanse real",
+  "Bring your wallets here from your phone or computer": "Zet je wallets hierheen vanaf je telefoon of computer",
+  "British pound": "Britse pond",
+  "Browser Extensions": "Browserextensies",
+  "Build a theme": "Thema maken",
+  "Build your own theme": "Maak je eigen thema",
+  "Built-in safety:": "Ingebouwde veiligheid:",
+  "Buy": "Kopen",
+  "Buy ORN": "ORN kopen",
+  "Buy ORN with SOL or Bitcoin": "ORN kopen met SOL of Bitcoin",
+  "Buy amount (ORN)": "Koopbedrag (ORN)",
+  "Buy from": "Kopen van",
+  "Buyer": "Koper",
+  "Buyer pays": "Koper betaalt",
+  "Buyer's SOL reserved. Locking your ORN now. Keep this page open for a few more seconds.": "De SOL van de koper is gereserveerd. Je ORN worden nu vergrendeld. Houd deze pagina nog enkele seconden open.",
+  "Buyers on the Market pay the wallet marked Paid here. Verify more to choose between them.": "Kopers op de Markt betalen aan de wallet met het label Hier betaald. Verifieer meer wallets om ertussen te kiezen.",
+  "Buying ORN": "ORN kopen",
+  "By any message app or email. It tells the buyer's Orien Wallet what you locked for them, and holds nothing secret.": "Via een berichtenapp of e-mail. Het laat de Orien Wallet van de koper weten wat je voor hen hebt vergrendeld en bevat niets geheims.",
+  "By any message app or email. It tells the seller's Orien Wallet where you're paying the Bitcoin, and holds nothing secret.": "Via een berichtenapp of e-mail. Het laat de Orien Wallet van de verkoper weten waar je de Bitcoin betaalt en bevat niets geheims.",
+  "By continuing you agree to the": "Door verder te gaan ga je akkoord met de",
+  "Canadian dollar": "Canadese dollar",
+  "Cancel": "Annuleren",
+  "Cancel below before sending. Nothing has left your wallet.": "Annuleer hieronder voordat je verstuurt. Er heeft nog niets je wallet verlaten.",
+  "Cancel buy order": "Kooporder annuleren",
+  "Cancel buy order & return SOL": "Kooporder annuleren en SOL terugstorten",
+  "Cancelling your buy order on Solana and returning your SOL to your wallet. Keep this page open for about 15 seconds.": "Je kooporder op Solana wordt geannuleerd en je SOL wordt teruggestort naar je wallet. Houd deze pagina ongeveer 15 seconden open.",
+  "Cancelling · returning SOL": "Annuleren · SOL terugstorten",
+  "Catching up": "Bijwerken",
+  "Category": "Categorie",
+  "Change banner": "Banner wijzigen",
+  "Change picture": "Afbeelding wijzigen",
+  "Changed your mind?": "Van gedachten veranderd?",
+  "Chart currency": "Grafiekvaluta",
+  "Chat": "Chat",
+  "Chat with everyone": "Chat met iedereen",
+  "Check for Updates": "Controleren op updates",
+  "Check this one and send it again.": "Controleer deze en verstuur opnieuw.",
+  "Check your other device shows these": "Controleer of je andere apparaat deze toont",
+  "Checking": "Controleren",
+  "Checking for updates": "Controleren op updates",
+  "Checking the ORN the seller locked for you": "De ORN controleren die de verkoper voor je heeft vergrendeld",
+  "Checkpoint": "Checkpoint",
+  "Checkpoints": "Checkpoints",
+  "Chinese yuan": "Chinese yuan",
+  "Choose SOL or Bitcoin, then type how many ORN to sell, how much you want for them, and the address you'll be paid at.": "Kies SOL of Bitcoin, typ hoeveel ORN je wilt verkopen, hoeveel je ervoor wilt en het adres waarop je betaald wilt worden.",
+  "Choose a GIF": "Kies een GIF",
+  "Choose a picture": "Afbeelding kiezen",
+  "Clear": "Wissen",
+  "Click": "Klik op",
+  "Click Buy or Sell to trade directly": "Klik op Kopen of Verkopen om direct te handelen",
+  "Click again to start over": "Klik opnieuw om opnieuw te beginnen",
+  "Click to add a picture": "Klik om een afbeelding toe te voegen",
+  "Click your browser and add Orien Wallet there.": "Klik op je browser en voeg Orien Wallet daar toe.",
+  "Close": "Sluiten",
+  "Closed": "Gesloten",
+  "Code": "Code",
+  "Code from the email": "Code uit de e-mail",
+  "Community": "Community",
+  "Completed ORN / SOL swap prices over time": "Voltooide ORN / SOL-ruilprijzen door de tijd heen",
+  "Completed swap prices over time": "Voltooide ruilprijzen door de tijd heen",
+  "Confirm below": "Bevestig hieronder",
+  "Confirmed": "Bevestigd",
+  "Confirming": "Bevestigen",
+  "Connected": "Verbonden",
+  "Connected to the network": "Verbonden met het netwerk",
+  "Connecting": "Verbinden",
+  "Contact": "Contact",
+  "Contacts": "Contacten",
+  "Continue": "Doorgaan",
+  "Continuing": "Doorgaan",
+  "Cooler, fewer shares": "Koeler, minder shares",
+  "Copied": "Gekopieerd",
+  "Copy": "Kopiëren",
+  "Copy address": "Adres kopiëren",
+  "Copy amount": "Bedrag kopiëren",
+  "Copy code": "Code kopiëren",
+  "Copy the address": "Kopieer het adres",
+  "Cores in use": "Actieve kernen",
+  "Couldn't check": "Kon niet controleren",
+  "Cover": "Omslag",
+  "Create a wallet": "Wallet aanmaken",
+  "Create a wallet to hold ORN, or restore the one you already have.": "Maak een wallet aan om ORN te bewaren, of herstel de wallet die je al hebt.",
+  "Currency": "Valuta",
+  "Dark": "Donker",
+  "Delete contact": "Contact verwijderen",
+  "Delete conversation": "Gesprek verwijderen",
+  "Delete for good": "Definitief verwijderen",
+  "Delete my account": "Mijn account verwijderen",
+  "Delete this conversation? Tap again": "Dit gesprek verwijderen? Tik nogmaals",
+  "Delete this post?": "Dit bericht verwijderen?",
+  "Delete?": "Verwijderen?",
+  "Describe it": "Beschrijf het",
+  "Didn't answer": "Geen antwoord",
+  "Do this once on each device. After that, contacts and wallet icons stay the same on all of them.": "Doe dit eenmaal op elk apparaat. Daarna blijven contacten en wallet-iconen op alle apparaten gelijk.",
+  "Does your new device show these?": "Toont je nieuwe apparaat deze?",
+  "Don't have any ORN yet? Mine for an hour from the Mine screen, or buy a little on Swap.": "Heb je nog geen ORN? Mine een uurtje vanuit het scherm Minen, of koop een beetje via Ruilen.",
+  "Don't have any ORN yet? Mine for an hour in Orien Wallet on a computer, or buy a little at orien.network.": "Heb je nog geen ORN? Mine een uurtje in Orien Wallet op een computer, of koop een beetje op orien.network.",
+  "Don't show this again": "Niet meer tonen",
+  "Done": "Klaar",
+  "Done: the ORN are in your wallet, and anything left over went back to your SOL wallet.": "Klaar: de ORN staan in je wallet en wat overbleef is teruggestort naar je SOL-wallet.",
+  "Done: your SOL went back to your SOL wallet.": "Klaar: je SOL is teruggestort naar je SOL-wallet.",
+  "Downloads": "Downloads",
+  "Each share": "Elke share",
+  "Each wallet has its own address, recovery phrase and activity. Tap one to open it.": "Elke wallet heeft een eigen adres, herstelzin en activiteit. Tik op een wallet om deze te openen.",
+  "Earn a share of each hour's new ORN while this app is open.": "Verdien elk uur een deel van de nieuwe ORN zolang deze app openstaat.",
+  "Edit": "Bewerken",
+  "Edit Profile": "Profiel bewerken",
+  "Edit listing": "Advertentie bewerken",
+  "Edit theme": "Thema bewerken",
+  "Editing your theme later doesn't change the shared one. Share it again as a new theme if you like the new version better.": "Als je je thema later bewerkt, verandert de gedeelde versie niet. Deel het opnieuw als nieuw thema als je de nieuwe versie mooier vindt.",
+  "Email": "E-mail",
+  "English": "Engels",
+  "Enter ORN and SOL": "Vul ORN en SOL in",
+  "Euro": "Euro",
+  "Every miner on Orien together, estimated": "Alle miners op Orien samen, geschat",
+  "Everyone": "Iedereen",
+  "Everyone on Orien Network": "Iedereen op Orien Network",
+  "Everything in the group chat is public. Be kind.": "Alles in de groepschat is openbaar. Wees aardig.",
+  "Exchange": "Beurs",
+  "Expired": "Verlopen",
+  "Explorer": "Verkenner",
+  "Failed": "Mislukt",
+  "Fee": "Kosten",
+  "Feed": "Feed",
+  "Filled · settling (~1 min)": "Vervuld · afwikkelen (~1 min)",
+  "Final results": "Eindresultaat",
+  "Final within a minute": "Definitief binnen een minuut",
+  "Find members": "Leden zoeken",
+  "Find themes in the Theme Store": "Vind thema's in de Themawinkel",
+  "Find your sweet spot": "Vind je optimale instelling",
+  "Fingerprints": "Vingerafdrukken",
+  "Finish": "Voltooien",
+  "Finished": "Voltooid",
+  "First ORN": "Eerste ORN",
+  "Follow Orien's posts": "Volg de berichten van Orien",
+  "From": "Van",
+  "From any Bitcoin wallet: scan the code, or copy the address and amount. This app sees the payment by itself; there is nothing else to send.": "Vanuit elke Bitcoin-wallet: scan de code of kopieer het adres en bedrag. Deze app ziet de betaling vanzelf; je hoeft verder niets te versturen.",
+  "From my other device": "Van mijn andere apparaat",
+  "From your SOL wallet, such as Phantom: scan the code, or copy the address and amount. Send it all in one go. This app sees it by itself; there is nothing else to send.": "Vanuit je SOL-wallet, zoals Phantom: scan de code of kopieer het adres en bedrag. Verstuur alles in één keer. Deze app ziet het vanzelf; je hoeft verder niets te versturen.",
+  "Fund your buy order with a quick SOL QR payment. Once funded, it stays live even with Orien Wallet closed, and you can cancel anytime in one click.": "Financier je kooporder met een snelle SOL QR-betaling. Eenmaal gefinancierd blijft deze actief, zelfs als Orien Wallet gesloten is, en je kunt op elk moment met één klik annuleren.",
+  "Get ORN": "ORN krijgen",
+  "Get ORN on iPhone": "ORN krijgen op iPhone",
+  "Get back to Home": "Terug naar Start",
+  "Get paid here": "Hier betaald worden",
+  "Getting": "Ontvangen",
+  "Getting ORN": "ORN ontvangen",
+  "Getting it ready…": "Klaarmaken…",
+  "Getting ready (about a minute)": "Klaarmaken (ongeveer een minuut)",
+  "Getting ready…": "Klaarmaken…",
+  "Getting started": "Aan de slag",
+  "Give it a": "Geef het een",
+  "Give someone your address and they can send you ORN from their wallet. Payments arrive in seconds.": "Geef iemand je adres zodat ze je ORN kunnen sturen vanuit hun wallet. Betalingen komen binnen enkele seconden aan.",
+  "Give the wallet a name, like Mining.": "Geef de wallet een naam, zoals Mining.",
+  "Help": "Help",
+  "Hide balance": "Saldo verbergen",
+  "Home": "Start",
+  "Hong Kong dollar": "Hongkongse dollar",
+  "How is it priced?": "Hoe wordt de prijs bepaald?",
+  "I have backed up my recovery phrase": "Ik heb een back-up gemaakt van mijn herstelzin",
+  "I understand, show them": "Ik begrijp het, toon ze",
+  "Icon": "Icoon",
+  "If the app updates while mining, mining starts again by itself.": "Als de app wordt bijgewerkt tijdens het minen, start het minen vanzelf weer.",
+  "If the buyer doesn't pay,": "Als de koper niet betaalt,",
+  "If the buyer never pays,": "Als de koper nooit betaalt,",
+  "If the buyer pays but this app stays closed for more than about 4 hours, they take their Bitcoin back and your ORN still come back to you. Nobody loses coins.": "Als de koper betaalt maar deze app langer dan ongeveer 4 uur gesloten blijft, neemt de koper zijn Bitcoin terug en komen je ORN toch naar je terug. Niemand verliest munten.",
+  "If the seller never takes your Bitcoin,": "Als de verkoper je Bitcoin nooit ophaalt,",
+  "If the seller never takes your SOL,": "Als de verkoper je SOL nooit ophaalt,",
+  "If they match, tap": "Als ze overeenkomen, tik op",
+  "If you change your mind,": "Als je van gedachten verandert,",
+  "If you forget it, your recovery phrase still restores the wallet.": "Als je het vergeet, kun je de wallet altijd nog herstellen met je herstelzin.",
+  "In use": "In gebruik",
+  "Indian rupee": "Indiase roepie",
+  "Indonesian rupiah": "Indonesische roepia",
+  "Install Orien Wallet on your Mac, Windows or Linux computer, open this same wallet there with its recovery phrase, and press Mine. Your computer earns a share of each hour's new ORN.": "Installeer Orien Wallet op je Mac-, Windows- of Linux-computer, open daar dezelfde wallet met de herstelzin en druk op Minen. Je computer verdient elk uur een deel van de nieuwe ORN.",
+  "It arrives in seconds. Save a new address as a contact from the last screen if you like.": "Het komt binnen enkele seconden aan. Sla een nieuw adres desgewenst op als contact vanuit het laatste scherm.",
+  "It colours the buttons, the balance card, the glow and the highlights.": "Het kleurt de knoppen, de saldokaart, de gloed en de accenten.",
+  "It installs in a moment, and the app reopens by itself.": "Het installeert binnen een ogenblik en de app opent vanzelf opnieuw.",
+  "It's checked, then shows in the store with your name, where anyone can try it, use it and tip you.": "Het wordt gecontroleerd en verschijnt daarna met jouw naam in de winkel, waar iedereen het kan proberen, gebruiken en je een fooi kan geven.",
+  "It's how you add this wallet back, here or anywhere else.": "Zo voeg je deze wallet weer toe, hier of op een ander apparaat.",
+  "Its file stays on this computer,": "Het bestand blijft op deze computer,",
+  "Japanese yen": "Japanse yen",
+  "Just now": "Zojuist",
+  "Keep Orien Wallet running": "Houd Orien Wallet actief",
+  "Keep Orien Wallet running while your buy offer is live. When someone accepts, you'll get a notification and the pay screen opens so you can send the payment.": "Houd Orien Wallet actief zolang je koopaanbieding live staat. Wanneer iemand accepteert, krijg je een melding en opent het betaalscherm zodat je de betaling kunt versturen.",
+  "Keep contacts the same everywhere": "Houd contacten overal gelijk",
+  "Keep its 24-word recovery phrase.": "Bewaar de herstelzin van 24 woorden.",
+  "Keep running when closed": "Actief blijven na sluiten",
+  "Keep these words secret": "Houd deze woorden geheim",
+  "Keep this computer awake": "Deze computer wakker houden",
+  "Language": "Taal",
+  "Large pages": "Large pages",
+  "Large pages are set up, but mining is in ordinary memory this hour. If a restart doesn't switch it, restarting the computer frees the memory up.": "Large pages zijn ingesteld, maar dit uur wordt gewoon geheugen gebruikt voor het minen. Als opnieuw starten niet helpt, maakt het herstarten van de computer het geheugen vrij.",
+  "Last 30 minutes": "Laatste 30 minuten",
+  "Last reward": "Laatste beloning",
+  "Last trade": "Laatste transactie",
+  "Later": "Later",
+  "Launch validator": "Startvalidator",
+  "Lets mining use large pages of memory, usually 10 to 30% faster. Windows asks for an administrator's approval once, then you sign out and back in.": "Laat minen gebruikmaken van large pages-geheugen, meestal 10 tot 30% sneller. Windows vraagt eenmalig om beheerdersgoedkeuring, waarna je uitlogt en weer inlogt.",
+  "Light": "Licht",
+  "Light mode: under 2 GB of free memory, so it mines more slowly.": "Lichte modus: minder dan 2 GB vrij geheugen, dus het minen gaat langzamer.",
+  "Like it? The coins button tips its maker some ORN. The flag reports a theme that breaks the rules.": "Vind je het mooi? Met de muntenknop geef je de maker wat ORN als fooi. Met de vlag meld je een thema dat de regels overtreedt.",
+  "Link a device": "Apparaat koppelen",
+  "Link a new device": "Nieuw apparaat koppelen",
+  "Listing": "Advertentie",
+  "Live on book": "Live in orderboek",
+  "Live on order book · settles automatically": "Live in orderboek · wikkelt automatisch af",
+  "Loading": "Laden",
+  "Loading chart…": "Grafiek laden…",
+  "Loading order book…": "Orderboek laden…",
+  "Loading…": "Laden…",
+  "Lock ORN": "ORN vergrendelen",
+  "Lock with Touch ID": "Vergrendelen met Touch ID",
+  "Locked on Solana. Adding your buy order to the order book now. Keep this page open for a few more seconds.": "Vergrendeld op Solana. Je kooporder wordt nu aan het orderboek toegevoegd. Houd deze pagina nog enkele seconden open.",
+  "Locked payment": "Vergrendelde betaling",
+  "Locked payment from": "Vergrendelde betaling van",
+  "Locked payment received": "Vergrendelde betaling ontvangen",
+  "Locked payment returned": "Vergrendelde betaling teruggestort",
+  "Locking ORN": "ORN vergrendelen",
+  "Locking your ORN": "Je ORN worden vergrendeld",
+  "Locking your ORN for the buyer.": "Je ORN worden vergrendeld voor de koper.",
+  "Locking your ORN for them": "Je ORN voor hen vergrendelen",
+  "Logo design": "Logo-ontwerp",
+  "Look up the network": "Het netwerk bekijken",
+  "Made": "Aangemaakt",
+  "Made final": "Definitief gemaakt",
+  "Make a new wallet": "Nieuwe wallet maken",
+  "Make cover": "Als omslag instellen",
+  "Make mining faster": "Minen sneller maken",
+  "Make my account": "Mijn account aanmaken",
+  "Make the wallet": "Wallet aanmaken",
+  "Make the window small": "Venster klein maken",
+  "Make the window wide": "Venster breed maken",
+  "Manage blocks": "Blokkeringen beheren",
+  "Marked as paid": "Gemarkeerd als betaald",
+  "Market": "Markt",
+  "Market Listings": "Marktadvertenties",
+  "Max": "Max",
+  "Maximize": "Maximaliseren",
+  "Memory": "Geheugen",
+  "Message": "Bericht",
+  "Message everyone": "Bericht aan iedereen",
+  "Message the seller": "Bericht aan de verkoper",
+  "Messages": "Berichten",
+  "Messages about your Market listings always come through whatever you pick, so buyers can ask about what you're selling. Blocking still works on top of this.": "Berichten over je Marktadvertenties komen altijd binnen ongeacht je keuze, zodat kopers vragen kunnen stellen over wat je verkoopt. Blokkeren blijft daarnaast gewoon werken.",
+  "Mexican peso": "Mexicaanse peso",
+  "Milestone": "Mijlpaal",
+  "Mine": "Minen",
+  "Mine ORN": "ORN minen",
+  "Mine for an hour from the Mine screen, or buy a little on Swap.": "Mine een uurtje vanuit het scherm Minen, of koop een beetje via Ruilen.",
+  "Mine for an hour in Orien Wallet on a computer, or buy a little at orien.network.": "Mine een uurtje in Orien Wallet op een computer, of koop een beetje op orien.network.",
+  "Mine it on a computer.": "Mine het op een computer.",
+  "Mine on a computer: install Orien Wallet there, link this wallet, and press": "Mine op een computer: installeer Orien Wallet daar, koppel deze wallet en druk op",
+  "Mine with a verified wallet and your figures show here after the next checkpoint.": "Mine met een geverifieerde wallet en je cijfers verschijnen hier na het volgende checkpoint.",
+  "Miners last hour": "Miners afgelopen uur",
+  "Miners paid": "Betaalde miners",
+  "Miners who have verified a wallet on their Orien Network account, by ORN mined. Verify your wallet on your account to be on the list.": "Miners die een wallet hebben geverifieerd op hun Orien Network-account, op basis van geminede ORN. Verifieer je wallet op je account om op de lijst te komen.",
+  "Minimize": "Minimaliseren",
+  "Minimum order is 0.01 SOL": "Minimumorder is 0,01 SOL",
+  "Mining": "Minen",
+  "Mining for": "Minen voor",
+  "Mining in large pages of memory, for extra speed.": "Minen in large pages-geheugen, voor extra snelheid.",
+  "Mining reward": "Miningbeloning",
+  "Mining rewards": "Miningbeloningen",
+  "Moderator": "Moderator",
+  "More": "Meer",
+  "More below": "Meer hieronder",
+  "More heat, no more ORN": "Meer warmte, niet meer ORN",
+  "Mute the group chat": "Groepschat dempen",
+  "Muted": "Gedempt",
+  "My Orien (ORN) address": "Mijn Orien-adres (ORN)",
+  "My theme": "Mijn thema",
+  "Name": "Naam",
+  "Name or address": "Naam of adres",
+  "Needs about 2 GB of memory. Rewards depend on how much everyone else mines.": "Vereist ongeveer 2 GB geheugen. Beloningen hangen af van hoeveel iedereen verder minet.",
+  "Network": "Netwerk",
+  "Network hashrate": "Netwerk-hashrate",
+  "New ORN this hour": "Nieuwe ORN dit uur",
+  "New account: pick a username": "Nieuw account: kies een gebruikersnaam",
+  "New contact": "Nieuw contact",
+  "New here?": "Nieuw hier?",
+  "New messages and payment requests": "Nieuwe berichten en betaalverzoeken",
+  "New record": "Nieuw record",
+  "New validator": "Nieuwe validator",
+  "New versions install while you're away from the app": "Nieuwe versies worden geïnstalleerd terwijl je weg bent uit de app",
+  "Newest": "Nieuwste",
+  "Next checkpoint": "Volgende checkpoint",
+  "Nigerian naira": "Nigeriaanse naira",
+  "No GIFs found.": "Geen GIFs gevonden.",
+  "No GIFs right now.": "Momenteel geen GIFs.",
+  "No ORN moves.": "Er worden geen ORN verplaatst.",
+  "No activity is recorded for this address.": "Er is geen activiteit geregistreerd voor dit adres.",
+  "No contacts yet. Add someone you pay often, or add an Orien Network member from their profile.": "Nog geen contacten. Voeg iemand toe die je vaak betaalt, of voeg een Orien Network-lid toe via hun profiel.",
+  "No description.": "Geen beschrijving.",
+  "No messages yet. Say hello to everyone.": "Nog geen berichten. Zeg hallo tegen iedereen.",
+  "No one": "Niemand",
+  "No open buy offers right now": "Momenteel geen open koopaanbiedingen",
+  "No open sell offers right now": "Momenteel geen open verkoopaanbiedingen",
+  "No payments yet": "Nog geen betalingen",
+  "No questions left today. Come back tomorrow.": "Geen vragen meer over voor vandaag. Kom morgen terug.",
+  "No results": "Geen resultaten",
+  "No rewards yet": "Nog geen beloningen",
+  "No swaps completed yet. The next swap sets the price.": "Nog geen ruiltransacties voltooid. De volgende ruil bepaalt de prijs.",
+  "No swaps yet": "Nog geen ruiltransacties",
+  "No trades yet": "Nog geen transacties",
+  "No verified wallet yet": "Nog geen geverifieerde wallet",
+  "No verified wallets yet": "Nog geen geverifieerde wallets",
+  "No wallets yet.": "Nog geen wallets.",
+  "Nobody by that name.": "Niemand met die naam.",
+  "Nobody is banned.": "Niemand is verbannen.",
+  "Nobody with a verified wallet has been paid for mining yet.": "Er is nog niemand met een geverifieerde wallet betaald voor het minen.",
+  "None": "Geen",
+  "Normal": "Normaal",
+  "Not an Orien address": "Geen Orien-adres",
+  "Not answering": "Geen antwoord",
+  "Not available": "Niet beschikbaar",
+  "Not in the network's history": "Niet in de geschiedenis van het netwerk",
+  "Not now": "Niet nu",
+  "Not recorded": "Niet geregistreerd",
+  "Not verified yet": "Nog niet geverifieerd",
+  "Nothing found. Search an address (64 letters and digits, 0-9 and a-f), a checkpoint number, or the name of someone on the Market.": "Niets gevonden. Zoek een adres (64 letters en cijfers, 0-9 en a-f), een checkpointnummer of de naam van iemand op de Markt.",
+  "Nothing from the network about them yet.": "Nog niets van het netwerk over hen.",
+  "Nothing has happened at this address yet.": "Er is nog niets gebeurd op dit adres.",
+  "Nothing here yet. Be the first to sell something.": "Nog niets hier. Wees de eerste die iets verkoopt.",
+  "Nothing in the community yet.": "Nog niets in de community.",
+  "Nothing leaves your SOL wallet until a seller locks the ORN and you pay the QR code. Keep Orien Wallet running so sellers can match your order.": "Er verlaat niets je SOL-wallet totdat een verkoper de ORN vergrendelt en jij de QR-code betaalt. Houd Orien Wallet actief zodat verkopers je order kunnen matchen.",
+  "Nothing matches that yet.": "Niets komt daar nog mee overeen.",
+  "Nothing yet. Replies, reactions and messages show up here.": "Nog niets. Antwoorden, reacties en berichten verschijnen hier.",
+  "Notifications": "Meldingen",
+  "ORN / SOL price chart": "ORN / SOL-prijsgrafiek",
+  "ORN held": "ORN in bezit",
+  "ORN locked · SOL arriving (~1 min)": "ORN vergrendeld · SOL onderweg (~1 min)",
+  "ORN mined": "Geminede ORN",
+  "ORN price": "ORN-prijs",
+  "ORN received": "ORN ontvangen",
+  "ORN released": "ORN vrijgegeven",
+  "ORN to buy": "ORN om te kopen",
+  "ORN to sell": "ORN om te verkopen",
+  "Offer posted": "Aanbieding geplaatst",
+  "Offer taken": "Aanbieding geaccepteerd",
+  "Offer your ORN for SOL. When someone takes it, this app locks the ORN for them and runs the swap, as long as it's open.": "Bied je ORN aan voor SOL. Wanneer iemand het accepteert, vergrendelt deze app de ORN voor hen en voert de ruil uit zolang de app openstaat.",
+  "Official": "Officieel",
+  "Official Website": "Officiële website",
+  "Offline": "Offline",
+  "On a streak": "Op een reeks",
+  "On an iPhone, scan the new device's QR code. On a computer, type its code and click": "Scan op een iPhone de QR-code van het nieuwe apparaat. Typ op een computer de code en klik op",
+  "On offer": "Aangeboden",
+  "On one of your own themes, click the share button (the box with an arrow), then": "Klik bij een van je eigen thema's op de deelknop (het vierkant met een pijl) en vervolgens op",
+  "On the Market": "Op de Markt",
+  "On the swap board, waiting for someone to buy": "Op het ruilbord, wachtend op een koper",
+  "On the swap board, waiting for someone to sell": "Op het ruilbord, wachtend op een verkoper",
+  "On your new device, open Orien Wallet and choose": "Open Orien Wallet op je nieuwe apparaat en kies",
+  "On your other device, open Orien Wallet, go to": "Open Orien Wallet op je andere apparaat, ga naar",
+  "One account for all of Orien Network. Enter your email and type the 6-digit code we send; new here, you'll pick a username too. Signed up on orien.network already? Use the same email.": "Eén account voor heel Orien Network. Vul je e-mailadres in en typ de 6-cijferige code die we sturen; ben je nieuw hier, dan kies je ook een gebruikersnaam. Al aangemeld op orien.network? Gebruik hetzelfde e-mailadres.",
+  "Only letters, numbers and _": "Alleen letters, cijfers en _",
+  "Only send if you see the same three emoji, in the same order.": "Verstuur alleen als je dezelfde drie emoji ziet, in dezelfde volgorde.",
+  "Open": "Open",
+  "Open Mine": "Open Minen",
+  "Open Orien Wallet on the device you posted or took this offer from to finish the swap": "Open Orien Wallet op het apparaat waarmee je deze aanbieding hebt geplaatst of geaccepteerd om de ruil af te ronden",
+  "Open at login": "Openen bij inloggen",
+  "Open it to verify": "Open om te verifiëren",
+  "Open offers": "Open aanbiedingen",
+  "Open the explorer": "Open de verkenner",
+  "Opens Firefox's add-on store: click Add to Firefox": "Opent de add-onwinkel van Firefox: klik op Toevoegen aan Firefox",
+  "Opens Safari's settings: tick Orien Wallet to turn it on": "Opent de instellingen van Safari: vink Orien Wallet aan om in te schakelen",
+  "Opens the Chrome Web Store: allow other stores, then add it": "Opent de Chrome Web Store: sta andere winkels toe en voeg het toe",
+  "Opens the Chrome Web Store: click Add to Brave": "Opent de Chrome Web Store: klik op Toevoegen aan Brave",
+  "Opens the Chrome Web Store: click Add to Chrome": "Opent de Chrome Web Store: klik op Toevoegen aan Chrome",
+  "Order book": "Orderboek",
+  "Orien AI Support": "Orien AI-ondersteuning",
+  "Orien Group Chat": "Orien-groepschat",
+  "Orien Wallet for computers is at": "Orien Wallet voor computers vind je op",
+  "Orien Wallet is locking your SOL on Solana and registering your order on the book. Step 2 will show a checkmark as soon as you can leave.": "Orien Wallet vergrendelt je SOL op Solana en zet je order in het orderboek. Stap 2 toont een vinkje zodra je de pagina kunt verlaten.",
+  "Orien Wallet locks after a minute away.": "Orien Wallet vergrendelt na een minuut afwezigheid.",
+  "Orien Wallet locks whenever you leave it.": "Orien Wallet vergrendelt zodra je de app verlaat.",
+  "Orien right now": "Orien op dit moment",
+  "Other": "Overig",
+  "Paid": "Betaald",
+  "Paid here": "Hier betaald",
+  "Paid · Bitcoin is confirming": "Betaald · Bitcoin wordt bevestigd",
+  "Paid · SOL on its way to you": "Betaald · SOL is onderweg naar jou",
+  "Password": "Wachtwoord",
+  "Paste": "Plakken",
+  "Pay": "Betalen",
+  "Pay exactly": "Betaal precies",
+  "Pay now": "Nu betalen",
+  "Pay total (SOL)": "Totaal te betalen (SOL)",
+  "Paying": "Betalen",
+  "Payment": "Betaling",
+  "Payment received. Locking it for the swap.": "Betaling ontvangen. Wordt vergrendeld voor de ruil.",
+  "Payment received. Locking your SOL on Solana now. Keep this page open for about 20 seconds.": "Betaling ontvangen. Je SOL wordt nu vergrendeld op Solana. Houd deze pagina ongeveer 20 seconden open.",
+  "Payment request": "Betaalverzoek",
+  "Payments": "Betalingen",
+  "Pending": "In behandeling",
+  "Pending in your Bitcoin wallet until Bitcoin confirms it, usually within the hour": "In behandeling in je Bitcoin-wallet totdat Bitcoin dit bevestigt, meestal binnen een uur",
+  "People": "Mensen",
+  "People you block can't message you, and you don't see each other's profiles, posts or listings. Unblock someone to see them again.": "Mensen die je blokkeert kunnen je geen berichten sturen en jullie zien elkaars profielen, berichten en advertenties niet. Deblokkeer iemand om elkaar weer te zien.",
+  "People you've talked with": "Mensen met wie je hebt gesproken",
+  "Philippine peso": "Filipijnse peso",
+  "Photos": "Foto's",
+  "Pick a category.": "Kies een categorie.",
+  "Pick a conversation to read it.": "Kies een gesprek om het te lezen.",
+  "Pick an": "Kies een",
+  "Pictures": "Afbeeldingen",
+  "Place Buy Order": "Kooporder plaatsen",
+  "Place Sell Order": "Verkooporder plaatsen",
+  "Place order": "Order plaatsen",
+  "Point at a message": "Wijs naar een bericht",
+  "Point the camera at the QR code": "Richt de camera op de QR-code",
+  "Point the camera at the code on your other device": "Richt de camera op de code op je andere apparaat",
+  "Point the camera at their Receive QR code": "Richt de camera op hun Ontvangen QR-code",
+  "Poll": "Peiling",
+  "Poll length": "Duur van peiling",
+  "Popular": "Populair",
+  "Post": "Plaatsen",
+  "Post an offer": "Een aanbieding plaatsen",
+  "Post buy offer": "Koopaanbieding plaatsen",
+  "Post order": "Order plaatsen",
+  "Post sell offer": "Verkoopaanbieding plaatsen",
+  "Post the offer": "Aanbieding plaatsen",
+  "Post to the live ORN / SOL order book": "Plaatsen in het live ORN / SOL-orderboek",
+  "Post your listing": "Plaats je advertentie",
+  "Post your reply": "Plaats je antwoord",
+  "Posting": "Plaatsen",
+  "Posts": "Berichten",
+  "Powered by KLIPY": "Aangedreven door KLIPY",
+  "Price / ORN": "Prijs / ORN",
+  "Price in ORN": "Prijs in ORN",
+  "Price per ORN": "Prijs per ORN",
+  "Privacy Policy": "Privacybeleid",
+  "Privacy and security": "Privacy en beveiliging",
+  "Privacy policy": "Privacybeleid",
+  "Processor": "Processor",
+  "Profile": "Profiel",
+  "Progress": "Voortgang",
+  "Ranked by ORN held": "Gerangschikt op ORN in bezit",
+  "React": "Reageren",
+  "Receive": "Ontvangen",
+  "Receive ORN": "ORN ontvangen",
+  "Receive total (SOL)": "Totaal te ontvangen (SOL)",
+  "Received": "Ontvangen",
+  "Recent errors": "Recente fouten",
+  "Recent screens": "Recente schermen",
+  "Recent trades": "Recente transacties",
+  "Recents": "Recent",
+  "Recovery phrase": "Herstelzin",
+  "Recovery words": "Herstelwoorden",
+  "Refunded": "Terugbetaald",
+  "Remove": "Verwijderen",
+  "Remove GIF": "GIF verwijderen",
+  "Remove from contacts": "Uit contacten verwijderen",
+  "Remove from store": "Uit de winkel verwijderen",
+  "Remove from the list": "Uit de lijst verwijderen",
+  "Remove from this app": "Uit deze app verwijderen",
+  "Remove from your profile": "Van je profiel verwijderen",
+  "Remove poll": "Peiling verwijderen",
+  "Remove wallet": "Wallet verwijderen",
+  "Rename wallet": "Wallet hernoemen",
+  "Reopen": "Opnieuw openen",
+  "Repeat for each wallet you want on your profile.": "Herhaal dit voor elke wallet die je op je profiel wilt.",
+  "Replies, reactions and the network's posts about you": "Antwoorden, reacties en berichten van het netwerk over jou",
+  "Reply": "Antwoorden",
+  "Report": "Melden",
+  "Report a Problem": "Een probleem melden",
+  "Report post": "Bericht melden",
+  "Report something else": "Iets anders melden",
+  "Report this listing": "Deze advertentie melden",
+  "Report this post": "Dit bericht melden",
+  "Report this theme": "Dit thema melden",
+  "Request": "Verzoek",
+  "Reserve SOL": "SOL reserveren",
+  "Reserving buyer's SOL": "SOL van koper reserveren",
+  "Reserving the buyer's locked SOL on Solana before locking your ORN. Keep this page open for about 15 seconds.": "De vergrendelde SOL van de koper wordt gereserveerd op Solana voordat je ORN worden vergrendeld. Houd deze pagina ongeveer 15 seconden open.",
+  "Restart mining": "Minen herstarten",
+  "Restart mining to go faster": "Herstart minen om sneller te gaan",
+  "Restore": "Herstellen",
+  "Restore a wallet from its words": "Een wallet herstellen met de woorden",
+  "Restore wallet": "Wallet herstellen",
+  "Restore with recovery phrase": "Herstellen met herstelzin",
+  "Restoring": "Herstellen",
+  "Rewards": "Beloningen",
+  "Robot avatars:": "Robotavatars:",
+  "Running": "Actief",
+  "SOL to pay": "Te betalen SOL",
+  "SOL to receive": "Te ontvangen SOL",
+  "Safe to leave or close Orien Wallet.": "Je kunt Orien Wallet veilig verlaten of sluiten.",
+  "Safe to leave this page or close Orien Wallet": "Je kunt deze pagina veilig verlaten of Orien Wallet sluiten",
+  "Safe to leave · arrives in about a minute": "Veilig om te verlaten · komt binnen ongeveer een minuut aan",
+  "Safe to share: an address can only receive ORN.": "Veilig om te delen: een adres kan alleen ORN ontvangen.",
+  "Save": "Opslaan",
+  "Save as a text file": "Opslaan als tekstbestand",
+  "Save as contact": "Opslaan als contact",
+  "Save changes": "Wijzigingen opslaan",
+  "Save theme": "Thema opslaan",
+  "Saved": "Opgeslagen",
+  "Saved address": "Opgeslagen adres",
+  "Saved. Anyone who opens the file can spend your ORN: keep it somewhere only you can reach.": "Opgeslagen. Iedereen die het bestand opent kan je ORN uitgeven: bewaar het op een plek waar alleen jij bij kunt.",
+  "Saving": "Opslaan",
+  "Saving…": "Opslaan…",
+  "Say hello to everyone.": "Zeg hallo tegen iedereen.",
+  "Say what you're offering.": "Vertel wat je aanbiedt.",
+  "Scan a QR code": "QR-code scannen",
+  "Scan the code": "Scan de code",
+  "Search KLIPY": "Zoeken op KLIPY",
+  "Search listings": "Advertenties doorzoeken",
+  "Searching…": "Zoeken…",
+  "Security and more": "Beveiliging en meer",
+  "See the top 100": "Bekijk de top 100",
+  "Sell": "Verkopen",
+  "Sell ORN": "ORN verkopen",
+  "Sell amount (ORN)": "Verkoopbedrag (ORN)",
+  "Sell from": "Verkopen vanuit",
+  "Sell into this offer": "Verkopen aan deze aanbieding",
+  "Sell offers come from verified wallets, so buyers can see who they're swapping with. Verifying ties this wallet to your Orien Network name and sends less than 0.001 ORN from it, once.": "Verkoopaanbiedingen komen van geverifieerde wallets, zodat kopers kunnen zien met wie ze ruilen. Verificatie koppelt deze wallet aan je Orien Network-naam en verstuurt eenmalig minder dan 0,001 ORN.",
+  "Sell orders come from verified wallets so buyers know who they're trading with (sends < 0.001 ORN once).": "Verkooporders komen van geverifieerde wallets zodat kopers weten met wie ze handelen (verstuurt eenmalig < 0,001 ORN).",
+  "Sell something": "Iets verkopen",
+  "Seller": "Verkoper",
+  "Seller accepts": "Verkoper accepteert",
+  "Selling ORN": "ORN verkopen",
+  "Send": "Versturen",
+  "Send & Receive": "Versturen & Ontvangen",
+  "Send ORN": "ORN versturen",
+  "Send ORN and see your balance from the browser's toolbar, and sign in to websites with your wallet. Your keys stay in this app.": "Verstuur ORN en bekijk je saldo vanuit de werkbalk van je browser, en log in op websites met je wallet. Je sleutels blijven in deze app.",
+  "Send ORN, see your balance, and sign in to orien.network with one click, right from your browser. Your keys never leave Orien Wallet.": "Verstuur ORN, bekijk je saldo en log met één klik in op orien.network, rechtstreeks vanuit je browser. Je sleutels verlaten Orien Wallet nooit.",
+  "Send SOL": "SOL versturen",
+  "Send SOL once into a Solana order. It stays live on the order book even while Orien Wallet is closed, settles in about a minute when taken, and cancels in one click.": "Verstuur eenmalig SOL naar een Solana-order. Deze blijft live in het orderboek, zelfs als Orien Wallet gesloten is, wikkelt binnen ongeveer een minuut af zodra deze wordt geaccepteerd en is met één klik te annuleren.",
+  "Send and verify": "Versturen en verifiëren",
+  "Send me a code": "Stuur me een code",
+  "Send report": "Melding versturen",
+  "Send the buyer this offer code": "Stuur de koper deze aanbiedingscode",
+  "Send the seller this reply code": "Stuur de verkoper deze antwoordcode",
+  "Send to this contact": "Versturen naar dit contact",
+  "Send your wallets to your other phone or computer": "Stuur je wallets naar je andere telefoon of computer",
+  "Sending": "Versturen",
+  "Sending…": "Versturen…",
+  "Sent": "Verstuurd",
+  "Sent a GIF": "Heeft een GIF gestuurd",
+  "Sent a picture": "Heeft een afbeelding gestuurd",
+  "Sent from another app": "Verstuurd vanuit een andere app",
+  "Sent. Verifying, usually within a minute.": "Verstuurd. Bezig met verifiëren, meestal binnen een minuut.",
+  "Set password": "Wachtwoord instellen",
+  "Set the": "Stel de",
+  "Set up": "Instellen",
+  "Set up mining": "Minen instellen",
+  "Sets aside about 2.4 GB of memory for mining in large pages, usually 10 to 30% faster. Linux asks for your password once.": "Reserveert ongeveer 2,4 GB geheugen voor minen in large pages, meestal 10 tot 30% sneller. Linux vraagt eenmalig om je wachtwoord.",
+  "Settings": "Instellingen",
+  "Settling": "Afwikkelen",
+  "Share a theme in the Theme Store": "Deel een thema in de Themawinkel",
+  "Share address": "Adres delen",
+  "Share in the Theme Store": "Delen in de Themawinkel",
+  "Share theme": "Thema delen",
+  "Shared": "Gedeeld",
+  "Shared among miners": "Verdeeld onder miners",
+  "Shares": "Shares",
+  "Shares an hour": "Shares per uur",
+  "Shares this hour": "Shares dit uur",
+  "Sharing": "Delen",
+  "Show balance": "Saldo tonen",
+  "Show less": "Minder tonen",
+  "Show more": "Meer tonen",
+  "Show scroll arrow": "Scrollpijl tonen",
+  "Show your accounts on your profile, if you like. Everyone can see them.": "Toon je accounts op je profiel als je wilt. Iedereen kan ze zien.",
+  "Sign Out": "Uitloggen",
+  "Sign in": "Inloggen",
+  "Sign in and verify this wallet first.": "Log eerst in en verifieer deze wallet.",
+  "Sign in to Orien Network": "Inloggen bij Orien Network",
+  "Sign in to Orien Network first.": "Log eerst in bij Orien Network.",
+  "Sign in to Orien Network to ask a question. Verifying a wallet isn't needed.": "Log in bij Orien Network om een vraag te stellen. Een wallet verifiëren is niet nodig.",
+  "Sign in to Orien Network to chat, reply or react.": "Log in bij Orien Network om te chatten, antwoorden of reageren.",
+  "Sign in to Orien Network to chat.": "Log in bij Orien Network om te chatten.",
+  "Sign in to Orien Network to post and react.": "Log in bij Orien Network om te plaatsen en te reageren.",
+  "Sign in to Orien Network to post, reply and react.": "Log in bij Orien Network om te plaatsen, antwoorden en reageren.",
+  "Sign in to Orien Network to react.": "Log in bij Orien Network om te reageren.",
+  "Sign in to Orien Network to reply.": "Log in bij Orien Network om te antwoorden.",
+  "Sign in to Orien Network to report a message.": "Log in bij Orien Network om een bericht te melden.",
+  "Sign in to Orien Network to report a theme.": "Log in bij Orien Network om een thema te melden.",
+  "Sign in to Orien Network to see the themes you shared.": "Log in bij Orien Network om je gedeelde thema's te zien.",
+  "Sign in to Orien Network to see your own messages and to chat.": "Log in bij Orien Network om je eigen berichten te zien en te chatten.",
+  "Sign in to Orien Network to tip.": "Log in bij Orien Network om een fooi te geven.",
+  "Sign in to Orien Network with a verified wallet to share themes.": "Log in bij Orien Network met een geverifieerde wallet om thema's te delen.",
+  "Sign in to message the seller": "Log in om de verkoper een bericht te sturen",
+  "Sign in to trade": "Log in om te handelen",
+  "Sign in, and open the wallet you want to verify.": "Log in en open de wallet die je wilt verifiëren.",
+  "Sign out of Windows and back in, then open Orien Wallet. Mining runs faster from then on.": "Log uit bij Windows en weer in, en open daarna Orien Wallet. Het minen gaat vanaf dan sneller.",
+  "Sign out to finish": "Log uit om te voltooien",
+  "Signing in": "Inloggen",
+  "Singapore dollar": "Singaporese dollar",
+  "Size (ORN)": "Omvang (ORN)",
+  "Smallest swap: 0.00015 BTC, more when Bitcoin is busy": "Kleinste ruil: 0,00015 BTC, meer wanneer het druk is op Bitcoin",
+  "Smallest swap: 0.01 SOL. Fees: the usual Orien fee to lock the ORN (0.1%, at most 1 ORN); the buyer covers Solana's small fees. A swap takes about a minute. If a buyer never pays, your ORN come back on their own within a few hours.": "Kleinste ruil: 0,01 SOL. Kosten: de gebruikelijke Orien-kosten om de ORN te vergrendelen (0,1%, maximaal 1 ORN); de koper betaalt de kleine kosten van Solana. Een ruil duurt ongeveer een minuut. Als een koper nooit betaalt, komen je ORN binnen enkele uren vanzelf terug.",
+  "Smallest swap: 0.01 SOL. Nothing leaves your SOL wallet until a seller locks the ORN and you pay the QR code. You'll also need about 0.005 SOL for Solana's small fees, nearly all of which comes back.": "Kleinste ruil: 0,01 SOL. Er verlaat niets je SOL-wallet totdat een verkoper de ORN vergrendelt en jij de QR-code betaalt. Je hebt ook ongeveer 0,005 SOL nodig voor de kleine kosten van Solana, waarvan bijna alles terugkomt.",
+  "So swap offers stay open, and payments and mining carry on. The screen can still turn off.": "Zodat ruilaanbiedingen open blijven en betalingen en minen doorgaan. Het scherm kan nog steeds uitgaan.",
+  "Social Links": "Sociale links",
+  "Socials": "Socials",
+  "Someone": "Iemand",
+  "Sort by": "Sorteren op",
+  "South African rand": "Zuid-Afrikaanse rand",
+  "South Korean won": "Zuid-Koreaanse won",
+  "Speed": "Snelheid",
+  "Stake returned": "Stake teruggestort",
+  "Start Orien Wallet when you log in": "Start Orien Wallet bij het inloggen",
+  "Start mining": "Minen starten",
+  "Start mining to see your speed here.": "Start met minen om hier je snelheid te zien.",
+  "Start over": "Opnieuw beginnen",
+  "Starting…": "Starten…",
+  "State after it: every account's balance, as one fingerprint": "Status erna: het saldo van elk account als één vingerafdruk",
+  "Stay on this page for a moment:": "Blijf even op deze pagina:",
+  "Stop mining": "Minen stoppen",
+  "Stop replying": "Stoppen met antwoorden",
+  "Stopped": "Gestopt",
+  "Swap": "Ruilen",
+  "Swap ORN and SOL directly with other people. About a minute, no fee.": "Ruil ORN en SOL rechtstreeks met andere mensen. Ongeveer een minuut, geen kosten.",
+  "Swap SOL or Bitcoin for ORN in Orien Wallet on a computer, with this same wallet linked to it.": "Ruil SOL of Bitcoin voor ORN in Orien Wallet op een computer waaraan dezelfde wallet is gekoppeld.",
+  "Swap SOL or Bitcoin for ORN with other people, directly between your wallets, on the Swap screen. With SOL it takes a few minutes, and you pay from the SOL wallet you already have, such as Phantom.": "Ruil SOL of Bitcoin voor ORN met andere mensen, rechtstreeks tussen jullie wallets, op het scherm Ruilen. Met SOL duurt het enkele minuten en betaal je vanuit de SOL-wallet die je al hebt, zoals Phantom.",
+  "Swap for it.": "Ruil ervoor.",
+  "Swap updates": "Ruilupdates",
+  "Swaps": "Ruiltransacties",
+  "Swaps and payments carry on from the menu bar": "Ruiltransacties en betalingen gaan door vanuit de menubalk",
+  "Swaps and payments carry on from the system tray": "Ruiltransacties en betalingen gaan door vanuit het systeemvak",
+  "Swaps need the newest Orien Wallet. Update first: it takes a moment, and the app reopens by itself.": "Voor ruiltransacties is de nieuwste Orien Wallet nodig. Werk eerst bij: het duurt een ogenblik en de app opent vanzelf opnieuw.",
+  "Swiss franc": "Zwitserse frank",
+  "Take": "Accepteren",
+  "Take an offer": "Een aanbieding accepteren",
+  "Take the offer": "Aanbieding accepteren",
+  "Take this offer": "Deze aanbieding accepteren",
+  "Taken": "Geaccepteerd",
+  "Taking your Bitcoin back": "Je Bitcoin wordt teruggehaald",
+  "Tap": "Tik op",
+  "Tap a message": "Tik op een bericht",
+  "Tap to reveal": "Tik om te tonen",
+  "Tell Orien Network what's wrong with it: a scam, spam, abuse, or something illegal. Every report is reviewed.": "Vertel Orien Network wat er mis mee is: oplichting, spam, misbruik of iets illegaals. Elke melding wordt beoordeeld.",
+  "Tell us what happened": "Vertel ons wat er is gebeurd",
+  "Tell us what went wrong. Every report is read.": "Vertel ons wat er misging. Elke melding wordt gelezen.",
+  "Terms of Service": "Gebruiksvoorwaarden",
+  "Terms of service": "Gebruiksvoorwaarden",
+  "Thanks, it's sent": "Bedankt, het is verstuurd",
+  "Thanks. It will be reviewed.": "Bedankt. Het wordt beoordeeld.",
+  "Thanks. We will look at it.": "Bedankt. We kijken ernaar.",
+  "That QR code isn't from Orien Wallet's Use my other device.": "Die QR-code komt niet uit Mijn andere apparaat gebruiken van Orien Wallet.",
+  "That account can't be found.": "Dat account kan niet worden gevonden.",
+  "That doesn't look like a SOL address.": "Dat lijkt niet op een SOL-adres.",
+  "That email doesn't look right. Check it, or leave it empty.": "Dat e-mailadres lijkt niet te kloppen. Controleer het of laat het leeg.",
+  "That file isn't a picture this app can open.": "Dat bestand is geen afbeelding die deze app kan openen.",
+  "That is not this wallet's password.": "Dat is niet het wachtwoord van deze wallet.",
+  "That is this wallet's own address": "Dat is het eigen adres van deze wallet",
+  "That isn't a Bitcoin address.": "Dat is geen Bitcoin-adres.",
+  "That isn't a SOL address.": "Dat is geen SOL-adres.",
+  "That password isn't right. Check it and try again.": "Dat wachtwoord klopt niet. Controleer het en probeer opnieuw.",
+  "That post has been removed.": "Dat bericht is verwijderd.",
+  "That theme's picture couldn't be downloaded. Try again in a moment.": "De afbeelding van dat thema kon niet worden gedownload. Probeer het zo opnieuw.",
+  "That's a Bitcoin address. Swaps use SOL.": "Dat is een Bitcoin-adres. Ruiltransacties gebruiken SOL.",
+  "That's a SOL address. To use SOL, choose SOL above.": "Dat is een SOL-adres. Kies hierboven SOL om SOL te gebruiken.",
+  "That's a long one. Keep a question under 1,000 characters.": "Dat is een lange vraag. Houd een vraag onder de 1.000 tekens.",
+  "That's not this wallet's password.": "Dat is niet het wachtwoord van deze wallet.",
+  "The ORN arrive in this wallet by themselves.": "De ORN komen vanzelf in deze wallet aan.",
+  "The buyer": "De koper",
+  "The buyer is paying. This app takes the SOL as soon as it's locked, usually within a minute.": "De koper betaalt. Deze app haalt de SOL op zodra deze is vergrendeld, meestal binnen een minuut.",
+  "The buyer · usually 30 to 60 minutes after they pay": "De koper · meestal 30 tot 60 minuten nadat ze betalen",
+  "The buyer · within a few hours": "De koper · binnen enkele uren",
+  "The buyer's ORN delivered": "De ORN van de koper zijn geleverd",
+  "The chart begins as soon as the first ORN / SOL swap completes.": "De grafiek begint zodra de eerste ORN / SOL-ruil is voltooid.",
+  "The checkpoint before it": "Het vorige checkpoint",
+  "The extra over the price": "Het extra bedrag boven de prijs",
+  "The figures at the top show the network right now: ORN released, the next checkpoint, miners and hashrate.": "De cijfers bovenaan tonen het netwerk op dit moment: vrijgegeven ORN, het volgende checkpoint, miners en hashrate.",
+  "The latest 500": "De laatste 500",
+  "The pay screen opens by itself as soon as they accept.": "Het betaalscherm opent vanzelf zodra ze accepteren.",
+  "The picture couldn't be saved on this device. Try a smaller one.": "De afbeelding kon niet op dit apparaat worden opgeslagen. Probeer een kleinere.",
+  "The post shows its tips, without names. The author is told it was you.": "Het bericht toont de fooien, zonder namen. De auteur krijgt te horen dat jij het was.",
+  "The seller didn't take the SOL in time. Sending it back to your SOL wallet.": "De verkoper heeft de SOL niet op tijd opgehaald. Wordt teruggestort naar je SOL-wallet.",
+  "The seller took the SOL. Claiming your ORN.": "De verkoper heeft de SOL opgehaald. Je ORN worden opgeëist.",
+  "The seller · done": "De verkoper · klaar",
+  "The seller · usually 30 to 60 minutes after you pay": "De verkoper · meestal 30 tot 60 minuten nadat je betaalt",
+  "The seller's wallet delivers your ORN once they take the SOL.": "De wallet van de verkoper levert je ORN zodra zij de SOL ophalen.",
+  "The seller's wallet takes the Bitcoin once Bitcoin has confirmed your payment three times": "De wallet van de verkoper haalt de Bitcoin op zodra Bitcoin je betaling drie keer heeft bevestigd",
+  "The swap board passes your offer to the buyer's wallet, and their reply back": "Het ruilbord geeft je aanbieding door aan de wallet van de koper, en hun antwoord weer terug",
+  "The swap details open by itself as soon as your ORN are locked.": "De ruilgegevens openen vanzelf zodra je ORN zijn vergrendeld.",
+  "The update didn't install": "De update is niet geïnstalleerd",
+  "The validators didn't answer about this hour's rewards just now. Try again in a moment.": "De validators gaven zojuist geen antwoord over de beloningen van dit uur. Probeer het zo opnieuw.",
+  "The website learns this wallet's address.": "De website krijgt het adres van deze wallet te zien.",
+  "Their 64-character address": "Hun adres van 64 tekens",
+  "Their Orien Wallet makes it once it has checked your offer. It tells this app where they'll pay the Bitcoin.": "Hun Orien Wallet maakt deze aan zodra je aanbieding is gecontroleerd. Het laat deze app weten waar zij de Bitcoin betalen.",
+  "Their payment shows in your Activity within seconds.": "Hun betaling verschijnt binnen enkele seconden in je Activiteit.",
+  "Their wallet accepts by itself, usually within a few seconds.": "Hun wallet accepteert vanzelf, meestal binnen enkele seconden.",
+  "Their wallet accepts by itself, within 30 minutes.": "Hun wallet accepteert vanzelf, binnen 30 minuten.",
+  "Theme": "Thema",
+  "Theme Store": "Themawinkel",
+  "Themes": "Thema's",
+  "Themes made by the Orien community": "Thema's gemaakt door de Orien-community",
+  "Then paste the buyer's reply code": "Plak daarna de antwoordcode van de koper",
+  "They don't match": "Ze komen niet overeen",
+  "They match": "Ze komen overeen",
+  "They match, send": "Ze komen overeen, versturen",
+  "They match, send my wallet": "Ze komen overeen, stuur mijn wallet",
+  "They match, send my wallets": "Ze komen overeen, stuur mijn wallets",
+  "This app takes the Bitcoin to your Bitcoin address, then delivers the buyer's ORN to them": "Deze app haalt de Bitcoin op naar je Bitcoin-adres en levert daarna de ORN aan de koper",
+  "This app · about 30 minutes for Bitcoin to settle": "Deze app · ongeveer 30 minuten om Bitcoin af te wikkelen",
+  "This app · under a minute": "Deze app · minder dan een minuut",
+  "This checkpoint's fingerprint": "Vingerafdruk van dit checkpoint",
+  "This computer": "Deze computer",
+  "This hour": "Dit uur",
+  "This is your listing.": "Dit is jouw advertentie.",
+  "This person": "Deze persoon",
+  "This profile isn't available.": "Dit profiel is niet beschikbaar.",
+  "This theme's picture isn't on this computer yet. Try again in a moment.": "De afbeelding van dit thema staat nog niet op deze computer. Probeer het zo opnieuw.",
+  "This version of Orien Wallet no longer works with the network. Press Update at the top to keep sending.": "Deze versie van Orien Wallet werkt niet meer met het netwerk. Druk bovenaan op Bijwerken om te blijven versturen.",
+  "This wallet": "Deze wallet",
+  "This wallet has a password. Type it to send.": "Deze wallet heeft een wachtwoord. Typ het in om te versturen.",
+  "This wallet proved it belongs to this profile": "Deze wallet heeft bewezen dat hij bij dit profiel hoort",
+  "This wallet's password": "Wachtwoord van deze wallet",
+  "Time": "Tijd",
+  "Tip": "Fooi",
+  "Tip someone": "Iemand een fooi geven",
+  "Tips": "Fooien",
+  "Tips are payments and can't be undone.": "Fooien zijn betalingen en kunnen niet ongedaan worden gemaakt.",
+  "To": "Aan",
+  "Today": "Vandaag",
+  "Too late to pay safely: a payment now would come back to you once the lock ends, about 2 hours from now": "Te laat om veilig te betalen: een betaling nu zou naar je terugkomen zodra de vergrendeling afloopt, over ongeveer 2 uur",
+  "Top miner of the day": "Topminer van de dag",
+  "Top miners": "Topminers",
+  "Top wallets": "Topwallets",
+  "Total": "Totaal",
+  "Total (SOL)": "Totaal (SOL)",
+  "Trade": "Handelen",
+  "Trades": "Transacties",
+  "Try": "Proberen",
+  "Try again": "Opnieuw proberen",
+  "Turkish lira": "Turkse lira",
+  "Turn on syncing": "Synchronisatie inschakelen",
+  "Turn on syncing, so your contacts and wallet icons match on all your devices. It needs this wallet unlocked once.": "Schakel synchronisatie in zodat je contacten en wallet-iconen op al je apparaten gelijk zijn. Deze wallet moet hiervoor eenmalig worden ontgrendeld.",
+  "Type the 24 words of a wallet you have": "Typ de 24 woorden van een wallet die je hebt",
+  "Type the SOL or Bitcoin address you'll pay from, then click": "Typ het SOL- of Bitcoin-adres waarmee je betaalt en klik op",
+  "Type the password to send this wallet too.": "Typ het wachtwoord om deze wallet ook mee te sturen.",
+  "Type the wallet's password if it has one.": "Typ het wachtwoord van de wallet als die er een heeft.",
+  "Type this wallet's password to approve this order.": "Typ het wachtwoord van deze wallet om deze order goed te keuren.",
+  "Type this wallet's password to approve this swap.": "Typ het wachtwoord van deze wallet om deze ruil goed te keuren.",
+  "Type this wallet's password to see its words.": "Typ het wachtwoord van deze wallet om de woorden te zien.",
+  "Type this wallet's password to sign in.": "Typ het wachtwoord van deze wallet om in te loggen.",
+  "Type your wallet password": "Typ je wallet-wachtwoord",
+  "Type your wallet password below, so this app can claim your ORN": "Typ hieronder je wallet-wachtwoord zodat deze app je ORN kan opeisen",
+  "Type your wallet password below, so this app can finish the swap": "Typ hieronder je wallet-wachtwoord zodat deze app de ruil kan afronden",
+  "Type your wallet password to approve this swap.": "Typ je wallet-wachtwoord om deze ruil goed te keuren.",
+  "US dollar": "Amerikaanse dollar",
+  "Unban": "Verbanning opheffen",
+  "Under": "Onder",
+  "Undo": "Ongedaan maken",
+  "Unlock": "Ontgrendelen",
+  "Unmute the group chat": "Groepschat weer aanzetten",
+  "Unstaked": "Uit staking gehaald",
+  "Up to four. The first is the one shown on your listing's card.": "Maximaal vier. De eerste wordt getoond op de kaart van je advertentie.",
+  "Update automatically": "Automatisch bijwerken",
+  "Update failed": "Bijwerken mislukt",
+  "Update failed, try again": "Bijwerken mislukt, probeer opnieuw",
+  "Update needed": "Update vereist",
+  "Update now": "Nu bijwerken",
+  "Update to Latest": "Bijwerken naar nieuwste versie",
+  "Updates as they happen, and chat with the community": "Directe updates en chatten met de community",
+  "Updating": "Bijwerken",
+  "Use": "Gebruiken",
+  "Use Orien Wallet in your browser": "Gebruik Orien Wallet in je browser",
+  "Use my other device": "Mijn andere apparaat gebruiken",
+  "Use my recovery phrase": "Mijn herstelzin gebruiken",
+  "Use the reply": "Antwoord gebruiken",
+  "Use your wallets on another device": "Gebruik je wallets op een ander apparaat",
+  "User Guide": "Gebruikershandleiding",
+  "Username": "Gebruikersnaam",
+  "Validator fees": "Validatorkosten",
+  "Validators": "Validators",
+  "Verified": "Geverifieerd",
+  "Verified wallet": "Geverifieerde wallet",
+  "Verify": "Verifiëren",
+  "Verify a wallet": "Een wallet verifiëren",
+  "Verify a wallet and people who pay it see your name with it.": "Verifieer een wallet zodat mensen die ernaar betalen jouw naam erbij zien.",
+  "Verify a wallet to post and see your mining here.": "Verifieer een wallet om berichten te plaatsen en je mining hier te zien.",
+  "Verify more wallets, and choose where you're paid": "Verifieer meer wallets en kies waar je betaald wordt",
+  "Verify one of your wallets on your Orien Network profile to post, reply and react.": "Verifieer een van je wallets op je Orien Network-profiel om te plaatsen, antwoorden en reageren.",
+  "Verify one of your wallets to chat, reply or react.": "Verifieer een van je wallets om te chatten, antwoorden of reageren.",
+  "Verify one of your wallets to chat. Anyone can read along.": "Verifieer een van je wallets om te chatten. Iedereen kan meelezen.",
+  "Verify one of your wallets to react.": "Verifieer een van je wallets om te reageren.",
+  "Verify one of your wallets to reply.": "Verifieer een van je wallets om te antwoorden.",
+  "Verify this wallet": "Deze wallet verifiëren",
+  "Verify this wallet to offer swaps": "Verifieer deze wallet om ruiltransacties aan te bieden",
+  "Verify this wallet to place sell orders": "Verifieer deze wallet om verkooporders te plaatsen",
+  "Verifying shows everyone the wallet is yours, including its balance. It lets you post, sell, swap and receive tips.": "Verifiëren laat iedereen zien dat de wallet van jou is, inclusief het saldo. Zo kun je berichten plaatsen, verkopen, ruilen en fooien ontvangen.",
+  "Verifying…": "Verifiëren…",
+  "Verifying… usually within a minute": "Verifiëren… meestal binnen een minuut",
+  "Version": "Versie",
+  "Videos about Orien": "Video's over Orien",
+  "View": "Bekijken",
+  "View Profile": "Profiel bekijken",
+  "View all": "Alles bekijken",
+  "View profile": "Profiel bekijken",
+  "Waiting": "Wachten",
+  "Waiting for mining to get going.": "Wachten tot het minen op gang komt.",
+  "Waiting for validators": "Wachten op validators",
+  "Waiting for your other device": "Wachten op je andere apparaat",
+  "Waiting for your wallets": "Wachten op je wallets",
+  "Wallet": "Wallet",
+  "Wallet password": "Wallet-wachtwoord",
+  "Wallet password, so this app can sign the next step": "Wallet-wachtwoord, zodat deze app de volgende stap kan ondertekenen",
+  "Wallet password, to approve this sale": "Wallet-wachtwoord, om deze verkoop goed te keuren",
+  "Wallet password, to approve this swap": "Wallet-wachtwoord, om deze ruil goed te keuren",
+  "Wallet settings": "Wallet-instellingen",
+  "Wallets": "Wallets",
+  "Wallets holding ORN": "Wallets met ORN",
+  "Watch the preview as you go, then click": "Bekijk het voorbeeld terwijl je aanpast en klik dan op",
+  "We'll look into it, and write to you if we need to know more.": "We kijken ernaar en nemen contact met je op als we meer moeten weten.",
+  "We'll look into it.": "We kijken ernaar.",
+  "Welcome": "Welkom",
+  "Welcome to Orien Wallet": "Welkom bij Orien Wallet",
+  "What are you offering?": "Wat bied je aan?",
+  "What happens:": "Wat er gebeurt:",
+  "What is wrong with this post?": "Wat is er mis met dit bericht?",
+  "What is wrong with this theme?": "Wat is er mis met dit thema?",
+  "What the buyer gets, how long it takes, anything they should know.": "Wat de koper krijgt, hoe lang het duurt en alles wat ze moeten weten.",
+  "What we'll send": "Wat we versturen",
+  "What went wrong?": "Wat ging er mis?",
+  "What's happening?": "Wat gebeurt er?",
+  "When an offer is taken and as swaps finish": "Wanneer een aanbieding wordt geaccepteerd en ruiltransacties worden voltooid",
+  "When someone sends you ORN": "Wanneer iemand je ORN stuurt",
+  "When the seller answers, pay the exact amount shown from your SOL or Bitcoin wallet.": "Wanneer de verkoper antwoordt, betaal je precies het getoonde bedrag vanuit je SOL- of Bitcoin-wallet.",
+  "Where did it happen?": "Waar gebeurde het?",
+  "Where the Bitcoin should go": "Waar de Bitcoin naartoe moet",
+  "Where the SOL should go, such as your Phantom wallet": "Waar de SOL naartoe moet, zoals je Phantom-wallet",
+  "Where was it?": "Waar was het?",
+  "Where your Bitcoin comes back if the swap stops": "Waar je Bitcoin terugkomt als de ruil stopt",
+  "Where your SOL should go (e.g. Phantom)": "Waar je SOL naartoe moet (bijv. Phantom)",
+  "Where your SOL should go, such as your Phantom wallet": "Waar je SOL naartoe moet, zoals je Phantom-wallet",
+  "While it's open, Orien Wallet does each of its steps for you as soon as it can.": "Zolang de app openstaat, voert Orien Wallet elke stap zo snel mogelijk voor je uit.",
+  "Who can message you": "Wie jou berichten kan sturen",
+  "Who is this?": "Wie is dit?",
+  "With their names and icons. Your new device asks there whether to add a password.": "Met hun namen en iconen. Je nieuwe apparaat vraagt daar of je een wachtwoord wilt toevoegen.",
+  "Withdraw": "Opnemen",
+  "Within a minute it shows": "Binnen een minuut staat er",
+  "Work and things offered for ORN. You pay the seller straight from your wallet: the Market never holds anyone's coins.": "Werk en spullen aangeboden voor ORN. Je betaalt de verkoper rechtstreeks vanuit je wallet: de Markt bewaart nooit iemands munten.",
+  "Working, keep this page open": "Bezig, houd deze pagina open",
+  "Write the amount in ORN, like 200 or 12.5.": "Vul het bedrag in ORN in, zoals 200 of 12.5.",
+  "Write the price in ORN, like 200 or 12.5.": "Vul de prijs in ORN in, zoals 200 of 12.5.",
+  "Write them down in order, on paper, and keep it somewhere safe.": "Schrijf ze op volgorde op papier en bewaar het op een veilige plek.",
+  "Write these 24 words on paper, in order, and keep them somewhere safe. They are the only way back into this wallet if this device is lost. Anyone who sees them can spend your ORN.": "Schrijf deze 24 woorden op volgorde op papier en bewaar ze op een veilige plek. Ze zijn de enige manier om weer toegang te krijgen tot deze wallet als je dit apparaat kwijtraakt. Iedereen die ze ziet kan je ORN uitgeven.",
+  "Yesterday": "Gisteren",
+  "You": "Jij",
+  "You and the buyer · up to you": "Jij en de koper · aan jou",
+  "You approve the sale once, now. When someone takes your offer, your wallet accepts it within seconds, even with the window closed. Keep Orien Wallet running.": "Je keurt de verkoop nu eenmalig goed. Wanneer iemand je aanbieding accepteert, accepteert je wallet deze binnen enkele seconden, zelfs als het venster gesloten is. Houd Orien Wallet actief.",
+  "You buy": "Je koopt",
+  "You can't send in the group chat right now. You can still read along.": "Je kunt nu geen berichten sturen in de groepschat. Je kunt nog steeds meelezen.",
+  "You get": "Je krijgt",
+  "You have 24 themes, as many as there's room for. Delete one in Appearance first.": "Je hebt 24 thema's, het maximale aantal. Verwijder er eerst een bij Weergave.",
+  "You haven't blocked anyone.": "Je hebt niemand geblokkeerd.",
+  "You need": "Je hebt nodig",
+  "You need to be signed in to Orien Network with a verified wallet.": "Je moet ingelogd zijn bij Orien Network met een geverifieerde wallet.",
+  "You need to be signed in to Orien Network. Verifying a wallet isn't needed.": "Je moet ingelogd zijn bij Orien Network. Een wallet verifiëren is niet nodig.",
+  "You pay": "Je betaalt",
+  "You sell": "Je verkoopt",
+  "You send the buyer the offer code, and paste in the reply code they send back": "Je stuurt de koper de aanbiedingscode en plakt de antwoordcode die zij terugsturen",
+  "You · now": "Jij · nu",
+  "You · pay within a few hours": "Jij · betaal binnen enkele uren",
+  "You · pay within the next few hours": "Jij · betaal binnen de komende paar uur",
+  "You · stay on this page until Step 2 finishes": "Jij · blijf op deze pagina tot Stap 2 klaar is",
+  "You · within a few hours": "Jij · binnen enkele uren",
+  "You're up to date": "Je bent up-to-date",
+  "Your 24 words, separated by spaces": "Je 24 woorden, gescheiden door spaties",
+  "Your Bitcoin address": "Je Bitcoin-adres",
+  "Your Discord username": "Je Discord-gebruikersnaam",
+  "Your ORN stay safe:": "Je ORN blijven veilig:",
+  "Your Phantom / SOL wallet (for refunds & leftovers)": "Je Phantom / SOL-wallet (voor terugbetalingen en restbedragen)",
+  "Your Phantom / SOL wallet address": "Je Phantom / SOL-walletadres",
+  "Your SOL address": "Je SOL-adres",
+  "Your SOL address (the wallet you'll pay from)": "Je SOL-adres (de wallet waarmee je betaalt)",
+  "Your SOL is locked for the seller. Their wallet takes it and your ORN arrive, usually within a minute.": "Je SOL is vergrendeld voor de verkoper. Hun wallet haalt het op en je ORN komen aan, meestal binnen een minuut.",
+  "Your SOL payout address": "Je SOL-uitbetalingsadres",
+  "Your SOL stays locked safely on Solana until a seller fills it, you cancel in one click, or it expires after 7 days and refunds automatically.": "Je SOL blijft veilig vergrendeld op Solana totdat een verkoper de order vervult, jij met één klik annuleert, of deze na 7 dagen verloopt en automatisch wordt teruggestort.",
+  "Your SOL wallet (for refunds & leftovers)": "Je SOL-wallet (voor terugbetalingen en restbedragen)",
+  "Your SOL wallet address": "Je SOL-walletadres",
+  "Your SOL went back to your SOL wallet.": "Je SOL is teruggestort naar je SOL-wallet.",
+  "Your Telegram username": "Je Telegram-gebruikersnaam",
+  "Your X username": "Je X-gebruikersnaam",
+  "Your account is for the Community, the Market and swaps. Your wallets stay in this app.": "Je account is voor de Community, de Markt en ruiltransacties. Je wallets blijven in deze app.",
+  "Your address": "Je adres",
+  "Your buy order is live on the book. When someone sells into it, this app opens the pay screen.": "Je kooporder staat live in het orderboek. Wanneer iemand eraan verkoopt, opent deze app het betaalscherm.",
+  "Your buy order is live on the order book. You are all set to leave this page or close Orien Wallet. Any extra SOL has been sent back to your wallet, and when a seller takes your order your ORN will arrive automatically.": "Je kooporder staat live in het orderboek. Je kunt deze pagina veilig verlaten of Orien Wallet sluiten. Eventuele extra SOL is teruggestort naar je wallet, en zodra een verkoper je order accepteert komen je ORN automatisch aan.",
+  "Your devices": "Je apparaten",
+  "Your email": "Je e-mailadres",
+  "Your language follows you to your other devices.": "Je taal volgt je naar je andere apparaten.",
+  "Your listings": "Je advertenties",
+  "Your offer is live": "Je aanbieding staat live",
+  "Your orders & swaps": "Je orders & ruiltransacties",
+  "Your picture": "Je foto",
+  "Your profile": "Je profiel",
+  "Your recovery phrase": "Je herstelzin",
+  "Your sell order is live on the book. When someone buys it, your wallet runs the swap by itself.": "Je verkooporder staat live in het orderboek. Wanneer iemand koopt, voert je wallet de ruil vanzelf uit.",
+  "Your share": "Jouw deel",
+  "Your share of each hour's new ORN": "Jouw deel van de nieuwe ORN per uur",
+  "Your share of the hour's fees": "Jouw deel van de kosten van dit uur",
+  "Your share of the hour's new ORN": "Jouw deel van de nieuwe ORN van dit uur",
+  "Your speed": "Jouw snelheid",
+  "Your swaps": "Je ruiltransacties",
+  "Your theme follows you to your other devices.": "Je thema volgt je naar je andere apparaten.",
+  "Your turn: confirm with your wallet password so this app can finish it": "Jouw beurt: bevestig met je wallet-wachtwoord zodat deze app het kan afronden",
+  "Your username": "Je gebruikersnaam",
+  "Your username, as others see it": "Je gebruikersnaam, zoals anderen die zien",
+  "Your wallet": "Je wallet",
+  "Your wallet is locking the ORN now. Keep Orien Wallet running while the buyer pays.": "Je wallet vergrendelt de ORN nu. Houd Orien Wallet actief terwijl de koper betaalt.",
+  "Your wallet is on its way": "Je wallet is onderweg",
+  "Your wallet locks the ORN automatically when someone buys your offer. Keep Orien Wallet running in the menu bar or tray.": "Je wallet vergrendelt de ORN automatisch wanneer iemand je aanbieding koopt. Houd Orien Wallet actief in de menubalk of het systeemvak.",
+  "Your wallets": "Je wallets",
+  "Your wallets arrive on the new device by themselves.": "Je wallets komen vanzelf aan op het nieuwe apparaat.",
+  "Your wallets travel encrypted, straight between your two devices.": "Je wallets worden versleuteld en rechtstreeks tussen je twee apparaten verzonden.",
+  "Yours": "Van jou",
+  "a buyer": "een koper",
+  "a globe": "een wereldbol",
+  "a minute": "een minuut",
+  "a pickaxe": "een houweel",
+  "a speech bubble": "een tekstballon",
+  "a telescope": "een telescoop",
+  "about 6 hours after your reply": "ongeveer 6 uur na je antwoord",
+  "also replied to a post you replied to": "reageerde ook op een bericht waarop jij hebt gereageerd",
+  "an arrow pointing down": "een pijl naar beneden",
+  "an arrow pointing up": "een pijl naar boven",
+  "and": "en",
+  "and choose": "en kies",
+  "and its ORN stay in it. This only takes it off the list.": "en de ORN blijven erin staan. Dit haalt hem alleen uit de lijst.",
+  "any moment": "elk moment",
+  "by Pablo Stanley, drawn with": "door Pablo Stanley, getekend met",
+  "claim your ORN": "je ORN opeisen",
+  "covers Solana's small fees; nearly all of it comes back to your SOL wallet when the swap ends.": "dekt de kleine kosten van Solana; bijna alles komt terug naar je SOL-wallet zodra de ruil is afgelopen.",
+  "covers Solana's small rent and fees; nearly all of it returns to your SOL wallet automatically.": "dekt de kleine rent en kosten van Solana; bijna alles wordt automatisch teruggestort naar je SOL-wallet.",
+  "estimated": "geschat",
+  "finish the swap": "de ruil afronden",
+  "for Orien's own. Each card shows the theme on a small copy of the app.": "voor die van Orien zelf. Elke kaart toont het thema op een kleine versie van de app.",
+  "for each share": "voor elke share",
+  "for themes people made, or": "voor thema's die mensen hebben gemaakt, of",
+  "in Settings,": "in Instellingen,",
+  "in a row": "op rij",
+  "is buying from you": "koopt van jou",
+  "it goes back to the SOL address below within about an hour.": "gaat het binnen ongeveer een uur terug naar het onderstaande SOL-adres.",
+  "just don't send: nothing has left your wallets.": "stuur gewoon niets: er heeft niets je wallets verlaten.",
+  "just now": "zojuist",
+  "mined their first ORN.": "heeft zijn eerste ORN gemined.",
+  "new ORN": "nieuwe ORN",
+  "none yet": "nog geen",
+  "on one you like.": "bij een aanbieding die je bevalt.",
+  "on their own": "vanzelf",
+  "orien.network can't be reached right now. Check your connection and try again.": "orien.network is momenteel niet bereikbaar. Controleer je verbinding en probeer het opnieuw.",
+  "passed it mining.": "heeft dit gehaald met minen.",
+  "payments sent": "betalingen verstuurd",
+  "per ORN": "per ORN",
+  "posted about you:": "plaatste een bericht over jou:",
+  "rank": "rang",
+  "replied to the network's post about you": "reageerde op het bericht van het netwerk over jou",
+  "replied to you in the Orien group chat": "reageerde op jou in de Orien-groepschat",
+  "replied to your post": "reageerde op je bericht",
+  "replied to your reply": "reageerde op je antwoord",
+  "scan or type": "scan of typ",
+  "shares an hour": "shares per uur",
+  "shows mining rewards and validator fees.": "toont miningbeloningen en validatorkosten.",
+  "slider, or click": "schuifregelaar, of klik op",
+  "staked": "gestaked",
+  "the Bitcoin in any Bitcoin wallet, plus its sending fee. The usual Orien fee (0.1%, at most 1 ORN) comes out of the ORN you receive.": "de Bitcoin in een willekeurige Bitcoin-wallet, plus de verzendkosten. De gebruikelijke Orien-kosten (0,1%, maximaal 1 ORN) gaan af van de ORN die je ontvangt.",
+  "the ORN in this wallet, plus the usual Orien fee (0.1%, at most 1 ORN). Bitcoin's network fee comes out of what you receive.": "de ORN in deze wallet, plus de gebruikelijke Orien-kosten (0,1%, maximaal 1 ORN). De Bitcoin-netwerkkosten gaan af van wat je ontvangt.",
+  "the ORN in this wallet, plus the usual Orien fee (0.1%, at most 1 ORN). The buyer covers Solana's small fees.": "de ORN in deze wallet, plus de gebruikelijke Orien-kosten (0,1%, maximaal 1 ORN). De koper betaalt de kleine kosten van Solana.",
+  "the ORN in this wallet, plus the usual Orien fee (0.1%, at most 1 ORN). You don't need any SOL.": "de ORN in deze wallet, plus de gebruikelijke Orien-kosten (0,1%, maximaal 1 ORN). Je hebt geen SOL nodig.",
+  "the SOL in your own SOL wallet, plus about 0.005 SOL for Solana's small fees, nearly all of which comes back. The usual Orien fee (0.1%, at most 1 ORN) comes out of the ORN you receive.": "de SOL in je eigen SOL-wallet, plus ongeveer 0,005 SOL voor de kleine kosten van Solana, waarvan bijna alles terugkomt. De gebruikelijke Orien-kosten (0,1%, maximaal 1 ORN) gaan af van de ORN die je ontvangt.",
+  "the buy offer is yours": "de koopaanbieding is van jou",
+  "the buyer": "de koper",
+  "the buyer's SOL is already locked on Solana. Your wallet reserves it, locks your ORN, and both sides settle automatically in about a minute without waiting on the buyer.": "de SOL van de koper is al vergrendeld op Solana. Je wallet reserveert deze, vergrendelt je ORN en beide kanten wikkelen binnen ongeveer een minuut automatisch af zonder op de koper te wachten.",
+  "the code it shows.": "de code die getoond wordt.",
+  "the gear at the top left": "het tandwiel linksboven",
+  "the menu bar": "de menubalk",
+  "the network's post about you": "het bericht van het netwerk over jou",
+  "the offer is yours": "de aanbieding is van jou",
+  "the seller": "de verkoper",
+  "the seller's lock ends": "de vergrendeling van de verkoper afloopt",
+  "the seller's wallet accepts within seconds and locks the ORN for you. This app then shows the exact SOL to send from your SOL wallet, such as Phantom, with a QR code. The swap finishes by itself, usually within a minute.": "de wallet van de verkoper accepteert binnen enkele seconden en vergrendelt de ORN voor jou. Deze app toont daarna het exacte bedrag aan SOL om vanuit je SOL-wallet, zoals Phantom, te sturen met een QR-code. De ruil wordt vanzelf afgerond, meestal binnen een minuut.",
+  "the system tray": "het systeemvak",
+  "there too.": "daar ook in.",
+  "there. Your wallets arrive here by themselves.": "daar in. Je wallets komen hier vanzelf aan.",
+  "this app takes it back to the address below after about 6 hours.": "haalt deze app het na ongeveer 6 uur terug naar het onderstaande adres.",
+  "this app verifies the buyer's SOL is reserved for your address on Solana before locking your ORN, then both sides settle in about a minute.": "deze app controleert of de SOL van de koper voor jouw adres op Solana is gereserveerd voordat je ORN worden vergrendeld, waarna beide kanten binnen ongeveer een minuut afwikkelen.",
+  "this wallet": "deze wallet",
+  "to find your computer's sweet spot.": "om de optimale instelling van je computer te vinden.",
+  "to keep it. It joins your themes in Appearance and is worn at once.": "om het te behouden. Het komt bij je thema's in Weergave en wordt direct toegepast.",
+  "to see the whole app in it. Click": "om de hele app erin te zien. Klik op",
+  "to this Bitcoin address": "naar dit Bitcoin-adres",
+  "to this SOL address": "naar dit SOL-adres",
+  "took your offer": "heeft je aanbieding geaccepteerd",
+  "top miner": "topminer",
+  "two arrows": "twee pijlen",
+  "two people": "twee personen",
+  "type": "typ",
+  "under a second": "minder dan een seconde",
+  "wrote to you": "schreef je",
+  "your ORN come back to you on their own within a few hours. You don't need to do anything.": "komen je ORN binnen enkele uren vanzelf terug. Je hoeft niets te doen.",
+  "your ORN come back to your wallet on their own within 12 hours.": "komen je ORN binnen 12 uur vanzelf terug in je wallet.",
+  "your ORN come back to your wallet on their own within a few hours.": "komen je ORN binnen enkele uren vanzelf terug in je wallet.",
+  "your password": "je wachtwoord",
+  "your post": "je bericht",
+  "your reply": "je antwoord",
+  "your wallet locks the ORN on the network": "vergrendelt je wallet de ORN op het netwerk",
+  "your wallet locks your ORN for the buyer within seconds. Their wallet then prompts them to send the SOL, and your wallet collects it and delivers their ORN automatically, usually within a minute.": "je wallet vergrendelt je ORN binnen enkele seconden voor de koper. Hun wallet vraagt hen daarna de SOL te sturen, en jouw wallet haalt deze op en levert automatisch hun ORN, meestal binnen een minuut.",
+  "your wallet locks your ORN for the buyer within seconds. Their wallet then sends the Bitcoin, and once it confirms, your wallet collects it and delivers their ORN automatically.": "je wallet vergrendelt je ORN binnen enkele seconden voor de koper. Hun wallet stuurt daarna de Bitcoin, en zodra deze is bevestigd, haalt jouw wallet deze op en levert automatisch hun ORN.",
+  "your wallet never locks your ORN until the buyer's SOL is reserved for your address on Solana.": "je wallet vergrendelt je ORN nooit voordat de SOL van de koper voor jouw adres op Solana is gereserveerd.",
+  "your wallet password": "je wallet-wachtwoord",
+  "✓ Complete": "✓ Voltooid",
+  "✓ Live on the order book (safe to leave)": "✓ Live in het orderboek (veilig om te verlaten)",
+  "✓ Valid address": "✓ Geldig adres",
+  "_patterns": [
+    [
+      "^Sell ([0-9.,]+) ORN for ([0-9.,]+) SOL(.*)$",
+      "Verkoop {0} ORN voor {1} SOL{2}"
+    ],
+    [
+      "^Buy ([0-9.,]+) ORN for ([0-9.,]+) SOL(.*)$",
+      "Koop {0} ORN voor {1} SOL{2}"
+    ],
+    [
+      "^Sell ([0-9.,]+) ORN for ([0-9.,]+) BTC(.*)$",
+      "Verkoop {0} ORN voor {1} BTC{2}"
+    ],
+    [
+      "^Buy ([0-9.,]+) ORN for ([0-9.,]+) BTC(.*)$",
+      "Koop {0} ORN voor {1} BTC{2}"
+    ],
+    [
+      "^(\\d+) open$",
+      "{0} open"
+    ],
+    [
+      "^Price \\(([A-Z]+)\\)$",
+      "Prijs ({0})"
+    ],
+    [
+      "^Total \\(([A-Z]+)\\)$",
+      "Totaal ({0})"
+    ],
+    [
+      "^Last swap · (.+)$",
+      "Laatste ruil · {0}"
+    ],
+    [
+      "^Lock with (.+)$",
+      "Vergrendelen met {0}"
+    ],
+    [
+      "^Received so far: ([0-9.,]+) of ([0-9.,]+) SOL$",
+      "Tot nu toe ontvangen: {0} van {1} SOL"
+    ],
+    [
+      "^Done: ([0-9.,]+) ORN are in your wallet\\.$",
+      "Klaar: {0} ORN staan in je wallet."
+    ],
+    [
+      "^Done: ([0-9.,]+) SOL is in your SOL wallet\\.$",
+      "Klaar: {0} SOL staat in je SOL-wallet."
+    ],
+    [
+      "^Paid: ([0-9.,]+) SOL is on its way to your SOL address\\.$",
+      "Betaald: {0} SOL is onderweg naar je SOL-adres."
+    ],
+    [
+      "^Send exactly ([0-9.,]+) SOL from your SOL wallet to fund this buy order\\. Once funded, it stays live on the order book even when Orien Wallet is closed\\.$",
+      "Verstuur precies {0} SOL vanuit je SOL-wallet om deze kooporder te financieren. Eenmaal gefinancierd blijft deze live in het orderboek, zelfs wanneer Orien Wallet gesloten is."
+    ],
+    [
+      "^The seller accepted\\. Send exactly ([0-9.,]+) SOL from your SOL wallet to the address below\\. This app sees it by itself\\.$",
+      "De verkoper heeft geaccepteerd. Verstuur precies {0} SOL vanuit je SOL-wallet naar het onderstaande adres. Deze app ziet het vanzelf."
+    ],
+    [
+      "^Your ORN are locked\\. You can leave this page; ([0-9.,]+) SOL arrives in your SOL wallet in about a minute\\.$",
+      "Je ORN zijn vergrendeld. Je kunt deze pagina verlaten; {0} SOL komt binnen ongeveer een minuut aan in je SOL-wallet."
+    ],
+    [
+      "^Send ([0-9.,]+) SOL from your SOL wallet$",
+      "Verstuur {0} SOL vanuit je SOL-wallet"
+    ],
+    [
+      "^Locking your ([0-9.,]+ (?:SOL|BTC)) on Solana and adding your order to the book$",
+      "Je {0} wordt vergrendeld op Solana en je order wordt aan het orderboek toegevoegd"
+    ],
+    [
+      "^Waiting on the order book for a seller to fill ([0-9.,]+ ORN)$",
+      "Wachten in het orderboek tot een verkoper {0} vervult"
+    ],
+    [
+      "^([0-9.,]+ ORN) delivered to your wallet$",
+      "{0} geleverd in je wallet"
+    ],
+    [
+      "^Locking the buyer's ([0-9.,]+ SOL) on Solana for your address$",
+      "De {0} van de koper wordt op Solana vergrendeld voor jouw adres"
+    ],
+    [
+      "^Locking your ([0-9.,]+ ORN) on Orien$",
+      "Je {0} wordt vergrendeld op Orien"
+    ],
+    [
+      "^Sending ([0-9.,]+ SOL) to your SOL wallet$",
+      "{0} wordt verstuurd naar je SOL-wallet"
+    ],
+    [
+      "^([0-9.,]+ SOL) in your SOL wallet$",
+      "{0} in je SOL-wallet"
+    ],
+    [
+      "^([0-9.,]+ ORN) in your wallet$",
+      "{0} in je wallet"
+    ],
+    [
+      "^Your ([0-9.,]+ ORN) are locked for the buyer$",
+      "Je {0} zijn vergrendeld voor de koper"
+    ],
+    [
+      "^The buyer pays ([0-9.,]+ (?:SOL|BTC))$",
+      "De koper betaalt {0}"
+    ],
+    [
+      "^The seller locked ([0-9.,]+ ORN) for you$",
+      "De verkoper heeft {0} voor je vergrendeld"
+    ],
+    [
+      "^([0-9.,]+ (?:SOL|BTC)) on its way to your SOL address$",
+      "{0} onderweg naar je SOL-adres"
+    ],
+    [
+      "^Your SOL is locked for the seller, then your ([0-9.,]+ ORN) arrive$",
+      "Je SOL is vergrendeld voor de verkoper, daarna komt je {0} aan"
+    ],
+    [
+      "^Your turn: send ([0-9.,]+ (?:SOL|BTC)) to fund$",
+      "Jouw beurt: verstuur {0} om te financieren"
+    ],
+    [
+      "^Your turn: pay ([0-9.,]+ (?:SOL|BTC)) now$",
+      "Jouw beurt: betaal nu {0}"
+    ],
+    [
+      "^Your turn: approve with (.+) to finish$",
+      "Jouw beurt: keur goed met {0} om af te ronden"
+    ],
+    [
+      "^Step (\\d+) of (\\d+) · (.+)$",
+      "Stap {0} van {1} · {2}"
+    ],
+    [
+      "^Stopped: (.+)\\.$",
+      "Gestopt: {0}."
+    ],
+    [
+      "^Fund your buy order: send ([0-9.,]+ SOL)$",
+      "Financier je kooporder: verstuur {0}"
+    ],
+    [
+      "^Locks your SOL on Solana to buy ([0-9.,]+) ORN$",
+      "Vergrendelt je SOL op Solana om {0} ORN te kopen"
+    ],
+    [
+      "^Swap in progress: (?:buying|selling) ([0-9.,]+) ORN$",
+      "Ruil bezig: {0} ORN"
+    ],
+    [
+      "^Approve to get your ([0-9.,]+) ORN$",
+      "Keur goed om je {0} ORN te ontvangen"
+    ],
+    [
+      "^Confirm with (.+) below, so this app can finish the swap$",
+      "Bevestig hieronder met {0} zodat deze app de ruil kan afronden"
+    ],
+    [
+      "^Confirm with (.+) below, so this app can claim your ORN$",
+      "Bevestig hieronder met {0} zodat deze app je ORN kan opeisen"
+    ],
+    [
+      "^In (\\d+) min$",
+      "Over {0} min"
+    ],
+    [
+      "^in (\\d+) min$",
+      "over {0} min"
+    ],
+    [
+      "^In (\\d+) s$",
+      "Over {0} s"
+    ],
+    [
+      "^in (\\d+) s$",
+      "over {0} s"
+    ],
+    [
+      "^(\\d+) of (\\d+) running$",
+      "{0} van {1} actief"
+    ],
+    [
+      "^([0-9,]+) miners? paid$",
+      "{0} miners betaald"
+    ],
+    [
+      "^Checkpoint (\\d+)$",
+      "Checkpoint {0}"
+    ],
+    [
+      "^Running · into (.+)$",
+      "Actief · naar {0}"
+    ],
+    [
+      "^([0-9,]+) found$",
+      "{0} gevonden"
+    ],
+    [
+      "^Locked payment from (.+)$",
+      "Vergrendelde betaling van {0}"
+    ],
+    [
+      "^Locked payment to (.+)$",
+      "Vergrendelde betaling aan {0}"
+    ],
+    [
+      "^From (.+)$",
+      "Van {0}"
+    ],
+    [
+      "^To (.+)$",
+      "Aan {0}"
+    ],
+    [
+      "^(\\d+) min ago · (\\d+) payments? · agreed by (\\d+) of (\\d+)$",
+      "{0} min geleden · {1} betalingen · bevestigd door {2} van {3}"
+    ],
+    [
+      "^(\\d+) h ago · (\\d+) payments? · agreed by (\\d+) of (\\d+)$",
+      "{0} uur geleden · {1} betalingen · bevestigd door {2} van {3}"
+    ],
+    [
+      "^(\\d+) d ago · (\\d+) payments? · agreed by (\\d+) of (\\d+)$",
+      "{0} d geleden · {1} betalingen · bevestigd door {2} van {3}"
+    ],
+    [
+      "^(\\d+) min ago · agreed by (\\d+) of (\\d+)$",
+      "{0} min geleden · bevestigd door {1} van {2}"
+    ],
+    [
+      "^(\\d+) h ago · agreed by (\\d+) of (\\d+)$",
+      "{0} uur geleden · bevestigd door {1} van {2}"
+    ],
+    [
+      "^(\\d+) d ago · agreed by (\\d+) of (\\d+)$",
+      "{0} d geleden · bevestigd door {1} van {2}"
+    ],
+    [
+      "^just now · (\\d+) payments? · agreed by (\\d+) of (\\d+)$",
+      "zojuist · {0} betalingen · bevestigd door {1} van {2}"
+    ],
+    [
+      "^just now · agreed by (\\d+) of (\\d+)$",
+      "zojuist · bevestigd door {0} van {1}"
+    ],
+    [
+      "^([0-9,]+) payments?$",
+      "{0} betalingen"
+    ],
+    [
+      "^Of ([0-9,]+) there will ever be$",
+      "Van de {0} die er ooit zullen zijn"
+    ],
+    [
+      "^([0-9,]+) in the last (\\d+) hours$",
+      "{0} in de afgelopen {1} uur"
+    ],
+    [
+      "^Estimated, over the last (\\d+) hours$",
+      "Geschat, over de afgelopen {0} uur"
+    ],
+    [
+      "^Estimated, over the last hour$",
+      "Geschat, over het afgelopen uur"
+    ],
+    [
+      "^([0-9,]+) hold at least 1 ORN$",
+      "{0} bezitten minstens 1 ORN"
+    ],
+    [
+      "^Validator (\\d+)$",
+      "Validator {0}"
+    ],
+    [
+      "^([0-9.]+)% of ORN in wallets$",
+      "{0}% van de ORN in wallets"
+    ],
+    [
+      "^([0-9.]+)% of the work$",
+      "{0}% van het werk"
+    ],
+    [
+      "^([0-9,]+) wallets hold ORN$",
+      "{0} wallets bevatten ORN"
+    ],
+    [
+      "^([0-9,]+) wallets? paid$",
+      "{0} wallets betaald"
+    ],
+    [
+      "^Staked by (.+) · ([0-9,]+) ORN · agreed on (\\d+) of the last (\\d+)$",
+      "Gestaked door {0} · {1} ORN · akkoord op {2} van de laatste {3}"
+    ],
+    [
+      "^Launch validator · agreed on (\\d+) of the last (\\d+)$",
+      "Startvalidator · akkoord op {0} van de laatste {1}"
+    ],
+    [
+      "^Staked by (.+)$",
+      "Gestaked door {0}"
+    ],
+    [
+      "^(\\d+) verified wallets?$",
+      "{0} geverifieerde wallets"
+    ],
+    [
+      "^(\\d+) more offers? paused while .*$",
+      "{0} andere aanbieding(en) gepauzeerd tijdens actieve ruil"
+    ],
+    [
+      "^Continue with (.+)$",
+      "Doorgaan met {0}"
+    ],
+    [
+      "^Sell with (.+)$",
+      "Verkopen met {0}"
+    ],
+    [
+      "^Take with (.+)$",
+      "Accepteren met {0}"
+    ],
+    [
+      "^Sweet spot: (\\d+) of (\\d+) cores$",
+      "Optimaal: {0} van {1} kernen"
+    ],
+    [
+      "^About ([0-9,]+) tries a second\\. Past it, the processor runs hotter for no more ORN\\.$",
+      "Ongeveer {0} pogingen per seconde. Daarboven wordt de processor warmer zonder extra ORN."
+    ],
+    [
+      "^Trying (\\d+) of (\\d+) cores \\((\\d+) of (\\d+)\\)\\. Shares found still count\\.$",
+      "{0} van {1} kernen testen ({2} van {3}). Gevonden shares tellen nog steeds mee."
+    ],
+    [
+      "^This hour: ([0-9,]+) shares found, ([0-9,]+) counted$",
+      "Dit uur: {0} shares gevonden, {1} geteld"
+    ],
+    [
+      "^About one try in ([0-9,]+) makes a share\\.$",
+      "Ongeveer één op de {0} pogingen levert een share op."
+    ],
+    [
+      "^([0-9.,]+(?: [KMG])?) tries a second$",
+      "{0} pogingen per seconde"
+    ],
+    [
+      "^(\\d+) of (\\d+) cores$",
+      "{0} van {1} kernen"
+    ],
+    [
+      "^(\\d+) of (\\d+)$",
+      "{0} van {1}"
+    ],
+    [
+      "^(\\d+) of 24 words$",
+      "{0} van 24 woorden"
+    ],
+    [
+      "^staked · ([0-9.,]+) returning$",
+      "gestaked · {0} komt terug"
+    ],
+    [
+      "^Received from (.+)$",
+      "Ontvangen van {0}"
+    ],
+    [
+      "^Sent to (.+)$",
+      "Verstuurd naar {0}"
+    ],
+    [
+      "^Locked payment received from (.+)$",
+      "Vergrendelde betaling ontvangen van {0}"
+    ],
+    [
+      "^(.+) · checkpoint (\\d+)$",
+      "{0} · checkpoint {1}"
+    ],
+    [
+      "^checkpoint (\\d+)$",
+      "checkpoint {0}"
+    ],
+    [
+      "^← Checkpoint (\\d+)$",
+      "← Checkpoint {0}"
+    ],
+    [
+      "^Checkpoint (\\d+) →$",
+      "Checkpoint {0} →"
+    ],
+    [
+      "^Checkpoint (\\d+) hasn't been made yet\\.$",
+      "Checkpoint {0} is nog niet aangemaakt."
+    ],
+    [
+      "^Checkpoint (\\d+) hasn't been made yet\\. The latest is (\\d+)\\.$",
+      "Checkpoint {0} is nog niet aangemaakt. De nieuwste is {1}."
+    ],
+    [
+      "^Being made now, ready in about (\\d+) min$",
+      "Wordt nu aangemaakt, klaar over ongeveer {0} min"
+    ],
+    [
+      "^Next hour (.+)$",
+      "Volgend uur {0}"
+    ],
+    [
+      "^([0-9.]+)× easier$",
+      "{0}× makkelijker"
+    ],
+    [
+      "^([0-9.]+)× harder$",
+      "{0}× moeilijker"
+    ],
+    [
+      "^([0-9.,]+) new ORN$",
+      "{0} nieuwe ORN"
+    ],
+    [
+      "^([0-9.,]+) available$",
+      "{0} beschikbaar"
+    ],
+    [
+      "^Avail: ([0-9.,]+)$",
+      "Beschikb.: {0}"
+    ],
+    [
+      "^Fee ([0-9.,]+) ORN · ([0-9.,]+) ORN in all$",
+      "Kosten {0} ORN · {1} ORN in totaal"
+    ],
+    [
+      "^incl\\. ([0-9.,]+) fee$",
+      "incl. {0} kosten"
+    ],
+    [
+      "^([0-9.,]+) ORN sent$",
+      "{0} ORN verstuurd"
+    ],
+    [
+      "^(\\d+) more characters?$",
+      "Nog {0} tekens"
+    ],
+    [
+      "^(\\d+) min ago$",
+      "{0} min geleden"
+    ],
+    [
+      "^(\\d+) h ago$",
+      "{0} uur geleden"
+    ],
+    [
+      "^(\\d+) d ago$",
+      "{0} d geleden"
+    ],
+    [
+      "^(\\d+) h (\\d+) min$",
+      "{0} u {1} min"
+    ],
+    [
+      "^(\\d+) min$",
+      "{0} min"
+    ],
+    [
+      "^(\\d+) minutes?$",
+      "{0} minuten"
+    ],
+    [
+      "^(\\d+) hours?$",
+      "{0} uur"
+    ],
+    [
+      "^(\\d+) days?$",
+      "{0} dagen"
+    ],
+    [
+      "^(\\d+) days? left$",
+      "Nog {0} dagen"
+    ],
+    [
+      "^(\\d+) hours? left$",
+      "Nog {0} uur"
+    ],
+    [
+      "^(\\d+) minutes? left$",
+      "Nog {0} minuten"
+    ],
+    [
+      "^(\\d+) more$",
+      "Nog {0}"
+    ],
+    [
+      "^(\\d+) others?$",
+      "{0} anderen"
+    ],
+    [
+      "^(.+) and (\\d+) others?$",
+      "{0} en {1} anderen"
+    ],
+    [
+      "^(.+), (\\d+) swaps? done$",
+      "{0}, {1} ruiltransacties voltooid"
+    ],
+    [
+      "^([0-9.,]+) SOL per ORN$",
+      "{0} SOL per ORN"
+    ],
+    [
+      "^([0-9,]+) satoshis per ORN$",
+      "{0} satoshi's per ORN"
+    ],
+    [
+      "^Member since (.+)$",
+      "Lid sinds {0}"
+    ],
+    [
+      "^Blocked (.+)$",
+      "{0} geblokkeerd"
+    ],
+    [
+      "^Block (.+)$",
+      "{0} blokkeren"
+    ],
+    [
+      "^Unblock (.+)$",
+      "{0} deblokkeren"
+    ],
+    [
+      "^Reply to (.+)$",
+      "Antwoorden op {0}"
+    ],
+    [
+      "^Write to (.+)$",
+      "Schrijf naar {0}"
+    ],
+    [
+      "^Ask (.+) to pay$",
+      "Vraag {0} om te betalen"
+    ],
+    [
+      "^Tip ([0-9.,]+) ORN$",
+      "Geef {0} ORN fooi"
+    ],
+    [
+      "^Tip (.+) for (.+)$",
+      "Geef {0} fooi voor {1}"
+    ],
+    [
+      "^Tip (.+)$",
+      "Geef {0} fooi"
+    ],
+    [
+      "^Tip with (.+)$",
+      "Fooi geven met {0}"
+    ],
+    [
+      "^Send with (.+)$",
+      "Versturen met {0}"
+    ],
+    [
+      "^Pay with (.+)$",
+      "Betalen met {0}"
+    ],
+    [
+      "^Post with (.+)$",
+      "Plaatsen met {0}"
+    ],
+    [
+      "^Verify with (.+)$",
+      "Verifiëren met {0}"
+    ],
+    [
+      "^Turn on with (.+)$",
+      "Inschakelen met {0}"
+    ],
+    [
+      "^Buy ORN with (.+)$",
+      "ORN kopen met {0}"
+    ],
+    [
+      "^Sell ORN with (.+)$",
+      "ORN verkopen met {0}"
+    ],
+    [
+      "^Use (.+) instead$",
+      "Gebruik in plaats daarvan {0}"
+    ],
+    [
+      "^Use (.+) instead of the password from now on$",
+      "Gebruik vanaf nu {0} in plaats van het wachtwoord"
+    ],
+    [
+      "^Use (.+)$",
+      "Gebruik {0}"
+    ],
+    [
+      "^Confirm with (.+)$",
+      "Bevestigen met {0}"
+    ],
+    [
+      "^Verify (.+)$",
+      "{0} verifiëren"
+    ],
+    [
+      "^Verifying (.+)$",
+      "{0} verifiëren"
+    ],
+    [
+      "^Send ([0-9.,]+) ORN and verify$",
+      "Verstuur {0} ORN en verifieer"
+    ],
+    [
+      "^Orien Wallet ([0-9.]+) is the newest version\\.$",
+      "Orien Wallet {0} is de nieuwste versie."
+    ],
+    [
+      "^Orien Wallet ([0-9.]+) is ready$",
+      "Orien Wallet {0} staat klaar"
+    ],
+    [
+      "^Orien Wallet ([0-9.]+) is out(.*)$",
+      "Orien Wallet {0} is uit{1}"
+    ],
+    [
+      "^Waiting for (.+) to pay\\.$",
+      "Wachten tot {0} betaalt."
+    ],
+    [
+      "^Waiting for (.+)$",
+      "Wachten op {0}"
+    ],
+    [
+      "^Locking ORN for (.+)$",
+      "ORN vergrendelen voor {0}"
+    ],
+    [
+      "^Selling to (.+)$",
+      "Verkopen aan {0}"
+    ],
+    [
+      "^Taken by (.+)$",
+      "Geaccepteerd door {0}"
+    ],
+    [
+      "^You get ([0-9.,]+) ORN$",
+      "Je krijgt {0} ORN"
+    ],
+    [
+      "^You mined ([0-9.,]+) ORN$",
+      "Je hebt {0} ORN gemined"
+    ],
+    [
+      "^You received ([0-9.,]+) ORN$",
+      "Je hebt {0} ORN ontvangen"
+    ],
+    [
+      "^You paid ([0-9.,]+) ORN\\.$",
+      "Je hebt {0} ORN betaald."
+    ],
+    [
+      "^Buy orders are limited to ([0-9.,]+) SOL per order$",
+      "Kooporders zijn beperkt tot {0} SOL per order"
+    ],
+    [
+      "^The smallest swap is ([0-9.,]+) (SOL|BTC)$",
+      "De kleinste ruil is {0} {1}"
+    ],
+    [
+      "^At least ([0-9.,]+) (SOL|BTC)$",
+      "Minstens {0} {1}"
+    ],
+    [
+      "^Pay by (.+), in (.+)$",
+      "Betaal vóór {0}, binnen {1}"
+    ],
+    [
+      "^around (.+), in about (\\d+) hours?$",
+      "rond {0}, over ongeveer {1} uur"
+    ],
+    [
+      "^around (.+)$",
+      "rond {0}"
+    ],
+    [
+      "^Sign in to (.+)\\?$",
+      "Inloggen bij {0}?"
+    ],
+    [
+      "^Already saved as (.+)$",
+      "Al opgeslagen als {0}"
+    ],
+    [
+      "^✓ Your wallet (.+)$",
+      "✓ Je wallet {0}"
+    ],
+    [
+      "^(.+): your profile$",
+      "{0}: jouw profiel"
+    ],
+    [
+      "^(.+) \\(yours\\)$",
+      "{0} (van jou)"
+    ],
+    [
+      "^(.+) hasn't posted yet\\.$",
+      "{0} heeft nog niets geplaatst."
+    ],
+    [
+      "^About (.+)$",
+      "Over {0}"
+    ],
+    [
+      "^(.+)'s password$",
+      "Wachtwoord van {0}"
+    ],
+    [
+      "^Remove (.+)\\? Tap again$",
+      "{0} verwijderen? Tik nogmaals"
+    ],
+    [
+      "^The record before was ([0-9,]+)\\. Checkpoint (\\d+)\\.$",
+      "Het vorige record was {0}. Checkpoint {1}."
+    ],
+    [
+      "^reacted (.+) to your post$",
+      "reageerde {0} op je bericht"
+    ],
+    [
+      "^reacted (.+) to your reply$",
+      "reageerde {0} op je antwoord"
+    ],
+    [
+      "^reacted (.+) to the network's post about you$",
+      "reageerde {0} op het bericht van het netwerk over jou"
+    ],
+    [
+      "^wrote to you about (.+)$",
+      "schreef je over {0}"
+    ],
+    [
+      "^asks you to pay ([0-9.,]+) ORN$",
+      "vraagt je {0} ORN te betalen"
+    ],
+    [
+      "^says they paid ([0-9.,]+) ORN$",
+      "zegt {0} ORN te hebben betaald"
+    ]
+  ],
+  "_guides": {
+    "backup": {
+      "title": "Maak een back-up van je herstelzin",
+      "steps": [
+        "Klik op Start bovenaan op de naam van de wallet om <b>Wallets</b> te openen.",
+        "Klik op het tandwiel op de kaart van de wallet.",
+        "Klik op <b>Herstelzin</b> en daarna op <b>Ik begrijp het, toon ze</b>.",
+        "Bevestig met Touch ID, of typ het wachtwoord van de wallet als die er een heeft.",
+        "Klik op <b>Tik om te tonen</b> en schrijf de 24 woorden op volgorde op papier. Bewaar ze op een veilige en privéplek."
+      ],
+      "note": "Iedereen met deze woorden kan de ORN van deze wallet uitgeven. Orien vraagt er nooit om."
+    },
+    "send": {
+      "title": "ORN versturen",
+      "steps": [
+        "Klik op Start op <b>Versturen</b>, de ronde knop met een pijl naar boven.",
+        "Typ onder <b>Aan</b> een naam of adres, kies iemand onder <b>Recent</b>, of klik op <b>Plakken</b>.",
+        "Typ het bedrag, of klik op <b>Max</b> om alles te versturen wat je kunt na aftrek van de kosten.",
+        "Controleer het totaal en klik op <b>Versturen</b>.",
+        "Het komt binnen enkele seconden aan. Sla een nieuw adres desgewenst op als contact vanuit het laatste scherm."
+      ]
+    },
+    "receive": {
+      "title": "ORN ontvangen",
+      "steps": [
+        "Klik op Start op <b>Ontvangen</b>, de ronde knop met een pijl naar beneden.",
+        "Toon de QR-code aan degene die je betaalt, of klik op <b>Adres delen</b> of <b>Adres kopiëren</b> en stuur het naar hen.",
+        "Hun betaling verschijnt binnen enkele seconden in je Activiteit."
+      ]
+    },
+    "home": {
+      "title": "Terug naar Start",
+      "steps": [
+        "Klik linksboven op <b>Terug</b> om één stap terug te gaan.",
+        "Klik bovenaan het venster op de naam <b>ORIEN</b> om vanaf elke plek direct naar Start te gaan."
+      ]
+    },
+    "wallets": {
+      "title": "Nog een wallet toevoegen",
+      "steps": [
+        "Klik op Start bovenaan op de naam van de wallet en daarna op <b>Wallet toevoegen</b>.",
+        "Klik op <b>Nieuwe wallet maken</b>, geef de wallet een naam en een icoon en klik op <b>Wallet aanmaken</b>.",
+        "Maak een back-up van de herstelzin: elke wallet heeft een eigen zin.",
+        "Om van wallet te wisselen, klik je op Start op de naam van de wallet en kies je een andere."
+      ]
+    },
+    "restore": {
+      "title": "Een wallet herstellen met de woorden",
+      "steps": [
+        "Klik op Start bovenaan op de naam van de wallet, dan op <b>Wallet toevoegen</b> en vervolgens op <b>Herstellen met herstelzin</b>. Klik bij een nieuwe installatie op <b>Mijn herstelzin gebruiken</b>.",
+        "Typ de 24 woorden en klik op <b>Doorgaan</b>.",
+        "Geef de wallet een naam en een icoon en klik op <b>Wallet herstellen</b>."
+      ]
+    },
+    "link": {
+      "title": "Gebruik je wallets op een ander apparaat",
+      "steps": [
+        "Klik op het nieuwe apparaat op <b>Mijn andere apparaat gebruiken</b> (of op <b>Wallet toevoegen</b> en daarna <b>Van mijn andere apparaat</b>). Er verschijnen een QR-code en een code.",
+        "Open op het apparaat met je wallets <b>Instellingen</b>, de ronde knop met een tandwiel op Start, en klik op <b>Nieuw apparaat koppelen</b>.",
+        "Scan op een iPhone de QR-code van het nieuwe apparaat. Typ op een computer de code en klik op <b>Doorgaan</b>.",
+        "Controleer of beide apparaten dezelfde drie afbeeldingen tonen en klik dan op <b>Ze komen overeen, stuur mijn wallets</b>.",
+        "Je wallets komen vanzelf aan op het nieuwe apparaat."
+      ],
+      "note": "Je wallets worden versleuteld en rechtstreeks tussen je twee apparaten verzonden."
+    },
+    "sync": {
+      "title": "Houd contacten overal gelijk",
+      "steps": [
+        "Klik op Start op <b>Contacten</b>, de ronde knop met twee personen.",
+        "Als je <b>Synchronisatie inschakelen</b> ziet, klik er dan op. Bevestig met Touch ID, of typ het wachtwoord van de wallet als die er een heeft.",
+        "Doe dit eenmaal op elk apparaat. Daarna blijven contacten en wallet-iconen op alle apparaten gelijk."
+      ]
+    },
+    "signin": {
+      "title": "Inloggen bij Orien Network",
+      "steps": [
+        "Klik op Start rechtsboven op <b>Inloggen</b>.",
+        "Typ je e-mailadres en klik op <b>Stuur me een code</b>.",
+        "Typ de 6-cijferige code uit de e-mail en klik op <b>Doorgaan</b>.",
+        "Nieuw hier? Kies een gebruikersnaam en klik op <b>Mijn account aanmaken</b>."
+      ],
+      "note": "Je account is voor de Community, de Markt en ruiltransacties. Je wallets blijven in deze app."
+    },
+    "verify": {
+      "title": "Een wallet verifiëren",
+      "steps": [
+        "Log in en open de wallet die je wilt verifiëren.",
+        "Klik op Start op <b>Verifiëren</b> op de kaart <b>Verifiëren</b> onder je saldo. (Of klik rechtsboven op je foto, dan op <b>Profiel bewerken</b> en daarna op <b>Verifiëren</b> naast de wallet.)",
+        "Klik op <b>Verifiëren</b> om te bevestigen. Er wordt minder dan 0,001 ORN vanuit die wallet verstuurd, inclusief kosten.",
+        "Binnen een minuut staat er <b>Geverifieerd</b>."
+      ],
+      "note": "Verifiëren laat iedereen zien dat de wallet van jou is, inclusief het saldo. Zo kun je berichten plaatsen, verkopen, ruilen en fooien ontvangen."
+    },
+    "verify-more": {
+      "title": "Verifieer meer wallets en kies waar je betaald wordt",
+      "steps": [
+        "Wissel naar een andere wallet: klik op Start op de naam van de wallet en kies deze.",
+        "Klik op je foto, dan op <b>Profiel bewerken</b> en daarna op <b>Verifiëren</b> naast die wallet.",
+        "Herhaal dit voor elke wallet die je op je profiel wilt.",
+        "De wallet waarop kopers en fooigevers betalen heeft het label <b>Hier betaald</b>. Om dit te wijzigen, klik je op <b>Hier betaald worden</b> bij een andere geverifieerde wallet.",
+        "Om een wallet van je profiel te halen, klik je op <b>⋯</b> ernaast en daarna op <b>Van je profiel verwijderen</b>."
+      ]
+    },
+    "tip": {
+      "title": "Iemand een fooi geven",
+      "steps": [
+        "Klik op Start op <b>Community</b>, de ronde knop met een wereldbol.",
+        "Klik onder een bericht dat je leuk vindt op <b>Fooi</b>.",
+        "Kies 1, 5 of 10 ORN, of typ een ander bedrag, en klik daarna op <b>Fooi</b>.",
+        "Het bericht toont de fooien, zonder namen. De auteur krijgt te horen dat jij het was."
+      ],
+      "note": "Fooien zijn betalingen en kunnen niet ongedaan worden gemaakt."
+    },
+    "chat": {
+      "title": "Chat met iedereen",
+      "steps": [
+        "Klik op Start op <b>Berichten</b>, de ronde knop met een tekstballon. <b>Orien-groepschat</b> staat bovenaan vastgezet.",
+        "Iedereen kan meelezen. Om te schrijven, te antwoorden of te reageren, log je in en verifieer je een wallet.",
+        "Wijs naar een bericht om te antwoorden, te reageren of het te melden.",
+        "Nieuwe berichten plaatsen een stip op Berichten. Om dat uit te schakelen, klik je op de bel bovenaan de chat."
+      ],
+      "note": "Alles in de groepschat is openbaar. Wees aardig."
+    },
+    "ai": {
+      "title": "Vraag Orien AI-ondersteuning",
+      "steps": [
+        "Klik op Start op <b>Berichten</b>, de ronde knop met een tekstballon. <b>Orien AI-ondersteuning</b> staat vastgezet onder de groepschat. In een groot venster opent de reddingsboei naast de bel dit ook.",
+        "Je moet ingelogd zijn bij Orien Network. Een wallet verifiëren is niet nodig.",
+        "Vraag alles over de wallet, minen, ruilen of het netwerk, in je eigen woorden.",
+        "Klik bovenaan de chat op <b>Opnieuw beginnen</b> om deze te wissen."
+      ],
+      "note": "Antwoorden komen van een AI en kunnen onjuist zijn. Deze heeft nooit je herstelwoorden, wachtwoorden of sleutels nodig: deel ze nooit met iemand."
+    },
+    "explorer": {
+      "title": "Het netwerk bekijken",
+      "steps": [
+        "Klik op Start op <b>Verkenner</b>, de ronde knop met een telescoop. Klik in een groot venster in plaats daarvan op de kaart <b>Netwerk</b> naast je wallet.",
+        "De cijfers bovenaan tonen het netwerk op dit moment: vrijgegeven ORN, het volgende checkpoint, miners en hashrate.",
+        "Klik daaronder op <b>Checkpoints</b>, <b>Topwallets</b> of <b>Validators</b>, en klik op een rij om deze te openen.",
+        "Om iets te zoeken, typ je een adres, een naam of een checkpointnummer in het zoekvak."
+      ]
+    },
+    "get": {
+      "title": "ORN krijgen op iPhone",
+      "steps": [
+        "Word betaald: deel je adres vanuit <b>Ontvangen</b>, de ronde knop met een pijl naar beneden.",
+        "Ruil SOL of Bitcoin voor ORN in Orien Wallet op een computer waaraan dezelfde wallet is gekoppeld.",
+        "Mine op een computer: installeer Orien Wallet daar, koppel deze wallet en druk op <b>Minen</b>."
+      ]
+    },
+    "mine": {
+      "title": "ORN minen",
+      "steps": [
+        "Klik op Start op <b>Minen</b>, de ronde knop met een houweel. Klik in een groot venster in plaats daarvan op de kaart <b>Minen</b> naast je wallet.",
+        "Stel de schuifregelaar <b>Processor</b> in, of klik op <b>Benchmark</b> om de optimale instelling van je computer te vinden.",
+        "Klik op <b>Minen starten</b>. Elk uur verdien je een deel van de nieuwe ORN.",
+        "Om te minen met gesloten venster, schakel je <b>Actief blijven na sluiten</b> in bij Instellingen, <b>Deze computer</b>. Om te voorkomen dat de computer in slaapstand gaat, schakel je <b>Deze computer wakker houden</b> daar ook in."
+      ],
+      "note": "Als de app wordt bijgewerkt tijdens het minen, start het minen vanzelf weer."
+    },
+    "buy": {
+      "title": "ORN kopen met SOL of Bitcoin",
+      "steps": [
+        "Klik op Start op <b>Ruilen</b>, de ronde knop met twee pijlen.",
+        "Klik onder <b>Open aanbiedingen</b> op <b>Accepteren</b> bij een aanbieding die je bevalt.",
+        "Typ het SOL- of Bitcoin-adres waarmee je betaalt en klik op <b>Aanbieding accepteren</b>.",
+        "Wanneer de verkoper antwoordt, betaal je precies het getoonde bedrag vanuit je SOL- of Bitcoin-wallet.",
+        "De ORN komen vanzelf in deze wallet aan."
+      ]
+    },
+    "sell": {
+      "title": "ORN verkopen",
+      "steps": [
+        "Log eerst in en verifieer deze wallet.",
+        "Klik op Start op <b>Ruilen</b>, de ronde knop met twee pijlen, en daarna op <b>Een aanbieding plaatsen</b>.",
+        "Kies SOL of Bitcoin, typ hoeveel ORN je wilt verkopen, hoeveel je ervoor wilt en het adres waarop je betaald wilt worden.",
+        "Klik op <b>Aanbieding plaatsen</b> en houd Orien Wallet actief totdat deze wordt geaccepteerd. <b>Deze computer wakker houden</b> in Instellingen, <b>Deze computer</b>, houdt de app open terwijl je weg bent."
+      ]
+    },
+    "lock": {
+      "title": "Vergrendelen met Touch ID",
+      "steps": [
+        "Open <b>Instellingen</b>, de ronde knop met een tandwiel op Start, en daarna <b>Privacy en beveiliging</b>.",
+        "Schakel <b>Vergrendelen met Touch ID</b> in.",
+        "Orien Wallet vergrendelt na een minuut afwezigheid."
+      ]
+    },
+    "extension": {
+      "title": "Gebruik Orien Wallet in je browser",
+      "steps": [
+        "Open <b>Instellingen</b>, de ronde knop met een tandwiel op Start, en daarna <b>Browserextensies</b>.",
+        "Klik op je browser en voeg Orien Wallet daar toe.",
+        "Verstuur ORN en bekijk je saldo vanuit de werkbalk van je browser, en log in op websites met je wallet. Je sleutels blijven in deze app."
+      ]
+    },
+    "theme-build": {
+      "title": "Maak je eigen thema",
+      "steps": [
+        "Open <b>Instellingen</b>, de ronde knop met een tandwiel op Start, dan <b>Weergave</b> en klik op <b>Thema maken</b>.",
+        "Geef het een <b>Naam</b> en kies <b>Donker</b> of <b>Licht</b> onder <b>Basis</b>.",
+        "Kies een <b>Accentkleur</b>, of klik op de regenboogcirkel om je eigen kleur te kiezen.",
+        "Klik onder <b>Achtergrondafbeelding</b> op <b>Afbeelding kiezen</b>. Een grote afbeelding ziet er het mooist uit, minstens 1920 × 1080.",
+        "Bekijk het voorbeeld terwijl je aanpast en klik dan op <b>Thema opslaan</b>. Het wordt direct toegepast."
+      ],
+      "note": "Je thema's volgen je naar je andere computers en je iPhone gebruikt hun kleuren. Om er later een te wijzigen, klik je op het tandwiel op de kaart bij Weergave; met de prullenbak verwijder je het."
+    },
+    "theme-store": {
+      "title": "Vind thema's in de Themawinkel",
+      "steps": [
+        "Open <b>Instellingen</b>, de ronde knop met een tandwiel op Start, dan <b>Weergave</b> en klik bovenaan op <b>Themawinkel</b>.",
+        "Kies onder <b>Alle</b> voor <b>Populair</b> of <b>Nieuwste</b> voor thema's die mensen hebben gemaakt, of <b>Officieel</b> voor die van Orien zelf. Elke kaart toont het thema op een kleine versie van de app.",
+        "Klik op <b>Proberen</b> om de hele app erin te zien. Klik op <b>Ongedaan maken</b> om terug te gaan; de winkel verlaten zet het ook terug.",
+        "Klik op <b>Gebruiken</b> om het te behouden. Het komt bij je thema's in Weergave en wordt direct toegepast.",
+        "Vind je het mooi? Met de muntenknop geef je de maker wat ORN als fooi. Met de vlag meld je een thema dat de regels overtreedt."
+      ],
+      "note": "Een thema dat je gebruikt is je eigen kopie: de maker kan het niet wijzigen en je kunt het bewerken of verwijderen zoals een thema dat je zelf hebt gemaakt."
+    },
+    "theme-share": {
+      "title": "Deel een thema in de Themawinkel",
+      "steps": [
+        "Je moet ingelogd zijn bij Orien Network met een geverifieerde wallet.",
+        "Open <b>Instellingen</b>, de ronde knop met een tandwiel op Start, en daarna <b>Weergave</b>.",
+        "Klik bij een van je eigen thema's op de deelknop (het vierkant met een pijl) en vervolgens op <b>Thema delen</b>.",
+        "Het wordt gecontroleerd en verschijnt daarna met jouw naam in de winkel, waar iedereen het kan proberen, gebruiken en je een fooi kan geven.",
+        "Om het te verwijderen, open je de Themawinkel, ga je naar <b>Van jou</b> en klik je twee keer op <b>Uit de winkel verwijderen</b>."
+      ],
+      "note": "Als je je thema later bewerkt, verandert de gedeelde versie niet. Deel het opnieuw als nieuw thema als je de nieuwe versie mooier vindt."
+    },
+    "activity": {
+      "title": "Activiteit en meldingen",
+      "steps": [
+        "Klik op Start op <b>Alles bekijken</b> naast Activiteit.",
+        "<b>Betalingen</b> toont wat je hebt verstuurd en ontvangen; <b>Beloningen</b> toont miningbeloningen en validatorkosten.",
+        "Kies waarover je meldingen wilt ontvangen in Instellingen, <b>Meldingen</b>."
+      ]
+    }
+  }
+}

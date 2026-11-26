@@ -52,6 +52,16 @@ export const CHANGELOG: Entry[] = [
   {
     date: '2026-11-26',
     products: ['wallet'],
+    version: '1.9.28',
+    title: '15 languages and a translated User Guide',
+    changes: [
+      'Added 7 more full language packs in Settings, Language: Indonesian, Turkish, Hindi, Vietnamese, Russian, Traditional Chinese, and Dutch (15 languages in all).',
+      'Every page of the User Guide is now natively translated in all 15 languages, with button names matching your chosen language.',
+    ],
+  },
+  {
+    date: '2026-11-26',
+    products: ['wallet'],
     version: '1.9.27',
     title: 'Language packs in 8 languages',
     changes: [

@@ -4,12 +4,19 @@
   const LANGS = [
     { code: "en", native: "English", english: "English" },
     { code: "es", native: "Español", english: "Spanish" },
-    { code: "zh", native: "中文", english: "Chinese (Simplified)" },
+    { code: "zh", native: "中文 (简体)", english: "Chinese (Simplified)" },
+    { code: "zh-TW", native: "繁體中文", english: "Chinese (Traditional)" },
     { code: "ja", native: "日本語", english: "Japanese" },
     { code: "ko", native: "한국어", english: "Korean" },
     { code: "pt", native: "Português", english: "Portuguese" },
     { code: "fr", native: "Français", english: "French" },
     { code: "de", native: "Deutsch", english: "German" },
+    { code: "id", native: "Bahasa Indonesia", english: "Indonesian" },
+    { code: "tr", native: "Türkçe", english: "Turkish" },
+    { code: "hi", native: "हिन्दी", english: "Hindi" },
+    { code: "vi", native: "Tiếng Việt", english: "Vietnamese" },
+    { code: "ru", native: "Русский", english: "Russian" },
+    { code: "nl", native: "Nederlands", english: "Dutch" },
   ];
   const KNOWN = new Set(LANGS.map((l) => l.code));
   const SKIP_TAGS = new Set(["SCRIPT", "STYLE", "NOSCRIPT", "SVG", "CODE", "PRE", "TEXTAREA", "INPUT"]);

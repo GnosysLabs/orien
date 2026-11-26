@@ -1,0 +1,2112 @@
+{
+  "_meta": {
+    "code": "ru",
+    "native": "Русский",
+    "english": "Russian"
+  },
+  "(optional, for a reply)": "(необязательно, для ответа)",
+  "+ Add a choice": "+ Добавить вариант",
+  ". Fees: the usual Orien fee to lock the ORN (0.1%, at most 1 ORN), and Bitcoin's network fee for taking the Bitcoin, out of what you receive. If a buyer never pays, your ORN come back on their own within 12 hours.": ". Комиссии: обычная комиссия Orien за блокировку ORN (0,1%, не более 1 ORN) и комиссия сети Bitcoin за получение Bitcoin, вычитается из полученной суммы. Если покупатель так и не заплатит, ваши ORN вернутся сами в течение 12 часов.",
+  ". Then": ". Затем",
+  ". Then scan this code, or type it.": ". Затем отсканируйте этот код или введите его.",
+  "0 open": "0 открытых",
+  "1 day": "1 день",
+  "12 hours after they were locked": "через 12 часов после блокировки",
+  "3 days": "3 дня",
+  "3 to 20 letters, numbers or _": "от 3 до 20 букв, цифр или _",
+  "30 min ago": "30 мин назад",
+  "7 days": "7 дней",
+  "A few words for people you swap with": "Пара слов для тех, с кем вы обмениваетесь",
+  "A fresh one, with its own recovery phrase": "Новый, со своей фразой восстановления",
+  "A locked payment nobody claimed": "Заблокированный платёж, который никто не забрал",
+  "A new miner joined": "Присоединился новый майнер",
+  "A password protects the wallet on this computer. Without it, anyone who gets this computer's files can spend from it. You will type it each time you send.": "Пароль защищает кошелёк на этом компьютере. Без него любой, кто получит доступ к файлам компьютера, сможет потратить средства. Вы будете вводить его при каждой отправке.",
+  "A scam, something illegal, pretending to be someone…": "Мошенничество, что-то незаконное, выдача себя за другого…",
+  "A seller filled your order. Delivering your ORN automatically, usually within a minute.": "Продавец исполнил ваш ордер. Ваши ORN будут доставлены автоматически, обычно в течение минуты.",
+  "A small arrow on screens with more below": "Небольшая стрелка на экранах, где ниже есть ещё содержимое",
+  "A theme you use is your own copy: the maker can't change it, and you can edit or delete it like one you built.": "Тема, которую вы используете, это ваша собственная копия: автор не может её изменить, а вы можете редактировать или удалить её, как созданную вами.",
+  "AI Support": "ИИ-поддержка",
+  "AI answers can be wrong": "Ответы ИИ могут быть неточными",
+  "About": "О приложении",
+  "About the same": "Примерно столько же",
+  "About this": "Об этом",
+  "About you": "О вас",
+  "Accent colour": "Акцентный цвет",
+  "Accepted": "Принято",
+  "Accepted: your ORN are locked for the buyer. Waiting for them to pay.": "Принято: ваши ORN заблокированы для покупателя. Ожидаем его оплату.",
+  "Activity": "Активность",
+  "Activity and notifications": "Активность и уведомления",
+  "Add a GIF": "Добавить GIF",
+  "Add a contact": "Добавить контакт",
+  "Add a password": "Добавить пароль",
+  "Add a poll": "Добавить опрос",
+  "Add a wallet": "Добавить кошелёк",
+  "Add another wallet": "Добавить ещё кошелёк",
+  "Add photos": "Добавить фото",
+  "Add pictures": "Добавить изображения",
+  "Add to contacts": "Добавить в контакты",
+  "Address": "Адрес",
+  "Again": "Снова",
+  "Agreed": "Подтверждено",
+  "Agreed by": "Подтвердили",
+  "All": "Все",
+  "All your wallets": "Все ваши кошельки",
+  "Among members with a verified wallet, by ORN mined.": "Среди участников с подтверждённым кошельком, по добытым ORN.",
+  "Amount": "Сумма",
+  "Amount (ORN)": "Сумма (ORN)",
+  "An address, a name or a checkpoint number": "Адрес, имя или номер контрольной точки",
+  "An earlier payment from this wallet had to finish first, so nothing was sent for verifying yet. Tap again to send it.": "Сначала должен был завершиться предыдущий платёж с этого кошелька, поэтому транзакция для подтверждения ещё не отправлена. Нажмите снова, чтобы отправить.",
+  "An earlier payment from this wallet had to finish first, so this one wasn't sent yet. Tap Pay again.": "Сначала должен был завершиться предыдущий платёж с этого кошелька, поэтому этот ещё не отправлен. Нажмите «Оплатить» снова.",
+  "An earlier payment from this wallet had to finish first, so this tip wasn't sent yet. Tap Tip again.": "Сначала должен был завершиться предыдущий платёж с этого кошелька, поэтому чаевые ещё не отправлены. Нажмите «Чаевые» снова.",
+  "Another amount": "Другая сумма",
+  "Answers come from an AI and can be wrong. It never needs your recovery words, passwords or keys: never share them with anyone.": "Ответы даёт ИИ, и они могут быть ошибочными. Ему никогда не нужны ваши слова восстановления, пароли или ключи: никому их не передавайте.",
+  "Any colour you like": "Любой цвет на ваш вкус",
+  "Any moment": "С минуты на минуту",
+  "Anyone can read along. To write, reply or react, sign in and verify a wallet.": "Читать может любой. Чтобы писать, отвечать или ставить реакции, войдите и подтвердите кошелёк.",
+  "Anyone can see it, use it and tip you for it. Your Orien Network name is shown with it. You can take it down at any time.": "Любой сможет видеть её, использовать и отправлять вам чаевые. Рядом будет указано ваше имя в Orien Network. Вы можете снять её с публикации в любой момент.",
+  "Anyone can sell into it now. When they do, their wallet locks the ORN and this app opens the pay screen.": "Теперь любой может продать по этому ордеру. Когда это произойдёт, его кошелёк заблокирует ORN, а это приложение откроет экран оплаты.",
+  "Anyone can take it now. When they do, your wallet runs the swap by itself.": "Теперь любой может принять его. Когда это произойдёт, ваш кошелёк проведёт обмен сам.",
+  "Anyone who opens the file can spend your ORN. Keep it somewhere only you can reach.": "Любой, кто откроет этот файл, сможет потратить ваши ORN. Храните его в месте, доступном только вам.",
+  "Anyone who sees your 24 words can take everything in this wallet. Orien will never ask you for them, and no one helping you ever needs them.": "Любой, кто увидит ваши 24 слова, сможет забрать всё из этого кошелька. Orien никогда не попросит их у вас, и они никогда не нужны тем, кто вам помогает.",
+  "Anyone with these words can spend this wallet's ORN. Orien never asks for them.": "Любой, у кого есть эти слова, может потратить ORN из этого кошелька. Orien никогда их не запрашивает.",
+  "Anything left over, or a refund, comes back here": "Остаток или возврат придёт сюда",
+  "Appearance": "Оформление",
+  "Approve": "Подтвердить",
+  "Approve in Orien Wallet to finish your swap.": "Подтвердите в Orien Wallet, чтобы завершить обмен.",
+  "Approve this order": "Подтвердить этот ордер",
+  "Approve to finish your swap": "Подтвердите для завершения обмена",
+  "Ask Orien AI Support": "Спросить ИИ-поддержку Orien",
+  "Ask a question": "Задать вопрос",
+  "Ask anything about the wallet, mining, swaps or the network, in your own words.": "Спросите что угодно о кошельке, майнинге, обменах или сети своими словами.",
+  "Ask each time Orien Wallet opens": "Запрашивать при каждом открытии Orien Wallet",
+  "Ask for payment": "Запросить оплату",
+  "Asks · selling ORN": "Заявки на продажу ORN",
+  "At least 8 characters": "Минимум 8 символов",
+  "At this speed and today's difficulty": "При этой скорости и текущей сложности",
+  "Australian dollar": "Австралийский доллар",
+  "Automatic · a few minutes": "Автоматически · несколько минут",
+  "Automatic · about a minute": "Автоматически · около минуты",
+  "Automatic · keep this page open": "Автоматически · не закрывайте страницу",
+  "Automatic · keep this page open (~15 seconds)": "Автоматически · не закрывайте страницу (~15 секунд)",
+  "Automatic · keep this page open (~20 seconds)": "Автоматически · не закрывайте страницу (~20 секунд)",
+  "Automatic · usually 30 to 60 minutes": "Автоматически · обычно от 30 до 60 минут",
+  "Automatic · usually a minute": "Автоматически · обычно около минуты",
+  "Automatic · usually within minutes": "Автоматически · обычно за несколько минут",
+  "Available": "Доступно",
+  "Back": "Назад",
+  "Back from staking": "Возврат из стейкинга",
+  "Back to Exchange": "Назад на Биржу",
+  "Back to top": "Наверх",
+  "Back up its recovery phrase: each wallet has its own.": "Сохраните его фразу восстановления: у каждого кошелька она своя.",
+  "Back up your recovery phrase": "Сохраните фразу восстановления",
+  "Background picture": "Фоновое изображение",
+  "Balance": "Баланс",
+  "Balance after": "Баланс после",
+  "Ban": "Заблокировать в чате",
+  "Banned": "Заблокирован",
+  "Banned from the group chat": "Заблокирован в общем чате",
+  "Base": "Основа",
+  "Be paid in ORN.": "Получайте оплату в ORN.",
+  "Benchmark": "Тест скорости",
+  "Benchmark again": "Повторить тест",
+  "Benchmarking…": "Тестирование…",
+  "Bids · buying ORN": "Заявки на покупку ORN",
+  "Bitcoin": "Bitcoin",
+  "Bitcoin to pay": "Bitcoin к оплате",
+  "Bitcoin to receive": "Bitcoin к получению",
+  "Block": "Заблокировать",
+  "Blocked": "Заблокировано",
+  "Blocked accounts": "Заблокированные аккаунты",
+  "Book & Trade": "Стакан и торги",
+  "Brazilian real": "Бразильский реал",
+  "Bring your wallets here from your phone or computer": "Перенесите кошельки сюда с телефона или компьютера",
+  "British pound": "Британский фунт",
+  "Browser Extensions": "Расширения для браузера",
+  "Build a theme": "Создать тему",
+  "Build your own theme": "Создайте свою тему",
+  "Built-in safety:": "Встроенная защита:",
+  "Buy": "Купить",
+  "Buy ORN": "Купить ORN",
+  "Buy ORN with SOL or Bitcoin": "Купить ORN за SOL или Bitcoin",
+  "Buy amount (ORN)": "Сумма покупки (ORN)",
+  "Buy from": "Купить у",
+  "Buyer": "Покупатель",
+  "Buyer pays": "Покупатель платит",
+  "Buyer's SOL reserved. Locking your ORN now. Keep this page open for a few more seconds.": "SOL покупателя зарезервированы. Блокируем ваши ORN. Не закрывайте страницу ещё несколько секунд.",
+  "Buyers on the Market pay the wallet marked Paid here. Verify more to choose between them.": "Покупатели на Маркете платят на кошелёк с меткой «Оплата сюда». Подтвердите ещё кошельки, чтобы выбирать между ними.",
+  "Buying ORN": "Покупка ORN",
+  "By any message app or email. It tells the buyer's Orien Wallet what you locked for them, and holds nothing secret.": "Через любой мессенджер или почту. Он сообщает Orien Wallet покупателя, что вы для него заблокировали, и не содержит никаких секретов.",
+  "By any message app or email. It tells the seller's Orien Wallet where you're paying the Bitcoin, and holds nothing secret.": "Через любой мессенджер или почту. Он сообщает Orien Wallet продавца, куда вы отправляете Bitcoin, и не содержит никаких секретов.",
+  "By continuing you agree to the": "Продолжая, вы соглашаетесь с",
+  "Canadian dollar": "Канадский доллар",
+  "Cancel": "Отмена",
+  "Cancel below before sending. Nothing has left your wallet.": "Отмените ниже перед отправкой. Средства ещё не покинули ваш кошелёк.",
+  "Cancel buy order": "Отменить ордер на покупку",
+  "Cancel buy order & return SOL": "Отменить ордер и вернуть SOL",
+  "Cancelling your buy order on Solana and returning your SOL to your wallet. Keep this page open for about 15 seconds.": "Отменяем ваш ордер на покупку в Solana и возвращаем SOL на ваш кошелёк. Не закрывайте страницу около 15 секунд.",
+  "Cancelling · returning SOL": "Отмена · возврат SOL",
+  "Catching up": "Синхронизация",
+  "Category": "Категория",
+  "Change banner": "Изменить баннер",
+  "Change picture": "Изменить изображение",
+  "Changed your mind?": "Передумали?",
+  "Chart currency": "Валюта графика",
+  "Chat": "Чат",
+  "Chat with everyone": "Общайтесь со всеми",
+  "Check for Updates": "Проверить обновления",
+  "Check this one and send it again.": "Проверьте этот и отправьте снова.",
+  "Check your other device shows these": "Убедитесь, что на другом устройстве показаны эти символы",
+  "Checking": "Проверка",
+  "Checking for updates": "Проверка обновлений",
+  "Checking the ORN the seller locked for you": "Проверяем ORN, которые продавец заблокировал для вас",
+  "Checkpoint": "Контрольная точка",
+  "Checkpoints": "Контрольные точки",
+  "Chinese yuan": "Китайский юань",
+  "Choose SOL or Bitcoin, then type how many ORN to sell, how much you want for them, and the address you'll be paid at.": "Выберите SOL или Bitcoin, затем укажите, сколько ORN продаёте, сколько хотите за них получить и адрес для получения оплаты.",
+  "Choose a GIF": "Выбрать GIF",
+  "Choose a picture": "Выбрать изображение",
+  "Clear": "Очистить",
+  "Click": "Нажмите",
+  "Click Buy or Sell to trade directly": "Нажмите «Купить» или «Продать», чтобы торговать напрямую",
+  "Click again to start over": "Нажмите ещё раз, чтобы начать заново",
+  "Click to add a picture": "Нажмите, чтобы добавить изображение",
+  "Click your browser and add Orien Wallet there.": "Нажмите на свой браузер и добавьте туда Orien Wallet.",
+  "Close": "Закрыть",
+  "Closed": "Закрыто",
+  "Code": "Код",
+  "Code from the email": "Код из письма",
+  "Community": "Сообщество",
+  "Completed ORN / SOL swap prices over time": "История цен завершённых обменов ORN / SOL",
+  "Completed swap prices over time": "История цен завершённых обменов",
+  "Confirm below": "Подтвердите ниже",
+  "Confirmed": "Подтверждено",
+  "Confirming": "Подтверждение",
+  "Connected": "Подключено",
+  "Connected to the network": "Подключено к сети",
+  "Connecting": "Подключение",
+  "Contact": "Контакт",
+  "Contacts": "Контакты",
+  "Continue": "Продолжить",
+  "Continuing": "Продолжаем",
+  "Cooler, fewer shares": "Холоднее, меньше шар",
+  "Copied": "Скопировано",
+  "Copy": "Копировать",
+  "Copy address": "Копировать адрес",
+  "Copy amount": "Копировать сумму",
+  "Copy code": "Копировать код",
+  "Copy the address": "Скопировать адрес",
+  "Cores in use": "Используется ядер",
+  "Couldn't check": "Не удалось проверить",
+  "Cover": "Обложка",
+  "Create a wallet": "Создать кошелёк",
+  "Create a wallet to hold ORN, or restore the one you already have.": "Создайте кошелёк для хранения ORN или восстановите уже существующий.",
+  "Currency": "Валюта",
+  "Dark": "Тёмная",
+  "Delete contact": "Удалить контакт",
+  "Delete conversation": "Удалить переписку",
+  "Delete for good": "Удалить навсегда",
+  "Delete my account": "Удалить мой аккаунт",
+  "Delete this conversation? Tap again": "Удалить эту переписку? Нажмите ещё раз",
+  "Delete this post?": "Удалить эту публикацию?",
+  "Delete?": "Удалить?",
+  "Describe it": "Опишите подробнее",
+  "Didn't answer": "Нет ответа",
+  "Do this once on each device. After that, contacts and wallet icons stay the same on all of them.": "Сделайте это один раз на каждом устройстве. После этого контакты и значки кошельков будут одинаковыми на всех устройствах.",
+  "Does your new device show these?": "На новом устройстве показаны эти значки?",
+  "Don't have any ORN yet? Mine for an hour from the Mine screen, or buy a little on Swap.": "Ещё нет ORN? Помайните час на экране «Майнинг» или купите немного в разделе «Обмен».",
+  "Don't have any ORN yet? Mine for an hour in Orien Wallet on a computer, or buy a little at orien.network.": "Ещё нет ORN? Помайните час в Orien Wallet на компьютере или купите немного на orien.network.",
+  "Don't show this again": "Больше не показывать",
+  "Done": "Готово",
+  "Done: the ORN are in your wallet, and anything left over went back to your SOL wallet.": "Готово: ORN уже в вашем кошельке, а остаток вернулся на ваш кошелёк SOL.",
+  "Done: your SOL went back to your SOL wallet.": "Готово: ваши SOL вернулись на ваш кошелёк SOL.",
+  "Downloads": "Загрузки",
+  "Each share": "Каждая шара",
+  "Each wallet has its own address, recovery phrase and activity. Tap one to open it.": "У каждого кошелька свой адрес, фраза восстановления и история. Нажмите на кошелёк, чтобы открыть его.",
+  "Earn a share of each hour's new ORN while this app is open.": "Получайте долю новых ORN каждый час, пока приложение открыто.",
+  "Edit": "Редактировать",
+  "Edit Profile": "Редактировать профиль",
+  "Edit listing": "Редактировать объявление",
+  "Edit theme": "Редактировать тему",
+  "Editing your theme later doesn't change the shared one. Share it again as a new theme if you like the new version better.": "Позднее редактирование вашей темы не меняет опубликованную версию. Опубликуйте её снова как новую тему, если новая версия нравится вам больше.",
+  "Email": "Эл. почта",
+  "English": "Английский",
+  "Enter ORN and SOL": "Введите ORN и SOL",
+  "Euro": "Евро",
+  "Every miner on Orien together, estimated": "Все майнеры Orien вместе, ориентировочно",
+  "Everyone": "Все",
+  "Everyone on Orien Network": "Все в Orien Network",
+  "Everything in the group chat is public. Be kind.": "Всё в общем чате видят все. Будьте вежливы.",
+  "Exchange": "Биржа",
+  "Expired": "Истёк срок",
+  "Explorer": "Обозреватель",
+  "Failed": "Ошибка",
+  "Fee": "Комиссия",
+  "Feed": "Лента",
+  "Filled · settling (~1 min)": "Исполнен · расчёт (~1 мин)",
+  "Final results": "Итоговые результаты",
+  "Final within a minute": "Окончательно в течение минуты",
+  "Find members": "Найти участников",
+  "Find themes in the Theme Store": "Найдите темы в Магазине тем",
+  "Find your sweet spot": "Найти оптимальный режим",
+  "Fingerprints": "Отпечатки",
+  "Finish": "Завершить",
+  "Finished": "Завершено",
+  "First ORN": "Первый ORN",
+  "Follow Orien's posts": "Следите за публикациями Orien",
+  "From": "От",
+  "From any Bitcoin wallet: scan the code, or copy the address and amount. This app sees the payment by itself; there is nothing else to send.": "Из любого кошелька Bitcoin: отсканируйте код или скопируйте адрес и сумму. Это приложение само увидит платёж; больше ничего отправлять не нужно.",
+  "From my other device": "С другого устройства",
+  "From your SOL wallet, such as Phantom: scan the code, or copy the address and amount. Send it all in one go. This app sees it by itself; there is nothing else to send.": "Из вашего кошелька SOL, например Phantom: отсканируйте код или скопируйте адрес и сумму. Отправьте всё одним платежом. Приложение само его увидит; больше ничего отправлять не нужно.",
+  "Fund your buy order with a quick SOL QR payment. Once funded, it stays live even with Orien Wallet closed, and you can cancel anytime in one click.": "Пополните ордер на покупку быстрым платежом SOL по QR-коду. После пополнения он остаётся активным даже при закрытом Orien Wallet, и его можно отменить в любой момент в один клик.",
+  "Get ORN": "Получить ORN",
+  "Get ORN on iPhone": "Получить ORN на iPhone",
+  "Get back to Home": "Вернуться на Главную",
+  "Get paid here": "Получать оплату сюда",
+  "Getting": "Получение",
+  "Getting ORN": "Как получить ORN",
+  "Getting it ready…": "Подготовка…",
+  "Getting ready (about a minute)": "Подготовка (около минуты)",
+  "Getting ready…": "Подготовка…",
+  "Getting started": "Начало работы",
+  "Give it a": "Укажите",
+  "Give someone your address and they can send you ORN from their wallet. Payments arrive in seconds.": "Передайте кому-нибудь свой адрес, и вам смогут отправить ORN со своего кошелька. Платежи приходят за секунды.",
+  "Give the wallet a name, like Mining.": "Назовите кошелёк, например «Майнинг».",
+  "Help": "Помощь",
+  "Hide balance": "Скрыть баланс",
+  "Home": "Главная",
+  "Hong Kong dollar": "Гонконгский доллар",
+  "How is it priced?": "Как формируется цена?",
+  "I have backed up my recovery phrase": "Я сохранил фразу восстановления",
+  "I understand, show them": "Понимаю, показать",
+  "Icon": "Значок",
+  "If the app updates while mining, mining starts again by itself.": "Если приложение обновится во время майнинга, майнинг запустится снова сам.",
+  "If the buyer doesn't pay,": "Если покупатель не заплатит,",
+  "If the buyer never pays,": "Если покупатель так и не заплатит,",
+  "If the buyer pays but this app stays closed for more than about 4 hours, they take their Bitcoin back and your ORN still come back to you. Nobody loses coins.": "Если покупатель заплатит, но это приложение останется закрытым более чем примерно на 4 часа, он заберёт свой Bitcoin обратно, а ваши ORN всё равно вернутся к вам. Никто не потеряет монеты.",
+  "If the seller never takes your Bitcoin,": "Если продавец так и не заберёт ваш Bitcoin,",
+  "If the seller never takes your SOL,": "Если продавец так и не заберёт ваши SOL,",
+  "If they match, tap": "Если совпадают, нажмите",
+  "If you change your mind,": "Если передумаете,",
+  "If you forget it, your recovery phrase still restores the wallet.": "Если вы забудете его, фраза восстановления всё равно восстановит кошелёк.",
+  "In use": "Используется",
+  "Indian rupee": "Индийская рупия",
+  "Indonesian rupiah": "Индонезийская рупия",
+  "Install Orien Wallet on your Mac, Windows or Linux computer, open this same wallet there with its recovery phrase, and press Mine. Your computer earns a share of each hour's new ORN.": "Установите Orien Wallet на компьютер с Mac, Windows или Linux, откройте там этот же кошелёк по фразе восстановления и нажмите «Майнинг». Ваш компьютер будет получать долю новых ORN каждый час.",
+  "It arrives in seconds. Save a new address as a contact from the last screen if you like.": "Платёж приходит за секунды. При желании сохраните новый адрес в контакты на последнем экране.",
+  "It colours the buttons, the balance card, the glow and the highlights.": "Он окрашивает кнопки, карточку баланса, свечение и акценты.",
+  "It installs in a moment, and the app reopens by itself.": "Оно установится за мгновение, и приложение откроется снова само.",
+  "It's checked, then shows in the store with your name, where anyone can try it, use it and tip you.": "После проверки она появится в магазине с вашим именем, где любой сможет её примерить, использовать и отправить вам чаевые.",
+  "It's how you add this wallet back, here or anywhere else.": "Так вы сможете снова добавить этот кошелёк здесь или на другом устройстве.",
+  "Its file stays on this computer,": "Его файл остаётся на этом компьютере,",
+  "Japanese yen": "Японская иена",
+  "Just now": "Только что",
+  "Keep Orien Wallet running": "Не закрывайте Orien Wallet",
+  "Keep Orien Wallet running while your buy offer is live. When someone accepts, you'll get a notification and the pay screen opens so you can send the payment.": "Держите Orien Wallet запущенным, пока активно ваше предложение о покупке. Когда кто-то примет его, вы получите уведомление, и откроется экран оплаты.",
+  "Keep contacts the same everywhere": "Синхронизация контактов на всех устройствах",
+  "Keep its 24-word recovery phrase.": "Сохраните его фразу восстановления из 24 слов.",
+  "Keep running when closed": "Работать в фоне после закрытия",
+  "Keep these words secret": "Храните эти слова в тайне",
+  "Keep this computer awake": "Не давать компьютеру засыпать",
+  "Language": "Язык",
+  "Large pages": "Большие страницы памяти",
+  "Large pages are set up, but mining is in ordinary memory this hour. If a restart doesn't switch it, restarting the computer frees the memory up.": "Большие страницы памяти настроены, но в этом часе майнинг идёт в обычной памяти. Если перезапуск майнинга не переключит режим, перезагрузка компьютера освободит память.",
+  "Last 30 minutes": "Последние 30 минут",
+  "Last reward": "Последняя награда",
+  "Last trade": "Последняя сделка",
+  "Later": "Позже",
+  "Launch validator": "Запусковый валидатор",
+  "Lets mining use large pages of memory, usually 10 to 30% faster. Windows asks for an administrator's approval once, then you sign out and back in.": "Позволяет майнингу использовать большие страницы памяти, обычно на 10-30% быстрее. Windows один раз запросит права администратора, после чего нужно выйти из системы и войти снова.",
+  "Light": "Светлая",
+  "Light mode: under 2 GB of free memory, so it mines more slowly.": "Облегчённый режим: свободно меньше 2 ГБ памяти, поэтому майнинг идёт медленнее.",
+  "Like it? The coins button tips its maker some ORN. The flag reports a theme that breaks the rules.": "Нравится? Кнопка с монетами отправляет автору чаевые в ORN. Флажок позволяет пожаловаться на тему, нарушающую правила.",
+  "Link a device": "Привязать устройство",
+  "Link a new device": "Привязать новое устройство",
+  "Listing": "Объявление",
+  "Live on book": "В стакане",
+  "Live on order book · settles automatically": "В стакане · расчёт автоматически",
+  "Loading": "Загрузка",
+  "Loading chart…": "Загрузка графика…",
+  "Loading order book…": "Загрузка стакана…",
+  "Loading…": "Загрузка…",
+  "Lock ORN": "Заблокировать ORN",
+  "Lock with Touch ID": "Блокировка по Touch ID",
+  "Locked on Solana. Adding your buy order to the order book now. Keep this page open for a few more seconds.": "Заблокировано в Solana. Добавляем ваш ордер на покупку в стакан. Не закрывайте страницу ещё несколько секунд.",
+  "Locked payment": "Заблокированный платёж",
+  "Locked payment from": "Заблокированный платёж от",
+  "Locked payment received": "Получен заблокированный платёж",
+  "Locked payment returned": "Заблокированный платёж возвращён",
+  "Locking ORN": "Блокировка ORN",
+  "Locking your ORN": "Блокируем ваши ORN",
+  "Locking your ORN for the buyer.": "Блокируем ваши ORN для покупателя.",
+  "Locking your ORN for them": "Блокируем ваши ORN для них",
+  "Logo design": "Дизайн логотипа",
+  "Look up the network": "Обзор сети",
+  "Made": "Создано",
+  "Made final": "Завершено окончательно",
+  "Make a new wallet": "Создать новый кошелёк",
+  "Make cover": "Сделать обложкой",
+  "Make mining faster": "Ускорить майнинг",
+  "Make my account": "Создать аккаунт",
+  "Make the wallet": "Создать кошелёк",
+  "Make the window small": "Сделать окно компактным",
+  "Make the window wide": "Сделать окно широким",
+  "Manage blocks": "Управление блокировками",
+  "Marked as paid": "Отмечено как оплаченное",
+  "Market": "Маркет",
+  "Market Listings": "Объявления на Маркете",
+  "Max": "Макс.",
+  "Maximize": "Развернуть",
+  "Memory": "Память",
+  "Message": "Сообщение",
+  "Message everyone": "Написать всем",
+  "Message the seller": "Написать продавцу",
+  "Messages": "Сообщения",
+  "Messages about your Market listings always come through whatever you pick, so buyers can ask about what you're selling. Blocking still works on top of this.": "Сообщения по вашим объявлениям на Маркете приходят при любых настройках, чтобы покупатели могли задавать вопросы. Блокировка пользователей при этом продолжает действовать.",
+  "Mexican peso": "Мексиканское песо",
+  "Milestone": "Достижение",
+  "Mine": "Майнинг",
+  "Mine ORN": "Майнинг ORN",
+  "Mine for an hour from the Mine screen, or buy a little on Swap.": "Помайните час на экране «Майнинг» или купите немного в разделе «Обмен».",
+  "Mine for an hour in Orien Wallet on a computer, or buy a little at orien.network.": "Помайните час в Orien Wallet на компьютере или купите немного на orien.network.",
+  "Mine it on a computer.": "Добудьте их на компьютере.",
+  "Mine on a computer: install Orien Wallet there, link this wallet, and press": "Майните на компьютере: установите туда Orien Wallet, привяжите этот кошелёк и нажмите",
+  "Mine with a verified wallet and your figures show here after the next checkpoint.": "Майните с подтверждённым кошельком, и ваша статистика появится здесь после следующей контрольной точки.",
+  "Miners last hour": "Майнеров за последний час",
+  "Miners paid": "Майнеров получили выплату",
+  "Miners who have verified a wallet on their Orien Network account, by ORN mined. Verify your wallet on your account to be on the list.": "Майнеры, подтвердившие кошелёк в аккаунте Orien Network, по добытым ORN. Подтвердите кошелёк в своём аккаунте, чтобы попасть в список.",
+  "Minimize": "Свернуть",
+  "Minimum order is 0.01 SOL": "Минимальный ордер: 0,01 SOL",
+  "Mining": "Майнинг",
+  "Mining for": "Майнинг на",
+  "Mining in large pages of memory, for extra speed.": "Майнинг в больших страницах памяти для дополнительной скорости.",
+  "Mining reward": "Награда за майнинг",
+  "Mining rewards": "Награды за майнинг",
+  "Moderator": "Модератор",
+  "More": "Ещё",
+  "More below": "Ниже есть ещё",
+  "More heat, no more ORN": "Больше нагрева, но не больше ORN",
+  "Mute the group chat": "Отключить уведомления общего чата",
+  "Muted": "Без звука",
+  "My Orien (ORN) address": "Мой адрес Orien (ORN)",
+  "My theme": "Моя тема",
+  "Name": "Название",
+  "Name or address": "Имя или адрес",
+  "Needs about 2 GB of memory. Rewards depend on how much everyone else mines.": "Требуется около 2 ГБ памяти. Награды зависят от того, сколько майнят остальные.",
+  "Network": "Сеть",
+  "Network hashrate": "Хешрейт сети",
+  "New ORN this hour": "Новых ORN за этот час",
+  "New account: pick a username": "Новый аккаунт: выберите имя пользователя",
+  "New contact": "Новый контакт",
+  "New here?": "Впервые здесь?",
+  "New messages and payment requests": "Новые сообщения и запросы оплаты",
+  "New record": "Новый рекорд",
+  "New validator": "Новый валидатор",
+  "New versions install while you're away from the app": "Новые версии устанавливаются, пока вы не пользуетесь приложением",
+  "Newest": "Новые",
+  "Next checkpoint": "Следующая точка",
+  "Nigerian naira": "Нигерийская найра",
+  "No GIFs found.": "GIF не найдены.",
+  "No GIFs right now.": "Сейчас GIF недоступны.",
+  "No ORN moves.": "ORN не переводится.",
+  "No activity is recorded for this address.": "Для этого адреса активность не записана.",
+  "No contacts yet. Add someone you pay often, or add an Orien Network member from their profile.": "Контактов пока нет. Добавьте тех, кому часто платите, или участника Orien Network из его профиля.",
+  "No description.": "Нет описания.",
+  "No messages yet. Say hello to everyone.": "Сообщений пока нет. Поздоровайтесь со всеми.",
+  "No one": "Никто",
+  "No open buy offers right now": "Сейчас нет открытых предложений на покупку",
+  "No open sell offers right now": "Сейчас нет открытых предложений на продажу",
+  "No payments yet": "Платежей пока нет",
+  "No questions left today. Come back tomorrow.": "На сегодня вопросы закончились. Возвращайтесь завтра.",
+  "No results": "Ничего не найдено",
+  "No rewards yet": "Наград пока нет",
+  "No swaps completed yet. The next swap sets the price.": "Завершённых обменов пока нет. Следующий обмен задаст цену.",
+  "No swaps yet": "Обменов пока нет",
+  "No trades yet": "Сделок пока нет",
+  "No verified wallet yet": "Подтверждённого кошелька пока нет",
+  "No verified wallets yet": "Подтверждённых кошельков пока нет",
+  "No wallets yet.": "Кошельков пока нет.",
+  "Nobody by that name.": "Никого с таким именем не найдено.",
+  "Nobody is banned.": "Никто не заблокирован.",
+  "Nobody with a verified wallet has been paid for mining yet.": "Пока никто с подтверждённым кошельком не получил выплату за майнинг.",
+  "None": "Нет",
+  "Normal": "Обычный",
+  "Not an Orien address": "Неверный адрес Orien",
+  "Not answering": "Не отвечает",
+  "Not available": "Недоступно",
+  "Not in the network's history": "Нет в истории сети",
+  "Not now": "Не сейчас",
+  "Not recorded": "Не записано",
+  "Not verified yet": "Ещё не подтверждён",
+  "Nothing found. Search an address (64 letters and digits, 0-9 and a-f), a checkpoint number, or the name of someone on the Market.": "Ничего не найдено. Ищите по адресу (64 символа: 0-9 и a-f), номеру контрольной точки или имени продавца на Маркете.",
+  "Nothing from the network about them yet.": "Сеть пока ничего о них не публиковала.",
+  "Nothing has happened at this address yet.": "По этому адресу пока ничего не происходило.",
+  "Nothing here yet. Be the first to sell something.": "Здесь пока пусто. Выставьте что-нибудь на продажу первым.",
+  "Nothing in the community yet.": "В сообществе пока ничего нет.",
+  "Nothing leaves your SOL wallet until a seller locks the ORN and you pay the QR code. Keep Orien Wallet running so sellers can match your order.": "Ничего не уйдёт с вашего кошелька SOL, пока продавец не заблокирует ORN и вы не оплатите QR-код. Не закрывайте Orien Wallet, чтобы продавцы могли откликнуться на ваш ордер.",
+  "Nothing matches that yet.": "Пока ничего не подходит под запрос.",
+  "Nothing yet. Replies, reactions and messages show up here.": "Пока ничего нет. Ответы, реакции и сообщения появятся здесь.",
+  "Notifications": "Уведомления",
+  "ORN / SOL price chart": "График цены ORN / SOL",
+  "ORN held": "Хранится ORN",
+  "ORN locked · SOL arriving (~1 min)": "ORN заблокированы · SOL в пути (~1 мин)",
+  "ORN mined": "Добыто ORN",
+  "ORN price": "Цена ORN",
+  "ORN received": "Получено ORN",
+  "ORN released": "Выпущено ORN",
+  "ORN to buy": "Купить ORN",
+  "ORN to sell": "Продать ORN",
+  "Offer posted": "Предложение опубликовано",
+  "Offer taken": "Предложение принято",
+  "Offer your ORN for SOL. When someone takes it, this app locks the ORN for them and runs the swap, as long as it's open.": "Предложите свои ORN за SOL. Когда кто-то примет предложение, приложение заблокирует ORN и проведёт обмен, пока оно открыто.",
+  "Official": "Официальные",
+  "Official Website": "Официальный сайт",
+  "Offline": "Не в сети",
+  "On a streak": "Серия побед",
+  "On an iPhone, scan the new device's QR code. On a computer, type its code and click": "На iPhone отсканируйте QR-код нового устройства. На компьютере введите его код и нажмите",
+  "On offer": "В продаже",
+  "On one of your own themes, click the share button (the box with an arrow), then": "На одной из своих тем нажмите кнопку «Поделиться» (квадрат со стрелкой), затем",
+  "On the Market": "На Маркете",
+  "On the swap board, waiting for someone to buy": "На доске обменов, ожидание покупателя",
+  "On the swap board, waiting for someone to sell": "На доске обменов, ожидание продавца",
+  "On your new device, open Orien Wallet and choose": "На новом устройстве откройте Orien Wallet и выберите",
+  "On your other device, open Orien Wallet, go to": "На другом устройстве откройте Orien Wallet, перейдите в",
+  "One account for all of Orien Network. Enter your email and type the 6-digit code we send; new here, you'll pick a username too. Signed up on orien.network already? Use the same email.": "Один аккаунт для всей сети Orien Network. Введите почту и 6-значный код из письма; новичкам также нужно выбрать имя пользователя. Уже регистрировались на orien.network? Используйте ту же почту.",
+  "Only letters, numbers and _": "Только буквы, цифры и _",
+  "Only send if you see the same three emoji, in the same order.": "Отправляйте только если видите те же три эмодзи в том же порядке.",
+  "Open": "Открыть",
+  "Open Mine": "Открыть Майнинг",
+  "Open Orien Wallet on the device you posted or took this offer from to finish the swap": "Откройте Orien Wallet на устройстве, с которого вы разместили или приняли это предложение, чтобы завершить обмен",
+  "Open at login": "Запускать при входе в систему",
+  "Open it to verify": "Откройте его для подтверждения",
+  "Open offers": "Открытые предложения",
+  "Open the explorer": "Открыть обозреватель",
+  "Opens Firefox's add-on store: click Add to Firefox": "Откроется магазин дополнений Firefox: нажмите «Добавить в Firefox»",
+  "Opens Safari's settings: tick Orien Wallet to turn it on": "Откроются настройки Safari: поставьте галочку рядом с Orien Wallet, чтобы включить",
+  "Opens the Chrome Web Store: allow other stores, then add it": "Откроется Интернет-магазин Chrome: разрешите другие магазины, затем установите расширение",
+  "Opens the Chrome Web Store: click Add to Brave": "Откроется Интернет-магазин Chrome: нажмите «Установить в Brave»",
+  "Opens the Chrome Web Store: click Add to Chrome": "Откроется Интернет-магазин Chrome: нажмите «Установить»",
+  "Order book": "Стакан ордеров",
+  "Orien AI Support": "ИИ-поддержка Orien",
+  "Orien Group Chat": "Общий чат Orien",
+  "Orien Wallet for computers is at": "Orien Wallet для компьютеров доступен на",
+  "Orien Wallet is locking your SOL on Solana and registering your order on the book. Step 2 will show a checkmark as soon as you can leave.": "Orien Wallet блокирует ваши SOL в Solana и добавляет ордер в стакан. Как только на шаге 2 появится галочка, страницу можно закрыть.",
+  "Orien Wallet locks after a minute away.": "Orien Wallet блокируется через минуту бездействия.",
+  "Orien Wallet locks whenever you leave it.": "Orien Wallet блокируется при каждом выходе.",
+  "Orien right now": "Orien прямо сейчас",
+  "Other": "Другое",
+  "Paid": "Оплачено",
+  "Paid here": "Оплата сюда",
+  "Paid · Bitcoin is confirming": "Оплачено · Bitcoin подтверждается",
+  "Paid · SOL on its way to you": "Оплачено · SOL в пути к вам",
+  "Password": "Пароль",
+  "Paste": "Вставить",
+  "Pay": "Оплатить",
+  "Pay exactly": "Оплатите ровно",
+  "Pay now": "Оплатить сейчас",
+  "Pay total (SOL)": "Итого к оплате (SOL)",
+  "Paying": "Оплата",
+  "Payment": "Платёж",
+  "Payment received. Locking it for the swap.": "Платёж получен. Блокируем средства для обмена.",
+  "Payment received. Locking your SOL on Solana now. Keep this page open for about 20 seconds.": "Платёж получен. Блокируем ваши SOL в Solana. Не закрывайте страницу около 20 секунд.",
+  "Payment request": "Запрос оплаты",
+  "Payments": "Платежи",
+  "Pending": "В обработке",
+  "Pending in your Bitcoin wallet until Bitcoin confirms it, usually within the hour": "Ожидает в вашем кошельке Bitcoin, пока сеть Bitcoin подтвердит транзакцию, обычно в течение часа",
+  "People": "Люди",
+  "People you block can't message you, and you don't see each other's profiles, posts or listings. Unblock someone to see them again.": "Заблокированные пользователи не могут писать вам, и вы не видите профили, публикации и объявления друг друга. Разблокируйте пользователя, чтобы снова видеть его.",
+  "People you've talked with": "Люди, с которыми вы общались",
+  "Philippine peso": "Филиппинское песо",
+  "Photos": "Фотографии",
+  "Pick a category.": "Выберите категорию.",
+  "Pick a conversation to read it.": "Выберите переписку, чтобы прочитать её.",
+  "Pick an": "Выберите",
+  "Pictures": "Изображения",
+  "Place Buy Order": "Разместить ордер на покупку",
+  "Place Sell Order": "Разместить ордер на продажу",
+  "Place order": "Разместить ордер",
+  "Point at a message": "Наведите на сообщение",
+  "Point the camera at the QR code": "Наведите камеру на QR-код",
+  "Point the camera at the code on your other device": "Наведите камеру на код на другом устройстве",
+  "Point the camera at their Receive QR code": "Наведите камеру на их QR-код получения",
+  "Poll": "Опрос",
+  "Poll length": "Длительность опроса",
+  "Popular": "Популярные",
+  "Post": "Опубликовать",
+  "Post an offer": "Разместить предложение",
+  "Post buy offer": "Разместить предложение на покупку",
+  "Post order": "Разместить ордер",
+  "Post sell offer": "Разместить предложение на продажу",
+  "Post the offer": "Опубликовать предложение",
+  "Post to the live ORN / SOL order book": "Разместить в стакане ORN / SOL",
+  "Post your listing": "Опубликовать объявление",
+  "Post your reply": "Отправить ответ",
+  "Posting": "Публикация",
+  "Posts": "Публикации",
+  "Powered by KLIPY": "При поддержке KLIPY",
+  "Price / ORN": "Цена / ORN",
+  "Price in ORN": "Цена в ORN",
+  "Price per ORN": "Цена за ORN",
+  "Privacy Policy": "Политика конфиденциальности",
+  "Privacy and security": "Конфиденциальность и безопасность",
+  "Privacy policy": "Политика конфиденциальности",
+  "Processor": "Процессор",
+  "Profile": "Профиль",
+  "Progress": "Прогресс",
+  "Ranked by ORN held": "По количеству ORN",
+  "React": "Реакция",
+  "Receive": "Получить",
+  "Receive ORN": "Получить ORN",
+  "Receive total (SOL)": "Итого к получению (SOL)",
+  "Received": "Получено",
+  "Recent errors": "Недавние ошибки",
+  "Recent screens": "Недавние экраны",
+  "Recent trades": "Недавние сделки",
+  "Recents": "Недавние",
+  "Recovery phrase": "Фраза восстановления",
+  "Recovery words": "Слова восстановления",
+  "Refunded": "Возвращено",
+  "Remove": "Удалить",
+  "Remove GIF": "Удалить GIF",
+  "Remove from contacts": "Удалить из контактов",
+  "Remove from store": "Удалить из магазина",
+  "Remove from the list": "Убрать из списка",
+  "Remove from this app": "Удалить из приложения",
+  "Remove from your profile": "Убрать из профиля",
+  "Remove poll": "Удалить опрос",
+  "Remove wallet": "Удалить кошелёк",
+  "Rename wallet": "Переименовать кошелёк",
+  "Reopen": "Открыть снова",
+  "Repeat for each wallet you want on your profile.": "Повторите для каждого кошелька, который хотите добавить в профиль.",
+  "Replies, reactions and the network's posts about you": "Ответы, реакции и публикации сети о вас",
+  "Reply": "Ответить",
+  "Report": "Пожаловаться",
+  "Report a Problem": "Сообщить о проблеме",
+  "Report post": "Пожаловаться на публикацию",
+  "Report something else": "Сообщить о чём-то другом",
+  "Report this listing": "Пожаловаться на объявление",
+  "Report this post": "Пожаловаться на публикацию",
+  "Report this theme": "Пожаловаться на тему",
+  "Request": "Запросить",
+  "Reserve SOL": "Резервирование SOL",
+  "Reserving buyer's SOL": "Резервируем SOL покупателя",
+  "Reserving the buyer's locked SOL on Solana before locking your ORN. Keep this page open for about 15 seconds.": "Резервируем заблокированные SOL покупателя в Solana перед блокировкой ваших ORN. Не закрывайте страницу около 15 секунд.",
+  "Restart mining": "Перезапустить майнинг",
+  "Restart mining to go faster": "Перезапустите майнинг для ускорения",
+  "Restore": "Восстановить",
+  "Restore a wallet from its words": "Восстановить кошелёк по словам",
+  "Restore wallet": "Восстановить кошелёк",
+  "Restore with recovery phrase": "Восстановить по фразе восстановления",
+  "Restoring": "Восстановление",
+  "Rewards": "Награды",
+  "Robot avatars:": "Аватары роботов:",
+  "Running": "Работает",
+  "SOL to pay": "SOL к оплате",
+  "SOL to receive": "SOL к получению",
+  "Safe to leave or close Orien Wallet.": "Можно покинуть страницу или закрыть Orien Wallet.",
+  "Safe to leave this page or close Orien Wallet": "Можно покинуть страницу или закрыть Orien Wallet",
+  "Safe to leave · arrives in about a minute": "Можно закрыть · придёт примерно через минуту",
+  "Safe to share: an address can only receive ORN.": "Делиться безопасно: на адрес можно только отправлять ORN.",
+  "Save": "Сохранить",
+  "Save as a text file": "Сохранить как текстовый файл",
+  "Save as contact": "Сохранить в контакты",
+  "Save changes": "Сохранить изменения",
+  "Save theme": "Сохранить тему",
+  "Saved": "Сохранено",
+  "Saved address": "Сохранённый адрес",
+  "Saved. Anyone who opens the file can spend your ORN: keep it somewhere only you can reach.": "Сохранено. Любой, кто откроет этот файл, сможет потратить ваши ORN: храните его в недоступном для других месте.",
+  "Saving": "Сохранение",
+  "Saving…": "Сохранение…",
+  "Say hello to everyone.": "Поздоровайтесь со всеми.",
+  "Say what you're offering.": "Опишите, что вы предлагаете.",
+  "Scan a QR code": "Сканировать QR-код",
+  "Scan the code": "Отсканируйте код",
+  "Search KLIPY": "Поиск в KLIPY",
+  "Search listings": "Поиск объявлений",
+  "Searching…": "Поиск…",
+  "Security and more": "Безопасность и другое",
+  "See the top 100": "Смотреть топ-100",
+  "Sell": "Продать",
+  "Sell ORN": "Продать ORN",
+  "Sell amount (ORN)": "Сумма продажи (ORN)",
+  "Sell from": "Продать с",
+  "Sell into this offer": "Продать по этому предложению",
+  "Sell offers come from verified wallets, so buyers can see who they're swapping with. Verifying ties this wallet to your Orien Network name and sends less than 0.001 ORN from it, once.": "Предложения о продаже размещаются с подтверждённых кошельков, чтобы покупатели видели, с кем меняются. Подтверждение привязывает кошелёк к вашему имени в Orien Network и один раз отправляет с него меньше 0,001 ORN.",
+  "Sell orders come from verified wallets so buyers know who they're trading with (sends < 0.001 ORN once).": "Ордеры на продажу размещаются с подтверждённых кошельков, чтобы покупатели знали, с кем торгуют (единоразовая отправка < 0,001 ORN).",
+  "Sell something": "Продать что-нибудь",
+  "Seller": "Продавец",
+  "Seller accepts": "Продавец принимает",
+  "Selling ORN": "Продажа ORN",
+  "Send": "Отправить",
+  "Send & Receive": "Отправка и получение",
+  "Send ORN": "Отправить ORN",
+  "Send ORN and see your balance from the browser's toolbar, and sign in to websites with your wallet. Your keys stay in this app.": "Отправляйте ORN и проверяйте баланс с панели браузера, а также входите на сайты с помощью кошелька. Ваши ключи остаются в этом приложении.",
+  "Send ORN, see your balance, and sign in to orien.network with one click, right from your browser. Your keys never leave Orien Wallet.": "Отправляйте ORN, проверяйте баланс и входите на orien.network в один клик прямо из браузера. Ваши ключи никогда не покидают Orien Wallet.",
+  "Send SOL": "Отправить SOL",
+  "Send SOL once into a Solana order. It stays live on the order book even while Orien Wallet is closed, settles in about a minute when taken, and cancels in one click.": "Отправьте SOL один раз в ордер Solana. Он остаётся активным в стакане даже при закрытом Orien Wallet, исполняется примерно за минуту и отменяется в один клик.",
+  "Send and verify": "Отправить и подтвердить",
+  "Send me a code": "Отправить код",
+  "Send report": "Отправить жалобу",
+  "Send the buyer this offer code": "Отправьте покупателю этот код предложения",
+  "Send the seller this reply code": "Отправьте продавцу этот код ответа",
+  "Send to this contact": "Отправить этому контакту",
+  "Send your wallets to your other phone or computer": "Отправьте кошельки на другой телефон или компьютер",
+  "Sending": "Отправка",
+  "Sending…": "Отправка…",
+  "Sent": "Отправлено",
+  "Sent a GIF": "Отправлен GIF",
+  "Sent a picture": "Отправлено изображение",
+  "Sent from another app": "Отправлено из другого приложения",
+  "Sent. Verifying, usually within a minute.": "Отправлено. Идёт подтверждение, обычно в течение минуты.",
+  "Set password": "Задать пароль",
+  "Set the": "Настройте",
+  "Set up": "Настроить",
+  "Set up mining": "Настроить майнинг",
+  "Sets aside about 2.4 GB of memory for mining in large pages, usually 10 to 30% faster. Linux asks for your password once.": "Выделяет около 2,4 ГБ памяти для майнинга в больших страницах, обычно на 10-30% быстрее. Linux один раз запросит ваш пароль.",
+  "Settings": "Настройки",
+  "Settling": "Расчёт",
+  "Share a theme in the Theme Store": "Поделитесь темой в Магазине тем",
+  "Share address": "Поделиться адресом",
+  "Share in the Theme Store": "Поделиться в Магазине тем",
+  "Share theme": "Поделиться темой",
+  "Shared": "Опубликовано",
+  "Shared among miners": "Распределено между майнерами",
+  "Shares": "Шары",
+  "Shares an hour": "Шар в час",
+  "Shares this hour": "Шар за этот час",
+  "Sharing": "Публикация",
+  "Show balance": "Показать баланс",
+  "Show less": "Свернуть",
+  "Show more": "Показать больше",
+  "Show scroll arrow": "Показывать стрелку прокрутки",
+  "Show your accounts on your profile, if you like. Everyone can see them.": "При желании укажите свои аккаунты в профиле. Их увидят все.",
+  "Sign Out": "Выйти",
+  "Sign in": "Войти",
+  "Sign in and verify this wallet first.": "Сначала войдите и подтвердите этот кошелёк.",
+  "Sign in to Orien Network": "Войти в Orien Network",
+  "Sign in to Orien Network first.": "Сначала войдите в Orien Network.",
+  "Sign in to Orien Network to ask a question. Verifying a wallet isn't needed.": "Войдите в Orien Network, чтобы задать вопрос. Подтверждать кошелёк не требуется.",
+  "Sign in to Orien Network to chat, reply or react.": "Войдите в Orien Network, чтобы писать в чат, отвечать или ставить реакции.",
+  "Sign in to Orien Network to chat.": "Войдите в Orien Network, чтобы писать в чат.",
+  "Sign in to Orien Network to post and react.": "Войдите в Orien Network, чтобы публиковать и ставить реакции.",
+  "Sign in to Orien Network to post, reply and react.": "Войдите в Orien Network, чтобы публиковать, отвечать и ставить реакции.",
+  "Sign in to Orien Network to react.": "Войдите в Orien Network, чтобы ставить реакции.",
+  "Sign in to Orien Network to reply.": "Войдите в Orien Network, чтобы отвечать.",
+  "Sign in to Orien Network to report a message.": "Войдите в Orien Network, чтобы пожаловаться на сообщение.",
+  "Sign in to Orien Network to report a theme.": "Войдите в Orien Network, чтобы пожаловаться на тему.",
+  "Sign in to Orien Network to see the themes you shared.": "Войдите в Orien Network, чтобы увидеть опубликованные вами темы.",
+  "Sign in to Orien Network to see your own messages and to chat.": "Войдите в Orien Network, чтобы видеть свои сообщения и общаться.",
+  "Sign in to Orien Network to tip.": "Войдите в Orien Network, чтобы отправлять чаевые.",
+  "Sign in to Orien Network with a verified wallet to share themes.": "Войдите в Orien Network с подтверждённым кошельком, чтобы делиться темами.",
+  "Sign in to message the seller": "Войдите, чтобы написать продавцу",
+  "Sign in to trade": "Войдите, чтобы торговать",
+  "Sign in, and open the wallet you want to verify.": "Войдите и откройте кошелёк, который хотите подтвердить.",
+  "Sign out of Windows and back in, then open Orien Wallet. Mining runs faster from then on.": "Выйдите из Windows и войдите снова, затем откройте Orien Wallet. После этого майнинг будет работать быстрее.",
+  "Sign out to finish": "Выйдите из системы для завершения",
+  "Signing in": "Вход",
+  "Singapore dollar": "Сингапурский доллар",
+  "Size (ORN)": "Объём (ORN)",
+  "Smallest swap: 0.00015 BTC, more when Bitcoin is busy": "Минимальный обмен: 0,00015 BTC, больше при загрузке сети Bitcoin",
+  "Smallest swap: 0.01 SOL. Fees: the usual Orien fee to lock the ORN (0.1%, at most 1 ORN); the buyer covers Solana's small fees. A swap takes about a minute. If a buyer never pays, your ORN come back on their own within a few hours.": "Минимальный обмен: 0,01 SOL. Комиссии: обычная комиссия Orien за блокировку ORN (0,1%, не более 1 ORN); небольшие комиссии Solana оплачивает покупатель. Обмен занимает около минуты. Если покупатель не заплатит, ваши ORN вернутся сами через несколько часов.",
+  "Smallest swap: 0.01 SOL. Nothing leaves your SOL wallet until a seller locks the ORN and you pay the QR code. You'll also need about 0.005 SOL for Solana's small fees, nearly all of which comes back.": "Минимальный обмен: 0,01 SOL. Ничего не спишется с вашего кошелька SOL, пока продавец не заблокирует ORN и вы не оплатите QR-код. Также понадобится около 0,005 SOL на небольшие комиссии Solana, почти вся эта сумма вернётся.",
+  "So swap offers stay open, and payments and mining carry on. The screen can still turn off.": "Чтобы предложения обмена оставались активными, а платежи и майнинг продолжались. Экран при этом может гаснуть.",
+  "Social Links": "Соцсети",
+  "Socials": "Соцсети",
+  "Someone": "Кто-то",
+  "Sort by": "Сортировка",
+  "South African rand": "Южноафриканский рэнд",
+  "South Korean won": "Южнокорейская вона",
+  "Speed": "Скорость",
+  "Stake returned": "Стейк возвращён",
+  "Start Orien Wallet when you log in": "Запускать Orien Wallet при входе в систему",
+  "Start mining": "Начать майнинг",
+  "Start mining to see your speed here.": "Начните майнинг, чтобы увидеть здесь свою скорость.",
+  "Start over": "Начать заново",
+  "Starting…": "Запуск…",
+  "State after it: every account's balance, as one fingerprint": "Состояние после: баланс каждого аккаунта в виде одного отпечатка",
+  "Stay on this page for a moment:": "Оставайтесь на этой странице немного:",
+  "Stop mining": "Остановить майнинг",
+  "Stop replying": "Отменить ответ",
+  "Stopped": "Остановлено",
+  "Swap": "Обмен",
+  "Swap ORN and SOL directly with other people. About a minute, no fee.": "Обменивайте ORN и SOL напрямую с другими людьми. Около минуты, без комиссии.",
+  "Swap SOL or Bitcoin for ORN in Orien Wallet on a computer, with this same wallet linked to it.": "Обменивайте SOL или Bitcoin на ORN в Orien Wallet на компьютере с привязанным этим же кошельком.",
+  "Swap SOL or Bitcoin for ORN with other people, directly between your wallets, on the Swap screen. With SOL it takes a few minutes, and you pay from the SOL wallet you already have, such as Phantom.": "Обменивайте SOL или Bitcoin на ORN напрямую с другими людьми на экране «Обмен». С SOL это занимает несколько минут, и вы платите из своего кошелька SOL, например Phantom.",
+  "Swap for it.": "Обменяйте на них.",
+  "Swap updates": "Обновления обменов",
+  "Swaps": "Обмены",
+  "Swaps and payments carry on from the menu bar": "Обмены и платежи продолжают работать из строки меню",
+  "Swaps and payments carry on from the system tray": "Обмены и платежи продолжают работать из системного трея",
+  "Swaps need the newest Orien Wallet. Update first: it takes a moment, and the app reopens by itself.": "Для обменов нужна последняя версия Orien Wallet. Сначала обновитесь: это займёт мгновение, и приложение откроется само.",
+  "Swiss franc": "Швейцарский франк",
+  "Take": "Взять",
+  "Take an offer": "Принять предложение",
+  "Take the offer": "Принять предложение",
+  "Take this offer": "Принять это предложение",
+  "Taken": "Принято",
+  "Taking your Bitcoin back": "Возвращаем ваш Bitcoin",
+  "Tap": "Нажмите",
+  "Tap a message": "Нажмите на сообщение",
+  "Tap to reveal": "Нажмите, чтобы показать",
+  "Tell Orien Network what's wrong with it: a scam, spam, abuse, or something illegal. Every report is reviewed.": "Расскажите Orien Network, что с этим не так: мошенничество, спам, оскорбления или что-то незаконное. Каждая жалоба проверяется.",
+  "Tell us what happened": "Расскажите, что произошло",
+  "Tell us what went wrong. Every report is read.": "Расскажите, что пошло не так. Мы читаем каждое сообщение.",
+  "Terms of Service": "Условия использования",
+  "Terms of service": "Условия использования",
+  "Thanks, it's sent": "Спасибо, отправлено",
+  "Thanks. It will be reviewed.": "Спасибо. Жалоба будет рассмотрена.",
+  "Thanks. We will look at it.": "Спасибо. Мы разберёмся с этим.",
+  "That QR code isn't from Orien Wallet's Use my other device.": "Этот QR-код не из раздела «Использовать другое устройство» в Orien Wallet.",
+  "That account can't be found.": "Этот аккаунт не найден.",
+  "That doesn't look like a SOL address.": "Это не похоже на адрес SOL.",
+  "That email doesn't look right. Check it, or leave it empty.": "Похоже, адрес эл. почты указан неверно. Проверьте его или оставьте поле пустым.",
+  "That file isn't a picture this app can open.": "Этот файл не является изображением, которое приложение может открыть.",
+  "That is not this wallet's password.": "Это неверный пароль для этого кошелька.",
+  "That is this wallet's own address": "Это собственный адрес этого кошелька",
+  "That isn't a Bitcoin address.": "Это не адрес Bitcoin.",
+  "That isn't a SOL address.": "Это не адрес SOL.",
+  "That password isn't right. Check it and try again.": "Неверный пароль. Проверьте его и попробуйте снова.",
+  "That post has been removed.": "Эта публикация удалена.",
+  "That theme's picture couldn't be downloaded. Try again in a moment.": "Не удалось загрузить изображение этой темы. Попробуйте чуть позже.",
+  "That's a Bitcoin address. Swaps use SOL.": "Это адрес Bitcoin. В обменах используется SOL.",
+  "That's a SOL address. To use SOL, choose SOL above.": "Это адрес SOL. Чтобы использовать SOL, выберите SOL выше.",
+  "That's a long one. Keep a question under 1,000 characters.": "Слишком длинный вопрос. Сократите его до 1000 символов.",
+  "That's not this wallet's password.": "Это неверный пароль для этого кошелька.",
+  "The ORN arrive in this wallet by themselves.": "ORN придут в этот кошелёк сами.",
+  "The buyer": "Покупатель",
+  "The buyer is paying. This app takes the SOL as soon as it's locked, usually within a minute.": "Покупатель оплачивает. Приложение заберёт SOL, как только они будут заблокированы, обычно в течение минуты.",
+  "The buyer · usually 30 to 60 minutes after they pay": "Покупатель · обычно через 30-60 минут после оплаты",
+  "The buyer · within a few hours": "Покупатель · в течение нескольких часов",
+  "The buyer's ORN delivered": "ORN доставлены покупателю",
+  "The chart begins as soon as the first ORN / SOL swap completes.": "График начнётся сразу после завершения первого обмена ORN / SOL.",
+  "The checkpoint before it": "Предыдущая контрольная точка",
+  "The extra over the price": "Надбавка сверх цены",
+  "The figures at the top show the network right now: ORN released, the next checkpoint, miners and hashrate.": "Цифры вверху показывают состояние сети сейчас: выпущенные ORN, следующую контрольную точку, майнеров и хешрейт.",
+  "The latest 500": "Последние 500",
+  "The pay screen opens by itself as soon as they accept.": "Экран оплаты откроется сам, как только они примут предложение.",
+  "The picture couldn't be saved on this device. Try a smaller one.": "Не удалось сохранить изображение на этом устройстве. Попробуйте файл поменьше.",
+  "The post shows its tips, without names. The author is told it was you.": "Под публикацией показана сумма чаевых без имён. Автору сообщается, что их отправили вы.",
+  "The seller didn't take the SOL in time. Sending it back to your SOL wallet.": "Продавец не успел забрать SOL вовремя. Возвращаем их на ваш кошелёк SOL.",
+  "The seller took the SOL. Claiming your ORN.": "Продавец забрал SOL. Забираем ваши ORN.",
+  "The seller · done": "Продавец · готово",
+  "The seller · usually 30 to 60 minutes after you pay": "Продавец · обычно через 30-60 минут после вашей оплаты",
+  "The seller's wallet delivers your ORN once they take the SOL.": "Кошелёк продавца доставит ваши ORN, как только он заберёт SOL.",
+  "The seller's wallet takes the Bitcoin once Bitcoin has confirmed your payment three times": "Кошелёк продавца заберёт Bitcoin после трёх подтверждений платежа в сети Bitcoin",
+  "The swap board passes your offer to the buyer's wallet, and their reply back": "Доска обменов передаёт ваше предложение кошельку покупателя, а его ответ обратно вам",
+  "The swap details open by itself as soon as your ORN are locked.": "Детали обмена откроются сами, как только ваши ORN будут заблокированы.",
+  "The update didn't install": "Обновление не установилось",
+  "The validators didn't answer about this hour's rewards just now. Try again in a moment.": "Валидаторы сейчас не ответили по наградам за этот час. Попробуйте через мгновение.",
+  "The website learns this wallet's address.": "Сайт узнает адрес этого кошелька.",
+  "Their 64-character address": "Их 64-символьный адрес",
+  "Their Orien Wallet makes it once it has checked your offer. It tells this app where they'll pay the Bitcoin.": "Их Orien Wallet создаст его после проверки вашего предложения. Он сообщит приложению, куда они отправят Bitcoin.",
+  "Their payment shows in your Activity within seconds.": "Их платёж появится в вашей Активности через несколько секунд.",
+  "Their wallet accepts by itself, usually within a few seconds.": "Их кошелёк примет автоматически, обычно за несколько секунд.",
+  "Their wallet accepts by itself, within 30 minutes.": "Их кошелёк примет автоматически в течение 30 минут.",
+  "Theme": "Тема",
+  "Theme Store": "Магазин тем",
+  "Themes": "Темы",
+  "Themes made by the Orien community": "Темы от сообщества Orien",
+  "Then paste the buyer's reply code": "Затем вставьте код ответа покупателя",
+  "They don't match": "Не совпадают",
+  "They match": "Совпадают",
+  "They match, send": "Совпадают, отправить",
+  "They match, send my wallet": "Совпадают, отправить кошелёк",
+  "They match, send my wallets": "Совпадают, отправить кошельки",
+  "This app takes the Bitcoin to your Bitcoin address, then delivers the buyer's ORN to them": "Приложение переведёт Bitcoin на ваш адрес Bitcoin, а затем доставит ORN покупателю",
+  "This app · about 30 minutes for Bitcoin to settle": "Это приложение · около 30 минут на подтверждение Bitcoin",
+  "This app · under a minute": "Это приложение · меньше минуты",
+  "This checkpoint's fingerprint": "Отпечаток этой контрольной точки",
+  "This computer": "Этот компьютер",
+  "This hour": "Этот час",
+  "This is your listing.": "Это ваше объявление.",
+  "This person": "Этот человек",
+  "This profile isn't available.": "Этот профиль недоступен.",
+  "This theme's picture isn't on this computer yet. Try again in a moment.": "Изображение этой темы ещё не загружено на компьютер. Попробуйте через мгновение.",
+  "This version of Orien Wallet no longer works with the network. Press Update at the top to keep sending.": "Эта версия Orien Wallet больше не работает с сетью. Нажмите «Обновить» вверху, чтобы продолжить отправки.",
+  "This wallet": "Этот кошелёк",
+  "This wallet has a password. Type it to send.": "Этот кошелёк защищён паролем. Введите его для отправки.",
+  "This wallet proved it belongs to this profile": "Этот кошелёк подтвердил принадлежность к профилю",
+  "This wallet's password": "Пароль этого кошелька",
+  "Time": "Время",
+  "Tip": "Чаевые",
+  "Tip someone": "Отправить чаевые",
+  "Tips": "Чаевые",
+  "Tips are payments and can't be undone.": "Чаевые это платежи, их нельзя отменить.",
+  "To": "Кому",
+  "Today": "Сегодня",
+  "Too late to pay safely: a payment now would come back to you once the lock ends, about 2 hours from now": "Слишком поздно для безопасной оплаты: платёж сейчас вернётся вам после окончания блокировки, примерно через 2 часа",
+  "Top miner of the day": "Лучший майнер дня",
+  "Top miners": "Топ майнеров",
+  "Top wallets": "Топ кошельков",
+  "Total": "Итого",
+  "Total (SOL)": "Итого (SOL)",
+  "Trade": "Торговля",
+  "Trades": "Сделки",
+  "Try": "Примерить",
+  "Try again": "Попробовать снова",
+  "Turkish lira": "Турецкая лира",
+  "Turn on syncing": "Включить синхронизацию",
+  "Turn on syncing, so your contacts and wallet icons match on all your devices. It needs this wallet unlocked once.": "Включите синхронизацию, чтобы ваши контакты и значки кошельков совпадали на всех устройствах. Потребуется один раз разблокировать этот кошелёк.",
+  "Type the 24 words of a wallet you have": "Введите 24 слова от вашего кошелька",
+  "Type the SOL or Bitcoin address you'll pay from, then click": "Введите адрес SOL или Bitcoin, с которого будете платить, затем нажмите",
+  "Type the password to send this wallet too.": "Введите пароль, чтобы отправить и этот кошелёк.",
+  "Type the wallet's password if it has one.": "Введите пароль кошелька, если он задан.",
+  "Type this wallet's password to approve this order.": "Введите пароль этого кошелька, чтобы подтвердить ордер.",
+  "Type this wallet's password to approve this swap.": "Введите пароль этого кошелька, чтобы подтвердить обмен.",
+  "Type this wallet's password to see its words.": "Введите пароль этого кошелька, чтобы увидеть его слова.",
+  "Type this wallet's password to sign in.": "Введите пароль этого кошелька, чтобы войти.",
+  "Type your wallet password": "Введите пароль кошелька",
+  "Type your wallet password below, so this app can claim your ORN": "Введите пароль кошелька ниже, чтобы приложение могло получить ваши ORN",
+  "Type your wallet password below, so this app can finish the swap": "Введите пароль кошелька ниже, чтобы приложение могло завершить обмен",
+  "Type your wallet password to approve this swap.": "Введите пароль кошелька, чтобы подтвердить этот обмен.",
+  "US dollar": "Доллар США",
+  "Unban": "Разблокировать в чате",
+  "Under": "В разделе",
+  "Undo": "Отменить",
+  "Unlock": "Разблокировать",
+  "Unmute the group chat": "Включить уведомления общего чата",
+  "Unstaked": "Выведено из стейкинга",
+  "Up to four. The first is the one shown on your listing's card.": "До четырёх. Первое изображение отображается на карточке объявления.",
+  "Update automatically": "Обновлять автоматически",
+  "Update failed": "Ошибка обновления",
+  "Update failed, try again": "Ошибка обновления, попробуйте снова",
+  "Update needed": "Требуется обновление",
+  "Update now": "Обновить сейчас",
+  "Update to Latest": "Обновить до последней версии",
+  "Updates as they happen, and chat with the community": "Новости в реальном времени и общение с сообществом",
+  "Updating": "Обновление",
+  "Use": "Использовать",
+  "Use Orien Wallet in your browser": "Используйте Orien Wallet в браузере",
+  "Use my other device": "Использовать другое устройство",
+  "Use my recovery phrase": "Использовать фразу восстановления",
+  "Use the reply": "Использовать ответ",
+  "Use your wallets on another device": "Используйте кошельки на другом устройстве",
+  "User Guide": "Руководство пользователя",
+  "Username": "Имя пользователя",
+  "Validator fees": "Комиссии валидаторов",
+  "Validators": "Валидаторы",
+  "Verified": "Подтверждён",
+  "Verified wallet": "Подтверждённый кошелёк",
+  "Verify": "Подтвердить",
+  "Verify a wallet": "Подтвердить кошелёк",
+  "Verify a wallet and people who pay it see your name with it.": "Подтвердите кошелёк, и отправители платежей будут видеть ваше имя рядом с ним.",
+  "Verify a wallet to post and see your mining here.": "Подтвердите кошелёк, чтобы публиковать и видеть свой майнинг здесь.",
+  "Verify more wallets, and choose where you're paid": "Подтвердите больше кошельков и выберите, куда получать оплату",
+  "Verify one of your wallets on your Orien Network profile to post, reply and react.": "Подтвердите один из своих кошельков в профиле Orien Network, чтобы публиковать, отвечать и ставить реакции.",
+  "Verify one of your wallets to chat, reply or react.": "Подтвердите один из своих кошельков, чтобы писать в чат, отвечать или ставить реакции.",
+  "Verify one of your wallets to chat. Anyone can read along.": "Подтвердите один из своих кошельков, чтобы писать в чат. Читать может любой.",
+  "Verify one of your wallets to react.": "Подтвердите один из своих кошельков, чтобы ставить реакции.",
+  "Verify one of your wallets to reply.": "Подтвердите один из своих кошельков, чтобы отвечать.",
+  "Verify this wallet": "Подтвердить этот кошелёк",
+  "Verify this wallet to offer swaps": "Подтвердите этот кошелёк, чтобы предлагать обмены",
+  "Verify this wallet to place sell orders": "Подтвердите этот кошелёк, чтобы размещать ордеры на продажу",
+  "Verifying shows everyone the wallet is yours, including its balance. It lets you post, sell, swap and receive tips.": "Подтверждение показывает всем, что кошелёк ваш, включая его баланс. Это даёт возможность публиковать, продавать, обменивать и получать чаевые.",
+  "Verifying…": "Подтверждение…",
+  "Verifying… usually within a minute": "Подтверждение… обычно в течение минуты",
+  "Version": "Версия",
+  "Videos about Orien": "Видео об Orien",
+  "View": "Открыть",
+  "View Profile": "Открыть профиль",
+  "View all": "Смотреть все",
+  "View profile": "Открыть профиль",
+  "Waiting": "Ожидание",
+  "Waiting for mining to get going.": "Ожидаем запуска майнинга.",
+  "Waiting for validators": "Ожидание валидаторов",
+  "Waiting for your other device": "Ожидание другого устройства",
+  "Waiting for your wallets": "Ожидание ваших кошельков",
+  "Wallet": "Кошелёк",
+  "Wallet password": "Пароль кошелька",
+  "Wallet password, so this app can sign the next step": "Пароль кошелька, чтобы приложение могло подписать следующий шаг",
+  "Wallet password, to approve this sale": "Пароль кошелька для подтверждения этой продажи",
+  "Wallet password, to approve this swap": "Пароль кошелька для подтверждения этого обмена",
+  "Wallet settings": "Настройки кошелька",
+  "Wallets": "Кошельки",
+  "Wallets holding ORN": "Кошельки с ORN",
+  "Watch the preview as you go, then click": "Следите за предпросмотром по ходу настройки, затем нажмите",
+  "We'll look into it, and write to you if we need to know more.": "Мы разберёмся и напишем вам, если понадобятся подробности.",
+  "We'll look into it.": "Мы разберёмся с этим.",
+  "Welcome": "Добро пожаловать",
+  "Welcome to Orien Wallet": "Добро пожаловать в Orien Wallet",
+  "What are you offering?": "Что вы предлагаете?",
+  "What happens:": "Что происходит:",
+  "What is wrong with this post?": "Что не так с этой публикацией?",
+  "What is wrong with this theme?": "Что не так с этой темой?",
+  "What the buyer gets, how long it takes, anything they should know.": "Что получит покупатель, сколько времени это займёт и что важно знать.",
+  "What we'll send": "Что будет отправлено",
+  "What went wrong?": "Что пошло не так?",
+  "What's happening?": "Что нового?",
+  "When an offer is taken and as swaps finish": "Когда предложение принято и когда обмены завершаются",
+  "When someone sends you ORN": "Когда кто-то отправляет вам ORN",
+  "When the seller answers, pay the exact amount shown from your SOL or Bitcoin wallet.": "Когда продавец ответит, оплатите точно указанную сумму из своего кошелька SOL или Bitcoin.",
+  "Where did it happen?": "Где это произошло?",
+  "Where the Bitcoin should go": "Куда отправить Bitcoin",
+  "Where the SOL should go, such as your Phantom wallet": "Куда отправить SOL, например ваш кошелёк Phantom",
+  "Where was it?": "Где это было?",
+  "Where your Bitcoin comes back if the swap stops": "Куда вернётся ваш Bitcoin, если обмен остановится",
+  "Where your SOL should go (e.g. Phantom)": "Куда отправить SOL (например, Phantom)",
+  "Where your SOL should go, such as your Phantom wallet": "Куда отправить ваши SOL, например ваш кошелёк Phantom",
+  "While it's open, Orien Wallet does each of its steps for you as soon as it can.": "Пока Orien Wallet открыт, он автоматически выполняет каждый шаг, как только это возможно.",
+  "Who can message you": "Кто может вам писать",
+  "Who is this?": "Кто это?",
+  "With their names and icons. Your new device asks there whether to add a password.": "Вместе с их названиями и значками. Новое устройство спросит, нужно ли добавить пароль.",
+  "Withdraw": "Вывести",
+  "Within a minute it shows": "В течение минуты появится статус",
+  "Work and things offered for ORN. You pay the seller straight from your wallet: the Market never holds anyone's coins.": "Услуги и товары за ORN. Вы платите продавцу напрямую из своего кошелька: Маркет никогда не хранит чужие монеты.",
+  "Working, keep this page open": "Выполняется, не закрывайте страницу",
+  "Write the amount in ORN, like 200 or 12.5.": "Укажите сумму в ORN, например 200 или 12.5.",
+  "Write the price in ORN, like 200 or 12.5.": "Укажите цену в ORN, например 200 или 12.5.",
+  "Write them down in order, on paper, and keep it somewhere safe.": "Запишите их по порядку на бумаге и храните в надёжном месте.",
+  "Write these 24 words on paper, in order, and keep them somewhere safe. They are the only way back into this wallet if this device is lost. Anyone who sees them can spend your ORN.": "Запишите эти 24 слова на бумаге по порядку и храните в надёжном месте. Это единственный способ восстановить доступ к кошельку при потере устройства. Любой, кто их увидит, сможет потратить ваши ORN.",
+  "Yesterday": "Вчера",
+  "You": "Вы",
+  "You and the buyer · up to you": "Вы и покупатель · на ваше усмотрение",
+  "You approve the sale once, now. When someone takes your offer, your wallet accepts it within seconds, even with the window closed. Keep Orien Wallet running.": "Вы подтверждаете продажу один раз сейчас. Когда кто-то примет ваше предложение, кошелёк подтвердит сделку за секунды, даже если окно закрыто. Держите Orien Wallet запущенным.",
+  "You buy": "Вы покупаете",
+  "You can't send in the group chat right now. You can still read along.": "Сейчас вы не можете писать в общий чат, но можете читать сообщения.",
+  "You get": "Вы получите",
+  "You have 24 themes, as many as there's room for. Delete one in Appearance first.": "У вас уже 24 темы, это максимум. Сначала удалите одну в разделе «Оформление».",
+  "You haven't blocked anyone.": "Вы никого не блокировали.",
+  "You need": "Вам потребуется",
+  "You need to be signed in to Orien Network with a verified wallet.": "Нужно войти в Orien Network с подтверждённым кошельком.",
+  "You need to be signed in to Orien Network. Verifying a wallet isn't needed.": "Нужно войти в Orien Network. Подтверждать кошелёк не требуется.",
+  "You pay": "Вы платите",
+  "You sell": "Вы продаёте",
+  "You send the buyer the offer code, and paste in the reply code they send back": "Вы отправляете покупателю код предложения и вставляете код ответа, который он пришлёт",
+  "You · now": "Вы · сейчас",
+  "You · pay within a few hours": "Вы · оплатите в течение нескольких часов",
+  "You · pay within the next few hours": "Вы · оплатите в ближайшие несколько часов",
+  "You · stay on this page until Step 2 finishes": "Вы · оставайтесь на странице до завершения шага 2",
+  "You · within a few hours": "Вы · в течение нескольких часов",
+  "You're up to date": "У вас последняя версия",
+  "Your 24 words, separated by spaces": "Ваши 24 слова через пробел",
+  "Your Bitcoin address": "Ваш адрес Bitcoin",
+  "Your Discord username": "Ваше имя в Discord",
+  "Your ORN stay safe:": "Ваши ORN в безопасности:",
+  "Your Phantom / SOL wallet (for refunds & leftovers)": "Ваш кошелёк Phantom / SOL (для возвратов и остатков)",
+  "Your Phantom / SOL wallet address": "Адрес вашего кошелька Phantom / SOL",
+  "Your SOL address": "Ваш адрес SOL",
+  "Your SOL address (the wallet you'll pay from)": "Ваш адрес SOL (кошелёк, с которого будете платить)",
+  "Your SOL is locked for the seller. Their wallet takes it and your ORN arrive, usually within a minute.": "Ваши SOL заблокированы для продавца. Его кошелёк заберёт их, и ваши ORN придут обычно в течение минуты.",
+  "Your SOL payout address": "Ваш адрес для получения SOL",
+  "Your SOL stays locked safely on Solana until a seller fills it, you cancel in one click, or it expires after 7 days and refunds automatically.": "Ваши SOL надёжно заблокированы в Solana, пока продавец не исполнит ордер, вы не отмените его в один клик или не истекут 7 дней с автоматическим возвратом.",
+  "Your SOL wallet (for refunds & leftovers)": "Ваш кошелёк SOL (для возвратов и остатков)",
+  "Your SOL wallet address": "Адрес вашего кошелька SOL",
+  "Your SOL went back to your SOL wallet.": "Ваши SOL вернулись на ваш кошелёк SOL.",
+  "Your Telegram username": "Ваше имя в Telegram",
+  "Your X username": "Ваше имя в X",
+  "Your account is for the Community, the Market and swaps. Your wallets stay in this app.": "Ваш аккаунт нужен для Сообщества, Маркета и обменов. Кошельки хранятся только в этом приложении.",
+  "Your address": "Ваш адрес",
+  "Your buy order is live on the book. When someone sells into it, this app opens the pay screen.": "Ваш ордер на покупку активен в стакане. Когда кто-то продаст по нему, приложение откроет экран оплаты.",
+  "Your buy order is live on the order book. You are all set to leave this page or close Orien Wallet. Any extra SOL has been sent back to your wallet, and when a seller takes your order your ORN will arrive automatically.": "Ваш ордер на покупку активен в стакане. Можно спокойно закрыть эту страницу или Orien Wallet. Излишек SOL возвращён на ваш кошелёк, а когда продавец примет ордер, ваши ORN придут автоматически.",
+  "Your devices": "Ваши устройства",
+  "Your email": "Ваша эл. почта",
+  "Your language follows you to your other devices.": "Выбранный язык синхронизируется с другими вашими устройствами.",
+  "Your listings": "Ваши объявления",
+  "Your offer is live": "Ваше предложение активно",
+  "Your orders & swaps": "Ваши ордеры и обмены",
+  "Your picture": "Ваше фото",
+  "Your profile": "Ваш профиль",
+  "Your recovery phrase": "Ваша фраза восстановления",
+  "Your sell order is live on the book. When someone buys it, your wallet runs the swap by itself.": "Ваш ордер на продажу активен в стакане. Когда кто-то купит по нему, ваш кошелёк проведёт обмен сам.",
+  "Your share": "Ваша доля",
+  "Your share of each hour's new ORN": "Ваша доля новых ORN за каждый час",
+  "Your share of the hour's fees": "Ваша доля комиссий за этот час",
+  "Your share of the hour's new ORN": "Ваша доля новых ORN за этот час",
+  "Your speed": "Ваша скорость",
+  "Your swaps": "Ваши обмены",
+  "Your theme follows you to your other devices.": "Ваша тема синхронизируется с другими вашими устройствами.",
+  "Your turn: confirm with your wallet password so this app can finish it": "Ваш ход: подтвердите паролем кошелька, чтобы приложение могло завершить обмен",
+  "Your username": "Ваше имя пользователя",
+  "Your username, as others see it": "Ваше имя пользователя, как его видят другие",
+  "Your wallet": "Ваш кошелёк",
+  "Your wallet is locking the ORN now. Keep Orien Wallet running while the buyer pays.": "Ваш кошелёк сейчас блокирует ORN. Не закрывайте Orien Wallet, пока покупатель платит.",
+  "Your wallet is on its way": "Ваш кошелёк в пути",
+  "Your wallet locks the ORN automatically when someone buys your offer. Keep Orien Wallet running in the menu bar or tray.": "Ваш кошелёк автоматически заблокирует ORN, когда кто-то примет ваше предложение. Держите Orien Wallet запущенным в строке меню или трее.",
+  "Your wallets": "Ваши кошельки",
+  "Your wallets arrive on the new device by themselves.": "Ваши кошельки появятся на новом устройстве сами.",
+  "Your wallets travel encrypted, straight between your two devices.": "Ваши кошельки передаются в зашифрованном виде напрямую между двумя устройствами.",
+  "Yours": "Ваши",
+  "a buyer": "покупатель",
+  "a globe": "глобус",
+  "a minute": "минуту",
+  "a pickaxe": "кирка",
+  "a speech bubble": "облачко сообщения",
+  "a telescope": "телескоп",
+  "about 6 hours after your reply": "примерно через 6 часов после вашего ответа",
+  "also replied to a post you replied to": "также ответил на публикацию, которую вы комментировали",
+  "an arrow pointing down": "стрелка вниз",
+  "an arrow pointing up": "стрелка вверх",
+  "and": "и",
+  "and choose": "и выберите",
+  "and its ORN stay in it. This only takes it off the list.": "и его ORN остаются в нём. Он просто убирается из списка.",
+  "any moment": "с минуты на минуту",
+  "by Pablo Stanley, drawn with": "от Pablo Stanley, создано с помощью",
+  "claim your ORN": "получить ваши ORN",
+  "covers Solana's small fees; nearly all of it comes back to your SOL wallet when the swap ends.": "покрывает небольшие комиссии Solana; почти вся сумма вернётся на ваш кошелёк SOL после завершения обмена.",
+  "covers Solana's small rent and fees; nearly all of it returns to your SOL wallet automatically.": "покрывает небольшую аренду и комиссии Solana; почти вся сумма автоматически вернётся на ваш кошелёк SOL.",
+  "estimated": "ориентировочно",
+  "finish the swap": "завершить обмен",
+  "for Orien's own. Each card shows the theme on a small copy of the app.": "для тем от Orien. На каждой карточке показана тема на миниатюре приложения.",
+  "for each share": "за каждую шару",
+  "for themes people made, or": "для тем от пользователей или",
+  "in Settings,": "в Настройках,",
+  "in a row": "подряд",
+  "is buying from you": "покупает у вас",
+  "it goes back to the SOL address below within about an hour.": "они вернутся на указанный ниже адрес SOL примерно в течение часа.",
+  "just don't send: nothing has left your wallets.": "просто не отправляйте: средства не покидали ваши кошельки.",
+  "just now": "только что",
+  "mined their first ORN.": "добыл свой первый ORN.",
+  "new ORN": "новых ORN",
+  "none yet": "пока нет",
+  "on one you like.": "на понравившемся.",
+  "on their own": "сами",
+  "orien.network can't be reached right now. Check your connection and try again.": "Сейчас не удаётся подключиться к orien.network. Проверьте соединение и попробуйте снова.",
+  "passed it mining.": "превзошёл его в майнинге.",
+  "payments sent": "отправлено платежей",
+  "per ORN": "за ORN",
+  "posted about you:": "опубликовала о вас:",
+  "rank": "место",
+  "replied to the network's post about you": "ответил на публикацию сети о вас",
+  "replied to you in the Orien group chat": "ответил вам в общем чате Orien",
+  "replied to your post": "ответил на вашу публикацию",
+  "replied to your reply": "ответил на ваш комментарий",
+  "scan or type": "отсканируйте или введите",
+  "shares an hour": "шар в час",
+  "shows mining rewards and validator fees.": "показывает награды за майнинг и комиссии валидаторов.",
+  "slider, or click": "или нажмите",
+  "staked": "в стейкинге",
+  "the Bitcoin in any Bitcoin wallet, plus its sending fee. The usual Orien fee (0.1%, at most 1 ORN) comes out of the ORN you receive.": "Bitcoin в любом кошельке Bitcoin плюс комиссия за отправку. Обычная комиссия Orien (0,1%, не более 1 ORN) вычитается из получаемых ORN.",
+  "the ORN in this wallet, plus the usual Orien fee (0.1%, at most 1 ORN). Bitcoin's network fee comes out of what you receive.": "ORN в этом кошельке плюс обычная комиссия Orien (0,1%, не более 1 ORN). Комиссия сети Bitcoin вычитается из получаемой суммы.",
+  "the ORN in this wallet, plus the usual Orien fee (0.1%, at most 1 ORN). The buyer covers Solana's small fees.": "ORN в этом кошельке плюс обычная комиссия Orien (0,1%, не более 1 ORN). Небольшие комиссии Solana оплачивает покупатель.",
+  "the ORN in this wallet, plus the usual Orien fee (0.1%, at most 1 ORN). You don't need any SOL.": "ORN в этом кошельке плюс обычная комиссия Orien (0,1%, не более 1 ORN). SOL вам не понадобятся.",
+  "the SOL in your own SOL wallet, plus about 0.005 SOL for Solana's small fees, nearly all of which comes back. The usual Orien fee (0.1%, at most 1 ORN) comes out of the ORN you receive.": "SOL в вашем кошельке SOL плюс около 0,005 SOL на небольшие комиссии Solana, почти вся сумма вернётся. Обычная комиссия Orien (0,1%, не более 1 ORN) вычитается из получаемых ORN.",
+  "the buy offer is yours": "это ваше предложение на покупку",
+  "the buyer": "покупатель",
+  "the buyer's SOL is already locked on Solana. Your wallet reserves it, locks your ORN, and both sides settle automatically in about a minute without waiting on the buyer.": "SOL покупателя уже заблокированы в Solana. Ваш кошелёк резервирует их, блокирует ваши ORN, и обе стороны рассчитываются автоматически примерно за минуту без ожидания покупателя.",
+  "the code it shows.": "показанный код.",
+  "the gear at the top left": "шестерёнка в левом верхнем углу",
+  "the menu bar": "строка меню",
+  "the network's post about you": "публикацию сети о вас",
+  "the offer is yours": "это ваше предложение",
+  "the seller": "продавец",
+  "the seller's lock ends": "блокировка продавца закончится",
+  "the seller's wallet accepts within seconds and locks the ORN for you. This app then shows the exact SOL to send from your SOL wallet, such as Phantom, with a QR code. The swap finishes by itself, usually within a minute.": "кошелёк продавца принимает заявку за секунды и блокирует ORN для вас. Затем приложение показывает точную сумму SOL для отправки из вашего кошелька SOL (например, Phantom) с QR-кодом. Обмен завершается сам, обычно в течение минуты.",
+  "the system tray": "системный трей",
+  "there too.": "там же.",
+  "there. Your wallets arrive here by themselves.": "там. Ваши кошельки появятся здесь сами.",
+  "this app takes it back to the address below after about 6 hours.": "приложение вернёт его на указанный ниже адрес примерно через 6 часов.",
+  "this app verifies the buyer's SOL is reserved for your address on Solana before locking your ORN, then both sides settle in about a minute.": "приложение проверяет, что SOL покупателя зарезервированы для вашего адреса в Solana, прежде чем блокировать ваши ORN, после чего обе стороны рассчитываются примерно за минуту.",
+  "this wallet": "этот кошелёк",
+  "to find your computer's sweet spot.": "чтобы найти оптимальный режим для вашего компьютера.",
+  "to keep it. It joins your themes in Appearance and is worn at once.": "чтобы сохранить её. Она добавится к вашим темам в Оформлении и сразу применится.",
+  "to see the whole app in it. Click": "чтобы увидеть в ней всё приложение. Нажмите",
+  "to this Bitcoin address": "на этот адрес Bitcoin",
+  "to this SOL address": "на этот адрес SOL",
+  "took your offer": "принял ваше предложение",
+  "top miner": "лучший майнер",
+  "two arrows": "две стрелки",
+  "two people": "два силуэта",
+  "type": "введите",
+  "under a second": "меньше секунды",
+  "wrote to you": "написал вам",
+  "your ORN come back to you on their own within a few hours. You don't need to do anything.": "ваши ORN вернутся к вам сами через несколько часов. Вам ничего не нужно делать.",
+  "your ORN come back to your wallet on their own within 12 hours.": "ваши ORN вернутся в ваш кошелёк сами в течение 12 часов.",
+  "your ORN come back to your wallet on their own within a few hours.": "ваши ORN вернутся в ваш кошелёк сами через несколько часов.",
+  "your password": "ваш пароль",
+  "your post": "вашу публикацию",
+  "your reply": "ваш комментарий",
+  "your wallet locks the ORN on the network": "ваш кошелёк блокирует ORN в сети",
+  "your wallet locks your ORN for the buyer within seconds. Their wallet then prompts them to send the SOL, and your wallet collects it and delivers their ORN automatically, usually within a minute.": "ваш кошелёк блокирует ORN для покупателя за секунды. Его кошелёк предлагает отправить SOL, а ваш кошелёк автоматически получает их и доставляет ORN покупателю, обычно в течение минуты.",
+  "your wallet locks your ORN for the buyer within seconds. Their wallet then sends the Bitcoin, and once it confirms, your wallet collects it and delivers their ORN automatically.": "ваш кошелёк блокирует ORN для покупателя за секунды. Его кошелёк отправляет Bitcoin, и после подтверждения ваш кошелёк автоматически получает его и доставляет ORN покупателю.",
+  "your wallet never locks your ORN until the buyer's SOL is reserved for your address on Solana.": "ваш кошелёк никогда не заблокирует ваши ORN, пока SOL покупателя не будут зарезервированы для вашего адреса в Solana.",
+  "your wallet password": "пароль вашего кошелька",
+  "✓ Complete": "✓ Завершено",
+  "✓ Live on the order book (safe to leave)": "✓ Активен в стакане (можно закрыть)",
+  "✓ Valid address": "✓ Корректный адрес",
+  "_patterns": [
+    [
+      "^Sell ([0-9.,]+) ORN for ([0-9.,]+) SOL(.*)$",
+      "Продать {0} ORN за {1} SOL{2}"
+    ],
+    [
+      "^Buy ([0-9.,]+) ORN for ([0-9.,]+) SOL(.*)$",
+      "Купить {0} ORN за {1} SOL{2}"
+    ],
+    [
+      "^Sell ([0-9.,]+) ORN for ([0-9.,]+) BTC(.*)$",
+      "Продать {0} ORN за {1} BTC{2}"
+    ],
+    [
+      "^Buy ([0-9.,]+) ORN for ([0-9.,]+) BTC(.*)$",
+      "Купить {0} ORN за {1} BTC{2}"
+    ],
+    [
+      "^(\\d+) open$",
+      "{0} открытых"
+    ],
+    [
+      "^Price \\(([A-Z]+)\\)$",
+      "Цена ({0})"
+    ],
+    [
+      "^Total \\(([A-Z]+)\\)$",
+      "Итого ({0})"
+    ],
+    [
+      "^Last swap · (.+)$",
+      "Последний обмен · {0}"
+    ],
+    [
+      "^Lock with (.+)$",
+      "Блокировка по {0}"
+    ],
+    [
+      "^Received so far: ([0-9.,]+) of ([0-9.,]+) SOL$",
+      "Получено пока: {0} из {1} SOL"
+    ],
+    [
+      "^Done: ([0-9.,]+) ORN are in your wallet\\.$",
+      "Готово: {0} ORN уже в вашем кошельке."
+    ],
+    [
+      "^Done: ([0-9.,]+) SOL is in your SOL wallet\\.$",
+      "Готово: {0} SOL уже в вашем кошельке SOL."
+    ],
+    [
+      "^Paid: ([0-9.,]+) SOL is on its way to your SOL address\\.$",
+      "Оплачено: {0} SOL уже в пути на ваш адрес SOL."
+    ],
+    [
+      "^Send exactly ([0-9.,]+) SOL from your SOL wallet to fund this buy order\\. Once funded, it stays live on the order book even when Orien Wallet is closed\\.$",
+      "Отправьте ровно {0} SOL из вашего кошелька SOL для пополнения этого ордера на покупку. После пополнения он остаётся активным в стакане даже при закрытом Orien Wallet."
+    ],
+    [
+      "^The seller accepted\\. Send exactly ([0-9.,]+) SOL from your SOL wallet to the address below\\. This app sees it by itself\\.$",
+      "Продавец принял заявку. Отправьте ровно {0} SOL из вашего кошелька SOL на указанный ниже адрес. Приложение увидит платёж само."
+    ],
+    [
+      "^Your ORN are locked\\. You can leave this page; ([0-9.,]+) SOL arrives in your SOL wallet in about a minute\\.$",
+      "Ваши ORN заблокированы. Можно закрыть страницу; {0} SOL придут на ваш кошелёк SOL примерно через минуту."
+    ],
+    [
+      "^Send ([0-9.,]+) SOL from your SOL wallet$",
+      "Отправьте {0} SOL из вашего кошелька SOL"
+    ],
+    [
+      "^Locking your ([0-9.,]+ (?:SOL|BTC)) on Solana and adding your order to the book$",
+      "Блокируем ваши {0} в Solana и добавляем ордер в стакан"
+    ],
+    [
+      "^Waiting on the order book for a seller to fill ([0-9.,]+ ORN)$",
+      "Ожидание в стакане продавца для исполнения {0}"
+    ],
+    [
+      "^([0-9.,]+ ORN) delivered to your wallet$",
+      "{0} доставлены в ваш кошелёк"
+    ],
+    [
+      "^Locking the buyer's ([0-9.,]+ SOL) on Solana for your address$",
+      "Блокируем {0} покупателя в Solana для вашего адреса"
+    ],
+    [
+      "^Locking your ([0-9.,]+ ORN) on Orien$",
+      "Блокируем ваши {0} в Orien"
+    ],
+    [
+      "^Sending ([0-9.,]+ SOL) to your SOL wallet$",
+      "Отправляем {0} на ваш кошелёк SOL"
+    ],
+    [
+      "^([0-9.,]+ SOL) in your SOL wallet$",
+      "{0} в вашем кошельке SOL"
+    ],
+    [
+      "^([0-9.,]+ ORN) in your wallet$",
+      "{0} в вашем кошельке"
+    ],
+    [
+      "^Your ([0-9.,]+ ORN) are locked for the buyer$",
+      "Ваши {0} заблокированы для покупателя"
+    ],
+    [
+      "^The buyer pays ([0-9.,]+ (?:SOL|BTC))$",
+      "Покупатель платит {0}"
+    ],
+    [
+      "^The seller locked ([0-9.,]+ ORN) for you$",
+      "Продавец заблокировал для вас {0}"
+    ],
+    [
+      "^([0-9.,]+ (?:SOL|BTC)) on its way to your SOL address$",
+      "{0} в пути на ваш адрес SOL"
+    ],
+    [
+      "^Your SOL is locked for the seller, then your ([0-9.,]+ ORN) arrive$",
+      "Ваши SOL заблокированы для продавца, затем придут ваши {0}"
+    ],
+    [
+      "^Your turn: send ([0-9.,]+ (?:SOL|BTC)) to fund$",
+      "Ваш ход: отправьте {0} для пополнения"
+    ],
+    [
+      "^Your turn: pay ([0-9.,]+ (?:SOL|BTC)) now$",
+      "Ваш ход: оплатите {0} сейчас"
+    ],
+    [
+      "^Your turn: approve with (.+) to finish$",
+      "Ваш ход: подтвердите через {0} для завершения"
+    ],
+    [
+      "^Step (\\d+) of (\\d+) · (.+)$",
+      "Шаг {0} из {1} · {2}"
+    ],
+    [
+      "^Stopped: (.+)\\.$",
+      "Остановлено: {0}."
+    ],
+    [
+      "^Fund your buy order: send ([0-9.,]+ SOL)$",
+      "Пополните ордер на покупку: отправьте {0}"
+    ],
+    [
+      "^Locks your SOL on Solana to buy ([0-9.,]+) ORN$",
+      "Блокирует ваши SOL в Solana для покупки {0} ORN"
+    ],
+    [
+      "^Swap in progress: (?:buying|selling) ([0-9.,]+) ORN$",
+      "Идёт обмен: {0} ORN"
+    ],
+    [
+      "^Approve to get your ([0-9.,]+) ORN$",
+      "Подтвердите, чтобы получить {0} ORN"
+    ],
+    [
+      "^Confirm with (.+) below, so this app can finish the swap$",
+      "Подтвердите ниже с помощью {0}, чтобы приложение могло завершить обмен"
+    ],
+    [
+      "^Confirm with (.+) below, so this app can claim your ORN$",
+      "Подтвердите ниже с помощью {0}, чтобы приложение могло получить ваши ORN"
+    ],
+    [
+      "^In (\\d+) min$",
+      "Через {0} мин"
+    ],
+    [
+      "^in (\\d+) min$",
+      "через {0} мин"
+    ],
+    [
+      "^In (\\d+) s$",
+      "Через {0} с"
+    ],
+    [
+      "^in (\\d+) s$",
+      "через {0} с"
+    ],
+    [
+      "^(\\d+) of (\\d+) running$",
+      "Работает {0} из {1}"
+    ],
+    [
+      "^([0-9,]+) miners? paid$",
+      "Выплаты майнерам: {0}"
+    ],
+    [
+      "^Checkpoint (\\d+)$",
+      "Контрольная точка {0}"
+    ],
+    [
+      "^Running · into (.+)$",
+      "Работает · на {0}"
+    ],
+    [
+      "^([0-9,]+) found$",
+      "Найдено: {0}"
+    ],
+    [
+      "^Locked payment from (.+)$",
+      "Заблокированный платёж от {0}"
+    ],
+    [
+      "^Locked payment to (.+)$",
+      "Заблокированный платёж для {0}"
+    ],
+    [
+      "^From (.+)$",
+      "От {0}"
+    ],
+    [
+      "^To (.+)$",
+      "Кому: {0}"
+    ],
+    [
+      "^(\\d+) min ago · (\\d+) payments? · agreed by (\\d+) of (\\d+)$",
+      "{0} мин назад · платежей: {1} · подтвердили {2} из {3}"
+    ],
+    [
+      "^(\\d+) h ago · (\\d+) payments? · agreed by (\\d+) of (\\d+)$",
+      "{0} ч назад · платежей: {1} · подтвердили {2} из {3}"
+    ],
+    [
+      "^(\\d+) d ago · (\\d+) payments? · agreed by (\\d+) of (\\d+)$",
+      "{0} дн назад · платежей: {1} · подтвердили {2} из {3}"
+    ],
+    [
+      "^(\\d+) min ago · agreed by (\\d+) of (\\d+)$",
+      "{0} мин назад · подтвердили {1} из {2}"
+    ],
+    [
+      "^(\\d+) h ago · agreed by (\\d+) of (\\d+)$",
+      "{0} ч назад · подтвердили {1} из {2}"
+    ],
+    [
+      "^(\\d+) d ago · agreed by (\\d+) of (\\d+)$",
+      "{0} дн назад · подтвердили {1} из {2}"
+    ],
+    [
+      "^just now · (\\d+) payments? · agreed by (\\d+) of (\\d+)$",
+      "только что · платежей: {0} · подтвердили {1} из {2}"
+    ],
+    [
+      "^just now · agreed by (\\d+) of (\\d+)$",
+      "только что · подтвердили {0} из {1}"
+    ],
+    [
+      "^([0-9,]+) payments?$",
+      "Платежей: {0}"
+    ],
+    [
+      "^Of ([0-9,]+) there will ever be$",
+      "Из {0} за всё время"
+    ],
+    [
+      "^([0-9,]+) in the last (\\d+) hours$",
+      "{0} за последние {1} ч"
+    ],
+    [
+      "^Estimated, over the last (\\d+) hours$",
+      "Ориентировочно, за последние {0} ч"
+    ],
+    [
+      "^Estimated, over the last hour$",
+      "Ориентировочно, за последний час"
+    ],
+    [
+      "^([0-9,]+) hold at least 1 ORN$",
+      "{0} держат не менее 1 ORN"
+    ],
+    [
+      "^Validator (\\d+)$",
+      "Валидатор {0}"
+    ],
+    [
+      "^([0-9.]+)% of ORN in wallets$",
+      "{0}% ORN в кошельках"
+    ],
+    [
+      "^([0-9.]+)% of the work$",
+      "{0}% всей работы"
+    ],
+    [
+      "^([0-9,]+) wallets hold ORN$",
+      "Кошельков с ORN: {0}"
+    ],
+    [
+      "^([0-9,]+) wallets? paid$",
+      "Выплат кошелькам: {0}"
+    ],
+    [
+      "^Staked by (.+) · ([0-9,]+) ORN · agreed on (\\d+) of the last (\\d+)$",
+      "Стейк от {0} · {1} ORN · согласован {2} из последних {3}"
+    ],
+    [
+      "^Launch validator · agreed on (\\d+) of the last (\\d+)$",
+      "Запусковый валидатор · согласован {0} из последних {1}"
+    ],
+    [
+      "^Staked by (.+)$",
+      "Стейк от {0}"
+    ],
+    [
+      "^(\\d+) verified wallets?$",
+      "Подтверждённых кошельков: {0}"
+    ],
+    [
+      "^(\\d+) more offers? paused while .*$",
+      "Ещё предложений на паузе: {0}"
+    ],
+    [
+      "^Continue with (.+)$",
+      "Продолжить с {0}"
+    ],
+    [
+      "^Sell with (.+)$",
+      "Продать с {0}"
+    ],
+    [
+      "^Take with (.+)$",
+      "Принять с {0}"
+    ],
+    [
+      "^Sweet spot: (\\d+) of (\\d+) cores$",
+      "Оптимум: {0} из {1} ядер"
+    ],
+    [
+      "^About ([0-9,]+) tries a second\\. Past it, the processor runs hotter for no more ORN\\.$",
+      "Около {0} попыток в секунду. Выше процессор греется сильнее без прироста ORN."
+    ],
+    [
+      "^Trying (\\d+) of (\\d+) cores \\((\\d+) of (\\d+)\\)\\. Shares found still count\\.$",
+      "Проверяем {0} из {1} ядер ({2} из {3}). Найденные шары засчитываются."
+    ],
+    [
+      "^This hour: ([0-9,]+) shares found, ([0-9,]+) counted$",
+      "За этот час: найдено {0} шар, засчитано {1}"
+    ],
+    [
+      "^About one try in ([0-9,]+) makes a share\\.$",
+      "Примерно одна попытка из {0} даёт шару."
+    ],
+    [
+      "^([0-9.,]+(?: [KMG])?) tries a second$",
+      "{0} попыток/с"
+    ],
+    [
+      "^(\\d+) of (\\d+) cores$",
+      "{0} из {1} ядер"
+    ],
+    [
+      "^(\\d+) of (\\d+)$",
+      "{0} из {1}"
+    ],
+    [
+      "^(\\d+) of 24 words$",
+      "{0} из 24 слов"
+    ],
+    [
+      "^staked · ([0-9.,]+) returning$",
+      "в стейкинге · возвращается {0}"
+    ],
+    [
+      "^Received from (.+)$",
+      "Получено от {0}"
+    ],
+    [
+      "^Sent to (.+)$",
+      "Отправлено: {0}"
+    ],
+    [
+      "^Locked payment received from (.+)$",
+      "Получен заблокированный платёж от {0}"
+    ],
+    [
+      "^(.+) · checkpoint (\\d+)$",
+      "{0} · контрольная точка {1}"
+    ],
+    [
+      "^checkpoint (\\d+)$",
+      "контрольная точка {0}"
+    ],
+    [
+      "^← Checkpoint (\\d+)$",
+      "← Контрольная точка {0}"
+    ],
+    [
+      "^Checkpoint (\\d+) →$",
+      "Контрольная точка {0} →"
+    ],
+    [
+      "^Checkpoint (\\d+) hasn't been made yet\\.$",
+      "Контрольная точка {0} ещё не создана."
+    ],
+    [
+      "^Checkpoint (\\d+) hasn't been made yet\\. The latest is (\\d+)\\.$",
+      "Контрольная точка {0} ещё не создана. Последняя: {1}."
+    ],
+    [
+      "^Being made now, ready in about (\\d+) min$",
+      "Создаётся сейчас, будет готова примерно через {0} мин"
+    ],
+    [
+      "^Next hour (.+)$",
+      "Следующий час: {0}"
+    ],
+    [
+      "^([0-9.]+)× easier$",
+      "в {0}× легче"
+    ],
+    [
+      "^([0-9.]+)× harder$",
+      "в {0}× сложнее"
+    ],
+    [
+      "^([0-9.,]+) new ORN$",
+      "{0} новых ORN"
+    ],
+    [
+      "^([0-9.,]+) available$",
+      "Доступно: {0}"
+    ],
+    [
+      "^Avail: ([0-9.,]+)$",
+      "Доступно: {0}"
+    ],
+    [
+      "^Fee ([0-9.,]+) ORN · ([0-9.,]+) ORN in all$",
+      "Комиссия {0} ORN · всего {1} ORN"
+    ],
+    [
+      "^incl\\. ([0-9.,]+) fee$",
+      "вкл. комиссию {0}"
+    ],
+    [
+      "^([0-9.,]+) ORN sent$",
+      "Отправлено {0} ORN"
+    ],
+    [
+      "^(\\d+) more characters?$",
+      "Ещё символов: {0}"
+    ],
+    [
+      "^(\\d+) min ago$",
+      "{0} мин назад"
+    ],
+    [
+      "^(\\d+) h ago$",
+      "{0} ч назад"
+    ],
+    [
+      "^(\\d+) d ago$",
+      "{0} дн назад"
+    ],
+    [
+      "^(\\d+) h (\\d+) min$",
+      "{0} ч {1} мин"
+    ],
+    [
+      "^(\\d+) min$",
+      "{0} мин"
+    ],
+    [
+      "^(\\d+) minutes?$",
+      "{0} мин"
+    ],
+    [
+      "^(\\d+) hours?$",
+      "{0} ч"
+    ],
+    [
+      "^(\\d+) days?$",
+      "{0} дн"
+    ],
+    [
+      "^(\\d+) days? left$",
+      "Осталось дн.: {0}"
+    ],
+    [
+      "^(\\d+) hours? left$",
+      "Осталось ч: {0}"
+    ],
+    [
+      "^(\\d+) minutes? left$",
+      "Осталось мин: {0}"
+    ],
+    [
+      "^(\\d+) more$",
+      "Ещё {0}"
+    ],
+    [
+      "^(\\d+) others?$",
+      "ещё {0}"
+    ],
+    [
+      "^(.+) and (\\d+) others?$",
+      "{0} и ещё {1}"
+    ],
+    [
+      "^(.+), (\\d+) swaps? done$",
+      "{0}, обменов: {1}"
+    ],
+    [
+      "^([0-9.,]+) SOL per ORN$",
+      "{0} SOL за ORN"
+    ],
+    [
+      "^([0-9,]+) satoshis per ORN$",
+      "{0} сатоши за ORN"
+    ],
+    [
+      "^Member since (.+)$",
+      "Участник с {0}"
+    ],
+    [
+      "^Blocked (.+)$",
+      "Заблокирован: {0}"
+    ],
+    [
+      "^Block (.+)$",
+      "Заблокировать {0}"
+    ],
+    [
+      "^Unblock (.+)$",
+      "Разблокировать {0}"
+    ],
+    [
+      "^Reply to (.+)$",
+      "Ответить {0}"
+    ],
+    [
+      "^Write to (.+)$",
+      "Написать {0}"
+    ],
+    [
+      "^Ask (.+) to pay$",
+      "Запросить оплату у {0}"
+    ],
+    [
+      "^Tip ([0-9.,]+) ORN$",
+      "Чаевые {0} ORN"
+    ],
+    [
+      "^Tip (.+) for (.+)$",
+      "Чаевые {0} за {1}"
+    ],
+    [
+      "^Tip (.+)$",
+      "Чаевые {0}"
+    ],
+    [
+      "^Tip with (.+)$",
+      "Чаевые через {0}"
+    ],
+    [
+      "^Send with (.+)$",
+      "Отправить через {0}"
+    ],
+    [
+      "^Pay with (.+)$",
+      "Оплатить через {0}"
+    ],
+    [
+      "^Post with (.+)$",
+      "Опубликовать через {0}"
+    ],
+    [
+      "^Verify with (.+)$",
+      "Подтвердить через {0}"
+    ],
+    [
+      "^Turn on with (.+)$",
+      "Включить через {0}"
+    ],
+    [
+      "^Buy ORN with (.+)$",
+      "Купить ORN через {0}"
+    ],
+    [
+      "^Sell ORN with (.+)$",
+      "Продать ORN через {0}"
+    ],
+    [
+      "^Use (.+) instead$",
+      "Использовать {0} вместо этого"
+    ],
+    [
+      "^Use (.+) instead of the password from now on$",
+      "Использовать {0} вместо пароля в дальнейшем"
+    ],
+    [
+      "^Use (.+)$",
+      "Использовать {0}"
+    ],
+    [
+      "^Confirm with (.+)$",
+      "Подтвердить через {0}"
+    ],
+    [
+      "^Verify (.+)$",
+      "Подтвердить {0}"
+    ],
+    [
+      "^Verifying (.+)$",
+      "Подтверждение {0}"
+    ],
+    [
+      "^Send ([0-9.,]+) ORN and verify$",
+      "Отправить {0} ORN и подтвердить"
+    ],
+    [
+      "^Orien Wallet ([0-9.]+) is the newest version\\.$",
+      "Orien Wallet {0} это самая новая версия."
+    ],
+    [
+      "^Orien Wallet ([0-9.]+) is ready$",
+      "Orien Wallet {0} готова к установке"
+    ],
+    [
+      "^Orien Wallet ([0-9.]+) is out(.*)$",
+      "Вышла версия Orien Wallet {0}{1}"
+    ],
+    [
+      "^Waiting for (.+) to pay\\.$",
+      "Ожидание оплаты от {0}."
+    ],
+    [
+      "^Waiting for (.+)$",
+      "Ожидание {0}"
+    ],
+    [
+      "^Locking ORN for (.+)$",
+      "Блокируем ORN для {0}"
+    ],
+    [
+      "^Selling to (.+)$",
+      "Продажа для {0}"
+    ],
+    [
+      "^Taken by (.+)$",
+      "Принято: {0}"
+    ],
+    [
+      "^You get ([0-9.,]+) ORN$",
+      "Вы получите {0} ORN"
+    ],
+    [
+      "^You mined ([0-9.,]+) ORN$",
+      "Вы добыли {0} ORN"
+    ],
+    [
+      "^You received ([0-9.,]+) ORN$",
+      "Вы получили {0} ORN"
+    ],
+    [
+      "^You paid ([0-9.,]+) ORN\\.$",
+      "Вы оплатили {0} ORN."
+    ],
+    [
+      "^Buy orders are limited to ([0-9.,]+) SOL per order$",
+      "Максимальный размер ордера на покупку: {0} SOL"
+    ],
+    [
+      "^The smallest swap is ([0-9.,]+) (SOL|BTC)$",
+      "Минимальный обмен: {0} {1}"
+    ],
+    [
+      "^At least ([0-9.,]+) (SOL|BTC)$",
+      "Не менее {0} {1}"
+    ],
+    [
+      "^Pay by (.+), in (.+)$",
+      "Оплатите до {0}, через {1}"
+    ],
+    [
+      "^around (.+), in about (\\d+) hours?$",
+      "около {0}, примерно через {1} ч"
+    ],
+    [
+      "^around (.+)$",
+      "около {0}"
+    ],
+    [
+      "^Sign in to (.+)\\?$",
+      "Войти в {0}?"
+    ],
+    [
+      "^Already saved as (.+)$",
+      "Уже сохранено как {0}"
+    ],
+    [
+      "^✓ Your wallet (.+)$",
+      "✓ Ваш кошелёк {0}"
+    ],
+    [
+      "^(.+): your profile$",
+      "{0}: ваш профиль"
+    ],
+    [
+      "^(.+) \\(yours\\)$",
+      "{0} (ваш)"
+    ],
+    [
+      "^(.+) hasn't posted yet\\.$",
+      "{0} ещё ничего не публиковал."
+    ],
+    [
+      "^About (.+)$",
+      "О {0}"
+    ],
+    [
+      "^(.+)'s password$",
+      "Пароль для {0}"
+    ],
+    [
+      "^Remove (.+)\\? Tap again$",
+      "Удалить {0}? Нажмите ещё раз"
+    ],
+    [
+      "^The record before was ([0-9,]+)\\. Checkpoint (\\d+)\\.$",
+      "Предыдущий рекорд: {0}. Контрольная точка {1}."
+    ],
+    [
+      "^reacted (.+) to your post$",
+      "отреагировал {0} на вашу публикацию"
+    ],
+    [
+      "^reacted (.+) to your reply$",
+      "отреагировал {0} на ваш комментарий"
+    ],
+    [
+      "^reacted (.+) to the network's post about you$",
+      "отреагировал {0} на публикацию сети о вас"
+    ],
+    [
+      "^wrote to you about (.+)$",
+      "написал вам по поводу {0}"
+    ],
+    [
+      "^asks you to pay ([0-9.,]+) ORN$",
+      "просит вас оплатить {0} ORN"
+    ],
+    [
+      "^says they paid ([0-9.,]+) ORN$",
+      "сообщает об оплате {0} ORN"
+    ]
+  ],
+  "_guides": {
+    "backup": {
+      "title": "Сохраните фразу восстановления",
+      "steps": [
+        "На Главной нажмите на название кошелька вверху, чтобы открыть <b>Кошельки</b>.",
+        "Нажмите на значок шестерёнки на карточке кошелька.",
+        "Нажмите <b>Фраза восстановления</b>, затем <b>Понимаю, показать</b>.",
+        "Подтвердите с помощью Touch ID или введите пароль кошелька, если он задан.",
+        "Нажмите <b>Нажмите, чтобы показать</b> и запишите 24 слова на бумаге по порядку. Храните их в надёжном и приватном месте."
+      ],
+      "note": "Любой, у кого есть эти слова, может потратить ORN из этого кошелька. Orien никогда их не запрашивает."
+    },
+    "send": {
+      "title": "Отправить ORN",
+      "steps": [
+        "На Главной нажмите <b>Отправить</b>, круглую кнопку со стрелкой вверх.",
+        "В поле <b>Кому</b> введите имя или адрес, выберите кого-нибудь из <b>Недавние</b> или нажмите <b>Вставить</b>.",
+        "Введите сумму или нажмите <b>Макс.</b>, чтобы отправить всё доступное за вычетом комиссии.",
+        "Проверьте итоговую сумму и нажмите <b>Отправить</b>.",
+        "Платёж приходит за секунды. При желании сохраните новый адрес в контакты на последнем экране."
+      ]
+    },
+    "receive": {
+      "title": "Получить ORN",
+      "steps": [
+        "На Главной нажмите <b>Получить</b>, круглую кнопку со стрелкой вниз.",
+        "Покажите QR-код отправителю или нажмите <b>Поделиться адресом</b> либо <b>Копировать адрес</b> и отправьте его.",
+        "Их платёж появится в вашей Активности через несколько секунд."
+      ]
+    },
+    "home": {
+      "title": "Вернуться на Главную",
+      "steps": [
+        "Нажмите <b>Назад</b> в левом верхнем углу, чтобы вернуться на шаг назад.",
+        "Нажмите на название <b>ORIEN</b> вверху окна, чтобы сразу перейти на Главную из любого места."
+      ]
+    },
+    "wallets": {
+      "title": "Добавить ещё кошелёк",
+      "steps": [
+        "На Главной нажмите на название кошелька вверху, затем <b>Добавить кошелёк</b>.",
+        "Нажмите <b>Создать новый кошелёк</b>, задайте название и значок, затем нажмите <b>Создать кошелёк</b>.",
+        "Сохраните его фразу восстановления: у каждого кошелька она своя.",
+        "Чтобы переключить кошелёк, нажмите на название кошелька на Главной и выберите нужный."
+      ]
+    },
+    "restore": {
+      "title": "Восстановить кошелёк по словам",
+      "steps": [
+        "На Главной нажмите на название кошелька вверху, затем <b>Добавить кошелёк</b> и <b>Восстановить по фразе восстановления</b>. При новой установке нажмите <b>Использовать фразу восстановления</b>.",
+        "Введите 24 слова, затем нажмите <b>Продолжить</b>.",
+        "Задайте название и значок, затем нажмите <b>Восстановить кошелёк</b>."
+      ]
+    },
+    "link": {
+      "title": "Используйте кошельки на другом устройстве",
+      "steps": [
+        "На новом устройстве нажмите <b>Использовать другое устройство</b> (или <b>Добавить кошелёк</b>, затем <b>С другого устройства</b>). Появятся QR-код и текстовый код.",
+        "На устройстве с вашими кошельками откройте <b>Настройки</b>, круглую кнопку с шестерёнкой на Главной, затем нажмите <b>Привязать новое устройство</b>.",
+        "На iPhone отсканируйте QR-код нового устройства. На компьютере введите его код и нажмите <b>Продолжить</b>.",
+        "Убедитесь, что на обоих устройствах показаны одинаковые три картинки, затем нажмите <b>Совпадают, отправить кошельки</b>.",
+        "Ваши кошельки появятся на новом устройстве сами."
+      ],
+      "note": "Ваши кошельки передаются в зашифрованном виде напрямую между двумя устройствами."
+    },
+    "sync": {
+      "title": "Синхронизация контактов на всех устройствах",
+      "steps": [
+        "На Главной нажмите <b>Контакты</b>, круглую кнопку с двумя силуэтами.",
+        "Если видите кнопку <b>Включить синхронизацию</b>, нажмите её. Подтвердите с помощью Touch ID или введите пароль кошелька, если он задан.",
+        "Сделайте это один раз на каждом устройстве. После этого контакты и значки кошельков будут одинаковыми на всех устройствах."
+      ]
+    },
+    "signin": {
+      "title": "Войти в Orien Network",
+      "steps": [
+        "На Главной нажмите <b>Войти</b> в правом верхнем углу.",
+        "Введите свою эл. почту и нажмите <b>Отправить код</b>.",
+        "Введите 6-значный код из письма и нажмите <b>Продолжить</b>.",
+        "Впервые здесь? Выберите имя пользователя, затем нажмите <b>Создать аккаунт</b>."
+      ],
+      "note": "Ваш аккаунт нужен для Сообщества, Маркета и обменов. Кошельки хранятся только в этом приложении."
+    },
+    "verify": {
+      "title": "Подтвердить кошелёк",
+      "steps": [
+        "Войдите и откройте кошелёк, который хотите подтвердить.",
+        "На Главной нажмите <b>Подтвердить</b> на карточке <b>Подтвердить</b> под балансом. (Или нажмите на своё фото в правом верхнем углу, затем <b>Редактировать профиль</b> и <b>Подтвердить</b> рядом с кошельком.)",
+        "Нажмите <b>Подтвердить</b> для подтверждения. С кошелька отправится меньше 0,001 ORN с учётом комиссии.",
+        "В течение минуты появится статус <b>Подтверждён</b>."
+      ],
+      "note": "Подтверждение показывает всем, что кошелёк ваш, включая его баланс. Это даёт возможность публиковать, продавать, обменивать и получать чаевые."
+    },
+    "verify-more": {
+      "title": "Подтвердите больше кошельков и выберите, куда получать оплату",
+      "steps": [
+        "Переключитесь на другой кошелёк: нажмите на название кошелька на Главной и выберите его.",
+        "Нажмите на своё фото, затем <b>Редактировать профиль</b>, затем <b>Подтвердить</b> рядом с этим кошельком.",
+        "Повторите для каждого кошелька, который хотите добавить в профиль.",
+        "Кошелёк, на который платят покупатели и отправляют чаевые, отмечен как <b>Оплата сюда</b>. Чтобы изменить его, нажмите <b>Получать оплату сюда</b> на другом подтверждённом кошельке.",
+        "Чтобы убрать кошелёк из профиля, нажмите <b>⋯</b> рядом с ним, затем <b>Убрать из профиля</b>."
+      ]
+    },
+    "tip": {
+      "title": "Отправить чаевые",
+      "steps": [
+        "На Главной нажмите <b>Сообщество</b>, круглую кнопку с глобусом.",
+        "Под понравившейся публикацией нажмите <b>Чаевые</b>.",
+        "Выберите 1, 5 или 10 ORN или введите другую сумму, затем нажмите <b>Чаевые</b>.",
+        "Под публикацией показана сумма чаевых без имён. Автору сообщается, что их отправили вы."
+      ],
+      "note": "Чаевые это платежи, их нельзя отменить."
+    },
+    "chat": {
+      "title": "Общайтесь со всеми",
+      "steps": [
+        "На Главной нажмите <b>Сообщения</b>, круглую кнопку с облачком сообщения. <b>Общий чат Orien</b> закреплён вверху.",
+        "Читать может любой. Чтобы писать, отвечать или ставить реакции, войдите и подтвердите кошелёк.",
+        "Наведите на сообщение, чтобы ответить, поставить реакцию или пожаловаться.",
+        "Новые сообщения отображаются точкой на кнопке Сообщений. Чтобы отключить это, нажмите на колокольчик вверху чата."
+      ],
+      "note": "Всё в общем чате видят все. Будьте вежливы."
+    },
+    "ai": {
+      "title": "Спросить ИИ-поддержку Orien",
+      "steps": [
+        "На Главной нажмите <b>Сообщения</b>, круглую кнопку с облачком сообщения. <b>ИИ-поддержка Orien</b> закреплена под общим чатом. В широком окне её также открывает спасательный круг рядом с колокольчиком.",
+        "Нужно войти в Orien Network. Подтверждать кошелёк не требуется.",
+        "Спросите что угодно о кошельке, майнинге, обменах или сети своими словами.",
+        "Нажмите <b>Начать заново</b> вверху чата, чтобы очистить его."
+      ],
+      "note": "Ответы даёт ИИ, и они могут быть ошибочными. Ему никогда не нужны ваши слова восстановления, пароли или ключи: никому их не передавайте."
+    },
+    "explorer": {
+      "title": "Обзор сети",
+      "steps": [
+        "На Главной нажмите <b>Обозреватель</b>, круглую кнопку с телескопом. В широком окне нажмите карточку <b>Сеть</b> рядом с кошельком.",
+        "Цифры вверху показывают состояние сети сейчас: выпущенные ORN, следующую контрольную точку, майнеров и хешрейт.",
+        "Ниже нажмите <b>Контрольные точки</b>, <b>Топ кошельков</b> или <b>Валидаторы</b> и выберите любую строку, чтобы открыть её.",
+        "Чтобы что-то найти, введите адрес, имя или номер контрольной точки в строку поиска."
+      ]
+    },
+    "get": {
+      "title": "Получить ORN на iPhone",
+      "steps": [
+        "Получите оплату: поделитесь адресом из раздела <b>Получить</b>, круглой кнопки со стрелкой вниз.",
+        "Обменивайте SOL или Bitcoin на ORN в Orien Wallet на компьютере с привязанным этим же кошельком.",
+        "Майните на компьютере: установите туда Orien Wallet, привяжите этот кошелёк и нажмите <b>Майнинг</b>."
+      ]
+    },
+    "mine": {
+      "title": "Майнинг ORN",
+      "steps": [
+        "На Главной нажмите <b>Майнинг</b>, круглую кнопку с киркой. В широком окне нажмите карточку <b>Майнинг</b> рядом с кошельком.",
+        "Настройте ползунок <b>Процессор</b> или нажмите <b>Тест скорости</b>, чтобы найти оптимальный режим для вашего компьютера.",
+        "Нажмите <b>Начать майнинг</b>. Каждый час вы получаете долю новых ORN.",
+        "Чтобы майнить с закрытым окном, включите <b>Работать в фоне после закрытия</b> в Настройках, раздел <b>Этот компьютер</b>. Чтобы компьютер не засыпал, включите там же <b>Не давать компьютеру засыпать</b>."
+      ],
+      "note": "Если приложение обновится во время майнинга, майнинг запустится снова сам."
+    },
+    "buy": {
+      "title": "Купить ORN за SOL или Bitcoin",
+      "steps": [
+        "На Главной нажмите <b>Обмен</b>, круглую кнопку с двумя стрелками.",
+        "В разделе <b>Открытые предложения</b> нажмите <b>Взять</b> на понравившемся.",
+        "Введите адрес SOL или Bitcoin, с которого будете платить, затем нажмите <b>Принять предложение</b>.",
+        "Когда продавец ответит, оплатите точно указанную сумму из своего кошелька SOL или Bitcoin.",
+        "ORN придут в этот кошелёк сами."
+      ]
+    },
+    "sell": {
+      "title": "Продать ORN",
+      "steps": [
+        "Сначала войдите и подтвердите этот кошелёк.",
+        "На Главной нажмите <b>Обмен</b>, круглую кнопку с двумя стрелками, затем <b>Разместить предложение</b>.",
+        "Выберите SOL или Bitcoin, затем укажите, сколько ORN продаёте, сколько хотите за них получить и адрес для получения оплаты.",
+        "Нажмите <b>Опубликовать предложение</b> и не закрывайте Orien Wallet, пока его не примут. Параметр <b>Не давать компьютеру засыпать</b> в Настройках, раздел <b>Этот компьютер</b>, сохранит его активным, пока вас нет."
+      ]
+    },
+    "lock": {
+      "title": "Блокировка по Touch ID",
+      "steps": [
+        "Откройте <b>Настройки</b>, круглую кнопку с шестерёнкой на Главной, затем <b>Конфиденциальность и безопасность</b>.",
+        "Включите <b>Блокировка по Touch ID</b>.",
+        "Orien Wallet блокируется через минуту бездействия."
+      ]
+    },
+    "extension": {
+      "title": "Используйте Orien Wallet в браузере",
+      "steps": [
+        "Откройте <b>Настройки</b>, круглую кнопку с шестерёнкой на Главной, затем <b>Расширения для браузера</b>.",
+        "Нажмите на свой браузер и добавьте туда Orien Wallet.",
+        "Отправляйте ORN и проверяйте баланс с панели браузера, а также входите на сайты с помощью кошелька. Ваши ключи остаются в этом приложении."
+      ]
+    },
+    "theme-build": {
+      "title": "Создайте свою тему",
+      "steps": [
+        "Откройте <b>Настройки</b>, круглую кнопку с шестерёнкой на Главной, затем <b>Оформление</b> и нажмите <b>Создать тему</b>.",
+        "Укажите <b>Название</b> и выберите <b>Тёмная</b> или <b>Светлая</b> в разделе <b>Основа</b>.",
+        "Выберите <b>Акцентный цвет</b> или нажмите на радужный круг, чтобы подобрать свой.",
+        "В разделе <b>Фоновое изображение</b> нажмите <b>Выбрать изображение</b>. Лучше всего смотрится большое изображение, не меньше 1920 × 1080.",
+        "Следите за предпросмотром по ходу настройки, затем нажмите <b>Сохранить тему</b>. Она сразу применится."
+      ],
+      "note": "Ваши темы синхронизируются с другими вашими компьютерами, а на iPhone применяются их цвета. Чтобы изменить тему позже, нажмите на шестерёнку на её карточке в Оформлении; корзина удаляет её."
+    },
+    "theme-store": {
+      "title": "Найдите темы в Магазине тем",
+      "steps": [
+        "Откройте <b>Настройки</b>, круглую кнопку с шестерёнкой на Главной, затем <b>Оформление</b> и нажмите <b>Магазин тем</b> вверху.",
+        "В разделе <b>Все</b> выберите <b>Популярные</b> или <b>Новые</b> для тем от пользователей или <b>Официальные</b> для тем от Orien. На каждой карточке показана тема на миниатюре приложения.",
+        "Нажмите <b>Примерить</b>, чтобы увидеть в ней всё приложение. Нажмите <b>Отменить</b>, чтобы вернуться; выход из магазина тоже возвращает прежнюю тему.",
+        "Нажмите <b>Использовать</b>, чтобы сохранить её. Она добавится к вашим темам в Оформлении и сразу применится.",
+        "Нравится? Кнопка с монетами отправляет автору чаевые в ORN. Флажок позволяет пожаловаться на тему, нарушающую правила."
+      ],
+      "note": "Тема, которую вы используете, это ваша собственная копия: автор не может её изменить, а вы можете редактировать или удалить её, как созданную вами."
+    },
+    "theme-share": {
+      "title": "Поделитесь темой в Магазине тем",
+      "steps": [
+        "Нужно войти в Orien Network с подтверждённым кошельком.",
+        "Откройте <b>Настройки</b>, круглую кнопку с шестерёнкой на Главной, затем <b>Оформление</b>.",
+        "На одной из своих тем нажмите кнопку «Поделиться» (квадрат со стрелкой), затем <b>Поделиться темой</b>.",
+        "После проверки она появится в магазине с вашим именем, где любой сможет её примерить, использовать и отправить вам чаевые.",
+        "Чтобы снять тему с публикации, откройте Магазин тем, затем <b>Ваши</b>, и дважды нажмите <b>Удалить из магазина</b>."
+      ],
+      "note": "Позднее редактирование вашей темы не меняет опубликованную версию. Опубликуйте её снова как новую тему, если новая версия нравится вам больше."
+    },
+    "activity": {
+      "title": "Активность и уведомления",
+      "steps": [
+        "На Главной нажмите <b>Смотреть все</b> рядом с Активностью.",
+        "<b>Платежи</b> показывают отправленные и полученные переводы; <b>Награды</b> показывают награды за майнинг и комиссии валидаторов.",
+        "Выберите, о чём получать оповещения, в Настройках, раздел <b>Уведомления</b>."
+      ]
+    }
+  }
+}
