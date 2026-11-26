@@ -1501,7 +1501,7 @@
   .tc-del svg { width: 13px; height: 13px; }
   .tc-del + .tc-check { margin-left: 6px; }
   .tc-del.armed { background: #e5484d; color: #fff; }
-  @media (hover: hover) { .tc-del:not(.tc-edit):hover { background: #e5484d; color: #fff; } .tc-edit:hover { background: rgba(var(--tint), 0.13); color: var(--ink); } }
+  @media (hover: hover) { .tc-del:not(.tc-edit, .tc-share):hover { background: #e5484d; color: #fff; } .tc-edit:hover, .tc-share:hover { background: rgba(var(--tint), 0.13); color: var(--ink); } }
   /* The builder: the theme as it will look, over its picture, with the
      choices beside it at every window size. */
   #theme-build { --col: 1040px; }
@@ -1935,12 +1935,14 @@
   .ts-entry .chev { flex: none; color: var(--dim); }
   body.phone .ts-entry, body.phone .tc-share { display: none !important; }
   .ts-tabs { grid-template-columns: repeat(3, minmax(0, 1fr)); margin: 0 0 20px; }
+  @media (min-width: 860px) { body:not(.phone) #theme-store { --col: 1040px; } body:not(.phone) .ts-tabs { max-width: 420px; } body:not(.phone) .ts-grid { grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 32px 24px; } }
   .ts-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 28px 20px; }
   .ts-card { display: grid; gap: 12px; align-content: start; min-width: 0; }
   .ts-stage { position: relative; aspect-ratio: 4 / 3; padding: 0; border-radius: 18px; overflow: hidden; border: 1px solid var(--line); cursor: pointer;
     background: var(--pic, none) center / cover no-repeat, var(--ground-deep); display: grid; place-items: center; transition: transform 0.2s ease; }
   @media (hover: hover) { .ts-stage:hover { transform: translateY(-2px); } }
-  .ts-stage .tc-mini { width: 40%; padding: 8px 7px; gap: 5px; border-radius: 12px; box-shadow: 0 14px 34px rgba(0, 0, 0, 0.5); pointer-events: none; }
+  .ts-stage .tc-mini { width: 40%; padding: 8px 7px; gap: 5px; border-radius: 12px; box-shadow: 0 14px 34px rgba(0, 0, 0, 0.5); pointer-events: none;
+    background: var(--glow), var(--ground-deep); border: 1px solid var(--line); }
   .ts-stage .tc-card { border-radius: 8px; padding: 6px; gap: 3px; }
   .ts-stage .tc-card i { height: 3px; } .ts-stage .tc-card i:last-child { height: 5px; }
   .ts-stage .tc-word { height: 5px; } .ts-stage .tc-dot { width: 8px; height: 8px; }
