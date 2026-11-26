@@ -1250,6 +1250,7 @@
   .ai-typing span { width: 7px; height: 7px; border-radius: 50%; background: var(--dim); animation: ai-dot 1.2s ease-in-out infinite; }
   .ai-typing span:nth-child(2) { animation-delay: 0.15s; } .ai-typing span:nth-child(3) { animation-delay: 0.3s; }
   @keyframes ai-dot { 0%, 60%, 100% { opacity: 0.3; transform: translateY(0); } 30% { opacity: 1; transform: translateY(-3px); } }
+  .ai-link { color: inherit; text-decoration: underline; text-underline-offset: 2px; overflow-wrap: anywhere; }
   .ai-left { margin: 8px auto 4px; color: var(--dim); font-size: 12px; text-align: center; }
   .rm-tool { flex: none; height: 34px; min-width: 34px; padding: 0 6px; border: 0; border-radius: 17px; display: grid; place-items: center;
     background: none; color: var(--dim); font: inherit; font-size: 11px; font-weight: 700; letter-spacing: 0.04em; cursor: pointer; }
@@ -11033,7 +11034,9 @@
     </button>`;
   }
   // Answers may carry **bold** and lines; nothing else is taken as markup.
-  const aiText = (t) => esc(t).replace(/\*\*([^*\n]+)\*\*/g, "<b>$1</b>").replace(/^[-*] /gm, "• ");
+  // Plain text; web addresses become links that open in the browser.
+  const aiText = (t) => esc(t).replace(/\*\*([^*\n]+)\*\*/g, "<b>$1</b>").replace(/^[-*] /gm, "• ")
+    .replace(/https:\/\/[^\s<&]+[^\s<&.,;:!?)]/g, (u) => `<a href="#" class="ai-link" data-ai-link="${u}">${u}</a>`);
   function aiGate() {
     if (!chat.ai) return;
     const ok = !!board.me;
@@ -11116,6 +11119,8 @@
     }
   }
   async function aiClick(e) {
+    const link = e.target.closest("[data-ai-link]");
+    if (link) { e.preventDefault(); invoke("open_post_link", { url: link.dataset.aiLink }).catch(() => {}); return; }
     if (!e.target.closest("#ai-reset")) return;
     if (!ai.resetArmed) { ai.resetArmed = true; aiPaint(); setTimeout(() => { if (ai.resetArmed) { ai.resetArmed = false; aiPaint(); } }, 3500); return; }
     ai.resetArmed = false;
