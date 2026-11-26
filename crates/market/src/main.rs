@@ -96,6 +96,19 @@ struct Args {
     /// Who the codes come from.
     #[arg(long, default_value = "Orien Network <noreply@orien.network>")]
     from: String,
+    /// Solana `orien-order` program ID for funded buy orders.
+    #[arg(long)]
+    order_program: Option<String>,
+    /// Solana RPC endpoints for funded buy orders (comma-separated).
+    #[arg(long, value_delimiter = ',')]
+    solana_rpc: Vec<String>,
+    /// Path to a Solana JSON keypair file paying tiny relay fees for `claim` /
+    /// `reopen` / `expire` on funded buy orders.
+    #[arg(long)]
+    solana_relayer_key: Option<PathBuf>,
+    /// Per-order SOL cap for funded buy orders (default 10 SOL).
+    #[arg(long, default_value_t = 10.0)]
+    max_order_sol: f64,
     /// Look after the marketplace instead of running it.
     #[command(subcommand)]
     admin: Option<Admin>,
@@ -283,6 +296,25 @@ async fn main() -> Result<()> {
         None => String::new(),
     })
     .with_sign_in(args.sign_in_open, args.sign_in_developers.iter().map(|n| n.trim().to_string()).filter(|n| !n.is_empty()).collect());
+    let app = app.with_max_order_lamports((args.max_order_sol.max(0.01) * 1e9) as u64);
+    let app = match &args.order_program {
+        Some(program_id) => {
+            let rpc_owned: Vec<String> = if args.solana_rpc.is_empty() {
+                vec!["https://api.mainnet-beta.solana.com".into(), "https://solana-rpc.publicnode.com".into()]
+            } else {
+                args.solana_rpc.clone()
+            };
+            let rpc_refs: Vec<&str> = rpc_owned.iter().map(String::as_str).collect();
+            let relayer = match &args.solana_relayer_key {
+                Some(path) => Some(orien_market::orders::load_relayer_keypair(path)?),
+                None => None,
+            };
+            let chain = Arc::new(orien_market::orders::LiveOrderChain::new(&rpc_refs, program_id, relayer)?);
+            println!("funded buy orders enabled for program {program_id}");
+            app.with_order_chain(chain)
+        }
+        None => app,
+    };
     let app = Arc::new(match (&args.review_email, &args.review_code_file) {
         (Some(email), Some(file)) => {
             let code = std::fs::read_to_string(file).with_context(|| format!("cannot read {}", file.display()))?;
@@ -300,6 +332,7 @@ async fn main() -> Result<()> {
     orien_market::push::watch(app.clone(), apns);
     orien_market::community::watch(app.clone());
     orien_market::proofs::watch(app.clone());
+    orien_market::orders::watch(app.clone());
     let openrouter = match &args.openrouter_key {
         Some(path) => Some(std::fs::read_to_string(path).with_context(|| format!("cannot read {}", path.display()))?.trim().to_string()),
         None => None,

@@ -548,8 +548,8 @@ async fn swap_offers_go_on_the_board_and_are_taken_through_requests() {
     let (status, _) = market.ask("POST", &format!("/api/market/swaps/{id}/close"), Some(&maya), None).await;
     assert_eq!(status, StatusCode::BAD_REQUEST, "a held offer cannot be withdrawn");
 
-    // Buy offers: Sam posts a buy offer with no verified wallet required.
-    let (status, body) = market
+    // Unfunded buy offers via /api/market/swaps are strictly refused.
+    let (status, _) = market
         .ask(
             "POST",
             "/api/market/swaps",
@@ -557,44 +557,212 @@ async fn swap_offers_go_on_the_board_and_are_taken_through_requests() {
             Some(json!({ "side": "buy", "coin": "sol", "orn": 100_000_000_000u64, "lamports": 50_000_000u64, "address": "ab".repeat(32) })),
         )
         .await;
-    assert_eq!(status, StatusCode::CREATED, "{body}");
-    let buy_id = body["offer"]["id"].as_i64().unwrap();
-    assert_eq!(body["offer"]["side"], "buy");
-    // Hidden from old clients that omit sides=, shown when sides=sell,buy is asked.
-    let (_, old_board) = market.ask("GET", "/api/market/swaps?coins=sol,btc", None, None).await;
-    assert!(old_board["offers"].as_array().unwrap().iter().all(|o| o["id"] != buy_id));
-    let (_, full_board) = market.ask("GET", "/api/market/swaps?coins=sol,btc&sides=sell,buy", None, None).await;
-    assert!(full_board["offers"].as_array().unwrap().iter().any(|o| o["id"] == buy_id && o["side"] == "buy"));
-    // Sam's wallet must be open, and taker needs swap_version >= 4.
-    let sol_payout = "11111111111111111111111111111111";
+    assert_eq!(status, StatusCode::BAD_REQUEST, "unfunded buy offers are refused");
+}
+
+#[tokio::test]
+async fn funded_buy_orders_verify_on_chain_settle_automatically_and_never_leak_secret() {
+    use orien_market::orders::{FakeOrderChain, settle_once};
+    use orien_swap::order::{OrderAccount, OrderTerms, STATE_FILLED, STATE_OPEN};
+    use orien_swap::solana;
+
+    const ORN: u64 = 1_000_000_000;
+    const SOL: u64 = 1_000_000_000;
+    let now_unix = 1_800_000_000i64;
+    let payments = Arc::new(Fake::default());
+    *payments.epoch.lock().unwrap() = 300;
+    let chain = Arc::new(FakeOrderChain::new(now_unix));
+    let app = App::new(
+        Store::in_memory().unwrap(),
+        folder(),
+        "https://orien.network",
+        true,
+        Mailer::log_only(),
+        Screener::off(),
+        payments.clone(),
+        MARKET,
+    )
+    .unwrap()
+    .with_prices(Prices::fixed_for_tests(65_000.0))
+    .with_order_chain(chain.clone())
+    .with_max_order_lamports(5 * SOL);
+    let market = Market { app: Arc::new(app) };
+    let sam = sign_in_for_tests(&market.app, "Sam"); // buyer
+    let maya = sign_in_for_tests(&market.app, "Maya"); // seller
+
+    let secret = [0x55u8; 32];
+    let hash = orien_ledger::types::lock_hash(&secret);
+    let secret_hex = hex::encode(secret);
+    let buyer_orien = [0xabu8; 32];
+    let buyer_orien_id = orien_crypto::Hash32(buyer_orien);
+    let seller_orien = [0xcdu8; 32];
+    let seller_orien_id = orien_crypto::Hash32(seller_orien);
+    let order_pk = [0x11u8; 32];
+    let buyer_sol = [0x22u8; 32];
+    let seller_sol = [0x33u8; 32];
+    let order_pubkey = solana::text(&order_pk);
+
+    // Put an open funded order on FakeOrderChain.
+    let acct = OrderAccount {
+        state: STATE_OPEN,
+        terms: OrderTerms {
+            hash,
+            buyer: buyer_sol,
+            authority: buyer_sol,
+            buyer_orien,
+            orn_amount: 100 * ORN,
+            amount: SOL / 2,
+            expiry: now_unix + 7 * 24 * 3600,
+            min_bond: 0,
+            max_fill_window: 4 * 3600,
+        },
+        base_lamports: SOL / 2 + 1_752_600,
+        seller: [0u8; 32],
+        fill_deadline: 0,
+    };
+    chain.orders.lock().unwrap().insert(order_pk, acct.clone());
+
+    // Wrong secret is refused.
     let (status, _) = market
-        .ask(
-            "POST",
-            &format!("/api/market/swaps/{buy_id}/take"),
-            Some(&maya),
-            Some(json!({ "swap_version": 3, "payout": sol_payout, "wallet": wallet })),
-        )
+        .ask("POST", "/api/market/orders", Some(&sam), Some(json!({ "order_pubkey": order_pubkey, "secret": hex::encode([0x99u8; 32]) })))
         .await;
-    assert_eq!(status, StatusCode::BAD_REQUEST, "needs swap_version 4");
+    assert_eq!(status, StatusCode::BAD_REQUEST, "wrong secret refused");
+
+    // Over per-order cap (> 5 SOL) is refused.
+    let big_pk = [0x44u8; 32];
+    let mut big_acct = acct.clone();
+    big_acct.terms.amount = 6 * SOL;
+    chain.orders.lock().unwrap().insert(big_pk, big_acct);
     let (status, _) = market
-        .ask(
-            "POST",
-            &format!("/api/market/swaps/{buy_id}/take"),
-            Some(&maya),
-            Some(json!({ "swap_version": 4, "payout": sol_payout, "wallet": wallet })),
-        )
+        .ask("POST", "/api/market/orders", Some(&sam), Some(json!({ "order_pubkey": solana::text(&big_pk), "secret": secret_hex })))
         .await;
-    assert_eq!(status, StatusCode::BAD_REQUEST, "buyer offline");
-    market.ask("GET", "/api/market/swaps/mine", Some(&sam), None).await;
+    assert_eq!(status, StatusCode::BAD_REQUEST, "over SOL cap refused");
+
+    // Valid funded buy order succeeds and NEVER leaks secret in any response.
+    let (status, created) = market
+        .ask("POST", "/api/market/orders", Some(&sam), Some(json!({ "order_pubkey": order_pubkey, "secret": secret_hex })))
+        .await;
+    assert_eq!(status, StatusCode::CREATED, "{created}");
+    assert!(!created.to_string().contains(&secret_hex), "secret must never be returned");
+    let order_id = created["order"]["id"].as_i64().unwrap();
+
+    // Hidden from old clients (without sides=buy), shown with sides=sell,buy as funded & online.
+    let (_, old_board) = market.ask("GET", "/api/market/swaps?coins=sol", None, None).await;
+    assert!(old_board["offers"].as_array().unwrap().is_empty());
+    let (_, full_board) = market.ask("GET", "/api/market/swaps?coins=sol&sides=sell,buy", None, None).await;
+    assert!(!full_board.to_string().contains(&secret_hex));
+    assert_eq!(full_board["order_program"], orien_swap::order::DEVNET_ORDER_PROGRAM);
+    let bid = &full_board["offers"][0];
+    assert_eq!((bid["id"].as_i64(), bid["side"].as_str(), bid["funded"].as_bool(), bid["seller_online"].as_bool()), (Some(order_id), Some("buy"), Some(true), Some(true)));
+
+    // Seller with 0 SOL can reserve via /reserve (refused if short on ORN, succeeds with enough ORN).
+    let short_orien = [0xeeu8; 32];
+    payments.spendable.lock().unwrap().push((orien_crypto::Hash32(short_orien), 50 * ORN));
+    let (status, _) = market
+        .ask("POST", &format!("/api/market/orders/{order_id}/reserve"), Some(&maya), Some(json!({ "seller_sol": solana::text(&seller_sol), "wallet": hex::encode(short_orien) })))
+        .await;
+    assert_eq!(status, StatusCode::BAD_REQUEST, "cannot reserve without enough ORN");
+    payments.spendable.lock().unwrap().push((seller_orien_id, 200 * ORN));
+    let (status, res) = market
+        .ask("POST", &format!("/api/market/orders/{order_id}/reserve"), Some(&maya), Some(json!({ "seller_sol": solana::text(&seller_sol), "wallet": hex::encode(seller_orien) })))
+        .await;
+    assert_eq!(status, StatusCode::OK, "reserve relays fill on Solana: {res}");
+    assert_eq!(chain.orders.lock().unwrap().get(&order_pk).unwrap().state, STATE_FILLED);
+
+    // Seller fills on Solana WITHOUT locking ORN on Orien: refused, secret never used!
+    let (status, _) = market
+        .ask("POST", &format!("/api/market/orders/{order_id}/fill"), Some(&maya), Some(json!({ "lock_from": hex::encode(seller_orien), "lock_seq": 7 })))
+        .await;
+    assert_eq!(status, StatusCode::BAD_REQUEST, "must not accept fill without proven ORN lock");
+    assert!(chain.claims.lock().unwrap().is_empty(), "secret must not be released without ORN lock");
+
+    // Seller locks the WRONG amount on Orien: still refused!
+    payments.locks.lock().unwrap().push((
+        seller_orien_id,
+        7,
+        orien_ledger::Escrow { to: buyer_orien_id, amount: 50 * ORN, hash, until: 305 },
+    ));
+    let (status, _) = market
+        .ask("POST", &format!("/api/market/orders/{order_id}/fill"), Some(&maya), Some(json!({ "lock_from": hex::encode(seller_orien), "lock_seq": 7 })))
+        .await;
+    assert_eq!(status, StatusCode::BAD_REQUEST, "wrong ORN amount refused");
+    assert!(chain.claims.lock().unwrap().is_empty());
+
+    // Seller locks the EXACT ORN on Orien for buyer_orien with hash H: accepted and auto-settled!
+    payments.locks.lock().unwrap().push((
+        seller_orien_id,
+        8,
+        orien_ledger::Escrow { to: buyer_orien_id, amount: 100 * ORN, hash, until: 305 },
+    ));
     let (status, body) = market
-        .ask(
-            "POST",
-            &format!("/api/market/swaps/{buy_id}/take"),
-            Some(&maya),
-            Some(json!({ "swap_version": 4, "payout": sol_payout, "wallet": wallet })),
-        )
+        .ask("POST", &format!("/api/market/orders/{order_id}/fill"), Some(&maya), Some(json!({ "lock_from": hex::encode(seller_orien), "lock_seq": 8 })))
         .await;
-    assert_eq!((status, body["swap"]["selling"].as_bool(), body["swap"]["offer"]["state"].as_str()), (StatusCode::OK, Some(true), Some("held")), "{body}");
+    assert_eq!(status, StatusCode::OK, "{body}");
+    // Run settlement deterministically (background task may also run it; idempotent).
+    let _ = settle_once(&market.app).unwrap();
+    assert_eq!(payments.claimed_locks.lock().unwrap().len(), 1, "server claimed ORN for buyer");
+    assert_eq!(payments.claimed_locks.lock().unwrap()[0].2, buyer_orien_id);
+    assert_eq!(chain.claims.lock().unwrap().len(), 1, "server relayed SOL claim to seller");
+    assert_eq!(chain.claims.lock().unwrap()[0].1, seller_sol);
+
+    let (_, mine) = market.ask("GET", "/api/market/orders/mine", Some(&sam), None).await;
+    assert!(!mine.to_string().contains(&secret_hex));
+    assert_eq!(mine["orders"][0]["state"], "done");
+    assert_eq!(mine["orders"][0]["orn_claimed"], true);
+    assert_eq!(mine["orders"][0]["sol_claimed"], true);
+
+    // Cancelled order syncs cleanly.
+    let order_pk2 = [0x77u8; 32];
+    chain.orders.lock().unwrap().insert(order_pk2, acct.clone());
+    let (_, c2) = market
+        .ask("POST", "/api/market/orders", Some(&sam), Some(json!({ "order_pubkey": solana::text(&order_pk2), "secret": secret_hex })))
+        .await;
+    let id2 = c2["order"]["id"].as_i64().unwrap();
+    chain.orders.lock().unwrap().remove(&order_pk2);
+    let (status, synced) = market.ask("POST", &format!("/api/market/orders/{id2}/sync"), Some(&sam), None).await;
+    assert_eq!((status, synced["order"]["state"].as_str()), (StatusCode::OK, Some("cancelled")));
+
+    // Lapsed fill -> settle_once relays reopen -> returns to open on board.
+    let order_pk3 = [0x88u8; 32];
+    let mut acct3 = acct.clone();
+    acct3.terms.expiry = now_unix + 7 * 24 * 3600;
+    chain.orders.lock().unwrap().insert(order_pk3, acct3.clone());
+    let (_, c3) = market
+        .ask("POST", "/api/market/orders", Some(&sam), Some(json!({ "order_pubkey": solana::text(&order_pk3), "secret": secret_hex })))
+        .await;
+    let id3 = c3["order"]["id"].as_i64().unwrap();
+    let deadline3 = now_unix + 3600;
+    {
+        let mut map = chain.orders.lock().unwrap();
+        let o = map.get_mut(&order_pk3).unwrap();
+        o.state = STATE_FILLED;
+        o.seller = seller_sol;
+        o.fill_deadline = deadline3;
+    }
+    // Simulate a filled row whose ORN was never claimed before fill_deadline elapsed.
+    store_for_tests(&market.app, |s| {
+        s.mark_funded_filled(id3, 1, &solana::text(&seller_sol), &hex::encode(seller_orien), 99, deadline3).unwrap();
+    });
+    *chain.clock.lock().unwrap() = deadline3 + 1;
+    let _ = settle_once(&market.app).unwrap();
+    assert_eq!(chain.reopens.lock().unwrap().as_slice(), &[order_pk3], "server relayed reopen on lapsed fill");
+    let reopened = store_for_tests(&market.app, |s| s.funded_order(id3).unwrap().unwrap());
+    assert_eq!(reopened.state, "open");
+
+    // Expired order -> settle_once relays expire -> closed as expired.
+    *chain.clock.lock().unwrap() = acct3.terms.expiry + 1;
+    let _ = settle_once(&market.app).unwrap();
+    assert_eq!(chain.expires.lock().unwrap().as_slice(), &[order_pk3], "server relayed expire after expiry");
+    let expired = store_for_tests(&market.app, |s| s.funded_order(id3).unwrap().unwrap());
+    assert_eq!(expired.state, "expired");
+
+    // Finished funded buy order is priced (either automatically by the background task or via price_funded_order) and appears in public swap history.
+    store_for_tests(&market.app, |s| s.price_funded_order(order_id, 75.0).unwrap());
+    let (status, history) = market.ask("GET", "/api/market/swaps/history", None, None).await;
+    assert_eq!(status, StatusCode::OK);
+    assert_eq!(history["swaps"].as_array().unwrap().len(), 1);
+    assert_eq!(history["swaps"][0]["coin"], "sol");
+    assert!(history["swaps"][0]["usd"].as_f64().unwrap() > 0.0);
 }
 
 #[tokio::test]

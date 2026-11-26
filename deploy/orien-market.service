@@ -41,6 +41,8 @@ ExecStart=/usr/local/bin/orien-market \
     --review-code-file /etc/orien-market/review.code \
     --admin-listen 127.0.0.1:7201 \
     --admin-site /var/www/orien.network/current \
+    --order-program 2HnMh1nAs5cShirEhk726KjBiQr4sxxMNv2qapjdYKN9 \
+    --solana-relayer-key /etc/orien-market/solana-relayer.json \
     --sign-in-open
 Restart=always
 RestartSec=5

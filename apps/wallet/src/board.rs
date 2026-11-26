@@ -407,7 +407,7 @@ pub fn take_sol(dir: &Path, wallet: &Path, offer: i64, address: &str, refund: &s
     save(dir, &saved)
 }
 
-fn check_sol_refund(refund: &str) -> Result<String, String> {
+pub(crate) fn check_sol_refund(refund: &str) -> Result<String, String> {
     let refund = refund.trim();
     let key = orien_swap::solana::address(refund).map_err(|_| "That is not a SOL address.".to_string())?;
     let solana = crate::solswaps::solana(crate::solswaps::cluster());
@@ -1076,12 +1076,63 @@ pub fn drive_on(
 }
 
 /// The wallet's own Solana fee key, which pays the small Solana fees of its
-/// SOL sales: opened with the password, or Touch ID a moment ago.
-fn fee_secret(wallet: &Path, password: Option<&str>) -> Result<[u8; 32], String> {
+/// SOL sales and funded-order cancels: opened with the password, or Touch ID a moment ago.
+pub(crate) fn fee_secret(wallet: &Path, password: Option<&str>) -> Result<[u8; 32], String> {
     match crate::open_signing(wallet, password)? {
         orien_net::unlock::Signing::Here(wallet) => Ok(wallet.solana_secret()),
         _ => Err("password: needed".into()),
     }
+}
+
+/// Registers a finalized funded Solana buy order on the Market server.
+/// Secret S is sent over TLS so the server can auto-settle after verifying
+/// the seller's ORN lock on Orien; it is never returned or logged.
+pub fn register_funded_order(dir: &Path, order_pubkey: &str, secret_hex: &str) -> Result<i64, String> {
+    let answer = call(dir, "POST", "/orders", Some(json!({ "order_pubkey": order_pubkey, "secret": secret_hex })))?;
+    answer["order"]["id"].as_i64().ok_or_else(|| "The Market did not return the order ID.".into())
+}
+
+/// Lists this account's funded buy orders (buyer or seller) from the Market.
+#[allow(dead_code)]
+pub fn my_funded_orders(dir: &Path) -> Result<Value, String> {
+    if load(dir).cookie.is_none() {
+        return Ok(json!([]));
+    }
+    match call(dir, "GET", "/orders/mine", None) {
+        Ok(answer) => Ok(answer["orders"].clone()),
+        Err(Failed::SignIn) => Ok(json!([])),
+        Err(failed) => Err(failed.into()),
+    }
+}
+
+/// Asks the Market relayer to submit `Fill` on Solana (when `min_bond == 0`)
+/// so sellers with 0 SOL can reserve a funded buy order before locking ORN.
+pub fn reserve_funded_order(dir: &Path, id: i64, seller_sol: &str, wallet: &str) -> Result<Option<String>, String> {
+    let answer = call(
+        dir,
+        "POST",
+        &format!("/orders/{id}/reserve"),
+        Some(json!({ "seller_sol": seller_sol, "wallet": wallet })),
+    )?;
+    Ok(answer["sig"].as_str().map(str::to_string))
+}
+
+/// Reports the seller's proven Orien ORN lock for funded buy order `id`,
+/// triggering automatic ~1-minute settlement on both chains.
+pub fn report_funded_fill(dir: &Path, id: i64, lock_from: &str, lock_seq: u64) -> Result<Value, String> {
+    let answer = call(
+        dir,
+        "POST",
+        &format!("/orders/{id}/fill"),
+        Some(json!({ "lock_from": lock_from, "lock_seq": lock_seq })),
+    )?;
+    Ok(answer["order"].clone())
+}
+
+/// Syncs a funded buy order's on-chain state with the Market server.
+pub fn sync_funded_order(dir: &Path, id: i64) -> Result<Value, String> {
+    let answer = call(dir, "POST", &format!("/orders/{id}/sync"), None)?;
+    Ok(answer["order"].clone())
 }
 
 /// Moves this account's SOL board swaps along, as `drive` does for Bitcoin

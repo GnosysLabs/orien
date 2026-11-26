@@ -498,7 +498,7 @@ export function SwapBoard() {
             <p>
               Every order in this book settles directly between two wallets
               through Orien&apos;s locked swap program on Solana in about a
-              minute. This website is viewing-only — all buying, selling, and
+              minute. This website is viewing-only; all buying, selling, and
               posting happen in the <strong>Swap</strong> tab of Orien Wallet
               for Mac, Windows, and Linux.
             </p>

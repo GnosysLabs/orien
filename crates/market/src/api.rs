@@ -75,6 +75,10 @@ pub struct App {
     /// Where Orien AI Support is answered: the Discord bot's expert, such
     /// as http://127.0.0.1:7300/support. None: it isn't available.
     support: Option<String>,
+    /// Solana `orien-order` reader & relayer for funded buy orders.
+    order_chain: Option<Arc<dyn crate::orders::OrderChain>>,
+    /// Per-order SOL limit (in lamports) for funded buy orders.
+    max_order_lamports: u64,
 }
 
 /// One email, for App Store review, whose sign-in code never changes and is
@@ -130,6 +134,8 @@ impl App {
             klipy_key: String::new(),
             alerts: crate::alerts::Alerts::default(),
             support: None,
+            order_chain: None,
+            max_order_lamports: crate::orders::DEFAULT_MAX_ORDER_LAMPORTS,
         })
     }
 
@@ -199,6 +205,24 @@ impl App {
     pub fn with_min_swap_version(mut self, version: u32) -> App {
         self.min_swap_version = version;
         self
+    }
+
+    pub fn with_order_chain(mut self, chain: Arc<dyn crate::orders::OrderChain>) -> App {
+        self.order_chain = Some(chain);
+        self
+    }
+
+    pub fn with_max_order_lamports(mut self, lamports: u64) -> App {
+        self.max_order_lamports = lamports;
+        self
+    }
+
+    pub(crate) fn order_chain(&self) -> Option<Arc<dyn crate::orders::OrderChain>> {
+        self.order_chain.clone()
+    }
+
+    pub(crate) fn store_lock(&self) -> std::sync::MutexGuard<'_, Store> {
+        self.store.lock().unwrap()
     }
 
     /// Keeps the website's traffic counts in this folder.
@@ -449,6 +473,11 @@ pub fn router(app: Arc<App>) -> Router {
         .route("/api/market/swaps/{id}/run", post(run_swap))
         .route("/api/market/swaps/{id}/reply", post(swap_reply_code))
         .route("/api/market/swaps/{id}/finish", post(finish_swap))
+        .route("/api/market/orders", post(post_funded_order))
+        .route("/api/market/orders/mine", get(my_funded_orders))
+        .route("/api/market/orders/{id}/reserve", post(reserve_funded_order))
+        .route("/api/market/orders/{id}/fill", post(fill_funded_order))
+        .route("/api/market/orders/{id}/sync", post(sync_funded_order))
         .route("/api/market/reports", post(report))
         .route("/api/market/contact", post(contact))
         .route("/api/market/t", post(ping))
@@ -870,9 +899,6 @@ struct NewSwap {
     payout: Option<String>,
     #[serde(default)]
     wallet: Option<String>,
-    /// For buy offers: the buyer's Orien address to receive the ORN at.
-    #[serde(default)]
-    address: Option<String>,
 }
 
 #[derive(Deserialize)]
@@ -997,14 +1023,16 @@ async fn open_swaps(State(app): State<Arc<App>>, Query(board): Query<Board>) -> 
     let coins: Vec<&str> = wanted.split(',').map(str::trim).filter(|c| matches!(*c, "sol" | "btc")).collect();
     let wanted_sides = board.sides.unwrap_or_else(|| "sell".into());
     let sides: Vec<&str> = wanted_sides.split(',').map(str::trim).filter(|s| matches!(*s, "sell" | "buy")).collect();
-    let (offers, wallets) = {
+    // Sell offers come from swap_offers; buy offers come ONLY from on-chain
+    // funded Solana orders (never unfunded buy offers).
+    let want_sells = sides.contains(&"sell");
+    let want_buys = sides.contains(&"buy") && coins.contains(&"sol");
+    let (sell_offers, wallets, funded_buys) = {
         let store = app.store.lock().unwrap();
-        let offers = store.open_swaps_in_sides(&coins, &sides)?;
-        let wallets: Vec<Option<String>> = offers
-            .iter()
-            .map(|o| if o.side == "sell" { store.offer_wallet(o.id) } else { Ok(None) })
-            .collect::<anyhow::Result<_>>()?;
-        (offers, wallets)
+        let sell_offers = if want_sells { store.open_swaps_in_sides(&coins, &["sell"])? } else { Vec::new() };
+        let wallets: Vec<Option<String>> = sell_offers.iter().map(|o| store.offer_wallet(o.id)).collect::<anyhow::Result<_>>()?;
+        let funded_buys = if want_buys { store.open_funded_orders()? } else { Vec::new() };
+        (sell_offers, wallets, funded_buys)
     };
     // Sell offers whose seller's wallet no longer holds the ORN would only hold
     // a buyer up: they leave the board until it does again.
@@ -1012,8 +1040,37 @@ async fn open_swaps(State(app): State<Arc<App>>, Query(board): Query<Board>) -> 
     asked.sort();
     asked.dedup();
     let spendable = spendable_of(&app, asked, false).await;
-    let offers: Vec<_> =
-        offers.into_iter().zip(wallets).filter(|(offer, wallet)| !short_of(&spendable, wallet, offer.orn)).map(|(offer, _)| offer).collect();
+    let mut offers: Vec<serde_json::Value> = sell_offers
+        .into_iter()
+        .zip(wallets)
+        .filter(|(offer, wallet)| !short_of(&spendable, wallet, offer.orn))
+        .map(|(offer, _)| serde_json::to_value(offer).expect("serialize offer"))
+        .collect();
+    for o in funded_buys {
+        // Funded buy orders never require the buyer's app to be online.
+        offers.push(json!({
+            "id": o.id,
+            "seller": o.buyer,
+            "seller_name": o.buyer_name,
+            "seller_picture": o.buyer_picture,
+            "seller_done": o.buyer_done,
+            "orn": o.orn,
+            "coin": "sol",
+            "sats": 0,
+            "lamports": o.lamports,
+            "state": o.state,
+            "created": o.created,
+            "seller_online": true,
+            "side": "buy",
+            "funded": true,
+            "order_pubkey": o.order_pubkey,
+            "hash": o.hash,
+            "buyer_orien": o.buyer_orien,
+            "expiry": o.expiry,
+            "min_bond": o.min_bond,
+            "max_fill_window": o.max_fill_window,
+        }));
+    }
     let prices = app.prices.clone();
     let (bitcoin, solana, rates) = tokio::task::spawn_blocking(move || {
         let (bitcoin, solana) = (prices.bitcoin(), prices.solana());
@@ -1029,7 +1086,15 @@ async fn open_swaps(State(app): State<Arc<App>>, Query(board): Query<Board>) -> 
             sol[code] = json!(rate);
         }
     }
-    Ok(Json(json!({ "offers": offers, "bitcoin": usd(bitcoin), "solana": solana })).into_response())
+    let order_program = app.order_chain.as_ref().map(|c| c.program_id());
+    Ok(Json(json!({
+        "offers": offers,
+        "bitcoin": usd(bitcoin),
+        "solana": solana,
+        "order_program": order_program,
+        "max_order_lamports": app.max_order_lamports,
+    }))
+    .into_response())
 }
 
 async fn post_swap(State(app): State<Arc<App>>, headers: HeaderMap, Json(request): Json<NewSwap>) -> Answer {
@@ -1038,13 +1103,7 @@ async fn post_swap(State(app): State<Arc<App>>, headers: HeaderMap, Json(request
     let coin = request.coin.as_deref().unwrap_or("btc");
     let price = if coin == "sol" { request.lamports } else { request.sats };
     if side == "buy" {
-        let address = request
-            .address
-            .as_deref()
-            .or(request.wallet.as_deref())
-            .ok_or_else(|| Failure::Refused("give the Orien address where the ORN should go".into()))?;
-        let offer = app.store.lock().unwrap().post_buy_offer(account, coin, request.orn, price, address).map_err(refused)?;
-        return Ok((StatusCode::CREATED, Json(json!({ "offer": offer }))).into_response());
+        return Err(Failure::Refused("Buy orders must be funded on Solana through /api/market/orders.".into()));
     }
     if side != "sell" {
         return Err(Failure::Refused("side must be sell or buy".into()));
@@ -1336,20 +1395,282 @@ async fn price_finished_swaps(app: &Arc<App>) {
     .await;
 }
 
+/// Keeps the dollar value of finished funded buy orders, at SOL's price now.
+pub(crate) async fn price_finished_orders(app: &Arc<App>) {
+    let Ok(unpriced) = app.store.lock().unwrap().unpriced_funded_orders() else { return };
+    if unpriced.is_empty() {
+        return;
+    }
+    let app = app.clone();
+    let _ = tokio::task::spawn_blocking(move || {
+        let Some(price) = app.prices.solana() else { return };
+        for (id, lamports) in unpriced {
+            let _ = app.store.lock().unwrap().price_funded_order(id, lamports as f64 / 1e9 * price.usd);
+        }
+    })
+    .await;
+}
+
+#[derive(Deserialize)]
+struct NewFundedOrder {
+    order_pubkey: String,
+    /// 64-character hex of the buyer's 32-byte secret S. Stored only in SQLite,
+    /// never returned or logged, and only released after this server directly
+    /// verifies the seller's ORN lock on Orien.
+    secret: String,
+}
+
+async fn post_funded_order(State(app): State<Arc<App>>, headers: HeaderMap, Json(request): Json<NewFundedOrder>) -> Answer {
+    let buyer = app.signed_in(&headers)?;
+    let Some(chain) = app.order_chain.clone() else {
+        return Err(Failure::Refused("Funded buy orders are not enabled on this server yet.".into()));
+    };
+    let order_pk = orien_swap::solana::address(&request.order_pubkey).map_err(refused)?;
+    let order_pubkey = orien_swap::solana::text(&order_pk);
+    let secret_bytes = hex::decode(request.secret.trim()).map_err(|_| Failure::Refused("secret must be 64 hex characters".into()))?;
+    let secret: [u8; 32] = secret_bytes.try_into().map_err(|_| Failure::Refused("secret must be 32 bytes".into()))?;
+    let (on_chain, chain_now) = tokio::task::spawn_blocking(move || -> anyhow::Result<_> {
+        let acct = chain.read_order(&order_pk)?;
+        let t = chain.now()?;
+        Ok((acct, t))
+    })
+    .await
+    .map_err(|e| Failure::Broken(e.into()))?
+    .map_err(refused)?;
+    let Some(on_chain) = on_chain else {
+        return Err(Failure::Refused("That Solana order account isn't finalized on-chain yet. Try again in a moment.".into()));
+    };
+    if on_chain.terms.expiry <= chain_now + crate::orders::MIN_ORDER_LIFE_SECONDS {
+        return Err(Failure::Refused("That order expires too soon.".into()));
+    }
+    let order = app
+        .store
+        .lock()
+        .unwrap()
+        .post_funded_order(buyer, &order_pubkey, &on_chain, &secret, app.max_order_lamports)
+        .map_err(refused)?;
+    Ok((StatusCode::CREATED, Json(json!({ "order": order }))).into_response())
+}
+
+async fn my_funded_orders(State(app): State<Arc<App>>, headers: HeaderMap) -> Answer {
+    let account = app.signed_in(&headers)?;
+    let orders = app.store.lock().unwrap().my_funded_orders(account)?;
+    Ok(Json(json!({ "orders": orders })).into_response())
+}
+
+#[derive(Deserialize)]
+struct ReserveFundedOrder {
+    /// Seller's SOL payout address.
+    seller_sol: String,
+    /// Seller's Orien wallet address holding the ORN (checked to prevent spam).
+    wallet: String,
+}
+
+async fn reserve_funded_order(
+    State(app): State<Arc<App>>,
+    headers: HeaderMap,
+    Path(id): Path<i64>,
+    Json(request): Json<ReserveFundedOrder>,
+) -> Answer {
+    let seller = app.signed_in(&headers)?;
+    let Some(chain) = app.order_chain.clone() else {
+        return Err(Failure::Refused("Funded buy orders are not enabled on this server yet.".into()));
+    };
+    let order = app
+        .store
+        .lock()
+        .unwrap()
+        .funded_order(id)?
+        .ok_or_else(|| Failure::Refused("there is no such order".into()))?;
+    if order.state != "open" {
+        return Err(Failure::Refused("that order is no longer open".into()));
+    }
+    if order.buyer == seller {
+        return Err(Failure::Refused("this is your own order".into()));
+    }
+    let seller_sol_pk = orien_swap::solana::address(request.seller_sol.trim()).map_err(|_| Failure::Refused("That is not a SOL address.".into()))?;
+    let buyer_sol_pk = orien_swap::solana::address(&order.buyer_sol).map_err(refused)?;
+    if seller_sol_pk == buyer_sol_pk {
+        return Err(Failure::Refused("That SOL address is the buyer's own. Give your own SOL wallet address.".into()));
+    }
+    let seller_wallet = store::orien_address(&request.wallet).map_err(refused)?;
+    let spendable = spendable_of(&app, vec![seller_wallet.clone()], true).await;
+    if short_of(&spendable, &Some(seller_wallet), order.orn) {
+        return Err(Failure::Refused("Your wallet doesn't hold enough ORN for this order.".into()));
+    }
+    let order_pk = orien_swap::solana::address(&order.order_pubkey).map_err(refused)?;
+    let sig = tokio::task::spawn_blocking(move || -> anyhow::Result<Option<String>> {
+        let Some(acct) = chain.read_order(&order_pk)? else {
+            anyhow::bail!("that order is no longer on Solana");
+        };
+        if acct.state == orien_swap::order::STATE_FILLED && acct.seller == seller_sol_pk {
+            return Ok(None);
+        }
+        if acct.state != orien_swap::order::STATE_OPEN {
+            anyhow::bail!("someone else is already filling that order");
+        }
+        if acct.terms.min_bond > 0 {
+            anyhow::bail!("this order requires a SOL bond to fill");
+        }
+        let s = chain.relay_fill(&order_pk, &seller_sol_pk, acct.terms.max_fill_window)?;
+        Ok(Some(s))
+    })
+    .await
+    .map_err(|e| Failure::Broken(e.into()))?
+    .map_err(refused)?;
+    Ok(Json(json!({ "sig": sig })).into_response())
+}
+
+#[derive(Deserialize)]
+struct FillFundedOrder {
+    /// Seller's Orien account ID (64 hex) that locked the ORN.
+    lock_from: String,
+    /// Sequence number of the Orien lock order.
+    lock_seq: u64,
+}
+
+async fn fill_funded_order(
+    State(app): State<Arc<App>>,
+    headers: HeaderMap,
+    Path(id): Path<i64>,
+    Json(request): Json<FillFundedOrder>,
+) -> Answer {
+    let seller = app.signed_in(&headers)?;
+    let Some(chain) = app.order_chain.clone() else {
+        return Err(Failure::Refused("Funded buy orders are not enabled on this server yet.".into()));
+    };
+    let order = app
+        .store
+        .lock()
+        .unwrap()
+        .funded_order(id)?
+        .ok_or_else(|| Failure::Refused("there is no such order".into()))?;
+    if order.state != "open" {
+        return Err(Failure::Refused("that order is no longer open".into()));
+    }
+    if order.buyer == seller {
+        return Err(Failure::Refused("this is your own order".into()));
+    }
+    let lock_from_clean = store::orien_address(&request.lock_from).map_err(refused)?;
+    let lock_from_id: orien_ledger::AccountId = lock_from_clean.parse().map_err(|_| Failure::Refused("invalid Orien address".into()))?;
+    let buyer_orien_id: orien_ledger::AccountId = order.buyer_orien.parse().map_err(|_| Failure::Broken(anyhow::anyhow!("bad buyer_orien")))?;
+    let expected_hash: [u8; 32] = hex::decode(&order.hash)
+        .ok()
+        .and_then(|b| b.try_into().ok())
+        .ok_or_else(|| Failure::Broken(anyhow::anyhow!("bad hash")))?;
+    let order_pk = orien_swap::solana::address(&order.order_pubkey).map_err(refused)?;
+    let payments = app.payments.clone();
+    let orn = order.orn;
+    let lock_seq = request.lock_seq;
+
+    // Verify BOTH the Solana `fill` AND the Orien ORN lock directly on-chain!
+    let (seller_sol, fill_deadline) = tokio::task::spawn_blocking(move || -> anyhow::Result<(String, i64)> {
+        let Some(acct) = chain.read_order(&order_pk)? else {
+            anyhow::bail!("that order is no longer on Solana");
+        };
+        if acct.state != orien_swap::order::STATE_FILLED || acct.seller == [0u8; 32] {
+            anyhow::bail!("Solana hasn't finalized your fill yet; try again in a few seconds");
+        }
+        let chain_now = chain.now()?;
+        if chain_now >= acct.fill_deadline {
+            anyhow::bail!("that fill window has already lapsed");
+        }
+        crate::orders::verify_orien_lock(
+            payments.as_ref(),
+            &lock_from_id,
+            lock_seq,
+            &buyer_orien_id,
+            orn,
+            &expected_hash,
+            None,
+            1,
+        )?;
+        Ok((orien_swap::solana::text(&acct.seller), acct.fill_deadline))
+    })
+    .await
+    .map_err(|e| Failure::Broken(e.into()))?
+    .map_err(refused)?;
+
+    let filled = app
+        .store
+        .lock()
+        .unwrap()
+        .mark_funded_filled(id, seller, &seller_sol, &lock_from_clean, lock_seq, fill_deadline)
+        .map_err(refused)?;
+
+    // Kick off immediate auto-settlement in the background so seller is paid
+    // in ~1 minute without waiting for the next tick.
+    let app_bg = app.clone();
+    tokio::spawn(async move {
+        let app_inner = app_bg.clone();
+        let _ = tokio::task::spawn_blocking(move || {
+            let _ = crate::orders::settle_once(&app_inner);
+        })
+        .await;
+        price_finished_orders(&app_bg).await;
+    });
+
+    Ok(Json(json!({ "order": filled })).into_response())
+}
+
+async fn sync_funded_order(State(app): State<Arc<App>>, headers: HeaderMap, Path(id): Path<i64>) -> Answer {
+    let account = app.signed_in(&headers)?;
+    let Some(chain) = app.order_chain.clone() else {
+        return Err(Failure::Refused("Funded buy orders are not enabled on this server yet.".into()));
+    };
+    let order = app
+        .store
+        .lock()
+        .unwrap()
+        .funded_order(id)?
+        .ok_or_else(|| Failure::Refused("there is no such order".into()))?;
+    if order.buyer != account && order.seller != Some(account) {
+        return Err(Failure::Refused("that is not your order".into()));
+    }
+    let order_pk = orien_swap::solana::address(&order.order_pubkey).map_err(refused)?;
+    let (on_chain, chain_now) = tokio::task::spawn_blocking(move || -> anyhow::Result<_> {
+        Ok((chain.read_order(&order_pk)?, chain.now()?))
+    })
+    .await
+    .map_err(|e| Failure::Broken(e.into()))?
+    .map_err(refused)?;
+    if on_chain.is_none() && matches!(order.state.as_str(), "open" | "filled") {
+        let next = if order.orn_claimed {
+            app.store.lock().unwrap().mark_funded_done(id, None)?;
+            None
+        } else if chain_now >= order.expiry {
+            Some("expired")
+        } else {
+            Some("cancelled")
+        };
+        if let Some(status) = next {
+            app.store.lock().unwrap().close_funded_order(id, status)?;
+        }
+    }
+    let updated = app.store.lock().unwrap().funded_order(id)?;
+    Ok(Json(json!({ "order": updated })).into_response())
+}
+
 #[derive(Deserialize)]
 struct HistoryPage {
     before: Option<u64>,
 }
 
-/// What ORN actually traded for: finished swaps, newest first, 30 a page,
-/// with no names or addresses. `last` is the latest, the last price.
+/// What ORN actually traded for: finished swaps and funded buy orders,
+/// newest first, 30 a page, with no names or addresses. `last` is the latest.
 async fn swap_history(State(app): State<Arc<App>>, Query(page): Query<HistoryPage>) -> Answer {
     price_finished_swaps(&app).await;
+    price_finished_orders(&app).await;
     let store = app.store.lock().unwrap();
-    let swaps = store.swap_history(page.before, 31)?;
-    let more = swaps.len() > 30;
-    let swaps: Vec<_> = swaps.into_iter().take(30).collect();
-    let last = store.swap_history(None, 1)?.into_iter().next();
+    let mut combined = store.swap_history(page.before, 31)?;
+    combined.extend(store.funded_order_history(page.before, 31)?);
+    combined.sort_by_key(|v| std::cmp::Reverse(v["at"].as_u64().unwrap_or(0)));
+    let more = combined.len() > 30;
+    let swaps: Vec<_> = combined.into_iter().take(30).collect();
+    let mut latest = store.swap_history(None, 1)?;
+    latest.extend(store.funded_order_history(None, 1)?);
+    latest.sort_by_key(|v| std::cmp::Reverse(v["at"].as_u64().unwrap_or(0)));
+    let last = latest.into_iter().next();
     Ok(([(header::CACHE_CONTROL, "public, max-age=30")], Json(json!({ "last": last, "swaps": swaps, "more": more }))).into_response())
 }
 

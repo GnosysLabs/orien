@@ -638,6 +638,8 @@
   .swap-row { display: flex; justify-content: space-between; align-items: center; gap: 12px; width: 100%;
     padding: 14px 16px; border: 1px solid var(--line); border-radius: 16px; background: var(--surface);
     color: inherit; font: inherit; text-align: left; cursor: pointer; }
+  .swap-row-main { flex: 1; min-width: 0; padding: 0; border: 0; background: none; color: inherit; font: inherit; text-align: left; cursor: pointer; }
+  .swap-fiat { color: var(--dim); font-weight: 400; }
   .swap-row + .swap-row { margin-top: 8px; }
   .waiting-card { padding: 26px 20px 18px; border: 1px solid var(--line); border-radius: 22px; background: var(--surface); text-align: center; }
   .waiting-mark { display: grid; place-items: center; margin-bottom: 14px; }
@@ -665,7 +667,7 @@
   .pay-card .pay-by { margin-top: 6px; font-weight: 600; color: var(--warn, #f5b14c); }
   .pay-card .pay-qr { margin: 14px auto 0; width: 180px; height: 180px; padding: 8px; border-radius: 12px; background: #fff; }
   .pay-card .pay-qr svg { width: 100%; height: 100%; display: block; }
-  .pay-card .codebox { text-align: left; }
+  .pay-card .codebox { text-align: center; border: 0; background: none; padding: 6px 4px; font-size: 14.5px; color: var(--ink); letter-spacing: 0.01em; -webkit-user-select: all; user-select: all; }
   .pay-card .pay-copy { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
   .pay-card .codehelp { text-align: left; }
   .swap-row .finish { display: flex; gap: 8px; align-items: center; flex: none; }
@@ -1522,6 +1524,7 @@
   }
   .ex-cur-go { display: inline-flex; align-items: center; gap: 6px; margin-left: auto; }
   .ex-cur-menu { width: 240px; max-height: 60vh; overflow: auto; }
+  .ex-cur-menu .menu-row + .menu-row::before { display: none; }
   .ex-cur-menu .menu-row b { font-weight: 600; color: var(--dim); font-size: 12px; }
   .ex-cur-menu .menu-row.on { background: var(--surface-hover); }
   #swaps .ex-panel { border-radius: 22px; }
@@ -1540,19 +1543,28 @@
   #swaps .ob-act, #swaps .ob-act.ask-buy, #swaps .ob-act.bid-sell { height: 26px; min-width: 52px; font-size: 12px; }
   #swaps .ob-side-head { padding-top: 8px; padding-bottom: 4px; }
   #swaps .ob-act, #swaps .ob-act.ask-buy, #swaps .ob-act.bid-sell { height: 30px; min-width: 60px; border: 0; border-radius: 999px; background: var(--pearl); background-size: 300% 100%;
-    color: var(--pearl-ink); box-shadow: inset 0 1px 0 #ffffffb0, 0 3px 10px #00000033; }
+    color: var(--pearl-ink); box-shadow: inset 0 1px 0 #ffffffa0, 0 3px 9px rgba(var(--shade), var(--shade-a)); }
+  #swaps .ob-act:disabled { opacity: 0.32; cursor: default; box-shadow: none; pointer-events: none; }
+  html[data-base="dark"] body .update { box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.16), 0 3px 9px rgba(var(--shade), var(--shade-a)); }
+  html[data-base="dark"] body #swaps :is(.ob-act, .ob-act.ask-buy, .ob-act.bid-sell):not(:disabled) { box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.16), 0 3px 9px rgba(var(--shade), var(--shade-a)); }
+  html[data-base="dark"] body #swaps .ex-go { box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.16), 0 4px 12px rgba(var(--shade), var(--shade-a)); }
   /* Placing an order: a button in the header, the form a card over the page. */
-  .ex-order-go, .ex-order-x { display: none; }
+  .ex-order-go, .ex-order-x, .ex-veil { display: none; }
   .ex-cur { margin-left: 10px; flex: none; }
   @media (min-width: 860px) {
     body:not(.phone) .ex-order-go { display: inline-flex; margin-left: 10px; }
     body:not(.phone) #ex-pane-ticket { display: none; }
-    body:not(.phone).ex-order #ex-pane-ticket { display: flex; position: fixed; z-index: 62; top: 50%; left: 50%; transform: translate(-50%, -50%);
-      width: min(440px, 92vw); max-height: 88vh; overflow: auto; box-shadow: 0 24px 60px rgba(0, 0, 0, 0.5); }
+    body.ex-order:not(.phone) main { isolation: auto; }
+    body.ex-order:not(.phone) #swaps { -webkit-mask: none; mask: none; }
+    body:not(.phone).ex-order #ex-pane-ticket { display: flex; position: fixed; z-index: 51; inset: 0; margin: auto;
+      width: min(440px, calc(100vw - 48px)); height: fit-content; max-height: calc(100vh - 96px); overflow-y: auto;
+      border-radius: 24px; background: var(--surface); border: 1px solid var(--line);
+      box-shadow: 0 24px 60px rgba(0, 0, 0, 0.5), 0 2px 8px rgba(0, 0, 0, 0.25); animation: pop-in .2s cubic-bezier(.2, .9, .3, 1.2); }
     body:not(.phone).ex-order #ex-pane-ticket .ex-phead { position: relative; padding-right: 52px; }
     body:not(.phone) .ex-order-x { display: grid; place-items: center; position: absolute; top: 14px; right: 14px; width: 32px; height: 32px; padding: 0; border: 0; border-radius: 50%; background: var(--surface-hover); color: var(--dim); cursor: pointer; }
     body:not(.phone) .ex-order-x:hover { color: var(--ink); }
-    body.ex-order .ex-veil:not([hidden]) { position: fixed; inset: 0; z-index: 61; background: var(--veil); -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px); }
+    body.ex-order:not(.phone) #ex-veil:not([hidden]) { display: block; position: fixed; inset: 0; z-index: 50;
+      background: var(--veil); -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px); animation: pop-fade .18s ease; }
   }
   /* Inline Place Order Ticket */
   .ex-ticket-body { padding: 16px 18px 18px; display: flex; flex-direction: column; gap: 13px; }
@@ -1598,7 +1610,7 @@
   .ex-grid { display: flex; flex-direction: column; gap: 18px; }
   .ex-col { display: flex; flex-direction: column; gap: 18px; min-width: 0; }
   @media (min-width: 860px) {
-    body:not(.phone) #swaps { --col: 1080px; }
+    body:not(.phone) #swaps { --col: 1040px; }
     body:not(.phone) #swaps > .ex-mobile-tabs { display: none; }
     body:not(.phone) .ex-grid { display: grid; grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr); gap: 20px; align-items: start; }
     body:not(.phone) .ex-panel[data-ex-pane][hidden] { display: flex !important; }
@@ -1631,6 +1643,34 @@
   #swaps::-webkit-scrollbar, #swap-sell::-webkit-scrollbar, #swap-buy::-webkit-scrollbar, #swap-detail::-webkit-scrollbar { width: 0; }
   #swaps > *, #swap-sell > *, #swap-buy > *, #swap-detail > * { flex-shrink: 0; }
   #swaps .scroll { overflow: visible; flex: none; }
+  /* Buying / Selling ORN detail: narrow stays one column; wide windows match
+     the 1040px Exchange frame with two balanced cards side by side. */
+  .sd-grid, .sd-main, .sd-side, .sd-steps-card { display: contents; }
+  .sd-card-head { display: none; }
+  .sd-state-head { display: flex; align-items: center; gap: 9px; margin-bottom: 8px; font-size: 14px; font-weight: 600; color: var(--ink); }
+  .sd-state-head.ready { color: var(--good); }
+  .sd-state-head .spinner { width: 14px; height: 14px; margin: 0; flex: none; }
+  @media (min-width: 860px) {
+    body:not(.phone) #swap-detail { --col: 1040px; }
+    body:not(.phone) #swap-detail .sd-grid { display: grid; grid-template-columns: minmax(0, 1.12fr) minmax(0, 0.95fr); gap: 20px; align-items: start; }
+    body:not(.phone) #swap-detail .sd-main, body:not(.phone) #swap-detail .sd-side { display: flex; flex-direction: column; gap: 14px; min-width: 0; }
+    body:not(.phone) #swap-detail .sd-main > *, body:not(.phone) #swap-detail .sd-side > * { margin-top: 0; }
+    body:not(.phone) #swap-detail .review { border-radius: 22px; }
+    body:not(.phone) #swap-detail .pay-card { padding: 26px 28px 22px; border-radius: 22px; }
+    body:not(.phone) #swap-detail .pay-card .pay-amount { font-size: 32px; }
+    body:not(.phone) #swap-detail .pay-card .pay-qr { width: 196px; height: 196px; margin: 16px auto 14px; border-radius: 16px; }
+    body:not(.phone) #swap-detail .pay-card .codebox { font-size: 15px; padding: 6px 2px 10px; }
+    body:not(.phone) #swap-detail .pay-card .codehelp { text-align: center; max-width: 430px; margin: 12px auto 0; }
+    body:not(.phone) #swap-detail .swap-status { margin: 0; padding: 18px 20px; border: 1px solid var(--line); border-radius: 22px; background: var(--surface); font-size: 14.5px; line-height: 1.55; }
+    body:not(.phone) #swap-detail .sd-steps-card { display: block; padding: 16px 20px 4px; border: 1px solid var(--line); border-radius: 22px; background: var(--surface); }
+    body:not(.phone) #swap-detail .sd-card-head { display: block; margin-bottom: 14px; font-size: 12px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; color: var(--dim); }
+    body:not(.phone) #swap-detail .sd-steps-card .steps { margin: 0; }
+    body:not(.phone) #swap-detail .note { border-radius: 18px; padding: 14px 16px; }
+    body:not(.phone) #swap-detail #sd-cancel-order { width: 100%; }
+    body:not(.phone) #swap-detail .push { display: none; }
+    body:not(.phone) #swap-detail .fineprint { text-align: center; padding: 2px 4px 0; }
+  }
+  @media (max-width: 859px) { #swap-detail .fineprint { order: 99; } }
   /* A swap, step by step: done steps ticked, the one under way lit. */
   /* After posting an offer. */
   .posted-mark { width: 52px; height: 52px; margin: 0 auto 14px; border-radius: 50%; display: grid; place-items: center;
@@ -4176,7 +4216,7 @@
       <div class="topline">
         <button class="back" data-back aria-label="Back"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg></button>
         <h2>Exchange</h2>
-        <div class="ex-veil" id="ex-veil" hidden></div><button class="pill ex-cur-go" id="ex-cur" aria-haspopup="menu" title="Currency"><span id="ex-cur-name">USD</span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg></button><button class="pill pearl wl-add ex-order-go" id="ex-order-go"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="M12 5v14"/></svg>Place order</button>
+        <button class="pill ex-cur-go" id="ex-cur" aria-haspopup="menu" title="Currency"><span id="ex-cur-name">USD</span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg></button><button class="pill pearl wl-add ex-order-go" id="ex-order-go"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="M12 5v14"/></svg>Place order</button>
       </div>
 
       <!-- The price, as Home shows a balance: one big number in your currency. -->
@@ -4449,52 +4489,63 @@
         <button class="back" id="detail-back" aria-label="Back"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg></button>
         <h2 id="sd-title"></h2>
       </div>
-      <div class="review">
-        <div class="row"><span>ORN</span><span id="sd-orn"></span></div>
-        <div class="row"><span id="sd-coin-label">Bitcoin</span><span id="sd-btc"></span></div>
-        <div class="row" id="sd-other-row" hidden><span id="sd-other-label"></span><span id="sd-other"></span></div>
-      </div>
-      <div id="sd-pay" class="pay-card" hidden data-gap="lg">
-        <div class="pay-head">Pay exactly</div>
-        <div class="pay-amount"><span id="sd-pay-amount"></span> <span id="sd-pay-unit">BTC</span></div>
-        <div class="pay-by" id="sd-pay-by" hidden></div>
-        <div class="pay-qr" id="sd-pay-qr" hidden></div>
-        <div class="pay-head" data-gap="sm" id="sd-pay-to-head">to this Bitcoin address</div>
-        <div class="codebox" id="sd-pay-to"></div>
-        <div class="pay-copy" data-gap="sm">
-          <button class="secondary" id="sd-copy-pay">Copy address</button>
-          <button class="secondary" id="sd-copy-amount">Copy amount</button>
+      <div class="sd-grid">
+        <div class="sd-main" id="sd-main">
+          <div class="review" id="sd-review">
+            <div class="row"><span>ORN</span><span id="sd-orn"></span></div>
+            <div class="row"><span id="sd-coin-label">Bitcoin</span><span id="sd-btc"></span></div>
+            <div class="row" id="sd-other-row" hidden><span id="sd-other-label"></span><span id="sd-other"></span></div>
+          </div>
+          <div id="sd-pay" class="pay-card" hidden data-gap="lg">
+            <div class="pay-head">Pay exactly</div>
+            <div class="pay-amount"><span id="sd-pay-amount"></span> <span id="sd-pay-unit">BTC</span></div>
+            <div class="pay-by" id="sd-pay-by" hidden></div>
+            <div class="pay-qr" id="sd-pay-qr" hidden></div>
+            <div class="pay-head" data-gap="sm" id="sd-pay-to-head">to this Bitcoin address</div>
+            <div class="codebox" id="sd-pay-to"></div>
+            <div class="pay-copy" data-gap="sm">
+              <button class="secondary" id="sd-copy-pay">Copy address</button>
+              <button class="secondary" id="sd-copy-amount">Copy amount</button>
+            </div>
+            <p class="codehelp" data-gap="sm" id="sd-pay-help">From any Bitcoin wallet: scan the code, or copy the address and amount. This app sees the payment by itself; there is nothing else to send.</p>
+          </div>
+          <p class="swap-status" id="sd-status"></p>
+          <button class="primary pearl" id="sd-done-back" hidden data-gap="sm">Back to Exchange</button>
+          <!-- Passing codes between the two sides. A public swap board will do
+               this for both wallets later; it stays in this one piece so it can
+               be replaced. -->
+          <div id="sd-exchange">
+            <div id="sd-code" hidden data-gap="lg">
+              <div class="label" id="sd-code-label"></div>
+              <p class="codehelp" id="sd-code-help"></p>
+              <div class="codebox" id="sd-code-text"></div>
+              <button class="secondary" id="sd-copy-code" data-gap="sm">Copy code</button>
+            </div>
+            <div class="field" id="sd-reply-field" hidden data-gap="xl">
+              <label for="sd-reply">Then paste the buyer's reply code</label>
+              <p class="codehelp">Their Orien Wallet makes it once it has checked your offer. It tells this app where they'll pay the Bitcoin.</p>
+              <textarea id="sd-reply" class="tall" placeholder="orien-reply:…" spellcheck="false" autocomplete="off"></textarea>
+              <button class="primary pearl" id="sd-accept" data-gap="sm">Use the reply</button>
+            </div>
+          </div>
+          <div class="field" id="sd-pw-field" hidden data-gap="xl">
+            <label for="sd-pw">Wallet password, so this app can sign the next step</label>
+            <div class="box plain"><input id="sd-pw" type="password" autocomplete="current-password"></div>
+            <button class="primary pearl" id="sd-claim" data-gap="sm">Continue</button>
+          </div>
+          <div class="problem" id="detail-problem" hidden></div>
+          <p class="fineprint">While it's open, Orien Wallet does each of its steps for you as soon as it can.</p>
         </div>
-        <p class="codehelp" data-gap="sm" id="sd-pay-help">From any Bitcoin wallet: scan the code, or copy the address and amount. This app sees the payment by itself; there is nothing else to send.</p>
-      </div>
-      <ol class="steps" id="sd-steps"></ol>
-      <p class="swap-status" id="sd-status"></p>
-      <!-- Passing codes between the two sides. A public swap board will do
-           this for both wallets later; it stays in this one piece so it can
-           be replaced. -->
-      <div id="sd-exchange">
-        <div id="sd-code" hidden data-gap="lg">
-          <div class="label" id="sd-code-label"></div>
-          <p class="codehelp" id="sd-code-help"></p>
-          <div class="codebox" id="sd-code-text"></div>
-          <button class="secondary" id="sd-copy-code" data-gap="sm">Copy code</button>
-        </div>
-        <div class="field" id="sd-reply-field" hidden data-gap="xl">
-          <label for="sd-reply">Then paste the buyer's reply code</label>
-          <p class="codehelp">Their Orien Wallet makes it once it has checked your offer. It tells this app where they'll pay the Bitcoin.</p>
-          <textarea id="sd-reply" class="tall" placeholder="orien-reply:…" spellcheck="false" autocomplete="off"></textarea>
-          <button class="primary pearl" id="sd-accept" data-gap="sm">Use the reply</button>
+        <div class="sd-side" id="sd-side">
+          <div class="sd-steps-card">
+            <div class="sd-card-head">Progress</div>
+            <ol class="steps" id="sd-steps"></ol>
+          </div>
+          <div class="note" id="sd-gone" hidden></div>
+          <button class="secondary" id="sd-cancel-order" hidden data-gap="lg">Cancel buy order &amp; return SOL</button>
+          <div class="push"></div>
         </div>
       </div>
-      <div class="note" id="sd-gone" hidden></div>
-      <div class="field" id="sd-pw-field" hidden data-gap="xl">
-        <label for="sd-pw">Wallet password, so this app can sign the next step</label>
-        <div class="box plain"><input id="sd-pw" type="password" autocomplete="current-password"></div>
-        <button class="primary pearl" id="sd-claim" data-gap="sm">Continue</button>
-      </div>
-      <div class="push"></div>
-      <div class="problem" id="detail-problem" hidden></div>
-      <p class="fineprint">While it's open, Orien Wallet does each of its steps for you as soon as it can.</p>
     </section>
 
     <!-- Receive -->
@@ -4520,6 +4571,7 @@
   </main>
 
 <div id="pop-shade"></div>
+<div class="ex-veil" id="ex-veil" hidden></div>
 <div id="lock-veil" hidden><div class="lv-in"><div class="mark brand"></div><button class="primary pearl" id="lock-go">Unlock</button></div></div>
 <div id="si-veil" hidden><div id="si-card" role="dialog" aria-modal="true" aria-labelledby="si-title">
   <div id="si-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m10 17 5-5-5-5"/><path d="M15 12H3"/><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/></svg></div>
@@ -4935,7 +4987,10 @@
     fitPanel();
     if (id === "community" && typeof cmFitRail === "function") cmFitRail();
     // A big window shows recent swaps beside the offers: fetched as it opens.
-    if (id === "swaps" && !phone && matchMedia("(min-width: 860px)").matches && typeof loadHistory === "function") loadHistory(false);
+    if (id === "swaps" || (pop && under === "swaps")) {
+      if (typeof loadBoard === "function") loadBoard();
+      if (!phone && matchMedia("(min-width: 860px)").matches && typeof loadHistory === "function") loadHistory(false);
+    }
     document.body.classList.toggle("at-home", id === "home");
     if (id === "seller" && typeof slFitEdges === "function") slFitEdges();
     if (both) { $("chat").classList.toggle("none", !(chat.id || chat.direct)); paintInbox(); }
@@ -8142,6 +8197,7 @@
   // ---- Swaps ----
   let swapList = [];
   let solList = [];        // the SOL swaps, kept apart: the list call has only Bitcoin ones
+  let orderList = [];      // funded SOL buy orders & fills (orien-order)
   let current = null;       // the swap shown in detail
   let stepping = false;
   // About when something happens, in the reader's own time.
@@ -8157,6 +8213,27 @@
   // takes. `at` is the step under way; steps before it are done.
   function swapSteps(s) {
     const O = `${s.orn} ORN`, B = cost(s);
+    // Funded buy orders (orien-order): neither side needs to stay online.
+    if (s.funded_order && s.role === "buy") {
+      const steps = [
+        { name: "Send SOL", what: `Send ${s.pay_amount ? s.pay_amount + " SOL" : B} from your SOL wallet`, who: "You · stay on this page until Step 2 finishes" },
+        { name: "Post order", what: `Locking your ${B} on Solana and adding your order to the book`, who: "Automatic · keep this page open (~20 seconds)" },
+        { name: "Live on book", what: `Waiting on the order book for a seller to fill ${O}`, who: "Safe to leave this page or close Orien Wallet" },
+        { name: "Done", what: `${O} delivered to your wallet`, who: s.stage === "settling" ? "Automatic · about a minute" : "" },
+      ];
+      const at = { pay: 0, locking: 1, cancelling: 1, open: 2, settling: 3, done: 4 }[s.stage];
+      return { steps, at: at ?? null };
+    }
+    if (s.funded_order && s.role === "sell") {
+      const steps = [
+        { name: "Reserve SOL", what: `Locking the buyer's ${B} on Solana for your address`, who: "Automatic · keep this page open (~15 seconds)" },
+        { name: "Lock ORN", what: `Locking your ${O} on Orien`, who: "Automatic · keep this page open" },
+        { name: "Settling", what: `Sending ${B} to your SOL wallet`, who: "Safe to leave · arrives in about a minute" },
+        { name: "Done", what: `${B} in your SOL wallet`, who: "" },
+      ];
+      const at = { reserving: 0, locking: 1, settling: 2, done: 4 }[s.stage];
+      return { steps, at: at ?? null };
+    }
     // SOL swaps: four plain steps, each a minute or so.
     if (s.coin === "sol" && s.role === "sell") {
       const steps = [
@@ -8233,8 +8310,8 @@
   // under way, quietly. One card, the most pressing thing first.
   function swapAlert() {
     const pay = swapList.find(needsMe);
-    if (pay) return { urgent: true, title: `Your swap was accepted: pay ${payText(pay)} now`,
-      sub: pay.pay_by ? payDeadline(pay.pay_by) + ` · you get ${pay.orn} ORN` : `You get ${pay.orn} ORN`, go: "Pay", open: () => openSwap(pay.id) };
+    if (pay) return { urgent: true, title: pay.funded_order ? `Fund your buy order: send ${payText(pay)}` : `Your swap was accepted: pay ${payText(pay)} now`,
+      sub: pay.funded_order ? `Locks your SOL on Solana to buy ${pay.orn} ORN` : pay.pay_by ? payDeadline(pay.pay_by) + ` · you get ${pay.orn} ORN` : `You get ${pay.orn} ORN`, go: "Pay", open: () => openSwap(pay.id) };
     const unlock = board.waiting.find((x) => x.selling && x.needs_unlock);
     if (unlock) return { urgent: true, title: `${(unlock.offer.side === "buy" ? unlock.offer.seller_name : unlock.taker_name) || "Someone"} ${unlock.offer.side === "buy" ? "is buying from you" : "took your offer"}`,
       sub: `Use ${unlock.unlock_biometric ? bio : "your password"} to lock your ${fmtOrn(unlock.offer.orn)} ORN and finish the swap`,
@@ -8244,7 +8321,7 @@
       sub: `Your turn: confirm with ${view && view.biometric ? bio : "your wallet password"} so this app can finish it`, go: "Approve", open: () => openSwap(password.id) };
     const taken = board.waiting.find((x) => x.selling && x.offer.state === "held" && x.here && !x.elsewhere);
     if (taken) return { title: taken.offer.side === "buy" ? `Selling to ${taken.offer.seller_name || "a buyer"}` : `${taken.taker_name || "Someone"} took your offer`, sub: "Locking your ORN for them", go: "View", open: openSwaps };
-    const going = swapList.find((x) => !x.finished && !["done", "cancelled"].includes(x.stage));
+    const going = swapList.find((x) => !x.finished && !["done", "cancelled", "open"].includes(x.stage));
     if (going) return { title: `Swap in progress: ${going.role === "sell" ? "selling" : "buying"} ${going.orn} ORN`, sub: stageLine(going), go: "View", open: () => openSwap(going.id) };
     return null;
   }
@@ -8319,6 +8396,17 @@
 
   // What happens if the other side disappears, at this point of the swap.
   function ifGone(s) {
+    if (s.funded_order) {
+      if (s.role === "buy" && s.stage === "pay")
+        return "<strong>The extra over the price</strong> covers Solana's small rent and fees; nearly all of it returns to your SOL wallet automatically. <strong>Changed your mind?</strong> Cancel below before sending. Nothing has left your wallet.";
+      if (s.role === "buy" && s.stage === "locking")
+        return "<strong>Stay on this page for a moment:</strong> Orien Wallet is locking your SOL on Solana and registering your order on the book. Step 2 will show a checkmark as soon as you can leave.";
+      if (s.role === "buy" && s.stage === "open")
+        return "<strong>Safe to leave or close Orien Wallet.</strong> Your SOL stays locked safely on Solana until a seller fills it, you cancel in one click, or it expires after 7 days and refunds automatically.";
+      if (s.role === "sell" && !["done", "cancelled"].includes(s.stage))
+        return "<strong>Your ORN stay safe:</strong> this app verifies the buyer's SOL is reserved for your address on Solana before locking your ORN, then both sides settle in about a minute.";
+      return null;
+    }
     if (s.coin === "sol") {
       if (s.role === "buy" && s.stage === "pay")
         return "<strong>The extra over the price</strong> covers Solana's small fees; nearly all of it comes back to your SOL wallet when the swap ends. <strong>If you change your mind,</strong> just don't send: nothing has left your wallets.";
@@ -8353,6 +8441,15 @@
   function stageLine(s) {
     if (s.stage === "done") return "Done";
     if (s.stage === "cancelled") return "Stopped";
+    if (s.funded_order) {
+      if (s.role === "buy" && s.stage === "pay") return `Your turn: send ${payText(s)} to fund`;
+      if (s.role === "buy" && s.stage === "open") return "Live on order book · settles automatically";
+      if (s.role === "buy" && s.stage === "cancelling") return "Cancelling · returning SOL";
+      if (s.role === "buy" && s.stage === "settling") return "Filled · settling (~1 min)";
+      if (s.role === "sell" && s.stage === "reserving") return "Reserving buyer's SOL";
+      if (s.role === "sell" && s.stage === "locking") return "Locking your ORN";
+      if (s.role === "sell" && s.stage === "settling") return "ORN locked · SOL arriving (~1 min)";
+    }
     if (s.stage === "refunding") return "Taking your Bitcoin back";
     if (needsMe(s)) return `Your turn: pay ${payText(s)} now`;
     if (s.problem && s.problem.startsWith("password:")) return `Your turn: approve with ${view && view.biometric ? bio : "your password"} to finish`;
@@ -8542,8 +8639,8 @@
       : '<div class="empty">No swaps completed yet. The next swap sets the price.</div>';
     $("hist-more").hidden = !hist.more;
     renderExChart();
-    if (board.offers) renderOffers();
-    renderExTicker();
+    if (board.loaded) renderOffers();
+    else renderExTicker();
   }
   async function loadHistory(more) {
     $("hist-problem").hidden = true;
@@ -8569,15 +8666,36 @@
     if ($("ex-mine-count")) $("ex-mine-count").textContent = open ? `(${open})` : "";
     if (!swapList.length && !board.waiting.length) { list.innerHTML = '<div class="empty">No swaps yet</div>'; return; }
     // Under way first, then finished ones: two groups.
+    const fiatForSol = (sol) => {
+      if (!(sol > 0)) return "";
+      const cur = exCur() === "sol" ? "usd" : exCur();
+      const rate = (board.solRates || {})[cur] || (cur === "usd" ? board.solUsd : null);
+      if (rate) return ` ≈ ${exMoney(sol * rate, cur)}`;
+      if (board.solUsd) return ` ≈ ${exMoney(sol * board.solUsd, "usd")}`;
+      return "";
+    };
+    const approxSwapPlain = (s) => s.coin === "sol"
+      ? fiatForSol(parseFloat(s.sol) || 0)
+      : (board.usd && parseFloat(s.btc) > 0 ? ` ≈ ${fmtUsd(parseFloat(s.btc) * board.usd)}` : "");
+    const approxSwap = (s) => { const f = approxSwapPlain(s); return f ? `<span class="swap-fiat">${esc(f)}</span>` : ""; };
+    const approxOffer = (o) => {
+      const f = o.coin === "sol" ? fiatForSol((o.lamports || 0) / 1e9) : (board.usd && o.sats > 0 ? ` ≈ ${fmtUsd((o.sats / 1e8) * board.usd)}` : "");
+      return f ? `<span class="swap-fiat">${esc(f)}</span>` : "";
+    };
     const live = (x) => !["done", "cancelled"].includes(x.stage);
-    const row = (s) => `<button class="swap-row" data-swap="${esc(s.id)}">
-      <div><div>${s.role === "sell" ? "Sell" : "Buy"} ${esc(s.orn)} ORN for ${esc(cost(s))}</div>
+    const row = (s) => s.funded_order && s.can_cancel
+      ? `<div class="swap-row"><button class="swap-row-main" data-swap="${esc(s.id)}">
+          <div><div>${s.role === "sell" ? "Sell" : "Buy"} ${esc(s.orn)} ORN for ${esc(cost(s))}${approxSwap(s)}</div>
+          <div class="sub">${esc(stageLine(s))}</div></div></button>
+          <button class="linkish" data-cancel-order="${esc(s.id)}">Cancel</button></div>`
+      : `<button class="swap-row" data-swap="${esc(s.id)}">
+      <div><div>${s.role === "sell" ? "Sell" : "Buy"} ${esc(s.orn)} ORN for ${esc(cost(s))}${approxSwap(s)}</div>
       <div class="sub">${esc(stageLine(s))}</div></div></button>`;
     // Newest first in each group.
     const newest = (a, b) => (b.created || 0) - (a.created || 0);
     const going = swapList.filter(live).sort(newest), finished = swapList.filter((x) => !live(x)).sort(newest);
     const openHtml = board.waiting.map((item) => `<div class="swap-row">
-      <div><div>${item.selling ? "Sell" : "Buy"} ${esc(fmtOrn(item.offer.orn))} ORN for ${esc(offerPrice(item.offer))}</div>
+      <div><div>${item.selling ? "Sell" : "Buy"} ${esc(fmtOrn(item.offer.orn))} ORN for ${esc(offerPrice(item.offer))}${approxOffer(item.offer)}</div>
       <div class="sub${item.short_of_orn ? " bad" : ""}">${esc(item.short_of_orn
         ? `Not enough ORN in ${(walletList.find((w) => w.address === item.wallet) || {}).name || short(item.wallet || "")}: hidden from buyers until it holds ${fmtOrn(item.offer.orn)} ORN again.`
         : waitingLine(item))}</div></div>
@@ -8589,13 +8707,29 @@
     list.innerHTML = (openHtml ? `<div class="swap-group">Open</div>${openHtml}` : "")
       + (finished.length ? `<div class="swap-group">Finished</div>${finished.map(row).join("")}` : "");
     for (const b of list.querySelectorAll("[data-swap]")) b.onclick = () => openSwap(b.dataset.swap);
+    for (const b of list.querySelectorAll("[data-cancel-order]")) b.onclick = (e) => { e.stopPropagation(); cancelBuyOrder(b.dataset.cancelOrder); };
     for (const b of list.querySelectorAll("[data-finish]")) b.onclick = () => finishTaken(Number(b.dataset.finish));
     for (const box of list.querySelectorAll("[data-finish-pw]")) box.onkeydown = (e) => { if (e.key === "Enter") finishTaken(Number(box.dataset.finishPw)); };
     for (const b of list.querySelectorAll("[data-withdraw]")) b.onclick = () => withdraw(Number(b.dataset.withdraw));
   }
 
+  async function cancelBuyOrder(id) {
+    try {
+      await invoke("order_cancel_buy", { id });
+      await stepSwaps();
+      await loadBoard();
+    } catch (e) {
+      if (!$("swap-detail").hidden) problem("detail-problem", e);
+      else problem("board-problem", e);
+    }
+  }
+  $("sd-cancel-order").onclick = () => current && cancelBuyOrder(current);
+
   async function loadSwaps() {
-    try { swapList = (await invoke("swap_list")).concat(solList); } catch { swapList = solList.slice(); }
+    let btc = [];
+    try { btc = await invoke("swap_list"); } catch {}
+    try { orderList = await invoke("order_list"); } catch {}
+    swapList = btc.concat(solList, orderList);
     renderSwaps();
   }
 
@@ -8624,7 +8758,12 @@
     if (!s) return;
     $("sd-title").textContent = s.role === "sell" ? "Selling ORN" : "Buying ORN";
     $("sd-orn").textContent = s.orn + " ORN";
-    $("sd-btc").textContent = cost(s);
+    const sdCur = exCur() === "sol" ? "usd" : exCur();
+    const sdRate = (board.solRates || {})[sdCur] || (sdCur === "usd" ? board.solUsd : null);
+    const sdFiat = s.coin === "sol"
+      ? (parseFloat(s.sol) > 0 && (sdRate || board.solUsd) ? ` ≈ ${exMoney(parseFloat(s.sol) * (sdRate || board.solUsd), sdRate ? sdCur : "usd")}` : "")
+      : (parseFloat(s.btc) > 0 && board.usd ? ` ≈ ${fmtUsd(parseFloat(s.btc) * board.usd)}` : "");
+    $("sd-btc").textContent = cost(s) + sdFiat;
     $("sd-coin-label").textContent = coinName(s);
     $("sd-other-row").hidden = !s.other;
     $("sd-other-label").textContent = s.role === "sell" ? "Buyer" : "Seller";
@@ -8646,7 +8785,22 @@
       return `<li class="s-${state}"><span class="dot">${dot}</span>
         <div class="what">${step.name ? `<strong>${esc(step.name)}</strong> · ` : ""}${esc(step.what)}${step.who ? `<div class="who">${esc(step.who)}</div>` : ""}</div></li>`;
     }).join("");
-    $("sd-status").textContent = s.status;
+    if (s.funded_order) {
+      const busy = ["locking", "cancelling", "reserving"].includes(s.stage);
+      const safeLeave = ["open", "done", "cancelled"].includes(s.stage) || (s.role === "sell" && s.stage === "settling");
+      const head = busy
+        ? `<div class="sd-state-head"><span class="spinner"></span><span>Working, keep this page open</span></div>`
+        : s.stage === "open"
+          ? `<div class="sd-state-head ready"><span>✓ Live on the order book (safe to leave)</span></div>`
+          : s.stage === "done"
+            ? `<div class="sd-state-head ready"><span>✓ Complete</span></div>`
+            : "";
+      $("sd-status").innerHTML = head + esc(s.status);
+      $("sd-done-back").hidden = !safeLeave;
+    } else {
+      $("sd-status").textContent = s.status;
+      $("sd-done-back").hidden = true;
+    }
     // With the pay box showing, it says everything; no second telling.
     $("sd-status").hidden = needsMe(s);
     renderExchange(s);
@@ -8680,14 +8834,22 @@
       $("sd-claim").dataset.shownFor = String(s.id);
       setTimeout(() => $("sd-claim").scrollIntoView({ behavior: "smooth", block: "nearest" }), 50);
     }
+    $("sd-cancel-order").hidden = !(s.funded_order && s.can_cancel);
+    $("sd-cancel-order").textContent = s.stage === "pay" ? "Cancel buy order" : "Cancel buy order & return SOL";
     if (s.problem && !needsPassword) problem("detail-problem", s.problem); else $("detail-problem").hidden = true;
+    const wide = !phone && window.innerWidth >= 860;
+    const revHome = (!$("sd-pay").hidden && wide) ? $("sd-side") : $("sd-main");
+    if ($("sd-review").parentNode !== revHome) revHome.prepend($("sd-review"));
   }
+
+  window.addEventListener("resize", () => { if (!$("swap-detail").hidden) renderDetail(); });
 
   // Passing codes between the two sides: the seller's offer, the buyer's
   // reply. A public swap board will pass them for both wallets later.
   function renderExchange(s) {
-    $("sd-exchange").hidden = !!s.board;
     const code = s.role === "sell" ? (s.stage === "reply" ? s.offer : null) : (s.stage === "bitcoin" ? s.reply : null);
+    const needReply = s.role === "sell" && s.stage === "reply";
+    $("sd-exchange").hidden = !!s.board || (!code && !needReply);
     $("sd-code").hidden = !code;
     if (code) {
       $("sd-code-label").textContent = s.role === "sell" ? "Send the buyer this offer code" : "Send the seller this reply code";
@@ -8696,7 +8858,7 @@
         : "By any message app or email. It tells the seller's Orien Wallet where you're paying the Bitcoin, and holds nothing secret.";
       $("sd-code-text").textContent = code;
     }
-    $("sd-reply-field").hidden = !(s.role === "sell" && s.stage === "reply");
+    $("sd-reply-field").hidden = !needReply;
   }
 
   async function stepSwaps(password) {
@@ -8705,7 +8867,8 @@
     try {
       const stepped = await invoke("swap_step", { password: password || null });
       solList = stepped.sol_swaps || [];
-      swapList = stepped.swaps.concat(solList);
+      orderList = stepped.funded_orders || [];
+      swapList = stepped.swaps.concat(solList, orderList);
       board.waiting = stepped.waiting || [];
       // An offer taken down because the wallet no longer holds its ORN.
       for (const w of stepped.withdrawn || []) tell(`Your swap offer of ${w.orn} ORN was withdrawn: the wallet no longer holds enough ORN. Nothing was paid.`, "swaps");
@@ -8722,7 +8885,19 @@
   }
 
   // ---- The swap board ----
-  const board = { me: null, offers: [], usd: null, waiting: [], taking: null, signin: "email" };
+  const boardCache = (() => { try { return JSON.parse(localStorage.getItem("ex-board-cache") || "null"); } catch { return null; } })();
+  const board = {
+    me: null,
+    offers: (boardCache && boardCache.offers) || [],
+    usd: boardCache && boardCache.usd,
+    solUsd: boardCache && boardCache.solUsd,
+    solRates: (boardCache && boardCache.solRates) || {},
+    maxOrderLamports: (boardCache && boardCache.maxOrderLamports) || 10e9,
+    loaded: !!(boardCache && boardCache.offers),
+    waiting: [],
+    taking: null,
+    signin: "email",
+  };
   const fmtOrn = (units) => (units / 1e9).toLocaleString(undefined, { maximumFractionDigits: 9 });
   const fmtBtc = (sats) => (sats / 1e8).toFixed(8).replace(/0+$/, "").replace(/\.$/, "");
   // Under a cent, two meaningful digits: $0.00079, not $0.00.
@@ -8838,7 +9013,7 @@
     $("board-btc").textContent = board.solUsd ? `1 SOL ≈ ${fmtUsd(board.solUsd)}` : "";
     const unitOf = (o) => (o.lamports / 1e9) / (o.orn / 1e9);
     const refUsd = board.solUsd;
-    // Your own offers live under Your swaps, where you can withdraw them.
+    // Your own offers live under Your orders & swaps, where you can withdraw or cancel them.
     const all = board.offers.filter((o) => o.coin === "sol" && !(board.me && o.seller === board.me.id));
     const sellAll = all.filter((o) => o.side !== "buy");
     const buyAll = all.filter((o) => o.side === "buy");
@@ -8858,9 +9033,9 @@
           <div class="ob-price">${esc(exUsd() ? exPx(unit) : fmtBookUnit(unit))}</div>
           <div class="ob-meta"${usdTxt ? ` title="${esc(usdTxt)} per ORN"` : ""}><b data-user="${esc(o.seller_name || "")}">${esc(o.seller_name)}</b></div>
         </div>
-        <div class="ob-num">${esc(fmtOrn(o.orn))}</div>
+        <div class="ob-num">${esc(fmtOrn(o.orn))} ORN</div>
         <div class="ob-num dim">${esc(exUsd() ? exPx(o.lamports / 1e9) : fmtBookTotal(o))}</div>
-        <button class="ob-act ${isBuy ? "bid-sell" : "ask-buy"}" data-take="${o.id}">${isBuy ? "Sell" : "Buy"}</button>
+        <button class="ob-act ${isBuy ? "bid-sell" : "ask-buy"}" data-take="${o.id}" data-funded="${o.funded ? "1" : ""}">${isBuy ? "Sell" : "Buy"}</button>
       </div>`;
     };
     const bestAsk = asksAsc[0], bestBid = bidsDesc[0];
@@ -8890,7 +9065,7 @@
     const cols = list.querySelector(".ob-cols"), was = list.parentNode.querySelector(":scope > .ob-cols");
     if (was) was.remove();
     if (cols) list.parentNode.insertBefore(cols, list);
-    for (const b of list.querySelectorAll("[data-take]")) b.onclick = () => startTake(Number(b.dataset.take));
+    for (const b of list.querySelectorAll("[data-take]")) b.onclick = () => startTake(Number(b.dataset.take), b.dataset.funded === "1");
     for (const u of list.querySelectorAll("[data-user]")) u.onclick = () => u.dataset.user && openPerson(u.dataset.user, "swaps");
   }
 
@@ -8910,9 +9085,13 @@
     const bar = $("ex-rate-bar");
     const val = $("ex-rate-val");
     const tooLow = sol > 0 && sol < 0.01;
-    bar.classList.toggle("warn", tooLow);
+    const maxSol = (board.maxOrderLamports || 10e9) / 1e9;
+    const tooHigh = exSide === "buy" && sol > maxSol;
+    bar.classList.toggle("warn", tooLow || tooHigh);
     if (tooLow) {
       val.textContent = "Minimum order is 0.01 SOL";
+    } else if (tooHigh) {
+      val.textContent = `Buy orders are limited to ${maxSol} SOL per order`;
     } else if (orn > 0 && sol > 0) {
       const unit = sol / orn;
       const usdEach = board.solUsd ? ` (${fmtUsd(unit * board.solUsd)})` : "";
@@ -8939,7 +9118,8 @@
     const orn = parseFloat($("ex-orn").value);
     const sol = parseFloat($("ex-sol").value);
     const needVer = !buy && exUnverified;
-    const ok = !needVer && orn > 0 && sol >= 0.01 && exAddrOk()
+    const maxSol = (board.maxOrderLamports || 10e9) / 1e9;
+    const ok = !needVer && orn > 0 && sol >= 0.01 && (!buy || sol <= maxSol) && exAddrOk()
       && ($("ex-pw-field").hidden || $("ex-pw").value.length > 0);
     go.disabled = !ok;
   }
@@ -8954,7 +9134,7 @@
     $("ex-addr-label").textContent = buy ? "Your SOL wallet (for refunds & leftovers)" : "Your SOL payout address";
     $("ex-addr").placeholder = buy ? "Your Phantom / SOL wallet address" : "Where your SOL should go (e.g. Phantom)";
     $("ex-note").textContent = buy
-      ? "Nothing leaves your SOL wallet until a seller locks the ORN and you pay the QR code. Keep Orien Wallet running so sellers can match your order."
+      ? "Fund your buy order with a quick SOL QR payment. Once funded, it stays live even with Orien Wallet closed, and you can cancel anytime in one click."
       : "Your wallet locks the ORN automatically when someone buys your offer. Keep Orien Wallet running in the menu bar or tray.";
     $("ex-verify").hidden = buy || !exUnverified;
     $("ex-bal").textContent = !buy && view && view.spendable ? `Avail: ${view.spendable}` : "";
@@ -9012,7 +9192,14 @@
       const password = $("ex-pw-field").hidden ? null : $("ex-pw").value;
       const buy = exSide === "buy";
       if (buy) {
-        await invoke("board_post_buy_sol", { orn: $("ex-orn").value, sol: $("ex-sol").value, refund: $("ex-addr").value, password });
+        const orderId = await invoke("order_create_buy", { orn: $("ex-orn").value, sol: $("ex-sol").value, refund: $("ex-addr").value, password });
+        $("ex-pw").value = "";
+        $("ex-orn").value = $("ex-sol").value = "";
+        exOrder(false);
+        await loadSwaps();
+        openSwap(orderId);
+        stepSwaps();
+        return;
       } else {
         await invoke("board_post_sol", { orn: $("ex-orn").value, sol: $("ex-sol").value, payout: $("ex-addr").value, password });
       }
@@ -9043,21 +9230,43 @@
   };
 
   let boardBase = "https://orien.network";
+  let boardLoading = null;
   async function loadBoard() {
-    try { board.me = await invoke("board_me"); } catch { board.me = null; }
-    renderBoardBar();
-    try {
-      const answer = await invoke("board_offers");
-      board.offers = answer.offers || [];
-      board.usd = answer.bitcoin && answer.bitcoin.usd;
-      board.solUsd = answer.solana && answer.solana.usd;
-      board.solRates = (answer.solana && typeof answer.solana === "object") ? answer.solana : {};
-      if (answer.base) boardBase = answer.base;
-      $("board-problem").hidden = true;
-    } catch (e) { board.offers = []; problem("board-problem", e); }
-    renderOffers();
-    syncExTicket();
-    checkExWallet();
+    if (boardLoading) return boardLoading;
+    if (board.loaded) renderOffers();
+    boardLoading = (async () => {
+      const [meRes, offRes] = await Promise.allSettled([invoke("board_me"), invoke("board_offers")]);
+      if (meRes.status === "fulfilled") board.me = meRes.value;
+      renderBoardBar();
+      if (offRes.status === "fulfilled") {
+        const answer = offRes.value;
+        board.offers = answer.offers || [];
+        board.usd = answer.bitcoin && answer.bitcoin.usd;
+        board.solUsd = answer.solana && answer.solana.usd;
+        board.solRates = (answer.solana && typeof answer.solana === "object") ? answer.solana : {};
+        board.maxOrderLamports = answer.max_order_lamports || 10e9;
+        board.loaded = true;
+        if (answer.base) boardBase = answer.base;
+        $("board-problem").hidden = true;
+        try {
+          localStorage.setItem("ex-board-cache", JSON.stringify({
+            offers: board.offers,
+            usd: board.usd,
+            solUsd: board.solUsd,
+            solRates: board.solRates,
+            maxOrderLamports: board.maxOrderLamports,
+          }));
+        } catch {}
+      } else {
+        if (!board.loaded) board.offers = [];
+        problem("board-problem", offRes.reason);
+      }
+      renderOffers();
+      renderSwaps();
+      syncExTicket();
+      checkExWallet();
+    })().finally(() => { boardLoading = null; });
+    return boardLoading;
   }
 
   // Taking and posting need only signing in: a buyer's ORN are locked for
@@ -9067,8 +9276,8 @@
     return true;
   }
 
-  function startTake(id) {
-    const o = board.offers.find((x) => x.id === id);
+  function startTake(id, isFunded) {
+    const o = board.offers.find((x) => x.id === id && Boolean(x.funded) === Boolean(isFunded));
     if (!o) return;
     board.taking = o;
     if (!ready()) return;
@@ -9080,7 +9289,13 @@
     $("bt-other-label").textContent = isBuy ? "Buyer" : "Seller";
     $("bt-orn").textContent = fmtOrn(o.orn) + " ORN";
     $("bt-btc").textContent = offerPrice(o) + offerValue(o).total;
-    if (isBuy) {
+    if (isBuy && o.funded) {
+      $("bt-what").innerHTML = "<strong>What happens:</strong> the buyer's SOL is already locked on Solana. Your wallet reserves it, locks your ORN, and both sides settle automatically in about a minute without waiting on the buyer.";
+      $("bt-need").innerHTML = "<strong>You need</strong> the ORN in this wallet, plus the usual Orien fee (0.1%, at most 1 ORN). You don't need any SOL.";
+      $("bt-ifnot").innerHTML = "<strong>Built-in safety:</strong> your wallet never locks your ORN until the buyer's SOL is reserved for your address on Solana.";
+      $("bt-refund-label").textContent = "Your SOL address";
+      $("bt-refund").placeholder = "Where your SOL should go, such as your Phantom wallet";
+    } else if (isBuy) {
       $("bt-what").innerHTML = sol
         ? "<strong>What happens:</strong> your wallet locks your ORN for the buyer within seconds. Their wallet then prompts them to send the SOL, and your wallet collects it and delivers their ORN automatically, usually within a minute."
         : "<strong>What happens:</strong> your wallet locks your ORN for the buyer within seconds. Their wallet then sends the Bitcoin, and once it confirms, your wallet collects it and delivers their ORN automatically.";
@@ -9153,7 +9368,26 @@
       const isBuy = taken.side === "buy";
       if (view && view.biometric) await invoke("biometric_unlock");
       const password = $("bt-pw-field").hidden ? null : $("bt-pw").value;
-      if (isBuy) {
+      if (isBuy && taken.funded) {
+        const fillId = await invoke("order_fill_buy", {
+          serverId: taken.id,
+          orderPubkey: taken.order_pubkey,
+          orn: taken.orn,
+          lamports: taken.lamports,
+          hash: taken.hash,
+          buyerOrien: taken.buyer_orien,
+          buyerName: taken.seller_name || null,
+          payout: $("bt-refund").value,
+          password,
+        });
+        $("bt-pw").value = "";
+        board.taking = null;
+        await loadSwaps();
+        openSwap(fillId);
+        loadBoard();
+        stepSwaps();
+        return;
+      } else if (isBuy) {
         await invoke(taken.coin === "sol" ? "board_take_buy_sol" : "board_take_buy", { offer: taken.id, payout: $("bt-refund").value, orn: plainOrn(taken.orn), password });
       } else {
         await invoke(taken.coin === "sol" ? "board_take_sol" : "board_take", { offer: taken.id, refund: $("bt-refund").value, orn: plainOrn(taken.orn), password });
@@ -9386,7 +9620,15 @@
       const password = $("bp-pw-field").hidden ? null : $("bp-pw").value;
       const buy = postSide === "buy";
       if (buy) {
-        if (postCoin === "sol") await invoke("board_post_buy_sol", { orn: $("bp-orn").value, sol: $("bp-btc").value, refund: $("bp-payout").value, password });
+        if (postCoin === "sol") {
+          const orderId = await invoke("order_create_buy", { orn: $("bp-orn").value, sol: $("bp-btc").value, refund: $("bp-payout").value, password });
+          $("bp-pw").value = "";
+          $("bp-orn").value = $("bp-btc").value = "";
+          await loadSwaps();
+          openSwap(orderId);
+          stepSwaps();
+          return;
+        }
         else await invoke("board_post_buy", { orn: $("bp-orn").value, btc: $("bp-btc").value, refund: $("bp-payout").value, password });
       } else {
         if (postCoin === "sol") await invoke("board_post_sol", { orn: $("bp-orn").value, sol: $("bp-btc").value, payout: $("bp-payout").value, password });
@@ -11476,6 +11718,7 @@
     const c = $(b.dataset.cur === "sol" ? "ex-chart-sol" : "ex-chart-usd");
     if (c && !c.classList.contains("on")) c.click();
     renderOffers();
+    renderSwaps();
   };
   document.addEventListener("click", (e) => { if (!$("ex-cur-menu").hidden && !e.target.closest("#ex-cur-menu, #ex-cur")) $("ex-cur-menu").hidden = true; }, true);
   exCurPaint();
@@ -12670,7 +12913,14 @@
 
   $("go-get").onclick = () => show("get");
   $("go-swap").onclick = async () => { show("swaps"); await loadSwaps(); await loadWallets(); loadBoard(); stepSwaps(); };
-  $("detail-back").onclick = async () => { show("swaps"); await loadSwaps(); };
+  $("detail-back").onclick = async () => { show("swaps"); await loadSwaps(); loadBoard(); };
+  $("sd-done-back").onclick = () => $("detail-back").click();
+  // Fast 3-second polling while watching an active swap or order in detail.
+  setInterval(() => {
+    if ($("swap-detail").hidden || !current) return;
+    const s = swapList.find((x) => x.id === current);
+    if (s && !["done", "cancelled", "open"].includes(s.stage)) stepSwaps();
+  }, 3000);
   // The smallest swap Bitcoin's fees allow right now, on the sell and buy
   // screens; nothing is shown if the explorers can't be reached.
   async function showSmallest() {
@@ -12731,6 +12981,7 @@
     else invoke("board_me").then((me) => { if (me && !board.me) { board.me = me; renderBoardBar(); } }).catch(() => {});
   }, 15000);
   loadSwaps();
+  setTimeout(loadBoard, 0);
 
   // ---- Explorer: the network, live, as on explorer.orien.network ----
   // One screen moving between the overview, a checkpoint, an address and

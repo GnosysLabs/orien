@@ -27,6 +27,7 @@ mod large_pages;
 #[cfg(desktop)]
 mod mining;
 mod money;
+mod orders;
 mod pair;
 #[cfg(target_os = "ios")]
 mod push;
@@ -1926,12 +1927,18 @@ async fn swap_step(app: AppHandle, password: Option<String>) -> Result<serde_jso
         if solswaps::active(&sol) {
             solswaps::step_all(orien, dir, &mut sol)?;
         }
+        let mut funded = orders::load(dir);
+        if orders::active(&funded) {
+            orders::step_all(orien, dir, &mut funded)?;
+        }
         let mut sol_views: Vec<solswaps::View> = sol.iter().map(solswaps::view).collect();
         sol_views.sort_by_key(|view| std::cmp::Reverse(view.created));
+        let mut order_views: Vec<orders::View> = funded.iter().map(orders::view).collect();
+        order_views.sort_by_key(|view| std::cmp::Reverse(view.created));
         // Offers taken down because the wallet couldn't lock their ORN.
         let withdrawn: Vec<serde_json::Value> =
             board::withdrawn().into_iter().map(|(offer, orn)| serde_json::json!({ "offer": offer, "orn": money::show(orn as i128) })).collect();
-        Ok(serde_json::json!({ "swaps": views(&all), "sol_swaps": sol_views, "waiting": board::waiting(dir, &mine), "problem": board_problem, "withdrawn": withdrawn }))
+        Ok(serde_json::json!({ "swaps": views(&all), "sol_swaps": sol_views, "funded_orders": order_views, "waiting": board::waiting(dir, &mine), "problem": board_problem, "withdrawn": withdrawn }))
     })
     .await
     .map_err(|error| error.to_string())?
@@ -2725,6 +2732,83 @@ async fn board_take(app: AppHandle, offer: i64, refund: String, orn: String, pas
     .map_err(|error| error.to_string())?
 }
 
+/// Lists this wallet's funded SOL buy orders and fills, newest first.
+#[tauri::command]
+fn order_list(app: AppHandle) -> Result<Vec<orders::View>, String> {
+    let mut list: Vec<orders::View> = orders::load(&folder(&app)?).iter().map(orders::view).collect();
+    list.sort_by_key(|v| std::cmp::Reverse(v.created));
+    Ok(list)
+}
+
+/// Buyer: creates a new funded SOL buy order locally and returns its ID so the
+/// UI immediately opens the funding QR screen.
+#[tauri::command]
+async fn order_create_buy(app: AppHandle, orn: String, sol: String, refund: String, password: Option<String>) -> Result<String, String> {
+    let orn = money::read(&orn)?;
+    let lamports = solswaps::read_sol(&sol)?;
+    let dir = folder(&app)?;
+    let wallet = wallet_file(&dir).ok_or("no wallet yet")?;
+    tauri::async_runtime::spawn_blocking(move || {
+        let password = approve_take(&wallet, password)?;
+        orders::create_buy_order(&dir, &wallet, orn, lamports, &refund, password.as_deref())
+    })
+    .await
+    .map_err(|error| error.to_string())?
+}
+
+/// Seller: starts filling a funded SOL buy order from the order book (0 SOL
+/// required in the seller's wallet; verifies finalized Solana fill before locking ORN).
+#[tauri::command]
+#[allow(clippy::too_many_arguments)]
+async fn order_fill_buy(
+    app: AppHandle,
+    server_id: i64,
+    order_pubkey: String,
+    orn: u64,
+    lamports: u64,
+    hash: String,
+    buyer_orien: String,
+    buyer_name: Option<String>,
+    payout: String,
+    password: Option<String>,
+) -> Result<String, String> {
+    let dir = folder(&app)?;
+    let wallet = wallet_file(&dir).ok_or("no wallet yet")?;
+    let password = tauri::async_runtime::spawn_blocking({
+        let wallet = wallet.clone();
+        move || approve_take(&wallet, password)
+    })
+    .await
+    .map_err(|e| e.to_string())??;
+    with_swaps(&app, password.clone(), move |dir, orien| {
+        orders::fill_buy_order(
+            orien,
+            dir,
+            &wallet,
+            server_id,
+            &order_pubkey,
+            orn,
+            lamports,
+            &hash,
+            &buyer_orien,
+            buyer_name,
+            &payout,
+            password.as_deref(),
+        )
+    })
+    .await
+    .map_err(|error| error.to_string())?
+}
+
+/// Buyer: 1-click cancels a funded SOL buy order and returns SOL to `refund`.
+#[tauri::command]
+async fn order_cancel_buy(app: AppHandle, id: String) -> Result<(), String> {
+    let dir = folder(&app)?;
+    tauri::async_runtime::spawn_blocking(move || orders::cancel_buy_order(&dir, &id))
+        .await
+        .map_err(|error| error.to_string())?
+}
+
 /// Posts a buy offer for `orn` ORN paying `sol` SOL.
 #[tauri::command]
 async fn board_post_buy_sol(app: AppHandle, orn: String, sol: String, refund: String, password: Option<String>) -> Result<(), String> {
@@ -2929,7 +3013,7 @@ pub fn run() {
             }
             Ok(())
         })
-        .invoke_handler(tauri::generate_handler![share_address, has_wallet, create_wallet, save_phrase, restore_wallet, set_password, choose_wallet, overview_now, send_payment, activity, quote, contacts, save_contact, delete_contact, contacts_sync, members, save_member, delete_member, biometric_unlock, biometric_enable, update::check_update, update::install_update, update::download_update, update::away_seconds, mine_start, mine_stop, mine_resume, mine_set, mine_status, mine_benchmark, mine_benchmark_cancel, large_pages_state, large_pages_set_up, wallets, wallet_balances, use_wallet, rename_wallet, add_wallet, forget_wallet, swap_list, swap_sell, swap_buy, swap_accept, swap_step, swap_smallest, board_offers, board_me, board_here, board_email_start, board_email_finish, board_sign_out, board_post, board_take, board_withdraw, board_link, notifications_ask, push_sync, open_network_map, board_wallets_sync, board_post_sol, board_take_sol, board_post_buy, board_post_buy_sol, board_take_buy, board_take_buy_sol, sol_open, sol_payout_check, open_site, qr_code, address_qr, wallet_profiles, board_profile_save, board_picture_pick, board_verify, board_wallet_states, market_image,
+        .invoke_handler(tauri::generate_handler![share_address, has_wallet, create_wallet, save_phrase, restore_wallet, set_password, choose_wallet, overview_now, send_payment, activity, quote, contacts, save_contact, delete_contact, contacts_sync, members, save_member, delete_member, biometric_unlock, biometric_enable, update::check_update, update::install_update, update::download_update, update::away_seconds, mine_start, mine_stop, mine_resume, mine_set, mine_status, mine_benchmark, mine_benchmark_cancel, large_pages_state, large_pages_set_up, wallets, wallet_balances, use_wallet, rename_wallet, add_wallet, forget_wallet, swap_list, swap_sell, swap_buy, swap_accept, swap_step, swap_smallest, board_offers, board_me, board_here, board_email_start, board_email_finish, board_sign_out, board_post, board_take, board_withdraw, board_link, notifications_ask, push_sync, open_network_map, board_wallets_sync, board_post_sol, board_take_sol, board_post_buy, board_post_buy_sol, board_take_buy, board_take_buy_sol, order_list, order_create_buy, order_fill_buy, order_cancel_buy, sol_open, sol_payout_check, open_site, qr_code, address_qr, wallet_profiles, board_profile_save, board_picture_pick, board_verify, board_wallet_states, market_image,
             theme_store_picture, board_banner_remove, market_search, market_listings, market_listing, market_profile, market_call, market_pick_pictures, market_listing_picture, community_picture, klipy_gifs, dock_badge, mac_notify, board_delete_account, wallet_icons, set_wallet_icon, vault_ready, vault_unlock, open_contact, pair_offer, pair_offer_wait, pair_offer_send, pair_join, pair_join_wait, pair_invite, pair_invite_wait, pair_accept, pair_wallets, pair_accept_send, pair_cancel, wallet_phrase, phrase_check, app_theme, set_app_theme, set_backdrop, theme_picture_save, theme_picture_load, theme_picture_delete, explorer, window_wide, window_ready, app_prefs, set_app_pref, app_unlock, computer_settings, set_computer_setting, notifications_muted, set_notification, open_legal, open_post_link, open_extension, haptics::haptic, haptics::haptic_ready, sitesignin::site_signin_answer, board_paid_wallet, board_wallet_remove])
         .build(tauri::generate_context!())
         .expect("the wallet window could not start")

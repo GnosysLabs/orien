@@ -10,6 +10,7 @@ pub mod api;
 pub mod community;
 pub mod explorer;
 pub mod oidc;
+pub mod orders;
 pub mod images;
 pub mod links;
 pub mod mail;

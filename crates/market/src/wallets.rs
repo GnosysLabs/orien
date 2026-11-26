@@ -83,6 +83,15 @@ pub trait Payments: Send + Sync {
     fn work_rules(&self, _epoch: u64) -> Option<WorkRules> {
         None
     }
+    /// A locked payment proven directly on the Orien network by validators.
+    fn proven_lock(&self, _from: &AccountId, _seq: u64) -> Result<Option<orien_net::client::ProvenLock>> {
+        Ok(None)
+    }
+    /// Submits an open `Kind::Claim` on Orien using an ephemeral zero-balance
+    /// signing key. Pays only the lock's recorded payee (`to`).
+    fn claim_lock(&self, _from: &AccountId, _seq: u64, _to: &AccountId, _amount: u64, _secret: [u8; 32]) -> Result<()> {
+        anyhow::bail!("claiming Orien locks is not supported here")
+    }
 }
 
 /// Mining's rules for one epoch, for the explorer.
@@ -221,6 +230,37 @@ impl Payments for Network {
         }
         let held = status.views.iter().flatten().any(|view| view.balance > 0 || view.seq > 0);
         Ok(held || status.seq > 0 || status.proven.is_some())
+    }
+
+    fn proven_lock(&self, from: &AccountId, seq: u64) -> Result<Option<orien_net::client::ProvenLock>> {
+        Ok(self.client.proven_lock(from, seq))
+    }
+
+    fn claim_lock(&self, from: &AccountId, seq: u64, to: &AccountId, amount: u64, secret: [u8; 32]) -> Result<()> {
+        let mut seed = [0u8; 32];
+        getrandom::fill(&mut seed).map_err(|e| anyhow::anyhow!("randomness failed: {e}"))?;
+        let key0 = orien_crypto::ots::SecretKey::from_seed(seed);
+        let mut next_seed = [0u8; 32];
+        getrandom::fill(&mut next_seed).map_err(|e| anyhow::anyhow!("randomness failed: {e}"))?;
+        let next_key = orien_crypto::ots::SecretKey::from_seed(next_seed).commitment();
+        let spare = orien_crypto::Hash32([0u8; 32]);
+        let claimer = orien_ledger::address(&key0.commitment(), &spare);
+        let kind = orien_ledger::Kind::Claim { from: *from, seq, secret };
+        let order = orien_ledger::Order {
+            kind: kind.clone(),
+            from: claimer,
+            seq: 0,
+            to: *to,
+            amount,
+            max_fee: self.fees.on(&kind, amount),
+            next_key,
+            spare,
+        };
+        let network = *self.client.committee().network();
+        let digest = order.digest(&network);
+        let signed = orien_ledger::SignedOrder { signature: orien_ledger::Signature::Key(key0.sign(digest.as_bytes())), order };
+        self.client.pay(&signed, std::time::Duration::from_secs(60)).map_err(|e| anyhow::anyhow!("{e}"))?;
+        Ok(())
     }
 
     fn tokenomics(&self) -> Result<Tokenomics> {
@@ -384,6 +424,10 @@ pub struct Fake {
     pub spendable: Mutex<Vec<(AccountId, u64)>>,
     /// Settled payments by their order: (to, from, seq, amount).
     pub orders: Mutex<Vec<(AccountId, AccountId, u64, u64)>>,
+    /// Proven ORN locks for tests: (from, seq, escrow).
+    pub locks: Mutex<Vec<(AccountId, u64, orien_ledger::Escrow)>>,
+    /// Claimed ORN locks recorded by `claim_lock`: (from, seq, to, amount, secret).
+    pub claimed_locks: Mutex<Vec<(AccountId, u64, AccountId, u64, [u8; 32])>>,
 }
 
 impl Payments for Fake {
@@ -434,6 +478,47 @@ impl Payments for Fake {
 
     fn status(&self) -> Result<NetworkStatus> {
         Ok(NetworkStatus { epoch: *self.epoch.lock().unwrap(), epoch_seconds: 3600, first_target: 1, ..NetworkStatus::default() })
+    }
+
+    fn proven_lock(&self, from: &AccountId, seq: u64) -> Result<Option<orien_net::client::ProvenLock>> {
+        let epoch = *self.epoch.lock().unwrap();
+        let claimed = self
+            .claimed_locks
+            .lock()
+            .unwrap()
+            .iter()
+            .find(|(f, s, ..)| f == from && *s == seq)
+            .map(|(_, _, _, _, secret)| *secret);
+        let made = self
+            .locks
+            .lock()
+            .unwrap()
+            .iter()
+            .find(|(f, s, _)| f == from && *s == seq)
+            .map(|(_, _, e)| e.clone());
+        if made.is_none() && claimed.is_none() {
+            return Ok(None);
+        }
+        Ok(Some(orien_net::client::ProvenLock { epoch, made, secret: claimed }))
+    }
+
+    fn claim_lock(&self, from: &AccountId, seq: u64, to: &AccountId, amount: u64, secret: [u8; 32]) -> Result<()> {
+        let escrow = self
+            .locks
+            .lock()
+            .unwrap()
+            .iter()
+            .find(|(f, s, _)| f == from && *s == seq)
+            .map(|(_, _, e)| e.clone())
+            .ok_or_else(|| anyhow::anyhow!("no such ORN lock"))?;
+        if escrow.to != *to || escrow.amount != amount {
+            anyhow::bail!("lock terms do not match");
+        }
+        if orien_ledger::types::lock_hash(&secret) != escrow.hash {
+            anyhow::bail!("wrong secret");
+        }
+        self.claimed_locks.lock().unwrap().push((*from, seq, *to, amount, secret));
+        Ok(())
     }
 }
 
