@@ -1124,6 +1124,18 @@
   "replied to the network's post about you": "회원님에 대한 네트워크 게시물에 답글을 남겼습니다",
   "_patterns": [
     [
+      "^(\\d+) / (\\d+) mining hours$",
+      "채굴 시간: {0} / {1}시간"
+    ],
+    [
+      "^Code accepted\\. Mine with wallet ([0-9a-fA-F…]+) to make progress\\.$",
+      "코드가 승인되었어요. 지갑 {0}으로 채굴을 진행하세요."
+    ],
+    [
+      "^Code accepted\\. Mine with wallet ([0-9a-fA-F…]+) in Orien Wallet on a computer\\.$",
+      "코드가 승인되었어요. 컴퓨터의 Orien Wallet에서 지갑 {0}으로 채굴하세요."
+    ],
+    [
       "^Sell ([0-9.,]+) ORN for ([0-9.,]+) SOL(.*)$",
       "{0} ORN을 {1} SOL에 판매{2}"
     ],
@@ -2108,5 +2120,66 @@
         "어떤 알림을 받을지는 설정의 <b>알림</b>에서 선택하세요."
       ]
     }
-  }
+  },
+  "Referrals": "친구 추천",
+  "Invite users": "친구 초대",
+  "Enter code": "코드 입력",
+  "Invite a friend to mine - you'll both get 7 free ORN": "친구를 채굴에 초대하고 둘 다 7 ORN씩 무료로 받으세요",
+  "Verify a wallet to get your invite code.": "지갑을 인증하면 초대 코드를 받을 수 있어요.",
+  "Verify wallet": "지갑 인증",
+  "Your invite code": "내 초대 코드",
+  "Copy invite code": "초대 코드 복사",
+  "Copy invite link": "초대 링크 복사",
+  "Qualified": "조건 충족",
+  "In progress": "진행 중",
+  "ORN paid": "지급된 ORN",
+  "Share your invite link or code with a friend.": "친구에게 초대 링크나 코드를 공유하세요.",
+  "Have your friend download Orien and apply your code within 12 hours of creating their account.": "친구가 Orien을 다운로드하고 계정을 만든 후 12시간 이내에 내 코드를 사용해야 해요.",
+  "Your friend just needs to verify their wallet and earn mining rewards with it in 10 separate hours.": "친구가 지갑을 인증하고 서로 다른 10개의 시간대에 해당 지갑으로 채굴 보상을 받으면 돼요.",
+  "You each earn 7 ORN. You can invite up to 5 friends (Referrals may refresh in the future)": "각자 7 ORN을 받아요. 친구는 최대 5명까지 초대할 수 있어요(추후 초대 한도가 초기화될 수 있어요).",
+  "Your referral window has closed": "추천 코드 입력 기간이 지났어요",
+  "You can only enter a friend’s code during the first 12 hours after you create your Orien Network account. That time has passed for this account.": "친구의 코드는 Orien Network 계정을 만든 후 처음 12시간 동안만 입력할 수 있어요. 이 계정은 입력 기간이 지났어요.",
+  "Use a friend’s code": "친구 코드 사용",
+  "Referral code": "추천 코드",
+  "12-character code": "12자리 코드",
+  "Apply code": "코드 적용",
+  "Open Mining": "채굴 열기",
+  "Sign in to your Orien Network account.": "Orien Network 계정에 로그인하세요.",
+  "Enter your friend’s code within 12 hours of creating your account.": "계정을 만든 후 12시간 이내에 친구의 코드를 입력하세요.",
+  "Verify the wallet you’ll use for mining.": "채굴에 사용할 지갑을 인증하세요.",
+  "Earn mining rewards in 10 hourly checkpoints with that wallet.": "해당 지갑으로 시간별 체크포인트 10회에 걸쳐 채굴 보상을 받으세요.",
+  "You and the friend who invited you each earn 7 ORN.": "나와 나를 초대한 친구가 각각 7 ORN을 받아요.",
+  "Your referral progress": "추천 진행 상황",
+  "Sign in to use referrals.": "친구 추천을 이용하려면 로그인하세요.",
+  "Loading referrals…": "추천 정보 불러오는 중…",
+  "The referral program hasn’t opened yet.": "추천 프로그램이 아직 시작되지 않았어요.",
+  "All rewards for this program have been reserved.": "이 프로그램의 보상이 모두 배정되었어요.",
+  "You’ve reached your five-referral limit.": "친구 추천 한도인 5명에 도달했어요.",
+  "Your 7 ORN reward has been paid.": "7 ORN 보상이 지급되었어요.",
+  "You’ve qualified. Your 7 ORN reward is awaiting payout.": "조건을 충족했어요. 7 ORN 보상이 지급 대기 중이에요.",
+  "This referral closed before a reward was reserved.": "보상이 배정되기 전에 이 추천이 종료되었어요.",
+  "Code accepted. Verify a wallet to start counting your mining hours.": "코드가 승인되었어요. 지갑을 인증하면 채굴 시간이 집계돼요.",
+  "Mining requirement met. Reward reservation is pending.": "채굴 조건을 충족했어요. 보상 배정을 기다리고 있어요.",
+  "Code accepted. Mine with your verified wallet to make progress.": "코드가 승인되었어요. 인증된 지갑으로 채굴을 진행하세요.",
+  "Code accepted. Mine with your verified wallet in Orien Wallet on a computer.": "코드가 승인되었어요. 컴퓨터의 Orien Wallet에서 인증된 지갑으로 채굴하세요.",
+  "Code copied": "코드 복사됨",
+  "Link copied": "링크 복사됨",
+  "Couldn’t copy. Try again.": "복사하지 못했어요. 다시 시도하세요.",
+  "Completed": "완료",
+  "Orien Referrals": "Orien 친구 추천",
+  "Orien Network couldn't do that just now. Try again in a moment.": "Orien Network가 요청을 처리하지 못했습니다. 잠시 후 다시 시도하세요.",
+  "The swap board sent an answer this app can't read.": "앱이 교환 시장의 응답을 읽을 수 없습니다.",
+  "Orien Network can't be reached. Check your internet connection.": "지금은 orien.network에 연결할 수 없습니다. 인터넷 연결을 확인하고 다시 시도하세요.",
+  "Enter the 12-character invite code.": "12자리 초대 코드를 입력하세요.",
+  "Your account already has a referral code.": "이미 추천 코드가 등록된 계정이에요.",
+  "You can enter a code within 12 hours of creating your account.": "계정을 만든 후 12시간 이내에 코드를 입력할 수 있어요.",
+  "Referrals are closed.": "추천 접수가 종료되었어요.",
+  "That referral code was not found.": "추천 코드를 찾을 수 없어요.",
+  "You can't use your own referral code.": "자신의 추천 코드는 사용할 수 없어요.",
+  "That referral code is no longer available.": "더 이상 사용할 수 없는 추천 코드예요.",
+  "That inviter has reached their limit.": "초대한 사람이 추천 한도에 도달했어요.",
+  "Something went wrong on the server.": "서버에 오류가 발생했습니다.",
+  "Not found.": "찾을 수 없습니다.",
+  "This account is suspended.": "이 계정은 정지되었습니다.",
+  "Sign in first.": "먼저 Orien Network에 로그인하세요."
 }

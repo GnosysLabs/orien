@@ -1124,6 +1124,18 @@
   "✓ Valid address": "✓ Корректный адрес",
   "_patterns": [
     [
+      "^(\\d+) / (\\d+) mining hours$",
+      "Майнинг: {0} из {1} ч"
+    ],
+    [
+      "^Code accepted\\. Mine with wallet ([0-9a-fA-F…]+) to make progress\\.$",
+      "Код принят. Используйте кошелёк {0} для учёта часов майнинга."
+    ],
+    [
+      "^Code accepted\\. Mine with wallet ([0-9a-fA-F…]+) in Orien Wallet on a computer\\.$",
+      "Код принят. Занимайтесь майнингом с кошельком {0} в Orien Wallet на компьютере."
+    ],
+    [
       "^Sell ([0-9.,]+) ORN for ([0-9.,]+) SOL(.*)$",
       "Продать {0} ORN за {1} SOL{2}"
     ],
@@ -2108,5 +2120,66 @@
         "Выберите, о чём получать оповещения, в Настройках, раздел <b>Уведомления</b>."
       ]
     }
-  }
+  },
+  "Referrals": "Приглашения",
+  "Invite users": "Пригласить друзей",
+  "Enter code": "Ввести код",
+  "Invite a friend to mine - you'll both get 7 free ORN": "Пригласите друга заняться майнингом и получите по 7 ORN в подарок",
+  "Verify a wallet to get your invite code.": "Подтвердите кошелёк, чтобы получить код приглашения.",
+  "Verify wallet": "Подтвердить кошелёк",
+  "Your invite code": "Ваш код приглашения",
+  "Copy invite code": "Скопировать код приглашения",
+  "Copy invite link": "Скопировать ссылку-приглашение",
+  "Qualified": "Выполнили условия",
+  "In progress": "В процессе",
+  "ORN paid": "Выплачено ORN",
+  "Share your invite link or code with a friend.": "Отправьте другу ссылку или код приглашения.",
+  "Have your friend download Orien and apply your code within 12 hours of creating their account.": "Попросите друга скачать Orien и ввести ваш код в течение 12 часов после создания аккаунта.",
+  "Your friend just needs to verify their wallet and earn mining rewards with it in 10 separate hours.": "Вашему другу достаточно подтвердить кошелёк и получить на него награды за майнинг в 10 разных часовых интервалах.",
+  "You each earn 7 ORN. You can invite up to 5 friends (Referrals may refresh in the future)": "Вы получите по 7 ORN. Можно пригласить до 5 друзей (в будущем лимит приглашений может обновиться).",
+  "Your referral window has closed": "Срок ввода кода истёк",
+  "You can only enter a friend’s code during the first 12 hours after you create your Orien Network account. That time has passed for this account.": "Код друга можно ввести только в первые 12 часов после создания аккаунта Orien Network. Для этого аккаунта срок уже истёк.",
+  "Use a friend’s code": "Использовать код друга",
+  "Referral code": "Код приглашения",
+  "12-character code": "Код из 12 символов",
+  "Apply code": "Применить код",
+  "Open Mining": "Перейти к майнингу",
+  "Sign in to your Orien Network account.": "Войдите в свой аккаунт Orien Network.",
+  "Enter your friend’s code within 12 hours of creating your account.": "Введите код друга в течение 12 часов после создания аккаунта.",
+  "Verify the wallet you’ll use for mining.": "Подтвердите кошелёк, который будете использовать для майнинга.",
+  "Earn mining rewards in 10 hourly checkpoints with that wallet.": "Получите на этот кошелёк награды за майнинг в 10 разных часовых интервалах.",
+  "You and the friend who invited you each earn 7 ORN.": "Вы и пригласивший вас друг получите по 7 ORN.",
+  "Your referral progress": "Ваш прогресс по приглашению",
+  "Sign in to use referrals.": "Войдите, чтобы пользоваться приглашениями.",
+  "Loading referrals…": "Загружаем приглашения…",
+  "The referral program hasn’t opened yet.": "Программа приглашений ещё не началась.",
+  "All rewards for this program have been reserved.": "Все награды программы уже зарезервированы.",
+  "You’ve reached your five-referral limit.": "Вы достигли лимита в пять приглашений.",
+  "Your 7 ORN reward has been paid.": "Ваша награда в 7 ORN выплачена.",
+  "You’ve qualified. Your 7 ORN reward is awaiting payout.": "Вы выполнили условия. Ваша награда в 7 ORN ожидает выплаты.",
+  "This referral closed before a reward was reserved.": "Приглашение закрылось до резервирования награды.",
+  "Code accepted. Verify a wallet to start counting your mining hours.": "Код принят. Подтвердите кошелёк, чтобы начался учёт часов майнинга.",
+  "Mining requirement met. Reward reservation is pending.": "Условие по майнингу выполнено. Награда ожидает резервирования.",
+  "Code accepted. Mine with your verified wallet to make progress.": "Код принят. Используйте подтверждённый кошелёк для учёта часов майнинга.",
+  "Code accepted. Mine with your verified wallet in Orien Wallet on a computer.": "Код принят. Занимайтесь майнингом с подтверждённым кошельком в Orien Wallet на компьютере.",
+  "Code copied": "Код скопирован",
+  "Link copied": "Ссылка скопирована",
+  "Couldn’t copy. Try again.": "Не удалось скопировать. Попробуйте ещё раз.",
+  "Completed": "Выполнено",
+  "Orien Referrals": "Приглашения Orien",
+  "Orien Network couldn't do that just now. Try again in a moment.": "Orien Network не удалось выполнить запрос. Повторите попытку чуть позже.",
+  "The swap board sent an answer this app can't read.": "Приложению не удалось прочитать ответ площадки обмена.",
+  "Orien Network can't be reached. Check your internet connection.": "Сейчас не удаётся подключиться к orien.network. Проверьте соединение и попробуйте снова.",
+  "Enter the 12-character invite code.": "Введите код приглашения из 12 символов.",
+  "Your account already has a referral code.": "К вашему аккаунту уже привязан код приглашения.",
+  "You can enter a code within 12 hours of creating your account.": "Код можно ввести в течение 12 часов после создания аккаунта.",
+  "Referrals are closed.": "Программа приглашений закрыта.",
+  "That referral code was not found.": "Код приглашения не найден.",
+  "You can't use your own referral code.": "Нельзя использовать собственный код приглашения.",
+  "That referral code is no longer available.": "Этот код приглашения больше недоступен.",
+  "That inviter has reached their limit.": "Пригласивший вас участник уже исчерпал лимит приглашений.",
+  "Something went wrong on the server.": "На сервере произошла ошибка.",
+  "Not found.": "Не найдено.",
+  "This account is suspended.": "Этот аккаунт приостановлен.",
+  "Sign in first.": "Сначала войдите в Orien Network."
 }

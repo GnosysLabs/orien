@@ -17,12 +17,12 @@ export function ReferralInvite() {
     <section className="mb-6 grid gap-3 rounded-2xl border border-line bg-surface p-5 sm:p-6">
       <h2 className="text-xl font-bold tracking-tight text-ink">You’ve been invited to Orien</h2>
       <p className="text-sm leading-relaxed text-muted">
-        Download Orien Wallet and create an Orien Network account. Open <strong>Settings → Referrals → Enter code</strong>{' '}
-        and apply this code within 12 hours of signing up.
+        <span>Download Orien Wallet and create an Orien Network account.</span>{' '}
+        <span>Open Settings → Referrals → Enter code and apply this code within 12 hours of signing up.</span>
       </p>
       <p className="text-sm leading-relaxed text-muted">
-        You and your inviter each earn 7 ORN after your verified wallet earns mining rewards in 10 hourly checkpoints.
-        Wallet verification uses less than 0.001 ORN from your wallet.
+        <span>You and your inviter each earn 7 ORN after your verified wallet earns mining rewards in 10 hourly checkpoints.</span>{' '}
+        <span>Wallet verification uses less than 0.001 ORN from your wallet.</span>
       </p>
       <CopyText text={code} label="Referral code" />
     </section>

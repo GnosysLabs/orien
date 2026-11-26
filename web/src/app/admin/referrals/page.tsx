@@ -2,6 +2,7 @@
 
 import Link from 'next/link'
 import { useState, type FormEvent } from 'react'
+import { siteText } from '@/components/SiteI18n'
 import { CopyText } from '@/components/CopyText'
 import { call, usePoll } from '../admin-client'
 
@@ -45,7 +46,7 @@ export default function AdminReferrals() {
 
   function openCampaign(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
-    if (busy || !window.confirm('Open the referral program using this funding wallet?')) return
+    if (busy || !window.confirm(siteText('Open the referral program using this funding wallet?'))) return
     void perform('start', '/referrals', { address: address.trim() })
   }
 
@@ -76,7 +77,7 @@ export default function AdminReferrals() {
         <form onSubmit={openCampaign} className="grid gap-3 rounded-2xl border border-line bg-surface p-5">
           <h2 className="font-semibold text-ink">Open the campaign</h2>
           <p className="text-sm text-muted">
-            Use a dedicated wallet with at least {orn(data.required_funding)}. That covers rewards for 100 referrals and the payment fees.
+            {`Use a dedicated wallet with at least ${orn(data.required_funding)}. That covers rewards for 100 referrals and the payment fees.`}
           </p>
           <label htmlFor="funding-wallet" className="text-sm text-ink">Funding wallet address</label>
           <input
@@ -107,8 +108,8 @@ export default function AdminReferrals() {
               <article key={key} className="grid gap-3 rounded-2xl border border-line bg-surface p-4">
                 <div className="flex flex-wrap items-center justify-between gap-2">
                   <div>
-                    <p className="font-semibold text-ink">{payout.name ?? 'Closed account'}</p>
-                    <p className="text-xs text-muted">Referral {payout.id} · {payout.recipient === 'inviter' ? 'Inviter' : 'New member'} · {orn(data.reward)}</p>
+                    <p className="font-semibold text-ink">{payout.name ? <span data-no-i18n>{payout.name}</span> : 'Closed account'}</p>
+                    <p className="text-xs text-muted">{`Referral ${payout.id}`} · {payout.recipient === 'inviter' ? 'Inviter' : 'New member'} · {orn(data.reward)}</p>
                   </div>
                   {payout.sequence === null ? (
                     <button
@@ -119,7 +120,7 @@ export default function AdminReferrals() {
                     >
                       {busy === key ? 'Checking…' : 'Check payment'}
                     </button>
-                  ) : <span className="text-sm font-semibold text-go">Paid · payment #{payout.sequence}</span>}
+                  ) : <span className="text-sm font-semibold text-go">{`Paid · payment #${payout.sequence}`}</span>}
                 </div>
                 {payout.suspended && <p className="text-sm text-stop">This member’s account is suspended.</p>}
                 {payout.sequence === null && <CopyText text={payout.address} label="Recipient’s verified wallet" />}

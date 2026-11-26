@@ -1124,6 +1124,18 @@
   "✓ Valid address": "✓ Alamat valid",
   "_patterns": [
     [
+      "^(\\d+) / (\\d+) mining hours$",
+      "{0} / {1} jam penambangan"
+    ],
+    [
+      "^Code accepted\\. Mine with wallet ([0-9a-fA-F…]+) to make progress\\.$",
+      "Kode diterima. Tambang dengan dompet {0} untuk mengumpulkan jam penambangan."
+    ],
+    [
+      "^Code accepted\\. Mine with wallet ([0-9a-fA-F…]+) in Orien Wallet on a computer\\.$",
+      "Kode diterima. Tambang dengan dompet {0} di Orien Wallet pada komputer."
+    ],
+    [
       "^Sell ([0-9.,]+) ORN for ([0-9.,]+) SOL(.*)$",
       "Jual {0} ORN untuk {1} SOL{2}"
     ],
@@ -2108,5 +2120,66 @@
         "Pilih hal yang ingin Anda terima kabarnya di Pengaturan, <b>Notifikasi</b>."
       ]
     }
-  }
+  },
+  "Referrals": "Referal",
+  "Invite users": "Undang pengguna",
+  "Enter code": "Masukkan kode",
+  "Invite a friend to mine - you'll both get 7 free ORN": "Undang teman untuk menambang dan kalian masing-masing akan mendapat 7 ORN gratis",
+  "Verify a wallet to get your invite code.": "Verifikasi dompet untuk mendapatkan kode undangan Anda.",
+  "Verify wallet": "Verifikasi dompet",
+  "Your invite code": "Kode undangan Anda",
+  "Copy invite code": "Salin kode undangan",
+  "Copy invite link": "Salin tautan undangan",
+  "Qualified": "Memenuhi syarat",
+  "In progress": "Sedang berlangsung",
+  "ORN paid": "ORN dibayarkan",
+  "Share your invite link or code with a friend.": "Bagikan tautan atau kode undangan Anda kepada teman.",
+  "Have your friend download Orien and apply your code within 12 hours of creating their account.": "Minta teman Anda mengunduh Orien dan memasukkan kode Anda dalam 12 jam setelah membuat akun.",
+  "Your friend just needs to verify their wallet and earn mining rewards with it in 10 separate hours.": "Teman Anda hanya perlu memverifikasi dompetnya dan mendapatkan imbalan penambangan dengan dompet itu pada 10 jam yang berbeda.",
+  "You each earn 7 ORN. You can invite up to 5 friends (Referrals may refresh in the future)": "Anda masing-masing mendapat 7 ORN. Anda dapat mengundang hingga 5 teman (kuota undangan mungkin diperbarui di masa mendatang).",
+  "Your referral window has closed": "Waktu untuk memasukkan kode telah habis",
+  "You can only enter a friend’s code during the first 12 hours after you create your Orien Network account. That time has passed for this account.": "Anda hanya dapat memasukkan kode teman dalam 12 jam pertama sejak membuat akun Orien Network. Batas waktu untuk akun ini sudah lewat.",
+  "Use a friend’s code": "Gunakan kode teman",
+  "Referral code": "Kode referal",
+  "12-character code": "Kode 12 karakter",
+  "Apply code": "Gunakan kode",
+  "Open Mining": "Buka penambangan",
+  "Sign in to your Orien Network account.": "Masuk ke akun Orien Network Anda.",
+  "Enter your friend’s code within 12 hours of creating your account.": "Masukkan kode teman dalam 12 jam sejak Anda membuat akun.",
+  "Verify the wallet you’ll use for mining.": "Verifikasi dompet yang akan Anda gunakan untuk menambang.",
+  "Earn mining rewards in 10 hourly checkpoints with that wallet.": "Dapatkan imbalan penambangan dengan dompet itu pada 10 periode per jam yang berbeda.",
+  "You and the friend who invited you each earn 7 ORN.": "Anda dan teman yang mengundang Anda masing-masing mendapat 7 ORN.",
+  "Your referral progress": "Progres referal Anda",
+  "Sign in to use referrals.": "Masuk untuk menggunakan fitur referal.",
+  "Loading referrals…": "Memuat referal…",
+  "The referral program hasn’t opened yet.": "Program referal belum dibuka.",
+  "All rewards for this program have been reserved.": "Seluruh imbalan program ini sudah dialokasikan.",
+  "You’ve reached your five-referral limit.": "Anda telah mencapai batas lima referal.",
+  "Your 7 ORN reward has been paid.": "Imbalan 7 ORN Anda sudah dibayarkan.",
+  "You’ve qualified. Your 7 ORN reward is awaiting payout.": "Anda telah memenuhi syarat. Imbalan 7 ORN Anda menunggu pembayaran.",
+  "This referral closed before a reward was reserved.": "Referal ini berakhir sebelum imbalannya dialokasikan.",
+  "Code accepted. Verify a wallet to start counting your mining hours.": "Kode diterima. Verifikasi dompet agar jam penambangan mulai dihitung.",
+  "Mining requirement met. Reward reservation is pending.": "Syarat penambangan terpenuhi. Imbalan menunggu alokasi.",
+  "Code accepted. Mine with your verified wallet to make progress.": "Kode diterima. Gunakan dompet terverifikasi Anda untuk mulai mengumpulkan jam penambangan.",
+  "Code accepted. Mine with your verified wallet in Orien Wallet on a computer.": "Kode diterima. Tambang dengan dompet terverifikasi Anda di Orien Wallet pada komputer.",
+  "Code copied": "Kode disalin",
+  "Link copied": "Tautan disalin",
+  "Couldn’t copy. Try again.": "Gagal menyalin. Coba lagi.",
+  "Completed": "Selesai",
+  "Orien Referrals": "Referal Orien",
+  "Orien Network couldn't do that just now. Try again in a moment.": "Orien Network belum dapat memproses permintaan. Coba lagi sebentar.",
+  "The swap board sent an answer this app can't read.": "Aplikasi tidak dapat membaca respons dari pasar pertukaran.",
+  "Orien Network can't be reached. Check your internet connection.": "orien.network tidak dapat dijangkau saat ini. Periksa koneksi Anda dan coba lagi.",
+  "Enter the 12-character invite code.": "Masukkan kode undangan 12 karakter.",
+  "Your account already has a referral code.": "Akun Anda sudah memiliki kode referal.",
+  "You can enter a code within 12 hours of creating your account.": "Anda dapat memasukkan kode dalam 12 jam sejak membuat akun.",
+  "Referrals are closed.": "Program referal sudah ditutup.",
+  "That referral code was not found.": "Kode referal tidak ditemukan.",
+  "You can't use your own referral code.": "Anda tidak dapat menggunakan kode referal sendiri.",
+  "That referral code is no longer available.": "Kode referal itu sudah tidak tersedia.",
+  "That inviter has reached their limit.": "Pengundang tersebut telah mencapai batas undangan.",
+  "Something went wrong on the server.": "Terjadi kesalahan pada server.",
+  "Not found.": "Tidak ditemukan.",
+  "This account is suspended.": "Akun ini ditangguhkan.",
+  "Sign in first.": "Masuk ke Orien Network terlebih dahulu."
 }

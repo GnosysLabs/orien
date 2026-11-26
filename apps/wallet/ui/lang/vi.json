@@ -1124,6 +1124,18 @@
   "✓ Valid address": "✓ Địa chỉ hợp lệ",
   "_patterns": [
     [
+      "^(\\d+) / (\\d+) mining hours$",
+      "{0} / {1} giờ đào"
+    ],
+    [
+      "^Code accepted\\. Mine with wallet ([0-9a-fA-F…]+) to make progress\\.$",
+      "Mã đã được chấp nhận. Hãy đào bằng ví {0} để tích lũy giờ đào."
+    ],
+    [
+      "^Code accepted\\. Mine with wallet ([0-9a-fA-F…]+) in Orien Wallet on a computer\\.$",
+      "Mã đã được chấp nhận. Hãy đào bằng ví {0} trong Orien Wallet trên máy tính."
+    ],
+    [
       "^Sell ([0-9.,]+) ORN for ([0-9.,]+) SOL(.*)$",
       "Bán {0} ORN lấy {1} SOL{2}"
     ],
@@ -2108,5 +2120,66 @@
         "Chọn những thông báo bạn muốn nhận trong Cài đặt, mục <b>Thông báo</b>."
       ]
     }
-  }
+  },
+  "Referrals": "Giới thiệu bạn bè",
+  "Invite users": "Mời người dùng",
+  "Enter code": "Nhập mã",
+  "Invite a friend to mine - you'll both get 7 free ORN": "Mời bạn bè đào coin để cả hai cùng nhận 7 ORN miễn phí mỗi người",
+  "Verify a wallet to get your invite code.": "Xác minh ví để nhận mã mời của bạn.",
+  "Verify wallet": "Xác minh ví",
+  "Your invite code": "Mã mời của bạn",
+  "Copy invite code": "Sao chép mã mời",
+  "Copy invite link": "Sao chép liên kết mời",
+  "Qualified": "Đủ điều kiện",
+  "In progress": "Đang thực hiện",
+  "ORN paid": "ORN đã trả",
+  "Share your invite link or code with a friend.": "Chia sẻ liên kết hoặc mã mời với một người bạn.",
+  "Have your friend download Orien and apply your code within 12 hours of creating their account.": "Nhờ bạn của bạn tải Orien và nhập mã mời trong vòng 12 giờ kể từ khi tạo tài khoản.",
+  "Your friend just needs to verify their wallet and earn mining rewards with it in 10 separate hours.": "Bạn của bạn chỉ cần xác minh ví rồi dùng ví đó nhận phần thưởng đào trong 10 giờ riêng biệt.",
+  "You each earn 7 ORN. You can invite up to 5 friends (Referrals may refresh in the future)": "Mỗi người nhận được 7 ORN. Bạn có thể mời tối đa 5 người bạn (lượt mời có thể được cấp lại trong tương lai).",
+  "Your referral window has closed": "Đã hết hạn nhập mã mời",
+  "You can only enter a friend’s code during the first 12 hours after you create your Orien Network account. That time has passed for this account.": "Bạn chỉ có thể nhập mã của bạn bè trong 12 giờ đầu sau khi tạo tài khoản Orien Network. Tài khoản này đã quá hạn.",
+  "Use a friend’s code": "Dùng mã của bạn bè",
+  "Referral code": "Mã giới thiệu",
+  "12-character code": "Mã gồm 12 ký tự",
+  "Apply code": "Áp dụng mã",
+  "Open Mining": "Mở mục đào coin",
+  "Sign in to your Orien Network account.": "Đăng nhập vào tài khoản Orien Network của bạn.",
+  "Enter your friend’s code within 12 hours of creating your account.": "Nhập mã của bạn bè trong vòng 12 giờ kể từ khi tạo tài khoản.",
+  "Verify the wallet you’ll use for mining.": "Xác minh ví bạn sẽ dùng để đào.",
+  "Earn mining rewards in 10 hourly checkpoints with that wallet.": "Dùng ví đó nhận phần thưởng đào trong 10 khung giờ khác nhau.",
+  "You and the friend who invited you each earn 7 ORN.": "Bạn và người đã mời bạn mỗi người nhận được 7 ORN.",
+  "Your referral progress": "Tiến độ giới thiệu của bạn",
+  "Sign in to use referrals.": "Đăng nhập để sử dụng tính năng giới thiệu.",
+  "Loading referrals…": "Đang tải thông tin giới thiệu…",
+  "The referral program hasn’t opened yet.": "Chương trình giới thiệu chưa bắt đầu.",
+  "All rewards for this program have been reserved.": "Tất cả phần thưởng của chương trình đã được phân bổ.",
+  "You’ve reached your five-referral limit.": "Bạn đã đạt giới hạn năm lượt giới thiệu.",
+  "Your 7 ORN reward has been paid.": "Phần thưởng 7 ORN của bạn đã được thanh toán.",
+  "You’ve qualified. Your 7 ORN reward is awaiting payout.": "Bạn đã đủ điều kiện. Phần thưởng 7 ORN của bạn đang chờ thanh toán.",
+  "This referral closed before a reward was reserved.": "Lượt giới thiệu này đã kết thúc trước khi phần thưởng được phân bổ.",
+  "Code accepted. Verify a wallet to start counting your mining hours.": "Mã đã được chấp nhận. Hãy xác minh ví để bắt đầu tính giờ đào.",
+  "Mining requirement met. Reward reservation is pending.": "Đã đáp ứng yêu cầu đào. Phần thưởng đang chờ phân bổ.",
+  "Code accepted. Mine with your verified wallet to make progress.": "Mã đã được chấp nhận. Hãy đào bằng ví đã xác minh để tích lũy giờ đào.",
+  "Code accepted. Mine with your verified wallet in Orien Wallet on a computer.": "Mã đã được chấp nhận. Hãy đào bằng ví đã xác minh trong Orien Wallet trên máy tính.",
+  "Code copied": "Đã sao chép mã",
+  "Link copied": "Đã sao chép liên kết",
+  "Couldn’t copy. Try again.": "Không sao chép được. Hãy thử lại.",
+  "Completed": "Đã hoàn tất",
+  "Orien Referrals": "Giới thiệu Orien",
+  "Orien Network couldn't do that just now. Try again in a moment.": "Orien Network chưa thể xử lý yêu cầu. Hãy thử lại sau giây lát.",
+  "The swap board sent an answer this app can't read.": "Ứng dụng không đọc được phản hồi từ sàn hoán đổi.",
+  "Orien Network can't be reached. Check your internet connection.": "Hiện không thể kết nối đến orien.network. Hãy kiểm tra kết nối mạng và thử lại.",
+  "Enter the 12-character invite code.": "Hãy nhập mã mời gồm 12 ký tự.",
+  "Your account already has a referral code.": "Tài khoản của bạn đã có mã giới thiệu.",
+  "You can enter a code within 12 hours of creating your account.": "Bạn chỉ có thể nhập mã trong vòng 12 giờ kể từ khi tạo tài khoản.",
+  "Referrals are closed.": "Chương trình giới thiệu đã đóng.",
+  "That referral code was not found.": "Không tìm thấy mã giới thiệu đó.",
+  "You can't use your own referral code.": "Bạn không thể dùng mã giới thiệu của chính mình.",
+  "That referral code is no longer available.": "Mã giới thiệu đó không còn khả dụng.",
+  "That inviter has reached their limit.": "Người mời đã đạt giới hạn lượt mời.",
+  "Something went wrong on the server.": "Đã xảy ra lỗi máy chủ.",
+  "Not found.": "Không tìm thấy.",
+  "This account is suspended.": "Tài khoản này đã bị đình chỉ.",
+  "Sign in first.": "Hãy đăng nhập vào Orien Network trước."
 }

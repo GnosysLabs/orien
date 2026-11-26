@@ -1124,6 +1124,18 @@
   "replied to the network's post about you": "a répondu à la publication du réseau à votre sujet",
   "_patterns": [
     [
+      "^(\\d+) / (\\d+) mining hours$",
+      "{0} / {1} heures de minage"
+    ],
+    [
+      "^Code accepted\\. Mine with wallet ([0-9a-fA-F…]+) to make progress\\.$",
+      "Code accepté. Minez avec le portefeuille {0} pour progresser."
+    ],
+    [
+      "^Code accepted\\. Mine with wallet ([0-9a-fA-F…]+) in Orien Wallet on a computer\\.$",
+      "Code accepté. Minez avec le portefeuille {0} dans Orien Wallet sur ordinateur."
+    ],
+    [
       "^Sell ([0-9.,]+) ORN for ([0-9.,]+) SOL(.*)$",
       "Vendre {0} ORN pour {1} SOL{2}"
     ],
@@ -2108,5 +2120,66 @@
         "Choisissez ce dont vous souhaitez être averti dans Paramètres, <b>Notifications</b>."
       ]
     }
-  }
+  },
+  "Referrals": "Parrainage",
+  "Invite users": "Inviter des utilisateurs",
+  "Enter code": "Saisir un code",
+  "Invite a friend to mine - you'll both get 7 free ORN": "Invitez un ami à miner et recevez chacun 7 ORN gratuits.",
+  "Verify a wallet to get your invite code.": "Vérifiez un portefeuille pour obtenir votre code d’invitation.",
+  "Verify wallet": "Vérifier le portefeuille",
+  "Your invite code": "Votre code d’invitation",
+  "Copy invite code": "Copier le code d’invitation",
+  "Copy invite link": "Copier le lien d’invitation",
+  "Qualified": "Validés",
+  "In progress": "En cours",
+  "ORN paid": "ORN versés",
+  "Share your invite link or code with a friend.": "Partagez votre lien ou votre code d’invitation avec un ami.",
+  "Have your friend download Orien and apply your code within 12 hours of creating their account.": "Demandez à votre ami de télécharger Orien et d’utiliser votre code dans les 12 heures suivant la création de son compte.",
+  "Your friend just needs to verify their wallet and earn mining rewards with it in 10 separate hours.": "Il lui suffit de vérifier son portefeuille et de recevoir des récompenses de minage sur celui-ci pendant 10 heures distinctes.",
+  "You each earn 7 ORN. You can invite up to 5 friends (Referrals may refresh in the future)": "Vous gagnez chacun 7 ORN. Vous pouvez inviter jusqu’à 5 amis (ce plafond pourra être réinitialisé).",
+  "Your referral window has closed": "Le délai de saisie du code est dépassé",
+  "You can only enter a friend’s code during the first 12 hours after you create your Orien Network account. That time has passed for this account.": "Vous pouvez saisir le code d’un ami pendant les 12 heures suivant la création de votre compte Orien Network. Ce délai est écoulé pour ce compte.",
+  "Use a friend’s code": "Utiliser le code d’un ami",
+  "Referral code": "Code de parrainage",
+  "12-character code": "Code à 12 caractères",
+  "Apply code": "Appliquer le code",
+  "Open Mining": "Ouvrir le minage",
+  "Sign in to your Orien Network account.": "Connectez-vous à votre compte Orien Network.",
+  "Enter your friend’s code within 12 hours of creating your account.": "Saisissez le code de votre ami dans les 12 heures suivant la création de votre compte.",
+  "Verify the wallet you’ll use for mining.": "Vérifiez le portefeuille que vous utiliserez pour miner.",
+  "Earn mining rewards in 10 hourly checkpoints with that wallet.": "Recevez des récompenses de minage sur ce portefeuille lors de 10 points de contrôle horaires.",
+  "You and the friend who invited you each earn 7 ORN.": "Vous et la personne qui vous a invité gagnez chacun 7 ORN.",
+  "Your referral progress": "Suivi de votre parrainage",
+  "Sign in to use referrals.": "Connectez-vous pour accéder au parrainage.",
+  "Loading referrals…": "Chargement des parrainages…",
+  "The referral program hasn’t opened yet.": "Le programme de parrainage n’a pas encore commencé.",
+  "All rewards for this program have been reserved.": "Toutes les récompenses du programme ont été réservées.",
+  "You’ve reached your five-referral limit.": "Vous avez atteint la limite de cinq parrainages.",
+  "Your 7 ORN reward has been paid.": "Votre récompense de 7 ORN a été versée.",
+  "You’ve qualified. Your 7 ORN reward is awaiting payout.": "Vous avez rempli les conditions. Votre récompense de 7 ORN est en attente de versement.",
+  "This referral closed before a reward was reserved.": "Ce parrainage a pris fin avant la réservation d’une récompense.",
+  "Code accepted. Verify a wallet to start counting your mining hours.": "Code accepté. Vérifiez un portefeuille pour que vos heures de minage soient comptabilisées.",
+  "Mining requirement met. Reward reservation is pending.": "Objectif de minage atteint. La réservation de la récompense est en attente.",
+  "Code accepted. Mine with your verified wallet to make progress.": "Code accepté. Minez avec votre portefeuille vérifié pour progresser.",
+  "Code accepted. Mine with your verified wallet in Orien Wallet on a computer.": "Code accepté. Minez avec votre portefeuille vérifié dans Orien Wallet sur ordinateur.",
+  "Code copied": "Code copié",
+  "Link copied": "Lien copié",
+  "Couldn’t copy. Try again.": "Copie impossible. Réessayez.",
+  "Completed": "Terminé",
+  "Orien Referrals": "Parrainage Orien",
+  "Orien Network couldn't do that just now. Try again in a moment.": "Orien Network n’a pas pu traiter la demande. Réessayez dans un instant.",
+  "The swap board sent an answer this app can't read.": "L’application n’a pas pu lire la réponse de la plateforme d’échange.",
+  "Orien Network can't be reached. Check your internet connection.": "orien.network est inaccessible pour le moment. Vérifiez votre connexion et réessayez.",
+  "Enter the 12-character invite code.": "Saisissez le code d’invitation à 12 caractères.",
+  "Your account already has a referral code.": "Votre compte a déjà un code de parrainage.",
+  "You can enter a code within 12 hours of creating your account.": "Vous pouvez saisir un code dans les 12 heures suivant la création de votre compte.",
+  "Referrals are closed.": "Les parrainages sont clos.",
+  "That referral code was not found.": "Code de parrainage introuvable.",
+  "You can't use your own referral code.": "Vous ne pouvez pas utiliser votre propre code de parrainage.",
+  "That referral code is no longer available.": "Ce code de parrainage n’est plus disponible.",
+  "That inviter has reached their limit.": "La personne qui vous invite a atteint sa limite.",
+  "Something went wrong on the server.": "Une erreur est survenue sur le serveur.",
+  "Not found.": "Élément introuvable.",
+  "This account is suspended.": "Ce compte est suspendu.",
+  "Sign in first.": "Connectez-vous d'abord à Orien Network."
 }
