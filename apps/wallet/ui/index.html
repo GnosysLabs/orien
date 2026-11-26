@@ -727,13 +727,18 @@
   }
   /* The same aura round the mining card's icon in big windows. */
   #hs-mine.mining .hs-ico { --glow-color: rgb(var(--aura)); animation: drift 24s linear infinite, mining-small 2.8s ease-in-out infinite; }
-  #go-referrals, body.phone.at-home #hd-referrals { --glow-color: var(--accent); animation: mining-small 2.8s ease-in-out infinite; }
+  #go-referrals::before, body.phone.at-home #hd-referrals::before {
+    content: ""; position: absolute; inset: -20px; border-radius: 50%; pointer-events: none;
+    background: radial-gradient(closest-side, transparent 44%, color-mix(in srgb, var(--accent) 50%, transparent) 47%, color-mix(in srgb, var(--accent) 16%, transparent) 70%, transparent 100%);
+    animation: referral-glow 2.8s ease-in-out infinite;
+  }
+  @keyframes referral-glow { 0%, 100% { opacity: .58; } 50% { opacity: 1; } }
   @keyframes mining-small {
     0%, 100% { box-shadow: 0 0 9px 2px color-mix(in srgb, var(--glow-color) 50%, transparent), 0 0 18px 6px color-mix(in srgb, var(--glow-color) 20%, transparent); }
     50% { box-shadow: 0 0 12px 4px color-mix(in srgb, var(--glow-color) 80%, transparent), 0 0 26px 9px color-mix(in srgb, var(--glow-color) 38%, transparent); }
   }
   @media (prefers-reduced-motion: reduce) {
-    #go-referrals, body.phone.at-home #hd-referrals { animation: none; box-shadow: 0 0 10px 3px color-mix(in srgb, var(--accent) 65%, transparent), 0 0 22px 7px color-mix(in srgb, var(--accent) 30%, transparent); }
+    #go-referrals::before, body.phone.at-home #hd-referrals::before { animation: none; opacity: .8; }
     #hs-mine.mining .hs-ico { animation: drift 24s linear infinite; box-shadow: 0 0 10px 3px rgba(var(--aura), 0.65), 0 0 22px 7px rgba(var(--aura), 0.3); }
     #go-mine.on .icon { animation: drift 24s linear infinite; box-shadow: 0 5px 14px rgba(0, 0, 0, 0.26), 0 0 14px 4px rgba(var(--aura), 0.65), 0 0 30px 10px rgba(var(--aura), 0.3); }
   }
@@ -3124,6 +3129,11 @@
   /* Home: its activity box ends as far from the window's bottom as from
      its sides (the window's own 28px), not 16px higher. */
   #home { padding-bottom: 0; border-radius: 22px 22px 24px 24px; }
+  /* Move the scroll boundary above the toolbar so its halo can fade out. */
+  body:not(.phone) #home { margin-top: -28px; padding-top: 28px; }
+  @media (min-width: 860px) {
+    body:not(.phone) #home { margin-top: -20px; }
+  }
   body.phone .screen { margin: -8px -8px 0; padding: 8px 8px 16px; }
   .day { margin: 18px 4px 8px; font-size: 12px; font-weight: 600; color: var(--dim); }
   .day:first-child { margin-top: 0; }
@@ -5299,7 +5309,7 @@
     if (waiting) { covered(true); setTimeout(() => covered(false), 8000); }
     show("home"); fitBalance(); loadWallets(); renderSwapAlert();
     if (typeof homeSide === "function") homeSide();
-    invoke("board_me").then((me) => { board.me = me; renderBoardBar(); paintVerifyCard(); }).catch(() => {});
+    invoke("board_me").then((me) => { board.me = me; renderBoardBar(); paintVerifyCard(); if (!$("home").hidden) refRefresh(); }).catch(() => {});
     invoke("notifications_ask").catch(() => {});
     // An update stopped mining that was running: start it again, once.
     if (!mineResumeAsked) {
@@ -11335,6 +11345,10 @@
   const referral = { tab: "invite", phase: "loading", value: null, request: 0, saving: false };
   const refOpen = () => !$("settings").hidden && settingsAt === "referrals";
   const refCode = () => $("ref-input").value.trim().toUpperCase();
+  function paintReferralShortcut() {
+    const atLimit = board.me && localStorage.getItem("referral-limit:" + board.me.id) === "1";
+    $("go-referrals").hidden = $("hd-referrals").hidden = !!atLimit;
+  }
   function openReferrals() {
     show("settings");
     settingsPage("referrals");
@@ -11391,16 +11405,25 @@
       : status;
   }
   async function refRefresh() {
-    if (!refOpen() || referral.saving) return;
+    const onPage = refOpen();
+    const account = board.me?.id;
+    if ((!onPage && ($("home").hidden || !account)) || referral.saving) return;
     const request = ++referral.request;
     try {
       const data = await mk("GET", "/me/referrals");
-      if (request !== referral.request || !refOpen()) return;
+      if (request !== referral.request || account !== board.me?.id) return;
+      if (account) {
+        const key = "referral-limit:" + account;
+        if (data.completed >= data.invite_limit) localStorage.setItem(key, "1");
+        else localStorage.removeItem(key);
+        paintReferralShortcut();
+      }
+      if (!onPage || !refOpen()) return;
       referral.value = data;
       referral.phase = "ready";
       $("ref-problem").hidden = true;
     } catch (error) {
-      if (request !== referral.request || !refOpen()) return;
+      if (request !== referral.request || account !== board.me?.id || !onPage || !refOpen()) return;
       if (String(error).startsWith("signin:")) {
         referral.value = null;
         referral.phase = "signin";
@@ -11491,6 +11514,7 @@
   }
   const nt = { lines: [], account: null, unread: false, refresh: 0 };
   function paintUnread() {
+    paintReferralShortcut();
     setBadge();
     const n = (board.me && board.me.unread) || 0;
     // Messages' dot: a conversation with something new, or the group chat.
