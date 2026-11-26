@@ -50,6 +50,18 @@ export const CHANGELOG: Entry[] = [
     ],
   },
   {
+    date: '2026-11-26',
+    products: ['wallet'],
+    version: '1.9.19',
+    title: 'Report a problem from the app',
+    changes: [
+      'Report a Problem, in Settings, the Mac\'s Help menu and the tray menu: say where it happened and what went wrong, with an email if you would like a reply. Before you send, it shows exactly what goes with it: the app\'s version, the window, your last few screens and any recent errors. Never your recovery words, keys, addresses or balances.',
+      'Replying to a post on someone\'s profile sends again.',
+      'A reply you are typing is kept when you react to a post.',
+      'In a big window, Back from a profile you opened from a contact goes Home.',
+    ],
+  },
+  {
     date: '2026-11-25',
     products: ['wallet'],
     version: '1.9.18',
