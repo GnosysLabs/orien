@@ -8814,6 +8814,8 @@
     const t = e.target.closest("[data-tip]");
     if (t) { e.stopPropagation(); tipOpen(Number(t.dataset.tip)); }
   }, true);
+  // A post can be drawn twice (Community and a profile); act on the copy on screen.
+  const rvis = (sel) => [...document.querySelectorAll(sel)].find((el) => el.offsetParent !== null) || document.querySelector(sel);
   async function cmClick(e) {
     if (e.target.closest("[data-join]")) return cmJoin();
     if (await cmReplyTools(e)) return;
@@ -8843,7 +8845,7 @@
       if (was && was.id === Number(id)) cm.answering.delete(Number(postId));
       else cm.answering.set(Number(postId), { id: Number(id), name: name.join(":") });
       if (!$("cm-thread").hidden && cm.thread) cmPaintThread(); else { cmPaintFeed(); if (!$("seller").hidden) slPaintFeed(); }
-      const sub = document.querySelector(`[data-reply-box="${postId}:${id}"]`);
+      const sub = rvis(`[data-reply-box="${postId}:${id}"]`);
       if (sub) sub.focus();
       return;
     }
@@ -8861,7 +8863,7 @@
       else await cmLoadReplies(id);
       cm.open.add(id);
       cmPaintFeed();
-      const box = document.querySelector(`[data-reply-box="${id}"]`);
+      const box = rvis(`[data-reply-box="${id}"]`);
       if (box) box.focus();
       return;
     }
@@ -8922,7 +8924,7 @@
     if (!box) return;
     box.style.height = "auto";
     box.style.height = Math.min(box.scrollHeight, 240) + "px";
-    const go = document.querySelector(`[data-reply-send="${box.dataset.replyBox}"]`);
+    const go = box.closest(".cm-inline-write").querySelector("[data-reply-send]");
     if (go) go.disabled = !rdraftReady(box.dataset.replyBox);
   };
   $("cm-feed").addEventListener("input", cmReplyInput);
@@ -8940,15 +8942,15 @@
     return "";
   }
   function rdraftReady(key) {
-    const box = document.querySelector(`[data-reply-box="${key}"]`), d = cm.rdraft.get(key);
+    const box = rvis(`[data-reply-box="${key}"]`), d = cm.rdraft.get(key);
     return !!(box && box.value.trim()) || !!(d && (d.photos.length || d.gif));
   }
   // Repaints one reply box's attachments and buttons, leaving its words.
   function rdraftPaint(key) {
-    const at = document.querySelector(`[data-rattach="${key}"]`);
+    const at = rvis(`[data-rattach="${key}"]`);
     if (at) { const html = rdraftHtml(key); at.innerHTML = html; at.hidden = !html; }
     const d = rdraftOf(key);
-    const photo = document.querySelector(`[data-rphoto="${key}"]`), gif = document.querySelector(`[data-rgif="${key}"]`), go = document.querySelector(`[data-reply-send="${key}"]`);
+    const photo = rvis(`[data-rphoto="${key}"]`), gif = rvis(`[data-rgif="${key}"]`), go = rvis(`[data-reply-send="${key}"]`);
     if (photo) photo.disabled = !!d.gif || d.photos.length >= 4;
     if (gif) gif.disabled = !!d.gif || d.photos.length > 0;
     if (go) go.disabled = !rdraftReady(key);
@@ -8970,7 +8972,7 @@
   async function cmSendInline(key) {
     // "post" or "post:reply", for an answer to a reply.
     const [id, replyTo] = String(key).split(":").map(Number);
-    const box = document.querySelector(`[data-reply-box="${key}"]`), go = document.querySelector(`[data-reply-send="${key}"]`);
+    const box = rvis(`[data-reply-box="${key}"]`), go = rvis(`[data-reply-send="${key}"]`);
     const body = box ? box.value.trim() : "";
     const d = rdraftOf(key);
     if (!body && !d.photos.length && !d.gif) return;
