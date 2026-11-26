@@ -1604,6 +1604,19 @@
     body:not(.phone) .ex-panel[data-ex-pane][hidden] { display: flex !important; }
   }
   #swaps #board-offers { max-height: 360px; overflow-y: auto; overscroll-behavior: contain; }
+  /* The column headings stay put while the book scrolls under them. */
+  #swaps .ob-cols { position: sticky; top: 0; z-index: 3; background: var(--surface); }
+  /* Big windows: the page never scrolls; both columns reach down to the same
+     margin above the window's foot, and their lists scroll inside them. */
+  @media (min-width: 860px) {
+    body:not(.phone) #swaps { display: flex; flex-direction: column; overflow: hidden; padding-bottom: 24px; }
+    body:not(.phone) #swaps > .ex-grid { flex: 1; min-height: 0; align-items: stretch; }
+    body:not(.phone) #swaps .ex-col { min-height: 0; }
+    body:not(.phone) #swaps #ex-pane-deck, body:not(.phone) #swaps #tab-offers { flex: 1; min-height: 0; }
+    body:not(.phone) #swaps #board-offers { flex: 1; min-height: 0; max-height: none; }
+    body:not(.phone) #swaps #ex-pane-deck { overflow-y: auto; }
+    body:not(.phone) #swaps #swap-list, body:not(.phone) #swaps #hist-list { max-height: none; }
+  }
   #swaps #swap-list, #swaps #hist-list { max-height: 290px; overflow-y: auto; overscroll-behavior: contain; margin: 0; padding: 0; -webkit-mask: none; mask: none; }
   #swaps #swap-list .swap-row { border: 0; border-radius: 0; background: none; margin: 0; padding: 12px 16px; }
   #swaps #swap-list .swap-row + .swap-row { border-top: 1px solid var(--line); }
