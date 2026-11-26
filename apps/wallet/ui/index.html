@@ -1941,12 +1941,26 @@
   .ts-stage { position: relative; aspect-ratio: 4 / 3; padding: 0; border-radius: 18px; overflow: hidden; border: 1px solid var(--line); cursor: pointer;
     background: var(--pic, none) center / cover no-repeat, var(--ground-deep); display: grid; place-items: center; transition: transform 0.2s ease; }
   @media (hover: hover) { .ts-stage:hover { transform: translateY(-2px); } }
-  .ts-stage .tc-mini { width: 40%; padding: 8px 7px; gap: 5px; border-radius: 12px; box-shadow: 0 14px 34px rgba(0, 0, 0, 0.5); pointer-events: none;
-    background: var(--glow), var(--ground-deep); border: 1px solid var(--line); }
-  .ts-stage .tc-card { border-radius: 8px; padding: 6px; gap: 3px; }
-  .ts-stage .tc-card i { height: 3px; } .ts-stage .tc-card i:last-child { height: 5px; }
-  .ts-stage .tc-word { height: 5px; } .ts-stage .tc-dot { width: 8px; height: 8px; }
-  .ts-stage .tc-list { border-radius: 7px; padding: 5px; gap: 4px; } .ts-stage .tc-list i { height: 3px; }
+  .ts-wide { width: 66%; aspect-ratio: 4 / 3; padding: 6px; display: flex; flex-direction: column; gap: 5px; border-radius: 10px; pointer-events: none;
+    background: var(--glow), var(--ground-deep); border: 1px solid var(--line); box-shadow: 0 14px 34px rgba(0, 0, 0, 0.5); }
+  .tw-top { display: flex; align-items: center; gap: 3px; height: 6px; }
+  .tw-pill { width: 14%; height: 5px; border-radius: 3px; background: var(--surface-hover); }
+  .tw-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--surface-hover); }
+  .tw-sp { flex: 1; }
+  .tw-body { flex: 1; min-height: 0; display: grid; grid-template-columns: 1.65fr 1fr; gap: 5px; }
+  .tw-main, .tw-side { display: flex; flex-direction: column; gap: 4px; min-width: 0; min-height: 0; }
+  .ts-wide .tc-card { height: 30%; flex: none; border-radius: 6px; padding: 4px 5px; gap: 2px; }
+  .ts-wide .tc-card i { height: 2px; } .ts-wide .tc-card i:last-child { height: 4px; }
+  .ts-wide .tc-tiles.seven { grid-template-columns: repeat(7, 1fr); gap: 1px; padding: 0 3px; }
+  .ts-wide .tc-tiles span::after { width: 76%; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.26); }
+  .tw-strip { height: 10%; flex: none; border-radius: 4px; background: var(--surface); border: 1px solid var(--line); }
+  .tw-list, .tw-box { border-radius: 5px; background: var(--surface); border: 1px solid var(--line); padding: 4px; display: grid; gap: 3px; align-content: start; }
+  .tw-list { flex: 1; }
+  .tw-box:first-child { flex: 1.15; } .tw-box:last-child { flex: 1; }
+  .tw-list i, .tw-box i { display: block; height: 2px; border-radius: 2px; background: var(--faint); opacity: 0.6; }
+  .tw-list i:nth-child(2) { width: 70%; } .tw-box i:nth-of-type(2) { width: 65%; }
+  .tw-box b { width: 8px; height: 8px; border-radius: 50%; background: var(--pearl); background-size: 300% 100%; }
+  .tw-box em { height: 6px; margin-top: 1px; border-radius: 4px; background: var(--pearl); background-size: 300% 100%; }
   .ts-info { display: flex; align-items: flex-start; gap: 12px; padding: 0 4px; }
   .ts-meta { flex: 1; min-width: 0; display: grid; gap: 3px; }
   .ts-name { font-weight: 600; font-size: 15px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -5636,7 +5650,9 @@
   const SHARE_ICON = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v13"/><path d="m16 6-4-4-4 4"/><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/></svg>';
   const DOWN_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 15V3"/><path d="m7 10 5 5 5-5"/><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/></svg>';
   const TS_FLAG = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 22V4a1 1 0 0 1 .4-.8A6 6 0 0 1 8 2c3 0 5 2 7.333 2q2 0 3.067-.8A1 1 0 0 1 20 4v10a1 1 0 0 1-.4.8A6 6 0 0 1 16 16c-3 0-5-2-8-2a6 6 0 0 0-4 1.528"/></svg>';
-  const TS_MINI = '<div class="tc-mini"><div class="tc-bar"><span class="tc-word"></span><span class="tc-dot"></span></div><div class="tc-card"><i></i><i></i><i></i></div><div class="tc-tiles"><span></span><span></span><span></span><span></span><span></span></div><div class="tc-list"><i></i><i></i><i></i></div></div>';
+  // A small copy of Home as big windows show it: balance, the round buttons
+  // and Activity on the left; Mining and Network on the right.
+  const TS_MINI = '<div class="ts-wide"><div class="tw-top"><span class="tw-pill"></span><span class="tw-dot"></span><span class="tw-sp"></span><span class="tw-dot"></span></div><div class="tw-body"><div class="tw-main"><div class="tc-card"><i></i><i></i><i></i></div><div class="tc-tiles seven"><span></span><span></span><span></span><span></span><span></span><span></span><span></span></div><div class="tw-strip"></div><div class="tw-list"><i></i><i></i><i></i></div></div><div class="tw-side"><div class="tw-box"><b></b><i></i><i></i><em></em></div><div class="tw-box"><b></b><i></i><i></i><i></i></div></div></div></div>';
   // The builder's work in progress.
   const tb = { colors: [], scene: null, editing: null, base: "dark" };
   function paintThemeCards() {
@@ -5730,7 +5746,7 @@
       const card = grid.querySelector(`[data-ts="${t.id}"]`);
       if (!card) continue;
       if (t.thumb) card.querySelector(".ts-stage").style.setProperty("--pic", `url("${tsPic(t.thumb)}")`);
-      setThemeVars(card.querySelector(".tc-mini"), tsColors(t), null, t.base);
+      setThemeVars(card.querySelector(".ts-wide"), tsColors(t), null, t.base);
     }
     $("ts-more").hidden = !ts.more;
     const empty = !ts.themes.length && !ts.busy;
