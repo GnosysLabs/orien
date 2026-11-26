@@ -1525,6 +1525,9 @@
   .ex-cur-menu .menu-row b { font-weight: 600; color: var(--dim); font-size: 12px; }
   .ex-cur-menu .menu-row.on { background: var(--surface-hover); }
   #swaps .ex-panel { border-radius: 22px; }
+  /* No price chart: with this little trading it says nothing yet. The last
+     trade and the book's prices are on the price card. */
+  #ex-pane-chart { display: none !important; }
   /* Order rows: one line each. The price and who's offering side by side,
      the SOL figure only on hover; a slim button. */
   #swaps .ob-row { padding-top: 6px; padding-bottom: 6px; min-height: 0; }
@@ -4176,7 +4179,7 @@
       <!-- Mobile / narrow-window switcher -->
       <div class="tabs three ex-mobile-tabs" role="tablist">
         <button class="tab on" id="tab-offers-go" role="tab">Book &amp; Trade</button>
-        <button class="tab" id="tab-history-go" role="tab">Chart &amp; Trades</button>
+        <button class="tab" id="tab-history-go" role="tab">Trades</button>
         <button class="tab" id="tab-mine-go" role="tab">Your swaps <span id="mine-count"></span></button>
       </div>
 
