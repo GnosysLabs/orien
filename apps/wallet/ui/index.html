@@ -6021,6 +6021,7 @@
       localStorage.setItem("custom-themes", JSON.stringify(list));
       scenes.set(id, pic);
       setSceneVersion(id, pv);
+      markSharing(id);
       shareScenes().then(shareThemes, shareThemes);
       ts.trying = null; ts.before = null; tsTurn++;
       applyTheme(id, true);
@@ -6112,12 +6113,28 @@
   // Built themes follow you to your other devices: the list, without the
   // pictures. A list from elsewhere replaces this device's; a device whose
   // themes were never shared shares them now.
-  const shareThemes = () => invoke("set_app_pref", { name: "themes", value: JSON.stringify(customThemes().slice(0, 24)) }).catch(() => {});
+  // A theme saved or taken here is "on its way" until the list naming it is
+  // shared: its picture goes first, which takes a while, and meanwhile a list
+  // from your other devices doesn't know it yet. Such a list never drops it.
+  const sharingThemes = () => { try { return JSON.parse(localStorage.getItem("themes-sharing") || "[]"); } catch { return []; } };
+  const markSharing = (id) => localStorage.setItem("themes-sharing", JSON.stringify([...new Set(sharingThemes().concat([id]))]));
+  const shareThemes = () => {
+    const sent = sharingThemes();
+    return invoke("set_app_pref", { name: "themes", value: JSON.stringify(customThemes().slice(0, 24)) })
+      .then(() => localStorage.setItem("themes-sharing", JSON.stringify(sharingThemes().filter((id) => !sent.includes(id))))).catch(() => {});
+  };
   function takeThemes(text) {
     if (text === undefined) { if (customThemes().length) shareThemes(); return; }
     let list;
     try { list = JSON.parse(text); } catch { return; }
-    if (!Array.isArray(list) || JSON.stringify(list) === JSON.stringify(customThemes())) return;
+    if (!Array.isArray(list)) return;
+    // This device's newer copy of a theme still on its way wins.
+    const sharing = sharingThemes(), mine = customThemes();
+    if (sharing.length) {
+      list = list.filter((t) => !sharing.includes(t.id));
+      for (const t of mine) if (sharing.includes(t.id)) list.push(t);
+    }
+    if (JSON.stringify(list) === JSON.stringify(mine)) return;
     localStorage.setItem("custom-themes", JSON.stringify(list));
     for (const id of [...scenes.keys()]) if (!list.some((t) => t.id === id)) { scenes.delete(id); sceneAsk("readwrite", (st) => st.delete(id)).catch(() => {}); }
     paintThemeCards();
@@ -6246,6 +6263,7 @@
     setSceneVersion(id, pv);
     // The picture first, then the list that names its new version: another
     // device never asks for it before it's there.
+    markSharing(id);
     shareScenes().then(shareThemes, shareThemes);
     tb.colors = []; tb.scene = null; tb.editing = null;
     paintThemeCards();

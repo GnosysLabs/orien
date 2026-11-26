@@ -53,8 +53,9 @@ export const CHANGELOG: Entry[] = [
     date: '2026-11-26',
     products: ['wallet'],
     version: '1.9.21',
-    title: 'A Help button that settles',
+    title: 'Themes you use stay put',
     changes: [
+      'A theme you use from the Theme Store, or build yourself, is never lost while it\'s being sent to your other devices. A sync in those first moments could drop it and switch you back to Pearl.',
       'In a big window, the Help button beside the bell is only highlighted while its menu is open. It stayed lit when the menu closed by scrolling, Escape or a change of page.',
     ],
   },
