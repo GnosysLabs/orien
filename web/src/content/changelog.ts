@@ -52,6 +52,22 @@ export const CHANGELOG: Entry[] = [
   {
     date: '2026-11-26',
     products: ['wallet'],
+    version: '1.9.20',
+    title: 'The Theme Store and Orien AI Support',
+    changes: [
+      'The Theme Store: browse themes people made, try any of them on the whole app, use the ones you like and tip their makers. Share your own themes from their cards in Appearance.',
+      'Orien\'s own themes are under Official in the Theme Store. Pearl, Daylight and Obsidian stay built in, and a theme you already wear stays yours.',
+      'Orien AI Support: a private chat pinned in Messages, under Orien Group Chat, that answers questions about the wallet, mining, swaps and the network. Anyone signed in to Orien Network can ask.',
+      'In a big window, Home has a Help button (AI Support, the User Guide and Report a Problem) and a Theme Store button beside the bell.',
+      'Theme previews match the window: in a big window they show the wide Home over the theme\'s picture.',
+      'The User Guide explains building, finding and sharing themes, and asking AI Support.',
+      'Report a Problem shows the screens you really visited, Settings pages included.',
+      'General errors from Orien Network say so, instead of naming the swap board.',
+    ],
+  },
+  {
+    date: '2026-11-26',
+    products: ['wallet'],
     version: '1.9.19',
     title: 'Report a problem from the app',
     changes: [
