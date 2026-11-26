@@ -325,6 +325,7 @@ impl Store {
         store.create_room_tables()?;
         store.create_app_report_table()?;
         store.create_theme_tables()?;
+        store.create_support_tables()?;
         store.allow_direct_conversations()?;
         // Names are unique whatever their case.
         store.db.execute("CREATE UNIQUE INDEX IF NOT EXISTS accounts_name ON accounts (lower(name))", [])?;

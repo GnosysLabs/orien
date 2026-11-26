@@ -90,6 +90,46 @@ def orien_help() -> str:
     return "\n\n".join(parts)
 
 
+GUIDE_RENDER = r"""
+const fs = require("fs");
+const html = fs.readFileSync(process.argv[1], "utf8");
+const start = html.indexOf("const GUIDES = (() => {");
+const end = html.indexOf("})();", start);
+if (start < 0 || end < 0) { console.log(""); process.exit(0); }
+const body = html.slice(start + "const GUIDES = ".length, end + "})()".length);
+const plain = (t) => String(t).replace(/<[^>]+>/g, "").replace(/&nbsp;/g, " ").replace(/&amp;/g, "&");
+const out = [];
+for (const [label, phone, apple] of [["on a computer (Mac, Windows, Linux)", false, true], ["on iPhone", true, true]]) {
+  let guides;
+  try { guides = new Function("phone", "apple", "return " + body)(phone, apple); } catch (e) { continue; }
+  out.push(`## Orien Wallet's User Guide, ${label}`);
+  let group = null;
+  for (const g of guides) {
+    if (g.group !== group) { group = g.group; out.push(`\n### ${plain(group)}`); }
+    out.push(`\n**${plain(g.title)}**`);
+    g.steps.forEach((step, i) => out.push(`${i + 1}. ${plain(step)}`));
+    if (g.note) out.push(plain(g.note));
+  }
+  out.push("");
+}
+console.log(out.join("\n"));
+"""
+
+
+def wallet_guide() -> str:
+    """Orien Wallet's own User Guide (Settings, User Guide), from the app's
+    code, for a computer and for an iPhone. Empty if node can't run it."""
+    try:
+        done = subprocess.run(
+            ["node", "-e", GUIDE_RENDER, str(ROOT / "apps/wallet/ui/index.html")],
+            capture_output=True, text=True, timeout=30, check=True,
+        )
+    except (OSError, subprocess.SubprocessError) as error:
+        print(f"no wallet guide: {error}", file=sys.stderr)
+        return ""
+    return done.stdout.strip()
+
+
 def main() -> None:
     sections = []
     for heading, path, address in PAGES:
@@ -99,6 +139,9 @@ def main() -> None:
     sections.append(f"# Changelog, newest first\nSource: https://orien.network/changelog/\n\n{changelog}")
     # The running bot reads the website itself; from here on is what it cannot find there.
     sections.append("<!-- not on the website -->\n\n# Design notes: how coins are created (docs/epochs.md, written for developers)\n\n" + (ROOT / "docs/epochs.md").read_text().strip())
+    guide = wallet_guide()
+    if guide:
+        sections.append("# Orien Wallet's User Guide, step by step (in the app: Settings, User Guide)\n\n" + guide)
     cli = orien_help()
     if cli:
         sections.append("# The orien command-line program's own help\n\n" + cli)

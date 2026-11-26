@@ -23,6 +23,7 @@ pub mod push;
 pub mod room;
 pub mod screen;
 pub mod store;
+pub mod support;
 pub mod swaps;
 pub mod themes;
 pub mod tokenomics;

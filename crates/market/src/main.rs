@@ -45,6 +45,10 @@ struct Args {
     /// #network-alerts channel. Without it, they're only written to the log.
     #[arg(long)]
     alerts: Option<String>,
+    /// Where Orien AI Support is answered: the Discord bot's expert on this
+    /// computer. Empty turns it off.
+    #[arg(long, default_value = "http://127.0.0.1:7300/support")]
+    support: String,
     /// Apple's push key (.p8), for notifications on iPhone; without it,
     /// notifications are written to the log
     #[arg(long)]
@@ -250,6 +254,7 @@ async fn main() -> Result<()> {
     .with_traffic(orien_market::traffic::Traffic::open(traffic))
     .with_min_swap_version(args.min_swap_version)
     .with_alerts(args.alerts.clone())
+    .with_support(Some(args.support.clone()))
     .with_klipy_key(match &args.klipy_key {
         Some(path) => std::fs::read_to_string(path).with_context(|| format!("cannot read {}", path.display()))?.trim().to_string(),
         None => String::new(),

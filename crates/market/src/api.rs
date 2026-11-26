@@ -72,6 +72,9 @@ pub struct App {
     klipy_key: String,
     /// Problems told to the founder in Discord's #network-alerts.
     alerts: crate::alerts::Alerts,
+    /// Where Orien AI Support is answered: the Discord bot's expert, such
+    /// as http://127.0.0.1:7300/support. None: it isn't available.
+    support: Option<String>,
 }
 
 /// One email, for App Store review, whose sign-in code never changes and is
@@ -126,6 +129,7 @@ impl App {
             asking: Mutex::new(HashSet::new()),
             klipy_key: String::new(),
             alerts: crate::alerts::Alerts::default(),
+            support: None,
         })
     }
 
@@ -167,6 +171,16 @@ impl App {
     pub fn with_alerts(mut self, url: Option<String>) -> App {
         self.alerts = crate::alerts::Alerts::to(url);
         self
+    }
+
+    /// Where Orien AI Support is answered (see `support`).
+    pub fn with_support(mut self, url: Option<String>) -> App {
+        self.support = url.filter(|u| !u.trim().is_empty());
+        self
+    }
+
+    pub(crate) fn support_url(&self) -> Option<String> {
+        self.support.clone()
     }
 
     pub fn alerts(&self) -> &crate::alerts::Alerts {
@@ -468,6 +482,7 @@ pub fn router(app: Arc<App>) -> Router {
         .merge(crate::room::routes())
         .merge(crate::app_reports::routes())
         .merge(crate::themes::routes())
+        .merge(crate::support::routes())
         .route("/api/explorer/overview", get(crate::explorer::overview))
         .route("/api/explorer/checkpoints", get(crate::explorer::checkpoints))
         .route("/api/explorer/checkpoints/{epoch}", get(crate::explorer::checkpoint))
