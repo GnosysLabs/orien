@@ -865,9 +865,9 @@
   .home-top { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 12px; }
   .home-top .wallet-chip { margin: 0; }
   .home-left { display: flex; align-items: center; gap: 8px; min-width: 0; }
-  /* Help and the Theme Store: big windows only, beside the bell. */
-  .hm-extra { display: none !important; }
-  @media (min-width: 860px) { body:not(.phone) .hm-extra { display: inline-flex !important; } }
+  /* Help and the Theme Store, beside the bell, on computers in any window
+     size (iPhones have no Theme Store). */
+  body.phone .hm-extra { display: none !important; }
   #go-help[aria-expanded="true"] { color: var(--ink); background: var(--surface-hover); }
   /* The gear and the wallet picker, side by side, the same height. */
   .home-left .wallet-chip { height: 32px; }
