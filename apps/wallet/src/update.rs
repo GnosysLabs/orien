@@ -155,7 +155,21 @@ pub async fn install_update(app: AppHandle, quiet: Option<bool>) -> Result<(), S
         let _ = std::fs::write(dir.join("reopen-as"), window_now(&app));
     }
     let installed = tauri::async_runtime::spawn_blocking(move || {
-        let _turn = crate::TURNS.lock().unwrap_or_else(|poisoned| poisoned.into_inner());
+        // Waits for a payment or swap step already under way (new ones stand
+        // aside meanwhile), but never forever.
+        crate::UPDATING.store(true, std::sync::atomic::Ordering::Relaxed);
+        let started = std::time::Instant::now();
+        let _turn = loop {
+            match crate::TURNS.try_lock() {
+                Ok(turn) => break turn,
+                Err(std::sync::TryLockError::Poisoned(poisoned)) => break poisoned.into_inner(),
+                Err(std::sync::TryLockError::WouldBlock) if started.elapsed() < std::time::Duration::from_secs(90) => std::thread::sleep(std::time::Duration::from_millis(200)),
+                Err(std::sync::TryLockError::WouldBlock) => {
+                    crate::UPDATING.store(false, std::sync::atomic::Ordering::Relaxed);
+                    return Err("A payment or swap step is still going. Try the update again in a minute.".to_string());
+                }
+            }
+        };
         match ready {
             Some(bytes) => update.install(bytes),
             None => tauri::async_runtime::block_on(update.download_and_install(|_, _| {}, || {})),
@@ -166,6 +180,7 @@ pub async fn install_update(app: AppHandle, quiet: Option<bool>) -> Result<(), S
     .map_err(|error| error.to_string())
     .and_then(|done| done);
     if let Err(error) = installed {
+        crate::UPDATING.store(false, std::sync::atomic::Ordering::Relaxed);
         for file in ["reopen-as", "update-ready.bin", "update-ready.version"] {
             let _ = std::fs::remove_file(dir.join(file));
         }
