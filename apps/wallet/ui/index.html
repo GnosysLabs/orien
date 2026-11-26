@@ -1605,7 +1605,7 @@
   }
   #swaps #board-offers { max-height: 360px; overflow-y: auto; overscroll-behavior: contain; }
   /* The column headings stay put while the book scrolls under them. */
-  #swaps .ob-cols { position: sticky; top: 0; z-index: 3; background: var(--surface); }
+  #swaps .ob-cols { flex: none; background: var(--surface); }
   /* Big windows: the page never scrolls; both columns reach down to the same
      margin above the window's foot, and their lists scroll inside them. */
   @media (min-width: 860px) {
@@ -8885,6 +8885,11 @@
       + `<div class="ob-side-head bid"><span>Bids · buying ORN</span><span class="ob-ct">${bidsDesc.length}</span></div>`
       + bidsHtml
       + awayLine;
+    // The column headings sit above the scrolling list, not stuck inside it:
+    // WebKit leaves a strip of rows showing above a stuck heading.
+    const cols = list.querySelector(".ob-cols"), was = list.parentNode.querySelector(":scope > .ob-cols");
+    if (was) was.remove();
+    if (cols) list.parentNode.insertBefore(cols, list);
     for (const b of list.querySelectorAll("[data-take]")) b.onclick = () => startTake(Number(b.dataset.take));
     for (const u of list.querySelectorAll("[data-user]")) u.onclick = () => u.dataset.user && openPerson(u.dataset.user, "swaps");
   }
