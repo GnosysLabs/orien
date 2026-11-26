@@ -144,7 +144,12 @@ impl Store {
                  at INTEGER NOT NULL,
                  PRIMARY KEY (sender, seq)
              );
-             CREATE INDEX IF NOT EXISTS theme_tips_by_theme ON theme_tips(theme);",
+             CREATE INDEX IF NOT EXISTS theme_tips_by_theme ON theme_tips(theme);
+             -- Accounts that may share themes without the daily and live
+             -- limits, set on the server. Kept here, never in the code.
+             CREATE TABLE IF NOT EXISTS theme_unlimited (
+                 account INTEGER PRIMARY KEY REFERENCES accounts(id) ON DELETE CASCADE
+             );",
         )?;
         self.allow_official_themes()?;
         let at = now() as i64;
@@ -196,10 +201,28 @@ impl Store {
         Ok(())
     }
 
+    /// Lets `account` share themes without the daily and live limits, or
+    /// with `on` false puts the limits back.
+    pub fn set_theme_unlimited(&self, account: i64, on: bool) -> Result<()> {
+        if on {
+            self.db.execute("INSERT OR IGNORE INTO theme_unlimited (account) VALUES (?1)", [account])?;
+        } else {
+            self.db.execute("DELETE FROM theme_unlimited WHERE account = ?1", [account])?;
+        }
+        Ok(())
+    }
+
+    fn theme_unlimited(&self, account: i64) -> Result<bool> {
+        Ok(self.db.query_row("SELECT 1 FROM theme_unlimited WHERE account = ?1", [account], |_| Ok(())).optional()?.is_some())
+    }
+
     /// Whether `account` may share a theme now.
     fn may_share_theme(&self, account: i64) -> Result<()> {
         if self.verified_wallets(account)?.is_empty() {
             bail!("verify one of your wallets first: only accounts with a verified wallet can share themes");
+        }
+        if self.theme_unlimited(account)? {
+            return Ok(());
         }
         let live: i64 =
             self.db.query_row("SELECT COUNT(*) FROM themes WHERE author = ?1 AND removed = 0", [account], |r| r.get(0))?;
@@ -623,6 +646,11 @@ mod tests {
             store.add_theme(maya, &draft, "p.jpg", "t.jpg").unwrap();
         }
         assert!(store.may_share_theme(maya).unwrap_err().to_string().contains("today"));
+        store.set_theme_unlimited(maya, true).unwrap();
+        store.may_share_theme(maya).unwrap();
+        assert!(store.may_share_theme(sam).is_err(), "still needs a verified wallet");
+        store.set_theme_unlimited(maya, false).unwrap();
+        assert!(store.may_share_theme(maya).is_err());
     }
 
     #[test]

@@ -999,11 +999,21 @@ async fn open_swaps(State(app): State<Arc<App>>, Query(board): Query<Board>) -> 
     let offers: Vec<_> =
         offers.into_iter().zip(wallets).filter(|(offer, wallet)| !short_of(&spendable, wallet, offer.orn)).map(|(offer, _)| offer).collect();
     let prices = app.prices.clone();
-    let (bitcoin, solana) = tokio::task::spawn_blocking(move || (prices.bitcoin(), prices.solana()))
+    let (bitcoin, solana, rates) = tokio::task::spawn_blocking(move || {
+        let (bitcoin, solana) = (prices.bitcoin(), prices.solana());
+        (bitcoin, solana, prices.solana_rates())
+    })
         .await
         .map_err(|e| Failure::Broken(e.into()))?;
     let usd = |price: Option<crate::prices::Price>| price.map(|p| json!({ "usd": p.usd, "at": p.at }));
-    Ok(Json(json!({ "offers": offers, "bitcoin": usd(bitcoin), "solana": usd(solana) })).into_response())
+    // SOL also in other currencies, for prices in people's own money.
+    let mut solana = usd(solana);
+    if let Some(sol) = solana.as_mut() {
+        for (code, rate) in rates {
+            sol[code] = json!(rate);
+        }
+    }
+    Ok(Json(json!({ "offers": offers, "bitcoin": usd(bitcoin), "solana": solana })).into_response())
 }
 
 async fn post_swap(State(app): State<Arc<App>>, headers: HeaderMap, Json(request): Json<NewSwap>) -> Answer {

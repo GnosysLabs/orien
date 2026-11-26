@@ -137,6 +137,14 @@ enum Admin {
         #[arg(long)]
         remove: bool,
     },
+    /// Let an account (by number or email) share themes without the daily
+    /// and live limits, or with --remove put the limits back. Kept in the
+    /// database, never in the code.
+    ThemesUnlimited {
+        who: String,
+        #[arg(long)]
+        remove: bool,
+    },
 }
 
 fn admin(store: &Store, images: &Folder, command: Admin) -> Result<()> {
@@ -191,6 +199,21 @@ fn admin(store: &Store, images: &Folder, command: Admin) -> Result<()> {
             let Some(account) = account else { anyhow::bail!("no account {who}") };
             store.room_set_moderator(account.id, !remove)?;
             println!("{} ({}) is {} a group chat moderator", account.name, account.id, if remove { "no longer" } else { "now" });
+        }
+        Admin::ThemesUnlimited { who, remove } => {
+            let id = match who.parse::<i64>() {
+                Ok(id) => Some(id),
+                Err(_) => store.account_by_email(&who.trim().to_lowercase())?,
+            };
+            let account = id.and_then(|id| store.account(id).ok().flatten());
+            let Some(account) = account else { anyhow::bail!("no account {who}") };
+            store.set_theme_unlimited(account.id, !remove)?;
+            println!(
+                "{} ({}) {} share themes without limits",
+                account.name,
+                account.id,
+                if remove { "no longer may" } else { "may now" }
+            );
         }
         Admin::Account { who } => {
             let id = match who.parse::<i64>() {
