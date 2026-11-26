@@ -8397,7 +8397,7 @@
         <div class="cm-foot">${(r.reactions || []).map((x) => `<button class="cm-chip${x.me ? " on" : ""}" data-react="${r.id}" data-parent="${post.id}" data-emoji="${esc(x.emoji)}"${reactWho(x)}><span>${esc(x.emoji)}</span><b>${x.count}</b></button>`).join("")}<button class="cm-chip bare" data-pick="${r.id}" data-parent="${post.id}" aria-label="React" title="React">${SMILE_ICON}</button>${r.id === root ? `<button class="cm-chip bare" data-answer="${post.id}:${root}:${esc(name)}" title="Reply to ${esc(name)}">${REPLY_ARROW}<span>Reply</span></button>` : ""}${!r.mine && r.author && r.author.tip_to ? `<button class="cm-chip bare" data-tip="${r.id}" title="Tip ${esc(name)} some ORN">${COINS_ICON}<span>Tip</span></button>` : ""}${cmTips(r)}</div></div></div>`;
     };
     const box = (key, placeholder, small) => you && you.verified
-      ? `<div class="cm-inline-write${small ? " sub" : ""}">${cmFace(you)}<div class="cm-write"><textarea data-reply-box="${key}" rows="1" maxlength="500" placeholder="${esc(placeholder)}"></textarea><div class="cm-attach" data-rattach="${key}"${rdraftHtml(key) ? "" : " hidden"}>${rdraftHtml(key)}</div><div class="cm-send"><div class="cm-tools"><button class="cm-tool" data-rphoto="${key}" aria-label="Add photos" title="Photos"${rdraftOf(key).gif || rdraftOf(key).photos.length >= 4 ? " disabled" : ""}><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg></button><button class="cm-tool" data-rgif="${key}" aria-label="Add a GIF" title="GIF"${rdraftOf(key).gif || rdraftOf(key).photos.length ? " disabled" : ""}><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 7.5H6.25A3.25 3.25 0 0 0 3 10.75v2.5a3.25 3.25 0 0 0 3.25 3.25H9V12H7"/><path d="M12.5 7.5v9"/><path d="M20.75 7.5h-4v9"/><path d="M16.75 12h3.25"/></svg></button></div>${small ? `<button class="pill" data-answer-cancel="${post.id}">Cancel</button>` : ""}<button class="pill pearl" data-reply-send="${key}"${rdraftReady(key) ? "" : " disabled"}>Reply</button></div></div></div>`
+      ? `<div class="cm-inline-write${small ? " sub" : ""}">${cmFace(you)}<div class="cm-write"><textarea data-reply-box="${key}" rows="1" maxlength="500" placeholder="${esc(placeholder)}">${esc((cm.rdraft.get(key) || {}).body || "")}</textarea><div class="cm-attach" data-rattach="${key}"${rdraftHtml(key) ? "" : " hidden"}>${rdraftHtml(key)}</div><div class="cm-send"><div class="cm-tools"><button class="cm-tool" data-rphoto="${key}" aria-label="Add photos" title="Photos"${rdraftOf(key).gif || rdraftOf(key).photos.length >= 4 ? " disabled" : ""}><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg></button><button class="cm-tool" data-rgif="${key}" aria-label="Add a GIF" title="GIF"${rdraftOf(key).gif || rdraftOf(key).photos.length ? " disabled" : ""}><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 7.5H6.25A3.25 3.25 0 0 0 3 10.75v2.5a3.25 3.25 0 0 0 3.25 3.25H9V12H7"/><path d="M12.5 7.5v9"/><path d="M20.75 7.5h-4v9"/><path d="M16.75 12h3.25"/></svg></button></div>${small ? `<button class="pill" data-answer-cancel="${post.id}">Cancel</button>` : ""}<button class="pill pearl" data-reply-send="${key}"${rdraftReady(key) ? "" : " disabled"}>Reply</button></div></div></div>`
       : `<div class="cm-inline-join"><button class="pill pearl" data-join>${you ? "Verify a wallet" : "Sign in"}</button><span>to reply.</span></div>`;
     const open0 = !!(writing && top.some((r) => r.id === writing.id) && you && you.verified);
     const list = top.map((r) => {
@@ -8922,11 +8922,26 @@
   const cmReplyInput = (e) => {
     const box = e.target.closest("[data-reply-box]");
     if (!box) return;
+    rdraftOf(box.dataset.replyBox).body = box.value;
     box.style.height = "auto";
     box.style.height = Math.min(box.scrollHeight, 240) + "px";
     const go = box.closest(".cm-inline-write").querySelector("[data-reply-send]");
     if (go) go.disabled = !rdraftReady(box.dataset.replyBox);
   };
+  // A repaint (a reaction, new replies) keeps what you were typing, the caret and the focus.
+  const keepTyping = (paint) => function (...a) {
+    const el = document.activeElement, key = el && el.dataset ? el.dataset.replyBox : null;
+    const feed = key ? el.closest("#cm-feed, #sl-feed, #cm-thread") : null;
+    const at = key ? [el.selectionStart, el.selectionEnd] : null;
+    const out = paint.apply(this, a);
+    for (const box of document.querySelectorAll("[data-reply-box]")) if (box.value) { box.style.height = "auto"; box.style.height = Math.min(box.scrollHeight, 240) + "px"; }
+    if (feed && !feed.contains(el)) {
+      const box = feed.querySelector(`[data-reply-box="${key}"]`);
+      if (box) { box.focus({ preventScroll: true }); box.setSelectionRange(at[0], at[1]); }
+    }
+    return out;
+  };
+  cmPaintFeed = keepTyping(cmPaintFeed); slPaintFeed = keepTyping(slPaintFeed); cmPaintThread = keepTyping(cmPaintThread);
   $("cm-feed").addEventListener("input", cmReplyInput);
   $("sl-feed").addEventListener("input", cmReplyInput);
   $("cm-thread").addEventListener("input", cmReplyInput);
@@ -8943,7 +8958,7 @@
   }
   function rdraftReady(key) {
     const box = rvis(`[data-reply-box="${key}"]`), d = cm.rdraft.get(key);
-    return !!(box && box.value.trim()) || !!(d && (d.photos.length || d.gif));
+    return !!(box && box.value.trim()) || !!(d && ((d.body || "").trim() || d.photos.length || d.gif));
   }
   // Repaints one reply box's attachments and buttons, leaving its words.
   function rdraftPaint(key) {
