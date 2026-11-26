@@ -52,6 +52,15 @@ export const CHANGELOG: Entry[] = [
   {
     date: '2026-11-26',
     products: ['wallet'],
+    version: '1.9.26',
+    title: 'Cleaner names and spinner on Exchange swaps',
+    changes: [
+      'Short usernames on swap screens show as-is instead of repeating, and the working spinner shows clearly on dark themes.',
+    ],
+  },
+  {
+    date: '2026-11-26',
+    products: ['wallet'],
     version: '1.9.25',
     title: 'Instant approval when selling into a buy order',
     changes: [

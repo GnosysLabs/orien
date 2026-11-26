@@ -1652,7 +1652,7 @@
   .sd-card-head { display: none; }
   .sd-state-head { display: flex; align-items: center; gap: 9px; margin-bottom: 8px; font-size: 14px; font-weight: 600; color: var(--ink); }
   .sd-state-head.ready { color: var(--good); }
-  .sd-state-head .spinner { width: 14px; height: 14px; margin: 0; flex: none; }
+  .sd-state-head .spinner { width: 14px; height: 14px; margin: 0; flex: none; border-color: color-mix(in srgb, var(--ink) 22%, transparent); border-top-color: var(--ink); }
   @media (min-width: 860px) {
     body:not(.phone) #swap-detail { --col: 1040px; }
     body:not(.phone) #swap-detail .sd-grid { display: grid; grid-template-columns: minmax(0, 1.12fr) minmax(0, 0.95fr); gap: 20px; align-items: start; }
@@ -4793,7 +4793,7 @@
   let pending = null;       // { to, amount } while sending
   let sending = false, passwordAsked = false;
 
-  const short = (a) => a.slice(0, 8) + "…" + a.slice(-8);
+  const short = (a) => a.length > 20 ? a.slice(0, 8) + "…" + a.slice(-8) : a;
   const isAddress = (text) => /^[0-9a-f]{64}$/i.test(text.trim());
 
   let book = [];           // saved contacts, sorted by name
