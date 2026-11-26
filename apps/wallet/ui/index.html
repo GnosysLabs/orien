@@ -1951,8 +1951,13 @@
   .ts-entry-txt small { color: var(--dim); font-size: 12.5px; }
   .ts-entry .chev { flex: none; color: var(--dim); }
   body.phone .ts-entry, body.phone .tc-share { display: none !important; }
-  .ts-tabs { grid-template-columns: repeat(3, minmax(0, 1fr)); margin: 0 0 20px; }
-  @media (min-width: 860px) { body:not(.phone) #theme-store { --col: 1040px; } body:not(.phone) .ts-tabs { width: min(420px, 100%); margin-left: auto; margin-right: auto; } body:not(.phone) .ts-grid { grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 32px 24px; } }
+  .ts-bar { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; margin: 0 0 20px; }
+  .ts-tabs { grid-template-columns: repeat(2, minmax(0, 1fr)); margin: 0; width: min(260px, 100%); }
+  .ts-order { display: flex; gap: 6px; }
+  .ts-order[hidden] { display: none; }
+  .ts-order .pill { height: 32px; padding: 0 14px; color: var(--dim); }
+  .ts-order .pill.on { border-color: var(--select); color: var(--ink); background: var(--surface-hover); }
+  @media (min-width: 860px) { body:not(.phone) #theme-store { --col: 1040px; } body:not(.phone) .ts-grid { grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 32px 24px; } }
   .ts-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 28px 20px; }
   .ts-card { display: grid; gap: 12px; align-content: start; min-width: 0; }
   .ts-stage { position: relative; aspect-ratio: 4 / 3; padding: 0; border-radius: 18px; overflow: hidden; border: 1px solid var(--line); cursor: pointer;
@@ -3229,7 +3234,8 @@
     <!-- The Theme Store: themes people built and shared, to try, take and tip. -->
     <section class="screen" id="theme-store" hidden>
       <div class="topline"><button class="back" id="ts-back" aria-label="Back"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg></button><h2>Theme Store</h2></div>
-      <div class="tabs ts-tabs" id="ts-tabs" role="tablist"><button class="tab on" data-ts-sort="popular" role="tab">Popular</button><button class="tab" data-ts-sort="new" role="tab">All</button><button class="tab" data-ts-sort="mine" role="tab">Yours</button></div>
+      <div class="ts-bar"><div class="tabs ts-tabs" id="ts-tabs" role="tablist"><button class="tab on" data-ts-sort="all" role="tab">All</button><button class="tab" data-ts-sort="mine" role="tab">Yours</button></div>
+        <div class="ts-order" id="ts-order" role="radiogroup" aria-label="Sort by"><button class="pill on" data-ts-order="popular" role="radio">Popular</button><button class="pill" data-ts-order="new" role="radio">Newest</button></div></div>
       <div class="problem" id="ts-problem" hidden></div>
       <div class="ts-grid" id="ts-grid"></div>
       <div class="ts-empty" id="ts-empty" hidden></div>
@@ -5765,7 +5771,7 @@
   // ---- The Theme Store: themes people built and shared ----
   // Each card draws the theme itself (its colours on a small copy of Home,
   // over its picture): nothing to screenshot, always true to the theme.
-  const ts = { sort: "popular", themes: [], more: false, next: null, busy: false, trying: null, before: null, downArmed: null };
+  const ts = { sort: "all", order: "popular", themes: [], more: false, next: null, busy: false, trying: null, before: null, downArmed: null };
   // The server gives whole addresses (https://orien.network/api/market/images/…);
   // the app fetches a picture by its name, the address's last part.
   const tsPic = (name) => /^https:\/\//.test(String(name)) ? String(name) : `${boardBase}/api/market/images/${encodeURIComponent(name)}`;
@@ -5808,7 +5814,7 @@
     $("ts-problem").hidden = true;
     if (!more) { ts.themes = []; ts.next = null; tsPaint(); }
     try {
-      const sort = ts.sort === "mine" ? "new&mine=1" : ts.sort;
+      const sort = ts.sort === "mine" ? "new&mine=1" : ts.order;
       const page = await cmCall("GET", `/themes?sort=${sort}${more && ts.next ? `&before=${encodeURIComponent(ts.next)}` : ""}`);
       const list = (page && page.themes) || [];
       ts.themes = more ? ts.themes.concat(list) : list;
@@ -5848,6 +5854,15 @@
     if (!b || b.dataset.tsSort === ts.sort) return;
     ts.sort = b.dataset.tsSort;
     for (const x of $("ts-tabs").querySelectorAll("[data-ts-sort]")) x.classList.toggle("on", x === b);
+    $("ts-order").hidden = ts.sort === "mine";
+    tsLoad(false);
+  };
+  $("ts-order").onclick = (e) => {
+    const b = e.target.closest("[data-ts-order]");
+    if (!b || b.dataset.tsOrder === ts.order) return;
+    ts.order = b.dataset.tsOrder;
+    for (const x of $("ts-order").querySelectorAll("[data-ts-order]")) x.classList.toggle("on", x === b);
+    feel("selection");
     tsLoad(false);
   };
   // Trying a theme: the whole app wears it for a moment, with Get it and
@@ -6417,7 +6432,7 @@
       ], "Your themes follow you to your other computers, and your iPhone wears their colours. To change one later, click the gear on its card in Appearance; the bin deletes it.");
       add("Themes", "theme-store", "Find themes in the Theme Store", [
         `Open ${gear}, then <b>Appearance</b>, and click <b>Theme Store</b> at the top.`,
-        "Browse <b>Popular</b>, or <b>All</b> for every theme, newest first. Each card shows the theme on a small copy of the app.",
+        "Every theme is under <b>All</b>: sort it by <b>Popular</b> or <b>Newest</b>. Each card shows the theme on a small copy of the app.",
         "Click <b>Try</b> to see the whole app in it. Click <b>Undo</b> to go back; leaving the store goes back too.",
         "Click <b>Get</b> to keep it. It joins your themes in Appearance and is worn at once.",
         "Like it? The coins button tips its maker some ORN. The flag reports a theme that breaks the rules.",
