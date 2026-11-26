@@ -135,7 +135,9 @@ fn agent() -> ureq::Agent {
 /// Asks the board, sending the session cookie and keeping any renewed one.
 fn call(dir: &Path, method: &str, path: &str, body: Option<Value>) -> Result<Value, Failed> {
     let mut saved = load(dir);
-    let mut request = agent().request(method, &format!("{}/api/market{path}", base()));
+    // An AI Support answer is written while the person waits: up to a minute.
+    let agent = if path.starts_with("/support") { ureq::AgentBuilder::new().timeout(Duration::from_secs(75)).user_agent("orien-wallet").build() } else { agent() };
+    let mut request = agent.request(method, &format!("{}/api/market{path}", base()));
     if let Some(cookie) = &saved.cookie {
         request = request.set("Cookie", &format!("{COOKIE}={cookie}"));
     }
@@ -557,7 +559,7 @@ pub fn listings(dir: &Path, category: &str, text: &str, offset: u32) -> Result<V
 /// A signed-in Market call for the Market screens: listings, messages and
 /// reports only, so the page can't reach anything else with the cookie.
 pub fn market_call(dir: &Path, method: &str, path: &str, body: Option<Value>) -> Result<Value, String> {
-    let allowed = ["/listings", "/conversations", "/reports", "/app-reports", "/accounts", "/community", "/users", "/notices", "/me/blocked", "/swaps/history", "/room"].iter().any(|p| path == *p || path.starts_with(&format!("{p}/")) || path.starts_with(&format!("{p}?")));
+    let allowed = ["/listings", "/conversations", "/reports", "/app-reports", "/support", "/accounts", "/community", "/users", "/notices", "/me/blocked", "/swaps/history", "/room"].iter().any(|p| path == *p || path.starts_with(&format!("{p}/")) || path.starts_with(&format!("{p}?")));
     if !allowed || path.contains("..") || !["GET", "POST", "PUT", "DELETE"].contains(&method) {
         return Err("not a Market call".into());
     }
