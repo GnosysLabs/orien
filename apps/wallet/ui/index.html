@@ -5704,7 +5704,10 @@
   // Each card draws the theme itself (its colours on a small copy of Home,
   // over its picture): nothing to screenshot, always true to the theme.
   const ts = { sort: "popular", themes: [], more: false, next: null, busy: false, trying: null, before: null, downArmed: null };
-  const tsPic = (name) => `${boardBase}/api/market/images/${encodeURIComponent(name)}`;
+  // The server gives whole addresses (https://orien.network/api/market/images/…);
+  // the app fetches a picture by its name, the address's last part.
+  const tsPic = (name) => /^https:\/\//.test(String(name)) ? String(name) : `${boardBase}/api/market/images/${encodeURIComponent(name)}`;
+  const tsImage = (name) => String(name || "").split("/").pop();
   const tsColors = (t) => (Array.isArray(t.colors) ? t.colors : []).filter((c) => /^#[0-9a-f]{6}$/i.test(c)).slice(0, 3);
   const tsOwned = (t) => customThemes().find((x) => x.from === t.id || x.store === t.id);
   const tsFind = (id) => ts.themes.find((t) => String(t.id) === String(id));
@@ -5770,7 +5773,7 @@
   // Undo at the foot. Nothing is kept until Get it.
   async function tsTry(t) {
     let pic = null;
-    try { pic = await invoke("market_image", { name: t.picture }); } catch {}
+    try { pic = await invoke("market_image", { name: tsImage(t.picture) }); } catch {}
     if (!ts.trying) ts.before = document.documentElement.dataset.theme || "pearl";
     ts.trying = t;
     const html = document.documentElement;
@@ -5807,7 +5810,7 @@
     if (customThemes().length >= 24) { problem("ts-problem", "You have 24 themes, as many as there's room for. Delete one in Appearance first."); return; }
     if (button) { button.disabled = true; button.innerHTML = '<span class="spinner"></span>Getting'; }
     try {
-      const pic = await invoke("market_image", { name: t.picture });
+      const pic = await invoke("market_image", { name: tsImage(t.picture) });
       if (!pic) throw "That theme's picture couldn't be downloaded. Try again in a moment.";
       const id = "c-" + Date.now().toString(36);
       await sceneAsk("readwrite", (st) => st.put(pic, id));
