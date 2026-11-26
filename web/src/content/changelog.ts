@@ -52,6 +52,18 @@ export const CHANGELOG: Entry[] = [
   {
     date: '2026-11-26',
     products: ['wallet'],
+    version: '1.9.23',
+    title: 'Updates that always go through',
+    changes: [
+      'Update to Latest no longer spins forever. A balance check could keep the update waiting; now the update goes first, and if a payment really is still going it says so.',
+      'The Update to Latest button shows whenever an update is out, instead of only after the app has waited ten minutes to install it by itself.',
+      'On Linux, menus and floating bars are solid and readable.',
+      'The explorer says "Not recorded" for miners on the first checkpoints, from before validators kept those records, instead of 0.',
+    ],
+  },
+  {
+    date: '2026-11-26',
+    products: ['wallet'],
     version: '1.9.22',
     title: 'Help and the Theme Store in every window',
     changes: [
