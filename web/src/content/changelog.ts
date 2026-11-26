@@ -51,6 +51,15 @@ export const CHANGELOG: Entry[] = [
   },
   {
     date: '2026-11-26',
+    products: ['wallet'],
+    version: '1.9.25',
+    title: 'Instant approval when selling into a buy order',
+    changes: [
+      'Selling into a funded buy order keeps your initial approval so it locks your ORN without asking for your wallet password a second time, and the Continue button never drops a typed password while a status check is running.',
+    ],
+  },
+  {
+    date: '2026-11-26',
     products: ['wallet', 'network'],
     version: '1.9.24',
     title: 'The Exchange and funded SOL buy orders',

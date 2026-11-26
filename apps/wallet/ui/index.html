@@ -1626,8 +1626,11 @@
     body:not(.phone) #swaps .ex-col { min-height: 0; }
     body:not(.phone) #swaps #ex-pane-deck, body:not(.phone) #swaps #tab-offers { flex: 1; min-height: 0; }
     body:not(.phone) #swaps #board-offers { flex: 1; min-height: 0; max-height: none; }
-    body:not(.phone) #swaps #ex-pane-deck { overflow-y: auto; }
-    body:not(.phone) #swaps #swap-list, body:not(.phone) #swaps #hist-list { max-height: none; }
+    body:not(.phone) #swaps #ex-pane-deck { overflow: hidden; }
+    body:not(.phone) #swaps .ex-deck-head { flex: none; }
+    body:not(.phone) #swaps #tab-mine, body:not(.phone) #swaps #tab-history { flex: 1; min-height: 0; display: flex; flex-direction: column; }
+    body:not(.phone) #swaps #tab-mine[hidden], body:not(.phone) #swaps #tab-history[hidden] { display: none; }
+    body:not(.phone) #swaps #swap-list, body:not(.phone) #swaps #hist-list { flex: 1; min-height: 0; max-height: none; overflow-y: auto; }
   }
   #swaps #swap-list, #swaps #hist-list { max-height: 290px; overflow-y: auto; overscroll-behavior: contain; margin: 0; padding: 0; -webkit-mask: none; mask: none; }
   #swaps #swap-list .swap-row { border: 0; border-radius: 0; background: none; margin: 0; padding: 12px 16px; }
@@ -8861,27 +8864,35 @@
     $("sd-reply-field").hidden = !needReply;
   }
 
+  let steppingPromise = null;
   async function stepSwaps(password) {
-    if (stepping) return;
+    if (stepping) {
+      if (!password) return;
+      if (steppingPromise) { try { await steppingPromise; } catch {} }
+    }
     stepping = true;
-    try {
-      const stepped = await invoke("swap_step", { password: password || null });
-      solList = stepped.sol_swaps || [];
-      orderList = stepped.funded_orders || [];
-      swapList = stepped.swaps.concat(solList, orderList);
-      board.waiting = stepped.waiting || [];
-      // An offer taken down because the wallet no longer holds its ORN.
-      for (const w of stepped.withdrawn || []) tell(`Your swap offer of ${w.orn} ORN was withdrawn: the wallet no longer holds enough ORN. Nothing was paid.`, "swaps");
-      if ((stepped.withdrawn || []).length) loadBoard().catch(() => {});
-      renderSwaps();
-      renderSwapAlert();
-      arrived();
-      announceSwaps();
-      askToFinish();
-      if (!$("swap-detail").hidden) renderDetail();
-    } catch (e) {
-      if (!$("swap-detail").hidden) problem("detail-problem", e);
-    } finally { stepping = false; }
+    const run = (async () => {
+      try {
+        const stepped = await invoke("swap_step", { password: password || null });
+        solList = stepped.sol_swaps || [];
+        orderList = stepped.funded_orders || [];
+        swapList = stepped.swaps.concat(solList, orderList);
+        board.waiting = stepped.waiting || [];
+        // An offer taken down because the wallet no longer holds its ORN.
+        for (const w of stepped.withdrawn || []) tell(`Your swap offer of ${w.orn} ORN was withdrawn: the wallet no longer holds enough ORN. Nothing was paid.`, "swaps");
+        if ((stepped.withdrawn || []).length) loadBoard().catch(() => {});
+        renderSwaps();
+        renderSwapAlert();
+        arrived();
+        announceSwaps();
+        askToFinish();
+        if (!$("swap-detail").hidden) renderDetail();
+      } catch (e) {
+        if (!$("swap-detail").hidden) problem("detail-problem", e);
+      } finally { stepping = false; steppingPromise = null; }
+    })();
+    steppingPromise = run;
+    return run;
   }
 
   // ---- The swap board ----
@@ -9054,11 +9065,11 @@
       : '<div class="ob-empty">No open buy offers right now</div>';
     const awayLine = away ? `<p class="board-away">${away} more offer${away === 1 ? "" : "s"} paused while ${away === 1 ? "its owner's" : "their owners'"} Orien Wallet is closed.</p>` : "";
     list.innerHTML = `<div class="ob-cols"><span>Price (${exUsd() ? exCur().toUpperCase() : "SOL"})</span><span>Size (ORN)</span><span>Total (${exUsd() ? exCur().toUpperCase() : "SOL"})</span><span>Trade</span></div>`
-      + `<div class="ob-side-head ask"><span>Asks · selling ORN</span><span class="ob-ct">${asksAsc.length}</span></div>`
-      + asksHtml
-      + `<div class="ob-spread"><span class="ob-spread-price">${esc(midPrice)}</span><span class="ob-spread-meta">${esc(midMeta)}</span></div>`
       + `<div class="ob-side-head bid"><span>Bids · buying ORN</span><span class="ob-ct">${bidsDesc.length}</span></div>`
       + bidsHtml
+      + `<div class="ob-spread"><span class="ob-spread-price">${esc(midPrice)}</span><span class="ob-spread-meta">${esc(midMeta)}</span></div>`
+      + `<div class="ob-side-head ask"><span>Asks · selling ORN</span><span class="ob-ct">${asksAsc.length}</span></div>`
+      + asksHtml
       + awayLine;
     // The column headings sit above the scrolling list, not stuck inside it:
     // WebKit leaves a strip of rows showing above a stuck heading.
@@ -12919,7 +12930,7 @@
   setInterval(() => {
     if ($("swap-detail").hidden || !current) return;
     const s = swapList.find((x) => x.id === current);
-    if (s && !["done", "cancelled", "open"].includes(s.stage)) stepSwaps();
+    if (s && !["done", "cancelled", "open"].includes(s.stage) && !(s.problem && s.problem.startsWith("password:"))) stepSwaps();
   }, 3000);
   // The smallest swap Bitcoin's fees allow right now, on the sell and buy
   // screens; nothing is shown if the explorers can't be reached.
@@ -12955,14 +12966,25 @@
   };
 
   $("sd-claim").onclick = async () => {
+    const btn = $("sd-claim");
+    if (btn.disabled) return;
     if (view && view.biometric) {
       try { await invoke("biometric_unlock"); } catch (e) { problem("detail-problem", e); return; }
     }
     const password = $("sd-pw").value;
+    if (!password && !(view && view.biometric)) { $("sd-pw").focus(); return; }
     $("sd-pw").value = "";
-    await stepSwaps(password);
-    const s = swapList.find((x) => x.id === current);
-    if (s && s.problem === "password: wrong") problem("detail-problem", "That is not this wallet's password.");
+    btn.disabled = true;
+    const was = btn.textContent;
+    btn.innerHTML = '<span class="spinner"></span>Continuing';
+    try {
+      await stepSwaps(password);
+      const s = swapList.find((x) => x.id === current);
+      if (s && s.problem === "password: wrong") problem("detail-problem", "That is not this wallet's password.");
+    } finally {
+      btn.disabled = false;
+      if (btn.textContent === "Continuing") btn.textContent = was;
+    }
   };
 
   // Swaps move along while the app is open.

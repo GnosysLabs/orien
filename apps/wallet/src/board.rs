@@ -1069,6 +1069,7 @@ pub fn drive_on(
         .collect();
     live.extend(all.iter().filter(|kept| !kept.swap.finished()).filter_map(|kept| kept.board));
     live.extend(crate::solswaps::load(dir).iter().filter(|kept| !kept.swap.finished()).filter_map(|kept| kept.board));
+    live.extend(crate::orders::load(dir).iter().filter(|kept| !kept.finished()).filter_map(|kept| kept.server_id));
     crate::approval::keep_only(dir, &live);
     swaps::save(dir, all)?;
     save(dir, &saved)?;
