@@ -27,9 +27,22 @@ static TOKEN: Mutex<Option<String>> = Mutex::new(None);
 /// What the server was last told, so it is only told again on a change.
 static TOLD: Mutex<Option<(String, Vec<String>, bool, Vec<String>)>> = Mutex::new(None);
 
-/// Builds installed from Xcode use Apple's test service; TestFlight and the
-/// App Store use the real one. The server must be told which.
-const SANDBOX: bool = cfg!(debug_assertions);
+/// Builds installed from this Mac use Apple's test service; TestFlight and
+/// the App Store use the real one. The server must be told which. A build
+/// for this Mac's phones carries its signing profile, which says so
+/// (aps-environment "development"); TestFlight and App Store builds carry
+/// none. Checked, not guessed from debug or release: a release build put on
+/// the phone from here is still on the test service.
+fn sandbox() -> bool {
+    static ON: OnceLock<bool> = OnceLock::new();
+    *ON.get_or_init(|| {
+        let Ok(exe) = std::env::current_exe() else { return cfg!(debug_assertions) };
+        let Some(bundle) = exe.parent() else { return cfg!(debug_assertions) };
+        let Ok(profile) = std::fs::read(bundle.join("embedded.mobileprovision")) else { return false };
+        let text = String::from_utf8_lossy(&profile);
+        text.find("<key>aps-environment</key>").is_some_and(|at| text[at..].chars().take(120).collect::<String>().contains("development"))
+    })
+}
 
 /// Asks once whether the app may show notifications (iPhone asks the
 /// person the first time only) and, if so, signs this phone up with Apple.
@@ -65,7 +78,7 @@ pub fn sync() {
         return;
     }
     let url = format!("{}/api/market/push/register", crate::board::base());
-    let body = serde_json::json!({ "token": token, "sandbox": SANDBOX, "addresses": addresses, "mute": mute });
+    let body = serde_json::json!({ "token": token, "sandbox": sandbox(), "addresses": addresses, "mute": mute });
     let agent = ureq::AgentBuilder::new().timeout(std::time::Duration::from_secs(15)).user_agent("orien-wallet").build();
     let mut request = agent.post(&url);
     if let Some(cookie) = &session {
