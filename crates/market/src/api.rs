@@ -42,6 +42,9 @@ pub struct App {
     /// When contact-form messages were sent, and from which address, to
     /// keep anyone from flooding the inbox.
     contacts: Mutex<Vec<(Instant, String)>>,
+    /// When problem reports came from Orien Wallet, and from which
+    /// internet address, to keep anyone from flooding them.
+    pub(crate) app_reports_sent: Mutex<Vec<(Instant, String)>>,
     /// The website's traffic counts.
     traffic: Arc<crate::traffic::Traffic>,
     /// The oldest swap rules a buyer's wallet may take offers with.
@@ -109,6 +112,7 @@ impl App {
             secure,
             origin: site,
             contacts: Mutex::new(Vec::new()),
+            app_reports_sent: Mutex::new(Vec::new()),
             traffic: Arc::new(crate::traffic::Traffic::in_memory()),
             min_swap_version: 0,
             events: Mutex::new(Vec::new()),
@@ -457,6 +461,7 @@ pub fn router(app: Arc<App>) -> Router {
         .merge(crate::community::routes())
         .merge(crate::notices::routes())
         .merge(crate::room::routes())
+        .merge(crate::app_reports::routes())
         .route("/api/explorer/overview", get(crate::explorer::overview))
         .route("/api/explorer/checkpoints", get(crate::explorer::checkpoints))
         .route("/api/explorer/checkpoints/{epoch}", get(crate::explorer::checkpoint))

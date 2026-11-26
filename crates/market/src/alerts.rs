@@ -75,6 +75,26 @@ impl Alerts {
         self.say(text);
     }
 
+    /// A problem report from Orien Wallet, for the bot's private
+    /// #app-reports channel. Its words are never written to the log.
+    pub fn app_report(&self, id: i64, text: String) {
+        eprintln!("problem report {id} from Orien Wallet");
+        let Some(url) = self.url.as_ref().map(|url| url.trim_end_matches("/alert").to_string() + "/report") else { return };
+        std::thread::spawn(move || {
+            let sent = ureq::post(&url)
+                .config()
+                .http_status_as_error(false)
+                .timeout_global(Some(Duration::from_secs(20)))
+                .build()
+                .send_json(serde_json::json!({ "text": text }));
+            match sent {
+                Ok(response) if response.status().is_success() => {}
+                Ok(response) => eprintln!("the bot did not post problem report {id} ({})", response.status()),
+                Err(error) => eprintln!("cannot reach the bot for problem report {id}: {error}"),
+            }
+        });
+    }
+
     /// Whether `kind` is in trouble now.
     pub fn in_trouble(&self, kind: &str) -> bool {
         self.troubles.lock().unwrap().contains_key(kind)

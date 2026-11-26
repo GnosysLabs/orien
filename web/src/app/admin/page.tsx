@@ -207,6 +207,7 @@ export default function AdminPage() {
 
       <Reports reports={reports.data?.reports ?? null} onChange={reload} />
 
+      <AppReports />
       <GroupChat />
 
       <h2 className="-mb-2 text-sm font-bold text-muted">Market and swaps</h2>
@@ -566,6 +567,105 @@ function Reports({ reports, onChange }: { reports: Report[] | null; onChange: ()
                 )}
                 <Action label="Dealt with, nothing to do" path={`/reports/${r.id}/handled`} onDone={onChange} />
               </div>
+            </li>
+          ))}
+        </ul>
+      )}
+    </section>
+  )
+}
+
+type AppReport = {
+  id: number
+  account: number | null
+  name: string | null
+  where: string
+  place: string
+  what: string
+  email: string
+  app: { version: string; system: string; window: string; big: boolean } | null
+  trail: { screen: string; at: number }[] | null
+  errors: { text: string; at: number }[] | null
+  created: number
+  done: number | null
+}
+
+const PLACES: Record<string, string> = {
+  wallet: 'Wallet',
+  send: 'Send',
+  mining: 'Mining',
+  swaps: 'Swaps',
+  community: 'Community',
+  messages: 'Messages',
+  explorer: 'Explorer',
+  settings: 'Settings',
+  other: 'Other',
+}
+
+const utc = (at: number) => new Date(at * 1000).toISOString().slice(11, 16) + ' UTC'
+
+/** "Report a problem" from Orien Wallet: those waiting, then the last few done. */
+function AppReports() {
+  const found = usePoll<{ reports: AppReport[] }>('/app-reports', 30_000)
+  const reload = () => void found.reload()
+  if (!found.data) return null
+  const reports = found.data.reports
+  const waiting = reports.filter((r) => r.done === null).length
+  return (
+    <section className={`rounded-2xl border p-4 ${waiting ? 'border-warn/40 bg-warn/5' : 'border-line bg-surface'}`}>
+      <h2 className="mb-3 text-sm font-bold text-ink">
+        {waiting ? `Problem reports from Orien Wallet: ${waiting}` : 'Problem reports from Orien Wallet'}
+      </h2>
+      {reports.length === 0 ? (
+        <p className="text-sm text-muted">Nothing reported. When someone uses Report a problem in Orien Wallet, it shows here and in #app-reports on Discord.</p>
+      ) : (
+        <ul className="space-y-3">
+          {reports.map((r) => (
+            <li key={r.id} className={`space-y-2 rounded-xl border border-line bg-surface p-4 ${r.done ? 'opacity-60' : ''}`}>
+              <div className="flex flex-wrap items-baseline justify-between gap-2">
+                <p className="text-sm text-muted">
+                  <span className="font-semibold text-ink">{r.where === 'other' && r.place ? `Other: ${r.place}` : PLACES[r.where] ?? r.where}</span>
+                  {' · '}
+                  {r.name ? (
+                    <Link href={`/marketplace/profile/?id=${r.account}`} className="font-semibold text-ink hover:text-pearl">
+                      {r.name}
+                    </Link>
+                  ) : (
+                    'someone signed out'
+                  )}
+                  {r.email && <> · {r.email}</>} · {ago(r.created)}
+                </p>
+                <span className="num text-xs text-muted">report {r.id}</span>
+              </div>
+              <p className="whitespace-pre-line break-words text-ink">{r.what}</p>
+              {r.app && (
+                <p className="text-xs text-muted">
+                  Orien Wallet {r.app.version} · {r.app.system}
+                  {r.app.window && <> · {r.app.window}</>}
+                  {r.app.big && ' (big window)'}
+                </p>
+              )}
+              {r.trail && r.trail.length > 0 && (
+                <p className="text-xs text-muted">
+                  <span className="font-semibold text-ink">Trail:</span> {r.trail.map((v) => v.screen).join(' → ')}
+                </p>
+              )}
+              {r.errors && r.errors.length > 0 && (
+                <ul className="space-y-1 text-xs text-muted">
+                  {r.errors.map((e, i) => (
+                    <li key={i}>
+                      <span className="font-semibold text-stop">Error at {utc(e.at)}:</span> {e.text}
+                    </li>
+                  ))}
+                </ul>
+              )}
+              {r.done === null ? (
+                <div className="pt-1">
+                  <Action label="Done" path={`/app-reports/${r.id}/done`} onDone={reload} />
+                </div>
+              ) : (
+                <p className="text-xs text-muted">Done {ago(r.done)}</p>
+              )}
             </li>
           ))}
         </ul>

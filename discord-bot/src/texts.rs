@@ -38,10 +38,11 @@ Explainers, mining guides and wallet walkthroughs: https://www.youtube.com/@Orie
 - {#checkpoints}: a summary of every hour's mining
 - {#themes}: show off your wallet themes
 - {#mining}: setups and questions about mining
-- {#swaps-market}: swap ORN for SOL or Bitcoin, and share Market listings
 - {#help}: stuck? Ask here
 - {#validators}: staking and running a validator
 - {#bugs-and-ideas}: tell us what's broken or missing
+
+Swapping ORN for SOL or Bitcoin? Use the **Swap** tab in Orien Wallet, never private messages.
 
 Press **I accept the rules** to open the rest of the server. Mining? Press **Miner** to show it, and again to take it off. Hold ORN? Press **Verify my ORN** to become a **Verified Holder**.";
 
@@ -71,14 +72,10 @@ pub fn fit_hello(hello: &str) -> bool {
 
 /// Each channel's about line, shown at the top of the channel. Set once
 /// with `orien-discord topics`, never on its own.
-pub const TOPICS: [(&str, &str); 12] = [
+pub const TOPICS: [(&str, &str); 11] = [
     ("welcome", "Start here: what Orien is, how to begin, and the rules."),
     ("general", "Say hi and talk about anything Orien."),
     ("mining", "Mining setups, your share of the hourly ORN, and \"is my miner working?\""),
-    (
-        "swaps-market",
-        "Find someone to swap ORN for SOL or Bitcoin with, and share your Market listings. The team will never message you first.",
-    ),
     ("help", "Stuck? Ask here. All help happens in public; never share your recovery phrase."),
     ("validators", "Staking, running a validator, and the orien command line."),
     ("bugs-and-ideas", "Tell us what's broken or what's missing."),
@@ -93,7 +90,7 @@ pub const TOPICS: [(&str, &str); 12] = [
 /// channel is for. #welcome has the welcome message instead, and #general
 /// and #help need none. Posted by hand with `orien-discord intros`; a
 /// changed text here replaces the message already there.
-pub const INTROS: [(&str, &str); 9] = [
+pub const INTROS: [(&str, &str); 8] = [
     (
         "mining",
         "\
@@ -103,18 +100,6 @@ Everything about mining ORN: your setup, your speed, your share of each hour's c
 - **New to mining?** Open Orien Wallet, press **Mine**, then **Start mining**. It needs about 2 GB of free memory.
 - **Every hour**, the new ORN are shared among everyone who mined in that hour, by the work each one did.
 - **Ask anything here.** Orien Bot answers questions in this channel, and other miners help too.",
-    ),
-    (
-        "swaps-market",
-        "\
-## 🔁 Swaps and the Market
-Find someone to swap with, and show what you offer in the Market.
-
-- **Swaps:** trade ORN for SOL or Bitcoin directly with another person, from Orien Wallet on a computer. Either both of you get paid, or both get your coins back. Post here if you are looking for a buyer or a seller.
-- **The Market:** share your listings, or ask for something you would like to pay for in ORN.
-- **Do the deal in the app, never in private messages.** A swap in Orien Wallet looks after both sides. A promise in a private message looks after nobody.
-
-⚠️ The team will never message you first. Never share your recovery phrase with anyone.",
     ),
     (
         "validators",
