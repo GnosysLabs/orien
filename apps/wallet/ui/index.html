@@ -1860,6 +1860,28 @@
   .st-pane-head { display: none; }
   .st-page[data-page="link"] > button { display: block; width: 100%; min-width: 0; }
   .st-page[data-page="link"] > button + button { margin-top: 10px; }
+  .ref-tabs { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; padding: 4px; border: 1px solid var(--line); border-radius: 14px; background: var(--surface); }
+  .ref-tabs button { min-height: 38px; border: 0; border-radius: 10px; background: transparent; color: var(--dim); font: inherit; font-weight: 600; cursor: pointer; }
+  .ref-tabs button[aria-selected="true"] { background: rgba(var(--tint), .12); color: var(--ink); }
+  .ref-budget { margin: 14px 2px 0; color: var(--dim); font-size: 13px; }
+  .ref-budget b { color: var(--ink); font-variant-numeric: tabular-nums; }
+  .ref-panel { display: grid; gap: 12px; margin-top: 14px; padding: 18px; border: 1px solid var(--line); border-radius: 18px; background: var(--surface); }
+  .ref-panel h3, .ref-panel p { margin: 0; }
+  .ref-panel p, .ref-panel label { color: var(--dim); font-size: 13px; line-height: 1.5; }
+  .ref-panel p:empty { display: none; }
+  .ref-panel > button, #ref-signin { justify-self: start; }
+  #ref-signin { margin-top: 14px; }
+  .ref-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+  .ref-stats > div { display: grid; gap: 3px; padding: 10px; border-radius: 10px; background: rgba(var(--tint), .065); }
+  .ref-stats b { font-size: 18px; font-variant-numeric: tabular-nums; }
+  .ref-stats span, .ref-sharing-code span { font-size: 12px; color: var(--dim); }
+  .ref-sharing-code { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 6px; padding: 10px 12px; border: 1px solid var(--line); border-radius: 10px; }
+  .ref-sharing-code strong { font-family: var(--mono, monospace); letter-spacing: .08em; }
+  .ref-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 8px; }
+  .ref-actions .box { flex: 1 1 170px; margin: 0; }
+  #ref-input { text-transform: uppercase; }
+  .ref-progress { display: grid; gap: 5px; }
+  .ref-progress progress { width: 100%; height: 8px; accent-color: var(--pearl); }
   /* Smaller windows: one column, the list, then the section chosen. */
   .st-side, .st-pane { display: contents; }
   .st-side > *, .st-pane > * { flex-shrink: 0; }
@@ -3214,6 +3236,8 @@
   body.phone.at-home .hd-btn .dot { top: 6px; right: 7px; }
   body.phone.at-home .hd-left { left: max(16px, env(safe-area-inset-left)); }
   body.phone.at-home .hd-right { right: max(16px, env(safe-area-inset-right)); }
+  body.phone.at-home #hd-referrals { right: calc(max(16px, env(safe-area-inset-right)) + 42px); }
+  body.phone.at-home #hd-referrals:has(+ #hd-notices[hidden]) { right: max(16px, env(safe-area-inset-right)); }
   body.phone .home-left :is(#go-settings, #go-notices) { display: none; }
   body.phone #swaps, body.phone #swap-sell, body.phone #swap-buy, body.phone #swap-detail, body.phone #mine,
   body.phone #board-signin, body.phone #board-post, body.phone #board-take { margin: -8px -8px 0; padding: 8px 8px 16px; }
@@ -3250,6 +3274,7 @@
     <!-- iPhone, on the home screen: Settings and Notifications sit at the
          top corners, beside the wordmark, so the bar below has room. -->
     <button class="pill icon hd-btn hd-left" id="hd-settings" aria-label="Settings"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></button>
+    <button class="pill icon hd-btn" id="hd-referrals" aria-label="Referrals" title="Referrals"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20m5-17H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></button>
     <button class="pill icon hd-btn hd-right" id="hd-notices" aria-label="Notifications" hidden><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10.268 21a2 2 0 0 0 3.464 0"/><path d="M3.262 15.326A1 1 0 0 0 4 17h16a1 1 0 0 0 .74-1.673C19.41 13.956 18 12.499 18 8A6 6 0 0 0 6 8c0 4.499-1.411 5.956-2.738 7.326"/></svg><span class="dot" id="hd-notices-dot" hidden></span></button>
     <div class="wm-wrap"><h1 class="wordmark" id="wm-home" role="button" tabindex="0" title="Home" aria-label="Home"><span class="mark brand"></span><span class="word brand">ORIEN</span></h1>
       <button class="status" id="status" hidden><i></i><span id="status-text"></span></button></div>
@@ -3339,6 +3364,7 @@
         <button class="set-row st-cat" data-page="language" id="st-cat-language"><span class="st-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/><path d="M2 12h20"/></svg></span><span class="set-txt"><b>Language</b><small id="st-lang-cur" data-no-i18n>English</small></span><svg class="chev" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg></button>
         <button class="set-row st-cat" data-page="privacy" id="st-cat-privacy"><span class="st-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></span><span class="set-txt"><b>Privacy and security</b></span><svg class="chev" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg></button>
         <button class="set-row st-cat" data-page="notify" id="st-cat-notify"><span class="st-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.268 21a2 2 0 0 0 3.464 0"/><path d="M3.262 15.326A1 1 0 0 0 4 17h16a1 1 0 0 0 .74-1.673C19.41 13.956 18 12.499 18 8A6 6 0 0 0 6 8c0 4.499-1.411 5.956-2.738 7.326"/></svg></span><span class="set-txt"><b>Notifications</b></span><svg class="chev" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg></button>
+        <button class="set-row st-cat" data-page="referrals" id="st-cat-referrals"><span class="st-ico"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20m5-17H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></span><span class="set-txt"><b>Referrals</b></span><svg class="chev" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg></button>
         <button class="set-row st-cat" data-page="computer" id="st-cat-computer"><span class="st-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="14" x="2" y="3" rx="2"/><line x1="8" x2="16" y1="21" y2="21"/><line x1="12" x2="12" y1="17" y2="21"/></svg></span><span class="set-txt"><b>This computer</b></span><svg class="chev" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg></button>
         <button class="set-row st-cat" data-page="extensions" id="st-cat-extensions"><span class="st-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15.39 4.39a1 1 0 0 0 1.68-.474 2.5 2.5 0 1 1 3.014 3.015 1 1 0 0 0-.474 1.68l1.683 1.682a2.414 2.414 0 0 1 0 3.414L19.61 15.39a1 1 0 0 1-1.68-.474 2.5 2.5 0 1 0-3.014 3.015 1 1 0 0 1 .474 1.68l-1.683 1.682a2.414 2.414 0 0 1-3.414 0L8.61 19.61a1 1 0 0 0-1.68.474 2.5 2.5 0 1 1-3.014-3.015 1 1 0 0 0 .474-1.68l-1.683-1.682a2.414 2.414 0 0 1 0-3.414L4.39 8.61a1 1 0 0 1 1.68.474 2.5 2.5 0 1 0 3.014-3.015 1 1 0 0 1-.474-1.68l1.683-1.682a2.414 2.414 0 0 1 3.414 0z"/></svg></span><span class="set-txt"><b>Browser Extensions</b></span><svg class="chev" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg></button>
         <button class="set-row st-cat" data-page="guide" id="st-cat-guide"><span class="st-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 7v14"/><path d="M3 18a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h5a4 4 0 0 1 4 4 4 4 0 0 1 4-4h5a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1h-6a3 3 0 0 0-3 3 3 3 0 0 0-3-3z"/></svg></span><span class="set-txt"><b>User Guide</b></span><svg class="chev" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg></button>
@@ -3398,6 +3424,51 @@
         <label class="set-row" id="st-n-community-row"><span class="set-txt"><b>Community</b><small>Replies, reactions and the network’s posts about you</small></span><input type="checkbox" class="switch" id="st-n-community"></label>
         <label class="set-row" id="st-n-swaps-row"><span class="set-txt"><b>Swap updates</b><small>When an offer is taken and as swaps finish</small></span><input type="checkbox" class="switch" id="st-n-swaps"></label>
       </div>
+      </div>
+      <div class="st-page" data-page="referrals" hidden>
+        <div class="ref-tabs" role="tablist" aria-label="Referrals">
+          <button type="button" id="ref-tab-invite" role="tab" aria-selected="true" aria-controls="ref-invite">Invite users</button>
+          <button type="button" id="ref-tab-code" role="tab" aria-selected="false" aria-controls="ref-code" tabindex="-1">Enter code</button>
+        </div>
+        <p class="ref-budget" id="ref-budget" hidden><b id="ref-left"></b> <span>left in the referral program</span></p>
+        <div class="ref-panel" id="ref-invite" role="tabpanel" aria-labelledby="ref-tab-invite">
+          <h3>Invite someone to mine</h3>
+          <p>Earn 7 ORN each when a friend verifies a wallet and earns mining rewards in 10 hourly checkpoints. You can earn up to 35 ORN.</p>
+          <div class="ref-stats" id="ref-stats" hidden>
+            <div><b id="ref-completed"></b><span>Qualified</span></div>
+            <div><b id="ref-pending"></b><span>In progress</span></div>
+            <div><b id="ref-paid"></b><span>ORN paid</span></div>
+          </div>
+          <div id="ref-sharing" hidden>
+            <div class="ref-sharing-code"><span>Your invite code</span><strong id="ref-own-code" data-no-i18n></strong></div>
+            <div class="ref-actions">
+              <button type="button" class="pill pearl" id="ref-copy-link">Copy invite link</button>
+              <button type="button" class="pill" id="ref-copy-code">Copy code</button>
+            </div>
+          </div>
+          <p id="ref-invite-info" role="status"></p>
+          <button type="button" class="pill pearl" id="ref-invite-verify" hidden>Verify wallet</button>
+        </div>
+        <div class="ref-panel" id="ref-code" role="tabpanel" aria-labelledby="ref-tab-code" hidden>
+          <h3>Use a friend’s code</h3>
+          <p>Enter a code within seven days of creating your Orien Network account. You and your friend each earn 7 ORN after your verified wallet earns mining rewards in 10 hourly checkpoints.</p>
+          <form id="ref-form" hidden>
+            <label for="ref-input">Referral code</label>
+            <div class="ref-actions">
+              <div class="box plain"><input id="ref-input" type="text" maxlength="12" spellcheck="false" autocomplete="off" autocapitalize="characters" required></div>
+              <button type="submit" class="pill pearl" id="ref-apply">Apply code</button>
+            </div>
+          </form>
+          <div class="ref-progress" id="ref-progress" hidden>
+            <label id="ref-hours" for="ref-meter"></label>
+            <progress id="ref-meter" max="10" value="0"></progress>
+          </div>
+          <p id="ref-claim-info" role="status"></p>
+          <button type="button" class="pill pearl" id="ref-claim-verify" hidden>Verify wallet</button>
+          <button type="button" class="pill pearl" id="ref-mine" hidden>Open Mining</button>
+        </div>
+        <button type="button" class="pill pearl" id="ref-signin" hidden>Sign in to Orien Network</button>
+        <div class="problem" id="ref-problem" hidden></div>
       </div>
       <div class="st-page" data-page="computer" hidden>
 
@@ -3516,7 +3587,7 @@
 
     <!-- Home -->
     <section class="screen" id="home" hidden>
-      <div class="home-top"><div class="home-left"><button class="pill icon" id="go-settings" aria-label="Settings" title="Settings"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></button><button class="wallet-chip" id="wallet-chip"><span id="wallet-name">Wallet</span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg></button><button class="pill icon" id="go-contacts" aria-label="Contacts" title="Contacts"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><path d="M16 3.128a4 4 0 0 1 0 7.744"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><circle cx="9" cy="7" r="4"/></svg></button><button class="pill icon" id="go-explorer" aria-label="Explorer" title="Explorer"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m10.065 12.493-6.18 1.318a.934.934 0 0 1-1.108-.702l-.537-2.15a1.07 1.07 0 0 1 .691-1.265l13.504-4.44"/><path d="m13.56 11.747 4.332-.924"/><path d="m16 21-3.105-6.21"/><path d="M16.485 5.94a2 2 0 0 1 1.455-2.425l1.09-.272a1 1 0 0 1 1.212.727l1.515 6.06a1 1 0 0 1-.727 1.213l-1.09.272a2 2 0 0 1-2.425-1.455z"/><path d="m6.158 8.633 1.114 4.456"/><path d="m8 21 3.105-6.21"/><circle cx="12" cy="13" r="2"/></svg></button><button class="pill icon hm-extra" id="go-help" aria-label="Help" title="Help" aria-haspopup="menu"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="m4.93 4.93 4.24 4.24"/><path d="m14.83 9.17 4.24-4.24"/><path d="m14.83 14.83 4.24 4.24"/><path d="m9.17 14.83-4.24 4.24"/><circle cx="12" cy="12" r="4"/></svg></button><button class="pill icon hm-extra" id="go-store" aria-label="Theme Store" title="Theme Store"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22a1 1 0 0 1 0-20 10 9 0 0 1 10 9 5 5 0 0 1-5 5h-2.25a1.75 1.75 0 0 0-1.4 2.8l.3.4a1.75 1.75 0 0 1-1.4 2.8z"/><circle cx="13.5" cy="6.5" r=".5" fill="currentColor"/><circle cx="17.5" cy="10.5" r=".5" fill="currentColor"/><circle cx="6.5" cy="12.5" r=".5" fill="currentColor"/><circle cx="8.5" cy="7.5" r=".5" fill="currentColor"/></svg></button><button class="pill icon" id="go-notices" aria-label="Notifications" title="Notifications" hidden><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10.268 21a2 2 0 0 0 3.464 0"/><path d="M3.262 15.326A1 1 0 0 0 4 17h16a1 1 0 0 0 .74-1.673C19.41 13.956 18 12.499 18 8A6 6 0 0 0 6 8c0 4.499-1.411 5.956-2.738 7.326"/></svg><span class="dot" id="notices-dot" hidden></span></button></div>
+      <div class="home-top"><div class="home-left"><button class="pill icon" id="go-settings" aria-label="Settings" title="Settings"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></button><button class="wallet-chip" id="wallet-chip"><span id="wallet-name">Wallet</span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg></button><button class="pill icon" id="go-contacts" aria-label="Contacts" title="Contacts"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><path d="M16 3.128a4 4 0 0 1 0 7.744"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><circle cx="9" cy="7" r="4"/></svg></button><button class="pill icon" id="go-explorer" aria-label="Explorer" title="Explorer"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m10.065 12.493-6.18 1.318a.934.934 0 0 1-1.108-.702l-.537-2.15a1.07 1.07 0 0 1 .691-1.265l13.504-4.44"/><path d="m13.56 11.747 4.332-.924"/><path d="m16 21-3.105-6.21"/><path d="M16.485 5.94a2 2 0 0 1 1.455-2.425l1.09-.272a1 1 0 0 1 1.212.727l1.515 6.06a1 1 0 0 1-.727 1.213l-1.09.272a2 2 0 0 1-2.425-1.455z"/><path d="m6.158 8.633 1.114 4.456"/><path d="m8 21 3.105-6.21"/><circle cx="12" cy="13" r="2"/></svg></button><button class="pill icon hm-extra" id="go-help" aria-label="Help" title="Help" aria-haspopup="menu"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="m4.93 4.93 4.24 4.24"/><path d="m14.83 9.17 4.24-4.24"/><path d="m14.83 14.83 4.24 4.24"/><path d="m9.17 14.83-4.24 4.24"/><circle cx="12" cy="12" r="4"/></svg></button><button class="pill icon hm-extra" id="go-referrals" aria-label="Referrals" title="Referrals"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20m5-17H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></button><button class="pill icon" id="go-notices" aria-label="Notifications" title="Notifications" hidden><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10.268 21a2 2 0 0 0 3.464 0"/><path d="M3.262 15.326A1 1 0 0 0 4 17h16a1 1 0 0 0 .74-1.673C19.41 13.956 18 12.499 18 8A6 6 0 0 0 6 8c0 4.499-1.411 5.956-2.738 7.326"/></svg><span class="dot" id="notices-dot" hidden></span></button></div>
         <div class="account"><button class="pill icon" id="go-size" aria-label="Make the window wide" title="Make the window wide"></button><button class="me-face" id="board-who" hidden aria-label="Your profile" title="Your profile"></button><button class="pill" id="board-signin-go">Sign in</button></div></div>
       <div class="home-body"><div class="home-main">
       <!-- A swap that needs you, or is under way: impossible to miss. -->
@@ -6243,7 +6314,6 @@
     tsLoad(false);
   }
   $("st-store").onclick = openThemeStore;
-  $("go-store").onclick = openThemeStore;
   // Help: a small menu under the button, User Guide and Report a Problem.
   function helpClose() { $("help-menu").hidden = true; }
   // The button is lit exactly while its menu shows, whatever closed it (the
@@ -6629,7 +6699,7 @@
     show("settings"); settingsPage("appearance");
   };
   // The categories, each with a hint of what's set; a tap opens its page.
-  const settingsTitles = { link: "Link a new device", appearance: "Appearance", language: "Language", privacy: "Privacy and security", notify: "Notifications", computer: "This computer", extensions: "Browser Extensions", about: "About", report: "Report a Problem", social: "Social Links", guide: "User Guide", "guide-view": "User Guide" };
+  const settingsTitles = { link: "Link a new device", appearance: "Appearance", language: "Language", privacy: "Privacy and security", notify: "Notifications", referrals: "Referrals", computer: "This computer", extensions: "Browser Extensions", about: "About", report: "Report a Problem", social: "Social Links", guide: "User Guide", "guide-view": "User Guide" };
   // Pages inside another page: Back returns there.
   const settingsParent = { social: "about", "guide-view": "guide" };
   let settingsAt = null;
@@ -6645,6 +6715,12 @@
     if (asked && asked !== "report" && settingsTitles[asked]) bugStep("settings", `Settings › ${settingsTitles[asked]}`);
     if (page === "report" && !$("bug-sent").hidden) bugPaintSent();
     settingsAt = page;
+    if (page === "referrals") {
+      referral.value = null;
+      referral.phase = "loading";
+      refPaint();
+      refRefresh();
+    }
     $("st-menu").hidden = !!page && !stWide();
     for (const p of document.querySelectorAll(".st-page")) p.hidden = p.dataset.page !== page;
     $("st-title").textContent = stWide() ? "Settings" : page ? settingsTitles[page] : "Settings";
@@ -7387,6 +7463,11 @@
       if (!$("phrase").hidden || !$("password").hidden) return;
       if (!$("pair-invite").hidden) pairEnd();
       show("wallets");
+      return;
+    }
+    if (!$("board-signin").hidden && signinReturn === "referrals") {
+      signinReturn = "swaps";
+      openReferrals();
       return;
     }
     if (!$("board-signin").hidden) show(lastBase); else if (!$("send").hidden && (sendFrom === "seller" || sendFrom === "explorer")) { const back = sendFrom; sendFrom = "home"; show(back); } else if (SWAP_POPS.some((id) => !$(id).hidden)) show("swaps"); else home(); };
@@ -11199,6 +11280,125 @@
   }
   const mkProblem = (e) => String(e).startsWith("signin:") ? "Sign in to Orien Network first." : String(e);
   async function mk(method, path, body) { return invoke("market_call", { method, path, body: body === undefined ? null : body }); }
+
+  const referral = { tab: "invite", phase: "loading", value: null, request: 0, saving: false };
+  const refOpen = () => !$("settings").hidden && settingsAt === "referrals";
+  const refCode = () => $("ref-input").value.trim().toUpperCase();
+  function openReferrals() {
+    show("settings");
+    settingsPage("referrals");
+  }
+  function refPaint() {
+    const data = referral.value;
+    const claim = data?.claim;
+    const signedOut = referral.phase === "signin";
+    $("ref-signin").hidden = !signedOut;
+    $("ref-budget").hidden = !data?.active;
+    $("ref-left").textContent = data ? data.remaining + " ORN" : "";
+    $("ref-stats").hidden = !data?.active;
+    $("ref-completed").textContent = data ? data.completed + " / " + data.invite_limit : "";
+    $("ref-pending").textContent = data && data.open ? data.invited - data.completed : "0";
+    $("ref-paid").textContent = data?.paid ?? "";
+    $("ref-sharing").hidden = !data?.code;
+    $("ref-own-code").textContent = data?.code || "";
+    const verifyFirst = data?.open && !data.can_invite && data.completed < data.invite_limit;
+    $("ref-invite-verify").hidden = !verifyFirst;
+    $("ref-form").hidden = !data?.can_claim;
+    $("ref-apply").disabled = referral.saving || !/^[A-F0-9]{12}$/.test(refCode());
+    $("ref-progress").hidden = !claim || claim.status === "closed";
+    $("ref-hours").textContent = claim ? claim.hours + " / " + data.hours_required + " mining hours" : "";
+    $("ref-meter").max = data?.hours_required || 10;
+    $("ref-meter").value = claim?.hours || 0;
+    $("ref-claim-verify").hidden = !(claim?.status === "pending" && !claim.verified);
+    $("ref-mine").hidden = phone || !(claim?.status === "pending" && claim.verified && claim.hours < data.hours_required);
+    const status = !data
+      ? (signedOut ? "Sign in to use referrals." : referral.phase === "loading" ? "Loading referrals…" : "")
+      : (!data.active ? "The referral program hasn’t opened yet." : !data.open ? "All rewards for this program have been reserved." : "");
+    $("ref-invite-info").textContent = status || (verifyFirst ? "Verify a wallet to get your invite code."
+      : data && data.completed >= data.invite_limit ? "You’ve reached your five-referral limit." : "");
+    const miningWallet = claim?.mining_wallet && view?.address !== claim.mining_wallet
+      ? "wallet " + short(claim.mining_wallet) : "your verified wallet";
+    $("ref-claim-info").textContent = claim?.status === "paid" ? "Your 7 ORN reward has been paid."
+      : claim?.status === "qualified" ? "You’ve qualified. Your 7 ORN reward is awaiting payout."
+      : claim?.status === "closed" ? "This referral closed before a reward was reserved."
+      : claim?.status === "pending" ? (!claim.verified ? "Code accepted. Verify a wallet to start counting your mining hours."
+        : claim.hours >= data.hours_required ? "Mining requirement met. Reward reservation is pending."
+        : "Code accepted. Mine with " + miningWallet + (phone ? " in Orien Wallet on a computer." : " to make progress."))
+      : status || (data && !data.can_claim ? "Codes can be entered within seven days of creating an account." : "");
+  }
+  async function refRefresh() {
+    if (!refOpen() || referral.saving) return;
+    const request = ++referral.request;
+    try {
+      const data = await mk("GET", "/me/referrals");
+      if (request !== referral.request || !refOpen()) return;
+      referral.value = data;
+      referral.phase = "ready";
+      $("ref-problem").hidden = true;
+    } catch (error) {
+      if (request !== referral.request || !refOpen()) return;
+      if (String(error).startsWith("signin:")) {
+        referral.value = null;
+        referral.phase = "signin";
+        $("ref-problem").hidden = true;
+      } else {
+        referral.phase = "error";
+        if ($("ref-problem").hidden) problem("ref-problem", mkProblem(error));
+      }
+    }
+    refPaint();
+  }
+  function refSelect(tab, focus = false) {
+    referral.tab = tab;
+    for (const key of ["invite", "code"]) {
+      const button = $("ref-tab-" + key);
+      button.setAttribute("aria-selected", String(tab === key));
+      button.tabIndex = tab === key ? 0 : -1;
+      $("ref-" + key).hidden = tab !== key;
+    }
+    if (focus) $("ref-tab-" + tab).focus();
+  }
+  $("ref-tab-invite").onclick = () => refSelect("invite");
+  $("ref-tab-code").onclick = () => refSelect("code");
+  $("ref-tab-invite").parentElement.onkeydown = (event) => {
+    if (!["Home", "End", "ArrowLeft", "ArrowRight"].includes(event.key)) return;
+    event.preventDefault();
+    refSelect(event.key === "Home" ? "invite" : event.key === "End" ? "code" : referral.tab === "invite" ? "code" : "invite", true);
+  };
+  $("go-referrals").onclick = $("hd-referrals").onclick = openReferrals;
+  $("ref-signin").onclick = () => { signinReturn = "referrals"; resetSignin(); show("board-signin"); };
+  $("ref-input").oninput = () => { $("ref-problem").hidden = true; refPaint(); };
+  $("ref-form").onsubmit = async (event) => {
+    event.preventDefault();
+    const code = refCode();
+    if (referral.saving || !referral.value?.can_claim || !/^[A-F0-9]{12}$/.test(code)) return;
+    referral.saving = true;
+    ++referral.request;
+    $("ref-problem").hidden = true;
+    refPaint();
+    try {
+      referral.value = await mk("POST", "/me/referrals", { code });
+      $("ref-input").value = "";
+      feel("success");
+    } catch (error) {
+      problem("ref-problem", mkProblem(error));
+    } finally {
+      referral.saving = false;
+      refPaint();
+    }
+  };
+  for (const [id, field] of [["ref-copy-link", "link"], ["ref-copy-code", "code"]]) {
+    $(id).onclick = () => {
+      const text = referral.value?.[field];
+      if (text) copyFrom($(id), text).catch(() => problem("ref-problem", "Couldn’t copy. Try again."));
+    };
+  }
+  $("ref-invite-verify").onclick = $("ref-claim-verify").onclick = async () => {
+    if (!board.me) await loadBoard();
+    quickVerify();
+  };
+  $("ref-mine").onclick = () => $("go-mine").click();
+  setInterval(refRefresh, 20000);
   // The number on the Dock or taskbar icon: swaps that need you, plus
   // Market conversations with something new.
   let swapsWaiting = 0;
@@ -12943,6 +13143,7 @@
         resetSignin();
         invoke("board_wallets_sync").catch(() => {});
         if (phone) invoke("push_sync").catch(() => {});
+        if (signinReturn === "referrals") { signinReturn = "swaps"; await loadBoard(); openReferrals(); return; }
         if (signinReturn === "home") { signinReturn = "swaps"; await loadBoard(); home(); return; }
         if (signinReturn === "community") { signinReturn = "swaps"; await loadBoard(); openCommunity(); return; }
         if (signinReturn === "messages") { signinReturn = "swaps"; await loadBoard(); openInbox(); return; }
@@ -12960,6 +13161,10 @@
   };
 
   for (const b of document.querySelectorAll("[data-to]")) b.onclick = () => show(b.dataset.to);
+  document.querySelector("#board-signin .back").onclick = () => {
+    if (signinReturn === "referrals") { signinReturn = "swaps"; openReferrals(); }
+    else show("swaps");
+  };
 
   $("go-get").onclick = () => show("get");
   $("go-swap").onclick = async () => { show("swaps"); await loadSwaps(); await loadWallets(); loadBoard(); stepSwaps(); };

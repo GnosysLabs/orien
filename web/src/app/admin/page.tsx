@@ -161,6 +161,12 @@ export default function AdminPage() {
         </div>
         <div className="flex flex-wrap gap-2">
           <Link
+            href="/admin/referrals/"
+            className="flex h-10 items-center rounded-xl border border-line bg-surface px-4 text-sm font-semibold text-ink transition hover:border-pearl"
+          >
+            Referrals
+          </Link>
+          <Link
             href="/admin/themes/"
             className="flex h-10 items-center rounded-xl border border-line bg-surface px-4 text-sm font-semibold text-ink transition hover:border-pearl"
           >

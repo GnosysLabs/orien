@@ -320,6 +320,7 @@ impl Store {
         store.create_push_tables()?;
         store.create_account_wallet_table()?;
         store.create_proof_table()?;
+        store.create_referral_tables()?;
         store.create_oidc_tables()?;
         store.create_community_tables()?;
         store.create_notice_tables()?;

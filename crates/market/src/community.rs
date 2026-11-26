@@ -1260,6 +1260,9 @@ impl Community {
     fn refresh(&self, app: &App) {
         let Some(mined) = app.explorer().mined(app.payments().as_ref()) else { return };
         let store = app.store();
+        if let Err(error) = store.track_referral_mining(&mined) {
+            eprintln!("referrals: could not record mining progress: {error:#}");
+        }
         let (Ok(owners), Ok(names)) = (store.wallet_owners(), store.names()) else { return };
         if let Err(error) = store.tell(&mined, &owners) {
             eprintln!("community: could not post the network's news: {error:#}");
