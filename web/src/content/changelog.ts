@@ -52,6 +52,18 @@ export const CHANGELOG: Entry[] = [
   {
     date: '2026-11-25',
     products: ['wallet'],
+    version: '1.9.18',
+    title: 'Themes that keep up across your computers',
+    changes: [
+      'A built theme\'s new picture reaches your other computers, instead of them keeping the first one.',
+      'A theme or setting changed on one computer shows on the others within about 30 seconds, or as soon as you click into the window.',
+      'In a big window, Add a wallet is one card over Wallets through all its steps.',
+      'Before a new wallet has a name, its icon shows a small wallet instead of a question mark.',
+    ],
+  },
+  {
+    date: '2026-11-25',
+    products: ['wallet'],
     version: '1.9.17',
     title: 'A neater sign-in',
     changes: [
