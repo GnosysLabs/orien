@@ -3240,7 +3240,7 @@
     <section class="screen" id="theme-store" hidden>
       <div class="topline"><button class="back" id="ts-back" aria-label="Back"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg></button><h2>Theme Store</h2></div>
       <div class="ts-bar"><div class="tabs ts-tabs" id="ts-tabs" role="tablist"><button class="tab on" data-ts-sort="all" role="tab">All</button><button class="tab" data-ts-sort="mine" role="tab">Yours</button></div>
-        <div class="ts-order" id="ts-order" role="radiogroup" aria-label="Sort by"><button class="pill on" data-ts-order="popular" role="radio">Popular</button><button class="pill" data-ts-order="new" role="radio">Newest</button></div></div>
+        <div class="ts-order" id="ts-order" role="radiogroup" aria-label="Sort by"><button class="pill on" data-ts-order="popular" role="radio">Popular</button><button class="pill" data-ts-order="new" role="radio">Newest</button><button class="pill" data-ts-order="official" role="radio">Official</button></div></div>
       <div class="problem" id="ts-problem" hidden></div>
       <div class="ts-grid" id="ts-grid"></div>
       <div class="ts-empty" id="ts-empty" hidden></div>
@@ -5836,11 +5836,11 @@
     $("ts-problem").hidden = true;
     if (!more) { ts.themes = []; ts.next = null; tsPaint(); }
     try {
-      const sort = ts.sort === "mine" ? "new&mine=1" : ts.order;
+      const sort = ts.sort === "mine" ? "new&mine=1" : ts.order === "official" ? "popular&official=1" : ts.order;
       const page = await cmCall("GET", `/themes?sort=${sort}${more && ts.next ? `&before=${encodeURIComponent(ts.next)}` : ""}`);
-      const list = (page && page.themes) || [];
-      // Orien's own themes come after the ones people made.
-      list.sort((x, y) => (tsBuiltin(x) ? 1 : 0) - (tsBuiltin(y) ? 1 : 0));
+      // Orien's own themes live under Official, and only there.
+      const official = ts.sort !== "mine" && ts.order === "official";
+      const list = ((page && page.themes) || []).filter((t) => official ? !!tsBuiltin(t) : !tsBuiltin(t));
       ts.themes = more ? ts.themes.concat(list) : list;
       ts.more = !!(page && page.more); ts.next = (page && page.next) || null;
     } catch (e) { problem("ts-problem", ts.sort === "mine" && String(e).startsWith("signin:") ? "Sign in to Orien Network to see the themes you shared." : mkProblem(e)); }
@@ -6480,7 +6480,7 @@
       ], "Your themes follow you to your other computers, and your iPhone wears their colours. To change one later, click the gear on its card in Appearance; the bin deletes it.");
       add("Themes", "theme-store", "Find themes in the Theme Store", [
         `Open ${gear}, then <b>Appearance</b>, and click <b>Theme Store</b> at the top.`,
-        "Every theme is under <b>All</b>: sort it by <b>Popular</b> or <b>Newest</b>. Each card shows the theme on a small copy of the app.",
+        "Under <b>All</b>, pick <b>Popular</b> or <b>Newest</b> for themes people made, or <b>Official</b> for Orien's own. Each card shows the theme on a small copy of the app.",
         "Click <b>Try</b> to see the whole app in it. Click <b>Undo</b> to go back; leaving the store goes back too.",
         "Click <b>Use</b> to keep it. It joins your themes in Appearance and is worn at once.",
         "Like it? The coins button tips its maker some ORN. The flag reports a theme that breaks the rules.",
