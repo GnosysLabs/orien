@@ -5445,22 +5445,31 @@
       } catch {}
     }
   }
+  // Which version of each built theme's picture this device holds: a theme
+  // whose picture was changed elsewhere carries a newer one, and is fetched
+  // again.
+  const sceneVersions = () => { try { return JSON.parse(localStorage.getItem("scene-versions") || "{}") || {}; } catch { return {}; } };
+  const setSceneVersion = (id, v) => { const all = sceneVersions(); all[id] = v || 0; localStorage.setItem("scene-versions", JSON.stringify(all)); };
   let fetching = false;
   async function fetchScenes() {
     if (phone || fetching) return;
     fetching = true;
+    let got = false;
     for (const t of customThemes()) {
-      if (scenes.has(t.id)) continue;
+      if (scenes.has(t.id) && (sceneVersions()[t.id] || 0) === (t.pv || 0)) continue;
       try {
         const pic = await invoke("theme_picture_load", { id: t.id });
         if (!pic || !customThemes().some((x) => x.id === t.id)) continue;
         scenes.set(t.id, pic);
+        setSceneVersion(t.id, t.pv);
         localStorage.setItem("scenes-shared", JSON.stringify([...new Set(sharedScenes().concat([t.id]))]));
         sceneAsk("readwrite", (st) => st.put(pic, t.id)).catch(() => {});
         if (document.documentElement.dataset.theme === t.id) paintOwnTheme();
+        got = true;
       } catch {}
     }
     fetching = false;
+    if (got) paintThemeCards();
   }
   // The colour behind the page matches the theme's deepest ground.
   function paintBackdrop() {
@@ -5674,13 +5683,17 @@
       try { await sceneAsk("readwrite", (st) => st.put(tb.scene, id)); }
       catch { problem("tb-problem", "The picture couldn't be saved on this device. Try a smaller one."); $("tb-save").disabled = false; return; }
     }
-    const theme = { id, name, base: tb.base, colors: tb.colors.slice() }, list = customThemes();
-    const at = list.findIndex((t) => t.id === id);
+    const list = customThemes(), at = list.findIndex((t) => t.id === id);
+    // A new picture gets a new version, so your other devices fetch it.
+    const pv = newPicture ? Date.now() : (at >= 0 ? list[at].pv : undefined);
+    const theme = { id, name, base: tb.base, colors: tb.colors.slice(), ...(pv ? { pv } : {}) };
     if (at >= 0) list[at] = theme; else list.push(theme);
     localStorage.setItem("custom-themes", JSON.stringify(list));
-    shareThemes();
     if (tb.scene) scenes.set(id, tb.scene);
-    shareScenes();
+    setSceneVersion(id, pv);
+    // The picture first, then the list that names its new version: another
+    // device never asks for it before it's there.
+    shareScenes().then(shareThemes, shareThemes);
     tb.colors = []; tb.scene = null; tb.editing = null;
     paintThemeCards();
     // Changed while in use: wear the changes now.
