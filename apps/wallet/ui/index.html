@@ -5813,16 +5813,30 @@
       <div class="ts-acts">${ts.trying && String(ts.trying.id) === String(t.id) ? `<button class="pill ts-undo" data-ts-undo="${t.id}">Undo</button>` : `<button class="pill" data-ts-try="${t.id}">Try</button>`}<button class="pill ${worn ? "ts-on" : "pearl"} ts-get" data-ts-get="${t.id}">${worn ? "In use" : "Use"}</button><span class="ts-side">${side}</span></div>
     </div>`;
   }
-  function tsPaint() {
-    const grid = $("ts-grid");
-    grid.innerHTML = ts.themes.map(tsCard).join("");
-    for (const t of ts.themes) {
-      const card = grid.querySelector(`[data-ts="${t.id}"]`);
-      if (!card) continue;
-      if (tsBuiltin(t)) continue;
+  // Cards are kept and moved, never rebuilt, so their pictures never reload:
+  // a theme already on screen keeps its card when the list changes.
+  function tsBuild(t) {
+    const holder = document.createElement("div");
+    holder.innerHTML = tsCard(t);
+    const card = holder.firstElementChild;
+    if (!tsBuiltin(t)) {
       if (t.thumb) card.querySelector(".ts-stage").style.setProperty("--pic", `url("${tsPic(t.thumb)}")`);
       setThemeVars(card.querySelector(".ts-wide"), tsColors(t), null, t.base);
     }
+    return card;
+  }
+  const tsCards = new Map();
+  function tsPaint() {
+    const grid = $("ts-grid"), reused = [];
+    const cards = ts.themes.map((t) => {
+      const id = String(t.id);
+      if (tsCards.has(id)) { reused.push(t); return tsCards.get(id); }
+      const card = tsBuild(t);
+      tsCards.set(id, card);
+      return card;
+    });
+    grid.replaceChildren(...cards);
+    for (const t of reused) tsMark(t);
     $("ts-more").hidden = !ts.more;
     const empty = !ts.themes.length && !ts.busy;
     $("ts-empty").hidden = !empty || !$("ts-problem").hidden;
@@ -5830,21 +5844,33 @@
       ? `You haven't shared a theme yet. Build one in Appearance, then share it from its card.<br><button class="pill pearl" data-ts-appearance>Go to Appearance</button>`
       : `No themes here yet. Build one in Appearance and be the first to share it.<br><button class="pill pearl" data-ts-appearance>Go to Appearance</button>`;
   }
+  // Each view's first page is kept, so switching shows it at once; the
+  // fresh one replaces it when it arrives. The last switch always wins.
+  const tsSeen = new Map();
+  let tsLoadTurn = 0;
   async function tsLoad(more) {
-    if (ts.busy) return;
+    if (more && ts.busy) return;
+    const view = ts.sort === "mine" ? "mine" : ts.order, turn = ++tsLoadTurn;
     ts.busy = true;
     $("ts-problem").hidden = true;
-    if (!more) { ts.themes = []; ts.next = null; tsPaint(); }
+    // A view seen before shows at once; a new one keeps what's on screen
+    // until its list arrives, rather than flashing empty.
+    if (!more && tsSeen.has(view)) {
+      const seen = tsSeen.get(view);
+      ts.themes = seen.themes.slice(); ts.more = seen.more; ts.next = seen.next;
+      tsPaint();
+    }
     try {
-      const sort = ts.sort === "mine" ? "new&mine=1" : ts.order === "official" ? "popular&official=1" : ts.order;
+      const sort = view === "mine" ? "new&mine=1" : view === "official" ? "popular&official=1" : view;
       const page = await cmCall("GET", `/themes?sort=${sort}${more && ts.next ? `&before=${encodeURIComponent(ts.next)}` : ""}`);
+      if (turn !== tsLoadTurn) return;
       // Orien's own themes live under Official, and only there.
-      const official = ts.sort !== "mine" && ts.order === "official";
-      const list = ((page && page.themes) || []).filter((t) => official ? !!tsBuiltin(t) : !tsBuiltin(t));
+      const list = ((page && page.themes) || []).filter((t) => view === "mine" ? true : view === "official" ? !!tsBuiltin(t) : !tsBuiltin(t));
       ts.themes = more ? ts.themes.concat(list) : list;
       ts.more = !!(page && page.more); ts.next = (page && page.next) || null;
-    } catch (e) { problem("ts-problem", ts.sort === "mine" && String(e).startsWith("signin:") ? "Sign in to Orien Network to see the themes you shared." : mkProblem(e)); }
-    finally { ts.busy = false; tsPaint(); }
+      if (!more) tsSeen.set(view, { themes: list.slice(), more: ts.more, next: ts.next });
+    } catch (e) { if (turn === tsLoadTurn) problem("ts-problem", view === "mine" && String(e).startsWith("signin:") ? "Sign in to Orien Network to see the themes you shared." : mkProblem(e)); }
+    finally { if (turn === tsLoadTurn) { ts.busy = false; tsPaint(); } }
   }
   function openThemeStore() {
     ts.downArmed = null;
@@ -6021,6 +6047,8 @@
         const list = customThemes().map((x) => x.store === t.id ? (({ store, ...rest }) => rest)(x) : x);
         localStorage.setItem("custom-themes", JSON.stringify(list)); shareThemes(); paintThemeCards();
         ts.themes = ts.themes.filter((x) => x !== t);
+        tsCards.delete(String(t.id));
+        for (const v of tsSeen.values()) v.themes = v.themes.filter((x) => String(x.id) !== String(t.id));
         feel("success");
       } catch (err) { problem("ts-problem", mkProblem(err)); }
       tsPaint();
