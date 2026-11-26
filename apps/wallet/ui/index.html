@@ -5811,36 +5811,57 @@
   };
   // Trying a theme: the whole app wears it for a moment, with Get it and
   // Undo at the foot. Nothing is kept until Get it.
+  // Only the card that changed is redrawn (its words and buttons), so the
+  // pictures never reload.
+  function tsMark(t) {
+    if (!t) return;
+    const card = $("ts-grid").querySelector(`[data-ts="${t.id}"]`);
+    if (!card) return;
+    const fresh = document.createElement("div");
+    fresh.innerHTML = tsCard(t);
+    for (const part of [".ts-info", ".ts-acts"]) {
+      const now = card.querySelector(part), next = fresh.querySelector(part);
+      if (now && next) now.replaceWith(next);
+    }
+  }
+  let tsTurn = 0;
   async function tsTry(t) {
     if (ts.trying && String(ts.trying.id) === String(t.id)) { tsUndo(); return; }
-    let pic = null;
-    try { pic = await invoke("market_image", { name: tsImage(t.picture) }); } catch {}
-    if (!ts.trying) ts.before = document.documentElement.dataset.theme || "pearl";
+    const was = ts.trying, turn = ++tsTurn;
+    if (!was) ts.before = document.documentElement.dataset.theme || "pearl";
     ts.trying = t;
     const html = document.documentElement;
-    html.dataset.theme = "store-try";
-    setThemeVars(html, tsColors(t), pic || (t.thumb ? tsPic(t.thumb) : null), t.base);
-    html.dataset.base = t.base === "light" ? "light" : "dark";
-    paintBackdrop();
-    tsPaint();
+    const wear = (pic) => {
+      html.dataset.theme = "store-try";
+      setThemeVars(html, tsColors(t), pic, t.base);
+      html.dataset.base = t.base === "light" ? "light" : "dark";
+      paintBackdrop();
+    };
+    // At once with the card's own small picture, then the full one once it's
+    // here, unless something else was tried or undone meanwhile.
+    wear(t.thumb ? tsPic(t.thumb) : null);
+    tsMark(was); tsMark(t);
     feel("selection");
+    let pic = null;
+    try { pic = await invoke("market_image", { name: tsImage(t.picture) }); } catch {}
+    if (pic && turn === tsTurn && ts.trying === t) wear(pic);
   }
   function tsUndo() {
     if (!ts.trying) return;
-    ts.trying = null;
-    
+    const was = ts.trying;
+    ts.trying = null; tsTurn++;
     const back = ts.before || "pearl";
     ts.before = null;
     applyTheme(back, false);
-    if (!$("theme-store").hidden) tsPaint();
+    tsMark(was);
   }
   leaveStore = tsUndo;
   // Getting a theme: a copy of it among your own, worn at once, and sent to
   // your other computers like one you built.
   async function tsGet(t, button) {
-    const have = tsOwned(t);
+    const have = tsOwned(t), tried = ts.trying;
     if (have) {
-      ts.trying = null; ts.before = null; 
+      ts.trying = null; ts.before = null; tsTurn++; tsMark(tried);
       applyTheme(have.id, true);
       invoke("set_app_theme", { theme: have.id }).catch(() => {});
       return;
@@ -5860,14 +5881,14 @@
       scenes.set(id, pic);
       setSceneVersion(id, pv);
       shareScenes().then(shareThemes, shareThemes);
-      ts.trying = null; ts.before = null; 
+      ts.trying = null; ts.before = null; tsTurn++;
       applyTheme(id, true);
       invoke("set_app_theme", { theme: id }).catch(() => {});
       paintThemeCards();
       feel("success");
-      cmCall("POST", `/themes/${t.id}/download`).then((d) => { if (d && typeof d.downloads === "number") { t.downloads = d.downloads; tsPaint(); } }).catch(() => {});
+      cmCall("POST", `/themes/${t.id}/download`).then((d) => { if (d && typeof d.downloads === "number") { t.downloads = d.downloads; tsMark(t); } }).catch(() => {});
     } catch (e) { problem("ts-problem", String(e).replace(/^Error: /, "")); }
-    tsPaint();
+    tsMark(tried); tsMark(t);
   }
   $("ts-grid").onclick = async (e) => {
     const go = (name) => { const el = e.target.closest(`[data-ts-${name}]`); return el ? [el, tsFind(el.getAttribute(`data-ts-${name}`))] : [null, null]; };
@@ -5892,7 +5913,7 @@
     [el, t] = go("down");
     if (t) {
       // A first press arms it; a second takes the theme down.
-      if (ts.downArmed !== String(t.id)) { ts.downArmed = String(t.id); tsPaint(); setTimeout(() => { if (ts.downArmed === String(t.id)) { ts.downArmed = null; tsPaint(); } }, 3500); return; }
+      if (ts.downArmed !== String(t.id)) { const before = tsFind(ts.downArmed); ts.downArmed = String(t.id); tsMark(before); tsMark(t); setTimeout(() => { if (ts.downArmed === String(t.id)) { ts.downArmed = null; tsMark(t); } }, 3500); return; }
       ts.downArmed = null;
       try {
         await cmCall("DELETE", `/themes/${t.id}`);
@@ -9228,7 +9249,7 @@
     for (let i = 0; i < 12; i++) {
       try {
         const t = await cmCall("POST", `/${post.kind === "theme" ? "themes" : "posts"}/${post.id}/tips`, { from, seq });
-        if (t && typeof t.count === "number") { post.tips = { count: t.count, orn: t.orn }; if (post.kind === "theme") tsPaint(); cmPaintFeed(); if (cm.thread) cmPaintThread(); if (!$("seller").hidden) slPaintFeed(); return; }
+        if (t && typeof t.count === "number") { post.tips = { count: t.count, orn: t.orn }; if (post.kind === "theme") tsMark(post); cmPaintFeed(); if (cm.thread) cmPaintThread(); if (!$("seller").hidden) slPaintFeed(); return; }
       } catch {}
       await new Promise((r) => setTimeout(r, 5000));
     }
@@ -9251,7 +9272,7 @@
       // On the post at once; the network's count follows once it settles.
       const t = p.tips || { count: 0, orn: 0 };
       p.tips = { count: t.count + 1, orn: Number(t.orn || 0) + Math.round(amount * 1e9) };
-      if (p.kind === "theme") tsPaint();
+      if (p.kind === "theme") tsMark(p);
       cmPaintFeed();
       if (cm.thread) cmPaintThread();
       if (!$("seller").hidden) slPaintFeed();
