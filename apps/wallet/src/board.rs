@@ -155,9 +155,9 @@ fn call(dir: &Path, method: &str, path: &str, body: Option<Value>) -> Result<Val
         }
         Err(ureq::Error::Status(_, response)) => {
             let said = response.into_json::<Value>().ok().and_then(|v| v["error"].as_str().map(capital));
-            return Err(Failed::Said(said.unwrap_or_else(|| "The swap board could not do that.".into())));
+            return Err(Failed::Said(said.unwrap_or_else(|| "Orien Network couldn't do that just now. Try again in a moment.".into())));
         }
-        Err(_) => return Err(Failed::Said("The swap board can't be reached. Check your internet connection.".into())),
+        Err(_) => return Err(Failed::Said("Orien Network can't be reached. Check your internet connection.".into())),
     };
     let renewed = response.all("set-cookie").into_iter().find_map(|header| {
         let (pair, _) = header.split_once(';').unwrap_or((header, ""));
