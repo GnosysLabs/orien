@@ -865,6 +865,10 @@
   .home-top { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 12px; }
   .home-top .wallet-chip { margin: 0; }
   .home-left { display: flex; align-items: center; gap: 8px; min-width: 0; }
+  /* Help and the Theme Store: big windows only, beside the bell. */
+  .hm-extra { display: none !important; }
+  @media (min-width: 860px) { body:not(.phone) .hm-extra { display: inline-flex !important; } }
+  #go-help[aria-expanded="true"] { color: var(--ink); background: var(--surface-hover); }
   /* The gear and the wallet picker, side by side, the same height. */
   .home-left .wallet-chip { height: 32px; }
   body.phone .home-left { gap: 10px; }
@@ -1235,6 +1239,19 @@
   .avatar.rm-icon { background: var(--pearl); background-size: 300% 100%; color: var(--pearl-ink); }
   .avatar.rm-icon svg { width: 62%; height: 62%; }
   #chat.room .ch-compose { padding-left: 6px; }
+  /* Orien AI Support. */
+  .rm-icon.ai-icon svg { width: 58%; height: 58%; }
+  #chat.ai .ch-who { cursor: default; }
+  @media (hover: hover) { #chat.ai .ch-who:hover { background: none; } }
+  .bubble.ai { align-self: flex-start; }
+  .ai-start .pill { margin-top: 12px; }
+  .ai-start .pill.armed { color: #ff6b6b; border-color: rgba(229, 72, 77, 0.5); }
+  .ai-typing { display: inline-flex; align-items: center; gap: 5px; padding: 14px 16px; }
+  .ai-typing span { width: 7px; height: 7px; border-radius: 50%; background: var(--dim); animation: ai-dot 1.2s ease-in-out infinite; }
+  .ai-typing span:nth-child(2) { animation-delay: 0.15s; } .ai-typing span:nth-child(3) { animation-delay: 0.3s; }
+  @keyframes ai-dot { 0%, 60%, 100% { opacity: 0.3; transform: translateY(0); } 30% { opacity: 1; transform: translateY(-3px); } }
+  .ai-link { color: inherit; text-decoration: underline; text-underline-offset: 2px; overflow-wrap: anywhere; }
+  .ai-left { margin: 8px auto 4px; color: var(--dim); font-size: 12px; text-align: center; }
   .rm-tool { flex: none; height: 34px; min-width: 34px; padding: 0 6px; border: 0; border-radius: 17px; display: grid; place-items: center;
     background: none; color: var(--dim); font: inherit; font-size: 11px; font-weight: 700; letter-spacing: 0.04em; cursor: pointer; }
   @media (hover: hover) { .rm-tool:hover { color: var(--ink); background: rgba(var(--tint), 0.06); } }
@@ -1501,7 +1518,7 @@
   .tc-del svg { width: 13px; height: 13px; }
   .tc-del + .tc-check { margin-left: 6px; }
   .tc-del.armed { background: #e5484d; color: #fff; }
-  @media (hover: hover) { .tc-del:not(.tc-edit):hover { background: #e5484d; color: #fff; } .tc-edit:hover { background: rgba(var(--tint), 0.13); color: var(--ink); } }
+  @media (hover: hover) { .tc-del:not(.tc-edit, .tc-share):hover { background: #e5484d; color: #fff; } .tc-edit:hover, .tc-share:hover { background: rgba(var(--tint), 0.13); color: var(--ink); } }
   /* The builder: the theme as it will look, over its picture, with the
      choices beside it at every window size. */
   #theme-build { --col: 1040px; }
@@ -1924,6 +1941,91 @@
   .cm-reply-head .cm-more { background: transparent; border-color: var(--line); color: var(--dim); -webkit-backdrop-filter: none; backdrop-filter: none; }
   .cm-head .cm-more { margin-left: auto; }
   .cm-reply-head .cm-more { margin-left: auto; width: 28px; height: 28px; }
+  /* The Theme Store. */
+  .ts-entry { display: flex; align-items: center; gap: 14px; width: 100%; margin: 0 0 20px; padding: 14px 16px; border: 1px solid var(--line); border-radius: 18px;
+    background: var(--surface); color: var(--ink); font: inherit; text-align: left; cursor: pointer; transition: background 0.15s ease; }
+  @media (hover: hover) { .ts-entry:hover { background: var(--surface-hover); } }
+  .ts-entry .ts-entry-ico { flex: none; width: 40px; height: 40px; border-radius: 50%; display: grid; place-items: center; color: var(--pearl-ink); background-size: 300% 100%; }
+  .ts-entry-txt { flex: 1; display: grid; gap: 3px; min-width: 0; }
+  .ts-entry-txt b { font-weight: 600; font-size: 15px; }
+  .ts-entry-txt small { color: var(--dim); font-size: 12.5px; }
+  .ts-entry .chev { flex: none; color: var(--dim); }
+  body.phone .ts-entry, body.phone .tc-share { display: none !important; }
+  .ts-tabs { grid-template-columns: repeat(3, minmax(0, 1fr)); margin: 0 0 20px; }
+  @media (min-width: 860px) { body:not(.phone) #theme-store { --col: 1040px; } body:not(.phone) .ts-tabs { width: min(420px, 100%); margin-left: auto; margin-right: auto; } body:not(.phone) .ts-grid { grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 32px 24px; } }
+  .ts-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 28px 20px; }
+  .ts-card { display: grid; gap: 12px; align-content: start; min-width: 0; }
+  .ts-stage { position: relative; aspect-ratio: 4 / 3; padding: 0; border-radius: 18px; overflow: hidden; border: 1px solid var(--line); cursor: pointer;
+    background: var(--pic, none) center / cover no-repeat, var(--ground-deep); display: grid; place-items: center; transition: transform 0.2s ease; }
+  @media (hover: hover) { .ts-stage:hover { transform: translateY(-2px); } }
+  /* Your themes in Appearance: small windows show Home as it is there (no
+     picture); big windows show it as it is there, over the theme's picture, with the
+     same softening, vignette and top fade the app puts on it. The Theme
+     Store always shows the big-window Home over the picture. */
+  .tc-stage { display: none; position: relative; aspect-ratio: 4 / 3; border-radius: 18px; overflow: hidden; border: 1px solid var(--line);
+    background: var(--ground); place-items: center; box-shadow: 0 10px 28px rgba(0, 0, 0, 0.35); transition: transform 0.2s ease, box-shadow 0.2s ease; }
+  .tc-stage::before, .ts-stage::before { content: ""; position: absolute; inset: 0; background: var(--scene, var(--pic, none)) center / cover no-repeat; opacity: 0.55; }
+  .ts-stage::before { background: var(--pic, none) center / cover no-repeat; opacity: 1; }
+  .tc-stage.built::before { opacity: 1; }
+  .tc-stage.built::after, .ts-stage::after { content: ""; position: absolute; inset: 0; pointer-events: none;
+    background: linear-gradient(to bottom, rgba(0, 0, 0, 0.6), transparent 17%), radial-gradient(ellipse at 50% 45%, transparent 38%, rgba(0, 0, 0, 0.62) 100%); }
+  .tc-stage > *, .ts-stage > * { position: relative; z-index: 1; }
+  .ts-stage { background: var(--ground-deep); }
+  @media (min-width: 860px) {
+    body:not(.phone) .theme-card .tc-mini { display: none; }
+    body:not(.phone) .tc-stage { display: grid; }
+    @media (hover: hover) { body:not(.phone) .theme-card:hover .tc-stage { transform: translateY(-2px); box-shadow: 0 14px 34px rgba(0, 0, 0, 0.45); } }
+    body:not(.phone) .theme-card.on .tc-stage { outline: 2px solid var(--select); outline-offset: 3px; }
+  }
+  .ts-wide { width: 66%; aspect-ratio: 4 / 3; padding: 6px; display: flex; flex-direction: column; gap: 5px; border-radius: 10px; pointer-events: none;
+    background: var(--glow), var(--ground-deep); border: 1px solid var(--line); box-shadow: 0 14px 34px rgba(0, 0, 0, 0.5); }
+  .tw-top { display: flex; align-items: center; gap: 3px; height: 6px; }
+  .tw-pill { width: 14%; height: 5px; border-radius: 3px; background: var(--surface-hover); }
+  .tw-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--surface-hover); }
+  .tw-sp { flex: 1; }
+  .tw-body { flex: 1; min-height: 0; display: grid; grid-template-columns: 1.65fr 1fr; gap: 5px; }
+  .tw-main, .tw-side { display: flex; flex-direction: column; gap: 4px; min-width: 0; min-height: 0; }
+  .ts-wide .tc-card { height: 30%; flex: none; border-radius: 6px; padding: 4px 5px; gap: 2px; }
+  .ts-wide .tc-card i { height: 2px; } .ts-wide .tc-card i:last-child { height: 4px; }
+  .ts-wide .tc-tiles.seven { grid-template-columns: repeat(7, 1fr); gap: 1px; padding: 0 3px; }
+  .ts-wide .tc-tiles span::after { width: 76%; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.26); }
+  .tw-strip { height: 10%; flex: none; border-radius: 4px; background: var(--surface); border: 1px solid var(--line); }
+  .tw-list, .tw-box { border-radius: 5px; background: var(--surface); border: 1px solid var(--line); padding: 4px; display: grid; gap: 3px; align-content: start; }
+  .tw-list { flex: 1; }
+  .tw-box:first-child { flex: 1.15; } .tw-box:last-child { flex: 1; }
+  .tw-list i, .tw-box i { display: block; height: 2px; border-radius: 2px; background: var(--faint); opacity: 0.6; }
+  .tw-list i:nth-child(2) { width: 70%; } .tw-box i:nth-of-type(2) { width: 65%; }
+  .tw-box b { width: 8px; height: 8px; border-radius: 50%; background: var(--pearl); background-size: 300% 100%; }
+  .tw-box em { height: 6px; margin-top: 1px; border-radius: 4px; background: var(--pearl); background-size: 300% 100%; }
+  .ts-info { display: flex; align-items: flex-start; gap: 12px; padding: 0 4px; }
+  .ts-meta { flex: 1; min-width: 0; display: grid; gap: 3px; }
+  .ts-name { font-weight: 600; font-size: 15px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .ts-by { color: var(--dim); font-size: 12.5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .ts-by b { color: var(--ink); font-weight: 500; }
+  .ts-stats { flex: none; display: flex; align-items: center; gap: 10px; padding-top: 2px; color: var(--dim); font-size: 12px; }
+  .ts-stats span { display: inline-flex; align-items: center; gap: 4px; }
+  .ts-stats svg { width: 13px; height: 13px; }
+  .ts-acts { display: flex; align-items: center; gap: 8px; padding: 0 2px; }
+  .ts-acts .pill { height: 34px; }
+  .ts-acts .ts-get { flex: 1; justify-content: center; }
+  .ts-acts .pill.icon { width: 34px; padding: 0; justify-content: center; color: var(--dim); }
+  .ts-acts .pill.icon svg { width: 16px; height: 16px; flex: none; }
+  @media (hover: hover) { .ts-acts .pill.icon:hover { color: var(--ink); } }
+  .ts-acts .ts-down { padding: 0 14px; color: var(--dim); white-space: nowrap; }
+  .ts-acts .ts-down.armed { color: #ff6b6b; border-color: rgba(229, 72, 77, 0.5); }
+  .ts-empty { padding: 48px 16px; text-align: center; color: var(--dim); font-size: 14px; line-height: 1.5; }
+  .ts-empty .pill { margin-top: 16px; }
+  #ts-more { display: flex; margin: 26px auto 0; }
+  #tss-veil { position: fixed; inset: 0; z-index: 61; display: grid; place-items: center; padding: 24px;
+    background: var(--veil); -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px); opacity: 0; transition: opacity 0.2s ease; }
+  #tss-veil.on { opacity: 1; }
+  #tss-card { width: min(380px, 100%); padding: 26px 24px 22px; border-radius: 24px; background: var(--surface); border: 1px solid var(--line);
+    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.45); transform: scale(0.96); transition: transform 0.2s ease; }
+  #tss-veil.on #tss-card { transform: scale(1); }
+  #tss-title { font-size: 18px; font-weight: 600; letter-spacing: -0.01em; text-align: center; }
+  #tss-text { margin: 8px auto 0; color: var(--dim); font-size: 13px; line-height: 1.45; text-align: center; }
+  #tss-card .problem { margin-top: 12px; }
+  #tss-buttons { display: grid; gap: 10px; margin-top: 18px; }
   #rp-veil { position: fixed; inset: 0; z-index: 61; display: grid; place-items: center; padding: 24px;
     background: var(--veil); -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px); opacity: 0; transition: opacity 0.2s ease; }
   #rp-veil.on { opacity: 1; }
@@ -3038,6 +3140,7 @@
       </div>
       <div class="st-page" data-page="appearance" hidden>
       <p class="hint st-hint">Your theme follows you to your other devices.</p>
+      <button class="ts-entry" id="st-store"><span class="ts-entry-ico icon pearl"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22a1 1 0 0 1 0-20 10 9 0 0 1 10 9 5 5 0 0 1-5 5h-2.25a1.75 1.75 0 0 0-1.4 2.8l.3.4a1.75 1.75 0 0 1-1.4 2.8z"/><circle cx="13.5" cy="6.5" r=".5" fill="currentColor"/><circle cx="17.5" cy="10.5" r=".5" fill="currentColor"/><circle cx="6.5" cy="12.5" r=".5" fill="currentColor"/><circle cx="8.5" cy="7.5" r=".5" fill="currentColor"/></svg></span><span class="ts-entry-txt"><b>Theme Store</b><small>Themes made by the Orien community</small></span><svg class="chev" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg></button>
       <div class="theme-grid" id="theme-grid"></div>
       <div class="set-group" data-gap="xl">
         <label class="set-row"><span class="set-txt"><b>Show scroll arrow</b><small>A small arrow on screens with more below</small></span><input type="checkbox" class="switch" id="st-arrow"></label>
@@ -3123,6 +3226,15 @@
       </div>
     </section>
 
+    <!-- The Theme Store: themes people built and shared, to try, take and tip. -->
+    <section class="screen" id="theme-store" hidden>
+      <div class="topline"><button class="back" id="ts-back" aria-label="Back"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg></button><h2>Theme Store</h2></div>
+      <div class="tabs ts-tabs" id="ts-tabs" role="tablist"><button class="tab on" data-ts-sort="popular" role="tab">Popular</button><button class="tab" data-ts-sort="new" role="tab">New</button><button class="tab" data-ts-sort="mine" role="tab">Yours</button></div>
+      <div class="problem" id="ts-problem" hidden></div>
+      <div class="ts-grid" id="ts-grid"></div>
+      <div class="ts-empty" id="ts-empty" hidden></div>
+      <button class="pill mk-more" id="ts-more" hidden>Show more</button>
+    </section>
     <!-- Build a theme: two or three colours and a picture, kept on this device. -->
     <section class="screen" id="theme-build" hidden>
       <div class="topline"><button class="back" id="tb-back" aria-label="Back"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg></button><h2 id="tb-title">Build a theme</h2></div>
@@ -3164,7 +3276,7 @@
 
     <!-- Home -->
     <section class="screen" id="home" hidden>
-      <div class="home-top"><div class="home-left"><button class="pill icon" id="go-settings" aria-label="Settings" title="Settings"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></button><button class="wallet-chip" id="wallet-chip"><span id="wallet-name">Wallet</span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg></button><button class="pill icon" id="go-contacts" aria-label="Contacts" title="Contacts"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><path d="M16 3.128a4 4 0 0 1 0 7.744"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><circle cx="9" cy="7" r="4"/></svg></button><button class="pill icon" id="go-explorer" aria-label="Explorer" title="Explorer"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m10.065 12.493-6.18 1.318a.934.934 0 0 1-1.108-.702l-.537-2.15a1.07 1.07 0 0 1 .691-1.265l13.504-4.44"/><path d="m13.56 11.747 4.332-.924"/><path d="m16 21-3.105-6.21"/><path d="M16.485 5.94a2 2 0 0 1 1.455-2.425l1.09-.272a1 1 0 0 1 1.212.727l1.515 6.06a1 1 0 0 1-.727 1.213l-1.09.272a2 2 0 0 1-2.425-1.455z"/><path d="m6.158 8.633 1.114 4.456"/><path d="m8 21 3.105-6.21"/><circle cx="12" cy="13" r="2"/></svg></button><button class="pill icon" id="go-notices" aria-label="Notifications" title="Notifications" hidden><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10.268 21a2 2 0 0 0 3.464 0"/><path d="M3.262 15.326A1 1 0 0 0 4 17h16a1 1 0 0 0 .74-1.673C19.41 13.956 18 12.499 18 8A6 6 0 0 0 6 8c0 4.499-1.411 5.956-2.738 7.326"/></svg><span class="dot" id="notices-dot" hidden></span></button></div>
+      <div class="home-top"><div class="home-left"><button class="pill icon" id="go-settings" aria-label="Settings" title="Settings"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></button><button class="wallet-chip" id="wallet-chip"><span id="wallet-name">Wallet</span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg></button><button class="pill icon" id="go-contacts" aria-label="Contacts" title="Contacts"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><path d="M16 3.128a4 4 0 0 1 0 7.744"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><circle cx="9" cy="7" r="4"/></svg></button><button class="pill icon" id="go-explorer" aria-label="Explorer" title="Explorer"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m10.065 12.493-6.18 1.318a.934.934 0 0 1-1.108-.702l-.537-2.15a1.07 1.07 0 0 1 .691-1.265l13.504-4.44"/><path d="m13.56 11.747 4.332-.924"/><path d="m16 21-3.105-6.21"/><path d="M16.485 5.94a2 2 0 0 1 1.455-2.425l1.09-.272a1 1 0 0 1 1.212.727l1.515 6.06a1 1 0 0 1-.727 1.213l-1.09.272a2 2 0 0 1-2.425-1.455z"/><path d="m6.158 8.633 1.114 4.456"/><path d="m8 21 3.105-6.21"/><circle cx="12" cy="13" r="2"/></svg></button><button class="pill icon hm-extra" id="go-help" aria-label="Help" title="Help" aria-haspopup="menu"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="m4.93 4.93 4.24 4.24"/><path d="m14.83 9.17 4.24-4.24"/><path d="m14.83 14.83 4.24 4.24"/><path d="m9.17 14.83-4.24 4.24"/><circle cx="12" cy="12" r="4"/></svg></button><button class="pill icon hm-extra" id="go-store" aria-label="Theme Store" title="Theme Store"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22a1 1 0 0 1 0-20 10 9 0 0 1 10 9 5 5 0 0 1-5 5h-2.25a1.75 1.75 0 0 0-1.4 2.8l.3.4a1.75 1.75 0 0 1-1.4 2.8z"/><circle cx="13.5" cy="6.5" r=".5" fill="currentColor"/><circle cx="17.5" cy="10.5" r=".5" fill="currentColor"/><circle cx="6.5" cy="12.5" r=".5" fill="currentColor"/><circle cx="8.5" cy="7.5" r=".5" fill="currentColor"/></svg></button><button class="pill icon" id="go-notices" aria-label="Notifications" title="Notifications" hidden><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10.268 21a2 2 0 0 0 3.464 0"/><path d="M3.262 15.326A1 1 0 0 0 4 17h16a1 1 0 0 0 .74-1.673C19.41 13.956 18 12.499 18 8A6 6 0 0 0 6 8c0 4.499-1.411 5.956-2.738 7.326"/></svg><span class="dot" id="notices-dot" hidden></span></button></div>
         <div class="account"><button class="pill icon" id="go-size" aria-label="Make the window wide" title="Make the window wide"></button><button class="me-face" id="board-who" hidden aria-label="Your profile" title="Your profile"></button><button class="pill" id="board-signin-go">Sign in</button></div></div>
       <div class="home-body"><div class="home-main">
       <!-- A swap that needs you, or is under way: impossible to miss. -->
@@ -4136,10 +4248,21 @@
   <button class="menu-row" id="me-edit"><span>Edit Profile</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"/></svg></button>
   <button class="menu-row bad" id="me-signout"><span>Sign Out</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="m16 17 5-5-5-5"/><path d="M21 12H9"/></svg></button>
 </div>
+<div class="ch-menu" id="help-menu" role="menu" hidden>
+  <button class="menu-row" id="help-ai" role="menuitem"><span>AI Support</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.94 15.5A2 2 0 0 0 8.5 14.06l-6.13-1.58a.5.5 0 0 1 0-.96L8.5 9.94A2 2 0 0 0 9.94 8.5l1.58-6.13a.5.5 0 0 1 .96 0L14.06 8.5A2 2 0 0 0 15.5 9.94l6.13 1.58a.5.5 0 0 1 0 .96L15.5 14.06a2 2 0 0 0-1.44 1.44l-1.58 6.13a.5.5 0 0 1-.96 0z"/><path d="M20 3v4"/><path d="M22 5h-4"/></svg></button>
+  <button class="menu-row" id="help-guide" role="menuitem"><span>User Guide</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 7v14"/><path d="M3 18a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h5a4 4 0 0 1 4 4 4 4 0 0 1 4-4h5a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1h-6a3 3 0 0 0-3 3 3 3 0 0 0-3-3z"/></svg></button>
+  <button class="menu-row" id="help-report" role="menuitem"><span>Report a Problem</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20v-9"/><path d="M14 7a4 4 0 0 1 4 4v3a6 6 0 0 1-12 0v-3a4 4 0 0 1 4-4z"/><path d="M14.12 3.88 16 2"/><path d="M21 21a4 4 0 0 0-3.81-4"/><path d="M21 5a4 4 0 0 1-3.55 3.97"/><path d="M22 13h-4"/><path d="M3 21a4 4 0 0 1 3.81-4"/><path d="M3 5a4 4 0 0 0 3.55 3.97"/><path d="M6 13H2"/><path d="m8 2 1.88 1.88"/><path d="M9 7.13V6a3 3 0 1 1 6 0v1.13"/></svg></button>
+</div>
 <div class="ch-menu" id="cm-post-menu" role="menu" hidden>
   <button class="menu-row" id="cm-report"><span>Report post</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 22V4a1 1 0 0 1 .4-.8A6 6 0 0 1 8 2c3 0 5 2 7.333 2q2 0 3.067-.8A1 1 0 0 1 20 4v10a1 1 0 0 1-.4.8A6 6 0 0 1 16 16c-3 0-5-2-8-2a6 6 0 0 0-4 1.528"/></svg></button>
   <button class="menu-row bad" id="cm-block"><span>Block</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M4.929 4.929 19.07 19.071"/></svg></button>
 </div>
+<div id="tss-veil" hidden><div id="tss-card" role="dialog" aria-modal="true" aria-labelledby="tss-title">
+  <div id="tss-title"></div>
+  <p id="tss-text">Anyone can see it, use it and tip you for it. Your Orien Network name is shown with it. You can take it down at any time.</p>
+  <div class="problem" id="tss-problem" hidden></div>
+  <div id="tss-buttons"><button class="primary pearl" id="tss-yes">Share theme</button><button class="secondary" id="tss-no">Cancel</button></div>
+</div></div>
 <div id="rp-veil" hidden><div id="rp-card" role="dialog" aria-modal="true" aria-labelledby="rp-title">
   <div id="rp-title">Report this post</div>
   <p id="rp-text">Tell Orien Network what's wrong with it: a scam, spam, abuse, or something illegal. Every report is reviewed.</p>
@@ -4216,8 +4339,10 @@
   // For Report a Problem: the last few screens and the errors shown, kept
   // only in memory. Screen names and error words only: anything that looks
   // like an address or an amount of ORN is left out.
-  const BUG_SCREENS = { home: "Home", get: "Get ORN", activity: "Activity", explorer: "Explorer", contacts: "Contacts", contact: "Contact", member: "Contact", community: "Community", "cm-thread": "Post", market: "Market", listing: "Listing", sell: "Sell", notices: "Notifications", inbox: "Messages", chat: "Chat", seller: "Profile", profile: "Your profile", blocks: "Blocked", send: "Send", receive: "Receive", mine: "Mining", wallets: "Wallets", "wallet-add-choose": "Add a wallet", "wallet-add": "Add a wallet", "pair-invite": "Link a device", reveal: "Recovery words", "wallet-rename": "Rename wallet", "wallet-forget": "Remove wallet", swaps: "Swaps", "board-signin": "Sign in", "board-post": "Post an offer", "swap-waiting": "Swap", "swap-posted": "Swap", "board-take": "Take an offer", "swap-detail": "Swap", settings: "Settings", "theme-build": "Build a theme", phrase: "Recovery words", password: "Password", restore: "Restore" };
+  const BUG_SCREENS = { home: "Home", get: "Get ORN", activity: "Activity", explorer: "Explorer", contacts: "Contacts", contact: "Contact", member: "Contact", community: "Community", "cm-thread": "Post", market: "Market", listing: "Listing", sell: "Sell", notices: "Notifications", inbox: "Messages", chat: "Chat", seller: "Profile", profile: "Your profile", blocks: "Blocked", send: "Send", receive: "Receive", mine: "Mining", wallets: "Wallets", "wallet-add-choose": "Add a wallet", "wallet-add": "Add a wallet", "pair-invite": "Link a device", reveal: "Recovery words", "wallet-rename": "Rename wallet", "wallet-forget": "Remove wallet", swaps: "Swaps", "board-signin": "Sign in", "board-post": "Post an offer", "swap-waiting": "Swap", "swap-posted": "Swap", "board-take": "Take an offer", "swap-detail": "Swap", settings: "Settings", "theme-build": "Build a theme", "theme-store": "Theme Store", phrase: "Recovery words", password: "Password", restore: "Restore" };
   const bugTrail = [], bugErrors = [];
+  // Set by the Theme Store: leaving it takes off a theme being tried.
+  let leaveStore = null;
   function bugStep(id) {
     const screen = BUG_SCREENS[id] || id;
     if (bugTrail.length && bugTrail[bugTrail.length - 1].screen === screen) return;
@@ -4489,6 +4614,7 @@
   const shownOnce = new Promise((done) => { markShown = done; });
   function show(id) {
     bugStep(id);
+    if (leaveStore && id !== "theme-store") leaveStore();
     if (markShown) { markShown(); markShown = null; }
     const signinPop = !phone && wide.matches && id === "board-signin";
     if (!ADD_FLOW.includes(id)) addFlow = false;
@@ -5471,6 +5597,8 @@
       try { const pic = await sceneAsk("readonly", (st) => st.get(t.id)); if (pic) scenes.set(t.id, pic); } catch {}
     }
     paintOwnTheme();
+    // The cards were drawn before the pictures were read: again, with them.
+    paintThemeCards();
     shareScenes();
     fetchScenes();
   }
@@ -5561,23 +5689,34 @@
     if (fade) document.startViewTransition(set).finished.then(paintBackdrop, paintBackdrop);
     else { set(); paintBackdrop(); }
   }
+  // The Theme Store's small pictures, needed as soon as the theme cards are drawn.
+  const SHARE_ICON = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v13"/><path d="m16 6-4-4-4 4"/><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/></svg>';
+  const DOWN_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 15V3"/><path d="m7 10 5 5 5-5"/><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/></svg>';
+  const TS_FLAG = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 22V4a1 1 0 0 1 .4-.8A6 6 0 0 1 8 2c3 0 5 2 7.333 2q2 0 3.067-.8A1 1 0 0 1 20 4v10a1 1 0 0 1-.4.8A6 6 0 0 1 16 16c-3 0-5-2-8-2a6 6 0 0 0-4 1.528"/></svg>';
+  // A small copy of Home as big windows show it: balance, the round buttons
+  // and Activity on the left; Mining and Network on the right.
+  const TS_MINI = '<div class="ts-wide"><div class="tw-top"><span class="tw-pill"></span><span class="tw-dot"></span><span class="tw-sp"></span><span class="tw-dot"></span></div><div class="tw-body"><div class="tw-main"><div class="tc-card"><i></i><i></i><i></i></div><div class="tc-tiles seven"><span></span><span></span><span></span><span></span><span></span><span></span><span></span></div><div class="tw-strip"></div><div class="tw-list"><i></i><i></i><i></i></div></div><div class="tw-side"><div class="tw-box"><b></b><i></i><i></i><em></em></div><div class="tw-box"><b></b><i></i><i></i><i></i></div></div></div></div>';
   // The builder's work in progress.
   const tb = { colors: [], scene: null, editing: null, base: "dark" };
   function paintThemeCards() {
     // Your own themes first, then the built-in ones.
-    const all = customThemes().map((t) => [t.id, t.name, true]).concat(THEMES.map(([id, name]) => [id, name, false]));
-    $("theme-grid").innerHTML = all.map(([id, name, own]) => `<button class="theme-card" data-pick="${id}">
+    const all = customThemes().map((t) => [t.id, t.name, true, !!(t.store || t.from)]).concat(THEMES.map(([id, name]) => [id, name, false, false]));
+    $("theme-grid").innerHTML = all.map(([id, name, own, shared]) => `<button class="theme-card" data-pick="${id}">
       <div class="tc-mini" data-theme="${id}">
         <div class="tc-bar"><span class="tc-word"></span><span class="tc-dot"></span></div>
         <div class="tc-card"><i></i><i></i><i></i></div>
         <div class="tc-tiles"><span></span><span></span><span></span><span></span><span></span></div>
         <div class="tc-list"><i></i><i></i><i></i></div>
       </div>
-      <div class="tc-name"><span class="tc-label">${esc(name)}</span>${own ? `<span class="tc-del tc-edit" data-edit="${id}" role="button" aria-label="Edit ${esc(name)}" title="Edit">${COG}</span><span class="tc-del" data-del="${id}" role="button" aria-label="Delete ${esc(name)}" title="Delete">${TRASH}</span>` : ""}<span class="tc-check"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></span></div>
+      <div class="tc-stage${own ? " built" : ""}"${own ? "" : ` data-theme="${id}"`}>${TS_MINI}</div>
+      <div class="tc-name"><span class="tc-label">${esc(name)}</span>${own && !shared ? `<span class="tc-del tc-share" data-share="${id}" role="button" aria-label="Share ${esc(name)} in the Theme Store" title="Share in the Theme Store">${SHARE_ICON}</span>` : ""}${own ? `<span class="tc-del tc-edit" data-edit="${id}" role="button" aria-label="Edit ${esc(name)}" title="Edit">${COG}</span><span class="tc-del" data-del="${id}" role="button" aria-label="Delete ${esc(name)}" title="Delete">${TRASH}</span>` : ""}<span class="tc-check"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></span></div>
     </button>`).join("");
     for (const t of customThemes()) {
       const mini = $("theme-grid").querySelector(`[data-pick="${t.id}"] .tc-mini`);
       if (mini) setThemeVars(mini, t.colors, null, t.base);
+      // Big windows: the theme's picture behind a small copy of Home.
+      const stage = $("theme-grid").querySelector(`[data-pick="${t.id}"] .tc-stage`);
+      if (stage) { setThemeVars(stage, t.colors, scenes.get(t.id) || null, t.base); if (!scenes.get(t.id)) stage.style.setProperty("--scene", "none"); }
     }
     paintThemeGrid();
   }
@@ -5585,6 +5724,8 @@
   $("theme-grid").onclick = async (e) => {
     const edit = e.target.closest("[data-edit]");
     if (edit) { openThemeBuilder(edit.dataset.edit); return; }
+    const share = e.target.closest("[data-share]");
+    if (share) { tsShareOpen(share.dataset.share); return; }
     const del = e.target.closest("[data-del]");
     if (del) {
       // A first press arms the bin; a second deletes.
@@ -5620,6 +5761,252 @@
   };
   paintThemeCards();
   const scenesLoaded = loadScenes();
+
+  // ---- The Theme Store: themes people built and shared ----
+  // Each card draws the theme itself (its colours on a small copy of Home,
+  // over its picture): nothing to screenshot, always true to the theme.
+  const ts = { sort: "popular", themes: [], more: false, next: null, busy: false, trying: null, before: null, downArmed: null };
+  // The server gives whole addresses (https://orien.network/api/market/images/…);
+  // the app fetches a picture by its name, the address's last part.
+  const tsPic = (name) => /^https:\/\//.test(String(name)) ? String(name) : `${boardBase}/api/market/images/${encodeURIComponent(name)}`;
+  const tsImage = (name) => String(name || "").split("/").pop();
+  const tsColors = (t) => (Array.isArray(t.colors) ? t.colors : []).filter((c) => /^#[0-9a-f]{6}$/i.test(c)).slice(0, 3);
+  const tsOwned = (t) => customThemes().find((x) => x.from === t.id || x.store === t.id);
+  const tsFind = (id) => ts.themes.find((t) => String(t.id) === String(id));
+  function tsCard(t) {
+    const a = t.author || {}, have = tsOwned(t);
+    const tips = t.tips && t.tips.count ? `<span title="Tips">${COINS_ICON}${t.tips.count}</span>` : "";
+    const side = t.mine
+      ? `<button class="pill ts-down${ts.downArmed === String(t.id) ? " armed" : ""}" data-ts-down="${t.id}" title="Take it out of the Theme Store (your copy stays)">${ts.downArmed === String(t.id) ? "Click again to remove" : "Remove from store"}</button>`
+      : `${a.tip_to ? `<button class="pill icon" data-ts-tip="${t.id}" title="Tip ${esc(a.name || "")}" aria-label="Tip ${esc(a.name || "")}">${COINS_ICON}</button>` : ""}<button class="pill icon" data-ts-report="${t.id}" title="Report" aria-label="Report">${TS_FLAG}</button>`;
+    return `<div class="ts-card" data-ts="${t.id}">
+      <button class="ts-stage" data-ts-try="${t.id}" aria-label="Try ${esc(t.name)}">${TS_MINI}</button>
+      <div class="ts-info"><div class="ts-meta"><div class="ts-name">${esc(t.name)}</div><div class="ts-by">by <b>${esc(a.name || "someone")}</b></div></div>
+      <div class="ts-stats"><span title="Downloads">${DOWN_ICON}${Number(t.downloads) || 0}</span>${tips}</div></div>
+      <div class="ts-acts">${ts.trying && String(ts.trying.id) === String(t.id) ? `<button class="pill ts-undo" data-ts-undo="${t.id}">Undo</button>` : `<button class="pill" data-ts-try="${t.id}">Try</button>`}<button class="pill pearl ts-get" data-ts-get="${t.id}">${have ? "Use" : "Get"}</button>${side}</div>
+    </div>`;
+  }
+  function tsPaint() {
+    const grid = $("ts-grid");
+    grid.innerHTML = ts.themes.map(tsCard).join("");
+    for (const t of ts.themes) {
+      const card = grid.querySelector(`[data-ts="${t.id}"]`);
+      if (!card) continue;
+      if (t.thumb) card.querySelector(".ts-stage").style.setProperty("--pic", `url("${tsPic(t.thumb)}")`);
+      setThemeVars(card.querySelector(".ts-wide"), tsColors(t), null, t.base);
+    }
+    $("ts-more").hidden = !ts.more;
+    const empty = !ts.themes.length && !ts.busy;
+    $("ts-empty").hidden = !empty || !$("ts-problem").hidden;
+    if (empty) $("ts-empty").innerHTML = ts.sort === "mine"
+      ? `You haven't shared a theme yet. Build one in Appearance, then share it from its card.<br><button class="pill pearl" data-ts-appearance>Go to Appearance</button>`
+      : `No themes here yet. Build one in Appearance and be the first to share it.<br><button class="pill pearl" data-ts-appearance>Go to Appearance</button>`;
+  }
+  async function tsLoad(more) {
+    if (ts.busy) return;
+    ts.busy = true;
+    $("ts-problem").hidden = true;
+    if (!more) { ts.themes = []; ts.next = null; tsPaint(); }
+    try {
+      const sort = ts.sort === "mine" ? "new&mine=1" : ts.sort;
+      const page = await cmCall("GET", `/themes?sort=${sort}${more && ts.next ? `&before=${encodeURIComponent(ts.next)}` : ""}`);
+      const list = (page && page.themes) || [];
+      ts.themes = more ? ts.themes.concat(list) : list;
+      ts.more = !!(page && page.more); ts.next = (page && page.next) || null;
+    } catch (e) { problem("ts-problem", ts.sort === "mine" && String(e).startsWith("signin:") ? "Sign in to Orien Network to see the themes you shared." : mkProblem(e)); }
+    finally { ts.busy = false; tsPaint(); }
+  }
+  function openThemeStore() {
+    ts.downArmed = null;
+    show("theme-store");
+    tsLoad(false);
+  }
+  $("st-store").onclick = openThemeStore;
+  $("go-store").onclick = openThemeStore;
+  // Help: a small menu under the button, User Guide and Report a Problem.
+  function helpClose() { $("help-menu").hidden = true; $("go-help").setAttribute("aria-expanded", "false"); }
+  $("go-help").onclick = () => {
+    const menu = $("help-menu");
+    if (!menu.hidden) { helpClose(); return; }
+    const b = $("go-help").getBoundingClientRect();
+    menu.style.top = `${Math.round(b.bottom + 8)}px`;
+    menu.style.left = `${Math.round(b.left)}px`;
+    menu.style.right = "auto";
+    menu.hidden = false;
+    $("go-help").setAttribute("aria-expanded", "true");
+  };
+  document.addEventListener("click", (e) => { if (!$("help-menu").hidden && !e.target.closest("#help-menu, #go-help")) helpClose(); }, true);
+  document.addEventListener("keydown", (e) => { if (e.key === "Escape" && !$("help-menu").hidden) helpClose(); });
+  window.addEventListener("resize", () => { if (!$("help-menu").hidden) helpClose(); });
+  $("help-ai").onclick = async () => { helpClose(); await openInbox(); openAi("inbox"); };
+  $("help-guide").onclick = () => { helpClose(); openSettings(); settingsPage("guide"); };
+  $("help-report").onclick = () => { helpClose(); openSettings(); settingsPage("report"); };
+  $("ts-back").onclick = () => { tsUndo(); show("settings"); settingsPage("appearance"); };
+  $("ts-more").onclick = () => tsLoad(true);
+  $("ts-tabs").onclick = (e) => {
+    const b = e.target.closest("[data-ts-sort]");
+    if (!b || b.dataset.tsSort === ts.sort) return;
+    ts.sort = b.dataset.tsSort;
+    for (const x of $("ts-tabs").querySelectorAll("[data-ts-sort]")) x.classList.toggle("on", x === b);
+    tsLoad(false);
+  };
+  // Trying a theme: the whole app wears it for a moment, with Get it and
+  // Undo at the foot. Nothing is kept until Get it.
+  // Only the card that changed is redrawn (its words and buttons), so the
+  // pictures never reload.
+  function tsMark(t) {
+    if (!t) return;
+    const card = $("ts-grid").querySelector(`[data-ts="${t.id}"]`);
+    if (!card) return;
+    const fresh = document.createElement("div");
+    fresh.innerHTML = tsCard(t);
+    for (const part of [".ts-info", ".ts-acts"]) {
+      const now = card.querySelector(part), next = fresh.querySelector(part);
+      if (now && next) now.replaceWith(next);
+    }
+  }
+  let tsTurn = 0;
+  async function tsTry(t) {
+    if (ts.trying && String(ts.trying.id) === String(t.id)) { tsUndo(); return; }
+    const was = ts.trying, turn = ++tsTurn;
+    if (!was) ts.before = document.documentElement.dataset.theme || "pearl";
+    ts.trying = t;
+    const html = document.documentElement;
+    const wear = (pic) => {
+      html.dataset.theme = "store-try";
+      setThemeVars(html, tsColors(t), pic, t.base);
+      html.dataset.base = t.base === "light" ? "light" : "dark";
+      paintBackdrop();
+    };
+    // At once with the card's own small picture, then the full one once it's
+    // here, unless something else was tried or undone meanwhile.
+    wear(t.thumb ? tsPic(t.thumb) : null);
+    tsMark(was); tsMark(t);
+    feel("selection");
+    let pic = null;
+    try { pic = await invoke("theme_store_picture", { name: tsImage(t.picture) }); } catch {}
+    if (pic && turn === tsTurn && ts.trying === t) wear(pic);
+  }
+  function tsUndo() {
+    if (!ts.trying) return;
+    const was = ts.trying;
+    ts.trying = null; tsTurn++;
+    const back = ts.before || "pearl";
+    ts.before = null;
+    applyTheme(back, false);
+    tsMark(was);
+  }
+  leaveStore = tsUndo;
+  // Getting a theme: a copy of it among your own, worn at once, and sent to
+  // your other computers like one you built.
+  async function tsGet(t, button) {
+    const have = tsOwned(t), tried = ts.trying;
+    if (have) {
+      ts.trying = null; ts.before = null; tsTurn++; tsMark(tried);
+      applyTheme(have.id, true);
+      invoke("set_app_theme", { theme: have.id }).catch(() => {});
+      return;
+    }
+    $("ts-problem").hidden = true;
+    if (customThemes().length >= 24) { problem("ts-problem", "You have 24 themes, as many as there's room for. Delete one in Appearance first."); return; }
+    if (button) { button.disabled = true; button.innerHTML = '<span class="spinner"></span>Getting'; }
+    try {
+      const pic = await invoke("theme_store_picture", { name: tsImage(t.picture) });
+      if (!pic) throw "That theme's picture couldn't be downloaded. Try again in a moment.";
+      const id = "c-" + Date.now().toString(36);
+      await sceneAsk("readwrite", (st) => st.put(pic, id));
+      const pv = Date.now();
+      const list = customThemes();
+      list.push({ id, name: String(t.name || "Theme").slice(0, 24), base: t.base === "light" ? "light" : "dark", colors: tsColors(t), pv, from: t.id });
+      localStorage.setItem("custom-themes", JSON.stringify(list));
+      scenes.set(id, pic);
+      setSceneVersion(id, pv);
+      shareScenes().then(shareThemes, shareThemes);
+      ts.trying = null; ts.before = null; tsTurn++;
+      applyTheme(id, true);
+      invoke("set_app_theme", { theme: id }).catch(() => {});
+      paintThemeCards();
+      feel("success");
+      cmCall("POST", `/themes/${t.id}/download`).then((d) => { if (d && typeof d.downloads === "number") { t.downloads = d.downloads; tsMark(t); } }).catch(() => {});
+    } catch (e) { problem("ts-problem", String(e).replace(/^Error: /, "")); }
+    tsMark(tried); tsMark(t);
+  }
+  $("ts-grid").onclick = async (e) => {
+    const go = (name) => { const el = e.target.closest(`[data-ts-${name}]`); return el ? [el, tsFind(el.getAttribute(`data-ts-${name}`))] : [null, null]; };
+    if (e.target.closest("[data-ts-undo]")) { tsUndo(); return; }
+    let [el, t] = go("get");
+    if (t) return tsGet(t, el);
+    [el, t] = go("try");
+    if (t) return tsTry(t);
+    [el, t] = go("tip");
+    if (t) { if (!board.me) { problem("ts-problem", "Sign in to Orien Network to tip."); return; } t.kind = "theme"; t.tips = t.tips || { count: 0, orn: 0 }; return tipFor(t); }
+    [el, t] = go("report");
+    if (t) {
+      if (!board.me) { problem("ts-problem", "Sign in to Orien Network to report a theme."); return; }
+      reportTheme = t.id; reportPost = null;
+      $("rp-title").textContent = "Report this theme"; $("rp-reason").placeholder = "What is wrong with this theme?";
+      $("rp-reason").value = ""; $("rp-send").disabled = true; $("rp-send").textContent = "Send report"; $("rp-problem").hidden = true;
+      const veil = $("rp-veil");
+      if (veil.hidden) { veil.hidden = false; requestAnimationFrame(() => veil.classList.add("on")); }
+      if (!phone) setTimeout(() => $("rp-reason").focus(), 50);
+      return;
+    }
+    [el, t] = go("down");
+    if (t) {
+      // A first press arms it; a second takes the theme down.
+      if (ts.downArmed !== String(t.id)) { const before = tsFind(ts.downArmed); ts.downArmed = String(t.id); tsMark(before); tsMark(t); setTimeout(() => { if (ts.downArmed === String(t.id)) { ts.downArmed = null; tsMark(t); } }, 3500); return; }
+      ts.downArmed = null;
+      try {
+        await cmCall("DELETE", `/themes/${t.id}`);
+        const list = customThemes().map((x) => x.store === t.id ? (({ store, ...rest }) => rest)(x) : x);
+        localStorage.setItem("custom-themes", JSON.stringify(list)); shareThemes(); paintThemeCards();
+        ts.themes = ts.themes.filter((x) => x !== t);
+        feel("success");
+      } catch (err) { problem("ts-problem", mkProblem(err)); }
+      tsPaint();
+      return;
+    }
+  };
+  $("ts-empty").onclick = (e) => { if (e.target.closest("[data-ts-appearance]")) { show("settings"); settingsPage("appearance"); } };
+  // Sharing one of your own: a word on what that means, then it's sent with
+  // its picture, which the server checks like any other.
+  let tsSharing = null;
+  function tsShareOpen(id) {
+    const t = customThemes().find((x) => x.id === id);
+    if (!t) return;
+    tsSharing = t;
+    $("tss-title").textContent = `Share “${t.name}” in the Theme Store?`;
+    $("tss-problem").hidden = true;
+    $("tss-yes").disabled = false; $("tss-yes").textContent = "Share theme"; $("tss-no").disabled = false;
+    const veil = $("tss-veil");
+    if (veil.hidden) { veil.hidden = false; requestAnimationFrame(() => veil.classList.add("on")); }
+  }
+  function tsShareClose() { if ($("tss-no").disabled) return; const veil = $("tss-veil"); veil.classList.remove("on"); setTimeout(() => { veil.hidden = true; }, 200); }
+  $("tss-no").onclick = tsShareClose;
+  $("tss-veil").addEventListener("click", (e) => { if (e.target.id === "tss-veil") tsShareClose(); });
+  document.addEventListener("keydown", (e) => { if (e.key === "Escape" && !$("tss-veil").hidden) tsShareClose(); });
+  $("tss-yes").onclick = async () => {
+    const t = tsSharing;
+    if (!t) return;
+    $("tss-problem").hidden = true;
+    const pic = scenes.get(t.id);
+    if (!pic) { problem("tss-problem", "This theme's picture isn't on this computer yet. Try again in a moment."); return; }
+    $("tss-yes").disabled = true; $("tss-no").disabled = true;
+    $("tss-yes").innerHTML = '<span class="spinner"></span>Sharing';
+    try {
+      const fitted = pic.length * 0.75 > PICTURE_MOST ? fitPicture(await pictureOf(pic)) : pic;
+      const made = await cmCall("POST", "/themes", { name: t.name, base: t.base === "light" ? "light" : "dark", colors: t.colors.slice(0, 3), picture: fitted });
+      const list = customThemes().map((x) => x.id === t.id ? { ...x, store: (made && made.id) || true } : x);
+      localStorage.setItem("custom-themes", JSON.stringify(list)); shareThemes(); paintThemeCards();
+      $("tss-yes").textContent = "Shared";
+      feel("success");
+      $("tss-no").disabled = false;
+      setTimeout(tsShareClose, 900);
+    } catch (e) {
+      $("tss-no").disabled = false; $("tss-yes").disabled = false; $("tss-yes").textContent = "Share theme";
+      problem("tss-problem", String(e).startsWith("signin:") ? "Sign in to Orien Network with a verified wallet to share themes." : mkProblem(e));
+    }
+  };
   // Built themes follow you to your other devices: the list, without the
   // pictures. A list from elsewhere replaces this device's; a device whose
   // themes were never shared shares them now.
@@ -5965,11 +6352,17 @@
       "The post shows its tips, without names. The author is told it was you.",
     ], "Tips are payments and can’t be undone.");
     add("Orien Network", "chat", "Chat with everyone", [
-      `On Home, ${tap} ${MESSAGES}. <b>Orien</b>, the group chat, is pinned at the top.`,
+      `On Home, ${tap} ${MESSAGES}. <b>Orien Group Chat</b> is pinned at the top.`,
       "Anyone can read along. To write, reply or react, sign in and verify a wallet.",
       `${phone ? "Tap a message" : "Point at a message"} to reply, react or report it.`,
       `New messages put a dot on Messages. To turn that off, ${tap} the bell at the top of the chat.`,
     ], "Everything in the group chat is public. Be kind.");
+    add("Orien Network", "ai", "Ask Orien AI Support", [
+      `On Home, ${tap} ${MESSAGES}. <b>Orien AI Support</b> is pinned under the group chat.${phone ? "" : " In a big window, the life buoy beside the bell opens it too."}`,
+      "You need to be signed in to Orien Network. Verifying a wallet isn’t needed.",
+      "Ask anything about the wallet, mining, swaps or the network, in your own words.",
+      `${Tap} <b>Start over</b> at the top of the chat to clear it.`,
+    ], "Answers come from an AI and can be wrong. It never needs your recovery words, passwords or keys: never share them with anyone.");
     add("Orien Network", "explorer", "Look up the network", [
       phone ? `On Home, ${tap} ${EXPLORER}.` : `On Home, click ${EXPLORER}. In a big window, click the <b>Network</b> card beside your wallet instead.`,
       "The figures at the top show the network right now: ORN released, the next checkpoint, miners and hashrate.",
@@ -6013,6 +6406,30 @@
       "Click your browser and add Orien Wallet there.",
       "Send ORN and see your balance from the browser’s toolbar, and sign in to websites with your wallet. Your keys stay in this app.",
     ]);
+    // Themes: built and shared on computers; iPhones wear the ones built there.
+    if (!phone) {
+      add("Themes", "theme-build", "Build your own theme", [
+        `Open ${gear}, then <b>Appearance</b>, and click <b>Build a theme</b>.`,
+        "Give it a <b>Name</b>, and choose <b>Dark</b> or <b>Light</b> under <b>Base</b>.",
+        "Pick an <b>Accent colour</b>, or click the rainbow circle to choose your own.",
+        "Under <b>Background picture</b>, click <b>Choose a picture</b>. A large one looks best, at least 1920 × 1080.",
+        "Watch the preview as you go, then click <b>Save theme</b>. It’s worn at once.",
+      ], "Your themes follow you to your other computers, and your iPhone wears their colours. To change one later, click the gear on its card in Appearance; the bin deletes it.");
+      add("Themes", "theme-store", "Find themes in the Theme Store", [
+        `Open ${gear}, then <b>Appearance</b>, and click <b>Theme Store</b> at the top.`,
+        "Browse <b>Popular</b> or <b>New</b>. Each card shows the theme on a small copy of the app.",
+        "Click <b>Try</b> to see the whole app in it. Click <b>Undo</b> to go back; leaving the store goes back too.",
+        "Click <b>Get</b> to keep it. It joins your themes in Appearance and is worn at once.",
+        "Like it? The coins button tips its maker some ORN. The flag reports a theme that breaks the rules.",
+      ], "A theme you get is your own copy: the maker can’t change it, and you can edit or delete it like one you built.");
+      add("Themes", "theme-share", "Share a theme in the Theme Store", [
+        "You need to be signed in to Orien Network with a verified wallet.",
+        `Open ${gear}, then <b>Appearance</b>.`,
+        "On one of your own themes, click the share button (the box with an arrow), then <b>Share theme</b>.",
+        "It’s checked, then shows in the store with your name, where anyone can try it, get it and tip you.",
+        "To take it down, open the Theme Store, then <b>Yours</b>, and click <b>Remove from store</b> twice.",
+      ], "Editing your theme later doesn’t change the shared one. Share it again as a new theme if you like the new version better.");
+    }
     add("Security and more", "activity", "Activity and notifications", [
       `On Home, ${tap} <b>View all</b> beside Activity.`,
       "<b>Payments</b> shows what you sent and received; <b>Rewards</b> shows mining rewards and validator fees.",
@@ -8796,6 +9213,7 @@
   $("cm-report").onclick = () => {
     $("cm-post-menu").hidden = true;
     if (!board.me) { cmJoin(); return; }
+    reportTheme = null; $("rp-title").textContent = "Report this post"; $("rp-reason").placeholder = "What is wrong with this post?";
     $("rp-reason").value = ""; $("rp-send").disabled = true; $("rp-send").textContent = "Send report"; $("rp-problem").hidden = true;
     const veil = $("rp-veil");
     if (veil.hidden) { veil.hidden = false; requestAnimationFrame(() => veil.classList.add("on")); }
@@ -8822,6 +9240,7 @@
       if (!$("seller").hidden) await slLoadFeed(false);
     } catch (e) { problem(!$("cm-thread").hidden ? "cm-thread-problem" : $("seller").hidden ? "cm-problem" : "sl-problem", mkProblem(e)); }
   };
+  let reportTheme = null;
   function reportClose() { const veil = $("rp-veil"); veil.classList.remove("on"); setTimeout(() => { veil.hidden = true; }, 200); }
   $("rp-cancel").onclick = reportClose;
   $("rp-veil").addEventListener("click", (e) => { if (e.target.id === "rp-veil") reportClose(); });
@@ -8829,10 +9248,11 @@
   $("rp-reason").oninput = () => { $("rp-send").disabled = !$("rp-reason").value.trim(); };
   $("rp-send").onclick = async () => {
     const reason = $("rp-reason").value.trim();
-    if (!reason || reportPost === null) return;
+    if (!reason || (reportPost === null && reportTheme === null)) return;
     $("rp-send").disabled = true; $("rp-cancel").disabled = true;
     try {
-      await mk("POST", "/reports", { kind: "post", id: reportPost, reason });
+      if (reportTheme !== null) await cmCall("POST", `/themes/${reportTheme}/report`, { reason });
+      else await mk("POST", "/reports", { kind: "post", id: reportPost, reason });
       $("rp-send").textContent = "Thanks. It will be reviewed.";
       feel("success");
       setTimeout(reportClose, 1400);
@@ -8864,9 +9284,13 @@
     const p = tipPost(id);
     if (!p || !p.author || !p.author.tip_to) return;
     if (!cm.you) return cmJoin();
+    tipFor(p);
+  }
+  // A post or a shared theme: whatever has an author to tip.
+  function tipFor(p) {
     tip.post = p; tip.amount = 5; tip.busy = false;
     $("tip-icon").innerHTML = COINS_ICON;
-    $("tip-title").textContent = `Tip ${p.author.name || ""}`;
+    $("tip-title").textContent = p.kind === "theme" ? `Tip ${p.author.name || ""} for ${p.name || "this theme"}` : `Tip ${p.author.name || ""}`;
     $("tip-own").value = ""; $("tip-pw").value = "";
     $("tip-problem").hidden = true;
     $("tip-no").disabled = false;
@@ -8895,8 +9319,8 @@
   async function tipCount(post, from, seq) {
     for (let i = 0; i < 12; i++) {
       try {
-        const t = await cmCall("POST", `/posts/${post.id}/tips`, { from, seq });
-        if (t && typeof t.count === "number") { post.tips = { count: t.count, orn: t.orn }; cmPaintFeed(); if (cm.thread) cmPaintThread(); if (!$("seller").hidden) slPaintFeed(); return; }
+        const t = await cmCall("POST", `/${post.kind === "theme" ? "themes" : "posts"}/${post.id}/tips`, { from, seq });
+        if (t && typeof t.count === "number") { post.tips = { count: t.count, orn: t.orn }; if (post.kind === "theme") tsMark(post); cmPaintFeed(); if (cm.thread) cmPaintThread(); if (!$("seller").hidden) slPaintFeed(); return; }
       } catch {}
       await new Promise((r) => setTimeout(r, 5000));
     }
@@ -8919,6 +9343,7 @@
       // On the post at once; the network's count follows once it settles.
       const t = p.tips || { count: 0, orn: 0 };
       p.tips = { count: t.count + 1, orn: Number(t.orn || 0) + Math.round(amount * 1e9) };
+      if (p.kind === "theme") tsMark(p);
       cmPaintFeed();
       if (cm.thread) cmPaintThread();
       if (!$("seller").hidden) slPaintFeed();
@@ -9877,7 +10302,7 @@
   const inbox = { items: [] };
   function paintInbox() {
     const signedIn = !!board.me;
-    $("ib-list").innerHTML = `<div class="list">${roomRow()}${inbox.items.map((c) => {
+    $("ib-list").innerHTML = `<div class="list">${roomRow()}${aiRow()}${inbox.items.map((c) => {
           const last = c.last ? (c.last.kind === "request" ? "Payment request" : c.last.kind === "paid" ? "Marked as paid" : c.last.body) : "";
           return `<button class="ib-row${c.unread ? " unread" : ""}${c.id === chat.id ? " on" : ""}" data-chat="${c.id}">
             ${mkAvatar(c.with_name, c.with_picture)}
@@ -9940,6 +10365,7 @@
   $("ib-list").onclick = (e) => {
     if (e.target.closest("#ib-signin")) { signinReturn = "messages"; resetSignin(); show("board-signin"); return; }
     if (e.target.closest("[data-room]")) { openRoom("inbox"); return; }
+    if (e.target.closest("[data-ai]")) { openAi("inbox"); return; }
     const r = e.target.closest("[data-chat]"); if (r) openChat(Number(r.dataset.chat), "inbox");
   };
 
@@ -10009,7 +10435,7 @@
     $("ch-text").focus();
   }
   async function refreshChat(force) {
-    if (!chat.id || chat.room) return;
+    if (!chat.id || chat.room || chat.ai) return;
     const id = chat.id;
     let answer;
     try { answer = await fetchChat(id); }
@@ -10067,7 +10493,7 @@
     const pw = document.getElementById("ch-pay-pw");
     if (pw) pw.focus();
   }
-  $("ch-back").onclick = () => { const wasRoom = chat.room; leaveRoom(); chat.id = null; chat.direct = null; if (wasRoom && chat.from === "inbox") return openInbox(); chat.from === "listing" ? show("listing") : chat.from === "profile" ? show("seller") : chat.from === "contact" ? show("contact") : chat.from === "notices" ? (phone ? openNotices() : home()) : chat.from === "member" ? show("member") : openInbox(); };
+  $("ch-back").onclick = () => { const wasRoom = chat.room || chat.ai; leaveRoom(); chat.id = null; chat.direct = null; if (wasRoom && chat.from === "inbox") return openInbox(); chat.from === "listing" ? show("listing") : chat.from === "profile" ? show("seller") : chat.from === "contact" ? show("contact") : chat.from === "notices" ? (phone ? openNotices() : home()) : chat.from === "member" ? show("member") : openInbox(); };
   $("ch-who").onclick = () => { if (chat.conv && chat.conv.with) { market.sellerFrom = "chat"; openSeller(chat.conv.with); } };
   $("ch-about").onclick = () => chat.conv && chat.conv.listing && openListing(chat.conv.listing, "chat");
   // Delete conversation: gone from your Messages (theirs stays); asks twice.
@@ -10133,6 +10559,7 @@
   };
   // Buyer: pay a request from this wallet, then mark it paid, in one go.
   $("ch-log").onclick = async (e) => {
+    if (chat.ai) return aiClick(e);
     if (chat.room) return roomClick(e);
     const pay = e.target.closest("[data-pay]"), cancel = e.target.closest("[data-paycancel]"), now = e.target.closest("[data-paynow]");
     if (pay) { chat.paying = Number(pay.dataset.pay); paintChat(); return; }
@@ -10172,6 +10599,7 @@
   $("ch-text").oninput = growText;
   $("ch-text").onkeydown = (e) => { if (e.key === "Enter" && !e.shiftKey && !e.isComposing) { e.preventDefault(); $("ch-send").click(); } };
   $("ch-send").onclick = async () => {
+    if (chat.ai) return aiSend();
     if (chat.room) return roomSend();
     const body = $("ch-text").value.trim();
     if (!body || !(chat.id || chat.draft || chat.direct)) return;
@@ -10199,6 +10627,10 @@
   // ---- The group chat: one room for everyone on Orien Network, pinned
   // first in Messages. Anyone reads it; sending, replying and reacting take
   // a verified wallet, and every message is checked like any other post.
+  // Orien AI Support's state, here beside the group chat's: Messages' list
+  // draws both rows.
+  const AI_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9.94 15.5A2 2 0 0 0 8.5 14.06l-6.13-1.58a.5.5 0 0 1 0-.96L8.5 9.94A2 2 0 0 0 9.94 8.5l1.58-6.13a.5.5 0 0 1 .96 0L14.06 8.5A2 2 0 0 0 15.5 9.94l6.13 1.58a.5.5 0 0 1 0 .96L15.5 14.06a2 2 0 0 0-1.44 1.44l-1.58 6.13a.5.5 0 0 1-.96 0z"/><path d="M20 3v4"/><path d="M22 5h-4"/></svg>';
+  const ai = { msgs: [], left: null, busy: false, loaded: false, resetArmed: false };
   const room = { banArmed: null, msgs: [], newest: 0, version: null, more: false, loadingOlder: false, last: null, you: null, reply: null, photos: [], gif: null, key: "", armed: null, reactions: null };
   // The server marks your own reactions `mine`; Community's say `me`.
   const rmMine = (r) => !!(r.mine || r.me);
@@ -10236,8 +10668,8 @@
     const m = room.last, muted = roomMuted(), unread = !muted && m && m.id > roomRead() && !(chat.room && !$("chat").hidden);
     return `<button class="ib-row${unread ? " unread" : ""}${chat.room ? " on" : ""}" data-room>
       <span class="avatar rm-icon">${ROOM_ICON}</span>
-      <div class="mw0"><div class="nm"><b>Orien</b>${muted ? `<span class="rm-muted" title="Muted">${BELL_OFF}</span>` : ""}<span class="when">${m ? esc(ago(m.created)) : ""}</span></div>
-        <div class="what">Group chat · everyone on Orien Network</div>
+      <div class="mw0"><div class="nm"><b>Orien Group Chat</b>${muted ? `<span class="rm-muted" title="Muted">${BELL_OFF}</span>` : ""}<span class="when">${m ? esc(ago(m.created)) : ""}</span></div>
+        <div class="what">Everyone on Orien Network</div>
         <div class="last">${m ? `${esc((m.author && m.author.name) || "Someone")}: ${esc(roomText(m))}` : "Say hello to everyone."}</div></div>
       <span class="udot"></span>
     </button>`;
@@ -10261,6 +10693,7 @@
   roomPeek();
   setInterval(() => { if (!document.hidden && !(chat.room && !$("chat").hidden)) roomPeek(); }, 30000);
   function leaveRoom() {
+    if (chat.ai) { chat.ai = false; $("chat").classList.remove("ai"); }
     if (!chat.room) return;
     chat.room = false;
     $("chat").classList.remove("room");
@@ -10283,13 +10716,14 @@
     if (a.version !== undefined) room.version = a.version;
   }
   async function openRoom(from) {
+    if (chat.ai) { chat.ai = false; $("chat").classList.remove("ai"); }
     if (!chat.room) swapDraft("room");
     chat.room = true; chat.id = "room"; chat.from = from || "inbox"; chat.conv = null; chat.draft = null; chat.direct = null; chat.paying = null;
     $("chat").classList.add("room");
     $("ch-askbox").hidden = true; $("ch-menu").hidden = true; $("ch-problem").hidden = true;
     $("ch-about").hidden = true; $("ch-ask").hidden = true; $("ch-more").hidden = true;
     $("rm-mute").hidden = false; paintRoomMute();
-    $("ch-who").innerHTML = `<span class="avatar rm-icon">${ROOM_ICON}</span><div class="mw0"><b>Orien</b><small>Everyone on Orien Network</small></div>`;
+    $("ch-who").innerHTML = `<span class="avatar rm-icon">${ROOM_ICON}</span><div class="mw0"><b>Orien Group Chat</b><small>Everyone on Orien Network</small></div>`;
     $("ch-text").placeholder = "Message everyone";
     room.key = "";
     if (room.msgs.length) { roomPaint(true); show("chat"); roomGate(); roomWho().then(roomGate); roomPoll(); return; }
@@ -10586,8 +11020,117 @@
     } catch (e) { problem("ch-problem", mkProblem(e)); }
     finally { $("ch-send").disabled = false; $("ch-text").focus(); }
   }
+  // ---- Orien AI Support: a private chat with an AI helper, pinned under
+  // the group chat. Anyone signed in to Orien Network can ask, verified or
+  // not. Its answers come from the User Guide and the website; it never needs
+  // recovery words, passwords or keys, and says so.
+  function aiRow() {
+    const m = ai.msgs[ai.msgs.length - 1];
+    return `<button class="ib-row${chat.ai ? " on" : ""}" data-ai>
+      <span class="avatar rm-icon ai-icon">${AI_ICON}</span>
+      <div class="mw0"><div class="nm"><b>Orien AI Support</b><span class="when">${m ? esc(ago(m.created)) : ""}</span></div>
+        <div class="what">Ask anything about Orien</div>
+        <div class="last">${m ? esc((m.role === "you" ? "You: " : "") + m.body.replace(/\*\*/g, "").replace(/^[-*] /gm, "").replace(/\s+/g, " ")) : "Help with the wallet, mining, swaps and more."}</div></div>
+    </button>`;
+  }
+  // Answers may carry **bold** and lines; nothing else is taken as markup.
+  // Plain text; web addresses become links that open in the browser.
+  const aiText = (t) => esc(t).replace(/\*\*([^*\n]+)\*\*/g, "<b>$1</b>").replace(/^[-*] /gm, "• ")
+    .replace(/https:\/\/[^\s<&]+[^\s<&.,;:!?)]/g, (u) => `<a href="#" class="ai-link" data-ai-link="${u}">${u}</a>`);
+  function aiGate() {
+    if (!chat.ai) return;
+    const ok = !!board.me;
+    $("ch-compose").hidden = !ok;
+    $("rm-photo").hidden = true; $("rm-gif").hidden = true;
+    $("ch-blocked").hidden = ok;
+    if (!ok) $("ch-blocked").innerHTML = 'Sign in to Orien Network to ask a question. Verifying a wallet isn’t needed.<br><button class="pill pearl" id="rm-signin">Sign in</button>';
+  }
+  function aiPaint() {
+    if (!chat.ai) return;
+    let html = `<div class="rm-start ai-start">Ask anything about Orien Wallet, mining, swaps or the network. Answers come from an AI and can be wrong, so check anything important. It will never ask for your recovery words, passwords or keys.${ai.msgs.length ? `<br><button class="pill ai-reset${ai.resetArmed ? " armed" : ""}" id="ai-reset">${ai.resetArmed ? "Click again to start over" : "Start over"}</button>` : ""}</div>`;
+    let day = "";
+    for (const m of ai.msgs) {
+      const d = new Date(m.created * 1000).toLocaleDateString([], { weekday: "long", month: "short", day: "numeric" });
+      if (d !== day) { html += `<div class="ch-day">${esc(d)}</div>`; day = d; }
+      const at = new Date(m.created * 1000).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
+      html += `<div class="bubble${m.role === "you" ? " mine" : " ai"}">${m.role === "you" ? esc(m.body) : aiText(m.body)}<time>${esc(at)}</time></div>`;
+    }
+    if (ai.busy) html += '<div class="bubble ai ai-typing" aria-label="Writing an answer"><span></span><span></span><span></span></div>';
+    if (ai.left !== null && ai.left <= 5 && board.me) html += `<div class="ai-left">${ai.left === 0 ? "No questions left today. Come back tomorrow." : `${ai.left} question${ai.left === 1 ? "" : "s"} left today`}</div>`;
+    $("ch-log").innerHTML = html;
+    $("ch-log").scrollTop = $("ch-log").scrollHeight;
+  }
+  async function aiLoad() {
+    if (!board.me) return;
+    try {
+      const a = await mk("GET", "/support/messages");
+      if (!ai.busy) ai.msgs = a.messages || [];
+      if (a.left !== undefined) ai.left = a.left;
+      ai.loaded = true;
+      $("ch-problem").hidden = true;
+    } catch (e) { if (chat.ai) problem("ch-problem", mkProblem(e)); }
+  }
+  async function openAi(from) {
+    leaveRoom();
+    if (!chat.ai) swapDraft("ai");
+    chat.ai = true; chat.id = "ai"; chat.from = from || "inbox"; chat.conv = null; chat.draft = null; chat.direct = null; chat.paying = null;
+    ai.resetArmed = false;
+    $("chat").classList.add("ai");
+    $("ch-askbox").hidden = true; $("ch-menu").hidden = true; $("ch-problem").hidden = true;
+    $("ch-about").hidden = true; $("ch-ask").hidden = true; $("ch-more").hidden = true;
+    for (const id of ["rm-reply", "rm-attach", "rm-photo", "rm-gif", "rm-bans-go", "rm-bans", "rm-mute"]) $(id).hidden = true;
+    $("ch-who").innerHTML = `<span class="avatar rm-icon ai-icon">${AI_ICON}</span><div class="mw0"><b>Orien AI Support</b><small>AI answers can be wrong</small></div>`;
+    $("ch-text").placeholder = "Ask a question";
+    aiGate();
+    aiPaint();
+    show("chat");
+    if (!$("inbox").hidden) paintInbox();
+    if (board.me && !ai.loaded) { $("chat").classList.add("loading"); await aiLoad(); $("chat").classList.remove("loading"); }
+    else aiLoad().then(aiPaint);
+    aiPaint();
+    if (!$("inbox").hidden) paintInbox();
+  }
+  async function aiSend() {
+    const body = $("ch-text").value.trim();
+    if (!body || ai.busy) return;
+    if (!board.me) { aiGate(); return; }
+    if (body.length > 1000) { problem("ch-problem", "That's a long one. Keep a question under 1,000 characters."); return; }
+    ai.busy = true; ai.resetArmed = false;
+    const asked = { id: -Date.now(), role: "you", body, created: Math.floor(Date.now() / 1000) };
+    ai.msgs.push(asked);
+    $("ch-text").value = ""; growText(); drafts.delete("ai");
+    $("ch-problem").hidden = true;
+    $("ch-send").disabled = true;
+    aiPaint();
+    try {
+      const a = await mk("POST", "/support/messages", { body });
+      ai.msgs = ai.msgs.filter((m) => m !== asked).concat(a.messages || []);
+      if (a.left !== undefined) ai.left = a.left;
+      feel("success");
+    } catch (e) {
+      ai.msgs = ai.msgs.filter((m) => m !== asked);
+      if (!$("ch-text").value) { $("ch-text").value = body; growText(); }
+      problem("ch-problem", mkProblem(e));
+    } finally {
+      ai.busy = false; $("ch-send").disabled = false;
+      aiPaint();
+      if (!$("inbox").hidden) paintInbox();
+      if (chat.ai) $("ch-text").focus();
+    }
+  }
+  async function aiClick(e) {
+    const link = e.target.closest("[data-ai-link]");
+    if (link) { e.preventDefault(); invoke("open_post_link", { url: link.dataset.aiLink }).catch(() => {}); return; }
+    if (!e.target.closest("#ai-reset")) return;
+    if (!ai.resetArmed) { ai.resetArmed = true; aiPaint(); setTimeout(() => { if (ai.resetArmed) { ai.resetArmed = false; aiPaint(); } }, 3500); return; }
+    ai.resetArmed = false;
+    try { await mk("DELETE", "/support/messages"); ai.msgs = []; feel("success"); }
+    catch (err) { problem("ch-problem", mkProblem(err)); }
+    aiPaint();
+    if (!$("inbox").hidden) paintInbox();
+  }
   // Live: an open chat every 4 seconds, the list every 10, the unread dot every 30.
-  setInterval(() => { if (!$("chat").hidden && chat.id) chat.room ? roomPoll() : refreshChat(); }, 4000);
+  setInterval(() => { if (!$("chat").hidden && chat.id && !chat.ai) chat.room ? roomPoll() : refreshChat(); }, 4000);
   setInterval(() => { if (!$("inbox").hidden) loadInbox(); }, 10000);
   setInterval(() => { if (board.me) invoke("board_me").then((me) => { board.me = me; paintUnread(); if (me && me.unread) marketNews(); if (me && me.notices) noticeNews(); }).catch(() => {}); }, 20000);
   // A notification for each new Market message, on computers, as for ORN

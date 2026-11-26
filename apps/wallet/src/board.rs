@@ -135,7 +135,9 @@ fn agent() -> ureq::Agent {
 /// Asks the board, sending the session cookie and keeping any renewed one.
 fn call(dir: &Path, method: &str, path: &str, body: Option<Value>) -> Result<Value, Failed> {
     let mut saved = load(dir);
-    let mut request = agent().request(method, &format!("{}/api/market{path}", base()));
+    // An AI Support answer is written while the person waits: up to a minute.
+    let agent = if path.starts_with("/support") { ureq::AgentBuilder::new().timeout(Duration::from_secs(75)).user_agent("orien-wallet").build() } else { agent() };
+    let mut request = agent.request(method, &format!("{}/api/market{path}", base()));
     if let Some(cookie) = &saved.cookie {
         request = request.set("Cookie", &format!("{COOKIE}={cookie}"));
     }
@@ -509,6 +511,21 @@ pub fn image(dir: &Path, name: &str) -> Option<String> {
     Some(format!("data:{kind};base64,{}", base64::engine::general_purpose::STANDARD.encode(&bytes)))
 }
 
+/// A Theme Store picture by name, as a data: URL, fetched each time and
+/// never kept: trying a theme leaves nothing behind on this computer (a
+/// theme someone takes is kept with their own themes instead).
+pub fn passing_image(name: &str) -> Option<String> {
+    use base64::Engine;
+    if name.is_empty() || name.len() > 100 || !name.chars().all(|c| c.is_ascii_alphanumeric() || c == '.' || c == '-' || c == '_') || name.starts_with('.') {
+        return None;
+    }
+    let response = agent().get(&format!("{}/api/market/images/{name}", base())).call().ok()?;
+    let mut bytes = Vec::new();
+    std::io::Read::read_to_end(&mut std::io::Read::take(response.into_reader(), 8 * 1024 * 1024), &mut bytes).ok()?;
+    let kind = if bytes.starts_with(&[0x89, b'P', b'N', b'G']) { "image/png" } else if bytes.starts_with(b"RIFF") { "image/webp" } else { "image/jpeg" };
+    Some(format!("data:{kind};base64,{}", base64::engine::general_purpose::STANDARD.encode(&bytes)))
+}
+
 /// A Market read, with the sign-in cookie when there is one (so a listing
 /// says whether it's yours), and `query` added to the address.
 fn market_get(dir: &Path, path: &str, query: &[(&str, &str)]) -> Result<Value, String> {
@@ -542,7 +559,7 @@ pub fn listings(dir: &Path, category: &str, text: &str, offset: u32) -> Result<V
 /// A signed-in Market call for the Market screens: listings, messages and
 /// reports only, so the page can't reach anything else with the cookie.
 pub fn market_call(dir: &Path, method: &str, path: &str, body: Option<Value>) -> Result<Value, String> {
-    let allowed = ["/listings", "/conversations", "/reports", "/app-reports", "/accounts", "/community", "/users", "/notices", "/me/blocked", "/swaps/history", "/room"].iter().any(|p| path == *p || path.starts_with(&format!("{p}/")) || path.starts_with(&format!("{p}?")));
+    let allowed = ["/listings", "/conversations", "/reports", "/app-reports", "/support", "/accounts", "/community", "/users", "/notices", "/me/blocked", "/swaps/history", "/room"].iter().any(|p| path == *p || path.starts_with(&format!("{p}/")) || path.starts_with(&format!("{p}?")));
     if !allowed || path.contains("..") || !["GET", "POST", "PUT", "DELETE"].contains(&method) {
         return Err("not a Market call".into());
     }
