@@ -52,6 +52,18 @@ export const CHANGELOG: Entry[] = [
   {
     date: '2026-11-25',
     products: ['wallet'],
+    version: '1.9.17',
+    title: 'A neater sign-in',
+    changes: [
+      'In a big window, Sign in opens as a card over the page you were on, and closing it leaves you there.',
+      'In the group chat, the prompt to sign in or verify a wallet is plain words and a button under the messages, not a box.',
+      'Community\'s Sign in and Verify a wallet buttons have the same pearl finish as the rest of the app.',
+      'In a big window, Messages is exactly as wide as every other page.',
+    ],
+  },
+  {
+    date: '2026-11-25',
+    products: ['wallet'],
     version: '1.9.16',
     title: 'A green glow while you mine',
     changes: [
