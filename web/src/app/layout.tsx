@@ -3,6 +3,7 @@ import Link from 'next/link'
 import { Geist, Geist_Mono, Jost } from 'next/font/google'
 import { Analytics } from '@/components/Analytics'
 import { AskOrien } from '@/components/AskOrien'
+import { SiteI18n } from '@/components/SiteI18n'
 import { BottomNav, Header, Sidebar } from '@/components/Header'
 import { ScrollToTop } from '@/components/ScrollToTop'
 import { SignInGate } from '@/components/market/SignInDialog'
@@ -141,6 +142,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <SiteColumn>
           <ScrollToTop />
           <Analytics />
+          <SiteI18n />
           <SiteOnly>
             <Header />
             <SignInGate />

@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { ArrowUpRight } from 'lucide-react'
 import { Wordmark } from '@/components/Wordmark'
+import { LanguagePicker } from '@/components/LanguagePicker'
 import { apiHref, homeHref } from '@/lib/explorer'
 import { ExplorerSearch } from './Parts'
 
@@ -40,6 +41,7 @@ export function ExplorerBar() {
           >
             API
           </a>
+          <LanguagePicker />
           <a
             href="https://orien.network/"
             className="flex h-10 shrink-0 items-center gap-1.5 rounded-[10px] border border-line bg-bg px-3.5 text-sm font-semibold text-ink transition hover:border-pearl"

@@ -33,6 +33,7 @@ import { NotificationBell } from "./NotificationBell";
 import { AccountMenu } from "./AccountMenu";
 import { useMe } from "@/lib/useMe";
 import { Wordmark } from "./Wordmark";
+import { LanguagePicker } from "./LanguagePicker";
 import { WINDOWS_INSTALLER, WindowsInstall } from "./WindowsDownload";
 
 type NavItem = {
@@ -504,6 +505,7 @@ export function Header() {
               <span>Get started</span>
             </Link>
             )}
+            <LanguagePicker />
             {MARKETPLACE_LIVE && <MessagesButton />}
             {MARKETPLACE_LIVE && <NotificationBell />}
             {MARKETPLACE_LIVE && (
