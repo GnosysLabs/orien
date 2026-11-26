@@ -5890,7 +5890,10 @@
   $("st-store").onclick = openThemeStore;
   $("go-store").onclick = openThemeStore;
   // Help: a small menu under the button, User Guide and Report a Problem.
-  function helpClose() { $("help-menu").hidden = true; $("go-help").setAttribute("aria-expanded", "false"); }
+  function helpClose() { $("help-menu").hidden = true; }
+  // The button is lit exactly while its menu shows, whatever closed it (the
+  // app also closes every menu on Escape, a resize or a change of page).
+  new MutationObserver(() => $("go-help").setAttribute("aria-expanded", String(!$("help-menu").hidden))).observe($("help-menu"), { attributes: true, attributeFilter: ["hidden"] });
   $("go-help").onclick = () => {
     const menu = $("help-menu");
     if (!menu.hidden) { helpClose(); return; }
@@ -5899,7 +5902,6 @@
     menu.style.left = `${Math.round(b.left)}px`;
     menu.style.right = "auto";
     menu.hidden = false;
-    $("go-help").setAttribute("aria-expanded", "true");
   };
   document.addEventListener("click", (e) => { if (!$("help-menu").hidden && !e.target.closest("#help-menu, #go-help")) helpClose(); }, true);
   document.addEventListener("keydown", (e) => { if (e.key === "Escape" && !$("help-menu").hidden) helpClose(); });
