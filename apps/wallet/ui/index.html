@@ -728,8 +728,9 @@
   /* The same aura round the mining card's icon in big windows. */
   #hs-mine.mining .hs-ico { --glow-color: rgb(var(--aura)); animation: drift 24s linear infinite, mining-small 2.8s ease-in-out infinite; }
   #go-referrals::before, body.phone.at-home #hd-referrals::before {
-    content: ""; position: absolute; inset: -20px; border-radius: 50%; pointer-events: none;
-    background: radial-gradient(closest-side, transparent 44%, color-mix(in srgb, var(--accent) 50%, transparent) 47%, color-mix(in srgb, var(--accent) 16%, transparent) 70%, transparent 100%);
+    content: ""; position: absolute; inset: 0; border-radius: inherit; pointer-events: none;
+    box-shadow: 0 0 10px color-mix(in srgb, var(--accent) 36%, transparent),
+                0 0 24px color-mix(in srgb, var(--accent) 28%, transparent);
     animation: referral-glow 2.8s ease-in-out infinite;
   }
   @keyframes referral-glow { 0%, 100% { opacity: .58; } 50% { opacity: 1; } }
