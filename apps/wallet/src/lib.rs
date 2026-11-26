@@ -415,6 +415,10 @@ use tauri_plugin_dialog::DialogExt;
 /// Sending and checking the balance take turns, so a check that runs while
 /// a payment is going out never sees half of it and records it twice.
 static TURNS: std::sync::Mutex<()> = std::sync::Mutex::new(());
+/// Set while an update waits to install: balance checks and swap steps then
+/// stand aside instead of taking TURNS again and again, so the update gets
+/// it as soon as whatever is under way finishes.
+pub static UPDATING: std::sync::atomic::AtomicBool = std::sync::atomic::AtomicBool::new(false);
 
 /// The network this copy of the app was built for.
 const GENESIS: &str = include_str!(concat!(env!("OUT_DIR"), "/genesis.json"));
@@ -1324,6 +1328,9 @@ async fn overview_now(app: AppHandle) -> Result<Overview, String> {
     let wallet = wallet_file(&dir).ok_or("no wallet yet")?;
     let genesis = genesis_file(&dir)?;
     tauri::async_runtime::spawn_blocking(move || {
+        if UPDATING.load(std::sync::atomic::Ordering::Relaxed) {
+            return Err("The app is updating.".into());
+        }
         let _turn = TURNS.lock().unwrap_or_else(|poisoned| poisoned.into_inner());
         let (view, client, address) = overview(&wallet, &genesis)?;
         if let Some(balance) = view.units {
@@ -1789,6 +1796,9 @@ fn with_swaps<T: Send + 'static>(
         let dir = dir?;
         let wallet_file = wallet_file(&dir).ok_or("no wallet yet")?;
         let genesis = genesis_file(&dir)?;
+        if UPDATING.load(std::sync::atomic::Ordering::Relaxed) {
+            return Err("The app is updating.".into());
+        }
         let _turn = TURNS.lock().unwrap_or_else(|poisoned| poisoned.into_inner());
         let client = connect(&genesis)?;
         let orien = swaps::AppOrien {
