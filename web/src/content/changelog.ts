@@ -59,6 +59,7 @@ export const CHANGELOG: Entry[] = [
       'A theme or setting changed on one computer shows on the others within about 30 seconds, or as soon as you click into the window.',
       'In a big window, Add a wallet is one card over Wallets through all its steps.',
       'Before a new wallet has a name, its icon shows a small wallet instead of a question mark.',
+      'Full screen or a maximised window no longer changes the size the expand arrow remembers, and the arrow leaves full screen first.',
     ],
   },
   {

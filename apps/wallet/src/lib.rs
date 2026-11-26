@@ -1432,10 +1432,16 @@ fn window_ready(app: AppHandle) {
 /// smallest (719), keeping its height, and kept on the screen. Not async, so
 /// it runs where the window lives (the main thread), never beside it.
 #[tauri::command]
-fn window_wide(app: AppHandle, wide: bool, width: Option<f64>) -> Result<(), String> {
+fn window_wide(app: AppHandle, wide: bool, width: Option<f64>) -> Result<bool, String> {
     #[cfg(desktop)]
     {
         let window = app.get_webview_window("main").ok_or("no window")?;
+        // In full screen: out of it first. The size waits until it has left
+        // (the page asks again), as a window can't be resized meanwhile.
+        if window.is_fullscreen().unwrap_or(false) {
+            let _ = window.set_fullscreen(false);
+            return Ok(true);
+        }
         if window.is_maximized().unwrap_or(false) {
             let _ = window.unmaximize();
         }
@@ -1459,7 +1465,7 @@ fn window_wide(app: AppHandle, wide: bool, width: Option<f64>) -> Result<(), Str
     }
     #[cfg(not(desktop))]
     let _ = (app, wide, width);
-    Ok(())
+    Ok(false)
 }
 
 /// A page of the explorer's figures: the overview, checkpoints, an address,

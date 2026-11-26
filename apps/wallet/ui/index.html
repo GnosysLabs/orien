@@ -10841,14 +10841,22 @@
     b.title = say; b.setAttribute("aria-label", say);
   }
   // Wide is the width you last had it wide (kept whenever the window is
-  // wide), so shrinking and growing again comes back to your own size.
-  const keepWide = () => { if (window.innerWidth >= 860) localStorage.setItem("wide-width", String(window.innerWidth)); };
+  // wide), so shrinking and growing again comes back to your own size. Not
+  // full screen or a maximised window, though: those fill the screen, and
+  // aren't the size you chose.
+  const fillsScreen = () => window.innerWidth >= screen.availWidth - 16;
+  const keepWide = () => { if (window.innerWidth >= 860 && !fillsScreen()) localStorage.setItem("wide-width", String(window.innerWidth)); };
   $("go-size").onclick = () => {
     if (phone) return;
     const goWide = window.innerWidth < 860;
     if (!goWide) keepWide();
-    const width = Number(localStorage.getItem("wide-width")) || null;
-    invoke("window_wide", { wide: goWide, width: goWide ? width : null }).catch(() => {});
+    // A width kept before full screen and maximised windows were left out:
+    // the usual wide size instead.
+    const kept = Number(localStorage.getItem("wide-width")) || null;
+    const width = kept && kept < screen.availWidth - 16 ? kept : null;
+    const size = () => invoke("window_wide", { wide: goWide, width: goWide ? width : null });
+    // From full screen: out of it first, then your size once it has left.
+    size().then((again) => { if (again) setTimeout(() => size().catch(() => {}), 900); }).catch(() => {});
   };
   let keepTimer = 0;
   window.addEventListener("resize", () => { paintSize(); clearTimeout(keepTimer); keepTimer = setTimeout(keepWide, 500); });
