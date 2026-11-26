@@ -6359,6 +6359,30 @@
       "Click your browser and add Orien Wallet there.",
       "Send ORN and see your balance from the browser’s toolbar, and sign in to websites with your wallet. Your keys stay in this app.",
     ]);
+    // Themes: built and shared on computers; iPhones wear the ones built there.
+    if (!phone) {
+      add("Themes", "theme-build", "Build your own theme", [
+        `Open ${gear}, then <b>Appearance</b>, and click <b>Build a theme</b>.`,
+        "Give it a <b>Name</b>, and choose <b>Dark</b> or <b>Light</b> under <b>Base</b>.",
+        "Pick an <b>Accent colour</b>, or click the rainbow circle to choose your own.",
+        "Under <b>Background picture</b>, click <b>Choose a picture</b>. A large one looks best, at least 1920 × 1080.",
+        "Watch the preview as you go, then click <b>Save theme</b>. It’s worn at once.",
+      ], "Your themes follow you to your other computers, and your iPhone wears their colours. To change one later, click the gear on its card in Appearance; the bin deletes it.");
+      add("Themes", "theme-store", "Find themes in the Theme Store", [
+        `Open ${gear}, then <b>Appearance</b>, and click <b>Theme Store</b> at the top.`,
+        "Browse <b>Popular</b> or <b>New</b>. Each card shows the theme on a small copy of the app.",
+        "Click <b>Try</b> to see the whole app in it. Click <b>Undo</b> to go back; leaving the store goes back too.",
+        "Click <b>Get</b> to keep it. It joins your themes in Appearance and is worn at once.",
+        "Like it? The coins button tips its maker some ORN. The flag reports a theme that breaks the rules.",
+      ], "A theme you get is your own copy: the maker can’t change it, and you can edit or delete it like one you built.");
+      add("Themes", "theme-share", "Share a theme in the Theme Store", [
+        "You need to be signed in to Orien Network with a verified wallet.",
+        `Open ${gear}, then <b>Appearance</b>.`,
+        "On one of your own themes, click the share button (the box with an arrow), then <b>Share theme</b>.",
+        "It’s checked, then shows in the store with your name, where anyone can try it, get it and tip you.",
+        "To take it down, open the Theme Store, then <b>Yours</b>, and click <b>Remove from store</b> twice.",
+      ], "Editing your theme later doesn’t change the shared one. Share it again as a new theme if you like the new version better.");
+    }
     add("Security and more", "activity", "Activity and notifications", [
       `On Home, ${tap} <b>View all</b> beside Activity.`,
       "<b>Payments</b> shows what you sent and received; <b>Rewards</b> shows mining rewards and validator fees.",
