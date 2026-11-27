@@ -2473,7 +2473,10 @@
      miners and your own mining get a tab of their own beside Feed and
      Market. Big windows show them in the sidebar, so no tab there. */
   .cm-miners-tab { display: none; }
+  /* The Market is retired: big windows have only the feed, so no tabs. */
+  #community .cm-tabs { display: none; }
   @media (max-width: 859px) {
+    #community .cm-tabs { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
     .cm-layout { display: flex; flex-direction: column; }
     .cm-rail { display: grid; gap: 10px; order: -1; margin-bottom: 14px; position: relative; z-index: 5; }
     .cm-rail > :not(.cm-find):not(.cm-found) { display: none; }
@@ -3978,7 +3981,7 @@
     <!-- Orien Market: work and things offered for ORN. -->
     <section class="screen" id="community" hidden>
       <div class="topline"><button class="back" data-back aria-label="Back"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg></button><h2 id="cm-title">Community</h2></div>
-      <div class="tabs cm-tabs" role="tablist"><button class="tab on" data-cm-tab="community" role="tab">Feed</button><button class="tab" data-cm-tab="market" role="tab">Market</button><button class="tab cm-miners-tab" data-cm-tab="miners" role="tab">Top miners</button></div>
+      <div class="tabs cm-tabs" role="tablist"><button class="tab on" data-cm-tab="community" role="tab">Feed</button><button class="tab cm-miners-tab" data-cm-tab="miners" role="tab">Top miners</button></div>
       <div class="cm-layout">
         <div class="cm-main">
           <div class="cm-filter" role="tablist"><button class="on" data-only="">All</button><button data-only="people">People</button><button data-only="network">Network</button></div>
