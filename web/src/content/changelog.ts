@@ -28,6 +28,23 @@ export const CHANGELOG: Entry[] = [
   {
     date: '2026-11-27',
     products: ['wallet'],
+    version: '1.9.32',
+    title: 'Clearer Solana activity, smoother buy orders, and Back that goes back',
+    changes: [
+      'Solana activity says what each payment was for: paying for ORN, leftovers coming back, a buy order and its refund, or ORN you sold.',
+      'Solana amounts follow the decimals you choose for your balance.',
+      'Buy ORN shows how much SOL the wallet can pay, and warns about more than that or less than the 0.01 SOL minimum without changing what you typed.',
+      'Right after Touch ID, a buy order opens its checklist while the SOL is locked. Buy and Sell answer the first click.',
+      'Cancelling a buy order shows that it is cancelling straight away, then returns to the Exchange.',
+      'Back returns to the screen you came from, everywhere in the app.',
+      'Reading a message or group chat clears its red dot on all your devices, and new messages stay unread until you open them.',
+      'In big windows, wallet settings open as pop-ups, and AI Support opens straight from Help.',
+      'Send SOL shows the name of the person you picked.',
+    ],
+  },
+  {
+    date: '2026-11-27',
+    products: ['wallet'],
     version: '1.9.31',
     title: 'A Solana wallet built in, and buying ORN in one approval',
     changes: [
