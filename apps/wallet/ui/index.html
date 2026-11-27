@@ -1766,6 +1766,26 @@
     body:not(.phone) #swap-detail .fineprint { text-align: center; padding: 2px 4px 0; }
   }
   @media (max-width: 859px) { #swap-detail .fineprint { order: 99; } }
+  /* Big windows: a swap is one card over the Exchange. What's swapped, the
+     checklist, then only what needs saying; nothing twice. */
+  @media (min-width: 860px) {
+    html body.pop:not(.phone) #swap-detail { width: min(520px, calc(100vw - 48px)); }
+    body.pop:not(.phone) #swap-detail .sd-grid { display: flex; flex-direction: column; gap: 12px; }
+    body.pop:not(.phone) #swap-detail :is(.sd-main, .sd-side) { display: contents; }
+    body.pop:not(.phone) #swap-detail :is(#sd-review, .sd-steps-card, #sd-pay, #sd-status, #sd-gone, #sd-cancel-order) { align-self: stretch; width: auto; margin: 0; }
+    body.pop:not(.phone) #swap-detail #sd-review { order: 1; }
+    body.pop:not(.phone) #swap-detail .sd-steps-card { order: 2; padding: 16px 18px 2px; }
+    body.pop:not(.phone) #swap-detail .sd-card-head { display: none; }
+    body.pop:not(.phone) #swap-detail #sd-pay { order: 3; }
+    body.pop:not(.phone) #swap-detail #sd-status { order: 4; padding: 14px 18px; }
+    body.pop:not(.phone) #swap-detail #detail-problem { order: 5; }
+    body.pop:not(.phone) #swap-detail #sd-pw-field { order: 6; margin: 0; }
+    body.pop:not(.phone) #swap-detail #sd-gone { order: 7; }
+    body.pop:not(.phone) #swap-detail #sd-cancel-order { order: 8; }
+    body.pop:not(.phone) #swap-detail #sd-done-back { order: 9; justify-self: center; align-self: center; width: auto; min-width: 200px; padding-inline: 36px; }
+    body.pop:not(.phone) #swap-detail :is(.fineprint, .push, #sd-exchange:not(:has(:not([hidden])))) { display: none; }
+    body.pop:not(.phone) #swap-detail .sd-pop-quiet { display: none; }
+  }
   /* A swap, step by step: done steps ticked, the one under way lit. */
   /* After posting an offer. */
   .posted-mark { width: 52px; height: 52px; margin: 0 auto 14px; border-radius: 50%; display: grid; place-items: center;
@@ -2860,11 +2880,11 @@
     body.pop:not(.phone) main { isolation: auto; }
     body.pop:not(.phone) #pop-shade { display: block; position: fixed; inset: 0; z-index: 50;
       background: var(--veil); -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px); animation: pop-fade .18s ease; }
-    html body.pop:not(.phone) :is(#send, #solana-send, #receive, #contacts, #blocks, #contact, #member, #board-post, #board-take, #swap-waiting, #swap-posted, #activity, #board-signin, #wallet-add-choose, #wallet-add, #restore, #phrase, #password, #pair-invite) { position: fixed; z-index: 51; inset: 0; margin: auto;
+    html body.pop:not(.phone) :is(#send, #solana-send, #receive, #contacts, #blocks, #swap-detail, #contact, #member, #board-post, #board-take, #swap-waiting, #swap-posted, #activity, #board-signin, #wallet-add-choose, #wallet-add, #restore, #phrase, #password, #pair-invite) { position: fixed; z-index: 51; inset: 0; margin: auto;
       width: min(480px, calc(100vw - 48px)); height: fit-content; max-height: calc(100vh - 96px); overflow-y: auto;
       padding: 18px 24px 24px; -webkit-mask: none; mask: none; border-radius: 24px; background: var(--surface); border: 1px solid var(--line);
       box-shadow: 0 24px 60px rgba(0, 0, 0, 0.5), 0 2px 8px rgba(0, 0, 0, 0.25); animation: pop-in .2s cubic-bezier(.2, .9, .3, 1.2); }
-    body.pop:not(.phone) :is(#send, #solana-send, #receive, #contacts, #blocks, #contact, #member, #board-post, #board-take, #swap-waiting, #swap-posted, #activity, #board-signin, #wallet-add-choose, #wallet-add, #restore, #phrase, #password, #pair-invite) .topline { position: static; }
+    body.pop:not(.phone) :is(#send, #solana-send, #receive, #contacts, #blocks, #swap-detail, #contact, #member, #board-post, #board-take, #swap-waiting, #swap-posted, #activity, #board-signin, #wallet-add-choose, #wallet-add, #restore, #phrase, #password, #pair-invite) .topline { position: static; }
     html body.pop:not(.phone) :is(#contacts, #contact, #member) { width: min(600px, calc(100vw - 48px)); }
     /* The offer forms carry more words: a little wider, so they wrap less. */
     html body.pop:not(.phone) :is(#board-post, #board-take, #wallet-add-choose, #wallet-add, #restore, #phrase, #password, #pair-invite) { width: min(560px, calc(100vw - 48px)); }
@@ -2873,8 +2893,8 @@
     html body.pop:not(.phone) #activity { width: min(600px, calc(100vw - 48px)); height: min(720px, calc(100vh - 96px)); overflow: hidden; display: flex; flex-direction: column; }
     body.pop:not(.phone) #activity #all-activity { flex: 1 1 auto; min-height: 0; overflow-y: auto; margin: 0; }
     body.pop:not(.phone) #contacts #contact-list { flex: none; overflow: visible; margin: 0; padding: 0; -webkit-mask: none; mask: none; }
-    html body.pop:not(.phone) :is(#send, #solana-send, #receive, #contacts, #blocks, #contact, #member, #board-post, #board-take, #swap-waiting, #swap-posted, #activity, #board-signin, #wallet-add-choose, #wallet-add, #restore, #phrase, #password, #pair-invite):not(#x) { padding-bottom: 24px; }
-    body.pop:not(.phone) :is(#send, #solana-send, #receive, #contacts, #blocks, #contact, #member, #board-post, #board-take, #swap-waiting, #swap-posted, #activity, #board-signin, #wallet-add-choose, #wallet-add, #restore, #phrase, #password, #pair-invite) .push { display: none; }
+    html body.pop:not(.phone) :is(#send, #solana-send, #receive, #contacts, #blocks, #swap-detail, #contact, #member, #board-post, #board-take, #swap-waiting, #swap-posted, #activity, #board-signin, #wallet-add-choose, #wallet-add, #restore, #phrase, #password, #pair-invite):not(#x) { padding-bottom: 24px; }
+    body.pop:not(.phone) :is(#send, #solana-send, #receive, #contacts, #blocks, #swap-detail, #contact, #member, #board-post, #board-take, #swap-waiting, #swap-posted, #activity, #board-signin, #wallet-add-choose, #wallet-add, #restore, #phrase, #password, #pair-invite) .push { display: none; }
     /* Solid, a step lighter than the card: a see-through fill over the
        blurred Home drew a ghost beside each contact. */
     body.pop:not(.phone) #contacts .ct-list > .tx { background: color-mix(in srgb, var(--ink) 4%, var(--surface)); }
@@ -2896,8 +2916,8 @@
     body.pop:not(.phone) .account .pop-x { margin-left: 0; }
     body.pop:not(.phone) #contact .tl-bin:not([hidden]) + .pop-x { margin-left: 10px; }
     @media (hover: hover) { body.pop:not(.phone) .pop-x:hover { background: rgba(var(--tint), 0.1); color: var(--ink); } }
-    body.pop:not(.phone) :is(#send, #solana-send, #receive, #contacts, #blocks, #board-post, #board-take, #swap-waiting, #swap-posted, #activity, #board-signin, #wallet-add-choose) .topline .back { display: none; }
-    body.pop:not(.phone) :is(#send, #solana-send, #receive, #contacts, #blocks, #board-post, #board-take, #swap-waiting, #swap-posted, #activity, #board-signin, #wallet-add-choose) .topline h2 { margin-left: 4px; }
+    body.pop:not(.phone) :is(#send, #solana-send, #receive, #contacts, #blocks, #swap-detail, #board-post, #board-take, #swap-waiting, #swap-posted, #activity, #board-signin, #wallet-add-choose) .topline .back { display: none; }
+    body.pop:not(.phone) :is(#send, #solana-send, #receive, #contacts, #blocks, #swap-detail, #board-post, #board-take, #swap-waiting, #swap-posted, #activity, #board-signin, #wallet-add-choose) .topline h2 { margin-left: 4px; }
     body.pop:not(.phone) #receive .receive-actions.two { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
     body.pop:not(.phone) #receive .receive-actions :is(.primary, .secondary) { width: 100%; min-width: 0; padding-left: 12px; padding-right: 12px; }
   }
@@ -4877,6 +4897,7 @@
       <div class="topline">
         <button class="back" id="detail-back" aria-label="Back"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg></button>
         <h2 id="sd-title"></h2>
+        <button class="pop-x" data-pop-close aria-label="Close" title="Close"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></button>
       </div>
       <div class="sd-grid">
         <div class="sd-main" id="sd-main">
@@ -5383,7 +5404,7 @@
   // follows each (posted, waiting for the seller) in the same card.
   // Waiting for the other side is a page of its own, as the swap it turns
   // into is: no pop-up first, then a page.
-  const SWAP_POPS = ["board-post", "board-take", "swap-posted"];
+  const SWAP_POPS = ["board-post", "board-take", "swap-posted", "swap-detail"];
   // Big windows: Sign in floats over the page it was opened from.
   let lastBase = "home";
   // Big windows: adding a wallet from Wallets is one card over Wallets, all
@@ -9665,21 +9686,21 @@
     if (s.funded_order && s.role === "buy") {
       const steps = [
         paysItself(s)
-          ? { name: "Paid", what: `${s.pay_amount ? s.pay_amount + " SOL" : B} from your Solana balance`, who: s.stage === "pay" ? "Automatic · a few seconds" : "" }
-          : { name: "Send SOL", what: `Send ${s.pay_amount ? s.pay_amount + " SOL" : B} from your SOL wallet`, who: "You · stay on this page until Step 2 finishes" },
-        { name: "Post order", what: `Locking your ${B} on Solana and adding your order to the book`, who: "Automatic · keep this page open (~20 seconds)" },
-        { name: "Live on book", what: `Waiting on the order book for a seller to fill ${O}`, who: "Safe to leave this page or close Orien Wallet" },
-        { name: "Done", what: `${O} delivered to your wallet`, who: s.stage === "settling" ? "Automatic · about a minute" : "" },
+          ? { name: "Paid", what: `${s.pay_amount ? s.pay_amount + " SOL" : B} from your Solana balance`, who: s.stage === "pay" ? "A few seconds" : "" }
+          : { name: "Pay", what: `Send ${s.pay_amount ? s.pay_amount + " SOL" : B} from your SOL wallet`, who: s.stage === "pay" ? "You" : "" },
+        { name: "Posted", what: `Your ${B} locked on Solana and listed`, who: ["locking", "cancelling"].includes(s.stage) ? "About 20 seconds" : "" },
+        { name: "Live", what: `Waiting for a seller · safe to close Orien Wallet`, who: "" },
+        { name: "Done", what: `${O} in your wallet`, who: s.stage === "settling" ? "About a minute" : "" },
       ];
       const at = { pay: 0, locking: 1, cancelling: 1, open: 2, settling: 3, done: 4 }[s.stage];
       return { steps, at: at ?? null };
     }
     if (s.funded_order && s.role === "sell") {
       const steps = [
-        { name: "Reserve SOL", what: `Locking the buyer's ${B} on Solana for your address`, who: "Automatic · keep this page open (~15 seconds)" },
-        { name: "Lock ORN", what: `Locking your ${O} on Orien`, who: "Automatic · keep this page open" },
-        { name: "Settling", what: `Sending ${B} to your SOL wallet`, who: "Safe to leave · arrives in about a minute" },
-        { name: "Done", what: `${B} in your SOL wallet`, who: "" },
+        { name: "Reserve SOL", what: `The buyer's ${B} held for you`, who: s.stage === "reserving" ? "About 15 seconds" : "" },
+        { name: "Lock ORN", what: `Your ${O} locked for the buyer`, who: s.stage === "locking" ? "A few seconds" : "" },
+        { name: "Settling", what: `${B} on its way to you`, who: s.stage === "settling" ? "About a minute · safe to close" : "" },
+        { name: "Done", what: `${B} in your Solana balance`, who: "" },
       ];
       const at = { reserving: 0, locking: 1, settling: 2, done: 4 }[s.stage];
       return { steps, at: at ?? null };
@@ -9687,10 +9708,10 @@
     // SOL swaps: four plain steps, each a minute or so.
     if (s.coin === "sol" && s.role === "sell") {
       const steps = [
-        { name: "Accepted", what: `Your ${O} are locked for the buyer`, who: "This app · under a minute" },
-        { name: "Buyer pays", what: `The buyer pays ${B}`, who: "The buyer" },
-        { name: "Paid", what: `${B} on its way to your SOL address`, who: s.stage === "claiming" ? "Final within a minute" : "" },
-        { name: "Done", what: "The buyer's ORN delivered", who: "" },
+        { name: "Accepted", what: `Your ${O} locked for the buyer`, who: s.stage === "locking" ? "A few seconds" : "" },
+        { name: "Buyer pays", what: B, who: ["reply", "paying"].includes(s.stage) ? "Usually within a minute" : "" },
+        { name: "Paid", what: `${B} on its way to you`, who: s.stage === "claiming" ? "About a minute" : "" },
+        { name: "Done", what: `${B} received`, who: "" },
       ];
       const at = { locking: 0, reply: 1, paying: 1, claiming: 2, done: 4 }[s.stage];
       return { steps, at: at ?? null };
@@ -9700,11 +9721,11 @@
       const own = s.pending || paysItself(s);
       const seller = s.seller_name || takenFrom[s.id] || "The seller";
       const steps = [
-        { name: "Seller accepts", what: `${seller}'s wallet locks ${O} for you`, who: s.stage === "accepting" ? "Automatic · usually a few seconds" : "" },
+        { name: "Seller accepts", what: `${seller} locks ${O} for you`, who: s.stage === "accepting" ? "A few seconds" : "" },
         own
-          ? { name: "Paid", what: `${s.pay_amount ? s.pay_amount + " SOL" : B} from your Solana balance`, who: s.stage === "pay" ? "Automatic · a few seconds" : "" }
-          : { name: "Pay", what: `Send ${s.pay_amount ? s.pay_amount + " SOL" : B} from your SOL wallet`, who: "You" },
-        { name: "Confirming", what: `Your SOL is locked for the seller, then your ${O} arrive`, who: ["locking", "confirming", "claim"].includes(s.stage) ? "Automatic · usually a minute" : "" },
+          ? { name: "Paid", what: `${s.pay_amount ? s.pay_amount + " SOL" : B} from your Solana balance`, who: s.stage === "pay" ? "A few seconds" : "" }
+          : { name: "Pay", what: `Send ${s.pay_amount ? s.pay_amount + " SOL" : B} from your SOL wallet`, who: s.stage === "pay" ? "You" : "" },
+        { name: "Confirming", what: `Your ${O} on the way`, who: ["locking", "confirming", "claim"].includes(s.stage) ? "About a minute" : "" },
         { name: "Done", what: `${O} in your wallet`, who: "" },
       ];
       const at = { accepting: 0, pay: 1, locking: 2, confirming: 2, claim: 2, refunding: 2, done: 4 }[s.stage];
@@ -10322,6 +10343,10 @@
     $("sd-cancel-order").hidden = !(s.funded_order && s.can_cancel);
     $("sd-cancel-order").textContent = s.stage === "pay" ? "Cancel buy order" : "Cancel buy order & return SOL";
     if (s.problem && !needsPassword) problem("detail-problem", s.problem); else $("detail-problem").hidden = true;
+    // As a pop-up, the checklist says how it's going: the status line only
+    // when something went another way.
+    $("sd-status").classList.toggle("sd-pop-quiet", !["cancelled", "refunding"].includes(s.stage));
+    $("sd-done-back").textContent = !phone && window.innerWidth >= 860 ? "Done" : "Back to Exchange";
     const wide = !phone && window.innerWidth >= 860;
     const revHome = (!$("sd-pay").hidden && wide) ? $("sd-side") : $("sd-main");
     if ($("sd-review").parentNode !== revHome) revHome.prepend($("sd-review"));
