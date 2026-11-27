@@ -2204,5 +2204,7 @@
   "Less than 0.001 ORN, fee included.": "수수료 포함 0.001 ORN 미만입니다.",
   "No payment needed.": "결제가 필요하지 않습니다.",
   "Send only SOL or USDC on Solana to this address.": "이 주소로는 Solana의 SOL 또는 USDC만 보내세요.",
-  "Your ORN address is linked to your profile, so your Solana address joins it there.": "ORN 주소가 프로필에 연결되어 있으므로 Solana 주소도 함께 추가됩니다."
+  "Your ORN address is linked to your profile, so your Solana address joins it there.": "ORN 주소가 프로필에 연결되어 있으므로 Solana 주소도 함께 추가됩니다.",
+  "Buy order refund": "매수 주문 환불",
+  "Swap leftovers": "스왑 잔액"
 }

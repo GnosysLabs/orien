@@ -2204,5 +2204,7 @@
   "Less than 0.001 ORN, fee included.": "Weniger als 0,001 ORN inklusive Gebühr.",
   "No payment needed.": "Keine Zahlung erforderlich.",
   "Send only SOL or USDC on Solana to this address.": "Sende an diese Adresse nur SOL oder USDC über Solana.",
-  "Your ORN address is linked to your profile, so your Solana address joins it there.": "Deine ORN-Adresse ist mit deinem Profil verknüpft, daher kommt deine Solana-Adresse dort hinzu."
+  "Your ORN address is linked to your profile, so your Solana address joins it there.": "Deine ORN-Adresse ist mit deinem Profil verknüpft, daher kommt deine Solana-Adresse dort hinzu.",
+  "Buy order refund": "Rückerstattung des Kaufauftrags",
+  "Swap leftovers": "Swap-Reste"
 }

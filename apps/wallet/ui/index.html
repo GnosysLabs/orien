@@ -5594,6 +5594,10 @@
     paintBalance();
   }
 
+  const SOL_PROGRAMS = {
+    "2HnMh1nAs5cShirEhk726KjBiQr4sxxMNv2qapjdYKN9": "Buy order refund",
+    "DAeXj31NAoSgno7SiFX7t4tWoMDBtpN9rn8c2X7WNtYE": "Swap leftovers",
+  };
   let lastHistoryHTML = "";
   function paintDevnetHistory() {
     const state = devnetAssets;
@@ -5613,13 +5617,14 @@
       }
       const direction = entry.sent ? "sent" : "received";
       const title = entry.pending === "send" ? "Sending" : entry.failed ? "Failed transaction" : entry.amount ? (entry.sent ? "Sent" : "Received") : "Solana transaction";
-      const subtitle = entry.peer || entry.signature;
+      // Orien's own Solana programs, by what their payments are.
+      const subtitle = SOL_PROGRAMS[entry.peer] || entry.peer || entry.signature;
       const icon = entry.amount ? ICON[direction] : '<img src="chains/solana.svg" width="16" height="16" alt="">';
       const amount = entry.amount ? `<span class="amt ${direction}">${entry.sent ? "−" : "+"}${esc(entry.amount)} ${esc(entry.asset)}</span>`
         : entry.pending === "send" ? "Pending" : entry.failed ? "" : entry.finalized ? "Finalized" : "Confirmed";
       return `<button type="button" class="tx" data-sol-tx="${esc(entry.signature)}">
         <span class="tx-icon ${entry.amount ? direction : ""}">${icon}</span>
-        <span class="tx-main"><span class="title">${title}</span><span class="sub" data-no-i18n>${esc(short(subtitle))}</span></span>
+        <span class="tx-main"><span class="title">${title}</span>${SOL_PROGRAMS[entry.peer] ? `<span class="sub">${esc(subtitle)}</span>` : `<span class="sub" data-no-i18n>${esc(short(subtitle))}</span>`}</span>
         <span class="tx-side">${amount}<span class="sub">${entry.time ? esc(relative(entry)) : ""}</span></span>
       </button>`;
     }).join("");

@@ -2204,5 +2204,7 @@
   "Less than 0.001 ORN, fee included.": "Ücret dahil 0,001 ORN’den az.",
   "No payment needed.": "Ödeme gerekmez.",
   "Send only SOL or USDC on Solana to this address.": "Bu adrese yalnızca Solana üzerinde SOL veya USDC gönder.",
-  "Your ORN address is linked to your profile, so your Solana address joins it there.": "ORN adresin profiline bağlı, bu yüzden Solana adresin de oraya eklenir."
+  "Your ORN address is linked to your profile, so your Solana address joins it there.": "ORN adresin profiline bağlı, bu yüzden Solana adresin de oraya eklenir.",
+  "Buy order refund": "Alış emri iadesi",
+  "Swap leftovers": "Takas artığı"
 }

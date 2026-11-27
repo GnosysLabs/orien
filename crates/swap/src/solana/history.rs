@@ -224,6 +224,12 @@ fn transfer(tx: &Value, owner: &str, mint: &str, accounts: &[String]) -> Option<
         }
         return Some(Movement::Token { units: token });
     }
+    // SOL a program paid back to this wallet, in a transaction someone else
+    // paid for: an Orien buy order's refund, a swap lock's leftovers. Shown
+    // as received from that program.
+    if let Some(returned) = returned_sol(tx, owner) {
+        return Some(returned);
+    }
     // Only label a simple System transfer as sent/received. Fees, rent changes
     // and arbitrary program calls should never appear as payments.
     let mut instructions = message["instructions"].as_array()?.iter().filter(|ix| {
@@ -253,6 +259,28 @@ fn transfer(tx: &Value, owner: &str, mint: &str, accounts: &[String]) -> Option<
         units,
         peer: peer.to_owned(),
     })
+}
+
+fn returned_sol(tx: &Value, owner: &str) -> Option<Movement> {
+    let message = &tx["transaction"]["message"];
+    let keys = message["accountKeys"].as_array()?;
+    let index = keys.iter().position(|k| k["pubkey"].as_str() == Some(owner))?;
+    if index == 0 {
+        return None;
+    }
+    let meta = &tx["meta"];
+    let change = i128::from(meta["postBalances"][index].as_u64()?) - i128::from(meta["preBalances"][index].as_u64()?);
+    if change <= 0 {
+        return None;
+    }
+    // Only a single program call that isn't the System Program's: a plain
+    // transfer is labelled as one below.
+    let mut calls = message["instructions"].as_array()?.iter().filter(|ix| ix["programId"].as_str() != Some("ComputeBudget111111111111111111111111111111"));
+    let program = calls.next()?["programId"].as_str()?;
+    if calls.next().is_some() || program == text(&SYSTEM_PROGRAM) {
+        return None;
+    }
+    Some(Movement::Sol { units: change, peer: program.to_owned() })
 }
 
 // A swap on Solana's main network, through any route: the wallet paid for
