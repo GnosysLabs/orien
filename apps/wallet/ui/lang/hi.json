@@ -2194,5 +2194,13 @@
   "Privacy": "गोपनीयता",
   "Profile details": "प्रोफ़ाइल विवरण",
   "Search wallets": "वॉलेट खोजें",
-  "Account": "खाता"
+  "Account": "खाता",
+  "Finish linking": "लिंक पूरा करें",
+  "ORN linked": "ORN लिंक है",
+  "Unlock only": "केवल अनलॉक करें",
+  "Unlock & link Solana": "अनलॉक करके Solana लिंक करें",
+  "Your ORN address is linked. You can also show your Solana Devnet address on the same public profile.": "आपका ORN पता लिंक है। आप इसी सार्वजनिक प्रोफ़ाइल पर अपना Solana Devnet पता भी दिखा सकते हैं।",
+  "Your ORN and Solana Devnet addresses and balances will be public on your profile.": "आपके ORN और Solana Devnet पते और उनके बैलेंस आपकी प्रोफ़ाइल पर सार्वजनिक होंगे।",
+  "Less than 0.001 ORN, fee included.": "शुल्क सहित 0.001 ORN से कम।",
+  "No payment needed.": "भुगतान की आवश्यकता नहीं है।"
 }

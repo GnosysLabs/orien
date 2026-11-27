@@ -2194,5 +2194,13 @@
   "Privacy": "Privasi",
   "Profile details": "Detail profil",
   "Search wallets": "Cari dompet",
-  "Account": "Akun"
+  "Account": "Akun",
+  "Finish linking": "Selesaikan penautan",
+  "ORN linked": "ORN tertaut",
+  "Unlock only": "Buka kunci saja",
+  "Unlock & link Solana": "Buka kunci dan tautkan Solana",
+  "Your ORN address is linked. You can also show your Solana Devnet address on the same public profile.": "Alamat ORN Anda sudah tertaut. Anda juga dapat menampilkan alamat Solana Devnet di profil publik yang sama.",
+  "Your ORN and Solana Devnet addresses and balances will be public on your profile.": "Alamat ORN dan Solana Devnet beserta saldonya akan terlihat di profil publik Anda.",
+  "Less than 0.001 ORN, fee included.": "Kurang dari 0,001 ORN termasuk biaya.",
+  "No payment needed.": "Tidak perlu membayar."
 }

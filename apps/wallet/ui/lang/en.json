@@ -1443,5 +1443,13 @@
   "Privacy": "Privacy",
   "Profile details": "Profile details",
   "Search wallets": "Search wallets",
-  "Account": "Account"
+  "Account": "Account",
+  "Finish linking": "Finish linking",
+  "ORN linked": "ORN linked",
+  "Unlock only": "Unlock only",
+  "Unlock & link Solana": "Unlock & link Solana",
+  "Your ORN address is linked. You can also show your Solana Devnet address on the same public profile.": "Your ORN address is linked. You can also show your Solana Devnet address on the same public profile.",
+  "Your ORN and Solana Devnet addresses and balances will be public on your profile.": "Your ORN and Solana Devnet addresses and balances will be public on your profile.",
+  "Less than 0.001 ORN, fee included.": "Less than 0.001 ORN, fee included.",
+  "No payment needed.": "No payment needed."
 }

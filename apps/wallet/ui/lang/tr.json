@@ -2194,5 +2194,13 @@
   "Privacy": "Gizlilik",
   "Profile details": "Profil bilgileri",
   "Search wallets": "Cüzdan ara",
-  "Account": "Hesap"
+  "Account": "Hesap",
+  "Finish linking": "Bağlamayı tamamla",
+  "ORN linked": "ORN bağlı",
+  "Unlock only": "Yalnızca kilidi aç",
+  "Unlock & link Solana": "Kilidi aç ve Solana’yı bağla",
+  "Your ORN address is linked. You can also show your Solana Devnet address on the same public profile.": "ORN adresin bağlı. Solana Devnet adresini de aynı herkese açık profilde gösterebilirsin.",
+  "Your ORN and Solana Devnet addresses and balances will be public on your profile.": "ORN ve Solana Devnet adreslerin ve bakiyeleri profilinde herkese açık olacak.",
+  "Less than 0.001 ORN, fee included.": "Ücret dahil 0,001 ORN’den az.",
+  "No payment needed.": "Ödeme gerekmez."
 }

@@ -2194,5 +2194,13 @@
   "Privacy": "Privacy",
   "Profile details": "Profielgegevens",
   "Search wallets": "Wallets zoeken",
-  "Account": "Account"
+  "Account": "Account",
+  "Finish linking": "Koppeling voltooien",
+  "ORN linked": "ORN gekoppeld",
+  "Unlock only": "Alleen ontgrendelen",
+  "Unlock & link Solana": "Ontgrendel en koppel Solana",
+  "Your ORN address is linked. You can also show your Solana Devnet address on the same public profile.": "Je ORN-adres is gekoppeld. Je kunt ook je Solana Devnet-adres op hetzelfde openbare profiel tonen.",
+  "Your ORN and Solana Devnet addresses and balances will be public on your profile.": "Je ORN- en Solana Devnet-adressen en hun saldi worden zichtbaar op je openbare profiel.",
+  "Less than 0.001 ORN, fee included.": "Minder dan 0,001 ORN inclusief kosten.",
+  "No payment needed.": "Geen betaling nodig."
 }

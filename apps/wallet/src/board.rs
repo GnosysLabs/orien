@@ -517,11 +517,16 @@ pub fn link_devnet_sol(dir: &Path, account: i64, orn: &str, password: Option<&st
         return Err("The open wallet changed.".into());
     }
     let key = solana::Keypair::from_secret(&wallet.solana_devnet_secret());
+    finish_devnet_link(dir, account, orn, &key)
+}
+
+pub(crate) fn finish_devnet_link(dir: &Path, account: i64, orn: &str, key: &orien_swap::solana::Keypair) -> Result<(), String> {
+    use orien_swap::solana;
     let mut link = json!({ "account": account, "orn": orn, "sol": solana::text(&key.pubkey()) });
     let challenge = call(dir, "POST", "/me/wallet/sol-devnet/challenge", Some(link.clone()))?;
     let mut nonce = [0; 32];
     hex::decode_to_slice(challenge["nonce"].as_str().unwrap_or(""), &mut nonce).map_err(|_| "Invalid wallet-link challenge.")?;
-    let signature = solana::profile::sign(&key, &base(), account, orn, &nonce);
+    let signature = solana::profile::sign(key, &base(), account, orn, &nonce);
     link["signature"] = json!(hex::encode(signature));
     call(dir, "POST", "/me/wallet/sol-devnet/confirm", Some(link))?;
     Ok(())

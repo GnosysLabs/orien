@@ -2194,5 +2194,13 @@
   "Privacy": "隐私",
   "Profile details": "个人资料",
   "Search wallets": "搜索钱包",
-  "Account": "账户"
+  "Account": "账户",
+  "Finish linking": "完成关联",
+  "ORN linked": "ORN 已关联",
+  "Unlock only": "仅解锁",
+  "Unlock & link Solana": "解锁并关联 Solana",
+  "Your ORN address is linked. You can also show your Solana Devnet address on the same public profile.": "你的 ORN 地址已关联。你也可以在同一公开个人资料中显示 Solana Devnet 地址。",
+  "Your ORN and Solana Devnet addresses and balances will be public on your profile.": "你的 ORN 和 Solana Devnet 地址及其余额将在个人资料中公开显示。",
+  "Less than 0.001 ORN, fee included.": "含手续费低于 0.001 ORN。",
+  "No payment needed.": "无需付款。"
 }

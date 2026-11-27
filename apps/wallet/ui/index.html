@@ -679,6 +679,8 @@
   #sol-unlock-form { display: grid; gap: 14px; }
   #sol-unlock-form .field, #sol-unlock-form .primary { margin: 0; }
   #sol-unlock-go { justify-self: center; width: fit-content; max-width: 100%; padding-inline: 28px; }
+  #sol-unlock-link { justify-self: center; }
+  #sol-link-note { text-align: center; margin: 3px 0 0; }
   #sol-unlock-error { margin: 0; font-size: 14px; }
   #home.asset-devnet :is(#vw-card, #recent, #view-all) { display: none; }
   #go-send:disabled { cursor: default; }
@@ -1404,27 +1406,12 @@
   .sync-card .sync-pw input { flex: 1; min-width: 0; border: 0; background: none; color: var(--ink); font: inherit; outline: none; }
   .sync-card .sync-go { align-self: flex-start; }
   .verify-card { margin-top: 22px; padding: 16px 18px; border: 1px solid var(--line); border-radius: 18px; background: var(--surface); }
-  .vf-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 12px 0; border-top: 1px solid var(--line); }
   .wallet-glyph { display: inline-block; width: 1.05em; height: 1.05em; flex: none; margin-inline-end: .32em; vertical-align: -.14em; }
   .wallet-glyph.orn { background: currentColor; -webkit-mask: url("mark.svg") center / contain no-repeat; mask: url("mark.svg") center / contain no-repeat; }
   .wallet-glyph.sol { background: currentColor; -webkit-mask: url("chains/solana.svg") center / 88% no-repeat; mask: url("chains/solana.svg") center / 88% no-repeat; }
-  .vf-pair { border-top: 1px solid var(--line); }
-  .vf-pair > .vf-row, .vf-pair > .vf-sol { position: relative; padding-inline-start: 17px; border: 0; }
-  .vf-pair > .vf-row::before, .vf-pair > .vf-sol::before {
-    content: ""; position: absolute; inset-inline-start: 2px; width: 7px; border-inline-start: 1px solid var(--faint); pointer-events: none;
-  }
-  .vf-pair > .vf-row::before { top: 23px; bottom: 0; border-top: 1px solid var(--faint); border-start-start-radius: 4px; }
-  .vf-pair > .vf-sol::before { top: 0; height: 17px; border-bottom: 1px solid var(--faint); border-end-start-radius: 4px; }
   .sl-wallet-pair { position: relative; display: inline-flex; flex-direction: column; align-items: flex-start; gap: 4px; padding-inline-start: 14px; }
   .sl-wallet-pair::before { content: ""; position: absolute; inset-inline-start: 1px; top: 24%; bottom: 24%; width: 6px; border: 1px solid var(--faint); border-inline-end: 0; border-radius: 4px 0 0 4px; }
-  .vf-sol { padding-bottom: 12px; }
-  .vf-sol .vf-row { border: 0; padding: 6px 0 0; }
-  .vf-sol .vf-name, .sol-profile-chip { display: inline-flex; align-items: center; gap: 7px; }
-  #vf-list { margin-top: 12px; }
-  .vf-name { font-weight: 500; }
-  .vf-wait { font-size: 12px; color: var(--faint); text-align: right; }
-  .vf-confirm { margin-top: 4px; padding-top: 12px; border-top: 1px solid var(--line); }
-  .vf-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 14px; }
+  .sol-profile-chip { display: inline-flex; align-items: center; gap: 7px; }
   .vc-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
   .vc-title { font-weight: 600; }
   .vc-sub { margin-top: 2px; font: 12px ui-monospace, "SF Mono", monospace; color: var(--faint); }
@@ -2058,8 +2045,6 @@
   #se-gate .pill { margin-top: 12px; }
   #se-gate .hint { margin-top: 12px; font-size: 12.5px; }
   /* Wallet verification status and actions. */
-  .vf-who { min-width: 0; }
-  .vf-acts { display: flex; align-items: center; gap: 6px; flex: none; }
   .steps { list-style: none; margin: 18px 0 0; padding: 0; }
   .steps li { position: relative; display: grid; grid-template-columns: 26px 1fr; gap: 12px; padding-bottom: 16px; }
   .steps li:not(:last-child)::before { content: ""; position: absolute; left: 12px; top: 28px; bottom: 4px; width: 1px; background: var(--line); }
@@ -3290,25 +3275,19 @@
   .pf-directory-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px; }
   #pf-wallet-search { width: min(100%, 22ch); padding: 8px 12px; background: var(--field); color: var(--ink); border-radius: 12px; border: 1px solid var(--line); font: inherit; font-size: 14px; }
   #pf-wallet-search:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
-  .pf-wallet-group { border-top: 1px solid var(--line); }
-  .pf-wallet-group summary { display: flex; align-items: center; gap: 12px; padding: 12px 2px; cursor: pointer; list-style: none; }
-  .pf-wallet-group summary::-webkit-details-marker { display: none; }
-  .pf-wallet-avatar { display: grid; place-items: center; flex: none; width: 34px; height: 34px; border-radius: 11px; background: var(--surface-hover); color: var(--dim); font-weight: 600; }
-  .pf-wallet-title { flex: 1; min-width: 0; font-weight: 600; overflow-wrap: anywhere; }
-  .pf-wallet-title small { display: block; margin-top: 3px; color: var(--faint); font: 12px ui-monospace, monospace; }
-  .pf-wallet-group[open] .pf-wallet-title small { display: none; }
-  #pf-verify:has(#pf-wallet-search:not([hidden])) #vf-list { max-height: max(260px, 48dvh); overflow: auto; overscroll-behavior-y: contain; }
-  #vf-list summary:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; border-radius: 8px; }
-  .pf-wallet-networks { display: inline-flex; align-items: center; gap: 6px; color: var(--dim); font-size: 12px; }
-  .pf-wallet-networks .wallet-glyph { margin: 0; }
-  .pf-wallet-group summary::after { content: ""; flex: none; width: 7px; height: 7px; margin: 0 4px; border: solid var(--dim); border-width: 0 1.5px 1.5px 0; transform: rotate(-45deg); }
-  .pf-wallet-group[open] summary::after { transform: rotate(45deg); }
-  .pf-wallet-body { margin: 0 0 13px; padding: 5px 14px; background: var(--field); border-radius: 12px; }
-  .pf-wallet-body > .vf-row, .pf-wallet-body > .vf-pair { border: 0; }
-  .pf-wallet-body .vf-name { display: flex; flex-wrap: wrap; align-items: center; gap: 5px; overflow-wrap: anywhere; }
-  .pf-wallet-body .vf-row > div:first-child { min-width: 0; }
-  #vf-confirm { padding: 14px; margin: 0 0 14px; background: var(--field); border: 1px solid var(--line); border-radius: 12px; }
-  #vf-confirm .vc-text { margin: 0; }
+  #pf-verify { background: transparent; border: 0; padding: 0; }
+  #vf-list { margin-top: 14px; display: grid; grid-template-columns: repeat(auto-fill,minmax(min(100%,270px),1fr)); gap: 12px; }
+  .pf-wallet-group { min-width: 0; display: grid; gap: 14px; align-content: start; padding: 16px; border: 1px solid var(--line); border-radius: 18px; background: var(--surface); }
+  .pf-wallet-head, .pf-wallet-chain, .pf-wallet-actions { display: flex; gap: 8px; align-items: center; }
+  .pf-wallet-avatar { flex: none; width: 34px; height: 34px; display: grid; place-items: center; border-radius: 11px; background: var(--surface-hover); }
+  .pf-wallet-title { min-width: 0; font-size: 16px; margin: 0; overflow-wrap: anywhere; line-height: 1.25; }
+  .pf-wallet-chain { justify-content: space-between; min-width: 0; font-size: 13px; line-height: 1.6; }
+  .pf-wallet-chain + .pf-wallet-chain { margin-top: 5px; }
+  .pf-wallet-chain code { font: 12px ui-monospace,monospace; color: var(--dim); overflow-wrap: anywhere; }
+  .pf-wallet-actions { flex-wrap: wrap; border-top: 1px solid var(--line); padding-top: 12px; }
+  .pf-wallet-state { flex: 1; color: var(--dim); font-size: 12px; }
+  .pf-wallet-state.linked { color: var(--accent); }
+  .pf-wallet-actions .pill { margin: 0; }
   #pf-panel-details { gap: 0; align-items: stretch; padding: clamp(14px, 2vw, 24px); border: 1px solid var(--line); border-radius: 18px; background: var(--surface); }
   #pf-panel-details > .pf-card { padding: 0; border: 0; background: transparent; }
   #pf-panel-details > .pf-card + .pf-card { margin-top: 20px; padding-top: 20px; border-top: 1px solid var(--line); }
@@ -4208,14 +4187,6 @@
           <p class="vc-text" id="vf-intro">Link a wallet to show it on your profile.</p>
           <div id="vf-list"></div>
           <p class="empty" id="pf-wallet-empty" role="status" hidden>No results</p>
-          <div class="vf-confirm" id="vf-confirm" hidden>
-            <p class="vc-text" id="vf-text"></p>
-            <div class="field" id="vf-pw-field" hidden>
-              <label for="vf-pw">Wallet password</label>
-              <div class="box plain"><input type="password" id="vf-pw" autocomplete="off"></div>
-            </div>
-            <div class="vf-actions"><button class="pill" id="vf-cancel">Cancel</button><button class="pill pearl" id="vf-go">Send and link</button></div>
-          </div>
         </div>
       </div>
     </section>
@@ -4932,6 +4903,8 @@
     </div>
     <p id="sol-unlock-error" role="alert" hidden></p>
     <button type="submit" class="primary pearl" id="sol-unlock-go">Unlock Solana</button>
+    <p class="vc-text" id="sol-link-note" hidden>Your ORN address is linked. You can also show your Solana Devnet address on the same public profile.</p>
+    <button type="submit" class="pill" id="sol-unlock-link" hidden>Unlock &amp; link Solana</button>
   </form>
 </dialog>
 <dialog id="sol-swap-dialog" aria-labelledby="sol-swap-title">
@@ -5639,6 +5612,7 @@
   $("solana-all").onclick = () => openSolanaExplorer("address", devnetAssets.address);
 
   const solUnlockDialog = $("sol-unlock-dialog");
+  let unlockOffer = null;
   function showSolUnlock() {
     if (!view || !devnetAssets.locked || walletAsset === "ORN" || $("home").hidden || solUnlockDialog.open) return;
     const biometric = !!view.biometric;
@@ -5646,10 +5620,22 @@
     $("asset-devnet-password").disabled = biometric;
     $("sol-unlock-error").hidden = true;
     $("sol-unlock-go").disabled = false;
+    const offer = {account: board.me?.id, orn: view.address, state: devnetAssets};
+    unlockOffer = offer;
+    $("sol-link-note").hidden = $("sol-unlock-link").hidden = true;
+    $("sol-unlock-link").disabled = false;
+    $("sol-unlock-go").textContent = "Unlock Solana";
     solUnlockDialog.showModal();
+    if (offer.account) invoke("board_wallet_states").then(states => {
+      if (unlockOffer !== offer || board.me?.id !== offer.account || view?.address !== offer.orn || !solUnlockDialog.open || offer.state !== devnetAssets || devnetAssets.pending) return;
+      if (states.some(p => p.address === offer.orn && p.verified && !p.solana_devnet)) {
+        $("sol-link-note").hidden = $("sol-unlock-link").hidden = false;
+        $("sol-unlock-go").textContent = "Unlock only";
+      }
+    }).catch(() => {});
     (biometric ? $("sol-unlock-go") : $("asset-devnet-password")).focus();
   }
-  async function loadDevnetAssets(unlock = false) {
+  async function loadDevnetAssets(unlock = false, offer = null) {
     if (!view || devnetAssets.pending || (devnetAssets.locked && !unlock)) return;
     const wallet = view;
     const state = devnetAssets;
@@ -5657,7 +5643,7 @@
     if (unlock) {
       $("asset-devnet-password").value = "";
       $("sol-unlock-error").hidden = true;
-      $("sol-unlock-go").disabled = true;
+      $("sol-unlock-link").disabled = $("sol-unlock-go").disabled = true;
     }
     state.pending = true;
     state.lastCheck = Date.now();
@@ -5667,6 +5653,10 @@
       if (!state.address) {
         if (unlock && wallet.biometric) await invoke("biometric_unlock");
         state.address = await invoke("solana_devnet_address", { walletAddress: wallet.address, password: password || null });
+      }
+      if (state !== devnetAssets || view?.address !== wallet.address) return;
+      if (offer && offer === unlockOffer && offer.account === board.me?.id && solUnlockDialog.open) {
+        await invoke("link_devnet_sol", {account:offer.account, orn:wallet.address, password:password || null});
       }
       if (state !== devnetAssets || view?.address !== wallet.address) return;
       state.locked = false;
@@ -5695,7 +5685,7 @@
       state.pending = false;
       if (state === devnetAssets && view?.address === wallet.address) {
         paintWalletAsset();
-        $("sol-unlock-go").disabled = false;
+        $("sol-unlock-link").disabled = $("sol-unlock-go").disabled = false;
         if (state.promptUnlock) {
           state.promptUnlock = false;
           showSolUnlock();
@@ -5870,10 +5860,11 @@
     event.preventDefault();
     dismissSolUnlock();
   };
-  solUnlockDialog.onclose = () => { $("asset-devnet-password").value = ""; };
+  solUnlockDialog.onclose = () => { if (!solUnlockDialog.open) unlockOffer = null; $("asset-devnet-password").value = ""; };
   $("sol-unlock-form").onsubmit = (event) => {
     event.preventDefault();
-    void loadDevnetAssets(true);
+    const link = event.submitter === $("sol-unlock-link") && !event.submitter.hidden;
+    void loadDevnetAssets(true, link ? unlockOffer : null);
   };
   $("asset-devnet-refresh").onclick = () => loadDevnetAssets();
   setInterval(refreshVisibleDevnet, DEVNET_REFRESH_MS);
@@ -10308,7 +10299,7 @@
     const open = view && view.address;
     exUnverified = !!open && !states.some((p) => (p.address || "").toLowerCase() === open && p.verified);
     $("ex-verify").hidden = exSide === "buy" || !exUnverified;
-    const busy = typeof vw !== "undefined" && vw.waiting === open;
+    const busy = profileLinkBusy.has(linkKey(board.me?.id, open));
     $("ex-verify-go").disabled = busy;
     $("ex-verify-go").textContent = busy ? "Linking… usually within a minute" : "Link this wallet";
     updateExReady();
@@ -10618,7 +10609,7 @@
     postUnverified = !!open && !states.some((p) => (p.address || "").toLowerCase() === open && p.verified);
     $("bp-verify").hidden = postSide !== "sell" || !postUnverified;
     // Sent and waiting for the network: said on the button, not offered again.
-    const busy = typeof vw !== "undefined" && vw.waiting === open;
+    const busy = profileLinkBusy.has(linkKey(board.me?.id, open));
     $("bp-verify-go").disabled = busy;
     $("bp-verify-go").textContent = busy ? "Linking… usually within a minute" : "Link this wallet";
     postReady();
@@ -10867,7 +10858,6 @@
 
   const BADGE = '<svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round"><path d="M3.85 8.62a4 4 0 0 1 4.78-4.77 4 4 0 0 1 6.74 0 4 4 0 0 1 4.78 4.78 4 4 0 0 1 0 6.74 4 4 0 0 1-4.77 4.78 4 4 0 0 1-6.75 0 4 4 0 0 1-4.78-4.77 4 4 0 0 1 0-6.76Z"/><path d="m16 9-5.5 5.5L8 12"/></svg>';
   const VERIFIED = `<span class="verified" title="This wallet proved it belongs to this profile">${BADGE} Verified</span>`;
-  const LINKED_WALLET = `<span class="verified">${BADGE} Linked</span>`;
   // ---- Orien Market ----
   const CATS = [["", "Everything"], ["design", "Design"], ["software", "Software"], ["teaching", "Teaching"], ["goods", "Goods"], ["other", "Other"]];
   const CAT_ICON = {
@@ -13764,10 +13754,7 @@
     $("pf-wallet-search").hidden = true;
     $("pf-wallet-empty").textContent = "Loading…";
     $("pf-wallet-empty").hidden = false;
-    $("pf-verify").append($("vf-confirm"));
     $("vf-list").replaceChildren();
-    $("vf-confirm").hidden = true;
-    $("vf-pw").value = "";
     paintProfileFace();
     $("pf-name").value = me.name || "";
     pfNameOk();
@@ -13783,201 +13770,64 @@
     $("pf-delete").hidden = false;
     show("profile");
   }
-  // Verifying: each wallet by choice, with one tiny payment from it to
-  // Orien Market. Only the open wallet can pay, so only it has a button.
-  let proof = null, states = [], verifying = null;
-  function solProfileRow(wallet, proof, account, currentSol) {
-    if (!proof?.verified || (!wallet.current && !proof.solana_devnet)) return "";
-    const linked = proof.solana_devnet;
-    const typed = !linked && view?.locked && !view.biometric;
-    const address = linked || (wallet.current && currentSol);
-    return `<form class="vf-sol" data-orn="${esc(wallet.address)}" data-account="${account}" data-sol="${esc(linked || "")}">
-      <div class="vf-row"><div><div class="vf-name"><span>${walletLabel(wallet.name, "SOL")}</span>${linked ? LINKED_WALLET : ""}</div><div class="vc-sub" title="${esc(address || "")}">${address ? esc(short(address)) : "—"}</div></div>
-      <button class="pill${linked ? "" : " pearl"}" type="submit">${linked ? "Unlink" : "Link"}</button></div>
-      ${typed ? '<div class="field"><label>Wallet password<div class="box plain"><input type="password" autocomplete="current-password" required></div></label></div>' : ""}
-      <div class="problem" role="alert" hidden></div></form>`;
+  const profileLinkBusy = new Set();
+  const linkKey = (account, address) => account + ":" + address;
+  let walletRender = 0;
+  function profileWalletCard(wallet, proof, account) {
+    const orn = wallet.address;
+    const sol = proof?.solana_devnet || wallet.solana_address || (wallet.current && devnetAssets.address);
+    const busy = profileLinkBusy.has(linkKey(account, orn));
+    const linked = !!proof?.solana_devnet && proof.verified;
+    const status = busy ? "Linking…" : linked ? "Linked" : proof?.verified ? "ORN linked" : "Not linked yet";
+    const action = wallet.path && !linked ? (proof?.verified ? "Finish linking" : "Link wallet") : "";
+    const search = [wallet.name, orn, sol || ""].join(" ").toLowerCase();
+    const network = (ticker, address) => `<div class="pf-wallet-chain"><span>${walletGlyph(ticker)}${ticker}</span><code data-no-i18n title="${esc(address || "")}">${address ? esc(short(address)) : "—"}</code></div>`;
+    return `<article class="pf-wallet-group" data-owner="${esc(orn)}" data-search="${esc(search)}">
+      <div class="pf-wallet-head"><span class="pf-wallet-avatar" aria-hidden="true">${esc(iconOf(orn) || Array.from(wallet.name)[0] || "◇")}</span><h4 class="pf-wallet-title" data-no-i18n>${esc(wallet.name)}</h4></div>
+      <div>${network("ORN", orn)}${network("SOL", sol)}</div>
+      <footer class="pf-wallet-actions"><span class="pf-wallet-state${linked ? " linked" : ""}" role="status">${status}</span>
+      ${!busy && proof ? '<button class="pill" data-unlink>Unlink</button>' : ""}
+      ${!busy && action ? `<button class="pill pearl" data-link>${action}</button>` : ""}</footer></article>`;
   }
-  $("vf-list").addEventListener("submit", async event => {
-    const form = event.target.closest(".vf-sol");
-    if (!form) return;
-    event.preventDefault();
-    const {orn, sol} = form.dataset;
-    const account = Number(form.dataset.account);
-    if (board.me?.id !== account || (!sol && view?.address !== orn)) { renderVerify(); return; }
-    const button = form.querySelector("button");
-    if (button.disabled) return;
-    const error = form.querySelector(".problem");
-    error.hidden = true;
-    button.disabled = true;
-    const input = form.querySelector("input");
-    const password = input?.value || null;
-    if (input) input.value = "";
+  async function renderVerify() {
+    const account = board.me?.id, render = ++walletRender;
+    $("pf-verify").hidden = !account;
+    if (!account) return;
     try {
-      if (sol) {
-        await invoke("market_call", {method: "DELETE", path: "/me/wallet/sol-devnet", body: {account, orn, sol}});
-      } else {
-        if (view.locked && view.biometric) await invoke("biometric_unlock");
-        await invoke("link_devnet_sol", {account, orn, password});
-      }
-      if (board.me?.id === account) await renderVerify();
-      feel("success");
-    } catch (e) {
-      error.textContent = String(e) === "password: wrong" ? "That is not this wallet’s password." : String(e);
-      error.hidden = false;
-    } finally { button.disabled = false; }
-  });
-  async function renderVerify(note) {
-    const card = $("pf-verify");
-    card.hidden = !board.me;
-    if (card.hidden) return;
-    const profileId = board.me.id;
-    let fresh;
-    try { fresh = (await invoke("board_wallet_states")) || []; }
-    catch (error) {
-      if (board.me?.id === profileId) {
-        $("pf-wallet-empty").hidden = true;
-        problem("pf-problem", error);
-      }
-      return;
+      const proofs = await invoke("board_wallet_states") || [];
+      if (account !== board.me?.id || render !== walletRender) return;
+      const byAddress = new Map(proofs.map(p => [p.address, p]));
+      const rows = [...walletList].sort((a,b) => Number(b.current) - Number(a.current));
+      const here = new Set(rows.map(w => w.address));
+      for (const p of proofs) if (!here.has(p.address)) rows.push({address:p.address, name:p.name || "Wallet"});
+      $("pf-wallet-count").textContent = rows.length;
+      $("pf-wallet-count").hidden = false;
+      $("pf-wallet-search").hidden = rows.length < 6;
+      if ($("pf-wallet-search").hidden) $("pf-wallet-search").value = "";
+      $("vf-list").innerHTML = rows.map(w => profileWalletCard(w, byAddress.get(w.address), account)).join("");
+      filterProfileWallets();
+    } catch (err) {
+      if (board.me?.id === account && render === walletRender) { $("pf-wallet-empty").hidden = true; problem("pf-problem", err); }
     }
-    if (board.me?.id !== profileId) return;
-    const owner = view?.address;
-    let currentSol = devnetAssets.address;
-    if (owner && !currentSol && fresh.some(p => p.address === owner && p.verified && !p.solana_devnet)) {
-      currentSol = await invoke("solana_devnet_address", {walletAddress: owner, password: null}).catch(() => null);
-    }
-    if (board.me?.id !== profileId || view?.address !== owner) return;
-    states = fresh;
-    const byAddress = new Map(states.map(p => [(p.address || "").toLowerCase(), p]));
-    // Every wallet: this app's, and any the profile has from other devices.
-    const rows = walletList.map((w) => ({ address: w.address, name: w.name, here: true, current: w.current }));
-    const local = new Set(rows.map(r => r.address));
-    for (const [address, p] of byAddress) {
-      if (address && !local.has(address)) rows.push({ address, name: p.name || "Wallet", here: false, current: false });
-    }
-    rows.sort((a, b) => Number(b.current) - Number(a.current));
-    const list = $("vf-list");
-    const expanded = new Set(Array.from(list.querySelectorAll("details[open]"), group => group.dataset.owner));
-    const initial = !list.childElementCount;
-    card.append($("vf-confirm"));
-    $("pf-wallet-count").textContent = rows.length;
-    $("pf-wallet-count").hidden = false;
-    $("pf-wallet-search").hidden = rows.length < 6;
-    if ($("pf-wallet-search").hidden) $("pf-wallet-search").value = "";
-    $("vf-intro").hidden = states.some(p => p.verified);
-    $("vf-list").innerHTML = rows.map(r => {
-      const st = byAddress.get(r.address);
-      const verified = !!(st && st.verified), waiting = !!(st && !st.verified);
-      // While one is being verified (confirming below, or sent and waiting)
-      // its Verify button gives way to where it stands.
-      const busy = verifying === r.address;
-      const status = verified ? "" : waiting ? " · Waiting" : " · Not linked yet";
-      const action = verified ? ""
-        : busy ? `<span class="vf-wait">${proof ? "Confirm below" : "Linking…"}</span>`
-        : r.current ? `<button class="pill pearl" data-verify="${r.address}">Link</button>`
-        : r.here ? '<span class="vf-wait">Open it to link</span>' : "";
-      const unlink = st ? `<button type="button" class="pill" data-unlink="${esc(r.address)}">Unlink</button>` : "";
-      const ornRow = `<div class="vf-row"><div class="vf-who"><div class="vf-name">${walletLabel(r.name)}${verified ? " " + LINKED_WALLET : ""}</div><div class="vc-sub">${short(r.address)}${status}</div></div><div class="vf-acts">${action}${unlink}</div></div>`;
-      const solRow = solProfileRow(r, st, profileId, currentSol);
-      const networks = verified ? walletGlyph("ORN") + (st.solana_devnet ? walletGlyph("SOL") : "") : "";
-      const summaryState = networks || (waiting ? "Waiting" : "Not linked yet");
-      const open = expanded.has(r.address) || (initial && r.current) || verifying === r.address;
-      const search = [r.name, r.address, st?.solana_devnet || (r.current ? currentSol : "")].join(" ").toLowerCase();
-      const avatar = iconOf(r.address) || Array.from(r.name || "W")[0];
-      return `<details class="pf-wallet-group" data-owner="${esc(r.address)}" data-search="${esc(search)}"${open ? " open" : ""}>
-        <summary><span class="pf-wallet-avatar" aria-hidden="true">${esc(avatar)}</span><span class="pf-wallet-title" data-no-i18n>${esc(r.name)}<small>${esc(short(r.address))}</small></span><span class="pf-wallet-networks">${summaryState}</span></summary>
-        <div class="pf-wallet-body">${solRow ? `<div class="vf-pair">${ornRow}${solRow}</div>` : ornRow}</div></details>`;
-    }).join("");
-    filterProfileWallets();
-    const activeGroup = Array.from(list.children).find(group => group.dataset.owner === verifying);
-    if (activeGroup && note) activeGroup.append($("vf-confirm"));
-    for (const button of $("vf-list").querySelectorAll("[data-unlink]")) button.onclick = async () => {
-      if (button.disabled || board.me?.id !== profileId) return;
-      button.disabled = true;
-      $("pf-problem").hidden = true;
-      try {
-        await invoke("board_wallet_remove", {address: button.dataset.unlink});
-        const me = await invoke("board_me");
-        if (board.me?.id === profileId && me?.id === profileId) {
-          board.me = me;
-          await renderVerify();
-        }
-      } catch (e) {
-        if (board.me?.id === profileId) problem("pf-problem", e);
-      } finally { button.disabled = false; }
-    };
-    for (const b of $("vf-list").querySelectorAll("[data-verify]")) b.onclick = () => startVerify(b.dataset.verify, b);
-    if (!note) { $("vf-confirm").hidden = true; proof = null; verifying = null; }
-    else { $("vf-confirm").hidden = false; $("vf-text").textContent = note; $("vf-pw-field").hidden = true; $("vf-go").hidden = true; }
   }
-  async function startVerify(address, button) {
-    button.disabled = true;
-    $("pf-problem").hidden = true;
+  $("vf-list").onclick = async event => {
+    const button = event.target.closest("button");
+    if (!button || button.disabled) return;
+    const address = button.closest("[data-owner]").dataset.owner;
     const account = board.me?.id;
-    try {
-      const next = await invoke("board_verify", { address });
-      if (!button.isConnected || board.me?.id !== account || view?.address !== address) return;
-      proof = next;
-    }
-    catch (e) { button.disabled = false; problem("pf-problem", e); return; }
-    verifying = address;
-    button.closest(".pf-wallet-group").append($("vf-confirm"));
-    button.outerHTML = '<span class="vf-wait">Confirm below</span>';
-    // Plainly, before anything is sent: what verifying means, and the amount.
-    $("vf-text").textContent = `Linking makes this wallet public on your profile: everyone will see it's yours, including its balance. It sends ${proof.orn} ORN from this wallet to Orien Network: less than 0.001 ORN, fee included.`;
-    $("vf-pw-field").hidden = !(view && view.locked && !view.biometric);
-    $("vf-go").hidden = false;
-    $("vf-go").disabled = false;
-    $("vf-go").textContent = `Send ${proof.orn} ORN and link`;
-    $("vf-confirm").hidden = false;
-    if (!$("vf-pw-field").hidden) $("vf-pw").focus();
-  }
-  $("vf-cancel").onclick = () => renderVerify();
-  $("vf-go").onclick = async () => {
-    if (!proof || !view || (proof.address || "").toLowerCase() !== view.address) { renderVerify(); return; }
-    $("vf-go").disabled = true;
+    if (!account) return;
+    if (button.hasAttribute("data-link")) { quickVerify(address); return; }
+    button.disabled = true;
     $("pf-problem").hidden = true;
-    const address = view.address;
     try {
-      $("vf-go").innerHTML = '<span class="spinner"></span>Sending';
-      const password = $("vf-pw-field").hidden ? null : $("vf-pw").value;
-      if (!password && view.locked && view.biometric) await invoke("biometric_unlock");
-      const sent = await invoke("send_payment", { to: proof.to, amount: proof.orn, password });
-      $("vf-pw").value = "";
-      if (sent && sent.earlier) {
-        $("vf-go").textContent = `Send ${proof.orn} ORN and link`;
-        $("vf-go").disabled = false;
-        $("vf-text").textContent = "An earlier payment from this wallet had to finish first, so nothing was sent for linking yet. Tap again to send it.";
-        return;
+      await invoke("board_wallet_remove", {address, account});
+      const me = await invoke("board_me");
+      if (board.me?.id === account && me?.id === account) {
+        board.me = me; renderBoardBar(); await renderVerify(); feel("success");
       }
-      refresh();
-      proof = null;
-      await renderVerify("Sent. Linking, usually within a minute.");
-      // The market sees the payment a few seconds after it's final.
-      for (let i = 0; i < 36; i++) {
-        await new Promise((r) => setTimeout(r, 5000));
-        let done = false;
-        try {
-          const now = (await invoke("board_wallet_states")) || [];
-          done = now.some((p) => (p.address || "").toLowerCase() === address && p.verified);
-        } catch {}
-        if (done) {
-          board.me = await invoke("board_me");
-          renderBoardBar();
-          await renderVerify();
-          feel("success");
-          return;
-        }
-      }
-      renderVerify("Sent. It's taking longer than usual; check back here in a few minutes.");
-    } catch (e) {
-      if (proof) $("vf-go").textContent = `Send ${proof.orn} ORN and link`;
-      $("vf-go").disabled = false;
-      problem("pf-problem", e);
-    }
+    } catch (err) { if (board.me?.id === account) problem("pf-problem", err); }
+    finally { button.disabled = false; }
   };
-  $("vf-pw").onkeydown = (e) => { if (e.key === "Enter") $("vf-go").click(); };
-
 
   // ---- Home in a big window: mining and the group chat beside the wallet.
   const homeWide = () => !phone && wide.matches && !$("home").hidden;
@@ -14089,7 +13939,7 @@
   // ---- Verifying the open wallet in one tap, from Home or wherever a
   // verified wallet is asked for. It still says plainly what it does
   // before sending: the wallet becomes publicly yours, for a tiny payment.
-  const vw = { proof: null, waiting: null, short: false };
+  const vw = { intent: null, short: false };
   const vwName = () => ((walletList.find((w) => w.address === (view && view.address)) || {}).name) || "this wallet";
   async function paintVerifyCard() {
     const card = $("vw-card");
@@ -14099,8 +13949,8 @@
     let states = [];
     try { states = (await invoke("board_wallet_states")) || []; } catch { card.hidden = true; return; }
     const st = states.find((p) => (p.address || "").toLowerCase() === view.address);
-    if (st && st.verified) { card.hidden = true; if (vw.waiting === view.address) vw.waiting = null; return; }
-    const waiting = vw.waiting === view.address || !!st;
+    if (st && st.verified) { card.hidden = true; return; }
+    const waiting = profileLinkBusy.has(linkKey(board.me.id, view.address));
     // Only until the account has a verified wallet (more can be added from
     // the profile), and only when this one holds enough to pay for it.
     const anyVerified = states.some((p) => p.verified);
@@ -14111,34 +13961,50 @@
     $("vw-go").hidden = waiting;
     card.hidden = false;
   }
-  function vwClose() { const v = $("vw-veil"); v.classList.remove("on"); setTimeout(() => { v.hidden = true; }, 200); $("vw-pw").value = ""; }
-  async function quickVerify() {
-    if (!view || !view.address) return;
-    if (!board.me) return;
-    const typed = !!(view.locked && !view.biometric);
+  function vwClose() {
+    vw.intent = null;
+    $("vw-veil").classList.remove("on");
+    setTimeout(() => { if (!vw.intent) $("vw-veil").hidden = true; }, 200);
+    $("vw-pw").value = "";
+  }
+  async function quickVerify(address = view?.address) {
+    const wallet = walletList.find(w => w.address === address);
+    if (!board.me || !wallet || profileLinkBusy.has(linkKey(board.me.id, address))) return;
+    const intent = {account: board.me.id, path: wallet.path, orn: address};
+    vw.intent = intent;
+    vw.short = false;
+    $("vw-pw").value = "";
     $("vw-problem").hidden = true;
-    $("vw-title").textContent = `Link ${vwName()}`;
+    $("vw-title").textContent = `Link ${wallet.name}`;
     $("vw-say").textContent = "Getting it ready…";
-    $("vw-pw-box").hidden = !typed;
+    $("vw-pw-box").hidden = true;
     $("vw-yes").disabled = true;
     $("vw-yes").hidden = false;
-    $("vw-yes").textContent = "Link";
+    $("vw-yes").textContent = "Link wallet";
     $("vw-no").textContent = "Cancel";
-    vw.short = false;
-    const veil = $("vw-veil");
-    if (veil.hidden) { veil.hidden = false; requestAnimationFrame(() => veil.classList.add("on")); }
-    // Too little ORN to pay for it: said first, with where to get some,
-    // rather than a failed send.
-    if (Number(String(view.most || "0").replace(/,/g, "")) < 0.001) { vwShort(); return; }
-    try { vw.proof = await invoke("board_verify", { address: view.address }); }
-    catch (e) { $("vw-say").textContent = ""; problem("vw-problem", e); return; }
-    $("vw-say").textContent = `This ties ${vwName()} to your name publicly: everyone will see it's yours, including its balance. It sends ${vw.proof.orn} ORN to Orien Network, less than 0.001 ORN with the fee.`;
-    $("vw-yes").textContent = view.biometric && !typed ? `Link with ${bio}` : `Send ${vw.proof.orn} ORN and link`;
-    $("vw-yes").disabled = false;
-    if (typed) $("vw-pw").focus();
+    $("vw-veil").hidden = false;
+    requestAnimationFrame(() => { if (vw.intent === intent) $("vw-veil").classList.add("on"); });
+    try {
+      const q = await invoke("profile_link_quote", intent);
+      if (vw.intent !== intent || board.me?.id !== intent.account) return;
+      intent.quote = q;
+      if (q.linked) { vwClose(); if (!$("profile").hidden) renderVerify(); return; }
+      if (q.payment && address === view?.address && Number(String(view.most ?? "NaN").replace(/,/g,"")) < Number(q.payment)) { vwShort(); return; }
+      $("vw-say").replaceChildren();
+      const privacy = document.createElement("span"), fee = document.createElement("span");
+      privacy.textContent = "Your ORN and Solana Devnet addresses and balances will be public on your profile.";
+      fee.textContent = q.payment ? "Less than 0.001 ORN, fee included." : "No payment needed.";
+      $("vw-say").append(privacy, document.createTextNode(" "), fee);
+      $("vw-yes").textContent = q.payment ? `Send ${q.payment} ORN and link` : "Finish linking";
+      $("vw-pw-box").hidden = !(q.locked && !q.biometric);
+      $("vw-yes").disabled = false;
+      if (!$("vw-pw-box").hidden) $("vw-pw").focus();
+    } catch (e) {
+      if (vw.intent === intent) { $("vw-say").textContent = ""; problem("vw-problem", e); }
+    }
   }
   function vwShort() {
-    vw.short = true; vw.proof = null;
+    vw.short = true;
     $("vw-pw-box").hidden = true;
     $("vw-say").textContent = `Linking sends less than 0.001 ORN from ${vwName()}, and it doesn't hold that yet. `
       + (phone ? "Mine for an hour in Orien Wallet on a computer, or buy a little at orien.network." : "Mine for an hour from the Mine screen, or buy a little on Swap.");
@@ -14147,7 +14013,7 @@
     $("vw-yes").textContent = "Open Mine";
     $("vw-no").textContent = phone ? "Close" : "Not now";
   }
-  $("vw-go").onclick = quickVerify;
+  $("vw-go").onclick = () => quickVerify();
   $("vw-x").onclick = () => { if (board.me) localStorage.setItem(`verify-card-closed:${board.me.id}`, "1"); $("vw-card").hidden = true; };
   $("vw-no").onclick = vwClose;
   $("vw-veil").addEventListener("click", (e) => { if (e.target.id === "vw-veil") vwClose(); });
@@ -14155,47 +14021,42 @@
   $("vw-pw").onkeydown = (e) => { if (e.key === "Enter") $("vw-yes").click(); };
   $("vw-yes").onclick = async () => {
     if (vw.short) { vwClose(); $("go-mine").onclick(); return; }
-    const proof = vw.proof;
-    if (!proof || !view || (proof.address || "").toLowerCase() !== view.address) { vwClose(); return; }
-    const address = view.address, label = $("vw-yes").textContent;
+    const intent = vw.intent, quote = intent?.quote;
+    if (!quote || board.me?.id !== intent.account || $("vw-yes").disabled) return;
+    const key = linkKey(intent.account, intent.orn);
+    if (profileLinkBusy.has(key)) return;
+    profileLinkBusy.add(key);
+    if (!$("profile").hidden) renderVerify();
     $("vw-yes").disabled = true;
     $("vw-problem").hidden = true;
+    $("vw-yes").textContent = "Linking…";
+    const password = $("vw-pw-box").hidden ? null : $("vw-pw").value;
+    $("vw-pw").value = "";
     try {
-      $("vw-yes").innerHTML = '<span class="spinner"></span>Sending';
-      const password = $("vw-pw-box").hidden ? null : $("vw-pw").value;
-      if (!password && view.locked && view.biometric) await invoke("biometric_unlock");
-      const sent = await invoke("send_payment", { to: proof.to, amount: proof.orn, password });
-      if (sent && sent.earlier) {
-        $("vw-yes").textContent = label; $("vw-yes").disabled = false;
-        $("vw-say").textContent = "An earlier payment from this wallet had to finish first, so nothing was sent for linking yet. Tap again to send it.";
-        return;
-      }
-      vw.proof = null; vw.waiting = address;
-      vwClose();
-      if (!$("bp-verify").hidden) checkPostWallet();
-      feel("success");
-      refresh();
-      paintVerifyCard();
-    } catch (e) {
-      if (/not enough|insufficient|too little|balance/i.test(String(e))) { vwShort(); return; }
-      $("vw-yes").textContent = label; $("vw-yes").disabled = false; problem("vw-problem", e); return;
-    }
-    // The network sees the payment a few seconds after it's final.
-    for (let i = 0; i < 36; i++) {
-      await new Promise((r) => setTimeout(r, 5000));
-      let done = false;
-      try { done = ((await invoke("board_wallet_states")) || []).some((p) => (p.address || "").toLowerCase() === address && p.verified); } catch {}
-      if (!done) continue;
-      vw.waiting = null;
-      try { board.me = await invoke("board_me"); } catch {}
-      renderBoardBar();
-      paintVerifyCard();
+      if (quote.biometric && quote.locked) await invoke("biometric_unlock", {path:intent.path});
+      if (vw.intent !== intent || board.me?.id !== intent.account) return;
+      $("vw-pw-box").hidden = true;
+      $("vw-no").textContent = "Close";
+      await invoke("profile_link_confirm", {account:intent.account, orn:intent.orn, path:intent.path, payment:quote.payment, to:quote.to, password});
+      if (board.me?.id !== intent.account) return;
+      if (vw.intent === intent) vwClose();
+      const me = await invoke("board_me");
+      if (me?.id !== intent.account || board.me?.id !== intent.account) return;
+      board.me = me; renderBoardBar(); refresh();
       if (cm.you) { cm.you.verified = true; cmPaintYou(); }
       if (room.you) { room.you.verified = true; roomGate(); }
-      if (!$("bp-verify").hidden) checkPostWallet();
-      if (!$("profile").hidden) renderVerify();
       feel("success");
-      return;
+    } catch (err) {
+      if (vw.intent === intent) {
+        $("vw-yes").hidden = true; $("vw-no").textContent = "Close"; problem("vw-problem", err);
+      } else if (board.me?.id === intent.account && !$("profile").hidden) problem("pf-problem", err);
+    } finally {
+      profileLinkBusy.delete(key);
+      if (board.me?.id === intent.account) {
+        paintVerifyCard();
+        if (!$("profile").hidden) renderVerify();
+        if (!$("bp-verify").hidden) checkPostWallet();
+      }
     }
   };
   // Your picture: a menu to see your profile as others do, edit it, or

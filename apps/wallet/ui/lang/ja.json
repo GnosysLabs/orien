@@ -2194,5 +2194,13 @@
   "Privacy": "プライバシー",
   "Profile details": "プロフィール情報",
   "Search wallets": "ウォレットを検索",
-  "Account": "アカウント"
+  "Account": "アカウント",
+  "Finish linking": "リンクを完了",
+  "ORN linked": "ORN はリンク済み",
+  "Unlock only": "ロック解除のみ",
+  "Unlock & link Solana": "ロックを解除して Solana をリンク",
+  "Your ORN address is linked. You can also show your Solana Devnet address on the same public profile.": "ORN アドレスはリンク済みです。同じ公開プロフィールに Solana Devnet のアドレスも表示できます。",
+  "Your ORN and Solana Devnet addresses and balances will be public on your profile.": "ORN と Solana Devnet のアドレスと残高がプロフィールで公開されます。",
+  "Less than 0.001 ORN, fee included.": "手数料込みで 0.001 ORN 未満です。",
+  "No payment needed.": "支払いは不要です。"
 }

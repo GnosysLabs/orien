@@ -2194,5 +2194,13 @@
   "Privacy": "Privacidad",
   "Profile details": "Datos del perfil",
   "Search wallets": "Buscar billeteras",
-  "Account": "Cuenta"
+  "Account": "Cuenta",
+  "Finish linking": "Completar vinculación",
+  "ORN linked": "ORN vinculada",
+  "Unlock only": "Solo desbloquear",
+  "Unlock & link Solana": "Desbloquear y vincular Solana",
+  "Your ORN address is linked. You can also show your Solana Devnet address on the same public profile.": "Tu dirección ORN está vinculada. También puedes mostrar tu dirección de Solana Devnet en el mismo perfil público.",
+  "Your ORN and Solana Devnet addresses and balances will be public on your profile.": "Tus direcciones de ORN y Solana Devnet y sus saldos serán públicos en tu perfil.",
+  "Less than 0.001 ORN, fee included.": "Menos de 0,001 ORN, comisión incluida.",
+  "No payment needed.": "No se requiere ningún pago."
 }

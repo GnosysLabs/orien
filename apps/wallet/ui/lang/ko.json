@@ -2194,5 +2194,13 @@
   "Privacy": "개인정보",
   "Profile details": "프로필 정보",
   "Search wallets": "지갑 검색",
-  "Account": "계정"
+  "Account": "계정",
+  "Finish linking": "연결 완료",
+  "ORN linked": "ORN 연결됨",
+  "Unlock only": "잠금만 해제",
+  "Unlock & link Solana": "잠금 해제 후 Solana 연결",
+  "Your ORN address is linked. You can also show your Solana Devnet address on the same public profile.": "ORN 주소가 연결되어 있습니다. 같은 공개 프로필에 Solana Devnet 주소도 표시할 수 있습니다.",
+  "Your ORN and Solana Devnet addresses and balances will be public on your profile.": "ORN 및 Solana Devnet 주소와 잔액이 프로필에 공개됩니다.",
+  "Less than 0.001 ORN, fee included.": "수수료 포함 0.001 ORN 미만입니다.",
+  "No payment needed.": "결제가 필요하지 않습니다."
 }
