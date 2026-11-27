@@ -10834,18 +10834,22 @@
     }
     updateExReady();
   }
+  // The label is written only when it changes: rewriting a button's text
+  // while it's being pressed (leaving the SOL box repaints this) makes
+  // WebKit, the engine Orien Wallet's window uses, drop that click.
+  function setExGo(label) { const go = $("ex-go"); if (go.textContent !== label) go.textContent = label; }
   function updateExReady() {
     const go = $("ex-go");
     if (exBusy) { go.disabled = true; return; }
     if (!board.me) {
       go.disabled = false;
-      go.textContent = "Sign in to trade";
+      setExGo("Sign in to trade");
       return;
     }
     const buy = exSide === "buy";
-    go.textContent = view && view.biometric
+    setExGo(view && view.biometric
       ? (buy ? `Buy ORN with ${bio}` : `Sell ORN with ${bio}`)
-      : (buy ? "Place Buy Order" : "Place Sell Order");
+      : (buy ? "Place Buy Order" : "Place Sell Order"));
     const orn = parseFloat($("ex-orn").value);
     const sol = parseFloat($("ex-sol").value);
     const needVer = !buy && exUnverified;
