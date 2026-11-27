@@ -427,6 +427,7 @@
     50% { transform: scale(1.05); opacity: 1; box-shadow: 0 0 9px 1px color-mix(in srgb, var(--bad) 55%, transparent); }
   }
   @media (prefers-reduced-motion: reduce) { .hs-dot { animation: none !important; } }
+  body.restart-motion *, body.restart-motion *::before, body.restart-motion *::after { animation: none !important; }
   /* The dot sits centred under its label: the cell takes the label's width. */
   .hs-figs > div:has(> b .hs-dot) { justify-self: start; width: fit-content; max-width: 100%; text-align: center; }
   .hs-figs b:has(.hs-dot) { overflow: visible; }
@@ -5629,6 +5630,13 @@
     new MutationObserver(align).observe(document.body, { childList: true, subtree: true, attributes: true, attributeFilter: ["class", "hidden"] });
     requestAnimationFrame(align);
   }
+  // Linux: a page loaded while its window was still hidden (opened at
+  // login) never starts its animations, so they start again once it shows.
+  window.__TAURI__?.event.listen("window-shown", () => {
+    document.body.classList.add("restart-motion");
+    void document.body.offsetWidth;
+    requestAnimationFrame(() => document.body.classList.remove("restart-motion"));
+  }).catch(() => {});
   // A screen scrolled down: its Back and name turn into a pill at the top.
   document.addEventListener("scroll", (e) => {
     const screen = e.target;

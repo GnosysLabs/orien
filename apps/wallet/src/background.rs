@@ -94,7 +94,20 @@ fn bring_forward(app: &AppHandle) {
         let _ = window.unminimize();
         let _ = window.show();
         let _ = window.set_focus();
+        shown(&window);
     }
+}
+
+/// On Linux, a page that loaded in a window still hidden (opened at login)
+/// never starts its animations: the page starts them again once it shows.
+fn shown(window: &tauri::WebviewWindow) {
+    #[cfg(target_os = "linux")]
+    {
+        use tauri::Emitter;
+        let _ = window.emit("window-shown", ());
+    }
+    #[cfg(not(target_os = "linux"))]
+    let _ = window;
 }
 
 /// A launch shows the window once the page has drawn itself in the person's
@@ -279,6 +292,7 @@ pub fn setup(app: &AppHandle) -> tauri::Result<()> {
         Some("minimized") => {
             if let Some(window) = app.get_webview_window("main") {
                 let _ = window.show();
+                shown(&window);
                 let _ = window.minimize();
             }
             return Ok(());
@@ -286,6 +300,7 @@ pub fn setup(app: &AppHandle) -> tauri::Result<()> {
         Some("behind") | Some("hidden") => {
             if let Some(window) = app.get_webview_window("main") {
                 let _ = window.show();
+                shown(&window);
             }
             return Ok(());
         }
