@@ -218,6 +218,8 @@ pub fn me(dir: &Path) -> Result<Option<Value>, String> {
                 // New lines under the website's bell: replies, reactions,
                 // the network's posts about them, messages.
                 "notices": me["notices"],
+                // How far they've read the group chat, on any device.
+                "room_read": me["room_read"],
                 // Their own listings, open first.
                 "listings": me["listings"],
                 "email": load(dir).email,

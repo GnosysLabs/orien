@@ -13630,7 +13630,14 @@
   const BAN_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M4.929 4.929 19.07 19.071"/></svg>';
   const UNBAN_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>';
   const BIN_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>';
-  const roomRead = () => Number(localStorage.getItem("room-read") || 0);
+  // How far the group chat has been read: on this device, or on any of the
+  // account's devices (kept by the server), whichever is further.
+  const roomRead = () => Math.max(Number(localStorage.getItem("room-read") || 0), Number(board.me?.room_read || 0));
+  function setRoomRead(id) {
+    if (!(id > roomRead())) return;
+    localStorage.setItem("room-read", String(id));
+    if (board.me) { board.me.room_read = id; mk("POST", "/room/read", { id }).catch(() => {}); }
+  }
   var roomNew = false;
   // Muted: the group chat puts no dot on Messages; it still shows its news
   // in Messages itself.
@@ -13651,7 +13658,7 @@
     roomDot();
     if (!$("inbox").hidden) paintInbox();
   };
-  function roomMarkRead() { if (room.newest > roomRead()) localStorage.setItem("room-read", String(room.newest)); if (typeof roomDot === "function") roomDot(); }
+  function roomMarkRead() { setRoomRead(room.newest); if (typeof roomDot === "function") roomDot(); }
   const roomText = (m) => m.body || ((m.pictures || []).length ? "Sent a picture" : m.gif ? "Sent a GIF" : "");
   function roomRow() {
     const m = room.last, muted = roomMuted(), unread = !muted && m && m.id > roomRead() && !(chat.room && !$("chat").hidden);
@@ -13675,7 +13682,7 @@
   }
   function roomDot() {
     const m = room.last, open = chat.room && !$("chat").hidden;
-    if (m && m.mine && m.id > roomRead()) localStorage.setItem("room-read", String(m.id));
+    if (m && m.mine) setRoomRead(m.id);
     roomNew = !roomMuted() && !!(m && m.id > roomRead() && !open);
     paintUnread();
   }
@@ -14123,7 +14130,7 @@
   // Live: an open chat every 4 seconds, the list every 10, the unread dot every 30.
   setInterval(() => { if (!$("chat").hidden && chat.id && !chat.ai) chat.room ? roomPoll() : refreshChat(); }, 4000);
   setInterval(() => { if (!$("inbox").hidden) loadInbox(); }, 10000);
-  setInterval(() => { if (board.me) invoke("board_me").then((me) => { board.me = me; paintUnread(); if (me && me.unread) marketNews(); noticeNews(); }).catch(() => {}); }, 20000);
+  setInterval(() => { if (board.me) invoke("board_me").then((me) => { board.me = me; paintUnread(); roomDot(); if (me && me.unread) marketNews(); noticeNews(); }).catch(() => {}); }, 20000);
   // A notification for each new Market message, on computers, as for ORN
   // arriving. What's been told is kept, so nothing is told twice; the first
   // look only learns what's there. Not for the chat that's open on screen.
