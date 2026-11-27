@@ -11201,11 +11201,12 @@
     if (exSide === "buy" && exKind === "market") {
       const have = Number(String(devnetAssets.balances?.sol ?? "").replace(/,/g, ""));
       if (!devnetAssets.balances || !Number.isFinite(have)) return;
-      // Room for the Solana fees of the swaps it may take.
-      let sol = Math.max(0, have * exPct / 100 - EX_MAX_TAKES * SOL_SWAP_FEES);
+      // Room for the Solana fees of the swaps all of it would take, not more.
+      const swaps = Math.max(1, exBuyPlan(have).length);
+      const sol = Math.max(0, have - swaps * SOL_SWAP_FEES) * exPct / 100;
       const cur = exSpendCur();
       const shown = cur === "sol" ? Math.floor(sol * 1e4) / 1e4 : Math.floor(sol * exSolRate(cur) * 100) / 100;
-      $("ex-spend").value = shown > 0 ? String(shown) : "";
+      $("ex-spend").value = exPct > 0 ? String(shown) : "";
     } else if (exSide === "buy") {
       const max = exSolMax();
       if (max == null) return;
