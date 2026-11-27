@@ -13358,8 +13358,9 @@
   // are loaded ahead, quietly, when the inbox is.
   const chatCache = new Map();
   const chatKey = (a) => JSON.stringify([a.conversation, (a.messages || []).map((m) => m.id)]);
-  async function fetchChat(id) {
-    const answer = await mk("GET", `/conversations/${id}`);
+  // Loading ahead peeks: the conversation stays unread until it's opened.
+  async function fetchChat(id, peek) {
+    const answer = await mk("GET", `/conversations/${id}${peek ? "?peek=1" : ""}`);
     chatCache.set(id, answer);
     await picReady(answer.conversation && answer.conversation.with_picture);
     return answer;
@@ -13367,7 +13368,7 @@
   async function preloadChats(list) {
     for (const c of (list || []).slice(0, 12)) {
       if (chatCache.has(c.id)) continue;
-      try { await fetchChat(c.id); } catch { return; }
+      try { await fetchChat(c.id, true); } catch { return; }
     }
   }
   async function openChat(id, from) {
