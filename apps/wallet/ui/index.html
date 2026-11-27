@@ -10936,12 +10936,17 @@
   $("ex-verify-go").onclick = () => quickVerify();
   // Solana's own fees on a SOL swap, kept in hand on top of the price.
   const SOL_SWAP_FEES = 0.005;
+  // A buy order's own costs, at most: its account and the one-time address's
+  // rent (both back when it fills or is cancelled), Solana's fees and their
+  // cushion, a top-up of the order's fee key when it runs low, the payment's
+  // fee, and the 0.00089 SOL Solana keeps in any wallet left with SOL in it.
+  const ORDER_SOL_FEES = 0.0044;
   // Buying: what this wallet's SOL can pay, after Solana's small fees, shown
   // beside the field and never exceeded. Unknown until the balance is read.
   function exSolMax() {
     const have = Number(String(devnetAssets.balances?.sol ?? "").replace(/,/g, ""));
     if (!devnetAssets.balances || !Number.isFinite(have)) return null;
-    return Math.max(0, Math.floor((have - SOL_SWAP_FEES) * 1e4) / 1e4);
+    return Math.max(0, Math.floor((have - ORDER_SOL_FEES) * 1e4) / 1e4);
   }
   function paintExSolHint() {
     const max = exSide === "buy" ? exSolMax() : null;
@@ -10990,7 +10995,7 @@
       // isn't known yet is Solana asked first.
       if (exSide === "buy") {
         const max = exSolMax();
-        if (max != null ? parseFloat($("ex-sol").value) > max : await shortOfSol(parseFloat($("ex-sol").value), "ex-problem")) return;
+        if (max != null ? parseFloat($("ex-sol").value) > max : await shortOfSol(parseFloat($("ex-sol").value), "ex-problem", ORDER_SOL_FEES)) return;
       }
       if (view && view.biometric) await invoke("biometric_unlock");
       const password = $("ex-pw-field").hidden ? null : $("ex-pw").value;
@@ -11008,7 +11013,7 @@
           $("ex-addr").value = await ensureOwnSol(password);
           pendingTake.refund = $("ex-addr").value;
           renderDetail();
-          if (await shortOfSol(parseFloat(sol), "ex-problem")) throw $("ex-problem").textContent;
+          if (await shortOfSol(parseFloat(sol), "ex-problem", ORDER_SOL_FEES)) throw $("ex-problem").textContent;
           const orderId = await invoke("order_create_buy", { orn, sol, refund: $("ex-addr").value, password });
           pendingTake = null;
           $("ex-pw").value = "";
@@ -11126,8 +11131,8 @@
   }
   // Paying `sol` from this wallet: says so in `box`, and answers true, when
   // its Solana balance can't cover it.
-  async function shortOfSol(sol, box) {
-    const need = sol + SOL_SWAP_FEES;
+  async function shortOfSol(sol, box, fees = SOL_SWAP_FEES) {
+    const need = sol + fees;
     const have = await ownSolBalance();
     if (have == null || have + 1e-9 >= need) return false;
     $(box).textContent = `You need about ${Number(need.toFixed(4))} SOL in this wallet's Solana balance for this, and it has ${Number(have.toFixed(4))} SOL. Add SOL first, from Phantom or an exchange.`;
