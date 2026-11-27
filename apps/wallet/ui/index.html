@@ -5472,6 +5472,17 @@
   const SWAP_POPS = ["board-post", "board-take", "swap-posted", "swap-detail"];
   // Big windows: Sign in floats over the page it was opened from.
   let lastBase = "home";
+  // Where each screen was opened from, so its Back returns there. Going back
+  // isn't recorded, so two screens never send you back and forth.
+  const cameFrom = {};
+  let goingBack = false;
+  function goBack(from) {
+    const to = cameFrom[from];
+    delete cameFrom[from];
+    if (!to || to === from || to === "home" || !$(to)) return home();
+    goingBack = true;
+    try { show(to); } finally { goingBack = false; }
+  }
   // The screen Sign in was opened from: its Back goes there.
   let signinBack = "home";
   // Big windows: adding a wallet from Wallets is one card over Wallets, all
@@ -5508,6 +5519,7 @@
     const under = id === "blocks" ? "profile" : addPop ? "wallets" : signinPop ? lastBase : id === "send" && (sendFrom === "seller" || sendFrom === "explorer") ? sendFrom : SWAP_POPS.includes(id) ? "swaps" : "home";
     for (const s of document.querySelectorAll(".screen")) s.hidden = !(s.id === id || ((both || underSplit) && (s.id === "inbox" || s.id === "chat")) || (pop && s.id === under));
     document.body.classList.toggle("split", both || underSplit);
+    if (!pop && id !== lastBase && !goingBack) cameFrom[id] = lastBase;
     if (!pop) lastBase = id;
     document.body.classList.toggle("pop", pop);
     if (id === "community" && typeof cmFitRail === "function") cmFitRail();
@@ -7331,8 +7343,9 @@
   document.addEventListener("keydown", (e) => { if (e.key === "Escape" && !$("help-menu").hidden) helpClose(); });
   window.addEventListener("resize", () => { if (!$("help-menu").hidden) helpClose(); });
   $("help-ai").onclick = async () => { helpClose(); await openInbox(); openAi("inbox"); };
-  $("help-guide").onclick = () => { helpClose(); openSettings(); settingsPage("guide"); };
-  $("help-report").onclick = () => { helpClose(); openSettings(); settingsPage("report"); };
+  // From the Help menu: Back returns to where it was opened.
+  $("help-guide").onclick = () => { helpClose(); openSettings(); settingsPage("guide"); settingsDirect = "guide"; };
+  $("help-report").onclick = () => { helpClose(); openSettings(); settingsPage("report"); settingsDirect = "report"; };
   $("ts-back").onclick = () => { tsUndo(); show("settings"); settingsPage("appearance"); };
   $("ts-more").onclick = () => tsLoad(true);
   $("ts-tabs").onclick = (e) => {
@@ -7791,7 +7804,7 @@
       feel("success");
     } catch (e) { problem("bug-problem", mkProblem(e)); go.disabled = false; }
   };
-  window.__TAURI__.event.listen("open-report", () => { openSettings(); settingsPage("report"); }).catch(() => {});
+  window.__TAURI__.event.listen("open-report", () => { openSettings(); settingsPage("report"); settingsDirect = "report"; }).catch(() => {});
   settingsWide.addEventListener("change", () => { if (!$("settings").hidden) settingsPage(settingsAt); });
   $("st-menu").onclick = (e) => {
     const row = e.target.closest(".st-cat");
@@ -7827,7 +7840,7 @@
   // A page opened straight from elsewhere, not from Settings' list.
   var settingsDirect = null;
   $("st-back").onclick = () => {
-    if (settingsDirect && settingsAt === settingsDirect) { settingsDirect = null; home(); return; }
+    if (settingsDirect && settingsAt === settingsDirect) { settingsDirect = null; goBack("settings"); return; }
     if (settingsParent[settingsAt]) settingsPage(settingsParent[settingsAt]);
     else if ($("st-menu").hidden) settingsPage(null);
     else home();
@@ -8563,10 +8576,10 @@
 
 
   // ---- Navigation ----
-  for (const b of document.querySelectorAll("[data-back]")) b.onclick = home;
+  for (const b of document.querySelectorAll("[data-back]")) b.onclick = () => goBack(b.closest(".screen")?.id);
   // The pop-up closes by a click beside it, or Escape.
   // Send opened from a profile goes back to it; anything else, home.
-  var sendFrom = "home";
+  var sendFrom = "home", sendOverContacts = false;
   const closePop = () => {
     // Blocked accounts floats over the profile it was opened from.
     if (!$("blocks").hidden) { show("profile"); return; }
@@ -8588,7 +8601,17 @@
       openReferrals();
       return;
     }
-    if (!$("board-signin").hidden) show(signinBack); else if (!$("send").hidden && (sendFrom === "seller" || sendFrom === "explorer")) { const back = sendFrom; sendFrom = "home"; show(back); } else if (SWAP_POPS.some((id) => !$(id).hidden)) show("swaps"); else home(); };
+    if (!$("board-signin").hidden) show(signinBack);
+    else if (!$("send").hidden && sendFrom !== "home") { const back = sendFrom; sendFrom = "home"; backTo(back, sendOverContacts); }
+    else if (!$("solana-send").hidden && devnetSend?.from) { const back = devnetSend.from; devnetSend.from = null; backTo(back, devnetSend.overContacts); }
+    else if (SWAP_POPS.some((id) => !$(id).hidden)) show("swaps"); else home(); };
+  // Back to the screen a Send was opened from: a contact or member (inside
+  // Contacts when that was open over the app), a profile, the explorer or a
+  // swap.
+  function backTo(screen, overContacts) {
+    if (overContacts && !handset && wide.matches) show("contacts");
+    show(screen);
+  }
   // Smaller windows, where Send is a page of its own: its Back does the same.
   document.querySelector("#send [data-back]").onclick = closePop;
   $("pop-shade").onclick = closePop;
@@ -8603,7 +8626,8 @@
       if (devnetAssets.address && view) openDevnetSend();
       return;
     }
-    sendFrom = from === "seller" || from === "explorer" ? from : "home";
+    sendFrom = ["seller", "explorer", "member", "contact"].includes(from) ? from : "home";
+    sendOverContacts = document.body.classList.contains("pop") && ["contacts", "contact", "member"].some((x) => !$(x).hidden);
     if (update && update.required) {
       problem("home-problem", "This version of Orien Wallet no longer works with the network. Press Update at the top to keep sending.");
       return;
@@ -8721,6 +8745,7 @@
     walletAsset = "SOL";
     await openDevnetSend();
     if (!devnetSend || devnetSend.busy) return;
+    devnetSend.from = "swap-detail";
     devnetSend.swapPay = true;
     $("sol-send-to").value = to;
     $("sol-send-amount").value = amount;
@@ -8911,7 +8936,7 @@
     const signature = devnetSend?.receipt?.signature;
     openSolanaExplorer("tx", signature);
   };
-  $("sol-send-done").onclick = home;
+  $("sol-send-done").onclick = closePop;
 
   let receiveTarget = null;
   function openAssetReceive(asset, address) {
@@ -9729,15 +9754,17 @@
   $("mb-wallets").onclick = (e) => {
     const go = e.target.closest("[data-send]");
     if (!go) return;
-    if (go.dataset.network === "SOL") { void sendSolTo(go.dataset.send); return; }
-    $("go-send").onclick();
+    if (go.dataset.network === "SOL") { void sendSolTo(go.dataset.send, "member"); return; }
+    $("go-send").onclick("member");
     $("to").value = go.dataset.send; validate(); $("amount").focus();
   };
   // Send SOL to `address`, from this wallet's own Solana balance.
-  async function sendSolTo(address) {
+  async function sendSolTo(address, from) {
+    const overContacts = document.body.classList.contains("pop") && ["contacts", "contact", "member"].some((x) => !$(x).hidden);
     walletAsset = "SOL";
     await openDevnetSend();
     if (!devnetSend || devnetSend.busy) return;
+    if (from) { devnetSend.from = from; devnetSend.overContacts = overContacts; }
     $("sol-send-to").value = address;
     updateSolQuote();
     $("sol-send-amount").focus();
@@ -9781,7 +9808,7 @@
   };
   $("c-send").onclick = () => {
     const address = editing;
-    $("go-send").onclick();
+    $("go-send").onclick("contact");
     $("to").value = address; validate(); $("amount").focus();
   };
 
@@ -13296,7 +13323,7 @@
   // Messages stands on its own: its own button on the home screen.
   // Open to everyone: the group chat reads without signing in.
   $("go-messages").onclick = () => openInbox();
-  $("ib-back").onclick = () => { chat.id = null; chat.direct = null; home(); };
+  $("ib-back").onclick = () => { chat.id = null; chat.direct = null; goBack("inbox"); };
   // Writing to anyone by their Orien Network name: the conversation the two
   // already have, or a new one that starts with the first message.
   let messageAfterSignin = null;
@@ -14292,7 +14319,8 @@
       feel("success");
       market.items = [];
       board.me = await invoke("board_me").catch(() => board.me);
-      await openListing(listing.id, sale.from === "profile" ? "profile" : "market");
+      // Saved: the listing again, with Back to wherever it was opened from.
+      await openListing(listing.id, sale.from === "listing" ? (market.from || "market") : sale.from === "profile" ? "profile" : "market");
     } catch (e) {
       // Posted, but a picture failed: carry on as an edit of what was posted.
       if (listing && !sale.editing) { sale.editing = listing; $("se-title").textContent = "Edit listing"; problem("se-problem", `Your listing is posted, but: ${mkProblem(e)}`); }
@@ -14827,7 +14855,7 @@
   });
   // The window crossing the big-window width while here: the column follows.
   matchMedia("(min-width: 860px)").addEventListener("change", () => { if (!$("profile").hidden) show("profile"); });
-  $("pf-back").onclick = async () => { await saveProfile(); home(); };
+  $("pf-back").onclick = async () => { await saveProfile(); goBack("profile"); };
 
   $("bs-go").onclick = async () => {
     $("bs-go").disabled = true;
@@ -15058,7 +15086,7 @@
     if ($("explorer").hidden) show("explorer");
   }
   function openExplorer(view) { ex.stack = []; ex.at = null; exShow(view || { kind: "home" }, false); }
-  $("ex-back").onclick = () => { const back = ex.stack.pop(); if (back) exShow(back, false); else { clearInterval(ex.timer); home(); } };
+  $("ex-back").onclick = () => { const back = ex.stack.pop(); if (back) exShow(back, false); else { clearInterval(ex.timer); goBack("explorer"); } };
   $("go-explorer").onclick = $("go-explorer-tile").onclick = () => openExplorer();
   function exFail(e) { $("ex-body").innerHTML = ""; problem("ex-problem", e && /not found/i.test(String(e)) ? "That isn't on the network yet." : e); }
   // Names: Market profiles with wallets they showed they hold, as on the website.
