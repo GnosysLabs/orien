@@ -3245,10 +3245,20 @@
   /* Socials: each box with its app's icon, as on the website. */
   .pf-socials-note { margin: 0 2px 10px; }
   /* Who can message you: three choices side by side, the chosen one lit. */
-  .pf-choice { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 4px; padding: 4px; border: 1px solid var(--line); border-radius: 14px; background: var(--surface); }
-  .pf-choice button { min-height: 38px; padding: 6px 8px; border: 0; border-radius: 10px; background: transparent; color: var(--dim); font: inherit; font-size: 13px; font-weight: 600; line-height: 1.25; cursor: pointer; }
-  .pf-choice button.on { background: var(--surface-hover); color: var(--ink); }
-  .pf-blocks-go { width: auto; padding: 0 22px; height: 42px; }
+  .pf-dm-picker { color: var(--ink); }
+  .pf-dm-picker summary { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 42px; padding: 8px 14px; cursor: pointer;
+    list-style: none; background: var(--field); border: 1px solid var(--line); border-radius: 12px; font-size: 14px; }
+  .pf-dm-picker summary::-webkit-details-marker { display: none; }
+  .pf-dm-picker summary::after { content: ""; width: 7px; height: 7px; margin-inline-end: 3px; border: solid var(--dim); border-width: 0 1.5px 1.5px 0; transform: rotate(45deg); }
+  .pf-dm-picker[open] summary { border-color: var(--accent); }
+  .pf-dm-picker[open] summary::after { transform: rotate(225deg); }
+  .pf-dm-options { display: grid; gap: 2px; margin-top: 5px; padding: 4px; background: var(--field); border: 1px solid var(--line); border-radius: 12px; }
+  .pf-dm-options button { display: flex; align-items: center; justify-content: space-between; gap: 8px; min-height: 38px; padding: 6px 10px; border: 0; border-radius: 8px; background: transparent; color: var(--ink); text-align: start; font: inherit; font-size: 14px; cursor: pointer; }
+  .pf-dm-options button:is(:hover, :focus-visible, [aria-checked="true"]) { background: var(--surface-hover); }
+  .pf-dm-options button[aria-checked="true"]::after { content: ""; width: 5px; height: 9px; margin-inline-end: 3px; border: solid var(--accent); border-width: 0 2px 2px 0; transform: rotate(45deg); }
+  .pf-account-actions { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; margin-top: 16px; }
+  #profile .pf-account-actions .secondary { width: 100%; min-width: 0; min-height: 42px; height: auto; padding: 7px 10px; margin: 0; overflow-wrap: anywhere; font-family: inherit; line-height: 1.25; }
+  #pf-delete { color: var(--bad); }
   .bp-verify { margin: 0 0 18px; }
   .bp-verify .pill { margin-top: 12px; }
   .bk-note { margin: 0 2px 14px; line-height: 1.5; }
@@ -3275,8 +3285,6 @@
   .pf-card > .field:first-child { margin-top: 0; }
   .pf-card .field:last-child { margin-bottom: 0; }
   .pf-card .pf-socials-note { margin: 8px 0 16px; }
-  .pf-danger { margin-top: 16px; }
-  .pf-danger .ct-delete { margin: 0; }
   .pf-directory-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px; }
   #pf-wallet-search { width: min(100%, 22ch); padding: 8px 12px; background: var(--field); color: var(--ink); border-radius: 12px; border: 1px solid var(--line); font: inherit; font-size: 14px; }
   #pf-wallet-search:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
@@ -4157,23 +4165,26 @@
         </section>
         <section class="pf-card"><h3>Privacy</h3>
           <div class="field pf-dm">
-            <label>Who can message you</label>
-            <div class="pf-choice" id="pf-dm" role="radiogroup"><button type="button" data-dm="everyone" role="radio">Everyone</button><button type="button" data-dm="talked" role="radio">People you've talked with</button><button type="button" data-dm="nobody" role="radio">No one</button></div>
-          </div>
-          <!-- The people you've blocked, to unblock: they're hidden from you until then. -->
-          <div class="field">
-            <label for="pf-blocks">Blocked accounts</label>
-            <button class="secondary pf-blocks-go" id="pf-blocks">Manage blocks</button>
+            <label id="pf-dm-label" for="pf-dm-trigger">Who can message you</label>
+            <details class="pf-dm-picker" id="pf-dm">
+              <summary id="pf-dm-trigger" aria-labelledby="pf-dm-label pf-dm-value"><span id="pf-dm-value">Everyone</span></summary>
+              <div class="pf-dm-options" role="radiogroup" aria-labelledby="pf-dm-label">
+                <button type="button" data-dm="everyone" role="radio">Everyone</button>
+                <button type="button" data-dm="talked" role="radio">People you've talked with</button>
+                <button type="button" data-dm="nobody" role="radio">No one</button>
+              </div>
+            </details>
           </div>
         </section>
         <section class="pf-card"><h3>Account</h3>
-          <div class="pf-danger">
-            <button class="pill ct-delete" id="pf-delete">Delete my account</button>
-            <div class="report-box" id="pf-delete-box" hidden>
-              <p class="vc-text" id="pf-delete-text"></p>
-              <div class="box plain pf-delete-name"><input id="pf-delete-name" autocomplete="off" spellcheck="false" autocapitalize="off"></div>
-              <div class="ls-ask-row"><button class="pill" id="pf-delete-cancel">Cancel</button><button class="pill pf-delete-go" id="pf-delete-go">Delete for good</button></div>
-            </div>
+          <div class="pf-account-actions">
+            <button class="secondary" id="pf-blocks">Manage blocks</button>
+            <button class="secondary" id="pf-delete">Delete my account</button>
+          </div>
+          <div class="report-box" id="pf-delete-box" hidden>
+            <p class="vc-text" id="pf-delete-text"></p>
+            <div class="box plain pf-delete-name"><input id="pf-delete-name" autocomplete="off" spellcheck="false" autocapitalize="off"></div>
+            <div class="ls-ask-row"><button class="pill" id="pf-delete-cancel">Cancel</button><button class="pill pf-delete-go" id="pf-delete-go">Delete for good</button></div>
           </div>
         </section>
       </div>
@@ -13750,6 +13761,7 @@
     $("pf-discord").value = (me.contact && me.contact.discord) || "";
     $("pf-telegram").value = (me.contact && me.contact.telegram) || "";
     $("pf-x").value = (me.contact && me.contact.x) || "";
+    $("pf-dm").open = false;
     paintDm(me.messages_from || "everyone");
     $("pf-problem").hidden = true;
     renderVerify();
@@ -14279,11 +14291,49 @@
     } catch (err) { b.disabled = false; problem("bk-problem", mkProblem(err)); }
   };
   // Who can message you: saved as soon as it's picked.
+  const dmButtons = Array.from(document.querySelectorAll("#pf-dm [data-dm]"));
+  const dmLabels = dmButtons.map(button => button.textContent);
   function paintDm(choice) {
-    for (const b of document.querySelectorAll("[data-dm]")) { const on = b.dataset.dm === choice; b.classList.toggle("on", on); b.setAttribute("aria-checked", on); }
+    const selected = dmButtons.find(button => button.dataset.dm === choice) || dmButtons[0];
+    $("pf-dm-value").textContent = dmLabels[dmButtons.indexOf(selected)];
+    for (const button of dmButtons) {
+      button.setAttribute("aria-checked", String(button === selected));
+      button.tabIndex = button === selected ? 0 : -1;
+    }
   }
-  const dmChoice = () => (document.querySelector("[data-dm].on") || {}).dataset?.dm || "everyone";
-  for (const b of document.querySelectorAll("[data-dm]")) b.onclick = () => { paintDm(b.dataset.dm); feel("selection"); saveProfile(); };
+  const dmChoice = () => dmButtons.find(button => button.getAttribute("aria-checked") === "true")?.dataset.dm || "everyone";
+  function closeDmPicker() {
+    $("pf-dm").open = false;
+    $("pf-dm-trigger").focus({ preventScroll: true });
+  }
+  dmButtons.forEach((button, index) => {
+    button.onclick = () => {
+      paintDm(button.dataset.dm);
+      closeDmPicker();
+      feel("selection");
+      saveProfile();
+    };
+    button.onkeydown = event => {
+      const step = {ArrowDown: 1, ArrowRight: 1, ArrowUp: -1, ArrowLeft: -1}[event.key];
+      if (!step) return;
+      event.preventDefault();
+      dmButtons[(index + step + dmButtons.length) % dmButtons.length].focus();
+    };
+  });
+  $("pf-dm").onkeydown = event => {
+    if (event.key === "Escape" && $("pf-dm").open) { event.preventDefault(); closeDmPicker(); }
+    if (event.target === $("pf-dm-trigger") && event.key === "ArrowDown") {
+      event.preventDefault();
+      $("pf-dm").open = true;
+      dmButtons.find(button => button.tabIndex === 0)?.focus();
+    }
+  };
+  $("pf-dm").addEventListener("focusout", event => {
+    if (!$("pf-dm").contains(event.relatedTarget)) $("pf-dm").open = false;
+  });
+  document.addEventListener("pointerdown", event => {
+    if ($("pf-dm").open && !$("pf-dm").contains(event.target)) $("pf-dm").open = false;
+  });
   // The window crossing the big-window width while here: the column follows.
   matchMedia("(min-width: 860px)").addEventListener("change", () => { if (!$("profile").hidden) show("profile"); });
   $("pf-back").onclick = async () => { await saveProfile(); home(); };
