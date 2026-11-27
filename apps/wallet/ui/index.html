@@ -1411,11 +1411,21 @@
   .sync-card .sync-go { align-self: flex-start; }
   .verify-card { margin-top: 22px; padding: 16px 18px; border: 1px solid var(--line); border-radius: 18px; background: var(--surface); }
   .vf-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 12px 0; border-top: 1px solid var(--line); }
-  .vf-sol { padding: 0 0 12px 12px; }
-  .vf-sol .vf-row { border: 0; padding: 4px 0; }
+  .wallet-glyph { display: inline-block; width: 1.05em; height: 1.05em; flex: none; margin-inline-end: .32em; vertical-align: -.14em; }
+  .wallet-glyph.orn { background: currentColor; -webkit-mask: url("mark.svg") center / contain no-repeat; mask: url("mark.svg") center / contain no-repeat; }
+  .wallet-glyph.sol { background: currentColor; -webkit-mask: url("chains/solana.svg") center / 88% no-repeat; mask: url("chains/solana.svg") center / 88% no-repeat; }
+  .vf-pair { border-top: 1px solid var(--line); }
+  .vf-pair > .vf-row, .vf-pair > .vf-sol { position: relative; padding-inline-start: 17px; border: 0; }
+  .vf-pair > .vf-row::before, .vf-pair > .vf-sol::before {
+    content: ""; position: absolute; inset-inline-start: 2px; width: 7px; border-inline-start: 1px solid var(--faint); pointer-events: none;
+  }
+  .vf-pair > .vf-row::before { top: 23px; bottom: 0; border-top: 1px solid var(--faint); border-start-start-radius: 4px; }
+  .vf-pair > .vf-sol::before { top: 0; height: 17px; border-bottom: 1px solid var(--faint); border-end-start-radius: 4px; }
+  .sl-wallet-pair { position: relative; display: inline-flex; flex-direction: column; align-items: flex-start; gap: 4px; padding-inline-start: 14px; }
+  .sl-wallet-pair::before { content: ""; position: absolute; inset-inline-start: 1px; top: 24%; bottom: 24%; width: 6px; border: 1px solid var(--faint); border-inline-end: 0; border-radius: 4px 0 0 4px; }
+  .vf-sol { padding-bottom: 12px; }
+  .vf-sol .vf-row { border: 0; padding: 6px 0 0; }
   .vf-sol .vf-name, .sol-profile-chip { display: inline-flex; align-items: center; gap: 7px; }
-  .vf-sol img, .sol-profile-chip img { width: 15px; height: 15px; object-fit: contain; }
-  .vf-sol .vc-text { margin-top: 3px; }
   #vf-list { margin-top: 12px; }
   .vf-name { font-weight: 500; }
   .vf-wait { font-size: 12px; color: var(--faint); text-align: right; }
@@ -5141,6 +5151,11 @@
   const profiles = new Map();
   const profileOf = (address) => (address && profiles.get(address.toLowerCase())) || null;
   // How a profile's wallet is shown: "Cyph3r – Savings", or just the name.
+  function walletGlyph(network = "ORN") {
+    return network === "SOL" ? '<span class="wallet-glyph sol" role="img" aria-label="Solana Devnet" title="Solana Devnet"></span>' :
+      '<span class="wallet-glyph orn" role="img" aria-label="Orien" title="Orien"></span>';
+  }
+  function walletLabel(name, network = "ORN") { return walletGlyph(network) + esc(name); }
   const profileLabel = (p) => p && (p.wallet_name ? `${p.name} – ${p.wallet_name}` : p.name);
   // Asks for any of `addresses` not asked yet; true if a profile turned up.
   // What's known of a wallet's owner, added to rather than replaced: a
@@ -5427,6 +5442,8 @@
   }
   function paintWalletAsset() {
     const preview = walletAsset !== "ORN";
+    const chipGlyph = $("wallet-name").querySelector(".wallet-glyph");
+    if (chipGlyph && chipGlyph.classList.contains("sol") !== preview) chipGlyph.outerHTML = walletGlyph(preview ? "SOL" : "ORN");
     $("home").classList.toggle("asset-devnet", preview);
     $("solana-recent").hidden = !preview;
     $("solana-all").hidden = !preview || !devnetAssets.address;
@@ -5757,9 +5774,8 @@
     invoke("board_wallets_sync").catch(() => {});
     const open = walletList.find((w) => w.current);
     if (pendingIcon !== null && open) { setIcon(open.address, pendingIcon); pendingIcon = null; }
-    $("wallet-name").textContent = open ? open.name : "Wallet";
     const chipIcon = open && iconOf(open.address);
-    $("wallet-name").innerHTML = (chipIcon ? `<span class="chip-emoji">${esc(chipIcon)}</span> ` : "") + esc(open ? open.name : "Wallet");
+    $("wallet-name").innerHTML = (chipIcon ? `<span class="chip-emoji">${esc(chipIcon)}</span> ` : "") + walletLabel(open ? open.name : "Wallet", walletAsset === "ORN" ? "ORN" : "SOL");
     return walletList;
   }
   // Called after the open wallet changed: everything shown is for the old one.
@@ -5844,7 +5860,7 @@
     $("wallet-list").innerHTML = walletList.map((w, i) => `<div class="wallet-row${w.current ? " current" : ""}" data-open="${i}">
       <div class="wc-top"><span class="coin${iconOf(w.address) ? " emoji" : ""}">${esc(iconOf(w.address) || (w.name || "?").slice(0, 1).toUpperCase())}</span>
         <div class="tools"><button class="tool" data-rename="${i}" aria-label="Wallet settings" title="Wallet settings">${COG}</button>${w.shared ? "" : `<button class="tool" data-forget="${i}" aria-label="Remove from this app" title="Remove from this app">${TRASH}</button>`}</div></div>
-      <div class="who"><div class="name"><span>${esc(w.name)}</span>${w.current ? '<span class="here">Open</span>' : ""}</div><div class="addr">${esc(short(w.address))}</div></div>
+      <div class="who"><div class="name"><span>${walletLabel(w.name)}</span>${w.current ? '<span class="here">Open</span>' : ""}</div><div class="addr">${esc(short(w.address))}</div></div>
       <div class="bal"${balances[w.address] !== undefined ? ` title="${esc(balances[w.address])} ORN"` : ""}>${balances[w.address] !== undefined ? `${prefs.hide ? "••••" : esc(brief(balances[w.address]))}<span class="unit">ORN</span>` : "&nbsp;"}</div>
     </div>`).join("");
     // Several wallets: what they hold together, above them.
@@ -8244,7 +8260,7 @@
     $("to-chosen").innerHTML = !chosen ? "" : who
       // iPhones: with a name shown, only the address's last four, so the
       // name has the room.
-      ? `${pic}<span class="who">${esc(who)}</span>${officialTag(lower)}<span class="addr">${phone ? "…" + lower.slice(-4) : short(lower)}</span>`
+      ? `${pic}<span class="who">${walletLabel(who)}</span>${officialTag(lower)}<span class="addr">${phone ? "…" + lower.slice(-4) : short(lower)}</span>`
       : `<span class="addr solo">${short(lower)}</span>`;
     $("paste").textContent = chosen ? "Clear" : "Paste";
     $("scan-to").hidden = chosen;
@@ -8356,10 +8372,10 @@
     if (found.some((p) => !p.mine && !profiles.has(p.address))) loadProfiles(found.filter((p) => !p.mine).map((p) => p.address)).then((got) => got && suggest($("to").value));
     list.innerHTML = found.map((p) => `<button class="tx" type="button" data-address="${p.address}">
       ${p.mine ? `<span class="face${iconOf(p.address) ? " emoji" : ""}">${esc(iconOf(p.address) || p.name.slice(0, 1).toUpperCase())}</span>` : face(p.address, nameOf(p.address) || p.name)}
-      <div class="tx-main"><div class="title">${esc(nameOf(p.address) || p.name)}${officialTag(p.address)}</div><div class="sub">${esc(p.sub)}</div></div>
+      <div class="tx-main"><div class="title">${walletLabel(nameOf(p.address) || p.name)}${officialTag(p.address)}</div><div class="sub">${esc(p.sub)}</div></div>
     </button>`).join("") + market.map((r) => `<button class="tx" type="button" data-address="${r.address}">
       ${face(r.address, r.label)}
-      <div class="tx-main"><div class="title">${esc(r.label)}</div><div class="sub">${short(r.address)}</div></div>
+      <div class="tx-main"><div class="title">${walletLabel(r.label)}</div><div class="sub">${short(r.address)}</div></div>
     </button>`).join("");
     return found.length + market.length;
   }
@@ -8579,7 +8595,7 @@
   function row(e, when) {
     const sent = e.direction === "sent";
     const who = e.counterparty && nameOf(e.counterparty);
-    const party = e.counterparty && (who ? esc(who) : short(e.counterparty));
+    const party = e.counterparty && (who ? walletLabel(who) : short(e.counterparty));
     const [title, sub] = sent
       ? ["Sent", party ? "To " + party + officialTag(e.counterparty) : "Sent from another app"]
       : {
@@ -8928,7 +8944,7 @@
       .sort((x, y) => (y.address === market) - (x.address === market));
     for (const address of group.addresses) if (!rows.some((r) => r.address === address)) rows.push({ address, name: (named(address) || {}).name || "Saved address" });
     $("mb-wallets").innerHTML = rows.length
-      ? `<div class="list">${rows.map((r) => `<div class="tx mb-wallet"><div class="tx-main"><div class="title">${esc(r.name)}${r.address === market ? '<span class="mb-tag">Market</span>' : ""}</div><div class="sub">${short(r.address)}</div></div><button class="pill" data-send="${r.address}">Send</button></div>`).join("")}</div>`
+      ? `<div class="list">${rows.map((r) => `<div class="tx mb-wallet"><div class="tx-main"><div class="title">${walletLabel(r.name)}${r.address === market ? '<span class="mb-tag">Market</span>' : ""}</div><div class="sub">${short(r.address)}</div></div><button class="pill" data-send="${r.address}">Send</button></div>`).join("")}</div>`
       : `<div class="empty">${info && info.gone ? "This profile isn't available." : info ? `No verified wallets yet. Wallets ${esc(name)} verifies show up here.` : "Loading…"}</div>`;
     $("mb-remove").textContent = mb.armed ? `Remove ${name}? Tap again` : "Remove from contacts";
     $("mb-remove").classList.toggle("armed", mb.armed);
@@ -11844,7 +11860,12 @@
   }
   $("seller").addEventListener("scroll", () => requestAnimationFrame(slFitEdges), { passive: true });
   window.addEventListener("resize", slFitEdges);
-  $("sl-sol-wallets").onclick = event => openSolanaExplorer("address", event.target.closest("[data-address]")?.dataset.address);
+  $("sl-sol-wallets").onclick = event => {
+    const button = event.target.closest("[data-address]");
+    if (!button) return;
+    if (button.dataset.network === "SOL") openSolanaExplorer("address", button.dataset.address);
+    else openExplorer({kind: "address", address: button.dataset.address});
+  };
   function paintSellerTools(answer) {
     const a = answer.account || {};
     // Another person's page starts on All.
@@ -11859,9 +11880,13 @@
     $("sl-message").hidden = answer.takes_messages === false;
     // Send: to their Market wallet when it's verified, or their first
     // verified wallet; none, no button.
-    const devnetWallets = (answer.wallets || []).filter(w => w.solana_devnet);
-    $("sl-sol-wallets").hidden = !devnetWallets.length;
-    $("sl-sol-wallets").innerHTML = devnetWallets.map(w => `<button class="sl-chip sol-profile-chip" type="button" data-address="${esc(w.solana_devnet)}" title="${esc(w.solana_devnet)}"><img src="chains/solana.svg" alt="">Solana Devnet · ${esc(short(w.solana_devnet))}</button>`).join("");
+    const profileWallets = answer.wallets || [];
+    $("sl-sol-wallets").hidden = !profileWallets.length;
+    $("sl-sol-wallets").innerHTML = profileWallets.map(w => {
+      const chip = (address, network) => `<button class="sl-chip sol-profile-chip" type="button" data-network="${network}" data-address="${esc(address)}" title="${esc(address)}"><span>${walletLabel(w.name || "Wallet", network)}</span> · ${esc(short(address))}</button>`;
+      const orn = chip(w.address, "ORN");
+      return w.solana_devnet ? `<div class="sl-wallet-pair">${orn}${chip(w.solana_devnet, "SOL")}</div>` : orn;
+    }).join("");
     const verified = (answer.wallets || []).map((w) => ({ address: (w.address || "").toLowerCase(), name: w.name || null }));
     const market = (a.wallet || "").toLowerCase();
     const to = verified.find((w) => w.address === market) || verified[0];
@@ -13394,14 +13419,14 @@
   // Verifying: each wallet by choice, with one tiny payment from it to
   // Orien Market. Only the open wallet can pay, so only it has a button.
   let proof = null, states = [], verifying = null;
-  function solProfileRow(wallet, proof, account) {
+  function solProfileRow(wallet, proof, account, currentSol) {
     if (!proof?.verified || (!wallet.current && !proof.solana_devnet)) return "";
     const linked = proof.solana_devnet;
     const typed = !linked && view?.locked && !view.biometric;
-    const hint = linked ? `Linked · ${esc(short(linked))}` : `Show ${esc(wallet.name)}’s Solana Devnet address on your public profile. No fee.`;
+    const address = linked || (wallet.current && currentSol);
     return `<form class="vf-sol" data-orn="${esc(wallet.address)}" data-account="${account}" data-sol="${esc(linked || "")}">
-      <div class="vf-row"><div><div class="vf-name"><img src="chains/solana.svg" alt="">Solana Devnet</div><p class="vc-text">${hint}</p></div>
-      <button class="pill${linked ? "" : " pearl"}" type="submit">${linked ? "Unlink" : "Link to profile"}</button></div>
+      <div class="vf-row"><div><div class="vf-name"><span>${walletLabel(wallet.name, "SOL")}</span>${linked ? VERIFIED : ""}</div><div class="vc-sub" title="${esc(address || "")}">${address ? esc(short(address)) : "—"}</div></div>
+      <button class="pill${linked ? "" : " pearl"}" type="submit">${linked ? "Unlink" : "Verify"}</button></div>
       ${typed ? '<div class="field"><label>Wallet password<div class="box plain"><input type="password" autocomplete="current-password" required></div></label></div>' : ""}
       <div class="problem" role="alert" hidden></div></form>`;
   }
@@ -13442,6 +13467,12 @@
     let fresh;
     try { fresh = (await invoke("board_wallet_states")) || []; } catch { fresh = []; }
     if (board.me?.id !== profileId) return;
+    const owner = view?.address;
+    let currentSol = devnetAssets.address;
+    if (owner && !currentSol && fresh.some(p => p.address === owner && p.verified && !p.solana_devnet)) {
+      currentSol = await invoke("solana_devnet_address", {walletAddress: owner, password: null}).catch(() => null);
+    }
+    if (board.me?.id !== profileId || view?.address !== owner) return;
     states = fresh;
     const state = (a) => states.find((p) => (p.address || "").toLowerCase() === a);
     // Every wallet: this app's, and any the profile has from other devices.
@@ -13471,7 +13502,9 @@
         : r.current ? `<button class="pill pearl" data-verify="${r.address}">Verify</button>`
         : r.here ? '<span class="vf-wait">Open it to verify</span>' : "";
       const more = st ? `<button class="pill icon vf-more" id="vf-more-${i}" data-more="${r.address}" aria-label="More"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="19" cy="12" r="1.8"/></svg></button>` : "";
-      return `<div class="vf-row"><div class="vf-who"><div class="vf-name">${esc(r.name)}${verified ? " " + VERIFIED : ""}</div><div class="vc-sub">${short(r.address)} · ${status}</div></div><div class="vf-acts">${action}${more}</div></div>` + solProfileRow(r, st, profileId);
+      const ornRow = `<div class="vf-row"><div class="vf-who"><div class="vf-name">${walletLabel(r.name)}${verified ? " " + VERIFIED : ""}</div><div class="vc-sub">${short(r.address)} · ${status}</div></div><div class="vf-acts">${action}${more}</div></div>`;
+      const solRow = solProfileRow(r, st, profileId, currentSol);
+      return solRow ? `<div class="vf-pair">${ornRow}${solRow}</div>` : ornRow;
     }).join("");
     for (const b of $("vf-list").querySelectorAll("[data-paid]")) b.onclick = async () => {
       b.disabled = true; $("pf-problem").hidden = true;
@@ -13682,8 +13715,8 @@
     const anyVerified = states.some((p) => p.verified);
     const enough = Number(String(view.most || "0").replace(/,/g, "")) >= 0.001;
     if (!waiting && (anyVerified || !enough)) { card.hidden = true; return; }
-    $("vw-text").innerHTML = waiting ? `<b>Verifying ${esc(vwName())}</b><span>Usually within a minute.</span>`
-      : `<b>Verify ${esc(vwName())}</b><span>To chat, post and sell on Orien Network.</span>`;
+    $("vw-text").innerHTML = waiting ? `<b>Verifying ${walletLabel(vwName())}</b><span>Usually within a minute.</span>`
+      : `<b>Verify ${walletLabel(vwName())}</b><span>To chat, post and sell on Orien Network.</span>`;
     $("vw-go").hidden = waiting;
     card.hidden = false;
   }
@@ -14077,7 +14110,7 @@
     const name = mine ? `${mine.name} (yours)` : nameOf(address);
     // A wallet nobody has named: a wallet, not a question mark.
     const plain = !name && !profileOf(address) && !official(address);
-    return { name, html: name ? `${esc(name)}${officialTag(address)}` : `<span class="mono">${short(address)}</span>`,
+    return { name, html: name ? `${walletLabel(name)}${officialTag(address)}` : `<span class="mono">${short(address)}</span>`,
       face: plain ? `<span class="face ex-anon">${EX_WALLET}</span>` : face(address, name) };
   }
   // What the explorer learns, Home's Network card knows at once: its overview,
@@ -14146,7 +14179,7 @@
   function exShowNames(rows, note, before = "") {
     const box = $("ex-found");
     box.innerHTML = before + (rows || []).map((r) => `<button class="tx" type="button" data-ex-addr="${r.address}">${face(r.address, r.label)}
-      <div class="tx-main"><div class="title">${esc(r.label)}${officialTag(r.address)}</div><div class="sub mono">${short(r.address)}</div></div>${CHEV}</button>`).join("")
+      <div class="tx-main"><div class="title">${walletLabel(r.label)}${officialTag(r.address)}</div><div class="sub mono">${short(r.address)}</div></div>${CHEV}</button>`).join("")
       + (note ? `<div class="note">${esc(note)}</div>` : "");
     box.hidden = !box.innerHTML;
   }
@@ -14510,7 +14543,7 @@
   function siOpen(ask) {
     siAsk = ask;
     $("si-title").textContent = `Sign in to ${ask.site}?`;
-    $("si-name").textContent = ask.wallet;
+    $("si-name").innerHTML = walletLabel(ask.wallet);
     $("si-addr").textContent = short(ask.address);
     const icon = typeof iconOf === "function" ? iconOf(ask.address) : "";
     $("si-face").className = "coin" + (icon ? " emoji" : "");
