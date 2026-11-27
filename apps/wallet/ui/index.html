@@ -15078,7 +15078,7 @@
     if (q.length < 2 || exIsTarget(q)) { exShowNames(null); return; }
     exNameTimer = setTimeout(async () => {
       const rows = await exFindNames(q);
-      if (rows && exNameQuery() === q) exShowNames(rows, rows.length ? null : `Nobody on the Market is called “${q}”.`);
+      if (rows && exNameQuery() === q) exShowNames(rows, rows.length ? null : `Nobody on Orien Network is called “${q}”.`);
     }, 250);
   };
   // Closed by a click elsewhere or Escape; open again on returning to the box.
@@ -15104,7 +15104,7 @@
     const exact = rows.filter((r) => r.exact);
     const only = rows.length === 1 ? rows[0] : exact.length === 1 ? exact[0] : null;
     if (only) return go({ kind: "address", address: only.address });
-    exShowNames(rows, rows.length ? null : "Nothing found. Search an address (64 letters and digits, 0-9 and a-f), a checkpoint number, or the name of someone on the Market.");
+    exShowNames(rows, rows.length ? null : "Nothing found. Search an address (64 letters and digits, 0-9 and a-f), a checkpoint number, or the name of someone on Orien Network.");
   };
   $("ex-body").onclick = (e) => {
     const tab = e.target.closest("[data-ex-tab]");

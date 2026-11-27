@@ -1125,6 +1125,10 @@
   "replied to the network's post about you": "hat auf den Netzwerk-Beitrag über dich geantwortet",
   "_patterns": [
     [
+      "^Nobody on Orien Network is called “(.+)”\\.$",
+      "Niemand auf Orien Network heißt „{0}“."
+    ],
+    [
       "^(\\d+) / (\\d+) mining hours$",
       "{0} von {1} Mining-Stunden"
     ],
@@ -2391,5 +2395,6 @@
   "Solana hasn’t acknowledged the submission. This screen will keep checking.": "Solana hat die Übermittlung noch nicht bestätigt. Dieser Bildschirm prüft weiter.",
   "Some Solana balances could not refresh.": "Einige Solana-Guthaben konnten nicht aktualisiert werden.",
   "See all swaps": "Alle Swaps ansehen",
-  "Help with the wallet, mining, swaps and more.": "Hilfe zur Wallet, zum Mining, zu Swaps und mehr."
+  "Help with the wallet, mining, swaps and more.": "Hilfe zur Wallet, zum Mining, zu Swaps und mehr.",
+  "Nothing found. Search an address (64 letters and digits, 0-9 and a-f), a checkpoint number, or the name of someone on Orien Network.": "Nichts gefunden. Suche nach einer Adresse (64 Buchstaben und Ziffern, 0-9 und a-f), einer Checkpoint-Nummer oder dem Namen einer Person auf Orien Network."
 }

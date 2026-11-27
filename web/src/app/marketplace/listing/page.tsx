@@ -1,17 +1,9 @@
 import type { Metadata } from 'next'
-import { Suspense } from 'react'
-import { ListingView } from '@/components/market/ListingView'
-import { MarketBar } from '@/components/market/Shell'
+import { MovedTo } from '@/components/MovedTo'
 
-export const metadata: Metadata = { title: 'Listing', robots: { index: false } }
+export const metadata: Metadata = { title: 'Community', robots: { index: false } }
 
-export default function ListingPage() {
-  return (
-    <div className="mx-auto max-w-[1100px] pb-16">
-      <MarketBar />
-      <Suspense>
-        <ListingView />
-      </Suspense>
-    </div>
-  )
+/** The Market has closed; old links go to the Community. */
+export default function ClosedMarketPage() {
+  return <MovedTo href="/community/" />
 }

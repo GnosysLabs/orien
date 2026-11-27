@@ -1125,6 +1125,10 @@
   "✓ Valid address": "✓ Địa chỉ hợp lệ",
   "_patterns": [
     [
+      "^Nobody on Orien Network is called “(.+)”\\.$",
+      "Không có ai trên Orien Network tên là “{0}”."
+    ],
+    [
       "^(\\d+) / (\\d+) mining hours$",
       "{0} / {1} giờ đào"
     ],
@@ -2391,5 +2395,6 @@
   "Solana hasn’t acknowledged the submission. This screen will keep checking.": "Solana chưa xác nhận đã nhận yêu cầu. Màn hình này sẽ tiếp tục kiểm tra.",
   "Some Solana balances could not refresh.": "Không thể làm mới một số số dư Solana.",
   "See all swaps": "Xem tất cả hoán đổi",
-  "Help with the wallet, mining, swaps and more.": "Trợ giúp về ví, đào, hoán đổi và nhiều nội dung khác."
+  "Help with the wallet, mining, swaps and more.": "Trợ giúp về ví, đào, hoán đổi và nhiều nội dung khác.",
+  "Nothing found. Search an address (64 letters and digits, 0-9 and a-f), a checkpoint number, or the name of someone on Orien Network.": "Không tìm thấy gì. Hãy tìm theo địa chỉ (64 chữ cái và chữ số, 0-9 và a-f), số điểm kiểm tra hoặc tên một người trên Orien Network."
 }

@@ -101,7 +101,7 @@ export function AddressView() {
               <Avatar name={profile.name} picture={profile.picture} size={36} />
               <span>
                 <span className="block font-semibold text-ink"><WalletNetworkGlyph />{label(profile)}</span>
-                <span className="block text-sm text-muted">Showed on the Market that they hold this wallet</span>
+                <span className="block text-sm text-muted">Showed on Orien Network that they hold this wallet</span>
               </span>
             </a>
           )

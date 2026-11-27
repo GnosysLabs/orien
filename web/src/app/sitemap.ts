@@ -12,7 +12,6 @@ export default function sitemap(): MetadataRoute.Sitemap {
     ...(MARKETPLACE_LIVE
       ? ([
           ['/swap/', 0.8, 'daily'],
-          ['/marketplace/', 0.8, 'daily'],
         ] as const)
       : []),
     ['/paper/', 0.7, 'monthly'],

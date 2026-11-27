@@ -1125,6 +1125,10 @@
   "✓ Valid address": "✓ मान्य पता",
   "_patterns": [
     [
+      "^Nobody on Orien Network is called “(.+)”\\.$",
+      "Orien Network पर “{0}” नाम का कोई नहीं है।"
+    ],
+    [
       "^(\\d+) / (\\d+) mining hours$",
       "माइनिंग के {0} / {1} घंटे"
     ],
@@ -2391,5 +2395,6 @@
   "Solana hasn’t acknowledged the submission. This screen will keep checking.": "Solana ने अभी तक सबमिशन स्वीकार नहीं किया है। यह स्क्रीन जाँच करती रहेगी।",
   "Some Solana balances could not refresh.": "कुछ Solana बैलेंस रीफ़्रेश नहीं हो सके।",
   "See all swaps": "सभी स्वैप देखें",
-  "Help with the wallet, mining, swaps and more.": "वॉलेट, माइनिंग, स्वैप और बहुत कुछ के लिए सहायता।"
+  "Help with the wallet, mining, swaps and more.": "वॉलेट, माइनिंग, स्वैप और बहुत कुछ के लिए सहायता।",
+  "Nothing found. Search an address (64 letters and digits, 0-9 and a-f), a checkpoint number, or the name of someone on Orien Network.": "कुछ नहीं मिला। कोई पता (64 अक्षर और अंक, 0-9 और a-f), चेकपॉइंट संख्या, या Orien Network पर किसी का नाम खोजें।"
 }

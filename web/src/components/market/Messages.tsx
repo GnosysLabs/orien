@@ -336,17 +336,14 @@ function Thread({ id, onChange }: { id: string; onChange: () => void }) {
       </header>
 
       {c.listing !== null && (
-      <Link
-        href={`/marketplace/listing/?id=${c.listing}`}
-        className="flex items-center justify-between gap-3 border-b border-line bg-bg/40 px-4 py-2.5 text-sm hover:bg-raised/40"
-      >
+      <div className="flex items-center justify-between gap-3 border-b border-line bg-bg/40 px-4 py-2.5 text-sm">
         <span className="truncate text-muted">
           About <span className="font-semibold text-ink">{c.listing_title}</span>
         </span>
         <span className="num shrink-0 font-semibold text-ink">
           {formatOrn(c.price ?? 0)} ORN{c.unit && <span className="font-normal text-muted"> {perUnit(c.unit)}</span>}
         </span>
-      </Link>
+      </div>
       )}
 
       {asking !== null && (

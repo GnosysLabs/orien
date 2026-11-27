@@ -1125,6 +1125,10 @@
   "replied to the network's post about you": "あなたに関するネットワーク投稿に返信しました",
   "_patterns": [
     [
+      "^Nobody on Orien Network is called “(.+)”\\.$",
+      "Orien Network に「{0}」というユーザーはいません。"
+    ],
+    [
       "^(\\d+) / (\\d+) mining hours$",
       "マイニング時間：{0} / {1} 時間"
     ],
@@ -2391,5 +2395,6 @@
   "Solana hasn’t acknowledged the submission. This screen will keep checking.": "Solana がまだ送信を受け付けていません。この画面で確認を続けます。",
   "Some Solana balances could not refresh.": "一部の Solana 残高を更新できませんでした。",
   "See all swaps": "すべてのスワップを見る",
-  "Help with the wallet, mining, swaps and more.": "ウォレット、マイニング、スワップなどのヘルプ。"
+  "Help with the wallet, mining, swaps and more.": "ウォレット、マイニング、スワップなどのヘルプ。",
+  "Nothing found. Search an address (64 letters and digits, 0-9 and a-f), a checkpoint number, or the name of someone on Orien Network.": "見つかりませんでした。アドレス（0-9 と a-f の64文字）、チェックポイント番号、または Orien Network 上のユーザー名で検索してください。"
 }

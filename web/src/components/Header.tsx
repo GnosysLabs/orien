@@ -18,7 +18,6 @@ import {
   Smartphone,
   Terminal,
   Compass,
-  Store,
   Users,
   Rocket,
   type LucideIcon,
@@ -86,12 +85,6 @@ const ITEMS: NavItem[] = [
           short: "Buy/sell",
           icon: ArrowLeftRight,
           match: (p: string) => p.startsWith("/swap"),
-        },
-        {
-          href: "/marketplace/",
-          label: "Market",
-          icon: Store,
-          match: (p: string) => p.startsWith("/marketplace"),
         },
       ]
     : []),
@@ -304,14 +297,13 @@ function NavMenu({ label, icon: Icon, items, on }: { label: string; icon: Lucide
 }
 
 /** The top bar's groups, also the sidebar's. */
-/** The top bar's Community menu: the feed, then the Market and swaps. */
+/** The top bar's Community menu: the feed, then swaps. */
 const COMMUNITY: MenuItem[] = [
   ...(COMMUNITY_LIVE
     ? [{ href: "/community/", label: "Feed", detail: "What miners and the network are saying", icon: Users }]
     : []),
   ...(MARKETPLACE_LIVE
     ? [
-        { href: "/marketplace/", label: "Market", detail: "Buy and sell things and services for ORN", icon: Store },
         { href: "/swap/", label: "Swaps", detail: "Swap ORN for SOL or Bitcoin with anyone", icon: ArrowLeftRight },
       ]
     : []),
@@ -615,7 +607,7 @@ export function Sidebar() {
   if (!SIDEBAR || pathname.startsWith("/admin")) return null;
   const item = (href: string) => ITEMS.find((i) => i.href === href);
   const main = ["/", "/how-it-works/", "https://explorer.orien.network/"].map(item).filter((i): i is NavItem => !!i);
-  const trade = ["/swap/", "/marketplace/"].map(item).filter((i): i is NavItem => !!i);
+  const trade = ["/swap/"].map(item).filter((i): i is NavItem => !!i);
 
   return (
     <aside

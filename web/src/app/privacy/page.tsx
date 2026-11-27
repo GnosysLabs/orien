@@ -69,14 +69,14 @@ export default function PrivacyPage() {
           computer, and to orien.network when you sign in with Orien Wallet.
         </p>
         <p>
-          They show your wallet&apos;s balance, your contacts and the people you know from the Market, all read from
+          They show your wallet&apos;s balance, your contacts and the people you know on Orien Network, all read from
           Orien Wallet, and send a payment only after you approve it in Orien Wallet. We collect nothing through them,
           and nothing is sold or shared.
         </p>
       </Section>
 
       <Section title="Your Orien Network account">
-        <p>When you have an Orien Network account, for your profile, the Market or the swap board, we keep:</p>
+        <p>When you have an Orien Network account, for your profile, the Community or the swap board, we keep:</p>
         <ul>
           <li>
             <strong>Your email address,</strong> to send you sign-in codes and tell you about new messages and taken swap

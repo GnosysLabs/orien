@@ -4,12 +4,11 @@ import { WalletNetworkGlyph } from '@/components/WalletNetworkGlyph'
 import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
 import { useEffect, useState } from 'react'
-import { BadgeCheck, Ban, MessageCircle, Store } from 'lucide-react'
+import { BadgeCheck, Ban, MessageCircle } from 'lucide-react'
 import { ask, me, memberSince, pictureUrl, profileHref, type Account, type Listing, type VerifiedWallet } from '@/lib/market'
 import { Linked } from './Linked'
 import { Avatar } from './Avatar'
 import { ContactLinks } from './ContactLinks'
-import { Card } from './Browse'
 import { ReportButton } from './ReportButton'
 import { Notice } from './Shell'
 import { MiningCard, ProfileFeed, type Stats } from './CommunityView'
@@ -55,7 +54,7 @@ export function ProfileView() {
   if (!name && !id) return <Notice tone="bad">No one was named.</Notice>
   if (trouble) return <Notice tone="bad">{trouble}</Notice>
   if (!found) return <p className="text-muted">Loading…</p>
-  const { account, listings } = found
+  const { account } = found
   const wallets = found.wallets ?? []
 
   return (
@@ -73,7 +72,7 @@ export function ProfileView() {
                 type="button"
                 onClick={async () => {
                   const block = !found.blocked
-                  if (block && !window.confirm(`Block ${account.name}? They won't be able to message you, and you won't see their listings.`)) return
+                  if (block && !window.confirm(`Block ${account.name}? They will not be able to message you.`)) return
                   await ask(`/accounts/${account.id}/block`, 'POST', { block }).catch(() => {})
                   setFound({ ...found, blocked: block })
                 }}
@@ -134,26 +133,10 @@ export function ProfileView() {
           )}
         </div>
       </section>
-      {/* Their part of the community, beside their mining and what they sell. */}
+      {/* Their part of the community, beside their mining. */}
       <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_320px]">
         <aside className="space-y-4 lg:sticky lg:top-24 lg:order-last lg:max-h-[calc(100vh-7rem)] lg:overflow-y-auto lg:pr-1 lg:[scrollbar-width:thin]">
           {found.mining && <MiningCard stats={found.mining} />}
-          {listings.length > 0 && (
-            <section className="space-y-3">
-              <div className="flex items-center gap-2 px-1">
-                <Store className="h-4 w-4 text-pearl" strokeWidth={1.75} aria-hidden />
-                <h2 className="text-lg font-bold text-ink">On the Market</h2>
-                <Link href="/marketplace/" className="ml-auto text-xs font-semibold text-muted hover:text-ink hover:underline">
-                  Browse
-                </Link>
-              </div>
-              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-1">
-                {listings.map((listing) => (
-                  <Card key={listing.id} listing={listing} />
-                ))}
-              </div>
-            </section>
-          )}
         </aside>
         <main className="min-w-0">
           <ProfileFeed key={account.name} name={account.name} />
