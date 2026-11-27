@@ -10389,8 +10389,12 @@
     orderCancelling.add(id);
     renderSwaps();
     if (String(current) === id) paintCancelOrder({ id });
+    // Cancelled from the order's own screen: back to the Exchange, as from
+    // the list, with no stopped page to dismiss.
+    const fromDetail = !$("swap-detail").hidden && String(current) === id;
     try {
       await invoke("order_cancel_buy", { id });
+      if (fromDetail && String(current) === id && !$("swap-detail").hidden) { current = null; show("swaps"); }
       await stepSwaps();
       await loadBoard();
     } catch (e) {
