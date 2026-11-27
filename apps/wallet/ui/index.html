@@ -1685,6 +1685,10 @@
   .ex-verify strong { font-size: 13px; color: var(--ink); }
   .ex-verify p { margin: 0; font-size: 12px; line-height: 1.45; color: var(--dim); }
   /* Bottom Activity Deck: Your swaps + Recent market trades */
+  /* Small windows: the tabs above choose Trades or Your swaps, so the
+     panel's own pair of tabs would only say it twice. */
+  @media (max-width: 859px) { #swaps .ex-deck-head { display: none; } }
+  body.phone #swaps .ex-deck-head { display: none; }
   .ex-deck-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 16px; border-bottom: 1px solid var(--line); }
   .ex-deck-tabs { display: flex; gap: 6px; }
   .ex-deck-tab { height: 32px; padding: 0 13px; border-radius: 10px; border: 1px solid transparent; background: transparent; color: var(--dim);
@@ -4669,7 +4673,7 @@
             </div>
           </div>
 
-          <div class="ex-panel" id="ex-pane-deck" data-ex-pane="mine">
+          <div class="ex-panel" id="ex-pane-deck" data-ex-pane="mine history" hidden>
             <div class="ex-deck-head">
               <div class="ex-deck-tabs" role="tablist">
                 <button type="button" class="ex-deck-tab on" id="ex-deck-mine" role="tab">Your orders &amp; swaps <span id="ex-mine-count"></span></button>
@@ -10004,7 +10008,7 @@
       $(`tab-${t}-go`).classList.toggle("on", t === tab);
     }
     for (const pane of document.querySelectorAll("#swaps [data-ex-pane]")) {
-      pane.hidden = pane.dataset.exPane !== tab;
+      pane.hidden = !pane.dataset.exPane.split(" ").includes(tab);
     }
     if (tab === "mine") setExDeck("mine");
     if (tab === "history") { setExDeck("trades"); loadHistory(false); }
