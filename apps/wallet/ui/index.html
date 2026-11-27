@@ -871,50 +871,35 @@
      as one to press rather than a label. */
   @media (hover: hover) { .wallet-chip:hover { color: var(--ink); background: var(--surface-hover); } }
   :is([data-theme="daylight"], [data-base="light"]) .wallet-chip { color: var(--ink); }
-  /* A wallet: name and address on the left, its balance on the right
-     (amount over unit, mirroring the two lines opposite), and quiet edit
-     tools at the far end, past a hairline. All on one centred line. */
-  /* Wallets: each a calm card with a round "coin" for its initial. The open
-     one wears the pearl. Rename and remove appear when pointed at. */
-  /* Wallets as cards, two to a row: the icon with Edit and Remove beside
-     it, always there; the name and address; the balance, large, at the
-     foot, never covered. */
-  #wallets { --col: 820px; }
-  .wl-overview { border: 1px solid var(--line); border-radius: 18px; padding: 18px 22px; margin: 4px 0 18px;
-    background: linear-gradient(110deg, color-mix(in srgb, var(--accent) 9%, var(--surface)), var(--surface) 75%); }
-  .wl-bar, .wl-totals, .wl-switch { display: flex; align-items: center; gap: 8px; }
-  .wl-bar { justify-content: space-between; flex-wrap: wrap; gap: 10px; }
-  .wl-bar h3 { margin: 0; font-size: 14px; font-weight: 550; color: var(--dim); }
-  .wl-switch { gap: 2px; padding: 3px; border: 1px solid var(--line); border-radius: 99px; background: var(--field); }
-  .wl-switch button { background: transparent; color: var(--dim); border: 0; border-radius: 99px; padding: 5px 10px; cursor: pointer; font-size: 12px; }
-  .wl-switch button[aria-pressed="true"] { color: var(--ink); background: var(--surface-hover); }
-  .wl-totals { margin-top: 12px; gap: 10px 24px; flex-wrap: wrap; font-size: clamp(21px, 3vw, 32px); font-weight: 600; line-height: 1.2; font-variant-numeric: tabular-nums; }
-  #wallets .unit { color: var(--dim); font-size: .58em; margin-left: .35em; font-weight: 500; }
-  #wallet-list { display: grid; border: 1px solid var(--line); border-radius: 16px; background: var(--surface); overflow: hidden; }
-  .wallet-row { display: flex; min-width: 0; align-items: center; padding-right: 10px; }
-  .wallet-row + .wallet-row { border-top: 1px solid var(--line); }
-  .wallet-row.current { background: color-mix(in srgb, var(--accent) 5%, var(--surface)); box-shadow: inset 3px 0 var(--accent); }
-  .wl-open { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 12px; min-width: 0;
-    flex: 1; padding: 13px 12px 13px 16px; border: 0; border-radius: 10px; background: transparent; text-align: left; cursor: pointer; }
-  .wl-open:focus-visible { outline: 2px solid var(--accent); outline-offset: -3px; }
-  .wallet-row .coin { display: grid; place-items: center; width: 38px; height: 38px; border-radius: 12px; background: var(--surface-hover); font-size: 18px; }
-  .wallet-row .who, .wallet-row .name, .wallet-row .addr { min-width: 0; display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .wallet-row .name { font-size: 15px; font-weight: 600; }
-  .wallet-row .addr { font: 11.5px/1.6 ui-monospace, monospace; color: var(--dim); }
-  .wallet-row .bal { text-align: right; font-weight: 600; font-variant-numeric: tabular-nums; }
-  .wallet-row .bal > span { display: block; }
-  .wallet-row .bal > span + span { font-size: 12px; color: var(--dim); }
-  .wallet-row .bal .unit { font-size: 11px !important; }
-  .wallet-row .here { margin-left: 6px; color: var(--accent); font-size: 11px; }
-  .wallet-row .tool { display: grid; place-items: center; width: 36px; height: 38px; background: transparent; border: 0; border-radius: 10px; color: var(--dim); cursor: pointer; }
+  #wallets { --col: 900px; }
+  #wallet-list { display: grid; grid-template-columns: minmax(0,1fr); gap: 12px; }
+  @media (min-width: 820px) { #wallet-list { grid-template-columns: repeat(2,minmax(0,1fr)); } }
+  .wallet-row { position: relative; min-width: 0; border: 1px solid var(--line); border-radius: 18px; background: var(--surface); }
+  .wallet-row.current { border-color: color-mix(in srgb, var(--accent) 55%, var(--line)); }
+  .wl-open { width: 100%; min-width: 0; display: block; border: 0; border-radius: inherit; background: transparent;
+    padding: 14px 16px; text-align: left; cursor: pointer; }
+  .wl-open:focus-visible, .wallet-row .tool:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+  .wl-identity { display: flex; min-width: 0; align-items: center; gap: 9px; padding-right: 38px; }
+  .wl-identity .coin { display: grid; place-items: center; flex: none; width: 34px; height: 34px; border-radius: 10px;
+    background: var(--surface-hover); font-size: 18px; }
+  .wl-identity .name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 16px; font-weight: 650; }
+  .wl-identity .here { color: var(--accent); font-size: 11px; font-weight: 550; }
+  .wl-chains { display: grid; margin: 11px 0 1px 16px; padding-left: 14px; border-left: 1px solid var(--line); gap: 10px; }
+  .wl-chain { display: grid; grid-template-columns: minmax(0,1fr) minmax(0,auto); align-items: start; gap: 8px; }
+  .wl-chain .network { display: flex; align-items: center; gap: 5px; color: var(--ink); font-size: 13px; font-weight: 550; }
+  .wl-chain .wallet-glyph { margin: 0; }
+  .wl-chain .addr { display: block; margin-top: 2px; color: var(--dim); font: 11px/1.4 ui-monospace, monospace;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .wl-chain .bal { display: flex; flex-direction: column; align-items: flex-end; gap: 2px; font-size: 13px;
+    font-weight: 550; font-variant-numeric: tabular-nums; }
+  #wallets .unit { margin-left: .35em; color: var(--dim); font-size: 11px; font-weight: 500; }
+  .wallet-row .tool { position: absolute; right: 9px; top: 10px; display: grid; place-items: center; width: 38px; height: 40px;
+    border: 0; border-radius: 10px; background: transparent; color: var(--dim); cursor: pointer; }
   @media (hover: hover) { .wl-open:hover, .wallet-row .tool:hover { background: var(--surface-hover); } }
-  @media (max-width: 480px) {
-    .wl-overview { padding: 14px; }
-    .wl-open { padding: 12px 5px 12px 9px; gap: 7px; }
-    .wallet-row { padding-right: 2px; }
-    .wallet-row .coin { width: 29px; height: 32px; font-size: 16px; }
-    .wallet-row .here { display: block; margin-left: 0; }
-  }
+  .wl-overview { display: flex; align-items: baseline; justify-content: space-between; flex-wrap: wrap; gap: 8px 20px;
+    margin: 15px 2px 0; font-size: 12px; color: var(--dim); }
+  .wl-totals { display: flex; flex-wrap: wrap; gap: 8px 16px; color: var(--ink); font-variant-numeric: tabular-nums; }
+  @media (max-width: 420px) { .wl-open { padding: 12px; } .wl-chains { padding-left: 10px; } }
   #wr-forget { align-self: flex-start; color: var(--bad); margin-top: 14px; }
   .emoji-grid { display: grid; grid-template-columns: repeat(8, minmax(0, 1fr)); gap: 6px; }
   .emoji-grid button { min-width: 0; width: 100%; aspect-ratio: 1; padding: 0; border: 1px solid transparent; border-radius: 12px; background: var(--surface); cursor: pointer;
@@ -4456,14 +4441,8 @@
         <div class="box plain sync-pw" hidden><input type="password" placeholder="Wallet password" autocomplete="current-password"></div>
         <button class="pill pearl sync-go">Turn on syncing</button>
       </div>
-      <div class="wl-overview">
-        <div class="wl-bar"><h3>Total balance</h3><div class="wl-switch" role="group" aria-label="Wallet network">
-          <button type="button" data-wl-network="ORN" aria-pressed="true">Orien</button>
-          <button type="button" data-wl-network="SOL" aria-pressed="false">Solana Devnet</button>
-        </div></div>
-        <div class="wl-totals" id="wallet-total-v"></div>
-      </div>
       <div id="wallet-list"><div class="empty">Loading…</div></div>
+      <div class="wl-overview" id="wallet-overview" hidden><span>Across all wallets</span><span class="wl-totals" id="wallet-total-v"></span></div>
       <div class="problem" id="wallets-problem" hidden></div>
     </section>
 
@@ -6040,7 +6019,7 @@
   }
   let walletPage;
   async function showWallets() {
-    const page = walletPage = { network: walletAsset === "ORN" ? "ORN" : "SOL", wallets: [], orn: {}, sol: new Map(), solStarted: false };
+    const page = walletPage = { wallets: [], orn: {}, sol: new Map() };
     $("wallets-problem").hidden = true;
     show("wallets");
     $("wallet-list").innerHTML = '<div class="empty">Loading…</div>';
@@ -6049,6 +6028,7 @@
     if (page !== walletPage || $("wallets").hidden) return;
     page.wallets = wallets;
     renderWallets(page);
+    void loadWalletSolBalances(page);
     paintSyncCard("sync-wallets");
     try { page.orn = await invoke("wallet_balances"); } catch {}
     if (page === walletPage && !$("wallets").hidden) paintWalletBalances(page);
@@ -6085,7 +6065,7 @@
   const PENCIL = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"/><path d="m15 5 4 4"/></svg>';
   const TRASH = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 11v6"/><path d="M14 11v6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>';
   function paintWalletBalances(page) {
-    const assets = page.network === "ORN" ? ["ORN"] : ["SOL", "USDC"];
+    const assets = ["ORN", "SOL", "USDC"];
     const value = (w, asset) => asset === "ORN" ? page.orn[w.address] : page.sol.get(w.address)?.[asset.toLowerCase()];
     const cell = (text, asset, digits) => {
       const n = text == null ? NaN : Number(String(text).replace(/,/g, ""));
@@ -6094,7 +6074,7 @@
         n.toLocaleString(undefined, {maximumFractionDigits: digits});
       return `<span${typeof text === "string" && !prefs.hide ? ' title="' + esc(text) + ' ' + asset + '"' : ""}>${esc(display)}<small class="unit">${asset}</small></span>`;
     };
-    for (const button of document.querySelectorAll("[data-wl-network]")) button.setAttribute("aria-pressed", String(button.dataset.wlNetwork === page.network));
+    $("wallet-overview").hidden = page.wallets.length < 2;
     $("wallet-total-v").innerHTML = assets.map(asset => {
       const values = page.wallets.map(w => value(w, asset));
       const total = values.length && values.every(v => v != null) ? values.reduce((s, v) => s + Number(String(v).replace(/,/g, "")), 0) : null;
@@ -6102,42 +6082,36 @@
     }).join("");
     for (const spot of $("wallet-list").querySelectorAll("[data-wl-balance]")) {
       const w = page.wallets[Number(spot.dataset.wlBalance)];
-      spot.innerHTML = assets.map(asset => cell(value(w, asset), asset, asset === "SOL" ? 5 : 2)).join("");
+      const chainAssets = spot.dataset.chain === "SOL" ? ["SOL", "USDC"] : ["ORN"];
+      spot.innerHTML = chainAssets.map(asset => cell(value(w, asset), asset, asset === "SOL" ? 5 : 2)).join("");
     }
   }
   async function loadWalletSolBalances(page) {
-    if (page.solStarted || !page.wallets.length) return;
-    page.solStarted = true;
     const wallets = page.wallets.filter(w => w.solana_address);
     async function next() {
       while (wallets.length && page === walletPage && !$("wallets").hidden) {
         const w = wallets.shift();
         try { page.sol.set(w.address, await invoke("solana_devnet_balances", {address: w.solana_address})); } catch {}
-        if (page === walletPage && !$("wallets").hidden && page.network === "SOL") paintWalletBalances(page);
+        if (page === walletPage && !$("wallets").hidden) paintWalletBalances(page);
       }
     }
     await Promise.all([next(), next()]);
   }
-  for (const b of document.querySelectorAll("[data-wl-network]")) b.onclick = () => {
-    if (!walletPage || walletPage.network === b.dataset.wlNetwork) return;
-    walletPage.network = b.dataset.wlNetwork;
-    renderWallets(walletPage);
-  };
   function renderWallets(page) {
-    const sol = page.network === "SOL";
     $("wallet-list").innerHTML = page.wallets.map((w, i) => {
-      const address = sol ? w.solana_address : w.address;
+      const chain = (network, label, address) => `<span class="wl-chain">
+        <span><span class="network">${walletGlyph(network)}${label}</span><span class="addr">${address ? esc(short(address)) : "Address not loaded"}</span></span>
+        <span class="bal" data-wl-balance="${i}" data-chain="${network}"></span></span>`;
       return `<div class="wallet-row${w.current ? " current" : ""}">
-        <button type="button" class="wl-open" data-open="${i}" aria-label="Open ${esc(w.name)} on ${sol ? "Solana Devnet" : "Orien"}">
-          <span class="coin" aria-hidden="true">${esc(iconOf(w.address) || (w.name || "?").slice(0, 1).toUpperCase())}</span>
-          <span class="who"><span class="name">${walletLabel(w.name, page.network)}${w.current ? '<span class="here">Open</span>' : ""}</span>
-          <span class="addr">${address ? esc(short(address)) : "Open to view address"}</span></span>
-          <span class="bal" data-wl-balance="${i}"></span></button>
+        <button type="button" class="wl-open" data-open="${i}" aria-label="Open ${esc(w.name)}">
+          <span class="wl-identity"><span class="coin" aria-hidden="true">${esc(iconOf(w.address) || (w.name || "?").slice(0, 1).toUpperCase())}</span>
+            <span class="name">${esc(w.name)}</span>${w.current ? '<span class="here">Open</span>' : ""}</span>
+          <span class="wl-chains">${chain("ORN", "Orien", w.address)}${chain("SOL", "Solana Devnet", w.solana_address)}</span>
+        </button>
         <button class="tool" data-rename="${i}" aria-label="Wallet settings · ${esc(w.name)}" title="Wallet settings">${COG}</button>
       </div>`;
     }).join("") || '<div class="empty">No wallets to show</div>';
     paintWalletBalances(page);
-    if (sol) void loadWalletSolBalances(page);
     for (const row of $("wallet-list").querySelectorAll("[data-open]")) row.onclick = async () => {
       const w = page.wallets[Number(row.dataset.open)];
       try {
@@ -6146,7 +6120,6 @@
           await invoke("use_wallet", {path: w.path});
           walletOpened();
         }
-        walletAsset = sol ? (walletAsset === "USDC" ? "USDC" : "SOL") : "ORN";
         paintWalletAsset();
         await home();
         refreshVisibleDevnet();
