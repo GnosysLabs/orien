@@ -20,6 +20,7 @@ pub mod notices;
 pub mod pair;
 pub mod prices;
 pub mod proofs;
+mod sol_profile;
 pub mod push;
 mod referrals;
 pub mod room;

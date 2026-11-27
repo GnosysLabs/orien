@@ -10,6 +10,8 @@
 //! wallet (and the iPhone app) need none of Solana's own large libraries.
 //! The format is small and fixed; a live test on devnet checks it.
 
+pub mod profile;
+
 use crate::chain::{MAX_REST, REST, remember, remembered, rest, resting};
 use anyhow::{Context, Result, anyhow, bail};
 use ed25519_dalek::{Signer, SigningKey};
@@ -43,6 +45,11 @@ pub fn address(text: &str) -> Result<Pubkey> {
 /// An address, or a signature, as base58 text.
 pub fn text(bytes: &[u8]) -> String {
     bs58::encode(bytes).into_string()
+}
+
+/// Whether an address can have a regular Ed25519 wallet signing key.
+pub fn is_wallet_key(key: &Pubkey) -> bool {
+    ed25519_dalek::VerifyingKey::from_bytes(key).is_ok_and(|key| !key.is_weak())
 }
 
 /// A Solana key pair.
