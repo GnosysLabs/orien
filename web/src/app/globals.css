@@ -327,3 +327,22 @@ select {
   background-size: 1rem;
   padding-right: 2.75rem !important;
 }
+
+/* Group network addresses derived from the same wallet. */
+.network-wallet-pair {
+  position: relative;
+  padding-inline-start: 1.75rem;
+}
+.network-wallet-pair::before {
+  content: "";
+  position: absolute;
+  inset-inline-start: .6rem;
+  top: 24%;
+  bottom: 24%;
+  width: .45rem;
+  border: 1px solid var(--color-muted);
+  border-inline-end: 0;
+  border-radius: 4px 0 0 4px;
+  opacity: .65;
+  pointer-events: none;
+}

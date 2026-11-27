@@ -1,5 +1,6 @@
 'use client'
 
+import { WalletNetworkGlyph } from '@/components/WalletNetworkGlyph'
 import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
 import { useEffect, useState } from 'react'
@@ -101,6 +102,18 @@ export function ProfileView() {
             )}
           </div>
           <p className="text-sm text-muted">{memberSince(account.created)}</p>
+          {wallets.length > 0 && (
+            <ul className="flex flex-wrap justify-center gap-2 sm:justify-start">
+              {wallets.map(w => <li key={w.address} className={w.solana_devnet ? 'network-wallet-pair flex flex-col items-start gap-1' : ''}>{[
+                { address: w.address, network: 'ORN' as const, href: `/explorer/address/?a=${w.address}` },
+                ...(w.solana_devnet ? [{ address: w.solana_devnet, network: 'SOL' as const, href: `https://explorer.solana.com/address/${w.solana_devnet}?cluster=devnet` }] : []),
+              ].map(({address, network, href}) => (
+                <a key={network + address} href={href} title={address} className="inline-flex items-center rounded-xl border border-line px-3 py-1 text-sm text-ink hover:border-pearl">
+                  <WalletNetworkGlyph network={network} />{w.name || 'Wallet'}
+                </a>
+              ))}</li>)}
+            </ul>
+          )}
           {account.bio && (
             <p className="whitespace-pre-line pt-2 leading-relaxed text-muted">
               <Linked text={account.bio} />

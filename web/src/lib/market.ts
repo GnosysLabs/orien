@@ -22,10 +22,11 @@ export type MessagesFrom = 'everyone' | 'talked' | 'nobody'
 export type Contact = { telegram: string; x: string; discord: string }
 
 /** A wallet its owner proved is theirs, by its name in their Orien Wallet. */
-export type VerifiedWallet = { address: string; name: string | null }
+export type VerifiedWallet = { address: string; name: string | null; solana_devnet?: string }
 
 /** What verifying a wallet takes: `amount` from `address` to `to`. */
 export type WalletProof = {
+  solana_devnet?: string
   address: string
   /** Its name in your Orien Wallet, if an app has said. */
   name: string | null

@@ -1,5 +1,6 @@
 'use client'
 
+import { WalletNetworkGlyph } from '@/components/WalletNetworkGlyph'
 import { useEffect, useRef, useState } from 'react'
 import { BadgeCheck, MoreHorizontal, Plus, Wallet } from 'lucide-react'
 import { CopyText } from '@/components/CopyText'
@@ -163,9 +164,9 @@ function WalletRow({
   const waiting = row.proof !== null && !verified
 
   return (
-    <li className="space-y-3 px-4 py-3">
+    <li className={`space-y-3 px-4 py-3 ${row.proof?.solana_devnet ? 'network-wallet-pair' : ''}`}>
       <div className="flex flex-wrap items-center gap-3">
-        <span className="font-semibold text-ink">{row.name ?? 'Wallet'}</span>
+        <span className="font-semibold text-ink"><WalletNetworkGlyph />{row.name ?? 'Wallet'}</span>
         <code className="num text-xs text-muted">{short(row.address)}</code>
         {verified ? (
           <VerifiedBadge />
@@ -217,6 +218,13 @@ function WalletRow({
           )}
         </span>
       </div>
+      {row.proof?.solana_devnet && (
+        <div className="flex flex-wrap items-center gap-3 border-t border-line pt-3">
+          <span className="font-semibold text-ink"><WalletNetworkGlyph network="SOL" />{row.name ?? 'Wallet'}</span>
+          <a href={`https://explorer.solana.com/address/${row.proof.solana_devnet}?cluster=devnet`} title={row.proof.solana_devnet} className="num text-xs text-muted hover:underline">{short(row.proof.solana_devnet)}</a>
+          <VerifiedBadge />
+        </div>
+      )}
       {waiting && row.proof && (
         <div className="space-y-3">
           <p className="text-sm leading-relaxed text-muted">
@@ -249,7 +257,7 @@ function AddWallet({ offered, onAdd, onCancel }: { offered: Named[]; onAdd: (add
       </p>
       <div className="flex flex-wrap items-center gap-3">
         {offered.length > 0 && (
-          <select
+          <label className="inline-flex items-center"><WalletNetworkGlyph /><select aria-label="Orien wallet"
             value={choice}
             onChange={(e) => setChoice(e.target.value)}
             className="h-10 rounded-xl border border-line bg-surface px-3 text-sm text-ink outline-none focus:border-pearl/60"
@@ -260,7 +268,7 @@ function AddWallet({ offered, onAdd, onCancel }: { offered: Named[]; onAdd: (add
               </option>
             ))}
             <option value="other">Another address…</option>
-          </select>
+          </select></label>
         )}
         {choice === 'other' && (
           <input

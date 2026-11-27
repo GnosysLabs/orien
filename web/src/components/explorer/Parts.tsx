@@ -1,5 +1,6 @@
 'use client'
 
+import { WalletNetworkGlyph } from '@/components/WalletNetworkGlyph'
 import { useEffect, useRef, useState } from 'react'
 import { Blocks, ChevronRight, Search } from 'lucide-react'
 import { Avatar } from '@/components/market/Avatar'
@@ -233,7 +234,7 @@ export function ExplorerSearch({ initial = '' }: { initial?: string }) {
                     <Avatar name={profile.name} picture={profile.picture} size={32} />
                     <span className="min-w-0 flex-1">
                       <span className="block truncate font-semibold text-ink">
-                        {label({ name: profile.name, wallet_name: wallet.name })}
+                        <WalletNetworkGlyph />{label({ name: profile.name, wallet_name: wallet.name })}
                       </span>
                       <span className="num block truncate text-sm text-muted">{short(wallet.address)}</span>
                     </span>

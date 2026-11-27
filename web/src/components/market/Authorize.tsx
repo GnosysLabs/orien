@@ -1,5 +1,6 @@
 'use client'
 
+import { WalletNetworkGlyph } from '@/components/WalletNetworkGlyph'
 import { useEffect, useState } from 'react'
 import { ShieldCheck, Wallet } from 'lucide-react'
 import { ask, takeWalletPass } from '@/lib/market'
@@ -176,7 +177,7 @@ export function Authorize() {
             <ul className="mt-2 space-y-1.5">
               {you.wallets.map((wallet) => (
                 <li key={wallet.address} className="flex items-center justify-between gap-3 text-sm">
-                  <span className="truncate font-semibold text-ink">{wallet.name ?? 'Wallet'}</span>
+                  <span className="truncate font-semibold text-ink"><WalletNetworkGlyph />{wallet.name ?? 'Wallet'}</span>
                   <span className="num shrink-0 text-muted">{short(wallet.address)}</span>
                 </li>
               ))}
