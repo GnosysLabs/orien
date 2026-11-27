@@ -9656,7 +9656,9 @@
     // Funded buy orders (orien-order): neither side needs to stay online.
     if (s.funded_order && s.role === "buy") {
       const steps = [
-        { name: "Send SOL", what: `Send ${s.pay_amount ? s.pay_amount + " SOL" : B} from your SOL wallet`, who: "You · stay on this page until Step 2 finishes" },
+        paysItself(s)
+          ? { name: "Paid", what: `${s.pay_amount ? s.pay_amount + " SOL" : B} from your Solana balance`, who: s.stage === "pay" ? "Automatic · a few seconds" : "" }
+          : { name: "Send SOL", what: `Send ${s.pay_amount ? s.pay_amount + " SOL" : B} from your SOL wallet`, who: "You · stay on this page until Step 2 finishes" },
         { name: "Post order", what: `Locking your ${B} on Solana and adding your order to the book`, who: "Automatic · keep this page open (~20 seconds)" },
         { name: "Live on book", what: `Waiting on the order book for a seller to fill ${O}`, who: "Safe to leave this page or close Orien Wallet" },
         { name: "Done", what: `${O} delivered to your wallet`, who: s.stage === "settling" ? "Automatic · about a minute" : "" },
@@ -9842,7 +9844,7 @@
   // What happens if the other side disappears, at this point of the swap.
   function ifGone(s) {
     if (s.funded_order) {
-      if (s.role === "buy" && s.stage === "pay")
+      if (s.role === "buy" && s.stage === "pay" && !paysItself(s))
         return "<strong>The extra over the price</strong> covers Solana's small rent and fees; nearly all of it returns to your SOL wallet automatically. <strong>Changed your mind?</strong> Cancel below before sending. Nothing has left your wallet.";
       if (s.role === "buy" && s.stage === "locking")
         return "<strong>Stay on this page for a moment:</strong> Orien Wallet is locking your SOL on Solana and registering your order on the book. Step 2 will show a checkmark as soon as you can leave.";
