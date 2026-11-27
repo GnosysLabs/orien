@@ -6670,10 +6670,12 @@
     $("hs-mine").classList.toggle("mining", !!s.running);
     // No figure yet: the heartbeat dot from beside the wordmark, green
     // while mining gets going, red while it's off.
+    // Written only when it changes: rewriting it restarts its glow mid-pulse.
+    const putDot = (el, html) => { if (el.dataset.dot !== html || !el.querySelector(".hs-dot")) { el.innerHTML = html; el.dataset.dot = html; } };
     const mineDot = `<i class="hs-dot ${s.running ? "on" : "off"}" role="img" aria-label="${s.running ? "Getting ready" : "Mining is off"}"></i>`;
-    if (s.running && s.tries_per_second) $("hs-speed").textContent = `${speed(s.tries_per_second)}/s`; else $("hs-speed").innerHTML = mineDot;
+    if (s.running && s.tries_per_second) $("hs-speed").textContent = `${speed(s.tries_per_second)}/s`; else putDot($("hs-speed"), mineDot);
     $("hs-rate-label").textContent = small === "for each share" ? "Each share" : "Shares an hour";
-    if (big) $("hs-rate").textContent = big; else $("hs-rate").innerHTML = mineDot;
+    if (big) $("hs-rate").textContent = big; else putDot($("hs-rate"), mineDot);
     // Someone new starts on the Mine screen, with the processor and the
     // benchmark in view; after their first mining or benchmark, Home starts it.
     if (s.running || mineSweet) localStorage.setItem("mined-before", "1");
