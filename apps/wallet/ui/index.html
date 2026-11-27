@@ -648,13 +648,19 @@
   .bal-glyph[data-coin="USDC"] { -webkit-mask-image: url("chains/usdc-glyph.svg"); mask-image: url("chains/usdc-glyph.svg"); }
 
   .asset-picker { display: flex; gap: 7px; margin: 0 0 12px; }
-  .asset-picker .pill { gap: 6px; min-width: 72px; padding: 0 11px; }
+  /* Both drift from the start, so the one chosen later is in step with the
+     other pearl elements rather than starting its own sweep. */
+  .asset-picker .pill { gap: 6px; min-width: 72px; padding: 0 11px; animation: drift 24s linear infinite; }
   .asset-picker .chain-mark { flex: none; width: 20px; height: 20px; object-fit: contain; }
   .asset-picker .chain-mark.mark { background: currentColor; }
   .asset-picker .sol-mark { width: 17px; height: 17px; }
   .asset-picker .sol-mark::before { content: ""; display: block; width: 100%; height: 100%; background: currentColor;
     -webkit-mask: url("chains/solana.svg") center / contain no-repeat; mask: url("chains/solana.svg") center / contain no-repeat; }
-  .asset-picker .pill[aria-pressed="true"] { background: var(--pearl); color: var(--pearl-ink); border-color: transparent; }
+  /* The chosen coin wears the pearl as the other pearl buttons do: wide,
+     drifting, with the same shine and shadow. */
+  .asset-picker .pill[aria-pressed="true"] { background: var(--pearl); background-size: 300% 100%;
+    color: var(--pearl-ink); border-color: transparent; box-shadow: inset 0 1px 0 #ffffffa0, 0 3px 9px rgba(var(--shade), var(--shade-a)); }
+  html[data-base="dark"] body .asset-picker .pill[aria-pressed="true"] { box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.16), 0 3px 9px rgba(var(--shade), var(--shade-a)); }
   .asset-picker .pill[aria-pressed="true"] .sol-mark { filter: drop-shadow(0 1px 1px #21173770); }
   /* Same pill as the currency button beside the eye. */
   .card .asset-menu-toggle { display: inline-flex; align-items: center; align-self: center; gap: 4px; height: 28px; padding: 0 9px 0 11px; border: 0; border-radius: 14px;
