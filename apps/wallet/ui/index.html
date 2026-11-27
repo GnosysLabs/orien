@@ -10782,7 +10782,11 @@
     const sol = parseFloat($("ex-sol").value);
     const bar = $("ex-rate-bar");
     const val = $("ex-rate-val");
-    const tooLow = sol > 0 && sol < 0.01;
+    // Below 0.01, zero included, once it can't become more by typing: two
+    // decimals typed (".00", "0.00"), or the box left.
+    const solText = $("ex-sol").value.trim();
+    const settled = /\.\d{2,}/.test(solText) || document.activeElement !== $("ex-sol");
+    const tooLow = /\d/.test(solText) && sol < 0.01 && settled;
     const maxSol = (board.maxOrderLamports || 10e9) / 1e9;
     const tooHigh = exSide === "buy" && sol > maxSol;
     bar.classList.toggle("warn", tooLow || tooHigh);
@@ -10881,6 +10885,7 @@
   }
   $("ex-orn").oninput = updateExRate;
   $("ex-sol").oninput = () => { capExSol(); updateExRate(); };
+  $("ex-sol").onblur = updateExRate;
   $("ex-pw").oninput = updateExReady;
   $("ex-addr").oninput = () => {
     clearTimeout(exAddrTimer);
