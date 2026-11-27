@@ -38,7 +38,6 @@ export const CHANGELOG: Entry[] = [
       'Find people by name when sending SOL. Contacts show the Solana address linked with each wallet, and linking a wallet to your profile links both addresses.',
       'See SOL and USDC balances in your own currency, with each coin’s mark beside the balance.',
     ],
-    unreleased: true,
   },
   {
     date: '2026-11-26',
