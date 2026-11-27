@@ -2066,10 +2066,9 @@
   #se-gate p { margin: 6px 0 0; }
   #se-gate .pill { margin-top: 12px; }
   #se-gate .hint { margin-top: 12px; font-size: 12.5px; }
-  /* Your wallets on the profile: status, Paid here or Get paid here, ⋯. */
+  /* Wallet verification status and actions. */
   .vf-who { min-width: 0; }
   .vf-acts { display: flex; align-items: center; gap: 6px; flex: none; }
-  .vf-paid { font-size: 12.5px; font-weight: 600; color: var(--good); }
   .vf-hint { display: block; margin-top: 6px; color: var(--faint); }
   .steps { list-style: none; margin: 18px 0 0; padding: 0; }
   .steps li { position: relative; display: grid; grid-template-columns: 26px 1fr; gap: 12px; padding-bottom: 16px; }
@@ -3263,6 +3262,12 @@
   .pf-choice button { min-height: 38px; padding: 6px 8px; border: 0; border-radius: 10px; background: transparent; color: var(--dim); font: inherit; font-size: 13px; font-weight: 600; line-height: 1.25; cursor: pointer; }
   .pf-choice button.on { background: var(--surface-hover); color: var(--ink); }
   .pf-dm-note { margin: 10px 2px 0; line-height: 1.5; }
+  .pf-wallet-settings { display: grid; grid-template-columns: auto minmax(0, 230px); align-items: end; justify-content: start; gap: 10px 14px; }
+  .pf-payout-control { position: relative; display: block; }
+  .pf-payout-control .wallet-glyph { position: absolute; inset-inline-start: 12px; top: 50%; transform: translateY(-50%); pointer-events: none; }
+  .pf-wallet-settings > div { min-width: 0; max-width: 100%; }
+  .pf-wallet-settings select { width: 100%; height: 42px; max-width: 100%; border: 1px solid var(--line); border-radius: 21px; padding: 0 10px 0 34px; background: var(--surface); color: var(--ink); font: inherit; text-overflow: ellipsis; cursor: pointer; }
+  .pf-wallet-settings select:focus-visible { outline: 2px solid var(--focus); }
   .pf-blocks-go { width: auto; padding: 0 22px; height: 42px; }
   .bp-verify { margin: 0 0 18px; }
   .bp-verify .pill { margin-top: 12px; }
@@ -4161,7 +4166,10 @@
         <p class="hint pf-dm-note">Messages about your Market listings always come through whatever you pick, so buyers can ask about what you're selling. Blocking still works on top of this.</p>
       </div>
       <!-- The people you've blocked, to unblock: they're hidden from you until then. -->
-      <div class="field pf-blocks"><label>Blocked accounts</label><button class="secondary pf-blocks-go" id="pf-blocks">Manage blocks</button></div>
+      <div class="field pf-wallet-settings">
+        <div><label for="pf-blocks">Blocked accounts</label><button class="secondary pf-blocks-go" id="pf-blocks">Manage blocks</button></div>
+        <div id="pf-payout-field" hidden><label for="pf-payout">Payout wallet</label><span class="pf-payout-control"><span class="wallet-glyph orn" role="img" aria-label="Orien"></span><select id="pf-payout" title="Where you receive ORN payments and tips"></select></span></div>
+      </div>
       <div class="problem" id="pf-problem" hidden></div>
         </div>
         <div class="pf-side">
@@ -7345,7 +7353,7 @@
       `Switch to another wallet: ${tap} the wallet’s name on Home and pick it.`,
       `${Tap} your picture, then <b>Edit Profile</b>, then <b>Verify</b> beside that wallet.`,
       "Repeat for each wallet you want on your profile.",
-      `The wallet buyers and tippers pay says <b>Paid here</b>. To change it, ${tap} <b>Get paid here</b> on another verified wallet.`,
+      `Under <b>Payout wallet</b>, choose the verified ORN wallet that receives payments and tips.`,
       `To take a wallet off your profile, ${tap} <b>⋯</b> beside it, then <b>Remove from your profile</b>.`,
     ]);
     add("Orien Network", "tip", "Tip someone", [
@@ -13409,6 +13417,7 @@
     paintDm(me.messages_from || "everyone");
     pfTab("settings");
     $("pf-problem").hidden = true;
+    $("pf-payout-field").hidden = true;
     renderVerify();
     $("pf-delete-box").hidden = true;
     $("pf-delete").hidden = false;
@@ -13481,14 +13490,13 @@
       const a = (p.address || "").toLowerCase();
       if (!rows.some((r) => r.address === a)) rows.push({ address: a, name: p.name || "Wallet", here: false, current: false });
     }
-    const paidTo = ((board.me && board.me.wallet) || "").toLowerCase();
+    paintPayoutWallets(rows.filter(r => state(r.address)?.verified));
     const anyVerified = states.some((p) => p.verified);
     const noOrn = phone
       ? "Don't have any ORN yet? Mine for an hour in Orien Wallet on a computer, or buy a little at orien.network."
       : "Don't have any ORN yet? Mine for an hour from the Mine screen, or buy a little on Swap.";
-    $("vf-intro").innerHTML = anyVerified
-      ? "Buyers on the Market pay the wallet marked Paid here. Verify more to choose between them."
-      : `Verify a wallet to sell on the Market: buyers pay it, and see your name with it.<span class="vf-hint">${noOrn}</span>`;
+    $("vf-intro").hidden = anyVerified;
+    $("vf-intro").innerHTML = anyVerified ? "" : `Verify a wallet to sell on the Market: buyers pay it, and see your name with it.<span class="vf-hint">${noOrn}</span>`;
     $("vf-list").innerHTML = rows.map((r, i) => {
       const st = state(r.address);
       const verified = !!(st && st.verified), waiting = !!(st && !st.verified);
@@ -13496,8 +13504,7 @@
       // its Verify button gives way to where it stands.
       const busy = verifying === r.address;
       const status = verified ? "Verified" : waiting ? "Waiting" : "Not verified yet";
-      const action = verified
-        ? (r.address === paidTo ? '<span class="vf-paid">Paid here</span>' : `<button class="pill" data-paid="${r.address}">Get paid here</button>`)
+      const action = verified ? ""
         : busy ? `<span class="vf-wait">${proof ? "Confirm below" : "Verifying…"}</span>`
         : r.current ? `<button class="pill pearl" data-verify="${r.address}">Verify</button>`
         : r.here ? '<span class="vf-wait">Open it to verify</span>' : "";
@@ -13506,16 +13513,47 @@
       const solRow = solProfileRow(r, st, profileId, currentSol);
       return solRow ? `<div class="vf-pair">${ornRow}${solRow}</div>` : ornRow;
     }).join("");
-    for (const b of $("vf-list").querySelectorAll("[data-paid]")) b.onclick = async () => {
-      b.disabled = true; $("pf-problem").hidden = true;
-      try { await invoke("board_paid_wallet", { address: b.dataset.paid }); board.me = await invoke("board_me"); renderVerify(); feel("success"); }
-      catch (e) { b.disabled = false; problem("pf-problem", e); }
-    };
     for (const b of $("vf-list").querySelectorAll("[data-more]")) b.onclick = () => { vfMenuFor = b.dataset.more; toggleMenu("vf-menu", b.id); };
     for (const b of $("vf-list").querySelectorAll("[data-verify]")) b.onclick = () => startVerify(b.dataset.verify, b);
     if (!note) { $("vf-confirm").hidden = true; proof = null; verifying = null; }
     else { $("vf-confirm").hidden = false; $("vf-text").textContent = note; $("vf-pw-field").hidden = true; $("vf-go").hidden = true; }
   }
+  let payoutSaving = false;
+  function paintPayoutWallets(wallets) {
+    const select = $("pf-payout");
+    const current = (board.me?.wallet || "").toLowerCase();
+    const selected = wallets.some(wallet => wallet.address === current);
+    const options = wallets.map(wallet => new Option(`${wallet.name} · ${short(wallet.address)}`, wallet.address));
+    if (!selected) {
+      const placeholder = new Option("Choose a wallet", "");
+      placeholder.disabled = true;
+      options.unshift(placeholder);
+    }
+    select.replaceChildren(...options);
+    select.value = selected ? current : "";
+    select.dataset.account = String(board.me.id);
+    select.disabled = payoutSaving || (selected && wallets.length === 1);
+    $("pf-payout-field").hidden = !wallets.length;
+  }
+  $("pf-payout").onchange = async event => {
+    const select = event.currentTarget;
+    const account = board.me?.id;
+    const address = select.value;
+    if (payoutSaving || String(account) !== select.dataset.account || !states.some(p => p.verified && p.address === address)) return;
+    payoutSaving = true;
+    select.disabled = true;
+    $("pf-problem").hidden = true;
+    try {
+      await invoke("board_paid_wallet", {address});
+      if (board.me?.id === account) { board.me.wallet = address; feel("success"); }
+    } catch (e) {
+      if (board.me?.id === account) problem("pf-problem", e);
+    } finally {
+      payoutSaving = false;
+      if (board.me?.id === account) select.value = board.me.wallet || "";
+      select.disabled = select.options.length <= 1;
+    }
+  };
   async function startVerify(address, button) {
     button.disabled = true;
     $("pf-problem").hidden = true;
