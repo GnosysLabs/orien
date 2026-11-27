@@ -4450,6 +4450,7 @@
           <label for="sol-send-to">To</label>
           <div class="box">
             <input id="sol-send-to" placeholder="Name or Solana address" spellcheck="false" autocomplete="off" autocapitalize="none" required>
+            <div class="chosen" id="sol-to-chosen" hidden></div>
             <button class="chip" id="sol-send-paste" type="button">Paste</button>
             <button class="chip scan-chip" id="sol-send-scan" type="button" aria-label="Scan a QR code" title="Scan a QR code"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7V5a2 2 0 0 1 2-2h2"/><path d="M17 3h2a2 2 0 0 1 2 2v2"/><path d="M21 17v2a2 2 0 0 1-2 2h-2"/><path d="M7 21H5a2 2 0 0 1-2-2v-2"/><path d="M7 12h10"/></svg></button>
           </div>
@@ -8610,6 +8611,17 @@
     const check = $("sol-to-check");
     check.textContent = ownAddress ? "That is this wallet’s own address" : to && !validShape ? "Enter a Solana wallet address." : quote ? "✓ Valid address" : "";
     check.classList.toggle("ok", !!quote);
+    // A whole address: shown by name if it has one, else by its two ends,
+    // as on Send ORN.
+    const who = validShape ? solNameOf(to) : null;
+    $("sol-send-to").hidden = validShape;
+    $("sol-to-chosen").hidden = !validShape;
+    if (validShape && !profiles.has(to.toLowerCase())) loadProfiles([to]).then((found) => found && devnetSend === state && paintDevnetSend(state));
+    const pic = who && profileOf(to)?.picture ? face(to, who) : "";
+    $("sol-to-chosen").innerHTML = !validShape ? "" : who
+      ? `${pic}<span class="who">${walletLabel(who, "SOL")}</span><span class="addr">${phone ? "…" + to.slice(-4) : short(to)}</span>`
+      : `<span class="addr solo">${short(to)}</span>`;
+    if (who && quote && !ownAddress) check.textContent = "";
     $("sol-send-to").disabled = $("sol-send-amount").disabled = busy;
     $("sol-send-paste").disabled = $("sol-send-scan").disabled = $("sol-send-max").disabled = busy;
     $("sol-send-paste").textContent = validShape ? "Clear" : "Paste";
@@ -8812,6 +8824,7 @@
       if (!devnetSendActive(state) || state.busy || value == null) return;
       $("sol-send-to").value = value.trim().replace(/^solana:/i, "");
       updateSolQuote();
+      paintDevnetSend(state);
       (solAddressPattern.test($("sol-send-to").value) ? $("sol-send-amount") : $("sol-send-to")).focus();
     } catch {
       if (devnetSendActive(state)) $("sol-send-to").focus();
