@@ -4317,9 +4317,8 @@
             <span class="amount-unit">SOL</span>
             <button class="chip" id="sol-send-max" type="button">Max</button>
           </div>
-          <div class="fee-line" id="sol-fee-line" aria-live="polite"></div>
         </div>
-        <div class="summary" id="sol-send-summary" hidden>
+        <div class="summary" id="sol-send-summary" aria-live="polite" aria-atomic="true">
           <div class="row"><span>Total</span><span><span class="sm-fee" id="sol-review-fee"></span><span id="sol-review-total"></span></span></div>
           <div class="row"><span>Balance after</span><span id="sol-review-after"></span></div>
         </div>
@@ -7956,20 +7955,20 @@
     $("sol-send-scan").hidden = validShape;
     $("sol-send-max").hidden = available === "0";
     $("sol-send-amount").placeholder = state.max ? "Max" : "0";
-    $("sol-fee-line").textContent = state.checking ? "Checking network fee…" : state.max && !to ? "Enter a recipient to calculate the maximum." : "";
-    $("sol-fee-line").hidden = !!quote;
     $("sol-send-confirm").disabled = busy || !quote || (needsPassword && !$("sol-send-pw").value);
     $("sol-send-confirm").textContent = state.submitting ? "Sending…" : view?.biometric && !needsPassword ? `Send with ${bio}` : "Send";
     $("sol-send-pw-field").hidden = !quote || !needsPassword;
-    $("sol-send-summary").hidden = !quote;
+    const hasAmount = state.max || !!$("sol-send-amount").value.trim();
+    const feeNote = quote ? `incl. ${quote.fee} fee` : state.checking ? "Checking fee…" :
+      hasAmount && !to ? "Enter a recipient" : "";
+    $("sol-review-fee").textContent = feeNote;
+    $("sol-review-fee").hidden = !feeNote;
+    $("sol-review-total").textContent = quote ? `${quote.total} SOL` : hasAmount ? "—" : "0 SOL";
+    const after = quote ? quote.after : hasAmount ? null : available;
+    $("sol-review-after").textContent = prefs.hide ? "••••" : after != null ? `${after} SOL` : "—";
     for (const button of $("sol-send-recent-row").children) {
       button.disabled = busy;
       button.classList.toggle("on", button.dataset.address === to);
-    }
-    if (quote) {
-      $("sol-review-fee").textContent = `incl. ${quote.fee} fee`;
-      $("sol-review-total").textContent = `${quote.total} SOL`;
-      $("sol-review-after").textContent = prefs.hide ? "••••" : `${quote.after} SOL`;
     }
     if (receipt) {
       $("sol-send-status").textContent = devnetSendLabels[receipt.state];
