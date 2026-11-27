@@ -29,6 +29,9 @@ pub const QUIET_SECONDS: u64 = 5 * 60;
 pub const MAX_OFFERS: i64 = 5;
 /// Lapses in a week after which an account may not take offers for a week.
 pub const LAPSES_ALLOWED: i64 = 2;
+/// The swap rules of a wallet that sells part of an order (posting one
+/// needs them).
+pub const PART_SWAP_VERSION: u32 = 5;
 /// Sell offers one buyer may have taken and under way at once.
 pub const MAX_TAKES: i64 = 5;
 const WEEK: u64 = 7 * 24 * 3600;
@@ -59,6 +62,9 @@ pub struct SwapOffer {
     pub seller_online: bool,
     /// "sell" (offering ORN for SOL/BTC) or "buy" (offering SOL/BTC for ORN).
     pub side: String,
+    /// For a part someone bought of an order: that order. The seller's
+    /// wallet sells it on the order's approval.
+    pub parent: Option<i64>,
 }
 
 /// An offer as one of its two sides sees it, with what their wallet needs.
@@ -93,7 +99,7 @@ const OFFER: &str = "SELECT o.id, o.seller, a.name, a.picture,
         o.orn, o.sats, o.state, o.created, o.coin,
         EXISTS (SELECT 1 FROM app_seen s WHERE s.account = o.seller
                 AND s.at > CAST(strftime('%s', 'now') AS INTEGER) - 120),
-        o.side
+        o.side, o.parent
      FROM swap_offers o JOIN accounts a ON a.id = o.seller";
 
 fn offer_row(row: &rusqlite::Row) -> rusqlite::Result<SwapOffer> {
@@ -112,6 +118,7 @@ fn offer_row(row: &rusqlite::Row) -> rusqlite::Result<SwapOffer> {
         created: row.get(8)?,
         seller_online: row.get(10)?,
         side: row.get(11)?,
+        parent: row.get(12)?,
     })
 }
 

@@ -75,10 +75,11 @@ pub fn approve(dir: &Path, offer: i64, orn: u64, wallet: &Path, password: Option
 }
 
 /// What unlocks the wallet for `offer`'s swap, if it was approved for
-/// exactly `orn` units from `wallet`: Some(None) for a wallet with no lock.
+/// `orn` units or more from `wallet` (selling part of an approved order is
+/// approved too): Some(None) for a wallet with no lock.
 pub fn approved(dir: &Path, offer: i64, orn: u64, wallet: &Path) -> Option<Option<String>> {
     let approved = load(dir).remove(&offer)?;
-    if approved.orn != orn || approved.wallet != wallet {
+    if approved.orn < orn || approved.wallet != wallet {
         return None;
     }
     #[cfg(any(target_os = "macos", target_os = "ios"))]

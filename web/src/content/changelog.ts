@@ -28,6 +28,20 @@ export const CHANGELOG: Entry[] = [
   {
     date: '2026-11-27',
     products: ['wallet'],
+    version: '1.9.35',
+    title: 'A new Exchange',
+    changes: [
+      'The Exchange works like a trading app: a TradingView price chart, the order book with sell orders above and buy orders below, and a Buy / Sell form beside them.',
+      'Market orders, the default: type how much to spend, and Buy takes it from the cheapest sellers, from several at once if one doesn\u2019t have enough.',
+      'Buy just part of a sell order, at its price; the rest stays open for others.',
+      'Limit orders keep a price of your own, waiting in the order book until someone meets it.',
+      'Recent trades shows everyone\u2019s latest swaps; Your orders shows your own open orders and history.',
+      'Sell orders placed before this version were closed: post them again from this version, from the same wallet. Nothing was locked, so nothing was lost.',
+    ],
+  },
+  {
+    date: '2026-11-27',
+    products: ['wallet'],
     version: '1.9.34',
     title: 'Nicknames in the explorer',
     changes: [

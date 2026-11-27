@@ -505,15 +505,15 @@ async fn swap_offers_go_on_the_board_and_are_taken_through_requests() {
     assert_eq!(status, StatusCode::UNAUTHORIZED);
     // New offers come from one of the seller's verified wallets.
     let refused = "Verify this wallet on your Orien Network profile before offering a swap from it.";
-    let (status, body) = market.ask("POST", "/api/market/swaps", Some(&maya), Some(json!({ "orn": 500_000_000_000u64, "sats": 1_000_000 }))).await;
+    let (status, body) = market.ask("POST", "/api/market/swaps", Some(&maya), Some(json!({ "swap_version": 5, "orn": 500_000_000_000u64, "sats": 1_000_000 }))).await;
     assert_eq!((status, body["error"].as_str()), (StatusCode::BAD_REQUEST, Some(refused)), "no wallet named");
-    let (status, body) = market.ask("POST", "/api/market/swaps", Some(&maya), Some(json!({ "orn": 500_000_000_000u64, "sats": 1_000_000, "wallet": "cd".repeat(32) }))).await;
+    let (status, body) = market.ask("POST", "/api/market/swaps", Some(&maya), Some(json!({ "swap_version": 5, "orn": 500_000_000_000u64, "sats": 1_000_000, "wallet": "cd".repeat(32) }))).await;
     assert_eq!((status, body["error"].as_str()), (StatusCode::BAD_REQUEST, Some(refused)), "not verified");
     let sams_wallet = verified_wallet(&market, &sam).await;
-    let (status, _) = market.ask("POST", "/api/market/swaps", Some(&maya), Some(json!({ "orn": 500_000_000_000u64, "sats": 1_000_000, "wallet": sams_wallet }))).await;
+    let (status, _) = market.ask("POST", "/api/market/swaps", Some(&maya), Some(json!({ "swap_version": 5, "orn": 500_000_000_000u64, "sats": 1_000_000, "wallet": sams_wallet }))).await;
     assert_eq!(status, StatusCode::BAD_REQUEST, "someone else's verified wallet");
     let wallet = verified_wallet(&market, &maya).await;
-    let (status, body) = market.ask("POST", "/api/market/swaps", Some(&maya), Some(json!({ "orn": 500_000_000_000u64, "sats": 1_000_000, "wallet": wallet }))).await;
+    let (status, body) = market.ask("POST", "/api/market/swaps", Some(&maya), Some(json!({ "swap_version": 5, "orn": 500_000_000_000u64, "sats": 1_000_000, "wallet": wallet }))).await;
     assert_eq!(status, StatusCode::CREATED);
     let id = body["offer"]["id"].as_i64().unwrap();
     let (_, board) = market.ask("GET", "/api/market/swaps", None, None).await;
@@ -775,7 +775,7 @@ async fn an_offer_whose_wallet_no_longer_holds_the_orn_leaves_the_board() {
     let sam = sign_in_for_tests(&market.app, "Sam");
     let wallet = verified_wallet(&market, &maya).await;
     let id = |hex: &str| orien_crypto::Hash32(hex::decode(hex).unwrap().try_into().unwrap());
-    let offer = |orn: u64| json!({ "orn": orn, "sats": 1_000_000, "wallet": wallet, "payout": "bc1qar0srrr7xfkvy5l643lydnw9re59gtzzwf5mdq" });
+    let offer = |orn: u64| json!({ "swap_version": 5, "orn": orn, "sats": 1_000_000, "wallet": wallet, "payout": "bc1qar0srrr7xfkvy5l643lydnw9re59gtzzwf5mdq" });
     let (status, body) = market.ask("POST", "/api/market/swaps", Some(&maya), Some(offer(500 * ORN))).await;
     assert_eq!(status, StatusCode::CREATED, "{body}");
     let big = body["offer"]["id"].as_i64().unwrap();
@@ -963,7 +963,7 @@ async fn wallets_on_older_swap_rules_cannot_take_once_the_gate_is_on() {
     let maya = sign_in_for_tests(&market.app, "Maya");
     let sam = sign_in_for_tests(&market.app, "Sam");
     let wallet = verified_wallet(&market, &maya).await;
-    let (_, body) = market.ask("POST", "/api/market/swaps", Some(&maya), Some(json!({ "orn": 5_000_000_000u64, "sats": 15_000, "wallet": wallet }))).await;
+    let (_, body) = market.ask("POST", "/api/market/swaps", Some(&maya), Some(json!({ "swap_version": 5, "orn": 5_000_000_000u64, "sats": 15_000, "wallet": wallet }))).await;
     let id = body["offer"]["id"].as_i64().unwrap();
     let buyer = "bb".repeat(32);
     let path = format!("/api/market/swaps/{id}/take");
@@ -985,15 +985,15 @@ async fn sol_offers_are_shown_and_taken_only_by_wallets_that_know_them() {
     let payout = "99zcMPAgZwXxoLDwor424zro9BGMATTsMk8djqov2qKf";
     let wallet = verified_wallet(&market, &maya).await;
     // Too small, or with no payout address: refused in words.
-    let (status, _) = market.ask("POST", "/api/market/swaps", Some(&maya), Some(json!({ "coin": "sol", "orn": 5_000_000_000u64, "lamports": 1000, "payout": payout, "wallet": wallet }))).await;
+    let (status, _) = market.ask("POST", "/api/market/swaps", Some(&maya), Some(json!({ "swap_version": 5, "coin": "sol", "orn": 5_000_000_000u64, "lamports": 1000, "payout": payout, "wallet": wallet }))).await;
     assert_eq!(status, StatusCode::BAD_REQUEST);
-    let (status, _) = market.ask("POST", "/api/market/swaps", Some(&maya), Some(json!({ "coin": "sol", "orn": 5_000_000_000u64, "lamports": 200_000_000u64, "wallet": wallet }))).await;
+    let (status, _) = market.ask("POST", "/api/market/swaps", Some(&maya), Some(json!({ "swap_version": 5, "coin": "sol", "orn": 5_000_000_000u64, "lamports": 200_000_000u64, "wallet": wallet }))).await;
     assert_eq!(status, StatusCode::BAD_REQUEST);
-    let (status, body) = market.ask("POST", "/api/market/swaps", Some(&maya), Some(json!({ "coin": "sol", "orn": 5_000_000_000u64, "lamports": 200_000_000u64, "payout": payout, "wallet": wallet }))).await;
+    let (status, body) = market.ask("POST", "/api/market/swaps", Some(&maya), Some(json!({ "swap_version": 5, "coin": "sol", "orn": 5_000_000_000u64, "lamports": 200_000_000u64, "payout": payout, "wallet": wallet }))).await;
     assert_eq!(status, StatusCode::CREATED, "{body}");
     assert_eq!((body["offer"]["coin"].as_str(), body["offer"]["lamports"].as_u64(), body["offer"]["sats"].as_u64()), (Some("sol"), Some(200_000_000), Some(0)));
     let id = body["offer"]["id"].as_i64().unwrap();
-    market.ask("POST", "/api/market/swaps", Some(&maya), Some(json!({ "orn": 1_000_000_000u64, "sats": 20_000, "wallet": wallet }))).await;
+    market.ask("POST", "/api/market/swaps", Some(&maya), Some(json!({ "swap_version": 5, "orn": 1_000_000_000u64, "sats": 20_000, "wallet": wallet }))).await;
 
     // Wallets from before SOL swaps see Bitcoin only; newer ones ask for both, SOL first.
     let (_, board) = market.ask("GET", "/api/market/swaps", None, None).await;

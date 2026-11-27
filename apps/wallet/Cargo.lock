@@ -3107,7 +3107,7 @@ dependencies = [
 
 [[package]]
 name = "orien-wallet"
-version = "1.9.34"
+version = "1.9.35"
 dependencies = [
  "anyhow",
  "base64 0.22.1",

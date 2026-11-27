@@ -925,6 +925,10 @@ struct NewSwap {
     payout: Option<String>,
     #[serde(default)]
     wallet: Option<String>,
+    /// The swap rules the poster's wallet follows: 5 from the wallet that
+    /// sells part of an order when someone buys part.
+    #[serde(default)]
+    swap_version: u32,
 }
 
 #[derive(Deserialize)]
@@ -1133,6 +1137,11 @@ async fn post_swap(State(app): State<Arc<App>>, headers: HeaderMap, Json(request
     }
     if side != "sell" {
         return Err(Failure::Refused("side must be sell or buy".into()));
+    }
+    // Anyone can buy part of a sell order: only a wallet that sells parts
+    // may post one.
+    if request.swap_version < crate::swaps::PART_SWAP_VERSION {
+        return Err(Failure::Refused("Update Orien Wallet to post a sell order.".into()));
     }
     // New sell offers come from one of the seller's verified wallets, so buyers
     // know who they deal with. Offers already up stay as they are.

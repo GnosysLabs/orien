@@ -391,7 +391,8 @@ pub fn post_sol(dir: &Path, wallet: &Path, orn: u64, lamports: u64, payout: &str
     let payout = payout.trim();
     crate::solswaps::payout_problem(payout).map_or(Ok(()), Err)?;
     let address = orien_net::keys::Wallet::peek(wallet).map_err(|error| error.to_string())?.0.to_string();
-    let posted = call(dir, "POST", "/swaps", Some(json!({ "coin": "sol", "orn": orn, "lamports": lamports, "payout": payout, "wallet": address })))?;
+    // Rules 5: this wallet sells part of an order when someone buys part.
+    let posted = call(dir, "POST", "/swaps", Some(json!({ "coin": "sol", "orn": orn, "lamports": lamports, "payout": payout, "wallet": address, "swap_version": 5 })))?;
     let offer = posted["offer"]["id"].as_i64().ok_or("The swap board did not say which offer it posted.")?;
     let mut saved = load(dir);
     saved.links.push(Link { offer, selling: true, bitcoin: payout.into(), coin: "sol".into(), swap: None, finished: false, wallet: Some(wallet.to_path_buf()) });
@@ -937,10 +938,24 @@ pub static NEEDS_UNLOCK: std::sync::Mutex<std::collections::BTreeMap<i64, PathBu
 /// without a password. Only then does it claim the swap, so a device that
 /// would sit waiting for a password never keeps the one that can go ahead
 /// from it. When it can't, it says the wallet needs unlocking here.
+/// What approves selling offer `id` (`orn` units from `wallet`): its own
+/// approval or, for a part someone bought of an order, the order's, which
+/// covers any part of it. The part then keeps an approval of its own, for
+/// its later steps.
+fn approval_for(dir: &Path, id: i64, item: &Value, orn: u64, wallet: &Path) -> Option<Option<String>> {
+    if let Some(found) = crate::approval::approved(dir, id, orn, wallet) {
+        return Some(found);
+    }
+    let parent = item["offer"]["parent"].as_i64()?;
+    let found = crate::approval::approved(dir, parent, orn, wallet)?;
+    crate::approval::approve(dir, id, orn, wallet, found.as_deref());
+    Some(found)
+}
+
 fn ready(orien: &AppOrien, dir: &Path, id: i64, item: &Value, wallet: Option<&Path>) -> bool {
     let wallet = wallet.map(Path::to_path_buf).unwrap_or_else(|| orien.wallet_file.clone());
     let orn = item["offer"]["orn"].as_u64().unwrap_or(0);
-    let password = match crate::approval::approved(dir, id, orn, &wallet) {
+    let password = match approval_for(dir, id, item, orn, &wallet) {
         Some(password) => password,
         None if wallet == orien.wallet_file => orien.password.clone(),
         None => None,
@@ -1030,7 +1045,7 @@ pub fn drive_on(
                 let wallet = link.wallet.clone().unwrap_or_else(|| orien.wallet_file.clone());
                 // Approved when posted, for exactly this many ORN: no one
                 // needs to be at the computer.
-                let approved = crate::approval::approved(dir, id, orn, &wallet);
+                let approved = approval_for(dir, id, item, orn, &wallet);
                 let orien = &match (&orien.password, approved) {
                     (None, Some(password)) => orien.with_password(password),
                     _ => orien.with_wallet(&orien.wallet_file),
@@ -1233,7 +1248,7 @@ pub fn drive_sol(orien: &AppOrien, dir: &Path, mine: &Value, sol: &mut Vec<crate
             (true, None) if state == "held" => {
                 let lamports = item["offer"]["lamports"].as_u64().unwrap_or(0);
                 let buyer = item["taker_wallet"].as_str().unwrap_or_default();
-                let password = orien.password.clone().or_else(|| crate::approval::approved(dir, id, orn, &wallet).flatten());
+                let password = orien.password.clone().or_else(|| approval_for(dir, id, item, orn, &wallet).flatten());
                 let orien = orien.with_wallet(&wallet).with_password(password.clone());
                 let started = fee_secret(&wallet, password.as_deref()).and_then(|fee| {
                     solswaps::sell(&orien, cluster, buyer, orn, lamports, &link.bitcoin, &fee).map(|mut kept| {
