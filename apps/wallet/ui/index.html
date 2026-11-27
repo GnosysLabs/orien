@@ -1732,7 +1732,7 @@
   html[data-base="dark"] body #swaps .ex-go { box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.16), 0 4px 12px rgba(var(--shade), var(--shade-a)); }
   .own-sol { display: none !important; }
   /* Placing an order: a button in the header, the form a card over the page. */
-  .ex-order-go, .ex-order-x, .ex-veil, .ex-mine-go, .ex-deck-x { display: none; }
+  .ex-order-go, .ex-order-x, .ex-veil, .ex-mine-go, .ex-deck-x, .ex-deck-title { display: none; }
   .ex-mine-go b { min-width: 18px; height: 18px; padding: 0 5px; border-radius: 9px; background: var(--ink); color: var(--ground-deep); font-size: 11px; font-weight: 700; display: inline-grid; place-items: center; }
   .ex-mine-go b:empty { display: none; }
   .ex-cur { margin-left: 10px; flex: none; }
@@ -1875,10 +1875,10 @@
     body:not(.phone) #swaps #ex-pane-ticket .ex-kinds button { padding-bottom: 8px; }
     /* The form as tall as it needs; the order book keeps at least a few rows,
        the form scrolling inside itself in a short window. */
-    body:not(.phone) #swaps #ex-pane-ticket { flex: 1 1 auto; min-height: 0; overflow-y: auto; }
-    body:not(.phone) #swaps #ex-pane-ticket .ex-ticket-body { flex: 1; }
-    /* The fields at the top; what Buy or Sell will do, and the button, at the foot. */
-    body:not(.phone) #swaps #ex-pane-ticket .ex-rate-bar { margin-top: auto; }
+    /* The form as tall as it needs; everyone's latest trades under it. */
+    body:not(.phone) #swaps #ex-pane-ticket { flex: 0 1 auto; min-height: 0; overflow-y: auto; }
+    body:not(.phone) #swaps #ex-pane-trades { flex: 1 1 0; min-height: 150px; overflow: hidden; }
+    body:not(.phone) #swaps #ex-deck-recent { display: none; }
     body:not(.phone) #swaps #tab-offers { min-height: 170px; }
     /* Your orders and swaps: a pop-up from the header, over the page. */
     body:not(.phone) .ex-mine-go { display: inline-flex; align-items: center; gap: 7px; margin-left: auto; }
@@ -1887,11 +1887,17 @@
     body.ex-deck-open:not(.phone) main { isolation: auto; }
     body.ex-deck-open:not(.phone) #swaps { -webkit-mask: none; mask: none; }
     html body.ex-deck-open:not(.phone) #swaps #ex-pane-deck#ex-pane-deck { display: flex !important; position: fixed; z-index: 51; inset: 0; margin: auto;
-      width: min(640px, calc(100vw - 48px)); height: min(640px, calc(100vh - 96px)); border-radius: 24px;
+      width: min(640px, calc(100vw - 48px)); height: fit-content; max-height: min(640px, calc(100vh - 96px)); border-radius: 24px;
       box-shadow: 0 24px 60px rgba(0, 0, 0, 0.5), 0 2px 8px rgba(0, 0, 0, 0.25); animation: pop-in .2s cubic-bezier(.2, .9, .3, 1.2); }
     body.ex-deck-open:not(.phone) #ex-veil:not([hidden]) { display: block; position: fixed; inset: 0; z-index: 50;
       background: var(--veil); -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px); animation: pop-fade .18s ease; }
-    body.ex-deck-open:not(.phone) #swaps .ex-deck-head { position: relative; padding-right: 52px; }
+    body.ex-deck-open:not(.phone) #swaps .ex-deck-head { position: relative; padding: 12px 52px 12px 18px; justify-content: flex-start; gap: 16px; }
+    body.ex-deck-open:not(.phone) .ex-deck-title { display: block; margin: 0; font-size: 15px; font-weight: 600; }
+    body.ex-deck-open:not(.phone) #swaps #ex-pane-deck #tab-mine { flex: 0 1 auto; }
+    body.ex-deck-open:not(.phone) #swaps #ex-pane-deck #swap-list { min-height: 120px; }
+    /* Recent trades: one line each, as an exchange's tape. */
+    body:not(.phone) #swaps #ex-pane-trades .ex-tape-row { padding-block: 8px; }
+    body:not(.phone) #swaps #ex-pane-trades .ex-tape-row .t-sub { display: none; }
     body.ex-deck-open:not(.phone) .ex-deck-x { display: grid; place-items: center; position: absolute; top: 50%; right: 12px; transform: translateY(-50%); width: 30px; height: 30px; padding: 0; border: 0; border-radius: 50%; background: var(--surface-hover); color: var(--dim); cursor: pointer; }
     body:not(.phone) #swaps #ex-pane-ticket .ex-ticket-body { flex: 1; justify-content: flex-start; }
     body:not(.phone) #swaps #ex-pane-ticket .ex-note { display: none; }
@@ -4911,8 +4917,9 @@
             <div class="problem" id="board-problem" hidden></div>
           </div>
 
-          <div class="ex-panel" id="ex-pane-deck" data-ex-pane="mine history" hidden>
+          <div class="ex-panel" id="ex-pane-deck" data-ex-pane="mine" hidden>
             <div class="ex-deck-head">
+              <h3 class="ex-deck-title">Your orders</h3>
               <button class="pop-x ex-deck-x" id="ex-deck-x" aria-label="Close" title="Close"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></button>
               <div class="ex-deck-tabs" role="tablist">
                 <button type="button" class="ex-deck-tab on" id="ex-deck-recent" role="tab">Recents</button>
@@ -4923,13 +4930,6 @@
             </div>
             <div id="tab-mine" hidden>
               <div class="scroll" id="swap-list"><div class="empty">No swaps yet</div></div>
-            </div>
-            <div id="tab-history">
-              <div class="hist-last" id="hist-last" hidden></div>
-              <div class="hist-last" id="board-last" hidden></div>
-              <div id="hist-list"><div class="empty">Loading…</div></div>
-              <button class="pill mk-more" id="hist-more" hidden>Show more</button>
-              <div class="problem" id="hist-problem" hidden></div>
             </div>
           </div>
         </div>
@@ -5007,6 +5007,18 @@
               <div class="problem" id="ex-problem" hidden></div>
               <button type="button" class="ex-go buy" id="ex-go">Place Buy Order</button>
               <p class="ex-note" id="ex-note"></p>
+            </div>
+          </div>
+
+          <!-- Everyone's latest swaps: the market's tape, under the form. -->
+          <div class="ex-panel" id="ex-pane-trades" data-ex-pane="history">
+            <div class="ex-phead"><h3>Recent trades</h3></div>
+            <div id="tab-history">
+              <div class="hist-last" id="hist-last" hidden></div>
+              <div class="hist-last" id="board-last" hidden></div>
+              <div id="hist-list"><div class="empty">Loading…</div></div>
+              <button class="pill mk-more" id="hist-more" hidden>Show more</button>
+              <div class="problem" id="hist-problem" hidden></div>
             </div>
           </div>
 
@@ -10479,7 +10491,6 @@
     const recent = which === "recent";
     for (const t of ["recent", "history", "buys", "sells"]) $(`ex-deck-${t}`).classList.toggle("on", t === which);
     $("tab-mine").hidden = recent;
-    $("tab-history").hidden = !recent;
     if (recent) loadHistory(false); else renderSwaps();
   }
   // Open swaps and orders of one side: on the book or under way.
@@ -10511,27 +10522,27 @@
   // Exchange's currency, at today's SOL rate, as the order book shows them.
   const EX_TF = { "1h": 3600, "4h": 14400, "1d": 86400 };
   let exTf = EX_TF[localStorage.getItem("ex-chart-tf")] ? localStorage.getItem("ex-chart-tf") : "1h";
+  // A candle for each hour (or four, or day) that had trades, as trading
+  // charts draw a quiet market: no flat candles for the hours in between.
+  // Each opens where the one before closed. The latest 60.
   function exCandles() {
     const step = EX_TF[exTf];
     const trades = hist.swaps.filter((x) => x.coin === "sol" && x.orn > 0 && x.lamports > 0)
       .map((x) => ({ at: x.at, p: (x.lamports / 1e9) / (x.orn / 1e9), v: x.orn / 1e9 })).sort((a, b) => a.at - b.at);
-    if (!trades.length) return [];
-    const now = Math.floor(Date.now() / 1000);
-    const last = Math.floor(now / step) * step;
-    const start = Math.max(Math.floor(trades[0].at / step) * step, last - 59 * step);
     const out = [];
-    let prev = null, i = 0;
-    for (; i < trades.length && trades[i].at < start; i++) prev = trades[i].p;
-    for (let t = start; t <= last; t += step) {
-      const inside = [];
-      while (i < trades.length && trades[i].at < t + step) inside.push(trades[i++]);
-      if (inside.length) {
-        const ps = inside.map((x) => x.p), o = prev ?? ps[0];
-        out.push({ t, o, h: Math.max(o, ...ps), l: Math.min(o, ...ps), c: ps[ps.length - 1], v: inside.reduce((n, x) => n + x.v, 0) });
-        prev = ps[ps.length - 1];
-      } else if (prev != null) out.push({ t, o: prev, h: prev, l: prev, c: prev, v: 0 });
+    let prev = null;
+    for (const x of trades) {
+      const t = Math.floor(x.at / step) * step;
+      let c = out[out.length - 1];
+      if (!c || c.t !== t) {
+        const o = prev ?? x.p;
+        c = { t, o, h: o, l: o, c: o, v: 0 };
+        out.push(c);
+      }
+      c.h = Math.max(c.h, x.p); c.l = Math.min(c.l, x.p); c.c = x.p; c.v += x.v;
+      prev = x.p;
     }
-    return out;
+    return out.slice(-60);
   }
   let exChartPick = null;
   function renderExChart() {
@@ -10564,7 +10575,10 @@
     if (hi === lo) { hi *= 1.02; lo *= 0.98; }
     const room = (hi - lo) * 0.08; hi += room; lo -= room;
     const y = (p) => padT + (hi - Math.min(hi, Math.max(lo, p))) / (hi - lo) * priceH;
-    const slot = (plotW - padL) / cs.length, bw = Math.max(1, Math.min(14, slot * 0.62));
+    // Candles keep a trading chart's width, the latest at the right; a few
+    // candles don't stretch across the whole chart.
+    const slot = Math.min(22, (plotW - padL) / cs.length), bw = Math.max(1, Math.min(14, slot * 0.62));
+    const x0 = plotW - 8 - slot * cs.length;
     const maxV = Math.max(1e-9, ...cs.map((c) => c.v));
     const tone = (c) => c.c > c.o ? "up" : c.c < c.o ? "down" : "flat";
     // Four or five round prices on the scale.
@@ -10578,14 +10592,20 @@
       grid += `<line class="exc-grid" x1="${padL}" x2="${plotW}" y1="${yy}" y2="${yy}"/>${label}`;
     }
     // A few times along the bottom.
-    const every = Math.max(1, Math.ceil(cs.length / 5));
-    const when = (t) => exTf === "1d" ? new Date(t * 1000).toLocaleDateString([], { month: "short", day: "numeric" }) : new Date(t * 1000).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
+    const every = Math.max(1, Math.ceil(90 / slot));
+    const when = (t) => {
+      const d = new Date(t * 1000);
+      if (exTf === "1d") return d.toLocaleDateString([], { month: "short", day: "numeric" });
+      // Candles skip quiet hours, so a label says the day when it isn't today.
+      const today = new Date().toDateString() === d.toDateString();
+      return today ? d.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" }) : d.toLocaleDateString([], { month: "short", day: "numeric" }) + " " + d.toLocaleTimeString([], { hour: "numeric" });
+    };
     let times = "";
     for (let i = cs.length - 1; i >= 0; i -= every) {
-      times += `<text class="exc-axis" x="${(padL + i * slot + slot / 2).toFixed(1)}" y="${H - 8}" text-anchor="middle">${esc(when(cs[i].t))}</text>`;
+      times += `<text class="exc-axis" x="${(x0 + i * slot + slot / 2).toFixed(1)}" y="${H - 8}" text-anchor="middle">${esc(when(cs[i].t))}</text>`;
     }
     const candles = cs.map((c, i) => {
-      const x = padL + i * slot + slot / 2, top = y(Math.max(c.o, c.c)), bot = y(Math.min(c.o, c.c));
+      const x = x0 + i * slot + slot / 2, top = y(Math.max(c.o, c.c)), bot = y(Math.min(c.o, c.c));
       const vh = c.v / maxV * volH;
       return `<line class="exc-wick ${tone(c)}" x1="${x.toFixed(1)}" x2="${x.toFixed(1)}" y1="${y(c.h).toFixed(1)}" y2="${y(c.l).toFixed(1)}"/>`
         + `<rect class="exc-body ${tone(c)}" x="${(x - bw / 2).toFixed(1)}" y="${top.toFixed(1)}" width="${bw.toFixed(1)}" height="${Math.max(1, bot - top).toFixed(1)}"/>`
@@ -10597,13 +10617,13 @@
       + `<text class="exc-tag-t" x="${plotW + 8}" y="${(+ly + 4).toFixed(1)}">${esc(fmt(lastC.c))}</text>`;
     let cross = "";
     if (exChartPick != null && cs[exChartPick]) {
-      const x = (padL + exChartPick * slot + slot / 2).toFixed(1);
+      const x = (x0 + exChartPick * slot + slot / 2).toFixed(1);
       cross = `<line class="exc-cross" x1="${x}" x2="${x}" y1="${padT}" y2="${padT + plotH}"/>`;
     }
     body.innerHTML = `<svg class="exc" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" role="img" aria-label="ORN / SOL price chart">${grid}${candles}${lastLine}${cross}${times}<rect class="exc-hit" x="0" y="0" width="${plotW}" height="${H}"/></svg>`;
     const hit = body.querySelector(".exc-hit");
     hit.onmousemove = (e) => {
-      const i = Math.min(cs.length - 1, Math.max(0, Math.floor((e.offsetX - padL) / slot)));
+      const i = Math.min(cs.length - 1, Math.max(0, Math.floor((e.offsetX - x0) / slot)));
       if (i !== exChartPick) { exChartPick = i; renderExChart(); }
     };
     hit.onmouseleave = () => { exChartPick = null; renderExChart(); };
@@ -11861,7 +11881,7 @@
         $("ex-spend").value = $("ex-orn").value = $("ex-sol").value = "";
         await loadSwaps();
         show("swaps");
-        if (!handset && wide.matches) { setExDeck("recent"); exDeckModal(true); } else swapTab("mine");
+        if (!handset && wide.matches) { setExDeck("mine"); exDeckModal(true); } else swapTab("mine");
         if (failed) problem("ex-problem", `${started} of ${taken.many.length} swaps started. Another couldn't: ${failed}`);
         loadBoard();
         stepSwaps();
@@ -14411,7 +14431,7 @@
   function exDeckModal(open) {
     document.body.classList.toggle("ex-deck-open", open);
     $("ex-veil").hidden = !open;
-    if (open) setExDeck(exDeck || "recent");
+    if (open) setExDeck(exDeck === "recent" ? "mine" : exDeck);
   }
   $("ex-mine-go").onclick = () => exDeckModal(true);
   $("ex-deck-x").onclick = () => exDeckModal(false);
