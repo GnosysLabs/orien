@@ -3263,11 +3263,15 @@
   .pf-choice button.on { background: var(--surface-hover); color: var(--ink); }
   .pf-dm-note { margin: 10px 2px 0; line-height: 1.5; }
   .pf-wallet-settings { display: grid; grid-template-columns: auto minmax(0, 230px); align-items: end; justify-content: start; gap: 10px 14px; }
-  .pf-payout-control { position: relative; display: block; }
-  .pf-payout-control .wallet-glyph { position: absolute; inset-inline-start: 12px; top: 50%; transform: translateY(-50%); pointer-events: none; }
   .pf-wallet-settings > div { min-width: 0; max-width: 100%; }
-  .pf-wallet-settings select { width: 100%; height: 42px; max-width: 100%; border: 1px solid var(--line); border-radius: 21px; padding: 0 10px 0 34px; background: var(--surface); color: var(--ink); font: inherit; text-overflow: ellipsis; cursor: pointer; }
-  .pf-wallet-settings select:focus-visible { outline: 2px solid var(--focus); }
+  .pf-payout-control { display: grid; grid-template-columns: auto minmax(0, 1fr); column-gap: 8px; align-items: center;
+    height: 42px; padding-inline: 12px; border: 1px solid var(--line); border-radius: 21px; background: var(--surface); }
+  .pf-payout-control .wallet-glyph { margin: 0; }
+  .pf-payout-control select { grid-area: 1 / 2; width: 100%; min-width: 0; height: 100%; appearance: none; -webkit-appearance: none;
+    padding: 0; padding-inline-end: 17px; border: 0; outline: 0; background: transparent; color: var(--ink); font: inherit; text-overflow: ellipsis; cursor: pointer; }
+  .pf-payout-control::after { content: ""; grid-area: 1 / 2; justify-self: end; width: 6px; height: 6px; margin-inline-end: 2px;
+    border: solid var(--dim); border-width: 0 1.5px 1.5px 0; transform: translateY(-2px) rotate(45deg); pointer-events: none; }
+  .pf-payout-control:focus-within { outline: 2px solid var(--focus); }
   .pf-blocks-go { width: auto; padding: 0 22px; height: 42px; }
   .bp-verify { margin: 0 0 18px; }
   .bp-verify .pill { margin-top: 12px; }
