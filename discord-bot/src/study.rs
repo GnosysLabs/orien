@@ -16,7 +16,6 @@ use std::time::Duration;
 use anyhow::{Context, Result, bail};
 
 use crate::expert::Expert;
-use crate::news;
 
 /// In the shipped knowledge file, what follows this line is not on the
 /// website. build-knowledge.py writes it.
@@ -99,8 +98,9 @@ pub fn page_text(page: &str) -> Option<String> {
     Some(tidy.trim().to_string())
 }
 
-/// Everything the bot should know now: the live website and changelog,
-/// then the shipped parts that are not on the website.
+/// Everything the bot should know now: the live website, then the shipped
+/// parts that are not on the website. Not the changelog: its older entries
+/// describe ways the app no longer works, and answers mixed them in.
 pub async fn gather(client: &reqwest::Client, shipped: &str) -> Result<String> {
     let mut sections = Vec::new();
     for (heading, url) in PAGES {
@@ -114,9 +114,6 @@ pub async fn gather(client: &reqwest::Client, shipped: &str) -> Result<String> {
         }
         sections.push(format!("# {heading}\nSource: {url}\n\n{text}"));
     }
-    let entries = news::read_page(client, news::CHANGELOG).await?;
-    let changelog: Vec<String> = entries.iter().map(news::Entry::plain).collect();
-    sections.push(format!("# Changelog, newest first\nSource: {}\n\n{}", news::CHANGELOG, changelog.join("\n")));
     if let Some((_, rest)) = shipped.split_once(NOT_ON_THE_WEBSITE) {
         sections.push(rest.trim().to_string());
     }
