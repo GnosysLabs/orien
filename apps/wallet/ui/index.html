@@ -195,20 +195,16 @@
      is the same as the gap beside it (20px inside the container in big
      windows, the window's own 28px margin in smaller ones). */
   body:not(.phone) :is(.screen, #mine, #board-signin, #board-post, #board-take, #swaps, #swap-sell, #swap-buy, #swap-detail) { padding-bottom: 0; }
-  /* Big windows: every screen keeps its ideal width, centred, with the
-     theme's background filling the rest. The screen itself still spans the
-     window, so it scrolls from anywhere and its scrollbar sits at the edge.
-     The Market is wider, with more listings to a row. */
+  /* Expanded desktop pages share one content width and one outer frame. */
   :root { --col: 640px; }
+  @media (min-width: 860px) {
+    body:not(.phone) main { --col: 1040px; --frame-width: min(calc(var(--col) + 40px), 100vw - 24px); }
+  }
   :root { --mn-cool: #6fa8ff; --mn-good: #5fd39d; --mn-warm: #f2a35e; --mn-dim: rgba(0, 0, 0, 0.62); }
   [data-theme="daylight"] { --mn-dim: rgba(255, 255, 255, 0.68); }
-  /* Wide screens stay the container's usual width until there's room for
-     their expanded layouts. */
-  @media (min-width: 860px) { #market, #seller { --col: 1040px; } }
   /* A listing, in a big window: wider, its pictures large on the left and
      the title, price, seller and description beside them. */
   @media (min-width: 860px) {
-    #listing { --col: 1040px; }
     .ls-layout { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); gap: 32px; align-items: start; }
     .ls-media { position: sticky; top: 56px; }
     .ls-info .ls-title { margin-top: 2px; font-size: 26px; }
@@ -343,7 +339,7 @@
     /* Each screen sits in a container that looks just like the app in a
        normal window: the theme's own ground and solid panels, with rounded
        corners and a soft shadow. The photo shows only around it, like a
-       wallpaper. Its width follows the screen shown (--panel, set by show()). */
+       wallpaper. */
     body:not(.phone) main { position: relative; isolation: isolate; }
     /* Every screen scrolls inside the container with one 20px gap all
        round (and the container's corners 20px rounder than the content's,
@@ -351,13 +347,13 @@
     body:not(.phone) :is(.screen, #mine, #board-signin, #board-post, #board-take, #swaps, #swap-sell, #swap-buy, #swap-detail) {
       margin-top: 0; margin-bottom: 20px; }
     body:not(.phone) main::before { content: ""; position: absolute; z-index: -1; top: -20px; bottom: 0; left: 50%;
-      width: min(calc(var(--panel, 640px) + 40px), 100vw - 24px); transform: translateX(-50%);
+      width: var(--frame-width); transform: translateX(-50%);
       border: 1px solid var(--line); border-radius: 36px;
       background: var(--glow), var(--ground-deep); background-attachment: fixed;
       box-shadow: 0 30px 80px rgba(var(--shade), 0.45); }
     /* The sunrise while a wallet opens covers just that container. */
     body:not(.phone) #loading { position: absolute; inset: auto; top: -20px; bottom: 0; left: 50%;
-      width: min(calc(var(--panel, 640px) + 40px), 100vw - 24px); transform: translateX(-50%);
+      width: var(--frame-width); transform: translateX(-50%);
       border: 1px solid var(--line); border-radius: 36px;
       background: var(--glow), var(--ground-deep); background-attachment: fixed; }
   }
@@ -829,7 +825,6 @@
   #mine > .fineprint { order: 3; }
   .mn-net, .mn-graph { display: none; }
   @media (min-width: 860px) {
-    body:not(.phone) #mine { --col: 1040px; }
     body:not(.phone) #mine .mn-cols { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 20px; align-items: start; }
     body:not(.phone) #mine .mn-col { display: flex; flex-direction: column; min-width: 0; }
     body:not(.phone) #mine .mn-col > :first-child { margin-top: 0; }
@@ -871,7 +866,6 @@
      as one to press rather than a label. */
   @media (hover: hover) { .wallet-chip:hover { color: var(--ink); background: var(--surface-hover); } }
   :is([data-theme="daylight"], [data-base="light"]) .wallet-chip { color: var(--ink); }
-  #wallets { --col: 900px; }
   /* Reuse the opening sunrise while the wallet list loads. A slow RPC can
      keep the smaller header indicator running while the list is usable. */
   body:not(.pop) main:has(> #wallets.wl-cover:not([hidden])) > #loading {
@@ -1213,17 +1207,15 @@
   #chat.none .ch-none { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; flex: 1; color: var(--dim); font-size: 13.5px; }
   #chat .ch-none svg { width: 32px; height: 32px; color: var(--faint); }
   @media (min-width: 860px) {
-    body.split main { flex-direction: row; justify-content: center; gap: 0; }
+    body.split main { --inbox-width: 336px; flex-direction: row; justify-content: center; gap: 0; }
     html body.split #inbox, html body.split #chat { flex: 0 0 auto; margin: -20px 0 0; padding: 0; overflow: hidden;
       -webkit-mask: none; mask: none; border: 1px solid var(--line);
       /* The same deep ground as every other page's container, so the words
          and the bubbles stand out as they do elsewhere. */
       background: var(--glow), var(--ground-deep); background-attachment: fixed; }
-    html body.split #inbox { width: 336px; border-radius: 36px 0 0 36px; border-right: 0; }
-    /* The conversation takes the room left: the two together exactly as wide
-       as every other page's panel (1040 + 40), and 12px from each side of a
-       narrower window, as the others are. */
-    html body.split #chat { width: min(744px, 100vw - 24px - 336px); border-radius: 0 36px 36px 0; }
+    html body.split #inbox { width: var(--inbox-width); border-radius: 36px 0 0 36px; border-right: 0; }
+    /* The conversation fills the remainder of the shared frame. */
+    html body.split #chat { width: calc(var(--frame-width) - var(--inbox-width)); border-radius: 0 36px 36px 0; }
     html body.split #inbox::after { content: none; }
     /* The dividing line between the two halves is the chat's own left
        border: a real edge, so nothing lit inside either half covers it. */
@@ -1700,7 +1692,6 @@
   .ex-grid { display: flex; flex-direction: column; gap: 18px; }
   .ex-col { display: flex; flex-direction: column; gap: 18px; min-width: 0; }
   @media (min-width: 860px) {
-    body:not(.phone) #swaps { --col: 1040px; }
     body:not(.phone) #swaps > .ex-mobile-tabs { display: none; }
     body:not(.phone) .ex-grid { display: grid; grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr); gap: 20px; align-items: start; }
     body:not(.phone) #swaps .ex-panel[data-ex-pane]:not(#ex-pane-ticket)[hidden] { display: flex !important; }
@@ -1744,7 +1735,6 @@
   .sd-state-head.ready { color: var(--good); }
   .sd-state-head .spinner { width: 14px; height: 14px; margin: 0; flex: none; border-color: color-mix(in srgb, var(--ink) 22%, transparent); border-top-color: var(--ink); }
   @media (min-width: 860px) {
-    body:not(.phone) #swap-detail { --col: 1040px; }
     body:not(.phone) #swap-detail .sd-grid { display: grid; grid-template-columns: minmax(0, 1.12fr) minmax(0, 0.95fr); gap: 20px; align-items: start; }
     body:not(.phone) #swap-detail .sd-main, body:not(.phone) #swap-detail .sd-side { display: flex; flex-direction: column; gap: 14px; min-width: 0; }
     body:not(.phone) #swap-detail .sd-main > *, body:not(.phone) #swap-detail .sd-side > * { margin-top: 0; }
@@ -1833,7 +1823,6 @@
   @media (hover: hover) { .tc-del:not(.tc-edit, .tc-share):hover { background: #e5484d; color: #fff; } .tc-edit:hover, .tc-share:hover { background: rgba(var(--tint), 0.13); color: var(--ink); } }
   /* The builder: the theme as it will look, over its picture, with the
      choices beside it at every window size. */
-  #theme-build { --col: 1040px; }
   .tb-layout { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); gap: 28px; align-items: start; }
   .tb-stage { position: sticky; top: 56px; display: grid; place-items: center; aspect-ratio: 4 / 3; margin: 4px 0 0; border-radius: 22px; overflow: hidden;
     border: 1px solid var(--line); background: var(--ground-deep) center / cover no-repeat; cursor: pointer; }
@@ -2003,7 +1992,7 @@
      holds Back, the title and the sections; the section chosen opens
      beside it under its own header, and each side scrolls on its own. */
   @media (min-width: 860px) {
-    body:not(.phone) #settings { --col: 1040px; display: grid; grid-template-columns: 252px minmax(0, 1fr); grid-template-rows: minmax(0, 1fr);
+    body:not(.phone) #settings { display: grid; grid-template-columns: 252px minmax(0, 1fr); grid-template-rows: minmax(0, 1fr);
       column-gap: 34px; overflow: hidden; }
     body:not(.phone) .st-side { display: flex; flex-direction: column; min-height: 0; overflow-y: auto; overscroll-behavior: contain;
       padding: 14px 10px; border: 1px solid var(--line); border-radius: 20px; background: var(--surface); }
@@ -2316,7 +2305,7 @@
   .ts-order[hidden] { display: none; }
   .ts-order .pill { height: 32px; padding: 0 14px; color: var(--dim); }
   .ts-order .pill.on { border-color: var(--select); color: var(--ink); background: var(--surface-hover); }
-  @media (min-width: 860px) { body:not(.phone) #theme-store { --col: 1040px; } body:not(.phone) .ts-grid { grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 32px 24px; } }
+  @media (min-width: 860px) { body:not(.phone) .ts-grid { grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 32px 24px; } }
   .ts-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 28px 20px; }
   .ts-card { display: grid; gap: 12px; align-content: start; min-width: 0; }
   .ts-stage { position: relative; aspect-ratio: 4 / 3; padding: 0; border-radius: 18px; overflow: hidden; border: 1px solid var(--line); cursor: pointer;
@@ -2469,7 +2458,6 @@
   /* Community: the network's news and people's posts, as on orien.network,
      with the Market as its second tab. */
   .cm-tabs { margin: 0 0 16px; }
-  @media (min-width: 860px) { #community { --col: 1040px; } }
   .cm-layout { display: block; }
   .cm-main { min-width: 0; }
   /* Narrow: of the sidebar, Find members stays, above the feed. Top
@@ -3096,7 +3084,6 @@
   .tx.ex-link { cursor: pointer; }
   @media (hover: hover) { .tx.ex-link:hover { background: rgba(var(--tint), 0.03); } }
   @media (min-width: 860px) {
-    #explorer { --col: 1040px; }
     .ex-facts { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
     .ex-facts.five { grid-template-columns: repeat(5, minmax(0, 1fr)); }
     /* The overview's six figures in one row, so its card has the height. */
@@ -3122,7 +3109,7 @@
     body:not(.phone) .ex-addr-top .ex-art { display: none; }
     body:not(.phone) .ex-banner:not([hidden]) { display: block; }
     body:not(.phone) .ex-banner { position: absolute; z-index: -1; top: -19px; left: 50%; transform: translateX(-50%);
-      width: calc(min(calc(var(--panel, 640px) + 40px), 100vw - 24px) - 2px); height: var(--exb-h, 300px);
+      width: calc(var(--frame-width) - 2px); height: var(--exb-h, 300px);
       border-radius: 35px 35px 0 0; overflow: hidden; pointer-events: none; }
     body:not(.phone) .ex-banner img { position: absolute; top: 0; right: 0; bottom: 0; width: 74%; height: 100%; object-fit: cover; opacity: 0.95;
       -webkit-mask-image: linear-gradient(to left, black 50%, transparent), linear-gradient(to bottom, black 55%, transparent);
@@ -3146,7 +3133,6 @@
   body.phone #go-size { display: none; }
   .home-side { display: none; }
   @media (min-width: 860px) {
-    body:not(.phone) #home { --col: 1040px; }
     body:not(.phone) #home .home-body { display: flex; gap: 20px; flex: 1 1 0; min-height: 0; }
     body:not(.phone) #home .home-main { display: flex; flex-direction: column; flex: 1 1 auto; min-width: 0; min-height: 0; }
     body:not(.phone) #home .home-side { display: flex; flex-direction: column; gap: 14px; flex: 0 0 340px; min-height: 0; }
@@ -3307,9 +3293,7 @@
   .pf-main { grid-area: main; min-width: 0; }
   .pf-side { grid-area: side; min-width: 0; }
   .pf-shop { grid-area: shop; min-width: 0; }
-  #profile { --col: 640px; }
   @media (min-width: 860px) {
-    #profile { --col: 1040px; }
     #profile .pf-banner { aspect-ratio: auto; height: 240px; }
     .pf-layout { grid-template-columns: minmax(0, 1fr) 340px; grid-template-areas: "main side" "shop shop"; column-gap: 28px; align-items: start; }
     .pf-side .verify-card { margin-top: 0; }
@@ -5325,14 +5309,6 @@
   // Wide windows show Messages side by side: the conversations and the
   // open one together.
   const wide = window.matchMedia("(min-width: 860px)");
-  // The frosted container behind the screen takes its width, again whenever
-  // the window crosses the width where wide screens expand.
-  function fitPanel() {
-    const shown = [...document.querySelectorAll(".screen")].find((s) => !s.hidden);
-    const col = shown && parseFloat(getComputedStyle(shown).getPropertyValue("--col"));
-    document.querySelector("main").style.setProperty("--panel", (document.body.classList.contains("split") ? 1040 : col || 640) + "px");
-  }
-  matchMedia("(min-width: 860px)").addEventListener("change", fitPanel);
   // Big windows: posting and taking an offer float over Swaps, with what
   // follows each (posted, waiting for the seller) in the same card.
   const SWAP_POPS = ["board-post", "board-take", "swap-waiting", "swap-posted"];
@@ -5365,7 +5341,6 @@
     document.body.classList.toggle("split", both || underSplit);
     if (!pop) lastBase = id;
     document.body.classList.toggle("pop", pop);
-    fitPanel();
     if (id === "community" && typeof cmFitRail === "function") cmFitRail();
     // A big window shows recent swaps beside the offers: fetched as it opens.
     if (id === "swaps" || (pop && under === "swaps")) {
