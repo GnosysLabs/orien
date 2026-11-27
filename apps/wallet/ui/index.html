@@ -3093,10 +3093,10 @@
     flex: none; width: 32px; height: 32px; border-radius: 50%; display: grid; place-items: center;
     background: rgba(var(--tint), 0.05); color: var(--dim);
   }
-  #solana-recent .tx { width: 100%; background: transparent; border: 0; border-radius: 0; color: inherit; font: inherit; text-align: left; cursor: pointer; }
-  #solana-recent .tx + .tx { border-top: 1px solid var(--line); }
-  #solana-recent .tx:hover { background: var(--surface-hover); }
-  #solana-recent .tx-main > span, #solana-recent .tx-side > span { display: block; }
+  :is(#solana-recent, #all-activity) button.tx { width: 100%; background: transparent; border: 0; border-radius: 0; color: inherit; font: inherit; text-align: left; cursor: pointer; }
+  :is(#solana-recent, #all-activity) button.tx + button.tx { border-top: 1px solid var(--line); }
+  :is(#solana-recent, #all-activity) button.tx:hover { background: var(--surface-hover); }
+  :is(#solana-recent, #all-activity) button.tx :is(.tx-main, .tx-side) > span { display: block; }
   .tx-icon.received { color: var(--good); background: #a6e3c614; }
   .tx-main { flex: 1; min-width: 0; }
   .tx-main .title { font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -4020,7 +4020,7 @@
       <div class="section-head">
         <h3>Activity</h3>
         <button class="link" id="view-all" hidden>View all</button>
-        <button class="link" id="solana-all" hidden>View in explorer</button>
+        <button class="link" id="solana-all" hidden>View all</button>
       </div>
       <div class="list" id="recent"><div class="empty">No payments yet</div></div>
       <div class="list" id="solana-recent" hidden></div>
@@ -5731,7 +5731,7 @@
     if (chipGlyph && chipGlyph.classList.contains("sol") !== preview) chipGlyph.outerHTML = walletGlyph(preview ? "SOL" : "ORN");
     $("home").classList.toggle("asset-devnet", preview);
     $("solana-recent").hidden = !preview;
-    $("solana-all").hidden = !preview || !devnetAssets.address;
+    $("solana-all").hidden = !preview || !solAll.length;
     if (preview) paintDevnetHistory();
     $("asset-network-label").textContent = preview && solTest ? solNetName() : "Balance";
     $("asset-unit").hidden = preview;
@@ -5809,6 +5809,9 @@
     return SOL_PROGRAMS[peer] || null;
   }
   let lastHistoryHTML = "";
+  // View all, for SOL: the same Activity screen as ORN's, with every Solana
+  // transaction this wallet has, by day.
+  let actSol = false, solAll = [], solRowOf = null;
   function paintDevnetHistory() {
     const state = devnetAssets;
     const history = state.history;
@@ -5820,14 +5823,17 @@
     // Payments first, so their leftovers (newer, listed above) are known too.
     for (const entry of combined) if (entry.sent && entry.peer) solActivityLabel(entry);
     loadMarketOrders();
-    const rows = combined.sort((a, b) => (b.time || 0) - (a.time || 0)).slice(0, 8).map((entry) => {
+    const sorted = combined.sort((a, b) => (b.time || 0) - (a.time || 0));
+    solAll = sorted;
+    $("solana-all").hidden = walletAsset === "ORN" || !sorted.length;
+    const solRow = (entry, when) => {
       if (entry.received || entry.pending === "swap") {
         const amounts = entry.received
           ? `<span class="amt received">+${esc(amt(entry.received))}</span><span class="amt sent">−${esc(amt(entry.amount))} ${esc(entry.asset)}</span>`
           : '<span class="sub">Pending</span>';
         return `<button type="button" class="tx" data-sol-tx="${esc(entry.signature)}">
           <span class="tx-icon">${ICON.swap}</span>
-          <span class="tx-main"><span class="title">Swap</span><span class="sub">${solTest ? "Raydium" : "Jupiter"}${entry.time ? " · " + esc(relative(entry)) : ""}</span></span>
+          <span class="tx-main"><span class="title">Swap</span><span class="sub">${solTest ? "Raydium" : "Jupiter"}${entry.time ? " · " + esc(when(entry)) : ""}</span></span>
           <span class="tx-side">${amounts}</span></button>`;
       }
       const direction = entry.sent ? "sent" : "received";
@@ -5841,9 +5847,11 @@
       return `<button type="button" class="tx" data-sol-tx="${esc(entry.signature)}">
         <span class="tx-icon ${entry.amount ? direction : ""}">${icon}</span>
         <span class="tx-main"><span class="title">${title}</span>${label ? `<span class="sub">${esc(label)}</span>` : name ? `<span class="sub" data-no-i18n>${esc(name)}</span>` : `<span class="sub" data-no-i18n>${esc(short(subtitle))}</span>`}</span>
-        <span class="tx-side">${amount}<span class="sub">${entry.time ? esc(relative(entry)) : ""}</span></span>
+        <span class="tx-side">${amount}<span class="sub">${entry.time ? esc(when(entry)) : ""}</span></span>
       </button>`;
-    }).join("");
+    };
+    solRowOf = solRow;
+    const rows = sorted.slice(0, 8).map((entry) => solRow(entry, relative)).join("");
     const unavailable = state.historyError || history?.incomplete;
     let note = "";
     if (unavailable) note = rows ? "Some activity could not be refreshed." : "Couldn’t load Solana activity.";
@@ -5855,6 +5863,7 @@
       $("solana-recent").innerHTML = html;
       lastHistoryHTML = html;
     }
+    if (actSol && !$("activity").hidden) renderAll();
   }
 
   // The last Solana balances and activity seen, kept on this computer so they
@@ -5950,7 +5959,7 @@
     if (event.target.closest("[data-sol-retry]")) void loadDevnetHistory(devnetAssets);
     else openSolanaExplorer("tx", event.target.closest("[data-sol-tx]")?.dataset.solTx);
   };
-  $("solana-all").onclick = () => openSolanaExplorer("address", devnetAssets.address);
+  $("solana-all").onclick = () => { actSol = true; renderAll(); show("activity"); };
 
   const solUnlockDialog = $("sol-unlock-dialog");
   let unlockOffer = null;
@@ -9587,6 +9596,18 @@
   function renderAll() {
     let html = "", day = null, group = [];
     const flush = () => { if (group.length) html += `<section class="act-day"><div class="day">${day}</div><div class="list">${group.join("")}</div></section>`; group = []; };
+    // SOL has no rewards: one list, no tabs.
+    $("act-tabs").hidden = actSol;
+    if (actSol) {
+      for (const e of solAll) {
+        const d = e.time ? dayName(e.time) : "Pending";
+        if (d !== day) { flush(); day = d; }
+        group.push(solRowOf(e, (x) => clock(x.time)));
+      }
+      flush();
+      $("all-activity").innerHTML = html || '<div class="empty">No Solana transactions yet</div>';
+      return;
+    }
     for (const e of entries.filter(shown)) {
       const d = dayName(e.time);
       if (d !== day) { flush(); day = d; }
@@ -9595,7 +9616,7 @@
     flush();
     $("all-activity").innerHTML = html || `<div class="empty">${actShow === "rewards" ? "No rewards yet" : "No payments yet"}</div>`;
   }
-  $("view-all").onclick = () => { renderAll(); show("activity"); };
+  $("view-all").onclick = () => { actSol = false; renderAll(); show("activity"); };
 
   // ---- Contacts ----
   let editing = null;       // the address of the contact being edited, or null when adding
@@ -15632,6 +15653,8 @@
   for (const id of ["recent", "all-activity"]) $(id).addEventListener("click", (e) => {
     const r = e.target.closest(".tx[data-ex]");
     if (r) openExplorer({ kind: "address", address: r.dataset.ex });
+    const sol = e.target.closest(".tx[data-sol-tx]");
+    if (sol) openSolanaExplorer("tx", sol.dataset.solTx);
   });
 
   // ---- Updates: checked at start and every hour, installed only on a press ----
