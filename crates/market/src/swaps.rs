@@ -209,20 +209,11 @@ impl Store {
         Ok(rows.collect::<rusqlite::Result<_>>()?)
     }
 
-    /// Keeps a finished swap's dollar value, and posts the swap to the
-    /// community, once, with no names: what ORN traded for.
+    /// Keeps a finished swap's dollar value, for its price history. (Swaps
+    /// were once posted to the community too; no longer: too many.)
     pub fn price_swap(&self, id: i64, usd: f64) -> Result<()> {
-        if self.db.execute("UPDATE swap_offers SET usd = ?2 WHERE id = ?1 AND usd IS NULL", params![id, usd])? == 0 {
-            return Ok(());
-        }
-        let (orn, coin, amount, finished): (i64, String, i64, Option<i64>) = self.db.query_row(
-            "SELECT orn, coin, sats, finished FROM swap_offers WHERE id = ?1",
-            [id],
-            |r| Ok((r.get(0)?, r.get(1)?, r.get(2)?, r.get(3)?)),
-        )?;
-        let mut data = serde_json::json!({ "orn": orn as u64, "coin": coin, "usd": usd });
-        data[if coin == "sol" { "lamports" } else { "sats" }] = serde_json::json!(amount as u64);
-        self.add_happening("swap", None, &data, finished.map_or_else(now, |f| f as u64))
+        self.db.execute("UPDATE swap_offers SET usd = ?2 WHERE id = ?1 AND usd IS NULL", params![id, usd])?;
+        Ok(())
     }
 
     fn create_swap_tables_first(&self) -> Result<()> {
