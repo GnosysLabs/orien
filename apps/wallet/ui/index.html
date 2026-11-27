@@ -1808,6 +1808,10 @@
   .ex-field.ex-in { position: relative; }
   .ex-field.ex-in label { position: absolute; left: 13px; top: 0; height: 42px; margin: 0; z-index: 1; pointer-events: none; font-size: 13px; font-weight: 500; }
   .ex-field.ex-in .box input { text-align: right; padding-left: 170px; }
+  /* Total: Price × Amount, worked out, a line rather than a box to type in. */
+  html body #ex-pane-ticket .ex-field.ex-total .box.plain { background: transparent; border-color: transparent; box-shadow: none; }
+  .ex-field.ex-total .box input { pointer-events: none; font-weight: 600; }
+  .ex-field.ex-total .box input::placeholder { color: var(--faint); }
   /* Bottom Activity Deck: Your swaps + Recent market trades */
   /* Small windows: the tabs above choose Trades or Your swaps, so the
      panel's own pair of tabs would only say it twice. */
@@ -4968,9 +4972,9 @@
                 <div class="box plain"><input id="ex-orn" placeholder="500" inputmode="decimal" autocomplete="off"></div>
                 <div class="ex-under" id="ex-bal"></div>
               </div>
-              <div class="ex-field ex-in">
+              <div class="ex-field ex-in ex-total">
                 <label for="ex-sol"><em id="ex-sol-label">Total (SOL)</em></label>
-                <div class="box plain"><input id="ex-sol" placeholder="0.05" inputmode="decimal" autocomplete="off"></div>
+                <div class="box plain"><input id="ex-sol" placeholder="0" readonly tabindex="-1" autocomplete="off"></div>
                 <div class="ex-under" id="ex-sol-hint">Min 0.01</div>
               </div>
               <div class="ex-pct" id="ex-pct" role="group" aria-label="Share of what you have">
