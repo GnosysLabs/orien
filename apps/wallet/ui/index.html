@@ -6068,18 +6068,22 @@
   function paintWalletBalances(page) {
     const assets = ["ORN", "SOL", "USDC"];
     const value = (w, asset) => asset === "ORN" ? page.orn[w.address] : page.sol.get(w.address)?.[asset.toLowerCase()];
-    const cell = (text, asset, digits) => {
+    const cell = (text, asset, digits, coverage = "") => {
       const n = text == null ? NaN : Number(String(text).replace(/,/g, ""));
       const display = prefs.hide ? "••••" : !Number.isFinite(n) ? "—" :
         n > 0 && n < 10 ** -digits ? "<" + (10 ** -digits).toLocaleString(undefined, {maximumFractionDigits: digits}) :
         n.toLocaleString(undefined, {maximumFractionDigits: digits});
-      return `<span${typeof text === "string" && !prefs.hide ? ' title="' + esc(text) + ' ' + asset + '"' : ""}>${esc(display)}<small class="unit">${asset}</small></span>`;
+      const title = text != null && !prefs.hide ? ` title="${esc(text)} ${asset}${coverage ? " · " + esc(coverage) : ""}"` : "";
+      const partial = coverage && !prefs.hide ? ' <small class="unit">Partial</small>' : "";
+      return `<span${title}>${esc(display)}<small class="unit">${asset}</small>${partial}</span>`;
     };
     $("wallet-overview").hidden = page.wallets.length < 2;
     $("wallet-total-v").innerHTML = assets.map(asset => {
-      const values = page.wallets.map(w => value(w, asset));
-      const total = values.length && values.every(v => v != null) ? values.reduce((s, v) => s + Number(String(v).replace(/,/g, "")), 0) : null;
-      return cell(total, asset, asset === "SOL" ? 5 : 2);
+      const amounts = page.wallets.map(w => toUnits(value(w, asset), true)).filter(n => n !== null);
+      const total = amounts.length ? orn(amounts.reduce((sum, amount) => sum + amount, 0n)) : null;
+      const coverage = amounts.length && amounts.length < page.wallets.length
+        ? `Balance available for ${amounts.length} of ${page.wallets.length} wallets` : "";
+      return cell(total, asset, asset === "SOL" ? 5 : 2, coverage);
     }).join("");
     for (const spot of $("wallet-list").querySelectorAll("[data-wl-balance]")) {
       const w = page.wallets[Number(spot.dataset.wlBalance)];
@@ -12245,12 +12249,12 @@
   }
   const plainOrn = (units) => orn(units).replace(/,/g, "");
   // "12.5" ORN as units, or null if it isn't an amount.
-  function toUnits(text) {
+  function toUnits(text, allowZero = false) {
     const t = String(text).replace(/,/g, "").trim();
     if (!/^\d+(\.\d{0,9})?$/.test(t)) return null;
     const [w, f = ""] = t.split(".");
     const u = BigInt(w) * 1000000000n + BigInt((f + "000000000").slice(0, 9));
-    return u > 0n ? u : null;
+    return allowZero || u > 0n ? u : null;
   }
   const mkProblem = (e) => String(e).startsWith("signin:") ? "Sign in to Orien Network first." : String(e);
   async function mk(method, path, body) { return invoke("market_call", { method, path, body: body === undefined ? null : body }); }
