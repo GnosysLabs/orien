@@ -825,7 +825,17 @@ pub fn search(dir: Option<&Path>, text: &str) -> Result<Value, String> {
 /// address an account has proven, keyed by address; others are left out.
 /// Public; signed in, people who blocked this account are left out.
 pub fn profiles(dir: Option<&Path>, addresses: &[String]) -> Result<Value, String> {
-    let addresses: Vec<String> = addresses.iter().map(|a| a.trim().to_lowercase()).filter(|a| a.len() == 64).take(100).collect();
+    // Orien addresses, lower case; Solana addresses as they are (base58).
+    let addresses: Vec<String> = addresses
+        .iter()
+        .map(|a| a.trim())
+        .filter_map(|a| match a.len() {
+            64 => Some(a.to_lowercase()),
+            32..=44 if orien_swap::solana::address(a).is_ok() => Some(a.to_string()),
+            _ => None,
+        })
+        .take(100)
+        .collect();
     if addresses.is_empty() {
         return Ok(json!({}));
     }
