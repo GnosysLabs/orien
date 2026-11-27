@@ -872,6 +872,15 @@
   @media (hover: hover) { .wallet-chip:hover { color: var(--ink); background: var(--surface-hover); } }
   :is([data-theme="daylight"], [data-base="light"]) .wallet-chip { color: var(--ink); }
   #wallets { --col: 900px; }
+  /* Reuse the opening sunrise while the wallet list loads. A slow RPC can
+     keep the smaller header indicator running while the list is usable. */
+  body:not(.pop) main:has(> #wallets.wl-cover:not([hidden])) > #loading {
+    display: grid !important; opacity: 1; pointer-events: auto;
+  }
+  #wallets .wl-wait { display: none; width: 19px; height: 19px; flex: none; }
+  #wallets[aria-busy="true"]:not(.wl-cover) .wl-wait {
+    display: inline-block; animation: brand-drift 12s ease-in-out infinite, breathe 1.6s ease-in-out infinite;
+  }
   #wallet-list { display: grid; grid-template-columns: minmax(0,1fr); gap: 12px; }
   @media (min-width: 820px) { #wallet-list { grid-template-columns: repeat(2,minmax(0,1fr)); } }
   .wallet-row { position: relative; min-width: 0; border: 1px solid var(--line); border-radius: 18px; background: var(--surface); }
@@ -4434,7 +4443,7 @@
 
     <!-- Wallets: switching, naming, adding -->
     <section class="screen" id="wallets" hidden>
-      <div class="topline"><button class="back" data-back aria-label="Back"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg></button><h2>Wallets</h2>
+      <div class="topline"><button class="back" data-back aria-label="Back"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg></button><h2>Wallets</h2><span class="wl-wait mark brand" role="status" aria-label="Loading wallet balances"></span>
         <div class="account"><button class="pill pearl wl-add" id="wallet-add-go"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="M12 5v14"/></svg>Add a wallet</button></div></div>
       <div class="sync-card" id="sync-wallets" hidden>
         <div class="sync-text">Turn on syncing, so your contacts and wallet icons match on all your devices. It needs this wallet unlocked once.</div>
@@ -6020,18 +6029,35 @@
   let walletPage;
   async function showWallets() {
     const page = walletPage = { wallets: [], orn: {}, sol: new Map() };
-    $("wallets-problem").hidden = true;
-    show("wallets");
-    $("wallet-list").innerHTML = '<div class="empty">Loading…</div>';
-    paintWalletBalances(page);
-    const wallets = await loadWallets();
-    if (page !== walletPage || $("wallets").hidden) return;
-    page.wallets = wallets;
-    renderWallets(page);
-    void loadWalletSolBalances(page);
-    paintSyncCard("sync-wallets");
-    try { page.orn = await invoke("wallet_balances"); } catch {}
-    if (page === walletPage && !$("wallets").hidden) paintWalletBalances(page);
+    const screen = $("wallets");
+    screen.setAttribute("aria-busy", "true");
+    screen.classList.add("wl-cover");
+    const cap = setTimeout(() => {
+      if (page === walletPage) screen.classList.remove("wl-cover");
+    }, 8000);
+    try {
+      $("wallets-problem").hidden = true;
+      show("wallets");
+      $("wallet-list").innerHTML = '<div class="empty">Loading…</div>';
+      paintWalletBalances(page);
+      page.wallets = await loadWallets();
+      if (page !== walletPage || screen.hidden) return;
+      renderWallets(page);
+      paintSyncCard("sync-wallets");
+      await Promise.allSettled([
+        loadWalletSolBalances(page),
+        invoke("wallet_balances").then(balances => {
+          page.orn = balances;
+          if (page === walletPage && !screen.hidden) paintWalletBalances(page);
+        }),
+      ]);
+    } finally {
+      clearTimeout(cap);
+      if (page === walletPage) {
+        screen.classList.remove("wl-cover");
+        screen.setAttribute("aria-busy", "false");
+      }
+    }
   }
   // Each wallet's icon: an emoji the person picks, kept on this device by
   // address; without one, the wallet's first letter.
