@@ -1487,5 +1487,12 @@
   "Swap SOL and USDC": "Swap SOL and USDC",
   "Refresh Solana balances": "Refresh Solana balances",
   "Buy / Sell": "Buy / Sell",
-  "ORN swap": "ORN swap"
+  "ORN swap": "ORN swap",
+  "Recent": "Recent",
+  "History": "History",
+  "Open buys": "Open buys",
+  "Open sells": "Open sells",
+  "No finished swaps yet": "No finished swaps yet",
+  "No open buy orders": "No open buy orders",
+  "No open sell orders": "No open sell orders"
 }

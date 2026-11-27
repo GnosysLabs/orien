@@ -2268,7 +2268,7 @@
         "大きいウィンドウでは<b>注文を出す</b>を、小さいウィンドウでは<b>購入 / 売却</b>タブをクリックします。",
         "<b>ORN を買う</b>を選び、ORN の数量と支払う SOL の合計を入力します。",
         "<b>Touch ID で ORN を買う</b>をクリックします。SOL はすぐにこのウォレットから確保されます。",
-        "売り手が注文に応じると、Orien Wallet を閉じていても ORN は自動的に届きます。キャンセルするには、<b>自分の注文・スワップ</b>（小さいウィンドウでは<b>自分のスワップ</b>）でその注文の<b>キャンセル</b>をクリックします。"
+        "売り手が注文に応じると、Orien Wallet を閉じていても ORN は自動的に届きます。キャンセルするには、<b>未約定の買い</b>（小さいウィンドウでは<b>自分のスワップ</b>）でその注文の<b>キャンセル</b>をクリックします。"
       ]
     }
   },
@@ -2421,5 +2421,12 @@
   "See all swaps": "すべてのスワップを見る",
   "Help with the wallet, mining, swaps and more.": "ウォレット、マイニング、スワップなどのヘルプ。",
   "Nothing found. Search an address (64 letters and digits, 0-9 and a-f), a checkpoint number, or the name of someone on Orien Network.": "見つかりませんでした。アドレス（0-9 と a-f の64文字）、チェックポイント番号、または Orien Network 上のユーザー名で検索してください。",
-  "ORN swap": "ORNスワップ"
+  "ORN swap": "ORNスワップ",
+  "Recent": "最近",
+  "History": "履歴",
+  "Open buys": "未約定の買い",
+  "Open sells": "未約定の売り",
+  "No finished swaps yet": "完了したスワップはまだありません",
+  "No open buy orders": "未約定の買い注文はありません",
+  "No open sell orders": "未約定の売り注文はありません"
 }

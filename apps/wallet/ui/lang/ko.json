@@ -2268,7 +2268,7 @@
         "큰 창에서는 <b>주문하기</b>를, 작은 창에서는 <b>매수 / 매도</b> 탭을 클릭하세요.",
         "<b>ORN 매수</b>를 선택한 뒤 ORN 수량과 지불할 SOL 총액을 입력하세요.",
         "<b>Touch ID(으)로 ORN 매수</b>를 클릭하세요. SOL이 즉시 이 지갑에서 따로 확보됩니다.",
-        "판매자가 주문을 체결하면 Orien Wallet이 닫혀 있어도 ORN이 자동으로 입금됩니다. 취소하려면 <b>내 주문 및 스왑</b>(작은 창에서는 <b>내 스왑</b>)에서 해당 주문의 <b>취소</b>를 클릭하세요."
+        "판매자가 주문을 체결하면 Orien Wallet이 닫혀 있어도 ORN이 자동으로 입금됩니다. 취소하려면 <b>미체결 매수</b>(작은 창에서는 <b>내 스왑</b>)에서 해당 주문의 <b>취소</b>를 클릭하세요."
       ]
     }
   },
@@ -2421,5 +2421,12 @@
   "See all swaps": "모든 스왑 보기",
   "Help with the wallet, mining, swaps and more.": "지갑, 채굴, 스왑 등에 관한 도움말.",
   "Nothing found. Search an address (64 letters and digits, 0-9 and a-f), a checkpoint number, or the name of someone on Orien Network.": "검색 결과가 없습니다. 주소(0-9, a-f로 이루어진 64자), 체크포인트 번호 또는 Orien Network 사용자 이름을 검색해 보세요.",
-  "ORN swap": "ORN 스왑"
+  "ORN swap": "ORN 스왑",
+  "Recent": "최근",
+  "History": "기록",
+  "Open buys": "미체결 매수",
+  "Open sells": "미체결 매도",
+  "No finished swaps yet": "아직 완료된 스왑이 없습니다",
+  "No open buy orders": "미체결 매수 주문이 없습니다",
+  "No open sell orders": "미체결 매도 주문이 없습니다"
 }

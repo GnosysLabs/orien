@@ -4747,14 +4747,16 @@
           <div class="ex-panel" id="ex-pane-deck" data-ex-pane="mine history" hidden>
             <div class="ex-deck-head">
               <div class="ex-deck-tabs" role="tablist">
-                <button type="button" class="ex-deck-tab on" id="ex-deck-mine" role="tab">Your orders &amp; swaps <span id="ex-mine-count"></span></button>
-                <button type="button" class="ex-deck-tab" id="ex-deck-trades" role="tab">Recent trades</button>
+                <button type="button" class="ex-deck-tab on" id="ex-deck-recent" role="tab">Recent</button>
+                <button type="button" class="ex-deck-tab" id="ex-deck-history" role="tab">History</button>
+                <button type="button" class="ex-deck-tab" id="ex-deck-buys" role="tab">Open buys <span id="ex-buys-count"></span></button>
+                <button type="button" class="ex-deck-tab" id="ex-deck-sells" role="tab">Open sells <span id="ex-sells-count"></span></button>
               </div>
             </div>
-            <div id="tab-mine">
+            <div id="tab-mine" hidden>
               <div class="scroll" id="swap-list"><div class="empty">No swaps yet</div></div>
             </div>
-            <div id="tab-history" hidden>
+            <div id="tab-history">
               <div class="hist-last" id="hist-last" hidden></div>
               <div class="hist-last" id="board-last" hidden></div>
               <div id="hist-list"><div class="empty">Loading…</div></div>
@@ -8069,7 +8071,7 @@
         BIG,
         "Choose <b>Buy ORN</b>, then type how many ORN and the total SOL you’ll pay.",
         `Click ${apple ? `<b>Buy ORN with ${bio}</b>` : "<b>Place Buy Order</b>"}. The SOL is set aside from this wallet at once.`,
-        "When a seller fills it, the ORN arrive by themselves, even with Orien Wallet closed. To cancel, click <b>Cancel</b> on it under <b>Your orders &amp; swaps</b> (<b>Your swaps</b> in a small window).",
+        "When a seller fills it, the ORN arrive by themselves, even with Orien Wallet closed. To cancel, click <b>Cancel</b> on it under <b>Open buys</b> (<b>Your swaps</b> in a small window).",
       ]);
       add("Getting ORN", "sell", "Sell ORN", [
         "Sign in and link this wallet first.",
@@ -10225,22 +10227,37 @@
       pane.hidden = !pane.dataset.exPane.split(" ").includes(tab);
     }
     if (tab === "mine") setExDeck("mine");
-    if (tab === "history") { setExDeck("trades"); loadHistory(false); }
+    if (tab === "history") { setExDeck("recent"); loadHistory(false); }
   }
+  // Big windows: the panel under the price has four tabs. Recent trades on
+  // the book, your finished swaps, and your open buys and sells (orders on
+  // the book and swaps under way, by side). Small windows keep one list of
+  // your swaps, open then finished, on their own tab.
+  var exDeck = "recent";
+  function exDeckSplit() { return !handset && wide.matches; }
   function setExDeck(which) {
-    const mine = which === "mine";
-    $("ex-deck-mine").classList.toggle("on", mine);
-    $("ex-deck-trades").classList.toggle("on", !mine);
-    $("tab-mine").hidden = !mine;
-    $("tab-history").hidden = mine;
-    if (!mine) loadHistory(false);
+    // "Your swaps" from elsewhere: whichever of yours has something open.
+    if (which === "mine") which = !exDeckSplit() ? "mine" : exOpenCount("buy") ? "buys" : exOpenCount("sell") ? "sells" : "history";
+    if (which === "trades") which = "recent";
+    exDeck = which === "mine" ? exDeck : which;
+    const recent = which === "recent";
+    for (const t of ["recent", "history", "buys", "sells"]) $(`ex-deck-${t}`).classList.toggle("on", t === which);
+    $("tab-mine").hidden = recent;
+    $("tab-history").hidden = !recent;
+    if (recent) loadHistory(false); else renderSwaps();
   }
+  // Open swaps and orders of one side: on the book or under way.
+  function exOpenCount(side) {
+    const live = (x) => !["done", "cancelled"].includes(x.stage);
+    return board.waiting.filter((w) => (side === "sell") === !!w.selling).length
+      + swapList.filter((x) => live(x) && (side === "sell") === (x.role === "sell")).length;
+  }
+  wide.addEventListener("change", () => { if (typeof renderSwaps === "function") renderSwaps(); });
   $("tab-offers-go").onclick = () => swapTab("offers");
   $("tab-trade-go").onclick = () => swapTab("trade");
   $("tab-history-go").onclick = () => swapTab("history");
   $("tab-mine-go").onclick = () => swapTab("mine");
-  $("ex-deck-mine").onclick = () => setExDeck("mine");
-  $("ex-deck-trades").onclick = () => setExDeck("trades");
+  for (const t of ["recent", "history", "buys", "sells"]) $(`ex-deck-${t}`).onclick = () => setExDeck(t);
 
   // ---- Swap history & Exchange Price Chart ----
   const hist = { swaps: [], more: false, last: null };
@@ -10362,8 +10379,11 @@
     // How many are still under way, on the tab.
     const open = board.waiting.length + swapList.filter((s) => !["done", "cancelled"].includes(s.stage)).length;
     $("mine-count").textContent = open ? `(${open})` : "";
-    if ($("ex-mine-count")) $("ex-mine-count").textContent = open ? `(${open})` : "";
-    if (!swapList.length && !board.waiting.length) { list.innerHTML = '<div class="empty">No swaps yet</div>'; return; }
+    const buys = exOpenCount("buy"), sells = exOpenCount("sell");
+    $("ex-buys-count").textContent = buys ? `(${buys})` : "";
+    $("ex-sells-count").textContent = sells ? `(${sells})` : "";
+    const split = exDeckSplit() && ["history", "buys", "sells"].includes(exDeck);
+    if (!split && !swapList.length && !board.waiting.length) { list.innerHTML = '<div class="empty">No swaps yet</div>'; return; }
     // Under way first, then finished ones: two groups.
     const fiatForSol = (sol) => {
       if (!(sol > 0)) return "";
@@ -10393,7 +10413,7 @@
     // Newest first in each group.
     const newest = (a, b) => (b.created || 0) - (a.created || 0);
     const going = swapList.filter(live).sort(newest), finished = swapList.filter((x) => !live(x)).sort(newest);
-    const openHtml = board.waiting.map((item) => `<div class="swap-row">
+    const waitingRow = (item) => `<div class="swap-row">
       <div><div>${item.selling ? "Sell" : "Buy"} ${esc(fmtOrn(item.offer.orn))} ORN for ${esc(offerPrice(item.offer))}${approxOffer(item.offer)}</div>
       <div class="sub${item.short_of_orn ? " bad" : ""}">${esc(item.short_of_orn
         ? `Not enough ORN in ${(walletList.find((w) => w.address === item.wallet) || {}).name || short(item.wallet || "")}: hidden from buyers until it holds ${fmtOrn(item.offer.orn)} ORN again.`
@@ -10401,10 +10421,17 @@
       ${item.offer.state === "open" ? `<button class="linkish" data-withdraw="${item.offer.id}">Withdraw</button>` : ""}
       ${item.needs_unlock ? (item.unlock_biometric
         ? `<button class="linkish" data-finish="${item.offer.id}">Use ${bio}</button>`
-        : `<span class="finish"><input type="password" data-finish-pw="${item.offer.id}" placeholder="Wallet password" aria-label="Wallet password"><button class="linkish" data-finish="${item.offer.id}">Finish</button></span>`) : ""}</div>`).join("")
-      + going.map(row).join("");
-    list.innerHTML = (openHtml ? `<div class="swap-group">Open</div>${openHtml}` : "")
-      + (finished.length ? `<div class="swap-group">Finished</div>${finished.map(row).join("")}` : "");
+        : `<span class="finish"><input type="password" data-finish-pw="${item.offer.id}" placeholder="Wallet password" aria-label="Wallet password"><button class="linkish" data-finish="${item.offer.id}">Finish</button></span>`) : ""}</div>`;
+    const openOf = (side) => board.waiting.filter((w) => (side === "sell") === !!w.selling).map(waitingRow).join("")
+      + going.filter((x) => (side === "sell") === (x.role === "sell")).map(row).join("");
+    if (split) {
+      const html = exDeck === "history" ? finished.map(row).join("") : openOf(exDeck === "sells" ? "sell" : "buy");
+      list.innerHTML = html || `<div class="empty">${exDeck === "history" ? "No finished swaps yet" : exDeck === "sells" ? "No open sell orders" : "No open buy orders"}</div>`;
+    } else {
+      const openHtml = board.waiting.map(waitingRow).join("") + going.map(row).join("");
+      list.innerHTML = (openHtml ? `<div class="swap-group">Open</div>${openHtml}` : "")
+        + (finished.length ? `<div class="swap-group">Finished</div>${finished.map(row).join("")}` : "");
+    }
     for (const b of list.querySelectorAll("[data-swap]")) b.onclick = () => openSwap(b.dataset.swap);
     for (const b of list.querySelectorAll("[data-cancel-order]")) b.onclick = (e) => { e.stopPropagation(); cancelBuyOrder(b.dataset.cancelOrder); };
     for (const b of list.querySelectorAll("[data-finish]")) b.onclick = () => finishTaken(Number(b.dataset.finish));
@@ -12335,7 +12362,7 @@
     const go = e.target.closest("[data-news-go]");
     if (go) {
       if (go.dataset.newsGo === "map") invoke("open_network_map").catch(() => {});
-      else { show("swaps"); loadSwaps(); loadBoard(); if (phone) swapTab("history"); else setExDeck("trades"); }
+      else { show("swaps"); loadSwaps(); loadBoard(); if (phone) swapTab("history"); else setExDeck("recent"); }
       return;
     }
     const send = e.target.closest("[data-reply-send]");

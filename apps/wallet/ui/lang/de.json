@@ -2268,7 +2268,7 @@
         "Klicke in einem großen Fenster auf <b>Order erstellen</b>, in einem kleinen auf den Tab <b>Kaufen / Verkaufen</b>.",
         "Wähle <b>ORN kaufen</b> und gib dann ein, wie viele ORN du möchtest und wie viel SOL du insgesamt zahlst.",
         "Klicke auf <b>ORN kaufen mit Touch ID</b>. Die SOL werden sofort aus dieser Wallet zurückgelegt.",
-        "Wenn ein Verkäufer die Order ausführt, treffen die ORN automatisch ein, auch wenn Orien Wallet geschlossen ist. Zum Abbrechen klicke unter <b>Deine Orders &amp; Swaps</b> (in einem kleinen Fenster <b>Deine Swaps</b>) bei der Order auf <b>Abbrechen</b>."
+        "Wenn ein Verkäufer die Order ausführt, treffen die ORN automatisch ein, auch wenn Orien Wallet geschlossen ist. Zum Abbrechen klicke unter <b>Offene Käufe</b> (in einem kleinen Fenster <b>Deine Swaps</b>) bei der Order auf <b>Abbrechen</b>."
       ]
     }
   },
@@ -2421,5 +2421,12 @@
   "See all swaps": "Alle Swaps ansehen",
   "Help with the wallet, mining, swaps and more.": "Hilfe zur Wallet, zum Mining, zu Swaps und mehr.",
   "Nothing found. Search an address (64 letters and digits, 0-9 and a-f), a checkpoint number, or the name of someone on Orien Network.": "Nichts gefunden. Suche nach einer Adresse (64 Buchstaben und Ziffern, 0-9 und a-f), einer Checkpoint-Nummer oder dem Namen einer Person auf Orien Network.",
-  "ORN swap": "ORN-Swap"
+  "ORN swap": "ORN-Swap",
+  "Recent": "Neueste",
+  "History": "Verlauf",
+  "Open buys": "Offene Käufe",
+  "Open sells": "Offene Verkäufe",
+  "No finished swaps yet": "Noch keine abgeschlossenen Swaps",
+  "No open buy orders": "Keine offenen Kauforders",
+  "No open sell orders": "Keine offenen Verkaufsorders"
 }
