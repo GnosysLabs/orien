@@ -1411,6 +1411,11 @@
   .sync-card .sync-go { align-self: flex-start; }
   .verify-card { margin-top: 22px; padding: 16px 18px; border: 1px solid var(--line); border-radius: 18px; background: var(--surface); }
   .vf-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 12px 0; border-top: 1px solid var(--line); }
+  .vf-sol { padding: 0 0 12px 12px; }
+  .vf-sol .vf-row { border: 0; padding: 4px 0; }
+  .vf-sol .vf-name, .sol-profile-chip { display: inline-flex; align-items: center; gap: 7px; }
+  .vf-sol img, .sol-profile-chip img { width: 15px; height: 15px; object-fit: contain; }
+  .vf-sol .vc-text { margin-top: 3px; }
   #vf-list { margin-top: 12px; }
   .vf-name { font-weight: 500; }
   .vf-wait { font-size: 12px; color: var(--faint); text-align: right; }
@@ -4088,6 +4093,7 @@
           <div class="sl-since" id="sl-since"></div>
           <div class="sl-bio" id="sl-bio"></div>
           <div class="sl-contact" id="sl-contact"></div>
+          <div class="sl-contact" id="sl-sol-wallets" hidden></div>
         </div>
       </div>
       <div class="sl-layout">
@@ -11838,6 +11844,7 @@
   }
   $("seller").addEventListener("scroll", () => requestAnimationFrame(slFitEdges), { passive: true });
   window.addEventListener("resize", slFitEdges);
+  $("sl-sol-wallets").onclick = event => openSolanaExplorer("address", event.target.closest("[data-address]")?.dataset.address);
   function paintSellerTools(answer) {
     const a = answer.account || {};
     // Another person's page starts on All.
@@ -11852,6 +11859,9 @@
     $("sl-message").hidden = answer.takes_messages === false;
     // Send: to their Market wallet when it's verified, or their first
     // verified wallet; none, no button.
+    const devnetWallets = (answer.wallets || []).filter(w => w.solana_devnet);
+    $("sl-sol-wallets").hidden = !devnetWallets.length;
+    $("sl-sol-wallets").innerHTML = devnetWallets.map(w => `<button class="sl-chip sol-profile-chip" type="button" data-address="${esc(w.solana_devnet)}" title="${esc(w.solana_devnet)}"><img src="chains/solana.svg" alt="">Solana Devnet · ${esc(short(w.solana_devnet))}</button>`).join("");
     const verified = (answer.wallets || []).map((w) => ({ address: (w.address || "").toLowerCase(), name: w.name || null }));
     const market = (a.wallet || "").toLowerCase();
     const to = verified.find((w) => w.address === market) || verified[0];
@@ -13384,11 +13394,55 @@
   // Verifying: each wallet by choice, with one tiny payment from it to
   // Orien Market. Only the open wallet can pay, so only it has a button.
   let proof = null, states = [], verifying = null;
+  function solProfileRow(wallet, proof, account) {
+    if (!proof?.verified || (!wallet.current && !proof.solana_devnet)) return "";
+    const linked = proof.solana_devnet;
+    const typed = !linked && view?.locked && !view.biometric;
+    const hint = linked ? `Linked · ${esc(short(linked))}` : `Show ${esc(wallet.name)}’s Solana Devnet address on your public profile. No fee.`;
+    return `<form class="vf-sol" data-orn="${esc(wallet.address)}" data-account="${account}" data-sol="${esc(linked || "")}">
+      <div class="vf-row"><div><div class="vf-name"><img src="chains/solana.svg" alt="">Solana Devnet</div><p class="vc-text">${hint}</p></div>
+      <button class="pill${linked ? "" : " pearl"}" type="submit">${linked ? "Unlink" : "Link to profile"}</button></div>
+      ${typed ? '<div class="field"><label>Wallet password<div class="box plain"><input type="password" autocomplete="current-password" required></div></label></div>' : ""}
+      <div class="problem" role="alert" hidden></div></form>`;
+  }
+  $("vf-list").addEventListener("submit", async event => {
+    const form = event.target.closest(".vf-sol");
+    if (!form) return;
+    event.preventDefault();
+    const {orn, sol} = form.dataset;
+    const account = Number(form.dataset.account);
+    if (board.me?.id !== account || (!sol && view?.address !== orn)) { renderVerify(); return; }
+    const button = form.querySelector("button");
+    if (button.disabled) return;
+    const error = form.querySelector(".problem");
+    error.hidden = true;
+    button.disabled = true;
+    const input = form.querySelector("input");
+    const password = input?.value || null;
+    if (input) input.value = "";
+    try {
+      if (sol) {
+        await invoke("market_call", {method: "DELETE", path: "/me/wallet/sol-devnet", body: {account, orn, sol}});
+      } else {
+        if (view.locked && view.biometric) await invoke("biometric_unlock");
+        await invoke("link_devnet_sol", {account, orn, password});
+      }
+      if (board.me?.id === account) await renderVerify();
+      feel("success");
+    } catch (e) {
+      error.textContent = String(e) === "password: wrong" ? "That is not this wallet’s password." : String(e);
+      error.hidden = false;
+    } finally { button.disabled = false; }
+  });
   async function renderVerify(note) {
     const card = $("pf-verify");
     card.hidden = !board.me;
     if (card.hidden) return;
-    try { states = (await invoke("board_wallet_states")) || []; } catch {}
+    const profileId = board.me.id;
+    let fresh;
+    try { fresh = (await invoke("board_wallet_states")) || []; } catch { fresh = []; }
+    if (board.me?.id !== profileId) return;
+    states = fresh;
     const state = (a) => states.find((p) => (p.address || "").toLowerCase() === a);
     // Every wallet: this app's, and any the profile has from other devices.
     const rows = walletList.map((w) => ({ address: w.address, name: w.name, here: true, current: w.current }));
@@ -13417,7 +13471,7 @@
         : r.current ? `<button class="pill pearl" data-verify="${r.address}">Verify</button>`
         : r.here ? '<span class="vf-wait">Open it to verify</span>' : "";
       const more = st ? `<button class="pill icon vf-more" id="vf-more-${i}" data-more="${r.address}" aria-label="More"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="19" cy="12" r="1.8"/></svg></button>` : "";
-      return `<div class="vf-row"><div class="vf-who"><div class="vf-name">${esc(r.name)}${verified ? " " + VERIFIED : ""}</div><div class="vc-sub">${short(r.address)} · ${status}</div></div><div class="vf-acts">${action}${more}</div></div>`;
+      return `<div class="vf-row"><div class="vf-who"><div class="vf-name">${esc(r.name)}${verified ? " " + VERIFIED : ""}</div><div class="vc-sub">${short(r.address)} · ${status}</div></div><div class="vf-acts">${action}${more}</div></div>` + solProfileRow(r, st, profileId);
     }).join("");
     for (const b of $("vf-list").querySelectorAll("[data-paid]")) b.onclick = async () => {
       b.disabled = true; $("pf-problem").hidden = true;

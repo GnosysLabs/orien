@@ -503,6 +503,30 @@ pub fn wallet_states(dir: &Path) -> Result<Value, String> {
     Ok(call(dir, "GET", "/me/wallet", None)?["wallets"].clone())
 }
 
+/// Sign only the locally constructed profile-link statement, using the open wallet's devnet key.
+pub fn link_devnet_sol(dir: &Path, account: i64, orn: &str, password: Option<&str>) -> Result<(), String> {
+    use orien_swap::solana;
+    let path = crate::wallet_file(dir).ok_or("No wallet is open.")?;
+    if crate::peek(&path)?.0.to_string() != orn {
+        return Err("The open wallet changed. Open your profile again.".into());
+    }
+    let orien_net::unlock::Signing::Here(wallet) = crate::open_signing(&path, password)? else {
+        return Err("Unlock this wallet to link Solana.".into());
+    };
+    if wallet.address().to_string() != orn {
+        return Err("The open wallet changed.".into());
+    }
+    let key = solana::Keypair::from_secret(&wallet.solana_devnet_secret());
+    let mut link = json!({ "account": account, "orn": orn, "sol": solana::text(&key.pubkey()) });
+    let challenge = call(dir, "POST", "/me/wallet/sol-devnet/challenge", Some(link.clone()))?;
+    let mut nonce = [0; 32];
+    hex::decode_to_slice(challenge["nonce"].as_str().unwrap_or(""), &mut nonce).map_err(|_| "Invalid wallet-link challenge.")?;
+    let signature = solana::profile::sign(&key, &base(), account, orn, &nonce);
+    link["signature"] = json!(hex::encode(signature));
+    call(dir, "POST", "/me/wallet/sol-devnet/confirm", Some(link))?;
+    Ok(())
+}
+
 /// Saves the signed-in account's name, bio and public usernames.
 pub fn save_profile(dir: &Path, name: &str, bio: &str, telegram: &str, x: &str, discord: &str, messages_from: Option<&str>) -> Result<(), String> {
     let mut profile = json!({
@@ -621,7 +645,7 @@ pub fn listings(dir: &Path, category: &str, text: &str, offset: u32) -> Result<V
 /// A signed-in Market call for the Market screens: listings, messages and
 /// reports only, so the page can't reach anything else with the cookie.
 pub fn market_call(dir: &Path, method: &str, path: &str, body: Option<Value>) -> Result<Value, String> {
-    if path == "/me/referrals" && matches!(method, "GET" | "POST") {
+    if (path == "/me/referrals" && matches!(method, "GET" | "POST")) || (path == "/me/wallet/sol-devnet" && method == "DELETE") {
         if load(dir).cookie.is_none() {
             return Err(Failed::SignIn.into());
         }
