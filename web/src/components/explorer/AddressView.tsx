@@ -23,7 +23,7 @@ import {
   when,
 } from '@/lib/explorer'
 import { Card, Loading, Problem, Stat } from './Parts'
-import { OfficialTag, WalletFace } from './Official'
+import { Identicon, NameMark, OfficialTag, WalletFace } from './Official'
 
 const KINDS: Record<Entry['kind'], { label: string; to?: string; icon: typeof Pickaxe; out?: boolean }> = {
   received: { label: 'Received', to: 'from', icon: ArrowDownLeft },
@@ -39,7 +39,7 @@ function Who({ address, names }: { address: string; names: Record<string, Wallet
   const profile = address ? officialProfile(address) ?? names[address] : undefined
   return (
     <a href={addressHref(address)} className="num text-ink underline decoration-line underline-offset-4 hover:decoration-pearl">
-      {profile ? <><WalletNetworkGlyph />{label(profile)}</> : short(address)}
+      {profile ? <><NameMark profile={profile} />{label(profile)}</> : short(address)}
       {profile?.official && <OfficialTag />}
     </a>
   )
@@ -90,6 +90,14 @@ export function AddressView() {
                 <OfficialTag />
               </span>
               <span className="block text-sm text-muted">{profile.official_note}</span>
+            </span>
+          </div>
+        ) : profile?.nickname && address ? (
+          <div className="flex w-fit items-center gap-3 rounded-xl border border-line bg-surface py-2 pl-2 pr-4">
+            <Identicon address={address} size={36} />
+            <span>
+              <span className="block font-semibold text-ink">{profile.name}</span>
+              <span className="block text-sm text-muted">Nickname from the explorer, by when this wallet first appeared</span>
             </span>
           </div>
         ) : (

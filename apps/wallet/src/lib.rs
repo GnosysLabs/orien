@@ -2292,7 +2292,7 @@ async fn board_picture_pick(app: AppHandle, banner: Option<bool>) -> Result<bool
 #[tauri::command]
 async fn wallet_profiles(app: AppHandle, addresses: Vec<String>) -> Result<serde_json::Value, String> {
     let dir = folder(&app).ok();
-    tauri::async_runtime::spawn_blocking(move || board::profiles(dir.as_deref(), &addresses)).await.map_err(|error| error.to_string())?
+    tauri::async_runtime::spawn_blocking(move || board::lookup(dir.as_deref(), &addresses)).await.map_err(|error| error.to_string())?
 }
 
 /// Adds a wallet rebuilt from its recovery phrase on another device: the

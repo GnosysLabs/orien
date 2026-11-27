@@ -3208,6 +3208,10 @@
   .tx .ex-go { flex: none; color: var(--faint); }
   .face.ex-anon { color: var(--dim); }
   .face.ex-anon svg { width: 46%; height: 46%; }
+  /* A nicknamed wallet: its identicon inset in the circle, and the name a
+     little quieter than one a person chose. */
+  .face.ex-ident img { position: absolute; inset: 21%; width: 58%; height: 58%; border-radius: 0; object-fit: contain; }
+  .ex-nick { font-weight: 500; }
   .tx.ex-link { cursor: pointer; }
   @media (hover: hover) { .tx.ex-link:hover { background: rgba(var(--tint), 0.03); } }
   @media (min-width: 860px) {
@@ -5380,6 +5384,10 @@
   // Marketplace profiles of wallet addresses, for names and pictures: an
   // address maps to {name, picture}, or to null once asked with no profile.
   const profiles = new Map();
+  // The explorer's nicknames for wallets no profile shows: "Swift Amber
+  // Falcon", given in the order wallets first appeared on the network.
+  const nicknames = new Map();
+  const nicknameOf = (address) => (address && nicknames.get(address.toLowerCase())) || null;
   const profileOf = (address) => (address && profiles.get(address.toLowerCase())) || null;
   // How a profile's wallet is shown: "Cyph3r – Savings", or just the name.
   function walletGlyph(network = "ORN") {
@@ -5400,6 +5408,8 @@
     if (!want.length) return false;
     let found;
     try { found = (await invoke("wallet_profiles", { addresses: want })) || {}; } catch { return false; }
+    for (const [a, name] of Object.entries(found.nicknames || {})) nicknames.set(a.toLowerCase(), name);
+    found = found.profiles || {};
     for (const a of want) profiles.set(a.toLowerCase(), found[a] || null);
     return want.some((a) => found[a]);
   }
@@ -5426,7 +5436,15 @@
     return window.orienRobot ? `<img class="robot" alt="" src="${window.orienRobot(seed)}">`
       : `<img class="robot" alt="" data-robot="${esc(seed)}" hidden>`;
   };
-  const fillRobots = () => { for (const img of document.querySelectorAll("img[data-robot]")) { img.src = window.orienRobot(img.dataset.robot); img.hidden = false; delete img.dataset.robot; } };
+  const fillRobots = () => {
+    for (const img of document.querySelectorAll("img[data-robot]")) { img.src = window.orienRobot(img.dataset.robot); img.hidden = false; delete img.dataset.robot; }
+    for (const img of document.querySelectorAll("img[data-ident]")) { img.src = window.orienIdenticon(img.dataset.ident); img.hidden = false; delete img.dataset.ident; }
+  };
+  // A nicknamed wallet's picture: its identicon, drawn from its address.
+  const identiconFace = (address) => {
+    const seed = address.toLowerCase();
+    return `<span class="face ex-ident">${window.orienIdenticon ? `<img alt="" src="${window.orienIdenticon(seed)}">` : `<img alt="" data-ident="${esc(seed)}" hidden>`}</span>`;
+  };
   if (window.orienRobot) fillRobots(); else window.addEventListener("orien-robots", fillRobots, { once: true });
   function face(address, name) {
     if (official(address)) return '<span class="face official"><span class="mark"></span></span>';
@@ -15293,13 +15311,16 @@
   const EX_WALLET = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 7V4a1 1 0 0 0-1-1H5a2 2 0 0 0 0 4h15a1 1 0 0 1 1 1v4h-3a2 2 0 0 0 0 4h3a1 1 0 0 0 1-1v-2a1 1 0 0 0-1-1"/><path d="M3 5v14a2 2 0 0 0 2 2h15a1 1 0 0 0 1-1v-4"/></svg>';
   const CHEV = '<svg class="ex-go" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>';
   // Who an address is: one of your wallets, a contact, a member, or itself.
+  // A wallet nobody has named shows the explorer's nickname, quieter than a
+  // chosen name, with its identicon; one with no nickname yet, a wallet.
   function exWho(address) {
     const mine = walletList.find((w) => w.address === address);
     const name = mine ? `${mine.name} (yours)` : nameOf(address);
-    // A wallet nobody has named: a wallet, not a question mark.
     const plain = !name && !profileOf(address) && !official(address);
-    return { name, html: name ? `${walletLabel(name)}${officialTag(address)}` : `<span class="mono">${short(address)}</span>`,
-      face: plain ? `<span class="face ex-anon">${EX_WALLET}</span>` : face(address, name) };
+    const nick = plain ? nicknameOf(address) : null;
+    return { name, nick, label: name || nick || short(address),
+      html: name ? `${walletLabel(name)}${officialTag(address)}` : nick ? `<span class="ex-nick">${esc(nick)}</span>` : `<span class="mono">${short(address)}</span>`,
+      face: nick ? identiconFace(address) : plain ? `<span class="face ex-anon">${EX_WALLET}</span>` : face(address, name) };
   }
   // What the explorer learns, Home's Network card knows at once: its overview,
   // or a checkpoint newer than any the card has.
@@ -15498,7 +15519,7 @@
           <div data-ex-pane="top"><div class="list">${holders.map(exHolderRow).join("") || '<div class="empty">No wallets yet.</div>'}</div>
             <div class="ex-more"><button class="pill" data-ex-top>See the top 100</button></div></div>
           <div data-ex-pane="vals"><div class="ex-pane-note">${up} of ${o.validators.length} running</div><div class="list">${o.validators.map((v) => `<${v.account ? `button class="tx ex-row" data-ex-addr="${v.account}"` : `div class="tx"`}><span class="ex-dot${v.up ? " up" : ""}"></span>
-            <div class="tx-main"><div class="title">Validator ${v.seat + 1}</div><div class="sub">${v.account ? `Staked by ${esc(exWho(v.account).name || short(v.account))} · ${exOrn(v.stake, 0)} ORN` : "Launch validator"} · agreed on ${v.agreed} of the last ${v.of}</div></div>
+            <div class="tx-main"><div class="title">Validator ${v.seat + 1}</div><div class="sub">${v.account ? `Staked by ${esc(exWho(v.account).label)} · ${exOrn(v.stake, 0)} ORN` : "Launch validator"} · agreed on ${v.agreed} of the last ${v.of}</div></div>
             <div class="tx-side"><div class="amt">${!v.up ? "Not answering" : v.epoch < o.epoch ? "Catching up" : "Running"}</div><div class="sub">${v.up ? `Checkpoint ${v.epoch}` : ""}</div></div></${v.account ? "button" : "div"}>`).join("")}</div></div>
         </div>
       </div>`;
@@ -15533,7 +15554,7 @@
     if (ex.at.kind !== "checkpoint" || ex.at.epoch !== epoch) return;
     const math = r.math ? (r.math === "Blake3" ? "BLAKE3" : r.math) : "—";
     // A staked validator opens the wallet that staked it.
-    const vals = (d.validators || []).map((v) => `<${v.account ? `button class="tx ex-row" data-ex-addr="${v.account}"` : `div class="tx"`}><span class="ex-dot${v.agreed ? " up" : ""}"></span><div class="tx-main"><div class="title">Validator ${v.seat + 1}</div><div class="sub">${v.account ? `Staked by ${esc(exWho(v.account).name || short(v.account))}` : "Launch validator"}</div></div><div class="tx-side"><div class="amt">${v.agreed ? "Agreed" : "Didn't answer"}</div></div></${v.account ? "button" : "div"}>`).join("");
+    const vals = (d.validators || []).map((v) => `<${v.account ? `button class="tx ex-row" data-ex-addr="${v.account}"` : `div class="tx"`}><span class="ex-dot${v.agreed ? " up" : ""}"></span><div class="tx-main"><div class="title">Validator ${v.seat + 1}</div><div class="sub">${v.account ? `Staked by ${esc(exWho(v.account).label)}` : "Launch validator"}</div></div><div class="tx-side"><div class="amt">${v.agreed ? "Agreed" : "Didn't answer"}</div></div></${v.account ? "button" : "div"}>`).join("");
     const prints = `<button class="ex-hash ex-row" data-ex-copy="${c.state}" title="Copy"><div class="l">State after it: every account's balance, as one fingerprint</div><div class="h">${c.state}</div></button>
             <button class="ex-hash ex-row" data-ex-copy="${c.digest}" title="Copy"><div class="l">This checkpoint's fingerprint</div><div class="h">${c.digest}</div></button>
             ${epoch !== 0 && d.previous ? `<button class="ex-hash ex-row" data-ex-copy="${d.previous}" title="Copy"><div class="l">The checkpoint before it</div><div class="h">${d.previous}</div></button>` : ""}`;
@@ -15586,7 +15607,7 @@
     const banner = prof ? prof.banner || (prof.banner_url ? prof.banner_url.split("/").pop() : "") : "";
     if (banner) await picReady(banner);
     if (ex.at.kind !== "address" || ex.at.address !== address) return;
-    $("ex-body").innerHTML = `<div class="ex-addr-top${banner ? " banner" : ""}">${banner ? `<div class="ex-art">${picImg(banner)}</div>` : ""}<div class="ex-hero">${who.face}<div class="ex-hero-info"><div class="ex-name">${who.name ? who.html : "Address"}</div>
+    $("ex-body").innerHTML = `<div class="ex-addr-top${banner ? " banner" : ""}">${banner ? `<div class="ex-art">${picImg(banner)}</div>` : ""}<div class="ex-hero">${who.face}<div class="ex-hero-info"><div class="ex-name">${who.name || who.nick ? who.html : "Address"}</div>
         <button class="ct-addr" data-ex-copy="${address}" title="Copy the address"><span>${short(address)}</span><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button>
         ${!mine || (prof && prof.id) ? `<div class="ex-acts">${prof && prof.id ? `<button class="sl-act main" data-ex-profile="${prof.id}" title="View profile" aria-label="View profile"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="5"/><path d="M20 21a8 8 0 0 0-16 0"/></svg></button>` : ""}${mine ? "" : `<button class="sl-act main" data-ex-send="${address}" title="Send ORN" aria-label="Send ORN"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 7h10v10"/><path d="M7 17 17 7"/></svg></button>`}</div>` : ""}</div></div>
       <div class="list ex-stats"><div><b title="${exOrn(d.balance, 9)} ORN">${exOrn(d.balance, 2)}</b><span>ORN held</span></div><div><b>${exOrn(d.staked, 2)}</b><span>${d.returning && d.returning !== "0" ? `staked · ${exOrn(d.returning, 4)} returning` : "staked"}</span></div><div><b>${(d.payments_made || 0).toLocaleString()}</b><span>payments sent</span></div></div></div>
@@ -15632,7 +15653,7 @@
   function exActRow(a) {
         const k = EX_KINDS[a.kind] || [a.kind];
         const out = a.kind === "sent";
-        const other = a.counterparty && k[1] ? ` ${k[1]} ${esc(exWho(a.counterparty).name || short(a.counterparty))}` : "";
+        const other = a.counterparty && k[1] ? ` ${k[1]} ${esc(exWho(a.counterparty).label)}` : "";
         const target = a.counterparty ? `data-ex-addr="${a.counterparty}"` : a.epoch != null ? `data-ex-cp="${a.epoch}"` : "";
         return `<button class="tx ex-row" ${target}><span class="tx-icon ${out ? "sent" : "received"}">${ICON[out ? "sent" : "received"]}</span>
           <div class="tx-main"><div class="title">${k[0]}${other}</div><div class="sub">${a.time ? clock(a.time) : "This hour"}${a.epoch != null ? ` · checkpoint ${a.epoch}` : ""}</div></div>

@@ -199,6 +199,11 @@ struct Earned {
     since: Option<u64>,
     /// Gathered up to this checkpoint, included.
     upto: Option<u64>,
+    /// The checkpoint each account first appeared in, as found.
+    first: HashMap<AccountId, u64>,
+    /// Accounts whose first checkpoint was found since they were last
+    /// handed out to be named.
+    unnamed: Vec<(AccountId, u64)>,
 }
 
 impl Earned {
@@ -226,7 +231,7 @@ impl Earned {
         }
         let ids = payments.tokenomics()?.ids;
         let asks: Vec<(AccountId, u64)> = ids.iter().map(|id| (*id, self.asked.get(id).copied().unwrap_or(0))).collect();
-        let found: Vec<Option<(u64, Vec<(u64, Income, u64)>)>> = std::thread::scope(|scope| {
+        let found: Vec<Option<(u64, Vec<(u64, Income, u64)>, Option<u64>)>> = std::thread::scope(|scope| {
             asks.chunks(asks.len().div_ceil(16).max(1))
                 .map(|chunk| scope.spawn(move || chunk.iter().map(|(id, from)| earnings(payments, id, *from, latest)).collect::<Vec<_>>()))
                 .collect::<Vec<_>>()
@@ -236,8 +241,14 @@ impl Earned {
         });
         for ((id, _), answer) in asks.iter().zip(found) {
             // An account no validator answered for is asked again next time.
-            let Some((since, entries)) = answer else { continue };
+            let Some((since, entries, first)) = answer else { continue };
             self.since = Some(self.since.map_or(since, |known| known.min(since)));
+            if let Some(first) = first
+                && !self.first.contains_key(id)
+            {
+                self.first.insert(*id, first);
+                self.unnamed.push((*id, first));
+            }
             for (epoch, income, amount) in entries {
                 self.by_epoch.entry(epoch).or_default().push((*id, income, amount));
             }
@@ -286,19 +297,28 @@ fn hashrate(kept: &BTreeMap<u64, Checkpoint>, payments: &dyn crate::wallets::Pay
 }
 
 /// What `account` earned from mining and fees in the checkpoints from
-/// `from` to `latest`, and where the validator's records start.
+/// `from` to `latest`, where the validator's records start, and, asked from
+/// the start, the checkpoint it first appeared in: that of its first entry
+/// of any kind (the start of the records for an account there from launch,
+/// with none).
 fn earnings(
     payments: &dyn crate::wallets::Payments,
     account: &AccountId,
     from: u64,
     latest: u64,
-) -> Option<(u64, Vec<(u64, Income, u64)>)> {
+) -> Option<(u64, Vec<(u64, Income, u64)>, Option<u64>)> {
     let mut found = Vec::new();
     let mut since = None;
+    let mut first: Option<u64> = None;
+    let mut any = false;
     let mut next = Some(from);
     while let Some(at) = next.filter(|at| *at <= latest) {
         let page = payments.earnings(account, at)?;
         since.get_or_insert(page.since);
+        any |= !page.entries.is_empty();
+        if let Some(entry) = page.entries.iter().filter(|e| e.time.is_some() && e.epoch <= latest).min_by_key(|e| e.epoch) {
+            first = Some(first.map_or(entry.epoch, |f| f.min(entry.epoch)));
+        }
         found.extend(
             page.entries
                 .iter()
@@ -308,7 +328,9 @@ fn earnings(
         );
         next = page.next.filter(|n| *n > at);
     }
-    Some((since.unwrap_or(0), found))
+    let since = since.unwrap_or(0);
+    let first = if from == 0 { first.or((!any).then_some(since)) } else { first };
+    Some((since, found, first))
 }
 
 /// The mining rewards and fee shares of one checkpoint.
@@ -644,12 +666,28 @@ impl Explorer {
 }
 
 /// Gathers the rewards of checkpoints made since the last time, unless that
-/// is already under way.
+/// is already under way, and names the wallets that turned up.
 fn gather_rewards(app: &App) {
     let explorer = app.explorer();
     let Some(latest) = explorer.checkpoints.lock().unwrap().keys().next_back().copied() else { return };
     let Ok(mut earned) = explorer.earned.try_lock() else { return };
     let _ = earned.gather(app.payments().as_ref(), latest);
+    drop(earned);
+    name_new_wallets(app);
+}
+
+/// Gives each wallet found since last time its nickname, in order of first
+/// appearance. Kept for the next time if the store can't take them now.
+pub(crate) fn name_new_wallets(app: &App) {
+    let unnamed = std::mem::take(&mut app.explorer().earned.lock().unwrap().unnamed);
+    if unnamed.is_empty() {
+        return;
+    }
+    let seen: Vec<(String, u64)> = unnamed.iter().map(|(id, epoch)| (hex::encode(id.as_bytes()), *epoch)).collect();
+    if let Err(error) = app.store().name_wallets(&seen) {
+        eprintln!("explorer: could not name new wallets: {error:#}");
+        app.explorer().earned.lock().unwrap().unnamed.extend(unnamed);
+    }
 }
 
 /// The network now: validators, supply and the latest checkpoints.

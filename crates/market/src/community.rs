@@ -1261,6 +1261,7 @@ fn post_text(text: &str) -> Result<String> {
 impl Community {
     fn refresh(&self, app: &App) {
         let Some(mined) = app.explorer().mined(app.payments().as_ref()) else { return };
+        crate::explorer::name_new_wallets(app);
         let store = app.store();
         if let Err(error) = store.track_referral_mining(&mined) {
             eprintln!("referrals: could not record mining progress: {error:#}");

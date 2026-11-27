@@ -1961,7 +1961,15 @@ async fn lookup_wallets(State(app): State<Arc<App>>, headers: HeaderMap, Json(re
     let found = app.store.lock().unwrap().wallet_profiles(&request.addresses, viewer)?;
     let profiles: serde_json::Map<String, serde_json::Value> =
         found.into_iter().map(|(address, profile)| (address, public_wallet_profile(app.origin(), profile))).collect();
-    Ok(([(header::ACCESS_CONTROL_ALLOW_ORIGIN, "*")], Json(json!({ "profiles": profiles }))).into_response())
+    // The explorer's nicknames, for the wallets without a profile.
+    let orien: Vec<String> = request
+        .addresses
+        .iter()
+        .filter(|a| a.len() == 64 && a.bytes().all(|b| b.is_ascii_hexdigit()) && !profiles.contains_key(a.as_str()))
+        .cloned()
+        .collect();
+    let nicknames = app.store.lock().unwrap().nicknames(&orien).unwrap_or_default();
+    Ok(([(header::ACCESS_CONTROL_ALLOW_ORIGIN, "*")], Json(json!({ "profiles": profiles, "nicknames": nicknames }))).into_response())
 }
 
 /// A wallet's vault: sealed bytes, base64.

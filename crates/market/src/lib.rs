@@ -14,6 +14,7 @@ pub mod orders;
 pub mod images;
 pub mod links;
 pub mod mail;
+pub mod nicknames;
 pub mod messages;
 pub mod moderation;
 pub mod notices;

@@ -827,6 +827,12 @@ pub fn search(dir: Option<&Path>, text: &str) -> Result<Value, String> {
 /// address an account has proven, keyed by address; others are left out.
 /// Public; signed in, people who blocked this account are left out.
 pub fn profiles(dir: Option<&Path>, addresses: &[String]) -> Result<Value, String> {
+    Ok(lookup(dir, addresses)?["profiles"].clone())
+}
+
+/// The same, under "profiles", with the explorer's nicknames for the other
+/// Orien addresses under "nicknames".
+pub fn lookup(dir: Option<&Path>, addresses: &[String]) -> Result<Value, String> {
     // Orien addresses, lower case; Solana addresses as they are (base58).
     let addresses: Vec<String> = addresses
         .iter()
@@ -839,13 +845,12 @@ pub fn profiles(dir: Option<&Path>, addresses: &[String]) -> Result<Value, Strin
         .take(100)
         .collect();
     if addresses.is_empty() {
-        return Ok(json!({}));
+        return Ok(json!({ "profiles": {}, "nicknames": {} }));
     }
     let answer = as_viewer(agent().post(&format!("{}/api/market/wallets/lookup", base())), dir)
         .send_json(json!({ "addresses": addresses }))
         .map_err(|error| error.to_string())?;
-    let body: Value = answer.into_json().map_err(|error| error.to_string())?;
-    Ok(body["profiles"].clone())
+    answer.into_json().map_err(|error| error.to_string())
 }
 
 /// Offers this app took down because the wallet couldn't lock their ORN,

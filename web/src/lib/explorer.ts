@@ -96,7 +96,18 @@ export type Rewards = {
   stakers: { address: string; amount: string }[]
 }
 
-export type WalletProfile = { id: number; name: string; picture: string | null; wallet_name?: string | null; official?: boolean; official_note?: string }
+export type WalletProfile = {
+  id: number
+  name: string
+  picture: string | null
+  wallet_name?: string | null
+  official?: boolean
+  official_note?: string
+  /** A nickname the explorer gave the wallet (no profile shows it), drawn
+   * with its identicon from `address`. */
+  nickname?: boolean
+  address?: string
+}
 
 /** Orien's own wallets, recognized by their exact addresses. */
 const OFFICIAL: Record<string, { name: string; official_note: string }> = {
@@ -166,7 +177,8 @@ export async function explore<T>(path: string): Promise<T> {
   return data as T
 }
 
-/** Market names for the verified wallets among `addresses`. */
+/** Market names for the verified wallets among `addresses`, and the
+ * explorer's nicknames for the others. */
 export async function namesFor(addresses: string[]): Promise<Record<string, WalletProfile>> {
   const unique = [...new Set(addresses)].slice(0, 100)
   if (unique.length === 0) return {}
@@ -184,7 +196,11 @@ export async function namesFor(addresses: string[]): Promise<Record<string, Wall
     })
     if (!response.ok) return official
     const data = await response.json()
-    return { ...(data.profiles ?? {}), ...official }
+    const nicknames: Record<string, WalletProfile> = {}
+    for (const [address, name] of Object.entries((data.nicknames ?? {}) as Record<string, string>)) {
+      nicknames[address] = { id: 0, name, picture: null, nickname: true, address }
+    }
+    return { ...nicknames, ...(data.profiles ?? {}), ...official }
   } catch {
     return official
   }

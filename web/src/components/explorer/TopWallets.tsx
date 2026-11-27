@@ -1,8 +1,7 @@
 'use client'
 
-import { WalletNetworkGlyph } from '@/components/WalletNetworkGlyph'
 import { useEffect, useState } from 'react'
-import { OfficialTag, WalletFace } from './Official'
+import { NameMark, OfficialTag, WalletFace, nameWeight } from './Official'
 import { ArrowRight, Wallet } from 'lucide-react'
 import { type Top, type WalletProfile, addressHref, explore, label, namesFor, orn, short, topHref } from '@/lib/explorer'
 import { Card, Loading, Problem } from './Parts'
@@ -83,8 +82,8 @@ export function TopWallets({ limit }: { limit?: number }) {
                       <span className="min-w-0">
                         {profile ? (
                           <>
-                            <span className="block truncate font-semibold text-ink">
-                              <WalletNetworkGlyph />{label(profile)}
+                            <span className={`block truncate ${nameWeight(profile)} text-ink`}>
+                              <NameMark profile={profile} />{label(profile)}
                               {profile.official && <OfficialTag />}
                             </span>
                             <span className="num block truncate text-sm text-muted">{short(holder.address)}</span>

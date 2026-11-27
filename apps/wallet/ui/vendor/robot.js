@@ -7,8 +7,20 @@
 // lower case) and options, so an account looks the same everywhere.
 import { Avatar, Style } from "./dicebear/index.js";
 import botttsNeutral from "./bottts-neutral.js";
+import identicon from "./identicon.js";
 
 const style = new Style(botttsNeutral);
+// Wallets the explorer nicknamed (no profile shows them) get DiceBear's
+// Identicon, from their address in lower case, as the website draws it.
+const identicons = new Style(identicon);
+const patterns = new Map();
+window.orienIdenticon = (seed) => {
+  if (!patterns.has(seed)) {
+    if (patterns.size > 500) patterns.delete(patterns.keys().next().value);
+    patterns.set(seed, "data:image/svg+xml;utf8," + encodeURIComponent(new Avatar(identicons, { seed }).toString()));
+  }
+  return patterns.get(seed);
+};
 const drawn = new Map();
 window.orienRobot = (seed) => {
   if (!drawn.has(seed)) {

@@ -1,8 +1,7 @@
 'use client'
 
-import { WalletNetworkGlyph } from '@/components/WalletNetworkGlyph'
 import { useEffect, useState } from 'react'
-import { OfficialTag, WalletFace } from './Official'
+import { NameMark, OfficialTag, WalletFace, nameWeight } from './Official'
 import { Wallet } from 'lucide-react'
 import { type Rewards, type WalletProfile, addressHref, label, namesFor, orn, short } from '@/lib/explorer'
 import { Card } from './Parts'
@@ -43,8 +42,8 @@ function Who({ address, profile }: { address: string; profile?: WalletProfile })
       <span className="min-w-0">
         {profile ? (
           <>
-            <span className="block truncate font-semibold text-ink">
-                              <WalletNetworkGlyph />{label(profile)}
+            <span className={`block truncate ${nameWeight(profile)} text-ink`}>
+                              <NameMark profile={profile} />{label(profile)}
                               {profile.official && <OfficialTag />}
                             </span>
             <span className="num block truncate text-sm text-muted">{short(address)}</span>
