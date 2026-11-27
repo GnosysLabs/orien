@@ -1,0 +1,23 @@
+[package]
+name = "orien-book"
+version = "0.1.0"
+edition = "2024"
+description = "Orien's buy orders on Solana that fill in parts: the buyer locks SOL, each seller's part settles with its own secret"
+publish = false
+
+# Built for Solana with `cargo build-sbf`; not part of the main workspace.
+[workspace]
+
+[lib]
+crate-type = ["cdylib"]
+
+[dependencies]
+pinocchio = { version = "0.12", default-features = false }
+
+[profile.release]
+opt-level = "z"
+lto = "fat"
+codegen-units = 1
+panic = "abort"
+strip = true
+overflow-checks = true
