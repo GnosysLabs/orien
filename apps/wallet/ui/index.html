@@ -2916,6 +2916,9 @@
     border: 2px solid #2b2c3140; border-top-color: var(--pearl-ink); border-radius: 50%;
     animation: spin 0.8s linear infinite;
   }
+  /* On the plain buttons, a spinner in the text's own colour. */
+  :is(.linkish, .secondary, .pill:not(.pearl)) .spinner { border-color: color-mix(in srgb, var(--ink) 22%, transparent); border-top-color: var(--ink); }
+  .linkish:disabled, .secondary:disabled { cursor: default; opacity: 0.85; }
 
   /* ---- Receive ---- */
   .receive-card {
@@ -10345,7 +10348,7 @@
       ? `<div class="swap-row"><button class="swap-row-main" data-swap="${esc(s.id)}">
           <div><div>${s.role === "sell" ? "Sell" : "Buy"} ${esc(s.orn)} ORN for ${esc(cost(s))}${approxSwap(s)}</div>
           <div class="sub">${esc(stageLine(s))}</div></div></button>
-          <button class="linkish" data-cancel-order="${esc(s.id)}">Cancel</button></div>`
+          ${orderCancelling?.has(String(s.id)) ? `<button class="linkish" disabled><span class="spinner"></span>Cancelling…</button>` : `<button class="linkish" data-cancel-order="${esc(s.id)}">Cancel</button>`}</div>`
       : `<button class="swap-row" data-swap="${esc(s.id)}">
       <div><div>${s.role === "sell" ? "Sell" : "Buy"} ${esc(s.orn)} ORN for ${esc(cost(s))}${approxSwap(s)}</div>
       <div class="sub">${esc(stageLine(s))}</div></div></button>`;
@@ -10371,7 +10374,21 @@
     for (const b of list.querySelectorAll("[data-withdraw]")) b.onclick = () => withdraw(Number(b.dataset.withdraw));
   }
 
+  // Buy orders being cancelled: their Cancel shows Cancelling… with a
+  // spinner, and can't be pressed again, until the SOL is on its way back.
+  var orderCancelling = new Set();
+  function paintCancelOrder(s) {
+    const busy = !!s && orderCancelling.has(String(s.id));
+    $("sd-cancel-order").disabled = busy;
+    if (busy) $("sd-cancel-order").innerHTML = '<span class="spinner"></span>Cancelling…';
+    else if (s) $("sd-cancel-order").textContent = s.stage === "pay" ? "Cancel buy order" : "Cancel buy order & return SOL";
+  }
   async function cancelBuyOrder(id) {
+    id = String(id);
+    if (orderCancelling.has(id)) return;
+    orderCancelling.add(id);
+    renderSwaps();
+    if (String(current) === id) paintCancelOrder({ id });
     try {
       await invoke("order_cancel_buy", { id });
       await stepSwaps();
@@ -10379,6 +10396,10 @@
     } catch (e) {
       if (!$("swap-detail").hidden) problem("detail-problem", e);
       else problem("board-problem", e);
+    } finally {
+      orderCancelling.delete(id);
+      renderSwaps();
+      if (String(current) === id) { const s = swapList.find((x) => String(x.id) === id); paintCancelOrder(s || null); }
     }
   }
   $("sd-cancel-order").onclick = () => current && cancelBuyOrder(current);
@@ -10519,7 +10540,7 @@
       setTimeout(() => $("sd-claim").scrollIntoView({ behavior: "smooth", block: "nearest" }), 50);
     }
     $("sd-cancel-order").hidden = !(s.funded_order && s.can_cancel);
-    $("sd-cancel-order").textContent = s.stage === "pay" ? "Cancel buy order" : "Cancel buy order & return SOL";
+    paintCancelOrder(s);
     if (s.problem && !needsPassword) problem("detail-problem", s.problem); else $("detail-problem").hidden = true;
     // As a pop-up, the checklist says how it's going: the status line only
     // when something went another way.
