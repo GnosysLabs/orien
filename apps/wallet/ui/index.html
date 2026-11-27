@@ -1690,7 +1690,6 @@
   .ex-chart-head b { font-size: 14px; font-weight: 700; color: var(--ink); font-variant-numeric: tabular-nums; }
   #ex-chart-chg { font-size: 12px; font-weight: 600; font-variant-numeric: tabular-nums; color: var(--dim); }
   #ex-chart-chg.up { color: var(--good); } #ex-chart-chg.down { color: var(--bad); }
-  .ex-chart-ohlc { font-size: 11px; color: var(--faint); font-variant-numeric: tabular-nums; white-space: pre; overflow: hidden; text-overflow: ellipsis; }
   .ex-tf button { height: 22px; padding: 0 9px; font-size: 11.5px; }
   #swaps #ex-pane-chart .ex-chart-body { flex: 1; min-height: 0; padding: 0; display: block; overflow: hidden; }
   .exc { display: block; }
@@ -4866,7 +4865,7 @@
         <div class="ex-col">
           <div class="ex-panel" id="ex-pane-chart" data-ex-pane="history">
             <div class="ex-phead">
-              <div class="ex-chart-head"><h3>ORN / SOL</h3><b id="ex-chart-last" data-no-i18n></b><span id="ex-chart-chg" data-no-i18n></span><span class="ex-chart-ohlc" id="ex-chart-ohlc" data-no-i18n></span></div>
+              <div class="ex-chart-head"><h3>ORN / SOL</h3><b id="ex-chart-last" data-no-i18n></b><span id="ex-chart-chg" data-no-i18n></span></div>
               <div class="ex-seg ex-tf" role="group" aria-label="Candle length">
                 <button type="button" data-tf="1h">1H</button>
                 <button type="button" data-tf="4h">4H</button>
@@ -10520,17 +10519,17 @@
     const fmt = (p) => exUsd() ? exPx(p) : `${fmtBookUnit(p)}`;
     const cs = exCandles();
     if (!cs.length) {
-      $("ex-chart-last").textContent = $("ex-chart-chg").textContent = $("ex-chart-ohlc").textContent = "";
+      $("ex-chart-last").textContent = $("ex-chart-chg").textContent = "";
       body.innerHTML = '<div class="ex-chart-empty">The chart begins as soon as the first ORN / SOL swap completes.</div>';
       return;
     }
     const lastC = cs[cs.length - 1], firstC = cs[0];
     const change = firstC.o > 0 ? (lastC.c / firstC.o - 1) * 100 : 0;
-    $("ex-chart-last").textContent = fmt(lastC.c);
+    // The price beside the pair: the latest, or the candle under the pointer.
+    const pick = exChartPick != null && cs[exChartPick] ? cs[exChartPick] : lastC;
+    $("ex-chart-last").textContent = fmt(pick.c);
     $("ex-chart-chg").textContent = `${change >= 0 ? "+" : ""}${change.toFixed(2)}%`;
     $("ex-chart-chg").className = change > 0 ? "up" : change < 0 ? "down" : "";
-    const pick = exChartPick != null && cs[exChartPick] ? cs[exChartPick] : lastC;
-    $("ex-chart-ohlc").textContent = `O ${fmt(pick.o)}  H ${fmt(pick.h)}  L ${fmt(pick.l)}  C ${fmt(pick.c)}`;
     const W = Math.max(240, Math.round(body.clientWidth)), H = Math.max(140, Math.round(body.clientHeight));
     const padL = 12, padR = 78, padB = 24, padT = 12, plotW = W - padR, plotH = H - padB - padT;
     const volH = plotH * 0.18, priceH = plotH - volH - 6;
