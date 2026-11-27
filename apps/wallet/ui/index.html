@@ -655,7 +655,11 @@
   .sol-swap-network, #sol-swap-available, #sol-swap-pay-label { color: var(--dim); font-size: 13px; }
   #sol-swap-dialog .sol-swap-network { margin: 3px 0 16px; }
   .sol-swap-amount { background: var(--surface-hover); border: 1px solid var(--line); border-radius: 14px; padding: 12px 14px; }
-  #sol-swap-amount { width: 100%; min-width: 0; color: var(--ink); background: transparent; border: 0; font: inherit; font-size: 26px; font-variant-numeric: tabular-nums; }
+  #sol-swap-amount { flex: 1; min-width: 0; padding: 5px 12px; border: 1px solid var(--line); border-radius: 14px;
+    appearance: none; color: var(--ink); background: var(--field); caret-color: var(--accent);
+    font: inherit; font-size: 26px; font-variant-numeric: tabular-nums; }
+  #sol-swap-amount:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
+  #sol-swap-amount::selection { color: var(--ink); background: color-mix(in srgb, var(--accent) 35%, var(--field)); }
   .sol-swap-amount .sol-swap-line + .sol-swap-line { margin-top: 8px; }
   #sol-swap-pair { display: inline-flex; align-items: center; gap: 7px; white-space: nowrap; }
   #sol-swap-dialog .summary { margin: 12px 0; }
