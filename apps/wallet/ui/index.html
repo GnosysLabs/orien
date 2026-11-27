@@ -13544,6 +13544,7 @@
     }
   }
   async function openChat(id, from) {
+    logPinned = true;
     leaveRoom();
     swapDraft(`c${id}`);
     chat.id = id; chat.from = from || "inbox"; chat.paying = null; chat.blockArmed = false; chat.draft = null; chat.direct = null;
@@ -13896,6 +13897,7 @@
     if (a.version !== undefined) room.version = a.version;
   }
   async function openRoom(from) {
+    logPinned = true;
     if (chat.ai) { chat.ai = false; $("chat").classList.remove("ai"); }
     if (!chat.room) swapDraft("room");
     chat.room = true; chat.id = "room"; chat.from = from || "inbox"; chat.conv = null; chat.draft = null; chat.direct = null; chat.paying = null;
@@ -13906,7 +13908,7 @@
     $("ch-who").innerHTML = `<span class="avatar rm-icon">${ROOM_ICON}</span><div class="mw0"><b>Orien Group Chat</b><small>Everyone on Orien Network</small></div>`;
     $("ch-text").placeholder = "Message everyone";
     room.key = "";
-    if (room.msgs.length) { roomPaint(true); show("chat"); roomGate(); roomWho().then(roomGate); roomPoll(); return; }
+    if (room.msgs.length) { roomPaint(true); show("chat"); $("ch-log").scrollTop = $("ch-log").scrollHeight; roomGate(); roomWho().then(roomGate); roomPoll(); return; }
     $("chat").classList.add("loading");
     show("chat");
     await Promise.all([roomLoad(), roomWho()]);
@@ -13980,6 +13982,16 @@
       roomPaint(false, true);
       log.scrollTop = log.scrollHeight - below;
     } catch {} finally { room.loadingOlder = false; }
+  }
+  // Every chat opens at its newest message, and stays there while pictures
+  // and GIFs load (or the window grows) until the person scrolls up.
+  var logPinned = true;
+  {
+    const log = $("ch-log");
+    const stick = () => { if (logPinned && !$("chat").hidden && log.clientHeight) log.scrollTop = log.scrollHeight; };
+    log.addEventListener("scroll", () => { if (log.clientHeight) logPinned = log.scrollHeight - log.scrollTop - log.clientHeight < 80; }, { passive: true });
+    log.addEventListener("load", stick, true);
+    new ResizeObserver(stick).observe(log);
   }
   $("ch-log").addEventListener("scroll", () => { if (chat.room && $("ch-log").scrollTop < 300) roomOlder(); }, { passive: true });
   function roomMsg(m, prev) {
@@ -14251,6 +14263,7 @@
     } catch (e) { if (chat.ai) problem("ch-problem", mkProblem(e)); }
   }
   async function openAi(from) {
+    logPinned = true;
     leaveRoom();
     if (!chat.ai) swapDraft("ai");
     chat.ai = true; chat.id = "ai"; chat.from = from || "inbox"; chat.conv = null; chat.draft = null; chat.direct = null; chat.paying = null;
