@@ -5486,14 +5486,16 @@
   const SWAP_POPS = ["board-post", "board-take", "swap-posted", "swap-detail"];
   // Big windows: Sign in floats over the page it was opened from.
   let lastBase = "home";
-  // Where each screen was opened from, so its Back returns there. Going back
-  // isn't recorded, so two screens never send you back and forth.
-  const cameFrom = {};
+  // The screens you came through to get here, as a browser keeps its
+  // history: opening one adds it, returning to one already on the trail cuts
+  // back to it, and Home starts over. Back leaves for the screen before.
+  const trail = ["home"];
   let goingBack = false;
   function goBack(from) {
-    const to = cameFrom[from];
-    delete cameFrom[from];
-    if (!to || to === from || to === "home" || !$(to)) return home();
+    const at = trail.lastIndexOf(from);
+    if (at >= 0) trail.length = at;
+    const to = trail[trail.length - 1];
+    if (!to || to === "home" || !$(to)) return home();
     goingBack = true;
     try { show(to); } finally { goingBack = false; }
   }
@@ -5533,7 +5535,10 @@
     const under = id === "blocks" ? "profile" : addPop ? "wallets" : signinPop ? lastBase : id === "send" && (sendFrom === "seller" || sendFrom === "explorer") ? sendFrom : SWAP_POPS.includes(id) ? "swaps" : "home";
     for (const s of document.querySelectorAll(".screen")) s.hidden = !(s.id === id || ((both || underSplit) && (s.id === "inbox" || s.id === "chat")) || (pop && s.id === under));
     document.body.classList.toggle("split", both || underSplit);
-    if (!pop && id !== lastBase && !goingBack) cameFrom[id] = lastBase;
+    if (!pop && !goingBack) {
+      const at = trail.lastIndexOf(id);
+      if (at >= 0) trail.length = at + 1; else trail.push(id);
+    }
     if (!pop) lastBase = id;
     document.body.classList.toggle("pop", pop);
     if (id === "community" && typeof cmFitRail === "function") cmFitRail();
@@ -12616,7 +12621,7 @@
   $("community").querySelector(".topline [data-back]").onclick = () => {
     const pinned = !!cm.pinned;
     if (pinned) { cm.pinned = null; cmPaintFeed(); }
-    if (pinned && phone) openNotices(); else home();
+    if (pinned && phone) openNotices(); else goBack("community");
   };
   $("mk-cats").onclick = (e) => {
     const b = e.target.closest("[data-cat]");
