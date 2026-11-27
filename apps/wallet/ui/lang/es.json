@@ -1947,6 +1947,10 @@
     [
       "^Send ([\\d.,]+ SOL) from your SOL wallet$",
       "Envía {0} desde tu billetera SOL"
+    ],
+    [
+      "^Swap ([\\d.,]+ (?:SOL|USDC))$",
+      "Intercambiar {0}"
     ]
   ],
   "_guides": {
@@ -2030,7 +2034,7 @@
         "Escribe el código de 6 dígitos del correo y haz clic en <b>Continuar</b>.",
         "¿Nuevo por aquí? Elige un nombre de usuario y haz clic en <b>Crear mi cuenta</b>."
       ],
-      "note": "Tu cuenta es para la Comunidad, el Mercado y los intercambios. Tus billeteras permanecen en esta app."
+      "note": "Tu cuenta es para la Comunidad y los intercambios. Tus billeteras permanecen en esta app."
     },
     "verify": {
       "title": "Vincular una billetera",
@@ -2094,7 +2098,7 @@
       "title": "Obtener ORN en iPhone",
       "steps": [
         "Recibe pagos: comparte tu dirección desde <b>Recibir</b>, el botón redondo con una flecha apuntando hacia abajo.",
-        "Intercambia SOL o Bitcoin por ORN en Orien Wallet desde una computadora, con esta misma billetera vinculada.",
+        "Intercambia SOL por ORN en Orien Wallet desde una computadora, con esta misma billetera vinculada.",
         "Mina en una computadora: instala Orien Wallet allí, vincula esta billetera y pulsa <b>Minar</b>."
       ]
     },
@@ -2109,23 +2113,26 @@
       "note": "Si la app se actualiza mientras mina, la minería se reinicia sola."
     },
     "buy": {
-      "title": "Compra ORN con SOL o Bitcoin",
+      "title": "Comprar ORN con SOL",
       "steps": [
-        "En Inicio, haz clic en <b>Intercambiar</b>, el botón redondo con dos flechas.",
-        "En <b>Ofertas abiertas</b>, haz clic en <b>Tomar</b> en una que te guste.",
-        "Escribe la dirección SOL o Bitcoin desde la que pagarás y haz clic en <b>Tomar la oferta</b>.",
-        "Cuando el vendedor responda, paga la cantidad exacta mostrada desde tu billetera SOL o Bitcoin.",
-        "Los ORN llegan solos a esta billetera."
-      ]
+        "Primero pon SOL en esta billetera (consulta <b>Recibir SOL o USDC</b>), con unos 0.005 SOL extra para las pequeñas comisiones de Solana.",
+        "En Inicio, haz clic en <b>Intercambiar</b>, el botón redondo con dos flechas. Se abre el Intercambio.",
+        "En el <b>Libro de órdenes</b>, haz clic en <b>Comprar</b> junto a una oferta que te guste.",
+        "Revisa las cantidades y haz clic en <b>Tomar con Touch ID</b>.",
+        "El SOL se paga desde esta billetera y los ORN llegan solos, normalmente en menos de un minuto."
+      ],
+      "note": "Si un intercambio se detiene a medias, tu SOL vuelve solo."
     },
     "sell": {
       "title": "Vender ORN",
       "steps": [
         "Inicia sesión y vincula esta billetera primero.",
-        "En Inicio, haz clic en <b>Intercambiar</b>, el botón redondo con dos flechas, y luego en <b>Publicar una oferta</b>.",
-        "Elige SOL o Bitcoin, luego escribe cuántos ORN quieres vender, cuánto pides por ellos y la dirección donde recibirás el pago.",
-        "Haz clic en <b>Publicar oferta</b> y mantén Orien Wallet abierto hasta que alguien la tome. <b>Mantener esta computadora despierta</b> en Ajustes, <b>Esta computadora</b>, la mantiene abierta mientras no estás."
-      ]
+        "En Inicio, haz clic en <b>Intercambiar</b>, el botón redondo con dos flechas.",
+        "Para vender ya, haz clic en <b>Vender</b> junto a una oferta de compra en el <b>Libro de órdenes</b> y luego en <b>Vender con Touch ID</b>.",
+        "Para fijar tu propio precio: en una ventana grande, haz clic en <b>Crear orden</b>; en una pequeña, en la pestaña <b>Comprar / Vender</b>. Elige <b>Vender ORN</b>, escribe los ORN y el total de SOL y haz clic en <b>Vender ORN con Touch ID</b>.",
+        "Mantén Orien Wallet abierto hasta que alguien tome tu orden. <b>Mantener esta computadora despierta</b> en Ajustes, <b>Esta computadora</b>, lo mantiene abierto mientras no estás."
+      ],
+      "note": "El SOL llega al saldo de Solana de esta billetera, normalmente en menos de un minuto tras una venta."
     },
     "lock": {
       "title": "Bloquear con Touch ID",
@@ -2182,6 +2189,58 @@
         "En Inicio, haz clic en <b>Ver todo</b> junto a Actividad.",
         "<b>Pagos</b> muestra lo que enviaste y recibiste; <b>Recompensas</b> muestra recompensas de minería y comisiones de validadores.",
         "Elige sobre qué quieres recibir avisos en Ajustes, <b>Notificaciones</b>."
+      ]
+    },
+    "solana": {
+      "title": "Tu billetera de Solana",
+      "steps": [
+        "En Inicio, haz clic en <b>SOL</b> encima de tu saldo.",
+        "La primera vez, haz clic en <b>Desbloquear Solana</b>. Confirma con Touch ID o escribe la contraseña de la billetera si tiene una. Si esta billetera está vinculada a tu perfil, su dirección de Solana también se añade allí.",
+        "Tu saldo de SOL aparece en la tarjeta. Para ver USDC, haz clic en <b>SOL</b> o <b>USDC</b> junto al saldo y elige <b>USD Coin</b>.",
+        "Haz clic en <b>ORN</b> encima del saldo para volver a tus ORN."
+      ],
+      "note": "Cada billetera tiene su propia dirección de Solana, creada a partir de su frase de recuperación: al restaurar la billetera, también se restaura."
+    },
+    "sol-receive": {
+      "title": "Recibir SOL o USDC",
+      "steps": [
+        "En Inicio, haz clic en <b>SOL</b> encima de tu saldo.",
+        "Haz clic en <b>Recibir</b>, el botón redondo con una flecha apuntando hacia abajo.",
+        "Muestra el código QR o haz clic en <b>Copiar dirección</b> y envíasela a quien te va a pagar.",
+        "Aparece en tu saldo en cuestión de segundos."
+      ],
+      "note": "Envía a esta dirección solo SOL o USDC en Solana."
+    },
+    "sol-send": {
+      "title": "Enviar SOL o USDC",
+      "steps": [
+        "En Inicio, haz clic en <b>SOL</b> encima de tu saldo. Para enviar USDC, haz clic en <b>SOL</b> o <b>USDC</b> junto al saldo y elige <b>USD Coin</b>.",
+        "Haz clic en <b>Enviar</b>, el botón redondo con una flecha apuntando hacia arriba.",
+        "En <b>Para</b>, escribe un nombre o una dirección de Solana, o elige a alguien en <b>Recientes</b>.",
+        "Escribe la cantidad o haz clic en <b>Máx</b>.",
+        "Haz clic en <b>Enviar con Touch ID</b>."
+      ],
+      "note": "Los nombres funcionan con cualquier persona cuya dirección de Solana esté vinculada a su perfil."
+    },
+    "sol-swap": {
+      "title": "Intercambiar SOL y USDC",
+      "steps": [
+        "En Inicio, haz clic en <b>SOL</b> encima de tu saldo y luego en <b>SOL</b> o <b>USDC</b> junto al saldo.",
+        "Haz clic en el botón de intercambio (dos flechas) junto a <b>Activos de Solana</b>.",
+        "Escribe cuánto quieres pagar. Haz clic en las monedas junto a la cantidad para intercambiar en el otro sentido.",
+        "Haz clic en <b>Revisar intercambio</b> y revisa lo que recibirás.",
+        "Haz clic en el botón <b>Intercambiar</b> para confirmar."
+      ],
+      "note": "Los intercambios pasan por Jupiter, en Solana. La billetera revisa cada uno antes de firmarlo, y se completa en segundos."
+    },
+    "buy-order": {
+      "title": "Publicar una orden de compra",
+      "steps": [
+        "En Inicio, haz clic en <b>Intercambiar</b>, el botón redondo con dos flechas.",
+        "En una ventana grande, haz clic en <b>Crear orden</b>; en una pequeña, en la pestaña <b>Comprar / Vender</b>.",
+        "Elige <b>Comprar ORN</b> y escribe cuántos ORN quieres y el total de SOL que pagarás.",
+        "Haz clic en <b>Comprar ORN con Touch ID</b>. El SOL se reserva de esta billetera al instante.",
+        "Cuando un vendedor la complete, los ORN llegan solos, incluso con Orien Wallet cerrado. Para cancelarla, haz clic en <b>Cancelar</b> sobre ella en <b>Tus órdenes e intercambios</b> (<b>Tus intercambios</b> en una ventana pequeña)."
       ]
     }
   },
@@ -2301,5 +2360,36 @@
   "once the buyer pays, usually within a minute. You need the ORN plus the Orien fee (0.1%, at most 1 ORN). If anything stops the swap, your ORN come back by themselves.": "en cuanto el comprador paga, normalmente en menos de un minuto. Necesitas los ORN más la comisión de Orien (0.1%, como máximo 1 ORN). Si algo detiene el intercambio, tus ORN regresan automáticamente.",
   "Swap SOL and USDC": "Intercambiar SOL y USDC",
   "Refresh Solana balances": "Actualizar saldos de Solana",
-  "Buy / Sell": "Comprar / Vender"
+  "Buy / Sell": "Comprar / Vender",
+  "Unlock Solana": "Desbloquear Solana",
+  "Unlock this wallet once to get its Solana address. Orien saves the public address on this device so you can check your SOL and USDC balances anytime.": "Desbloquea esta billetera una vez para obtener su dirección de Solana. Orien guarda la dirección pública en este dispositivo para que puedas consultar tus saldos de SOL y USDC en cualquier momento.",
+  "Unlock once to remember this wallet’s public Solana address.": "Desbloquea una vez para recordar la dirección pública de Solana de esta billetera.",
+  "Solana assets": "Activos de Solana",
+  "Solana address": "Dirección de Solana",
+  "Review swap": "Revisar intercambio",
+  "Reverse swap direction": "Invertir dirección del intercambio",
+  "Close swap": "Cerrar intercambio",
+  "Estimated receive": "Recibirás aprox.",
+  "Minimum received": "Mínimo a recibir",
+  "Network fee": "Comisión de red",
+  "USDC account deposit": "Depósito de la cuenta USDC",
+  "Recipient’s USDC account deposit": "Depósito de la cuenta USDC del destinatario",
+  "Checking…": "Comprobando…",
+  "Submitting…": "Enviando…",
+  "Swap complete.": "Intercambio completado.",
+  "Swap confirmed.": "Intercambio confirmado.",
+  "The swap failed. No exchange took place.": "El intercambio falló. No se realizó ningún cambio.",
+  "The transaction expired before confirmation.": "La transacción venció antes de confirmarse.",
+  "Your quote expired. Review the current rate to continue.": "Tu cotización venció. Revisa la tasa actual para continuar.",
+  "Enter your wallet password to approve the swap.": "Escribe la contraseña de tu billetera para aprobar el intercambio.",
+  "Unlock your wallet to continue.": "Desbloquea tu billetera para continuar.",
+  "Incorrect wallet password. Try again.": "Contraseña de la billetera incorrecta. Inténtalo de nuevo.",
+  "That password didn’t unlock this wallet.": "Esa contraseña no desbloqueó esta billetera.",
+  "View in Explorer": "Ver en el explorador",
+  "View transaction ↗": "Ver transacción ↗",
+  "Enter a Solana wallet address.": "Introduce una dirección de billetera de Solana.",
+  "Solana hasn’t acknowledged the submission. This screen will keep checking.": "Solana aún no ha acusado recibo del envío. Esta pantalla seguirá comprobando.",
+  "Some Solana balances could not refresh.": "No se pudieron actualizar algunos saldos de Solana.",
+  "See all swaps": "Ver todos los intercambios",
+  "Help with the wallet, mining, swaps and more.": "Ayuda con la billetera, la minería, los intercambios y más."
 }

@@ -1947,6 +1947,10 @@
     [
       "^Send ([\\d.,]+ SOL) from your SOL wallet$",
       "Kirim {0} dari dompet SOL Anda"
+    ],
+    [
+      "^Swap ([\\d.,]+ (?:SOL|USDC))$",
+      "Tukar {0}"
     ]
   ],
   "_guides": {
@@ -2030,7 +2034,7 @@
         "Ketik kode 6 digit dari email lalu klik <b>Lanjutkan</b>.",
         "Baru di sini? Pilih nama pengguna, lalu klik <b>Buat akun saya</b>."
       ],
-      "note": "Akun Anda untuk Komunitas, Pasar, dan penukaran. Dompet Anda tetap tersimpan di aplikasi ini."
+      "note": "Akun Anda untuk Komunitas dan penukaran. Dompet Anda tetap tersimpan di aplikasi ini."
     },
     "verify": {
       "title": "Tautkan dompet",
@@ -2094,7 +2098,7 @@
       "title": "Dapatkan ORN di iPhone",
       "steps": [
         "Terima pembayaran: bagikan alamat Anda dari <b>Terima</b>, tombol bulat dengan panah mengarah ke bawah.",
-        "Tukar SOL atau Bitcoin ke ORN di Orien Wallet pada komputer, dengan dompet yang sama tertaut ke sana.",
+        "Tukar SOL ke ORN di Orien Wallet pada komputer, dengan dompet yang sama tertaut ke sana.",
         "Tambang di komputer: pasang Orien Wallet di sana, tautkan dompet ini, lalu tekan <b>Tambang</b>."
       ]
     },
@@ -2109,23 +2113,26 @@
       "note": "Jika aplikasi diperbarui saat menambang, penambangan akan dimulai lagi secara otomatis."
     },
     "buy": {
-      "title": "Beli ORN dengan SOL atau Bitcoin",
+      "title": "Beli ORN dengan SOL",
       "steps": [
-        "Di Beranda, klik <b>Tukar</b>, tombol bulat dengan dua panah.",
-        "Di bawah <b>Penawaran terbuka</b>, klik <b>Ambil</b> pada yang Anda suka.",
-        "Ketik alamat SOL atau Bitcoin yang akan Anda gunakan untuk membayar, lalu klik <b>Ambil penawaran</b>.",
-        "Saat penjual merespons, bayar jumlah tepat yang ditampilkan dari dompet SOL atau Bitcoin Anda.",
-        "ORN akan tiba di dompet ini dengan sendirinya."
-      ]
+        "Isi dompet ini dengan SOL terlebih dahulu (lihat <b>Terima SOL atau USDC</b>), ditambah sekitar 0,005 SOL untuk biaya kecil Solana.",
+        "Di Beranda, klik <b>Tukar</b>, tombol bulat dengan dua panah. Bursa akan terbuka.",
+        "Di <b>Buku pesanan</b>, klik <b>Beli</b> di samping penawaran yang Anda suka.",
+        "Periksa jumlahnya, lalu klik <b>Ambil dengan Touch ID</b>.",
+        "SOL dibayar dari dompet ini dan ORN tiba dengan sendirinya, biasanya dalam satu menit."
+      ],
+      "note": "Jika penukaran berhenti di tengah jalan, SOL Anda kembali dengan sendirinya."
     },
     "sell": {
       "title": "Jual ORN",
       "steps": [
         "Masuk dan tautkan dompet ini terlebih dahulu.",
-        "Di Beranda, klik <b>Tukar</b>, tombol bulat dengan dua panah, lalu <b>Pasang penawaran</b>.",
-        "Pilih SOL atau Bitcoin, lalu ketik berapa banyak ORN yang ingin dijual, harga yang Anda inginkan, dan alamat tempat Anda menerima pembayaran.",
-        "Klik <b>Pasang penawaran</b>, dan biarkan Orien Wallet tetap berjalan sampai diambil. <b>Jaga komputer ini tetap menyala</b> di Pengaturan, <b>Komputer ini</b>, membuatnya tetap terbuka saat Anda pergi."
-      ]
+        "Di Beranda, klik <b>Tukar</b>, tombol bulat dengan dua panah.",
+        "Untuk menjual sekarang, klik <b>Jual</b> di samping penawaran beli di <b>Buku pesanan</b>, lalu <b>Jual dengan Touch ID</b>.",
+        "Untuk menetapkan harga sendiri: di jendela besar, klik <b>Buat pesanan</b>; di jendela kecil, klik tab <b>Beli / Jual</b>. Pilih <b>Jual ORN</b>, ketik jumlah ORN dan total SOL, lalu klik <b>Jual ORN dengan Touch ID</b>.",
+        "Biarkan Orien Wallet tetap terbuka sampai pesanan Anda diambil. <b>Jaga komputer ini tetap menyala</b> di Pengaturan, <b>Komputer ini</b>, membuatnya tetap terbuka saat Anda pergi."
+      ],
+      "note": "SOL masuk ke saldo Solana dompet ini, biasanya dalam satu menit setelah penjualan."
     },
     "lock": {
       "title": "Kunci dengan Touch ID",
@@ -2182,6 +2189,58 @@
         "Di Beranda, klik <b>Lihat semua</b> di samping Aktivitas.",
         "<b>Pembayaran</b> menampilkan apa yang Anda kirim dan terima; <b>Imbalan</b> menampilkan imbalan penambangan dan biaya validator.",
         "Pilih hal yang ingin Anda terima kabarnya di Pengaturan, <b>Notifikasi</b>."
+      ]
+    },
+    "solana": {
+      "title": "Dompet Solana Anda",
+      "steps": [
+        "Di Beranda, klik <b>SOL</b> di atas saldo Anda.",
+        "Pertama kali, klik <b>Buka kunci Solana</b>. Konfirmasi dengan Touch ID, atau ketik kata sandi dompet jika ada. Jika dompet ini tertaut ke profil Anda, alamat Solana-nya juga ditambahkan di sana.",
+        "Saldo SOL Anda tampil di kartu. Untuk melihat USDC, klik <b>SOL</b> atau <b>USDC</b> di samping saldo lalu pilih <b>USD Coin</b>.",
+        "Klik <b>ORN</b> di atas saldo untuk kembali ke ORN Anda."
+      ],
+      "note": "Setiap dompet punya alamat Solana sendiri, dibuat dari frasa pemulihannya: memulihkan dompet juga memulihkan alamat ini."
+    },
+    "sol-receive": {
+      "title": "Terima SOL atau USDC",
+      "steps": [
+        "Di Beranda, klik <b>SOL</b> di atas saldo Anda.",
+        "Klik <b>Terima</b>, tombol bulat dengan panah mengarah ke bawah.",
+        "Tunjukkan kode QR, atau klik <b>Salin alamat</b> lalu kirimkan kepada orang yang membayar Anda.",
+        "Pembayaran muncul di saldo Anda dalam hitungan detik."
+      ],
+      "note": "Kirim hanya SOL atau USDC di Solana ke alamat ini."
+    },
+    "sol-send": {
+      "title": "Kirim SOL atau USDC",
+      "steps": [
+        "Di Beranda, klik <b>SOL</b> di atas saldo Anda. Untuk mengirim USDC, klik <b>SOL</b> atau <b>USDC</b> di samping saldo lalu pilih <b>USD Coin</b>.",
+        "Klik <b>Kirim</b>, tombol bulat dengan panah mengarah ke atas.",
+        "Di bawah <b>Ke</b>, ketik nama atau alamat Solana, atau pilih seseorang di bawah <b>Terbaru</b>.",
+        "Ketik jumlahnya, atau klik <b>Maks</b>.",
+        "Klik <b>Kirim dengan Touch ID</b>."
+      ],
+      "note": "Nama berfungsi untuk siapa saja yang alamat Solana-nya tertaut ke profil mereka."
+    },
+    "sol-swap": {
+      "title": "Tukar SOL dan USDC",
+      "steps": [
+        "Di Beranda, klik <b>SOL</b> di atas saldo Anda, lalu <b>SOL</b> atau <b>USDC</b> di samping saldo.",
+        "Klik tombol tukar (dua panah) di samping <b>Aset Solana</b>.",
+        "Ketik berapa yang ingin dibayar. Klik koin di samping jumlah untuk menukar ke arah sebaliknya.",
+        "Klik <b>Tinjau penukaran</b> dan periksa apa yang akan Anda terima.",
+        "Klik tombol <b>Tukar</b> untuk mengonfirmasi."
+      ],
+      "note": "Penukaran berjalan melalui Jupiter, di Solana. Dompet memeriksa setiap penukaran sebelum menandatanganinya, dan penukaran selesai dalam hitungan detik."
+    },
+    "buy-order": {
+      "title": "Pasang pesanan beli",
+      "steps": [
+        "Di Beranda, klik <b>Tukar</b>, tombol bulat dengan dua panah.",
+        "Di jendela besar, klik <b>Buat pesanan</b>; di jendela kecil, klik tab <b>Beli / Jual</b>.",
+        "Pilih <b>Beli ORN</b>, lalu ketik berapa ORN yang Anda inginkan dan total SOL yang akan Anda bayar.",
+        "Klik <b>Beli ORN dengan Touch ID</b>. SOL langsung disisihkan dari dompet ini.",
+        "Saat penjual mengisinya, ORN tiba dengan sendirinya, bahkan saat Orien Wallet tertutup. Untuk membatalkan, klik <b>Batal</b> pada pesanan itu di <b>Pesanan &amp; penukaran Anda</b> (<b>Penukaran Anda</b> di jendela kecil)."
       ]
     }
   },
@@ -2301,5 +2360,36 @@
   "once the buyer pays, usually within a minute. You need the ORN plus the Orien fee (0.1%, at most 1 ORN). If anything stops the swap, your ORN come back by themselves.": "begitu pembeli membayar, biasanya dalam satu menit. Anda memerlukan ORN ditambah biaya Orien (0,1%, maksimal 1 ORN). Jika ada yang menghentikan penukaran, ORN Anda kembali dengan sendirinya.",
   "Swap SOL and USDC": "Tukar SOL dan USDC",
   "Refresh Solana balances": "Muat ulang saldo Solana",
-  "Buy / Sell": "Beli / Jual"
+  "Buy / Sell": "Beli / Jual",
+  "Unlock Solana": "Buka kunci Solana",
+  "Unlock this wallet once to get its Solana address. Orien saves the public address on this device so you can check your SOL and USDC balances anytime.": "Buka kunci dompet ini sekali untuk mendapatkan alamat Solana-nya. Orien menyimpan alamat publiknya di perangkat ini agar Anda dapat memeriksa saldo SOL dan USDC kapan saja.",
+  "Unlock once to remember this wallet’s public Solana address.": "Buka kunci sekali untuk mengingat alamat Solana publik dompet ini.",
+  "Solana assets": "Aset Solana",
+  "Solana address": "Alamat Solana",
+  "Review swap": "Tinjau penukaran",
+  "Reverse swap direction": "Balik arah penukaran",
+  "Close swap": "Tutup penukaran",
+  "Estimated receive": "Perkiraan diterima",
+  "Minimum received": "Minimum diterima",
+  "Network fee": "Biaya jaringan",
+  "USDC account deposit": "Deposit akun USDC",
+  "Recipient’s USDC account deposit": "Deposit akun USDC penerima",
+  "Checking…": "Memeriksa…",
+  "Submitting…": "Mengirim…",
+  "Swap complete.": "Penukaran selesai.",
+  "Swap confirmed.": "Penukaran terkonfirmasi.",
+  "The swap failed. No exchange took place.": "Penukaran gagal. Tidak ada pertukaran yang terjadi.",
+  "The transaction expired before confirmation.": "Transaksi kedaluwarsa sebelum terkonfirmasi.",
+  "Your quote expired. Review the current rate to continue.": "Penawaran harga Anda kedaluwarsa. Tinjau kurs saat ini untuk melanjutkan.",
+  "Enter your wallet password to approve the swap.": "Masukkan kata sandi dompet Anda untuk menyetujui penukaran.",
+  "Unlock your wallet to continue.": "Buka kunci dompet Anda untuk melanjutkan.",
+  "Incorrect wallet password. Try again.": "Kata sandi dompet salah. Coba lagi.",
+  "That password didn’t unlock this wallet.": "Kata sandi itu tidak membuka kunci dompet ini.",
+  "View in Explorer": "Lihat di penjelajah",
+  "View transaction ↗": "Lihat transaksi ↗",
+  "Enter a Solana wallet address.": "Masukkan alamat dompet Solana.",
+  "Solana hasn’t acknowledged the submission. This screen will keep checking.": "Solana belum mengakui pengiriman ini. Layar ini akan terus memeriksa.",
+  "Some Solana balances could not refresh.": "Beberapa saldo Solana tidak dapat dimuat ulang.",
+  "See all swaps": "Lihat semua penukaran",
+  "Help with the wallet, mining, swaps and more.": "Bantuan untuk dompet, penambangan, penukaran, dan lainnya."
 }

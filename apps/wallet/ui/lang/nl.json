@@ -1947,6 +1947,10 @@
     [
       "^Send ([\\d.,]+ SOL) from your SOL wallet$",
       "Verstuur {0} vanuit je SOL-wallet"
+    ],
+    [
+      "^Swap ([\\d.,]+ (?:SOL|USDC))$",
+      "{0} ruilen"
     ]
   ],
   "_guides": {
@@ -2030,7 +2034,7 @@
         "Typ de 6-cijferige code uit de e-mail en klik op <b>Doorgaan</b>.",
         "Nieuw hier? Kies een gebruikersnaam en klik op <b>Mijn account aanmaken</b>."
       ],
-      "note": "Je account is voor de Community, de Markt en ruiltransacties. Je wallets blijven in deze app."
+      "note": "Je account is voor de Community en ruiltransacties. Je wallets blijven in deze app."
     },
     "verify": {
       "title": "Een wallet koppelen",
@@ -2094,7 +2098,7 @@
       "title": "ORN krijgen op iPhone",
       "steps": [
         "Word betaald: deel je adres vanuit <b>Ontvangen</b>, de ronde knop met een pijl naar beneden.",
-        "Ruil SOL of Bitcoin voor ORN in Orien Wallet op een computer waaraan dezelfde wallet is gekoppeld.",
+        "Ruil SOL voor ORN in Orien Wallet op een computer waaraan dezelfde wallet is gekoppeld.",
         "Mine op een computer: installeer Orien Wallet daar, koppel deze wallet en druk op <b>Minen</b>."
       ]
     },
@@ -2109,23 +2113,26 @@
       "note": "Als de app wordt bijgewerkt tijdens het minen, start het minen vanzelf weer."
     },
     "buy": {
-      "title": "ORN kopen met SOL of Bitcoin",
+      "title": "ORN kopen met SOL",
       "steps": [
-        "Klik op Start op <b>Ruilen</b>, de ronde knop met twee pijlen.",
-        "Klik onder <b>Open aanbiedingen</b> op <b>Accepteren</b> bij een aanbieding die je bevalt.",
-        "Typ het SOL- of Bitcoin-adres waarmee je betaalt en klik op <b>Aanbieding accepteren</b>.",
-        "Wanneer de verkoper antwoordt, betaal je precies het getoonde bedrag vanuit je SOL- of Bitcoin-wallet.",
-        "De ORN komen vanzelf in deze wallet aan."
-      ]
+        "Zet eerst SOL in deze wallet (zie <b>SOL of USDC ontvangen</b>), met ongeveer 0,005 SOL extra voor de kleine kosten van Solana.",
+        "Klik op Start op <b>Ruilen</b>, de ronde knop met twee pijlen. De Beurs gaat open.",
+        "Klik in het <b>Orderboek</b> op <b>Kopen</b> naast een aanbieding die je bevalt.",
+        "Controleer de bedragen en klik op <b>Accepteren met Touch ID</b>.",
+        "De SOL wordt uit deze wallet betaald en de ORN komen vanzelf binnen, meestal binnen een minuut."
+      ],
+      "note": "Mocht een ruil ooit halverwege stoppen, dan krijg je je SOL vanzelf terug."
     },
     "sell": {
       "title": "ORN verkopen",
       "steps": [
         "Log eerst in en koppel deze wallet.",
-        "Klik op Start op <b>Ruilen</b>, de ronde knop met twee pijlen, en daarna op <b>Een aanbieding plaatsen</b>.",
-        "Kies SOL of Bitcoin, typ hoeveel ORN je wilt verkopen, hoeveel je ervoor wilt en het adres waarop je betaald wilt worden.",
-        "Klik op <b>Aanbieding plaatsen</b> en houd Orien Wallet actief totdat deze wordt geaccepteerd. <b>Deze computer wakker houden</b> in Instellingen, <b>Deze computer</b>, houdt de app open terwijl je weg bent."
-      ]
+        "Klik op Start op <b>Ruilen</b>, de ronde knop met twee pijlen.",
+        "Om direct te verkopen klik je op <b>Verkopen</b> naast een koopaanbieding in het <b>Orderboek</b>, en daarna op <b>Verkopen met Touch ID</b>.",
+        "Om zelf je prijs te bepalen: klik in een groot venster op <b>Order plaatsen</b>; in een klein venster op het tabblad <b>Kopen / Verkopen</b>. Kies <b>ORN verkopen</b>, typ het aantal ORN en het totaal aan SOL, en klik op <b>ORN verkopen met Touch ID</b>.",
+        "Houd Orien Wallet open totdat je order wordt geaccepteerd. <b>Deze computer wakker houden</b> in Instellingen, <b>Deze computer</b>, houdt de app open terwijl je weg bent."
+      ],
+      "note": "De SOL komt binnen op het Solana-saldo van deze wallet, meestal binnen een minuut na een verkoop."
     },
     "lock": {
       "title": "Vergrendelen met Touch ID",
@@ -2182,6 +2189,58 @@
         "Klik op Start op <b>Alles bekijken</b> naast Activiteit.",
         "<b>Betalingen</b> toont wat je hebt verstuurd en ontvangen; <b>Beloningen</b> toont miningbeloningen en validatorkosten.",
         "Kies waarover je meldingen wilt ontvangen in Instellingen, <b>Meldingen</b>."
+      ]
+    },
+    "solana": {
+      "title": "Je Solana-wallet",
+      "steps": [
+        "Klik op Start op <b>SOL</b> boven je saldo.",
+        "Klik de eerste keer op <b>Solana ontgrendelen</b>. Bevestig met Touch ID, of typ het wachtwoord van de wallet als die er een heeft. Is deze wallet aan je profiel gekoppeld, dan komt het Solana-adres daar ook bij.",
+        "Je SOL-saldo staat op de kaart. Om USDC te zien klik je op <b>SOL</b> of <b>USDC</b> naast het saldo en kies je <b>USD Coin</b>.",
+        "Klik op <b>ORN</b> boven het saldo om terug te gaan naar je ORN."
+      ],
+      "note": "Elke wallet heeft een eigen Solana-adres, gemaakt van de herstelzin: als je de wallet herstelt, herstel je dat adres ook."
+    },
+    "sol-receive": {
+      "title": "SOL of USDC ontvangen",
+      "steps": [
+        "Klik op Start op <b>SOL</b> boven je saldo.",
+        "Klik op <b>Ontvangen</b>, de ronde knop met een pijl naar beneden.",
+        "Toon de QR-code, of klik op <b>Adres kopiëren</b> en stuur het naar degene die je betaalt.",
+        "Het verschijnt binnen enkele seconden in je saldo."
+      ],
+      "note": "Stuur alleen SOL of USDC op Solana naar dit adres."
+    },
+    "sol-send": {
+      "title": "SOL of USDC versturen",
+      "steps": [
+        "Klik op Start op <b>SOL</b> boven je saldo. Om USDC te versturen klik je op <b>SOL</b> of <b>USDC</b> naast het saldo en kies je <b>USD Coin</b>.",
+        "Klik op <b>Versturen</b>, de ronde knop met een pijl naar boven.",
+        "Typ onder <b>Aan</b> een naam of een Solana-adres, of kies iemand onder <b>Recent</b>.",
+        "Typ het bedrag, of klik op <b>Max</b>.",
+        "Klik op <b>Versturen met Touch ID</b>."
+      ],
+      "note": "Namen werken voor iedereen die een Solana-adres aan zijn profiel heeft gekoppeld."
+    },
+    "sol-swap": {
+      "title": "SOL en USDC ruilen",
+      "steps": [
+        "Klik op Start op <b>SOL</b> boven je saldo en daarna op <b>SOL</b> of <b>USDC</b> naast het saldo.",
+        "Klik op de ruilknop (twee pijlen) naast <b>Solana-tegoeden</b>.",
+        "Typ hoeveel je wilt betalen. Klik op de munten naast het bedrag om de andere kant op te ruilen.",
+        "Klik op <b>Ruil controleren</b> en controleer wat je ontvangt.",
+        "Klik op de knop <b>Ruilen</b> om te bevestigen."
+      ],
+      "note": "Ruiltransacties lopen via Jupiter, op Solana. De wallet controleert elke ruil voordat hij tekent, en die is binnen enkele seconden rond."
+    },
+    "buy-order": {
+      "title": "Een kooporder plaatsen",
+      "steps": [
+        "Klik op Start op <b>Ruilen</b>, de ronde knop met twee pijlen.",
+        "Klik in een groot venster op <b>Order plaatsen</b>; in een klein venster op het tabblad <b>Kopen / Verkopen</b>.",
+        "Kies <b>ORN kopen</b> en typ hoeveel ORN je wilt en hoeveel SOL je in totaal betaalt.",
+        "Klik op <b>ORN kopen met Touch ID</b>. De SOL wordt meteen apart gezet uit deze wallet.",
+        "Zodra een verkoper de order vult, komen de ORN vanzelf binnen, ook als Orien Wallet gesloten is. Om te annuleren klik je op <b>Annuleren</b> bij de order onder <b>Je orders &amp; ruiltransacties</b> (<b>Je ruiltransacties</b> in een klein venster)."
       ]
     }
   },
@@ -2301,5 +2360,36 @@
   "once the buyer pays, usually within a minute. You need the ORN plus the Orien fee (0.1%, at most 1 ORN). If anything stops the swap, your ORN come back by themselves.": "zodra de koper betaalt, meestal binnen een minuut. Je hebt de ORN nodig plus de Orien-kosten (0,1%, maximaal 1 ORN). Als iets de ruil stopt, komen je ORN vanzelf terug.",
   "Swap SOL and USDC": "SOL en USDC ruilen",
   "Refresh Solana balances": "Solana-saldi vernieuwen",
-  "Buy / Sell": "Kopen / Verkopen"
+  "Buy / Sell": "Kopen / Verkopen",
+  "Unlock Solana": "Solana ontgrendelen",
+  "Unlock this wallet once to get its Solana address. Orien saves the public address on this device so you can check your SOL and USDC balances anytime.": "Ontgrendel deze wallet één keer om het Solana-adres te krijgen. Orien bewaart het openbare adres op dit apparaat, zodat je je SOL- en USDC-saldo altijd kunt bekijken.",
+  "Unlock once to remember this wallet’s public Solana address.": "Ontgrendel één keer om het openbare Solana-adres van deze wallet te onthouden.",
+  "Solana assets": "Solana-tegoeden",
+  "Solana address": "Solana-adres",
+  "Review swap": "Ruil controleren",
+  "Reverse swap direction": "Ruilrichting omdraaien",
+  "Close swap": "Ruil sluiten",
+  "Estimated receive": "Geschat te ontvangen",
+  "Minimum received": "Minimaal te ontvangen",
+  "Network fee": "Netwerkkosten",
+  "USDC account deposit": "Borg voor USDC-rekening",
+  "Recipient’s USDC account deposit": "Borg voor USDC-rekening van ontvanger",
+  "Checking…": "Controleren…",
+  "Submitting…": "Indienen…",
+  "Swap complete.": "Ruil voltooid.",
+  "Swap confirmed.": "Ruil bevestigd.",
+  "The swap failed. No exchange took place.": "De ruil is mislukt. Er is niets geruild.",
+  "The transaction expired before confirmation.": "De transactie is verlopen voordat ze werd bevestigd.",
+  "Your quote expired. Review the current rate to continue.": "Je offerte is verlopen. Bekijk de huidige koers om door te gaan.",
+  "Enter your wallet password to approve the swap.": "Voer je wallet-wachtwoord in om de ruil goed te keuren.",
+  "Unlock your wallet to continue.": "Ontgrendel je wallet om door te gaan.",
+  "Incorrect wallet password. Try again.": "Onjuist wallet-wachtwoord. Probeer het opnieuw.",
+  "That password didn’t unlock this wallet.": "Met dat wachtwoord kon deze wallet niet worden ontgrendeld.",
+  "View in Explorer": "Bekijken in de explorer",
+  "View transaction ↗": "Transactie bekijken ↗",
+  "Enter a Solana wallet address.": "Voer een Solana-walletadres in.",
+  "Solana hasn’t acknowledged the submission. This screen will keep checking.": "Solana heeft de indiening nog niet bevestigd. Dit scherm blijft controleren.",
+  "Some Solana balances could not refresh.": "Sommige Solana-saldi konden niet worden vernieuwd.",
+  "See all swaps": "Alle ruiltransacties bekijken",
+  "Help with the wallet, mining, swaps and more.": "Hulp bij de wallet, minen, ruilen en meer."
 }

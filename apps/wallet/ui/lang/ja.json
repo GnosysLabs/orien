@@ -1947,6 +1947,10 @@
     [
       "^Send ([\\d.,]+ SOL) from your SOL wallet$",
       "SOL ウォレットから {0} を送金"
+    ],
+    [
+      "^Swap ([\\d.,]+ (?:SOL|USDC))$",
+      "{0} をスワップ"
     ]
   ],
   "_guides": {
@@ -2030,7 +2034,7 @@
         "メールに届いた6桁のコードを入力し、<b>続行</b>をクリックします。",
         "初めてご利用の場合は、ユーザー名を決めて<b>アカウントを作成</b>をクリックします。"
       ],
-      "note": "アカウントはコミュニティ、マーケット、スワップ用です。ウォレットはこのアプリ内に保管されます。"
+      "note": "アカウントはコミュニティとスワップ用です。ウォレットはこのアプリ内に保管されます。"
     },
     "verify": {
       "title": "ウォレットを連携する",
@@ -2094,7 +2098,7 @@
       "title": "iPhone で ORN を入手する",
       "steps": [
         "支払いを受ける：下向き矢印の丸いボタン<b>受取</b>からアドレスを共有します。",
-        "同じウォレットを連携したパソコン版の Orien Wallet で、SOL または Bitcoin を ORN にスワップします。",
+        "同じウォレットを連携したパソコン版の Orien Wallet で、SOL を ORN にスワップします。",
         "パソコンでマイニングする：パソコンに Orien Wallet をインストールしてこのウォレットを連携し、<b>マイニング</b>を押します。"
       ]
     },
@@ -2109,23 +2113,26 @@
       "note": "マイニング中にアプリがアップデートされても、マイニングは自動で再開されます。"
     },
     "buy": {
-      "title": "SOL または Bitcoin で ORN を買う",
+      "title": "SOL で ORN を買う",
       "steps": [
-        "ホーム画面で、双方向矢印の丸いボタン<b>スワップ</b>をクリックします。",
-        "<b>公開中の注文</b>から条件に合うものを選び、<b>受ける</b>をクリックします。",
-        "支払い元の SOL または Bitcoin アドレスを入力し、<b>注文を受ける</b>をクリックします。",
-        "売り手が応答したら、表示された正確な数量をお使いの SOL または Bitcoin ウォレットから送金します。",
-        "ORN は自動的にこのウォレットへ届きます。"
-      ]
+        "まずこのウォレットに SOL を入れます（<b>SOL または USDC を受け取る</b>を参照）。Solana の少額の手数料用に、約 0.005 SOL 多めに入れてください。",
+        "ホーム画面で、双方向矢印の丸いボタン<b>スワップ</b>をクリックします。取引所が開きます。",
+        "<b>オーダーブック</b>で、条件に合う注文の横にある<b>買う</b>をクリックします。",
+        "数量を確認し、<b>Touch ID で受ける</b>をクリックします。",
+        "SOL がこのウォレットから支払われ、ORN は自動的に届きます。通常は1分以内です。"
+      ],
+      "note": "万一スワップが途中で止まっても、SOL は自動的に戻ってきます。"
     },
     "sell": {
       "title": "ORN を売る",
       "steps": [
         "先にサインインし、このウォレットを連携してください。",
-        "ホーム画面で、双方向矢印の丸いボタン<b>スワップ</b>をクリックし、<b>注文を掲載</b>をクリックします。",
-        "SOL または Bitcoin を選び、売却する ORN の数量、希望する受取額、支払いを受け取るアドレスを入力します。",
-        "<b>注文を掲載</b>をクリックし、注文が受けられるまで Orien Wallet を起動したままにします。設定の<b>このコンピューター</b>にある<b>スリープを防ぐ</b>をオンにすると、席を離れている間も稼働を維持できます。"
-      ]
+        "ホーム画面で、双方向矢印の丸いボタン<b>スワップ</b>をクリックします。",
+        "すぐに売るには、<b>オーダーブック</b>の買い注文の横にある<b>売る</b>をクリックし、<b>Touch ID で売却</b>をクリックします。",
+        "自分で価格を決めるには、大きいウィンドウでは<b>注文を出す</b>を、小さいウィンドウでは<b>購入 / 売却</b>タブをクリックします。<b>ORN を売る</b>を選び、ORN の数量と SOL の合計を入力して、<b>Touch ID で ORN を売る</b>をクリックします。",
+        "注文が受けられるまで Orien Wallet を開いたままにしてください。設定の<b>このコンピューター</b>にある<b>スリープを防ぐ</b>をオンにすると、席を離れている間も開いたままにできます。"
+      ],
+      "note": "SOL はこのウォレットの Solana 残高に届きます。通常は売却から1分以内です。"
     },
     "lock": {
       "title": "Touch ID でロックする",
@@ -2182,6 +2189,58 @@
         "ホーム画面でアクティビティの横にある<b>すべて表示</b>をクリックします。",
         "<b>送金</b>には送受信した履歴が表示され、<b>報酬</b>にはマイニング報酬とバリデータ手数料が表示されます。",
         "通知を受け取る項目は、設定の<b>通知</b>から選べます。"
+      ]
+    },
+    "solana": {
+      "title": "Solana ウォレット",
+      "steps": [
+        "ホーム画面で、残高の上にある<b>SOL</b>をクリックします。",
+        "初回は<b>Solana のロックを解除</b>をクリックします。Touch ID で認証するか、パスワードを設定している場合はウォレットのパスワードを入力します。このウォレットがプロフィールに連携されている場合、その Solana アドレスもプロフィールに追加されます。",
+        "SOL 残高がカードに表示されます。USDC を見るには、残高の横の<b>SOL</b>または<b>USDC</b>をクリックし、<b>USD Coin</b>を選びます。",
+        "残高の上にある<b>ORN</b>をクリックすると ORN に戻ります。"
+      ],
+      "note": "ウォレットごとに、リカバリーフレーズから作られた専用の Solana アドレスがあります。ウォレットを復元すれば、このアドレスも復元されます。"
+    },
+    "sol-receive": {
+      "title": "SOL または USDC を受け取る",
+      "steps": [
+        "ホーム画面で、残高の上にある<b>SOL</b>をクリックします。",
+        "下向き矢印の丸いボタン<b>受取</b>をクリックします。",
+        "QR コードを見せるか、<b>アドレスをコピー</b>をクリックして支払う相手に送ります。",
+        "数秒以内に残高に反映されます。"
+      ],
+      "note": "このアドレスには Solana 上の SOL または USDC だけを送ってください。"
+    },
+    "sol-send": {
+      "title": "SOL または USDC を送金する",
+      "steps": [
+        "ホーム画面で、残高の上にある<b>SOL</b>をクリックします。USDC を送る場合は、残高の横の<b>SOL</b>または<b>USDC</b>をクリックし、<b>USD Coin</b>を選びます。",
+        "上向き矢印の丸いボタン<b>送金</b>をクリックします。",
+        "<b>宛先</b>に名前または Solana アドレスを入力するか、<b>最近</b>から相手を選びます。",
+        "数量を入力するか、<b>最大</b>をクリックします。",
+        "<b>Touch ID で送金</b>をクリックします。"
+      ],
+      "note": "Solana アドレスをプロフィールに連携している人なら、名前で送金できます。"
+    },
+    "sol-swap": {
+      "title": "SOL と USDC をスワップする",
+      "steps": [
+        "ホーム画面で、残高の上にある<b>SOL</b>をクリックし、次に残高の横の<b>SOL</b>または<b>USDC</b>をクリックします。",
+        "<b>Solana 資産</b>の横にあるスワップボタン（2本の矢印）をクリックします。",
+        "支払う数量を入力します。数量の横のコインをクリックすると、逆方向にスワップできます。",
+        "<b>スワップを確認</b>をクリックし、受け取る数量を確認します。",
+        "<b>スワップ</b>ボタンをクリックして確定します。"
+      ],
+      "note": "スワップは Solana 上の Jupiter を経由します。ウォレットは署名する前に毎回内容を確認し、数秒で完了します。"
+    },
+    "buy-order": {
+      "title": "買い注文を出す",
+      "steps": [
+        "ホーム画面で、双方向矢印の丸いボタン<b>スワップ</b>をクリックします。",
+        "大きいウィンドウでは<b>注文を出す</b>を、小さいウィンドウでは<b>購入 / 売却</b>タブをクリックします。",
+        "<b>ORN を買う</b>を選び、ORN の数量と支払う SOL の合計を入力します。",
+        "<b>Touch ID で ORN を買う</b>をクリックします。SOL はすぐにこのウォレットから確保されます。",
+        "売り手が注文に応じると、Orien Wallet を閉じていても ORN は自動的に届きます。キャンセルするには、<b>自分の注文・スワップ</b>（小さいウィンドウでは<b>自分のスワップ</b>）でその注文の<b>キャンセル</b>をクリックします。"
       ]
     }
   },
@@ -2301,5 +2360,36 @@
   "once the buyer pays, usually within a minute. You need the ORN plus the Orien fee (0.1%, at most 1 ORN). If anything stops the swap, your ORN come back by themselves.": "買い手の支払い後、通常1分以内に届きます。ORN に加えて Orien 手数料（0.1%、最大 1 ORN）が必要です。スワップが途中で止まった場合、ORN は自動で戻ります。",
   "Swap SOL and USDC": "SOL と USDC をスワップ",
   "Refresh Solana balances": "Solana 残高を更新",
-  "Buy / Sell": "購入 / 売却"
+  "Buy / Sell": "購入 / 売却",
+  "Unlock Solana": "Solana のロックを解除",
+  "Unlock this wallet once to get its Solana address. Orien saves the public address on this device so you can check your SOL and USDC balances anytime.": "このウォレットのロックを一度解除すると、Solana アドレスを取得できます。Orien はこの端末に公開アドレスを保存するため、いつでも SOL と USDC の残高を確認できます。",
+  "Unlock once to remember this wallet’s public Solana address.": "一度ロックを解除すると、このウォレットの公開 Solana アドレスを記憶します。",
+  "Solana assets": "Solana 資産",
+  "Solana address": "Solana アドレス",
+  "Review swap": "スワップを確認",
+  "Reverse swap direction": "スワップの方向を反転",
+  "Close swap": "スワップを閉じる",
+  "Estimated receive": "受取見込み額",
+  "Minimum received": "最低受取額",
+  "Network fee": "ネットワーク手数料",
+  "USDC account deposit": "USDC アカウントのデポジット",
+  "Recipient’s USDC account deposit": "受取人の USDC アカウントのデポジット",
+  "Checking…": "確認中…",
+  "Submitting…": "送信中…",
+  "Swap complete.": "スワップが完了しました。",
+  "Swap confirmed.": "スワップが確認されました。",
+  "The swap failed. No exchange took place.": "スワップに失敗しました。交換は行われていません。",
+  "The transaction expired before confirmation.": "取引は確認前に期限切れになりました。",
+  "Your quote expired. Review the current rate to continue.": "見積もりの期限が切れました。続けるには現在のレートを確認してください。",
+  "Enter your wallet password to approve the swap.": "スワップを承認するにはウォレットパスワードを入力してください。",
+  "Unlock your wallet to continue.": "続けるにはウォレットのロックを解除してください。",
+  "Incorrect wallet password. Try again.": "ウォレットパスワードが正しくありません。もう一度お試しください。",
+  "That password didn’t unlock this wallet.": "そのパスワードではこのウォレットのロックを解除できませんでした。",
+  "View in Explorer": "エクスプローラーで見る",
+  "View transaction ↗": "取引を見る ↗",
+  "Enter a Solana wallet address.": "Solana ウォレットアドレスを入力してください。",
+  "Solana hasn’t acknowledged the submission. This screen will keep checking.": "Solana がまだ送信を受け付けていません。この画面で確認を続けます。",
+  "Some Solana balances could not refresh.": "一部の Solana 残高を更新できませんでした。",
+  "See all swaps": "すべてのスワップを見る",
+  "Help with the wallet, mining, swaps and more.": "ウォレット、マイニング、スワップなどのヘルプ。"
 }

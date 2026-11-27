@@ -1947,6 +1947,10 @@
     [
       "^Send ([\\d.,]+ SOL) from your SOL wallet$",
       "Gửi {0} từ ví SOL của bạn"
+    ],
+    [
+      "^Swap ([\\d.,]+ (?:SOL|USDC))$",
+      "Hoán đổi {0}"
     ]
   ],
   "_guides": {
@@ -2030,7 +2034,7 @@
         "Nhập mã 6 chữ số từ email và nhấn <b>Tiếp tục</b>.",
         "Bạn mới đến? Chọn một tên người dùng, sau đó nhấn <b>Tạo tài khoản của tôi</b>."
       ],
-      "note": "Tài khoản của bạn dùng cho Cộng đồng, Chợ và hoán đổi. Các ví của bạn vẫn nằm trong ứng dụng này."
+      "note": "Tài khoản của bạn dùng cho Cộng đồng và hoán đổi. Các ví của bạn vẫn nằm trong ứng dụng này."
     },
     "verify": {
       "title": "Liên kết ví",
@@ -2094,7 +2098,7 @@
       "title": "Nhận ORN trên iPhone",
       "steps": [
         "Nhận thanh toán: chia sẻ địa chỉ của bạn từ mục <b>Nhận</b>, nút tròn có mũi tên chỉ xuống.",
-        "Hoán đổi SOL hoặc Bitcoin lấy ORN trong Orien Wallet trên máy tính đã liên kết cùng ví này.",
+        "Hoán đổi SOL lấy ORN trong Orien Wallet trên máy tính đã liên kết cùng ví này.",
         "Đào trên máy tính: cài Orien Wallet ở đó, liên kết ví này rồi nhấn <b>Đào</b>."
       ]
     },
@@ -2109,23 +2113,26 @@
       "note": "Nếu ứng dụng cập nhật trong lúc đang đào, quá trình đào sẽ tự khởi động lại."
     },
     "buy": {
-      "title": "Mua ORN bằng SOL hoặc Bitcoin",
+      "title": "Mua ORN bằng SOL",
       "steps": [
-        "Ở Trang chủ, nhấn <b>Hoán đổi</b>, nút tròn có hình hai mũi tên.",
-        "Trong mục <b>Đề nghị đang mở</b>, nhấn <b>Chấp nhận</b> vào đề nghị bạn thích.",
-        "Nhập địa chỉ SOL hoặc Bitcoin bạn sẽ dùng để thanh toán, sau đó nhấn <b>Chấp nhận đề nghị</b>.",
-        "Khi người bán phản hồi, hãy thanh toán chính xác số lượng hiển thị từ ví SOL hoặc Bitcoin của bạn.",
-        "ORN sẽ tự động về ví này."
-      ]
+        "Trước tiên hãy nạp SOL vào ví này (xem <b>Nhận SOL hoặc USDC</b>), cùng thêm khoảng 0,005 SOL cho các khoản phí nhỏ của Solana.",
+        "Ở Trang chủ, nhấn <b>Hoán đổi</b>, nút tròn có hình hai mũi tên. Sàn giao dịch sẽ mở ra.",
+        "Trong <b>Sổ lệnh</b>, nhấn <b>Mua</b> bên cạnh đề nghị bạn thích.",
+        "Kiểm tra các số lượng, sau đó nhấn <b>Chấp nhận với Touch ID</b>.",
+        "SOL được thanh toán từ ví này và ORN sẽ tự động về ví, thường trong vòng một phút."
+      ],
+      "note": "Nếu giao dịch hoán đổi bị dừng giữa chừng, SOL của bạn sẽ tự động được hoàn lại."
     },
     "sell": {
       "title": "Bán ORN",
       "steps": [
         "Hãy đăng nhập và liên kết ví này trước.",
-        "Ở Trang chủ, nhấn <b>Hoán đổi</b>, nút tròn có hình hai mũi tên, sau đó nhấn <b>Đăng đề nghị</b>.",
-        "Chọn SOL hoặc Bitcoin, sau đó nhập số lượng ORN muốn bán, số tiền bạn muốn nhận và địa chỉ nhận thanh toán.",
-        "Nhấn <b>Đăng đề nghị</b> và giữ Orien Wallet luôn chạy cho đến khi có người nhận. Tùy chọn <b>Giữ máy tính này luôn thức</b> trong Cài đặt, mục <b>Máy tính này</b> sẽ giúp ứng dụng luôn mở khi bạn rời máy."
-      ]
+        "Ở Trang chủ, nhấn <b>Hoán đổi</b>, nút tròn có hình hai mũi tên.",
+        "Để bán ngay, nhấn <b>Bán</b> bên cạnh một đề nghị mua trong <b>Sổ lệnh</b>, sau đó nhấn <b>Bán với Touch ID</b>.",
+        "Để tự đặt giá: ở cửa sổ lớn, nhấn <b>Đặt lệnh</b>; ở cửa sổ nhỏ, nhấn thẻ <b>Mua / Bán</b>. Chọn <b>Bán ORN</b>, nhập số ORN và tổng số SOL, sau đó nhấn <b>Bán ORN lấy Touch ID</b>.",
+        "Giữ Orien Wallet luôn mở cho đến khi lệnh của bạn được khớp. Tùy chọn <b>Giữ máy tính này luôn thức</b> trong Cài đặt, mục <b>Máy tính này</b> sẽ giúp ứng dụng luôn mở khi bạn rời máy."
+      ],
+      "note": "SOL sẽ về số dư Solana của ví này, thường trong vòng một phút sau khi bán."
     },
     "lock": {
       "title": "Khóa bằng Touch ID",
@@ -2182,6 +2189,58 @@
         "Ở Trang chủ, nhấn <b>Xem tất cả</b> bên cạnh mục Hoạt động.",
         "<b>Thanh toán</b> hiển thị những gì bạn đã gửi và nhận; <b>Phần thưởng</b> hiển thị phần thưởng đào và phí trình xác thực.",
         "Chọn những thông báo bạn muốn nhận trong Cài đặt, mục <b>Thông báo</b>."
+      ]
+    },
+    "solana": {
+      "title": "Ví Solana của bạn",
+      "steps": [
+        "Ở Trang chủ, nhấn <b>SOL</b> phía trên số dư của bạn.",
+        "Lần đầu tiên, nhấn <b>Mở khóa Solana</b>. Xác nhận bằng Touch ID, hoặc nhập mật khẩu của ví nếu có. Nếu ví này đã liên kết với hồ sơ của bạn, địa chỉ Solana của ví cũng được thêm vào hồ sơ đó.",
+        "Số dư SOL hiển thị trên thẻ. Để xem USDC, nhấn <b>SOL</b> hoặc <b>USDC</b> bên cạnh số dư và chọn <b>USD Coin</b>.",
+        "Nhấn <b>ORN</b> phía trên số dư để quay lại ORN của bạn."
+      ],
+      "note": "Mỗi ví có địa chỉ Solana riêng, được tạo từ cụm từ khôi phục của ví: khôi phục ví cũng sẽ khôi phục địa chỉ này."
+    },
+    "sol-receive": {
+      "title": "Nhận SOL hoặc USDC",
+      "steps": [
+        "Ở Trang chủ, nhấn <b>SOL</b> phía trên số dư của bạn.",
+        "Nhấn <b>Nhận</b>, nút tròn có mũi tên chỉ xuống.",
+        "Đưa mã QR, hoặc nhấn <b>Sao chép địa chỉ</b> rồi gửi cho người thanh toán cho bạn.",
+        "Khoản tiền sẽ hiển thị trong số dư của bạn chỉ sau vài giây."
+      ],
+      "note": "Chỉ gửi SOL hoặc USDC trên Solana đến địa chỉ này."
+    },
+    "sol-send": {
+      "title": "Gửi SOL hoặc USDC",
+      "steps": [
+        "Ở Trang chủ, nhấn <b>SOL</b> phía trên số dư của bạn. Để gửi USDC, nhấn <b>SOL</b> hoặc <b>USDC</b> bên cạnh số dư và chọn <b>USD Coin</b>.",
+        "Nhấn <b>Gửi</b>, nút tròn có mũi tên chỉ lên.",
+        "Trong mục <b>Đến</b>, nhập tên hoặc địa chỉ Solana, hoặc chọn một người dưới mục <b>Gần đây</b>.",
+        "Nhập số lượng, hoặc nhấn <b>Tối đa</b>.",
+        "Nhấn <b>Gửi bằng Touch ID</b>."
+      ],
+      "note": "Có thể dùng tên cho bất kỳ ai đã liên kết địa chỉ Solana với hồ sơ của họ."
+    },
+    "sol-swap": {
+      "title": "Hoán đổi SOL và USDC",
+      "steps": [
+        "Ở Trang chủ, nhấn <b>SOL</b> phía trên số dư của bạn, sau đó nhấn <b>SOL</b> hoặc <b>USDC</b> bên cạnh số dư.",
+        "Nhấn nút hoán đổi (hai mũi tên) bên cạnh <b>Tài sản Solana</b>.",
+        "Nhập số lượng muốn trả. Nhấn vào biểu tượng đồng coin bên cạnh số lượng để hoán đổi theo chiều ngược lại.",
+        "Nhấn <b>Xem lại hoán đổi</b> và kiểm tra số lượng bạn sẽ nhận.",
+        "Nhấn nút <b>Hoán đổi</b> để xác nhận."
+      ],
+      "note": "Giao dịch hoán đổi được thực hiện qua Jupiter, trên Solana. Ví kiểm tra từng giao dịch trước khi ký, và giao dịch hoàn tất chỉ trong vài giây."
+    },
+    "buy-order": {
+      "title": "Đăng lệnh mua",
+      "steps": [
+        "Ở Trang chủ, nhấn <b>Hoán đổi</b>, nút tròn có hình hai mũi tên.",
+        "Ở cửa sổ lớn, nhấn <b>Đặt lệnh</b>; ở cửa sổ nhỏ, nhấn thẻ <b>Mua / Bán</b>.",
+        "Chọn <b>Mua ORN</b>, sau đó nhập số ORN và tổng số SOL bạn sẽ trả.",
+        "Nhấn <b>Mua ORN bằng Touch ID</b>. Số SOL được tạm giữ ngay từ ví này.",
+        "Khi có người bán khớp lệnh, ORN sẽ tự động về ví, kể cả khi Orien Wallet đã đóng. Để hủy, nhấn <b>Hủy</b> trên lệnh đó trong mục <b>Lệnh &amp; giao dịch hoán đổi của bạn</b> (<b>Hoán đổi của bạn</b> ở cửa sổ nhỏ)."
       ]
     }
   },
@@ -2301,5 +2360,36 @@
   "once the buyer pays, usually within a minute. You need the ORN plus the Orien fee (0.1%, at most 1 ORN). If anything stops the swap, your ORN come back by themselves.": "ngay khi người mua thanh toán, thường trong vòng một phút. Bạn cần số ORN cộng thêm phí Orien (0,1%, tối đa 1 ORN). Nếu có sự cố khiến hoán đổi dừng lại, ORN của bạn sẽ tự hoàn về.",
   "Swap SOL and USDC": "Hoán đổi SOL và USDC",
   "Refresh Solana balances": "Làm mới số dư Solana",
-  "Buy / Sell": "Mua / Bán"
+  "Buy / Sell": "Mua / Bán",
+  "Unlock Solana": "Mở khóa Solana",
+  "Unlock this wallet once to get its Solana address. Orien saves the public address on this device so you can check your SOL and USDC balances anytime.": "Mở khóa ví này một lần để lấy địa chỉ Solana của ví. Orien lưu địa chỉ công khai trên thiết bị này để bạn có thể kiểm tra số dư SOL và USDC bất cứ lúc nào.",
+  "Unlock once to remember this wallet’s public Solana address.": "Mở khóa một lần để ghi nhớ địa chỉ Solana công khai của ví này.",
+  "Solana assets": "Tài sản Solana",
+  "Solana address": "Địa chỉ Solana",
+  "Review swap": "Xem lại hoán đổi",
+  "Reverse swap direction": "Đảo chiều hoán đổi",
+  "Close swap": "Đóng hoán đổi",
+  "Estimated receive": "Ước tính nhận được",
+  "Minimum received": "Nhận tối thiểu",
+  "Network fee": "Phí mạng",
+  "USDC account deposit": "Tiền ký quỹ tài khoản USDC",
+  "Recipient’s USDC account deposit": "Tiền ký quỹ tài khoản USDC của người nhận",
+  "Checking…": "Đang kiểm tra…",
+  "Submitting…": "Đang gửi…",
+  "Swap complete.": "Hoán đổi hoàn tất.",
+  "Swap confirmed.": "Hoán đổi đã được xác nhận.",
+  "The swap failed. No exchange took place.": "Hoán đổi thất bại. Không có giao dịch trao đổi nào diễn ra.",
+  "The transaction expired before confirmation.": "Giao dịch đã hết hạn trước khi được xác nhận.",
+  "Your quote expired. Review the current rate to continue.": "Báo giá của bạn đã hết hạn. Hãy xem lại tỷ giá hiện tại để tiếp tục.",
+  "Enter your wallet password to approve the swap.": "Nhập mật khẩu ví của bạn để phê duyệt hoán đổi.",
+  "Unlock your wallet to continue.": "Mở khóa ví của bạn để tiếp tục.",
+  "Incorrect wallet password. Try again.": "Mật khẩu ví không đúng. Hãy thử lại.",
+  "That password didn’t unlock this wallet.": "Mật khẩu đó không mở khóa được ví này.",
+  "View in Explorer": "Xem trên trình khám phá",
+  "View transaction ↗": "Xem giao dịch ↗",
+  "Enter a Solana wallet address.": "Nhập địa chỉ ví Solana.",
+  "Solana hasn’t acknowledged the submission. This screen will keep checking.": "Solana chưa xác nhận đã nhận yêu cầu. Màn hình này sẽ tiếp tục kiểm tra.",
+  "Some Solana balances could not refresh.": "Không thể làm mới một số số dư Solana.",
+  "See all swaps": "Xem tất cả hoán đổi",
+  "Help with the wallet, mining, swaps and more.": "Trợ giúp về ví, đào, hoán đổi và nhiều nội dung khác."
 }

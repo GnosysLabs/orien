@@ -7869,7 +7869,7 @@
       `Type your email and ${tap} <b>Send me a code</b>.`,
       `Type the 6-digit code from the email and ${tap} <b>Continue</b>.`,
       `New here? Choose a username, then ${tap} <b>Make my account</b>.`,
-    ], "Your account is for the Community, the Market and swaps. Your wallets stay in this app.");
+    ], "Your account is for the Community and swaps. Your wallets stay in this app.");
     add("Orien Network", "verify", "Link a wallet", [
       "Sign in, and open the wallet you want to link.",
       `On Home, ${tap} <b>Link</b> on the <b>Link</b> card under your balance. (Or ${tap} your picture at the top right, then <b>Edit Profile</b> → <b>Wallets</b>, then <b>Link</b> beside the wallet.)`,
@@ -7906,10 +7906,38 @@
       `Below them, ${tap} <b>Checkpoints</b>, <b>Top wallets</b> or <b>Validators</b>, and ${tap} any row to open it.`,
       "To find something, type an address, a name or a checkpoint number in the search box.",
     ]);
+    // The coin beside the balance, when SOL is picked: SOL or USDC.
+    const COIN = "<b>SOL</b> or <b>USDC</b> beside the balance";
+    add("Solana", "solana", "Your Solana wallet", [
+      `On Home, ${tap} <b>SOL</b> above your balance.`,
+      `The first time, ${tap} <b>Unlock Solana</b>. ${confirm} If this wallet is linked to your profile, its Solana address joins it there.`,
+      `Your SOL balance shows on the card. To see USDC, ${tap} ${COIN} and pick <b>USD Coin</b>.`,
+      `${Tap} <b>ORN</b> above the balance to go back to your ORN.`,
+    ], "Each wallet has its own Solana address, made from its recovery phrase: restoring the wallet restores it too.");
+    add("Solana", "sol-receive", "Receive SOL or USDC", [
+      `On Home, ${tap} <b>SOL</b> above your balance.`,
+      `${Tap} ${RECEIVE}.`,
+      `Show the QR code, or ${tap} <b>Copy address</b> and send it to the person paying you.`,
+      "It shows on your balance within seconds.",
+    ], "Send only SOL or USDC on Solana to this address.");
+    add("Solana", "sol-send", "Send SOL or USDC", [
+      `On Home, ${tap} <b>SOL</b> above your balance. To send USDC, ${tap} ${COIN} and pick <b>USD Coin</b>.`,
+      `${Tap} ${SEND}.`,
+      `Under <b>To</b>, type a name or a Solana address, or pick someone under <b>Recents</b>.`,
+      `Type the amount, or ${tap} <b>Max</b>.`,
+      `${Tap} ${apple ? `<b>Send with ${bio}</b>` : "<b>Send</b>, typing the wallet’s password if it has one"}.`,
+    ], "Names work for anyone whose Solana address is linked to their profile.");
+    add("Solana", "sol-swap", "Swap SOL and USDC", [
+      `On Home, ${tap} <b>SOL</b> above your balance, then ${COIN}.`,
+      `${Tap} the swap button (two arrows) beside <b>Solana assets</b>.`,
+      `Type how much to pay. ${Tap} the coins beside the amount to swap the other way.`,
+      `${Tap} <b>Review swap</b> and check what you’ll receive.`,
+      `${Tap} the <b>Swap</b> button to confirm.${apple ? "" : " Type the wallet’s password first if it has one."}`,
+    ], "Swaps go through Jupiter, on Solana. The wallet checks each one before it signs, and it lands in seconds.");
     if (phone) {
       add("Getting ORN", "get", "Get ORN on iPhone", [
         `Be paid: share your address from ${RECEIVE}.`,
-        "Swap SOL or Bitcoin for ORN in Orien Wallet on a computer, with this same wallet linked to it.",
+        "Swap SOL for ORN in Orien Wallet on a computer, with this same wallet linked to it.",
         "Mine on a computer: install Orien Wallet there, link this wallet, and press <b>Mine</b>.",
       ]);
     } else {
@@ -7919,19 +7947,28 @@
         "Click <b>Start mining</b>. Each hour you earn a share of the new ORN.",
         "To mine with the window closed, turn on <b>Keep running when closed</b> in Settings, <b>This computer</b>. To stop the computer sleeping, turn on <b>Keep this computer awake</b> there too.",
       ], "If the app updates while mining, mining starts again by itself.");
-      add("Getting ORN", "buy", "Buy ORN with SOL or Bitcoin", [
+      const BIG = "In a big window, click <b>Place order</b>; in a small one, the <b>Buy / Sell</b> tab.";
+      add("Getting ORN", "buy", "Buy ORN with SOL", [
+        "Put SOL in this wallet first (see <b>Receive SOL or USDC</b>), with about 0.005 SOL more for Solana’s small fees.",
+        `On Home, click ${SWAP}. The Exchange opens.`,
+        "In the <b>Order book</b>, click <b>Buy</b> beside an offer you like.",
+        apple ? `Check the amounts, then click <b>Take with ${bio}</b>.` : "Check the amounts, type the wallet’s password if it has one, then click <b>Take the offer</b>.",
+        "The SOL is paid from this wallet and the ORN arrive by themselves, usually within a minute.",
+      ], "If a swap ever stops part-way, your SOL comes back by itself.");
+      add("Getting ORN", "buy-order", "Post a buy order", [
         `On Home, click ${SWAP}.`,
-        "Under <b>Open offers</b>, click <b>Take</b> on one you like.",
-        "Type the SOL or Bitcoin address you’ll pay from, then click <b>Take the offer</b>.",
-        "When the seller answers, pay the exact amount shown from your SOL or Bitcoin wallet.",
-        "The ORN arrive in this wallet by themselves.",
+        BIG,
+        "Choose <b>Buy ORN</b>, then type how many ORN and the total SOL you’ll pay.",
+        `Click ${apple ? `<b>Buy ORN with ${bio}</b>` : "<b>Place Buy Order</b>"}. The SOL is set aside from this wallet at once.`,
+        "When a seller fills it, the ORN arrive by themselves, even with Orien Wallet closed. To cancel, click <b>Cancel</b> on it under <b>Your orders &amp; swaps</b> (<b>Your swaps</b> in a small window).",
       ]);
       add("Getting ORN", "sell", "Sell ORN", [
         "Sign in and link this wallet first.",
-        `On Home, click ${SWAP}, then <b>Post an offer</b>.`,
-        "Choose SOL or Bitcoin, then type how many ORN to sell, how much you want for them, and the address you’ll be paid at.",
-        "Click <b>Post the offer</b>, and keep Orien Wallet running until it’s taken. <b>Keep this computer awake</b> in Settings, <b>This computer</b>, keeps it open while you’re away.",
-      ]);
+        `On Home, click ${SWAP}.`,
+        `To sell now, click <b>Sell</b> beside a buy offer in the <b>Order book</b>, then ${apple ? `<b>Sell with ${bio}</b>` : "<b>Sell ORN</b>"}.`,
+        `To set your own price: ${BIG.replace("In a big", "in a big")} Choose <b>Sell ORN</b>, type the ORN and the total SOL, then click ${apple ? `<b>Sell ORN with ${bio}</b>` : "<b>Place Sell Order</b>"}.`,
+        "Keep Orien Wallet open until your order is taken. <b>Keep this computer awake</b> in Settings, <b>This computer</b>, keeps it open while you’re away.",
+      ], "The SOL arrives in this wallet’s Solana balance, usually within a minute of a sale.");
     }
     if (apple) add("Security and more", "lock", `Lock with ${bio}`, [
       `Open ${gear}, then <b>Privacy and security</b>.`,
@@ -7942,6 +7979,11 @@
       `Open ${gear}, then <b>Browser Extensions</b>.`,
       "Click your browser and add Orien Wallet there.",
       "Send ORN and see your balance from the browser’s toolbar, and sign in to websites with your wallet. Your keys stay in this app.",
+    ]);
+    add("Security and more", "activity", "Activity and notifications", [
+      `On Home, ${tap} <b>View all</b> beside Activity.`,
+      "<b>Payments</b> shows what you sent and received; <b>Rewards</b> shows mining rewards and validator fees.",
+      `Choose what you’re told about in Settings, <b>Notifications</b>.`,
     ]);
     // Themes: built and shared on computers; iPhones wear the ones built there.
     if (!phone) {
@@ -7967,11 +8009,6 @@
         "To take it down, open the Theme Store, then <b>Yours</b>, and click <b>Remove from store</b> twice.",
       ], "Editing your theme later doesn’t change the shared one. Share it again as a new theme if you like the new version better.");
     }
-    add("Security and more", "activity", "Activity and notifications", [
-      `On Home, ${tap} <b>View all</b> beside Activity.`,
-      "<b>Payments</b> shows what you sent and received; <b>Rewards</b> shows mining rewards and validator fees.",
-      `Choose what you’re told about in Settings, <b>Notifications</b>.`,
-    ]);
     return g;
   })();
   function paintGuides() {

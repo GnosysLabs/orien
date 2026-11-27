@@ -1947,6 +1947,10 @@
     [
       "^Send ([\\d.,]+ SOL) from your SOL wallet$",
       "SOL cüzdanınızdan {0} gönderin"
+    ],
+    [
+      "^Swap ([\\d.,]+ (?:SOL|USDC))$",
+      "{0} takas et"
     ]
   ],
   "_guides": {
@@ -2030,7 +2034,7 @@
         "E-postadaki 6 haneli kodu yazın ve <b>Devam et</b>'e tıklayın.",
         "Burada yeni misiniz? Bir kullanıcı adı seçin, ardından <b>Hesabımı oluştur</b>'a tıklayın."
       ],
-      "note": "Hesabınız Topluluk, Pazar ve takaslar içindir. Cüzdanlarınız bu uygulamada kalır."
+      "note": "Hesabınız Topluluk ve takaslar içindir. Cüzdanlarınız bu uygulamada kalır."
     },
     "verify": {
       "title": "Bir cüzdan bağla",
@@ -2094,7 +2098,7 @@
       "title": "iPhone'da ORN Edin",
       "steps": [
         "Ödeme alın: aşağı bakan ok simgeli yuvarlak düğme olan <b>Al</b> bölümünden adresinizi paylaşın.",
-        "Bu aynı cüzdanın bağlı olduğu bir bilgisayarda Orien Wallet üzerinden SOL veya Bitcoin'i ORN ile takas edin.",
+        "Bu aynı cüzdanın bağlı olduğu bir bilgisayarda Orien Wallet üzerinden SOL'u ORN ile takas edin.",
         "Bir bilgisayarda kazın: Orien Wallet'ı oraya yükleyin, bu cüzdanı bağlayın ve <b>Kaz</b>'a basın."
       ]
     },
@@ -2109,23 +2113,26 @@
       "note": "Uygulama madencilik sırasında güncellenirse madencilik kendiliğinden yeniden başlar."
     },
     "buy": {
-      "title": "SOL veya Bitcoin ile ORN satın al",
+      "title": "SOL ile ORN satın al",
       "steps": [
-        "Ana Sayfa'da iki ok simgeli yuvarlak düğme olan <b>Takas</b>'a tıklayın.",
-        "<b>Açık teklifler</b> altında beğendiğiniz birinde <b>Kabul et</b>'e tıklayın.",
-        "Ödeme yapacağınız SOL veya Bitcoin adresini yazın, ardından <b>Teklifi kabul et</b>'e tıklayın.",
-        "Satıcı yanıt verdiğinde, SOL veya Bitcoin cüzdanınızdan gösterilen tam tutarı ödeyin.",
-        "ORN'ler bu cüzdana kendiliğinden ulaşır."
-      ]
+        "Önce bu cüzdana SOL yatırın (bkz. <b>SOL veya USDC Al</b>); Solana'nın küçük ücretleri için yaklaşık 0.005 SOL fazlası bulunsun.",
+        "Ana Sayfa'da iki ok simgeli yuvarlak düğme olan <b>Takas</b>'a tıklayın. Borsa açılır.",
+        "<b>Emir defteri</b> bölümünde beğendiğiniz bir teklifin yanındaki <b>Satın al</b>'a tıklayın.",
+        "Tutarları kontrol edin, ardından <b>Touch ID ile kabul et</b> düğmesine tıklayın.",
+        "SOL bu cüzdandan ödenir ve ORN'ler genellikle bir dakika içinde kendiliğinden ulaşır."
+      ],
+      "note": "Bir takas yarıda kalırsa SOL'unuz kendiliğinden geri gelir."
     },
     "sell": {
       "title": "ORN Sat",
       "steps": [
         "Önce giriş yapın ve bu cüzdanı bağlayın.",
-        "Ana Sayfa'da iki ok simgeli yuvarlak düğme olan <b>Takas</b>'a, ardından <b>Teklif yayınla</b>'ya tıklayın.",
-        "SOL veya Bitcoin seçin, ardından kaç ORN satacağınızı, karşılığında ne kadar istediğinizi ve ödeme alacağınız adresi yazın.",
-        "<b>Teklifi yayınla</b>'ya tıklayın ve kabul edilene kadar Orien Wallet'ı açık tutun. Ayarlar, <b>Bu bilgisayar</b> altındaki <b>Bu bilgisayarı uyanık tut</b> seçeneği siz uzaktayken açık kalmasını sağlar."
-      ]
+        "Ana Sayfa'da iki ok simgeli yuvarlak düğme olan <b>Takas</b>'a tıklayın.",
+        "Hemen satmak için <b>Emir defteri</b> bölümündeki bir alış teklifinin yanında <b>Sat</b>'a, ardından <b>Touch ID ile sat</b> düğmesine tıklayın.",
+        "Kendi fiyatınızı belirlemek için: büyük pencerede <b>Emir ver</b>'e, küçük pencerede <b>Al / Sat</b> sekmesine tıklayın. <b>ORN Sat</b> seçeneğini seçin, ORN miktarını ve toplam SOL'u yazın, ardından <b>Touch ID ile ORN sat</b> düğmesine tıklayın.",
+        "Emriniz alınana kadar Orien Wallet'ı açık tutun. Ayarlar, <b>Bu bilgisayar</b> altındaki <b>Bu bilgisayarı uyanık tut</b> seçeneği siz uzaktayken açık kalmasını sağlar."
+      ],
+      "note": "SOL, satıştan sonra genellikle bir dakika içinde bu cüzdanın Solana bakiyesine ulaşır."
     },
     "lock": {
       "title": "Touch ID ile kilitle",
@@ -2182,6 +2189,58 @@
         "Ana Sayfa'da Etkinlik yanındaki <b>Tümünü gör</b>'e tıklayın.",
         "<b>Ödemeler</b> gönderdiğiniz ve aldığınız ödemeleri; <b>Ödüller</b> madencilik ödüllerini ve doğrulayıcı ücretlerini gösterir.",
         "Ayarlar, <b>Bildirimler</b> bölümünden hangi konularda bildirim alacağınızı seçin."
+      ]
+    },
+    "solana": {
+      "title": "Solana cüzdanınız",
+      "steps": [
+        "Ana Sayfa'da bakiyenizin üstündeki <b>SOL</b>'a tıklayın.",
+        "İlk seferde <b>Solana kilidini aç</b> düğmesine tıklayın. Touch ID ile onaylayın veya varsa cüzdanın parolasını yazın. Bu cüzdan profilinize bağlıysa, Solana adresi de profilinize eklenir.",
+        "SOL bakiyeniz kartta görünür. USDC'yi görmek için bakiyenin yanındaki <b>SOL</b> veya <b>USDC</b>'ye tıklayın ve <b>USD Coin</b>'i seçin.",
+        "ORN'lerinize dönmek için bakiyenin üstündeki <b>ORN</b>'ye tıklayın."
+      ],
+      "note": "Her cüzdanın, kurtarma ifadesinden oluşturulan kendi Solana adresi vardır: cüzdanı geri yüklediğinizde bu adres de geri gelir."
+    },
+    "sol-receive": {
+      "title": "SOL veya USDC Al",
+      "steps": [
+        "Ana Sayfa'da bakiyenizin üstündeki <b>SOL</b>'a tıklayın.",
+        "Aşağı bakan ok simgeli yuvarlak düğme olan <b>Al</b>'a tıklayın.",
+        "QR kodunu gösterin veya <b>Adresi kopyala</b>'ya tıklayıp size ödeme yapacak kişiye gönderin.",
+        "Saniyeler içinde bakiyenizde görünür."
+      ],
+      "note": "Bu adrese yalnızca Solana üzerindeki SOL veya USDC gönderin."
+    },
+    "sol-send": {
+      "title": "SOL veya USDC Gönder",
+      "steps": [
+        "Ana Sayfa'da bakiyenizin üstündeki <b>SOL</b>'a tıklayın. USDC göndermek için bakiyenin yanındaki <b>SOL</b> veya <b>USDC</b>'ye tıklayın ve <b>USD Coin</b>'i seçin.",
+        "Yukarı bakan ok simgeli yuvarlak düğme olan <b>Gönder</b>'e tıklayın.",
+        "<b>Kime</b> altında bir ad veya Solana adresi yazın ya da <b>Son Kullanılanlar</b> altından birini seçin.",
+        "Tutarı yazın veya <b>Maks</b>'a tıklayın.",
+        "<b>Touch ID ile gönder</b> düğmesine tıklayın."
+      ],
+      "note": "Adlar, Solana adresini profiline bağlamış herkes için çalışır."
+    },
+    "sol-swap": {
+      "title": "SOL ve USDC takası",
+      "steps": [
+        "Ana Sayfa'da bakiyenizin üstündeki <b>SOL</b>'a, ardından bakiyenin yanındaki <b>SOL</b> veya <b>USDC</b>'ye tıklayın.",
+        "<b>Solana varlıkları</b> yanındaki takas düğmesine (iki ok) tıklayın.",
+        "Ne kadar ödeyeceğinizi yazın. Ters yönde takas etmek için tutarın yanındaki coin simgelerine tıklayın.",
+        "<b>Takası incele</b> düğmesine tıklayın ve alacağınız tutarı kontrol edin.",
+        "Onaylamak için <b>Takas</b> düğmesine tıklayın."
+      ],
+      "note": "Takaslar Solana üzerinde Jupiter aracılığıyla yapılır. Cüzdan her takası imzalamadan önce kontrol eder ve takas saniyeler içinde tamamlanır."
+    },
+    "buy-order": {
+      "title": "Alış emri ver",
+      "steps": [
+        "Ana Sayfa'da iki ok simgeli yuvarlak düğme olan <b>Takas</b>'a tıklayın.",
+        "Büyük pencerede <b>Emir ver</b>'e, küçük pencerede <b>Al / Sat</b> sekmesine tıklayın.",
+        "<b>ORN Satın Al</b> seçeneğini seçin, ardından kaç ORN alacağınızı ve ödeyeceğiniz toplam SOL'u yazın.",
+        "<b>Touch ID ile ORN satın al</b> düğmesine tıklayın. SOL hemen bu cüzdandan kenara ayrılır.",
+        "Bir satıcı emri karşıladığında ORN'ler, Orien Wallet kapalı olsa bile kendiliğinden ulaşır. İptal etmek için <b>Emirleriniz ve takaslarınız</b> (küçük pencerede <b>Takaslarınız</b>) altında emrin üzerindeki <b>İptal</b>'e tıklayın."
       ]
     }
   },
@@ -2301,5 +2360,36 @@
   "once the buyer pays, usually within a minute. You need the ORN plus the Orien fee (0.1%, at most 1 ORN). If anything stops the swap, your ORN come back by themselves.": "alıcı öder ödemez, genellikle bir dakika içinde. ORN'ye ek olarak Orien ücreti (%0,1, en fazla 1 ORN) gerekir. Takas herhangi bir nedenle durursa ORN'leriniz kendiliğinden geri döner.",
   "Swap SOL and USDC": "SOL ve USDC takası",
   "Refresh Solana balances": "Solana bakiyelerini yenile",
-  "Buy / Sell": "Al / Sat"
+  "Buy / Sell": "Al / Sat",
+  "Unlock Solana": "Solana kilidini aç",
+  "Unlock this wallet once to get its Solana address. Orien saves the public address on this device so you can check your SOL and USDC balances anytime.": "Solana adresini almak için bu cüzdanın kilidini bir kez açın. Orien, SOL ve USDC bakiyelerinizi istediğiniz zaman kontrol edebilmeniz için genel adresi bu cihazda saklar.",
+  "Unlock once to remember this wallet’s public Solana address.": "Bu cüzdanın genel Solana adresini hatırlamak için kilidi bir kez açın.",
+  "Solana assets": "Solana varlıkları",
+  "Solana address": "Solana adresi",
+  "Review swap": "Takası incele",
+  "Reverse swap direction": "Takas yönünü değiştir",
+  "Close swap": "Takası kapat",
+  "Estimated receive": "Tahmini alınacak",
+  "Minimum received": "Minimum alınacak",
+  "Network fee": "Ağ ücreti",
+  "USDC account deposit": "USDC hesabı depozitosu",
+  "Recipient’s USDC account deposit": "Alıcının USDC hesabı depozitosu",
+  "Checking…": "Kontrol ediliyor…",
+  "Submitting…": "Gönderiliyor…",
+  "Swap complete.": "Takas tamamlandı.",
+  "Swap confirmed.": "Takas onaylandı.",
+  "The swap failed. No exchange took place.": "Takas başarısız oldu. Hiçbir değişim yapılmadı.",
+  "The transaction expired before confirmation.": "İşlem onaylanmadan önce süresi doldu.",
+  "Your quote expired. Review the current rate to continue.": "Fiyat teklifinizin süresi doldu. Devam etmek için güncel kuru inceleyin.",
+  "Enter your wallet password to approve the swap.": "Takası onaylamak için cüzdan parolanızı girin.",
+  "Unlock your wallet to continue.": "Devam etmek için cüzdanınızın kilidini açın.",
+  "Incorrect wallet password. Try again.": "Cüzdan parolası yanlış. Tekrar deneyin.",
+  "That password didn’t unlock this wallet.": "Bu parola bu cüzdanın kilidini açmadı.",
+  "View in Explorer": "Gezginde görüntüle",
+  "View transaction ↗": "İşlemi görüntüle ↗",
+  "Enter a Solana wallet address.": "Bir Solana cüzdan adresi girin.",
+  "Solana hasn’t acknowledged the submission. This screen will keep checking.": "Solana gönderimi henüz onaylamadı. Bu ekran kontrol etmeye devam edecek.",
+  "Some Solana balances could not refresh.": "Bazı Solana bakiyeleri yenilenemedi.",
+  "See all swaps": "Tüm takasları gör",
+  "Help with the wallet, mining, swaps and more.": "Cüzdan, madencilik, takaslar ve daha fazlası için yardım."
 }

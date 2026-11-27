@@ -1947,6 +1947,10 @@
     [
       "^Send ([\\d.,]+ SOL) from your SOL wallet$",
       "从你的 SOL 钱包发送 {0}"
+    ],
+    [
+      "^Swap ([\\d.,]+ (?:SOL|USDC))$",
+      "兑换 {0}"
     ]
   ],
   "_guides": {
@@ -2030,7 +2034,7 @@
         "输入邮件中的 6 位验证码并点击<b>继续</b>。",
         "初次使用？选择一个用户名，然后点击<b>创建我的账号</b>。"
       ],
-      "note": "你的账号用于社区、市场和兑换，你的钱包始终保存在本应用中。"
+      "note": "你的账号用于社区和兑换，你的钱包始终保存在本应用中。"
     },
     "verify": {
       "title": "关联钱包",
@@ -2094,7 +2098,7 @@
       "title": "在 iPhone 上获取 ORN",
       "steps": [
         "接收他人付款：通过<b>接收</b>（带向下箭头的圆形按钮）分享你的地址。",
-        "在电脑版 Orien Wallet 中关联此钱包，即可用 SOL 或 Bitcoin 兑换 ORN。",
+        "在电脑版 Orien Wallet 中关联此钱包，即可用 SOL 兑换 ORN。",
         "在电脑上挖矿：在电脑安装 Orien Wallet，关联此钱包，然后点击<b>挖矿</b>。"
       ]
     },
@@ -2109,23 +2113,26 @@
       "note": "如果应用在挖矿时更新，更新后会自动恢复挖矿。"
     },
     "buy": {
-      "title": "使用 SOL 或 Bitcoin 买入 ORN",
+      "title": "使用 SOL 买入 ORN",
       "steps": [
-        "在主页点击<b>兑换</b>（带双向箭头图标的圆形按钮）。",
-        "在<b>开放报价</b>下方，对你满意的报价点击<b>接单</b>。",
-        "输入你用来付款的 SOL 或 Bitcoin 地址，然后点击<b>接受报价</b>。",
-        "卖家响应后，请从你的 SOL 或 Bitcoin 钱包支付页面显示的准确金额。",
-        "ORN 会自动到账此钱包。"
-      ]
+        "先向此钱包存入 SOL（见<b>接收 SOL 或 USDC</b>），并额外预留约 0.005 SOL 用于支付 Solana 的少量手续费。",
+        "在主页点击<b>兑换</b>（带双向箭头图标的圆形按钮），即可打开交易所。",
+        "在<b>订单簿</b>中，点击你满意的报价旁的<b>买入</b>。",
+        "核对金额，然后点击<b>使用 Touch ID 接单</b>。",
+        "SOL 将从此钱包支付，ORN 会自动到账，通常在 1 分钟内完成。"
+      ],
+      "note": "如果兑换中途停止，你的 SOL 会自动退回。"
     },
     "sell": {
       "title": "卖出 ORN",
       "steps": [
         "请先登录并关联此钱包。",
-        "在主页点击<b>兑换</b>（带双向箭头图标的圆形按钮），然后点击<b>发布报价</b>。",
-        "选择 SOL 或 Bitcoin，然后输入要卖出的 ORN 数量、期望收到的金额以及收款地址。",
-        "点击<b>发布报价</b>，并保持 Orien Wallet 运行直到有人接单。在设置中的<b>此电脑</b>开启<b>保持电脑唤醒</b>，可在你离开时保持运行。"
-      ]
+        "在主页点击<b>兑换</b>（带双向箭头图标的圆形按钮）。",
+        "如需立即卖出，请在<b>订单簿</b>中点击某个买入报价旁的<b>卖出</b>，然后点击<b>使用 Touch ID 卖出</b>。",
+        "如需自行定价：在大窗口中点击<b>下单</b>；在小窗口中点击<b>买入 / 卖出</b>标签。选择<b>卖出 ORN</b>，输入 ORN 数量和 SOL 总额，然后点击<b>使用 Touch ID 卖出 ORN</b>。",
+        "保持 Orien Wallet 运行，直到你的订单成交。在设置中的<b>此电脑</b>开启<b>保持电脑唤醒</b>，可在你离开时保持运行。"
+      ],
+      "note": "成交后，SOL 通常会在 1 分钟内到账此钱包的 Solana 余额。"
     },
     "lock": {
       "title": "使用 Touch ID 锁定",
@@ -2182,6 +2189,58 @@
         "在主页点击动态旁的<b>查看全部</b>。",
         "<b>转账</b>显示你发送和接收的记录；<b>奖励</b>显示挖矿奖励和验证节点手续费。",
         "可在设置中的<b>通知</b>里选择要接收的提醒类型。"
+      ]
+    },
+    "solana": {
+      "title": "你的 Solana 钱包",
+      "steps": [
+        "在主页点击余额上方的<b>SOL</b>。",
+        "首次使用时，点击<b>解锁 Solana</b>。使用 Touch ID 确认，如果钱包设有密码则输入密码。如果此钱包已关联到你的个人资料，它的 Solana 地址也会一并添加到资料中。",
+        "你的 SOL 余额会显示在卡片上。要查看 USDC，请点击余额旁的<b>SOL</b>或<b>USDC</b>，然后选择<b>USD Coin</b>。",
+        "点击余额上方的<b>ORN</b>即可返回你的 ORN。"
+      ],
+      "note": "每个钱包都有自己的 Solana 地址，由其助记词生成：恢复钱包时，该地址也会一并恢复。"
+    },
+    "sol-receive": {
+      "title": "接收 SOL 或 USDC",
+      "steps": [
+        "在主页点击余额上方的<b>SOL</b>。",
+        "点击<b>接收</b>（带向下箭头的圆形按钮）。",
+        "向付款人出示二维码，或点击<b>复制地址</b>并发送给对方。",
+        "几秒钟内即会显示在你的余额中。"
+      ],
+      "note": "此地址只能接收 Solana 上的 SOL 或 USDC。"
+    },
+    "sol-send": {
+      "title": "发送 SOL 或 USDC",
+      "steps": [
+        "在主页点击余额上方的<b>SOL</b>。要发送 USDC，请点击余额旁的<b>SOL</b>或<b>USDC</b>，然后选择<b>USD Coin</b>。",
+        "点击<b>发送</b>（带向上箭头的圆形按钮）。",
+        "在<b>接收方</b>下方输入名称或 Solana 地址，或从<b>最近</b>中选择联系人。",
+        "输入金额，或点击<b>最大</b>。",
+        "点击<b>使用 Touch ID 发送</b>。"
+      ],
+      "note": "只要对方的 Solana 地址已关联到其个人资料，就可以直接输入名称。"
+    },
+    "sol-swap": {
+      "title": "兑换 SOL 和 USDC",
+      "steps": [
+        "在主页点击余额上方的<b>SOL</b>，然后点击余额旁的<b>SOL</b>或<b>USDC</b>。",
+        "点击<b>Solana 资产</b>旁的兑换按钮（双箭头）。",
+        "输入要支付的金额。点击金额旁的币种图标可切换兑换方向。",
+        "点击<b>查看兑换</b>，核对你将收到的金额。",
+        "点击<b>兑换</b>按钮确认。"
+      ],
+      "note": "兑换通过 Solana 上的 Jupiter 完成。钱包会在签名前检查每一笔兑换，几秒钟即可完成。"
+    },
+    "buy-order": {
+      "title": "发布买单",
+      "steps": [
+        "在主页点击<b>兑换</b>（带双向箭头图标的圆形按钮）。",
+        "在大窗口中点击<b>下单</b>；在小窗口中点击<b>买入 / 卖出</b>标签。",
+        "选择<b>买入 ORN</b>，然后输入要买入的 ORN 数量和你将支付的 SOL 总额。",
+        "点击<b>使用 Touch ID 买入 ORN</b>。相应的 SOL 会立即从此钱包中预留出来。",
+        "卖家成交后，ORN 会自动到账，即使 Orien Wallet 已关闭也不受影响。如需取消，请在<b>你的订单与兑换</b>（小窗口中为<b>你的兑换</b>）下找到该订单并点击<b>取消</b>。"
       ]
     }
   },
@@ -2301,5 +2360,36 @@
   "once the buyer pays, usually within a minute. You need the ORN plus the Orien fee (0.1%, at most 1 ORN). If anything stops the swap, your ORN come back by themselves.": "买家付款后即到账，通常在 1 分钟内。你需要准备 ORN 以及 Orien 手续费（0.1%，最高 1 ORN）。如果兑换因故中断，你的 ORN 会自动退回。",
   "Swap SOL and USDC": "兑换 SOL 和 USDC",
   "Refresh Solana balances": "刷新 Solana 余额",
-  "Buy / Sell": "买入 / 卖出"
+  "Buy / Sell": "买入 / 卖出",
+  "Unlock Solana": "解锁 Solana",
+  "Unlock this wallet once to get its Solana address. Orien saves the public address on this device so you can check your SOL and USDC balances anytime.": "解锁此钱包一次即可获取其 Solana 地址。Orien 会将公开地址保存在此设备上，方便你随时查看 SOL 和 USDC 余额。",
+  "Unlock once to remember this wallet’s public Solana address.": "解锁一次，即可记住此钱包的公开 Solana 地址。",
+  "Solana assets": "Solana 资产",
+  "Solana address": "Solana 地址",
+  "Review swap": "查看兑换",
+  "Reverse swap direction": "反转兑换方向",
+  "Close swap": "关闭兑换",
+  "Estimated receive": "预计收到",
+  "Minimum received": "最少收到",
+  "Network fee": "网络手续费",
+  "USDC account deposit": "USDC 账户押金",
+  "Recipient’s USDC account deposit": "收款方 USDC 账户押金",
+  "Checking…": "检查中…",
+  "Submitting…": "正在提交…",
+  "Swap complete.": "兑换完成。",
+  "Swap confirmed.": "兑换已确认。",
+  "The swap failed. No exchange took place.": "兑换失败，未发生任何兑换。",
+  "The transaction expired before confirmation.": "交易在确认前已过期。",
+  "Your quote expired. Review the current rate to continue.": "报价已过期。请查看当前汇率后继续。",
+  "Enter your wallet password to approve the swap.": "输入你的钱包密码以批准此次兑换。",
+  "Unlock your wallet to continue.": "解锁你的钱包以继续。",
+  "Incorrect wallet password. Try again.": "钱包密码错误，请重试。",
+  "That password didn’t unlock this wallet.": "该密码无法解锁此钱包。",
+  "View in Explorer": "在浏览器中查看",
+  "View transaction ↗": "查看交易 ↗",
+  "Enter a Solana wallet address.": "输入 Solana 钱包地址。",
+  "Solana hasn’t acknowledged the submission. This screen will keep checking.": "Solana 尚未确认收到提交。此页面将继续检查。",
+  "Some Solana balances could not refresh.": "部分 Solana 余额无法刷新。",
+  "See all swaps": "查看全部兑换",
+  "Help with the wallet, mining, swaps and more.": "有关钱包、挖矿、兑换等的帮助。"
 }
