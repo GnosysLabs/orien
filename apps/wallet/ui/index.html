@@ -1741,7 +1741,7 @@
   @media (min-width: 860px) {
     body:not(.phone) #swaps > .ex-mobile-tabs { display: none; }
     body:not(.phone) .ex-grid { display: grid; grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr); gap: 20px; align-items: start; }
-    body:not(.phone) #swaps .ex-panel[data-ex-pane]:not(#ex-pane-ticket)[hidden] { display: flex !important; }
+    body:not(.phone) #swaps .ex-panel[data-ex-pane]:not(#ex-pane-ticket):not(#ex-pane-chart)[hidden] { display: flex !important; }
   }
   #swaps #board-offers { max-height: 360px; overflow-y: auto; overscroll-behavior: contain; }
   /* The column headings stay put while the book scrolls under them. */
