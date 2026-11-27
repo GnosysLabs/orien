@@ -5725,8 +5725,29 @@
 
   const SOL_PROGRAMS = {
     "2HnMh1nAs5cShirEhk726KjBiQr4sxxMNv2qapjdYKN9": "Buy order refund",
-    "DAeXj31NAoSgno7SiFX7t4tWoMDBtpN9rn8c2X7WNtYE": "Swap leftovers",
+    "DAeXj31NAoSgno7SiFX7t4tWoMDBtpN9rn8c2X7WNtYE": "ORN swap",
   };
+  // What a Solana payment was for: the swap or buy order it went to or came
+  // back from (each pays through its own one-time address), what a lock paid
+  // out for, or which of your own wallets it moved between.
+  function solActivityLabel(entry) {
+    let swaps = [];
+    try { swaps = [...solList, ...orderList]; } catch { /* not loaded yet */ }
+    const peer = entry.peer;
+    const same = (a, b) => a != null && b != null && Math.abs(parseFloat(String(a).replace(/,/g, "")) - parseFloat(String(b).replace(/,/g, ""))) < 1e-9;
+    const own = peer && swaps.find((s) => s.sol_address === peer);
+    if (own) {
+      if (own.funded_order) return entry.sent ? `Buy order for ${own.orn} ORN` : `Leftovers from buy order for ${own.orn} ORN`;
+      return entry.sent ? `Paid for ${own.orn} ORN` : `Leftovers from buying ${own.orn} ORN`;
+    }
+    if (SOL_PROGRAMS[peer] && !entry.sent) {
+      const sold = swaps.find((s) => s.role === "sell" && same(s.sol, entry.amount));
+      if (sold) return `Sold ${sold.orn} ORN`;
+      const refunded = peer.startsWith("2HnM") && swaps.find((s) => s.funded_order && s.role === "buy" && same(s.sol, entry.amount));
+      if (refunded) return `Refund of buy order for ${refunded.orn} ORN`;
+    }
+    return SOL_PROGRAMS[peer] || null;
+  }
   let lastHistoryHTML = "";
   function paintDevnetHistory() {
     const state = devnetAssets;
@@ -5746,14 +5767,15 @@
       }
       const direction = entry.sent ? "sent" : "received";
       const title = entry.pending === "send" ? "Sending" : entry.failed ? "Failed transaction" : entry.amount ? (entry.sent ? "Sent" : "Received") : "Solana transaction";
-      // Orien's own Solana programs, by what their payments are.
-      const subtitle = SOL_PROGRAMS[entry.peer] || entry.peer || entry.signature;
+      const label = solActivityLabel(entry);
+      const name = !label && entry.peer ? solNameOf(entry.peer) : "";
+      const subtitle = label || entry.peer || entry.signature;
       const icon = entry.amount ? ICON[direction] : '<img src="chains/solana.svg" width="16" height="16" alt="">';
       const amount = entry.amount ? `<span class="amt ${direction}">${entry.sent ? "−" : "+"}${esc(entry.amount)} ${esc(entry.asset)}</span>`
         : entry.pending === "send" ? "Pending" : entry.failed ? "" : entry.finalized ? "Finalized" : "Confirmed";
       return `<button type="button" class="tx" data-sol-tx="${esc(entry.signature)}">
         <span class="tx-icon ${entry.amount ? direction : ""}">${icon}</span>
-        <span class="tx-main"><span class="title">${title}</span>${SOL_PROGRAMS[entry.peer] ? `<span class="sub">${esc(subtitle)}</span>` : `<span class="sub" data-no-i18n>${esc(short(subtitle))}</span>`}</span>
+        <span class="tx-main"><span class="title">${title}</span>${label ? `<span class="sub">${esc(label)}</span>` : name ? `<span class="sub" data-no-i18n>${esc(name)}</span>` : `<span class="sub" data-no-i18n>${esc(short(subtitle))}</span>`}</span>
         <span class="tx-side">${amount}<span class="sub">${entry.time ? esc(relative(entry)) : ""}</span></span>
       </button>`;
     }).join("");
@@ -10414,6 +10436,7 @@
     try { orderList = await invoke("order_list"); } catch {}
     swapList = btc.concat(solList, orderList);
     renderSwaps();
+    if (walletAsset !== "ORN") paintDevnetHistory();
   }
 
   // After taking an offer: the swap it starts, once the seller accepts.
@@ -10587,6 +10610,7 @@
         solList = stepped.sol_swaps || [];
         orderList = stepped.funded_orders || [];
         swapList = stepped.swaps.concat(solList, orderList);
+        if (walletAsset !== "ORN") paintDevnetHistory();
         board.waiting = stepped.waiting || [];
         // An offer taken down because the wallet no longer holds its ORN.
         for (const w of stepped.withdrawn || []) tell(`Your swap offer of ${w.orn} ORN was withdrawn: the wallet no longer holds enough ORN. Nothing was paid.`, "swaps");

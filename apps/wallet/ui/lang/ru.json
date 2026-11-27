@@ -1125,6 +1125,30 @@
   "✓ Valid address": "✓ Корректный адрес",
   "_patterns": [
     [
+      "^Paid for ([0-9.,]+) ORN$",
+      "Оплата за {0} ORN"
+    ],
+    [
+      "^Leftovers from buying ([0-9.,]+) ORN$",
+      "Остаток от покупки {0} ORN"
+    ],
+    [
+      "^Buy order for ([0-9.,]+) ORN$",
+      "Ордер на покупку {0} ORN"
+    ],
+    [
+      "^Leftovers from buy order for ([0-9.,]+) ORN$",
+      "Остаток ордера на покупку {0} ORN"
+    ],
+    [
+      "^Sold ([0-9.,]+) ORN$",
+      "Продано {0} ORN"
+    ],
+    [
+      "^Refund of buy order for ([0-9.,]+) ORN$",
+      "Возврат ордера на покупку {0} ORN"
+    ],
+    [
       "^Nobody on Orien Network is called “(.+)”\\.$",
       "В Orien Network нет пользователя с именем «{0}»."
     ],
@@ -2396,5 +2420,6 @@
   "Some Solana balances could not refresh.": "Не удалось обновить некоторые балансы Solana.",
   "See all swaps": "Все обмены",
   "Help with the wallet, mining, swaps and more.": "Помощь с кошельком, майнингом, обменами и не только.",
-  "Nothing found. Search an address (64 letters and digits, 0-9 and a-f), a checkpoint number, or the name of someone on Orien Network.": "Ничего не найдено. Ищите по адресу (64 символа: 0-9 и a-f), номеру контрольной точки или имени пользователя в Orien Network."
+  "Nothing found. Search an address (64 letters and digits, 0-9 and a-f), a checkpoint number, or the name of someone on Orien Network.": "Ничего не найдено. Ищите по адресу (64 символа: 0-9 и a-f), номеру контрольной точки или имени пользователя в Orien Network.",
+  "ORN swap": "Обмен ORN"
 }

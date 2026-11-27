@@ -1125,6 +1125,30 @@
   "replied to the network's post about you": "あなたに関するネットワーク投稿に返信しました",
   "_patterns": [
     [
+      "^Paid for ([0-9.,]+) ORN$",
+      "{0} ORNの支払い"
+    ],
+    [
+      "^Leftovers from buying ([0-9.,]+) ORN$",
+      "{0} ORN購入の残り"
+    ],
+    [
+      "^Buy order for ([0-9.,]+) ORN$",
+      "{0} ORNの買い注文"
+    ],
+    [
+      "^Leftovers from buy order for ([0-9.,]+) ORN$",
+      "{0} ORNの買い注文の残り"
+    ],
+    [
+      "^Sold ([0-9.,]+) ORN$",
+      "{0} ORNを売却"
+    ],
+    [
+      "^Refund of buy order for ([0-9.,]+) ORN$",
+      "{0} ORNの買い注文の返金"
+    ],
+    [
       "^Nobody on Orien Network is called “(.+)”\\.$",
       "Orien Network に「{0}」というユーザーはいません。"
     ],
@@ -2396,5 +2420,6 @@
   "Some Solana balances could not refresh.": "一部の Solana 残高を更新できませんでした。",
   "See all swaps": "すべてのスワップを見る",
   "Help with the wallet, mining, swaps and more.": "ウォレット、マイニング、スワップなどのヘルプ。",
-  "Nothing found. Search an address (64 letters and digits, 0-9 and a-f), a checkpoint number, or the name of someone on Orien Network.": "見つかりませんでした。アドレス（0-9 と a-f の64文字）、チェックポイント番号、または Orien Network 上のユーザー名で検索してください。"
+  "Nothing found. Search an address (64 letters and digits, 0-9 and a-f), a checkpoint number, or the name of someone on Orien Network.": "見つかりませんでした。アドレス（0-9 と a-f の64文字）、チェックポイント番号、または Orien Network 上のユーザー名で検索してください。",
+  "ORN swap": "ORNスワップ"
 }

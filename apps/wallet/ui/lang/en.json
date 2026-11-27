@@ -1486,5 +1486,6 @@
   "once the buyer pays, usually within a minute. You need the ORN plus the Orien fee (0.1%, at most 1 ORN). If anything stops the swap, your ORN come back by themselves.": "once the buyer pays, usually within a minute. You need the ORN plus the Orien fee (0.1%, at most 1 ORN). If anything stops the swap, your ORN come back by themselves.",
   "Swap SOL and USDC": "Swap SOL and USDC",
   "Refresh Solana balances": "Refresh Solana balances",
-  "Buy / Sell": "Buy / Sell"
+  "Buy / Sell": "Buy / Sell",
+  "ORN swap": "ORN swap"
 }

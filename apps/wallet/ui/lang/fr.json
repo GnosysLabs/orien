@@ -1125,6 +1125,30 @@
   "replied to the network's post about you": "a répondu à la publication du réseau à votre sujet",
   "_patterns": [
     [
+      "^Paid for ([0-9.,]+) ORN$",
+      "Paiement pour {0} ORN"
+    ],
+    [
+      "^Leftovers from buying ([0-9.,]+) ORN$",
+      "Reste de l’achat de {0} ORN"
+    ],
+    [
+      "^Buy order for ([0-9.,]+) ORN$",
+      "Ordre d’achat de {0} ORN"
+    ],
+    [
+      "^Leftovers from buy order for ([0-9.,]+) ORN$",
+      "Reste de l’ordre d’achat de {0} ORN"
+    ],
+    [
+      "^Sold ([0-9.,]+) ORN$",
+      "{0} ORN vendus"
+    ],
+    [
+      "^Refund of buy order for ([0-9.,]+) ORN$",
+      "Remboursement de l’ordre d’achat de {0} ORN"
+    ],
+    [
       "^Nobody on Orien Network is called “(.+)”\\.$",
       "Personne sur Orien Network ne s'appelle « {0} »."
     ],
@@ -2396,5 +2420,6 @@
   "Some Solana balances could not refresh.": "Certains soldes Solana n’ont pas pu être actualisés.",
   "See all swaps": "Voir tous les échanges",
   "Help with the wallet, mining, swaps and more.": "Aide sur le portefeuille, le minage, les échanges et plus encore.",
-  "Nothing found. Search an address (64 letters and digits, 0-9 and a-f), a checkpoint number, or the name of someone on Orien Network.": "Aucun résultat. Recherchez une adresse (64 lettres et chiffres, 0-9 et a-f), un numéro de point de contrôle ou le nom d'une personne sur Orien Network."
+  "Nothing found. Search an address (64 letters and digits, 0-9 and a-f), a checkpoint number, or the name of someone on Orien Network.": "Aucun résultat. Recherchez une adresse (64 lettres et chiffres, 0-9 et a-f), un numéro de point de contrôle ou le nom d'une personne sur Orien Network.",
+  "ORN swap": "Échange d’ORN"
 }

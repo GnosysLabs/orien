@@ -1125,6 +1125,30 @@
   "✓ Valid address": "✓ Alamat valid",
   "_patterns": [
     [
+      "^Paid for ([0-9.,]+) ORN$",
+      "Bayar untuk {0} ORN"
+    ],
+    [
+      "^Leftovers from buying ([0-9.,]+) ORN$",
+      "Sisa pembelian {0} ORN"
+    ],
+    [
+      "^Buy order for ([0-9.,]+) ORN$",
+      "Order beli {0} ORN"
+    ],
+    [
+      "^Leftovers from buy order for ([0-9.,]+) ORN$",
+      "Sisa order beli {0} ORN"
+    ],
+    [
+      "^Sold ([0-9.,]+) ORN$",
+      "Menjual {0} ORN"
+    ],
+    [
+      "^Refund of buy order for ([0-9.,]+) ORN$",
+      "Pengembalian order beli {0} ORN"
+    ],
+    [
       "^Nobody on Orien Network is called “(.+)”\\.$",
       "Tidak ada seorang pun di Orien Network yang bernama “{0}”."
     ],
@@ -2396,5 +2420,6 @@
   "Some Solana balances could not refresh.": "Beberapa saldo Solana tidak dapat dimuat ulang.",
   "See all swaps": "Lihat semua penukaran",
   "Help with the wallet, mining, swaps and more.": "Bantuan untuk dompet, penambangan, penukaran, dan lainnya.",
-  "Nothing found. Search an address (64 letters and digits, 0-9 and a-f), a checkpoint number, or the name of someone on Orien Network.": "Tidak ada yang ditemukan. Cari alamat (64 huruf dan angka, 0-9 dan a-f), nomor checkpoint, atau nama seseorang di Orien Network."
+  "Nothing found. Search an address (64 letters and digits, 0-9 and a-f), a checkpoint number, or the name of someone on Orien Network.": "Tidak ada yang ditemukan. Cari alamat (64 huruf dan angka, 0-9 dan a-f), nomor checkpoint, atau nama seseorang di Orien Network.",
+  "ORN swap": "Tukar ORN"
 }

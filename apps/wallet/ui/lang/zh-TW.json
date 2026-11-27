@@ -1125,6 +1125,30 @@
   "replied to the network's post about you": "回覆了關於你的網路動態",
   "_patterns": [
     [
+      "^Paid for ([0-9.,]+) ORN$",
+      "支付 {0} ORN"
+    ],
+    [
+      "^Leftovers from buying ([0-9.,]+) ORN$",
+      "購買 {0} ORN 的餘款"
+    ],
+    [
+      "^Buy order for ([0-9.,]+) ORN$",
+      "{0} ORN 的買單"
+    ],
+    [
+      "^Leftovers from buy order for ([0-9.,]+) ORN$",
+      "{0} ORN 買單的餘款"
+    ],
+    [
+      "^Sold ([0-9.,]+) ORN$",
+      "已賣出 {0} ORN"
+    ],
+    [
+      "^Refund of buy order for ([0-9.,]+) ORN$",
+      "{0} ORN 買單退款"
+    ],
+    [
       "^Nobody on Orien Network is called “(.+)”\\.$",
       "Orien Network 上沒有名為「{0}」的使用者。"
     ],
@@ -2396,5 +2420,6 @@
   "Some Solana balances could not refresh.": "部分 Solana 餘額無法重新整理。",
   "See all swaps": "檢視全部兌換",
   "Help with the wallet, mining, swaps and more.": "有關錢包、挖礦、兌換等的幫助。",
-  "Nothing found. Search an address (64 letters and digits, 0-9 and a-f), a checkpoint number, or the name of someone on Orien Network.": "未找到結果。請搜尋地址（64 位字母和數字，0-9 及 a-f）、檢查點編號或 Orien Network 上的使用者名稱。"
+  "Nothing found. Search an address (64 letters and digits, 0-9 and a-f), a checkpoint number, or the name of someone on Orien Network.": "未找到結果。請搜尋地址（64 位字母和數字，0-9 及 a-f）、檢查點編號或 Orien Network 上的使用者名稱。",
+  "ORN swap": "ORN 兌換"
 }

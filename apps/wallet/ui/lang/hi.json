@@ -1125,6 +1125,30 @@
   "✓ Valid address": "✓ मान्य पता",
   "_patterns": [
     [
+      "^Paid for ([0-9.,]+) ORN$",
+      "{0} ORN के लिए भुगतान"
+    ],
+    [
+      "^Leftovers from buying ([0-9.,]+) ORN$",
+      "{0} ORN खरीदने से बचा हुआ"
+    ],
+    [
+      "^Buy order for ([0-9.,]+) ORN$",
+      "{0} ORN का खरीद ऑर्डर"
+    ],
+    [
+      "^Leftovers from buy order for ([0-9.,]+) ORN$",
+      "{0} ORN के खरीद ऑर्डर से बचा हुआ"
+    ],
+    [
+      "^Sold ([0-9.,]+) ORN$",
+      "{0} ORN बेचे"
+    ],
+    [
+      "^Refund of buy order for ([0-9.,]+) ORN$",
+      "{0} ORN के खरीद ऑर्डर का रिफ़ंड"
+    ],
+    [
       "^Nobody on Orien Network is called “(.+)”\\.$",
       "Orien Network पर “{0}” नाम का कोई नहीं है।"
     ],
@@ -2396,5 +2420,6 @@
   "Some Solana balances could not refresh.": "कुछ Solana बैलेंस रीफ़्रेश नहीं हो सके।",
   "See all swaps": "सभी स्वैप देखें",
   "Help with the wallet, mining, swaps and more.": "वॉलेट, माइनिंग, स्वैप और बहुत कुछ के लिए सहायता।",
-  "Nothing found. Search an address (64 letters and digits, 0-9 and a-f), a checkpoint number, or the name of someone on Orien Network.": "कुछ नहीं मिला। कोई पता (64 अक्षर और अंक, 0-9 और a-f), चेकपॉइंट संख्या, या Orien Network पर किसी का नाम खोजें।"
+  "Nothing found. Search an address (64 letters and digits, 0-9 and a-f), a checkpoint number, or the name of someone on Orien Network.": "कुछ नहीं मिला। कोई पता (64 अक्षर और अंक, 0-9 और a-f), चेकपॉइंट संख्या, या Orien Network पर किसी का नाम खोजें।",
+  "ORN swap": "ORN स्वैप"
 }

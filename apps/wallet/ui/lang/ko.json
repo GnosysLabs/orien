@@ -1125,6 +1125,30 @@
   "replied to the network's post about you": "회원님에 대한 네트워크 게시물에 답글을 남겼습니다",
   "_patterns": [
     [
+      "^Paid for ([0-9.,]+) ORN$",
+      "{0} ORN 결제"
+    ],
+    [
+      "^Leftovers from buying ([0-9.,]+) ORN$",
+      "{0} ORN 구매 후 남은 금액"
+    ],
+    [
+      "^Buy order for ([0-9.,]+) ORN$",
+      "{0} ORN 매수 주문"
+    ],
+    [
+      "^Leftovers from buy order for ([0-9.,]+) ORN$",
+      "{0} ORN 매수 주문 후 남은 금액"
+    ],
+    [
+      "^Sold ([0-9.,]+) ORN$",
+      "{0} ORN 판매"
+    ],
+    [
+      "^Refund of buy order for ([0-9.,]+) ORN$",
+      "{0} ORN 매수 주문 환불"
+    ],
+    [
       "^Nobody on Orien Network is called “(.+)”\\.$",
       "Orien Network에 “{0}”이라는 사용자가 없습니다."
     ],
@@ -2396,5 +2420,6 @@
   "Some Solana balances could not refresh.": "일부 Solana 잔액을 새로고침하지 못했습니다.",
   "See all swaps": "모든 스왑 보기",
   "Help with the wallet, mining, swaps and more.": "지갑, 채굴, 스왑 등에 관한 도움말.",
-  "Nothing found. Search an address (64 letters and digits, 0-9 and a-f), a checkpoint number, or the name of someone on Orien Network.": "검색 결과가 없습니다. 주소(0-9, a-f로 이루어진 64자), 체크포인트 번호 또는 Orien Network 사용자 이름을 검색해 보세요."
+  "Nothing found. Search an address (64 letters and digits, 0-9 and a-f), a checkpoint number, or the name of someone on Orien Network.": "검색 결과가 없습니다. 주소(0-9, a-f로 이루어진 64자), 체크포인트 번호 또는 Orien Network 사용자 이름을 검색해 보세요.",
+  "ORN swap": "ORN 스왑"
 }

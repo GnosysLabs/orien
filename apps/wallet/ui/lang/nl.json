@@ -1125,6 +1125,30 @@
   "✓ Valid address": "✓ Geldig adres",
   "_patterns": [
     [
+      "^Paid for ([0-9.,]+) ORN$",
+      "Betaald voor {0} ORN"
+    ],
+    [
+      "^Leftovers from buying ([0-9.,]+) ORN$",
+      "Restant van aankoop van {0} ORN"
+    ],
+    [
+      "^Buy order for ([0-9.,]+) ORN$",
+      "Kooporder voor {0} ORN"
+    ],
+    [
+      "^Leftovers from buy order for ([0-9.,]+) ORN$",
+      "Restant van kooporder voor {0} ORN"
+    ],
+    [
+      "^Sold ([0-9.,]+) ORN$",
+      "{0} ORN verkocht"
+    ],
+    [
+      "^Refund of buy order for ([0-9.,]+) ORN$",
+      "Terugbetaling van kooporder voor {0} ORN"
+    ],
+    [
       "^Nobody on Orien Network is called “(.+)”\\.$",
       "Niemand op Orien Network heet “{0}”."
     ],
@@ -2396,5 +2420,6 @@
   "Some Solana balances could not refresh.": "Sommige Solana-saldi konden niet worden vernieuwd.",
   "See all swaps": "Alle ruiltransacties bekijken",
   "Help with the wallet, mining, swaps and more.": "Hulp bij de wallet, minen, ruilen en meer.",
-  "Nothing found. Search an address (64 letters and digits, 0-9 and a-f), a checkpoint number, or the name of someone on Orien Network.": "Niets gevonden. Zoek een adres (64 letters en cijfers, 0-9 en a-f), een checkpointnummer of de naam van iemand op Orien Network."
+  "Nothing found. Search an address (64 letters and digits, 0-9 and a-f), a checkpoint number, or the name of someone on Orien Network.": "Niets gevonden. Zoek een adres (64 letters en cijfers, 0-9 en a-f), een checkpointnummer of de naam van iemand op Orien Network.",
+  "ORN swap": "ORN-swap"
 }

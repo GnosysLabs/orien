@@ -128,6 +128,9 @@ pub struct View {
     pub orn: String,
     pub sol: String,
     pub pay_to: Option<String>,
+    /// The swap's one-time Solana address, kept after paying too, so the
+    /// wallet's Solana activity can say which swap a payment was for.
+    pub sol_address: Option<String>,
     /// Buyer: where refunds go, and so the wallet that pays.
     pub refund: Option<String>,
     pub pay_amount: Option<String>,
@@ -825,6 +828,7 @@ pub fn view(o: &KeptOrder) -> View {
         pay_amount: paying.then(|| show_sol(o.to_pay)),
         arrived: (paying && o.arrived > 0).then(|| show_sol(o.arrived)),
         pay_to,
+        sol_address: o.pay_address(),
         refund: (o.role == OrderRole::Buyer).then(|| o.buyer_sol.clone()),
         pay_link,
         paid: o.role == OrderRole::Buyer && !paying && !matches!(o.stage, OrderStage::Cancelled { .. }),
