@@ -5469,6 +5469,8 @@
   const SWAP_POPS = ["board-post", "board-take", "swap-posted", "swap-detail"];
   // Big windows: Sign in floats over the page it was opened from.
   let lastBase = "home";
+  // The screen Sign in was opened from: its Back goes there.
+  let signinBack = "home";
   // Big windows: adding a wallet from Wallets is one card over Wallets, all
   // its steps (first-time setup, with no Wallets behind it, stays as pages).
   const ADD_FLOW = ["wallet-add-choose", "wallet-add", "restore", "phrase", "password", "pair-invite"];
@@ -5486,6 +5488,7 @@
     }
     if (leaveStore && id !== "theme-store") leaveStore();
     if (markShown) { markShown(); markShown = null; }
+    if (id === "board-signin" && lastBase !== "board-signin") signinBack = lastBase;
     const signinPop = !handset && wide.matches && id === "board-signin";
     if (!ADD_FLOW.includes(id)) addFlow = false;
     const addPop = addFlow && !handset && wide.matches;
@@ -8570,7 +8573,7 @@
       openReferrals();
       return;
     }
-    if (!$("board-signin").hidden) show(lastBase); else if (!$("send").hidden && (sendFrom === "seller" || sendFrom === "explorer")) { const back = sendFrom; sendFrom = "home"; show(back); } else if (SWAP_POPS.some((id) => !$(id).hidden)) show("swaps"); else home(); };
+    if (!$("board-signin").hidden) show(signinBack); else if (!$("send").hidden && (sendFrom === "seller" || sendFrom === "explorer")) { const back = sendFrom; sendFrom = "home"; show(back); } else if (SWAP_POPS.some((id) => !$(id).hidden)) show("swaps"); else home(); };
   // Smaller windows, where Send is a page of its own: its Back does the same.
   document.querySelector("#send [data-back]").onclick = closePop;
   $("pop-shade").onclick = closePop;
@@ -14845,7 +14848,7 @@
   for (const b of document.querySelectorAll("[data-to]")) b.onclick = () => b.dataset.to === "wallets" ? showWallets() : show(b.dataset.to);
   document.querySelector("#board-signin .back").onclick = () => {
     if (signinReturn === "referrals") { signinReturn = "swaps"; openReferrals(); }
-    else show("swaps");
+    else show(signinBack);
   };
 
   $("go-get").onclick = () => show("get");
