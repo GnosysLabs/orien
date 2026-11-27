@@ -5378,7 +5378,9 @@
   const wide = window.matchMedia("(min-width: 860px)");
   // Big windows: posting and taking an offer float over Swaps, with what
   // follows each (posted, waiting for the seller) in the same card.
-  const SWAP_POPS = ["board-post", "board-take", "swap-waiting", "swap-posted"];
+  // Waiting for the other side is a page of its own, as the swap it turns
+  // into is: no pop-up first, then a page.
+  const SWAP_POPS = ["board-post", "board-take", "swap-posted"];
   // Big windows: Sign in floats over the page it was opened from.
   let lastBase = "home";
   // Big windows: adding a wallet from Wallets is one card over Wallets, all
