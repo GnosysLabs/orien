@@ -43,8 +43,10 @@ struct Brain {
     /// What the bot knows, written by build-knowledge.py.
     #[arg(long)]
     knowledge: PathBuf,
-    /// The model that answers, by its OpenRouter name.
-    #[arg(long, default_value = "anthropic/claude-haiku-5.5")]
+    /// The model that answers, by its OpenRouter name. Gemini 3.8 Flash since
+    /// 2026-11-27: answers as right as Haiku's and a little more helpful, at
+    /// about the same cost on a quiet server (0.5 to 0.7 cents each).
+    #[arg(long, default_value = "google/gemini-3.8-flash")]
     model: String,
     /// The model that writes announcements.
     #[arg(long, default_value = "anthropic/claude-sonnet-5.5")]

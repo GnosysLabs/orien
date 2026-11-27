@@ -268,9 +268,10 @@ impl Expert {
         messages.extend(turns.iter().map(|turn| json!({ "role": turn.role, "content": turn.content })));
         let body = json!({
             "model": self.model,
-            "max_tokens": 900,
+            // Room for brief thinking and the answer: Gemini always thinks.
+            "max_tokens": 2500,
             "temperature": 0.2,
-            "reasoning": { "enabled": false },
+            "reasoning": { "effort": "low" },
             "messages": messages,
         });
         let reply = self.send(&body).await?;
@@ -293,11 +294,11 @@ impl Expert {
         let body = json!({
             "model": self.model,
             "stream": true,
-            "max_tokens": 900,
+            // Brief thinking only, with room left for the answer: Gemini
+            // always thinks, and thinking counts against max_tokens.
+            "max_tokens": 2500,
             "temperature": 0.2,
-            // A short answer needs no extended thinking, which could use up
-            // the reply's room and leave nothing to show.
-            "reasoning": { "enabled": false },
+            "reasoning": { "effort": "low" },
             "messages": messages,
         });
         let response = self
