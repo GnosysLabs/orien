@@ -21,6 +21,7 @@ pub mod pair;
 pub mod prices;
 pub mod proofs;
 mod sol_profile;
+pub mod solana_relay;
 pub mod push;
 mod referrals;
 pub mod room;

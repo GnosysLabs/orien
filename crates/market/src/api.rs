@@ -70,6 +70,8 @@ pub struct App {
     /// The KLIPY key the apps search GIFs with, from the user's own
     /// device as KLIPY requires; empty when GIFs are off.
     klipy_key: String,
+    /// Where the wallet's Solana requests go, with its key: never shown.
+    solana_relay: Option<String>,
     /// Problems told to the founder in Discord's #network-alerts.
     alerts: crate::alerts::Alerts,
     /// Where Orien AI Support is answered: the Discord bot's expert, such
@@ -132,6 +134,7 @@ impl App {
             spendable: Mutex::new(HashMap::new()),
             asking: Mutex::new(HashSet::new()),
             klipy_key: String::new(),
+            solana_relay: None,
             alerts: crate::alerts::Alerts::default(),
             support: None,
             order_chain: None,
@@ -196,6 +199,15 @@ impl App {
     pub fn with_klipy_key(mut self, key: String) -> App {
         self.klipy_key = key;
         self
+    }
+
+    pub fn with_solana_relay(mut self, upstream: Option<String>) -> App {
+        self.solana_relay = upstream.filter(|url| !url.is_empty());
+        self
+    }
+
+    pub(crate) fn solana_relay(&self) -> Option<&str> {
+        self.solana_relay.as_deref()
     }
 
     pub(crate) fn klipy_key(&self) -> &str {
@@ -516,6 +528,7 @@ pub fn router(app: Arc<App>) -> Router {
         .merge(crate::app_reports::routes())
         .merge(crate::themes::routes())
         .merge(crate::support::routes())
+        .merge(crate::solana_relay::routes())
         .route("/api/explorer/overview", get(crate::explorer::overview))
         .route("/api/explorer/checkpoints", get(crate::explorer::checkpoints))
         .route("/api/explorer/checkpoints/{epoch}", get(crate::explorer::checkpoint))
