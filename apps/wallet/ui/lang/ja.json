@@ -2423,10 +2423,10 @@
   "Nothing found. Search an address (64 letters and digits, 0-9 and a-f), a checkpoint number, or the name of someone on Orien Network.": "見つかりませんでした。アドレス（0-9 と a-f の64文字）、チェックポイント番号、または Orien Network 上のユーザー名で検索してください。",
   "ORN swap": "ORNスワップ",
   "Recent": "最近",
-  "History": "履歴",
   "Open buys": "未約定の買い",
   "Open sells": "未約定の売り",
   "No finished swaps yet": "完了したスワップはまだありません",
   "No open buy orders": "未約定の買い注文はありません",
-  "No open sell orders": "未約定の売り注文はありません"
+  "No open sell orders": "未約定の売り注文はありません",
+  "Your history": "自分の履歴"
 }

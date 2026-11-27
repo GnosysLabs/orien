@@ -2423,10 +2423,10 @@
   "Nothing found. Search an address (64 letters and digits, 0-9 and a-f), a checkpoint number, or the name of someone on Orien Network.": "कुछ नहीं मिला। कोई पता (64 अक्षर और अंक, 0-9 और a-f), चेकपॉइंट संख्या, या Orien Network पर किसी का नाम खोजें।",
   "ORN swap": "ORN स्वैप",
   "Recent": "हाल के",
-  "History": "इतिहास",
   "Open buys": "खुली खरीद",
   "Open sells": "खुली बिक्री",
   "No finished swaps yet": "अभी तक कोई पूरा स्वैप नहीं",
   "No open buy orders": "कोई खुला खरीद ऑर्डर नहीं",
-  "No open sell orders": "कोई खुला बिक्री ऑर्डर नहीं"
+  "No open sell orders": "कोई खुला बिक्री ऑर्डर नहीं",
+  "Your history": "आपका इतिहास"
 }

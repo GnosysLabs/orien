@@ -2423,10 +2423,10 @@
   "Nothing found. Search an address (64 letters and digits, 0-9 and a-f), a checkpoint number, or the name of someone on Orien Network.": "Niets gevonden. Zoek een adres (64 letters en cijfers, 0-9 en a-f), een checkpointnummer of de naam van iemand op Orien Network.",
   "ORN swap": "ORN-swap",
   "Recent": "Recent",
-  "History": "Geschiedenis",
   "Open buys": "Open aankopen",
   "Open sells": "Open verkopen",
   "No finished swaps yet": "Nog geen afgeronde swaps",
   "No open buy orders": "Geen open kooporders",
-  "No open sell orders": "Geen open verkooporders"
+  "No open sell orders": "Geen open verkooporders",
+  "Your history": "Jouw geschiedenis"
 }

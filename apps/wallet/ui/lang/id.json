@@ -2423,10 +2423,10 @@
   "Nothing found. Search an address (64 letters and digits, 0-9 and a-f), a checkpoint number, or the name of someone on Orien Network.": "Tidak ada yang ditemukan. Cari alamat (64 huruf dan angka, 0-9 dan a-f), nomor checkpoint, atau nama seseorang di Orien Network.",
   "ORN swap": "Tukar ORN",
   "Recent": "Terbaru",
-  "History": "Riwayat",
   "Open buys": "Beli terbuka",
   "Open sells": "Jual terbuka",
   "No finished swaps yet": "Belum ada tukar yang selesai",
   "No open buy orders": "Tidak ada order beli terbuka",
-  "No open sell orders": "Tidak ada order jual terbuka"
+  "No open sell orders": "Tidak ada order jual terbuka",
+  "Your history": "Riwayat kamu"
 }

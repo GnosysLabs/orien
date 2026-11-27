@@ -2423,10 +2423,10 @@
   "Nothing found. Search an address (64 letters and digits, 0-9 and a-f), a checkpoint number, or the name of someone on Orien Network.": "未找到結果。請搜尋地址（64 位字母和數字，0-9 及 a-f）、檢查點編號或 Orien Network 上的使用者名稱。",
   "ORN swap": "ORN 兌換",
   "Recent": "最近",
-  "History": "歷史",
   "Open buys": "未成交買單",
   "Open sells": "未成交賣單",
   "No finished swaps yet": "還沒有已完成的兌換",
   "No open buy orders": "沒有未成交的買單",
-  "No open sell orders": "沒有未成交的賣單"
+  "No open sell orders": "沒有未成交的賣單",
+  "Your history": "你的歷史"
 }
