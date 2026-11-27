@@ -5486,7 +5486,7 @@
   let lastBalance = null;
   let walletAsset = "ORN";
   const DEVNET_REFRESH_MS = 30_000;
-  const newDevnetAssets = () => ({ lastCheck: 0, pending: false, locked: false, address: null, balances: null, history: null, historyBusy: false, historyError: false, stale: false, error: "", receive: null });
+  const newDevnetAssets = () => ({ lastCheck: 0, pending: false, locked: false, address: null, balances: null, history: null, trackedSwaps: new Map(), historyBusy: false, historyError: false, stale: false, error: "", receive: null });
   let devnetAssets = newDevnetAssets();
   const assetButtons = document.querySelectorAll("[data-wallet-asset]");
   const solanaAssetButtons = document.querySelectorAll("[data-solana-asset]");
@@ -5536,7 +5536,19 @@
   function paintDevnetHistory() {
     const state = devnetAssets;
     const history = state.history;
-    const rows = (history?.rows || []).map((entry) => {
+    const tracked = state.trackedSwaps;
+    const indexed = history?.rows || [];
+    const combined = [...tracked.values(), ...indexed.filter(row => !tracked.has(row.signature))];
+    const rows = combined.sort((a, b) => (b.time || 0) - (a.time || 0)).slice(0, 8).map((entry) => {
+      if (entry.received || entry.pendingSwap) {
+        const amounts = entry.received
+          ? `<span class="amt received">+${esc(entry.received)}</span><span class="amt sent">−${esc(entry.amount)} ${esc(entry.asset)}</span>`
+          : '<span class="sub">Pending</span>';
+        return `<button type="button" class="tx" data-sol-tx="${esc(entry.signature)}">
+          <span class="tx-icon">${ICON.swap}</span>
+          <span class="tx-main"><span class="title">Swap</span><span class="sub">Raydium${entry.time ? " · " + esc(relative(entry)) : ""}</span></span>
+          <span class="tx-side">${amounts}</span></button>`;
+      }
       const direction = entry.sent ? "sent" : "received";
       const title = entry.failed ? "Failed transaction" : entry.amount ? (entry.sent ? "Sent" : "Received") : "Solana transaction";
       const subtitle = entry.peer || entry.signature;
@@ -5572,9 +5584,12 @@
         const previous = new Map(state.history.rows.map((row) => [row.signature, row]));
         for (const row of result.rows) {
           const old = previous.get(row.signature);
-          if (!row.asset && !row.failed && old?.asset) Object.assign(row, { asset: old.asset, amount: old.amount, peer: old.peer, sent: old.sent });
+          if (!row.asset && !row.failed && old?.asset) Object.assign(row, { asset: old.asset, amount: old.amount, peer: old.peer, sent: old.sent, received: old.received });
         }
         if (!result.rows.length) result.rows = state.history.rows;
+      }
+      for (const row of result.rows) {
+        if (row.received || row.failed) state.trackedSwaps.delete(row.signature);
       }
       state.history = result;
       state.historyError = false;
@@ -5583,6 +5598,38 @@
     } finally {
       state.historyBusy = false;
       if (state === devnetAssets && walletAsset !== "ORN") paintDevnetHistory();
+    }
+  }
+
+  // A submitted signature can be read before it appears in the address index.
+  // Track it with its wallet so closing the dialog does not interrupt activity.
+  async function trackSwapActivity(state, owner, receipt) {
+    const signature = receipt.signature;
+    if (state !== devnetAssets || !state.address || state.trackedSwaps.has(signature)
+        || state.history?.rows.some(row => row.signature === signature && (row.received || row.failed))) return;
+    const started = Date.now();
+    state.trackedSwaps.set(signature, { signature, time: Math.floor(started / 1000), pendingSwap: true });
+    if (walletAsset !== "ORN") paintDevnetHistory();
+    while (state === devnetAssets && state.trackedSwaps.get(signature)?.pendingSwap) {
+      try {
+        const row = await invoke("solana_devnet_swap_activity", { address: state.address, signature });
+        if (state !== devnetAssets || !state.trackedSwaps.has(signature)) return;
+        if (row?.received || row?.failed) {
+          state.trackedSwaps.set(signature, row);
+          if (walletAsset !== "ORN") paintDevnetHistory();
+          void loadDevnetAssets();
+          return;
+        }
+        if (Date.now() - started > 90_000) {
+          const status = await invoke("devnet_swap_status", {walletAddress: owner});
+          if (status?.signature !== signature || status.state === "expired") {
+            state.trackedSwaps.delete(signature);
+            if (state === devnetAssets && walletAsset !== "ORN") paintDevnetHistory();
+            return;
+          }
+        }
+      } catch { /* Keep the submitted swap visible until the network answers. */ }
+      await new Promise(resolve => setTimeout(resolve, Date.now() - started < 30_000 ? 1800 : 8000));
     }
   }
 
@@ -5757,7 +5804,9 @@
       } else {
         if (view.biometric && !password) await invoke("biometric_unlock");
         if (!swapActive(s)) return;
+        const activityState = devnetAssets;
         const receipt = await invoke("devnet_swap_approve", {walletAddress: s.owner, quoteId: s.quote.id, password: password || null});
+        void trackSwapActivity(activityState, s.owner, receipt);
         if (swapActive(s)) showSwapReceipt(s, receipt);
       }
     } catch (error) {
@@ -8761,6 +8810,7 @@
   // ---- Activity ----
   let entries = [];
   const ICON = {
+    swap: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m8 3-4 4 4 4M4 7h16m-4 14 4-4-4-4M20 17H4"/></svg>',
     sent: '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 7h10v10"/><path d="M7 17 17 7"/></svg>',
     received: '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 7 7 17"/><path d="M17 17H7V7"/></svg>',
   };

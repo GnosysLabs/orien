@@ -5,10 +5,10 @@ use bitcoin::hashes::{Hash, sha256};
 
 pub const USDC: &str = "4zMMC9srt5Ri5X14GAgXhaHii3GnPAEERYPJgZJDncDU";
 pub const POOL: &str = "FeRts7d5DfXKXq1hGMkeiGEHayDdjsmSyJ41rHVcKo8t";
-const WRAPPED_SOL: &str = "So11111111111111111111111111111111111111112";
-const TOKEN: &str = "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA";
+pub(super) const WRAPPED_SOL: &str = "So11111111111111111111111111111111111111112";
+pub(super) const TOKEN: &str = "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA";
 const ASSOCIATED: &str = "ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL";
-const PROGRAM: &str = "DRaycpLY18LhpbydsBWbVJtxpNv9oXPgjRSfpF2bWpYb";
+pub(super) const PROGRAM: &str = "DRaycpLY18LhpbydsBWbVJtxpNv9oXPgjRSfpF2bWpYb";
 const AUTHORITY: &str = "CXniRufdq5xL8t8jZAPxsPZDpuudwuJSPWnbcD5Y5Nxq";
 const CONFIG: &str = "5Gt9qrPJ6FVe9VHtwF2W2JrFR6p9jmx4DxBkgfPdaApk";
 const OBSERVATION: &str = "349AquiFdZDhnMNUNHepximG5JDsyskb5TKkifmMajYe";

@@ -1,5 +1,5 @@
 //! Recent transactions mentioning the owner or one of their accounts for the selected mint.
-use super::{FRESH, Pubkey, Rpc, SYSTEM_PROGRAM, Solana, text};
+use super::{FRESH, Pubkey, Rpc, SYSTEM_PROGRAM, Solana, devnet_pool, text};
 use anyhow::{Result, anyhow};
 use serde::Deserialize;
 use serde_json::{Value, json};
@@ -30,6 +30,7 @@ pub struct HistoryEntry {
 pub enum Movement {
     Sol { units: i128, peer: String },
     Token { units: i128 },
+    PoolSwap { sol: i128, token: i128 },
 }
 
 pub struct History {
@@ -38,6 +39,39 @@ pub struct History {
 }
 
 impl Solana {
+    /// Read a submitted swap directly while the address history is being indexed.
+    pub fn confirmed_swap(&self, owner: &Pubkey, signature: &str) -> Result<Option<HistoryEntry>> {
+        anyhow::ensure!(
+            signature.len() <= 88 && bs58::decode(signature).into_vec()?.len() == 64,
+            "Invalid transaction signature"
+        );
+        let response =
+            self.answers(|rpc| rpc.call("getTransaction", transaction_params(signature), None))?;
+        let tx = &response[0];
+        if !tx["meta"].is_object() {
+            return Ok(None);
+        }
+        let owner = text(owner);
+        let payer = &tx["transaction"]["message"]["accountKeys"][0]["pubkey"];
+        anyhow::ensure!(
+            payer.as_str() == Some(&owner),
+            "The swap belongs to another wallet."
+        );
+        let failed = !tx["meta"]["err"].is_null();
+        let movement = if failed {
+            None
+        } else {
+            transfer(tx, &owner, devnet_pool::USDC, &[])
+        };
+        Ok(Some(HistoryEntry {
+            signature: signature.to_owned(),
+            time: tx["blockTime"].as_u64(),
+            finalized: false,
+            failed,
+            movement,
+        }))
+    }
+
     pub fn recent_history(&self, owner: &Pubkey, mint: &Pubkey) -> Result<History> {
         let (owner, mint) = (text(owner), text(mint));
         self.answers(|rpc| recent(rpc, &owner, &mint))?
@@ -45,6 +79,10 @@ impl Solana {
             .next()
             .ok_or_else(|| anyhow!("no history response"))
     }
+}
+
+fn transaction_params(signature: &str) -> Value {
+    json!([signature, {"encoding":"jsonParsed","commitment":"confirmed","maxSupportedTransactionVersion":1}])
 }
 
 fn recent(rpc: &Rpc, owner: &str, mint: &str) -> Result<History> {
@@ -104,8 +142,15 @@ fn recent(rpc: &Rpc, owner: &str, mint: &str) -> Result<History> {
         let finalized = sig.confirmation_status.as_deref() == Some("finalized");
         let mut movement = None;
         if !failed {
-            let tx = rpc.call("getTransaction", json!([sig.signature, {"encoding":"jsonParsed","commitment":"confirmed","maxSupportedTransactionVersion":1}]),
-                Some(if finalized { Duration::from_secs(300) } else { FRESH }));
+            let tx = rpc.call(
+                "getTransaction",
+                transaction_params(&sig.signature),
+                Some(if finalized {
+                    Duration::from_secs(300)
+                } else {
+                    FRESH
+                }),
+            );
             match tx {
                 Ok(tx) if tx["meta"].is_object() => {
                     movement = transfer(&tx, owner, mint, &addresses[1..])
@@ -160,7 +205,13 @@ fn transfer(tx: &Value, owner: &str, mint: &str, accounts: &[String]) -> Option<
         token_total(&tx["meta"]["postTokenBalances"]),
     ) && pre != post
     {
-        return Some(Movement::Token { units: post - pre });
+        let token = post - pre;
+        if mint == devnet_pool::USDC
+            && let Some(sol) = swapped_sol(tx, owner, token)
+        {
+            return Some(Movement::PoolSwap { sol, token });
+        }
+        return Some(Movement::Token { units: token });
     }
     // Only label a simple System transfer as sent/received. Fees, rent changes
     // and arbitrary program calls should never appear as payments.
@@ -191,6 +242,69 @@ fn transfer(tx: &Value, owner: &str, mint: &str, accounts: &[String]) -> Option<
         units,
         peer: peer.to_owned(),
     })
+}
+
+// Native SOL passes through a temporary wrapped-SOL account. Its transfer
+// inside the pool instruction excludes the fee and any token-account deposit.
+fn swapped_sol(tx: &Value, owner: &str, token: i128) -> Option<i128> {
+    let instructions = tx["transaction"]["message"]["instructions"].as_array()?;
+    let (index, swap) = instructions.iter().enumerate().find(|(_, ix)| {
+        ix["programId"] == devnet_pool::PROGRAM
+            && ix["accounts"][0] == owner
+            && ix["accounts"][3] == devnet_pool::POOL
+    })?;
+    let accounts = &swap["accounts"];
+    let paying_sol = token > 0;
+    let (native, vault, native_mint, usd_mint) = if paying_sol {
+        (4, 6, 10, 11)
+    } else {
+        (5, 7, 11, 10)
+    };
+    if accounts[native_mint] != devnet_pool::WRAPPED_SOL || accounts[usd_mint] != devnet_pool::USDC
+    {
+        return None;
+    }
+    let temporary = accounts[native].as_str()?;
+    // A swap of persistent wrapped tokens is distinct from a native SOL payment.
+    if !instructions[..index].iter().any(|ix| {
+        ix["programId"] == devnet_pool::TOKEN
+            && ix["parsed"]["type"] == "initializeAccount3"
+            && ix["parsed"]["info"]["account"] == temporary
+            && ix["parsed"]["info"]["mint"] == devnet_pool::WRAPPED_SOL
+            && ix["parsed"]["info"]["owner"] == owner
+    }) || !instructions[index + 1..].iter().any(|ix| {
+        ix["programId"] == devnet_pool::TOKEN
+            && ix["parsed"]["type"] == "closeAccount"
+            && ix["parsed"]["info"]["account"] == temporary
+            && ix["parsed"]["info"]["destination"] == owner
+    }) {
+        return None;
+    }
+    let vault = accounts[vault].as_str()?;
+    let (source, destination) = if paying_sol {
+        (temporary, vault)
+    } else {
+        (vault, temporary)
+    };
+    let group = tx["meta"]["innerInstructions"]
+        .as_array()?
+        .iter()
+        .find(|g| g["index"].as_u64() == Some(index as u64))?;
+    let transfer = group["instructions"].as_array()?.iter().find(|ix| {
+        let info = &ix["parsed"]["info"];
+        ix["programId"] == devnet_pool::TOKEN
+            && ix["parsed"]["type"] == "transferChecked"
+            && info["source"] == source
+            && info["destination"] == destination
+            && info["mint"] == devnet_pool::WRAPPED_SOL
+    })?;
+    let units = i128::from(
+        transfer["parsed"]["info"]["tokenAmount"]["amount"]
+            .as_str()?
+            .parse::<u64>()
+            .ok()?,
+    );
+    Some(if paying_sol { -units } else { units })
 }
 
 #[cfg(test)]

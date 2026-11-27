@@ -75,6 +75,7 @@ pub struct ActivityRow {
     asset: Option<&'static str>,
     peer: Option<String>,
     sent: bool,
+    received: Option<String>,
 }
 
 #[derive(Serialize)]
@@ -83,22 +84,34 @@ pub struct DevnetHistory {
     incomplete: bool,
 }
 
+fn activity_row(entry: solana::history::HistoryEntry) -> ActivityRow {
+    use solana::history::Movement;
+    let (units, asset, peer, received) = match entry.movement {
+        Some(Movement::Sol { units, peer }) => (units, Some("SOL"), Some(peer), None),
+        Some(Movement::Token { units }) => (units * 1000, Some("USDC"), None, None),
+        Some(Movement::PoolSwap { sol, token }) if sol > 0 => (token * 1000, Some("USDC"), None, Some(format!("{} SOL", crate::money::show(sol)))),
+        Some(Movement::PoolSwap { sol, token }) => (sol, Some("SOL"), None, Some(format!("{} USDC", crate::money::show(token * 1000)))),
+        None => (0, None, None, None),
+    };
+    ActivityRow { signature: entry.signature, time: entry.time, failed: entry.failed, finalized: entry.finalized,
+        amount: asset.map(|_| crate::money::show(units.abs())), asset, peer, sent: units < 0, received }
+}
+
+#[tauri::command]
+pub async fn solana_devnet_swap_activity(address: String, signature: String) -> Result<Option<ActivityRow>, String> {
+    let owner = solana::address(&address).map_err(|error| error.to_string())?;
+    tauri::async_runtime::spawn_blocking(move || {
+        Solana::devnet().confirmed_swap(&owner, &signature).map(|entry| entry.map(activity_row)).map_err(|e| e.to_string())
+    }).await.map_err(|e| e.to_string())?
+}
+
 #[tauri::command]
 pub async fn solana_devnet_history(address: String) -> Result<DevnetHistory, String> {
-    use solana::history::Movement;
     let owner = solana::address(&address).map_err(|error| error.to_string())?;
     tauri::async_runtime::spawn_blocking(move || {
         let mint = solana::address(DEVNET_USDC).expect("valid devnet USDC mint");
         let history = Solana::devnet().recent_history(&owner, &mint).map_err(|error| error.to_string())?;
-        let rows = history.entries.into_iter().map(|entry| {
-            let (units, asset, peer) = match entry.movement {
-                Some(Movement::Sol { units, peer }) => (units, Some("SOL"), Some(peer)),
-                Some(Movement::Token { units }) => (units * 1000, Some("USDC"), None),
-                None => (0, None, None),
-            };
-            ActivityRow { signature: entry.signature, time: entry.time, failed: entry.failed, finalized: entry.finalized,
-                amount: asset.map(|_| crate::money::show(units.abs())), asset, peer, sent: units < 0 }
-        }).collect();
+        let rows = history.entries.into_iter().map(activity_row).collect();
         Ok(DevnetHistory { rows, incomplete: history.incomplete })
     }).await.map_err(|error| error.to_string())?
 }
