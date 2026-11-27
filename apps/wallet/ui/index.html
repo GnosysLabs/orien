@@ -9686,13 +9686,18 @@
       return { steps, at: at ?? null };
     }
     if (s.coin === "sol") {
+      // One checklist from taking the offer to the ORN arriving.
+      const own = s.pending || paysItself(s);
+      const seller = s.seller_name || takenFrom[s.id] || "The seller";
       const steps = [
-        { name: "Accepted", what: `The seller locked ${O} for you`, who: "The seller · done" },
-        { name: "Pay", what: `Send ${s.pay_amount ? s.pay_amount + " SOL" : B} from your SOL wallet`, who: "You" },
-        { name: "Confirming", what: `Your SOL is locked for the seller, then your ${O} arrive`, who: "Automatic · usually a minute" },
+        { name: "Seller accepts", what: `${seller}'s wallet locks ${O} for you`, who: s.stage === "accepting" ? "Automatic · usually a few seconds" : "" },
+        own
+          ? { name: "Paid", what: `${s.pay_amount ? s.pay_amount + " SOL" : B} from your Solana balance`, who: s.stage === "pay" ? "Automatic · a few seconds" : "" }
+          : { name: "Pay", what: `Send ${s.pay_amount ? s.pay_amount + " SOL" : B} from your SOL wallet`, who: "You" },
+        { name: "Confirming", what: `Your SOL is locked for the seller, then your ${O} arrive`, who: ["locking", "confirming", "claim"].includes(s.stage) ? "Automatic · usually a minute" : "" },
         { name: "Done", what: `${O} in your wallet`, who: "" },
       ];
-      const at = { pay: 1, locking: 2, confirming: 2, claim: 2, refunding: 2, done: 4 }[s.stage];
+      const at = { accepting: 0, pay: 1, locking: 2, confirming: 2, claim: 2, refunding: 2, done: 4 }[s.stage];
       return { steps, at: at ?? null };
     }
     // " (1 of 3)", while a payment is confirming.
@@ -10179,12 +10184,18 @@
 
   // After taking an offer: the swap it starts, once the seller accepts.
   let waitFor = null;
+  // A SOL offer just taken, shown as its swap until the swap itself starts.
+  let pendingTake = null;
+  // The seller's name for each swap started from their offer here.
+  const takenFrom = {};
   function arrived() {
     if (!waitFor) return;
     const role = waitFor.role || "buy";
     const swap = swapList.find((s) => s.role === role && s.created >= waitFor.since);
     if (!swap) return;
     waitFor = null;
+    // Same page, same checklist: it carries on with the real swap.
+    if (pendingTake) { takenFrom[swap.id] = pendingTake.seller_name; pendingTake = null; }
     // Open the swap screen as soon as it starts.
     openSwap(swap.id);
   }
@@ -10198,7 +10209,7 @@
   }
 
   function renderDetail() {
-    const s = swapList.find((x) => x.id === current);
+    const s = swapList.find((x) => x.id === current) || (pendingTake && pendingTake.id === current ? pendingTake : null);
     if (!s) return;
     $("sd-title").textContent = s.role === "sell" ? "Selling ORN" : "Buying ORN";
     $("sd-orn").textContent = s.orn + " ORN";
@@ -10949,6 +10960,18 @@
           + step("now", 2, "Locking ORN", "your wallet locks the ORN on the network")
           + step("next", 3, "Buyer pays", `${esc(other)} sends ${waitFor.sol ? "SOL" : "Bitcoin"} and your wallet collects it`);
         $("sw-fine").textContent = "The swap details open by itself as soon as your ORN are locked.";
+      } else if (taken.coin === "sol") {
+        // Buying with SOL: the swap's own page from the start, one checklist
+        // from the seller accepting to the ORN arriving.
+        waitFor = { since: Date.now() / 1000 - 10, role: "buy", sol: true, name: other };
+        pendingTake = { id: `taking-${taken.id}`, pending: true, role: "buy", coin: "sol", board: true, seller_name: other,
+          orn: fmtOrn(taken.orn), sol: String(Number((taken.lamports / 1e9).toFixed(9))), stage: "accepting",
+          status: `Waiting for ${other}'s wallet to lock the ORN for you. Usually a few seconds; nothing to do.`,
+          refund: devnetAssets.address, created: Date.now() / 1000 };
+        openSwap(pendingTake.id);
+        loadBoard();
+        stepSwaps();
+        return;
       } else {
         waitFor = { since: Date.now() / 1000 - 10, role: "buy", sol: taken.coin === "sol", name: other };
         $("sw-head").textContent = "Offer taken";
