@@ -10811,6 +10811,7 @@
   }
   function updateExReady() {
     const go = $("ex-go");
+    if (exBusy) { go.disabled = true; return; }
     if (!board.me) {
       go.disabled = false;
       go.textContent = "Sign in to trade";
@@ -10909,13 +10910,23 @@
       updateExReady();
     }, 450);
   };
+  // One order at a time: while one is under way the button stays busy, so
+  // a second press can never post a second order.
+  var exBusy = false;
   $("ex-go").onclick = async () => {
-    if (!ready()) return;
+    if (exBusy || !ready()) return;
+    exBusy = true;
     $("ex-problem").hidden = true;
     $("ex-go").disabled = true;
-    // Checked before Touch ID: no approving a buy this wallet can't pay.
-    if (exSide === "buy" && await shortOfSol(parseFloat($("ex-sol").value), "ex-problem")) { updateExReady(); return; }
+    $("ex-go").innerHTML = '<span class="spinner"></span>Placing order';
     try {
+      // Checked before Touch ID: no approving a buy this wallet can't pay.
+      // The balance shown beside the field answers at once; only when it
+      // isn't known yet is Solana asked first.
+      if (exSide === "buy") {
+        const max = exSolMax();
+        if (max != null ? parseFloat($("ex-sol").value) > max : await shortOfSol(parseFloat($("ex-sol").value), "ex-problem")) return;
+      }
       if (view && view.biometric) await invoke("biometric_unlock");
       const password = $("ex-pw-field").hidden ? null : $("ex-pw").value;
       const buy = exSide === "buy";
@@ -10955,6 +10966,7 @@
       else if (text === "password: wrong") { $("ex-pw").select(); problem("ex-problem", "That is not this wallet's password."); }
       else problem("ex-problem", e);
     } finally {
+      exBusy = false;
       updateExReady();
     }
   };
