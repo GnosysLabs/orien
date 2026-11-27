@@ -39,8 +39,8 @@ pub struct History {
 }
 
 impl Solana {
-    /// Read a submitted swap directly while the address history is being indexed.
-    pub fn confirmed_swap(&self, owner: &Pubkey, signature: &str) -> Result<Option<HistoryEntry>> {
+    /// Read a submitted wallet transaction directly while the address history is being indexed.
+    pub fn confirmed_transaction(&self, owner: &Pubkey, signature: &str) -> Result<Option<HistoryEntry>> {
         anyhow::ensure!(
             signature.len() <= 88 && bs58::decode(signature).into_vec()?.len() == 64,
             "Invalid transaction signature"
@@ -55,7 +55,7 @@ impl Solana {
         let payer = &tx["transaction"]["message"]["accountKeys"][0]["pubkey"];
         anyhow::ensure!(
             payer.as_str() == Some(&owner),
-            "The swap belongs to another wallet."
+            "The transaction belongs to another wallet."
         );
         let failed = !tx["meta"]["err"].is_null();
         let movement = if failed {

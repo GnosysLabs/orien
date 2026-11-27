@@ -12,6 +12,7 @@
 
 pub mod history;
 pub mod devnet_pool;
+pub mod devnet_usdc;
 pub mod profile;
 
 use crate::chain::{MAX_REST, REST, remember, remembered, rest, resting};
@@ -375,6 +376,22 @@ impl Solana {
             found["value"].as_bool().ok_or_else(|| anyhow!("Solana did not check the blockhash"))
         })?;
         Ok(answers.into_iter().all(|valid| valid))
+    }
+
+    /// Executes a read-only preflight using placeholder signatures.
+    pub fn simulate_unsigned(&self, payer: &Pubkey, instructions: &[Instruction], blockhash: Pubkey) -> Result<Value> {
+        use base64::{Engine, engine::general_purpose::STANDARD};
+        let (message, signers) = legacy_message(payer, instructions, blockhash);
+        let mut wire = Vec::new();
+        compact(signers.len(), &mut wire);
+        wire.resize(wire.len() + signers.len() * 64, 0);
+        wire.extend(message);
+        anyhow::ensure!(wire.len() <= 1232, "Too many token accounts for one transaction. Try a smaller amount.");
+        let response = self.answers(|rpc| rpc.call("simulateTransaction", json!([STANDARD.encode(&wire),
+            {"sigVerify":false,"encoding":"base64","commitment":"confirmed"}]), None))?;
+        let value = &response[0]["value"];
+        anyhow::ensure!(value.get("err").is_some(), "Solana could not simulate this transaction.");
+        Ok(value.clone())
     }
 
     /// Quotes the fee for the same message the wallet will sign.

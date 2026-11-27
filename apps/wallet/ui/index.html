@@ -4344,7 +4344,7 @@
     <section class="screen send-screen" id="solana-send" hidden>
       <div class="topline">
         <button class="back" data-back aria-label="Back"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg></button>
-        <h2>Send SOL</h2>
+        <h2 id="sol-send-title">Send SOL</h2>
         <span class="sol-send-network"><img src="chains/solana.svg" alt="">Solana Devnet</span>
         <button class="pop-x" data-pop-close aria-label="Close" title="Close"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></button>
       </div>
@@ -4366,12 +4366,14 @@
           <div class="label-row"><label for="sol-send-amount">Amount</label><span class="send-available" id="sol-send-available"></span></div>
           <div class="box amount-box">
             <input id="sol-send-amount" placeholder="0" inputmode="decimal" autocomplete="off">
-            <span class="amount-unit">SOL</span>
+            <span class="amount-unit" id="sol-send-unit">SOL</span>
             <button class="chip" id="sol-send-max" type="button">Max</button>
           </div>
         </div>
         <div class="summary" id="sol-send-summary" hidden aria-live="polite" aria-atomic="true">
           <div class="row"><span>Total</span><span><span class="sm-fee" id="sol-review-fee"></span><span id="sol-review-total"></span></span></div>
+          <div class="row" id="sol-review-network-row" hidden><span>Network fee</span><span id="sol-review-network"></span></div>
+          <div class="row" id="sol-review-deposit-row" hidden><span>Recipient’s USDC account deposit</span><span id="sol-review-deposit"></span></div>
           <div class="row"><span>Balance after</span><span id="sol-review-after"></span></div>
         </div>
         <div class="field send-password" id="sol-send-pw-field" hidden>
@@ -5486,7 +5488,7 @@
   let lastBalance = null;
   let walletAsset = "ORN";
   const DEVNET_REFRESH_MS = 30_000;
-  const newDevnetAssets = () => ({ lastCheck: 0, pending: false, locked: false, address: null, balances: null, history: null, trackedSwaps: new Map(), historyBusy: false, historyError: false, stale: false, error: "", receive: null });
+  const newDevnetAssets = () => ({ lastCheck: 0, pending: false, locked: false, address: null, balances: null, history: null, trackedTransactions: new Map(), historyBusy: false, historyError: false, stale: false, error: "", receive: null });
   let devnetAssets = newDevnetAssets();
   const assetButtons = document.querySelectorAll("[data-wallet-asset]");
   const solanaAssetButtons = document.querySelectorAll("[data-solana-asset]");
@@ -5509,8 +5511,8 @@
     $("asset-menu-toggle").hidden = !preview;
     $("asset-menu-toggle").setAttribute("aria-label", `Choose Solana asset, ${walletAsset} selected`);
     $("asset-menu-unit").textContent = walletAsset;
-    $("go-send").disabled = preview && (walletAsset !== "SOL" || !devnetAssets.address);
-    $("go-send").title = walletAsset === "USDC" ? "USDC sending is coming" : walletAsset === "SOL" ? "Send SOL on Devnet" : "Send";
+    $("go-send").disabled = preview && !devnetAssets.address;
+    $("go-send").title = preview ? `Send ${walletAsset} on Devnet` : "Send";
     $("go-receive").title = preview ? "Receive on Solana devnet" : "Receive";
     for (const button of assetButtons) button.setAttribute("aria-pressed", String(button.dataset.walletAsset === (preview ? "SOL" : "ORN")));
     for (const button of solanaAssetButtons) button.setAttribute("aria-pressed", String(button.dataset.solanaAsset === walletAsset));
@@ -5536,11 +5538,11 @@
   function paintDevnetHistory() {
     const state = devnetAssets;
     const history = state.history;
-    const tracked = state.trackedSwaps;
+    const tracked = state.trackedTransactions;
     const indexed = history?.rows || [];
     const combined = [...tracked.values(), ...indexed.filter(row => !tracked.has(row.signature))];
     const rows = combined.sort((a, b) => (b.time || 0) - (a.time || 0)).slice(0, 8).map((entry) => {
-      if (entry.received || entry.pendingSwap) {
+      if (entry.received || entry.pending === "swap") {
         const amounts = entry.received
           ? `<span class="amt received">+${esc(entry.received)}</span><span class="amt sent">−${esc(entry.amount)} ${esc(entry.asset)}</span>`
           : '<span class="sub">Pending</span>';
@@ -5550,11 +5552,11 @@
           <span class="tx-side">${amounts}</span></button>`;
       }
       const direction = entry.sent ? "sent" : "received";
-      const title = entry.failed ? "Failed transaction" : entry.amount ? (entry.sent ? "Sent" : "Received") : "Solana transaction";
+      const title = entry.pending === "send" ? "Sending" : entry.failed ? "Failed transaction" : entry.amount ? (entry.sent ? "Sent" : "Received") : "Solana transaction";
       const subtitle = entry.peer || entry.signature;
       const icon = entry.amount ? ICON[direction] : '<img src="chains/solana.svg" width="16" height="16" alt="">';
       const amount = entry.amount ? `<span class="amt ${direction}">${entry.sent ? "−" : "+"}${esc(entry.amount)} ${esc(entry.asset)}</span>`
-        : entry.failed ? "" : entry.finalized ? "Finalized" : "Confirmed";
+        : entry.pending === "send" ? "Pending" : entry.failed ? "" : entry.finalized ? "Finalized" : "Confirmed";
       return `<button type="button" class="tx" data-sol-tx="${esc(entry.signature)}">
         <span class="tx-icon ${entry.amount ? direction : ""}">${icon}</span>
         <span class="tx-main"><span class="title">${title}</span><span class="sub" data-no-i18n>${esc(short(subtitle))}</span></span>
@@ -5589,7 +5591,7 @@
         if (!result.rows.length) result.rows = state.history.rows;
       }
       for (const row of result.rows) {
-        if (row.received || row.failed) state.trackedSwaps.delete(row.signature);
+        if (row.asset || row.failed) state.trackedTransactions.delete(row.signature);
       }
       state.history = result;
       state.historyError = false;
@@ -5603,32 +5605,32 @@
 
   // A submitted signature can be read before it appears in the address index.
   // Track it with its wallet so closing the dialog does not interrupt activity.
-  async function trackSwapActivity(state, owner, receipt) {
+  async function trackDevnetActivity(state, owner, receipt, kind) {
     const signature = receipt.signature;
-    if (state !== devnetAssets || !state.address || state.trackedSwaps.has(signature)
-        || state.history?.rows.some(row => row.signature === signature && (row.received || row.failed))) return;
+    if (state !== devnetAssets || !state.address || state.trackedTransactions.has(signature)
+        || state.history?.rows.some(row => row.signature === signature && (row.asset || row.failed))) return;
     const started = Date.now();
-    state.trackedSwaps.set(signature, { signature, time: Math.floor(started / 1000), pendingSwap: true });
+    state.trackedTransactions.set(signature, { signature, time: Math.floor(started / 1000), pending: kind, sent: kind === "send", peer: receipt.recipient });
     if (walletAsset !== "ORN") paintDevnetHistory();
-    while (state === devnetAssets && state.trackedSwaps.get(signature)?.pendingSwap) {
+    while (state === devnetAssets && state.trackedTransactions.get(signature)?.pending) {
       try {
-        const row = await invoke("solana_devnet_swap_activity", { address: state.address, signature });
-        if (state !== devnetAssets || !state.trackedSwaps.has(signature)) return;
-        if (row?.received || row?.failed) {
-          state.trackedSwaps.set(signature, row);
+        const row = await invoke("solana_devnet_transaction_activity", { address: state.address, signature });
+        if (state !== devnetAssets || !state.trackedTransactions.has(signature)) return;
+        if (row?.asset || row?.failed) {
+          state.trackedTransactions.set(signature, row);
           if (walletAsset !== "ORN") paintDevnetHistory();
           void loadDevnetAssets();
           return;
         }
         if (Date.now() - started > 90_000) {
-          const status = await invoke("devnet_swap_status", {walletAddress: owner});
+          const status = await invoke(kind === "swap" ? "devnet_swap_status" : "solana_devnet_receipt", {walletAddress: owner});
           if (status?.signature !== signature || status.state === "expired") {
-            state.trackedSwaps.delete(signature);
+            state.trackedTransactions.delete(signature);
             if (state === devnetAssets && walletAsset !== "ORN") paintDevnetHistory();
             return;
           }
         }
-      } catch { /* Keep the submitted swap visible until the network answers. */ }
+      } catch { /* Keep the submission visible until the network answers. */ }
       await new Promise(resolve => setTimeout(resolve, Date.now() - started < 30_000 ? 1800 : 8000));
     }
   }
@@ -5806,7 +5808,7 @@
         if (!swapActive(s)) return;
         const activityState = devnetAssets;
         const receipt = await invoke("devnet_swap_approve", {walletAddress: s.owner, quoteId: s.quote.id, password: password || null});
-        void trackSwapActivity(activityState, s.owner, receipt);
+        void trackDevnetActivity(activityState, s.owner, receipt, "swap");
         if (swapActive(s)) showSwapReceipt(s, receipt);
       }
     } catch (error) {
@@ -8162,7 +8164,7 @@
   wide.addEventListener("change", () => { const open = ["send", "solana-send", "receive", "contacts", "activity"].find((x) => !$(x).hidden); if (open) show(open); });
   $("go-send").onclick = (from) => {
     if (from?.currentTarget === $("go-send") && walletAsset !== "ORN") {
-      if (walletAsset === "SOL" && devnetAssets.address && view) openDevnetSend();
+      if (devnetAssets.address && view) openDevnetSend();
       return;
     }
     sendFrom = from === "seller" || from === "explorer" ? from : "home";
@@ -8179,14 +8181,14 @@
     loadMembers().then(() => Promise.all(members.map((m) => fetchMember(m.id))));
   };
 
-  // ---- Native SOL send on Devnet ----
+  // ---- Solana devnet transfers ----
   let devnetSend = null;
   const devnetSendActive = (state) => state === devnetSend && view?.address === state.owner && !$("solana-send").hidden;
   const devnetSendPending = (receipt) => receipt && ["pending", "confirmed"].includes(receipt.state);
   const devnetSendLabels = {
     pending: "Awaiting confirmation",
     confirmed: "Confirmed",
-    finalized: "SOL sent",
+    finalized: "Sent",
     failed: "Transfer failed",
     expired: "Transfer expired",
   };
@@ -8194,8 +8196,11 @@
     const { quote, receipt, busy, needsPassword } = state;
     $("sol-send-form").hidden = !!receipt;
     $("sol-send-receipt").hidden = !receipt;
-    const available = devnetAssets.balances?.sol;
-    $("sol-send-available").textContent = available != null && !prefs.hide ? `${available} SOL available` : "";
+    const asset = receipt ? (receipt.asset || "SOL") : state.asset;
+    $("sol-send-title").textContent = "Send " + asset;
+    $("sol-send-unit").textContent = asset;
+    const available = devnetAssets.balances?.[asset.toLowerCase()];
+    $("sol-send-available").textContent = available != null && !prefs.hide ? `${available} ${asset} available` : "";
     const to = $("sol-send-to").value.trim();
     const validShape = solAddressPattern.test(to);
     const ownAddress = to && to === devnetAssets.address;
@@ -8213,19 +8218,23 @@
     $("sol-send-pw-field").hidden = !quote || !needsPassword;
     const hasAmount = !!$("sol-send-amount").value.trim();
     $("sol-send-summary").hidden = !hasAmount;
-    const feeNote = quote ? `incl. ${quote.fee} fee` : state.checking ? "Checking fee…" :
+    const feeNote = quote ? (asset === "SOL" ? `incl. ${quote.fee} fee` : "") : state.checking ? "Checking fee…" :
       hasAmount && !to ? "Enter a recipient" : "";
     $("sol-review-fee").textContent = feeNote;
     $("sol-review-fee").hidden = !feeNote;
-    $("sol-review-total").textContent = quote ? `${quote.total} SOL` : "—";
-    $("sol-review-after").textContent = prefs.hide ? "••••" : quote ? `${quote.after} SOL` : "—";
+    $("sol-review-network-row").hidden = asset !== "USDC" || !quote;
+    $("sol-review-network").textContent = quote ? quote.fee + " SOL" : "";
+    $("sol-review-deposit-row").hidden = !quote?.account_deposit;
+    $("sol-review-deposit").textContent = quote?.account_deposit ? quote.account_deposit + " SOL" : "";
+    $("sol-review-total").textContent = quote ? `${quote.total} ${asset}` : "—";
+    $("sol-review-after").textContent = prefs.hide ? "••••" : quote ? `${quote.after} ${asset}` : "—";
     for (const button of $("sol-send-recent-row").children) {
       button.disabled = busy;
       button.classList.toggle("on", button.dataset.address === to);
     }
     if (receipt) {
-      $("sol-send-status").textContent = devnetSendLabels[receipt.state];
-      $("sol-receipt-amount").textContent = `${receipt.amount} SOL`;
+      $("sol-send-status").textContent = receipt.state === "finalized" ? asset + " sent" : devnetSendLabels[receipt.state];
+      $("sol-receipt-amount").textContent = `${receipt.amount} ${asset}`;
       $("sol-receipt-to").textContent = receipt.recipient;
       const note = receipt.state === "expired" ? "This transfer can no longer land. You can start a new transfer."
         : receipt.state === "pending" && !receipt.acknowledged ? "Solana hasn’t acknowledged the submission. This screen will keep checking." : "";
@@ -8260,7 +8269,7 @@
       paintDevnetSend(devnetSend);
       return;
     }
-    devnetSend = { owner: view.address, quote: null, receipt: null, busy: true, submitting: false, needsPassword: false };
+    devnetSend = { asset: walletAsset, owner: view.address, quote: null, receipt: null, busy: true, submitting: false, needsPassword: false };
     $("sol-send-form").reset();
     $("sol-send-problem").hidden = true;
     const recipients = (devnetAssets.history?.rows || []).filter(row => row.sent && !row.failed && row.asset === "SOL" && solAddressPattern.test(row.peer || "")).map(row => row.peer);
@@ -8293,7 +8302,7 @@
       solQuoteQueue = solQuoteQueue.then(async () => {
         if (!current()) return;
         try {
-          const quote = await invoke("solana_devnet_quote", { walletAddress: state.owner, to, amount, maximum: !!state.max });
+          const quote = await invoke("solana_devnet_quote", { walletAddress: state.owner, asset: state.asset, to, amount, maximum: !!state.max });
           if (!current()) return;
           state.quote = quote;
           if (state.max) $("sol-send-amount").value = quote.amount;
@@ -8362,7 +8371,9 @@
     try {
       if (view.biometric && !password) await invoke("biometric_unlock");
       if (!devnetSendActive(state)) return;
+      const activityState = devnetAssets;
       state.receipt = await invoke("solana_devnet_send", { walletAddress: state.owner, quoteId: state.quote.id, password: password || null });
+      void trackDevnetActivity(activityState, state.owner, state.receipt, "send");
       state.quote = null;
     } catch (error) {
       const message = String(error);

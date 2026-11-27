@@ -1,4 +1,4 @@
-//! Native SOL transfers for the wallet's Solana Devnet account.
+//! SOL and USDC transfers for the wallet's Solana Devnet account.
 
 #[path = "solana_swap.rs"]
 pub mod swap;
@@ -16,12 +16,18 @@ use tauri::AppHandle;
 static REVIEW: Mutex<Option<Prepared>> = Mutex::new(None);
 static NEXT_REVIEW: AtomicU64 = AtomicU64::new(1);
 
+#[derive(Clone, Copy, Serialize, Deserialize)]
+#[serde(rename_all = "UPPERCASE")]
+pub enum SendAsset { Sol, Usdc }
+
 struct Prepared {
     id: u64,
     owner: String,
     payer: Pubkey,
     recipient: Pubkey,
-    lamports: u64,
+    instructions: Vec<solana::Instruction>,
+    asset: SendAsset,
+    amount: String,
     blockhash: Pubkey,
     last_valid_height: u64,
 }
@@ -34,6 +40,7 @@ pub struct DevnetQuote {
     fee: String,
     total: String,
     after: String,
+    account_deposit: Option<String>,
 }
 
 #[derive(Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
@@ -54,6 +61,8 @@ impl State {
 
 #[derive(Serialize, Deserialize)]
 pub struct DevnetReceipt {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    asset: Option<SendAsset>,
     signature: String,
     recipient: String,
     amount: String,
@@ -115,6 +124,7 @@ fn prepare(
     path: &Path,
     owner: String,
     to: &str,
+    asset: SendAsset,
     amount: Option<&str>,
 ) -> Result<DevnetQuote, String> {
     *review = None;
@@ -135,38 +145,47 @@ fn prepare(
     }
     let balance = network.balance(&payer).map_err(|error| error.to_string())?;
     let (blockhash, last_valid_height) = network.blockhash_lifetime().map_err(|error| error.to_string())?;
-    let fee_for = |units| {
-        let instructions = [solana::transfer(&payer, &recipient, units)];
-        network.fee_for_message(&payer, &instructions, blockhash).map_err(|error| error.to_string())
+    let (instructions, amount, fee, total, after, account_deposit) = match asset {
+        SendAsset::Sol => {
+            let fee_for = |units| network.fee_for_message(&payer, &[solana::transfer(&payer, &recipient, units)], blockhash).map_err(|e| e.to_string());
+            let units = match requested {
+                Some(units) => units,
+                None => balance.checked_sub(fee_for(balance)?).filter(|units| *units > 0)
+                    .ok_or("You don’t have enough Devnet SOL to cover the network fee.")?,
+            };
+            let fee = fee_for(units)?;
+            let total = units.checked_add(fee).ok_or("That amount is too large.")?;
+            let after = balance.checked_sub(total).ok_or("You don’t have enough Devnet SOL for this amount and the network fee.")?;
+            (vec![solana::transfer(&payer, &recipient, units)], crate::money::show(units.into()), fee, crate::money::show(total.into()), crate::money::show(after.into()), None)
+        }
+        SendAsset::Usdc => {
+            if requested.is_some_and(|n| n % 1000 != 0) {
+                return Err("USDC supports up to six decimal places.".into());
+            }
+            let transfer = solana::devnet_usdc::transfer(network, payer, recipient, requested.map(|n| n / 1000)).map_err(|e| format!("{e:#}"))?;
+            let fee = network.fee_for_message(&payer, &transfer.instructions, blockhash).map_err(|e| e.to_string())?;
+            if balance < fee.checked_add(transfer.deposit).ok_or("That amount is too large.")? {
+                return Err(if transfer.deposit > 0 { "You need more devnet SOL for the network fee and the recipient’s USDC account deposit." }
+                    else { "You need devnet SOL to pay the network fee." }.into());
+            }
+            let check = network.simulate_unsigned(&payer, &transfer.instructions, blockhash).map_err(|e| format!("{e:#}"))?;
+            if !check["err"].is_null() { return Err(format!("Solana could not complete this USDC transfer in preflight ({}).", check["err"])); }
+            let show = |units: u64| crate::money::show(i128::from(units) * 1000);
+            (transfer.instructions, show(transfer.amount), fee, show(transfer.amount), show(transfer.balance_after),
+                (transfer.deposit > 0).then(|| crate::money::show(transfer.deposit.into())))
+        }
     };
-    let lamports = match requested {
-        Some(units) => units,
-        None => balance.checked_sub(fee_for(balance)?).filter(|units| *units > 0)
-            .ok_or("You don’t have enough Devnet SOL to cover the network fee.")?,
-    };
-    let fee = fee_for(lamports)?;
-    let total = lamports.checked_add(fee).ok_or("That amount is too large.")?;
-    if total > balance {
-        return Err("You don’t have enough Devnet SOL for this amount and the network fee.".into());
-    }
     let id = NEXT_REVIEW.fetch_add(1, Ordering::Relaxed);
-    *review = Some(Prepared { id, owner, payer, recipient, lamports, blockhash, last_valid_height });
-    Ok(DevnetQuote {
-        id,
-        recipient: solana::text(&recipient),
-        amount: crate::money::show(lamports.into()),
-        fee: crate::money::show(fee.into()),
-        total: crate::money::show(total.into()),
-        after: crate::money::show((balance - total).into()),
-    })
+    *review = Some(Prepared { id, owner, payer, recipient, instructions, asset, amount: amount.clone(), blockhash, last_valid_height });
+    Ok(DevnetQuote { id, recipient: solana::text(&recipient), amount, fee: crate::money::show(fee.into()), total, after, account_deposit })
 }
 
 #[tauri::command]
-pub async fn solana_devnet_quote(app: AppHandle, wallet_address: String, to: String, amount: String, maximum: Option<bool>) -> Result<DevnetQuote, String> {
+pub async fn solana_devnet_quote(app: AppHandle, wallet_address: String, to: String, amount: String, maximum: Option<bool>, asset: Option<SendAsset>) -> Result<DevnetQuote, String> {
     let (dir, path, owner) = active_wallet(&app, &wallet_address)?;
     tauri::async_runtime::spawn_blocking(move || {
         let mut review = REVIEW.lock().unwrap_or_else(|poisoned| poisoned.into_inner());
-        prepare(&mut review, &Solana::devnet(), &dir, &path, owner, &to, if maximum == Some(true) { None } else { Some(&amount) })
+        prepare(&mut review, &Solana::devnet(), &dir, &path, owner, &to, asset.unwrap_or(SendAsset::Sol), if maximum == Some(true) { None } else { Some(&amount) })
     })
     .await
     .map_err(|error| error.to_string())?
@@ -197,16 +216,15 @@ fn approve(
     if !network.blockhash_valid(&plan.blockhash).map_err(|error| error.to_string())? {
         return Err("review: again".into());
     }
-    let instructions = [solana::transfer(&plan.payer, &plan.recipient, plan.lamports)];
-    let wire = solana::transaction(&signer, &[], &instructions, plan.blockhash).map_err(|error| error.to_string())?;
-    let receipt = broadcast(network, &record, &wire, solana::text(&plan.recipient), crate::money::show(plan.lamports.into()), plan.last_valid_height)?;
+    let wire = solana::transaction(&signer, &[], &plan.instructions, plan.blockhash).map_err(|error| error.to_string())?;
+    let receipt = broadcast(network, &record, &wire, solana::text(&plan.recipient), plan.amount.clone(), Some(plan.asset), plan.last_valid_height)?;
     *review = None;
     Ok(receipt)
 }
 
-fn broadcast(network: &Solana, record: &Path, wire: &[u8], recipient: String, amount: String, last_valid_height: u64) -> Result<DevnetReceipt, String> {
+fn broadcast(network: &Solana, record: &Path, wire: &[u8], recipient: String, amount: String, asset: Option<SendAsset>, last_valid_height: u64) -> Result<DevnetReceipt, String> {
     let mut receipt = DevnetReceipt {
-        signature: solana::signature_of(wire), recipient, amount, last_valid_height,
+        signature: solana::signature_of(wire), recipient, amount, asset, last_valid_height,
         state: State::Pending, acknowledged: false,
     };
     // Persist before broadcasting so a lost response cannot cause a duplicate.
@@ -308,11 +326,11 @@ mod tests {
         let recipient = solana::text(&Keypair::random().pubkey());
         let network = Solana::with(&[&url], None);
         let mut review = None;
-        let quote = prepare(&mut review, &network, &dir, &path, owner.clone(), &recipient, Some("1.25")).unwrap();
+        let quote = prepare(&mut review, &network, &dir, &path, owner.clone(), &recipient, SendAsset::Sol, Some("1.25")).unwrap();
         assert_eq!(quote.fee, "0.000005");
         assert_eq!(quote.total, "1.250005");
         assert_eq!(quote.after, "0.749995");
-        let quote = prepare(&mut review, &network, &dir, &path, owner.clone(), &recipient, None).unwrap();
+        let quote = prepare(&mut review, &network, &dir, &path, owner.clone(), &recipient, SendAsset::Sol, None).unwrap();
         assert_eq!(quote.amount, "1.999995");
         assert_eq!(quote.after, "0");
         assert!(approve(&mut review, &network, &dir, &path, &owner, quote.id, None).is_err());

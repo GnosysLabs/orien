@@ -98,10 +98,10 @@ fn activity_row(entry: solana::history::HistoryEntry) -> ActivityRow {
 }
 
 #[tauri::command]
-pub async fn solana_devnet_swap_activity(address: String, signature: String) -> Result<Option<ActivityRow>, String> {
+pub async fn solana_devnet_transaction_activity(address: String, signature: String) -> Result<Option<ActivityRow>, String> {
     let owner = solana::address(&address).map_err(|error| error.to_string())?;
     tauri::async_runtime::spawn_blocking(move || {
-        Solana::devnet().confirmed_swap(&owner, &signature).map(|entry| entry.map(activity_row)).map_err(|e| e.to_string())
+        Solana::devnet().confirmed_transaction(&owner, &signature).map(|entry| entry.map(activity_row)).map_err(|e| e.to_string())
     }).await.map_err(|e| e.to_string())?
 }
 
