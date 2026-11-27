@@ -828,9 +828,17 @@ async fn conversations(State(app): State<Arc<App>>, headers: HeaderMap) -> Answe
     Ok(Json(json!({ "conversations": conversations })).into_response())
 }
 
-async fn conversation(State(app): State<Arc<App>>, headers: HeaderMap, Path(id): Path<i64>) -> Answer {
+#[derive(Deserialize, Default)]
+struct Peek {
+    /// Set by an app loading a conversation ahead: it stays unread.
+    peek: Option<u8>,
+}
+
+async fn conversation(State(app): State<Arc<App>>, headers: HeaderMap, Path(id): Path<i64>, Query(ask): Query<Peek>) -> Answer {
     let account = app.signed_in(&headers)?;
-    let (conversation, messages) = app.store.lock().unwrap().read(id, account).map_err(|_| Failure::NotFound)?;
+    let store = app.store.lock().unwrap();
+    let opened = if ask.peek == Some(1) { store.peek(id, account) } else { store.read(id, account) };
+    let (conversation, messages) = opened.map_err(|_| Failure::NotFound)?;
     Ok(Json(json!({ "conversation": conversation, "messages": messages, "me": account })).into_response())
 }
 

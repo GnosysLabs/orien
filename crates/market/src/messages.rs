@@ -417,6 +417,16 @@ impl Store {
 
     /// A conversation's messages, oldest first, marked read for `account`.
     pub fn read(&self, conversation: i64, account: i64) -> Result<(Conversation, Vec<Message>)> {
+        self.messages_of(conversation, account, true)
+    }
+
+    /// A conversation's messages, left unread: an app loading it ahead,
+    /// before anyone has looked.
+    pub fn peek(&self, conversation: i64, account: i64) -> Result<(Conversation, Vec<Message>)> {
+        self.messages_of(conversation, account, false)
+    }
+
+    fn messages_of(&self, conversation: i64, account: i64, mark: bool) -> Result<(Conversation, Vec<Message>)> {
         let (buyer, _) = self.sides(conversation, account)?;
         let cleared = self.cleared(conversation, account == buyer)?;
         let mut statement = self
@@ -435,8 +445,10 @@ impl Store {
             })?
             .collect::<rusqlite::Result<_>>()?;
         let last = messages.last().map_or(0, |m| m.id);
-        let (read, told) = if account == buyer { ("buyer_read", "buyer_told") } else { ("seller_read", "seller_told") };
-        self.db.execute(&format!("UPDATE conversations SET {read} = MAX({read}, ?2), {told} = 0 WHERE id = ?1"), params![conversation, last])?;
+        if mark {
+            let (read, told) = if account == buyer { ("buyer_read", "buyer_told") } else { ("seller_read", "seller_told") };
+            self.db.execute(&format!("UPDATE conversations SET {read} = MAX({read}, ?2), {told} = 0 WHERE id = ?1"), params![conversation, last])?;
+        }
         // Deleted, with nothing new since: gone for them.
         let Some(conversation) = self.conversations(account)?.into_iter().find(|c| c.id == conversation) else {
             bail!("there is no such conversation of yours");
@@ -578,6 +590,9 @@ mod tests {
         assert!(again.is_none(), "one email per person per listing");
         assert_eq!(store.unread(maya).unwrap(), 1);
         assert_eq!(store.unread(sam).unwrap(), 0, "one's own messages are read");
+        // Loaded ahead by an app, before anyone looked: still unread.
+        assert_eq!(store.peek(c, maya).unwrap().1.len(), 2);
+        assert_eq!(store.unread(maya).unwrap(), 1, "a peek leaves it unread");
 
         let (seen, messages) = store.read(c, maya).unwrap();
         assert_eq!((seen.with_name.as_str(), seen.buying, messages.len()), ("Sam", false, 2));
