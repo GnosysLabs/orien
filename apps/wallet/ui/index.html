@@ -1621,7 +1621,7 @@
      takes no room, and the panel under the tabs adds no margin of its own. */
   @media (max-width: 859px) {
     #swaps > .ex-mobile-tabs { margin-bottom: 18px; }
-    #swaps .ex-col:not(:has(> :not([hidden]))) { display: none; }
+    #swaps .ex-col:not(:has(> :not([hidden], #ex-pane-chart))) { display: none; }
     #swaps .ex-col > .ex-panel { margin-top: 0; }
   }
   @media (max-width: 859px) {
@@ -1748,6 +1748,22 @@
     body:not(.phone) #swaps #tab-mine, body:not(.phone) #swaps #tab-history { flex: 1; min-height: 0; display: flex; flex-direction: column; }
     body:not(.phone) #swaps #tab-mine[hidden], body:not(.phone) #swaps #tab-history[hidden] { display: none; }
     body:not(.phone) #swaps #swap-list, body:not(.phone) #swaps #hist-list { flex: 1; min-height: 0; max-height: none; overflow-y: auto; }
+  }
+  /* Small windows: the open tab's panel reaches down to the same margin as
+     the big windows' columns; its list scrolls inside it. Buy / Sell grows
+     with its form, and the page scrolls if the window is shorter. */
+  @media (max-width: 859px) {
+    body:not(.phone) #swaps { display: flex; flex-direction: column; }
+    body:not(.phone) #swaps > .ex-grid { flex: 1 1 0; min-height: 280px; }
+    body:not(.phone) #swaps:has(#ex-pane-ticket:not([hidden])) > .ex-grid { flex: 1 0 auto; }
+    body:not(.phone) #swaps .ex-col { flex: 1 1 auto; min-height: 0; }
+    body:not(.phone) #swaps .ex-col > .ex-panel:not([hidden]) { flex: 1 1 auto; min-height: 0; }
+    body:not(.phone) #swaps #board-offers { flex: 1; min-height: 0; max-height: none; }
+    body:not(.phone) #swaps #ex-pane-deck { overflow: hidden; }
+    body:not(.phone) #swaps #tab-mine, body:not(.phone) #swaps #tab-history { flex: 1; min-height: 0; display: flex; flex-direction: column; }
+    body:not(.phone) #swaps #tab-mine[hidden], body:not(.phone) #swaps #tab-history[hidden] { display: none; }
+    body:not(.phone) #swaps #swap-list, body:not(.phone) #swaps #hist-list { flex: 1; min-height: 0; max-height: none; overflow-y: auto; }
+    body:not(.phone) #swaps #tab-history > :not(#hist-list) { flex: none; }
   }
   #swaps #swap-list, #swaps #hist-list { max-height: 290px; overflow-y: auto; overscroll-behavior: contain; margin: 0; padding: 0; -webkit-mask: none; mask: none; }
   #swaps #swap-list .swap-row { border: 0; border-radius: 0; background: none; margin: 0; padding: 12px 16px; }
