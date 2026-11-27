@@ -4801,7 +4801,7 @@
                   <div class="box plain"><input id="ex-orn" placeholder="500" inputmode="decimal" autocomplete="off"></div>
                 </div>
                 <div class="ex-field">
-                  <label for="ex-sol"><em id="ex-sol-label">Total (SOL)</em><span>Min 0.01</span></label>
+                  <label for="ex-sol"><em id="ex-sol-label">Total (SOL)</em><span id="ex-sol-hint">Min 0.01</span></label>
                   <div class="box plain"><input id="ex-sol" placeholder="0.5" inputmode="decimal" autocomplete="off"></div>
                 </div>
               </div>
@@ -10838,6 +10838,8 @@
       : "Your wallet locks the ORN automatically when someone buys your offer. Keep Orien Wallet running in the menu bar or tray.";
     $("ex-verify").hidden = buy || !exUnverified;
     $("ex-bal").textContent = !buy && view && view.spendable ? `Avail: ${view.spendable}` : "";
+    paintExSolHint();
+    if (buy) ownSolBalance().then(() => { paintExSolHint(); capExSol(); updateExRate(); });
     const typed = !!(view && !view.unprotected && !view.biometric);
     $("ex-pw-field").hidden = !typed;
     updateExRate();
@@ -10859,7 +10861,26 @@
   $("ex-side-buy").onclick = () => { exSide = "buy"; $("ex-problem").hidden = true; syncExTicket(); };
   $("ex-side-sell").onclick = () => { exSide = "sell"; $("ex-problem").hidden = true; syncExTicket(); checkExWallet(); };
   $("ex-verify-go").onclick = () => quickVerify();
-  $("ex-orn").oninput = $("ex-sol").oninput = updateExRate;
+  // Solana's own fees on a SOL swap, kept in hand on top of the price.
+  const SOL_SWAP_FEES = 0.005;
+  // Buying: what this wallet's SOL can pay, after Solana's small fees, shown
+  // beside the field and never exceeded. Unknown until the balance is read.
+  function exSolMax() {
+    const have = Number(String(devnetAssets.balances?.sol ?? "").replace(/,/g, ""));
+    if (!devnetAssets.balances || !Number.isFinite(have)) return null;
+    return Math.max(0, Math.floor((have - SOL_SWAP_FEES) * 1e4) / 1e4);
+  }
+  function paintExSolHint() {
+    const max = exSide === "buy" ? exSolMax() : null;
+    $("ex-sol-hint").textContent = max == null ? "Min 0.01" : `${max.toLocaleString(undefined, { maximumFractionDigits: 4 })} SOL available`;
+  }
+  function capExSol() {
+    const max = exSide === "buy" ? exSolMax() : null;
+    const typed = parseFloat($("ex-sol").value);
+    if (max != null && typed > max) $("ex-sol").value = String(max);
+  }
+  $("ex-orn").oninput = updateExRate;
+  $("ex-sol").oninput = () => { capExSol(); updateExRate(); };
   $("ex-pw").oninput = updateExReady;
   $("ex-addr").oninput = () => {
     clearTimeout(exAddrTimer);
@@ -11004,8 +11025,6 @@
     if (!devnetAssets.address) devnetAssets.address = await invoke("solana_devnet_address", { walletAddress: view.address, password: password || null });
     return devnetAssets.address;
   }
-  // Solana's own fees on a SOL swap, kept in hand on top of the price.
-  const SOL_SWAP_FEES = 0.005;
   // Paying `sol` from this wallet: says so in `box`, and answers true, when
   // its Solana balance can't cover it.
   async function shortOfSol(sol, box) {
