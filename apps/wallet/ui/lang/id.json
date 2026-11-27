@@ -1125,6 +1125,14 @@
   "✓ Valid address": "✓ Alamat valid",
   "_patterns": [
     [
+      "^([0-9.,]+) SOL available$",
+      "{0} SOL tersedia"
+    ],
+    [
+      "^([0-9.,]+) ORN available$",
+      "{0} ORN tersedia"
+    ],
+    [
       "^Paid for ([0-9.,]+) ORN$",
       "Bayar untuk {0} ORN"
     ],
@@ -2427,5 +2435,6 @@
   "No open sell orders": "Tidak ada order jual terbuka",
   "History": "Riwayat",
   "Open buys": "Beli terbuka",
-  "Open sells": "Jual terbuka"
+  "Open sells": "Jual terbuka",
+  "More than this wallet has": "Lebih dari isi dompet ini"
 }

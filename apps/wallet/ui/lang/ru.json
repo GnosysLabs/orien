@@ -1125,6 +1125,14 @@
   "✓ Valid address": "✓ Корректный адрес",
   "_patterns": [
     [
+      "^([0-9.,]+) SOL available$",
+      "Доступно {0} SOL"
+    ],
+    [
+      "^([0-9.,]+) ORN available$",
+      "Доступно {0} ORN"
+    ],
+    [
       "^Paid for ([0-9.,]+) ORN$",
       "Оплата за {0} ORN"
     ],
@@ -2427,5 +2435,6 @@
   "No open sell orders": "Нет открытых ордеров на продажу",
   "History": "История",
   "Open buys": "Покупки",
-  "Open sells": "Продажи"
+  "Open sells": "Продажи",
+  "More than this wallet has": "Больше, чем есть в этом кошельке"
 }

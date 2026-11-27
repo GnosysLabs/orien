@@ -1125,6 +1125,14 @@
   "✓ Valid address": "✓ Địa chỉ hợp lệ",
   "_patterns": [
     [
+      "^([0-9.,]+) SOL available$",
+      "Có thể dùng {0} SOL"
+    ],
+    [
+      "^([0-9.,]+) ORN available$",
+      "Có thể dùng {0} ORN"
+    ],
+    [
       "^Paid for ([0-9.,]+) ORN$",
       "Thanh toán cho {0} ORN"
     ],
@@ -2427,5 +2435,6 @@
   "No open sell orders": "Không có lệnh bán đang mở",
   "History": "Lịch sử",
   "Open buys": "Lệnh mua mở",
-  "Open sells": "Lệnh bán mở"
+  "Open sells": "Lệnh bán mở",
+  "More than this wallet has": "Nhiều hơn số ví này có"
 }

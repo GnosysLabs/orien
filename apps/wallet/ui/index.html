@@ -1706,7 +1706,11 @@
   .ex-side.on.sell { background: color-mix(in srgb, var(--bad) 20%, var(--surface)); color: var(--bad); }
   .ex-row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
   .ex-field label { display: flex; align-items: center; justify-content: space-between; gap: 6px; margin-bottom: 6px; font-size: 12px; font-weight: 600; color: var(--dim); }
-  .ex-field label em { font-style: normal; }
+  .ex-field label em { font-style: normal; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  /* What's available, on a small line under its box: the two labels stay on
+     one line each, so the two boxes side by side sit level. */
+  .ex-under { margin-top: 6px; font-size: 11px; font-weight: 500; color: var(--faint); font-variant-numeric: tabular-nums; }
+  .ex-under:empty { display: none; }
   .ex-field label span { font-size: 11px; font-weight: 500; color: var(--faint); font-variant-numeric: tabular-nums; }
   .ex-field .box { padding: 0 12px; height: 42px; display: flex; align-items: center; }
   .ex-field .box input { width: 100%; font-size: 14px; font-variant-numeric: tabular-nums; }
@@ -4810,12 +4814,14 @@
 
               <div class="ex-row2">
                 <div class="ex-field">
-                  <label for="ex-orn"><em id="ex-orn-label">Amount (ORN)</em><span id="ex-bal"></span></label>
+                  <label for="ex-orn"><em id="ex-orn-label">Amount (ORN)</em></label>
                   <div class="box plain"><input id="ex-orn" placeholder="500" inputmode="decimal" autocomplete="off"></div>
+                  <div class="ex-under" id="ex-bal"></div>
                 </div>
                 <div class="ex-field">
-                  <label for="ex-sol"><em id="ex-sol-label">Total (SOL)</em><span id="ex-sol-hint">Min 0.01</span></label>
+                  <label for="ex-sol"><em id="ex-sol-label">Total (SOL)</em></label>
                   <div class="box plain"><input id="ex-sol" placeholder="0.5" inputmode="decimal" autocomplete="off"></div>
+                  <div class="ex-under" id="ex-sol-hint">Min 0.01</div>
                 </div>
               </div>
 
@@ -10892,7 +10898,7 @@
     if (tooLow) {
       val.textContent = "Minimum order is 0.01 SOL";
     } else if (over) {
-      val.textContent = `More than this wallet has: ${exSolMax().toLocaleString(undefined, { maximumFractionDigits: 4 })} SOL available`;
+      val.textContent = "More than this wallet has";
     } else if (tooHigh) {
       val.textContent = `Buy orders are limited to ${maxSol} SOL per order`;
     } else if (orn > 0 && sol > 0) {
@@ -10900,10 +10906,9 @@
       const usdEach = board.solUsd ? ` (${fmtUsd(unit * board.solUsd)})` : "";
       const usdTot = board.solUsd ? ` · ≈ ${fmtUsd(sol * board.solUsd)}` : "";
       val.textContent = `${fmtBookUnit(unit)} SOL${usdEach}${usdTot}`;
-    } else if (sol > 0 && board.solUsd) {
-      val.textContent = `≈ ${fmtUsd(sol * board.solUsd)}`;
     } else {
-      val.textContent = board.solUsd ? `1 SOL ≈ ${fmtUsd(board.solUsd)}` : "Enter ORN and SOL";
+      // Only a price per ORN goes here: the one the two amounts make.
+      val.textContent = "Enter ORN and SOL";
     }
     updateExReady();
   }
@@ -10947,7 +10952,7 @@
       ? "Your buy order is paid from this wallet's Solana balance. Once paid, it stays live even with Orien Wallet closed, and you can cancel anytime in one click."
       : "Your wallet locks the ORN automatically when someone buys your offer. Keep Orien Wallet running in the menu bar or tray.";
     $("ex-verify").hidden = buy || !exUnverified;
-    $("ex-bal").textContent = !buy && view && view.spendable ? `Avail: ${view.spendable}` : "";
+    $("ex-bal").textContent = !buy && view && view.spendable ? `${view.spendable} ORN available` : "";
     paintExSolHint();
     if (buy) ownSolBalance().then(() => { paintExSolHint(); updateExRate(); });
     const typed = !!(view && !view.unprotected && !view.biometric);

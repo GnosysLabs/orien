@@ -1125,6 +1125,14 @@
   "replied to the network's post about you": "回覆了關於你的網路動態",
   "_patterns": [
     [
+      "^([0-9.,]+) SOL available$",
+      "可用 {0} SOL"
+    ],
+    [
+      "^([0-9.,]+) ORN available$",
+      "可用 {0} ORN"
+    ],
+    [
       "^Paid for ([0-9.,]+) ORN$",
       "支付 {0} ORN"
     ],
@@ -2427,5 +2435,6 @@
   "No open sell orders": "沒有未成交的賣單",
   "History": "歷史",
   "Open buys": "未成交買單",
-  "Open sells": "未成交賣單"
+  "Open sells": "未成交賣單",
+  "More than this wallet has": "超過此錢包的餘額"
 }

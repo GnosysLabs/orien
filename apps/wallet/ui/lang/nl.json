@@ -1125,6 +1125,14 @@
   "✓ Valid address": "✓ Geldig adres",
   "_patterns": [
     [
+      "^([0-9.,]+) SOL available$",
+      "{0} SOL beschikbaar"
+    ],
+    [
+      "^([0-9.,]+) ORN available$",
+      "{0} ORN beschikbaar"
+    ],
+    [
       "^Paid for ([0-9.,]+) ORN$",
       "Betaald voor {0} ORN"
     ],
@@ -2427,5 +2435,6 @@
   "No open sell orders": "Geen open verkooporders",
   "History": "Historie",
   "Open buys": "Open aankopen",
-  "Open sells": "Open verkopen"
+  "Open sells": "Open verkopen",
+  "More than this wallet has": "Meer dan deze wallet heeft"
 }

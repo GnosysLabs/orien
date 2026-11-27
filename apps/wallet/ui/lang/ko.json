@@ -1125,6 +1125,14 @@
   "replied to the network's post about you": "회원님에 대한 네트워크 게시물에 답글을 남겼습니다",
   "_patterns": [
     [
+      "^([0-9.,]+) SOL available$",
+      "{0} SOL 사용 가능"
+    ],
+    [
+      "^([0-9.,]+) ORN available$",
+      "{0} ORN 사용 가능"
+    ],
+    [
       "^Paid for ([0-9.,]+) ORN$",
       "{0} ORN 결제"
     ],
@@ -2427,5 +2435,6 @@
   "No open sell orders": "미체결 매도 주문이 없습니다",
   "History": "기록",
   "Open buys": "미체결 매수",
-  "Open sells": "미체결 매도"
+  "Open sells": "미체결 매도",
+  "More than this wallet has": "이 지갑 잔액보다 많습니다"
 }

@@ -1125,6 +1125,14 @@
   "replied to the network's post about you": "a répondu à la publication du réseau à votre sujet",
   "_patterns": [
     [
+      "^([0-9.,]+) SOL available$",
+      "{0} SOL disponibles"
+    ],
+    [
+      "^([0-9.,]+) ORN available$",
+      "{0} ORN disponibles"
+    ],
+    [
       "^Paid for ([0-9.,]+) ORN$",
       "Paiement pour {0} ORN"
     ],
@@ -2427,5 +2435,6 @@
   "No open sell orders": "Aucun ordre de vente ouvert",
   "History": "Historique",
   "Open buys": "Achats actifs",
-  "Open sells": "Ventes actives"
+  "Open sells": "Ventes actives",
+  "More than this wallet has": "Plus que ce que contient ce portefeuille"
 }

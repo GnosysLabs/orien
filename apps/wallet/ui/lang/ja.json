@@ -1125,6 +1125,14 @@
   "replied to the network's post about you": "あなたに関するネットワーク投稿に返信しました",
   "_patterns": [
     [
+      "^([0-9.,]+) SOL available$",
+      "{0} SOL 利用可能"
+    ],
+    [
+      "^([0-9.,]+) ORN available$",
+      "{0} ORN 利用可能"
+    ],
+    [
       "^Paid for ([0-9.,]+) ORN$",
       "{0} ORNの支払い"
     ],
@@ -2427,5 +2435,6 @@
   "No open sell orders": "未約定の売り注文はありません",
   "History": "履歴",
   "Open buys": "未約定の買い",
-  "Open sells": "未約定の売り"
+  "Open sells": "未約定の売り",
+  "More than this wallet has": "このウォレットの残高を超えています"
 }

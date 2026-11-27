@@ -1125,6 +1125,14 @@
   "✓ Valid address": "✓ Geçerli adres",
   "_patterns": [
     [
+      "^([0-9.,]+) SOL available$",
+      "{0} SOL kullanılabilir"
+    ],
+    [
+      "^([0-9.,]+) ORN available$",
+      "{0} ORN kullanılabilir"
+    ],
+    [
       "^Paid for ([0-9.,]+) ORN$",
       "{0} ORN için ödeme"
     ],
@@ -2427,5 +2435,6 @@
   "No open sell orders": "Açık satış emri yok",
   "History": "Geçmiş",
   "Open buys": "Açık alışlar",
-  "Open sells": "Açık satışlar"
+  "Open sells": "Açık satışlar",
+  "More than this wallet has": "Bu cüzdandakinden fazla"
 }

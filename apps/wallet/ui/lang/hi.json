@@ -1125,6 +1125,14 @@
   "✓ Valid address": "✓ मान्य पता",
   "_patterns": [
     [
+      "^([0-9.,]+) SOL available$",
+      "{0} SOL उपलब्ध"
+    ],
+    [
+      "^([0-9.,]+) ORN available$",
+      "{0} ORN उपलब्ध"
+    ],
+    [
       "^Paid for ([0-9.,]+) ORN$",
       "{0} ORN के लिए भुगतान"
     ],
@@ -2427,5 +2435,6 @@
   "No open sell orders": "कोई खुला बिक्री ऑर्डर नहीं",
   "History": "इतिहास",
   "Open buys": "खुली खरीद",
-  "Open sells": "खुली बिक्री"
+  "Open sells": "खुली बिक्री",
+  "More than this wallet has": "इस वॉलेट में जितना है उससे ज़्यादा"
 }
