@@ -11070,7 +11070,7 @@
     const pic = im && im.name ? `<div class="cm-link-pic">${picImg(im.name)}</div>` : "";
     let host = l.site || "";
     try { host = host || new URL(l.url).hostname.replace(/^www\./, ""); } catch {}
-    return `<button class="cm-link sq${wide ? " wide" : pic ? " side" : ""}" data-link="${esc(l.url)}" title="${esc(l.url)}">${wide ? pic : ""}
+    return `<button class="cm-link sq${wide ? " wide" : pic ? " side" : ""}" data-post-url="${esc(l.url)}" title="${esc(l.url)}">${wide ? pic : ""}
       <span class="cm-link-in"><span class="cm-link-site">${esc(host)}</span>${l.title ? `<span class="cm-link-title">${esc(l.title)}</span>` : ""}${l.description ? `<span class="cm-link-desc">${esc(l.description)}</span>` : ""}</span>${!wide ? pic : ""}</button>`;
   }
   function pollLeft(ends) {
@@ -11939,8 +11939,8 @@
   });
   // Voting, and opening a picture: from any post, wherever it shows.
   document.addEventListener("click", async (e) => {
-    const link = e.target.closest("[data-link]");
-    if (link) { e.stopPropagation(); invoke("open_post_link", { url: link.dataset.link }).catch(() => {}); return; }
+    const link = e.target.closest("[data-post-url]");
+    if (link) { e.stopPropagation(); invoke("open_post_link", { url: link.dataset.postUrl }).catch(() => {}); return; }
     const big = e.target.closest("img[data-big]");
     if (big && big.src && !big.closest(".cm-attach")) { e.stopPropagation(); picOpen(big.src); return; }
     const v = e.target.closest("[data-vote]");
@@ -13787,7 +13787,7 @@
       <div>${network("ORN", orn)}${network("SOL", sol)}</div>
       <footer class="pf-wallet-actions"><span class="pf-wallet-state${linked ? " linked" : ""}" role="status">${status}</span>
       ${!busy && proof ? '<button class="pill" data-unlink>Unlink</button>' : ""}
-      ${!busy && action ? `<button class="pill pearl" data-link>${action}</button>` : ""}</footer></article>`;
+      ${!busy && action ? `<button class="pill pearl" data-wallet-link>${action}</button>` : ""}</footer></article>`;
   }
   async function renderVerify() {
     const account = board.me?.id, render = ++walletRender;
@@ -13816,7 +13816,8 @@
     const address = button.closest("[data-owner]").dataset.owner;
     const account = board.me?.id;
     if (!account) return;
-    if (button.hasAttribute("data-link")) { quickVerify(address); return; }
+    if (button.hasAttribute("data-wallet-link")) { quickVerify(address); return; }
+    if (!button.hasAttribute("data-unlink")) return;
     button.disabled = true;
     $("pf-problem").hidden = true;
     try {
