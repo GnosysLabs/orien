@@ -10789,7 +10789,7 @@
       : post.author && post.author.banner ? picImg(post.author.banner).replace("<img ", '<img class="cm-art" ') : "";
     const head = network
       ? `${cmFace(null)}<div class="cm-who"><div class="cm-eyebrow pearl-text">${esc(EYEBROWS[post.kind] || "Orien Network")}</div><div class="cm-when"><b class="ink">Orien Network</b> · ${ago(post.created)}</div></div>`
-      : `<span data-user="${esc((post.author && post.author.name) || "")}">${cmFace(post.author)}</span><div class="cm-who"><div class="cm-name" data-user="${esc((post.author && post.author.name) || "")}">${esc((post.author && post.author.name) || "")}</div><div class="cm-when">${ago(post.created)}</div></div>${!post.mine ? `<button class="cm-more" data-more="${post.id}" aria-label="More" title="More"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg></button>` : ""}${post.mine ? `<button class="cm-del" data-del="${post.id}" aria-label="Delete" title="Delete"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M10 11v6"/><path d="M14 11v6"/></svg></button>` : ""}`;
+      : `<span data-user="${esc((post.author && post.author.name) || "")}">${cmFace(post.author)}</span><div class="cm-who"><div class="cm-name" data-user="${esc((post.author && post.author.name) || "")}">${esc((post.author && post.author.name) || "")}</div><div class="cm-when">${ago(post.created)}</div></div>${!post.mine ? `<button class="cm-more" data-post-menu="${post.id}" aria-label="More" title="More"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg></button>` : ""}${post.mine ? `<button class="cm-del" data-del="${post.id}" aria-label="Delete" title="Delete"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M10 11v6"/><path d="M14 11v6"/></svg></button>` : ""}`;
     const chips = (post.reactions || []).map((r) => `<button class="cm-chip${r.me ? " on" : ""}" data-react="${post.id}" data-emoji="${esc(r.emoji)}"${reactWho(r)}><span>${esc(r.emoji)}</span><b>${r.count}</b></button>`).join("");
     const replies = inThread || post.parent ? "" : `<button class="cm-chip${cm.open.has(post.id) ? " on" : ""}" data-open="${post.id}">${REPLY_ICON}${post.replies ? `<b>${post.replies}</b>` : ""}</button>`;
     return `<article class="cm-card${network ? " network" : ""}" data-post="${post.id}">${art}
@@ -10814,7 +10814,7 @@
       const name = (r.author && r.author.name) || "";
       return `<div class="cm-reply-row" data-post="${r.id}">
         <span data-user="${esc(name)}">${cmFace(r.author)}</span>
-        <div class="cm-reply-main"><div class="cm-reply-head"><b data-user="${esc(name)}">${esc(name)}</b><span class="cm-when">· ${ago(r.created)}</span>${!r.mine ? `<button class="cm-more" data-more="${r.id}" aria-label="More" title="More"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg></button>` : ""}${r.mine ? `<button class="cm-del" data-del="${r.id}" data-parent="${post.id}" aria-label="Delete" title="Delete"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M10 11v6"/><path d="M14 11v6"/></svg></button>` : ""}</div>
+        <div class="cm-reply-main"><div class="cm-reply-head"><b data-user="${esc(name)}">${esc(name)}</b><span class="cm-when">· ${ago(r.created)}</span>${!r.mine ? `<button class="cm-more" data-post-menu="${r.id}" aria-label="More" title="More"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg></button>` : ""}${r.mine ? `<button class="cm-del" data-del="${r.id}" data-parent="${post.id}" aria-label="Delete" title="Delete"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M10 11v6"/><path d="M14 11v6"/></svg></button>` : ""}</div>
         ${r.body ? `<div class="cm-text">${esc(r.body)}</div>` : ""}${cmYouTube(r.body)}${cmMedia(r)}
         <div class="cm-foot">${(r.reactions || []).map((x) => `<button class="cm-chip${x.me ? " on" : ""}" data-react="${r.id}" data-parent="${post.id}" data-emoji="${esc(x.emoji)}"${reactWho(x)}><span>${esc(x.emoji)}</span><b>${x.count}</b></button>`).join("")}<button class="cm-chip bare" data-pick="${r.id}" data-parent="${post.id}" aria-label="React" title="React">${SMILE_ICON}</button>${r.id === root ? `<button class="cm-chip bare" data-answer="${post.id}:${root}:${esc(name)}" title="Reply to ${esc(name)}">${REPLY_ARROW}<span>Reply</span></button>` : ""}${!r.mine && r.author && r.author.tip_to ? `<button class="cm-chip bare" data-tip="${r.id}" title="Tip ${esc(name)} some ORN">${COINS_ICON}<span>Tip</span></button>` : ""}${cmTips(r)}</div></div></div>`;
     };
@@ -11077,10 +11077,10 @@
     return found && found.author && found.author.name && !found.mine ? found.author : null;
   }
   document.addEventListener("click", (e) => {
-    const more = e.target.closest("[data-more]");
+    const more = e.target.closest("[data-post-menu]");
     if (!more) return;
     e.stopPropagation();
-    const menu = $("cm-post-menu"), id = Number(more.dataset.more);
+    const menu = $("cm-post-menu"), id = Number(more.dataset.postMenu);
     if (!menu.hidden && reportPost === id) { menu.hidden = true; return; }
     for (const other of document.querySelectorAll(".ch-menu")) other.hidden = true;
     reportPost = id;
@@ -11925,7 +11925,7 @@
   }
   document.addEventListener("pointerdown", (e) => {
     for (const m of document.querySelectorAll(".ch-menu:not([hidden])")) {
-      if (!m.contains(e.target) && !e.target.closest("#ch-more, #sl-more, #ls-more, .vf-more, [data-more], #board-who")) m.hidden = true;
+      if (!m.contains(e.target) && !e.target.closest("#ch-more, #sl-more, #ls-more, [data-wallet-menu], [data-post-menu], #board-who")) m.hidden = true;
     }
   }, true);
   document.addEventListener("keydown", (e) => { if (e.key === "Escape") for (const m of document.querySelectorAll(".ch-menu")) m.hidden = true; });
@@ -13512,12 +13512,12 @@
         : busy ? `<span class="vf-wait">${proof ? "Confirm below" : "Verifying…"}</span>`
         : r.current ? `<button class="pill pearl" data-verify="${r.address}">Verify</button>`
         : r.here ? '<span class="vf-wait">Open it to verify</span>' : "";
-      const more = st ? `<button class="pill icon vf-more" id="vf-more-${i}" data-more="${r.address}" aria-label="More"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="19" cy="12" r="1.8"/></svg></button>` : "";
+      const more = st ? `<button class="pill icon vf-more" id="vf-more-${i}" data-wallet-menu="${r.address}" aria-label="Wallet options" title="Wallet options"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="19" cy="12" r="1.8"/></svg></button>` : "";
       const ornRow = `<div class="vf-row"><div class="vf-who"><div class="vf-name">${walletLabel(r.name)}${verified ? " " + VERIFIED : ""}</div><div class="vc-sub">${short(r.address)} · ${status}</div></div><div class="vf-acts">${action}${more}</div></div>`;
       const solRow = solProfileRow(r, st, profileId, currentSol);
       return solRow ? `<div class="vf-pair">${ornRow}${solRow}</div>` : ornRow;
     }).join("");
-    for (const b of $("vf-list").querySelectorAll("[data-more]")) b.onclick = () => { vfMenuFor = b.dataset.more; toggleMenu("vf-menu", b.id); };
+    for (const b of $("vf-list").querySelectorAll("[data-wallet-menu]")) b.onclick = () => { vfMenuFor = b.dataset.walletMenu; toggleMenu("vf-menu", b.id); };
     for (const b of $("vf-list").querySelectorAll("[data-verify]")) b.onclick = () => startVerify(b.dataset.verify, b);
     if (!note) { $("vf-confirm").hidden = true; proof = null; verifying = null; }
     else { $("vf-confirm").hidden = false; $("vf-text").textContent = note; $("vf-pw-field").hidden = true; $("vf-go").hidden = true; }
