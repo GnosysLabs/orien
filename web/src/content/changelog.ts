@@ -28,6 +28,20 @@ export const CHANGELOG: Entry[] = [
   {
     date: '2026-11-27',
     products: ['wallet'],
+    version: '1.9.34',
+    title: 'Nicknames in the explorer',
+    changes: [
+      'The explorer gives every wallet that no profile shows a nickname, like Alert Red Unicorn, and a picture drawn from its address, so you can tell wallets apart at a glance.',
+      'Solana’s View all opens the full list of your SOL activity, by day, as ORN’s does.',
+      'On iPhone and iPad, your SOL activity names buy orders you placed on a computer.',
+      'On iPad, the chat fills the screen while you type.',
+      'Edit Profile sets Manage blocks and Delete my account apart under their own Account heading.',
+      'On iPhone and iPad, Referrals moves to Settings.',
+    ],
+  },
+  {
+    date: '2026-11-27',
+    products: ['wallet'],
     version: '1.9.33',
     title: 'A tidier Exchange and smoother screens',
     changes: [
