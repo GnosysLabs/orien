@@ -1125,6 +1125,10 @@
   "✓ Valid address": "✓ Корректный адрес",
   "_patterns": [
     [
+      "^Nobody on Orien Network is called “(.+)”\\.$",
+      "В Orien Network нет пользователя с именем «{0}»."
+    ],
+    [
       "^(\\d+) / (\\d+) mining hours$",
       "Майнинг: {0} из {1} ч"
     ],
@@ -2391,5 +2395,6 @@
   "Solana hasn’t acknowledged the submission. This screen will keep checking.": "Solana ещё не подтвердила получение. Этот экран продолжит проверку.",
   "Some Solana balances could not refresh.": "Не удалось обновить некоторые балансы Solana.",
   "See all swaps": "Все обмены",
-  "Help with the wallet, mining, swaps and more.": "Помощь с кошельком, майнингом, обменами и не только."
+  "Help with the wallet, mining, swaps and more.": "Помощь с кошельком, майнингом, обменами и не только.",
+  "Nothing found. Search an address (64 letters and digits, 0-9 and a-f), a checkpoint number, or the name of someone on Orien Network.": "Ничего не найдено. Ищите по адресу (64 символа: 0-9 и a-f), номеру контрольной точки или имени пользователя в Orien Network."
 }

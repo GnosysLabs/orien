@@ -140,7 +140,7 @@ export function ExplorerSearch({ initial = '' }: { initial?: string }) {
   const wallets = found.flatMap((profile) => profile.wallets.map((wallet) => ({ profile, wallet })))
   const nobody =
     !message && wallets.length === 0 && searched !== '' && searched === text.trim()
-      ? `Nobody on the Market is called “${searched.replace(/^@/, '')}”.`
+      ? `Nobody on Orien Network is called “${searched.replace(/^@/, '')}”.`
       : null
   const offered = checkpoints && checkpoints.digits === text.trim() ? checkpoints : null
   const note = message ?? offered?.note ?? nobody
@@ -170,7 +170,7 @@ export function ExplorerSearch({ initial = '' }: { initial?: string }) {
         setOpen(true)
         setMessage(
           profiles.length === 0
-            ? 'Nothing found. Search an address (64 letters and digits, 0-9 and a-f), a checkpoint number, or the name of someone on the Market.'
+            ? 'Nothing found. Search an address (64 letters and digits, 0-9 and a-f), a checkpoint number, or the name of someone on Orien Network.'
             : null,
         )
       }}

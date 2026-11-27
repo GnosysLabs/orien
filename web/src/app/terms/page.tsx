@@ -6,7 +6,7 @@ import { pageMeta } from '@/lib/seo'
 export const metadata: Metadata = pageMeta({
   title: 'Terms of Service',
   description:
-    'The terms for using orien.network, Orien Wallet and an Orien Network account: what is yours, the Market rules, and what we do about abuse.',
+    'The terms for using orien.network, Orien Wallet and an Orien Network account: what is yours, the rules for posts and messages, and what we do about abuse.',
   path: '/terms/',
 })
 
@@ -58,7 +58,7 @@ export default function TermsPage() {
 
       <Section title="Your Orien Network account">
         <p>
-          An Orien Network account, made by signing in with a code sent to your email, gives you a profile, the Market,
+          An Orien Network account, made by signing in with a code sent to your email, gives you a profile, the Community,
           messages and the swap board. You can have it without holding ORN, and hold ORN without it. Keep your email
           secure: anyone who can read it can sign in as you. You can delete your account at any time from Your account;
           that deletes your profile, listings, pictures and messages, and never touches your wallet or coins.
@@ -69,14 +69,14 @@ export default function TermsPage() {
         </p>
       </Section>
 
-      <Section title="Rules for the Market and messages">
+      <Section title="Rules for posts and messages">
         <p>
           We have <strong>zero tolerance</strong> for objectionable content and abusive people. You must not post,
           offer, send or ask for:
         </p>
         <ul>
           <li>anything illegal, or goods and services that are illegal where you or the other person are;</li>
-          <li>scams, fake listings, or attempts to take payment without delivering;</li>
+          <li>scams, or attempts to take payment without delivering;</li>
           <li>harassment, threats, bullying or hate against anyone;</li>
           <li>sexual content involving minors, of any kind, which we also report to the authorities;</li>
           <li>sexually explicit or violent material;</li>
@@ -84,15 +84,15 @@ export default function TermsPage() {
           <li>spam, or someone else&apos;s private information or work without their permission.</li>
         </ul>
         <p>
-          Everything posted, including listings, names, bios, pictures and messages, is checked automatically before
+          Everything posted, including posts, names, bios, pictures and messages, is checked automatically before
           anyone else sees it, and is refused if it breaks these rules.
         </p>
       </Section>
 
       <Section title="Reporting and blocking">
         <p>
-          Every listing and profile has a Report button, and you can block anyone from their profile or a conversation:
-          they then cannot message you, and you no longer see their listings. We read every report and
+          Every post and profile has a Report button, and you can block anyone from their profile or a conversation:
+          they then cannot message you, and you no longer see their posts. We read every report and
           act on it, usually within a day, by removing the content, and by suspending or closing the accounts of people
           who break these rules. Serious or repeated abuse means a permanent ban.
         </p>
@@ -101,8 +101,8 @@ export default function TermsPage() {
       <Section title="Payments and trades are between you and the other person">
         <p>
           Payments in ORN go straight from one wallet to another on the Orien network. A payment is final the moment
-          the network confirms it: it cannot be reversed or refunded by us or anyone else. When you buy or sell on the
-          Market, or swap ORN for SOL or Bitcoin on the swap board, the deal is between you and the other person.{' '}
+          the network confirms it: it cannot be reversed or refunded by us or anyone else. When you pay someone, or swap ORN
+          for SOL or Bitcoin on the swap board, the deal is between you and the other person.{' '}
           {OPERATOR} is not a party to it, does not hold your coins or theirs, and cannot settle disputes or get money
           back. Agree the details in messages first, and only pay people you are willing to trust.
         </p>

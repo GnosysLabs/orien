@@ -185,7 +185,7 @@ export async function ask<T>(path: string, method = 'GET', body?: unknown): Prom
   })
   const data = await response.json().catch(() => ({}))
   if (!response.ok) {
-    throw new MarketError(data.error ?? 'The Market is not answering right now. Try again in a moment.', response.status)
+    throw new MarketError(data.error ?? 'Orien Network is not answering right now. Try again in a moment.', response.status)
   }
   return data as T
 }

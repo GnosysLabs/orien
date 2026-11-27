@@ -1125,6 +1125,10 @@
   "✓ Valid address": "✓ Geçerli adres",
   "_patterns": [
     [
+      "^Nobody on Orien Network is called “(.+)”\\.$",
+      "Orien Network'te “{0}” adlı kimse yok."
+    ],
+    [
       "^(\\d+) / (\\d+) mining hours$",
       "{0} / {1} saat madencilik"
     ],
@@ -2391,5 +2395,6 @@
   "Solana hasn’t acknowledged the submission. This screen will keep checking.": "Solana gönderimi henüz onaylamadı. Bu ekran kontrol etmeye devam edecek.",
   "Some Solana balances could not refresh.": "Bazı Solana bakiyeleri yenilenemedi.",
   "See all swaps": "Tüm takasları gör",
-  "Help with the wallet, mining, swaps and more.": "Cüzdan, madencilik, takaslar ve daha fazlası için yardım."
+  "Help with the wallet, mining, swaps and more.": "Cüzdan, madencilik, takaslar ve daha fazlası için yardım.",
+  "Nothing found. Search an address (64 letters and digits, 0-9 and a-f), a checkpoint number, or the name of someone on Orien Network.": "Hiçbir şey bulunamadı. Bir adres (64 harf ve rakam, 0-9 ve a-f), bir kontrol noktası numarası veya Orien Network'teki birinin adını arayın."
 }

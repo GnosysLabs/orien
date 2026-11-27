@@ -3,15 +3,14 @@
 import Link from 'next/link'
 import { useEffect, useState } from 'react'
 import { LogOut, Mail, MessageCircle, UserRound } from 'lucide-react'
-import { ask, me, NAME_PATTERN, NAME_RULE, profileHref, type Account, type Listing, type WalletProof } from '@/lib/market'
-import { Card } from './Browse'
+import { ask, me, NAME_PATTERN, NAME_RULE, profileHref, type Account, type WalletProof } from '@/lib/market'
 import { ProfileEditor } from './ProfileEditor'
 import { YourWallets } from './WalletCheck'
 import { WalletSignIn } from './WalletSignIn'
 import { Notice, SIGNED_IN_OR_OUT } from './Shell'
 import { useMe } from '@/lib/useMe'
 
-type Found = { account: Account; listings: Listing[]; unread?: number }
+type Found = { account: Account; unread?: number }
 
 export function AccountView() {
   const [found, setFound] = useState<Found | null | undefined>(undefined)
@@ -216,15 +215,6 @@ function Mine({ found, onChange }: { found: Found; onChange: () => void }) {
     await ask('/signout', 'POST').catch(() => {})
     onChange()
   }
-  const setOpen = async (listing: Listing, open: boolean) => {
-    setTrouble('')
-    try {
-      await ask(`/listings/${listing.id}/open`, 'POST', { open })
-      onChange()
-    } catch (error) {
-      setTrouble((error as Error).message)
-    }
-  }
   return (
     <div className="space-y-6">
       <div className="flex flex-wrap items-center gap-3">
@@ -258,39 +248,7 @@ function Mine({ found, onChange }: { found: Found; onChange: () => void }) {
       </div>
       <ProfileEditor account={found.account} onSaved={onChange} wallets={proofs ?? []} />
       <YourWallets account={found.account} onChange={onChange} proofs={proofs} setProofs={setProofs} />
-      <h2 className="pt-2 text-xl font-bold tracking-tight text-ink">Your listings on the Market</h2>
       {trouble && <Notice tone="bad">{trouble}</Notice>}
-      {found.listings.length === 0 ? (
-        <Notice>
-          You have no listings yet.{' '}
-          <Link href="/marketplace/sell/" className="font-semibold text-ink underline underline-offset-4">
-            Sell something.
-          </Link>
-        </Notice>
-      ) : (
-        <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-          {found.listings.map((listing) => (
-            <div key={listing.id} className="flex flex-col gap-2">
-              <Card listing={listing} />
-              <div className="flex gap-2">
-                <Link
-                  href={`/marketplace/sell/?id=${listing.id}`}
-                  className="flex h-9 items-center rounded-lg border border-line px-3 text-sm font-semibold text-ink hover:bg-raised"
-                >
-                  Edit
-                </Link>
-                <button
-                  type="button"
-                  onClick={() => setOpen(listing, !listing.open)}
-                  className="flex h-9 items-center rounded-lg border border-line px-3 text-sm font-semibold text-ink hover:bg-raised"
-                >
-                  {listing.open ? 'Close' : 'Reopen'}
-                </button>
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
       <DeleteAccount name={found.account.name} onDeleted={onChange} />
     </div>
   )

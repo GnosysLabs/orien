@@ -42,7 +42,7 @@ const QUESTIONS: Question[] = [
   {
     q: 'How do I get ORN?',
     a: MARKETPLACE_LIVE
-      ? 'Mine it on your own computer with Orien Wallet or the orien command line, buy it with SOL or Bitcoin from another person through a trustless swap, or sell your work or goods for ORN on the Market.'
+      ? 'Mine it on your own computer with Orien Wallet or the orien command line, or buy it with SOL or Bitcoin from another person through a trustless swap.'
       : 'Mine it on your own computer with Orien Wallet or the orien command line, or be paid in ORN by someone who has it.',
   },
   {

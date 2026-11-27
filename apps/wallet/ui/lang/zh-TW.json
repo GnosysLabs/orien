@@ -1125,6 +1125,10 @@
   "replied to the network's post about you": "回覆了關於你的網路動態",
   "_patterns": [
     [
+      "^Nobody on Orien Network is called “(.+)”\\.$",
+      "Orien Network 上沒有名為「{0}」的使用者。"
+    ],
+    [
       "^(\\d+) / (\\d+) mining hours$",
       "挖礦時數：{0} / {1} 小時"
     ],
@@ -2391,5 +2395,6 @@
   "Solana hasn’t acknowledged the submission. This screen will keep checking.": "Solana 尚未確認收到提交。此畫面將繼續檢查。",
   "Some Solana balances could not refresh.": "部分 Solana 餘額無法重新整理。",
   "See all swaps": "檢視全部兌換",
-  "Help with the wallet, mining, swaps and more.": "有關錢包、挖礦、兌換等的幫助。"
+  "Help with the wallet, mining, swaps and more.": "有關錢包、挖礦、兌換等的幫助。",
+  "Nothing found. Search an address (64 letters and digits, 0-9 and a-f), a checkpoint number, or the name of someone on Orien Network.": "未找到結果。請搜尋地址（64 位字母和數字，0-9 及 a-f）、檢查點編號或 Orien Network 上的使用者名稱。"
 }

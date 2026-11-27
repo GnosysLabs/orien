@@ -266,10 +266,6 @@ export function ProfileEditor({ account, onSaved, wallets }: { account: Account;
             )
           })}
         </div>
-        <p className="text-sm leading-relaxed text-muted">
-          Messages about your Market listings always come through whatever you pick, so buyers can ask about what
-          you’re selling. Blocking still works on top of this.
-        </p>
         <div className="flex flex-wrap items-end gap-4">
           <div>
             <span className="mb-1 block text-sm text-muted">Blocked accounts</span>

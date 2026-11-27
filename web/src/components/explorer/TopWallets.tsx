@@ -129,7 +129,7 @@ export function TopWallets({ limit }: { limit?: number }) {
           {!limit && (
             <p className="border-t border-line px-5 py-4 text-sm text-muted sm:px-6">
               Holds counts everything a wallet has: spendable, staked, and on its way back from staking. Share is of all
-              the ORN in wallets. Names are shown where someone on the Market showed they hold the wallet.
+              the ORN in wallets. Names are shown where someone on Orien Network showed they hold the wallet.
             </p>
           )}
         </>
