@@ -4178,9 +4178,6 @@
         </div>
         <div class="pf-side">
       <!-- Verifying wallets, so people paying them see "Name – Wallet". -->
-      <div class="ch-menu" id="vf-menu" role="menu" hidden>
-        <button class="menu-row bad" id="vf-remove"><span>Remove from your profile</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 11v6"/><path d="M14 11v6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></button>
-      </div>
       <div class="verify-card" id="pf-verify" hidden>
         <div class="vc-title">Your wallets</div>
         <p class="vc-text" id="vf-intro">Verify a wallet and people who pay it see your name with it.</p>
@@ -7358,7 +7355,7 @@
       `${Tap} your picture, then <b>Edit Profile</b>, then <b>Verify</b> beside that wallet.`,
       "Repeat for each wallet you want on your profile.",
       `Under <b>Payout wallet</b>, choose the verified ORN wallet that receives payments and tips.`,
-      `To take a wallet off your profile, ${tap} <b>⋯</b> beside it, then <b>Remove from your profile</b>.`,
+      `To take a wallet off your profile, ${tap} <b>Unlink</b> beside its name.`,
     ]);
     add("Orien Network", "tip", "Tip someone", [
       `On Home, ${tap} ${COMMUNITY}.`,
@@ -11925,7 +11922,7 @@
   }
   document.addEventListener("pointerdown", (e) => {
     for (const m of document.querySelectorAll(".ch-menu:not([hidden])")) {
-      if (!m.contains(e.target) && !e.target.closest("#ch-more, #sl-more, #ls-more, [data-wallet-menu], [data-post-menu], #board-who")) m.hidden = true;
+      if (!m.contains(e.target) && !e.target.closest("#ch-more, #sl-more, #ls-more, [data-post-menu], #board-who")) m.hidden = true;
     }
   }, true);
   document.addEventListener("keydown", (e) => { if (e.key === "Escape") for (const m of document.querySelectorAll(".ch-menu")) m.hidden = true; });
@@ -13501,23 +13498,37 @@
       : "Don't have any ORN yet? Mine for an hour from the Mine screen, or buy a little on Swap.";
     $("vf-intro").hidden = anyVerified;
     $("vf-intro").innerHTML = anyVerified ? "" : `Verify a wallet to sell on the Market: buyers pay it, and see your name with it.<span class="vf-hint">${noOrn}</span>`;
-    $("vf-list").innerHTML = rows.map((r, i) => {
+    $("vf-list").innerHTML = rows.map(r => {
       const st = state(r.address);
       const verified = !!(st && st.verified), waiting = !!(st && !st.verified);
       // While one is being verified (confirming below, or sent and waiting)
       // its Verify button gives way to where it stands.
       const busy = verifying === r.address;
-      const status = verified ? "Verified" : waiting ? "Waiting" : "Not verified yet";
+      const status = verified ? "" : waiting ? " · Waiting" : " · Not verified yet";
       const action = verified ? ""
         : busy ? `<span class="vf-wait">${proof ? "Confirm below" : "Verifying…"}</span>`
         : r.current ? `<button class="pill pearl" data-verify="${r.address}">Verify</button>`
         : r.here ? '<span class="vf-wait">Open it to verify</span>' : "";
-      const more = st ? `<button class="pill icon vf-more" id="vf-more-${i}" data-wallet-menu="${r.address}" aria-label="Wallet options" title="Wallet options"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="19" cy="12" r="1.8"/></svg></button>` : "";
-      const ornRow = `<div class="vf-row"><div class="vf-who"><div class="vf-name">${walletLabel(r.name)}${verified ? " " + VERIFIED : ""}</div><div class="vc-sub">${short(r.address)} · ${status}</div></div><div class="vf-acts">${action}${more}</div></div>`;
+      const unlink = st ? `<button type="button" class="pill" data-unlink="${esc(r.address)}">Unlink</button>` : "";
+      const ornRow = `<div class="vf-row"><div class="vf-who"><div class="vf-name">${walletLabel(r.name)}${verified ? " " + VERIFIED : ""}</div><div class="vc-sub">${short(r.address)}${status}</div></div><div class="vf-acts">${action}${unlink}</div></div>`;
       const solRow = solProfileRow(r, st, profileId, currentSol);
       return solRow ? `<div class="vf-pair">${ornRow}${solRow}</div>` : ornRow;
     }).join("");
-    for (const b of $("vf-list").querySelectorAll("[data-wallet-menu]")) b.onclick = () => { vfMenuFor = b.dataset.walletMenu; toggleMenu("vf-menu", b.id); };
+    for (const button of $("vf-list").querySelectorAll("[data-unlink]")) button.onclick = async () => {
+      if (button.disabled || board.me?.id !== profileId) return;
+      button.disabled = true;
+      $("pf-problem").hidden = true;
+      try {
+        await invoke("board_wallet_remove", {address: button.dataset.unlink});
+        const me = await invoke("board_me");
+        if (board.me?.id === profileId && me?.id === profileId) {
+          board.me = me;
+          await renderVerify();
+        }
+      } catch (e) {
+        if (board.me?.id === profileId) problem("pf-problem", e);
+      } finally { button.disabled = false; }
+    };
     for (const b of $("vf-list").querySelectorAll("[data-verify]")) b.onclick = () => startVerify(b.dataset.verify, b);
     if (!note) { $("vf-confirm").hidden = true; proof = null; verifying = null; }
     else { $("vf-confirm").hidden = false; $("vf-text").textContent = note; $("vf-pw-field").hidden = true; $("vf-go").hidden = true; }
@@ -13575,15 +13586,6 @@
     if (!$("vf-pw-field").hidden) $("vf-pw").focus();
   }
   $("vf-cancel").onclick = () => renderVerify();
-  // Taking a wallet off the profile, from its ⋯ menu.
-  let vfMenuFor = null;
-  $("vf-remove").onclick = async () => {
-    $("vf-menu").hidden = true;
-    if (!vfMenuFor) return;
-    $("pf-problem").hidden = true;
-    try { await invoke("board_wallet_remove", { address: vfMenuFor }); board.me = await invoke("board_me"); renderVerify(); }
-    catch (e) { problem("pf-problem", e); }
-  };
   $("vf-go").onclick = async () => {
     if (!proof || !view || (proof.address || "").toLowerCase() !== view.address) { renderVerify(); return; }
     $("vf-go").disabled = true;
