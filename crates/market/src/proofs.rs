@@ -285,7 +285,7 @@ impl Store {
         let mut query = self.db.prepare(&format!(
             "SELECT a.id, a.name, a.picture, {NAME}, a.bio, a.banner, a.telegram, a.x, a.discord
              FROM verified_wallets v JOIN accounts a ON a.id = v.account
-             WHERE (v.address = ?1 OR v.solana_devnet = ?1) AND v.proven IS NOT NULL
+             WHERE (v.address = ?1 OR {SOL_LINK} = ?1) AND v.proven IS NOT NULL
                AND NOT EXISTS (SELECT 1 FROM suspended s WHERE s.account = a.id)
                AND NOT EXISTS (SELECT 1 FROM blocks b WHERE (b.blocker = a.id AND b.blocked = ?2) OR (b.blocker = ?2 AND b.blocked = a.id))
              ORDER BY v.proven DESC LIMIT 1"
