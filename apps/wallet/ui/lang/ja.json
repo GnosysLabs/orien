@@ -2498,5 +2498,6 @@
   "Nothing for sale right now": "現在売りに出ているものはありません",
   "No buy order fits this amount": "この数量に合う買い注文はありません",
   "None of these orders could be taken.": "これらの注文はどれも受けられませんでした。",
-  "Candle length": "ローソク足の期間"
+  "Candle length": "ローソク足の期間",
+  "Your orders": "あなたの注文"
 }

@@ -2498,5 +2498,6 @@
   "Nothing for sale right now": "No hay nada a la venta ahora",
   "No buy order fits this amount": "Ninguna orden de compra encaja con esta cantidad",
   "None of these orders could be taken.": "No se pudo tomar ninguna de estas órdenes.",
-  "Candle length": "Duración de la vela"
+  "Candle length": "Duración de la vela",
+  "Your orders": "Tus órdenes"
 }

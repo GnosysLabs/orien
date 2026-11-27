@@ -2498,5 +2498,6 @@
   "Nothing for sale right now": "Сейчас ничего не продаётся",
   "No buy order fits this amount": "Нет заявки на покупку под это количество",
   "None of these orders could be taken.": "Ни одну из этих заявок не удалось принять.",
-  "Candle length": "Период свечи"
+  "Candle length": "Период свечи",
+  "Your orders": "Ваши заявки"
 }

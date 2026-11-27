@@ -2498,5 +2498,6 @@
   "Nothing for sale right now": "目前没有出售的",
   "No buy order fits this amount": "没有符合此数量的买单",
   "None of these orders could be taken.": "这些订单都无法成交。",
-  "Candle length": "K 线周期"
+  "Candle length": "K 线周期",
+  "Your orders": "你的订单"
 }

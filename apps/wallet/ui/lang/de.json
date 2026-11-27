@@ -2498,5 +2498,6 @@
   "Nothing for sale right now": "Gerade wird nichts verkauft",
   "No buy order fits this amount": "Keine Kauforder passt zu dieser Menge",
   "None of these orders could be taken.": "Keine dieser Orders konnte angenommen werden.",
-  "Candle length": "Kerzenlänge"
+  "Candle length": "Kerzenlänge",
+  "Your orders": "Deine Orders"
 }

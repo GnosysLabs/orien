@@ -2498,5 +2498,6 @@
   "Nothing for sale right now": "Şu anda satışta bir şey yok",
   "No buy order fits this amount": "Bu miktara uyan alış emri yok",
   "None of these orders could be taken.": "Bu emirlerin hiçbiri alınamadı.",
-  "Candle length": "Mum süresi"
+  "Candle length": "Mum süresi",
+  "Your orders": "Emirleriniz"
 }
