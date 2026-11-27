@@ -460,7 +460,12 @@
   body.phone header { height: 52px; margin: 0 -20px 10px; -webkit-app-region: no-drag; }
   /* iPhones use the Market; mining and swaps stay on computers, which keep
      the wallet running while a swap needs it. */
-  body.phone #go-mine, body.phone #go-swap, body.phone #swap-alert, body.phone #choose, body.phone .update { display: none !important; }
+  body:is(.phone, .ipad) :is(#go-mine, #go-swap, #swap-alert, #choose, .update) { display: none !important; }
+  /* iPads: the big-window layout, below the status bar and above the home
+     bar, with no window to resize and no mining panel. */
+  body.ipad { -webkit-tap-highlight-color: transparent; padding-bottom: max(28px, env(safe-area-inset-bottom)); }
+  body.ipad header { height: calc(64px + env(safe-area-inset-top)); padding-top: env(safe-area-inset-top); -webkit-app-region: no-drag; }
+  body.ipad :is(#hs-mine, #go-size) { display: none !important; }
   body.phone .actions.five { grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 8px; }
   /* iPhones keep Settings in the header. */
   body.phone #go-settings-tile { display: none; }
@@ -5180,7 +5185,11 @@
     paintMax();
   }
   // The iPhone app shares this window, laid out for a phone.
-  const phone = /iPhone|iPad|iPod/.test(navigator.userAgent);
+  // iPads: the same app as iPhones, under iOS's rules (no mining, swaps on
+  // computers), laid out as a big window. An iPad's web view can call
+  // itself a Mac; its touch screen gives it away.
+  const ipad = /iPad/.test(navigator.userAgent) || (/Macintosh/.test(navigator.userAgent) && navigator.maxTouchPoints > 1);
+  const phone = /iPhone|iPod/.test(navigator.userAgent) || ipad;
   // Touch ID on Macs, Face ID on iPhones; Windows and Linux keep the password.
   const apple = phone || /Macintosh/.test(navigator.userAgent);
   // For Report a Problem: the last few screens and the errors shown, kept
@@ -5201,9 +5210,11 @@
     bugErrors.push({ text: clean, at: Math.floor(Date.now() / 1000) });
     if (bugErrors.length > 5) bugErrors.shift();
   }
-  const bio = phone ? "Face ID" : "Touch ID";
+  // Face ID or Touch ID, as the device has: iPads can have either.
+  let bio = phone ? "Face ID" : "Touch ID";
+  if (phone) invoke("biometry_kind").then((kind) => { if (kind) bio = kind; }).catch(() => {});
   if (phone) {
-    document.body.classList.add("phone");
+    document.body.classList.add(ipad ? "ipad" : "phone");
     // The keyboard opens only when a box is tapped, never by itself as a
     // screen opens, so screens don't jump as they appear.
     const focus = HTMLElement.prototype.focus;

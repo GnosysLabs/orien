@@ -882,6 +882,28 @@ async fn set_password(app: AppHandle, password: String) -> Result<(), String> {
     .map_err(|error| error.to_string())?
 }
 
+/// Which the device has, Face ID or Touch ID, for the words on buttons:
+/// iPads can have either. Computers: Touch ID, on the Macs that have it.
+#[tauri::command]
+fn biometry_kind() -> &'static str {
+    #[cfg(target_os = "ios")]
+    {
+        #[link(name = "LocalAuthentication", kind = "framework")]
+        unsafe extern "C" {}
+        use objc2::rc::Retained;
+        use objc2::runtime::AnyObject;
+        use objc2::{class, msg_send};
+        // LAContext: asked whether biometrics can be used, then which kind
+        // (1 Touch ID, 2 Face ID, 4 Optic ID).
+        let context: Retained<AnyObject> = unsafe { msg_send![class!(LAContext), new] };
+        let _: bool = unsafe { msg_send![&*context, canEvaluatePolicy: 1isize, error: std::ptr::null_mut::<*mut AnyObject>()] };
+        let kind: isize = unsafe { msg_send![&*context, biometryType] };
+        return if kind == 1 { "Touch ID" } else { "Face ID" };
+    }
+    #[allow(unreachable_code)]
+    "Touch ID"
+}
+
 /// Asks for Touch ID or Face ID, and unlocks the open wallet for a few
 /// minutes.
 #[tauri::command]
@@ -3045,7 +3067,7 @@ pub fn run() {
             }
             Ok(())
         })
-        .invoke_handler(tauri::generate_handler![share_address, assets::solana_devnet_address, assets::solana_devnet_balances, assets::solana_devnet_history, assets::solana_devnet_transaction_activity, solana_send::solana_devnet_quote, solana_send::solana_devnet_send, solana_send::solana_devnet_receipt, solana_send::swap::devnet_swap_quote, solana_send::swap::devnet_swap_approve, solana_send::swap::devnet_swap_status, has_wallet, create_wallet, save_phrase, restore_wallet, set_password, choose_wallet, overview_now, send_payment, activity, quote, contacts, save_contact, delete_contact, contacts_sync, members, save_member, delete_member, biometric_unlock, biometric_enable, update::check_update, update::install_update, update::download_update, update::away_seconds, mine_start, mine_stop, mine_resume, mine_set, mine_status, mine_benchmark, mine_benchmark_cancel, large_pages_state, large_pages_set_up, wallets, wallet_balances, use_wallet, rename_wallet, add_wallet, forget_wallet, swap_list, swap_sell, swap_buy, swap_accept, swap_step, swap_smallest, board_offers, board_me, board_here, board_email_start, board_email_finish, board_sign_out, board_post, board_take, board_withdraw, board_link, notifications_ask, push_sync, open_network_map, board_wallets_sync, board_post_sol, board_take_sol, board_post_buy, board_post_buy_sol, board_take_buy, board_take_buy_sol, order_list, order_create_buy, order_fill_buy, order_cancel_buy, sol_open, sol_cluster, sol_payout_check, open_site, qr_code, address_qr, wallet_profiles, board_profile_save, board_picture_pick, board_verify, link_devnet_sol, profile_link::profile_link_quote, profile_link::profile_link_confirm, board_wallet_states, market_image,
+        .invoke_handler(tauri::generate_handler![share_address, biometry_kind, assets::solana_devnet_address, assets::solana_devnet_balances, assets::solana_devnet_history, assets::solana_devnet_transaction_activity, solana_send::solana_devnet_quote, solana_send::solana_devnet_send, solana_send::solana_devnet_receipt, solana_send::swap::devnet_swap_quote, solana_send::swap::devnet_swap_approve, solana_send::swap::devnet_swap_status, has_wallet, create_wallet, save_phrase, restore_wallet, set_password, choose_wallet, overview_now, send_payment, activity, quote, contacts, save_contact, delete_contact, contacts_sync, members, save_member, delete_member, biometric_unlock, biometric_enable, update::check_update, update::install_update, update::download_update, update::away_seconds, mine_start, mine_stop, mine_resume, mine_set, mine_status, mine_benchmark, mine_benchmark_cancel, large_pages_state, large_pages_set_up, wallets, wallet_balances, use_wallet, rename_wallet, add_wallet, forget_wallet, swap_list, swap_sell, swap_buy, swap_accept, swap_step, swap_smallest, board_offers, board_me, board_here, board_email_start, board_email_finish, board_sign_out, board_post, board_take, board_withdraw, board_link, notifications_ask, push_sync, open_network_map, board_wallets_sync, board_post_sol, board_take_sol, board_post_buy, board_post_buy_sol, board_take_buy, board_take_buy_sol, order_list, order_create_buy, order_fill_buy, order_cancel_buy, sol_open, sol_cluster, sol_payout_check, open_site, qr_code, address_qr, wallet_profiles, board_profile_save, board_picture_pick, board_verify, link_devnet_sol, profile_link::profile_link_quote, profile_link::profile_link_confirm, board_wallet_states, market_image,
             theme_store_picture, board_banner_remove, market_search, market_listings, market_listing, market_profile, market_call, market_pick_pictures, market_listing_picture, community_picture, klipy_gifs, dock_badge, mac_notify, board_delete_account, wallet_icons, set_wallet_icon, vault_ready, vault_unlock, open_contact, pair_offer, pair_offer_wait, pair_offer_send, pair_join, pair_join_wait, pair_invite, pair_invite_wait, pair_accept, pair_wallets, pair_accept_send, pair_cancel, wallet_phrase, phrase_check, app_theme, set_app_theme, set_backdrop, theme_picture_save, theme_picture_load, theme_picture_delete, explorer, window_wide, window_ready, app_prefs, set_app_pref, app_unlock, computer_settings, set_computer_setting, notifications_muted, set_notification, open_legal, open_post_link, open_extension, haptics::haptic, haptics::haptic_ready, sitesignin::site_signin_answer, board_paid_wallet, board_wallet_remove])
         .build(tauri::generate_context!())
         .expect("the wallet window could not start")
