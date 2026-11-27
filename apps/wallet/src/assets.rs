@@ -8,7 +8,7 @@ use std::sync::Mutex;
 use tauri::AppHandle;
 
 // Circle's USDC mint on Solana devnet.
-const DEVNET_USDC: &str = "4zMMC9srt5Ri5X14GAgXhaHii3GnPAEERYPJgZJDncDU";
+use orien_swap::solana::devnet_pool::USDC as DEVNET_USDC;
 static DEVNET_ADDRESSES: Mutex<()> = Mutex::new(());
 
 pub(crate) fn devnet_address(dir: &Path, path: &Path, wallet_address: &str, password: Option<&str>) -> Result<String, String> {

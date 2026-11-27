@@ -1,5 +1,8 @@
 //! Native SOL transfers for the wallet's Solana Devnet account.
 
+#[path = "solana_swap.rs"]
+pub mod swap;
+
 use orien_net::{store::write_replacing, unlock::Signing};
 use orien_swap::solana::{self, Keypair, Landed, Pubkey, Solana};
 use serde::{Deserialize, Serialize};
@@ -196,21 +199,21 @@ fn approve(
     }
     let instructions = [solana::transfer(&plan.payer, &plan.recipient, plan.lamports)];
     let wire = solana::transaction(&signer, &[], &instructions, plan.blockhash).map_err(|error| error.to_string())?;
-    let mut receipt = DevnetReceipt {
-        signature: solana::signature_of(&wire),
-        recipient: solana::text(&plan.recipient),
-        amount: crate::money::show(plan.lamports.into()),
-        last_valid_height: plan.last_valid_height,
-        state: State::Pending,
-        acknowledged: false,
-    };
-    // Record the exact signature before sending. A lost response cannot
-    // cause approval to create and broadcast a second transaction.
-    save_receipt(&record, &receipt)?;
+    let receipt = broadcast(network, &record, &wire, solana::text(&plan.recipient), crate::money::show(plan.lamports.into()), plan.last_valid_height)?;
     *review = None;
-    if network.send(&wire).is_ok_and(|signature| signature == receipt.signature) {
+    Ok(receipt)
+}
+
+fn broadcast(network: &Solana, record: &Path, wire: &[u8], recipient: String, amount: String, last_valid_height: u64) -> Result<DevnetReceipt, String> {
+    let mut receipt = DevnetReceipt {
+        signature: solana::signature_of(wire), recipient, amount, last_valid_height,
+        state: State::Pending, acknowledged: false,
+    };
+    // Persist before broadcasting so a lost response cannot cause a duplicate.
+    save_receipt(record, &receipt)?;
+    if network.send(wire).is_ok_and(|signature| signature == receipt.signature) {
         receipt.acknowledged = true;
-        let _ = save_receipt(&record, &receipt);
+        let _ = save_receipt(record, &receipt);
     }
     Ok(receipt)
 }

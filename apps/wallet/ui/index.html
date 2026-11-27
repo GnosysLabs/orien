@@ -644,6 +644,25 @@
   .asset-tokens .set-row { gap: 10px; min-height: 52px; padding: 8px; border-radius: 10px; }
   .asset-tokens .set-row + .set-row::before { display: none; }
   .asset-tokens .set-row[aria-pressed="true"] { background: var(--surface-hover); }
+  .asset-swap-divider { display: flex; align-items: center; gap: 10px; padding: 0 8px; }
+  .asset-swap-divider::before, .asset-swap-divider::after { content: ""; height: 1px; flex: 1; background: var(--line); }
+  #asset-swap-open { color: var(--accent); width: 32px; height: 32px; }
+  #sol-swap-dialog { width: min(410px, calc(100vw - 28px)); max-height: calc(100dvh - 32px); margin: auto; padding: 20px;
+    color: var(--ink); background: var(--surface); border: 1px solid var(--line); border-radius: 20px; box-shadow: 0 18px 64px #0006; overflow: auto; }
+  #sol-swap-dialog::backdrop { background: #0008; }
+  .sol-swap-head, .sol-swap-line { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+  .sol-swap-head h2 { font-size: 21px; margin: 0; }
+  .sol-swap-network, #sol-swap-available, #sol-swap-pay-label { color: var(--dim); font-size: 13px; }
+  #sol-swap-dialog .sol-swap-network { margin: 3px 0 16px; }
+  .sol-swap-amount { background: var(--surface-hover); border: 1px solid var(--line); border-radius: 14px; padding: 12px 14px; }
+  #sol-swap-amount { width: 100%; min-width: 0; color: var(--ink); background: transparent; border: 0; font: inherit; font-size: 26px; font-variant-numeric: tabular-nums; }
+  .sol-swap-amount .sol-swap-line + .sol-swap-line { margin-top: 8px; }
+  #sol-swap-pair { display: inline-flex; align-items: center; gap: 7px; white-space: nowrap; }
+  #sol-swap-dialog .summary { margin: 12px 0; }
+  #sol-swap-dialog .summary .row { gap: 8px; }
+  #sol-swap-dialog .summary .row > :last-child { text-align: right; }
+  #sol-swap-dialog .primary { width: 100%; min-width: 0; margin: 14px 0 0; }
+  #sol-swap-message { font-size: 14px; line-height: 1.4; margin-top: 12px; }
   .asset-token-icon { flex: none; width: 28px; height: 28px; border-radius: 50%; object-fit: contain; }
   .asset-token-icon[src="chains/solana.svg"] { border-radius: 0; }
   .asset-token-balance { font-size: 14px; font-weight: 600; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; text-align: right; }
@@ -3772,6 +3791,9 @@
               <span class="asset-token-balance" id="asset-sol-balance">—</span>
               <svg class="asset-token-selected" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12 4 4L19 6"/></svg>
             </button>
+            <div class="asset-swap-divider">
+              <button id="asset-swap-open" class="pill icon" type="button" aria-label="Swap SOL and USDC" title="Swap SOL and USDC"><svg aria-hidden="true" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3 4 7l4 4"/><path d="M4 7h16"/><path d="m16 21 4-4-4-4"/><path d="M20 17H4"/></svg></button>
+            </div>
             <button class="set-row" data-solana-asset="USDC" type="button" aria-pressed="false">
               <img class="asset-token-icon" src="chains/usdc.png" alt="">
               <span class="set-txt"><b>USD Coin</b><small>USDC</small></span>
@@ -4907,6 +4929,26 @@
 <div id="pop-shade"></div>
 <div class="ex-veil" id="ex-veil" hidden></div>
 <div id="lock-veil" hidden><div class="lv-in"><div class="mark brand"></div><button class="primary pearl" id="lock-go">Unlock</button></div></div>
+<dialog id="sol-swap-dialog" aria-labelledby="sol-swap-title">
+  <div class="sol-swap-head"><h2 id="sol-swap-title">Swap</h2><button type="button" id="sol-swap-close" class="pill icon" aria-label="Close swap">✕</button></div>
+  <p class="sol-swap-network">Solana Devnet · Raydium</p>
+  <form id="sol-swap-form">
+    <div class="sol-swap-amount">
+      <div class="sol-swap-line"><label id="sol-swap-pay-label" for="sol-swap-amount">You pay</label><span id="sol-swap-available"></span></div>
+      <div class="sol-swap-line"><input id="sol-swap-amount" inputmode="decimal" autocomplete="off" placeholder="0" required><button type="button" class="pill" id="sol-swap-pair" title="Reverse swap direction" aria-label="Reverse swap direction"><b id="sol-swap-from"></b><svg aria-hidden="true" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3 4 7l4 4"/><path d="M4 7h16"/><path d="m16 21 4-4-4-4"/><path d="M20 17H4"/></svg><span id="sol-swap-to"></span></button></div>
+    </div>
+    <div class="summary" id="sol-swap-review" hidden>
+      <div class="row"><span>Estimated receive</span><strong id="sol-swap-output"></strong></div>
+      <div class="row"><span>Minimum received</span><span id="sol-swap-min"></span></div>
+      <div class="row"><span>Network fee</span><span id="sol-swap-fee"></span></div>
+      <div class="row" id="sol-swap-deposit-row" hidden><span>USDC account deposit</span><span id="sol-swap-deposit"></span></div>
+    </div>
+    <div class="field" id="sol-swap-password-field" hidden><label for="sol-swap-password">Wallet password</label><div class="box"><input id="sol-swap-password" type="password" autocomplete="current-password"></div></div>
+    <button class="primary pearl" id="sol-swap-submit">Review swap</button>
+  </form>
+  <div id="sol-swap-message" role="status" hidden></div>
+  <button type="button" class="pill" id="sol-swap-explorer" hidden>View transaction ↗</button>
+</dialog>
 <div id="si-veil" hidden><div id="si-card" role="dialog" aria-modal="true" aria-labelledby="si-title">
   <div id="si-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m10 17 5-5-5-5"/><path d="M15 12H3"/><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/></svg></div>
   <div id="si-title"></div>
@@ -5469,6 +5511,7 @@
     for (const button of solanaAssetButtons) button.setAttribute("aria-pressed", String(button.dataset.solanaAsset === walletAsset));
     $("asset-devnet-unlock").hidden = !devnetAssets.locked || devnetAssets.pending;
     $("asset-devnet-password-field").hidden = !!view?.biometric;
+    $("asset-swap-open").disabled = !devnetAssets.address;
     $("asset-devnet-refresh").disabled = !view || devnetAssets.locked || devnetAssets.pending;
     $("asset-devnet-refresh").setAttribute("aria-busy", String(devnetAssets.pending));
     let status = "";
@@ -5601,6 +5644,130 @@
     devnetAssets.receive = null;
     setAssetMenu(false, true);
     paintWalletAsset();
+  };
+  const swapDialog = $("sol-swap-dialog");
+  let poolSwap = null;
+  const swapActive = (s) => s && poolSwap === s && view?.address === s.owner && swapDialog.open;
+  function swapMessage(message) {
+    $("sol-swap-message").textContent = message;
+    $("sol-swap-message").hidden = !message;
+  }
+  function paintPoolSwap(s) {
+    const { asset, busy, quote, receipt } = s;
+    const to = asset === "SOL" ? "USDC" : "SOL";
+    $("sol-swap-form").hidden = !!receipt;
+    $("sol-swap-explorer").hidden = !receipt;
+    $("sol-swap-from").textContent = asset;
+    $("sol-swap-to").textContent = to;
+    const balance = devnetAssets.balances?.[asset.toLowerCase()];
+    $("sol-swap-available").textContent = balance != null && !prefs.hide ? balance + " " + asset + " available" : "";
+    $("sol-swap-amount").disabled = $("sol-swap-pair").disabled = busy;
+    $("sol-swap-review").hidden = !quote;
+    $("sol-swap-password-field").hidden = !quote || !s.password;
+    if (quote) {
+      $("sol-swap-output").textContent = quote.receive;
+      $("sol-swap-min").textContent = quote.minimum;
+      $("sol-swap-fee").textContent = quote.fee;
+      $("sol-swap-deposit-row").hidden = quote.deposit === "0 SOL";
+      $("sol-swap-deposit").textContent = quote.deposit;
+    }
+    $("sol-swap-submit").textContent = busy ? (quote ? "Submitting…" : "Checking…") : quote ? "Swap " + quote.pay : "Review swap";
+    $("sol-swap-submit").disabled = busy || !$("sol-swap-amount").value.trim() || (quote && s.password && !$("sol-swap-password").value);
+  }
+  function resetPoolQuote() {
+    if (!swapActive(poolSwap) || poolSwap.busy) return;
+    poolSwap.quote = null;
+    $("sol-swap-password").value = "";
+    swapMessage("");
+    paintPoolSwap(poolSwap);
+  }
+  function showSwapReceipt(s, receipt) {
+    s.receipt = receipt;
+    const messages = { pending: "Waiting for Solana to confirm your swap…", confirmed: "Swap confirmed.", finalized: "Swap complete.",
+      failed: "The swap failed. No exchange took place.", expired: "The transaction expired before confirmation." };
+    swapMessage(messages[receipt.state]);
+    paintPoolSwap(s);
+    if (receipt.state === "confirmed" || receipt.state === "finalized") void loadDevnetAssets();
+    if (receipt.state === "pending" || receipt.state === "confirmed") {
+      s.timer = setTimeout(() => checkSwapReceipt(s), 4500);
+    }
+  }
+  async function checkSwapReceipt(s) {
+    if (!swapActive(s)) return;
+    try {
+      const r = await invoke("devnet_swap_status", {walletAddress: s.owner});
+      if (!swapActive(s)) return;
+      if (r && (s.receipt || r.state === "pending" || r.state === "confirmed")) showSwapReceipt(s, r);
+    } catch (error) {
+      if (swapActive(s)) {
+        swapMessage("Could not check the previous swap. " + String(error));
+        if (s.receipt) s.timer = setTimeout(() => checkSwapReceipt(s), 6000);
+      }
+    }
+  }
+  $("asset-swap-open").onclick = async () => {
+    if (!view || !devnetAssets.address) return;
+    setAssetMenu(false);
+    const s = poolSwap = { owner: view.address, asset: walletAsset, busy: true, quote: null, receipt: null, password: view.locked && !view.biometric };
+    $("sol-swap-form").reset();
+    swapMessage("");
+    swapDialog.showModal();
+    paintPoolSwap(s);
+    await checkSwapReceipt(s);
+    if (swapActive(s)) {
+      s.busy = false;
+      paintPoolSwap(s);
+      if (!s.receipt) $("sol-swap-amount").focus();
+    }
+  };
+  $("sol-swap-close").onclick = () => swapDialog.close();
+  swapDialog.onclose = () => {
+    clearTimeout(poolSwap?.timer);
+    poolSwap = null;
+    $("sol-swap-form").reset();
+    if (!$("home").hidden && !$("asset-menu-toggle").hidden) $("asset-menu-toggle").focus();
+  };
+  $("sol-swap-explorer").onclick = () => openSolanaExplorer("tx", poolSwap?.receipt?.signature);
+  $("sol-swap-amount").oninput = resetPoolQuote;
+  $("sol-swap-password").oninput = () => paintPoolSwap(poolSwap);
+  $("sol-swap-pair").onclick = () => {
+    poolSwap.asset = poolSwap.asset === "SOL" ? "USDC" : "SOL";
+    $("sol-swap-amount").value = "";
+    resetPoolQuote();
+    $("sol-swap-amount").focus();
+  };
+  $("sol-swap-form").onsubmit = async (event) => {
+    event.preventDefault();
+    const s = poolSwap;
+    if (!swapActive(s) || s.busy || s.receipt) return;
+    const password = $("sol-swap-password").value;
+    $("sol-swap-password").value = "";
+    s.busy = true;
+    swapMessage("");
+    paintPoolSwap(s);
+    try {
+      if (!s.quote) {
+        const q = await invoke("devnet_swap_quote", { walletAddress: s.owner, asset: s.asset, amount: $("sol-swap-amount").value.trim() });
+        if (swapActive(s)) s.quote = q;
+      } else {
+        if (view.biometric && !password) await invoke("biometric_unlock");
+        if (!swapActive(s)) return;
+        const receipt = await invoke("devnet_swap_approve", {walletAddress: s.owner, quoteId: s.quote.id, password: password || null});
+        if (swapActive(s)) showSwapReceipt(s, receipt);
+      }
+    } catch (error) {
+      if (!swapActive(s)) return;
+      let message = String(error);
+      if (message === "review: again") { s.quote = null; message = "Your quote expired. Review the current rate to continue."; }
+      if (message === "password: needed" || message === "password: wrong") {
+        s.password = true;
+        message = message === "password: wrong" ? "That password didn’t unlock this wallet." : "Enter your wallet password to approve the swap.";
+      }
+      swapMessage(message);
+    } finally {
+      s.busy = false;
+      if (swapActive(s)) paintPoolSwap(s);
+    }
   };
   $("asset-menu-toggle").onclick = () => setAssetMenu($("asset-token-menu").hidden);
   document.addEventListener("pointerdown", (event) => {
@@ -5795,6 +5962,7 @@
     shownOffers = "";
     board.waiting = [];
     walletAsset = "ORN";
+    if ($("sol-swap-dialog").open) $("sol-swap-dialog").close();
     devnetAssets = newDevnetAssets();
     $("asset-devnet-password").value = "";
     paintWalletAsset();
