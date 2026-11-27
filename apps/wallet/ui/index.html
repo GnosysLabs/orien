@@ -1880,6 +1880,9 @@
     body:not(.phone) #swaps #ex-pane-trades { flex: 1 1 0; min-height: 150px; overflow: hidden; }
     body:not(.phone) #swaps #ex-deck-recent { display: none; }
     body:not(.phone) #swaps #tab-offers { min-height: 170px; }
+    /* The order book needs no heading: its columns and the price between
+       the red and green rows say what it is. */
+    body:not(.phone) #swaps #tab-offers > .ex-phead { display: none; }
     /* Your orders and swaps: a pop-up from the header, over the page. */
     body:not(.phone) .ex-mine-go { display: inline-flex; align-items: center; gap: 7px; margin-left: auto; }
     body:not(.phone) #swaps .ex-cur-go { margin-left: 10px; }
