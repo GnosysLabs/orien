@@ -2499,5 +2499,6 @@
   "No buy order fits this amount": "कोई खरीद ऑर्डर इस मात्रा में फिट नहीं होता",
   "None of these orders could be taken.": "इनमें से कोई ऑर्डर नहीं लिया जा सका।",
   "Candle length": "कैंडल की अवधि",
-  "Your orders": "आपके ऑर्डर"
+  "Your orders": "आपके ऑर्डर",
+  "The Exchange's price chart:": "एक्सचेंज का मूल्य चार्ट:"
 }

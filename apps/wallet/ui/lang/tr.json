@@ -2499,5 +2499,6 @@
   "No buy order fits this amount": "Bu miktara uyan alış emri yok",
   "None of these orders could be taken.": "Bu emirlerin hiçbiri alınamadı.",
   "Candle length": "Mum süresi",
-  "Your orders": "Emirleriniz"
+  "Your orders": "Emirleriniz",
+  "The Exchange's price chart:": "Borsanın fiyat grafiği:"
 }

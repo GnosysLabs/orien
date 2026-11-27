@@ -2499,5 +2499,6 @@
   "No buy order fits this amount": "Geen kooporder past bij deze hoeveelheid",
   "None of these orders could be taken.": "Geen van deze orders kon worden genomen.",
   "Candle length": "Kaarslengte",
-  "Your orders": "Jouw orders"
+  "Your orders": "Jouw orders",
+  "The Exchange's price chart:": "De koersgrafiek van de Exchange:"
 }

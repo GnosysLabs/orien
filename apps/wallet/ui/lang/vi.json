@@ -2499,5 +2499,6 @@
   "No buy order fits this amount": "Không có lệnh mua nào khớp số lượng này",
   "None of these orders could be taken.": "Không thể nhận lệnh nào trong số này.",
   "Candle length": "Độ dài nến",
-  "Your orders": "Lệnh của bạn"
+  "Your orders": "Lệnh của bạn",
+  "The Exchange's price chart:": "Biểu đồ giá của Sàn:"
 }

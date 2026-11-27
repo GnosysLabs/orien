@@ -2499,5 +2499,6 @@
   "No buy order fits this amount": "Tidak ada order beli yang cocok dengan jumlah ini",
   "None of these orders could be taken.": "Tidak satu pun order ini bisa diambil.",
   "Candle length": "Durasi candle",
-  "Your orders": "Order Anda"
+  "Your orders": "Order Anda",
+  "The Exchange's price chart:": "Grafik harga Exchange:"
 }

@@ -2499,5 +2499,6 @@
   "No buy order fits this amount": "没有符合此数量的买单",
   "None of these orders could be taken.": "这些订单都无法成交。",
   "Candle length": "K 线周期",
-  "Your orders": "你的订单"
+  "Your orders": "你的订单",
+  "The Exchange's price chart:": "交易所的价格图表："
 }

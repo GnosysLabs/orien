@@ -2499,5 +2499,6 @@
   "No buy order fits this amount": "Aucun ordre d'achat ne correspond à ce montant",
   "None of these orders could be taken.": "Aucun de ces ordres n'a pu être pris.",
   "Candle length": "Durée des bougies",
-  "Your orders": "Vos ordres"
+  "Your orders": "Vos ordres",
+  "The Exchange's price chart:": "Le graphique des prix de l'Exchange :"
 }

@@ -2499,5 +2499,6 @@
   "No buy order fits this amount": "Нет заявки на покупку под это количество",
   "None of these orders could be taken.": "Ни одну из этих заявок не удалось принять.",
   "Candle length": "Период свечи",
-  "Your orders": "Ваши заявки"
+  "Your orders": "Ваши заявки",
+  "The Exchange's price chart:": "График цен биржи:"
 }

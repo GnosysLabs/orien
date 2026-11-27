@@ -2499,5 +2499,6 @@
   "No buy order fits this amount": "이 수량에 맞는 매수 주문이 없습니다",
   "None of these orders could be taken.": "이 주문 중 어느 것도 받을 수 없었습니다.",
   "Candle length": "캔들 기간",
-  "Your orders": "내 주문"
+  "Your orders": "내 주문",
+  "The Exchange's price chart:": "거래소 가격 차트:"
 }

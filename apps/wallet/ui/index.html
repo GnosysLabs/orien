@@ -22,6 +22,8 @@
   } catch (e) {}
 </script>
 <script type="module" src="vendor/robot.js"></script>
+<!-- TradingView Lightweight Charts (Apache 2.0), kept here: the Exchange's price chart. -->
+<script src="vendor/lightweight-charts.js"></script>
 <style>
   html.theming body { visibility: hidden; }
   /* The wordmark's typeface, bundled so the app never fetches fonts. */
@@ -1691,22 +1693,9 @@
   #ex-chart-chg { font-size: 12px; font-weight: 600; font-variant-numeric: tabular-nums; color: var(--dim); }
   #ex-chart-chg.up { color: var(--good); } #ex-chart-chg.down { color: var(--bad); }
   .ex-tf button { height: 22px; padding: 0 9px; font-size: 11.5px; }
-  #swaps #ex-pane-chart .ex-chart-body { flex: 1; min-height: 0; padding: 0; display: block; overflow: hidden; }
-  .exc { display: block; }
-  .exc-grid { stroke: var(--line); stroke-width: 1; opacity: .6; }
-  .exc-axis { fill: var(--faint); font-size: 10.5px; font-variant-numeric: tabular-nums; }
-  .exc-wick { stroke-width: 1; }
-  .exc-wick.up, .exc-body.up { stroke: var(--good); fill: var(--good); }
-  .exc-wick.down, .exc-body.down { stroke: var(--bad); fill: var(--bad); }
-  .exc-wick.flat, .exc-body.flat { stroke: var(--dim); fill: var(--dim); }
-  .exc-vol { opacity: .28; }
-  .exc-vol.up { fill: var(--good); } .exc-vol.down { fill: var(--bad); } .exc-vol.flat { fill: var(--dim); }
-  .exc-last { stroke-width: 1; stroke-dasharray: 3 3; opacity: .7; }
-  .exc-last.up { stroke: var(--good); } .exc-last.down { stroke: var(--bad); } .exc-last.flat { stroke: var(--dim); }
-  .exc-tag.up { fill: var(--good); } .exc-tag.down { fill: var(--bad); } .exc-tag.flat { fill: var(--dim); }
-  .exc-tag-t { fill: var(--ground-deep); font-size: 10.5px; font-weight: 700; font-variant-numeric: tabular-nums; }
-  .exc-cross { stroke: var(--dim); stroke-width: 1; stroke-dasharray: 2 3; }
-  .exc-hit { fill: transparent; cursor: crosshair; }
+  #swaps #ex-pane-chart .ex-chart-body { flex: 1; min-height: 0; padding: 4px 0 0; display: flex; flex-direction: column; overflow: hidden; }
+  .ex-chart-canvas { flex: 1; align-self: stretch; min-height: 0; position: relative; }
+  .ex-chart-canvas[hidden], .ex-chart-empty[hidden] { display: none; }
   /* Your orders and Recent trades switch like USD / SOL does. */
   #swaps .ex-deck-tabs { display: inline-flex; gap: 3px; padding: 3px; border-radius: 10px; background: var(--ground-deep); border: 1px solid var(--line); }
   #swaps .ex-deck-tab { height: 26px; padding: 0 11px; border: 0; border-radius: 7px; background: transparent; color: var(--dim); font-size: 11.5px; font-weight: 600; }
@@ -3991,6 +3980,7 @@
         <button class="set-row" id="st-terms"><span class="set-txt"><b>Terms of service</b></span><svg class="chev" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg></button>
       </div>
       <p class="hint st-credit">Robot avatars: <a href="#" id="st-bottts">Bottts</a> by Pablo Stanley, drawn with <a href="#" id="st-dicebear">DiceBear</a>.</p>
+      <p class="hint st-credit">The Exchange's price chart: <a href="#" id="st-tradingview">TradingView Lightweight Charts™</a>, Copyright (c) 2026 TradingView, Inc.</p>
       </div>
       <!-- How to do things, step by step: the list, then one guide. -->
       <div class="st-page" data-page="guide" id="guide-list" hidden></div>
@@ -4902,7 +4892,8 @@
               </div>
             </div>
             <div class="ex-chart-body" id="ex-chart-body">
-              <div class="ex-chart-empty">Loading chart…</div>
+              <div class="ex-chart-canvas" id="ex-chart-canvas"></div>
+              <div class="ex-chart-empty" id="ex-chart-empty">The chart begins as soon as the first ORN / SOL swap completes.</div>
             </div>
           </div>
 
@@ -8149,7 +8140,7 @@
     else home();
   };
   $("st-cat-social").onclick = () => settingsPage("social");
-  for (const [id, url] of [["st-bottts", "https://bottts.com/"], ["st-dicebear", "https://www.dicebear.com/styles/bottts-neutral/"]])
+  for (const [id, url] of [["st-bottts", "https://bottts.com/"], ["st-dicebear", "https://www.dicebear.com/styles/bottts-neutral/"], ["st-tradingview", "https://www.tradingview.com/"]])
     $(id).onclick = (e) => { e.preventDefault(); invoke("open_post_link", { url }).catch(() => {}); };
   // ---- User Guide ----
   // Short guides, step by step, in the app's own words for each button.
@@ -10547,92 +10538,95 @@
     }
     return out.slice(-60);
   }
-  let exChartPick = null;
+  // Drawn by TradingView's Lightweight Charts, in the theme's colours:
+  // candles and volume, the price scale on the right, a crosshair with its
+  // price and time, dragging and zooming through history. Prices in the
+  // Exchange's currency at today's SOL rate, as the order book shows them.
+  let exChart = null, exCandleSeries = null, exVolSeries = null, exChartKey = "", exChartCs = [];
+  // The scale follows where prices mostly were, opens and closes, not a
+  // lone odd trade's wick: one tiny swap at a strange price runs off the
+  // edge instead of flattening every other candle.
+  function exChartRange() {
+    const cs = exChartCs;
+    if (!cs.length) return null;
+    const vals = cs.flatMap((c) => [c.o, c.c]).sort((a, b) => a - b);
+    const q = (f) => vals[Math.round(f * (vals.length - 1))];
+    const last = cs[cs.length - 1].c;
+    let lo = Math.min(q(0.05), last), hi = Math.max(q(0.95), last);
+    if (hi === lo) { hi *= 1.05; lo *= 0.95; }
+    return { priceRange: { minValue: lo, maxValue: hi } };
+  }
+  function exChartColors() {
+    const css = getComputedStyle($("swaps"));
+    const v = (name, fallback) => css.getPropertyValue(name).trim() || fallback;
+    return { good: v("--good", "#5fd3a1"), bad: v("--bad", "#f08a8a"), ink: v("--ink", "#e9eef8"), dim: v("--dim", "#96a1ba"), faint: v("--faint", "#7d88a2"), line: v("--line", "#2e3852") };
+  }
+  // The chart's times are local, as the rest of the app shows them.
+  const exLocalTime = (t) => t - new Date(t * 1000).getTimezoneOffset() * 60;
+  // A theme colour, see-through, in a form the chart reads.
+  function exAlpha(color, a) {
+    const m = /^#([0-9a-f]{6})$/i.exec(color);
+    if (!m) return color;
+    const n = parseInt(m[1], 16);
+    return `rgba(${n >> 16}, ${(n >> 8) & 255}, ${n & 255}, ${a})`;
+  }
   function renderExChart() {
     const body = $("ex-chart-body");
     if (!body) return;
     for (const b of document.querySelectorAll(".ex-tf [data-tf]")) b.classList.toggle("on", b.dataset.tf === exTf);
     const fmt = (p) => exUsd() ? exPx(p) : `${fmtBookUnit(p)}`;
     const cs = exCandles();
-    if (!cs.length) {
+    const empty = $("ex-chart-empty");
+    if (!cs.length || !window.LightweightCharts) {
       $("ex-chart-last").textContent = $("ex-chart-chg").textContent = "";
-      body.innerHTML = '<div class="ex-chart-empty">The chart begins as soon as the first ORN / SOL swap completes.</div>';
+      empty.hidden = false;
+      $("ex-chart-canvas").hidden = true;
       return;
     }
+    empty.hidden = true;
+    $("ex-chart-canvas").hidden = false;
     const lastC = cs[cs.length - 1], firstC = cs[0];
     const change = firstC.o > 0 ? (lastC.c / firstC.o - 1) * 100 : 0;
-    // The price beside the pair: the latest, or the candle under the pointer.
-    const pick = exChartPick != null && cs[exChartPick] ? cs[exChartPick] : lastC;
-    $("ex-chart-last").textContent = fmt(pick.c);
+    const showPrice = (c) => { $("ex-chart-last").textContent = fmt(c.c); };
+    showPrice(lastC);
     $("ex-chart-chg").textContent = `${change >= 0 ? "+" : ""}${change.toFixed(2)}%`;
     $("ex-chart-chg").className = change > 0 ? "up" : change < 0 ? "down" : "";
-    const W = Math.max(240, Math.round(body.clientWidth)), H = Math.max(140, Math.round(body.clientHeight));
-    const padL = 12, padR = 78, padB = 24, padT = 12, plotW = W - padR, plotH = H - padB - padT;
-    const volH = plotH * 0.18, priceH = plotH - volH - 6;
-    // The scale follows where prices mostly were, opens and closes, not a
-    // lone odd trade's wick: one tiny swap at a strange price runs off the
-    // edge instead of flattening every other candle.
-    const vals = cs.flatMap((c) => [c.o, c.c]).sort((a, b) => a - b);
-    const q = (f) => vals[Math.round(f * (vals.length - 1))];
-    let lo = Math.min(q(0.05), lastC.c), hi = Math.max(q(0.95), lastC.c);
-    if (hi === lo) { hi *= 1.02; lo *= 0.98; }
-    const room = (hi - lo) * 0.08; hi += room; lo -= room;
-    const y = (p) => padT + (hi - Math.min(hi, Math.max(lo, p))) / (hi - lo) * priceH;
-    // Candles keep a trading chart's width, the latest at the right; a few
-    // candles don't stretch across the whole chart.
-    const slot = Math.min(22, (plotW - padL) / cs.length), bw = Math.max(1, Math.min(14, slot * 0.62));
-    const x0 = plotW - 8 - slot * cs.length;
-    const maxV = Math.max(1e-9, ...cs.map((c) => c.v));
-    const tone = (c) => c.c > c.o ? "up" : c.c < c.o ? "down" : "flat";
-    // Four or five round prices on the scale.
-    const span = hi - lo, mag = Math.pow(10, Math.floor(Math.log10(span / 4)));
-    const tick = [1, 2, 2.5, 5, 10].map((m) => m * mag).find((t) => span / t <= 5) || mag * 10;
-    let grid = "";
-    for (let v = Math.ceil(lo / tick) * tick; v <= hi; v += tick) {
-      const yy = y(v).toFixed(1);
-      // No price on the scale where the latest price's tag sits.
-      const label = Math.abs(+yy - y(lastC.c)) < 14 ? "" : `<text class="exc-axis" x="${plotW + 8}" y="${(+yy + 3.5).toFixed(1)}">${esc(fmt(v))}</text>`;
-      grid += `<line class="exc-grid" x1="${padL}" x2="${plotW}" y1="${yy}" y2="${yy}"/>${label}`;
+    const col = exChartColors();
+    const priceFormat = { type: "custom", minMove: 1e-9, formatter: fmt };
+    if (!exChart) {
+      const LC = window.LightweightCharts;
+      exChart = LC.createChart($("ex-chart-canvas"), {
+        autoSize: true,
+        layout: { background: { type: "solid", color: "transparent" }, textColor: col.faint, fontSize: 11, fontFamily: "-apple-system, 'Segoe UI', system-ui, sans-serif", attributionLogo: true },
+        grid: { vertLines: { visible: false }, horzLines: { color: col.line } },
+        rightPriceScale: { borderVisible: false, scaleMargins: { top: 0.12, bottom: 0.24 } },
+        timeScale: { borderVisible: false, timeVisible: true, secondsVisible: false, rightOffset: 3, minBarSpacing: 3 },
+        crosshair: { mode: LC.CrosshairMode.Normal },
+        handleScale: { axisPressedMouseMove: false },
+      });
+      exCandleSeries = exChart.addSeries(LC.CandlestickSeries, { borderVisible: false, priceFormat, autoscaleInfoProvider: exChartRange });
+      exVolSeries = exChart.addSeries(LC.HistogramSeries, { priceScaleId: "vol", priceFormat: { type: "volume" }, lastValueVisible: false, priceLineVisible: false });
+      exChart.priceScale("vol").applyOptions({ scaleMargins: { top: 0.8, bottom: 0 } });
+      // Pointing at a candle: its price beside the pair.
+      exChart.subscribeCrosshairMove((param) => {
+        const c = param && param.seriesData ? param.seriesData.get(exCandleSeries) : null;
+        $("ex-chart-last").textContent = fmt(c ? c.close : (exCandles().slice(-1)[0] || {}).c || 0);
+      });
     }
-    // A few times along the bottom.
-    const every = Math.max(1, Math.ceil(90 / slot));
-    const when = (t) => {
-      const d = new Date(t * 1000);
-      if (exTf === "1d") return d.toLocaleDateString([], { month: "short", day: "numeric" });
-      // Candles skip quiet hours, so a label says the day when it isn't today.
-      const today = new Date().toDateString() === d.toDateString();
-      return today ? d.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" }) : d.toLocaleDateString([], { month: "short", day: "numeric" }) + " " + d.toLocaleTimeString([], { hour: "numeric" });
-    };
-    let times = "";
-    for (let i = cs.length - 1; i >= 0; i -= every) {
-      times += `<text class="exc-axis" x="${(x0 + i * slot + slot / 2).toFixed(1)}" y="${H - 8}" text-anchor="middle">${esc(when(cs[i].t))}</text>`;
-    }
-    const candles = cs.map((c, i) => {
-      const x = x0 + i * slot + slot / 2, top = y(Math.max(c.o, c.c)), bot = y(Math.min(c.o, c.c));
-      const vh = c.v / maxV * volH;
-      return `<line class="exc-wick ${tone(c)}" x1="${x.toFixed(1)}" x2="${x.toFixed(1)}" y1="${y(c.h).toFixed(1)}" y2="${y(c.l).toFixed(1)}"/>`
-        + `<rect class="exc-body ${tone(c)}" x="${(x - bw / 2).toFixed(1)}" y="${top.toFixed(1)}" width="${bw.toFixed(1)}" height="${Math.max(1, bot - top).toFixed(1)}"/>`
-        + (c.v ? `<rect class="exc-vol ${tone(c)}" x="${(x - bw / 2).toFixed(1)}" y="${(padT + plotH - vh).toFixed(1)}" width="${bw.toFixed(1)}" height="${vh.toFixed(1)}"/>` : "");
-    }).join("");
-    const ly = y(lastC.c).toFixed(1);
-    const lastLine = `<line class="exc-last ${tone(lastC)}" x1="${padL}" x2="${plotW}" y1="${ly}" y2="${ly}"/>`
-      + `<rect class="exc-tag ${tone(lastC)}" x="${plotW + 2}" y="${(+ly - 9).toFixed(1)}" width="${padR - 8}" height="18" rx="4"/>`
-      + `<text class="exc-tag-t" x="${plotW + 8}" y="${(+ly + 4).toFixed(1)}">${esc(fmt(lastC.c))}</text>`;
-    let cross = "";
-    if (exChartPick != null && cs[exChartPick]) {
-      const x = (x0 + exChartPick * slot + slot / 2).toFixed(1);
-      cross = `<line class="exc-cross" x1="${x}" x2="${x}" y1="${padT}" y2="${padT + plotH}"/>`;
-    }
-    body.innerHTML = `<svg class="exc" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" role="img" aria-label="ORN / SOL price chart">${grid}${candles}${lastLine}${cross}${times}<rect class="exc-hit" x="0" y="0" width="${plotW}" height="${H}"/></svg>`;
-    const hit = body.querySelector(".exc-hit");
-    hit.onmousemove = (e) => {
-      const i = Math.min(cs.length - 1, Math.max(0, Math.floor((e.offsetX - x0) / slot)));
-      if (i !== exChartPick) { exChartPick = i; renderExChart(); }
-    };
-    hit.onmouseleave = () => { exChartPick = null; renderExChart(); };
+    // The theme's colours, and the currency, as they are now.
+    exChart.applyOptions({ layout: { textColor: col.faint }, grid: { horzLines: { color: col.line } }, crosshair: { vertLine: { color: col.dim, labelBackgroundColor: col.line }, horzLine: { color: col.dim, labelBackgroundColor: col.line } } });
+    exCandleSeries.applyOptions({ upColor: col.good, downColor: col.bad, wickUpColor: col.good, wickDownColor: col.bad, priceFormat });
+    exChartCs = cs;
+    const key = JSON.stringify([exTf, cs.length, lastC.t, lastC.c, exUsd(), exCur()]);
+    if (key === exChartKey) return;
+    const fresh = !exChartKey || JSON.parse(exChartKey)[0] !== exTf;
+    exChartKey = key;
+    exCandleSeries.setData(cs.map((c) => ({ time: exLocalTime(c.t), open: c.o, high: c.h, low: c.l, close: c.c })));
+    exVolSeries.setData(cs.map((c) => ({ time: exLocalTime(c.t), value: c.v, color: exAlpha(c.c >= c.o ? col.good : col.bad, 0.35) })));
+    if (fresh) exChart.timeScale().fitContent();
   }
   for (const b of document.querySelectorAll(".ex-tf [data-tf]")) b.onclick = () => { exTf = b.dataset.tf; localStorage.setItem("ex-chart-tf", exTf); exChartPick = null; renderExChart(); };
-  new ResizeObserver(() => { if (!$("swaps").hidden) renderExChart(); }).observe($("ex-chart-body"));
+
 
   function paintHistory() {
     const solSwaps = hist.swaps.filter((x) => x.coin === "sol");
