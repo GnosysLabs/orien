@@ -1783,6 +1783,7 @@
   #swaps .ob-asks > :first-child { margin-top: auto; }
   /* Share of what you have: four buttons, and what they're a share of. */
   .ex-pct { display: flex; align-items: center; gap: 6px; }
+  .ex-pct[hidden] { display: none; }
   .ex-pct button { height: 28px; padding: 0 11px; border: 1px solid var(--line); border-radius: 8px; background: transparent; color: var(--dim);
     font: inherit; font-size: 12px; font-weight: 600; font-variant-numeric: tabular-nums; cursor: pointer; }
   .ex-pct button:hover { color: var(--ink); }
@@ -11253,6 +11254,9 @@
     $("ex-price").closest(".ex-field").hidden = market;
     $("ex-orn").closest(".ex-field").hidden = market && buy;
     $("ex-sol").closest(".ex-field").hidden = market;
+    // A share of what you have: Market only. A limit order is your own
+    // price and amount.
+    $("ex-pct").hidden = !market;
     $("ex-spend-label").textContent = `Spend (${exSpendCur().toUpperCase()})`;
   }
   $("ex-kind-market").onclick = () => { exSetKind("market"); exPct = null; exPctPaint(); updateExRate(); };
