@@ -2199,8 +2199,9 @@
   "ORN linked": "ORN gekoppeld",
   "Unlock only": "Alleen ontgrendelen",
   "Unlock & link Solana": "Ontgrendel en koppel Solana",
-  "Your ORN address is linked. You can also show your Solana Devnet address on the same public profile.": "Je ORN-adres is gekoppeld. Je kunt ook je Solana Devnet-adres op hetzelfde openbare profiel tonen.",
-  "Your ORN and Solana Devnet addresses and balances will be public on your profile.": "Je ORN- en Solana Devnet-adressen en hun saldi worden zichtbaar op je openbare profiel.",
+  "Your ORN address is linked. You can also show your Solana address on the same public profile.": "Je ORN-adres is gekoppeld. Je kunt ook je Solana-adres op hetzelfde openbare profiel tonen.",
+  "Your ORN and Solana addresses and balances will be public on your profile.": "Je ORN- en Solana-adressen en hun saldi worden zichtbaar op je openbare profiel.",
   "Less than 0.001 ORN, fee included.": "Minder dan 0,001 ORN inclusief kosten.",
-  "No payment needed.": "Geen betaling nodig."
+  "No payment needed.": "Geen betaling nodig.",
+  "Send only SOL or USDC on Solana to this address.": "Stuur naar dit adres alleen SOL of USDC op Solana."
 }

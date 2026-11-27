@@ -1,4 +1,4 @@
-//! SOL and USDC transfers for the wallet's Solana Devnet account.
+//! SOL and USDC transfers for the wallet's built-in Solana account.
 
 #[path = "solana_swap.rs"]
 pub mod swap;
@@ -71,8 +71,11 @@ pub struct DevnetReceipt {
     acknowledged: bool,
 }
 
+/// Kept apart per network, so a test-network receipt is never looked up on
+/// Solana itself.
 fn receipt_path(dir: &Path, owner: &str) -> PathBuf {
-    dir.join("solana-devnet-sends-v1").join(owner)
+    let folder = if crate::solswaps::cluster() == "devnet" { "solana-devnet-sends-v1" } else { "solana-sends-v1" };
+    dir.join(folder).join(owner)
 }
 
 fn save_receipt(path: &Path, receipt: &DevnetReceipt) -> Result<(), String> {
@@ -138,7 +141,7 @@ fn prepare(
         return Err("Enter a different Solana wallet address.".into());
     }
     if refresh_receipt(network, &receipt_path(dir, &owner))?.is_some_and(|receipt| receipt.state.unresolved()) {
-        return Err("A previous Devnet transfer is still pending. Check its status from Send.".into());
+        return Err("A previous Solana transfer is still pending. Check its status from Send.".into());
     }
     if orien_swap::sol::payable(network, &recipient).map_err(|error| error.to_string())?.is_none() {
         return Err("This address belongs to a program or token account. Enter the recipient’s Solana wallet address.".into());
@@ -151,11 +154,11 @@ fn prepare(
             let units = match requested {
                 Some(units) => units,
                 None => balance.checked_sub(fee_for(balance)?).filter(|units| *units > 0)
-                    .ok_or("You don’t have enough Devnet SOL to cover the network fee.")?,
+                    .ok_or("You don’t have enough SOL to cover the network fee.")?,
             };
             let fee = fee_for(units)?;
             let total = units.checked_add(fee).ok_or("That amount is too large.")?;
-            let after = balance.checked_sub(total).ok_or("You don’t have enough Devnet SOL for this amount and the network fee.")?;
+            let after = balance.checked_sub(total).ok_or("You don’t have enough SOL for this amount and the network fee.")?;
             (vec![solana::transfer(&payer, &recipient, units)], crate::money::show(units.into()), fee, crate::money::show(total.into()), crate::money::show(after.into()), None)
         }
         SendAsset::Usdc => {
@@ -165,8 +168,8 @@ fn prepare(
             let transfer = solana::devnet_usdc::transfer(network, payer, recipient, requested.map(|n| n / 1000)).map_err(|e| format!("{e:#}"))?;
             let fee = network.fee_for_message(&payer, &transfer.instructions, blockhash).map_err(|e| e.to_string())?;
             if balance < fee.checked_add(transfer.deposit).ok_or("That amount is too large.")? {
-                return Err(if transfer.deposit > 0 { "You need more devnet SOL for the network fee and the recipient’s USDC account deposit." }
-                    else { "You need devnet SOL to pay the network fee." }.into());
+                return Err(if transfer.deposit > 0 { "You need more SOL for the network fee and the recipient’s USDC account deposit." }
+                    else { "You need SOL to pay the network fee." }.into());
             }
             let check = network.simulate_unsigned(&payer, &transfer.instructions, blockhash).map_err(|e| format!("{e:#}"))?;
             if !check["err"].is_null() { return Err(format!("Solana could not complete this USDC transfer in preflight ({}).", check["err"])); }
@@ -185,7 +188,7 @@ pub async fn solana_devnet_quote(app: AppHandle, wallet_address: String, to: Str
     let (dir, path, owner) = active_wallet(&app, &wallet_address)?;
     tauri::async_runtime::spawn_blocking(move || {
         let mut review = REVIEW.lock().unwrap_or_else(|poisoned| poisoned.into_inner());
-        prepare(&mut review, &Solana::devnet(), &dir, &path, owner, &to, asset.unwrap_or(SendAsset::Sol), if maximum == Some(true) { None } else { Some(&amount) })
+        prepare(&mut review, &crate::solswaps::network(), &dir, &path, owner, &to, asset.unwrap_or(SendAsset::Sol), if maximum == Some(true) { None } else { Some(&amount) })
     })
     .await
     .map_err(|error| error.to_string())?
@@ -203,7 +206,7 @@ fn approve(
     let plan = review.as_ref().filter(|plan| plan.id == quote_id && plan.owner == owner).ok_or("review: again")?;
     let record = receipt_path(dir, owner);
     if refresh_receipt(network, &record)?.is_some_and(|receipt| receipt.state.unresolved()) {
-        return Err("A previous Devnet transfer is still pending. Check its status from Send.".into());
+        return Err("A previous Solana transfer is still pending. Check its status from Send.".into());
     }
     let Signing::Here(wallet) = crate::open_signing(path, password)? else { return Err("password: needed".into()) };
     if wallet.address().to_string() != owner {
@@ -241,7 +244,7 @@ pub async fn solana_devnet_send(app: AppHandle, wallet_address: String, quote_id
     let (dir, path, owner) = active_wallet(&app, &wallet_address)?;
     tauri::async_runtime::spawn_blocking(move || {
         let mut review = REVIEW.lock().unwrap_or_else(|poisoned| poisoned.into_inner());
-        approve(&mut review, &Solana::devnet(), &dir, &path, &owner, quote_id, password.as_deref())
+        approve(&mut review, &crate::solswaps::network(), &dir, &path, &owner, quote_id, password.as_deref())
     })
     .await
     .map_err(|error| error.to_string())?
@@ -252,7 +255,7 @@ pub async fn solana_devnet_receipt(app: AppHandle, wallet_address: String) -> Re
     let (dir, _, owner) = active_wallet(&app, &wallet_address)?;
     tauri::async_runtime::spawn_blocking(move || {
         let _review = REVIEW.lock().unwrap_or_else(|poisoned| poisoned.into_inner());
-        refresh_receipt(&Solana::devnet(), &receipt_path(&dir, &owner))
+        refresh_receipt(&crate::solswaps::network(), &receipt_path(&dir, &owner))
     })
     .await
     .map_err(|error| error.to_string())?

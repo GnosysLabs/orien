@@ -128,6 +128,8 @@ pub struct View {
     pub orn: String,
     pub sol: String,
     pub pay_to: Option<String>,
+    /// Buyer: where refunds go, and so the wallet that pays.
+    pub refund: Option<String>,
     pub pay_amount: Option<String>,
     pub pay_link: Option<String>,
     pub pay_qr: Option<String>,
@@ -298,6 +300,21 @@ pub fn create_buy_order(
     let mut all = load(dir);
     all.push(kept);
     save(dir, &all)?;
+    // Approved just now: paid at once from this wallet's own Solana balance,
+    // when that's where refunds go (and so the wallet it pays from).
+    if let Ok(opened) = orien_net::keys::Wallet::open(wallet, password) {
+        let secret = opened.solana_devnet_secret();
+        let index = all.len() - 1;
+        if all[index].buyer_sol == solana::text(&Keypair::from_secret(&secret).pubkey())
+            && let Some(to) = all[index].pay_address()
+        {
+            match solswaps::pay_from_wallet(&sol, &secret, &to, all[index].to_pay) {
+                Ok(_) => {}
+                Err(error) => all[index].problem = Some(error),
+            }
+            save(dir, &all)?;
+        }
+    }
     Ok(id)
 }
 
@@ -808,6 +825,7 @@ pub fn view(o: &KeptOrder) -> View {
         pay_amount: paying.then(|| show_sol(o.to_pay)),
         arrived: (paying && o.arrived > 0).then(|| show_sol(o.arrived)),
         pay_to,
+        refund: (o.role == OrderRole::Buyer).then(|| o.buyer_sol.clone()),
         pay_link,
         paid: o.role == OrderRole::Buyer && !paying && !matches!(o.stage, OrderStage::Cancelled { .. }),
         orn_claimed: o.role == OrderRole::Buyer && o.stage == OrderStage::Done,

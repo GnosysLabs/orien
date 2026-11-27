@@ -1,15 +1,13 @@
 use orien_net::keys::Wallet;
 use orien_net::store::write_replacing;
 use orien_net::unlock::Signing;
-use orien_swap::solana::{self, Keypair, Solana};
+use orien_swap::solana::{self, Keypair};
 use serde::Serialize;
 use std::fs;
 use std::path::Path;
 use std::sync::Mutex;
 use tauri::AppHandle;
 
-// Circle's USDC mint on Solana devnet.
-use orien_swap::solana::devnet_pool::USDC as DEVNET_USDC;
 static DEVNET_ADDRESSES: Mutex<()> = Mutex::new(());
 
 /// Reading this public address for the switcher never unlocks a wallet.
@@ -74,9 +72,9 @@ pub struct DevnetBalances {
 pub async fn solana_devnet_balances(address: String) -> Result<DevnetBalances, String> {
     let owner = solana::address(&address).map_err(|error| error.to_string())?;
     tauri::async_runtime::spawn_blocking(move || {
-        let network = Solana::devnet();
-        let mint = solana::address(DEVNET_USDC).expect("valid devnet USDC mint");
-        let sol = network.balance(&owner).ok().map(|units| crate::money::show(units.into()));
+        let network = crate::solswaps::network();
+        let mint = solana::address(network.usdc).expect("valid USDC mint");
+        let sol = network.shown_balance(&owner).ok().map(|units| crate::money::show(units.into()));
         let usdc = network.token_balance(&owner, &mint).ok().map(|units| crate::money::show(i128::from(units) * 1000));
         DevnetBalances { sol, usdc }
     })
@@ -120,7 +118,7 @@ fn activity_row(entry: solana::history::HistoryEntry) -> ActivityRow {
 pub async fn solana_devnet_transaction_activity(address: String, signature: String) -> Result<Option<ActivityRow>, String> {
     let owner = solana::address(&address).map_err(|error| error.to_string())?;
     tauri::async_runtime::spawn_blocking(move || {
-        Solana::devnet().confirmed_transaction(&owner, &signature).map(|entry| entry.map(activity_row)).map_err(|e| e.to_string())
+        crate::solswaps::network().confirmed_transaction(&owner, &signature).map(|entry| entry.map(activity_row)).map_err(|e| e.to_string())
     }).await.map_err(|e| e.to_string())?
 }
 
@@ -128,8 +126,9 @@ pub async fn solana_devnet_transaction_activity(address: String, signature: Stri
 pub async fn solana_devnet_history(address: String) -> Result<DevnetHistory, String> {
     let owner = solana::address(&address).map_err(|error| error.to_string())?;
     tauri::async_runtime::spawn_blocking(move || {
-        let mint = solana::address(DEVNET_USDC).expect("valid devnet USDC mint");
-        let history = Solana::devnet().recent_history(&owner, &mint).map_err(|error| error.to_string())?;
+        let network = crate::solswaps::network();
+        let mint = solana::address(network.usdc).expect("valid USDC mint");
+        let history = network.recent_history(&owner, &mint).map_err(|error| error.to_string())?;
         let rows = history.entries.into_iter().map(activity_row).collect();
         Ok(DevnetHistory { rows, incomplete: history.incomplete })
     }).await.map_err(|error| error.to_string())?

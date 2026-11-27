@@ -418,6 +418,19 @@
   .status.ok i { background: var(--good); animation: heartbeat 3.2s ease-in-out infinite; }
   .status.warn i { background: #ecc58e; }
   .status.bad i { background: var(--bad); }
+  /* The same dot where a mining figure isn't known yet. */
+  .hs-dot { display: inline-block; width: 7px; height: 7px; margin: 0 0 1px 2px; border-radius: 50%; vertical-align: middle; }
+  .hs-dot.on { background: var(--good); animation: heartbeat 3.2s ease-in-out infinite; }
+  .hs-dot.off { background: var(--bad); animation: heartbeat-off 3.2s ease-in-out infinite; }
+  @keyframes heartbeat-off {
+    0%, 100% { transform: scale(0.85); opacity: 0.7; box-shadow: 0 0 0 0 color-mix(in srgb, var(--bad) 0%, transparent); }
+    50% { transform: scale(1.05); opacity: 1; box-shadow: 0 0 9px 1px color-mix(in srgb, var(--bad) 55%, transparent); }
+  }
+  @media (prefers-reduced-motion: reduce) { .hs-dot { animation: none !important; } }
+  /* The dot sits centred under its label: the cell takes the label's width. */
+  .hs-figs > div:has(> b .hs-dot) { justify-self: start; width: fit-content; max-width: 100%; text-align: center; }
+  .hs-figs b:has(.hs-dot) { overflow: visible; }
+  .hs-figs b .hs-dot { margin: 0; }
   .status span:empty { display: none; }
   /* iPhones: the words go in a small bubble under the dot, clear of the
      bell beside it. */
@@ -604,12 +617,30 @@
   .bal-eye:active { opacity: 0.9; background: rgba(0, 0, 0, 0.06); }
   @media (hover: hover) { .bal-eye:hover { opacity: 0.9; background: rgba(0, 0, 0, 0.06); } }
   body.phone .bal-eye { width: 44px; height: 44px; top: 10px; right: 10px; }
+  /* The currency the value line is in, beside the eye: the Exchange's choice. */
+  .bal-cur { position: absolute; top: 17px; right: 56px; height: 28px; padding: 0 9px 0 11px; border: 0; border-radius: 14px;
+    display: inline-flex; align-items: center; gap: 4px; font: inherit; font-size: 12px; font-weight: 600; letter-spacing: 0.04em;
+    background: rgba(0, 0, 0, 0.06); color: var(--pearl-ink); opacity: 0.7; cursor: pointer; transition: opacity 0.15s, background 0.15s; }
+  @media (hover: hover) { .bal-cur:hover { opacity: 0.95; background: rgba(0, 0, 0, 0.09); } }
+  .bal-cur:active { opacity: 0.95; }
+  body.phone .bal-cur { top: 18px; right: 62px; height: 30px; }
+  /* What the balance is worth. Always takes its line, so the card never
+     changes height as prices load. */
+  .bal-fiat { height: 20px; margin-top: 2px; font-size: 15px; opacity: 0.65; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .bal-fiat.none { visibility: hidden; }
   .card .label { font-size: 11.5px; letter-spacing: 0.1em; text-transform: uppercase; opacity: 0.6; }
   /* One height whatever the number, so the card never grows or shrinks
      as a balance loads or a wallet changes. */
   .card .amount { margin-top: 6px; height: 58px; display: flex; flex-wrap: wrap; align-content: center; align-items: baseline; gap: 8px; overflow: hidden; }
-  .card .balance { font-size: 42px; font-weight: 300; line-height: 1.1; letter-spacing: -0.01em; }
+  .card .balance { cursor: pointer; font-size: 42px; font-weight: 300; line-height: 1.1; letter-spacing: -0.01em; }
   .card .unit { font-size: 14px; opacity: 0.6; }
+  /* The coin's glyph before the number, in the card's ink, sized with it. */
+  .bal-glyph { flex: none; align-self: center; width: 0.62em; height: 0.62em; font-size: 42px; background: currentColor;
+    -webkit-mask: url("mark.svg") center / contain no-repeat; mask: url("mark.svg") center / contain no-repeat; }
+  /* The Orien mark leaves a margin round its drawing: drawn larger to match. */
+  .bal-glyph[data-coin="ORN"] { width: 0.86em; height: 0.86em; margin: 0 -0.06em 0 -0.12em; }
+  .bal-glyph[data-coin="SOL"] { -webkit-mask-image: url("chains/solana.svg"); mask-image: url("chains/solana.svg"); }
+  .bal-glyph[data-coin="USDC"] { -webkit-mask-image: url("chains/usdc-glyph.svg"); mask-image: url("chains/usdc-glyph.svg"); }
 
   .asset-picker { display: flex; gap: 7px; margin: 0 0 12px; }
   .asset-picker .pill { gap: 6px; min-width: 72px; padding: 0 11px; }
@@ -620,12 +651,15 @@
     -webkit-mask: url("chains/solana.svg") center / contain no-repeat; mask: url("chains/solana.svg") center / contain no-repeat; }
   .asset-picker .pill[aria-pressed="true"] { background: var(--pearl); color: var(--pearl-ink); border-color: transparent; }
   .asset-picker .pill[aria-pressed="true"] .sol-mark { filter: drop-shadow(0 1px 1px #21173770); }
-  .card .asset-menu-toggle { display: inline-flex; align-items: center; gap: 5px; padding: 3px 8px; border: 0; border-radius: 8px;
-    color: var(--pearl-ink); background: color-mix(in srgb, var(--pearl-ink) 12%, transparent); line-height: 1.3; opacity: 1; cursor: pointer; white-space: nowrap; }
+  /* Same pill as the currency button beside the eye. */
+  .card .asset-menu-toggle { display: inline-flex; align-items: center; align-self: center; gap: 4px; height: 28px; padding: 0 9px 0 11px; border: 0; border-radius: 14px;
+    font: inherit; font-size: 12px; font-weight: 600; letter-spacing: 0.04em; color: var(--pearl-ink); background: rgba(0, 0, 0, 0.06);
+    opacity: 0.7; cursor: pointer; white-space: nowrap; transition: opacity 0.15s, background 0.15s; }
   .asset-menu-toggle svg { flex: none; }
   .asset-menu-toggle[aria-expanded="true"] svg { transform: rotate(180deg); }
-  body.phone .asset-menu-toggle { min-height: 38px; align-self: center; }
-  @media (hover: hover) { .card .asset-menu-toggle:hover { background: color-mix(in srgb, var(--pearl-ink) 18%, transparent); } }
+  body.phone .card .asset-menu-toggle { height: 30px; }
+  @media (hover: hover) { .card .asset-menu-toggle:hover { opacity: 0.95; background: rgba(0, 0, 0, 0.09); } }
+  .card .asset-menu-toggle[aria-expanded="true"] { opacity: 0.95; }
   .asset-tokens { position: absolute; z-index: 4; top: calc(100% - 10px); left: 16px; width: min(340px, calc(100% - 32px));
     padding: 7px; color: var(--ink); background: var(--surface); border: 1px solid var(--line); border-radius: 16px;
     box-shadow: 0 10px 26px rgba(0, 0, 0, .24); }
@@ -1166,6 +1200,9 @@
   .ch-who small { display: block; font-size: 11.5px; color: var(--faint); }
   /* ⋯ menus: a frosted-glass menu floating by its button, as on Apple's
      systems; nothing on the screen moves. */
+  /* Scrolling a long menu past its end never scrolls the screen under it
+     (which would close the menu). */
+  .ch-menu { overscroll-behavior: contain; }
   .ch-menu { position: fixed; z-index: 50; width: 250px; padding: 5px; border-radius: 16px; display: grid;
     background: var(--glass); -webkit-backdrop-filter: blur(28px) saturate(1.8); backdrop-filter: blur(28px) saturate(1.8);
     border: 0.5px solid rgba(var(--tint), 0.14); box-shadow: 0 18px 50px rgba(0, 0, 0, 0.5), 0 2px 8px rgba(0, 0, 0, 0.25);
@@ -1605,6 +1642,7 @@
   html[data-base="dark"] body .update { box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.16), 0 3px 9px rgba(var(--shade), var(--shade-a)); }
   html[data-base="dark"] body #swaps :is(.ob-act, .ob-act.ask-buy, .ob-act.bid-sell):not(:disabled) { box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.16), 0 3px 9px rgba(var(--shade), var(--shade-a)); }
   html[data-base="dark"] body #swaps .ex-go { box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.16), 0 4px 12px rgba(var(--shade), var(--shade-a)); }
+  .own-sol { display: none !important; }
   /* Placing an order: a button in the header, the form a card over the page. */
   .ex-order-go, .ex-order-x, .ex-veil { display: none; }
   .ex-cur { margin-left: 10px; flex: none; }
@@ -2820,11 +2858,11 @@
     body.pop:not(.phone) main { isolation: auto; }
     body.pop:not(.phone) #pop-shade { display: block; position: fixed; inset: 0; z-index: 50;
       background: var(--veil); -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px); animation: pop-fade .18s ease; }
-    html body.pop:not(.phone) :is(#send, #solana-send, #receive, #contacts, #contact, #member, #board-post, #board-take, #swap-waiting, #swap-posted, #activity, #board-signin, #wallet-add-choose, #wallet-add, #restore, #phrase, #password, #pair-invite) { position: fixed; z-index: 51; inset: 0; margin: auto;
+    html body.pop:not(.phone) :is(#send, #solana-send, #receive, #contacts, #blocks, #contact, #member, #board-post, #board-take, #swap-waiting, #swap-posted, #activity, #board-signin, #wallet-add-choose, #wallet-add, #restore, #phrase, #password, #pair-invite) { position: fixed; z-index: 51; inset: 0; margin: auto;
       width: min(480px, calc(100vw - 48px)); height: fit-content; max-height: calc(100vh - 96px); overflow-y: auto;
       padding: 18px 24px 24px; -webkit-mask: none; mask: none; border-radius: 24px; background: var(--surface); border: 1px solid var(--line);
       box-shadow: 0 24px 60px rgba(0, 0, 0, 0.5), 0 2px 8px rgba(0, 0, 0, 0.25); animation: pop-in .2s cubic-bezier(.2, .9, .3, 1.2); }
-    body.pop:not(.phone) :is(#send, #solana-send, #receive, #contacts, #contact, #member, #board-post, #board-take, #swap-waiting, #swap-posted, #activity, #board-signin, #wallet-add-choose, #wallet-add, #restore, #phrase, #password, #pair-invite) .topline { position: static; }
+    body.pop:not(.phone) :is(#send, #solana-send, #receive, #contacts, #blocks, #contact, #member, #board-post, #board-take, #swap-waiting, #swap-posted, #activity, #board-signin, #wallet-add-choose, #wallet-add, #restore, #phrase, #password, #pair-invite) .topline { position: static; }
     html body.pop:not(.phone) :is(#contacts, #contact, #member) { width: min(600px, calc(100vw - 48px)); }
     /* The offer forms carry more words: a little wider, so they wrap less. */
     html body.pop:not(.phone) :is(#board-post, #board-take, #wallet-add-choose, #wallet-add, #restore, #phrase, #password, #pair-invite) { width: min(560px, calc(100vw - 48px)); }
@@ -2833,8 +2871,8 @@
     html body.pop:not(.phone) #activity { width: min(600px, calc(100vw - 48px)); height: min(720px, calc(100vh - 96px)); overflow: hidden; display: flex; flex-direction: column; }
     body.pop:not(.phone) #activity #all-activity { flex: 1 1 auto; min-height: 0; overflow-y: auto; margin: 0; }
     body.pop:not(.phone) #contacts #contact-list { flex: none; overflow: visible; margin: 0; padding: 0; -webkit-mask: none; mask: none; }
-    html body.pop:not(.phone) :is(#send, #solana-send, #receive, #contacts, #contact, #member, #board-post, #board-take, #swap-waiting, #swap-posted, #activity, #board-signin, #wallet-add-choose, #wallet-add, #restore, #phrase, #password, #pair-invite):not(#x) { padding-bottom: 24px; }
-    body.pop:not(.phone) :is(#send, #solana-send, #receive, #contacts, #contact, #member, #board-post, #board-take, #swap-waiting, #swap-posted, #activity, #board-signin, #wallet-add-choose, #wallet-add, #restore, #phrase, #password, #pair-invite) .push { display: none; }
+    html body.pop:not(.phone) :is(#send, #solana-send, #receive, #contacts, #blocks, #contact, #member, #board-post, #board-take, #swap-waiting, #swap-posted, #activity, #board-signin, #wallet-add-choose, #wallet-add, #restore, #phrase, #password, #pair-invite):not(#x) { padding-bottom: 24px; }
+    body.pop:not(.phone) :is(#send, #solana-send, #receive, #contacts, #blocks, #contact, #member, #board-post, #board-take, #swap-waiting, #swap-posted, #activity, #board-signin, #wallet-add-choose, #wallet-add, #restore, #phrase, #password, #pair-invite) .push { display: none; }
     /* Solid, a step lighter than the card: a see-through fill over the
        blurred Home drew a ghost beside each contact. */
     body.pop:not(.phone) #contacts .ct-list > .tx { background: color-mix(in srgb, var(--ink) 4%, var(--surface)); }
@@ -2856,8 +2894,8 @@
     body.pop:not(.phone) .account .pop-x { margin-left: 0; }
     body.pop:not(.phone) #contact .tl-bin:not([hidden]) + .pop-x { margin-left: 10px; }
     @media (hover: hover) { body.pop:not(.phone) .pop-x:hover { background: rgba(var(--tint), 0.1); color: var(--ink); } }
-    body.pop:not(.phone) :is(#send, #solana-send, #receive, #contacts, #board-post, #board-take, #swap-waiting, #swap-posted, #activity, #board-signin, #wallet-add-choose) .topline .back { display: none; }
-    body.pop:not(.phone) :is(#send, #solana-send, #receive, #contacts, #board-post, #board-take, #swap-waiting, #swap-posted, #activity, #board-signin, #wallet-add-choose) .topline h2 { margin-left: 4px; }
+    body.pop:not(.phone) :is(#send, #solana-send, #receive, #contacts, #blocks, #board-post, #board-take, #swap-waiting, #swap-posted, #activity, #board-signin, #wallet-add-choose) .topline .back { display: none; }
+    body.pop:not(.phone) :is(#send, #solana-send, #receive, #contacts, #blocks, #board-post, #board-take, #swap-waiting, #swap-posted, #activity, #board-signin, #wallet-add-choose) .topline h2 { margin-left: 4px; }
     body.pop:not(.phone) #receive .receive-actions.two { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
     body.pop:not(.phone) #receive .receive-actions :is(.primary, .secondary) { width: 100%; min-width: 0; padding-left: 12px; padding-right: 12px; }
   }
@@ -3107,7 +3145,14 @@
   @media (min-width: 860px) {
     body:not(.phone) #home .home-body { display: flex; gap: 20px; flex: 1 1 0; min-height: 0; }
     body:not(.phone) #home .home-main { display: flex; flex-direction: column; flex: 1 1 auto; min-width: 0; min-height: 0; }
-    body:not(.phone) #home .home-side { display: flex; flex-direction: column; gap: 14px; flex: 0 0 340px; min-height: 0; }
+    body:not(.phone) #home .home-side { display: flex; flex-direction: column; gap: 14px; flex: 0 0 340px; width: 340px; min-width: 340px; max-width: 340px; min-height: 0; }
+    /* The side column never takes its width from what's inside it, so live
+       numbers and labels can't make it (or the wallet beside it) jump. */
+    body:not(.phone) #home .home-side > * { min-width: 0; }
+    /* A scroll bar appearing on Home would narrow everything by its width;
+       Home still scrolls if it must, without one. */
+    body:not(.phone) #home { scrollbar-width: none; }
+    body:not(.phone) #home::-webkit-scrollbar { display: none; width: 0; }
     /* Mining and the group chat are in the column beside: their buttons go,
        and the rest share the row evenly. */
     body:not(.phone) #home :is(#go-mine, #go-explorer, #go-explorer-tile) { display: none; }
@@ -3127,11 +3172,12 @@
   .hs-state.on { color: var(--good); }
   .hs-arrow { flex: none; width: 28px; height: 28px; border-radius: 50%; display: grid; place-items: center; color: var(--faint); transition: background .15s, color .15s; }
   @media (hover: hover) { .hs-open:hover { background: rgba(var(--tint), 0.04); } .hs-open:hover .hs-arrow { color: var(--ink); background: rgba(var(--tint), 0.06); } }
+  .hs-figs > div { min-width: 0; }
   .hs-figs { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--line); }
   .hs-figs span { display: block; font-size: 11px; color: var(--faint); }
   .hs-figs b { display: block; margin-top: 2px; font-size: 14px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .hs-acts { display: flex; gap: 8px; margin-top: 14px; }
-  .hs-acts .pill { flex: 1; }
+  .hs-acts .pill { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   /* The network card fills the remaining window height, including when
      the wallet column has no activity. */
   .hs-net { flex: 1 1 auto; min-height: 0; }
@@ -3144,7 +3190,7 @@
   @media (hover: hover) { .hs-cp:hover { background: rgba(var(--tint), 0.04); } }
   .hs-cp .ex-num { min-width: 46px; height: 26px; padding: 0 8px; font-size: 10.5px; border-radius: 8px; }
   .hs-cp .mw0 { flex: 1; min-width: 0; }
-  .hs-cp b { display: block; font-size: 12.5px; font-weight: 600; }
+  .hs-cp b { display: block; font-size: 12.5px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .hs-cp span.sub { display: block; font-size: 11.5px; color: var(--faint); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .hs-cp .amt { flex: none; font-size: 12px; color: var(--dim); }
   .hs-open { cursor: pointer; }
@@ -3311,6 +3357,11 @@
   .field .box.social { gap: 12px; }
   .field .box.social + .box.social { margin-top: 10px; }
   .field .box.social svg { flex: none; width: 16px; height: 16px; color: var(--dim); }
+  /* Computers: the three accounts side by side, one row. */
+  body:not(.phone) .field.pf-socials { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); column-gap: 10px; }
+  body:not(.phone) .field.pf-socials > :not(.box) { grid-column: 1 / -1; }
+  body:not(.phone) .field.pf-socials .box.social { min-width: 0; margin-top: 0; gap: 10px; }
+  body:not(.phone) .field.pf-socials .box.social input { min-width: 0; text-overflow: ellipsis; }
   /* A button that deletes: the same shape as the others, in red. */
   .danger { width: 100%; height: 48px; border-radius: var(--radius); border: 1px solid #f1a9a933; background: #f1a9a90d;
     color: var(--bad); font-weight: 500; cursor: pointer; transition: background 0.15s; }
@@ -3752,15 +3803,18 @@
       </div>
       <div class="card pearl">
         <div class="label" id="asset-network-label">Balance</div>
+        <button class="bal-cur" id="bal-cur" aria-haspopup="menu" title="Currency"><span id="bal-cur-name">USD</span><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></button>
         <button class="bal-eye" id="bal-eye" aria-label="Hide balance" title="Hide balance"></button>
         <div class="amount">
+          <span class="bal-glyph" id="bal-glyph" data-coin="ORN" aria-hidden="true"></span>
           <span class="balance" id="balance">—</span>
           <span class="unit" id="asset-unit">ORN</span>
           <button class="unit asset-menu-toggle" id="asset-menu-toggle" type="button" aria-expanded="false" aria-controls="asset-token-menu" hidden>
             <span id="asset-menu-unit">SOL</span>
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
           </button>
         </div>
+        <div class="bal-fiat" id="bal-fiat" data-no-i18n></div>
         <section class="asset-tokens" id="asset-token-menu" aria-labelledby="asset-token-heading" hidden>
           <div class="asset-token-head">
             <h3 id="asset-token-heading">Solana assets</h3>
@@ -4193,7 +4247,7 @@
 
     <!-- The people you've blocked: each with Unblock. -->
     <section class="screen" id="blocks" hidden>
-      <div class="topline"><button class="back" id="bk-back" aria-label="Back"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg></button><h2>Blocked accounts</h2></div>
+      <div class="topline"><button class="back" id="bk-back" aria-label="Back"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg></button><h2>Blocked accounts</h2><button class="pop-x" data-pop-close aria-label="Close" title="Close"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></button></div>
       <p class="hint bk-note">People you block can't message you, and you don't see each other's profiles, posts or listings. Unblock someone to see them again.</p>
       <div class="scroll" id="bk-list"></div>
       <div class="problem" id="bk-problem" hidden></div>
@@ -4302,7 +4356,7 @@
       <div class="topline">
         <button class="back" data-back aria-label="Back"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg></button>
         <h2 id="sol-send-title">Send SOL</h2>
-        <span class="sol-send-network"><img src="chains/solana.svg" alt="">Solana Devnet</span>
+        <span class="sol-send-network"><img src="chains/solana.svg" alt=""><span data-sol-net>Solana</span></span>
         <button class="pop-x" data-pop-close aria-label="Close" title="Close"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></button>
       </div>
       <form id="sol-send-form">
@@ -4663,7 +4717,7 @@
 
               <div class="problem" id="ex-problem" hidden></div>
               <button type="button" class="ex-go buy" id="ex-go">Place Buy Order</button>
-              <p class="ex-note" id="ex-note">Nothing leaves your SOL wallet until a seller locks the ORN and you pay the QR code. Keep Orien Wallet running so sellers can match your order.</p>
+              <p class="ex-note" id="ex-note"></p>
             </div>
           </div>
         </div>
@@ -4818,10 +4872,11 @@
             <div class="pay-head">Pay exactly</div>
             <div class="pay-amount"><span id="sd-pay-amount"></span> <span id="sd-pay-unit">BTC</span></div>
             <div class="pay-by" id="sd-pay-by" hidden></div>
+            <button class="primary pearl" id="sd-pay-wallet" hidden data-gap="sm">Pay from your Solana balance</button>
             <div class="pay-qr" id="sd-pay-qr" hidden></div>
             <div class="pay-head" data-gap="sm" id="sd-pay-to-head">to this Bitcoin address</div>
             <div class="codebox" id="sd-pay-to"></div>
-            <div class="pay-copy" data-gap="sm">
+            <div class="pay-copy" id="sd-pay-copy" data-gap="sm">
               <button class="secondary" id="sd-copy-pay">Copy address</button>
               <button class="secondary" id="sd-copy-amount">Copy amount</button>
             </div>
@@ -4875,7 +4930,7 @@
       </div>
       <div class="push"></div>
       <div class="receive-card">
-        <div class="receive-network" id="receive-network" hidden><img src="chains/solana.svg" alt="">Solana devnet</div>
+        <div class="receive-network" id="receive-network" hidden><img src="chains/solana.svg" alt=""><span data-sol-net>Solana</span></div>
         <div class="receive-qr" id="receive-qr" hidden></div>
         <div class="label" id="receive-address-label">Your address</div>
         <div class="address-block" id="address-block"></div>
@@ -4903,13 +4958,13 @@
     </div>
     <p id="sol-unlock-error" role="alert" hidden></p>
     <button type="submit" class="primary pearl" id="sol-unlock-go">Unlock Solana</button>
-    <p class="vc-text" id="sol-link-note" hidden>Your ORN address is linked. You can also show your Solana Devnet address on the same public profile.</p>
+    <p class="vc-text" id="sol-link-note" hidden>Your ORN address is linked. You can also show your Solana address on the same public profile.</p>
     <button type="submit" class="pill" id="sol-unlock-link" hidden>Unlock &amp; link Solana</button>
   </form>
 </dialog>
 <dialog id="sol-swap-dialog" aria-labelledby="sol-swap-title">
   <div class="sol-swap-head"><h2 id="sol-swap-title">Swap</h2><button type="button" id="sol-swap-close" class="pill icon" aria-label="Close swap">✕</button></div>
-  <p class="sol-swap-network">Solana Devnet · Raydium</p>
+  <p class="sol-swap-network" id="sol-swap-network" data-no-i18n>Solana · Jupiter</p>
   <form id="sol-swap-form">
     <div class="sol-swap-amount">
       <div class="sol-swap-line"><label id="sol-swap-pay-label" for="sol-swap-amount">You pay</label><span id="sol-swap-available"></span></div>
@@ -5181,7 +5236,7 @@
   const profileOf = (address) => (address && profiles.get(address.toLowerCase())) || null;
   // How a profile's wallet is shown: "Cyph3r – Savings", or just the name.
   function walletGlyph(network = "ORN") {
-    return network === "SOL" ? '<span class="wallet-glyph sol" role="img" aria-label="Solana Devnet" title="Solana Devnet"></span>' :
+    return network === "SOL" ? '<span class="wallet-glyph sol" role="img" aria-label="Solana" title="Solana"></span>' :
       '<span class="wallet-glyph orn" role="img" aria-label="Orien" title="Orien"></span>';
   }
   function walletLabel(name, network = "ORN") { return walletGlyph(network) + esc(name); }
@@ -5336,9 +5391,9 @@
     // Big windows: Send and Receive float over Home rather than replace it.
     // So does Contacts, with the contact or member opened from it.
     const inContacts = document.body.classList.contains("pop") && ["contacts", "contact", "member"].some((x) => !$(x).hidden);
-    const pop = signinPop || addPop || !phone && wide.matches && (SWAP_POPS.includes(id) || id === "send" || id === "solana-send" || id === "activity" || id === "receive" || id === "contacts" || ((id === "contact" || id === "member") && inContacts));
+    const pop = signinPop || addPop || !phone && wide.matches && (SWAP_POPS.includes(id) || id === "send" || id === "solana-send" || id === "activity" || id === "receive" || id === "contacts" || id === "blocks" || ((id === "contact" || id === "member") && inContacts));
     // Send opened from someone's profile floats over their profile.
-    const under = addPop ? "wallets" : signinPop ? lastBase : id === "send" && (sendFrom === "seller" || sendFrom === "explorer") ? sendFrom : SWAP_POPS.includes(id) ? "swaps" : "home";
+    const under = id === "blocks" ? "profile" : addPop ? "wallets" : signinPop ? lastBase : id === "send" && (sendFrom === "seller" || sendFrom === "explorer") ? sendFrom : SWAP_POPS.includes(id) ? "swaps" : "home";
     for (const s of document.querySelectorAll(".screen")) s.hidden = !(s.id === id || ((both || underSplit) && (s.id === "inbox" || s.id === "chat")) || (pop && s.id === under));
     document.body.classList.toggle("split", both || underSplit);
     if (!pop) lastBase = id;
@@ -5454,14 +5509,35 @@
 
   let lastBalance = null;
   let walletAsset = "ORN";
-  const DEVNET_REFRESH_MS = 30_000;
+  // Balances are checked every few seconds while Solana is on screen, so
+  // incoming SOL shows almost as soon as Solana has it; the longer activity
+  // list reloads less often, and at once when a balance changes.
+  const DEVNET_REFRESH_MS = 3_000;
+  const SOL_HISTORY_MS = 30_000;
+  // Test copies use Solana's test network; everything else uses Solana itself.
+  let solTest = false;
+  const solNetName = () => solTest ? "Solana devnet" : "Solana";
+  invoke("sol_cluster").then(cluster => {
+    solTest = cluster === "devnet";
+    for (const el of document.querySelectorAll("[data-sol-net]")) el.textContent = solNetName();
+    $("sol-swap-network").textContent = solTest ? "Solana devnet · Raydium" : "Solana · Jupiter";
+    try { paintWalletAsset(); } catch {}
+  }).catch(() => {});
   const newDevnetAssets = () => ({ lastCheck: 0, pending: false, locked: false, promptUnlock: false, address: null, balances: null, history: null, trackedTransactions: new Map(), historyBusy: false, historyError: false, stale: false, error: "", receive: null });
   let devnetAssets = newDevnetAssets();
   const assetButtons = document.querySelectorAll("[data-wallet-asset]");
   const solanaAssetButtons = document.querySelectorAll("[data-solana-asset]");
   function setAssetMenu(open, refocus = false) {
     const toggle = $("asset-menu-toggle");
-    $("asset-token-menu").hidden = !open;
+    const menu = $("asset-token-menu");
+    menu.hidden = !open;
+    // Opens just under the SOL/USDC button, lined up with it.
+    if (open) {
+      const card = menu.offsetParent;
+      const left = Math.max(16, Math.min(toggle.offsetLeft - 8, (card?.clientWidth || 0) - menu.offsetWidth - 16));
+      menu.style.top = `${toggle.offsetTop + toggle.offsetHeight + 8}px`;
+      menu.style.left = `${left}px`;
+    }
     toggle.setAttribute("aria-expanded", String(open));
     if (refocus) toggle.focus({ preventScroll: true });
   }
@@ -5473,14 +5549,14 @@
     $("solana-recent").hidden = !preview;
     $("solana-all").hidden = !preview || !devnetAssets.address;
     if (preview) paintDevnetHistory();
-    $("asset-network-label").textContent = preview ? "Solana devnet" : "Balance";
+    $("asset-network-label").textContent = preview && solTest ? solNetName() : "Balance";
     $("asset-unit").hidden = preview;
     $("asset-menu-toggle").hidden = !preview;
     $("asset-menu-toggle").setAttribute("aria-label", `Choose Solana asset, ${walletAsset} selected`);
     $("asset-menu-unit").textContent = walletAsset;
     $("go-send").disabled = preview && !devnetAssets.address;
-    $("go-send").title = preview ? `Send ${walletAsset} on Devnet` : "Send";
-    $("go-receive").title = preview ? "Receive on Solana devnet" : "Receive";
+    $("go-send").title = preview ? `Send ${walletAsset}` : "Send";
+    $("go-receive").title = preview ? `Receive on ${solNetName()}` : "Receive";
     for (const button of assetButtons) button.setAttribute("aria-pressed", String(button.dataset.walletAsset === (preview ? "SOL" : "ORN")));
     for (const button of solanaAssetButtons) button.setAttribute("aria-pressed", String(button.dataset.solanaAsset === walletAsset));
     $("asset-devnet-unlock").hidden = !devnetAssets.locked || devnetAssets.pending;
@@ -5492,7 +5568,7 @@
     if (devnetAssets.pending && !devnetAssets.balances) status = "Loading balances…";
     else if (!view) status = "Waiting for this wallet…";
     else if (devnetAssets.error) status = devnetAssets.error;
-    else if (devnetAssets.locked) status = "Unlock once to remember this wallet’s public Solana test address.";
+    else if (devnetAssets.locked) status = "Unlock once to remember this wallet’s public Solana address.";
     else if (devnetAssets.stale) status = "Some Solana balances could not refresh.";
     $("asset-devnet-status").textContent = status;
     $("asset-devnet-status").hidden = !status;
@@ -5515,7 +5591,7 @@
           : '<span class="sub">Pending</span>';
         return `<button type="button" class="tx" data-sol-tx="${esc(entry.signature)}">
           <span class="tx-icon">${ICON.swap}</span>
-          <span class="tx-main"><span class="title">Swap</span><span class="sub">Raydium${entry.time ? " · " + esc(relative(entry)) : ""}</span></span>
+          <span class="tx-main"><span class="title">Swap</span><span class="sub">${solTest ? "Raydium" : "Jupiter"}${entry.time ? " · " + esc(relative(entry)) : ""}</span></span>
           <span class="tx-side">${amounts}</span></button>`;
       }
       const direction = entry.sent ? "sent" : "received";
@@ -5543,6 +5619,31 @@
     }
   }
 
+  // The last Solana balances and activity seen, kept on this computer so they
+  // show at once next time while fresh ones load.
+  const solCacheKey = (address) => `sol-cache:${solTest ? "devnet" : "mainnet"}:${address}`;
+  function saveSolCache(state) {
+    if (!state.address) return;
+    try { localStorage.setItem(solCacheKey(state.address), JSON.stringify({ balances: state.balances, history: state.history?.incomplete ? null : state.history })); } catch {}
+  }
+  function restoreSolCache(state) {
+    if (!state.address || (state.balances && state.history)) return;
+    let saved = null;
+    try { saved = JSON.parse(localStorage.getItem(solCacheKey(state.address)) || "null"); } catch {}
+    if (!saved) return;
+    if (!state.balances && saved.balances) state.balances = saved.balances;
+    if (!state.history && saved.history?.rows) state.history = saved.history;
+  }
+  async function chaseDevnetHistory(state) {
+    const seen = () => new Set((state.history?.rows || []).filter(row => row.asset || row.failed).map(row => row.signature));
+    const known = seen();
+    for (let i = 0; i < 5; i++) {
+      await new Promise(r => setTimeout(r, i ? 3000 : 1000));
+      if (state !== devnetAssets) return;
+      await loadDevnetHistory(state);
+      if ([...seen()].some(signature => !known.has(signature))) return;
+    }
+  }
   async function loadDevnetHistory(state) {
     if (!state.address || state.historyBusy) return;
     state.historyBusy = true;
@@ -5561,7 +5662,9 @@
         if (row.asset || row.failed) state.trackedTransactions.delete(row.signature);
       }
       state.history = result;
+      state.historyAt = Date.now();
       state.historyError = false;
+      if (!result.incomplete) saveSolCache(state);
     } catch {
       state.historyError = true;
     } finally {
@@ -5603,7 +5706,7 @@
   }
 
   function openSolanaExplorer(kind, value) {
-    if (value) invoke("open_post_link", { url: `https://explorer.solana.com/${kind}/${encodeURIComponent(value)}?cluster=devnet` }).catch(() => {});
+    if (value) invoke("open_post_link", { url: `https://explorer.solana.com/${kind}/${encodeURIComponent(value)}${solTest ? "?cluster=devnet" : ""}` }).catch(() => {});
   }
   $("solana-recent").onclick = (event) => {
     if (event.target.closest("[data-sol-retry]")) void loadDevnetHistory(devnetAssets);
@@ -5654,6 +5757,11 @@
         if (unlock && wallet.biometric) await invoke("biometric_unlock");
         state.address = await invoke("solana_devnet_address", { walletAddress: wallet.address, password: password || null });
       }
+      if (state === devnetAssets && view?.address === wallet.address) {
+        restoreSolCache(state);
+        paintWalletAsset();
+        if (walletAsset !== "ORN") paintDevnetHistory();
+      }
       if (state !== devnetAssets || view?.address !== wallet.address) return;
       if (offer && offer === unlockOffer && offer.account === board.me?.id && solUnlockDialog.open) {
         await invoke("link_devnet_sol", {account:offer.account, orn:wallet.address, password:password || null});
@@ -5662,16 +5770,25 @@
       state.locked = false;
       state.promptUnlock = false;
       if (solUnlockDialog.open) solUnlockDialog.close();
-      void loadDevnetHistory(state);
+      if (!state.historyAt || Date.now() - state.historyAt >= SOL_HISTORY_MS) void loadDevnetHistory(state);
       const receive = state.receive;
       state.receive = null;
       if (receive === walletAsset && !$("home").hidden) openAssetReceive(receive, state.address);
       const balances = await invoke("solana_devnet_balances", { address: state.address });
-      state.stale = balances.sol == null || balances.usdc == null;
+      const before = state.balances;
+      // A balance change means a new transaction. History can lag the
+      // balance by a few seconds, so ask again until it shows up.
+      if (before && ((balances.sol != null && balances.sol !== before.sol) || (balances.usdc != null && balances.usdc !== before.usdc))) void chaseDevnetHistory(state);
+      // A missed check or two is normal on free Solana services: the last
+      // balance stays, and the note shows only if it keeps failing.
+      if (balances.sol == null || balances.usdc == null) state.failingSince ||= Date.now();
+      else state.failingSince = 0;
+      state.stale = !!state.failingSince && Date.now() - state.failingSince > 60_000;
       state.balances = {
         sol: balances.sol ?? state.balances?.sol ?? null,
         usdc: balances.usdc ?? state.balances?.usdc ?? null,
       };
+      saveSolCache(state);
     } catch (err) {
       const error = String(err);
       if (error === "password: needed") state.locked = true;
@@ -5868,30 +5985,34 @@
   };
   $("asset-devnet-refresh").onclick = () => loadDevnetAssets();
   setInterval(refreshVisibleDevnet, DEVNET_REFRESH_MS);
+  setTimeout(refreshHomePrices, 1500);
+  setInterval(() => { if (!$("home").hidden && !document.hidden) refreshHomePrices(); }, 300_000);
 
   function fitBalance() {
     const card = document.querySelector("#home .card"), row = card && card.querySelector(".amount");
     if (!row || !card.clientWidth) return;
     const style = getComputedStyle(card);
     const inner = card.clientWidth - parseFloat(style.paddingLeft) - parseFloat(style.paddingRight);
-    const balance = $("balance"), unit = row.querySelector(".unit:not([hidden])");
+    const balance = $("balance"), unit = row.querySelector(".unit:not([hidden])"), glyph = $("bal-glyph");
     // Waiting for a balance: a quiet dash at an ordinary size, not one
     // blown up to fill the card.
     if (balance.textContent === "—") {
       balance.style.fontSize = "40px";
       unit.style.fontSize = "14px";
+      glyph.style.fontSize = "40px";
       return;
     }
     const gap = parseFloat(getComputedStyle(row).columnGap) || 0;
     // The number and asset symbol scale together; the gap does not.
     const width = (size) => {
       balance.style.fontSize = size + "px";
+      glyph.style.fontSize = size + "px";
       unit.style.fontSize = Math.max(12, size / 3) + "px";
-      return balance.getBoundingClientRect().width + unit.getBoundingClientRect().width + gap;
+      return glyph.getBoundingClientRect().width + balance.getBoundingClientRect().width + unit.getBoundingClientRect().width + 2 * gap;
     };
-    const measured = width(100) - gap;
-    let size = Math.max(20, Math.min(52, 100 * (inner - gap) / measured));
-    if (width(size) > inner) size = Math.max(20, size * (inner - gap) / (width(size) - gap) - 0.5);
+    const measured = width(100) - 2 * gap;
+    let size = Math.max(20, Math.min(52, 100 * (inner - 2 * gap) / measured));
+    if (width(size) > inner) size = Math.max(20, size * (inner - 2 * gap) / (width(size) - 2 * gap) - 0.5);
     width(size);
   }
   window.addEventListener("resize", fitBalance);
@@ -5940,7 +6061,7 @@
     opening = false;
     // Never longer than a few seconds, even with the network slow.
     if (waiting) { covered(true); setTimeout(() => covered(false), 8000); }
-    show("home"); fitBalance(); loadWallets(); renderSwapAlert();
+    show("home"); fitBalance(); loadWallets(); renderSwapAlert(); refreshHomePrices();
     if (typeof homeSide === "function") homeSide();
     invoke("board_me").then((me) => { board.me = me; renderBoardBar(); paintVerifyCard(); if (!$("home").hidden) refRefresh(); }).catch(() => {});
     invoke("notifications_ask").catch(() => {});
@@ -6177,7 +6298,7 @@
         <button type="button" class="wl-open" data-open="${i}" aria-label="Open ${esc(w.name)}">
           <span class="wl-identity"><span class="coin" aria-hidden="true">${esc(iconOf(w.address) || (w.name || "?").slice(0, 1).toUpperCase())}</span>
             <span class="name">${esc(w.name)}</span>${w.current ? '<span class="here">Open</span>' : ""}</span>
-          <span class="wl-chains">${chain("ORN", "Orien", w.address)}${chain("SOL", "Solana Devnet", w.solana_address)}</span>
+          <span class="wl-chains">${chain("ORN", "Orien", w.address)}${chain("SOL", "Solana", w.solana_address)}</span>
         </button>
         <button class="tool" data-rename="${i}" aria-label="Wallet settings · ${esc(w.name)}" title="Wallet settings">${COG}</button>
       </div>`;
@@ -6368,9 +6489,12 @@
     // Glowing from the moment mining starts, getting ready included, as
     // the Mine button does.
     $("hs-mine").classList.toggle("mining", !!s.running);
-    $("hs-speed").textContent = s.running && s.tries_per_second ? `${speed(s.tries_per_second)}/s` : "—";
+    // No figure yet: the heartbeat dot from beside the wordmark, green
+    // while mining gets going, red while it's off.
+    const mineDot = `<i class="hs-dot ${s.running ? "on" : "off"}" role="img" aria-label="${s.running ? "Getting ready" : "Mining is off"}"></i>`;
+    if (s.running && s.tries_per_second) $("hs-speed").textContent = `${speed(s.tries_per_second)}/s`; else $("hs-speed").innerHTML = mineDot;
     $("hs-rate-label").textContent = small === "for each share" ? "Each share" : "Shares an hour";
-    $("hs-rate").textContent = big || "—";
+    if (big) $("hs-rate").textContent = big; else $("hs-rate").innerHTML = mineDot;
     // Someone new starts on the Mine screen, with the processor and the
     // benchmark in view; after their first mining or benchmark, Home starts it.
     if (s.running || mineSweet) localStorage.setItem("mined-before", "1");
@@ -7816,12 +7940,65 @@
     const whole = m[1], frac = (m[2] || "").padEnd(9, "0");
     if (/[1-9]/.test(whole)) return `${whole}.${frac.slice(0, 2)}`;
     const first = frac.search(/[1-9]/);
-    return first < 0 ? `${whole}.00` : `${whole}.${frac.slice(0, Math.max(2, first + 2))}`;
+    // Two meaningful digits, but never a zero the full amount doesn't have
+    // (0.06 stays 0.06, not 0.060).
+    return first < 0 ? `${whole}.00` : `${whole}.${frac.slice(0, Math.max(2, first + 2)).replace(/(\d{2,}?)0+$/, "$1")}`;
+  };
+  // Every decimal, but always at least two, as the short form has.
+  const fullBalance = (text) => {
+    const m = /^(-?[\d,]+)(?:\.(\d*))?$/.exec(String(text).trim());
+    return m ? `${m[1]}.${(m[2] || "").padEnd(2, "0")}` : text;
   };
   function displayBalance(amount) {
     if (amount == null) return "—";
     if (prefs.hide) return "••••••";
-    return balancePeek ? amount : shortBalance(amount);
+    return balancePeek ? fullBalance(amount) : shortBalance(amount);
+  }
+  // What the balance shown is worth in the chosen currency: SOL and USDC at
+  // market prices, ORN at its last swap for SOL. Nothing until a price is known.
+  const balNum = (b) => b == null ? null : Number(String(b).replace(/[^0-9.]/g, ""));
+  function balanceValue(b) {
+    const n = balNum(b);
+    if (n == null || !Number.isFinite(n)) return "";
+    const cur = exCur();
+    const fx = cur === "sol" ? 1 : exFx();
+    if (!fx) return "";
+    let sol;
+    if (walletAsset === "SOL") { if (cur === "sol") return ""; sol = n; }
+    else if (walletAsset === "USDC") { if (!board.solUsd) return ""; sol = n / board.solUsd; }
+    else { const ornSol = homeOrnSol(); if (!ornSol) return ""; sol = n * ornSol; }
+    const v = sol * fx;
+    return "≈ " + (cur === "sol" ? `${v.toLocaleString(undefined, { maximumSignificantDigits: 4 })} SOL` : exMoney(v, cur));
+  }
+  // SOL per ORN at the last swap for SOL, kept on this device.
+  function homeOrnSol() {
+    const last = typeof hist !== "undefined" && hist.last && hist.last.coin === "sol" && hist.last.orn > 0 ? hist.last : null;
+    if (last) return (last.lamports / 1e9) / (last.orn / 1e9);
+    try { return JSON.parse(localStorage.getItem("home-orn-sol") || "null")?.v || null; } catch { return null; }
+  }
+  let homePricesAt = 0;
+  // Prices for the value line: SOL's from the Exchange's figures, ORN's from
+  // its last swap. At most every five minutes, and only for Home.
+  async function refreshHomePrices() {
+    if (Date.now() - homePricesAt < 300_000) return;
+    homePricesAt = Date.now();
+    try {
+      if (!board.solUsd) await loadBoard();
+      const page = await mk("GET", "/swaps/history");
+      const last = [page.last, ...(page.swaps || [])].find((x) => x && x.coin === "sol" && x.orn > 0);
+      if (last) localStorage.setItem("home-orn-sol", JSON.stringify({ v: (last.lamports / 1e9) / (last.orn / 1e9), at: last.at }));
+    } catch {}
+    paintBalance();
+  }
+  function paintBalanceValue(b) {
+    let text = "";
+    // ORN has no market deep enough to price it: no value, no currency.
+    try { if (walletAsset !== "ORN") text = balanceValue(b); } catch {}
+    const line = $("bal-fiat");
+    line.textContent = text ? (prefs.hide ? "≈ ••••" : text) : "";
+    line.classList.toggle("none", !text);
+    $("bal-cur").hidden = walletAsset === "ORN";
+    try { $("bal-cur-name").textContent = exCur().toUpperCase(); } catch {}
   }
   function paintBalance() {
     const b = walletAsset === "ORN" ? view?.balance : devnetAssets.balances?.[walletAsset.toLowerCase()];
@@ -7831,6 +8008,8 @@
     eyeBtn.title = prefs.hide ? "Show balance" : "Hide balance";
     eyeBtn.setAttribute("aria-label", eyeBtn.title);
     $("balance").textContent = displayBalance(b);
+    $("bal-glyph").dataset.coin = walletAsset;
+    paintBalanceValue(b);
     $("asset-sol-balance").textContent = displayBalance(devnetAssets.balances?.sol);
     $("asset-usdc-balance").textContent = displayBalance(devnetAssets.balances?.usdc);
     $("balance").title = prefs.hide ? "" : balancePeek ? "Tap for the shorter balance" : "Tap to see every decimal";
@@ -7844,8 +8023,10 @@
     setPref("hide", !prefs.hide);
     feel("selection");
   });
+  // Only a tap on the number (or its glyph) switches decimals, so choosing
+  // SOL or USDC, or a tap anywhere else on the card, never changes it.
   document.querySelector("#home .card").addEventListener("click", (event) => {
-    if (prefs.hide || event.target.closest("#asset-token-menu, #asset-menu-toggle")) return;
+    if (prefs.hide || !event.target.closest("#balance, #bal-glyph")) return;
     balancePeek = balancePeek ? 0 : 1;
     try { localStorage.setItem("balance-full", balancePeek ? "on" : "off"); } catch {}
     feel("selection");
@@ -8225,6 +8406,8 @@
   // Send opened from a profile goes back to it; anything else, home.
   var sendFrom = "home";
   const closePop = () => {
+    // Blocked accounts floats over the profile it was opened from.
+    if (!$("blocks").hidden) { show("profile"); return; }
     // Adding a wallet: closed back to Wallets, but never past a new wallet's
     // recovery phrase or its password, which must be seen through.
     if (ADD_FLOW.some((x) => !$(x).hidden)) {
@@ -8349,6 +8532,32 @@
     }
   }
 
+  // What's still to pay, as text: the whole amount less anything that's arrived.
+  function solLeft(total, arrived) {
+    const left = Number(total) - (Number(arrived) || 0);
+    return left > 0 ? String(Number(left.toFixed(9))) : String(total);
+  }
+  // A swap's SOL, paid from this wallet's own Solana balance: the usual Send
+  // screen, filled in and fixed, so it confirms the same way any send does.
+  async function payFromSolBalance(to, amount) {
+    walletAsset = "SOL";
+    await openDevnetSend();
+    if (!devnetSend || devnetSend.busy) return;
+    devnetSend.swapPay = true;
+    $("sol-send-to").value = to;
+    $("sol-send-amount").value = amount;
+    $("sol-send-to").readOnly = $("sol-send-amount").readOnly = true;
+    updateSolQuote();
+  }
+  // Refunds, leftovers and payouts go to this wallet's own Solana address,
+  // never an outside one: its field is filled in and kept out of sight.
+  function ownSolAddress(input, on) {
+    const field = input.closest(".ex-field, .field");
+    const own = on && !!devnetAssets.address;
+    if (own) input.value = devnetAssets.address;
+    else if (input.value === devnetAssets.address) input.value = "";
+    if (field) field.classList.toggle("own-sol", own);
+  }
   function openDevnetSend() {
     if (devnetSend?.owner === view.address && devnetSend.submitting) {
       show("solana-send");
@@ -8357,6 +8566,7 @@
     }
     devnetSend = { asset: walletAsset, owner: view.address, quote: null, receipt: null, busy: true, submitting: false, needsPassword: false };
     $("sol-send-form").reset();
+    $("sol-send-to").readOnly = $("sol-send-amount").readOnly = false;
     $("sol-send-problem").hidden = true;
     const recipients = (devnetAssets.history?.rows || []).filter(row => row.sent && !row.failed && row.asset === "SOL" && solAddressPattern.test(row.peer || "")).map(row => row.peer);
     const recent = [...new Set(recipients)].slice(0, 8);
@@ -8364,7 +8574,7 @@
     $("sol-send-recents").hidden = !recent.length;
     show("solana-send");
     paintDevnetSend(devnetSend);
-    void syncDevnetSend(devnetSend, true);
+    return syncDevnetSend(devnetSend, true);
   }
 
   const solAddressPattern = /^[1-9A-HJ-NP-Za-km-z]{32,44}$/;
@@ -8495,7 +8705,7 @@
     $("receive-title").textContent = devnet ? `Receive ${asset}` : "Receive";
     $("receive-network").hidden = !devnet;
     $("receive-address-label").textContent = devnet ? "Solana address" : "Your address";
-    $("receive-note").textContent = devnet ? "Set the sending wallet to Devnet before transferring." : "Safe to share: an address can only receive ORN.";
+    $("receive-note").textContent = devnet ? solTest ? "Set the sending wallet to Devnet before transferring." : "Send only SOL or USDC on Solana to this address." : "Safe to share: an address can only receive ORN.";
     const canShare = !devnet && !!navigator.share;
     $("share").hidden = !canShare;
     $("copy").className = canShare ? "secondary" : "primary pearl";
@@ -9592,6 +9802,7 @@
     }
     if (s.stage === "refunding") return "Taking your Bitcoin back";
     if (needsMe(s)) return `Your turn: pay ${payText(s)} now`;
+    if (s.stage === "pay" && paysItself(s)) return `Paying ${payText(s)} from your Solana balance`;
     if (s.problem && s.problem.startsWith("password:")) return `Your turn: approve with ${view && view.biometric ? bio : "your password"} to finish`;
     if (s.role === "sell" && s.stage === "claiming") return s.coin === "sol" ? "Paid · SOL on its way to you" : "Paid · Bitcoin is confirming";
     const { steps, at } = swapSteps(s);
@@ -9599,8 +9810,11 @@
     return `Step ${at + 1} of ${steps.length} · ${steps[at].name || steps[at].who.split(" · ")[0]}`;
   }
   // A swap waiting on this person: a buyer who hasn't paid yet.
+  // A SOL buy paid from this wallet's own Solana balance pays itself: the
+  // person approved it once, when taking the offer or placing the order.
+  const paysItself = (s) => s.coin === "sol" && s.role === "buy" && !!s.refund && s.refund === devnetAssets.address && !s.problem;
   const needsMe = (s) => s.coin === "sol"
-    ? s.role === "buy" && s.stage === "pay" && !!s.pay_to
+    ? s.role === "buy" && s.stage === "pay" && !!s.pay_to && !paysItself(s)
     : s.role === "buy" && s.stage === "bitcoin" && !s.paid && !s.paid_seen && !!s.pay_to;
   // A swap's price, and what the buyer sends, in its coin.
   const cost = (s) => s.coin === "sol" ? `${s.sol} SOL` : `${s.btc} BTC`;
@@ -9945,7 +10159,8 @@
     $("sd-status").hidden = needsMe(s);
     renderExchange(s);
     // The one thing a buyer does: pay. Gone once the payment is seen.
-    $("sd-pay").hidden = !s.pay_to || s.paid || s.paid_seen;
+    $("sd-pay").hidden = !s.pay_to || s.paid || s.paid_seen || paysItself(s);
+    if (s.pay_to && paysItself(s) && s.stage === "pay") { $("sd-status").textContent = `Paying ${payText(s)} from your Solana balance. Nothing to do: the swap finishes by itself.`; $("sd-status").hidden = false; }
     if (s.pay_to) {
       $("sd-pay-to").textContent = s.pay_to;
       $("sd-pay-amount").textContent = s.coin === "sol" ? s.pay_amount : s.btc;
@@ -9956,6 +10171,25 @@
         : "From any Bitcoin wallet: scan the code, or copy the address and amount. This app sees the payment by itself; there is nothing else to send.";
       $("sd-pay-qr").hidden = !s.pay_qr;
       if (s.pay_qr && $("sd-pay-qr").dataset.for !== s.pay_to) { $("sd-pay-qr").innerHTML = s.pay_qr; $("sd-pay-qr").dataset.for = s.pay_to; }
+      // SOL comes from this wallet's own Solana balance: one button, no QR
+      // or address to copy. (A wallet whose Solana address isn't known yet
+      // still gets the code.)
+      // Too little SOL in this wallet (a swap started before the built-in
+      // wallet, say): the address and code come back, to pay from any other.
+      if (s.coin === "sol" && !devnetAssets.balances && !devnetAssets.pending && Date.now() - devnetAssets.lastCheck > 10_000) void loadDevnetAssets();
+      const left = solLeft(s.pay_amount, s.arrived);
+      const balance = devnetAssets.balances?.sol;
+      const short = balance != null && Number(String(balance).replace(/,/g, "")) < Number(left) + 0.00001;
+      const own = s.coin === "sol" && !!devnetAssets.address && !short;
+      $("sd-pay-wallet").hidden = !own;
+      for (const id of ["sd-pay-qr", "sd-pay-to-head", "sd-pay-to", "sd-pay-copy"]) if (own) $(id).hidden = true;
+      if (!own) { $("sd-pay-to-head").hidden = $("sd-pay-to").hidden = $("sd-pay-copy").hidden = false; }
+      if (own) {
+        $("sd-pay-help").textContent = "It's paid from this wallet's Solana balance. This app sees it arrive by itself.";
+        $("sd-pay-wallet").onclick = () => payFromSolBalance(s.pay_to, left);
+      } else if (s.coin === "sol" && short) {
+        $("sd-pay-help").textContent = `This wallet's Solana balance (${balance} SOL) can't cover it. Send exactly this from another SOL wallet, such as Phantom or an exchange: scan the code, or copy the address and amount. This app sees it by itself.`;
+      }
       $("sd-pay-by").hidden = !s.pay_by && !s.arrived;
       if (s.pay_by) $("sd-pay-by").textContent = payDeadline(s.pay_by);
       // SOL: what has arrived so far, as it comes in.
@@ -10281,8 +10515,10 @@
     $("ex-sol-label").textContent = buy ? "Pay total (SOL)" : "Receive total (SOL)";
     $("ex-addr-label").textContent = buy ? "Your SOL wallet (for refunds & leftovers)" : "Your SOL payout address";
     $("ex-addr").placeholder = buy ? "Your Phantom / SOL wallet address" : "Where your SOL should go (e.g. Phantom)";
+    ownSolAddress($("ex-addr"), true);
+    if (!devnetAssets.address) ownSolanaAddress().then((a) => { if (a) { ownSolAddress($("ex-addr"), true); updateExReady(); } });
     $("ex-note").textContent = buy
-      ? "Fund your buy order with a quick SOL QR payment. Once funded, it stays live even with Orien Wallet closed, and you can cancel anytime in one click."
+      ? "Your buy order is paid from this wallet's Solana balance. Once paid, it stays live even with Orien Wallet closed, and you can cancel anytime in one click."
       : "Your wallet locks the ORN automatically when someone buys your offer. Keep Orien Wallet running in the menu bar or tray.";
     $("ex-verify").hidden = buy || !exUnverified;
     $("ex-bal").textContent = !buy && view && view.spendable ? `Avail: ${view.spendable}` : "";
@@ -10335,6 +10571,8 @@
     if (!ready()) return;
     $("ex-problem").hidden = true;
     $("ex-go").disabled = true;
+    // Checked before Touch ID: no approving a buy this wallet can't pay.
+    if (exSide === "buy" && await shortOfSol(parseFloat($("ex-sol").value), "ex-problem")) { updateExReady(); return; }
     try {
       if (view && view.biometric) await invoke("biometric_unlock");
       const password = $("ex-pw-field").hidden ? null : $("ex-pw").value;
@@ -10424,7 +10662,38 @@
     return true;
   }
 
-  function startTake(id, isFunded) {
+  // This wallet's own Solana address, read without unlocking once it's
+  // known; null while it never has been.
+  async function ownSolanaAddress() {
+    if (devnetAssets.address) return devnetAssets.address;
+    if (!view) return null;
+    try { devnetAssets.address = await invoke("solana_devnet_address", { walletAddress: view.address, password: null }); } catch {}
+    return devnetAssets.address;
+  }
+  // SOL in this wallet right now, fetched fresh; null if it can't be read.
+  async function ownSolBalance() {
+    const address = await ownSolanaAddress();
+    if (!address) return null;
+    try {
+      const b = await invoke("solana_devnet_balances", { address });
+      if (b.sol != null) devnetAssets.balances = { ...(devnetAssets.balances || {}), sol: b.sol, usdc: b.usdc ?? devnetAssets.balances?.usdc ?? null };
+      return b.sol == null ? null : Number(String(b.sol).replace(/,/g, ""));
+    } catch { return null; }
+  }
+  // Solana's own fees on a SOL swap, kept in hand on top of the price.
+  const SOL_SWAP_FEES = 0.005;
+  // Paying `sol` from this wallet: says so in `box`, and answers true, when
+  // its Solana balance can't cover it.
+  async function shortOfSol(sol, box) {
+    const need = sol + SOL_SWAP_FEES;
+    const have = await ownSolBalance();
+    if (have == null || have + 1e-9 >= need) return false;
+    $(box).textContent = `You need about ${Number(need.toFixed(4))} SOL in this wallet's Solana balance for this, and it has ${Number(have.toFixed(4))} SOL. Add SOL first, from Phantom or an exchange.`;
+    $(box).hidden = false;
+    return true;
+  }
+
+  async function startTake(id, isFunded) {
     const o = board.offers.find((x) => x.id === id && Boolean(x.funded) === Boolean(isFunded));
     if (!o) return;
     board.taking = o;
@@ -10437,7 +10706,14 @@
     $("bt-other-label").textContent = isBuy ? "Buyer" : "Seller";
     $("bt-orn").textContent = fmtOrn(o.orn) + " ORN";
     $("bt-btc").textContent = offerPrice(o) + offerValue(o).total;
-    if (isBuy && o.funded) {
+    // SOL: one short note. It's paid from, and paid into, this wallet's own
+    // Solana balance, so there's no address to give.
+    const explain = (...lines) => { $("bt-what").innerHTML = lines[0]; for (const [id, text] of [["bt-need", lines[1]], ["bt-ifnot", lines[2]]]) { $(id).hidden = !text; if (text) $(id).innerHTML = text; } };
+    if (sol) {
+      explain(isBuy
+        ? `<strong>The SOL arrives in this wallet's Solana balance,</strong> ${o.funded ? "already locked by the buyer, so" : "once the buyer pays,"} usually within a minute. You need the ORN plus the Orien fee (0.1%, at most 1 ORN). If anything stops the swap, your ORN come back by themselves.`
+        : "<strong>Paid from this wallet's Solana balance.</strong> The swap finishes by itself, usually within a minute. If it ever stops part-way, your SOL comes back by itself. The Orien fee (0.1%, at most 1 ORN) comes out of the ORN you get.");
+    } else if (isBuy && o.funded) {
       $("bt-what").innerHTML = "<strong>What happens:</strong> the buyer's SOL is already locked on Solana. Your wallet reserves it, locks your ORN, and both sides settle automatically in about a minute without waiting on the buyer.";
       $("bt-need").innerHTML = "<strong>You need</strong> the ORN in this wallet, plus the usual Orien fee (0.1%, at most 1 ORN). You don't need any SOL.";
       $("bt-ifnot").innerHTML = "<strong>Built-in safety:</strong> your wallet never locks your ORN until the buyer's SOL is reserved for your address on Solana.";
@@ -10468,6 +10744,9 @@
       $("bt-refund-label").textContent = sol ? "Your SOL address (the wallet you'll pay from)" : "Your Bitcoin address";
       $("bt-refund").placeholder = sol ? "Anything left over, or a refund, comes back here" : "Where your Bitcoin comes back if the swap stops";
     }
+    if (!sol) for (const id of ["bt-need", "bt-ifnot"]) $(id).hidden = false;
+    await ownSolanaAddress();
+    ownSolAddress($("bt-refund"), sol || (isBuy && o.funded));
     $("bt-seller").textContent = `${o.seller_name}, ${o.seller_done} swap${o.seller_done === 1 ? "" : "s"} done`;
     $("bt-problem").hidden = true;
     // Approving now, once: Touch ID, or the password typed here; a wallet
@@ -10477,7 +10756,16 @@
     $("bt-pw").value = "";
     $("bt-go").textContent = view && view.biometric ? `${isBuy ? "Sell" : "Take"} with ${bio}` : isBuy ? "Sell ORN" : "Take the offer";
     show("board-take");
-    gateSwap("bt-go", "bt-problem");
+    $("bt-go").disabled = false;
+    if (await gateSwap("bt-go", "bt-problem")) return;
+    // Buying with SOL: only with the SOL already in this wallet.
+    if (sol && !isBuy) {
+      $("bt-go").disabled = true;
+      const short = await shortOfSol(o.lamports / 1e9, "bt-problem");
+      if (board.taking !== o) return;
+      if (short) { $("bt-go").textContent = "Not enough SOL"; return; }
+      $("bt-go").disabled = false;
+    }
   }
 
   async function withdraw(id) {
@@ -10570,8 +10858,12 @@
         $("sw-pay").textContent = offerPrice(taken);
         $("sw-steps").innerHTML = step("done", 1, "Taken", "the offer is yours")
           + step("now", 2, "Seller accepts", `${esc(other)}'s wallet locks the ORN for you`)
-          + step("next", 3, "You pay", `from your ${waitFor.sol ? "SOL" : "Bitcoin"} wallet, with a QR code`);
-        $("sw-fine").textContent = "The pay screen opens by itself as soon as they accept.";
+          + (waitFor.sol
+            ? step("next", 3, "Paid", "from your Solana balance, by itself")
+            : step("next", 3, "You pay", "from your Bitcoin wallet, with a QR code"));
+        $("sw-fine").textContent = waitFor.sol
+          ? "Nothing more to do: your wallet pays as soon as they accept, and your ORN arrive about a minute later."
+          : "The pay screen opens by itself as soon as they accept.";
       }
       show("swap-waiting");
       loadBoard();
@@ -10641,16 +10933,17 @@
     $("bp-payout").placeholder = buy
       ? (sol ? "Anything left over, or a refund, comes back here" : "Where your Bitcoin comes back if the swap stops")
       : (sol ? "Where the SOL should go, such as your Phantom wallet" : "Where the Bitcoin should go");
+    ownSolAddress($("bp-payout"), sol);
     $("bp-lede").textContent = buy
-      ? `Post a buy offer for ORN with ${sol ? "SOL" : "Bitcoin"}. When someone sells into it, their wallet locks the ORN and this app opens the pay screen with a QR code.`
+      ? (sol ? "Post a buy order for ORN, paid from this wallet's Solana balance as soon as you approve. It stays live even with Orien Wallet closed, and you can cancel it anytime." : "Post a buy offer for ORN with Bitcoin. When someone sells into it, their wallet locks the ORN and this app opens the pay screen with a QR code.")
       : `Offer your ORN for ${sol ? "SOL" : "Bitcoin"}. When someone takes it, this app locks the ORN for them and runs the swap, as long as it's open.`;
     $("bp-fine-sol").hidden = !sol;
     $("bp-fine-btc").hidden = sol;
     $("bp-fine-sol").textContent = buy
-      ? "Smallest swap: 0.01 SOL. Nothing leaves your SOL wallet until a seller locks the ORN and you pay the QR code. You'll also need about 0.005 SOL for Solana's small fees, nearly all of which comes back."
+      ? "Smallest order: 0.01 SOL, plus about 0.005 SOL for Solana's small fees, nearly all of which comes back."
       : "Smallest swap: 0.01 SOL. Fees: the usual Orien fee to lock the ORN (0.1%, at most 1 ORN); the buyer covers Solana's small fees. A swap takes about a minute. If a buyer never pays, your ORN come back on their own within a few hours.";
     $("bp-approve").textContent = buy
-      ? "Keep Orien Wallet running while your buy offer is live. When someone accepts, you'll get a notification and the pay screen opens so you can send the payment."
+      ? (sol ? "You approve once, now. Cancelling sends the SOL back to this wallet." : "Keep Orien Wallet running while your buy offer is live. When someone accepts, you'll get a notification and the pay screen opens so you can send the payment.")
       : "You approve the sale once, now. When someone takes your offer, your wallet accepts it within seconds, even with the window closed. Keep Orien Wallet running.";
     $("bp-pw-label").textContent = buy ? "Wallet password, to approve this swap" : "Wallet password, to approve this sale";
     if (!swapGate["bp-go"]) {
@@ -10763,6 +11056,7 @@
     if (swapGate["bp-go"]) return installForSwap("bp-go");
     if (await gateSwap("bp-go", "bp-problem")) { postReady(); return; }
     $("bp-go").disabled = true;
+    if (postSide === "buy" && postCoin === "sol" && await shortOfSol(parseFloat($("bp-btc").value), "bp-problem")) { postReady(); return; }
     try {
       if (view && view.biometric) await invoke("biometric_unlock");
       const password = $("bp-pw-field").hidden ? null : $("bp-pw").value;
@@ -12230,7 +12524,7 @@
   }
   document.addEventListener("pointerdown", (e) => {
     for (const m of document.querySelectorAll(".ch-menu:not([hidden])")) {
-      if (!m.contains(e.target) && !e.target.closest("#ch-more, #sl-more, #ls-more, [data-post-menu], #board-who")) m.hidden = true;
+      if (!m.contains(e.target) && !e.target.closest("#ch-more, #sl-more, #ls-more, [data-post-menu], #board-who, #ex-cur, #bal-cur")) m.hidden = true;
     }
   }, true);
   document.addEventListener("keydown", (e) => { if (e.key === "Escape") for (const m of document.querySelectorAll(".ch-menu")) m.hidden = true; });
@@ -13021,18 +13315,20 @@
   }
   $("ex-order-go").onclick = () => exOrder(true);
   const EX_NAMES = { usd: "US dollar", eur: "Euro", gbp: "British pound", cad: "Canadian dollar", aud: "Australian dollar", jpy: "Japanese yen", inr: "Indian rupee", brl: "Brazilian real", mxn: "Mexican peso", chf: "Swiss franc", cny: "Chinese yuan", krw: "South Korean won", try: "Turkish lira", ngn: "Nigerian naira", php: "Philippine peso", idr: "Indonesian rupiah", zar: "South African rand", sgd: "Singapore dollar", hkd: "Hong Kong dollar", sol: "SOL" };
-  function exCurPaint() { $("ex-cur-name").textContent = exCur().toUpperCase(); }
-  $("ex-cur").onclick = () => {
+  function exCurPaint() { $("ex-cur-name").textContent = exCur().toUpperCase(); paintBalance(); }
+  $("ex-cur").onclick = () => openCurMenu($("ex-cur"));
+  $("bal-cur").onclick = (e) => { e.stopPropagation(); openCurMenu($("bal-cur")); };
+  function openCurMenu(anchor) {
     const menu = $("ex-cur-menu");
     if (!menu.hidden) { menu.hidden = true; return; }
     const have = EX_CURS.filter((c) => c === "usd" || (board.solRates || {})[c]).concat(["sol"]);
     menu.innerHTML = have.map((c) => `<button class="menu-row${c === exCur() ? " on" : ""}" data-cur="${c}" role="menuitem"><span>${EX_NAMES[c] || c.toUpperCase()}</span><b>${c.toUpperCase()}</b></button>`).join("");
-    const b = $("ex-cur").getBoundingClientRect();
+    const b = anchor.getBoundingClientRect();
     menu.style.top = `${Math.round(b.bottom + 8)}px`;
     menu.style.right = `${Math.round(window.innerWidth - b.right)}px`;
     menu.style.left = "auto";
     menu.hidden = false;
-  };
+  }
   $("ex-cur-menu").onclick = (e) => {
     const b = e.target.closest("[data-cur]");
     if (!b) return;
@@ -13044,7 +13340,7 @@
     renderOffers();
     renderSwaps();
   };
-  document.addEventListener("click", (e) => { if (!$("ex-cur-menu").hidden && !e.target.closest("#ex-cur-menu, #ex-cur")) $("ex-cur-menu").hidden = true; }, true);
+  document.addEventListener("click", (e) => { if (!$("ex-cur-menu").hidden && !e.target.closest("#ex-cur-menu, #ex-cur, #bal-cur")) $("ex-cur-menu").hidden = true; }, true);
   exCurPaint();
   $("ex-order-x").onclick = () => exOrder(false);
   $("ex-veil").onclick = () => exOrder(false);
@@ -13993,7 +14289,7 @@
       if (q.payment && address === view?.address && Number(String(view.most ?? "NaN").replace(/,/g,"")) < Number(q.payment)) { vwShort(); return; }
       $("vw-say").replaceChildren();
       const privacy = document.createElement("span"), fee = document.createElement("span");
-      privacy.textContent = "Your ORN and Solana Devnet addresses and balances will be public on your profile.";
+      privacy.textContent = "Your ORN and Solana addresses and balances will be public on your profile.";
       fee.textContent = q.payment ? "Less than 0.001 ORN, fee included." : "No payment needed.";
       $("vw-say").append(privacy, document.createTextNode(" "), fee);
       $("vw-yes").textContent = q.payment ? `Send ${q.payment} ORN and link` : "Finish linking";

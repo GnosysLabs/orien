@@ -37,6 +37,10 @@ pub struct Kept {
     /// Buyer: SOL seen at the one-time address so far, in lamports.
     #[serde(default)]
     pub arrived: u64,
+    /// Buyer: the payment this wallet sent itself from its own Solana
+    /// balance, and the block height after which it can no longer land.
+    #[serde(default)]
+    pub autopaid: Option<(String, u64)>,
 }
 
 /// What the window shows of a SOL swap.
@@ -54,6 +58,8 @@ pub struct View {
     /// Buyer, while paying: where, how much in all, a link and QR code for a
     /// phone's SOL wallet, and how much has arrived.
     pub pay_to: Option<String>,
+    /// Buyer: where refunds go, and so the wallet that pays.
+    pub refund: Option<String>,
     pub pay_amount: Option<String>,
     pub pay_link: Option<String>,
     pub pay_qr: Option<String>,
@@ -98,6 +104,12 @@ pub fn cluster() -> &'static str {
 /// Solana itself otherwise.
 pub fn solana(cluster: &str) -> Solana {
     if cluster == "devnet" { Solana::devnet() } else { Solana::mainnet() }
+}
+
+/// The Solana this copy of the app uses, for swaps and for the wallet's
+/// own SOL and USDC.
+pub fn network() -> Solana {
+    solana(cluster())
 }
 
 /// In plain words, for the app: an address that can never receive SOL.
@@ -152,7 +164,7 @@ fn hex32(bytes: &[u8; 32]) -> String {
 pub fn sell(orien: &AppOrien, cluster: &str, buyer: &str, orn: u64, lamports: u64, payout: &str, fee_secret: &[u8; 32]) -> Result<Kept, String> {
     let buyer = Hash32::from_str(buyer.trim()).map_err(|_| "That is not an Orien address.".to_string())?;
     let swap = SolSwap::sell(orien, cluster, buyer, orn, lamports, payout.trim(), fee_secret).map_err(|error| error.to_string())?;
-    Ok(Kept { id: hex32(&swap.hash), swap, offer: None, reply: None, problem: None, created: now(), board: None, wallet: Some(orien.wallet_file.clone()), arrived: 0 })
+    Ok(Kept { id: hex32(&swap.hash), swap, offer: None, reply: None, problem: None, created: now(), board: None, wallet: Some(orien.wallet_file.clone()), arrived: 0, autopaid: None })
 }
 
 /// Buyer: takes `offer`, a seller's offer code; anything left over and any
@@ -175,6 +187,7 @@ pub fn buy(orien: &AppOrien, cluster: &str, offer: &str, refund: &str) -> Result
         board: None,
         wallet: Some(orien.wallet_file.clone()),
         arrived: 0,
+        autopaid: None,
     })
 }
 
@@ -199,6 +212,55 @@ pub fn advance(orien: &AppOrien, kept: &mut Kept) {
     {
         kept.arrived = balance;
     }
+    // Approved once, when the offer was taken: the wallet pays from its own
+    // Solana balance as soon as the seller has locked the ORN.
+    if kept.swap.role == Role::Buyer
+        && kept.swap.stage == SolStage::WaitingForPayment
+        && kept.arrived < kept.swap.to_pay
+        && let Err(error) = auto_pay(orien, &sol, kept)
+    {
+        kept.problem = Some(error);
+    }
+}
+
+/// Sends what's still owed to the swap from this wallet's own Solana
+/// balance, once, unless the swap pays out to another wallet (one started
+/// before the built-in wallet, paid from Phantom as it was then).
+fn auto_pay(orien: &AppOrien, sol: &Solana, kept: &mut Kept) -> Result<(), String> {
+    if let Some((signature, last)) = &kept.autopaid {
+        // Sent already: wait for it while it can still land.
+        if sol.transaction_status(signature).ok().flatten().is_some_and(|status| status.error.is_none()) {
+            return Ok(());
+        }
+        match sol.finalized_block_height() {
+            Ok(height) if height > *last => {}
+            _ => return Ok(()),
+        }
+    }
+    let Ok(wallet) = orien_net::keys::Wallet::open(&orien.wallet_file, orien.password.as_deref()) else { return Ok(()) };
+    let secret = wallet.solana_devnet_secret();
+    if kept.swap.refund != solana::text(&solana::Keypair::from_secret(&secret).pubkey()) {
+        return Ok(());
+    }
+    let to = kept.swap.pay_address().map_err(|error| error.to_string())?;
+    kept.autopaid = Some(pay_from_wallet(sol, &secret, &to, kept.swap.to_pay - kept.arrived)?);
+    Ok(())
+}
+
+/// Sends `lamports` from the wallet whose Solana key is `secret` to `to`:
+/// the signature and the block height after which it can't land.
+pub fn pay_from_wallet(sol: &Solana, secret: &[u8; 32], to: &str, lamports: u64) -> Result<(String, u64), String> {
+    let key = solana::Keypair::from_secret(secret);
+    let to = solana::address(to).map_err(|error| error.to_string())?;
+    let balance = sol.balance(&key.pubkey()).map_err(|error| error.to_string())?;
+    if balance < lamports + 5_000 {
+        return Err(format!("This wallet's Solana balance ({} SOL) can't cover the {} SOL to pay. Add SOL to it and the swap goes on by itself.", show_sol(balance), show_sol(lamports)));
+    }
+    let (blockhash, last) = sol.blockhash_lifetime().map_err(|error| error.to_string())?;
+    let wire = solana::transaction(&key, &[], &[solana::transfer(&key.pubkey(), &to, lamports)], blockhash).map_err(|error| error.to_string())?;
+    let signature = solana::signature_of(&wire);
+    sol.send(&wire).map_err(|error| format!("Couldn't send the SOL just now ({error}). Trying again shortly."))?;
+    Ok((signature, last))
 }
 
 /// Moves every unfinished swap along, saving after each. A board swap
@@ -260,6 +322,7 @@ pub fn view(kept: &Kept) -> View {
         pay_amount: paying.then(|| show_sol(swap.to_pay)),
         arrived: (paying && kept.arrived > 0).then(|| show_sol(kept.arrived)),
         pay_to,
+        refund: (swap.role == Role::Buyer).then(|| swap.refund.clone()),
         pay_link,
         paid: swap.role == Role::Buyer && !paying && !matches!(swap.stage, SolStage::Cancelled { .. }),
         orn_claimed: swap.orn_claimed,

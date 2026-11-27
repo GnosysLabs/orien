@@ -13,6 +13,7 @@
 pub mod history;
 pub mod devnet_pool;
 pub mod devnet_usdc;
+pub mod jupiter;
 pub mod profile;
 
 use crate::chain::{MAX_REST, REST, remember, remembered, rest, resting};
@@ -36,6 +37,9 @@ pub const SYSTEM_PROGRAM: Pubkey = [0; 32];
 /// How long a read is reused: a Solana slot is 400 ms, but nothing a wallet
 /// shows needs to be fresher than this.
 const FRESH: Duration = Duration::from_secs(10);
+/// Balances, though, are reused only briefly, so money that just arrived
+/// shows within seconds.
+const BALANCE_FRESH: Duration = Duration::from_secs(2);
 
 pub type Pubkey = [u8; 32];
 
@@ -189,21 +193,33 @@ pub struct TransactionStatus {
     pub error: Option<Value>,
 }
 
+/// orien.network's Solana relay, for Orien Wallet.
+pub const RELAY: &str = "https://orien.network/api/market/solana";
+
+/// Circle USDC on Solana's main network.
+pub const MAINNET_USDC: &str = "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v";
+
 /// Solana, through several services, and where orien-lock is on it.
 pub struct Solana {
     rpcs: Vec<Rpc>,
     /// orien-lock's address on this network, once it's there.
     pub lock_program: Option<Pubkey>,
+    /// Circle USDC's mint on this network.
+    pub usdc: &'static str,
 }
 
 impl Solana {
     /// Solana's main network, through the public services that answer with
     /// no account. orien-lock isn't on it yet.
     pub fn mainnet() -> Solana {
-        Solana::with(
-            &["https://api.mainnet-beta.solana.com", "https://solana-rpc.publicnode.com"],
+        // orien.network first: it relays to a Solana service that doesn't
+        // refuse an app checking often. The free public ones back it up.
+        let mut network = Solana::with(
+            &[RELAY, "https://api.mainnet-beta.solana.com", "https://solana-rpc.publicnode.com"],
             Some(address(MAINNET_LOCK_PROGRAM).expect("a valid address")),
-        )
+        );
+        network.usdc = MAINNET_USDC;
+        network
     }
 
     /// Solana's test network, with orien-lock.
@@ -212,7 +228,7 @@ impl Solana {
     }
 
     pub fn with(bases: &[&str], lock_program: Option<Pubkey>) -> Solana {
-        Solana { rpcs: bases.iter().map(|base| Rpc::at(base)).collect(), lock_program }
+        Solana { rpcs: bases.iter().map(|base| Rpc::at(base)).collect(), lock_program, usdc: devnet_usdc::USDC }
     }
 
     fn quorum(&self) -> usize {
@@ -232,6 +248,18 @@ impl Solana {
             return Err(last.unwrap_or_else(|| anyhow!("no Solana service is set")));
         }
         Ok(answers)
+    }
+
+    /// The first service that answers, for what the wallet only shows.
+    fn first<T>(&self, ask: impl Fn(&Rpc) -> Result<T>) -> Result<T> {
+        let mut last = None;
+        for rpc in &self.rpcs {
+            match ask(rpc) {
+                Ok(answer) => return Ok(answer),
+                Err(error) => last = Some(error),
+            }
+        }
+        Err(last.unwrap_or_else(|| anyhow!("no Solana service is set")))
     }
 
     /// What most services say; an error if too few answer.
@@ -255,19 +283,29 @@ impl Solana {
     /// confirmed. For showing a balance and checking one can pay.
     pub fn balance(&self, who: &Pubkey) -> Result<u64> {
         let balances = self.most(|rpc| {
-            let found = rpc.call("getBalance", json!([text(who), { "commitment": "confirmed" }]), Some(FRESH))?;
+            let found = rpc.call("getBalance", json!([text(who), { "commitment": "confirmed" }]), Some(BALANCE_FRESH))?;
             found["value"].as_u64().ok_or_else(|| anyhow!("{} gave no balance", rpc.base))
         })?;
         Ok(balances.into_iter().min().expect("at least one"))
     }
 
-    /// The total owned across token accounts for a mint, in its smallest units.
+    /// An address's SOL for showing in the wallet: the first service that
+    /// answers, so one busy service never blanks or slows the balance.
+    pub fn shown_balance(&self, who: &Pubkey) -> Result<u64> {
+        self.first(|rpc| {
+            let found = rpc.call("getBalance", json!([text(who), { "commitment": "confirmed" }]), Some(BALANCE_FRESH))?;
+            found["value"].as_u64().ok_or_else(|| anyhow!("{} gave no balance", rpc.base))
+        })
+    }
+
+    /// The total owned across token accounts for a mint, in its smallest
+    /// units, for showing: the first service that answers.
     pub fn token_balance(&self, owner: &Pubkey, mint: &Pubkey) -> Result<u64> {
-        let balances = self.most(|rpc| {
+        self.first(|rpc| {
             let found = rpc.call(
                 "getTokenAccountsByOwner",
                 json!([text(owner), { "mint": text(mint) }, { "commitment": "confirmed", "encoding": "jsonParsed" }]),
-                Some(FRESH),
+                Some(BALANCE_FRESH),
             )?;
             let accounts = found["value"].as_array().ok_or_else(|| anyhow!("{} gave no token accounts", rpc.base))?;
             accounts.iter().try_fold(0_u64, |total, account| {
@@ -277,8 +315,7 @@ impl Solana {
                     .ok_or_else(|| anyhow!("{} gave an invalid token balance", rpc.base))?;
                 total.checked_add(amount).ok_or_else(|| anyhow!("token balance is too large"))
             })
-        })?;
-        Ok(balances.into_iter().min().expect("at least one"))
+        })
     }
 
     /// An account, finalized, if most services agree on it exactly; none if

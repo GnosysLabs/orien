@@ -1448,8 +1448,9 @@
   "ORN linked": "ORN linked",
   "Unlock only": "Unlock only",
   "Unlock & link Solana": "Unlock & link Solana",
-  "Your ORN address is linked. You can also show your Solana Devnet address on the same public profile.": "Your ORN address is linked. You can also show your Solana Devnet address on the same public profile.",
-  "Your ORN and Solana Devnet addresses and balances will be public on your profile.": "Your ORN and Solana Devnet addresses and balances will be public on your profile.",
+  "Your ORN address is linked. You can also show your Solana address on the same public profile.": "Your ORN address is linked. You can also show your Solana address on the same public profile.",
+  "Your ORN and Solana addresses and balances will be public on your profile.": "Your ORN and Solana addresses and balances will be public on your profile.",
   "Less than 0.001 ORN, fee included.": "Less than 0.001 ORN, fee included.",
-  "No payment needed.": "No payment needed."
+  "No payment needed.": "No payment needed.",
+  "Send only SOL or USDC on Solana to this address.": "Send only SOL or USDC on Solana to this address."
 }

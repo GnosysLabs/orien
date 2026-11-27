@@ -2199,8 +2199,9 @@
   "ORN linked": "ORN はリンク済み",
   "Unlock only": "ロック解除のみ",
   "Unlock & link Solana": "ロックを解除して Solana をリンク",
-  "Your ORN address is linked. You can also show your Solana Devnet address on the same public profile.": "ORN アドレスはリンク済みです。同じ公開プロフィールに Solana Devnet のアドレスも表示できます。",
-  "Your ORN and Solana Devnet addresses and balances will be public on your profile.": "ORN と Solana Devnet のアドレスと残高がプロフィールで公開されます。",
+  "Your ORN address is linked. You can also show your Solana address on the same public profile.": "ORN アドレスはリンク済みです。同じ公開プロフィールに Solana のアドレスも表示できます。",
+  "Your ORN and Solana addresses and balances will be public on your profile.": "ORN と Solana のアドレスと残高がプロフィールで公開されます。",
   "Less than 0.001 ORN, fee included.": "手数料込みで 0.001 ORN 未満です。",
-  "No payment needed.": "支払いは不要です。"
+  "No payment needed.": "支払いは不要です。",
+  "Send only SOL or USDC on Solana to this address.": "このアドレスには Solana 上の SOL または USDC のみを送ってください。"
 }

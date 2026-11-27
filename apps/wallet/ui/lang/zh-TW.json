@@ -2199,8 +2199,9 @@
   "ORN linked": "ORN 已連結",
   "Unlock only": "僅解鎖",
   "Unlock & link Solana": "解鎖並連結 Solana",
-  "Your ORN address is linked. You can also show your Solana Devnet address on the same public profile.": "你的 ORN 地址已連結。你也可以在同一個公開個人檔案中顯示 Solana Devnet 地址。",
-  "Your ORN and Solana Devnet addresses and balances will be public on your profile.": "你的 ORN 和 Solana Devnet 地址及其餘額將顯示在公開個人檔案中。",
+  "Your ORN address is linked. You can also show your Solana address on the same public profile.": "你的 ORN 地址已連結。你也可以在同一個公開個人檔案中顯示 Solana 地址。",
+  "Your ORN and Solana addresses and balances will be public on your profile.": "你的 ORN 和 Solana 地址及其餘額將顯示在公開個人檔案中。",
   "Less than 0.001 ORN, fee included.": "含手續費低於 0.001 ORN。",
-  "No payment needed.": "無須付款。"
+  "No payment needed.": "無須付款。",
+  "Send only SOL or USDC on Solana to this address.": "請只向此地址傳送 Solana 上的 SOL 或 USDC。"
 }

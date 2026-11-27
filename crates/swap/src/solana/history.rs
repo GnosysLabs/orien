@@ -61,7 +61,7 @@ impl Solana {
         let movement = if failed {
             None
         } else {
-            transfer(tx, &owner, devnet_pool::USDC, &[])
+            transfer(tx, &owner, self.usdc, &[])
         };
         Ok(Some(HistoryEntry {
             signature: signature.to_owned(),
@@ -74,10 +74,16 @@ impl Solana {
 
     pub fn recent_history(&self, owner: &Pubkey, mint: &Pubkey) -> Result<History> {
         let (owner, mint) = (text(owner), text(mint));
-        self.answers(|rpc| recent(rpc, &owner, &mint))?
-            .into_iter()
-            .next()
-            .ok_or_else(|| anyhow!("no history response"))
+        // The first service that answers is enough: asking the rest only
+        // made history slower.
+        let mut last = None;
+        for rpc in &self.rpcs {
+            match recent(rpc, &owner, &mint) {
+                Ok(history) => return Ok(history),
+                Err(error) => last = Some(error),
+            }
+        }
+        Err(last.unwrap_or_else(|| anyhow!("no history response")))
     }
 }
 
@@ -211,6 +217,11 @@ fn transfer(tx: &Value, owner: &str, mint: &str, accounts: &[String]) -> Option<
         {
             return Some(Movement::PoolSwap { sol, token });
         }
+        if mint != devnet_pool::USDC
+            && let Some(sol) = traded_sol(tx, owner, token)
+        {
+            return Some(Movement::PoolSwap { sol, token });
+        }
         return Some(Movement::Token { units: token });
     }
     // Only label a simple System transfer as sent/received. Fees, rent changes
@@ -242,6 +253,22 @@ fn transfer(tx: &Value, owner: &str, mint: &str, accounts: &[String]) -> Option<
         units,
         peer: peer.to_owned(),
     })
+}
+
+// A swap on Solana's main network, through any route: the wallet paid for
+// the transaction itself, and its SOL (fee aside) moved the other way from
+// its USDC. A USDC payment never looks like this: the sender's SOL only
+// falls, the receiver's doesn't move.
+fn traded_sol(tx: &Value, owner: &str, token: i128) -> Option<i128> {
+    let keys = tx["transaction"]["message"]["accountKeys"].as_array()?;
+    if keys.first()?["pubkey"].as_str()? != owner {
+        return None;
+    }
+    let meta = &tx["meta"];
+    let before = i128::from(meta["preBalances"][0].as_u64()?);
+    let after = i128::from(meta["postBalances"][0].as_u64()?);
+    let sol = after - before + i128::from(meta["fee"].as_u64()?);
+    ((token > 0 && sol < 0) || (token < 0 && sol > 0)).then_some(sol)
 }
 
 // Native SOL passes through a temporary wrapped-SOL account. Its transfer
@@ -310,6 +337,20 @@ fn swapped_sol(tx: &Value, owner: &str, token: i128) -> Option<i128> {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn a_mainnet_swap_is_shown_as_one_and_a_usdc_payment_is_not() {
+        let tx = |payer: &str, pre: u64, post: u64| json!({"transaction":{"message":{"accountKeys":[{"pubkey":payer}]}},
+            "meta":{"fee":5000,"preBalances":[pre],"postBalances":[post]}});
+        // Paid 0.01 SOL (and the fee) for USDC.
+        assert_eq!(traded_sol(&tx("me", 50_000_000, 39_995_000), "me", 720_000), Some(-10_000_000));
+        // Sold USDC for SOL.
+        assert_eq!(traded_sol(&tx("me", 10_000_000, 19_995_000), "me", -720_000), Some(10_000_000));
+        // Sent USDC: only the fee left.
+        assert_eq!(traded_sol(&tx("me", 10_000_000, 9_995_000), "me", -720_000), None);
+        // Received USDC from someone who paid.
+        assert_eq!(traded_sol(&tx("them", 10_000_000, 9_995_000), "me", 720_000), None);
+    }
 
     #[test]
     fn reports_the_transfer_amount_without_fees_and_does_not_invent_payments() {

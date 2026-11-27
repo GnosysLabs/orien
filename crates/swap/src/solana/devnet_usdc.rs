@@ -1,4 +1,4 @@
-//! Transfers of Circle USDC on Solana devnet.
+//! Transfers of Circle USDC, on whichever Solana network is given.
 use super::*;
 use bitcoin::hashes::{Hash, sha256};
 
@@ -59,7 +59,7 @@ pub(super) fn accounts(network: &Solana, owner: Pubkey) -> Result<Vec<(Pubkey, u
     let response = network.answers(|rpc| {
         rpc.call(
             "getTokenAccountsByOwner",
-            json!([owner, {"mint":USDC}, {"commitment":"confirmed","encoding":"jsonParsed"}]),
+            json!([owner, {"mint":network.usdc}, {"commitment":"confirmed","encoding":"jsonParsed"}]),
             None,
         )
     })?;
@@ -70,7 +70,7 @@ pub(super) fn accounts(network: &Solana, owner: Pubkey) -> Result<Vec<(Pubkey, u
         .map(|row| {
             let info = &row["account"]["data"]["parsed"]["info"];
             anyhow::ensure!(
-                row["account"]["owner"] == TOKEN && info["owner"] == owner && info["mint"] == USDC,
+                row["account"]["owner"] == TOKEN && info["owner"] == owner && info["mint"] == network.usdc,
                 "Unexpected USDC account."
             );
             let key = address(
@@ -114,9 +114,9 @@ pub fn transfer(
     let amount = requested.unwrap_or(spendable);
     anyhow::ensure!(
         amount > 0 && amount <= spendable,
-        "You don’t have enough spendable devnet USDC."
+        "You don’t have enough spendable USDC."
     );
-    let mint = address(USDC)?;
+    let mint = address(network.usdc)?;
     let token = address(TOKEN)?;
     let program = address(ASSOCIATED)?;
     let destination = associated(recipient, mint, token, program)?;

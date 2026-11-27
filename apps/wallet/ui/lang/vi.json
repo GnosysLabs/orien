@@ -2199,8 +2199,9 @@
   "ORN linked": "Đã liên kết ORN",
   "Unlock only": "Chỉ mở khóa",
   "Unlock & link Solana": "Mở khóa và liên kết Solana",
-  "Your ORN address is linked. You can also show your Solana Devnet address on the same public profile.": "Địa chỉ ORN của bạn đã được liên kết. Bạn cũng có thể hiển thị địa chỉ Solana Devnet trên cùng hồ sơ công khai.",
-  "Your ORN and Solana Devnet addresses and balances will be public on your profile.": "Địa chỉ ORN và Solana Devnet cùng số dư của bạn sẽ hiển thị công khai trên hồ sơ.",
+  "Your ORN address is linked. You can also show your Solana address on the same public profile.": "Địa chỉ ORN của bạn đã được liên kết. Bạn cũng có thể hiển thị địa chỉ Solana trên cùng hồ sơ công khai.",
+  "Your ORN and Solana addresses and balances will be public on your profile.": "Địa chỉ ORN và Solana cùng số dư của bạn sẽ hiển thị công khai trên hồ sơ.",
   "Less than 0.001 ORN, fee included.": "Dưới 0,001 ORN, đã gồm phí.",
-  "No payment needed.": "Không cần thanh toán."
+  "No payment needed.": "Không cần thanh toán.",
+  "Send only SOL or USDC on Solana to this address.": "Chỉ gửi SOL hoặc USDC trên Solana đến địa chỉ này."
 }

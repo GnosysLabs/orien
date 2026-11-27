@@ -2199,8 +2199,9 @@
   "ORN linked": "ORN verknüpft",
   "Unlock only": "Nur entsperren",
   "Unlock & link Solana": "Entsperren und Solana verknüpfen",
-  "Your ORN address is linked. You can also show your Solana Devnet address on the same public profile.": "Deine ORN-Adresse ist verknüpft. Du kannst auch deine Solana-Devnet-Adresse im selben öffentlichen Profil anzeigen.",
-  "Your ORN and Solana Devnet addresses and balances will be public on your profile.": "Deine ORN- und Solana-Devnet-Adressen und deren Guthaben werden in deinem Profil öffentlich sichtbar.",
+  "Your ORN address is linked. You can also show your Solana address on the same public profile.": "Deine ORN-Adresse ist verknüpft. Du kannst auch deine Solana-Adresse im selben öffentlichen Profil anzeigen.",
+  "Your ORN and Solana addresses and balances will be public on your profile.": "Deine ORN- und Solana-Adressen und deren Guthaben werden in deinem Profil öffentlich sichtbar.",
   "Less than 0.001 ORN, fee included.": "Weniger als 0,001 ORN inklusive Gebühr.",
-  "No payment needed.": "Keine Zahlung erforderlich."
+  "No payment needed.": "Keine Zahlung erforderlich.",
+  "Send only SOL or USDC on Solana to this address.": "Sende an diese Adresse nur SOL oder USDC über Solana."
 }

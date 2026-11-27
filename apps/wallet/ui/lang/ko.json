@@ -2199,8 +2199,9 @@
   "ORN linked": "ORN 연결됨",
   "Unlock only": "잠금만 해제",
   "Unlock & link Solana": "잠금 해제 후 Solana 연결",
-  "Your ORN address is linked. You can also show your Solana Devnet address on the same public profile.": "ORN 주소가 연결되어 있습니다. 같은 공개 프로필에 Solana Devnet 주소도 표시할 수 있습니다.",
-  "Your ORN and Solana Devnet addresses and balances will be public on your profile.": "ORN 및 Solana Devnet 주소와 잔액이 프로필에 공개됩니다.",
+  "Your ORN address is linked. You can also show your Solana address on the same public profile.": "ORN 주소가 연결되어 있습니다. 같은 공개 프로필에 Solana 주소도 표시할 수 있습니다.",
+  "Your ORN and Solana addresses and balances will be public on your profile.": "ORN 및 Solana 주소와 잔액이 프로필에 공개됩니다.",
   "Less than 0.001 ORN, fee included.": "수수료 포함 0.001 ORN 미만입니다.",
-  "No payment needed.": "결제가 필요하지 않습니다."
+  "No payment needed.": "결제가 필요하지 않습니다.",
+  "Send only SOL or USDC on Solana to this address.": "이 주소로는 Solana의 SOL 또는 USDC만 보내세요."
 }
