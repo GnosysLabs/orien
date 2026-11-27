@@ -3454,10 +3454,12 @@
   .pf-wallet-state.linked { color: var(--accent); }
   .pf-wallet-actions .pill { margin: 0; }
   #pf-panel-details { gap: 0; align-items: stretch; padding: clamp(14px, 2vw, 24px); border: 1px solid var(--line); border-radius: 18px; background: var(--surface); }
-  #pf-panel-details > .pf-card { padding: 0; border: 0; background: transparent; }
+  #pf-panel-details > .pf-card { padding: 0; border: 0; border-radius: 0; background: transparent; }
   #pf-panel-details > .pf-card + .pf-card { margin-top: 20px; padding-top: 20px; border-top: 1px solid var(--line); }
   .pf-settings-row { grid-column: 1 / -1; display: grid; gap: 14px; margin-top: 20px; padding-top: 16px; border-top: 1px solid var(--line); }
   .pf-settings-row .report-box { grid-column: 1 / -1; margin: 0; }
+  /* Account: its own heading, set apart from the message picker above. */
+  .pf-account-head { margin: 10px 0 0; font-size: 17px; letter-spacing: -.015em; }
   @media (min-width: 860px) {
     .pf-columns { grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); column-gap: 28px; }
     #pf-panel-details { column-gap: 28px; }
@@ -4349,6 +4351,7 @@
               </div>
             </details>
           </div>
+          <h3 class="pf-account-head">Account</h3>
           <div class="pf-account-actions">
             <button class="secondary" id="pf-blocks">Manage blocks</button>
             <button class="secondary" id="pf-delete">Delete my account</button>
