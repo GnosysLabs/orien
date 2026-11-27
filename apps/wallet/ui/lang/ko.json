@@ -1883,6 +1883,70 @@
     [
       "^says they paid ([0-9.,]+) ORN$",
       "{0} ORN을 결제했다고 알렸습니다"
+    ],
+    [
+      "^([\\d.,]+ SOL) in your Solana balance$",
+      "Solana 잔액에 {0} 입금됨"
+    ],
+    [
+      "^([\\d.,]+ (?:SOL|BTC)) on its way to you$",
+      "{0} 전송 중"
+    ],
+    [
+      "^([\\d.,]+ ORN) in your wallet$",
+      "지갑에 {0} 입금됨"
+    ],
+    [
+      "^([\\d.,]+ SOL) from your Solana balance$",
+      "Solana 잔액에서 {0} 결제"
+    ],
+    [
+      "^(.+) locks ([\\d.,]+ ORN) for you$",
+      "{0}이(가) 나를 위해 {1}을(를) 잠급니다"
+    ],
+    [
+      "^The buyer's ([\\d.,]+ SOL) held for you$",
+      "구매자의 {0}이(가) 나를 위해 보관됨"
+    ],
+    [
+      "^Your ([\\d.,]+ ORN) locked for the buyer$",
+      "내 {0}이(가) 구매자를 위해 잠김"
+    ],
+    [
+      "^Your ([\\d.,]+ SOL) locked on Solana and listed$",
+      "내 {0}이(가) Solana에 잠기고 등록됨"
+    ],
+    [
+      "^Your ([\\d.,]+ ORN) on the way$",
+      "내 {0} 전송 중"
+    ],
+    [
+      "^([\\d.,]+ (?:SOL|BTC)) received$",
+      "{0} 수신"
+    ],
+    [
+      "^Paying ([\\d.,]+ SOL) from your Solana balance$",
+      "Solana 잔액에서 {0} 결제 중"
+    ],
+    [
+      "^Paying ([\\d.,]+ SOL) from your Solana balance\\. Nothing to do: the swap finishes by itself\\.$",
+      "Solana 잔액에서 {0} 결제 중입니다. 따로 할 일은 없으며 스왑은 자동으로 완료됩니다."
+    ],
+    [
+      "^You need about ([\\d.,]+) SOL in this wallet's Solana balance for this, and it has ([\\d.,]+) SOL\\. Add SOL first, from Phantom or an exchange\\.$",
+      "이 작업에는 이 지갑의 Solana 잔액에 약 {0} SOL이 필요하지만 현재 {1} SOL이 있습니다. 먼저 Phantom이나 거래소에서 SOL을 추가하세요."
+    ],
+    [
+      "^This wallet's Solana balance \\(([\\d.,]+) SOL\\) can't cover it\\. Send exactly this from another SOL wallet, such as Phantom or an exchange: scan the code, or copy the address and amount\\. This app sees it by itself\\.$",
+      "이 지갑의 Solana 잔액({0} SOL)으로는 부족합니다. Phantom이나 거래소 같은 다른 SOL 지갑에서 정확히 이 금액을 보내세요. 코드를 스캔하거나 주소와 수량을 복사하면 됩니다. 이 앱이 자동으로 확인합니다."
+    ],
+    [
+      "^Waiting for (.+)'s wallet to lock the ORN for you\\. About a minute; nothing to do\\.$",
+      "{0}의 지갑이 ORN을 잠가 주기를 기다리는 중입니다. 약 1분 걸리며 따로 할 일은 없습니다."
+    ],
+    [
+      "^Send ([\\d.,]+ SOL) from your SOL wallet$",
+      "SOL 지갑에서 {0} 보내기"
     ]
   ],
   "_guides": {
@@ -2206,5 +2270,36 @@
   "Send only SOL or USDC on Solana to this address.": "이 주소로는 Solana의 SOL 또는 USDC만 보내세요.",
   "Your ORN address is linked to your profile, so your Solana address joins it there.": "ORN 주소가 프로필에 연결되어 있으므로 Solana 주소도 함께 추가됩니다.",
   "Buy order refund": "매수 주문 환불",
-  "Swap leftovers": "스왑 잔액"
+  "Swap leftovers": "스왑 잔액",
+  "A few seconds": "몇 초",
+  "About a minute": "약 1분",
+  "About 15 seconds": "약 15초",
+  "About 20 seconds": "약 20초",
+  "About a minute · safe to close": "약 1분 · 닫아도 됩니다",
+  "Usually within a minute": "보통 1분 이내",
+  "Live": "활성",
+  "Posted": "게시됨",
+  "Not enough SOL": "SOL 부족",
+  "Getting ready": "준비 중",
+  "Mining is off": "채굴 꺼짐",
+  "Copy the ORN address": "ORN 주소 복사",
+  "Copy the Solana address": "Solana 주소 복사",
+  "Name or Solana address": "이름 또는 Solana 주소",
+  "Pay from your Solana balance": "Solana 잔액으로 결제",
+  "It's paid from this wallet's Solana balance. This app sees it arrive by itself.": "이 지갑의 Solana 잔액에서 결제됩니다. 도착하면 이 앱이 자동으로 확인합니다.",
+  "Nothing more to do: your wallet pays as soon as they accept, and your ORN arrive about a minute later.": "더 할 일은 없습니다. 상대방이 수락하는 즉시 지갑이 결제하며, 약 1분 후 ORN이 도착합니다.",
+  "Post a buy order for ORN, paid from this wallet's Solana balance as soon as you approve. It stays live even with Orien Wallet closed, and you can cancel it anytime.": "ORN 매수 주문을 등록하세요. 승인하는 즉시 이 지갑의 Solana 잔액에서 결제됩니다. Orien Wallet을 닫아도 주문은 유지되며 언제든지 취소할 수 있습니다.",
+  "Smallest order: 0.01 SOL, plus about 0.005 SOL for Solana's small fees, nearly all of which comes back.": "최소 주문: 0.01 SOL. 여기에 Solana 소액 수수료로 약 0.005 SOL이 더 필요하며, 대부분 다시 돌아옵니다.",
+  "You approve once, now. Cancelling sends the SOL back to this wallet.": "지금 한 번만 승인하면 됩니다. 취소하면 SOL이 이 지갑으로 돌아옵니다.",
+  "Unlock once to remember this wallet's public Solana address.": "이 지갑의 공개 Solana 주소를 기억하려면 한 번 잠금을 해제하세요.",
+  "Your buy order is paid from this wallet's Solana balance. Once paid, it stays live even with Orien Wallet closed, and you can cancel anytime in one click.": "매수 주문은 이 지갑의 Solana 잔액에서 결제됩니다. 결제 후에는 Orien Wallet을 닫아도 주문이 유지되며, 언제든지 클릭 한 번으로 취소할 수 있습니다.",
+  "Waiting for a seller · safe to close Orien Wallet": "판매자를 기다리는 중 · Orien Wallet을 닫아도 됩니다",
+  "Paid from this wallet's Solana balance.": "이 지갑의 Solana 잔액에서 결제됩니다.",
+  "The swap finishes by itself, usually within a minute. If it ever stops part-way, your SOL comes back by itself. The Orien fee (0.1%, at most 1 ORN) comes out of the ORN you get.": "스왑은 보통 1분 이내에 자동으로 완료됩니다. 중간에 멈추더라도 SOL은 자동으로 돌아옵니다. Orien 수수료(0.1%, 최대 1 ORN)는 받는 ORN에서 차감됩니다.",
+  "The SOL arrives in this wallet's Solana balance,": "SOL은 이 지갑의 Solana 잔액으로 들어오며,",
+  "already locked by the buyer, so usually within a minute. You need the ORN plus the Orien fee (0.1%, at most 1 ORN). If anything stops the swap, your ORN come back by themselves.": "구매자가 이미 잠가 두었기 때문에 보통 1분 이내에 도착합니다. ORN과 Orien 수수료(0.1%, 최대 1 ORN)가 필요합니다. 스왑이 중단되면 ORN은 자동으로 돌아옵니다.",
+  "once the buyer pays, usually within a minute. You need the ORN plus the Orien fee (0.1%, at most 1 ORN). If anything stops the swap, your ORN come back by themselves.": "구매자가 결제하면 보통 1분 이내에 도착합니다. ORN과 Orien 수수료(0.1%, 최대 1 ORN)가 필요합니다. 스왑이 중단되면 ORN은 자동으로 돌아옵니다.",
+  "Swap SOL and USDC": "SOL과 USDC 스왑",
+  "Refresh Solana balances": "Solana 잔액 새로고침",
+  "Buy / Sell": "매수 / 매도"
 }

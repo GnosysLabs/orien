@@ -1883,6 +1883,70 @@
     [
       "^says they paid ([0-9.,]+) ORN$",
       "cho biết họ đã thanh toán {0} ORN"
+    ],
+    [
+      "^([\\d.,]+ SOL) in your Solana balance$",
+      "{0} trong số dư Solana của bạn"
+    ],
+    [
+      "^([\\d.,]+ (?:SOL|BTC)) on its way to you$",
+      "{0} đang trên đường đến bạn"
+    ],
+    [
+      "^([\\d.,]+ ORN) in your wallet$",
+      "{0} trong ví của bạn"
+    ],
+    [
+      "^([\\d.,]+ SOL) from your Solana balance$",
+      "{0} từ số dư Solana của bạn"
+    ],
+    [
+      "^(.+) locks ([\\d.,]+ ORN) for you$",
+      "{0} khóa {1} cho bạn"
+    ],
+    [
+      "^The buyer's ([\\d.,]+ SOL) held for you$",
+      "{0} của người mua đang được giữ cho bạn"
+    ],
+    [
+      "^Your ([\\d.,]+ ORN) locked for the buyer$",
+      "{0} của bạn đã được khóa cho người mua"
+    ],
+    [
+      "^Your ([\\d.,]+ SOL) locked on Solana and listed$",
+      "{0} của bạn đã được khóa trên Solana và đưa lên sổ lệnh"
+    ],
+    [
+      "^Your ([\\d.,]+ ORN) on the way$",
+      "{0} của bạn đang trên đường đến"
+    ],
+    [
+      "^([\\d.,]+ (?:SOL|BTC)) received$",
+      "Đã nhận {0}"
+    ],
+    [
+      "^Paying ([\\d.,]+ SOL) from your Solana balance$",
+      "Đang thanh toán {0} từ số dư Solana của bạn"
+    ],
+    [
+      "^Paying ([\\d.,]+ SOL) from your Solana balance\\. Nothing to do: the swap finishes by itself\\.$",
+      "Đang thanh toán {0} từ số dư Solana của bạn. Bạn không cần làm gì: giao dịch hoán đổi sẽ tự hoàn tất."
+    ],
+    [
+      "^You need about ([\\d.,]+) SOL in this wallet's Solana balance for this, and it has ([\\d.,]+) SOL\\. Add SOL first, from Phantom or an exchange\\.$",
+      "Bạn cần khoảng {0} SOL trong số dư Solana của ví này, nhưng hiện chỉ có {1} SOL. Hãy nạp SOL trước, từ Phantom hoặc sàn giao dịch."
+    ],
+    [
+      "^This wallet's Solana balance \\(([\\d.,]+) SOL\\) can't cover it\\. Send exactly this from another SOL wallet, such as Phantom or an exchange: scan the code, or copy the address and amount\\. This app sees it by itself\\.$",
+      "Số dư Solana của ví này ({0} SOL) không đủ. Hãy gửi chính xác số này từ một ví SOL khác, chẳng hạn Phantom hoặc sàn giao dịch: quét mã hoặc sao chép địa chỉ và số lượng. Ứng dụng này sẽ tự nhận diện."
+    ],
+    [
+      "^Waiting for (.+)'s wallet to lock the ORN for you\\. About a minute; nothing to do\\.$",
+      "Đang chờ ví của {0} khóa ORN cho bạn. Khoảng một phút; bạn không cần làm gì."
+    ],
+    [
+      "^Send ([\\d.,]+ SOL) from your SOL wallet$",
+      "Gửi {0} từ ví SOL của bạn"
     ]
   ],
   "_guides": {
@@ -2206,5 +2270,36 @@
   "Send only SOL or USDC on Solana to this address.": "Chỉ gửi SOL hoặc USDC trên Solana đến địa chỉ này.",
   "Your ORN address is linked to your profile, so your Solana address joins it there.": "Địa chỉ ORN của bạn đã liên kết với hồ sơ, nên địa chỉ Solana cũng được thêm vào đó.",
   "Buy order refund": "Hoàn tiền lệnh mua",
-  "Swap leftovers": "Phần dư của giao dịch hoán đổi"
+  "Swap leftovers": "Phần dư của giao dịch hoán đổi",
+  "A few seconds": "Vài giây",
+  "About a minute": "Khoảng một phút",
+  "About 15 seconds": "Khoảng 15 giây",
+  "About 20 seconds": "Khoảng 20 giây",
+  "About a minute · safe to close": "Khoảng một phút · có thể đóng",
+  "Usually within a minute": "Thường trong vòng một phút",
+  "Live": "Đang mở",
+  "Posted": "Đã đăng",
+  "Not enough SOL": "Không đủ SOL",
+  "Getting ready": "Đang chuẩn bị",
+  "Mining is off": "Đã tắt đào",
+  "Copy the ORN address": "Sao chép địa chỉ ORN",
+  "Copy the Solana address": "Sao chép địa chỉ Solana",
+  "Name or Solana address": "Tên hoặc địa chỉ Solana",
+  "Pay from your Solana balance": "Thanh toán từ số dư Solana của bạn",
+  "It's paid from this wallet's Solana balance. This app sees it arrive by itself.": "Khoản này được trả từ số dư Solana của ví này. Ứng dụng sẽ tự nhận biết khi tiền đến.",
+  "Nothing more to do: your wallet pays as soon as they accept, and your ORN arrive about a minute later.": "Bạn không cần làm gì thêm: ví của bạn sẽ thanh toán ngay khi họ chấp nhận, và ORN sẽ về khoảng một phút sau đó.",
+  "Post a buy order for ORN, paid from this wallet's Solana balance as soon as you approve. It stays live even with Orien Wallet closed, and you can cancel it anytime.": "Đặt lệnh mua ORN, được thanh toán từ số dư Solana của ví này ngay khi bạn chấp thuận. Lệnh vẫn mở ngay cả khi đóng Orien Wallet, và bạn có thể hủy bất cứ lúc nào.",
+  "Smallest order: 0.01 SOL, plus about 0.005 SOL for Solana's small fees, nearly all of which comes back.": "Lệnh nhỏ nhất: 0,01 SOL, cộng khoảng 0,005 SOL cho các khoản phí nhỏ của Solana, gần như toàn bộ sẽ được hoàn lại.",
+  "You approve once, now. Cancelling sends the SOL back to this wallet.": "Bạn chỉ cần chấp thuận một lần, ngay bây giờ. Khi hủy, SOL sẽ được gửi lại ví này.",
+  "Unlock once to remember this wallet's public Solana address.": "Mở khóa một lần để ghi nhớ địa chỉ Solana công khai của ví này.",
+  "Your buy order is paid from this wallet's Solana balance. Once paid, it stays live even with Orien Wallet closed, and you can cancel anytime in one click.": "Lệnh mua của bạn được thanh toán từ số dư Solana của ví này. Sau khi thanh toán, lệnh vẫn mở ngay cả khi đóng Orien Wallet, và bạn có thể hủy bất cứ lúc nào chỉ với một cú nhấp.",
+  "Waiting for a seller · safe to close Orien Wallet": "Đang chờ người bán · có thể đóng Orien Wallet",
+  "Paid from this wallet's Solana balance.": "Thanh toán từ số dư Solana của ví này.",
+  "The swap finishes by itself, usually within a minute. If it ever stops part-way, your SOL comes back by itself. The Orien fee (0.1%, at most 1 ORN) comes out of the ORN you get.": "Giao dịch hoán đổi tự hoàn tất, thường trong vòng một phút. Nếu bị dừng giữa chừng, SOL của bạn sẽ tự hoàn về. Phí Orien (0,1%, tối đa 1 ORN) được trừ vào số ORN bạn nhận.",
+  "The SOL arrives in this wallet's Solana balance,": "SOL sẽ về số dư Solana của ví này,",
+  "already locked by the buyer, so usually within a minute. You need the ORN plus the Orien fee (0.1%, at most 1 ORN). If anything stops the swap, your ORN come back by themselves.": "vốn đã được người mua khóa sẵn, nên thường trong vòng một phút. Bạn cần số ORN cộng thêm phí Orien (0,1%, tối đa 1 ORN). Nếu có sự cố khiến hoán đổi dừng lại, ORN của bạn sẽ tự hoàn về.",
+  "once the buyer pays, usually within a minute. You need the ORN plus the Orien fee (0.1%, at most 1 ORN). If anything stops the swap, your ORN come back by themselves.": "ngay khi người mua thanh toán, thường trong vòng một phút. Bạn cần số ORN cộng thêm phí Orien (0,1%, tối đa 1 ORN). Nếu có sự cố khiến hoán đổi dừng lại, ORN của bạn sẽ tự hoàn về.",
+  "Swap SOL and USDC": "Hoán đổi SOL và USDC",
+  "Refresh Solana balances": "Làm mới số dư Solana",
+  "Buy / Sell": "Mua / Bán"
 }

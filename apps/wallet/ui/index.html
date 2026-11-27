@@ -1615,6 +1615,23 @@
     .ex-hero-stats { grid-template-columns: repeat(3, minmax(0, 1fr)); row-gap: 14px; }
     .ex-hero-stats > div:nth-child(4) { padding-left: 0; border-left: 0; }
   }
+  /* Small windows: one strip, the price beside its three key figures. */
+  .ex-mobile-tabs { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  /* The same 18px above and below the tabs: a column with nothing showing
+     takes no room, and the panel under the tabs adds no margin of its own. */
+  @media (max-width: 859px) {
+    #swaps > .ex-mobile-tabs { margin-bottom: 18px; }
+    #swaps .ex-col:not(:has(> :not([hidden]))) { display: none; }
+    #swaps .ex-col > .ex-panel { margin-top: 0; }
+  }
+  @media (max-width: 859px) {
+    body:not(.phone) #swaps .ex-hero { display: grid; grid-template-columns: auto minmax(0, 1fr); column-gap: 20px; align-items: center; padding: 12px 18px; }
+    body:not(.phone) #swaps .ex-hero > .label, body:not(.phone) #swaps .ex-hero > .amount { grid-column: 1; justify-content: flex-start; height: auto; margin: 0; }
+    body:not(.phone) #swaps .ex-hero .balance { font-size: 28px; }
+    body:not(.phone) #swaps .ex-hero .amount .unit { font-size: 12px; }
+    body:not(.phone) #swaps .ex-hero-stats { grid-column: 2; grid-row: 1 / span 2; margin: 0; padding: 0 0 0 18px; border-top: 0; border-left: 1px solid rgba(0, 0, 0, 0.12); }
+    body:not(.phone) #swaps .ex-hero-stats > div:nth-child(n+4), body:not(.phone) #swaps .ex-hero-stats small { display: none; }
+  }
   .ex-cur-go { display: inline-flex; align-items: center; gap: 6px; margin-left: auto; }
   .ex-cur-menu { width: 240px; max-height: 60vh; overflow: auto; }
   .ex-cur-menu .menu-row + .menu-row::before { display: none; }
@@ -1655,6 +1672,9 @@
       border-radius: 24px; background: var(--surface); border: 1px solid var(--line);
       box-shadow: 0 24px 60px rgba(0, 0, 0, 0.5), 0 2px 8px rgba(0, 0, 0, 0.25); animation: pop-in .2s cubic-bezier(.2, .9, .3, 1.2); }
     body:not(.phone).ex-order #ex-pane-ticket .ex-phead { position: relative; padding-right: 52px; }
+    /* The form opens from Place order here, whichever small-window tab it
+       was last hidden by. */
+    body:not(.phone).ex-order #ex-pane-ticket[hidden] { display: flex !important; }
     body:not(.phone) .ex-order-x { display: grid; place-items: center; position: absolute; top: 14px; right: 14px; width: 32px; height: 32px; padding: 0; border: 0; border-radius: 50%; background: var(--surface-hover); color: var(--dim); cursor: pointer; }
     body:not(.phone) .ex-order-x:hover { color: var(--ink); }
     body.ex-order:not(.phone) #ex-veil:not([hidden]) { display: block; position: fixed; inset: 0; z-index: 50;
@@ -4647,8 +4667,9 @@
       </div>
 
       <!-- Mobile / narrow-window switcher -->
-      <div class="tabs three ex-mobile-tabs" role="tablist">
-        <button class="tab on" id="tab-offers-go" role="tab">Book &amp; Trade</button>
+      <div class="tabs ex-mobile-tabs" role="tablist">
+        <button class="tab on" id="tab-offers-go" role="tab">Order book</button>
+        <button class="tab" id="tab-trade-go" role="tab">Buy / Sell</button>
         <button class="tab" id="tab-history-go" role="tab">Trades</button>
         <button class="tab" id="tab-mine-go" role="tab">Your swaps <span id="mine-count"></span></button>
       </div>
@@ -4710,7 +4731,7 @@
           </div>
 
           <!-- Inline Place Order Ticket -->
-          <div class="ex-panel" id="ex-pane-ticket" data-ex-pane="offers">
+          <div class="ex-panel" id="ex-pane-ticket" data-ex-pane="trade" hidden>
             <div class="ex-phead"><button class="pop-x ex-order-x" id="ex-order-x" aria-label="Close" title="Close"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></button>
               <div>
                 <h3>Place order</h3>
@@ -10004,7 +10025,7 @@
   // Mobile/narrow tab switcher + desktop bottom deck tabs (Your swaps / Recent trades)
   function swapTab(which) {
     const tab = which === true ? "mine" : which === false ? "offers" : which;
-    for (const t of ["offers", "history", "mine"]) {
+    for (const t of ["offers", "trade", "history", "mine"]) {
       $(`tab-${t}-go`).classList.toggle("on", t === tab);
     }
     for (const pane of document.querySelectorAll("#swaps [data-ex-pane]")) {
@@ -10022,6 +10043,7 @@
     if (!mine) loadHistory(false);
   }
   $("tab-offers-go").onclick = () => swapTab("offers");
+  $("tab-trade-go").onclick = () => swapTab("trade");
   $("tab-history-go").onclick = () => swapTab("history");
   $("tab-mine-go").onclick = () => swapTab("mine");
   $("ex-deck-mine").onclick = () => setExDeck("mine");

@@ -1883,6 +1883,70 @@
     [
       "^says they paid ([0-9.,]+) ORN$",
       "{0} ORN を支払ったと報告しました"
+    ],
+    [
+      "^([\\d.,]+ SOL) in your Solana balance$",
+      "{0} が Solana 残高に入金されました"
+    ],
+    [
+      "^([\\d.,]+ (?:SOL|BTC)) on its way to you$",
+      "{0} を送金中"
+    ],
+    [
+      "^([\\d.,]+ ORN) in your wallet$",
+      "{0} がウォレットに入金されました"
+    ],
+    [
+      "^([\\d.,]+ SOL) from your Solana balance$",
+      "Solana 残高から {0} を支払い"
+    ],
+    [
+      "^(.+) locks ([\\d.,]+ ORN) for you$",
+      "{0} があなたのために {1} をロック"
+    ],
+    [
+      "^The buyer's ([\\d.,]+ SOL) held for you$",
+      "買い手の {0} をあなたのために確保済み"
+    ],
+    [
+      "^Your ([\\d.,]+ ORN) locked for the buyer$",
+      "あなたの {0} を買い手のためにロック済み"
+    ],
+    [
+      "^Your ([\\d.,]+ SOL) locked on Solana and listed$",
+      "あなたの {0} を Solana 上でロックし、掲載済み"
+    ],
+    [
+      "^Your ([\\d.,]+ ORN) on the way$",
+      "あなたの {0} を送金中"
+    ],
+    [
+      "^([\\d.,]+ (?:SOL|BTC)) received$",
+      "{0} を受け取りました"
+    ],
+    [
+      "^Paying ([\\d.,]+ SOL) from your Solana balance$",
+      "Solana 残高から {0} を支払い中"
+    ],
+    [
+      "^Paying ([\\d.,]+ SOL) from your Solana balance\\. Nothing to do: the swap finishes by itself\\.$",
+      "Solana 残高から {0} を支払っています。操作は不要です。スワップは自動で完了します。"
+    ],
+    [
+      "^You need about ([\\d.,]+) SOL in this wallet's Solana balance for this, and it has ([\\d.,]+) SOL\\. Add SOL first, from Phantom or an exchange\\.$",
+      "この操作には、このウォレットの Solana 残高に約 {0} SOL が必要ですが、現在は {1} SOL です。先に Phantom や取引所から SOL を追加してください。"
+    ],
+    [
+      "^This wallet's Solana balance \\(([\\d.,]+) SOL\\) can't cover it\\. Send exactly this from another SOL wallet, such as Phantom or an exchange: scan the code, or copy the address and amount\\. This app sees it by itself\\.$",
+      "このウォレットの Solana 残高（{0} SOL）では足りません。Phantom や取引所など別の SOL ウォレットから、この金額を正確に送金してください。コードをスキャンするか、アドレスと数量をコピーしてください。このアプリが自動で検知します。"
+    ],
+    [
+      "^Waiting for (.+)'s wallet to lock the ORN for you\\. About a minute; nothing to do\\.$",
+      "{0} のウォレットがあなたのために ORN をロックするのを待っています。約1分です。操作は不要です。"
+    ],
+    [
+      "^Send ([\\d.,]+ SOL) from your SOL wallet$",
+      "SOL ウォレットから {0} を送金"
     ]
   ],
   "_guides": {
@@ -2206,5 +2270,36 @@
   "Send only SOL or USDC on Solana to this address.": "このアドレスには Solana 上の SOL または USDC のみを送ってください。",
   "Your ORN address is linked to your profile, so your Solana address joins it there.": "ORN アドレスはプロフィールにリンク済みのため、Solana アドレスもそこに追加されます。",
   "Buy order refund": "買い注文の返金",
-  "Swap leftovers": "スワップの残り"
+  "Swap leftovers": "スワップの残り",
+  "A few seconds": "数秒",
+  "About a minute": "約1分",
+  "About 15 seconds": "約15秒",
+  "About 20 seconds": "約20秒",
+  "About a minute · safe to close": "約1分 · 閉じても大丈夫です",
+  "Usually within a minute": "通常1分以内",
+  "Live": "掲載中",
+  "Posted": "掲載済み",
+  "Not enough SOL": "SOL が不足しています",
+  "Getting ready": "準備中",
+  "Mining is off": "マイニングはオフです",
+  "Copy the ORN address": "ORN アドレスをコピー",
+  "Copy the Solana address": "Solana アドレスをコピー",
+  "Name or Solana address": "名前または Solana アドレス",
+  "Pay from your Solana balance": "Solana 残高から支払う",
+  "It's paid from this wallet's Solana balance. This app sees it arrive by itself.": "このウォレットの Solana 残高から支払われます。到着はこのアプリが自動で検知します。",
+  "Nothing more to do: your wallet pays as soon as they accept, and your ORN arrive about a minute later.": "これ以上の操作は不要です。相手が承諾するとすぐにウォレットが支払い、約1分後に ORN が届きます。",
+  "Post a buy order for ORN, paid from this wallet's Solana balance as soon as you approve. It stays live even with Orien Wallet closed, and you can cancel it anytime.": "ORN の買い注文を出します。承認するとすぐにこのウォレットの Solana 残高から支払われます。Orien Wallet を閉じていても注文は有効なままで、いつでもキャンセルできます。",
+  "Smallest order: 0.01 SOL, plus about 0.005 SOL for Solana's small fees, nearly all of which comes back.": "最小注文額：0.01 SOL。加えて Solana の少額の手数料として約 0.005 SOL が必要ですが、そのほぼ全額が戻ります。",
+  "You approve once, now. Cancelling sends the SOL back to this wallet.": "承認は今の一度だけです。キャンセルすると SOL はこのウォレットに戻ります。",
+  "Unlock once to remember this wallet's public Solana address.": "一度ロックを解除すると、このウォレットの公開 Solana アドレスを記憶します。",
+  "Your buy order is paid from this wallet's Solana balance. Once paid, it stays live even with Orien Wallet closed, and you can cancel anytime in one click.": "買い注文はこのウォレットの Solana 残高から支払われます。支払い後は Orien Wallet を閉じていても注文は有効なままで、ワンクリックでいつでもキャンセルできます。",
+  "Waiting for a seller · safe to close Orien Wallet": "売り手を待っています · Orien Wallet を閉じても大丈夫です",
+  "Paid from this wallet's Solana balance.": "このウォレットの Solana 残高から支払います。",
+  "The swap finishes by itself, usually within a minute. If it ever stops part-way, your SOL comes back by itself. The Orien fee (0.1%, at most 1 ORN) comes out of the ORN you get.": "スワップは自動で完了します（通常1分以内）。途中で止まった場合も、SOL は自動で戻ります。Orien 手数料（0.1%、最大 1 ORN）は受け取る ORN から差し引かれます。",
+  "The SOL arrives in this wallet's Solana balance,": "SOL はこのウォレットの Solana 残高に、",
+  "already locked by the buyer, so usually within a minute. You need the ORN plus the Orien fee (0.1%, at most 1 ORN). If anything stops the swap, your ORN come back by themselves.": "買い手がすでにロックしているため、通常1分以内に届きます。ORN に加えて Orien 手数料（0.1%、最大 1 ORN）が必要です。スワップが途中で止まった場合、ORN は自動で戻ります。",
+  "once the buyer pays, usually within a minute. You need the ORN plus the Orien fee (0.1%, at most 1 ORN). If anything stops the swap, your ORN come back by themselves.": "買い手の支払い後、通常1分以内に届きます。ORN に加えて Orien 手数料（0.1%、最大 1 ORN）が必要です。スワップが途中で止まった場合、ORN は自動で戻ります。",
+  "Swap SOL and USDC": "SOL と USDC をスワップ",
+  "Refresh Solana balances": "Solana 残高を更新",
+  "Buy / Sell": "購入 / 売却"
 }

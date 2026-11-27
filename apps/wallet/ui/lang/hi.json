@@ -1883,6 +1883,70 @@
     [
       "^says they paid ([0-9.,]+) ORN$",
       "कहता है कि उन्होंने {0} ORN का भुगतान किया"
+    ],
+    [
+      "^([\\d.,]+ SOL) in your Solana balance$",
+      "आपके Solana बैलेंस में {0}"
+    ],
+    [
+      "^([\\d.,]+ (?:SOL|BTC)) on its way to you$",
+      "{0} आपके पास आ रहा है"
+    ],
+    [
+      "^([\\d.,]+ ORN) in your wallet$",
+      "आपके वॉलेट में {0}"
+    ],
+    [
+      "^([\\d.,]+ SOL) from your Solana balance$",
+      "आपके Solana बैलेंस से {0}"
+    ],
+    [
+      "^(.+) locks ([\\d.,]+ ORN) for you$",
+      "{0} आपके लिए {1} लॉक कर रहा है"
+    ],
+    [
+      "^The buyer's ([\\d.,]+ SOL) held for you$",
+      "खरीदार का {0} आपके लिए रखा गया है"
+    ],
+    [
+      "^Your ([\\d.,]+ ORN) locked for the buyer$",
+      "आपका {0} खरीदार के लिए लॉक किया गया"
+    ],
+    [
+      "^Your ([\\d.,]+ SOL) locked on Solana and listed$",
+      "आपका {0} Solana पर लॉक और ऑर्डर बुक पर सूचीबद्ध"
+    ],
+    [
+      "^Your ([\\d.,]+ ORN) on the way$",
+      "आपका {0} रास्ते में है"
+    ],
+    [
+      "^([\\d.,]+ (?:SOL|BTC)) received$",
+      "{0} प्राप्त हुआ"
+    ],
+    [
+      "^Paying ([\\d.,]+ SOL) from your Solana balance$",
+      "आपके Solana बैलेंस से {0} का भुगतान हो रहा है"
+    ],
+    [
+      "^Paying ([\\d.,]+ SOL) from your Solana balance\\. Nothing to do: the swap finishes by itself\\.$",
+      "आपके Solana बैलेंस से {0} का भुगतान हो रहा है। कुछ करने की ज़रूरत नहीं: स्वैप अपने आप पूरा हो जाता है।"
+    ],
+    [
+      "^You need about ([\\d.,]+) SOL in this wallet's Solana balance for this, and it has ([\\d.,]+) SOL\\. Add SOL first, from Phantom or an exchange\\.$",
+      "इसके लिए इस वॉलेट के Solana बैलेंस में लगभग {0} SOL चाहिए, और इसमें {1} SOL है। पहले Phantom या किसी एक्सचेंज से SOL जोड़ें।"
+    ],
+    [
+      "^This wallet's Solana balance \\(([\\d.,]+) SOL\\) can't cover it\\. Send exactly this from another SOL wallet, such as Phantom or an exchange: scan the code, or copy the address and amount\\. This app sees it by itself\\.$",
+      "इस वॉलेट का Solana बैलेंस ({0} SOL) पर्याप्त नहीं है। किसी दूसरे SOL वॉलेट, जैसे Phantom या किसी एक्सचेंज से ठीक इतनी राशि भेजें: कोड स्कैन करें, या पता और राशि कॉपी करें। यह ऐप इसे अपने आप देख लेता है।"
+    ],
+    [
+      "^Waiting for (.+)'s wallet to lock the ORN for you\\. About a minute; nothing to do\\.$",
+      "{0} के वॉलेट द्वारा आपके लिए ORN लॉक किए जाने की प्रतीक्षा है। लगभग एक मिनट; कुछ करने की ज़रूरत नहीं।"
+    ],
+    [
+      "^Send ([\\d.,]+ SOL) from your SOL wallet$",
+      "अपने SOL वॉलेट से {0} भेजें"
     ]
   ],
   "_guides": {
@@ -2206,5 +2270,36 @@
   "Send only SOL or USDC on Solana to this address.": "इस पते पर केवल Solana पर SOL या USDC भेजें।",
   "Your ORN address is linked to your profile, so your Solana address joins it there.": "आपका ORN पता आपकी प्रोफ़ाइल से लिंक है, इसलिए आपका Solana पता भी वहाँ जुड़ जाता है।",
   "Buy order refund": "खरीद ऑर्डर का रिफंड",
-  "Swap leftovers": "स्वैप का बचा हुआ"
+  "Swap leftovers": "स्वैप का बचा हुआ",
+  "A few seconds": "कुछ सेकंड",
+  "About a minute": "लगभग एक मिनट",
+  "About 15 seconds": "लगभग 15 सेकंड",
+  "About 20 seconds": "लगभग 20 सेकंड",
+  "About a minute · safe to close": "लगभग एक मिनट · बंद करना सुरक्षित है",
+  "Usually within a minute": "आमतौर पर एक मिनट के भीतर",
+  "Live": "लाइव",
+  "Posted": "पोस्ट किया गया",
+  "Not enough SOL": "पर्याप्त SOL नहीं",
+  "Getting ready": "तैयार हो रहा है",
+  "Mining is off": "माइनिंग बंद है",
+  "Copy the ORN address": "ORN पता कॉपी करें",
+  "Copy the Solana address": "Solana पता कॉपी करें",
+  "Name or Solana address": "नाम या Solana पता",
+  "Pay from your Solana balance": "अपने Solana बैलेंस से भुगतान करें",
+  "It's paid from this wallet's Solana balance. This app sees it arrive by itself.": "इसका भुगतान इस वॉलेट के Solana बैलेंस से होता है। यह ऐप इसके पहुँचने को अपने आप देख लेता है।",
+  "Nothing more to do: your wallet pays as soon as they accept, and your ORN arrive about a minute later.": "और कुछ करने की ज़रूरत नहीं: उनके स्वीकार करते ही आपका वॉलेट भुगतान कर देता है, और आपके ORN लगभग एक मिनट बाद पहुँच जाते हैं।",
+  "Post a buy order for ORN, paid from this wallet's Solana balance as soon as you approve. It stays live even with Orien Wallet closed, and you can cancel it anytime.": "ORN के लिए खरीद ऑर्डर पोस्ट करें, जिसका भुगतान आपकी मंज़ूरी मिलते ही इस वॉलेट के Solana बैलेंस से होता है। यह Orien Wallet बंद होने पर भी लाइव रहता है, और आप इसे कभी भी रद्द कर सकते हैं।",
+  "Smallest order: 0.01 SOL, plus about 0.005 SOL for Solana's small fees, nearly all of which comes back.": "सबसे छोटा ऑर्डर: 0.01 SOL, साथ ही Solana के छोटे शुल्क के लिए लगभग 0.005 SOL, जिसमें से लगभग सारा वापस आ जाता है।",
+  "You approve once, now. Cancelling sends the SOL back to this wallet.": "आप बस एक बार, अभी मंज़ूरी देते हैं। रद्द करने पर SOL इस वॉलेट में वापस भेज दिया जाता है।",
+  "Unlock once to remember this wallet's public Solana address.": "इस वॉलेट का सार्वजनिक Solana पता याद रखने के लिए एक बार अनलॉक करें।",
+  "Your buy order is paid from this wallet's Solana balance. Once paid, it stays live even with Orien Wallet closed, and you can cancel anytime in one click.": "आपके खरीद ऑर्डर का भुगतान इस वॉलेट के Solana बैलेंस से होता है। भुगतान के बाद यह Orien Wallet बंद होने पर भी लाइव रहता है, और आप इसे कभी भी एक क्लिक में रद्द कर सकते हैं।",
+  "Waiting for a seller · safe to close Orien Wallet": "विक्रेता की प्रतीक्षा · Orien Wallet बंद करना सुरक्षित है",
+  "Paid from this wallet's Solana balance.": "इस वॉलेट के Solana बैलेंस से भुगतान।",
+  "The swap finishes by itself, usually within a minute. If it ever stops part-way, your SOL comes back by itself. The Orien fee (0.1%, at most 1 ORN) comes out of the ORN you get.": "स्वैप अपने आप पूरा हो जाता है, आमतौर पर एक मिनट के भीतर। अगर यह कभी बीच में रुक जाए, तो आपका SOL अपने आप वापस आ जाता है। Orien शुल्क (0.1%, अधिकतम 1 ORN) आपको मिलने वाले ORN में से कटता है।",
+  "The SOL arrives in this wallet's Solana balance,": "SOL इस वॉलेट के Solana बैलेंस में आता है,",
+  "already locked by the buyer, so usually within a minute. You need the ORN plus the Orien fee (0.1%, at most 1 ORN). If anything stops the swap, your ORN come back by themselves.": "जिसे खरीदार पहले ही लॉक कर चुका है, इसलिए आमतौर पर एक मिनट के भीतर। आपको ORN के साथ Orien शुल्क (0.1%, अधिकतम 1 ORN) चाहिए। अगर कोई चीज़ स्वैप रोक दे, तो आपके ORN अपने आप वापस आ जाते हैं।",
+  "once the buyer pays, usually within a minute. You need the ORN plus the Orien fee (0.1%, at most 1 ORN). If anything stops the swap, your ORN come back by themselves.": "खरीदार के भुगतान करते ही, आमतौर पर एक मिनट के भीतर। आपको ORN के साथ Orien शुल्क (0.1%, अधिकतम 1 ORN) चाहिए। अगर कोई चीज़ स्वैप रोक दे, तो आपके ORN अपने आप वापस आ जाते हैं।",
+  "Swap SOL and USDC": "SOL और USDC स्वैप करें",
+  "Refresh Solana balances": "Solana बैलेंस रीफ़्रेश करें",
+  "Buy / Sell": "खरीदें / बेचें"
 }

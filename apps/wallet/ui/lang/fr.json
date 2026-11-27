@@ -1883,6 +1883,70 @@
     [
       "^says they paid ([0-9.,]+) ORN$",
       "indique avoir payé {0} ORN"
+    ],
+    [
+      "^([\\d.,]+ SOL) in your Solana balance$",
+      "{0} sur ton solde Solana"
+    ],
+    [
+      "^([\\d.,]+ (?:SOL|BTC)) on its way to you$",
+      "{0} en route vers toi"
+    ],
+    [
+      "^([\\d.,]+ ORN) in your wallet$",
+      "{0} dans ton portefeuille"
+    ],
+    [
+      "^([\\d.,]+ SOL) from your Solana balance$",
+      "{0} depuis ton solde Solana"
+    ],
+    [
+      "^(.+) locks ([\\d.,]+ ORN) for you$",
+      "{0} verrouille {1} pour toi"
+    ],
+    [
+      "^The buyer's ([\\d.,]+ SOL) held for you$",
+      "{0} de l'acheteur réservés pour toi"
+    ],
+    [
+      "^Your ([\\d.,]+ ORN) locked for the buyer$",
+      "Tes {0} verrouillés pour l'acheteur"
+    ],
+    [
+      "^Your ([\\d.,]+ SOL) locked on Solana and listed$",
+      "Tes {0} verrouillés sur Solana et publiés"
+    ],
+    [
+      "^Your ([\\d.,]+ ORN) on the way$",
+      "Tes {0} en route"
+    ],
+    [
+      "^([\\d.,]+ (?:SOL|BTC)) received$",
+      "{0} reçus"
+    ],
+    [
+      "^Paying ([\\d.,]+ SOL) from your Solana balance$",
+      "Paiement de {0} depuis ton solde Solana"
+    ],
+    [
+      "^Paying ([\\d.,]+ SOL) from your Solana balance\\. Nothing to do: the swap finishes by itself\\.$",
+      "Paiement de {0} depuis ton solde Solana. Rien à faire : l'échange se termine tout seul."
+    ],
+    [
+      "^You need about ([\\d.,]+) SOL in this wallet's Solana balance for this, and it has ([\\d.,]+) SOL\\. Add SOL first, from Phantom or an exchange\\.$",
+      "Il te faut environ {0} SOL sur le solde Solana de ce portefeuille, et il y a {1} SOL. Ajoute d'abord des SOL, depuis Phantom ou une plateforme d'échange."
+    ],
+    [
+      "^This wallet's Solana balance \\(([\\d.,]+) SOL\\) can't cover it\\. Send exactly this from another SOL wallet, such as Phantom or an exchange: scan the code, or copy the address and amount\\. This app sees it by itself\\.$",
+      "Le solde Solana de ce portefeuille ({0} SOL) ne suffit pas. Envoie exactement ce montant depuis un autre portefeuille SOL, comme Phantom ou une plateforme d'échange : scanne le code, ou copie l'adresse et le montant. Cette application le détecte automatiquement."
+    ],
+    [
+      "^Waiting for (.+)'s wallet to lock the ORN for you\\. About a minute; nothing to do\\.$",
+      "En attente que le portefeuille de {0} verrouille les ORN pour toi. Environ une minute ; rien à faire."
+    ],
+    [
+      "^Send ([\\d.,]+ SOL) from your SOL wallet$",
+      "Envoie {0} depuis ton portefeuille SOL"
     ]
   ],
   "_guides": {
@@ -2206,5 +2270,36 @@
   "Send only SOL or USDC on Solana to this address.": "N’envoie à cette adresse que des SOL ou des USDC sur Solana.",
   "Your ORN address is linked to your profile, so your Solana address joins it there.": "Ton adresse ORN est liée à ton profil, donc ton adresse Solana l'y rejoint.",
   "Buy order refund": "Remboursement de l’ordre d’achat",
-  "Swap leftovers": "Reste de l’échange"
+  "Swap leftovers": "Reste de l’échange",
+  "A few seconds": "Quelques secondes",
+  "About a minute": "Environ une minute",
+  "About 15 seconds": "Environ 15 secondes",
+  "About 20 seconds": "Environ 20 secondes",
+  "About a minute · safe to close": "Environ une minute · tu peux fermer",
+  "Usually within a minute": "Généralement en moins d'une minute",
+  "Live": "Actif",
+  "Posted": "Publié",
+  "Not enough SOL": "Pas assez de SOL",
+  "Getting ready": "Préparation",
+  "Mining is off": "Le minage est arrêté",
+  "Copy the ORN address": "Copier l'adresse ORN",
+  "Copy the Solana address": "Copier l'adresse Solana",
+  "Name or Solana address": "Nom ou adresse Solana",
+  "Pay from your Solana balance": "Payer avec ton solde Solana",
+  "It's paid from this wallet's Solana balance. This app sees it arrive by itself.": "Le paiement se fait depuis le solde Solana de ce portefeuille. Cette application détecte son arrivée automatiquement.",
+  "Nothing more to do: your wallet pays as soon as they accept, and your ORN arrive about a minute later.": "Rien d'autre à faire : ton portefeuille paie dès l'acceptation, et tes ORN arrivent environ une minute plus tard.",
+  "Post a buy order for ORN, paid from this wallet's Solana balance as soon as you approve. It stays live even with Orien Wallet closed, and you can cancel it anytime.": "Publie un ordre d'achat d'ORN, payé depuis le solde Solana de ce portefeuille dès que tu l'approuves. Il reste actif même avec Orien Wallet fermé, et tu peux l'annuler à tout moment.",
+  "Smallest order: 0.01 SOL, plus about 0.005 SOL for Solana's small fees, nearly all of which comes back.": "Ordre minimal : 0,01 SOL, plus environ 0,005 SOL pour les petits frais de Solana, presque entièrement restitués.",
+  "You approve once, now. Cancelling sends the SOL back to this wallet.": "Tu approuves une seule fois, maintenant. L'annulation renvoie les SOL vers ce portefeuille.",
+  "Unlock once to remember this wallet's public Solana address.": "Déverrouille une fois pour mémoriser l'adresse Solana publique de ce portefeuille.",
+  "Your buy order is paid from this wallet's Solana balance. Once paid, it stays live even with Orien Wallet closed, and you can cancel anytime in one click.": "Ton ordre d'achat est payé depuis le solde Solana de ce portefeuille. Une fois payé, il reste actif même avec Orien Wallet fermé, et tu peux l'annuler à tout moment en un clic.",
+  "Waiting for a seller · safe to close Orien Wallet": "En attente d'un vendeur · tu peux fermer Orien Wallet",
+  "Paid from this wallet's Solana balance.": "Payé depuis le solde Solana de ce portefeuille.",
+  "The swap finishes by itself, usually within a minute. If it ever stops part-way, your SOL comes back by itself. The Orien fee (0.1%, at most 1 ORN) comes out of the ORN you get.": "L'échange se termine tout seul, généralement en moins d'une minute. S'il s'arrête en cours de route, tes SOL te reviennent automatiquement. Les frais Orien (0,1 %, au maximum 1 ORN) sont déduits des ORN que tu reçois.",
+  "The SOL arrives in this wallet's Solana balance,": "Les SOL arrivent sur le solde Solana de ce portefeuille,",
+  "already locked by the buyer, so usually within a minute. You need the ORN plus the Orien fee (0.1%, at most 1 ORN). If anything stops the swap, your ORN come back by themselves.": "déjà verrouillés par l'acheteur, donc généralement en moins d'une minute. Il te faut les ORN plus les frais Orien (0,1 %, au maximum 1 ORN). Si quoi que ce soit interrompt l'échange, tes ORN te reviennent automatiquement.",
+  "once the buyer pays, usually within a minute. You need the ORN plus the Orien fee (0.1%, at most 1 ORN). If anything stops the swap, your ORN come back by themselves.": "dès que l'acheteur paie, généralement en moins d'une minute. Il te faut les ORN plus les frais Orien (0,1 %, au maximum 1 ORN). Si quoi que ce soit interrompt l'échange, tes ORN te reviennent automatiquement.",
+  "Swap SOL and USDC": "Échanger SOL et USDC",
+  "Refresh Solana balances": "Actualiser les soldes Solana",
+  "Buy / Sell": "Acheter / Vendre"
 }

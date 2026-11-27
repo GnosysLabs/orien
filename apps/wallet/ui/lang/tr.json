@@ -1883,6 +1883,70 @@
     [
       "^says they paid ([0-9.,]+) ORN$",
       "{0} ORN ödediğini söylüyor"
+    ],
+    [
+      "^([\\d.,]+ SOL) in your Solana balance$",
+      "Solana bakiyenizde {0}"
+    ],
+    [
+      "^([\\d.,]+ (?:SOL|BTC)) on its way to you$",
+      "{0} size doğru yolda"
+    ],
+    [
+      "^([\\d.,]+ ORN) in your wallet$",
+      "Cüzdanınızda {0}"
+    ],
+    [
+      "^([\\d.,]+ SOL) from your Solana balance$",
+      "Solana bakiyenizden {0}"
+    ],
+    [
+      "^(.+) locks ([\\d.,]+ ORN) for you$",
+      "{0} sizin için {1} kilitliyor"
+    ],
+    [
+      "^The buyer's ([\\d.,]+ SOL) held for you$",
+      "Alıcının {0} tutarı sizin için tutuluyor"
+    ],
+    [
+      "^Your ([\\d.,]+ ORN) locked for the buyer$",
+      "{0} tutarınız alıcı için kilitlendi"
+    ],
+    [
+      "^Your ([\\d.,]+ SOL) locked on Solana and listed$",
+      "{0} tutarınız Solana üzerinde kilitlendi ve listelendi"
+    ],
+    [
+      "^Your ([\\d.,]+ ORN) on the way$",
+      "{0} tutarınız yolda"
+    ],
+    [
+      "^([\\d.,]+ (?:SOL|BTC)) received$",
+      "{0} alındı"
+    ],
+    [
+      "^Paying ([\\d.,]+ SOL) from your Solana balance$",
+      "Solana bakiyenizden {0} ödeniyor"
+    ],
+    [
+      "^Paying ([\\d.,]+ SOL) from your Solana balance\\. Nothing to do: the swap finishes by itself\\.$",
+      "Solana bakiyenizden {0} ödeniyor. Yapmanız gereken bir şey yok: takas kendiliğinden tamamlanır."
+    ],
+    [
+      "^You need about ([\\d.,]+) SOL in this wallet's Solana balance for this, and it has ([\\d.,]+) SOL\\. Add SOL first, from Phantom or an exchange\\.$",
+      "Bunun için bu cüzdanın Solana bakiyesinde yaklaşık {0} SOL gerekiyor, mevcut bakiye {1} SOL. Önce Phantom'dan veya bir borsadan SOL ekleyin."
+    ],
+    [
+      "^This wallet's Solana balance \\(([\\d.,]+) SOL\\) can't cover it\\. Send exactly this from another SOL wallet, such as Phantom or an exchange: scan the code, or copy the address and amount\\. This app sees it by itself\\.$",
+      "Bu cüzdanın Solana bakiyesi ({0} SOL) yetmiyor. Phantom veya bir borsa gibi başka bir SOL cüzdanından tam olarak bu tutarı gönderin: kodu tarayın veya adresi ve tutarı kopyalayın. Bu uygulama ödemeyi kendiliğinden görür."
+    ],
+    [
+      "^Waiting for (.+)'s wallet to lock the ORN for you\\. About a minute; nothing to do\\.$",
+      "{0} adlı kişinin cüzdanının ORN'leri sizin için kilitlemesi bekleniyor. Yaklaşık bir dakika; yapmanız gereken bir şey yok."
+    ],
+    [
+      "^Send ([\\d.,]+ SOL) from your SOL wallet$",
+      "SOL cüzdanınızdan {0} gönderin"
     ]
   ],
   "_guides": {
@@ -2206,5 +2270,36 @@
   "Send only SOL or USDC on Solana to this address.": "Bu adrese yalnızca Solana üzerinde SOL veya USDC gönder.",
   "Your ORN address is linked to your profile, so your Solana address joins it there.": "ORN adresin profiline bağlı, bu yüzden Solana adresin de oraya eklenir.",
   "Buy order refund": "Alış emri iadesi",
-  "Swap leftovers": "Takas artığı"
+  "Swap leftovers": "Takas artığı",
+  "A few seconds": "Birkaç saniye",
+  "About a minute": "Yaklaşık bir dakika",
+  "About 15 seconds": "Yaklaşık 15 saniye",
+  "About 20 seconds": "Yaklaşık 20 saniye",
+  "About a minute · safe to close": "Yaklaşık bir dakika · kapatabilirsiniz",
+  "Usually within a minute": "Genellikle bir dakika içinde",
+  "Live": "Yayında",
+  "Posted": "Yayınlandı",
+  "Not enough SOL": "Yeterli SOL yok",
+  "Getting ready": "Hazırlanıyor",
+  "Mining is off": "Madencilik kapalı",
+  "Copy the ORN address": "ORN adresini kopyalayın",
+  "Copy the Solana address": "Solana adresini kopyalayın",
+  "Name or Solana address": "Ad veya Solana adresi",
+  "Pay from your Solana balance": "Solana bakiyenizden ödeyin",
+  "It's paid from this wallet's Solana balance. This app sees it arrive by itself.": "Ödeme bu cüzdanın Solana bakiyesinden yapılır. Bu uygulama ulaştığını kendiliğinden görür.",
+  "Nothing more to do: your wallet pays as soon as they accept, and your ORN arrive about a minute later.": "Yapmanız gereken başka bir şey yok: karşı taraf kabul eder etmez cüzdanınız öder ve ORN'leriniz yaklaşık bir dakika sonra ulaşır.",
+  "Post a buy order for ORN, paid from this wallet's Solana balance as soon as you approve. It stays live even with Orien Wallet closed, and you can cancel it anytime.": "Onayladığınız anda bu cüzdanın Solana bakiyesinden ödenen bir ORN alış emri verin. Orien Wallet kapalıyken bile yayında kalır ve istediğiniz zaman iptal edebilirsiniz.",
+  "Smallest order: 0.01 SOL, plus about 0.005 SOL for Solana's small fees, nearly all of which comes back.": "En küçük emir: 0.01 SOL, artı Solana'nın küçük ücretleri için yaklaşık 0.005 SOL; bunun neredeyse tamamı geri döner.",
+  "You approve once, now. Cancelling sends the SOL back to this wallet.": "Yalnızca bir kez, şimdi onaylarsınız. İptal ederseniz SOL bu cüzdana geri gönderilir.",
+  "Unlock once to remember this wallet's public Solana address.": "Bu cüzdanın herkese açık Solana adresini hatırlamak için bir kez kilidi açın.",
+  "Your buy order is paid from this wallet's Solana balance. Once paid, it stays live even with Orien Wallet closed, and you can cancel anytime in one click.": "Alış emriniz bu cüzdanın Solana bakiyesinden ödenir. Ödendikten sonra Orien Wallet kapalıyken bile yayında kalır ve istediğiniz zaman tek tıkla iptal edebilirsiniz.",
+  "Waiting for a seller · safe to close Orien Wallet": "Satıcı bekleniyor · Orien Wallet'ı kapatabilirsiniz",
+  "Paid from this wallet's Solana balance.": "Bu cüzdanın Solana bakiyesinden ödenir.",
+  "The swap finishes by itself, usually within a minute. If it ever stops part-way, your SOL comes back by itself. The Orien fee (0.1%, at most 1 ORN) comes out of the ORN you get.": "Takas genellikle bir dakika içinde kendiliğinden tamamlanır. Yarıda kalırsa SOL'unuz kendiliğinden geri döner. Orien ücreti (%0,1, en fazla 1 ORN) alacağınız ORN'den düşülür.",
+  "The SOL arrives in this wallet's Solana balance,": "SOL bu cüzdanın Solana bakiyesine gelir,",
+  "already locked by the buyer, so usually within a minute. You need the ORN plus the Orien fee (0.1%, at most 1 ORN). If anything stops the swap, your ORN come back by themselves.": "alıcı zaten kilitlediği için genellikle bir dakika içinde. ORN'ye ek olarak Orien ücreti (%0,1, en fazla 1 ORN) gerekir. Takas herhangi bir nedenle durursa ORN'leriniz kendiliğinden geri döner.",
+  "once the buyer pays, usually within a minute. You need the ORN plus the Orien fee (0.1%, at most 1 ORN). If anything stops the swap, your ORN come back by themselves.": "alıcı öder ödemez, genellikle bir dakika içinde. ORN'ye ek olarak Orien ücreti (%0,1, en fazla 1 ORN) gerekir. Takas herhangi bir nedenle durursa ORN'leriniz kendiliğinden geri döner.",
+  "Swap SOL and USDC": "SOL ve USDC takası",
+  "Refresh Solana balances": "Solana bakiyelerini yenile",
+  "Buy / Sell": "Al / Sat"
 }

@@ -1883,6 +1883,70 @@
     [
       "^says they paid ([0-9.,]+) ORN$",
       "mengatakan telah membayar {0} ORN"
+    ],
+    [
+      "^([\\d.,]+ SOL) in your Solana balance$",
+      "{0} di saldo Solana Anda"
+    ],
+    [
+      "^([\\d.,]+ (?:SOL|BTC)) on its way to you$",
+      "{0} sedang menuju ke Anda"
+    ],
+    [
+      "^([\\d.,]+ ORN) in your wallet$",
+      "{0} di dompet Anda"
+    ],
+    [
+      "^([\\d.,]+ SOL) from your Solana balance$",
+      "{0} dari saldo Solana Anda"
+    ],
+    [
+      "^(.+) locks ([\\d.,]+ ORN) for you$",
+      "{0} mengunci {1} untuk Anda"
+    ],
+    [
+      "^The buyer's ([\\d.,]+ SOL) held for you$",
+      "{0} milik pembeli ditahan untuk Anda"
+    ],
+    [
+      "^Your ([\\d.,]+ ORN) locked for the buyer$",
+      "{0} Anda terkunci untuk pembeli"
+    ],
+    [
+      "^Your ([\\d.,]+ SOL) locked on Solana and listed$",
+      "{0} Anda terkunci di Solana dan dipasang di buku pesanan"
+    ],
+    [
+      "^Your ([\\d.,]+ ORN) on the way$",
+      "{0} Anda sedang dalam perjalanan"
+    ],
+    [
+      "^([\\d.,]+ (?:SOL|BTC)) received$",
+      "{0} diterima"
+    ],
+    [
+      "^Paying ([\\d.,]+ SOL) from your Solana balance$",
+      "Membayar {0} dari saldo Solana Anda"
+    ],
+    [
+      "^Paying ([\\d.,]+ SOL) from your Solana balance\\. Nothing to do: the swap finishes by itself\\.$",
+      "Membayar {0} dari saldo Solana Anda. Tidak ada yang perlu dilakukan: penukaran selesai dengan sendirinya."
+    ],
+    [
+      "^You need about ([\\d.,]+) SOL in this wallet's Solana balance for this, and it has ([\\d.,]+) SOL\\. Add SOL first, from Phantom or an exchange\\.$",
+      "Untuk ini Anda memerlukan sekitar {0} SOL di saldo Solana dompet ini, sedangkan saldonya {1} SOL. Tambahkan SOL terlebih dahulu, dari Phantom atau bursa."
+    ],
+    [
+      "^This wallet's Solana balance \\(([\\d.,]+) SOL\\) can't cover it\\. Send exactly this from another SOL wallet, such as Phantom or an exchange: scan the code, or copy the address and amount\\. This app sees it by itself\\.$",
+      "Saldo Solana dompet ini ({0} SOL) tidak cukup. Kirim tepat sejumlah ini dari dompet SOL lain, seperti Phantom atau bursa: pindai kodenya, atau salin alamat dan jumlahnya. Aplikasi ini mendeteksinya secara otomatis."
+    ],
+    [
+      "^Waiting for (.+)'s wallet to lock the ORN for you\\. About a minute; nothing to do\\.$",
+      "Menunggu dompet {0} mengunci ORN untuk Anda. Sekitar satu menit; tidak ada yang perlu dilakukan."
+    ],
+    [
+      "^Send ([\\d.,]+ SOL) from your SOL wallet$",
+      "Kirim {0} dari dompet SOL Anda"
     ]
   ],
   "_guides": {
@@ -2206,5 +2270,36 @@
   "Send only SOL or USDC on Solana to this address.": "Kirim hanya SOL atau USDC di Solana ke alamat ini.",
   "Your ORN address is linked to your profile, so your Solana address joins it there.": "Alamat ORN Anda tertaut ke profil Anda, jadi alamat Solana Anda ikut ditambahkan di sana.",
   "Buy order refund": "Pengembalian order beli",
-  "Swap leftovers": "Sisa swap"
+  "Swap leftovers": "Sisa swap",
+  "A few seconds": "Beberapa detik",
+  "About a minute": "Sekitar satu menit",
+  "About 15 seconds": "Sekitar 15 detik",
+  "About 20 seconds": "Sekitar 20 detik",
+  "About a minute · safe to close": "Sekitar satu menit · aman ditutup",
+  "Usually within a minute": "Biasanya dalam satu menit",
+  "Live": "Aktif",
+  "Posted": "Dipasang",
+  "Not enough SOL": "SOL tidak cukup",
+  "Getting ready": "Menyiapkan",
+  "Mining is off": "Penambangan nonaktif",
+  "Copy the ORN address": "Salin alamat ORN",
+  "Copy the Solana address": "Salin alamat Solana",
+  "Name or Solana address": "Nama atau alamat Solana",
+  "Pay from your Solana balance": "Bayar dari saldo Solana Anda",
+  "It's paid from this wallet's Solana balance. This app sees it arrive by itself.": "Dibayar dari saldo Solana dompet ini. Aplikasi ini mendeteksi kedatangannya secara otomatis.",
+  "Nothing more to do: your wallet pays as soon as they accept, and your ORN arrive about a minute later.": "Tidak ada lagi yang perlu dilakukan: dompet Anda membayar begitu mereka menerima, dan ORN Anda tiba sekitar satu menit kemudian.",
+  "Post a buy order for ORN, paid from this wallet's Solana balance as soon as you approve. It stays live even with Orien Wallet closed, and you can cancel it anytime.": "Pasang pesanan beli ORN, dibayar dari saldo Solana dompet ini begitu Anda menyetujuinya. Pesanan tetap aktif meski Orien Wallet ditutup, dan Anda dapat membatalkannya kapan saja.",
+  "Smallest order: 0.01 SOL, plus about 0.005 SOL for Solana's small fees, nearly all of which comes back.": "Pesanan terkecil: 0,01 SOL, ditambah sekitar 0,005 SOL untuk biaya kecil Solana, yang hampir semuanya kembali.",
+  "You approve once, now. Cancelling sends the SOL back to this wallet.": "Anda cukup menyetujui sekali, sekarang. Membatalkan akan mengirim SOL kembali ke dompet ini.",
+  "Unlock once to remember this wallet's public Solana address.": "Buka kunci sekali untuk mengingat alamat Solana publik dompet ini.",
+  "Your buy order is paid from this wallet's Solana balance. Once paid, it stays live even with Orien Wallet closed, and you can cancel anytime in one click.": "Pesanan beli Anda dibayar dari saldo Solana dompet ini. Setelah dibayar, pesanan tetap aktif meski Orien Wallet ditutup, dan Anda dapat membatalkannya kapan saja dengan satu klik.",
+  "Waiting for a seller · safe to close Orien Wallet": "Menunggu penjual · aman menutup Orien Wallet",
+  "Paid from this wallet's Solana balance.": "Dibayar dari saldo Solana dompet ini.",
+  "The swap finishes by itself, usually within a minute. If it ever stops part-way, your SOL comes back by itself. The Orien fee (0.1%, at most 1 ORN) comes out of the ORN you get.": "Penukaran selesai dengan sendirinya, biasanya dalam satu menit. Jika terhenti di tengah jalan, SOL Anda kembali dengan sendirinya. Biaya Orien (0,1%, maksimal 1 ORN) dipotong dari ORN yang Anda terima.",
+  "The SOL arrives in this wallet's Solana balance,": "SOL masuk ke saldo Solana dompet ini,",
+  "already locked by the buyer, so usually within a minute. You need the ORN plus the Orien fee (0.1%, at most 1 ORN). If anything stops the swap, your ORN come back by themselves.": "yang sudah dikunci oleh pembeli, jadi biasanya dalam satu menit. Anda memerlukan ORN ditambah biaya Orien (0,1%, maksimal 1 ORN). Jika ada yang menghentikan penukaran, ORN Anda kembali dengan sendirinya.",
+  "once the buyer pays, usually within a minute. You need the ORN plus the Orien fee (0.1%, at most 1 ORN). If anything stops the swap, your ORN come back by themselves.": "begitu pembeli membayar, biasanya dalam satu menit. Anda memerlukan ORN ditambah biaya Orien (0,1%, maksimal 1 ORN). Jika ada yang menghentikan penukaran, ORN Anda kembali dengan sendirinya.",
+  "Swap SOL and USDC": "Tukar SOL dan USDC",
+  "Refresh Solana balances": "Muat ulang saldo Solana",
+  "Buy / Sell": "Beli / Jual"
 }

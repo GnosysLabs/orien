@@ -1883,6 +1883,70 @@
     [
       "^says they paid ([0-9.,]+) ORN$",
       "表示已支付 {0} ORN"
+    ],
+    [
+      "^([\\d.,]+ SOL) in your Solana balance$",
+      "{0} 已存入你的 Solana 余额"
+    ],
+    [
+      "^([\\d.,]+ (?:SOL|BTC)) on its way to you$",
+      "{0} 正在发往你的钱包"
+    ],
+    [
+      "^([\\d.,]+ ORN) in your wallet$",
+      "{0} 已存入你的钱包"
+    ],
+    [
+      "^([\\d.,]+ SOL) from your Solana balance$",
+      "从你的 Solana 余额支付 {0}"
+    ],
+    [
+      "^(.+) locks ([\\d.,]+ ORN) for you$",
+      "{0} 为你锁定 {1}"
+    ],
+    [
+      "^The buyer's ([\\d.,]+ SOL) held for you$",
+      "买家的 {0} 已为你保留"
+    ],
+    [
+      "^Your ([\\d.,]+ ORN) locked for the buyer$",
+      "你的 {0} 已为买家锁定"
+    ],
+    [
+      "^Your ([\\d.,]+ SOL) locked on Solana and listed$",
+      "你的 {0} 已在 Solana 上锁定并挂单"
+    ],
+    [
+      "^Your ([\\d.,]+ ORN) on the way$",
+      "你的 {0} 正在发送中"
+    ],
+    [
+      "^([\\d.,]+ (?:SOL|BTC)) received$",
+      "已收到 {0}"
+    ],
+    [
+      "^Paying ([\\d.,]+ SOL) from your Solana balance$",
+      "正在从你的 Solana 余额支付 {0}"
+    ],
+    [
+      "^Paying ([\\d.,]+ SOL) from your Solana balance\\. Nothing to do: the swap finishes by itself\\.$",
+      "正在从你的 Solana 余额支付 {0}。无需操作：兑换会自动完成。"
+    ],
+    [
+      "^You need about ([\\d.,]+) SOL in this wallet's Solana balance for this, and it has ([\\d.,]+) SOL\\. Add SOL first, from Phantom or an exchange\\.$",
+      "此操作需要此钱包的 Solana 余额中约有 {0} SOL，目前只有 {1} SOL。请先从 Phantom 或交易所转入 SOL。"
+    ],
+    [
+      "^This wallet's Solana balance \\(([\\d.,]+) SOL\\) can't cover it\\. Send exactly this from another SOL wallet, such as Phantom or an exchange: scan the code, or copy the address and amount\\. This app sees it by itself\\.$",
+      "此钱包的 Solana 余额（{0} SOL）不足以支付。请从其他 SOL 钱包（例如 Phantom 或交易所）准确发送此金额：扫描二维码，或复制地址和金额。本应用会自动检测到账。"
+    ],
+    [
+      "^Waiting for (.+)'s wallet to lock the ORN for you\\. About a minute; nothing to do\\.$",
+      "正在等待 {0} 的钱包为你锁定 ORN。约 1 分钟，无需操作。"
+    ],
+    [
+      "^Send ([\\d.,]+ SOL) from your SOL wallet$",
+      "从你的 SOL 钱包发送 {0}"
     ]
   ],
   "_guides": {
@@ -2206,5 +2270,36 @@
   "Send only SOL or USDC on Solana to this address.": "请只向此地址发送 Solana 上的 SOL 或 USDC。",
   "Your ORN address is linked to your profile, so your Solana address joins it there.": "你的 ORN 地址已关联到个人资料，因此你的 Solana 地址也会一并加入。",
   "Buy order refund": "买单退款",
-  "Swap leftovers": "兑换余额"
+  "Swap leftovers": "兑换余额",
+  "A few seconds": "几秒钟",
+  "About a minute": "约 1 分钟",
+  "About 15 seconds": "约 15 秒",
+  "About 20 seconds": "约 20 秒",
+  "About a minute · safe to close": "约 1 分钟 · 可以关闭",
+  "Usually within a minute": "通常在 1 分钟内",
+  "Live": "生效中",
+  "Posted": "已发布",
+  "Not enough SOL": "SOL 不足",
+  "Getting ready": "正在准备",
+  "Mining is off": "挖矿已关闭",
+  "Copy the ORN address": "复制 ORN 地址",
+  "Copy the Solana address": "复制 Solana 地址",
+  "Name or Solana address": "名称或 Solana 地址",
+  "Pay from your Solana balance": "从你的 Solana 余额支付",
+  "It's paid from this wallet's Solana balance. This app sees it arrive by itself.": "将从此钱包的 Solana 余额支付。本应用会自动检测到账。",
+  "Nothing more to do: your wallet pays as soon as they accept, and your ORN arrive about a minute later.": "无需其他操作：对方接受后你的钱包会立即付款，你的 ORN 约 1 分钟后到账。",
+  "Post a buy order for ORN, paid from this wallet's Solana balance as soon as you approve. It stays live even with Orien Wallet closed, and you can cancel it anytime.": "发布 ORN 买单，你确认后立即从此钱包的 Solana 余额付款。即使关闭 Orien Wallet，买单也会持续生效，你可以随时取消。",
+  "Smallest order: 0.01 SOL, plus about 0.005 SOL for Solana's small fees, nearly all of which comes back.": "最小订单：0.01 SOL，另需约 0.005 SOL 支付 Solana 的少量手续费，其中几乎全部会退回。",
+  "You approve once, now. Cancelling sends the SOL back to this wallet.": "你现在只需确认一次。取消后 SOL 会退回此钱包。",
+  "Unlock once to remember this wallet's public Solana address.": "解锁一次，以记住此钱包的公开 Solana 地址。",
+  "Your buy order is paid from this wallet's Solana balance. Once paid, it stays live even with Orien Wallet closed, and you can cancel anytime in one click.": "你的买单从此钱包的 Solana 余额付款。付款后，即使关闭 Orien Wallet 买单也会持续生效，你随时可以一键取消。",
+  "Waiting for a seller · safe to close Orien Wallet": "等待卖家 · 可以关闭 Orien Wallet",
+  "Paid from this wallet's Solana balance.": "从此钱包的 Solana 余额支付。",
+  "The swap finishes by itself, usually within a minute. If it ever stops part-way, your SOL comes back by itself. The Orien fee (0.1%, at most 1 ORN) comes out of the ORN you get.": "兑换会自动完成，通常在 1 分钟内。如果中途中断，你的 SOL 会自动退回。Orien 手续费（0.1%，最高 1 ORN）从你收到的 ORN 中扣除。",
+  "The SOL arrives in this wallet's Solana balance,": "SOL 将存入此钱包的 Solana 余额，",
+  "already locked by the buyer, so usually within a minute. You need the ORN plus the Orien fee (0.1%, at most 1 ORN). If anything stops the swap, your ORN come back by themselves.": "买家已锁定这笔 SOL，因此通常在 1 分钟内到账。你需要准备 ORN 以及 Orien 手续费（0.1%，最高 1 ORN）。如果兑换因故中断，你的 ORN 会自动退回。",
+  "once the buyer pays, usually within a minute. You need the ORN plus the Orien fee (0.1%, at most 1 ORN). If anything stops the swap, your ORN come back by themselves.": "买家付款后即到账，通常在 1 分钟内。你需要准备 ORN 以及 Orien 手续费（0.1%，最高 1 ORN）。如果兑换因故中断，你的 ORN 会自动退回。",
+  "Swap SOL and USDC": "兑换 SOL 和 USDC",
+  "Refresh Solana balances": "刷新 Solana 余额",
+  "Buy / Sell": "买入 / 卖出"
 }

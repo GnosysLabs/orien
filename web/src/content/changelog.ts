@@ -26,6 +26,21 @@ export const PRODUCTS: Record<Product, string> = {
 
 export const CHANGELOG: Entry[] = [
   {
+    date: '2026-11-27',
+    products: ['wallet'],
+    version: '1.9.31',
+    title: 'A Solana wallet built in, and buying ORN in one approval',
+    changes: [
+      'Every wallet now has its own Solana address beside its ORN address, with SOL and USDC balances, sending, receiving and activity.',
+      'Buying ORN with SOL takes one approval. The wallet pays from its Solana balance as soon as the seller locks the ORN, and one checklist follows the swap until the ORN arrive.',
+      'Sales, refunds and leftovers land in the same Solana balance, so there are no addresses to copy or paste.',
+      'Swap SOL and USDC inside the wallet.',
+      'Find people by name when sending SOL. Contacts show the Solana address linked with each wallet, and linking a wallet to your profile links both addresses.',
+      'See SOL and USDC balances in your own currency, with each coin’s mark beside the balance.',
+    ],
+    unreleased: true,
+  },
+  {
     date: '2026-11-26',
     products: ['wallet'],
     version: '1.9.30',
