@@ -889,9 +889,9 @@
   "Linked wallet": "已关联钱包",
   "Link": "关联",
   "Link a wallet": "关联钱包",
-  "Link a wallet and people who pay it see your name with it.": "关联钱包后，向你付款的人将能看到与地址对应的用户名。",
+  "Link a wallet to show it on your profile.": "关联钱包即可在个人资料中显示该钱包。",
   "Link a wallet to post and see your mining here.": "关联钱包后即可发帖并在此查看你的挖矿数据。",
-  "Link more wallets, and choose where you're paid": "关联更多钱包，并选择收款钱包",
+  "Link more wallets": "关联更多钱包",
   "Link one of your wallets to your Orien Network profile to post, reply and react.": "在你的 Orien Network 个人资料中关联一个钱包，即可发帖、回复和互动。",
   "Link one of your wallets to chat, reply or react.": "关联你的任一钱包即可聊天、回复或互动。",
   "Link one of your wallets to chat. Anyone can read along.": "关联你的任一钱包即可发言，所有人都可以浏览聊天内容。",
@@ -1979,13 +1979,12 @@
       "note": "关联后会向所有人展示此钱包归你所有（包括余额），同时解锁发帖、出售商品、兑换和接收打赏功能。"
     },
     "verify-more": {
-      "title": "关联更多钱包，并选择收款钱包",
+      "title": "关联更多钱包",
       "steps": [
         "切换到另一个钱包：在主页点击钱包名称并选择它。",
         "点击你的头像，选择<b>编辑资料</b>，然后点击该钱包旁的<b>关联</b>。",
         "对每个想展示在个人资料中的钱包重复此操作。",
-        "买家和打赏者付款的钱包会显示<b>在此收款</b>。如需更改，请在另一个已关联钱包上点击<b>在此收款</b>。",
-        "如需将某个钱包从个人资料中移除，请点击它旁边的 <b>⋯</b>，然后点击<b>从个人资料移除</b>。"
+        "要从个人资料中移除钱包，请选择名称旁边的<b>取消关联</b>。"
       ]
     },
     "tip": {

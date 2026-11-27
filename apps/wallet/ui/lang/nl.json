@@ -889,9 +889,9 @@
   "Linked wallet": "Gekoppelde wallet",
   "Link": "Koppelen",
   "Link a wallet": "Een wallet koppelen",
-  "Link a wallet and people who pay it see your name with it.": "Koppel een wallet zodat mensen die ernaar betalen jouw naam erbij zien.",
+  "Link a wallet to show it on your profile.": "Koppel een wallet om deze op je profiel te tonen.",
   "Link a wallet to post and see your mining here.": "Koppel een wallet om berichten te plaatsen en je mining hier te zien.",
-  "Link more wallets, and choose where you're paid": "Koppel meer wallets en kies waar je betaald wordt",
+  "Link more wallets": "Meer wallets koppelen",
   "Link one of your wallets to your Orien Network profile to post, reply and react.": "Koppel een van je wallets op je Orien Network-profiel om te plaatsen, antwoorden en reageren.",
   "Link one of your wallets to chat, reply or react.": "Koppel een van je wallets om te chatten, antwoorden of reageren.",
   "Link one of your wallets to chat. Anyone can read along.": "Koppel een van je wallets om te chatten. Iedereen kan meelezen.",
@@ -1979,13 +1979,12 @@
       "note": "Koppelen laat iedereen zien dat de wallet van jou is, inclusief het saldo. Zo kun je berichten plaatsen, verkopen, ruilen en fooien ontvangen."
     },
     "verify-more": {
-      "title": "Koppel meer wallets en kies waar je betaald wordt",
+      "title": "Meer wallets koppelen",
       "steps": [
         "Wissel naar een andere wallet: klik op Start op de naam van de wallet en kies deze.",
         "Klik op je foto, dan op <b>Profiel bewerken</b> en daarna op <b>Koppelen</b> naast die wallet.",
         "Herhaal dit voor elke wallet die je op je profiel wilt.",
-        "De wallet waarop kopers en fooigevers betalen heeft het label <b>Hier betaald</b>. Om dit te wijzigen, klik je op <b>Hier betaald worden</b> bij een andere gekoppelde wallet.",
-        "Om een wallet van je profiel te halen, klik je op <b>⋯</b> ernaast en daarna op <b>Van je profiel verwijderen</b>."
+        "Kies <b>Ontkoppelen</b> naast de naam om een wallet van je profiel te verwijderen."
       ]
     },
     "tip": {

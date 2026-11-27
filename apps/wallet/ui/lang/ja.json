@@ -519,7 +519,7 @@
   "Validator fees": "バリデータ手数料",
   "Validators": "バリデータ",
   "Link": "連携",
-  "Link a wallet and people who pay it see your name with it.": "ウォレットを連携すると、送金する相手にあなたの名前が一緒に表示されます。",
+  "Link a wallet to show it on your profile.": "ウォレットを連携するとプロフィールに表示されます。",
   "Link this wallet": "このウォレットを連携",
   "Link this wallet to offer swaps": "スワップを出品するにはウォレット連携が必要です",
   "Link this wallet to place sell orders": "売り注文を出すにはウォレット連携が必要です",
@@ -1000,7 +1000,7 @@
   "Linked wallet": "連携済みウォレット",
   "Link a wallet": "ウォレットを連携",
   "Link a wallet to post and see your mining here.": "ウォレットを連携すると投稿でき、マイニング実績もここに表示されます。",
-  "Link more wallets, and choose where you're paid": "複数のウォレットを連携して受取先を選べます",
+  "Link more wallets": "ほかのウォレットを連携する",
   "Link one of your wallets to your Orien Network profile to post, reply and react.": "投稿、返信、リアクションをするには、Orien Network プロフィールでいずれかのウォレットを連携してください。",
   "Link one of your wallets to chat, reply or react.": "チャット、返信、リアクションをするには、いずれかのウォレットを連携してください。",
   "Link one of your wallets to chat. Anyone can read along.": "チャットするにはいずれかのウォレットを連携してください。閲覧は誰でもできます。",
@@ -1979,13 +1979,12 @@
       "note": "連携すると、残高を含めてそのウォレットがあなたのものであることが公開され、投稿、出品、スワップ、チップの受取ができるようになります。"
     },
     "verify-more": {
-      "title": "追加のウォレットを連携し、受取先を選ぶ",
+      "title": "ほかのウォレットを連携する",
       "steps": [
         "別のウォレットに切り替えます。ホーム画面でウォレット名をクリックして選んでください。",
         "自分のアイコンをクリックし、<b>プロフィールを編集</b>を開いて、そのウォレットの横にある<b>連携</b>をクリックします。",
         "プロフィールに載せたいウォレットごとに繰り返します。",
-        "購入者やチップの送り先になるウォレットには<b>受取先</b>と表示されます。変更するには、別の連携済みウォレットで<b>ここで受け取る</b>をクリックします。",
-        "プロフィールからウォレットを外すには、横の<b>⋯</b>をクリックして<b>プロフィールから削除</b>をクリックします。"
+        "プロフィールからウォレットを外すには、名前の横の<b>連携を解除</b>を選択します。"
       ]
     },
     "tip": {

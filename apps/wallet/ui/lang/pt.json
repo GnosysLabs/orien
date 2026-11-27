@@ -889,9 +889,9 @@
   "Linked wallet": "Carteira vinculada",
   "Link": "Vincular",
   "Link a wallet": "Vincular uma carteira",
-  "Link a wallet and people who pay it see your name with it.": "Vincule uma carteira para que quem pagar para ela veja seu nome junto.",
+  "Link a wallet to show it on your profile.": "Vincule uma carteira para mostrá-la no seu perfil.",
   "Link a wallet to post and see your mining here.": "Vincule uma carteira para publicar e ver sua mineração aqui.",
-  "Link more wallets, and choose where you're paid": "Vincule mais carteiras e escolha onde receber",
+  "Link more wallets": "Vincular mais carteiras",
   "Link one of your wallets to your Orien Network profile to post, reply and react.": "Vincule uma das suas carteiras no seu perfil da Orien Network para publicar, responder e reagir.",
   "Link one of your wallets to chat, reply or react.": "Vincule uma das suas carteiras para conversar, responder ou reagir.",
   "Link one of your wallets to chat. Anyone can read along.": "Vincule uma das suas carteiras para conversar. Qualquer pessoa pode acompanhar.",
@@ -1979,13 +1979,12 @@
       "note": "Vincular mostra a todos que a carteira é sua, incluindo o saldo. Isso permite publicar, vender, trocar e receber gorjetas."
     },
     "verify-more": {
-      "title": "Vincule mais carteiras e escolha onde receber",
+      "title": "Vincular mais carteiras",
       "steps": [
         "Troque para outra carteira: clique no nome da carteira no Início e selecione-a.",
         "Clique na sua foto, depois em <b>Editar perfil</b> e em <b>Vincular</b> ao lado dessa carteira.",
         "Repita para cada carteira que deseja no seu perfil.",
-        "A carteira onde compradores e quem envia gorjetas pagam mostra <b>Recebe aqui</b>. Para mudar, clique em <b>Receber aqui</b> em outra carteira vinculada.",
-        "Para tirar uma carteira do seu perfil, clique em <b>⋯</b> ao lado dela e depois em <b>Remover do seu perfil</b>."
+        "Para remover uma carteira do perfil, selecione <b>Desvincular</b> ao lado do nome dela."
       ]
     },
     "tip": {

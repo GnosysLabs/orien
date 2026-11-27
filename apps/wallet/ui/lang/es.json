@@ -889,9 +889,9 @@
   "Linked wallet": "Billetera vinculada",
   "Link": "Vincular",
   "Link a wallet": "Vincular una billetera",
-  "Link a wallet and people who pay it see your name with it.": "Vincula una billetera para que quienes le paguen vean tu nombre junto a ella.",
+  "Link a wallet to show it on your profile.": "Vincula una billetera para mostrarla en tu perfil.",
   "Link a wallet to post and see your mining here.": "Vincula una billetera para publicar y ver tu minería aquí.",
-  "Link more wallets, and choose where you're paid": "Vincula más billeteras y elige dónde recibir pagos",
+  "Link more wallets": "Vincular más billeteras",
   "Link one of your wallets to your Orien Network profile to post, reply and react.": "Vincula una de tus billeteras en tu perfil de Orien Network para publicar, responder y reaccionar.",
   "Link one of your wallets to chat, reply or react.": "Vincula una de tus billeteras para chatear, responder o reaccionar.",
   "Link one of your wallets to chat. Anyone can read along.": "Vincula una de tus billeteras para chatear. Cualquiera puede leer.",
@@ -1979,13 +1979,12 @@
       "note": "Vincular muestra a todos que la billetera es tuya, incluido su saldo. Te permite publicar, vender, intercambiar y recibir propinas."
     },
     "verify-more": {
-      "title": "Vincula más billeteras y elige dónde recibir pagos",
+      "title": "Vincular más billeteras",
       "steps": [
         "Cambia a otra billetera: haz clic en el nombre de la billetera en Inicio y selecciónala.",
         "Haz clic en tu foto, luego en <b>Editar perfil</b> y después en <b>Vincular</b> junto a esa billetera.",
         "Repite esto para cada billetera que quieras en tu perfil.",
-        "La billetera en la que pagan compradores y quienes dan propinas muestra <b>Pagos aquí</b>. Para cambiarla, haz clic en <b>Recibir pagos aquí</b> en otra billetera vinculada.",
-        "Para quitar una billetera de tu perfil, haz clic en <b>⋯</b> junto a ella y luego en <b>Quitar de tu perfil</b>."
+        "Para quitar una billetera del perfil, selecciona <b>Desvincular</b> junto a su nombre."
       ]
     },
     "tip": {

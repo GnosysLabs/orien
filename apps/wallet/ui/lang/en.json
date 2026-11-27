@@ -519,7 +519,7 @@
   "Validator fees": "Validator fees",
   "Validators": "Validators",
   "Link": "Link",
-  "Link a wallet and people who pay it see your name with it.": "Link a wallet and people who pay it see your name with it.",
+  "Link a wallet to show it on your profile.": "Link a wallet to show it on your profile.",
   "Link this wallet": "Link this wallet",
   "Link this wallet to offer swaps": "Link this wallet to offer swaps",
   "Link this wallet to place sell orders": "Link this wallet to place sell orders",
@@ -997,7 +997,7 @@
   "Linked wallet": "Linked wallet",
   "Link a wallet": "Link a wallet",
   "Link a wallet to post and see your mining here.": "Link a wallet to post and see your mining here.",
-  "Link more wallets, and choose where you're paid": "Link more wallets, and choose where you're paid",
+  "Link more wallets": "Link more wallets",
   "Link one of your wallets to your Orien Network profile to post, reply and react.": "Link one of your wallets to your Orien Network profile to post, reply and react.",
   "Link one of your wallets to chat, reply or react.": "Link one of your wallets to chat, reply or react.",
   "Link one of your wallets to chat. Anyone can read along.": "Link one of your wallets to chat. Anyone can read along.",
@@ -1214,13 +1214,12 @@
       "note": "Linking shows everyone the wallet is yours, including its balance. It lets you post, sell, swap and receive tips."
     },
     "verify-more": {
-      "title": "Link more wallets, and choose where you're paid",
+      "title": "Link more wallets",
       "steps": [
         "Switch to another wallet: click the wallet's name on Home and pick it.",
         "Click your picture, then <b>Edit Profile</b>, then <b>Link</b> beside that wallet.",
         "Repeat for each wallet you want on your profile.",
-        "The wallet buyers and tippers pay says <b>Paid here</b>. To change it, click <b>Get paid here</b> on another linked wallet.",
-        "To take a wallet off your profile, click <b>⋯</b> beside it, then <b>Remove from your profile</b>."
+        "To remove a wallet from your profile, select <b>Unlink</b> beside its name."
       ]
     },
     "tip": {

@@ -519,7 +519,7 @@
   "Validator fees": "Frais de validateur",
   "Validators": "Validateurs",
   "Link": "Lier",
-  "Link a wallet and people who pay it see your name with it.": "Liez un portefeuille pour que les personnes qui le paient voient votre nom associé.",
+  "Link a wallet to show it on your profile.": "Liez un portefeuille pour l’afficher sur votre profil.",
   "Link this wallet": "Lier ce portefeuille",
   "Link this wallet to offer swaps": "Liez ce portefeuille pour proposer des échanges",
   "Link this wallet to place sell orders": "Liez ce portefeuille pour placer des ordres de vente",
@@ -1000,7 +1000,7 @@
   "Linked wallet": "Portefeuille lié",
   "Link a wallet": "Lier un portefeuille",
   "Link a wallet to post and see your mining here.": "Liez un portefeuille pour publier et voir votre minage ici.",
-  "Link more wallets, and choose where you're paid": "Liez d'autres portefeuilles et choisissez où vous êtes payé",
+  "Link more wallets": "Lier d’autres portefeuilles",
   "Link one of your wallets to your Orien Network profile to post, reply and react.": "Liez l'un de vos portefeuilles sur votre profil Orien Network pour publier, répondre et réagir.",
   "Link one of your wallets to chat, reply or react.": "Liez l'un de vos portefeuilles pour discuter, répondre ou réagir.",
   "Link one of your wallets to chat. Anyone can read along.": "Liez l'un de vos portefeuilles pour discuter. Tout le monde peut lire.",
@@ -1979,13 +1979,12 @@
       "note": "La liaison montre à tout le monde que le portefeuille vous appartient, y compris son solde. Elle vous permet de publier, vendre, échanger et recevoir des pourboires."
     },
     "verify-more": {
-      "title": "Lier d'autres portefeuilles et choisir où vous êtes payé",
+      "title": "Lier d’autres portefeuilles",
       "steps": [
         "Passez à un autre portefeuille : cliquez sur le nom du portefeuille sur l'Accueil et sélectionnez-le.",
         "Cliquez sur votre photo, puis sur <b>Modifier le profil</b>, puis sur <b>Lier</b> à côté de ce portefeuille.",
         "Répétez l'opération pour chaque portefeuille que vous souhaitez afficher sur votre profil.",
-        "Le portefeuille sur lequel les acheteurs et les personnes qui vous envoient un pourboire vous paient indique <b>Payé ici</b>. Pour le changer, cliquez sur <b>Être payé ici</b> sur un autre portefeuille lié.",
-        "Pour retirer un portefeuille de votre profil, cliquez sur <b>⋯</b> à côté, puis sur <b>Retirer de votre profil</b>."
+        "Pour retirer un portefeuille de votre profil, sélectionnez <b>Délier</b> à côté de son nom."
       ]
     },
     "tip": {

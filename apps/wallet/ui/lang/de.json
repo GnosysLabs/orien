@@ -519,7 +519,7 @@
   "Validator fees": "Validator-Gebühren",
   "Validators": "Validatoren",
   "Link": "Verknüpfen",
-  "Link a wallet and people who pay it see your name with it.": "Verknüpfe eine Wallet, damit Personen, die an sie zahlen, deinen Namen sehen.",
+  "Link a wallet to show it on your profile.": "Verknüpfe eine Wallet, um sie in deinem Profil anzuzeigen.",
   "Link this wallet": "Diese Wallet verknüpfen",
   "Link this wallet to offer swaps": "Verknüpfe diese Wallet, um Swaps anzubieten",
   "Link this wallet to place sell orders": "Verknüpfe diese Wallet, um Verkaufsorders zu erstellen",
@@ -1000,7 +1000,7 @@
   "Linked wallet": "Verknüpfte Wallet",
   "Link a wallet": "Wallet verknüpfen",
   "Link a wallet to post and see your mining here.": "Verknüpfe eine Wallet, um zu posten und dein Mining hier zu sehen.",
-  "Link more wallets, and choose where you're paid": "Verknüpfe weitere Wallets und wähle, wohin gezahlt wird",
+  "Link more wallets": "Weitere Wallets verknüpfen",
   "Link one of your wallets to your Orien Network profile to post, reply and react.": "Verknüpfe eine deiner Wallets in deinem Orien Network-Profil, um zu posten, zu antworten und zu reagieren.",
   "Link one of your wallets to chat, reply or react.": "Verknüpfe eine deiner Wallets, um zu chatten, zu antworten oder zu reagieren.",
   "Link one of your wallets to chat. Anyone can read along.": "Verknüpfe eine deiner Wallets zum Chatten. Jeder kann mitlesen.",
@@ -1979,13 +1979,12 @@
       "note": "Die Verknüpfung zeigt allen, dass die Wallet dir gehört, inklusive Guthaben. Damit kannst du posten, verkaufen, tauschen und Trinkgelder erhalten."
     },
     "verify-more": {
-      "title": "Weitere Wallets verknüpfen und Auszahlungs-Wallet wählen",
+      "title": "Weitere Wallets verknüpfen",
       "steps": [
         "Wechsle zu einer anderen Wallet: Klicke auf Start auf den Namen deiner Wallet und wähle sie aus.",
         "Klicke auf dein Bild, dann auf <b>Profil bearbeiten</b> und anschließend neben dieser Wallet auf <b>Verknüpfen</b>.",
         "Wiederhole dies für jede Wallet, die auf deinem Profil erscheinen soll.",
-        "Die Wallet, an die Käufer und Trinkgeldgeber zahlen, trägt den Hinweis <b>Hier bezahlt</b>. Um das zu ändern, klicke bei einer anderen verknüpften Wallet auf <b>Hier bezahlt werden</b>.",
-        "Um eine Wallet von deinem Profil zu entfernen, klicke daneben auf <b>⋯</b> und dann auf <b>Aus deinem Profil entfernen</b>."
+        "Wähle neben dem Wallet-Namen <b>Verknüpfung lösen</b>, um die Wallet aus deinem Profil zu entfernen."
       ]
     },
     "tip": {

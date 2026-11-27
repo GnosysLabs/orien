@@ -889,9 +889,9 @@
   "Linked wallet": "Bağlanmış cüzdan",
   "Link": "Bağla",
   "Link a wallet": "Bir cüzdan bağla",
-  "Link a wallet and people who pay it see your name with it.": "Bir cüzdan bağlayın; ona ödeme yapan kişiler yanında adınızı görsün.",
+  "Link a wallet to show it on your profile.": "Profilinizde göstermek için bir cüzdan bağlayın.",
   "Link a wallet to post and see your mining here.": "Paylaşım yapmak ve madenciliğinizi burada görmek için bir cüzdan bağlayın.",
-  "Link more wallets, and choose where you're paid": "Daha fazla cüzdan bağlayın ve ödemelerin nereye yapılacağını seçin",
+  "Link more wallets": "Başka cüzdanlar bağla",
   "Link one of your wallets to your Orien Network profile to post, reply and react.": "Paylaşım yapmak, yanıtlamak ve tepki vermek için Orien Network profilinizde cüzdanlarınızdan birini bağlayın.",
   "Link one of your wallets to chat, reply or react.": "Sohbet etmek, yanıtlamak veya tepki vermek için cüzdanlarınızdan birini bağlayın.",
   "Link one of your wallets to chat. Anyone can read along.": "Sohbet etmek için cüzdanlarınızdan birini bağlayın. Herkes okuyabilir.",
@@ -1979,13 +1979,12 @@
       "note": "Bağlama, bakiyesi dahil bu cüzdanın size ait olduğunu herkese gösterir. Paylaşım yapmanıza, satış yapmanıza, takas etmenize ve bahşiş almanıza olanak tanır."
     },
     "verify-more": {
-      "title": "Daha fazla cüzdan bağlayın ve ödemelerin nereye yapılacağını seçin",
+      "title": "Başka cüzdanlar bağla",
       "steps": [
         "Başka bir cüzdana geçin: Ana Sayfa'da cüzdan adına tıklayın ve seçin.",
         "Resminize, ardından <b>Profili Düzenle</b>'ye ve o cüzdanın yanındaki <b>Bağla</b>'ya tıklayın.",
         "Profilinizde olmasını istediğiniz her cüzdan için tekrarlayın.",
-        "Alıcıların ve bahşiş gönderenlerin ödeme yaptığı cüzdanda <b>Ödeme buraya</b> yazar. Değiştirmek için başka bir bağlanmış cüzdanda <b>Ödemeyi buraya al</b>'a tıklayın.",
-        "Bir cüzdanı profilinizden kaldırmak için yanındaki <b>⋯</b> simgesine, ardından <b>Profilinden kaldır</b>'a tıklayın."
+        "Bir cüzdanı profilinizden kaldırmak için adının yanındaki <b>Bağlantıyı kaldır</b> seçeneğini seçin."
       ]
     },
     "tip": {

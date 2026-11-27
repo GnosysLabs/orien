@@ -889,9 +889,9 @@
   "Linked wallet": "Ví đã liên kết",
   "Link": "Liên kết",
   "Link a wallet": "Liên kết ví",
-  "Link a wallet and people who pay it see your name with it.": "Liên kết ví để người thanh toán nhìn thấy tên của bạn kèm theo ví.",
+  "Link a wallet to show it on your profile.": "Liên kết ví để hiển thị ví trên hồ sơ của bạn.",
   "Link a wallet to post and see your mining here.": "Liên kết một ví để đăng bài và xem hoạt động đào của bạn tại đây.",
-  "Link more wallets, and choose where you're paid": "Liên kết thêm ví và chọn nơi nhận thanh toán",
+  "Link more wallets": "Liên kết thêm ví",
   "Link one of your wallets to your Orien Network profile to post, reply and react.": "Liên kết một trong các ví trên hồ sơ Orien Network của bạn để đăng bài, trả lời và thả cảm xúc.",
   "Link one of your wallets to chat, reply or react.": "Liên kết một trong các ví của bạn để trò chuyện, trả lời hoặc thả cảm xúc.",
   "Link one of your wallets to chat. Anyone can read along.": "Liên kết một trong các ví của bạn để trò chuyện. Ai cũng có thể đọc.",
@@ -1979,13 +1979,12 @@
       "note": "Việc liên kết cho mọi người thấy ví này là của bạn, bao gồm cả số dư. Nó cho phép bạn đăng bài, bán hàng, hoán đổi và nhận tiền tip."
     },
     "verify-more": {
-      "title": "Liên kết thêm ví và chọn nơi nhận thanh toán",
+      "title": "Liên kết thêm ví",
       "steps": [
         "Chuyển sang ví khác: nhấn vào tên ví ở Trang chủ và chọn ví đó.",
         "Nhấn vào ảnh đại diện của bạn, chọn <b>Chỉnh sửa hồ sơ</b>, rồi nhấn <b>Liên kết</b> bên cạnh ví đó.",
         "Lặp lại với từng ví bạn muốn hiển thị trên hồ sơ.",
-        "Ví mà người mua và người tặng tip thanh toán sẽ hiển thị <b>Nhận tiền tại đây</b>. Để đổi, nhấn <b>Nhận tiền ở đây</b> trên một ví đã liên kết khác.",
-        "Để gỡ một ví khỏi hồ sơ, nhấn <b>⋯</b> bên cạnh ví đó, rồi chọn <b>Gỡ khỏi hồ sơ của bạn</b>."
+        "Để gỡ ví khỏi hồ sơ, chọn <b>Hủy liên kết</b> bên cạnh tên ví."
       ]
     },
     "tip": {

@@ -519,7 +519,7 @@
   "Validator fees": "검증인 수수료",
   "Validators": "검증인",
   "Link": "연결",
-  "Link a wallet and people who pay it see your name with it.": "지갑을 연결하면 송금하는 사람에게 회원님의 이름이 함께 표시됩니다.",
+  "Link a wallet to show it on your profile.": "지갑을 연결하면 프로필에 표시됩니다.",
   "Link this wallet": "이 지갑 연결",
   "Link this wallet to offer swaps": "스왑을 등록하려면 지갑을 연결하세요",
   "Link this wallet to place sell orders": "매도 주문을 등록하려면 지갑을 연결하세요",
@@ -1000,7 +1000,7 @@
   "Linked wallet": "연결된 지갑",
   "Link a wallet": "지갑 연결",
   "Link a wallet to post and see your mining here.": "게시물을 작성하고 이곳에서 채굴 기록을 보려면 지갑을 연결하세요.",
-  "Link more wallets, and choose where you're paid": "지갑을 더 연결하고 대금을 받을 지갑을 선택하세요",
+  "Link more wallets": "지갑 추가 연결",
   "Link one of your wallets to your Orien Network profile to post, reply and react.": "게시, 답글, 반응을 하려면 Orien Network 프로필에서 지갑을 하나 연결하세요.",
   "Link one of your wallets to chat, reply or react.": "채팅하거나 답글, 반응을 남기려면 지갑을 하나 연결하세요.",
   "Link one of your wallets to chat. Anyone can read along.": "채팅하려면 지갑을 하나 연결하세요. 읽기는 누구나 가능합니다.",
@@ -1979,13 +1979,12 @@
       "note": "연결하면 지갑과 잔액이 본인 소유임이 모두에게 공개됩니다. 게시물 작성, 판매, 스왑, 팁 수령이 가능해집니다."
     },
     "verify-more": {
-      "title": "지갑을 더 연결하고 대금을 받을 지갑을 선택하세요",
+      "title": "지갑 추가 연결",
       "steps": [
         "다른 지갑으로 전환하세요. 홈 화면에서 지갑 이름을 클릭해 원하는 지갑을 선택하면 됩니다.",
         "내 사진을 클릭한 뒤 <b>프로필 편집</b>에서 해당 지갑 옆의 <b>연결</b>을 클릭하세요.",
         "프로필에 표시하고 싶은 각 지갑에 대해 반복하세요.",
-        "구매자와 팁을 보내는 사람이 송금하는 지갑에는 <b>결제 수령 지갑</b>이 표시됩니다. 변경하려면 다른 연결된 지갑에서 <b>결제 수령 지갑으로 설정</b>을 클릭하세요.",
-        "프로필에서 지갑을 빼려면 지갑 옆의 <b>⋯</b>을 클릭한 뒤 <b>프로필에서 제거</b>를 클릭하세요."
+        "프로필에서 지갑을 제거하려면 이름 옆의 <b>연결 해제</b>를 선택하세요."
       ]
     },
     "tip": {

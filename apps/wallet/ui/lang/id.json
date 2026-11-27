@@ -889,9 +889,9 @@
   "Linked wallet": "Dompet tertaut",
   "Link": "Tautkan",
   "Link a wallet": "Tautkan dompet",
-  "Link a wallet and people who pay it see your name with it.": "Tautkan dompet agar orang yang membayarnya melihat nama Anda bersamanya.",
+  "Link a wallet to show it on your profile.": "Tautkan dompet untuk menampilkannya di profil Anda.",
   "Link a wallet to post and see your mining here.": "Tautkan dompet untuk memposting dan melihat penambangan Anda di sini.",
-  "Link more wallets, and choose where you're paid": "Tautkan dompet lain, dan pilih tempat menerima pembayaran",
+  "Link more wallets": "Tautkan dompet lain",
   "Link one of your wallets to your Orien Network profile to post, reply and react.": "Tautkan salah satu dompet Anda di profil Orien Network untuk memposting, membalas, dan memberi reaksi.",
   "Link one of your wallets to chat, reply or react.": "Tautkan salah satu dompet Anda untuk mengobrol, membalas, atau memberi reaksi.",
   "Link one of your wallets to chat. Anyone can read along.": "Tautkan salah satu dompet Anda untuk mengobrol. Siapa saja dapat ikut membaca.",
@@ -1979,13 +1979,12 @@
       "note": "Menautkan dompet menunjukkan kepada semua orang bahwa dompet ini milik Anda, termasuk saldonya. Ini memungkinkan Anda memposting, menjual, menukar, dan menerima tip."
     },
     "verify-more": {
-      "title": "Tautkan dompet lain, dan pilih tempat menerima pembayaran",
+      "title": "Tautkan dompet lain",
       "steps": [
         "Beralih ke dompet lain: klik nama dompet di Beranda lalu pilih dompet tersebut.",
         "Klik foto Anda, lalu <b>Edit Profil</b>, kemudian <b>Tautkan</b> di samping dompet itu.",
         "Ulangi untuk setiap dompet yang ingin Anda tampilkan di profil.",
-        "Dompet yang dibayar oleh pembeli dan pemberi tip bertanda <b>Dibayar di sini</b>. Untuk mengubahnya, klik <b>Terima pembayaran di sini</b> pada dompet tertaut lainnya.",
-        "Untuk menghapus dompet dari profil Anda, klik <b>⋯</b> di sampingnya, lalu <b>Hapus dari profil Anda</b>."
+        "Untuk menghapus dompet dari profil, pilih <b>Lepas tautan</b> di samping namanya."
       ]
     },
     "tip": {
