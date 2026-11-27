@@ -5190,6 +5190,9 @@
   // itself a Mac; its touch screen gives it away.
   const ipad = /iPad/.test(navigator.userAgent) || (/Macintosh/.test(navigator.userAgent) && navigator.maxTouchPoints > 1);
   const phone = /iPhone|iPod/.test(navigator.userAgent) || ipad;
+  // A phone-sized screen: iPhones. iPads open pop-ups and side-by-side
+  // views in big windows, as computers do.
+  const handset = phone && !ipad;
   // Touch ID on Macs, Face ID on iPhones; Windows and Linux keep the password.
   const apple = phone || /Macintosh/.test(navigator.userAgent);
   // For Report a Problem: the last few screens and the errors shown, kept
@@ -5483,15 +5486,15 @@
     }
     if (leaveStore && id !== "theme-store") leaveStore();
     if (markShown) { markShown(); markShown = null; }
-    const signinPop = !phone && wide.matches && id === "board-signin";
+    const signinPop = !handset && wide.matches && id === "board-signin";
     if (!ADD_FLOW.includes(id)) addFlow = false;
-    const addPop = addFlow && !phone && wide.matches;
+    const addPop = addFlow && !handset && wide.matches;
     const underSplit = signinPop && document.body.classList.contains("split");
-    const both = !phone && wide.matches && (id === "inbox" || (id === "chat" && chat.from === "inbox" && (chat.id || chat.direct)));
+    const both = !handset && wide.matches && (id === "inbox" || (id === "chat" && chat.from === "inbox" && (chat.id || chat.direct)));
     // Big windows: Send and Receive float over Home rather than replace it.
     // So does Contacts, with the contact or member opened from it.
     const inContacts = document.body.classList.contains("pop") && ["contacts", "contact", "member"].some((x) => !$(x).hidden);
-    const pop = signinPop || addPop || !phone && wide.matches && (SWAP_POPS.includes(id) || id === "send" || id === "solana-send" || id === "activity" || id === "receive" || id === "contacts" || id === "blocks" || ((id === "contact" || id === "member") && inContacts));
+    const pop = signinPop || addPop || !handset && wide.matches && (SWAP_POPS.includes(id) || id === "send" || id === "solana-send" || id === "activity" || id === "receive" || id === "contacts" || id === "blocks" || ((id === "contact" || id === "member") && inContacts));
     // Send opened from someone's profile floats over their profile.
     const under = id === "blocks" ? "profile" : addPop ? "wallets" : signinPop ? lastBase : id === "send" && (sendFrom === "seller" || sendFrom === "explorer") ? sendFrom : SWAP_POPS.includes(id) ? "swaps" : "home";
     for (const s of document.querySelectorAll(".screen")) s.hidden = !(s.id === id || ((both || underSplit) && (s.id === "inbox" || s.id === "chat")) || (pop && s.id === under));
@@ -7727,7 +7730,7 @@
   // the app's version, the window, the last screens and errors.
   const bugSystem = phone ? "iPhone" : /Macintosh/.test(navigator.userAgent) ? "macOS" : /Windows/.test(navigator.userAgent) ? "Windows" : "Linux";
   let bugWhere = "";
-  const bugInfo = () => ({ version: appVersion || $("st-version").textContent || "", system: bugSystem, window: `${window.innerWidth}×${window.innerHeight}`, big: !phone && wide.matches });
+  const bugInfo = () => ({ version: appVersion || $("st-version").textContent || "", system: bugSystem, window: `${window.innerWidth}×${window.innerHeight}`, big: !handset && wide.matches });
   function bugCheck() { $("bug-go").disabled = !bugWhere || !$("bug-what").value.trim() || (bugWhere === "other" && !$("bug-place").value.trim()); }
   function bugPaintSent() {
     const a = bugInfo(), when = (at) => new Date(at * 1000).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
@@ -12855,7 +12858,7 @@
     } catch (e) { problem("sl-problem", mkProblem(e)); }
     finally { $("sl-report-send").disabled = false; }
   };
-  $("sl-back").onclick = () => market.sellerFrom === "explorer" ? show("explorer") : market.sellerFrom === "swaps" ? show("swaps") : market.sellerFrom === "member" ? (!phone && wide.matches ? home() : show("member")) : market.sellerFrom === "chat" ? show("chat") : market.sellerFrom === "community" || market.sellerFrom === "cm-thread" ? show(market.sellerFrom) : market.sellerFrom === "home" ? home() : show("listing");
+  $("sl-back").onclick = () => market.sellerFrom === "explorer" ? show("explorer") : market.sellerFrom === "swaps" ? show("swaps") : market.sellerFrom === "member" ? (!handset && wide.matches ? home() : show("member")) : market.sellerFrom === "chat" ? show("chat") : market.sellerFrom === "community" || market.sellerFrom === "cm-thread" ? show(market.sellerFrom) : market.sellerFrom === "home" ? home() : show("listing");
 
   // ---- Market messages ----
   // When: "just now", "5 min ago", "3 h ago", else a short date.
@@ -13155,7 +13158,7 @@
     const l = nt.lines[Number(r.dataset.nt)];
     if (!l) return;
     // Big windows: in Messages, beside the other conversations.
-    const into = !phone && wide.matches ? "inbox" : "notices";
+    const into = !handset && wide.matches ? "inbox" : "notices";
     if (l.kind === "message") { closeNotices(); return openChat(l.conversation, into); }
     if (l.kind === "room_reply") { closeNotices(); return openRoom(into); }
     // The post on its own in the Community, its comments open.
@@ -13299,11 +13302,11 @@
     // Opened from their chat: back to it.
     if (market.sellerFrom === "chat" && chat.conv && chat.conv.with === sl.id && !chat.conv.listing) { show("chat"); return; }
     // Big windows: in Messages, beside the other conversations.
-    messagePerson({ id: sl.id, name: sl.name, picture: sl.picture }, !phone && wide.matches ? "inbox" : "profile");
+    messagePerson({ id: sl.id, name: sl.name, picture: sl.picture }, !handset && wide.matches ? "inbox" : "profile");
   };
   $("ct-message").onclick = () => {
     const p = editing && profileOf(editing);
-    if (p && p.name) messagePerson({ name: p.name, picture: p.picture }, !phone && wide.matches ? "inbox" : "contact");
+    if (p && p.name) messagePerson({ name: p.name, picture: p.picture }, !handset && wide.matches ? "inbox" : "contact");
   };
   $("ib-list").onclick = (e) => {
     if (e.target.closest("#ib-signin")) { signinReturn = "messages"; resetSignin(); show("board-signin"); return; }
@@ -14399,7 +14402,7 @@
   };
 
   // ---- Home in a big window: mining and the group chat beside the wallet.
-  const homeWide = () => !phone && wide.matches && !$("home").hidden;
+  const homeWide = () => !handset && wide.matches && !$("home").hidden;
   let hsReady = false;
   let hsNetAt = 0;
   async function homeSide() {
@@ -14995,7 +14998,7 @@
   // its top part (name and figures) plus the panel's edge above.
   function exBannerFit() {
     const b = $("ex-banner"), top = document.querySelector("#explorer .ex-addr-top.banner");
-    const on = !phone && wide.matches && !$("explorer").hidden && top && ex.at && ex.at.kind === "address";
+    const on = !handset && wide.matches && !$("explorer").hidden && top && ex.at && ex.at.kind === "address";
     b.hidden = !on;
     if (!on) return;
     const pic = top.querySelector(".ex-art img");
@@ -15192,7 +15195,7 @@
     const pane = $("ex-pane");
     if (!pane) return;
     const kind = ex.at.kind;
-    if (tab === "check" && !phone && wide.matches) tab = "vals";
+    if (tab === "check" && !handset && wide.matches) tab = "vals";
     ex.tabs[kind] = tab;
     for (const b of document.querySelectorAll("[data-ex-tab]")) b.classList.toggle("on", b.dataset.exTab === tab);
     for (const p of pane.querySelectorAll("[data-ex-pane]")) p.hidden = p.dataset.exPane !== tab;
