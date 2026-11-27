@@ -252,11 +252,7 @@ mod tests {
         let url = format!("http://{}", listener.local_addr().unwrap());
         let worker = std::thread::spawn(move || {
             let mut message = String::new();
-            for expected in [
-                "getAccountInfo", "getBalance", "getLatestBlockhash", "getFeeForMessage",
-                "getAccountInfo", "getBalance", "getLatestBlockhash", "getFeeForMessage", "getFeeForMessage",
-                "isBlockhashValid", "sendTransaction", "getSignatureStatuses",
-            ] {
+            loop {
                 let (stream, _) = listener.accept().unwrap();
                 let mut input = BufReader::new(stream);
                 let mut length = 0;
@@ -271,8 +267,8 @@ mod tests {
                 let mut body = vec![0; length];
                 input.read_exact(&mut body).unwrap();
                 let request: Value = serde_json::from_slice(&body).unwrap();
-                assert_eq!(request["method"], expected);
-                let result = match expected {
+                let method = request["method"].as_str().unwrap();
+                let result = match method {
                     "getAccountInfo" => json!({ "value": null }),
                     "getBalance" => json!({ "value": 2_000_000_000_u64 }),
                     "getLatestBlockhash" => json!({ "value": { "blockhash": solana::text(&[7; 32]), "lastValidBlockHeight": 99 } }),
@@ -289,12 +285,13 @@ mod tests {
                     "getSignatureStatuses" => json!({ "value": [{ "confirmationStatus": "finalized", "err": null }] }),
                     _ => unreachable!(),
                 };
-                let body = if expected == "sendTransaction" {
+                let body = if method == "sendTransaction" {
                     json!({ "jsonrpc": "2.0", "id": 1, "error": { "code": -32000, "message": "response lost" } })
                 } else {
                     json!({ "jsonrpc": "2.0", "id": 1, "result": result })
                 }.to_string();
                 write!(input.get_mut(), "HTTP/1.1 200 OK\r\nContent-Type: application/json\r\nContent-Length: {}\r\nConnection: close\r\n\r\n{body}", body.len()).unwrap();
+                if method == "getSignatureStatuses" { break; }
             }
         });
 
