@@ -642,9 +642,9 @@
   .asset-swap-divider { display: flex; align-items: center; gap: 10px; padding: 0 8px; }
   .asset-swap-divider::before, .asset-swap-divider::after { content: ""; height: 1px; flex: 1; background: var(--line); }
   #asset-swap-open { color: var(--accent); width: 32px; height: 32px; }
-  #sol-swap-dialog { width: min(410px, calc(100vw - 28px)); max-height: calc(100dvh - 32px); margin: auto; padding: 20px;
+  #sol-swap-dialog, #sol-unlock-dialog { width: min(410px, calc(100vw - 28px)); max-height: calc(100dvh - 32px); margin: auto; padding: 20px;
     color: var(--ink); background: var(--surface); border: 1px solid var(--line); border-radius: 20px; box-shadow: 0 18px 64px #0006; overflow: auto; }
-  #sol-swap-dialog::backdrop { background: #0008; }
+  #sol-swap-dialog::backdrop, #sol-unlock-dialog::backdrop { background: #0008; }
   .sol-swap-head, .sol-swap-line { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
   .sol-swap-head h2 { font-size: 21px; margin: 0; }
   .sol-swap-network, #sol-swap-available, #sol-swap-pay-label { color: var(--dim); font-size: 13px; }
@@ -670,9 +670,11 @@
   .asset-tokens .set-row[aria-pressed="true"] .asset-token-selected { visibility: visible; }
   #asset-devnet-tools { margin-top: 16px; }
   #asset-devnet-status { margin: 9px 4px 0; color: var(--dim); font-size: 12.5px; }
-  #asset-devnet-unlock { display: grid; gap: 10px; margin-top: 10px; padding: 12px 14px; }
-  #asset-devnet-unlock .field { margin: 0; }
-  #asset-devnet-unlock .pill { justify-self: start; }
+  #asset-devnet-unlock { margin: 10px 4px 0; }
+  #sol-unlock-description { margin: 12px 0 20px; color: var(--dim); line-height: 1.5; }
+  #sol-unlock-form { display: grid; gap: 14px; }
+  #sol-unlock-form .field, #sol-unlock-form .primary { margin: 0; }
+  #sol-unlock-error { margin: 0; font-size: 14px; }
   #home.asset-devnet :is(#vw-card, #recent, #view-all) { display: none; }
   #go-send:disabled { cursor: default; }
   #go-send:disabled .icon { opacity: .45; transform: none; filter: none; }
@@ -3828,13 +3830,7 @@
 
       <div id="asset-devnet-tools" hidden>
         <p id="asset-devnet-status" role="status" hidden></p>
-        <form class="list" id="asset-devnet-unlock" hidden>
-          <div class="field" id="asset-devnet-password-field">
-            <label for="asset-devnet-password">Wallet password</label>
-            <div class="box plain"><input id="asset-devnet-password" type="password" autocomplete="current-password"></div>
-          </div>
-          <button class="pill" id="asset-devnet-unlock-go" type="submit">Unlock Solana</button>
-        </form>
+        <button class="pill" id="asset-devnet-unlock" type="button" hidden>Unlock Solana</button>
       </div>
 
       <!-- Verifying the open wallet: one tap from Home, while it isn't yet. -->
@@ -4910,6 +4906,18 @@
 <div id="pop-shade"></div>
 <div class="ex-veil" id="ex-veil" hidden></div>
 <div id="lock-veil" hidden><div class="lv-in"><div class="mark brand"></div><button class="primary pearl" id="lock-go">Unlock</button></div></div>
+<dialog id="sol-unlock-dialog" aria-labelledby="sol-unlock-title" aria-describedby="sol-unlock-description">
+  <div class="sol-swap-head"><h2 id="sol-unlock-title">Unlock Solana</h2><button type="button" class="pill icon" id="sol-unlock-close" aria-label="Close">✕</button></div>
+  <p id="sol-unlock-description">Unlock this wallet once to get its Solana address. Orien saves the public address on this device so you can check your SOL and USDC balances anytime.</p>
+  <form id="sol-unlock-form">
+    <div class="field" id="asset-devnet-password-field">
+      <label for="asset-devnet-password">Wallet password</label>
+      <div class="box plain"><input id="asset-devnet-password" type="password" autocomplete="current-password" required></div>
+    </div>
+    <p id="sol-unlock-error" role="alert" hidden></p>
+    <button type="submit" class="primary pearl" id="sol-unlock-go">Unlock Solana</button>
+  </form>
+</dialog>
 <dialog id="sol-swap-dialog" aria-labelledby="sol-swap-title">
   <div class="sol-swap-head"><h2 id="sol-swap-title">Swap</h2><button type="button" id="sol-swap-close" class="pill icon" aria-label="Close swap">✕</button></div>
   <p class="sol-swap-network">Solana Devnet · Raydium</p>
@@ -5323,7 +5331,12 @@
   const shownOnce = new Promise((done) => { markShown = done; });
   function show(id) {
     bugStep(id);
-    if (id !== "home") setAssetMenu(false);
+    if (id !== "home") {
+      setAssetMenu(false);
+      devnetAssets.promptUnlock = false;
+      devnetAssets.receive = null;
+      if ($("sol-unlock-dialog").open) $("sol-unlock-dialog").close();
+    }
     if (leaveStore && id !== "theme-store") leaveStore();
     if (markShown) { markShown(); markShown = null; }
     const signinPop = !phone && wide.matches && id === "board-signin";
@@ -5453,7 +5466,7 @@
   let lastBalance = null;
   let walletAsset = "ORN";
   const DEVNET_REFRESH_MS = 30_000;
-  const newDevnetAssets = () => ({ lastCheck: 0, pending: false, locked: false, address: null, balances: null, history: null, trackedTransactions: new Map(), historyBusy: false, historyError: false, stale: false, error: "", receive: null });
+  const newDevnetAssets = () => ({ lastCheck: 0, pending: false, locked: false, promptUnlock: false, address: null, balances: null, history: null, trackedTransactions: new Map(), historyBusy: false, historyError: false, stale: false, error: "", receive: null });
   let devnetAssets = newDevnetAssets();
   const assetButtons = document.querySelectorAll("[data-wallet-asset]");
   const solanaAssetButtons = document.querySelectorAll("[data-solana-asset]");
@@ -5482,7 +5495,7 @@
     for (const button of assetButtons) button.setAttribute("aria-pressed", String(button.dataset.walletAsset === (preview ? "SOL" : "ORN")));
     for (const button of solanaAssetButtons) button.setAttribute("aria-pressed", String(button.dataset.solanaAsset === walletAsset));
     $("asset-devnet-unlock").hidden = !devnetAssets.locked || devnetAssets.pending;
-    $("asset-devnet-password-field").hidden = !!view?.biometric;
+
     $("asset-swap-open").disabled = !devnetAssets.address;
     $("asset-devnet-refresh").disabled = !view || devnetAssets.locked || devnetAssets.pending;
     $("asset-devnet-refresh").setAttribute("aria-busy", String(devnetAssets.pending));
@@ -5609,12 +5622,27 @@
   };
   $("solana-all").onclick = () => openSolanaExplorer("address", devnetAssets.address);
 
+  const solUnlockDialog = $("sol-unlock-dialog");
+  function showSolUnlock() {
+    if (!view || !devnetAssets.locked || walletAsset === "ORN" || $("home").hidden || solUnlockDialog.open) return;
+    const biometric = !!view.biometric;
+    $("asset-devnet-password-field").hidden = biometric;
+    $("asset-devnet-password").disabled = biometric;
+    $("sol-unlock-error").hidden = true;
+    $("sol-unlock-go").disabled = false;
+    solUnlockDialog.showModal();
+    (biometric ? $("sol-unlock-go") : $("asset-devnet-password")).focus();
+  }
   async function loadDevnetAssets(unlock = false) {
     if (!view || devnetAssets.pending || (devnetAssets.locked && !unlock)) return;
     const wallet = view;
     const state = devnetAssets;
     const password = unlock ? $("asset-devnet-password").value : "";
-    $("asset-devnet-password").value = "";
+    if (unlock) {
+      $("asset-devnet-password").value = "";
+      $("sol-unlock-error").hidden = true;
+      $("sol-unlock-go").disabled = true;
+    }
     state.pending = true;
     state.lastCheck = Date.now();
     state.error = "";
@@ -5626,6 +5654,8 @@
       }
       if (state !== devnetAssets || view?.address !== wallet.address) return;
       state.locked = false;
+      state.promptUnlock = false;
+      if (solUnlockDialog.open) solUnlockDialog.close();
       void loadDevnetHistory(state);
       const receive = state.receive;
       state.receive = null;
@@ -5639,10 +5669,22 @@
     } catch (err) {
       const error = String(err);
       if (error === "password: needed") state.locked = true;
-      else state.error = error === "password: wrong" ? "That is not this wallet’s password." : error;
+      if (unlock && state === devnetAssets && solUnlockDialog.open) {
+        $("sol-unlock-error").textContent = error === "password: wrong" ? "Incorrect wallet password. Try again."
+          : error === "password: needed" ? "Unlock your wallet to continue." : error;
+        $("sol-unlock-error").hidden = false;
+        if (!wallet.biometric) $("asset-devnet-password").focus();
+      } else if (state.address || (!unlock && error !== "password: needed")) state.error = error;
     } finally {
       state.pending = false;
-      if (state === devnetAssets && view?.address === wallet.address) paintWalletAsset();
+      if (state === devnetAssets && view?.address === wallet.address) {
+        paintWalletAsset();
+        $("sol-unlock-go").disabled = false;
+        if (state.promptUnlock) {
+          state.promptUnlock = false;
+          showSolUnlock();
+        }
+      }
     }
   }
 
@@ -5656,7 +5698,10 @@
     devnetAssets.receive = null;
     setAssetMenu(false);
     paintWalletAsset();
-    refreshVisibleDevnet();
+    devnetAssets.promptUnlock = walletAsset === "SOL" && !devnetAssets.address && !devnetAssets.locked;
+    if (devnetAssets.promptUnlock) void loadDevnetAssets();
+    else if (walletAsset === "SOL" && devnetAssets.locked) showSolUnlock();
+    else refreshVisibleDevnet();
   };
   for (const button of solanaAssetButtons) button.onclick = () => {
     walletAsset = button.dataset.solanaAsset;
@@ -5797,7 +5842,14 @@
   document.addEventListener("keydown", (event) => {
     if (event.key === "Escape" && !$("asset-token-menu").hidden) setAssetMenu(false, true);
   });
-  $("asset-devnet-unlock").onsubmit = (event) => {
+  $("asset-devnet-unlock").onclick = showSolUnlock;
+  $("sol-unlock-close").onclick = () => {
+    devnetAssets.receive = null;
+    solUnlockDialog.close();
+  };
+  solUnlockDialog.oncancel = () => { devnetAssets.receive = null; };
+  solUnlockDialog.onclose = () => { $("asset-devnet-password").value = ""; };
+  $("sol-unlock-form").onsubmit = (event) => {
     event.preventDefault();
     void loadDevnetAssets(true);
   };
@@ -5984,6 +6036,7 @@
     board.waiting = [];
     walletAsset = "ORN";
     if ($("sol-swap-dialog").open) $("sol-swap-dialog").close();
+    if (solUnlockDialog.open) solUnlockDialog.close();
     devnetAssets = newDevnetAssets();
     $("asset-devnet-password").value = "";
     paintWalletAsset();
@@ -8466,9 +8519,9 @@
     if (devnetAssets.address) { openAssetReceive(walletAsset, devnetAssets.address); return; }
     devnetAssets.receive = walletAsset;
     if (devnetAssets.locked) {
-      const unlock = view.biometric ? $("asset-devnet-unlock-go") : $("asset-devnet-password");
-      unlock.focus();
+      showSolUnlock();
     } else {
+      devnetAssets.promptUnlock = true;
       void loadDevnetAssets();
       $("asset-devnet-status").scrollIntoView({ block: "nearest" });
     }
